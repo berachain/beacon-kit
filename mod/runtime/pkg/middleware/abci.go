@@ -206,7 +206,7 @@ func (h *ABCIMiddleware[
 		args[3] = false
 	}
 
-	h.logger.Info("received proposal with", args...)
+	h.logger.Info("Received proposal with", args...)
 	if err = h.chainService.ReceiveBlockAndBlobs(
 		ctx, blk, sidecars,
 	); errors.IsFatal(err) {

@@ -55,7 +55,7 @@ func (s *Service[
 
 	defer s.metrics.measureRequestBlockForProposalTime(startTime)
 	s.logger.Info(
-		"requesting beacon block assembly 🙈",
+		"Requesting beacon block assembly 🙈",
 		"slot", requestedSlot.Base10(),
 	)
 
@@ -166,7 +166,7 @@ func (s *Service[
 	}
 
 	s.logger.Info(
-		"beacon block successfully built 🛠️ ",
+		"Beacon block successfully built 🛠️ ",
 		"slot", requestedSlot.Base10(),
 		"state_root", blk.GetStateRoot(),
 		"duration", time.Since(startTime).String(),

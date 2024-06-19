@@ -21,106 +21,87 @@
 package phuslu
 
 import (
-	"fmt"
 	"io"
 	"strconv"
-	"sync"
 
 	"github.com/phuslu/log"
 )
 
 // colours.
 const (
-	reset   = "\x1b[0m"
-	black   = "\x1b[30m"
-	red     = "\x1b[31m"
-	green   = "\x1b[32m"
-	yellow  = "\x1b[33m"
-	blue    = "\x1b[34m"
-	magenta = "\x1b[35m"
-	cyan    = "\x1b[36m"
-	white   = "\x1b[37m"
-	gray    = "\x1b[90m"
+	reset      = "\x1b[0m"
+	black      = "\x1b[30m"
+	red        = "\x1b[31m"
+	green      = "\x1b[32m"
+	yellow     = "\x1b[33m"
+	blue       = "\x1b[34m"
+	magenta    = "\x1b[35m"
+	cyan       = "\x1b[36m"
+	white      = "\x1b[37m"
+	gray       = "\x1b[90m"
+	lightWhite = "\x1b[97m"
 )
 
-// byteBuffer is a byte buffer.
-type byteBuffer struct {
-	Bytes []byte
+// Formatter is a custom formatter for log messages.
+type Formatter struct {
+	// QuoteString enables or disables quoting of string values.
+	QuoteString bool
+	// EndWithMessage enables or disables ending the log message with the
+	// message.
+	EndWithMessage bool
 }
 
-// Write writes to the byte buffer.
-func (b *byteBuffer) Write(bytes []byte) (int, error) {
-	b.Bytes = append(b.Bytes, bytes...)
-	return len(bytes), nil
-}
-
-// byteBufferPool is a pool of byte buffers.
-//
-//nolint:gochecknoglobals // buffer pool
-var byteBufferPool = sync.Pool{
-	New: func() any {
-		return new(byteBuffer)
-	},
-}
-
-func resetBuffer(b *byteBuffer) {
-	if b.Bytes != nil {
-		b.Bytes = b.Bytes[:0]
-	} else {
-		b.Bytes = make([]byte, 0)
+// NewFormatter creates a new Formatter with default settings.
+func NewFormatter() *Formatter {
+	return &Formatter{
+		QuoteString:    true,
+		EndWithMessage: false,
 	}
 }
 
-// customFormatter is a custom Formatter to pass into the ConsoleWriter.
-func customFormatter(out io.Writer, args *log.FormatterArgs) (int, error) {
+// Format formats the log message.
+func (f *Formatter) Format(
+	out io.Writer,
+	args *log.FormatterArgs,
+) (int, error) {
 	buffer, ok := byteBufferPool.Get().(*byteBuffer)
 	if !ok {
 		panic("failed to get byte buffer from pool")
 	}
-	resetBuffer(buffer)
+
+	buffer.Reset()
 	defer byteBufferPool.Put(buffer)
 
-	// TODO: pull out of config
 	var color, level string
 	switch args.Level {
 	case "trace":
-		color, level = magenta, "TRACE"
+		color, level = magenta, "TRCE"
 	case "debug":
-		color, level = yellow, "DEBUG"
+		color, level = yellow, "DBUG"
 	case "info":
-		color, level = green, " BET"
+		color, level = green, "INFO"
 	case "warn":
 		color, level = yellow, "WARN"
 	case "error":
-		color, level = red, "ERROR"
+		color, level = red, "ERRR"
 	case "fatal":
-		color, level = red, " FTL"
+		color, level = red, "FATAL"
 	case "panic":
-		color, level = red, " PNC"
+		color, level = red, "PANIC"
 	default:
 		color, level = gray, " ???"
 	}
 
-	// TODO: pull out of config
-	colorOutput := true
-	quoteString := true
-	endWithMessage := false
+	f.printWithColor(args, buffer, color, level)
+	f.ensureLineBreak(buffer)
 
-	// pretty console writer
-	if colorOutput {
-		printWithColor(args, buffer, color, level, quoteString, endWithMessage)
-	} else {
-		printWithoutColor(args, buffer, level, quoteString, endWithMessage)
-	}
-
-	// add line break if needed
-	ensureLineBreak(buffer)
-
-	// stack
 	if args.Stack != "" {
-		buffer.Bytes = append(buffer.Bytes, args.Stack...)
 		if args.Stack[len(args.Stack)-1] != '\n' {
-			buffer.Bytes = append(buffer.Bytes, '\n')
+			buffer.Bytes = append(
+				buffer.Bytes,
+				append([]byte(args.Stack), '\n')...)
+		} else {
+			buffer.Bytes = append(buffer.Bytes, args.Stack...)
 		}
 	}
 
@@ -128,84 +109,72 @@ func customFormatter(out io.Writer, args *log.FormatterArgs) (int, error) {
 }
 
 // printWithColor prints the log message with color.
-func printWithColor(args *log.FormatterArgs,
+func (f *Formatter) printWithColor(
+	args *log.FormatterArgs,
 	b *byteBuffer,
 	color, level string,
-	quoteString, endWithMessage bool) {
-	// header
-	formatHeader(args, b, true, color, level)
-	if !endWithMessage {
-		fmt.Fprintf(b, " %s", args.Message)
-	}
-	// key and values
+) {
+	f.formatHeader(args, b, true, color, level)
+
+	b.Bytes = append(b.Bytes, ' ')
+	b.Bytes = append(b.Bytes, args.Message...)
 	for _, kv := range args.KeyValues {
-		if quoteString && kv.ValueType == 's' {
+		if f.QuoteString && kv.ValueType == 's' {
 			kv.Value = strconv.Quote(kv.Value)
 		}
-		if kv.Key == "error" {
-			fmt.Fprintf(b, " %s%s=%s%s", red, kv.Key, kv.Value, reset)
+		b.Bytes = append(b.Bytes, ' ')
+		if kv.Key == "error" || kv.Key == "err" {
+			b.Bytes = append(b.Bytes, red...)
+			b.Bytes = append(b.Bytes, kv.Key...)
+			b.Bytes = append(b.Bytes, '=')
+			b.Bytes = append(b.Bytes, kv.Value...)
+			b.Bytes = append(b.Bytes, reset...)
 		} else {
-			fmt.Fprintf(b, " %s%s=%s%s%s", cyan, kv.Key, gray, kv.Value, reset)
+			b.Bytes = append(b.Bytes, kv.Key...)
+			b.Bytes = append(b.Bytes, '=')
+			b.Bytes = append(b.Bytes, kv.Value...)
+			b.Bytes = append(b.Bytes, reset...)
 		}
-	}
-	// message
-	if endWithMessage {
-		fmt.Fprintf(b, "%s %s", reset, args.Message)
 	}
 }
 
-func formatHeader(args *log.FormatterArgs, b *byteBuffer, colorEnabled bool,
-	color, level string) {
+// formatHeader formats the header of the log message.
+func (f *Formatter) formatHeader(
+	args *log.FormatterArgs,
+	b *byteBuffer,
+	colorEnabled bool,
+	color, level string,
+) {
 	headerColor, resetColor := "", ""
 	if colorEnabled {
 		headerColor, resetColor = color, reset
 	}
-	fmt.Fprintf(b, "%s%s%s %s%s%s ", gray, args.Time, resetColor, headerColor,
-		level, resetColor)
+	b.Bytes = append(b.Bytes, gray...)
+	b.Bytes = append(b.Bytes, args.Time...)
+	b.Bytes = append(b.Bytes, resetColor...)
+	b.Bytes = append(b.Bytes, ' ')
+	b.Bytes = append(b.Bytes, headerColor...)
+	b.Bytes = append(b.Bytes, level...)
+	b.Bytes = append(b.Bytes, resetColor...)
+
 	if args.Caller != "" {
-		fmt.Fprintf(b, "%s %s %s💦%s", args.Goid, args.Caller, cyan, resetColor)
+		b.Bytes = append(b.Bytes, args.Goid...)
+		b.Bytes = append(b.Bytes, ' ')
+		b.Bytes = append(b.Bytes, args.Caller...)
+		b.Bytes = append(b.Bytes, ' ')
+		b.Bytes = append(b.Bytes, resetColor...)
 	} else {
-		fmt.Fprintf(b, "%s💦%s", cyan, resetColor)
+		b.Bytes = append(b.Bytes, resetColor...)
 	}
 }
 
-func ensureLineBreak(b *byteBuffer) {
+// ensureLineBreak ensures the log message ends with a line break.
+func (f *Formatter) ensureLineBreak(b *byteBuffer) {
 	if b.Bytes == nil {
 		b.Bytes = make([]byte, 0)
 	}
-	if len(b.Bytes) == 0 || b.Bytes[len(b.Bytes)-1] != '\n' {
+	length := len(b.Bytes)
+	if length == 0 || b.Bytes[length-1] != '\n' {
 		b.Bytes = append(b.Bytes, '\n')
-	}
-}
-
-// printWithoutColor prints the log message without color.
-func printWithoutColor(args *log.FormatterArgs,
-	b *byteBuffer,
-	level string,
-	quoteString, endWithMessage bool) {
-	// header
-	fmt.Fprintf(b, "%s %s ", args.Time, level)
-	if args.Caller != "" {
-		fmt.Fprintf(b, "%s %s 💦", args.Goid, args.Caller)
-	} else {
-		fmt.Fprint(b, "💦")
-	}
-	if !endWithMessage {
-		fmt.Fprintf(b, " %s", args.Message)
-	}
-	// key and values
-	for _, kv := range args.KeyValues {
-		if quoteString && kv.ValueType == 's' {
-			b.Bytes = append(b.Bytes, ' ')
-			b.Bytes = append(b.Bytes, kv.Key...)
-			b.Bytes = append(b.Bytes, '=')
-			b.Bytes = strconv.AppendQuote(b.Bytes, kv.Value)
-		} else {
-			fmt.Fprintf(b, " %s=%s", kv.Key, kv.Value)
-		}
-	}
-	// message
-	if endWithMessage {
-		fmt.Fprintf(b, " %s", args.Message)
 	}
 }
