@@ -69,7 +69,7 @@ func (f *Formatter) Format(
 	if !ok {
 		panic("failed to get byte buffer from pool")
 	}
-	resetBuffer(buffer)
+	buffer.Reset()
 	defer byteBufferPool.Put(buffer)
 
 	var color, level string
@@ -177,7 +177,8 @@ func (f *Formatter) ensureLineBreak(b *byteBuffer) {
 	if b.Bytes == nil {
 		b.Bytes = make([]byte, 0)
 	}
-	if len(b.Bytes) == 0 || b.Bytes[len(b.Bytes)-1] != '\n' {
+	length := len(b.Bytes)
+	if length == 0 || b.Bytes[length-1] != '\n' {
 		b.Bytes = append(b.Bytes, '\n')
 	}
 }
