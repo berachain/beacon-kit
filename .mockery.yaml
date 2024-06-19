@@ -43,11 +43,6 @@ packages:
       recursive: True
       with-expecter: true
       all: True
-  github.com/berachain/beacon-kit/mod/cli/pkg/utils/prompt:
-    config:
-      recursive: True
-      with-expecter: true
-      all: True
   github.com/berachain/beacon-kit/mod/storage/pkg/interfaces:
     config:
       recursive: False
