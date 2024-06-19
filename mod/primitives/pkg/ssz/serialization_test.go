@@ -617,7 +617,12 @@ func TestMarshalUnmarshalBitList(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			marshaled := ssz.MarshalBitList(tc.input)
 			unmarshaled := ssz.UnmarshalBitList(marshaled)
-			require.Equal(t, tc.input, unmarshaled, "marshal/unmarshal not equal")
+			require.Equal(
+				t,
+				tc.input,
+				unmarshaled,
+				"marshal/unmarshal not equal",
+			)
 			require.Equal(t, tc.expOutput, marshaled)
 		})
 	}
