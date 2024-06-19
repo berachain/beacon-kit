@@ -483,7 +483,6 @@ github.com/aymerick/douceur v0.2.0/go.mod h1:wlT5vV2O3h55X9m7iVYN0TBM0NH/MmbLnd3
 github.com/aymerick/raymond v2.0.3-0.20180322193309-b565731e1464+incompatible h1:Ppm0npCCsmuR9oQaBtRuZcmILVE74aXE+AmrJj8L2ns=
 github.com/aymerick/raymond v2.0.3-0.20180322193309-b565731e1464+incompatible/go.mod h1:osfaiScAUVup+UC9Nfq76eWqDhXlp+4UYaA8uhTBO6g=
 github.com/benbjohnson/clock v1.1.0 h1:Q92kusRqC1XV2MjkWETPvjJVqKetz1OzxZB7mHJLju8=
-github.com/berachain/beacon-kit/mod/async v0.0.0-20240617185735-42326b5546a8/go.mod h1:ycwqumRG49gb8qg87cc6kVgPeiUDaFMajjLko54Ey+I=
 github.com/berachain/beacon-kit/mod/cli v0.0.0-20240617040308-8f08818d38a4/go.mod h1:4LqfmvrvTCvXZo/6FcnvC089VaJJN5n9N2JIOiYJjnY=
 github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240601211557-8654b92bbf10/go.mod h1:1ARLVWK4DisWnCwrYaRVphAb87JJfFBgkt98z7cq4I0=
 github.com/berachain/beacon-kit/mod/errors v0.0.0-20240508035017-2fb637ea5f0a/go.mod h1:0UT2gj5UW4QDKpIu7cc73akTKZUeCiroT7sp+oHEz20=
@@ -1223,6 +1222,8 @@ github.com/lib/pq v1.9.0/go.mod h1:AlVN5x4E4T544tWzH6hKfbfQvm3HdbOxrmggDNAPY9o=
 github.com/linxGnu/grocksdb v1.7.15/go.mod h1:pY55D0o+r8yUYLq70QmhdudxYvoDb9F+9puf4m3/W+U=
 github.com/linxGnu/grocksdb v1.8.12/go.mod h1:xZCIb5Muw+nhbDK4Y5UJuOrin5MceOuiXkVUR7vp4WY=
 github.com/linxGnu/grocksdb v1.8.14/go.mod h1:QYiYypR2d4v63Wj1adOOfzglnoII0gLj3PNh4fZkcFA=
+github.com/logrusorgru/aurora v2.0.3+incompatible h1:tOpm7WcpBTn4fjmVfgpQq0EfczGlG91VSDkswnjF5A8=
+github.com/logrusorgru/aurora v2.0.3+incompatible/go.mod h1:7rIyQOR62GCctdiQpZ/zOJlFyk6y+94wXzv6RNZgaR4=
 github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 h1:6E+4a0GO5zZEnZ81pIr0yLvtUWk2if982qA3F3QD6H4=
 github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0/go.mod h1:zJYVVT2jmtg6P3p1VtQj7WsuWi/y4VnjVBn7F8KPB3I=
 github.com/lyft/protoc-gen-star/v2 v2.0.3 h1:/3+/2sWyXeMLzKd1bX+ixWKgEMsULrIivpDsuaF441o=
