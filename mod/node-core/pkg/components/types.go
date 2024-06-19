@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
@@ -72,6 +73,12 @@ type (
 		*BeaconBlockHeader, *types.Eth1Data,
 		*ExecutionPayloadHeader, *types.Fork,
 		*types.Validator, *Withdrawal,
+	]
+
+	// BeaconStateMarshallable is a type alias for the BeaconStateMarshallable.
+	BeaconStateMarshallable = state.BeaconStateMarshallable[
+		*BeaconBlockHeader, *types.Eth1Data, *ExecutionPayloadHeader,
+		*types.Fork, *types.Validator,
 	]
 
 	// BlobSidecars is a type alias for the blob sidecars.
@@ -145,8 +152,8 @@ type (
 
 	// KVStore is a type alias for the KV store.
 	KVStore = beacondb.KVStore[
-		*types.Fork, *BeaconBlockHeader, *ExecutionPayloadHeader,
-		*types.Eth1Data, *types.Validator,
+		*BeaconBlockHeader, *types.Eth1Data, *ExecutionPayloadHeader,
+		*types.Fork, *types.Validator,
 	]
 
 	// LegacyKey type alias to LegacyKey used for LegacySinger construction.

@@ -23,7 +23,8 @@ package beacondb
 // GetLatestExecutionPayloadHeader retrieves the latest execution payload
 // header from the BeaconStore.
 func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadHeaderT, Eth1DataT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT,
 ]) GetLatestExecutionPayloadHeader() (
 	ExecutionPayloadHeaderT, error,
 ) {
@@ -39,7 +40,8 @@ func (kv *KVStore[
 // SetLatestExecutionPayloadHeader sets the latest execution payload header in
 // the BeaconStore.
 func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadHeaderT, Eth1DataT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT,
 ]) SetLatestExecutionPayloadHeader(
 	payloadHeader ExecutionPayloadHeaderT,
 ) error {
@@ -54,14 +56,16 @@ func (kv *KVStore[
 
 // GetEth1DepositIndex retrieves the eth1 deposit index from the beacon state.
 func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT,
 ]) GetEth1DepositIndex() (uint64, error) {
 	return kv.eth1DepositIndex.Get(kv.ctx)
 }
 
 // SetEth1DepositIndex sets the eth1 deposit index in the beacon state.
 func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT,
 ]) SetEth1DepositIndex(
 	index uint64,
 ) error {
@@ -70,14 +74,16 @@ func (kv *KVStore[
 
 // GetEth1Data retrieves the eth1 data from the beacon state.
 func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT,
 ]) GetEth1Data() (Eth1DataT, error) {
 	return kv.eth1Data.Get(kv.ctx)
 }
 
 // SetEth1Data sets the eth1 data in the beacon state.
 func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT,
 ]) SetEth1Data(
 	data Eth1DataT,
 ) error {
