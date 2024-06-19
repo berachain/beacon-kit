@@ -156,16 +156,22 @@ func NewABCIMiddleware[
 			NewNoopBlockGossipHandler[BeaconBlockT, encoding.ABCIRequest](
 			chainSpec,
 		),
-		logger:                    logger,
-		metrics:                   newABCIMiddlewareMetrics(telemetrySink),
-		blkFeed:                   blkFeed,
-		sidecarsFeed:              sidecarsFeed,
-		slotFeed:                  slotFeed,
-		valUpdatesCh:              make(chan transition.ValidatorUpdates),
-		finalizeBlockErrCh:        make(chan error, 1),
-		prepareProposalBlkCh:      make(chan *asynctypes.Event[BeaconBlockT], 1),
-		prepareProposalSidecarsCh: make(chan *asynctypes.Event[BlobSidecarsT], 1),
-		prepareProposalErrCh:      make(chan error, 1),
+		logger:             logger,
+		metrics:            newABCIMiddlewareMetrics(telemetrySink),
+		blkFeed:            blkFeed,
+		sidecarsFeed:       sidecarsFeed,
+		slotFeed:           slotFeed,
+		valUpdatesCh:       make(chan transition.ValidatorUpdates),
+		finalizeBlockErrCh: make(chan error, 1),
+		prepareProposalBlkCh: make(
+			chan *asynctypes.Event[BeaconBlockT],
+			1,
+		),
+		prepareProposalSidecarsCh: make(
+			chan *asynctypes.Event[BlobSidecarsT],
+			1,
+		),
+		prepareProposalErrCh: make(chan error, 1),
 	}
 }
 

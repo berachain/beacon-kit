@@ -101,10 +101,10 @@ func (h *ABCIMiddleware[
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
 	var (
-		// err           error
-		startTime     = time.Now()
-		sidecarsBz    []byte
-		beaconBlockBz []byte
+		wg                          sync.WaitGroup
+		startTime                   = time.Now()
+		beaconBlockErr, sidecarsErr error
+		beaconBlockBz, sidecarsBz   []byte
 	)
 	defer h.metrics.measurePrepareProposalDuration(startTime)
 
@@ -114,31 +114,27 @@ func (h *ABCIMiddleware[
 		ctx, events.NewSlot, math.Slot(req.Height),
 	))
 
-	// Using a wait group instead of an err group to ensure we drain
-	// the associated channels.
-	var wg sync.WaitGroup
-	var beaconBlockErr, sidecarsErr error
-
-	wg.Add(1)
+	// Using a wait group instead of an errgroup to ensure we drain
+	// the associated channels for the beacon block and sidecars.
+	//nolint:mnd // bet.
+	wg.Add(2)
 	go func() {
 		defer wg.Done()
 		beaconBlockBz, beaconBlockErr = h.waitforBeaconBlk(ctx)
 	}()
 
-	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		sidecarsBz, sidecarsErr = h.waitForSidecars(ctx)
 	}()
 
 	wg.Wait()
-
 	if beaconBlockErr != nil {
 		return nil, beaconBlockErr
-	}
-	if sidecarsErr != nil {
+	} else if sidecarsErr != nil {
 		return nil, sidecarsErr
 	}
+
 	return &cmtabci.PrepareProposalResponse{
 		Txs: [][]byte{beaconBlockBz, sidecarsBz},
 	}, nil
@@ -181,7 +177,10 @@ func (h *ABCIMiddleware[
 		if beaconBlock.Error() != nil {
 			return nil, beaconBlock.Error()
 		}
-		beaconBlockBz, err := h.beaconBlockGossiper.Publish(gCtx, beaconBlock.Data())
+		beaconBlockBz, err := h.beaconBlockGossiper.Publish(
+			gCtx,
+			beaconBlock.Data(),
+		)
 		if err != nil {
 			h.logger.Error("failed to publish beacon block", "error", err)
 		}
