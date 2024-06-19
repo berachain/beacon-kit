@@ -26,15 +26,16 @@ import (
 	"time"
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/sourcegraph/conc/iter"
-	"golang.org/x/sync/errgroup"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -115,44 +116,76 @@ func (h *ABCIMiddleware[
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
 	var (
+		err           error
 		startTime     = time.Now()
 		sidecarsBz    []byte
 		beaconBlockBz []byte
 	)
 	defer h.metrics.measurePrepareProposalDuration(startTime)
 
-	// Get the best block and blobs.
-	blk, blobs, err := h.validatorService.RequestBlockForProposal(
-		ctx, math.Slot(req.GetHeight()))
-	if err != nil || blk.IsNil() {
-		h.logger.Error(
-			"failed to assemble proposal", "error", err, "block", blk)
-		return &cmtabci.PrepareProposalResponse{}, err
+	// Send a request to the validator service to give us a beacon block
+	// and blob sidecards to pass to ABCI.
+	h.slotFeed.Send(asynctypes.NewEvent(
+		ctx, events.NewSlot, math.Slot(req.Height),
+	))
+
+	beaconBlockBz, err = h.waitforBeaconBlk(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	// "Publish" the blobs and the beacon block.
-	g, gCtx := errgroup.WithContext(ctx)
-	g.Go(func() error {
-		var localErr error
-		sidecarsBz, localErr = h.blobGossiper.Publish(gCtx, blobs)
-		if localErr != nil {
-			h.logger.Error("failed to publish blobs", "error", err)
-		}
-		return err
-	})
-
-	g.Go(func() error {
-		var localErr error
-		beaconBlockBz, localErr = h.beaconBlockGossiper.Publish(gCtx, blk)
-		if localErr != nil {
-			h.logger.Error("failed to publish beacon block", "error", err)
-		}
-		return err
-	})
+	sidecarsBz, err = h.waitForSidecars(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	return &cmtabci.PrepareProposalResponse{
 		Txs: [][]byte{beaconBlockBz, sidecarsBz},
-	}, g.Wait()
+	}, nil
+}
+
+// waitForSidecars waits for the sidecars to be built and returns them.
+func (h *ABCIMiddleware[
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+]) waitForSidecars(gCtx context.Context) ([]byte, error) {
+	select {
+	case <-gCtx.Done():
+		return nil, gCtx.Err()
+	case err := <-h.prepareProposalErrCh:
+		return nil, err
+	case sidecars := <-h.prepareProposalSidecarsCh:
+		sidecarsBz, err := h.blobGossiper.Publish(gCtx, sidecars)
+		if err != nil {
+			h.logger.Error("failed to publish blobs", "error", err)
+		}
+		return sidecarsBz, err
+	}
+}
+
+// waitforBeaconBlk waits for the beacon block to be built and returns it.
+func (h *ABCIMiddleware[
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconStateT,
+	BlobSidecarsT,
+]) waitforBeaconBlk(gCtx context.Context) ([]byte, error) {
+	select {
+	case <-gCtx.Done():
+		return nil, gCtx.Err()
+	case err := <-h.prepareProposalErrCh:
+		return nil, err
+	case beaconBlock := <-h.prepareProposalBlkCh:
+		beaconBlockBz, err := h.beaconBlockGossiper.Publish(gCtx, beaconBlock)
+		if err != nil {
+			h.logger.Error("failed to publish beacon block", "error", err)
+		}
+		return beaconBlockBz, err
+	}
 }
 
 /* -------------------------------------------------------------------------- */
@@ -256,13 +289,13 @@ func (h *ABCIMiddleware[
 		))
 
 	if err != nil {
-		h.errCh <- errors.Join(err, ErrBadExtractBlockAndBlocks)
+		h.finalizeBlockErrCh <- errors.Join(err, ErrBadExtractBlockAndBlocks)
 		return
 	}
 
 	result, err := h.chainService.ProcessBlockAndBlobs(ctx, blk, blobs)
 	if err != nil {
-		h.errCh <- err
+		h.finalizeBlockErrCh <- err
 	} else {
 		h.valUpdatesCh <- result
 	}
@@ -294,7 +327,7 @@ func (h *ABCIMiddleware[
 	select {
 	case <-ctx.Done():
 		return nil, ctx.Err()
-	case err := <-h.errCh:
+	case err := <-h.finalizeBlockErrCh:
 		if errors.Is(err, ErrBadExtractBlockAndBlocks) {
 			err = nil
 		}
