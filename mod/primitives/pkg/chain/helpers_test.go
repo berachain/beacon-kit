@@ -24,7 +24,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // Define concrete types for the generic parameters
@@ -60,7 +60,7 @@ func TestActiveForkVersionForEpoch(t *testing.T) {
 	// Run test cases
 	for _, tc := range testCases {
 		result := spec.ActiveForkVersionForEpoch(tc.epoch)
-		assert.Equal(t, tc.expected, result, "unexpected active fork version for epoch %d", tc.epoch)
+		require.Equal(t, tc.expected, result, "unexpected active fork version for epoch %d", tc.epoch)
 	}
 }
 
@@ -82,7 +82,7 @@ func TestSlotToEpoch(t *testing.T) {
 	// Run test cases
 	for _, tc := range testCases {
 		result := spec.SlotToEpoch(tc.slot)
-		assert.Equal(t, tc.expected, result, "unexpected epoch for slot %d", tc.slot)
+		require.Equal(t, tc.expected, result, "unexpected epoch for slot %d", tc.slot)
 	}
 }
 
@@ -102,7 +102,7 @@ func TestActiveForkVersionForSlot(t *testing.T) {
 	// Run test cases
 	for _, tc := range testCases {
 		result := spec.ActiveForkVersionForSlot(tc.slot)
-		assert.Equal(t, tc.expected, result, "unexpected fork version for slot %d", tc.slot)
+		require.Equal(t, tc.expected, result, "unexpected fork version for slot %d", tc.slot)
 	}
 }
 
@@ -123,6 +123,6 @@ func TestWithinDAPeriod(t *testing.T) {
 	// Run test cases
 	for _, tc := range testCases {
 		result := spec.WithinDAPeriod(tc.block, tc.current)
-		assert.Equal(t, tc.expected, result, "unexpected DA period result for block %d and current %d", tc.block, tc.current)
+		require.Equal(t, tc.expected, result, "unexpected DA period result for block %d and current %d", tc.block, tc.current)
 	}
 }
