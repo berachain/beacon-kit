@@ -114,9 +114,7 @@ func customFormatter(out io.Writer, args *log.FormatterArgs) (int, error) {
 	}
 
 	// add line break if needed
-	if buffer.Bytes[len(buffer.Bytes)-1] != '\n' {
-		buffer.Bytes = append(buffer.Bytes, '\n')
-	}
+	ensureLineBreak(buffer)
 
 	// stack
 	if args.Stack != "" {
@@ -159,6 +157,15 @@ func printWithColor(args *log.FormatterArgs,
 	// message
 	if endWithMessage {
 		fmt.Fprintf(b, "%s %s", reset, args.Message)
+	}
+}
+
+func ensureLineBreak(b *byteBuffer) {
+	if b.Bytes == nil {
+		b.Bytes = make([]byte, 0)
+	}
+	if len(b.Bytes) == 0 || b.Bytes[len(b.Bytes)-1] != '\n' {
+		b.Bytes = append(b.Bytes, '\n')
 	}
 }
 
