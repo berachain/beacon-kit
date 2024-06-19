@@ -235,5 +235,4 @@ func (s *Service[
 	s.sidecarsFeed.Send(asynctypes.NewEvent(
 		req.Context(), events.BlobSidecarsBuilt, sidecars, err,
 	))
-
 }

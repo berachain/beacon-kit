@@ -48,7 +48,8 @@ type Formatter struct {
 	ColorOutput bool
 	// QuoteString enables or disables quoting of string values.
 	QuoteString bool
-	// EndWithMessage enables or disables ending the log message with the message.
+	// EndWithMessage enables or disables ending the log message with the
+	// message.
 	EndWithMessage bool
 }
 
@@ -62,7 +63,10 @@ func NewFormatter() *Formatter {
 }
 
 // Format formats the log message.
-func (f *Formatter) Format(out io.Writer, args *log.FormatterArgs) (int, error) {
+func (f *Formatter) Format(
+	out io.Writer,
+	args *log.FormatterArgs,
+) (int, error) {
 	buffer, ok := byteBufferPool.Get().(*byteBuffer)
 	if !ok {
 		panic("failed to get byte buffer from pool")
@@ -109,7 +113,11 @@ func (f *Formatter) Format(out io.Writer, args *log.FormatterArgs) (int, error) 
 }
 
 // printWithColor prints the log message with color.
-func (f *Formatter) printWithColor(args *log.FormatterArgs, b *byteBuffer, color, level string) {
+func (f *Formatter) printWithColor(
+	args *log.FormatterArgs,
+	b *byteBuffer,
+	color, level string,
+) {
 	f.formatHeader(args, b, true, color, level)
 	if !f.EndWithMessage {
 		fmt.Fprintf(b, " %s", args.Message)
@@ -130,12 +138,26 @@ func (f *Formatter) printWithColor(args *log.FormatterArgs, b *byteBuffer, color
 }
 
 // formatHeader formats the header of the log message.
-func (f *Formatter) formatHeader(args *log.FormatterArgs, b *byteBuffer, colorEnabled bool, color, level string) {
+func (f *Formatter) formatHeader(
+	args *log.FormatterArgs,
+	b *byteBuffer,
+	colorEnabled bool,
+	color, level string,
+) {
 	headerColor, resetColor := "", ""
 	if colorEnabled {
 		headerColor, resetColor = color, reset
 	}
-	fmt.Fprintf(b, "%s%s%s %s%s%s ", gray, args.Time, resetColor, headerColor, level, resetColor)
+	fmt.Fprintf(
+		b,
+		"%s%s%s %s%s%s ",
+		gray,
+		args.Time,
+		resetColor,
+		headerColor,
+		level,
+		resetColor,
+	)
 	if args.Caller != "" {
 		fmt.Fprintf(b, "%s %s %s💦%s", args.Goid, args.Caller, cyan, resetColor)
 	} else {
@@ -154,7 +176,11 @@ func (f *Formatter) ensureLineBreak(b *byteBuffer) {
 }
 
 // printWithoutColor prints the log message without color.
-func (f *Formatter) printWithoutColor(args *log.FormatterArgs, b *byteBuffer, level string) {
+func (f *Formatter) printWithoutColor(
+	args *log.FormatterArgs,
+	b *byteBuffer,
+	level string,
+) {
 	fmt.Fprintf(b, "%s %s ", args.Time, level)
 	if args.Caller != "" {
 		fmt.Fprintf(b, "%s %s 💦", args.Goid, args.Caller)
