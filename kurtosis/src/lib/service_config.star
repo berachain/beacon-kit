@@ -133,33 +133,23 @@ def validate_service_config_types(service_config):
     # TODO(validation): Implement validation for tolerations
     # TODO(validation): Implement validation for node_selectors
 
-def create_port_specs_from_config_nids(plan, config, is_full_node):
+def create_public_port_specs_from_config(config, is_full_node):
     ports = {}
     if is_full_node:
         ports = {}
         for port_key, port_spec in config["public_ports"].items():
-            ports[port_key] = create_port_spec_nids(port_spec)
-        plan.print("ports", str(ports))
+            ports[port_key] = port_spec_lib.create_port_spec(port_spec)
 
     return ports
 
-def create_port_spec_nids(port_spec_dict):
-    return PortSpec(
-        number = port_spec_dict["number"],
-        transport_protocol = port_spec_dict["transport_protocol"],
-        application_protocol = port_spec_dict["application_protocol"],
-        wait = port_spec_dict["wait"],
-    )
-
-def create_from_config(plan, config, is_full_node = False):
+def create_from_config(config, is_full_node = False):
     validate_service_config_types(config)
 
     return ServiceConfig(
         image = config["image"],
         ports = port_spec_lib.create_port_specs_from_config(config),
-        # public_ports = port_spec_lib.create_port_spec(config["public_ports"]) if config["public_ports"] else {},
-        public_ports = create_port_specs_from_config_nids(plan, config, is_full_node) if config["public_ports"] else {},
-        # public_ports = create_port_specs_from_config_nids(plan,config),
+        # public port exposed for erigon node
+        public_ports = create_public_port_specs_from_config(config, is_full_node) if config["public_ports"] else {},
         files = config["files"] if config["files"] else {},
         entrypoint = config["entrypoint"] if config["entrypoint"] else [],
         cmd = [" ".join(config["cmd"])] if config["cmd"] else [],

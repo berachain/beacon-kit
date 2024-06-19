@@ -1,7 +1,7 @@
 shared_utils = import_module("github.com/ethpandaops/ethereum-package/src/shared_utils/shared_utils.star")
 
 SERVICE_NAME = "otterscan"
-IMAGE_NAME = "otterscan/otterscan:develop"
+IMAGE_NAME = "otterscan/otterscan:latest"
 HTTP_PORT_ID = "http"
 HTTP_PORT_NUMBER = 80
 USED_PORTS = {
