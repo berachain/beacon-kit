@@ -96,17 +96,17 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 
 	s.kCtx, err = kurtosis_context.NewKurtosisContextFromLocalEngine()
 	s.Require().NoError(err)
-	s.logger.Info("destroying any existing enclave...")
+	s.logger.Info("Destroying any existing enclave...")
 	//#nosec:G703 // its okay if this errors out. It will error out
 	// if there is no enclave to destroy.
 	_ = s.kCtx.DestroyEnclave(s.ctx, "e2e-test-enclave")
 
-	s.logger.Info("creating enclave...")
+	s.logger.Info("Creating enclave...")
 	s.enclave, err = s.kCtx.CreateEnclave(s.ctx, "e2e-test-enclave")
 	s.Require().NoError(err)
 
 	s.logger.Info(
-		"spinning up enclave...",
+		"Spinning up enclave...",
 		"num_validators",
 		len(s.cfg.NetworkConfiguration.Validators.Nodes),
 		"num_full_nodes",
@@ -124,14 +124,14 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	s.Require().NoError(err, "Error running Starlark package")
 	s.Require().Nil(result.ExecutionError, "Error running Starlark package")
 	s.Require().Empty(result.ValidationErrors)
-	s.logger.Info("enclave spun up successfully")
+	s.logger.Info("Enclave spun up successfully")
 
-	s.logger.Info("setting up consensus clients")
+	s.logger.Info("Setting up consensus clients")
 	err = s.SetupConsensusClients()
 	s.Require().NoError(err, "Error setting up consensus clients")
 
 	// Setup the JSON-RPC balancer.
-	s.logger.Info("setting up JSON-RPC balancer")
+	s.logger.Info("Setting up JSON-RPC balancer")
 	err = s.SetupJSONRPCBalancer()
 	s.Require().NoError(err, "Error setting up JSON-RPC balancer")
 
@@ -199,7 +199,7 @@ func (s *KurtosisE2ESuite) SetupJSONRPCBalancer() error {
 	// get the type for EthJSONRPCEndpoint
 	typeRPCEndpoint := s.JSONRPCBalancerType()
 
-	s.logger.Info("setting up JSON-RPC balancer:", "type", typeRPCEndpoint)
+	s.logger.Info("Setting up JSON-RPC balancer:", "type", typeRPCEndpoint)
 
 	sCtx, err := s.Enclave().GetServiceContext(typeRPCEndpoint)
 	if err != nil {
@@ -227,7 +227,7 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 	var chainID *big.Int
 	chainID, err = s.JSONRPCBalancer().ChainID(ctx)
 	s.Require().NoError(err, "failed to get chain ID")
-	s.logger.Info("chain-id is", "chain_id", chainID)
+	s.logger.Info("Chain-id is", "chain_id", chainID)
 	_, err = iter.MapErr(
 		s.testAccounts,
 		func(acc **types.EthAccount) (*ethtypes.Receipt, error) {
@@ -275,7 +275,7 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 			}
 
 			s.logger.Info(
-				"funding transaction submitted, waiting for confirmation...",
+				"Funding transaction submitted, waiting for confirmation...",
 				"tx_hash", signedTx.Hash().Hex(), "nonce", nonceToSubmit,
 				"account", account.Name(), "value", value,
 			)
@@ -289,7 +289,7 @@ func (s *KurtosisE2ESuite) FundAccounts() {
 			}
 
 			s.logger.Info(
-				"funding transaction confirmed",
+				"Funding transaction confirmed",
 				"tx_hash", signedTx.Hash().Hex(),
 				"account", account.Name(),
 			)
@@ -342,7 +342,7 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 			continue
 		}
 		s.logger.Info(
-			"waiting for finalized block number to reach target",
+			"Waiting for finalized block number to reach target",
 			"target",
 			target,
 			"finalized",
@@ -358,7 +358,7 @@ func (s *KurtosisE2ESuite) WaitForFinalizedBlockNumber(
 	}
 
 	s.logger.Info(
-		"finalized block number reached target 🎉",
+		"Finalized block number reached target 🎉",
 		"target",
 		target,
 		"finalized",
@@ -383,7 +383,7 @@ func (s *KurtosisE2ESuite) WaitForNBlockNumbers(
 // TearDownSuite cleans up resources after all tests have been executed.
 // this function executes after all tests executed.
 func (s *KurtosisE2ESuite) TearDownSuite() {
-	s.Logger().Info("destroying enclave...")
+	s.Logger().Info("Destroying enclave...")
 	s.Require().NoError(s.kCtx.DestroyEnclave(s.ctx, "e2e-test-enclave"))
 }
 
@@ -395,7 +395,7 @@ func (s *KurtosisE2ESuite) CheckForSuccessfulTx(
 	defer cancel()
 	receipt, err := s.JSONRPCBalancer().TransactionReceipt(ctx, tx)
 	if err != nil {
-		s.Logger().Error("error getting transaction receipt", "error", err)
+		s.Logger().Error("Error getting transaction receipt", "error", err)
 		return false
 	}
 	return receipt.Status == ethtypes.ReceiptStatusSuccessful

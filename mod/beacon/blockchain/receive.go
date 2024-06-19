@@ -98,13 +98,13 @@ func (s *Service[
 	// If the block is nil or a nil pointer, exit early.
 	if blk.IsNil() {
 		s.logger.Warn(
-			"aborting block verification - beacon block not found in proposal 🚫",
+			"Aborting block verification - beacon block not found in proposal 🚫",
 		)
 		return errors.WrapNonFatal(ErrNilBlk)
 	}
 
 	s.logger.Info(
-		"received incoming beacon block 📫",
+		"Received incoming beacon block 📫",
 		"state_root", blk.GetStateRoot(),
 	)
 
@@ -119,7 +119,7 @@ func (s *Service[
 		ctx, postState, blk,
 	); err != nil {
 		s.logger.Error(
-			"rejecting incoming beacon block ❌ ",
+			"Rejecting incoming beacon block ❌ ",
 			"state_root",
 			blk.GetStateRoot(),
 			"reason",
@@ -134,7 +134,7 @@ func (s *Service[
 	}
 
 	s.logger.Info(
-		"state root verification succeeded - accepting incoming beacon block 🏎️",
+		"State root verification succeeded - accepting incoming beacon block 🏎️ ",
 		"state_root",
 		blk.GetStateRoot(),
 	)
@@ -209,7 +209,7 @@ func (s *Service[
 ) error {
 	if blk.IsNil() {
 		s.logger.Warn(
-			"aborting blob verification - beacon block not found in proposal 🚫",
+			"Aborting blob verification - beacon block not found in proposal 🚫",
 		)
 		return errors.WrapNonFatal(ErrNilBlk)
 	}
@@ -217,7 +217,7 @@ func (s *Service[
 	// If there are no blobs to verify, return early.
 	if sidecars.IsNil() || sidecars.Len() == 0 {
 		s.logger.Info(
-			"no blob sidecars to verify, skipping verifier 🧢",
+			"No blob sidecars to verify, skipping verifier 🧢",
 			"slot",
 			blk.GetSlot(),
 		)
@@ -225,7 +225,7 @@ func (s *Service[
 	}
 
 	s.logger.Info(
-		"received incoming blob sidecars 🚔",
+		"Received incoming blob sidecars 🚔",
 	)
 
 	// Verify the blobs and ensure they match the local state.
@@ -238,7 +238,7 @@ func (s *Service[
 	}
 
 	s.logger.Info(
-		"blob sidecars verification succeeded - accepting incoming blob sidecars 💦",
+		"Blob sidecars verification succeeded - accepting incoming blob sidecars 💦",
 		"num_blobs",
 		sidecars.Len(),
 	)

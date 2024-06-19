@@ -52,9 +52,11 @@ type (
 	ABCIMiddleware = middleware.ABCIMiddleware[
 		*AvailabilityStore,
 		*BeaconBlock,
-		*BeaconBlockBody,
 		BeaconState,
 		*BlobSidecars,
+		*Deposit,
+		*ExecutionPayload,
+		*Genesis,
 	]
 
 	// AvailabilityStore is a type alias for the availability store.
