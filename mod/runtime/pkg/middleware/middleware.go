@@ -99,9 +99,9 @@ type ABCIMiddleware[
 	// method.
 	prepareProposalErrCh chan error
 	// blkCh is used to communicate the beacon block to the EndBlock method.
-	prepareProposalBlkCh chan BeaconBlockT
+	prepareProposalBlkCh chan *asynctypes.Event[BeaconBlockT]
 	// sidecarsCh is used to communicate the sidecars to the EndBlock method.
-	prepareProposalSidecarsCh chan BlobSidecarsT
+	prepareProposalSidecarsCh chan *asynctypes.Event[BlobSidecarsT]
 	//
 	// FinalizeBlock
 	//
@@ -156,16 +156,22 @@ func NewABCIMiddleware[
 			NewNoopBlockGossipHandler[BeaconBlockT, encoding.ABCIRequest](
 			chainSpec,
 		),
-		logger:                    logger,
-		metrics:                   newABCIMiddlewareMetrics(telemetrySink),
-		blkFeed:                   blkFeed,
-		sidecarsFeed:              sidecarsFeed,
-		slotFeed:                  slotFeed,
-		valUpdatesCh:              make(chan transition.ValidatorUpdates),
-		finalizeBlockErrCh:        make(chan error, 1),
-		prepareProposalBlkCh:      make(chan BeaconBlockT, 1),
-		prepareProposalSidecarsCh: make(chan BlobSidecarsT, 1),
-		prepareProposalErrCh:      make(chan error, 1),
+		logger:             logger,
+		metrics:            newABCIMiddlewareMetrics(telemetrySink),
+		blkFeed:            blkFeed,
+		sidecarsFeed:       sidecarsFeed,
+		slotFeed:           slotFeed,
+		valUpdatesCh:       make(chan transition.ValidatorUpdates),
+		finalizeBlockErrCh: make(chan error, 1),
+		prepareProposalBlkCh: make(
+			chan *asynctypes.Event[BeaconBlockT],
+			1,
+		),
+		prepareProposalSidecarsCh: make(
+			chan *asynctypes.Event[BlobSidecarsT],
+			1,
+		),
+		prepareProposalErrCh: make(chan error, 1),
 	}
 }
 
@@ -204,18 +210,14 @@ func (am *ABCIMiddleware[
 			return
 		case blk := <-subBlkCh:
 			if blk.Type() == events.BeaconBlockBuilt {
-				if blk.Error() != nil {
-					am.prepareProposalErrCh <- blk.Error()
-					continue
-				}
-				am.prepareProposalBlkCh <- blk.Data()
+				am.prepareProposalBlkCh <- blk
 			}
 		case sidecars := <-subSidecarsCh:
 			if sidecars.Error() != nil {
 				am.prepareProposalErrCh <- sidecars.Error()
 				continue
 			}
-			am.prepareProposalSidecarsCh <- sidecars.Data()
+			am.prepareProposalSidecarsCh <- sidecars
 		}
 	}
 }

@@ -72,7 +72,7 @@ func (db *DB) Set(key []byte, value []byte) error {
 	if exists, err := afero.Exists(db.fs, db.pathForKey(key)); err != nil {
 		return err
 	} else if exists {
-		db.logger.Warn("overriding existing key", "key", key)
+		db.logger.Warn("Overriding existing key", "key", key)
 	}
 
 	if err := db.fs.MkdirAll(

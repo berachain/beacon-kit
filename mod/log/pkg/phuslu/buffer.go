@@ -20,30 +20,33 @@
 
 package phuslu
 
-import "time"
+import "sync"
 
-// Config is a structure that defines the configuration for the logger.
-type Config struct {
-	// TimeFormat is a string that defines the format of the time in
-	// the logger.
-	TimeFormat string
-	// ColorOutput is a boolean that determines if the output of the
-	// logger should be in color.
-	ColorOutput bool
-	// QuoteString is a boolean that determines if the strings in
-	// the logger should be quoted.
-	QuoteString bool
-	// EndWithMessage is a boolean that determines if the logger
-	// should end with a message.
-	EndWithMessage bool
+// byteBuffer is a byte buffer.
+type byteBuffer struct {
+	Bytes []byte
 }
 
-// DefaultConfig is a function that returns a new Config with default values.
-func DefaultConfig() *Config {
-	return &Config{
-		TimeFormat:     time.RFC3339,
-		ColorOutput:    true,
-		QuoteString:    true,
-		EndWithMessage: true,
+// byteBufferPool is a pool of byte buffers.
+//
+//nolint:gochecknoglobals // buffer pool
+var byteBufferPool = sync.Pool{
+	New: func() any {
+		return new(byteBuffer)
+	},
+}
+
+// Write writes to the byte buffer.
+func (b *byteBuffer) Write(bytes []byte) (int, error) {
+	b.Bytes = append(b.Bytes, bytes...)
+	return len(bytes), nil
+}
+
+// Reset resets the byte buffer.
+func (b *byteBuffer) Reset() {
+	if b.Bytes != nil {
+		b.Bytes = b.Bytes[:0]
+	} else {
+		b.Bytes = make([]byte, 0)
 	}
 }
