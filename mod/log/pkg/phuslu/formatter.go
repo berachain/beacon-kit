@@ -10,7 +10,7 @@
 //
 // THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
 // LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
-// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
+// LICENSOR AS EXPRESSLY REQUIred BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
 // AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
@@ -29,63 +29,68 @@ import (
 	"github.com/phuslu/log"
 )
 
-// byteBuffer is a byte buffer
+// colours
+const (
+	reset   = "\x1b[0m"
+	black   = "\x1b[30m"
+	red     = "\x1b[31m"
+	green   = "\x1b[32m"
+	yellow  = "\x1b[33m"
+	blue    = "\x1b[34m"
+	magenta = "\x1b[35m"
+	cyan    = "\x1b[36m"
+	white   = "\x1b[37m"
+	gray    = "\x1b[90m"
+)
+
+// byteBuffer is a byte buffer.
 type byteBuffer struct {
 	Bytes []byte
 }
 
-// Write writes to the byte buffer
+// Write writes to the byte buffer.
 func (b *byteBuffer) Write(bytes []byte) (int, error) {
 	b.Bytes = append(b.Bytes, bytes...)
 	return len(bytes), nil
 }
 
-// byteBufferPool is a pool of byte buffers
+// byteBufferPool is a pool of byte buffers.
+//
+//nolint:gochecknoglobals // buffer pool
 var byteBufferPool = sync.Pool{
 	New: func() any {
 		return new(byteBuffer)
 	},
 }
 
-// customFormatter is a custom Formatter to pass into the ConsoleWriter
-func customFormatter(out io.Writer, args *log.FormatterArgs) (
-	n int, err error) {
-	b := byteBufferPool.Get().(*byteBuffer)
+// customFormatter is a custom Formatter to pass into the ConsoleWriter.
+func customFormatter(out io.Writer, args *log.FormatterArgs) (int, error) {
+	b, ok := byteBufferPool.Get().(*byteBuffer)
+	if !ok {
+		panic("failed to get byte buffer from pool")
+	}
 	b.Bytes = b.Bytes[:0]
 	defer byteBufferPool.Put(b)
-
-	const (
-		Reset   = "\x1b[0m"
-		Black   = "\x1b[30m"
-		Red     = "\x1b[31m"
-		Green   = "\x1b[32m"
-		Yellow  = "\x1b[33m"
-		Blue    = "\x1b[34m"
-		Magenta = "\x1b[35m"
-		Cyan    = "\x1b[36m"
-		White   = "\x1b[37m"
-		Gray    = "\x1b[90m"
-	)
 
 	// TODO: pull out of config
 	var color, level string
 	switch args.Level {
 	case "trace":
-		color, level = Magenta, "TRACE"
+		color, level = magenta, "TRACE"
 	case "debug":
-		color, level = Yellow, "DEBUG"
+		color, level = yellow, "DEBUG"
 	case "info":
-		color, level = Green, " BET"
+		color, level = green, " BET"
 	case "warn":
-		color, level = Yellow, "WARN"
+		color, level = yellow, "WARN"
 	case "error":
-		color, level = Red, "ERROR"
+		color, level = red, "ERROR"
 	case "fatal":
-		color, level = Red, " FTL"
+		color, level = red, " FTL"
 	case "panic":
-		color, level = Red, " PNC"
+		color, level = red, " PNC"
 	default:
-		color, level = Gray, " ???"
+		color, level = gray, " ???"
 	}
 
 	// TODO: pull out of config
@@ -116,30 +121,18 @@ func customFormatter(out io.Writer, args *log.FormatterArgs) (
 	return out.Write(b.Bytes)
 }
 
-// printWithColor prints the log message with color
+// printWithColor prints the log message with color.
 func printWithColor(args *log.FormatterArgs,
 	b *byteBuffer,
 	color, level string,
 	quoteString, endWithMessage bool) {
-	const (
-		Reset   = "\x1b[0m"
-		Black   = "\x1b[30m"
-		Red     = "\x1b[31m"
-		Green   = "\x1b[32m"
-		Yellow  = "\x1b[33m"
-		Blue    = "\x1b[34m"
-		Magenta = "\x1b[35m"
-		Cyan    = "\x1b[36m"
-		White   = "\x1b[37m"
-		Gray    = "\x1b[90m"
-	)
 	// header
-	fmt.Fprintf(b, "%s%s%s %s%s%s ", Gray, args.Time, Reset, color, level,
-		Reset)
+	fmt.Fprintf(b, "%s%s%s %s%s%s ", gray, args.Time, reset, color, level,
+		reset)
 	if args.Caller != "" {
-		fmt.Fprintf(b, "%s %s %s💦%s", args.Goid, args.Caller, Cyan, Reset)
+		fmt.Fprintf(b, "%s %s %s💦%s", args.Goid, args.Caller, cyan, reset)
 	} else {
-		fmt.Fprintf(b, "%s💦%s", Cyan, Reset)
+		fmt.Fprintf(b, "%s💦%s", cyan, reset)
 	}
 	if !endWithMessage {
 		fmt.Fprintf(b, " %s", args.Message)
@@ -150,18 +143,18 @@ func printWithColor(args *log.FormatterArgs,
 			kv.Value = strconv.Quote(kv.Value)
 		}
 		if kv.Key == "error" {
-			fmt.Fprintf(b, " %s%s=%s%s", Red, kv.Key, kv.Value, Reset)
+			fmt.Fprintf(b, " %s%s=%s%s", red, kv.Key, kv.Value, reset)
 		} else {
-			fmt.Fprintf(b, " %s%s=%s%s%s", Cyan, kv.Key, Gray, kv.Value, Reset)
+			fmt.Fprintf(b, " %s%s=%s%s%s", cyan, kv.Key, gray, kv.Value, reset)
 		}
 	}
 	// message
 	if endWithMessage {
-		fmt.Fprintf(b, "%s %s", Reset, args.Message)
+		fmt.Fprintf(b, "%s %s", reset, args.Message)
 	}
 }
 
-// printWithoutColor prints the log message without color
+// printWithoutColor prints the log message without color.
 func printWithoutColor(args *log.FormatterArgs,
 	b *byteBuffer,
 	level string,

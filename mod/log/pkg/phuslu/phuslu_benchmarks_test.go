@@ -28,7 +28,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 )
 
-// Benchmark function for phuslu logger
+// Benchmark function for phuslu logger.
 func BenchmarkPhusluLoggerInfo(b *testing.B) {
 	serverCtx := server.NewDefaultContext()
 	serverCtx.Viper.Set("log_level", "Debug")
@@ -39,7 +39,7 @@ func BenchmarkPhusluLoggerInfo(b *testing.B) {
 	}
 }
 
-// Benchmark function for SDK logger Info
+// Benchmark function for SDK logger Info.
 func BenchmarkSDKLoggerInfo(b *testing.B) {
 	serverCtx := server.NewDefaultContext()
 	serverCtx.Viper.Set("log_level", "Debug")
@@ -51,7 +51,7 @@ func BenchmarkSDKLoggerInfo(b *testing.B) {
 	}
 }
 
-// Benchmark function for phuslu logger Warn
+// Benchmark function for phuslu logger Warn.
 func BenchmarkPhusluLoggerWarn(b *testing.B) {
 	serverCtx := server.NewDefaultContext()
 	serverCtx.Viper.Set("log_level", "Debug")
@@ -65,7 +65,7 @@ func BenchmarkPhusluLoggerWarn(b *testing.B) {
 	}
 }
 
-// Benchmark function for cosmos logger Warn
+// Benchmark function for cosmos logger Warn.
 func BenchmarkSDKLoggerWarn(b *testing.B) {
 	serverCtx := server.NewDefaultContext()
 	serverCtx.Viper.Set("log_level", "Debug")
@@ -79,7 +79,7 @@ func BenchmarkSDKLoggerWarn(b *testing.B) {
 	}
 }
 
-// Benchmark function for phuslu logger Error
+// Benchmark function for phuslu logger Error.
 func BenchmarkPhusluLoggerError(b *testing.B) {
 	serverCtx := server.NewDefaultContext()
 	serverCtx.Viper.Set("log_level", "Debug")
@@ -93,11 +93,12 @@ func BenchmarkPhusluLoggerError(b *testing.B) {
 	}
 }
 
-// Benchmark function for cosmos logger Error
+// Benchmark function for cosmos logger Error.
 func BenchmarkSDKLoggerError(b *testing.B) {
 	serverCtx := server.NewDefaultContext()
 	serverCtx.Viper.Set("log_level", "Debug")
-	logger, err := server.CreateSDKLogger(server.NewDefaultContext(), &bytes.Buffer{})
+	logger, err := server.CreateSDKLogger(server.NewDefaultContext(),
+		&bytes.Buffer{})
 	if err != nil {
 		b.Fatalf("failed to create cosmos logger: %v", err)
 	}
@@ -107,7 +108,7 @@ func BenchmarkSDKLoggerError(b *testing.B) {
 	}
 }
 
-// Benchmark function for phuslu logger Debug
+// Benchmark function for phuslu logger Debug.
 func BenchmarkPhusluLoggerDebug(b *testing.B) {
 	serverCtx := server.NewDefaultContext()
 	serverCtx.Viper.Set("log_level", "Debug")
@@ -134,7 +135,7 @@ func BenchmarkPhusluLoggerDebugSilent(b *testing.B) {
 	}
 }
 
-// Benchmark function for cosmos logger Debug
+// Benchmark function for cosmos logger Debug.
 func BenchmarkSDKLoggerDebug(b *testing.B) {
 	serverCtx := server.NewDefaultContext()
 	serverCtx.Viper.Set("log_level", "Debug")
@@ -161,7 +162,7 @@ func BenchmarkSDKLoggerDebugSilent(b *testing.B) {
 	}
 }
 
-// Benchmark function for phuslu logger With
+// Benchmark function for phuslu logger With.
 func BenchmarkPhusluLoggerWith(b *testing.B) {
 	serverCtx := server.NewDefaultContext()
 	serverCtx.Viper.Set("log_level", "Debug")
@@ -172,11 +173,12 @@ func BenchmarkPhusluLoggerWith(b *testing.B) {
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		newLogger := logger.With("contextKey", "contextValue")
-		newLogger.Info("This is a contextual info message", "key1", "value1", "key2", 2)
+		newLogger.Info("This is a contextual info message", "key1", "value1",
+			"key2", 2)
 	}
 }
 
-// Benchmark function for cosmos logger With
+// Benchmark function for cosmos logger With.
 func BenchmarkSDKLoggerWith(b *testing.B) {
 	serverCtx := server.NewDefaultContext()
 	serverCtx.Viper.Set("log_level", "Debug")
@@ -187,9 +189,7 @@ func BenchmarkSDKLoggerWith(b *testing.B) {
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		newLogger := logger.With("contextKey", "contextValue")
-		newLogger.Info("This is a contextual info message", "key1", "value1", "key2", 2)
+		newLogger.Info("This is a contextual info message", "key1", "value1",
+			"key2", 2)
 	}
-}
-
-func main() {
 }

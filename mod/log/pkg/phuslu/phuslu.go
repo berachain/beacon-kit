@@ -92,6 +92,7 @@ func (l *Logger[ImplT]) Impl() any {
 // With returns a new wrapped logger with additional context provided by a set.
 func (l *Logger[ImplT]) With(keyVals ...any) ImplT {
 	newLogger := *l
+	// TODO: use KeysAndValues
 	fields := keyValToFields(keyVals...)
 
 	// Copy existing context
@@ -104,12 +105,12 @@ func (l *Logger[ImplT]) With(keyVals ...any) ImplT {
 	return any(&newLogger).(ImplT)
 }
 
-// addContext adds the context to the entry
+// addContext adds the context to the entry.
 func (l *Logger[ImplT]) addContext(e *log.Entry) *log.Entry {
-	return e.Fields(log.Fields(l.context))
+	return e.Fields(l.context)
 }
 
-// msgWithContext logs a message with keyVals and current context
+// msgWithContext logs a message with keyVals and current context.
 func (l *Logger[ImplT]) msgWithContext(
 	msg string, e *log.Entry, keyVals ...any,
 ) {
