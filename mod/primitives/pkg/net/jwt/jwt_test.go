@@ -102,7 +102,12 @@ func TestSecretString(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, tt.secret.String(), "Secret.String() mismatch")
+			require.Equal(
+				t,
+				tt.want,
+				tt.secret.String(),
+				"Secret.String() mismatch",
+			)
 		})
 	}
 }
@@ -135,8 +140,17 @@ func TestSecretHexWithFixedInput(t *testing.T) {
 
 	// Strip the '0x' prefix and check if the remaining string is valid hex.
 	hexStr = strings.TrimPrefix(hexStr, "0x")
-	require.Len(t, hexStr, expectedHexLength, "Hex() length after stripping '0x' mismatch")
-	require.True(t, jwt.HexRegexp.MatchString(hexStr), "Hex() output does not match hexadecimal format")
+	require.Len(
+		t,
+		hexStr,
+		expectedHexLength,
+		"Hex() length after stripping '0x' mismatch",
+	)
+	require.True(
+		t,
+		jwt.HexRegexp.MatchString(hexStr),
+		"Hex() output does not match hexadecimal format",
+	)
 }
 
 func TestSecretRoundTripEncoding(t *testing.T) {
@@ -151,5 +165,10 @@ func TestSecretRoundTripEncoding(t *testing.T) {
 	require.NoError(t, err, "NewFromHex() error")
 
 	// Compare the original and decoded secrets
-	require.Equal(t, originalSecret, decodedSecret, "Round trip encoding failed")
+	require.Equal(
+		t,
+		originalSecret,
+		decodedSecret,
+		"Round trip encoding failed",
+	)
 }
