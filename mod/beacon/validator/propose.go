@@ -35,8 +35,6 @@ import (
 )
 
 // RequestBlockForProposal builds a new beacon block.
-//
-//nolint:funlen // todo:fix.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
@@ -47,7 +45,6 @@ func (s *Service[
 ) (BeaconBlockT, BlobSidecarsT, error) {
 	var (
 		blk       BeaconBlockT
-		eth1Data  Eth1DataT
 		sidecars  BlobSidecarsT
 		startTime = time.Now()
 		g, _      = errgroup.WithContext(ctx)
@@ -87,15 +84,6 @@ func (s *Service[
 		return blk, sidecars, err
 	}
 
-	// Assemble a new block with the payload.
-	body := blk.GetBody()
-	if body.IsNil() {
-		return blk, sidecars, ErrNilBlkBody
-	}
-
-	// Set the reveal on the block body.
-	body.SetRandaoReveal(reveal)
-
 	// Get the payload for the block.
 	envelope, err := s.retrieveExecutionPayload(ctx, st, blk)
 	if err != nil {
@@ -104,46 +92,7 @@ func (s *Service[
 		return blk, sidecars, ErrNilPayload
 	}
 
-	// If we get returned a nil blobs bundle, we should return an error.
-	blobsBundle := envelope.GetBlobsBundle()
-	if blobsBundle == nil {
-		return blk, sidecars, ErrNilBlobsBundle
-	}
-
-	// Set the KZG commitments on the block body.
-	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
-
-	depositIndex, err := st.GetEth1DepositIndex()
-	if err != nil {
-		return blk, sidecars, ErrNilDepositIndexStart
-	}
-
-	// Dequeue deposits from the state.
-	deposits, err := s.bsb.DepositStore(ctx).GetDepositsByIndex(
-		depositIndex,
-		s.chainSpec.MaxDepositsPerBlock(),
-	)
-	if err != nil {
-		return blk, sidecars, err
-	}
-
-	// Set the deposits on the block body.
-	body.SetDeposits(deposits)
-
-	// Set the KZG commitments on the block body.
-	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
-
-	// TODO: assemble real eth1data.
-	body.SetEth1Data(eth1Data.New(
-		primitives.Bytes32{},
-		0,
-		common.ZeroHash,
-	))
-
-	// Set the execution data.
-	if err = body.SetExecutionData(
-		envelope.GetExecutionPayload(),
-	); err != nil {
+	if err = s.buildBlockBody(ctx, st, blk, reveal, envelope); err != nil {
 		return blk, sidecars, err
 	}
 
@@ -302,4 +251,62 @@ func (s *Service[
 		)
 	}
 	return envelope, nil
+}
+
+// BuildBlockBody assembles the block body with necessary components.
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, ForkDataT,
+]) buildBlockBody(
+	ctx context.Context,
+	st BeaconStateT,
+	blk BeaconBlockT,
+	reveal crypto.BLSSignature,
+	envelope engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT],
+) error {
+	// Assemble a new block with the payload.
+	body := blk.GetBody()
+	if body.IsNil() {
+		return ErrNilBlkBody
+	}
+
+	// Set the reveal on the block body.
+	body.SetRandaoReveal(reveal)
+
+	// If we get returned a nil blobs bundle, we should return an error.
+	blobsBundle := envelope.GetBlobsBundle()
+	if blobsBundle == nil {
+		return ErrNilBlobsBundle
+	}
+
+	// Set the KZG commitments on the block body.
+	body.SetBlobKzgCommitments(blobsBundle.GetCommitments())
+
+	depositIndex, err := st.GetEth1DepositIndex()
+	if err != nil {
+		return ErrNilDepositIndexStart
+	}
+
+	// Dequeue deposits from the state.
+	deposits, err := s.bsb.DepositStore(ctx).GetDepositsByIndex(
+		depositIndex,
+		s.chainSpec.MaxDepositsPerBlock(),
+	)
+	if err != nil {
+		return err
+	}
+
+	// Set the deposits on the block body.
+	body.SetDeposits(deposits)
+
+	var eth1Data Eth1DataT
+	// TODO: assemble real eth1data.
+	body.SetEth1Data(eth1Data.New(
+		primitives.Bytes32{},
+		0,
+		common.ZeroHash,
+	))
+
+	return body.SetExecutionData(envelope.GetExecutionPayload())
 }
