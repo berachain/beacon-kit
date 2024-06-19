@@ -294,7 +294,7 @@ func TestMustNewU256L(t *testing.T) {
 			} else {
 				result := math.MustNewU256L(tt.input)
 				expected := new(huint256.Int).SetBytes(tt.expected)
-				require.Equal(t, expected, result.UnwrapU256())
+				require.Equal(t, expected, result.UnwrapU256(), "Test case %s", tt.name)
 			}
 		})
 	}
