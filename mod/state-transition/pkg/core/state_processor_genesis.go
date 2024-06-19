@@ -116,7 +116,7 @@ func (sp *StateProcessor[
 
 	var validatorsRoot primitives.Root
 	validatorsRoot, err = ssz.MerkleizeListComposite[
-		common.ChainSpec, math.U64, [32]byte,
+		common.ChainSpec, math.U64,
 	](validators, uint64(len(validators)))
 	if err != nil {
 		return nil, err
