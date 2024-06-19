@@ -58,13 +58,18 @@ yap: ## the yap cave
 	@go run ./mod/cli/pkg/utils/yap/yap.go
 
 tidy-sync-check:
-	@$(MAKE) repo-rinse tidy sync 
-	@if [ -n "$$(git status --porcelain)" ]; then \
+	@{ \
+	pre_tidy_diff=$$(git diff); \
+	$(MAKE) repo-rinse tidy sync; \
+	git diff > post_tidy.diff; \
+	echo "$$pre_tidy_diff" > pre_tidy.diff; \
+	diff pre_tidy.diff post_tidy.diff > diff_comparison.diff || true; \
+	if [ -s diff_comparison.diff ]; then \
 		echo "Tidy and sync operations resulted in changes"; \
-		git status -s; \
-		git diff --exit-code; \
-	fi
-
+		cat diff_comparison.diff; \
+		exit 1; \
+	fi; \
+	}
+	@rm -f pre_tidy.diff post_tidy.diff diff_comparison.diff; \
 
 .PHONY: format build test-unit bet
-
