@@ -59,7 +59,7 @@ func (sp *StateProcessor[
 	)
 	_ = depositCount
 	fmt.Println("DEPOSIT-CHECK DEPOSIT-INDEX", index, "DEPOSIT-COUNT", depositCount, "ETH1-DATA-DEPOSIT-COUNT", eth1Data.GetDepositCount(), "DEPOSITS", deposits)
-	fmt.Println("DEPOSIT-CHECK PROCESSING DEPOSITS", depositCount)
+	fmt.Println("DEPOSIT-CHECK DEPOSIT_COUNT", depositCount)
 	// TODO: Update eth1data count and check this.
 	// if uint64(len(deposits)) != depositCount {
 	// 	return errors.New("deposit count mismatch")
