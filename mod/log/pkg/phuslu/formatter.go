@@ -29,17 +29,16 @@ import (
 
 // colours.
 const (
-	reset      = "\x1b[0m"
-	black      = "\x1b[30m"
-	red        = "\x1b[31m"
-	green      = "\x1b[32m"
-	yellow     = "\x1b[33m"
-	blue       = "\x1b[34m"
-	magenta    = "\x1b[35m"
-	cyan       = "\x1b[36m"
-	white      = "\x1b[37m"
-	gray       = "\x1b[90m"
-	lightWhite = "\x1b[97m"
+	reset   = "\x1b[0m"
+	black   = "\x1b[30m"
+	red     = "\x1b[31m"
+	green   = "\x1b[32m"
+	yellow  = "\x1b[33m"
+	blue    = "\x1b[34m"
+	magenta = "\x1b[35m"
+	cyan    = "\x1b[36m"
+	white   = "\x1b[37m"
+	gray    = "\x1b[90m"
 )
 
 // Formatter is a custom formatter for log messages.
@@ -119,6 +118,7 @@ func (f *Formatter) printWithColor(
 	b.Bytes = append(b.Bytes, ' ')
 	b.Bytes = append(b.Bytes, args.Message...)
 	for _, kv := range args.KeyValues {
+		// TODO: hashes shouldnt have quotes.
 		if f.QuoteString && kv.ValueType == 's' {
 			kv.Value = strconv.Quote(kv.Value)
 		}
@@ -133,7 +133,7 @@ func (f *Formatter) printWithColor(
 			b.Bytes = append(b.Bytes, cyan...)
 			b.Bytes = append(b.Bytes, kv.Key...)
 			b.Bytes = append(b.Bytes, '=')
-			b.Bytes = append(b.Bytes, gray...)
+			b.Bytes = append(b.Bytes, reset...)
 			b.Bytes = append(b.Bytes, kv.Value...)
 			b.Bytes = append(b.Bytes, reset...)
 		}
