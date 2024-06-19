@@ -27,9 +27,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
@@ -37,22 +39,20 @@ import (
 type Genesis struct {
 	AppState struct {
 		Beacon struct {
-			ForkVersion string `json:"fork_version"`
+			ForkVersion bytes.B4 `json:"fork_version"`
 			Deposits    []struct {
-				Pubkey      string `json:"pubkey"`
-				Credentials string `json:"credentials"`
-				Amount      string `json:"amount"`
-				Signature   string `json:"signature"`
-				Index       int    `json:"index"`
+				Pubkey      bytes.B48 `json:"pubkey"`
+				Credentials bytes.B32 `json:"credentials"`
+				Amount      math.U64  `json:"amount"`
+				Signature   string    `json:"signature"`
+				Index       int       `json:"index"`
 			} `json:"deposits"`
-			ExecutionPayloadHeader struct {
-				BlockHash string `json:"blockHash"`
-			} `json:"execution_payload_header"`
+			ExecutionPayloadHeader types.ExecutionPayloadHeaderDeneb `json:"execution_payload_header"`
 		} `json:"beacon"`
 	} `json:"app_state"`
 }
 
-func GetGenesisValidatorRootCmd() *cobra.Command {
+func GetGenesisValidatorRootCmd(cs primitives.ChainSpec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "validator-root [beacond/genesis.json]",
 		Short: "gets and returns the genesis validator root",
@@ -68,97 +68,74 @@ func GetGenesisValidatorRootCmd() *cobra.Command {
 			// Unmarshal JSON data into the Genesis struct
 			err = json.Unmarshal(genesisBz, &genesis)
 			if err != nil {
-				fmt.Println("Error unmarshaling JSON REEEEEE:", err)
-				// return
+				return errors.Wrap(err, "failed to unmarshal JSON")
 			}
 
-			depositCount := uint64(len(genesis.AppState.Beacon.Deposits))
-			blockHashBytes := common.HexToHash(genesis.AppState.Beacon.ExecutionPayloadHeader.BlockHash)
+			var fork *types.Fork
+			fork = fork.New(
+				genesis.AppState.Beacon.ForkVersion,
+				genesis.AppState.Beacon.ForkVersion,
+				math.U64(0),
+			)
+
+			var blkBody *types.BeaconBlockBody
+			bodyRoot, err := blkBody.Empty(
+				version.ToUint32(genesis.AppState.Beacon.ForkVersion)).HashTreeRoot()
+			if err != nil {
+				return errors.Wrap(err, "failed to get body root")
+			}
+
+			var blkHeader *types.BeaconBlockHeader
+			blkHeader = blkHeader.New(
+				0, 0, common.Root{}, common.Root{}, bodyRoot,
+			)
+
 			var eth1Data *types.Eth1Data
+			depositCount := uint64(len(genesis.AppState.Beacon.Deposits))
+			eth1BlockHash := genesis.AppState.Beacon.ExecutionPayloadHeader.BlockHash
 			eth1Data = eth1Data.New(
 				bytes.B32{},
 				math.U64(depositCount),
-				blockHashBytes,
+				genesis.AppState.Beacon.ExecutionPayloadHeader.BlockHash,
 			)
 
-			state := deneb.BeaconState{
-				Eth1Data: eth1Data,
+			var randaoMixes []primitives.Bytes32
+			epochsPerHistoricalVector := cs.EpochsPerHistoricalVector()
+			randaoMixes = make([]primitives.Bytes32, epochsPerHistoricalVector)
+			for i := range randaoMixes {
+				randaoMixes[i] = bytes.B32(eth1BlockHash)
 			}
 
-			// fmt.Println("Genesis struct:", genesis)
-			for _, deposit := range genesis.AppState.Beacon.Deposits {
-				fmt.Println("Deposit:", deposit)
+			validators := make([]types.Validator, depositCount)
+			for i, deposit := range genesis.AppState.Beacon.Deposits {
+				validators[i] = types.Validator{
+					Pubkey:                     deposit.Pubkey,
+					WithdrawalCredentials:      types.WithdrawalCredentials(deposit.Credentials),
+					EffectiveBalance:           deposit.Amount,
+					Slashed:                    false,
+					ActivationEligibilityEpoch: math.U64(0),
+					ActivationEpoch:            math.U64(0),
+					ExitEpoch:                  math.U64(0),
+					WithdrawableEpoch:          math.U64(0),
+				}
 			}
 
+			st := deneb.BeaconState{
+				Fork:                         fork,
+				LatestBlockHeader:            blkHeader,
+				Eth1Data:                     eth1Data,
+				RandaoMixes:                  randaoMixes,
+				LatestExecutionPayloadHeader: &genesis.AppState.Beacon.ExecutionPayloadHeader,
+			}
+
+			root, err := st.HashTreeRoot()
+			if err != nil {
+				return errors.Wrap(err, "failed to get hash tree root")
+			}
+
+			rootHex := fmt.Sprintf("%x", root)
+			cmd.Printf("%s\n", rootHex)
 			return nil
-
-			// // Unmarshal the genesis file.
-			// ethGenesis := &core.Genesis{}
-			// if err = ethGenesis.UnmarshalJSON(genesisBz); err != nil {
-			// 	return errors.Wrap(err, "failed to unmarshal eth1 genesis")
-			// }
-			// genesisBlock := ethGenesis.ToBlock()
-
-			// // Create the execution payload.
-			// payload := ethengineprimitives.BlockToExecutableData(
-			// 	genesisBlock,
-			// 	nil,
-			// 	nil,
-			// ).ExecutionPayload
-
-			// serverCtx := server.GetServerContextFromCmd(cmd)
-			// config := serverCtx.Config
-
-			// appGenesis, err := genutiltypes.AppGenesisFromFile(
-			// 	config.GenesisFile(),
-			// )
-			// if err != nil {
-			// 	return errors.Wrap(err, "failed to read genesis doc from file")
-			// }
-
-			// // create the app state
-			// appGenesisState, err := genutiltypes.GenesisStateFromAppGenesis(
-			// 	appGenesis,
-			// )
-			// if err != nil {
-			// 	return err
-			// }
-
-			// genesisInfo := &genesis.Genesis[
-			// 	*types.Deposit, *types.ExecutionPayloadHeader,
-			// ]{}
-
-			// if err = json.Unmarshal(
-			// 	appGenesisState["beacon"], genesisInfo,
-			// ); err != nil {
-			// 	return errors.Wrap(err, "failed to unmarshal beacon state")
-			// }
-
-			// // Inject the execution payload.
-			// header, err := executableDataToExecutionPayloadHeader(
-			// 	version.ToUint32(genesisInfo.ForkVersion),
-			// 	payload,
-			// )
-			// if err != nil {
-			// 	return errors.Wrap(
-			// 		err,
-			// 		"failed to convert executable data to execution payload header",
-			// 	)
-			// }
-			// genesisInfo.ExecutionPayloadHeader = header
-
-			// appGenesisState["beacon"], err = json.Marshal(genesisInfo)
-			// if err != nil {
-			// 	return errors.Wrap(err, "failed to marshal beacon state")
-			// }
-
-			// if appGenesis.AppState, err = json.MarshalIndent(
-			// 	appGenesisState, "", "  ",
-			// ); err != nil {
-			// 	return err
-			// }
-
-			// return genutil.ExportGenesisFile(appGenesis, config.GenesisFile())
 		},
 	}
 

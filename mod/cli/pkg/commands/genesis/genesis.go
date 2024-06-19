@@ -45,7 +45,7 @@ func Commands(
 		AddGenesisDepositCmd(cs),
 		CollectGenesisDepositsCmd(),
 		AddExecutionPayloadCmd(),
-		GetGenesisValidatorRootCmd(),
+		GetGenesisValidatorRootCmd(cs),
 	)
 
 	// Add additional commands

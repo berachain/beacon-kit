@@ -21,6 +21,8 @@
 package core
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -122,7 +124,7 @@ func (sp *StateProcessor[
 
 	var validatorsRoot primitives.Root
 	validatorsRoot, err = ssz.MerkleizeListComposite[
-		common.ChainSpec, math.U64, [32]byte,
+		common.ChainSpec, math.U64,
 	](validators, uint64(len(validators)))
 	if err != nil {
 		return nil, err
@@ -130,6 +132,12 @@ func (sp *StateProcessor[
 
 	if err = st.SetGenesisValidatorsRoot(validatorsRoot); err != nil {
 		return nil, err
+	}
+
+	fmt.Println("😀 the genesis validators root is: ", validatorsRoot)
+
+	for _, validator := range validators {
+		fmt.Println("😀 the validator is: ", validator)
 	}
 
 	if err = st.SetLatestExecutionPayloadHeader(
