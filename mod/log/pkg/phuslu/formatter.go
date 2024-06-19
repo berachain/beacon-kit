@@ -29,7 +29,7 @@ import (
 	"github.com/phuslu/log"
 )
 
-// colours
+// colours.
 const (
 	reset   = "\x1b[0m"
 	black   = "\x1b[30m"
