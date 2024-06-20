@@ -141,7 +141,9 @@ type (
 	EngineClient = engineclient.EngineClient[*ExecutionPayload]
 
 	// EngineClient is a type alias for the engine client.
-	ExecutionEngine = execution.Engine[*ExecutionPayload]
+	ExecutionEngine = execution.Engine[
+		*ExecutionPayload, engineprimitives.PayloadID,
+	]
 
 	// ExecutionPayload type aliases.
 	ExecutionPayload       = types.ExecutionPayload
@@ -161,7 +163,8 @@ type (
 
 	// LocalBuilder is a type alias for the local builder.
 	LocalBuilder = payloadbuilder.PayloadBuilder[
-		BeaconState, *ExecutionPayload, *ExecutionPayloadHeader,
+		BeaconState, *ExecutionPayload,
+		*ExecutionPayloadHeader, engineprimitives.PayloadID,
 	]
 
 	// StateProcessor is the type alias for the state processor inteface.

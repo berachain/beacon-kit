@@ -253,20 +253,20 @@ func BuildForkchoiceUpdateRequest(
 }
 
 // GetPayloadRequest represents a request to get a payload.
-type GetPayloadRequest struct {
+type GetPayloadRequest[PayloadIDT ~[8]byte] struct {
 	// PayloadID is the payload ID.
-	PayloadID PayloadID
+	PayloadID PayloadIDT
 	// ForkVersion is the fork version that we are
 	// currently on.
 	ForkVersion uint32
 }
 
 // BuildGetPayloadRequest builds a get payload request.
-func BuildGetPayloadRequest(
-	payloadID PayloadID,
+func BuildGetPayloadRequest[PayloadIDT ~[8]byte](
+	payloadID PayloadIDT,
 	forkVersion uint32,
-) *GetPayloadRequest {
-	return &GetPayloadRequest{
+) *GetPayloadRequest[PayloadIDT] {
+	return &GetPayloadRequest[PayloadIDT]{
 		PayloadID:   payloadID,
 		ForkVersion: forkVersion,
 	}
