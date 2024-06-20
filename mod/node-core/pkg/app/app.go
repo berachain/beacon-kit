@@ -28,6 +28,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/cosmos/cosmos-sdk/types/mempool"
 )
 
 var (
@@ -53,7 +54,9 @@ func NewBeaconKitApp(
 	app := &BeaconApp{}
 
 	// Build the runtime.App using the app builder.
-	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
+	app.App = appBuilder.Build(db, traceStore, append(
+		baseAppOptions, baseapp.SetMempool(mempool.NoOpMempool{}),
+	)...)
 	app.SetTxDecoder(bkcomponents.NoOpTxConfig{}.TxDecoder())
 
 	// Load the app.
