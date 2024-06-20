@@ -31,14 +31,18 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
+// LocalBuilderInput is an input for the dep inject framework.
 type LocalBuilderInput struct {
 	depinject.In
-	Cfg             *config.Config
-	ChainSpec       primitives.ChainSpec
-	ExecutionEngine *ExecutionEngine
-	Logger          log.Logger
+	AttributesFactory *AttributesFactory
+	Cfg               *config.Config
+	ChainSpec         primitives.ChainSpec
+	ExecutionEngine   *ExecutionEngine
+	Logger            log.Logger
 }
 
+// ProvideLocalBuilder provides a local payload builder for the
+// depinject framework.
 func ProvideLocalBuilder(
 	in LocalBuilderInput,
 ) *LocalBuilder {
@@ -53,5 +57,6 @@ func ProvideLocalBuilder(
 			engineprimitives.PayloadID,
 			[32]byte, math.Slot,
 		](),
+		in.AttributesFactory,
 	)
 }
