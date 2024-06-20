@@ -101,7 +101,11 @@ func (l Logger[ImplT]) With(keyVals ...any) ImplT {
 	for i := 0; i < len(keyVals); i += 2 {
 		key, ok := keyVals[i].(string)
 		if !ok {
+<<<<<<< hoa/fix-log
+			continue
+=======
 			panic("context key must be a string")
+>>>>>>> main
 		}
 		newLogger.context[key] = keyVals[i+1]
 	}
