@@ -12,8 +12,8 @@ cosmossdk.io/core v0.12.1-0.20240530104414-90cbb022d5f6 h1:0CAFUcq6gqZidxnI6KNp6
 cosmossdk.io/core v0.12.1-0.20240530104414-90cbb022d5f6/go.mod h1:iBvkFL/WDPbxBCZduvuZcBww9m1PC2BrbYwrxvBwdsE=
 cosmossdk.io/core/testing v0.0.0-20240620161400-a6407f411e80 h1:edYa36Y0p+y5084lrePlIV2LTILhsC2wz2q0jm9dXYw=
 cosmossdk.io/core/testing v0.0.0-20240620161400-a6407f411e80/go.mod h1:7aJHbTQAs/vEiUufWQml08z2pALCk6S5BbimVg8mkgA=
-cosmossdk.io/depinject v1.0.0-alpha.4.0.20240506202947-fbddf0a55044 h1:nFds393EKoD4hpMoI0T+kfUuyshAXh307/Y2pXVyXfk=
-cosmossdk.io/depinject v1.0.0-alpha.4.0.20240506202947-fbddf0a55044/go.mod h1:9Aew5Zs1YmS68moYnpKiWdKGjSIsp6c7hI8XchbkumY=
+cosmossdk.io/depinject v1.0.0-alpha.4.0.20240620161400-a6407f411e80 h1:54V3vZwVMMI9oSsQcl575dIMLTRVWy5DS6EPMLHmqw4=
+cosmossdk.io/depinject v1.0.0-alpha.4.0.20240620161400-a6407f411e80/go.mod h1:LagZ736fsOQ1RRSz+IitdiNpgcTKmqYuXpwCv1y+jDQ=
 cosmossdk.io/errors v1.0.1 h1:bzu+Kcr0kS/1DuPBtUFdWjzLqyUuCiyHjyJB6srBV/0=
 cosmossdk.io/errors v1.0.1/go.mod h1:MeelVSZThMi4bEakzhhhE/CKqVv3nOJDA25bIqRDu/U=
 cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce h1:udTT5vz8tu5WfnHnDJv9Mb2iwHimMa9zJDsMksrRU2o=
@@ -104,8 +104,8 @@ github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240610210054-bfdc1
 github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240610210054-bfdc14c4013c/go.mod h1:wM0anpieD38MGVpNKkn3A5duSa6i5ilVuEd/FpsO8GI=
 github.com/berachain/beacon-kit/mod/storage v0.0.0-20240618214413-d5ec0e66b3dd h1:P6pweLlJoydvh3LB7DzF5sBNeDLFC7YjMCceMI2IKXc=
 github.com/berachain/beacon-kit/mod/storage v0.0.0-20240618214413-d5ec0e66b3dd/go.mod h1:kZCePM7ZyGgYfbEZz8+p7Oyn/v7jFLXxz7eu+a4aaNw=
-github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240620161400-a6407f411e80 h1:iFov+b1iHmarW9QQFmAv9asaneU/BAgEiNi4i9azXKM=
-github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240620161400-a6407f411e80/go.mod h1:hCN0m+X7MmJvJ2ukDDRDyScC+30wXHtXTdx6vleSnBU=
+github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240620224206-8693be92d561 h1:VvmxahQyws3ZyXEHU13YAJUtk4h/JBCtm7h7gL2bhoU=
+github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240620224206-8693be92d561/go.mod h1:5jxzkYOJVxdsjPde4BpDwrIF8ZPyor3pis1M7jrXdeM=
 github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816 h1:41iFGWnSlI2gVpmOtVTJZNodLdLQLn/KsJqFvXwnd/s=
 github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
 github.com/bits-and-blooms/bitset v1.13.0 h1:bAQ9OPNFYbGHV6Nez0tmNI0RiEu7/hxlYJRUA0wFAVE=

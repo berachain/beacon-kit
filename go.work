@@ -8,6 +8,7 @@ use (
 	./mod/cli
 	./mod/config
 	./mod/consensus-types
+	./mod/consensus/hood/cometbft
 	./mod/da
 	./mod/engine-primitives
 	./mod/errors
