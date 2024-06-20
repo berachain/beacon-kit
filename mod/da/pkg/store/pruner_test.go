@@ -35,6 +35,7 @@ type MockBeaconBlock struct {
 	slot math.U64
 }
 
+// Mock implementations GetSlot() for BeaconBlock.
 func (b MockBeaconBlock) GetSlot() math.U64 {
 	return b.slot
 }
@@ -44,6 +45,7 @@ type MockBlockEvent struct {
 	data MockBeaconBlock
 }
 
+// Mock implementations Data() for BlockEvent.
 func (e MockBlockEvent) Data() MockBeaconBlock {
 	return e.data
 }
@@ -54,10 +56,12 @@ type MockChainSpec struct {
 	minEpochsForBlobsSidecarsRequest uint64
 }
 
+// SlotsPerEpoch implements chain.Spec.
 func (cs MockChainSpec) SlotsPerEpoch() uint64 {
 	return cs.slotsPerEpoch
 }
 
+// MinEpochsForBlobsSidecarsRequest implements chain.Spec.
 func (cs MockChainSpec) MinEpochsForBlobsSidecarsRequest() uint64 {
 	return cs.minEpochsForBlobsSidecarsRequest
 }
