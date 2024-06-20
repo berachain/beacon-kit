@@ -87,9 +87,8 @@ func (f *Formatter) Format(
 
 	if args.Stack != "" {
 		if args.Stack[len(args.Stack)-1] != '\n' {
-			buffer.Bytes = append(
-				buffer.Bytes,
-				append([]byte(args.Stack), '\n')...)
+			buffer.Bytes = append(buffer.Bytes, args.Stack...)
+			buffer.Bytes = append(buffer.Bytes, '\n')
 		} else {
 			buffer.Bytes = append(buffer.Bytes, args.Stack...)
 		}
