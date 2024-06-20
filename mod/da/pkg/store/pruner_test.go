@@ -328,8 +328,20 @@ func TestBuildPruneRangeFn(t *testing.T) {
 			}
 
 			start, end := pruneFn(event)
-			require.Equal(t, tt.expectedStart, start, "Test case : %s (expectedStart)", tt.name)
-			require.Equal(t, tt.expectedEnd, end, "Test case : %s (expectedEnd)", tt.name)
+			require.Equal(
+				t, 
+				tt.expectedStart, 
+				start, 
+				"Test case : %s (expectedStart)", 
+				tt.name,
+			)
+			require.Equal(
+				t, 
+				tt.expectedEnd, 
+				end, 
+				"Test case : %s (expectedEnd)", 
+				tt.name,
+			)
 		})
 	}
 }
