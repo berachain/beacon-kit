@@ -141,7 +141,7 @@ type (
 	EngineClient = engineclient.EngineClient[*ExecutionPayload]
 
 	// EngineClient is a type alias for the engine client.
-	ExecutionEngine = execution.Engine[*ExecutionPayload]
+	ExecutionEngine = execution.Engine[*ExecutionPayload, engineprimitives.PayloadID]
 
 	// ExecutionPayload type aliases.
 	ExecutionPayload       = types.ExecutionPayload
