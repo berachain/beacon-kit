@@ -115,8 +115,7 @@ func (l *Logger[ImplT]) addContext(e *log.Entry) *log.Entry {
 func (l *Logger[ImplT]) msgWithContext(
 	msg string, e *log.Entry, keyVals ...any,
 ) {
-	e = l.addContext(e)
-	e = e.KeysAndValues(keyVals...)
+	e = l.addContext(e).KeysAndValues(keyVals...)
 	e.Msg(msg)
 }
 
@@ -126,7 +125,7 @@ func keyValToFields(keyVals ...any) log.Fields {
 		panic("missing value for key")
 	}
 	// allocate a new fields map
-	fields := make(log.Fields)
+	fields := make(log.Fields, len(keyVals)/2)
 	// populate the fields map with the key-value pairs
 	for i := 0; i < len(keyVals); i += 2 {
 		fields[keyVals[i].(string)] = keyVals[i+1]
