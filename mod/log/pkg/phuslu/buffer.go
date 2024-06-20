@@ -18,14 +18,27 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package phuslu
 
-// DefaultClientComponents returns the default components for
-// the client.
-func DefaultClientComponents() []any {
-	return []any{
-		ProvideClientContext,
-		ProvideKeyring,
-		ProvideLogger,
-	}
+import "sync"
+
+// byteBuffer is a byte buffer.
+type byteBuffer struct {
+	Bytes []byte
+}
+
+// byteBufferPool is a pool of byte buffers.
+//
+//nolint:gochecknoglobals // buffer pool
+var byteBufferPool = sync.Pool{
+	New: func() any {
+		return &byteBuffer{
+			Bytes: make([]byte, 0),
+		}
+	},
+}
+
+// Reset resets the byte buffer.
+func (b *byteBuffer) Reset() {
+	b.Bytes = b.Bytes[:0]
 }

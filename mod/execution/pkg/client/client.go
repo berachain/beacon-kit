@@ -116,7 +116,7 @@ func (s *EngineClient[ExecutionPayloadT]) Start(
 	}
 
 	s.logger.Info(
-		"initializing connection to the execution client...",
+		"Initializing connection to the execution client...",
 		"dial_url", s.cfg.RPCDialURL.String(),
 	)
 
@@ -135,7 +135,7 @@ func (s *EngineClient[ExecutionPayloadT]) Start(
 			return ctx.Err()
 		case <-ticker.C:
 			s.logger.Info(
-				"waiting for execution client to start... 🍺🕔",
+				"Waiting for execution client to start... 🍺🕔",
 				"dial_url", s.cfg.RPCDialURL,
 			)
 			if err := s.initializeConnection(ctx); err != nil {
@@ -193,7 +193,7 @@ func (s *EngineClient[ExecutionPayloadT]) initializeConnection(
 
 	// Log the chain ID.
 	s.logger.Info(
-		"connected to execution client 🔌",
+		"Connected to execution client 🔌",
 		"dial_url",
 		s.cfg.RPCDialURL.String(),
 		"chain_id",

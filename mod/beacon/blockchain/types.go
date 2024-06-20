@@ -91,7 +91,6 @@ type BlobProcessor[
 		avs AvailabilityStoreT,
 		sidecars BlobSidecarsT,
 	) error
-
 	// VerifyBlobs verifies the blobs and ensures they match the local state.
 	VerifyBlobs(
 		slot math.Slot,
@@ -102,7 +101,9 @@ type BlobProcessor[
 // BlobSidecars is the interface for blobs sidecars.
 type BlobSidecars interface {
 	ssz.Marshallable
+	// IsNil checks if the blobs sidecars is nil.
 	IsNil() bool
+	// Len returns the length of the blobs sidecars.
 	Len() int
 }
 
@@ -130,8 +131,11 @@ type ExecutionPayload interface {
 
 // ExecutionPayloadHeader is the interface for the execution payload header.
 type ExecutionPayloadHeader interface {
+	// GetTimestamp returns the timestamp.
 	GetTimestamp() math.U64
+	// GetBlockHash returns the block hash.
 	GetBlockHash() common.ExecutionHash
+	// GetParentHash returns the parent hash.
 	GetParentHash() common.ExecutionHash
 }
 

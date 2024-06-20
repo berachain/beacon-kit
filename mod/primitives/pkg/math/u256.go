@@ -104,7 +104,7 @@ func MustNewU256LFromBigInt(b *big.Int) U256L {
 
 // ------------------------------ Unwraps ------------------------------
 
-// UnwrapU256 converts an U256L to a raw [32]byte chunk.
+// Unwrap converts an U256L to a raw [32]byte chunk.
 func (s U256L) Unwrap() [32]byte {
 	return s
 }

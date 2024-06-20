@@ -21,9 +21,11 @@
 package math_test
 
 import (
+	"math/big"
 	"reflect"
 	"testing"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/require"
@@ -452,107 +454,322 @@ func TestU64_PrevPowerOfTwo(t *testing.T) {
 	}
 }
 
-// func TestU64List_HashTreeRoot(t *testing.T) {
-// 	tests := []struct {
-// 		name     string
-// 		vector   math.U64List
-// 		expected [32]byte
-// 	}{
-// 		// {
-// 		// 	name:     "empty vector",
-// 		// 	vector:   math.U64List{},
-// 		// 	expected: [32]byte{}, // Assuming the hash of an empty vector is
-// 		// zeroed
-// 		// },
-// 		// {
-// 		// 	name:     "single element",
-// 		// 	vector:   math.U64List{1},
-// 		// 	expected: [32]byte{0x01}, // Simplified expected result
-// 		// },
-// 		{
-// 			name: "multiple elements",
-// 			vector: math.U64List{
-// 				1,
-// 				2,
-// 				3,
-// 				4,
-// 				5,
-// 				6,
-// 				9,
-// 				1000,
-// 				34,
-// 				334,
-// 				33,
-// 			},
-// 			expected: [32]byte{0x0e}, // Simplified expected result
-// 		},
-// 	}
+func TestU64_HashTreeRoot(t *testing.T) {
+	tests := []struct {
+		name     string
+		value    math.U64
+		expected [32]byte
+	}{
+		{
+			name:  "zero value",
+			value: math.U64(0),
+			expected: [32]byte{
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+			},
+		},
+		{
+			name:  "max uint64 value",
+			value: math.U64(^uint64(0)),
+			expected: [32]byte{
+				255,
+				255,
+				255,
+				255,
+				255,
+				255,
+				255,
+				255,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+			},
+		},
+		{
+			name:  "arbitrary number",
+			value: math.U64(123456789),
+			expected: [32]byte{
+				21,
+				205,
+				91,
+				7,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+			},
+		},
+		{
+			name:  "one",
+			value: math.U64(1),
+			expected: [32]byte{
+				1,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+			},
+		},
+	}
 
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			result, err := tt.vector.HashTreeRoot()
-// 			require.NoError(t, err)
-// 			list2 := make([]uint64, len(tt.vector))
-// 			for i, v := range tt.vector {
-// 				list2[i] = uint64(v)
-// 			}
-// 			result2, err := (&math.U64List2{Data: list2}).HashTreeRoot()
-// 			require.Equal(t, result, result2)
-// 		})
-// 	}
-// }
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := tt.value.HashTreeRoot()
+			require.NoError(t, err, "Test case: %s", tt.name)
+			require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
+		})
+	}
+}
 
-// func TestU64Vector_HashTreeRoot(t *testing.T) {
-// 	tests := []struct {
-// 		name      string
-// 		container math.U64Container
-// 		expected  [32]byte
-// 	}{
-// 		// {
-// 		// 	name:     "empty vector",
-// 		// 	vector:   math.U64List{},
-// 		// 	expected: [32]byte{}, // Assuming the hash of an empty vector is
-// 		// zeroed
-// 		// },
-// 		// {
-// 		// 	name:     "single element",
-// 		// 	vector:   math.U64List{1},
-// 		// 	expected: [32]byte{0x01}, // Simplified expected result
-// 		// },
-// 		{
-// 			name: "multiple elements",
-// 			container: math.U64Container{
-// 				// Field0: 1,
-// 				Field1: 2,
-// 				Field2: math.U64List{
-// 					1,
-// 					2,
-// 					3,
-// 					4,
-// 					5,
-// 					6,
-// 					9,
-// 					1000,
-// 					34,
-// 					334,
-// 					33,
-// 				},
-// 			},
-// 			expected: [32]byte{0x0e}, // Simplified expected result
-// 		},
-// 	}
+func TestGweiFromWei(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    *big.Int
+		expected math.Gwei
+	}{
+		{
+			name:     "zero wei",
+			input:    big.NewInt(0),
+			expected: math.Gwei(0),
+		},
+		{
+			name:     "one gwei",
+			input:    big.NewInt(constants.GweiPerWei),
+			expected: math.Gwei(1),
+		},
+		{
+			name:     "arbitrary wei",
+			input:    big.NewInt(constants.GweiPerWei * 123456789),
+			expected: math.Gwei(123456789),
+		},
+		{
+			name: "max uint64 wei",
+			input: new(
+				big.Int,
+			).Mul(big.NewInt(constants.GweiPerWei), new(big.Int).SetUint64(^uint64(0))),
+			expected: math.Gwei(1<<64 - 1),
+		},
+	}
 
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			result, err := tt.container.HashTreeRoot()
-// 			require.NoError(t, err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := math.GweiFromWei(tt.input)
+			require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
+		})
+	}
+}
 
-// 			result2, err := (&math.U64Container2{
-// 				// Field0: 1,
-// 				Field1: 2,
-// 				Field2: []uint64{1, 2, 3, 4, 5, 6, 9, 1000, 34, 334, 33},
-// 			}).HashTreeRoot()
-// 			require.Equal(t, result, result2)
-// 		})
-// 	}
-// }
+func TestGwei_ToWei(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    math.Gwei
+		expected *big.Int
+	}{
+		{
+			name:     "zero gwei",
+			input:    math.Gwei(0),
+			expected: big.NewInt(0),
+		},
+		{
+			name:     "one gwei",
+			input:    math.Gwei(1),
+			expected: big.NewInt(constants.GweiPerWei),
+		},
+		{
+			name:  "arbitrary gwei",
+			input: math.Gwei(123456789),
+			expected: new(
+				big.Int,
+			).Mul(big.NewInt(constants.GweiPerWei), big.NewInt(123456789)),
+		},
+		{
+			name:  "max uint64 gwei",
+			input: math.Gwei(1<<64 - 1),
+			expected: new(
+				big.Int,
+			).Mul(big.NewInt(constants.GweiPerWei), new(big.Int).SetUint64(1<<64-1)),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := tt.input.ToWei()
+			require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
+		})
+	}
+}
+
+func TestU64_Base10(t *testing.T) {
+	tests := []struct {
+		name     string
+		value    math.U64
+		expected string
+	}{
+		{
+			name:     "zero value",
+			value:    math.U64(0),
+			expected: "0",
+		},
+		{
+			name:     "small value",
+			value:    math.U64(123),
+			expected: "123",
+		},
+		{
+			name:     "large value",
+			value:    math.U64(123456789),
+			expected: "123456789",
+		},
+		{
+			name:     "max uint64 value",
+			value:    math.U64(^uint64(0)),
+			expected: "18446744073709551615",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := tt.value.Base10()
+			require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
+		})
+	}
+}
+
+func TestU64_UnwrapPtr(t *testing.T) {
+	tests := []struct {
+		name     string
+		value    math.U64
+		expected uint64
+	}{
+		{
+			name:     "zero value",
+			value:    math.U64(0),
+			expected: 0,
+		},
+		{
+			name:     "small value",
+			value:    math.U64(123),
+			expected: 123,
+		},
+		{
+			name:     "large value",
+			value:    math.U64(123456789),
+			expected: 123456789,
+		},
+		{
+			name:     "max uint64 value",
+			value:    math.U64(^uint64(0)),
+			expected: ^uint64(0),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := tt.value.UnwrapPtr()
+			require.NotNil(t, result)
+			require.Equal(t, tt.expected, *result, "Test case: %s", tt.name)
+		})
+	}
+}

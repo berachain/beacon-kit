@@ -18,14 +18,20 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package phuslu
 
-// DefaultClientComponents returns the default components for
-// the client.
-func DefaultClientComponents() []any {
-	return []any{
-		ProvideClientContext,
-		ProvideKeyring,
-		ProvideLogger,
+import "time"
+
+// Config is a structure that defines the configuration for the logger.
+type Config struct {
+	// TimeFormat is a string that defines the format of the time in
+	// the logger.
+	TimeFormat string
+}
+
+// DefaultConfig is a function that returns a new Config with default values.
+func DefaultConfig() *Config {
+	return &Config{
+		TimeFormat: time.RFC3339,
 	}
 }

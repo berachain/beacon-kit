@@ -30,7 +30,7 @@ import (
 func (s *EngineClient[ExecutionPayloadT]) jwtRefreshLoop(
 	ctx context.Context,
 ) {
-	s.logger.Info("starting JWT refresh loop 🔄")
+	s.logger.Info("Starting JWT refresh loop 🔄")
 	ticker := time.NewTicker(s.cfg.RPCJWTRefreshInterval)
 	for {
 		select {
@@ -45,7 +45,7 @@ func (s *EngineClient[ExecutionPayloadT]) jwtRefreshLoop(
 					err,
 				)
 			} else {
-				s.logger.Info("successfully refreshed engine auth token")
+				s.logger.Info("Successfully refreshed engine auth token")
 			}
 		}
 	}

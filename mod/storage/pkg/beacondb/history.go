@@ -26,7 +26,8 @@ import (
 
 // UpdateBlockRootAtIndex sets a block root in the BeaconStore.
 func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT,
 ]) UpdateBlockRootAtIndex(
 	index uint64,
 	root primitives.Root,
@@ -36,7 +37,8 @@ func (kv *KVStore[
 
 // GetBlockRootAtIndex retrieves the block root from the BeaconStore.
 func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT,
 ]) GetBlockRootAtIndex(
 	index uint64,
 ) (primitives.Root, error) {
@@ -49,7 +51,8 @@ func (kv *KVStore[
 
 // SetLatestBlockHeader sets the latest block header in the BeaconStore.
 func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT,
 ]) SetLatestBlockHeader(
 	header BeaconBlockHeaderT,
 ) error {
@@ -58,7 +61,8 @@ func (kv *KVStore[
 
 // GetLatestBlockHeader retrieves the latest block header from the BeaconStore.
 func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT,
 ]) GetLatestBlockHeader() (
 	BeaconBlockHeaderT, error,
 ) {
@@ -67,7 +71,8 @@ func (kv *KVStore[
 
 // UpdateStateRootAtIndex updates the state root at the given slot.
 func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT,
 ]) UpdateStateRootAtIndex(
 	idx uint64,
 	stateRoot primitives.Root,
@@ -77,7 +82,8 @@ func (kv *KVStore[
 
 // StateRootAtIndex returns the state root at the given slot.
 func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT,
 ]) StateRootAtIndex(
 	idx uint64,
 ) (primitives.Root, error) {
