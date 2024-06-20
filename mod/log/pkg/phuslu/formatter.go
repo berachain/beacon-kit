@@ -22,7 +22,6 @@ package phuslu
 
 import (
 	"io"
-	"strconv"
 
 	"github.com/phuslu/log"
 )
@@ -43,20 +42,11 @@ const (
 )
 
 // Formatter is a custom formatter for log messages.
-type Formatter struct {
-	// QuoteString enables or disables quoting of string values.
-	QuoteString bool
-	// EndWithMessage enables or disables ending the log message with the
-	// message.
-	EndWithMessage bool
-}
+type Formatter struct{}
 
 // NewFormatter creates a new Formatter with default settings.
 func NewFormatter() *Formatter {
-	return &Formatter{
-		QuoteString:    true,
-		EndWithMessage: false,
-	}
+	return &Formatter{}
 }
 
 // Format formats the log message.
@@ -119,9 +109,6 @@ func (f *Formatter) printWithColor(
 	b.Bytes = append(b.Bytes, ' ')
 	b.Bytes = append(b.Bytes, args.Message...)
 	for _, kv := range args.KeyValues {
-		if f.QuoteString && kv.ValueType == 's' {
-			kv.Value = strconv.Quote(kv.Value)
-		}
 		b.Bytes = append(b.Bytes, ' ')
 		if kv.Key == "error" || kv.Key == "err" {
 			b.Bytes = append(b.Bytes, red...)
@@ -176,5 +163,6 @@ func (f *Formatter) ensureLineBreak(b *byteBuffer) {
 	length := len(b.Bytes)
 	if length == 0 || b.Bytes[length-1] != '\n' {
 		b.Bytes = append(b.Bytes, '\n')
+
 	}
 }
