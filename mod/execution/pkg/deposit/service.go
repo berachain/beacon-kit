@@ -22,6 +22,7 @@ package deposit
 
 import (
 	"context"
+	"sync"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -53,8 +54,8 @@ type Service[
 	// metrics is the metrics for the deposit service.
 	metrics *metrics
 	// failedBlocks is a map of blocks that failed to be processed to be
-	// retried.
-	failedBlocks map[math.U64]struct{}
+	// retried. It's thread-safe.
+	failedBlocks sync.Map
 }
 
 // NewService creates a new instance of the Service struct.

@@ -52,19 +52,17 @@ func (s *Service[
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			if len(s.failedBlocks) == 0 {
-				continue
-			}
-			s.logger.Warn(
-				"Failed to get deposits from block(s), retrying...",
-				"num_blocks",
-				s.failedBlocks,
-			)
-
 			// Fetch deposits for blocks that failed to be processed.
-			for blockNum := range s.failedBlocks {
-				s.fetchAndStoreDeposits(ctx, blockNum)
-			}
+			s.failedBlocks.Range(func(key, _ any) bool {
+				blockNum, ok := key.(math.U64)
+				if !ok {
+					s.logger.Error("Failed to parse key to math.U64", "key", key)
+				} else {
+					s.logger.Info("Retry fetch and store deposits", "block_num", blockNum)
+					s.fetchAndStoreDeposits(ctx, blockNum)
+				}
+				return true
+			})
 		}
 	}
 }
@@ -75,7 +73,7 @@ func (s *Service[
 	deposits, err := s.dc.ReadDeposits(ctx, blockNum)
 	if err != nil {
 		s.metrics.markFailedToGetBlockLogs(blockNum)
-		s.failedBlocks[blockNum] = struct{}{}
+		s.failedBlocks.Store(blockNum, true)
 		return
 	}
 
@@ -88,9 +86,9 @@ func (s *Service[
 
 	if err = s.ds.EnqueueDeposits(deposits); err != nil {
 		s.logger.Error("Failed to store deposits", "error", err)
-		s.failedBlocks[blockNum] = struct{}{}
+		s.failedBlocks.Store(blockNum, true)
 		return
 	}
 
-	delete(s.failedBlocks, blockNum)
+	s.failedBlocks.Delete(blockNum)
 }
