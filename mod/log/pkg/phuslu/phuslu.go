@@ -99,8 +99,11 @@ func (l Logger[ImplT]) With(keyVals ...any) ImplT {
 
 	// Add the new context to the existing context.
 	for i := 0; i < len(keyVals); i += 2 {
-		key, val := keyVals[i].(string), keyVals[i+1]
-		newLogger.context[key] = val
+		key, ok := keyVals[i].(string)
+		if !ok {
+			panic("context key must be a string")
+		}
+		newLogger.context[key] = keyVals[i+1]
 	}
 
 	return any(&newLogger).(ImplT)
