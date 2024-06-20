@@ -161,6 +161,27 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+      
+      - name: Check if in Merge Queue
+        id: check_merge_queue
+        run: |
+          if [[ "${GITHUB_REF_NAME}" == gh-readonly-queue/* ]]; then
+            echo "In merge queue"
+            echo "::set-output name=in_merge_queue::true"
+          else
+            echo "Not in merge queue"
+            echo "::set-output name=in_merge_queue::false"
+          fi
+      
+      - name: Set VERSION
+        id: set_version
+        run: |
+          if [[ "${{ steps.check_merge_queue.outputs.in_merge_queue }}" == "true" ]]; then
+            VERSION="merge-queue"
+          else
+            VERSION="${{ github.ref_name }}"
+          fi
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
 
       - name: Echo GitHub Context Variables
         run: |
@@ -182,6 +203,7 @@ jobs:
           echo "GitHub Base Ref: ${{ github.base_ref }}"
           echo "PUSH_DOCKER_IMAGE: ${{ env.PUSH_DOCKER_IMAGE }}"
           echo "VERSION: ${{ env.VERSION }}"
+
       - name: Build Docker image
         run: |
           make build-docker
