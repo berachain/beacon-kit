@@ -26,6 +26,7 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/config"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/interfaces"
@@ -88,7 +89,7 @@ func ProvideExecutionEngine[
 ](
 	in ExecutionEngineInput,
 ) *ExecutionEngine {
-	return execution.New[*ExecutionPayload](
+	return execution.New[*ExecutionPayload, engineprimitives.PayloadID](
 		in.EngineClient,
 		in.Logger.With("service", "execution-engine"),
 		in.StatusFeed,

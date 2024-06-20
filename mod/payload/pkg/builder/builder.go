@@ -21,7 +21,6 @@
 package builder
 
 import (
-	engineprimitves "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
@@ -44,6 +43,7 @@ type PayloadBuilder[
 		GetBlockHash() common.ExecutionHash
 		GetParentHash() common.ExecutionHash
 	},
+	PayloadIDT ~[8]byte,
 ] struct {
 	// cfg holds the configuration settings for the PayloadBuilder.
 	cfg *Config
@@ -52,12 +52,12 @@ type PayloadBuilder[
 	// logger is used for logging within the PayloadBuilder.
 	logger log.Logger[any]
 	// ee is the execution engine.
-	ee ExecutionEngine[ExecutionPayloadT]
+	ee ExecutionEngine[ExecutionPayloadT, PayloadIDT]
 	// pc is the payload ID cache, it is used to store
 	// "in-flight" payloads that are being built on
 	// the execution client.
 	pc *cache.PayloadIDCache[
-		engineprimitves.PayloadID, [32]byte, math.Slot,
+		PayloadIDT, [32]byte, math.Slot,
 	]
 }
 
@@ -75,19 +75,20 @@ func New[
 		GetBlockHash() common.ExecutionHash
 		GetParentHash() common.ExecutionHash
 	},
+	PayloadIDT ~[8]byte,
 ](
 	cfg *Config,
 	chainSpec primitives.ChainSpec,
 	logger log.Logger[any],
-	ee ExecutionEngine[ExecutionPayloadT],
+	ee ExecutionEngine[ExecutionPayloadT, PayloadIDT],
 	pc *cache.PayloadIDCache[
-		engineprimitves.PayloadID, [32]byte, math.Slot,
+		PayloadIDT, [32]byte, math.Slot,
 	],
 ) *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT, PayloadIDT,
 ] {
 	return &PayloadBuilder[
-		BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+		BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT, PayloadIDT,
 	]{
 		cfg:       cfg,
 		chainSpec: chainSpec,
@@ -99,7 +100,7 @@ func New[
 
 // Enabled returns true if the payload builder is enabled.
 func (pb *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT, PayloadIDT,
 ]) Enabled() bool {
 	return pb.cfg.Enabled
 }

@@ -34,7 +34,7 @@ import (
 // RequestPayloadAsync builds a payload for the given slot and
 // returns the payload ID.
 func (pb *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT, PayloadIDT,
 ]) RequestPayloadAsync(
 	ctx context.Context,
 	st BeaconStateT,
@@ -43,7 +43,7 @@ func (pb *PayloadBuilder[
 	parentBlockRoot primitives.Root,
 	headEth1BlockHash common.ExecutionHash,
 	finalEth1BlockHash common.ExecutionHash,
-) (*engineprimitives.PayloadID, error) {
+) (*PayloadIDT, error) {
 	if !pb.Enabled() {
 		return nil, ErrPayloadBuilderDisabled
 	}
@@ -66,7 +66,7 @@ func (pb *PayloadBuilder[
 	}
 
 	// Submit the forkchoice update to the execution client.
-	var payloadID *engineprimitives.PayloadID
+	var payloadID *PayloadIDT
 	payloadID, _, err = pb.ee.NotifyForkchoiceUpdate(
 		ctx, &engineprimitives.ForkchoiceUpdateRequest{
 			State: &engineprimitives.ForkchoiceStateV1{
@@ -105,7 +105,7 @@ func (pb *PayloadBuilder[
 // RequestPayloadSync request a payload for the given slot and
 // blocks until the payload is delivered.
 func (pb *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT, PayloadIDT,
 ]) RequestPayloadSync(
 	ctx context.Context,
 	st BeaconStateT,
@@ -153,7 +153,7 @@ func (pb *PayloadBuilder[
 	// Get the payload from the execution client.
 	return pb.ee.GetPayload(
 		ctx,
-		&engineprimitives.GetPayloadRequest{
+		&engineprimitives.GetPayloadRequest[PayloadIDT]{
 			PayloadID:   *payloadID,
 			ForkVersion: pb.chainSpec.ActiveForkVersionForSlot(slot),
 		},
@@ -165,7 +165,7 @@ func (pb *PayloadBuilder[
 // retrieve a payload, it will build a new payload and wait for the
 // execution client to return the payload.
 func (pb *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT, PayloadIDT,
 ]) RetrievePayload(
 	ctx context.Context,
 	slot math.Slot,
@@ -184,7 +184,7 @@ func (pb *PayloadBuilder[
 
 	envelope, err := pb.ee.GetPayload(
 		ctx,
-		&engineprimitives.GetPayloadRequest{
+		&engineprimitives.GetPayloadRequest[PayloadIDT]{
 			PayloadID:   payloadID,
 			ForkVersion: pb.chainSpec.ActiveForkVersionForSlot(slot),
 		},
@@ -235,7 +235,7 @@ func (pb *PayloadBuilder[
 // TODO: This should be moved onto a "sync service"
 // of some kind.
 func (pb *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT, PayloadIDT,
 ]) SendForceHeadFCU(
 	ctx context.Context,
 	st BeaconStateT,
