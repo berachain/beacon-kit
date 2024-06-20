@@ -163,6 +163,5 @@ func (f *Formatter) ensureLineBreak(b *byteBuffer) {
 	length := len(b.Bytes)
 	if length == 0 || b.Bytes[length-1] != '\n' {
 		b.Bytes = append(b.Bytes, '\n')
-
 	}
 }

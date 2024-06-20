@@ -41,5 +41,4 @@ var byteBufferPool = sync.Pool{
 // Reset resets the byte buffer.
 func (b *byteBuffer) Reset() {
 	b.Bytes = b.Bytes[:0]
-
 }
