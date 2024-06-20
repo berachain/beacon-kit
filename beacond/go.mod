@@ -5,15 +5,14 @@ go 1.22.4
 replace (
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240530104414-90cbb022d5f6
-	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240530104414-90cbb022d5f6
 	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240530104414-90cbb022d5f6
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240530104414-90cbb022d5f6
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240529213909-58c32d695e1a
+	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240620161400-a6407f411e80
 )
 
 require (
-	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240617204505-1abdb4095d50
-	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240617204505-1abdb4095d50
+	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240620163759-5cddca80172b
+	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240620163759-5cddca80172b
 	github.com/cosmos/cosmos-sdk v0.51.0
 	go.uber.org/automaxprocs v1.5.3
 )
@@ -25,6 +24,7 @@ require (
 	cosmossdk.io/client/v2 v2.0.0-20240412212305-037cf98f7eea // indirect
 	cosmossdk.io/collections v0.4.0 // indirect
 	cosmossdk.io/core v0.12.1-0.20240530104414-90cbb022d5f6 // indirect
+	cosmossdk.io/core/testing v0.0.0-20240620161400-a6407f411e80 // indirect
 	cosmossdk.io/depinject v1.0.0-alpha.4.0.20240506202947-fbddf0a55044 // indirect
 	cosmossdk.io/errors v1.0.1 // indirect
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce // indirect
@@ -49,7 +49,7 @@ require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/berachain/beacon-kit/mod/async v0.0.0-20240618161752-38d39cfe07b9 // indirect
-	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240617185735-42326b5546a8 // indirect
+	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240618183531-522d694f4024 // indirect
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240614154006-a5defa6198f5 // indirect
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240614154006-a5defa6198f5 // indirect
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240614154006-a5defa6198f5 // indirect
@@ -57,9 +57,9 @@ require (
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240618214413-d5ec0e66b3dd // indirect
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240617185735-42326b5546a8 // indirect
 	github.com/berachain/beacon-kit/mod/interfaces v0.0.0-20240610210054-bfdc14c4013c // indirect
-	github.com/berachain/beacon-kit/mod/log v0.0.0-20240614154006-a5defa6198f5 // indirect
+	github.com/berachain/beacon-kit/mod/log v0.0.0-20240619234034-fe96d94eafef // indirect
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240610210054-bfdc14c4013c // indirect
-	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240614154006-a5defa6198f5 // indirect
+	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240620163759-5cddca80172b // indirect
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240618214413-d5ec0e66b3dd // indirect
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240618214413-d5ec0e66b3dd // indirect
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240610210054-bfdc14c4013c // indirect
@@ -179,6 +179,7 @@ require (
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
 	github.com/petermattis/goid v0.0.0-20240607163614-bb94eb51e7a7 // indirect
+	github.com/phuslu/log v1.0.106 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_golang v1.19.1 // indirect
@@ -198,7 +199,7 @@ require (
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect
-	github.com/spf13/cobra v1.8.0 // indirect
+	github.com/spf13/cobra v1.8.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.19.0 // indirect
 	github.com/stretchr/testify v1.9.0 // indirect
