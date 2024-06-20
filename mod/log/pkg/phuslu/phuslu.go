@@ -55,17 +55,17 @@ func NewLogger[ImplT any](
 
 // Info logs a message at level Info.
 func (l *Logger[ImplT]) Info(msg string, keyVals ...any) {
-	l.msgWithContext(msg, l.logger.Info(), keyVals...)
+	l.addContext(l.logger.Info()).KeysAndValues(keyVals...).Msg(msg)
 }
 
 // Warn logs a message at level Warn.
 func (l *Logger[ImplT]) Warn(msg string, keyVals ...any) {
-	l.msgWithContext(msg, l.logger.Warn(), keyVals...)
+	l.addContext(l.logger.Warn()).KeysAndValues(keyVals...).Msg(msg)
 }
 
 // Error logs a message at level Error.
 func (l *Logger[ImplT]) Error(msg string, keyVals ...any) {
-	l.msgWithContext(msg, l.logger.Error(), keyVals...)
+	l.addContext(l.logger.Error()).KeysAndValues(keyVals...).Msg(msg)
 }
 
 // Debug logs a message at level Debug.
@@ -78,7 +78,7 @@ func (l *Logger[ImplT]) Debug(msg string, keyVals ...any) {
 	if l.logger.Level > log.DebugLevel {
 		return
 	}
-	l.msgWithContext(msg, l.logger.Debug(), keyVals...)
+	l.addContext(l.logger.Debug()).KeysAndValues(keyVals...).Msg(msg)
 }
 
 // Impl returns the underlying logger implementation.
@@ -111,21 +111,13 @@ func (l *Logger[ImplT]) addContext(e *log.Entry) *log.Entry {
 	return e.Fields(l.context)
 }
 
-// msgWithContext logs a message with keyVals and current context.
-func (l *Logger[ImplT]) msgWithContext(
-	msg string, e *log.Entry, keyVals ...any,
-) {
-	e = l.addContext(e).KeysAndValues(keyVals...)
-	e.Msg(msg)
-}
-
 // keyValToFields converts a list of key-value pairs to a map.
 func keyValToFields(keyVals ...any) log.Fields {
 	if len(keyVals)%2 != 0 {
 		panic("missing value for key")
 	}
 	// allocate a new fields map
-	fields := make(log.Fields, len(keyVals)/2)
+	fields := make(log.Fields)
 	// populate the fields map with the key-value pairs
 	for i := 0; i < len(keyVals); i += 2 {
 		fields[keyVals[i].(string)] = keyVals[i+1]
