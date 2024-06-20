@@ -18,11 +18,12 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package store
+package store_test
 
 import (
 	"testing"
 
+	"github.com/berachain/beacon-kit/mod/da/pkg/store"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/ethereum/go-ethereum/common"
@@ -62,12 +63,12 @@ func (cs MockChainSpec) MinEpochsForBlobsSidecarsRequest() uint64 {
 }
 
 // ActiveForkVersionForEpoch implements chain.Spec.
-func (cs *MockChainSpec) ActiveForkVersionForEpoch(epoch math.U64) uint32 {
+func (cs *MockChainSpec) ActiveForkVersionForEpoch(_ math.U64) uint32 {
 	panic("unimplemented")
 }
 
 // ActiveForkVersionForSlot implements chain.Spec.
-func (cs *MockChainSpec) ActiveForkVersionForSlot(slot math.U64) uint32 {
+func (cs *MockChainSpec) ActiveForkVersionForSlot(_ math.U64) uint32 {
 	panic("unimplemented")
 }
 
@@ -162,7 +163,7 @@ func (cs *MockChainSpec) FieldElementsPerBlob() uint64 {
 }
 
 // GetCometBFTConfigForSlot implements chain.Spec.
-func (cs *MockChainSpec) GetCometBFTConfigForSlot(slot math.U64) any {
+func (cs *MockChainSpec) GetCometBFTConfigForSlot(_ math.U64) any {
 	panic("unimplemented")
 }
 
@@ -282,7 +283,7 @@ func TestBuildPruneRangeFn(t *testing.T) {
 				minEpochsForBlobsSidecarsRequest: tt.minEpochs,
 			}
 
-			pruneFn := BuildPruneRangeFn[MockBeaconBlock, MockBlockEvent](cs)
+			pruneFn := store.BuildPruneRangeFn[MockBeaconBlock, MockBlockEvent](cs)
 
 			event := MockBlockEvent{
 				data: MockBeaconBlock{
