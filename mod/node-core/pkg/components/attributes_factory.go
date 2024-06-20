@@ -32,7 +32,7 @@ func ProvideAttributesFactory(
 	chainSpec primitives.ChainSpec,
 	logger log.Logger[any],
 	cfg *config.Config,
-) (*AttributesFactory, error) {
+) (*attributes.Factory[BeaconState, *Withdrawal], error) {
 	return attributes.NewAttributesFactory[BeaconState, *Withdrawal](
 		chainSpec,
 		logger,
