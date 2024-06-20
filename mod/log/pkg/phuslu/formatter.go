@@ -104,7 +104,7 @@ func (f *Formatter) printWithColor(
 	b *byteBuffer,
 	color, level string,
 ) {
-	f.formatHeader(args, b, true, color, level)
+	f.formatHeader(args, b, color, level)
 
 	b.Bytes = append(b.Bytes, ' ')
 	b.Bytes = append(b.Bytes, args.Message...)
@@ -112,16 +112,11 @@ func (f *Formatter) printWithColor(
 		b.Bytes = append(b.Bytes, ' ')
 		if kv.Key == "error" || kv.Key == "err" {
 			b.Bytes = append(b.Bytes, red...)
-			b.Bytes = append(b.Bytes, kv.Key...)
-			b.Bytes = append(b.Bytes, '=')
-			b.Bytes = append(b.Bytes, kv.Value...)
-			b.Bytes = append(b.Bytes, reset...)
-		} else {
-			b.Bytes = append(b.Bytes, kv.Key...)
-			b.Bytes = append(b.Bytes, '=')
-			b.Bytes = append(b.Bytes, kv.Value...)
-			b.Bytes = append(b.Bytes, reset...)
 		}
+		b.Bytes = append(b.Bytes, kv.Key...)
+		b.Bytes = append(b.Bytes, '=')
+		b.Bytes = append(b.Bytes, kv.Value...)
+		b.Bytes = append(b.Bytes, reset...)
 	}
 }
 
@@ -129,30 +124,20 @@ func (f *Formatter) printWithColor(
 func (f *Formatter) formatHeader(
 	args *log.FormatterArgs,
 	b *byteBuffer,
-	colorEnabled bool,
 	color, level string,
 ) {
-	headerColor, resetColor := "", ""
-	if colorEnabled {
-		headerColor, resetColor = color, reset
-	}
 	b.Bytes = append(b.Bytes, gray...)
 	b.Bytes = append(b.Bytes, args.Time...)
-	b.Bytes = append(b.Bytes, resetColor...)
 	b.Bytes = append(b.Bytes, ' ')
-	b.Bytes = append(b.Bytes, headerColor...)
+	b.Bytes = append(b.Bytes, color...)
 	b.Bytes = append(b.Bytes, level...)
-	b.Bytes = append(b.Bytes, resetColor...)
-
 	if args.Caller != "" {
 		b.Bytes = append(b.Bytes, args.Goid...)
 		b.Bytes = append(b.Bytes, ' ')
 		b.Bytes = append(b.Bytes, args.Caller...)
 		b.Bytes = append(b.Bytes, ' ')
-		b.Bytes = append(b.Bytes, resetColor...)
-	} else {
-		b.Bytes = append(b.Bytes, resetColor...)
 	}
+	b.Bytes = append(b.Bytes, reset...)
 }
 
 // ensureLineBreak ensures the log message ends with a line break.
