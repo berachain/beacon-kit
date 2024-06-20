@@ -18,39 +18,42 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package chain
+package chain_test
 
 import (
 	"testing"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/chain"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/stretchr/testify/require"
 )
 
-// Define concrete types for the generic parameters
-type domainTypeT [4]byte
-type epochT uint64
-type executionAddressT [20]byte
-type slotT uint64
-type cometBFTConfigT struct{}
+// Define concrete types for the generic parameters.
+type (
+	domainType       [4]byte
+	epoch            uint64
+	executionAddress [20]byte
+	slot             uint64
+	cometBFTConfig   struct{}
+)
 
-// Create an instance of chainSpec with test data
-var spec = chainSpec[domainTypeT, epochT, executionAddressT, slotT, cometBFTConfigT]{
-	Data: SpecData[
-		domainTypeT, epochT, executionAddressT, slotT, cometBFTConfigT,
+// Create an instance of chainSpec with test data.
+var spec = chain.NewChainSpec(
+	chain.SpecData[
+		domainType, epoch, executionAddress, slot, cometBFTConfig,
 	]{
-		ElectraForkEpoch:                10,
-		SlotsPerEpoch:                   32,
+		ElectraForkEpoch:                 10,
+		SlotsPerEpoch:                    32,
 		MinEpochsForBlobsSidecarsRequest: 5,
 	},
-}
+)
 
-// TestActiveForkVersionForEpoch tests the ActiveForkVersionForEpoch method
+// TestActiveForkVersionForEpoch tests the ActiveForkVersionForEpoch method.
 func TestActiveForkVersionForEpoch(t *testing.T) {
 	// Define test cases
 	tests := []struct {
 		name     string
-		epoch    epochT
+		epoch    epoch
 		expected uint32
 	}{
 		{name: "Before Electra Fork", epoch: 9, expected: version.Deneb},
@@ -72,8 +75,8 @@ func TestSlotToEpoch(t *testing.T) {
 	// Define test cases
 	tests := []struct {
 		name     string
-		slot     slotT
-		expected epochT
+		slot     slot
+		expected epoch
 	}{
 		{name: "Epoch 0, Slot 0", slot: 0, expected: 0},
 		{name: "Epoch 0, Slot 31", slot: 31, expected: 0},
@@ -97,7 +100,7 @@ func TestActiveForkVersionForSlot(t *testing.T) {
 	// Define test cases
 	tests := []struct {
 		name     string
-		slot     slotT
+		slot     slot
 		expected uint32
 	}{
 		{name: "Before Electra Fork", slot: 0, expected: version.Deneb},
@@ -120,14 +123,18 @@ func TestWithinDAPeriod(t *testing.T) {
 	// Define test cases
 	tests := []struct {
 		name     string
-		block    slotT
-		current  slotT
+		block    slot
+		current  slot
 		expected bool
 	}{
-		{name: "Within DA Period", block: 0, current: 160, expected: true},    // Block is within DA period (5 epochs)
-		{name: "Outside DA Period", block: 0, current: 192, expected: false},  // Block is outside DA period (>5 epochs)
-		{name: "Within DA Period 2", block: 160, current: 320, expected: true}, // Block is within DA period
-		{name: "Outside DA Period 2", block: 160, current: 352, expected: false}, // Block is outside DA period
+		// Block is within DA period (5 epochs).
+		{name: "Within DA Period", block: 0, current: 160, expected: true},
+		// Block is outside DA period (>5 epochs).
+		{name: "Outside DA Period", block: 0, current: 192, expected: false},
+		// Block is within DA period.
+		{name: "Within DA Period 2", block: 160, current: 320, expected: true},
+		// Block is outside DA period.
+		{name: "Outside DA Period 2", block: 160, current: 352, expected: false},
 	}
 
 	// Run test cases
