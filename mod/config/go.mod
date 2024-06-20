@@ -3,12 +3,12 @@ module github.com/berachain/beacon-kit/mod/config
 go 1.22.4
 
 require (
-	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240617161612-ab1257fcf5a1
+	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240620163759-5cddca80172b
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240610210054-bfdc14c4013c
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240618214413-d5ec0e66b3dd
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240620163759-5cddca80172b
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240610210054-bfdc14c4013c
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240610210054-bfdc14c4013c
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240618214413-d5ec0e66b3dd
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240620163759-5cddca80172b
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240613135100-716d8f8c592d
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/spf13/viper v1.19.0
@@ -18,6 +18,7 @@ require (
 	github.com/DataDog/zstd v1.5.5 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
+	github.com/berachain/beacon-kit/mod/async v0.0.0-20240618214413-d5ec0e66b3dd // indirect
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240612175710-7d5f3e4f7041 // indirect
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240614170830-558fac144a58 // indirect
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610210054-bfdc14c4013c // indirect
