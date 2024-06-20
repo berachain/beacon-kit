@@ -22,24 +22,24 @@ package deneb
 
 import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../../../primitives/pkg/crypto,../../../../primitives/pkg/common,../../../../primitives/pkg/bytes,../../../../primitives/mod.go,../../../../consensus-types/pkg/types,../../../../engine-primitives/pkg/engine-primitives,../../../../primitives/mod.go,../../../../primitives/pkg/math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deneb.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../../../primitives/pkg/crypto,../../../../primitives/pkg/common,../../../../primitives/pkg/bytes,../../../../consensus-types/pkg/types,../../../../engine-primitives/pkg/engine-primitives,../../../../primitives/pkg/math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil,../../../../primitives/pkg/common/common.go -output deneb.ssz.go
 //nolint:lll // various json tags.
 type BeaconState struct {
 	// Versioning
 	//
 	//nolint:lll
-	GenesisValidatorsRoot primitives.Root `json:"genesisValidatorsRoot" ssz-size:"32"`
-	Slot                  math.Slot       `json:"slot"`
-	Fork                  *types.Fork     `json:"fork"`
+	GenesisValidatorsRoot common.Root `json:"genesisValidatorsRoot" ssz-size:"32"`
+	Slot                  math.Slot   `json:"slot"`
+	Fork                  *types.Fork `json:"fork"`
 
 	// History
 	LatestBlockHeader *types.BeaconBlockHeader `json:"latestBlockHeader"`
-	BlockRoots        []primitives.Root        `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
-	StateRoots        []primitives.Root        `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
+	BlockRoots        []common.Root            `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
+	StateRoots        []common.Root            `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
 
 	// Eth1
 	Eth1Data                     *types.Eth1Data                    `json:"eth1Data"`
@@ -51,7 +51,7 @@ type BeaconState struct {
 	Balances   []uint64           `json:"balances"   ssz-max:"1099511627776"`
 
 	// Randomness
-	RandaoMixes []primitives.Bytes32 `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`
+	RandaoMixes []common.Bytes32 `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`
 
 	// Withdrawals
 	NextWithdrawalIndex          uint64              `json:"nextWithdrawalIndex"`

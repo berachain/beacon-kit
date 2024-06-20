@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
@@ -71,7 +71,7 @@ type Backend[
 	],
 	DepositStoreT *deposit.KVStore[*types.Deposit],
 ] struct {
-	cs primitives.ChainSpec
+	cs common.ChainSpec
 	as AvailabilityStoreT
 	bs *KVStore
 	ds DepositStoreT
@@ -93,7 +93,7 @@ func NewBackend[
 	],
 	DepositStoreT *deposit.KVStore[*types.Deposit],
 ](
-	cs primitives.ChainSpec,
+	cs common.ChainSpec,
 	as AvailabilityStoreT,
 	bs *KVStore,
 	ds DepositStoreT,

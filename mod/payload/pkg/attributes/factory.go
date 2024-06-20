@@ -23,7 +23,6 @@ package attributes
 import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -33,7 +32,7 @@ type Factory[
 	BeaconStateT BeaconState[WithdrawalT], WithdrawalT any,
 ] struct {
 	// chainSpec is the chain spec for the attributes factory.
-	chainSpec primitives.ChainSpec
+	chainSpec common.ChainSpec
 	// logger is the logger for the attributes factory.
 	logger log.Logger[any]
 	// suggestedFeeRecipient is the suggested fee recipient sent to
@@ -45,7 +44,7 @@ type Factory[
 func NewAttributesFactory[
 	BeaconStateT BeaconState[WithdrawalT], WithdrawalT any,
 ](
-	chainSpec primitives.ChainSpec,
+	chainSpec common.ChainSpec,
 	logger log.Logger[any],
 	suggestedFeeRecipient common.ExecutionAddress,
 ) *Factory[BeaconStateT, WithdrawalT] {

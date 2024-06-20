@@ -25,7 +25,6 @@ import (
 	"encoding/json"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -219,7 +218,7 @@ type ExecutionEngine[
 // ForkData is the interface for the fork data.
 type ForkData[ForkDataT any] interface {
 	// New creates a new fork data object.
-	New(primitives.Version, primitives.Root) ForkDataT
+	New(common.Version, common.Root) ForkDataT
 	// ComputeRandaoSigningRoot returns the signing root for the fork data.
 	ComputeRandaoSigningRoot(
 		domainType common.DomainType,

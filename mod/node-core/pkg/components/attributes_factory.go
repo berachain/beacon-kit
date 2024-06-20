@@ -24,7 +24,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
 // ProvideAttributesFactory provides an AttributesFactory for the client.
@@ -32,7 +32,7 @@ func ProvideAttributesFactory[
 	BeaconStateT attributes.BeaconState[WithdrawalT],
 	WithdrawalT any,
 ](
-	chainSpec primitives.ChainSpec,
+	chainSpec common.ChainSpec,
 	logger log.Logger[any],
 	cfg *config.Config,
 ) (*attributes.Factory[BeaconStateT, WithdrawalT], error) {

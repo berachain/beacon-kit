@@ -25,7 +25,6 @@ import (
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
@@ -142,7 +141,7 @@ type ExecutionPayloadHeader interface {
 // Genesis is the interface for the genesis.
 type Genesis[DepositT any, ExecutionPayloadHeaderT any] interface {
 	// GetForkVersion returns the fork version.
-	GetForkVersion() primitives.Version
+	GetForkVersion() common.Version
 	// GetDeposits returns the deposits.
 	GetDeposits() []DepositT
 	// GetExecutionPayloadHeader returns the execution payload header.
@@ -159,7 +158,7 @@ type LocalBuilder[BeaconStateT any] interface {
 		st BeaconStateT,
 		slot math.Slot,
 		timestamp uint64,
-		parentBlockRoot primitives.Root,
+		parentBlockRoot common.Root,
 		headEth1BlockHash common.ExecutionHash,
 		finalEth1BlockHash common.ExecutionHash,
 	) (*engineprimitives.PayloadID, error)
@@ -214,7 +213,7 @@ type StateProcessor[
 		BeaconStateT,
 		[]DepositT,
 		ExecutionPayloadHeaderT,
-		primitives.Version,
+		common.Version,
 	) ([]*transition.ValidatorUpdate, error)
 	// ProcessSlots processes the state transition for a range of slots.
 	ProcessSlots(

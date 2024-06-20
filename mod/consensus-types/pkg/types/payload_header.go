@@ -21,7 +21,6 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -40,8 +39,8 @@ type ExecutionPayloadHeader struct {
 // and a full execution payload.
 type InnerExecutionPayloadHeader interface {
 	executionPayloadBody
-	GetTransactionsRoot() primitives.Root
-	GetWithdrawalsRoot() primitives.Root
+	GetTransactionsRoot() common.Root
+	GetWithdrawalsRoot() common.Root
 }
 
 // Empty returns an empty ExecutionPayload for the given fork version.
@@ -85,15 +84,15 @@ func (e *ExecutionPayloadHeader) NewFromJSON(
 // ExecutionPayloadHeaderDeneb is the execution header payload of Deneb.
 //
 //go:generate go run github.com/fjl/gencodec -type ExecutionPayloadHeaderDeneb -out payload_header.json.go -field-override executionPayloadHeaderDenebMarshaling
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path payload_header.go -objs ExecutionPayloadHeaderDeneb -include ../../../primitives/pkg/bytes,../../../primitives/mod.go,../../../primitives/pkg/common,../../../primitives/pkg/math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output payload_header.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path payload_header.go -objs ExecutionPayloadHeaderDeneb -include ../../../primitives/pkg/bytes,../../../primitives/pkg/common,../../../primitives/pkg/math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output payload_header.ssz.go
 //nolint:lll
 type ExecutionPayloadHeaderDeneb struct {
 	ParentHash       common.ExecutionHash    `json:"parentHash"       ssz-size:"32"  gencodec:"required"`
 	FeeRecipient     common.ExecutionAddress `json:"feeRecipient"     ssz-size:"20"  gencodec:"required"`
-	StateRoot        primitives.Bytes32      `json:"stateRoot"        ssz-size:"32"  gencodec:"required"`
-	ReceiptsRoot     primitives.Bytes32      `json:"receiptsRoot"     ssz-size:"32"  gencodec:"required"`
+	StateRoot        common.Bytes32          `json:"stateRoot"        ssz-size:"32"  gencodec:"required"`
+	ReceiptsRoot     common.Bytes32          `json:"receiptsRoot"     ssz-size:"32"  gencodec:"required"`
 	LogsBloom        []byte                  `json:"logsBloom"        ssz-size:"256" gencodec:"required"`
-	Random           primitives.Bytes32      `json:"prevRandao"       ssz-size:"32"  gencodec:"required"`
+	Random           common.Bytes32          `json:"prevRandao"       ssz-size:"32"  gencodec:"required"`
 	Number           math.U64                `json:"blockNumber"                     gencodec:"required"`
 	GasLimit         math.U64                `json:"gasLimit"                        gencodec:"required"`
 	GasUsed          math.U64                `json:"gasUsed"                         gencodec:"required"`
@@ -101,8 +100,8 @@ type ExecutionPayloadHeaderDeneb struct {
 	ExtraData        []byte                  `json:"extraData"                       gencodec:"required" ssz-max:"32"`
 	BaseFeePerGas    math.Wei                `json:"baseFeePerGas"    ssz-size:"32"  gencodec:"required"`
 	BlockHash        common.ExecutionHash    `json:"blockHash"        ssz-size:"32"  gencodec:"required"`
-	TransactionsRoot primitives.Root         `json:"transactionsRoot" ssz-size:"32"  gencodec:"required"`
-	WithdrawalsRoot  primitives.Root         `json:"withdrawalsRoot"  ssz-size:"32"`
+	TransactionsRoot common.Root             `json:"transactionsRoot" ssz-size:"32"  gencodec:"required"`
+	WithdrawalsRoot  common.Root             `json:"withdrawalsRoot"  ssz-size:"32"`
 	BlobGasUsed      math.U64                `json:"blobGasUsed"`
 	ExcessBlobGas    math.U64                `json:"excessBlobGas"`
 }
@@ -141,12 +140,12 @@ func (d *ExecutionPayloadHeaderDeneb) GetFeeRecipient() common.ExecutionAddress 
 }
 
 // GetStateRoot returns the state root of the ExecutionPayloadHeaderDeneb.
-func (d *ExecutionPayloadHeaderDeneb) GetStateRoot() primitives.Bytes32 {
+func (d *ExecutionPayloadHeaderDeneb) GetStateRoot() common.Bytes32 {
 	return d.StateRoot
 }
 
 // GetReceiptsRoot returns the receipts root of the ExecutionPayloadHeaderDeneb.
-func (d *ExecutionPayloadHeaderDeneb) GetReceiptsRoot() primitives.Bytes32 {
+func (d *ExecutionPayloadHeaderDeneb) GetReceiptsRoot() common.Bytes32 {
 	return d.ReceiptsRoot
 }
 
@@ -157,7 +156,7 @@ func (d *ExecutionPayloadHeaderDeneb) GetLogsBloom() []byte {
 
 // GetPrevRandao returns the previous Randao value of the
 // ExecutionPayloadHeaderDeneb.
-func (d *ExecutionPayloadHeaderDeneb) GetPrevRandao() primitives.Bytes32 {
+func (d *ExecutionPayloadHeaderDeneb) GetPrevRandao() common.Bytes32 {
 	return d.Random
 }
 
@@ -199,13 +198,13 @@ func (d *ExecutionPayloadHeaderDeneb) GetBlockHash() common.ExecutionHash {
 
 // GetTransactionsRoot returns the transactions root of the
 // ExecutionPayloadHeaderDeneb.
-func (d *ExecutionPayloadHeaderDeneb) GetTransactionsRoot() primitives.Root {
+func (d *ExecutionPayloadHeaderDeneb) GetTransactionsRoot() common.Root {
 	return d.TransactionsRoot
 }
 
 // GetWithdrawalsRoot returns the withdrawals root of the
 // ExecutionPayloadHeaderDeneb.
-func (d *ExecutionPayloadHeaderDeneb) GetWithdrawalsRoot() primitives.Root {
+func (d *ExecutionPayloadHeaderDeneb) GetWithdrawalsRoot() common.Root {
 	return d.WithdrawalsRoot
 }
 

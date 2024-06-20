@@ -28,7 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/interfaces"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	depositstore "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
@@ -72,7 +72,7 @@ func ProvideDepositStore[
 type DepositPrunerInput struct {
 	depinject.In
 	BlockFeed    *BlockFeed
-	ChainSpec    primitives.ChainSpec
+	ChainSpec    common.ChainSpec
 	DepositStore *DepositStore
 	Logger       log.Logger
 }

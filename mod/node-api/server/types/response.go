@@ -22,7 +22,7 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
 type ErrorResponse struct {
@@ -35,13 +35,13 @@ type DataResponse struct {
 }
 
 type GenesisData struct {
-	GenesisTime           string             `json:"genesis_time"`
-	GenesisValidatorsRoot primitives.Bytes32 `json:"genesis_validators_root"`
-	GenesisForkVersion    string             `json:"genesis_fork_version"`
+	GenesisTime           string         `json:"genesis_time"`
+	GenesisValidatorsRoot common.Bytes32 `json:"genesis_validators_root"`
+	GenesisForkVersion    string         `json:"genesis_fork_version"`
 }
 
 type RootData struct {
-	Root primitives.Root `json:"root"`
+	Root common.Root `json:"root"`
 }
 
 type ValidatorResponse struct {

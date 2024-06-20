@@ -25,7 +25,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
@@ -48,7 +48,7 @@ type BeaconState interface {
 	// GetBlockRootAtIndex returns the block root at the given index.
 	GetBlockRootAtIndex(
 		index uint64,
-	) (primitives.Root, error)
+	) (common.Root, error)
 	// ValidatorIndexByCometBFTAddress returns the validator index for the given
 	ValidatorIndexByCometBFTAddress(
 		cometBFTAddress []byte,

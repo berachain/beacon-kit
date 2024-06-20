@@ -21,7 +21,7 @@
 package builder
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/comet"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -32,7 +32,7 @@ import (
 
 // WithCometParamStore sets the param store to the comet consensus engine.
 func WithCometParamStore(
-	chainSpec primitives.ChainSpec) func(bApp *baseapp.BaseApp) {
+	chainSpec common.ChainSpec) func(bApp *baseapp.BaseApp) {
 	return func(bApp *baseapp.BaseApp) {
 		bApp.SetParamStore(comet.NewConsensusParamsStore(chainSpec))
 	}

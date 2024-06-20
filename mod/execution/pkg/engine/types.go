@@ -23,7 +23,6 @@ package engine
 import (
 	"encoding/json"
 
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -35,7 +34,7 @@ type ExecutionPayload[ExecutionPayloadT, WithdrawalT any] interface {
 	IsNil() bool
 	Version() uint32
 	Empty(uint32) ExecutionPayloadT
-	GetPrevRandao() primitives.Bytes32
+	GetPrevRandao() common.Bytes32
 	GetBlockHash() common.ExecutionHash
 	GetParentHash() common.ExecutionHash
 	GetNumber() math.U64
@@ -45,8 +44,8 @@ type ExecutionPayload[ExecutionPayloadT, WithdrawalT any] interface {
 	GetExtraData() []byte
 	GetBaseFeePerGas() math.Wei
 	GetFeeRecipient() common.ExecutionAddress
-	GetStateRoot() primitives.Bytes32
-	GetReceiptsRoot() primitives.Bytes32
+	GetStateRoot() common.Bytes32
+	GetReceiptsRoot() common.Bytes32
 	GetLogsBloom() []byte
 	GetBlobGasUsed() math.U64
 	GetExcessBlobGas() math.U64

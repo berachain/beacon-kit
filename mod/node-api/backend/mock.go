@@ -25,7 +25,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-api/backend/mocks"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/stretchr/testify/mock"
 )
@@ -40,7 +40,7 @@ func NewMockBackend() *Backend {
 }
 
 func setReturnValues(sdb *mocks.StateDB) {
-	sdb.EXPECT().GetGenesisValidatorsRoot().Return(primitives.Root{0x01}, nil)
+	sdb.EXPECT().GetGenesisValidatorsRoot().Return(common.Root{0x01}, nil)
 	sdb.EXPECT().GetSlot().Return(1, nil)
 	sdb.EXPECT().GetLatestExecutionPayloadHeader().Return(nil, nil)
 	sdb.EXPECT().SetLatestExecutionPayloadHeader(mock.Anything).Return(nil)
@@ -55,10 +55,10 @@ func setReturnValues(sdb *mocks.StateDB) {
 	sdb.EXPECT().SetLatestBlockHeader(mock.Anything).Return(nil)
 	sdb.EXPECT().
 		GetBlockRootAtIndex(mock.Anything).
-		Return(primitives.Root{0x01}, nil)
+		Return(common.Root{0x01}, nil)
 	sdb.EXPECT().
 		StateRootAtIndex(mock.Anything).
-		Return(primitives.Root{0x01}, nil)
+		Return(common.Root{0x01}, nil)
 	sdb.EXPECT().GetEth1Data().Return(nil, nil)
 	sdb.EXPECT().SetEth1Data(mock.Anything).Return(nil)
 	sdb.EXPECT().GetValidators().Return(nil, nil)
@@ -71,7 +71,7 @@ func setReturnValues(sdb *mocks.StateDB) {
 	sdb.EXPECT().SetTotalSlashing(mock.Anything).Return(nil)
 	sdb.EXPECT().
 		GetRandaoMixAtIndex(mock.Anything).
-		Return(primitives.Bytes32{0x01}, nil)
+		Return(common.Bytes32{0x01}, nil)
 	sdb.EXPECT().GetSlashings().Return(nil, nil)
 	sdb.EXPECT().SetSlashingAtIndex(mock.Anything, mock.Anything).Return(nil)
 	sdb.EXPECT().GetSlashingAtIndex(mock.Anything).Return(0, nil)

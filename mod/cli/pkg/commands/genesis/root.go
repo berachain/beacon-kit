@@ -25,7 +25,6 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -48,7 +47,7 @@ type Genesis struct {
 	} `json:"app_state"`
 }
 
-func GetGenesisValidatorRootCmd(cs primitives.ChainSpec) *cobra.Command {
+func GetGenesisValidatorRootCmd(cs common.ChainSpec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "validator-root [beacond/genesis.json]",
 		Short: "gets and returns the genesis validator root",
@@ -80,7 +79,7 @@ func GetGenesisValidatorRootCmd(cs primitives.ChainSpec) *cobra.Command {
 				)
 			}
 
-			var validatorsRoot primitives.Root
+			var validatorsRoot common.Root
 			validatorsRoot, err = ssz.MerkleizeListComposite[
 				common.ChainSpec, math.U64,
 			](validators, uint64(len(validators)))

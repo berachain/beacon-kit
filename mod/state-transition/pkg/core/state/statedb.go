@@ -25,7 +25,6 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -66,7 +65,7 @@ type StateDB[
 		ExecutionPayloadHeaderT,
 		ValidatorT,
 	]
-	cs primitives.ChainSpec
+	cs common.ChainSpec
 }
 
 // NewBeaconStateFromDB creates a new beacon state from an underlying state db.
@@ -103,7 +102,7 @@ func NewBeaconStateFromDB[
 		ExecutionPayloadHeaderT,
 		ValidatorT,
 	],
-	cs primitives.ChainSpec,
+	cs common.ChainSpec,
 ) BeaconStateT {
 	result := &StateDB[
 		BeaconStateT,
@@ -322,7 +321,7 @@ func (s *StateDB[
 		return [32]byte{}, err
 	}
 
-	blockRoots := make([]primitives.Root, s.cs.SlotsPerHistoricalRoot())
+	blockRoots := make([]common.Root, s.cs.SlotsPerHistoricalRoot())
 	for i := range s.cs.SlotsPerHistoricalRoot() {
 		blockRoots[i], err = s.GetBlockRootAtIndex(i)
 		if err != nil {
@@ -330,7 +329,7 @@ func (s *StateDB[
 		}
 	}
 
-	stateRoots := make([]primitives.Root, s.cs.SlotsPerHistoricalRoot())
+	stateRoots := make([]common.Root, s.cs.SlotsPerHistoricalRoot())
 	for i := range s.cs.SlotsPerHistoricalRoot() {
 		stateRoots[i], err = s.StateRootAtIndex(i)
 		if err != nil {
@@ -363,7 +362,7 @@ func (s *StateDB[
 		return [32]byte{}, err
 	}
 
-	randaoMixes := make([]primitives.Bytes32, s.cs.EpochsPerHistoricalVector())
+	randaoMixes := make([]common.Bytes32, s.cs.EpochsPerHistoricalVector())
 	for i := range s.cs.EpochsPerHistoricalVector() {
 		randaoMixes[i], err = s.GetRandaoMixAtIndex(i)
 		if err != nil {

@@ -27,7 +27,6 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -46,7 +45,7 @@ type Genesis[
 	},
 ] struct {
 	// ForkVersion is the fork version of the genesis slot.
-	ForkVersion primitives.Version `json:"fork_version"`
+	ForkVersion common.Version `json:"fork_version"`
 
 	// Deposits represents the deposits in the genesis. Deposits are
 	// used to initialize the validator set.
@@ -60,7 +59,7 @@ type Genesis[
 // GetForkVersion returns the fork version in the genesis.
 func (g *Genesis[
 	DepositT, ExecutionPayloadHeaderT,
-]) GetForkVersion() primitives.Version {
+]) GetForkVersion() common.Version {
 	return g.ForkVersion
 }
 
@@ -81,9 +80,9 @@ func (g *Genesis[DepositT, ExecutionPayloadHeaderT]) UnmarshalJSON(
 	data []byte,
 ) error {
 	type genesisMarshalable[Deposit any] struct {
-		ForkVersion            primitives.Version `json:"fork_version"`
-		Deposits               []DepositT         `json:"deposits"`
-		ExecutionPayloadHeader json.RawMessage    `json:"execution_payload_header"`
+		ForkVersion            common.Version  `json:"fork_version"`
+		Deposits               []DepositT      `json:"deposits"`
+		ExecutionPayloadHeader json.RawMessage `json:"execution_payload_header"`
 	}
 	var g2 genesisMarshalable[DepositT]
 	if err := json.Unmarshal(data, &g2); err != nil {
@@ -120,7 +119,7 @@ func DefaultGenesisDeneb() *Genesis[
 
 	// TODO: Uncouple from deneb.
 	return &Genesis[*types.Deposit, *types.ExecutionPayloadHeader]{
-		ForkVersion: version.FromUint32[primitives.Version](
+		ForkVersion: version.FromUint32[common.Version](
 			version.Deneb,
 		),
 		Deposits: make([]*types.Deposit, 0),
@@ -138,8 +137,8 @@ func DefaultGenesisExecutionPayloadHeaderDeneb() (
 	// Get the merkle roots of empty transactions and withdrawals in parallel.
 	var (
 		g, _                 = errgroup.WithContext(context.Background())
-		emptyTxsRoot         primitives.Root
-		emptyWithdrawalsRoot primitives.Root
+		emptyTxsRoot         common.Root
+		emptyWithdrawalsRoot common.Root
 	)
 
 	g.Go(func() error {
@@ -162,16 +161,16 @@ func DefaultGenesisExecutionPayloadHeaderDeneb() (
 	return &types.ExecutionPayloadHeaderDeneb{
 		ParentHash:   common.ZeroHash,
 		FeeRecipient: common.ZeroAddress,
-		StateRoot: primitives.Bytes32(common.Hex2BytesFixed(
+		StateRoot: common.Bytes32(common.Hex2BytesFixed(
 			"0x12965ab9cbe2d2203f61d23636eb7e998f167cb79d02e452f532535641e35bcc",
 			constants.RootLength,
 		)),
-		ReceiptsRoot: primitives.Bytes32(common.Hex2BytesFixed(
+		ReceiptsRoot: common.Bytes32(common.Hex2BytesFixed(
 			"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
 			constants.RootLength,
 		)),
 		LogsBloom: make([]byte, constants.LogsBloomLength),
-		Random:    primitives.Bytes32{},
+		Random:    common.Bytes32{},
 		Number:    0,
 		//nolint:mnd // default value.
 		GasLimit:  math.U64(30000000),

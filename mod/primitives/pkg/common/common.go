@@ -28,6 +28,9 @@ import (
 
 //nolint:lll
 type (
+	// Bytes32 defines the commonly used 32-byte array.
+	Bytes32 = bytes.B32
+
 	// ChainSpec defines an interface for chain-specific parameters.
 	ChainSpec = chain.Spec[DomainType, math.Epoch, ExecutionAddress, math.Slot, any]
 
