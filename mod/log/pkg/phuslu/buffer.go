@@ -32,21 +32,14 @@ type byteBuffer struct {
 //nolint:gochecknoglobals // buffer pool
 var byteBufferPool = sync.Pool{
 	New: func() any {
-		return new(byteBuffer)
+		return &byteBuffer{
+			Bytes: make([]byte, 0),
+		}
 	},
-}
-
-// Write writes to the byte buffer.
-func (b *byteBuffer) Write(bytes []byte) (int, error) {
-	b.Bytes = append(b.Bytes, bytes...)
-	return len(bytes), nil
 }
 
 // Reset resets the byte buffer.
 func (b *byteBuffer) Reset() {
-	if b.Bytes != nil {
-		b.Bytes = b.Bytes[:0]
-	} else {
-		b.Bytes = make([]byte, 0)
-	}
+	b.Bytes = b.Bytes[:0]
+
 }
