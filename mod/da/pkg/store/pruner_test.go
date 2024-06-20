@@ -274,6 +274,38 @@ func TestBuildPruneRangeFn(t *testing.T) {
 			expectedStart: 0,
 			expectedEnd:   0,
 		},
+		{
+			name:          "Exact boundary case",
+			slotsPerEpoch: 32,
+			minEpochs:     5,
+			eventSlot:     math.U64(160),
+			expectedStart: 0,
+			expectedEnd:   0,
+		},
+		{
+			name:          "Greater than boundary just 1 uint case",
+			slotsPerEpoch: 32,
+			minEpochs:     5,
+			eventSlot:     math.U64(161),
+			expectedStart: 0,
+			expectedEnd:   1,
+		},
+		{
+			name:          "Zero slot case",
+			slotsPerEpoch: 32,
+			minEpochs:     5,
+			eventSlot:     math.U64(0),
+			expectedStart: 0,
+			expectedEnd:   0,
+		},
+		{
+			name:          "SlotsPerEpoch as one",
+			slotsPerEpoch: 1,
+			minEpochs:     5,
+			eventSlot:     math.U64(50),
+			expectedStart: 0,
+			expectedEnd:   45,
+		},
 	}
 
 	for _, tt := range tests {
@@ -292,8 +324,8 @@ func TestBuildPruneRangeFn(t *testing.T) {
 			}
 
 			start, end := pruneFn(event)
-			require.Equal(t, tt.expectedStart, start, "Test case : %s", tt.name)
-			require.Equal(t, tt.expectedEnd, end, "Test case : %s", tt.name)
+			require.Equal(t, tt.expectedStart, start, "expectedStart. Test case : %s", tt.name)
+			require.Equal(t, tt.expectedEnd, end, "expectedEnd. Test case : %s", tt.name)
 		})
 	}
 }
