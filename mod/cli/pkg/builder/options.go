@@ -64,7 +64,7 @@ func WithComponents[T servertypes.Application](components []any) Opt[T] {
 // supplied to depinject.
 func SupplyModuleDeps[T servertypes.Application](deps []any) Opt[T] {
 	return func(cb *CLIBuilder[T]) {
-		cb.supplies = append(cb.supplies, deps...)
+		cb.suppliers = append(cb.suppliers, deps...)
 	}
 }
 

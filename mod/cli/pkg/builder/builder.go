@@ -47,8 +47,8 @@ type CLIBuilder[T servertypes.Application] struct {
 	description  string
 	// components is a list of component providers for depinject.
 	components []any
-	// supplies is a list of suppliers for depinject.
-	supplies   []any
+	// suppliers is a list of suppliers for depinject.
+	suppliers  []any
 	runHandler runHandler
 	// appCreator is a function that builds the Node, eventually called by the
 	// cosmos-sdk.
@@ -63,9 +63,10 @@ type CLIBuilder[T servertypes.Application] struct {
 // New returns a new CLIBuilder with the given options.
 func New[T servertypes.Application](opts ...Opt[T]) *CLIBuilder[T] {
 	cb := &CLIBuilder[T]{
-		supplies: []any{
+		suppliers: []any{
 			os.Stdout, // supply io.Writer for logger
-			viper.GetViper()},
+			viper.GetViper(),
+		},
 	}
 	for _, opt := range opts {
 		opt(cb)
@@ -87,7 +88,7 @@ func (cb *CLIBuilder[T]) Build() (*cmdlib.Root, error) {
 		depinject.Configs(
 			cb.depInjectCfg,
 			depinject.Supply(
-				cb.supplies...,
+				cb.suppliers...,
 			),
 			depinject.Provide(
 				cb.components...,
@@ -142,7 +143,8 @@ func (cb *CLIBuilder[T]) defaultRunHandler() func(cmd *cobra.Command) error {
 // the command and the server logger.
 func (cb *CLIBuilder[T]) InterceptConfigsPreRunHandler(
 	cmd *cobra.Command, customAppConfigTemplate string,
-	customAppConfig interface{}, cmtConfig *cmtcfg.Config) error {
+	customAppConfig interface{}, cmtConfig *cmtcfg.Config,
+) error {
 	serverCtx, err := server.InterceptConfigsAndCreateContext(
 		cmd, customAppConfigTemplate, customAppConfig, cmtConfig)
 	if err != nil {
@@ -150,11 +152,12 @@ func (cb *CLIBuilder[T]) InterceptConfigsPreRunHandler(
 	}
 
 	// overwrite default server logger
-	logger, err := CreatePhusluLogger(serverCtx, cmd.OutOrStdout())
+	serverCtx.Logger, err = CreatePhusluLogger(
+		serverCtx, cmd.OutOrStdout(),
+	)
 	if err != nil {
 		return err
 	}
-	serverCtx.Logger = logger.With(log.ModuleKey, "server")
 
 	// set server context
 	return server.SetCmdServerContext(cmd, serverCtx)
@@ -162,8 +165,9 @@ func (cb *CLIBuilder[T]) InterceptConfigsPreRunHandler(
 
 // CreatePhusluLogger creates a a phuslu logger with the given output.
 // It reads the log level and format from the server context.
-func CreatePhusluLogger(ctx *server.Context, out io.Writer) (log.Logger,
-	error) {
+func CreatePhusluLogger(
+	ctx *server.Context, out io.Writer,
+) (log.Logger, error) {
 	logLvlStr := ctx.Viper.GetString(flags.FlagLogLevel)
 	return phuslu.NewLogger[log.Logger](logLvlStr, out), nil
 }
