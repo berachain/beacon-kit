@@ -26,7 +26,8 @@ import (
 
 // UpdateRandaoMixAtIndex sets the current RANDAO mix in the store.
 func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT,
 ]) UpdateRandaoMixAtIndex(
 	index uint64,
 	mix primitives.Bytes32,
@@ -36,7 +37,8 @@ func (kv *KVStore[
 
 // GetRandaoMixAtIndex retrieves the current RANDAO mix from the store.
 func (kv *KVStore[
-	ForkT, BeaconBlockHeaderT, ExecutionPayloadT, Eth1DataT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT,
 ]) GetRandaoMixAtIndex(
 	index uint64,
 ) (primitives.Bytes32, error) {

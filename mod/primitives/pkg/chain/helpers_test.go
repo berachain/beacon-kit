@@ -134,7 +134,12 @@ func TestWithinDAPeriod(t *testing.T) {
 		// Block is within DA period.
 		{name: "Within DA Period 2", block: 160, current: 320, expected: true},
 		// Block is outside DA period.
-		{name: "Outside DA Period 2", block: 160, current: 352, expected: false},
+		{
+			name:     "Outside DA Period 2",
+			block:    160,
+			current:  352,
+			expected: false,
+		},
 	}
 
 	// Run test cases
