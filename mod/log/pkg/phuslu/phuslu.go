@@ -49,7 +49,8 @@ func NewLogger[ImplT any](
 		},
 	}
 	return &Logger[ImplT]{
-		logger: logger,
+		logger:  logger,
+		context: make(log.Fields),
 	}
 }
 
@@ -87,49 +88,27 @@ func (l *Logger[ImplT]) Impl() any {
 }
 
 // With returns a new wrapped logger with additional context provided by a set.
-func (l *Logger[ImplT]) With(keyVals ...any) ImplT {
-	newLogger := *l
-	// TODO: use KeysAndValues
-	fields := keyValToFields(keyVals...)
+func (l Logger[ImplT]) With(keyVals ...any) ImplT {
+	newLogger := l
 
-	// Copy existing context
+	// Perform a deep copy of the map with preallocated size.
+	newLogger.context = make(log.Fields, len(l.context)+len(keyVals)/2)
 	for k, v := range l.context {
-		fields[k] = v
+		newLogger.context[k] = v
 	}
 
-	// return a new logger with the new fields
-	newLogger.context = fields
-	logger, ok := any(&newLogger).(ImplT)
-	if !ok {
-		panic("incompatible type for ImplT")
+	// Add the new context to the existing context.
+	for i := 0; i < len(keyVals); i += 2 {
+		key, val := keyVals[i].(string), keyVals[i+1]
+		newLogger.context[key] = val
 	}
-	return logger
-}
 
-// addContext adds the context to the entry.
-func (l *Logger[ImplT]) addContext(e *log.Entry) *log.Entry {
-	return e.Fields(l.context)
+	return any(&newLogger).(ImplT)
 }
 
 // msgWithContext logs a message with keyVals and current context.
 func (l *Logger[ImplT]) msgWithContext(
 	msg string, e *log.Entry, keyVals ...any,
 ) {
-	e = l.addContext(e)
-	e = e.KeysAndValues(keyVals...)
-	e.Msg(msg)
-}
-
-// keyValToFields converts a list of key-value pairs to a map.
-func keyValToFields(keyVals ...any) log.Fields {
-	if len(keyVals)%2 != 0 {
-		panic("missing value for key")
-	}
-	// allocate a new fields map
-	fields := make(log.Fields)
-	// populate the fields map with the key-value pairs
-	for i := 0; i < len(keyVals); i += 2 {
-		fields[keyVals[i].(string)] = keyVals[i+1]
-	}
-	return fields
+	e.Fields(l.context).KeysAndValues(keyVals...).Msg(msg)
 }

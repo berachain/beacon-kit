@@ -216,11 +216,6 @@ func (s *Service[
 
 	// If there are no blobs to verify, return early.
 	if sidecars.IsNil() || sidecars.Len() == 0 {
-		s.logger.Info(
-			"No blob sidecars to verify, skipping verifier 🧢",
-			"slot",
-			blk.GetSlot(),
-		)
 		return nil
 	}
 
