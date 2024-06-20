@@ -62,7 +62,7 @@ type PayloadBuilder[
 		PayloadIDT, [32]byte, math.Slot,
 	]
 	// attributesFactory is used to create attributes for the
-	attributesFactory *attributes.AttributesFactory[
+	attributesFactory *attributes.Factory[
 		BeaconStateT, *engineprimitives.Withdrawal,
 	]
 }
