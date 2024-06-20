@@ -21,10 +21,14 @@
 package middleware
 
 import (
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"context"
+
+	"github.com/berachain/beacon-kit/mod/async/pkg/event"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/p2p"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
@@ -35,25 +39,19 @@ import (
 // ABCIMiddleware is a middleware between ABCI and the validator logic.
 type ABCIMiddleware[
 	AvailabilityStoreT any,
-	BeaconBlockT interface {
-		types.RawBeaconBlock[BeaconBlockBodyT]
-		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
-		NewWithVersion(
-			math.Slot,
-			math.ValidatorIndex,
-			primitives.Root,
-			uint32,
-		) (BeaconBlockT, error)
-		Empty(uint32) BeaconBlockT
-	},
-	BeaconBlockBodyT types.RawBeaconBlockBody,
+	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BeaconStateT BeaconState,
 	BlobSidecarsT ssz.Marshallable,
+	DepositT,
+	ExecutionPayloadT any,
+	GenesisT Genesis,
 ] struct {
 	// chainSpec is the chain specification.
 	chainSpec primitives.ChainSpec
 	// chainService represents the blockchain service.
-	chainService BlockchainService[BeaconBlockT, BlobSidecarsT]
+	chainService BlockchainService[
+		BeaconBlockT, BlobSidecarsT, DepositT, GenesisT,
+	]
 	// validatorService is the service responsible for building beacon blocks.
 	validatorService ValidatorService[
 		BeaconBlockT,
@@ -76,38 +74,53 @@ type ABCIMiddleware[
 		encoding.ABCIRequest,
 		BeaconBlockT,
 	]
-	// resChannel is used to communicate the validator updates to the
+	// metrics is the metrics emitter.
+	metrics *ABCIMiddlewareMetrics
+	// logger is the logger for the middleware.
+	logger log.Logger[any]
+
+	// Feeds
+	//
+	// blkFeed is a feed for blocks.
+	blkFeed *event.FeedOf[
+		asynctypes.EventID, *asynctypes.Event[BeaconBlockT]]
+	// sidecarsFeed is a feed for sidecars.
+	sidecarsFeed *event.FeedOf[
+		asynctypes.EventID, *asynctypes.Event[BlobSidecarsT]]
+	// slotFeed is a feed for slots.
+	slotFeed *event.FeedOf[
+		asynctypes.EventID, *asynctypes.Event[math.Slot]]
+
+	// Channels
+	//
+	// PrepareProposal
+	//
+	// prepareProposalErrCh is used to communicate errors to the EndBlock
+	// method.
+	prepareProposalErrCh chan error
+	// blkCh is used to communicate the beacon block to the EndBlock method.
+	prepareProposalBlkCh chan *asynctypes.Event[BeaconBlockT]
+	// sidecarsCh is used to communicate the sidecars to the EndBlock method.
+	prepareProposalSidecarsCh chan *asynctypes.Event[BlobSidecarsT]
+	//
+	// FinalizeBlock
+	//
+	// valUpdatesCh is used to communicate the validator updates to the
 	// EndBlock method.
 	valUpdatesCh chan transition.ValidatorUpdates
 	// errCh is used to communicate errors to the EndBlock method.
-	errCh chan error
-	// metrics is the metrics emitter.
-	metrics *ABCIMiddlewareMetrics
+	finalizeBlockErrCh chan error
 }
 
 // NewABCIMiddleware creates a new instance of the Handler struct.
 func NewABCIMiddleware[
 	AvailabilityStoreT any,
-	BeaconBlockT interface {
-		types.RawBeaconBlock[BeaconBlockBodyT]
-		NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
-		NewWithVersion(
-			math.Slot,
-			math.ValidatorIndex,
-			primitives.Root,
-			uint32,
-		) (BeaconBlockT, error)
-		Empty(uint32) BeaconBlockT
-	},
-	BeaconBlockBodyT types.RawBeaconBlockBody,
-	BeaconStateT interface {
-		ValidatorIndexByPubkey(pk crypto.BLSPubkey) (math.ValidatorIndex, error)
-		GetBlockRootAtIndex(slot uint64) (primitives.Root, error)
-		ValidatorIndexByCometBFTAddress(
-			cometBFTAddress []byte,
-		) (math.ValidatorIndex, error)
-	},
+	BeaconBlockT BeaconBlock[BeaconBlockT],
+	BeaconStateT BeaconState,
 	BlobSidecarsT ssz.Marshallable,
+	DepositT,
+	ExecutionPayloadT any,
+	GenesisT Genesis,
 ](
 	chainSpec primitives.ChainSpec,
 	validatorService ValidatorService[
@@ -115,15 +128,24 @@ func NewABCIMiddleware[
 		BeaconStateT,
 		BlobSidecarsT,
 	],
-	chainService BlockchainService[BeaconBlockT, BlobSidecarsT],
+	chainService BlockchainService[
+		BeaconBlockT, BlobSidecarsT, DepositT, GenesisT,
+	],
+	logger log.Logger[any],
 	telemetrySink TelemetrySink,
+	blkFeed *event.FeedOf[
+		asynctypes.EventID, *asynctypes.Event[BeaconBlockT]],
+	sidecarsFeed *event.FeedOf[
+		asynctypes.EventID, *asynctypes.Event[BlobSidecarsT]],
+	slotFeed *event.FeedOf[
+		asynctypes.EventID, *asynctypes.Event[math.Slot]],
 ) *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, BlobSidecarsT,
+	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
+	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
 ] {
 	return &ABCIMiddleware[
-		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-		BeaconStateT, BlobSidecarsT,
+		AvailabilityStoreT, BeaconBlockT, BeaconStateT,
+		BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
 	]{
 		chainSpec:        chainSpec,
 		validatorService: validatorService,
@@ -134,8 +156,68 @@ func NewABCIMiddleware[
 			NewNoopBlockGossipHandler[BeaconBlockT, encoding.ABCIRequest](
 			chainSpec,
 		),
-		valUpdatesCh: make(chan transition.ValidatorUpdates),
-		errCh:        make(chan error),
-		metrics:      newABCIMiddlewareMetrics(telemetrySink),
+		logger:             logger,
+		metrics:            newABCIMiddlewareMetrics(telemetrySink),
+		blkFeed:            blkFeed,
+		sidecarsFeed:       sidecarsFeed,
+		slotFeed:           slotFeed,
+		valUpdatesCh:       make(chan transition.ValidatorUpdates),
+		finalizeBlockErrCh: make(chan error, 1),
+		prepareProposalBlkCh: make(
+			chan *asynctypes.Event[BeaconBlockT],
+			1,
+		),
+		prepareProposalSidecarsCh: make(
+			chan *asynctypes.Event[BlobSidecarsT],
+			1,
+		),
+		prepareProposalErrCh: make(chan error, 1),
+	}
+}
+
+// Name returns the name of the middleware.
+func (am *ABCIMiddleware[
+	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
+	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+]) Name() string {
+	return "abci-middleware"
+}
+
+// Start the middleware.
+func (am *ABCIMiddleware[
+	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
+	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+]) Start(ctx context.Context) error {
+	go am.start(ctx)
+	return nil
+}
+
+// start starts the middleware.
+func (am *ABCIMiddleware[
+	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
+	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+]) start(ctx context.Context) {
+	subSidecarsCh := make(chan *asynctypes.Event[BlobSidecarsT], 1)
+	subBlkCh := make(chan *asynctypes.Event[BeaconBlockT], 1)
+	blkSub := am.blkFeed.Subscribe(subBlkCh)
+	sidecarsSub := am.sidecarsFeed.Subscribe(subSidecarsCh)
+	defer blkSub.Unsubscribe()
+	defer sidecarsSub.Unsubscribe()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case blk := <-subBlkCh:
+			if blk.Type() == events.BeaconBlockBuilt {
+				am.prepareProposalBlkCh <- blk
+			}
+		case sidecars := <-subSidecarsCh:
+			if sidecars.Error() != nil {
+				am.prepareProposalErrCh <- sidecars.Error()
+				continue
+			}
+			am.prepareProposalSidecarsCh <- sidecars
+		}
 	}
 }

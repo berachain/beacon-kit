@@ -32,10 +32,10 @@ import (
 )
 
 // BeaconState is the interface for the beacon state.
-type BeaconState[
+type BeaconStateMarshallable[
 	BeaconBlockHeaderT,
-	ExecutionPayloadHeaderT,
 	Eth1DataT,
+	ExecutionPayloadHeaderT,
 	ForkT,
 	ValidatorT any,
 ] struct {
@@ -44,10 +44,10 @@ type BeaconState[
 }
 
 // New creates a new BeaconState.
-func (st *BeaconState[
+func (st *BeaconStateMarshallable[
 	BeaconBlockHeaderT,
-	ExecutionPayloadHeaderT,
 	Eth1DataT,
+	ExecutionPayloadHeaderT,
 	ForkT,
 	ValidatorT,
 ]) New(
@@ -68,19 +68,19 @@ func (st *BeaconState[
 	nextWithdrawalValidatorIndex math.ValidatorIndex,
 	slashings []uint64,
 	totalSlashing math.Gwei,
-) (*BeaconState[
+) (*BeaconStateMarshallable[
 	BeaconBlockHeaderT,
-	ExecutionPayloadHeaderT,
 	Eth1DataT,
+	ExecutionPayloadHeaderT,
 	ForkT,
 	ValidatorT,
 ], error) {
 	switch forkVersion {
 	case version.Deneb:
-		return &BeaconState[
+		return &BeaconStateMarshallable[
 			BeaconBlockHeaderT,
-			ExecutionPayloadHeaderT,
 			Eth1DataT,
+			ExecutionPayloadHeaderT,
 			ForkT,
 			ValidatorT,
 		]{

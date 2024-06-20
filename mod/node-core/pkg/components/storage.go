@@ -48,6 +48,7 @@ func ProvideStorageBackend(
 		*AvailabilityStore,
 		*BeaconBlockBody,
 		BeaconState,
+		*BeaconStateMarshallable,
 		*DepositStore,
 	](
 		in.ChainSpec,
@@ -70,10 +71,10 @@ func ProvideKVStore(
 	payloadCodec := &encoding.
 		SSZInterfaceCodec[*ExecutionPayloadHeader]{}
 	return beacondb.New[
-		*types.Fork,
 		*BeaconBlockHeader,
-		*ExecutionPayloadHeader,
 		*types.Eth1Data,
+		*ExecutionPayloadHeader,
+		*types.Fork,
 		*types.Validator,
 	](in.Environment.KVStoreService, payloadCodec)
 }

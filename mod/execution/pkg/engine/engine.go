@@ -161,7 +161,7 @@ func (ee *Engine[ExecutionPayloadT]) NotifyForkchoiceUpdate(
 	// warning.
 	if payloadID == nil && hasPayloadAttributes {
 		ee.logger.Warn(
-			"received nil payload ID on VALID engine response",
+			"Received nil payload ID on VALID engine response",
 			"head_eth1_hash", req.State.HeadBlockHash,
 			"safe_eth1_hash", req.State.SafeBlockHash,
 			"finalized_eth1_hash", req.State.FinalizedBlockHash,

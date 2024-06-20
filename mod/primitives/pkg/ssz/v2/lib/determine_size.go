@@ -339,19 +339,32 @@ func GetNestedArrayLength(val reflect.Value) int {
 	return length * elementLength
 }
 
-// Function to determine the dimensionality of an N-dimensional array.
+// GetArrayDimensionality is function to determine the dimensionality
+// of an N-dimensional array.
 func GetArrayDimensionality(val reflect.Value) int {
 	dimensionality := 0
 	typ := reflect.TypeOf(val.Interface())
-	if val.Len() == 0 && isBasicTypeSliceOrArr(typ, typ.Kind()) {
+	kind := typ.Kind()
+
+	if val.Len() == 0 && isBasicTypeSliceOrArr(typ, kind) {
 		// 1 dimensional empty arr. e.g. Balances   []uint64
 		return 1
 	}
-	for val.Kind() == reflect.Array || val.Kind() == reflect.Slice {
+
+	for kind == reflect.Array || kind == reflect.Slice {
 		dimensionality++
-		val = val.Index(0) // Move to the next nested array.
+		if val.Len() == 0 {
+			// Empty array, get the element type and update the kind
+			typ = typ.Elem()
+			kind = typ.Kind()
+		} else {
+			// Move to the next nested array
+			val = val.Index(0)
+			typ = val.Type()
+			kind = typ.Kind()
+		}
 	}
-	// for byte arrs
+
 	return dimensionality
 }
 

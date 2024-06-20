@@ -21,6 +21,8 @@
 package components
 
 import (
+	"path/filepath"
+
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
@@ -42,9 +44,15 @@ func ProvideBlsSigner(in BlsSignerInput) (crypto.BLSSigner, error) {
 	if in.PrivKey == [constants.BLSSecretKeyLength]byte{} {
 		// if no private key is provided, use privval signer
 		homeDir := cast.ToString(in.AppOpts.Get(clientFlags.FlagHome))
+		privValKeyFile := cast.ToString(
+			in.AppOpts.Get("priv_validator_key_file"),
+		)
+		privValStateFile := cast.ToString(
+			in.AppOpts.Get("priv_validator_state_file"),
+		)
 		return signer.NewBLSSigner(
-			homeDir+"/config/priv_validator_key.json",
-			homeDir+"/data/priv_validator_state.json",
+			filepath.Join(homeDir, privValKeyFile),
+			filepath.Join(homeDir, privValStateFile),
 		), nil
 	}
 	return signer.NewLegacySigner(in.PrivKey)

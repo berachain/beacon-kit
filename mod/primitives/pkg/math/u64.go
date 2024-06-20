@@ -224,7 +224,7 @@ func (u U64) ILog2Floor() uint8 {
 
 // ---------------------------- Gwei Methods ----------------------------
 
-// GweiToWei returns the value of Wei in Gwei.
+// GweiFromWei returns the value of Wei in Gwei.
 func GweiFromWei(i *big.Int) Gwei {
 	intToGwei := big.NewInt(0).SetUint64(constants.GweiPerWei)
 	i.Div(i, intToGwei)

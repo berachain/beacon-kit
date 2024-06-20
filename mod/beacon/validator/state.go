@@ -31,8 +31,9 @@ import (
 // computeAndSetStateRoot computes the state root of an outgoing block
 // and sets it in the block.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, ForkDataT,
 ]) computeAndSetStateRoot(
 	ctx context.Context,
 	st BeaconStateT,
@@ -40,7 +41,7 @@ func (s *Service[
 ) error {
 	slot := blk.GetSlot()
 	s.logger.Info(
-		"computing state root for block 🌲",
+		"Computing state root for block 🌲",
 		"slot", slot.Base10(),
 	)
 
@@ -55,7 +56,7 @@ func (s *Service[
 		return err
 	}
 
-	s.logger.Info("state root computed for block 💻 ",
+	s.logger.Info("State root computed for block 💻 ",
 		"slot", slot.Base10(),
 		"state_root", stateRoot,
 	)
@@ -65,8 +66,9 @@ func (s *Service[
 
 // computeStateRoot computes the state root of an outgoing block.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositStoreT, ForkDataT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, ForkDataT,
 ]) computeStateRoot(
 	ctx context.Context,
 	st BeaconStateT,

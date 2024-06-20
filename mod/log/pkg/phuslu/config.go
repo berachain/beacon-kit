@@ -18,19 +18,20 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package phuslu
 
-import (
-	"github.com/berachain/beacon-kit/mod/async/pkg/event"
-	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
-)
+import "time"
 
-// ProvideStatusFeed provides a status feed.
-func ProvideStatusFeed() *event.FeedOf[
-	asynctypes.EventID, *asynctypes.Event[*service.StatusEvent],
-] {
-	return &event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[*service.StatusEvent],
-	]{}
+// Config is a structure that defines the configuration for the logger.
+type Config struct {
+	// TimeFormat is a string that defines the format of the time in
+	// the logger.
+	TimeFormat string
+}
+
+// DefaultConfig is a function that returns a new Config with default values.
+func DefaultConfig() *Config {
+	return &Config{
+		TimeFormat: time.RFC3339,
+	}
 }

@@ -54,7 +54,7 @@ func (em *engineMetrics) markNewPayloadCalled(
 	isOptimistic bool,
 ) {
 	em.logger.Info(
-		"calling new payload",
+		"Calling new payload",
 		"payload_block_hash", payloadHash,
 		"payload_parent_block_hash", parentHash,
 		"is_optimistic", isOptimistic,
@@ -76,7 +76,7 @@ func (em *engineMetrics) markNewPayloadAcceptedSyncingPayloadStatus(
 	isOptimistic bool,
 ) {
 	em.errorLoggerFn(isOptimistic)(
-		"received accepted syncing payload status",
+		"Received accepted syncing payload status",
 		"payload_block_hash", payloadHash,
 		"parent_hash", parentHash,
 		"is_optimistic", isOptimistic,
@@ -96,7 +96,7 @@ func (em *engineMetrics) markNewPayloadInvalidPayloadStatus(
 	isOptimistic bool,
 ) {
 	em.errorLoggerFn(isOptimistic)(
-		"received invalid payload status during new payload call",
+		"Received invalid payload status during new payload call",
 		"payload_block_hash", payloadHash,
 		"parent_hash", payloadHash,
 		"is_optimistic", isOptimistic,
@@ -116,7 +116,7 @@ func (em *engineMetrics) markNewPayloadJSONRPCError(
 	err error,
 ) {
 	em.errorLoggerFn(isOptimistic)(
-		"received JSON-RPC error during new payload call",
+		"Received JSON-RPC error during new payload call",
 		"payload_block_hash", payloadHash,
 		"parent_hash", payloadHash,
 		"last_valid_hash", lastValidHash,
@@ -138,7 +138,7 @@ func (em *engineMetrics) markNewPayloadUndefinedError(
 	err error,
 ) {
 	em.errorLoggerFn(isOptimistic)(
-		"received undefined error during new payload call",
+		"Received undefined error during new payload call",
 		"payload_block_hash", payloadHash,
 		"parent_hash", payloadHash,
 		"is_optimistic", isOptimistic,
@@ -158,7 +158,7 @@ func (em *engineMetrics) markNotifyForkchoiceUpdateCalled(
 	state *engineprimitives.ForkchoiceStateV1,
 	hasPayloadAttributes bool,
 ) {
-	em.logger.Info("notifying forkchoice update ",
+	em.logger.Info("Notifying forkchoice update",
 		"head_eth1_hash", state.HeadBlockHash,
 		"safe_eth1_hash", state.SafeBlockHash,
 		"finalized_eth1_hash", state.FinalizedBlockHash,
@@ -178,7 +178,7 @@ func (em *engineMetrics) markForkchoiceUpdateAcceptedSyncing(
 	err error,
 ) {
 	em.errorLoggerFn(true)(
-		"received accepted syncing payload status during forkchoice update call",
+		"Received accepted syncing payload status during forkchoice update call",
 		"head_block_hash",
 		state.HeadBlockHash,
 		"safe_block_hash",
@@ -203,7 +203,7 @@ func (em *engineMetrics) markForkchoiceUpdateInvalid(
 	err error,
 ) {
 	em.logger.Error(
-		"received invalid payload status during forkchoice update call",
+		"Received invalid payload status during forkchoice update call",
 		"head_block_hash", state.HeadBlockHash,
 		"safe_block_hash", state.SafeBlockHash,
 		"finalized_block_hash", state.FinalizedBlockHash,
@@ -221,7 +221,7 @@ func (em *engineMetrics) markForkchoiceUpdateInvalid(
 // during forkchoice updates.
 func (em *engineMetrics) markForkchoiceUpdateJSONRPCError(err error) {
 	em.logger.Error(
-		"received json-rpc error during forkchoice update call",
+		"Received json-rpc error during forkchoice update call",
 		"error", err,
 	)
 
@@ -235,7 +235,7 @@ func (em *engineMetrics) markForkchoiceUpdateJSONRPCError(err error) {
 // errors during forkchoice updates.
 func (em *engineMetrics) markForkchoiceUpdateUndefinedError(err error) {
 	em.logger.Error(
-		"received undefined execution engine error during forkchoice update call",
+		"Received undefined execution engine error during forkchoice update call",
 		"error",
 		err,
 	)

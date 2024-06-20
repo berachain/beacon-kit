@@ -23,7 +23,6 @@ package ssz_test
 import (
 	"fmt"
 	"math/rand"
-	"reflect"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -289,14 +288,7 @@ func TestMarshalBitVector(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := ssz.MarshalBitVector(tt.bv)
-			if !reflect.DeepEqual(got, tt.expect) {
-				t.Errorf(
-					"MarshalBitVector(%v) = %08b; expect %08b",
-					tt.bv,
-					got,
-					tt.expect,
-				)
-			}
+			require.Equal(t, tt.expect, got, "MarshalBitVector failed")
 		})
 	}
 }
@@ -367,9 +359,7 @@ func TestMarshalBitList(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			output := ssz.MarshalBitList(tc.input)
-			if !reflect.DeepEqual(output, tc.expOutput) {
-				t.Errorf("Expected output %08b, got %08b", tc.expOutput, output)
-			}
+			require.Equal(t, tc.expOutput, output, "Failed at "+tc.name)
 		})
 	}
 }
@@ -497,9 +487,7 @@ func TestUnmarshalBitList(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			output := ssz.UnmarshalBitList(tc.input)
-			if !reflect.DeepEqual(output, tc.expOutput) {
-				t.Errorf("Expected output %v, got %v", tc.expOutput, output)
-			}
+			require.Equal(t, tc.expOutput, output, "unmarshal failed")
 		})
 	}
 }
@@ -629,7 +617,12 @@ func TestMarshalUnmarshalBitList(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			marshaled := ssz.MarshalBitList(tc.input)
 			unmarshaled := ssz.UnmarshalBitList(marshaled)
-			require.Equal(t, tc.input, unmarshaled, "Failed at "+tc.name)
+			require.Equal(
+				t,
+				tc.input,
+				unmarshaled,
+				"marshal/unmarshal not equal",
+			)
 			require.Equal(t, tc.expOutput, marshaled)
 		})
 	}
