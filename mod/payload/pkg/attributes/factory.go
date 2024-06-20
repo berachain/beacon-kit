@@ -32,11 +32,12 @@ import (
 type Factory[
 	BeaconStateT BeaconState[WithdrawalT], WithdrawalT any,
 ] struct {
-	// chainSpec is the chain spec.
+	// chainSpec is the chain spec for the attributes factory.
 	chainSpec primitives.ChainSpec
-	// logger is the logger.
+	// logger is the logger for the attributes factory.
 	logger log.Logger[any]
-	// suggestedFeeRecipient
+	// suggestedFeeRecipient is the suggested fee recipient sent to
+	// the execution client for the payload build.
 	suggestedFeeRecipient common.ExecutionAddress
 }
 
