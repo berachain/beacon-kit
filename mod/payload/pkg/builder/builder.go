@@ -90,20 +90,21 @@ func New[
 	pc *cache.PayloadIDCache[
 		PayloadIDT, [32]byte, math.Slot,
 	],
+	af *attributes.Factory[
+		BeaconStateT, *engineprimitives.Withdrawal,
+	],
 ) *PayloadBuilder[
 	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT, PayloadIDT,
 ] {
 	return &PayloadBuilder[
 		BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT, PayloadIDT,
 	]{
-		cfg:       cfg,
-		chainSpec: chainSpec,
-		logger:    logger,
-		ee:        ee,
-		pc:        pc,
-		attributesFactory: attributes.NewAttributesFactory[
-			BeaconStateT, *engineprimitives.Withdrawal,
-		](chainSpec, logger, cfg.SuggestedFeeRecipient),
+		cfg:               cfg,
+		chainSpec:         chainSpec,
+		logger:            logger,
+		ee:                ee,
+		pc:                pc,
+		attributesFactory: af,
 	}
 }
 
