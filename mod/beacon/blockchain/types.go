@@ -178,23 +178,23 @@ type ReadOnlyBeaconState[
 	BeaconBlockHeaderT BeaconBlockHeader,
 	ExecutionPayloadHeaderT any,
 ] interface {
-	// GetSlot retrieves the current slot of the beacon state.
-	GetSlot() (math.Slot, error)
+	// Copy creates a copy of the beacon state.
+	Copy() T
+	// GetLatestBlockHeader returns the most recent block header.
+	GetLatestBlockHeader() (
+		BeaconBlockHeaderT,
+		error,
+	)
 	// GetLatestExecutionPayloadHeader returns the most recent execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (
 		ExecutionPayloadHeaderT,
 		error,
 	)
-	// GetLatestBlockHeader returns the most recent block header.
-	GetLatestBlockHeader() (
-		BeaconBlockHeaderT,
-		error,
-	)
+	// GetSlot retrieves the current slot of the beacon state.
+	GetSlot() (math.Slot, error)
 	// HashTreeRoot returns the hash tree root of the beacon state.
 	HashTreeRoot() ([32]byte, error)
-	// Copy creates a copy of the beacon state.
-	Copy() T
 }
 
 // StateProcessor defines the interface for processing various state transitions

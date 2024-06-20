@@ -21,7 +21,9 @@
 package builder
 
 import (
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
 	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -59,6 +61,10 @@ type PayloadBuilder[
 	pc *cache.PayloadIDCache[
 		PayloadIDT, [32]byte, math.Slot,
 	]
+	// attributesFactory is used to create attributes for the
+	attributesFactory *attributes.AttributesFactory[
+		BeaconStateT, *engineprimitives.Withdrawal,
+	]
 }
 
 // New creates a new service.
@@ -95,6 +101,9 @@ func New[
 		logger:    logger,
 		ee:        ee,
 		pc:        pc,
+		attributesFactory: attributes.NewAttributesFactory[
+			BeaconStateT, *engineprimitives.Withdrawal,
+		](chainSpec, logger, cfg.SuggestedFeeRecipient),
 	}
 }
 

@@ -60,7 +60,8 @@ func (pb *PayloadBuilder[
 	}
 
 	// Assemble the payload attributes.
-	attrs, err := pb.getPayloadAttribute(st, slot, timestamp, parentBlockRoot)
+	attrs, err := pb.attributesFactory.
+		BuildPayloadAttributes(st, slot, timestamp, parentBlockRoot)
 	if err != nil {
 		return nil, errors.Newf("%w error when getting payload attributes", err)
 	}

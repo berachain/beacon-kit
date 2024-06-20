@@ -27,6 +27,7 @@ import (
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives"
+	common "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
@@ -83,6 +84,8 @@ type Service[
 	optimisticPayloadBuilds bool
 	// forceStartupSyncOnce is used to force a sync of the startup head.
 	forceStartupSyncOnce *sync.Once
+	// suggestedFeeRecipient is the address to which fees should be sent.
+	suggestedFeeRecipient common.ExecutionAddress
 }
 
 // NewService creates a new validator service.
@@ -92,13 +95,15 @@ func NewService[
 	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
 	BeaconBlockHeaderT BeaconBlockHeader,
 	BeaconStateT ReadOnlyBeaconState[
-		BeaconStateT, BeaconBlockHeaderT, ExecutionPayloadHeaderT,
+		BeaconStateT, BeaconBlockHeaderT,
+		ExecutionPayloadHeaderT,
 	],
 	BlobSidecarsT BlobSidecars,
 	DepositT any,
 	ExecutionPayloadT ExecutionPayload,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
+	WithdrawalT any,
 ](
 	sb StorageBackend[
 		AvailabilityStoreT,
@@ -145,6 +150,7 @@ func NewService[
 		blockFeed:               blockFeed,
 		optimisticPayloadBuilds: optimisticPayloadBuilds,
 		forceStartupSyncOnce:    new(sync.Once),
+		suggestedFeeRecipient:   common.ExecutionAddress{},
 	}
 }
 
