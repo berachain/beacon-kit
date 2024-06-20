@@ -16,7 +16,7 @@ require (
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce
 	cosmossdk.io/store/v2 v2.0.0-20240515130459-16437119e0d8
 	cosmossdk.io/x/tx v0.13.3
-	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240618183531-522d694f4024
+	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240620163759-5cddca80172b
 	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240617204505-1abdb4095d50
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240614154006-a5defa6198f5
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240614154006-a5defa6198f5
@@ -65,7 +65,7 @@ require (
 	github.com/DataDog/zstd v1.5.5 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/berachain/beacon-kit/mod/async v0.0.0-20240618161752-38d39cfe07b9
+	github.com/berachain/beacon-kit/mod/async v0.0.0-20240618214413-d5ec0e66b3dd
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240610210054-bfdc14c4013c // indirect
 	github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
