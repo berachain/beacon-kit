@@ -27,7 +27,7 @@ import (
 func DefaultComponentsWithStandardTypes() []any {
 	return []any{
 		ProvideABCIMiddleware,
-		ProvideAttributesFactory,
+		ProvideAttributesFactory[BeaconState, *Withdrawal],
 		ProvideAvailabilityPruner,
 		ProvideAvailibilityStore[*BeaconBlockBody],
 		ProvideBlsSigner,

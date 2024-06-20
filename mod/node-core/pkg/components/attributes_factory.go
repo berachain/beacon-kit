@@ -28,12 +28,15 @@ import (
 )
 
 // ProvideAttributesFactory provides an AttributesFactory for the client.
-func ProvideAttributesFactory(
+func ProvideAttributesFactory[
+	BeaconStateT attributes.BeaconState[WithdrawalT],
+	WithdrawalT any,
+](
 	chainSpec primitives.ChainSpec,
 	logger log.Logger[any],
 	cfg *config.Config,
-) (*attributes.Factory[BeaconState, *Withdrawal], error) {
-	return attributes.NewAttributesFactory[BeaconState, *Withdrawal](
+) (*attributes.Factory[BeaconStateT, WithdrawalT], error) {
+	return attributes.NewAttributesFactory[BeaconStateT, WithdrawalT](
 		chainSpec,
 		logger,
 		cfg.PayloadBuilder.SuggestedFeeRecipient,
