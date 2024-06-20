@@ -23,7 +23,6 @@ package core
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -66,8 +65,8 @@ type ReadOnlyBeaconState[
 
 	GetBalance(math.ValidatorIndex) (math.Gwei, error)
 	GetSlot() (math.Slot, error)
-	GetGenesisValidatorsRoot() (primitives.Root, error)
-	GetBlockRootAtIndex(uint64) (primitives.Root, error)
+	GetGenesisValidatorsRoot() (common.Root, error)
+	GetBlockRootAtIndex(uint64) (common.Root, error)
 	GetLatestBlockHeader() (BeaconBlockHeaderT, error)
 	GetTotalActiveBalances(uint64) (math.Gwei, error)
 	GetValidators() ([]ValidatorT, error)
@@ -93,9 +92,9 @@ type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
 	HashTreeRoot() ([32]byte, error)
 	GetSlot() math.Slot
 	GetProposerIndex() math.ValidatorIndex
-	GetParentBlockRoot() primitives.Root
-	GetStateRoot() primitives.Root
-	SetStateRoot(primitives.Root)
+	GetParentBlockRoot() common.Root
+	GetStateRoot() common.Root
+	SetStateRoot(common.Root)
 }
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
@@ -107,10 +106,10 @@ type WriteOnlyBeaconState[
 	WriteOnlyStateRoots
 	WriteOnlyValidators[ValidatorT]
 
-	SetGenesisValidatorsRoot(root primitives.Root) error
+	SetGenesisValidatorsRoot(root common.Root) error
 	SetFork(ForkT) error
 	SetSlot(math.Slot) error
-	UpdateBlockRootAtIndex(uint64, primitives.Root) error
+	UpdateBlockRootAtIndex(uint64, common.Root) error
 	SetLatestBlockHeader(BeaconBlockHeaderT) error
 	IncreaseBalance(math.ValidatorIndex, math.Gwei) error
 	DecreaseBalance(math.ValidatorIndex, math.Gwei) error
@@ -124,25 +123,25 @@ type WriteOnlyBeaconState[
 // WriteOnlyStateRoots defines a struct which only has write access to state
 // roots methods.
 type WriteOnlyStateRoots interface {
-	UpdateStateRootAtIndex(uint64, primitives.Root) error
+	UpdateStateRootAtIndex(uint64, common.Root) error
 }
 
 // ReadOnlyStateRoots defines a struct which only has read access to state roots
 // methods.
 type ReadOnlyStateRoots interface {
-	StateRootAtIndex(uint64) (primitives.Root, error)
+	StateRootAtIndex(uint64) (common.Root, error)
 }
 
 // WriteOnlyRandaoMixes defines a struct which only has write access to randao
 // mixes methods.
 type WriteOnlyRandaoMixes interface {
-	UpdateRandaoMixAtIndex(uint64, primitives.Bytes32) error
+	UpdateRandaoMixAtIndex(uint64, common.Bytes32) error
 }
 
 // ReadOnlyRandaoMixes defines a struct which only has read access to randao
 // mixes methods.
 type ReadOnlyRandaoMixes interface {
-	GetRandaoMixAtIndex(uint64) (primitives.Bytes32, error)
+	GetRandaoMixAtIndex(uint64) (common.Bytes32, error)
 }
 
 // WriteOnlyValidators has write access to validator methods.

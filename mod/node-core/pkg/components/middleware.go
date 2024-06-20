@@ -24,7 +24,7 @@ import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
 )
 
@@ -33,7 +33,7 @@ type ABCIMiddlewareInput struct {
 	depinject.In
 	BeaconBlockFeed  *BlockFeed
 	ChainService     *ChainService
-	ChainSpec        primitives.ChainSpec
+	ChainSpec        common.ChainSpec
 	Logger           log.Logger[any]
 	SidecarsFeed     *BlobFeed
 	SlotFeed         *SlotFeed

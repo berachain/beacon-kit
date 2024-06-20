@@ -26,7 +26,7 @@ import (
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
@@ -56,7 +56,7 @@ type Service[
 	// logger is used for logging messages in the service.
 	logger log.Logger[any]
 	// cs holds the chain specifications.
-	cs primitives.ChainSpec
+	cs common.ChainSpec
 	// ee is the execution engine responsible for processing execution payloads.
 	ee ExecutionEngine
 	// lb is a local builder for constructing new beacon states.
@@ -108,7 +108,7 @@ func NewService[
 		BlobSidecarsT,
 	],
 	logger log.Logger[any],
-	cs primitives.ChainSpec,
+	cs common.ChainSpec,
 	ee ExecutionEngine,
 	lb LocalBuilder[BeaconStateT],
 	bp BlobProcessor[

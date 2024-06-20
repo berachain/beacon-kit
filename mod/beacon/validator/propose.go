@@ -26,7 +26,6 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -181,7 +180,7 @@ func (s *Service[
 
 	epoch := s.chainSpec.SlotToEpoch(slot)
 	signingRoot, err := forkData.New(
-		version.FromUint32[primitives.Version](
+		version.FromUint32[common.Version](
 			s.chainSpec.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
 	).ComputeRandaoSigningRoot(
@@ -303,7 +302,7 @@ func (s *Service[
 	var eth1Data Eth1DataT
 	// TODO: assemble real eth1data.
 	body.SetEth1Data(eth1Data.New(
-		primitives.Bytes32{},
+		common.Bytes32{},
 		0,
 		common.ZeroHash,
 	))

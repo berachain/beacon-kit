@@ -27,7 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -38,7 +38,7 @@ type DepositServiceIn struct {
 		*Deposit, types.WithdrawalCredentials,
 	]
 	BlockFeed     *BlockFeed
-	ChainSpec     primitives.ChainSpec
+	ChainSpec     common.ChainSpec
 	DepositStore  *DepositStore
 	EngineClient  *EngineClient
 	Logger        log.Logger

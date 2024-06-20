@@ -22,7 +22,6 @@ package core
 
 import (
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -51,7 +50,7 @@ type StateProcessor[
 	ContextT Context,
 	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
 	Eth1DataT interface {
-		New(primitives.Root, math.U64, common.ExecutionHash) Eth1DataT
+		New(common.Root, math.U64, common.ExecutionHash) Eth1DataT
 		GetDepositCount() math.U64
 	},
 	ExecutionPayloadT ExecutionPayload[
@@ -60,7 +59,7 @@ type StateProcessor[
 
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	ForkT interface {
-		New(primitives.Version, primitives.Version, math.Epoch) ForkT
+		New(common.Version, common.Version, math.Epoch) ForkT
 	},
 	ForkDataT ForkData[ForkDataT],
 	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
@@ -68,7 +67,7 @@ type StateProcessor[
 	WithdrawalCredentialsT ~[32]byte,
 ] struct {
 	// cs is the chain specification for the beacon chain.
-	cs primitives.ChainSpec
+	cs common.ChainSpec
 	// signer is the BLS signer used for cryptographic operations.
 	signer crypto.BLSSigner
 	// executionEngine is the engine responsible for executing transactions.
@@ -98,7 +97,7 @@ func NewStateProcessor[
 	ContextT Context,
 	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
 	Eth1DataT interface {
-		New(primitives.Root, math.U64, common.ExecutionHash) Eth1DataT
+		New(common.Root, math.U64, common.ExecutionHash) Eth1DataT
 		GetDepositCount() math.U64
 	},
 	ExecutionPayloadT ExecutionPayload[
@@ -106,14 +105,14 @@ func NewStateProcessor[
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	ForkT interface {
-		New(primitives.Version, primitives.Version, math.Epoch) ForkT
+		New(common.Version, common.Version, math.Epoch) ForkT
 	},
 	ForkDataT ForkData[ForkDataT],
 	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalCredentialsT ~[32]byte,
 ](
-	cs primitives.ChainSpec,
+	cs common.ChainSpec,
 	executionEngine ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	],
@@ -252,7 +251,7 @@ func (sp *StateProcessor[
 
 	// We set the "rawHeader" in the StateProcessor, but cannot fill in
 	// the StateRoot until the following block.
-	if (latestHeader.GetStateRoot() == primitives.Root{}) {
+	if (latestHeader.GetStateRoot() == common.Root{}) {
 		latestHeader.SetStateRoot(prevStateRoot)
 		if err = st.SetLatestBlockHeader(latestHeader); err != nil {
 			return err
@@ -260,7 +259,7 @@ func (sp *StateProcessor[
 	}
 
 	// We update the block root.
-	var prevBlockRoot primitives.Root
+	var prevBlockRoot common.Root
 	prevBlockRoot, err = latestHeader.HashTreeRoot()
 	if err != nil {
 		return err
@@ -340,7 +339,7 @@ func (sp *StateProcessor[
 	} else if blk.GetStateRoot() != stateRoot {
 		return errors.Wrapf(
 			ErrStateRootMismatch, "expected %s, got %s",
-			primitives.Root(stateRoot), blk.GetStateRoot(),
+			common.Root(stateRoot), blk.GetStateRoot(),
 		)
 	}
 
@@ -381,8 +380,8 @@ func (sp *StateProcessor[
 		slot              math.Slot
 		err               error
 		latestBlockHeader BeaconBlockHeaderT
-		parentBlockRoot   primitives.Root
-		bodyRoot          primitives.Root
+		parentBlockRoot   common.Root
+		bodyRoot          common.Root
 		proposer          ValidatorT
 	)
 

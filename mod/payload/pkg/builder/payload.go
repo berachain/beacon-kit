@@ -26,7 +26,6 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -40,7 +39,7 @@ func (pb *PayloadBuilder[
 	st BeaconStateT,
 	slot math.Slot,
 	timestamp uint64,
-	parentBlockRoot primitives.Root,
+	parentBlockRoot common.Root,
 	headEth1BlockHash common.ExecutionHash,
 	finalEth1BlockHash common.ExecutionHash,
 ) (*PayloadIDT, error) {
@@ -112,7 +111,7 @@ func (pb *PayloadBuilder[
 	st BeaconStateT,
 	slot math.Slot,
 	timestamp uint64,
-	parentBlockRoot primitives.Root,
+	parentBlockRoot common.Root,
 	parentEth1Hash common.ExecutionHash,
 	finalBlockHash common.ExecutionHash,
 ) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
@@ -170,7 +169,7 @@ func (pb *PayloadBuilder[
 ]) RetrievePayload(
 	ctx context.Context,
 	slot math.Slot,
-	parentBlockRoot primitives.Root,
+	parentBlockRoot common.Root,
 ) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
 	if !pb.Enabled() {
 		return nil, ErrPayloadBuilderDisabled

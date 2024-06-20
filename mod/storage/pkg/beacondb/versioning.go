@@ -21,7 +21,7 @@
 package beacondb
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -31,7 +31,7 @@ func (kv *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) SetGenesisValidatorsRoot(
-	root primitives.Root,
+	root common.Root,
 ) error {
 	return kv.genesisValidatorsRoot.Set(kv.ctx, root[:])
 }
@@ -41,12 +41,12 @@ func (kv *KVStore[
 func (kv *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
-]) GetGenesisValidatorsRoot() (primitives.Root, error) {
+]) GetGenesisValidatorsRoot() (common.Root, error) {
 	bz, err := kv.genesisValidatorsRoot.Get(kv.ctx)
 	if err != nil {
-		return primitives.Root{}, err
+		return common.Root{}, err
 	}
-	return primitives.Root(bz), nil
+	return common.Root(bz), nil
 }
 
 // GetSlot returns the current slot.

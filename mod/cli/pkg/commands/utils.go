@@ -28,7 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/genesis"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/jwt"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/pruning"
@@ -45,7 +45,7 @@ func DefaultRootCommandSetup[T servertypes.Application](
 	root *Root,
 	mm *module.Manager,
 	appCreator servertypes.AppCreator[T],
-	chainSpec primitives.ChainSpec,
+	chainSpec common.ChainSpec,
 ) {
 	// Setup the custom start command options.
 	startCmdOptions := server.StartCmdOptions[T]{

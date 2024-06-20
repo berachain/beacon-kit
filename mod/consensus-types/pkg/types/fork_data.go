@@ -22,7 +22,6 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
@@ -83,7 +82,7 @@ func (fd *ForkData) ComputeRandaoSigningRoot(
 ) (common.Root, error) {
 	signingDomain, err := fd.ComputeDomain(domainType)
 	if err != nil {
-		return primitives.Root{}, err
+		return common.Root{}, err
 	}
 
 	signingRoot, err := ssz.ComputeSigningRootUInt64(
@@ -92,7 +91,7 @@ func (fd *ForkData) ComputeRandaoSigningRoot(
 	)
 
 	if err != nil {
-		return primitives.Root{},
+		return common.Root{},
 			errors.Newf("failed to compute signing root: %w", err)
 	}
 	return signingRoot, nil

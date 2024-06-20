@@ -27,7 +27,7 @@ import (
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/p2p"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
@@ -47,7 +47,7 @@ type ABCIMiddleware[
 	GenesisT Genesis,
 ] struct {
 	// chainSpec is the chain specification.
-	chainSpec primitives.ChainSpec
+	chainSpec common.ChainSpec
 	// chainService represents the blockchain service.
 	chainService BlockchainService[
 		BeaconBlockT, BlobSidecarsT, DepositT, GenesisT,
@@ -122,7 +122,7 @@ func NewABCIMiddleware[
 	ExecutionPayloadT any,
 	GenesisT Genesis,
 ](
-	chainSpec primitives.ChainSpec,
+	chainSpec common.ChainSpec,
 	validatorService ValidatorService[
 		BeaconBlockT,
 		BeaconStateT,
