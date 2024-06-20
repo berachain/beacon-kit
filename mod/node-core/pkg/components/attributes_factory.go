@@ -21,42 +21,24 @@
 package components
 
 import (
-	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/config"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
-	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
+	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	"github.com/berachain/beacon-kit/mod/primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// LocalBuilderInput is an input for the dep inject framework.
-type LocalBuilderInput struct {
-	depinject.In
-	AttributesFactory *AttributesFactory
-	Cfg               *config.Config
-	ChainSpec         primitives.ChainSpec
-	ExecutionEngine   *ExecutionEngine
-	Logger            log.Logger
-}
-
-// ProvideLocalBuilder provides a local payload builder for the
-// depinject framework.
-func ProvideLocalBuilder(
-	in LocalBuilderInput,
-) *LocalBuilder {
-	return payloadbuilder.New[
-		BeaconState, *ExecutionPayload, *ExecutionPayloadHeader,
-	](
-		&in.Cfg.PayloadBuilder,
-		in.ChainSpec,
-		in.Logger.With("service", "payload-builder"),
-		in.ExecutionEngine,
-		cache.NewPayloadIDCache[
-			engineprimitives.PayloadID,
-			[32]byte, math.Slot,
-		](),
-		in.AttributesFactory,
-	)
+// ProvideAttributesFactory provides an AttributesFactory for the client.
+func ProvideAttributesFactory[
+	BeaconStateT attributes.BeaconState[WithdrawalT],
+	WithdrawalT any,
+](
+	chainSpec primitives.ChainSpec,
+	logger log.Logger[any],
+	cfg *config.Config,
+) (*attributes.Factory[BeaconStateT, WithdrawalT], error) {
+	return attributes.NewAttributesFactory[BeaconStateT, WithdrawalT](
+		chainSpec,
+		logger,
+		cfg.PayloadBuilder.SuggestedFeeRecipient,
+	), nil
 }

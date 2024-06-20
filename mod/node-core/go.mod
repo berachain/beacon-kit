@@ -5,6 +5,7 @@ go 1.22.4
 replace (
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240530104414-90cbb022d5f6
+	github.com/berachain/beacon-kit/mod/payload => ../payload
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240529213909-58c32d695e1a
 )
 

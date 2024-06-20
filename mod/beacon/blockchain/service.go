@@ -92,7 +92,8 @@ func NewService[
 	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
 	BeaconBlockHeaderT BeaconBlockHeader,
 	BeaconStateT ReadOnlyBeaconState[
-		BeaconStateT, BeaconBlockHeaderT, ExecutionPayloadHeaderT,
+		BeaconStateT, BeaconBlockHeaderT,
+		ExecutionPayloadHeaderT,
 	],
 	BlobSidecarsT BlobSidecars,
 	DepositT any,
