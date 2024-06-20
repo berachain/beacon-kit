@@ -61,6 +61,7 @@ type (
 		*Genesis,
 	]
 
+	// AttributesFactory is a type alias for the attributes factory.
 	AttributesFactory = attributes.Factory[BeaconState, *Withdrawal]
 
 	// AvailabilityStore is a type alias for the availability store.
