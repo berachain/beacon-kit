@@ -23,10 +23,10 @@ package app
 import (
 	"io"
 
+	"cosmossdk.io/runtime/v2"
 	bkcomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/runtime"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/types/mempool"
 )
@@ -41,6 +41,7 @@ var (
 // functions, as object capabilities aren't needed for testing.
 type BeaconApp struct {
 	*runtime.App
+	middleware *bkcomponents.ABCIMiddleware
 }
 
 // NewBeaconKitApp returns a reference to an initialized BeaconApp.
@@ -49,9 +50,12 @@ func NewBeaconKitApp(
 	traceStore io.Writer,
 	loadLatest bool,
 	appBuilder *runtime.AppBuilder,
+	middleware *bkcomponents.ABCIMiddleware,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *BeaconApp {
-	app := &BeaconApp{}
+	app := &BeaconApp{
+		middleware: middleware,
+	}
 
 	// Build the runtime.App using the app builder.
 	app.App = appBuilder.Build(db, traceStore, append(

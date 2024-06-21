@@ -14,7 +14,7 @@ require (
 	cosmossdk.io/core v0.12.1-0.20240530104414-90cbb022d5f6
 	cosmossdk.io/depinject v1.0.0-alpha.4.0.20240620161400-a6407f411e80
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce
-	cosmossdk.io/store/v2 v2.0.0-20240515130459-16437119e0d8
+	cosmossdk.io/store/v2 v2.0.0-20240621145625-b03a2c6b0a4a
 	cosmossdk.io/x/tx v0.13.3
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240618183531-522d694f4024
 	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240617204505-1abdb4095d50
@@ -45,8 +45,15 @@ require (
 )
 
 require (
-	buf.build/gen/go/cometbft/cometbft/protocolbuffers/go v1.34.1-20240312114316-c0d3497e35d6.1 // indirect
-	buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.34.1-20240130113600-88ef6483f90f.1 // indirect
+	cosmossdk.io/runtime/v2 v2.0.0-20240621145625-b03a2c6b0a4a // indirect
+	cosmossdk.io/server/v2/appmanager v0.0.0-20240621145625-b03a2c6b0a4a // indirect
+	cosmossdk.io/server/v2/stf v0.0.0-20240621145625-b03a2c6b0a4a // indirect
+	github.com/mattn/go-sqlite3 v1.14.22 // indirect
+)
+
+require (
+	buf.build/gen/go/cometbft/cometbft/protocolbuffers/go v1.34.2-20240312114316-c0d3497e35d6.2 // indirect
+	buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.34.2-20240130113600-88ef6483f90f.2 // indirect
 	cosmossdk.io/collections v0.4.0 // indirect
 	cosmossdk.io/core/testing v0.0.0-20240620161400-a6407f411e80 // indirect
 	cosmossdk.io/errors v1.0.1 // indirect
@@ -72,7 +79,7 @@ require (
 	github.com/bufbuild/protocompile v0.13.1-0.20240510201809-752249dfc37f // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cockroachdb/errors v1.11.3 // indirect
-	github.com/cockroachdb/fifo v0.0.0-20240606204812-0bbfbd93a7ce // indirect
+	github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a // indirect
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
 	github.com/cockroachdb/pebble v1.1.1 // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect

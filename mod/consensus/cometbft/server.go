@@ -32,6 +32,7 @@ import (
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
 
+// comet server flags
 const (
 	flagWithComet     = "with-comet"
 	flagAddress       = "address"
@@ -45,13 +46,13 @@ const (
 	FlagTrace         = "trace"
 )
 
+// Assert that CometBFTServer implements the serverv2.ServerComponent interface.
 var _ serverv2.ServerComponent[transaction.Tx] = (*CometBFTServer[transaction.Tx])(nil)
 
 type CometBFTServer[T transaction.Tx] struct {
 	Node   *node.Node
 	App    *Consensus[T]
 	logger log.Logger
-
 	config Config
 }
 
@@ -83,7 +84,7 @@ func (s *CometBFTServer[T]) Init(appI serverv2.AppI[T], v *viper.Viper, logger l
 	// txCodec should be in server from New()
 	consensus := NewConsensus[T](appI.GetAppManager(), mempool, store, cfg, s.App.txCodec, logger)
 
-	consensus.SetPrepareProposalHandler(handlers.NoOpPrepareProposal[T]())
+	consensus.SetPrepareProposalHandler(appI.Middleware().NoOpPrepareProposal[T]())
 	consensus.SetProcessProposalHandler(handlers.NoOpProcessProposal[T]())
 	consensus.SetVerifyVoteExtension(handlers.NoOpVerifyVoteExtensionHandler())
 	consensus.SetExtendVoteExtension(handlers.NoOpExtendVote())
