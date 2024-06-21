@@ -33,100 +33,105 @@ import (
 
 // Mock implementations for BeaconBlock.
 type MockBeaconBlock struct {
-    slot math.U64
+	slot math.U64
 }
+
 // Mock implementations GetSlot() for BeaconBlock.
 func (b MockBeaconBlock) GetSlot() math.U64 {
-    return b.slot
+	return b.slot
 }
+
 // Mock implementations for BlockEvent.
 type MockBlockEvent struct {
-    data MockBeaconBlock
+	data MockBeaconBlock
 }
+
 // Mock implementations Data() for BlockEvent.
 func (e MockBlockEvent) Data() MockBeaconBlock {
-    return e.data
+	return e.data
 }
+
 // TestBuildPruneRangeFn tests the BuildPruneRangeFn function.
+//
 //nolint:lll
 func TestBuildPruneRangeFn(t *testing.T) {
-    // Define test cases
-    tests := []struct {
-        name          string
-        slotsPerEpoch uint64
-        minEpochs     uint64
-        eventSlot     math.U64
-        expectedStart uint64
-        expectedEnd   uint64
-    }{
-        {
-            name:          "Slot greater than window",
-            slotsPerEpoch: 32,
-            minEpochs:     5,
-            eventSlot:     math.U64(200),
-            expectedStart: 0,
-            expectedEnd:   40,
-        },
-        {
-            name:          "Slot less than window",
-            slotsPerEpoch: 32,
-            minEpochs:     5,
-            eventSlot:     math.U64(100),
-            expectedStart: 0,
-            expectedEnd:   0,
-        },
-        {
-            name:          "Exact boundary case",
-            slotsPerEpoch: 32,
-            minEpochs:     5,
-            eventSlot:     math.U64(160),
-            expectedStart: 0,
-            expectedEnd:   0,
-        },
-        {
-            name:          "Greater than boundary just 1 uint case",
-            slotsPerEpoch: 32,
-            minEpochs:     5,
-            eventSlot:     math.U64(161),
-            expectedStart: 0,
-            expectedEnd:   1,
-        },
-        {
-            name:          "Zero slot case",
-            slotsPerEpoch: 32,
-            minEpochs:     5,
-            eventSlot:     math.U64(0),
-            expectedStart: 0,
-            expectedEnd:   0,
-        },
-        {
-            name:          "SlotsPerEpoch as one",
-            slotsPerEpoch: 1,
-            minEpochs:     5,
-            eventSlot:     math.U64(50),
-            expectedStart: 0,
-            expectedEnd:   45,
-        },
-    }
-    for _, tt := range tests {
-        t.Run(tt.name, func(t *testing.T) {
-            cs := chain.NewChainSpec(
-                chain.SpecData[
-                    bytes.B4, math.U64, common.Address, math.U64, any,
-                ]{
-                    SlotsPerEpoch:                    tt.slotsPerEpoch,
-                    MinEpochsForBlobsSidecarsRequest: tt.minEpochs,
-                },
-            )
-            pruneFn := store.BuildPruneRangeFn[MockBeaconBlock, MockBlockEvent](cs)
-            event := MockBlockEvent{
-                data: MockBeaconBlock{
-                    slot: tt.eventSlot,
-                },
-            }
-            start, end := pruneFn(event)
-            require.Equal(t, tt.expectedStart, start, "Test case : %s (expectedStart)", tt.name)
-            require.Equal(t, tt.expectedEnd, end, "Test case : %s (expectedEnd)", tt.name)
-        })
-    }
+	// Define test cases
+	tests := []struct {
+		name          string
+		slotsPerEpoch uint64
+		minEpochs     uint64
+		eventSlot     math.U64
+		expectedStart uint64
+		expectedEnd   uint64
+	}{
+		{
+			name:          "Slot greater than window",
+			slotsPerEpoch: 32,
+			minEpochs:     5,
+			eventSlot:     math.U64(200),
+			expectedStart: 0,
+			expectedEnd:   40,
+		},
+		{
+			name:          "Slot less than window",
+			slotsPerEpoch: 32,
+			minEpochs:     5,
+			eventSlot:     math.U64(100),
+			expectedStart: 0,
+			expectedEnd:   0,
+		},
+		{
+			name:          "Exact boundary case",
+			slotsPerEpoch: 32,
+			minEpochs:     5,
+			eventSlot:     math.U64(160),
+			expectedStart: 0,
+			expectedEnd:   0,
+		},
+		{
+			name:          "Greater than boundary just 1 uint case",
+			slotsPerEpoch: 32,
+			minEpochs:     5,
+			eventSlot:     math.U64(161),
+			expectedStart: 0,
+			expectedEnd:   1,
+		},
+		{
+			name:          "Zero slot case",
+			slotsPerEpoch: 32,
+			minEpochs:     5,
+			eventSlot:     math.U64(0),
+			expectedStart: 0,
+			expectedEnd:   0,
+		},
+		{
+			name:          "SlotsPerEpoch as one",
+			slotsPerEpoch: 1,
+			minEpochs:     5,
+			eventSlot:     math.U64(50),
+			expectedStart: 0,
+			expectedEnd:   45,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cs := chain.NewChainSpec(
+				chain.SpecData[
+					bytes.B4, math.U64, common.Address, math.U64, any,
+				]{
+					SlotsPerEpoch:                    tt.slotsPerEpoch,
+					MinEpochsForBlobsSidecarsRequest: tt.minEpochs,
+				},
+			)
+			pruneFn := store.BuildPruneRangeFn[MockBeaconBlock, MockBlockEvent](cs)
+			event := MockBlockEvent{
+				data: MockBeaconBlock{
+					slot: tt.eventSlot,
+				},
+			}
+			start, end := pruneFn(event)
+			require.Equal(t, tt.expectedStart, start, "Test case : %s (expectedStart)", tt.name)
+			require.Equal(t, tt.expectedEnd, end, "Test case : %s (expectedEnd)", tt.name)
+		})
+	}
 }
