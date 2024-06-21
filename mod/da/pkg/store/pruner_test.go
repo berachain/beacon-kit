@@ -17,6 +17,7 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
+
 package store_test
 
 import (
@@ -47,6 +48,7 @@ func (e MockBlockEvent) Data() MockBeaconBlock {
     return e.data
 }
 // TestBuildPruneRangeFn tests the BuildPruneRangeFn function.
+//nolint:lll
 func TestBuildPruneRangeFn(t *testing.T) {
     // Define test cases
     tests := []struct {
@@ -123,20 +125,8 @@ func TestBuildPruneRangeFn(t *testing.T) {
                 },
             }
             start, end := pruneFn(event)
-            require.Equal(
-                t,
-                tt.expectedStart,
-                start,
-                "Test case : %s (expectedStart)",
-                tt.name,
-            )
-            require.Equal(
-                t,
-                tt.expectedEnd,
-                end,
-                "Test case : %s (expectedEnd)",
-                tt.name,
-            )
+            require.Equal(t, tt.expectedStart, start, "Test case : %s (expectedStart)", tt.name)
+            require.Equal(t, tt.expectedEnd, end, "Test case : %s (expectedEnd)", tt.name)
         })
     }
 }
