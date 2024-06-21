@@ -59,6 +59,7 @@ type Service[
 	// cs holds the chain specifications.
 	cs common.ChainSpec
 	// ee is the execution engine responsible for processing execution payloads.
+	//nolint:lll // annoying linter.
 	ee ExecutionEngine[*engineprimitives.PayloadAttributes[*engineprimitives.Withdrawal]]
 	// lb is a local builder for constructing new beacon states.
 	lb LocalBuilder[BeaconStateT]
@@ -110,6 +111,7 @@ func NewService[
 	],
 	logger log.Logger[any],
 	cs common.ChainSpec,
+	//nolint:lll // annoying formatter.
 	ee ExecutionEngine[*engineprimitives.PayloadAttributes[*engineprimitives.Withdrawal]],
 	lb LocalBuilder[BeaconStateT],
 	bp BlobProcessor[
