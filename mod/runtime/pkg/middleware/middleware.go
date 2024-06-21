@@ -95,9 +95,9 @@ type ABCIMiddleware[
 	//
 	// PrepareProposal
 	//
-	// prepareProposalErrCh is used to communicate errors to the EndBlock
+	// errCh is used to communicate errors to the EndBlock
 	// method.
-	prepareProposalErrCh chan error
+	errCh chan error
 	// blkCh is used to communicate the beacon block to the EndBlock method.
 	prepareProposalBlkCh chan *asynctypes.Event[BeaconBlockT]
 	// sidecarsCh is used to communicate the sidecars to the EndBlock method.
@@ -109,7 +109,7 @@ type ABCIMiddleware[
 	// EndBlock method.
 	valUpdatesCh chan transition.ValidatorUpdates
 	// errCh is used to communicate errors to the EndBlock method.
-	finalizeBlockErrCh chan error
+	// finalizeBlockErrCh chan error
 }
 
 // NewABCIMiddleware creates a new instance of the Handler struct.
@@ -156,13 +156,12 @@ func NewABCIMiddleware[
 			NewNoopBlockGossipHandler[BeaconBlockT, encoding.ABCIRequest](
 			chainSpec,
 		),
-		logger:             logger,
-		metrics:            newABCIMiddlewareMetrics(telemetrySink),
-		blkFeed:            blkFeed,
-		sidecarsFeed:       sidecarsFeed,
-		slotFeed:           slotFeed,
-		valUpdatesCh:       make(chan transition.ValidatorUpdates),
-		finalizeBlockErrCh: make(chan error, 1),
+		logger:       logger,
+		metrics:      newABCIMiddlewareMetrics(telemetrySink),
+		blkFeed:      blkFeed,
+		sidecarsFeed: sidecarsFeed,
+		slotFeed:     slotFeed,
+		valUpdatesCh: make(chan transition.ValidatorUpdates),
 		prepareProposalBlkCh: make(
 			chan *asynctypes.Event[BeaconBlockT],
 			1,
@@ -171,7 +170,7 @@ func NewABCIMiddleware[
 			chan *asynctypes.Event[BlobSidecarsT],
 			1,
 		),
-		prepareProposalErrCh: make(chan error, 1),
+		errCh: make(chan error, 1),
 	}
 }
 
@@ -214,7 +213,7 @@ func (am *ABCIMiddleware[
 			}
 		case sidecars := <-subSidecarsCh:
 			if sidecars.Error() != nil {
-				am.prepareProposalErrCh <- sidecars.Error()
+				am.errCh <- sidecars.Error()
 				continue
 			}
 			am.prepareProposalSidecarsCh <- sidecars

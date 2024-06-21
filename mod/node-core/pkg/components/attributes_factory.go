@@ -22,6 +22,7 @@ package components
 
 import (
 	"github.com/berachain/beacon-kit/mod/config"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -30,13 +31,24 @@ import (
 // ProvideAttributesFactory provides an AttributesFactory for the client.
 func ProvideAttributesFactory[
 	BeaconStateT attributes.BeaconState[WithdrawalT],
+	PayloadAttributesT interface {
+		engineprimitives.PayloadAttributer
+		New(
+			uint32,
+			uint64,
+			common.Bytes32,
+			common.ExecutionAddress,
+			[]WithdrawalT,
+			common.Root,
+		) (PayloadAttributesT, error)
+	},
 	WithdrawalT any,
 ](
 	chainSpec common.ChainSpec,
 	logger log.Logger[any],
 	cfg *config.Config,
-) (*attributes.Factory[BeaconStateT, WithdrawalT], error) {
-	return attributes.NewAttributesFactory[BeaconStateT, WithdrawalT](
+) (*attributes.Factory[BeaconStateT, PayloadAttributesT, WithdrawalT], error) {
+	return attributes.NewAttributesFactory[BeaconStateT, PayloadAttributesT, WithdrawalT](
 		chainSpec,
 		logger,
 		cfg.PayloadBuilder.SuggestedFeeRecipient,

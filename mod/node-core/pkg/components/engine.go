@@ -53,11 +53,22 @@ func ProvideEngineClient[
 		common.ExecutionHash, common.Bytes32,
 		math.U64, math.Wei, []byte, WithdrawalT,
 	],
+	PayloadAttributesT interface {
+		engineprimitives.PayloadAttributer
+		New(
+			uint32,
+			uint64,
+			common.Bytes32,
+			common.ExecutionAddress,
+			[]WithdrawalT,
+			common.Root,
+		) (PayloadAttributesT, error)
+	},
 	WithdrawalT any,
 ](
 	in EngineClientInputs,
-) *engineclient.EngineClient[ExecutionPayloadT] {
-	return engineclient.New[ExecutionPayloadT](
+) *engineclient.EngineClient[ExecutionPayloadT, PayloadAttributesT] {
+	return engineclient.New[ExecutionPayloadT, PayloadAttributesT](
 		&in.Config.Engine,
 		in.Logger.With("service", "engine.client"),
 		in.JWTSecret,
@@ -88,7 +99,7 @@ func ProvideExecutionEngine[
 ](
 	in ExecutionEngineInput,
 ) *ExecutionEngine {
-	return execution.New[*ExecutionPayload, engineprimitives.PayloadID](
+	return execution.New[*ExecutionPayload, *engineprimitives.PayloadAttributes[*Withdrawal], engineprimitives.PayloadID](
 		in.EngineClient,
 		in.Logger.With("service", "execution-engine"),
 		in.StatusFeed,

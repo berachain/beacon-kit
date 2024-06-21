@@ -92,6 +92,27 @@ func NewPayloadAttributes[
 	return p, nil
 }
 
+// New empty PayloadAttributes.
+func (p *PayloadAttributes[WithdrawalT]) New(
+	forkVersion uint32,
+	timestamp uint64,
+	prevRandao common.Bytes32,
+	suggestedFeeRecipient common.ExecutionAddress,
+	withdrawals []WithdrawalT,
+	parentBeaconBlockRoot common.Root,
+) (*PayloadAttributes[WithdrawalT], error) {
+	var err error
+	p, err = NewPayloadAttributes(
+		forkVersion,
+		timestamp,
+		prevRandao,
+		suggestedFeeRecipient,
+		withdrawals,
+		parentBeaconBlockRoot,
+	)
+	return p, err
+}
+
 // IsNil returns true if the PayloadAttributes is nil.
 func (p *PayloadAttributes[WithdrawalT]) IsNil() bool {
 	return p == nil

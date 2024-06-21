@@ -27,7 +27,7 @@ import (
 )
 
 // jwtRefreshLoop refreshes the JWT token for the execution client.
-func (s *EngineClient[ExecutionPayloadT]) jwtRefreshLoop(
+func (s *EngineClient[ExecutionPayloadT, PayloadAttributesT]) jwtRefreshLoop(
 	ctx context.Context,
 ) {
 	s.logger.Info("Starting JWT refresh loop 🔄")
@@ -55,7 +55,7 @@ func (s *EngineClient[ExecutionPayloadT]) jwtRefreshLoop(
 // attached for authorization.
 //
 //nolint:lll
-func (s *EngineClient[ExecutionPayloadT]) buildJWTHeader() (http.Header, error) {
+func (s *EngineClient[ExecutionPayloadT, PayloadAttributesT]) buildJWTHeader() (http.Header, error) {
 	header := make(http.Header)
 
 	// Build the JWT token.

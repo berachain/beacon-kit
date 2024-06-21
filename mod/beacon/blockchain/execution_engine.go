@@ -134,7 +134,9 @@ func (s *Service[
 ) {
 	if _, _, err := s.ee.NotifyForkchoiceUpdate(
 		ctx,
-		engineprimitives.BuildForkchoiceUpdateRequest(
+		engineprimitives.
+			//nolint:lll // annoying formatter.
+			BuildForkchoiceUpdateRequest[*engineprimitives.PayloadAttributes[*engineprimitives.Withdrawal]](
 			&engineprimitives.ForkchoiceStateV1{
 				HeadBlockHash:      lph.GetBlockHash(),
 				SafeBlockHash:      lph.GetParentHash(),

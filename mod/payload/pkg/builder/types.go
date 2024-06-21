@@ -52,7 +52,7 @@ type BeaconState[ExecutionPayloadHeaderT interface {
 }
 
 // ExecutionEngine is the interface for the execution engine.
-type ExecutionEngine[ExecutionPayloadT any, PayloadIDT ~[8]byte] interface {
+type ExecutionEngine[ExecutionPayloadT any, PayloadAttributesT any, PayloadIDT ~[8]byte] interface {
 	// GetPayload returns the payload and blobs bundle for the given slot.
 	GetPayload(
 		ctx context.Context,
@@ -62,6 +62,6 @@ type ExecutionEngine[ExecutionPayloadT any, PayloadIDT ~[8]byte] interface {
 	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
-		req *engineprimitives.ForkchoiceUpdateRequest,
+		req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
 	) (*PayloadIDT, *common.ExecutionHash, error)
 }
