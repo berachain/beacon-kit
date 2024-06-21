@@ -48,7 +48,9 @@ func ProvideAttributesFactory[
 	logger log.Logger[any],
 	cfg *config.Config,
 ) (*attributes.Factory[BeaconStateT, PayloadAttributesT, WithdrawalT], error) {
-	return attributes.NewAttributesFactory[BeaconStateT, PayloadAttributesT, WithdrawalT](
+	return attributes.NewAttributesFactory[
+		BeaconStateT, PayloadAttributesT, WithdrawalT,
+	](
 		chainSpec,
 		logger,
 		cfg.PayloadBuilder.SuggestedFeeRecipient,

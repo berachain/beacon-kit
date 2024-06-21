@@ -52,7 +52,9 @@ type BeaconState[ExecutionPayloadHeaderT interface {
 }
 
 // ExecutionEngine is the interface for the execution engine.
-type ExecutionEngine[ExecutionPayloadT any, PayloadAttributesT any, PayloadIDT ~[8]byte] interface {
+type ExecutionEngine[
+	ExecutionPayloadT, PayloadAttributesT any, PayloadIDT ~[8]byte,
+] interface {
 	// GetPayload returns the payload and blobs bundle for the given slot.
 	GetPayload(
 		ctx context.Context,

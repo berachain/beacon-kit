@@ -28,7 +28,11 @@ import (
 func DefaultComponentsWithStandardTypes() []any {
 	return []any{
 		ProvideABCIMiddleware,
-		ProvideAttributesFactory[BeaconState, *engineprimitives.PayloadAttributes[*Withdrawal], *Withdrawal],
+		ProvideAttributesFactory[
+			BeaconState,
+			*engineprimitives.PayloadAttributes[*Withdrawal],
+			*Withdrawal,
+		],
 		ProvideAvailabilityPruner,
 		ProvideAvailibilityStore[*BeaconBlockBody],
 		ProvideBlsSigner,
@@ -47,8 +51,12 @@ func DefaultComponentsWithStandardTypes() []any {
 			*Deposit, *ExecutionPayload,
 			*Withdrawal, types.WithdrawalCredentials,
 		],
-		ProvideEngineClient[*ExecutionPayload, *engineprimitives.PayloadAttributes[*Withdrawal]],
-		ProvideExecutionEngine[*ExecutionPayload, *Withdrawal],
+		ProvideEngineClient[
+			*ExecutionPayload,
+			*engineprimitives.PayloadAttributes[*Withdrawal],
+		],
+		ProvideExecutionEngine[
+			*ExecutionPayload, *Withdrawal],
 		ProvideJWTSecret,
 		ProvideLocalBuilder,
 		ProvideServiceRegistry,

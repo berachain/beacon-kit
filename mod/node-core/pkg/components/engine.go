@@ -99,7 +99,11 @@ func ProvideExecutionEngine[
 ](
 	in ExecutionEngineInput,
 ) *ExecutionEngine {
-	return execution.New[*ExecutionPayload, *engineprimitives.PayloadAttributes[*Withdrawal], engineprimitives.PayloadID](
+	return execution.New[
+		*ExecutionPayload,
+		*engineprimitives.PayloadAttributes[*Withdrawal],
+		engineprimitives.PayloadID,
+	](
 		in.EngineClient,
 		in.Logger.With("service", "execution-engine"),
 		in.StatusFeed,

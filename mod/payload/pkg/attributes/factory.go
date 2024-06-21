@@ -77,7 +77,9 @@ func NewAttributesFactory[
 }
 
 // CreateAttributes creates a new instance of PayloadAttributes.
-func (f *Factory[BeaconStateT, PayloadAttributesT, WithdrawalT]) BuildPayloadAttributes(
+func (f *Factory[
+	BeaconStateT, PayloadAttributesT, WithdrawalT,
+]) BuildPayloadAttributes(
 	st BeaconStateT,
 	slot math.Slot,
 	timestamp uint64,
@@ -115,5 +117,4 @@ func (f *Factory[BeaconStateT, PayloadAttributesT, WithdrawalT]) BuildPayloadAtt
 		withdrawals,
 		prevHeadRoot,
 	)
-
 }
