@@ -35,6 +35,7 @@ const (
 	DefaultSecretFileName = "jwt.hex"
 	FlagOutputPath        = "output-path"
 	FlagInputPath         = "input-path"
+	ConfigFolder          = "config"
 )
 
 // Commands creates a new command for managing JWT secrets.
@@ -123,7 +124,7 @@ func getFilePath(cmd *cobra.Command, path string) (string, error) {
 		return "", ErrNoClientCtx
 	}
 	specifiedFilePath = filepath.Join(
-		clientCtx.HomeDir+"/config/", DefaultSecretFileName,
+		clientCtx.HomeDir, ConfigFolder, DefaultSecretFileName,
 	)
 
 	// Use default secret file name if no path is specified
