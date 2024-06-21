@@ -180,9 +180,6 @@ func writeDepositToFile(
 			// If there's no error yet, set it to the close error
 			if err == nil {
 				err = fmt.Errorf("failed to close file: %w", cerr)
-			} else {
-				// Log the close error, but don't overwrite the existing error
-				fmt.Printf("Error closing file: %v\n", cerr)
 			}
 		}
 	}()
