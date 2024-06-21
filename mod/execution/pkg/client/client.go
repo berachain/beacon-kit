@@ -84,7 +84,9 @@ func New[
 	jwtSecret *jwt.Secret,
 	telemetrySink TelemetrySink,
 	eth1ChainID *big.Int,
-) *EngineClient[ExecutionPayloadT, PayloadAttributesT] {
+) *EngineClient[
+	ExecutionPayloadT, PayloadAttributesT,
+] {
 	return &EngineClient[ExecutionPayloadT, PayloadAttributesT]{
 		cfg:          cfg,
 		logger:       logger,
@@ -98,12 +100,16 @@ func New[
 }
 
 // Name returns the name of the engine client.
-func (s *EngineClient[ExecutionPayloadT, PayloadAttributesT]) Name() string {
+func (s *EngineClient[
+	ExecutionPayloadT, PayloadAttributesT,
+]) Name() string {
 	return "engine-client"
 }
 
 // Start the engine client.
-func (s *EngineClient[ExecutionPayloadT, PayloadAttributesT]) Start(
+func (s *EngineClient[
+	ExecutionPayloadT, PayloadAttributesT,
+]) Start(
 	ctx context.Context,
 ) error {
 	if s.cfg.RPCDialURL.IsHTTP() || s.cfg.RPCDialURL.IsHTTPS() {
@@ -157,7 +163,9 @@ func (s *EngineClient[ExecutionPayloadT, PayloadAttributesT]) Start(
 
 // setupConnection dials the execution client and
 // ensures the chain ID is correct.
-func (s *EngineClient[ExecutionPayloadT, PayloadAttributesT]) initializeConnection(
+func (s *EngineClient[
+	ExecutionPayloadT, PayloadAttributesT,
+]) initializeConnection(
 	ctx context.Context,
 ) error {
 	var (
@@ -220,7 +228,9 @@ func (s *EngineClient[ExecutionPayloadT, PayloadAttributesT]) initializeConnecti
 /* -------------------------------------------------------------------------- */
 
 // dialExecutionRPCClient dials the execution client's RPC endpoint.
-func (s *EngineClient[ExecutionPayloadT, PayloadAttributesT]) dialExecutionRPCClient(
+func (s *EngineClient[
+	ExecutionPayloadT, PayloadAttributesT,
+]) dialExecutionRPCClient(
 	ctx context.Context,
 ) error {
 	var (

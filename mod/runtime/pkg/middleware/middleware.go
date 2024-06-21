@@ -108,8 +108,6 @@ type ABCIMiddleware[
 	// valUpdatesCh is used to communicate the validator updates to the
 	// EndBlock method.
 	valUpdatesCh chan transition.ValidatorUpdates
-	// errCh is used to communicate errors to the EndBlock method.
-	// finalizeBlockErrCh chan error
 }
 
 // NewABCIMiddleware creates a new instance of the Handler struct.
