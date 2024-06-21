@@ -172,19 +172,32 @@ func writeDepositToFile(
 		0o644, //nolint:mnd // file permissions.
 	)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to open file: %w", err)
 	}
 
-	//#nosec:G307 // Ignore errors on this line.
-	defer outputFile.Close()
+	defer func() {
+		if cerr := outputFile.Close(); cerr != nil {
+			// If there's no error yet, set it to the close error
+			if err == nil {
+				err = fmt.Errorf("failed to close file: %w", cerr)
+			} else {
+				// Log the close error, but don't overwrite the existing error
+				fmt.Printf("Error closing file: %v\n", cerr)
+			}
+		}
+	}()
 
 	bz, err := json.Marshal(depositMessage)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to marshal deposit message: %w", err)
 	}
-	_, err = fmt.Fprintf(outputFile, "%s\n", bz)
 
-	return err
+	_, err = fmt.Fprintf(outputFile, "%s\n", bz)
+	if err != nil {
+		return fmt.Errorf("failed to write to file: %w", err)
+	}
+
+	return nil
 }
 
 // getBLSSigner returns a BLS signer based on the override node key flag.
