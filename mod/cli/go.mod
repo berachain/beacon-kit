@@ -18,10 +18,10 @@ require (
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240614154006-a5defa6198f5
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240614154006-a5defa6198f5
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240614170830-558fac144a58
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240618214413-d5ec0e66b3dd
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240620163759-5cddca80172b
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240619234034-fe96d94eafef
 	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240617204505-1abdb4095d50
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240618214413-d5ec0e66b3dd
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240620163759-5cddca80172b
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240613135100-716d8f8c592d
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/ethereum/go-ethereum v1.14.5
@@ -64,9 +64,9 @@ require (
 	github.com/VictoriaMetrics/fastcache v1.12.2 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/berachain/beacon-kit/mod/async v0.0.0-20240618161752-38d39cfe07b9 // indirect
+	github.com/berachain/beacon-kit/mod/async v0.0.0-20240618214413-d5ec0e66b3dd // indirect
 	// indirect
-	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240617185735-42326b5546a8 // indirect
+	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240620163759-5cddca80172b // indirect
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240614154006-a5defa6198f5 // indirect
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240617185735-42326b5546a8 // indirect
 	github.com/berachain/beacon-kit/mod/interfaces v0.0.0-20240610210054-bfdc14c4013c // indirect

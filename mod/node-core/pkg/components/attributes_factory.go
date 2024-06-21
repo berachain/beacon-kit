@@ -18,34 +18,27 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package primitives
+package components
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/chain"
+	"github.com/berachain/beacon-kit/mod/config"
+	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-type (
-	// Export `pkg/bytes`.
-	Bytes4  = bytes.B4
-	Bytes32 = bytes.B32
-	Bytes48 = bytes.B48
-	Bytes96 = bytes.B96
-
-	// Export `pkg/chain`.
-	ChainSpec = chain.Spec[
-		DomainType, math.Epoch, common.ExecutionAddress, math.Slot, any,
-	]
-
-	// Export `pkg/common`.
-	Domain     = common.Domain
-	DomainType = common.DomainType
-	// TODO: figure out why fastssz blows up on some aliases.
-	Root   = bytes.B32
-	Hash32 = common.Hash32
-	// TODO: figure out why fastssz blows up on some aliases.
-	Version    = bytes.B4
-	ForkDigest = common.ForkDigest
-)
+// ProvideAttributesFactory provides an AttributesFactory for the client.
+func ProvideAttributesFactory[
+	BeaconStateT attributes.BeaconState[WithdrawalT],
+	WithdrawalT any,
+](
+	chainSpec common.ChainSpec,
+	logger log.Logger[any],
+	cfg *config.Config,
+) (*attributes.Factory[BeaconStateT, WithdrawalT], error) {
+	return attributes.NewAttributesFactory[BeaconStateT, WithdrawalT](
+		chainSpec,
+		logger,
+		cfg.PayloadBuilder.SuggestedFeeRecipient,
+	), nil
+}

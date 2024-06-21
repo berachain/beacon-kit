@@ -37,6 +37,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
+	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
@@ -59,6 +60,9 @@ type (
 		*ExecutionPayload,
 		*Genesis,
 	]
+
+	// AttributesFactory is a type alias for the attributes factory.
+	AttributesFactory = attributes.Factory[BeaconState, *Withdrawal]
 
 	// AvailabilityStore is a type alias for the availability store.
 	AvailabilityStore = dastore.Store[*BeaconBlockBody]
@@ -141,7 +145,9 @@ type (
 	EngineClient = engineclient.EngineClient[*ExecutionPayload]
 
 	// EngineClient is a type alias for the engine client.
-	ExecutionEngine = execution.Engine[*ExecutionPayload]
+	ExecutionEngine = execution.Engine[
+		*ExecutionPayload, engineprimitives.PayloadID,
+	]
 
 	// ExecutionPayload type aliases.
 	ExecutionPayload       = types.ExecutionPayload
@@ -161,7 +167,8 @@ type (
 
 	// LocalBuilder is a type alias for the local builder.
 	LocalBuilder = payloadbuilder.PayloadBuilder[
-		BeaconState, *ExecutionPayload, *ExecutionPayloadHeader,
+		BeaconState, *ExecutionPayload,
+		*ExecutionPayloadHeader, engineprimitives.PayloadID,
 	]
 
 	// StateProcessor is the type alias for the state processor inteface.

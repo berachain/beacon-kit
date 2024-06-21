@@ -20,9 +20,7 @@
 
 package beacondb
 
-import (
-	"github.com/berachain/beacon-kit/mod/primitives"
-)
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 
 // UpdateBlockRootAtIndex sets a block root in the BeaconStore.
 func (kv *KVStore[
@@ -30,7 +28,7 @@ func (kv *KVStore[
 	ForkT, ValidatorT,
 ]) UpdateBlockRootAtIndex(
 	index uint64,
-	root primitives.Root,
+	root common.Root,
 ) error {
 	return kv.blockRoots.Set(kv.ctx, index, root[:])
 }
@@ -41,12 +39,12 @@ func (kv *KVStore[
 	ForkT, ValidatorT,
 ]) GetBlockRootAtIndex(
 	index uint64,
-) (primitives.Root, error) {
+) (common.Root, error) {
 	bz, err := kv.blockRoots.Get(kv.ctx, index)
 	if err != nil {
-		return primitives.Root{}, err
+		return common.Root{}, err
 	}
-	return primitives.Root(bz), nil
+	return common.Root(bz), nil
 }
 
 // SetLatestBlockHeader sets the latest block header in the BeaconStore.
@@ -75,7 +73,7 @@ func (kv *KVStore[
 	ForkT, ValidatorT,
 ]) UpdateStateRootAtIndex(
 	idx uint64,
-	stateRoot primitives.Root,
+	stateRoot common.Root,
 ) error {
 	return kv.stateRoots.Set(kv.ctx, idx, stateRoot[:])
 }
@@ -86,10 +84,10 @@ func (kv *KVStore[
 	ForkT, ValidatorT,
 ]) StateRootAtIndex(
 	idx uint64,
-) (primitives.Root, error) {
+) (common.Root, error) {
 	bz, err := kv.stateRoots.Get(kv.ctx, idx)
 	if err != nil {
-		return primitives.Root{}, err
+		return common.Root{}, err
 	}
-	return primitives.Root(bz), nil
+	return common.Root(bz), nil
 }

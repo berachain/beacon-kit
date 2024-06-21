@@ -18,20 +18,14 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package store
+package attributes
 
 import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 
-func BuildPruneRangeFn[
-	BeaconBlockT BeaconBlock,
-	BlockEventT BlockEvent[BeaconBlockT],
-](cs common.ChainSpec) func(BlockEventT) (uint64, uint64) {
-	return func(event BlockEventT) (uint64, uint64) {
-		window := cs.MinEpochsForBlobsSidecarsRequest() * cs.SlotsPerEpoch()
-		if event.Data().GetSlot().Unwrap() < window {
-			return 0, 0
-		}
-
-		return 0, event.Data().GetSlot().Unwrap() - window
-	}
+// BeaconState is an interface for accessing the beacon state.
+type BeaconState[WithdrawalT any] interface {
+	// ExpectedWithrawals returns the expected withdrawals.
+	ExpectedWithdrawals() ([]WithdrawalT, error)
+	// GetRandaoMixAtIndex returns the randao mix at the given index.
+	GetRandaoMixAtIndex(index uint64) (common.Root, error)
 }

@@ -21,7 +21,7 @@
 package core
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
@@ -62,13 +62,13 @@ func (sp *StateProcessor[
 
 	var fd ForkDataT
 	fd = fd.New(
-		version.FromUint32[primitives.Version](
+		version.FromUint32[common.Version](
 			sp.cs.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
 	)
 
 	if !skipVerification {
-		var signingRoot primitives.Root
+		var signingRoot common.Root
 		signingRoot, err = fd.ComputeRandaoSigningRoot(
 			sp.cs.DomainTypeRandao(), epoch)
 		if err != nil {
@@ -139,16 +139,16 @@ func (sp *StateProcessor[
 	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) buildRandaoMix(
-	mix primitives.Bytes32,
+	mix common.Bytes32,
 	reveal crypto.BLSSignature,
-) (primitives.Bytes32, error) {
+) (common.Bytes32, error) {
 	newMix := make([]byte, constants.RootLength)
 	revealHash := sha256.Sum256(reveal[:])
 	// Apparently this library giga fast? Good project? lmeow.
 	if numXor := xor.Bytes(
 		newMix, mix[:], revealHash[:],
 	); numXor != constants.RootLength {
-		return primitives.Bytes32{}, ErrXorInvalid
+		return common.Bytes32{}, ErrXorInvalid
 	}
-	return primitives.Bytes32(newMix), nil
+	return common.Bytes32(newMix), nil
 }

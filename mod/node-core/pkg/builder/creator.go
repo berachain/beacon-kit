@@ -27,7 +27,7 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/app"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -48,7 +48,7 @@ func (nb *NodeBuilder[NodeT]) AppCreator(
 	}
 
 	// variables to hold the components needed to set up BeaconApp
-	var chainSpec primitives.ChainSpec
+	var chainSpec common.ChainSpec
 	appBuilder := emptyAppBuilder()
 	abciMiddleware := emptyABCIMiddleware()
 	serviceRegistry := emptyServiceRegistry()

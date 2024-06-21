@@ -25,7 +25,6 @@ import (
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
@@ -87,7 +86,7 @@ type BeaconBlockBody[
 // BeaconState represents a beacon state interface.
 type BeaconState[ExecutionPayloadHeaderT any] interface {
 	// GetBlockRootAtIndex returns the block root at the given index.
-	GetBlockRootAtIndex(uint64) (primitives.Root, error)
+	GetBlockRootAtIndex(uint64) (common.Root, error)
 	// GetLatestExecutionPayloadHeader returns the latest execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (
@@ -103,7 +102,7 @@ type BeaconState[ExecutionPayloadHeaderT any] interface {
 	// state.
 	GetEth1DepositIndex() (uint64, error)
 	// GetGenesisValidatorsRoot returns the genesis validators root.
-	GetGenesisValidatorsRoot() (primitives.Root, error)
+	GetGenesisValidatorsRoot() (common.Root, error)
 }
 
 // BlobFactory represents a blob factory interface.
@@ -159,14 +158,14 @@ type ExecutionPayloadHeader interface {
 type ForkData[T any] interface {
 	// New creates a new fork data with the given parameters.
 	New(
-		primitives.Version,
-		primitives.Root,
+		common.Version,
+		common.Root,
 	) T
 	// ComputeRandaoSigningRoot computes the Randao signing root.
 	ComputeRandaoSigningRoot(
-		primitives.DomainType,
+		common.DomainType,
 		math.Epoch,
-	) (primitives.Root, error)
+	) (common.Root, error)
 }
 
 // PayloadBuilder represents a service that is responsible for
@@ -176,7 +175,7 @@ type PayloadBuilder[BeaconStateT, ExecutionPayloadT any] interface {
 	RetrievePayload(
 		ctx context.Context,
 		slot math.Slot,
-		parentBlockRoot primitives.Root,
+		parentBlockRoot common.Root,
 	) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
 	// RequestPayloadSync requests a payload for the given slot and
 	// blocks until the payload is delivered.
@@ -185,7 +184,7 @@ type PayloadBuilder[BeaconStateT, ExecutionPayloadT any] interface {
 		st BeaconStateT,
 		slot math.Slot,
 		timestamp uint64,
-		parentBlockRoot primitives.Root,
+		parentBlockRoot common.Root,
 		headEth1BlockHash common.ExecutionHash,
 		finalEth1BlockHash common.ExecutionHash,
 	) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)

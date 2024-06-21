@@ -25,7 +25,6 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -35,10 +34,10 @@ import (
 
 func TestDefaultGenesisDeneb(t *testing.T) {
 	g := genesis.DefaultGenesisDeneb()
-	if g.ForkVersion != version.FromUint32[primitives.Version](version.Deneb) {
+	if g.ForkVersion != version.FromUint32[common.Version](version.Deneb) {
 		t.Errorf(
 			"Expected fork version %v, but got %v",
-			version.FromUint32[primitives.Version](
+			version.FromUint32[common.Version](
 				version.Deneb,
 			),
 			g.ForkVersion,

@@ -18,19 +18,45 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package builder
+package attributes
 
 import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// getPayloadAttributes returns the payload attributes for the given state and
-// slot. The attribute is required to initiate a payload build process in the
-// context of an `engine_forkchoiceUpdated` call.
-func (pb *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-]) getPayloadAttribute(
+// Factory is a factory for creating payload attributes.
+type Factory[
+	BeaconStateT BeaconState[WithdrawalT], WithdrawalT any,
+] struct {
+	// chainSpec is the chain spec for the attributes factory.
+	chainSpec common.ChainSpec
+	// logger is the logger for the attributes factory.
+	logger log.Logger[any]
+	// suggestedFeeRecipient is the suggested fee recipient sent to
+	// the execution client for the payload build.
+	suggestedFeeRecipient common.ExecutionAddress
+}
+
+// NewAttributesFactory creates a new instance of AttributesFactory.
+func NewAttributesFactory[
+	BeaconStateT BeaconState[WithdrawalT], WithdrawalT any,
+](
+	chainSpec common.ChainSpec,
+	logger log.Logger[any],
+	suggestedFeeRecipient common.ExecutionAddress,
+) *Factory[BeaconStateT, WithdrawalT] {
+	return &Factory[BeaconStateT, WithdrawalT]{
+		chainSpec:             chainSpec,
+		logger:                logger,
+		suggestedFeeRecipient: suggestedFeeRecipient,
+	}
+}
+
+// CreateAttributes creates a new instance of PayloadAttributes.
+func (f *Factory[BeaconStateT, WithdrawalT]) BuildPayloadAttributes(
 	st BeaconStateT,
 	slot math.Slot,
 	timestamp uint64,
@@ -38,12 +64,13 @@ func (pb *PayloadBuilder[
 ) (engineprimitives.PayloadAttributer, error) {
 	var (
 		prevRandao [32]byte
+		epoch      = f.chainSpec.SlotToEpoch(slot)
 	)
 
 	// Get the expected withdrawals to include in this payload.
 	withdrawals, err := st.ExpectedWithdrawals()
 	if err != nil {
-		pb.logger.Error(
+		f.logger.Error(
 			"Could not get expected withdrawals to get payload attribute",
 			"error",
 			err,
@@ -51,21 +78,18 @@ func (pb *PayloadBuilder[
 		return nil, err
 	}
 
-	epoch := pb.chainSpec.SlotToEpoch(slot)
-
 	// Get the previous randao mix.
-	prevRandao, err = st.GetRandaoMixAtIndex(
-		uint64(epoch) % pb.chainSpec.EpochsPerHistoricalVector(),
-	)
-	if err != nil {
+	if prevRandao, err = st.GetRandaoMixAtIndex(
+		uint64(epoch) % f.chainSpec.EpochsPerHistoricalVector(),
+	); err != nil {
 		return nil, err
 	}
 
 	return engineprimitives.NewPayloadAttributes(
-		pb.chainSpec.ActiveForkVersionForEpoch(epoch),
+		f.chainSpec.ActiveForkVersionForEpoch(epoch),
 		timestamp,
 		prevRandao,
-		pb.cfg.SuggestedFeeRecipient,
+		f.suggestedFeeRecipient,
 		withdrawals,
 		prevHeadRoot,
 	)

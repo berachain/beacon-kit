@@ -24,7 +24,6 @@ import (
 	"math/big"
 
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -40,7 +39,7 @@ type NewPayloadRequest[
 		Empty(uint32) ExecutionPayloadT
 		IsNil() bool
 		Version() uint32
-		GetPrevRandao() primitives.Bytes32
+		GetPrevRandao() common.Bytes32
 		GetBlockHash() common.ExecutionHash
 		GetParentHash() common.ExecutionHash
 		GetNumber() math.U64
@@ -50,8 +49,8 @@ type NewPayloadRequest[
 		GetExtraData() []byte
 		GetBaseFeePerGas() math.Wei
 		GetFeeRecipient() common.ExecutionAddress
-		GetStateRoot() primitives.Bytes32
-		GetReceiptsRoot() primitives.Bytes32
+		GetStateRoot() common.Bytes32
+		GetReceiptsRoot() common.Bytes32
 		GetLogsBloom() []byte
 		GetBlobGasUsed() math.U64
 		GetExcessBlobGas() math.U64
@@ -70,7 +69,7 @@ type NewPayloadRequest[
 	// VersionedHashes is the versioned hashes of the execution payload.
 	VersionedHashes []common.ExecutionHash
 	// ParentBeaconBlockRoot is the root of the parent beacon block.
-	ParentBeaconBlockRoot *primitives.Root
+	ParentBeaconBlockRoot *common.Root
 	// Optimistic is a flag that indicates if the payload should be
 	// optimistically deemed valid. This is useful during syncing.
 	Optimistic bool
@@ -82,7 +81,7 @@ func BuildNewPayloadRequest[
 		Empty(uint32) ExecutionPayloadT
 		IsNil() bool
 		Version() uint32
-		GetPrevRandao() primitives.Bytes32
+		GetPrevRandao() common.Bytes32
 		GetBlockHash() common.ExecutionHash
 		GetParentHash() common.ExecutionHash
 		GetNumber() math.U64
@@ -92,8 +91,8 @@ func BuildNewPayloadRequest[
 		GetExtraData() []byte
 		GetBaseFeePerGas() math.Wei
 		GetFeeRecipient() common.ExecutionAddress
-		GetStateRoot() primitives.Bytes32
-		GetReceiptsRoot() primitives.Bytes32
+		GetStateRoot() common.Bytes32
+		GetReceiptsRoot() common.Bytes32
 		GetLogsBloom() []byte
 		GetBlobGasUsed() math.U64
 		GetExcessBlobGas() math.U64
@@ -109,7 +108,7 @@ func BuildNewPayloadRequest[
 ](
 	executionPayload ExecutionPayloadT,
 	versionedHashes []common.ExecutionHash,
-	parentBeaconBlockRoot *primitives.Root,
+	parentBeaconBlockRoot *common.Root,
 	optimistic bool,
 ) *NewPayloadRequest[ExecutionPayloadT, WithdrawalT] {
 	return &NewPayloadRequest[ExecutionPayloadT, WithdrawalT]{
@@ -253,20 +252,20 @@ func BuildForkchoiceUpdateRequest(
 }
 
 // GetPayloadRequest represents a request to get a payload.
-type GetPayloadRequest struct {
+type GetPayloadRequest[PayloadIDT ~[8]byte] struct {
 	// PayloadID is the payload ID.
-	PayloadID PayloadID
+	PayloadID PayloadIDT
 	// ForkVersion is the fork version that we are
 	// currently on.
 	ForkVersion uint32
 }
 
 // BuildGetPayloadRequest builds a get payload request.
-func BuildGetPayloadRequest(
-	payloadID PayloadID,
+func BuildGetPayloadRequest[PayloadIDT ~[8]byte](
+	payloadID PayloadIDT,
 	forkVersion uint32,
-) *GetPayloadRequest {
-	return &GetPayloadRequest{
+) *GetPayloadRequest[PayloadIDT] {
+	return &GetPayloadRequest[PayloadIDT]{
 		PayloadID:   payloadID,
 		ForkVersion: forkVersion,
 	}

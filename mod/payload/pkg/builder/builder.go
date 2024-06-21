@@ -21,10 +21,10 @@
 package builder
 
 import (
-	engineprimitves "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -44,20 +44,25 @@ type PayloadBuilder[
 		GetBlockHash() common.ExecutionHash
 		GetParentHash() common.ExecutionHash
 	},
+	PayloadIDT ~[8]byte,
 ] struct {
 	// cfg holds the configuration settings for the PayloadBuilder.
 	cfg *Config
 	// chainSpec holds the chain specifications for the PayloadBuilder.
-	chainSpec primitives.ChainSpec
+	chainSpec common.ChainSpec
 	// logger is used for logging within the PayloadBuilder.
 	logger log.Logger[any]
 	// ee is the execution engine.
-	ee ExecutionEngine[ExecutionPayloadT]
+	ee ExecutionEngine[ExecutionPayloadT, PayloadIDT]
 	// pc is the payload ID cache, it is used to store
 	// "in-flight" payloads that are being built on
 	// the execution client.
 	pc *cache.PayloadIDCache[
-		engineprimitves.PayloadID, [32]byte, math.Slot,
+		PayloadIDT, [32]byte, math.Slot,
+	]
+	// attributesFactory is used to create attributes for the
+	attributesFactory *attributes.Factory[
+		BeaconStateT, *engineprimitives.Withdrawal,
 	]
 }
 
@@ -75,31 +80,36 @@ func New[
 		GetBlockHash() common.ExecutionHash
 		GetParentHash() common.ExecutionHash
 	},
+	PayloadIDT ~[8]byte,
 ](
 	cfg *Config,
-	chainSpec primitives.ChainSpec,
+	chainSpec common.ChainSpec,
 	logger log.Logger[any],
-	ee ExecutionEngine[ExecutionPayloadT],
+	ee ExecutionEngine[ExecutionPayloadT, PayloadIDT],
 	pc *cache.PayloadIDCache[
-		engineprimitves.PayloadID, [32]byte, math.Slot,
+		PayloadIDT, [32]byte, math.Slot,
+	],
+	af *attributes.Factory[
+		BeaconStateT, *engineprimitives.Withdrawal,
 	],
 ) *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT, PayloadIDT,
 ] {
 	return &PayloadBuilder[
-		BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+		BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT, PayloadIDT,
 	]{
-		cfg:       cfg,
-		chainSpec: chainSpec,
-		logger:    logger,
-		ee:        ee,
-		pc:        pc,
+		cfg:               cfg,
+		chainSpec:         chainSpec,
+		logger:            logger,
+		ee:                ee,
+		pc:                pc,
+		attributesFactory: af,
 	}
 }
 
 // Enabled returns true if the payload builder is enabled.
 func (pb *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT, PayloadIDT,
 ]) Enabled() bool {
 	return pb.cfg.Enabled
 }

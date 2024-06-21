@@ -22,7 +22,7 @@ package builder
 
 import (
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -33,7 +33,7 @@ import (
 type rootCmdSetup[T servertypes.Application] func(cmd *cmdlib.Root,
 	mm *module.Manager,
 	appCreator servertypes.AppCreator[T],
-	chainSpec primitives.ChainSpec,
+	chainSpec common.ChainSpec,
 )
 
 // runHandler is a function that sets up run handlers for the root command.

@@ -25,7 +25,6 @@ import (
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
@@ -142,7 +141,7 @@ type ExecutionPayloadHeader interface {
 // Genesis is the interface for the genesis.
 type Genesis[DepositT any, ExecutionPayloadHeaderT any] interface {
 	// GetForkVersion returns the fork version.
-	GetForkVersion() primitives.Version
+	GetForkVersion() common.Version
 	// GetDeposits returns the deposits.
 	GetDeposits() []DepositT
 	// GetExecutionPayloadHeader returns the execution payload header.
@@ -159,7 +158,7 @@ type LocalBuilder[BeaconStateT any] interface {
 		st BeaconStateT,
 		slot math.Slot,
 		timestamp uint64,
-		parentBlockRoot primitives.Root,
+		parentBlockRoot common.Root,
 		headEth1BlockHash common.ExecutionHash,
 		finalEth1BlockHash common.ExecutionHash,
 	) (*engineprimitives.PayloadID, error)
@@ -178,23 +177,23 @@ type ReadOnlyBeaconState[
 	BeaconBlockHeaderT BeaconBlockHeader,
 	ExecutionPayloadHeaderT any,
 ] interface {
-	// GetSlot retrieves the current slot of the beacon state.
-	GetSlot() (math.Slot, error)
+	// Copy creates a copy of the beacon state.
+	Copy() T
+	// GetLatestBlockHeader returns the most recent block header.
+	GetLatestBlockHeader() (
+		BeaconBlockHeaderT,
+		error,
+	)
 	// GetLatestExecutionPayloadHeader returns the most recent execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (
 		ExecutionPayloadHeaderT,
 		error,
 	)
-	// GetLatestBlockHeader returns the most recent block header.
-	GetLatestBlockHeader() (
-		BeaconBlockHeaderT,
-		error,
-	)
+	// GetSlot retrieves the current slot of the beacon state.
+	GetSlot() (math.Slot, error)
 	// HashTreeRoot returns the hash tree root of the beacon state.
 	HashTreeRoot() ([32]byte, error)
-	// Copy creates a copy of the beacon state.
-	Copy() T
 }
 
 // StateProcessor defines the interface for processing various state transitions
@@ -214,7 +213,7 @@ type StateProcessor[
 		BeaconStateT,
 		[]DepositT,
 		ExecutionPayloadHeaderT,
-		primitives.Version,
+		common.Version,
 	) ([]*transition.ValidatorUpdate, error)
 	// ProcessSlots processes the state transition for a range of slots.
 	ProcessSlots(

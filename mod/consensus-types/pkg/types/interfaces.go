@@ -23,7 +23,6 @@ package types
 import (
 	"encoding/json"
 
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -85,7 +84,7 @@ type executionPayloadBody interface {
 	json.Unmarshaler
 	IsNil() bool
 	Version() uint32
-	GetPrevRandao() primitives.Bytes32
+	GetPrevRandao() common.Bytes32
 	GetBlockHash() common.ExecutionHash
 	GetParentHash() common.ExecutionHash
 	GetNumber() math.U64
@@ -95,8 +94,8 @@ type executionPayloadBody interface {
 	GetExtraData() []byte
 	GetBaseFeePerGas() math.Wei
 	GetFeeRecipient() common.ExecutionAddress
-	GetStateRoot() primitives.Bytes32
-	GetReceiptsRoot() primitives.Bytes32
+	GetStateRoot() common.Bytes32
+	GetReceiptsRoot() common.Bytes32
 	GetLogsBloom() []byte
 	GetBlobGasUsed() math.U64
 	GetExcessBlobGas() math.U64

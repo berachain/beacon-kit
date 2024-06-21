@@ -26,11 +26,11 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/config"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/interfaces"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
@@ -39,7 +39,7 @@ import (
 // EngineClientInputs is the input for the EngineClient.
 type EngineClientInputs struct {
 	depinject.In
-	ChainSpec     primitives.ChainSpec
+	ChainSpec     common.ChainSpec
 	Config        *config.Config
 	JWTSecret     *jwt.Secret `optional:"true"`
 	Logger        log.Logger
@@ -50,7 +50,7 @@ type EngineClientInputs struct {
 func ProvideEngineClient[
 	ExecutionPayloadT interfaces.ExecutionPayload[
 		ExecutionPayloadT, common.ExecutionAddress,
-		common.ExecutionHash, primitives.Bytes32,
+		common.ExecutionHash, common.Bytes32,
 		math.U64, math.Wei, []byte, WithdrawalT,
 	],
 	WithdrawalT any,
@@ -81,14 +81,14 @@ type ExecutionEngineInput struct {
 func ProvideExecutionEngine[
 	ExecutionPayloadT interfaces.ExecutionPayload[
 		ExecutionPayloadT, common.ExecutionAddress,
-		common.ExecutionHash, primitives.Bytes32,
+		common.ExecutionHash, common.Bytes32,
 		math.U64, math.Wei, []byte, WithdrawalT,
 	],
 	WithdrawalT any,
 ](
 	in ExecutionEngineInput,
 ) *ExecutionEngine {
-	return execution.New[*ExecutionPayload](
+	return execution.New[*ExecutionPayload, engineprimitives.PayloadID](
 		in.EngineClient,
 		in.Logger.With("service", "execution-engine"),
 		in.StatusFeed,

@@ -24,7 +24,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -114,8 +114,8 @@ func (s *Service[
 	st BeaconStateT,
 ) error {
 	var (
-		prevStateRoot primitives.Root
-		prevBlockRoot primitives.Root
+		prevStateRoot common.Root
+		prevBlockRoot common.Root
 		lph           ExecutionPayloadHeaderT
 		slot          math.Slot
 	)
