@@ -88,11 +88,11 @@ func WithDefaultRootCommandSetup[T servertypes.Application]() Opt[T] {
 	}
 }
 
-// WithAppCreator sets the cosmos app creator for the CLIBuilder.
-func WithAppCreator[T servertypes.Application](
-	appCreator servertypes.AppCreator[T],
+// WithNodeBuilderFunc sets the cosmos app creator for the CLIBuilder.
+func WithNodeBuilderFunc[T servertypes.Application](
+	nodeBuilderFunc servertypes.AppCreator[T],
 ) Opt[T] {
 	return func(cb *CLIBuilder[T]) {
-		cb.appCreator = appCreator
+		cb.nodeBuilderFunc = nodeBuilderFunc
 	}
 }

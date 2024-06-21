@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/jwt"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/pruning"
 	"github.com/cosmos/cosmos-sdk/client/snapshot"
@@ -83,12 +82,4 @@ func DefaultRootCommandSetup[T servertypes.Application](
 		// `version`
 		version.NewVersionCommand(),
 	)
-}
-
-// InitClientConfig sets up the default client configuration, allowing for
-// overrides.
-func InitClientConfig() (string, interface{}) {
-	clientCfg := config.DefaultConfig()
-	clientCfg.KeyringBackend = "test"
-	return config.DefaultClientConfigTemplate, clientCfg
 }

@@ -21,8 +21,9 @@
 package commands
 
 import (
+	"github.com/berachain/beacon-kit/mod/cli/pkg/config"
 	sdkclient "github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/config"
+	sdkconfig "github.com/cosmos/cosmos-sdk/client/config"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	"github.com/spf13/cobra"
 )
@@ -57,9 +58,9 @@ func New(name string,
 				return err
 			}
 
-			customClientTemplate, customClientConfig := InitClientConfig()
+			customClientTemplate, customClientConfig := config.InitClientConfig()
 			// Update the client context with the default custom config
-			clientCtx, err = config.CreateClientConfig(
+			clientCtx, err = sdkconfig.CreateClientConfig(
 				clientCtx,
 				customClientTemplate,
 				customClientConfig,
