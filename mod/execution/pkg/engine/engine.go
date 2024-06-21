@@ -73,7 +73,9 @@ func New[
 		*asynctypes.Event[*service.StatusEvent],
 	],
 	telemtrySink TelemetrySink,
-) *Engine[ExecutionPayloadT, PayloadAttributesT, PayloadIDT] {
+) *Engine[
+	ExecutionPayloadT, PayloadAttributesT, PayloadIDT,
+] {
 	return &Engine[ExecutionPayloadT, PayloadAttributesT, PayloadIDT]{
 		ec:         ec,
 		logger:     logger,
@@ -83,7 +85,9 @@ func New[
 }
 
 // Start spawns any goroutines required by the service.
-func (ee *Engine[ExecutionPayloadT, PayloadAttributesT, PayloadIDT]) Start(
+func (ee *Engine[
+	ExecutionPayloadT, PayloadAttributesT, PayloadIDT,
+]) Start(
 	ctx context.Context,
 ) error {
 	go func() {
@@ -96,7 +100,9 @@ func (ee *Engine[ExecutionPayloadT, PayloadAttributesT, PayloadIDT]) Start(
 }
 
 // GetPayload returns the payload and blobs bundle for the given slot.
-func (ee *Engine[ExecutionPayloadT, PayloadAttributesT, PayloadIDT]) GetPayload(
+func (ee *Engine[
+	ExecutionPayloadT, PayloadAttributesT, PayloadIDT,
+]) GetPayload(
 	ctx context.Context,
 	req *engineprimitives.GetPayloadRequest[engineprimitives.PayloadID],
 ) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
@@ -107,7 +113,9 @@ func (ee *Engine[ExecutionPayloadT, PayloadAttributesT, PayloadIDT]) GetPayload(
 }
 
 // NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
-func (ee *Engine[ExecutionPayloadT, PayloadAttributesT, PayloadIDT]) NotifyForkchoiceUpdate(
+func (ee *Engine[
+	ExecutionPayloadT, PayloadAttributesT, PayloadIDT,
+]) NotifyForkchoiceUpdate(
 	ctx context.Context,
 	req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
@@ -177,7 +185,9 @@ func (ee *Engine[ExecutionPayloadT, PayloadAttributesT, PayloadIDT]) NotifyForkc
 
 // VerifyAndNotifyNewPayload verifies the new payload and notifies the
 // execution client.
-func (ee *Engine[ExecutionPayloadT, PayloadAttributesT, PayloadIDT]) VerifyAndNotifyNewPayload(
+func (ee *Engine[
+	ExecutionPayloadT, PayloadAttributesT, PayloadIDT,
+]) VerifyAndNotifyNewPayload(
 	ctx context.Context,
 	req *engineprimitives.NewPayloadRequest[
 		ExecutionPayloadT, *engineprimitives.Withdrawal],
