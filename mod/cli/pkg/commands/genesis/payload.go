@@ -29,7 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -167,8 +167,8 @@ func executableDataToExecutionPayloadHeader(
 		// Get the merkle roots of transactions and withdrawals in parallel.
 		var (
 			g, _            = errgroup.WithContext(context.Background())
-			txsRoot         primitives.Root
-			withdrawalsRoot primitives.Root
+			txsRoot         common.Root
+			withdrawalsRoot common.Root
 		)
 
 		g.Go(func() error {
@@ -196,10 +196,10 @@ func executableDataToExecutionPayloadHeader(
 			InnerExecutionPayloadHeader: &types.ExecutionPayloadHeaderDeneb{
 				ParentHash:   data.ParentHash,
 				FeeRecipient: data.FeeRecipient,
-				StateRoot:    primitives.Bytes32(data.StateRoot),
-				ReceiptsRoot: primitives.Bytes32(data.ReceiptsRoot),
+				StateRoot:    common.Bytes32(data.StateRoot),
+				ReceiptsRoot: common.Bytes32(data.ReceiptsRoot),
 				LogsBloom:    data.LogsBloom,
-				Random:       primitives.Bytes32(data.Random),
+				Random:       common.Bytes32(data.Random),
 				Number:       math.U64(data.Number),
 				GasLimit:     math.U64(data.GasLimit),
 				GasUsed:      math.U64(data.GasUsed),

@@ -29,7 +29,7 @@ import (
 	"cosmossdk.io/log"
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
 	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -81,7 +81,7 @@ func (cb *CLIBuilder[T]) Build() (*cmdlib.Root, error) {
 		autoCliOpts autocli.AppOptions
 		mm          *module.Manager
 		clientCtx   client.Context
-		chainSpec   primitives.ChainSpec
+		chainSpec   common.ChainSpec
 	)
 	// build dependencies for the root command
 	if err := depinject.Inject(

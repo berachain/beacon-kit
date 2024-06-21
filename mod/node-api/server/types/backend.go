@@ -23,15 +23,15 @@ package types
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
 type BackendHandlers interface {
-	GetGenesis(ctx context.Context) (primitives.Root, error)
+	GetGenesis(ctx context.Context) (common.Root, error)
 	GetStateRoot(
 		ctx context.Context,
 		stateID string,
-	) (primitives.Bytes32, error)
+	) (common.Bytes32, error)
 	GetStateValidators(
 		ctx context.Context,
 		stateID string,

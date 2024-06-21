@@ -25,7 +25,6 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives/mocks"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/require"
@@ -44,8 +43,8 @@ func (m MockExecutionPayload) IsNil() bool {
 func (m MockExecutionPayload) Version() uint32 {
 	return 0
 }
-func (m MockExecutionPayload) GetPrevRandao() primitives.Bytes32 {
-	return primitives.Bytes32{}
+func (m MockExecutionPayload) GetPrevRandao() common.Bytes32 {
+	return common.Bytes32{}
 }
 func (m MockExecutionPayload) GetBlockHash() common.ExecutionHash {
 	return common.ExecutionHash{}
@@ -74,11 +73,11 @@ func (m MockExecutionPayload) GetBaseFeePerGas() math.Wei {
 func (m MockExecutionPayload) GetFeeRecipient() common.ExecutionAddress {
 	return common.ExecutionAddress{}
 }
-func (m MockExecutionPayload) GetStateRoot() primitives.Bytes32 {
-	return primitives.Bytes32{}
+func (m MockExecutionPayload) GetStateRoot() common.Bytes32 {
+	return common.Bytes32{}
 }
-func (m MockExecutionPayload) GetReceiptsRoot() primitives.Bytes32 {
-	return primitives.Bytes32{}
+func (m MockExecutionPayload) GetReceiptsRoot() common.Bytes32 {
+	return common.Bytes32{}
 }
 func (m MockExecutionPayload) GetLogsBloom() []byte {
 	return []byte{}
@@ -112,7 +111,7 @@ func (m MockWithdrawal) GetValidatorIndex() math.U64 {
 func TestBuildNewPayloadRequest(t *testing.T) {
 	executionPayload := MockExecutionPayload{}
 	var versionedHashes []common.ExecutionHash
-	parentBeaconBlockRoot := primitives.Root{}
+	parentBeaconBlockRoot := common.Root{}
 	optimistic := false
 
 	request := engineprimitives.BuildNewPayloadRequest(
@@ -160,7 +159,7 @@ func TestBuildGetPayloadRequest(t *testing.T) {
 func TestHasValidVersionedAndBlockHashesPayloadError(t *testing.T) {
 	executionPayload := MockExecutionPayload{}
 	versionedHashes := []common.ExecutionHash{}
-	parentBeaconBlockRoot := primitives.Root{}
+	parentBeaconBlockRoot := common.Root{}
 	optimistic := false
 
 	request := engineprimitives.BuildNewPayloadRequest(
@@ -177,7 +176,7 @@ func TestHasValidVersionedAndBlockHashesPayloadError(t *testing.T) {
 func TestHasValidVersionedAndBlockHashesMismatchedHashes(t *testing.T) {
 	executionPayload := MockExecutionPayload{}
 	versionedHashes := []common.ExecutionHash{common.ExecutionHash{}}
-	parentBeaconBlockRoot := primitives.Root{}
+	parentBeaconBlockRoot := common.Root{}
 	optimistic := false
 
 	request := engineprimitives.BuildNewPayloadRequest(

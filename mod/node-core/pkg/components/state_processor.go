@@ -23,7 +23,7 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
@@ -33,7 +33,7 @@ import (
 // framework.
 type StateProcessorInput struct {
 	depinject.In
-	ChainSpec       primitives.ChainSpec
+	ChainSpec       common.ChainSpec
 	ExecutionEngine *ExecutionEngine
 	Signer          crypto.BLSSigner
 }

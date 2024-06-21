@@ -27,7 +27,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -36,7 +36,7 @@ type LocalBuilderInput struct {
 	depinject.In
 	AttributesFactory *AttributesFactory
 	Cfg               *config.Config
-	ChainSpec         primitives.ChainSpec
+	ChainSpec         common.ChainSpec
 	ExecutionEngine   *ExecutionEngine
 	Logger            log.Logger
 }

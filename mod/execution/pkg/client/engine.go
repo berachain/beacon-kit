@@ -28,7 +28,6 @@ import (
 	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
@@ -42,7 +41,7 @@ func (s *EngineClient[ExecutionPayloadT]) NewPayload(
 	ctx context.Context,
 	payload ExecutionPayloadT,
 	versionedHashes []common.ExecutionHash,
-	parentBeaconBlockRoot *primitives.Root,
+	parentBeaconBlockRoot *common.Root,
 ) (*common.ExecutionHash, error) {
 	var (
 		startTime    = time.Now()

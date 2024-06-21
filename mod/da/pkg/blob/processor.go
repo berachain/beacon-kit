@@ -25,7 +25,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -40,12 +40,12 @@ type Processor[
 	// logger is used to log information and errors.
 	logger log.Logger[any]
 	// chainSpec defines the specifications of the blockchain.
-	chainSpec primitives.ChainSpec
+	chainSpec common.ChainSpec
 	// verifier is responsible for verifying the blobs.
 	verifier *Verifier
 	// blockBodyOffsetFn is a function that calculates the block body offset
 	// based on the slot and chain specifications.
-	blockBodyOffsetFn func(math.Slot, primitives.ChainSpec) uint64
+	blockBodyOffsetFn func(math.Slot, common.ChainSpec) uint64
 	// metrics is used to collect and report processor metrics.
 	metrics *processorMetrics
 }
@@ -58,9 +58,9 @@ func NewProcessor[
 	BeaconBlockBodyT any,
 ](
 	logger log.Logger[any],
-	chainSpec primitives.ChainSpec,
+	chainSpec common.ChainSpec,
 	verifier *Verifier,
-	blockBodyOffsetFn func(math.Slot, primitives.ChainSpec) uint64,
+	blockBodyOffsetFn func(math.Slot, common.ChainSpec) uint64,
 	telemetrySink TelemetrySink,
 ) *Processor[AvailabilityStoreT, BeaconBlockBodyT] {
 	return &Processor[AvailabilityStoreT, BeaconBlockBodyT]{

@@ -114,7 +114,7 @@ func (m *MockSpec) MaxBlobCommitmentsPerBlock() uint64 {
 // 	return &types.BeaconBlockBodyDeneb{
 // 		RandaoReveal: [96]byte{0x01},
 // 		Eth1Data: &primitives.Eth1Data{
-// 			DepositRoot:  primitives.Root{},
+// 			DepositRoot:  common.Root{},
 // 			DepositCount: 0,
 // 			BlockHash:    common.ZeroHash,
 // 		},

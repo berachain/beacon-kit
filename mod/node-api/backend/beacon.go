@@ -26,12 +26,12 @@ import (
 
 	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	serverType "github.com/berachain/beacon-kit/mod/node-api/server/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-func (h Backend) GetGenesis(ctx context.Context) (primitives.Root, error) {
+func (h Backend) GetGenesis(ctx context.Context) (common.Root, error) {
 	// needs genesis_time and gensis_fork_version
 	return h.getNewStateDB(ctx, "stateID").GetGenesisValidatorsRoot()
 }
@@ -39,19 +39,19 @@ func (h Backend) GetGenesis(ctx context.Context) (primitives.Root, error) {
 func (h Backend) GetStateRoot(
 	ctx context.Context,
 	stateID string,
-) (primitives.Bytes32, error) {
+) (common.Bytes32, error) {
 	stateDB := h.getNewStateDB(ctx, stateID)
 	slot, err := stateDB.GetSlot()
 	if err != nil {
-		return primitives.Bytes32{}, err
+		return common.Bytes32{}, err
 	}
 	block, err := stateDB.StateRootAtIndex(slot.Unwrap())
 	if err != nil {
-		return primitives.Bytes32{}, err
+		return common.Bytes32{}, err
 	}
 	root, err := block.HashTreeRoot()
 	if err != nil {
-		return primitives.Bytes32{}, err
+		return common.Bytes32{}, err
 	}
 	return root, nil
 }
@@ -163,19 +163,19 @@ func (h Backend) GetStateValidatorBalances(
 func (h Backend) GetBlockRoot(
 	ctx context.Context,
 	_ string,
-) (primitives.Bytes32, error) {
+) (common.Bytes32, error) {
 	stateDB := h.getNewStateDB(ctx, "stateID")
 	slot, err := stateDB.GetSlot()
 	if err != nil {
-		return primitives.Bytes32{}, err
+		return common.Bytes32{}, err
 	}
 	block, err := stateDB.GetBlockRootAtIndex(slot.Unwrap())
 	if err != nil {
-		return primitives.Bytes32{}, err
+		return common.Bytes32{}, err
 	}
 	root, err := block.HashTreeRoot()
 	if err != nil {
-		return primitives.Bytes32{}, err
+		return common.Bytes32{}, err
 	}
 	return root, nil
 }

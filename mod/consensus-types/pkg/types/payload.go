@@ -26,7 +26,6 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -43,7 +42,7 @@ type ExecutionPayload struct {
 	header atomic.Pointer[ExecutionPayloadHeader]
 	// root is the hash tree root of the ExecutionPayload.
 	// It is a cache to avoid recomputing it every time.
-	root atomic.Pointer[primitives.Root]
+	root atomic.Pointer[common.Root]
 }
 
 // InnerExecutionPayload represents the inner execution payload.
@@ -92,7 +91,7 @@ func (e *ExecutionPayload) HashTreeRoot() ([32]byte, error) {
 	if err != nil {
 		return [32]byte{}, err
 	}
-	e.root.Store((*primitives.Root)(&root))
+	e.root.Store((*common.Root)(&root))
 	return root, nil
 }
 
@@ -105,8 +104,8 @@ func (e *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 	// Get the merkle roots of transactions and withdrawals in parallel.
 	var (
 		g, _            = errgroup.WithContext(context.Background())
-		txsRoot         primitives.Root
-		withdrawalsRoot primitives.Root
+		txsRoot         common.Root
+		withdrawalsRoot common.Root
 	)
 
 	g.Go(func() error {

@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -46,7 +45,7 @@ import (
 )
 
 // CollectGenTxsCmd - return the cobra command to collect genesis transactions.
-func AddGenesisDepositCmd(cs primitives.ChainSpec) *cobra.Command {
+func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add-premined-deposit",
 		Short: "adds a validator to the genesis file",
@@ -87,7 +86,7 @@ func AddGenesisDepositCmd(cs primitives.ChainSpec) *cobra.Command {
 			}
 
 			// TODO: configurable.
-			currentVersion := version.FromUint32[primitives.Version](
+			currentVersion := version.FromUint32[common.Version](
 				version.Deneb,
 			)
 

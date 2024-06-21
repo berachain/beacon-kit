@@ -24,7 +24,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -45,7 +45,7 @@ func New(
 }
 
 type StateDB interface {
-	GetGenesisValidatorsRoot() (primitives.Root, error)
+	GetGenesisValidatorsRoot() (common.Root, error)
 	GetSlot() (math.Slot, error)
 	GetLatestExecutionPayloadHeader() (
 		*types.ExecutionPayloadHeader, error,
@@ -64,8 +64,8 @@ type StateDB interface {
 	SetFork(fork *types.Fork) error
 	GetLatestBlockHeader() (*types.BeaconBlockHeader, error)
 	SetLatestBlockHeader(header *types.BeaconBlockHeader) error
-	GetBlockRootAtIndex(index uint64) (primitives.Root, error)
-	StateRootAtIndex(index uint64) (primitives.Root, error)
+	GetBlockRootAtIndex(index uint64) (common.Root, error)
+	StateRootAtIndex(index uint64) (common.Root, error)
 	GetEth1Data() (*types.Eth1Data, error)
 	SetEth1Data(data *types.Eth1Data) error
 	GetValidators() ([]*types.Validator, error)
@@ -76,16 +76,16 @@ type StateDB interface {
 	SetNextWithdrawalValidatorIndex(index math.ValidatorIndex) error
 	GetTotalSlashing() (math.Gwei, error)
 	SetTotalSlashing(total math.Gwei) error
-	GetRandaoMixAtIndex(index uint64) (primitives.Bytes32, error)
+	GetRandaoMixAtIndex(index uint64) (common.Bytes32, error)
 	GetSlashings() ([]uint64, error)
 	SetSlashingAtIndex(index uint64, amount math.Gwei) error
 	GetSlashingAtIndex(index uint64) (math.Gwei, error)
 	GetTotalValidators() (uint64, error)
 	GetTotalActiveBalances(uint64) (math.Gwei, error)
 	ValidatorByIndex(index math.ValidatorIndex) (*types.Validator, error)
-	UpdateBlockRootAtIndex(index uint64, root primitives.Root) error
-	UpdateStateRootAtIndex(index uint64, root primitives.Root) error
-	UpdateRandaoMixAtIndex(index uint64, mix primitives.Bytes32) error
+	UpdateBlockRootAtIndex(index uint64, root common.Root) error
+	UpdateStateRootAtIndex(index uint64, root common.Root) error
+	UpdateRandaoMixAtIndex(index uint64, mix common.Bytes32) error
 	UpdateValidatorAtIndex(
 		index math.ValidatorIndex,
 		validator *types.Validator,

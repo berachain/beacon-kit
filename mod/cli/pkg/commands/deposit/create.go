@@ -29,7 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -38,7 +38,7 @@ import (
 // NewValidateDeposit creates a new command for validating a deposit message.
 //
 
-func NewCreateValidator(chainSpec primitives.ChainSpec) *cobra.Command {
+func NewCreateValidator(chainSpec common.ChainSpec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-validator",
 		Short: "Creates a validator deposit",
@@ -74,7 +74,7 @@ func NewCreateValidator(chainSpec primitives.ChainSpec) *cobra.Command {
 // other execution layers correctly. Peep the commit history for what we had.
 // 🤷‍♂️.
 func createValidatorCmd(
-	chainSpec primitives.ChainSpec,
+	chainSpec common.ChainSpec,
 ) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		var (
