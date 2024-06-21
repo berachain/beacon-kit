@@ -28,7 +28,6 @@ import (
 	"strings"
 	"time"
 
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/cache"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
@@ -45,7 +44,7 @@ type EngineClient[
 		json.Marshaler
 		json.Unmarshaler
 	},
-	PayloadAttributesT engineprimitives.PayloadAttributer,
+	PayloadAttributesT any,
 ] struct {
 	// Eth1Client is a struct that holds the Ethereum 1 client and
 	// its configuration.
@@ -77,7 +76,7 @@ func New[
 		json.Marshaler
 		json.Unmarshaler
 	},
-	PayloadAttributesT engineprimitives.PayloadAttributer,
+	PayloadAttributesT any,
 ](
 	cfg *Config,
 	logger log.Logger[any],

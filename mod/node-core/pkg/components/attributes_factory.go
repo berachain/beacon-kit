@@ -22,7 +22,6 @@ package components
 
 import (
 	"github.com/berachain/beacon-kit/mod/config"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -32,7 +31,6 @@ import (
 func ProvideAttributesFactory[
 	BeaconStateT attributes.BeaconState[WithdrawalT],
 	PayloadAttributesT interface {
-		engineprimitives.PayloadAttributer
 		New(
 			uint32,
 			uint64,
