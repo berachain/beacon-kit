@@ -248,7 +248,7 @@ func (h *ABCIMiddleware[
 		}
 
 		if err = h.daService.ReceiveSidecars(
-			ctx, blk.GetSlot(), sidecars,
+			gCtx, blk.GetSlot(), sidecars,
 		); !errors.IsFatal(err) {
 			err = nil
 		}
@@ -266,7 +266,6 @@ func (h *ABCIMiddleware[
 		err = nil
 	}
 	return resp, err
-
 }
 
 /* -------------------------------------------------------------------------- */
