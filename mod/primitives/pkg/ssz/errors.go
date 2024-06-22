@@ -31,17 +31,20 @@ var (
 	ErrInvalidNilSlice = errors.New("invalid empty slice")
 )
 
-// InvalidLengthError represents an error when the input byte slice has an invalid length.
+// InvalidLengthError represents an error
+// when the input byte slice has an invalid length.
 type InvalidLengthError struct {
 	Actual   int
 	Expected int
 }
 
 func (e *InvalidLengthError) Error() string {
-	return fmt.Sprintf("invalid byte length: got %d, expected %d", e.Actual, e.Expected)
+	return fmt.Sprintf("invalid byte length: got %d, expected %d",
+		e.Actual, e.Expected)
 }
 
-// InvalidByteValueError represents an error when the input byte has an invalid value.
+// InvalidByteValueError represents an error
+// when the input byte has an invalid value.
 type InvalidByteValueError struct {
 	Value  byte
 	Reason string

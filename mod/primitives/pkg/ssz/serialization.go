@@ -76,7 +76,9 @@ func UnmarshalBool[BoolT ~bool](src []byte) (BoolT, error) {
 	case 1:
 		return true, nil
 	default:
-		return false, &InvalidByteValueError{Value: src[0], Reason: "value must be 0 or 1 for boolean"}
+		return false, &InvalidByteValueError{Value: src[0],
+			Reason: "value must be 0 or 1 for boolean",
+		}
 	}
 }
 
