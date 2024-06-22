@@ -22,7 +22,6 @@ package ssz
 
 import (
 	"encoding/binary"
-	"fmt"
 	"math/bits"
 )
 
@@ -68,7 +67,7 @@ func UnmarshalU8[U8T ~uint8](src []byte) U8T {
 // UnmarshalBool unmarshals a boolean from the src input.
 func UnmarshalBool[BoolT ~bool](src []byte) (BoolT, error) {
 	if len(src) != 1 {
-		return false, fmt.Errorf("invalid byte length for boolean: %d", len(src))
+		return false, &InvalidBooleanLengthError{Length: len(src)}
 	}
 
 	switch src[0] {
@@ -77,7 +76,7 @@ func UnmarshalBool[BoolT ~bool](src []byte) (BoolT, error) {
 	case 1:
 		return true, nil
 	default:
-		return false, fmt.Errorf("invalid byte value for boolean: %d", src[0])
+		return false, &InvalidBooleanValueError{Value: src[0]}
 	}
 }
 

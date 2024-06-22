@@ -20,9 +20,31 @@
 
 package ssz
 
-import "github.com/berachain/beacon-kit/mod/errors"
+import (
+	"fmt"
+
+	"github.com/berachain/beacon-kit/mod/errors"
+)
 
 var (
 	// ErrInvalidNilSlice is returned when the input slice is nil.
 	ErrInvalidNilSlice = errors.New("invalid empty slice")
 )
+
+// InvalidBooleanLengthError represents an error when the input byte slice has an invalid length for a boolean.
+type InvalidBooleanLengthError struct {
+	Length int
+}
+
+func (e *InvalidBooleanLengthError) Error() string {
+	return fmt.Sprintf("invalid byte length for boolean: %d", e.Length)
+}
+
+// InvalidBooleanValueError represents an error when the input byte has an invalid value for a boolean.
+type InvalidBooleanValueError struct {
+	Value byte
+}
+
+func (e *InvalidBooleanValueError) Error() string {
+	return fmt.Sprintf("invalid byte value for boolean: %d", e.Value)
+}
