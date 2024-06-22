@@ -23,10 +23,7 @@ package da
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/async/pkg/event"
-	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -44,7 +41,6 @@ type Service[
 		AvailabilityStoreT, BeaconBlockBodyT,
 		BlobSidecarsT, ExecutionPayloadT,
 	]
-	feed   *event.FeedOf[asynctypes.EventID, *asynctypes.Event[BlobSidecarsT]]
 	logger log.Logger[any]
 }
 
@@ -63,7 +59,6 @@ func NewService[
 		AvailabilityStoreT, BeaconBlockBodyT,
 		BlobSidecarsT, ExecutionPayloadT,
 	],
-	feed *event.FeedOf[asynctypes.EventID, *asynctypes.Event[BlobSidecarsT]],
 	logger log.Logger[any],
 ) *Service[
 	AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT, ExecutionPayloadT,
@@ -73,7 +68,6 @@ func NewService[
 	]{
 		avs:    avs,
 		bp:     bp,
-		feed:   feed,
 		logger: logger,
 	}
 }
@@ -90,27 +84,28 @@ func (s *Service[_, _, _, _]) Start(ctx context.Context) error {
 }
 
 // start starts the service.
-func (s *Service[_, _, BlobSidecarsT, _]) start(ctx context.Context) {
-	ch := make(chan *asynctypes.Event[BlobSidecarsT])
-	sub := s.feed.Subscribe(ch)
-	defer sub.Unsubscribe()
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case e := <-ch:
-			// TODO: this is unused atm.
-			if e.Type() == events.BlobSidecarsReceived {
-				if err := s.ProcessSidecars(ctx, 0, e.Data()); err != nil {
-					s.logger.Error(
-						"failed to process blob sidecars",
-						"error",
-						err,
-					)
-				}
-			}
-		}
-	}
+func (s *Service[_, _, BlobSidecarsT, _]) start(_ context.Context) {
+	// TODO: Introduce in Future PR.
+	// ch := make(chan *asynctypes.Event[BlobSidecarsT])
+	// sub := s.feed.Subscribe(ch)
+	// defer sub.Unsubscribe()
+	// for {
+	// 	select {
+	// 	case <-ctx.Done():
+	// 		return
+	// 	case e := <-ch:
+	// 		// TODO: this is unused atm.
+	// 		if e.Type() == events.BlobSidecarsReceived {
+	// 			if err := s.ProcessSidecars(ctx, 0, e.Data()); err != nil {
+	// 				s.logger.Error(
+	// 					"failed to process blob sidecars",
+	// 					"error",
+	// 					err,
+	// 				)
+	// 			}
+	// 		}
+	// 	}
+	// }
 }
 
 // ProcessSidecars processes the blob sidecars.
