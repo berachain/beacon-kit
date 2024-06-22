@@ -21,6 +21,7 @@
 package cometbft
 
 import (
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -29,7 +30,7 @@ import (
 
 // Commands creates a new command for managing CometBFT
 // related commands.
-func Commands[T servertypes.Application](
+func Commands[T types.Node](
 	appCreator servertypes.AppCreator[T],
 ) *cobra.Command {
 	cometCmd := &cobra.Command{
