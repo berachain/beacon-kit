@@ -29,6 +29,7 @@ import (
 	"cosmossdk.io/log"
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
 	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -41,7 +42,7 @@ import (
 )
 
 // CLIBuilder is the builder for the commands.Root (root command).
-type CLIBuilder[T servertypes.Application] struct {
+type CLIBuilder[T types.Node] struct {
 	depInjectCfg depinject.Config
 	name         string
 	description  string
@@ -60,7 +61,7 @@ type CLIBuilder[T servertypes.Application] struct {
 }
 
 // New returns a new CLIBuilder with the given options.
-func New[T servertypes.Application](opts ...Opt[T]) *CLIBuilder[T] {
+func New[T types.Node](opts ...Opt[T]) *CLIBuilder[T] {
 	cb := &CLIBuilder[T]{
 		suppliers: []any{
 			os.Stdout, // supply io.Writer for logger
