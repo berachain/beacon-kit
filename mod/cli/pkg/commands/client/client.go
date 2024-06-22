@@ -22,13 +22,12 @@ package client
 
 import (
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/client/cosmos"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cobra"
 )
 
 // Commands creates a new command for managing CometBFT
 // related commands.
-func Commands[T servertypes.Application]() *cobra.Command {
+func Commands() *cobra.Command {
 	clientCmd := &cobra.Command{
 		Use:   "client",
 		Short: "client subcommands",
