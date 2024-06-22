@@ -86,14 +86,14 @@ func (s *Service[_, _, _, _]) Start(ctx context.Context) error {
 }
 
 // start starts the service.
-func (s *Service[_, _, BlobSidecarsT, _]) start(ctx context.Context) error {
+func (s *Service[_, _, BlobSidecarsT, _]) start(ctx context.Context) {
 	ch := make(chan *asynctypes.Event[BlobSidecarsT])
 	sub := s.feed.Subscribe(ch)
 	defer sub.Unsubscribe()
 	for {
 		select {
 		case <-ctx.Done():
-			return nil
+			return
 		case e := <-ch:
 			// TODO: this is unused atm.
 			if e.Type() == events.BlobSidecarsReceived {
