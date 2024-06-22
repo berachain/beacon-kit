@@ -226,12 +226,12 @@ func (h *ABCIMiddleware[
 	)
 	args := []any{"beacon_block", true, "blob_sidecars", true}
 
-	g.Go(func() error {
-		blk, err = h.beaconBlockGossiper.Request(gCtx, req)
-		if err != nil {
-			args[1] = false
-		}
+	blk, err = h.beaconBlockGossiper.Request(gCtx, req)
+	if err != nil {
+		args[1] = false
+	}
 
+	g.Go(func() error {
 		if err = h.chainService.ReceiveBlock(
 			ctx, blk,
 		); !errors.IsFatal(err) {
@@ -239,10 +239,15 @@ func (h *ABCIMiddleware[
 		}
 		return err
 	})
+
 	g.Go(func() error {
 		sidecars, err = h.blobGossiper.Request(gCtx, req)
 		if err != nil {
 			args[3] = false
+		}
+
+		if blk.IsNil() {
+			return nil
 		}
 
 		if err = h.daService.ReceiveSidecars(
