@@ -33,6 +33,7 @@ type ABCIMiddlewareInput struct {
 	depinject.In
 	BeaconBlockFeed  *BlockFeed
 	ChainService     *ChainService
+	DAService        *DAService
 	ChainSpec        common.ChainSpec
 	Logger           log.Logger[any]
 	SidecarsFeed     *BlobFeed
@@ -54,6 +55,7 @@ func ProvideABCIMiddleware(
 		in.ChainSpec,
 		in.ValidatorService,
 		in.ChainService,
+		in.DAService,
 		in.Logger,
 		in.TelemetrySink,
 		in.BeaconBlockFeed,

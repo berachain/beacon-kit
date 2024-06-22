@@ -35,6 +35,7 @@ type ServiceRegistryInput struct {
 	ABCIService      *ABCIMiddleware
 	ChainService     *ChainService
 	DBManager        *DBManager
+	DAService        *DAService
 	DepositService   *DepositService
 	EngineClient     *EngineClient
 	Logger           log.Logger

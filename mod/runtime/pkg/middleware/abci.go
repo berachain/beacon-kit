@@ -263,8 +263,7 @@ func (h *ABCIMiddleware[
 // is responsible for aggregating oracle data from each validator and writing
 // the oracle data to the store.
 func (h *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+	_, BeaconBlockT, _, BlobSidecarsT, _, _, _,
 ]) preBlock(
 	ctx sdk.Context, req *cmtabci.FinalizeBlockRequest,
 ) {
@@ -281,7 +280,14 @@ func (h *ABCIMiddleware[
 		return
 	}
 
-	result, err := h.chainService.ProcessBlockAndBlobs(ctx, blk, blobs)
+	// TODO: Move to Async.
+	if err := h.daService.ProcessBlobSidecars(ctx, blk.GetSlot(), blobs); err != nil {
+		h.errCh <- err
+		return
+	}
+
+	// TODO: Move to Async.
+	result, err := h.chainService.ProcessBeaconBlock(ctx, blk)
 	if err != nil {
 		h.errCh <- err
 	} else {
@@ -291,8 +297,7 @@ func (h *ABCIMiddleware[
 
 // EndBlock returns the validator set updates from the beacon state.
 func (h *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+	_, _, _, _, _, _, _,
 ]) EndBlock(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
@@ -301,8 +306,7 @@ func (h *ABCIMiddleware[
 
 // endBlock returns the validator set updates from the beacon state.
 func (h *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+	_, _, _, _, _, _, _,
 ]) endBlock(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
