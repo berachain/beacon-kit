@@ -73,7 +73,7 @@ func (s *Service[
 	deposits, err := s.dc.ReadDeposits(ctx, blockNum)
 	if err != nil {
 		s.metrics.markFailedToGetBlockLogs(blockNum)
-		s.failedBlocks.Store(blockNum, true)
+		s.failedBlocks.Store(blockNum, struct{}{})
 		return
 	}
 
@@ -86,7 +86,7 @@ func (s *Service[
 
 	if err = s.ds.EnqueueDeposits(deposits); err != nil {
 		s.logger.Error("Failed to store deposits", "error", err)
-		s.failedBlocks.Store(blockNum, true)
+		s.failedBlocks.Store(blockNum, struct{}{})
 		return
 	}
 
