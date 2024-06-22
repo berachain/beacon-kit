@@ -148,7 +148,7 @@ func (h *ABCIMiddleware[
 	select {
 	case <-gCtx.Done():
 		return nil, gCtx.Err()
-	case err := <-h.prepareProposalErrCh:
+	case err := <-h.errCh:
 		return nil, err
 	case sidecars := <-h.prepareProposalSidecarsCh:
 		if sidecars.Error() != nil {
@@ -171,7 +171,7 @@ func (h *ABCIMiddleware[
 	select {
 	case <-gCtx.Done():
 		return nil, gCtx.Err()
-	case err := <-h.prepareProposalErrCh:
+	case err := <-h.errCh:
 		return nil, err
 	case beaconBlock := <-h.prepareProposalBlkCh:
 		if beaconBlock.Error() != nil {
@@ -277,13 +277,13 @@ func (h *ABCIMiddleware[
 		))
 
 	if err != nil {
-		h.finalizeBlockErrCh <- errors.Join(err, ErrBadExtractBlockAndBlocks)
+		h.errCh <- errors.Join(err, ErrBadExtractBlockAndBlocks)
 		return
 	}
 
 	result, err := h.chainService.ProcessBlockAndBlobs(ctx, blk, blobs)
 	if err != nil {
-		h.finalizeBlockErrCh <- err
+		h.errCh <- err
 	} else {
 		h.valUpdatesCh <- result
 	}
@@ -309,7 +309,7 @@ func (h *ABCIMiddleware[
 	select {
 	case <-ctx.Done():
 		return nil, ctx.Err()
-	case err := <-h.finalizeBlockErrCh:
+	case err := <-h.errCh:
 		if errors.Is(err, ErrBadExtractBlockAndBlocks) {
 			err = nil
 		}

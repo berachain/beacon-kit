@@ -39,6 +39,8 @@ func (s *Service[
 	ExecutionPayloadT,
 	ExecutionPayloadHeaderT,
 	GenesisT,
+	PayloadAttributesT,
+	_,
 ]) sendPostBlockFCU(
 	ctx context.Context,
 	st BeaconStateT,
@@ -73,6 +75,8 @@ func (s *Service[
 	ExecutionPayloadT,
 	ExecutionPayloadHeaderT,
 	GenesisT,
+	PayloadAttributesT,
+	_,
 ]) sendNextFCUWithAttributes(
 	ctx context.Context,
 	st BeaconStateT,
@@ -127,6 +131,8 @@ func (s *Service[
 	ExecutionPayloadT,
 	ExecutionPayloadHeaderT,
 	GenesisT,
+	PayloadAttributesT,
+	_,
 ]) sendNextFCUWithoutAttributes(
 	ctx context.Context,
 	blk BeaconBlockT,
@@ -134,13 +140,14 @@ func (s *Service[
 ) {
 	if _, _, err := s.ee.NotifyForkchoiceUpdate(
 		ctx,
-		engineprimitives.BuildForkchoiceUpdateRequest(
+		// TODO: Switch to New().
+		engineprimitives.
+			BuildForkchoiceUpdateRequestNoAttrs[PayloadAttributesT](
 			&engineprimitives.ForkchoiceStateV1{
 				HeadBlockHash:      lph.GetBlockHash(),
 				SafeBlockHash:      lph.GetParentHash(),
 				FinalizedBlockHash: lph.GetParentHash(),
 			},
-			nil,
 			s.cs.ActiveForkVersionForSlot(blk.GetSlot()),
 		),
 	); err != nil {
@@ -166,6 +173,8 @@ func (s *Service[
 	ExecutionPayloadT,
 	ExecutionPayloadHeaderT,
 	GenesisT,
+	PayloadAttributesT,
+	_,
 ]) calculateNextTimestamp(blk BeaconBlockT) uint64 {
 	//#nosec:G701 // not an issue in practice.
 	return max(
