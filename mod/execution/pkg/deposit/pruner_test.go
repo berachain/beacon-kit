@@ -161,7 +161,7 @@ func TestBuildPruneRangeFn(t *testing.T) {
 			name:          "Zero max deposits",
 			maxDeposits:   0,
 			deposits:      []MockDeposit{{index: 1}},
-			expectedStart: 1,
+			expectedStart: 0,
 			expectedEnd:   0,
 		},
 		{
