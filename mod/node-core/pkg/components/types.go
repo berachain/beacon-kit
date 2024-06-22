@@ -171,7 +171,7 @@ type (
 		*ExecutionPayloadHeader, engineprimitives.PayloadID,
 	]
 
-	// StateProcessor is the type alias for the state processor inteface.
+	// StateProcessor is the type alias for the state processor interface.
 	StateProcessor = blockchain.StateProcessor[
 		*BeaconBlock,
 		BeaconState,

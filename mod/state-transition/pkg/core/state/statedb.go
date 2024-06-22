@@ -237,7 +237,7 @@ func (s *StateDB[
 		return nil, err
 	}
 
-	// Iterate through indicies to find the next validators to withdraw.
+	// Iterate through indices to find the next validators to withdraw.
 	for range min(
 		s.cs.MaxValidatorsPerWithdrawalsSweep(), totalValidators,
 	) {
