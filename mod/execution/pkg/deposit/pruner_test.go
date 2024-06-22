@@ -107,67 +107,67 @@ func (e MockBlockEvent) Data() MockBeaconBlock {
 // Unit tests for BuildPruneRangeFn.
 func TestBuildPruneRangeFn(t *testing.T) {
 	tests := []struct {
-		name             string
-		maxDeposits      uint64
-		deposits         []MockDeposit
-		expectedStart    uint64
-		expectedEnd      uint64
+		name          string
+		maxDeposits   uint64
+		deposits      []MockDeposit
+		expectedStart uint64
+		expectedEnd   uint64
 	}{
 		{
-			name:        "No deposits",
-			maxDeposits: 10,
-			deposits:    []MockDeposit{},
+			name:          "No deposits",
+			maxDeposits:   10,
+			deposits:      []MockDeposit{},
 			expectedStart: 0,
-			expectedEnd: 0,
+			expectedEnd:   0,
 		},
 		{
-			name:        "Less than max deposits",
-			maxDeposits: 10,
-			deposits:    []MockDeposit{{index: 5}},
+			name:          "Less than max deposits",
+			maxDeposits:   10,
+			deposits:      []MockDeposit{{index: 5}},
 			expectedStart: 0,
-			expectedEnd: 5,
+			expectedEnd:   5,
 		},
 		{
-			name:        "Equal to max deposits",
-			maxDeposits: 10,
-			deposits:    []MockDeposit{{index: 10}},
+			name:          "Equal to max deposits",
+			maxDeposits:   10,
+			deposits:      []MockDeposit{{index: 10}},
 			expectedStart: 0,
-			expectedEnd: 10,
+			expectedEnd:   10,
 		},
 		{
-			name:        "More than max deposits",
-			maxDeposits: 10,
-			deposits:    []MockDeposit{{index: 15}},
+			name:          "More than max deposits",
+			maxDeposits:   10,
+			deposits:      []MockDeposit{{index: 15}},
 			expectedStart: 5,
-			expectedEnd: 10,
+			expectedEnd:   10,
 		},
 		{
-			name:        "Boundary case at max deposits",
-			maxDeposits: 5,
-			deposits:    []MockDeposit{{index: 5}},
+			name:          "Boundary case at max deposits",
+			maxDeposits:   5,
+			deposits:      []MockDeposit{{index: 5}},
 			expectedStart: 0,
-			expectedEnd: 5,
+			expectedEnd:   5,
 		},
 		{
-			name:        "Single deposit",
-			maxDeposits: 3,
-			deposits:    []MockDeposit{{index: 1}},
+			name:          "Single deposit",
+			maxDeposits:   3,
+			deposits:      []MockDeposit{{index: 1}},
 			expectedStart: 0,
-			expectedEnd: 1,
+			expectedEnd:   1,
 		},
 		{
-			name:        "Zero max deposits",
-			maxDeposits: 0,
-			deposits:    []MockDeposit{{index: 1}},
+			name:          "Zero max deposits",
+			maxDeposits:   0,
+			deposits:      []MockDeposit{{index: 1}},
 			expectedStart: 1,
-			expectedEnd: 0,
+			expectedEnd:   0,
 		},
 		{
-			name:        "Multiple deposits with varying indices",
-			maxDeposits: 10,
-			deposits:    []MockDeposit{{index: 3}, {index: 6}, {index: 9}, {index: 12}},
+			name:          "Multiple deposits with varying indices",
+			maxDeposits:   10,
+			deposits:      []MockDeposit{{index: 3}, {index: 6}, {index: 9}, {index: 12}},
 			expectedStart: 2,
-			expectedEnd: 10,
+			expectedEnd:   10,
 		},
 	}
 
@@ -177,7 +177,7 @@ func TestBuildPruneRangeFn(t *testing.T) {
 				chain.SpecData[
 					bytes.B4, math.U64, common.Address, math.U64, any,
 				]{
-					MaxDepositsPerBlock:	tt.maxDeposits,
+					MaxDepositsPerBlock: tt.maxDeposits,
 				},
 			)
 			pruneFn := deposit.BuildPruneRangeFn[
@@ -197,4 +197,3 @@ func TestBuildPruneRangeFn(t *testing.T) {
 		})
 	}
 }
-
