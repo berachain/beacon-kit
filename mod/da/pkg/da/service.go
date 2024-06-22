@@ -95,6 +95,7 @@ func (s *Service[_, _, BlobSidecarsT, _]) start(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case e := <-ch:
+			// TODO: this is unused atm.
 			if e.Type() == events.BlobSidecarsReceived {
 				if err := s.processBlobSidecars(ctx, 0, e.Data()); err != nil {
 					s.logger.Error(
