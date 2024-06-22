@@ -33,7 +33,10 @@ import (
 type Service[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
-	BlobSidecarsT,
+	BlobSidecarsT interface {
+		Len() int
+		IsNil() bool
+	},
 	ExecutionPayloadT any,
 ] struct {
 	avs AvailabilityStoreT
@@ -49,7 +52,10 @@ type Service[
 func NewService[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
-	BlobSidecarsT,
+	BlobSidecarsT interface {
+		Len() int
+		IsNil() bool
+	},
 	ExecutionPayloadT any,
 ](
 	avs AvailabilityStoreT,
@@ -95,7 +101,7 @@ func (s *Service[_, _, BlobSidecarsT, _]) start(ctx context.Context) {
 		case e := <-ch:
 			// TODO: this is unused atm.
 			if e.Type() == events.BlobSidecarsReceived {
-				if err := s.processBlobSidecars(ctx, 0, e.Data()); err != nil {
+				if err := s.ProcessSidecars(ctx, 0, e.Data()); err != nil {
 					s.logger.Error(
 						"failed to process blob sidecars",
 						"error",
@@ -107,18 +113,18 @@ func (s *Service[_, _, BlobSidecarsT, _]) start(ctx context.Context) {
 	}
 }
 
-// ProcessBlobSidecars processes the blob sidecars.
+// ProcessSidecars processes the blob sidecars.
 // TODO: Deprecate this publically and move to event based system.
-func (s *Service[_, _, BlobSidecarsT, _]) ProcessBlobSidecars(
+func (s *Service[_, _, BlobSidecarsT, _]) ProcessSidecars(
 	ctx context.Context,
 	slot math.Slot,
 	sidecars BlobSidecarsT,
 ) error {
-	return s.processBlobSidecars(ctx, slot, sidecars)
+	return s.processSidecars(ctx, slot, sidecars)
 }
 
-// processBlobSidecars processes the blob sidecars.
-func (s *Service[_, _, BlobSidecarsT, _]) processBlobSidecars(
+// ProcessSidecars processes the blob sidecars.
+func (s *Service[_, _, BlobSidecarsT, _]) processSidecars(
 	_ context.Context,
 	slot math.Slot,
 	sidecars BlobSidecarsT,
@@ -130,4 +136,37 @@ func (s *Service[_, _, BlobSidecarsT, _]) processBlobSidecars(
 		s.avs,
 		sidecars,
 	)
+}
+
+// VerifyIncomingBlobs receives blobs from the network and processes them.
+func (s *Service[_, _, BlobSidecarsT, _]) ReceiveSidecars(
+	_ context.Context,
+	slot math.Slot,
+	sidecars BlobSidecarsT,
+) error {
+	// If there are no blobs to verify, return early.
+	if sidecars.IsNil() || sidecars.Len() == 0 {
+		return nil
+	}
+
+	s.logger.Info(
+		"Received incoming blob sidecars 🚔",
+	)
+
+	// Verify the blobs and ensure they match the local state.
+	if err := s.bp.VerifyBlobs(slot, sidecars); err != nil {
+		s.logger.Error(
+			"rejecting incoming blob sidecars ❌",
+			"reason", err,
+		)
+		return err
+	}
+
+	s.logger.Info(
+		"Blob sidecars verification succeeded - accepting incoming blob sidecars 💦",
+		"num_blobs",
+		sidecars.Len(),
+	)
+
+	return nil
 }

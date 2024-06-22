@@ -76,12 +76,11 @@ type BlockchainService[
 		context.Context,
 		BeaconBlockT,
 	) ([]*transition.ValidatorUpdate, error)
-	// ReceiveBlockAndBlobs receives a beacon block and
+	// ReceiveBlock receives a beacon block and
 	// associated blobs sidecars for processing.
-	ReceiveBlockAndBlobs(
+	ReceiveBlock(
 		ctx context.Context,
 		blk BeaconBlockT,
-		blobs BlobSidecarsT,
 	) error
 }
 
@@ -89,11 +88,17 @@ type BlockchainService[
 type DAService[
 	BlobSidecarsT any,
 ] interface {
-	// ProcessBlobSidecars
-	ProcessBlobSidecars(
+	// ProcessSidecars
+	ProcessSidecars(
 		context.Context,
 		math.Slot,
 		BlobSidecarsT,
+	) error
+	// ReceiveSidecars
+	ReceiveSidecars(
+		_ context.Context,
+		slot math.Slot,
+		sidecars BlobSidecarsT,
 	) error
 }
 

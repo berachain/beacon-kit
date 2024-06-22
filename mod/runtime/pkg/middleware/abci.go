@@ -35,6 +35,7 @@ import (
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/sourcegraph/conc/iter"
+	"golang.org/x/sync/errgroup"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -217,25 +218,48 @@ func (h *ABCIMiddleware[
 	)
 	defer h.metrics.measureProcessProposalDuration(startTime)
 
+	var (
+		blk      BeaconBlockT
+		sidecars BlobSidecarsT
+		err      error
+		g, gCtx  = errgroup.WithContext(ctx)
+	)
 	args := []any{"beacon_block", true, "blob_sidecars", true}
-	blk, err := h.beaconBlockGossiper.Request(ctx, req)
-	if err != nil {
-		args[1] = false
-	}
 
-	sidecars, err := h.blobGossiper.Request(ctx, req)
-	if err != nil {
-		args[3] = false
-	}
+	g.Go(func() error {
+		blk, err = h.beaconBlockGossiper.Request(gCtx, req)
+		if err != nil {
+			args[1] = false
+		}
 
-	h.logger.Info("Received proposal with", args...)
-	if err = h.chainService.ReceiveBlockAndBlobs(
-		ctx, blk, sidecars,
-	); errors.IsFatal(err) {
+		if err = h.chainService.ReceiveBlock(
+			ctx, blk,
+		); !errors.IsFatal(err) {
+			err = nil
+		}
+		return err
+	})
+	g.Go(func() error {
+		sidecars, err = h.blobGossiper.Request(gCtx, req)
+		if err != nil {
+			args[3] = false
+		}
+
+		if err = h.daService.ReceiveSidecars(
+			ctx, blk.GetSlot(), sidecars,
+		); !errors.IsFatal(err) {
+			err = nil
+		}
+		return err
+	})
+
+	if err := g.Wait(); errors.IsFatal(err) {
 		return &cmtabci.ProcessProposalResponse{
 			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
 		}, err
 	}
+
+	h.logger.Info("processed proposal", args...)
 
 	return &cmtabci.ProcessProposalResponse{
 		Status: cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT,
@@ -281,7 +305,7 @@ func (h *ABCIMiddleware[
 	}
 
 	// TODO: Move to Async.
-	if err = h.daService.ProcessBlobSidecars(
+	if err = h.daService.ProcessSidecars(
 		ctx, blk.GetSlot(), blobs,
 	); err != nil {
 		h.errCh <- err
