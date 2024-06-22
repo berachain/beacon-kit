@@ -215,4 +215,3 @@ func TestGenesisUnmarshalJSON(t *testing.T) {
 		})
 	}
 }
-
