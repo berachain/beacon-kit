@@ -29,6 +29,7 @@ import (
 	"cosmossdk.io/log"
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
 	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -41,27 +42,26 @@ import (
 )
 
 // CLIBuilder is the builder for the commands.Root (root command).
-type CLIBuilder[T servertypes.Application] struct {
+type CLIBuilder[T types.Node] struct {
 	depInjectCfg depinject.Config
 	name         string
 	description  string
 	// components is a list of component providers for depinject.
 	components []any
 	// suppliers is a list of suppliers for depinject.
-	suppliers  []any
+	suppliers []any
+	// runHandler is a function to set up run handlers for the command.
 	runHandler runHandler
-	// appCreator is a function that builds the Node, eventually called by the
-	// cosmos-sdk.
+	// nodeBuilderFunc is a function that builds the Node,
+	// eventually called by the cosmos-sdk.
 	// TODO: CLI should not know about the AppCreator
-	appCreator servertypes.AppCreator[T]
+	nodeBuilderFunc servertypes.AppCreator[T]
 	// rootCmdSetup is a function that sets up the root command.
 	rootCmdSetup rootCmdSetup[T]
-	// logger is the logger
-	// logger log.Logger
 }
 
 // New returns a new CLIBuilder with the given options.
-func New[T servertypes.Application](opts ...Opt[T]) *CLIBuilder[T] {
+func New[T types.Node](opts ...Opt[T]) *CLIBuilder[T] {
 	cb := &CLIBuilder[T]{
 		suppliers: []any{
 			os.Stdout, // supply io.Writer for logger
@@ -119,7 +119,7 @@ func (cb *CLIBuilder[T]) Build() (*cmdlib.Root, error) {
 	cmdlib.DefaultRootCommandSetup(
 		rootCmd,
 		mm,
-		cb.appCreator,
+		cb.nodeBuilderFunc,
 		chainSpec,
 	)
 

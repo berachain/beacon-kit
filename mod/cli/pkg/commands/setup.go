@@ -28,8 +28,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/genesis"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/jwt"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/pruning"
 	"github.com/cosmos/cosmos-sdk/client/snapshot"
@@ -41,7 +41,7 @@ import (
 )
 
 // DefaultRootCommandSetup sets up the default commands for the root command.
-func DefaultRootCommandSetup[T servertypes.Application](
+func DefaultRootCommandSetup[T types.Node](
 	root *Root,
 	mm *module.Manager,
 	appCreator servertypes.AppCreator[T],
@@ -57,7 +57,7 @@ func DefaultRootCommandSetup[T servertypes.Application](
 		// `comet`
 		cometbft.Commands(appCreator),
 		// `client`
-		client.Commands[T](),
+		client.Commands(),
 		// `config`
 		confixcmd.ConfigCommand(),
 		// `init`
@@ -83,12 +83,4 @@ func DefaultRootCommandSetup[T servertypes.Application](
 		// `version`
 		version.NewVersionCommand(),
 	)
-}
-
-// InitClientConfig sets up the default client configuration, allowing for
-// overrides.
-func InitClientConfig() (string, interface{}) {
-	clientCfg := config.DefaultConfig()
-	clientCfg.KeyringBackend = "test"
-	return config.DefaultClientConfigTemplate, clientCfg
 }
