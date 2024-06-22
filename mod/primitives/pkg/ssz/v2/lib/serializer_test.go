@@ -65,7 +65,8 @@ func TestMarshalUnmarshalBoolSerializer(t *testing.T) {
 	original := true
 	s := sszv2.NewSerializer()
 	marshaled, _ := s.MarshalSSZ(original)
-	unmarshaled := ssz.UnmarshalBool[bool](marshaled)
+	unmarshaled, err := ssz.UnmarshalBool[bool](marshaled)
+	require.NoError(t, err)
 	require.Equal(t, original, unmarshaled, "Marshal/Unmarshal Bool failed")
 }
 
