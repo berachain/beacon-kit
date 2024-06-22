@@ -49,6 +49,7 @@ type Service[
 		Version() uint32
 		GetSuggestedFeeRecipient() common.ExecutionAddress
 	},
+	WithdrawalT any,
 ] struct {
 	// sb represents the backend storage for beacon states and associated
 	// sidecars.
@@ -111,6 +112,7 @@ func NewService[
 		Version() uint32
 		GetSuggestedFeeRecipient() common.ExecutionAddress
 	},
+	WithdrawalT any,
 ](
 	sb StorageBackend[
 		AvailabilityStoreT,
@@ -140,12 +142,12 @@ func NewService[
 ) *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, DepositT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, GenesisT, PayloadAttributesT,
+	ExecutionPayloadHeaderT, GenesisT, PayloadAttributesT, WithdrawalT,
 ] {
 	return &Service[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 		BeaconStateT, BlobSidecarsT, DepositT, ExecutionPayloadT,
-		ExecutionPayloadHeaderT, GenesisT, PayloadAttributesT,
+		ExecutionPayloadHeaderT, GenesisT, PayloadAttributesT, WithdrawalT,
 	]{
 		sb:                      sb,
 		logger:                  logger,
@@ -174,6 +176,7 @@ func (s *Service[
 	ExecutionPayloadHeaderT,
 	GenesisT,
 	PayloadAttributesT,
+	_,
 ]) Name() string {
 	return "blockchain"
 }
@@ -190,6 +193,7 @@ func (s *Service[
 	ExecutionPayloadHeaderT,
 	GenesisT,
 	PayloadAttributesT,
+	_,
 ]) Start(
 	context.Context,
 ) error {

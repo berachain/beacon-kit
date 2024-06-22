@@ -44,6 +44,7 @@ func (s *Service[
 	ExecutionPayloadHeaderT,
 	GenesisT,
 	PayloadAttributesT,
+	_,
 ]) ReceiveBlockAndBlobs(
 	ctx context.Context,
 	blk BeaconBlockT,
@@ -84,6 +85,7 @@ func (s *Service[
 	ExecutionPayloadHeaderT,
 	GenesisT,
 	PayloadAttributesT,
+	_,
 ]) VerifyIncomingBlock(
 	ctx context.Context,
 	blk BeaconBlockT,
@@ -161,6 +163,7 @@ func (s *Service[
 	ExecutionPayloadHeaderT,
 	GenesisT,
 	PayloadAttributesT,
+	_,
 ]) verifyStateRoot(
 	ctx context.Context,
 	st BeaconStateT,
@@ -206,6 +209,7 @@ func (s *Service[
 	ExecutionPayloadHeaderT,
 	GenesisT,
 	PayloadAttributesT,
+	_,
 ]) VerifyIncomingBlobs(
 	_ context.Context,
 	blk BeaconBlockT,
@@ -259,6 +263,7 @@ func (s *Service[
 	ExecutionPayloadHeaderT,
 	GenesisT,
 	PayloadAttributesT,
+	_,
 ]) shouldBuildOptimisticPayloads() bool {
 	return s.optimisticPayloadBuilds && s.lb.Enabled()
 }

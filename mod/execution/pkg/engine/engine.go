@@ -39,10 +39,11 @@ import (
 // from the Ethereum 2.0 Specification.
 type Engine[
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, *engineprimitives.Withdrawal,
+		ExecutionPayloadT, WithdrawalT,
 	],
 	PayloadAttributesT engineprimitives.PayloadAttributer,
 	PayloadIDT ~[8]byte,
+	WithdrawalT Withdrawal[WithdrawalT],
 ] struct {
 	// ec is the engine client that the engine will use to
 	// interact with the execution layer.
@@ -61,10 +62,11 @@ type Engine[
 // New creates a new Engine.
 func New[
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, *engineprimitives.Withdrawal,
+		ExecutionPayloadT, WithdrawalT,
 	],
 	PayloadAttributesT engineprimitives.PayloadAttributer,
 	PayloadIDT ~[8]byte,
+	WithdrawalT Withdrawal[WithdrawalT],
 ](
 	ec *client.EngineClient[ExecutionPayloadT, PayloadAttributesT],
 	logger log.Logger[any],
@@ -74,9 +76,9 @@ func New[
 	],
 	telemtrySink TelemetrySink,
 ) *Engine[
-	ExecutionPayloadT, PayloadAttributesT, PayloadIDT,
+	ExecutionPayloadT, PayloadAttributesT, PayloadIDT, WithdrawalT,
 ] {
-	return &Engine[ExecutionPayloadT, PayloadAttributesT, PayloadIDT]{
+	return &Engine[ExecutionPayloadT, PayloadAttributesT, PayloadIDT, WithdrawalT]{
 		ec:         ec,
 		logger:     logger,
 		metrics:    newEngineMetrics(telemtrySink, logger),
@@ -85,9 +87,7 @@ func New[
 }
 
 // Start spawns any goroutines required by the service.
-func (ee *Engine[
-	ExecutionPayloadT, PayloadAttributesT, PayloadIDT,
-]) Start(
+func (ee *Engine[_, _, _, _]) Start(
 	ctx context.Context,
 ) error {
 	go func() {
@@ -101,7 +101,7 @@ func (ee *Engine[
 
 // GetPayload returns the payload and blobs bundle for the given slot.
 func (ee *Engine[
-	ExecutionPayloadT, _, _,
+	ExecutionPayloadT, _, _, _,
 ]) GetPayload(
 	ctx context.Context,
 	req *engineprimitives.GetPayloadRequest[engineprimitives.PayloadID],
@@ -114,7 +114,7 @@ func (ee *Engine[
 
 // NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
 func (ee *Engine[
-	_, PayloadAttributesT, _,
+	_, PayloadAttributesT, _, _,
 ]) NotifyForkchoiceUpdate(
 	ctx context.Context,
 	req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
@@ -186,11 +186,12 @@ func (ee *Engine[
 // VerifyAndNotifyNewPayload verifies the new payload and notifies the
 // execution client.
 func (ee *Engine[
-	ExecutionPayloadT, _, _,
+	ExecutionPayloadT, _, _, WithdrawalT,
 ]) VerifyAndNotifyNewPayload(
 	ctx context.Context,
 	req *engineprimitives.NewPayloadRequest[
-		ExecutionPayloadT, *engineprimitives.Withdrawal],
+		ExecutionPayloadT, WithdrawalT,
+	],
 ) error {
 	// Log the new payload attempt.
 	ee.metrics.markNewPayloadCalled(

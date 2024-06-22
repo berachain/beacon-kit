@@ -120,6 +120,7 @@ type (
 		*ExecutionPayloadHeader,
 		*Genesis,
 		*engineprimitives.PayloadAttributes[*Withdrawal],
+		*Withdrawal,
 	]
 
 	// DBManager is a type alias for the database manager.
@@ -153,7 +154,7 @@ type (
 	// EngineClient is a type alias for the engine client.
 	ExecutionEngine = execution.Engine[
 		*ExecutionPayload, *engineprimitives.PayloadAttributes[*Withdrawal],
-		engineprimitives.PayloadID,
+		engineprimitives.PayloadID, *Withdrawal,
 	]
 
 	// ExecutionPayload type aliases.

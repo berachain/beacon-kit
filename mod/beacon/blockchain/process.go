@@ -45,6 +45,7 @@ func (s *Service[
 	ExecutionPayloadHeaderT,
 	GenesisT,
 	PayloadAttributesT,
+	_,
 ]) ProcessGenesisData(
 	ctx context.Context,
 	genesisData GenesisT,
@@ -71,6 +72,7 @@ func (s *Service[
 	ExecutionPayloadHeaderT,
 	GenesisT,
 	PayloadAttributesT,
+	_,
 ]) ProcessBlockAndBlobs(
 	ctx context.Context,
 	blk BeaconBlockT,
@@ -146,6 +148,7 @@ func (s *Service[
 	ExecutionPayloadHeaderT,
 	GenesisT,
 	PayloadAttributesT,
+	_,
 ]) processBeaconBlock(
 	ctx context.Context,
 	st BeaconStateT,
@@ -191,6 +194,7 @@ func (s *Service[
 	ExecutionPayloadHeaderT,
 	GenesisT,
 	PayloadAttributesT,
+	_,
 ]) processBlobSidecars(
 	ctx context.Context,
 	slot math.Slot,
