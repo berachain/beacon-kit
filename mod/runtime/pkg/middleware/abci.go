@@ -214,17 +214,14 @@ func (h *ABCIMiddleware[
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
 	var (
+		blk       BeaconBlockT
+		sidecars  BlobSidecarsT
+		err       error
+		g, gCtx   = errgroup.WithContext(ctx)
 		startTime = time.Now()
+		args      = []any{"beacon_block", true, "blob_sidecars", true}
 	)
 	defer h.metrics.measureProcessProposalDuration(startTime)
-
-	var (
-		blk      BeaconBlockT
-		sidecars BlobSidecarsT
-		err      error
-		g, gCtx  = errgroup.WithContext(ctx)
-	)
-	args := []any{"beacon_block", true, "blob_sidecars", true}
 
 	blk, err = h.beaconBlockGossiper.Request(gCtx, req)
 	if err != nil {
@@ -258,17 +255,18 @@ func (h *ABCIMiddleware[
 		return err
 	})
 
-	if err := g.Wait(); errors.IsFatal(err) {
-		return &cmtabci.ProcessProposalResponse{
-			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
-		}, err
+	resp := &cmtabci.ProcessProposalResponse{
+		Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
 	}
 
-	h.logger.Info("processed proposal", args...)
+	// If we see a non fatal error, clear everything.
+	defer h.logger.Info("processed proposal", args...)
+	if err = g.Wait(); !errors.IsFatal(err) {
+		resp.Status = cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
+		err = nil
+	}
+	return resp, err
 
-	return &cmtabci.ProcessProposalResponse{
-		Status: cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT,
-	}, nil
 }
 
 /* -------------------------------------------------------------------------- */
