@@ -71,6 +71,30 @@ func TestDefaultGenesisExecutionPayloadHeaderDeneb(t *testing.T) {
 	require.NotNil(t, header)
 }
 
+func TestGenesisGetForkVersion(t *testing.T) {
+	g := genesis.DefaultGenesisDeneb()
+	forkVersion := g.GetForkVersion()
+	require.Equal(t, version.FromUint32[common.Version](version.Deneb), forkVersion)
+}
+
+func TestGenesisGetDeposits(t *testing.T) {
+	g := genesis.DefaultGenesisDeneb()
+	deposits := g.GetDeposits()
+	require.Equal(t, 0, len(deposits))
+}
+
+func TestGenesisGetExecutionPayloadHeader(t *testing.T) {
+	g := genesis.DefaultGenesisDeneb()
+	header := g.GetExecutionPayloadHeader()
+	require.NotNil(t, header)
+}
+
+func TestDefaultGenesisDenebPanics(t *testing.T) {
+	require.NotPanics(t, func() {
+		genesis.DefaultGenesisDeneb()
+	})
+}
+
 func TestGenesisUnmarshalJSON(t *testing.T) {
 	t.Helper()
 	testCases := []struct {
@@ -191,3 +215,4 @@ func TestGenesisUnmarshalJSON(t *testing.T) {
 		})
 	}
 }
+
