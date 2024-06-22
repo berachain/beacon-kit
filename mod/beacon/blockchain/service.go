@@ -25,7 +25,6 @@ import (
 	"sync"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
@@ -45,6 +44,11 @@ type Service[
 	ExecutionPayloadT ExecutionPayload,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
+	PayloadAttributesT interface {
+		IsNil() bool
+		Version() uint32
+		GetSuggestedFeeRecipient() common.ExecutionAddress
+	},
 ] struct {
 	// sb represents the backend storage for beacon states and associated
 	// sidecars.
@@ -59,8 +63,8 @@ type Service[
 	// cs holds the chain specifications.
 	cs common.ChainSpec
 	// ee is the execution engine responsible for processing execution payloads.
-	//nolint:lll // annoying linter.
-	ee ExecutionEngine[*engineprimitives.PayloadAttributes[*engineprimitives.Withdrawal]]
+	
+	ee ExecutionEngine[PayloadAttributesT]
 	// lb is a local builder for constructing new beacon states.
 	lb LocalBuilder[BeaconStateT]
 	// bp is the blob processor for processing incoming blobs.
@@ -102,6 +106,11 @@ func NewService[
 	ExecutionPayloadT ExecutionPayload,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
+	PayloadAttributesT interface {
+		IsNil() bool
+		Version() uint32
+		GetSuggestedFeeRecipient() common.ExecutionAddress
+	},
 ](
 	sb StorageBackend[
 		AvailabilityStoreT,
@@ -111,8 +120,8 @@ func NewService[
 	],
 	logger log.Logger[any],
 	cs common.ChainSpec,
-	//nolint:lll // annoying formatter.
-	ee ExecutionEngine[*engineprimitives.PayloadAttributes[*engineprimitives.Withdrawal]],
+	
+	ee ExecutionEngine[PayloadAttributesT],
 	lb LocalBuilder[BeaconStateT],
 	bp BlobProcessor[
 		AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT, ExecutionPayloadT,
@@ -131,12 +140,12 @@ func NewService[
 ) *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, DepositT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, GenesisT,
+	ExecutionPayloadHeaderT, GenesisT, PayloadAttributesT,
 ] {
 	return &Service[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 		BeaconStateT, BlobSidecarsT, DepositT, ExecutionPayloadT,
-		ExecutionPayloadHeaderT, GenesisT,
+		ExecutionPayloadHeaderT, GenesisT, PayloadAttributesT,
 	]{
 		sb:                      sb,
 		logger:                  logger,
@@ -164,6 +173,7 @@ func (s *Service[
 	ExecutionPayloadT,
 	ExecutionPayloadHeaderT,
 	GenesisT,
+	PayloadAttributesT,
 ]) Name() string {
 	return "blockchain"
 }
@@ -179,6 +189,7 @@ func (s *Service[
 	ExecutionPayloadT,
 	ExecutionPayloadHeaderT,
 	GenesisT,
+	PayloadAttributesT,
 ]) Start(
 	context.Context,
 ) error {

@@ -40,6 +40,7 @@ func (s *Service[
 	ExecutionPayloadT,
 	ExecutionPayloadHeaderT,
 	GenesisT,
+	PayloadAttributesT,
 ]) forceStartupHead(
 	ctx context.Context,
 	st BeaconStateT,
@@ -77,6 +78,7 @@ func (s *Service[
 	ExecutionPayloadT,
 	ExecutionPayloadHeaderT,
 	GenesisT,
+	PayloadAttributesT,
 ]) handleRebuildPayloadForRejectedBlock(
 	ctx context.Context,
 	st BeaconStateT,
@@ -109,6 +111,7 @@ func (s *Service[
 	ExecutionPayloadT,
 	ExecutionPayloadHeaderT,
 	GenesisT,
+	PayloadAttributesT,
 ]) rebuildPayloadForRejectedBlock(
 	ctx context.Context,
 	st BeaconStateT,
@@ -195,6 +198,7 @@ func (s *Service[
 	ExecutionPayloadT,
 	ExecutionPayloadHeaderT,
 	GenesisT,
+	PayloadAttributesT,
 ]) handleOptimisticPayloadBuild(
 	ctx context.Context,
 	st BeaconStateT,
@@ -221,6 +225,7 @@ func (s *Service[
 	ExecutionPayloadT,
 	ExecutionPayloadHeaderT,
 	GenesisT,
+	PayloadAttributesT,
 ]) optimisticPayloadBuild(
 	ctx context.Context,
 	st BeaconStateT,

@@ -119,6 +119,7 @@ type (
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*Genesis,
+		*engineprimitives.PayloadAttributes[*Withdrawal],
 	]
 
 	// DBManager is a type alias for the database manager.
