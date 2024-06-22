@@ -101,7 +101,7 @@ func (ee *Engine[
 
 // GetPayload returns the payload and blobs bundle for the given slot.
 func (ee *Engine[
-	ExecutionPayloadT, PayloadAttributesT, PayloadIDT,
+	ExecutionPayloadT, _, _,
 ]) GetPayload(
 	ctx context.Context,
 	req *engineprimitives.GetPayloadRequest[engineprimitives.PayloadID],
@@ -114,7 +114,7 @@ func (ee *Engine[
 
 // NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
 func (ee *Engine[
-	ExecutionPayloadT, PayloadAttributesT, PayloadIDT,
+	_, PayloadAttributesT, _,
 ]) NotifyForkchoiceUpdate(
 	ctx context.Context,
 	req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
@@ -186,7 +186,7 @@ func (ee *Engine[
 // VerifyAndNotifyNewPayload verifies the new payload and notifies the
 // execution client.
 func (ee *Engine[
-	ExecutionPayloadT, PayloadAttributesT, PayloadIDT,
+	ExecutionPayloadT, _, _,
 ]) VerifyAndNotifyNewPayload(
 	ctx context.Context,
 	req *engineprimitives.NewPayloadRequest[
