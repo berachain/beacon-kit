@@ -171,18 +171,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconBlockHeaderT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	ExecutionPayloadT,
-	ExecutionPayloadHeaderT,
-	GenesisT,
-	PayloadAttributesT,
-	_,
+	_, _, _, _, _, _, _, _, _, _, _, _,
 ]) Start(
 	context.Context,
 ) error {

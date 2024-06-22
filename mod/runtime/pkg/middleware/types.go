@@ -85,7 +85,7 @@ type BlockchainService[
 	) error
 }
 
-// DAService
+// DAService.
 type DAService[
 	BlobSidecarsT any,
 ] interface {

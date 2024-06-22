@@ -30,9 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// ServiceName is the name of the service.
-const ServiceName = "da"
-
 type Service[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
@@ -68,15 +65,16 @@ func NewService[
 	return &Service[
 		AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT, ExecutionPayloadT,
 	]{
-		avs:  avs,
-		bp:   bp,
-		feed: feed,
+		avs:    avs,
+		bp:     bp,
+		feed:   feed,
+		logger: logger,
 	}
 }
 
 // Name returns the name of the service.
 func (s *Service[_, _, _, _]) Name() string {
-	return ServiceName
+	return "da"
 }
 
 // Start starts the service.

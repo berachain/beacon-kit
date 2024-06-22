@@ -74,18 +74,7 @@ func (s *Service[
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconBlockHeaderT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	ExecutionPayloadT,
-	ExecutionPayloadHeaderT,
-	GenesisT,
-	PayloadAttributesT,
-	_,
+	_, BeaconBlockT, _, _, _, _, _, _, _, _, _, _,
 ]) VerifyIncomingBlock(
 	ctx context.Context,
 	blk BeaconBlockT,
@@ -152,18 +141,7 @@ func (s *Service[
 
 // verifyStateRoot verifies the state root of an incoming block.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconBlockHeaderT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	ExecutionPayloadT,
-	ExecutionPayloadHeaderT,
-	GenesisT,
-	PayloadAttributesT,
-	_,
+	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _, _, _,
 ]) verifyStateRoot(
 	ctx context.Context,
 	st BeaconStateT,
@@ -198,18 +176,7 @@ func (s *Service[
 
 // VerifyIncomingBlobs receives blobs from the network and processes them.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconBlockHeaderT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	ExecutionPayloadT,
-	ExecutionPayloadHeaderT,
-	GenesisT,
-	PayloadAttributesT,
-	_,
+	_, BeaconBlockT, _, _, _, BlobSidecarsT, _, _, _, _, _, _,
 ]) VerifyIncomingBlobs(
 	_ context.Context,
 	blk BeaconBlockT,
@@ -252,18 +219,7 @@ func (s *Service[
 // shouldBuildOptimisticPayloads returns true if optimistic
 // payload builds are enabled.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconBlockHeaderT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	ExecutionPayloadT,
-	ExecutionPayloadHeaderT,
-	GenesisT,
-	PayloadAttributesT,
-	_,
+	_, _, _, _, _, _, _, _, _, _, _, _,
 ]) shouldBuildOptimisticPayloads() bool {
 	return s.optimisticPayloadBuilds && s.lb.Enabled()
 }

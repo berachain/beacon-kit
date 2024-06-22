@@ -74,7 +74,11 @@ func TestDefaultGenesisExecutionPayloadHeaderDeneb(t *testing.T) {
 func TestGenesisGetForkVersion(t *testing.T) {
 	g := genesis.DefaultGenesisDeneb()
 	forkVersion := g.GetForkVersion()
-	require.Equal(t, version.FromUint32[common.Version](version.Deneb), forkVersion)
+	require.Equal(
+		t,
+		version.FromUint32[common.Version](version.Deneb),
+		forkVersion,
+	)
 }
 
 func TestGenesisGetDeposits(t *testing.T) {

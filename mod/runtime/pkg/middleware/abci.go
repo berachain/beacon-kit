@@ -281,7 +281,9 @@ func (h *ABCIMiddleware[
 	}
 
 	// TODO: Move to Async.
-	if err := h.daService.ProcessBlobSidecars(ctx, blk.GetSlot(), blobs); err != nil {
+	if err = h.daService.ProcessBlobSidecars(
+		ctx, blk.GetSlot(), blobs,
+	); err != nil {
 		h.errCh <- err
 		return
 	}

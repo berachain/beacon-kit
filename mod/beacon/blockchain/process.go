@@ -86,7 +86,7 @@ func (s *Service[
 	// which is completely fine. This means we were syncing from a
 	// bad peer, and we would likely AppHash anyways.
 	st := s.sb.StateFromContext(ctx)
-	valUpdates, err := s.processBeaconBlock(ctx, st, blk)
+	valUpdates, err := s.executeStateTransition(ctx, st, blk)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +115,7 @@ func (s *Service[
 	return valUpdates, nil
 }
 
-// ProcessBeaconBlock processes the beacon block.
+// executeStateTransition runs the stf.
 func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
@@ -129,7 +129,7 @@ func (s *Service[
 	GenesisT,
 	PayloadAttributesT,
 	_,
-]) processBeaconBlock(
+]) executeStateTransition(
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
