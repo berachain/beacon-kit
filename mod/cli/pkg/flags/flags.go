@@ -65,11 +65,14 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 		"path to the execution client secret",
 	)
 	startCmd.Flags().String(
-		RPCDialURL, defaultCfg.Engine.RPCDialURL.String(), "rpc dial url")
+		RPCDialURL, defaultCfg.Engine.RPCDialURL.String(), "rpc dial url",
+	)
 	startCmd.Flags().Uint64(
-		RPCRetries, defaultCfg.Engine.RPCRetries, "rpc retries")
+		RPCRetries, defaultCfg.Engine.RPCRetries, "rpc retries",
+	)
 	startCmd.Flags().Duration(
-		RPCTimeout, defaultCfg.Engine.RPCTimeout, "rpc timeout")
+		RPCTimeout, defaultCfg.Engine.RPCTimeout, "rpc timeout",
+	)
 	startCmd.Flags().Duration(
 		RPCStartupCheckInterval,
 		defaultCfg.Engine.RPCStartupCheckInterval,

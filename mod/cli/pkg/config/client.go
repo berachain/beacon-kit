@@ -18,36 +18,14 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package cometbft
+package config
 
-import (
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
-	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
-	"github.com/cosmos/cosmos-sdk/server"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/spf13/cobra"
-)
+import "github.com/cosmos/cosmos-sdk/client/config"
 
-// Commands creates a new command for managing CometBFT
-// related commands.
-func Commands[T types.Node](
-	appCreator servertypes.AppCreator[T],
-) *cobra.Command {
-	cometCmd := &cobra.Command{
-		Use:     "comet",
-		Aliases: []string{"cometbft", "tendermint"},
-		Short:   "CometBFT subcommands",
-	}
-
-	cometCmd.AddCommand(
-		server.ShowNodeIDCmd(),
-		server.ShowValidatorCmd(),
-		server.ShowAddressCmd(),
-		server.VersionCmd(),
-		cmtcmd.ResetAllCmd,
-		cmtcmd.ResetStateCmd,
-		server.BootstrapStateCmd(appCreator),
-	)
-
-	return cometCmd
+// InitClientConfig sets up the default client configuration, allowing for
+// overrides.
+func InitClientConfig() (string, interface{}) {
+	clientCfg := config.DefaultConfig()
+	clientCfg.KeyringBackend = "test"
+	return config.DefaultClientConfigTemplate, clientCfg
 }
