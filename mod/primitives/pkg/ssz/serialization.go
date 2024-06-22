@@ -67,7 +67,7 @@ func UnmarshalU8[U8T ~uint8](src []byte) U8T {
 // UnmarshalBool unmarshals a boolean from the src input.
 func UnmarshalBool[BoolT ~bool](src []byte) (BoolT, error) {
 	if len(src) != 1 {
-		return false, &InvalidBooleanLengthError{Length: len(src)}
+		return false, &InvalidLengthError{Actual: len(src), Expected: 1}
 	}
 
 	switch src[0] {
@@ -76,7 +76,7 @@ func UnmarshalBool[BoolT ~bool](src []byte) (BoolT, error) {
 	case 1:
 		return true, nil
 	default:
-		return false, &InvalidBooleanValueError{Value: src[0]}
+		return false, &InvalidByteValueError{Value: src[0], Reason: "value must be 0 or 1 for boolean"}
 	}
 }
 

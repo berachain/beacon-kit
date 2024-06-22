@@ -31,20 +31,22 @@ var (
 	ErrInvalidNilSlice = errors.New("invalid empty slice")
 )
 
-// InvalidBooleanLengthError represents an error when the input byte slice has an invalid length for a boolean.
-type InvalidBooleanLengthError struct {
-	Length int
+// InvalidLengthError represents an error when the input byte slice has an invalid length.
+type InvalidLengthError struct {
+	Actual   int
+	Expected int
 }
 
-func (e *InvalidBooleanLengthError) Error() string {
-	return fmt.Sprintf("invalid byte length for boolean: %d", e.Length)
+func (e *InvalidLengthError) Error() string {
+	return fmt.Sprintf("invalid byte length: got %d, expected %d", e.Actual, e.Expected)
 }
 
-// InvalidBooleanValueError represents an error when the input byte has an invalid value for a boolean.
-type InvalidBooleanValueError struct {
-	Value byte
+// InvalidByteValueError represents an error when the input byte has an invalid value.
+type InvalidByteValueError struct {
+	Value  byte
+	Reason string
 }
 
-func (e *InvalidBooleanValueError) Error() string {
-	return fmt.Sprintf("invalid byte value for boolean: %d", e.Value)
+func (e *InvalidByteValueError) Error() string {
+	return fmt.Sprintf("invalid byte value: %d (%s)", e.Value, e.Reason)
 }
