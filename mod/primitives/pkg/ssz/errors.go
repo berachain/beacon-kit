@@ -17,39 +17,19 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
-
 package ssz
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/mod/errors"
 )
 
 var (
 	// ErrInvalidNilSlice is returned when the input slice is nil.
 	ErrInvalidNilSlice = errors.New("invalid empty slice")
+
+	// ErrInvalidLength is returned when the input byte slice has an invalid length.
+	ErrInvalidLength = errors.New("invalid byte length")
+
+	// ErrInvalidByteValue is returned when the input byte has an invalid value.
+	ErrInvalidByteValue = errors.New("invalid byte value")
 )
-
-// InvalidLengthError represents an error
-// when the input byte slice has an invalid length.
-type InvalidLengthError struct {
-	Actual   int
-	Expected int
-}
-
-func (e *InvalidLengthError) Error() string {
-	return fmt.Sprintf("invalid byte length: got %d, expected %d",
-		e.Actual, e.Expected)
-}
-
-// InvalidByteValueError represents an error
-// when the input byte has an invalid value.
-type InvalidByteValueError struct {
-	Value  byte
-	Reason string
-}
-
-func (e *InvalidByteValueError) Error() string {
-	return fmt.Sprintf("invalid byte value: %d (%s)", e.Value, e.Reason)
-}
