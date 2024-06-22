@@ -18,25 +18,14 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package config
 
-import (
-	"context"
+import "github.com/cosmos/cosmos-sdk/client/config"
 
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-)
-
-// Node defines the API for the node application.
-// It extends the Application interface from the Cosmos SDK.
-type Node interface {
-	servertypes.Application
-
-	// Start starts the node.
-	Start(ctx context.Context) error
-
-	// RegisterApp sets the node's application.
-	RegisterApp(app servertypes.Application)
-	// SetServiceRegistry sets the node's service registry.
-	SetServiceRegistry(registry *service.Registry)
+// InitClientConfig sets up the default client configuration, allowing for
+// overrides.
+func InitClientConfig() (string, interface{}) {
+	clientCfg := config.DefaultConfig()
+	clientCfg.KeyringBackend = "test"
+	return config.DefaultClientConfigTemplate, clientCfg
 }
