@@ -44,8 +44,7 @@ import (
 
 // InitGenesis is called by the base app to initialize the state of the.
 func (h *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+	_, _, _, _, _, _, _,
 ]) InitGenesis(
 	ctx context.Context,
 	bz []byte,
@@ -55,8 +54,7 @@ func (h *ABCIMiddleware[
 
 // initGenesis is called by the base app to initialize the state of the.
 func (h *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+	_, _, _, _, _, _, GenesisT,
 ]) initGenesis(
 	ctx context.Context,
 	bz []byte,
@@ -84,8 +82,7 @@ func (h *ABCIMiddleware[
 // PrepareProposal is a wrapper around the prepare proposal handler
 // that injects the beacon block into the proposal.
 func (h *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+	_, _, _, _, _, _, _,
 ]) PrepareProposal(
 	ctx sdk.Context,
 	req *cmtabci.PrepareProposalRequest,
@@ -95,8 +92,7 @@ func (h *ABCIMiddleware[
 
 // prepareProposal is the internal handler for preparing proposals.
 func (h *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+	_, _, _, _, _, _, _,
 ]) prepareProposal(
 	ctx sdk.Context,
 	req *cmtabci.PrepareProposalRequest,
@@ -143,8 +139,7 @@ func (h *ABCIMiddleware[
 
 // waitForSidecars waits for the sidecars to be built and returns them.
 func (h *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+	_, _, _, _, _, _, _,
 ]) waitForSidecars(gCtx context.Context) ([]byte, error) {
 	select {
 	case <-gCtx.Done():
@@ -166,8 +161,7 @@ func (h *ABCIMiddleware[
 
 // waitforBeaconBlk waits for the beacon block to be built and returns it.
 func (h *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+	_, _, _, _, _, _, _,
 ]) waitforBeaconBlk(gCtx context.Context) ([]byte, error) {
 	select {
 	case <-gCtx.Done():
@@ -196,8 +190,7 @@ func (h *ABCIMiddleware[
 // ProcessProposal is a wrapper around the process proposal handler
 // that extracts the beacon block from the proposal and processes it.
 func (h *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+	_, _, _, _, _, _, _,
 ]) ProcessProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
@@ -207,8 +200,7 @@ func (h *ABCIMiddleware[
 
 // processProposal is the internal handler for processing proposals.
 func (h *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+	_, BeaconBlockT, _, BlobSidecarsT, _, _, _,
 ]) processProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
@@ -276,8 +268,7 @@ func (h *ABCIMiddleware[
 // is responsible for aggregating oracle data from each validator and writing
 // the oracle data to the store.
 func (h *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+	_, _, _, _, _, _, _,
 ]) PreBlock(
 	ctx sdk.Context, req *cmtabci.FinalizeBlockRequest,
 ) error {
