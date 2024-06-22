@@ -80,7 +80,7 @@ func TestGenesisGetForkVersion(t *testing.T) {
 func TestGenesisGetDeposits(t *testing.T) {
 	g := genesis.DefaultGenesisDeneb()
 	deposits := g.GetDeposits()
-	require.Equal(t, 0, len(deposits))
+	require.Empty(t, deposits)
 }
 
 func TestGenesisGetExecutionPayloadHeader(t *testing.T) {
