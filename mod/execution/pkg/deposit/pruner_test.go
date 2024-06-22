@@ -44,10 +44,10 @@ func (d MockDeposit) GetIndex() uint64 {
 
 // Mock implementation of the Deposit interface.
 func (d MockDeposit) New(
-	pubkey crypto.BLSPubkey,
-	withdrawalCredentials any,
-	amount math.U64,
-	signature crypto.BLSSignature,
+	_ crypto.BLSPubkey,
+	_ any,
+	_ math.U64,
+	_ crypto.BLSSignature,
 	index uint64,
 ) MockDeposit {
 	return MockDeposit{index: index}
@@ -95,7 +95,7 @@ type MockBlockEvent struct {
 	data MockBeaconBlock
 }
 
-func (e MockBlockEvent) Is(eventID asynctypes.EventID) bool {
+func (e MockBlockEvent) Is(_ asynctypes.EventID) bool {
 	// Mock implementation for Is method. Adjust logic as needed.
 	return true
 }
@@ -105,6 +105,8 @@ func (e MockBlockEvent) Data() MockBeaconBlock {
 }
 
 // Unit tests for BuildPruneRangeFn.
+//
+//nolint:lll
 func TestBuildPruneRangeFn(t *testing.T) {
 	tests := []struct {
 		name          string
