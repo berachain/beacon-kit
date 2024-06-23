@@ -54,12 +54,6 @@ type ABCIMiddleware[
 	]
 	// daService is the service responsible for building the data availability
 	daService DAService[BlobSidecarsT]
-	// validatorService is the service responsible for building beacon blocks.
-	validatorService ValidatorService[
-		BeaconBlockT,
-		BeaconStateT,
-		BlobSidecarsT,
-	]
 	// TODO: we will eventually gossip the blobs separately from
 	// CometBFT, but for now, these are no-op gossipers.
 	blobGossiper p2p.PublisherReceiver[
@@ -104,9 +98,9 @@ type ABCIMiddleware[
 	// method.
 	errCh chan error
 	// blkCh is used to communicate the beacon block to the EndBlock method.
-	prepareProposalBlkCh chan *asynctypes.Event[BeaconBlockT]
+	blkCh chan *asynctypes.Event[BeaconBlockT]
 	// sidecarsCh is used to communicate the sidecars to the EndBlock method.
-	prepareProposalSidecarsCh chan *asynctypes.Event[BlobSidecarsT]
+	sidecarsCh chan *asynctypes.Event[BlobSidecarsT]
 }
 
 // NewABCIMiddleware creates a new instance of the Handler struct.
@@ -120,11 +114,6 @@ func NewABCIMiddleware[
 	GenesisT Genesis,
 ](
 	chainSpec common.ChainSpec,
-	validatorService ValidatorService[
-		BeaconBlockT,
-		BeaconStateT,
-		BlobSidecarsT,
-	],
 	chainService BlockchainService[
 		BeaconBlockT, BlobSidecarsT, DepositT, GenesisT,
 	],
@@ -145,10 +134,9 @@ func NewABCIMiddleware[
 		AvailabilityStoreT, BeaconBlockT, BeaconStateT,
 		BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
 	]{
-		chainSpec:        chainSpec,
-		validatorService: validatorService,
-		chainService:     chainService,
-		daService:        daService,
+		chainSpec:    chainSpec,
+		chainService: chainService,
+		daService:    daService,
 		blobGossiper: rp2p.NewNoopBlobHandler[
 			BlobSidecarsT, encoding.ABCIRequest](),
 		beaconBlockGossiper: rp2p.
@@ -160,11 +148,11 @@ func NewABCIMiddleware[
 		blkFeed:      blkFeed,
 		sidecarsFeed: sidecarsFeed,
 		slotFeed:     slotFeed,
-		prepareProposalBlkCh: make(
+		blkCh: make(
 			chan *asynctypes.Event[BeaconBlockT],
 			1,
 		),
-		prepareProposalSidecarsCh: make(
+		sidecarsCh: make(
 			chan *asynctypes.Event[BlobSidecarsT],
 			1,
 		),
@@ -182,8 +170,7 @@ func (am *ABCIMiddleware[
 
 // Start the middleware.
 func (am *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+	_, _, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
 	go am.start(ctx)
 	return nil
@@ -191,8 +178,7 @@ func (am *ABCIMiddleware[
 
 // start starts the middleware.
 func (am *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+	_, BeaconBlockT, _, BlobSidecarsT, _, _, _,
 ]) start(ctx context.Context) {
 	subSidecarsCh := make(chan *asynctypes.Event[BlobSidecarsT], 1)
 	subBlkCh := make(chan *asynctypes.Event[BeaconBlockT], 1)
@@ -205,16 +191,22 @@ func (am *ABCIMiddleware[
 		select {
 		case <-ctx.Done():
 			return
-		case blk := <-subBlkCh:
-			if blk.Type() == events.BeaconBlockBuilt {
-				am.prepareProposalBlkCh <- blk
+		case msg := <-subBlkCh:
+			switch msg.Type() {
+			case events.BeaconBlockBuilt:
+				fallthrough
+			case events.BeaconBlockVerified:
+				am.blkCh <- msg
 			}
-		case sidecars := <-subSidecarsCh:
-			if sidecars.Error() != nil {
-				am.errCh <- sidecars.Error()
-				continue
+		case msg := <-subSidecarsCh:
+			switch msg.Type() {
+			case events.BlobSidecarsBuilt:
+				fallthrough
+			case events.BlobSidecarsVerified:
+				fallthrough
+			case events.BlobSidecarsProcessed:
+				am.sidecarsCh <- msg
 			}
-			am.prepareProposalSidecarsCh <- sidecars
 		}
 	}
 }

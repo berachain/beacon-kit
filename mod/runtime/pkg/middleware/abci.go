@@ -146,7 +146,7 @@ func (h *ABCIMiddleware[
 		return nil, gCtx.Err()
 	case err := <-h.errCh:
 		return nil, err
-	case sidecars := <-h.prepareProposalSidecarsCh:
+	case sidecars := <-h.sidecarsCh:
 		if sidecars.Error() != nil {
 			return nil, sidecars.Error()
 		}
@@ -168,7 +168,7 @@ func (h *ABCIMiddleware[
 		return nil, gCtx.Err()
 	case err := <-h.errCh:
 		return nil, err
-	case beaconBlock := <-h.prepareProposalBlkCh:
+	case beaconBlock := <-h.blkCh:
 		if beaconBlock.Error() != nil {
 			return nil, beaconBlock.Error()
 		}
@@ -209,18 +209,24 @@ func (h *ABCIMiddleware[
 		blk       BeaconBlockT
 		sidecars  BlobSidecarsT
 		err       error
-		g, gCtx   = errgroup.WithContext(ctx)
+		g, _      = errgroup.WithContext(ctx)
 		startTime = time.Now()
 		args      = []any{"beacon_block", true, "blob_sidecars", true}
 	)
 	defer h.metrics.measureProcessProposalDuration(startTime)
 
-	blk, err = h.beaconBlockGossiper.Request(gCtx, req)
+	// Decode the beacon block and emit an event.
+	blk, err = h.beaconBlockGossiper.Request(ctx, req)
 	if err != nil {
 		args[1] = false
 	}
 
 	g.Go(func() error {
+		// Emit event to notify the block has been received.
+		h.blkFeed.Send(asynctypes.NewEvent(
+			ctx, events.BeaconBlockReceived, blk, err,
+		))
+
 		if err = h.chainService.ReceiveBlock(
 			ctx, blk,
 		); !errors.IsFatal(err) {
@@ -230,17 +236,25 @@ func (h *ABCIMiddleware[
 	})
 
 	g.Go(func() error {
-		sidecars, err = h.blobGossiper.Request(gCtx, req)
-		if err != nil {
-			args[3] = false
-		}
-
+		// We can't notify the sidecars if the block is nil, since
+		// we currently rely on the slot from the beacon block.
 		if blk.IsNil() {
 			return nil
 		}
 
+		// Decode the blob sidecars and emit an event.
+		sidecars, err = h.blobGossiper.Request(ctx, req)
+		if err != nil {
+			args[3] = false
+		}
+
+		// Emit event to notify the sidecars have been received.
+		h.sidecarsFeed.Send(asynctypes.NewEvent(
+			ctx, events.BlobSidecarsReceived, sidecars, err,
+		))
+
 		if err = h.daService.ReceiveSidecars(
-			gCtx, blk.GetSlot(), sidecars,
+			ctx, blk.GetSlot(), sidecars,
 		); !errors.IsFatal(err) {
 			err = nil
 		}
@@ -278,17 +292,8 @@ func (h *ABCIMiddleware[
 
 // EndBlock returns the validator set updates from the beacon state.
 func (h *ABCIMiddleware[
-	_, _, _, _, _, _, _,
-]) EndBlock(
-	ctx context.Context,
-) ([]appmodulev2.ValidatorUpdate, error) {
-	return h.endBlock(ctx)
-}
-
-// endBlock returns the validator set updates from the beacon state.
-func (h *ABCIMiddleware[
 	_, BeaconBlockT, _, BlobSidecarsT, _, _, _,
-]) endBlock(
+]) EndBlock(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
 	blk, blobs, err := encoding.

@@ -29,16 +29,17 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"golang.org/x/sync/errgroup"
 )
 
-// RequestBlockForProposal builds a new beacon block.
+// buildBlockAndSidecars builds a new beacon block.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
 	ExecutionPayloadHeaderT, ForkDataT,
-]) RequestBlockForProposal(
+]) buildBlockAndSidecars(
 	ctx context.Context,
 	requestedSlot math.Slot,
 ) (BeaconBlockT, BlobSidecarsT, error) {
@@ -91,24 +92,31 @@ func (s *Service[
 		return blk, sidecars, ErrNilPayload
 	}
 
+	// We have to assemble the block body prior to producing the sidecars
+	// since we need to generate the inclusion proofs.
 	if err = s.buildBlockBody(ctx, st, blk, reveal, envelope); err != nil {
 		return blk, sidecars, err
 	}
 
-	// Produce block sidecars.
+	// Produce blob sidecars, we produce them in parallel to computing the state
+	// root as an optimization.
+	//
+	// TODO: Figure out a clean way to break "BlockAndSidecars" into two
+	// functions
+	// without giving up the parallelization benefits.
 	g.Go(func() error {
-		var sidecarErr error
-		sidecars, sidecarErr = s.blobFactory.BuildSidecars(
-			blk,
-			envelope.GetBlobsBundle(),
+		sidecars, err = s.blobFactory.BuildSidecars(
+			blk, envelope.GetBlobsBundle(),
 		)
-		return sidecarErr
+		return err
 	})
 
+	// Compute the state root for the block.
 	g.Go(func() error {
 		return s.computeAndSetStateRoot(ctx, st, blk)
 	})
 
+	// Wait for all the goroutines to finish.
 	if err = g.Wait(); err != nil {
 		return blk, sidecars, err
 	}
@@ -308,4 +316,71 @@ func (s *Service[
 	))
 
 	return body.SetExecutionData(envelope.GetExecutionPayload())
+}
+
+// computeAndSetStateRoot computes the state root of an outgoing block
+// and sets it in the block.
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, ForkDataT,
+]) computeAndSetStateRoot(
+	ctx context.Context,
+	st BeaconStateT,
+	blk BeaconBlockT,
+) error {
+	slot := blk.GetSlot()
+	s.logger.Info(
+		"Computing state root for block 🌲",
+		"slot", slot.Base10(),
+	)
+
+	var stateRoot common.Root
+	stateRoot, err := s.computeStateRoot(ctx, st, blk)
+	if err != nil {
+		s.logger.Error(
+			"failed to compute state root while building block ❗️ ",
+			"slot", slot.Base10(),
+			"error", err,
+		)
+		return err
+	}
+
+	s.logger.Info("State root computed for block 💻 ",
+		"slot", slot.Base10(),
+		"state_root", stateRoot,
+	)
+	blk.SetStateRoot(stateRoot)
+	return nil
+}
+
+// computeStateRoot computes the state root of an outgoing block.
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, ForkDataT,
+]) computeStateRoot(
+	ctx context.Context,
+	st BeaconStateT,
+	blk BeaconBlockT,
+) (common.Root, error) {
+	startTime := time.Now()
+	defer s.metrics.measureStateRootComputationTime(startTime)
+	if _, err := s.stateProcessor.Transition(
+		// TODO: We should think about how having optimistic
+		// engine enabled here would affect the proposer when
+		// the payload in their block has come from a remote builder.
+		&transition.Context{
+			Context:                 ctx,
+			OptimisticEngine:        true,
+			SkipPayloadVerification: true,
+			SkipValidateResult:      true,
+			SkipValidateRandao:      true,
+		},
+		st, blk,
+	); err != nil {
+		return common.Root{}, err
+	}
+
+	return st.HashTreeRoot()
 }

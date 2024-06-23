@@ -129,6 +129,11 @@ func (b *BeaconBlockBodyBase) GetGraffiti() bytes.B32 {
 	return b.Graffiti
 }
 
+// SetGraffiti sets the Graffiti of the Body.
+func (b *BeaconBlockBodyBase) SetGraffiti(graffiti bytes.B32) {
+	b.Graffiti = graffiti
+}
+
 // GetDeposits returns the Deposits of the BeaconBlockBodyBase.
 func (b *BeaconBlockBodyBase) GetDeposits() []*Deposit {
 	return b.Deposits
