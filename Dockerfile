@@ -97,8 +97,11 @@ ARG BUILD_TAGS
 WORKDIR /workdir
 
 # Consolidate RUN commands to reduce layers
-RUN apk add ca-certificates build-base linux-headers git && \
-    set -eux
+RUN apk add --no-cache \
+    ca-certificates \
+    build-base \
+    linux-headers \
+    binutils-gold
 
 # Copy the dependencies from the cache stage as well as the
 # go.work file to the working directory
