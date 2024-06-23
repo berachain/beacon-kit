@@ -21,7 +21,6 @@
 package core
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -69,7 +68,7 @@ func (sp *StateProcessor[
 	}
 
 	if err := st.SetEth1Data(eth1Data.New(
-		bytes.B32(common.ZeroHash),
+		common.Bytes32(common.ZeroHash),
 		0,
 		executionPayloadHeader.GetBlockHash(),
 	)); err != nil {
@@ -93,7 +92,7 @@ func (sp *StateProcessor[
 	for i := range sp.cs.EpochsPerHistoricalVector() {
 		if err = st.UpdateRandaoMixAtIndex(
 			i,
-			bytes.B32(executionPayloadHeader.GetBlockHash()),
+			common.Bytes32(executionPayloadHeader.GetBlockHash()),
 		); err != nil {
 			return nil, err
 		}

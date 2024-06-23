@@ -25,7 +25,6 @@ import (
 	"encoding/json"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
@@ -163,10 +162,10 @@ type ExecutionPayload[
 	GetTransactions() [][]byte
 	GetParentHash() common.ExecutionHash
 	GetBlockHash() common.ExecutionHash
-	GetPrevRandao() bytes.B32
+	GetPrevRandao() common.Bytes32
 	GetWithdrawals() []WithdrawalT
 	GetFeeRecipient() common.ExecutionAddress
-	GetStateRoot() bytes.B32
+	GetStateRoot() common.Bytes32
 	GetReceiptsRoot() common.Root
 	GetLogsBloom() []byte
 	GetNumber() math.U64
@@ -185,9 +184,9 @@ type ExecutionPayloadHeader interface {
 	Version() uint32
 	GetParentHash() common.ExecutionHash
 	GetBlockHash() common.ExecutionHash
-	GetPrevRandao() bytes.B32
+	GetPrevRandao() common.Bytes32
 	GetFeeRecipient() common.ExecutionAddress
-	GetStateRoot() bytes.B32
+	GetStateRoot() common.Bytes32
 	GetReceiptsRoot() common.Root
 	GetLogsBloom() []byte
 	GetNumber() math.U64

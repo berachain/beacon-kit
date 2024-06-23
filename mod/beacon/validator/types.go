@@ -78,6 +78,8 @@ type BeaconBlockBody[
 	SetDeposits([]DepositT)
 	// SetExecutionData sets the execution data of the beacon block body.
 	SetExecutionData(ExecutionPayloadT) error
+	// SetGraffiti sets the graffiti of the beacon block body.
+	SetGraffiti(common.Bytes32)
 	// SetBlobKzgCommitments sets the blob KZG commitments of the beacon block
 	// body.
 	SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])

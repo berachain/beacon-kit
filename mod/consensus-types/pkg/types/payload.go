@@ -169,10 +169,10 @@ func (e *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 type ExecutableDataDeneb struct {
 	ParentHash    common.ExecutionHash           `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
 	FeeRecipient  common.ExecutionAddress        `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
-	StateRoot     bytes.B32                      `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
-	ReceiptsRoot  bytes.B32                      `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
+	StateRoot     common.Bytes32                 `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
+	ReceiptsRoot  common.Bytes32                 `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
 	LogsBloom     []byte                         `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
-	Random        bytes.B32                      `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
+	Random        common.Bytes32                 `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
 	Number        math.U64                       `json:"blockNumber"                  gencodec:"required"`
 	GasLimit      math.U64                       `json:"gasLimit"                     gencodec:"required"`
 	GasUsed       math.U64                       `json:"gasUsed"                      gencodec:"required"`
@@ -219,12 +219,12 @@ func (d *ExecutableDataDeneb) GetFeeRecipient() common.ExecutionAddress {
 }
 
 // GetStateRoot returns the state root of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetStateRoot() bytes.B32 {
+func (d *ExecutableDataDeneb) GetStateRoot() common.Bytes32 {
 	return d.StateRoot
 }
 
 // GetReceiptsRoot returns the receipts root of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetReceiptsRoot() bytes.B32 {
+func (d *ExecutableDataDeneb) GetReceiptsRoot() common.Bytes32 {
 	return d.ReceiptsRoot
 }
 
@@ -234,7 +234,7 @@ func (d *ExecutableDataDeneb) GetLogsBloom() []byte {
 }
 
 // GetPrevRandao returns the previous Randao value of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetPrevRandao() bytes.B32 {
+func (d *ExecutableDataDeneb) GetPrevRandao() common.Bytes32 {
 	return d.Random
 }
 
