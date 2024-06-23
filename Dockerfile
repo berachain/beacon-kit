@@ -19,7 +19,7 @@
 #######################################################
 
 ARG GO_VERSION=1.22.4
-ARG RUNNER_IMAGE=alpine:3.20
+ARG RUNNER_IMAGE=alpine:3.19
 ARG BUILD_TAGS="netgo,muslc,blst,bls12381,pebbledb"
 ARG NAME=beacond
 ARG APP_NAME=beacond
@@ -30,7 +30,7 @@ ARG CMD_PATH=./beacond/cmd
 ###         Stage 1 - Cache Go Modules              ###
 #######################################################
 
-FROM golang:${GO_VERSION}-alpine3.19 AS mod-cache
+FROM golang:${GO_VERSION}-alpine3.20 as mod-cache
 
 WORKDIR /workdir
 
@@ -87,7 +87,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 ###         Stage 2 - Build the Application         ###
 #######################################################
 
-FROM golang:${GO_VERSION}-alpine3.19 AS builder
+FROM golang:${GO_VERSION}-alpine3.20 as builder
 
 ARG GIT_VERSION
 ARG GIT_COMMIT
