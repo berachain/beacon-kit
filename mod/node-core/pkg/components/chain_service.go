@@ -25,8 +25,9 @@ import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/config"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 )
 
@@ -35,7 +36,7 @@ type ChainServiceInput struct {
 	depinject.In
 	BlobProcessor   *BlobProcessor
 	BlockFeed       *BlockFeed
-	ChainSpec       primitives.ChainSpec
+	ChainSpec       common.ChainSpec
 	Cfg             *config.Config
 	DepositService  *DepositService
 	EngineClient    *EngineClient
@@ -63,6 +64,8 @@ func ProvideChainService(
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*Genesis,
+		*engineprimitives.PayloadAttributes[*Withdrawal],
+		*Withdrawal,
 	](
 		in.StorageBackend,
 		in.Logger.With("service", "blockchain"),

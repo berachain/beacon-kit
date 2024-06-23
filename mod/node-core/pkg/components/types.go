@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
+	"github.com/berachain/beacon-kit/mod/da/pkg/da"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
@@ -37,6 +38,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
+	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
@@ -58,6 +60,13 @@ type (
 		*Deposit,
 		*ExecutionPayload,
 		*Genesis,
+	]
+
+	// AttributesFactory is a type alias for the attributes factory.
+	AttributesFactory = attributes.Factory[
+		BeaconState,
+		*engineprimitives.PayloadAttributes[*Withdrawal],
+		*Withdrawal,
 	]
 
 	// AvailabilityStore is a type alias for the availability store.
@@ -111,6 +120,16 @@ type (
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*Genesis,
+		*engineprimitives.PayloadAttributes[*Withdrawal],
+		*Withdrawal,
+	]
+
+	// DAService is a type alias for the DA service.
+	DAService = da.Service[
+		*dastore.Store[*BeaconBlockBody],
+		*BeaconBlockBody,
+		*BlobSidecars,
+		*ExecutionPayload,
 	]
 
 	// DBManager is a type alias for the database manager.
@@ -138,10 +157,14 @@ type (
 	DepositStore = depositdb.KVStore[*Deposit]
 
 	// EngineClient is a type alias for the engine client.
-	EngineClient = engineclient.EngineClient[*ExecutionPayload]
+	EngineClient = engineclient.EngineClient[
+		*ExecutionPayload, *engineprimitives.PayloadAttributes[*Withdrawal]]
 
 	// EngineClient is a type alias for the engine client.
-	ExecutionEngine = execution.Engine[*ExecutionPayload]
+	ExecutionEngine = execution.Engine[
+		*ExecutionPayload, *engineprimitives.PayloadAttributes[*Withdrawal],
+		engineprimitives.PayloadID, *Withdrawal,
+	]
 
 	// ExecutionPayload type aliases.
 	ExecutionPayload       = types.ExecutionPayload
@@ -161,10 +184,14 @@ type (
 
 	// LocalBuilder is a type alias for the local builder.
 	LocalBuilder = payloadbuilder.PayloadBuilder[
-		BeaconState, *ExecutionPayload, *ExecutionPayloadHeader,
+		BeaconState,
+		*ExecutionPayload,
+		*ExecutionPayloadHeader,
+		*engineprimitives.PayloadAttributes[*Withdrawal],
+		engineprimitives.PayloadID,
 	]
 
-	// StateProcessor is the type alias for the state processor inteface.
+	// StateProcessor is the type alias for the state processor interface.
 	StateProcessor = blockchain.StateProcessor[
 		*BeaconBlock,
 		BeaconState,

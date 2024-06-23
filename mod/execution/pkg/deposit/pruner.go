@@ -20,9 +20,7 @@
 
 package deposit
 
-import (
-	"github.com/berachain/beacon-kit/mod/primitives"
-)
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 
 func BuildPruneRangeFn[
 	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
@@ -34,10 +32,10 @@ func BuildPruneRangeFn[
 	ExecutionPayloadT ExecutionPayload,
 	WithdrawalCredentialsT any,
 
-](cs primitives.ChainSpec) func(BlockEventT) (uint64, uint64) {
+](cs common.ChainSpec) func(BlockEventT) (uint64, uint64) {
 	return func(event BlockEventT) (uint64, uint64) {
 		deposits := event.Data().GetBody().GetDeposits()
-		if len(deposits) == 0 {
+		if len(deposits) == 0 || cs.MaxDepositsPerBlock() == 0 {
 			return 0, 0
 		}
 		index := deposits[len(deposits)-1].GetIndex()

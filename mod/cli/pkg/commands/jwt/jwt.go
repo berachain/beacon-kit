@@ -35,6 +35,7 @@ const (
 	DefaultSecretFileName = "jwt.hex"
 	FlagOutputPath        = "output-path"
 	FlagInputPath         = "input-path"
+	ConfigFolder          = "config"
 )
 
 // Commands creates a new command for managing JWT secrets.
@@ -117,16 +118,14 @@ func getFilePath(cmd *cobra.Command, path string) (string, error) {
 	// If no path is specified, try to get the cosmos client context and use
 	// the configured home directory to write the secret to the default file
 	// name.
-	if specifiedFilePath == "" {
-		clientCtx, ok := cmd.Context().
-			Value(client.ClientContextKey).(*client.Context)
-		if !ok {
-			return "", ErrNoClientCtx
-		}
-		specifiedFilePath = filepath.Join(
-			clientCtx.HomeDir+"/config/", DefaultSecretFileName,
-		)
+	clientCtx, ok := cmd.Context().
+		Value(client.ClientContextKey).(*client.Context)
+	if !ok {
+		return "", ErrNoClientCtx
 	}
+	specifiedFilePath = filepath.Join(
+		clientCtx.HomeDir, ConfigFolder, DefaultSecretFileName,
+	)
 
 	// Use default secret file name if no path is specified
 	return specifiedFilePath, nil

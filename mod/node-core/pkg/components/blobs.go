@@ -26,10 +26,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
+	"github.com/berachain/beacon-kit/mod/da/pkg/da"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/spf13/cast"
@@ -59,7 +60,7 @@ type BlobProcessorIn struct {
 	depinject.In
 
 	BlobProofVerifier kzg.BlobProofVerifier
-	ChainSpec         primitives.ChainSpec
+	ChainSpec         common.ChainSpec
 	Logger            log.Logger
 	TelemetrySink     *metrics.TelemetrySink
 }
@@ -81,5 +82,35 @@ func ProvideBlobProcessor[
 		dablob.NewVerifier(in.BlobProofVerifier, in.TelemetrySink),
 		types.BlockBodyKZGOffset,
 		in.TelemetrySink,
+	)
+}
+
+// DAServiceIn is the input for the BlobService.
+type DAServiceIn struct {
+	depinject.In
+
+	AvailabilityStore *dastore.Store[*BeaconBlockBody]
+	BlobProcessor     *dablob.Processor[
+		*dastore.Store[*BeaconBlockBody],
+		*BeaconBlockBody,
+	]
+	Logger log.Logger
+}
+
+// ProvideDAService is a function that provides the BlobService to the
+// depinject framework.
+func ProvideDAService(in DAServiceIn) *da.Service[
+	*dastore.Store[*BeaconBlockBody],
+	*BeaconBlockBody,
+	*BlobSidecars,
+	*ExecutionPayload,
+] {
+	return da.NewService[
+		*dastore.Store[*BeaconBlockBody],
+		*BeaconBlockBody,
+	](
+		in.AvailabilityStore,
+		in.BlobProcessor,
+		in.Logger.With("service", "da"),
 	)
 }

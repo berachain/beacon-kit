@@ -125,7 +125,8 @@ func TestMarshalUnmarshalU8(t *testing.T) {
 func TestMarshalUnmarshalBool(t *testing.T) {
 	original := true
 	marshaled := ssz.MarshalBool(original)
-	unmarshaled := ssz.UnmarshalBool[bool](marshaled)
+	unmarshaled, err := ssz.UnmarshalBool[bool](marshaled)
+	require.NoError(t, err)
 	require.Equal(t, original, unmarshaled, "Marshal/Unmarshal Bool failed")
 }
 
@@ -248,7 +249,8 @@ func FuzzMarshalUnmarshalU8(f *testing.F) {
 func FuzzMarshalUnmarshalBool(f *testing.F) {
 	f.Fuzz(func(t *testing.T, original bool) {
 		marshaled := ssz.MarshalBool(original)
-		unmarshaled := ssz.UnmarshalBool[bool](marshaled)
+		unmarshaled, err := ssz.UnmarshalBool[bool](marshaled)
+		require.NoError(t, err)
 		require.Equal(t, original, unmarshaled, "Marshal/Unmarshal Bool failed")
 	})
 }

@@ -113,51 +113,6 @@ func (_c *PayloadAttributer_IsNil_Call) RunAndReturn(run func() bool) *PayloadAt
 	return _c
 }
 
-// Validate provides a mock function with given fields:
-func (_m *PayloadAttributer) Validate() error {
-	ret := _m.Called()
-
-	if len(ret) == 0 {
-		panic("no return value specified for Validate")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func() error); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// PayloadAttributer_Validate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Validate'
-type PayloadAttributer_Validate_Call struct {
-	*mock.Call
-}
-
-// Validate is a helper method to define mock.On call
-func (_e *PayloadAttributer_Expecter) Validate() *PayloadAttributer_Validate_Call {
-	return &PayloadAttributer_Validate_Call{Call: _e.mock.On("Validate")}
-}
-
-func (_c *PayloadAttributer_Validate_Call) Run(run func()) *PayloadAttributer_Validate_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *PayloadAttributer_Validate_Call) Return(_a0 error) *PayloadAttributer_Validate_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *PayloadAttributer_Validate_Call) RunAndReturn(run func() error) *PayloadAttributer_Validate_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Version provides a mock function with given fields:
 func (_m *PayloadAttributer) Version() uint32 {
 	ret := _m.Called()

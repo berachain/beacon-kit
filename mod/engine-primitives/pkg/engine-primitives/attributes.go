@@ -21,7 +21,6 @@
 package engineprimitives
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -33,9 +32,6 @@ type PayloadAttributer interface {
 	IsNil() bool
 	// Version returns the version of the PayloadAttributer.
 	Version() uint32
-	// Validate checks if the PayloadAttributer is valid and returns an error if
-	// it is not.
-	Validate() error
 	// GetSuggestedFeeRecipient returns the suggested fee recipient for the
 	// block.
 	GetSuggestedFeeRecipient() common.ExecutionAddress
@@ -51,7 +47,7 @@ type PayloadAttributes[
 	Timestamp math.U64 `json:"timestamp"`
 	// PrevRandao is the previous Randao value from the beacon chain as
 	// per EIP-4399.
-	PrevRandao primitives.Bytes32 `json:"prevRandao"`
+	PrevRandao common.Bytes32 `json:"prevRandao"`
 	// SuggestedFeeRecipient is the suggested fee recipient for the block. If
 	// the execution client has a different fee recipient, it will typically
 	// ignore this value.
@@ -63,7 +59,7 @@ type PayloadAttributes[
 	// prior)
 	// to the block currently being processed. This field was added for
 	// EIP-4788.
-	ParentBeaconBlockRoot primitives.Root `json:"parentBeaconBlockRoot"`
+	ParentBeaconBlockRoot common.Root `json:"parentBeaconBlockRoot"`
 }
 
 // NewPayloadAttributes creates a new PayloadAttributes.
@@ -72,10 +68,10 @@ func NewPayloadAttributes[
 ](
 	forkVersion uint32,
 	timestamp uint64,
-	prevRandao primitives.Bytes32,
+	prevRandao common.Bytes32,
 	suggestedFeeRecipient common.ExecutionAddress,
 	withdrawals []WithdrawalT,
-	parentBeaconBlockRoot primitives.Root,
+	parentBeaconBlockRoot common.Root,
 ) (*PayloadAttributes[WithdrawalT], error) {
 	p := &PayloadAttributes[WithdrawalT]{
 		version:               forkVersion,
@@ -91,6 +87,27 @@ func NewPayloadAttributes[
 	}
 
 	return p, nil
+}
+
+// New empty PayloadAttributes.
+func (p *PayloadAttributes[WithdrawalT]) New(
+	forkVersion uint32,
+	timestamp uint64,
+	prevRandao common.Bytes32,
+	suggestedFeeRecipient common.ExecutionAddress,
+	withdrawals []WithdrawalT,
+	parentBeaconBlockRoot common.Root,
+) (*PayloadAttributes[WithdrawalT], error) {
+	var err error
+	p, err = NewPayloadAttributes(
+		forkVersion,
+		timestamp,
+		prevRandao,
+		suggestedFeeRecipient,
+		withdrawals,
+		parentBeaconBlockRoot,
+	)
+	return p, err
 }
 
 // IsNil returns true if the PayloadAttributes is nil.

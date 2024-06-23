@@ -28,7 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
@@ -42,7 +42,7 @@ import (
 type AvailabilityStoreInput struct {
 	depinject.In
 	AppOpts   servertypes.AppOptions
-	ChainSpec primitives.ChainSpec
+	ChainSpec common.ChainSpec
 	Logger    log.Logger
 }
 
@@ -76,7 +76,7 @@ type AvailabilityPrunerInput struct {
 	depinject.In
 	AvailabilityStore *AvailabilityStore
 	BlockFeed         *BlockFeed
-	ChainSpec         primitives.ChainSpec
+	ChainSpec         common.ChainSpec
 	Logger            log.Logger
 }
 

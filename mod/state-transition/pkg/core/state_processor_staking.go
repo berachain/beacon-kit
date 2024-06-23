@@ -22,7 +22,7 @@ package core
 
 import (
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/davecgh/go-spew/spew"
@@ -158,7 +158,7 @@ func (sp *StateProcessor[
 	dep DepositT,
 ) error {
 	var (
-		genesisValidatorsRoot primitives.Root
+		genesisValidatorsRoot common.Root
 		epoch                 math.Epoch
 		err                   error
 	)
@@ -172,7 +172,7 @@ func (sp *StateProcessor[
 
 	// At genesis, the validators sign over an empty root.
 	if slot == 0 {
-		genesisValidatorsRoot = primitives.Root{}
+		genesisValidatorsRoot = common.Root{}
 	} else {
 		// Get the genesis validators root to be used to find fork data later.
 		genesisValidatorsRoot, err = st.GetGenesisValidatorsRoot()
@@ -187,7 +187,7 @@ func (sp *StateProcessor[
 	var d ForkDataT
 	if err = dep.VerifySignature(
 		d.New(
-			version.FromUint32[primitives.Version](
+			version.FromUint32[common.Version](
 				sp.cs.ActiveForkVersionForEpoch(epoch),
 			), genesisValidatorsRoot,
 		),

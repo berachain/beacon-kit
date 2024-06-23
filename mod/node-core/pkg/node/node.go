@@ -21,37 +21,42 @@
 package node
 
 import (
+	"context"
+
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/app"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
 
-// Node represents the node application.
-type Node struct {
+// Compile-time assertion that node implements the NodeI interface.
+var _ types.Node = (*node)(nil)
+
+// node is the hard-type representation of the beacon-kit node.
+type node struct {
 	*app.BeaconApp
 
-	// name and description of the application.
-	name        string
-	description string
+	// registry is the node's service registry.
+	registry *service.Registry
 }
 
-// New returns a new Node.
-func New[NodeT types.NodeI]() NodeT {
-	return types.NodeI(&Node{}).(NodeT)
+// New returns a new node.
+func New[NodeT types.Node]() NodeT {
+	return types.Node(&node{}).(NodeT)
 }
 
-// SetAppName sets the name of the application.
-func (n *Node) SetAppName(name string) {
-	n.name = name
-}
-
-// SetAppDescription sets the description of the application.
-func (n *Node) SetAppDescription(description string) {
-	n.description = description
+// Start starts the node.
+func (n *node) Start(ctx context.Context) error {
+	return n.registry.StartAll(ctx)
 }
 
 // SetApplication sets the application.
-func (n *Node) SetApplication(a servertypes.Application) {
+func (n *node) RegisterApp(a servertypes.Application) {
 	//nolint:errcheck // BeaconApp is our servertypes.Application
 	n.BeaconApp = a.(*app.BeaconApp)
+}
+
+// SetServiceRegistry sets the service registry.
+func (n *node) SetServiceRegistry(registry *service.Registry) {
+	n.registry = registry
 }

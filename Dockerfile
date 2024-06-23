@@ -19,7 +19,7 @@
 #######################################################
 
 ARG GO_VERSION=1.22.4
-ARG RUNNER_IMAGE=alpine:3.19
+ARG RUNNER_IMAGE=alpine:3.20
 ARG BUILD_TAGS="netgo,muslc,blst,bls12381,pebbledb"
 ARG NAME=beacond
 ARG APP_NAME=beacond
@@ -30,7 +30,7 @@ ARG CMD_PATH=./beacond/cmd
 ###         Stage 1 - Cache Go Modules              ###
 #######################################################
 
-FROM golang:${GO_VERSION}-alpine3.19 as mod-cache
+FROM golang:${GO_VERSION}-alpine3.20 as mod-cache
 
 WORKDIR /workdir
 
@@ -87,7 +87,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 ###         Stage 2 - Build the Application         ###
 #######################################################
 
-FROM golang:${GO_VERSION}-alpine3.19 as builder
+FROM golang:${GO_VERSION}-alpine3.20 as builder
 
 ARG GIT_VERSION
 ARG GIT_COMMIT
@@ -97,8 +97,11 @@ ARG BUILD_TAGS
 WORKDIR /workdir
 
 # Consolidate RUN commands to reduce layers
-RUN apk add ca-certificates build-base linux-headers git && \
-    set -eux
+RUN apk add --no-cache --update \
+    ca-certificates \
+    build-base \
+    linux-headers \
+    binutils-gold
 
 # Copy the dependencies from the cache stage as well as the
 # go.work file to the working directory
@@ -143,8 +146,15 @@ FROM ${RUNNER_IMAGE}
 ARG APP_NAME
 
 # Copy over built executable into a fresh container.
-COPY --from=builder /workdir/build/bin/${APP_NAME} /usr/bin
+COPY --from=builder /workdir/build/bin/${APP_NAME} /usr/bin/${APP_NAME}
+
+# TODO: We should un hood this part, its very specific 
+# to our kurtosis setup.
 RUN mkdir -p /root/jwt /root/kzg && \
     apk add --no-cache bash sed curl
 
-# ENTRYPOINT [ "./beacond" ]
+EXPOSE 26656
+EXPOSE 26657
+EXPOSE 1317
+
+ENTRYPOINT [ "beacond" ]

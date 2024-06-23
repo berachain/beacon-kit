@@ -24,8 +24,8 @@ import (
 	"math/big"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -88,25 +88,25 @@ func ConvertSignature(signature string) (crypto.BLSSignature, error) {
 }
 
 // ConvertVersion converts a string to a version.
-func ConvertVersion(version string) (primitives.Version, error) {
+func ConvertVersion(version string) (common.Version, error) {
 	versionBytes, err := bytes.FromHex(version)
 	if err != nil {
-		return primitives.Version{}, err
+		return common.Version{}, err
 	}
 	if len(versionBytes) != constants.DomainTypeLength {
-		return primitives.Version{}, ErrInvalidVersionLength
+		return common.Version{}, ErrInvalidVersionLength
 	}
-	return primitives.Version(versionBytes), nil
+	return common.Version(versionBytes), nil
 }
 
 // ConvertGenesisValidatorRoot converts a string to a genesis validator root.
-func ConvertGenesisValidatorRoot(root string) (primitives.Root, error) {
+func ConvertGenesisValidatorRoot(root string) (common.Root, error) {
 	rootBytes, err := bytes.FromHex(root)
 	if err != nil {
-		return primitives.Root{}, err
+		return common.Root{}, err
 	}
 	if len(rootBytes) != constants.RootLength {
-		return primitives.Root{}, ErrInvalidRootLength
+		return common.Root{}, ErrInvalidRootLength
 	}
-	return primitives.Root(rootBytes), nil
+	return common.Root(rootBytes), nil
 }

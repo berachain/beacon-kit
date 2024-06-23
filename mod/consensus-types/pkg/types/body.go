@@ -27,7 +27,6 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
@@ -125,8 +124,13 @@ func (b *BeaconBlockBodyDeneb) SetEth1Data(eth1Data *Eth1Data) {
 }
 
 // GetGraffiti returns the Graffiti of the Body.
-func (b *BeaconBlockBodyBase) GetGraffiti() bytes.B32 {
+func (b *BeaconBlockBodyBase) GetGraffiti() common.Bytes32 {
 	return b.Graffiti
+}
+
+// SetGraffiti sets the Graffiti of the Body.
+func (b *BeaconBlockBodyBase) SetGraffiti(graffiti common.Bytes32) {
+	b.Graffiti = graffiti
 }
 
 // GetDeposits returns the Deposits of the BeaconBlockBodyBase.

@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -55,7 +55,7 @@ type Service[
 	// logger is a logger.
 	logger log.Logger[any]
 	// chainSpec is the chain spec.
-	chainSpec primitives.ChainSpec
+	chainSpec common.ChainSpec
 	// signer is used to retrieve the public key of this node.
 	signer crypto.BLSSigner
 	// blobFactory is used to create blob sidecars for blocks.
@@ -119,7 +119,7 @@ func NewService[
 ](
 	cfg *Config,
 	logger log.Logger[any],
-	chainSpec primitives.ChainSpec,
+	chainSpec common.ChainSpec,
 	bsb StorageBackend[
 		BeaconStateT, DepositT, DepositStoreT, ExecutionPayloadHeaderT,
 	],
@@ -215,11 +215,9 @@ func (s *Service[
 
 // handleBlockRequest handles a block request.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
-	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ForkDataT,
+	_, _, _, _, _, _, _, _, _, _,
 ]) handleNewSlot(req *asynctypes.Event[math.Slot]) {
-	blk, sidecars, err := s.RequestBlockForProposal(
+	blk, sidecars, err := s.buildBlockAndSidecars(
 		req.Context(), req.Data(),
 	)
 	if err != nil {

@@ -24,7 +24,6 @@ import (
 	"testing"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/stretchr/testify/require"
@@ -35,10 +34,10 @@ type Withdrawal struct{}
 func TestPayloadAttributes(t *testing.T) {
 	forkVersion := uint32(1)
 	timestamp := uint64(123456789)
-	prevRandao := primitives.Bytes32{1, 2, 3}
+	prevRandao := common.Bytes32{1, 2, 3}
 	suggestedFeeRecipient := common.ExecutionAddress{}
 	withdrawals := []Withdrawal{}
-	parentBeaconBlockRoot := primitives.Root{}
+	parentBeaconBlockRoot := common.Root{}
 
 	payloadAttributes, err := engineprimitives.NewPayloadAttributes[Withdrawal](
 		forkVersion,
@@ -65,10 +64,10 @@ func TestPayloadAttributes(t *testing.T) {
 
 func TestNewPayloadAttributes_ErrorCases(t *testing.T) {
 	forkVersion := uint32(1)
-	prevRandao := primitives.Bytes32{1, 2, 3}
+	prevRandao := common.Bytes32{1, 2, 3}
 	suggestedFeeRecipient := common.ExecutionAddress{}
 	withdrawals := []Withdrawal{}
-	parentBeaconBlockRoot := primitives.Root{}
+	parentBeaconBlockRoot := common.Root{}
 
 	// Test case where Timestamp is 0
 	_, err := engineprimitives.NewPayloadAttributes[Withdrawal](
@@ -85,7 +84,7 @@ func TestNewPayloadAttributes_ErrorCases(t *testing.T) {
 	_, err = engineprimitives.NewPayloadAttributes[Withdrawal](
 		forkVersion,
 		123456789,
-		primitives.Bytes32{},
+		common.Bytes32{},
 		suggestedFeeRecipient,
 		withdrawals,
 		parentBeaconBlockRoot,

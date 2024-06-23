@@ -24,7 +24,6 @@ import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/interfaces"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -34,7 +33,7 @@ import (
 // for the dep inject framework.
 type BeaconDepositContractInput struct {
 	depinject.In
-	ChainSpec    primitives.ChainSpec
+	ChainSpec    common.ChainSpec
 	EngineClient *EngineClient
 }
 
@@ -47,7 +46,7 @@ func ProvideBeaconDepositContract[
 	],
 	ExecutionPayloadT interfaces.ExecutionPayload[
 		ExecutionPayloadT, common.ExecutionAddress,
-		common.ExecutionHash, primitives.Bytes32,
+		common.ExecutionHash, common.Bytes32,
 		math.U64, math.Wei, []byte, WithdrawalT,
 	],
 	WithdrawalT any,

@@ -86,11 +86,9 @@ func (f *Formatter) Format(
 	f.ensureLineBreak(buffer)
 
 	if args.Stack != "" {
+		buffer.Bytes = append(buffer.Bytes, args.Stack...)
 		if args.Stack[len(args.Stack)-1] != '\n' {
-			buffer.Bytes = append(buffer.Bytes, args.Stack...)
 			buffer.Bytes = append(buffer.Bytes, '\n')
-		} else {
-			buffer.Bytes = append(buffer.Bytes, args.Stack...)
 		}
 	}
 

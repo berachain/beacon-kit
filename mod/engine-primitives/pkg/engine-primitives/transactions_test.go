@@ -24,7 +24,7 @@ import (
 	"testing"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/stretchr/testify/require"
 )
 
@@ -39,5 +39,5 @@ func TestTransactions(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, root)
 
-	require.NotEqual(t, primitives.Root{}, root)
+	require.NotEqual(t, common.Root{}, root)
 }

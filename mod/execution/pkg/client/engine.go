@@ -28,7 +28,6 @@ import (
 	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
-	"github.com/berachain/beacon-kit/mod/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
@@ -38,11 +37,13 @@ import (
 /* -------------------------------------------------------------------------- */
 
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
-func (s *EngineClient[ExecutionPayloadT]) NewPayload(
+func (s *EngineClient[
+	ExecutionPayloadT, PayloadAttributesT,
+]) NewPayload(
 	ctx context.Context,
 	payload ExecutionPayloadT,
 	versionedHashes []common.ExecutionHash,
-	parentBeaconBlockRoot *primitives.Root,
+	parentBeaconBlockRoot *common.Root,
 ) (*common.ExecutionHash, error) {
 	var (
 		startTime    = time.Now()
@@ -82,7 +83,9 @@ func (s *EngineClient[ExecutionPayloadT]) NewPayload(
 /* -------------------------------------------------------------------------- */
 
 // ForkchoiceUpdated calls the engine_forkchoiceUpdatedV1 method via JSON-RPC.
-func (s *EngineClient[ExecutionPayloadT]) ForkchoiceUpdated(
+func (s *EngineClient[
+	ExecutionPayloadT, PayloadAttributesT,
+]) ForkchoiceUpdated(
 	ctx context.Context,
 	state *engineprimitives.ForkchoiceStateV1,
 	attrs engineprimitives.PayloadAttributer,
@@ -131,7 +134,9 @@ func (s *EngineClient[ExecutionPayloadT]) ForkchoiceUpdated(
 
 // GetPayload calls the engine_getPayloadVX method via JSON-RPC. It returns
 // the execution data as well as the blobs bundle.
-func (s *EngineClient[ExecutionPayloadT]) GetPayload(
+func (s *EngineClient[
+	ExecutionPayloadT, PayloadAttributesT,
+]) GetPayload(
 	ctx context.Context,
 	payloadID engineprimitives.PayloadID,
 	forkVersion uint32,
@@ -162,7 +167,9 @@ func (s *EngineClient[ExecutionPayloadT]) GetPayload(
 
 // ExchangeCapabilities calls the engine_exchangeCapabilities method via
 // JSON-RPC.
-func (s *EngineClient[ExecutionPayloadT]) ExchangeCapabilities(
+func (s *EngineClient[
+	ExecutionPayloadT, PayloadAttributesT,
+]) ExchangeCapabilities(
 	ctx context.Context,
 ) ([]string, error) {
 	result, err := s.Eth1Client.ExchangeCapabilities(
