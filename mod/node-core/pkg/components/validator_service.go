@@ -47,7 +47,7 @@ type ValidatorServiceInput struct {
 	StateProcessor  StateProcessor
 	StorageBackend  StorageBackend
 	Signer          crypto.BLSSigner
-	SidecarsFeed    *BlobFeed
+	SidecarsFeed    *SidecarsBroker
 	SlotBroker      *broker.Broker[*asynctypes.Event[math.Slot]]
 	TelemetrySink   *metrics.TelemetrySink
 }

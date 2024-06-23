@@ -82,8 +82,7 @@ type ABCIMiddleware[
 	blkFeed *event.FeedOf[
 		asynctypes.EventID, *asynctypes.Event[BeaconBlockT]]
 	// sidecarsFeed is a feed for sidecars.
-	sidecarsFeed *event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[BlobSidecarsT]]
+	sidecarsFeed *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
 	// slotFeed is a feed for slots.
 	slotFeed *broker.Broker[*asynctypes.Event[math.Slot]]
 
@@ -116,8 +115,7 @@ func NewABCIMiddleware[
 	telemetrySink TelemetrySink,
 	blkFeed *event.FeedOf[
 		asynctypes.EventID, *asynctypes.Event[BeaconBlockT]],
-	sidecarsFeed *event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[BlobSidecarsT]],
+	sidecarsFeed *broker.Broker[*asynctypes.Event[BlobSidecarsT]],
 	slotFeed *broker.Broker[*asynctypes.Event[math.Slot]],
 ) *ABCIMiddleware[
 	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
@@ -164,20 +162,24 @@ func (am *ABCIMiddleware[
 func (am *ABCIMiddleware[
 	_, _, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
-	go am.start(ctx)
+	subSidecarsCh, err := am.sidecarsFeed.Subscribe()
+	if err != nil {
+		return err
+	}
+	go am.start(ctx, subSidecarsCh)
 	return nil
 }
 
 // start starts the middleware.
 func (am *ABCIMiddleware[
 	_, BeaconBlockT, _, BlobSidecarsT, _, _, _,
-]) start(ctx context.Context) {
-	subSidecarsCh := make(chan *asynctypes.Event[BlobSidecarsT], 1)
+]) start(
+	ctx context.Context,
+	sidecarsCh broker.Client[*asynctypes.Event[BlobSidecarsT]],
+) {
 	subBlkCh := make(chan *asynctypes.Event[BeaconBlockT], 1)
 	blkSub := am.blkFeed.Subscribe(subBlkCh)
-	sidecarsSub := am.sidecarsFeed.Subscribe(subSidecarsCh)
 	defer blkSub.Unsubscribe()
-	defer sidecarsSub.Unsubscribe()
 
 	for {
 		select {
@@ -189,7 +191,7 @@ func (am *ABCIMiddleware[
 				am.blkCh <- msg
 			case events.BeaconBlockVerified:
 			}
-		case msg := <-subSidecarsCh:
+		case msg := <-sidecarsCh:
 			switch msg.Type() {
 			case events.BlobSidecarsBuilt:
 				fallthrough

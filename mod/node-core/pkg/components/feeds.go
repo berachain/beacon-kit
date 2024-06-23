@@ -28,8 +28,10 @@ import (
 )
 
 // ProvideBlobFeed provides a blob feed for the depinject framework.
-func ProvideBlobFeed() *BlobFeed {
-	return &BlobFeed{}
+func ProvideBlobFeed() *SidecarsBroker {
+	return broker.New[*asynctypes.Event[*BlobSidecars]](
+		"blob-broker",
+	)
 }
 
 // ProvideBlockFeed provides a block feed for the depinject framework.

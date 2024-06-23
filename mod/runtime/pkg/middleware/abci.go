@@ -248,7 +248,7 @@ func (h *ABCIMiddleware[
 		}
 
 		// Emit event to notify the sidecars have been received.
-		h.sidecarsFeed.Send(asynctypes.NewEvent(
+		h.sidecarsFeed.Publish(asynctypes.NewEvent(
 			ctx, events.BlobSidecarsReceived, sidecars, err,
 		))
 
@@ -311,9 +311,11 @@ func (h *ABCIMiddleware[
 
 	// Send the sidecars to the sidecars feed, we know at this point
 	// That the blobs have been successfully verified in process proposal.
-	h.sidecarsFeed.Send(asynctypes.NewEvent(
+	if err = h.sidecarsFeed.Publish(asynctypes.NewEvent(
 		ctx, events.BlobSidecarsVerified, blobs,
-	))
+	)); err != nil {
+		return nil, err
+	}
 
 	// Wait for a response from the da service, with the current codepaths
 	// we can't parallelize retrieving the DA service response and the

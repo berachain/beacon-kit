@@ -100,8 +100,8 @@ type (
 		*BeaconBlockBody,
 	]
 
-	// BlobFeed is a type alias for the blob feed.
-	BlobFeed = event.FeedOf[asynctypes.EventID, *asynctypes.Event[*BlobSidecars]]
+	// SidecarsBroker is a type alias for the blob feed.
+	SidecarsBroker = broker.Broker[*asynctypes.Event[*BlobSidecars]]
 
 	// BlockEvent is a type alias for the block event.
 	BlockEvent = asynctypes.Event[*BeaconBlock]

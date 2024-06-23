@@ -22,7 +22,6 @@ package broker
 
 import (
 	"context"
-	"sync"
 	"time"
 )
 
@@ -34,8 +33,6 @@ type Client[T any] chan T
 type Broker[T any] struct {
 	// name of the message broker.
 	name string
-	// clientsMu is the mutex for accessing the clients map.
-	clientsMu sync.RWMutex
 	// clients is a map of registered clients.
 	clients map[Client[T]]struct{}
 	// msgs is the channel for publishing new messages.
@@ -47,11 +44,10 @@ type Broker[T any] struct {
 // New creates a new b.
 func New[T any](name string) *Broker[T] {
 	return &Broker[T]{
-		clientsMu: sync.RWMutex{},
-		clients:   make(map[Client[T]]struct{}),
-		msgs:      make(chan T, defaultBufferSize),
-		timeout:   defaultTimeout,
-		name:      name,
+		clients: make(map[Client[T]]struct{}),
+		msgs:    make(chan T, defaultBufferSize),
+		timeout: defaultTimeout,
+		name:    name,
 	}
 }
 
@@ -77,7 +73,6 @@ func (b *Broker[T]) start(ctx context.Context) {
 			}
 			return
 		case msg := <-b.msgs:
-			b.clientsMu.Lock()
 			// broadcast published msg to all clients
 			for client := range b.clients {
 				// send msg to client (or discard msg after timeout)
@@ -86,7 +81,6 @@ func (b *Broker[T]) start(ctx context.Context) {
 				case <-time.After(b.timeout):
 				}
 			}
-			b.clientsMu.Unlock()
 		}
 	}
 }
@@ -105,8 +99,6 @@ func (b *Broker[T]) Publish(msg T) error {
 // Subscribe registers a new client to the broker and returns it to the caller.
 // Returns ErrTimeout on timeout.
 func (b *Broker[T]) Subscribe() (Client[T], error) {
-	b.clientsMu.Lock()
-	defer b.clientsMu.Unlock()
 	client := make(Client[T])
 	b.clients[client] = struct{}{}
 	return client, nil
@@ -115,8 +107,6 @@ func (b *Broker[T]) Subscribe() (Client[T], error) {
 // Unsubscribe removes a client from the b.
 // Returns ErrTimeout on timeout.
 func (b *Broker[T]) Unsubscribe(client Client[T]) {
-	b.clientsMu.Lock()
-	defer b.clientsMu.Unlock()
 	// Remove the client from the broker
 	delete(b.clients, client)
 	// close the client channel

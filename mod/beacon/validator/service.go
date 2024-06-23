@@ -91,11 +91,8 @@ type Service[
 		*asynctypes.Event[BeaconBlockT],
 	]
 	// sidecarsFeed is a feed for sidecars.
-	sidecarsFeed *event.FeedOf[
-		asynctypes.EventID,
-		*asynctypes.Event[BlobSidecarsT],
-	]
-	slotFeed broker.Client[*asynctypes.Event[math.Slot]]
+	sidecarsFeed *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
+	slotFeed     broker.Client[*asynctypes.Event[math.Slot]]
 }
 
 // NewService creates a new validator service.
@@ -137,8 +134,7 @@ func NewService[
 	ts TelemetrySink,
 	blkFeed *event.FeedOf[
 		asynctypes.EventID, *asynctypes.Event[BeaconBlockT]],
-	sidecarsFeed *event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[BlobSidecarsT]],
+	sidecarsFeed *broker.Broker[*asynctypes.Event[BlobSidecarsT]],
 	slotFeed broker.Client[*asynctypes.Event[math.Slot]],
 ) *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
@@ -195,8 +191,6 @@ func (s *Service[
 ]) start(
 	ctx context.Context,
 ) {
-	// newSlotCh := make(chan *asynctypes.Event[math.Slot], 1)
-	// defer sub.Unsubscribe()
 	for {
 		select {
 		case <-ctx.Done():
@@ -226,7 +220,7 @@ func (s *Service[
 	))
 
 	// Send the sidecars on the feed.
-	s.sidecarsFeed.Send(asynctypes.NewEvent(
+	s.sidecarsFeed.Publish(asynctypes.NewEvent(
 		req.Context(), events.BlobSidecarsBuilt, sidecars, err,
 	))
 }

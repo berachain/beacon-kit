@@ -36,7 +36,7 @@ type ABCIMiddlewareInput struct {
 	DAService       *DAService
 	ChainSpec       common.ChainSpec
 	Logger          log.Logger[any]
-	SidecarsFeed    *BlobFeed
+	SidecarsFeed    *SidecarsBroker
 	SlotBroker      *SlotBroker
 	TelemetrySink   *metrics.TelemetrySink
 }

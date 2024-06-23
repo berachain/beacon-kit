@@ -23,7 +23,7 @@ package da
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/async/pkg/event"
+	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
@@ -43,9 +43,8 @@ type Service[
 		AvailabilityStoreT, BeaconBlockBodyT,
 		BlobSidecarsT, ExecutionPayloadT,
 	]
-	sidecarsFeed *event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[BlobSidecarsT]]
-	logger log.Logger[any]
+	sidecarsFeed *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
+	logger       log.Logger[any]
 }
 
 // New returns a new DA service.
@@ -65,8 +64,7 @@ func NewService[
 		AvailabilityStoreT, BeaconBlockBodyT,
 		BlobSidecarsT, ExecutionPayloadT,
 	],
-	sidecarsFeed *event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[BlobSidecarsT]],
+	sidecarsFeed *broker.Broker[*asynctypes.Event[BlobSidecarsT]],
 	logger log.Logger[any],
 ) *Service[
 	AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT, ExecutionPayloadT,
@@ -88,21 +86,25 @@ func (s *Service[_, _, _, _]) Name() string {
 
 // Start starts the service.
 func (s *Service[_, _, _, _]) Start(ctx context.Context) error {
-	go s.start(ctx)
+	subSidecarsCh, err := s.sidecarsFeed.Subscribe()
+	if err != nil {
+		return err
+	}
+	go s.start(ctx, subSidecarsCh)
 	return nil
 }
 
 // start starts the service.
-func (s *Service[_, _, BlobSidecarsT, _]) start(ctx context.Context) {
-	ch := make(chan *asynctypes.Event[BlobSidecarsT], 1)
-	sub := s.sidecarsFeed.Subscribe(ch)
-	defer sub.Unsubscribe()
+func (s *Service[_, _, BlobSidecarsT, _]) start(
+	ctx context.Context,
+	sidecarsCh broker.Client[*asynctypes.Event[BlobSidecarsT]],
+) {
 
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case msg := <-ch:
+		case msg := <-sidecarsCh:
 			//nolint:gocritic // will be expanded.
 			switch msg.Type() {
 			case events.BlobSidecarsVerified:
@@ -115,7 +117,7 @@ func (s *Service[_, _, BlobSidecarsT, _]) start(ctx context.Context) {
 					)
 				}
 
-				s.sidecarsFeed.Send(asynctypes.NewEvent(
+				s.sidecarsFeed.Publish(asynctypes.NewEvent(
 					ctx, events.BlobSidecarsProcessed, msg.Data(), err,
 				))
 				// case events.BlobSidecarsReceived:
