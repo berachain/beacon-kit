@@ -112,21 +112,6 @@ type Genesis interface {
 	json.Unmarshaler
 }
 
-// ValidatorService is responsible for building beacon blocks.
-type ValidatorService[
-	BeaconBlockT any,
-	BeaconStateT any,
-	BlobSidecarsT ssz.Marshallable,
-] interface {
-	// RequestBlockForProposal requests the best beacon block for a given slot.
-	// It returns the beacon block, associated blobs sidecars, and an error if
-	// any.
-	RequestBlockForProposal(
-		context.Context, // The context for the request.
-		math.Slot, // The slot for which the best block is requested.
-	) (BeaconBlockT, BlobSidecarsT, error)
-}
-
 // TelemetrySink is an interface for sending metrics to a telemetry backend.
 type TelemetrySink interface {
 	// MeasureSince measures the time since the given time.

@@ -31,15 +31,14 @@ import (
 // ABCIMiddlewareInput is the input for the validator middleware provider.
 type ABCIMiddlewareInput struct {
 	depinject.In
-	BeaconBlockFeed  *BlockFeed
-	ChainService     *ChainService
-	DAService        *DAService
-	ChainSpec        common.ChainSpec
-	Logger           log.Logger[any]
-	SidecarsFeed     *BlobFeed
-	SlotFeed         *SlotFeed
-	TelemetrySink    *metrics.TelemetrySink
-	ValidatorService *ValidatorService
+	BeaconBlockFeed *BlockFeed
+	ChainService    *ChainService
+	DAService       *DAService
+	ChainSpec       common.ChainSpec
+	Logger          log.Logger[any]
+	SidecarsFeed    *BlobFeed
+	SlotFeed        *SlotFeed
+	TelemetrySink   *metrics.TelemetrySink
 }
 
 // ProvideABCIMiddleware is a depinject provider for the validator
@@ -53,7 +52,6 @@ func ProvideABCIMiddleware(
 		*BlobSidecars, *Deposit, *ExecutionPayload, *Genesis,
 	](
 		in.ChainSpec,
-		in.ValidatorService,
 		in.ChainService,
 		in.DAService,
 		in.Logger,

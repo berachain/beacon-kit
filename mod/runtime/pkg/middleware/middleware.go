@@ -54,12 +54,6 @@ type ABCIMiddleware[
 	]
 	// daService is the service responsible for building the data availability
 	daService DAService[BlobSidecarsT]
-	// validatorService is the service responsible for building beacon blocks.
-	validatorService ValidatorService[
-		BeaconBlockT,
-		BeaconStateT,
-		BlobSidecarsT,
-	]
 	// TODO: we will eventually gossip the blobs separately from
 	// CometBFT, but for now, these are no-op gossipers.
 	blobGossiper p2p.PublisherReceiver[
@@ -120,11 +114,6 @@ func NewABCIMiddleware[
 	GenesisT Genesis,
 ](
 	chainSpec common.ChainSpec,
-	validatorService ValidatorService[
-		BeaconBlockT,
-		BeaconStateT,
-		BlobSidecarsT,
-	],
 	chainService BlockchainService[
 		BeaconBlockT, BlobSidecarsT, DepositT, GenesisT,
 	],
@@ -145,10 +134,9 @@ func NewABCIMiddleware[
 		AvailabilityStoreT, BeaconBlockT, BeaconStateT,
 		BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
 	]{
-		chainSpec:        chainSpec,
-		validatorService: validatorService,
-		chainService:     chainService,
-		daService:        daService,
+		chainSpec:    chainSpec,
+		chainService: chainService,
+		daService:    daService,
 		blobGossiper: rp2p.NewNoopBlobHandler[
 			BlobSidecarsT, encoding.ABCIRequest](),
 		beaconBlockGossiper: rp2p.

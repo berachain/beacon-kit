@@ -33,12 +33,12 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// RequestBlockForProposal builds a new beacon block.
+// buildBlockAndSidecars builds a new beacon block.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
 	ExecutionPayloadHeaderT, ForkDataT,
-]) RequestBlockForProposal(
+]) buildBlockAndSidecars(
 	ctx context.Context,
 	requestedSlot math.Slot,
 ) (BeaconBlockT, BlobSidecarsT, error) {

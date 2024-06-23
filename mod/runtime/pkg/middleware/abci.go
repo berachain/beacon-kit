@@ -222,13 +222,12 @@ func (h *ABCIMiddleware[
 	}
 
 	g.Go(func() error {
-		// TODO: Do we want to emit if nil?
 		h.blkFeed.Send(asynctypes.NewEvent(
-			ctx, events.BeaconBlockReceived, blk,
+			gCtx, events.BeaconBlockReceived, blk,
 		))
 
 		if err = h.chainService.ReceiveBlock(
-			ctx, blk,
+			gCtx, blk,
 		); !errors.IsFatal(err) {
 			err = nil
 		}
@@ -248,7 +247,7 @@ func (h *ABCIMiddleware[
 
 		// TODO: Do we want to emit if nil?
 		h.sidecarsFeed.Send(asynctypes.NewEvent(
-			ctx, events.BlobSidecarsReceived, sidecars,
+			gCtx, events.BlobSidecarsReceived, sidecars,
 		))
 
 		if err = h.daService.ReceiveSidecars(

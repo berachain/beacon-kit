@@ -219,7 +219,7 @@ func (s *Service[
 	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
 	ExecutionPayloadHeaderT, ForkDataT,
 ]) handleNewSlot(req *asynctypes.Event[math.Slot]) {
-	blk, sidecars, err := s.RequestBlockForProposal(
+	blk, sidecars, err := s.buildBlockAndSidecars(
 		req.Context(), req.Data(),
 	)
 	if err != nil {
