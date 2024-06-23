@@ -45,6 +45,7 @@ type WriteOnlyBeaconBlockBody interface {
 	SetExecutionData(*ExecutionPayload) error
 	SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
 	SetRandaoReveal(crypto.BLSSignature)
+	SetGraffiti(bytes.B32)
 }
 
 // ReadOnlyBeaconBlockBody is the interface for
