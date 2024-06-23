@@ -31,7 +31,7 @@ import (
 
 // Benchmark function for phuslu logger.
 func BenchmarkPhusluLoggerInfo(b *testing.B) {
-	logger := phuslu.NewLogger[log.Logger]("Info", &bytes.Buffer{})
+	logger := newPhusluLoggerWithLevel("Info")
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		logger.Info("This is an info message", "key1", "value1", "key2", 2)
@@ -40,12 +40,7 @@ func BenchmarkPhusluLoggerInfo(b *testing.B) {
 
 // Benchmark function for SDK logger Info.
 func BenchmarkSDKLoggerInfo(b *testing.B) {
-	serverCtx := server.NewDefaultContext()
-	serverCtx.Viper.Set("log_level", "Info")
-	logger, err := server.CreateSDKLogger(serverCtx, &bytes.Buffer{})
-	if err != nil {
-		b.Fatalf("failed to create cosmos logger: %v", err)
-	}
+	logger := newSDKLoggerWithLevel(b, "Info")
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		logger.Info("This is an info message", "key1", "value1", "key2", 2)
@@ -54,7 +49,7 @@ func BenchmarkSDKLoggerInfo(b *testing.B) {
 
 // Benchmark function for phuslu logger Warn.
 func BenchmarkPhusluLoggerWarn(b *testing.B) {
-	logger := phuslu.NewLogger[log.Logger]("Debug", &bytes.Buffer{})
+	logger := newPhusluLoggerWithLevel("Warn")
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		logger.Warn("This is a warning message", "key1", "value1", "key2", 2)
@@ -63,12 +58,7 @@ func BenchmarkPhusluLoggerWarn(b *testing.B) {
 
 // Benchmark function for cosmos logger Warn.
 func BenchmarkSDKLoggerWarn(b *testing.B) {
-	serverCtx := server.NewDefaultContext()
-	serverCtx.Viper.Set("log_level", "Debug")
-	logger, err := server.CreateSDKLogger(serverCtx, &bytes.Buffer{})
-	if err != nil {
-		b.Fatalf("failed to create cosmos logger: %v", err)
-	}
+	logger := newSDKLoggerWithLevel(b, "Warn")
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		logger.Warn("This is a warning message", "key1", "value1", "key2", 2)
@@ -77,7 +67,7 @@ func BenchmarkSDKLoggerWarn(b *testing.B) {
 
 // Benchmark function for phuslu logger Error.
 func BenchmarkPhusluLoggerError(b *testing.B) {
-	logger := phuslu.NewLogger[log.Logger]("Error", &bytes.Buffer{})
+	logger := newPhusluLoggerWithLevel("Error")
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		logger.Error("This is an error message", "key1", "value1", "key2", 2)
@@ -86,13 +76,7 @@ func BenchmarkPhusluLoggerError(b *testing.B) {
 
 // Benchmark function for cosmos logger Error.
 func BenchmarkSDKLoggerError(b *testing.B) {
-	serverCtx := server.NewDefaultContext()
-	serverCtx.Viper.Set("log_level", "Debug")
-	logger, err := server.CreateSDKLogger(server.NewDefaultContext(),
-		&bytes.Buffer{})
-	if err != nil {
-		b.Fatalf("failed to create cosmos logger: %v", err)
-	}
+	logger := newSDKLoggerWithLevel(b, "Error")
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		logger.Error("This is an error message", "key1", "value1", "key2", 2)
@@ -101,7 +85,7 @@ func BenchmarkSDKLoggerError(b *testing.B) {
 
 // Benchmark function for phuslu logger Debug.
 func BenchmarkPhusluLoggerDebug(b *testing.B) {
-	logger := phuslu.NewLogger[log.Logger]("Debug", &bytes.Buffer{})
+	logger := newPhusluLoggerWithLevel("Debug")
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		logger.Debug("This is a debug message", "key1", "value1", "key2", 2)
@@ -109,7 +93,7 @@ func BenchmarkPhusluLoggerDebug(b *testing.B) {
 }
 
 func BenchmarkPhusluLoggerDebugSilent(b *testing.B) {
-	logger := phuslu.NewLogger[log.Logger]("Info", &bytes.Buffer{})
+	logger := newPhusluLoggerWithLevel("Info")
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		logger.Debug("This is a debug message", "key1", "value1", "key2", 2)
@@ -118,12 +102,7 @@ func BenchmarkPhusluLoggerDebugSilent(b *testing.B) {
 
 // Benchmark function for cosmos logger Debug.
 func BenchmarkSDKLoggerDebug(b *testing.B) {
-	serverCtx := server.NewDefaultContext()
-	serverCtx.Viper.Set("log_level", "Debug")
-	logger, err := server.CreateSDKLogger(serverCtx, &bytes.Buffer{})
-	if err != nil {
-		b.Fatalf("failed to create cosmos logger: %v", err)
-	}
+	logger := newSDKLoggerWithLevel(b, "Debug")
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		logger.Debug("This is a debug message", "key1", "value1", "key2", 2)
@@ -131,12 +110,7 @@ func BenchmarkSDKLoggerDebug(b *testing.B) {
 }
 
 func BenchmarkSDKLoggerDebugSilent(b *testing.B) {
-	serverCtx := server.NewDefaultContext()
-	serverCtx.Viper.Set("log_level", "Info")
-	logger, err := server.CreateSDKLogger(serverCtx, &bytes.Buffer{})
-	if err != nil {
-		b.Fatalf("failed to create cosmos logger: %v", err)
-	}
+	logger := newSDKLoggerWithLevel(b, "Info")
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		logger.Debug("This is a debug message", "key1", "value1", "key2", 2)
@@ -145,7 +119,7 @@ func BenchmarkSDKLoggerDebugSilent(b *testing.B) {
 
 // Benchmark function for phuslu logger With.
 func BenchmarkPhusluLoggerWith(b *testing.B) {
-	logger := phuslu.NewLogger[log.Logger]("Debug", &bytes.Buffer{})
+	logger := newPhusluLoggerWithLevel("Info")
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		newLogger := logger.With("contextKey", "contextValue")
@@ -156,16 +130,32 @@ func BenchmarkPhusluLoggerWith(b *testing.B) {
 
 // Benchmark function for cosmos logger With.
 func BenchmarkSDKLoggerWith(b *testing.B) {
-	serverCtx := server.NewDefaultContext()
-	serverCtx.Viper.Set("log_level", "Debug")
-	logger, err := server.CreateSDKLogger(serverCtx, &bytes.Buffer{})
-	if err != nil {
-		b.Fatalf("failed to create cosmos logger: %v", err)
-	}
+	logger := newSDKLoggerWithLevel(b, "Debug")
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		newLogger := logger.With("contextKey", "contextValue")
 		newLogger.Info("This is a contextual info message", "key1", "value1",
 			"key2", 2)
 	}
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   Helpers                                  */
+/* -------------------------------------------------------------------------- */
+
+// setup func to create a new cosmos logger with the given log level.
+func newSDKLoggerWithLevel(b *testing.B, level string) log.Logger {
+	b.Helper()
+	serverCtx := server.NewDefaultContext()
+	serverCtx.Viper.Set("log_level", level)
+	logger, err := server.CreateSDKLogger(serverCtx, &bytes.Buffer{})
+	if err != nil {
+		b.Fatalf("failed to create cosmos logger: %v", err)
+	}
+	return logger
+}
+
+// setup func to create a new phuslu logger with the given log level.
+func newPhusluLoggerWithLevel(level string) log.Logger {
+	return phuslu.NewLogger[log.Logger](level, &bytes.Buffer{})
 }
