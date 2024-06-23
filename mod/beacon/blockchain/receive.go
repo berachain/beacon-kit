@@ -32,18 +32,7 @@ import (
 // ReceiveBlock receives a block and blobs from the
 // network and processes them.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconBlockHeaderT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	ExecutionPayloadT,
-	ExecutionPayloadHeaderT,
-	GenesisT,
-	PayloadAttributesT,
-	_,
+	_, BeaconBlockT, _, _, _, _, _, _, _, _, _, _,
 ]) ReceiveBlock(
 	ctx context.Context,
 	blk BeaconBlockT,
