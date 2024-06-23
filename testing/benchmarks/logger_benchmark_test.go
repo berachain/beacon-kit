@@ -145,6 +145,7 @@ func BenchmarkSDKLoggerWith(b *testing.B) {
 
 // setup func to create a new cosmos logger with the given log level.
 func newSDKLoggerWithLevel(b *testing.B, level string) log.Logger {
+	b.Helper()
 	serverCtx := server.NewDefaultContext()
 	serverCtx.Viper.Set("log_level", level)
 	logger, err := server.CreateSDKLogger(serverCtx, &bytes.Buffer{})
