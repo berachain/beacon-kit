@@ -26,27 +26,14 @@ import (
 	"github.com/phuslu/log"
 )
 
-// colours.
-const (
-	reset      = "\x1b[0m"
-	black      = "\x1b[30m"
-	red        = "\x1b[31m"
-	green      = "\x1b[32m"
-	yellow     = "\x1b[33m"
-	blue       = "\x1b[34m"
-	magenta    = "\x1b[35m"
-	cyan       = "\x1b[36m"
-	white      = "\x1b[37m"
-	gray       = "\x1b[90m"
-	lightWhite = "\x1b[97m"
-)
-
 // Formatter is a custom formatter for log messages.
-type Formatter struct{}
+type Formatter struct {
+	cfg *Config
+}
 
 // NewFormatter creates a new Formatter with default settings.
-func NewFormatter() *Formatter {
-	return &Formatter{}
+func NewFormatter(cfg *Config) *Formatter {
+	return &Formatter{cfg: cfg}
 }
 
 // Format formats the log message.
@@ -62,27 +49,27 @@ func (f *Formatter) Format(
 	buffer.Reset()
 	defer byteBufferPool.Put(buffer)
 
-	var color, level string
+	var color, label string
 	switch args.Level {
 	case "trace":
-		color, level = magenta, "TRCE"
+		color, label = f.cfg.TraceColor, f.cfg.TraceLabel
 	case "debug":
-		color, level = yellow, "DBUG"
+		color, label = f.cfg.DebugColor, f.cfg.DebugLabel
 	case "info":
-		color, level = green, "INFO"
+		color, label = f.cfg.InfoColor, f.cfg.InfoLabel
 	case "warn":
-		color, level = yellow, "WARN"
+		color, label = f.cfg.WarnColor, f.cfg.WarnLabel
 	case "error":
-		color, level = red, "ERRR"
+		color, label = f.cfg.ErrorColor, f.cfg.ErrorLabel
 	case "fatal":
-		color, level = red, "FATAL"
+		color, label = f.cfg.FatalColor, f.cfg.FatalLabel
 	case "panic":
-		color, level = red, "PANIC"
+		color, label = f.cfg.PanicColor, f.cfg.PanicLabel
 	default:
-		color, level = gray, " ???"
+		color, label = f.cfg.DefaultColor, f.cfg.DefaultLabel
 	}
 
-	f.printWithColor(args, buffer, color, level)
+	f.printWithColor(args, buffer, color, label)
 	f.ensureLineBreak(buffer)
 
 	if args.Stack != "" {
@@ -99,9 +86,9 @@ func (f *Formatter) Format(
 func (f *Formatter) printWithColor(
 	args *log.FormatterArgs,
 	b *byteBuffer,
-	color, level string,
+	color, label string,
 ) {
-	f.formatHeader(args, b, color, level)
+	f.formatHeader(args, b, color, label)
 
 	b.Bytes = append(b.Bytes, ' ')
 	b.Bytes = append(b.Bytes, args.Message...)
@@ -121,13 +108,13 @@ func (f *Formatter) printWithColor(
 func (f *Formatter) formatHeader(
 	args *log.FormatterArgs,
 	b *byteBuffer,
-	color, level string,
+	color, label string,
 ) {
 	b.Bytes = append(b.Bytes, gray...)
 	b.Bytes = append(b.Bytes, args.Time...)
 	b.Bytes = append(b.Bytes, ' ')
 	b.Bytes = append(b.Bytes, color...)
-	b.Bytes = append(b.Bytes, level...)
+	b.Bytes = append(b.Bytes, label...)
 	if args.Caller != "" {
 		b.Bytes = append(b.Bytes, args.Goid...)
 		b.Bytes = append(b.Bytes, ' ')

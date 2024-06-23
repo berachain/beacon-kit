@@ -37,15 +37,14 @@ type Logger[ImplT any] struct {
 // NewLogger creates a new logger with the given log level, ConsoleWriter, and
 // default configuration.
 func NewLogger[ImplT any](
-	level string, out io.Writer,
+	level string, cfg Config, out io.Writer,
 ) *Logger[ImplT] {
-	cfg := DefaultConfig()
 	logger := &log.Logger{
 		Level:      log.ParseLevel(level),
 		TimeFormat: cfg.TimeFormat,
 		Writer: &log.ConsoleWriter{
 			Writer:    out,
-			Formatter: (NewFormatter().Format),
+			Formatter: (NewFormatter(&cfg).Format),
 		},
 	}
 	return &Logger[ImplT]{
