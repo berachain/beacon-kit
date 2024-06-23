@@ -209,14 +209,14 @@ func (h *ABCIMiddleware[
 		blk       BeaconBlockT
 		sidecars  BlobSidecarsT
 		err       error
-		g, gCtx   = errgroup.WithContext(ctx)
+		g, _      = errgroup.WithContext(ctx)
 		startTime = time.Now()
 		args      = []any{"beacon_block", true, "blob_sidecars", true}
 	)
 	defer h.metrics.measureProcessProposalDuration(startTime)
 
 	// Decode the beacon block and emit an event.
-	blk, err = h.beaconBlockGossiper.Request(gCtx, req)
+	blk, err = h.beaconBlockGossiper.Request(ctx, req)
 	if err != nil {
 		args[1] = false
 	}
@@ -224,7 +224,7 @@ func (h *ABCIMiddleware[
 	g.Go(func() error {
 		// Emit event to notify the block has been received.
 		h.blkFeed.Send(asynctypes.NewEvent(
-			gCtx, events.BeaconBlockReceived, blk, err,
+			ctx, events.BeaconBlockReceived, blk, err,
 		))
 
 		if err = h.chainService.ReceiveBlock(
@@ -243,18 +243,18 @@ func (h *ABCIMiddleware[
 		}
 
 		// Decode the blob sidecars and emit an event.
-		sidecars, err = h.blobGossiper.Request(gCtx, req)
+		sidecars, err = h.blobGossiper.Request(ctx, req)
 		if err != nil {
 			args[3] = false
 		}
 
 		// Emit event to notify the sidecars have been received.
 		h.sidecarsFeed.Send(asynctypes.NewEvent(
-			gCtx, events.BlobSidecarsReceived, sidecars, err,
+			ctx, events.BlobSidecarsReceived, sidecars, err,
 		))
 
 		if err = h.daService.ReceiveSidecars(
-			gCtx, blk.GetSlot(), sidecars,
+			ctx, blk.GetSlot(), sidecars,
 		); !errors.IsFatal(err) {
 			err = nil
 		}

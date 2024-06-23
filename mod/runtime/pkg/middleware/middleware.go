@@ -196,8 +196,6 @@ func (am *ABCIMiddleware[
 			case events.BeaconBlockBuilt:
 				fallthrough
 			case events.BeaconBlockVerified:
-				fallthrough
-			case events.BeaconBlockFinalized:
 				am.blkCh <- msg
 			}
 		case msg := <-subSidecarsCh:
