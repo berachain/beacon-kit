@@ -47,7 +47,7 @@ func (s *Service[
 ]) ProcessGenesisData(
 	ctx context.Context,
 	genesisData GenesisT,
-) ([]*transition.ValidatorUpdate, error) {
+) (transition.ValidatorUpdates, error) {
 	return s.sp.InitializePreminedBeaconStateFromEth1(
 		s.sb.StateFromContext(ctx),
 		genesisData.GetDeposits(),
@@ -74,7 +74,7 @@ func (s *Service[
 ]) ProcessBeaconBlock(
 	ctx context.Context,
 	blk BeaconBlockT,
-) ([]*transition.ValidatorUpdate, error) {
+) (transition.ValidatorUpdates, error) {
 	// If the block is nil, exit early.
 	if blk.IsNil() {
 		return nil, ErrNilBlk
@@ -133,7 +133,7 @@ func (s *Service[
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
-) ([]*transition.ValidatorUpdate, error) {
+) (transition.ValidatorUpdates, error) {
 	startTime := time.Now()
 	defer s.metrics.measureStateTransitionDuration(startTime)
 	valUpdates, err := s.sp.Transition(

@@ -31,9 +31,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	rp2p "github.com/berachain/beacon-kit/mod/runtime/pkg/p2p"
+	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
 // ABCIMiddleware is a middleware between ABCI and the validator logic.
@@ -93,6 +93,9 @@ type ABCIMiddleware[
 	slotFeed *event.FeedOf[
 		asynctypes.EventID, *asynctypes.Event[math.Slot]]
 
+	// TODO: this is a temporary hack.
+	req *cmtabci.FinalizeBlockRequest
+
 	// Channels
 	//
 	// PrepareProposal
@@ -104,12 +107,6 @@ type ABCIMiddleware[
 	prepareProposalBlkCh chan *asynctypes.Event[BeaconBlockT]
 	// sidecarsCh is used to communicate the sidecars to the EndBlock method.
 	prepareProposalSidecarsCh chan *asynctypes.Event[BlobSidecarsT]
-	//
-	// FinalizeBlock
-	//
-	// valUpdatesCh is used to communicate the validator updates to the
-	// EndBlock method.
-	valUpdatesCh chan transition.ValidatorUpdates
 }
 
 // NewABCIMiddleware creates a new instance of the Handler struct.
@@ -163,7 +160,6 @@ func NewABCIMiddleware[
 		blkFeed:      blkFeed,
 		sidecarsFeed: sidecarsFeed,
 		slotFeed:     slotFeed,
-		valUpdatesCh: make(chan transition.ValidatorUpdates),
 		prepareProposalBlkCh: make(
 			chan *asynctypes.Event[BeaconBlockT],
 			1,

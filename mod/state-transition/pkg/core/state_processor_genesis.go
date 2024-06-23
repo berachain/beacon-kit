@@ -43,7 +43,7 @@ func (sp *StateProcessor[
 	deposits []DepositT,
 	executionPayloadHeader ExecutionPayloadHeaderT,
 	genesisVersion common.Version,
-) ([]*transition.ValidatorUpdate, error) {
+) (transition.ValidatorUpdates, error) {
 	var (
 		blkHeader BeaconBlockHeaderT
 		blkBody   BeaconBlockBodyT
@@ -156,7 +156,7 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	var updates []*transition.ValidatorUpdate
+	var updates transition.ValidatorUpdates
 	updates, err = sp.processSyncCommitteeUpdates(st)
 	if err != nil {
 		return nil, err

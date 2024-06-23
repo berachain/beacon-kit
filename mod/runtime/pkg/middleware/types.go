@@ -69,13 +69,13 @@ type BlockchainService[
 	ProcessGenesisData(
 		context.Context,
 		GenesisT,
-	) ([]*transition.ValidatorUpdate, error)
+	) (transition.ValidatorUpdates, error)
 	// ProcessBeaconBlock processes the given beacon block and associated
 	// blobs sidecars.
 	ProcessBeaconBlock(
 		context.Context,
 		BeaconBlockT,
-	) ([]*transition.ValidatorUpdate, error)
+	) (transition.ValidatorUpdates, error)
 	// ReceiveBlock receives a beacon block and
 	// associated blobs sidecars for processing.
 	ReceiveBlock(
