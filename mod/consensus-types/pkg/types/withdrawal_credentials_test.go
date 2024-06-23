@@ -110,8 +110,8 @@ func TestWithdrawalCredentials_UnmarshalJSON(t *testing.T) {
 	}{
 		{
 			name: "valid JSON",
-			input: `"0x01000000000000000000000000000000
-					 00000000000000000000000000000000"`,
+			input: `"0x0100000000000000000000000000000` +
+				`000000000000000000000000000000000"`,
 			expected: types.WithdrawalCredentials{0x01},
 			wantErr:  false,
 		},
