@@ -75,14 +75,14 @@ func EncodeBlobs(
 	commits := make([]kzg4844.Commitment, 0, len(blobs))
 	proofs := make([]kzg4844.Proof, 0, len(blobs))
 	versionedHashes := make([]common.Hash, 0, len(blobs))
-	for _, blob := range blobs {
-		commit, err := kzg4844.BlobToCommitment(&blob)
+	for i := range blobs {
+		commit, err := kzg4844.BlobToCommitment(&blobs[i])
 		if err != nil {
 			return nil, nil, nil, nil, err
 		}
 		commits = append(commits, commit)
 
-		proof, err := kzg4844.ComputeBlobProof(&blob, commit)
+		proof, err := kzg4844.ComputeBlobProof(&blobs[i], commit)
 		if err != nil {
 			return nil, nil, nil, nil, err
 		}
