@@ -39,13 +39,15 @@ import (
 // from the Ethereum 2.0 Specification.
 type Engine[
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, *engineprimitives.Withdrawal,
+		ExecutionPayloadT, WithdrawalT,
 	],
+	PayloadAttributesT engineprimitives.PayloadAttributer,
 	PayloadIDT ~[8]byte,
+	WithdrawalT Withdrawal[WithdrawalT],
 ] struct {
 	// ec is the engine client that the engine will use to
 	// interact with the execution layer.
-	ec *client.EngineClient[ExecutionPayloadT]
+	ec *client.EngineClient[ExecutionPayloadT, PayloadAttributesT]
 	// logger is the logger for the engine.
 	logger log.Logger[any]
 	// metrics is the metrics for the engine.
@@ -60,19 +62,23 @@ type Engine[
 // New creates a new Engine.
 func New[
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, *engineprimitives.Withdrawal,
+		ExecutionPayloadT, WithdrawalT,
 	],
+	PayloadAttributesT engineprimitives.PayloadAttributer,
 	PayloadIDT ~[8]byte,
+	WithdrawalT Withdrawal[WithdrawalT],
 ](
-	ec *client.EngineClient[ExecutionPayloadT],
+	ec *client.EngineClient[ExecutionPayloadT, PayloadAttributesT],
 	logger log.Logger[any],
 	statusFeed *event.FeedOf[
 		asynctypes.EventID,
 		*asynctypes.Event[*service.StatusEvent],
 	],
 	telemtrySink TelemetrySink,
-) *Engine[ExecutionPayloadT, PayloadIDT] {
-	return &Engine[ExecutionPayloadT, PayloadIDT]{
+) *Engine[
+	ExecutionPayloadT, PayloadAttributesT, PayloadIDT, WithdrawalT,
+] {
+	return &Engine[ExecutionPayloadT, PayloadAttributesT, PayloadIDT, WithdrawalT]{
 		ec:         ec,
 		logger:     logger,
 		metrics:    newEngineMetrics(telemtrySink, logger),
@@ -81,7 +87,7 @@ func New[
 }
 
 // Start spawns any goroutines required by the service.
-func (ee *Engine[ExecutionPayloadT, PayloadIDT]) Start(
+func (ee *Engine[_, _, _, _]) Start(
 	ctx context.Context,
 ) error {
 	go func() {
@@ -94,7 +100,9 @@ func (ee *Engine[ExecutionPayloadT, PayloadIDT]) Start(
 }
 
 // GetPayload returns the payload and blobs bundle for the given slot.
-func (ee *Engine[ExecutionPayloadT, PayloadIDT]) GetPayload(
+func (ee *Engine[
+	ExecutionPayloadT, _, _, _,
+]) GetPayload(
 	ctx context.Context,
 	req *engineprimitives.GetPayloadRequest[engineprimitives.PayloadID],
 ) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
@@ -105,13 +113,14 @@ func (ee *Engine[ExecutionPayloadT, PayloadIDT]) GetPayload(
 }
 
 // NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
-func (ee *Engine[ExecutionPayloadT, PayloadIDT]) NotifyForkchoiceUpdate(
+func (ee *Engine[
+	_, PayloadAttributesT, _, _,
+]) NotifyForkchoiceUpdate(
 	ctx context.Context,
-	req *engineprimitives.ForkchoiceUpdateRequest,
+	req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
 	// Log the forkchoice update attempt.
-	hasPayloadAttributes := req.PayloadAttributes != nil &&
-		!req.PayloadAttributes.IsNil()
+	hasPayloadAttributes := !req.PayloadAttributes.IsNil()
 	ee.metrics.markNotifyForkchoiceUpdateCalled(
 		req.State, hasPayloadAttributes,
 	)
@@ -176,10 +185,13 @@ func (ee *Engine[ExecutionPayloadT, PayloadIDT]) NotifyForkchoiceUpdate(
 
 // VerifyAndNotifyNewPayload verifies the new payload and notifies the
 // execution client.
-func (ee *Engine[ExecutionPayloadT, PayloadIDT]) VerifyAndNotifyNewPayload(
+func (ee *Engine[
+	ExecutionPayloadT, _, _, WithdrawalT,
+]) VerifyAndNotifyNewPayload(
 	ctx context.Context,
 	req *engineprimitives.NewPayloadRequest[
-		ExecutionPayloadT, *engineprimitives.Withdrawal],
+		ExecutionPayloadT, WithdrawalT,
+	],
 ) error {
 	// Log the new payload attempt.
 	ee.metrics.markNewPayloadCalled(

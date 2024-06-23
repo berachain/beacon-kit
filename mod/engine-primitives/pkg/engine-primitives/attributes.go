@@ -32,9 +32,6 @@ type PayloadAttributer interface {
 	IsNil() bool
 	// Version returns the version of the PayloadAttributer.
 	Version() uint32
-	// Validate checks if the PayloadAttributer is valid and returns an error if
-	// it is not.
-	Validate() error
 	// GetSuggestedFeeRecipient returns the suggested fee recipient for the
 	// block.
 	GetSuggestedFeeRecipient() common.ExecutionAddress
@@ -90,6 +87,27 @@ func NewPayloadAttributes[
 	}
 
 	return p, nil
+}
+
+// New empty PayloadAttributes.
+func (p *PayloadAttributes[WithdrawalT]) New(
+	forkVersion uint32,
+	timestamp uint64,
+	prevRandao common.Bytes32,
+	suggestedFeeRecipient common.ExecutionAddress,
+	withdrawals []WithdrawalT,
+	parentBeaconBlockRoot common.Root,
+) (*PayloadAttributes[WithdrawalT], error) {
+	var err error
+	p, err = NewPayloadAttributes(
+		forkVersion,
+		timestamp,
+		prevRandao,
+		suggestedFeeRecipient,
+		withdrawals,
+		parentBeaconBlockRoot,
+	)
+	return p, err
 }
 
 // IsNil returns true if the PayloadAttributes is nil.

@@ -21,7 +21,6 @@
 package attributes
 
 import (
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -29,7 +28,18 @@ import (
 
 // Factory is a factory for creating payload attributes.
 type Factory[
-	BeaconStateT BeaconState[WithdrawalT], WithdrawalT any,
+	BeaconStateT BeaconState[WithdrawalT],
+	PayloadAttributesT interface {
+		New(
+			uint32,
+			uint64,
+			common.Bytes32,
+			common.ExecutionAddress,
+			[]WithdrawalT,
+			common.Root,
+		) (PayloadAttributesT, error)
+	},
+	WithdrawalT any,
 ] struct {
 	// chainSpec is the chain spec for the attributes factory.
 	chainSpec common.ChainSpec
@@ -42,13 +52,24 @@ type Factory[
 
 // NewAttributesFactory creates a new instance of AttributesFactory.
 func NewAttributesFactory[
-	BeaconStateT BeaconState[WithdrawalT], WithdrawalT any,
+	BeaconStateT BeaconState[WithdrawalT],
+	PayloadAttributesT interface {
+		New(
+			uint32,
+			uint64,
+			common.Bytes32,
+			common.ExecutionAddress,
+			[]WithdrawalT,
+			common.Root,
+		) (PayloadAttributesT, error)
+	},
+	WithdrawalT any,
 ](
 	chainSpec common.ChainSpec,
 	logger log.Logger[any],
 	suggestedFeeRecipient common.ExecutionAddress,
-) *Factory[BeaconStateT, WithdrawalT] {
-	return &Factory[BeaconStateT, WithdrawalT]{
+) *Factory[BeaconStateT, PayloadAttributesT, WithdrawalT] {
+	return &Factory[BeaconStateT, PayloadAttributesT, WithdrawalT]{
 		chainSpec:             chainSpec,
 		logger:                logger,
 		suggestedFeeRecipient: suggestedFeeRecipient,
@@ -56,14 +77,17 @@ func NewAttributesFactory[
 }
 
 // CreateAttributes creates a new instance of PayloadAttributes.
-func (f *Factory[BeaconStateT, WithdrawalT]) BuildPayloadAttributes(
+func (f *Factory[
+	BeaconStateT, PayloadAttributesT, WithdrawalT,
+]) BuildPayloadAttributes(
 	st BeaconStateT,
 	slot math.Slot,
 	timestamp uint64,
 	prevHeadRoot [32]byte,
-) (engineprimitives.PayloadAttributer, error) {
+) (PayloadAttributesT, error) {
 	var (
 		prevRandao [32]byte
+		attributes PayloadAttributesT
 		epoch      = f.chainSpec.SlotToEpoch(slot)
 	)
 
@@ -75,17 +99,17 @@ func (f *Factory[BeaconStateT, WithdrawalT]) BuildPayloadAttributes(
 			"error",
 			err,
 		)
-		return nil, err
+		return attributes, err
 	}
 
 	// Get the previous randao mix.
 	if prevRandao, err = st.GetRandaoMixAtIndex(
 		uint64(epoch) % f.chainSpec.EpochsPerHistoricalVector(),
 	); err != nil {
-		return nil, err
+		return attributes, err
 	}
 
-	return engineprimitives.NewPayloadAttributes(
+	return attributes.New(
 		f.chainSpec.ActiveForkVersionForEpoch(epoch),
 		timestamp,
 		prevRandao,

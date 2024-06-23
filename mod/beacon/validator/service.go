@@ -215,11 +215,9 @@ func (s *Service[
 
 // handleBlockRequest handles a block request.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
-	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ForkDataT,
+	_, _, _, _, _, _, _, _, _, _,
 ]) handleNewSlot(req *asynctypes.Event[math.Slot]) {
-	blk, sidecars, err := s.RequestBlockForProposal(
+	blk, sidecars, err := s.buildBlockAndSidecars(
 		req.Context(), req.Data(),
 	)
 	if err != nil {
