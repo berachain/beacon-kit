@@ -30,7 +30,7 @@ ARG CMD_PATH=./beacond/cmd
 ###         Stage 1 - Cache Go Modules              ###
 #######################################################
 
-FROM golang:${GO_VERSION}-alpine3.19 as mod-cache
+FROM golang:${GO_VERSION}-alpine3.19 AS mod-cache
 
 WORKDIR /workdir
 
@@ -87,7 +87,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 ###         Stage 2 - Build the Application         ###
 #######################################################
 
-FROM golang:${GO_VERSION}-alpine3.19 as builder
+FROM golang:${GO_VERSION}-alpine3.19 AS builder
 
 ARG GIT_VERSION
 ARG GIT_COMMIT

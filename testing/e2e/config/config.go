@@ -197,7 +197,7 @@ func defaultValidators() NodeSet {
 			},
 			{
 				ElType:   "erigon",
-				Replicas: 1,
+				Replicas: 0,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
@@ -230,7 +230,7 @@ func defaultFullNodes() NodeSet {
 			},
 			{
 				ElType:   "erigon",
-				Replicas: 1,
+				Replicas: 0,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
