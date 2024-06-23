@@ -270,7 +270,7 @@ func (h *ABCIMiddleware[
 func (h *ABCIMiddleware[
 	_, _, _, _, _, _, _,
 ]) PreBlock(
-	ctx sdk.Context, req *cmtabci.FinalizeBlockRequest,
+	_ sdk.Context, req *cmtabci.FinalizeBlockRequest,
 ) error {
 	h.req = req
 	return nil
@@ -301,7 +301,7 @@ func (h *ABCIMiddleware[
 		))
 	if err != nil {
 		// If we don't have a block, we can't do anything.
-		//nolint:nilnil // its okay.
+		//nolint:nilerr // by design.
 		return nil, nil
 	}
 
