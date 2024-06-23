@@ -228,7 +228,7 @@ func (h *ABCIMiddleware[
 		))
 
 		if err = h.chainService.ReceiveBlock(
-			gCtx, blk,
+			ctx, blk,
 		); !errors.IsFatal(err) {
 			err = nil
 		}
