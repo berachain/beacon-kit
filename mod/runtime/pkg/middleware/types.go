@@ -36,6 +36,7 @@ import (
 type BeaconBlock[T any] interface {
 	ssz.Marshallable
 	IsNil() bool
+	GetSlot() math.Slot
 	NewFromSSZ([]byte, uint32) (T, error)
 }
 
@@ -69,20 +70,35 @@ type BlockchainService[
 		context.Context,
 		GenesisT,
 	) ([]*transition.ValidatorUpdate, error)
-	// ProcessBlockAndBlobs processes the given beacon block and associated
+	// ProcessBeaconBlock processes the given beacon block and associated
 	// blobs sidecars.
-	ProcessBlockAndBlobs(
+	ProcessBeaconBlock(
 		context.Context,
 		BeaconBlockT,
-		BlobSidecarsT,
 	) ([]*transition.ValidatorUpdate, error)
-
-	// ReceiveBlockAndBlobs receives a beacon block and
+	// ReceiveBlock receives a beacon block and
 	// associated blobs sidecars for processing.
-	ReceiveBlockAndBlobs(
+	ReceiveBlock(
 		ctx context.Context,
 		blk BeaconBlockT,
-		blobs BlobSidecarsT,
+	) error
+}
+
+// DAService.
+type DAService[
+	BlobSidecarsT any,
+] interface {
+	// ProcessSidecars
+	ProcessSidecars(
+		context.Context,
+		math.Slot,
+		BlobSidecarsT,
+	) error
+	// ReceiveSidecars
+	ReceiveSidecars(
+		_ context.Context,
+		slot math.Slot,
+		sidecars BlobSidecarsT,
 	) error
 }
 

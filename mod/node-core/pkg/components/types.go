@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
+	"github.com/berachain/beacon-kit/mod/da/pkg/da"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
@@ -121,6 +122,14 @@ type (
 		*Genesis,
 		*engineprimitives.PayloadAttributes[*Withdrawal],
 		*Withdrawal,
+	]
+
+	// DAService is a type alias for the DA service.
+	DAService = da.Service[
+		*dastore.Store[*BeaconBlockBody],
+		*BeaconBlockBody,
+		*BlobSidecars,
+		*ExecutionPayload,
 	]
 
 	// DBManager is a type alias for the database manager.

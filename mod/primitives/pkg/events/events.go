@@ -21,11 +21,13 @@
 package events
 
 const (
-	MissedSlot           = "missed-slot"
-	NewSlot              = "new-slot"
-	BeaconBlockBuilt     = "beacon-block-built"
-	BeaconBlockAccepted  = "beacon-block-accepted"
-	BeaconBlockRejected  = "beacon-block-rejected"
-	BeaconBlockFinalized = "beacon-block-finalized"
-	BlobSidecarsBuilt    = "blob-sidecars-built"
+	MissedSlot            = "missed-slot"
+	NewSlot               = "new-slot"
+	BeaconBlockBuilt      = "beacon-block-built"
+	BeaconBlockAccepted   = "beacon-block-accepted"
+	BeaconBlockRejected   = "beacon-block-rejected"
+	BeaconBlockFinalized  = "beacon-block-finalized"
+	BlobSidecarsBuilt     = "blob-sidecars-built"
+	BlobSidecarsReceived  = "blob-sidecars-received"
+	BlobSidecarsProcessed = "blob-sidecars-processed"
 )

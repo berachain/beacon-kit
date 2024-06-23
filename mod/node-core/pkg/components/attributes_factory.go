@@ -32,12 +32,8 @@ func ProvideAttributesFactory[
 	BeaconStateT attributes.BeaconState[WithdrawalT],
 	PayloadAttributesT interface {
 		New(
-			uint32,
-			uint64,
-			common.Bytes32,
-			common.ExecutionAddress,
-			[]WithdrawalT,
-			common.Root,
+			uint32, uint64, common.Bytes32, common.ExecutionAddress,
+			[]WithdrawalT, common.Root,
 		) (PayloadAttributesT, error)
 	},
 	WithdrawalT any,

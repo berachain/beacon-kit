@@ -52,6 +52,8 @@ type ABCIMiddleware[
 	chainService BlockchainService[
 		BeaconBlockT, BlobSidecarsT, DepositT, GenesisT,
 	]
+	// daService is the service responsible for building the data availability
+	daService DAService[BlobSidecarsT]
 	// validatorService is the service responsible for building beacon blocks.
 	validatorService ValidatorService[
 		BeaconBlockT,
@@ -129,6 +131,7 @@ func NewABCIMiddleware[
 	chainService BlockchainService[
 		BeaconBlockT, BlobSidecarsT, DepositT, GenesisT,
 	],
+	daService DAService[BlobSidecarsT],
 	logger log.Logger[any],
 	telemetrySink TelemetrySink,
 	blkFeed *event.FeedOf[
@@ -148,6 +151,7 @@ func NewABCIMiddleware[
 		chainSpec:        chainSpec,
 		validatorService: validatorService,
 		chainService:     chainService,
+		daService:        daService,
 		blobGossiper: rp2p.NewNoopBlobHandler[
 			BlobSidecarsT, encoding.ABCIRequest](),
 		beaconBlockGossiper: rp2p.

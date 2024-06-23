@@ -26,9 +26,7 @@ import (
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	"golang.org/x/sync/errgroup"
 )
 
 // ProcessGenesisData processes the genesis state and initializes the beacon
@@ -58,7 +56,7 @@ func (s *Service[
 	)
 }
 
-// ProcessBlockAndBlobs receives an incoming beacon block, it first validates
+// ProcessBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
 func (s *Service[
 	AvailabilityStoreT,
@@ -73,41 +71,23 @@ func (s *Service[
 	GenesisT,
 	PayloadAttributesT,
 	_,
-]) ProcessBlockAndBlobs(
+]) ProcessBeaconBlock(
 	ctx context.Context,
 	blk BeaconBlockT,
-	sidecars BlobSidecarsT,
 ) ([]*transition.ValidatorUpdate, error) {
-	var (
-		g, gCtx    = errgroup.WithContext(ctx)
-		st         = s.sb.StateFromContext(ctx)
-		valUpdates []*transition.ValidatorUpdate
-	)
-
 	// If the block is nil, exit early.
 	if blk.IsNil() {
 		return nil, ErrNilBlk
 	}
 
-	// Launch a goroutine to process the incoming beacon block.
-	g.Go(func() error {
-		var err error
-		// We set `OptimisticEngine` to true since this is called during
-		// FinalizeBlock. We want to assume the payload is valid. If it
-		// ends up not being valid later, the node will simply AppHash,
-		// which is completely fine. This means we were syncing from a
-		// bad peer, and we would likely AppHash anyways.
-		valUpdates, err = s.processBeaconBlock(gCtx, st, blk)
-		return err
-	})
-
-	// Launch a goroutine to process the blob sidecars.
-	g.Go(func() error {
-		return s.processBlobSidecars(gCtx, blk.GetSlot(), sidecars)
-	})
-
-	// Wait for the goroutines to finish.
-	if err := g.Wait(); err != nil {
+	// We set `OptimisticEngine` to true since this is called during
+	// FinalizeBlock. We want to assume the payload is valid. If it
+	// ends up not being valid later, the node will simply AppHash,
+	// which is completely fine. This means we were syncing from a
+	// bad peer, and we would likely AppHash anyways.
+	st := s.sb.StateFromContext(ctx)
+	valUpdates, err := s.executeStateTransition(ctx, st, blk)
+	if err != nil {
 		return nil, err
 	}
 
@@ -135,7 +115,7 @@ func (s *Service[
 	return valUpdates, nil
 }
 
-// ProcessBeaconBlock processes the beacon block.
+// executeStateTransition runs the stf.
 func (s *Service[
 	AvailabilityStoreT,
 	BeaconBlockT,
@@ -149,7 +129,7 @@ func (s *Service[
 	GenesisT,
 	PayloadAttributesT,
 	_,
-]) processBeaconBlock(
+]) executeStateTransition(
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
@@ -179,32 +159,4 @@ func (s *Service[
 		blk,
 	)
 	return valUpdates, err
-}
-
-// ProcessBlobSidecars processes the blob sidecars.
-func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconBlockHeaderT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	ExecutionPayloadT,
-	ExecutionPayloadHeaderT,
-	GenesisT,
-	PayloadAttributesT,
-	_,
-]) processBlobSidecars(
-	ctx context.Context,
-	slot math.Slot,
-	sidecars BlobSidecarsT,
-) error {
-	startTime := time.Now()
-	defer s.metrics.measureBlobProcessingDuration(startTime)
-	return s.bp.ProcessBlobs(
-		slot,
-		s.sb.AvailabilityStore(ctx),
-		sidecars,
-	)
 }

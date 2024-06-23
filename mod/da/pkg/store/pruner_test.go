@@ -53,7 +53,7 @@ func (e MockBlockEvent) Data() MockBeaconBlock {
 
 // TestBuildPruneRangeFn tests the BuildPruneRangeFn function.
 //
-//nolint:lll
+
 func TestBuildPruneRangeFn(t *testing.T) {
 	// Define test cases
 	tests := []struct {
@@ -123,15 +123,29 @@ func TestBuildPruneRangeFn(t *testing.T) {
 					MinEpochsForBlobsSidecarsRequest: tt.minEpochs,
 				},
 			)
-			pruneFn := store.BuildPruneRangeFn[MockBeaconBlock, MockBlockEvent](cs)
+			pruneFn := store.BuildPruneRangeFn[MockBeaconBlock, MockBlockEvent](
+				cs,
+			)
 			event := MockBlockEvent{
 				data: MockBeaconBlock{
 					slot: tt.eventSlot,
 				},
 			}
 			start, end := pruneFn(event)
-			require.Equal(t, tt.expectedStart, start, "Test case : %s (expectedStart)", tt.name)
-			require.Equal(t, tt.expectedEnd, end, "Test case : %s (expectedEnd)", tt.name)
+			require.Equal(
+				t,
+				tt.expectedStart,
+				start,
+				"Test case : %s (expectedStart)",
+				tt.name,
+			)
+			require.Equal(
+				t,
+				tt.expectedEnd,
+				end,
+				"Test case : %s (expectedEnd)",
+				tt.name,
+			)
 		})
 	}
 }
