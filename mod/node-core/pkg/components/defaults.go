@@ -67,7 +67,7 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideServiceRegistry,
 		ProvideStateProcessor,
 		ProvideSlotBroker,
-		ProvideStatusFeed,
+		ProvideStatusBroker,
 		ProvideStorageBackend,
 		ProvideTelemetrySink,
 		ProvideTrustedSetup,

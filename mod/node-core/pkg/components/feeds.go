@@ -22,7 +22,6 @@ package components
 
 import (
 	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
-	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
@@ -45,11 +44,11 @@ func ProvideSlotBroker() *SlotBroker {
 	)
 }
 
-// ProvideStatusFeed provides a status feed.
-func ProvideStatusFeed() *event.FeedOf[
-	asynctypes.EventID, *asynctypes.Event[*service.StatusEvent],
-] {
-	return &event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[*service.StatusEvent],
-	]{}
+// ProvideStatusBroker provides a status feed.
+//
+//nolint:lll // formatter.
+func ProvideStatusBroker() *broker.Broker[*asynctypes.Event[*service.StatusEvent]] {
+	return broker.New[*asynctypes.Event[*service.StatusEvent]](
+		"status-broker",
+	)
 }

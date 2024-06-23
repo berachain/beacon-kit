@@ -203,14 +203,10 @@ type (
 	]
 
 	// SlotBroker is a type alias for the slot feed.
-	// SlotBroker = event.FeedOf[asynctypes.EventID,
-	// *asynctypes.Event[math.Slot]].
 	SlotBroker = broker.Broker[*asynctypes.Event[math.Slot]]
 
-	// StatusFeed is a type alias for the status feed.
-	StatusFeed = event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[*service.StatusEvent],
-	]
+	// StatusBroker is a type alias for the status feed.
+	StatusBroker = broker.Broker[*asynctypes.Event[*service.StatusEvent]]
 
 	// StorageBackend is the type alias for the storage backend interface.
 	StorageBackend = beacon.StorageBackend[

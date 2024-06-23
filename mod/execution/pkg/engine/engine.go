@@ -23,7 +23,7 @@ package engine
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/async/pkg/event"
+	broker "github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
@@ -52,11 +52,8 @@ type Engine[
 	logger log.Logger[any]
 	// metrics is the metrics for the engine.
 	metrics *engineMetrics
-	// statusFeed is the status feed for the engine.
-	statusFeed *event.FeedOf[
-		asynctypes.EventID,
-		*asynctypes.Event[*service.StatusEvent],
-	]
+	// statusPublisher is the status publishder for the engine.
+	statusPublisher *broker.Broker[*asynctypes.Event[*service.StatusEvent]]
 }
 
 // New creates a new Engine.
@@ -70,19 +67,16 @@ func New[
 ](
 	ec *client.EngineClient[ExecutionPayloadT, PayloadAttributesT],
 	logger log.Logger[any],
-	statusFeed *event.FeedOf[
-		asynctypes.EventID,
-		*asynctypes.Event[*service.StatusEvent],
-	],
+	statusPublisher *broker.Broker[*asynctypes.Event[*service.StatusEvent]],
 	telemtrySink TelemetrySink,
 ) *Engine[
 	ExecutionPayloadT, PayloadAttributesT, PayloadIDT, WithdrawalT,
 ] {
 	return &Engine[ExecutionPayloadT, PayloadAttributesT, PayloadIDT, WithdrawalT]{
-		ec:         ec,
-		logger:     logger,
-		metrics:    newEngineMetrics(telemtrySink, logger),
-		statusFeed: statusFeed,
+		ec:              ec,
+		logger:          logger,
+		metrics:         newEngineMetrics(telemtrySink, logger),
+		statusPublisher: statusPublisher,
 	}
 }
 
