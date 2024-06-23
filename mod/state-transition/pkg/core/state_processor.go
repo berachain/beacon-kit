@@ -146,7 +146,7 @@ func (sp *StateProcessor[
 	ctx ContextT,
 	st BeaconStateT,
 	blk BeaconBlockT,
-) ([]*transition.ValidatorUpdate, error) {
+) (transition.ValidatorUpdates, error) {
 	if blk.IsNil() {
 		return nil, nil
 	}
@@ -175,10 +175,10 @@ func (sp *StateProcessor[
 	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) ProcessSlots(
 	st BeaconStateT, slot math.U64,
-) ([]*transition.ValidatorUpdate, error) {
+) (transition.ValidatorUpdates, error) {
 	var (
-		validatorUpdates      []*transition.ValidatorUpdate
-		epochValidatorUpdates []*transition.ValidatorUpdate
+		validatorUpdates      transition.ValidatorUpdates
+		epochValidatorUpdates transition.ValidatorUpdates
 	)
 
 	stateSlot, err := st.GetSlot()
@@ -354,7 +354,7 @@ func (sp *StateProcessor[
 	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processEpoch(
 	st BeaconStateT,
-) ([]*transition.ValidatorUpdate, error) {
+) (transition.ValidatorUpdates, error) {
 	if err := sp.processRewardsAndPenalties(st); err != nil {
 		return nil, err
 	} else if err = sp.processSlashingsReset(st); err != nil {

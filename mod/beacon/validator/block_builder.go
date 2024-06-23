@@ -26,19 +26,21 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"golang.org/x/sync/errgroup"
 )
 
-// RequestBlockForProposal builds a new beacon block.
+// buildBlockAndSidecars builds a new beacon block.
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
 	ExecutionPayloadHeaderT, ForkDataT,
-]) RequestBlockForProposal(
+]) buildBlockAndSidecars(
 	ctx context.Context,
 	requestedSlot math.Slot,
 ) (BeaconBlockT, BlobSidecarsT, error) {
@@ -91,24 +93,31 @@ func (s *Service[
 		return blk, sidecars, ErrNilPayload
 	}
 
+	// We have to assemble the block body prior to producing the sidecars
+	// since we need to generate the inclusion proofs.
 	if err = s.buildBlockBody(ctx, st, blk, reveal, envelope); err != nil {
 		return blk, sidecars, err
 	}
 
-	// Produce block sidecars.
+	// Produce blob sidecars, we produce them in parallel to computing the state
+	// root as an optimization.
+	//
+	// TODO: Figure out a clean way to break "BlockAndSidecars" into two
+	// functions
+	// without giving up the parallelization benefits.
 	g.Go(func() error {
-		var sidecarErr error
-		sidecars, sidecarErr = s.blobFactory.BuildSidecars(
-			blk,
-			envelope.GetBlobsBundle(),
+		sidecars, err = s.blobFactory.BuildSidecars(
+			blk, envelope.GetBlobsBundle(),
 		)
-		return sidecarErr
+		return err
 	})
 
+	// Compute the state root for the block.
 	g.Go(func() error {
 		return s.computeAndSetStateRoot(ctx, st, blk)
 	})
 
+	// Wait for all the goroutines to finish.
 	if err = g.Wait(); err != nil {
 		return blk, sidecars, err
 	}
@@ -125,9 +134,7 @@ func (s *Service[
 
 // getEmptyBeaconBlockForSlot creates a new empty block.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
-	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ForkDataT,
+	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _,
 ]) getEmptyBeaconBlockForSlot(
 	st BeaconStateT, requestedSlot math.Slot,
 ) (BeaconBlockT, error) {
@@ -165,20 +172,21 @@ func (s *Service[
 
 // buildRandaoReveal builds a randao reveal for the given slot.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
-	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ForkDataT,
+	_, _, BeaconStateT, _, _, _, _, _, _, ForkDataT,
 ]) buildRandaoReveal(
 	st BeaconStateT,
 	slot math.Slot,
 ) (crypto.BLSSignature, error) {
-	var forkData ForkDataT
+	var (
+		forkData ForkDataT
+		epoch    = s.chainSpec.SlotToEpoch(slot)
+	)
+
 	genesisValidatorsRoot, err := st.GetGenesisValidatorsRoot()
 	if err != nil {
 		return crypto.BLSSignature{}, err
 	}
 
-	epoch := s.chainSpec.SlotToEpoch(slot)
 	signingRoot, err := forkData.New(
 		version.FromUint32[common.Version](
 			s.chainSpec.ActiveForkVersionForEpoch(epoch),
@@ -196,9 +204,8 @@ func (s *Service[
 
 // retrieveExecutionPayload retrieves the execution payload for the block.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
-	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ForkDataT,
+	BeaconBlockT, _, BeaconStateT, _, _, _, _,
+	ExecutionPayloadT, ExecutionPayloadHeaderT, _,
 ]) retrieveExecutionPayload(
 	ctx context.Context, st BeaconStateT, blk BeaconBlockT,
 ) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
@@ -254,9 +261,8 @@ func (s *Service[
 
 // BuildBlockBody assembles the block body with necessary components.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
-	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ForkDataT,
+	BeaconBlockT, _, BeaconStateT, _,
+	_, _, Eth1DataT, ExecutionPayloadT, _, _,
 ]) buildBlockBody(
 	ctx context.Context,
 	st BeaconStateT,
@@ -307,5 +313,75 @@ func (s *Service[
 		common.ZeroHash,
 	))
 
+	// Set the graffiti on the block body.
+	body.SetGraffiti(bytes.ToBytes32([]byte(s.cfg.Graffiti)))
+
 	return body.SetExecutionData(envelope.GetExecutionPayload())
+}
+
+// computeAndSetStateRoot computes the state root of an outgoing block
+// and sets it in the block.
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, ForkDataT,
+]) computeAndSetStateRoot(
+	ctx context.Context,
+	st BeaconStateT,
+	blk BeaconBlockT,
+) error {
+	slot := blk.GetSlot()
+	s.logger.Info(
+		"Computing state root for block 🌲",
+		"slot", slot.Base10(),
+	)
+
+	var stateRoot common.Root
+	stateRoot, err := s.computeStateRoot(ctx, st, blk)
+	if err != nil {
+		s.logger.Error(
+			"failed to compute state root while building block ❗️ ",
+			"slot", slot.Base10(),
+			"error", err,
+		)
+		return err
+	}
+
+	s.logger.Info("State root computed for block 💻 ",
+		"slot", slot.Base10(),
+		"state_root", stateRoot,
+	)
+	blk.SetStateRoot(stateRoot)
+	return nil
+}
+
+// computeStateRoot computes the state root of an outgoing block.
+func (s *Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
+	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, ForkDataT,
+]) computeStateRoot(
+	ctx context.Context,
+	st BeaconStateT,
+	blk BeaconBlockT,
+) (common.Root, error) {
+	startTime := time.Now()
+	defer s.metrics.measureStateRootComputationTime(startTime)
+	if _, err := s.stateProcessor.Transition(
+		// TODO: We should think about how having optimistic
+		// engine enabled here would affect the proposer when
+		// the payload in their block has come from a remote builder.
+		&transition.Context{
+			Context:                 ctx,
+			OptimisticEngine:        true,
+			SkipPayloadVerification: true,
+			SkipValidateResult:      true,
+			SkipValidateRandao:      true,
+		},
+		st, blk,
+	); err != nil {
+		return common.Root{}, err
+	}
+
+	return st.HashTreeRoot()
 }

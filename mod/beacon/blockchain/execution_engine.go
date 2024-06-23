@@ -29,16 +29,7 @@ import (
 
 // sendPostBlockFCU sends a forkchoice update to the execution client.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconBlockHeaderT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	ExecutionPayloadT,
-	ExecutionPayloadHeaderT,
-	GenesisT,
+	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _, _, _,
 ]) sendPostBlockFCU(
 	ctx context.Context,
 	st BeaconStateT,
@@ -63,16 +54,8 @@ func (s *Service[
 // sendNextFCUWithAttributes sends a forkchoice update to the execution
 // client with attributes.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconBlockHeaderT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	ExecutionPayloadT,
-	ExecutionPayloadHeaderT,
-	GenesisT,
+	_, BeaconBlockT, _, _, BeaconStateT,
+	_, _, _, ExecutionPayloadHeaderT, _, _, _,
 ]) sendNextFCUWithAttributes(
 	ctx context.Context,
 	st BeaconStateT,
@@ -117,16 +100,8 @@ func (s *Service[
 // sendNextFCUWithoutAttributes sends a forkchoice update to the
 // execution client without attributes.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconBlockHeaderT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	ExecutionPayloadT,
-	ExecutionPayloadHeaderT,
-	GenesisT,
+	_, BeaconBlockT, _, _, _, _, _, _,
+	ExecutionPayloadHeaderT, _, PayloadAttributesT, _,
 ]) sendNextFCUWithoutAttributes(
 	ctx context.Context,
 	blk BeaconBlockT,
@@ -134,13 +109,14 @@ func (s *Service[
 ) {
 	if _, _, err := s.ee.NotifyForkchoiceUpdate(
 		ctx,
-		engineprimitives.BuildForkchoiceUpdateRequest(
+		// TODO: Switch to New().
+		engineprimitives.
+			BuildForkchoiceUpdateRequestNoAttrs[PayloadAttributesT](
 			&engineprimitives.ForkchoiceStateV1{
 				HeadBlockHash:      lph.GetBlockHash(),
 				SafeBlockHash:      lph.GetParentHash(),
 				FinalizedBlockHash: lph.GetParentHash(),
 			},
-			nil,
 			s.cs.ActiveForkVersionForSlot(blk.GetSlot()),
 		),
 	); err != nil {
@@ -156,16 +132,7 @@ func (s *Service[
 //
 // TODO: This is hood and needs to be improved.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconBlockHeaderT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	ExecutionPayloadT,
-	ExecutionPayloadHeaderT,
-	GenesisT,
+	_, BeaconBlockT, _, _, _, _, _, _, _, _, _, _,
 ]) calculateNextTimestamp(blk BeaconBlockT) uint64 {
 	//#nosec:G701 // not an issue in practice.
 	return max(
