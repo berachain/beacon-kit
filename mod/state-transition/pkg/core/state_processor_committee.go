@@ -33,7 +33,7 @@ func (sp *StateProcessor[
 	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ]) processSyncCommitteeUpdates(
 	st BeaconStateT,
-) ([]*transition.ValidatorUpdate, error) {
+) (transition.ValidatorUpdates, error) {
 	vals, err := st.GetValidatorsByEffectiveBalance()
 	if err != nil {
 		return nil, err

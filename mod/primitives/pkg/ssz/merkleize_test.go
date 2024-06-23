@@ -32,7 +32,7 @@ import (
 // Check for interface implementation.
 var _ ssz.Basic[any, [32]byte] = BasicItem(0)
 
-// BasicItem represnets a basic item in the SSZ Spec.
+// BasicItem represents a basic item in the SSZ Spec.
 type BasicItem uint64
 
 // SizeSSZ returns the size of the U64 in bytes.

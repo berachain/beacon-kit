@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package blockchain
+package da
 
 import (
 	"context"
@@ -97,15 +97,6 @@ type BlobProcessor[
 	) error
 }
 
-// BlobSidecars is the interface for blobs sidecars.
-type BlobSidecars interface {
-	ssz.Marshallable
-	// IsNil checks if the blobs sidecars is nil.
-	IsNil() bool
-	// Len returns the length of the blobs sidecars.
-	Len() int
-}
-
 // ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine[PayloadAttributesT any] interface {
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
@@ -136,38 +127,6 @@ type ExecutionPayloadHeader interface {
 	GetBlockHash() common.ExecutionHash
 	// GetParentHash returns the parent hash.
 	GetParentHash() common.ExecutionHash
-}
-
-// Genesis is the interface for the genesis.
-type Genesis[DepositT any, ExecutionPayloadHeaderT any] interface {
-	// GetForkVersion returns the fork version.
-	GetForkVersion() common.Version
-	// GetDeposits returns the deposits.
-	GetDeposits() []DepositT
-	// GetExecutionPayloadHeader returns the execution payload header.
-	GetExecutionPayloadHeader() ExecutionPayloadHeaderT
-}
-
-// LocalBuilder is the interface for the builder service.
-type LocalBuilder[BeaconStateT any] interface {
-	// Enabled returns true if the local builder is enabled.
-	Enabled() bool
-	// RequestPayloadAsync requests a new payload for the given slot.
-	RequestPayloadAsync(
-		ctx context.Context,
-		st BeaconStateT,
-		slot math.Slot,
-		timestamp uint64,
-		parentBlockRoot common.Root,
-		headEth1BlockHash common.ExecutionHash,
-		finalEth1BlockHash common.ExecutionHash,
-	) (*engineprimitives.PayloadID, error)
-	// SendForceHeadFCU sends a force head FCU request.
-	SendForceHeadFCU(
-		ctx context.Context,
-		st BeaconStateT,
-		slot math.Slot,
-	) error
 }
 
 // ReadOnlyBeaconState defines the interface for accessing various components of

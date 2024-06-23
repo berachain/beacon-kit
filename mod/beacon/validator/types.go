@@ -78,6 +78,8 @@ type BeaconBlockBody[
 	SetDeposits([]DepositT)
 	// SetExecutionData sets the execution data of the beacon block body.
 	SetExecutionData(ExecutionPayloadT) error
+	// SetGraffiti sets the graffiti of the beacon block body.
+	SetGraffiti(common.Bytes32)
 	// SetBlobKzgCommitments sets the blob KZG commitments of the beacon block
 	// body.
 	SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
@@ -200,13 +202,13 @@ type StateProcessor[
 	// ProcessSlot processes the slot.
 	ProcessSlots(
 		st BeaconStateT, slot math.Slot,
-	) ([]*transition.ValidatorUpdate, error)
+	) (transition.ValidatorUpdates, error)
 	// Transition performs the core state transition.
 	Transition(
 		ctx ContextT,
 		st BeaconStateT,
 		blk BeaconBlockT,
-	) ([]*transition.ValidatorUpdate, error)
+	) (transition.ValidatorUpdates, error)
 }
 
 // StorageBackend is the interface for the storage backend.

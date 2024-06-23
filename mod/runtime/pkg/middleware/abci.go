@@ -35,6 +35,7 @@ import (
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/sourcegraph/conc/iter"
+	"golang.org/x/sync/errgroup"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -43,8 +44,7 @@ import (
 
 // InitGenesis is called by the base app to initialize the state of the.
 func (h *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+	_, _, _, _, _, _, _,
 ]) InitGenesis(
 	ctx context.Context,
 	bz []byte,
@@ -54,8 +54,7 @@ func (h *ABCIMiddleware[
 
 // initGenesis is called by the base app to initialize the state of the.
 func (h *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+	_, _, _, _, _, _, GenesisT,
 ]) initGenesis(
 	ctx context.Context,
 	bz []byte,
@@ -83,8 +82,7 @@ func (h *ABCIMiddleware[
 // PrepareProposal is a wrapper around the prepare proposal handler
 // that injects the beacon block into the proposal.
 func (h *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+	_, _, _, _, _, _, _,
 ]) PrepareProposal(
 	ctx sdk.Context,
 	req *cmtabci.PrepareProposalRequest,
@@ -94,8 +92,7 @@ func (h *ABCIMiddleware[
 
 // prepareProposal is the internal handler for preparing proposals.
 func (h *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+	_, _, _, _, _, _, _,
 ]) prepareProposal(
 	ctx sdk.Context,
 	req *cmtabci.PrepareProposalRequest,
@@ -142,15 +139,14 @@ func (h *ABCIMiddleware[
 
 // waitForSidecars waits for the sidecars to be built and returns them.
 func (h *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+	_, _, _, _, _, _, _,
 ]) waitForSidecars(gCtx context.Context) ([]byte, error) {
 	select {
 	case <-gCtx.Done():
 		return nil, gCtx.Err()
-	case err := <-h.prepareProposalErrCh:
+	case err := <-h.errCh:
 		return nil, err
-	case sidecars := <-h.prepareProposalSidecarsCh:
+	case sidecars := <-h.sidecarsCh:
 		if sidecars.Error() != nil {
 			return nil, sidecars.Error()
 		}
@@ -165,15 +161,14 @@ func (h *ABCIMiddleware[
 
 // waitforBeaconBlk waits for the beacon block to be built and returns it.
 func (h *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+	_, _, _, _, _, _, _,
 ]) waitforBeaconBlk(gCtx context.Context) ([]byte, error) {
 	select {
 	case <-gCtx.Done():
 		return nil, gCtx.Err()
-	case err := <-h.prepareProposalErrCh:
+	case err := <-h.errCh:
 		return nil, err
-	case beaconBlock := <-h.prepareProposalBlkCh:
+	case beaconBlock := <-h.blkCh:
 		if beaconBlock.Error() != nil {
 			return nil, beaconBlock.Error()
 		}
@@ -195,8 +190,7 @@ func (h *ABCIMiddleware[
 // ProcessProposal is a wrapper around the process proposal handler
 // that extracts the beacon block from the proposal and processes it.
 func (h *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+	_, _, _, _, _, _, _,
 ]) ProcessProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
@@ -206,40 +200,78 @@ func (h *ABCIMiddleware[
 
 // processProposal is the internal handler for processing proposals.
 func (h *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+	_, BeaconBlockT, _, BlobSidecarsT, _, _, _,
 ]) processProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
 	var (
+		blk       BeaconBlockT
+		sidecars  BlobSidecarsT
+		err       error
+		g, _      = errgroup.WithContext(ctx)
 		startTime = time.Now()
+		args      = []any{"beacon_block", true, "blob_sidecars", true}
 	)
 	defer h.metrics.measureProcessProposalDuration(startTime)
 
-	args := []any{"beacon_block", true, "blob_sidecars", true}
-	blk, err := h.beaconBlockGossiper.Request(ctx, req)
+	// Decode the beacon block and emit an event.
+	blk, err = h.beaconBlockGossiper.Request(ctx, req)
 	if err != nil {
 		args[1] = false
 	}
 
-	sidecars, err := h.blobGossiper.Request(ctx, req)
-	if err != nil {
-		args[3] = false
+	g.Go(func() error {
+		// Emit event to notify the block has been received.
+		h.blkFeed.Send(asynctypes.NewEvent(
+			ctx, events.BeaconBlockReceived, blk, err,
+		))
+
+		if err = h.chainService.ReceiveBlock(
+			ctx, blk,
+		); !errors.IsFatal(err) {
+			err = nil
+		}
+		return err
+	})
+
+	g.Go(func() error {
+		// We can't notify the sidecars if the block is nil, since
+		// we currently rely on the slot from the beacon block.
+		if blk.IsNil() {
+			return nil
+		}
+
+		// Decode the blob sidecars and emit an event.
+		sidecars, err = h.blobGossiper.Request(ctx, req)
+		if err != nil {
+			args[3] = false
+		}
+
+		// Emit event to notify the sidecars have been received.
+		h.sidecarsFeed.Send(asynctypes.NewEvent(
+			ctx, events.BlobSidecarsReceived, sidecars, err,
+		))
+
+		if err = h.daService.ReceiveSidecars(
+			ctx, blk.GetSlot(), sidecars,
+		); !errors.IsFatal(err) {
+			err = nil
+		}
+		return err
+	})
+
+	resp := &cmtabci.ProcessProposalResponse{
+		Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
 	}
 
-	h.logger.Info("Received proposal with", args...)
-	if err = h.chainService.ReceiveBlockAndBlobs(
-		ctx, blk, sidecars,
-	); errors.IsFatal(err) {
-		return &cmtabci.ProcessProposalResponse{
-			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
-		}, err
+	// If we see a non fatal error, clear everything.
+	defer h.logger.Info("processed proposal", args...)
+	if err = g.Wait(); !errors.IsFatal(err) {
+		resp.Status = cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
+		err = nil
 	}
-
-	return &cmtabci.ProcessProposalResponse{
-		Status: cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT,
-	}, nil
+	return resp, err
 }
 
 /* -------------------------------------------------------------------------- */
@@ -250,73 +282,48 @@ func (h *ABCIMiddleware[
 // is responsible for aggregating oracle data from each validator and writing
 // the oracle data to the store.
 func (h *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+	_, _, _, _, _, _, _,
 ]) PreBlock(
-	ctx sdk.Context, req *cmtabci.FinalizeBlockRequest,
+	_ sdk.Context, req *cmtabci.FinalizeBlockRequest,
 ) error {
-	go h.preBlock(ctx, req)
+	h.req = req
 	return nil
-}
-
-// handlePreBlock is called by the base app before the block is finalized. It
-// is responsible for aggregating oracle data from each validator and writing
-// the oracle data to the store.
-func (h *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
-]) preBlock(
-	ctx sdk.Context, req *cmtabci.FinalizeBlockRequest,
-) {
-	blk, blobs, err := encoding.
-		ExtractBlobsAndBlockFromRequest[BeaconBlockT, BlobSidecarsT](req,
-		BeaconBlockTxIndex,
-		BlobSidecarsTxIndex,
-		h.chainSpec.ActiveForkVersionForSlot(
-			math.Slot(req.Height),
-		))
-
-	if err != nil {
-		h.finalizeBlockErrCh <- errors.Join(err, ErrBadExtractBlockAndBlocks)
-		return
-	}
-
-	result, err := h.chainService.ProcessBlockAndBlobs(ctx, blk, blobs)
-	if err != nil {
-		h.finalizeBlockErrCh <- err
-	} else {
-		h.valUpdatesCh <- result
-	}
 }
 
 // EndBlock returns the validator set updates from the beacon state.
 func (h *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+	_, BeaconBlockT, _, BlobSidecarsT, _, _, _,
 ]) EndBlock(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	return h.endBlock(ctx)
-}
-
-// endBlock returns the validator set updates from the beacon state.
-func (h *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
-]) endBlock(
-	ctx context.Context,
-) ([]appmodulev2.ValidatorUpdate, error) {
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	case err := <-h.finalizeBlockErrCh:
-		if errors.Is(err, ErrBadExtractBlockAndBlocks) {
-			err = nil
-		}
-		return nil, err
-	case result := <-h.valUpdatesCh:
-		return iter.MapErr(
-			result.RemoveDuplicates().Sort(), convertValidatorUpdate,
-		)
+	blk, blobs, err := encoding.
+		ExtractBlobsAndBlockFromRequest[BeaconBlockT, BlobSidecarsT](
+		h.req,
+		BeaconBlockTxIndex,
+		BlobSidecarsTxIndex,
+		h.chainSpec.ActiveForkVersionForSlot(
+			math.Slot(h.req.Height),
+		))
+	if err != nil {
+		// If we don't have a block, we can't do anything.
+		//nolint:nilerr // by design.
+		return nil, nil
 	}
+
+	// TODO: Move to Async.
+	if err = h.daService.ProcessSidecars(
+		ctx, blk.GetSlot(), blobs,
+	); err != nil {
+		return nil, err
+	}
+
+	// TODO: Move to Async.
+	valUpdates, err := h.chainService.ProcessBeaconBlock(ctx, blk)
+	if err != nil {
+		return nil, err
+	}
+
+	return iter.MapErr(
+		valUpdates.RemoveDuplicates().Sort(), convertValidatorUpdate,
+	)
 }
