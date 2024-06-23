@@ -74,7 +74,6 @@ func NewProcessor[
 
 // VerifySidecars verifies the blobs and ensures they match the local state.
 func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) VerifySidecars(
-	slot math.Slot,
 	sidecars *types.BlobSidecars,
 ) error {
 	startTime := time.Now()
@@ -82,9 +81,18 @@ func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) VerifySidecars(
 		startTime, math.U64(sidecars.Len()),
 	)
 
+	// Abort if there are no blobs to store.
+	if sidecars.Len() == 0 {
+		return nil
+	}
+
+	// Verify the blobs and ensure they match the local state.
 	return sp.verifier.VerifySidecars(
 		sidecars,
-		sp.blockBodyOffsetFn(slot, sp.chainSpec),
+		sp.blockBodyOffsetFn(
+			math.U64(sidecars.Sidecars[0].BeaconBlockHeader.Slot),
+			sp.chainSpec,
+		),
 	)
 }
 

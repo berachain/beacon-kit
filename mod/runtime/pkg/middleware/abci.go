@@ -23,6 +23,7 @@ package middleware
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"sync"
 	"time"
 
@@ -250,7 +251,7 @@ func (h *ABCIMiddleware[
 		))
 
 		if err = h.daService.ReceiveSidecars(
-			ctx, blk.GetSlot(), sidecars,
+			ctx, sidecars,
 		); !errors.IsFatal(err) {
 			err = nil
 		}
@@ -321,17 +322,18 @@ func (h *ABCIMiddleware[
 		return nil, ctx.Err()
 	case sidecars := <-h.sidecarsCh:
 		if sidecars.Type() != events.BlobSidecarsProcessed {
-			return nil, errors.New("unexpected event type in EndBlock()")
+			return nil, fmt.Errorf(
+				"unexpected event type: %s", sidecars.Type())
 		}
 		if sidecars.Error() != nil {
 			return nil, sidecars.Error()
 		}
 	}
 
-	time.Sleep(200 * time.Millisecond)
-
 	// TODO: Move to Async.
-	valUpdates, err := h.chainService.ProcessBeaconBlock(ctx, blk)
+	valUpdates, err := h.chainService.ProcessBeaconBlock(
+		ctx, blk,
+	)
 	if err != nil {
 		return nil, err
 	}

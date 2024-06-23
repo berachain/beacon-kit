@@ -27,7 +27,6 @@ import (
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 type Service[
@@ -50,7 +49,9 @@ type Service[
 
 // New returns a new DA service.
 func NewService[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	AvailabilityStoreT AvailabilityStore[
+		BeaconBlockBodyT, BlobSidecarsT,
+	],
 	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
 	BlobSidecarsT interface {
 		Len() int
@@ -100,7 +101,9 @@ func (s *Service[_, _, BlobSidecarsT, _]) start(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case e := <-ch:
-			if e.Type() == events.BlobSidecarsVerified {
+			//nolint:gocritic // will be expanded.
+			switch e.Type() {
+			case events.BlobSidecarsVerified:
 				err := s.ProcessSidecars(ctx, e.Data())
 				if err != nil {
 					s.logger.Error(
@@ -113,6 +116,19 @@ func (s *Service[_, _, BlobSidecarsT, _]) start(ctx context.Context) {
 				s.feed.Send(asynctypes.NewEvent(
 					ctx, events.BlobSidecarsProcessed, e.Data(), err,
 				))
+				// case events.BlobSidecarsReceived:
+				// 	err := s.ReceiveSidecars(ctx, e.Data())
+				// 	if err != nil {
+				// 		s.logger.Error(
+				// 			"failed to receive blob sidecars",
+				// 			"error",
+				// 			err,
+				// 		)
+				// 	}
+				// 	s.feed.Send(asynctypes.NewEvent(
+				// 		ctx, events.BlobSidecarsProcessed, e.Data(), err,
+				// 	))
+				// }
 			}
 		}
 	}
@@ -121,7 +137,7 @@ func (s *Service[_, _, BlobSidecarsT, _]) start(ctx context.Context) {
 // ProcessSidecars processes the blob sidecars.
 // TODO: Deprecate this publically and move to event based system.
 func (s *Service[_, _, BlobSidecarsT, _]) ProcessSidecars(
-	ctx context.Context,
+	_ context.Context,
 	sidecars BlobSidecarsT,
 ) error {
 	// startTime := time.Now()
@@ -135,7 +151,6 @@ func (s *Service[_, _, BlobSidecarsT, _]) ProcessSidecars(
 // VerifyIncomingBlobs receives blobs from the network and processes them.
 func (s *Service[_, _, BlobSidecarsT, _]) ReceiveSidecars(
 	_ context.Context,
-	slot math.Slot,
 	sidecars BlobSidecarsT,
 ) error {
 	// If there are no blobs to verify, return early.
@@ -148,7 +163,7 @@ func (s *Service[_, _, BlobSidecarsT, _]) ReceiveSidecars(
 	)
 
 	// Verify the blobs and ensure they match the local state.
-	if err := s.bp.VerifySidecars(slot, sidecars); err != nil {
+	if err := s.bp.VerifySidecars(sidecars); err != nil {
 		s.logger.Error(
 			"rejecting incoming blob sidecars ❌",
 			"reason", err,

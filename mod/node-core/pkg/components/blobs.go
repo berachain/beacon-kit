@@ -109,6 +109,8 @@ func ProvideDAService(in DAServiceIn) *da.Service[
 	return da.NewService[
 		*dastore.Store[*BeaconBlockBody],
 		*BeaconBlockBody,
+		*BlobSidecars,
+		*ExecutionPayload,
 	](
 		in.AvailabilityStore,
 		in.BlobProcessor,

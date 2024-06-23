@@ -77,25 +77,6 @@ type BeaconBlockHeader interface {
 	SetStateRoot(common.Root)
 }
 
-// BlobProcessor is the interface for the blobs processor.
-type BlobProcessor[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
-	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
-	BlobSidecarsT,
-	ExecutionPayloadT any,
-] interface {
-	// ProcessSidecars processes the blobs and ensures they match the local state.
-	ProcessSidecars(
-		avs AvailabilityStoreT,
-		sidecars BlobSidecarsT,
-	) error
-	// VerifySidecars verifies the blobs and ensures they match the local state.
-	VerifySidecars(
-		slot math.Slot,
-		sidecars BlobSidecarsT,
-	) error
-}
-
 // BlobSidecars is the interface for blobs sidecars.
 type BlobSidecars interface {
 	ssz.Marshallable

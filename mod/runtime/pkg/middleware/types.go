@@ -96,7 +96,6 @@ type DAService[
 	// ReceiveSidecars
 	ReceiveSidecars(
 		_ context.Context,
-		slot math.Slot,
 		sidecars BlobSidecarsT,
 	) error
 }

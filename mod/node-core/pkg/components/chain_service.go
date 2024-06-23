@@ -34,7 +34,6 @@ import (
 // ChainServiceInput is the input for the chain service provider.
 type ChainServiceInput struct {
 	depinject.In
-	BlobProcessor   *BlobProcessor
 	BlockFeed       *BlockFeed
 	ChainSpec       common.ChainSpec
 	Cfg             *config.Config
@@ -72,7 +71,6 @@ func ProvideChainService(
 		in.ChainSpec,
 		in.ExecutionEngine,
 		in.LocalBuilder,
-		in.BlobProcessor,
 		in.StateProcessor,
 		in.TelemetrySink,
 		in.BlockFeed,

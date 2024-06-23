@@ -68,10 +68,6 @@ type Service[
 	ee ExecutionEngine[PayloadAttributesT]
 	// lb is a local builder for constructing new beacon states.
 	lb LocalBuilder[BeaconStateT]
-	// bp is the blob processor for processing incoming blobs.
-	bp BlobProcessor[
-		AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT, ExecutionPayloadT,
-	]
 	// sp is the state processor for beacon blocks and states.
 	sp StateProcessor[
 		BeaconBlockT,
@@ -125,9 +121,6 @@ func NewService[
 
 	ee ExecutionEngine[PayloadAttributesT],
 	lb LocalBuilder[BeaconStateT],
-	bp BlobProcessor[
-		AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT, ExecutionPayloadT,
-	],
 	sp StateProcessor[
 		BeaconBlockT,
 		BeaconStateT,
@@ -154,7 +147,6 @@ func NewService[
 		cs:                      cs,
 		ee:                      ee,
 		lb:                      lb,
-		bp:                      bp,
 		sp:                      sp,
 		metrics:                 newChainMetrics(ts),
 		blockFeed:               blockFeed,
