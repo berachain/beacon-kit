@@ -140,18 +140,16 @@ func (h *ABCIMiddleware[
 // waitForSidecars waits for the sidecars to be built and returns them.
 func (h *ABCIMiddleware[
 	_, _, _, _, _, _, _,
-]) waitForSidecars(gCtx context.Context) ([]byte, error) {
+]) waitForSidecars(ctx context.Context) ([]byte, error) {
 	select {
-	case <-gCtx.Done():
-		return nil, gCtx.Err()
-	case err := <-h.errCh:
-		return nil, err
+	case <-ctx.Done():
+		return nil, ctx.Err()
 	case sidecars := <-h.sidecarsCh:
 		if sidecars.Error() != nil {
 			return nil, sidecars.Error()
 		}
 
-		sidecarsBz, err := h.blobGossiper.Publish(gCtx, sidecars.Data())
+		sidecarsBz, err := h.blobGossiper.Publish(ctx, sidecars.Data())
 		if err != nil {
 			h.logger.Error("failed to publish blobs", "error", err)
 		}
@@ -166,8 +164,6 @@ func (h *ABCIMiddleware[
 	select {
 	case <-gCtx.Done():
 		return nil, gCtx.Err()
-	case err := <-h.errCh:
-		return nil, err
 	case beaconBlock := <-h.blkCh:
 		if beaconBlock.Error() != nil {
 			return nil, beaconBlock.Error()
@@ -310,11 +306,26 @@ func (h *ABCIMiddleware[
 		return nil, nil
 	}
 
-	// TODO: Move to Async.
-	if err = h.daService.ProcessSidecars(
-		ctx, blk.GetSlot(), blobs,
-	); err != nil {
-		return nil, err
+	// Send the sidecars to the sidecars feed, we know at this point
+	// That the blobs have been successfully verified in process proposal.
+	h.sidecarsFeed.Send(asynctypes.NewEvent(
+		ctx, events.BlobSidecarsVerified, blobs,
+	))
+
+	// Wait for a response from the da service, with the current codepaths
+	// we can't parallelize retrieving the DA service response and the
+	// validator updates, since we need to check for IsDataAvailable in
+	// `ProcessBeaconBlock`, we should improve this though.
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case sidecars := <-h.sidecarsCh:
+		if sidecars.Type() != events.BlobSidecarsProcessed {
+			return nil, errors.New("unexpected event type in EndBlock()")
+		}
+		if sidecars.Error() != nil {
+			return nil, sidecars.Error()
+		}
 	}
 
 	// TODO: Move to Async.

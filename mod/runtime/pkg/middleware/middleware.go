@@ -22,6 +22,7 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
@@ -91,12 +92,6 @@ type ABCIMiddleware[
 	req *cmtabci.FinalizeBlockRequest
 
 	// Channels
-	//
-	// PrepareProposal
-	//
-	// errCh is used to communicate errors to the EndBlock
-	// method.
-	errCh chan error
 	// blkCh is used to communicate the beacon block to the EndBlock method.
 	blkCh chan *asynctypes.Event[BeaconBlockT]
 	// sidecarsCh is used to communicate the sidecars to the EndBlock method.
@@ -156,7 +151,6 @@ func NewABCIMiddleware[
 			chan *asynctypes.Event[BlobSidecarsT],
 			1,
 		),
-		errCh: make(chan error, 1),
 	}
 }
 
@@ -180,8 +174,8 @@ func (am *ABCIMiddleware[
 func (am *ABCIMiddleware[
 	_, BeaconBlockT, _, BlobSidecarsT, _, _, _,
 ]) start(ctx context.Context) {
-	subSidecarsCh := make(chan *asynctypes.Event[BlobSidecarsT], 1)
-	subBlkCh := make(chan *asynctypes.Event[BeaconBlockT], 1)
+	subSidecarsCh := make(chan *asynctypes.Event[BlobSidecarsT], 2)
+	subBlkCh := make(chan *asynctypes.Event[BeaconBlockT], 2)
 	blkSub := am.blkFeed.Subscribe(subBlkCh)
 	sidecarsSub := am.sidecarsFeed.Subscribe(subSidecarsCh)
 	defer blkSub.Unsubscribe()
@@ -194,18 +188,22 @@ func (am *ABCIMiddleware[
 		case msg := <-subBlkCh:
 			switch msg.Type() {
 			case events.BeaconBlockBuilt:
-				fallthrough
-			case events.BeaconBlockVerified:
 				am.blkCh <- msg
+			case events.BeaconBlockVerified:
+				continue
 			}
 		case msg := <-subSidecarsCh:
 			switch msg.Type() {
 			case events.BlobSidecarsBuilt:
-				fallthrough
-			case events.BlobSidecarsVerified:
-				fallthrough
-			case events.BlobSidecarsProcessed:
 				am.sidecarsCh <- msg
+			case events.BlobSidecarsVerified:
+				continue
+			case events.BlobSidecarsProcessed:
+				fmt.Println("FIRING BLOBS PROCESSED EVENT IN MIDDLEWARE")
+				fmt.Println(msg.Type())
+				am.sidecarsCh <- msg
+			default:
+				// do nothing.
 			}
 		}
 	}

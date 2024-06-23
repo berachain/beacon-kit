@@ -51,6 +51,7 @@ func ProvideServiceRegistry(
 		service.WithLogger(in.Logger),
 		service.WithService(in.ValidatorService),
 		service.WithService(in.ChainService),
+		service.WithService(in.DAService),
 		service.WithService(in.DepositService),
 		service.WithService(in.ABCIService),
 		service.WithService(in.EngineClient),
