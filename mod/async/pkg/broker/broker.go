@@ -72,8 +72,6 @@ func (b *Broker[T]) start(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			// close all leftover clients and break the broker loop
-			b.clientsMu.Lock()
-			defer b.clientsMu.Unlock()
 			for client := range b.clients {
 				b.Unsubscribe(client)
 			}
