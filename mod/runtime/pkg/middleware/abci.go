@@ -272,7 +272,7 @@ func (h *ABCIMiddleware[
 ]) PreBlock(
 	ctx sdk.Context, req *cmtabci.FinalizeBlockRequest,
 ) error {
-	go h.preBlock(ctx, req)
+	h.req = req
 	return nil
 }
 
@@ -284,35 +284,7 @@ func (h *ABCIMiddleware[
 ]) preBlock(
 	ctx sdk.Context, req *cmtabci.FinalizeBlockRequest,
 ) {
-	blk, blobs, err := encoding.
-		ExtractBlobsAndBlockFromRequest[BeaconBlockT, BlobSidecarsT](req,
-		BeaconBlockTxIndex,
-		BlobSidecarsTxIndex,
-		h.chainSpec.ActiveForkVersionForSlot(
-			math.Slot(req.Height),
-		))
-	if err != nil {
-		// We push nil onto the channel so that we don't error out in
-		// endBlock().
-		h.errCh <- nil
-		return
-	}
 
-	// TODO: Move to Async.
-	if err = h.daService.ProcessSidecars(
-		ctx, blk.GetSlot(), blobs,
-	); err != nil {
-		h.errCh <- err
-		return
-	}
-
-	// TODO: Move to Async.
-	result, err := h.chainService.ProcessBeaconBlock(ctx, blk)
-	if err != nil {
-		h.errCh <- err
-	} else {
-		h.valUpdatesCh <- result
-	}
 }
 
 // EndBlock returns the validator set updates from the beacon state.
@@ -326,18 +298,37 @@ func (h *ABCIMiddleware[
 
 // endBlock returns the validator set updates from the beacon state.
 func (h *ABCIMiddleware[
-	_, _, _, _, _, _, _,
+	_, BeaconBlockT, _, BlobSidecarsT, _, _, _,
 ]) endBlock(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	case err := <-h.errCh:
-		return nil, err
-	case result := <-h.valUpdatesCh:
-		return iter.MapErr(
-			result.RemoveDuplicates().Sort(), convertValidatorUpdate,
-		)
+	blk, blobs, err := encoding.
+		ExtractBlobsAndBlockFromRequest[BeaconBlockT, BlobSidecarsT](
+		h.req,
+		BeaconBlockTxIndex,
+		BlobSidecarsTxIndex,
+		h.chainSpec.ActiveForkVersionForSlot(
+			math.Slot(h.req.Height),
+		))
+	if err != nil {
+		// If we don't have a block, we can't do anything.
+		return nil, nil
 	}
+
+	// TODO: Move to Async.
+	if err = h.daService.ProcessSidecars(
+		ctx, blk.GetSlot(), blobs,
+	); err != nil {
+		return nil, err
+	}
+
+	// TODO: Move to Async.
+	valUpdates, err := h.chainService.ProcessBeaconBlock(ctx, blk)
+	if err != nil {
+		return nil, err
+	}
+
+	return iter.MapErr(
+		valUpdates.RemoveDuplicates().Sort(), convertValidatorUpdate,
+	)
 }
