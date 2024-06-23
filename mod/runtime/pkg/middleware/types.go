@@ -91,7 +91,6 @@ type DAService[
 	// ProcessSidecars
 	ProcessSidecars(
 		context.Context,
-		math.Slot,
 		BlobSidecarsT,
 	) error
 	// ReceiveSidecars

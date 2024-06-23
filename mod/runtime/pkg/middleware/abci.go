@@ -328,6 +328,8 @@ func (h *ABCIMiddleware[
 		}
 	}
 
+	time.Sleep(200 * time.Millisecond)
+
 	// TODO: Move to Async.
 	valUpdates, err := h.chainService.ProcessBeaconBlock(ctx, blk)
 	if err != nil {

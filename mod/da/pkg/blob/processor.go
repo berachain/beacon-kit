@@ -72,8 +72,8 @@ func NewProcessor[
 	}
 }
 
-// VerifyBlobs verifies the blobs and ensures they match the local state.
-func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) VerifyBlobs(
+// VerifySidecars verifies the blobs and ensures they match the local state.
+func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) VerifySidecars(
 	slot math.Slot,
 	sidecars *types.BlobSidecars,
 ) error {
@@ -82,22 +82,31 @@ func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) VerifyBlobs(
 		startTime, math.U64(sidecars.Len()),
 	)
 
-	return sp.verifier.VerifyBlobs(
+	return sp.verifier.VerifySidecars(
 		sidecars,
 		sp.blockBodyOffsetFn(slot, sp.chainSpec),
 	)
 }
 
-// ProcessBlobs processes the blobs and ensures they match the local state.
-func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) ProcessBlobs(
-	slot math.Slot,
+// slot :=  processes the blobs and ensures they match the local state.
+func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) ProcessSidecars(
 	avs AvailabilityStoreT,
 	sidecars *types.BlobSidecars,
 ) error {
 	startTime := time.Now()
-	defer sp.metrics.measureProcessBlobsDuration(
+	defer sp.metrics.measureProcessSidecarsDuration(
 		startTime, math.U64(sidecars.Len()),
 	)
 
-	return avs.Persist(slot, sidecars)
+	// Abort if there are no blobs to store.
+	if sidecars.Len() == 0 {
+		return nil
+	}
+
+	// If we have reached this point, we can safely assume that the blobs are
+	// valid and can be persisted, as well as that index 0 is filled.
+	return avs.Persist(
+		math.U64(sidecars.Sidecars[0].BeaconBlockHeader.Slot),
+		sidecars,
+	)
 }

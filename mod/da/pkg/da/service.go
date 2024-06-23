@@ -101,7 +101,7 @@ func (s *Service[_, _, BlobSidecarsT, _]) start(ctx context.Context) {
 			return
 		case e := <-ch:
 			if e.Type() == events.BlobSidecarsVerified {
-				err := s.ProcessSidecars(ctx, 0, e.Data())
+				err := s.ProcessSidecars(ctx, e.Data())
 				if err != nil {
 					s.logger.Error(
 						"failed to process blob sidecars",
@@ -122,22 +122,11 @@ func (s *Service[_, _, BlobSidecarsT, _]) start(ctx context.Context) {
 // TODO: Deprecate this publically and move to event based system.
 func (s *Service[_, _, BlobSidecarsT, _]) ProcessSidecars(
 	ctx context.Context,
-	slot math.Slot,
-	sidecars BlobSidecarsT,
-) error {
-	return s.processSidecars(ctx, slot, sidecars)
-}
-
-// ProcessSidecars processes the blob sidecars.
-func (s *Service[_, _, BlobSidecarsT, _]) processSidecars(
-	_ context.Context,
-	slot math.Slot,
 	sidecars BlobSidecarsT,
 ) error {
 	// startTime := time.Now()
 	// defer s.metrics.measureBlobProcessingDuration(startTime)
-	return s.bp.ProcessBlobs(
-		slot,
+	return s.bp.ProcessSidecars(
 		s.avs,
 		sidecars,
 	)
@@ -159,7 +148,7 @@ func (s *Service[_, _, BlobSidecarsT, _]) ReceiveSidecars(
 	)
 
 	// Verify the blobs and ensure they match the local state.
-	if err := s.bp.VerifyBlobs(slot, sidecars); err != nil {
+	if err := s.bp.VerifySidecars(slot, sidecars); err != nil {
 		s.logger.Error(
 			"rejecting incoming blob sidecars ❌",
 			"reason", err,
