@@ -222,8 +222,9 @@ func (h *ABCIMiddleware[
 	}
 
 	g.Go(func() error {
+		// Emit event to notify the block has been received.
 		h.blkFeed.Send(asynctypes.NewEvent(
-			gCtx, events.BeaconBlockReceived, blk,
+			gCtx, events.BeaconBlockReceived, blk, err,
 		))
 
 		if err = h.chainService.ReceiveBlock(
@@ -235,6 +236,8 @@ func (h *ABCIMiddleware[
 	})
 
 	g.Go(func() error {
+		// We can't notify the sidecars if the block is nil, since
+		// we currently rely on the slot from the beacon block.
 		if blk.IsNil() {
 			return nil
 		}
@@ -245,9 +248,9 @@ func (h *ABCIMiddleware[
 			args[3] = false
 		}
 
-		// TODO: Do we want to emit if nil?
+		// Emit event to notify the sidecars have been received.
 		h.sidecarsFeed.Send(asynctypes.NewEvent(
-			gCtx, events.BlobSidecarsReceived, sidecars,
+			gCtx, events.BlobSidecarsReceived, sidecars, err,
 		))
 
 		if err = h.daService.ReceiveSidecars(
