@@ -205,16 +205,24 @@ func (am *ABCIMiddleware[
 		select {
 		case <-ctx.Done():
 			return
-		case blk := <-subBlkCh:
-			if blk.Type() == events.BeaconBlockBuilt {
-				am.prepareProposalBlkCh <- blk
+		case msg := <-subBlkCh:
+			switch msg.Type() {
+			case events.BeaconBlockBuilt:
+				am.prepareProposalBlkCh <- msg
+			case events.BeaconBlockVerified:
+				// TODO: Process Proposal
+			case events.BeaconBlockFinalized:
+				// TODO: Finalize/EndBlock.
 			}
-		case sidecars := <-subSidecarsCh:
-			if sidecars.Error() != nil {
-				am.errCh <- sidecars.Error()
-				continue
+		case msg := <-subSidecarsCh:
+			switch msg.Type() {
+			case events.BlobSidecarsBuilt:
+				am.prepareProposalSidecarsCh <- msg
+			case events.BlobSidecarsVerified:
+				// TODO: Process Proposal:
+			case events.BlobSidecarsProcessed:
+				// TODO: Finalize/EndBlock.
 			}
-			am.prepareProposalSidecarsCh <- sidecars
 		}
 	}
 }

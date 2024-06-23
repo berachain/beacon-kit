@@ -278,17 +278,8 @@ func (h *ABCIMiddleware[
 
 // EndBlock returns the validator set updates from the beacon state.
 func (h *ABCIMiddleware[
-	_, _, _, _, _, _, _,
-]) EndBlock(
-	ctx context.Context,
-) ([]appmodulev2.ValidatorUpdate, error) {
-	return h.endBlock(ctx)
-}
-
-// endBlock returns the validator set updates from the beacon state.
-func (h *ABCIMiddleware[
 	_, BeaconBlockT, _, BlobSidecarsT, _, _, _,
-]) endBlock(
+]) EndBlock(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
 	blk, blobs, err := encoding.
