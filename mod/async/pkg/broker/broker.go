@@ -75,7 +75,7 @@ func (b *Broker[T]) start(ctx context.Context) {
 			b.clientsMu.Lock()
 			defer b.clientsMu.Unlock()
 			for client := range b.clients {
-				close(client)
+				b.Unsubscribe(client)
 			}
 			return
 		case msg := <-b.msgs:
@@ -116,12 +116,11 @@ func (b *Broker[T]) Subscribe() (Client[T], error) {
 
 // Unsubscribe removes a client from the b.
 // Returns ErrTimeout on timeout.
-func (b *Broker[T]) Unsubscribe(client Client[T]) error {
+func (b *Broker[T]) Unsubscribe(client Client[T]) {
 	b.clientsMu.Lock()
 	defer b.clientsMu.Unlock()
 	// Remove the client from the broker
 	delete(b.clients, client)
 	// close the client channel
 	close(client)
-	return nil
 }
