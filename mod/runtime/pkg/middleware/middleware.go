@@ -182,8 +182,7 @@ func (am *ABCIMiddleware[
 
 // Start the middleware.
 func (am *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+	_, _, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
 	go am.start(ctx)
 	return nil
@@ -191,8 +190,7 @@ func (am *ABCIMiddleware[
 
 // start starts the middleware.
 func (am *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+	_, BeaconBlockT, _, BlobSidecarsT, _, _, _,
 ]) start(ctx context.Context) {
 	subSidecarsCh := make(chan *asynctypes.Event[BlobSidecarsT], 1)
 	subBlkCh := make(chan *asynctypes.Event[BeaconBlockT], 1)
