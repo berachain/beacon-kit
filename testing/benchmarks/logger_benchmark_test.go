@@ -157,5 +157,6 @@ func newSDKLoggerWithLevel(b *testing.B, level string) log.Logger {
 
 // setup func to create a new phuslu logger with the given log level.
 func newPhusluLoggerWithLevel(level string) log.Logger {
-	return phuslu.NewLogger[log.Logger](level, &bytes.Buffer{})
+	return phuslu.NewLogger[log.Logger](
+		level, phuslu.DefaultConfig(), &bytes.Buffer{})
 }
