@@ -47,8 +47,7 @@ type ABCIMiddlewareInput struct {
 func ProvideABCIMiddleware(
 	in ABCIMiddlewareInput,
 ) *ABCIMiddleware {
-	return middleware.
-		NewABCIMiddleware[
+	return middleware.NewABCIMiddleware[
 		*AvailabilityStore, *BeaconBlock, BeaconState,
 		*BlobSidecars, *Deposit, *ExecutionPayload, *Genesis,
 	](
