@@ -23,6 +23,7 @@ package middleware
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -84,8 +85,7 @@ type ABCIMiddleware[
 	sidecarsFeed *event.FeedOf[
 		asynctypes.EventID, *asynctypes.Event[BlobSidecarsT]]
 	// slotFeed is a feed for slots.
-	slotFeed *event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[math.Slot]]
+	slotFeed *broker.Broker[*asynctypes.Event[math.Slot]]
 
 	// TODO: this is a temporary hack.
 	req *cmtabci.FinalizeBlockRequest
@@ -118,8 +118,7 @@ func NewABCIMiddleware[
 		asynctypes.EventID, *asynctypes.Event[BeaconBlockT]],
 	sidecarsFeed *event.FeedOf[
 		asynctypes.EventID, *asynctypes.Event[BlobSidecarsT]],
-	slotFeed *event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[math.Slot]],
+	slotFeed *broker.Broker[*asynctypes.Event[math.Slot]],
 ) *ABCIMiddleware[
 	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
 	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
@@ -189,16 +188,14 @@ func (am *ABCIMiddleware[
 			case events.BeaconBlockBuilt:
 				am.blkCh <- msg
 			case events.BeaconBlockVerified:
-				continue
 			}
 		case msg := <-subSidecarsCh:
 			switch msg.Type() {
 			case events.BlobSidecarsBuilt:
-				am.sidecarsCh <- msg
-			case events.BlobSidecarsVerified:
-				continue
+				fallthrough
 			case events.BlobSidecarsProcessed:
 				am.sidecarsCh <- msg
+			case events.BlobSidecarsVerified:
 			default:
 				// do nothing.
 			}

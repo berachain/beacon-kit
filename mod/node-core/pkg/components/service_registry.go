@@ -39,6 +39,7 @@ type ServiceRegistryInput struct {
 	DepositService   *DepositService
 	EngineClient     *EngineClient
 	Logger           log.Logger
+	SlotBroker       *SlotBroker
 	TelemetrySink    *metrics.TelemetrySink
 	ValidatorService *ValidatorService
 }
@@ -54,12 +55,13 @@ func ProvideServiceRegistry(
 		service.WithService(in.DAService),
 		service.WithService(in.DepositService),
 		service.WithService(in.ABCIService),
-		service.WithService(in.EngineClient),
 		service.WithService(version.NewReportingService(
 			in.Logger.With("service", "reporting"),
 			in.TelemetrySink,
 			sdkversion.Version,
 		)),
 		service.WithService(in.DBManager),
+		service.WithService(in.SlotBroker),
+		service.WithService(in.EngineClient),
 	)
 }

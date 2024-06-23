@@ -43,7 +43,8 @@ type Service[
 		AvailabilityStoreT, BeaconBlockBodyT,
 		BlobSidecarsT, ExecutionPayloadT,
 	]
-	feed   *event.FeedOf[asynctypes.EventID, *asynctypes.Event[BlobSidecarsT]]
+	sidecarsFeed *event.FeedOf[
+		asynctypes.EventID, *asynctypes.Event[BlobSidecarsT]]
 	logger log.Logger[any]
 }
 
@@ -64,7 +65,8 @@ func NewService[
 		AvailabilityStoreT, BeaconBlockBodyT,
 		BlobSidecarsT, ExecutionPayloadT,
 	],
-	feed *event.FeedOf[asynctypes.EventID, *asynctypes.Event[BlobSidecarsT]],
+	sidecarsFeed *event.FeedOf[
+		asynctypes.EventID, *asynctypes.Event[BlobSidecarsT]],
 	logger log.Logger[any],
 ) *Service[
 	AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT, ExecutionPayloadT,
@@ -72,10 +74,10 @@ func NewService[
 	return &Service[
 		AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT, ExecutionPayloadT,
 	]{
-		avs:    avs,
-		bp:     bp,
-		feed:   feed,
-		logger: logger,
+		avs:          avs,
+		bp:           bp,
+		sidecarsFeed: sidecarsFeed,
+		logger:       logger,
 	}
 }
 
@@ -93,18 +95,18 @@ func (s *Service[_, _, _, _]) Start(ctx context.Context) error {
 // start starts the service.
 func (s *Service[_, _, BlobSidecarsT, _]) start(ctx context.Context) {
 	ch := make(chan *asynctypes.Event[BlobSidecarsT], 1)
-	sub := s.feed.Subscribe(ch)
+	sub := s.sidecarsFeed.Subscribe(ch)
 	defer sub.Unsubscribe()
 
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case e := <-ch:
+		case msg := <-ch:
 			//nolint:gocritic // will be expanded.
-			switch e.Type() {
+			switch msg.Type() {
 			case events.BlobSidecarsVerified:
-				err := s.ProcessSidecars(ctx, e.Data())
+				err := s.ProcessSidecars(ctx, msg.Data())
 				if err != nil {
 					s.logger.Error(
 						"failed to process blob sidecars",
@@ -113,8 +115,8 @@ func (s *Service[_, _, BlobSidecarsT, _]) start(ctx context.Context) {
 					)
 				}
 
-				s.feed.Send(asynctypes.NewEvent(
-					ctx, events.BlobSidecarsProcessed, e.Data(), err,
+				s.sidecarsFeed.Send(asynctypes.NewEvent(
+					ctx, events.BlobSidecarsProcessed, msg.Data(), err,
 				))
 				// case events.BlobSidecarsReceived:
 				// 	err := s.ReceiveSidecars(ctx, e.Data())

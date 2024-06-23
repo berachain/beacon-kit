@@ -108,9 +108,11 @@ func (h *ABCIMiddleware[
 
 	// Send a request to the validator service to give us a beacon block
 	// and blob sidecards to pass to ABCI.
-	h.slotFeed.Send(asynctypes.NewEvent(
+	if err := h.slotFeed.Publish(asynctypes.NewEvent(
 		ctx, events.NewSlot, math.Slot(req.Height),
-	))
+	)); err != nil {
+		return nil, err
+	}
 
 	// Using a wait group instead of an errgroup to ensure we drain
 	// the associated channels for the beacon block and sidecars.
@@ -145,12 +147,12 @@ func (h *ABCIMiddleware[
 	select {
 	case <-ctx.Done():
 		return nil, ctx.Err()
-	case sidecars := <-h.sidecarsCh:
-		if sidecars.Error() != nil {
-			return nil, sidecars.Error()
+	case msg := <-h.sidecarsCh:
+		if msg.Error() != nil {
+			return nil, msg.Error()
 		}
 
-		sidecarsBz, err := h.blobGossiper.Publish(ctx, sidecars.Data())
+		sidecarsBz, err := h.blobGossiper.Publish(ctx, msg.Data())
 		if err != nil {
 			h.logger.Error("failed to publish blobs", "error", err)
 		}

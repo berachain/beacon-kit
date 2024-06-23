@@ -21,6 +21,7 @@
 package components
 
 import (
+	broker "github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/beacon"
@@ -201,8 +202,10 @@ type (
 		*ExecutionPayloadHeader,
 	]
 
-	// SlotFeed is a type alias for the slot feed.
-	SlotFeed = event.FeedOf[asynctypes.EventID, *asynctypes.Event[math.Slot]]
+	// SlotBroker is a type alias for the slot feed.
+	// SlotBroker = event.FeedOf[asynctypes.EventID,
+	// *asynctypes.Event[math.Slot]].
+	SlotBroker = broker.Broker[*asynctypes.Event[math.Slot]]
 
 	// StatusFeed is a type alias for the status feed.
 	StatusFeed = event.FeedOf[

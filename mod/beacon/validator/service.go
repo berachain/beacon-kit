@@ -23,6 +23,7 @@ package validator
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -94,10 +95,7 @@ type Service[
 		asynctypes.EventID,
 		*asynctypes.Event[BlobSidecarsT],
 	]
-	slotFeed *event.FeedOf[
-		asynctypes.EventID,
-		*asynctypes.Event[math.Slot],
-	]
+	slotFeed broker.Client[*asynctypes.Event[math.Slot]]
 }
 
 // NewService creates a new validator service.
@@ -141,8 +139,7 @@ func NewService[
 		asynctypes.EventID, *asynctypes.Event[BeaconBlockT]],
 	sidecarsFeed *event.FeedOf[
 		asynctypes.EventID, *asynctypes.Event[BlobSidecarsT]],
-	slotFeed *event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[math.Slot]],
+	slotFeed broker.Client[*asynctypes.Event[math.Slot]],
 ) *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
@@ -198,14 +195,13 @@ func (s *Service[
 ]) start(
 	ctx context.Context,
 ) {
-	newSlotCh := make(chan *asynctypes.Event[math.Slot], 1)
-	sub := s.slotFeed.Subscribe(newSlotCh)
-	defer sub.Unsubscribe()
+	// newSlotCh := make(chan *asynctypes.Event[math.Slot], 1)
+	// defer sub.Unsubscribe()
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case req := <-newSlotCh:
+		case req := <-s.slotFeed:
 			if req.Type() == events.NewSlot {
 				s.handleNewSlot(req)
 			}
