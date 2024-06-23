@@ -215,12 +215,18 @@ func (h *ABCIMiddleware[
 	)
 	defer h.metrics.measureProcessProposalDuration(startTime)
 
+	// Decode the beacon block and emit an event.
 	blk, err = h.beaconBlockGossiper.Request(gCtx, req)
 	if err != nil {
 		args[1] = false
 	}
 
 	g.Go(func() error {
+		// TODO: Do we want to emit if nil?
+		h.blkFeed.Send(asynctypes.NewEvent(
+			ctx, events.BeaconBlockReceived, blk,
+		))
+
 		if err = h.chainService.ReceiveBlock(
 			ctx, blk,
 		); !errors.IsFatal(err) {
@@ -230,14 +236,20 @@ func (h *ABCIMiddleware[
 	})
 
 	g.Go(func() error {
+		if blk.IsNil() {
+			return nil
+		}
+
+		// Decode the blob sidecars and emit an event.
 		sidecars, err = h.blobGossiper.Request(gCtx, req)
 		if err != nil {
 			args[3] = false
 		}
 
-		if blk.IsNil() {
-			return nil
-		}
+		// TODO: Do we want to emit if nil?
+		h.sidecarsFeed.Send(asynctypes.NewEvent(
+			ctx, events.BlobSidecarsReceived, sidecars,
+		))
 
 		if err = h.daService.ReceiveSidecars(
 			gCtx, blk.GetSlot(), sidecars,
