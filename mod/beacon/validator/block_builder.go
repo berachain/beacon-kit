@@ -26,6 +26,7 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -314,6 +315,9 @@ func (s *Service[
 		0,
 		common.ZeroHash,
 	))
+
+	// Set the graffiti on the block body.
+	body.SetGraffiti(bytes.ToBytes32([]byte(s.cfg.Graffiti)))
 
 	return body.SetExecutionData(envelope.GetExecutionPayload())
 }
