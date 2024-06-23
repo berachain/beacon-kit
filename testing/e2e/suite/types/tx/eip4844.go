@@ -56,12 +56,21 @@ func New4844Tx(
 		AccessList: al,
 		BlobFeeCap: uint256.MustFromBig(blobFeeCap),
 		BlobHashes: versionedHashes,
-		Sidecar:    &types.BlobTxSidecar{Blobs: blobs, Commitments: commits, Proofs: aggProof},
+		Sidecar: &types.BlobTxSidecar{
+			Blobs:       blobs,
+			Commitments: commits,
+			Proofs:      aggProof,
+		},
 	})
 }
 
 // EncodeBlobs encodes blobs.
-func EncodeBlobs(data []byte) ([]kzg4844.Blob, []kzg4844.Commitment, []kzg4844.Proof, []common.Hash, error) {
+func EncodeBlobs(
+	data []byte,
+) (
+	[]kzg4844.Blob, []kzg4844.Commitment,
+	[]kzg4844.Proof, []common.Hash, error,
+) {
 	blobs := encodeBlobs(data)
 	commits := make([]kzg4844.Commitment, 0, len(blobs))
 	proofs := make([]kzg4844.Proof, 0, len(blobs))
@@ -79,12 +88,17 @@ func EncodeBlobs(data []byte) ([]kzg4844.Blob, []kzg4844.Commitment, []kzg4844.P
 		}
 		proofs = append(proofs, proof)
 
-		versionedHashes = append(versionedHashes, eip4844.KZGCommitment(commit).ToVersionedHash())
+		versionedHashes = append(
+			versionedHashes,
+			eip4844.KZGCommitment(commit).ToVersionedHash(),
+		)
 	}
 	return blobs, commits, proofs, versionedHashes, nil
 }
 
 // encodeBlobs encodes data into blobs.
+//
+//nolint:mnd // its chill.
 func encodeBlobs(data []byte) []kzg4844.Blob {
 	blobs := []kzg4844.Blob{{}}
 	blobIndex := 0

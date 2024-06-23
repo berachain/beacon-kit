@@ -31,7 +31,6 @@ import (
 )
 
 func (s *BeaconKitE2ESuite) Test4844Live() {
-
 	// Sender account
 	sender := s.TestAccounts()[1]
 
@@ -61,7 +60,8 @@ func (s *BeaconKitE2ESuite) Test4844Live() {
 	s.Logger().Info("submitted blob transaction", "tx", tx.Hash().Hex())
 	s.Require().NoError(s.JSONRPCBalancer().SendTransaction(ctx, tx))
 
-	s.Logger().Info("waiting for blob transaction to be mined", "tx", tx.Hash().Hex())
+	s.Logger().
+		Info("waiting for blob transaction to be mined", "tx", tx.Hash().Hex())
 	receipt, err := bind.WaitMined(ctx, s.JSONRPCBalancer(), tx)
 	s.Require().NoError(err)
 	s.Require().Equal(uint64(1), receipt.Status)
@@ -69,5 +69,4 @@ func (s *BeaconKitE2ESuite) Test4844Live() {
 	// Ensure Blob Tx doesn't cause liveliness issues.
 	err = s.WaitForNBlockNumbers(10)
 	s.Require().NoError(err)
-
 }
