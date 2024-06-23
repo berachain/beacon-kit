@@ -200,13 +200,13 @@ type StateProcessor[
 	// ProcessSlot processes the slot.
 	ProcessSlots(
 		st BeaconStateT, slot math.Slot,
-	) ([]*transition.ValidatorUpdate, error)
+	) (transition.ValidatorUpdates, error)
 	// Transition performs the core state transition.
 	Transition(
 		ctx ContextT,
 		st BeaconStateT,
 		blk BeaconBlockT,
-	) ([]*transition.ValidatorUpdate, error)
+	) (transition.ValidatorUpdates, error)
 }
 
 // StorageBackend is the interface for the storage backend.
