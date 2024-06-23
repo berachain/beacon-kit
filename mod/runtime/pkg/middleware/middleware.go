@@ -22,7 +22,6 @@ package middleware
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
@@ -174,8 +173,8 @@ func (am *ABCIMiddleware[
 func (am *ABCIMiddleware[
 	_, BeaconBlockT, _, BlobSidecarsT, _, _, _,
 ]) start(ctx context.Context) {
-	subSidecarsCh := make(chan *asynctypes.Event[BlobSidecarsT], 2)
-	subBlkCh := make(chan *asynctypes.Event[BeaconBlockT], 2)
+	subSidecarsCh := make(chan *asynctypes.Event[BlobSidecarsT], 1)
+	subBlkCh := make(chan *asynctypes.Event[BeaconBlockT], 1)
 	blkSub := am.blkFeed.Subscribe(subBlkCh)
 	sidecarsSub := am.sidecarsFeed.Subscribe(subSidecarsCh)
 	defer blkSub.Unsubscribe()
@@ -199,8 +198,6 @@ func (am *ABCIMiddleware[
 			case events.BlobSidecarsVerified:
 				continue
 			case events.BlobSidecarsProcessed:
-				fmt.Println("FIRING BLOBS PROCESSED EVENT IN MIDDLEWARE")
-				fmt.Println(msg.Type())
 				am.sidecarsCh <- msg
 			default:
 				// do nothing.

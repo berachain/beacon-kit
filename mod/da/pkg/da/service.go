@@ -22,7 +22,6 @@ package da
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
@@ -96,7 +95,6 @@ func (s *Service[_, _, BlobSidecarsT, _]) start(ctx context.Context) {
 	sub := s.feed.Subscribe(ch)
 	defer sub.Unsubscribe()
 
-	fmt.Println("STARTING DA SERVICE")
 	for {
 		select {
 		case <-ctx.Done():
