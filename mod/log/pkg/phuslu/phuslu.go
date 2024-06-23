@@ -114,3 +114,8 @@ func (l *Logger[ImplT]) msgWithContext(
 ) {
 	e.Fields(l.context).KeysAndValues(keyVals...).Msg(msg)
 }
+
+// SetLevel sets the log level of the logger.
+func (l *Logger[ImplT]) SetLevel(level string) {
+	l.logger.Level = log.ParseLevel(level)
+}

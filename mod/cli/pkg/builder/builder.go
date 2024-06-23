@@ -21,7 +21,6 @@
 package builder
 
 import (
-	"io"
 	"os"
 
 	"cosmossdk.io/client/v2/autocli"
@@ -96,7 +95,7 @@ func (cb *CLIBuilder[T]) Build() (*cmdlib.Root, error) {
 			),
 		),
 		&mm,
-		&logger, // why tf is logger empty here?
+		&logger,
 		&clientCtx,
 		&chainSpec,
 		&autoCliOpts,
@@ -147,7 +146,7 @@ func (cb *CLIBuilder[T]) defaultRunHandler(logger log.Logger) func(
 // InterceptConfigsAndCreateContext except it also sets the server context on
 // the command and the server logger.
 func (cb *CLIBuilder[T]) InterceptConfigsPreRunHandler(
-	cmd *cobra.Command, _ log.Logger, customAppConfigTemplate string,
+	cmd *cobra.Command, logger log.Logger, customAppConfigTemplate string,
 	customAppConfig interface{}, cmtConfig *cmtcfg.Config,
 ) error {
 	serverCtx, err := server.InterceptConfigsAndCreateContext(
@@ -155,23 +154,12 @@ func (cb *CLIBuilder[T]) InterceptConfigsPreRunHandler(
 	if err != nil {
 		return err
 	}
-	serverCtx.Logger, err = CreatePhusluLogger(serverCtx, os.Stdout)
-	if err != nil {
-		return err
-	}
-	// does not work rn
-	// serverCtx.Logger = logger
+
+	logLvlStr := serverCtx.Viper.GetString(flags.FlagLogLevel)
+	// kinda cooked
+	logger.(*phuslu.Logger[log.Logger]).SetLevel(logLvlStr)
+	serverCtx.Logger = logger
 
 	// set server context
 	return server.SetCmdServerContext(cmd, serverCtx)
-}
-
-// CreatePhusluLogger creates a a phuslu logger with the given output.
-// It reads the log level and format from the server context.
-// TODO: fix depinject and remove this func
-func CreatePhusluLogger(
-	ctx *server.Context, out io.Writer,
-) (log.Logger, error) {
-	logLvlStr := ctx.Viper.GetString(flags.FlagLogLevel)
-	return phuslu.NewLogger[log.Logger](logLvlStr, phuslu.DefaultConfig(), out), nil
 }

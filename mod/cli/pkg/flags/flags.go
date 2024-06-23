@@ -54,10 +54,6 @@ const (
 	kzgRoot             = beaconKitRoot + "kzg."
 	KZGTrustedSetupPath = kzgRoot + "trusted-setup-path"
 	KZGImplementation   = kzgRoot + "implementation"
-
-	// Logger Config.
-	loggerRoot = beaconKitRoot + "logger."
-	TimeFormat = loggerRoot + "time-format"
 )
 
 // AddBeaconKitFlags implements servertypes.ModuleInitFlags interface.
@@ -101,10 +97,5 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 		KZGImplementation,
 		defaultCfg.KZG.Implementation,
 		"kzg implementation",
-	)
-	startCmd.Flags().String(
-		TimeFormat,
-		defaultCfg.Logger.TimeFormat,
-		"time format for the logger",
 	)
 }

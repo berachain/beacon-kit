@@ -27,7 +27,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	"github.com/berachain/beacon-kit/mod/errors"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
-	logger "github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
@@ -43,7 +42,6 @@ func DefaultConfig() *Config {
 	return &Config{
 		Engine:         engineclient.DefaultConfig(),
 		KZG:            kzg.DefaultConfig(),
-		Logger:         logger.DefaultConfig(),
 		PayloadBuilder: builder.DefaultConfig(),
 		Validator:      validator.DefaultConfig(),
 	}
@@ -55,8 +53,6 @@ type Config struct {
 	Engine engineclient.Config `mapstructure:"engine"`
 	// KZG is the configuration for the KZG blob verifier.
 	KZG kzg.Config `mapstructure:"kzg"`
-	// Logger is the configuration for the logger.
-	Logger logger.Config `mapstructure:"logger"`
 	// PayloadBuilder is the configuration for the local build payload timeout.
 	PayloadBuilder builder.Config `mapstructure:"payload-builder"`
 	// Validator is the configuration for the validator client.
