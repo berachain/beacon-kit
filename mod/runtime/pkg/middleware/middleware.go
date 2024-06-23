@@ -104,9 +104,9 @@ type ABCIMiddleware[
 	// method.
 	errCh chan error
 	// blkCh is used to communicate the beacon block to the EndBlock method.
-	prepareProposalBlkCh chan *asynctypes.Event[BeaconBlockT]
+	blkCh chan *asynctypes.Event[BeaconBlockT]
 	// sidecarsCh is used to communicate the sidecars to the EndBlock method.
-	prepareProposalSidecarsCh chan *asynctypes.Event[BlobSidecarsT]
+	sidecarsCh chan *asynctypes.Event[BlobSidecarsT]
 }
 
 // NewABCIMiddleware creates a new instance of the Handler struct.
@@ -160,11 +160,11 @@ func NewABCIMiddleware[
 		blkFeed:      blkFeed,
 		sidecarsFeed: sidecarsFeed,
 		slotFeed:     slotFeed,
-		prepareProposalBlkCh: make(
+		blkCh: make(
 			chan *asynctypes.Event[BeaconBlockT],
 			1,
 		),
-		prepareProposalSidecarsCh: make(
+		sidecarsCh: make(
 			chan *asynctypes.Event[BlobSidecarsT],
 			1,
 		),
@@ -208,20 +208,16 @@ func (am *ABCIMiddleware[
 		case msg := <-subBlkCh:
 			switch msg.Type() {
 			case events.BeaconBlockBuilt:
-				am.prepareProposalBlkCh <- msg
+				fallthrough
 			case events.BeaconBlockVerified:
-				// TODO: Process Proposal
-			case events.BeaconBlockFinalized:
-				// TODO: Finalize/EndBlock.
+				am.blkCh <- msg
 			}
 		case msg := <-subSidecarsCh:
 			switch msg.Type() {
 			case events.BlobSidecarsBuilt:
-				am.prepareProposalSidecarsCh <- msg
+				fallthrough
 			case events.BlobSidecarsVerified:
-				// TODO: Process Proposal:
-			case events.BlobSidecarsProcessed:
-				// TODO: Finalize/EndBlock.
+				am.sidecarsCh <- msg
 			}
 		}
 	}

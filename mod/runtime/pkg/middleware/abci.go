@@ -146,7 +146,7 @@ func (h *ABCIMiddleware[
 		return nil, gCtx.Err()
 	case err := <-h.errCh:
 		return nil, err
-	case sidecars := <-h.prepareProposalSidecarsCh:
+	case sidecars := <-h.sidecarsCh:
 		if sidecars.Error() != nil {
 			return nil, sidecars.Error()
 		}
@@ -168,7 +168,7 @@ func (h *ABCIMiddleware[
 		return nil, gCtx.Err()
 	case err := <-h.errCh:
 		return nil, err
-	case beaconBlock := <-h.prepareProposalBlkCh:
+	case beaconBlock := <-h.blkCh:
 		if beaconBlock.Error() != nil {
 			return nil, beaconBlock.Error()
 		}
