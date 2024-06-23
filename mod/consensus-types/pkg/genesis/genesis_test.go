@@ -48,20 +48,22 @@ func TestDefaultGenesisDeneb(t *testing.T) {
 		t.Errorf("Expected no deposits, but got %v", len(g.Deposits))
 	}
 	// add assertions for ExecutionPayloadHeader
-	payloadHeader := g.ExecutionPayloadHeader
-	if payloadHeader == nil {
-		t.Errorf("Expected ExecutionPayloadHeader to be non-nil")
-	}
-
-	require.Equal(t, common.ZeroHash, payloadHeader.GetParentHash(),
+	require.NotNil(t, g.ExecutionPayloadHeader,
+		"Expected ExecutionPayloadHeader to be non-nil")
+	require.Equal(t, common.ZeroHash,
+		g.ExecutionPayloadHeader.GetParentHash(),
 		"Unexpected ParentHash")
-	require.Equal(t, common.ZeroAddress, payloadHeader.GetFeeRecipient(),
+	require.Equal(t, common.ZeroAddress,
+		g.ExecutionPayloadHeader.GetFeeRecipient(),
 		"Unexpected FeeRecipient")
-	require.Equal(t, math.U64(30000000), payloadHeader.GetGasLimit(),
+	require.Equal(t, math.U64(30000000),
+		g.ExecutionPayloadHeader.GetGasLimit(),
 		"Unexpected GasLimit")
-	require.Equal(t, math.U64(0), payloadHeader.GetGasUsed(),
+	require.Equal(t, math.U64(0),
+		g.ExecutionPayloadHeader.GetGasUsed(),
 		"Unexpected GasUsed")
-	require.Equal(t, math.U64(0), payloadHeader.GetTimestamp(),
+	require.Equal(t, math.U64(0),
+		g.ExecutionPayloadHeader.GetTimestamp(),
 		"Unexpected Timestamp")
 }
 
