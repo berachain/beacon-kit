@@ -77,7 +77,7 @@ func (b *Broker[T]) start(ctx context.Context) {
 			}
 			return
 		case msg := <-b.msgs:
-			b.clientsMu.RLock()
+			b.clientsMu.Lock()
 			// broadcast published msg to all clients
 			for client := range b.clients {
 				// send msg to client (or discard msg after timeout)
@@ -86,7 +86,7 @@ func (b *Broker[T]) start(ctx context.Context) {
 				case <-time.After(b.timeout):
 				}
 			}
-			b.clientsMu.RUnlock()
+			b.clientsMu.Unlock()
 		}
 	}
 }
