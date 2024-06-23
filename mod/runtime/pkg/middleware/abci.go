@@ -276,17 +276,6 @@ func (h *ABCIMiddleware[
 	return nil
 }
 
-// handlePreBlock is called by the base app before the block is finalized. It
-// is responsible for aggregating oracle data from each validator and writing
-// the oracle data to the store.
-func (h *ABCIMiddleware[
-	_, BeaconBlockT, _, BlobSidecarsT, _, _, _,
-]) preBlock(
-	ctx sdk.Context, req *cmtabci.FinalizeBlockRequest,
-) {
-
-}
-
 // EndBlock returns the validator set updates from the beacon state.
 func (h *ABCIMiddleware[
 	_, _, _, _, _, _, _,
@@ -312,6 +301,7 @@ func (h *ABCIMiddleware[
 		))
 	if err != nil {
 		// If we don't have a block, we can't do anything.
+		//nolint:nilnil // its okay.
 		return nil, nil
 	}
 
