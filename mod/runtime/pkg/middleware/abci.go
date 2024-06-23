@@ -291,9 +291,10 @@ func (h *ABCIMiddleware[
 		h.chainSpec.ActiveForkVersionForSlot(
 			math.Slot(req.Height),
 		))
-
 	if err != nil {
-		h.errCh <- errors.Join(err, ErrBadExtractBlockAndBlocks)
+		// We push nil onto the channel so that we don't error out in
+		// endBlock().
+		h.errCh <- nil
 		return
 	}
 
@@ -333,9 +334,6 @@ func (h *ABCIMiddleware[
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	case err := <-h.errCh:
-		if errors.Is(err, ErrBadExtractBlockAndBlocks) {
-			err = nil
-		}
 		return nil, err
 	case result := <-h.valUpdatesCh:
 		return iter.MapErr(
