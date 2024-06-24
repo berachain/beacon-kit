@@ -29,6 +29,7 @@ package pruner
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 )
@@ -39,12 +40,11 @@ type DBPruner[
 	BeaconBlockT BeaconBlock,
 	BlockEventT BlockEvent[BeaconBlockT],
 	PrunableT Prunable,
-	SubscriptionT Subscription,
 ] struct {
 	prunable     Prunable
 	logger       log.Logger[any]
 	name         string
-	feed         BlockFeed[BeaconBlockT, BlockEventT, SubscriptionT]
+	feed         broker.Client[BlockEventT]
 	pruneRangeFn func(BlockEventT) (uint64, uint64)
 }
 
@@ -52,15 +52,14 @@ func NewPruner[
 	BeaconBlockT BeaconBlock,
 	BlockEventT BlockEvent[BeaconBlockT],
 	PrunableT Prunable,
-	SubscriptionT Subscription,
 ](
 	logger log.Logger[any],
 	prunable Prunable,
 	name string,
-	feed BlockFeed[BeaconBlockT, BlockEventT, SubscriptionT],
+	feed broker.Client[BlockEventT],
 	pruneRangeFn func(BlockEventT) (uint64, uint64),
-) *DBPruner[BeaconBlockT, BlockEventT, PrunableT, SubscriptionT] {
-	return &DBPruner[BeaconBlockT, BlockEventT, PrunableT, SubscriptionT]{
+) *DBPruner[BeaconBlockT, BlockEventT, PrunableT] {
+	return &DBPruner[BeaconBlockT, BlockEventT, PrunableT]{
 		logger:       logger,
 		prunable:     prunable,
 		name:         name,
@@ -71,18 +70,15 @@ func NewPruner[
 
 // Start starts the Pruner by listening for new indexes to prune.
 func (p *DBPruner[
-	BeaconBlockT, BlockEventT, PrunableT, SubscriptionT,
+	BeaconBlockT, BlockEventT, PrunableT,
 ]) Start(ctx context.Context) {
-	ch := make(chan BlockEventT)
-	sub := p.feed.Subscribe(ch)
 	go func() {
-		defer sub.Unsubscribe()
 		for {
 			select {
 			case <-ctx.Done():
 				return
-			case event := <-ch:
-				if event.Is(events.BeaconBlockFinalized) {
+			case event := <-p.feed:
+				if event.Type() == events.BeaconBlockFinalized {
 					start, end := p.pruneRangeFn(event)
 					if err := p.prunable.Prune(start, end); err != nil {
 						p.logger.Error(
@@ -98,7 +94,7 @@ func (p *DBPruner[
 
 // Name returns the name of the Pruner.
 func (p *DBPruner[
-	BeaconBlockT, BlockEventT, PrunableT, SubscriptionT,
+	BeaconBlockT, BlockEventT, PrunableT,
 ]) Name() string {
 	return p.name
 }

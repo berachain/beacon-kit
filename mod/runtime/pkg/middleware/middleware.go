@@ -24,7 +24,6 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
-	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/p2p"
@@ -79,8 +78,7 @@ type ABCIMiddleware[
 	// Feeds
 	//
 	// blkFeed is a feed for blocks.
-	blkFeed *event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[BeaconBlockT]]
+	blkFeed *broker.Broker[*asynctypes.Event[BeaconBlockT]]
 	// sidecarsFeed is a feed for sidecars.
 	sidecarsFeed *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
 	// slotFeed is a feed for slots.
@@ -113,8 +111,7 @@ func NewABCIMiddleware[
 	daService DAService[BlobSidecarsT],
 	logger log.Logger[any],
 	telemetrySink TelemetrySink,
-	blkFeed *event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[BeaconBlockT]],
+	blkFeed *broker.Broker[*asynctypes.Event[BeaconBlockT]],
 	sidecarsFeed *broker.Broker[*asynctypes.Event[BlobSidecarsT]],
 	slotFeed *broker.Broker[*asynctypes.Event[math.Slot]],
 ) *ABCIMiddleware[
@@ -162,11 +159,17 @@ func (am *ABCIMiddleware[
 func (am *ABCIMiddleware[
 	_, _, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
+	subBlkCh, err := am.blkFeed.Subscribe()
+	if err != nil {
+		return err
+	}
+
 	subSidecarsCh, err := am.sidecarsFeed.Subscribe()
 	if err != nil {
 		return err
 	}
-	go am.start(ctx, subSidecarsCh)
+
+	go am.start(ctx, subBlkCh, subSidecarsCh)
 	return nil
 }
 
@@ -175,17 +178,14 @@ func (am *ABCIMiddleware[
 	_, BeaconBlockT, _, BlobSidecarsT, _, _, _,
 ]) start(
 	ctx context.Context,
+	blkCh broker.Client[*asynctypes.Event[BeaconBlockT]],
 	sidecarsCh broker.Client[*asynctypes.Event[BlobSidecarsT]],
 ) {
-	subBlkCh := make(chan *asynctypes.Event[BeaconBlockT], 1)
-	blkSub := am.blkFeed.Subscribe(subBlkCh)
-	defer blkSub.Unsubscribe()
-
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case msg := <-subBlkCh:
+		case msg := <-blkCh:
 			switch msg.Type() {
 			case events.BeaconBlockBuilt:
 				am.blkCh <- msg

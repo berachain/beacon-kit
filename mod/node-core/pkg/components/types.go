@@ -22,7 +22,6 @@ package components
 
 import (
 	broker "github.com/berachain/beacon-kit/mod/async/pkg/broker"
-	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/beacon"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
@@ -107,7 +106,7 @@ type (
 	BlockEvent = asynctypes.Event[*BeaconBlock]
 
 	// BlockFeed is a type alias for the block feed.
-	BlockFeed = event.FeedOf[asynctypes.EventID, *BlockEvent]
+	BlockFeed = broker.Broker[*BlockEvent]
 
 	// ChainService is a type alias for the chain service.
 	ChainService = blockchain.Service[
@@ -137,7 +136,6 @@ type (
 	DBManager = manager.DBManager[
 		*BeaconBlock,
 		*BlockEvent,
-		event.Subscription,
 	]
 
 	// Deposit is a type alias for the deposit.
@@ -150,7 +148,6 @@ type (
 		*BlockEvent,
 		*Deposit,
 		*ExecutionPayload,
-		event.Subscription,
 		types.WithdrawalCredentials,
 	]
 

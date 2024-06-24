@@ -100,7 +100,7 @@ type ExecutionEngine[PayloadAttributesT any] interface {
 type EventFeed[EventT any] interface {
 	// Send sends an event and returns the number of
 	// subscribers that received it.
-	Send(event EventT) int
+	Publish(event EventT) error
 }
 
 // ExecutionPayload is the interface for the execution payload.

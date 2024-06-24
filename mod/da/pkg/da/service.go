@@ -99,7 +99,6 @@ func (s *Service[_, _, BlobSidecarsT, _]) start(
 	ctx context.Context,
 	sidecarsCh broker.Client[*asynctypes.Event[BlobSidecarsT]],
 ) {
-
 	for {
 		select {
 		case <-ctx.Done():
@@ -117,9 +116,16 @@ func (s *Service[_, _, BlobSidecarsT, _]) start(
 					)
 				}
 
-				s.sidecarsFeed.Publish(asynctypes.NewEvent(
+				if err = s.sidecarsFeed.Publish(asynctypes.NewEvent(
 					ctx, events.BlobSidecarsProcessed, msg.Data(), err,
-				))
+				)); err != nil {
+					s.logger.Error(
+						"failed to publish blob sidecars processed event",
+						"error",
+						err,
+					)
+				}
+
 				// case events.BlobSidecarsReceived:
 				// 	err := s.ReceiveSidecars(ctx, e.Data())
 				// 	if err != nil {

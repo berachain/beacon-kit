@@ -24,7 +24,6 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
-	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -86,10 +85,7 @@ type Service[
 	// metrics is a metrics collector.
 	metrics *validatorMetrics
 	// blkFeed is a feed for blocks.
-	blkFeed *event.FeedOf[
-		asynctypes.EventID,
-		*asynctypes.Event[BeaconBlockT],
-	]
+	blkFeed *broker.Broker[*asynctypes.Event[BeaconBlockT]]
 	// sidecarsFeed is a feed for sidecars.
 	sidecarsFeed *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
 	slotFeed     broker.Client[*asynctypes.Event[math.Slot]]
@@ -132,8 +128,7 @@ func NewService[
 	localPayloadBuilder PayloadBuilder[BeaconStateT, ExecutionPayloadT],
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT],
 	ts TelemetrySink,
-	blkFeed *event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[BeaconBlockT]],
+	blkFeed *broker.Broker[*asynctypes.Event[BeaconBlockT]],
 	sidecarsFeed *broker.Broker[*asynctypes.Event[BlobSidecarsT]],
 	slotFeed broker.Client[*asynctypes.Event[math.Slot]],
 ) *Service[
@@ -215,12 +210,20 @@ func (s *Service[
 	}
 
 	// Send the built block back on the feed.
-	s.blkFeed.Send(asynctypes.NewEvent(
+	if blkErr := s.blkFeed.Publish(asynctypes.NewEvent(
 		req.Context(), events.BeaconBlockBuilt, blk, err,
-	))
+	)); blkErr != nil {
+		// Propogate the error from buildBlockAndSidecars
+		s.logger.Error("failed to publish block", "err", err)
+	}
 
 	// Send the sidecars on the feed.
-	s.sidecarsFeed.Publish(asynctypes.NewEvent(
-		req.Context(), events.BlobSidecarsBuilt, sidecars, err,
-	))
+	if sidecarsErr := s.sidecarsFeed.Publish(
+		asynctypes.NewEvent(
+			// Propogate the error from buildBlockAndSidecars
+			req.Context(), events.BlobSidecarsBuilt, sidecars, err,
+		),
+	); sidecarsErr != nil {
+		s.logger.Error("failed to publish sidecars", "err", err)
+	}
 }

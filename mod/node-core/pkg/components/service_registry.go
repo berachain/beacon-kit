@@ -33,6 +33,7 @@ import (
 type ServiceRegistryInput struct {
 	depinject.In
 	ABCIService      *ABCIMiddleware
+	BlockBroker      *BlockFeed
 	ChainService     *ChainService
 	DBManager        *DBManager
 	DAService        *DAService
@@ -62,6 +63,7 @@ func ProvideServiceRegistry(
 			sdkversion.Version,
 		)),
 		service.WithService(in.DBManager),
+		service.WithService(in.BlockBroker),
 		service.WithService(in.SlotBroker),
 		service.WithService(in.SidecarsBroker),
 		service.WithService(in.EngineClient),

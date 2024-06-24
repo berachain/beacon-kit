@@ -210,28 +210,30 @@ func (h *ABCIMiddleware[
 		err       error
 		g, _      = errgroup.WithContext(ctx)
 		startTime = time.Now()
-		args      = []any{"beacon_block", true, "blob_sidecars", true}
 	)
 	defer h.metrics.measureProcessProposalDuration(startTime)
 
 	// Decode the beacon block and emit an event.
 	blk, err = h.beaconBlockGossiper.Request(ctx, req)
 	if err != nil {
-		args[1] = false
+		h.logger.Error("failed to get beacon block", "error", err)
 	}
 
 	g.Go(func() error {
 		// Emit event to notify the block has been received.
-		h.blkFeed.Send(asynctypes.NewEvent(
+		localErr := h.blkFeed.Publish(asynctypes.NewEvent(
 			ctx, events.BeaconBlockReceived, blk, err,
 		))
-
-		if err = h.chainService.ReceiveBlock(
-			ctx, blk,
-		); !errors.IsFatal(err) {
-			err = nil
+		if localErr != nil {
+			return localErr
 		}
-		return err
+
+		if localErr = h.chainService.ReceiveBlock(
+			ctx, blk,
+		); !errors.IsFatal(localErr) {
+			localErr = nil
+		}
+		return localErr
 	})
 
 	g.Go(func() error {
@@ -242,22 +244,25 @@ func (h *ABCIMiddleware[
 		}
 
 		// Decode the blob sidecars and emit an event.
-		sidecars, err = h.blobGossiper.Request(ctx, req)
-		if err != nil {
-			args[3] = false
+		var localErr error
+		sidecars, localErr = h.blobGossiper.Request(ctx, req)
+		if localErr != nil {
+			h.logger.Error("failed to get sidecars", "error", localErr)
 		}
 
 		// Emit event to notify the sidecars have been received.
-		h.sidecarsFeed.Publish(asynctypes.NewEvent(
-			ctx, events.BlobSidecarsReceived, sidecars, err,
-		))
-
-		if err = h.daService.ReceiveSidecars(
-			ctx, sidecars,
-		); !errors.IsFatal(err) {
-			err = nil
+		if localErr = h.sidecarsFeed.Publish(asynctypes.NewEvent(
+			ctx, events.BlobSidecarsReceived, sidecars, localErr,
+		)); localErr != nil {
+			return localErr
 		}
-		return err
+
+		if localErr = h.daService.ReceiveSidecars(
+			ctx, sidecars,
+		); !errors.IsFatal(localErr) {
+			localErr = nil
+		}
+		return localErr
 	})
 
 	resp := &cmtabci.ProcessProposalResponse{
@@ -265,7 +270,6 @@ func (h *ABCIMiddleware[
 	}
 
 	// If we see a non fatal error, clear everything.
-	defer h.logger.Info("processed proposal", args...)
 	if err = g.Wait(); !errors.IsFatal(err) {
 		resp.Status = cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
 		err = nil

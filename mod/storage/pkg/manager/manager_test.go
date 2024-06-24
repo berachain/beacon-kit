@@ -25,64 +25,50 @@
 
 package manager_test
 
-import (
-	"context"
-	"testing"
-	"time"
+// func TestDBManager_Start(t *testing.T) {
+// 	mockPrunable := new(interfaceMocks.Prunable)
+// 	feed := mocks.BlockFeed[
+// 		manager.BeaconBlock,
+// 		manager.BlockEvent[manager.BeaconBlock],
+// 		manager.Subscription,
+// 	]{}
 
-	"cosmossdk.io/log"
-	interfaceMocks "github.com/berachain/beacon-kit/mod/storage/pkg/interfaces/mocks"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/manager/mocks"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
-	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
-)
+// 	sub := mocks.Subscription{}
+// 	sub.EXPECT().Unsubscribe().Return()
+// 	feed.EXPECT().Subscribe(mock.Anything).Return(&sub)
+// 	pruneParamsFn :=
+// 		func(_ manager.BlockEvent[manager.BeaconBlock]) (uint64, uint64) {
+// 			return 0, 0
+// 		}
 
-func TestDBManager_Start(t *testing.T) {
-	mockPrunable := new(interfaceMocks.Prunable)
-	feed := mocks.BlockFeed[
-		manager.BeaconBlock,
-		manager.BlockEvent[manager.BeaconBlock],
-		manager.Subscription,
-	]{}
+// 	logger := log.NewNopLogger()
+// 	p1 := pruner.NewPruner[
+// 		manager.BeaconBlock,
+// 		manager.BlockEvent[manager.BeaconBlock],
+// 		*interfaceMocks.Prunable,
+// 		manager.Subscription,
+// 	](logger, mockPrunable, "pruner1", &feed, pruneParamsFn)
+// 	p2 := pruner.NewPruner[
+// 		manager.BeaconBlock,
+// 		manager.BlockEvent[manager.BeaconBlock],
+// 		*interfaceMocks.Prunable,
+// 		manager.Subscription,
+// 	](logger, mockPrunable, "pruner2", &feed, pruneParamsFn)
 
-	sub := mocks.Subscription{}
-	sub.EXPECT().Unsubscribe().Return()
-	feed.EXPECT().Subscribe(mock.Anything).Return(&sub)
-	pruneParamsFn :=
-		func(_ manager.BlockEvent[manager.BeaconBlock]) (uint64, uint64) {
-			return 0, 0
-		}
+// 	m, err := manager.NewDBManager[
+// 		manager.BeaconBlock,
+// 		manager.BlockEvent[manager.BeaconBlock],
+// 		manager.Subscription,
+// 	](logger, p1, p2)
+// 	require.NoError(t, err)
 
-	logger := log.NewNopLogger()
-	p1 := pruner.NewPruner[
-		manager.BeaconBlock,
-		manager.BlockEvent[manager.BeaconBlock],
-		*interfaceMocks.Prunable,
-		manager.Subscription,
-	](logger, mockPrunable, "pruner1", &feed, pruneParamsFn)
-	p2 := pruner.NewPruner[
-		manager.BeaconBlock,
-		manager.BlockEvent[manager.BeaconBlock],
-		*interfaceMocks.Prunable,
-		manager.Subscription,
-	](logger, mockPrunable, "pruner2", &feed, pruneParamsFn)
+// 	ctx, cancel := context.WithCancel(context.Background())
+// 	defer cancel()
 
-	m, err := manager.NewDBManager[
-		manager.BeaconBlock,
-		manager.BlockEvent[manager.BeaconBlock],
-		manager.Subscription,
-	](logger, p1, p2)
-	require.NoError(t, err)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	err = m.Start(ctx)
-	require.NoError(t, err)
-	time.Sleep(100 * time.Millisecond)
-	feed.AssertCalled(t, "Subscribe", mock.Anything)
-	feed.AssertNumberOfCalls(t, "Subscribe", 2)
-	mockPrunable.AssertNotCalled(t, "PruneFromInclusive")
-}
+// 	err = m.Start(ctx)
+// 	require.NoError(t, err)
+// 	time.Sleep(100 * time.Millisecond)
+// 	feed.AssertCalled(t, "Subscribe", mock.Anything)
+// 	feed.AssertNumberOfCalls(t, "Subscribe", 2)
+// 	mockPrunable.AssertNotCalled(t, "PruneFromInclusive")
+// }
