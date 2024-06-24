@@ -203,9 +203,6 @@ func (am *ABCIMiddleware[
 				fallthrough
 			case events.BlobSidecarsProcessed:
 				am.sidecarsCh <- msg
-			case events.BlobSidecarsVerified:
-			default:
-				// do nothing.
 			}
 		}
 	}

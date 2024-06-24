@@ -32,6 +32,6 @@ const (
 	ValidatorSetUpdated         = "validator-set-updated"
 	BlobSidecarsBuilt           = "blob-sidecars-built"
 	BlobSidecarsReceived        = "blob-sidecars-received"
-	BlobSidecarsVerified        = "blob-sidecars-verified"
+	BlobSidecarsProcessRequest  = "blob-sidecars-process-request"
 	BlobSidecarsProcessed       = "blob-sidecars-processed"
 )

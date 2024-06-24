@@ -133,6 +133,7 @@ func NewService[
 	],
 	ts TelemetrySink,
 	blkBroker EventFeed[*asynctypes.Event[BeaconBlockT]],
+	//nolint:lll // annoying formatter.
 	validatorUpdateBroker EventFeed[*asynctypes.Event[transition.ValidatorUpdates]],
 	optimisticPayloadBuilds bool,
 ) *Service[

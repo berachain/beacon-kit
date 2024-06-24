@@ -110,8 +110,8 @@ func (s *Service[_, _, BlobSidecarsT, _, _]) start(
 			return
 		case msg := <-sidecarsCh:
 			switch msg.Type() {
-			case events.BlobSidecarsVerified:
-				s.handleBlobSidecarsVerified(ctx, msg)
+			case events.BlobSidecarsProcessRequest:
+				s.handleBlobSidecarsProcessRequest(ctx, msg)
 			case events.BlobSidecarsReceived:
 				s.handleBlobSidecarsReceived(ctx, msg)
 			}
@@ -119,9 +119,10 @@ func (s *Service[_, _, BlobSidecarsT, _, _]) start(
 	}
 }
 
-// handleBlobSidecarsVerified handles the BlobSidecarsVerified event.
+// handleBlobSidecarsProcessRequest handles the BlobSidecarsProcessRequest
+// event.
 // It processes the sidecars and publishes a BlobSidecarsProcessed event.
-func (s *Service[_, _, BlobSidecarsT, _, _]) handleBlobSidecarsVerified(
+func (s *Service[_, _, BlobSidecarsT, _, _]) handleBlobSidecarsProcessRequest(
 	ctx context.Context,
 	msg *asynctypes.Event[BlobSidecarsT],
 ) {

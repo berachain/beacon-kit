@@ -325,11 +325,12 @@ func (h *ABCIMiddleware[
 ]) processSidecars(ctx context.Context, blobs BlobSidecarsT) error {
 	// Publish the sidecars.
 	if err := h.sidecarsBroker.Publish(asynctypes.NewEvent(
-		ctx, events.BlobSidecarsVerified, blobs,
+		ctx, events.BlobSidecarsProcessRequest, blobs,
 	)); err != nil {
 		return err
 	}
 
+	// Wait for the sidecars to be processed.
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
