@@ -22,7 +22,7 @@ package cometbft
 
 import (
 	"cosmossdk.io/core/transaction"
-	"cosmossdk.io/server/v2"
+	serverv2 "cosmossdk.io/server/v2"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	"github.com/cosmos/cosmos-sdk/server"

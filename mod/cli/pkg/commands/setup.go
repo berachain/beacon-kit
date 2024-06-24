@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/deposit"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/genesis"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/jwt"
-	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/start"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/cosmos/cosmos-sdk/client/keys"
@@ -76,10 +75,6 @@ func Commands[NodeT types.Node[T], T transaction.Tx](
 		// // `snapshots`
 		// snapshot.Cmd(appCreator),
 		// `start`
-		start.NewStartCmd[NodeT, T](appCreator,
-			serverv2.NewServer[T](),
-			serverv2.StartFlags(),
-		),
 		// server.StartCmdWithOptions(appCreator, startCmdOptions),
 		// `status`
 		server.StatusCommand(),

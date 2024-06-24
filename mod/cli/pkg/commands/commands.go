@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/spf13/cobra"
 
 	"cosmossdk.io/core/transaction"
@@ -119,9 +120,11 @@ func AddCommands[NodeT types.Node[T], T transaction.Tx](
 }
 
 // configHandle writes the default config to the home directory if it does not exist and sets the server context
-func configHandle[
-	NodeT types.Node[T], T transaction.Tx,
-](s *serverv2.Server[NodeT, T], home string, cmd *cobra.Command) error {
+func configHandle[NodeT types.Node[T], T transaction.Tx](
+	s *serverv2.Server[NodeT, T],
+	home string,
+	cmd *cobra.Command,
+) error {
 	if _, err := os.Stat(filepath.Join(home, "config")); os.IsNotExist(err) {
 		if err = s.WriteConfig(filepath.Join(home, "config")); err != nil {
 			return err
