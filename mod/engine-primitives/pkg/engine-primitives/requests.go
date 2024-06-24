@@ -25,6 +25,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/trie"
@@ -36,9 +37,7 @@ import (
 //nolint:lll
 type NewPayloadRequest[
 	ExecutionPayloadT interface {
-		Empty(uint32) ExecutionPayloadT
-		IsNil() bool
-		Version() uint32
+		constraints.ForkTyped[ExecutionPayloadT]
 		GetPrevRandao() common.Bytes32
 		GetBlockHash() common.ExecutionHash
 		GetParentHash() common.ExecutionHash
@@ -78,9 +77,7 @@ type NewPayloadRequest[
 // BuildNewPayloadRequest builds a new payload request.
 func BuildNewPayloadRequest[
 	ExecutionPayloadT interface {
-		Empty(uint32) ExecutionPayloadT
-		IsNil() bool
-		Version() uint32
+		constraints.ForkTyped[ExecutionPayloadT]
 		GetPrevRandao() common.Bytes32
 		GetBlockHash() common.ExecutionHash
 		GetParentHash() common.ExecutionHash

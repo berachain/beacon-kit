@@ -22,10 +22,10 @@ package core
 
 import (
 	"context"
-	"encoding/json"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -154,11 +154,9 @@ type Deposit[
 type ExecutionPayload[
 	ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT any,
 ] interface {
-	ssz.Marshallable
-	json.Marshaler
-	json.Unmarshaler
-	Empty(uint32) ExecutionPayloadT
-	Version() uint32
+	constraints.ForkTyped[ExecutionPayloadT]
+	constraints.SSZMarshallable
+	constraints.JSONMarshallable
 	GetTransactions() [][]byte
 	GetParentHash() common.ExecutionHash
 	GetBlockHash() common.ExecutionHash
@@ -177,11 +175,9 @@ type ExecutionPayload[
 	GetBlobGasUsed() math.U64
 	GetExcessBlobGas() math.U64
 	ToHeader() (ExecutionPayloadHeaderT, error)
-	IsNil() bool
 }
 
 type ExecutionPayloadHeader interface {
-	Version() uint32
 	GetParentHash() common.ExecutionHash
 	GetBlockHash() common.ExecutionHash
 	GetPrevRandao() common.Bytes32
