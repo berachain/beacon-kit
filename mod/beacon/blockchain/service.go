@@ -211,6 +211,7 @@ func (s *Service[
 
 	// Publish the verified block event.
 	if err := s.blkBroker.Publish(
+		msg.Context(),
 		asynctypes.NewEvent(
 			msg.Context(),
 			events.BeaconBlockVerified,
@@ -241,6 +242,7 @@ func (s *Service[
 
 	// Publish the validator set updated event
 	if err = s.validatorUpdateBroker.Publish(
+		msg.Context(),
 		asynctypes.NewEvent(
 			msg.Context(),
 			events.ValidatorSetUpdated,

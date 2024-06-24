@@ -327,12 +327,6 @@ func (s *Service[
 	blk BeaconBlockT,
 ) error {
 	slot := blk.GetSlot()
-	s.logger.Info(
-		"Computing state root for block 🌲",
-		"slot", slot.Base10(),
-	)
-
-	var stateRoot common.Root
 	stateRoot, err := s.computeStateRoot(ctx, st, blk)
 	if err != nil {
 		s.logger.Error(

@@ -162,7 +162,7 @@ type EventSubscription[T any] chan T
 // EventPublisher represents the event publisher interface.
 type EventPublisher[T any] interface {
 	// PublishEvent publishes an event.
-	Publish(T) error
+	Publish(context.Context, T) error
 }
 
 // ForkData represents the fork data interface.

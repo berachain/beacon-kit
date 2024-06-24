@@ -111,9 +111,9 @@ func (s *Service[_, _, BlobSidecarsT, _, _]) start(
 		case msg := <-sidecarsCh:
 			switch msg.Type() {
 			case events.BlobSidecarsProcessRequest:
-				s.handleBlobSidecarsProcessRequest(ctx, msg)
+				s.handleBlobSidecarsProcessRequest(msg)
 			case events.BlobSidecarsReceived:
-				s.handleBlobSidecarsReceived(ctx, msg)
+				s.handleBlobSidecarsReceived(msg)
 			}
 		}
 	}
@@ -123,10 +123,9 @@ func (s *Service[_, _, BlobSidecarsT, _, _]) start(
 // event.
 // It processes the sidecars and publishes a BlobSidecarsProcessed event.
 func (s *Service[_, _, BlobSidecarsT, _, _]) handleBlobSidecarsProcessRequest(
-	ctx context.Context,
 	msg *asynctypes.Event[BlobSidecarsT],
 ) {
-	err := s.processSidecars(ctx, msg.Data())
+	err := s.processSidecars(msg.Context(), msg.Data())
 	if err != nil {
 		s.logger.Error(
 			"Failed to process blob sidecars",
@@ -135,9 +134,11 @@ func (s *Service[_, _, BlobSidecarsT, _, _]) handleBlobSidecarsProcessRequest(
 		)
 	}
 
-	if err = s.sidecarsBroker.Publish(asynctypes.NewEvent(
-		ctx, events.BlobSidecarsProcessed, msg.Data(), err,
-	)); err != nil {
+	if err = s.sidecarsBroker.Publish(
+		msg.Context(),
+		asynctypes.NewEvent(
+			msg.Context(), events.BlobSidecarsProcessed, msg.Data(), err,
+		)); err != nil {
 		s.logger.Error(
 			"Failed to publish blob sidecars processed event",
 			"error",
@@ -149,10 +150,9 @@ func (s *Service[_, _, BlobSidecarsT, _, _]) handleBlobSidecarsProcessRequest(
 // handleBlobSidecarsReceived handles the BlobSidecarsReceived event.
 // It receives the sidecars and publishes a BlobSidecarsProcessed event.
 func (s *Service[_, _, BlobSidecarsT, _, _]) handleBlobSidecarsReceived(
-	ctx context.Context,
 	msg *asynctypes.Event[BlobSidecarsT],
 ) {
-	err := s.receiveSidecars(ctx, msg.Data())
+	err := s.receiveSidecars(msg.Data())
 	if err != nil {
 		s.logger.Error(
 			"Failed to receive blob sidecars",
@@ -161,9 +161,11 @@ func (s *Service[_, _, BlobSidecarsT, _, _]) handleBlobSidecarsReceived(
 		)
 	}
 
-	if err = s.sidecarsBroker.Publish(asynctypes.NewEvent(
-		ctx, events.BlobSidecarsProcessed, msg.Data(), err,
-	)); err != nil {
+	if err = s.sidecarsBroker.Publish(
+		msg.Context(),
+		asynctypes.NewEvent(
+			msg.Context(), events.BlobSidecarsProcessed, msg.Data(), err,
+		)); err != nil {
 		s.logger.Error(
 			"Failed to publish blob sidecars processed event",
 			"error",
@@ -187,7 +189,6 @@ func (s *Service[_, _, BlobSidecarsT, _, _]) processSidecars(
 
 // VerifyIncomingBlobs receives blobs from the network and processes them.
 func (s *Service[_, _, BlobSidecarsT, _, _]) receiveSidecars(
-	_ context.Context,
 	sidecars BlobSidecarsT,
 ) error {
 	// If there are no blobs to verify, return early.

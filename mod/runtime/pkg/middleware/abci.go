@@ -86,7 +86,7 @@ func (h *ABCIMiddleware[
 
 	// Send a request to the validator service to give us a beacon block
 	// and blob sidecards to pass to ABCI.
-	if err := h.slotBroker.Publish(asynctypes.NewEvent(
+	if err := h.slotBroker.Publish(ctx, asynctypes.NewEvent(
 		ctx, events.NewSlot, math.Slot(req.Height),
 	)); err != nil {
 		return nil, err
@@ -202,6 +202,7 @@ func (h *ABCIMiddleware[
 ) error {
 	// Publish the received event.
 	if err := h.blkBroker.Publish(
+		ctx,
 		asynctypes.NewEvent(ctx, events.BeaconBlockReceived, blk, nil),
 	); err != nil {
 		return err
@@ -232,6 +233,7 @@ func (h *ABCIMiddleware[
 ) error {
 	// Publish the received event.
 	if err := h.sidecarsBroker.Publish(
+		ctx,
 		asynctypes.NewEvent(ctx, events.BlobSidecarsReceived, sidecars),
 	); err != nil {
 		return err
@@ -324,7 +326,7 @@ func (h *ABCIMiddleware[
 	_, _, _, BlobSidecarsT, _, _, _,
 ]) processSidecars(ctx context.Context, blobs BlobSidecarsT) error {
 	// Publish the sidecars.
-	if err := h.sidecarsBroker.Publish(asynctypes.NewEvent(
+	if err := h.sidecarsBroker.Publish(ctx, asynctypes.NewEvent(
 		ctx, events.BlobSidecarsProcessRequest, blobs,
 	)); err != nil {
 		return err
@@ -352,9 +354,10 @@ func (h *ABCIMiddleware[
 	ctx context.Context, blk BeaconBlockT,
 ) (transition.ValidatorUpdates, error) {
 	// Publish the verified block event.
-	if err := h.blkBroker.Publish(asynctypes.NewEvent(
-		ctx, events.BeaconBlockFinalizedRequest, blk,
-	)); err != nil {
+	if err := h.blkBroker.Publish(
+		ctx, asynctypes.NewEvent(
+			ctx, events.BeaconBlockFinalizedRequest, blk,
+		)); err != nil {
 		return nil, err
 	}
 
