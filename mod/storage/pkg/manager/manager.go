@@ -36,7 +36,6 @@ import (
 type DBManager[
 	BeaconBlockT BeaconBlock,
 	BlockEventT BlockEvent[BeaconBlockT],
-	SubscriptionT Subscription,
 ] struct {
 	pruners []pruner.Pruner[pruner.Prunable]
 	logger  log.Logger[any]
@@ -45,13 +44,12 @@ type DBManager[
 func NewDBManager[
 	BeaconBlockT BeaconBlock,
 	BlockEventT BlockEvent[BeaconBlockT],
-	SubscriptionT Subscription,
 ](
 	logger log.Logger[any],
 	pruners ...pruner.Pruner[pruner.Prunable],
-) (*DBManager[BeaconBlockT, BlockEventT, SubscriptionT], error) {
+) (*DBManager[BeaconBlockT, BlockEventT], error) {
 	return &DBManager[
-		BeaconBlockT, BlockEventT, SubscriptionT,
+		BeaconBlockT, BlockEventT,
 	]{
 		logger:  logger,
 		pruners: pruners,
@@ -60,14 +58,14 @@ func NewDBManager[
 
 // Name returns the name of the Basic Service.
 func (m *DBManager[
-	BeaconBlockT, BlockEventT, SubscriptionT,
+	_, _,
 ]) Name() string {
 	return "db-manager"
 }
 
 // Start starts all pruners.
 func (m *DBManager[
-	BeaconBlockT, BlockEventT, SubscriptionT,
+	_, _,
 ]) Start(ctx context.Context) error {
 	for _, pruner := range m.pruners {
 		pruner.Start(ctx)

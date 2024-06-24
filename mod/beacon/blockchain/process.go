@@ -105,12 +105,13 @@ func (s *Service[
 	// TODO: this is hood as fuck.
 	// We won't send a fcu if the block is bad, should be addressed
 	// via ticker later.
-	go func() {
-		s.blockFeed.Send(
-			asynctypes.NewEvent(ctx, events.BeaconBlockFinalized, blk),
-		)
-		s.sendPostBlockFCU(ctx, st, blk)
-	}()
+	if err = s.blkBroker.Publish(
+		asynctypes.NewEvent(ctx, events.BeaconBlockFinalized, blk),
+	); err != nil {
+		return nil, err
+	}
+
+	go s.sendPostBlockFCU(ctx, st, blk)
 
 	return valUpdates, nil
 }

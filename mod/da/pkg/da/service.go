@@ -23,8 +23,10 @@ package da
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 )
 
 type Service[
@@ -41,12 +43,15 @@ type Service[
 		AvailabilityStoreT, BeaconBlockBodyT,
 		BlobSidecarsT, ExecutionPayloadT,
 	]
-	logger log.Logger[any]
+	sidecarsBroker *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
+	logger         log.Logger[any]
 }
 
 // New returns a new DA service.
 func NewService[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	AvailabilityStoreT AvailabilityStore[
+		BeaconBlockBodyT, BlobSidecarsT,
+	],
 	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
 	BlobSidecarsT interface {
 		Len() int
@@ -59,6 +64,7 @@ func NewService[
 		AvailabilityStoreT, BeaconBlockBodyT,
 		BlobSidecarsT, ExecutionPayloadT,
 	],
+	sidecarsBroker *broker.Broker[*asynctypes.Event[BlobSidecarsT]],
 	logger log.Logger[any],
 ) *Service[
 	AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT, ExecutionPayloadT,
@@ -66,9 +72,10 @@ func NewService[
 	return &Service[
 		AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT, ExecutionPayloadT,
 	]{
-		avs:    avs,
-		bp:     bp,
-		logger: logger,
+		avs:            avs,
+		bp:             bp,
+		sidecarsBroker: sidecarsBroker,
+		logger:         logger,
 	}
 }
 
@@ -79,55 +86,73 @@ func (s *Service[_, _, _, _]) Name() string {
 
 // Start starts the service.
 func (s *Service[_, _, _, _]) Start(ctx context.Context) error {
-	go s.start(ctx)
+	subSidecarsCh, err := s.sidecarsBroker.Subscribe()
+	if err != nil {
+		return err
+	}
+	go s.start(ctx, subSidecarsCh)
 	return nil
 }
 
 // start starts the service.
-func (s *Service[_, _, BlobSidecarsT, _]) start(_ context.Context) {
-	// TODO: Introduce in Future PR.
-	// ch := make(chan *asynctypes.Event[BlobSidecarsT])
-	// sub := s.feed.Subscribe(ch)
-	// defer sub.Unsubscribe()
-	// for {
-	// 	select {
-	// 	case <-ctx.Done():
-	// 		return
-	// 	case e := <-ch:
-	// 		// TODO: this is unused atm.
-	// 		if e.Type() == events.BlobSidecarsReceived {
-	// 			if err := s.ProcessSidecars(ctx, 0, e.Data()); err != nil {
-	// 				s.logger.Error(
-	// 					"failed to process blob sidecars",
-	// 					"error",
-	// 					err,
-	// 				)
-	// 			}
-	// 		}
-	// 	}
-	// }
+func (s *Service[_, _, BlobSidecarsT, _]) start(
+	ctx context.Context,
+	sidecarsCh broker.Client[*asynctypes.Event[BlobSidecarsT]],
+) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case msg := <-sidecarsCh:
+			//nolint:gocritic // will be expanded.
+			switch msg.Type() {
+			case events.BlobSidecarsVerified:
+				err := s.ProcessSidecars(ctx, msg.Data())
+				if err != nil {
+					s.logger.Error(
+						"failed to process blob sidecars",
+						"error",
+						err,
+					)
+				}
+
+				if err = s.sidecarsBroker.Publish(asynctypes.NewEvent(
+					ctx, events.BlobSidecarsProcessed, msg.Data(), err,
+				)); err != nil {
+					s.logger.Error(
+						"failed to publish blob sidecars processed event",
+						"error",
+						err,
+					)
+				}
+
+				// case events.BlobSidecarsReceived:
+				// 	err := s.ReceiveSidecars(ctx, e.Data())
+				// 	if err != nil {
+				// 		s.logger.Error(
+				// 			"failed to receive blob sidecars",
+				// 			"error",
+				// 			err,
+				// 		)
+				// 	}
+				// 	s.feed.Send(asynctypes.NewEvent(
+				// 		ctx, events.BlobSidecarsProcessed, e.Data(), err,
+				// 	))
+				// }
+			}
+		}
+	}
 }
 
 // ProcessSidecars processes the blob sidecars.
 // TODO: Deprecate this publically and move to event based system.
 func (s *Service[_, _, BlobSidecarsT, _]) ProcessSidecars(
-	ctx context.Context,
-	slot math.Slot,
-	sidecars BlobSidecarsT,
-) error {
-	return s.processSidecars(ctx, slot, sidecars)
-}
-
-// ProcessSidecars processes the blob sidecars.
-func (s *Service[_, _, BlobSidecarsT, _]) processSidecars(
 	_ context.Context,
-	slot math.Slot,
 	sidecars BlobSidecarsT,
 ) error {
 	// startTime := time.Now()
 	// defer s.metrics.measureBlobProcessingDuration(startTime)
-	return s.bp.ProcessBlobs(
-		slot,
+	return s.bp.ProcessSidecars(
 		s.avs,
 		sidecars,
 	)
@@ -136,7 +161,6 @@ func (s *Service[_, _, BlobSidecarsT, _]) processSidecars(
 // VerifyIncomingBlobs receives blobs from the network and processes them.
 func (s *Service[_, _, BlobSidecarsT, _]) ReceiveSidecars(
 	_ context.Context,
-	slot math.Slot,
 	sidecars BlobSidecarsT,
 ) error {
 	// If there are no blobs to verify, return early.
@@ -149,7 +173,7 @@ func (s *Service[_, _, BlobSidecarsT, _]) ReceiveSidecars(
 	)
 
 	// Verify the blobs and ensure they match the local state.
-	if err := s.bp.VerifyBlobs(slot, sidecars); err != nil {
+	if err := s.bp.VerifySidecars(sidecars); err != nil {
 		s.logger.Error(
 			"rejecting incoming blob sidecars ❌",
 			"reason", err,

@@ -84,15 +84,14 @@ type BlobProcessor[
 	BlobSidecarsT,
 	ExecutionPayloadT any,
 ] interface {
-	// ProcessBlobs processes the blobs and ensures they match the local state.
-	ProcessBlobs(
-		slot math.Slot,
+	// ProcessSidecars processes the blobs and ensures they match the local
+	// state.
+	ProcessSidecars(
 		avs AvailabilityStoreT,
 		sidecars BlobSidecarsT,
 	) error
-	// VerifyBlobs verifies the blobs and ensures they match the local state.
-	VerifyBlobs(
-		slot math.Slot,
+	// VerifySidecars verifies the blobs and ensures they match the local state.
+	VerifySidecars(
 		sidecars BlobSidecarsT,
 	) error
 }

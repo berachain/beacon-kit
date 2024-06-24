@@ -90,6 +90,7 @@ type DAServiceIn struct {
 	depinject.In
 
 	AvailabilityStore *dastore.Store[*BeaconBlockBody]
+	SidecarsBroker    *SidecarsBroker
 	BlobProcessor     *dablob.Processor[
 		*dastore.Store[*BeaconBlockBody],
 		*BeaconBlockBody,
@@ -108,9 +109,12 @@ func ProvideDAService(in DAServiceIn) *da.Service[
 	return da.NewService[
 		*dastore.Store[*BeaconBlockBody],
 		*BeaconBlockBody,
+		*BlobSidecars,
+		*ExecutionPayload,
 	](
 		in.AvailabilityStore,
 		in.BlobProcessor,
+		in.SidecarsBroker,
 		in.Logger.With("service", "da"),
 	)
 }

@@ -23,7 +23,7 @@ package middleware
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/async/pkg/event"
+	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/p2p"
@@ -77,26 +77,17 @@ type ABCIMiddleware[
 
 	// Feeds
 	//
-	// blkFeed is a feed for blocks.
-	blkFeed *event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[BeaconBlockT]]
-	// sidecarsFeed is a feed for sidecars.
-	sidecarsFeed *event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[BlobSidecarsT]]
+	// blkBroker is a feed for blocks.
+	blkBroker *broker.Broker[*asynctypes.Event[BeaconBlockT]]
+	// sidecarsBroker is a feed for sidecars.
+	sidecarsBroker *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
 	// slotFeed is a feed for slots.
-	slotFeed *event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[math.Slot]]
+	slotFeed *broker.Broker[*asynctypes.Event[math.Slot]]
 
 	// TODO: this is a temporary hack.
 	req *cmtabci.FinalizeBlockRequest
 
 	// Channels
-	//
-	// PrepareProposal
-	//
-	// errCh is used to communicate errors to the EndBlock
-	// method.
-	errCh chan error
 	// blkCh is used to communicate the beacon block to the EndBlock method.
 	blkCh chan *asynctypes.Event[BeaconBlockT]
 	// sidecarsCh is used to communicate the sidecars to the EndBlock method.
@@ -120,12 +111,9 @@ func NewABCIMiddleware[
 	daService DAService[BlobSidecarsT],
 	logger log.Logger[any],
 	telemetrySink TelemetrySink,
-	blkFeed *event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[BeaconBlockT]],
-	sidecarsFeed *event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[BlobSidecarsT]],
-	slotFeed *event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[math.Slot]],
+	blkBroker *broker.Broker[*asynctypes.Event[BeaconBlockT]],
+	sidecarsBroker *broker.Broker[*asynctypes.Event[BlobSidecarsT]],
+	slotFeed *broker.Broker[*asynctypes.Event[math.Slot]],
 ) *ABCIMiddleware[
 	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
 	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
@@ -143,11 +131,11 @@ func NewABCIMiddleware[
 			NewNoopBlockGossipHandler[BeaconBlockT, encoding.ABCIRequest](
 			chainSpec,
 		),
-		logger:       logger,
-		metrics:      newABCIMiddlewareMetrics(telemetrySink),
-		blkFeed:      blkFeed,
-		sidecarsFeed: sidecarsFeed,
-		slotFeed:     slotFeed,
+		logger:         logger,
+		metrics:        newABCIMiddlewareMetrics(telemetrySink),
+		blkBroker:      blkBroker,
+		sidecarsBroker: sidecarsBroker,
+		slotFeed:       slotFeed,
 		blkCh: make(
 			chan *asynctypes.Event[BeaconBlockT],
 			1,
@@ -156,7 +144,6 @@ func NewABCIMiddleware[
 			chan *asynctypes.Event[BlobSidecarsT],
 			1,
 		),
-		errCh: make(chan error, 1),
 	}
 }
 
@@ -172,40 +159,47 @@ func (am *ABCIMiddleware[
 func (am *ABCIMiddleware[
 	_, _, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
-	go am.start(ctx)
+	subBlkCh, err := am.blkBroker.Subscribe()
+	if err != nil {
+		return err
+	}
+
+	subSidecarsCh, err := am.sidecarsBroker.Subscribe()
+	if err != nil {
+		return err
+	}
+
+	go am.start(ctx, subBlkCh, subSidecarsCh)
 	return nil
 }
 
 // start starts the middleware.
 func (am *ABCIMiddleware[
 	_, BeaconBlockT, _, BlobSidecarsT, _, _, _,
-]) start(ctx context.Context) {
-	subSidecarsCh := make(chan *asynctypes.Event[BlobSidecarsT], 1)
-	subBlkCh := make(chan *asynctypes.Event[BeaconBlockT], 1)
-	blkSub := am.blkFeed.Subscribe(subBlkCh)
-	sidecarsSub := am.sidecarsFeed.Subscribe(subSidecarsCh)
-	defer blkSub.Unsubscribe()
-	defer sidecarsSub.Unsubscribe()
-
+]) start(
+	ctx context.Context,
+	blkCh broker.Client[*asynctypes.Event[BeaconBlockT]],
+	sidecarsCh broker.Client[*asynctypes.Event[BlobSidecarsT]],
+) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case msg := <-subBlkCh:
+		case msg := <-blkCh:
 			switch msg.Type() {
 			case events.BeaconBlockBuilt:
-				fallthrough
-			case events.BeaconBlockVerified:
 				am.blkCh <- msg
+			case events.BeaconBlockVerified:
 			}
-		case msg := <-subSidecarsCh:
+		case msg := <-sidecarsCh:
 			switch msg.Type() {
 			case events.BlobSidecarsBuilt:
 				fallthrough
-			case events.BlobSidecarsVerified:
-				fallthrough
 			case events.BlobSidecarsProcessed:
 				am.sidecarsCh <- msg
+			case events.BlobSidecarsVerified:
+			default:
+				// do nothing.
 			}
 		}
 	}

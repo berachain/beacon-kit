@@ -53,24 +53,8 @@ type BlockEvent[
 	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
 	ExecutionPayloadT ExecutionPayload,
 ] interface {
-	Is(asynctypes.EventID) bool
+	Type() asynctypes.EventID
 	Data() BeaconBlockT
-}
-
-// BlockFeed is an interface for subscribing to block events.
-type BlockFeed[
-	DepositT any,
-	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
-	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
-	BlockEventT BlockEvent[
-		DepositT, BeaconBlockBodyT, BeaconBlockT, ExecutionPayloadT,
-	],
-	ExecutionPayloadT ExecutionPayload,
-	SubscriptionT interface {
-		Unsubscribe()
-	},
-] interface {
-	Subscribe(chan<- (BlockEventT)) SubscriptionT
 }
 
 // ExecutionPayload is an interface for execution payloads.
