@@ -165,40 +165,45 @@ func (h *ABCIMiddleware[
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
 	var (
-		blk      BeaconBlockT
-		sidecars BlobSidecarsT
-		err      error
-		g, _     = errgroup.WithContext(ctx)
+		blk       BeaconBlockT
+		sidecars  BlobSidecarsT
+		err       error
+		g, _      = errgroup.WithContext(ctx)
+		startTime = time.Now()
 	)
 
-	startTime := time.Now()
 	defer h.metrics.measureProcessProposalDuration(startTime)
 
+	// Request the beacon block.
 	if blk, err = h.beaconBlockGossiper.Request(ctx, req); err != nil {
 		return h.createResponse(errors.WrapNonFatal(err))
 	}
 
+	// Request the blob sidecars.
 	if sidecars, err = h.blobGossiper.Request(ctx, req); err != nil {
 		return h.createResponse(errors.WrapNonFatal(err))
 	}
 
+	// Process the beacon block and blob sidecars concurrently.
 	g.Go(func() error {
-		return h.processBeaconBlock(ctx, blk)
+		return h.verifyBeaconBlock(ctx, blk)
 	})
 
 	g.Go(func() error {
-		return h.processBlobSidecars(ctx, sidecars)
+		return h.verifyBlobSidecars(ctx, sidecars)
 	})
 
+	// Wait for both processes to complete and then
+	// return the appropriate response.s
 	return h.createResponse(g.Wait())
 }
 
-// processBeaconBlock handles the processing of the beacon block.
+// verifyBeaconBlock handles the processing of the beacon block.
 // It requests the block, publishes a received event, and waits for
 // verification.
 func (h *ABCIMiddleware[
 	_, BeaconBlockT, _, BlobSidecarsT, _, _, _,
-]) processBeaconBlock(
+]) verifyBeaconBlock(
 	ctx context.Context,
 	blk BeaconBlockT,
 ) error {
@@ -228,13 +233,13 @@ func (h *ABCIMiddleware[
 // processing.
 func (h *ABCIMiddleware[
 	_, BeaconBlockT, _, BlobSidecarsT, _, _, _,
-]) processBlobSidecars(
+]) verifyBlobSidecars(
 	ctx context.Context,
 	sidecars BlobSidecarsT,
 ) error {
 	// Publish the received event.
 	if err := h.sidecarsBroker.Publish(
-		asynctypes.NewEvent(ctx, events.BlobSidecarsReceived, sidecars, nil),
+		asynctypes.NewEvent(ctx, events.BlobSidecarsReceived, sidecars),
 	); err != nil {
 		return err
 	}
@@ -255,7 +260,7 @@ func (h *ABCIMiddleware[
 
 // createResponse generates the appropriate ProcessProposalResponse based on the
 // error.
-func (h *ABCIMiddleware[
+func (*ABCIMiddleware[
 	_, BeaconBlockT, _, BlobSidecarsT, _, _, _,
 ]) createResponse(err error) (*cmtabci.ProcessProposalResponse, error) {
 	status := cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
@@ -302,29 +307,9 @@ func (h *ABCIMiddleware[
 		return nil, nil
 	}
 
-	// Send the sidecars to the sidecars feed, we know at this point
-	// That the blobs have been successfully verified in process proposal.
-	if err = h.sidecarsBroker.Publish(asynctypes.NewEvent(
-		ctx, events.BlobSidecarsVerified, blobs,
-	)); err != nil {
+	// Send the sidecars to the sidecars feed and wait for a response
+	if err = h.processSidecars(ctx, blobs); err != nil {
 		return nil, err
-	}
-
-	// Wait for a response from the da service, with the current codepaths
-	// we can't parallelize retrieving the DA service response and the
-	// validator updates, since we need to check for IsDataAvailable in
-	// `ProcessBeaconBlock`, we should improve this though.
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	case sidecars := <-h.sidecarsCh:
-		if sidecars.Type() != events.BlobSidecarsProcessed {
-			return nil, fmt.Errorf(
-				"unexpected event type: %s", sidecars.Type())
-		}
-		if sidecars.Error() != nil {
-			return nil, sidecars.Error()
-		}
 	}
 
 	// TODO: Move to Async.
@@ -338,4 +323,26 @@ func (h *ABCIMiddleware[
 	return iter.MapErr(
 		valUpdates.RemoveDuplicates().Sort(), convertValidatorUpdate,
 	)
+}
+
+// processSidecars publishes the sidecars and waits for a response.
+func (h *ABCIMiddleware[
+	_, _, _, BlobSidecarsT, _, _, _,
+]) processSidecars(ctx context.Context, blobs BlobSidecarsT) error {
+	if err := h.sidecarsBroker.Publish(asynctypes.NewEvent(
+		ctx, events.BlobSidecarsVerified, blobs,
+	)); err != nil {
+		return err
+	}
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case sidecars := <-h.sidecarsCh:
+		if sidecars.Type() != events.BlobSidecarsProcessed {
+			return fmt.Errorf(
+				"unexpected event type: %s", sidecars.Type())
+		}
+		return sidecars.Error()
+	}
 }

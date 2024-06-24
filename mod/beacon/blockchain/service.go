@@ -180,15 +180,14 @@ func (s *Service[
 	ctx context.Context,
 	subBlkCh chan *asynctypes.Event[BeaconBlockT],
 ) {
+
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case msg := <-subBlkCh:
 			if msg.Type() == events.BeaconBlockReceived {
-				s.handleBeaconBlockReceived(
-					msg.Context(), msg,
-				)
+				s.handleBeaconBlockReceived(msg)
 			}
 		}
 	}
@@ -196,7 +195,6 @@ func (s *Service[
 func (s *Service[
 	_, BeaconBlockT, _, _, _, _, _, _, _, _, _, _,
 ]) handleBeaconBlockReceived(
-	ctx context.Context,
 	msg *asynctypes.Event[BeaconBlockT],
 ) {
 	// If the block is nil, exit early.
@@ -206,12 +204,14 @@ func (s *Service[
 	}
 
 	// Publish the verified block event.
-	s.blkBroker.Publish(
+	if err := s.blkBroker.Publish(
 		asynctypes.NewEvent(
 			msg.Context(),
 			events.BeaconBlockVerified,
 			msg.Data(),
-			s.VerifyIncomingBlock(ctx, msg.Data()),
+			s.VerifyIncomingBlock(msg.Context(), msg.Data()),
 		),
-	)
+	); err != nil {
+		s.logger.Error("Failed to publish verified block", "error", err)
+	}
 }
