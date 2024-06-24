@@ -25,7 +25,6 @@ import (
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -63,7 +62,7 @@ func (pb *PayloadBuilder[
 	attrs, err := pb.attributesFactory.
 		BuildPayloadAttributes(st, slot, timestamp, parentBlockRoot)
 	if err != nil {
-		return nil, errors.Newf("%w error when getting payload attributes", err)
+		return nil, err
 	}
 
 	// Submit the forkchoice update to the execution client.
