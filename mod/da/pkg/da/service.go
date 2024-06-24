@@ -48,7 +48,7 @@ type Service[
 	logger         log.Logger[any]
 }
 
-// New returns a new DA service.
+// NewService returns a new DA service.
 func NewService[
 	AvailabilityStoreT AvailabilityStore[
 		BeaconBlockBodyT, BlobSidecarsT,
