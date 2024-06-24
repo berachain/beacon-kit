@@ -29,10 +29,5 @@ import (
 // SetLoggerConfig sets the logger configuration. It acts as an invoker
 // for the depinject framework.
 func SetLoggerConfig(config *config.Config, logger log.Logger) {
-	if logger, ok := logger.(*phuslu.Logger[log.Logger]); ok {
-		logger.WithConfig(*config.GetLogger())
-	} else {
-		// i'm using a broken logger to log an error LOL
-		logger.Error("unable to set logger config")
-	}
+	logger.(*phuslu.Logger[log.Logger]).WithConfig(*config.GetLogger())
 }
