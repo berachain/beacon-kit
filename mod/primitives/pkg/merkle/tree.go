@@ -37,6 +37,8 @@ const (
 	MaxTreeDepth = 62
 )
 
+// TODO: add re-usable root buffer before using this Tree implementation.
+
 // Tree[LeafT, RootT] implements a Merkle tree that has been optimized to
 // handle leaves that are 32 bytes in size.
 type Tree[LeafT, RootT ~[32]byte] struct {
