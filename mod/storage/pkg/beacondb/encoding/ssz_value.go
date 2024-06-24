@@ -32,6 +32,8 @@ import (
 type SSZValueCodec[T constraints.SSZMarshallable] struct{}
 
 // Assert that SSZValueCodec implements codec.ValueCodec.
+//
+//nolint:lll // annoying formatter.
 var _ codec.ValueCodec[constraints.SSZMarshallable] = SSZValueCodec[constraints.SSZMarshallable]{}
 
 // Encode marshals the provided value into its SSZ encoding.

@@ -3,16 +3,14 @@ module github.com/berachain/beacon-kit/mod/consensus-types
 go 1.22.4
 
 require (
-	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240624193309-26f8c6ae41ae
+	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240624204855-d8809d5c8588
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240618214413-d5ec0e66b3dd
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240624193309-26f8c6ae41ae
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240624204855-d8809d5c8588
 	github.com/ethereum/go-ethereum v1.14.5
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/sync v0.7.0
 )
-
-replace github.com/berachain/beacon-kit/mod/primitives => ../primitives
 
 require (
 	github.com/DataDog/zstd v1.5.5 // indirect
