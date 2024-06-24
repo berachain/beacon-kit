@@ -37,19 +37,10 @@ type BeaconBlock interface {
 
 // BlockEvent is an interface for block events.
 type BlockEvent[BeaconBlockT BeaconBlock] interface {
-	Is(asynctypes.EventID) bool
+	Type() asynctypes.EventID
 	Data() BeaconBlockT
 }
 
 type Subscription interface {
 	Unsubscribe()
-}
-
-// BlockFeed is an interface for subscribing to block events.
-type BlockFeed[
-	BeaconBlockT BeaconBlock,
-	BlockEventT BlockEvent[BeaconBlockT],
-	SubscriptionT Subscription,
-] interface {
-	Subscribe(chan<- (BlockEventT)) SubscriptionT
 }

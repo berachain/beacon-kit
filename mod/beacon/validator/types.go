@@ -156,6 +156,15 @@ type ExecutionPayloadHeader interface {
 	GetParentHash() common.ExecutionHash
 }
 
+// EventSubscription represents the event subscription interface.
+type EventSubscription[T any] chan T
+
+// EventPublisher represents the event publisher interface.
+type EventPublisher[T any] interface {
+	// PublishEvent publishes an event.
+	Publish(T) error
+}
+
 // ForkData represents the fork data interface.
 type ForkData[T any] interface {
 	// New creates a new fork data with the given parameters.

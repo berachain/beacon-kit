@@ -36,9 +36,6 @@ type Service[
 	],
 	DepositT Deposit[DepositT, WithdrawalCredentialsT],
 	ExecutionPayloadT ExecutionPayload,
-	SubscriptionT interface {
-		Unsubscribe()
-	},
 	WithdrawalCredentialsT any,
 ] struct {
 	// logger is used for logging information and errors.
@@ -50,14 +47,7 @@ type Service[
 	// ds is the deposit store that stores deposits.
 	ds Store[DepositT]
 	// feed is the block feed that provides block events.
-	feed BlockFeed[
-		DepositT,
-		BeaconBlockBodyT,
-		BeaconBlockT,
-		BlockEventT,
-		ExecutionPayloadT,
-		SubscriptionT,
-	]
+	feed chan BlockEventT
 	// metrics is the metrics for the deposit service.
 	metrics *metrics
 	// failedBlocks is a map of blocks that failed to be processed to be
@@ -75,9 +65,6 @@ func NewService[
 	],
 	DepositStoreT Store[DepositT],
 	ExecutionPayloadT ExecutionPayload,
-	SubscriptionT interface {
-		Unsubscribe()
-	},
 	WithdrawalCredentialsT any,
 	DepositT Deposit[DepositT, WithdrawalCredentialsT],
 ](
@@ -86,17 +73,14 @@ func NewService[
 	telemetrySink TelemetrySink,
 	ds Store[DepositT],
 	dc Contract[DepositT],
-	feed BlockFeed[
-		DepositT, BeaconBlockBodyT, BeaconBlockT, BlockEventT,
-		ExecutionPayloadT, SubscriptionT,
-	],
+	feed chan BlockEventT,
 ) *Service[
 	BeaconBlockT, BeaconBlockBodyT, BlockEventT, DepositT,
-	ExecutionPayloadT, SubscriptionT, WithdrawalCredentialsT,
+	ExecutionPayloadT, WithdrawalCredentialsT,
 ] {
 	return &Service[
 		BeaconBlockT, BeaconBlockBodyT, BlockEventT, DepositT,
-		ExecutionPayloadT, SubscriptionT,
+		ExecutionPayloadT,
 		WithdrawalCredentialsT,
 	]{
 		feed:               feed,
@@ -111,9 +95,7 @@ func NewService[
 
 // Start starts the service and begins processing block events.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
-	ExecutionPayloadT, SubscriptionT,
-	WithdrawalCredentialsT, DepositT,
+	_, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
 	go s.depositFetcher(ctx)
 	go s.depositCatchupFetcher(ctx)
@@ -122,9 +104,7 @@ func (s *Service[
 
 // Name returns the name of the service.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
-	ExecutionPayloadT, SubscriptionT,
-	WithdrawalCredentialsT, DepositT,
+	_, _, _, _, _, _,
 ]) Name() string {
 	return "deposit-handler"
 }

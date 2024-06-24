@@ -21,7 +21,7 @@
 package components
 
 import (
-	"github.com/berachain/beacon-kit/mod/async/pkg/event"
+	broker "github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/beacon"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
@@ -99,14 +99,14 @@ type (
 		*BeaconBlockBody,
 	]
 
-	// BlobFeed is a type alias for the blob feed.
-	BlobFeed = event.FeedOf[asynctypes.EventID, *asynctypes.Event[*BlobSidecars]]
+	// SidecarsBroker is a type alias for the blob feed.
+	SidecarsBroker = broker.Broker[*asynctypes.Event[*BlobSidecars]]
 
 	// BlockEvent is a type alias for the block event.
 	BlockEvent = asynctypes.Event[*BeaconBlock]
 
-	// BlockFeed is a type alias for the block feed.
-	BlockFeed = event.FeedOf[asynctypes.EventID, *BlockEvent]
+	// BlockBroker is a type alias for the block feed.
+	BlockBroker = broker.Broker[*BlockEvent]
 
 	// ChainService is a type alias for the chain service.
 	ChainService = blockchain.Service[
@@ -129,6 +129,7 @@ type (
 		*dastore.Store[*BeaconBlockBody],
 		*BeaconBlockBody,
 		*BlobSidecars,
+		*broker.Broker[*asynctypes.Event[*BlobSidecars]],
 		*ExecutionPayload,
 	]
 
@@ -136,7 +137,6 @@ type (
 	DBManager = manager.DBManager[
 		*BeaconBlock,
 		*BlockEvent,
-		event.Subscription,
 	]
 
 	// Deposit is a type alias for the deposit.
@@ -149,7 +149,6 @@ type (
 		*BlockEvent,
 		*Deposit,
 		*ExecutionPayload,
-		event.Subscription,
 		types.WithdrawalCredentials,
 	]
 
@@ -201,13 +200,11 @@ type (
 		*ExecutionPayloadHeader,
 	]
 
-	// SlotFeed is a type alias for the slot feed.
-	SlotFeed = event.FeedOf[asynctypes.EventID, *asynctypes.Event[math.Slot]]
+	// SlotBroker is a type alias for the slot feed.
+	SlotBroker = broker.Broker[*asynctypes.Event[math.Slot]]
 
-	// StatusFeed is a type alias for the status feed.
-	StatusFeed = event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[*service.StatusEvent],
-	]
+	// StatusBroker is a type alias for the status feed.
+	StatusBroker = broker.Broker[*asynctypes.Event[*service.StatusEvent]]
 
 	// StorageBackend is the type alias for the storage backend interface.
 	StorageBackend = beacon.StorageBackend[

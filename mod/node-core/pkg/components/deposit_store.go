@@ -24,7 +24,6 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	storev2 "cosmossdk.io/store/v2/db"
-	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/interfaces"
@@ -71,7 +70,7 @@ func ProvideDepositStore[
 // DepositPrunerInput is the input for the deposit pruner.
 type DepositPrunerInput struct {
 	depinject.In
-	BlockFeed    *BlockFeed
+	BlockBroker  *BlockBroker
 	ChainSpec    common.ChainSpec
 	DepositStore *DepositStore
 	Logger       log.Logger
@@ -80,17 +79,22 @@ type DepositPrunerInput struct {
 // ProvideDepositPruner provides a deposit pruner for the depinject framework.
 func ProvideDepositPruner(
 	in DepositPrunerInput,
-) pruner.Pruner[*DepositStore] {
+) (pruner.Pruner[*DepositStore], error) {
+	subCh, err := in.BlockBroker.Subscribe()
+	if err != nil {
+		in.Logger.Error("failed to subscribe to block feed", "err", err)
+		return nil, err
+	}
+
 	return pruner.NewPruner[
 		*BeaconBlock,
 		*BlockEvent,
 		*DepositStore,
-		event.Subscription,
 	](
 		in.Logger.With("service", manager.DepositPrunerName),
 		in.DepositStore,
 		manager.DepositPrunerName,
-		in.BlockFeed,
+		subCh,
 		deposit.BuildPruneRangeFn[
 			*BeaconBlockBody,
 			*BeaconBlock,
@@ -99,5 +103,5 @@ func ProvideDepositPruner(
 			*ExecutionPayload,
 			types.WithdrawalCredentials,
 		](in.ChainSpec),
-	)
+	), nil
 }

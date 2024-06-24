@@ -68,10 +68,6 @@ type Service[
 	ee ExecutionEngine[PayloadAttributesT]
 	// lb is a local builder for constructing new beacon states.
 	lb LocalBuilder[BeaconStateT]
-	// bp is the blob processor for processing incoming blobs.
-	bp BlobProcessor[
-		AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT, ExecutionPayloadT,
-	]
 	// sp is the state processor for beacon blocks and states.
 	sp StateProcessor[
 		BeaconBlockT,
@@ -83,8 +79,8 @@ type Service[
 	]
 	// metrics is the metrics for the service.
 	metrics *chainMetrics
-	// blockFeed is the event feed for new blocks.
-	blockFeed EventFeed[*asynctypes.Event[BeaconBlockT]]
+	// blkBroker is the event feed for new blocks.
+	blkBroker EventFeed[*asynctypes.Event[BeaconBlockT]]
 	// optimisticPayloadBuilds is a flag used when the optimistic payload
 	// builder is enabled.
 	optimisticPayloadBuilds bool
@@ -125,9 +121,6 @@ func NewService[
 
 	ee ExecutionEngine[PayloadAttributesT],
 	lb LocalBuilder[BeaconStateT],
-	bp BlobProcessor[
-		AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT, ExecutionPayloadT,
-	],
 	sp StateProcessor[
 		BeaconBlockT,
 		BeaconStateT,
@@ -137,7 +130,7 @@ func NewService[
 		ExecutionPayloadHeaderT,
 	],
 	ts TelemetrySink,
-	blockFeed EventFeed[*asynctypes.Event[BeaconBlockT]],
+	blkBroker EventFeed[*asynctypes.Event[BeaconBlockT]],
 	optimisticPayloadBuilds bool,
 ) *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
@@ -154,10 +147,9 @@ func NewService[
 		cs:                      cs,
 		ee:                      ee,
 		lb:                      lb,
-		bp:                      bp,
 		sp:                      sp,
 		metrics:                 newChainMetrics(ts),
-		blockFeed:               blockFeed,
+		blkBroker:               blkBroker,
 		optimisticPayloadBuilds: optimisticPayloadBuilds,
 		forceStartupSyncOnce:    new(sync.Once),
 	}

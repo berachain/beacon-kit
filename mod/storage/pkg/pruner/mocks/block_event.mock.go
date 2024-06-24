@@ -66,48 +66,47 @@ func (_c *BlockEvent_Data_Call[BeaconBlockT]) RunAndReturn(run func() BeaconBloc
 	return _c
 }
 
-// Is provides a mock function with given fields: _a0
-func (_m *BlockEvent[BeaconBlockT]) Is(_a0 types.EventID) bool {
-	ret := _m.Called(_a0)
+// Type provides a mock function with given fields:
+func (_m *BlockEvent[BeaconBlockT]) Type() types.EventID {
+	ret := _m.Called()
 
 	if len(ret) == 0 {
-		panic("no return value specified for Is")
+		panic("no return value specified for Type")
 	}
 
-	var r0 bool
-	if rf, ok := ret.Get(0).(func(types.EventID) bool); ok {
-		r0 = rf(_a0)
+	var r0 types.EventID
+	if rf, ok := ret.Get(0).(func() types.EventID); ok {
+		r0 = rf()
 	} else {
-		r0 = ret.Get(0).(bool)
+		r0 = ret.Get(0).(types.EventID)
 	}
 
 	return r0
 }
 
-// BlockEvent_Is_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Is'
-type BlockEvent_Is_Call[BeaconBlockT pruner.BeaconBlock] struct {
+// BlockEvent_Type_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Type'
+type BlockEvent_Type_Call[BeaconBlockT pruner.BeaconBlock] struct {
 	*mock.Call
 }
 
-// Is is a helper method to define mock.On call
-//   - _a0 types.EventID
-func (_e *BlockEvent_Expecter[BeaconBlockT]) Is(_a0 interface{}) *BlockEvent_Is_Call[BeaconBlockT] {
-	return &BlockEvent_Is_Call[BeaconBlockT]{Call: _e.mock.On("Is", _a0)}
+// Type is a helper method to define mock.On call
+func (_e *BlockEvent_Expecter[BeaconBlockT]) Type() *BlockEvent_Type_Call[BeaconBlockT] {
+	return &BlockEvent_Type_Call[BeaconBlockT]{Call: _e.mock.On("Type")}
 }
 
-func (_c *BlockEvent_Is_Call[BeaconBlockT]) Run(run func(_a0 types.EventID)) *BlockEvent_Is_Call[BeaconBlockT] {
+func (_c *BlockEvent_Type_Call[BeaconBlockT]) Run(run func()) *BlockEvent_Type_Call[BeaconBlockT] {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(types.EventID))
+		run()
 	})
 	return _c
 }
 
-func (_c *BlockEvent_Is_Call[BeaconBlockT]) Return(_a0 bool) *BlockEvent_Is_Call[BeaconBlockT] {
+func (_c *BlockEvent_Type_Call[BeaconBlockT]) Return(_a0 types.EventID) *BlockEvent_Type_Call[BeaconBlockT] {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *BlockEvent_Is_Call[BeaconBlockT]) RunAndReturn(run func(types.EventID) bool) *BlockEvent_Is_Call[BeaconBlockT] {
+func (_c *BlockEvent_Type_Call[BeaconBlockT]) RunAndReturn(run func() types.EventID) *BlockEvent_Type_Call[BeaconBlockT] {
 	_c.Call.Return(run)
 	return _c
 }

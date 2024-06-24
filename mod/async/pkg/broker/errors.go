@@ -18,34 +18,11 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package broker
 
 import (
-	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
+	"errors"
 )
 
-// DBManagerInput is the input for the dep inject framework.
-type DBManagerInput struct {
-	depinject.In
-	AvailabilityPruner pruner.Pruner[*filedb.RangeDB]
-	DepositPruner      pruner.Pruner[*DepositStore]
-	Logger             log.Logger
-}
-
-// ProvideDBManager provides a DBManager for the depinject framework.
-func ProvideDBManager(
-	in DBManagerInput,
-) (*DBManager, error) {
-	return manager.NewDBManager[
-		*BeaconBlock,
-		*BlockEvent,
-	](
-		in.Logger.With("service", "db-manager"),
-		in.DepositPruner,
-		in.AvailabilityPruner,
-	)
-}
+// ErrTimeout is the error returned when a broker operation timed out.
+var ErrTimeout = errors.New("timeout")

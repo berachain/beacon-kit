@@ -84,15 +84,14 @@ type BlobProcessor[
 	BlobSidecarsT,
 	ExecutionPayloadT any,
 ] interface {
-	// ProcessBlobs processes the blobs and ensures they match the local state.
-	ProcessBlobs(
-		slot math.Slot,
+	// ProcessSidecars processes the blobs and ensures they match the local
+	// state.
+	ProcessSidecars(
 		avs AvailabilityStoreT,
 		sidecars BlobSidecarsT,
 	) error
-	// VerifyBlobs verifies the blobs and ensures they match the local state.
-	VerifyBlobs(
-		slot math.Slot,
+	// VerifySidecars verifies the blobs and ensures they match the local state.
+	VerifySidecars(
 		sidecars BlobSidecarsT,
 	) error
 }
@@ -107,11 +106,12 @@ type ExecutionEngine[PayloadAttributesT any] interface {
 	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
 }
 
-// EventFeed is a generic interface for sending events.
-type EventFeed[EventT any] interface {
-	// Send sends an event and returns the number of
-	// subscribers that received it.
-	Send(event EventT) int
+// EventPublisher represents the event publisher interface.
+type EventPublisherSubscriber[T any] interface {
+	// PublishEvent publishes an event.
+	Publish(T) error
+	// Subscribe subscribes to the event system.
+	Subscribe() (chan T, error)
 }
 
 // ExecutionPayload is the interface for the execution payload.

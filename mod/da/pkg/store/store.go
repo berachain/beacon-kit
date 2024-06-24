@@ -112,6 +112,8 @@ func (s *Store[BeaconBlockT]) Persist(
 		return err
 	}
 
-	s.logger.Info("Successfully stored all blob sidecars 🚗", "slot", slot)
+	s.logger.Info("Successfully stored all blob sidecars 🚗",
+		"slot", slot.Base10(), "num_sidecars", sidecars.Len(),
+	)
 	return nil
 }

@@ -91,7 +91,7 @@ type ExecutionEngineInputs[
 	depinject.In
 	EngineClient  *client.EngineClient[ExecutionPayloadT, PayloadAttributesT]
 	Logger        log.Logger
-	StatusFeed    *StatusFeed
+	StatusBroker  *StatusBroker
 	TelemetrySink *metrics.TelemetrySink
 }
 
@@ -124,7 +124,7 @@ func ProvideExecutionEngine[
 	](
 		in.EngineClient,
 		in.Logger.With("service", "execution-engine"),
-		in.StatusFeed,
+		in.StatusBroker,
 		in.TelemetrySink,
 	)
 }

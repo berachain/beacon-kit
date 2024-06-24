@@ -31,8 +31,9 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	interfacemocks "github.com/berachain/beacon-kit/mod/storage/pkg/interfaces/mocks"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner/mocks"
 	"github.com/stretchr/testify/mock"
@@ -43,25 +44,6 @@ func pruneRangeFn[EventT pruner.BlockEvent[pruner.BeaconBlock]](
 ) (uint64, uint64) {
 	slot := event.Data().GetSlot().Unwrap()
 	return slot, slot
-}
-
-type eventFeed[BlockEventT pruner.BlockEvent[pruner.BeaconBlock]] struct {
-	subscriber chan<- BlockEventT
-}
-
-func (ef *eventFeed[BlockEventT]) Send(event BlockEventT) int {
-	ef.subscriber <- event
-	return 1
-}
-
-func (ef *eventFeed[BlockEventT]) Subscribe(
-	c chan<- BlockEventT,
-) pruner.Subscription {
-	ef.subscriber = c
-
-	subscription := &mocks.Subscription{}
-	subscription.On("Unsubscribe").Return()
-	return subscription
 }
 
 func TestPruner(t *testing.T) {
@@ -90,9 +72,8 @@ func TestPruner(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			logger := log.NewNopLogger()
-			feed := eventFeed[pruner.BlockEvent[pruner.BeaconBlock]]{}
-
-			mockPrunable := new(interfacemocks.Prunable)
+			ch := make(chan pruner.BlockEvent[pruner.BeaconBlock])
+			mockPrunable := new(mocks.Prunable)
 			mockPrunable.On("Prune", mock.Anything, mock.Anything).
 				Return(nil)
 
@@ -101,8 +82,7 @@ func TestPruner(t *testing.T) {
 				pruner.BeaconBlock,
 				pruner.BlockEvent[pruner.BeaconBlock],
 				pruner.Prunable,
-				pruner.Subscription,
-			](logger, mockPrunable, "TestPruner", &feed, pruneRangeFn)
+			](logger, mockPrunable, "TestPruner", ch, pruneRangeFn)
 
 			ctx, cancel := context.WithCancel(context.Background())
 			// need to ensure goroutine is stopped
@@ -116,8 +96,9 @@ func TestPruner(t *testing.T) {
 				block.On("GetSlot").Return(math.U64(index))
 				event := mocks.BlockEvent[pruner.BeaconBlock]{}
 				event.On("Data").Return(&block)
-				event.On("Is", mock.Anything).Return(true)
-				feed.Send(&event)
+				event.On("Type", mock.Anything).Return(
+					types.EventID(events.BeaconBlockFinalized))
+				ch <- &event
 			}
 
 			// some time for the goroutine to process the requests

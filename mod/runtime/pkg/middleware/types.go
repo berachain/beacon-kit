@@ -91,13 +91,11 @@ type DAService[
 	// ProcessSidecars
 	ProcessSidecars(
 		context.Context,
-		math.Slot,
 		BlobSidecarsT,
 	) error
 	// ReceiveSidecars
 	ReceiveSidecars(
 		_ context.Context,
-		slot math.Slot,
 		sidecars BlobSidecarsT,
 	) error
 }

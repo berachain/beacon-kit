@@ -18,22 +18,15 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package event
+package broker
 
-import "github.com/ethereum/go-ethereum/event"
+import "time"
 
-// Subscription is a subscription to a feed.
-type Subscription = event.Subscription
-
-type Feed = event.Feed
-
-// FeedOf is a feed of events.
-// It is a wrapper around the event.FeedOf type.
-type FeedOf[
-	E ~string,
-	T interface {
-		Type() E
-	},
-] struct {
-	event.FeedOf[T]
-}
+const (
+	// defaultTimeout specifies the default timeout when the broker
+	// tries to send a message to a client, a message is published to the
+	// broker, or a client subscribes or unsubscribes.
+	defaultTimeout = time.Second
+	// defaultBufferSize specifies the default size of the message buffer.
+	defaultBufferSize = 10
+)
