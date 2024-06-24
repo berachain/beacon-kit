@@ -92,17 +92,20 @@ func (h *ABCIMiddleware[
 		return nil, err
 	}
 
-	// Using a wait group instead of an errgroup to ensure we drain
-	// the associated channels for the beacon block and sidecars.
+	// Wait for the beacon block to be built.
 	g.Go(func() error {
 		beaconBlockBz, beaconBlockErr = h.waitforBeaconBlk(ctx)
 		return beaconBlockErr
 	})
+
+	// Wait for the sidecars to be built.
 	g.Go(func() error {
 		sidecarsBz, sidecarsErr = h.waitForSidecars(ctx)
 		return sidecarsErr
 	})
 
+	// Wait for both processes to complete and then
+	// return the appropriate response.
 	return &cmtabci.PrepareProposalResponse{
 		Txs: [][]byte{beaconBlockBz, sidecarsBz},
 	}, g.Wait()
