@@ -21,7 +21,6 @@
 package phuslu
 
 import (
-	"fmt"
 	"io"
 
 	"github.com/phuslu/log"
