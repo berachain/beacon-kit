@@ -91,7 +91,7 @@ func (h *ABCIMiddleware[
 	// Send a request to the validator service to give us a beacon block
 	// and blob sidecards to pass to ABCI.
 	if err := h.slotBroker.Publish(ctx, asynctypes.NewEvent(
-		ctx, events.NewSlot, math.Slot(req.Height),
+		ctx, events.NewSlot, math.Slot(abciReq.Height),
 	)); err != nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func (h *ABCIMiddleware[
 	}
 
 	// Request the beacon block.
-	if blk, err = h.beaconBlockGossiper.Request(ctx, req); err != nil {
+	if blk, err = h.beaconBlockGossiper.Request(ctx, abciReq); err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
 
@@ -185,7 +185,7 @@ func (h *ABCIMiddleware[
 	})
 
 	// Request the blob sidecars.
-	if sidecars, err = h.blobGossiper.Request(ctx, req); err != nil {
+	if sidecars, err = h.blobGossiper.Request(ctx, abciReq); err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
 
