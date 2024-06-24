@@ -309,7 +309,8 @@ github.com/aws/smithy-go v1.15.0/go.mod h1:Tg+OJXh4MB2R/uN61Ko2f6hTZwB/ZYGOtib8J
 github.com/aymerick/douceur v0.2.0 h1:Mv+mAeH1Q+n9Fr+oyamOlAkUNPWPlA8PPGR0QAaYuPk=
 github.com/aymerick/douceur v0.2.0/go.mod h1:wlT5vV2O3h55X9m7iVYN0TBM0NH/MmbLnd30/FjWUq4=
 github.com/benbjohnson/clock v1.1.0 h1:Q92kusRqC1XV2MjkWETPvjJVqKetz1OzxZB7mHJLju8=
-github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240624014038-cfc73d28dd80/go.mod h1:hCN0m+X7MmJvJ2ukDDRDyScC+30wXHtXTdx6vleSnBU=
+github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240624014243-963669e62fb1 h1:r6W9c66zCcA5uBRJIWu3D71aWbEtc7fgvm5tqBhb26Y=
+github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240624014243-963669e62fb1/go.mod h1:hCN0m+X7MmJvJ2ukDDRDyScC+30wXHtXTdx6vleSnBU=
 github.com/bmatcuk/doublestar v1.1.1 h1:YroD6BJCZBYx06yYFEWvUuKVWQn3vLLQAVmDmvTSaiQ=
 github.com/bytedance/sonic v1.10.0-rc3 h1:uNSnscRapXTwUgTyOF0GVljYD08p9X/Lbr9MweSV3V0=
 github.com/bytedance/sonic v1.10.0-rc3/go.mod h1:iZcSUejdk5aukTND/Eu/ivjQuEL0Cu9/rf50Hi0u/g4=
