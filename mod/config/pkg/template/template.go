@@ -45,6 +45,16 @@ rpc-jwt-refresh-interval = "{{ .BeaconKit.Engine.RPCJWTRefreshInterval }}"
 # Path to the execution client JWT-secret
 jwt-secret-path = "{{.BeaconKit.Engine.JWTSecretPath}}"
 
+[beacon-kit.logger]
+# TimeFormat is a string that defines the format of the time in the logger.
+time-format = "{{.BeaconKit.Logger.TimeFormat}}"
+
+# Verbose is the level of verbose for the logger.
+verbose = "{{.BeaconKit.Logger.Verbose}}"
+
+# Style is the style of the logger.
+style = "{{.BeaconKit.Logger.Style}}"
+
 [beacon-kit.kzg]
 # Path to the trusted setup path.
 trusted-setup-path = "{{.BeaconKit.KZG.TrustedSetupPath}}"

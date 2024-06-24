@@ -27,13 +27,11 @@ import (
 )
 
 // Formatter is a custom formatter for log messages.
-type Formatter struct {
-	cfg *Config
-}
+type Formatter struct{}
 
 // NewFormatter creates a new Formatter with default settings.
-func NewFormatter(cfg *Config) *Formatter {
-	return &Formatter{cfg: cfg}
+func NewFormatter() *Formatter {
+	return &Formatter{}
 }
 
 // Format formats the log message.
@@ -52,21 +50,21 @@ func (f *Formatter) Format(
 	var color, label string
 	switch args.Level {
 	case "trace":
-		color, label = f.cfg.TraceColor, f.cfg.TraceLabel
+		color, label = traceColor, traceLabel
 	case "debug":
-		color, label = f.cfg.DebugColor, f.cfg.DebugLabel
+		color, label = debugColor, debugLabel
 	case "info":
-		color, label = f.cfg.InfoColor, f.cfg.InfoLabel
+		color, label = infoColor, infoLabel
 	case "warn":
-		color, label = f.cfg.WarnColor, f.cfg.WarnLabel
+		color, label = warnColor, warnLabel
 	case "error":
-		color, label = f.cfg.ErrorColor, f.cfg.ErrorLabel
+		color, label = errorColor, errorLabel
 	case "fatal":
-		color, label = f.cfg.FatalColor, f.cfg.FatalLabel
+		color, label = fatalColor, fatalLabel
 	case "panic":
-		color, label = f.cfg.PanicColor, f.cfg.PanicLabel
+		color, label = panicColor, panicLabel
 	default:
-		color, label = f.cfg.DefaultColor, f.cfg.DefaultLabel
+		color, label = defaultColor, defaultLabel
 	}
 
 	f.printWithColor(args, buffer, color, label)

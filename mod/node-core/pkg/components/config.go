@@ -35,5 +35,18 @@ type ConfigInput struct {
 // ProvideConfig is a function that provides the BeaconConfig to the
 // application.
 func ProvideConfig(in ConfigInput) (*config.Config, error) {
+	// configPath := filepath.Join(clicomponents.DefaultNodeHome, "config", "app.toml")
+	// _, err := os.Stat(configPath)
+	// if err == nil {
+	// 	viper.SetConfigFile(configPath)
+	// 	viper.ReadInConfig()
+	// 	fmt.Println("Reading config from app.toml")
+	// 	return config.ReadConfigFromAppOpts(viper.GetViper())
+	// }
+	// fmt.Println(err)
+
+	// AppOpts is nil here when called from CLI
+	// Read the directory
 	return config.ReadConfigFromAppOpts(in.AppOpts)
+
 }

@@ -22,10 +22,13 @@ package builder
 
 import (
 	"context"
+	"fmt"
 	"io"
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/config"
+	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/app"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
@@ -94,6 +97,9 @@ func (nb *NodeBuilder[NodeT]) Build(
 				appOpts,
 				logger,
 			),
+			depinject.Invoke(
+				SetLoggerConfig,
+			),
 		),
 		&appBuilder,
 		&chainSpec,
@@ -124,4 +130,9 @@ func (nb *NodeBuilder[NodeT]) Build(
 		panic(err)
 	}
 	return nb.node
+}
+
+func SetLoggerConfig(config *config.Config, logger log.Logger) {
+	fmt.Println("Setting logger config", config.GetLogger())
+	logger.(*phuslu.Logger[log.Logger]).SetConfig(*config.GetLogger())
 }

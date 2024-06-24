@@ -32,24 +32,27 @@ type Logger[ImplT any] struct {
 	logger *log.Logger
 	// context is a map of key-value pairs that are added to every log entry.
 	context log.Fields
+	// config is the configuration for the logger.
+	config *Config
 }
 
 // NewLogger creates a new logger with the given log level, ConsoleWriter, and
 // default configuration.
 func NewLogger[ImplT any](
-	level string, cfg Config, out io.Writer,
+	level string, cfg *Config, out io.Writer,
 ) *Logger[ImplT] {
 	logger := &log.Logger{
 		Level:      log.ParseLevel(level),
 		TimeFormat: cfg.TimeFormat,
 		Writer: &log.ConsoleWriter{
 			Writer:    out,
-			Formatter: (NewFormatter(&cfg).Format),
+			Formatter: (NewFormatter().Format),
 		},
 	}
 	return &Logger[ImplT]{
 		logger:  logger,
 		context: make(log.Fields),
+		config:  cfg,
 	}
 }
 
@@ -118,4 +121,12 @@ func (l *Logger[ImplT]) msgWithContext(
 // SetLevel sets the log level of the logger.
 func (l *Logger[ImplT]) SetLevel(level string) {
 	l.logger.Level = log.ParseLevel(level)
+}
+
+// we need this to set the config post-creation of the logger.
+// This is so cooked but necessary because there is no way to pass a populated
+// config to the logger at creation time, because the dependent viper instance
+// is not yet populated.
+func (l *Logger[ImplT]) SetConfig(cfg Config) {
+	*l.config = cfg
 }

@@ -156,7 +156,6 @@ func (cb *CLIBuilder[T]) InterceptConfigsPreRunHandler(
 	}
 
 	logLvlStr := serverCtx.Viper.GetString(flags.FlagLogLevel)
-	// kinda cooked
 	logger.(*phuslu.Logger[log.Logger]).SetLevel(logLvlStr)
 	serverCtx.Logger = logger
 

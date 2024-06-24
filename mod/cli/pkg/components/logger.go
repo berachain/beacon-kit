@@ -25,6 +25,7 @@ import (
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
 	flags "github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -34,6 +35,7 @@ import (
 type LoggerInput struct {
 	depinject.In
 	AppOpts servertypes.AppOptions
+	Cfg     *config.Config
 	Out     io.Writer
 }
 
@@ -44,6 +46,6 @@ func ProvideLogger(
 ) log.Logger {
 	logLvlStr := cast.ToString(in.AppOpts.Get(flags.FlagLogLevel))
 	logger := phuslu.NewLogger[log.Logger](
-		logLvlStr, phuslu.DefaultConfig(), in.Out)
+		logLvlStr, in.Cfg.GetLogger(), in.Out)
 	return logger
 }
