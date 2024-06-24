@@ -8,7 +8,7 @@ replace (
 	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240623110059-dec2d5583e39
 	cosmossdk.io/server/v2 => cosmossdk.io/server/v2 v2.0.0-20240624195302-5762b0b817f2
 	cosmossdk.io/server/v2/cometbft => cosmossdk.io/server/v2/cometbft v0.0.0-20240623110059-dec2d5583e39
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240624014538-75ba469b1881
+	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240624204242-8877694ebd14
 )
 
 require (

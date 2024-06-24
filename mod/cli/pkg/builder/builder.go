@@ -28,6 +28,7 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	serverv2 "cosmossdk.io/server/v2"
+	"cosmossdk.io/server/v2/cometbft"
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -81,6 +82,7 @@ func (cb *CLIBuilder[NodeT, T]) Build() (*cmdlib.Root, error) {
 		clientCtx   client.Context
 		chainSpec   common.ChainSpec
 		logger      log.Logger
+		cmtServer   *cometbft.CometBFTServer[transaction.Tx]
 	)
 	// build dependencies for the root command
 	if err := depinject.Inject(
@@ -96,6 +98,7 @@ func (cb *CLIBuilder[NodeT, T]) Build() (*cmdlib.Root, error) {
 		&mm,
 		&logger,
 		&clientCtx,
+		&cmtServer,
 		&chainSpec,
 		&autoCliOpts,
 	); err != nil {
@@ -115,6 +118,13 @@ func (cb *CLIBuilder[NodeT, T]) Build() (*cmdlib.Root, error) {
 		return nil, err
 	}
 
+	cmdlib.
+	DefaultRootCommandSetup(
+		rootCmd,
+		cb.nodeBuilderFunc,
+		logger,
+		[]*serverv2.ServerComponent[transaction.Tx]{cmtServer},
+	)
 	// apply default root command setup
 	cmdlib.GetCommands[NodeT](
 		rootCmd,

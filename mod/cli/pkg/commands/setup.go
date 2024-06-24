@@ -40,8 +40,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// GetCommands sets up the default commands for the root command.
-func GetCommands[NodeT types.Node[T], T transaction.Tx](
+// Commands sets up the default commands for the root command.
+func Commands[NodeT types.Node[T], T transaction.Tx](
 	root *Root,
 	mm *module.Manager,
 	appCreator serverv2.AppCreator[T],

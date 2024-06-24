@@ -13,17 +13,17 @@ replace (
 	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240623110059-dec2d5583e39
 	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240623110059-dec2d5583e39
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240623110059-dec2d5583e39
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240624014538-75ba469b1881
+	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240624204242-8877694ebd14
 )
 
 require (
 	cosmossdk.io/core v0.12.1-0.20240623110059-dec2d5583e39
-	github.com/berachain/beacon-kit/mod/async v0.0.0-20240624041151-58d9ba1eb6b4
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240624041151-58d9ba1eb6b4
-	github.com/berachain/beacon-kit/mod/log v0.0.0-20240624041151-58d9ba1eb6b4
-	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240624041151-58d9ba1eb6b4
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240624041151-58d9ba1eb6b4
-	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240624041151-58d9ba1eb6b4
+	github.com/berachain/beacon-kit/mod/async v0.0.0-20240624210933-3baa52ebb587
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240624210933-3baa52ebb587
+	github.com/berachain/beacon-kit/mod/log v0.0.0-20240624210933-3baa52ebb587
+	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240624210933-3baa52ebb587
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240624210933-3baa52ebb587
+	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240624210933-3baa52ebb587
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240613135100-716d8f8c592d
 	github.com/cosmos/gogoproto v1.5.0
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8
@@ -55,7 +55,7 @@ require (
 	golang.org/x/net v0.26.0 // indirect
 	golang.org/x/sys v0.21.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240617180043-68d350f18fd4 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240624140628-dc46fd24d27d // indirect
 	google.golang.org/grpc v1.64.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
