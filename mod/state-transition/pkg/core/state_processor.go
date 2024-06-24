@@ -420,7 +420,7 @@ func (sp *StateProcessor[
 			blk.GetParentBlockRoot(),
 			// state_root is zeroed and overwritten
 			// in the next `process_slot` call.
-			[32]byte{},
+			common.Root{},
 			bodyRoot,
 		),
 	); err != nil {
