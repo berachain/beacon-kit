@@ -87,7 +87,7 @@ func (h *ABCIMiddleware[
 
 	// Send a request to the validator service to give us a beacon block
 	// and blob sidecards to pass to ABCI.
-	if err := h.slotFeed.Publish(asynctypes.NewEvent(
+	if err := h.slotBroker.Publish(asynctypes.NewEvent(
 		ctx, events.NewSlot, math.Slot(req.Height),
 	)); err != nil {
 		return nil, err
@@ -191,12 +191,21 @@ func (h *ABCIMiddleware[
 			return localErr
 		}
 
-		if localErr = h.chainService.ReceiveBlock(
-			ctx, blk,
-		); !errors.IsFatal(localErr) {
-			localErr = nil
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case msg := <-h.blkCh:
+			if msg.Type() != events.BeaconBlockVerified {
+				return fmt.Errorf(
+					"unexpected event type: %s", msg.Type(),
+				)
+			}
+			if msg.Error() != nil {
+				return msg.Error()
+			}
+			blk = msg.Data()
 		}
-		return localErr
+		return nil
 	})
 
 	g.Go(func() error {
