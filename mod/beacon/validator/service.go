@@ -213,14 +213,14 @@ func (s *Service[
 	if blkErr := s.blkFeed.Publish(asynctypes.NewEvent(
 		req.Context(), events.BeaconBlockBuilt, blk, err,
 	)); blkErr != nil {
-		// Propogate the error from buildBlockAndSidecars
+		// Propagate the error from buildBlockAndSidecars
 		s.logger.Error("failed to publish block", "err", err)
 	}
 
 	// Send the sidecars on the feed.
 	if sidecarsErr := s.sidecarsFeed.Publish(
 		asynctypes.NewEvent(
-			// Propogate the error from buildBlockAndSidecars
+			// Propagate the error from buildBlockAndSidecars
 			req.Context(), events.BlobSidecarsBuilt, sidecars, err,
 		),
 	); sidecarsErr != nil {
