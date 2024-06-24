@@ -4,14 +4,15 @@ go 1.22.4
 
 replace (
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
-	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240530104414-90cbb022d5f6
-	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240530104414-90cbb022d5f6
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240529213909-58c32d695e1a
+	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240623110059-dec2d5583e39
+	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240623110059-dec2d5583e39
+	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240623110059-dec2d5583e39
+	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240624011214-2cfd53836b62
 )
 
 require (
 	cosmossdk.io/client/v2 v2.0.0-20240412212305-037cf98f7eea
-	cosmossdk.io/core v0.12.1-0.20240530104414-90cbb022d5f6
+	cosmossdk.io/core v0.12.1-0.20240623110059-dec2d5583e39
 	cosmossdk.io/depinject v1.0.0-alpha.4.0.20240506202947-fbddf0a55044
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce
 	cosmossdk.io/tools/confix v0.1.1
@@ -49,12 +50,12 @@ require (
 	cosmossdk.io/math v1.3.0 // indirect
 	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc // indirect
 	cosmossdk.io/store/v2 v2.0.0-20240515130459-16437119e0d8 // indirect
-	cosmossdk.io/x/accounts v0.0.0-20240530104414-90cbb022d5f6 // indirect
+	cosmossdk.io/x/accounts v0.0.0-20240623110059-dec2d5583e39 // indirect
 	cosmossdk.io/x/auth v0.0.0-20240607081129-ca14b2847836 // indirect
-	cosmossdk.io/x/bank v0.0.0-20240530104414-90cbb022d5f6 // indirect
-	cosmossdk.io/x/consensus v0.0.0-20240530104414-90cbb022d5f6 // indirect
-	cosmossdk.io/x/gov v0.0.0-20240530104414-90cbb022d5f6 // indirect
-	cosmossdk.io/x/staking v0.0.0-20240530104414-90cbb022d5f6 // indirect
+	cosmossdk.io/x/bank v0.0.0-20240623110059-dec2d5583e39 // indirect
+	cosmossdk.io/x/consensus v0.0.0-20240623110059-dec2d5583e39 // indirect
+	cosmossdk.io/x/gov v0.0.0-20240623110059-dec2d5583e39 // indirect
+	cosmossdk.io/x/staking v0.0.0-20240623110059-dec2d5583e39 // indirect
 	cosmossdk.io/x/tx v0.13.3 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
