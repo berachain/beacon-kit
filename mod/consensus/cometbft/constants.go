@@ -18,17 +18,13 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package middleware
+package cometbft
 
-import "errors"
-
-var (
-	// ErrUndefinedValidatorUpdate is returned when an undefined validator
-	// update is
-	// encountered.
-	ErrUndefinedValidatorUpdate = errors.New("undefined validator update")
-	// ErrBadExtractBlockAndBlocks is returned when an error occurs while
-	// extracting
-	// the block and blocks from the request.
-	ErrBadExtractBlockAndBlocks = errors.New("bad extract block and blocks")
+const (
+	// BeaconBlockTxIndex represents the index of the beacon block transaction.
+	// It is the first transaction in the tx list.
+	BeaconBlockTxIndex uint = iota
+	// BlobSidecarsTxIndex represents the index of the blob sidecar transaction.
+	// It follows the beacon block transaction in the tx list.
+	BlobSidecarsTxIndex
 )

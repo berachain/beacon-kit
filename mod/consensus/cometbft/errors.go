@@ -18,28 +18,17 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package middleware
+package cometbft
 
-import (
-	appmodulev2 "cosmossdk.io/core/appmodule/v2"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
+import "errors"
+
+var (
+	// ErrUndefinedValidatorUpdate is returned when an undefined validator
+	// update is
+	// encountered.
+	ErrUndefinedValidatorUpdate = errors.New("undefined validator update")
+	// ErrBadExtractBlockAndBlocks is returned when an error occurs while
+	// extracting
+	// the block and blocks from the request.
+	ErrBadExtractBlockAndBlocks = errors.New("bad extract block and blocks")
 )
-
-// convertValidatorUpdate abstracts the conversion of a
-// transition.ValidatorUpdate to an appmodulev2.ValidatorUpdate.
-func convertValidatorUpdate(
-	u **transition.ValidatorUpdate,
-) (appmodulev2.ValidatorUpdate, error) {
-	update := *u
-	if update == nil {
-		return appmodulev2.ValidatorUpdate{},
-			ErrUndefinedValidatorUpdate
-	}
-	return appmodulev2.ValidatorUpdate{
-		PubKey:     update.Pubkey[:],
-		PubKeyType: crypto.CometBLSType,
-		//#nosec:G701 // this is safe.
-		Power: int64(update.EffectiveBalance.Unwrap()),
-	}, nil
-}
