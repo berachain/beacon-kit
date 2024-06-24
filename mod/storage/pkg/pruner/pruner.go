@@ -33,6 +33,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 )
 
+// Compile-time check to ensure pruner implements the Pruner interface.
+var _ Pruner[Prunable] = (*pruner[
+	BeaconBlock, BlockEvent[BeaconBlock], Prunable,
+])(nil)
+
 // pruner is a struct that holds the prunable interface and a notifier
 // channel.
 type pruner[
@@ -47,6 +52,7 @@ type pruner[
 	pruneRangeFn func(BlockEventT) (uint64, uint64)
 }
 
+// NewPruner creates a new Pruner.
 func NewPruner[
 	BeaconBlockT BeaconBlock,
 	BlockEventT BlockEvent[BeaconBlockT],
@@ -57,7 +63,7 @@ func NewPruner[
 	name string,
 	feed chan BlockEventT,
 	pruneRangeFn func(BlockEventT) (uint64, uint64),
-) *pruner[BeaconBlockT, BlockEventT, PrunableT] {
+) Pruner[PrunableT] {
 	return &pruner[BeaconBlockT, BlockEventT, PrunableT]{
 		logger:       logger,
 		prunable:     prunable,
