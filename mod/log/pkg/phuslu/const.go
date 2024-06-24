@@ -34,3 +34,9 @@ const (
 	panicLabel   = "PANIC"
 	defaultLabel = " ???"
 )
+
+// output styles flags.
+const (
+	StylePretty = "pretty"
+	StyleJSON   = "json"
+)

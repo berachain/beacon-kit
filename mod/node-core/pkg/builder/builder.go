@@ -134,5 +134,5 @@ func (nb *NodeBuilder[NodeT]) Build(
 
 func SetLoggerConfig(config *config.Config, logger log.Logger) {
 	fmt.Println("Setting logger config", config.GetLogger())
-	logger.(*phuslu.Logger[log.Logger]).SetConfig(*config.GetLogger())
+	logger.(*phuslu.Logger[log.Logger]).WithConfig(*config.GetLogger())
 }

@@ -46,6 +46,6 @@ func ProvideLogger(
 ) log.Logger {
 	logLvlStr := cast.ToString(in.AppOpts.Get(flags.FlagLogLevel))
 	logger := phuslu.NewLogger[log.Logger](
-		logLvlStr, in.Cfg.GetLogger(), in.Out)
+		logLvlStr, in.Out).WithConfig(*in.Cfg.GetLogger())
 	return logger
 }

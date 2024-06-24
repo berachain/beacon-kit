@@ -38,6 +38,6 @@ func DefaultConfig() Config {
 	return Config{
 		TimeFormat: time.RFC3339,
 		Verbose:    true,
-		Style:      "pretty",
+		Style:      StylePretty,
 	}
 }

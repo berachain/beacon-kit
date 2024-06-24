@@ -32,27 +32,26 @@ type Logger[ImplT any] struct {
 	logger *log.Logger
 	// context is a map of key-value pairs that are added to every log entry.
 	context log.Fields
-	// config is the configuration for the logger.
-	config *Config
+	// out is the writer to write logs to.
+	out io.Writer
+	// formatter is the formatter to use for the logger.
+	formatter *Formatter
 }
 
 // NewLogger creates a new logger with the given log level, ConsoleWriter, and
 // default configuration.
 func NewLogger[ImplT any](
-	level string, cfg *Config, out io.Writer,
+	level string, out io.Writer,
 ) *Logger[ImplT] {
+	formatter := NewFormatter()
 	logger := &log.Logger{
-		Level:      log.ParseLevel(level),
-		TimeFormat: cfg.TimeFormat,
-		Writer: &log.ConsoleWriter{
-			Writer:    out,
-			Formatter: (NewFormatter().Format),
-		},
+		Level: log.ParseLevel(level),
 	}
 	return &Logger[ImplT]{
-		logger:  logger,
-		context: make(log.Fields),
-		config:  cfg,
+		logger:    logger,
+		context:   make(log.Fields),
+		out:       out,
+		formatter: formatter,
 	}
 }
 
@@ -127,6 +126,31 @@ func (l *Logger[ImplT]) SetLevel(level string) {
 // This is so cooked but necessary because there is no way to pass a populated
 // config to the logger at creation time, because the dependent viper instance
 // is not yet populated.
-func (l *Logger[ImplT]) SetConfig(cfg Config) {
-	*l.config = cfg
+func (l *Logger[ImplT]) WithConfig(cfg Config) *Logger[ImplT] {
+	l.logger.TimeFormat = cfg.TimeFormat
+	if cfg.Style == StylePretty {
+		l.useConsoleWriter()
+	} else if cfg.Style == StyleJSON {
+		l.useJSONWriter()
+	}
+	// todo: set verbosity
+	return l
+}
+
+// useConsoleWriter sets the logger to use a console writer.
+func (l *Logger[ImplT]) useConsoleWriter() {
+	l.setWriter(&log.ConsoleWriter{
+		Writer:    l.out,
+		Formatter: l.formatter.Format,
+	})
+}
+
+// useJSONWriter sets the logger to use a IOWriter wrapper.
+func (l *Logger[ImplT]) useJSONWriter() {
+	l.setWriter(log.IOWriter{Writer: l.out})
+}
+
+// setWriter sets the writer of the logger.
+func (l *Logger[ImplT]) setWriter(writer log.Writer) {
+	l.logger.Writer = writer
 }
