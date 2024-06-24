@@ -52,8 +52,6 @@ type ABCIMiddleware[
 	chainService BlockchainService[
 		BeaconBlockT, BlobSidecarsT, DepositT, GenesisT,
 	]
-	// daService is the service responsible for building the data availability
-	daService DAService[BlobSidecarsT]
 	// TODO: we will eventually gossip the blobs separately from
 	// CometBFT, but for now, these are no-op gossipers.
 	blobGossiper p2p.PublisherReceiver[
@@ -108,7 +106,6 @@ func NewABCIMiddleware[
 	chainService BlockchainService[
 		BeaconBlockT, BlobSidecarsT, DepositT, GenesisT,
 	],
-	daService DAService[BlobSidecarsT],
 	logger log.Logger[any],
 	telemetrySink TelemetrySink,
 	blkBroker *broker.Broker[*asynctypes.Event[BeaconBlockT]],
@@ -124,7 +121,6 @@ func NewABCIMiddleware[
 	]{
 		chainSpec:    chainSpec,
 		chainService: chainService,
-		daService:    daService,
 		blobGossiper: rp2p.NewNoopBlobHandler[
 			BlobSidecarsT, encoding.ABCIRequest](),
 		beaconBlockGossiper: rp2p.

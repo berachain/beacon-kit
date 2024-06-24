@@ -109,49 +109,70 @@ func (s *Service[_, _, BlobSidecarsT, _, _]) start(
 		case <-ctx.Done():
 			return
 		case msg := <-sidecarsCh:
-			//nolint:gocritic // will be expanded.
 			switch msg.Type() {
 			case events.BlobSidecarsVerified:
-				err := s.ProcessSidecars(ctx, msg.Data())
-				if err != nil {
-					s.logger.Error(
-						"failed to process blob sidecars",
-						"error",
-						err,
-					)
-				}
-
-				if err = s.sidecarsBroker.Publish(asynctypes.NewEvent(
-					ctx, events.BlobSidecarsProcessed, msg.Data(), err,
-				)); err != nil {
-					s.logger.Error(
-						"failed to publish blob sidecars processed event",
-						"error",
-						err,
-					)
-				}
-
-				// case events.BlobSidecarsReceived:
-				// 	err := s.ReceiveSidecars(ctx, e.Data())
-				// 	if err != nil {
-				// 		s.logger.Error(
-				// 			"failed to receive blob sidecars",
-				// 			"error",
-				// 			err,
-				// 		)
-				// 	}
-				// 	s.feed.Send(asynctypes.NewEvent(
-				// 		ctx, events.BlobSidecarsProcessed, e.Data(), err,
-				// 	))
-				// }
+				s.handleBlobSidecarsVerified(ctx, msg)
+			case events.BlobSidecarsReceived:
+				s.handleBlobSidecarsReceived(ctx, msg)
 			}
 		}
 	}
 }
 
+// handleBlobSidecarsVerified handles the BlobSidecarsVerified event.
+// It processes the sidecars and publishes a BlobSidecarsProcessed event.
+func (s *Service[_, _, BlobSidecarsT, _, _]) handleBlobSidecarsVerified(
+	ctx context.Context,
+	msg *asynctypes.Event[BlobSidecarsT],
+) {
+	err := s.processSidecars(ctx, msg.Data())
+	if err != nil {
+		s.logger.Error(
+			"Failed to process blob sidecars",
+			"error",
+			err,
+		)
+	}
+
+	if err = s.sidecarsBroker.Publish(asynctypes.NewEvent(
+		ctx, events.BlobSidecarsProcessed, msg.Data(), err,
+	)); err != nil {
+		s.logger.Error(
+			"Failed to publish blob sidecars processed event",
+			"error",
+			err,
+		)
+	}
+}
+
+// handleBlobSidecarsReceived handles the BlobSidecarsReceived event.
+// It receives the sidecars and publishes a BlobSidecarsProcessed event.
+func (s *Service[_, _, BlobSidecarsT, _, _]) handleBlobSidecarsReceived(
+	ctx context.Context,
+	msg *asynctypes.Event[BlobSidecarsT],
+) {
+	err := s.receiveSidecars(ctx, msg.Data())
+	if err != nil {
+		s.logger.Error(
+			"Failed to receive blob sidecars",
+			"error",
+			err,
+		)
+	}
+
+	if err = s.sidecarsBroker.Publish(asynctypes.NewEvent(
+		ctx, events.BlobSidecarsProcessed, msg.Data(), err,
+	)); err != nil {
+		s.logger.Error(
+			"Failed to publish blob sidecars processed event",
+			"error",
+			err,
+		)
+	}
+}
+
 // ProcessSidecars processes the blob sidecars.
-// TODO: Deprecate this publically and move to event based system.
-func (s *Service[_, _, BlobSidecarsT, _, _]) ProcessSidecars(
+func (s *Service[_, _, BlobSidecarsT, _, _]) processSidecars(
 	_ context.Context,
 	sidecars BlobSidecarsT,
 ) error {
@@ -164,7 +185,7 @@ func (s *Service[_, _, BlobSidecarsT, _, _]) ProcessSidecars(
 }
 
 // VerifyIncomingBlobs receives blobs from the network and processes them.
-func (s *Service[_, _, BlobSidecarsT, _, _]) ReceiveSidecars(
+func (s *Service[_, _, BlobSidecarsT, _, _]) receiveSidecars(
 	_ context.Context,
 	sidecars BlobSidecarsT,
 ) error {
