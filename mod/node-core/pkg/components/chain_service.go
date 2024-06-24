@@ -34,8 +34,7 @@ import (
 // ChainServiceInput is the input for the chain service provider.
 type ChainServiceInput struct {
 	depinject.In
-	BlobProcessor   *BlobProcessor
-	BlockFeed       *BlockFeed
+	BlockBroker     *BlockBroker
 	ChainSpec       common.ChainSpec
 	Cfg             *config.Config
 	DepositService  *DepositService
@@ -72,10 +71,9 @@ func ProvideChainService(
 		in.ChainSpec,
 		in.ExecutionEngine,
 		in.LocalBuilder,
-		in.BlobProcessor,
 		in.StateProcessor,
 		in.TelemetrySink,
-		in.BlockFeed,
+		in.BlockBroker,
 		// If optimistic is enabled, we want to skip post finalization FCUs.
 		in.Cfg.Validator.EnableOptimisticPayloadBuilds,
 	)

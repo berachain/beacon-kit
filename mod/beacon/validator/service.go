@@ -23,7 +23,6 @@ package validator
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -84,20 +83,12 @@ type Service[
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT]
 	// metrics is a metrics collector.
 	metrics *validatorMetrics
-	// blkFeed is a feed for blocks.
-	blkFeed *event.FeedOf[
-		asynctypes.EventID,
-		*asynctypes.Event[BeaconBlockT],
-	]
-	// sidecarsFeed is a feed for sidecars.
-	sidecarsFeed *event.FeedOf[
-		asynctypes.EventID,
-		*asynctypes.Event[BlobSidecarsT],
-	]
-	slotFeed *event.FeedOf[
-		asynctypes.EventID,
-		*asynctypes.Event[math.Slot],
-	]
+	// blkBroker is a feed for blocks.
+	blkBroker EventPublisher[*asynctypes.Event[BeaconBlockT]]
+	// sidecarsBroker is a feed for sidecars.
+	sidecarsBroker EventPublisher[*asynctypes.Event[BlobSidecarsT]]
+	// newSlotSub is a feed for slots.
+	newSlotSub chan *asynctypes.Event[math.Slot]
 }
 
 // NewService creates a new validator service.
@@ -137,12 +128,9 @@ func NewService[
 	localPayloadBuilder PayloadBuilder[BeaconStateT, ExecutionPayloadT],
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT],
 	ts TelemetrySink,
-	blkFeed *event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[BeaconBlockT]],
-	sidecarsFeed *event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[BlobSidecarsT]],
-	slotFeed *event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[math.Slot]],
+	blkBroker EventPublisher[*asynctypes.Event[BeaconBlockT]],
+	sidecarsBroker EventPublisher[*asynctypes.Event[BlobSidecarsT]],
+	newSlotSub chan *asynctypes.Event[math.Slot],
 ) *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
@@ -163,26 +151,22 @@ func NewService[
 		localPayloadBuilder:   localPayloadBuilder,
 		remotePayloadBuilders: remotePayloadBuilders,
 		metrics:               newValidatorMetrics(ts),
-		blkFeed:               blkFeed,
-		sidecarsFeed:          sidecarsFeed,
-		slotFeed:              slotFeed,
+		blkBroker:             blkBroker,
+		sidecarsBroker:        sidecarsBroker,
+		newSlotSub:            newSlotSub,
 	}
 }
 
 // Name returns the name of the service.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
-	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ForkDataT,
+	_, _, _, _, _, _, _, _, _, _,
 ]) Name() string {
 	return "validator"
 }
 
 // Start starts the service.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
-	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ForkDataT,
+	_, _, _, _, _, _, _, _, _, _,
 ]) Start(
 	ctx context.Context,
 ) error {
@@ -192,20 +176,15 @@ func (s *Service[
 
 // start starts the service.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
-	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ForkDataT,
+	_, _, _, _, _, _, _, _, _, _,
 ]) start(
 	ctx context.Context,
 ) {
-	newSlotCh := make(chan *asynctypes.Event[math.Slot], 1)
-	sub := s.slotFeed.Subscribe(newSlotCh)
-	defer sub.Unsubscribe()
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case req := <-newSlotCh:
+		case req := <-s.newSlotSub:
 			if req.Type() == events.NewSlot {
 				s.handleNewSlot(req)
 			}
@@ -225,12 +204,20 @@ func (s *Service[
 	}
 
 	// Send the built block back on the feed.
-	s.blkFeed.Send(asynctypes.NewEvent(
+	if blkErr := s.blkBroker.Publish(asynctypes.NewEvent(
 		req.Context(), events.BeaconBlockBuilt, blk, err,
-	))
+	)); blkErr != nil {
+		// Propagate the error from buildBlockAndSidecars
+		s.logger.Error("failed to publish block", "err", err)
+	}
 
 	// Send the sidecars on the feed.
-	s.sidecarsFeed.Send(asynctypes.NewEvent(
-		req.Context(), events.BlobSidecarsBuilt, sidecars, err,
-	))
+	if sidecarsErr := s.sidecarsBroker.Publish(
+		asynctypes.NewEvent(
+			// Propagate the error from buildBlockAndSidecars
+			req.Context(), events.BlobSidecarsBuilt, sidecars, err,
+		),
+	); sidecarsErr != nil {
+		s.logger.Error("failed to publish sidecars", "err", err)
+	}
 }
