@@ -322,9 +322,7 @@ func (s *Service[
 // computeAndSetStateRoot computes the state root of an outgoing block
 // and sets it in the block.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
-	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ForkDataT,
+	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _,
 ]) computeAndSetStateRoot(
 	ctx context.Context,
 	st BeaconStateT,
@@ -357,9 +355,7 @@ func (s *Service[
 
 // computeStateRoot computes the state root of an outgoing block.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
-	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ForkDataT,
+	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _,
 ]) computeStateRoot(
 	ctx context.Context,
 	st BeaconStateT,
