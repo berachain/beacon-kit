@@ -193,7 +193,7 @@ func (em *engineMetrics) markForkchoiceUpdateValid(
 		"head_eth1_hash", state.HeadBlockHash,
 		"safe_eth1_hash", state.SafeBlockHash,
 		"finalized_eth1_hash", state.FinalizedBlockHash,
-		"with_attributes", state.FinalizedBlockHash,
+		"with_attributes", hasPayloadAttributes,
 	}
 	if hasPayloadAttributes {
 		args = append(args, "payload_id", payloadID)
