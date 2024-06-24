@@ -9,7 +9,6 @@ replace (
 	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240623110059-dec2d5583e39
 	cosmossdk.io/server/v2 => cosmossdk.io/server/v2 v2.0.0-20240620161400-a6407f411e80
 	cosmossdk.io/server/v2/appmanager => cosmossdk.io/server/v2/appmanager v0.0.0-20240623110059-dec2d5583e39
-	cosmossdk.io/server/v2/cometbft => ./hood/cometbft
 	cosmossdk.io/server/v2/stf => cosmossdk.io/server/v2/stf v0.0.0-20240623110059-dec2d5583e39
 	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240623110059-dec2d5583e39
 	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240623110059-dec2d5583e39

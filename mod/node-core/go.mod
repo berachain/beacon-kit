@@ -12,10 +12,9 @@ replace (
 require (
 	cosmossdk.io/api v0.7.5
 	cosmossdk.io/core v0.12.1-0.20240623110059-dec2d5583e39
-	cosmossdk.io/depinject v1.0.0-alpha.4.0.20240506202947-fbddf0a55044
+	cosmossdk.io/depinject v1.0.0-alpha.4.0.20240620161400-a6407f411e80
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce
 	cosmossdk.io/runtime/v2 v2.0.0-20240623110059-dec2d5583e39
-	cosmossdk.io/server/v2 v2.0.0-20240623110059-dec2d5583e39
 	cosmossdk.io/store/v2 v2.0.0-20240515130459-16437119e0d8
 	cosmossdk.io/x/tx v0.13.4-0.20240623110059-dec2d5583e39
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240624003607-df94860f8eeb
