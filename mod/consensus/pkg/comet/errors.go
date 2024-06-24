@@ -26,11 +26,7 @@ var (
 	// ErrUndefinedValidatorUpdate is returned when an undefined validator
 	// update is
 	// encountered.
-	ErrUndefinedValidatorUpdate = errors.New("undefined validator update")
-	// ErrBadExtractBlockAndBlocks is returned when an error occurs while
-	// extracting
-	// the block and blocks from the request.
-	ErrBadExtractBlockAndBlocks = errors.New("bad extract block and blocks")
-	// ErrUnexpectedEvent is returned when an unexpected event is encountered.
-	ErrUnexpectedEvent = errors.New("unexpected event")
+	ErrUndefinedValidatorUpdate = errors.New(
+		"undefined validator update",
+	)
 )
