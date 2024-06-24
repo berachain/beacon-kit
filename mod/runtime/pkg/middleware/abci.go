@@ -220,12 +220,21 @@ func (h *ABCIMiddleware[
 			return localErr
 		}
 
-		if localErr = h.daService.ReceiveSidecars(
-			ctx, sidecars,
-		); !errors.IsFatal(localErr) {
-			localErr = nil
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case msg := <-h.sidecarsCh:
+			if msg.Type() != events.BlobSidecarsProcessed {
+				return fmt.Errorf(
+					"unexpected event type: %s", msg.Type(),
+				)
+			}
+			if msg.Error() != nil {
+				return msg.Error()
+			}
+			sidecars = msg.Data()
 		}
-		return localErr
+		return nil
 	})
 
 	resp := &cmtabci.ProcessProposalResponse{
