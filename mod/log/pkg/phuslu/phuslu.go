@@ -146,7 +146,6 @@ func (l *Logger[Impl]) withStyle(style string) {
 
 // SetLevel sets the log level of the logger.
 func (l *Logger[ImplT]) withLogLevel(level string) {
-	fmt.Println("PENIS", level)
 	l.logger.Level = log.ParseLevel(level)
 }
 
