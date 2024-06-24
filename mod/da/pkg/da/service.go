@@ -35,6 +35,7 @@ type Service[
 		Len() int
 		IsNil() bool
 	},
+	//nolint:lll // formatter.
 	EventPublisherSubscriberT EventPublisherSubscriber[*asynctypes.Event[BlobSidecarsT]],
 	ExecutionPayloadT any,
 ] struct {
@@ -57,6 +58,7 @@ func NewService[
 		Len() int
 		IsNil() bool
 	},
+	//nolint:lll // formatter.
 	EventPublisherSubscriberT EventPublisherSubscriber[*asynctypes.Event[BlobSidecarsT]],
 	ExecutionPayloadT any,
 ](
