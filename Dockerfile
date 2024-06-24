@@ -30,14 +30,14 @@ ARG CMD_PATH=./beacond/cmd
 ###         Stage 1 - Cache Go Modules              ###
 #######################################################
 
-FROM golang:${GO_VERSION}-alpine3.20 as mod-cache
+FROM golang:${GO_VERSION}-alpine3.20 AS mod-cache
 
 WORKDIR /workdir
 
 RUN apk add --no-cache git
 
 COPY ./beacond/go.mod ./beacond/go.sum ./beacond/
-COPY ./mod/async/go.mod ./mod/async/go.sum ./mod/async/
+COPY ./mod/async/go.mod ./mod/async/
 COPY ./mod/beacon/go.mod ./mod/beacon/go.sum ./mod/beacon/
 COPY ./mod/cli/go.mod ./mod/cli/go.sum ./mod/cli/
 COPY ./mod/consensus-types/go.mod ./mod/consensus-types/go.sum ./mod/consensus-types/
@@ -46,7 +46,7 @@ COPY ./mod/da/go.mod ./mod/da/go.sum ./mod/da/
 COPY ./mod/engine-primitives/go.mod ./mod/engine-primitives/go.sum ./mod/engine-primitives/
 COPY ./mod/execution/go.mod ./mod/execution/go.sum ./mod/execution/
 COPY ./mod/interfaces/go.mod ./mod/interfaces/
-COPY ./mod/log/go.mod ./mod/log/
+COPY ./mod/log/go.mod ./mod/log/go.sum ./mod/log/
 COPY ./mod/node-api/go.mod ./mod/node-api/go.sum ./mod/node-api/
 COPY ./mod/node-core/go.mod ./mod/node-core/go.sum ./mod/node-core/
 COPY ./mod/p2p/go.mod ./mod/p2p/
@@ -87,7 +87,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 ###         Stage 2 - Build the Application         ###
 #######################################################
 
-FROM golang:${GO_VERSION}-alpine3.20 as builder
+FROM golang:${GO_VERSION}-alpine3.20 AS builder
 
 ARG GIT_VERSION
 ARG GIT_COMMIT
@@ -99,9 +99,7 @@ WORKDIR /workdir
 # Consolidate RUN commands to reduce layers
 RUN apk add --no-cache --update \
     ca-certificates \
-    build-base \
-    linux-headers \
-    binutils-gold
+    build-base
 
 # Copy the dependencies from the cache stage as well as the
 # go.work file to the working directory
