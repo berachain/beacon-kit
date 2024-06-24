@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	rp2p "github.com/berachain/beacon-kit/mod/runtime/pkg/p2p"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
@@ -90,6 +91,9 @@ type ABCIMiddleware[
 	blkCh chan *asynctypes.Event[BeaconBlockT]
 	// sidecarsCh is used to communicate the sidecars to the EndBlock method.
 	sidecarsCh chan *asynctypes.Event[BlobSidecarsT]
+	// valUpdateSub is the channel for listening for incoming validator set
+	// updates.
+	valUpdateSub chan *asynctypes.Event[transition.ValidatorUpdates]
 }
 
 // NewABCIMiddleware creates a new instance of the Handler struct.
@@ -111,6 +115,7 @@ func NewABCIMiddleware[
 	blkBroker *broker.Broker[*asynctypes.Event[BeaconBlockT]],
 	sidecarsBroker *broker.Broker[*asynctypes.Event[BlobSidecarsT]],
 	slotBroker *broker.Broker[*asynctypes.Event[math.Slot]],
+	valUpdateSub chan *asynctypes.Event[transition.ValidatorUpdates],
 ) *ABCIMiddleware[
 	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
 	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
@@ -143,6 +148,7 @@ func NewABCIMiddleware[
 			chan *asynctypes.Event[BlobSidecarsT],
 			1,
 		),
+		valUpdateSub: valUpdateSub,
 	}
 }
 
@@ -197,9 +203,6 @@ func (am *ABCIMiddleware[
 				fallthrough
 			case events.BlobSidecarsProcessed:
 				am.sidecarsCh <- msg
-			case events.BlobSidecarsVerified:
-			default:
-				// do nothing.
 			}
 		}
 	}

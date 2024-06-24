@@ -29,9 +29,22 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 )
 
-// Benchmark function for phuslu logger.
-func BenchmarkPhusluLoggerInfo(b *testing.B) {
-	logger := newPhusluLoggerWithLevel("Info")
+/* -------------------------------------------------------------------------- */
+/*                                   Info                                     */
+/* -------------------------------------------------------------------------- */
+
+// Benchmark function for phuslu logger with pretty style.
+func BenchmarkPhusluLoggerPrettyInfo(b *testing.B) {
+	logger := newPhusluLogger().WithConfig(configWithPretty("info"))
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		logger.Info("This is an info message", "key1", "value1", "key2", 2)
+	}
+}
+
+// Benchmark function for phuslu logger with JSON style.
+func BenchmarkPhusluLoggerJSONInfo(b *testing.B) {
+	logger := newPhusluLogger().WithConfig(configWithJSON("info"))
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		logger.Info("This is an info message", "key1", "value1", "key2", 2)
@@ -47,9 +60,22 @@ func BenchmarkSDKLoggerInfo(b *testing.B) {
 	}
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                   Warn                                     */
+/* -------------------------------------------------------------------------- */
+
 // Benchmark function for phuslu logger Warn.
-func BenchmarkPhusluLoggerWarn(b *testing.B) {
-	logger := newPhusluLoggerWithLevel("Warn")
+func BenchmarkPhusluLoggerPrettyWarn(b *testing.B) {
+	logger := newPhusluLogger().WithConfig(configWithPretty("warn"))
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		logger.Warn("This is a warning message", "key1", "value1", "key2", 2)
+	}
+}
+
+// Benchmark function for phuslu logger with JSON style.
+func BenchmarkPhusluLoggerJSONWarn(b *testing.B) {
+	logger := newPhusluLogger().WithConfig(configWithJSON("warn"))
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		logger.Warn("This is a warning message", "key1", "value1", "key2", 2)
@@ -65,9 +91,22 @@ func BenchmarkSDKLoggerWarn(b *testing.B) {
 	}
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                   Error                                    */
+/* -------------------------------------------------------------------------- */
+
 // Benchmark function for phuslu logger Error.
-func BenchmarkPhusluLoggerError(b *testing.B) {
-	logger := newPhusluLoggerWithLevel("Error")
+func BenchmarkPhusluLoggerPrettyError(b *testing.B) {
+	logger := newPhusluLogger().WithConfig(configWithPretty("error"))
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		logger.Error("This is an error message", "key1", "value1", "key2", 2)
+	}
+}
+
+// Benchmark function for phuslu logger with JSON style.
+func BenchmarkPhusluLoggerJSONError(b *testing.B) {
+	logger := newPhusluLogger().WithConfig(configWithJSON("error"))
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		logger.Error("This is an error message", "key1", "value1", "key2", 2)
@@ -83,17 +122,38 @@ func BenchmarkSDKLoggerError(b *testing.B) {
 	}
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                   Debug                                    */
+/* -------------------------------------------------------------------------- */
+
 // Benchmark function for phuslu logger Debug.
-func BenchmarkPhusluLoggerDebug(b *testing.B) {
-	logger := newPhusluLoggerWithLevel("Debug")
+func BenchmarkPhusluLoggerPrettyDebug(b *testing.B) {
+	logger := newPhusluLogger().WithConfig(configWithPretty("debug"))
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		logger.Debug("This is a debug message", "key1", "value1", "key2", 2)
 	}
 }
 
-func BenchmarkPhusluLoggerDebugSilent(b *testing.B) {
-	logger := newPhusluLoggerWithLevel("Info")
+// Benchmark function for phuslu logger with JSON style.
+func BenchmarkPhusluLoggerJSONDebug(b *testing.B) {
+	logger := newPhusluLogger().WithConfig(configWithJSON("debug"))
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		logger.Debug("This is a debug message", "key1", "value1", "key2", 2)
+	}
+}
+
+func BenchmarkPhusluLoggerPrettyDebugSilent(b *testing.B) {
+	logger := newPhusluLogger().WithConfig(configWithPretty("info"))
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		logger.Debug("This is a debug message", "key1", "value1", "key2", 2)
+	}
+}
+
+func BenchmarkPhusluLoggerJSONDebugSilent(b *testing.B) {
+	logger := newPhusluLogger().WithConfig(configWithJSON("info"))
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		logger.Debug("This is a debug message", "key1", "value1", "key2", 2)
@@ -117,9 +177,24 @@ func BenchmarkSDKLoggerDebugSilent(b *testing.B) {
 	}
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                   With                                     */
+/* -------------------------------------------------------------------------- */
+
 // Benchmark function for phuslu logger With.
-func BenchmarkPhusluLoggerWith(b *testing.B) {
-	logger := newPhusluLoggerWithLevel("Info")
+func BenchmarkPhusluLoggerPrettyWith(b *testing.B) {
+	logger := newPhusluLogger().WithConfig(configWithPretty("info"))
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		newLogger := logger.With("contextKey", "contextValue")
+		newLogger.Info("This is a contextual info message", "key1", "value1",
+			"key2", 2)
+	}
+}
+
+// Benchmark function for phuslu logger With JSON style.
+func BenchmarkPhusluLoggerJSONWith(b *testing.B) {
+	logger := newPhusluLogger().WithConfig(configWithJSON("info"))
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		newLogger := logger.With("contextKey", "contextValue")
@@ -156,6 +231,25 @@ func newSDKLoggerWithLevel(b *testing.B, level string) log.Logger {
 }
 
 // setup func to create a new phuslu logger with the given log level.
-func newPhusluLoggerWithLevel(level string) log.Logger {
-	return phuslu.NewLogger[log.Logger](level, &bytes.Buffer{})
+func newPhusluLogger() *phuslu.Logger[log.Logger] {
+	cfg := phuslu.DefaultConfig() // dummy config
+	l := phuslu.NewLogger[log.Logger](
+		&bytes.Buffer{}, &cfg)
+	return l
+}
+
+// setup func to create a phuslu logger config with pretty style.
+func configWithPretty(level string) phuslu.Config {
+	cfg := phuslu.DefaultConfig()
+	cfg.LogLevel = level
+	cfg.Style = phuslu.StylePretty
+	return cfg
+}
+
+// setup func to create a phuslu logger config with JSON style.
+func configWithJSON(level string) phuslu.Config {
+	cfg := phuslu.DefaultConfig()
+	cfg.LogLevel = level
+	cfg.Style = phuslu.StyleJSON
+	return cfg
 }

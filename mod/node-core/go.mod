@@ -53,6 +53,7 @@ require (
 	github.com/cosmos/cosmos-db v1.0.2 // indirect
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/mitchellh/pointerstructure v1.2.1 // indirect
+	github.com/phuslu/log v1.0.106 // indirect
 )
 
 require (

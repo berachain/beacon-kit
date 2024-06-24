@@ -100,7 +100,7 @@ type ExecutionEngine[PayloadAttributesT any] interface {
 type EventFeed[EventT any] interface {
 	// Send sends an event and returns the number of
 	// subscribers that received it.
-	Publish(event EventT) error
+	Publish(ctx context.Context, event EventT) error
 	// Subscribe returns a channel that will receive events.
 	Subscribe() (chan EventT, error)
 }

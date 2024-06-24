@@ -94,6 +94,9 @@ func (nb *NodeBuilder[NodeT, T]) Build(
 				v,
 				logger,
 			),
+			depinject.Invoke(
+				SetLoggerConfig,
+			),
 		),
 		&appBuilder,
 		&chainSpec,

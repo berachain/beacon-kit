@@ -195,27 +195,30 @@ func (s *Service[
 // handleBlockRequest handles a block request.
 func (s *Service[
 	_, _, _, _, _, _, _, _, _, _,
-]) handleNewSlot(req *asynctypes.Event[math.Slot]) {
+]) handleNewSlot(msg *asynctypes.Event[math.Slot]) {
 	blk, sidecars, err := s.buildBlockAndSidecars(
-		req.Context(), req.Data(),
+		msg.Context(), msg.Data(),
 	)
 	if err != nil {
 		s.logger.Error("failed to build block", "err", err)
 	}
 
 	// Publish our built block to the broker.
-	if blkErr := s.blkBroker.Publish(asynctypes.NewEvent(
-		req.Context(), events.BeaconBlockBuilt, blk, err,
-	)); blkErr != nil {
+	if blkErr := s.blkBroker.Publish(
+		msg.Context(),
+		asynctypes.NewEvent(
+			msg.Context(), events.BeaconBlockBuilt, blk, err,
+		)); blkErr != nil {
 		// Propagate the error from buildBlockAndSidecars
 		s.logger.Error("failed to publish block", "err", err)
 	}
 
 	// Publish our built blobs to the broker.
 	if sidecarsErr := s.sidecarBroker.Publish(
+		msg.Context(),
 		asynctypes.NewEvent(
 			// Propagate the error from buildBlockAndSidecars
-			req.Context(), events.BlobSidecarsBuilt, sidecars, err,
+			msg.Context(), events.BlobSidecarsBuilt, sidecars, err,
 		),
 	); sidecarsErr != nil {
 		s.logger.Error("failed to publish sidecars", "err", err)
