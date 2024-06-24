@@ -21,8 +21,8 @@ cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc h1:R9O9d75e0qZYUsVV0zzi+
 cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc/go.mod h1:amTTatOUV3u1PsKmNb87z6/galCxrRbz9kRdJkL0DyU=
 cosmossdk.io/x/accounts v0.0.0-20240623110059-dec2d5583e39 h1:1vO1+ZyKvpg0NxyrXNrLW6NqD8Ly6O67H2Dx8jESu+g=
 cosmossdk.io/x/accounts v0.0.0-20240623110059-dec2d5583e39/go.mod h1:nOSx3lOJCTqsMyEIZG1LHeRhTWplMxjBGsZS+FqP8x4=
-cosmossdk.io/x/auth v0.0.0-20240623110059-dec2d5583e39 h1:pkq447wHSmRCiDLHnvHRcDhcrUuMFeq3qpGt+FWG+EQ=
-cosmossdk.io/x/auth v0.0.0-20240623110059-dec2d5583e39/go.mod h1:P3ePo0LbH3mgfbNDeMWY46Qz6POeP1GOSczT0DKcjOQ=
+cosmossdk.io/x/auth v0.0.0-20240607081129-ca14b2847836 h1:uBiSIEeZFJrkenZm+BTvpfmxzPVcCplsQb7WxET+d/A=
+cosmossdk.io/x/auth v0.0.0-20240607081129-ca14b2847836/go.mod h1:jCS7Kecrme55bLPLwGoI3lfOu+rm5rTzf6KU+re7cZI=
 cosmossdk.io/x/consensus v0.0.0-20240623110059-dec2d5583e39 h1:kWsmTakMXQYuGGzt5e+UNUKXp8LLz6qHOTflCDohIQc=
 cosmossdk.io/x/consensus v0.0.0-20240623110059-dec2d5583e39/go.mod h1:btQneZ1sAduh6iVvMIUsR7gEYlgaxM3zOff/9e90Pdk=
 cosmossdk.io/x/tx v0.13.4-0.20240623110059-dec2d5583e39 h1:fZvdmYfQdJ+CX5axx3ChtLOCAIXoLzLoFf7hHAI+fws=
