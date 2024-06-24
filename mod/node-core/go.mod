@@ -47,6 +47,7 @@ require (
 require (
 	github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a // indirect
 	github.com/mitchellh/pointerstructure v1.2.1 // indirect
+	github.com/phuslu/log v1.0.106 // indirect
 )
 
 require (

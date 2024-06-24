@@ -70,7 +70,7 @@ func ProvideEngineClient[
 	in EngineClientInputs,
 ) *client.EngineClient[ExecutionPayloadT, PayloadAttributesT] {
 	return client.New[ExecutionPayloadT, PayloadAttributesT](
-		&in.Config.Engine,
+		in.Config.GetEngine(),
 		in.Logger.With("service", "engine.client"),
 		in.JWTSecret,
 		in.TelemetrySink,

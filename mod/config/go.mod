@@ -7,6 +7,7 @@ require (
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240610210054-bfdc14c4013c
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240624003607-df94860f8eeb
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240624003607-df94860f8eeb
+	github.com/berachain/beacon-kit/mod/log v0.0.0-20240624033454-8f3451361f44
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240624003607-df94860f8eeb
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240624003607-df94860f8eeb
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240613135100-716d8f8c592d
@@ -21,7 +22,6 @@ require (
 	github.com/berachain/beacon-kit/mod/async v0.0.0-20240624003607-df94860f8eeb // indirect
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240624003607-df94860f8eeb // indirect
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240624003607-df94860f8eeb // indirect
-	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610215715-5f91f661ac83 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -74,6 +74,7 @@ require (
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
 	github.com/petermattis/goid v0.0.0-20240607163614-bb94eb51e7a7 // indirect
+	github.com/phuslu/log v1.0.106 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_golang v1.19.1 // indirect

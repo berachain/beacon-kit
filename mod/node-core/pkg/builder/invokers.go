@@ -18,24 +18,16 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package phuslu
+package builder
 
-// Config is a structure that defines the configuration for the logger.
-type Config struct {
-	// TimeFormat is a string that defines the format of the time in
-	// the logger.
-	TimeFormat string `mapstructure:"time-format"`
-	// Logger will log messages with verbosity up to LogLevel.
-	LogLevel string `mapstructure:"log-level"`
-	// pretty or json.
-	Style string `mapstructure:"style"`
-}
+import (
+	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/config"
+	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
+)
 
-// DefaultConfig is a function that returns a new Config with default values.
-func DefaultConfig() Config {
-	return Config{
-		TimeFormat: "RFC3339",
-		LogLevel:   "info",
-		Style:      StylePretty,
-	}
+// SetLoggerConfig sets the logger configuration. It acts as an invoker
+// for the depinject framework.
+func SetLoggerConfig(config *config.Config, logger log.Logger) {
+	logger.(*phuslu.Logger[log.Logger]).WithConfig(*config.GetLogger())
 }
