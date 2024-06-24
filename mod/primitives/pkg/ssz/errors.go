@@ -27,7 +27,6 @@ var (
 	// ErrInvalidNilSlice is returned when the input slice is nil.
 	ErrInvalidNilSlice = errors.New("invalid empty slice")
 
-	
 	// ErrInvalidLength is returned when the input byte slice has an invalid
 	// length.
 	ErrInvalidLength = errors.New("invalid byte length")
