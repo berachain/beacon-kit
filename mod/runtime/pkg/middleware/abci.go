@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -65,7 +64,7 @@ func (h *ABCIMiddleware[
 func (h *ABCIMiddleware[
 	_, _, _, _, _, _, _,
 ]) PrepareProposal(
-	ctx sdk.Context,
+	ctx context.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
 	var (
@@ -145,7 +144,7 @@ func (h *ABCIMiddleware[
 func (h *ABCIMiddleware[
 	_, BeaconBlockT, _, BlobSidecarsT, _, _, _,
 ]) ProcessProposal(
-	ctx sdk.Context,
+	ctx context.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
 	var (
@@ -270,7 +269,7 @@ func (*ABCIMiddleware[
 func (h *ABCIMiddleware[
 	_, _, _, _, _, _, _,
 ]) PreBlock(
-	_ sdk.Context, req *cmtabci.FinalizeBlockRequest,
+	_ context.Context, req *cmtabci.FinalizeBlockRequest,
 ) error {
 	h.req = req
 

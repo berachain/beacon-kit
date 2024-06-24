@@ -37,17 +37,17 @@ type Middleware interface {
 	) (transition.ValidatorUpdates, error)
 
 	PrepareProposal(
-		ctx sdk.Context,
+		ctx context.Context,
 		req *cmtabci.PrepareProposalRequest,
 	) (*cmtabci.PrepareProposalResponse, error)
 
 	ProcessProposal(
-		ctx sdk.Context,
+		ctx context.Context,
 		req *cmtabci.ProcessProposalRequest,
 	) (*cmtabci.ProcessProposalResponse, error)
 
 	PreBlock(
-		_ sdk.Context, req *cmtabci.FinalizeBlockRequest,
+		_ context.Context, req *cmtabci.FinalizeBlockRequest,
 	) error
 
 	EndBlock(
