@@ -25,6 +25,7 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
@@ -165,7 +166,7 @@ func (m *Tree[LeafT, RootT]) Root() [32]byte {
 
 // HashTreeRoot returns the Root of the Merkle tree with the
 // number of leaves mixed in.
-func (m *Tree[LeafT, RootT]) HashTreeRoot() ([32]byte, error) {
+func (m *Tree[LeafT, RootT]) HashTreeRoot() (common.Root, error) {
 	numItems := uint64(len(m.leaves))
 	if len(m.leaves) == 1 &&
 		m.leaves[0] == zero.Hashes[0] {
