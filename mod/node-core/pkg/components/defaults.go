@@ -72,5 +72,6 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideTelemetrySink,
 		ProvideTrustedSetup,
 		ProvideValidatorService,
+		ProvideValidatorUpdateBroker,
 	}
 }
