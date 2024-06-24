@@ -53,8 +53,6 @@ func (s *EngineClient[
 
 // buildJWTHeader builds an http.Header that has the JWT token
 // attached for authorization.
-//
-
 func (s *EngineClient[
 	ExecutionPayloadT, PayloadAttributesT,
 ]) buildJWTHeader() (http.Header, error) {
