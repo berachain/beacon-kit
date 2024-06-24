@@ -173,6 +173,9 @@ func (h *ABCIMiddleware[
 	)
 	defer h.metrics.measureProcessProposalDuration(startTime)
 
+	// TODO: Consider exiting early if this node is not a validator to
+	// reduce resource usage for full nodes.
+
 	// Decode the beacon block and emit an event.
 	blk, err = h.beaconBlockGossiper.Request(ctx, req)
 	if err != nil {
