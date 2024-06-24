@@ -180,7 +180,6 @@ func (s *Service[
 	ctx context.Context,
 	subBlkCh chan *asynctypes.Event[BeaconBlockT],
 ) {
-
 	for {
 		select {
 		case <-ctx.Done():
