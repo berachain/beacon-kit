@@ -37,7 +37,7 @@ WORKDIR /workdir
 RUN apk add --no-cache git
 
 COPY ./beacond/go.mod ./beacond/go.sum ./beacond/
-COPY ./mod/async/go.mod ./mod/async/go.sum ./mod/async/
+COPY ./mod/async/go.mod ./mod/async/
 COPY ./mod/beacon/go.mod ./mod/beacon/go.sum ./mod/beacon/
 COPY ./mod/cli/go.mod ./mod/cli/go.sum ./mod/cli/
 COPY ./mod/consensus-types/go.mod ./mod/consensus-types/go.sum ./mod/consensus-types/
