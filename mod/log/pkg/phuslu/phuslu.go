@@ -123,10 +123,8 @@ func (l *Logger[Impl]) msgWithContext(
 /*                             configuration                                  */
 /* -------------------------------------------------------------------------- */
 
-// we need this to set the config post-creation of the logger.
-// This is so cooked but necessary because there is no way to pass a populated
-// config to the logger at creation time, because the dependent viper instance
-// is not yet populated.
+// Temporary workaround to allow dynamic configuration post-logger creation.
+// This is necessary due to dependencies on runtime-populated configurations.
 func (l *Logger[ImplT]) WithConfig(cfg Config) *Logger[ImplT] {
 	l.withTimeFormat(cfg.TimeFormat)
 	l.withStyle(cfg.Style)
