@@ -21,7 +21,6 @@
 package beacon
 
 import (
-	"consensus/pkg/comet"
 	"context"
 	"encoding/json"
 
@@ -29,6 +28,7 @@ import (
 	"cosmossdk.io/core/registry"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/comet"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
