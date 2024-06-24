@@ -31,4 +31,6 @@ var (
 	// extracting
 	// the block and blocks from the request.
 	ErrBadExtractBlockAndBlocks = errors.New("bad extract block and blocks")
+	// ErrUnexpectedEvent is returned when an unexpected event is encountered.
+	ErrUnexpectedEvent = errors.New("unexpected event")
 )
