@@ -1,5 +1,3 @@
-cosmossdk.io/core v0.12.1-0.20240623110059-dec2d5583e39 h1:Su69DjhpTkamJ/DVu1KHGjoZMAZI6nm7c+LMdZEPLxM=
-cosmossdk.io/core v0.12.1-0.20240623110059-dec2d5583e39/go.mod h1:eBtj3y4YZqvQ+ZcYHl+yRT8sI8A3cywZ/iuZ4Y7unWc=
 github.com/berachain/beacon-kit/mod/async v0.0.0-20240624011057-b0afb8163f14 h1:uGcy4mqiyDzjImZsrxjU3U5NKnXpi+2s1cO0cz1LGNY=
 github.com/berachain/beacon-kit/mod/async v0.0.0-20240624011057-b0afb8163f14/go.mod h1:tzZ5Oyg7BgCViZBkqDwHmfKPNI66xONwE5kWd1P2v7o=
 github.com/berachain/beacon-kit/mod/errors v0.0.0-20240617161612-ab1257fcf5a1 h1:KlGloi0bl9DevoJPwFPyKcH7fXavgMhUQnwexvFNbY0=
