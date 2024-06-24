@@ -2,7 +2,6 @@ package commands
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"os/signal"
@@ -18,13 +17,11 @@ import (
 
 // AddStartCommand adds a start command to the root command.
 func AddStartCommand(rootCmd *cobra.Command,
-	newApp serverv2.AppCreator[transaction.Tx],
+	appCreator serverv2.AppCreator[transaction.Tx],
 	logger log.Logger,
 	components ...serverv2.ServerComponent[transaction.Tx],
 ) (serverv2.CLIConfig, error) {
-	if len(components) == 0 {
-		return serverv2.CLIConfig{}, errors.New("no components provided")
-	}
+	// TODO: depinject this
 
 	server := serverv2.NewServer(logger, components...)
 	flags := server.StartFlags()
@@ -46,15 +43,15 @@ func AddStartCommand(rootCmd *cobra.Command,
 				return err
 			}
 
-			app := newApp(l, v)
+			app := appCreator(l, v)
 
 			if err := server.Init(app, v, l); err != nil {
 				return err
 			}
 
-			srvConfig := Config{StartBlock: true}
+			srvConfig := serverv2.Config{StartBlock: true}
 			ctx := cmd.Context()
-			ctx = context.WithValue(ctx, ServerContextKey, srvConfig)
+			ctx = context.WithValue(ctx, serverv2.ServerContextKey, srvConfig)
 			ctx, cancelFn := context.WithCancel(ctx)
 			go func() {
 				sigCh := make(chan os.Signal, 1)
@@ -82,16 +79,23 @@ func AddStartCommand(rootCmd *cobra.Command,
 	return cmds, nil
 }
 
-func AddCommands(rootCmd *cobra.Command, newApp AppCreator[transaction.Tx], logger log.Logger, components ...ServerComponent[transaction.Tx]) error {
+// AddCommands adds the start command to the root command and sets the
+// server context
+func AddCommands(
+	rootCmd *cobra.Command,
+	newApp serverv2.AppCreator[transaction.Tx],
+	logger log.Logger,
+	components ...serverv2.ServerComponent[transaction.Tx],
+) error {
 	cmds, err := AddStartCommand(rootCmd, newApp, logger, components...)
 	if err != nil {
 		return err
 	}
 
-	server := NewServer(logger, components...)
+	server := serverv2.NewServer(logger, components...)
 	originalPersistentPreRunE := rootCmd.PersistentPreRunE
 	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
-		home, err := cmd.Flags().GetString(FlagHome)
+		home, err := cmd.Flags().GetString(serverv2.FlagHome)
 		if err != nil {
 			return err
 		}
@@ -114,26 +118,26 @@ func AddCommands(rootCmd *cobra.Command, newApp AppCreator[transaction.Tx], logg
 }
 
 // configHandle writes the default config to the home directory if it does not exist and sets the server context
-func configHandle(s *Server, home string, cmd *cobra.Command) error {
+func configHandle(s *serverv2.Server, home string, cmd *cobra.Command) error {
 	if _, err := os.Stat(filepath.Join(home, "config")); os.IsNotExist(err) {
 		if err = s.WriteConfig(filepath.Join(home, "config")); err != nil {
 			return err
 		}
 	}
 
-	viper, err := ReadConfig(filepath.Join(home, "config"))
+	viper, err := serverv2.ReadConfig(filepath.Join(home, "config"))
 	if err != nil {
 		return err
 	}
-	viper.Set(FlagHome, home)
+	viper.Set(serverv2.FlagHome, home)
 	if err := viper.BindPFlags(cmd.Flags()); err != nil {
 		return err
 	}
 
-	log, err := NewLogger(viper, cmd.OutOrStdout())
+	log, err := serverv2.NewLogger(viper, cmd.OutOrStdout())
 	if err != nil {
 		return err
 	}
 
-	return SetCmdServerContext(cmd, viper, log)
+	return serverv2.SetCmdServerContext(cmd, viper, log)
 }

@@ -37,22 +37,22 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
+	"github.com/spf13/cobra"
 )
 
-// DefaultRootCommandSetup sets up the default commands for the root command.
-func DefaultRootCommandSetup[NodeT types.Node[T], T transaction.Tx](
+// GetCommands sets up the default commands for the root command.
+func GetCommands[NodeT types.Node[T], T transaction.Tx](
 	root *Root,
 	mm *module.Manager,
 	appCreator serverv2.AppCreator[T],
 	chainSpec common.ChainSpec,
-) {
+) []*cobra.Command {
 	// Setup the custom start command options.
 	startCmdOptions := server.StartCmdOptions[NodeT]{
 		AddFlags: flags.AddBeaconKitFlags,
 	}
 
-	// Add all the commands to the root command.
-	root.cmd.AddCommand(
+	cmds := []*cobra.Command{
 		// `comet`
 		cometbft.Commands[NodeT](appCreator),
 		// `client`
@@ -81,5 +81,7 @@ func DefaultRootCommandSetup[NodeT types.Node[T], T transaction.Tx](
 		server.StatusCommand(),
 		// `version`
 		version.NewVersionCommand(),
-	)
+	}
+
+	return cmds
 }

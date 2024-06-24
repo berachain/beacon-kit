@@ -86,7 +86,7 @@ func WithRunHandler[NodeT types.Node[T], T transaction.Tx](
 // WithDefaultRootCommandSetup sets the root command setup func to the default.
 func WithDefaultRootCommandSetup[NodeT types.Node[T], T transaction.Tx]() Opt[NodeT, T] {
 	return func(cb *CLIBuilder[NodeT, T]) {
-		cb.rootCmdSetup = cmdlib.DefaultRootCommandSetup[NodeT]
+		cb.rootCmdSetup = cmdlib.GetCommands[NodeT]
 	}
 }
 
