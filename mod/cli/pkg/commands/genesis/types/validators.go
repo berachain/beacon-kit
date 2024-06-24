@@ -22,7 +22,7 @@ package types
 
 import "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs ValidatorsMarshaling -include ../../../../../primitives/pkg/crypto,../../../../../consensus-types/pkg/types,../../../../../primitives/pkg/bytes,../../../../../primitives,../../../../../primitives/pkg/math -output validators.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen -path . -objs ValidatorsMarshaling -include ../../../../../primitives/pkg/common,../../../../../primitives/pkg/crypto,../../../../../consensus-types/pkg/types,../../../../../primitives/pkg/bytes,../../../../../primitives,../../../../../primitives/pkg/math -output validators.ssz.go
 type ValidatorsMarshaling struct {
 	Validators []*types.Validator `json:"validators" ssz-max:"1099511627776"`
 }

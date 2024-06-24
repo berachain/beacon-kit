@@ -23,9 +23,12 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
+	"github.com/berachain/beacon-kit/mod/da/pkg/da"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
@@ -81,5 +84,41 @@ func ProvideBlobProcessor[
 		dablob.NewVerifier(in.BlobProofVerifier, in.TelemetrySink),
 		types.BlockBodyKZGOffset,
 		in.TelemetrySink,
+	)
+}
+
+// DAServiceIn is the input for the BlobService.
+type DAServiceIn struct {
+	depinject.In
+
+	AvailabilityStore *dastore.Store[*BeaconBlockBody]
+	SidecarsBroker    *SidecarsBroker
+	BlobProcessor     *dablob.Processor[
+		*dastore.Store[*BeaconBlockBody],
+		*BeaconBlockBody,
+	]
+	Logger log.Logger
+}
+
+// ProvideDAService is a function that provides the BlobService to the
+// depinject framework.
+func ProvideDAService(in DAServiceIn) *da.Service[
+	*dastore.Store[*BeaconBlockBody],
+	*BeaconBlockBody,
+	*BlobSidecars,
+	*broker.Broker[*asynctypes.Event[*BlobSidecars]],
+	*ExecutionPayload,
+] {
+	return da.NewService[
+		*dastore.Store[*BeaconBlockBody],
+		*BeaconBlockBody,
+		*BlobSidecars,
+		*broker.Broker[*asynctypes.Event[*BlobSidecars]],
+		*ExecutionPayload,
+	](
+		in.AvailabilityStore,
+		in.BlobProcessor,
+		in.SidecarsBroker,
+		in.Logger.With("service", "da"),
 	)
 }

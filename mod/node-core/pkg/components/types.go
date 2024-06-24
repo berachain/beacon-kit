@@ -21,7 +21,7 @@
 package components
 
 import (
-	"github.com/berachain/beacon-kit/mod/async/pkg/event"
+	broker "github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/beacon"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
+	"github.com/berachain/beacon-kit/mod/da/pkg/da"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
@@ -62,7 +63,11 @@ type (
 	]
 
 	// AttributesFactory is a type alias for the attributes factory.
-	AttributesFactory = attributes.Factory[BeaconState, *Withdrawal]
+	AttributesFactory = attributes.Factory[
+		BeaconState,
+		*engineprimitives.PayloadAttributes[*Withdrawal],
+		*Withdrawal,
+	]
 
 	// AvailabilityStore is a type alias for the availability store.
 	AvailabilityStore = dastore.Store[*BeaconBlockBody]
@@ -94,14 +99,14 @@ type (
 		*BeaconBlockBody,
 	]
 
-	// BlobFeed is a type alias for the blob feed.
-	BlobFeed = event.FeedOf[asynctypes.EventID, *asynctypes.Event[*BlobSidecars]]
+	// SidecarsBroker is a type alias for the blob feed.
+	SidecarsBroker = broker.Broker[*asynctypes.Event[*BlobSidecars]]
 
 	// BlockEvent is a type alias for the block event.
 	BlockEvent = asynctypes.Event[*BeaconBlock]
 
-	// BlockFeed is a type alias for the block feed.
-	BlockFeed = event.FeedOf[asynctypes.EventID, *BlockEvent]
+	// BlockBroker is a type alias for the block feed.
+	BlockBroker = broker.Broker[*BlockEvent]
 
 	// ChainService is a type alias for the chain service.
 	ChainService = blockchain.Service[
@@ -115,13 +120,23 @@ type (
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*Genesis,
+		*engineprimitives.PayloadAttributes[*Withdrawal],
+		*Withdrawal,
+	]
+
+	// DAService is a type alias for the DA service.
+	DAService = da.Service[
+		*dastore.Store[*BeaconBlockBody],
+		*BeaconBlockBody,
+		*BlobSidecars,
+		*broker.Broker[*asynctypes.Event[*BlobSidecars]],
+		*ExecutionPayload,
 	]
 
 	// DBManager is a type alias for the database manager.
 	DBManager = manager.DBManager[
 		*BeaconBlock,
 		*BlockEvent,
-		event.Subscription,
 	]
 
 	// Deposit is a type alias for the deposit.
@@ -134,7 +149,6 @@ type (
 		*BlockEvent,
 		*Deposit,
 		*ExecutionPayload,
-		event.Subscription,
 		types.WithdrawalCredentials,
 	]
 
@@ -142,11 +156,13 @@ type (
 	DepositStore = depositdb.KVStore[*Deposit]
 
 	// EngineClient is a type alias for the engine client.
-	EngineClient = engineclient.EngineClient[*ExecutionPayload]
+	EngineClient = engineclient.EngineClient[
+		*ExecutionPayload, *engineprimitives.PayloadAttributes[*Withdrawal]]
 
 	// EngineClient is a type alias for the engine client.
 	ExecutionEngine = execution.Engine[
-		*ExecutionPayload, engineprimitives.PayloadID,
+		*ExecutionPayload, *engineprimitives.PayloadAttributes[*Withdrawal],
+		engineprimitives.PayloadID, *Withdrawal,
 	]
 
 	// ExecutionPayload type aliases.
@@ -167,11 +183,14 @@ type (
 
 	// LocalBuilder is a type alias for the local builder.
 	LocalBuilder = payloadbuilder.PayloadBuilder[
-		BeaconState, *ExecutionPayload,
-		*ExecutionPayloadHeader, engineprimitives.PayloadID,
+		BeaconState,
+		*ExecutionPayload,
+		*ExecutionPayloadHeader,
+		*engineprimitives.PayloadAttributes[*Withdrawal],
+		engineprimitives.PayloadID,
 	]
 
-	// StateProcessor is the type alias for the state processor inteface.
+	// StateProcessor is the type alias for the state processor interface.
 	StateProcessor = blockchain.StateProcessor[
 		*BeaconBlock,
 		BeaconState,
@@ -181,13 +200,11 @@ type (
 		*ExecutionPayloadHeader,
 	]
 
-	// SlotFeed is a type alias for the slot feed.
-	SlotFeed = event.FeedOf[asynctypes.EventID, *asynctypes.Event[math.Slot]]
+	// SlotBroker is a type alias for the slot feed.
+	SlotBroker = broker.Broker[*asynctypes.Event[math.Slot]]
 
-	// StatusFeed is a type alias for the status feed.
-	StatusFeed = event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[*service.StatusEvent],
-	]
+	// StatusBroker is a type alias for the status feed.
+	StatusBroker = broker.Broker[*asynctypes.Event[*service.StatusEvent]]
 
 	// StorageBackend is the type alias for the storage backend interface.
 	StorageBackend = beacon.StorageBackend[

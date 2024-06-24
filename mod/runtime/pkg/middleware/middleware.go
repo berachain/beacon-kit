@@ -23,7 +23,7 @@ package middleware
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/async/pkg/event"
+	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/p2p"
@@ -31,9 +31,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	rp2p "github.com/berachain/beacon-kit/mod/runtime/pkg/p2p"
+	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
 // ABCIMiddleware is a middleware between ABCI and the validator logic.
@@ -52,12 +52,8 @@ type ABCIMiddleware[
 	chainService BlockchainService[
 		BeaconBlockT, BlobSidecarsT, DepositT, GenesisT,
 	]
-	// validatorService is the service responsible for building beacon blocks.
-	validatorService ValidatorService[
-		BeaconBlockT,
-		BeaconStateT,
-		BlobSidecarsT,
-	]
+	// daService is the service responsible for building the data availability
+	daService DAService[BlobSidecarsT]
 	// TODO: we will eventually gossip the blobs separately from
 	// CometBFT, but for now, these are no-op gossipers.
 	blobGossiper p2p.PublisherReceiver[
@@ -81,35 +77,21 @@ type ABCIMiddleware[
 
 	// Feeds
 	//
-	// blkFeed is a feed for blocks.
-	blkFeed *event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[BeaconBlockT]]
-	// sidecarsFeed is a feed for sidecars.
-	sidecarsFeed *event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[BlobSidecarsT]]
+	// blkBroker is a feed for blocks.
+	blkBroker *broker.Broker[*asynctypes.Event[BeaconBlockT]]
+	// sidecarsBroker is a feed for sidecars.
+	sidecarsBroker *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
 	// slotFeed is a feed for slots.
-	slotFeed *event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[math.Slot]]
+	slotFeed *broker.Broker[*asynctypes.Event[math.Slot]]
+
+	// TODO: this is a temporary hack.
+	req *cmtabci.FinalizeBlockRequest
 
 	// Channels
-	//
-	// PrepareProposal
-	//
-	// prepareProposalErrCh is used to communicate errors to the EndBlock
-	// method.
-	prepareProposalErrCh chan error
 	// blkCh is used to communicate the beacon block to the EndBlock method.
-	prepareProposalBlkCh chan *asynctypes.Event[BeaconBlockT]
+	blkCh chan *asynctypes.Event[BeaconBlockT]
 	// sidecarsCh is used to communicate the sidecars to the EndBlock method.
-	prepareProposalSidecarsCh chan *asynctypes.Event[BlobSidecarsT]
-	//
-	// FinalizeBlock
-	//
-	// valUpdatesCh is used to communicate the validator updates to the
-	// EndBlock method.
-	valUpdatesCh chan transition.ValidatorUpdates
-	// errCh is used to communicate errors to the EndBlock method.
-	finalizeBlockErrCh chan error
+	sidecarsCh chan *asynctypes.Event[BlobSidecarsT]
 }
 
 // NewABCIMiddleware creates a new instance of the Handler struct.
@@ -123,22 +105,15 @@ func NewABCIMiddleware[
 	GenesisT Genesis,
 ](
 	chainSpec common.ChainSpec,
-	validatorService ValidatorService[
-		BeaconBlockT,
-		BeaconStateT,
-		BlobSidecarsT,
-	],
 	chainService BlockchainService[
 		BeaconBlockT, BlobSidecarsT, DepositT, GenesisT,
 	],
+	daService DAService[BlobSidecarsT],
 	logger log.Logger[any],
 	telemetrySink TelemetrySink,
-	blkFeed *event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[BeaconBlockT]],
-	sidecarsFeed *event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[BlobSidecarsT]],
-	slotFeed *event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[math.Slot]],
+	blkBroker *broker.Broker[*asynctypes.Event[BeaconBlockT]],
+	sidecarsBroker *broker.Broker[*asynctypes.Event[BlobSidecarsT]],
+	slotFeed *broker.Broker[*asynctypes.Event[math.Slot]],
 ) *ABCIMiddleware[
 	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
 	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
@@ -147,31 +122,28 @@ func NewABCIMiddleware[
 		AvailabilityStoreT, BeaconBlockT, BeaconStateT,
 		BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
 	]{
-		chainSpec:        chainSpec,
-		validatorService: validatorService,
-		chainService:     chainService,
+		chainSpec:    chainSpec,
+		chainService: chainService,
+		daService:    daService,
 		blobGossiper: rp2p.NewNoopBlobHandler[
 			BlobSidecarsT, encoding.ABCIRequest](),
 		beaconBlockGossiper: rp2p.
 			NewNoopBlockGossipHandler[BeaconBlockT, encoding.ABCIRequest](
 			chainSpec,
 		),
-		logger:             logger,
-		metrics:            newABCIMiddlewareMetrics(telemetrySink),
-		blkFeed:            blkFeed,
-		sidecarsFeed:       sidecarsFeed,
-		slotFeed:           slotFeed,
-		valUpdatesCh:       make(chan transition.ValidatorUpdates),
-		finalizeBlockErrCh: make(chan error, 1),
-		prepareProposalBlkCh: make(
+		logger:         logger,
+		metrics:        newABCIMiddlewareMetrics(telemetrySink),
+		blkBroker:      blkBroker,
+		sidecarsBroker: sidecarsBroker,
+		slotFeed:       slotFeed,
+		blkCh: make(
 			chan *asynctypes.Event[BeaconBlockT],
 			1,
 		),
-		prepareProposalSidecarsCh: make(
+		sidecarsCh: make(
 			chan *asynctypes.Event[BlobSidecarsT],
 			1,
 		),
-		prepareProposalErrCh: make(chan error, 1),
 	}
 }
 
@@ -185,39 +157,50 @@ func (am *ABCIMiddleware[
 
 // Start the middleware.
 func (am *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+	_, _, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
-	go am.start(ctx)
+	subBlkCh, err := am.blkBroker.Subscribe()
+	if err != nil {
+		return err
+	}
+
+	subSidecarsCh, err := am.sidecarsBroker.Subscribe()
+	if err != nil {
+		return err
+	}
+
+	go am.start(ctx, subBlkCh, subSidecarsCh)
 	return nil
 }
 
 // start starts the middleware.
 func (am *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
-]) start(ctx context.Context) {
-	subSidecarsCh := make(chan *asynctypes.Event[BlobSidecarsT], 1)
-	subBlkCh := make(chan *asynctypes.Event[BeaconBlockT], 1)
-	blkSub := am.blkFeed.Subscribe(subBlkCh)
-	sidecarsSub := am.sidecarsFeed.Subscribe(subSidecarsCh)
-	defer blkSub.Unsubscribe()
-	defer sidecarsSub.Unsubscribe()
-
+	_, BeaconBlockT, _, BlobSidecarsT, _, _, _,
+]) start(
+	ctx context.Context,
+	blkCh chan *asynctypes.Event[BeaconBlockT],
+	sidecarsCh chan *asynctypes.Event[BlobSidecarsT],
+) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case blk := <-subBlkCh:
-			if blk.Type() == events.BeaconBlockBuilt {
-				am.prepareProposalBlkCh <- blk
+		case msg := <-blkCh:
+			switch msg.Type() {
+			case events.BeaconBlockBuilt:
+				am.blkCh <- msg
+			case events.BeaconBlockVerified:
 			}
-		case sidecars := <-subSidecarsCh:
-			if sidecars.Error() != nil {
-				am.prepareProposalErrCh <- sidecars.Error()
-				continue
+		case msg := <-sidecarsCh:
+			switch msg.Type() {
+			case events.BlobSidecarsBuilt:
+				fallthrough
+			case events.BlobSidecarsProcessed:
+				am.sidecarsCh <- msg
+			case events.BlobSidecarsVerified:
+			default:
+				// do nothing.
 			}
-			am.prepareProposalSidecarsCh <- sidecars
 		}
 	}
 }
