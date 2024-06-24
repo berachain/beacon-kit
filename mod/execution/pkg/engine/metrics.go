@@ -182,17 +182,10 @@ func (em *engineMetrics) markForkchoiceUpdateValid(
 	hasPayloadAttributes bool,
 	payloadID *engineprimitives.PayloadID,
 ) {
-	em.logger.Info(
-		"Inserted new forkchoice update into execution chain",
+	args := []any{
 		"head_block_hash", state.HeadBlockHash,
 		"safe_block_hash", state.SafeBlockHash,
 		"finalized_block_hash", state.FinalizedBlockHash,
-	)
-
-	args := []any{
-		"head_eth1_hash", state.HeadBlockHash,
-		"safe_eth1_hash", state.SafeBlockHash,
-		"finalized_eth1_hash", state.FinalizedBlockHash,
 		"with_attributes", hasPayloadAttributes,
 	}
 	if hasPayloadAttributes {
