@@ -35,7 +35,7 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		TimeFormat: "RFC3339",
-		LogLevel:   "trace",
+		LogLevel:   "info",
 		Style:      StylePretty,
 	}
 }
