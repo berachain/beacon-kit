@@ -56,26 +56,30 @@ func NewLogger[ImplT any](
 
 // Info logs a message at level Info.
 func (l *Logger[ImplT]) Info(msg string, keyVals ...any) {
+	if l.logger.Level > log.InfoLevel {
+		return
+	}
 	l.msgWithContext(msg, l.logger.Info(), keyVals...)
 }
 
 // Warn logs a message at level Warn.
 func (l *Logger[ImplT]) Warn(msg string, keyVals ...any) {
+	if l.logger.Level > log.WarnLevel {
+		return
+	}
 	l.msgWithContext(msg, l.logger.Warn(), keyVals...)
 }
 
 // Error logs a message at level Error.
 func (l *Logger[ImplT]) Error(msg string, keyVals ...any) {
+	if l.logger.Level > log.ErrorLevel {
+		return
+	}
 	l.msgWithContext(msg, l.logger.Error(), keyVals...)
 }
 
 // Debug logs a message at level Debug.
 func (l *Logger[ImplT]) Debug(msg string, keyVals ...any) {
-	// In a special case for debug, we check to see if the
-	// logger level is set to debug before logging the message.
-	// We don't do this in other log levels since they are more common
-	// and we would add the overhead of the if check, when the happy
-	// path in their case, is to print out the line.
 	if l.logger.Level > log.DebugLevel {
 		return
 	}
