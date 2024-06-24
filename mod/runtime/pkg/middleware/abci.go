@@ -88,6 +88,18 @@ func (h *ABCIMiddleware[
 	// Send a request to the validator service to give us a beacon block
 	// and blob sidecards to pass to ABCI.
 	if err := h.slotBroker.Publish(asynctypes.NewEvent(
+		var g errgroup.Group
+		g.Go(func() error {
+			beaconBlockBz, beaconBlockErr = h.waitforBeaconBlk(ctx)
+			return beaconBlockErr
+		})
+		g.Go(func() error {
+			sidecarsBz, sidecarsErr = h.waitForSidecars(ctx)
+			return sidecarsErr
+		})
+		if err := g.Wait(); err != nil {
+			return nil, err
+		}
 		ctx, events.NewSlot, math.Slot(req.Height),
 	)); err != nil {
 		return nil, err
