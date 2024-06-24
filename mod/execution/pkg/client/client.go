@@ -22,7 +22,6 @@ package client
 
 import (
 	"context"
-	"encoding/json"
 	"math/big"
 	"net/http"
 	"strings"
@@ -32,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/cache"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
 )
@@ -39,10 +39,8 @@ import (
 // EngineClient is a struct that holds a pointer to an Eth1Client.
 type EngineClient[
 	ExecutionPayloadT interface {
-		Empty(uint32) ExecutionPayloadT
-		Version() uint32
-		json.Marshaler
-		json.Unmarshaler
+		constraints.ForkTyped[ExecutionPayloadT]
+		constraints.JSONMarshallable
 	},
 	PayloadAttributesT any,
 ] struct {
@@ -71,10 +69,8 @@ type EngineClient[
 // EngineClient.
 func New[
 	ExecutionPayloadT interface {
-		Empty(uint32) ExecutionPayloadT
-		Version() uint32
-		json.Marshaler
-		json.Unmarshaler
+		constraints.ForkTyped[ExecutionPayloadT]
+		constraints.JSONMarshallable
 	},
 	PayloadAttributesT any,
 ](

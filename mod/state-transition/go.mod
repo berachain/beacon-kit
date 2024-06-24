@@ -3,14 +3,16 @@ module github.com/berachain/beacon-kit/mod/state-transition
 go 1.22.4
 
 require (
-	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240624003607-df94860f8eeb
+	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240624193309-26f8c6ae41ae
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240618214413-d5ec0e66b3dd
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240624003607-df94860f8eeb
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240624193309-26f8c6ae41ae
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-faster/xor v1.0.0
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8
 	golang.org/x/sync v0.7.0
 )
+
+replace github.com/berachain/beacon-kit/mod/primitives => ../primitives
 
 require (
 	github.com/DataDog/zstd v1.5.5 // indirect

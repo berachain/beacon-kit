@@ -26,10 +26,10 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
@@ -43,7 +43,7 @@ type BeaconBlock[
 	Eth1DataT,
 	ExecutionPayloadT any,
 ] interface {
-	ssz.Marshallable
+	constraints.SSZMarshallable
 	// NewWithVersion creates a new beacon block with the given parameters.
 	NewWithVersion(
 		slot math.Slot,
@@ -67,9 +67,8 @@ type BeaconBlock[
 type BeaconBlockBody[
 	DepositT, Eth1DataT, ExecutionPayloadT any,
 ] interface {
-	ssz.Marshallable
-	// IsNil checks if the beacon block body is nil.
-	IsNil() bool
+	constraints.SSZMarshallable
+	constraints.Nillable
 	// SetRandaoReveal sets the Randao reveal of the beacon block body.
 	SetRandaoReveal(crypto.BLSSignature)
 	// SetEth1Data sets the Eth1 data of the beacon block body.

@@ -45,7 +45,6 @@ COPY ./mod/config/go.mod ./mod/config/go.sum ./mod/config/
 COPY ./mod/da/go.mod ./mod/da/go.sum ./mod/da/
 COPY ./mod/engine-primitives/go.mod ./mod/engine-primitives/go.sum ./mod/engine-primitives/
 COPY ./mod/execution/go.mod ./mod/execution/go.sum ./mod/execution/
-COPY ./mod/interfaces/go.mod ./mod/interfaces/
 COPY ./mod/log/go.mod ./mod/log/go.sum ./mod/log/
 COPY ./mod/node-api/go.mod ./mod/node-api/go.sum ./mod/node-api/
 COPY ./mod/node-core/go.mod ./mod/node-core/go.sum ./mod/node-core/
@@ -68,7 +67,6 @@ RUN go work init && \
     go work use ./mod/engine-primitives && \
     go work use ./mod/errors && \
     go work use ./mod/execution && \
-    go work use ./mod/interfaces && \
     go work use ./mod/log && \
     go work use ./mod/node-api && \
     go work use ./mod/node-core && \
