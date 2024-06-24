@@ -29,7 +29,6 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/engine"
-	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
@@ -98,18 +97,18 @@ func ProvideExecutionEngine[
 	],
 	PayloadAttributesT engineprimitives.PayloadAttributer,
 	PayloadIDT ~[8]byte,
-	WithdrawalT execution.Withdrawal[WithdrawalT],
+	WithdrawalT engine.Withdrawal[WithdrawalT],
 ](
 	in ExecutionEngineInputs[
 		ExecutionPayloadT,
 		PayloadAttributesT,
 		WithdrawalT,
 	],
-) *execution.Engine[
+) *engine.Engine[
 	ExecutionPayloadT, PayloadAttributesT,
 	PayloadIDT, WithdrawalT,
 ] {
-	return execution.New[
+	return engine.New[
 		ExecutionPayloadT,
 		PayloadAttributesT,
 		PayloadIDT,

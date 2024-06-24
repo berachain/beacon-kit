@@ -153,9 +153,7 @@ type Deposit[
 type ExecutionPayload[
 	ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT any,
 ] interface {
-	constraints.ForkTyped[ExecutionPayloadT]
-	constraints.SSZMarshallable
-	constraints.JSONMarshallable
+	constraints.EngineType[ExecutionPayloadT]
 	GetTransactions() [][]byte
 	GetParentHash() common.ExecutionHash
 	GetBlockHash() common.ExecutionHash
