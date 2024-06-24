@@ -25,7 +25,6 @@ import (
 	"encoding/json"
 	"time"
 
-	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
@@ -33,8 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/sourcegraph/conc/iter"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -48,21 +45,15 @@ func (h *ABCIMiddleware[
 ]) InitGenesis(
 	ctx context.Context,
 	bz []byte,
-) ([]appmodulev2.ValidatorUpdate, error) {
+) (transition.ValidatorUpdates, error) {
 	data := new(GenesisT)
 	if err := json.Unmarshal(bz, data); err != nil {
 		return nil, err
 	}
-	updates, err := h.chainService.ProcessGenesisData(
+	return h.chainService.ProcessGenesisData(
 		ctx,
 		*data,
 	)
-	if err != nil {
-		return nil, err
-	}
-
-	// Convert updates into the Cosmos SDK format.
-	return iter.MapErr(updates, convertValidatorUpdate)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -73,7 +64,7 @@ func (h *ABCIMiddleware[
 func (h *ABCIMiddleware[
 	_, _, _, _, _, _, _,
 ]) PrepareProposal(
-	ctx sdk.Context,
+	ctx context.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
 	var (
@@ -153,7 +144,7 @@ func (h *ABCIMiddleware[
 func (h *ABCIMiddleware[
 	_, BeaconBlockT, _, BlobSidecarsT, _, _, _,
 ]) ProcessProposal(
-	ctx sdk.Context,
+	ctx context.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
 	var (
@@ -278,7 +269,7 @@ func (*ABCIMiddleware[
 func (h *ABCIMiddleware[
 	_, _, _, _, _, _, _,
 ]) PreBlock(
-	_ sdk.Context, req *cmtabci.FinalizeBlockRequest,
+	_ context.Context, req *cmtabci.FinalizeBlockRequest,
 ) error {
 	h.req = req
 
@@ -290,7 +281,7 @@ func (h *ABCIMiddleware[
 	_, BeaconBlockT, _, BlobSidecarsT, _, _, _,
 ]) EndBlock(
 	ctx context.Context,
-) ([]appmodulev2.ValidatorUpdate, error) {
+) (transition.ValidatorUpdates, error) {
 	blk, blobs, err := encoding.
 		ExtractBlobsAndBlockFromRequest[BeaconBlockT, BlobSidecarsT](
 		h.req,
@@ -311,14 +302,9 @@ func (h *ABCIMiddleware[
 	}
 
 	// Process the beacon block and return the validator updates.
-	valUpdates, err := h.processBeaconBlock(
+	return h.processBeaconBlock(
 		ctx, blk,
 	)
-	if err != nil {
-		return nil, err
-	}
-
-	return iter.MapErr(valUpdates, convertValidatorUpdate)
 }
 
 // processSidecars publishes the sidecars and waits for a response.

@@ -40,6 +40,7 @@ COPY ./beacond/go.mod ./beacond/go.sum ./beacond/
 COPY ./mod/async/go.mod ./mod/async/
 COPY ./mod/beacon/go.mod ./mod/beacon/go.sum ./mod/beacon/
 COPY ./mod/cli/go.mod ./mod/cli/go.sum ./mod/cli/
+COPY ./mod/consensus/go.mod ./mod/consensus/go.sum ./mod/consensus/
 COPY ./mod/consensus-types/go.mod ./mod/consensus-types/go.sum ./mod/consensus-types/
 COPY ./mod/config/go.mod ./mod/config/go.sum ./mod/config/
 COPY ./mod/da/go.mod ./mod/da/go.sum ./mod/da/
@@ -62,6 +63,7 @@ RUN go work init && \
     go work use ./mod/beacon && \
     go work use ./mod/cli && \
     go work use ./mod/config && \
+    go work use ./mod/consensus && \
     go work use ./mod/consensus-types && \
     go work use ./mod/da && \
     go work use ./mod/engine-primitives && \
