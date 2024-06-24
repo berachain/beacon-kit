@@ -21,6 +21,7 @@
 package phuslu
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/phuslu/log"
@@ -36,44 +37,36 @@ type Logger[ImplT any] struct {
 	out io.Writer
 	// formatter is the formatter to use for the logger.
 	formatter *Formatter
-	// message is the function to use for logging messages.
-	message func(msg string, ctx log.Fields, e *log.Entry, keyVals ...any)
 }
 
-// NewLogger creates a new logger with the given log level, ConsoleWriter, and
-// default configuration.
+// NewLogger initializes a new wrapped phuslogger with the provided config.
 func NewLogger[ImplT any](
-	level string, out io.Writer,
+	out io.Writer,
+	cfg *Config,
 ) *Logger[ImplT] {
-	formatter := NewFormatter()
-	pLogger := &log.Logger{
-		Level: log.ParseLevel(level),
-	}
 	logger := &Logger[ImplT]{
-		logger:    pLogger,
+		logger:    &log.Logger{},
 		context:   make(log.Fields),
 		out:       out,
-		formatter: formatter,
+		formatter: NewFormatter(),
 	}
-	// we can remove this and assume valid config is provided before any
-	// messaging occurs
-	// logger.message = logger.msgWithContext
+	logger.WithConfig(*cfg)
 	return logger
 }
 
 // Info logs a message at level Info.
 func (l *Logger[ImplT]) Info(msg string, keyVals ...any) {
-	l.message(msg, l.context, l.logger.Info(), keyVals...)
+	l.msgWithContext(msg, l.logger.Info(), keyVals...)
 }
 
 // Warn logs a message at level Warn.
 func (l *Logger[ImplT]) Warn(msg string, keyVals ...any) {
-	l.message(msg, l.context, l.logger.Warn(), keyVals...)
+	l.msgWithContext(msg, l.logger.Warn(), keyVals...)
 }
 
 // Error logs a message at level Error.
 func (l *Logger[ImplT]) Error(msg string, keyVals ...any) {
-	l.message(msg, l.context, l.logger.Error(), keyVals...)
+	l.msgWithContext(msg, l.logger.Error(), keyVals...)
 }
 
 // Debug logs a message at level Debug.
@@ -86,7 +79,7 @@ func (l *Logger[ImplT]) Debug(msg string, keyVals ...any) {
 	if l.logger.Level > log.DebugLevel {
 		return
 	}
-	l.message(msg, l.context, l.logger.Debug(), keyVals...)
+	l.msgWithContext(msg, l.logger.Debug(), keyVals...)
 }
 
 // Impl returns the underlying logger implementation.
@@ -116,10 +109,16 @@ func (l Logger[ImplT]) With(keyVals ...any) ImplT {
 	return any(&newLogger).(ImplT)
 }
 
-// SetLevel sets the log level of the logger.
-func (l *Logger[ImplT]) SetLevel(level string) {
-	l.logger.Level = log.ParseLevel(level)
+// msgWithContext logs a message with keyVals and current context.
+func (l *Logger[Impl]) msgWithContext(
+	msg string, e *log.Entry, keyVals ...any,
+) {
+	e.Fields(l.context).KeysAndValues(keyVals...).Msg(msg)
 }
+
+/* -------------------------------------------------------------------------- */
+/*                             configuration                                  */
+/* -------------------------------------------------------------------------- */
 
 // we need this to set the config post-creation of the logger.
 // This is so cooked but necessary because there is no way to pass a populated
@@ -128,31 +127,9 @@ func (l *Logger[ImplT]) SetLevel(level string) {
 func (l *Logger[ImplT]) WithConfig(cfg Config) *Logger[ImplT] {
 	l.withTimeFormat(cfg.TimeFormat)
 	l.withStyle(cfg.Style)
-	l.withVerbosity(cfg.Verbose)
+	l.withLogLevel(cfg.LogLevel)
 	return l
 }
-
-/* -------------------------------------------------------------------------- */
-/*                                 messaging                                  */
-/* -------------------------------------------------------------------------- */
-
-// msgWithContext logs a message with keyVals and current context.
-func msgWithContext(
-	msg string, ctx log.Fields, e *log.Entry, keyVals ...any,
-) {
-	e.Fields(ctx).KeysAndValues(keyVals...).Msg(msg)
-}
-
-// msgWithoutContext logs a message with keyVals and without context.
-func msgWithoutContext(
-	msg string, _ log.Fields, e *log.Entry, keyVals ...any,
-) {
-	e.KeysAndValues(keyVals...).Msg(msg)
-}
-
-/* -------------------------------------------------------------------------- */
-/*                             configuration                                  */
-/* -------------------------------------------------------------------------- */
 
 // sets the style of the logger.
 func (l *Logger[Impl]) withStyle(style string) {
@@ -163,13 +140,10 @@ func (l *Logger[Impl]) withStyle(style string) {
 	}
 }
 
-// withVerbosity sets the verbosity of the logger.
-func (l *Logger[Impl]) withVerbosity(verbose bool) {
-	if verbose {
-		l.message = msgWithContext
-	} else {
-		l.message = msgWithoutContext
-	}
+// SetLevel sets the log level of the logger.
+func (l *Logger[ImplT]) withLogLevel(level string) {
+	fmt.Println("PENIS", level)
+	l.logger.Level = log.ParseLevel(level)
 }
 
 // useConsoleWriter sets the logger to use a console writer.

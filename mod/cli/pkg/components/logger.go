@@ -27,9 +27,7 @@ import (
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
-	flags "github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/spf13/cast"
 )
 
 type LoggerInput struct {
@@ -44,8 +42,6 @@ type LoggerInput struct {
 func ProvideLogger(
 	in LoggerInput,
 ) log.Logger {
-	logLvlStr := cast.ToString(in.AppOpts.Get(flags.FlagLogLevel))
-	logger := phuslu.NewLogger[log.Logger](
-		logLvlStr, in.Out).WithConfig(*in.Cfg.GetLogger())
+	logger := phuslu.NewLogger[log.Logger](in.Out, in.Cfg.GetLogger())
 	return logger
 }

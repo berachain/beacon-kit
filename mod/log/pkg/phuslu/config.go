@@ -25,8 +25,8 @@ type Config struct {
 	// TimeFormat is a string that defines the format of the time in
 	// the logger.
 	TimeFormat string `mapstructure:"time-format"`
-	// Verbose is the level of verbose for the logger.
-	Verbose bool `mapstructure:"verbose"`
+	// Logger will log messages with verbosity up to LogLevel.
+	LogLevel string `mapstructure:"log-level"`
 	// pretty or json.
 	Style string `mapstructure:"style"`
 }
@@ -35,7 +35,7 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		TimeFormat: "RFC3339",
-		Verbose:    false,
+		LogLevel:   "info",
 		Style:      StylePretty,
 	}
 }

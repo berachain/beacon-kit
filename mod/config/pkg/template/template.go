@@ -49,8 +49,9 @@ jwt-secret-path = "{{.BeaconKit.Engine.JWTSecretPath}}"
 # TimeFormat is a string that defines the format of the time in the logger.
 time-format = "{{.BeaconKit.Logger.TimeFormat}}"
 
-# Verbose is the level of verbose for the logger.
-verbose = "{{.BeaconKit.Logger.Verbose}}"
+# LogLevel is the level of logging. Logger will log messages with verbosity up 
+# to LogLevel.
+log-level = "{{.BeaconKit.Logger.LogLevel}}"
 
 # Style is the style of the logger.
 style = "{{.BeaconKit.Logger.Style}}"

@@ -58,7 +58,7 @@ const (
 	// Logger Config.
 	loggerRoot = beaconKitRoot + "logger."
 	TimeFormat = loggerRoot + "time-format"
-	Verbose    = loggerRoot + "verbose"
+	LogLevel   = loggerRoot + "log-level"
 	Style      = loggerRoot + "style"
 )
 
@@ -109,10 +109,10 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 		defaultCfg.Logger.TimeFormat,
 		"time format",
 	)
-	startCmd.Flags().Bool(
-		Verbose,
-		defaultCfg.Logger.Verbose,
-		"verbose",
+	startCmd.Flags().String(
+		LogLevel,
+		defaultCfg.Logger.LogLevel,
+		"log level",
 	)
 	startCmd.Flags().String(
 		Style,

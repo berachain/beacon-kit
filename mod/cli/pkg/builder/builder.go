@@ -27,12 +27,10 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
-	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -155,8 +153,6 @@ func (cb *CLIBuilder[T]) InterceptConfigsPreRunHandler(
 		return err
 	}
 
-	logLvlStr := serverCtx.Viper.GetString(flags.FlagLogLevel)
-	logger.(*phuslu.Logger[log.Logger]).SetLevel(logLvlStr)
 	serverCtx.Logger = logger
 
 	// set server context
