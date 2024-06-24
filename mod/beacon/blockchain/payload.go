@@ -158,18 +158,7 @@ func (s *Service[
 // handleOptimisticPayloadBuild handles optimistically
 // building for the next slot.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconBlockHeaderT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	ExecutionPayloadT,
-	ExecutionPayloadHeaderT,
-	GenesisT,
-	PayloadAttributesT,
-	_,
+	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _, _, _,
 ]) handleOptimisticPayloadBuild(
 	ctx context.Context,
 	st BeaconStateT,
@@ -186,18 +175,7 @@ func (s *Service[
 
 // optimisticPayloadBuild builds a payload for the next slot.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconBlockHeaderT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	ExecutionPayloadT,
-	ExecutionPayloadHeaderT,
-	GenesisT,
-	PayloadAttributesT,
-	_,
+	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _, _, _,
 ]) optimisticPayloadBuild(
 	ctx context.Context,
 	st BeaconStateT,
