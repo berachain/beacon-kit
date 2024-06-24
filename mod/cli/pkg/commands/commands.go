@@ -15,8 +15,8 @@ import (
 	serverv2 "cosmossdk.io/server/v2"
 )
 
-// DefaultRootCommandSetup adds a start command to the root command.
-func DefaultRootCommandSetup(
+// DefaultCommandConfig adds a start command to the root command.
+func DefaultCommandConfig(
 	rootCmd *cobra.Command,
 	appCreator serverv2.AppCreator[transaction.Tx],
 	logger log.Logger,
@@ -87,7 +87,7 @@ func AddCommands(
 	logger log.Logger,
 	components ...serverv2.ServerComponent[transaction.Tx],
 ) error {
-	cmds, err := DefaultRootCommandSetup(rootCmd, newApp, logger, components...)
+	cmds, err := DefaultCommandConfig(rootCmd, newApp, logger, components...)
 	if err != nil {
 		return err
 	}

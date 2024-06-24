@@ -118,20 +118,21 @@ func (cb *CLIBuilder[NodeT, T]) Build() (*cmdlib.Root, error) {
 		return nil, err
 	}
 
-	cmdlib.
-	DefaultRootCommandSetup(
-		rootCmd,
-		cb.nodeBuilderFunc,
-		logger,
-		[]*serverv2.ServerComponent[transaction.Tx]{cmtServer},
-	)
-	// apply default root command setup
-	cmdlib.GetCommands[NodeT](
+	// hood for now
+	cmdList := cmdlib.Commands[NodeT](
 		rootCmd,
 		mm,
 		cb.nodeBuilderFunc,
 		chainSpec,
 	)
+
+	cmdlib.
+		DefaultCommandConfig(
+			rootCmd,
+			cb.nodeBuilderFunc,
+			logger,
+			[]*serverv2.ServerComponent[transaction.Tx]{cmtServer},
+		)
 
 	return rootCmd, nil
 }
