@@ -83,10 +83,10 @@ type Service[
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT]
 	// metrics is a metrics collector.
 	metrics *validatorMetrics
-	// blkBroker is a feed for blocks.
+	// blkBroker is a publisher for blocks.
 	blkBroker EventPublisher[*asynctypes.Event[BeaconBlockT]]
-	// sidecarsBroker is a feed for sidecars.
-	sidecarsBroker EventPublisher[*asynctypes.Event[BlobSidecarsT]]
+	// sidecarBroker is a publisher for sidecars.
+	sidecarBroker EventPublisher[*asynctypes.Event[BlobSidecarsT]]
 	// newSlotSub is a feed for slots.
 	newSlotSub chan *asynctypes.Event[math.Slot]
 }
@@ -129,7 +129,7 @@ func NewService[
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT],
 	ts TelemetrySink,
 	blkBroker EventPublisher[*asynctypes.Event[BeaconBlockT]],
-	sidecarsBroker EventPublisher[*asynctypes.Event[BlobSidecarsT]],
+	sidecarBroker EventPublisher[*asynctypes.Event[BlobSidecarsT]],
 	newSlotSub chan *asynctypes.Event[math.Slot],
 ) *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
@@ -152,7 +152,7 @@ func NewService[
 		remotePayloadBuilders: remotePayloadBuilders,
 		metrics:               newValidatorMetrics(ts),
 		blkBroker:             blkBroker,
-		sidecarsBroker:        sidecarsBroker,
+		sidecarBroker:         sidecarBroker,
 		newSlotSub:            newSlotSub,
 	}
 }
@@ -203,7 +203,7 @@ func (s *Service[
 		s.logger.Error("failed to build block", "err", err)
 	}
 
-	// Send the built block back on the feed.
+	// Publish our built block to the broker.
 	if blkErr := s.blkBroker.Publish(asynctypes.NewEvent(
 		req.Context(), events.BeaconBlockBuilt, blk, err,
 	)); blkErr != nil {
@@ -211,8 +211,8 @@ func (s *Service[
 		s.logger.Error("failed to publish block", "err", err)
 	}
 
-	// Send the sidecars on the feed.
-	if sidecarsErr := s.sidecarsBroker.Publish(
+	// Publish our built blobs to the broker.
+	if sidecarsErr := s.sidecarBroker.Publish(
 		asynctypes.NewEvent(
 			// Propagate the error from buildBlockAndSidecars
 			req.Context(), events.BlobSidecarsBuilt, sidecars, err,
