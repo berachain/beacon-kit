@@ -31,6 +31,7 @@ import (
 	"github.com/sourcegraph/conc/iter"
 )
 
+// TODO: We must rid this of comet bft types.
 type Middleware interface {
 	InitGenesis(
 		ctx context.Context,
