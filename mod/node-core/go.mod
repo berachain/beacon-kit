@@ -6,6 +6,7 @@ replace (
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240623110059-dec2d5583e39
 	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240623110059-dec2d5583e39
+	cosmossdk.io/server/v2 => cosmossdk.io/server/v2 v2.0.0-20240620161400-a6407f411e80
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240624014538-75ba469b1881
 )
 
@@ -15,6 +16,7 @@ require (
 	cosmossdk.io/depinject v1.0.0-alpha.4.0.20240620161400-a6407f411e80
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce
 	cosmossdk.io/runtime/v2 v2.0.0-20240623110059-dec2d5583e39
+	cosmossdk.io/server/v2 v2.0.0-00010101000000-000000000000
 	cosmossdk.io/store/v2 v2.0.0-20240515130459-16437119e0d8
 	cosmossdk.io/x/tx v0.13.4-0.20240623110059-dec2d5583e39
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240624003607-df94860f8eeb
@@ -33,8 +35,6 @@ require (
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240624003607-df94860f8eeb
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240624003607-df94860f8eeb
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240613135100-716d8f8c592d
-	github.com/cometbft/cometbft/api v1.0.0-rc.1
-	github.com/cosmos/cosmos-db v1.0.2
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/crate-crypto/go-kzg-4844 v1.0.0
@@ -49,6 +49,8 @@ require (
 	cosmossdk.io/server/v2/appmanager v0.0.0-20240623110059-dec2d5583e39 // indirect
 	cosmossdk.io/server/v2/stf v0.0.0-20240623110059-dec2d5583e39 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a // indirect
+	github.com/cometbft/cometbft/api v1.0.0-rc.1 // indirect
+	github.com/cosmos/cosmos-db v1.0.2 // indirect
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/mitchellh/pointerstructure v1.2.1 // indirect
 )
@@ -196,7 +198,7 @@ require (
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8 // indirect
 	github.com/spf13/cobra v1.8.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/spf13/viper v1.19.0 // indirect
+	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.9.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/supranational/blst v0.3.12 // indirect

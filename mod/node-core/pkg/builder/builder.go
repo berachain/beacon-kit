@@ -22,26 +22,27 @@ package builder
 
 import (
 	"context"
-	"io"
 
+	"cosmossdk.io/core/transaction"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	"cosmossdk.io/runtime/v2"
+	serverv2 "cosmossdk.io/server/v2"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/app"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
-	dbm "github.com/cosmos/cosmos-db"
-	"github.com/cosmos/cosmos-sdk/runtime"
-	"github.com/cosmos/cosmos-sdk/server"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/spf13/viper"
 )
 
 // TODO: #Make nodebuilder build a node. Currently this is just a builder for
 // the AppCreator function, which is eventually called by cosmos to build a
 // node.
-type NodeBuilder[NodeT types.Node] struct {
+type NodeBuilder[
+	NodeT types.Node[T], T transaction.Tx,
+] struct {
 	node NodeT
 	// depinjectCfg holds is an extendable config container used by the
 	// depinject framework.
@@ -51,8 +52,10 @@ type NodeBuilder[NodeT types.Node] struct {
 }
 
 // New returns a new NodeBuilder.
-func New[NodeT types.Node](opts ...Opt[NodeT]) *NodeBuilder[NodeT] {
-	nb := &NodeBuilder[NodeT]{
+func New[
+	NodeT types.Node[T], T transaction.Tx,
+](opts ...Opt[NodeT, T]) *NodeBuilder[NodeT, T] {
+	nb := &NodeBuilder[NodeT, T]{
 		node: node.New[NodeT](),
 	}
 	for _, opt := range opts {
@@ -64,14 +67,11 @@ func New[NodeT types.Node](opts ...Opt[NodeT]) *NodeBuilder[NodeT] {
 // Build uses the node builder options and runtime parameters to
 // build a new instance of the node.
 // It is necessary to adhere to the types.AppCreator[T] interface.
-func (nb *NodeBuilder[NodeT]) Build(
-	logger log.Logger,
-	db dbm.DB,
-	traceStore io.Writer,
-	appOpts servertypes.AppOptions,
-) NodeT {
+func (nb *NodeBuilder[NodeT, T]) Build(
+	logger log.Logger, v *viper.Viper,
+) serverv2.AppI[T] {
 	// Check for goleveldb cause bad project.
-	if appOpts.Get("app-db-backend") == "goleveldb" {
+	if v.Get("app-db-backend") == "goleveldb" {
 		panic("goleveldb is not supported")
 	}
 
@@ -91,7 +91,7 @@ func (nb *NodeBuilder[NodeT]) Build(
 				nb.components...,
 			),
 			depinject.Supply(
-				appOpts,
+				v,
 				logger,
 			),
 		),
@@ -104,18 +104,19 @@ func (nb *NodeBuilder[NodeT]) Build(
 	}
 
 	// set the application to a new BeaconApp with necessary ABCI handlers
-	nb.node.RegisterApp(
-		app.NewBeaconKitApp(
-			db, traceStore, true, appBuilder,
-			append(
-				server.DefaultBaseappOptions(appOpts),
-				WithCometParamStore(chainSpec),
-				WithPrepareProposal(abciMiddleware.PrepareProposal),
-				WithProcessProposal(abciMiddleware.ProcessProposal),
-				WithPreBlocker(abciMiddleware.PreBlock),
-			)...,
-		),
+	// db, traceStore, true, appBuilder,
+	// append(
+	// 	server.DefaultBaseappOptions(appOpts),
+	// 	WithCometParamStore(chainSpec),
+	// 	WithPrepareProposal(abciMiddleware.PrepareProposal),
+	// 	WithProcessProposal(abciMiddleware.ProcessProposal),
+	// 	WithPreBlocker(abciMiddleware.PreBlock),
+	// )...,
+	app := app.NewBeaconKitApp[T](
+		appBuilder,
+		abciMiddleware,
 	)
+	nb.node.RegisterApp(app)
 	nb.node.SetServiceRegistry(serviceRegistry)
 
 	// TODO: put this in some post node creation hook/listener.

@@ -21,6 +21,8 @@
 package commands
 
 import (
+	"cosmossdk.io/core/transaction"
+	serverv2 "cosmossdk.io/server/v2"
 	confixcmd "cosmossdk.io/tools/confix/cmd"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/client"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/cometbft"
@@ -31,20 +33,17 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/cosmos/cosmos-sdk/client/keys"
-	"github.com/cosmos/cosmos-sdk/client/pruning"
-	"github.com/cosmos/cosmos-sdk/client/snapshot"
 	"github.com/cosmos/cosmos-sdk/server"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 )
 
 // DefaultRootCommandSetup sets up the default commands for the root command.
-func DefaultRootCommandSetup[T types.Node](
+func DefaultRootCommandSetup[NodeT types.Node[T], T transaction.Tx](
 	root *Root,
 	mm *module.Manager,
-	appCreator servertypes.AppCreator[T],
+	appCreator serverv2.AppCreator[T],
 	chainSpec common.ChainSpec,
 ) {
 	// Setup the custom start command options.
@@ -71,11 +70,11 @@ func DefaultRootCommandSetup[T types.Node](
 		// `keys`
 		keys.Commands(),
 		// `prune`
-		pruning.Cmd(appCreator),
-		// `rollback`
-		server.NewRollbackCmd(appCreator),
-		// `snapshots`
-		snapshot.Cmd(appCreator),
+		// pruning.Cmd(appCreator),
+		// // `rollback`
+		// server.NewRollbackCmd(appCreator),
+		// // `snapshots`
+		// snapshot.Cmd(appCreator),
 		// `start`
 		server.StartCmdWithOptions(appCreator, startCmdOptions),
 		// `status`

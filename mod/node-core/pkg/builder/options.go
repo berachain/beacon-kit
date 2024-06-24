@@ -21,24 +21,29 @@
 package builder
 
 import (
+	"cosmossdk.io/core/transaction"
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 )
 
 // Opt is a type that defines a function that modifies NodeBuilder.
-type Opt[NodeT types.Node] func(*NodeBuilder[NodeT])
+type Opt[NodeT types.Node[T], T transaction.Tx] func(*NodeBuilder[NodeT, T])
 
 // WithDepInjectConfig is a function that sets the dependency injection
 // configuration for the NodeBuilder.
-func WithDepInjectConfig[NodeT types.Node](cfg depinject.Config) Opt[NodeT] {
-	return func(nb *NodeBuilder[NodeT]) {
+func WithDepInjectConfig[
+	NodeT types.Node[T], T transaction.Tx,
+](cfg depinject.Config) Opt[NodeT, T] {
+	return func(nb *NodeBuilder[NodeT, T]) {
 		nb.depInjectCfg = cfg
 	}
 }
 
 // WithComponents is a function that sets the components for the NodeBuilder.
-func WithComponents[NodeT types.Node](components []any) Opt[NodeT] {
-	return func(nb *NodeBuilder[NodeT]) {
+func WithComponents[
+	NodeT types.Node[T], T transaction.Tx,
+](components []any) Opt[NodeT, T] {
+	return func(nb *NodeBuilder[NodeT, T]) {
 		nb.components = components
 	}
 }

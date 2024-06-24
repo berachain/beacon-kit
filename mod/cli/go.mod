@@ -14,6 +14,7 @@ require (
 	cosmossdk.io/core v0.12.1-0.20240623110059-dec2d5583e39
 	cosmossdk.io/depinject v1.0.0-alpha.4.0.20240620161400-a6407f411e80
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce
+	cosmossdk.io/server/v2 v2.0.0-20240624035543-9763303281b9
 	cosmossdk.io/tools/confix v0.1.1
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240614154006-a5defa6198f5
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240624003607-df94860f8eeb
@@ -35,6 +36,7 @@ require (
 
 require (
 	cosmossdk.io/core/testing v0.0.0-20240620161400-a6407f411e80 // indirect
+	cosmossdk.io/server/v2/appmanager v0.0.0-20240624035543-9763303281b9 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a // indirect
 	github.com/mitchellh/pointerstructure v1.2.1 // indirect
 	github.com/phuslu/log v1.0.106 // indirect

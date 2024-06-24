@@ -21,17 +21,18 @@
 package cometbft
 
 import (
+	"cosmossdk.io/core/transaction"
+	"cosmossdk.io/server/v2"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	"github.com/cosmos/cosmos-sdk/server"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cobra"
 )
 
 // Commands creates a new command for managing CometBFT
 // related commands.
-func Commands[T types.Node](
-	appCreator servertypes.AppCreator[T],
+func Commands[NodeT types.Node[T], T transaction.Tx](
+	appCreator serverv2.AppCreator[T],
 ) *cobra.Command {
 	cometCmd := &cobra.Command{
 		Use:     "comet",
@@ -46,7 +47,7 @@ func Commands[T types.Node](
 		server.VersionCmd(),
 		cmtcmd.ResetAllCmd,
 		cmtcmd.ResetStateCmd,
-		server.BootstrapStateCmd(appCreator),
+		// server.BootstrapStateCmd(appCreator),
 	)
 
 	return cometCmd
