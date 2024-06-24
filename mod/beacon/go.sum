@@ -6,8 +6,6 @@ github.com/VictoriaMetrics/fastcache v1.12.2 h1:N0y9ASrJ0F6h0QaC3o6uJb3NIZ9VKLjC
 github.com/VictoriaMetrics/fastcache v1.12.2/go.mod h1:AmC+Nzz1+3G2eCPapF6UcsnkThDcMsQicp4xDukwJYI=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
-github.com/berachain/beacon-kit/mod/async v0.0.0-20240618214413-d5ec0e66b3dd h1:YXZN5EGMFId+MlDU1HTo672c1+oAC2ubRzRJFriaNP4=
-github.com/berachain/beacon-kit/mod/async v0.0.0-20240618214413-d5ec0e66b3dd/go.mod h1:ycwqumRG49gb8qg87cc6kVgPeiUDaFMajjLko54Ey+I=
 github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240610210054-bfdc14c4013c h1:HiklyIM4rdXlO5evT0VCuiIofVDZxNC9x1lIIDyNcsM=
 github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240610210054-bfdc14c4013c/go.mod h1:Y2kxU5jmtHFbVe/YVE9Lhdpg59vAzAy667yaEZq2JkE=
 github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610210054-bfdc14c4013c h1:rPoD2zVkIzuMC4R/XMuwx6eanJL8ccu37sLro+eIj3Y=
@@ -31,8 +29,8 @@ github.com/cockroachdb/datadriven v1.0.3-0.20230413201302-be42291fc80f h1:otljaY
 github.com/cockroachdb/datadriven v1.0.3-0.20230413201302-be42291fc80f/go.mod h1:a9RdTaap04u637JoCzcUoIcDmvwSUtcUFtT/C3kJlTU=
 github.com/cockroachdb/errors v1.11.3 h1:5bA+k2Y6r+oz/6Z/RFlNeVCesGARKuC6YymtcDrbC/I=
 github.com/cockroachdb/errors v1.11.3/go.mod h1:m4UIW4CDjx+R5cybPsNrRbreomiFqt8o1h1wUVazSd8=
-github.com/cockroachdb/fifo v0.0.0-20240606204812-0bbfbd93a7ce h1:giXvy4KSc/6g/esnpM7Geqxka4WSqI1SZc7sMJFd3y4=
-github.com/cockroachdb/fifo v0.0.0-20240606204812-0bbfbd93a7ce/go.mod h1:9/y3cnZ5GKakj/H4y9r9GTjCvAFta7KLgSHPJJYc52M=
+github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a h1:f52TdbU4D5nozMAhO9TvTJ2ZMCXtN4VIAmfrrZ0JXQ4=
+github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a/go.mod h1:9/y3cnZ5GKakj/H4y9r9GTjCvAFta7KLgSHPJJYc52M=
 github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b h1:r6VH0faHjZeQy818SGhaone5OnYfxFR/+AzdY3sf5aE=
 github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b/go.mod h1:Vz9DsVWQQhf3vs21MhPMZpMGSht7O/2vFW2xusFUVOs=
 github.com/cockroachdb/pebble v1.1.1 h1:XnKU22oiCLy2Xn8vp1re67cXg4SAasg/WDt1NtcRFaw=

@@ -21,31 +21,38 @@
 package components
 
 import (
-	"github.com/berachain/beacon-kit/mod/async/pkg/event"
+	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 )
 
 // ProvideBlobFeed provides a blob feed for the depinject framework.
-func ProvideBlobFeed() *BlobFeed {
-	return &BlobFeed{}
+func ProvideBlobFeed() *SidecarsBroker {
+	return broker.New[*asynctypes.Event[*BlobSidecars]](
+		"blob-broker",
+	)
 }
 
 // ProvideBlockFeed provides a block feed for the depinject framework.
-func ProvideBlockFeed() *BlockFeed {
-	return &BlockFeed{}
+func ProvideBlockFeed() *BlockBroker {
+	return broker.New[*asynctypes.Event[*BeaconBlock]](
+		"blk-broker",
+	)
 }
 
-// ProvideSlotFeed provides a slot feed for the depinject framework.
-func ProvideSlotFeed() *SlotFeed {
-	return &SlotFeed{}
+// ProvideSlotBroker provides a slot feed for the depinject framework.
+func ProvideSlotBroker() *SlotBroker {
+	return broker.New[*asynctypes.Event[math.Slot]](
+		"slot-broker",
+	)
 }
 
-// ProvideStatusFeed provides a status feed.
-func ProvideStatusFeed() *event.FeedOf[
-	asynctypes.EventID, *asynctypes.Event[*service.StatusEvent],
-] {
-	return &event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[*service.StatusEvent],
-	]{}
+// ProvideStatusBroker provides a status feed.
+//
+//nolint:lll // formatter.
+func ProvideStatusBroker() *broker.Broker[*asynctypes.Event[*service.StatusEvent]] {
+	return broker.New[*asynctypes.Event[*service.StatusEvent]](
+		"status-broker",
+	)
 }

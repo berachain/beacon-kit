@@ -19,7 +19,7 @@
 #######################################################
 
 ARG GO_VERSION=1.22.4
-ARG RUNNER_IMAGE=alpine:3.19
+ARG RUNNER_IMAGE=alpine:3.20
 ARG BUILD_TAGS="netgo,muslc,blst,bls12381,pebbledb"
 ARG NAME=beacond
 ARG APP_NAME=beacond
@@ -30,11 +30,11 @@ ARG CMD_PATH=./beacond/cmd
 ###         Stage 1 - Cache Go Modules              ###
 #######################################################
 
-FROM golang:${GO_VERSION}-alpine3.19 as mod-cache
+FROM golang:${GO_VERSION}-alpine3.20 as mod-cache
 
 WORKDIR /workdir
 
-RUN apk add git
+RUN apk add --no-cache git
 
 COPY ./beacond/go.mod ./beacond/go.sum ./beacond/
 COPY ./mod/async/go.mod ./mod/async/go.sum ./mod/async/
@@ -57,27 +57,27 @@ COPY ./mod/state-transition/go.mod ./mod/state-transition/go.sum ./mod/state-tra
 COPY ./mod/storage/go.mod ./mod/storage/go.sum ./mod/storage/
 COPY ./mod/errors/go.mod ./mod/errors/go.sum ./mod/errors/
 
-RUN go work init
-RUN go work use ./beacond
-RUN go work use ./mod/async
-RUN go work use ./mod/beacon
-RUN go work use ./mod/cli
-RUN go work use ./mod/config
-RUN go work use ./mod/consensus-types
-RUN go work use ./mod/da
-RUN go work use ./mod/execution
-RUN go work use ./mod/interfaces
-RUN go work use ./mod/log
-RUN go work use ./mod/node-api
-RUN go work use ./mod/node-core
-RUN go work use ./mod/p2p
-RUN go work use ./mod/payload
-RUN go work use ./mod/primitives
-RUN go work use ./mod/engine-primitives
-RUN go work use ./mod/runtime
-RUN go work use ./mod/state-transition
-RUN go work use ./mod/storage
-RUN go work use ./mod/errors
+RUN go work init && \
+    go work use ./beacond && \
+    go work use ./mod/async && \
+    go work use ./mod/beacon && \
+    go work use ./mod/cli && \
+    go work use ./mod/config && \
+    go work use ./mod/consensus-types && \
+    go work use ./mod/da && \
+    go work use ./mod/engine-primitives && \
+    go work use ./mod/errors && \
+    go work use ./mod/execution && \
+    go work use ./mod/interfaces && \
+    go work use ./mod/log && \
+    go work use ./mod/node-api && \
+    go work use ./mod/node-core && \
+    go work use ./mod/p2p && \
+    go work use ./mod/payload && \
+    go work use ./mod/primitives && \
+    go work use ./mod/runtime && \
+    go work use ./mod/state-transition && \
+    go work use ./mod/storage
 
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/go/pkg/mod \
@@ -87,7 +87,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 ###         Stage 2 - Build the Application         ###
 #######################################################
 
-FROM golang:${GO_VERSION}-alpine3.19 as builder
+FROM golang:${GO_VERSION}-alpine3.20 as builder
 
 ARG GIT_VERSION
 ARG GIT_COMMIT
@@ -97,13 +97,16 @@ ARG BUILD_TAGS
 WORKDIR /workdir
 
 # Consolidate RUN commands to reduce layers
-RUN apk add ca-certificates build-base linux-headers git && \
-    set -eux
+RUN apk add --no-cache --update \
+    ca-certificates \
+    build-base \
+    linux-headers \
+    binutils-gold
 
 # Copy the dependencies from the cache stage as well as the
 # go.work file to the working directory
 COPY --from=mod-cache /go/pkg /go/pkg
-COPY --from=mod-cache ./workdir/go.work ./go.work
+COPY --from=mod-cache /workdir/go.work ./go.work
 
 # Copy the rest of the source code
 COPY ./mod ./mod
@@ -142,9 +145,16 @@ FROM ${RUNNER_IMAGE}
 # Build args
 ARG APP_NAME
 
-# Copy over built executable into a fresh container.
-COPY --from=builder /workdir/build/bin/${APP_NAME} /usr/bin
+# Copy over built executable into a fresh container
+COPY --from=builder /workdir/build/bin/${APP_NAME} /usr/bin/${APP_NAME}
+
+# TODO: We should un hood this part, its very specific 
+# to our kurtosis setup.
 RUN mkdir -p /root/jwt /root/kzg && \
     apk add --no-cache bash sed curl
 
-# ENTRYPOINT [ "./beacond" ]
+EXPOSE 26656
+EXPOSE 26657
+EXPOSE 1317
+
+ENTRYPOINT [ "beacond" ]

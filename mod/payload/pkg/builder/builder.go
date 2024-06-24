@@ -44,6 +44,17 @@ type PayloadBuilder[
 		GetBlockHash() common.ExecutionHash
 		GetParentHash() common.ExecutionHash
 	},
+	PayloadAttributesT interface {
+		engineprimitives.PayloadAttributer
+		New(
+			uint32,
+			uint64,
+			common.Bytes32,
+			common.ExecutionAddress,
+			[]*engineprimitives.Withdrawal,
+			common.Root,
+		) (PayloadAttributesT, error)
+	},
 	PayloadIDT ~[8]byte,
 ] struct {
 	// cfg holds the configuration settings for the PayloadBuilder.
@@ -53,7 +64,7 @@ type PayloadBuilder[
 	// logger is used for logging within the PayloadBuilder.
 	logger log.Logger[any]
 	// ee is the execution engine.
-	ee ExecutionEngine[ExecutionPayloadT, PayloadIDT]
+	ee ExecutionEngine[ExecutionPayloadT, PayloadAttributesT, PayloadIDT]
 	// pc is the payload ID cache, it is used to store
 	// "in-flight" payloads that are being built on
 	// the execution client.
@@ -62,7 +73,7 @@ type PayloadBuilder[
 	]
 	// attributesFactory is used to create attributes for the
 	attributesFactory *attributes.Factory[
-		BeaconStateT, *engineprimitives.Withdrawal,
+		BeaconStateT, PayloadAttributesT, *engineprimitives.Withdrawal,
 	]
 }
 
@@ -80,23 +91,36 @@ func New[
 		GetBlockHash() common.ExecutionHash
 		GetParentHash() common.ExecutionHash
 	},
+	PayloadAttributesT interface {
+		engineprimitives.PayloadAttributer
+		New(
+			uint32,
+			uint64,
+			common.Bytes32,
+			common.ExecutionAddress,
+			[]*engineprimitives.Withdrawal,
+			common.Root,
+		) (PayloadAttributesT, error)
+	},
 	PayloadIDT ~[8]byte,
 ](
 	cfg *Config,
 	chainSpec common.ChainSpec,
 	logger log.Logger[any],
-	ee ExecutionEngine[ExecutionPayloadT, PayloadIDT],
+	ee ExecutionEngine[ExecutionPayloadT, PayloadAttributesT, PayloadIDT],
 	pc *cache.PayloadIDCache[
 		PayloadIDT, [32]byte, math.Slot,
 	],
 	af *attributes.Factory[
-		BeaconStateT, *engineprimitives.Withdrawal,
+		BeaconStateT, PayloadAttributesT, *engineprimitives.Withdrawal,
 	],
 ) *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT, PayloadIDT,
+	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	PayloadAttributesT, PayloadIDT,
 ] {
 	return &PayloadBuilder[
-		BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT, PayloadIDT,
+		BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+		PayloadAttributesT, PayloadIDT,
 	]{
 		cfg:               cfg,
 		chainSpec:         chainSpec,
@@ -109,7 +133,8 @@ func New[
 
 // Enabled returns true if the payload builder is enabled.
 func (pb *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT, PayloadIDT,
+	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	PayloadAttributesT, PayloadIDT,
 ]) Enabled() bool {
 	return pb.cfg.Enabled
 }

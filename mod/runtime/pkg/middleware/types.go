@@ -36,6 +36,7 @@ import (
 type BeaconBlock[T any] interface {
 	ssz.Marshallable
 	IsNil() bool
+	GetSlot() math.Slot
 	NewFromSSZ([]byte, uint32) (T, error)
 }
 
@@ -68,21 +69,34 @@ type BlockchainService[
 	ProcessGenesisData(
 		context.Context,
 		GenesisT,
-	) ([]*transition.ValidatorUpdate, error)
-	// ProcessBlockAndBlobs processes the given beacon block and associated
+	) (transition.ValidatorUpdates, error)
+	// ProcessBeaconBlock processes the given beacon block and associated
 	// blobs sidecars.
-	ProcessBlockAndBlobs(
+	ProcessBeaconBlock(
 		context.Context,
 		BeaconBlockT,
-		BlobSidecarsT,
-	) ([]*transition.ValidatorUpdate, error)
-
-	// ReceiveBlockAndBlobs receives a beacon block and
+	) (transition.ValidatorUpdates, error)
+	// ReceiveBlock receives a beacon block and
 	// associated blobs sidecars for processing.
-	ReceiveBlockAndBlobs(
+	ReceiveBlock(
 		ctx context.Context,
 		blk BeaconBlockT,
-		blobs BlobSidecarsT,
+	) error
+}
+
+// DAService.
+type DAService[
+	BlobSidecarsT any,
+] interface {
+	// ProcessSidecars
+	ProcessSidecars(
+		context.Context,
+		BlobSidecarsT,
+	) error
+	// ReceiveSidecars
+	ReceiveSidecars(
+		_ context.Context,
+		sidecars BlobSidecarsT,
 	) error
 }
 
@@ -94,21 +108,6 @@ type ExecutionPayloadHeader[T any] interface {
 // Genesis is the interface for the genesis data.
 type Genesis interface {
 	json.Unmarshaler
-}
-
-// ValidatorService is responsible for building beacon blocks.
-type ValidatorService[
-	BeaconBlockT any,
-	BeaconStateT any,
-	BlobSidecarsT ssz.Marshallable,
-] interface {
-	// RequestBlockForProposal requests the best beacon block for a given slot.
-	// It returns the beacon block, associated blobs sidecars, and an error if
-	// any.
-	RequestBlockForProposal(
-		context.Context, // The context for the request.
-		math.Slot, // The slot for which the best block is requested.
-	) (BeaconBlockT, BlobSidecarsT, error)
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.

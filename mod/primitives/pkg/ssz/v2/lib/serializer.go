@@ -146,7 +146,8 @@ func (s *Serializer) Marshal(
 		size = determineFixedSize(val, typ)
 	}
 	offset := startOffset + size
-	//nolint:wastedassign // the underlying passed in input buffer is read
+	//nolint:wastedassign,staticcheck // the underlying passed in input buffer
+	// is read
 	input = append(input[startOffset:], marshalled...)
 	return offset, err
 }
@@ -157,7 +158,7 @@ func (s *Serializer) MarshalToDefaultBuffer(
 	cb func(reflect.Value, reflect.Type, *[]byte, uint64) (uint64, error),
 ) ([]byte, error) {
 	aLen := 0
-	//nolint:ineffassign // wtf lol.
+	//nolint:ineffassign,staticcheck // wtf lol.
 	err := errors.New("MarshalToDefaultBuffer Failure")
 	switch {
 	case IsStruct(typ, val):

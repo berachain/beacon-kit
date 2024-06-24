@@ -77,26 +77,6 @@ type BeaconBlockHeader interface {
 	SetStateRoot(common.Root)
 }
 
-// BlobProcessor is the interface for the blobs processor.
-type BlobProcessor[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
-	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
-	BlobSidecarsT,
-	ExecutionPayloadT any,
-] interface {
-	// ProcessBlobs processes the blobs and ensures they match the local state.
-	ProcessBlobs(
-		slot math.Slot,
-		avs AvailabilityStoreT,
-		sidecars BlobSidecarsT,
-	) error
-	// VerifyBlobs verifies the blobs and ensures they match the local state.
-	VerifyBlobs(
-		slot math.Slot,
-		sidecars BlobSidecarsT,
-	) error
-}
-
 // BlobSidecars is the interface for blobs sidecars.
 type BlobSidecars interface {
 	ssz.Marshallable
@@ -107,12 +87,12 @@ type BlobSidecars interface {
 }
 
 // ExecutionEngine is the interface for the execution engine.
-type ExecutionEngine interface {
+type ExecutionEngine[PayloadAttributesT any] interface {
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
-		req *engineprimitives.ForkchoiceUpdateRequest,
+		req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
 	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
 }
 
@@ -120,7 +100,7 @@ type ExecutionEngine interface {
 type EventFeed[EventT any] interface {
 	// Send sends an event and returns the number of
 	// subscribers that received it.
-	Send(event EventT) int
+	Publish(event EventT) error
 }
 
 // ExecutionPayload is the interface for the execution payload.
@@ -214,17 +194,17 @@ type StateProcessor[
 		[]DepositT,
 		ExecutionPayloadHeaderT,
 		common.Version,
-	) ([]*transition.ValidatorUpdate, error)
+	) (transition.ValidatorUpdates, error)
 	// ProcessSlots processes the state transition for a range of slots.
 	ProcessSlots(
 		BeaconStateT, math.Slot,
-	) ([]*transition.ValidatorUpdate, error)
+	) (transition.ValidatorUpdates, error)
 	// Transition processes the state transition for a given block.
 	Transition(
 		ContextT,
 		BeaconStateT,
 		BeaconBlockT,
-	) ([]*transition.ValidatorUpdate, error)
+	) (transition.ValidatorUpdates, error)
 }
 
 // StorageBackend defines an interface for accessing various storage components

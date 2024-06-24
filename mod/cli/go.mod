@@ -18,25 +18,32 @@ require (
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240614154006-a5defa6198f5
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240614154006-a5defa6198f5
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240614170830-558fac144a58
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240620163759-5cddca80172b
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240623073416-b8ac8605c6a0
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240619234034-fe96d94eafef
 	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240617204505-1abdb4095d50
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240620163759-5cddca80172b
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240623073416-b8ac8605c6a0
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240613135100-716d8f8c592d
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/ethereum/go-ethereum v1.14.5
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
 	github.com/spf13/afero v1.11.0
-	github.com/spf13/cobra v1.8.0
+	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/sync v0.7.0
 )
 
 require (
-	github.com/cockroachdb/fifo v0.0.0-20240606204812-0bbfbd93a7ce // indirect
+	github.com/bufbuild/protocompile v0.14.0 // indirect
+	github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a // indirect
+	github.com/gballet/go-libpcsclite v0.0.0-20191108122812-4678299bea08 // indirect
+	github.com/hashicorp/go-bexpr v0.1.14 // indirect
+	github.com/holiman/billy v0.0.0-20240322075458-72a4e81ec6da // indirect
 	github.com/phuslu/log v1.0.106 // indirect
 	github.com/rs/zerolog v1.33.0 // indirect
+	github.com/status-im/keycard-go v0.3.2 // indirect
+	github.com/urfave/cli/v2 v2.27.2 // indirect
+	github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1 // indirect
 )
 
 require (
@@ -66,7 +73,7 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/berachain/beacon-kit/mod/async v0.0.0-20240618214413-d5ec0e66b3dd // indirect
 	// indirect
-	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240620163759-5cddca80172b // indirect
+	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240623073416-b8ac8605c6a0 // indirect
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240614154006-a5defa6198f5 // indirect
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240617185735-42326b5546a8 // indirect
 	github.com/berachain/beacon-kit/mod/interfaces v0.0.0-20240610210054-bfdc14c4013c // indirect

@@ -62,3 +62,17 @@ type TelemetrySink interface {
 	// provided keys.
 	SetGauge(key string, value int64, args ...string)
 }
+
+// Withdrawal is the interface for a withdrawal.
+type Withdrawal[WithdrawalT any] interface {
+	// Equals returns true if the withdrawal is equal to the other.
+	Equals(WithdrawalT) bool
+	// GetAmount returns the amount of the withdrawal.
+	GetAmount() math.Gwei
+	// GetIndex returns the public key of the validator.
+	GetIndex() math.U64
+	// GetValidatorIndex returns the index of the validator.
+	GetValidatorIndex() math.ValidatorIndex
+	// GetAddress returns the address of the withdrawal.
+	GetAddress() common.ExecutionAddress
+}
