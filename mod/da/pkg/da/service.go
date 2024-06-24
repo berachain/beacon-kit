@@ -115,7 +115,7 @@ func (s *Service[_, _, BlobSidecarsT, _, _]) start(
 				err := s.ProcessSidecars(ctx, msg.Data())
 				if err != nil {
 					s.logger.Error(
-						"failed to process blob sidecars",
+						"Failed to process blob sidecars",
 						"error",
 						err,
 					)
@@ -125,25 +125,32 @@ func (s *Service[_, _, BlobSidecarsT, _, _]) start(
 					ctx, events.BlobSidecarsProcessed, msg.Data(), err,
 				)); err != nil {
 					s.logger.Error(
-						"failed to publish blob sidecars processed event",
+						"Failed to publish blob sidecars processed event",
 						"error",
 						err,
 					)
 				}
 
-				// case events.BlobSidecarsReceived:
-				// 	err := s.ReceiveSidecars(ctx, e.Data())
-				// 	if err != nil {
-				// 		s.logger.Error(
-				// 			"failed to receive blob sidecars",
-				// 			"error",
-				// 			err,
-				// 		)
-				// 	}
-				// 	s.feed.Send(asynctypes.NewEvent(
-				// 		ctx, events.BlobSidecarsProcessed, e.Data(), err,
-				// 	))
-				// }
+			case events.BlobSidecarsReceived:
+				err := s.ReceiveSidecars(ctx, msg.Data())
+				if err != nil {
+					s.logger.Error(
+						"Failed to receive blob sidecars",
+						"error",
+						err,
+					)
+				}
+
+				if err = s.sidecarsBroker.Publish(asynctypes.NewEvent(
+					ctx, events.BlobSidecarsProcessed, msg.Data(), err,
+				)); err != nil {
+					s.logger.Error(
+						"Failed to publish blob sidecars processed event",
+						"error",
+						err,
+					)
+				}
+
 			}
 		}
 	}
