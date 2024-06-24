@@ -28,6 +28,7 @@ import (
 	"cosmossdk.io/log"
 	"cosmossdk.io/runtime/v2"
 	serverv2 "cosmossdk.io/server/v2"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/comet"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/app"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
@@ -105,6 +106,9 @@ func (nb *NodeBuilder[NodeT, T]) Build(
 	); err != nil {
 		panic(err)
 	}
+
+	// This is a bit of a meme until server/v2.
+	consensusEngine := comet.NewConsensus(abciMiddleware)
 
 	// set the application to a new BeaconApp with necessary ABCI handlers
 	// db, traceStore, true, appBuilder,

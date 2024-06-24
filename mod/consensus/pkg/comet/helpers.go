@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package cometbft
+package comet
 
 import (
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
