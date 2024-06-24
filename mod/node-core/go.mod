@@ -45,7 +45,6 @@ require (
 )
 
 require (
-	cosmossdk.io/client/v2 v2.0.0-20240412212305-037cf98f7eea // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a // indirect
 	github.com/mitchellh/pointerstructure v1.2.1 // indirect
 	github.com/phuslu/log v1.0.106 // indirect
@@ -193,7 +192,7 @@ require (
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8 // indirect
 	github.com/spf13/cobra v1.8.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/spf13/viper v1.19.0
+	github.com/spf13/viper v1.19.0 // indirect
 	github.com/stretchr/testify v1.9.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/supranational/blst v0.3.12 // indirect
