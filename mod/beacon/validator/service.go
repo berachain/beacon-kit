@@ -88,7 +88,8 @@ type Service[
 	blkFeed *broker.Broker[*asynctypes.Event[BeaconBlockT]]
 	// sidecarsBroker is a feed for sidecars.
 	sidecarsBroker *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
-	slotFeed       broker.Client[*asynctypes.Event[math.Slot]]
+	// newSlotSub is a feed for slots.
+	newSlotSub broker.Client[*asynctypes.Event[math.Slot]]
 }
 
 // NewService creates a new validator service.
@@ -130,7 +131,7 @@ func NewService[
 	ts TelemetrySink,
 	blkFeed *broker.Broker[*asynctypes.Event[BeaconBlockT]],
 	sidecarsBroker *broker.Broker[*asynctypes.Event[BlobSidecarsT]],
-	slotFeed broker.Client[*asynctypes.Event[math.Slot]],
+	newSlotSub broker.Client[*asynctypes.Event[math.Slot]],
 ) *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
@@ -153,7 +154,7 @@ func NewService[
 		metrics:               newValidatorMetrics(ts),
 		blkFeed:               blkFeed,
 		sidecarsBroker:        sidecarsBroker,
-		slotFeed:              slotFeed,
+		newSlotSub:            newSlotSub,
 	}
 }
 
@@ -190,7 +191,7 @@ func (s *Service[
 		select {
 		case <-ctx.Done():
 			return
-		case req := <-s.slotFeed:
+		case req := <-s.newSlotSub:
 			if req.Type() == events.NewSlot {
 				s.handleNewSlot(req)
 			}
