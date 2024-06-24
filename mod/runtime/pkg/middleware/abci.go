@@ -173,10 +173,13 @@ func (h *ABCIMiddleware[
 	)
 	defer h.metrics.measureProcessProposalDuration(startTime)
 
+	// TODO: Consider exiting early if this node is not a validator to
+	// reduce resource usage for full nodes.
+
 	// Decode the beacon block and emit an event.
 	blk, err = h.beaconBlockGossiper.Request(ctx, req)
 	if err != nil {
-		h.logger.Error("failed to get beacon block", "error", err)
+		h.logger.Debug("failed to get beacon block", "error", err)
 	}
 
 	g.Go(func() error {
@@ -207,7 +210,7 @@ func (h *ABCIMiddleware[
 		var localErr error
 		sidecars, localErr = h.blobGossiper.Request(ctx, req)
 		if localErr != nil {
-			h.logger.Error("failed to get sidecars", "error", localErr)
+			h.logger.Debug("failed to get sidecars", "error", localErr)
 		}
 
 		// Emit event to notify the sidecars have been received.
