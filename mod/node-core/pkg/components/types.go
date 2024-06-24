@@ -129,6 +129,7 @@ type (
 		*dastore.Store[*BeaconBlockBody],
 		*BeaconBlockBody,
 		*BlobSidecars,
+		*broker.Broker[*asynctypes.Event[*BlobSidecars]],
 		*ExecutionPayload,
 	]
 
@@ -226,6 +227,7 @@ type (
 		*types.Eth1Data,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
+		chan *asynctypes.Event[math.Slot],
 		*types.ForkData,
 	]
 

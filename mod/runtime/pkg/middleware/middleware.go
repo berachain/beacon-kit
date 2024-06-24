@@ -178,8 +178,8 @@ func (am *ABCIMiddleware[
 	_, BeaconBlockT, _, BlobSidecarsT, _, _, _,
 ]) start(
 	ctx context.Context,
-	blkCh broker.Client[*asynctypes.Event[BeaconBlockT]],
-	sidecarsCh broker.Client[*asynctypes.Event[BlobSidecarsT]],
+	blkCh chan *asynctypes.Event[BeaconBlockT],
+	sidecarsCh chan *asynctypes.Event[BlobSidecarsT],
 ) {
 	for {
 		select {

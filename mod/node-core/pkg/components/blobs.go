@@ -23,6 +23,8 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
@@ -104,12 +106,14 @@ func ProvideDAService(in DAServiceIn) *da.Service[
 	*dastore.Store[*BeaconBlockBody],
 	*BeaconBlockBody,
 	*BlobSidecars,
+	*broker.Broker[*asynctypes.Event[*BlobSidecars]],
 	*ExecutionPayload,
 ] {
 	return da.NewService[
 		*dastore.Store[*BeaconBlockBody],
 		*BeaconBlockBody,
 		*BlobSidecars,
+		*broker.Broker[*asynctypes.Event[*BlobSidecars]],
 		*ExecutionPayload,
 	](
 		in.AvailabilityStore,

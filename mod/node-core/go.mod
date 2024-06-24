@@ -17,17 +17,17 @@ require (
 	cosmossdk.io/store/v2 v2.0.0-20240515130459-16437119e0d8
 	cosmossdk.io/x/tx v0.13.3
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240623073416-b8ac8605c6a0
-	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240617204505-1abdb4095d50
+	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240624003607-df94860f8eeb
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240614154006-a5defa6198f5
-	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240614154006-a5defa6198f5
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240624003607-df94860f8eeb
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240623073416-b8ac8605c6a0
-	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240614170830-558fac144a58
+	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240624003607-df94860f8eeb
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240623073416-b8ac8605c6a0
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240617185735-42326b5546a8
 	github.com/berachain/beacon-kit/mod/interfaces v0.0.0-20240610210054-bfdc14c4013c
-	github.com/berachain/beacon-kit/mod/log v0.0.0-20240618235911-13accdab111a
+	github.com/berachain/beacon-kit/mod/log v0.0.0-20240619234034-fe96d94eafef
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240622230824-ddb365fd056f
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240623073416-b8ac8605c6a0
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240624003607-df94860f8eeb
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240618214413-d5ec0e66b3dd
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240610210054-bfdc14c4013c
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240618214413-d5ec0e66b3dd
