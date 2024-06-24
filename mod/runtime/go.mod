@@ -7,7 +7,7 @@ replace (
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240623110059-dec2d5583e39
 	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240623110059-dec2d5583e39
 	github.com/berachain/beacon-kit/mod/async => ../async
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240624014359-c59a685f42c2
+	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240624014538-75ba469b1881
 )
 
 require (
@@ -36,7 +36,7 @@ require (
 	cosmossdk.io/x/accounts v0.0.0-20240623110059-dec2d5583e39 // indirect
 	cosmossdk.io/x/auth v0.0.0-20240607081129-ca14b2847836 // indirect
 	cosmossdk.io/x/consensus v0.0.0-20240623110059-dec2d5583e39 // indirect
-	cosmossdk.io/x/tx v0.13.3 // indirect
+	cosmossdk.io/x/tx v0.13.4-0.20240623110059-dec2d5583e39 // indirect
 	github.com/DataDog/zstd v1.5.5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/berachain/beacon-kit/mod/async v0.0.0-20240618214413-d5ec0e66b3dd

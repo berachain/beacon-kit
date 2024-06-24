@@ -6,7 +6,7 @@ replace (
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240623110059-dec2d5583e39
 	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240623110059-dec2d5583e39
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240624014359-c59a685f42c2
+	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240624014538-75ba469b1881
 )
 
 require (
@@ -15,7 +15,7 @@ require (
 	cosmossdk.io/depinject v1.0.0-alpha.4.0.20240506202947-fbddf0a55044
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce
 	cosmossdk.io/store/v2 v2.0.0-20240515130459-16437119e0d8
-	cosmossdk.io/x/tx v0.13.3
+	cosmossdk.io/x/tx v0.13.4-0.20240623110059-dec2d5583e39
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240624003607-df94860f8eeb
 	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240624003607-df94860f8eeb
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240614154006-a5defa6198f5

@@ -10,7 +10,7 @@ replace (
 	cosmossdk.io/depinject => cosmossdk.io/depinject v1.0.0-alpha.4.0.20240506202947-fbddf0a55044
 	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240623110059-dec2d5583e39
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240623110059-dec2d5583e39
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240624014359-c59a685f42c2
+	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240624014538-75ba469b1881
 )
 
 require (
@@ -43,7 +43,7 @@ require (
 	cosmossdk.io/x/bank v0.0.0-20240623110059-dec2d5583e39 // indirect
 	cosmossdk.io/x/consensus v0.0.0-20240623110059-dec2d5583e39 // indirect
 	cosmossdk.io/x/staking v0.0.0-20240623110059-dec2d5583e39 // indirect
-	cosmossdk.io/x/tx v0.13.3 // indirect
+	cosmossdk.io/x/tx v0.13.4-0.20240623110059-dec2d5583e39 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect
