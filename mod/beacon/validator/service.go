@@ -84,8 +84,8 @@ type Service[
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT]
 	// metrics is a metrics collector.
 	metrics *validatorMetrics
-	// blkFeed is a feed for blocks.
-	blkFeed *broker.Broker[*asynctypes.Event[BeaconBlockT]]
+	// blkBroker is a feed for blocks.
+	blkBroker *broker.Broker[*asynctypes.Event[BeaconBlockT]]
 	// sidecarsBroker is a feed for sidecars.
 	sidecarsBroker *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
 	// newSlotSub is a feed for slots.
@@ -129,7 +129,7 @@ func NewService[
 	localPayloadBuilder PayloadBuilder[BeaconStateT, ExecutionPayloadT],
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT],
 	ts TelemetrySink,
-	blkFeed *broker.Broker[*asynctypes.Event[BeaconBlockT]],
+	blkBroker *broker.Broker[*asynctypes.Event[BeaconBlockT]],
 	sidecarsBroker *broker.Broker[*asynctypes.Event[BlobSidecarsT]],
 	newSlotSub broker.Client[*asynctypes.Event[math.Slot]],
 ) *Service[
@@ -152,7 +152,7 @@ func NewService[
 		localPayloadBuilder:   localPayloadBuilder,
 		remotePayloadBuilders: remotePayloadBuilders,
 		metrics:               newValidatorMetrics(ts),
-		blkFeed:               blkFeed,
+		blkBroker:             blkBroker,
 		sidecarsBroker:        sidecarsBroker,
 		newSlotSub:            newSlotSub,
 	}
@@ -211,7 +211,7 @@ func (s *Service[
 	}
 
 	// Send the built block back on the feed.
-	if blkErr := s.blkFeed.Publish(asynctypes.NewEvent(
+	if blkErr := s.blkBroker.Publish(asynctypes.NewEvent(
 		req.Context(), events.BeaconBlockBuilt, blk, err,
 	)); blkErr != nil {
 		// Propagate the error from buildBlockAndSidecars

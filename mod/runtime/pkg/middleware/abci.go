@@ -181,7 +181,7 @@ func (h *ABCIMiddleware[
 
 	g.Go(func() error {
 		// Emit event to notify the block has been received.
-		localErr := h.blkFeed.Publish(asynctypes.NewEvent(
+		localErr := h.blkBroker.Publish(asynctypes.NewEvent(
 			ctx, events.BeaconBlockReceived, blk, err,
 		))
 		if localErr != nil {

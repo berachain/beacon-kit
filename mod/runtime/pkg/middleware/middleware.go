@@ -77,8 +77,8 @@ type ABCIMiddleware[
 
 	// Feeds
 	//
-	// blkFeed is a feed for blocks.
-	blkFeed *broker.Broker[*asynctypes.Event[BeaconBlockT]]
+	// blkBroker is a feed for blocks.
+	blkBroker *broker.Broker[*asynctypes.Event[BeaconBlockT]]
 	// sidecarsBroker is a feed for sidecars.
 	sidecarsBroker *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
 	// slotFeed is a feed for slots.
@@ -111,7 +111,7 @@ func NewABCIMiddleware[
 	daService DAService[BlobSidecarsT],
 	logger log.Logger[any],
 	telemetrySink TelemetrySink,
-	blkFeed *broker.Broker[*asynctypes.Event[BeaconBlockT]],
+	blkBroker *broker.Broker[*asynctypes.Event[BeaconBlockT]],
 	sidecarsBroker *broker.Broker[*asynctypes.Event[BlobSidecarsT]],
 	slotFeed *broker.Broker[*asynctypes.Event[math.Slot]],
 ) *ABCIMiddleware[
@@ -133,7 +133,7 @@ func NewABCIMiddleware[
 		),
 		logger:         logger,
 		metrics:        newABCIMiddlewareMetrics(telemetrySink),
-		blkFeed:        blkFeed,
+		blkBroker:      blkBroker,
 		sidecarsBroker: sidecarsBroker,
 		slotFeed:       slotFeed,
 		blkCh: make(
@@ -159,7 +159,7 @@ func (am *ABCIMiddleware[
 func (am *ABCIMiddleware[
 	_, _, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
-	subBlkCh, err := am.blkFeed.Subscribe()
+	subBlkCh, err := am.blkBroker.Subscribe()
 	if err != nil {
 		return err
 	}
