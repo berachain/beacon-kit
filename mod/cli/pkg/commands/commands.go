@@ -1,13 +1,10 @@
 package commands
 
 import (
-	"context"
-	"fmt"
 	"os"
-	"os/signal"
 	"path/filepath"
-	"syscall"
 
+	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/start"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/spf13/cobra"
 
@@ -21,60 +18,20 @@ func DefaultCommandConfig[NodeT types.Node[T], T transaction.Tx](
 	rootCmd *cobra.Command,
 	appCreator serverv2.AppCreator[NodeT, T],
 	logger log.Logger,
+	bkCommands []*cobra.Command,
 	components ...serverv2.ServerComponent[NodeT, T],
 ) (serverv2.CLIConfig, error) {
 
+	// TODO: this is weird, but is how cosmos does it. pls fix later
 	server := serverv2.NewServer(logger, components...)
 	flags := server.StartFlags()
-
-	startCmd := &cobra.Command{
-		Use:   "start",
-		Short: "Run the application",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			v := serverv2.GetViperFromCmd(cmd)
-			l := serverv2.GetLoggerFromCmd(cmd)
-
-			for _, startFlags := range flags {
-				if err := v.BindPFlags(startFlags); err != nil {
-					return err
-				}
-			}
-
-			if err := v.BindPFlags(cmd.Flags()); err != nil {
-				return err
-			}
-
-			app := appCreator(l, v)
-
-			if err := server.Init(app, v, l); err != nil {
-				return err
-			}
-
-			srvConfig := serverv2.Config{StartBlock: true}
-			ctx := cmd.Context()
-			ctx = context.WithValue(ctx, serverv2.ServerContextKey, srvConfig)
-			ctx, cancelFn := context.WithCancel(ctx)
-			go func() {
-				sigCh := make(chan os.Signal, 1)
-				signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
-				sig := <-sigCh
-				cancelFn()
-				cmd.Printf("caught %s signal\n", sig.String())
-
-				if err := server.Stop(ctx); err != nil {
-					cmd.PrintErrln("failed to stop servers:", err)
-				}
-			}()
-
-			if err := server.Start(ctx); err != nil {
-				return fmt.Errorf("failed to start servers: %w", err)
-			}
-
-			return nil
-		},
-	}
-
+	startCmd := start.NewStartCmd[NodeT, T](
+		appCreator,
+		server,
+		flags,
+	)
 	cmds := server.CLICommands()
+	cmds.Commands = append(cmds.Commands, bkCommands...)
 	cmds.Commands = append(cmds.Commands, startCmd)
 
 	return cmds, nil
@@ -86,13 +43,9 @@ func AddCommands[NodeT types.Node[T], T transaction.Tx](
 	rootCmd *cobra.Command,
 	newApp serverv2.AppCreator[NodeT, T],
 	logger log.Logger,
+	cmdConfig serverv2.CLIConfig,
 	components ...serverv2.ServerComponent[NodeT, T],
 ) error {
-	cmds, err := DefaultCommandConfig(rootCmd, newApp, logger, components...)
-	if err != nil {
-		return err
-	}
-
 	server := serverv2.NewServer(logger, components...)
 	originalPersistentPreRunE := rootCmd.PersistentPreRunE
 	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
@@ -114,7 +67,7 @@ func AddCommands[NodeT types.Node[T], T transaction.Tx](
 		return originalPersistentPreRunE(cmd, args)
 	}
 
-	rootCmd.AddCommand(cmds.Commands...)
+	rootCmd.AddCommand(cmdConfig.Commands...)
 	return nil
 }
 

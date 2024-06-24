@@ -90,6 +90,11 @@ func (root *Root) Run(defaultNodeHome string) error {
 	)
 }
 
+// Command returns the root command.
+func (root *Root) Command() *cobra.Command {
+	return root.cmd
+}
+
 // Enhance applies the given enhancer to the root command.
 func (root *Root) Enhance(enhance enhancer) error {
 	return enhance(root.cmd)

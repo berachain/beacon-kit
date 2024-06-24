@@ -24,7 +24,6 @@ import (
 	"cosmossdk.io/core/transaction"
 	"cosmossdk.io/depinject"
 	serverv2 "cosmossdk.io/server/v2"
-	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/spf13/cobra"
@@ -83,16 +82,9 @@ func WithRunHandler[NodeT types.Node[T], T transaction.Tx](
 	}
 }
 
-// WithDefaultRootCommandSetup sets the root command setup func to the default.
-func WithDefaultRootCommandSetup[NodeT types.Node[T], T transaction.Tx]() Opt[NodeT, T] {
-	return func(cb *CLIBuilder[NodeT, T]) {
-		cb.rootCmdSetup = cmdlib.GetCommands[NodeT]
-	}
-}
-
 // WithNodeBuilderFunc sets the cosmos app creator for the CLIBuilder.
 func WithNodeBuilderFunc[NodeT types.Node[T], T transaction.Tx](
-	nodeBuilderFunc serverv2.AppCreator[T],
+	nodeBuilderFunc serverv2.AppCreator[NodeT, T],
 ) Opt[NodeT, T] {
 	return func(cb *CLIBuilder[NodeT, T]) {
 		cb.nodeBuilderFunc = nodeBuilderFunc

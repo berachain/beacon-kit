@@ -54,7 +54,7 @@ type CLIBuilder[NodeT types.Node[T], T transaction.Tx] struct {
 	// nodeBuilderFunc is a function that builds the Node,
 	// eventually called by the cosmos-sdk.
 	// TODO: CLI should not know about the AppCreator
-	nodeBuilderFunc serverv2.AppCreator[T]
+	nodeBuilderFunc serverv2.AppCreator[NodeT, T]
 	// rootCmdSetup is a function that sets up the root command.
 	rootCmdSetup rootCmdSetup[NodeT, T]
 }
@@ -82,7 +82,7 @@ func (cb *CLIBuilder[NodeT, T]) Build() (*cmdlib.Root, error) {
 		clientCtx   client.Context
 		chainSpec   common.ChainSpec
 		logger      log.Logger
-		cmtServer   *cometbft.CometBFTServer[transaction.Tx]
+		cmtServer   *cometbft.CometBFTServer[T]
 	)
 	// build dependencies for the root command
 	if err := depinject.Inject(
@@ -119,6 +119,7 @@ func (cb *CLIBuilder[NodeT, T]) Build() (*cmdlib.Root, error) {
 	}
 
 	// hood for now
+	// get list of custom commands
 	cmdList := cmdlib.Commands[NodeT](
 		rootCmd,
 		mm,
@@ -126,13 +127,25 @@ func (cb *CLIBuilder[NodeT, T]) Build() (*cmdlib.Root, error) {
 		chainSpec,
 	)
 
-	cmdlib.
-		DefaultCommandConfig(
-			rootCmd,
-			cb.nodeBuilderFunc,
-			logger,
-			[]*serverv2.ServerComponent[transaction.Tx]{cmtServer},
-		)
+	// get the default command config with the server
+	cmdConfig, err := cmdlib.DefaultCommandConfig(
+		rootCmd.Command(),
+		cb.nodeBuilderFunc,
+		logger,
+		cmdList,
+		cmtServer,
+	)
+	if err != nil {
+		return nil, err
+	}
+	// add the commands to the root command
+	cmdlib.AddCommands[NodeT, T](
+		rootCmd.Command(),
+		cb.nodeBuilderFunc,
+		logger,
+		cmdConfig,
+		cmtServer,
+	)
 
 	return rootCmd, nil
 }

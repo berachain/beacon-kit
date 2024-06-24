@@ -15,7 +15,7 @@ import (
 
 func NewStartCmd[NodeT serverv2.AppI[T], T transaction.Tx](
 	appCreator serverv2.AppCreator[NodeT, T],
-	server serverv2.Server[NodeT, T],
+	server *serverv2.Server[NodeT, T],
 	flags []*pflag.FlagSet,
 ) *cobra.Command {
 	startCmd := &cobra.Command{
