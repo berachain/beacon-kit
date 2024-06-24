@@ -55,7 +55,7 @@ require (
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240623073416-b8ac8605c6a0 // indirect
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240624003607-df94860f8eeb // indirect
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240623073416-b8ac8605c6a0 // indirect
-	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240617185735-42326b5546a8 // indirect
+	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240624003607-df94860f8eeb // indirect
 	github.com/berachain/beacon-kit/mod/interfaces v0.0.0-20240610210054-bfdc14c4013c // indirect
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240619234034-fe96d94eafef // indirect
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240610210054-bfdc14c4013c // indirect

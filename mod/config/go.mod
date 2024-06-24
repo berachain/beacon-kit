@@ -6,7 +6,7 @@ require (
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240623073416-b8ac8605c6a0
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240610210054-bfdc14c4013c
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240623073416-b8ac8605c6a0
-	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240624003607-df94860f8eeb
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240610210054-bfdc14c4013c
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240624003607-df94860f8eeb
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240613135100-716d8f8c592d

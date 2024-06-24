@@ -39,7 +39,7 @@ import (
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ForkDataT, _,
+	ExecutionPayloadHeaderT, ForkDataT,
 ]) buildBlockAndSidecars(
 	ctx context.Context,
 	requestedSlot math.Slot,
@@ -134,7 +134,7 @@ func (s *Service[
 
 // getEmptyBeaconBlockForSlot creates a new empty block.
 func (s *Service[
-	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _,
+	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _,
 ]) getEmptyBeaconBlockForSlot(
 	st BeaconStateT, requestedSlot math.Slot,
 ) (BeaconBlockT, error) {
@@ -172,7 +172,7 @@ func (s *Service[
 
 // buildRandaoReveal builds a randao reveal for the given slot.
 func (s *Service[
-	_, _, BeaconStateT, _, _, _, _, _, _, _, ForkDataT,
+	_, _, BeaconStateT, _, _, _, _, _, _, ForkDataT,
 ]) buildRandaoReveal(
 	st BeaconStateT,
 	slot math.Slot,
@@ -205,7 +205,7 @@ func (s *Service[
 // retrieveExecutionPayload retrieves the execution payload for the block.
 func (s *Service[
 	BeaconBlockT, _, BeaconStateT, _, _, _, _,
-	ExecutionPayloadT, ExecutionPayloadHeaderT, _, _,
+	ExecutionPayloadT, ExecutionPayloadHeaderT, _,
 ]) retrieveExecutionPayload(
 	ctx context.Context, st BeaconStateT, blk BeaconBlockT,
 ) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
@@ -262,7 +262,7 @@ func (s *Service[
 // BuildBlockBody assembles the block body with necessary components.
 func (s *Service[
 	BeaconBlockT, _, BeaconStateT, _,
-	_, _, Eth1DataT, ExecutionPayloadT, _, _, _,
+	_, _, Eth1DataT, ExecutionPayloadT, _, _,
 ]) buildBlockBody(
 	ctx context.Context,
 	st BeaconStateT,
@@ -324,7 +324,7 @@ func (s *Service[
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ForkDataT, _,
+	ExecutionPayloadHeaderT, ForkDataT,
 ]) computeAndSetStateRoot(
 	ctx context.Context,
 	st BeaconStateT,
@@ -359,7 +359,7 @@ func (s *Service[
 func (s *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ForkDataT, _,
+	ExecutionPayloadHeaderT, ForkDataT,
 ]) computeStateRoot(
 	ctx context.Context,
 	st BeaconStateT,

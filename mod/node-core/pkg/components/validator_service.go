@@ -73,7 +73,6 @@ func ProvideValidatorService(
 		*types.Eth1Data,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
-		chan *asynctypes.Event[math.Slot],
 		*types.ForkData,
 	](
 		&in.Cfg.Validator,
@@ -94,6 +93,6 @@ func ProvideValidatorService(
 		in.TelemetrySink,
 		in.BeaconBlockFeed,
 		in.SidecarsFeed,
-		validator.EventSubscription[*asynctypes.Event[math.Slot]](slotSubscription),
+		slotSubscription,
 	), nil
 }

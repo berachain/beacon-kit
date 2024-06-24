@@ -47,7 +47,6 @@ type Service[
 	Eth1DataT Eth1Data[Eth1DataT],
 	ExecutionPayloadT any,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	EventSubscriptionT ~chan *asynctypes.Event[math.Slot],
 	ForkDataT ForkData[ForkDataT],
 ] struct {
 	// cfg is the validator config.
@@ -89,7 +88,7 @@ type Service[
 	// sidecarsBroker is a feed for sidecars.
 	sidecarsBroker EventPublisher[*asynctypes.Event[BlobSidecarsT]]
 	// newSlotSub is a feed for slots.
-	newSlotSub EventSubscription[*asynctypes.Event[math.Slot]]
+	newSlotSub chan *asynctypes.Event[math.Slot]
 }
 
 // NewService creates a new validator service.
@@ -107,7 +106,6 @@ func NewService[
 	Eth1DataT Eth1Data[Eth1DataT],
 	ExecutionPayloadT any,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	EventSubscriptionT ~chan *asynctypes.Event[math.Slot],
 	ForkDataT ForkData[ForkDataT],
 ](
 	cfg *Config,
@@ -132,16 +130,16 @@ func NewService[
 	ts TelemetrySink,
 	blkBroker EventPublisher[*asynctypes.Event[BeaconBlockT]],
 	sidecarsBroker EventPublisher[*asynctypes.Event[BlobSidecarsT]],
-	newSlotSub EventSubscription[*asynctypes.Event[math.Slot]],
+	newSlotSub chan *asynctypes.Event[math.Slot],
 ) *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
 	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, EventSubscriptionT, ForkDataT,
+	ExecutionPayloadHeaderT, ForkDataT,
 ] {
 	return &Service[
 		BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
 		DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
-		ExecutionPayloadHeaderT, EventSubscriptionT, ForkDataT,
+		ExecutionPayloadHeaderT, ForkDataT,
 	]{
 		cfg:                   cfg,
 		logger:                logger,
@@ -161,14 +159,14 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _,
 ]) Name() string {
 	return "validator"
 }
 
 // Start starts the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _,
 ]) Start(
 	ctx context.Context,
 ) error {
@@ -178,7 +176,7 @@ func (s *Service[
 
 // start starts the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _,
 ]) start(
 	ctx context.Context,
 ) {
@@ -196,7 +194,7 @@ func (s *Service[
 
 // handleBlockRequest handles a block request.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _,
 ]) handleNewSlot(req *asynctypes.Event[math.Slot]) {
 	blk, sidecars, err := s.buildBlockAndSidecars(
 		req.Context(), req.Data(),

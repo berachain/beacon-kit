@@ -227,7 +227,6 @@ type (
 		*types.Eth1Data,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
-		chan *asynctypes.Event[math.Slot],
 		*types.ForkData,
 	]
 
