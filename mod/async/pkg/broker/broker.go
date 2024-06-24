@@ -83,12 +83,12 @@ func (b *Broker[T]) start(ctx context.Context) {
 
 // Publish publishes a msg to the b.
 // Returns ErrTimeout on timeout.
-func (b *Broker[T]) Publish(msg T) error {
+func (b *Broker[T]) Publish(ctx context.Context, msg T) error {
 	select {
 	case b.msgs <- msg:
 		return nil
-	case <-time.After(b.timeout):
-		return ErrTimeout
+	case <-ctx.Done():
+		return ctx.Err()
 	}
 }
 

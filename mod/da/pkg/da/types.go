@@ -109,7 +109,7 @@ type ExecutionEngine[PayloadAttributesT any] interface {
 // EventPublisher represents the event publisher interface.
 type EventPublisherSubscriber[T any] interface {
 	// PublishEvent publishes an event.
-	Publish(T) error
+	Publish(context.Context, T) error
 	// Subscribe subscribes to the event system.
 	Subscribe() (chan T, error)
 }
