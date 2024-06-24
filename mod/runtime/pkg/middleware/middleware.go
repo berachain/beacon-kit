@@ -79,8 +79,8 @@ type ABCIMiddleware[
 	//
 	// blkFeed is a feed for blocks.
 	blkFeed *broker.Broker[*asynctypes.Event[BeaconBlockT]]
-	// sidecarsFeed is a feed for sidecars.
-	sidecarsFeed *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
+	// sidecarsBroker is a feed for sidecars.
+	sidecarsBroker *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
 	// slotFeed is a feed for slots.
 	slotFeed *broker.Broker[*asynctypes.Event[math.Slot]]
 
@@ -112,7 +112,7 @@ func NewABCIMiddleware[
 	logger log.Logger[any],
 	telemetrySink TelemetrySink,
 	blkFeed *broker.Broker[*asynctypes.Event[BeaconBlockT]],
-	sidecarsFeed *broker.Broker[*asynctypes.Event[BlobSidecarsT]],
+	sidecarsBroker *broker.Broker[*asynctypes.Event[BlobSidecarsT]],
 	slotFeed *broker.Broker[*asynctypes.Event[math.Slot]],
 ) *ABCIMiddleware[
 	AvailabilityStoreT, BeaconBlockT, BeaconStateT,
@@ -131,11 +131,11 @@ func NewABCIMiddleware[
 			NewNoopBlockGossipHandler[BeaconBlockT, encoding.ABCIRequest](
 			chainSpec,
 		),
-		logger:       logger,
-		metrics:      newABCIMiddlewareMetrics(telemetrySink),
-		blkFeed:      blkFeed,
-		sidecarsFeed: sidecarsFeed,
-		slotFeed:     slotFeed,
+		logger:         logger,
+		metrics:        newABCIMiddlewareMetrics(telemetrySink),
+		blkFeed:        blkFeed,
+		sidecarsBroker: sidecarsBroker,
+		slotFeed:       slotFeed,
 		blkCh: make(
 			chan *asynctypes.Event[BeaconBlockT],
 			1,
@@ -164,7 +164,7 @@ func (am *ABCIMiddleware[
 		return err
 	}
 
-	subSidecarsCh, err := am.sidecarsFeed.Subscribe()
+	subSidecarsCh, err := am.sidecarsBroker.Subscribe()
 	if err != nil {
 		return err
 	}

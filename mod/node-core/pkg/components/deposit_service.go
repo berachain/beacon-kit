@@ -38,7 +38,7 @@ type DepositServiceIn struct {
 	BeaconDepositContract *deposit.WrappedBeaconDepositContract[
 		*Deposit, types.WithdrawalCredentials,
 	]
-	BlockFeed     *BlockFeed
+	BlockBroker   *BlockBroker
 	ChainSpec     common.ChainSpec
 	DepositStore  *DepositStore
 	EngineClient  *EngineClient
@@ -49,7 +49,7 @@ type DepositServiceIn struct {
 // ProvideDepositService provides the deposit service to the depinject
 // framework.
 func ProvideDepositService(in DepositServiceIn) (*DepositService, error) {
-	blkSub, err := in.BlockFeed.Subscribe()
+	blkSub, err := in.BlockBroker.Subscribe()
 	if err != nil {
 		in.Logger.Error("failed to subscribe to block feed", "err", err)
 		return nil, errors.New("failed to subscribe to block feed")

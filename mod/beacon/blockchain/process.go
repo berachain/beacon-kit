@@ -105,7 +105,7 @@ func (s *Service[
 	// TODO: this is hood as fuck.
 	// We won't send a fcu if the block is bad, should be addressed
 	// via ticker later.
-	if err = s.blockFeed.Publish(
+	if err = s.blkBroker.Publish(
 		asynctypes.NewEvent(ctx, events.BeaconBlockFinalized, blk),
 	); err != nil {
 		return nil, err

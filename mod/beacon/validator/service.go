@@ -86,9 +86,9 @@ type Service[
 	metrics *validatorMetrics
 	// blkFeed is a feed for blocks.
 	blkFeed *broker.Broker[*asynctypes.Event[BeaconBlockT]]
-	// sidecarsFeed is a feed for sidecars.
-	sidecarsFeed *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
-	slotFeed     broker.Client[*asynctypes.Event[math.Slot]]
+	// sidecarsBroker is a feed for sidecars.
+	sidecarsBroker *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
+	slotFeed       broker.Client[*asynctypes.Event[math.Slot]]
 }
 
 // NewService creates a new validator service.
@@ -129,7 +129,7 @@ func NewService[
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT],
 	ts TelemetrySink,
 	blkFeed *broker.Broker[*asynctypes.Event[BeaconBlockT]],
-	sidecarsFeed *broker.Broker[*asynctypes.Event[BlobSidecarsT]],
+	sidecarsBroker *broker.Broker[*asynctypes.Event[BlobSidecarsT]],
 	slotFeed broker.Client[*asynctypes.Event[math.Slot]],
 ) *Service[
 	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
@@ -152,7 +152,7 @@ func NewService[
 		remotePayloadBuilders: remotePayloadBuilders,
 		metrics:               newValidatorMetrics(ts),
 		blkFeed:               blkFeed,
-		sidecarsFeed:          sidecarsFeed,
+		sidecarsBroker:        sidecarsBroker,
 		slotFeed:              slotFeed,
 	}
 }
@@ -218,7 +218,7 @@ func (s *Service[
 	}
 
 	// Send the sidecars on the feed.
-	if sidecarsErr := s.sidecarsFeed.Publish(
+	if sidecarsErr := s.sidecarsBroker.Publish(
 		asynctypes.NewEvent(
 			// Propagate the error from buildBlockAndSidecars
 			req.Context(), events.BlobSidecarsBuilt, sidecars, err,

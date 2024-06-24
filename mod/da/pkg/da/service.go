@@ -43,8 +43,8 @@ type Service[
 		AvailabilityStoreT, BeaconBlockBodyT,
 		BlobSidecarsT, ExecutionPayloadT,
 	]
-	sidecarsFeed *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
-	logger       log.Logger[any]
+	sidecarsBroker *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
+	logger         log.Logger[any]
 }
 
 // New returns a new DA service.
@@ -64,7 +64,7 @@ func NewService[
 		AvailabilityStoreT, BeaconBlockBodyT,
 		BlobSidecarsT, ExecutionPayloadT,
 	],
-	sidecarsFeed *broker.Broker[*asynctypes.Event[BlobSidecarsT]],
+	sidecarsBroker *broker.Broker[*asynctypes.Event[BlobSidecarsT]],
 	logger log.Logger[any],
 ) *Service[
 	AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT, ExecutionPayloadT,
@@ -72,10 +72,10 @@ func NewService[
 	return &Service[
 		AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT, ExecutionPayloadT,
 	]{
-		avs:          avs,
-		bp:           bp,
-		sidecarsFeed: sidecarsFeed,
-		logger:       logger,
+		avs:            avs,
+		bp:             bp,
+		sidecarsBroker: sidecarsBroker,
+		logger:         logger,
 	}
 }
 
@@ -86,7 +86,7 @@ func (s *Service[_, _, _, _]) Name() string {
 
 // Start starts the service.
 func (s *Service[_, _, _, _]) Start(ctx context.Context) error {
-	subSidecarsCh, err := s.sidecarsFeed.Subscribe()
+	subSidecarsCh, err := s.sidecarsBroker.Subscribe()
 	if err != nil {
 		return err
 	}
@@ -116,7 +116,7 @@ func (s *Service[_, _, BlobSidecarsT, _]) start(
 					)
 				}
 
-				if err = s.sidecarsFeed.Publish(asynctypes.NewEvent(
+				if err = s.sidecarsBroker.Publish(asynctypes.NewEvent(
 					ctx, events.BlobSidecarsProcessed, msg.Data(), err,
 				)); err != nil {
 					s.logger.Error(

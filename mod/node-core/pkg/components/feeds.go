@@ -35,7 +35,7 @@ func ProvideBlobFeed() *SidecarsBroker {
 }
 
 // ProvideBlockFeed provides a block feed for the depinject framework.
-func ProvideBlockFeed() *BlockFeed {
+func ProvideBlockFeed() *BlockBroker {
 	return broker.New[*asynctypes.Event[*BeaconBlock]](
 		"blk-broker",
 	)

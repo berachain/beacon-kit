@@ -75,7 +75,7 @@ func ProvideAvailibilityStore[
 type AvailabilityPrunerInput struct {
 	depinject.In
 	AvailabilityStore *AvailabilityStore
-	BlockFeed         *BlockFeed
+	BlockBroker       *BlockBroker
 	ChainSpec         common.ChainSpec
 	Logger            log.Logger
 }
@@ -91,7 +91,7 @@ func ProvideAvailabilityPruner(
 		return nil, errors.New("availability store does not have a range db")
 	}
 
-	subCh, err := in.BlockFeed.Subscribe()
+	subCh, err := in.BlockBroker.Subscribe()
 	if err != nil {
 		in.Logger.Error("failed to subscribe to block feed", "err", err)
 		return nil, err

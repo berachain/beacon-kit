@@ -70,7 +70,7 @@ func ProvideDepositStore[
 // DepositPrunerInput is the input for the deposit pruner.
 type DepositPrunerInput struct {
 	depinject.In
-	BlockFeed    *BlockFeed
+	BlockBroker  *BlockBroker
 	ChainSpec    common.ChainSpec
 	DepositStore *DepositStore
 	Logger       log.Logger
@@ -80,7 +80,7 @@ type DepositPrunerInput struct {
 func ProvideDepositPruner(
 	in DepositPrunerInput,
 ) (pruner.Pruner[*DepositStore], error) {
-	subCh, err := in.BlockFeed.Subscribe()
+	subCh, err := in.BlockBroker.Subscribe()
 	if err != nil {
 		in.Logger.Error("failed to subscribe to block feed", "err", err)
 		return nil, err

@@ -33,7 +33,7 @@ import (
 type ServiceRegistryInput struct {
 	depinject.In
 	ABCIService      *ABCIMiddleware
-	BlockBroker      *BlockFeed
+	BlockBroker      *BlockBroker
 	ChainService     *ChainService
 	DBManager        *DBManager
 	DAService        *DAService

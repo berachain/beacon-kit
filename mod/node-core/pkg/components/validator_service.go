@@ -38,7 +38,7 @@ import (
 // ValidatorServiceInput is the input for the validator service provider.
 type ValidatorServiceInput struct {
 	depinject.In
-	BeaconBlockFeed *BlockFeed
+	BeaconBlockFeed *BlockBroker
 	BlobProcessor   *BlobProcessor
 	Cfg             *config.Config
 	ChainSpec       common.ChainSpec

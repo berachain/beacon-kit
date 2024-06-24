@@ -211,7 +211,7 @@ func (h *ABCIMiddleware[
 		}
 
 		// Emit event to notify the sidecars have been received.
-		if localErr = h.sidecarsFeed.Publish(asynctypes.NewEvent(
+		if localErr = h.sidecarsBroker.Publish(asynctypes.NewEvent(
 			ctx, events.BlobSidecarsReceived, sidecars, localErr,
 		)); localErr != nil {
 			return localErr
@@ -275,7 +275,7 @@ func (h *ABCIMiddleware[
 
 	// Send the sidecars to the sidecars feed, we know at this point
 	// That the blobs have been successfully verified in process proposal.
-	if err = h.sidecarsFeed.Publish(asynctypes.NewEvent(
+	if err = h.sidecarsBroker.Publish(asynctypes.NewEvent(
 		ctx, events.BlobSidecarsVerified, blobs,
 	)); err != nil {
 		return nil, err

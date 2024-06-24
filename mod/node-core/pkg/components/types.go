@@ -105,8 +105,8 @@ type (
 	// BlockEvent is a type alias for the block event.
 	BlockEvent = asynctypes.Event[*BeaconBlock]
 
-	// BlockFeed is a type alias for the block feed.
-	BlockFeed = broker.Broker[*BlockEvent]
+	// BlockBroker is a type alias for the block feed.
+	BlockBroker = broker.Broker[*BlockEvent]
 
 	// ChainService is a type alias for the chain service.
 	ChainService = blockchain.Service[
