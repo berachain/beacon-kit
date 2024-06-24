@@ -31,8 +31,6 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/async/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner/mocks"
@@ -96,8 +94,7 @@ func TestPruner(t *testing.T) {
 				block.On("GetSlot").Return(math.U64(index))
 				event := mocks.BlockEvent[pruner.BeaconBlock]{}
 				event.On("Data").Return(&block)
-				event.On("Type", mock.Anything).Return(
-					types.EventID(events.BeaconBlockFinalized))
+				event.On("Is", mock.Anything).Return(true)
 				ch <- &event
 			}
 
