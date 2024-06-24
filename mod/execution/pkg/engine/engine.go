@@ -115,9 +115,7 @@ func (ee *Engine[
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
 	// Log the forkchoice update attempt.
 	hasPayloadAttributes := !req.PayloadAttributes.IsNil()
-	ee.metrics.markNotifyForkchoiceUpdateCalled(
-		req.State, hasPayloadAttributes,
-	)
+	ee.metrics.markNotifyForkchoiceUpdateCalled(hasPayloadAttributes)
 
 	// Notify the execution engine of the forkchoice update.
 	payloadID, latestValidHash, err := ee.ec.ForkchoiceUpdated(
@@ -160,6 +158,10 @@ func (ee *Engine[
 	case err != nil:
 		ee.metrics.markForkchoiceUpdateUndefinedError(err)
 		return nil, nil, err
+	default:
+		ee.metrics.markForkchoiceUpdateValid(
+			req.State, hasPayloadAttributes, payloadID,
+		)
 	}
 
 	// If we reached here, and we have a nil payload ID, we should log a
@@ -265,6 +267,12 @@ func (ee *Engine[
 			req.ExecutionPayload.GetBlockHash(),
 			req.Optimistic,
 			err,
+		)
+	default:
+		ee.metrics.markNewPayloadValid(
+			req.ExecutionPayload.GetBlockHash(),
+			req.ExecutionPayload.GetParentHash(),
+			req.Optimistic,
 		)
 	}
 
