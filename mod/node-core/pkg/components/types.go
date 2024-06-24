@@ -129,6 +129,7 @@ type (
 		*dastore.Store[*BeaconBlockBody],
 		*BeaconBlockBody,
 		*BlobSidecars,
+		*broker.Broker[*asynctypes.Event[*BlobSidecars]],
 		*ExecutionPayload,
 	]
 

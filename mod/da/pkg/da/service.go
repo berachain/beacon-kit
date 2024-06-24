@@ -23,7 +23,6 @@ package da
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
@@ -36,6 +35,8 @@ type Service[
 		Len() int
 		IsNil() bool
 	},
+	//nolint:lll // formatter.
+	EventPublisherSubscriberT EventPublisherSubscriber[*asynctypes.Event[BlobSidecarsT]],
 	ExecutionPayloadT any,
 ] struct {
 	avs AvailabilityStoreT
@@ -43,7 +44,7 @@ type Service[
 		AvailabilityStoreT, BeaconBlockBodyT,
 		BlobSidecarsT, ExecutionPayloadT,
 	]
-	sidecarsBroker *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
+	sidecarsBroker EventPublisherSubscriberT
 	logger         log.Logger[any]
 }
 
@@ -57,6 +58,8 @@ func NewService[
 		Len() int
 		IsNil() bool
 	},
+	//nolint:lll // formatter.
+	EventPublisherSubscriberT EventPublisherSubscriber[*asynctypes.Event[BlobSidecarsT]],
 	ExecutionPayloadT any,
 ](
 	avs AvailabilityStoreT,
@@ -64,13 +67,15 @@ func NewService[
 		AvailabilityStoreT, BeaconBlockBodyT,
 		BlobSidecarsT, ExecutionPayloadT,
 	],
-	sidecarsBroker *broker.Broker[*asynctypes.Event[BlobSidecarsT]],
+	sidecarsBroker EventPublisherSubscriberT,
 	logger log.Logger[any],
 ) *Service[
-	AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT, ExecutionPayloadT,
+	AvailabilityStoreT, BeaconBlockBodyT,
+	BlobSidecarsT, EventPublisherSubscriberT, ExecutionPayloadT,
 ] {
 	return &Service[
-		AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT, ExecutionPayloadT,
+		AvailabilityStoreT, BeaconBlockBodyT,
+		BlobSidecarsT, EventPublisherSubscriberT, ExecutionPayloadT,
 	]{
 		avs:            avs,
 		bp:             bp,
@@ -80,12 +85,12 @@ func NewService[
 }
 
 // Name returns the name of the service.
-func (s *Service[_, _, _, _]) Name() string {
+func (s *Service[_, _, _, _, _]) Name() string {
 	return "da"
 }
 
 // Start starts the service.
-func (s *Service[_, _, _, _]) Start(ctx context.Context) error {
+func (s *Service[_, _, _, _, _]) Start(ctx context.Context) error {
 	subSidecarsCh, err := s.sidecarsBroker.Subscribe()
 	if err != nil {
 		return err
@@ -95,9 +100,9 @@ func (s *Service[_, _, _, _]) Start(ctx context.Context) error {
 }
 
 // start starts the service.
-func (s *Service[_, _, BlobSidecarsT, _]) start(
+func (s *Service[_, _, BlobSidecarsT, _, _]) start(
 	ctx context.Context,
-	sidecarsCh broker.Client[*asynctypes.Event[BlobSidecarsT]],
+	sidecarsCh chan *asynctypes.Event[BlobSidecarsT],
 ) {
 	for {
 		select {
@@ -146,7 +151,7 @@ func (s *Service[_, _, BlobSidecarsT, _]) start(
 
 // ProcessSidecars processes the blob sidecars.
 // TODO: Deprecate this publically and move to event based system.
-func (s *Service[_, _, BlobSidecarsT, _]) ProcessSidecars(
+func (s *Service[_, _, BlobSidecarsT, _, _]) ProcessSidecars(
 	_ context.Context,
 	sidecars BlobSidecarsT,
 ) error {
@@ -159,7 +164,7 @@ func (s *Service[_, _, BlobSidecarsT, _]) ProcessSidecars(
 }
 
 // VerifyIncomingBlobs receives blobs from the network and processes them.
-func (s *Service[_, _, BlobSidecarsT, _]) ReceiveSidecars(
+func (s *Service[_, _, BlobSidecarsT, _, _]) ReceiveSidecars(
 	_ context.Context,
 	sidecars BlobSidecarsT,
 ) error {

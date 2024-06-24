@@ -25,16 +25,12 @@ import (
 	"time"
 )
 
-// Client defines a client that is registered to the broker and receives msgs
-// from it.
-type Client[T any] chan T
-
 // Broker broadcasts msgs to registered clients.
 type Broker[T any] struct {
 	// name of the message broker.
 	name string
 	// clients is a map of registered clients.
-	clients map[Client[T]]struct{}
+	clients map[chan T]struct{}
 	// msgs is the channel for publishing new messages.
 	msgs chan T
 	// timeout is the timeout for sending a msg to a client.
@@ -44,7 +40,7 @@ type Broker[T any] struct {
 // New creates a new b.
 func New[T any](name string) *Broker[T] {
 	return &Broker[T]{
-		clients: make(map[Client[T]]struct{}),
+		clients: make(map[chan T]struct{}),
 		msgs:    make(chan T, defaultBufferSize),
 		timeout: defaultTimeout,
 		name:    name,
@@ -98,15 +94,15 @@ func (b *Broker[T]) Publish(msg T) error {
 
 // Subscribe registers a new client to the broker and returns it to the caller.
 // Returns ErrTimeout on timeout.
-func (b *Broker[T]) Subscribe() (Client[T], error) {
-	client := make(Client[T])
+func (b *Broker[T]) Subscribe() (chan T, error) {
+	client := make(chan T)
 	b.clients[client] = struct{}{}
 	return client, nil
 }
 
 // Unsubscribe removes a client from the b.
 // Returns ErrTimeout on timeout.
-func (b *Broker[T]) Unsubscribe(client Client[T]) {
+func (b *Broker[T]) Unsubscribe(client chan T) {
 	// Remove the client from the broker
 	delete(b.clients, client)
 	// close the client channel

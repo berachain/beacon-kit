@@ -23,7 +23,6 @@ package deposit
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -48,7 +47,7 @@ type Service[
 	// ds is the deposit store that stores deposits.
 	ds Store[DepositT]
 	// feed is the block feed that provides block events.
-	feed broker.Client[BlockEventT]
+	feed chan BlockEventT
 	// metrics is the metrics for the deposit service.
 	metrics *metrics
 	// failedBlocks is a map of blocks that failed to be processed to be
@@ -74,7 +73,7 @@ func NewService[
 	telemetrySink TelemetrySink,
 	ds Store[DepositT],
 	dc Contract[DepositT],
-	feed broker.Client[BlockEventT],
+	feed chan BlockEventT,
 ) *Service[
 	BeaconBlockT, BeaconBlockBodyT, BlockEventT, DepositT,
 	ExecutionPayloadT, WithdrawalCredentialsT,

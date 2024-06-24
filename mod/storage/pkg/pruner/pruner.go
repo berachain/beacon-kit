@@ -29,7 +29,6 @@ package pruner
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 )
@@ -44,7 +43,7 @@ type DBPruner[
 	prunable     Prunable
 	logger       log.Logger[any]
 	name         string
-	feed         broker.Client[BlockEventT]
+	feed         chan BlockEventT
 	pruneRangeFn func(BlockEventT) (uint64, uint64)
 }
 
@@ -56,7 +55,7 @@ func NewPruner[
 	logger log.Logger[any],
 	prunable Prunable,
 	name string,
-	feed broker.Client[BlockEventT],
+	feed chan BlockEventT,
 	pruneRangeFn func(BlockEventT) (uint64, uint64),
 ) *DBPruner[BeaconBlockT, BlockEventT, PrunableT] {
 	return &DBPruner[BeaconBlockT, BlockEventT, PrunableT]{

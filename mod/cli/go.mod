@@ -16,12 +16,12 @@ require (
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce
 	cosmossdk.io/tools/confix v0.1.1
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240614154006-a5defa6198f5
-	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240614154006-a5defa6198f5
-	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240614170830-558fac144a58
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240623073416-b8ac8605c6a0
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240624003607-df94860f8eeb
+	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240624003607-df94860f8eeb
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240624003607-df94860f8eeb
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240619234034-fe96d94eafef
-	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240617204505-1abdb4095d50
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240623073416-b8ac8605c6a0
+	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240624003607-df94860f8eeb
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240624003607-df94860f8eeb
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240613135100-716d8f8c592d
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/ethereum/go-ethereum v1.14.5
@@ -34,16 +34,10 @@ require (
 )
 
 require (
-	github.com/bufbuild/protocompile v0.14.0 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a // indirect
-	github.com/gballet/go-libpcsclite v0.0.0-20191108122812-4678299bea08 // indirect
-	github.com/hashicorp/go-bexpr v0.1.14 // indirect
-	github.com/holiman/billy v0.0.0-20240322075458-72a4e81ec6da // indirect
+	github.com/mitchellh/pointerstructure v1.2.1 // indirect
 	github.com/phuslu/log v1.0.106 // indirect
 	github.com/rs/zerolog v1.33.0 // indirect
-	github.com/status-im/keycard-go v0.3.2 // indirect
-	github.com/urfave/cli/v2 v2.27.2 // indirect
-	github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1 // indirect
 )
 
 require (
@@ -71,17 +65,17 @@ require (
 	github.com/VictoriaMetrics/fastcache v1.12.2 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/berachain/beacon-kit/mod/async v0.0.0-20240618214413-d5ec0e66b3dd // indirect
+	github.com/berachain/beacon-kit/mod/async v0.0.0-20240624003607-df94860f8eeb // indirect
 	// indirect
-	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240623073416-b8ac8605c6a0 // indirect
-	github.com/berachain/beacon-kit/mod/da v0.0.0-20240614154006-a5defa6198f5 // indirect
-	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240617185735-42326b5546a8 // indirect
+	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240624003607-df94860f8eeb // indirect
+	github.com/berachain/beacon-kit/mod/da v0.0.0-20240623073416-b8ac8605c6a0 // indirect
+	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240624003607-df94860f8eeb // indirect
 	github.com/berachain/beacon-kit/mod/interfaces v0.0.0-20240610210054-bfdc14c4013c // indirect
-	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240610210054-bfdc14c4013c // indirect
-	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240614154006-a5defa6198f5 // indirect
-	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240618214413-d5ec0e66b3dd // indirect
-	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240610210054-bfdc14c4013c // indirect
-	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240618214413-d5ec0e66b3dd // indirect
+	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240618214413-d5ec0e66b3dd // indirect
+	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240624003607-df94860f8eeb // indirect
+	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240624003607-df94860f8eeb // indirect
+	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240624003607-df94860f8eeb // indirect
+	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240624003607-df94860f8eeb // indirect
 	github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
