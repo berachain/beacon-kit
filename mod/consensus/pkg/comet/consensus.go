@@ -52,7 +52,7 @@ type Middleware interface {
 
 	EndBlock(
 		ctx context.Context,
-	) ([]appmodulev2.ValidatorUpdate, error)
+	) (transition.ValidatorUpdates, error)
 }
 
 // NewConsensus returns a new consensus middleware.
@@ -62,6 +62,8 @@ func NewConsensus(m Middleware) *Consensus {
 	}
 }
 
+// Consensus is used to decouple the Comet consensus engine from the Cosmos SDK. Right now, it is very coupled to the
+// sdk base app and we will eventually fully decouple this.
 type Consensus struct {
 	Middleware
 }
@@ -78,6 +80,7 @@ func (c *Consensus) InitGenesis(
 	return iter.MapErr(updates, convertValidatorUpdate)
 }
 
+// TODO: Decouple Comet Types
 func (c *Consensus) PrepareProposal(
 	ctx sdk.Context,
 	req *cmtabci.PrepareProposalRequest,
@@ -85,6 +88,7 @@ func (c *Consensus) PrepareProposal(
 	return c.Middleware.PrepareProposal(ctx, req)
 }
 
+// TODO: Decouple Comet Types
 func (c *Consensus) ProcessProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
@@ -92,6 +96,7 @@ func (c *Consensus) ProcessProposal(
 	return c.Middleware.ProcessProposal(ctx, req)
 }
 
+// TODO: Decouple Comet Types
 func (c *Consensus) PreBlock(
 	ctx sdk.Context, req *cmtabci.FinalizeBlockRequest,
 ) error {
@@ -101,5 +106,9 @@ func (c *Consensus) PreBlock(
 func (c *Consensus) EndBlock(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	return c.Middleware.EndBlock(ctx)
+	updates, err := c.Middleware.EndBlock(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return iter.MapErr(updates, convertValidatorUpdate)
 }

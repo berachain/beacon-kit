@@ -25,7 +25,6 @@ import (
 	"encoding/json"
 	"time"
 
-	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
@@ -34,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/sourcegraph/conc/iter"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -284,7 +282,7 @@ func (h *ABCIMiddleware[
 	_, BeaconBlockT, _, BlobSidecarsT, _, _, _,
 ]) EndBlock(
 	ctx context.Context,
-) ([]appmodulev2.ValidatorUpdate, error) {
+) (transition.ValidatorUpdates, error) {
 	blk, blobs, err := encoding.
 		ExtractBlobsAndBlockFromRequest[BeaconBlockT, BlobSidecarsT](
 		h.req,
@@ -305,14 +303,9 @@ func (h *ABCIMiddleware[
 	}
 
 	// Process the beacon block and return the validator updates.
-	valUpdates, err := h.processBeaconBlock(
+	return h.processBeaconBlock(
 		ctx, blk,
 	)
-	if err != nil {
-		return nil, err
-	}
-
-	return iter.MapErr(valUpdates, convertValidatorUpdate)
 }
 
 // processSidecars publishes the sidecars and waits for a response.
