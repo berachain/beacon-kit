@@ -160,8 +160,11 @@ func (ee *Engine[
 	case err != nil:
 		ee.metrics.markForkchoiceUpdateUndefinedError(err)
 		return nil, nil, err
+	default:
+		ee.metrics.markForkchoiceUpdateValid(
+			req.State, hasPayloadAttributes, payloadID,
+		)
 	}
-
 	// If we reached here, and we have a nil payload ID, we should log a
 	// warning.
 	if payloadID == nil && hasPayloadAttributes {
@@ -265,6 +268,12 @@ func (ee *Engine[
 			req.ExecutionPayload.GetBlockHash(),
 			req.Optimistic,
 			err,
+		)
+	default:
+		ee.metrics.markNewPayloadValid(
+			req.ExecutionPayload.GetBlockHash(),
+			req.ExecutionPayload.GetParentHash(),
+			req.Optimistic,
 		)
 	}
 
