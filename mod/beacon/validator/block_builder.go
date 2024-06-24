@@ -37,9 +37,7 @@ import (
 
 // buildBlockAndSidecars builds a new beacon block.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
-	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ForkDataT,
+	BeaconBlockT, _, _, BlobSidecarsT, _, _, _, _, _, _,
 ]) buildBlockAndSidecars(
 	ctx context.Context,
 	requestedSlot math.Slot,

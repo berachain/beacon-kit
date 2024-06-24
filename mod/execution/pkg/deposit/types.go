@@ -54,6 +54,7 @@ type BlockEvent[
 	ExecutionPayloadT ExecutionPayload,
 ] interface {
 	Type() asynctypes.EventID
+	Is(asynctypes.EventID) bool
 	Data() BeaconBlockT
 }
 

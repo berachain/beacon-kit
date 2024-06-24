@@ -33,9 +33,14 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 )
 
-// DBPruner is a struct that holds the prunable interface and a notifier
+// Compile-time check to ensure pruner implements the Pruner interface.
+var _ Pruner[Prunable] = (*pruner[
+	BeaconBlock, BlockEvent[BeaconBlock], Prunable,
+])(nil)
+
+// pruner is a struct that holds the prunable interface and a notifier
 // channel.
-type DBPruner[
+type pruner[
 	BeaconBlockT BeaconBlock,
 	BlockEventT BlockEvent[BeaconBlockT],
 	PrunableT Prunable,
@@ -47,6 +52,7 @@ type DBPruner[
 	pruneRangeFn func(BlockEventT) (uint64, uint64)
 }
 
+// NewPruner creates a new Pruner.
 func NewPruner[
 	BeaconBlockT BeaconBlock,
 	BlockEventT BlockEvent[BeaconBlockT],
@@ -57,8 +63,8 @@ func NewPruner[
 	name string,
 	feed chan BlockEventT,
 	pruneRangeFn func(BlockEventT) (uint64, uint64),
-) *DBPruner[BeaconBlockT, BlockEventT, PrunableT] {
-	return &DBPruner[BeaconBlockT, BlockEventT, PrunableT]{
+) Pruner[PrunableT] {
+	return &pruner[BeaconBlockT, BlockEventT, PrunableT]{
 		logger:       logger,
 		prunable:     prunable,
 		name:         name,
@@ -68,32 +74,31 @@ func NewPruner[
 }
 
 // Start starts the Pruner by listening for new indexes to prune.
-func (p *DBPruner[
-	BeaconBlockT, BlockEventT, PrunableT,
-]) Start(ctx context.Context) {
-	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case event := <-p.feed:
-				if event.Type() == events.BeaconBlockFinalized {
-					start, end := p.pruneRangeFn(event)
-					if err := p.prunable.Prune(start, end); err != nil {
-						p.logger.Error(
-							"‼️ error pruning index ‼️",
-							"error", err,
-						)
-					}
+func (p *pruner[_, _, _]) Start(ctx context.Context) {
+	go p.start(ctx)
+}
+
+// start listens for new indexes to prune.
+func (p *pruner[_, _, _]) start(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case event := <-p.feed:
+			if event.Is(events.BeaconBlockFinalized) {
+				start, end := p.pruneRangeFn(event)
+				if err := p.prunable.Prune(start, end); err != nil {
+					p.logger.Error(
+						"‼️ error pruning index ‼️",
+						"error", err,
+					)
 				}
 			}
 		}
-	}()
+	}
 }
 
 // Name returns the name of the Pruner.
-func (p *DBPruner[
-	BeaconBlockT, BlockEventT, PrunableT,
-]) Name() string {
+func (p *pruner[_, _, _]) Name() string {
 	return p.name
 }
