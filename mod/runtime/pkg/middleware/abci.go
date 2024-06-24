@@ -158,16 +158,16 @@ func (h *ABCIMiddleware[
 // waitforBeaconBlk waits for the beacon block to be built and returns it.
 func (h *ABCIMiddleware[
 	_, _, _, _, _, _, _,
-]) waitforBeaconBlk(gCtx context.Context) ([]byte, error) {
+]) waitforBeaconBlk(ctx context.Context) ([]byte, error) {
 	select {
-	case <-gCtx.Done():
-		return nil, gCtx.Err()
+	case <-ctx.Done():
+		return nil, ctx.Err()
 	case beaconBlock := <-h.blkCh:
 		if beaconBlock.Error() != nil {
 			return nil, beaconBlock.Error()
 		}
 		return h.beaconBlockGossiper.Publish(
-			gCtx,
+			ctx,
 			beaconBlock.Data(),
 		)
 	}
