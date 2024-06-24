@@ -35,7 +35,7 @@ import (
 type rootCmdSetup[NodeT types.Node[T], T transaction.Tx] func(
 	cmd *cmdlib.Root,
 	mm *module.Manager,
-	appCreator serverv2.AppCreator[T],
+	appCreator serverv2.AppCreator[NodeT, T],
 	chainSpec common.ChainSpec,
 )
 

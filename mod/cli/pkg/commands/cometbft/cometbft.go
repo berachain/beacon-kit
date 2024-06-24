@@ -32,7 +32,7 @@ import (
 // Commands creates a new command for managing CometBFT
 // related commands.
 func Commands[NodeT types.Node[T], T transaction.Tx](
-	appCreator serverv2.AppCreator[T],
+	appCreator serverv2.AppCreator[NodeT, T],
 ) *cobra.Command {
 	cometCmd := &cobra.Command{
 		Use:     "comet",

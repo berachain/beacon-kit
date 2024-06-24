@@ -54,7 +54,7 @@ type CLIBuilder[NodeT types.Node[T], T transaction.Tx] struct {
 	// nodeBuilderFunc is a function that builds the Node,
 	// eventually called by the cosmos-sdk.
 	// TODO: CLI should not know about the AppCreator
-	nodeBuilderFunc serverv2.AppCreator[T]
+	nodeBuilderFunc serverv2.AppCreator[NodeT, T]
 	// rootCmdSetup is a function that sets up the root command.
 	rootCmdSetup rootCmdSetup[NodeT, T]
 }

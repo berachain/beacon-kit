@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"syscall"
 
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/spf13/cobra"
 
 	"cosmossdk.io/core/transaction"
@@ -16,11 +17,11 @@ import (
 )
 
 // DefaultCommandConfig adds a start command to the root command.
-func DefaultCommandConfig(
+func DefaultCommandConfig[NodeT types.Node[T], T transaction.Tx](
 	rootCmd *cobra.Command,
-	appCreator serverv2.AppCreator[transaction.Tx],
+	appCreator serverv2.AppCreator[NodeT, T],
 	logger log.Logger,
-	components ...serverv2.ServerComponent[transaction.Tx],
+	components ...serverv2.ServerComponent[NodeT, T],
 ) (serverv2.CLIConfig, error) {
 
 	server := serverv2.NewServer(logger, components...)
@@ -81,11 +82,11 @@ func DefaultCommandConfig(
 
 // AddCommands adds the start command to the root command and sets the
 // server context
-func AddCommands(
+func AddCommands[NodeT types.Node[T], T transaction.Tx](
 	rootCmd *cobra.Command,
-	newApp serverv2.AppCreator[transaction.Tx],
+	newApp serverv2.AppCreator[NodeT, T],
 	logger log.Logger,
-	components ...serverv2.ServerComponent[transaction.Tx],
+	components ...serverv2.ServerComponent[NodeT, T],
 ) error {
 	cmds, err := DefaultCommandConfig(rootCmd, newApp, logger, components...)
 	if err != nil {
@@ -118,7 +119,9 @@ func AddCommands(
 }
 
 // configHandle writes the default config to the home directory if it does not exist and sets the server context
-func configHandle(s *serverv2.Server, home string, cmd *cobra.Command) error {
+func configHandle[
+	NodeT types.Node[T], T transaction.Tx,
+](s *serverv2.Server[NodeT, T], home string, cmd *cobra.Command) error {
 	if _, err := os.Stat(filepath.Join(home, "config")); os.IsNotExist(err) {
 		if err = s.WriteConfig(filepath.Join(home, "config")); err != nil {
 			return err

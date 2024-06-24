@@ -44,7 +44,7 @@ import (
 func Commands[NodeT types.Node[T], T transaction.Tx](
 	root *Root,
 	mm *module.Manager,
-	appCreator serverv2.AppCreator[T],
+	appCreator serverv2.AppCreator[NodeT, T],
 	chainSpec common.ChainSpec,
 ) []*cobra.Command {
 	// Setup the custom start command options.
