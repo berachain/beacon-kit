@@ -47,7 +47,7 @@ type Nillable interface {
 	IsNil() bool
 }
 
-// Versionable is a constraint that requires a type to have a Version method.ßß.
+// Versionable is a constraint that requires a type to have a Version method.
 type Versionable interface {
 	Version() uint32
 }
