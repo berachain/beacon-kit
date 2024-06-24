@@ -74,6 +74,7 @@ func (b *Broker[T]) start(ctx context.Context) {
 				// send msg to client (or discard msg after timeout)
 				select {
 				case client <- msg:
+
 				case <-time.After(b.timeout):
 				}
 			}
