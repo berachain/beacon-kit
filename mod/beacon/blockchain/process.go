@@ -83,15 +83,17 @@ func (s *Service[
 	// TODO: this is hood as fuck.
 	// We won't send a fcu if the block is bad, should be addressed
 	// via ticker later.
-	if err = s.blkBroker.Publish(
-		asynctypes.NewEvent(ctx, events.BeaconBlockFinalized, blk),
+	if err = s.blkBroker.Publish(ctx,
+		asynctypes.NewEvent(
+			ctx, events.BeaconBlockFinalized, blk,
+		),
 	); err != nil {
 		return nil, err
 	}
 
 	go s.sendPostBlockFCU(ctx, st, blk)
 
-	return valUpdates, nil
+	return valUpdates.RemoveDuplicates().Sort(), nil
 }
 
 // executeStateTransition runs the stf.

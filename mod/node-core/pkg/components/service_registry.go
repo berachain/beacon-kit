@@ -32,18 +32,19 @@ import (
 // ServiceRegistryInput is the input for the service registry provider.
 type ServiceRegistryInput struct {
 	depinject.In
-	ABCIService      *ABCIMiddleware
-	BlockBroker      *BlockBroker
-	ChainService     *ChainService
-	DBManager        *DBManager
-	DAService        *DAService
-	DepositService   *DepositService
-	EngineClient     *EngineClient
-	Logger           log.Logger
-	SidecarsBroker   *SidecarsBroker
-	SlotBroker       *SlotBroker
-	TelemetrySink    *metrics.TelemetrySink
-	ValidatorService *ValidatorService
+	ABCIService           *ABCIMiddleware
+	BlockBroker           *BlockBroker
+	ChainService          *ChainService
+	DBManager             *DBManager
+	DAService             *DAService
+	DepositService        *DepositService
+	EngineClient          *EngineClient
+	Logger                log.Logger
+	SidecarsBroker        *SidecarsBroker
+	SlotBroker            *SlotBroker
+	TelemetrySink         *metrics.TelemetrySink
+	ValidatorService      *ValidatorService
+	ValidatorUpdateBroker *ValidatorUpdateBroker
 }
 
 // ProvideServiceRegistry is the depinject provider for the service registry.
@@ -66,6 +67,7 @@ func ProvideServiceRegistry(
 		service.WithService(in.BlockBroker),
 		service.WithService(in.SlotBroker),
 		service.WithService(in.SidecarsBroker),
+		service.WithService(in.ValidatorUpdateBroker),
 		service.WithService(in.EngineClient),
 	)
 }

@@ -22,37 +22,39 @@ package components
 
 import (
 	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
-	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 )
 
 // ProvideBlobFeed provides a blob feed for the depinject framework.
 func ProvideBlobFeed() *SidecarsBroker {
-	return broker.New[*asynctypes.Event[*BlobSidecars]](
+	return broker.New[*SidecarEvent](
 		"blob-broker",
 	)
 }
 
 // ProvideBlockFeed provides a block feed for the depinject framework.
 func ProvideBlockFeed() *BlockBroker {
-	return broker.New[*asynctypes.Event[*BeaconBlock]](
+	return broker.New[*BlockEvent](
 		"blk-broker",
 	)
 }
 
 // ProvideSlotBroker provides a slot feed for the depinject framework.
 func ProvideSlotBroker() *SlotBroker {
-	return broker.New[*asynctypes.Event[math.Slot]](
+	return broker.New[*SlotEvent](
 		"slot-broker",
 	)
 }
 
 // ProvideStatusBroker provides a status feed.
-//
-//nolint:lll // formatter.
-func ProvideStatusBroker() *broker.Broker[*asynctypes.Event[*service.StatusEvent]] {
-	return broker.New[*asynctypes.Event[*service.StatusEvent]](
+func ProvideStatusBroker() *broker.Broker[*StatusEvent] {
+	return broker.New[*StatusEvent](
 		"status-broker",
+	)
+}
+
+// ProvideValidatorUpdateBroker provides a validator updates feed.
+func ProvideValidatorUpdateBroker() *ValidatorUpdateBroker {
+	return broker.New[*ValidatorUpdateEvent](
+		"validator-updates-broker",
 	)
 }

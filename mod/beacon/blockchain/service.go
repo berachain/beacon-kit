@@ -82,6 +82,8 @@ type Service[
 	metrics *chainMetrics
 	// blkBroker is the event feed for new blocks.
 	blkBroker EventFeed[*asynctypes.Event[BeaconBlockT]]
+	// validatorUpdateBroker is the event feed for validator updates.
+	validatorUpdateBroker EventFeed[*asynctypes.Event[transition.ValidatorUpdates]]
 	// optimisticPayloadBuilds is a flag used when the optimistic payload
 	// builder is enabled.
 	optimisticPayloadBuilds bool
@@ -119,7 +121,6 @@ func NewService[
 	],
 	logger log.Logger[any],
 	cs common.ChainSpec,
-
 	ee ExecutionEngine[PayloadAttributesT],
 	lb LocalBuilder[BeaconStateT],
 	sp StateProcessor[
@@ -132,6 +133,8 @@ func NewService[
 	],
 	ts TelemetrySink,
 	blkBroker EventFeed[*asynctypes.Event[BeaconBlockT]],
+	//nolint:lll // annoying formatter.
+	validatorUpdateBroker EventFeed[*asynctypes.Event[transition.ValidatorUpdates]],
 	optimisticPayloadBuilds bool,
 ) *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
@@ -151,6 +154,7 @@ func NewService[
 		sp:                      sp,
 		metrics:                 newChainMetrics(ts),
 		blkBroker:               blkBroker,
+		validatorUpdateBroker:   validatorUpdateBroker,
 		optimisticPayloadBuilds: optimisticPayloadBuilds,
 		forceStartupSyncOnce:    new(sync.Once),
 	}
@@ -185,8 +189,11 @@ func (s *Service[
 		case <-ctx.Done():
 			return
 		case msg := <-subBlkCh:
-			if msg.Type() == events.BeaconBlockReceived {
+			switch msg.Type() {
+			case events.BeaconBlockReceived:
 				s.handleBeaconBlockReceived(msg)
+			case events.BeaconBlockFinalizedRequest:
+				s.handleBeaconBlockFinalization(msg)
 			}
 		}
 	}
@@ -204,6 +211,7 @@ func (s *Service[
 
 	// Publish the verified block event.
 	if err := s.blkBroker.Publish(
+		msg.Context(),
 		asynctypes.NewEvent(
 			msg.Context(),
 			events.BeaconBlockVerified,
@@ -212,5 +220,39 @@ func (s *Service[
 		),
 	); err != nil {
 		s.logger.Error("Failed to publish verified block", "error", err)
+	}
+}
+
+func (s *Service[
+	_, BeaconBlockT, _, _, _, _, _, _, _, _, _, _,
+]) handleBeaconBlockFinalization(
+	msg *asynctypes.Event[BeaconBlockT],
+) {
+	// If there's an error in the event, log it and return
+	if msg.Error() != nil {
+		s.logger.Error("Error verifying beacon block", "error", msg.Error())
+		return
+	}
+
+	// Process the verified block
+	valUpdates, err := s.ProcessBeaconBlock(msg.Context(), msg.Data())
+	if err != nil {
+		s.logger.Error("Failed to process verified beacon block", "error", err)
+	}
+
+	// Publish the validator set updated event
+	if err = s.validatorUpdateBroker.Publish(
+		msg.Context(),
+		asynctypes.NewEvent(
+			msg.Context(),
+			events.ValidatorSetUpdated,
+			valUpdates,
+			err,
+		)); err != nil {
+		s.logger.Error(
+			"Failed to publish validator set updated event",
+			"error",
+			err,
+		)
 	}
 }

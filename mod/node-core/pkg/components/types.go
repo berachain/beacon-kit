@@ -99,15 +99,6 @@ type (
 		*BeaconBlockBody,
 	]
 
-	// SidecarsBroker is a type alias for the blob feed.
-	SidecarsBroker = broker.Broker[*asynctypes.Event[*BlobSidecars]]
-
-	// BlockEvent is a type alias for the block event.
-	BlockEvent = asynctypes.Event[*BeaconBlock]
-
-	// BlockBroker is a type alias for the block feed.
-	BlockBroker = broker.Broker[*BlockEvent]
-
 	// ChainService is a type alias for the chain service.
 	ChainService = blockchain.Service[
 		*AvailabilityStore,
@@ -129,7 +120,7 @@ type (
 		*dastore.Store[*BeaconBlockBody],
 		*BeaconBlockBody,
 		*BlobSidecars,
-		*broker.Broker[*asynctypes.Event[*BlobSidecars]],
+		*broker.Broker[*SidecarEvent],
 		*ExecutionPayload,
 	]
 
@@ -200,12 +191,6 @@ type (
 		*ExecutionPayloadHeader,
 	]
 
-	// SlotBroker is a type alias for the slot feed.
-	SlotBroker = broker.Broker[*asynctypes.Event[math.Slot]]
-
-	// StatusBroker is a type alias for the status feed.
-	StatusBroker = broker.Broker[*asynctypes.Event[*service.StatusEvent]]
-
 	// StorageBackend is the type alias for the storage backend interface.
 	StorageBackend = beacon.StorageBackend[
 		*AvailabilityStore,
@@ -232,4 +217,47 @@ type (
 
 	// Withdrawal is a type alias for the engineprimitives withdrawal.
 	Withdrawal = engineprimitives.Withdrawal
+)
+
+/* -------------------------------------------------------------------------- */
+/*                                   Events                                   */
+/* -------------------------------------------------------------------------- */
+
+type (
+	// BlockEvent is a type alias for the block event.
+	BlockEvent = asynctypes.Event[*BeaconBlock]
+
+	// SidecarEvent is a type alias for the sidecar event.
+	SidecarEvent = asynctypes.Event[*BlobSidecars]
+
+	// SlotEvent is a type alias for the slot event.
+	SlotEvent = asynctypes.Event[math.Slot]
+
+	// StatusEvent is a type alias for the status event.
+	StatusEvent = asynctypes.Event[*service.StatusEvent]
+
+	// ValidatorUpdateEvent is a type alias for the validator update event.
+	ValidatorUpdateEvent = asynctypes.Event[transition.ValidatorUpdates]
+)
+
+/* -------------------------------------------------------------------------- */
+/*                                   Brokers                                  */
+/* -------------------------------------------------------------------------- */
+
+type (
+
+	// SidecarsBroker is a type alias for the blob feed.
+	SidecarsBroker = broker.Broker[*SidecarEvent]
+
+	// BlockBroker is a type alias for the block feed.
+	BlockBroker = broker.Broker[*BlockEvent]
+
+	// SlotBroker is a type alias for the slot feed.
+	SlotBroker = broker.Broker[*SlotEvent]
+
+	// StatusBroker is a type alias for the status feed.
+	StatusBroker = broker.Broker[*StatusEvent]
+
+	// ValidatorUpdateBroker is a type alias for the validator update feed.
+	ValidatorUpdateBroker = broker.Broker[*ValidatorUpdateEvent]
 )

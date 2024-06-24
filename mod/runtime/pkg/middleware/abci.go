@@ -23,7 +23,6 @@ package middleware
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
@@ -31,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -86,7 +86,7 @@ func (h *ABCIMiddleware[
 
 	// Send a request to the validator service to give us a beacon block
 	// and blob sidecards to pass to ABCI.
-	if err := h.slotBroker.Publish(asynctypes.NewEvent(
+	if err := h.slotBroker.Publish(ctx, asynctypes.NewEvent(
 		ctx, events.NewSlot, math.Slot(req.Height),
 	)); err != nil {
 		return nil, err
@@ -168,26 +168,27 @@ func (h *ABCIMiddleware[
 
 	// Request the beacon block.
 	if blk, err = h.beaconBlockGossiper.Request(ctx, req); err != nil {
-		return h.createResponse(errors.WrapNonFatal(err))
+		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
 
-	// Request the blob sidecars.
-	if sidecars, err = h.blobGossiper.Request(ctx, req); err != nil {
-		return h.createResponse(errors.WrapNonFatal(err))
-	}
-
-	// Process the beacon block and blob sidecars concurrently.
+	// Begin processing the beacon block.
 	g.Go(func() error {
 		return h.verifyBeaconBlock(ctx, blk)
 	})
 
+	// Request the blob sidecars.
+	if sidecars, err = h.blobGossiper.Request(ctx, req); err != nil {
+		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
+	}
+
+	// Begin processing the blob sidecars.
 	g.Go(func() error {
 		return h.verifyBlobSidecars(ctx, sidecars)
 	})
 
 	// Wait for both processes to complete and then
 	// return the appropriate response.s
-	return h.createResponse(g.Wait())
+	return h.createProcessProposalResponse(g.Wait())
 }
 
 // verifyBeaconBlock handles the processing of the beacon block.
@@ -201,6 +202,7 @@ func (h *ABCIMiddleware[
 ) error {
 	// Publish the received event.
 	if err := h.blkBroker.Publish(
+		ctx,
 		asynctypes.NewEvent(ctx, events.BeaconBlockReceived, blk, nil),
 	); err != nil {
 		return err
@@ -231,6 +233,7 @@ func (h *ABCIMiddleware[
 ) error {
 	// Publish the received event.
 	if err := h.sidecarsBroker.Publish(
+		ctx,
 		asynctypes.NewEvent(ctx, events.BlobSidecarsReceived, sidecars),
 	); err != nil {
 		return err
@@ -254,7 +257,9 @@ func (h *ABCIMiddleware[
 // error.
 func (*ABCIMiddleware[
 	_, BeaconBlockT, _, BlobSidecarsT, _, _, _,
-]) createResponse(err error) (*cmtabci.ProcessProposalResponse, error) {
+]) createProcessProposalResponse(
+	err error,
+) (*cmtabci.ProcessProposalResponse, error) {
 	status := cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
 	if !errors.IsFatal(err) {
 		status = cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
@@ -276,6 +281,7 @@ func (h *ABCIMiddleware[
 	_ sdk.Context, req *cmtabci.FinalizeBlockRequest,
 ) error {
 	h.req = req
+
 	return nil
 }
 
@@ -304,37 +310,68 @@ func (h *ABCIMiddleware[
 		return nil, err
 	}
 
-	// TODO: Move to Async.
-	valUpdates, err := h.chainService.ProcessBeaconBlock(
+	// Process the beacon block and return the validator updates.
+	valUpdates, err := h.processBeaconBlock(
 		ctx, blk,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	return iter.MapErr(
-		valUpdates.RemoveDuplicates().Sort(), convertValidatorUpdate,
-	)
+	return iter.MapErr(valUpdates, convertValidatorUpdate)
 }
 
 // processSidecars publishes the sidecars and waits for a response.
 func (h *ABCIMiddleware[
 	_, _, _, BlobSidecarsT, _, _, _,
 ]) processSidecars(ctx context.Context, blobs BlobSidecarsT) error {
-	if err := h.sidecarsBroker.Publish(asynctypes.NewEvent(
-		ctx, events.BlobSidecarsVerified, blobs,
+	// Publish the sidecars.
+	if err := h.sidecarsBroker.Publish(ctx, asynctypes.NewEvent(
+		ctx, events.BlobSidecarsProcessRequest, blobs,
 	)); err != nil {
 		return err
 	}
 
+	// Wait for the sidecars to be processed.
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
-	case sidecars := <-h.sidecarsCh:
-		if sidecars.Type() != events.BlobSidecarsProcessed {
-			return fmt.Errorf(
-				"unexpected event type: %s", sidecars.Type())
+	case msg := <-h.sidecarsCh:
+		if msg.Type() != events.BlobSidecarsProcessed {
+			return errors.Wrapf(
+				ErrUnexpectedEvent,
+				"unexpected event type: %s", msg.Type(),
+			)
 		}
-		return sidecars.Error()
+		return msg.Error()
+	}
+}
+
+// processBeaconBlock processes the beacon block and returns validator updates.
+func (h *ABCIMiddleware[
+	_, BeaconBlockT, _, _, _, _, _,
+]) processBeaconBlock(
+	ctx context.Context, blk BeaconBlockT,
+) (transition.ValidatorUpdates, error) {
+	// Publish the verified block event.
+	if err := h.blkBroker.Publish(
+		ctx, asynctypes.NewEvent(
+			ctx, events.BeaconBlockFinalizedRequest, blk,
+		)); err != nil {
+		return nil, err
+	}
+
+	// Wait for the block to be processed.
+	select {
+	case msg := <-h.valUpdateSub:
+		if msg.Type() != events.ValidatorSetUpdated {
+			return nil, errors.Wrapf(
+				ErrUnexpectedEvent,
+				"unexpected event type: %s", msg.Type(),
+			)
+		}
+		return msg.Data(), msg.Error()
+	case <-ctx.Done():
+		return nil, ctx.Err()
 	}
 }
