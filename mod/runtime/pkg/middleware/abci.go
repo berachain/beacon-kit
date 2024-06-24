@@ -45,18 +45,8 @@ import (
 
 // InitGenesis is called by the base app to initialize the state of the.
 func (h *ABCIMiddleware[
-	_, _, _, _, _, _, _,
-]) InitGenesis(
-	ctx context.Context,
-	bz []byte,
-) ([]appmodulev2.ValidatorUpdate, error) {
-	return h.initGenesis(ctx, bz)
-}
-
-// initGenesis is called by the base app to initialize the state of the.
-func (h *ABCIMiddleware[
 	_, _, _, _, _, _, GenesisT,
-]) initGenesis(
+]) InitGenesis(
 	ctx context.Context,
 	bz []byte,
 ) ([]appmodulev2.ValidatorUpdate, error) {
@@ -80,21 +70,10 @@ func (h *ABCIMiddleware[
 /*                               PrepareProposal                              */
 /* -------------------------------------------------------------------------- */
 
-// PrepareProposal is a wrapper around the prepare proposal handler
-// that injects the beacon block into the proposal.
-func (h *ABCIMiddleware[
-	_, _, _, _, _, _, _,
-]) PrepareProposal(
-	ctx sdk.Context,
-	req *cmtabci.PrepareProposalRequest,
-) (*cmtabci.PrepareProposalResponse, error) {
-	return h.prepareProposal(ctx, req)
-}
-
 // prepareProposal is the internal handler for preparing proposals.
 func (h *ABCIMiddleware[
 	_, _, _, _, _, _, _,
-]) prepareProposal(
+]) PrepareProposal(
 	ctx sdk.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
@@ -180,18 +159,8 @@ func (h *ABCIMiddleware[
 // ProcessProposal is a wrapper around the process proposal handler
 // that extracts the beacon block from the proposal and processes it.
 func (h *ABCIMiddleware[
-	_, _, _, _, _, _, _,
-]) ProcessProposal(
-	ctx sdk.Context,
-	req *cmtabci.ProcessProposalRequest,
-) (*cmtabci.ProcessProposalResponse, error) {
-	return h.processProposal(ctx, req)
-}
-
-// processProposal is the internal handler for processing proposals.
-func (h *ABCIMiddleware[
 	_, BeaconBlockT, _, BlobSidecarsT, _, _, _,
-]) processProposal(
+]) ProcessProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
