@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package cometbft
+package middleware
 
 const (
 	// BeaconBlockTxIndex represents the index of the beacon block transaction.

@@ -25,7 +25,7 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/index"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/keys"
@@ -35,14 +35,14 @@ import (
 // KVStore is a wrapper around an sdk.Context
 // that provides access to all beacon related data.
 type KVStore[
-	BeaconBlockHeaderT ssz.Marshallable,
-	Eth1DataT ssz.Marshallable,
+	BeaconBlockHeaderT constraints.SSZMarshallable,
+	Eth1DataT constraints.SSZMarshallable,
 	ExecutionPayloadHeaderT interface {
-		ssz.Marshallable
+		constraints.SSZMarshallable
 		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
 		Version() uint32
 	},
-	ForkT ssz.Marshallable,
+	ForkT constraints.SSZMarshallable,
 	ValidatorT Validator,
 ] struct {
 	ctx   context.Context
@@ -102,14 +102,14 @@ type KVStore[
 //
 //nolint:funlen // its not overly complex.
 func New[
-	BeaconBlockHeaderT ssz.Marshallable,
-	Eth1DataT ssz.Marshallable,
+	BeaconBlockHeaderT constraints.SSZMarshallable,
+	Eth1DataT constraints.SSZMarshallable,
 	ExecutionPayloadHeaderT interface {
-		ssz.Marshallable
+		constraints.SSZMarshallable
 		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
 		Version() uint32
 	},
-	ForkT ssz.Marshallable,
+	ForkT constraints.SSZMarshallable,
 	ValidatorT Validator,
 ](
 	kss store.KVStoreService,

@@ -18,41 +18,36 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package cometbft
+package constraints
 
-import (
-	"time"
-)
-
-// ABCIMiddlewareMetrics is a struct that contains metrics for the chain.
-type ABCIMiddlewareMetrics struct {
-	// sink is the sink for the metrics.
-	sink TelemetrySink
+// ForkTyped is a constraint that requires a type to have an Empty method.
+type ForkTyped[SelfT any] interface {
+	EmptyWithVersion[SelfT]
+	Versionable
+	Nillable
 }
 
-// newABCIMiddlewareMetrics creates a new ABCIMiddlewareMetrics.
-func newABCIMiddlewareMetrics(
-	sink TelemetrySink,
-) *ABCIMiddlewareMetrics {
-	return &ABCIMiddlewareMetrics{
-		sink: sink,
-	}
+// EngineType represents the constraints for a type that is
+// used within the context of sending over the EngineAPI.
+type EngineType[SelfT any] interface {
+	EmptyWithVersion[SelfT]
+	Versionable
+	Nillable
+	JSONMarshallable
 }
 
-// measurePrepareProposalDuration measures the time to prepare.
-func (cm *ABCIMiddlewareMetrics) measurePrepareProposalDuration(
-	start time.Time,
-) {
-	cm.sink.MeasureSince(
-		"beacon_kit.runtime.prepare_proposal_duration", start,
-	)
+// EmptyWithForkVersion is a constraint that requires a type to have an Empty
+// method.
+type EmptyWithVersion[SelfT any] interface {
+	Empty(uint32) SelfT
 }
 
-// measureProcessProposalDuration measures the time to process.
-func (cm *ABCIMiddlewareMetrics) measureProcessProposalDuration(
-	start time.Time,
-) {
-	cm.sink.MeasureSince(
-		"beacon_kit.runtime.process_proposal_duration", start,
-	)
+// IsNil is a constraint that requires a type to have an IsNil method.
+type Nillable interface {
+	IsNil() bool
+}
+
+// Versionable is a constraint that requires a type to have a Version method.
+type Versionable interface {
+	Version() uint32
 }

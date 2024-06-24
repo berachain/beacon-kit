@@ -18,25 +18,19 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package encoding
+package middleware
 
-import (
-	"time"
+import "errors"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+var (
+	// ErrUndefinedValidatorUpdate is returned when an undefined validator
+	// update is
+	// encountered.
+	ErrUndefinedValidatorUpdate = errors.New("undefined validator update")
+	// ErrBadExtractBlockAndBlocks is returned when an error occurs while
+	// extracting
+	// the block and blocks from the request.
+	ErrBadExtractBlockAndBlocks = errors.New("bad extract block and blocks")
+	// ErrUnexpectedEvent is returned when an unexpected event is encountered.
+	ErrUnexpectedEvent = errors.New("unexpected event")
 )
-
-// ABCIRequest represents the interface for an ABCI request.
-type ABCIRequest interface {
-	// GetHeight returns the height of the request.
-	GetHeight() int64
-	// GetTime returns the time of the request.
-	GetTime() time.Time
-	// GetTxs returns the transactions included in the request.
-	GetTxs() [][]byte
-}
-
-type BeaconBlock[T any] interface {
-	constraints.SSZMarshallable
-	NewFromSSZ([]byte, uint32) (T, error)
-}

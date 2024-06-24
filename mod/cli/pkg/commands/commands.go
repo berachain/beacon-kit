@@ -6,6 +6,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/start"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/spf13/cobra"
 
 	"cosmossdk.io/core/transaction"

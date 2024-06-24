@@ -18,25 +18,41 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package encoding
+package middleware
 
 import (
 	"time"
-
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 )
 
-// ABCIRequest represents the interface for an ABCI request.
-type ABCIRequest interface {
-	// GetHeight returns the height of the request.
-	GetHeight() int64
-	// GetTime returns the time of the request.
-	GetTime() time.Time
-	// GetTxs returns the transactions included in the request.
-	GetTxs() [][]byte
+// ABCIMiddlewareMetrics is a struct that contains metrics for the chain.
+type ABCIMiddlewareMetrics struct {
+	// sink is the sink for the metrics.
+	sink TelemetrySink
 }
 
-type BeaconBlock[T any] interface {
-	constraints.SSZMarshallable
-	NewFromSSZ([]byte, uint32) (T, error)
+// newABCIMiddlewareMetrics creates a new ABCIMiddlewareMetrics.
+func newABCIMiddlewareMetrics(
+	sink TelemetrySink,
+) *ABCIMiddlewareMetrics {
+	return &ABCIMiddlewareMetrics{
+		sink: sink,
+	}
+}
+
+// measurePrepareProposalDuration measures the time to prepare.
+func (cm *ABCIMiddlewareMetrics) measurePrepareProposalDuration(
+	start time.Time,
+) {
+	cm.sink.MeasureSince(
+		"beacon_kit.runtime.prepare_proposal_duration", start,
+	)
+}
+
+// measureProcessProposalDuration measures the time to process.
+func (cm *ABCIMiddlewareMetrics) measureProcessProposalDuration(
+	start time.Time,
+) {
+	cm.sink.MeasureSince(
+		"beacon_kit.runtime.process_proposal_duration", start,
+	)
 }
