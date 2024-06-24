@@ -23,7 +23,7 @@ package suite
 import (
 	"context"
 
-	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite/types"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
@@ -41,7 +41,7 @@ var Run = suite.Run
 type KurtosisE2ESuite struct {
 	suite.Suite
 	cfg     *config.E2ETestConfig
-	logger  log.Logger
+	logger  log.Logger[any]
 	ctx     context.Context
 	kCtx    *kurtosis_context.KurtosisContext
 	enclave *enclaves.EnclaveContext
@@ -107,7 +107,7 @@ func (s *KurtosisE2ESuite) JSONRPCBalancerType() string {
 }
 
 // Logger returns the logger for the test suite.
-func (s *KurtosisE2ESuite) Logger() log.Logger {
+func (s *KurtosisE2ESuite) Logger() log.Logger[any] {
 	return s.logger
 }
 
