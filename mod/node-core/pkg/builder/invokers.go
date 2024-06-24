@@ -18,25 +18,16 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package encoding
+package builder
 
 import (
-	"time"
-
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/config"
+	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
 )
 
-// ABCIRequest represents the interface for an ABCI request.
-type ABCIRequest interface {
-	// GetHeight returns the height of the request.
-	GetHeight() int64
-	// GetTime returns the time of the request.
-	GetTime() time.Time
-	// GetTxs returns the transactions included in the request.
-	GetTxs() [][]byte
-}
-
-type BeaconBlock[T any] interface {
-	constraints.SSZMarshallable
-	NewFromSSZ([]byte, uint32) (T, error)
+// SetLoggerConfig sets the logger configuration. It acts as an invoker
+// for the depinject framework.
+func SetLoggerConfig(config *config.Config, logger log.Logger) {
+	logger.(*phuslu.Logger[log.Logger]).WithConfig(*config.GetLogger())
 }

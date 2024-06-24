@@ -18,25 +18,41 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package encoding
+package phuslu
 
-import (
-	"time"
+const (
+	// colours.
+	reset      = "\x1b[0m"
+	black      = "\x1b[30m"
+	red        = "\x1b[31m"
+	green      = "\x1b[32m"
+	yellow     = "\x1b[33m"
+	blue       = "\x1b[34m"
+	magenta    = "\x1b[35m"
+	cyan       = "\x1b[36m"
+	white      = "\x1b[37m"
+	gray       = "\x1b[90m"
+	lightWhite = "\x1b[97m"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+	// log levels.
+	traceColor   = magenta
+	debugColor   = yellow
+	infoColor    = green
+	warnColor    = yellow
+	errorColor   = red
+	fatalColor   = red
+	panicColor   = red
+	defaultColor = gray
+	traceLabel   = "TRCE"
+	debugLabel   = "DBUG"
+	infoLabel    = "INFO"
+	warnLabel    = "WARN"
+	errorLabel   = "ERRR"
+	fatalLabel   = "FATAL"
+	panicLabel   = "PANIC"
+	defaultLabel = " ???"
+
+	// output styles flags.
+	StylePretty = "pretty"
+	StyleJSON   = "json"
 )
-
-// ABCIRequest represents the interface for an ABCI request.
-type ABCIRequest interface {
-	// GetHeight returns the height of the request.
-	GetHeight() int64
-	// GetTime returns the time of the request.
-	GetTime() time.Time
-	// GetTxs returns the transactions included in the request.
-	GetTxs() [][]byte
-}
-
-type BeaconBlock[T any] interface {
-	constraints.SSZMarshallable
-	NewFromSSZ([]byte, uint32) (T, error)
-}

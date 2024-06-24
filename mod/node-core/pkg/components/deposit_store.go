@@ -26,8 +26,8 @@ import (
 	storev2 "cosmossdk.io/store/v2/db"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
-	"github.com/berachain/beacon-kit/mod/interfaces"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	depositstore "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
@@ -46,7 +46,7 @@ type DepositStoreInput struct {
 // application.
 func ProvideDepositStore[
 	DepositT interface {
-		interfaces.SSZMarshallable
+		constraints.SSZMarshallable
 		GetIndex() uint64
 		HashTreeRoot() ([32]byte, error)
 	},

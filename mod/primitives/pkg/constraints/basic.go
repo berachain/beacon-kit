@@ -18,25 +18,36 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package encoding
+package constraints
 
-import (
-	"time"
-
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
-)
-
-// ABCIRequest represents the interface for an ABCI request.
-type ABCIRequest interface {
-	// GetHeight returns the height of the request.
-	GetHeight() int64
-	// GetTime returns the time of the request.
-	GetTime() time.Time
-	// GetTxs returns the transactions included in the request.
-	GetTxs() [][]byte
+// ForkTyped is a constraint that requires a type to have an Empty method.
+type ForkTyped[SelfT any] interface {
+	EmptyWithVersion[SelfT]
+	Versionable
+	Nillable
 }
 
-type BeaconBlock[T any] interface {
-	constraints.SSZMarshallable
-	NewFromSSZ([]byte, uint32) (T, error)
+// EngineType represents the constraints for a type that is
+// used within the context of sending over the EngineAPI.
+type EngineType[SelfT any] interface {
+	EmptyWithVersion[SelfT]
+	Versionable
+	Nillable
+	JSONMarshallable
+}
+
+// EmptyWithForkVersion is a constraint that requires a type to have an Empty
+// method.
+type EmptyWithVersion[SelfT any] interface {
+	Empty(uint32) SelfT
+}
+
+// IsNil is a constraint that requires a type to have an IsNil method.
+type Nillable interface {
+	IsNil() bool
+}
+
+// Versionable is a constraint that requires a type to have a Version method.
+type Versionable interface {
+	Version() uint32
 }
