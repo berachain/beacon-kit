@@ -18,28 +18,41 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package middleware
+package cometbft
 
 import (
-	appmodulev2 "cosmossdk.io/core/appmodule/v2"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
+	"time"
 )
 
-// convertValidatorUpdate abstracts the conversion of a
-// transition.ValidatorUpdate to an appmodulev2.ValidatorUpdate.
-func convertValidatorUpdate(
-	u **transition.ValidatorUpdate,
-) (appmodulev2.ValidatorUpdate, error) {
-	update := *u
-	if update == nil {
-		return appmodulev2.ValidatorUpdate{},
-			ErrUndefinedValidatorUpdate
+// ABCIMiddlewareMetrics is a struct that contains metrics for the chain.
+type ABCIMiddlewareMetrics struct {
+	// sink is the sink for the metrics.
+	sink TelemetrySink
+}
+
+// newABCIMiddlewareMetrics creates a new ABCIMiddlewareMetrics.
+func newABCIMiddlewareMetrics(
+	sink TelemetrySink,
+) *ABCIMiddlewareMetrics {
+	return &ABCIMiddlewareMetrics{
+		sink: sink,
 	}
-	return appmodulev2.ValidatorUpdate{
-		PubKey:     update.Pubkey[:],
-		PubKeyType: crypto.CometBLSType,
-		//#nosec:G701 // this is safe.
-		Power: int64(update.EffectiveBalance.Unwrap()),
-	}, nil
+}
+
+// measurePrepareProposalDuration measures the time to prepare.
+func (cm *ABCIMiddlewareMetrics) measurePrepareProposalDuration(
+	start time.Time,
+) {
+	cm.sink.MeasureSince(
+		"beacon_kit.runtime.prepare_proposal_duration", start,
+	)
+}
+
+// measureProcessProposalDuration measures the time to process.
+func (cm *ABCIMiddlewareMetrics) measureProcessProposalDuration(
+	start time.Time,
+) {
+	cm.sink.MeasureSince(
+		"beacon_kit.runtime.process_proposal_duration", start,
+	)
 }

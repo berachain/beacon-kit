@@ -18,41 +18,19 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package middleware
+package cometbft
 
-import (
-	"time"
+import "errors"
+
+var (
+	// ErrUndefinedValidatorUpdate is returned when an undefined validator
+	// update is
+	// encountered.
+	ErrUndefinedValidatorUpdate = errors.New("undefined validator update")
+	// ErrBadExtractBlockAndBlocks is returned when an error occurs while
+	// extracting
+	// the block and blocks from the request.
+	ErrBadExtractBlockAndBlocks = errors.New("bad extract block and blocks")
+	// ErrUnexpectedEvent is returned when an unexpected event is encountered.
+	ErrUnexpectedEvent = errors.New("unexpected event")
 )
-
-// ABCIMiddlewareMetrics is a struct that contains metrics for the chain.
-type ABCIMiddlewareMetrics struct {
-	// sink is the sink for the metrics.
-	sink TelemetrySink
-}
-
-// newABCIMiddlewareMetrics creates a new ABCIMiddlewareMetrics.
-func newABCIMiddlewareMetrics(
-	sink TelemetrySink,
-) *ABCIMiddlewareMetrics {
-	return &ABCIMiddlewareMetrics{
-		sink: sink,
-	}
-}
-
-// measurePrepareProposalDuration measures the time to prepare.
-func (cm *ABCIMiddlewareMetrics) measurePrepareProposalDuration(
-	start time.Time,
-) {
-	cm.sink.MeasureSince(
-		"beacon_kit.runtime.prepare_proposal_duration", start,
-	)
-}
-
-// measureProcessProposalDuration measures the time to process.
-func (cm *ABCIMiddlewareMetrics) measureProcessProposalDuration(
-	start time.Time,
-) {
-	cm.sink.MeasureSince(
-		"beacon_kit.runtime.process_proposal_duration", start,
-	)
-}

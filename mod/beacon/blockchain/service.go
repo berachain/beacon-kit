@@ -27,6 +27,7 @@ import (
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
@@ -164,8 +165,52 @@ func (s *Service[
 
 func (s *Service[
 	_, _, _, _, _, _, _, _, _, _, _, _,
-]) Start(
-	context.Context,
-) error {
+]) Start(ctx context.Context) error {
+	subBlkCh, err := s.blkBroker.Subscribe()
+	if err != nil {
+		return err
+	}
+	go s.start(ctx, subBlkCh)
 	return nil
+}
+
+func (s *Service[
+	_, BeaconBlockT, _, _, _, _, _, _, _, _, _, _,
+]) start(
+	ctx context.Context,
+	subBlkCh chan *asynctypes.Event[BeaconBlockT],
+) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case msg := <-subBlkCh:
+			if msg.Type() == events.BeaconBlockReceived {
+				s.handleBeaconBlockReceived(msg)
+			}
+		}
+	}
+}
+func (s *Service[
+	_, BeaconBlockT, _, _, _, _, _, _, _, _, _, _,
+]) handleBeaconBlockReceived(
+	msg *asynctypes.Event[BeaconBlockT],
+) {
+	// If the block is nil, exit early.
+	if msg.Error() != nil {
+		s.logger.Error("Error processing beacon block", "error", msg.Error())
+		return
+	}
+
+	// Publish the verified block event.
+	if err := s.blkBroker.Publish(
+		asynctypes.NewEvent(
+			msg.Context(),
+			events.BeaconBlockVerified,
+			msg.Data(),
+			s.VerifyIncomingBlock(msg.Context(), msg.Data()),
+		),
+	); err != nil {
+		s.logger.Error("Failed to publish verified block", "error", err)
+	}
 }
