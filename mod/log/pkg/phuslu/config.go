@@ -20,8 +20,6 @@
 
 package phuslu
 
-import "time"
-
 // Config is a structure that defines the configuration for the logger.
 type Config struct {
 	// TimeFormat is a string that defines the format of the time in
@@ -36,8 +34,8 @@ type Config struct {
 // DefaultConfig is a function that returns a new Config with default values.
 func DefaultConfig() Config {
 	return Config{
-		TimeFormat: time.RFC3339,
-		Verbose:    true,
+		TimeFormat: "RFC3339",
+		Verbose:    false,
 		Style:      StylePretty,
 	}
 }

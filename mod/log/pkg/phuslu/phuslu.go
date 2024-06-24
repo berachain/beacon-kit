@@ -36,6 +36,8 @@ type Logger[ImplT any] struct {
 	out io.Writer
 	// formatter is the formatter to use for the logger.
 	formatter *Formatter
+	// message is the function to use for logging messages.
+	message func(msg string, ctx log.Fields, e *log.Entry, keyVals ...any)
 }
 
 // NewLogger creates a new logger with the given log level, ConsoleWriter, and
@@ -44,30 +46,34 @@ func NewLogger[ImplT any](
 	level string, out io.Writer,
 ) *Logger[ImplT] {
 	formatter := NewFormatter()
-	logger := &log.Logger{
+	pLogger := &log.Logger{
 		Level: log.ParseLevel(level),
 	}
-	return &Logger[ImplT]{
-		logger:    logger,
+	logger := &Logger[ImplT]{
+		logger:    pLogger,
 		context:   make(log.Fields),
 		out:       out,
 		formatter: formatter,
 	}
+	// we can remove this and assume valid config is provided before any
+	// messaging occurs
+	// logger.message = logger.msgWithContext
+	return logger
 }
 
 // Info logs a message at level Info.
 func (l *Logger[ImplT]) Info(msg string, keyVals ...any) {
-	l.msgWithContext(msg, l.logger.Info(), keyVals...)
+	l.message(msg, l.context, l.logger.Info(), keyVals...)
 }
 
 // Warn logs a message at level Warn.
 func (l *Logger[ImplT]) Warn(msg string, keyVals ...any) {
-	l.msgWithContext(msg, l.logger.Warn(), keyVals...)
+	l.message(msg, l.context, l.logger.Warn(), keyVals...)
 }
 
 // Error logs a message at level Error.
 func (l *Logger[ImplT]) Error(msg string, keyVals ...any) {
-	l.msgWithContext(msg, l.logger.Error(), keyVals...)
+	l.message(msg, l.context, l.logger.Error(), keyVals...)
 }
 
 // Debug logs a message at level Debug.
@@ -80,7 +86,7 @@ func (l *Logger[ImplT]) Debug(msg string, keyVals ...any) {
 	if l.logger.Level > log.DebugLevel {
 		return
 	}
-	l.msgWithContext(msg, l.logger.Debug(), keyVals...)
+	l.message(msg, l.context, l.logger.Debug(), keyVals...)
 }
 
 // Impl returns the underlying logger implementation.
@@ -110,13 +116,6 @@ func (l Logger[ImplT]) With(keyVals ...any) ImplT {
 	return any(&newLogger).(ImplT)
 }
 
-// msgWithContext logs a message with keyVals and current context.
-func (l *Logger[ImplT]) msgWithContext(
-	msg string, e *log.Entry, keyVals ...any,
-) {
-	e.Fields(l.context).KeysAndValues(keyVals...).Msg(msg)
-}
-
 // SetLevel sets the log level of the logger.
 func (l *Logger[ImplT]) SetLevel(level string) {
 	l.logger.Level = log.ParseLevel(level)
@@ -127,14 +126,50 @@ func (l *Logger[ImplT]) SetLevel(level string) {
 // config to the logger at creation time, because the dependent viper instance
 // is not yet populated.
 func (l *Logger[ImplT]) WithConfig(cfg Config) *Logger[ImplT] {
-	l.logger.TimeFormat = cfg.TimeFormat
-	if cfg.Style == StylePretty {
+	l.withTimeFormat(cfg.TimeFormat)
+	l.withStyle(cfg.Style)
+	l.withVerbosity(cfg.Verbose)
+	return l
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                 messaging                                  */
+/* -------------------------------------------------------------------------- */
+
+// msgWithContext logs a message with keyVals and current context.
+func msgWithContext(
+	msg string, ctx log.Fields, e *log.Entry, keyVals ...any,
+) {
+	e.Fields(ctx).KeysAndValues(keyVals...).Msg(msg)
+}
+
+// msgWithoutContext logs a message with keyVals and without context.
+func msgWithoutContext(
+	msg string, _ log.Fields, e *log.Entry, keyVals ...any,
+) {
+	e.KeysAndValues(keyVals...).Msg(msg)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                             configuration                                  */
+/* -------------------------------------------------------------------------- */
+
+// sets the style of the logger.
+func (l *Logger[Impl]) withStyle(style string) {
+	if style == StylePretty {
 		l.useConsoleWriter()
-	} else if cfg.Style == StyleJSON {
+	} else if style == StyleJSON {
 		l.useJSONWriter()
 	}
-	// todo: set verbosity
-	return l
+}
+
+// withVerbosity sets the verbosity of the logger.
+func (l *Logger[Impl]) withVerbosity(verbose bool) {
+	if verbose {
+		l.message = msgWithContext
+	} else {
+		l.message = msgWithoutContext
+	}
 }
 
 // useConsoleWriter sets the logger to use a console writer.

@@ -20,8 +20,8 @@
 
 package phuslu
 
-// colours.
 const (
+	// colours.
 	reset      = "\x1b[0m"
 	black      = "\x1b[30m"
 	red        = "\x1b[31m"
@@ -33,10 +33,8 @@ const (
 	white      = "\x1b[37m"
 	gray       = "\x1b[90m"
 	lightWhite = "\x1b[97m"
-)
 
-// log levels.
-const (
+	// log levels.
 	traceColor   = magenta
 	debugColor   = yellow
 	infoColor    = green
@@ -53,10 +51,8 @@ const (
 	fatalLabel   = "FATAL"
 	panicLabel   = "PANIC"
 	defaultLabel = " ???"
-)
 
-// output styles flags.
-const (
+	// output styles flags.
 	StylePretty = "pretty"
 	StyleJSON   = "json"
 )
