@@ -47,14 +47,14 @@ func DefaultRootCommandSetup[NodeT types.Node[T], T transaction.Tx](
 	chainSpec common.ChainSpec,
 ) {
 	// Setup the custom start command options.
-	startCmdOptions := server.StartCmdOptions[T]{
+	startCmdOptions := server.StartCmdOptions[NodeT]{
 		AddFlags: flags.AddBeaconKitFlags,
 	}
 
 	// Add all the commands to the root command.
 	root.cmd.AddCommand(
 		// `comet`
-		cometbft.Commands(appCreator),
+		cometbft.Commands[NodeT](appCreator),
 		// `client`
 		client.Commands(),
 		// `config`

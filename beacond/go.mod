@@ -14,6 +14,7 @@ replace (
 )
 
 require (
+	cosmossdk.io/core v0.12.1-0.20240623110059-dec2d5583e39
 	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240624003607-df94860f8eeb
 	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240624003607-df94860f8eeb
 	github.com/cosmos/cosmos-sdk v0.51.0
@@ -26,7 +27,6 @@ require (
 	cosmossdk.io/api v0.7.5 // indirect
 	cosmossdk.io/client/v2 v2.0.0-20240412212305-037cf98f7eea // indirect
 	cosmossdk.io/collections v0.4.0 // indirect
-	cosmossdk.io/core v0.12.1-0.20240623110059-dec2d5583e39 // indirect
 	cosmossdk.io/core/testing v0.0.0-20240620161400-a6407f411e80 // indirect
 	cosmossdk.io/depinject v1.0.0-alpha.4.0.20240620161400-a6407f411e80 // indirect
 	cosmossdk.io/errors v1.0.1 // indirect

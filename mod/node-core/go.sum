@@ -24,8 +24,7 @@ cosmossdk.io/runtime/v2 v2.0.0-20240623110059-dec2d5583e39 h1:mboMyY8Rv6Y+0opbNZ
 cosmossdk.io/runtime/v2 v2.0.0-20240623110059-dec2d5583e39/go.mod h1:S0wDEqzNr1wDjuBRcUxWesT0oX5+qJGYQXO78IOmK2Y=
 cosmossdk.io/server/v2 v2.0.0-20240620161400-a6407f411e80 h1:gkphIOaptkQ2jqR3Z9+GGB96DB+qLOOzwR3GogXch9Q=
 cosmossdk.io/server/v2 v2.0.0-20240620161400-a6407f411e80/go.mod h1:tipsG13IvXM770UgAND0+kWtV/C2F7Oct0HUIfY50v8=
-cosmossdk.io/server/v2/appmanager v0.0.0-20240623110059-dec2d5583e39 h1:oBUAZ0g0eFaGErJU0cqGD8q+2btn/ccNhXQXI9xJnrk=
-cosmossdk.io/server/v2/appmanager v0.0.0-20240623110059-dec2d5583e39/go.mod h1:gFlSQXvvR4YMmUXHAxuMfXmWfqQkt6wAkMJBxXVJP0s=
+cosmossdk.io/server/v2/appmanager v0.0.0-20240624191328-722ac39873e4 h1:nIpps9YyKk6OaWXDWrLgvUuAdIBmLsSrjyJHlME8jdc=
 cosmossdk.io/server/v2/stf v0.0.0-20240623110059-dec2d5583e39 h1:wB6pmjaBklCiUO2juRBC7ZljaWn/UW7oi9fnY50WkcQ=
 cosmossdk.io/server/v2/stf v0.0.0-20240623110059-dec2d5583e39/go.mod h1:bTFJu59P5lJqCQDaNEUruMEScikeBHtRVuWMAOLbUgk=
 cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc h1:R9O9d75e0qZYUsVV0zzi+D7cNLnX2JrUOQNoIPaF0Bg=
