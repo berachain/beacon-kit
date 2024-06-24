@@ -24,6 +24,7 @@ import (
 	"encoding/hex"
 	"testing"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/stretchr/testify/require"
@@ -82,14 +83,14 @@ func TestKZGCommitmentHashTreeRoot(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    eip4844.KZGCommitment
-		expected [32]byte
+		expected common.Root
 	}{
 		{"Simple input", newTestCommitment("example commitment"),
-			[32]byte{138, 20, 122, 217, 77, 116, 246, 111, 195, 118, 240,
+			common.Root{138, 20, 122, 217, 77, 116, 246, 111, 195, 118, 240,
 				67, 111, 145, 176, 117, 67, 82, 153, 245, 152, 25, 235, 239, 171,
 				54, 148, 169, 30, 169, 167, 229}},
 		{"Empty input", eip4844.KZGCommitment{},
-			[32]byte{245, 165, 253, 66, 209, 106, 32, 48, 39, 152, 239,
+			common.Root{245, 165, 253, 66, 209, 106, 32, 48, 39, 152, 239,
 				110, 211, 9, 151, 155, 67, 0, 61, 35, 32, 217, 240, 232, 234, 152,
 				49, 169, 39, 89, 251, 75}},
 	}
