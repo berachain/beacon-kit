@@ -151,12 +151,7 @@ func (h *ABCIMiddleware[
 		if msg.Error() != nil {
 			return nil, msg.Error()
 		}
-
-		sidecarsBz, err := h.blobGossiper.Publish(ctx, msg.Data())
-		if err != nil {
-			h.logger.Error("failed to publish blobs", "error", err)
-		}
-		return sidecarsBz, err
+		return h.blobGossiper.Publish(ctx, msg.Data())
 	}
 }
 
@@ -171,14 +166,10 @@ func (h *ABCIMiddleware[
 		if beaconBlock.Error() != nil {
 			return nil, beaconBlock.Error()
 		}
-		beaconBlockBz, err := h.beaconBlockGossiper.Publish(
+		return h.beaconBlockGossiper.Publish(
 			gCtx,
 			beaconBlock.Data(),
 		)
-		if err != nil {
-			h.logger.Error("failed to publish beacon block", "error", err)
-		}
-		return beaconBlockBz, err
 	}
 }
 
