@@ -24,12 +24,14 @@ import (
 	"context"
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/sourcegraph/conc/iter"
 )
 
+// TODO: We must rid this of comet bft types.
 type Middleware interface {
 	InitGenesis(
 		ctx context.Context,
@@ -37,9 +39,9 @@ type Middleware interface {
 	) (transition.ValidatorUpdates, error)
 
 	PrepareProposal(
-		ctx context.Context,
-		req *cmtabci.PrepareProposalRequest,
-	) (*cmtabci.PrepareProposalResponse, error)
+		context.Context,
+		math.Slot,
+	) ([]byte, []byte, error)
 
 	ProcessProposal(
 		ctx context.Context,
@@ -86,7 +88,14 @@ func (c *Consensus) PrepareProposal(
 	ctx sdk.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
-	return c.Middleware.PrepareProposal(ctx, req)
+	slot := math.Slot(req.Height)
+	blkBz, sidecarsBz, err := c.Middleware.PrepareProposal(ctx, slot)
+	if err != nil {
+		return nil, err
+	}
+	return &cmtabci.PrepareProposalResponse{
+		Txs: [][]byte{blkBz, sidecarsBz},
+	}, nil
 }
 
 // TODO: Decouple Comet Types

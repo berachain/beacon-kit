@@ -65,8 +65,8 @@ func (h *ABCIMiddleware[
 	_, _, _, _, _, _, _,
 ]) PrepareProposal(
 	ctx context.Context,
-	req *cmtabci.PrepareProposalRequest,
-) (*cmtabci.PrepareProposalResponse, error) {
+	slot math.Slot,
+) ([]byte, []byte, error) {
 	var (
 		g                           errgroup.Group
 		startTime                   = time.Now()
@@ -78,9 +78,9 @@ func (h *ABCIMiddleware[
 	// Send a request to the validator service to give us a beacon block
 	// and blob sidecards to pass to ABCI.
 	if err := h.slotBroker.Publish(ctx, asynctypes.NewEvent(
-		ctx, events.NewSlot, math.Slot(req.Height),
+		ctx, events.NewSlot, slot,
 	)); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Wait for the beacon block to be built.
@@ -97,9 +97,7 @@ func (h *ABCIMiddleware[
 
 	// Wait for both processes to complete and then
 	// return the appropriate response.
-	return &cmtabci.PrepareProposalResponse{
-		Txs: [][]byte{beaconBlockBz, sidecarsBz},
-	}, g.Wait()
+	return beaconBlockBz, sidecarsBz, g.Wait()
 }
 
 // waitForSidecars waits for the sidecars to be built and returns them.
