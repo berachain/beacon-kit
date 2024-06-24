@@ -48,21 +48,15 @@ func (h *ABCIMiddleware[
 ]) InitGenesis(
 	ctx context.Context,
 	bz []byte,
-) ([]appmodulev2.ValidatorUpdate, error) {
+) (transition.ValidatorUpdates, error) {
 	data := new(GenesisT)
 	if err := json.Unmarshal(bz, data); err != nil {
 		return nil, err
 	}
-	updates, err := h.chainService.ProcessGenesisData(
+	return h.chainService.ProcessGenesisData(
 		ctx,
 		*data,
 	)
-	if err != nil {
-		return nil, err
-	}
-
-	// Convert updates into the Cosmos SDK format.
-	return iter.MapErr(updates, convertValidatorUpdate)
 }
 
 /* -------------------------------------------------------------------------- */

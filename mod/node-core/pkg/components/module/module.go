@@ -21,6 +21,7 @@
 package beacon
 
 import (
+	"consensus/pkg/comet"
 	"context"
 	"encoding/json"
 
@@ -116,12 +117,13 @@ func (am AppModule) InitGenesis(
 	ctx context.Context,
 	bz json.RawMessage,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	return am.ABCIMiddleware.InitGenesis(ctx, bz)
+	return comet.NewConsensus(
+		am.ABCIMiddleware).InitGenesis(ctx, bz)
 }
 
 // EndBlock returns the validator set updates from the beacon state.
 func (am AppModule) EndBlock(
 	ctx context.Context,
 ) ([]appmodulev2.ValidatorUpdate, error) {
-	return am.ABCIMiddleware.EndBlock(ctx)
+	return comet.NewConsensus(am.ABCIMiddleware).EndBlock(ctx)
 }

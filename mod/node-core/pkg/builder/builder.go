@@ -21,6 +21,7 @@
 package builder
 
 import (
+	"consensus/pkg/comet"
 	"context"
 	"io"
 
@@ -103,6 +104,9 @@ func (nb *NodeBuilder[NodeT]) Build(
 		panic(err)
 	}
 
+	// This is a bit of a meme until server/v2.
+	consensusEngine := comet.NewConsensus(abciMiddleware)
+
 	// set the application to a new BeaconApp with necessary ABCI handlers
 	nb.node.RegisterApp(
 		app.NewBeaconKitApp(
@@ -110,9 +114,9 @@ func (nb *NodeBuilder[NodeT]) Build(
 			append(
 				server.DefaultBaseappOptions(appOpts),
 				WithCometParamStore(chainSpec),
-				WithPrepareProposal(abciMiddleware.PrepareProposal),
-				WithProcessProposal(abciMiddleware.ProcessProposal),
-				WithPreBlocker(abciMiddleware.PreBlock),
+				WithPrepareProposal(consensusEngine.PrepareProposal),
+				WithProcessProposal(consensusEngine.ProcessProposal),
+				WithPreBlocker(consensusEngine.PreBlock),
 			)...,
 		),
 	)
