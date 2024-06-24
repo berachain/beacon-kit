@@ -130,7 +130,7 @@ func TestBuildNewPayloadRequest(t *testing.T) {
 
 func TestBuildForkchoiceUpdateRequest(t *testing.T) {
 	state := &engineprimitives.ForkchoiceStateV1{}
-	payloadAttributes := &mocks.PayloadAttributer[any]{}
+	payloadAttributes := &mocks.PayloadAttributer{}
 	forkVersion := uint32(1)
 
 	request := engineprimitives.BuildForkchoiceUpdateRequest(
