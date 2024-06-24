@@ -40,7 +40,7 @@ func (s *Service[
 		case <-ctx.Done():
 			return
 		case msg := <-s.feed:
-			if msg.Type() == events.BeaconBlockFinalized {
+			if msg.Is(events.BeaconBlockFinalized) {
 				blockNum := msg.Data().
 					GetBody().GetExecutionPayload().GetNumber()
 				s.fetchAndStoreDeposits(ctx, blockNum-s.eth1FollowDistance)
