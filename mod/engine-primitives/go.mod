@@ -2,6 +2,8 @@ module github.com/berachain/beacon-kit/mod/engine-primitives
 
 go 1.22.4
 
+replace github.com/berachain/beacon-kit/mod/primitives => ../primitives
+
 require (
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240618214413-d5ec0e66b3dd
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240624003607-df94860f8eeb

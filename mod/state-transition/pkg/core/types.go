@@ -84,8 +84,7 @@ type BeaconBlockBody[
 	ExecutionPayloadHeaderT interface{ GetBlockHash() common.ExecutionHash },
 	WithdrawalT any,
 ] interface {
-	// Empty returns an empty beacon block body.
-	Empty(uint32) BeaconBlockBodyT
+	constraints.EmptyWithVersion[BeaconBlockBodyT]
 	// GetRandaoReveal returns the RANDAO reveal signature.
 	GetRandaoReveal() crypto.BLSSignature
 	// GetExecutionPayload returns the execution payload.

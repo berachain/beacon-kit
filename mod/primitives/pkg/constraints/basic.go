@@ -7,6 +7,15 @@ type ForkTyped[SelfT any] interface {
 	Nillable
 }
 
+// EngineType represents the constraints for a type that is
+// used within the context of sending over the EngineAPI.
+type EngineType[SelfT any] interface {
+	EmptyWithVersion[SelfT]
+	Versionable
+	Nillable
+	JSONMarshallable
+}
+
 // EmptyWithForkVersion is a constraint that requires a type to have an Empty method.
 type EmptyWithVersion[SelfT any] interface {
 	Empty(uint32) SelfT

@@ -28,11 +28,10 @@ import (
 	"github.com/berachain/beacon-kit/mod/config"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client"
+	"github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
-	"github.com/berachain/beacon-kit/mod/interfaces"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 )
 
@@ -49,10 +48,8 @@ type EngineClientInputs struct {
 
 // ProvideEngineClient creates a new EngineClient.
 func ProvideEngineClient[
-	ExecutionPayloadT interfaces.ExecutionPayload[
-		ExecutionPayloadT, common.ExecutionAddress,
-		common.ExecutionHash, common.Bytes32,
-		math.U64, math.Wei, []byte, WithdrawalT,
+	ExecutionPayloadT engine.ExecutionPayload[
+		ExecutionPayloadT, WithdrawalT,
 	],
 	PayloadAttributesT interface {
 		engineprimitives.PayloadAttributer
@@ -80,10 +77,8 @@ func ProvideEngineClient[
 
 // EngineClientInputs is the input for the EngineClient.
 type ExecutionEngineInputs[
-	ExecutionPayloadT interfaces.ExecutionPayload[
-		ExecutionPayloadT, common.ExecutionAddress,
-		common.ExecutionHash, common.Bytes32,
-		math.U64, math.Wei, []byte, WithdrawalT,
+	ExecutionPayloadT engine.ExecutionPayload[
+		ExecutionPayloadT, WithdrawalT,
 	],
 	PayloadAttributesT engineprimitives.PayloadAttributer,
 	WithdrawalT any,
@@ -98,10 +93,8 @@ type ExecutionEngineInputs[
 // ProvideExecutionEngine provides the execution engine to the depinject
 // framework.
 func ProvideExecutionEngine[
-	ExecutionPayloadT interfaces.ExecutionPayload[
-		ExecutionPayloadT, common.ExecutionAddress,
-		common.ExecutionHash, common.Bytes32,
-		math.U64, math.Wei, []byte, WithdrawalT,
+	ExecutionPayloadT engine.ExecutionPayload[
+		ExecutionPayloadT, WithdrawalT,
 	],
 	PayloadAttributesT engineprimitives.PayloadAttributer,
 	PayloadIDT ~[8]byte,
