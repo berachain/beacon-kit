@@ -424,6 +424,8 @@ github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240624041151-58d9ba1eb6b4/go.mo
 github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240624210933-3baa52ebb587/go.mod h1:ft214cxJaqrRPOuAjpYwgA9AOElJnHrDZZEQ0jZPWwQ=
 github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240624041151-58d9ba1eb6b4/go.mod h1:hBVU5IzPwbAW0gsOZn78eWXV8uip8aI2Q3WzUZTKEoI=
 github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240624210933-3baa52ebb587/go.mod h1:EdsoYtMMfgh4VHnAEwQKz7KNdzPTYNd/uOsRB4FhZ9M=
+github.com/berachain/cosmos-sdk/server/v2/cometbft v0.0.0-20240624204242-8877694ebd14 h1:LI5gsl/za1TjIBbdvkuLN71P0mLjP7133YRJaEtWEGs=
+github.com/berachain/cosmos-sdk/server/v2/cometbft v0.0.0-20240624204242-8877694ebd14/go.mod h1:S30WqOiHFbQyVocw5SJlY/5GWGO2FHOBlxcon6HbvXo=
 github.com/blang/semver/v4 v4.0.0/go.mod h1:IbckMUScFkM3pff0VJDNKRiT6TG/YpiHIM2yvyW5YoQ=
 github.com/bmatcuk/doublestar v1.1.1 h1:YroD6BJCZBYx06yYFEWvUuKVWQn3vLLQAVmDmvTSaiQ=
 github.com/boombuler/barcode v1.0.0/go.mod h1:paBWMcWSl3LHKBqUq+rly7CNSldXjb2rDl3JlRe0mD8=

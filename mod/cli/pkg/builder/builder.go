@@ -82,7 +82,7 @@ func (cb *CLIBuilder[NodeT, T]) Build() (*cmdlib.Root, error) {
 		clientCtx   client.Context
 		chainSpec   common.ChainSpec
 		logger      log.Logger
-		cmtServer   *cometbft.CometBFTServer[T]
+		cmtServer   *cometbft.CometBFTServer[NodeT, T]
 	)
 	// build dependencies for the root command
 	if err := depinject.Inject(

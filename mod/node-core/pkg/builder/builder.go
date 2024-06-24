@@ -27,8 +27,6 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	"cosmossdk.io/runtime/v2"
-	serverv2 "cosmossdk.io/server/v2"
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/comet"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/app"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
@@ -70,7 +68,7 @@ func New[
 // It is necessary to adhere to the types.AppCreator[T] interface.
 func (nb *NodeBuilder[NodeT, T]) Build(
 	logger log.Logger, v *viper.Viper,
-) serverv2.AppI[T] {
+) NodeT {
 	// Check for goleveldb cause bad project.
 	if v.Get("app-db-backend") == "goleveldb" {
 		panic("goleveldb is not supported")
@@ -108,7 +106,7 @@ func (nb *NodeBuilder[NodeT, T]) Build(
 	}
 
 	// This is a bit of a meme until server/v2.
-	consensusEngine := comet.NewConsensus(abciMiddleware)
+	// consensusEngine := comet.NewConsensus(abciMiddleware)
 
 	// set the application to a new BeaconApp with necessary ABCI handlers
 	// db, traceStore, true, appBuilder,

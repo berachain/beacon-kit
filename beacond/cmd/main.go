@@ -66,7 +66,7 @@ func run[NodeT types.Node[T], T transaction.Tx]() error {
 		// Set the Runtime Components to the Default.
 		clibuilder.WithComponents[NodeT](
 			append(
-				clicomponents.DefaultClientComponents(),
+				clicomponents.DefaultClientComponents[NodeT, T](),
 				// TODO: remove these, and eventually pull cfg and chainspec
 				// from built node
 				nodecomponents.ProvideNoopTxConfig,

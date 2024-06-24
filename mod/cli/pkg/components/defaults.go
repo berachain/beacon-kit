@@ -20,13 +20,18 @@
 
 package components
 
+import (
+	"cosmossdk.io/core/transaction"
+	serverv2 "cosmossdk.io/server/v2"
+)
+
 // DefaultClientComponents returns the default components for
 // the client.
-func DefaultClientComponents() []any {
+func DefaultClientComponents[NodeT serverv2.AppI[T], T transaction.Tx]() []any {
 	return []any{
 		ProvideClientContext,
 		ProvideKeyring,
 		ProvideLogger,
-		ProvideCometServer,
+		ProvideCometServer[NodeT, T],
 	}
 }
