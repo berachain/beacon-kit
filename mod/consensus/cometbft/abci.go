@@ -33,7 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/gogoproto/proto"
 	"github.com/sourcegraph/conc/iter"
 	"golang.org/x/sync/errgroup"
 )
@@ -72,10 +72,10 @@ func (h *ABCIMiddleware[
 // prepareProposal is the internal handler for preparing proposals.
 func (h *ABCIMiddleware[
 	_, _, _, _, _, _, _,
-]) PrepareProposal(
-	ctx sdk.Context,
-	req *cmtabci.PrepareProposalRequest,
-) (*cmtabci.PrepareProposalResponse, error) {
+]) Prepare(
+	ctx context.Context,
+	req proto.Message,
+) (proto.Message, error) {
 	var (
 		g                           errgroup.Group
 		startTime                   = time.Now()
@@ -83,11 +83,15 @@ func (h *ABCIMiddleware[
 		beaconBlockBz, sidecarsBz   []byte
 	)
 	defer h.metrics.measurePrepareProposalDuration(startTime)
+	abciReq, ok := req.(*cmtabci.PrepareProposalRequest)
+	if !ok {
+		return nil, errors.New("REEE")
+	}
 
 	// Send a request to the validator service to give us a beacon block
 	// and blob sidecards to pass to ABCI.
 	if err := h.slotBroker.Publish(asynctypes.NewEvent(
-		ctx, events.NewSlot, math.Slot(req.Height),
+		ctx, events.NewSlot, math.Slot(abciReq.Height),
 	)); err != nil {
 		return nil, err
 	}
@@ -152,10 +156,10 @@ func (h *ABCIMiddleware[
 // It handles both the beacon block and blob sidecars concurrently.
 func (h *ABCIMiddleware[
 	_, BeaconBlockT, _, BlobSidecarsT, _, _, _,
-]) ProcessProposal(
-	ctx sdk.Context,
-	req *cmtabci.ProcessProposalRequest,
-) (*cmtabci.ProcessProposalResponse, error) {
+]) Process(
+	ctx context.Context,
+	req proto.Message,
+) (proto.Message, error) {
 	var (
 		blk       BeaconBlockT
 		sidecars  BlobSidecarsT
@@ -165,14 +169,18 @@ func (h *ABCIMiddleware[
 	)
 
 	defer h.metrics.measureProcessProposalDuration(startTime)
+	abciReq, ok := req.(*cmtabci.ProcessProposalRequest)
+	if !ok {
+		return nil, errors.New("REEE")
+	}
 
 	// Request the beacon block.
-	if blk, err = h.beaconBlockGossiper.Request(ctx, req); err != nil {
+	if blk, err = h.beaconBlockGossiper.Request(ctx, abciReq); err != nil {
 		return h.createResponse(errors.WrapNonFatal(err))
 	}
 
 	// Request the blob sidecars.
-	if sidecars, err = h.blobGossiper.Request(ctx, req); err != nil {
+	if sidecars, err = h.blobGossiper.Request(ctx, abciReq); err != nil {
 		return h.createResponse(errors.WrapNonFatal(err))
 	}
 
@@ -273,9 +281,13 @@ func (*ABCIMiddleware[
 func (h *ABCIMiddleware[
 	_, _, _, _, _, _, _,
 ]) PreBlock(
-	_ sdk.Context, req *cmtabci.FinalizeBlockRequest,
+	_ context.Context, req proto.Message,
 ) error {
-	h.req = req
+	abciReq, ok := req.(*cmtabci.FinalizeBlockRequest)
+	if !ok {
+		return errors.New("REEE")
+	}
+	h.req = abciReq
 	return nil
 }
 
