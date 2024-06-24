@@ -236,7 +236,9 @@ type ForkchoiceUpdateRequest[PayloadAttributesT any] struct {
 }
 
 // BuildForkchoiceUpdateRequest builds a forkchoice update request.
-func BuildForkchoiceUpdateRequest[PayloadAttributesT PayloadAttributer](
+func BuildForkchoiceUpdateRequest[
+	PayloadAttributesT any,
+](
 	state *ForkchoiceStateV1,
 	payloadAttributes PayloadAttributesT,
 	forkVersion uint32,
@@ -251,7 +253,9 @@ func BuildForkchoiceUpdateRequest[PayloadAttributesT PayloadAttributer](
 // BuildForkchoiceUpdateRequestNoAttrs builds a forkchoice update request
 // without
 // any attributes.
-func BuildForkchoiceUpdateRequestNoAttrs[PayloadAttributesT PayloadAttributer](
+func BuildForkchoiceUpdateRequestNoAttrs[
+	PayloadAttributesT any,
+](
 	state *ForkchoiceStateV1,
 	forkVersion uint32,
 ) *ForkchoiceUpdateRequest[PayloadAttributesT] {
