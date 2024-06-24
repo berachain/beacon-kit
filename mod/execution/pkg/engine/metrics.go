@@ -167,7 +167,6 @@ func (em *engineMetrics) markNewPayloadUndefinedError(
 // markNotifyForkchoiceUpdateCalled increments the counter for
 // notify forkchoice update calls.
 func (em *engineMetrics) markNotifyForkchoiceUpdateCalled(
-	state *engineprimitives.ForkchoiceStateV1,
 	hasPayloadAttributes bool,
 ) {
 	em.sink.IncrementCounter(
@@ -176,7 +175,8 @@ func (em *engineMetrics) markNotifyForkchoiceUpdateCalled(
 	)
 }
 
-// markForkchoiceUpdateValid increments the counter for valid forkchoice updates.
+// markForkchoiceUpdateValid increments the counter for valid forkchoice
+// updates.
 func (em *engineMetrics) markForkchoiceUpdateValid(
 	state *engineprimitives.ForkchoiceStateV1,
 	hasPayloadAttributes bool,
