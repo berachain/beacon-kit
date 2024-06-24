@@ -173,10 +173,13 @@ func (h *ABCIMiddleware[
 	)
 	defer h.metrics.measureProcessProposalDuration(startTime)
 
+	// TODO: Consider exiting early if this node is not a validator to
+	// reduce resource usage for full nodes.
+
 	// Decode the beacon block and emit an event.
 	blk, err = h.beaconBlockGossiper.Request(ctx, req)
 	if err != nil {
-		h.logger.Error("failed to get beacon block", "error", err)
+		h.logger.Debug("failed to get beacon block", "error", err)
 	}
 
 	g.Go(func() error {
@@ -207,7 +210,7 @@ func (h *ABCIMiddleware[
 		var localErr error
 		sidecars, localErr = h.blobGossiper.Request(ctx, req)
 		if localErr != nil {
-			h.logger.Error("failed to get sidecars", "error", localErr)
+			h.logger.Debug("failed to get sidecars", "error", localErr)
 		}
 
 		// Emit event to notify the sidecars have been received.
@@ -217,12 +220,21 @@ func (h *ABCIMiddleware[
 			return localErr
 		}
 
-		if localErr = h.daService.ReceiveSidecars(
-			ctx, sidecars,
-		); !errors.IsFatal(localErr) {
-			localErr = nil
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case msg := <-h.sidecarsCh:
+			if msg.Type() != events.BlobSidecarsProcessed {
+				return fmt.Errorf(
+					"unexpected event type: %s", msg.Type(),
+				)
+			}
+			if msg.Error() != nil {
+				return msg.Error()
+			}
+			sidecars = msg.Data()
 		}
-		return localErr
+		return nil
 	})
 
 	resp := &cmtabci.ProcessProposalResponse{
