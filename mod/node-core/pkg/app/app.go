@@ -25,7 +25,6 @@ import (
 
 	"cosmossdk.io/core/transaction"
 	"cosmossdk.io/runtime/v2"
-	serverv2 "cosmossdk.io/server/v2"
 	bkcomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
