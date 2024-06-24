@@ -24,7 +24,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"sync"
 	"time"
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
@@ -78,7 +77,7 @@ func (h *ABCIMiddleware[
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
 	var (
-		wg                          sync.WaitGroup
+		g                           errgroup.Group
 		startTime                   = time.Now()
 		beaconBlockErr, sidecarsErr error
 		beaconBlockBz, sidecarsBz   []byte
@@ -88,18 +87,6 @@ func (h *ABCIMiddleware[
 	// Send a request to the validator service to give us a beacon block
 	// and blob sidecards to pass to ABCI.
 	if err := h.slotBroker.Publish(asynctypes.NewEvent(
-		var g errgroup.Group
-		g.Go(func() error {
-			beaconBlockBz, beaconBlockErr = h.waitforBeaconBlk(ctx)
-			return beaconBlockErr
-		})
-		g.Go(func() error {
-			sidecarsBz, sidecarsErr = h.waitForSidecars(ctx)
-			return sidecarsErr
-		})
-		if err := g.Wait(); err != nil {
-			return nil, err
-		}
 		ctx, events.NewSlot, math.Slot(req.Height),
 	)); err != nil {
 		return nil, err
@@ -107,28 +94,18 @@ func (h *ABCIMiddleware[
 
 	// Using a wait group instead of an errgroup to ensure we drain
 	// the associated channels for the beacon block and sidecars.
-	//nolint:mnd // bet.
-	wg.Add(2)
-	go func() {
-		defer wg.Done()
+	g.Go(func() error {
 		beaconBlockBz, beaconBlockErr = h.waitforBeaconBlk(ctx)
-	}()
-
-	go func() {
-		defer wg.Done()
+		return beaconBlockErr
+	})
+	g.Go(func() error {
 		sidecarsBz, sidecarsErr = h.waitForSidecars(ctx)
-	}()
-
-	wg.Wait()
-	if beaconBlockErr != nil {
-		return nil, beaconBlockErr
-	} else if sidecarsErr != nil {
-		return nil, sidecarsErr
-	}
+		return sidecarsErr
+	})
 
 	return &cmtabci.PrepareProposalResponse{
 		Txs: [][]byte{beaconBlockBz, sidecarsBz},
-	}, nil
+	}, g.Wait()
 }
 
 // waitForSidecars waits for the sidecars to be built and returns them.
