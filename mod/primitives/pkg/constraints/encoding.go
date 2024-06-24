@@ -35,6 +35,8 @@ type SSZMarshallable interface {
 	// SizeSSZ returns the size in bytes that the object would take when
 	// marshaled.
 	SizeSSZ() int
+	// HashTreeRoot returns the hash tree root of the object.
+	HashTreeRoot() ([32]byte, error)
 }
 
 // JSONMarshallable is an interface that combines the json.Marshaler and

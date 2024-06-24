@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
 // The AvailabilityStore interface is responsible for validating and storing
@@ -224,7 +223,7 @@ type Validator[
 	ValidatorT any,
 	WithdrawalCredentialsT ~[32]byte,
 ] interface {
-	ssz.Marshallable
+	constraints.SSZMarshallable
 	// New creates a new validator with the given parameters.
 	New(
 		pubkey crypto.BLSPubkey,

@@ -11,6 +11,8 @@ require (
 	golang.org/x/sync v0.7.0
 )
 
+replace github.com/berachain/beacon-kit/mod/primitives => ../primitives
+
 require (
 	github.com/DataDog/zstd v1.5.5 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
