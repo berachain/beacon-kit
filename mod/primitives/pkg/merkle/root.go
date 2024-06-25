@@ -42,18 +42,28 @@ const (
 	two = 2
 )
 
+type Hasher[RootT ~[32]byte] struct {
+	buffer Buffer[RootT]
+}
+
+func NewHasher[RootT ~[32]byte]() *Hasher[RootT] {
+	return &Hasher[RootT]{
+		buffer: NewReusableBuffer[RootT](),
+	}
+}
+
 // NewRootWithMaxLeaves constructs a Merkle tree root from a set of.
-func NewRootWithMaxLeaves[U64T U64[U64T], RootT ~[32]byte](
+func (m *Hasher[RootT]) NewRootWithMaxLeaves(
 	leaves []RootT,
-	length U64T,
+	length uint64,
 ) (RootT, error) {
-	return NewRootWithDepth(
+	return m.NewRootWithDepth(
 		leaves, math.U64(length).NextPowerOfTwo().ILog2Ceil(),
 	)
 }
 
 // NewRootWithDepth constructs a Merkle tree root from a set of leaves.
-func NewRootWithDepth[RootT ~[32]byte](
+func (m *Hasher[RootT]) NewRootWithDepth(
 	leaves []RootT,
 	depth uint8,
 ) (RootT, error) {
@@ -65,7 +75,8 @@ func NewRootWithDepth[RootT ~[32]byte](
 	// Preallocate a single buffer large enough for the maximum layer size
 	// TODO: It seems that BuildParentTreeRoots has different behaviour
 	// when we pass leaves in directly.
-	buffer := make([]RootT, (len(leaves)+1)/two)
+	// buffer := make([]RootT, (len(leaves)+1)/two)
+	buffer := m.buffer.Get((len(leaves) + 1) / two)
 
 	var err error
 	for i := range depth {

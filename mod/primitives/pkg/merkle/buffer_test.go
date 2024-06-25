@@ -21,7 +21,6 @@
 package merkle_test
 
 import (
-	"fmt"
 	"math/rand"
 	"testing"
 	"time"
@@ -37,7 +36,7 @@ func getBuffer(usageType string) merkle.Buffer[[32]byte] {
 	case "singleuse":
 		return merkle.NewSingleuseBuffer[[32]byte]()
 	default:
-		panic(fmt.Sprintf("unknown usage type: %s", usageType))
+		panic("unknown usage type: " + usageType)
 	}
 }
 

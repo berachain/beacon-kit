@@ -247,8 +247,9 @@ func Merkleize[U64T U64[U64T], RootT ~[32]byte](
 		return effectiveChunks[0], nil
 	}
 
-	return merkle.NewRootWithMaxLeaves(
+	hasher := merkle.NewHasher[RootT]()
+	return hasher.NewRootWithMaxLeaves(
 		effectiveChunks,
-		effectiveLimit,
+		uint64(effectiveLimit),
 	)
 }
