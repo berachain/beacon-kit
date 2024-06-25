@@ -63,6 +63,8 @@ func NewRootWithDepth[RootT ~[32]byte](
 	}
 
 	// Preallocate a single buffer large enough for the maximum layer size
+	// TODO: It seems that BuildParentTreeRoots has different behaviour
+	// when we pass leaves in directly.
 	buffer := make([]RootT, (len(leaves)+1)/2)
 
 	var err error
