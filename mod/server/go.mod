@@ -19,9 +19,8 @@ require (
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce
 	cosmossdk.io/server/v2 v2.0.0-20240624191328-722ac39873e4
 	cosmossdk.io/server/v2/cometbft v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/consensus v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240625165428-64b8496e4672
 	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240624214650-dd8a0fc17a50
-	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/spf13/viper v1.19.0
 )
 
@@ -74,7 +73,7 @@ require (
 	github.com/cockroachdb/pebble v1.1.1 // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
-	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240613135100-716d8f8c592d // indirect
+	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240625053718-5a9f3b4a787f // indirect
 	github.com/cometbft/cometbft-db v0.12.0 // indirect
 	github.com/cometbft/cometbft/api v1.0.0-rc.1 // indirect
 	github.com/consensys/bavard v0.1.13 // indirect
@@ -82,6 +81,7 @@ require (
 	github.com/cosmos/btcutil v1.0.5 // indirect
 	github.com/cosmos/cosmos-db v1.0.2 // indirect
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5 // indirect
+	github.com/cosmos/cosmos-sdk v0.51.0 // indirect
 	github.com/cosmos/crypto v0.0.0-20240312084433-de8f9c76030d // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
