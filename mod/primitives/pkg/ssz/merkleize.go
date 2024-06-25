@@ -43,7 +43,7 @@ func NewMerkleizer[
 			bytes.NewReusableBuffer[RootT](),
 			merkle.BuildParentTreeRoots[RootT],
 		),
-		bytesBuffer: bytes.NewReusableBuffer[RootT](),
+		bytesBuffer: bytes.NewSingleuseBuffer[RootT](),
 	}
 }
 
