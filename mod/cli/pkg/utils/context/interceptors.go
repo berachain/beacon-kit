@@ -56,7 +56,7 @@ func InterceptConfigsAndCreateContext(
 	// The underscore character is used as a separator.
 	executableName, err := os.Executable()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch executable name: %w", err)
 	}
 
 	basename := path.Base(executableName)
@@ -83,7 +83,8 @@ func InterceptConfigsAndCreateContext(
 	// return value is a CometBFT configuration object
 	serverCtx.Config = config
 	if err = bindFlags(basename, cmd, serverCtx.Viper); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error binding flags for basename '%s': %w",
+			basename, err)
 	}
 
 	return serverCtx, nil
