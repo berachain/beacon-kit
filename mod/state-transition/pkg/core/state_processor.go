@@ -21,6 +21,7 @@
 package core
 
 import (
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
@@ -74,6 +75,8 @@ type StateProcessor[
 	executionEngine ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	]
+	// txsMerkleizer is the merkleizer used for calculating transaction roots.
+	txsMerkleizer engineprimitives.TxsMerkleizer
 }
 
 // NewStateProcessor creates a new state processor.
@@ -117,6 +120,7 @@ func NewStateProcessor[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	],
 	signer crypto.BLSSigner,
+	txsMerkleizer engineprimitives.TxsMerkleizer,
 ) *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
@@ -133,6 +137,7 @@ func NewStateProcessor[
 		cs:              cs,
 		executionEngine: executionEngine,
 		signer:          signer,
+		txsMerkleizer:   txsMerkleizer,
 	}
 }
 

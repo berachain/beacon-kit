@@ -23,6 +23,7 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
@@ -36,6 +37,7 @@ type StateProcessorInput struct {
 	ChainSpec       common.ChainSpec
 	ExecutionEngine *ExecutionEngine
 	Signer          crypto.BLSSigner
+	TxsMerkleizer   engineprimitives.TxsMerkleizer
 }
 
 // ProvideStateProcessor provides the state processor to the depinject
@@ -63,5 +65,6 @@ func ProvideStateProcessor(
 		in.ChainSpec,
 		in.ExecutionEngine,
 		in.Signer,
+		in.TxsMerkleizer,
 	)
 }
