@@ -248,7 +248,7 @@ func Merkleize[U64T U64[U64T], RootT ~[32]byte](
 	}
 
 	// TODO: reuse the same hasher for reduced memory allocations.
-	hasher := merkle.NewHasher[RootT]()
+	hasher := merkle.NewHasher[RootT](merkle.NewSingleuseBuffer[RootT]())
 	return hasher.NewRootWithMaxLeaves(
 		effectiveChunks,
 		uint64(effectiveLimit),
