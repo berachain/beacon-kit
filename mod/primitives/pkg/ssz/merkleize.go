@@ -125,13 +125,18 @@ func MerkleizeVecComposite[
 ](
 	value []C,
 ) (RootT, error) {
-	htrs := make([]RootT, len(value))
-	var err error
+	var (
+		err  error
+		htr  RootT
+		htrs = getBytes(len(value)).Bytes
+	)
+
 	for i, el := range value {
-		htrs[i], err = el.HashTreeRoot()
+		htr, err = el.HashTreeRoot()
 		if err != nil {
 			return RootT{}, err
 		}
+		copy(htrs[i][:], htr[:])
 	}
 	return Merkleize[U64T, RootT](htrs)
 }
@@ -145,13 +150,18 @@ func MerkleizeListComposite[
 	value []C,
 	limit uint64,
 ) (RootT, error) {
-	htrs := make([]RootT, len(value))
-	var err error
+	var (
+		err  error
+		htr  RootT
+		htrs = getBytes(len(value)).Bytes
+	)
+
 	for i, el := range value {
-		htrs[i], err = el.HashTreeRoot()
+		htr, err = el.HashTreeRoot()
 		if err != nil {
 			return RootT{}, err
 		}
+		copy(htrs[i][:], htr[:])
 	}
 	root, err := Merkleize[U64T, RootT](
 		htrs,
