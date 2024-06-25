@@ -84,6 +84,7 @@ func TestMerkleTree_IsValidMerkleBranch(t *testing.T) {
 		treeDepth,
 	)
 	require.NoError(t, err)
+
 	proof, err := m.MerkleProofWithMixin(0)
 	require.NoError(t, err)
 	require.Len(
@@ -91,11 +92,13 @@ func TestMerkleTree_IsValidMerkleBranch(t *testing.T) {
 		proof,
 		int(treeDepth)+1,
 	)
+
 	root, err := m.HashTreeRoot()
 	require.NoError(t, err)
 	require.True(t, merkle.VerifyProof(
 		root, items[0], 0, proof,
 	), "First Merkle proof did not verify")
+
 	proof, err = m.MerkleProofWithMixin(3)
 	require.NoError(t, err)
 	require.True(
