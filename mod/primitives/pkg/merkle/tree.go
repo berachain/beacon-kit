@@ -72,7 +72,8 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 	leaves []RootT,
 	depth uint8,
 ) (*Tree[RootT], error) {
-	if err := verifySufficientDepth(len(leaves), depth); err != nil {
+	err := verifySufficientDepth(len(leaves), depth)
+	if err != nil {
 		return &Tree[RootT]{}, err
 	}
 
@@ -81,9 +82,10 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 
 	// Preallocate layers based on depth
 	// TODO: This should be done virtually....
+	buffer := NewSingleuseBuffer[RootT]()
 	for i := uint8(1); i <= depth; i++ {
 		layerSize := (len(leaves) + (1 << i) - 1) >> i
-		layers[i] = make([]RootT, layerSize)
+		layers[i] = buffer.Get(layerSize)
 	}
 
 	for d := range depth {
@@ -92,7 +94,7 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 			currentLayer = append(currentLayer, zero.Hashes[d])
 		}
 
-		if err := BuildParentTreeRoots(
+		if err = BuildParentTreeRoots(
 			layers[d+1], currentLayer,
 		); err != nil {
 			return &Tree[RootT]{}, err

@@ -24,8 +24,6 @@ import (
 	"runtime"
 	"unsafe"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
 	"github.com/prysmaticlabs/gohashtree"
 	"golang.org/x/sync/errgroup"
 )
@@ -41,61 +39,6 @@ const (
 	// two is a constant to make the linter happy.
 	two = 2
 )
-
-type Hasher[RootT ~[32]byte] struct {
-	buffer Buffer[RootT]
-}
-
-func NewHasher[RootT ~[32]byte]() *Hasher[RootT] {
-	return &Hasher[RootT]{
-		buffer: NewReusableBuffer[RootT](),
-	}
-}
-
-// NewRootWithMaxLeaves constructs a Merkle tree root from a set of.
-func (m *Hasher[RootT]) NewRootWithMaxLeaves(
-	leaves []RootT,
-	length uint64,
-) (RootT, error) {
-	return m.NewRootWithDepth(
-		leaves, math.U64(length).NextPowerOfTwo().ILog2Ceil(),
-	)
-}
-
-// NewRootWithDepth constructs a Merkle tree root from a set of leaves.
-func (m *Hasher[RootT]) NewRootWithDepth(
-	leaves []RootT,
-	depth uint8,
-) (RootT, error) {
-	// Return zerohash at depth
-	if len(leaves) == 0 {
-		return zero.Hashes[depth], nil
-	}
-
-	// Preallocate a single buffer large enough for the maximum layer size
-	// TODO: It seems that BuildParentTreeRoots has different behaviour
-	// when we pass leaves in directly.
-	// buffer := make([]RootT, (len(leaves)+1)/two)
-	buffer := m.buffer.Get((len(leaves) + 1) / two)
-
-	var err error
-	for i := range depth {
-		layerLen := len(leaves)
-		if layerLen%two == 1 {
-			leaves = append(leaves, zero.Hashes[i])
-		}
-
-		newLayerSize := (layerLen + 1) / two
-		if err = BuildParentTreeRoots(buffer[:newLayerSize], leaves); err != nil {
-			return zero.Hashes[depth], err
-		}
-		leaves, buffer = buffer[:newLayerSize], leaves
-	}
-	if len(leaves) != 1 {
-		return zero.Hashes[depth], nil
-	}
-	return leaves[0], nil
-}
 
 // BuildParentTreeRoots calls BuildParentTreeRootsWithNRoutines with the
 // number of routines set to runtime.GOMAXPROCS(0)-1.
@@ -120,8 +63,7 @@ func BuildParentTreeRoots[RootT ~[32]byte](
 // gains over sequential hashing.
 //
 // TODO: We do not use generics here due to the gohashtree library not
-// supporting
-// generics.
+// supporting generics.
 func BuildParentTreeRootsWithNRoutines(
 	outputList, inputList [][32]byte, n int,
 ) error {

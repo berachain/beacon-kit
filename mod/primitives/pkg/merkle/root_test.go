@@ -41,27 +41,19 @@ func Test_HashTreeRootEqualInputs(t *testing.T) {
 			fmt.Sprintf("Size%d", size*merkle.MinParallelizationSize),
 			func(t *testing.T) {
 				largeSlice := make(
-					[][32]byte,
-					size*merkle.MinParallelizationSize,
+					[][32]byte, size*merkle.MinParallelizationSize,
 				)
 				secondLargeSlice := make(
-					[][32]byte,
-					size*merkle.MinParallelizationSize,
+					[][32]byte, size*merkle.MinParallelizationSize,
 				)
 				hash1 := make([][32]byte, size*merkle.MinParallelizationSize)
 				hash2 := make([][32]byte, size*merkle.MinParallelizationSize)
 				var err error
 
-				err = merkle.BuildParentTreeRoots[[32]byte](
-					hash1,
-					largeSlice,
-				)
+				err = merkle.BuildParentTreeRoots(hash1, largeSlice)
 				require.NoError(t, err)
 
-				err = merkle.BuildParentTreeRoots[[32]byte](
-					hash2,
-					secondLargeSlice,
-				)
+				err = merkle.BuildParentTreeRoots(hash2, secondLargeSlice)
 				require.NoError(t, err)
 
 				require.Equal(
