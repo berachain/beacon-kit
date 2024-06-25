@@ -20,8 +20,8 @@
 
 package merkle
 
-// RootBuffer can be used by hashers to get a buffer of byte slices.
-type RootBuffer[RootT ~[32]byte] interface {
+// Buffer can be used by hashers to get a buffer of byte slices.
+type Buffer[RootT ~[32]byte] interface {
 	// Get returns a slice of roots of the given size.
 	Get(size int) []RootT
 }

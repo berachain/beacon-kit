@@ -20,19 +20,10 @@
 
 package merkle
 
-import "sync"
-
 // initialBufferSize is the initial size of the internal buffer.
 //
 // TODO: choose a more appropriate size?
 const initialBufferSize = 16
-
-// TODO: remove this once buffer supports multi-threaded multi-use.
-var bufferPool = sync.Pool{
-	New: func() interface{} {
-		return make([]byte, 32)
-	},
-}
 
 // buffer is a re-usable buffer for merkle tree hashing. Prevents
 // unnecessary allocations and garbage collection of byte slices.
@@ -44,7 +35,7 @@ type buffer[RootT ~[32]byte] struct {
 	// TODO: add a mutex for multi-thread safety.
 }
 
-// NewBuffer creates a new buffer with the given capacity.
+// NewBuffer creates a new re-usable buffer for merkle tree hashing.
 func NewBuffer[RootT ~[32]byte]() *buffer[RootT] {
 	return &buffer[RootT]{
 		internal: make([]RootT, initialBufferSize),
@@ -57,12 +48,17 @@ func (b *buffer[RootT]) Get(size int) []RootT {
 		b.grow(size - len(b.internal))
 	}
 
+	// // Clear the buffer by zeroing out all elements
+	// for i := range size {
+	// 	b.internal[i] = RootT{} // Zero out each element
+	// }
+
 	return b.internal[:size]
 }
 
 // TODO: add a Put method to return the buffer back for multi-threaded multi-use.
 
-// grow resizes the internal buffer by the requested size.
-func (b *buffer[RootT]) grow(newSize int) {
-	b.internal = append(b.internal, make([]RootT, newSize)...)
+// grow resizes the internal buffer by the requested delta.
+func (b *buffer[RootT]) grow(delta int) {
+	b.internal = append(b.internal, make([]RootT, delta)...)
 }

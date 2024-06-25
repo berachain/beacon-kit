@@ -21,6 +21,7 @@
 package merkle
 
 import (
+	"fmt"
 	"runtime"
 	"unsafe"
 
@@ -42,13 +43,21 @@ const (
 	two = 2
 )
 
+// // TODO: remove this once buffer supports multi-threaded multi-use.
+// var bufferPool = sync.Pool{
+// 	New: func() interface{} {
+// 		return NewBuffer[[32]byte]()
+// 	},
+// }
+
 // NewRootWithMaxLeaves constructs a Merkle tree root from a set of.
 func NewRootWithMaxLeaves[U64T U64[U64T], LeafT, RootT ~[32]byte](
 	leaves []LeafT,
 	length uint64,
+	buf Buffer[LeafT],
 ) (RootT, error) {
 	return NewRootWithDepth[LeafT, RootT](
-		leaves, math.U64(length).NextPowerOfTwo().ILog2Ceil(),
+		leaves, math.U64(length).NextPowerOfTwo().ILog2Ceil(), buf,
 	)
 }
 
@@ -56,6 +65,7 @@ func NewRootWithMaxLeaves[U64T U64[U64T], LeafT, RootT ~[32]byte](
 func NewRootWithDepth[LeafT, RootT ~[32]byte](
 	leaves []LeafT,
 	depth uint8,
+	buf Buffer[LeafT],
 ) (RootT, error) {
 	// Return zerohash at depth
 	if len(leaves) == 0 {
@@ -70,7 +80,7 @@ func NewRootWithDepth[LeafT, RootT ~[32]byte](
 			leaves = append(leaves, zerohash)
 		}
 		var err error
-		leaves, err = BuildParentTreeRoots[LeafT, LeafT](leaves)
+		leaves, err = BuildParentTreeRoots[LeafT, LeafT](leaves, buf)
 		if err != nil {
 			return zero.Hashes[depth], err
 		}
@@ -84,10 +94,10 @@ func NewRootWithDepth[LeafT, RootT ~[32]byte](
 // BuildParentTreeRoots calls BuildParentTreeRootsWithNRoutines with the
 // number of routines set to runtime.GOMAXPROCS(0)-1.
 func BuildParentTreeRoots[LeafT, RootT ~[32]byte](
-	inputList []LeafT,
+	inputList []LeafT, buf Buffer[RootT],
 ) ([]RootT, error) {
 	return BuildParentTreeRootsWithNRoutines[LeafT, RootT](
-		inputList, runtime.GOMAXPROCS(0)-1,
+		inputList, runtime.GOMAXPROCS(0)-1, buf,
 	)
 }
 
@@ -96,16 +106,20 @@ func BuildParentTreeRoots[LeafT, RootT ~[32]byte](
 // method adapts to the host machine's hardware for potential performance
 // gains over sequential hashing.
 func BuildParentTreeRootsWithNRoutines[LeafT, RootT ~[32]byte](
-	inputList []LeafT, n int,
+	inputList []LeafT, n int, buf Buffer[RootT],
 ) ([]RootT, error) {
 	// Validate input list length.
 	inputLength := len(inputList)
 	if inputLength%2 != 0 {
 		return nil, ErrOddLengthTreeRoots
 	}
+
 	// Build output variables
 	outputLength := inputLength / two
-	outputList := make([]RootT, outputLength)
+	// outputList := make([]RootT, outputLength)
+	outputList := buf.Get(outputLength)
+	fmt.Println("outputList Bef", outputList)
+	defer fmt.Println("outputList Aft", outputList)
 
 	// If the input list is small, hash it using the default method since
 	// the overhead of parallelizing the hashing process is not worth it.
@@ -114,7 +128,8 @@ func BuildParentTreeRootsWithNRoutines[LeafT, RootT ~[32]byte](
 			//#nosec:G103 // used of unsafe calls should be audited.
 			*(*[][32]byte)(unsafe.Pointer(&outputList)),
 			//#nosec:G103 // used of unsafe calls should be audited.
-			*(*[][32]byte)(unsafe.Pointer(&inputList)))
+			*(*[][32]byte)(unsafe.Pointer(&inputList)),
+		)
 	}
 
 	// Otherwise parallelize the hashing process for large inputs.
