@@ -24,6 +24,8 @@ import (
 	"context"
 	"sync"
 	"time"
+
+	"github.com/berachain/beacon-kit/mod/log"
 )
 
 // Broker broadcasts msgs to registered clients.
@@ -38,6 +40,8 @@ type Broker[T any] struct {
 	timeout time.Duration
 	// mu is the mutex for the clients map.
 	mu sync.Mutex
+	// logger is the logger for the broker.
+	logger log.Logger[any]
 }
 
 // New creates a new b.
@@ -59,6 +63,7 @@ func (b *Broker[T]) Name() string {
 func (b *Broker[T]) Start(ctx context.Context) error {
 	go func() {
 		if err := b.start(ctx); err != nil {
+			b.logger.Error("error starting broker", "error", err)
 			return
 		}
 	}()
