@@ -37,12 +37,14 @@ import (
 	"go.uber.org/automaxprocs/maxprocs"
 )
 
+// aliases for hard types
 type tx = transaction.Tx
 type node = types.Node[tx]
 type validatorUpdate = appmodulev2.ValidatorUpdate
 
-// run runs the beacon node.
-func Run() error {
+// run runs the beacon node. it is also the central injection point of generic
+// hard types
+func run() error {
 	// Set the uber max procs
 	if _, err := maxprocs.Set(); err != nil {
 		return err
@@ -124,7 +126,7 @@ func Run() error {
 
 // main is the entry point.
 func main() {
-	if err := Run(); err != nil {
+	if err := run(); err != nil {
 		//nolint:sloglint // todo fix.
 		slog.Error("startup failure", "error", err)
 		os.Exit(1)
