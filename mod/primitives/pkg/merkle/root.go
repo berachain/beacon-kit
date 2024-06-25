@@ -70,8 +70,8 @@ func NewRootWithDepth[RootT ~[32]byte](
 			leaves = append(leaves, zerohash)
 		}
 		var err error
-		leaves, err = BuildParentTreeRoots[RootT](leaves)
-		if err != nil {
+
+		if leaves, err = BuildParentTreeRoots[RootT](leaves, leaves); err != nil {
 			return zero.Hashes[depth], err
 		}
 	}
@@ -84,9 +84,8 @@ func NewRootWithDepth[RootT ~[32]byte](
 // BuildParentTreeRoots calls BuildParentTreeRootsWithNRoutines with the
 // number of routines set to runtime.GOMAXPROCS(0)-1.
 func BuildParentTreeRoots[RootT ~[32]byte](
-	inputList []RootT,
+	outList, inputList []RootT,
 ) ([]RootT, error) {
-	outList := make([][32]byte, len(inputList)/2)
 	err := BuildParentTreeRootsWithNRoutines[RootT](
 		*(*[][32]byte)(unsafe.Pointer(&outList)),
 		*(*[][32]byte)(unsafe.Pointer(&inputList)),
@@ -94,7 +93,7 @@ func BuildParentTreeRoots[RootT ~[32]byte](
 	)
 
 	// Convert out back to []RootT using unsafe pointer cas
-	return *(*[]RootT)(unsafe.Pointer(&outList)), err
+	return outList, err
 }
 
 // BuildParentTreeRootsWithNRoutines optimizes hashing of a list of roots
