@@ -1,0 +1,205 @@
+package context
+
+import (
+	"fmt"
+	"os"
+	"path"
+	"path/filepath"
+	"strings"
+	"time"
+
+	"cosmossdk.io/log"
+
+	cmtcfg "github.com/cometbft/cometbft/config"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/server"
+	"github.com/cosmos/cosmos-sdk/server/config"
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
+)
+
+func InterceptConfigsAndCreateContext(
+	cmd *cobra.Command,
+	customAppConfigTemplate string,
+	customAppConfig interface{},
+	cmtConfig *cmtcfg.Config,
+	logger log.Logger,
+) (*server.Context, error) {
+	serverCtx := newDefaultContextWithLogger(logger)
+
+	// Get the executable name and configure the viper instance so that environmental
+	// variables are checked based off that name. The underscore character is used
+	// as a separator.
+	executableName, err := os.Executable()
+	if err != nil {
+		return nil, err
+	}
+
+	basename := path.Base(executableName)
+
+	// configure the viper instance
+	if err := serverCtx.Viper.BindPFlags(cmd.Flags()); err != nil {
+		return nil, err
+	}
+	if err := serverCtx.Viper.BindPFlags(cmd.PersistentFlags()); err != nil {
+		return nil, err
+	}
+
+	serverCtx.Viper.SetEnvPrefix(basename)
+	serverCtx.Viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
+	serverCtx.Viper.AutomaticEnv()
+
+	// intercept configuration files, using both Viper instances separately
+	config, err := interceptConfigs(serverCtx.Viper, customAppConfigTemplate, customAppConfig, cmtConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	// return value is a CometBFT configuration object
+	serverCtx.Config = config
+	if err = bindFlags(basename, cmd, serverCtx.Viper); err != nil {
+		return nil, err
+	}
+
+	return serverCtx, nil
+}
+
+// newDefaultContextWithLogger returns a new server.Context with the default
+// configuration
+func newDefaultContextWithLogger(logger log.Logger) *server.Context {
+	return &server.Context{
+		Viper:  viper.New(),
+		Config: cmtcfg.DefaultConfig(),
+		Logger: logger,
+	}
+}
+
+// interceptConfigs parses and updates a CometBFT configuration file or
+// creates a new one and saves it. It also parses and saves the application
+// configuration file. The CometBFT configuration file is parsed given a root
+// Viper object, whereas the application is parsed with the private package-aware
+// viperCfg object.
+func interceptConfigs(rootViper *viper.Viper, customAppTemplate string, customConfig interface{}, cmtConfig *cmtcfg.Config) (*cmtcfg.Config, error) {
+	rootDir := rootViper.GetString(flags.FlagHome)
+	configPath := filepath.Join(rootDir, "config")
+	cmtCfgFile := filepath.Join(configPath, "config.toml")
+
+	conf := cmtConfig
+
+	switch _, err := os.Stat(cmtCfgFile); {
+	case os.IsNotExist(err):
+		cmtcfg.EnsureRoot(rootDir)
+
+		if err = conf.ValidateBasic(); err != nil {
+			return nil, fmt.Errorf("error in config file: %w", err)
+		}
+
+		defaultCometCfg := cmtcfg.DefaultConfig()
+		// The SDK is opinionated about those comet values, so we set them here.
+		// We verify first that the user has not changed them for not overriding them.
+		if conf.Consensus.TimeoutCommit == defaultCometCfg.Consensus.TimeoutCommit {
+			conf.Consensus.TimeoutCommit = 5 * time.Second
+		}
+		if conf.RPC.PprofListenAddress == defaultCometCfg.RPC.PprofListenAddress {
+			conf.RPC.PprofListenAddress = "localhost:6060"
+		}
+
+		cmtcfg.WriteConfigFile(cmtCfgFile, conf)
+
+	case err != nil:
+		return nil, err
+
+	default:
+		rootViper.SetConfigType("toml")
+		rootViper.SetConfigName("config")
+		rootViper.AddConfigPath(configPath)
+
+		if err := rootViper.ReadInConfig(); err != nil {
+			return nil, fmt.Errorf("failed to read in %s: %w", cmtCfgFile, err)
+		}
+	}
+
+	// Read into the configuration whatever data the viper instance has for it.
+	// This may come from the configuration file above but also any of the other
+	// sources viper uses.
+	if err := rootViper.Unmarshal(conf); err != nil {
+		return nil, err
+	}
+
+	conf.SetRoot(rootDir)
+
+	appCfgFilePath := filepath.Join(configPath, "app.toml")
+	if _, err := os.Stat(appCfgFilePath); os.IsNotExist(err) {
+		if (customAppTemplate != "" && customConfig == nil) || (customAppTemplate == "" && customConfig != nil) {
+			return nil, fmt.Errorf("customAppTemplate and customConfig should be both nil or not nil")
+		}
+
+		if customAppTemplate != "" {
+			if err := config.SetConfigTemplate(customAppTemplate); err != nil {
+				return nil, fmt.Errorf("failed to set config template: %w", err)
+			}
+
+			if err = rootViper.Unmarshal(&customConfig); err != nil {
+				return nil, fmt.Errorf("failed to parse %s: %w", appCfgFilePath, err)
+			}
+
+			if err := config.WriteConfigFile(appCfgFilePath, customConfig); err != nil {
+				return nil, fmt.Errorf("failed to write %s: %w", appCfgFilePath, err)
+			}
+		} else {
+			appConf, err := config.ParseConfig(rootViper)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse %s: %w", appCfgFilePath, err)
+			}
+
+			if err := config.WriteConfigFile(appCfgFilePath, appConf); err != nil {
+				return nil, fmt.Errorf("failed to write %s: %w", appCfgFilePath, err)
+			}
+		}
+	}
+
+	rootViper.SetConfigType("toml")
+	rootViper.SetConfigName("app")
+	rootViper.AddConfigPath(configPath)
+
+	if err := rootViper.MergeInConfig(); err != nil {
+		return nil, fmt.Errorf("failed to merge configuration: %w", err)
+	}
+
+	return conf, nil
+}
+
+func bindFlags(basename string, cmd *cobra.Command, v *viper.Viper) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("bindFlags failed: %v", r)
+		}
+	}()
+
+	cmd.Flags().VisitAll(func(f *pflag.Flag) {
+		// Environment variables can't have dashes in them, so bind them to their equivalent
+		// keys with underscores, e.g. --favorite-color to STING_FAVORITE_COLOR
+		err = v.BindEnv(f.Name, fmt.Sprintf("%s_%s", basename, strings.ToUpper(strings.ReplaceAll(f.Name, "-", "_"))))
+		if err != nil {
+			panic(err)
+		}
+
+		err = v.BindPFlag(f.Name, f)
+		if err != nil {
+			panic(err)
+		}
+
+		// Apply the viper config value to the flag when the flag is not set and
+		// viper has a value.
+		if !f.Changed && v.IsSet(f.Name) {
+			val := v.Get(f.Name)
+			err = cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val))
+			if err != nil {
+				panic(err)
+			}
+		}
+	})
+
+	return err
+}

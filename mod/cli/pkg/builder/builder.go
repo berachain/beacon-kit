@@ -27,6 +27,7 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
+	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/context"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	cmtcfg "github.com/cometbft/cometbft/config"
@@ -147,13 +148,11 @@ func (cb *CLIBuilder[T]) InterceptConfigsPreRunHandler(
 	cmd *cobra.Command, logger log.Logger, customAppConfigTemplate string,
 	customAppConfig interface{}, cmtConfig *cmtcfg.Config,
 ) error {
-	serverCtx, err := server.InterceptConfigsAndCreateContext(
-		cmd, customAppConfigTemplate, customAppConfig, cmtConfig)
+	serverCtx, err := context.InterceptConfigsAndCreateContext(
+		cmd, customAppConfigTemplate, customAppConfig, cmtConfig, logger)
 	if err != nil {
 		return err
 	}
-
-	serverCtx.Logger = logger
 
 	// set server context
 	return server.SetCmdServerContext(cmd, serverCtx)
