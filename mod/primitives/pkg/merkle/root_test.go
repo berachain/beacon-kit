@@ -53,14 +53,14 @@ func Test_HashTreeRootEqualInputs(t *testing.T) {
 				var err error
 
 				err = merkle.BuildParentTreeRoots[[32]byte](
-					largeSlice,
 					hash1,
+					largeSlice,
 				)
 				require.NoError(t, err)
 
 				err = merkle.BuildParentTreeRoots[[32]byte](
-					secondLargeSlice,
 					hash2,
+					secondLargeSlice,
 				)
 				require.NoError(t, err)
 
@@ -145,8 +145,8 @@ func TestBuildParentTreeRootsWithNRoutines_DivisionByZero(t *testing.T) {
 	inputList := make([][32]byte, 10) // Arbitrary size larger than 0
 	output := make([][32]byte, 8)     // Arbitrary size smaller than inputList
 	err := merkle.BuildParentTreeRootsWithNRoutines[[32]byte](
-		inputList,
 		output,
+		inputList,
 		0,
 	)
 	require.NoError(
@@ -173,8 +173,8 @@ func requireGoHashTreeEquivalence(
 
 	// Run merkle.BuildParentTreeRootsWithNRoutines
 	err1 = merkle.BuildParentTreeRootsWithNRoutines[[32]byte](
-		inputListCopy,
 		output,
+		inputListCopy,
 		numRoutines,
 	)
 
