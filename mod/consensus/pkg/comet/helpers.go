@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package middleware
+package comet
 
 import (
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"

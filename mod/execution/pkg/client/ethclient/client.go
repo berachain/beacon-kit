@@ -22,10 +22,10 @@ package ethclient
 
 import (
 	"context"
-	"encoding/json"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 )
@@ -33,12 +33,7 @@ import (
 // Eth1Client is a struct that holds the Ethereum 1 client and
 // its configuration.
 type Eth1Client[
-	ExecutionPayloadT interface {
-		json.Marshaler
-		json.Unmarshaler
-		Empty(uint32) ExecutionPayloadT
-		Version() uint32
-	},
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 ] struct {
 	*ethclient.Client
 }
@@ -46,12 +41,7 @@ type Eth1Client[
 // NewEth1Client creates a new Ethereum 1 client with the provided
 // context and options.
 func NewEth1Client[
-	ExecutionPayloadT interface {
-		json.Marshaler
-		json.Unmarshaler
-		Empty(uint32) ExecutionPayloadT
-		Version() uint32
-	},
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 ](client *ethclient.Client) (*Eth1Client[ExecutionPayloadT], error) {
 	c := &Eth1Client[ExecutionPayloadT]{
 		Client: client,
@@ -61,12 +51,7 @@ func NewEth1Client[
 
 // NewFromRPCClient creates a new Ethereum 1 client from an RPC client.
 func NewFromRPCClient[
-	ExecutionPayloadT interface {
-		json.Marshaler
-		json.Unmarshaler
-		Empty(uint32) ExecutionPayloadT
-		Version() uint32
-	},
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 ](rpcClient *rpc.Client) (*Eth1Client[ExecutionPayloadT], error) {
 	return NewEth1Client[ExecutionPayloadT](ethclient.NewClient(rpcClient))
 }
