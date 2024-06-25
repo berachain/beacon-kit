@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 )
 
+// Merkleizer can be used for merkleizing SSZ types.
 type Merkleizer[
 	SpecT any, U64T U64[U64T], U256L U256LT, RootT ~[32]byte,
 ] struct {
@@ -35,6 +36,7 @@ type Merkleizer[
 	bytesBuffer bytes.Buffer[RootT]
 }
 
+// NewMerkleizer creates a new merkleizer.
 func NewMerkleizer[
 	SpecT any, U64T U64[U64T], U256L U256LT, RootT ~[32]byte,
 ]() *Merkleizer[SpecT, U64T, U256L, RootT] {
