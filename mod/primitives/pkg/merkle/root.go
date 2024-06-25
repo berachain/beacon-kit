@@ -115,7 +115,6 @@ func BuildParentTreeRootsWithNRoutines[LeafT, RootT ~[32]byte](
 
 	// Build output variables
 	outputLength := inputLength / two
-	// outputList := make([]RootT, outputLength)
 	outputList := buf.Get(outputLength)
 
 	// If the input list is small, hash it using the default method since
