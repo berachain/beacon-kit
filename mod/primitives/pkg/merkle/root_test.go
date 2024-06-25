@@ -48,15 +48,18 @@ func Test_HashTreeRootEqualInputs(t *testing.T) {
 					[][32]byte,
 					size*merkle.MinParallelizationSize,
 				)
-				var hash1, hash2 [][32]byte
+				hash1 := make([][32]byte, 0, size*merkle.MinParallelizationSize)
+				hash2 := make([][32]byte, 0, size*merkle.MinParallelizationSize)
 				var err error
 
-				hash1, err = merkle.BuildParentTreeRoots[[32]byte](
+				err = merkle.BuildParentTreeRoots[[32]byte](
+					hash1,
 					largeSlice,
 				)
 				require.NoError(t, err)
 
-				hash2, err = merkle.BuildParentTreeRoots[[32]byte](
+				err = merkle.BuildParentTreeRoots[[32]byte](
+					hash2,
 					secondLargeSlice,
 				)
 				require.NoError(t, err)
@@ -140,7 +143,9 @@ func TestBuildParentTreeRootsWithNRoutines_DivisionByZero(t *testing.T) {
 	// Attempt to call BuildParentTreeRootsWithNRoutines with n set to 0
 	// to test handling of division by zero.
 	inputList := make([][32]byte, 10) // Arbitrary size larger than 0
-	_, err := merkle.BuildParentTreeRootsWithNRoutines[[32]byte](
+	output := make([][32]byte, 8)     // Arbitrary size smaller than inputList
+	err := merkle.BuildParentTreeRootsWithNRoutines(
+		output,
 		inputList,
 		0,
 	)
@@ -152,7 +157,8 @@ func TestBuildParentTreeRootsWithNRoutines_DivisionByZero(t *testing.T) {
 }
 
 // requireGoHashTreeEquivalence is a helper function to ensure that the output
-// of merkle.BuildParentTreeRootsWithNRoutines is equivalent to the output of gohashtree.Hash.
+// of merkle.BuildParentTreeRootsWithNRoutines is equivalent to the output of
+// gohashtree.Hash.
 func requireGoHashTreeEquivalence(
 	t *testing.T, inputList [][32]byte, numRoutines int, expectError bool,
 ) {
@@ -163,11 +169,12 @@ func requireGoHashTreeEquivalence(
 	copy(inputListCopy, inputList)
 
 	expectedOutput := make([][32]byte, len(inputListCopy)/2)
-	var output [][32]byte
+	output := make([][32]byte, len(inputListCopy)/2)
 	var err1, err2 error
 
 	// Run merkle.BuildParentTreeRootsWithNRoutines
-	output, err1 = merkle.BuildParentTreeRootsWithNRoutines[[32]byte](
+	err1 = merkle.BuildParentTreeRootsWithNRoutines(
+		output,
 		inputListCopy,
 		numRoutines,
 	)
