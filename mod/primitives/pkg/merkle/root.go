@@ -69,8 +69,9 @@ func NewRootWithDepth[RootT ~[32]byte](
 			zerohash := zero.Hashes[i]
 			leaves = append(leaves, zerohash)
 		}
-
-		if err := BuildParentTreeRoots(leaves, leaves); err != nil {
+		var err error
+		leaves, err = BuildParentTreeRoots[RootT](leaves)
+		if err != nil {
 			return zero.Hashes[depth], err
 		}
 	}
@@ -83,18 +84,14 @@ func NewRootWithDepth[RootT ~[32]byte](
 // BuildParentTreeRoots calls BuildParentTreeRootsWithNRoutines with the
 // number of routines set to runtime.GOMAXPROCS(0)-1.
 func BuildParentTreeRoots[RootT ~[32]byte](
-	outputList, inputList []RootT,
-) error {
-	err := BuildParentTreeRootsWithNRoutines(
-		//#nosec:G103 // on purpose.
-		*(*[][32]byte)(unsafe.Pointer(&outputList)),
-		//#nosec:G103 // on purpose.
-		*(*[][32]byte)(unsafe.Pointer(&inputList)),
-		runtime.GOMAXPROCS(0)-1,
+	inputList []RootT,
+) ([]RootT, error) {
+	out, err := BuildParentTreeRootsWithNRoutines[RootT](
+		*(*[][32]byte)(unsafe.Pointer(&inputList)), runtime.GOMAXPROCS(0)-1,
 	)
 
 	// Convert out back to []RootT using unsafe pointer cas
-	return err
+	return *(*[]RootT)(unsafe.Pointer(&out)), err
 }
 
 // BuildParentTreeRootsWithNRoutines optimizes hashing of a list of roots
@@ -102,25 +99,25 @@ func BuildParentTreeRoots[RootT ~[32]byte](
 // method adapts to the host machine's hardware for potential performance
 // gains over sequential hashing.
 //
-// TODO: We do not use generics here due to the gohashtree library not
-// supporting
+// TODO: We do not use generics here due to the gohashtree library not supporting
 // generics.
-func BuildParentTreeRootsWithNRoutines(
-	outputList, inputList [][32]byte, n int,
-) error {
+func BuildParentTreeRootsWithNRoutines[RootT ~[32]byte](
+	inputList [][32]byte, n int,
+) ([][32]byte, error) {
 	// Validate input list length.
 	inputLength := len(inputList)
 	if inputLength%2 != 0 {
-		return ErrOddLengthTreeRoots
+		return nil, ErrOddLengthTreeRoots
 	}
 	// Build output variables
 	outputLength := inputLength / two
+	outputList := make([][32]byte, outputLength)
 
 	// If the input list is small, hash it using the default method since
 	// the overhead of parallelizing the hashing process is not worth it.
 	if inputLength < MinParallelizationSize {
 		//#nosec:G103 // used of unsafe calls should be audited.
-		return gohashtree.Hash(outputList, inputList)
+		return outputList, gohashtree.Hash(outputList, inputList)
 	}
 
 	// Otherwise parallelize the hashing process for large inputs.
@@ -133,10 +130,10 @@ func BuildParentTreeRootsWithNRoutines(
 	// hashed in the main goroutine at the end of this function.
 	for j := 0; j <= n; j++ {
 		eg.Go(func() error {
-			// inputList:  [-------------------2*groupSize-------------------]
-			//              ^                  ^                    ^        ^
-			//              |                  |                    |        |
-			// j*2*groupSize   (j+1)*2*groupSize    (j+2)*2*groupSize   End
+			// inputList:  [---------------------2*groupSize---------------------]
+			//              ^                    ^                    ^          ^
+			//              |                    |                    |          |
+			// j*2*groupSize   (j+1)*2*groupSize    (j+2)*2*groupSize  End
 			//
 			// outputList: [---------groupSize---------]
 			//              ^                         ^
@@ -144,8 +141,7 @@ func BuildParentTreeRootsWithNRoutines(
 			//             j*groupSize         (j+1)*groupSize
 			//
 			// Each goroutine processes a segment of inputList that is twice as
-			// large as the segment it fills in outputList. This is because the
-			// hash
+			// large as the segment it fills in outputList. This is because the hash
 			// operation reduces the
 			// size of the input by half.
 			// Define the segment of the inputList each goroutine will process.
@@ -160,5 +156,5 @@ func BuildParentTreeRootsWithNRoutines(
 	}
 
 	// Wait for all goroutines to complete.
-	return eg.Wait()
+	return outputList, eg.Wait()
 }
