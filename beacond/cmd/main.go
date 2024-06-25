@@ -37,8 +37,12 @@ import (
 	"go.uber.org/automaxprocs/maxprocs"
 )
 
+type tx = transaction.Tx
+type node = types.Node[tx]
+type validatorUpdate = appmodulev2.ValidatorUpdate
+
 // run runs the beacon node.
-func Run[NodeT types.Node[T], T transaction.Tx, ValidatorUpdateT any]() error {
+func Run() error {
 	// Set the uber max procs
 	if _, err := maxprocs.Set(); err != nil {
 		return err
@@ -47,21 +51,21 @@ func Run[NodeT types.Node[T], T transaction.Tx, ValidatorUpdateT any]() error {
 	// Build the node using the node-core.
 	nb := nodebuilder.New(
 		// Set the DepInject Configuration to the Default.
-		nodebuilder.WithDepInjectConfig[NodeT](
+		nodebuilder.WithDepInjectConfig[node](
 			nodebuilder.DefaultDepInjectConfig()),
 		// Set the Runtime Components to the Default.
-		nodebuilder.WithComponents[NodeT](
+		nodebuilder.WithComponents[node](
 			nodecomponents.DefaultComponentsWithStandardTypes(),
 		),
 	)
 
 	// Build the server using the server builder.
-	// sb := serverbuilder.New[NodeT, T, ValidatorUpdateT](
-	// 	serverbuilder.WithDepInjectConfig[NodeT, T, ValidatorUpdateT](
+	// sb := serverbuilder.New[node, tx, validatorUpdate](
+	// 	serverbuilder.WithDepInjectConfig[node, tx, validatorUpdate](
 	// 		nodebuilder.DefaultDepInjectConfig(),
 	// 	),
-	// 	serverbuilder.WithComponents[NodeT, T, ValidatorUpdateT](
-	// 		servercomponents.ProvideCometServer[NodeT, T, ValidatorUpdateT],
+	// 	serverbuilder.WithComponents[node, tx, validatorUpdate](
+	// 		servercomponents.ProvideCometServer[node, tx, validatorUpdate],
 	// 		nodecomponents.ProvideTxCodec[T],
 	// 	),
 	// )
@@ -69,19 +73,19 @@ func Run[NodeT types.Node[T], T transaction.Tx, ValidatorUpdateT any]() error {
 	// Build the root command using the builder
 	cb := clibuilder.New(
 		// Set the Name to the Default.
-		clibuilder.WithName[NodeT, T, ValidatorUpdateT](
+		clibuilder.WithName[node, tx, validatorUpdate](
 			nodebuilder.DefaultAppName,
 		),
 		// Set the Description to the Default.
-		clibuilder.WithDescription[NodeT, T, ValidatorUpdateT](
+		clibuilder.WithDescription[node, tx, validatorUpdate](
 			nodebuilder.DefaultDescription,
 		),
 		// Set the DepInject Configuration to the Default.
-		clibuilder.WithDepInjectConfig[NodeT, T, ValidatorUpdateT](
+		clibuilder.WithDepInjectConfig[node, tx, validatorUpdate](
 			nodebuilder.DefaultDepInjectConfig(),
 		),
 		// Set the Runtime Components to the Default.
-		clibuilder.WithComponents[NodeT, T, ValidatorUpdateT](
+		clibuilder.WithComponents[node, tx, validatorUpdate](
 			append(
 				clicomponents.DefaultClientComponents(),
 				// TODO: remove these, and eventually pull cfg and chainspec
@@ -89,23 +93,19 @@ func Run[NodeT types.Node[T], T transaction.Tx, ValidatorUpdateT any]() error {
 				nodecomponents.ProvideNoopTxConfig,
 				nodecomponents.ProvideConfig,
 				nodecomponents.ProvideChainSpec,
-				nodecomponents.ProvideTxCodec[T],
-				servercomponents.ProvideCometServer[
-					NodeT,
-					T,
-					ValidatorUpdateT,
-				],
+				nodecomponents.ProvideTxCodec[tx],
+				servercomponents.ProvideCometServer[node, tx, validatorUpdate],
 			)...,
 		),
-		clibuilder.SupplyModuleDeps[NodeT, T, ValidatorUpdateT](
+		clibuilder.SupplyModuleDeps[node, tx, validatorUpdate](
 			beacon.SupplyModuleDependencies(),
 		),
 		// Set the Run Handler to the Default.
-		clibuilder.WithRunHandler[NodeT, T, ValidatorUpdateT](
+		clibuilder.WithRunHandler[node, tx, validatorUpdate](
 			server.InterceptConfigsPreRunHandler,
 		),
 		// Set the NodeBuilderFunc to the NodeBuilder Build.
-		clibuilder.WithNodeBuilderFunc[NodeT, T, ValidatorUpdateT](nb.Build),
+		clibuilder.WithNodeBuilderFunc[node, tx, validatorUpdate](nb.Build),
 		// Set the Server to the Server.
 		// clibuilder.WithServer[NodeT, T](svr),
 	)
@@ -124,9 +124,7 @@ func Run[NodeT types.Node[T], T transaction.Tx, ValidatorUpdateT any]() error {
 
 // main is the entry point.
 func main() {
-	if err := Run[
-		types.Node[transaction.Tx], transaction.Tx, appmodulev2.ValidatorUpdate,
-	](); err != nil {
+	if err := Run(); err != nil {
 		//nolint:sloglint // todo fix.
 		slog.Error("startup failure", "error", err)
 		os.Exit(1)
