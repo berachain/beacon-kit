@@ -25,6 +25,7 @@ import (
 	"reflect"
 	"unsafe"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/prysmaticlabs/gohashtree"
 )
@@ -149,21 +150,32 @@ func Pack[
 	U256L U256LT,
 	SpecT any,
 	RootT ~[32]byte,
-	B interface {
-		Basic[SpecT, RootT]
-		MarshalSSZ() ([]byte, error)
-	},
+	B Basic[SpecT, RootT],
 ](b []B) ([]RootT, error) {
 	// Pack each element into separate buffers.
-	// Pre-allocate the packed slice to avoid multiple reallocations
-	totalSize := 0
+	var packed []byte
 	for _, el := range b {
-		totalSize += el.SizeSSZ()
-	}
-	packed := make([]byte, 0, totalSize)
+		fieldValue := reflect.ValueOf(el)
+		if fieldValue.Kind() == reflect.Ptr {
+			fieldValue = fieldValue.Elem()
+		}
 
-	// Pack each element into the pre-allocated slice
-	for _, el := range b {
+		if !fieldValue.CanInterface() {
+			return nil, errors.Newf(
+				"cannot interface with field %v",
+				fieldValue,
+			)
+		}
+
+		// TODO: Do we need a safety check for Basic only here?
+		// TODO: use a real interface instead of hood inline.
+		el, ok := reflect.ValueOf(el).
+			Interface().(interface{ MarshalSSZ() ([]byte, error) })
+		if !ok {
+			return nil, errors.Newf("unsupported type %T", el)
+		}
+
+		// TODO: Do we need a safety check for Basic only here?
 		buf, err := el.MarshalSSZ()
 		if err != nil {
 			return nil, err
