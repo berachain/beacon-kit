@@ -22,6 +22,7 @@ require (
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240624003607-df94860f8eeb
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240624204855-d8809d5c8588
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240624204855-d8809d5c8588
+	github.com/berachain/beacon-kit/mod/server v0.0.0-20240625165558-8d611ba7d436
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240619234034-fe96d94eafef
 	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240624003607-df94860f8eeb
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240624204855-d8809d5c8588
