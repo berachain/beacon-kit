@@ -22,8 +22,8 @@ package state
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
 // BeaconStateMarshallable represents an interface for a beacon state
@@ -36,7 +36,7 @@ type BeaconStateMarshallable[
 	ForkT,
 	ValidatorT any,
 ] interface {
-	ssz.Marshallable
+	constraints.SSZMarshallable
 	// New returns a new instance of the BeaconStateMarshallable.
 	New(
 		forkVersion uint32,

@@ -26,16 +26,16 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
 // BeaconBlock is an interface for accessing the beacon block.
 type BeaconBlock[T any] interface {
-	ssz.Marshallable
-	IsNil() bool
+	constraints.SSZMarshallable
+	constraints.Nillable
 	GetSlot() math.Slot
 	NewFromSSZ([]byte, uint32) (T, error)
 }
@@ -60,7 +60,7 @@ type BeaconState interface {
 // state and processing blocks.
 type BlockchainService[
 	BeaconBlockT any,
-	BlobSidecarsT ssz.Marshallable,
+	BlobSidecarsT constraints.SSZMarshallable,
 	DepositT any,
 	GenesisT Genesis,
 ] interface {

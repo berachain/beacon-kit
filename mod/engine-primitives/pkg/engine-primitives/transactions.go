@@ -21,11 +21,53 @@
 package engineprimitives
 
 import (
+	"sync"
+
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
+
+// byteBuffer is a byte buffer.
+type byteBuffer struct {
+	Bytes []common.Root
+}
+
+// byteBufferPool is a pool of byte buffers.
+//
+//nolint:gochecknoglobals // buffer pool
+var byteBufferPool = sync.Pool{
+	New: func() any {
+		return &byteBuffer{
+			//nolint:mnd // reasonable number of bytes
+			Bytes: make([]common.Root, 0, 256),
+		}
+	},
+}
+
+// getBytes retrieves a byte buffer from the pool.
+func getBytes(size int) *byteBuffer {
+	//nolint:errcheck // its okay.
+	b := byteBufferPool.Get().(*byteBuffer)
+	if b == nil {
+		b = &byteBuffer{
+			Bytes: make([]common.Root, size),
+		}
+	} else {
+		if b.Bytes == nil || cap(b.Bytes) < size {
+			b.Bytes = make([]common.Root, size)
+		}
+		b.Bytes = b.Bytes[:size]
+	}
+	return b
+}
+
+// Reset resets the byte buffer.
+func (b *byteBuffer) Reset() {
+	b.Bytes = b.Bytes[:0]
+}
 
 // Transactions is a typealias for [][]byte, which is how transactions are
 // received in the execution payload.
@@ -34,16 +76,22 @@ type Transactions [][]byte
 // HashTreeRoot returns the hash tree root of the Transactions list.
 func (txs Transactions) HashTreeRoot() (common.Root, error) {
 	var err error
+	roots := getBytes(len(txs))
+	defer byteBufferPool.Put(roots)
 
-	roots := make([]common.Root, len(txs))
+	// Ensure roots.Bytes is not nil
+	if roots.Bytes == nil {
+		return common.Root{}, errors.New("failed to allocate byte buffer")
+	}
+
 	for i, tx := range txs {
-		roots[i], err = ssz.MerkleizeByteSlice[math.U64, common.Root](tx)
+		roots.Bytes[i], err = ssz.MerkleizeByteSlice[math.U64, common.Root](tx)
 		if err != nil {
 			return common.Root{}, err
 		}
 	}
 
 	return ssz.MerkleizeListComposite[any, math.U64](
-		roots, constants.MaxTxsPerPayload,
+		roots.Bytes, constants.MaxTxsPerPayload,
 	)
 }
