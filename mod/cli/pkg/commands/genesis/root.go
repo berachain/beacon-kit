@@ -67,7 +67,10 @@ func GetGenesisValidatorRootCmd(cs common.ChainSpec) *cobra.Command {
 			}
 
 			depositCount := uint64(len(genesis.AppState.Beacon.Deposits))
-			validators := make([]ssz.Composite[common.ChainSpec, [32]byte], depositCount)
+			validators := make(
+				[]ssz.Composite[common.ChainSpec, [32]byte],
+				depositCount,
+			)
 			for i, deposit := range genesis.AppState.Beacon.Deposits {
 				var val *types.Validator
 				validators[i] = val.New(

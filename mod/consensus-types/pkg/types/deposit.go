@@ -87,7 +87,8 @@ func (d Deposits) HashTreeRoot() (common.Root, error) {
 	// TODO: read max deposits from the chain spec.
 	merkleizer := ssz.NewMerkleizer[common.ChainSpec, math.U64, math.U256L, common.Root]()
 	return merkleizer.MerkleizeListComposite(
-		*(*[]ssz.Composite[common.ChainSpec, common.Root])(unsafe.Pointer(&d)), constants.MaxDepositsPerBlock,
+		*(*[]ssz.Composite[common.ChainSpec, common.Root])(unsafe.Pointer(&d)),
+		constants.MaxDepositsPerBlock,
 	)
 }
 

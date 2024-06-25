@@ -115,7 +115,8 @@ func (sp *StateProcessor[
 	var validatorsRoot common.Root
 	merkleizer := ssz.NewMerkleizer[common.ChainSpec, math.U64, math.U256L, [32]byte]()
 	validatorsRoot, err = merkleizer.MerkleizeListComposite(
-		*(*[]ssz.Composite[common.ChainSpec, [32]byte])(unsafe.Pointer(&validators)), uint64(len(validators)),
+		*(*[]ssz.Composite[common.ChainSpec, [32]byte])(unsafe.Pointer(&validators)),
+		uint64(len(validators)),
 	)
 	if err != nil {
 		return nil, err
