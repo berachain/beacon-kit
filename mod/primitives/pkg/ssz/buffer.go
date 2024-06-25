@@ -57,10 +57,6 @@ func getBytes(size int) *byteBuffer {
 		}
 		b.Bytes = b.Bytes[:size]
 	}
-	if cap(b.Bytes) < size {
-		b.Bytes = make([]common.Root, size)
-	}
-	b.Bytes = b.Bytes[:size]
 	return b
 }
 
