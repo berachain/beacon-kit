@@ -62,7 +62,7 @@ else
 overwrite="Y"
 fi
 
-export CHAIN_SPEC="devnet"
+export CHAIN_SPEC="testnet"
 
 # Setup local node if overwrite is set to Yes, otherwise skip setup
 if [[ $overwrite == "y" || $overwrite == "Y" ]]; then

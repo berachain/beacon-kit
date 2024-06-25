@@ -70,8 +70,7 @@ func NewRootWithDepth[RootT ~[32]byte](
 	var err error
 	for i := uint8(0); i < depth; i++ {
 		layerLen := len(leaves)
-		oddNodeLength := layerLen%two == 1
-		if oddNodeLength {
+		if layerLen%two == 1 {
 			leaves = append(leaves, zero.Hashes[i])
 		}
 
