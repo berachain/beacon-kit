@@ -112,18 +112,9 @@ func (sp *StateProcessor[
 
 	var validatorsRoot common.Root
 	merkleizer := ssz.NewMerkleizer[
-		common.ChainSpec, math.U64, math.U256L, [32]byte]()
-	// Convert validators to a slice of Composite
-	compositeValidators := make(
-		[]ssz.Composite[common.ChainSpec, [32]byte],
-		len(validators),
-	)
-	for i, v := range validators {
-		compositeValidators[i] = v
-	}
-
+		common.ChainSpec, math.U64, math.U256L, [32]byte, ValidatorT]()
 	validatorsRoot, err = merkleizer.MerkleizeListComposite(
-		compositeValidators,
+		validators,
 		uint64(len(validators)),
 	)
 	if err != nil {

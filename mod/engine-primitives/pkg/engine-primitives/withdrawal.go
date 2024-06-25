@@ -78,15 +78,11 @@ type Withdrawals []*Withdrawal
 func (w Withdrawals) HashTreeRoot() (common.Root, error) {
 	// TODO: read max withdrawals from the chain spec.
 	merkleizer := ssz.NewMerkleizer[
-		common.ChainSpec, math.U64, math.U256L, [32]byte,
+		common.ChainSpec, math.U64, math.U256L, [32]byte, *Withdrawal,
 	]()
 
-	x := make([]ssz.Composite[common.ChainSpec, [32]byte], len(w))
-	for i, withdrawal := range w {
-		x[i] = withdrawal
-	}
 	return merkleizer.MerkleizeListComposite(
-		x,
+		w,
 		constants.MaxWithdrawalsPerPayload,
 	)
 }
