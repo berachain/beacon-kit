@@ -21,12 +21,10 @@
 package ssz
 
 import (
-	"encoding/binary"
 	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
-	"github.com/prysmaticlabs/gohashtree"
 )
 
 // SizeOfBasic returns the size of a basic type.
@@ -214,17 +212,4 @@ func MerkleizeByteSlice[U64T U64[U64T], RootT ~[32]byte](
 		chunks,
 		numChunks,
 	)
-}
-
-// MixinLength takes a root element and mixes in the length of the elements
-// that were hashed to produce it.
-func MixinLength[RootT ~[32]byte](element RootT, length uint64) RootT {
-	//nolint:mnd // 2 is okay.
-	chunks := make([][32]byte, 2)
-	chunks[0] = element
-	binary.LittleEndian.PutUint64(chunks[1][:], length)
-	if err := gohashtree.Hash(chunks, chunks); err != nil {
-		return RootT{}
-	}
-	return chunks[0]
 }

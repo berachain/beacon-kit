@@ -24,6 +24,7 @@ import (
 	"runtime"
 	"unsafe"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
 	"github.com/prysmaticlabs/gohashtree"
@@ -42,18 +43,36 @@ const (
 	two = 2
 )
 
+type MerkleHashFn[RootT ~[32]byte] func([]RootT, []RootT) error
+
+// Hasher can be re-used for constructing Merkle tree roots.
+type Hasher[RootT ~[32]byte] struct {
+	// buffer is a reusable buffer for hashing.
+	buffer bytes.Buffer[RootT]
+	// hasher is the hashing function to use.
+	hasher MerkleHashFn[RootT]
+}
+
+// NewHasher creates a new merkle Hasher.
+func NewHasher[RootT ~[32]byte](buffer bytes.Buffer[RootT], hashFn MerkleHashFn[RootT]) *Hasher[RootT] {
+	return &Hasher[RootT]{
+		buffer: buffer,
+		hasher: hashFn,
+	}
+}
+
 // NewRootWithMaxLeaves constructs a Merkle tree root from a set of.
-func NewRootWithMaxLeaves[U64T U64[U64T], RootT ~[32]byte](
+func (m *Hasher[RootT]) NewRootWithMaxLeaves(
 	leaves []RootT,
-	length U64T,
+	length uint64,
 ) (RootT, error) {
-	return NewRootWithDepth(
+	return m.NewRootWithDepth(
 		leaves, math.U64(length).NextPowerOfTwo().ILog2Ceil(),
 	)
 }
 
 // NewRootWithDepth constructs a Merkle tree root from a set of leaves.
-func NewRootWithDepth[RootT ~[32]byte](
+func (m *Hasher[RootT]) NewRootWithDepth(
 	leaves []RootT,
 	depth uint8,
 ) (RootT, error) {
@@ -65,7 +84,7 @@ func NewRootWithDepth[RootT ~[32]byte](
 	// Preallocate a single buffer large enough for the maximum layer size
 	// TODO: It seems that BuildParentTreeRoots has different behaviour
 	// when we pass leaves in directly.
-	buffer := make([]RootT, (len(leaves)+1)/two)
+	buf := m.buffer.Get((len(leaves) + 1) / two)
 
 	var err error
 	for i := range depth {
@@ -75,10 +94,10 @@ func NewRootWithDepth[RootT ~[32]byte](
 		}
 
 		newLayerSize := (layerLen + 1) / two
-		if err = BuildParentTreeRoots(buffer[:newLayerSize], leaves); err != nil {
+		if err = m.hasher(buf[:newLayerSize], leaves); err != nil {
 			return zero.Hashes[depth], err
 		}
-		leaves, buffer = buffer[:newLayerSize], leaves
+		leaves, buf = buf[:newLayerSize], leaves
 	}
 	if len(leaves) != 1 {
 		return zero.Hashes[depth], nil
@@ -109,8 +128,7 @@ func BuildParentTreeRoots[RootT ~[32]byte](
 // gains over sequential hashing.
 //
 // TODO: We do not use generics here due to the gohashtree library not
-// supporting
-// generics.
+// supporting generics.
 func BuildParentTreeRootsWithNRoutines(
 	outputList, inputList [][32]byte, n int,
 ) error {
@@ -119,6 +137,7 @@ func BuildParentTreeRootsWithNRoutines(
 	if inputLength%2 != 0 {
 		return ErrOddLengthTreeRoots
 	}
+
 	// Build output variables
 	outputLength := inputLength / two
 
