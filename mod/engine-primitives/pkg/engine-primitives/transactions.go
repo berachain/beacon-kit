@@ -23,6 +23,7 @@ package engineprimitives
 import (
 	"sync"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -50,10 +51,16 @@ var byteBufferPool = sync.Pool{
 func getBytes(size int) *byteBuffer {
 	//nolint:errcheck // its okay.
 	b := byteBufferPool.Get().(*byteBuffer)
-	if cap(b.Bytes) < size {
-		b.Bytes = make([]common.Root, size)
+	if b == nil {
+		b = &byteBuffer{
+			Bytes: make([]common.Root, size),
+		}
+	} else {
+		if b.Bytes == nil || cap(b.Bytes) < size {
+			b.Bytes = make([]common.Root, size)
+		}
+		b.Bytes = b.Bytes[:size]
 	}
-	b.Bytes = b.Bytes[:size]
 	return b
 }
 
@@ -71,6 +78,12 @@ func (txs Transactions) HashTreeRoot() (common.Root, error) {
 	var err error
 	roots := getBytes(len(txs))
 	defer byteBufferPool.Put(roots)
+
+	// Ensure roots.Bytes is not nil
+	if roots.Bytes == nil {
+		return common.Root{}, errors.New("failed to allocate byte buffer")
+	}
+
 	for i, tx := range txs {
 		roots.Bytes[i], err = ssz.MerkleizeByteSlice[math.U64, common.Root](tx)
 		if err != nil {
