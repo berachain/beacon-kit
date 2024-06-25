@@ -184,7 +184,7 @@ func MerkleizeListComposite[
 			return RootT{}, errors.New("htrs.Bytes is nil")
 		}
 	}
-	root, err := Merkleize[U64T, common.Root](
+	root, err := Merkleize[U64T](
 		htrs.Bytes,
 		ChunkCountCompositeList[C](value, limit),
 	)
@@ -247,9 +247,8 @@ func Merkleize[U64T U64[U64T], RootT ~[32]byte](
 		return effectiveChunks[0], nil
 	}
 
-	return merkle.NewRootWithMaxLeaves[U64T](
+	return merkle.NewRootWithMaxLeaves(
 		effectiveChunks,
-		//#nosec:G701 // This is a safe operation.
-		uint64(effectiveLimit),
+		effectiveLimit,
 	)
 }
