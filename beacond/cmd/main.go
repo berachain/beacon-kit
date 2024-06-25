@@ -69,15 +69,19 @@ func Run[NodeT types.Node[T], T transaction.Tx, ValidatorUpdateT any]() error {
 	// Build the root command using the builder
 	cb := clibuilder.New(
 		// Set the Name to the Default.
-		clibuilder.WithName[NodeT](nodebuilder.DefaultAppName),
+		clibuilder.WithName[NodeT, T, ValidatorUpdateT](
+			nodebuilder.DefaultAppName,
+		),
 		// Set the Description to the Default.
-		clibuilder.WithDescription[NodeT](nodebuilder.DefaultDescription),
+		clibuilder.WithDescription[NodeT, T, ValidatorUpdateT](
+			nodebuilder.DefaultDescription,
+		),
 		// Set the DepInject Configuration to the Default.
-		clibuilder.WithDepInjectConfig[NodeT](
+		clibuilder.WithDepInjectConfig[NodeT, T, ValidatorUpdateT](
 			nodebuilder.DefaultDepInjectConfig(),
 		),
 		// Set the Runtime Components to the Default.
-		clibuilder.WithComponents[NodeT](
+		clibuilder.WithComponents[NodeT, T, ValidatorUpdateT](
 			append(
 				clicomponents.DefaultClientComponents(),
 				// TODO: remove these, and eventually pull cfg and chainspec
@@ -86,18 +90,22 @@ func Run[NodeT types.Node[T], T transaction.Tx, ValidatorUpdateT any]() error {
 				nodecomponents.ProvideConfig,
 				nodecomponents.ProvideChainSpec,
 				nodecomponents.ProvideTxCodec[T],
-				servercomponents.ProvideCometServer[NodeT, T, ValidatorUpdateT],
+				servercomponents.ProvideCometServer[
+					NodeT,
+					T,
+					ValidatorUpdateT,
+				],
 			)...,
 		),
-		clibuilder.SupplyModuleDeps[NodeT](
+		clibuilder.SupplyModuleDeps[NodeT, T, ValidatorUpdateT](
 			beacon.SupplyModuleDependencies(),
 		),
 		// Set the Run Handler to the Default.
-		clibuilder.WithRunHandler[NodeT](
+		clibuilder.WithRunHandler[NodeT, T, ValidatorUpdateT](
 			server.InterceptConfigsPreRunHandler,
 		),
 		// Set the NodeBuilderFunc to the NodeBuilder Build.
-		clibuilder.WithNodeBuilderFunc[NodeT](nb.Build),
+		clibuilder.WithNodeBuilderFunc[NodeT, T, ValidatorUpdateT](nb.Build),
 		// Set the Server to the Server.
 		// clibuilder.WithServer[NodeT, T](svr),
 	)

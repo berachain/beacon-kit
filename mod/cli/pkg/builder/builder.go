@@ -24,7 +24,6 @@ import (
 	"os"
 
 	"cosmossdk.io/client/v2/autocli"
-	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"cosmossdk.io/core/transaction"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
@@ -43,7 +42,9 @@ import (
 )
 
 // CLIBuilder is the builder for the commands.Root (root command).
-type CLIBuilder[NodeT types.Node[T], T transaction.Tx] struct {
+type CLIBuilder[
+	NodeT types.Node[T], T transaction.Tx, ValidatorUpdateT any,
+] struct {
 	depInjectCfg depinject.Config
 	name         string
 	description  string
@@ -64,8 +65,10 @@ type CLIBuilder[NodeT types.Node[T], T transaction.Tx] struct {
 }
 
 // New returns a new CLIBuilder with the given options.
-func New[NodeT types.Node[T], T transaction.Tx](opts ...Opt[NodeT, T]) *CLIBuilder[NodeT, T] {
-	cb := &CLIBuilder[NodeT, T]{
+func New[NodeT types.Node[T], T transaction.Tx, ValidatorUpdateT any](
+	opts ...Opt[NodeT, T, ValidatorUpdateT],
+) *CLIBuilder[NodeT, T, ValidatorUpdateT] {
+	cb := &CLIBuilder[NodeT, T, ValidatorUpdateT]{
 		suppliers: []any{
 			os.Stdout, // supply io.Writer for logger
 			viper.GetViper(),
@@ -78,7 +81,9 @@ func New[NodeT types.Node[T], T transaction.Tx](opts ...Opt[NodeT, T]) *CLIBuild
 }
 
 // Build builds the CLI commands.
-func (cb *CLIBuilder[NodeT, T]) Build() (*cmdlib.Root, error) {
+func (
+	cb *CLIBuilder[NodeT, T, ValidatorUpdateT],
+) Build() (*cmdlib.Root, error) {
 	// allocate memory to hold the dependencies
 	var (
 		autoCliOpts autocli.AppOptions
@@ -86,7 +91,7 @@ func (cb *CLIBuilder[NodeT, T]) Build() (*cmdlib.Root, error) {
 		clientCtx   client.Context
 		chainSpec   common.ChainSpec
 		logger      log.Logger
-		cmtServer   *servercomponents.CometBFTServer[NodeT, T, *appmodulev2.ValidatorUpdate]
+		cmtServer   *servercomponents.CometBFTServer[NodeT, T, ValidatorUpdateT]
 	)
 	// build dependencies for the root command
 	if err := depinject.Inject(
@@ -163,7 +168,9 @@ func (cb *CLIBuilder[NodeT, T]) Build() (*cmdlib.Root, error) {
 }
 
 // defaultRunHandler returns the default run handler for the CLIBuilder.
-func (cb *CLIBuilder[NodeT, T]) defaultRunHandler(logger log.Logger) func(
+func (
+	cb *CLIBuilder[NodeT, T, ValidatorUpdateT],
+) defaultRunHandler(logger log.Logger) func(
 	cmd *cobra.Command,
 ) error {
 	return func(cmd *cobra.Command) error {
@@ -180,7 +187,7 @@ func (cb *CLIBuilder[NodeT, T]) defaultRunHandler(logger log.Logger) func(
 // InterceptConfigsPreRunHandler is identical to
 // InterceptConfigsAndCreateContext except it also sets the server context on
 // the command and the server logger.
-func (cb *CLIBuilder[NodeT, T]) InterceptConfigsPreRunHandler(
+func (cb *CLIBuilder[NodeT, T, ValidatorUpdateT]) InterceptConfigsPreRunHandler(
 	cmd *cobra.Command, logger log.Logger, customAppConfigTemplate string,
 	customAppConfig interface{}, cmtConfig *cmtcfg.Config,
 ) error {

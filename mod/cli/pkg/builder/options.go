@@ -30,72 +30,84 @@ import (
 )
 
 // Opt is a type that defines a function that modifies CLIBuilder.
-type Opt[NodeT types.Node[T], T transaction.Tx] func(*CLIBuilder[NodeT, T])
+type Opt[
+	NodeT types.Node[T], T transaction.Tx, ValidatorUpdateT any,
+] func(*CLIBuilder[NodeT, T, ValidatorUpdateT])
 
 // WithName sets the name for the CLIBuilder.
-func WithName[NodeT types.Node[T], T transaction.Tx](name string) Opt[NodeT, T] {
-	return func(cb *CLIBuilder[NodeT, T]) {
+func WithName[
+	NodeT types.Node[T], T transaction.Tx, ValidatorUpdateT any,
+](name string) Opt[NodeT, T, ValidatorUpdateT] {
+	return func(cb *CLIBuilder[NodeT, T, ValidatorUpdateT]) {
 		cb.name = name
 	}
 }
 
 // WithDescription sets the description for the CLIBuilder.
-func WithDescription[NodeT types.Node[T], T transaction.Tx](description string) Opt[NodeT, T] {
-	return func(cb *CLIBuilder[NodeT, T]) {
+func WithDescription[
+	NodeT types.Node[T], T transaction.Tx, ValidatorUpdateT any,
+](description string) Opt[NodeT, T, ValidatorUpdateT] {
+	return func(cb *CLIBuilder[NodeT, T, ValidatorUpdateT]) {
 		cb.description = description
 	}
 }
 
 // WithDepInjectConfig sets the depinject config for the CLIBuilder.
-func WithDepInjectConfig[NodeT types.Node[T], T transaction.Tx](
-	cfg depinject.Config) Opt[NodeT, T] {
-	return func(cb *CLIBuilder[NodeT, T]) {
+func WithDepInjectConfig[
+	NodeT types.Node[T], T transaction.Tx, ValidatorUpdateT any,
+](
+	cfg depinject.Config) Opt[NodeT, T, ValidatorUpdateT] {
+	return func(cb *CLIBuilder[NodeT, T, ValidatorUpdateT]) {
 		cb.depInjectCfg = cfg
 	}
 }
 
 // WithComponents sets the components for the CLIBuilder.
-func WithComponents[NodeT types.Node[T], T transaction.Tx](components ...any) Opt[NodeT, T] {
-	return func(cb *CLIBuilder[NodeT, T]) {
+func WithComponents[
+	NodeT types.Node[T], T transaction.Tx, ValidatorUpdateT any,
+](components ...any) Opt[NodeT, T, ValidatorUpdateT] {
+	return func(cb *CLIBuilder[NodeT, T, ValidatorUpdateT]) {
 		cb.components = components
 	}
 }
 
 // SupplyModuleDeps populates the slice of direct module dependencies to be
 // supplied to depinject.
-func SupplyModuleDeps[NodeT types.Node[T], T transaction.Tx](deps []any) Opt[NodeT, T] {
-	return func(cb *CLIBuilder[NodeT, T]) {
+func SupplyModuleDeps[
+	NodeT types.Node[T], T transaction.Tx, ValidatorUpdateT any,
+](deps []any) Opt[NodeT, T, ValidatorUpdateT] {
+	return func(cb *CLIBuilder[NodeT, T, ValidatorUpdateT]) {
 		cb.suppliers = append(cb.suppliers, deps...)
 	}
 }
 
 // WithRunHandler sets the run handler for the CLIBuilder.
-func WithRunHandler[NodeT types.Node[T], T transaction.Tx](
+func WithRunHandler[NodeT types.Node[T], T transaction.Tx, ValidatorUpdateT any](
 	runHandler func(cmd *cobra.Command,
 		customAppConfigTemplate string,
 		customAppConfig interface{},
 		cmtConfig *cmtcfg.Config,
 	) error,
-) Opt[NodeT, T] {
-	return func(cb *CLIBuilder[NodeT, T]) {
+) Opt[NodeT, T, ValidatorUpdateT] {
+	return func(cb *CLIBuilder[NodeT, T, ValidatorUpdateT]) {
 		cb.runHandler = runHandler
 	}
 }
 
 // WithNodeBuilderFunc sets the cosmos app creator for the CLIBuilder.
-func WithNodeBuilderFunc[NodeT types.Node[T], T transaction.Tx](
+func WithNodeBuilderFunc[NodeT types.Node[T], T transaction.Tx, ValidatorUpdateT any](
 	nodeBuilderFunc serverv2.AppCreator[NodeT, T],
-) Opt[NodeT, T] {
-	return func(cb *CLIBuilder[NodeT, T]) {
+) Opt[NodeT, T, ValidatorUpdateT] {
+	return func(cb *CLIBuilder[NodeT, T, ValidatorUpdateT]) {
 		cb.nodeBuilderFunc = nodeBuilderFunc
 	}
 }
 
 // WithServer sets the server for the CLIBuilder.
-func WithServer[NodeT types.Node[T], T transaction.Tx](
+func WithServer[NodeT types.Node[T], T transaction.Tx, ValidatorUpdateT any](
 	server *serverv2.Server[NodeT, T],
-) Opt[NodeT, T] {
-	return func(cb *CLIBuilder[NodeT, T]) {
+) Opt[NodeT, T, ValidatorUpdateT] {
+	return func(cb *CLIBuilder[NodeT, T, ValidatorUpdateT]) {
 		cb.server = server
 	}
 }
