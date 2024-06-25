@@ -48,9 +48,15 @@ func getBytes(size int) *byteBuffer {
 	//nolint:errcheck // its okay.
 	b := byteBufferPool.Get().(*byteBuffer)
 	if b == nil {
-		b = &byteBuffer{}
+		b = &byteBuffer{
+			Bytes: make([]common.Root, size),
+		}
+	} else {
+		if b.Bytes == nil || cap(b.Bytes) < size {
+			b.Bytes = make([]common.Root, size)
+		}
+		b.Bytes = b.Bytes[:size]
 	}
-
 	if cap(b.Bytes) < size {
 		b.Bytes = make([]common.Root, size)
 	}

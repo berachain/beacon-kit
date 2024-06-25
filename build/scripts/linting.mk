@@ -26,15 +26,15 @@ golangci:
 	
 golangci-fix:
 	@echo "--> Running linter with fixes on all modules"
-	@dirs=$$(find . -name 'go.mod' -exec dirname {} \;); \
-	total=$$(echo "$$dirs" | wc -l); \
-	count=0; \
-	for dir in $$dirs; do \
-		printf "[%d/%d modules complete] Running formatter in %s\n" $$count $$total $$dir && \
-		(cd $$dir && go run github.com/golangci/golangci-lint/cmd/golangci-lint run --config $(ROOT_DIR)/.golangci.yaml --timeout=10m --fix --concurrency 8) || exit 1; \
-		count=$$((count + 1)); \
-	done
-	@printf "All modules complete\n"
+	@dirs=$$(find . -name 'go.mod' -exec dirname {} \;)
+	@total=$$(echo "$$dirs" | wc -l)
+	@echo "Total modules: $$total"
+	@echo "$$dirs" | xargs -P 8 -I {} bash -c '\
+		dir="{}"; \
+		echo "Running formatter in $$dir"; \
+		cd "$$dir" && go run github.com/golangci/golangci-lint/cmd/golangci-lint run --config $(ROOT_DIR)/.golangci.yaml --timeout=10m --fix --concurrency 8 || exit 1; \
+		echo "Completed $$dir"'
+	@echo "All modules complete"
 
 #################
 #    golines    #
