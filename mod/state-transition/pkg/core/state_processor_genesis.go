@@ -21,6 +21,8 @@
 package core
 
 import (
+	"unsafe"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -111,9 +113,10 @@ func (sp *StateProcessor[
 	}
 
 	var validatorsRoot common.Root
-	validatorsRoot, err = ssz.MerkleizeListComposite[
-		common.ChainSpec, math.U64,
-	](validators, uint64(len(validators)))
+	merkleizer := ssz.NewMerkleizer[common.ChainSpec, math.U64, math.U256L, common.Root]()
+	validatorsRoot, err = merkleizer.MerkleizeListComposite(
+		*(*[]ssz.Composite[common.ChainSpec, common.Root])(unsafe.Pointer(&validators)), uint64(len(validators)),
+	)
 	if err != nil {
 		return nil, err
 	}

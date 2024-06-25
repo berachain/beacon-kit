@@ -22,8 +22,8 @@ package engineprimitives
 
 import (
 	"sync"
+	"unsafe"
 
-	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -76,22 +76,19 @@ type Transactions [][]byte
 // HashTreeRoot returns the hash tree root of the Transactions list.
 func (txs Transactions) HashTreeRoot() (common.Root, error) {
 	var err error
-	roots := getBytes(len(txs))
-	defer byteBufferPool.Put(roots)
+	roots := make([]common.Root, len(txs))
 
-	// Ensure roots.Bytes is not nil
-	if roots.Bytes == nil {
-		return common.Root{}, errors.New("failed to allocate byte buffer")
-	}
+	merkleizer := ssz.NewMerkleizer[common.ChainSpec, math.U64, math.U256L, common.Root]()
 
 	for i, tx := range txs {
-		roots.Bytes[i], err = ssz.MerkleizeByteSlice[math.U64, common.Root](tx)
+		roots[i], err = merkleizer.MerkleizeByteSlice(tx)
 		if err != nil {
 			return common.Root{}, err
 		}
 	}
 
-	return ssz.MerkleizeListComposite[any, math.U64](
-		roots.Bytes, constants.MaxTxsPerPayload,
+	return merkleizer.MerkleizeListComposite(
+		*(*[]ssz.Composite[common.ChainSpec, common.Root])(unsafe.Pointer(&roots)),
+		constants.MaxTxsPerPayload,
 	)
 }

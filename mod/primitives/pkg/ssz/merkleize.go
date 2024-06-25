@@ -30,12 +30,6 @@ import (
 
 type Merkleizer[
 	SpecT any, U64T U64[U64T], U256L U256LT, RootT ~[32]byte,
-	B interface {
-		Basic[SpecT, RootT]
-		MarshalSSZ() ([]byte, error)
-	},
-	C Container[SpecT, RootT],
-	CompositeT Composite[SpecT, RootT],
 ] struct {
 	hasher      *merkle.Hasher[RootT]
 	bytesBuffer bytes.Buffer[RootT]
@@ -43,14 +37,8 @@ type Merkleizer[
 
 func NewMerkleizer[
 	SpecT any, U64T U64[U64T], U256L U256LT, RootT ~[32]byte,
-	B interface {
-		Basic[SpecT, RootT]
-		MarshalSSZ() ([]byte, error)
-	},
-	C Container[SpecT, RootT],
-	CompositeT Composite[SpecT, RootT],
-]() *Merkleizer[SpecT, U64T, U256L, RootT, B, C, CompositeT] {
-	return &Merkleizer[SpecT, U64T, U256L, RootT, B, C, CompositeT]{
+]() *Merkleizer[SpecT, U64T, U256L, RootT] {
+	return &Merkleizer[SpecT, U64T, U256L, RootT]{
 		hasher: merkle.NewHasher(
 			bytes.NewReusableBuffer[RootT](),
 			merkle.BuildParentTreeRoots[RootT],
@@ -60,16 +48,16 @@ func NewMerkleizer[
 }
 
 // MerkleizeBasic hashes the packed value and returns the HTR.
-func (m *Merkleizer[SpecT, U64T, U256L, RootT, B, C, CompositeT]) MerkleizeBasic(
-	value B,
+func (m *Merkleizer[SpecT, U64T, U256L, RootT]) MerkleizeBasic(
+	value Basic[SpecT, RootT],
 ) (RootT, error) {
-	return m.MerkleizeVecBasic([]B{value})
+	return m.MerkleizeVecBasic([]Basic[SpecT, RootT]{value})
 }
 
 // MerkleizeVecBasic implements the SSZ merkleization algorithm
 // for a vector of basic types.
-func (m *Merkleizer[SpecT, U64T, U256L, RootT, B, C, CompositeT]) MerkleizeVecBasic(
-	value []B,
+func (m *Merkleizer[SpecT, U64T, U256L, RootT]) MerkleizeVecBasic(
+	value []Basic[SpecT, RootT],
 ) (RootT, error) {
 	packed, err := Pack[U64T, U256L, SpecT](value)
 	if err != nil {
@@ -80,8 +68,8 @@ func (m *Merkleizer[SpecT, U64T, U256L, RootT, B, C, CompositeT]) MerkleizeVecBa
 
 // MerkleizeListBasic implements the SSZ merkleization algorithm for a list of
 // basic types.
-func (m *Merkleizer[SpecT, U64T, U256L, RootT, B, C, CompositeT]) MerkleizeListBasic(
-	value []B,
+func (m *Merkleizer[SpecT, U64T, U256L, RootT]) MerkleizeListBasic(
+	value []Basic[SpecT, RootT],
 	limit uint64,
 ) (RootT, error) {
 	packed, err := Pack[U64T, U256L, SpecT](value)
@@ -102,8 +90,8 @@ func (m *Merkleizer[SpecT, U64T, U256L, RootT, B, C, CompositeT]) MerkleizeListB
 
 // MerkleizeContainer implements the SSZ merkleization algorithm for a
 // container.
-func (m *Merkleizer[SpecT, U64T, U256L, RootT, B, C, CompositeT]) MerkleizeContainer(
-	value C, _ ...SpecT,
+func (m *Merkleizer[SpecT, U64T, U256L, RootT]) MerkleizeContainer(
+	value Container[SpecT, RootT], _ ...SpecT,
 ) (RootT, error) {
 	rValue := reflect.ValueOf(value)
 	if rValue.Kind() == reflect.Ptr {
@@ -139,8 +127,8 @@ func (m *Merkleizer[SpecT, U64T, U256L, RootT, B, C, CompositeT]) MerkleizeConta
 
 // MerkleizeVecComposite implements the SSZ merkleization algorithm for a vector
 // of composite types.
-func (m *Merkleizer[SpecT, U64T, U256L, RootT, B, C, CompositeT]) MerkleizeVecComposite(
-	value []CompositeT,
+func (m *Merkleizer[SpecT, U64T, U256L, RootT]) MerkleizeVecComposite(
+	value []Composite[SpecT, RootT],
 ) (RootT, error) {
 	var (
 		err  error
@@ -158,8 +146,8 @@ func (m *Merkleizer[SpecT, U64T, U256L, RootT, B, C, CompositeT]) MerkleizeVecCo
 
 // MerkleizeListComposite implements the SSZ merkleization algorithm for a list
 // of composite types.
-func (m *Merkleizer[SpecT, U64T, U256L, RootT, B, C, CompositeT]) MerkleizeListComposite(
-	value []CompositeT,
+func (m *Merkleizer[SpecT, U64T, U256L, RootT]) MerkleizeListComposite(
+	value []Composite[SpecT, RootT],
 	limit uint64,
 ) (RootT, error) {
 	var (
@@ -175,7 +163,7 @@ func (m *Merkleizer[SpecT, U64T, U256L, RootT, B, C, CompositeT]) MerkleizeListC
 	}
 	root, err := m.Merkleize(
 		htrs,
-		ChunkCountCompositeList[CompositeT](value, limit),
+		ChunkCountCompositeList[SpecT](value, limit),
 	)
 	if err != nil {
 		return RootT{}, err
@@ -185,7 +173,7 @@ func (m *Merkleizer[SpecT, U64T, U256L, RootT, B, C, CompositeT]) MerkleizeListC
 
 // MerkleizeByteSlice hashes a byteslice by chunkifying it and returning the
 // corresponding HTR as if it were a fixed vector of bytes of the given length.
-func (m *Merkleizer[SpecT, U64T, U256L, RootT, B, C, CompositeT]) MerkleizeByteSlice(
+func (m *Merkleizer[SpecT, U64T, U256L, RootT]) MerkleizeByteSlice(
 	input []byte,
 ) (RootT, error) {
 	chunks, numChunks, err := PartitionBytes[RootT](input)
@@ -219,7 +207,7 @@ func (m *Merkleizer[SpecT, U64T, U256L, RootT, B, C, CompositeT]) MerkleizeByteS
 //	  Then, merkleize the chunks (empty input is padded to 1 zero chunk):
 //	 If 1 chunk: the root is the chunk itself.
 //	If > 1 chunks: merkleize as binary tree.
-func (m *Merkleizer[SpecT, U64T, U256L, RootT, B, C, CompositeT]) Merkleize(
+func (m *Merkleizer[SpecT, U64T, U256L, RootT]) Merkleize(
 	chunks []RootT,
 	limit ...uint64,
 ) (RootT, error) {
