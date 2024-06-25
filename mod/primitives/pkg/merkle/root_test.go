@@ -48,8 +48,8 @@ func Test_HashTreeRootEqualInputs(t *testing.T) {
 					[][32]byte,
 					size*merkle.MinParallelizationSize,
 				)
-				hash1 := make([][32]byte, 0, size*merkle.MinParallelizationSize)
-				hash2 := make([][32]byte, 0, size*merkle.MinParallelizationSize)
+				hash1 := make([][32]byte, size*merkle.MinParallelizationSize)
+				hash2 := make([][32]byte, size*merkle.MinParallelizationSize)
 				var err error
 
 				err = merkle.BuildParentTreeRoots[[32]byte](
