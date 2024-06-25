@@ -21,6 +21,7 @@
 package context
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -29,7 +30,6 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
-
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -62,10 +62,10 @@ func InterceptConfigsAndCreateContext(
 	basename := path.Base(executableName)
 
 	// configure the viper instance
-	if err := serverCtx.Viper.BindPFlags(cmd.Flags()); err != nil {
+	if err = serverCtx.Viper.BindPFlags(cmd.Flags()); err != nil {
 		return nil, err
 	}
-	if err := serverCtx.Viper.BindPFlags(cmd.PersistentFlags()); err != nil {
+	if err = serverCtx.Viper.BindPFlags(cmd.PersistentFlags()); err != nil {
 		return nil, err
 	}
 
@@ -90,7 +90,7 @@ func InterceptConfigsAndCreateContext(
 }
 
 // newDefaultContextWithLogger returns a new server.Context with the default
-// configuration
+// configuration.
 func newDefaultContextWithLogger(logger log.Logger) *server.Context {
 	return &server.Context{
 		Viper:  viper.New(),
@@ -106,6 +106,8 @@ func newDefaultContextWithLogger(logger log.Logger) *server.Context {
 // WriteAppConfig creates a new configuration file with default values if it
 // does not exist, and write it to the specified file path. If the config file
 // exists it skips.
+//
+
 func WriteAppConfig(
 	rootViper *viper.Viper,
 	configPath string,
@@ -115,35 +117,55 @@ func WriteAppConfig(
 	appCfgFilePath := filepath.Join(configPath, "app.toml")
 	// check if the application configuration file exists
 	if _, err := os.Stat(appCfgFilePath); os.IsNotExist(err) {
-		// create new config file with default values
-		if (customAppTemplate != "" && customConfig == nil) ||
-			(customAppTemplate == "" && customConfig != nil) {
-			return fmt.Errorf("customAppTemplate and customConfig " +
-				"should be both nil or not nil")
+		return populateConfigFileWithDefaults(
+			rootViper,
+			appCfgFilePath,
+			customAppTemplate,
+			customConfig,
+			err,
+		)
+	}
+	return nil
+}
+
+// populateConfigFileWithDefaults creates a new configuration file with default
+// values at the specified file path <appCfgFilePath>.
+func populateConfigFileWithDefaults(
+	rootViper *viper.Viper,
+	appCfgFilePath string,
+	customAppTemplate string,
+	customConfig interface{},
+	statError error,
+) error {
+	if (customAppTemplate != "" && customConfig == nil) ||
+		(customAppTemplate == "" && customConfig != nil) {
+		return errors.New("customAppTemplate and customConfig " +
+			"should be both nil or not nil")
+	}
+	//nolint:nestif // not overly complex
+	if customAppTemplate != "" {
+		// set the configuration template
+		if config.SetConfigTemplate(customAppTemplate) != nil {
+			return fmt.Errorf("failed to set config template: %w", statError)
 		}
-		if customAppTemplate != "" {
-			// set the configuration template
-			if config.SetConfigTemplate(customAppTemplate) != nil {
-				return fmt.Errorf("failed to set config template: %w", err)
-			}
 
-			if rootViper.Unmarshal(&customConfig) != nil {
-				return fmt.Errorf("failed to parse %s: %w",
-					appCfgFilePath, err)
-			}
+		if rootViper.Unmarshal(&customConfig) != nil {
+			return fmt.Errorf("failed to parse %s: %w",
+				appCfgFilePath, statError)
+		}
 
-			if config.WriteConfigFile(appCfgFilePath, customConfig) != nil {
-				return fmt.Errorf("failed to write %s: %w", appCfgFilePath, err)
-			}
-		} else {
-			appConf, err := config.ParseConfig(rootViper)
-			if err != nil {
-				return fmt.Errorf("failed to parse %s: %w", appCfgFilePath, err)
-			}
+		if config.WriteConfigFile(appCfgFilePath, customConfig) != nil {
+			return fmt.Errorf("failed to write %s: %w", appCfgFilePath,
+				statError)
+		}
+	} else {
+		appConf, err := config.ParseConfig(rootViper)
+		if err != nil {
+			return fmt.Errorf("failed to parse %s: %w", appCfgFilePath, err)
+		}
 
-			if config.WriteConfigFile(appCfgFilePath, appConf) != nil {
-				return fmt.Errorf("failed to write %s: %w", appCfgFilePath, err)
-			}
+		if config.WriteConfigFile(appCfgFilePath, appConf) != nil {
+			return fmt.Errorf("failed to write %s: %w", appCfgFilePath, err)
 		}
 	}
 	return nil
@@ -229,7 +251,7 @@ func writeCometConfig(
 		// them.
 		if conf.Consensus.TimeoutCommit ==
 			defaultCometCfg.Consensus.TimeoutCommit {
-			//nolint:nmd // 5 second timeout
+			//nolint:mnd // 5 second timeout
 			conf.Consensus.TimeoutCommit = 5 * time.Second
 		}
 		if conf.RPC.PprofListenAddress ==
@@ -248,7 +270,7 @@ func writeCometConfig(
 		rootViper.SetConfigName("config")
 		rootViper.AddConfigPath(configPath)
 
-		if err := rootViper.ReadInConfig(); err != nil {
+		if err = rootViper.ReadInConfig(); err != nil {
 			return fmt.Errorf("failed to read in %s: %w", cmtCfgFile, err)
 		}
 	}

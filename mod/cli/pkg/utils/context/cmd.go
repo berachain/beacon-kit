@@ -30,7 +30,7 @@ import (
 // if it has not been set.
 func GetServerContextFromCmd(cmd *cobra.Command) *server.Context {
 	if v := cmd.Context().Value(server.ServerContextKey); v != nil {
-		serverCtxPtr := v.(*server.Context)
+		serverCtxPtr, _ := v.(*server.Context)
 		return serverCtxPtr
 	}
 

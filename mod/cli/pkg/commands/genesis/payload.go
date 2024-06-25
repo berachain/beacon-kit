@@ -26,7 +26,6 @@ import (
 	"unsafe"
 
 	serverContext "github.com/berachain/beacon-kit/mod/cli/pkg/utils/context"
-
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
