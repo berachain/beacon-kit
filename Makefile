@@ -22,7 +22,7 @@ ROOT_DIR := $(shell pwd)
 ###############################################################################
 
 .PHONY: clean format lint \
-	buf-install buf-lint-fix buf-lint proto-clean \
+	buf-install proto-clean \
 	test-unit test-unit-cover test-forge-cover test-forge-fuzz \
 	forge-snapshot forge-snapshot-diff \
 	test-e2e test-e2e-no-build \
