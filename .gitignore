@@ -211,6 +211,7 @@ e2e/**/*.txt
 # cosmos
 .testnets/
 *.dot
+debug_container.log
 
 # xml
 *.xml
