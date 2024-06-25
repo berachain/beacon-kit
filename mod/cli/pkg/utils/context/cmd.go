@@ -22,7 +22,6 @@ package context
 
 import (
 	"cosmossdk.io/log"
-
 	"github.com/berachain/beacon-kit/mod/log/pkg/noop"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/spf13/cobra"

@@ -54,9 +54,7 @@ func (n *Logger[KeyValT]) Debug(string, ...KeyValT) {
 	// No operation
 }
 
-// AdvancedLogger is a AdvancedLogger that performs no operations. It can be used in
-// environments where logging should be disabled. It implements the AdvancedLogger
-// interface with no-op methods.
+// AdvancedLogger is a Logger that performs no operations.
 type AdvancedLogger[KeyValT any, ImplT any] struct{}
 
 // NewAdvancedLogger creates a blank no-op AdvancedLogger.
@@ -88,9 +86,9 @@ func (n *AdvancedLogger[KeyValT, ImplT]) Debug(string, ...KeyValT) {
 	// No operation
 }
 
-// With returns a new AdvancedLogger with the provided key-value pairs. This method
-// does nothing.
-func (n *AdvancedLogger[KeyValT, ImplT]) With(keyVals ...KeyValT) ImplT {
+// With returns a new AdvancedLogger with the provided key-value pairs. This
+// method does nothing.
+func (n *AdvancedLogger[KeyValT, ImplT]) With(...KeyValT) ImplT {
 	return any(n).(ImplT)
 }
 
