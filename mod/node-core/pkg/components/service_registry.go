@@ -39,6 +39,7 @@ type ServiceRegistryInput struct {
 	DAService             *DAService
 	DepositService        *DepositService
 	EngineClient          *EngineClient
+	GenesisBroker         *GenesisBroker
 	Logger                log.Logger
 	SidecarsBroker        *SidecarsBroker
 	SlotBroker            *SlotBroker
@@ -64,6 +65,7 @@ func ProvideServiceRegistry(
 			sdkversion.Version,
 		)),
 		service.WithService(in.DBManager),
+		service.WithService(in.GenesisBroker),
 		service.WithService(in.BlockBroker),
 		service.WithService(in.SlotBroker),
 		service.WithService(in.SidecarsBroker),

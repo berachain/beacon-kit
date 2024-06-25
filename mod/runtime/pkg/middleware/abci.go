@@ -67,6 +67,10 @@ func (h *ABCIMiddleware[
 		valUpdates, genesisErr = h.waitForGenesisData(ctx)
 		return genesisErr
 	})
+
+	if err := g.Wait(); err != nil {
+		return nil, err
+	}
 	return valUpdates, nil
 }
 
@@ -74,7 +78,8 @@ func (h *ABCIMiddleware[
 // the validator updates.
 func (h *ABCIMiddleware[
 	_, _, _, _, _, _, GenesisT,
-]) waitForGenesisData(ctx context.Context) (transition.ValidatorUpdates, error) {
+]) waitForGenesisData(ctx context.Context) (
+	transition.ValidatorUpdates, error) {
 	select {
 	case msg := <-h.valUpdateSub:
 		if msg.Type() != events.ValidatorSetUpdated {

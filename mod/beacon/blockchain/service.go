@@ -175,6 +175,9 @@ func (s *Service[
 	_, _, _, _, _, _, _, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
 	subBlkCh, err := s.blkBroker.Subscribe()
+	if err != nil {
+		return err
+	}
 	subGenCh, err := s.genesisBroker.Subscribe()
 	if err != nil {
 		return err
@@ -202,9 +205,7 @@ func (s *Service[
 				s.handleBeaconBlockFinalization(msg)
 			}
 		case msg := <-subGenCh:
-			// never receiving any msg here despite publishing to gen broker
-			switch msg.Type() {
-			case events.GenesisDataProcessRequest:
+			if msg.Type() == events.GenesisDataProcessRequest {
 				s.handleProcessGenesisDataRequest(msg)
 			}
 		}
