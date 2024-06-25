@@ -220,5 +220,6 @@ func Merkleize[U64T U64[U64T], RootT, ChunkT ~[32]byte](
 		effectiveChunks,
 		//#nosec:G701 // This is a safe operation.
 		uint64(effectiveLimit),
+		merkle.NewSingleuseBuffer[ChunkT](),
 	)
 }

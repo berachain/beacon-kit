@@ -49,7 +49,7 @@ type Tree[LeafT ~[32]byte] struct {
 func NewTreeFromLeaves[LeafT ~[32]byte](
 	leaves []LeafT,
 ) (*Tree[LeafT], error) {
-	return NewTreeFromLeavesWithDepth[LeafT](
+	return NewTreeFromLeavesWithDepth(
 		leaves,
 		math.U64(len(leaves)).NextPowerOfTwo().ILog2Ceil(),
 	)
@@ -61,7 +61,7 @@ func NewTreeWithMaxLeaves[LeafT ~[32]byte](
 	leaves []LeafT,
 	maxLeaves uint64,
 ) (*Tree[LeafT], error) {
-	return NewTreeFromLeavesWithDepth[LeafT](
+	return NewTreeFromLeavesWithDepth(
 		leaves,
 		math.U64(maxLeaves).NextPowerOfTwo().ILog2Ceil(),
 	)

@@ -36,6 +36,8 @@ type reusableBuffer[RootT ~[32]byte] struct {
 }
 
 // NewReusableBuffer creates a new re-usable buffer for merkle tree hashing.
+//
+//nolint:revive // used as the Buffer interface.
 func NewReusableBuffer[RootT ~[32]byte]() *reusableBuffer[RootT] {
 	return &reusableBuffer[RootT]{
 		internal: make([]RootT, initialBufferSize),
@@ -63,6 +65,8 @@ func (b *reusableBuffer[RootT]) grow(delta int) {
 type singleuseBuffer[RootT ~[32]byte] struct{}
 
 // NewSingleuseBuffer creates a new single-use buffer.
+//
+//nolint:revive // used as the Buffer interface.
 func NewSingleuseBuffer[RootT ~[32]byte]() *singleuseBuffer[RootT] {
 	return &singleuseBuffer[RootT]{}
 }

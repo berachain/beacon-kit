@@ -75,7 +75,7 @@ func TestGet(t *testing.T) {
 // goos: darwin
 // goarch: arm64
 // pkg: github.com/berachain/beacon-kit/mod/primitives/pkg/merkle
-// BenchmarkGet-12     173148679     6.917 ns/op     0 B/op     0 allocs/op
+// BenchmarkGet-12     173148679     6.917 ns/op     0 B/op     0 allocs/op.
 func BenchmarkGet(b *testing.B) {
 	buffer := merkle.NewReusableBuffer[[32]byte]()
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))

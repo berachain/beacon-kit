@@ -65,7 +65,8 @@ func Test_HashTreeRootEqualInputs(t *testing.T) {
 					defer wg.Done()
 					var tempHash [][32]byte
 					tempHash, err = merkle.BuildParentTreeRoots[[32]byte, [32]byte](
-						largeSlice, treeBuffer,
+						largeSlice,
+						treeBuffer,
 					)
 					copy(hash1, tempHash)
 				}()
