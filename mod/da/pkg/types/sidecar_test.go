@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	byteslib "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -370,6 +371,70 @@ func TestHashTreeRoot(t *testing.T) {
 					"Did not expect an error but got one")
 				assert.Equal(t, tt.expectedResult, result,
 					"Hash result should match expected value")
+			}
+		})
+	}
+}
+
+func TestBuildBlobSidecar(t *testing.T) {
+	tests := []struct {
+		name           string
+		index          math.U64
+		header         *ctypes.BeaconBlockHeader
+		blob           *eip4844.Blob
+		commitment     eip4844.KZGCommitment
+		proof          eip4844.KZGProof
+		inclusionProof [][32]byte
+		expected       *types.BlobSidecar
+	}{
+		{
+			name:       "Valid BlobSidecar",
+			index:      math.U64(1),
+			header:     &ctypes.BeaconBlockHeader{BodyRoot: [32]byte{1, 2, 3}},
+			blob:       &eip4844.Blob{0, 1, 2, 3, 4, 5, 6, 7},
+			commitment: eip4844.KZGCommitment{1, 2, 3},
+			proof:      eip4844.KZGProof{4, 5, 6},
+			inclusionProof: [][32]byte{
+				byteslib.ToBytes32([]byte("1")),
+				byteslib.ToBytes32([]byte("2")),
+				byteslib.ToBytes32([]byte("3")),
+			},
+			expected: &types.BlobSidecar{
+				Index:         1,
+				Blob:          eip4844.Blob{0, 1, 2, 3, 4, 5, 6, 7},
+				KzgCommitment: eip4844.KZGCommitment{1, 2, 3},
+				KzgProof:      eip4844.KZGProof{4, 5, 6},
+				BeaconBlockHeader: &ctypes.BeaconBlockHeader{
+					BodyRoot: [32]byte{1, 2, 3},
+				},
+				InclusionProof: [][32]byte{
+					byteslib.ToBytes32([]byte("1")),
+					byteslib.ToBytes32([]byte("2")),
+					byteslib.ToBytes32([]byte("3")),
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := types.BuildBlobSidecar(
+				tt.index,
+				tt.header,
+				tt.blob,
+				tt.commitment,
+				tt.proof,
+				tt.inclusionProof,
+			)
+			if tt.expected == nil {
+				require.Nil(t, result, "Expected result to be nil")
+			} else {
+				require.NotNil(t, result,
+					"Expected result to be non-nil")
+				assert.Equal(t,
+					tt.expected,
+					result,
+					"Expected and actual BlobSidecar should be equal")
 			}
 		})
 	}

@@ -21,15 +21,13 @@
 package types_test
 
 import (
-	"fmt"
 	"testing"
-
-	ssz "github.com/ferranbt/fastssz"
 
 	ctypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	byteslib "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -264,7 +262,8 @@ func TestMarshalSSZUnmarshalSSZ(t *testing.T) {
 			name: "BlobSidecars with more than 6 sidecars",
 			blobSidecars: types.BlobSidecars{
 				Sidecars: []*types.BlobSidecar{
-					{Index: 0}, {Index: 1}, {Index: 2}, {Index: 3}, {Index: 4}, {Index: 5}, {Index: 6},
+					{Index: 0}, {Index: 1}, {Index: 2}, {Index: 3},
+					{Index: 4}, {Index: 5}, {Index: 6},
 				},
 			},
 			expectedResult: types.BlobSidecars{},
@@ -276,21 +275,27 @@ func TestMarshalSSZUnmarshalSSZ(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Marshal the BlobSidecars object
 			marshalled, err := tt.blobSidecars.MarshalSSZ()
-			fmt.Println(marshalled)
 			if tt.expectError {
 				require.Error(t, err, "Expected an error but got none")
 				return
 			}
-			require.NoError(t, err, "Marshalling BlobSidecars should not produce an error")
-			require.NotNil(t, marshalled, "Marshalling BlobSidecars should produce a result")
+			require.NoError(t, err,
+				"Marshalling BlobSidecars should not produce an error")
+			require.NotNil(t, marshalled,
+				"Marshalling BlobSidecars should produce a result")
 
 			// Unmarshal the BlobSidecars object
 			unmarshalled := types.BlobSidecars{}
 			err = unmarshalled.UnmarshalSSZ(marshalled)
-			require.NoError(t, err, "Unmarshalling BlobSidecars should not produce an error")
+			require.NoError(t,
+				err,
+				"Unmarshalling BlobSidecars should not produce an error")
 
 			// Compare the original and unmarshalled BlobSidecars objects
-			require.Equal(t, tt.expectedResult, unmarshalled, "The original and unmarshalled BlobSidecars should be equal")
+			require.Equal(t,
+				tt.expectedResult,
+				unmarshalled,
+				"The original and unmarshalled BlobSidecars should be equal")
 		})
 	}
 }
@@ -309,7 +314,7 @@ func TestUnmarshalSSZ(t *testing.T) {
 			expectedErr:  ssz.ErrOffset,
 		},
 		{
-			name:         "BlobSidecar fails to unmarshal due to invalid variable offset",
+			name:         "Fails to unmarshal due to invalid variable offset",
 			blobSidecars: types.BlobSidecars{},
 			inputBuffer:  []byte{0x01, 0x00, 0x00, 0x00},
 			expectedErr:  ssz.ErrInvalidVariableOffset,
@@ -333,9 +338,11 @@ func TestUnmarshalSSZ(t *testing.T) {
 			err := tt.blobSidecars.UnmarshalSSZ(tt.inputBuffer)
 			if tt.expectedErr != nil {
 				require.Error(t, err, "Expected an error but got none")
-				require.Equal(t, tt.expectedErr, err, "Expected error %v, got %v", tt.expectedErr, err)
+				require.Equal(t, tt.expectedErr, err,
+					"Expected error %v, got %v", tt.expectedErr, err)
 			} else {
-				require.NoError(t, err, "Unmarshalling BlobSidecars should not produce an error")
+				require.NoError(t, err,
+					"Unmarshalling BlobSidecars should not produce an error")
 			}
 		})
 	}
@@ -392,10 +399,11 @@ func TestHashTreeRootFunctions(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			name: "BlobSidecars with more than 6 sidecars",
+			name: "BlobSidecars with more than 8 sidecars",
 			blobSidecars: types.BlobSidecars{
 				Sidecars: []*types.BlobSidecar{
-					{Index: 0}, {Index: 1}, {Index: 2}, {Index: 3}, {Index: 4}, {Index: 5}, {Index: 6},
+					{Index: 0}, {Index: 1}, {Index: 2}, {Index: 3}, {Index: 4},
+					{Index: 5}, {Index: 6}, {Index: 7}, {Index: 8},
 				},
 			},
 			expectError:   true,
@@ -409,32 +417,157 @@ func TestHashTreeRootFunctions(t *testing.T) {
 			root, err := tt.blobSidecars.HashTreeRoot()
 			if tt.expectError {
 				require.Error(t, err, "Expected an error but got none")
-				require.Equal(t, tt.expectedError, err, "Expected error %v, got %v", tt.expectedError, err)
+				require.Equal(t, tt.expectedError, err,
+					"Expected error %v, got %v", tt.expectedError, err)
 			} else {
-				require.NoError(t, err, "HashTreeRoot should not produce an error")
-				require.NotNil(t, root, "HashTreeRoot should produce a result")
+				require.NoError(t, err,
+					"HashTreeRoot should not produce an error")
+				require.NotNil(t, root,
+					"HashTreeRoot should produce a result")
 			}
 
 			// Test HashTreeRootWith
 			hh := ssz.NewHasher()
 			err = tt.blobSidecars.HashTreeRootWith(hh)
 			if tt.expectError {
-				require.Error(t, err, "Expected an error but got none")
-				require.Equal(t, tt.expectedError, err, "Expected error %v, got %v", tt.expectedError, err)
+				require.Error(t,
+					err,
+					"Expected an error but got none")
+				require.Equal(t, tt.expectedError, err,
+					"Expected error %v, got %v",
+					tt.expectedError, err)
 			} else {
-				require.NoError(t, err, "HashTreeRootWith should not produce an error")
-				require.NotNil(t, hh.Hash(), "HashTreeRootWith should produce a result")
+				require.NoError(t, err,
+					"HashTreeRootWith should not produce an error")
+				require.NotNil(t, hh.Hash(),
+					"HashTreeRootWith should produce a result")
 			}
 
 			// Test GetTree
 			tree, err := tt.blobSidecars.GetTree()
 			if tt.expectError {
 				require.Error(t, err, "Expected an error but got none")
-				require.Equal(t, tt.expectedError, err, "Expected error %v, got %v", tt.expectedError, err)
+				require.Equal(t, tt.expectedError, err,
+					"Expected error %v, got %v", tt.expectedError, err)
 			} else {
-				require.NoError(t, err, "GetTree should not produce an error")
-				require.NotNil(t, tree, "GetTree should produce a result")
+				require.NoError(t, err,
+					"GetTree should not produce an error")
+				require.NotNil(t, tree,
+					"GetTree should produce a result")
 			}
+		})
+	}
+}
+
+func TestVerifyInclusionProofs(t *testing.T) {
+	tests := []struct {
+		name          string
+		blobSidecars  types.BlobSidecars
+		kzgOffset     uint64
+		expectedError error
+	}{
+		{
+			name: "Invalid inclusion proof",
+			blobSidecars: types.BlobSidecars{
+				Sidecars: []*types.BlobSidecar{
+					{
+						Index:          0,
+						InclusionProof: [][32]byte{},
+						BeaconBlockHeader: &ctypes.BeaconBlockHeader{
+							BodyRoot: [32]byte{7, 8, 9},
+						},
+					},
+				},
+			},
+			kzgOffset:     0,
+			expectedError: types.ErrInvalidInclusionProof,
+		},
+		{
+			name: "Nil sidecar",
+			blobSidecars: types.BlobSidecars{
+				Sidecars: []*types.BlobSidecar{
+					nil,
+				},
+			},
+			kzgOffset:     0,
+			expectedError: types.ErrAttemptedToVerifyNilSidecar,
+		},
+		{
+			name: "Empty sidecars",
+			blobSidecars: types.BlobSidecars{
+				Sidecars: []*types.BlobSidecar{},
+			},
+			kzgOffset:     0,
+			expectedError: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.blobSidecars.VerifyInclusionProofs(tt.kzgOffset)
+			if tt.expectedError != nil {
+				require.Error(t, err, "Expected an error but got none")
+				require.Equal(t, tt.expectedError.Error(), err.Error(),
+					"Expected error %v, "+
+						"got %v", tt.expectedError, err)
+			} else {
+				require.NoError(t, err,
+					"VerifyInclusionProofs should not produce an error")
+			}
+		})
+	}
+}
+
+func TestBlobSidecars(t *testing.T) {
+	tests := []struct {
+		name         string
+		blobSidecars *types.BlobSidecars
+		expectedNil  bool
+		expectedLen  int
+	}{
+		{
+			name: "Nil Sidecars slice",
+			blobSidecars: &types.BlobSidecars{
+				Sidecars: nil,
+			},
+			expectedNil: true,
+			expectedLen: 0,
+		},
+		{
+			name: "Empty Sidecars slice",
+			blobSidecars: &types.BlobSidecars{
+				Sidecars: []*types.BlobSidecar{},
+			},
+			expectedNil: false,
+			expectedLen: 0,
+		},
+		{
+			name: "Non-empty Sidecars slice",
+			blobSidecars: &types.BlobSidecars{
+				Sidecars: []*types.BlobSidecar{
+					{
+						Index: 0,
+					},
+				},
+			},
+			expectedNil: false,
+			expectedLen: 1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Test IsNil
+			resultNil := tt.blobSidecars.IsNil()
+			require.Equal(t, tt.expectedNil, resultNil,
+				"Expected IsNil to be %v, got %v",
+				tt.expectedNil, resultNil)
+
+			// Test Len
+			resultLen := tt.blobSidecars.Len()
+			require.Equal(t, tt.expectedLen, resultLen,
+				"Expected Len to be %d, got %d",
+				tt.expectedLen, resultLen)
 		})
 	}
 }
