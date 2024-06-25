@@ -69,10 +69,12 @@ func NewRootWithDepth[RootT ~[32]byte](
 			zerohash := zero.Hashes[i]
 			leaves = append(leaves, zerohash)
 		}
-
-		if err := BuildParentTreeRoots(leaves, leaves); err != nil {
+		var err error
+		buf := make([]RootT, len(leaves)/two)
+		if err = BuildParentTreeRoots(buf, leaves); err != nil {
 			return zero.Hashes[depth], err
 		}
+		leaves = buf
 	}
 	if len(leaves) != 1 {
 		return zero.Hashes[depth], nil
