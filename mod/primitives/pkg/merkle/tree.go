@@ -86,8 +86,8 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 		if len(currentLayer)%2 == 1 {
 			currentLayer = append(currentLayer, zero.Hashes[d])
 		}
-		layers[d+1], err = BuildParentTreeRoots[RootT](currentLayer)
-		if err != nil {
+		layers[d+1] = make([]RootT, len(currentLayer)/2)
+		if err = BuildParentTreeRoots(layers[d+1], currentLayer); err != nil {
 			return &Tree[RootT]{}, err
 		}
 	}
