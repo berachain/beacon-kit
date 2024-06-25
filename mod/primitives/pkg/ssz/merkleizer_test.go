@@ -24,10 +24,9 @@ import (
 	"crypto/sha256"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/stretchr/testify/require"
 )
 
 // Check for interface implementation.

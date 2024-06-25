@@ -52,5 +52,3 @@ func (txs Transactions) HashTreeRoot() (common.Root, error) {
 		constants.MaxTxsPerPayload,
 	)
 }
-
-func (txs Transactions) HashTreeRootWith()
