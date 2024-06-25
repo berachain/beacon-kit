@@ -28,9 +28,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/p2p"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	rp2p "github.com/berachain/beacon-kit/mod/runtime/pkg/p2p"
@@ -42,7 +42,7 @@ type ABCIMiddleware[
 	AvailabilityStoreT any,
 	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BeaconStateT BeaconState,
-	BlobSidecarsT ssz.Marshallable,
+	BlobSidecarsT constraints.SSZMarshallable,
 	DepositT,
 	ExecutionPayloadT any,
 	GenesisT Genesis,
@@ -101,7 +101,7 @@ func NewABCIMiddleware[
 	AvailabilityStoreT any,
 	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BeaconStateT BeaconState,
-	BlobSidecarsT ssz.Marshallable,
+	BlobSidecarsT constraints.SSZMarshallable,
 	DepositT,
 	ExecutionPayloadT any,
 	GenesisT Genesis,

@@ -21,19 +21,14 @@
 package engine
 
 import (
-	"encoding/json"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // ExecutionPayload represents the payload of an execution block.
 type ExecutionPayload[ExecutionPayloadT, WithdrawalT any] interface {
-	json.Marshaler
-	json.Unmarshaler
-	IsNil() bool
-	Version() uint32
-	Empty(uint32) ExecutionPayloadT
+	constraints.EngineType[ExecutionPayloadT]
 	GetPrevRandao() common.Bytes32
 	GetBlockHash() common.ExecutionHash
 	GetParentHash() common.ExecutionHash
