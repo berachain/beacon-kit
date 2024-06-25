@@ -42,13 +42,6 @@ const (
 	two = 2
 )
 
-// // TODO: remove this once buffer supports multi-threaded multi-use.
-// var bufferPool = sync.Pool{
-// 	New: func() interface{} {
-// 		return NewBuffer[[32]byte]()
-// 	},
-// }
-
 // NewRootWithMaxLeaves constructs a Merkle tree root from a set of.
 func NewRootWithMaxLeaves[U64T U64[U64T], RootT ~[32]byte](
 	leaves []RootT,
