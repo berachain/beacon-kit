@@ -184,7 +184,7 @@ func MerkleizeListComposite[
 			return RootT{}, errors.New("htrs.Bytes is nil")
 		}
 	}
-	root, err := Merkleize[U64T, common.Root](
+	root, err := Merkleize[U64T](
 		htrs.Bytes,
 		ChunkCountCompositeList[C](value, limit),
 	)
