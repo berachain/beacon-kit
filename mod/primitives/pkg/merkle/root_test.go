@@ -38,7 +38,7 @@ func Test_HashTreeRootEqualInputs(t *testing.T) {
 	// Test with slices of varying sizes to ensure robustness across different
 	// conditions
 	sliceSizes := []int{16, 32, 64}
-	treeBuffer := merkle.NewBuffer[[32]byte]()
+	treeBuffer := merkle.NewReusableBuffer[[32]byte]()
 	for _, size := range sliceSizes {
 		t.Run(
 			fmt.Sprintf("Size%d", size*merkle.MinParallelizationSize),
@@ -155,7 +155,7 @@ func Test_GoHashTreeHashConformance(t *testing.T) {
 func TestBuildParentTreeRootsWithNRoutines_DivisionByZero(t *testing.T) {
 	// Attempt to call BuildParentTreeRootsWithNRoutines with n set to 0
 	// to test handling of division by zero.
-	treeBuffer := merkle.NewBuffer[[32]byte]()
+	treeBuffer := merkle.NewReusableBuffer[[32]byte]()
 	inputList := make([][32]byte, 10) // Arbitrary size larger than 0
 	_, err := merkle.BuildParentTreeRootsWithNRoutines[[32]byte, [32]byte](
 		inputList,
@@ -179,7 +179,7 @@ func requireGoHashTreeEquivalence(
 	expectedOutput := make([][32]byte, len(inputList)/2)
 	var output [][32]byte
 
-	treeBuffer := merkle.NewBuffer[[32]byte]()
+	treeBuffer := merkle.NewReusableBuffer[[32]byte]()
 
 	var wg sync.WaitGroup
 	errChan := make(chan error, 2) // Buffer for 2 potential errors

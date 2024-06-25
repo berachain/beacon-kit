@@ -28,9 +28,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 )
 
-// Test getting a slice of the internal buffer and modifying.
+// Test getting a slice of the internal re-usable buffer and modifying.
 func TestGet(t *testing.T) {
-	buffer := merkle.NewBuffer[[32]byte]()
+	buffer := merkle.NewReusableBuffer[[32]byte]()
 
 	testCases := []struct {
 		size     int
@@ -77,7 +77,7 @@ func TestGet(t *testing.T) {
 // pkg: github.com/berachain/beacon-kit/mod/primitives/pkg/merkle
 // BenchmarkGet-12     173148679     6.917 ns/op     0 B/op     0 allocs/op
 func BenchmarkGet(b *testing.B) {
-	buffer := merkle.NewBuffer[[32]byte]()
+	buffer := merkle.NewReusableBuffer[[32]byte]()
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	b.ResetTimer()

@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
-	"github.com/prysmaticlabs/gohashtree"
 )
 
 const (
@@ -79,7 +78,7 @@ func NewTreeFromLeavesWithDepth[LeafT ~[32]byte](
 		return &Tree[LeafT]{}, err
 	}
 
-	treeBuffer := NewBuffer[LeafT]()
+	treeBuffer := NewSingleuseBuffer[LeafT]()
 	layers := make([][]LeafT, depth+1)
 	layers[0] = leaves
 
@@ -89,12 +88,10 @@ func NewTreeFromLeavesWithDepth[LeafT ~[32]byte](
 			currentLayer = append(currentLayer, zero.Hashes[d])
 		}
 
-		var nextLayer []LeafT
-		nextLayer, err = BuildParentTreeRoots(currentLayer, treeBuffer)
+		layers[d+1], err = BuildParentTreeRoots(currentLayer, treeBuffer)
 		if err != nil {
 			return &Tree[LeafT]{}, err
 		}
-		copy(layers[d+1], nextLayer)
 	}
 
 	return &Tree[LeafT]{
@@ -214,16 +211,4 @@ func (m *Tree[LeafT]) MerkleProofWithMixin(
 	mixin := [32]byte{}
 	binary.LittleEndian.PutUint64(mixin[:8], uint64(len(m.leaves)))
 	return append(proof, mixin), nil
-}
-
-// MixinLength takes a root element and mixes in the length of the elements
-// that were hashed to produce it.
-func MixinLength[RootT ~[32]byte](element RootT, length uint64) RootT {
-	chunks := make([][32]byte, two)
-	chunks[0] = element
-	binary.LittleEndian.PutUint64(chunks[1][:], length)
-	if err := gohashtree.Hash(chunks, chunks); err != nil {
-		return [32]byte{}
-	}
-	return chunks[0]
 }

@@ -21,7 +21,6 @@
 package merkle_test
 
 import (
-	"fmt"
 	"strconv"
 	"testing"
 
@@ -93,8 +92,6 @@ func TestMerkleTree_IsValidMerkleBranch(t *testing.T) {
 	)
 
 	root, err := m.HashTreeRoot()
-	fmt.Println("root", root)
-	panic("stop")
 	require.NoError(t, err)
 	require.True(t, merkle.VerifyProof(
 		root, items[0], 0, proof,

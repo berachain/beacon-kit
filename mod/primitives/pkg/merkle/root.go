@@ -21,7 +21,6 @@
 package merkle
 
 import (
-	"fmt"
 	"runtime"
 	"unsafe"
 
@@ -118,8 +117,6 @@ func BuildParentTreeRootsWithNRoutines[LeafT, RootT ~[32]byte](
 	outputLength := inputLength / two
 	// outputList := make([]RootT, outputLength)
 	outputList := buf.Get(outputLength)
-	fmt.Println("outputList Bef", outputList)
-	defer fmt.Println("outputList Aft", outputList)
 
 	// If the input list is small, hash it using the default method since
 	// the overhead of parallelizing the hashing process is not worth it.

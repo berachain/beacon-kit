@@ -25,40 +25,51 @@ package merkle
 // TODO: choose a more appropriate size?
 const initialBufferSize = 16
 
-// buffer is a re-usable buffer for merkle tree hashing. Prevents
+// reusableBuffer is a re-usable buffer for merkle tree hashing. Prevents
 // unnecessary allocations and garbage collection of byte slices.
 //
 // NOTE: this buffer is ONLY meant to be used in a single thread.
-type buffer[RootT ~[32]byte] struct {
+type reusableBuffer[RootT ~[32]byte] struct {
 	internal []RootT
 
 	// TODO: add a mutex for multi-thread safety.
 }
 
-// NewBuffer creates a new re-usable buffer for merkle tree hashing.
-func NewBuffer[RootT ~[32]byte]() *buffer[RootT] {
-	return &buffer[RootT]{
+// NewReusableBuffer creates a new re-usable buffer for merkle tree hashing.
+func NewReusableBuffer[RootT ~[32]byte]() *reusableBuffer[RootT] {
+	return &reusableBuffer[RootT]{
 		internal: make([]RootT, initialBufferSize),
 	}
 }
 
 // Get returns a slice of the internal buffer of roots of the given size.
-func (b *buffer[RootT]) Get(size int) []RootT {
+func (b *reusableBuffer[RootT]) Get(size int) []RootT {
 	if size > len(b.internal) {
 		b.grow(size - len(b.internal))
 	}
 
-	// // Clear the buffer by zeroing out all elements
-	// for i := range size {
-	// 	b.internal[i] = RootT{} // Zero out each element
-	// }
-
 	return b.internal[:size]
 }
 
-// TODO: add a Put method to return the buffer back for multi-threaded multi-use.
+// TODO: add a Put method to return the buffer back for multi-threaded use.
 
 // grow resizes the internal buffer by the requested delta.
-func (b *buffer[RootT]) grow(delta int) {
+func (b *reusableBuffer[RootT]) grow(delta int) {
 	b.internal = append(b.internal, make([]RootT, delta)...)
+}
+
+// singleuseBuffer is a buffer for a single use case. Allocates new
+// memory for each use (call to `Get`).
+//
+// NOTE: this buffer is ONLY meant to be used in a single thread.
+type singleuseBuffer[RootT ~[32]byte] struct{}
+
+// NewSingleuseBuffer creates a new single-use buffer.
+func NewSingleuseBuffer[RootT ~[32]byte]() *singleuseBuffer[RootT] {
+	return &singleuseBuffer[RootT]{}
+}
+
+// Get returns a new slice of roots the given size.
+func (b *singleuseBuffer[RootT]) Get(size int) []RootT {
+	return make([]RootT, size)
 }
