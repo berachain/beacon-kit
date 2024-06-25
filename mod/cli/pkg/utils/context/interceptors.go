@@ -185,6 +185,7 @@ func writeCometConfig(
 		}
 		// Write the configuration file to the config directory.
 		cmtcfg.WriteConfigFile(cmtCfgFile, conf)
+
 	case err != nil:
 		return err
 
@@ -201,7 +202,11 @@ func writeCometConfig(
 	return nil
 }
 
-// writeAppConfig creates a new configuration file with default values if it does not
+// TODO: Call this function from ProvideConfig to solve all our AppOpts problems
+// This will allow us ingest ChainSpec into app.toml, and set logger config
+// at build-time.
+
+// WriteAppConfig creates a new configuration file with default values if it does not
 // exist, and write it to the specified file path. If the config file exists
 // it skips.
 func writeAppConfig(
