@@ -190,6 +190,7 @@ func Pack[
 func PartitionBytes[RootT ~[32]byte](input []byte) ([]RootT, uint64, error) {
 	//nolint:mnd // we add 31 in order to round up the division.
 	numChunks := max((uint64(len(input))+31)/constants.RootLength, 1)
+	// TODO: figure out how to safely chunk these bytes.
 	chunks := make([]RootT, numChunks)
 	for i := range chunks {
 		copy(chunks[i][:], input[32*i:])
