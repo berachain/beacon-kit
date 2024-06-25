@@ -22,6 +22,8 @@ package context
 
 import (
 	"cosmossdk.io/log"
+
+	"github.com/berachain/beacon-kit/mod/log/pkg/noop"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/spf13/cobra"
 )
@@ -35,6 +37,6 @@ func GetServerContextFromCmd(cmd *cobra.Command) *server.Context {
 	}
 
 	return newDefaultContextWithLogger(
-		log.NewNopLogger(),
+		&noop.AdvancedLogger[any, log.Logger]{},
 	)
 }

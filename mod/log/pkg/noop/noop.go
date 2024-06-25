@@ -53,3 +53,47 @@ func (n *Logger[KeyValT]) Error(string, ...KeyValT) {
 func (n *Logger[KeyValT]) Debug(string, ...KeyValT) {
 	// No operation
 }
+
+// AdvancedLogger is a AdvancedLogger that performs no operations. It can be used in
+// environments where logging should be disabled. It implements the AdvancedLogger
+// interface with no-op methods.
+type AdvancedLogger[KeyValT any, ImplT any] struct{}
+
+// NewAdvancedLogger creates a blank no-op AdvancedLogger.
+func NewAdvancedLogger[ImplT any]() *AdvancedLogger[any, ImplT] {
+	return &AdvancedLogger[any, ImplT]{}
+}
+
+// Info logs an informational message with associated key-value pairs. This
+// method does nothing.
+func (n *AdvancedLogger[KeyValT, ImplT]) Info(string, ...KeyValT) {
+	// No operation
+}
+
+// Warn logs a warning message with associated key-value pairs. This method does
+// nothing.
+func (n *AdvancedLogger[KeyValT, ImplT]) Warn(string, ...KeyValT) {
+	// No operation
+}
+
+// Error logs an error message with associated key-value pairs. This method does
+// nothing.
+func (n *AdvancedLogger[KeyValT, ImplT]) Error(string, ...KeyValT) {
+	// No operation
+}
+
+// Debug logs a debug message with associated key-value pairs. This method does
+// nothing.
+func (n *AdvancedLogger[KeyValT, ImplT]) Debug(string, ...KeyValT) {
+	// No operation
+}
+
+// With returns a new AdvancedLogger with the provided key-value pairs. This method
+// does nothing.
+func (n *AdvancedLogger[KeyValT, ImplT]) With(keyVals ...KeyValT) ImplT {
+	return any(n).(ImplT)
+}
+
+func (n *AdvancedLogger[KeyValT, ImplT]) Impl() any {
+	return nil
+}

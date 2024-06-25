@@ -29,7 +29,8 @@ import (
 	"strings"
 	"time"
 
-	"cosmossdk.io/log"
+	sdklog "cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/log"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -47,7 +48,7 @@ func InterceptConfigsAndCreateContext(
 	customAppConfigTemplate string,
 	customAppConfig interface{},
 	cmtConfig *cmtcfg.Config,
-	logger log.Logger,
+	logger log.AdvancedLogger[any, sdklog.Logger],
 ) (*server.Context, error) {
 	serverCtx := newDefaultContextWithLogger(logger)
 
@@ -92,7 +93,9 @@ func InterceptConfigsAndCreateContext(
 
 // newDefaultContextWithLogger returns a new server.Context with the default
 // configuration.
-func newDefaultContextWithLogger(logger log.Logger) *server.Context {
+func newDefaultContextWithLogger(
+	logger log.AdvancedLogger[any, sdklog.Logger],
+) *server.Context {
 	return &server.Context{
 		Viper:  viper.New(),
 		Config: cmtcfg.DefaultConfig(),
