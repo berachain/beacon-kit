@@ -23,7 +23,6 @@ package engineprimitives
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
@@ -32,12 +31,14 @@ import (
 type Transactions [][]byte
 
 // HashTreeRoot returns the hash tree root of the Transactions list.
+//
+// NOTE: Uses a new merkleizer for each call.
 func (txs Transactions) HashTreeRoot() (common.Root, error) {
 	var err error
 	roots := make([]common.Root, len(txs))
 
 	merkleizer := ssz.NewMerkleizer[
-		common.ChainSpec, math.U64, math.U256L, [32]byte, common.Root]()
+		common.ChainSpec, [32]byte, common.Root]()
 
 	for i, tx := range txs {
 		roots[i], err = merkleizer.MerkleizeByteSlice(tx)
