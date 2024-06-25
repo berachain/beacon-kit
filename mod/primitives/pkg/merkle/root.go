@@ -63,7 +63,6 @@ func NewRootWithMaxLeaves[U64T U64[U64T], RootT ~[32]byte](
 func NewRootWithDepth[RootT ~[32]byte](
 	leaves []RootT,
 	depth uint8,
-	buf Buffer[LeafT],
 ) (RootT, error) {
 	// Return zerohash at depth
 	if len(leaves) == 0 {
