@@ -24,13 +24,17 @@ import (
 	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 )
 
 // MerkleizeBasic hashes the packed value and returns the HTR.
 func MerkleizeBasic[
 	SpecT any, U64T U64[U64T], U256L U256LT,
-	RootT ~[32]byte, B Basic[SpecT, RootT],
+	RootT ~[32]byte, B interface {
+		Basic[SpecT, RootT]
+		MarshalSSZ() ([]byte, error)
+	},
 ](
 	value B,
 ) (RootT, error) {
@@ -42,7 +46,10 @@ func MerkleizeBasic[
 // types.
 func MerkleizeVecBasic[
 	U64T U64[U64T], U256L U256LT, RootT ~[32]byte,
-	SpecT any, B Basic[SpecT, RootT],
+	SpecT any, B interface {
+		Basic[SpecT, RootT]
+		MarshalSSZ() ([]byte, error)
+	},
 ](
 	value []B,
 ) (RootT, error) {
@@ -57,7 +64,10 @@ func MerkleizeVecBasic[
 // basic types.
 func MerkleizeListBasic[
 	SpecT any, U64T U64[U64T], U256L U256LT, RootT ~[32]byte,
-	B Basic[SpecT, RootT],
+	B interface {
+		Basic[SpecT, RootT]
+		MarshalSSZ() ([]byte, error)
+	},
 ](
 	value []B,
 	limit uint64,
@@ -125,15 +135,26 @@ func MerkleizeVecComposite[
 ](
 	value []C,
 ) (RootT, error) {
-	htrs := make([]RootT, len(value))
-	var err error
+	var (
+		err  error
+		htr  RootT
+		htrs = getBytes(len(value))
+	)
+	defer htrs.Put()
+
 	for i, el := range value {
-		htrs[i], err = el.HashTreeRoot()
+		htr, err = el.HashTreeRoot()
 		if err != nil {
 			return RootT{}, err
 		}
+		if htrs.Bytes != nil {
+			copy(htrs.Bytes[i][:], htr[:])
+		}
 	}
-	return Merkleize[U64T, RootT](htrs)
+	r, err := Merkleize[U64T, common.Root](
+		htrs.Bytes,
+	)
+	return RootT(r), err
 }
 
 // MerkleizeListComposite implements the SSZ merkleization algorithm for a list
@@ -145,22 +166,32 @@ func MerkleizeListComposite[
 	value []C,
 	limit uint64,
 ) (RootT, error) {
-	htrs := make([]RootT, len(value))
-	var err error
+	var (
+		err  error
+		htr  RootT
+		htrs = getBytes(len(value))
+	)
+	defer htrs.Put()
+
 	for i, el := range value {
-		htrs[i], err = el.HashTreeRoot()
+		htr, err = el.HashTreeRoot()
 		if err != nil {
 			return RootT{}, err
 		}
+		if htrs.Bytes != nil {
+			copy(htrs.Bytes[i][:], htr[:])
+		} else {
+			return RootT{}, errors.New("htrs.Bytes is nil")
+		}
 	}
-	root, err := Merkleize[U64T, RootT](
-		htrs,
+	root, err := Merkleize[U64T](
+		htrs.Bytes,
 		ChunkCountCompositeList[C](value, limit),
 	)
 	if err != nil {
 		return RootT{}, err
 	}
-	return merkle.MixinLength(root, uint64(len(value))), nil
+	return RootT(merkle.MixinLength(root, uint64(len(value)))), nil
 }
 
 // Merkleize hashes a list of chunks and returns the HTR of the list of.
@@ -184,13 +215,13 @@ func MerkleizeListComposite[
 //	  Then, merkleize the chunks (empty input is padded to 1 zero chunk):
 //	 If 1 chunk: the root is the chunk itself.
 //	If > 1 chunks: merkleize as binary tree.
-func Merkleize[U64T U64[U64T], RootT, ChunkT ~[32]byte](
-	chunks []ChunkT,
+func Merkleize[U64T U64[U64T], RootT ~[32]byte](
+	chunks []RootT,
 	limit ...uint64,
 ) (RootT, error) {
 	var (
 		effectiveLimit  U64T
-		effectiveChunks []ChunkT
+		effectiveChunks []RootT
 		lenChunks       = uint64(len(chunks))
 	)
 
@@ -213,13 +244,11 @@ func Merkleize[U64T U64[U64T], RootT, ChunkT ~[32]byte](
 
 	effectiveChunks = PadTo(chunks, effectiveLimit)
 	if len(effectiveChunks) == 1 {
-		return RootT(effectiveChunks[0]), nil
+		return effectiveChunks[0], nil
 	}
 
-	return merkle.NewRootWithMaxLeaves[U64T, ChunkT, RootT](
+	return merkle.NewRootWithMaxLeaves(
 		effectiveChunks,
-		//#nosec:G701 // This is a safe operation.
-		uint64(effectiveLimit),
-		merkle.NewSingleuseBuffer[ChunkT](),
+		effectiveLimit,
 	)
 }

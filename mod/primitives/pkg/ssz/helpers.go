@@ -133,10 +133,13 @@ func PadTo[U64T ~uint64, ChunkT ~[32]byte](
 ) []ChunkT {
 	switch numChunks := U64T(len(chunks)); {
 	case numChunks == size:
+		// No padding needed.
 		return chunks
 	case numChunks > size:
+		// Truncate the chunks to the desired size.
 		return chunks[:size]
 	default:
+		// Append zeroed chunks to the end of the list.
 		return append(chunks, make([]ChunkT, size-numChunks)...)
 	}
 }
@@ -188,6 +191,7 @@ func Pack[
 func PartitionBytes[RootT ~[32]byte](input []byte) ([]RootT, uint64, error) {
 	//nolint:mnd // we add 31 in order to round up the division.
 	numChunks := max((uint64(len(input))+31)/constants.RootLength, 1)
+	// TODO: figure out how to safely chunk these bytes.
 	chunks := make([]RootT, numChunks)
 	for i := range chunks {
 		copy(chunks[i][:], input[32*i:])

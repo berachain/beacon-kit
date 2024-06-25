@@ -18,16 +18,12 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package engineprimitives
+package ssz
 
 import (
 	"sync"
 
-	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
 // byteBuffer is a byte buffer.
@@ -65,33 +61,7 @@ func getBytes(size int) *byteBuffer {
 }
 
 // Reset resets the byte buffer.
-func (b *byteBuffer) Reset() {
+func (b *byteBuffer) Put() {
 	b.Bytes = b.Bytes[:0]
-}
-
-// Transactions is a typealias for [][]byte, which is how transactions are
-// received in the execution payload.
-type Transactions [][]byte
-
-// HashTreeRoot returns the hash tree root of the Transactions list.
-func (txs Transactions) HashTreeRoot() (common.Root, error) {
-	var err error
-	roots := getBytes(len(txs))
-	defer byteBufferPool.Put(roots)
-
-	// Ensure roots.Bytes is not nil
-	if roots.Bytes == nil {
-		return common.Root{}, errors.New("failed to allocate byte buffer")
-	}
-
-	for i, tx := range txs {
-		roots.Bytes[i], err = ssz.MerkleizeByteSlice[math.U64, common.Root](tx)
-		if err != nil {
-			return common.Root{}, err
-		}
-	}
-
-	return ssz.MerkleizeListComposite[any, math.U64](
-		roots.Bytes, constants.MaxTxsPerPayload,
-	)
+	byteBufferPool.Put(b)
 }

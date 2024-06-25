@@ -142,7 +142,8 @@ func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildBlockBodyProof(
 	}
 
 	tree, err := merkle.NewTreeWithMaxLeaves[[32]byte](
-		membersRoots, body.Length()-1,
+		membersRoots,
+		body.Length()-1,
 	)
 	if err != nil {
 		return nil, err
