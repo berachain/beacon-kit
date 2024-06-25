@@ -24,11 +24,9 @@ import (
 	"fmt"
 	"math/rand"
 	"runtime"
-	"sync"
 	"testing"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 	"github.com/prysmaticlabs/gohashtree"
 	"github.com/stretchr/testify/require"
@@ -50,28 +48,18 @@ func Test_HashTreeRootEqualInputs(t *testing.T) {
 					[][32]byte,
 					size*merkle.MinParallelizationSize,
 				)
-				// Assuming hash reduces size by half
-				hash1 := make(
-					[][32]byte,
-					size*merkle.MinParallelizationSize/2,
-				)
-				var hash2 [][32]byte
+				hash1 := make([][32]byte, size*merkle.MinParallelizationSize)
+				hash2 := make([][32]byte, size*merkle.MinParallelizationSize)
 				var err error
 
-				wg := sync.WaitGroup{}
-				wg.Add(1)
-				go func() {
-					defer wg.Done()
-					var tempHash [][32]byte
-					tempHash, err = merkle.BuildParentTreeRoots[[32]byte, [32]byte](
-						largeSlice,
-					)
-					copy(hash1, tempHash)
-				}()
-				wg.Wait()
+				err = merkle.BuildParentTreeRoots[[32]byte](
+					hash1,
+					largeSlice,
+				)
 				require.NoError(t, err)
 
-				hash2, err = merkle.BuildParentTreeRoots[[32]byte, [32]byte](
+				err = merkle.BuildParentTreeRoots[[32]byte](
+					hash2,
 					secondLargeSlice,
 				)
 				require.NoError(t, err)
@@ -155,7 +143,9 @@ func TestBuildParentTreeRootsWithNRoutines_DivisionByZero(t *testing.T) {
 	// Attempt to call BuildParentTreeRootsWithNRoutines with n set to 0
 	// to test handling of division by zero.
 	inputList := make([][32]byte, 10) // Arbitrary size larger than 0
-	_, err := merkle.BuildParentTreeRootsWithNRoutines[[32]byte, [32]byte](
+	output := make([][32]byte, 8)     // Arbitrary size smaller than inputList
+	err := merkle.BuildParentTreeRootsWithNRoutines(
+		output,
 		inputList,
 		0,
 	)
@@ -167,55 +157,43 @@ func TestBuildParentTreeRootsWithNRoutines_DivisionByZero(t *testing.T) {
 }
 
 // requireGoHashTreeEquivalence is a helper function to ensure that the output
-// of
-// sha256.HashTreeRoot is equivalent to the output of gohashtree.Hash.
+// of merkle.BuildParentTreeRootsWithNRoutines is equivalent to the output of
+// gohashtree.Hash.
 func requireGoHashTreeEquivalence(
 	t *testing.T, inputList [][32]byte, numRoutines int, expectError bool,
 ) {
 	t.Helper()
-	expectedOutput := make([][32]byte, len(inputList)/2)
-	var output [][32]byte
 
-	var wg sync.WaitGroup
-	errChan := make(chan error, 2) // Buffer for 2 potential errors
+	// Deep copy inputList
+	inputListCopy := make([][32]byte, len(inputList))
+	copy(inputListCopy, inputList)
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		var err error
-		output, err = merkle.BuildParentTreeRootsWithNRoutines[[32]byte, [32]byte](
-			inputList,
-			numRoutines,
-		)
-		if err != nil {
-			errChan <- errors.Newf("HashTreeRoot failed: %w", err)
-			return
+	expectedOutput := make([][32]byte, len(inputListCopy)/2)
+	output := make([][32]byte, len(inputListCopy)/2)
+	var err1, err2 error
+
+	// Run merkle.BuildParentTreeRootsWithNRoutines
+	err1 = merkle.BuildParentTreeRootsWithNRoutines(
+		output,
+		inputListCopy,
+		numRoutines,
+	)
+
+	// Run gohashtree.Hash
+	err2 = gohashtree.Hash(
+		expectedOutput,
+		inputListCopy,
+	)
+
+	// Check for errors
+	if !expectError {
+		require.NoError(t, err1, "BuildParentTreeRootsWithNRoutines failed")
+		require.NoError(t, err2, "gohashtree.Hash failed")
+	} else {
+		if err1 == nil && err2 == nil {
+			t.Error("Expected error did not occur")
 		}
-	}()
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		err := gohashtree.Hash(
-			expectedOutput,
-			inputList,
-		)
-		if err != nil {
-			errChan <- errors.Newf("gohashtree.Hash failed: %w", err)
-		}
-	}()
-
-	wg.Wait()      // Wait for both goroutines to finish
-	close(errChan) // Close the channel
-
-	// Check if there were any errors
-	for err := range errChan {
-		if !expectError {
-			require.NoError(t, err, "Error occurred during hashing")
-		} else {
-			require.Error(t, err, "Expected error did not occur")
-			return
-		}
+		return
 	}
 
 	// Ensure the lengths are the same
