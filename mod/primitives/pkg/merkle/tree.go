@@ -80,14 +80,22 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 	layers := make([][]RootT, depth+1)
 	layers[0] = leaves
 
-	var err error
+	// Preallocate layers based on depth
+	// TODO: This should be done virtually....
+	for i := uint8(1); i <= depth; i++ {
+		layerSize := (len(leaves) + (1 << i) - 1) >> i
+		layers[i] = make([]RootT, layerSize)
+	}
+
 	for d := range depth {
 		currentLayer := layers[d]
 		if len(currentLayer)%2 == 1 {
 			currentLayer = append(currentLayer, zero.Hashes[d])
 		}
-		layers[d+1] = make([]RootT, len(currentLayer)/two)
-		if err = BuildParentTreeRoots(layers[d+1], currentLayer); err != nil {
+
+		if err := BuildParentTreeRoots(
+			layers[d+1], currentLayer,
+		); err != nil {
 			return &Tree[RootT]{}, err
 		}
 	}

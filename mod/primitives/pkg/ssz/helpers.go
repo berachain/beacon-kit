@@ -135,10 +135,13 @@ func PadTo[U64T ~uint64, ChunkT ~[32]byte](
 ) []ChunkT {
 	switch numChunks := U64T(len(chunks)); {
 	case numChunks == size:
+		// No padding needed.
 		return chunks
 	case numChunks > size:
+		// Truncate the chunks to the desired size.
 		return chunks[:size]
 	default:
+		// Append zeroed chunks to the end of the list.
 		return append(chunks, make([]ChunkT, size-numChunks)...)
 	}
 }
