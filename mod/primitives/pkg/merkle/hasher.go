@@ -54,7 +54,10 @@ type Hasher[RootT ~[32]byte] struct {
 }
 
 // NewHasher creates a new merkle Hasher.
-func NewHasher[RootT ~[32]byte](buffer bytes.Buffer[RootT], hashFn MerkleHashFn[RootT]) *Hasher[RootT] {
+func NewHasher[RootT ~[32]byte](
+	buffer bytes.Buffer[RootT],
+	hashFn MerkleHashFn[RootT],
+) *Hasher[RootT] {
 	return &Hasher[RootT]{
 		buffer: buffer,
 		hasher: hashFn,
