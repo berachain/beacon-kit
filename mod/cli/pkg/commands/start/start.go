@@ -9,11 +9,12 @@ import (
 
 	"cosmossdk.io/core/transaction"
 	serverv2 "cosmossdk.io/server/v2"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
 
-func NewStartCmd[NodeT serverv2.AppI[T], T transaction.Tx](
+func NewStartCmd[NodeT types.Node[T], T transaction.Tx](
 	appCreator serverv2.AppCreator[NodeT, T],
 	server *serverv2.Server[NodeT, T],
 	flags []*pflag.FlagSet,

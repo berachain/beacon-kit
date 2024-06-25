@@ -28,18 +28,21 @@ import (
 
 // convertValidatorUpdate abstracts the conversion of a
 // transition.ValidatorUpdate to an appmodulev2.ValidatorUpdate.
-func convertValidatorUpdate(
+func convertValidatorUpdate[ValidatorUpdateT any](
 	u **transition.ValidatorUpdate,
-) (appmodulev2.ValidatorUpdate, error) {
+) (ValidatorUpdateT, error) {
+	var valUpdate ValidatorUpdateT
 	update := *u
 	if update == nil {
-		return appmodulev2.ValidatorUpdate{},
-			ErrUndefinedValidatorUpdate
+		return valUpdate, ErrUndefinedValidatorUpdate
 	}
-	return appmodulev2.ValidatorUpdate{
+
+	// TODO: this is so hood
+	valUpdate = any(appmodulev2.ValidatorUpdate{
 		PubKey:     update.Pubkey[:],
 		PubKeyType: crypto.CometBLSType,
 		//#nosec:G701 // this is safe.
 		Power: int64(update.EffectiveBalance.Unwrap()),
-	}, nil
+	}).(ValidatorUpdateT)
+	return valUpdate, nil
 }

@@ -20,6 +20,7 @@ use (
 	./mod/payload
 	./mod/primitives
 	./mod/runtime
+	./mod/server
 	./mod/state-transition
 	./mod/storage
 	./testing

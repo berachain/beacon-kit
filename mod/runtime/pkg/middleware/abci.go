@@ -144,7 +144,7 @@ func (h *ABCIMiddleware[
 ]) ProcessProposal(
 	ctx context.Context,
 	req *cmtabci.ProcessProposalRequest,
-) (*cmtabci.ProcessProposalResponse, error) {
+) error {
 	var (
 		blk       BeaconBlockT
 		sidecars  BlobSidecarsT
@@ -157,7 +157,7 @@ func (h *ABCIMiddleware[
 
 	// Request the beacon block.
 	if blk, err = h.beaconBlockGossiper.Request(ctx, req); err != nil {
-		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
+		return err
 	}
 
 	// Begin processing the beacon block.
@@ -167,7 +167,7 @@ func (h *ABCIMiddleware[
 
 	// Request the blob sidecars.
 	if sidecars, err = h.blobGossiper.Request(ctx, req); err != nil {
-		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
+		return err
 	}
 
 	// Begin processing the blob sidecars.
@@ -177,7 +177,7 @@ func (h *ABCIMiddleware[
 
 	// Wait for both processes to complete and then
 	// return the appropriate response.s
-	return h.createProcessProposalResponse(g.Wait())
+	return g.Wait()
 }
 
 // verifyBeaconBlock handles the processing of the beacon block.
@@ -240,21 +240,6 @@ func (h *ABCIMiddleware[
 		}
 		return msg.Error()
 	}
-}
-
-// createResponse generates the appropriate ProcessProposalResponse based on the
-// error.
-func (*ABCIMiddleware[
-	_, BeaconBlockT, _, BlobSidecarsT, _, _, _,
-]) createProcessProposalResponse(
-	err error,
-) (*cmtabci.ProcessProposalResponse, error) {
-	status := cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
-	if !errors.IsFatal(err) {
-		status = cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
-		err = nil
-	}
-	return &cmtabci.ProcessProposalResponse{Status: status}, err
 }
 
 /* -------------------------------------------------------------------------- */

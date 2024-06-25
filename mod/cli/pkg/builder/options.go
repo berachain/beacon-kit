@@ -90,3 +90,12 @@ func WithNodeBuilderFunc[NodeT types.Node[T], T transaction.Tx](
 		cb.nodeBuilderFunc = nodeBuilderFunc
 	}
 }
+
+// WithServer sets the server for the CLIBuilder.
+func WithServer[NodeT types.Node[T], T transaction.Tx](
+	server *serverv2.Server[NodeT, T],
+) Opt[NodeT, T] {
+	return func(cb *CLIBuilder[NodeT, T]) {
+		cb.server = server
+	}
+}

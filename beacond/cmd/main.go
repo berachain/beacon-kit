@@ -31,6 +31,7 @@ import (
 	nodecomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	beacon "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
+	serverbuilder "github.com/berachain/beacon-kit/mod/server/pkg/builder"
 	"github.com/cosmos/cosmos-sdk/server"
 	"go.uber.org/automaxprocs/maxprocs"
 )
@@ -53,6 +54,10 @@ func run[NodeT types.Node[T], T transaction.Tx]() error {
 		),
 	)
 
+	// Build the server using the server builder.
+	sb := serverbuilder.New[NodeT, T, any]()
+	svr := sb.Build()
+
 	// Build the root command using the builder
 	cb := clibuilder.New(
 		// Set the Name to the Default.
@@ -66,7 +71,7 @@ func run[NodeT types.Node[T], T transaction.Tx]() error {
 		// Set the Runtime Components to the Default.
 		clibuilder.WithComponents[NodeT](
 			append(
-				clicomponents.DefaultClientComponents[NodeT, T](),
+				clicomponents.DefaultClientComponents(),
 				// TODO: remove these, and eventually pull cfg and chainspec
 				// from built node
 				nodecomponents.ProvideNoopTxConfig,
@@ -83,6 +88,8 @@ func run[NodeT types.Node[T], T transaction.Tx]() error {
 		),
 		// Set the NodeBuilderFunc to the NodeBuilder Build.
 		clibuilder.WithNodeBuilderFunc[NodeT](nb.Build),
+		// Set the Server to the Server.
+		clibuilder.WithServer[NodeT, T](svr),
 	)
 
 	cmd, err := cb.Build()

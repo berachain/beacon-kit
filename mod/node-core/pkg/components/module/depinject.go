@@ -22,6 +22,8 @@ package beacon
 
 import (
 	"cosmossdk.io/core/appmodule"
+	appmodulev2 "cosmossdk.io/core/appmodule/v2"
+	"cosmossdk.io/core/transaction"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
@@ -35,7 +37,9 @@ func init() {
 	appconfig.RegisterModule(&modulev1alpha1.Module{},
 		appconfig.Provide(
 			components.ProvideKVStore,
-			ProvideModule,
+			ProvideModule[
+				transaction.Tx, appmodulev2.ValidatorUpdate, // TODO: idk man
+			],
 		),
 	)
 }
@@ -53,9 +57,11 @@ type ModuleOutput struct {
 }
 
 // ProvideModule is a function that provides the module to the application.
-func ProvideModule(in ModuleInput) (ModuleOutput, error) {
+func ProvideModule[T transaction.Tx, ValidatorUpdateT any](
+	in ModuleInput,
+) (ModuleOutput, error) {
 	return ModuleOutput{
-		Module: NewAppModule(
+		Module: NewAppModule[T, ValidatorUpdateT](
 			in.ABCIMiddleware,
 		),
 	}, nil

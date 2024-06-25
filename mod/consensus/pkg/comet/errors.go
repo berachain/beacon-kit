@@ -29,4 +29,9 @@ var (
 	ErrUndefinedValidatorUpdate = errors.New(
 		"undefined validator update",
 	)
+	// ErrInvalidRequestType is returned when an invalid request type is
+	// encountered.
+	ErrInvalidRequestType = errors.New(
+		"invalid request type",
+	)
 )

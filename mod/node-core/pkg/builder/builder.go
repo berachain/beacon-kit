@@ -51,9 +51,9 @@ type NodeBuilder[
 }
 
 // New returns a new NodeBuilder.
-func New[
-	NodeT types.Node[T], T transaction.Tx,
-](opts ...Opt[NodeT, T]) *NodeBuilder[NodeT, T] {
+func New[NodeT types.Node[T], T transaction.Tx](
+	opts ...Opt[NodeT, T],
+) *NodeBuilder[NodeT, T] {
 	nb := &NodeBuilder[NodeT, T]{
 		node: node.New[NodeT](),
 	}

@@ -19,11 +19,9 @@ func DefaultCommandConfig[NodeT types.Node[T], T transaction.Tx](
 	appCreator serverv2.AppCreator[NodeT, T],
 	logger log.Logger,
 	bkCommands []*cobra.Command,
-	components ...serverv2.ServerComponent[NodeT, T],
+	server *serverv2.Server[NodeT, T],
 ) (serverv2.CLIConfig, error) {
-
 	// TODO: this is weird, but is how cosmos does it. pls fix later
-	server := serverv2.NewServer(logger, components...)
 	flags := server.StartFlags()
 	startCmd := start.NewStartCmd[NodeT, T](
 		appCreator,
@@ -44,9 +42,8 @@ func AddCommands[NodeT types.Node[T], T transaction.Tx](
 	newApp serverv2.AppCreator[NodeT, T],
 	logger log.Logger,
 	cmdConfig serverv2.CLIConfig,
-	components ...serverv2.ServerComponent[NodeT, T],
+	server *serverv2.Server[NodeT, T],
 ) error {
-	server := serverv2.NewServer(logger, components...)
 	originalPersistentPreRunE := rootCmd.PersistentPreRunE
 	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
 		home, err := cmd.Flags().GetString(serverv2.FlagHome)

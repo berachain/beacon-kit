@@ -28,7 +28,6 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	serverv2 "cosmossdk.io/server/v2"
-	"cosmossdk.io/server/v2/cometbft"
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -57,6 +56,8 @@ type CLIBuilder[NodeT types.Node[T], T transaction.Tx] struct {
 	nodeBuilderFunc serverv2.AppCreator[NodeT, T]
 	// rootCmdSetup is a function that sets up the root command.
 	rootCmdSetup rootCmdSetup[NodeT, T]
+	// server is the server to be used by the commands.
+	server *serverv2.Server[NodeT, T]
 }
 
 // New returns a new CLIBuilder with the given options.
@@ -82,7 +83,6 @@ func (cb *CLIBuilder[NodeT, T]) Build() (*cmdlib.Root, error) {
 		clientCtx   client.Context
 		chainSpec   common.ChainSpec
 		logger      log.Logger
-		cmtServer   *cometbft.CometBFTServer[NodeT, T]
 	)
 	// build dependencies for the root command
 	if err := depinject.Inject(
@@ -98,7 +98,6 @@ func (cb *CLIBuilder[NodeT, T]) Build() (*cmdlib.Root, error) {
 		&mm,
 		&logger,
 		&clientCtx,
-		&cmtServer,
 		&chainSpec,
 		&autoCliOpts,
 	); err != nil {
@@ -133,7 +132,7 @@ func (cb *CLIBuilder[NodeT, T]) Build() (*cmdlib.Root, error) {
 		cb.nodeBuilderFunc,
 		logger,
 		cmdList,
-		cmtServer,
+		cb.server,
 	)
 	if err != nil {
 		return nil, err
@@ -144,7 +143,7 @@ func (cb *CLIBuilder[NodeT, T]) Build() (*cmdlib.Root, error) {
 		cb.nodeBuilderFunc,
 		logger,
 		cmdConfig,
-		cmtServer,
+		cb.server,
 	)
 
 	return rootCmd, nil

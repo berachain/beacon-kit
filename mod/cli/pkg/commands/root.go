@@ -34,7 +34,8 @@ type Root struct {
 }
 
 // New returns a new root command with the provided configuration.
-func New(name string,
+func New(
+	name string,
 	description string,
 	runHandler runHandler,
 	clientCtx sdkclient.Context,

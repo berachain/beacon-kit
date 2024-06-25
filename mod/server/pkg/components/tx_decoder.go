@@ -4,17 +4,15 @@ import (
 	"errors"
 
 	"cosmossdk.io/core/transaction"
-	serverv2 "cosmossdk.io/server/v2"
-	"cosmossdk.io/server/v2/cometbft"
 	"github.com/cosmos/cosmos-sdk/client"
 )
 
-type temporaryTxDecoder[T transaction.Tx] struct {
+type TxDecoder[T transaction.Tx] struct {
 	txConfig client.TxConfig
 }
 
 // Decode implements transaction.Codec.
-func (t *temporaryTxDecoder[T]) Decode(bz []byte) (T, error) {
+func (t *TxDecoder[T]) Decode(bz []byte) (T, error) {
 	var out T
 	tx, err := t.txConfig.TxDecoder()(bz)
 	if err != nil {
@@ -31,7 +29,7 @@ func (t *temporaryTxDecoder[T]) Decode(bz []byte) (T, error) {
 }
 
 // DecodeJSON implements transaction.Codec.
-func (t *temporaryTxDecoder[T]) DecodeJSON(bz []byte) (T, error) {
+func (t *TxDecoder[T]) DecodeJSON(bz []byte) (T, error) {
 	var out T
 	tx, err := t.txConfig.TxJSONDecoder()(bz)
 	if err != nil {
@@ -47,8 +45,8 @@ func (t *temporaryTxDecoder[T]) DecodeJSON(bz []byte) (T, error) {
 	return out, nil
 }
 
-// Temp hood
-func ProvideCometServer[NodeT serverv2.AppI[T], T transaction.Tx](
-	clientCtx client.Context) *cometbft.CometBFTServer[NodeT, T] {
-	return cometbft.New[NodeT, T](&temporaryTxDecoder[T]{clientCtx.TxConfig})
+func ProvideTxDecoder[T transaction.Tx](txConfig client.TxConfig) *TxDecoder[T] {
+	return &TxDecoder[T]{
+		txConfig: txConfig,
+	}
 }
