@@ -39,6 +39,9 @@ import (
 	"github.com/spf13/viper"
 )
 
+// InterceptConfigsAndCreateContext intercepts Comet and App Config files and
+// creates a new server.Context object. It returns an error if the configuration
+// files cannot be read or parsed.
 func InterceptConfigsAndCreateContext(
 	cmd *cobra.Command,
 	customAppConfigTemplate string,
@@ -96,6 +99,56 @@ func newDefaultContextWithLogger(logger log.Logger) *server.Context {
 	}
 }
 
+// TODO: Call this function from ProvideConfig to solve all our AppOpts problems
+// This will allow us ingest ChainSpec into app.toml, and set logger config
+// at build-time.
+
+// WriteAppConfig creates a new configuration file with default values if it
+// does not exist, and write it to the specified file path. If the config file
+// exists it skips.
+func WriteAppConfig(
+	rootViper *viper.Viper,
+	configPath string,
+	customAppTemplate string,
+	customConfig interface{},
+) error {
+	appCfgFilePath := filepath.Join(configPath, "app.toml")
+	// check if the application configuration file exists
+	if _, err := os.Stat(appCfgFilePath); os.IsNotExist(err) {
+		// create new config file with default values
+		if (customAppTemplate != "" && customConfig == nil) ||
+			(customAppTemplate == "" && customConfig != nil) {
+			return fmt.Errorf("customAppTemplate and customConfig " +
+				"should be both nil or not nil")
+		}
+		if customAppTemplate != "" {
+			// set the configuration template
+			if config.SetConfigTemplate(customAppTemplate) != nil {
+				return fmt.Errorf("failed to set config template: %w", err)
+			}
+
+			if rootViper.Unmarshal(&customConfig) != nil {
+				return fmt.Errorf("failed to parse %s: %w",
+					appCfgFilePath, err)
+			}
+
+			if config.WriteConfigFile(appCfgFilePath, customConfig) != nil {
+				return fmt.Errorf("failed to write %s: %w", appCfgFilePath, err)
+			}
+		} else {
+			appConf, err := config.ParseConfig(rootViper)
+			if err != nil {
+				return fmt.Errorf("failed to parse %s: %w", appCfgFilePath, err)
+			}
+
+			if config.WriteConfigFile(appCfgFilePath, appConf) != nil {
+				return fmt.Errorf("failed to write %s: %w", appCfgFilePath, err)
+			}
+		}
+	}
+	return nil
+}
+
 // interceptConfigs parses and updates a CometBFT configuration file or
 // creates a new one and saves it. It also parses and saves the application
 // configuration file. The CometBFT configuration file is parsed given a root
@@ -131,7 +184,7 @@ func interceptConfigs(
 
 	conf.SetRoot(rootDir)
 
-	if err := writeAppConfig(
+	if err := WriteAppConfig(
 		rootViper,
 		configPath,
 		customAppTemplate,
@@ -197,56 +250,6 @@ func writeCometConfig(
 
 		if err := rootViper.ReadInConfig(); err != nil {
 			return fmt.Errorf("failed to read in %s: %w", cmtCfgFile, err)
-		}
-	}
-	return nil
-}
-
-// TODO: Call this function from ProvideConfig to solve all our AppOpts problems
-// This will allow us ingest ChainSpec into app.toml, and set logger config
-// at build-time.
-
-// WriteAppConfig creates a new configuration file with default values if it does not
-// exist, and write it to the specified file path. If the config file exists
-// it skips.
-func writeAppConfig(
-	rootViper *viper.Viper,
-	configPath string,
-	customAppTemplate string,
-	customConfig interface{},
-) error {
-	appCfgFilePath := filepath.Join(configPath, "app.toml")
-	// check if the application configuration file exists
-	if _, err := os.Stat(appCfgFilePath); os.IsNotExist(err) {
-		// create new config file with default values
-		if (customAppTemplate != "" && customConfig == nil) ||
-			(customAppTemplate == "" && customConfig != nil) {
-			return fmt.Errorf("customAppTemplate and customConfig " +
-				"should be both nil or not nil")
-		}
-		if customAppTemplate != "" {
-			// set the configuration template
-			if config.SetConfigTemplate(customAppTemplate) != nil {
-				return fmt.Errorf("failed to set config template: %w", err)
-			}
-
-			if rootViper.Unmarshal(&customConfig) != nil {
-				return fmt.Errorf("failed to parse %s: %w",
-					appCfgFilePath, err)
-			}
-
-			if config.WriteConfigFile(appCfgFilePath, customConfig) != nil {
-				return fmt.Errorf("failed to write %s: %w", appCfgFilePath, err)
-			}
-		} else {
-			appConf, err := config.ParseConfig(rootViper)
-			if err != nil {
-				return fmt.Errorf("failed to parse %s: %w", appCfgFilePath, err)
-			}
-
-			if config.WriteConfigFile(appCfgFilePath, appConf) != nil {
-				return fmt.Errorf("failed to write %s: %w", appCfgFilePath, err)
-			}
 		}
 	}
 	return nil
