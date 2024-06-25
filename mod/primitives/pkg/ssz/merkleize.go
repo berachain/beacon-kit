@@ -146,7 +146,9 @@ func MerkleizeVecComposite[
 		if err != nil {
 			return RootT{}, err
 		}
-		copy(htrs.Bytes[i][:], htr[:])
+		if htrs.Bytes != nil {
+			copy(htrs.Bytes[i][:], htr[:])
+		}
 	}
 	return Merkleize[U64T, RootT](htrs.Bytes)
 }
@@ -172,7 +174,11 @@ func MerkleizeListComposite[
 		if err != nil {
 			return RootT{}, err
 		}
-		copy(htrs.Bytes[i][:], htr[:])
+		if htrs.Bytes != nil {
+			copy(htrs.Bytes[i][:], htr[:])
+		} else {
+			return RootT{}, errors.New("htrs.Bytes is nil")
+		}
 	}
 	root, err := Merkleize[U64T, RootT](
 		htrs.Bytes,
