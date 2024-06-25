@@ -227,6 +227,7 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 	}
 
 	// KZG commitments is not needed
+	//nosec:G103 // Okay to go from common.Root to [32]byte.
 	return *(*[][32]byte)(unsafe.Pointer(&layer)), nil
 }
 
