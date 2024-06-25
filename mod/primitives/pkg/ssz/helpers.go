@@ -146,11 +146,7 @@ func PadTo[U64T ~uint64, ChunkT ~[32]byte](
 
 // Pack packs a list of SSZ-marshallable elements into a single byte slice.
 func Pack[
-	U64T U64[U64T],
-	U256L U256LT,
-	SpecT any,
-	RootT ~[32]byte,
-	B Basic[SpecT, RootT],
+	SpecT any, RootT ~[32]byte, B Basic[SpecT, RootT],
 ](b []B) ([]RootT, error) {
 	// Pack each element into separate buffers.
 	var packed []byte

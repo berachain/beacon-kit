@@ -258,3 +258,7 @@ type Withdrawal[WithdrawalT any] interface {
 	// GetAddress returns the address of the withdrawal.
 	GetAddress() common.ExecutionAddress
 }
+
+type Merkleizer interface {
+	
+}
