@@ -133,11 +133,10 @@ func BuildParentTreeRootsWithNRoutines(
 	// hashed in the main goroutine at the end of this function.
 	for j := 0; j <= n; j++ {
 		eg.Go(func() error {
-			// inputList:
-			// [---------------------2*groupSize---------------------] ^
-			//            ^                    ^          ^ |
-			// |                    |          |
-			// j*2*groupSize   (j+1)*2*groupSize    (j+2)*2*groupSize  End
+			// inputList:  [-------------------2*groupSize-------------------]
+			//              ^                  ^                    ^        ^
+			//              |                  |                    |        |
+			// j*2*groupSize   (j+1)*2*groupSize    (j+2)*2*groupSize   End
 			//
 			// outputList: [---------groupSize---------]
 			//              ^                         ^
