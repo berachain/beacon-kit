@@ -47,6 +47,10 @@ var byteBufferPool = sync.Pool{
 func getBytes(size int) *byteBuffer {
 	//nolint:errcheck // its okay.
 	b := byteBufferPool.Get().(*byteBuffer)
+	if b == nil {
+		b = &byteBuffer{}
+	}
+
 	if cap(b.Bytes) < size {
 		b.Bytes = make([]common.Root, size)
 	}
