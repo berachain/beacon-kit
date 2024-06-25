@@ -45,9 +45,9 @@ const (
 // NewRootWithMaxLeaves constructs a Merkle tree root from a set of.
 func NewRootWithMaxLeaves[U64T U64[U64T], RootT ~[32]byte](
 	leaves []RootT,
-	length uint64,
+	length U64T,
 ) (RootT, error) {
-	return NewRootWithDepth[RootT](
+	return NewRootWithDepth(
 		leaves, math.U64(length).NextPowerOfTwo().ILog2Ceil(),
 	)
 }
