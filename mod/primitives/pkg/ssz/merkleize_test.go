@@ -20,40 +20,36 @@
 
 package ssz_test
 
-import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
-)
+// // Check for interface implementation.
+// var _ ssz.Basic[any, [32]byte] = BasicItem(0)
 
-// Check for interface implementation.
-var _ ssz.Basic[any, [32]byte] = BasicItem(0)
+// // BasicItem represents a basic item in the SSZ Spec.
+// type BasicItem uint64
 
-// BasicItem represents a basic item in the SSZ Spec.
-type BasicItem uint64
+// // SizeSSZ returns the size of the U64 in bytes.
+// func (u BasicItem) SizeSSZ() int {
+// 	return 8
+// }
 
-// SizeSSZ returns the size of the U64 in bytes.
-func (u BasicItem) SizeSSZ() int {
-	return 8
-}
+// // MarshalSSZ marshals the U64 into a byte slice.
+// func (u BasicItem) MarshalSSZ() ([]byte, error) {
+// 	return ssz.MarshalU64(u), nil
+// }
 
-// MarshalSSZ marshals the U64 into a byte slice.
-func (u BasicItem) MarshalSSZ() ([]byte, error) {
-	return ssz.MarshalU64(u), nil
-}
+// // HashTreeRoot computes the Merkle root of the U64 using SSZ hashing rules.
+// func (u BasicItem) HashTreeRoot() ([32]byte, error) {
+// 	// In practice we can use a simpler function.
 
-// HashTreeRoot computes the Merkle root of the U64 using SSZ hashing rules.
-func (u BasicItem) HashTreeRoot() ([32]byte, error) {
-	// In practice we can use a simpler function.
-	return ssz.MerkleizeBasic[
-		any, math.U64, math.U256L,
-	](u)
-}
+// 	return ssz.MerkleizeBasic[
+// 		any, math.U64, math.U256L,
+// 	](u)
+// }
 
-// BasicContainer represents a container of two basic items.
-type BasicContainer[SpecT any] struct {
-	Item1 BasicItem
-	Item2 BasicItem
-}
+// // BasicContainer represents a container of two basic items.
+// type BasicContainer[SpecT any] struct {
+// 	Item1 BasicItem
+// 	Item2 BasicItem
+// }
 
 // // SizeSSZ returns the size of the container in bytes.
 // func (c *BasicContainer[SpecT]) SizeSSZ() int {

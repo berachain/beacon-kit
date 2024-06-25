@@ -198,18 +198,3 @@ func PartitionBytes[RootT ~[32]byte](input []byte) ([]RootT, uint64, error) {
 	}
 	return chunks, numChunks, nil
 }
-
-// MerkleizeByteSlice hashes a byteslice by chunkifying it and returning the
-// corresponding HTR as if it were a fixed vector of bytes of the given length.
-func MerkleizeByteSlice[U64T U64[U64T], RootT ~[32]byte](
-	input []byte,
-) (RootT, error) {
-	chunks, numChunks, err := PartitionBytes[RootT](input)
-	if err != nil {
-		return RootT{}, err
-	}
-	return Merkleize[U64T, RootT](
-		chunks,
-		numChunks,
-	)
-}
