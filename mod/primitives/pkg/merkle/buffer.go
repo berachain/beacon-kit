@@ -51,8 +51,6 @@ func (b *reusableBuffer[RootT]) Get(size int) []RootT {
 	return b.internal[:size]
 }
 
-// TODO: add a Put method to return the buffer back for multi-threaded use.
-
 // grow resizes the internal buffer by the requested delta.
 func (b *reusableBuffer[RootT]) grow(delta int) {
 	b.internal = append(b.internal, make([]RootT, delta)...)

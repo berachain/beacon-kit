@@ -24,4 +24,6 @@ package merkle
 type Buffer[RootT ~[32]byte] interface {
 	// Get returns a slice of roots of the given size.
 	Get(size int) []RootT
+
+	// TODO: add a Put method to return the buffer back for multi-threaded use.
 }
