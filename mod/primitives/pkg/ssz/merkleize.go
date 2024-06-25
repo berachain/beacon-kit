@@ -102,7 +102,7 @@ func (m *Merkleizer[SpecT, U64T, U256L, RootT]) MerkleizeContainer(
 	numFields := rValue.NumField()
 	htrs := make([]RootT, numFields)
 	var err error
-	for i := 0; i < numFields; i++ {
+	for i := range numFields {
 		fieldValue := rValue.Field(i)
 		if !fieldValue.CanInterface() {
 			return RootT{}, errors.Newf(

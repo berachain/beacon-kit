@@ -43,20 +43,20 @@ const (
 	two = 2
 )
 
-type MerkleHashFn[RootT ~[32]byte] func([]RootT, []RootT) error
+type HasherFn[RootT ~[32]byte] func([]RootT, []RootT) error
 
 // Hasher can be re-used for constructing Merkle tree roots.
 type Hasher[RootT ~[32]byte] struct {
 	// buffer is a reusable buffer for hashing.
 	buffer bytes.Buffer[RootT]
 	// hasher is the hashing function to use.
-	hasher MerkleHashFn[RootT]
+	hasher HasherFn[RootT]
 }
 
 // NewHasher creates a new merkle Hasher.
 func NewHasher[RootT ~[32]byte](
 	buffer bytes.Buffer[RootT],
-	hashFn MerkleHashFn[RootT],
+	hashFn HasherFn[RootT],
 ) *Hasher[RootT] {
 	return &Hasher[RootT]{
 		buffer: buffer,
