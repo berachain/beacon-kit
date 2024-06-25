@@ -67,11 +67,9 @@ func NewHasher[RootT ~[32]byte](
 // NewRootWithMaxLeaves constructs a Merkle tree root from a set of.
 func (m *Hasher[RootT]) NewRootWithMaxLeaves(
 	leaves []RootT,
-	length uint64,
+	length math.U64,
 ) (RootT, error) {
-	return m.NewRootWithDepth(
-		leaves, math.U64(length).NextPowerOfTwo().ILog2Ceil(),
-	)
+	return m.NewRootWithDepth(leaves, length.NextPowerOfTwo().ILog2Ceil())
 }
 
 // NewRootWithDepth constructs a Merkle tree root from a set of leaves.
@@ -159,7 +157,7 @@ func BuildParentTreeRootsWithNRoutines(
 
 	// if n is 0 the parallelization is disabled and the whole inputList is
 	// hashed in the main goroutine at the end of this function.
-	for j := 0; j <= n; j++ {
+	for j := range n + 1 {
 		eg.Go(func() error {
 			// inputList:  [-------------------2*groupSize-------------------]
 			//              ^                  ^                    ^        ^

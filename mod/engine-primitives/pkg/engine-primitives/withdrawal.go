@@ -77,10 +77,7 @@ type Withdrawals []*Withdrawal
 // HashTreeRoot returns the hash tree root of the Withdrawals list.
 func (w Withdrawals) HashTreeRoot() (common.Root, error) {
 	// TODO: read max withdrawals from the chain spec.
-	merkleizer := ssz.NewMerkleizer[
-		common.ChainSpec, math.U64, math.U256L, [32]byte, *Withdrawal,
-	]()
-
+	merkleizer := ssz.NewMerkleizer[common.ChainSpec, [32]byte, *Withdrawal]()
 	return merkleizer.MerkleizeListComposite(
 		w,
 		constants.MaxWithdrawalsPerPayload,

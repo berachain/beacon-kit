@@ -28,6 +28,7 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
 	"github.com/prysmaticlabs/gohashtree"
@@ -109,7 +110,7 @@ func BenchmarkHasherWithReusableBuffer(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err := hasher.NewRootWithMaxLeaves(leaves, uint64(len(leaves)))
+		_, err := hasher.NewRootWithMaxLeaves(leaves, math.U64(len(leaves)))
 		if err != nil {
 			b.Fatalf("Expected no error, got %v", err)
 		}
@@ -134,7 +135,7 @@ func BenchmarkHasherWithSingleUseBuffer(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err := hasher.NewRootWithMaxLeaves(leaves, uint64(len(leaves)))
+		_, err := hasher.NewRootWithMaxLeaves(leaves, math.U64(len(leaves)))
 		if err != nil {
 			b.Fatalf("Expected no error, got %v", err)
 		}
