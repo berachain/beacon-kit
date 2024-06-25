@@ -235,3 +235,102 @@ func requireGoHashTreeEquivalence(
 		)
 	}
 }
+
+func BenchmarkBuildTreeRoots(b *testing.B) {
+	benchCases := []struct {
+		name string
+		size int
+	}{
+		{"Small", 16},
+		{"Medium", 256},
+		{"Large", 4096},
+		{"VeryLarge", 65536},
+	}
+
+	for _, bc := range benchCases {
+		b.Run(bc.name, func(b *testing.B) {
+			input := make([][32]byte, bc.size)
+			for i := range input {
+				// Fill with some dummy data
+				for j := range input[i] {
+					input[i][j] = byte(i * j % 256)
+				}
+			}
+
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				_, err := merkle.BuildParentTreeRoots[[32]byte, [32]byte](input)
+				if err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
+	}
+}
+
+func BenchmarkBuildTreeRootsParallel(b *testing.B) {
+	benchCases := []struct {
+		name string
+		size int
+	}{
+		{"Small", 16},
+		{"Medium", 256},
+		{"Large", 4096},
+		{"VeryLarge", 65536},
+	}
+
+	for _, bc := range benchCases {
+		b.Run(bc.name, func(b *testing.B) {
+			input := make([][32]byte, bc.size)
+			for i := range input {
+				// Fill with some dummy data
+				for j := range input[i] {
+					input[i][j] = byte(i * j % 256)
+				}
+			}
+
+			b.ResetTimer()
+			b.RunParallel(func(pb *testing.PB) {
+				for pb.Next() {
+					_, err := merkle.BuildParentTreeRoots[[32]byte, [32]byte](input)
+					if err != nil {
+						b.Fatal(err)
+					}
+				}
+			})
+		})
+	}
+}
+
+func BenchmarkBuildTreeRootsWithNRoutines(b *testing.B) {
+	benchCases := []struct {
+		name      string
+		size      int
+		nRoutines int
+	}{
+		{"Small_1Routine", 16, 1},
+		{"Medium_2Routines", 256, 2},
+		{"Large_4Routines", 4096, 4},
+		{"VeryLarge_8Routines", 65536, 8},
+	}
+
+	for _, bc := range benchCases {
+		b.Run(bc.name, func(b *testing.B) {
+			input := make([][32]byte, bc.size)
+			for i := range input {
+				// Fill with some dummy data
+				for j := range input[i] {
+					input[i][j] = byte(i * j % 256)
+				}
+			}
+
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				_, err := merkle.BuildParentTreeRootsWithNRoutines[[32]byte, [32]byte](input, bc.nRoutines)
+				if err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
+	}
+}

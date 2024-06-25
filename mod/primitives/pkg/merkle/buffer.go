@@ -30,7 +30,7 @@ const initialBufferSize = 16
 // TODO: remove this once buffer supports multi-threaded multi-use.
 var bufferPool = sync.Pool{
 	New: func() interface{} {
-		return make([]byte, 32)
+		return NewBuffer[[32]byte]()
 	},
 }
 

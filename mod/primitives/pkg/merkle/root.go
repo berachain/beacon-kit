@@ -105,16 +105,20 @@ func BuildParentTreeRootsWithNRoutines[LeafT, RootT ~[32]byte](
 	}
 	// Build output variables
 	outputLength := inputLength / two
-	outputList := make([]RootT, outputLength)
+
+	buffer := bufferPool.Get().(*buffer[[32]byte])
+	defer bufferPool.Put(buffer)
+	outputList := buffer.Get(outputLength)
 
 	// If the input list is small, hash it using the default method since
 	// the overhead of parallelizing the hashing process is not worth it.
 	if inputLength < MinParallelizationSize {
-		return outputList, gohashtree.Hash(
+		err := gohashtree.Hash(
 			//#nosec:G103 // used of unsafe calls should be audited.
 			*(*[][32]byte)(unsafe.Pointer(&outputList)),
 			//#nosec:G103 // used of unsafe calls should be audited.
 			*(*[][32]byte)(unsafe.Pointer(&inputList)))
+		return *(*[]RootT)(unsafe.Pointer(&outputList)), err
 	}
 
 	// Otherwise parallelize the hashing process for large inputs.
@@ -163,5 +167,5 @@ func BuildParentTreeRootsWithNRoutines[LeafT, RootT ~[32]byte](
 	}
 
 	// Wait for all goroutines to complete.
-	return outputList, eg.Wait()
+	return *(*[]RootT)(unsafe.Pointer(&outputList)), eg.Wait()
 }
