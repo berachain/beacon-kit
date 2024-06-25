@@ -144,7 +144,7 @@ func TestBuildParentTreeRootsWithNRoutines_DivisionByZero(t *testing.T) {
 	// to test handling of division by zero.
 	inputList := make([][32]byte, 10) // Arbitrary size larger than 0
 	output := make([][32]byte, 8)     // Arbitrary size smaller than inputList
-	err := merkle.BuildParentTreeRootsWithNRoutines[[32]byte](
+	err := merkle.BuildParentTreeRootsWithNRoutines(
 		output,
 		inputList,
 		0,
@@ -173,7 +173,7 @@ func requireGoHashTreeEquivalence(
 	var err1, err2 error
 
 	// Run merkle.BuildParentTreeRootsWithNRoutines
-	err1 = merkle.BuildParentTreeRootsWithNRoutines[[32]byte](
+	err1 = merkle.BuildParentTreeRootsWithNRoutines(
 		output,
 		inputListCopy,
 		numRoutines,

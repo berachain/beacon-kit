@@ -85,8 +85,10 @@ func NewRootWithDepth[RootT ~[32]byte](
 func BuildParentTreeRoots[RootT ~[32]byte](
 	outputList, inputList []RootT,
 ) error {
-	err := BuildParentTreeRootsWithNRoutines[RootT](
+	err := BuildParentTreeRootsWithNRoutines(
+		//#nosec:G103 // on purpose.
 		*(*[][32]byte)(unsafe.Pointer(&outputList)),
+		//#nosec:G103 // on purpose.
 		*(*[][32]byte)(unsafe.Pointer(&inputList)),
 		runtime.GOMAXPROCS(0)-1,
 	)
@@ -103,7 +105,7 @@ func BuildParentTreeRoots[RootT ~[32]byte](
 // TODO: We do not use generics here due to the gohashtree library not
 // supporting
 // generics.
-func BuildParentTreeRootsWithNRoutines[RootT ~[32]byte](
+func BuildParentTreeRootsWithNRoutines(
 	outputList, inputList [][32]byte, n int,
 ) error {
 	// Validate input list length.
