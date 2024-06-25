@@ -62,19 +62,23 @@ func NewRootWithDepth[RootT ~[32]byte](
 		return zero.Hashes[depth], nil
 	}
 
+	// Preallocate a single buffer large enough for the maximum layer size
+	// TODO: It seems that BuildParentTreeRoots has different behaviour
+	// when we pass leaves in directly.
+	buffer := make([]RootT, (len(leaves)+1)/two)
+
+	var err error
 	for i := range depth {
 		layerLen := len(leaves)
-		oddNodeLength := layerLen%two == 1
-		if oddNodeLength {
-			zerohash := zero.Hashes[i]
-			leaves = append(leaves, zerohash)
+		if layerLen%two == 1 {
+			leaves = append(leaves, zero.Hashes[i])
 		}
-		var err error
-		buf := make([]RootT, len(leaves)/two)
-		if err = BuildParentTreeRoots(buf, leaves); err != nil {
+
+		newLayerSize := (layerLen + 1) / two
+		if err = BuildParentTreeRoots(buffer[:newLayerSize], leaves); err != nil {
 			return zero.Hashes[depth], err
 		}
-		leaves = buf
+		leaves, buffer = buffer[:newLayerSize], leaves
 	}
 	if len(leaves) != 1 {
 		return zero.Hashes[depth], nil
