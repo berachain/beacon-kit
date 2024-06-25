@@ -95,6 +95,10 @@ type MockBlockEvent struct {
 	data MockBeaconBlock
 }
 
+func (e MockBlockEvent) Type() asynctypes.EventID {
+	return ""
+}
+
 func (e MockBlockEvent) Is(_ asynctypes.EventID) bool {
 	// Mock implementation for Is method. Adjust logic as needed.
 	return true
