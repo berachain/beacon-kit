@@ -86,7 +86,9 @@ func BuildParentTreeRoots[RootT ~[32]byte](
 	outputList, inputList []RootT,
 ) error {
 	err := BuildParentTreeRootsWithNRoutines[RootT](
-		*(*[][32]byte)(unsafe.Pointer(&outputList)), *(*[][32]byte)(unsafe.Pointer(&inputList)), runtime.GOMAXPROCS(0)-1,
+		*(*[][32]byte)(unsafe.Pointer(&outputList)),
+		*(*[][32]byte)(unsafe.Pointer(&inputList)),
+		runtime.GOMAXPROCS(0)-1,
 	)
 
 	// Convert out back to []RootT using unsafe pointer cas
@@ -98,7 +100,8 @@ func BuildParentTreeRoots[RootT ~[32]byte](
 // method adapts to the host machine's hardware for potential performance
 // gains over sequential hashing.
 //
-// TODO: We do not use generics here due to the gohashtree library not supporting
+// TODO: We do not use generics here due to the gohashtree library not
+// supporting
 // generics.
 func BuildParentTreeRootsWithNRoutines[RootT ~[32]byte](
 	outputList, inputList [][32]byte, n int,
@@ -128,9 +131,10 @@ func BuildParentTreeRootsWithNRoutines[RootT ~[32]byte](
 	// hashed in the main goroutine at the end of this function.
 	for j := 0; j <= n; j++ {
 		eg.Go(func() error {
-			// inputList:  [---------------------2*groupSize---------------------]
-			//              ^                    ^                    ^          ^
-			//              |                    |                    |          |
+			// inputList:
+			// [---------------------2*groupSize---------------------] ^
+			//            ^                    ^          ^ |
+			// |                    |          |
 			// j*2*groupSize   (j+1)*2*groupSize    (j+2)*2*groupSize  End
 			//
 			// outputList: [---------groupSize---------]
@@ -139,7 +143,8 @@ func BuildParentTreeRootsWithNRoutines[RootT ~[32]byte](
 			//             j*groupSize         (j+1)*groupSize
 			//
 			// Each goroutine processes a segment of inputList that is twice as
-			// large as the segment it fills in outputList. This is because the hash
+			// large as the segment it fills in outputList. This is because the
+			// hash
 			// operation reduces the
 			// size of the input by half.
 			// Define the segment of the inputList each goroutine will process.

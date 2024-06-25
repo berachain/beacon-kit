@@ -157,7 +157,8 @@ func TestBuildParentTreeRootsWithNRoutines_DivisionByZero(t *testing.T) {
 }
 
 // requireGoHashTreeEquivalence is a helper function to ensure that the output
-// of merkle.BuildParentTreeRootsWithNRoutines is equivalent to the output of gohashtree.Hash.
+// of merkle.BuildParentTreeRootsWithNRoutines is equivalent to the output of
+// gohashtree.Hash.
 func requireGoHashTreeEquivalence(
 	t *testing.T, inputList [][32]byte, numRoutines int, expectError bool,
 ) {
