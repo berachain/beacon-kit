@@ -8,8 +8,6 @@ replace (
 	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240623110059-dec2d5583e39
 	cosmossdk.io/server/v2 => github.com/berachain/cosmos-sdk/server/v2 v2.0.0-20240624204242-8877694ebd14
 	cosmossdk.io/server/v2/cometbft => github.com/berachain/cosmos-sdk/server/v2/cometbft v0.0.0-20240624204242-8877694ebd14
-	github.com/berachain/beacon-kit/mod/consensus => ../consensus
-	github.com/berachain/beacon-kit/mod/node-core => ../node-core
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240624204242-8877694ebd14
 )
 
@@ -19,8 +17,8 @@ require (
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce
 	cosmossdk.io/server/v2 v2.0.0-20240624191328-722ac39873e4
 	cosmossdk.io/server/v2/cometbft v0.0.0-00010101000000-000000000000
-	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240625165428-64b8496e4672
-	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240624214650-dd8a0fc17a50
+	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240625165558-8d611ba7d436
+	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240625165558-8d611ba7d436
 	github.com/spf13/viper v1.19.0
 )
 

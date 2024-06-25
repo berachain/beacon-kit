@@ -445,6 +445,7 @@ github.com/berachain/beacon-kit/mod/errors v0.0.0-20240624003607-df94860f8eeb/go
 github.com/berachain/beacon-kit/mod/errors v0.0.0-20240624041151-58d9ba1eb6b4/go.mod h1:iXa+Q+i0q+GCpLzkusulO57K5vlkDgM77jtfMr3QdFA=
 github.com/berachain/beacon-kit/mod/log v0.0.0-20240624041151-58d9ba1eb6b4/go.mod h1:xP5KcG56VfbPgz2ZRHerxm90MkjXMSDaGZNOOO5yfH4=
 github.com/berachain/beacon-kit/mod/log v0.0.0-20240624210933-3baa52ebb587/go.mod h1:xP5KcG56VfbPgz2ZRHerxm90MkjXMSDaGZNOOO5yfH4=
+github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240624214650-dd8a0fc17a50/go.mod h1:qQohMh7SXl5ui4lVYOFiAvZTp3CGF6McMiIfqim6a9E=
 github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240624041151-58d9ba1eb6b4/go.mod h1:ft214cxJaqrRPOuAjpYwgA9AOElJnHrDZZEQ0jZPWwQ=
 github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240624210933-3baa52ebb587/go.mod h1:ft214cxJaqrRPOuAjpYwgA9AOElJnHrDZZEQ0jZPWwQ=
 github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240624041151-58d9ba1eb6b4/go.mod h1:hBVU5IzPwbAW0gsOZn78eWXV8uip8aI2Q3WzUZTKEoI=
@@ -573,6 +574,7 @@ github.com/creachadair/atomicfile v0.3.3/go.mod h1:X1r9P4wigJlGkYJO1HXZREdkVn+b1
 github.com/creachadair/command v0.0.0-20220916173946-56a74cdd66b6 h1:uKuolOJonQOb/2+z/wFSJeVREP6fSoigr/X4Wlfhwwg=
 github.com/creachadair/command v0.0.0-20220916173946-56a74cdd66b6/go.mod h1:jN7ZJM5YSVtD3SHmkAdN/cOC1dXiqg2Y9K5Sr5a8Nxw=
 github.com/creachadair/command v0.1.12/go.mod h1:YKwUE49nAi8qxLl8jCQ0GMPvwdxmIBkJW3LqxgZ7ljk=
+github.com/creachadair/mtest v0.0.0-20231015022703-31f2ea539dce/go.mod h1:okn1ft6DY+qjPmnvYynyq7ufIQKJ2x2qwOCJZecei1k=
 github.com/creack/pty v1.1.7/go.mod h1:lj5s0c3V2DBrqTV7llrYr5NG6My20zk30Fl46Y7DoTY=
 github.com/cristalhq/acmd v0.12.0 h1:RdlKnxjN+txbQosg8p/TRNZ+J1Rdne43MVQZ1zDhGWk=
 github.com/cristalhq/acmd v0.12.0/go.mod h1:LG5oa43pE/BbxtfMoImHCQN++0Su7dzipdgBjMCBVDQ=

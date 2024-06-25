@@ -22,10 +22,14 @@ cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce h1:udTT5vz8tu5WfnHnDJv9Mb2
 cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce/go.mod h1:QFKLI3pmk619LV+uh4DKxVBlNCGQhvTyoVYBaxHaTNM=
 cosmossdk.io/math v1.3.0 h1:RC+jryuKeytIiictDslBP9i1fhkVm6ZDmZEoNP316zE=
 cosmossdk.io/math v1.3.0/go.mod h1:vnRTxewy+M7BtXBNFybkuhSH4WfedVAAnERHgVFhp3k=
+cosmossdk.io/runtime/v2 v2.0.0-20240623110059-dec2d5583e39 h1:mboMyY8Rv6Y+0opbNZGAftxGEK7ng1/SkJKCmAOxC9M=
+cosmossdk.io/runtime/v2 v2.0.0-20240623110059-dec2d5583e39/go.mod h1:S0wDEqzNr1wDjuBRcUxWesT0oX5+qJGYQXO78IOmK2Y=
 cosmossdk.io/server/v2 v2.0.0-20240624191328-722ac39873e4 h1:5aDnTjeR9X+Ey2uhyhYmxTcLLnvjUfXRZvlCNTTOZy0=
 cosmossdk.io/server/v2 v2.0.0-20240624191328-722ac39873e4/go.mod h1:tipsG13IvXM770UgAND0+kWtV/C2F7Oct0HUIfY50v8=
 cosmossdk.io/server/v2/appmanager v0.0.0-20240624191328-722ac39873e4 h1:nIpps9YyKk6OaWXDWrLgvUuAdIBmLsSrjyJHlME8jdc=
 cosmossdk.io/server/v2/appmanager v0.0.0-20240624191328-722ac39873e4/go.mod h1:gFlSQXvvR4YMmUXHAxuMfXmWfqQkt6wAkMJBxXVJP0s=
+cosmossdk.io/server/v2/stf v0.0.0-20240623110059-dec2d5583e39 h1:wB6pmjaBklCiUO2juRBC7ZljaWn/UW7oi9fnY50WkcQ=
+cosmossdk.io/server/v2/stf v0.0.0-20240623110059-dec2d5583e39/go.mod h1:bTFJu59P5lJqCQDaNEUruMEScikeBHtRVuWMAOLbUgk=
 cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc h1:R9O9d75e0qZYUsVV0zzi+D7cNLnX2JrUOQNoIPaF0Bg=
 cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc/go.mod h1:amTTatOUV3u1PsKmNb87z6/galCxrRbz9kRdJkL0DyU=
 cosmossdk.io/store/v2 v2.0.0-20240625055312-26913b073414 h1:gSEV0T4+JBMVw02wQkF1fMLO04gqve+G9Yp+yCwk2Rk=
@@ -96,8 +100,8 @@ github.com/berachain/beacon-kit/mod/cli v0.0.0-20240625043140-4f4da3669e01 h1:2r
 github.com/berachain/beacon-kit/mod/cli v0.0.0-20240625043140-4f4da3669e01/go.mod h1:O9oP6S+5RqWkEQbNLI1XLalIiq/vqodO6q9DSXmCL9w=
 github.com/berachain/beacon-kit/mod/config v0.0.0-20240625043140-4f4da3669e01 h1:9UzV1yn3yKEwKa809es+vVEGbsXTr4jppwQe2fTQzA4=
 github.com/berachain/beacon-kit/mod/config v0.0.0-20240625043140-4f4da3669e01/go.mod h1:+heJhzuAPYWYTQHK6eOK6uEgz+RrW3DFZOpuwJDShpI=
-github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240625043140-4f4da3669e01 h1:nLsPSceVfyF2dlbkSI+IecKqm5fL0P56ILx7KuqdFgU=
-github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240625043140-4f4da3669e01/go.mod h1:PMuerqVfnVOvJn8CgZUzcj0AqKUvhTP0uuwHDs7+hdc=
+github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240625165558-8d611ba7d436 h1:kqQKNwamDWRG9DLn5yn41Dede8p+dlLwhAJpcJvCQSk=
+github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240625165558-8d611ba7d436/go.mod h1:FtHjfcVBgEFlAVRVeib6CkNocnVOWU2M0Effar0n6OA=
 github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240625043140-4f4da3669e01 h1:zw0IR+wjz7Os271GDO+BsQkJrSH9HmsiqkUgjkR4rnQ=
 github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240625043140-4f4da3669e01/go.mod h1:E488UkdL/ZUIB6HV3w4vC1QzhroX1mg3BQOI7zgPpgI=
 github.com/berachain/beacon-kit/mod/da v0.0.0-20240625043140-4f4da3669e01 h1:HtGgC6KgqHY28L0w1dSdyEu10Y+hQV926JaghBME41A=
@@ -110,8 +114,8 @@ github.com/berachain/beacon-kit/mod/execution v0.0.0-20240625043140-4f4da3669e01
 github.com/berachain/beacon-kit/mod/execution v0.0.0-20240625043140-4f4da3669e01/go.mod h1:+6gg+fzmAX0FkrR31B/GnNUJ0s6YRkrj/caeS58+pbw=
 github.com/berachain/beacon-kit/mod/log v0.0.0-20240625043140-4f4da3669e01 h1:bcXEtuFlvlyj/JjzSqd4Co4UnOT/mqxdhYBtDAaNQWM=
 github.com/berachain/beacon-kit/mod/log v0.0.0-20240625043140-4f4da3669e01/go.mod h1:xP5KcG56VfbPgz2ZRHerxm90MkjXMSDaGZNOOO5yfH4=
-github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240625043140-4f4da3669e01 h1:KjAvrg/afRAv/kbw/oO50eH6aaoWBLKNPq9Zr7HwQfE=
-github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240625043140-4f4da3669e01/go.mod h1:qQohMh7SXl5ui4lVYOFiAvZTp3CGF6McMiIfqim6a9E=
+github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240625165558-8d611ba7d436 h1:VmA9HrSXZcJnrRFMdG7TbDZVvDkJ0LKH7T2SfmXwQTY=
+github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240625165558-8d611ba7d436/go.mod h1:LY6wQ6ZTjCHzwyefYb5z5JIJ/YLZEiwLatakcfGqiDU=
 github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240625043140-4f4da3669e01 h1:MKZNw87vrqzwkNA/gNdwI6E+9/SQ6jDDcuiJ1JI+jEk=
 github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240625043140-4f4da3669e01/go.mod h1:ft214cxJaqrRPOuAjpYwgA9AOElJnHrDZZEQ0jZPWwQ=
 github.com/berachain/beacon-kit/mod/payload v0.0.0-20240625043140-4f4da3669e01 h1:/QJjtlH4N2I4cXj72pDJZjcu8UIkbmEngIrAMb8CvD0=
@@ -502,6 +506,8 @@ github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D
 github.com/mattn/go-runewidth v0.0.9/go.mod h1:H031xJmbD/WCDINGzjvQ9THkh0rPKHF+m2gUSrubnMI=
 github.com/mattn/go-runewidth v0.0.15 h1:UNAjwbU9l54TA3KzvqLGxwWjHmMgBUVhBiTjelZgg3U=
 github.com/mattn/go-runewidth v0.0.15/go.mod h1:Jdepj2loyihRzMpdS35Xk/zdY8IAYHsh153qUoGf23w=
+github.com/mattn/go-sqlite3 v1.14.22 h1:2gZY6PC6kBnID23Tichd1K+Z0oS6nE/XwU+Vz/5o4kU=
+github.com/mattn/go-sqlite3 v1.14.22/go.mod h1:Uh1q+B4BYcTPb+yiD3kU8Ct7aC0hY9fxUwlHK0RXw+Y=
 github.com/matttproud/golang_protobuf_extensions v1.0.1/go.mod h1:D8He9yQNgCq6Z5Ld7szi9bcBfOoFv/3dc6xSMkL2PC0=
 github.com/mdp/qrterminal/v3 v3.2.0 h1:qteQMXO3oyTK4IHwj2mWsKYYRBOp1Pj2WRYFYYNTCdk=
 github.com/mdp/qrterminal/v3 v3.2.0/go.mod h1:XGGuua4Lefrl7TLEsSONiD+UEjQXJZ4mPzF+gWYIJkk=

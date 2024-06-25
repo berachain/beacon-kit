@@ -18,7 +18,7 @@ replace (
 require (
 	cosmossdk.io/core v0.12.1-0.20240623110059-dec2d5583e39
 	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240625043140-4f4da3669e01
-	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240625043140-4f4da3669e01
+	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240625165558-8d611ba7d436
 	github.com/berachain/beacon-kit/mod/server v0.0.0-00010101000000-000000000000
 	github.com/cosmos/cosmos-sdk v0.51.0
 	go.uber.org/automaxprocs v1.5.3
@@ -30,14 +30,15 @@ require (
 	cosmossdk.io/api v0.7.5 // indirect
 	cosmossdk.io/client/v2 v2.0.0-20240412212305-037cf98f7eea // indirect
 	cosmossdk.io/collections v0.4.0 // indirect
-	cosmossdk.io/core/testing v0.0.0-20240620161400-a6407f411e80 // indirect
 	cosmossdk.io/depinject v1.0.0-alpha.4.0.20240620161400-a6407f411e80 // indirect
 	cosmossdk.io/errors v1.0.1 // indirect
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce // indirect
 	cosmossdk.io/math v1.3.0 // indirect
+	cosmossdk.io/runtime/v2 v2.0.0-20240623110059-dec2d5583e39 // indirect
 	cosmossdk.io/server/v2 v2.0.0-20240624191328-722ac39873e4 // indirect
 	cosmossdk.io/server/v2/appmanager v0.0.0-20240624191328-722ac39873e4 // indirect
 	cosmossdk.io/server/v2/cometbft v0.0.0-00010101000000-000000000000 // indirect
+	cosmossdk.io/server/v2/stf v0.0.0-20240623110059-dec2d5583e39 // indirect
 	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc // indirect
 	cosmossdk.io/store/v2 v2.0.0-20240625055312-26913b073414 // indirect
 	cosmossdk.io/tools/confix v0.1.1 // indirect
@@ -60,7 +61,7 @@ require (
 	github.com/berachain/beacon-kit/mod/async v0.0.0-20240625043140-4f4da3669e01 // indirect
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240625043140-4f4da3669e01 // indirect
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240625043140-4f4da3669e01 // indirect
-	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240625043140-4f4da3669e01 // indirect
+	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240625165558-8d611ba7d436 // indirect
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240625043140-4f4da3669e01 // indirect
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240625043140-4f4da3669e01 // indirect
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240625043140-4f4da3669e01 // indirect
@@ -175,6 +176,7 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
+	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/mdp/qrterminal/v3 v3.2.0 // indirect
 	github.com/minio/highwayhash v1.0.2 // indirect
 	github.com/minio/sha256-simd v1.0.1 // indirect
