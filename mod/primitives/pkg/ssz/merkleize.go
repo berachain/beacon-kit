@@ -24,6 +24,7 @@ import (
 	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 )
 
@@ -150,7 +151,10 @@ func MerkleizeVecComposite[
 			copy(htrs.Bytes[i][:], htr[:])
 		}
 	}
-	return Merkleize[U64T, RootT](htrs.Bytes)
+	r, err := Merkleize[U64T, common.Root](
+		htrs.Bytes,
+	)
+	return RootT(r), err
 }
 
 // MerkleizeListComposite implements the SSZ merkleization algorithm for a list
@@ -180,14 +184,14 @@ func MerkleizeListComposite[
 			return RootT{}, errors.New("htrs.Bytes is nil")
 		}
 	}
-	root, err := Merkleize[U64T, RootT](
+	root, err := Merkleize[U64T, common.Root](
 		htrs.Bytes,
 		ChunkCountCompositeList[C](value, limit),
 	)
 	if err != nil {
 		return RootT{}, err
 	}
-	return merkle.MixinLength(root, uint64(len(value))), nil
+	return RootT(merkle.MixinLength(root, uint64(len(value)))), nil
 }
 
 // Merkleize hashes a list of chunks and returns the HTR of the list of.
@@ -211,13 +215,13 @@ func MerkleizeListComposite[
 //	  Then, merkleize the chunks (empty input is padded to 1 zero chunk):
 //	 If 1 chunk: the root is the chunk itself.
 //	If > 1 chunks: merkleize as binary tree.
-func Merkleize[U64T U64[U64T], RootT, ChunkT ~[32]byte](
-	chunks []ChunkT,
+func Merkleize[U64T U64[U64T], RootT ~[32]byte](
+	chunks []RootT,
 	limit ...uint64,
 ) (RootT, error) {
 	var (
 		effectiveLimit  U64T
-		effectiveChunks []ChunkT
+		effectiveChunks []RootT
 		lenChunks       = uint64(len(chunks))
 	)
 
@@ -240,10 +244,10 @@ func Merkleize[U64T U64[U64T], RootT, ChunkT ~[32]byte](
 
 	effectiveChunks = PadTo(chunks, effectiveLimit)
 	if len(effectiveChunks) == 1 {
-		return RootT(effectiveChunks[0]), nil
+		return effectiveChunks[0], nil
 	}
 
-	return merkle.NewRootWithMaxLeaves[U64T, ChunkT, RootT](
+	return merkle.NewRootWithMaxLeaves[U64T](
 		effectiveChunks,
 		//#nosec:G701 // This is a safe operation.
 		uint64(effectiveLimit),
