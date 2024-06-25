@@ -23,7 +23,6 @@ package ssz
 import (
 	"encoding/binary"
 	"reflect"
-	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
@@ -191,14 +190,12 @@ func Pack[
 func PartitionBytes[RootT ~[32]byte](input []byte) ([]RootT, uint64, error) {
 	//nolint:mnd // we add 31 in order to round up the division.
 	numChunks := max((uint64(len(input))+31)/constants.RootLength, 1)
-	//#nosec:G701 // todo fix.
-	chunks := getBytes(int(numChunks))
-	defer chunks.Put()
-	for i := range chunks.Bytes {
-		copy(chunks.Bytes[i][:], input[32*i:])
+	// TODO: figure out how to safely chunk these bytes.
+	chunks := make([]RootT, numChunks)
+	for i := range chunks {
+		copy(chunks[i][:], input[32*i:])
 	}
-	//#nosec:G103 // todo fix.
-	return *(*[]RootT)(unsafe.Pointer(&chunks.Bytes)), numChunks, nil
+	return chunks, numChunks, nil
 }
 
 // MerkleizeByteSlice hashes a byteslice by chunkifying it and returning the
