@@ -37,6 +37,7 @@ import (
 func Test_HashTreeRootEqualInputs(t *testing.T) {
 	// Test with slices of varying sizes to ensure robustness across different
 	// conditions
+	out := make([][32]byte, 100000000000)
 	sliceSizes := []int{16, 32, 64}
 	for _, size := range sliceSizes {
 		t.Run(
@@ -65,6 +66,7 @@ func Test_HashTreeRootEqualInputs(t *testing.T) {
 					var tempHash [][32]byte
 					tempHash, err = merkle.BuildParentTreeRoots[[32]byte, [32]byte](
 						largeSlice,
+						out,
 					)
 					copy(hash1, tempHash)
 				}()
@@ -73,6 +75,7 @@ func Test_HashTreeRootEqualInputs(t *testing.T) {
 
 				hash2, err = merkle.BuildParentTreeRoots[[32]byte, [32]byte](
 					secondLargeSlice,
+					out,
 				)
 				require.NoError(t, err)
 
@@ -152,11 +155,13 @@ func Test_GoHashTreeHashConformance(t *testing.T) {
 }
 
 func TestBuildParentTreeRootsWithNRoutines_DivisionByZero(t *testing.T) {
+	out := make([][32]byte, 100000000000)
 	// Attempt to call BuildParentTreeRootsWithNRoutines with n set to 0
 	// to test handling of division by zero.
 	inputList := make([][32]byte, 10) // Arbitrary size larger than 0
 	_, err := merkle.BuildParentTreeRootsWithNRoutines[[32]byte, [32]byte](
 		inputList,
+		out,
 		0,
 	)
 	require.NoError(
@@ -173,6 +178,7 @@ func requireGoHashTreeEquivalence(
 	t *testing.T, inputList [][32]byte, numRoutines int, expectError bool,
 ) {
 	t.Helper()
+	out := make([][32]byte, 100000000000)
 	expectedOutput := make([][32]byte, len(inputList)/2)
 	var output [][32]byte
 
@@ -185,6 +191,7 @@ func requireGoHashTreeEquivalence(
 		var err error
 		output, err = merkle.BuildParentTreeRootsWithNRoutines[[32]byte, [32]byte](
 			inputList,
+			out,
 			numRoutines,
 		)
 		if err != nil {
@@ -250,6 +257,7 @@ func BenchmarkBuildTreeRoots(b *testing.B) {
 	for _, bc := range benchCases {
 		b.Run(bc.name, func(b *testing.B) {
 			input := make([][32]byte, bc.size)
+			out := make([][32]byte, 100000000000)
 			for i := range input {
 				// Fill with some dummy data
 				for j := range input[i] {
@@ -259,7 +267,7 @@ func BenchmarkBuildTreeRoots(b *testing.B) {
 
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
-				_, err := merkle.BuildParentTreeRoots[[32]byte, [32]byte](input)
+				_, err := merkle.BuildParentTreeRoots[[32]byte, [32]byte](input, out)
 				if err != nil {
 					b.Fatal(err)
 				}
@@ -282,6 +290,7 @@ func BenchmarkBuildTreeRootsParallel(b *testing.B) {
 	for _, bc := range benchCases {
 		b.Run(bc.name, func(b *testing.B) {
 			input := make([][32]byte, bc.size)
+			out := make([][32]byte, 100000000000)
 			for i := range input {
 				// Fill with some dummy data
 				for j := range input[i] {
@@ -292,7 +301,7 @@ func BenchmarkBuildTreeRootsParallel(b *testing.B) {
 			b.ResetTimer()
 			b.RunParallel(func(pb *testing.PB) {
 				for pb.Next() {
-					_, err := merkle.BuildParentTreeRoots[[32]byte, [32]byte](input)
+					_, err := merkle.BuildParentTreeRoots[[32]byte, [32]byte](input, out)
 					if err != nil {
 						b.Fatal(err)
 					}
@@ -317,6 +326,7 @@ func BenchmarkBuildTreeRootsWithNRoutines(b *testing.B) {
 	for _, bc := range benchCases {
 		b.Run(bc.name, func(b *testing.B) {
 			input := make([][32]byte, bc.size)
+			out := make([][32]byte, 100000000000)
 			for i := range input {
 				// Fill with some dummy data
 				for j := range input[i] {
@@ -326,7 +336,7 @@ func BenchmarkBuildTreeRootsWithNRoutines(b *testing.B) {
 
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
-				_, err := merkle.BuildParentTreeRootsWithNRoutines[[32]byte, [32]byte](input, bc.nRoutines)
+				_, err := merkle.BuildParentTreeRootsWithNRoutines[[32]byte, [32]byte](input, out, bc.nRoutines)
 				if err != nil {
 					b.Fatal(err)
 				}

@@ -25,9 +25,9 @@ import "sync"
 // initialBufferSize is the initial size of the internal buffer.
 //
 // TODO: choose a more appropriate size?
-const initialBufferSize = 16
+const initialBufferSize = 32
 
-// TODO: remove this once buffer supports multi-threaded multi-use.
+// bufferPool allows reuse of buffers across multiple goroutines.
 var bufferPool = sync.Pool{
 	New: func() interface{} {
 		return NewBuffer[[32]byte]()
@@ -36,12 +36,9 @@ var bufferPool = sync.Pool{
 
 // buffer is a re-usable buffer for merkle tree hashing. Prevents
 // unnecessary allocations and garbage collection of byte slices.
-//
-// NOTE: this buffer is ONLY meant to be used in a single thread.
 type buffer[RootT ~[32]byte] struct {
 	internal []RootT
-
-	// TODO: add a mutex for multi-thread safety.
+	mutex    sync.Mutex
 }
 
 // NewBuffer creates a new buffer with the given capacity.
@@ -53,14 +50,28 @@ func NewBuffer[RootT ~[32]byte]() *buffer[RootT] {
 
 // Get returns a slice of the internal buffer of roots of the given size.
 func (b *buffer[RootT]) Get(size int) []RootT {
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+
 	if size > len(b.internal) {
 		b.grow(size - len(b.internal))
 	}
 
-	return b.internal[:size]
+	b.internal = b.internal[:size]
+	return b.internal
 }
 
-// TODO: add a Put method to return the buffer back for multi-threaded multi-use.
+// Put returns the buffer back to the pool for reuse.
+func (b *buffer[RootT]) Put() {
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+	// Clear the buffer by zeroing out all elements
+	for i := range b.internal {
+		b.internal[i] = RootT{} // Zero out each element
+	}
+
+	bufferPool.Put(b)
+}
 
 // grow resizes the internal buffer by the requested size.
 func (b *buffer[RootT]) grow(newSize int) {

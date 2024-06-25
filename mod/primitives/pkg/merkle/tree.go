@@ -23,6 +23,7 @@ package merkle
 import (
 	"encoding/binary"
 	"fmt"
+	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -83,13 +84,22 @@ func NewTreeFromLeavesWithDepth[LeafT, RootT ~[32]byte](
 	layers := make([][]LeafT, depth+1)
 	layers[0] = leaves
 
+	// Build output variables
+	outputLength := len(leaves) / two
+	buffer := bufferPool.Get().(*buffer[[32]byte])
+	defer buffer.Put()
+	outputList := buffer.Get(outputLength)
+
 	var err error
 	for d := range depth {
 		currentLayer := layers[d]
 		if len(currentLayer)%2 == 1 {
 			currentLayer = append(currentLayer, zero.Hashes[d])
 		}
-		layers[d+1], err = BuildParentTreeRoots[LeafT, LeafT](currentLayer)
+		layers[d+1], err = BuildParentTreeRoots[LeafT, LeafT](
+			currentLayer,
+			*(*[]LeafT)(unsafe.Pointer(&outputList)),
+		)
 		if err != nil {
 			return &Tree[LeafT, RootT]{}, err
 		}

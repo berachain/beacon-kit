@@ -28,7 +28,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 )
 
-// Test getting a slice of the internal buffer and modifying.
 func TestGet(t *testing.T) {
 	buffer := merkle.NewBuffer[[32]byte]()
 
@@ -57,15 +56,17 @@ func TestGet(t *testing.T) {
 
 		// Ensure modifications to the underlying buffer persist.
 		if i >= 1 {
-			if result[0][i-1] != byte(i-1) {
+			// Set the value in the previous iteration
+			result[0][i-1] = byte(i - 1)
+
+			// Check if the value persists in the current iteration
+			newResult := buffer.Get(tc.size)
+			if newResult[0][i-1] != byte(i-1) {
 				t.Errorf(
-					"Expected result[0][%d] to be %b, got %d",
-					i-1, byte(i-1), result[0][i-1],
+					"Expected newResult[0][%d] to be %d, got %d",
+					i-1, i-1, newResult[0][i-1],
 				)
 			}
-
-			result[0] = [32]byte{}
-			result[0][i] = byte(i)
 		}
 	}
 }

@@ -62,6 +62,12 @@ func NewRootWithDepth[LeafT, RootT ~[32]byte](
 		return zero.Hashes[depth], nil
 	}
 
+	// Build output variables
+	outputLength := len(leaves) / two
+	buffer := bufferPool.Get().(*buffer[[32]byte])
+	defer buffer.Put()
+	outputList := buffer.Get(outputLength)
+
 	for i := range depth {
 		layerLen := len(leaves)
 		oddNodeLength := layerLen%two == 1
@@ -70,7 +76,10 @@ func NewRootWithDepth[LeafT, RootT ~[32]byte](
 			leaves = append(leaves, zerohash)
 		}
 		var err error
-		leaves, err = BuildParentTreeRoots[LeafT, LeafT](leaves)
+		leaves, err = BuildParentTreeRoots[LeafT, LeafT](
+			leaves,
+			*(*[]LeafT)(unsafe.Pointer(&outputList)),
+		)
 		if err != nil {
 			return zero.Hashes[depth], err
 		}
@@ -84,10 +93,10 @@ func NewRootWithDepth[LeafT, RootT ~[32]byte](
 // BuildParentTreeRoots calls BuildParentTreeRootsWithNRoutines with the
 // number of routines set to runtime.GOMAXPROCS(0)-1.
 func BuildParentTreeRoots[LeafT, RootT ~[32]byte](
-	inputList []LeafT,
+	inputList, outputList []LeafT,
 ) ([]RootT, error) {
 	return BuildParentTreeRootsWithNRoutines[LeafT, RootT](
-		inputList, runtime.GOMAXPROCS(0)-1,
+		inputList, outputList, runtime.GOMAXPROCS(0)-1,
 	)
 }
 
@@ -96,19 +105,15 @@ func BuildParentTreeRoots[LeafT, RootT ~[32]byte](
 // method adapts to the host machine's hardware for potential performance
 // gains over sequential hashing.
 func BuildParentTreeRootsWithNRoutines[LeafT, RootT ~[32]byte](
-	inputList []LeafT, n int,
+	inputList, outputList []LeafT, n int,
 ) ([]RootT, error) {
 	// Validate input list length.
 	inputLength := len(inputList)
 	if inputLength%2 != 0 {
 		return nil, ErrOddLengthTreeRoots
 	}
-	// Build output variables
-	outputLength := inputLength / two
 
-	buffer := bufferPool.Get().(*buffer[[32]byte])
-	defer bufferPool.Put(buffer)
-	outputList := buffer.Get(outputLength)
+	outputLength := len(inputList) / two
 
 	// If the input list is small, hash it using the default method since
 	// the overhead of parallelizing the hashing process is not worth it.
