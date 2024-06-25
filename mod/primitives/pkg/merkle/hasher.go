@@ -157,7 +157,7 @@ func BuildParentTreeRootsWithNRoutines(
 
 	// if n is 0 the parallelization is disabled and the whole inputList is
 	// hashed in the main goroutine at the end of this function.
-	for j := range n {
+	for j := range n + 1 {
 		eg.Go(func() error {
 			// inputList:  [-------------------2*groupSize-------------------]
 			//              ^                  ^                    ^        ^
