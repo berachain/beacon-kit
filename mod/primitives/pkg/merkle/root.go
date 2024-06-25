@@ -70,9 +70,8 @@ func NewRootWithDepth[RootT ~[32]byte](
 			leaves = append(leaves, zerohash)
 		}
 		var err error
-		buf := make([]RootT, layerLen)
-		leaves, err = BuildParentTreeRoots(leaves, buf)
-		if err != nil {
+		leaves := make([]RootT, layerLen)
+		if err = BuildParentTreeRoots(leaves, leaves); err != nil {
 			return zero.Hashes[depth], err
 		}
 	}
@@ -86,13 +85,13 @@ func NewRootWithDepth[RootT ~[32]byte](
 // number of routines set to runtime.GOMAXPROCS(0)-1.
 func BuildParentTreeRoots[RootT ~[32]byte](
 	inputList, outputList []RootT,
-) ([]RootT, error) {
-	out, err := BuildParentTreeRootsWithNRoutines[RootT](
+) error {
+	err := BuildParentTreeRootsWithNRoutines[RootT](
 		*(*[][32]byte)(unsafe.Pointer(&inputList)), *(*[][32]byte)(unsafe.Pointer(&outputList)), runtime.GOMAXPROCS(0)-1,
 	)
 
 	// Convert out back to []RootT using unsafe pointer cas
-	return *(*[]RootT)(unsafe.Pointer(&out)), err
+	return err
 }
 
 // BuildParentTreeRootsWithNRoutines optimizes hashing of a list of roots
@@ -104,11 +103,11 @@ func BuildParentTreeRoots[RootT ~[32]byte](
 // generics.
 func BuildParentTreeRootsWithNRoutines[RootT ~[32]byte](
 	inputList, outputList [][32]byte, n int,
-) ([][32]byte, error) {
+) error {
 	// Validate input list length.
 	inputLength := len(inputList)
 	if inputLength%2 != 0 {
-		return nil, ErrOddLengthTreeRoots
+		return ErrOddLengthTreeRoots
 	}
 	// Build output variables
 	outputLength := inputLength / two
@@ -117,7 +116,7 @@ func BuildParentTreeRootsWithNRoutines[RootT ~[32]byte](
 	// the overhead of parallelizing the hashing process is not worth it.
 	if inputLength < MinParallelizationSize {
 		//#nosec:G103 // used of unsafe calls should be audited.
-		return outputList, gohashtree.Hash(outputList, inputList)
+		return gohashtree.Hash(outputList, inputList)
 	}
 
 	// Otherwise parallelize the hashing process for large inputs.
@@ -156,5 +155,5 @@ func BuildParentTreeRootsWithNRoutines[RootT ~[32]byte](
 	}
 
 	// Wait for all goroutines to complete.
-	return outputList, eg.Wait()
+	return eg.Wait()
 }
