@@ -37,6 +37,8 @@ const (
 
 // Tree[RootT] implements a Merkle tree that has been optimized to
 // handle leaves that are 32 bytes in size.
+//
+// TODO: deprecate in favor of ssz/merkle/tree.go.
 type Tree[RootT ~[32]byte] struct {
 	depth    uint8
 	branches [][]RootT
@@ -72,8 +74,7 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 	leaves []RootT,
 	depth uint8,
 ) (*Tree[RootT], error) {
-	err := verifySufficientDepth(len(leaves), depth)
-	if err != nil {
+	if err := verifySufficientDepth(len(leaves), depth); err != nil {
 		return &Tree[RootT]{}, err
 	}
 
@@ -82,10 +83,9 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 
 	// Preallocate layers based on depth
 	// TODO: This should be done virtually....
-	buffer := NewSingleuseBuffer[RootT]()
 	for i := uint8(1); i <= depth; i++ {
 		layerSize := (len(leaves) + (1 << i) - 1) >> i
-		layers[i] = buffer.Get(layerSize)
+		layers[i] = make([]RootT, layerSize)
 	}
 
 	for d := range depth {
@@ -94,7 +94,7 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 			currentLayer = append(currentLayer, zero.Hashes[d])
 		}
 
-		if err = BuildParentTreeRoots(
+		if err := BuildParentTreeRoots(
 			layers[d+1], currentLayer,
 		); err != nil {
 			return &Tree[RootT]{}, err
