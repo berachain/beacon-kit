@@ -170,7 +170,7 @@ func (m *Merkleizer[SpecT, U64T, U256L, RootT]) MerkleizeListComposite(
 	if err != nil {
 		return RootT{}, err
 	}
-	return RootT(merkle.MixinLength(root, uint64(len(value)))), nil
+	return merkle.MixinLength(root, uint64(len(value))), nil
 }
 
 // MerkleizeByteSlice hashes a byteslice by chunkifying it and returning the
