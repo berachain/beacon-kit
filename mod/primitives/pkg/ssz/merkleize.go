@@ -24,6 +24,7 @@ import (
 	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 )
@@ -248,7 +249,8 @@ func Merkleize[U64T U64[U64T], RootT ~[32]byte](
 	}
 
 	// TODO: reuse the same hasher for reduced memory allocations.
-	hasher := merkle.NewHasher[RootT](merkle.NewSingleuseBuffer[RootT]())
+	hasher := merkle.NewHasher(
+		bytes.NewSingleuseBuffer[RootT](), merkle.BuildParentTreeRoots[RootT])
 	return hasher.NewRootWithMaxLeaves(
 		effectiveChunks,
 		//#nosec:G701 // This is a safe operation.

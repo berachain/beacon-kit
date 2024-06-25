@@ -18,23 +18,23 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package merkle_test
+package bytes_test
 
 import (
 	"math/rand"
 	"testing"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 )
 
 // getBuffer returns a buffer of the given type.
-func getBuffer(usageType string) merkle.Buffer[[32]byte] {
+func getBuffer(usageType string) bytes.Buffer[[32]byte] {
 	switch usageType {
 	case "reusable":
-		return merkle.NewReusableBuffer[[32]byte]()
+		return bytes.NewReusableBuffer[[32]byte]()
 	case "singleuse":
-		return merkle.NewSingleuseBuffer[[32]byte]()
+		return bytes.NewSingleuseBuffer[[32]byte]()
 	default:
 		panic("unknown usage type: " + usageType)
 	}

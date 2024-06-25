@@ -18,12 +18,20 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package merkle
+package bytes
 
 // initialBufferSize is the initial size of the internal buffer.
 //
 // TODO: choose a more appropriate size?
 const initialBufferSize = 16
+
+// Buffer can be used by hashers to get a buffer of byte slices.
+type Buffer[RootT ~[32]byte] interface {
+	// Get returns a slice of roots of the given size.
+	Get(size int) []RootT
+
+	// TODO: add a Put method to return the buffer back for multi-threaded use.
+}
 
 // reusableBuffer is a re-usable buffer for merkle tree hashing. Prevents
 // unnecessary allocations and garbage collection of byte slices.
