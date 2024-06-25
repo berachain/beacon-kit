@@ -86,12 +86,15 @@ func NewRootWithDepth[RootT ~[32]byte](
 func BuildParentTreeRoots[RootT ~[32]byte](
 	inputList []RootT,
 ) ([]RootT, error) {
-	out, err := BuildParentTreeRootsWithNRoutines[RootT](
-		*(*[][32]byte)(unsafe.Pointer(&inputList)), runtime.GOMAXPROCS(0)-1,
+	outList := make([][32]byte, len(inputList)/2)
+	err := BuildParentTreeRootsWithNRoutines[RootT](
+		*(*[][32]byte)(unsafe.Pointer(&outList)),
+		*(*[][32]byte)(unsafe.Pointer(&inputList)),
+		runtime.GOMAXPROCS(0)-1,
 	)
 
 	// Convert out back to []RootT using unsafe pointer cas
-	return *(*[]RootT)(unsafe.Pointer(&out)), err
+	return *(*[]RootT)(unsafe.Pointer(&outList)), err
 }
 
 // BuildParentTreeRootsWithNRoutines optimizes hashing of a list of roots
@@ -102,22 +105,21 @@ func BuildParentTreeRoots[RootT ~[32]byte](
 // TODO: We do not use generics here due to the gohashtree library not supporting
 // generics.
 func BuildParentTreeRootsWithNRoutines[RootT ~[32]byte](
-	inputList [][32]byte, n int,
-) ([][32]byte, error) {
+	outputList, inputList [][32]byte, n int,
+) error {
 	// Validate input list length.
 	inputLength := len(inputList)
 	if inputLength%2 != 0 {
-		return nil, ErrOddLengthTreeRoots
+		return ErrOddLengthTreeRoots
 	}
 	// Build output variables
 	outputLength := inputLength / two
-	outputList := make([][32]byte, outputLength)
 
 	// If the input list is small, hash it using the default method since
 	// the overhead of parallelizing the hashing process is not worth it.
 	if inputLength < MinParallelizationSize {
 		//#nosec:G103 // used of unsafe calls should be audited.
-		return outputList, gohashtree.Hash(outputList, inputList)
+		return gohashtree.Hash(outputList, inputList)
 	}
 
 	// Otherwise parallelize the hashing process for large inputs.
@@ -156,5 +158,5 @@ func BuildParentTreeRootsWithNRoutines[RootT ~[32]byte](
 	}
 
 	// Wait for all goroutines to complete.
-	return outputList, eg.Wait()
+	return eg.Wait()
 }
