@@ -85,13 +85,18 @@ func NewRootWithDepth[RootT ~[32]byte](
 // BuildParentTreeRoots calls BuildParentTreeRootsWithNRoutines with the
 // number of routines set to runtime.GOMAXPROCS(0)-1.
 func BuildParentTreeRoots[RootT ~[32]byte](
-	outList, inputList []RootT,
+	outputList, inputList []RootT,
 ) error {
-	return BuildParentTreeRootsWithNRoutines[RootT](
-		*(*[][32]byte)(unsafe.Pointer(&outList)),
+	err := BuildParentTreeRootsWithNRoutines(
+		//#nosec:G103 // on purpose.
+		*(*[][32]byte)(unsafe.Pointer(&outputList)),
+		//#nosec:G103 // on purpose.
 		*(*[][32]byte)(unsafe.Pointer(&inputList)),
 		runtime.GOMAXPROCS(0)-1,
 	)
+
+	// Convert out back to []RootT using unsafe pointer cas
+	return err
 }
 
 // BuildParentTreeRootsWithNRoutines optimizes hashing of a list of roots
@@ -102,7 +107,7 @@ func BuildParentTreeRoots[RootT ~[32]byte](
 // TODO: We do not use generics here due to the gohashtree library not
 // supporting
 // generics.
-func BuildParentTreeRootsWithNRoutines[RootT ~[32]byte](
+func BuildParentTreeRootsWithNRoutines(
 	outputList, inputList [][32]byte, n int,
 ) error {
 	// Validate input list length.
@@ -130,11 +135,10 @@ func BuildParentTreeRootsWithNRoutines[RootT ~[32]byte](
 	// hashed in the main goroutine at the end of this function.
 	for j := 0; j <= n; j++ {
 		eg.Go(func() error {
-			// inputList:
-			// [---------------------2*groupSize---------------------] ^
-			//            ^                    ^          ^ |
-			// |                    |          |
-			// j*2*groupSize   (j+1)*2*groupSize    (j+2)*2*groupSize  End
+			// inputList:  [-------------------2*groupSize-------------------]
+			//              ^                  ^                    ^        ^
+			//              |                  |                    |        |
+			// j*2*groupSize   (j+1)*2*groupSize    (j+2)*2*groupSize   End
 			//
 			// outputList: [---------groupSize---------]
 			//              ^                         ^
