@@ -1,3 +1,23 @@
+// SPDX-License-Identifier: BUSL-1.1
+//
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is governed by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
+//
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
+//
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
+//
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
+
 package context
 
 import (
@@ -28,9 +48,9 @@ func InterceptConfigsAndCreateContext(
 ) (*server.Context, error) {
 	serverCtx := newDefaultContextWithLogger(logger)
 
-	// Get the executable name and configure the viper instance so that environmental
-	// variables are checked based off that name. The underscore character is used
-	// as a separator.
+	// Get the executable name and configure the viper instance so that
+	// environmental variables are checked based off that name.
+	// The underscore character is used as a separator.
 	executableName, err := os.Executable()
 	if err != nil {
 		return nil, err
@@ -51,7 +71,8 @@ func InterceptConfigsAndCreateContext(
 	serverCtx.Viper.AutomaticEnv()
 
 	// intercept configuration files, using both Viper instances separately
-	config, err := interceptConfigs(serverCtx.Viper, customAppConfigTemplate, customAppConfig, cmtConfig)
+	config, err := interceptConfigs(
+		serverCtx.Viper, customAppConfigTemplate, customAppConfig, cmtConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -78,9 +99,14 @@ func newDefaultContextWithLogger(logger log.Logger) *server.Context {
 // interceptConfigs parses and updates a CometBFT configuration file or
 // creates a new one and saves it. It also parses and saves the application
 // configuration file. The CometBFT configuration file is parsed given a root
-// Viper object, whereas the application is parsed with the private package-aware
-// viperCfg object.
-func interceptConfigs(rootViper *viper.Viper, customAppTemplate string, customConfig interface{}, cmtConfig *cmtcfg.Config) (*cmtcfg.Config, error) {
+// Viper object, whereas the application is parsed with the private
+// package-aware viperCfg object.
+func interceptConfigs(
+	rootViper *viper.Viper,
+	customAppTemplate string,
+	customConfig interface{},
+	cmtConfig *cmtcfg.Config,
+) (*cmtcfg.Config, error) {
 	rootDir := rootViper.GetString(flags.FlagHome)
 	configPath := filepath.Join(rootDir, "config")
 	cmtCfgFile := filepath.Join(configPath, "config.toml")
@@ -131,8 +157,10 @@ func interceptConfigs(rootViper *viper.Viper, customAppTemplate string, customCo
 
 	appCfgFilePath := filepath.Join(configPath, "app.toml")
 	if _, err := os.Stat(appCfgFilePath); os.IsNotExist(err) {
-		if (customAppTemplate != "" && customConfig == nil) || (customAppTemplate == "" && customConfig != nil) {
-			return nil, fmt.Errorf("customAppTemplate and customConfig should be both nil or not nil")
+		if (customAppTemplate != "" && customConfig == nil) ||
+			(customAppTemplate == "" && customConfig != nil) {
+			return nil, fmt.Errorf("customAppTemplate and customConfig " +
+				"should be both nil or not nil")
 		}
 
 		if customAppTemplate != "" {
@@ -141,10 +169,11 @@ func interceptConfigs(rootViper *viper.Viper, customAppTemplate string, customCo
 			}
 
 			if err = rootViper.Unmarshal(&customConfig); err != nil {
-				return nil, fmt.Errorf("failed to parse %s: %w", appCfgFilePath, err)
+				return nil, fmt.Errorf("failed to parse %s: %w",
+					appCfgFilePath, err)
 			}
 
-			if err := config.WriteConfigFile(appCfgFilePath, customConfig); err != nil {
+			if err = config.WriteConfigFile(appCfgFilePath, customConfig); err != nil {
 				return nil, fmt.Errorf("failed to write %s: %w", appCfgFilePath, err)
 			}
 		} else {
@@ -170,7 +199,10 @@ func interceptConfigs(rootViper *viper.Viper, customAppTemplate string, customCo
 	return conf, nil
 }
 
-func bindFlags(basename string, cmd *cobra.Command, v *viper.Viper) (err error) {
+// bindFlags binds the command line flags to the viper instance.
+func bindFlags(
+	basename string, cmd *cobra.Command, v *viper.Viper,
+) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("bindFlags failed: %v", r)
@@ -178,9 +210,11 @@ func bindFlags(basename string, cmd *cobra.Command, v *viper.Viper) (err error) 
 	}()
 
 	cmd.Flags().VisitAll(func(f *pflag.Flag) {
-		// Environment variables can't have dashes in them, so bind them to their equivalent
-		// keys with underscores, e.g. --favorite-color to STING_FAVORITE_COLOR
-		err = v.BindEnv(f.Name, fmt.Sprintf("%s_%s", basename, strings.ToUpper(strings.ReplaceAll(f.Name, "-", "_"))))
+		// Environment variables can't have dashes in them, so bind them to
+		// their equivalent keys with underscores, e.g. --favorite-color to
+		// STING_FAVORITE_COLOR
+		err = v.BindEnv(f.Name, fmt.Sprintf("%s_%s", basename, strings.ToUpper(
+			strings.ReplaceAll(f.Name, "-", "_"))))
 		if err != nil {
 			panic(err)
 		}
