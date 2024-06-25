@@ -56,6 +56,6 @@ func getBytes(size int) *byteBuffer {
 
 // Reset resets the byte buffer.
 func (b *byteBuffer) Put() {
-	byteBufferPool.Put(b)
 	b.Bytes = b.Bytes[:0]
+	byteBufferPool.Put(b)
 }

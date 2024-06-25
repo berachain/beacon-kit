@@ -137,17 +137,18 @@ func MerkleizeVecComposite[
 	var (
 		err  error
 		htr  RootT
-		htrs = getBytes(len(value)).Bytes
+		htrs = getBytes(len(value))
 	)
+	defer htrs.Put()
 
 	for i, el := range value {
 		htr, err = el.HashTreeRoot()
 		if err != nil {
 			return RootT{}, err
 		}
-		copy(htrs[i][:], htr[:])
+		copy(htrs.Bytes[i][:], htr[:])
 	}
-	return Merkleize[U64T, RootT](htrs)
+	return Merkleize[U64T, RootT](htrs.Bytes)
 }
 
 // MerkleizeListComposite implements the SSZ merkleization algorithm for a list
@@ -162,18 +163,19 @@ func MerkleizeListComposite[
 	var (
 		err  error
 		htr  RootT
-		htrs = getBytes(len(value)).Bytes
+		htrs = getBytes(len(value))
 	)
+	defer htrs.Put()
 
 	for i, el := range value {
 		htr, err = el.HashTreeRoot()
 		if err != nil {
 			return RootT{}, err
 		}
-		copy(htrs[i][:], htr[:])
+		copy(htrs.Bytes[i][:], htr[:])
 	}
 	root, err := Merkleize[U64T, RootT](
-		htrs,
+		htrs.Bytes,
 		ChunkCountCompositeList[C](value, limit),
 	)
 	if err != nil {
