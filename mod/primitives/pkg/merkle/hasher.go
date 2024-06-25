@@ -21,8 +21,11 @@
 package merkle
 
 import (
+	"encoding/binary"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
+	"github.com/prysmaticlabs/gohashtree"
 )
 
 // Hasher can be re-used for constructing Merkle tree roots.
@@ -79,4 +82,18 @@ func (m *Hasher[RootT]) NewRootWithDepth(
 		return zero.Hashes[depth], nil
 	}
 	return leaves[0], nil
+}
+
+// MixinLength takes a root element and mixes in the length of the elements
+// that were hashed to produce it.
+//
+// TODO: move to ssz package.
+func MixinLength[RootT ~[32]byte](element RootT, length uint64) RootT {
+	chunks := make([][32]byte, two)
+	chunks[0] = element
+	binary.LittleEndian.PutUint64(chunks[1][:], length)
+	if err := gohashtree.Hash(chunks, chunks); err != nil {
+		return [32]byte{}
+	}
+	return chunks[0]
 }
