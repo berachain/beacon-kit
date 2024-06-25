@@ -22,6 +22,7 @@ package broker
 
 import (
 	"context"
+	"sync"
 	"time"
 )
 
@@ -35,6 +36,8 @@ type Broker[T any] struct {
 	msgs chan T
 	// timeout is the timeout for sending a msg to a client.
 	timeout time.Duration
+	// mu is the mutex for the clients map.
+	mu sync.Mutex
 }
 
 // New creates a new b.
@@ -54,12 +57,16 @@ func (b *Broker[T]) Name() string {
 
 // Start starts the broker loop.
 func (b *Broker[T]) Start(ctx context.Context) error {
-	go b.start(ctx)
+	go func() {
+		if err := b.start(ctx); err != nil {
+			return
+		}
+	}()
 	return nil
 }
 
 // start starts the broker loop.
-func (b *Broker[T]) start(ctx context.Context) {
+func (b *Broker[T]) start(ctx context.Context) error {
 	for {
 		select {
 		case <-ctx.Done():
@@ -67,7 +74,7 @@ func (b *Broker[T]) start(ctx context.Context) {
 			for client := range b.clients {
 				b.Unsubscribe(client)
 			}
-			return
+			return ctx.Err()
 		case msg := <-b.msgs:
 			// broadcast published msg to all clients
 			for client := range b.clients {
@@ -82,7 +89,7 @@ func (b *Broker[T]) start(ctx context.Context) {
 }
 
 // Publish publishes a msg to the b.
-// Returns ErrTimeout on timeout.
+// If the context is canceled, the function returns ctx.Err().
 func (b *Broker[T]) Publish(ctx context.Context, msg T) error {
 	select {
 	case b.msgs <- msg:
@@ -93,16 +100,18 @@ func (b *Broker[T]) Publish(ctx context.Context, msg T) error {
 }
 
 // Subscribe registers a new client to the broker and returns it to the caller.
-// Returns ErrTimeout on timeout.
 func (b *Broker[T]) Subscribe() (chan T, error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
 	client := make(chan T)
 	b.clients[client] = struct{}{}
 	return client, nil
 }
 
 // Unsubscribe removes a client from the b.
-// Returns ErrTimeout on timeout.
 func (b *Broker[T]) Unsubscribe(client chan T) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
 	// Remove the client from the broker
 	delete(b.clients, client)
 	// close the client channel
