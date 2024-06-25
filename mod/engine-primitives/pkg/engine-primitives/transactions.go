@@ -34,10 +34,10 @@ type Transactions [][]byte
 // HashTreeRoot returns the hash tree root of the Transactions list.
 func (txs Transactions) HashTreeRoot() (common.Root, error) {
 	var err error
-	roots := make([][32]byte, len(txs))
+	roots := make([]common.Root, len(txs))
 
 	merkleizer := ssz.NewMerkleizer[
-		common.ChainSpec, math.U64, math.U256L, [32]byte]()
+		common.ChainSpec, math.U64, math.U256L, [32]byte, common.Root]()
 
 	for i, tx := range txs {
 		roots[i], err = merkleizer.MerkleizeByteSlice(tx)
@@ -46,14 +46,8 @@ func (txs Transactions) HashTreeRoot() (common.Root, error) {
 		}
 	}
 
-	roots2 := make([]ssz.Composite[
-		common.ChainSpec, [32]byte], len(roots))
-	for i, root := range roots {
-		roots2[i] = common.Root(root)
-	}
-
 	return merkleizer.MerkleizeListComposite(
-		roots2,
+		roots,
 		constants.MaxTxsPerPayload,
 	)
 }
