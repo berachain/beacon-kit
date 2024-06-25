@@ -67,7 +67,10 @@ func GetGenesisValidatorRootCmd(cs common.ChainSpec) *cobra.Command {
 			}
 
 			depositCount := uint64(len(genesis.AppState.Beacon.Deposits))
-			validators := make([]*types.Validator, depositCount)
+			validators := make(
+				[]ssz.Composite[common.ChainSpec, [32]byte],
+				depositCount,
+			)
 			for i, deposit := range genesis.AppState.Beacon.Deposits {
 				var val *types.Validator
 				validators[i] = val.New(
@@ -79,10 +82,13 @@ func GetGenesisValidatorRootCmd(cs common.ChainSpec) *cobra.Command {
 				)
 			}
 
+			merkleizer := ssz.NewMerkleizer[
+				common.ChainSpec, math.U64, math.U256L, [32]byte,
+			]()
 			var validatorsRoot common.Root
-			validatorsRoot, err = ssz.MerkleizeListComposite[
-				common.ChainSpec, math.U64,
-			](validators, uint64(len(validators)))
+			validatorsRoot, err = merkleizer.MerkleizeListComposite(
+				validators, uint64(len(validators)),
+			)
 			if err != nil {
 				return errors.Wrap(err, "failed to get validators root")
 			}
