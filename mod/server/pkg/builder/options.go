@@ -26,6 +26,6 @@ func WithComponents[
 	components ...any,
 ) Opt[NodeT, T, ValidatorUpdateT] {
 	return func(b *ServerBuilder[NodeT, T, ValidatorUpdateT]) {
-		b.components = append(b.components, components...)
+		b.Components = append(b.Components, components...)
 	}
 }

@@ -24,13 +24,16 @@ import (
 	"os"
 
 	"cosmossdk.io/client/v2/autocli"
+	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"cosmossdk.io/core/transaction"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	serverv2 "cosmossdk.io/server/v2"
+	"cosmossdk.io/server/v2/api/grpc"
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	servercomponents "github.com/berachain/beacon-kit/mod/server/pkg/components"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -83,6 +86,7 @@ func (cb *CLIBuilder[NodeT, T]) Build() (*cmdlib.Root, error) {
 		clientCtx   client.Context
 		chainSpec   common.ChainSpec
 		logger      log.Logger
+		cmtServer   *servercomponents.CometBFTServer[NodeT, T, *appmodulev2.ValidatorUpdate]
 	)
 	// build dependencies for the root command
 	if err := depinject.Inject(
@@ -100,9 +104,18 @@ func (cb *CLIBuilder[NodeT, T]) Build() (*cmdlib.Root, error) {
 		&clientCtx,
 		&chainSpec,
 		&autoCliOpts,
+		&cmtServer,
 	); err != nil {
 		return nil, err
 	}
+
+	// build the server
+	// TOOD: move into server once depinject gets sorted
+	cb.server = serverv2.NewServer(
+		logger,
+		cmtServer,
+		grpc.New[NodeT, T](),
+	)
 
 	// pass in deps to build the root command
 	rootCmd := cmdlib.New(

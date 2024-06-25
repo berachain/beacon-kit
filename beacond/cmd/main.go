@@ -24,6 +24,7 @@ import (
 	"log/slog"
 	"os"
 
+	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"cosmossdk.io/core/transaction"
 	clibuilder "github.com/berachain/beacon-kit/mod/cli/pkg/builder"
 	clicomponents "github.com/berachain/beacon-kit/mod/cli/pkg/components"
@@ -31,13 +32,13 @@ import (
 	nodecomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	beacon "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
-	serverbuilder "github.com/berachain/beacon-kit/mod/server/pkg/builder"
+	servercomponents "github.com/berachain/beacon-kit/mod/server/pkg/components"
 	"github.com/cosmos/cosmos-sdk/server"
 	"go.uber.org/automaxprocs/maxprocs"
 )
 
 // run runs the beacon node.
-func run[NodeT types.Node[T], T transaction.Tx]() error {
+func Run[NodeT types.Node[T], T transaction.Tx, ValidatorUpdateT any]() error {
 	// Set the uber max procs
 	if _, err := maxprocs.Set(); err != nil {
 		return err
@@ -55,8 +56,15 @@ func run[NodeT types.Node[T], T transaction.Tx]() error {
 	)
 
 	// Build the server using the server builder.
-	sb := serverbuilder.New[NodeT, T, any]()
-	svr := sb.Build()
+	// sb := serverbuilder.New[NodeT, T, ValidatorUpdateT](
+	// 	serverbuilder.WithDepInjectConfig[NodeT, T, ValidatorUpdateT](
+	// 		nodebuilder.DefaultDepInjectConfig(),
+	// 	),
+	// 	serverbuilder.WithComponents[NodeT, T, ValidatorUpdateT](
+	// 		servercomponents.ProvideCometServer[NodeT, T, ValidatorUpdateT],
+	// 		nodecomponents.ProvideTxCodec[T],
+	// 	),
+	// )
 
 	// Build the root command using the builder
 	cb := clibuilder.New(
@@ -77,7 +85,9 @@ func run[NodeT types.Node[T], T transaction.Tx]() error {
 				nodecomponents.ProvideNoopTxConfig,
 				nodecomponents.ProvideConfig,
 				nodecomponents.ProvideChainSpec,
-			),
+				nodecomponents.ProvideTxCodec[T],
+				servercomponents.ProvideCometServer[NodeT, T, ValidatorUpdateT],
+			)...,
 		),
 		clibuilder.SupplyModuleDeps[NodeT](
 			beacon.SupplyModuleDependencies(),
@@ -89,7 +99,7 @@ func run[NodeT types.Node[T], T transaction.Tx]() error {
 		// Set the NodeBuilderFunc to the NodeBuilder Build.
 		clibuilder.WithNodeBuilderFunc[NodeT](nb.Build),
 		// Set the Server to the Server.
-		clibuilder.WithServer[NodeT, T](svr),
+		// clibuilder.WithServer[NodeT, T](svr),
 	)
 
 	cmd, err := cb.Build()
@@ -106,7 +116,9 @@ func run[NodeT types.Node[T], T transaction.Tx]() error {
 
 // main is the entry point.
 func main() {
-	if err := run[types.Node[transaction.Tx]](); err != nil {
+	if err := Run[
+		types.Node[transaction.Tx], transaction.Tx, appmodulev2.ValidatorUpdate,
+	](); err != nil {
 		//nolint:sloglint // todo fix.
 		slog.Error("startup failure", "error", err)
 		os.Exit(1)

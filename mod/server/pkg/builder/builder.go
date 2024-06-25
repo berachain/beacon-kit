@@ -5,8 +5,6 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	serverv2 "cosmossdk.io/server/v2"
-	"cosmossdk.io/server/v2/api/grpc"
-	"cosmossdk.io/server/v2/cometbft"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 )
 
@@ -16,7 +14,7 @@ type ServerBuilder[
 	server *serverv2.Server[NodeT, T]
 
 	depInjectCfg depinject.Config
-	components   []any
+	Components   []any
 }
 
 func New[
@@ -31,30 +29,30 @@ func New[
 	return b
 }
 
-func (sb *ServerBuilder[NodeT, T, _]) Build() *serverv2.Server[NodeT, T] {
-	var (
-		logger    log.Logger
-		cmtServer *cometbft.CometBFTServer[NodeT, T]
-	)
-	if err := depinject.Inject(
-		depinject.Configs(
-			sb.depInjectCfg,
-			depinject.Provide(
-				sb.components...,
-			),
-		),
-		&logger,
-		&cmtServer,
-		&sb.server,
-	); err != nil {
-		panic(err)
-	}
+func (sb *ServerBuilder[
+	NodeT, T, ValidatorUpdateT,
+]) Build(logger log.Logger) *serverv2.Server[NodeT, T] {
+	// var (
+	// logger    log.Logger
+	// cmtServer *components.CometBFTServer[NodeT, T, ValidatorUpdateT]
+	// )
+	// if err := depinject.Inject(
+	// 	depinject.Configs(
+	// 		sb.depInjectCfg,
+	// 		depinject.Provide(
+	// 			sb.components...,
+	// 		),
+	// 	),
+	// 	&logger,
+	// 	&cmtServer,
+	// ); err != nil {
+	// 	panic(err)
+	// }
 
-	sb.server = serverv2.NewServer(
-		logger,
-		cmtServer,
-		grpc.New[NodeT, T](),
-	)
+	// sb.server = serverv2.NewServer(
+	// 	logger,
+	// 	sb.components...,
+	// )
 
 	return sb.server
 }

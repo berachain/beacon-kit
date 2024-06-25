@@ -5,9 +5,11 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	serverv2 "cosmossdk.io/server/v2"
-	"cosmossdk.io/server/v2/cometbft"
+	sdkcomet "cosmossdk.io/server/v2/cometbft"
 	"cosmossdk.io/server/v2/cometbft/mempool"
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/comet"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg"
+	consensustypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
+	nodecomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/spf13/viper"
 )
@@ -21,16 +23,15 @@ var _ serverv2.ServerComponent[
 type CometBFTServer[
 	NodeT types.Node[T], T transaction.Tx, ValidatorUpdateT any,
 ] struct {
-	*cometbft.CometBFTServer[NodeT, T]
+	*sdkcomet.CometBFTServer[NodeT, T]
 
-	consensus *comet.Consensus[T, ValidatorUpdateT]
+	TxCodec transaction.Codec[T]
 }
 
 type CometServerInput[T transaction.Tx, ValidatorUpdateT any] struct {
 	depinject.In
 
-	Consensus *comet.Consensus[T, ValidatorUpdateT]
-	TxDecoder *TxDecoder[T]
+	TxCodec *nodecomponents.TxCodec[T]
 }
 
 // ProvideCometServer provides a CometServer.
@@ -40,8 +41,8 @@ func ProvideCometServer[
 	in CometServerInput[T, ValidatorUpdateT],
 ) *CometBFTServer[NodeT, T, ValidatorUpdateT] {
 	return &CometBFTServer[NodeT, T, ValidatorUpdateT]{
-		CometBFTServer: cometbft.New[NodeT, T](in.TxDecoder),
-		consensus:      in.Consensus,
+		CometBFTServer: sdkcomet.New[NodeT, T](in.TxCodec),
+		TxCodec:        in.TxCodec,
 	}
 }
 
@@ -53,8 +54,20 @@ func (s *CometBFTServer[NodeT, T, ValidatorUpdateT]) Init(
 	if err := s.CometBFTServer.Init(node, v, logger); err != nil {
 		return err
 	}
+	var middleware nodecomponents.ABCIMiddleware
+	registry := node.GetServiceRegistry()
+	if err := registry.FetchService(&middleware); err != nil {
+		return err
+	}
+
+	engine := consensus.NewEngine[T, ValidatorUpdateT](
+		consensustypes.CometBFTConsensus,
+		s.TxCodec,
+		&middleware,
+	)
+
 	s.CometBFTServer.App.SetMempool(mempool.NoOpMempool[T]{})
-	s.CometBFTServer.App.SetPrepareProposalHandler(s.consensus.PrepareProposal)
-	s.CometBFTServer.App.SetProcessProposalHandler(s.consensus.ProcessProposal)
+	s.CometBFTServer.App.SetPrepareProposalHandler(engine.Prepare)
+	s.CometBFTServer.App.SetProcessProposalHandler(engine.Process)
 	return nil
 }

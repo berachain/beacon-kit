@@ -57,6 +57,11 @@ func (n *node[T]) RegisterApp(a serverv2.AppI[T]) {
 	n.BeaconApp = a.(*app.BeaconApp[T])
 }
 
+// GetServiceRegistry returns the service registry.
+func (n *node[T]) GetServiceRegistry() *service.Registry {
+	return n.registry
+}
+
 // SetServiceRegistry sets the service registry.
 func (n *node[T]) SetServiceRegistry(registry *service.Registry) {
 	n.registry = registry

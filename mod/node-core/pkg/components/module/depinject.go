@@ -45,9 +45,10 @@ func init() {
 }
 
 // ModuleInput is the input for the dep inject framework.
-type ModuleInput struct {
+type ModuleInput[T transaction.Tx] struct {
 	depinject.In
 	ABCIMiddleware *components.ABCIMiddleware
+	TxCodec        transaction.Codec[T]
 }
 
 // ModuleOutput is the output for the dep inject framework.
@@ -58,11 +59,12 @@ type ModuleOutput struct {
 
 // ProvideModule is a function that provides the module to the application.
 func ProvideModule[T transaction.Tx, ValidatorUpdateT any](
-	in ModuleInput,
+	in ModuleInput[T],
 ) (ModuleOutput, error) {
 	return ModuleOutput{
 		Module: NewAppModule[T, ValidatorUpdateT](
 			in.ABCIMiddleware,
+			in.TxCodec,
 		),
 	}, nil
 }

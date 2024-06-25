@@ -18,24 +18,31 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package consensus
+package cometbft
 
 import (
-	"context"
-
-	"cosmossdk.io/core/transaction"
-	"cosmossdk.io/server/v2/cometbft/handlers"
-	"github.com/cosmos/gogoproto/proto"
+	appmodulev2 "cosmossdk.io/core/appmodule/v2"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
-// Consensus is the interface that must be implemented by all consensus
-// engines.
-type Consensus[T transaction.Tx, ValidatorUpdateT any] interface {
-	InitGenesis(
-		ctx context.Context, genesisBz []byte,
-	) ([]ValidatorUpdateT, error)
-	Prepare(context.Context, handlers.AppManager[T], []T, proto.Message) ([]T, error)
-	Process(context.Context, handlers.AppManager[T], []T, proto.Message) error
-	PreBlock(ctx context.Context, msg proto.Message) error
-	EndBlock(ctx context.Context) ([]ValidatorUpdateT, error)
+// convertValidatorUpdate abstracts the conversion of a
+// transition.ValidatorUpdate to an appmodulev2.ValidatorUpdate.
+func convertValidatorUpdate[ValidatorUpdateT any](
+	u **transition.ValidatorUpdate,
+) (ValidatorUpdateT, error) {
+	var valUpdate ValidatorUpdateT
+	update := *u
+	if update == nil {
+		return valUpdate, ErrUndefinedValidatorUpdate
+	}
+
+	// TODO: this is so hood
+	valUpdate = any(appmodulev2.ValidatorUpdate{
+		PubKey:     update.Pubkey[:],
+		PubKeyType: crypto.CometBLSType,
+		//#nosec:G701 // this is safe.
+		Power: int64(update.EffectiveBalance.Unwrap()),
+	}).(ValidatorUpdateT)
+	return valUpdate, nil
 }

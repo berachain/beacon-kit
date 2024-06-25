@@ -55,7 +55,7 @@ func WithDepInjectConfig[NodeT types.Node[T], T transaction.Tx](
 }
 
 // WithComponents sets the components for the CLIBuilder.
-func WithComponents[NodeT types.Node[T], T transaction.Tx](components []any) Opt[NodeT, T] {
+func WithComponents[NodeT types.Node[T], T transaction.Tx](components ...any) Opt[NodeT, T] {
 	return func(cb *CLIBuilder[NodeT, T]) {
 		cb.components = components
 	}

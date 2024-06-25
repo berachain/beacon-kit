@@ -38,6 +38,8 @@ type Node[T transaction.Tx] interface {
 
 	// RegisterApp sets the node's application.
 	RegisterApp(app serverv2.AppI[T])
+	// GetServiceRegistry returns the node's service registry.
+	GetServiceRegistry() *service.Registry
 	// SetServiceRegistry sets the node's service registry.
 	SetServiceRegistry(registry *service.Registry)
 }

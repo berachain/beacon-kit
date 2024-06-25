@@ -18,31 +18,62 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package comet
+package components
 
 import (
-	appmodulev2 "cosmossdk.io/core/appmodule/v2"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
+	"errors"
+
+	"cosmossdk.io/core/transaction"
+	"cosmossdk.io/depinject"
+	"github.com/cosmos/cosmos-sdk/client"
 )
 
-// convertValidatorUpdate abstracts the conversion of a
-// transition.ValidatorUpdate to an appmodulev2.ValidatorUpdate.
-func convertValidatorUpdate[ValidatorUpdateT any](
-	u **transition.ValidatorUpdate,
-) (ValidatorUpdateT, error) {
-	var valUpdate ValidatorUpdateT
-	update := *u
-	if update == nil {
-		return valUpdate, ErrUndefinedValidatorUpdate
+type TxCodec[T transaction.Tx] struct {
+	txConfig client.TxConfig
+}
+
+// Decode implements transaction.Codec.
+func (t *TxCodec[T]) Decode(bz []byte) (T, error) {
+	var out T
+	tx, err := t.txConfig.TxDecoder()(bz)
+	if err != nil {
+		return out, err
 	}
 
-	// TODO: this is so hood
-	valUpdate = any(appmodulev2.ValidatorUpdate{
-		PubKey:     update.Pubkey[:],
-		PubKeyType: crypto.CometBLSType,
-		//#nosec:G701 // this is safe.
-		Power: int64(update.EffectiveBalance.Unwrap()),
-	}).(ValidatorUpdateT)
-	return valUpdate, nil
+	var ok bool
+	out, ok = tx.(T)
+	if !ok {
+		return out, errors.New("unexpected Tx type")
+	}
+
+	return out, nil
+}
+
+// DecodeJSON implements transaction.Codec.
+func (t *TxCodec[T]) DecodeJSON(bz []byte) (T, error) {
+	var out T
+	tx, err := t.txConfig.TxJSONDecoder()(bz)
+	if err != nil {
+		return out, err
+	}
+
+	var ok bool
+	out, ok = tx.(T)
+	if !ok {
+		return out, errors.New("unexpected Tx type")
+	}
+
+	return out, nil
+}
+
+type TxCodecInput struct {
+	depinject.In
+
+	TxConfig client.TxConfig
+}
+
+func ProvideTxCodec[T transaction.Tx](in TxCodecInput) *TxCodec[T] {
+	return &TxCodec[T]{
+		txConfig: in.TxConfig,
+	}
 }

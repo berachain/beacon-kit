@@ -29,7 +29,8 @@ import (
 	"cosmossdk.io/core/transaction"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/comet"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg"
+	consensustypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
@@ -57,14 +58,17 @@ var (
 // It is a wrapper around the ABCIMiddleware.
 type AppModule[T transaction.Tx, ValidatorUpdateT any] struct {
 	ABCIMiddleware *components.ABCIMiddleware
+	TxCodec        transaction.Codec[T]
 }
 
 // NewAppModule creates a new AppModule object.
 func NewAppModule[T transaction.Tx, ValidatorUpdateT any](
 	abciMiddleware *components.ABCIMiddleware,
+	txCodec transaction.Codec[T],
 ) AppModule[T, ValidatorUpdateT] {
 	return AppModule[T, ValidatorUpdateT]{
 		ABCIMiddleware: abciMiddleware,
+		TxCodec:        txCodec,
 	}
 }
 
@@ -124,7 +128,9 @@ func (am AppModule[T, ValidatorUpdateT]) InitGenesis(
 	ctx context.Context,
 	bz json.RawMessage,
 ) ([]ValidatorUpdateT, error) {
-	return comet.NewConsensus[T, ValidatorUpdateT](
+	return consensus.NewEngine[T, ValidatorUpdateT](
+		consensustypes.CometBFTConsensus,
+		am.TxCodec,
 		am.ABCIMiddleware,
 	).InitGenesis(ctx, bz)
 }
@@ -133,7 +139,9 @@ func (am AppModule[T, ValidatorUpdateT]) InitGenesis(
 func (am AppModule[T, ValidatorUpdateT]) EndBlock(
 	ctx context.Context,
 ) ([]ValidatorUpdateT, error) {
-	return comet.NewConsensus[T, ValidatorUpdateT](
+	return consensus.NewEngine[T, ValidatorUpdateT](
+		consensustypes.CometBFTConsensus,
+		am.TxCodec,
 		am.ABCIMiddleware,
 	).EndBlock(ctx)
 }
