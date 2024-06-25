@@ -24,7 +24,6 @@ import (
 	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 	"github.com/prysmaticlabs/gohashtree"
@@ -56,7 +55,7 @@ func (c KZGCommitment) ToHashChunks() [][32]byte {
 }
 
 // HashTreeRoot returns the hash tree root of the commitment.
-func (c KZGCommitment) HashTreeRoot() (common.Root, error) {
+func (c KZGCommitment) HashTreeRoot() ([32]byte, error) {
 	chunks := c.ToHashChunks()
 	return chunks[0], nil
 }
