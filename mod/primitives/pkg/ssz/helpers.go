@@ -23,8 +23,8 @@ package ssz
 import (
 	"encoding/binary"
 	"reflect"
+	"unsafe"
 
-	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/prysmaticlabs/gohashtree"
 )
@@ -149,32 +149,21 @@ func Pack[
 	U256L U256LT,
 	SpecT any,
 	RootT ~[32]byte,
-	B Basic[SpecT, RootT],
+	B interface {
+		Basic[SpecT, RootT]
+		MarshalSSZ() ([]byte, error)
+	},
 ](b []B) ([]RootT, error) {
 	// Pack each element into separate buffers.
-	var packed []byte
+	// Pre-allocate the packed slice to avoid multiple reallocations
+	totalSize := 0
 	for _, el := range b {
-		fieldValue := reflect.ValueOf(el)
-		if fieldValue.Kind() == reflect.Ptr {
-			fieldValue = fieldValue.Elem()
-		}
+		totalSize += el.SizeSSZ()
+	}
+	packed := make([]byte, 0, totalSize)
 
-		if !fieldValue.CanInterface() {
-			return nil, errors.Newf(
-				"cannot interface with field %v",
-				fieldValue,
-			)
-		}
-
-		// TODO: Do we need a safety check for Basic only here?
-		// TODO: use a real interface instead of hood inline.
-		el, ok := reflect.ValueOf(el).
-			Interface().(interface{ MarshalSSZ() ([]byte, error) })
-		if !ok {
-			return nil, errors.Newf("unsupported type %T", el)
-		}
-
-		// TODO: Do we need a safety check for Basic only here?
+	// Pack each element into the pre-allocated slice
+	for _, el := range b {
 		buf, err := el.MarshalSSZ()
 		if err != nil {
 			return nil, err
@@ -190,11 +179,11 @@ func Pack[
 func PartitionBytes[RootT ~[32]byte](input []byte) ([]RootT, uint64, error) {
 	//nolint:mnd // we add 31 in order to round up the division.
 	numChunks := max((uint64(len(input))+31)/constants.RootLength, 1)
-	chunks := make([]RootT, numChunks)
-	for i := range chunks {
-		copy(chunks[i][:], input[32*i:])
+	chunks := getBytes(int(numChunks))
+	for i := range chunks.Bytes {
+		copy(chunks.Bytes[i][:], input[32*i:])
 	}
-	return chunks, numChunks, nil
+	return *(*[]RootT)(unsafe.Pointer(&chunks.Bytes)), numChunks, nil
 }
 
 // MerkleizeByteSlice hashes a byteslice by chunkifying it and returning the

@@ -30,7 +30,10 @@ import (
 // MerkleizeBasic hashes the packed value and returns the HTR.
 func MerkleizeBasic[
 	SpecT any, U64T U64[U64T], U256L U256LT,
-	RootT ~[32]byte, B Basic[SpecT, RootT],
+	RootT ~[32]byte, B interface {
+		Basic[SpecT, RootT]
+		MarshalSSZ() ([]byte, error)
+	},
 ](
 	value B,
 ) (RootT, error) {
@@ -42,7 +45,10 @@ func MerkleizeBasic[
 // types.
 func MerkleizeVecBasic[
 	U64T U64[U64T], U256L U256LT, RootT ~[32]byte,
-	SpecT any, B Basic[SpecT, RootT],
+	SpecT any, B interface {
+		Basic[SpecT, RootT]
+		MarshalSSZ() ([]byte, error)
+	},
 ](
 	value []B,
 ) (RootT, error) {
@@ -57,7 +63,10 @@ func MerkleizeVecBasic[
 // basic types.
 func MerkleizeListBasic[
 	SpecT any, U64T U64[U64T], U256L U256LT, RootT ~[32]byte,
-	B Basic[SpecT, RootT],
+	B interface {
+		Basic[SpecT, RootT]
+		MarshalSSZ() ([]byte, error)
+	},
 ](
 	value []B,
 	limit uint64,
