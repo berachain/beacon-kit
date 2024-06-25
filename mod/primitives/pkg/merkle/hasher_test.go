@@ -27,7 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
 )
 
-// Test NewRootWithMaxLeaves with empty leaves
+// Test NewRootWithMaxLeaves with empty leaves.
 func TestNewRootWithMaxLeaves_EmptyLeaves(t *testing.T) {
 	buffer := getBuffer("reusable")
 	hasher := merkle.NewHasher(buffer)
@@ -43,7 +43,7 @@ func TestNewRootWithMaxLeaves_EmptyLeaves(t *testing.T) {
 	}
 }
 
-// Test NewRootWithDepth with empty leaves
+// Test NewRootWithDepth with empty leaves.
 func TestNewRootWithDepth_EmptyLeaves(t *testing.T) {
 	buffer := getBuffer("reusable")
 	hasher := merkle.NewHasher(buffer)
@@ -59,14 +59,14 @@ func TestNewRootWithDepth_EmptyLeaves(t *testing.T) {
 	}
 }
 
-// Helper function to create a dummy leaf
+// Helper function to create a dummy leaf.
 func createDummyLeaf(value byte) [32]byte {
 	var leaf [32]byte
 	leaf[0] = value
 	return leaf
 }
 
-// Test NewRootWithMaxLeaves with one leaf
+// Test NewRootWithMaxLeaves with one leaf.
 func TestNewRootWithMaxLeaves_OneLeaf(t *testing.T) {
 	buffer := getBuffer("reusable")
 	hasher := merkle.NewHasher(buffer)
@@ -90,13 +90,13 @@ func TestNewRootWithMaxLeaves_OneLeaf(t *testing.T) {
 // goarch: arm64
 // pkg: github.com/berachain/beacon-kit/mod/primitives/pkg/merkle
 // BenchmarkHasherWithReusableBuffer-12
-// 29875  37987 ns/op  0 B/op  0 allocs/op
+// 29875  37987 ns/op  0 B/op  0 allocs/op.
 func BenchmarkHasherWithReusableBuffer(b *testing.B) {
 	buffer := getBuffer("reusable")
 	hasher := merkle.NewHasher(buffer)
 
 	leaves := make([][32]byte, 1000)
-	for i := 0; i < 1000; i++ {
+	for i := range 1000 {
 		leaves[i] = createDummyLeaf(byte(i))
 	}
 
@@ -115,13 +115,13 @@ func BenchmarkHasherWithReusableBuffer(b *testing.B) {
 // goarch: arm64
 // pkg: github.com/berachain/beacon-kit/mod/primitives/pkg/merkle
 // BenchmarkHasherWithSingleUseBuffer-12
-// 29114  38953 ns/op  16384 B/op  1 allocs/op
+// 29114  38953 ns/op  16384 B/op  1 allocs/op.
 func BenchmarkHasherWithSingleUseBuffer(b *testing.B) {
 	buffer := getBuffer("singleuse")
 	hasher := merkle.NewHasher(buffer)
 
 	leaves := make([][32]byte, 1000)
-	for i := 0; i < 1000; i++ {
+	for i := range 1000 {
 		leaves[i] = createDummyLeaf(byte(i))
 	}
 
