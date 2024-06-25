@@ -39,7 +39,7 @@ type Broker[T any] struct {
 	// timeout is the timeout for sending a msg to a client.
 	timeout time.Duration
 	// mu is the mutex for the clients map.
-	mu sync.RWMutex
+	mu sync.Mutex
 	// logger is the logger for the broker.
 	logger log.Logger[any]
 }
@@ -106,8 +106,8 @@ func (b *Broker[T]) Publish(ctx context.Context, msg T) error {
 
 // Subscribe registers a new client to the broker and returns it to the caller.
 func (b *Broker[T]) Subscribe() (chan T, error) {
-	b.mu.RLock()
-	defer b.mu.RUnlock()
+	b.mu.Lock()
+	defer b.mu.Unlock()
 	client := make(chan T)
 	b.clients[client] = struct{}{}
 	return client, nil
