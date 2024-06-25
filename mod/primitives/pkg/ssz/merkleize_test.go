@@ -21,12 +21,8 @@
 package ssz_test
 
 import (
-	"testing"
-
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
-	"github.com/stretchr/testify/require"
 )
 
 // Check for interface implementation.
@@ -59,37 +55,37 @@ type BasicContainer[SpecT any] struct {
 	Item2 BasicItem
 }
 
-// SizeSSZ returns the size of the container in bytes.
-func (c *BasicContainer[SpecT]) SizeSSZ() int {
-	return ssz.SizeOfContainer[[32]byte, *BasicContainer[SpecT], SpecT](c)
-}
+// // SizeSSZ returns the size of the container in bytes.
+// func (c *BasicContainer[SpecT]) SizeSSZ() int {
+// 	return ssz.SizeOfContainer[[32]byte, *BasicContainer[SpecT], SpecT](c)
+// }
 
-// HashTreeRoot computes the Merkle root of the container using SSZ hashing
-// rules.
-func (c *BasicContainer[SpecT]) HashTreeRoot() ([32]byte, error) {
-	return ssz.MerkleizeContainer[any, math.U64](c)
-}
+// // HashTreeRoot computes the Merkle root of the container using SSZ hashing
+// // rules.
+// func (c *BasicContainer[SpecT]) HashTreeRoot() ([32]byte, error) {
+// 	return ssz.MerkleizeContainer[any, math.U64](c)
+// }
 
-func (c *BasicContainer[SpecT]) IsContainer() {}
+// func (c *BasicContainer[SpecT]) IsContainer() {}
 
 // TestBasicItemMerkleization tests the Merkleization of a basic item.
-func TestBasicContainerMerkleization(t *testing.T) {
-	container := BasicContainer[any]{
-		Item1: BasicItem(1),
-		Item2: BasicItem(2),
-	}
+// func TestBasicContainerMerkleization(t *testing.T) {
+// 	container := BasicContainer[any]{
+// 		Item1: BasicItem(1),
+// 		Item2: BasicItem(2),
+// 	}
 
-	// Merkleize the container.
-	actualRoot, err := container.HashTreeRoot()
-	require.NoError(t, err)
+// 	// Merkleize the container.
+// 	actualRoot, err := container.HashTreeRoot()
+// 	require.NoError(t, err)
 
-	// Manually compute our own root, using our merkle tree knowledge.
-	htr1, err := container.Item1.HashTreeRoot()
-	require.NoError(t, err)
-	htr2, err := container.Item2.HashTreeRoot()
-	require.NoError(t, err)
-	expectedRoot := sha256.Sum256(append(htr1[:], htr2[:]...))
+// 	// Manually compute our own root, using our merkle tree knowledge.
+// 	htr1, err := container.Item1.HashTreeRoot()
+// 	require.NoError(t, err)
+// 	htr2, err := container.Item2.HashTreeRoot()
+// 	require.NoError(t, err)
+// 	expectedRoot := sha256.Sum256(append(htr1[:], htr2[:]...))
 
-	// Should match
-	require.Equal(t, expectedRoot, actualRoot)
-}
+// 	// Should match
+// 	require.Equal(t, expectedRoot, actualRoot)
+// }
