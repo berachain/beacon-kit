@@ -34,8 +34,9 @@ import (
 type merkleizer[
 	SpecT any, RootT ~[32]byte, T Basic[SpecT, RootT],
 ] struct {
-	hasher      *merkle.Hasher[RootT]
-	bytesBuffer bytes.Buffer[RootT]
+	hasher        *merkle.Hasher[RootT]
+	bytesBuffer   bytes.Buffer[RootT]
+	paddingBuffer bytes.Buffer[RootT]
 }
 
 // NewMerkleizer creates a new merkleizer with reusable buffers.
@@ -47,7 +48,8 @@ func NewMerkleizer[
 			bytes.NewReusableBuffer[RootT](),
 			merkle.BuildParentTreeRoots[RootT],
 		),
-		bytesBuffer: bytes.NewReusableBuffer[RootT](),
+		bytesBuffer:   bytes.NewReusableBuffer[RootT](),
+		paddingBuffer: bytes.NewReusableBuffer[RootT](),
 	}
 }
 
@@ -269,7 +271,7 @@ func (m *merkleizer[SpecT, RootT, T]) padTo(
 		return chunks[:size]
 	default:
 		// Append zeroed chunks to the end of the list.
-		return append(chunks, make([]RootT, size-numChunks)...)
+		return append(chunks, m.paddingBuffer.Get(int(size-numChunks))...)
 	}
 }
 
