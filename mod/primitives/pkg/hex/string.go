@@ -23,9 +23,10 @@ package hex
 import (
 	"bytes"
 	"encoding/hex"
-	"fmt"
 	"math/big"
 	"strconv"
+
+	"github.com/cockroachdb/errors"
 )
 
 // String represents a hex string with 0x prefix.
@@ -48,7 +49,7 @@ func (s *String) UnmarshalText(text []byte) error {
 	str := string(text)
 	err := isValidHex(str)
 	if err != nil {
-		return fmt.Errorf("invalid hex string: %s, error: %w", str, err)
+		return errors.Newf("invalid hex string: %s, error: %w", str, err)
 	}
 	*s = String(str)
 	return nil
