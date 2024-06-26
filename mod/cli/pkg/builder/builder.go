@@ -27,6 +27,7 @@ import (
 	"cosmossdk.io/core/transaction"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	"cosmossdk.io/runtime/v2"
 	serverv2 "cosmossdk.io/server/v2"
 	"cosmossdk.io/server/v2/api/grpc"
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
@@ -36,7 +37,6 @@ import (
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -87,7 +87,7 @@ func (
 	// allocate memory to hold the dependencies
 	var (
 		autoCliOpts autocli.AppOptions
-		mm          *module.Manager
+		mm          *runtime.MM
 		clientCtx   client.Context
 		chainSpec   common.ChainSpec
 		logger      log.Logger

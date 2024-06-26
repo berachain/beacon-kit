@@ -22,6 +22,7 @@ package commands
 
 import (
 	"cosmossdk.io/core/transaction"
+	"cosmossdk.io/runtime/v2"
 	serverv2 "cosmossdk.io/server/v2"
 	confixcmd "cosmossdk.io/tools/confix/cmd"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/client"
@@ -33,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/spf13/cobra"
@@ -42,7 +42,7 @@ import (
 // Commands sets up the default commands for the root command.
 func Commands[NodeT types.Node[T], T transaction.Tx](
 	root *Root,
-	mm *module.Manager,
+	mm *runtime.MM,
 	appCreator serverv2.AppCreator[NodeT, T],
 	chainSpec common.ChainSpec,
 ) []*cobra.Command {

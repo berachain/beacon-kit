@@ -16,6 +16,7 @@ require (
 	cosmossdk.io/core v0.12.1-0.20240623110059-dec2d5583e39
 	cosmossdk.io/depinject v1.0.0-alpha.4.0.20240620161400-a6407f411e80
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce
+	cosmossdk.io/runtime/v2 v2.0.0-20240623110059-dec2d5583e39
 	cosmossdk.io/server/v2 v2.0.0-20240624191328-722ac39873e4
 	cosmossdk.io/tools/confix v0.1.1
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240614154006-a5defa6198f5
@@ -40,8 +41,10 @@ require (
 require (
 	cosmossdk.io/server/v2/appmanager v0.0.0-20240624191328-722ac39873e4 // indirect
 	cosmossdk.io/server/v2/cometbft v0.0.0-00010101000000-000000000000 // indirect
+	cosmossdk.io/server/v2/stf v0.0.0-20240623110059-dec2d5583e39 // indirect
 	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240625165558-8d611ba7d436 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a // indirect
+	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/phuslu/log v1.0.106 // indirect
 	github.com/rs/zerolog v1.33.0 // indirect
 )

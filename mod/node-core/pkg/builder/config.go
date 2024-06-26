@@ -21,13 +21,13 @@
 package builder
 
 import (
-	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
+	runtimesdkv2 "cosmossdk.io/api/cosmos/app/runtime/v2"
 	appv1alpha1 "cosmossdk.io/api/cosmos/app/v1alpha1"
 	"cosmossdk.io/core/address"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
 	beacon "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module"
-	beaconv1alpha1 "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module/api/module/v1alpha1"
+	runtimev2 "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module/api/module/v2"
 	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 	"github.com/cosmos/cosmos-sdk/runtime"
 )
@@ -41,7 +41,7 @@ func DefaultDepInjectConfig() depinject.Config {
 			Modules: []*appv1alpha1.ModuleConfig{
 				{
 					Name: runtime.ModuleName,
-					Config: appconfig.WrapAny(&runtimev1alpha1.Module{
+					Config: appconfig.WrapAny(&runtimesdkv2.Module{
 						AppName:       DefaultAppName,
 						PreBlockers:   []string{},
 						BeginBlockers: []string{},
@@ -51,7 +51,7 @@ func DefaultDepInjectConfig() depinject.Config {
 				},
 				{
 					Name:   beacon.ModuleName,
-					Config: appconfig.WrapAny(&beaconv1alpha1.Module{}),
+					Config: appconfig.WrapAny(&runtimev2.Module{}),
 				},
 			},
 		}),
