@@ -35,6 +35,7 @@ type Basic[BasicT any] interface {
 	NewFromSSZ([]byte) (BasicT, error)
 	MarshalSSZ() ([]byte, error)
 	SizeSSZ() int
+	HashTreeRoot() ([32]byte, error)
 }
 
 type SSZBool bool
@@ -61,6 +62,15 @@ func (SSZBool) NewFromSSZ(buf []byte) (SSZBool, error) {
 		)
 	}
 	return SSZBool(buf[0] != 0), nil
+}
+
+// HashTreeRoot returns the hash tree root of the bool.
+func (b SSZBool) HashTreeRoot() ([32]byte, error) {
+	buf := make([]byte, 32)
+	if b {
+		buf[0] = 1
+	}
+	return [32]byte(buf), nil
 }
 
 // -----------------------------
@@ -90,6 +100,13 @@ func (SSZUInt8) NewFromSSZ(buf []byte) (SSZUInt8, error) {
 	return SSZUInt8(buf[0]), nil
 }
 
+// HashTreeRoot returns the hash tree root of the uint8.
+func (u SSZUInt8) HashTreeRoot() ([32]byte, error) {
+	buf := make([]byte, 32)
+	buf[0] = byte(u)
+	return [32]byte(buf), nil
+}
+
 // -----------------------------
 
 type SSZUInt16 uint16
@@ -115,6 +132,13 @@ func (SSZUInt16) NewFromSSZ(buf []byte) (SSZUInt16, error) {
 		)
 	}
 	return SSZUInt16(binary.LittleEndian.Uint16(buf)), nil
+}
+
+// HashTreeRoot returns the hash tree root of the uint16.
+func (u SSZUInt16) HashTreeRoot() ([32]byte, error) {
+	buf := make([]byte, 32)
+	binary.LittleEndian.PutUint16(buf[:2], uint16(u))
+	return [32]byte(buf), nil
 }
 
 // -----------------------------
@@ -144,6 +168,13 @@ func (SSZUInt32) NewFromSSZ(buf []byte) (SSZUInt32, error) {
 	return SSZUInt32(binary.LittleEndian.Uint32(buf)), nil
 }
 
+// HashTreeRoot returns the hash tree root of the uint32.
+func (u SSZUInt32) HashTreeRoot() ([32]byte, error) {
+	buf := make([]byte, 32)
+	binary.LittleEndian.PutUint32(buf[:4], uint32(u))
+	return [32]byte(buf), nil
+}
+
 // -----------------------------
 
 type SSZUInt64 uint64
@@ -171,6 +202,13 @@ func (SSZUInt64) NewFromSSZ(buf []byte) (SSZUInt64, error) {
 	return SSZUInt64(binary.LittleEndian.Uint64(buf)), nil
 }
 
+// HashTreeRoot returns the hash tree root of the uint64.
+func (u SSZUInt64) HashTreeRoot() ([32]byte, error) {
+	buf := make([]byte, 32)
+	binary.LittleEndian.PutUint64(buf[:8], uint64(u))
+	return [32]byte(buf), nil
+}
+
 // -----------------------------
 
 type SSZByte byte
@@ -194,4 +232,11 @@ func (SSZByte) NewFromSSZ(buf []byte) (SSZByte, error) {
 		)
 	}
 	return SSZByte(buf[0]), nil
+}
+
+// HashTreeRoot returns the hash tree root of the byte.
+func (b SSZByte) HashTreeRoot() ([32]byte, error) {
+	buf := make([]byte, 32)
+	buf[0] = byte(b)
+	return [32]byte(buf), nil
 }

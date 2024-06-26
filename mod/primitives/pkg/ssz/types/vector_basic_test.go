@@ -100,7 +100,9 @@ func TestSSZVectorBasicMarshalUnmarshal(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, marshaled, 5)
 
-		unmarshaled, err := types.SSZVectorBasic[types.SSZUInt8]{}.NewFromSSZ(marshaled)
+		unmarshaled, err := types.SSZVectorBasic[types.SSZUInt8]{}.NewFromSSZ(
+			marshaled,
+		)
 		require.NoError(t, err)
 
 		require.Equal(t, original, unmarshaled)
@@ -114,7 +116,9 @@ func TestSSZVectorBasicMarshalUnmarshal(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, marshaled, 5)
 
-		unmarshaled, err := types.SSZVectorBasic[types.SSZBool]{}.NewFromSSZ(marshaled)
+		unmarshaled, err := types.SSZVectorBasic[types.SSZBool]{}.NewFromSSZ(
+			marshaled,
+		)
 		require.NoError(t, err)
 
 		require.Equal(t, original, unmarshaled)
@@ -127,14 +131,18 @@ func TestSSZVectorBasicMarshalUnmarshal(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, marshaled, 40)
 
-		unmarshaled, err := types.SSZVectorBasic[types.SSZUInt64]{}.NewFromSSZ(marshaled)
+		unmarshaled, err := types.SSZVectorBasic[types.SSZUInt64]{}.NewFromSSZ(
+			marshaled,
+		)
 		require.NoError(t, err)
 
 		require.Equal(t, original, unmarshaled)
 	})
 
 	t.Run("invalid buffer length", func(t *testing.T) {
-		_, err := types.SSZVectorBasic[types.SSZUInt64]{}.NewFromSSZ([]byte{1, 2, 3}) // Invalid length for uint64
+		_, err := types.SSZVectorBasic[types.SSZUInt64]{}.NewFromSSZ(
+			[]byte{1, 2, 3},
+		) // Invalid length for uint64
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid buffer length")
 	})
