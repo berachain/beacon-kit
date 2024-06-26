@@ -27,54 +27,56 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestSSZVectorBasic(t *testing.T) {
-	t.Run("SizeSSZ for uint8 vector", func(t *testing.T) {
+func TestSSZVectorBasicSizeSSZ(t *testing.T) {
+	t.Run("uint8 vector", func(t *testing.T) {
 		vector := types.SSZVectorBasic[types.SSZByte]{1, 2, 3, 4, 5}
 		require.Equal(t, 5, vector.SizeSSZ())
 	})
 
-	t.Run("SizeSSZ for byte slice vector", func(t *testing.T) {
+	t.Run("byte slice vector", func(t *testing.T) {
 		vector := types.SSZVectorBasic[types.SSZUInt8]{1, 2, 3, 4, 5, 6, 7, 8}
 		require.Equal(t, 8, vector.SizeSSZ())
 	})
 
-	t.Run("SizeSSZ for uint64 vector", func(t *testing.T) {
+	t.Run("uint64 vector", func(t *testing.T) {
 		vector := types.SSZVectorBasic[types.SSZUInt64]{1, 2, 3, 4, 5}
 		require.Equal(t, 40, vector.SizeSSZ())
 	})
 
-	t.Run("SizeSSZ for bool vector", func(t *testing.T) {
+	t.Run("bool vector", func(t *testing.T) {
 		vector := types.SSZVectorBasic[types.SSZBool]{true, false, true}
 		require.Equal(t, 3, vector.SizeSSZ())
 	})
 
-	t.Run("SizeSSZ for empty vector", func(t *testing.T) {
+	t.Run("empty vector", func(t *testing.T) {
 		vector := types.SSZVectorBasic[types.SSZUInt64]{}
 		require.Equal(t, 0, vector.SizeSSZ())
 	})
+}
 
-	t.Run("HashTreeRoot for uint8 vector", func(t *testing.T) {
+func TestSSZVectorBasicHashTreeRoot(t *testing.T) {
+	t.Run("uint8 vector", func(t *testing.T) {
 		vector := types.SSZVectorBasic[types.SSZUInt8]{1, 2, 3, 4, 5}
 		root, err := vector.HashTreeRoot()
 		require.NoError(t, err)
 		require.NotEqual(t, [32]byte{}, root)
 	})
 
-	t.Run("HashTreeRoot for bool vector", func(t *testing.T) {
+	t.Run("bool vector", func(t *testing.T) {
 		vector := types.SSZVectorBasic[types.SSZBool]{true, false, true, false}
 		root, err := vector.HashTreeRoot()
 		require.NoError(t, err)
 		require.NotEqual(t, [32]byte{}, root)
 	})
 
-	t.Run("HashTreeRoot for uint64 vector", func(t *testing.T) {
+	t.Run("uint64 vector", func(t *testing.T) {
 		vector := types.SSZVectorBasic[types.SSZUInt64]{1, 2, 3, 4, 5}
 		root, err := vector.HashTreeRoot()
 		require.NoError(t, err)
 		require.NotEqual(t, [32]byte{}, root)
 	})
 
-	t.Run("HashTreeRoot consistency", func(t *testing.T) {
+	t.Run("consistency", func(t *testing.T) {
 		vector1 := types.SSZVectorBasic[types.SSZUInt8]{1, 2, 3, 4, 5}
 		vector2 := types.SSZVectorBasic[types.SSZUInt8]{1, 2, 3, 4, 5}
 		root1, err1 := vector1.HashTreeRoot()
@@ -83,4 +85,54 @@ func TestSSZVectorBasic(t *testing.T) {
 		require.NoError(t, err2)
 		require.Equal(t, root1, root2)
 	})
+}
+
+func TestSSZVectorBasicMarshalUnmarshal(t *testing.T) {
+	// t.Run("uint8 vector", func(t *testing.T) {
+	// 	original := types.SSZVectorBasic[types.SSZUInt8]{1, 2, 3, 4, 5}
+
+	// 	marshaled, err := original.MarshalSSZ()
+	// 	require.NoError(t, err)
+	// 	require.Equal(t, 5, len(marshaled))
+
+	// 	var unmarshaled = types.SSZVectorBasic[types.SSZUInt8]{}
+	// 	err = unmarshaled.UnmarshalSSZ(marshaled)
+	// 	require.NoError(t, err)
+
+	// 	require.Equal(t, original, unmarshaled)
+	// })
+
+	// t.Run("bool vector", func(t *testing.T) {
+	// 	original := types.SSZVectorBasic[types.SSZBool]{true, false, true, false, true}
+
+	// 	marshaled, err := original.MarshalSSZ()
+	// 	require.NoError(t, err)
+	// 	require.Equal(t, 5, len(marshaled))
+
+	// 	var unmarshaled types.SSZVectorBasic[types.SSZBool]
+	// 	err = unmarshaled.UnmarshalSSZ(marshaled)
+	// 	require.NoError(t, err)
+
+	// 	require.Equal(t, original, unmarshaled)
+	// })
+
+	t.Run("uint64 vector", func(t *testing.T) {
+		original := types.SSZVectorBasic[types.SSZUInt64]{1, 2, 3, 4, 5}
+
+		marshaled, err := original.MarshalSSZ()
+		require.NoError(t, err)
+		require.Equal(t, 40, len(marshaled))
+
+		var unmarshaled = make(types.SSZVectorBasic[types.SSZUInt64], 0)
+		require.NoError(t, unmarshaled.UnmarshalSSZ(marshaled))
+
+		require.Equal(t, original, unmarshaled)
+	})
+
+	// t.Run("invalid buffer length", func(t *testing.T) {
+	// 	var vector types.SSZVectorBasic[types.SSZUInt64]
+	// 	err := vector.UnmarshalSSZ([]byte{1, 2, 3}) // Invalid length for uint64
+	// 	require.Error(t, err)
+	// 	require.Contains(t, err.Error(), "invalid buffer length")
+	// })
 }

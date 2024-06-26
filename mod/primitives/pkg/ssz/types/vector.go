@@ -22,7 +22,6 @@ package types
 
 import (
 	"fmt"
-	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
@@ -32,36 +31,33 @@ type SSZMarshallable interface {
 	SizeSSZ() int
 }
 
-type Basic interface {
+type Basic[BasicT any] interface {
 	~bool | ~uint | ~uint8 |
 		~uint16 | ~uint32 | ~uint64
+	NewFromSSZ([]byte) (BasicT, error)
 	MarshalSSZ() ([]byte, error)
+	SizeSSZ() int
 }
 
 // SSZVectorBasic is a vector of basic types.
-type SSZVectorBasic[T Basic] []T
+type SSZVectorBasic[T Basic[T]] []T
 
 // SizeSSZ returns the size of the list in bytes.
 func (l SSZVectorBasic[T]) SizeSSZ() int {
-	elementSize := reflect.TypeOf((*T)(nil)).Elem().Size()
-	fmt.Println(elementSize)
-	return int(elementSize) * len(l)
+	var t T
+	return t.SizeSSZ() * len(l)
 }
 
-// HashTreeRootWith returns the Merkle root of the SSZVectorBasic with a given merkleizer.
+// HashTreeRootWith returns the Merkle root of the SSZVectorBasic
+// with a given merkleizer.
 func (l SSZVectorBasic[T]) HashTreeRootWith(
 	merkleizer interface {
 		MerkleizeByteSlice([]byte) ([32]byte, error)
 	},
 ) ([32]byte, error) {
-	packedBytes := make([]byte, l.SizeSSZ())
-	for _, v := range l {
-		v, err := v.MarshalSSZ()
-		if err != nil {
-			return [32]byte{}, err
-		}
-
-		packedBytes = append(packedBytes, v...)
+	packedBytes, err := l.MarshalSSZ()
+	if err != nil {
+		return [32]byte{}, err
 	}
 	return merkleizer.MerkleizeByteSlice(packedBytes)
 }
@@ -72,4 +68,53 @@ func (l SSZVectorBasic[T]) HashTreeRoot() ([32]byte, error) {
 	return l.HashTreeRootWith(ssz.NewMerkleizer[
 		common.ChainSpec, [32]byte, common.Root,
 	]())
+}
+
+// MarshalSSZ marshals the SSZVectorBasic into SSZ format.
+func (l SSZVectorBasic[T]) MarshalSSZ() ([]byte, error) {
+	packedBytes := make([]byte, 0, l.SizeSSZ())
+	for _, v := range l {
+		bytes, err := v.MarshalSSZ()
+		if err != nil {
+			return nil, err
+		}
+		packedBytes = append(packedBytes, bytes...)
+	}
+	return packedBytes, nil
+}
+
+// UnmarshalSSZ unmarshals the SSZVectorBasic from SSZ format.
+func (l *SSZVectorBasic[T]) UnmarshalSSZ(buf []byte) error {
+	var (
+		err error
+		t   T
+	)
+	fmt.Println("Beginning UnmarshalSSZ for SSZVectorBasic")
+	elementSize := t.SizeSSZ()
+	fmt.Printf("Element size: %d\n", elementSize)
+	if len(buf)%elementSize != 0 {
+		return fmt.Errorf("invalid buffer length %d for element size %d", len(buf), elementSize)
+	}
+
+	if l == nil {
+		l = new(SSZVectorBasic[T])
+		*l = make([]T, 0, len(buf)/elementSize)
+	}
+
+	fmt.Printf("Creating slice of length: %d\n", len(*l))
+	fmt.Println("element size", elementSize, "len buf", len(buf))
+	for i := 0; i < len(buf); i += elementSize {
+		fmt.Printf("Unmarshaling element at index: %d\n", i/elementSize)
+		fmt.Println(buf[i : i+elementSize])
+		if t, err = t.NewFromSSZ(buf[i : i+elementSize]); err != nil {
+			return err
+		}
+		fmt.Printf(
+			"Unmarshaled element at index: %d with value: %v\n", i, t)
+		*l = append(*l, t)
+	}
+	fmt.Println("Finished UnmarshalSSZ for SSZVectorBasic")
+	fmt.Println("Unmarshaled SSZVectorBasic: ", l)
+
+	return nil
 }
