@@ -25,6 +25,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 )
@@ -62,7 +63,7 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeBasic(
 func (m *merkleizer[SpecT, RootT, T]) MerkleizeVecBasic(
 	value []T,
 ) (RootT, error) {
-	packed, err := Pack[SpecT](value)
+	packed, err := m.pack(value)
 	if err != nil {
 		return [32]byte{}, err
 	}
@@ -75,7 +76,7 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeListBasic(
 	value []T,
 	limit ...uint64,
 ) (RootT, error) {
-	packed, err := Pack[SpecT](value)
+	packed, err := m.pack(value)
 	if err != nil {
 		return [32]byte{}, err
 	}
@@ -196,14 +197,11 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeListComposite(
 func (m *merkleizer[SpecT, RootT, T]) MerkleizeByteSlice(
 	input []byte,
 ) (RootT, error) {
-	chunks, numChunks, err := PartitionBytes[RootT](input)
+	chunks, numChunks, err := m.partitionBytes(input)
 	if err != nil {
 		return RootT{}, err
 	}
-	return m.Merkleize(
-		chunks,
-		numChunks,
-	)
+	return m.Merkleize(chunks, numChunks)
 }
 
 // Merkleize hashes a list of chunks and returns the HTR of the list of.
@@ -249,10 +247,80 @@ func (m *merkleizer[SpecT, RootT, T]) Merkleize(
 		effectiveLimit = math.U64(limit[0])
 	}
 
-	effectiveChunks = PadTo(chunks, effectiveLimit)
+	effectiveChunks = m.padTo(chunks, effectiveLimit)
 	if len(effectiveChunks) == 1 {
 		return effectiveChunks[0], nil
 	}
 
 	return m.hasher.NewRootWithMaxLeaves(effectiveChunks, effectiveLimit)
+}
+
+// padTo function to pad the chunks to the effective limit with zeroed chunks.
+func (m *merkleizer[SpecT, RootT, T]) padTo(
+	chunks []RootT,
+	size math.U64,
+) []RootT {
+	switch numChunks := math.U64(len(chunks)); {
+	case numChunks == size:
+		// No padding needed.
+		return chunks
+	case numChunks > size:
+		// Truncate the chunks to the desired size.
+		return chunks[:size]
+	default:
+		// Append zeroed chunks to the end of the list.
+		return append(chunks, make([]RootT, size-numChunks)...)
+	}
+}
+
+// pack packs a list of SSZ-marshallable elements into a single byte slice.
+func (m *merkleizer[SpecT, RootT, T]) pack(values []T) ([]RootT, error) {
+	// Pack each element into separate buffers.
+	var packed []byte
+	for _, el := range values {
+		fieldValue := reflect.ValueOf(el)
+		if fieldValue.Kind() == reflect.Ptr {
+			fieldValue = fieldValue.Elem()
+		}
+
+		if !fieldValue.CanInterface() {
+			return nil, errors.Newf(
+				"cannot interface with field %v",
+				fieldValue,
+			)
+		}
+
+		// TODO: Do we need a safety check for Basic only here?
+		// TODO: use a real interface instead of hood inline.
+		el, ok := reflect.ValueOf(el).
+			Interface().(interface{ MarshalSSZ() ([]byte, error) })
+		if !ok {
+			return nil, errors.Newf("unsupported type %T", el)
+		}
+
+		// TODO: Do we need a safety check for Basic only here?
+		buf, err := el.MarshalSSZ()
+		if err != nil {
+			return nil, err
+		}
+		packed = append(packed, buf...)
+	}
+
+	root, _, err := m.partitionBytes(packed)
+	return root, err
+}
+
+// partitionBytes partitions a byte slice into chunks of a given length.
+func (m *merkleizer[SpecT, RootT, T]) partitionBytes(input []byte) (
+	[]RootT, uint64, error,
+) {
+	//nolint:mnd // we add 31 in order to round up the division.
+	numChunks := max((len(input)+31)/constants.RootLength, 1)
+	// TODO: figure out how to safely chunk these bytes.
+	chunks := make([]RootT, numChunks)
+	for i := range chunks {
+		copy(chunks[i][:], input[32*i:])
+	}
+	//#nosec:G701 // numChunks is always >= 1.
+	return chunks, uint64(numChunks), nil
 }
