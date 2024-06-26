@@ -111,16 +111,13 @@ func (m *Hasher[RootT]) NewRootWithDepth(
 func BuildParentTreeRoots[RootT ~[32]byte](
 	outputList, inputList []RootT,
 ) error {
-	err := BuildParentTreeRootsWithNRoutines(
+	return BuildParentTreeRootsWithNRoutines(
 		//#nosec:G103 // on purpose.
 		*(*[][32]byte)(unsafe.Pointer(&outputList)),
 		//#nosec:G103 // on purpose.
 		*(*[][32]byte)(unsafe.Pointer(&inputList)),
 		runtime.GOMAXPROCS(0)-1,
 	)
-
-	// Convert out back to []RootT using unsafe pointer cas
-	return err
 }
 
 // BuildParentTreeRootsWithNRoutines optimizes hashing of a list of roots

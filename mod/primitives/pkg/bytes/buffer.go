@@ -23,7 +23,7 @@ package bytes
 // initialBufferSize is the initial size of the internal buffer.
 const initialBufferSize = 64
 
-// Buffer can be used by hashers to get a buffer of byte slices.
+// Buffer can be used by hashers to get a buffer of 32 byte slices.
 type Buffer[RootT ~[32]byte] interface {
 	// Get returns a slice of roots of the given size.
 	Get(size int) []RootT
@@ -31,15 +31,15 @@ type Buffer[RootT ~[32]byte] interface {
 	// TODO: add a Put method to return the buffer back for concurrent use.
 }
 
-// reusableBuffer is a re-usable buffer for merkle tree hashing. Prevents
-// unnecessary allocations and garbage collection of byte slices.
+// reusableBuffer is a re-usable buffer. Prevents unnecessary allocations
+// and garbage collection of byte slices.
 type reusableBuffer[RootT ~[32]byte] struct {
 	internal []RootT
 
 	// TODO: add a mutex for multi-thread safety.
 }
 
-// NewReusableBuffer creates a new re-usable buffer for merkle tree hashing.
+// NewReusableBuffer creates a new re-usable buffer.
 func NewReusableBuffer[RootT ~[32]byte]() Buffer[RootT] {
 	return &reusableBuffer[RootT]{
 		internal: make([]RootT, initialBufferSize),
@@ -62,18 +62,14 @@ func (b *reusableBuffer[RootT]) grow(delta int) {
 
 // singleuseBuffer is a buffer for a single use case. Allocates new
 // memory for each use (call to `Get`).
-//
-// NOTE: this buffer is ONLY meant to be used in a single thread.
 type singleuseBuffer[RootT ~[32]byte] struct{}
 
 // NewSingleuseBuffer creates a new single-use buffer.
-//
-
 func NewSingleuseBuffer[RootT ~[32]byte]() Buffer[RootT] {
 	return &singleuseBuffer[RootT]{}
 }
 
 // Get returns a new slice of roots the given size.
-func (b *singleuseBuffer[RootT]) Get(size int) []RootT {
+func (*singleuseBuffer[RootT]) Get(size int) []RootT {
 	return make([]RootT, size)
 }
