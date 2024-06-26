@@ -22,9 +22,6 @@ package ssz
 
 import (
 	"reflect"
-
-	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 )
 
 // SizeOfBasic returns the size of a basic type.
@@ -124,73 +121,4 @@ func ChunkCountContainer[SpecT any, RootT ~[32]byte, C Container[SpecT, RootT]](
 ) uint64 {
 	//#nosec:G701 // This is a safe operation.
 	return uint64(reflect.ValueOf(c).NumField())
-}
-
-// PadTo function to pad the chunks to the effective limit with zeroed chunks.
-func PadTo[U64T ~uint64, ChunkT ~[32]byte](
-	chunks []ChunkT,
-	size U64T,
-) []ChunkT {
-	switch numChunks := U64T(len(chunks)); {
-	case numChunks == size:
-		// No padding needed.
-		return chunks
-	case numChunks > size:
-		// Truncate the chunks to the desired size.
-		return chunks[:size]
-	default:
-		// Append zeroed chunks to the end of the list.
-		return append(chunks, make([]ChunkT, size-numChunks)...)
-	}
-}
-
-// Pack packs a list of SSZ-marshallable elements into a single byte slice.
-func Pack[
-	SpecT any, RootT ~[32]byte, B Basic[SpecT, RootT],
-](b []B) ([]RootT, error) {
-	// Pack each element into separate buffers.
-	var packed []byte
-	for _, el := range b {
-		fieldValue := reflect.ValueOf(el)
-		if fieldValue.Kind() == reflect.Ptr {
-			fieldValue = fieldValue.Elem()
-		}
-
-		if !fieldValue.CanInterface() {
-			return nil, errors.Newf(
-				"cannot interface with field %v",
-				fieldValue,
-			)
-		}
-
-		// TODO: Do we need a safety check for Basic only here?
-		// TODO: use a real interface instead of hood inline.
-		el, ok := reflect.ValueOf(el).
-			Interface().(interface{ MarshalSSZ() ([]byte, error) })
-		if !ok {
-			return nil, errors.Newf("unsupported type %T", el)
-		}
-
-		// TODO: Do we need a safety check for Basic only here?
-		buf, err := el.MarshalSSZ()
-		if err != nil {
-			return nil, err
-		}
-		packed = append(packed, buf...)
-	}
-
-	root, _, err := PartitionBytes[RootT](packed)
-	return root, err
-}
-
-// PartitionBytes partitions a byte slice into chunks of a given length.
-func PartitionBytes[RootT ~[32]byte](input []byte) ([]RootT, uint64, error) {
-	//nolint:mnd // we add 31 in order to round up the division.
-	numChunks := max((uint64(len(input))+31)/constants.RootLength, 1)
-	// TODO: figure out how to safely chunk these bytes.
-	chunks := make([]RootT, numChunks)
-	for i := range chunks {
-		copy(chunks[i][:], input[32*i:])
-	}
-	return chunks, numChunks, nil
 }
