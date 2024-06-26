@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
@@ -120,7 +121,6 @@ func NewStateProcessor[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	],
 	signer crypto.BLSSigner,
-	txsMerkleizer engineprimitives.TxsMerkleizer,
 ) *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, ContextT,
@@ -137,7 +137,9 @@ func NewStateProcessor[
 		cs:              cs,
 		executionEngine: executionEngine,
 		signer:          signer,
-		txsMerkleizer:   txsMerkleizer,
+		txsMerkleizer: ssz.NewMerkleizer[
+			common.ChainSpec, [32]byte, common.Root,
+		](),
 	}
 }
 
