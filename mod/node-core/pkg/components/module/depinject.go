@@ -27,14 +27,14 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
-	modulev1alpha1 "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module/api/module/v1alpha1"
+	runtimev2 "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module/api/runtime/v2"
 )
 
 // TODO: we don't allow generics here? Why? Is it fixable?
 //
 //nolint:gochecknoinits // required by sdk.
 func init() {
-	appconfig.RegisterModule(&modulev1alpha1.Module{},
+	appconfig.RegisterModule(&runtimev2.Module{},
 		appconfig.Provide(
 			components.ProvideKVStore,
 			ProvideModule[
