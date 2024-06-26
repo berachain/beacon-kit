@@ -26,6 +26,8 @@
 package types
 
 import (
+	"unsafe"
+
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -197,10 +199,16 @@ func (b *BeaconBlockBodyDeneb) SetBlobKzgCommitments(
 
 // GetTopLevelRoots returns the top-level roots of the BeaconBlockBodyDeneb.
 func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
-	layer := make([][32]byte, BodyLengthDeneb)
-	var err error
-	randao := b.GetRandaoReveal()
-	layer[0], err = ssz.MerkleizeByteSlice[math.U64, [32]byte](randao[:])
+	var (
+		err        error
+		layer      = make([]common.Root, BodyLengthDeneb)
+		randao     = b.GetRandaoReveal()
+		merkleizer = ssz.NewMerkleizer[
+			common.ChainSpec, [32]byte, common.Root,
+		]()
+	)
+
+	layer[0], err = merkleizer.MerkleizeByteSlice(randao[:])
 	if err != nil {
 		return nil, err
 	}
@@ -223,7 +231,8 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 	}
 
 	// KZG commitments is not needed
-	return layer, nil
+	//#nosec:G103 // Okay to go from common.Root to [32]byte.
+	return *(*[][32]byte)(unsafe.Pointer(&layer)), nil
 }
 
 // Length returns the number of fields in the BeaconBlockBodyDeneb struct.
