@@ -52,4 +52,35 @@ func TestSSZVectorBasic(t *testing.T) {
 		vector := types.SSZVectorBasic[types.SSZUInt64]{}
 		require.Equal(t, 0, vector.SizeSSZ())
 	})
+
+	t.Run("HashTreeRoot for uint8 vector", func(t *testing.T) {
+		vector := types.SSZVectorBasic[types.SSZUInt8]{1, 2, 3, 4, 5}
+		root, err := vector.HashTreeRoot()
+		require.NoError(t, err)
+		require.NotEqual(t, [32]byte{}, root)
+	})
+
+	t.Run("HashTreeRoot for bool vector", func(t *testing.T) {
+		vector := types.SSZVectorBasic[types.SSZBool]{true, false, true, false}
+		root, err := vector.HashTreeRoot()
+		require.NoError(t, err)
+		require.NotEqual(t, [32]byte{}, root)
+	})
+
+	t.Run("HashTreeRoot for uint64 vector", func(t *testing.T) {
+		vector := types.SSZVectorBasic[types.SSZUInt64]{1, 2, 3, 4, 5}
+		root, err := vector.HashTreeRoot()
+		require.NoError(t, err)
+		require.NotEqual(t, [32]byte{}, root)
+	})
+
+	t.Run("HashTreeRoot consistency", func(t *testing.T) {
+		vector1 := types.SSZVectorBasic[types.SSZUInt8]{1, 2, 3, 4, 5}
+		vector2 := types.SSZVectorBasic[types.SSZUInt8]{1, 2, 3, 4, 5}
+		root1, err1 := vector1.HashTreeRoot()
+		root2, err2 := vector2.HashTreeRoot()
+		require.NoError(t, err1)
+		require.NoError(t, err2)
+		require.Equal(t, root1, root2)
+	})
 }

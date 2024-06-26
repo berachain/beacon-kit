@@ -33,10 +33,12 @@ type SSZMarshallable interface {
 }
 
 type Basic interface {
-	~bool | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64
+	~bool | ~uint | ~uint8 |
+		~uint16 | ~uint32 | ~uint64
 	MarshalSSZ() ([]byte, error)
 }
 
+// SSZVectorBasic is a vector of basic types.
 type SSZVectorBasic[T Basic] []T
 
 // SizeSSZ returns the size of the list in bytes.
@@ -46,12 +48,12 @@ func (l SSZVectorBasic[T]) SizeSSZ() int {
 	return int(elementSize) * len(l)
 }
 
-// HashTreeRoot returns the Merkle root of the SSZVectorBasic.
-func (l SSZVectorBasic[T]) HashTreeRoot() ([32]byte, error) {
-	// Create a merkleizer
-	m := ssz.NewMerkleizer[
-		common.ChainSpec, [32]byte, common.Root,
-	]()
+// HashTreeRootWith returns the Merkle root of the SSZVectorBasic with a given merkleizer.
+func (l SSZVectorBasic[T]) HashTreeRootWith(
+	merkleizer interface {
+		MerkleizeByteSlice([]byte) ([32]byte, error)
+	},
+) ([32]byte, error) {
 	packedBytes := make([]byte, l.SizeSSZ())
 	for _, v := range l {
 		v, err := v.MarshalSSZ()
@@ -61,5 +63,13 @@ func (l SSZVectorBasic[T]) HashTreeRoot() ([32]byte, error) {
 
 		packedBytes = append(packedBytes, v...)
 	}
-	return m.MerkleizeByteSlice(packedBytes)
+	return merkleizer.MerkleizeByteSlice(packedBytes)
+}
+
+// HashTreeRoot returns the Merkle root of the SSZVectorBasic.
+func (l SSZVectorBasic[T]) HashTreeRoot() ([32]byte, error) {
+	// Create a merkleizer
+	return l.HashTreeRootWith(ssz.NewMerkleizer[
+		common.ChainSpec, [32]byte, common.Root,
+	]())
 }
