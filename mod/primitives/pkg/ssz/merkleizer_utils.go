@@ -88,7 +88,7 @@ func (m *merkleizer[SpecT, RootT, T]) pack(values []T) ([]RootT, error) {
 func (m *merkleizer[SpecT, RootT, T]) partitionBytes(input []byte) (
 	[]RootT, uint64, error,
 ) {
-	//nolint:mnd // we add 31 in order to round up the division.
+	
 	numChunks := max(len(input)+31/constants.RootLength, 1)
 	chunks := m.intermediateBuffer.Get(numChunks)
 	for i := range chunks {
