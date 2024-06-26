@@ -47,22 +47,16 @@ func (l SSZVectorBasic[T]) SizeSSZ() int {
 // HashTreeRootWith returns the Merkle root of the SSZVectorBasic
 // with a given merkleizer.
 func (l SSZVectorBasic[T]) HashTreeRootWith(
-	merkleizer interface {
-		MerkleizeByteSlice([]byte) ([32]byte, error)
-	},
+	merkleizer Merkleizer[common.ChainSpec, [32]byte, T],
 ) ([32]byte, error) {
-	packedBytes, err := l.MarshalSSZ()
-	if err != nil {
-		return [32]byte{}, err
-	}
-	return merkleizer.MerkleizeByteSlice(packedBytes)
+	return merkleizer.MerkleizeVecBasic(l)
 }
 
 // HashTreeRoot returns the Merkle root of the SSZVectorBasic.
 func (l SSZVectorBasic[T]) HashTreeRoot() ([32]byte, error) {
 	// Create a merkleizer
 	return l.HashTreeRootWith(ssz.NewMerkleizer[
-		common.ChainSpec, [32]byte, common.Root,
+		common.ChainSpec, [32]byte, T,
 	]())
 }
 
