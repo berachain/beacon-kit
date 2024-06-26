@@ -56,7 +56,7 @@ func (s *Server[NodeT, T, ValidatorUpdateT]) Init(
 	if err := s.CometBFTServer.Init(node, v, logger); err != nil {
 		return err
 	}
-	var middleware nodecomponents.ABCIMiddleware
+	var middleware *nodecomponents.ABCIMiddleware
 	registry := node.GetServiceRegistry()
 	if err := registry.FetchService(&middleware); err != nil {
 		return err
@@ -65,7 +65,7 @@ func (s *Server[NodeT, T, ValidatorUpdateT]) Init(
 	engine := consensus.NewEngine[T, ValidatorUpdateT](
 		consensustypes.CometBFTConsensus,
 		s.TxCodec,
-		&middleware,
+		middleware,
 	)
 
 	s.CometBFTServer.App.SetMempool(mempool.NoOpMempool[T]{})
