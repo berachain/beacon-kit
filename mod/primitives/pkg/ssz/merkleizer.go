@@ -71,7 +71,7 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeVecBasic(
 ) (RootT, error) {
 	packed, err := m.pack(value)
 	if err != nil {
-		return [32]byte{}, err
+		return RootT{}, err
 	}
 
 	return m.Merkleize(packed)
@@ -85,7 +85,7 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeListBasic(
 ) (RootT, error) {
 	packed, err := m.pack(value)
 	if err != nil {
-		return [32]byte{}, err
+		return RootT{}, err
 	}
 
 	var effectiveLimit uint64
@@ -99,7 +99,7 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeListBasic(
 		packed, ChunkCountBasicList[SpecT](value, effectiveLimit),
 	)
 	if err != nil {
-		return [32]byte{}, err
+		return RootT{}, err
 	}
 
 	return merkle.MixinLength(root, uint64(len(value))), nil
