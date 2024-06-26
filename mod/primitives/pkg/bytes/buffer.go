@@ -67,6 +67,8 @@ func (b *reusableBuffer[RootT]) grow(delta int) {
 type singleuseBuffer[RootT ~[32]byte] struct{}
 
 // NewSingleuseBuffer creates a new single-use buffer.
+//
+
 func NewSingleuseBuffer[RootT ~[32]byte]() Buffer[RootT] {
 	return &singleuseBuffer[RootT]{}
 }
