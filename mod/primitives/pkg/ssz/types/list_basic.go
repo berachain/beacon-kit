@@ -21,8 +21,6 @@
 package types
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
@@ -36,8 +34,8 @@ type SSZListBasic[T Basic[T]] []T
 
 // SizeSSZ returns the size of the list in bytes.
 func (l SSZListBasic[T]) SizeSSZ() int {
-	var t T
-	return t.SizeSSZ()*len(l) + BytesPerLengthOffset
+	// The same for SSZListBasic as for SSZVectorBasic.
+	return SSZVectorBasic[T](l).SizeSSZ()
 }
 
 /* -------------------------------------------------------------------------- */
@@ -66,43 +64,23 @@ func (l SSZListBasic[T]) HashTreeRoot() ([32]byte, error) {
 
 // MarshalSSZTo marshals the SSZListBasic into SSZ format.
 func (l SSZListBasic[T]) MarshalSSZTo(out []byte) ([]byte, error) {
-	for _, v := range l {
-		bytes, err := v.MarshalSSZ()
-		if err != nil {
-			return nil, err
-		}
-		out = append(out, bytes...)
-	}
-	return out, nil
+	// The same for SSZListBasic as for SSZVectorBasic.
+	return SSZVectorBasic[T](l).MarshalSSZTo(out)
 }
 
 // MarshalSSZ marshals the SSZListBasic into SSZ format.
 func (l SSZListBasic[T]) MarshalSSZ() ([]byte, error) {
-	return l.MarshalSSZTo(make([]byte, 0, l.SizeSSZ()))
+	// The same for SSZListBasic as for SSZVectorBasic.
+	return SSZVectorBasic[T](l).MarshalSSZ()
 }
 
 // NewFromSSZ creates a new SSZListBasic from SSZ format.
 func (SSZListBasic[T]) NewFromSSZ(buf []byte) (SSZListBasic[T], error) {
+	// The same for SSZListBasic as for SSZVectorBasic
 	var (
+		t   SSZVectorBasic[T]
 		err error
-		t   T
 	)
-	elementSize := t.SizeSSZ()
-	if len(buf)%elementSize != 0 {
-		return nil, fmt.Errorf(
-			"invalid buffer length %d for element size %d",
-			len(buf),
-			elementSize,
-		)
-	}
-
-	result := make(SSZListBasic[T], 0, len(buf)/elementSize)
-	for i := 0; i < len(buf); i += elementSize {
-		if t, err = t.NewFromSSZ(buf[i : i+elementSize]); err != nil {
-			return nil, err
-		}
-		result = append(result, t)
-	}
-
-	return result, nil
+	t, err = t.NewFromSSZ(buf)
+	return SSZListBasic[T](t), err
 }

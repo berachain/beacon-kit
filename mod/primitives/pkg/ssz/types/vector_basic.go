@@ -72,7 +72,6 @@ func (l SSZVectorBasic[T]) HashTreeRoot() ([32]byte, error) {
 
 // MarshalSSZToBytes marshals the SSZVectorBasic into SSZ format.
 func (l SSZVectorBasic[T]) MarshalSSZTo(out []byte) ([]byte, error) {
-
 	// From the Spec:
 	// fixed_parts = [
 	// 		serialize(element)
