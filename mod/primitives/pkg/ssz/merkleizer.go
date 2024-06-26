@@ -37,7 +37,7 @@ type merkleizer[
 	bytesBuffer bytes.Buffer[RootT]
 }
 
-// NewMerkleizer creates a new merkleizer.
+// NewMerkleizer creates a new merkleizer with reusable buffers.
 func NewMerkleizer[
 	SpecT any, RootT ~[32]byte, T Basic[SpecT, RootT],
 ]() Merkleizer[SpecT, RootT, T] {
@@ -182,8 +182,7 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeListComposite(
 	}
 
 	root, err := m.Merkleize(
-		htrs,
-		ChunkCountCompositeList[SpecT](value, effectiveLimit),
+		htrs, ChunkCountCompositeList[SpecT](value, effectiveLimit),
 	)
 	if err != nil {
 		return RootT{}, err

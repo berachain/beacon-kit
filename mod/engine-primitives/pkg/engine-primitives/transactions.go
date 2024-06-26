@@ -28,17 +28,33 @@ import (
 
 // Transactions is a typealias for [][]byte, which is how transactions are
 // received in the execution payload.
+//
+// TODO: make it take a generic SpecT type.
 type Transactions [][]byte
 
 // HashTreeRoot returns the hash tree root of the Transactions list.
 //
 // NOTE: Uses a new merkleizer for each call.
 func (txs Transactions) HashTreeRoot() (common.Root, error) {
-	var err error
-	roots := make([]common.Root, len(txs))
+	return txs.HashTreeRootWith(
+		ssz.NewMerkleizer[common.ChainSpec, [32]byte, common.Root](),
+	)
+}
 
-	merkleizer := ssz.NewMerkleizer[
-		common.ChainSpec, [32]byte, common.Root]()
+// TxsMerkleizer is a ssz merkleizer used for transactions.
+//
+// TODO: make the ChainSpec a generic on this type.
+type TxsMerkleizer ssz.Merkleizer[common.ChainSpec, [32]byte, common.Root]
+
+// HashTreeRootWith returns the hash tree root of the Transactions list
+// using the given merkleizer.
+func (txs Transactions) HashTreeRootWith(
+	merkleizer TxsMerkleizer,
+) (common.Root, error) {
+	var (
+		err   error
+		roots = make([]common.Root, len(txs))
+	)
 
 	for i, tx := range txs {
 		roots[i], err = merkleizer.MerkleizeByteSlice(tx)
@@ -47,8 +63,5 @@ func (txs Transactions) HashTreeRoot() (common.Root, error) {
 		}
 	}
 
-	return merkleizer.MerkleizeListComposite(
-		roots,
-		constants.MaxTxsPerPayload,
-	)
+	return merkleizer.MerkleizeListComposite(roots, constants.MaxTxsPerPayload)
 }

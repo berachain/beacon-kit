@@ -21,11 +21,13 @@
 package core
 
 import (
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
@@ -74,6 +76,8 @@ type StateProcessor[
 	executionEngine ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	]
+	// txsMerkleizer is the merkleizer used for calculating transaction roots.
+	txsMerkleizer engineprimitives.TxsMerkleizer
 }
 
 // NewStateProcessor creates a new state processor.
@@ -133,6 +137,9 @@ func NewStateProcessor[
 		cs:              cs,
 		executionEngine: executionEngine,
 		signer:          signer,
+		txsMerkleizer: ssz.NewMerkleizer[
+			common.ChainSpec, [32]byte, common.Root,
+		](),
 	}
 }
 
