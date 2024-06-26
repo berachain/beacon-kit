@@ -31,6 +31,7 @@ import (
 	"cosmossdk.io/core/transaction"
 	"cosmossdk.io/log"
 	serverv2 "cosmossdk.io/server/v2"
+	cliflags "github.com/berachain/beacon-kit/mod/cli/pkg/flags"
 )
 
 // DefaultCommandConfig adds a start command to the root command.
@@ -48,6 +49,7 @@ func DefaultCommandConfig[NodeT types.Node[T], T transaction.Tx](
 		server,
 		flags,
 	)
+	cliflags.AddBeaconKitFlags(startCmd)
 	cmds := server.CLICommands()
 	cmds.Commands = append(cmds.Commands, bkCommands...)
 	cmds.Commands = append(cmds.Commands, startCmd)
