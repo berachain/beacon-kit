@@ -21,8 +21,10 @@
 package components
 
 import (
+	"cosmossdk.io/core/transaction"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/cosmos/cosmos-sdk/codec"
 )
 
 func DefaultComponentsWithStandardTypes() []any {
@@ -74,5 +76,14 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideTrustedSetup,
 		ProvideValidatorService,
 		ProvideValidatorUpdateBroker,
+		ProvideNoopTxConfig,
+		ProvideTxCodec[transaction.Tx],
+
+		ProvideStoreOptions,
+
+		codec.ProvideInterfaceRegistry,
+		codec.ProvideAddressCodec,
+		codec.ProvideProtoCodec,
+		codec.ProvideLegacyAmino,
 	}
 }
