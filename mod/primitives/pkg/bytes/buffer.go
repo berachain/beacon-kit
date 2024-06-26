@@ -21,8 +21,6 @@
 package bytes
 
 // initialBufferSize is the initial size of the internal buffer.
-//
-// TODO: choose a more appropriate size?
 const initialBufferSize = 64
 
 // Buffer can be used by hashers to get a buffer of byte slices.

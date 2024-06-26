@@ -37,8 +37,8 @@ type merkleizer[
 ] struct {
 	// hasher is used to calculate merkle tree roots.
 	hasher *merkle.Hasher[RootT]
-	// htrsBuffer is a bytes buffer for calculating intermedate HTRs.
-	htrsBuffer bytes.Buffer[RootT]
+	// intermediateBuffer is a bytes buffer for intermediate roots.
+	intermediateBuffer bytes.Buffer[RootT]
 	// paddingBuffer is a bytes buffer for padding additional chunks.
 	paddingBuffer bytes.Buffer[RootT]
 }
@@ -52,8 +52,8 @@ func NewMerkleizer[
 			bytes.NewReusableBuffer[RootT](),
 			merkle.BuildParentTreeRoots[RootT],
 		),
-		htrsBuffer:    bytes.NewReusableBuffer[RootT](),
-		paddingBuffer: bytes.NewReusableBuffer[RootT](),
+		intermediateBuffer: bytes.NewReusableBuffer[RootT](),
+		paddingBuffer:      bytes.NewReusableBuffer[RootT](),
 	}
 }
 
@@ -69,7 +69,7 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeBasic(
 func (m *merkleizer[SpecT, RootT, T]) MerkleizeVecBasic(
 	value []T,
 ) (RootT, error) {
-	packed, err := Pack[SpecT](value)
+	packed, err := m.pack(value)
 	if err != nil {
 		return [32]byte{}, err
 	}
@@ -82,7 +82,7 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeListBasic(
 	value []T,
 	limit ...uint64,
 ) (RootT, error) {
-	packed, err := Pack[SpecT](value)
+	packed, err := m.pack(value)
 	if err != nil {
 		return [32]byte{}, err
 	}
@@ -117,8 +117,12 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeContainer(
 		rValue = rValue.Elem()
 	}
 	numFields := rValue.NumField()
-	htrs := make([]RootT, numFields)
-	var err error
+
+	var (
+		err  error
+		htrs = m.intermediateBuffer.Get(numFields)
+	)
+
 	for i := range numFields {
 		fieldValue := rValue.Field(i)
 		if !fieldValue.CanInterface() {
@@ -136,11 +140,12 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeContainer(
 				i,
 			)
 		}
-		htrs[i], err = field.HashTreeRoot( /*args...*/ )
+		htrs[i], err = field.HashTreeRoot()
 		if err != nil {
 			return RootT{}, err
 		}
 	}
+
 	return m.Merkleize(htrs)
 }
 
@@ -151,7 +156,7 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeVecComposite(
 ) (RootT, error) {
 	var (
 		err  error
-		htrs = m.htrsBuffer.Get(len(value))
+		htrs = m.intermediateBuffer.Get(len(value))
 	)
 
 	for i, el := range value {
@@ -160,6 +165,7 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeVecComposite(
 			return RootT{}, err
 		}
 	}
+
 	return m.Merkleize(htrs)
 }
 
@@ -171,7 +177,7 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeListComposite(
 ) (RootT, error) {
 	var (
 		err  error
-		htrs = m.htrsBuffer.Get(len(value))
+		htrs = m.intermediateBuffer.Get(len(value))
 	)
 
 	for i, el := range value {
@@ -203,14 +209,12 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeListComposite(
 func (m *merkleizer[SpecT, RootT, T]) MerkleizeByteSlice(
 	input []byte,
 ) (RootT, error) {
-	chunks, numChunks, err := PartitionBytes[RootT](input)
+	chunks, numChunks, err := m.partitionBytes(input)
 	if err != nil {
 		return RootT{}, err
 	}
-	return m.Merkleize(
-		chunks,
-		numChunks,
-	)
+
+	return m.Merkleize(chunks, numChunks)
 }
 
 // Merkleize hashes a list of chunks and returns the HTR of the list of.
@@ -262,22 +266,4 @@ func (m *merkleizer[SpecT, RootT, T]) Merkleize(
 	}
 
 	return m.hasher.NewRootWithMaxLeaves(effectiveChunks, effectiveLimit)
-}
-
-// padTo function to pad the chunks to the effective limit with zeroed chunks.
-func (m *merkleizer[SpecT, RootT, T]) padTo(
-	chunks []RootT,
-	size int,
-) []RootT {
-	switch numChunks := len(chunks); {
-	case numChunks == size:
-		// No padding needed.
-		return chunks
-	case numChunks > size:
-		// Truncate the chunks to the desired size.
-		return chunks[:size]
-	default:
-		// Append zeroed chunks to the end of the list.
-		return append(chunks, m.paddingBuffer.Get(size-numChunks)...)
-	}
 }
