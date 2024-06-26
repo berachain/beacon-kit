@@ -25,6 +25,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// TODO: DELETE THIS FILE LATER
 // Commands creates a new command for managing CometBFT
 // related commands.
 func Commands() *cobra.Command {

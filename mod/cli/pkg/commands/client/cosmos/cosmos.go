@@ -27,6 +27,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// TODO: DELETE. these cmds eventually should be pulled out of the rpc and comet
+// server
+
 // QueryCommands constructs a new cobra.Command to interact with querying
 // subcommands.
 func QueryCommands() *cobra.Command {

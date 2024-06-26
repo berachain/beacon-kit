@@ -55,7 +55,8 @@ func Commands[NodeT types.Node[T], T transaction.Tx](
 		// `comet`
 		cometbft.Commands[NodeT](appCreator),
 		// `client`
-		client.Commands(),
+		client.Commands(), // we don't need this anymore once cometbftserver
+		// adheres to the HasStartCmd flag.
 		// `config`
 		confixcmd.ConfigCommand(),
 		// `init`
@@ -68,14 +69,15 @@ func Commands[NodeT types.Node[T], T transaction.Tx](
 		jwt.Commands(),
 		// `keys`
 		keys.Commands(),
+
+		// Not yet implemented on SimappV2
 		// `prune`
 		// pruning.Cmd(appCreator),
 		// // `rollback`
 		// server.NewRollbackCmd(appCreator),
 		// // `snapshots`
 		// snapshot.Cmd(appCreator),
-		// `start`
-		// server.StartCmdWithOptions(appCreator, startCmdOptions),
+
 		// `status`
 		server.StatusCommand(),
 		// `version`
