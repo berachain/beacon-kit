@@ -199,11 +199,15 @@ func (b *BeaconBlockBodyDeneb) SetBlobKzgCommitments(
 
 // GetTopLevelRoots returns the top-level roots of the BeaconBlockBodyDeneb.
 func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
-	layer := make([]common.Root, BodyLengthDeneb)
-	var err error
-	randao := b.GetRandaoReveal()
-	merkleizer := ssz.NewMerkleizer[common.ChainSpec, math.U64,
-		math.U256L, [32]byte, common.Root]()
+	var (
+		err        error
+		layer      = make([]common.Root, BodyLengthDeneb)
+		randao     = b.GetRandaoReveal()
+		merkleizer = ssz.NewMerkleizer[
+			common.ChainSpec, [32]byte, common.Root,
+		]()
+	)
+
 	layer[0], err = merkleizer.MerkleizeByteSlice(randao[:])
 	if err != nil {
 		return nil, err

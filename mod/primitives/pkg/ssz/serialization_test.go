@@ -25,74 +25,9 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/stretchr/testify/require"
 )
-
-func TestMarshalUnmarshalU256(t *testing.T) {
-	original := math.U256L{
-		0x01,
-		0x02,
-		0x03,
-		0x04,
-		0x05,
-		0x06,
-		0x07,
-		0x08,
-		0x09,
-		0x0A,
-		0x0B,
-		0x0C,
-		0x0D,
-		0x0E,
-		0x0F,
-		0x10,
-		0x11,
-		0x12,
-		0x13,
-		0x14,
-		0x15,
-		0x16,
-		0x17,
-		0x18,
-		0x19,
-		0x1A,
-		0x1B,
-		0x1C,
-		0x1D,
-		0x1E,
-		0x1F,
-		0x20,
-	}
-	marshaled := ssz.MarshalU256(original)
-	unmarshaled := ssz.UnmarshalU256L[[32]byte](marshaled)
-	require.Equal(t, marshaled, unmarshaled[:], "Marshal/Unmarshal U256 failed")
-}
-
-func TestMarshalUnmarshalU128(t *testing.T) {
-	original := [16]byte{
-		0x01,
-		0x02,
-		0x03,
-		0x04,
-		0x05,
-		0x06,
-		0x07,
-		0x08,
-		0x09,
-		0x0A,
-		0x0B,
-		0x0C,
-		0x0D,
-		0x0E,
-		0x0F,
-		0x10,
-	}
-	marshaled := ssz.MarshalU128(original)
-	unmarshaled := ssz.UnmarshalU128L[[16]byte](marshaled)
-	require.Equal(t, marshaled, unmarshaled[:], "Marshal/Unmarshal U128 failed")
-}
 
 func TestMarshalUnmarshalU64(t *testing.T) {
 	original := uint64(0x0102030405060708)
@@ -128,90 +63,6 @@ func TestMarshalUnmarshalBool(t *testing.T) {
 	unmarshaled, err := ssz.UnmarshalBool[bool](marshaled)
 	require.NoError(t, err)
 	require.Equal(t, original, unmarshaled, "Marshal/Unmarshal Bool failed")
-}
-
-func FuzzMarshalUnmarshalU256(f *testing.F) {
-	f.Fuzz(func(t *testing.T, byte1 byte, byte2 byte, byte3 byte, byte4 byte,
-		byte5 byte, byte6 byte, byte7 byte, byte8 byte, byte9 byte, byte10 byte,
-		byte11 byte, byte12 byte, byte13 byte, byte14 byte, byte15 byte,
-		byte16 byte, byte17 byte, byte18 byte, byte19 byte, byte20 byte,
-		byte21 byte, byte22 byte, byte23 byte, byte24 byte, byte25 byte,
-		byte26 byte, byte27 byte, byte28 byte, byte29 byte, byte30 byte,
-		byte31 byte, byte32 byte) {
-		original := [32]byte{
-			byte1,
-			byte2,
-			byte3,
-			byte4,
-			byte5,
-			byte6,
-			byte7,
-			byte8,
-			byte9,
-			byte10,
-			byte11,
-			byte12,
-			byte13,
-			byte14,
-			byte15,
-			byte16,
-			byte17,
-			byte18,
-			byte19,
-			byte20,
-			byte21,
-			byte22,
-			byte23,
-			byte24,
-			byte25,
-			byte26,
-			byte27,
-			byte28,
-			byte29,
-			byte30,
-			byte31,
-			byte32,
-		}
-
-		marshaled := ssz.MarshalU256(original)
-		unmarshaled := ssz.UnmarshalU256L[[32]byte](marshaled)
-		require.Equal(t, original, unmarshaled, "Marshal/Unmarshal U256 failed")
-	})
-}
-
-func FuzzMarshalUnmarshalU128(f *testing.F) {
-	f.Fuzz(func(t *testing.T, byte1 byte, byte2 byte, byte3 byte, byte4 byte,
-		byte5 byte, byte6 byte, byte7 byte, byte8 byte, byte9 byte,
-		byte10 byte, byte11 byte, byte12 byte, byte13 byte, byte14 byte,
-		byte15 byte, byte16 byte) {
-		original := [16]byte{
-			byte1,
-			byte2,
-			byte3,
-			byte4,
-			byte5,
-			byte6,
-			byte7,
-			byte8,
-			byte9,
-			byte10,
-			byte11,
-			byte12,
-			byte13,
-			byte14,
-			byte15,
-			byte16,
-		}
-
-		marshaled := ssz.MarshalU128(original)
-		unmarshaled := ssz.UnmarshalU128L[[16]byte](marshaled)
-		require.Equal(
-			t,
-			original,
-			unmarshaled,
-			"Marshal/Unmarshal U128L failed",
-		)
-	})
 }
 
 func FuzzMarshalUnmarshalU64(f *testing.F) {
