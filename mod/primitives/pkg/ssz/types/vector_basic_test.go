@@ -54,7 +54,7 @@ func TestSSZVectorBasicSizeSSZ(t *testing.T) {
 
 	t.Run("empty vector", func(t *testing.T) {
 		vector := types.SSZVectorBasic[types.SSZUInt64]{}
-		require.Len(t, vector, 0)
+		require.Empty(t, vector)
 		require.Equal(t, 0, vector.SizeSSZ())
 	})
 }
@@ -98,7 +98,7 @@ func TestSSZVectorBasicMarshalUnmarshal(t *testing.T) {
 
 		marshaled, err := original.MarshalSSZ()
 		require.NoError(t, err)
-		require.Equal(t, 5, len(marshaled))
+		require.Len(t, marshaled, 5)
 
 		var unmarshaled = types.SSZVectorBasic[types.SSZUInt8]{}
 		err = unmarshaled.UnmarshalSSZ(marshaled)
@@ -113,7 +113,7 @@ func TestSSZVectorBasicMarshalUnmarshal(t *testing.T) {
 
 		marshaled, err := original.MarshalSSZ()
 		require.NoError(t, err)
-		require.Equal(t, 5, len(marshaled))
+		require.Len(t, marshaled, 5)
 
 		var unmarshaled types.SSZVectorBasic[types.SSZBool]
 		err = unmarshaled.UnmarshalSSZ(marshaled)
@@ -127,7 +127,7 @@ func TestSSZVectorBasicMarshalUnmarshal(t *testing.T) {
 
 		marshaled, err := original.MarshalSSZ()
 		require.NoError(t, err)
-		require.Equal(t, 40, len(marshaled))
+		require.Len(t, marshaled, 40)
 
 		var unmarshaled = make(types.SSZVectorBasic[types.SSZUInt64], 0)
 		require.NoError(t, unmarshaled.UnmarshalSSZ(marshaled))
