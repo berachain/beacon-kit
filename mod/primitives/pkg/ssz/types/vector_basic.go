@@ -83,7 +83,11 @@ func (l *SSZVectorBasic[T]) UnmarshalSSZ(buf []byte) error {
 	)
 	elementSize := t.SizeSSZ()
 	if len(buf)%elementSize != 0 {
-		return fmt.Errorf("invalid buffer length %d for element size %d", len(buf), elementSize)
+		return fmt.Errorf(
+			"invalid buffer length %d for element size %d",
+			len(buf),
+			elementSize,
+		)
 	}
 
 	if l == nil {

@@ -30,26 +30,31 @@ import (
 func TestSSZVectorBasicSizeSSZ(t *testing.T) {
 	t.Run("uint8 vector", func(t *testing.T) {
 		vector := types.SSZVectorBasic[types.SSZByte]{1, 2, 3, 4, 5}
+		require.Len(t, vector, 5)
 		require.Equal(t, 5, vector.SizeSSZ())
 	})
 
 	t.Run("byte slice vector", func(t *testing.T) {
 		vector := types.SSZVectorBasic[types.SSZUInt8]{1, 2, 3, 4, 5, 6, 7, 8}
+		require.Len(t, vector, 8)
 		require.Equal(t, 8, vector.SizeSSZ())
 	})
 
 	t.Run("uint64 vector", func(t *testing.T) {
 		vector := types.SSZVectorBasic[types.SSZUInt64]{1, 2, 3, 4, 5}
+		require.Len(t, vector, 5)
 		require.Equal(t, 40, vector.SizeSSZ())
 	})
 
 	t.Run("bool vector", func(t *testing.T) {
 		vector := types.SSZVectorBasic[types.SSZBool]{true, false, true}
+		require.Len(t, vector, 3)
 		require.Equal(t, 3, vector.SizeSSZ())
 	})
 
 	t.Run("empty vector", func(t *testing.T) {
 		vector := types.SSZVectorBasic[types.SSZUInt64]{}
+		require.Len(t, vector, 0)
 		require.Equal(t, 0, vector.SizeSSZ())
 	})
 }
@@ -88,33 +93,34 @@ func TestSSZVectorBasicHashTreeRoot(t *testing.T) {
 }
 
 func TestSSZVectorBasicMarshalUnmarshal(t *testing.T) {
-	// t.Run("uint8 vector", func(t *testing.T) {
-	// 	original := types.SSZVectorBasic[types.SSZUInt8]{1, 2, 3, 4, 5}
+	t.Run("uint8 vector", func(t *testing.T) {
+		original := types.SSZVectorBasic[types.SSZUInt8]{1, 2, 3, 4, 5}
 
-	// 	marshaled, err := original.MarshalSSZ()
-	// 	require.NoError(t, err)
-	// 	require.Equal(t, 5, len(marshaled))
+		marshaled, err := original.MarshalSSZ()
+		require.NoError(t, err)
+		require.Equal(t, 5, len(marshaled))
 
-	// 	var unmarshaled = types.SSZVectorBasic[types.SSZUInt8]{}
-	// 	err = unmarshaled.UnmarshalSSZ(marshaled)
-	// 	require.NoError(t, err)
+		var unmarshaled = types.SSZVectorBasic[types.SSZUInt8]{}
+		err = unmarshaled.UnmarshalSSZ(marshaled)
+		require.NoError(t, err)
 
-	// 	require.Equal(t, original, unmarshaled)
-	// })
+		require.Equal(t, original, unmarshaled)
+	})
 
-	// t.Run("bool vector", func(t *testing.T) {
-	// 	original := types.SSZVectorBasic[types.SSZBool]{true, false, true, false, true}
+	t.Run("bool vector", func(t *testing.T) {
+		original := types.SSZVectorBasic[types.SSZBool]{true, false, true,
+			false, true}
 
-	// 	marshaled, err := original.MarshalSSZ()
-	// 	require.NoError(t, err)
-	// 	require.Equal(t, 5, len(marshaled))
+		marshaled, err := original.MarshalSSZ()
+		require.NoError(t, err)
+		require.Equal(t, 5, len(marshaled))
 
-	// 	var unmarshaled types.SSZVectorBasic[types.SSZBool]
-	// 	err = unmarshaled.UnmarshalSSZ(marshaled)
-	// 	require.NoError(t, err)
+		var unmarshaled types.SSZVectorBasic[types.SSZBool]
+		err = unmarshaled.UnmarshalSSZ(marshaled)
+		require.NoError(t, err)
 
-	// 	require.Equal(t, original, unmarshaled)
-	// })
+		require.Equal(t, original, unmarshaled)
+	})
 
 	t.Run("uint64 vector", func(t *testing.T) {
 		original := types.SSZVectorBasic[types.SSZUInt64]{1, 2, 3, 4, 5}
@@ -129,10 +135,10 @@ func TestSSZVectorBasicMarshalUnmarshal(t *testing.T) {
 		require.Equal(t, original, unmarshaled)
 	})
 
-	// t.Run("invalid buffer length", func(t *testing.T) {
-	// 	var vector types.SSZVectorBasic[types.SSZUInt64]
-	// 	err := vector.UnmarshalSSZ([]byte{1, 2, 3}) // Invalid length for uint64
-	// 	require.Error(t, err)
-	// 	require.Contains(t, err.Error(), "invalid buffer length")
-	// })
+	t.Run("invalid buffer length", func(t *testing.T) {
+		var vector types.SSZVectorBasic[types.SSZUInt64]
+		err := vector.UnmarshalSSZ([]byte{1, 2, 3}) // Invalid length for uint64
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "invalid buffer length")
+	})
 }

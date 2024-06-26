@@ -18,6 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
+//nolint:mnd // lots of magic numbers here.
 package types
 
 import (
@@ -54,7 +55,10 @@ func (b SSZBool) MarshalSSZ() ([]byte, error) {
 // NewFromSSZ creates a new SSZBool from SSZ format.
 func (SSZBool) NewFromSSZ(buf []byte) (SSZBool, error) {
 	if len(buf) != 1 {
-		return false, fmt.Errorf("invalid buffer length: expected 1, got %d", len(buf))
+		return false, fmt.Errorf(
+			"invalid buffer length: expected 1, got %d",
+			len(buf),
+		)
 	}
 	return SSZBool(buf[0] != 0), nil
 }
@@ -78,7 +82,10 @@ func (u SSZUInt8) MarshalSSZ() ([]byte, error) {
 // NewFromSSZ creates a new SSZUInt8 from SSZ format.
 func (SSZUInt8) NewFromSSZ(buf []byte) (SSZUInt8, error) {
 	if len(buf) != 1 {
-		return 0, fmt.Errorf("invalid buffer length: expected 1, got %d", len(buf))
+		return 0, fmt.Errorf(
+			"invalid buffer length: expected 1, got %d",
+			len(buf),
+		)
 	}
 	return SSZUInt8(buf[0]), nil
 }
@@ -102,7 +109,10 @@ func (u SSZUInt16) MarshalSSZ() ([]byte, error) {
 // NewFromSSZ creates a new SSZUInt16 from SSZ format.
 func (SSZUInt16) NewFromSSZ(buf []byte) (SSZUInt16, error) {
 	if len(buf) != 2 {
-		return 0, fmt.Errorf("invalid buffer length: expected 2, got %d", len(buf))
+		return 0, fmt.Errorf(
+			"invalid buffer length: expected 2, got %d",
+			len(buf),
+		)
 	}
 	return SSZUInt16(binary.LittleEndian.Uint16(buf)), nil
 }
@@ -126,7 +136,10 @@ func (u SSZUInt32) MarshalSSZ() ([]byte, error) {
 // NewFromSSZ creates a new SSZUInt32 from SSZ format.
 func (SSZUInt32) NewFromSSZ(buf []byte) (SSZUInt32, error) {
 	if len(buf) != 4 {
-		return 0, fmt.Errorf("invalid buffer length: expected 4, got %d", len(buf))
+		return 0, fmt.Errorf(
+			"invalid buffer length: expected 4, got %d",
+			len(buf),
+		)
 	}
 	return SSZUInt32(binary.LittleEndian.Uint32(buf)), nil
 }
@@ -150,7 +163,10 @@ func (u SSZUInt64) MarshalSSZ() ([]byte, error) {
 // NewFromSSZ creates a new SSZUInt64 from SSZ format.
 func (SSZUInt64) NewFromSSZ(buf []byte) (SSZUInt64, error) {
 	if len(buf) != 8 {
-		return 0, fmt.Errorf("invalid buffer length: expected 8, got %d", len(buf))
+		return 0, fmt.Errorf(
+			"invalid buffer length: expected 8, got %d",
+			len(buf),
+		)
 	}
 	return SSZUInt64(binary.LittleEndian.Uint64(buf)), nil
 }
@@ -172,7 +188,10 @@ func (b SSZByte) MarshalSSZ() ([]byte, error) {
 // NewFromSSZ creates a new SSZByte from SSZ format.
 func (SSZByte) NewFromSSZ(buf []byte) (SSZByte, error) {
 	if len(buf) != 1 {
-		return 0, fmt.Errorf("invalid buffer length: expected 1, got %d", len(buf))
+		return 0, fmt.Errorf(
+			"invalid buffer length: expected 1, got %d",
+			len(buf),
+		)
 	}
 	return SSZByte(buf[0]), nil
 }
