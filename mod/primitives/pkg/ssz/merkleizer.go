@@ -255,7 +255,7 @@ func (m *merkleizer[SpecT, RootT, T]) Merkleize(
 	return m.hasher.NewRootWithMaxLeaves(effectiveChunks, effectiveLimit)
 }
 
-// PadTo function to pad the chunks to the effective limit with zeroed chunks.
+// padTo function to pad the chunks to the effective limit with zeroed chunks.
 func (m *merkleizer[SpecT, RootT, T]) padTo(
 	chunks []RootT,
 	size math.U64,
@@ -273,7 +273,7 @@ func (m *merkleizer[SpecT, RootT, T]) padTo(
 	}
 }
 
-// Pack packs a list of SSZ-marshallable elements into a single byte slice.
+// pack packs a list of SSZ-marshallable elements into a single byte slice.
 func (m *merkleizer[SpecT, RootT, T]) pack(values []T) ([]RootT, error) {
 	// Pack each element into separate buffers.
 	var packed []byte
@@ -315,11 +315,12 @@ func (m *merkleizer[SpecT, RootT, T]) partitionBytes(input []byte) (
 	[]RootT, uint64, error,
 ) {
 	//nolint:mnd // we add 31 in order to round up the division.
-	numChunks := max((uint64(len(input))+31)/constants.RootLength, 1)
+	numChunks := max((len(input)+31)/constants.RootLength, 1)
 	// TODO: figure out how to safely chunk these bytes.
 	chunks := make([]RootT, numChunks)
 	for i := range chunks {
 		copy(chunks[i][:], input[32*i:])
 	}
-	return chunks, numChunks, nil
+	//#nosec:G701 // numChunks is always >= 1.
+	return chunks, uint64(numChunks), nil
 }
