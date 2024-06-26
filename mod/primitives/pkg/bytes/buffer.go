@@ -68,7 +68,7 @@ type singleuseBuffer[RootT ~[32]byte] struct{}
 
 // NewSingleuseBuffer creates a new single-use buffer.
 //
-//nolint:revive // used as the Buffer interface.
+
 func NewSingleuseBuffer[RootT ~[32]byte]() Buffer[RootT] {
 	return &singleuseBuffer[RootT]{}
 }
