@@ -200,10 +200,7 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeByteSlice(
 	if err != nil {
 		return RootT{}, err
 	}
-	return m.Merkleize(
-		chunks,
-		numChunks,
-	)
+	return m.Merkleize(chunks, numChunks)
 }
 
 // Merkleize hashes a list of chunks and returns the HTR of the list of.
