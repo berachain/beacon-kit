@@ -21,12 +21,10 @@
 package ssz
 
 import (
-	"encoding/binary"
 	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
-	"github.com/prysmaticlabs/gohashtree"
 )
 
 // SizeOfBasic returns the size of a basic type.
@@ -148,11 +146,7 @@ func PadTo[U64T ~uint64, ChunkT ~[32]byte](
 
 // Pack packs a list of SSZ-marshallable elements into a single byte slice.
 func Pack[
-	U64T U64[U64T],
-	U256L U256LT,
-	SpecT any,
-	RootT ~[32]byte,
-	B Basic[SpecT, RootT],
+	SpecT any, RootT ~[32]byte, B Basic[SpecT, RootT],
 ](b []B) ([]RootT, error) {
 	// Pack each element into separate buffers.
 	var packed []byte
@@ -199,32 +193,4 @@ func PartitionBytes[RootT ~[32]byte](input []byte) ([]RootT, uint64, error) {
 		copy(chunks[i][:], input[32*i:])
 	}
 	return chunks, numChunks, nil
-}
-
-// MerkleizeByteSlice hashes a byteslice by chunkifying it and returning the
-// corresponding HTR as if it were a fixed vector of bytes of the given length.
-func MerkleizeByteSlice[U64T U64[U64T], RootT ~[32]byte](
-	input []byte,
-) (RootT, error) {
-	chunks, numChunks, err := PartitionBytes[RootT](input)
-	if err != nil {
-		return RootT{}, err
-	}
-	return Merkleize[U64T, RootT](
-		chunks,
-		numChunks,
-	)
-}
-
-// MixinLength takes a root element and mixes in the length of the elements
-// that were hashed to produce it.
-func MixinLength[RootT ~[32]byte](element RootT, length uint64) RootT {
-	//nolint:mnd // 2 is okay.
-	chunks := make([][32]byte, 2)
-	chunks[0] = element
-	binary.LittleEndian.PutUint64(chunks[1][:], length)
-	if err := gohashtree.Hash(chunks, chunks); err != nil {
-		return RootT{}
-	}
-	return chunks[0]
 }

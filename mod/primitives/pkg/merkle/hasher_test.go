@@ -27,10 +27,132 @@ import (
 	"testing"
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
 	"github.com/prysmaticlabs/gohashtree"
 	"github.com/stretchr/testify/require"
 )
+
+// Test NewRootWithMaxLeaves with empty leaves.
+func TestNewRootWithMaxLeaves_EmptyLeaves(t *testing.T) {
+	buffer := getBuffer("reusable")
+	hasher := merkle.NewHasher(buffer, gohashtree.Hash)
+
+	root, err := hasher.NewRootWithMaxLeaves(nil, 0)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	expectedRoot := zero.Hashes[0]
+	if root != expectedRoot {
+		t.Errorf("Expected root to be %v, got %v", expectedRoot, root)
+	}
+}
+
+// Test NewRootWithDepth with empty leaves.
+func TestNewRootWithDepth_EmptyLeaves(t *testing.T) {
+	buffer := getBuffer("reusable")
+	hasher := merkle.NewHasher(buffer, gohashtree.Hash)
+
+	root, err := hasher.NewRootWithDepth(nil, 0)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	expectedRoot := zero.Hashes[0]
+	if root != expectedRoot {
+		t.Errorf("Expected root to be %v, got %v", expectedRoot, root)
+	}
+}
+
+// Helper function to create a dummy leaf.
+func createDummyLeaf(value byte) [32]byte {
+	var leaf [32]byte
+	leaf[0] = value
+	return leaf
+}
+
+// Test NewRootWithMaxLeaves with one leaf.
+func TestNewRootWithMaxLeaves_OneLeaf(t *testing.T) {
+	buffer := getBuffer("reusable")
+	hasher := merkle.NewHasher(buffer, gohashtree.Hash)
+
+	leaf := createDummyLeaf(1)
+	leaves := [][32]byte{leaf}
+
+	root, err := hasher.NewRootWithMaxLeaves(leaves, 1)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	if root != leaf {
+		t.Errorf("Expected root to be %v, got %v", leaf, root)
+	}
+}
+
+// Benchmark using a reusable buffer
+//
+// goos: darwin
+// goarch: arm64
+// pkg: github.com/berachain/beacon-kit/mod/primitives/pkg/merkle
+// BenchmarkHasherWithReusableBuffer-12
+// 29875  37987 ns/op  0 B/op  0 allocs/op.
+func BenchmarkHasherWithReusableBuffer(b *testing.B) {
+	buffer := getBuffer("reusable")
+	hasher := merkle.NewHasher(buffer, gohashtree.Hash)
+
+	leaves := make([][32]byte, 1000)
+	for i := range 1000 {
+		leaves[i] = createDummyLeaf(byte(i))
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, err := hasher.NewRootWithMaxLeaves(leaves, math.U64(len(leaves)))
+		if err != nil {
+			b.Fatalf("Expected no error, got %v", err)
+		}
+	}
+}
+
+// Benchmark using a single-use buffer
+//
+// goos: darwin
+// goarch: arm64
+// pkg: github.com/berachain/beacon-kit/mod/primitives/pkg/merkle
+// BenchmarkHasherWithSingleUseBuffer-12
+// 29114  38953 ns/op  16384 B/op  1 allocs/op.
+func BenchmarkHasherWithSingleUseBuffer(b *testing.B) {
+	buffer := getBuffer("singleuse")
+	hasher := merkle.NewHasher(buffer, gohashtree.Hash)
+
+	leaves := make([][32]byte, 1000)
+	for i := range 1000 {
+		leaves[i] = createDummyLeaf(byte(i))
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, err := hasher.NewRootWithMaxLeaves(leaves, math.U64(len(leaves)))
+		if err != nil {
+			b.Fatalf("Expected no error, got %v", err)
+		}
+	}
+}
+
+// getBuffer returns a buffer of the given type.
+func getBuffer(usageType string) bytes.Buffer[[32]byte] {
+	switch usageType {
+	case "reusable":
+		return bytes.NewReusableBuffer[[32]byte]()
+	case "singleuse":
+		return bytes.NewSingleuseBuffer[[32]byte]()
+	default:
+		panic("unknown usage type: " + usageType)
+	}
+}
 
 func Test_HashTreeRootEqualInputs(t *testing.T) {
 	// Test with slices of varying sizes to ensure robustness across different
@@ -41,27 +163,19 @@ func Test_HashTreeRootEqualInputs(t *testing.T) {
 			fmt.Sprintf("Size%d", size*merkle.MinParallelizationSize),
 			func(t *testing.T) {
 				largeSlice := make(
-					[][32]byte,
-					size*merkle.MinParallelizationSize,
+					[][32]byte, size*merkle.MinParallelizationSize,
 				)
 				secondLargeSlice := make(
-					[][32]byte,
-					size*merkle.MinParallelizationSize,
+					[][32]byte, size*merkle.MinParallelizationSize,
 				)
 				hash1 := make([][32]byte, size*merkle.MinParallelizationSize)
 				hash2 := make([][32]byte, size*merkle.MinParallelizationSize)
 				var err error
 
-				err = merkle.BuildParentTreeRoots[[32]byte](
-					hash1,
-					largeSlice,
-				)
+				err = merkle.BuildParentTreeRoots(hash1, largeSlice)
 				require.NoError(t, err)
 
-				err = merkle.BuildParentTreeRoots[[32]byte](
-					hash2,
-					secondLargeSlice,
-				)
+				err = merkle.BuildParentTreeRoots(hash2, secondLargeSlice)
 				require.NoError(t, err)
 
 				require.Equal(
