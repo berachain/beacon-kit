@@ -33,8 +33,6 @@ type Buffer[RootT ~[32]byte] interface {
 
 // reusableBuffer is a re-usable buffer for merkle tree hashing. Prevents
 // unnecessary allocations and garbage collection of byte slices.
-//
-// NOTE: this buffer is ONLY meant to be used in a single thread.
 type reusableBuffer[RootT ~[32]byte] struct {
 	internal []RootT
 
