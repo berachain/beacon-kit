@@ -126,24 +126,6 @@ func ChunkCountContainer[SpecT any, RootT ~[32]byte, C Container[SpecT, RootT]](
 	return uint64(reflect.ValueOf(c).NumField())
 }
 
-// PadTo function to pad the chunks to the effective limit with zeroed chunks.
-func PadTo[U64T ~uint64, ChunkT ~[32]byte](
-	chunks []ChunkT,
-	size U64T,
-) []ChunkT {
-	switch numChunks := U64T(len(chunks)); {
-	case numChunks == size:
-		// No padding needed.
-		return chunks
-	case numChunks > size:
-		// Truncate the chunks to the desired size.
-		return chunks[:size]
-	default:
-		// Append zeroed chunks to the end of the list.
-		return append(chunks, make([]ChunkT, size-numChunks)...)
-	}
-}
-
 // Pack packs a list of SSZ-marshallable elements into a single byte slice.
 func Pack[
 	SpecT any, RootT ~[32]byte, B Basic[SpecT, RootT],

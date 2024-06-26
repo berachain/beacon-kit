@@ -30,11 +30,17 @@ import (
 )
 
 // merkleizer can be used for merkleizing SSZ types.
+//
+// TODO: use the same internal bytes buffer for operations.
 type merkleizer[
 	SpecT any, RootT ~[32]byte, T Basic[SpecT, RootT],
 ] struct {
-	hasher      *merkle.Hasher[RootT]
-	bytesBuffer bytes.Buffer[RootT]
+	// hasher is used to calculate merkle tree roots.
+	hasher *merkle.Hasher[RootT]
+	// htrsBuffer is a bytes buffer for calculating intermedate HTRs.
+	htrsBuffer bytes.Buffer[RootT]
+	// paddingBuffer is a bytes buffer for padding additional chunks.
+	paddingBuffer bytes.Buffer[RootT]
 }
 
 // NewMerkleizer creates a new merkleizer with reusable buffers.
@@ -46,7 +52,8 @@ func NewMerkleizer[
 			bytes.NewReusableBuffer[RootT](),
 			merkle.BuildParentTreeRoots[RootT],
 		),
-		bytesBuffer: bytes.NewReusableBuffer[RootT](),
+		htrsBuffer:    bytes.NewReusableBuffer[RootT](),
+		paddingBuffer: bytes.NewReusableBuffer[RootT](),
 	}
 }
 
@@ -144,7 +151,7 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeVecComposite(
 ) (RootT, error) {
 	var (
 		err  error
-		htrs = m.bytesBuffer.Get(len(value))
+		htrs = m.htrsBuffer.Get(len(value))
 	)
 
 	for i, el := range value {
@@ -164,7 +171,7 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeListComposite(
 ) (RootT, error) {
 	var (
 		err  error
-		htrs = m.bytesBuffer.Get(len(value))
+		htrs = m.htrsBuffer.Get(len(value))
 	)
 
 	for i, el := range value {
@@ -249,10 +256,28 @@ func (m *merkleizer[SpecT, RootT, T]) Merkleize(
 		effectiveLimit = math.U64(limit[0])
 	}
 
-	effectiveChunks = PadTo(chunks, effectiveLimit)
+	effectiveChunks = m.padTo(chunks, int(effectiveLimit))
 	if len(effectiveChunks) == 1 {
 		return effectiveChunks[0], nil
 	}
 
 	return m.hasher.NewRootWithMaxLeaves(effectiveChunks, effectiveLimit)
+}
+
+// padTo function to pad the chunks to the effective limit with zeroed chunks.
+func (m *merkleizer[SpecT, RootT, T]) padTo(
+	chunks []RootT,
+	size int,
+) []RootT {
+	switch numChunks := len(chunks); {
+	case numChunks == size:
+		// No padding needed.
+		return chunks
+	case numChunks > size:
+		// Truncate the chunks to the desired size.
+		return chunks[:size]
+	default:
+		// Append zeroed chunks to the end of the list.
+		return append(chunks, m.paddingBuffer.Get(size-numChunks)...)
+	}
 }
