@@ -21,16 +21,14 @@
 package bytes
 
 // initialBufferSize is the initial size of the internal buffer.
-//
-// TODO: choose a more appropriate size?
-const initialBufferSize = 16
+const initialBufferSize = 64
 
 // Buffer can be used by hashers to get a buffer of byte slices.
 type Buffer[RootT ~[32]byte] interface {
 	// Get returns a slice of roots of the given size.
 	Get(size int) []RootT
 
-	// TODO: add a Put method to return the buffer back for multi-threaded use.
+	// TODO: add a Put method to return the buffer back for concurrent use.
 }
 
 // reusableBuffer is a re-usable buffer for merkle tree hashing. Prevents
@@ -44,9 +42,7 @@ type reusableBuffer[RootT ~[32]byte] struct {
 }
 
 // NewReusableBuffer creates a new re-usable buffer for merkle tree hashing.
-//
-//nolint:revive // used as the Buffer interface.
-func NewReusableBuffer[RootT ~[32]byte]() *reusableBuffer[RootT] {
+func NewReusableBuffer[RootT ~[32]byte]() Buffer[RootT] {
 	return &reusableBuffer[RootT]{
 		internal: make([]RootT, initialBufferSize),
 	}
@@ -75,7 +71,7 @@ type singleuseBuffer[RootT ~[32]byte] struct{}
 // NewSingleuseBuffer creates a new single-use buffer.
 //
 //nolint:revive // used as the Buffer interface.
-func NewSingleuseBuffer[RootT ~[32]byte]() *singleuseBuffer[RootT] {
+func NewSingleuseBuffer[RootT ~[32]byte]() Buffer[RootT] {
 	return &singleuseBuffer[RootT]{}
 }
 
