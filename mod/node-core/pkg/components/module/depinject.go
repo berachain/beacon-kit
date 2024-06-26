@@ -27,7 +27,7 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
-	runtimev2 "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module/api/runtime/v2"
+	runtimev2 "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module/api/module/v2"
 )
 
 // TODO: we don't allow generics here? Why? Is it fixable?
