@@ -36,6 +36,6 @@ func GetServerContextFromCmd(cmd *cobra.Command) *server.Context {
 	}
 
 	return newDefaultContextWithLogger(
-		&noop.AdvancedLogger[any, log.Logger]{},
+		&noop.Logger[any, log.Logger]{},
 	)
 }
