@@ -58,17 +58,30 @@ func (l SSZVectorBasic[T]) HashTreeRoot() ([32]byte, error) {
 	]())
 }
 
-// MarshalSSZ marshals the SSZVectorBasic into SSZ format.
-func (l SSZVectorBasic[T]) MarshalSSZ() ([]byte, error) {
-	packedBytes := make([]byte, 0, l.SizeSSZ())
+// MarshalSSZToBytes marshals the SSZVectorBasic into SSZ format.
+func (l SSZVectorBasic[T]) MarshalSSZTo(out []byte) ([]byte, error) {
+
+	// From the Spec:
+	// fixed_parts = [
+	// 		serialize(element)
+	// 			if not is_variable_size(element)
+	//			else None for element in value,
+	// 		]
+	// VectorBasic has all fixed types, so we simply
+	// serialize each element and pack them together.
 	for _, v := range l {
 		bytes, err := v.MarshalSSZ()
 		if err != nil {
 			return nil, err
 		}
-		packedBytes = append(packedBytes, bytes...)
+		out = append(out, bytes...)
 	}
-	return packedBytes, nil
+	return out, nil
+}
+
+// MarshalSSZ marshals the SSZVectorBasic into SSZ format.
+func (l SSZVectorBasic[T]) MarshalSSZ() ([]byte, error) {
+	return l.MarshalSSZTo(make([]byte, 0, l.SizeSSZ()))
 }
 
 // UnmarshalSSZ unmarshals the SSZVectorBasic from SSZ format.
