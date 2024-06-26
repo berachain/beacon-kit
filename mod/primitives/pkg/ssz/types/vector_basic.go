@@ -27,10 +27,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
-type SSZMarshallable interface {
-	SizeSSZ() int
-}
-
 // SSZVectorBasic is a vector of basic types.
 type SSZVectorBasic[T Basic[T]] []T
 
