@@ -21,13 +21,13 @@
 package builder
 
 import (
-	runtimesdkv2 "cosmossdk.io/api/cosmos/app/runtime/v2"
+	runtimev2 "cosmossdk.io/api/cosmos/app/runtime/v2"
 	appv1alpha1 "cosmossdk.io/api/cosmos/app/v1alpha1"
 	"cosmossdk.io/core/address"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
 	beacon "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module"
-	runtimev2 "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module/api/module/v2"
+	modulev2 "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module/api/module/v2"
 	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 	"github.com/cosmos/cosmos-sdk/runtime"
 )
@@ -41,17 +41,22 @@ func DefaultDepInjectConfig() depinject.Config {
 			Modules: []*appv1alpha1.ModuleConfig{
 				{
 					Name: runtime.ModuleName,
-					Config: appconfig.WrapAny(&runtimesdkv2.Module{
+					Config: appconfig.WrapAny(&runtimev2.Module{
 						AppName:       DefaultAppName,
 						PreBlockers:   []string{},
 						BeginBlockers: []string{},
 						EndBlockers:   []string{beacon.ModuleName},
 						InitGenesis:   []string{beacon.ModuleName},
+						GasConfig: &runtimev2.GasConfig{
+							ValidateTxGasLimit: 100_000,
+							QueryGasLimit:      100_000,
+							SimulationGasLimit: 100_000,
+						},
 					}),
 				},
 				{
 					Name:   beacon.ModuleName,
-					Config: appconfig.WrapAny(&runtimev2.Module{}),
+					Config: appconfig.WrapAny(&modulev2.Module{}),
 				},
 			},
 		}),

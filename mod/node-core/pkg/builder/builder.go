@@ -77,7 +77,7 @@ func (nb *NodeBuilder[NodeT, T]) Build(
 	// variables to hold the components needed to set up BeaconApp
 	var (
 		chainSpec       common.ChainSpec
-		appBuilder      *runtime.AppBuilder
+		appBuilder      *runtime.AppBuilder[T]
 		abciMiddleware  *components.ABCIMiddleware
 		serviceRegistry *service.Registry
 	)

@@ -42,7 +42,7 @@ import (
 // Commands sets up the default commands for the root command.
 func Commands[NodeT types.Node[T], T transaction.Tx](
 	root *Root,
-	mm *runtime.MM,
+	mm *runtime.MM[T],
 	appCreator serverv2.AppCreator[NodeT, T],
 	chainSpec common.ChainSpec,
 ) []*cobra.Command {

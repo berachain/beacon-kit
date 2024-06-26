@@ -39,13 +39,13 @@ var (
 // exported. They are exported for convenience in creating helper
 // functions, as object capabilities aren't needed for testing.
 type BeaconApp[T transaction.Tx] struct {
-	*runtime.App
+	*runtime.App[T]
 	Middleware *bkcomponents.ABCIMiddleware
 }
 
 // NewBeaconKitApp returns a reference to an initialized BeaconApp.
 func NewBeaconKitApp[T transaction.Tx](
-	appBuilder *runtime.AppBuilder,
+	appBuilder *runtime.AppBuilder[T],
 	middleware *bkcomponents.ABCIMiddleware,
 ) *BeaconApp[T] {
 	app := &BeaconApp[T]{
@@ -87,9 +87,9 @@ func (app *BeaconApp[T]) GetConsensusAuthority() string {
 
 // GetStore gets the app store.
 func (app *BeaconApp[T]) GetStore() any {
-	return app.GetStore()
+	return app.App.GetStore()
 }
 
 func (app *BeaconApp[T]) GetAppManager() *appmanager.AppManager[T] {
-	return app.GetAppManager()
+	return app.App.GetAppManager()
 }

@@ -87,7 +87,7 @@ func (
 	// allocate memory to hold the dependencies
 	var (
 		autoCliOpts autocli.AppOptions
-		mm          *runtime.MM
+		mm          *runtime.MM[T]
 		clientCtx   client.Context
 		chainSpec   common.ChainSpec
 		logger      log.Logger
