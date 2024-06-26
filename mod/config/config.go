@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	"github.com/berachain/beacon-kit/mod/errors"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
+	log "github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
@@ -41,6 +42,7 @@ type AppOptions interface {
 func DefaultConfig() *Config {
 	return &Config{
 		Engine:         engineclient.DefaultConfig(),
+		Logger:         log.DefaultConfig(),
 		KZG:            kzg.DefaultConfig(),
 		PayloadBuilder: builder.DefaultConfig(),
 		Validator:      validator.DefaultConfig(),
@@ -51,6 +53,8 @@ func DefaultConfig() *Config {
 type Config struct {
 	// Engine is the configuration for the execution client.
 	Engine engineclient.Config `mapstructure:"engine"`
+	// Logger is the configuration for the logger.
+	Logger log.Config `mapstructure:"logger"`
 	// KZG is the configuration for the KZG blob verifier.
 	KZG kzg.Config `mapstructure:"kzg"`
 	// PayloadBuilder is the configuration for the local build payload timeout.
@@ -60,8 +64,13 @@ type Config struct {
 }
 
 // GetEngine returns the execution client configuration.
-func (c Config) GetEngine() engineclient.Config {
-	return c.Engine
+func (c Config) GetEngine() *engineclient.Config {
+	return &c.Engine
+}
+
+// GetLogger returns the logger configuration.
+func (c Config) GetLogger() *log.Config {
+	return &c.Logger
 }
 
 // Template returns the configuration template.

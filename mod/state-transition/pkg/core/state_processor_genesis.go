@@ -33,10 +33,8 @@ import (
 //
 //nolint:gocognit,funlen // todo fix.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	_, BeaconBlockBodyT, BeaconBlockHeaderT, BeaconStateT, _, _, DepositT,
+	Eth1DataT, _, ExecutionPayloadHeaderT, ForkT, _, ValidatorT, _, _,
 ]) InitializePreminedBeaconStateFromEth1(
 	st BeaconStateT,
 	deposits []DepositT,
@@ -113,9 +111,11 @@ func (sp *StateProcessor[
 	}
 
 	var validatorsRoot common.Root
-	validatorsRoot, err = ssz.MerkleizeListComposite[
-		common.ChainSpec, math.U64,
-	](validators, uint64(len(validators)))
+	merkleizer := ssz.NewMerkleizer[common.ChainSpec, [32]byte, ValidatorT]()
+	validatorsRoot, err = merkleizer.MerkleizeListComposite(
+		validators,
+		uint64(len(validators)),
+	)
 	if err != nil {
 		return nil, err
 	}

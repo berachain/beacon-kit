@@ -32,18 +32,7 @@ import (
 // ProcessGenesisData processes the genesis state and initializes the beacon
 // state.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconBlockHeaderT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	ExecutionPayloadT,
-	ExecutionPayloadHeaderT,
-	GenesisT,
-	PayloadAttributesT,
-	_,
+	_, _, _, _, _, _, _, _, _, GenesisT, _, _,
 ]) ProcessGenesisData(
 	ctx context.Context,
 	genesisData GenesisT,
@@ -59,18 +48,7 @@ func (s *Service[
 // ProcessBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconBlockHeaderT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	ExecutionPayloadT,
-	ExecutionPayloadHeaderT,
-	GenesisT,
-	PayloadAttributesT,
-	_,
+	_, BeaconBlockT, _, _, _, _, _, _, _, _, _, _,
 ]) ProcessBeaconBlock(
 	ctx context.Context,
 	blk BeaconBlockT,
@@ -105,30 +83,22 @@ func (s *Service[
 	// TODO: this is hood as fuck.
 	// We won't send a fcu if the block is bad, should be addressed
 	// via ticker later.
-	go func() {
-		s.blockFeed.Send(
-			asynctypes.NewEvent(ctx, events.BeaconBlockFinalized, blk),
-		)
-		s.sendPostBlockFCU(ctx, st, blk)
-	}()
+	if err = s.blkBroker.Publish(ctx,
+		asynctypes.NewEvent(
+			ctx, events.BeaconBlockFinalized, blk,
+		),
+	); err != nil {
+		return nil, err
+	}
 
-	return valUpdates, nil
+	go s.sendPostBlockFCU(ctx, st, blk)
+
+	return valUpdates.RemoveDuplicates().Sort(), nil
 }
 
 // executeStateTransition runs the stf.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconBlockHeaderT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	ExecutionPayloadT,
-	ExecutionPayloadHeaderT,
-	GenesisT,
-	PayloadAttributesT,
-	_,
+	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _, _, _,
 ]) executeStateTransition(
 	ctx context.Context,
 	st BeaconStateT,

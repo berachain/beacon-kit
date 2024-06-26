@@ -18,22 +18,36 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package event
+package constraints
 
-import "github.com/ethereum/go-ethereum/event"
+// ForkTyped is a constraint that requires a type to have an Empty method.
+type ForkTyped[SelfT any] interface {
+	EmptyWithVersion[SelfT]
+	Versionable
+	Nillable
+}
 
-// Subscription is a subscription to a feed.
-type Subscription = event.Subscription
+// EngineType represents the constraints for a type that is
+// used within the context of sending over the EngineAPI.
+type EngineType[SelfT any] interface {
+	EmptyWithVersion[SelfT]
+	Versionable
+	Nillable
+	JSONMarshallable
+}
 
-type Feed = event.Feed
+// EmptyWithForkVersion is a constraint that requires a type to have an Empty
+// method.
+type EmptyWithVersion[SelfT any] interface {
+	Empty(uint32) SelfT
+}
 
-// FeedOf is a feed of events.
-// It is a wrapper around the event.FeedOf type.
-type FeedOf[
-	E ~string,
-	T interface {
-		Type() E
-	},
-] struct {
-	event.FeedOf[T]
+// IsNil is a constraint that requires a type to have an IsNil method.
+type Nillable interface {
+	IsNil() bool
+}
+
+// Versionable is a constraint that requires a type to have a Version method.
+type Versionable interface {
+	Version() uint32
 }

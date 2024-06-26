@@ -21,10 +21,10 @@
 package ssz_test
 
 import (
+	"crypto/sha256"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/stretchr/testify/require"
 )
@@ -48,9 +48,8 @@ func (u BasicItem) MarshalSSZ() ([]byte, error) {
 // HashTreeRoot computes the Merkle root of the U64 using SSZ hashing rules.
 func (u BasicItem) HashTreeRoot() ([32]byte, error) {
 	// In practice we can use a simpler function.
-	return ssz.MerkleizeBasic[
-		any, math.U64, math.U256L,
-	](u)
+	merkleizer := ssz.NewMerkleizer[any, [32]byte, BasicItem]()
+	return merkleizer.MerkleizeBasic(u)
 }
 
 // BasicContainer represents a container of two basic items.
@@ -67,7 +66,8 @@ func (c *BasicContainer[SpecT]) SizeSSZ() int {
 // HashTreeRoot computes the Merkle root of the container using SSZ hashing
 // rules.
 func (c *BasicContainer[SpecT]) HashTreeRoot() ([32]byte, error) {
-	return ssz.MerkleizeContainer[any, math.U64](c)
+	merkleizer := ssz.NewMerkleizer[SpecT, [32]byte, common.Root]()
+	return merkleizer.MerkleizeContainer(c)
 }
 
 func (c *BasicContainer[SpecT]) IsContainer() {}

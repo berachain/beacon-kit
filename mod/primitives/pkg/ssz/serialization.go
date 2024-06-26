@@ -23,26 +23,14 @@ package ssz
 import (
 	"encoding/binary"
 	"math/bits"
+
+	"github.com/berachain/beacon-kit/mod/errors"
 )
 
 // bitsPerByte is the number of bits in a byte.
 const bitsPerByte = 8
 
 // ----------------------------- Unmarshal -----------------------------
-
-// UnmarshalU256L unmarshals a big endian U256 from the src input.
-func UnmarshalU256L[U256LT ~[32]byte](src []byte) U256LT {
-	var u256 U256LT
-	copy(u256[:], src)
-	return u256
-}
-
-// UnmarshalU128L marshals a little endian U256 into a byte slice.
-func UnmarshalU128L[U128LT ~[16]byte](src []byte) U128LT {
-	var u128 U128LT
-	copy(u128[:], src)
-	return u128
-}
 
 // UnmarshalU64 unmarshals a little endian U64 from the src input.
 func UnmarshalU64[U64T ~uint64](src []byte) U64T {
@@ -65,8 +53,21 @@ func UnmarshalU8[U8T ~uint8](src []byte) U8T {
 }
 
 // UnmarshalBool unmarshals a boolean from the src input.
-func UnmarshalBool[BoolT ~bool](src []byte) BoolT {
-	return src[0] == 1
+func UnmarshalBool[BoolT ~bool](src []byte) (BoolT, error) {
+	if len(src) != 1 {
+		return false, errors.Wrapf(ErrInvalidLength,
+			"expected 1 byte, got %d", len(src))
+	}
+
+	switch src[0] {
+	case 0:
+		return false, nil
+	case 1:
+		return true, nil
+	default:
+		return false, errors.Wrapf(ErrInvalidByteValue,
+			"expected 0 or 1, got %d", src[0])
+	}
 }
 
 // MostSignificantBitIndex uses a lookup table for fast determination of the

@@ -18,34 +18,28 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package comet
 
 import (
-	"github.com/berachain/beacon-kit/mod/async/pkg/event"
-	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
+	appmodulev2 "cosmossdk.io/core/appmodule/v2"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
-// ProvideBlobFeed provides a blob feed for the depinject framework.
-func ProvideBlobFeed() *BlobFeed {
-	return &BlobFeed{}
-}
-
-// ProvideBlockFeed provides a block feed for the depinject framework.
-func ProvideBlockFeed() *BlockFeed {
-	return &BlockFeed{}
-}
-
-// ProvideSlotFeed provides a slot feed for the depinject framework.
-func ProvideSlotFeed() *SlotFeed {
-	return &SlotFeed{}
-}
-
-// ProvideStatusFeed provides a status feed.
-func ProvideStatusFeed() *event.FeedOf[
-	asynctypes.EventID, *asynctypes.Event[*service.StatusEvent],
-] {
-	return &event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[*service.StatusEvent],
-	]{}
+// convertValidatorUpdate abstracts the conversion of a
+// transition.ValidatorUpdate to an appmodulev2.ValidatorUpdate.
+func convertValidatorUpdate(
+	u **transition.ValidatorUpdate,
+) (appmodulev2.ValidatorUpdate, error) {
+	update := *u
+	if update == nil {
+		return appmodulev2.ValidatorUpdate{},
+			ErrUndefinedValidatorUpdate
+	}
+	return appmodulev2.ValidatorUpdate{
+		PubKey:     update.Pubkey[:],
+		PubKeyType: crypto.CometBLSType,
+		//#nosec:G701 // this is safe.
+		Power: int64(update.EffectiveBalance.Unwrap()),
+	}, nil
 }

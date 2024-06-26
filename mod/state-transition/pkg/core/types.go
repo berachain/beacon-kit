@@ -22,14 +22,13 @@ package core
 
 import (
 	"context"
-	"encoding/json"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
 // The AvailabilityStore interface is responsible for validating and storing
@@ -84,8 +83,7 @@ type BeaconBlockBody[
 	ExecutionPayloadHeaderT interface{ GetBlockHash() common.ExecutionHash },
 	WithdrawalT any,
 ] interface {
-	// Empty returns an empty beacon block body.
-	Empty(uint32) BeaconBlockBodyT
+	constraints.EmptyWithVersion[BeaconBlockBodyT]
 	// GetRandaoReveal returns the RANDAO reveal signature.
 	GetRandaoReveal() crypto.BLSSignature
 	// GetExecutionPayload returns the execution payload.
@@ -154,11 +152,7 @@ type Deposit[
 type ExecutionPayload[
 	ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT any,
 ] interface {
-	ssz.Marshallable
-	json.Marshaler
-	json.Unmarshaler
-	Empty(uint32) ExecutionPayloadT
-	Version() uint32
+	constraints.EngineType[ExecutionPayloadT]
 	GetTransactions() [][]byte
 	GetParentHash() common.ExecutionHash
 	GetBlockHash() common.ExecutionHash
@@ -176,12 +170,12 @@ type ExecutionPayload[
 	GetBaseFeePerGas() math.U256L
 	GetBlobGasUsed() math.U64
 	GetExcessBlobGas() math.U64
-	ToHeader() (ExecutionPayloadHeaderT, error)
-	IsNil() bool
+	ToHeader(
+		txsMerkleizer engineprimitives.TxsMerkleizer,
+	) (ExecutionPayloadHeaderT, error)
 }
 
 type ExecutionPayloadHeader interface {
-	Version() uint32
 	GetParentHash() common.ExecutionHash
 	GetBlockHash() common.ExecutionHash
 	GetPrevRandao() common.Bytes32
@@ -231,7 +225,7 @@ type Validator[
 	ValidatorT any,
 	WithdrawalCredentialsT ~[32]byte,
 ] interface {
-	ssz.Marshallable
+	constraints.SSZMarshallable
 	// New creates a new validator with the given parameters.
 	New(
 		pubkey crypto.BLSPubkey,

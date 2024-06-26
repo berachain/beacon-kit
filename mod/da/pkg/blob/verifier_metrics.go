@@ -41,8 +41,8 @@ func newVerifierMetrics(
 	}
 }
 
-// measureVerifyBlobsDuration measures the duration of the blob verification.
-func (vm *verifierMetrics) measureVerifyBlobsDuration(
+// measureVerifySidecarsDuration measures the duration of the blob verification.
+func (vm *verifierMetrics) measureVerifySidecarsDuration(
 	startTime time.Time,
 	numSidecars math.U64,
 	kzgImplementation string,

@@ -248,6 +248,17 @@ rpc-jwt-refresh-interval = "30s"
 # Path to the execution client JWT-secret
 jwt-secret-path = "./jwt.hex"
 
+[beacon-kit.logger]
+# TimeFormat is a string that defines the format of the time in the logger.
+time-format = "RFC3339"
+
+# LogLevel is the level of logging. Logger will log messages with verbosity up 
+# to LogLevel.
+log-level = "info"
+
+# Style is the style of the logger.
+style = "pretty"
+
 [beacon-kit.kzg]
 # Path to the trusted setup path.
 trusted-setup-path = "./testing/files/kzg-trusted-setup.json"

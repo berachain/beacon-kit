@@ -23,8 +23,9 @@ package da
 import (
 	"context"
 
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 )
 
 type Service[
@@ -34,6 +35,8 @@ type Service[
 		Len() int
 		IsNil() bool
 	},
+	//nolint:lll // formatter.
+	EventPublisherSubscriberT EventPublisherSubscriber[*asynctypes.Event[BlobSidecarsT]],
 	ExecutionPayloadT any,
 ] struct {
 	avs AvailabilityStoreT
@@ -41,17 +44,22 @@ type Service[
 		AvailabilityStoreT, BeaconBlockBodyT,
 		BlobSidecarsT, ExecutionPayloadT,
 	]
-	logger log.Logger[any]
+	sidecarsBroker EventPublisherSubscriberT
+	logger         log.Logger[any]
 }
 
-// New returns a new DA service.
+// NewService returns a new DA service.
 func NewService[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	AvailabilityStoreT AvailabilityStore[
+		BeaconBlockBodyT, BlobSidecarsT,
+	],
 	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
 	BlobSidecarsT interface {
 		Len() int
 		IsNil() bool
 	},
+	//nolint:lll // formatter.
+	EventPublisherSubscriberT EventPublisherSubscriber[*asynctypes.Event[BlobSidecarsT]],
 	ExecutionPayloadT any,
 ](
 	avs AvailabilityStoreT,
@@ -59,84 +67,128 @@ func NewService[
 		AvailabilityStoreT, BeaconBlockBodyT,
 		BlobSidecarsT, ExecutionPayloadT,
 	],
+	sidecarsBroker EventPublisherSubscriberT,
 	logger log.Logger[any],
 ) *Service[
-	AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT, ExecutionPayloadT,
+	AvailabilityStoreT, BeaconBlockBodyT,
+	BlobSidecarsT, EventPublisherSubscriberT, ExecutionPayloadT,
 ] {
 	return &Service[
-		AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT, ExecutionPayloadT,
+		AvailabilityStoreT, BeaconBlockBodyT,
+		BlobSidecarsT, EventPublisherSubscriberT, ExecutionPayloadT,
 	]{
-		avs:    avs,
-		bp:     bp,
-		logger: logger,
+		avs:            avs,
+		bp:             bp,
+		sidecarsBroker: sidecarsBroker,
+		logger:         logger,
 	}
 }
 
 // Name returns the name of the service.
-func (s *Service[_, _, _, _]) Name() string {
+func (s *Service[_, _, _, _, _]) Name() string {
 	return "da"
 }
 
 // Start starts the service.
-func (s *Service[_, _, _, _]) Start(ctx context.Context) error {
-	go s.start(ctx)
+func (s *Service[_, _, _, _, _]) Start(ctx context.Context) error {
+	subSidecarsCh, err := s.sidecarsBroker.Subscribe()
+	if err != nil {
+		return err
+	}
+	go s.start(ctx, subSidecarsCh)
 	return nil
 }
 
 // start starts the service.
-func (s *Service[_, _, BlobSidecarsT, _]) start(_ context.Context) {
-	// TODO: Introduce in Future PR.
-	// ch := make(chan *asynctypes.Event[BlobSidecarsT])
-	// sub := s.feed.Subscribe(ch)
-	// defer sub.Unsubscribe()
-	// for {
-	// 	select {
-	// 	case <-ctx.Done():
-	// 		return
-	// 	case e := <-ch:
-	// 		// TODO: this is unused atm.
-	// 		if e.Type() == events.BlobSidecarsReceived {
-	// 			if err := s.ProcessSidecars(ctx, 0, e.Data()); err != nil {
-	// 				s.logger.Error(
-	// 					"failed to process blob sidecars",
-	// 					"error",
-	// 					err,
-	// 				)
-	// 			}
-	// 		}
-	// 	}
-	// }
-}
-
-// ProcessSidecars processes the blob sidecars.
-// TODO: Deprecate this publically and move to event based system.
-func (s *Service[_, _, BlobSidecarsT, _]) ProcessSidecars(
+func (s *Service[_, _, BlobSidecarsT, _, _]) start(
 	ctx context.Context,
-	slot math.Slot,
-	sidecars BlobSidecarsT,
-) error {
-	return s.processSidecars(ctx, slot, sidecars)
+	sidecarsCh chan *asynctypes.Event[BlobSidecarsT],
+) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case msg := <-sidecarsCh:
+			switch msg.Type() {
+			case events.BlobSidecarsProcessRequest:
+				s.handleBlobSidecarsProcessRequest(msg)
+			case events.BlobSidecarsReceived:
+				s.handleBlobSidecarsReceived(msg)
+			}
+		}
+	}
+}
+
+// handleBlobSidecarsProcessRequest handles the BlobSidecarsProcessRequest
+// event.
+// It processes the sidecars and publishes a BlobSidecarsProcessed event.
+func (s *Service[_, _, BlobSidecarsT, _, _]) handleBlobSidecarsProcessRequest(
+	msg *asynctypes.Event[BlobSidecarsT],
+) {
+	err := s.processSidecars(msg.Context(), msg.Data())
+	if err != nil {
+		s.logger.Error(
+			"Failed to process blob sidecars",
+			"error",
+			err,
+		)
+	}
+
+	if err = s.sidecarsBroker.Publish(
+		msg.Context(),
+		asynctypes.NewEvent(
+			msg.Context(), events.BlobSidecarsProcessed, msg.Data(), err,
+		)); err != nil {
+		s.logger.Error(
+			"Failed to publish blob sidecars processed event",
+			"error",
+			err,
+		)
+	}
+}
+
+// handleBlobSidecarsReceived handles the BlobSidecarsReceived event.
+// It receives the sidecars and publishes a BlobSidecarsProcessed event.
+func (s *Service[_, _, BlobSidecarsT, _, _]) handleBlobSidecarsReceived(
+	msg *asynctypes.Event[BlobSidecarsT],
+) {
+	err := s.receiveSidecars(msg.Data())
+	if err != nil {
+		s.logger.Error(
+			"Failed to receive blob sidecars",
+			"error",
+			err,
+		)
+	}
+
+	if err = s.sidecarsBroker.Publish(
+		msg.Context(),
+		asynctypes.NewEvent(
+			msg.Context(), events.BlobSidecarsProcessed, msg.Data(), err,
+		)); err != nil {
+		s.logger.Error(
+			"Failed to publish blob sidecars processed event",
+			"error",
+			err,
+		)
+	}
 }
 
 // ProcessSidecars processes the blob sidecars.
-func (s *Service[_, _, BlobSidecarsT, _]) processSidecars(
+func (s *Service[_, _, BlobSidecarsT, _, _]) processSidecars(
 	_ context.Context,
-	slot math.Slot,
 	sidecars BlobSidecarsT,
 ) error {
 	// startTime := time.Now()
 	// defer s.metrics.measureBlobProcessingDuration(startTime)
-	return s.bp.ProcessBlobs(
-		slot,
+	return s.bp.ProcessSidecars(
 		s.avs,
 		sidecars,
 	)
 }
 
 // VerifyIncomingBlobs receives blobs from the network and processes them.
-func (s *Service[_, _, BlobSidecarsT, _]) ReceiveSidecars(
-	_ context.Context,
-	slot math.Slot,
+func (s *Service[_, _, BlobSidecarsT, _, _]) receiveSidecars(
 	sidecars BlobSidecarsT,
 ) error {
 	// If there are no blobs to verify, return early.
@@ -149,7 +201,7 @@ func (s *Service[_, _, BlobSidecarsT, _]) ReceiveSidecars(
 	)
 
 	// Verify the blobs and ensure they match the local state.
-	if err := s.bp.VerifyBlobs(slot, sidecars); err != nil {
+	if err := s.bp.VerifySidecars(sidecars); err != nil {
 		s.logger.Error(
 			"rejecting incoming blob sidecars ❌",
 			"reason", err,

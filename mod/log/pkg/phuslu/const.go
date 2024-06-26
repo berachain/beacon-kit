@@ -18,28 +18,41 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package middleware
+package phuslu
 
-import (
-	appmodulev2 "cosmossdk.io/core/appmodule/v2"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
+const (
+	// colours.
+	reset      = "\x1b[0m"
+	black      = "\x1b[30m"
+	red        = "\x1b[31m"
+	green      = "\x1b[32m"
+	yellow     = "\x1b[33m"
+	blue       = "\x1b[34m"
+	magenta    = "\x1b[35m"
+	cyan       = "\x1b[36m"
+	white      = "\x1b[37m"
+	gray       = "\x1b[90m"
+	lightWhite = "\x1b[97m"
+
+	// log levels.
+	traceColor   = magenta
+	debugColor   = yellow
+	infoColor    = green
+	warnColor    = yellow
+	errorColor   = red
+	fatalColor   = red
+	panicColor   = red
+	defaultColor = gray
+	traceLabel   = "TRCE"
+	debugLabel   = "DBUG"
+	infoLabel    = "INFO"
+	warnLabel    = "WARN"
+	errorLabel   = "ERRR"
+	fatalLabel   = "FATAL"
+	panicLabel   = "PANIC"
+	defaultLabel = " ???"
+
+	// output styles flags.
+	StylePretty = "pretty"
+	StyleJSON   = "json"
 )
-
-// convertValidatorUpdate abstracts the conversion of a
-// transition.ValidatorUpdate to an appmodulev2.ValidatorUpdate.
-func convertValidatorUpdate(
-	u **transition.ValidatorUpdate,
-) (appmodulev2.ValidatorUpdate, error) {
-	update := *u
-	if update == nil {
-		return appmodulev2.ValidatorUpdate{},
-			ErrUndefinedValidatorUpdate
-	}
-	return appmodulev2.ValidatorUpdate{
-		PubKey:     update.Pubkey[:],
-		PubKeyType: crypto.CometBLSType,
-		//#nosec:G701 // this is safe.
-		Power: int64(update.EffectiveBalance.Unwrap()),
-	}, nil
-}

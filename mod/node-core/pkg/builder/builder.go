@@ -26,6 +26,7 @@ import (
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/comet"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/app"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
@@ -94,6 +95,9 @@ func (nb *NodeBuilder[NodeT]) Build(
 				appOpts,
 				logger,
 			),
+			depinject.Invoke(
+				SetLoggerConfig,
+			),
 		),
 		&appBuilder,
 		&chainSpec,
@@ -103,6 +107,9 @@ func (nb *NodeBuilder[NodeT]) Build(
 		panic(err)
 	}
 
+	// This is a bit of a meme until server/v2.
+	consensusEngine := comet.NewConsensus(abciMiddleware)
+
 	// set the application to a new BeaconApp with necessary ABCI handlers
 	nb.node.RegisterApp(
 		app.NewBeaconKitApp(
@@ -110,9 +117,9 @@ func (nb *NodeBuilder[NodeT]) Build(
 			append(
 				server.DefaultBaseappOptions(appOpts),
 				WithCometParamStore(chainSpec),
-				WithPrepareProposal(abciMiddleware.PrepareProposal),
-				WithProcessProposal(abciMiddleware.ProcessProposal),
-				WithPreBlocker(abciMiddleware.PreBlock),
+				WithPrepareProposal(consensusEngine.PrepareProposal),
+				WithProcessProposal(consensusEngine.ProcessProposal),
+				WithPreBlocker(consensusEngine.PreBlock),
 			)...,
 		),
 	)

@@ -23,7 +23,7 @@ package engine
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/async/pkg/event"
+	broker "github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
@@ -52,11 +52,8 @@ type Engine[
 	logger log.Logger[any]
 	// metrics is the metrics for the engine.
 	metrics *engineMetrics
-	// statusFeed is the status feed for the engine.
-	statusFeed *event.FeedOf[
-		asynctypes.EventID,
-		*asynctypes.Event[*service.StatusEvent],
-	]
+	// statusPublisher is the status publishder for the engine.
+	statusPublisher *broker.Broker[*asynctypes.Event[*service.StatusEvent]]
 }
 
 // New creates a new Engine.
@@ -70,19 +67,16 @@ func New[
 ](
 	ec *client.EngineClient[ExecutionPayloadT, PayloadAttributesT],
 	logger log.Logger[any],
-	statusFeed *event.FeedOf[
-		asynctypes.EventID,
-		*asynctypes.Event[*service.StatusEvent],
-	],
+	statusPublisher *broker.Broker[*asynctypes.Event[*service.StatusEvent]],
 	telemtrySink TelemetrySink,
 ) *Engine[
 	ExecutionPayloadT, PayloadAttributesT, PayloadIDT, WithdrawalT,
 ] {
 	return &Engine[ExecutionPayloadT, PayloadAttributesT, PayloadIDT, WithdrawalT]{
-		ec:         ec,
-		logger:     logger,
-		metrics:    newEngineMetrics(telemtrySink, logger),
-		statusFeed: statusFeed,
+		ec:              ec,
+		logger:          logger,
+		metrics:         newEngineMetrics(telemtrySink, logger),
+		statusPublisher: statusPublisher,
 	}
 }
 
@@ -121,9 +115,7 @@ func (ee *Engine[
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
 	// Log the forkchoice update attempt.
 	hasPayloadAttributes := !req.PayloadAttributes.IsNil()
-	ee.metrics.markNotifyForkchoiceUpdateCalled(
-		req.State, hasPayloadAttributes,
-	)
+	ee.metrics.markNotifyForkchoiceUpdateCalled(hasPayloadAttributes)
 
 	// Notify the execution engine of the forkchoice update.
 	payloadID, latestValidHash, err := ee.ec.ForkchoiceUpdated(
@@ -166,6 +158,10 @@ func (ee *Engine[
 	case err != nil:
 		ee.metrics.markForkchoiceUpdateUndefinedError(err)
 		return nil, nil, err
+	default:
+		ee.metrics.markForkchoiceUpdateValid(
+			req.State, hasPayloadAttributes, payloadID,
+		)
 	}
 
 	// If we reached here, and we have a nil payload ID, we should log a
@@ -271,6 +267,12 @@ func (ee *Engine[
 			req.ExecutionPayload.GetBlockHash(),
 			req.Optimistic,
 			err,
+		)
+	default:
+		ee.metrics.markNewPayloadValid(
+			req.ExecutionPayload.GetBlockHash(),
+			req.ExecutionPayload.GetParentHash(),
+			req.Optimistic,
 		)
 	}
 
