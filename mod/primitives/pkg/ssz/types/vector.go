@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	ssz "github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
-	"github.com/protolambda/zrnt/eth2/beacon/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
 type SSZMarshallable interface {
@@ -30,7 +30,7 @@ func (l SSZVectorBasic[T]) SizeSSZ() int {
 // HashTreeRoot returns the Merkle root of the SSZVectorBasic.
 func (l SSZVectorBasic[T]) HashTreeRoot() ([32]byte, error) {
 	// Create a merkleizer
-	m := ssz.NewMerkleizer[common.Spec, any, math.U64, [32]byte]()
+	m := ssz.NewMerkleizer[common.ChainSpec, any, math.U64, [32]byte]()
 	packedBytes := make([]byte, l.SizeSSZ())
 	for _, v := range l {
 		v, err := v.MarshalSSZ()

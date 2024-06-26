@@ -210,7 +210,7 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeListComposite(
 func (m *merkleizer[SpecT, RootT, T]) MerkleizeByteSlice(
 	input []byte,
 ) (RootT, error) {
-	chunks, numChunks, err := m.partitionBytes(input)
+	chunks, numChunks, err := m.PartitionBytes(input)
 	if err != nil {
 		return RootT{}, err
 	}
