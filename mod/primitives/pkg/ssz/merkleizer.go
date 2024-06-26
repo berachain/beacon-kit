@@ -25,22 +25,17 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 )
 
 // merkleizer can be used for merkleizing SSZ types.
-//
-// TODO: use the same internal bytes buffer for operations.
 type merkleizer[
 	SpecT any, RootT ~[32]byte, T Basic[SpecT, RootT],
 ] struct {
-	// hasher is used to calculate merkle tree roots.
-	hasher *merkle.Hasher[RootT]
-	// intermediateBuffer is a bytes buffer for intermediate roots.
-	intermediateBuffer bytes.Buffer[RootT]
-	// paddingBuffer is a bytes buffer for padding additional chunks.
-	paddingBuffer bytes.Buffer[RootT]
+	hasher      *merkle.Hasher[RootT]
+	bytesBuffer bytes.Buffer[RootT]
 }
 
 // NewMerkleizer creates a new merkleizer with reusable buffers.
@@ -52,8 +47,7 @@ func NewMerkleizer[
 			bytes.NewReusableBuffer[RootT](),
 			merkle.BuildParentTreeRoots[RootT],
 		),
-		intermediateBuffer: bytes.NewReusableBuffer[RootT](),
-		paddingBuffer:      bytes.NewReusableBuffer[RootT](),
+		bytesBuffer: bytes.NewReusableBuffer[RootT](),
 	}
 }
 
@@ -117,12 +111,8 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeContainer(
 		rValue = rValue.Elem()
 	}
 	numFields := rValue.NumField()
-
-	var (
-		err  error
-		htrs = m.intermediateBuffer.Get(numFields)
-	)
-
+	htrs := make([]RootT, numFields)
+	var err error
 	for i := range numFields {
 		fieldValue := rValue.Field(i)
 		if !fieldValue.CanInterface() {
@@ -140,12 +130,11 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeContainer(
 				i,
 			)
 		}
-		htrs[i], err = field.HashTreeRoot()
+		htrs[i], err = field.HashTreeRoot( /*args...*/ )
 		if err != nil {
 			return RootT{}, err
 		}
 	}
-
 	return m.Merkleize(htrs)
 }
 
@@ -156,7 +145,7 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeVecComposite(
 ) (RootT, error) {
 	var (
 		err  error
-		htrs = m.intermediateBuffer.Get(len(value))
+		htrs = m.bytesBuffer.Get(len(value))
 	)
 
 	for i, el := range value {
@@ -165,7 +154,6 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeVecComposite(
 			return RootT{}, err
 		}
 	}
-
 	return m.Merkleize(htrs)
 }
 
@@ -177,7 +165,7 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeListComposite(
 ) (RootT, error) {
 	var (
 		err  error
-		htrs = m.intermediateBuffer.Get(len(value))
+		htrs = m.bytesBuffer.Get(len(value))
 	)
 
 	for i, el := range value {
@@ -213,7 +201,6 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeByteSlice(
 	if err != nil {
 		return RootT{}, err
 	}
-
 	return m.Merkleize(chunks, numChunks)
 }
 
@@ -266,4 +253,74 @@ func (m *merkleizer[SpecT, RootT, T]) Merkleize(
 	}
 
 	return m.hasher.NewRootWithMaxLeaves(effectiveChunks, effectiveLimit)
+}
+
+// padTo function to pad the chunks to the effective limit with zeroed chunks.
+func (m *merkleizer[SpecT, RootT, T]) padTo(
+	chunks []RootT,
+	size math.U64,
+) []RootT {
+	switch numChunks := math.U64(len(chunks)); {
+	case numChunks == size:
+		// No padding needed.
+		return chunks
+	case numChunks > size:
+		// Truncate the chunks to the desired size.
+		return chunks[:size]
+	default:
+		// Append zeroed chunks to the end of the list.
+		return append(chunks, make([]RootT, size-numChunks)...)
+	}
+}
+
+// pack packs a list of SSZ-marshallable elements into a single byte slice.
+func (m *merkleizer[SpecT, RootT, T]) pack(values []T) ([]RootT, error) {
+	// Pack each element into separate buffers.
+	var packed []byte
+	for _, el := range values {
+		fieldValue := reflect.ValueOf(el)
+		if fieldValue.Kind() == reflect.Ptr {
+			fieldValue = fieldValue.Elem()
+		}
+
+		if !fieldValue.CanInterface() {
+			return nil, errors.Newf(
+				"cannot interface with field %v",
+				fieldValue,
+			)
+		}
+
+		// TODO: Do we need a safety check for Basic only here?
+		// TODO: use a real interface instead of hood inline.
+		el, ok := reflect.ValueOf(el).
+			Interface().(interface{ MarshalSSZ() ([]byte, error) })
+		if !ok {
+			return nil, errors.Newf("unsupported type %T", el)
+		}
+
+		// TODO: Do we need a safety check for Basic only here?
+		buf, err := el.MarshalSSZ()
+		if err != nil {
+			return nil, err
+		}
+		packed = append(packed, buf...)
+	}
+
+	root, _, err := m.partitionBytes(packed)
+	return root, err
+}
+
+// partitionBytes partitions a byte slice into chunks of a given length.
+func (m *merkleizer[SpecT, RootT, T]) partitionBytes(input []byte) (
+	[]RootT, uint64, error,
+) {
+	//nolint:mnd // we add 31 in order to round up the division.
+	numChunks := max((len(input)+31)/constants.RootLength, 1)
+	// TODO: figure out how to safely chunk these bytes.
+	chunks := make([]RootT, numChunks)
+	for i := range chunks {
+		copy(chunks[i][:], input[32*i:])
+	}
+	//#nosec:G701 // numChunks is always >= 1.
+	return chunks, uint64(numChunks), nil
 }
