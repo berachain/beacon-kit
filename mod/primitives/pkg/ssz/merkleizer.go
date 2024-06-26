@@ -320,12 +320,12 @@ func (m *merkleizer[SpecT, RootT, T]) pack(values []T) ([]RootT, error) {
 		packed = append(packed, buf...)
 	}
 
-	root, _, err := m.partitionBytes(packed)
+	root, _, err := m.PartitionBytes(packed)
 	return root, err
 }
 
 // partitionBytes partitions a byte slice into chunks of a given length.
-func (m *merkleizer[SpecT, RootT, T]) partitionBytes(input []byte) (
+func (m *merkleizer[SpecT, RootT, T]) PartitionBytes(input []byte) (
 	[]RootT, uint64, error,
 ) {
 	//nolint:mnd // we add 31 in order to round up the division.
