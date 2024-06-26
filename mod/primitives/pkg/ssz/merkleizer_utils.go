@@ -25,14 +25,15 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // padTo function to pad the chunks to the effective limit with zeroed chunks.
 func (m *merkleizer[SpecT, RootT, T]) padTo(
 	chunks []RootT,
-	size int,
+	size math.U64,
 ) []RootT {
-	switch numChunks := len(chunks); {
+	switch numChunks := math.U64(len(chunks)); {
 	case numChunks == size:
 		// No padding needed.
 		return chunks
@@ -41,7 +42,8 @@ func (m *merkleizer[SpecT, RootT, T]) padTo(
 		return chunks[:size]
 	default:
 		// Append zeroed chunks to the end of the list.
-		return append(chunks, m.paddingBuffer.Get(size-numChunks)...)
+		// #nosec:G701 // size - numChunks is always > 0.
+		return append(chunks, m.paddingBuffer.Get(int(size-numChunks))...)
 	}
 }
 
@@ -92,5 +94,6 @@ func (m *merkleizer[SpecT, RootT, T]) partitionBytes(input []byte) (
 	for i := range chunks {
 		copy(chunks[i][:], input[32*i:])
 	}
+	// #nosec:G701 // numChunks is always >= 1.
 	return chunks, uint64(numChunks), nil
 }

@@ -260,7 +260,7 @@ func (m *merkleizer[SpecT, RootT, T]) Merkleize(
 		effectiveLimit = math.U64(limit[0])
 	}
 
-	effectiveChunks = m.padTo(chunks, int(effectiveLimit))
+	effectiveChunks = m.padTo(chunks, effectiveLimit)
 	if len(effectiveChunks) == 1 {
 		return effectiveChunks[0], nil
 	}
