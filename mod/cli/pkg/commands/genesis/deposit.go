@@ -172,26 +172,26 @@ func writeDepositToFile(
 		0o644, //nolint:mnd // file permissions.
 	)
 	if err != nil {
-		return fmt.Errorf("failed to open file: %w", err)
+		return errors.Newf("failed to open file: %w", err)
 	}
 
 	defer func() {
 		if cerr := outputFile.Close(); cerr != nil {
 			// If there's no error yet, set it to the close error
 			if err == nil {
-				err = fmt.Errorf("failed to close file: %w", cerr)
+				err = errors.Newf("failed to close file: %w", cerr)
 			}
 		}
 	}()
 
 	bz, err := json.Marshal(depositMessage)
 	if err != nil {
-		return fmt.Errorf("failed to marshal deposit message: %w", err)
+		return errors.Newf("failed to marshal deposit message: %w", err)
 	}
 
 	_, err = fmt.Fprintf(outputFile, "%s\n", bz)
 	if err != nil {
-		return fmt.Errorf("failed to write to file: %w", err)
+		return errors.Newf("failed to write to file: %w", err)
 	}
 
 	return nil
