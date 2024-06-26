@@ -287,7 +287,7 @@ func (m *merkleizer[SpecT, RootT, T]) padTo(
 	}
 }
 
-// Pack packs a list of SSZ-marshallable elements into a single byte slice.
+// pack packs a list of SSZ-marshallable elements into a single byte slice.
 func (m *merkleizer[SpecT, RootT, T]) pack(values []T) ([]RootT, error) {
 	// Pack each element into separate buffers.
 	var packed []byte
