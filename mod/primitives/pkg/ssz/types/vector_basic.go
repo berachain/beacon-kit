@@ -30,11 +30,19 @@ import (
 // SSZVectorBasic is a vector of basic types.
 type SSZVectorBasic[T Basic[T]] []T
 
+/* -------------------------------------------------------------------------- */
+/*                                    Size                                    */
+/* -------------------------------------------------------------------------- */
+
 // SizeSSZ returns the size of the list in bytes.
 func (l SSZVectorBasic[T]) SizeSSZ() int {
 	var t T
 	return t.SizeSSZ() * len(l)
 }
+
+/* -------------------------------------------------------------------------- */
+/*                                HashTreeRoot                                */
+/* -------------------------------------------------------------------------- */
 
 // HashTreeRootWith returns the Merkle root of the SSZVectorBasic
 // with a given merkleizer.
@@ -57,6 +65,10 @@ func (l SSZVectorBasic[T]) HashTreeRoot() ([32]byte, error) {
 		common.ChainSpec, [32]byte, common.Root,
 	]())
 }
+
+/* -------------------------------------------------------------------------- */
+/*                                 Marshalling                                */
+/* -------------------------------------------------------------------------- */
 
 // MarshalSSZToBytes marshals the SSZVectorBasic into SSZ format.
 func (l SSZVectorBasic[T]) MarshalSSZTo(out []byte) ([]byte, error) {
@@ -84,32 +96,28 @@ func (l SSZVectorBasic[T]) MarshalSSZ() ([]byte, error) {
 	return l.MarshalSSZTo(make([]byte, 0, l.SizeSSZ()))
 }
 
-// UnmarshalSSZ unmarshals the SSZVectorBasic from SSZ format.
-func (l *SSZVectorBasic[T]) UnmarshalSSZ(buf []byte) error {
+// NewFromSSZ creates a new SSZVectorBasic from SSZ format.
+func (SSZVectorBasic[T]) NewFromSSZ(buf []byte) (SSZVectorBasic[T], error) {
 	var (
 		err error
 		t   T
 	)
 	elementSize := t.SizeSSZ()
 	if len(buf)%elementSize != 0 {
-		return fmt.Errorf(
+		return nil, fmt.Errorf(
 			"invalid buffer length %d for element size %d",
 			len(buf),
 			elementSize,
 		)
 	}
 
-	if l == nil {
-		l = new(SSZVectorBasic[T])
-		*l = make([]T, 0, len(buf)/elementSize)
-	}
-
+	result := make(SSZVectorBasic[T], 0, len(buf)/elementSize)
 	for i := 0; i < len(buf); i += elementSize {
 		if t, err = t.NewFromSSZ(buf[i : i+elementSize]); err != nil {
-			return err
+			return nil, err
 		}
-		*l = append(*l, t)
+		result = append(result, t)
 	}
 
-	return nil
+	return result, nil
 }
