@@ -25,6 +25,17 @@ import (
 	"fmt"
 )
 
+type Basic[BasicT any] interface {
+	// As per the spec, a basic type is one of the following:
+	~bool | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64
+	// TODO add uint256, uint128
+
+	// We also need the support the following functions.
+	NewFromSSZ([]byte) (BasicT, error)
+	MarshalSSZ() ([]byte, error)
+	SizeSSZ() int
+}
+
 type SSZBool bool
 
 // SizeSSZ returns the size of the bool in bytes.

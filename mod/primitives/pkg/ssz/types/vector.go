@@ -31,14 +31,6 @@ type SSZMarshallable interface {
 	SizeSSZ() int
 }
 
-type Basic[BasicT any] interface {
-	~bool | ~uint | ~uint8 |
-		~uint16 | ~uint32 | ~uint64
-	NewFromSSZ([]byte) (BasicT, error)
-	MarshalSSZ() ([]byte, error)
-	SizeSSZ() int
-}
-
 // SSZVectorBasic is a vector of basic types.
 type SSZVectorBasic[T Basic[T]] []T
 
@@ -89,9 +81,7 @@ func (l *SSZVectorBasic[T]) UnmarshalSSZ(buf []byte) error {
 		err error
 		t   T
 	)
-	fmt.Println("Beginning UnmarshalSSZ for SSZVectorBasic")
 	elementSize := t.SizeSSZ()
-	fmt.Printf("Element size: %d\n", elementSize)
 	if len(buf)%elementSize != 0 {
 		return fmt.Errorf("invalid buffer length %d for element size %d", len(buf), elementSize)
 	}
@@ -101,20 +91,12 @@ func (l *SSZVectorBasic[T]) UnmarshalSSZ(buf []byte) error {
 		*l = make([]T, 0, len(buf)/elementSize)
 	}
 
-	fmt.Printf("Creating slice of length: %d\n", len(*l))
-	fmt.Println("element size", elementSize, "len buf", len(buf))
 	for i := 0; i < len(buf); i += elementSize {
-		fmt.Printf("Unmarshaling element at index: %d\n", i/elementSize)
-		fmt.Println(buf[i : i+elementSize])
 		if t, err = t.NewFromSSZ(buf[i : i+elementSize]); err != nil {
 			return err
 		}
-		fmt.Printf(
-			"Unmarshaled element at index: %d with value: %v\n", i, t)
 		*l = append(*l, t)
 	}
-	fmt.Println("Finished UnmarshalSSZ for SSZVectorBasic")
-	fmt.Println("Unmarshaled SSZVectorBasic: ", l)
 
 	return nil
 }
