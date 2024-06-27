@@ -76,7 +76,7 @@ func (l ListBasic[T]) MarshalSSZ() ([]byte, error) {
 func (ListBasic[T]) NewFromSSZ(buf []byte) (ListBasic[T], error) {
 	// The same for ListBasic as for VectorBasic
 	var (
-		t   VectorBasic[T]
+		t   = make(VectorBasic[T], 0)
 		err error
 	)
 	t, err = t.NewFromSSZ(buf)
