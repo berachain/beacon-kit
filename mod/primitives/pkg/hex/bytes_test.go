@@ -22,8 +22,8 @@
 package hex_test
 
 import (
-	"fmt"
 	"reflect"
+	"strconv"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
@@ -221,7 +221,7 @@ func BenchmarkDecodeFixedText(b *testing.B) {
 	sizes := []int{100, 1000, 10000} // Different input sizes
 
 	for _, size := range sizes {
-		benchName := "Size" + fmt.Sprint(size)
+		benchName := "Size" + strconv.Itoa(size)
 		b.Run(benchName, func(b *testing.B) {
 			input := make([]byte, size*2+2) // Each byte is represented by 2 hex characters + "0x" prefix
 			input[0] = '0'

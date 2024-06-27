@@ -81,7 +81,7 @@ func DecodeFixedText(typename string, input, out []byte) error {
 		if highNibble == badNibble || lowNibble == badNibble {
 			return ErrInvalidString
 		}
-		out[i/2] = byte((highNibble << 4) | lowNibble)
+		out[i/2] = byte((highNibble << nibbleShift) | lowNibble)
 	}
 
 	return nil
