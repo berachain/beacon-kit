@@ -40,7 +40,8 @@ var (
 	// zero, which is invalid.
 	ErrZeroDepth = errors.New("depth must be greater than 0")
 
-	// ErrDepthExceedsLimitDepth indicates that the depth provided for the Merkle
+	// ErrDepthExceedsLimitDepth indicates that the depth provided for the
+	// Merkle
 	// tree exceeds the specified limit depth.
 	ErrDepthExceedsLimitDepth = errors.New(
 		"depth exceeds the specified limit depth",
