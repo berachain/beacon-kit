@@ -254,7 +254,7 @@ time-format = "RFC3339"
 
 # LogLevel is the level of logging. Logger will log messages with verbosity up 
 # to LogLevel.
-log-level = "error"
+log-level = "info"
 
 # Style is the style of the logger.
 style = "pretty"

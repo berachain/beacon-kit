@@ -76,6 +76,8 @@ type ABCIMiddleware[
 
 	// Feeds
 	//
+	// genesisBroker is a feed for genesis data.
+	genesisBroker *broker.Broker[*asynctypes.Event[GenesisT]]
 	// blkBroker is a feed for blocks.
 	blkBroker *broker.Broker[*asynctypes.Event[BeaconBlockT]]
 	// sidecarsBroker is a feed for sidecars.
@@ -112,6 +114,7 @@ func NewABCIMiddleware[
 	],
 	logger log.Logger[any],
 	telemetrySink TelemetrySink,
+	genesisBroker *broker.Broker[*asynctypes.Event[GenesisT]],
 	blkBroker *broker.Broker[*asynctypes.Event[BeaconBlockT]],
 	sidecarsBroker *broker.Broker[*asynctypes.Event[BlobSidecarsT]],
 	slotBroker *broker.Broker[*asynctypes.Event[math.Slot]],
@@ -137,6 +140,7 @@ func NewABCIMiddleware[
 		),
 		logger:         logger,
 		metrics:        newABCIMiddlewareMetrics(telemetrySink),
+		genesisBroker:  genesisBroker,
 		blkBroker:      blkBroker,
 		sidecarsBroker: sidecarsBroker,
 		slotBroker:     slotBroker,

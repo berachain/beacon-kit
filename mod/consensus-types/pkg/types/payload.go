@@ -58,7 +58,9 @@ func (e *ExecutionPayload) Empty(forkVersion uint32) *ExecutionPayload {
 }
 
 // ToHeader converts the ExecutionPayload to an ExecutionPayloadHeader.
-func (e *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
+func (e *ExecutionPayload) ToHeader(
+	txsMerkleizer engineprimitives.TxsMerkleizer,
+) (*ExecutionPayloadHeader, error) {
 	// Get the merkle roots of transactions and withdrawals in parallel.
 	var (
 		g, _            = errgroup.WithContext(context.Background())
@@ -70,7 +72,7 @@ func (e *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 		var txsRootErr error
 		txsRoot, txsRootErr = engineprimitives.Transactions(
 			e.GetTransactions(),
-		).HashTreeRoot()
+		).HashTreeRootWith(txsMerkleizer)
 		return txsRootErr
 	})
 

@@ -14,7 +14,7 @@ require (
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610210054-bfdc14c4013c
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240618214413-d5ec0e66b3dd
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240624204855-d8809d5c8588
-	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240613135100-716d8f8c592d
+	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240625053718-5a9f3b4a787f
 	github.com/cometbft/cometbft/api v1.0.0-rc.1
 	github.com/stretchr/testify v1.9.0
 )

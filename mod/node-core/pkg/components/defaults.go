@@ -62,6 +62,7 @@ func DefaultComponentsWithStandardTypes() []any {
 			engineprimitives.PayloadID,
 			*Withdrawal,
 		],
+		ProvideGenesisBroker,
 		ProvideJWTSecret,
 		ProvideLocalBuilder,
 		ProvideServiceRegistry,

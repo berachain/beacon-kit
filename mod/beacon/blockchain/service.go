@@ -80,6 +80,8 @@ type Service[
 	]
 	// metrics is the metrics for the service.
 	metrics *chainMetrics
+	// genesisBroker is the event feed for genesis data.
+	genesisBroker EventFeed[*asynctypes.Event[GenesisT]]
 	// blkBroker is the event feed for new blocks.
 	blkBroker EventFeed[*asynctypes.Event[BeaconBlockT]]
 	// validatorUpdateBroker is the event feed for validator updates.
@@ -132,6 +134,7 @@ func NewService[
 		ExecutionPayloadHeaderT,
 	],
 	ts TelemetrySink,
+	genesisBroker EventFeed[*asynctypes.Event[GenesisT]],
 	blkBroker EventFeed[*asynctypes.Event[BeaconBlockT]],
 	//nolint:lll // annoying formatter.
 	validatorUpdateBroker EventFeed[*asynctypes.Event[transition.ValidatorUpdates]],
@@ -153,6 +156,7 @@ func NewService[
 		lb:                      lb,
 		sp:                      sp,
 		metrics:                 newChainMetrics(ts),
+		genesisBroker:           genesisBroker,
 		blkBroker:               blkBroker,
 		validatorUpdateBroker:   validatorUpdateBroker,
 		optimisticPayloadBuilds: optimisticPayloadBuilds,
@@ -174,15 +178,20 @@ func (s *Service[
 	if err != nil {
 		return err
 	}
-	go s.start(ctx, subBlkCh)
+	subGenCh, err := s.genesisBroker.Subscribe()
+	if err != nil {
+		return err
+	}
+	go s.start(ctx, subBlkCh, subGenCh)
 	return nil
 }
 
 func (s *Service[
-	_, BeaconBlockT, _, _, _, _, _, _, _, _, _, _,
+	_, BeaconBlockT, _, _, _, _, _, _, _, GenesisT, _, _,
 ]) start(
 	ctx context.Context,
 	subBlkCh chan *asynctypes.Event[BeaconBlockT],
+	subGenCh chan *asynctypes.Event[GenesisT],
 ) {
 	for {
 		select {
@@ -195,9 +204,46 @@ func (s *Service[
 			case events.BeaconBlockFinalizedRequest:
 				s.handleBeaconBlockFinalization(msg)
 			}
+		case msg := <-subGenCh:
+			if msg.Type() == events.GenesisDataProcessRequest {
+				s.handleProcessGenesisDataRequest(msg)
+			}
 		}
 	}
 }
+
+func (s *Service[
+	_, _, _, _, _, _, _, _, _, GenesisT, _, _,
+]) handleProcessGenesisDataRequest(msg *asynctypes.Event[GenesisT]) {
+	if msg.Error() != nil {
+		s.logger.Error("Error processing genesis data", "error", msg.Error())
+		return
+	}
+
+	// Process the genesis data.
+	valUpdates, err := s.ProcessGenesisData(msg.Context(), msg.Data())
+	if err != nil {
+		s.logger.Error("Failed to process genesis data", "error", err)
+	}
+
+	// Publish the validator set updated event.
+	if err = s.validatorUpdateBroker.Publish(
+		msg.Context(),
+		asynctypes.NewEvent(
+			msg.Context(),
+			events.ValidatorSetUpdated,
+			valUpdates,
+			err,
+		),
+	); err != nil {
+		s.logger.Error(
+			"Failed to publish validator set updated event",
+			"error",
+			err,
+		)
+	}
+}
+
 func (s *Service[
 	_, BeaconBlockT, _, _, _, _, _, _, _, _, _, _,
 ]) handleBeaconBlockReceived(

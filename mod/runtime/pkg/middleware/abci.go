@@ -46,14 +46,52 @@ func (h *ABCIMiddleware[
 	ctx context.Context,
 	bz []byte,
 ) (transition.ValidatorUpdates, error) {
+	var (
+		g          errgroup.Group
+		valUpdates transition.ValidatorUpdates
+		genesisErr error
+	)
 	data := new(GenesisT)
 	if err := json.Unmarshal(bz, data); err != nil {
 		return nil, err
 	}
-	return h.chainService.ProcessGenesisData(
-		ctx,
-		*data,
-	)
+	// Send a request to the chain service to process the genesis data.
+	if err := h.genesisBroker.Publish(ctx, asynctypes.NewEvent(
+		ctx, events.GenesisDataProcessRequest, *data,
+	)); err != nil {
+		return nil, err
+	}
+
+	// Wait for the genesis data to be processed.
+	g.Go(func() error {
+		valUpdates, genesisErr = h.waitForGenesisData(ctx)
+		return genesisErr
+	})
+
+	if err := g.Wait(); err != nil {
+		return nil, err
+	}
+	return valUpdates, nil
+}
+
+// waitForGenesisData waits for the genesis data to be processed and returns
+// the validator updates.
+func (h *ABCIMiddleware[
+	_, _, _, _, _, _, GenesisT,
+]) waitForGenesisData(ctx context.Context) (
+	transition.ValidatorUpdates, error) {
+	select {
+	case msg := <-h.valUpdateSub:
+		if msg.Type() != events.ValidatorSetUpdated {
+			return nil, errors.Wrapf(
+				ErrUnexpectedEvent,
+				"unexpected event type: %s", msg.Type(),
+			)
+		}
+		return msg.Data(), msg.Error()
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
 }
 
 /* -------------------------------------------------------------------------- */

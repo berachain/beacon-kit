@@ -40,6 +40,7 @@ type ChainServiceInput struct {
 	DepositService        *DepositService
 	EngineClient          *EngineClient
 	ExecutionEngine       *ExecutionEngine
+	GenesisBrocker        *GenesisBroker
 	LocalBuilder          *LocalBuilder
 	Logger                log.Logger
 	Signer                crypto.BLSSigner
@@ -74,6 +75,7 @@ func ProvideChainService(
 		in.LocalBuilder,
 		in.StateProcessor,
 		in.TelemetrySink,
+		in.GenesisBrocker,
 		in.BlockBroker,
 		in.ValidatorUpdateBroker,
 		// If optimistic is enabled, we want to skip post finalization FCUs.

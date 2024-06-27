@@ -34,4 +34,5 @@ const (
 	BlobSidecarsReceived        = "blob-sidecars-received"
 	BlobSidecarsProcessRequest  = "blob-sidecars-process-request"
 	BlobSidecarsProcessed       = "blob-sidecars-processed"
+	GenesisDataProcessRequest   = "genesis-data-process-request"
 )

@@ -7,12 +7,12 @@ GETH_PKG_INCLUDE := $(GOPATH)/pkg/mod/github.com/ethereum/go-ethereum@$(GETH_GO_
 ## Codegen:
 generate: ## generate all the code
 	@$(MAKE) forge-build
-	@go run github.com/vektra/mockery/v2@latest
 	@for module in $(MODULES); do \
 		echo "Running go generate in $$module"; \
 		(cd $$module && \
 			GETH_PKG_INCLUDE=$(GETH_PKG_INCLUDE) go generate ./...) || exit 1; \
 	done
+	@go run github.com/vektra/mockery/v2@latest
 
 generate-check:
 	@$(MAKE) forge-build

@@ -20,27 +20,20 @@
 
 package ssz
 
-// Hashable is an interface representing objects that implement HashTreeRoot().
-type Hashable[SpecT any, Root ~[32]byte] interface {
-	HashTreeRoot() (Root, error)
-}
+// Merkleizer can be used for merkleizing SSZ types.
+type Merkleizer[
+	SpecT any, RootT ~[32]byte, T Basic[SpecT, RootT],
+] interface {
+	MerkleizeBasic(value T) (RootT, error)
+	MerkleizeVecBasic(value []T) (RootT, error)
+	MerkleizeListBasic(value []T, limit ...uint64) (RootT, error)
+	MerkleizeVecComposite(value []T) (RootT, error)
+	MerkleizeListComposite(value []T, limit ...uint64) (RootT, error)
+	MerkleizeByteSlice(value []byte) (RootT, error)
+	Merkleize(chunks []RootT, limit ...uint64) (RootT, error)
 
-// U64 is an interface for uint64 types that support
-// NextPowerOfTwo and ILog2Ceil.
-type U64[T ~uint64] interface {
-	~uint64
-	NextPowerOfTwo() T
-	ILog2Ceil() uint8
-}
-
-// U128LT represents a 128-bit unsigned integer in
-// little-endian byte order.
-type U128LT interface {
-	~[16]byte
-}
-
-// U256LT represents a 256-bit unsigned integer in
-// little-endian byte order.
-type U256LT interface {
-	~[32]byte
+	// TODO: Move to a separate Merkleizer type for container(s).
+	MerkleizeContainer(
+		value Container[SpecT, RootT], spec ...SpecT,
+	) (RootT, error)
 }
