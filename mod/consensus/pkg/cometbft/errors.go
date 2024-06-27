@@ -18,15 +18,19 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package comet
+package cometbft
 
 import "errors"
 
 var (
 	// ErrUndefinedValidatorUpdate is returned when an undefined validator
-	// update is
-	// encountered.
+	// update is encountered.
 	ErrUndefinedValidatorUpdate = errors.New(
 		"undefined validator update",
+	)
+	// ErrInvalidPrepareProposalRequestType is returned when an invalid
+	// prepare proposal request type is encountered.
+	ErrInvalidPrepareProposalRequestType = errors.New(
+		"invalid prepare proposal request type",
 	)
 )

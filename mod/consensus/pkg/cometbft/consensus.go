@@ -18,73 +18,47 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package comet
+package cometbft
 
 import (
 	"context"
 
-	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/sourcegraph/conc/iter"
 )
 
-// TODO: We must rid this of comet bft types.
-type Middleware interface {
-	InitGenesis(
-		ctx context.Context,
-		bz []byte,
-	) (transition.ValidatorUpdates, error)
-
-	PrepareProposal(
-		context.Context,
-		math.Slot,
-	) ([]byte, []byte, error)
-
-	ProcessProposal(
-		ctx context.Context,
-		req *cmtabci.ProcessProposalRequest,
-	) (*cmtabci.ProcessProposalResponse, error)
-
-	PreBlock(
-		_ context.Context, req *cmtabci.FinalizeBlockRequest,
-	) error
-
-	EndBlock(
-		ctx context.Context,
-	) (transition.ValidatorUpdates, error)
+// Consensus is used to decouple the Comet consensus engine from the Cosmos SDK.
+// Right now, it is very coupled to the sdk base app and we will
+// eventually fully decouple this.
+type ConsensusEngine[ValidatorUpdateT any] struct {
+	Middleware
 }
 
-// NewConsensus returns a new consensus middleware.
-func NewConsensus(m Middleware) *Consensus {
-	return &Consensus{
+// NewConsensusEngine returns a new consensus middleware.
+func NewConsensusEngine[ValidatorUpdateT any](
+	m Middleware,
+) *ConsensusEngine[ValidatorUpdateT] {
+	return &ConsensusEngine[ValidatorUpdateT]{
 		Middleware: m,
 	}
 }
 
-// Consensus is used to decouple the Comet consensus engine from the Cosmos SDK.
-// Right now, it is very coupled to the sdk base app and we will
-// eventually fully decouple this.
-type Consensus struct {
-	Middleware
-}
-
-func (c *Consensus) InitGenesis(
+func (c *ConsensusEngine[ValidatorUpdateT]) InitGenesis(
 	ctx context.Context,
-	bz []byte,
-) ([]appmodulev2.ValidatorUpdate, error) {
-	updates, err := c.Middleware.InitGenesis(ctx, bz)
+	genesisBz []byte,
+) ([]ValidatorUpdateT, error) {
+	updates, err := c.Middleware.InitGenesis(ctx, genesisBz)
 	if err != nil {
 		return nil, err
 	}
 	// Convert updates into the Cosmos SDK format.
-	return iter.MapErr(updates, convertValidatorUpdate)
+	return iter.MapErr(updates, convertValidatorUpdate[ValidatorUpdateT])
 }
 
 // TODO: Decouple Comet Types
-func (c *Consensus) PrepareProposal(
+func (c *ConsensusEngine[ValidatorUpdateT]) PrepareProposal(
 	ctx sdk.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
@@ -99,26 +73,35 @@ func (c *Consensus) PrepareProposal(
 }
 
 // TODO: Decouple Comet Types
-func (c *Consensus) ProcessProposal(
+func (c *ConsensusEngine[ValidatorUpdateT]) ProcessProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
-	return c.Middleware.ProcessProposal(ctx, req)
+	resp, err := c.Middleware.ProcessProposal(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	// abciResp, ok := resp.(*cmtabci.ProcessProposalResponse)
+	// if !ok {
+	// 	return nil, errors.New("invalid response type")
+	// }
+	return resp.(*cmtabci.ProcessProposalResponse), nil
 }
 
 // TODO: Decouple Comet Types
-func (c *Consensus) PreBlock(
-	ctx sdk.Context, req *cmtabci.FinalizeBlockRequest,
+func (c *ConsensusEngine[ValidatorUpdateT]) PreBlock(
+	ctx sdk.Context,
+	req *cmtabci.FinalizeBlockRequest,
 ) error {
 	return c.Middleware.PreBlock(ctx, req)
 }
 
-func (c *Consensus) EndBlock(
+func (c *ConsensusEngine[ValidatorUpdateT]) EndBlock(
 	ctx context.Context,
-) ([]appmodulev2.ValidatorUpdate, error) {
+) ([]ValidatorUpdateT, error) {
 	updates, err := c.Middleware.EndBlock(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return iter.MapErr(updates, convertValidatorUpdate)
+	return iter.MapErr(updates, convertValidatorUpdate[ValidatorUpdateT])
 }

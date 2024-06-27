@@ -18,28 +18,24 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package comet
+package cometbft
 
 import (
-	appmodulev2 "cosmossdk.io/core/appmodule/v2"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"context"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
+	"github.com/cosmos/gogoproto/proto"
 )
 
-// convertValidatorUpdate abstracts the conversion of a
-// transition.ValidatorUpdate to an appmodulev2.ValidatorUpdate.
-func convertValidatorUpdate(
-	u **transition.ValidatorUpdate,
-) (appmodulev2.ValidatorUpdate, error) {
-	update := *u
-	if update == nil {
-		return appmodulev2.ValidatorUpdate{},
-			ErrUndefinedValidatorUpdate
-	}
-	return appmodulev2.ValidatorUpdate{
-		PubKey:     update.Pubkey[:],
-		PubKeyType: crypto.CometBLSType,
-		//#nosec:G701 // this is safe.
-		Power: int64(update.EffectiveBalance.Unwrap()),
-	}, nil
+type Middleware interface {
+	InitGenesis(
+		ctx context.Context, bz []byte,
+	) (transition.ValidatorUpdates, error)
+	PrepareProposal(context.Context, math.Slot) ([]byte, []byte, error)
+	ProcessProposal(
+		ctx context.Context, req proto.Message,
+	) (proto.Message, error)
+	PreBlock(_ context.Context, req proto.Message) error
+	EndBlock(ctx context.Context) (transition.ValidatorUpdates, error)
 }

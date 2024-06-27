@@ -18,29 +18,30 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package middleware
+package cometbft
 
-import "errors"
-
-var (
-	// ErrUndefinedValidatorUpdate is returned when an undefined validator
-	// update is
-	// encountered.
-	ErrUndefinedValidatorUpdate = errors.New("undefined validator update")
-	// ErrBadExtractBlockAndBlocks is returned when an error occurs while
-	// extracting
-	// the block and blocks from the request.
-	ErrBadExtractBlockAndBlocks = errors.New("bad extract block and blocks")
-	// ErrUnexpectedEvent is returned when an unexpected event is encountered.
-	ErrUnexpectedEvent = errors.New("unexpected event")
-	// ErrInvalidProcessProposalRequestType is returned when an invalid
-	// process proposal request type is encountered.
-	ErrInvalidProcessProposalRequestType = errors.New(
-		"invalid process proposal request type",
-	)
-	// ErrInvalidFinalizeBlockRequestType is returned when an invalid
-	// finalize block request type is encountered.
-	ErrInvalidFinalizeBlockRequestType = errors.New(
-		"invalid pre block request type",
-	)
+import (
+	appmodulev2 "cosmossdk.io/core/appmodule/v2"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
+
+// convertValidatorUpdate abstracts the conversion of a
+// transition.ValidatorUpdate to an appmodulev2.ValidatorUpdate.
+// TODO: this is so hood, bktypes -> sdktypes -> generic is crazy
+// maybe make this some kind of codec/func that can be passed in?
+func convertValidatorUpdate[ValidatorUpdateT any](
+	u **transition.ValidatorUpdate,
+) (ValidatorUpdateT, error) {
+	var valUpdate ValidatorUpdateT
+	update := *u
+	if update == nil {
+		return valUpdate, ErrUndefinedValidatorUpdate
+	}
+	return any(appmodulev2.ValidatorUpdate{
+		PubKey:     update.Pubkey[:],
+		PubKeyType: crypto.CometBLSType,
+		//#nosec:G701 // this is safe.
+		Power: int64(update.EffectiveBalance.Unwrap()),
+	}).(ValidatorUpdateT), nil
+}
