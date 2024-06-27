@@ -29,6 +29,7 @@ const (
 	encDecRatio     = 2
 	bytesPer64Bits  = 16 // 64/8
 	bytesPer256Bits = 64 // 256/8
+	nibbleShift     = 4
 
 	// hexadecimal conversion constants.
 	hexBaseOffset       = '0'

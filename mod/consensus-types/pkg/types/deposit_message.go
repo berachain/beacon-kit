@@ -25,7 +25,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
 // DepositMessage represents a deposit message as defined in the Ethereum 2.0
@@ -63,7 +62,7 @@ func CreateAndSignDepositMessage(
 		Amount:      amount,
 	}
 
-	signingRoot, err := ssz.ComputeSigningRoot(depositMessage, domain)
+	signingRoot, err := ComputeSigningRoot(depositMessage, domain)
 	if err != nil {
 		return nil, crypto.BLSSignature{}, err
 	}
@@ -104,7 +103,7 @@ func (d *DepositMessage) VerifyCreateValidator(
 		return err
 	}
 
-	signingRoot, err := ssz.ComputeSigningRoot(d, domain)
+	signingRoot, err := ComputeSigningRoot(d, domain)
 	if err != nil {
 		return err
 	}
