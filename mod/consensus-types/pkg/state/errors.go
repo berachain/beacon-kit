@@ -22,7 +22,6 @@ package state
 
 import "github.com/berachain/beacon-kit/mod/errors"
 
-
 var (
 	// ErrUnsupportedVersion indicates a failure to use unsupported version.
 	ErrUnsupportedVersion = errors.New("unsupported version")
