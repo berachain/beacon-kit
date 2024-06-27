@@ -226,8 +226,9 @@ func BenchmarkDecodeFixedText(b *testing.B) {
 			input := make([]byte, size*2+2) // Each byte is represented by 2 hex characters + "0x" prefix
 			input[0] = '0'
 			input[1] = 'x'
-			for i := 2; i < len(input); i++ {
-				input[i] = 'a' // Use 'a' to represent a valid hex character
+			for i := 2; i < len(input); i += 2 {
+				input[i] = 'a'
+				input[i+1] = 'f'
 			}
 			out := make([]byte, size) // Adjust the size based on the expected output length
 
