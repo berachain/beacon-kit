@@ -49,7 +49,7 @@ func (s *String) UnmarshalText(text []byte) error {
 	str := string(text)
 	err := isValidHex(str)
 	if err != nil {
-		return errors.New("invalid hex string: %s, error: %w", str, err)
+		return errors.Wrapf(ErrInvalidString, "%s", str)
 	}
 	*s = String(str)
 	return nil

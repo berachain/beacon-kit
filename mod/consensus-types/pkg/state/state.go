@@ -112,6 +112,6 @@ func (st *BeaconStateMarshallable[
 			},
 		}, nil
 	default:
-		return nil, errors.New("unsupported version %d", forkVersion)
+		return nil, errors.Wrapf(ErrUnsupportedVersion, "%d", forkVersion)
 	}
 }
