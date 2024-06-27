@@ -148,7 +148,6 @@ func (sp *StateProcessor[
 		err                   error
 	)
 
-	// Get the current epoch.
 	// Get the current slot.
 	slot, err := st.GetSlot()
 	if err != nil {
@@ -166,6 +165,7 @@ func (sp *StateProcessor[
 		}
 	}
 
+	// Get the current epoch.
 	epoch = sp.cs.SlotToEpoch(slot)
 
 	// Verify that the message was signed correctly.
