@@ -22,6 +22,7 @@ package ssz_test
 
 import (
 	"crypto/sha256"
+	"encoding/binary"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -42,7 +43,9 @@ func (u BasicItem) SizeSSZ() int {
 
 // MarshalSSZ marshals the U64 into a byte slice.
 func (u BasicItem) MarshalSSZ() ([]byte, error) {
-	return ssz.MarshalU64(u), nil
+	buf := make([]byte, 8)
+	binary.LittleEndian.PutUint64(buf, uint64(u))
+	return buf, nil
 }
 
 // HashTreeRoot computes the Merkle root of the U64 using SSZ hashing rules.
