@@ -18,21 +18,11 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package jwt
+package state
 
 import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
-	// ErrLengthMismatch is returned when a JWT secret length is not as
-	// expected.
-	ErrLengthMismatch = errors.New(
-		"JWT secret length mismatch")
-
-	// ErrContainsIllegalCharacter is returned when a JWT secret contains
-	// illegal characters.
-	ErrContainsIllegalCharacter = errors.New(
-		"JWT secret contains illegal character(s)")
-
-	// ErrCreateJWT is returned when a JWT token fails to be created.
-	ErrCreateJWT = errors.New("failed to create JWT token")
+	// ErrUnsupportedVersion indicates a failure to use unsupported version.
+	ErrUnsupportedVersion = errors.New("unsupported version")
 )
