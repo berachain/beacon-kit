@@ -25,10 +25,10 @@ import (
 
 	deneb "github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
-	"github.com/cockroachdb/errors"
 )
 
 // BeaconState is the interface for the beacon state.
@@ -112,6 +112,6 @@ func (st *BeaconStateMarshallable[
 			},
 		}, nil
 	default:
-		return nil, errors.Newf("unsupported version %d", forkVersion)
+		return nil, errors.New("unsupported version %d", forkVersion)
 	}
 }

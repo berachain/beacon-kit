@@ -23,7 +23,7 @@ package jwt
 import (
 	"time"
 
-	"github.com/cockroachdb/errors"
+	"github.com/berachain/beacon-kit/mod/errors"
 	gjwt "github.com/golang-jwt/jwt/v5"
 )
 
@@ -34,7 +34,7 @@ func BuildSignedJWT(s *Secret) (string, error) {
 	})
 	str, err := token.SignedString(s[:])
 	if err != nil {
-		return "", errors.Newf("failed to create JWT token: %w", err)
+		return "", errors.New("failed to create JWT token: %w", err)
 	}
 	return str, nil
 }

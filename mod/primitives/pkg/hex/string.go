@@ -26,7 +26,7 @@ import (
 	"math/big"
 	"strconv"
 
-	"github.com/cockroachdb/errors"
+	"github.com/berachain/beacon-kit/mod/errors"
 )
 
 // String represents a hex string with 0x prefix.
@@ -49,7 +49,7 @@ func (s *String) UnmarshalText(text []byte) error {
 	str := string(text)
 	err := isValidHex(str)
 	if err != nil {
-		return errors.Newf("invalid hex string: %s, error: %w", str, err)
+		return errors.New("invalid hex string: %s, error: %w", str, err)
 	}
 	*s = String(str)
 	return nil
