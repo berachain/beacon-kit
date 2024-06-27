@@ -27,6 +27,10 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 )
 
+/* -------------------------------------------------------------------------- */
+/*                                    Basic                                   */
+/* -------------------------------------------------------------------------- */
+
 // SSZVectorBasic is a vector of basic types.
 type SSZVectorBasic[T Basic[T]] []T
 
@@ -36,19 +40,11 @@ func VectorBasicFromElements[T Basic[T]](elements ...T) SSZVectorBasic[T] {
 	return elements
 }
 
-/* -------------------------------------------------------------------------- */
-/*                                    Size                                    */
-/* -------------------------------------------------------------------------- */
-
 // SizeSSZ returns the size of the list in bytes.
 func (l SSZVectorBasic[T]) SizeSSZ() int {
 	var t T
 	return t.SizeSSZ() * len(l)
 }
-
-/* -------------------------------------------------------------------------- */
-/*                                HashTreeRoot                                */
-/* -------------------------------------------------------------------------- */
 
 // HashTreeRootWith returns the Merkle root of the SSZVectorBasic
 // with a given merkleizer.
@@ -65,10 +61,6 @@ func (l SSZVectorBasic[T]) HashTreeRoot() ([32]byte, error) {
 		common.ChainSpec, [32]byte, T,
 	]())
 }
-
-/* -------------------------------------------------------------------------- */
-/*                                 Marshalling                                */
-/* -------------------------------------------------------------------------- */
 
 // MarshalSSZToBytes marshals the SSZVectorBasic into SSZ format.
 func (l SSZVectorBasic[T]) MarshalSSZTo(out []byte) ([]byte, error) {
@@ -111,6 +103,96 @@ func (SSZVectorBasic[T]) NewFromSSZ(buf []byte) (SSZVectorBasic[T], error) {
 	}
 
 	result := make(SSZVectorBasic[T], 0, len(buf)/elementSize)
+	for i := 0; i < len(buf); i += elementSize {
+		if t, err = t.NewFromSSZ(buf[i : i+elementSize]); err != nil {
+			return nil, err
+		}
+		result = append(result, t)
+	}
+
+	return result, nil
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                  Composite                                 */
+/* -------------------------------------------------------------------------- */
+
+// SSZVectorComposite is a vector of Composite types.
+type SSZVectorComposite[T Composite[T]] []T
+
+// VectorCompositeFromElements creates a new SSZVectorComposite from elements.
+// TODO: Deprecate once off of FastSSZTypes
+func VectorCompositeFromElements[T Composite[T]](
+	elements ...T,
+) SSZVectorComposite[T] {
+	return elements
+}
+
+// SizeSSZ returns the size of the list in bytes.
+func (l SSZVectorComposite[T]) SizeSSZ() int {
+	var t T
+	return t.SizeSSZ() * len(l)
+}
+
+// HashTreeRootWith returns the Merkle root of the SSZVectorComposite
+// with a given merkleizer.
+func (l SSZVectorComposite[T]) HashTreeRootWith(
+	merkleizer Merkleizer[common.ChainSpec, [32]byte, T],
+) ([32]byte, error) {
+	return merkleizer.MerkleizeVecComposite(l)
+}
+
+// HashTreeRoot returns the Merkle root of the SSZVectorComposite.
+func (l SSZVectorComposite[T]) HashTreeRoot() ([32]byte, error) {
+	// Create a merkleizer
+	return l.HashTreeRootWith(merkleizer.New[
+		common.ChainSpec, [32]byte, T,
+	]())
+}
+
+// MarshalSSZToBytes marshals the SSZVectorComposite into SSZ format.
+func (l SSZVectorComposite[T]) MarshalSSZTo(out []byte) ([]byte, error) {
+	// From the Spec:
+	// fixed_parts = [
+	// 		serialize(element)
+	// 			if not is_variable_size(element)
+	//			else None for element in value,
+	// 		]
+	// VectorComposite has all fixed types, so we simply
+	// serialize each element and pack them together.
+	for _, v := range l {
+		bytes, err := v.MarshalSSZ()
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, bytes...)
+	}
+	return out, nil
+}
+
+// MarshalSSZ marshals the SSZVectorComposite into SSZ format.
+func (l SSZVectorComposite[T]) MarshalSSZ() ([]byte, error) {
+	return l.MarshalSSZTo(make([]byte, 0, l.SizeSSZ()))
+}
+
+// NewFromSSZ creates a new SSZVectorComposite from SSZ format.
+func (SSZVectorComposite[T]) NewFromSSZ(
+	buf []byte,
+) (SSZVectorComposite[T], error) {
+	var (
+		err error
+		t   T
+	)
+	elementSize := t.SizeSSZ()
+	if len(buf)%elementSize != 0 {
+		return nil, fmt.Errorf(
+			"invalid buffer length %d for element size %d",
+			len(buf),
+			elementSize,
+		)
+	}
+
+	result := make(SSZVectorComposite[T], 0, len(buf)/elementSize)
 	for i := 0; i < len(buf); i += elementSize {
 		if t, err = t.NewFromSSZ(buf[i : i+elementSize]); err != nil {
 			return nil, err
