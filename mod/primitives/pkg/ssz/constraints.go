@@ -20,7 +20,8 @@
 
 package ssz
 
-// Base defines the interface for a base type, all SSZable types should implement
+// Base defines the interface for a base type, all SSZable types should
+// implement
 // this interface.
 type Base[BaseT any] interface {
 	// NewFromSSZ creates a new composite type from an SSZ byte slice.
