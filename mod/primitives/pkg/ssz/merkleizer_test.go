@@ -63,7 +63,7 @@ type BasicContainer[SpecT any] struct {
 
 // SizeSSZ returns the size of the container in bytes.
 func (c *BasicContainer[SpecT]) SizeSSZ() int {
-	return ssz.SizeOfContainer[[32]byte, *BasicContainer[SpecT], SpecT](c)
+	return c.Item1.SizeSSZ() + c.Item2.SizeSSZ()
 }
 
 // HashTreeRoot computes the Merkle root of the container using SSZ hashing
