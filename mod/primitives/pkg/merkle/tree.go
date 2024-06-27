@@ -69,7 +69,8 @@ func NewTreeWithMaxLeaves[RootT ~[32]byte](
 	)
 }
 
-// NewTreeFromLeaves constructs a Merkle tree from a sequence of byte slices.
+// NewTreeFromLeavesWithDepth constructs a Merkle tree
+// from a sequence of byte slices.
 // It will fill the tree with zero hashes to create the required depth.
 func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 	leaves []RootT,
