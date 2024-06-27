@@ -99,25 +99,32 @@ func (m *Hasher[RootT]) NewRootWithDepth(
 	depth uint8,
 	limitDepth uint8,
 ) (RootT, error) {
-	// Preallocate the buffer for the next layer to avoid repeated allocations
-	nextLayer := m.buffer.Get((len(leaves) + 1) / 2)
-
-	for len(leaves) > 1 {
-		nextLayerSize := (uint64(len(leaves)) + 1) / 2
-		nextLayer = nextLayer[:nextLayerSize]
-
-		if err := BuildParentTreeRoots(nextLayer, leaves); err != nil {
-			return zero.Hashes[depth], err
-		}
-
-		// If the next layer has an odd number of nodes, append a zero hash
-		if nextLayerSize%2 == 1 && len(leaves) > 2 {
-			nextLayer = append(nextLayer, zero.Hashes[0])
-		}
-
-		leaves = nextLayer
+	// Return zerohash at depth
+	if len(leaves) == 0 {
+		return zero.Hashes[depth], nil
 	}
 
+	// Preallocate a single buffer large enough for the maximum layer size
+	// TODO: It seems that BuildParentTreeRoots has different behaviour
+	// when we pass leaves in directly.
+	buf := m.buffer.Get((len(leaves) + 1) / two)
+
+	var err error
+	for i := range depth {
+		layerLen := len(leaves)
+		if layerLen%two == 1 {
+			leaves = append(leaves, zero.Hashes[i])
+		}
+
+		newLayerSize := (layerLen + 1) / two
+		if err = m.hasher(buf[:newLayerSize], leaves); err != nil {
+			return zero.Hashes[depth], err
+		}
+		leaves, buf = buf[:newLayerSize], leaves
+	}
+	if len(leaves) != 1 {
+		return zero.Hashes[depth], nil
+	}
 	// Handle the case where the tree is not full
 	h := leaves[0]
 	for j := uint8(depth); j < limitDepth; j++ {
