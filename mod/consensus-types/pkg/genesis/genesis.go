@@ -150,7 +150,7 @@ func DefaultGenesisExecutionPayloadHeaderDeneb() (
 
 	g.Go(func() error {
 		var err error
-		wds := ssztypes.CompositeListFromElements(
+		wds := ssztypes.ListCompositeFromElements(
 			[]*engineprimitives.Withdrawal{}...)
 		emptyWithdrawalsRoot, err = wds.HashTreeRoot()
 		return err

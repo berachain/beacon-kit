@@ -182,7 +182,7 @@ func executableDataToExecutionPayloadHeader(
 
 		g.Go(func() error {
 			var withdrawalsRootErr error
-			wds := ssztypes.CompositeListFromElements(withdrawals...)
+			wds := ssztypes.ListCompositeFromElements(withdrawals...)
 			withdrawalsRoot, withdrawalsRootErr = wds.HashTreeRoot()
 			return withdrawalsRootErr
 		})
