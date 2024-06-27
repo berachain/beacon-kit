@@ -20,6 +20,8 @@
 
 package ssz
 
+// Base defines the interface for a base type, all SSZable types should implement
+// this interface.
 type Base[BaseT any] interface {
 	// NewFromSSZ creates a new composite type from an SSZ byte slice.
 	NewFromSSZ([]byte) (BaseT, error)
@@ -41,5 +43,6 @@ type Basic[BasicT any] interface {
 // Composite defines the interface for a composite type.
 type Composite[CompositeT any] interface {
 	Base[CompositeT]
+	// IsFixed returns true if the composite type has a fixed size.
 	IsFixed() bool
 }
