@@ -77,3 +77,8 @@ func (Withdrawal) NewFromSSZ(bytes []byte) (*Withdrawal, error) {
 	}
 	return w, nil
 }
+
+// IsFixed returns true if the Withdrawal is fixed size.
+func (Withdrawal) IsFixed() bool {
+	return true
+}

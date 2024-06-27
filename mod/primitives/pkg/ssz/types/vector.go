@@ -49,7 +49,7 @@ func (l SSZVectorBasic[T]) SizeSSZ() int {
 // HashTreeRootWith returns the Merkle root of the SSZVectorBasic
 // with a given merkleizer.
 func (l SSZVectorBasic[T]) HashTreeRootWith(
-	merkleizer Merkleizer[common.ChainSpec, [32]byte, T],
+	merkleizer BasicMerkleizer[common.ChainSpec, [32]byte, T],
 ) ([32]byte, error) {
 	return merkleizer.MerkleizeVecBasic(l)
 }
@@ -137,7 +137,7 @@ func (l SSZVectorComposite[T]) SizeSSZ() int {
 // HashTreeRootWith returns the Merkle root of the SSZVectorComposite
 // with a given merkleizer.
 func (l SSZVectorComposite[T]) HashTreeRootWith(
-	merkleizer Merkleizer[common.ChainSpec, [32]byte, T],
+	merkleizer CompositeMerkleizer[common.ChainSpec, [32]byte, T],
 ) ([32]byte, error) {
 	return merkleizer.MerkleizeVecComposite(l)
 }
@@ -152,13 +152,18 @@ func (l SSZVectorComposite[T]) HashTreeRoot() ([32]byte, error) {
 
 // MarshalSSZToBytes marshals the SSZVectorComposite into SSZ format.
 func (l SSZVectorComposite[T]) MarshalSSZTo(out []byte) ([]byte, error) {
+	var t T
+	if !t.IsFixed() {
+		panic("not implemented yet")
+	}
+
 	// From the Spec:
 	// fixed_parts = [
 	// 		serialize(element)
 	// 			if not is_variable_size(element)
 	//			else None for element in value,
 	// 		]
-	// VectorComposite has all fixed types, so we simply
+	// VectorBasic has all fixed types, so we simply
 	// serialize each element and pack them together.
 	for _, v := range l {
 		bytes, err := v.MarshalSSZ()
@@ -168,6 +173,7 @@ func (l SSZVectorComposite[T]) MarshalSSZTo(out []byte) ([]byte, error) {
 		out = append(out, bytes...)
 	}
 	return out, nil
+
 }
 
 // MarshalSSZ marshals the SSZVectorComposite into SSZ format.
@@ -179,10 +185,16 @@ func (l SSZVectorComposite[T]) MarshalSSZ() ([]byte, error) {
 func (SSZVectorComposite[T]) NewFromSSZ(
 	buf []byte,
 ) (SSZVectorComposite[T], error) {
+
 	var (
 		err error
 		t   T
 	)
+
+	if !t.IsFixed() {
+		panic("not implemented yet")
+	}
+
 	elementSize := t.SizeSSZ()
 	if len(buf)%elementSize != 0 {
 		return nil, fmt.Errorf(

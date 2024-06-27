@@ -47,7 +47,7 @@ func (l SSZListBasic[T]) SizeSSZ() int {
 // HashTreeRootWith returns the Merkle root of the SSZListBasic
 // with a given merkleizer.
 func (l SSZListBasic[T]) HashTreeRootWith(
-	merkleizer Merkleizer[common.ChainSpec, [32]byte, T],
+	merkleizer BasicMerkleizer[common.ChainSpec, [32]byte, T],
 ) ([32]byte, error) {
 	return merkleizer.MerkleizeListBasic(l)
 }
@@ -107,7 +107,7 @@ func (l SSZListComposite[T]) SizeSSZ() int {
 // HashTreeRootWith returns the Merkle root of the SSZListComposite
 // with a given merkleizer.
 func (l SSZListComposite[T]) HashTreeRootWith(
-	merkleizer Merkleizer[common.ChainSpec, [32]byte, T],
+	merkleizer CompositeMerkleizer[common.ChainSpec, [32]byte, T],
 ) ([32]byte, error) {
 	return merkleizer.MerkleizeListComposite(l)
 }
