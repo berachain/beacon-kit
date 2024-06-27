@@ -18,15 +18,24 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package comet
+package cometbft
 
-import "errors"
+import (
+	"context"
 
-var (
-	// ErrUndefinedValidatorUpdate is returned when an undefined validator
-	// update is
-	// encountered.
-	ErrUndefinedValidatorUpdate = errors.New(
-		"undefined validator update",
-	)
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
+	"github.com/cosmos/gogoproto/proto"
 )
+
+type Middleware interface {
+	InitGenesis(
+		ctx context.Context, bz []byte,
+	) (transition.ValidatorUpdates, error)
+	PrepareProposal(context.Context, math.Slot) ([]byte, []byte, error)
+	ProcessProposal(
+		ctx context.Context, req proto.Message,
+	) (proto.Message, error)
+	PreBlock(_ context.Context, req proto.Message) error
+	EndBlock(ctx context.Context) (transition.ValidatorUpdates, error)
+}
