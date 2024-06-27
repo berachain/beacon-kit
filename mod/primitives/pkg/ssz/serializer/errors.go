@@ -17,33 +17,20 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
+package serializer
 
-package types
+import (
+	"github.com/berachain/beacon-kit/mod/errors"
+)
 
-// BaseMerkleizer provides basic merkleization operations for SSZ types.
-type BaseMerkleizer[
-	SpecT any, RootT ~[32]byte, T Base[T],
-] interface {
-	MerkleizeByteSlice(value []byte) (RootT, error)
-	Merkleize(chunks []RootT, limit ...uint64) (RootT, error)
-}
+var (
+	// ErrInvalidNilSlice is returned when the input slice is nil.
+	ErrInvalidNilSlice = errors.New("invalid empty slice")
 
-// BasicMerkleizer provides merkleization operations for basic SSZ types.
-type BasicMerkleizer[
-	SpecT any, RootT ~[32]byte, T Basic[T],
-] interface {
-	BaseMerkleizer[SpecT, RootT, T]
-	MerkleizeBasic(value T) (RootT, error)
-	MerkleizeVecBasic(value []T) (RootT, error)
-	MerkleizeListBasic(value []T, limit ...uint64) (RootT, error)
-}
+	// ErrInvalidLength is returned when the input byte slice has an invalid
+	// length.
+	ErrInvalidLength = errors.New("invalid byte length")
 
-// CompositeMerkleizer provides merkleization operations for composite SSZ
-// types.
-type CompositeMerkleizer[
-	SpecT any, RootT ~[32]byte, T Composite[T],
-] interface {
-	BaseMerkleizer[SpecT, RootT, T]
-	MerkleizeVecComposite(value []T) (RootT, error)
-	MerkleizeListComposite(value []T, limit ...uint64) (RootT, error)
-}
+	// ErrInvalidByteValue is returned when the input byte has an invalid value.
+	ErrInvalidByteValue = errors.New("invalid byte value")
+)

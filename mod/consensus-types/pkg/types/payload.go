@@ -28,7 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	ssztypes "github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"golang.org/x/sync/errgroup"
 )
@@ -79,7 +79,7 @@ func (e *ExecutionPayload) ToHeader(
 
 	g.Go(func() error {
 		var withdrawalsRootErr error
-		wds := ssztypes.ListCompositeFromElements(e.GetWithdrawals()...)
+		wds := ssz.ListCompositeFromElements(e.GetWithdrawals()...)
 		withdrawalsRoot, withdrawalsRootErr = wds.HashTreeRoot()
 		return withdrawalsRootErr
 	})

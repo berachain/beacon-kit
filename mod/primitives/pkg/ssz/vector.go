@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package ssz
 
 import (
 	"fmt"
@@ -31,39 +31,39 @@ import (
 /*                                    Basic                                   */
 /* -------------------------------------------------------------------------- */
 
-// SSZVectorBasic is a vector of basic types.
-type SSZVectorBasic[T Basic[T]] []T
+// VectorBasic is a vector of basic types.
+type VectorBasic[T Basic[T]] []T
 
-// VectorBasicFromElements creates a new SSZListComposite from elements.
-// TODO: Deprecate once off of FastSSZTypes
-func VectorBasicFromElements[T Basic[T]](elements ...T) SSZVectorBasic[T] {
+// VectorBasicFromElements creates a new ListComposite from elements.
+// TODO: Deprecate once off of Fastssz
+func VectorBasicFromElements[T Basic[T]](elements ...T) VectorBasic[T] {
 	return elements
 }
 
 // SizeSSZ returns the size of the list in bytes.
-func (l SSZVectorBasic[T]) SizeSSZ() int {
+func (l VectorBasic[T]) SizeSSZ() int {
 	var t T
 	return t.SizeSSZ() * len(l)
 }
 
-// HashTreeRootWith returns the Merkle root of the SSZVectorBasic
+// HashTreeRootWith returns the Merkle root of the VectorBasic
 // with a given merkleizer.
-func (l SSZVectorBasic[T]) HashTreeRootWith(
+func (l VectorBasic[T]) HashTreeRootWith(
 	merkleizer BasicMerkleizer[common.ChainSpec, [32]byte, T],
 ) ([32]byte, error) {
 	return merkleizer.MerkleizeVecBasic(l)
 }
 
-// HashTreeRoot returns the Merkle root of the SSZVectorBasic.
-func (l SSZVectorBasic[T]) HashTreeRoot() ([32]byte, error) {
+// HashTreeRoot returns the Merkle root of the VectorBasic.
+func (l VectorBasic[T]) HashTreeRoot() ([32]byte, error) {
 	// Create a merkleizer
 	return l.HashTreeRootWith(merkleizer.New[
 		common.ChainSpec, [32]byte, T,
 	]())
 }
 
-// MarshalSSZToBytes marshals the SSZVectorBasic into SSZ format.
-func (l SSZVectorBasic[T]) MarshalSSZTo(out []byte) ([]byte, error) {
+// MarshalSSZToBytes marshals the VectorBasic into SSZ format.
+func (l VectorBasic[T]) MarshalSSZTo(out []byte) ([]byte, error) {
 	// From the Spec:
 	// fixed_parts = [
 	// 		serialize(element)
@@ -82,13 +82,13 @@ func (l SSZVectorBasic[T]) MarshalSSZTo(out []byte) ([]byte, error) {
 	return out, nil
 }
 
-// MarshalSSZ marshals the SSZVectorBasic into SSZ format.
-func (l SSZVectorBasic[T]) MarshalSSZ() ([]byte, error) {
+// MarshalSSZ marshals the VectorBasic into SSZ format.
+func (l VectorBasic[T]) MarshalSSZ() ([]byte, error) {
 	return l.MarshalSSZTo(make([]byte, 0, l.SizeSSZ()))
 }
 
-// NewFromSSZ creates a new SSZVectorBasic from SSZ format.
-func (SSZVectorBasic[T]) NewFromSSZ(buf []byte) (SSZVectorBasic[T], error) {
+// NewFromSSZ creates a new VectorBasic from SSZ format.
+func (VectorBasic[T]) NewFromSSZ(buf []byte) (VectorBasic[T], error) {
 	var (
 		err error
 		t   T
@@ -102,7 +102,7 @@ func (SSZVectorBasic[T]) NewFromSSZ(buf []byte) (SSZVectorBasic[T], error) {
 		)
 	}
 
-	result := make(SSZVectorBasic[T], 0, len(buf)/elementSize)
+	result := make(VectorBasic[T], 0, len(buf)/elementSize)
 	for i := 0; i < len(buf); i += elementSize {
 		if t, err = t.NewFromSSZ(buf[i : i+elementSize]); err != nil {
 			return nil, err
@@ -117,41 +117,41 @@ func (SSZVectorBasic[T]) NewFromSSZ(buf []byte) (SSZVectorBasic[T], error) {
 /*                                  Composite                                 */
 /* -------------------------------------------------------------------------- */
 
-// SSZVectorComposite is a vector of Composite types.
-type SSZVectorComposite[T Composite[T]] []T
+// VectorComposite is a vector of Composite types.
+type VectorComposite[T Composite[T]] []T
 
-// VectorCompositeFromElements creates a new SSZVectorComposite from elements.
-// TODO: Deprecate once off of FastSSZTypes
+// VectorCompositeFromElements creates a new VectorComposite from elements.
+// TODO: Deprecate once off of Fastssz
 func VectorCompositeFromElements[T Composite[T]](
 	elements ...T,
-) SSZVectorComposite[T] {
+) VectorComposite[T] {
 	return elements
 }
 
 // SizeSSZ returns the size of the list in bytes.
-func (l SSZVectorComposite[T]) SizeSSZ() int {
+func (l VectorComposite[T]) SizeSSZ() int {
 	var t T
 	return t.SizeSSZ() * len(l)
 }
 
-// HashTreeRootWith returns the Merkle root of the SSZVectorComposite
+// HashTreeRootWith returns the Merkle root of the VectorComposite
 // with a given merkleizer.
-func (l SSZVectorComposite[T]) HashTreeRootWith(
+func (l VectorComposite[T]) HashTreeRootWith(
 	merkleizer CompositeMerkleizer[common.ChainSpec, [32]byte, T],
 ) ([32]byte, error) {
 	return merkleizer.MerkleizeVecComposite(l)
 }
 
-// HashTreeRoot returns the Merkle root of the SSZVectorComposite.
-func (l SSZVectorComposite[T]) HashTreeRoot() ([32]byte, error) {
+// HashTreeRoot returns the Merkle root of the VectorComposite.
+func (l VectorComposite[T]) HashTreeRoot() ([32]byte, error) {
 	// Create a merkleizer
 	return l.HashTreeRootWith(merkleizer.New[
 		common.ChainSpec, [32]byte, T,
 	]())
 }
 
-// MarshalSSZToBytes marshals the SSZVectorComposite into SSZ format.
-func (l SSZVectorComposite[T]) MarshalSSZTo(out []byte) ([]byte, error) {
+// MarshalSSZToBytes marshals the VectorComposite into SSZ format.
+func (l VectorComposite[T]) MarshalSSZTo(out []byte) ([]byte, error) {
 	var t T
 	if !t.IsFixed() {
 		panic("not implemented yet")
@@ -175,15 +175,15 @@ func (l SSZVectorComposite[T]) MarshalSSZTo(out []byte) ([]byte, error) {
 	return out, nil
 }
 
-// MarshalSSZ marshals the SSZVectorComposite into SSZ format.
-func (l SSZVectorComposite[T]) MarshalSSZ() ([]byte, error) {
+// MarshalSSZ marshals the VectorComposite into SSZ format.
+func (l VectorComposite[T]) MarshalSSZ() ([]byte, error) {
 	return l.MarshalSSZTo(make([]byte, 0, l.SizeSSZ()))
 }
 
-// NewFromSSZ creates a new SSZVectorComposite from SSZ format.
-func (SSZVectorComposite[T]) NewFromSSZ(
+// NewFromSSZ creates a new VectorComposite from SSZ format.
+func (VectorComposite[T]) NewFromSSZ(
 	buf []byte,
-) (SSZVectorComposite[T], error) {
+) (VectorComposite[T], error) {
 	var (
 		err error
 		t   T
@@ -202,7 +202,7 @@ func (SSZVectorComposite[T]) NewFromSSZ(
 		)
 	}
 
-	result := make(SSZVectorComposite[T], 0, len(buf)/elementSize)
+	result := make(VectorComposite[T], 0, len(buf)/elementSize)
 	for i := 0; i < len(buf); i += elementSize {
 		if t, err = t.NewFromSSZ(buf[i : i+elementSize]); err != nil {
 			return nil, err

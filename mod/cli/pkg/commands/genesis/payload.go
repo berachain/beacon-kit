@@ -32,7 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	ssztypes "github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
@@ -182,7 +182,7 @@ func executableDataToExecutionPayloadHeader(
 
 		g.Go(func() error {
 			var withdrawalsRootErr error
-			wds := ssztypes.ListCompositeFromElements(withdrawals...)
+			wds := ssz.ListCompositeFromElements(withdrawals...)
 			withdrawalsRoot, withdrawalsRootErr = wds.HashTreeRoot()
 			return withdrawalsRootErr
 		})

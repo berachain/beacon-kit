@@ -19,7 +19,7 @@
 // TITLE.
 
 //nolint:mnd // lots of magic numbers here.
-package types
+package ssz
 
 import (
 	"encoding/binary"
@@ -30,34 +30,34 @@ import (
 /*                                    Bool                                    */
 /* -------------------------------------------------------------------------- */
 
-type SSZBool bool
+type Bool bool
 
 // SizeSSZ returns the size of the bool in bytes.
-func (b SSZBool) SizeSSZ() int {
+func (b Bool) SizeSSZ() int {
 	return 1
 }
 
 // MarshalSSZ marshals the bool into SSZ format.
-func (b SSZBool) MarshalSSZ() ([]byte, error) {
+func (b Bool) MarshalSSZ() ([]byte, error) {
 	if b {
 		return []byte{1}, nil
 	}
 	return []byte{0}, nil
 }
 
-// NewFromSSZ creates a new SSZBool from SSZ format.
-func (SSZBool) NewFromSSZ(buf []byte) (SSZBool, error) {
+// NewFromSSZ creates a new Bool from SSZ format.
+func (Bool) NewFromSSZ(buf []byte) (Bool, error) {
 	if len(buf) != 1 {
 		return false, fmt.Errorf(
 			"invalid buffer length: expected 1, got %d",
 			len(buf),
 		)
 	}
-	return SSZBool(buf[0] != 0), nil
+	return Bool(buf[0] != 0), nil
 }
 
 // HashTreeRoot returns the hash tree root of the bool.
-func (b SSZBool) HashTreeRoot() ([32]byte, error) {
+func (b Bool) HashTreeRoot() ([32]byte, error) {
 	buf := make([]byte, 32)
 	if b {
 		buf[0] = 1
@@ -211,31 +211,31 @@ func (u SSZUInt64) HashTreeRoot() ([32]byte, error) {
 /*                                    Byte                                    */
 /* -------------------------------------------------------------------------- */
 
-type SSZByte byte
+type Byte byte
 
 // SizeSSZ returns the size of the byte slice in bytes.
-func (b SSZByte) SizeSSZ() int {
+func (b Byte) SizeSSZ() int {
 	return 1
 }
 
 // MarshalSSZ marshals the byte into SSZ format.
-func (b SSZByte) MarshalSSZ() ([]byte, error) {
+func (b Byte) MarshalSSZ() ([]byte, error) {
 	return []byte{byte(b)}, nil
 }
 
-// NewFromSSZ creates a new SSZByte from SSZ format.
-func (SSZByte) NewFromSSZ(buf []byte) (SSZByte, error) {
+// NewFromSSZ creates a new Byte from SSZ format.
+func (Byte) NewFromSSZ(buf []byte) (Byte, error) {
 	if len(buf) != 1 {
 		return 0, fmt.Errorf(
 			"invalid buffer length: expected 1, got %d",
 			len(buf),
 		)
 	}
-	return SSZByte(buf[0]), nil
+	return Byte(buf[0]), nil
 }
 
 // HashTreeRoot returns the hash tree root of the byte.
-func (b SSZByte) HashTreeRoot() ([32]byte, error) {
+func (b Byte) HashTreeRoot() ([32]byte, error) {
 	buf := make([]byte, 32)
 	buf[0] = byte(b)
 	return [32]byte(buf), nil

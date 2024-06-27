@@ -17,20 +17,16 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
+
 package ssz
 
-import (
-	"github.com/berachain/beacon-kit/mod/errors"
-)
+const (
+	// BytesPerChunk is the number of bytes per chunk.
+	BytesPerChunk = 32
 
-var (
-	// ErrInvalidNilSlice is returned when the input slice is nil.
-	ErrInvalidNilSlice = errors.New("invalid empty slice")
+	// BytesPerLengthOffset is the number of bytes per serialized length offset.
+	BytesPerLengthOffset = 4
 
-	// ErrInvalidLength is returned when the input byte slice has an invalid
-	// length.
-	ErrInvalidLength = errors.New("invalid byte length")
-
-	// ErrInvalidByteValue is returned when the input byte has an invalid value.
-	ErrInvalidByteValue = errors.New("invalid byte value")
+	// BitsPerByte is the number of bits per byte.
+	BitsPerByte = 8
 )

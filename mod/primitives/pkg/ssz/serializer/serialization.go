@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package ssz
+package serializer
 
 import (
 	"math/bits"
