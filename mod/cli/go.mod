@@ -22,7 +22,7 @@ require (
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240624204855-d8809d5c8588
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240619234034-fe96d94eafef
 	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240624003607-df94860f8eeb
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240627180332-c0c40795b3da
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240627201655-33a34cec850e
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240627055712-4f91afce3247
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/ethereum/go-ethereum v1.14.5
