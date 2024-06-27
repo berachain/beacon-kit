@@ -104,10 +104,10 @@ func (m *Hasher[RootT]) NewRootWithDepth(
 		return zero.Hashes[limitDepth], nil
 	}
 
-	// Preallocate a single buffer large enough for the maximum layer size
-	// TODO: It seems that BuildParentTreeRoots has different behaviour
-	// when we pass leaves in directly.
-	buf := m.buffer.Get((len(leaves) + 1) / two)
+	// // Preallocate a single buffer large enough for the maximum layer size
+	// // TODO: It seems that BuildParentTreeRoots has different behaviour
+	// // when we pass leaves in directly.
+	// buf := m.buffer.Get((len(leaves) + 1) / two)
 
 	var err error
 	for i := range depth {
@@ -116,12 +116,10 @@ func (m *Hasher[RootT]) NewRootWithDepth(
 			leaves = append(leaves, zero.Hashes[i])
 		}
 
-		newLayerSize := (layerLen + 1) / two
-		buf = buf[:newLayerSize]
-		if err = m.hasher(buf, leaves); err != nil {
+		if err = m.hasher(leaves, leaves); err != nil {
 			return zero.Hashes[depth], err
 		}
-		leaves = buf
+		leaves = leaves[:((layerLen + 1) / two)]
 	}
 
 	// Handle the case where the tree is not full
