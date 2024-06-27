@@ -26,18 +26,12 @@ import (
 	"fmt"
 )
 
+// Basic defines the interface for a basic type.
 type Basic[BasicT any] interface {
-	// As per the spec, a basic type is one of the following:
-	~bool | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64
+	// Basic types need to have all the things that composites have
 	Composite[BasicT]
-}
-
-type Composite[CompositeT any] interface {
-	// We also need the support the following functions.
-	NewFromSSZ([]byte) (CompositeT, error)
-	MarshalSSZ() ([]byte, error)
-	SizeSSZ() int
-	HashTreeRoot() ([32]byte, error)
+	// Then we add an additional restriction to the following:
+	~bool | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 /* TODO: 128, 256 */
 }
 
 /* -------------------------------------------------------------------------- */
@@ -221,7 +215,9 @@ func (u SSZUInt64) HashTreeRoot() ([32]byte, error) {
 	return [32]byte(buf), nil
 }
 
-// -----------------------------
+/* -------------------------------------------------------------------------- */
+/*                                    Byte                                    */
+/* -------------------------------------------------------------------------- */
 
 type SSZByte byte
 
