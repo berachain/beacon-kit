@@ -118,3 +118,25 @@ func MarshalBitList(bv []bool) []byte {
 	array[len(bv)/8] |= 1 << (len(bv) % bitsPerByte)
 	return array
 }
+
+// MarshalVectorFixed converts a slice of basic values into a byte slice.
+func MarshalVectorFixed[T interface{ MarshalSSZ() ([]byte, error) }](
+	out []byte, v []T,
+) ([]byte, error) {
+	// From the Spec:
+	// fixed_parts = [
+	// 		serialize(element)
+	// 			if not is_variable_size(element)
+	//			else None for element in value,
+	// 		]
+	// VectorBasic has all fixed types, so we simply
+	// serialize each element and pack them together.
+	for _, val := range v {
+		bytes, err := val.MarshalSSZ()
+		if err != nil {
+			return out, err
+		}
+		out = append(out, bytes...)
+	}
+	return out, nil
+}

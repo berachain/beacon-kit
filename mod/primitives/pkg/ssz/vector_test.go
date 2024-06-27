@@ -35,13 +35,13 @@ func TestVectorBasicSizeSSZ(t *testing.T) {
 	})
 
 	t.Run("byte slice vector", func(t *testing.T) {
-		vector := ssz.VectorBasic[ssz.SSZUInt8]{1, 2, 3, 4, 5, 6, 7, 8}
+		vector := ssz.VectorBasic[ssz.UInt8]{1, 2, 3, 4, 5, 6, 7, 8}
 		require.Len(t, vector, 8)
 		require.Equal(t, 8, vector.SizeSSZ())
 	})
 
 	t.Run("uint64 vector", func(t *testing.T) {
-		vector := ssz.VectorBasic[ssz.SSZUInt64]{1, 2, 3, 4, 5}
+		vector := ssz.VectorBasic[ssz.UInt64]{1, 2, 3, 4, 5}
 		require.Len(t, vector, 5)
 		require.Equal(t, 40, vector.SizeSSZ())
 	})
@@ -53,7 +53,7 @@ func TestVectorBasicSizeSSZ(t *testing.T) {
 	})
 
 	t.Run("empty vector", func(t *testing.T) {
-		vector := ssz.VectorBasic[ssz.SSZUInt64]{}
+		vector := ssz.VectorBasic[ssz.UInt64]{}
 		require.Empty(t, vector)
 		require.Equal(t, 0, vector.SizeSSZ())
 	})
@@ -61,7 +61,7 @@ func TestVectorBasicSizeSSZ(t *testing.T) {
 
 func TestVectorBasicHashTreeRoot(t *testing.T) {
 	t.Run("uint8 vector", func(t *testing.T) {
-		vector := ssz.VectorBasic[ssz.SSZUInt8]{1, 2, 3, 4, 5}
+		vector := ssz.VectorBasic[ssz.UInt8]{1, 2, 3, 4, 5}
 		root, err := vector.HashTreeRoot()
 		require.NoError(t, err)
 		require.NotEqual(t, [32]byte{}, root)
@@ -75,15 +75,15 @@ func TestVectorBasicHashTreeRoot(t *testing.T) {
 	})
 
 	t.Run("uint64 vector", func(t *testing.T) {
-		vector := ssz.VectorBasic[ssz.SSZUInt64]{1, 2, 3, 4, 5}
+		vector := ssz.VectorBasic[ssz.UInt64]{1, 2, 3, 4, 5}
 		root, err := vector.HashTreeRoot()
 		require.NoError(t, err)
 		require.NotEqual(t, [32]byte{}, root)
 	})
 
 	t.Run("consistency", func(t *testing.T) {
-		vector1 := ssz.VectorBasic[ssz.SSZUInt8]{1, 2, 3, 4, 5}
-		vector2 := ssz.VectorBasic[ssz.SSZUInt8]{1, 2, 3, 4, 5}
+		vector1 := ssz.VectorBasic[ssz.UInt8]{1, 2, 3, 4, 5}
+		vector2 := ssz.VectorBasic[ssz.UInt8]{1, 2, 3, 4, 5}
 		root1, err1 := vector1.HashTreeRoot()
 		root2, err2 := vector2.HashTreeRoot()
 		require.NoError(t, err1)
@@ -94,13 +94,13 @@ func TestVectorBasicHashTreeRoot(t *testing.T) {
 
 func TestVectorBasicMarshalUnmarshal(t *testing.T) {
 	t.Run("uint8 vector", func(t *testing.T) {
-		original := ssz.VectorBasic[ssz.SSZUInt8]{1, 2, 3, 4, 5}
+		original := ssz.VectorBasic[ssz.UInt8]{1, 2, 3, 4, 5}
 
 		marshaled, err := original.MarshalSSZ()
 		require.NoError(t, err)
 		require.Len(t, marshaled, 5)
 
-		unmarshaled, err := ssz.VectorBasic[ssz.SSZUInt8]{}.NewFromSSZ(
+		unmarshaled, err := ssz.VectorBasic[ssz.UInt8]{}.NewFromSSZ(
 			marshaled,
 		)
 		require.NoError(t, err)
@@ -125,13 +125,13 @@ func TestVectorBasicMarshalUnmarshal(t *testing.T) {
 	})
 
 	t.Run("uint64 vector", func(t *testing.T) {
-		original := ssz.VectorBasic[ssz.SSZUInt64]{1, 2, 3, 4, 5}
+		original := ssz.VectorBasic[ssz.UInt64]{1, 2, 3, 4, 5}
 
 		marshaled, err := original.MarshalSSZ()
 		require.NoError(t, err)
 		require.Len(t, marshaled, 40)
 
-		unmarshaled, err := ssz.VectorBasic[ssz.SSZUInt64]{}.NewFromSSZ(
+		unmarshaled, err := ssz.VectorBasic[ssz.UInt64]{}.NewFromSSZ(
 			marshaled,
 		)
 		require.NoError(t, err)
@@ -140,7 +140,7 @@ func TestVectorBasicMarshalUnmarshal(t *testing.T) {
 	})
 
 	t.Run("invalid buffer length", func(t *testing.T) {
-		_, err := ssz.VectorBasic[ssz.SSZUInt64]{}.NewFromSSZ(
+		_, err := ssz.VectorBasic[ssz.UInt64]{}.NewFromSSZ(
 			[]byte{1, 2, 3},
 		) // Invalid length for uint64
 		require.Error(t, err)

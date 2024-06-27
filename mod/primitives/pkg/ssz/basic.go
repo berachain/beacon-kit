@@ -69,31 +69,31 @@ func (b Bool) HashTreeRoot() ([32]byte, error) {
 /*                                    UInt8                                   */
 /* -------------------------------------------------------------------------- */
 
-type SSZUInt8 uint8
+type UInt8 uint8
 
 // SizeSSZ returns the size of the uint8 in bytes.
-func (u SSZUInt8) SizeSSZ() int {
+func (u UInt8) SizeSSZ() int {
 	return 1
 }
 
 // MarshalSSZ marshals the uint8 into SSZ format.
-func (u SSZUInt8) MarshalSSZ() ([]byte, error) {
+func (u UInt8) MarshalSSZ() ([]byte, error) {
 	return []byte{byte(u)}, nil
 }
 
-// NewFromSSZ creates a new SSZUInt8 from SSZ format.
-func (SSZUInt8) NewFromSSZ(buf []byte) (SSZUInt8, error) {
+// NewFromSSZ creates a new UInt8 from SSZ format.
+func (UInt8) NewFromSSZ(buf []byte) (UInt8, error) {
 	if len(buf) != 1 {
 		return 0, fmt.Errorf(
 			"invalid buffer length: expected 1, got %d",
 			len(buf),
 		)
 	}
-	return SSZUInt8(buf[0]), nil
+	return UInt8(buf[0]), nil
 }
 
 // HashTreeRoot returns the hash tree root of the uint8.
-func (u SSZUInt8) HashTreeRoot() ([32]byte, error) {
+func (u UInt8) HashTreeRoot() ([32]byte, error) {
 	buf := make([]byte, 32)
 	buf[0] = byte(u)
 	return [32]byte(buf), nil
@@ -103,33 +103,33 @@ func (u SSZUInt8) HashTreeRoot() ([32]byte, error) {
 /*                                   UInt16                                   */
 /* -------------------------------------------------------------------------- */
 
-type SSZUInt16 uint16
+type UInt16 uint16
 
 // SizeSSZ returns the size of the uint16 in bytes.
-func (u SSZUInt16) SizeSSZ() int {
+func (u UInt16) SizeSSZ() int {
 	return 2
 }
 
 // MarshalSSZ marshals the uint16 into SSZ format.
-func (u SSZUInt16) MarshalSSZ() ([]byte, error) {
+func (u UInt16) MarshalSSZ() ([]byte, error) {
 	buf := make([]byte, 2)
 	binary.LittleEndian.PutUint16(buf, uint16(u))
 	return buf, nil
 }
 
-// NewFromSSZ creates a new SSZUInt16 from SSZ format.
-func (SSZUInt16) NewFromSSZ(buf []byte) (SSZUInt16, error) {
+// NewFromSSZ creates a new UInt16 from SSZ format.
+func (UInt16) NewFromSSZ(buf []byte) (UInt16, error) {
 	if len(buf) != 2 {
 		return 0, fmt.Errorf(
 			"invalid buffer length: expected 2, got %d",
 			len(buf),
 		)
 	}
-	return SSZUInt16(binary.LittleEndian.Uint16(buf)), nil
+	return UInt16(binary.LittleEndian.Uint16(buf)), nil
 }
 
 // HashTreeRoot returns the hash tree root of the uint16.
-func (u SSZUInt16) HashTreeRoot() ([32]byte, error) {
+func (u UInt16) HashTreeRoot() ([32]byte, error) {
 	buf := make([]byte, 32)
 	binary.LittleEndian.PutUint16(buf[:2], uint16(u))
 	return [32]byte(buf), nil
@@ -139,33 +139,33 @@ func (u SSZUInt16) HashTreeRoot() ([32]byte, error) {
 /*                                   UInt32                                   */
 /* -------------------------------------------------------------------------- */
 
-type SSZUInt32 uint32
+type UInt32 uint32
 
 // SizeSSZ returns the size of the uint32 in bytes.
-func (u SSZUInt32) SizeSSZ() int {
+func (u UInt32) SizeSSZ() int {
 	return 4
 }
 
 // MarshalSSZ marshals the uint32 into SSZ format.
-func (u SSZUInt32) MarshalSSZ() ([]byte, error) {
+func (u UInt32) MarshalSSZ() ([]byte, error) {
 	buf := make([]byte, 4)
 	binary.LittleEndian.PutUint32(buf, uint32(u))
 	return buf, nil
 }
 
-// NewFromSSZ creates a new SSZUInt32 from SSZ format.
-func (SSZUInt32) NewFromSSZ(buf []byte) (SSZUInt32, error) {
+// NewFromSSZ creates a new UInt32 from SSZ format.
+func (UInt32) NewFromSSZ(buf []byte) (UInt32, error) {
 	if len(buf) != 4 {
 		return 0, fmt.Errorf(
 			"invalid buffer length: expected 4, got %d",
 			len(buf),
 		)
 	}
-	return SSZUInt32(binary.LittleEndian.Uint32(buf)), nil
+	return UInt32(binary.LittleEndian.Uint32(buf)), nil
 }
 
 // HashTreeRoot returns the hash tree root of the uint32.
-func (u SSZUInt32) HashTreeRoot() ([32]byte, error) {
+func (u UInt32) HashTreeRoot() ([32]byte, error) {
 	buf := make([]byte, 32)
 	binary.LittleEndian.PutUint32(buf[:4], uint32(u))
 	return [32]byte(buf), nil
@@ -175,33 +175,33 @@ func (u SSZUInt32) HashTreeRoot() ([32]byte, error) {
 /*                                   UInt64                                   */
 /* -------------------------------------------------------------------------- */
 
-type SSZUInt64 uint64
+type UInt64 uint64
 
 // SizeSSZ returns the size of the uint64 in bytes.
-func (u SSZUInt64) SizeSSZ() int {
+func (u UInt64) SizeSSZ() int {
 	return 8
 }
 
 // MarshalSSZ marshals the uint64 into SSZ format.
-func (u SSZUInt64) MarshalSSZ() ([]byte, error) {
+func (u UInt64) MarshalSSZ() ([]byte, error) {
 	buf := make([]byte, 8)
 	binary.LittleEndian.PutUint64(buf, uint64(u))
 	return buf, nil
 }
 
-// NewFromSSZ creates a new SSZUInt64 from SSZ format.
-func (SSZUInt64) NewFromSSZ(buf []byte) (SSZUInt64, error) {
+// NewFromSSZ creates a new UInt64 from SSZ format.
+func (UInt64) NewFromSSZ(buf []byte) (UInt64, error) {
 	if len(buf) != 8 {
 		return 0, fmt.Errorf(
 			"invalid buffer length: expected 8, got %d",
 			len(buf),
 		)
 	}
-	return SSZUInt64(binary.LittleEndian.Uint64(buf)), nil
+	return UInt64(binary.LittleEndian.Uint64(buf)), nil
 }
 
 // HashTreeRoot returns the hash tree root of the uint64.
-func (u SSZUInt64) HashTreeRoot() ([32]byte, error) {
+func (u UInt64) HashTreeRoot() ([32]byte, error) {
 	buf := make([]byte, 32)
 	binary.LittleEndian.PutUint64(buf[:8], uint64(u))
 	return [32]byte(buf), nil

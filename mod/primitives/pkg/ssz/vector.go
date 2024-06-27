@@ -25,6 +25,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/serializer"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -64,22 +65,7 @@ func (l VectorBasic[T]) HashTreeRoot() ([32]byte, error) {
 
 // MarshalSSZToBytes marshals the VectorBasic into SSZ format.
 func (l VectorBasic[T]) MarshalSSZTo(out []byte) ([]byte, error) {
-	// From the Spec:
-	// fixed_parts = [
-	// 		serialize(element)
-	// 			if not is_variable_size(element)
-	//			else None for element in value,
-	// 		]
-	// VectorBasic has all fixed types, so we simply
-	// serialize each element and pack them together.
-	for _, v := range l {
-		bytes, err := v.MarshalSSZ()
-		if err != nil {
-			return nil, err
-		}
-		out = append(out, bytes...)
-	}
-	return out, nil
+	return serializer.MarshalVectorFixed(out, l)
 }
 
 // MarshalSSZ marshals the VectorBasic into SSZ format.
@@ -157,22 +143,7 @@ func (l VectorComposite[T]) MarshalSSZTo(out []byte) ([]byte, error) {
 		panic("not implemented yet")
 	}
 
-	// From the Spec:
-	// fixed_parts = [
-	// 		serialize(element)
-	// 			if not is_variable_size(element)
-	//			else None for element in value,
-	// 		]
-	// VectorBasic has all fixed types, so we simply
-	// serialize each element and pack them together.
-	for _, v := range l {
-		bytes, err := v.MarshalSSZ()
-		if err != nil {
-			return nil, err
-		}
-		out = append(out, bytes...)
-	}
-	return out, nil
+	return serializer.MarshalVectorFixed(out, l)
 }
 
 // MarshalSSZ marshals the VectorComposite into SSZ format.

@@ -62,7 +62,6 @@ func (l ListBasic[T]) HashTreeRoot() ([32]byte, error) {
 
 // MarshalSSZTo marshals the ListBasic into SSZ format.
 func (l ListBasic[T]) MarshalSSZTo(out []byte) ([]byte, error) {
-	// The same for ListBasic as for VectorBasic.
 	return VectorBasic[T](l).MarshalSSZTo(out)
 }
 
