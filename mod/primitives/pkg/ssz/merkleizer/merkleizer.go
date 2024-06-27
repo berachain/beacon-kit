@@ -243,7 +243,9 @@ func (m *merkleizer[SpecT, RootT, T]) Merkleize(
 		effectiveLimit = math.U64(limit[0])
 	}
 
-	return m.hasher.NewRootWithMaxLeaves(chunks, effectiveLimit)
+	return merkle.NewRootWithMaxLeaves(
+		chunks, effectiveLimit, merkle.BuildParentTreeRoots, m.hasher,
+	)
 }
 
 // pack packs a list of SSZ-marshallable elements into a single byte slice.
