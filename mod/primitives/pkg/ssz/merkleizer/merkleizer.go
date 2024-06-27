@@ -230,9 +230,8 @@ func (m *merkleizer[SpecT, RootT, T]) Merkleize(
 	limit ...uint64,
 ) (RootT, error) {
 	var (
-		effectiveLimit  math.U64
-		effectiveChunks []RootT
-		lenChunks       = uint64(len(chunks))
+		effectiveLimit math.U64
+		lenChunks      = uint64(len(chunks))
 	)
 
 	switch {
@@ -247,30 +246,7 @@ func (m *merkleizer[SpecT, RootT, T]) Merkleize(
 		effectiveLimit = math.U64(limit[0])
 	}
 
-	effectiveChunks = m.padTo(chunks, effectiveLimit)
-	if len(effectiveChunks) == 1 {
-		return effectiveChunks[0], nil
-	}
-
-	return m.hasher.NewRootWithMaxLeaves(effectiveChunks, effectiveLimit)
-}
-
-// padTo function to pad the chunks to the effective limit with zeroed chunks.
-func (m *merkleizer[SpecT, RootT, T]) padTo(
-	chunks []RootT,
-	size math.U64,
-) []RootT {
-	switch numChunks := math.U64(len(chunks)); {
-	case numChunks == size:
-		// No padding needed.
-		return chunks
-	case numChunks > size:
-		// Truncate the chunks to the desired size.
-		return chunks[:size]
-	default:
-		// Append zeroed chunks to the end of the list.
-		return append(chunks, make([]RootT, size-numChunks)...)
-	}
+	return m.hasher.NewRootWithMaxLeaves(chunks, effectiveLimit)
 }
 
 // pack packs a list of SSZ-marshallable elements into a single byte slice.
