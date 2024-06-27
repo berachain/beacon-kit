@@ -139,7 +139,7 @@ func BenchmarkReusableGet(b *testing.B) {
 		size := r.Intn(100) + 1
 		result := buffer.Get(size)
 
-		// Peform some operation on the result to avoid compiler optimizations.
+		// Perform some operation on the result to avoid compiler optimizations.
 		result[0] = [32]byte{}
 		index := r.Intn(32)
 		result[0][index] = byte(index)
@@ -161,7 +161,7 @@ func BenchmarkSingleuseGet(b *testing.B) {
 		size := r.Intn(100) + 1
 		result := buffer.Get(size)
 
-		// Peform some operation on the result to avoid compiler optimizations.
+		// Perform some operation on the result to avoid compiler optimizations.
 		result[0] = [32]byte{}
 		index := r.Intn(32)
 		result[0][index] = byte(index)
