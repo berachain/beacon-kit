@@ -37,7 +37,7 @@ type BeaconBlock[T any] interface {
 	constraints.SSZMarshallable
 	constraints.Nillable
 	GetSlot() math.Slot
-	NewFromSSZ([]byte, uint32) (T, error)
+	UnmarshalSSZWithVersion([]byte, uint32) (T, error)
 }
 
 // BeaconState is an interface for accessing the beacon state.
