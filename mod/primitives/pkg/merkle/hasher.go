@@ -24,7 +24,9 @@ import (
 	"runtime"
 	"unsafe"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
 	"github.com/prysmaticlabs/gohashtree"
@@ -51,6 +53,7 @@ type Hasher[RootT ~[32]byte] struct {
 	buffer bytes.Buffer[RootT]
 	// hasher is the hashing function to use.
 	hasher HasherFn[RootT]
+	hh     *HasherFunc[RootT]
 }
 
 // NewHasher creates a new merkle Hasher.
@@ -61,21 +64,40 @@ func NewHasher[RootT ~[32]byte](
 	return &Hasher[RootT]{
 		buffer: buffer,
 		hasher: hashFn,
+		hh:     NewHasherFunc[RootT](sha256.Sum256),
 	}
 }
 
 // NewRootWithMaxLeaves constructs a Merkle tree root from a set of.
 func (m *Hasher[RootT]) NewRootWithMaxLeaves(
 	leaves []RootT,
-	length math.U64,
+	limit math.U64,
 ) (RootT, error) {
-	return m.NewRootWithDepth(leaves, length.NextPowerOfTwo().ILog2Ceil())
+	count := math.U64(len(leaves))
+	if count > limit {
+		return zero.Hashes[0], errors.New("number of leaves exceeds limit")
+	}
+	if limit == 0 {
+		return zero.Hashes[0], nil
+	}
+	if limit == 1 {
+		if count == 1 {
+			return leaves[0], nil
+		}
+	}
+
+	return m.NewRootWithDepth(
+		leaves,
+		count.NextPowerOfTwo().ILog2Ceil(),
+		limit.NextPowerOfTwo().ILog2Ceil(),
+	)
 }
 
 // NewRootWithDepth constructs a Merkle tree root from a set of leaves.
 func (m *Hasher[RootT]) NewRootWithDepth(
 	leaves []RootT,
 	depth uint8,
+	limitDepth uint8,
 ) (RootT, error) {
 	// Return zerohash at depth
 	if len(leaves) == 0 {
@@ -103,7 +125,13 @@ func (m *Hasher[RootT]) NewRootWithDepth(
 	if len(leaves) != 1 {
 		return zero.Hashes[depth], nil
 	}
-	return leaves[0], nil
+	// Handle the case where the tree is not full
+	h := leaves[0]
+	for j := depth; j < limitDepth; j++ {
+		h = m.hh.Combi(h, zero.Hashes[j])
+	}
+
+	return h, nil
 }
 
 // BuildParentTreeRoots calls BuildParentTreeRootsWithNRoutines with the

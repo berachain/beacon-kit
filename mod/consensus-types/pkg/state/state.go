@@ -21,11 +21,11 @@
 package state
 
 import (
-	"fmt"
 	"reflect"
 
 	deneb "github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -112,6 +112,6 @@ func (st *BeaconStateMarshallable[
 			},
 		}, nil
 	default:
-		return nil, fmt.Errorf("unsupported version %d", forkVersion)
+		return nil, errors.Wrapf(ErrUnsupportedVersion, "%d", forkVersion)
 	}
 }
