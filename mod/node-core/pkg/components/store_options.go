@@ -30,7 +30,7 @@ func ProvideStoreOptions(in StoreConfigInput) *root.FactoryOptions {
 	return &root.FactoryOptions{
 		Logger:  in.Logger,
 		RootDir: homeDir,
-		SSType:  0,
+		SSType:  root.SSTypePebble,
 		SCType:  0,
 		SCPruneOptions: &store.PruneOptions{
 			KeepRecent: 0,

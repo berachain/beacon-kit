@@ -9,7 +9,7 @@ replace (
 	cosmossdk.io/server/v2 => cosmossdk.io/server/v2 v2.0.0-20240627192737-afddef390642
 	cosmossdk.io/server/v2/cometbft => cosmossdk.io/server/v2/cometbft v0.0.0-20240627192737-afddef390642
 	github.com/berachain/beacon-kit/mod/server => ../server
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240624204242-8877694ebd14
+	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240627192737-afddef390642
 )
 
 require (

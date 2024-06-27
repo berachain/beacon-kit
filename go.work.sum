@@ -299,14 +299,10 @@ cosmossdk.io/depinject v1.0.0-alpha.4/go.mod h1:HeDk7IkR5ckZ3lMGs/o91AVUc7E596vM
 cosmossdk.io/errors v1.0.0/go.mod h1:+hJZLuhdDE0pYN8HkOrVNwrIOYvUGnn6+4fjnJs/oV0=
 cosmossdk.io/log v1.2.0/go.mod h1:GNSCc/6+DhFIj1aLn/j7Id7PaO8DzNylUZoOYBL9+I4=
 cosmossdk.io/log v1.3.1/go.mod h1:2/dIomt8mKdk6vl3OWJcPk2be3pGOS8OQaLUM/3/tCM=
-cosmossdk.io/runtime/v2 v2.0.0-20240627192737-afddef390642 h1:iFGLqb8h7U0pFJFbpncLDpPOoQwsAguQKg9OFzC2ogk=
-cosmossdk.io/runtime/v2 v2.0.0-20240627192737-afddef390642/go.mod h1:dV61MN3IJ6kYKVspLRPZ6zKxc3sltC2VVGK7TITPyl0=
 cosmossdk.io/server/v2 v2.0.0-20240620161400-a6407f411e80/go.mod h1:tipsG13IvXM770UgAND0+kWtV/C2F7Oct0HUIfY50v8=
 cosmossdk.io/server/v2/appmanager v0.0.0-20240623110059-dec2d5583e39 h1:oBUAZ0g0eFaGErJU0cqGD8q+2btn/ccNhXQXI9xJnrk=
 cosmossdk.io/server/v2/appmanager v0.0.0-20240623110059-dec2d5583e39/go.mod h1:gFlSQXvvR4YMmUXHAxuMfXmWfqQkt6wAkMJBxXVJP0s=
 cosmossdk.io/server/v2/appmanager v0.0.0-20240624035543-9763303281b9/go.mod h1:gFlSQXvvR4YMmUXHAxuMfXmWfqQkt6wAkMJBxXVJP0s=
-cosmossdk.io/server/v2/appmanager v0.0.0-20240627192737-afddef390642 h1:muPq0TjQWLdAdrF9IzwnVXuIAB3x6krTgWUpyfkKWDM=
-cosmossdk.io/server/v2/appmanager v0.0.0-20240627192737-afddef390642/go.mod h1:2NkCk1/pQTCxZTS6UiN+DU0pYv0LC2QWbRWJtC8HMAI=
 cosmossdk.io/store v1.1.0/go.mod h1:oZfW/4Fc/zYqu3JmQcQdUJ3fqu5vnYTn3LZFFy8P8ng=
 cosmossdk.io/x/accounts v0.0.0-20240226161501-23359a0b6d91/go.mod h1:S9DBfhkvqzOzflam/Byh81E9LYj6x82HnTouU0zbkJ4=
 cosmossdk.io/x/bank v0.0.0-20240226161501-23359a0b6d91/go.mod h1:3WvOZSOMJR1NHudlw116khC3fm2RQHo7qSf/JsOVkRA=
@@ -432,6 +428,8 @@ github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240624214650-dd8a0fc17a50
 github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240624041151-58d9ba1eb6b4/go.mod h1:ft214cxJaqrRPOuAjpYwgA9AOElJnHrDZZEQ0jZPWwQ=
 github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240624210933-3baa52ebb587/go.mod h1:ft214cxJaqrRPOuAjpYwgA9AOElJnHrDZZEQ0jZPWwQ=
 github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240624041151-58d9ba1eb6b4/go.mod h1:hBVU5IzPwbAW0gsOZn78eWXV8uip8aI2Q3WzUZTKEoI=
+github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240627192737-afddef390642 h1:mQufe1al4t/a+YvpzWynwncfgdhF2MR5WR8N2xK1jO8=
+github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240627192737-afddef390642/go.mod h1:Lx+ymdrVVjj/HZhzVZBl03twwsMECkEO1moLnPJkjMs=
 github.com/blang/semver/v4 v4.0.0/go.mod h1:IbckMUScFkM3pff0VJDNKRiT6TG/YpiHIM2yvyW5YoQ=
 github.com/bmatcuk/doublestar v1.1.1 h1:YroD6BJCZBYx06yYFEWvUuKVWQn3vLLQAVmDmvTSaiQ=
 github.com/boombuler/barcode v1.0.0/go.mod h1:paBWMcWSl3LHKBqUq+rly7CNSldXjb2rDl3JlRe0mD8=
@@ -1136,7 +1134,6 @@ github.com/snikch/goodman v0.0.0-20171125024755-10e37e294daa/go.mod h1:oJyF+mSPH
 github.com/soheilhy/cmux v0.1.4/go.mod h1:IM3LyeVVIOuxMH7sFAkER9+bJ4dT7Ms6E4xg4kGIyLM=
 github.com/sony/gobreaker v0.4.1 h1:oMnRNZXX5j85zso6xCPRNPtmAycat+WcoKbklScLDgQ=
 github.com/sony/gobreaker v0.4.1/go.mod h1:ZKptC7FHNvhBz7dN2LGjPVBz2sZJmc0/PkyDJOjmxWY=
-github.com/sourcegraph/conc v0.3.0/go.mod h1:Sdozi7LEKbFPqYX2/J+iBAM6HpqSLTASQIKqDmF7Mt0=
 github.com/spaolacci/murmur3 v0.0.0-20180118202830-f09979ecbc72/go.mod h1:JwIasOWyU6f++ZhiEuf87xNszmSA2myDM2Kzu9HwQUA=
 github.com/spaolacci/murmur3 v1.1.0/go.mod h1:JwIasOWyU6f++ZhiEuf87xNszmSA2myDM2Kzu9HwQUA=
 github.com/spf13/afero v1.1.2/go.mod h1:j4pytiNVoe2o6bmDsKpLACNPDBIoEAkihy7loJ1B0CQ=
