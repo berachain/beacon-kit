@@ -31,25 +31,16 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
-	interfaceMocks "github.com/berachain/beacon-kit/mod/storage/pkg/interfaces/mocks"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/manager/mocks"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
-	"github.com/stretchr/testify/mock"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner/mocks"
 	"github.com/stretchr/testify/require"
 )
 
 func TestDBManager_Start(t *testing.T) {
-	mockPrunable := new(interfaceMocks.Prunable)
-	feed := mocks.BlockFeed[
-		manager.BeaconBlock,
-		manager.BlockEvent[manager.BeaconBlock],
-		manager.Subscription,
-	]{}
+	mockPrunable := new(mocks.Prunable)
 
-	sub := mocks.Subscription{}
-	sub.EXPECT().Unsubscribe().Return()
-	feed.EXPECT().Subscribe(mock.Anything).Return(&sub)
+	ch := make(chan manager.BlockEvent[manager.BeaconBlock], 1)
 	pruneParamsFn :=
 		func(_ manager.BlockEvent[manager.BeaconBlock]) (uint64, uint64) {
 			return 0, 0
@@ -59,20 +50,17 @@ func TestDBManager_Start(t *testing.T) {
 	p1 := pruner.NewPruner[
 		manager.BeaconBlock,
 		manager.BlockEvent[manager.BeaconBlock],
-		*interfaceMocks.Prunable,
-		manager.Subscription,
-	](logger, mockPrunable, "pruner1", &feed, pruneParamsFn)
+		*mocks.Prunable,
+	](logger, mockPrunable, "pruner1", ch, pruneParamsFn)
 	p2 := pruner.NewPruner[
 		manager.BeaconBlock,
 		manager.BlockEvent[manager.BeaconBlock],
-		*interfaceMocks.Prunable,
-		manager.Subscription,
-	](logger, mockPrunable, "pruner2", &feed, pruneParamsFn)
+		*mocks.Prunable,
+	](logger, mockPrunable, "pruner2", ch, pruneParamsFn)
 
 	m, err := manager.NewDBManager[
 		manager.BeaconBlock,
 		manager.BlockEvent[manager.BeaconBlock],
-		manager.Subscription,
 	](logger, p1, p2)
 	require.NoError(t, err)
 
@@ -82,7 +70,5 @@ func TestDBManager_Start(t *testing.T) {
 	err = m.Start(ctx)
 	require.NoError(t, err)
 	time.Sleep(100 * time.Millisecond)
-	feed.AssertCalled(t, "Subscribe", mock.Anything)
-	feed.AssertNumberOfCalls(t, "Subscribe", 2)
 	mockPrunable.AssertNotCalled(t, "PruneFromInclusive")
 }

@@ -26,21 +26,6 @@ import (
 	"github.com/phuslu/log"
 )
 
-// colours.
-const (
-	reset      = "\x1b[0m"
-	black      = "\x1b[30m"
-	red        = "\x1b[31m"
-	green      = "\x1b[32m"
-	yellow     = "\x1b[33m"
-	blue       = "\x1b[34m"
-	magenta    = "\x1b[35m"
-	cyan       = "\x1b[36m"
-	white      = "\x1b[37m"
-	gray       = "\x1b[90m"
-	lightWhite = "\x1b[97m"
-)
-
 // Formatter is a custom formatter for log messages.
 type Formatter struct{}
 
@@ -62,27 +47,27 @@ func (f *Formatter) Format(
 	buffer.Reset()
 	defer byteBufferPool.Put(buffer)
 
-	var color, level string
+	var color, label string
 	switch args.Level {
 	case "trace":
-		color, level = magenta, "TRCE"
+		color, label = traceColor, traceLabel
 	case "debug":
-		color, level = yellow, "DBUG"
+		color, label = debugColor, debugLabel
 	case "info":
-		color, level = green, "INFO"
+		color, label = infoColor, infoLabel
 	case "warn":
-		color, level = yellow, "WARN"
+		color, label = warnColor, warnLabel
 	case "error":
-		color, level = red, "ERRR"
+		color, label = errorColor, errorLabel
 	case "fatal":
-		color, level = red, "FATAL"
+		color, label = fatalColor, fatalLabel
 	case "panic":
-		color, level = red, "PANIC"
+		color, label = panicColor, panicLabel
 	default:
-		color, level = gray, " ???"
+		color, label = defaultColor, defaultLabel
 	}
 
-	f.printWithColor(args, buffer, color, level)
+	f.printWithColor(args, buffer, color, label)
 	f.ensureLineBreak(buffer)
 
 	if args.Stack != "" {
@@ -99,9 +84,9 @@ func (f *Formatter) Format(
 func (f *Formatter) printWithColor(
 	args *log.FormatterArgs,
 	b *byteBuffer,
-	color, level string,
+	color, label string,
 ) {
-	f.formatHeader(args, b, color, level)
+	f.formatHeader(args, b, color, label)
 
 	b.Bytes = append(b.Bytes, ' ')
 	b.Bytes = append(b.Bytes, args.Message...)
@@ -121,13 +106,13 @@ func (f *Formatter) printWithColor(
 func (f *Formatter) formatHeader(
 	args *log.FormatterArgs,
 	b *byteBuffer,
-	color, level string,
+	color, label string,
 ) {
 	b.Bytes = append(b.Bytes, gray...)
 	b.Bytes = append(b.Bytes, args.Time...)
 	b.Bytes = append(b.Bytes, ' ')
 	b.Bytes = append(b.Bytes, color...)
-	b.Bytes = append(b.Bytes, level...)
+	b.Bytes = append(b.Bytes, label...)
 	if args.Caller != "" {
 		b.Bytes = append(b.Bytes, args.Goid...)
 		b.Bytes = append(b.Bytes, ' ')

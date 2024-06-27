@@ -20,46 +20,30 @@
 
 package ssz
 
-// Marshallable is an interface that combines the ssz.Marshaler and
-// ssz.Unmarshaler interfaces.
-type Marshallable interface {
-	// MarshalSSZTo marshals the object into the provided byte slice and returns
-	// it along with any error.
-	MarshalSSZTo([]byte) ([]byte, error)
-	// MarshalSSZ marshals the object into a new byte slice and returns it along
-	// with any error.
-	MarshalSSZ() ([]byte, error)
-	// UnmarshalSSZ unmarshals the object from the provided byte slice and
-	// returns an error if the unmarshaling fails.
-	UnmarshalSSZ([]byte) error
-	// SizeSSZ returns the size in bytes that the object would take when
-	// marshaled.
-	SizeSSZ() int
-	// HashTreeRoot defines the hash tree root of the object.
-	HashTreeRoot() ([32]byte, error)
+// BaseMerkleizer provides basic merkleization operations for SSZ types.
+type BaseMerkleizer[
+	SpecT any, RootT ~[32]byte, T Base[T],
+] interface {
+	MerkleizeByteSlice(value []byte) (RootT, error)
+	Merkleize(chunks []RootT, limit ...uint64) (RootT, error)
 }
 
-// Hashable is an interface representing objects that implement HashTreeRoot().
-type Hashable[SpecT any, Root ~[32]byte] interface {
-	HashTreeRoot() (Root, error)
+// BasicMerkleizer provides merkleization operations for basic SSZ types.
+type BasicMerkleizer[
+	SpecT any, RootT ~[32]byte, T Basic[T],
+] interface {
+	BaseMerkleizer[SpecT, RootT, T]
+	MerkleizeBasic(value T) (RootT, error)
+	MerkleizeVecBasic(value []T) (RootT, error)
+	MerkleizeListBasic(value []T, limit ...uint64) (RootT, error)
 }
 
-// U64 is an interface for uint64 types that support
-// NextPowerOfTwo and ILog2Ceil.
-type U64[T ~uint64] interface {
-	~uint64
-	NextPowerOfTwo() T
-	ILog2Ceil() uint8
-}
-
-// U128LT represents a 128-bit unsigned integer in
-// little-endian byte order.
-type U128LT interface {
-	~[16]byte
-}
-
-// U256LT represents a 256-bit unsigned integer in
-// little-endian byte order.
-type U256LT interface {
-	~[32]byte
+// CompositeMerkleizer provides merkleization operations for composite SSZ
+// types.
+type CompositeMerkleizer[
+	SpecT any, RootT ~[32]byte, T Composite[T],
+] interface {
+	BaseMerkleizer[SpecT, RootT, T]
+	MerkleizeVecComposite(value []T) (RootT, error)
+	MerkleizeListComposite(value []T, limit ...uint64) (RootT, error)
 }

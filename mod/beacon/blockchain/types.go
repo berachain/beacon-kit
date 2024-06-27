@@ -26,8 +26,8 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
@@ -47,9 +47,8 @@ type BeaconBlock[
 	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
 	ExecutionPayloadT any,
 ] interface {
-	ssz.Marshallable
-	// IsNil checks if the beacon block is nil.
-	IsNil() bool
+	constraints.SSZMarshallable
+	constraints.Nillable
 	// GetSlot returns the slot of the beacon block.
 	GetSlot() math.Slot
 	// GetParentBlockRoot returns the parent block root of the beacon block.
@@ -62,9 +61,8 @@ type BeaconBlock[
 
 // BeaconBlockBody represents the interface for the beacon block body.
 type BeaconBlockBody[ExecutionPayloadT any] interface {
-	ssz.Marshallable
-	// IsNil checks if the beacon block body is nil.
-	IsNil() bool
+	constraints.SSZMarshallable
+	constraints.Nillable
 	// GetExecutionPayload returns the execution payload of the beacon block
 	// body.
 	GetExecutionPayload() ExecutionPayloadT
@@ -72,36 +70,15 @@ type BeaconBlockBody[ExecutionPayloadT any] interface {
 
 // BeaconBlockHeader represents the interface for the beacon block header.
 type BeaconBlockHeader interface {
-	ssz.Marshallable
+	constraints.SSZMarshallable
 	// SetStateRoot sets the state root of the beacon block header.
 	SetStateRoot(common.Root)
 }
 
-// BlobProcessor is the interface for the blobs processor.
-type BlobProcessor[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
-	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
-	BlobSidecarsT,
-	ExecutionPayloadT any,
-] interface {
-	// ProcessBlobs processes the blobs and ensures they match the local state.
-	ProcessBlobs(
-		slot math.Slot,
-		avs AvailabilityStoreT,
-		sidecars BlobSidecarsT,
-	) error
-	// VerifyBlobs verifies the blobs and ensures they match the local state.
-	VerifyBlobs(
-		slot math.Slot,
-		sidecars BlobSidecarsT,
-	) error
-}
-
 // BlobSidecars is the interface for blobs sidecars.
 type BlobSidecars interface {
-	ssz.Marshallable
-	// IsNil checks if the blobs sidecars is nil.
-	IsNil() bool
+	constraints.SSZMarshallable
+	constraints.Nillable
 	// Len returns the length of the blobs sidecars.
 	Len() int
 }
@@ -120,7 +97,9 @@ type ExecutionEngine[PayloadAttributesT any] interface {
 type EventFeed[EventT any] interface {
 	// Send sends an event and returns the number of
 	// subscribers that received it.
-	Send(event EventT) int
+	Publish(ctx context.Context, event EventT) error
+	// Subscribe returns a channel that will receive events.
+	Subscribe() (chan EventT, error)
 }
 
 // ExecutionPayload is the interface for the execution payload.

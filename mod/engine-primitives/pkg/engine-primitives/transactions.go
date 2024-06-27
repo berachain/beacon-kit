@@ -23,27 +23,47 @@ package engineprimitives
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 )
 
 // Transactions is a typealias for [][]byte, which is how transactions are
 // received in the execution payload.
+//
+// TODO: make it take a generic SpecT type.
 type Transactions [][]byte
 
 // HashTreeRoot returns the hash tree root of the Transactions list.
+//
+// NOTE: Uses a new merkleizer for each call.
 func (txs Transactions) HashTreeRoot() (common.Root, error) {
-	var err error
+	return txs.HashTreeRootWith(
+		merkleizer.New[common.ChainSpec, [32]byte, common.Root](),
+	)
+}
 
-	roots := make([]common.Root, len(txs))
+// TxsMerkleizer is a ssz merkleizer used for transactions.
+//
+// TODO: make the ChainSpec a generic on this type.
+type TxsMerkleizer merkleizer.Merkleizer[
+	common.ChainSpec, [32]byte, common.Root,
+]
+
+// HashTreeRootWith returns the hash tree root of the Transactions list
+// using the given merkleizer.
+func (txs Transactions) HashTreeRootWith(
+	merkleizer TxsMerkleizer,
+) (common.Root, error) {
+	var (
+		err   error
+		roots = make([]common.Root, len(txs))
+	)
+
 	for i, tx := range txs {
-		roots[i], err = ssz.MerkleizeByteSlice[math.U64, common.Root](tx)
+		roots[i], err = merkleizer.MerkleizeByteSlice(tx)
 		if err != nil {
 			return common.Root{}, err
 		}
 	}
 
-	return ssz.MerkleizeListComposite[any, math.U64](
-		roots, constants.MaxTxsPerPayload,
-	)
+	return merkleizer.MerkleizeListComposite(roots, constants.MaxTxsPerPayload)
 }

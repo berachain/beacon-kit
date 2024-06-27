@@ -23,18 +23,20 @@ package p2p
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 )
 
 // NoopBlobHandler is a gossip handler that simply returns the
 // ssz marshalled data as a "reference" to the object it receives.
-type NoopBlobHandler[BlobT ssz.Marshallable, ReqT encoding.ABCIRequest] struct {
+type NoopBlobHandler[
+	BlobT constraints.SSZMarshallable, ReqT encoding.ABCIRequest,
+] struct {
 	NoopGossipHandler[BlobT, []byte]
 }
 
 func NewNoopBlobHandler[
-	BlobT ssz.Marshallable, ReqT encoding.ABCIRequest,
+	BlobT constraints.SSZMarshallable, ReqT encoding.ABCIRequest,
 ]() NoopBlobHandler[BlobT, ReqT] {
 	return NoopBlobHandler[BlobT, ReqT]{
 		NoopGossipHandler: NoopGossipHandler[BlobT, []byte]{},

@@ -22,29 +22,25 @@ package client
 
 import (
 	"context"
-	"encoding/json"
 	"math/big"
 	"net/http"
 	"strings"
 	"time"
 
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/cache"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
 )
 
 // EngineClient is a struct that holds a pointer to an Eth1Client.
 type EngineClient[
-	ExecutionPayloadT interface {
-		Empty(uint32) ExecutionPayloadT
-		Version() uint32
-		json.Marshaler
-		json.Unmarshaler
-	},
-	PayloadAttributesT any,
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+	PayloadAttributesT engineprimitives.PayloadAttributer,
 ] struct {
 	// Eth1Client is a struct that holds the Ethereum 1 client and
 	// its configuration.
@@ -70,13 +66,8 @@ type EngineClient[
 // It takes an Eth1Client as an argument and returns a pointer  to an
 // EngineClient.
 func New[
-	ExecutionPayloadT interface {
-		Empty(uint32) ExecutionPayloadT
-		Version() uint32
-		json.Marshaler
-		json.Unmarshaler
-	},
-	PayloadAttributesT any,
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+	PayloadAttributesT engineprimitives.PayloadAttributer,
 ](
 	cfg *Config,
 	logger log.Logger[any],

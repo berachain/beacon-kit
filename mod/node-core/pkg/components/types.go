@@ -21,7 +21,7 @@
 package components
 
 import (
-	"github.com/berachain/beacon-kit/mod/async/pkg/event"
+	broker "github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/beacon"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
@@ -99,15 +99,6 @@ type (
 		*BeaconBlockBody,
 	]
 
-	// BlobFeed is a type alias for the blob feed.
-	BlobFeed = event.FeedOf[asynctypes.EventID, *asynctypes.Event[*BlobSidecars]]
-
-	// BlockEvent is a type alias for the block event.
-	BlockEvent = asynctypes.Event[*BeaconBlock]
-
-	// BlockFeed is a type alias for the block feed.
-	BlockFeed = event.FeedOf[asynctypes.EventID, *BlockEvent]
-
 	// ChainService is a type alias for the chain service.
 	ChainService = blockchain.Service[
 		*AvailabilityStore,
@@ -129,6 +120,7 @@ type (
 		*dastore.Store[*BeaconBlockBody],
 		*BeaconBlockBody,
 		*BlobSidecars,
+		*broker.Broker[*SidecarEvent],
 		*ExecutionPayload,
 	]
 
@@ -136,7 +128,6 @@ type (
 	DBManager = manager.DBManager[
 		*BeaconBlock,
 		*BlockEvent,
-		event.Subscription,
 	]
 
 	// Deposit is a type alias for the deposit.
@@ -149,7 +140,6 @@ type (
 		*BlockEvent,
 		*Deposit,
 		*ExecutionPayload,
-		event.Subscription,
 		types.WithdrawalCredentials,
 	]
 
@@ -201,14 +191,6 @@ type (
 		*ExecutionPayloadHeader,
 	]
 
-	// SlotFeed is a type alias for the slot feed.
-	SlotFeed = event.FeedOf[asynctypes.EventID, *asynctypes.Event[math.Slot]]
-
-	// StatusFeed is a type alias for the status feed.
-	StatusFeed = event.FeedOf[
-		asynctypes.EventID, *asynctypes.Event[*service.StatusEvent],
-	]
-
 	// StorageBackend is the type alias for the storage backend interface.
 	StorageBackend = beacon.StorageBackend[
 		*AvailabilityStore,
@@ -235,4 +217,52 @@ type (
 
 	// Withdrawal is a type alias for the engineprimitives withdrawal.
 	Withdrawal = engineprimitives.Withdrawal
+)
+
+/* -------------------------------------------------------------------------- */
+/*                                   Events                                   */
+/* -------------------------------------------------------------------------- */
+
+type (
+	// BlockEvent is a type alias for the block event.
+	BlockEvent = asynctypes.Event[*BeaconBlock]
+
+	// GenesisEvent is a type alias for the genesis event.
+	GenesisEvent = asynctypes.Event[*Genesis]
+
+	// SidecarEvent is a type alias for the sidecar event.
+	SidecarEvent = asynctypes.Event[*BlobSidecars]
+
+	// SlotEvent is a type alias for the slot event.
+	SlotEvent = asynctypes.Event[math.Slot]
+
+	// StatusEvent is a type alias for the status event.
+	StatusEvent = asynctypes.Event[*service.StatusEvent]
+
+	// ValidatorUpdateEvent is a type alias for the validator update event.
+	ValidatorUpdateEvent = asynctypes.Event[transition.ValidatorUpdates]
+)
+
+/* -------------------------------------------------------------------------- */
+/*                                   Brokers                                  */
+/* -------------------------------------------------------------------------- */
+
+type (
+	// GenesisBroker is a type alias for the genesis feed.
+	GenesisBroker = broker.Broker[*GenesisEvent]
+
+	// SidecarsBroker is a type alias for the blob feed.
+	SidecarsBroker = broker.Broker[*SidecarEvent]
+
+	// BlockBroker is a type alias for the block feed.
+	BlockBroker = broker.Broker[*BlockEvent]
+
+	// SlotBroker is a type alias for the slot feed.
+	SlotBroker = broker.Broker[*SlotEvent]
+
+	// StatusBroker is a type alias for the status feed.
+	StatusBroker = broker.Broker[*StatusEvent]
+
+	// ValidatorUpdateBroker is a type alias for the validator update feed.
+	ValidatorUpdateBroker = broker.Broker[*ValidatorUpdateEvent]
 )

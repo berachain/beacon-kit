@@ -25,7 +25,6 @@ import (
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -63,7 +62,7 @@ func (pb *PayloadBuilder[
 	attrs, err := pb.attributesFactory.
 		BuildPayloadAttributes(st, slot, timestamp, parentBlockRoot)
 	if err != nil {
-		return nil, errors.Newf("%w error when getting payload attributes", err)
+		return nil, err
 	}
 
 	// Submit the forkchoice update to the execution client.
@@ -85,18 +84,6 @@ func (pb *PayloadBuilder[
 
 	// Only add to cache if we received back a payload ID.
 	if payloadID != nil {
-		pb.logger.Info(
-			"Bob the builder; can we forkchoice update it?;"+
-				" bob the builder; yes we can 🚧",
-			"head_eth1_hash",
-			headEth1BlockHash,
-			"for_slot",
-			slot.Base10(),
-			"parent_block_root",
-			parentBlockRoot,
-			"payload_id",
-			payloadID,
-		)
 		pb.pc.Set(slot, parentBlockRoot, *payloadID)
 	}
 

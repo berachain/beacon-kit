@@ -21,14 +21,11 @@
 package types
 
 import (
-	"encoding/json"
-
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	eip4844 "github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
 // RawBeaconBlockBody is the interface for a beacon block body.
@@ -45,18 +42,19 @@ type WriteOnlyBeaconBlockBody interface {
 	SetExecutionData(*ExecutionPayload) error
 	SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
 	SetRandaoReveal(crypto.BLSSignature)
+	SetGraffiti(common.Bytes32)
 }
 
 // ReadOnlyBeaconBlockBody is the interface for
 // a read-only beacon block body.
 type ReadOnlyBeaconBlockBody interface {
-	ssz.Marshallable
+	constraints.SSZMarshallable
 	IsNil() bool
 
 	// Execution returns the execution data of the block.
 	GetDeposits() []*Deposit
 	GetEth1Data() *Eth1Data
-	GetGraffiti() bytes.B32
+	GetGraffiti() common.Bytes32
 	GetRandaoReveal() crypto.BLSSignature
 	GetExecutionPayload() *ExecutionPayload
 	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
@@ -65,7 +63,7 @@ type ReadOnlyBeaconBlockBody interface {
 
 // RawBeaconBlock is the interface for a beacon block.
 type RawBeaconBlock[BeaconBlockBodyT RawBeaconBlockBody] interface {
-	ssz.Marshallable
+	constraints.SSZMarshallable
 	SetStateRoot(common.Root)
 	GetStateRoot() common.Root
 	IsNil() bool
@@ -79,9 +77,8 @@ type RawBeaconBlock[BeaconBlockBodyT RawBeaconBlockBody] interface {
 
 // executionPayloadBody is the interface for the execution data of a block.
 type executionPayloadBody interface {
-	ssz.Marshallable
-	json.Marshaler
-	json.Unmarshaler
+	constraints.SSZMarshallable
+	constraints.JSONMarshallable
 	IsNil() bool
 	Version() uint32
 	GetPrevRandao() common.Bytes32

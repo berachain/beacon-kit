@@ -7,12 +7,12 @@ use (
 	./mod/beacon
 	./mod/cli
 	./mod/config
+	./mod/consensus
 	./mod/consensus-types
 	./mod/da
 	./mod/engine-primitives
 	./mod/errors
 	./mod/execution
-	./mod/interfaces
 	./mod/log
 	./mod/node-api
 	./mod/node-core

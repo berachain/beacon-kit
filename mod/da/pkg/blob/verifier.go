@@ -50,9 +50,9 @@ func NewVerifier(
 	}
 }
 
-// VerifyBlobs verifies the blobs for both inclusion as well
+// VerifySidecars verifies the blobs for both inclusion as well
 // as the KZG proofs.
-func (bv *Verifier) VerifyBlobs(
+func (bv *Verifier) VerifySidecars(
 	sidecars *types.BlobSidecars, kzgOffset uint64,
 ) error {
 	var (
@@ -60,7 +60,7 @@ func (bv *Verifier) VerifyBlobs(
 		startTime = time.Now()
 	)
 
-	defer bv.metrics.measureVerifyBlobsDuration(
+	defer bv.metrics.measureVerifySidecarsDuration(
 		startTime, math.U64(len(sidecars.Sidecars)),
 		bv.proofVerifier.GetImplementation(),
 	)

@@ -22,16 +22,15 @@ package engineprimitives
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
 // PayloadAttributer represents payload attributes of a block.
 type PayloadAttributer interface {
-	// IsNil returns true if the PayloadAttributer is nil.
-	IsNil() bool
-	// Version returns the version of the PayloadAttributer.
-	Version() uint32
+	constraints.Versionable
+	constraints.Nillable
 	// GetSuggestedFeeRecipient returns the suggested fee recipient for the
 	// block.
 	GetSuggestedFeeRecipient() common.ExecutionAddress

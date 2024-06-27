@@ -135,6 +135,9 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	err = s.SetupJSONRPCBalancer()
 	s.Require().NoError(err, "Error setting up JSON-RPC balancer")
 
+	s.logger.Info("Waiting for nodes to get ready...")
+	//nolint:mnd // its okay.
+	time.Sleep(5 * time.Second)
 	// Wait for the finalized block number to increase a bit to
 	// ensure all clients are in sync.
 	//nolint:mnd // 3 blocks

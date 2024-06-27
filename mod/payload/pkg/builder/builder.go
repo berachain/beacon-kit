@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -34,8 +35,7 @@ import (
 type PayloadBuilder[
 	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
 	ExecutionPayloadT interface {
-		IsNil() bool
-		Empty(uint32) ExecutionPayloadT
+		constraints.ForkTyped[ExecutionPayloadT]
 		GetBlockHash() common.ExecutionHash
 		GetFeeRecipient() common.ExecutionAddress
 		GetParentHash() common.ExecutionHash
@@ -81,8 +81,7 @@ type PayloadBuilder[
 func New[
 	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
 	ExecutionPayloadT interface {
-		IsNil() bool
-		Empty(uint32) ExecutionPayloadT
+		constraints.ForkTyped[ExecutionPayloadT]
 		GetBlockHash() common.ExecutionHash
 		GetParentHash() common.ExecutionHash
 		GetFeeRecipient() common.ExecutionAddress

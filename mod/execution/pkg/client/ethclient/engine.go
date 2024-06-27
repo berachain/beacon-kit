@@ -76,7 +76,7 @@ func (s *Eth1Client[ExecutionPayloadT]) NewPayloadV3(
 func (s *Eth1Client[ExecutionPayloadT]) ForkchoiceUpdated(
 	ctx context.Context,
 	state *engineprimitives.ForkchoiceStateV1,
-	attrs engineprimitives.PayloadAttributer,
+	attrs any,
 	forkVersion uint32,
 ) (*engineprimitives.ForkchoiceResponseV1, error) {
 	switch forkVersion {
@@ -91,7 +91,7 @@ func (s *Eth1Client[ExecutionPayloadT]) ForkchoiceUpdated(
 func (s *Eth1Client[ExecutionPayloadT]) ForkchoiceUpdatedV3(
 	ctx context.Context,
 	state *engineprimitives.ForkchoiceStateV1,
-	attrs engineprimitives.PayloadAttributer,
+	attrs any,
 ) (*engineprimitives.ForkchoiceResponseV1, error) {
 	return s.forkchoiceUpdated(ctx, ForkchoiceUpdatedMethodV3, state, attrs)
 }

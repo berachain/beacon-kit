@@ -88,7 +88,7 @@ func (s *EngineClient[
 ]) ForkchoiceUpdated(
 	ctx context.Context,
 	state *engineprimitives.ForkchoiceStateV1,
-	attrs engineprimitives.PayloadAttributer,
+	attrs PayloadAttributesT,
 	forkVersion uint32,
 ) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
 	var (
@@ -99,7 +99,7 @@ func (s *EngineClient[
 	defer cancel()
 
 	// If the suggested fee recipient is not set, log a warning.
-	if attrs != nil && !attrs.IsNil() &&
+	if !attrs.IsNil() &&
 		attrs.GetSuggestedFeeRecipient() == (common.ZeroAddress) {
 		s.logger.Warn(
 			"Suggested fee recipient is not configured 🔆",

@@ -32,50 +32,53 @@ type Logger[ImplT any] struct {
 	logger *log.Logger
 	// context is a map of key-value pairs that are added to every log entry.
 	context log.Fields
+	// out is the writer to write logs to.
+	out io.Writer
+	// formatter is the formatter to use for the logger.
+	formatter *Formatter
 }
 
-// NewLogger creates a new logger with the given log level, ConsoleWriter, and
-// default configuration.
+// NewLogger initializes a new wrapped phuslogger with the provided config.
 func NewLogger[ImplT any](
-	level string, out io.Writer,
+	out io.Writer,
+	cfg *Config,
 ) *Logger[ImplT] {
-	cfg := DefaultConfig()
-	logger := &log.Logger{
-		Level:      log.ParseLevel(level),
-		TimeFormat: cfg.TimeFormat,
-		Writer: &log.ConsoleWriter{
-			Writer:    out,
-			Formatter: (NewFormatter().Format),
-		},
+	logger := &Logger[ImplT]{
+		logger:    &log.Logger{},
+		context:   make(log.Fields),
+		out:       out,
+		formatter: NewFormatter(),
 	}
-	return &Logger[ImplT]{
-		logger:  logger,
-		context: make(log.Fields),
-	}
+	logger.WithConfig(*cfg)
+	return logger
 }
 
 // Info logs a message at level Info.
 func (l *Logger[ImplT]) Info(msg string, keyVals ...any) {
+	if l.logger.Level > log.InfoLevel {
+		return
+	}
 	l.msgWithContext(msg, l.logger.Info(), keyVals...)
 }
 
 // Warn logs a message at level Warn.
 func (l *Logger[ImplT]) Warn(msg string, keyVals ...any) {
+	if l.logger.Level > log.WarnLevel {
+		return
+	}
 	l.msgWithContext(msg, l.logger.Warn(), keyVals...)
 }
 
 // Error logs a message at level Error.
 func (l *Logger[ImplT]) Error(msg string, keyVals ...any) {
+	if l.logger.Level > log.ErrorLevel {
+		return
+	}
 	l.msgWithContext(msg, l.logger.Error(), keyVals...)
 }
 
 // Debug logs a message at level Debug.
 func (l *Logger[ImplT]) Debug(msg string, keyVals ...any) {
-	// In a special case for debug, we check to see if the
-	// logger level is set to debug before logging the message.
-	// We don't do this in other log levels since they are more common
-	// and we would add the overhead of the if check, when the happy
-	// path in their case, is to print out the line.
 	if l.logger.Level > log.DebugLevel {
 		return
 	}
@@ -110,8 +113,53 @@ func (l Logger[ImplT]) With(keyVals ...any) ImplT {
 }
 
 // msgWithContext logs a message with keyVals and current context.
-func (l *Logger[ImplT]) msgWithContext(
+func (l *Logger[Impl]) msgWithContext(
 	msg string, e *log.Entry, keyVals ...any,
 ) {
 	e.Fields(l.context).KeysAndValues(keyVals...).Msg(msg)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                             configuration                                  */
+/* -------------------------------------------------------------------------- */
+
+// Temporary workaround to allow dynamic configuration post-logger creation.
+// This is necessary due to dependencies on runtime-populated configurations.
+func (l *Logger[ImplT]) WithConfig(cfg Config) *Logger[ImplT] {
+	l.withTimeFormat(cfg.TimeFormat)
+	l.withStyle(cfg.Style)
+	l.withLogLevel(cfg.LogLevel)
+	return l
+}
+
+// sets the style of the logger.
+func (l *Logger[Impl]) withStyle(style string) {
+	if style == StylePretty {
+		l.useConsoleWriter()
+	} else if style == StyleJSON {
+		l.useJSONWriter()
+	}
+}
+
+// SetLevel sets the log level of the logger.
+func (l *Logger[ImplT]) withLogLevel(level string) {
+	l.logger.Level = log.ParseLevel(level)
+}
+
+// useConsoleWriter sets the logger to use a console writer.
+func (l *Logger[ImplT]) useConsoleWriter() {
+	l.setWriter(&log.ConsoleWriter{
+		Writer:    l.out,
+		Formatter: l.formatter.Format,
+	})
+}
+
+// useJSONWriter sets the logger to use a IOWriter wrapper.
+func (l *Logger[ImplT]) useJSONWriter() {
+	l.setWriter(log.IOWriter{Writer: l.out})
+}
+
+// setWriter sets the writer of the logger.
+func (l *Logger[ImplT]) setWriter(writer log.Writer) {
+	l.logger.Writer = writer
 }

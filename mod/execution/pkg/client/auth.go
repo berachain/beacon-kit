@@ -42,12 +42,10 @@ func (s *EngineClient[
 		case <-ticker.C:
 			if err := s.dialExecutionRPCClient(ctx); err != nil {
 				s.logger.Error(
-					"failed to refresh engine auth token",
+					"Failed to refresh engine auth token",
 					"err",
 					err,
 				)
-			} else {
-				s.logger.Info("Successfully refreshed engine auth token")
 			}
 		}
 	}
@@ -55,8 +53,6 @@ func (s *EngineClient[
 
 // buildJWTHeader builds an http.Header that has the JWT token
 // attached for authorization.
-//
-
 func (s *EngineClient[
 	ExecutionPayloadT, PayloadAttributesT,
 ]) buildJWTHeader() (http.Header, error) {
@@ -65,7 +61,7 @@ func (s *EngineClient[
 	// Build the JWT token.
 	token, err := buildSignedJWT(s.jwtSecret)
 	if err != nil {
-		s.logger.Error("failed to build JWT token", "err", err)
+		s.logger.Error("Failed to build JWT token", "err", err)
 		return header, err
 	}
 

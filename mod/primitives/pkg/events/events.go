@@ -21,13 +21,18 @@
 package events
 
 const (
-	MissedSlot            = "missed-slot"
-	NewSlot               = "new-slot"
-	BeaconBlockBuilt      = "beacon-block-built"
-	BeaconBlockAccepted   = "beacon-block-accepted"
-	BeaconBlockRejected   = "beacon-block-rejected"
-	BeaconBlockFinalized  = "beacon-block-finalized"
-	BlobSidecarsBuilt     = "blob-sidecars-built"
-	BlobSidecarsReceived  = "blob-sidecars-received"
-	BlobSidecarsProcessed = "blob-sidecars-processed"
+	MissedSlot                  = "missed-slot"
+	NewSlot                     = "new-slot"
+	BeaconBlockBuilt            = "beacon-block-built"
+	BeaconBlockReceived         = "beacon-block-received"
+	BeaconBlockVerified         = "beacon-block-verified"
+	BeaconBlockRejected         = "beacon-block-rejected"
+	BeaconBlockFinalizedRequest = "beacon-block-finalized-request"
+	BeaconBlockFinalized        = "beacon-block-finalized"
+	ValidatorSetUpdated         = "validator-set-updated"
+	BlobSidecarsBuilt           = "blob-sidecars-built"
+	BlobSidecarsReceived        = "blob-sidecars-received"
+	BlobSidecarsProcessRequest  = "blob-sidecars-process-request"
+	BlobSidecarsProcessed       = "blob-sidecars-processed"
+	GenesisDataProcessRequest   = "genesis-data-process-request"
 )

@@ -31,7 +31,6 @@ func BuildPruneRangeFn[
 	DepositT Deposit[DepositT, WithdrawalCredentialsT],
 	ExecutionPayloadT ExecutionPayload,
 	WithdrawalCredentialsT any,
-
 ](cs common.ChainSpec) func(BlockEventT) (uint64, uint64) {
 	return func(event BlockEventT) (uint64, uint64) {
 		deposits := event.Data().GetBody().GetDeposits()

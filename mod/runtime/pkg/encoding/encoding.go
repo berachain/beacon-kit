@@ -23,14 +23,14 @@ package encoding
 import (
 	"reflect"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 )
 
 // ExtractBlobsAndBlockFromRequest extracts the blobs and block from an ABCI
 // request.
 func ExtractBlobsAndBlockFromRequest[
 	BeaconBlockT BeaconBlock[BeaconBlockT],
-	BlobSidecarsT ssz.Marshallable,
+	BlobSidecarsT constraints.SSZMarshallable,
 ](
 	req ABCIRequest,
 	beaconBlkIndex uint,

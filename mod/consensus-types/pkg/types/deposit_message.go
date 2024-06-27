@@ -25,7 +25,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
 // DepositMessage represents a deposit message as defined in the Ethereum 2.0
@@ -33,7 +32,7 @@ import (
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#depositmessage
 //
 //nolint:lll
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit_message.go -objs DepositMessage -include ./withdrawal_credentials.go,../../../primitives/pkg/math,../../../primitives/pkg/crypto,./fork_data.go,../../../primitives/pkg/bytes,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deposit_message.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit_message.go -objs DepositMessage -include ./withdrawal_credentials.go,../../../primitives/pkg/common,../../../primitives/pkg/math,../../../primitives/pkg/crypto,./fork_data.go,../../../primitives/pkg/bytes,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deposit_message.ssz.go
 type DepositMessage struct {
 	// Public key of the validator specified in the deposit.
 	Pubkey crypto.BLSPubkey `json:"pubkey"      ssz-max:"48"`
@@ -63,7 +62,7 @@ func CreateAndSignDepositMessage(
 		Amount:      amount,
 	}
 
-	signingRoot, err := ssz.ComputeSigningRoot(depositMessage, domain)
+	signingRoot, err := ComputeSigningRoot(depositMessage, domain)
 	if err != nil {
 		return nil, crypto.BLSSignature{}, err
 	}
@@ -104,7 +103,7 @@ func (d *DepositMessage) VerifyCreateValidator(
 		return err
 	}
 
-	signingRoot, err := ssz.ComputeSigningRoot(d, domain)
+	signingRoot, err := ComputeSigningRoot(d, domain)
 	if err != nil {
 		return err
 	}

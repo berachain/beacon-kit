@@ -2,10 +2,10 @@
 
 ## Linting:
 format: ## run all configured formatters
-	@$(MAKE) license-fix buf-lint-fix forge-lint-fix golines golangci-fix star-fix
+	@$(MAKE) license-fix forge-lint-fix golines golangci-fix star-fix
 
 lint: ## run all configured linters
-	@$(MAKE) license markdownlint buf-lint forge-lint golangci star-lint
+	@$(MAKE) license markdownlint forge-lint golangci star-lint
 
 
 #################

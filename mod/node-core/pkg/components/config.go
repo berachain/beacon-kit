@@ -35,5 +35,7 @@ type ConfigInput struct {
 // ProvideConfig is a function that provides the BeaconConfig to the
 // application.
 func ProvideConfig(in ConfigInput) (*config.Config, error) {
+	// AppOpts is not populated when called from CLI
+	// Read the directory
 	return config.ReadConfigFromAppOpts(in.AppOpts)
 }

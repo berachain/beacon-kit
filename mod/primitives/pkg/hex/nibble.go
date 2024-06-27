@@ -28,12 +28,15 @@ import (
 func decodeNibble(in byte) uint64 {
 	// uint64 conversion here is safe
 	switch {
-	case in >= '0' && in <= '9' && in >= hexBaseOffset:
-		return uint64(in - hexBaseOffset) //#nosec G701
-	case in >= 'A' && in <= 'F' && in >= hexAlphaOffsetUpper:
-		return uint64(in - hexAlphaOffsetUpper) //#nosec G701
-	case in >= 'a' && in <= 'f' && in >= hexAlphaOffsetLower:
-		return uint64(in - hexAlphaOffsetLower) //#nosec G701
+	case in >= '0' && in <= '9':
+		//#nosec G701 // The resulting value will be in the range 0-9.
+		return uint64(in - hexBaseOffset)
+	case in >= 'A' && in <= 'F':
+		//#nosec G701 // The resulting value will be in the range 10-15.
+		return uint64(in - hexAlphaOffsetUpper)
+	case in >= 'a' && in <= 'f':
+		//#nosec G701 // The resulting value will be in the range 10-15.
+		return uint64(in - hexAlphaOffsetLower)
 	default:
 		return badNibble
 	}

@@ -31,4 +31,16 @@ var (
 	// extracting
 	// the block and blocks from the request.
 	ErrBadExtractBlockAndBlocks = errors.New("bad extract block and blocks")
+	// ErrUnexpectedEvent is returned when an unexpected event is encountered.
+	ErrUnexpectedEvent = errors.New("unexpected event")
+	// ErrInvalidProcessProposalRequestType is returned when an invalid
+	// process proposal request type is encountered.
+	ErrInvalidProcessProposalRequestType = errors.New(
+		"invalid process proposal request type",
+	)
+	// ErrInvalidFinalizeBlockRequestType is returned when an invalid
+	// finalize block request type is encountered.
+	ErrInvalidFinalizeBlockRequestType = errors.New(
+		"invalid pre block request type",
+	)
 )

@@ -54,8 +54,8 @@ func (pm *processorMetrics) measureVerifySidecarsDuration(
 	)
 }
 
-// measureProcessBlobsDuration measures the duration of the blob processing.
-func (pm *processorMetrics) measureProcessBlobsDuration(
+// measureProcessSidecarsDuration measures the duration of the blob processing.
+func (pm *processorMetrics) measureProcessSidecarsDuration(
 	startTime time.Time,
 	numSidecars math.U64,
 ) {

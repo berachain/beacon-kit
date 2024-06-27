@@ -24,15 +24,17 @@ import (
 	"reflect"
 
 	"cosmossdk.io/collections/codec"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/davecgh/go-spew/spew"
 )
 
 // SSZValueCodec provides methods to encode and decode SSZ values.
-type SSZValueCodec[T ssz.Marshallable] struct{}
+type SSZValueCodec[T constraints.SSZMarshallable] struct{}
 
 // Assert that SSZValueCodec implements codec.ValueCodec.
-var _ codec.ValueCodec[ssz.Marshallable] = SSZValueCodec[ssz.Marshallable]{}
+//
+//nolint:lll // annoying formatter.
+var _ codec.ValueCodec[constraints.SSZMarshallable] = SSZValueCodec[constraints.SSZMarshallable]{}
 
 // Encode marshals the provided value into its SSZ encoding.
 func (SSZValueCodec[T]) Encode(value T) ([]byte, error) {
@@ -76,7 +78,7 @@ func (SSZValueCodec[T]) ValueType() string {
 // to create new instances of the underlying hard type since reflect cannot
 // infer the type of an interface.
 type SSZInterfaceCodec[T interface {
-	ssz.Marshallable
+	constraints.SSZMarshallable
 	NewFromSSZ([]byte, uint32) (T, error)
 	Version() uint32
 }] struct {

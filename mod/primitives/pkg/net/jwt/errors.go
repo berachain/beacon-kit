@@ -32,4 +32,7 @@ var (
 	// illegal characters.
 	ErrContainsIllegalCharacter = errors.New(
 		"JWT secret contains illegal character(s)")
+
+	// ErrCreateJWT is returned when a JWT token fails to be created.
+	ErrCreateJWT = errors.New("failed to create JWT token")
 )
