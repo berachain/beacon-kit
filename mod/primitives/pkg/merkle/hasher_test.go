@@ -373,7 +373,11 @@ func TestNewRootWithDepth(t *testing.T) {
 				return nil
 			})
 
-			root, err := hasher.NewRootWithDepth(tt.leaves, uint8(tt.depth), uint8(tt.depth))
+			root, err := hasher.NewRootWithDepth(
+				tt.leaves,
+				uint8(tt.depth),
+				uint8(tt.depth),
+			)
 			if tt.wantErr {
 				require.Error(t, err,
 					"Test case %s", tt.name)

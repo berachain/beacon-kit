@@ -127,7 +127,7 @@ func (m *Hasher[RootT]) NewRootWithDepth(
 	}
 	// Handle the case where the tree is not full
 	h := leaves[0]
-	for j := uint8(depth); j < limitDepth; j++ {
+	for j := depth; j < limitDepth; j++ {
 		h = m.hh.Combi(h, zero.Hashes[j])
 	}
 
