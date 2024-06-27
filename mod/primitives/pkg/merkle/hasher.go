@@ -21,14 +21,12 @@
 package merkle
 
 import (
-<<<<<<< Updated upstream
-=======
-	"errors"
->>>>>>> Stashed changes
 	"runtime"
 	"unsafe"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
 	"github.com/prysmaticlabs/gohashtree"
