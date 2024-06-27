@@ -348,7 +348,7 @@ func TestNewRootWithDepth(t *testing.T) {
 				createDummyLeaf(3),
 			},
 			depth:    1,
-			expected: zero.Hashes[1], // Adjust this based on expected output
+			expected: zero.Hashes[1],
 			wantErr:  false,
 		},
 		{
@@ -357,7 +357,7 @@ func TestNewRootWithDepth(t *testing.T) {
 				createDummyLeaf(1),
 			},
 			depth:    1,
-			expected: zero.Hashes[1], // Adjust this based on expected output
+			expected: zero.Hashes[1],
 			wantErr:  true,
 		},
 	}
