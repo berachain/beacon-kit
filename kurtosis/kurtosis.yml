@@ -28,4 +28,4 @@ description: |
   A package for running a basic beacon-kit devnet with kurtosis
 replace:
   # Fix to a specific version of kurtosis ethereum package to avoid breaking changes
-  github.com/kurtosis-tech/postgres-package: github.com/my-github-user/postgres-package@cda5ddac51e4ce2228f2a4da1d242b2fcb7eeccd
+  github.com/ethpandaops/ethereum-package: github.com/ethpandaops/ethereum-package@cda5ddac51e4ce2228f2a4da1d242b2fcb7eeccd
