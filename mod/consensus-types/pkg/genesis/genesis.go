@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	ssztypes "github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"golang.org/x/sync/errgroup"
 )
@@ -149,7 +150,8 @@ func DefaultGenesisExecutionPayloadHeaderDeneb() (
 
 	g.Go(func() error {
 		var err error
-		emptyWithdrawalsRoot, err = engineprimitives.Withdrawals{}.HashTreeRoot()
+		wds := ssztypes.CompositeListFromElements([]*engineprimitives.Withdrawal{}...)
+		emptyWithdrawalsRoot, err = wds.HashTreeRoot()
 		return err
 	})
 

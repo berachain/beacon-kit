@@ -22,7 +22,6 @@ package types
 
 import (
 	"context"
-	"unsafe"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -78,11 +77,10 @@ func (e *ExecutionPayload) ToHeader(
 		return txsRootErr
 	})
 
-	wd := e.GetWithdrawals()
-	withdrawals := *(*ssztypes.SSZListComposite[*engineprimitives.Withdrawal])(unsafe.Pointer(&wd))
 	g.Go(func() error {
 		var withdrawalsRootErr error
-		withdrawalsRoot, withdrawalsRootErr = withdrawals.HashTreeRoot()
+		wds := ssztypes.CompositeListFromElements(e.GetWithdrawals()...)
+		withdrawalsRoot, withdrawalsRootErr = wds.HashTreeRoot()
 		return withdrawalsRootErr
 	})
 

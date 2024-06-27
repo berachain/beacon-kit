@@ -28,6 +28,11 @@ import (
 // SSZListComposite is a list of Composite types.
 type SSZListComposite[T Composite[T]] []T
 
+// CompositeListFromElements creates a new SSZListComposite from elements.
+func CompositeListFromElements[T Composite[T]](elements ...T) SSZListComposite[T] {
+	return elements
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                    Size                                    */
 /* -------------------------------------------------------------------------- */
