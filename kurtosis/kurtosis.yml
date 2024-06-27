@@ -26,3 +26,6 @@
 name: github.com/berachain/beacon-kit/kurtosis
 description: |
   A package for running a basic beacon-kit devnet with kurtosis
+replace:
+  # Fix to a specific version of kurtosis ethereum package to avoid breaking changes
+  github.com/ethpandaops/ethereum-package: github.com/ethpandaops/ethereum-package@cda5ddac51e4ce2228f2a4da1d242b2fcb7eeccd
