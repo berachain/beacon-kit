@@ -38,5 +38,5 @@ type ABCIRequest interface {
 
 type BeaconBlock[T any] interface {
 	constraints.SSZMarshallable
-	UnmarshalSSZWithVersion([]byte, uint32) (T, error)
+	NewFromSSZ([]byte, uint32) (T, error)
 }

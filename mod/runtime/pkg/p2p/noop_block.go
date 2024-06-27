@@ -33,7 +33,7 @@ import (
 // ssz marshalled data as a "reference" to the object it receives.
 type NoopBlockGossipHandler[BeaconBlockT interface {
 	constraints.SSZMarshallable
-	UnmarshalSSZWithVersion([]byte, uint32) (BeaconBlockT, error)
+	NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
 }, ReqT encoding.ABCIRequest] struct {
 	NoopGossipHandler[BeaconBlockT, []byte]
 	chainSpec common.ChainSpec
@@ -41,7 +41,7 @@ type NoopBlockGossipHandler[BeaconBlockT interface {
 
 func NewNoopBlockGossipHandler[BeaconBlockT interface {
 	constraints.SSZMarshallable
-	UnmarshalSSZWithVersion([]byte, uint32) (BeaconBlockT, error)
+	NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
 }, ReqT encoding.ABCIRequest](
 	chainSpec common.ChainSpec,
 ) NoopBlockGossipHandler[BeaconBlockT, ReqT] {

@@ -76,8 +76,8 @@ func (w *BeaconBlock) NewWithVersion(
 	}, nil
 }
 
-// UnmarshalSSZWithVersion creates a new beacon block from the given SSZ bytes.
-func (w *BeaconBlock) UnmarshalSSZWithVersion(
+// NewFromSSZ creates a new beacon block from the given SSZ bytes.
+func (w *BeaconBlock) NewFromSSZ(
 	bz []byte,
 	forkVersion uint32,
 ) (*BeaconBlock, error) {
