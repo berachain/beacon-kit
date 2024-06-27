@@ -17,33 +17,20 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
-
-package merkle
+package serializer
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/errors"
 )
 
-// MerkleTree returns a Merkle tree of the given leaves.
-// As defined in the Ethereum 2.0 Spec:
-// https://github.com/ethereum/consensus-specs/blob/dev/ssz/merkle-proofs.md#generalized-merkle-tree-index
-//
-//nolint:lll // link.
-func Tree[LeafT ~[32]byte](
-	leaves []LeafT,
-	hashFn func([]byte) LeafT,
-) []LeafT {
-	/*
-	   Return an array representing the tree nodes by generalized index:
-	   [0, 1, 2, 3, 4, 5, 6, 7], where each layer is a power of 2. The 0 index is ignored. The 1 index is the root.
-	   The result will be twice the size as the padded bottom layer for the input leaves.
-	*/
-	bottomLength := math.U64(len(leaves)).NextPowerOfTwo()
-	//nolint:mnd // 2 is okay.
-	o := make([]LeafT, bottomLength*2)
-	copy(o[bottomLength:], leaves)
-	for i := bottomLength - 1; i > 0; i-- {
-		o[i] = hashFn(append(o[i*2][:], o[i*2+1][:]...))
-	}
-	return o
-}
+var (
+	// ErrInvalidNilSlice is returned when the input slice is nil.
+	ErrInvalidNilSlice = errors.New("invalid empty slice")
+
+	// ErrInvalidLength is returned when the input byte slice has an invalid
+	// length.
+	ErrInvalidLength = errors.New("invalid byte length")
+
+	// ErrInvalidByteValue is returned when the input byte has an invalid value.
+	ErrInvalidByteValue = errors.New("invalid byte value")
+)

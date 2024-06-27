@@ -18,93 +18,16 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package ssz_test
+package serializer_test
 
 import (
 	"fmt"
 	"math/rand"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/serializer"
 	"github.com/stretchr/testify/require"
 )
-
-func TestMarshalUnmarshalU64(t *testing.T) {
-	original := uint64(0x0102030405060708)
-	marshaled := ssz.MarshalU64(original)
-	unmarshaled := ssz.UnmarshalU64[uint64](marshaled)
-	require.Equal(t, original, unmarshaled, "Marshal/Unmarshal U64 failed")
-}
-
-func TestMarshalUnmarshalU32(t *testing.T) {
-	original := uint32(0x01020304)
-	marshaled := ssz.MarshalU32[uint32](original)
-	unmarshaled := ssz.UnmarshalU32[uint32](marshaled)
-	require.Equal(t, original, unmarshaled, "Marshal/Unmarshal U32 failed")
-}
-
-func TestMarshalUnmarshalU16(t *testing.T) {
-	original := uint16(0x0102)
-	marshaled := ssz.MarshalU16[uint16](original)
-	unmarshaled := ssz.UnmarshalU16[uint16](marshaled)
-	require.Equal(t, original, unmarshaled, "Marshal/Unmarshal U16 failed")
-}
-
-func TestMarshalUnmarshalU8(t *testing.T) {
-	original := uint8(0x01)
-	marshaled := ssz.MarshalU8(original)
-	unmarshaled := ssz.UnmarshalU8[uint8](marshaled)
-	require.Equal(t, original, unmarshaled, "Marshal/Unmarshal U8 failed")
-}
-
-func TestMarshalUnmarshalBool(t *testing.T) {
-	original := true
-	marshaled := ssz.MarshalBool(original)
-	unmarshaled, err := ssz.UnmarshalBool[bool](marshaled)
-	require.NoError(t, err)
-	require.Equal(t, original, unmarshaled, "Marshal/Unmarshal Bool failed")
-}
-
-func FuzzMarshalUnmarshalU64(f *testing.F) {
-	f.Fuzz(func(t *testing.T, original uint64) {
-		marshaled := ssz.MarshalU64(original)
-		unmarshaled := ssz.UnmarshalU64[uint64](marshaled)
-		require.Equal(t, original, unmarshaled, "Marshal/Unmarshal U64 failed")
-	})
-}
-
-func FuzzMarshalUnmarshalU32(f *testing.F) {
-	f.Fuzz(func(t *testing.T, original uint32) {
-		marshaled := ssz.MarshalU32[uint32](original)
-		unmarshaled := ssz.UnmarshalU32[uint32](marshaled)
-		require.Equal(t, original, unmarshaled, "Marshal/Unmarshal U32 failed")
-	})
-}
-
-func FuzzMarshalUnmarshalU16(f *testing.F) {
-	f.Fuzz(func(t *testing.T, original uint16) {
-		marshaled := ssz.MarshalU16[uint16](original)
-		unmarshaled := ssz.UnmarshalU16[uint16](marshaled)
-		require.Equal(t, original, unmarshaled, "Marshal/Unmarshal U16 failed")
-	})
-}
-
-func FuzzMarshalUnmarshalU8(f *testing.F) {
-	f.Fuzz(func(t *testing.T, original uint8) {
-		marshaled := ssz.MarshalU8(original)
-		unmarshaled := ssz.UnmarshalU8[uint8](marshaled)
-		require.Equal(t, original, unmarshaled, "Marshal/Unmarshal U8 failed")
-	})
-}
-
-func FuzzMarshalUnmarshalBool(f *testing.F) {
-	f.Fuzz(func(t *testing.T, original bool) {
-		marshaled := ssz.MarshalBool(original)
-		unmarshaled, err := ssz.UnmarshalBool[bool](marshaled)
-		require.NoError(t, err)
-		require.Equal(t, original, unmarshaled, "Marshal/Unmarshal Bool failed")
-	})
-}
 
 func TestMarshalBitVector(t *testing.T) {
 	var tests = []struct {
@@ -140,7 +63,7 @@ func TestMarshalBitVector(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := ssz.MarshalBitVector(tt.bv)
+			got := serializer.MarshalBitVector(tt.bv)
 			require.Equal(t, tt.expect, got, "MarshalBitVector failed")
 		})
 	}
@@ -211,7 +134,7 @@ func TestMarshalBitList(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			output := ssz.MarshalBitList(tc.input)
+			output := serializer.MarshalBitList(tc.input)
 			require.Equal(t, tc.expOutput, output, "Failed at "+tc.name)
 		})
 	}
@@ -236,7 +159,7 @@ func TestMostSignificantBitIndex(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := ssz.MostSignificantBitIndex(tt.original)
+			result := serializer.MostSignificantBitIndex(tt.original)
 			require.Equal(t, tt.result, result)
 		})
 	}
@@ -244,7 +167,7 @@ func TestMostSignificantBitIndex(t *testing.T) {
 
 func FuzzMostSignificantBitIndex(f *testing.F) {
 	f.Fuzz(func(t *testing.T, original byte) {
-		result := ssz.MostSignificantBitIndex(original)
+		result := serializer.MostSignificantBitIndex(original)
 
 		// Basic bounds checking
 		require.GreaterOrEqual(t, result, -1)
@@ -293,7 +216,7 @@ func BenchmarkMostSignificantBitIndex(b *testing.B) {
 	for _, v := range table {
 		b.Run(fmt.Sprintf("input_size_%d", v.input), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				ssz.MostSignificantBitIndex(v.input)
+				serializer.MostSignificantBitIndex(v.input)
 			}
 		})
 	}
@@ -323,7 +246,7 @@ func TestUnmarshalBitList(t *testing.T) {
 		{
 			name: "Input with multiple bits set - check both marshal and unmarshal",
 			// noliint: lll
-			input: ssz.MarshalBitList([]bool{true, false, true, false,
+			input: serializer.MarshalBitList([]bool{true, false, true, false,
 				true, false, true,
 			}),
 			expOutput: []bool{true, false, true, false, true, false, true},
@@ -339,7 +262,7 @@ func TestUnmarshalBitList(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			output := ssz.UnmarshalBitList(tc.input)
+			output := serializer.UnmarshalBitList(tc.input)
 			require.Equal(t, tc.expOutput, output, "unmarshal failed")
 		})
 	}
@@ -361,8 +284,8 @@ func FuzzMarshalUnmarshalBitList(f *testing.F) {
 			}
 		}
 
-		marshaled := ssz.MarshalBitList(bitList)
-		unmarshaled := ssz.UnmarshalBitList(marshaled)
+		marshaled := serializer.MarshalBitList(bitList)
+		unmarshaled := serializer.UnmarshalBitList(marshaled)
 
 		// Check if the original and unmarshaled bit lists are the same
 		require.Equal(t, bitList, unmarshaled,
@@ -468,8 +391,8 @@ func TestMarshalUnmarshalBitList(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			marshaled := ssz.MarshalBitList(tc.input)
-			unmarshaled := ssz.UnmarshalBitList(marshaled)
+			marshaled := serializer.MarshalBitList(tc.input)
+			unmarshaled := serializer.UnmarshalBitList(marshaled)
 			require.Equal(
 				t,
 				tc.input,

@@ -22,11 +22,9 @@
 // WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
-package ssz
+package serializer
 
 const (
-	BytesPerLengthOffset        = 4
-	BitsPerByte                 = 8
-	MaximumLength               = 1 << (BitsPerByte * BytesPerLengthOffset)
-	UnboundedSSZFieldSizeMarker = "?"
+	BytesPerLengthOffset = 4
+	BitsPerByte          = 8
 )
