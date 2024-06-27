@@ -22,8 +22,12 @@ package types
 
 // Composite defines the interface for a composite type.
 type Composite[CompositeT any] interface {
+	// NewFromSSZ creates a new composite type from an SSZ byte slice.
 	NewFromSSZ([]byte) (CompositeT, error)
+	// MarshalSSZ serializes the composite type to an SSZ byte slice.
 	MarshalSSZ() ([]byte, error)
+	// SizeSSZ returns the size of the composite type when serialized.
 	SizeSSZ() int
+	// HashTreeRoot returns the hash tree root of the composite type.
 	HashTreeRoot() ([32]byte, error)
 }

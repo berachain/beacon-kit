@@ -24,7 +24,7 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 )
 
 // SSZVectorComposite is a vector of Composite types.
@@ -63,7 +63,7 @@ func (l SSZVectorComposite[T]) HashTreeRootWith(
 // HashTreeRoot returns the Merkle root of the SSZVectorComposite.
 func (l SSZVectorComposite[T]) HashTreeRoot() ([32]byte, error) {
 	// Create a merkleizer
-	return l.HashTreeRootWith(ssz.NewMerkleizer[
+	return l.HashTreeRootWith(merkleizer.New[
 		common.ChainSpec, [32]byte, T,
 	]())
 }
@@ -159,7 +159,7 @@ func (l SSZListBasic[T]) HashTreeRootWith(
 // HashTreeRoot returns the Merkle root of the SSZListBasic.
 func (l SSZListBasic[T]) HashTreeRoot() ([32]byte, error) {
 	// Create a merkleizer
-	return l.HashTreeRootWith(ssz.NewMerkleizer[
+	return l.HashTreeRootWith(merkleizer.New[
 		common.ChainSpec, [32]byte, T,
 	]())
 }
@@ -227,7 +227,7 @@ func (l SSZListComposite[T]) HashTreeRootWith(
 // HashTreeRoot returns the Merkle root of the SSZListComposite.
 func (l SSZListComposite[T]) HashTreeRoot() ([32]byte, error) {
 	// Create a merkleizer
-	return l.HashTreeRootWith(ssz.NewMerkleizer[
+	return l.HashTreeRootWith(merkleizer.New[
 		common.ChainSpec, [32]byte, T,
 	]())
 }

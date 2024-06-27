@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package ssz
+package merkleizer
 
 import (
 	"reflect"
@@ -38,8 +38,8 @@ type merkleizer[
 	bytesBuffer bytes.Buffer[RootT]
 }
 
-// NewMerkleizer creates a new merkleizer with reusable buffers.
-func NewMerkleizer[
+// New creates a new merkleizer with reusable buffers.
+func New[
 	SpecT any, RootT ~[32]byte, T Basic[SpecT, RootT],
 ]() Merkleizer[SpecT, RootT, T] {
 	return &merkleizer[SpecT, RootT, T]{

@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package ssz
+package merkleizer
 
 // Merkleizer can be used for merkleizing SSZ types.
 type Merkleizer[

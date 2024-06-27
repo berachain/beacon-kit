@@ -28,7 +28,7 @@ require (
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240624003607-df94860f8eeb
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240619234034-fe96d94eafef
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240624003607-df94860f8eeb
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240624204855-d8809d5c8588
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240627134700-de48919ec4d6
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240624003607-df94860f8eeb
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240624003607-df94860f8eeb
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240624003607-df94860f8eeb

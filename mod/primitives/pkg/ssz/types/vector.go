@@ -24,7 +24,7 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 )
 
 // SSZVectorBasic is a vector of basic types.
@@ -61,7 +61,7 @@ func (l SSZVectorBasic[T]) HashTreeRootWith(
 // HashTreeRoot returns the Merkle root of the SSZVectorBasic.
 func (l SSZVectorBasic[T]) HashTreeRoot() ([32]byte, error) {
 	// Create a merkleizer
-	return l.HashTreeRootWith(ssz.NewMerkleizer[
+	return l.HashTreeRootWith(merkleizer.New[
 		common.ChainSpec, [32]byte, T,
 	]())
 }

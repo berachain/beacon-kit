@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package ssz
+package merkleizer
 
 // Basic defines an interface for SSZ basic types which includes methods for
 // determining the size of the SSZ encoding and computing the hash tree root.
