@@ -74,14 +74,14 @@ func DecodeFixedText(typename string, input, out []byte) error {
 			len(raw), len(out)*encDecRatio, typename,
 		)
 	}
-	// Pre-verify syntax before modifying out.
-	for _, b := range raw {
-		if decodeNibble(b) == badNibble {
+	// Pre-verify syntax and decode in a single pass
+	for i := 0; i < len(raw); i += 2 {
+		highNibble := decodeNibble(raw[i])
+		lowNibble := decodeNibble(raw[i+1])
+		if highNibble == badNibble || lowNibble == badNibble {
 			return ErrInvalidString
 		}
-	}
-	if _, err = hex.Decode(out, raw); err != nil {
-		return err
+		out[i/2] = byte((highNibble << 4) | lowNibble)
 	}
 
 	return nil
