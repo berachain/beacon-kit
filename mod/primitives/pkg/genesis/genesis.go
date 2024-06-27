@@ -156,6 +156,7 @@ func (g *Genesis) ToBlock() *types.Block {
 	var withdrawals []*types.Withdrawal
 	//nolint:nestif // from go-ethereum.
 	if conf := g.Config; conf != nil {
+		//#nosec:G701 // from go-ethereum.
 		num := big.NewInt(int64(g.Number))
 		if conf.IsShanghai(num, g.Timestamp) {
 			head.WithdrawalsHash = &types.EmptyWithdrawalsHash
