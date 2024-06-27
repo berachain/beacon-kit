@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cosmos/gogoproto/proto"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -181,7 +182,7 @@ func (h *ABCIMiddleware[
 	_, BeaconBlockT, _, BlobSidecarsT, _, _, _,
 ]) ProcessProposal(
 	ctx context.Context,
-	req *cmtabci.ProcessProposalRequest,
+	req proto.Message,
 ) error {
 	var (
 		blk       BeaconBlockT
@@ -190,11 +191,15 @@ func (h *ABCIMiddleware[
 		g, _      = errgroup.WithContext(ctx)
 		startTime = time.Now()
 	)
+	abciReq, ok := req.(*cmtabci.ProcessProposalRequest)
+	if !ok {
+		return ErrInvalidProcessProposalRequestType
+	}
 
 	defer h.metrics.measureProcessProposalDuration(startTime)
 
 	// Request the beacon block.
-	if blk, err = h.beaconBlockGossiper.Request(ctx, req); err != nil {
+	if _, err = h.beaconBlockGossiper.Request(ctx, abciReq); err != nil {
 		return err
 	}
 
@@ -204,7 +209,7 @@ func (h *ABCIMiddleware[
 	})
 
 	// Request the blob sidecars.
-	if sidecars, err = h.blobGossiper.Request(ctx, req); err != nil {
+	if _, err = h.blobGossiper.Request(ctx, abciReq); err != nil {
 		return err
 	}
 
@@ -280,6 +285,21 @@ func (h *ABCIMiddleware[
 	}
 }
 
+// // createResponse generates the appropriate ProcessProposalResponse based on the
+// // error.
+// func (*ABCIMiddleware[
+// 	_, BeaconBlockT, _, BlobSidecarsT, _, _, _,
+// ]) createProcessProposalResponse(
+// 	err error,
+// ) (proto.Message, error) {
+// 	status := cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
+// 	if !errors.IsFatal(err) {
+// 		status = cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
+// 		err = nil
+// 	}
+// 	return &cmtabci.ProcessProposalResponse{Status: status}, err
+// }
+
 /* -------------------------------------------------------------------------- */
 /*                                FinalizeBlock                               */
 /* -------------------------------------------------------------------------- */
@@ -290,9 +310,13 @@ func (h *ABCIMiddleware[
 func (h *ABCIMiddleware[
 	_, _, _, _, _, _, _,
 ]) PreBlock(
-	_ context.Context, req *cmtabci.FinalizeBlockRequest,
+	_ context.Context, req proto.Message,
 ) error {
-	h.req = req
+	abciReq, ok := req.(*cmtabci.FinalizeBlockRequest)
+	if !ok {
+		return ErrInvalidFinalizeBlockRequestType
+	}
+	h.req = abciReq
 
 	return nil
 }

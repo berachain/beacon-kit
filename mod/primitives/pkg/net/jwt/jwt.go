@@ -32,7 +32,7 @@ import (
 // HexRegexp is a regular expression to match hexadecimal characters.
 var HexRegexp = regexp.MustCompile(`^(?:0x)?[0-9a-fA-F]*$`)
 
-// JWTLength defines the length of the JWT byte array to be 32 bytes as
+// EthereumJWTLength defines the length of the JWT byte array to be 32 bytes as
 // defined the Engine API specification.
 // https://github.com/ethereum/execution-apis/blob/main/src/engine/authentication.md
 //

@@ -96,6 +96,7 @@ func run() error {
 				nodecomponents.ProvideConfig,
 				nodecomponents.ProvideChainSpec,
 				nodecomponents.ProvideTxCodec[tx],
+				servercomponents.ProvideConsensusEngine[tx, validatorUpdate],
 				servercomponents.ProvideCometServer[node, tx, validatorUpdate],
 			)...,
 		),

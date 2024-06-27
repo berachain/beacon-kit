@@ -24,13 +24,12 @@ import (
 	"context"
 	"encoding/json"
 
-	appmodulev2 "cosmossdk.io/core/appmodule/v2"
+	"cosmossdk.io/core/appmodule/v2"
 	"cosmossdk.io/core/registry"
 	"cosmossdk.io/core/transaction"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/consensus/pkg"
-	consensustypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
@@ -43,14 +42,17 @@ const (
 )
 
 var (
-	_ appmodulev2.AppModule = AppModule[
-		transaction.Tx, appmodulev2.ValidatorUpdate,
+	_ appmodule.AppModule = AppModule[
+		transaction.Tx, appmodule.ValidatorUpdate,
 	]{}
 	_ module.HasABCIGenesis = AppModule[
-		transaction.Tx, appmodulev2.ValidatorUpdate,
+		transaction.Tx, appmodule.ValidatorUpdate,
 	]{}
+	// _ appmodule.HasPreBlocker = AppModule[
+	// 	transaction.Tx, appmodule.ValidatorUpdate,
+	// ]{}
 	_ module.HasABCIEndBlock = AppModule[
-		transaction.Tx, appmodulev2.ValidatorUpdate,
+		transaction.Tx, appmodule.ValidatorUpdate,
 	]{}
 )
 
@@ -127,20 +129,27 @@ func (am AppModule[T, ValidatorUpdateT]) ExportGenesis(
 func (am AppModule[T, ValidatorUpdateT]) InitGenesis(
 	ctx context.Context,
 	bz json.RawMessage,
-) ([]ValidatorUpdateT, error) {
-	return consensus.NewEngine[T, ValidatorUpdateT](
-		consensustypes.CometBFTConsensus,
+) ([]appmodule.ValidatorUpdate, error) {
+	return cometbft.NewConsensusEngine[T, appmodule.ValidatorUpdate](
 		am.TxCodec,
 		am.ABCIMiddleware,
 	).InitGenesis(ctx, bz)
 }
 
+// // PreBlock returns the validator set updates from the beacon state.
+// func (am AppModule[T, ValidatorUpdateT]) PreBlock(
+// 	ctx context.Context,
+// ) error {
+// 	return cometbft.NewConsensusEngine[appmodule.ValidatorUpdate](
+// 		am.ABCIMiddleware,
+// 	).PreBlock(ctx)
+// }
+
 // EndBlock returns the validator set updates from the beacon state.
 func (am AppModule[T, ValidatorUpdateT]) EndBlock(
 	ctx context.Context,
-) ([]ValidatorUpdateT, error) {
-	return consensus.NewEngine[T, ValidatorUpdateT](
-		consensustypes.CometBFTConsensus,
+) ([]appmodule.ValidatorUpdate, error) {
+	return cometbft.NewConsensusEngine[T, appmodule.ValidatorUpdate](
 		am.TxCodec,
 		am.ABCIMiddleware,
 	).EndBlock(ctx)

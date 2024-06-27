@@ -24,14 +24,13 @@ import "errors"
 
 var (
 	// ErrUndefinedValidatorUpdate is returned when an undefined validator
-	// update is
-	// encountered.
+	// update is encountered.
 	ErrUndefinedValidatorUpdate = errors.New(
 		"undefined validator update",
 	)
-	// ErrInvalidRequestType is returned when an invalid request type is
-	// encountered.
-	ErrInvalidRequestType = errors.New(
-		"invalid request type",
+	// ErrInvalidPrepareProposalRequest is returned when an invalid prepare
+	// proposal request is encountered.
+	ErrInvalidPrepareProposalRequest = errors.New(
+		"invalid prepare proposal request",
 	)
 )

@@ -78,9 +78,7 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideValidatorUpdateBroker,
 		ProvideNoopTxConfig,
 		ProvideTxCodec[transaction.Tx],
-
 		ProvideStoreOptions,
-
 		codec.ProvideInterfaceRegistry,
 		codec.ProvideAddressCodec,
 		codec.ProvideProtoCodec,

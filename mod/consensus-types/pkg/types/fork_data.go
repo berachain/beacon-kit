@@ -24,7 +24,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
 // ForkData as defined in the Ethereum 2.0 specification:
@@ -85,7 +84,7 @@ func (fd *ForkData) ComputeRandaoSigningRoot(
 		return common.Root{}, err
 	}
 
-	signingRoot, err := ssz.ComputeSigningRootUInt64(
+	signingRoot, err := ComputeSigningRootUInt64(
 		uint64(epoch),
 		signingDomain,
 	)

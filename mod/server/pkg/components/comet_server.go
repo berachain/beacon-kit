@@ -23,17 +23,18 @@ package components
 import (
 	"cosmossdk.io/core/transaction"
 	"cosmossdk.io/depinject"
-	sdkcomet "cosmossdk.io/server/v2/cometbft"
+	cmtconsensus "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
 	nodecomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
-	"github.com/berachain/beacon-kit/mod/server/pkg/components/comet"
+	"github.com/berachain/beacon-kit/mod/server/pkg/components/cometbft"
 )
 
 // CometServerInput is the input for the CometServer for the depinject package.
-type CometServerInput[T transaction.Tx] struct {
+type CometServerInput[T transaction.Tx, ValidatorUpdateT any] struct {
 	depinject.In
 
-	TxCodec *nodecomponents.TxCodec[T]
+	TxCodec         *nodecomponents.TxCodec[T]
+	ConsensusEngine *cmtconsensus.ConsensusEngine[T, ValidatorUpdateT]
 }
 
 // ProvideCometServer is the provider for the CometServer for the depinject
@@ -41,10 +42,10 @@ type CometServerInput[T transaction.Tx] struct {
 func ProvideCometServer[
 	NodeT types.Node[T], T transaction.Tx, ValidatorUpdateT any,
 ](
-	in CometServerInput[T],
-) *comet.Server[NodeT, T, ValidatorUpdateT] {
-	return &comet.Server[NodeT, T, ValidatorUpdateT]{
-		CometBFTServer: sdkcomet.New[NodeT, T](in.TxCodec),
-		TxCodec:        in.TxCodec,
-	}
+	in CometServerInput[T, ValidatorUpdateT],
+) *cometbft.Server[NodeT, T, ValidatorUpdateT] {
+	return cometbft.NewServer[NodeT, T, ValidatorUpdateT](
+		in.TxCodec,
+		in.ConsensusEngine,
+	)
 }

@@ -28,6 +28,8 @@ import (
 
 // convertValidatorUpdate abstracts the conversion of a
 // transition.ValidatorUpdate to an appmodulev2.ValidatorUpdate.
+// TODO: this is so hood, bktypes -> sdktypes -> generic is crazy
+// maybe make this some kind of codec/func that can be passed in?
 func convertValidatorUpdate[ValidatorUpdateT any](
 	u **transition.ValidatorUpdate,
 ) (ValidatorUpdateT, error) {
@@ -36,13 +38,16 @@ func convertValidatorUpdate[ValidatorUpdateT any](
 	if update == nil {
 		return valUpdate, ErrUndefinedValidatorUpdate
 	}
-
-	// TODO: this is so hood
-	valUpdate = any(appmodulev2.ValidatorUpdate{
+	return any(appmodulev2.ValidatorUpdate{
 		PubKey:     update.Pubkey[:],
 		PubKeyType: crypto.CometBLSType,
 		//#nosec:G701 // this is safe.
 		Power: int64(update.EffectiveBalance.Unwrap()),
-	}).(ValidatorUpdateT)
-	return valUpdate, nil
+	}).(ValidatorUpdateT), nil
+}
+
+func (c *ConsensusEngine[
+	T, ValidatorUpdateT,
+]) convertTx(tx *[]byte) (T, error) {
+	return c.txCodec.Decode(*tx)
 }

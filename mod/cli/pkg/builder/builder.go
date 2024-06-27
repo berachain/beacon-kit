@@ -33,7 +33,7 @@ import (
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/server/pkg/components/comet"
+	"github.com/berachain/beacon-kit/mod/server/pkg/components/cometbft"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -91,7 +91,7 @@ func (
 		clientCtx   client.Context
 		chainSpec   common.ChainSpec
 		logger      log.Logger
-		cmtServer   *comet.Server[NodeT, T, ValidatorUpdateT]
+		cmtServer   *cometbft.Server[NodeT, T, ValidatorUpdateT]
 	)
 	// build dependencies for the root command
 	if err := depinject.Inject(

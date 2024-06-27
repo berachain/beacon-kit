@@ -62,10 +62,7 @@ func NewStartCmd[NodeT types.Node[T], T transaction.Tx](
 				return err
 			}
 
-			srvConfig := serverv2.Config{StartBlock: true}
-			ctx := cmd.Context()
-			ctx = context.WithValue(ctx, serverv2.ServerContextKey, srvConfig)
-			ctx, cancelFn := context.WithCancel(ctx)
+			ctx, cancelFn := context.WithCancel(cmd.Context())
 			go func() {
 				sigCh := make(chan os.Signal, 1)
 				signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
