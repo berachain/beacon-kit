@@ -89,6 +89,8 @@ func (UInt8) NewFromSSZ(buf []byte) (UInt8, error) {
 			len(buf),
 		)
 	}
+
+	//#nosec:G701 // the check above protects against overflow.
 	return UInt8(buf[0]), nil
 }
 

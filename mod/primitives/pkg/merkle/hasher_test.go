@@ -55,7 +55,7 @@ func TestNewRootWithDepth_EmptyLeaves(t *testing.T) {
 	buffer := getBuffer("reusable")
 	hasher := merkle.NewHasher(buffer, gohashtree.Hash)
 
-	root, err := hasher.NewRootWithDepth(nil, 0, 5)
+	root, err := hasher.NewRootWithDepth([][32]byte{}, 0, 0)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}

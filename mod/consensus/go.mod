@@ -16,7 +16,7 @@ replace (
 require (
 	cosmossdk.io/core v0.12.1-0.20240623110059-dec2d5583e39
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240627134700-de48919ec4d6
-	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240625053718-5a9f3b4a787f
+	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240627055712-4f91afce3247
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/cosmos/gogoproto v1.5.0
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8
