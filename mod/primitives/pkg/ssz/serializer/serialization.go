@@ -21,6 +21,7 @@
 package serializer
 
 import (
+	"fmt"
 	"math/bits"
 )
 
@@ -139,4 +140,37 @@ func MarshalVectorFixed[T interface{ MarshalSSZ() ([]byte, error) }](
 		out = append(out, bytes...)
 	}
 	return out, nil
+}
+
+// UnmarshalVectorFixed converts a byte slice into a slice of basic values.
+func UnmarshalVectorFixed[
+	T interface {
+		NewFromSSZ([]byte) (T, error)
+		SizeSSZ() int
+	},
+](
+	buf []byte,
+) ([]T, error) {
+	var (
+		err error
+		t   T
+	)
+	elementSize := t.SizeSSZ()
+	if len(buf)%elementSize != 0 {
+		return nil, fmt.Errorf(
+			"invalid buffer length %d for element size %d",
+			len(buf),
+			elementSize,
+		)
+	}
+
+	result := make([]T, 0, len(buf)/elementSize)
+	for i := 0; i < len(buf); i += elementSize {
+		if t, err = t.NewFromSSZ(buf[i : i+elementSize]); err != nil {
+			return nil, err
+		}
+		result = append(result, t)
+	}
+
+	return result, nil
 }

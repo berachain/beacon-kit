@@ -23,6 +23,7 @@ package ssz
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/serializer"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -121,23 +122,27 @@ func (l ListComposite[T]) HashTreeRoot() ([32]byte, error) {
 
 // MarshalSSZTo marshals the ListComposite into SSZ format.
 func (l ListComposite[T]) MarshalSSZTo(out []byte) ([]byte, error) {
-	// The same for ListComposite as for VectorComposite.
-	return VectorComposite[T](l).MarshalSSZTo(out)
+	var t T
+	if !t.IsFixed() {
+		panic("not implemented yet")
+	}
+
+	// Safe to use Vector helper for a list here.
+	return serializer.MarshalVectorFixed(out, l)
 }
 
 // MarshalSSZ marshals the ListComposite into SSZ format.
 func (l ListComposite[T]) MarshalSSZ() ([]byte, error) {
-	// The same for ListComposite as for VectorComposite.
-	return VectorComposite[T](l).MarshalSSZ()
+	return l.MarshalSSZTo(make([]byte, 0, l.SizeSSZ()))
 }
 
 // NewFromSSZ creates a new ListComposite from SSZ format.
 func (ListComposite[T]) NewFromSSZ(buf []byte) (ListComposite[T], error) {
-	// The same for ListComposite as for VectorComposite
-	var (
-		t   VectorComposite[T]
-		err error
-	)
-	t, err = t.NewFromSSZ(buf)
-	return ListComposite[T](t), err
+	var t T
+	if !t.IsFixed() {
+		panic("not implemented yet")
+	}
+
+	// We can use Vector helper for a list here, it is safe.
+	return serializer.UnmarshalVectorFixed[T](buf)
 }

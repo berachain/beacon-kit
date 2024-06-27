@@ -21,8 +21,6 @@
 package ssz
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/serializer"
@@ -75,28 +73,7 @@ func (l VectorBasic[T]) MarshalSSZ() ([]byte, error) {
 
 // NewFromSSZ creates a new VectorBasic from SSZ format.
 func (VectorBasic[T]) NewFromSSZ(buf []byte) (VectorBasic[T], error) {
-	var (
-		err error
-		t   T
-	)
-	elementSize := t.SizeSSZ()
-	if len(buf)%elementSize != 0 {
-		return nil, fmt.Errorf(
-			"invalid buffer length %d for element size %d",
-			len(buf),
-			elementSize,
-		)
-	}
-
-	result := make(VectorBasic[T], 0, len(buf)/elementSize)
-	for i := 0; i < len(buf); i += elementSize {
-		if t, err = t.NewFromSSZ(buf[i : i+elementSize]); err != nil {
-			return nil, err
-		}
-		result = append(result, t)
-	}
-
-	return result, nil
+	return serializer.UnmarshalVectorFixed[T](buf)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -155,31 +132,10 @@ func (l VectorComposite[T]) MarshalSSZ() ([]byte, error) {
 func (VectorComposite[T]) NewFromSSZ(
 	buf []byte,
 ) (VectorComposite[T], error) {
-	var (
-		err error
-		t   T
-	)
-
+	var t T
 	if !t.IsFixed() {
 		panic("not implemented yet")
 	}
 
-	elementSize := t.SizeSSZ()
-	if len(buf)%elementSize != 0 {
-		return nil, fmt.Errorf(
-			"invalid buffer length %d for element size %d",
-			len(buf),
-			elementSize,
-		)
-	}
-
-	result := make(VectorComposite[T], 0, len(buf)/elementSize)
-	for i := 0; i < len(buf); i += elementSize {
-		if t, err = t.NewFromSSZ(buf[i : i+elementSize]); err != nil {
-			return nil, err
-		}
-		result = append(result, t)
-	}
-
-	return result, nil
+	return serializer.UnmarshalVectorFixed[T](buf)
 }
