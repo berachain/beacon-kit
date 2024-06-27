@@ -99,7 +99,7 @@ func (m *Hasher[RootT]) NewRootWithDepth(
 	depth uint8,
 	limitDepth uint8,
 ) (RootT, error) {
-	// Return zerohash at depth
+	// Short-circuit to getting memory from the buffer.
 	if len(leaves) == 0 {
 		return zero.Hashes[limitDepth], nil
 	}
@@ -117,13 +117,11 @@ func (m *Hasher[RootT]) NewRootWithDepth(
 		}
 
 		newLayerSize := (layerLen + 1) / two
-		if err = m.hasher(buf[:newLayerSize], leaves); err != nil {
+		buf = buf[:newLayerSize]
+		if err = m.hasher(buf, leaves); err != nil {
 			return zero.Hashes[depth], err
 		}
-		leaves, buf = buf[:newLayerSize], leaves
-	}
-	if len(leaves) != 1 {
-		return zero.Hashes[limitDepth], nil
+		leaves = buf
 	}
 
 	// Handle the case where the tree is not full
