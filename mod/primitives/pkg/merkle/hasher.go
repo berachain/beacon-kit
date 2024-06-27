@@ -32,7 +32,7 @@ type Hasher[T ~[32]byte] interface {
 // HashFn is the generic hash function signature.
 type HashFn func(input []byte) [32]byte
 
-// Hash defines a structure to hold a hash function and can be used for
+// hasher holds a underlying byte slice to efficiently conduct
 // multiple rounds of hashing.
 type hasher[T ~[32]byte] struct {
 	b        [64]byte

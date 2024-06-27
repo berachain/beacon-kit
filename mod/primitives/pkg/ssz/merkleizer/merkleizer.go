@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 )
@@ -34,16 +35,16 @@ import (
 type merkleizer[
 	SpecT any, RootT ~[32]byte, T Basic[SpecT, RootT],
 ] struct {
-	hasher      *merkle.Hasher[RootT]
+	hasher      merkle.Hasher[RootT]
 	bytesBuffer bytes.Buffer[RootT]
 }
 
-// New creates a new merkleizer with reusable buffers.
+// New creates a new merkleizer with a reusable hasher and bytes buffer.
 func New[
 	SpecT any, RootT ~[32]byte, T Basic[SpecT, RootT],
 ]() Merkleizer[SpecT, RootT, T] {
 	return &merkleizer[SpecT, RootT, T]{
-		hasher:      merkle.NewHasher(merkle.BuildParentTreeRoots[RootT]),
+		hasher:      merkle.NewHasher[RootT](sha256.Sum256),
 		bytesBuffer: bytes.NewReusableBuffer[RootT](),
 	}
 }

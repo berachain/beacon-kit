@@ -43,7 +43,8 @@ const (
 	two = 2
 )
 
-type RootHashFn[RootT ~[32]byte] func(a, b []RootT) error
+// RootHashFn is a function that hashes the input leaves into the output.
+type RootHashFn[RootT ~[32]byte] func(output, input []RootT) error
 
 // NewRootWithMaxLeaves constructs a Merkle tree root from a set of.
 func NewRootWithMaxLeaves[RootT ~[32]byte](
