@@ -24,11 +24,11 @@ import (
 	"context"
 	"encoding/json"
 
-	appmodulev2 "cosmossdk.io/core/appmodule/v2"
+	"cosmossdk.io/core/appmodule/v2"
 	"cosmossdk.io/core/registry"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/comet"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
@@ -41,7 +41,7 @@ const (
 )
 
 var (
-	_ appmodulev2.AppModule  = AppModule{}
+	_ appmodule.AppModule    = AppModule{}
 	_ module.HasABCIGenesis  = AppModule{}
 	_ module.HasABCIEndBlock = AppModule{}
 )
@@ -116,14 +116,17 @@ func (am AppModule) ExportGenesis(
 func (am AppModule) InitGenesis(
 	ctx context.Context,
 	bz json.RawMessage,
-) ([]appmodulev2.ValidatorUpdate, error) {
-	return comet.NewConsensus(
-		am.ABCIMiddleware).InitGenesis(ctx, bz)
+) ([]appmodule.ValidatorUpdate, error) {
+	return cometbft.NewConsensusEngine[appmodule.ValidatorUpdate](
+		am.ABCIMiddleware,
+	).InitGenesis(ctx, bz)
 }
 
 // EndBlock returns the validator set updates from the beacon state.
 func (am AppModule) EndBlock(
 	ctx context.Context,
-) ([]appmodulev2.ValidatorUpdate, error) {
-	return comet.NewConsensus(am.ABCIMiddleware).EndBlock(ctx)
+) ([]appmodule.ValidatorUpdate, error) {
+	return cometbft.NewConsensusEngine[appmodule.ValidatorUpdate](
+		am.ABCIMiddleware,
+	).EndBlock(ctx)
 }
