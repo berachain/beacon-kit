@@ -22,9 +22,7 @@ package engineprimitives
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
 // Withdrawal represents a validator withdrawal from the consensus layer.
@@ -71,15 +69,11 @@ func (w *Withdrawal) GetAmount() math.Gwei {
 	return w.Amount
 }
 
-// Withdrawals represents a slice of withdrawals.
-type Withdrawals []*Withdrawal
-
-// HashTreeRoot returns the hash tree root of the Withdrawals list.
-func (w Withdrawals) HashTreeRoot() (common.Root, error) {
-	// TODO: read max withdrawals from the chain spec.
-	merkleizer := ssz.NewMerkleizer[common.ChainSpec, [32]byte, *Withdrawal]()
-	return merkleizer.MerkleizeListComposite(
-		w,
-		constants.MaxWithdrawalsPerPayload,
-	)
+// NewFromSSZ returns a new Withdrawal from the provided SSZ bytes.
+func (Withdrawal) NewFromSSZ(bytes []byte) (*Withdrawal, error) {
+	w := new(Withdrawal)
+	if err := w.UnmarshalSSZ(bytes); err != nil {
+		return nil, err
+	}
+	return w, nil
 }

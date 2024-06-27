@@ -22,7 +22,7 @@ package types
 
 // Merkleizer can be used for merkleizing SSZ types.
 type Merkleizer[
-	SpecT any, RootT ~[32]byte, T Basic[T],
+	SpecT any, RootT ~[32]byte, T Composite[T],
 ] interface {
 	MerkleizeBasic(value T) (RootT, error)
 	MerkleizeVecBasic(value []T) (RootT, error)
