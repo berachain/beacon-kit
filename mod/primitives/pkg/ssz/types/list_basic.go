@@ -28,6 +28,12 @@ import (
 // SSZListBasic is a list of basic types.
 type SSZListBasic[T Basic[T]] []T
 
+// ListBasicFromElements creates a new SSZListComposite from elements.
+// TODO: Deprecate once off of FastSSZTypes
+func ListBasicFromElements[T Basic[T]](elements ...T) SSZListBasic[T] {
+	return elements
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                    Size                                    */
 /* -------------------------------------------------------------------------- */

@@ -30,6 +30,12 @@ import (
 // SSZVectorBasic is a vector of basic types.
 type SSZVectorBasic[T Basic[T]] []T
 
+// VectorBasicFromElements creates a new SSZListComposite from elements.
+// TODO: Deprecate once off of FastSSZTypes
+func VectorBasicFromElements[T Basic[T]](elements ...T) SSZVectorBasic[T] {
+	return elements
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                    Size                                    */
 /* -------------------------------------------------------------------------- */

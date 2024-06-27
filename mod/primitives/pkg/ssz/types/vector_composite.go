@@ -30,6 +30,12 @@ import (
 // SSZVectorComposite is a vector of Composite types.
 type SSZVectorComposite[T Composite[T]] []T
 
+// VectorCompositeFromElements creates a new SSZVectorComposite from elements.
+// TODO: Deprecate once off of FastSSZTypes
+func VectorCompositeFromElements[T Composite[T]](elements ...T) SSZVectorComposite[T] {
+	return elements
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                    Size                                    */
 /* -------------------------------------------------------------------------- */
@@ -90,7 +96,9 @@ func (l SSZVectorComposite[T]) MarshalSSZ() ([]byte, error) {
 }
 
 // NewFromSSZ creates a new SSZVectorComposite from SSZ format.
-func (SSZVectorComposite[T]) NewFromSSZ(buf []byte) (SSZVectorComposite[T], error) {
+func (SSZVectorComposite[T]) NewFromSSZ(
+	buf []byte,
+) (SSZVectorComposite[T], error) {
 	var (
 		err error
 		t   T
