@@ -21,8 +21,11 @@
 package merkle
 
 import (
+	"fmt"
 	"runtime"
 	"unsafe"
+
+	"github.com/minio/sha256-simd"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -72,38 +75,69 @@ func (m *Hasher[RootT]) NewRootWithMaxLeaves(
 	return m.NewRootWithDepth(leaves, length.NextPowerOfTwo().ILog2Ceil())
 }
 
-// NewRootWithDepth constructs a Merkle tree root from a set of leaves.
 func (m *Hasher[RootT]) NewRootWithDepth(
 	leaves []RootT,
 	depth uint8,
 ) (RootT, error) {
-	// Return zerohash at depth
-	if len(leaves) == 0 {
-		return zero.Hashes[depth], nil
+	count := uint64(len(leaves))
+	limit := uint64(1) << depth
+
+	if count > limit {
+		return zero.Hashes[depth], fmt.Errorf("merkleizing list that is too large, over limit")
 	}
 
-	// Preallocate a single buffer large enough for the maximum layer size
-	// TODO: It seems that BuildParentTreeRoots has different behaviour
-	// when we pass leaves in directly.
-	buf := m.buffer.Get((len(leaves) + 1) / two)
+	if limit == 0 {
+		return zero.Hashes[0], nil
+	}
 
-	var err error
-	for i := range depth {
-		layerLen := len(leaves)
-		if layerLen%two == 1 {
-			leaves = append(leaves, zero.Hashes[i])
+	if limit == 1 {
+		if count == 1 {
+			return leaves[0], nil
 		}
+		return zero.Hashes[0], nil
+	}
 
-		newLayerSize := (layerLen + 1) / two
-		if err = m.hasher(buf[:newLayerSize], leaves); err != nil {
+	tmp := m.buffer.Get(int(depth + 1))
+	var h RootT
+
+	hh := NewHasherFunc[RootT](sha256.Sum256)
+
+	var j uint8
+	merge := func(i uint64) error {
+		for j = 0; ; j++ {
+			if i&(uint64(1)<<j) == 0 {
+				if i == count && j < depth {
+					h = hh.Combi(h, zero.Hashes[j])
+				} else {
+					break
+				}
+			} else {
+				h = hh.Combi(tmp[j], h)
+			}
+		}
+		tmp[j] = h
+		return nil
+	}
+
+	for i := uint64(0); i < count; i++ {
+		h = leaves[i]
+		if err := merge(i); err != nil {
 			return zero.Hashes[depth], err
 		}
-		leaves, buf = buf[:newLayerSize], leaves
 	}
-	if len(leaves) != 1 {
-		return zero.Hashes[depth], nil
+
+	if (uint64(1) << depth) != count {
+		h = zero.Hashes[0]
+		if err := merge(count); err != nil {
+			return zero.Hashes[depth], err
+		}
 	}
-	return leaves[0], nil
+
+	for j := uint8(depth); j < uint8(depth); j++ {
+		tmp[j+1] = hh.Combi(tmp[j], zero.Hashes[j])
+	}
+
+	return tmp[depth], nil
 }
 
 // BuildParentTreeRoots calls BuildParentTreeRootsWithNRoutines with the

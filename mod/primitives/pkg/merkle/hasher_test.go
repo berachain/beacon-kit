@@ -327,3 +327,30 @@ func requireGoHashTreeEquivalence(
 		)
 	}
 }
+
+// BenchmarkNewRootWithMaxLeaves benchmarks the NewRootWithMaxLeaves function with various input sizes.
+func BenchmarkNewRootWithMaxLeaves(b *testing.B) {
+	buffer := getBuffer("reusable")
+	hasher := merkle.NewHasher(buffer, gohashtree.Hash)
+
+	benchSizes := []int{10, 100, 1000, 10000}
+
+	for _, size := range benchSizes {
+		b.Run(fmt.Sprintf("InputSize_%d", size), func(b *testing.B) {
+			leaves := make([][32]byte, size)
+			for i := range leaves {
+				leaves[i] = createDummyLeaf(byte(i % 256))
+			}
+
+			maxLeaves := math.U64(size)
+
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				_, err := hasher.NewRootWithMaxLeaves(leaves, maxLeaves)
+				if err != nil {
+					b.Fatalf("NewRootWithMaxLeaves failed: %v", err)
+				}
+			}
+		})
+	}
+}
