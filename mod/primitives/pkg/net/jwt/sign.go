@@ -21,9 +21,9 @@
 package jwt
 
 import (
-	"fmt"
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	gjwt "github.com/golang-jwt/jwt/v5"
 )
 
@@ -34,7 +34,7 @@ func BuildSignedJWT(s *Secret) (string, error) {
 	})
 	str, err := token.SignedString(s[:])
 	if err != nil {
-		return "", fmt.Errorf("failed to create JWT token: %w", err)
+		return "", errors.Wrapf(ErrCreateJWT, "%w", err)
 	}
 	return str, nil
 }
