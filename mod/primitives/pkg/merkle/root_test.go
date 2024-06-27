@@ -41,7 +41,7 @@ func TestNewRootWithMaxLeaves_EmptyLeaves(t *testing.T) {
 	hasher := merkle.NewHasher[[32]byte](sha256.Sum256)
 
 	root, err := merkle.NewRootWithMaxLeaves(
-		nil, 0, merkle.BuildParentTreeRoots, hasher,
+		[][32]byte{}, 0, merkle.BuildParentTreeRoots, hasher,
 	)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)

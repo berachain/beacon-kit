@@ -60,10 +60,8 @@ func NewRootWithMaxLeaves[RootT ~[32]byte](
 	if limit == 0 {
 		return zero.Hashes[0], nil
 	}
-	if limit == 1 {
-		if count == 1 {
-			return leaves[0], nil
-		}
+	if limit == 1 && count == 1 {
+		return leaves[0], nil
 	}
 
 	return NewRootWithDepth(
