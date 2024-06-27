@@ -55,7 +55,7 @@ func TestNewRootWithDepth_EmptyLeaves(t *testing.T) {
 	buffer := getBuffer("reusable")
 	hasher := merkle.NewHasher(buffer, gohashtree.Hash)
 
-	root, err := hasher.NewRootWithDepth(nil, 0)
+	root, err := hasher.NewRootWithDepth(nil, 0, 5)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -362,12 +362,31 @@ func TestNewRootWithDepth(t *testing.T) {
 		},
 	}
 
+<<<<<<< Updated upstream
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			buffer := getBuffer("reusable")
 			hasher := merkle.NewHasher(buffer, func(dst, src [][32]byte) error {
 				if tt.wantErr {
 					return errors.New("hasher error")
+=======
+	benchSizes := []int{10, 100, 1000, 10000, 100000}
+
+	for _, size := range benchSizes {
+		b.Run(fmt.Sprintf("InputSize_%d", size), func(b *testing.B) {
+			leaves := make([][32]byte, size)
+			for i := range leaves {
+				leaves[i] = createDummyLeaf(byte(i % 256))
+			}
+
+			maxLeaves := math.U64(size)
+
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				_, err := hasher.NewRootWithMaxLeaves(leaves, maxLeaves)
+				if err != nil {
+					b.Fatalf("NewRootWithMaxLeaves failed: %v", err)
+>>>>>>> Stashed changes
 				}
 				copy(dst, src)
 				return nil
