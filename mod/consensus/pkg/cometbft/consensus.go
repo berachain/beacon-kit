@@ -81,10 +81,6 @@ func (c *ConsensusEngine[ValidatorUpdateT]) ProcessProposal(
 	if err != nil {
 		return nil, err
 	}
-	// abciResp, ok := resp.(*cmtabci.ProcessProposalResponse)
-	// if !ok {
-	// 	return nil, errors.New("invalid response type")
-	// }
 	return resp.(*cmtabci.ProcessProposalResponse), nil
 }
 
