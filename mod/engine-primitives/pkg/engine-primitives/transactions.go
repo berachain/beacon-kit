@@ -44,7 +44,9 @@ func (txs Transactions) HashTreeRoot() (common.Root, error) {
 // TxsMerkleizer is a ssz merkleizer used for transactions.
 //
 // TODO: make the ChainSpec a generic on this type.
-type TxsMerkleizer merkleizer.Merkleizer[common.ChainSpec, [32]byte, common.Root]
+type TxsMerkleizer merkleizer.Merkleizer[
+	common.ChainSpec, [32]byte, common.Root,
+]
 
 // HashTreeRootWith returns the hash tree root of the Transactions list
 // using the given merkleizer.

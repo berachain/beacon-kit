@@ -173,7 +173,6 @@ func (l SSZVectorComposite[T]) MarshalSSZTo(out []byte) ([]byte, error) {
 		out = append(out, bytes...)
 	}
 	return out, nil
-
 }
 
 // MarshalSSZ marshals the SSZVectorComposite into SSZ format.
@@ -185,7 +184,6 @@ func (l SSZVectorComposite[T]) MarshalSSZ() ([]byte, error) {
 func (SSZVectorComposite[T]) NewFromSSZ(
 	buf []byte,
 ) (SSZVectorComposite[T], error) {
-
 	var (
 		err error
 		t   T

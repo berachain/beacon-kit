@@ -38,7 +38,8 @@ type BasicMerkleizer[
 	MerkleizeListBasic(value []T, limit ...uint64) (RootT, error)
 }
 
-// CompositeMerkleizer provides merkleization operations for composite SSZ types.
+// CompositeMerkleizer provides merkleization operations for composite SSZ
+// types.
 type CompositeMerkleizer[
 	SpecT any, RootT ~[32]byte, T Composite[T],
 ] interface {
