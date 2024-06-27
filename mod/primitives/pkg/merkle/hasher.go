@@ -74,15 +74,16 @@ func (m *Hasher[RootT]) NewRootWithMaxLeaves(
 	limit math.U64,
 ) (RootT, error) {
 	count := math.U64(len(leaves))
-	switch {
-	case count > limit:
-		return zero.Hashes[0], errors.Wrapf(
-			ErrLeavesExceedsLimit, "count: %d, limit: %d", count, limit,
-		)
-	case limit == 0:
+	if count > limit {
+		return zero.Hashes[0], errors.New("number of leaves exceeds limit")
+	}
+	if limit == 0 {
 		return zero.Hashes[0], nil
-	case limit == 1 && count == 1:
-		return leaves[0], nil
+	}
+	if limit == 1 {
+		if count == 1 {
+			return leaves[0], nil
+		}
 	}
 
 	return m.NewRootWithDepth(
@@ -98,37 +99,38 @@ func (m *Hasher[RootT]) NewRootWithDepth(
 	depth uint8,
 	limitDepth uint8,
 ) (RootT, error) {
-	// Validate input.
-	if depth > limitDepth {
-		return zero.Hashes[0],
-			errors.Wrapf(
-				ErrDepthExceedsLimitDepth,
-				"depth %d exceeds limit depth %d", depth, limitDepth,
-			)
-	}
-
 	// Short-circuit to getting memory from the buffer.
 	if len(leaves) == 0 {
 		return zero.Hashes[limitDepth], nil
 	}
 
+	// Preallocate a single buffer large enough for the maximum layer size
+	// TODO: It seems that BuildParentTreeRoots has different behaviour
+	// when we pass leaves in directly.
+	buf := m.buffer.Get((len(leaves) + 1) / two)
+
+	var err error
 	for i := range depth {
 		layerLen := len(leaves)
 		if layerLen%two == 1 {
 			leaves = append(leaves, zero.Hashes[i])
 		}
 
-		if err := m.hasher(leaves, leaves); err != nil {
+		newLayerSize := (layerLen + 1) / two
+		if err = m.hasher(buf[:newLayerSize], leaves); err != nil {
 			return zero.Hashes[depth], err
 		}
-		newLayerSize := (layerLen + 1) / two
-		leaves = leaves[:newLayerSize]
+		leaves, buf = buf[:newLayerSize], leaves
+	}
+
+	if len(leaves) != 1 {
+		return zero.Hashes[limitDepth], nil
 	}
 
 	// Handle the case where the tree is not full
 	h := leaves[0]
 	for j := depth; j < limitDepth; j++ {
-		leaves[0] = m.hh.Combi(leaves[0], zero.Hashes[j])
+		h = m.hh.Combi(h, zero.Hashes[j])
 	}
 
 	return h, nil
