@@ -25,7 +25,6 @@ import (
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
@@ -49,20 +48,15 @@ type HasherFn[RootT ~[32]byte] func([]RootT, []RootT) error
 
 // Hasher can be re-used for constructing Merkle tree roots.
 type Hasher[RootT ~[32]byte] struct {
-	// buffer is a reusable buffer for hashing.
-	buffer bytes.Buffer[RootT]
 	// hasher is the hashing function to use.
 	hasher HasherFn[RootT]
-	hh     *HasherFunc[RootT]
+	// hh is used for combining hashes.
+	hh *HasherFunc[RootT]
 }
 
 // NewHasher creates a new merkle Hasher.
-func NewHasher[RootT ~[32]byte](
-	buffer bytes.Buffer[RootT],
-	hashFn HasherFn[RootT],
-) *Hasher[RootT] {
+func NewHasher[RootT ~[32]byte](hashFn HasherFn[RootT]) *Hasher[RootT] {
 	return &Hasher[RootT]{
-		buffer: buffer,
 		hasher: hashFn,
 		hh:     NewHasherFunc[RootT](sha256.Sum256),
 	}
@@ -104,11 +98,6 @@ func (m *Hasher[RootT]) NewRootWithDepth(
 		return zero.Hashes[limitDepth], nil
 	}
 
-	// Preallocate a single buffer large enough for the maximum layer size
-	// TODO: It seems that BuildParentTreeRoots has different behaviour
-	// when we pass leaves in directly.
-	buf := m.buffer.Get((len(leaves) + 1) / two)
-
 	var err error
 	for i := range depth {
 		layerLen := len(leaves)
@@ -116,18 +105,18 @@ func (m *Hasher[RootT]) NewRootWithDepth(
 			leaves = append(leaves, zero.Hashes[i])
 		}
 
-		newLayerSize := (layerLen + 1) / two
-		if err = m.hasher(buf[:newLayerSize], leaves); err != nil {
-			return zero.Hashes[depth], err
+		if err = m.hasher(leaves, leaves); err != nil {
+			return zero.Hashes[limitDepth], err
 		}
-		leaves, buf = buf[:newLayerSize], leaves
+		leaves = leaves[:(layerLen+1)/two]
 	}
 
+	// If something went wrong, return the zero hash of limitDepth.
 	if len(leaves) != 1 {
 		return zero.Hashes[limitDepth], nil
 	}
 
-	// Handle the case where the tree is not full
+	// Handle the case where the tree is not full.
 	h := leaves[0]
 	for j := depth; j < limitDepth; j++ {
 		h = m.hh.Combi(h, zero.Hashes[j])

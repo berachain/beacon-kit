@@ -43,10 +43,7 @@ func New[
 	SpecT any, RootT ~[32]byte, T Basic[SpecT, RootT],
 ]() Merkleizer[SpecT, RootT, T] {
 	return &merkleizer[SpecT, RootT, T]{
-		hasher: merkle.NewHasher(
-			bytes.NewReusableBuffer[RootT](),
-			merkle.BuildParentTreeRoots[RootT],
-		),
+		hasher:      merkle.NewHasher(merkle.BuildParentTreeRoots[RootT]),
 		bytesBuffer: bytes.NewReusableBuffer[RootT](),
 	}
 }
