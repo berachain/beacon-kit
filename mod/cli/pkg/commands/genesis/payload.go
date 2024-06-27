@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	ethgenesis "github.com/berachain/beacon-kit/mod/primitives/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -38,7 +39,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	ethengineprimitives "github.com/ethereum/go-ethereum/beacon/engine"
-	"github.com/ethereum/go-ethereum/core"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
@@ -57,7 +57,7 @@ func AddExecutionPayloadCmd() *cobra.Command {
 			}
 
 			// Unmarshal the genesis file.
-			ethGenesis := &core.Genesis{}
+			ethGenesis := &ethgenesis.Genesis{}
 			if err = ethGenesis.UnmarshalJSON(genesisBz); err != nil {
 				return errors.Wrap(err, "failed to unmarshal eth1 genesis")
 			}
