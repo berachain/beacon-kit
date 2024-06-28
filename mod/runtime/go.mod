@@ -19,6 +19,8 @@ require (
 	github.com/stretchr/testify v1.9.0
 )
 
+require github.com/cosmos/crypto v0.1.0 // indirect
+
 require (
 	github.com/berachain/beacon-kit/mod/async v0.0.0-20240624011057-b0afb8163f14
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
@@ -26,7 +28,6 @@ require (
 	github.com/cockroachdb/errors v1.11.3 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect
-	github.com/cosmos/crypto v0.0.0-20240312084433-de8f9c76030d // indirect
 	github.com/cosmos/gogoproto v1.5.0
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect

@@ -10,8 +10,6 @@ cosmossdk.io/client/v2 v2.0.0-20240412212305-037cf98f7eea h1:R2AHyW57yCDOyG0/nJJ
 cosmossdk.io/client/v2 v2.0.0-20240412212305-037cf98f7eea/go.mod h1:ss8ttONeqslO0lRH/L1okn3jmwcof6cQ+mUSgBe6dyY=
 cosmossdk.io/collections v0.4.0 h1:PFmwj2W8szgpD5nOd8GWH6AbYNi1f2J6akWXJ7P5t9s=
 cosmossdk.io/collections v0.4.0/go.mod h1:oa5lUING2dP+gdDquow+QjlF45eL1t4TJDypgGd+tv0=
-cosmossdk.io/core v0.12.1-0.20240623110059-dec2d5583e39 h1:Su69DjhpTkamJ/DVu1KHGjoZMAZI6nm7c+LMdZEPLxM=
-cosmossdk.io/core v0.12.1-0.20240623110059-dec2d5583e39/go.mod h1:eBtj3y4YZqvQ+ZcYHl+yRT8sI8A3cywZ/iuZ4Y7unWc=
 cosmossdk.io/core/testing v0.0.0-20240623110059-dec2d5583e39 h1:GukgmenKzePHzd4qeO3FxCTfleV1HI1AzTT7h/Zkdjk=
 cosmossdk.io/core/testing v0.0.0-20240623110059-dec2d5583e39/go.mod h1:jhrNiB7gYDZ78Z370pyBIw/DjKEg0R27NOcWwqd4Bho=
 cosmossdk.io/depinject v1.0.0-alpha.4.0.20240620161400-a6407f411e80 h1:54V3vZwVMMI9oSsQcl575dIMLTRVWy5DS6EPMLHmqw4=
@@ -126,6 +124,8 @@ github.com/berachain/beacon-kit/mod/storage v0.0.0-20240624003607-df94860f8eeb h
 github.com/berachain/beacon-kit/mod/storage v0.0.0-20240624003607-df94860f8eeb/go.mod h1:3S0/lau+3c5ccavJv1e7CIWSQgGsPd5xroCoh/IcSd0=
 github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240627214151-8adce88544c9 h1:lPnuz5jJY57b5Fm2jxows5cuRXOBXdElU475lCFJNRY=
 github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240627214151-8adce88544c9/go.mod h1:Lx+ymdrVVjj/HZhzVZBl03twwsMECkEO1moLnPJkjMs=
+github.com/berachain/cosmos-sdk/core v0.7.1-0.20240627214151-8adce88544c9 h1:ox/JuxR5KNeXU37aOgq5Y/X/TTc+0ZR7oCgP8igJ+bg=
+github.com/berachain/cosmos-sdk/core v0.7.1-0.20240627214151-8adce88544c9/go.mod h1:eBtj3y4YZqvQ+ZcYHl+yRT8sI8A3cywZ/iuZ4Y7unWc=
 github.com/berachain/cosmos-sdk/server/v2 v2.0.0-20240627214151-8adce88544c9 h1:F8ksj1C0EvsXzuPWuw9R1WoSuGtr2Ur71KVhMoHbx5s=
 github.com/berachain/cosmos-sdk/server/v2 v2.0.0-20240627214151-8adce88544c9/go.mod h1:GzSm8Cj64xe5vaCunl1YNyOpJ0/YXXwsL0QejvK/ErQ=
 github.com/berachain/cosmos-sdk/server/v2/cometbft v0.0.0-20240627214151-8adce88544c9 h1:Bxp790tkcLJkmkwNH5446If4n6/mBcvTj3DNowH2/M0=
