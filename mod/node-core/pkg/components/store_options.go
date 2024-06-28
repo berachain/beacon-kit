@@ -32,7 +32,7 @@ func ProvideStoreOptions(in StoreConfigInput) *root.FactoryOptions {
 		RootDir: homeDir,
 		SSType:  root.SSTypePebble,
 		SCType:  0,
-		SCPruneOptions: &store.PruneOptions{
+		SCPruningOption: &store.PruningOption{
 			KeepRecent: 0,
 			Interval:   0,
 		},
