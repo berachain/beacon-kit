@@ -31,11 +31,12 @@ import (
 // PayloadBuilder is used to build payloads on the
 // execution client.
 type PayloadBuilder[
-	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
+	BeaconStateT BeaconState[ExecutionPayloadHeaderT, WithdrawalT],
 	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	PayloadAttributesT PayloadAttributes[PayloadAttributesT],
+	PayloadAttributesT PayloadAttributes[PayloadAttributesT, WithdrawalT],
 	PayloadIDT ~[8]byte,
+	WithdrawalT any,
 ] struct {
 	// cfg holds the configuration settings for the PayloadBuilder.
 	cfg *Config
@@ -53,17 +54,18 @@ type PayloadBuilder[
 	]
 	// attributesFactory is used to create attributes for the
 	attributesFactory *attributes.Factory[
-		BeaconStateT, PayloadAttributesT,
+		BeaconStateT, PayloadAttributesT, WithdrawalT,
 	]
 }
 
 // New creates a new service.
 func New[
-	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
+	BeaconStateT BeaconState[ExecutionPayloadHeaderT, WithdrawalT],
 	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	PayloadAttributesT PayloadAttributes[PayloadAttributesT],
+	PayloadAttributesT PayloadAttributes[PayloadAttributesT, WithdrawalT],
 	PayloadIDT ~[8]byte,
+	WithdrawalT any,
 ](
 	cfg *Config,
 	chainSpec common.ChainSpec,
@@ -73,15 +75,15 @@ func New[
 		PayloadIDT, [32]byte, math.Slot,
 	],
 	af *attributes.Factory[
-		BeaconStateT, PayloadAttributesT,
+		BeaconStateT, PayloadAttributesT, WithdrawalT,
 	],
 ) *PayloadBuilder[
 	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	PayloadAttributesT, PayloadIDT,
+	PayloadAttributesT, PayloadIDT, WithdrawalT,
 ] {
 	return &PayloadBuilder[
 		BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-		PayloadAttributesT, PayloadIDT,
+		PayloadAttributesT, PayloadIDT, WithdrawalT,
 	]{
 		cfg:               cfg,
 		chainSpec:         chainSpec,
@@ -95,7 +97,7 @@ func New[
 // Enabled returns true if the payload builder is enabled.
 func (pb *PayloadBuilder[
 	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	PayloadAttributesT, PayloadIDT,
+	PayloadAttributesT, PayloadIDT, WithdrawalT,
 ]) Enabled() bool {
 	return pb.cfg.Enabled
 }

@@ -67,6 +67,7 @@ type (
 	AttributesFactory = attributes.Factory[
 		BeaconState,
 		*engineprimitives.PayloadAttributes[*Withdrawal],
+		*Withdrawal,
 	]
 
 	// AvailabilityStore is a type alias for the availability store.
@@ -179,6 +180,7 @@ type (
 		*ExecutionPayloadHeader,
 		*engineprimitives.PayloadAttributes[*Withdrawal],
 		engineprimitives.PayloadID,
+		*Withdrawal,
 	]
 
 	// StateProcessor is the type alias for the state processor interface.
@@ -268,11 +270,11 @@ type (
 )
 
 /* -------------------------------------------------------------------------- */
-/*                                  Services                                  */
+/*                                Interfaces                                  */
 /* -------------------------------------------------------------------------- */
 
 // PayloadAttributes is the interface for the payload attributes.
-type PayloadAttributes[SelfT any] interface {
+type PayloadAttributes[SelfT any, WithdrawalT any] interface {
 	engineprimitives.PayloadAttributer
 	// New creates a new payload attributes instance.
 	New(
@@ -280,7 +282,7 @@ type PayloadAttributes[SelfT any] interface {
 		uint64,
 		common.Bytes32,
 		common.ExecutionAddress,
-		[]*engineprimitives.Withdrawal,
+		[]WithdrawalT,
 		common.Root,
 	) (SelfT, error)
 }

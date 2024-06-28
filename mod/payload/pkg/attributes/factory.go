@@ -28,8 +28,9 @@ import (
 
 // Factory is a factory for creating payload attributes.
 type Factory[
-	BeaconStateT BeaconState,
-	PayloadAttributesT PayloadAttributes[PayloadAttributesT],
+	BeaconStateT BeaconState[WithdrawalT],
+	PayloadAttributesT PayloadAttributes[PayloadAttributesT, WithdrawalT],
+	WithdrawalT any,
 ] struct {
 	// chainSpec is the chain spec for the attributes factory.
 	chainSpec common.ChainSpec
@@ -42,14 +43,15 @@ type Factory[
 
 // NewAttributesFactory creates a new instance of AttributesFactory.
 func NewAttributesFactory[
-	BeaconStateT BeaconState,
-	PayloadAttributesT PayloadAttributes[PayloadAttributesT],
+	BeaconStateT BeaconState[WithdrawalT],
+	PayloadAttributesT PayloadAttributes[PayloadAttributesT, WithdrawalT],
+	WithdrawalT any,
 ](
 	chainSpec common.ChainSpec,
 	logger log.Logger[any],
 	suggestedFeeRecipient common.ExecutionAddress,
-) *Factory[BeaconStateT, PayloadAttributesT] {
-	return &Factory[BeaconStateT, PayloadAttributesT]{
+) *Factory[BeaconStateT, PayloadAttributesT, WithdrawalT] {
+	return &Factory[BeaconStateT, PayloadAttributesT, WithdrawalT]{
 		chainSpec:             chainSpec,
 		logger:                logger,
 		suggestedFeeRecipient: suggestedFeeRecipient,
@@ -60,6 +62,7 @@ func NewAttributesFactory[
 func (f *Factory[
 	BeaconStateT,
 	PayloadAttributesT,
+	WithdrawalT,
 ]) BuildPayloadAttributes(
 	st BeaconStateT,
 	slot math.Slot,

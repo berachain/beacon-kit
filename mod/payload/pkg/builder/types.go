@@ -34,11 +34,12 @@ import (
 // required for block processing.
 type BeaconState[
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
+	WithdrawalT any,
 ] interface {
 	// GetRandaoMixAtIndex retrieves the RANDAO mix at a specified index.
 	GetRandaoMixAtIndex(uint64) (common.Bytes32, error)
 	// ExpectedWithdrawals lists the expected withdrawals in the current state.
-	ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error)
+	ExpectedWithdrawals() ([]WithdrawalT, error)
 	// GetLatestExecutionPayloadHeader fetches the most recent execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (
@@ -71,7 +72,10 @@ type ExecutionPayloadHeader interface {
 }
 
 // PayloadAttributes is the interface for the payload attributes.
-type PayloadAttributes[SelfT any] interface {
+type PayloadAttributes[
+	SelfT any,
+	WithdrawalT any,
+] interface {
 	engineprimitives.PayloadAttributer
 	// New creates a new payload attributes instance.
 	New(
@@ -79,7 +83,7 @@ type PayloadAttributes[SelfT any] interface {
 		uint64,
 		common.Bytes32,
 		common.ExecutionAddress,
-		[]*engineprimitives.Withdrawal,
+		[]WithdrawalT,
 		common.Root,
 	) (SelfT, error)
 }
