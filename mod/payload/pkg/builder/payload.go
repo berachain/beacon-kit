@@ -204,7 +204,7 @@ func (pb *PayloadBuilder[
 		args = append(args, "num_blobs", len(blobsBundle.GetBlobs()))
 	}
 
-	pb.logger.Info("Payload retrieved from local builder 🏗️ ", args...)
+	pb.logger.Info("Payload retrieved from local builder", args...)
 
 	// If the payload was built by a different builder, something is
 	// wrong the EL<>CL setup.
