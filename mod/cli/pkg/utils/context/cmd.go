@@ -18,27 +18,24 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package client
+package context
 
 import (
-	"time"
-
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/log/pkg/noop"
+	"github.com/cosmos/cosmos-sdk/server"
+	"github.com/spf13/cobra"
 )
 
-type PayloadAttributes interface {
-	// IsNil returns true if the payload attributes are nil.
-	IsNil() bool
-	// GetSuggestedFeeRecipient returns the suggested fee recipient.
-	GetSuggestedFeeRecipient() common.ExecutionAddress
-}
+// GetServerContextFromCmd returns a Context from a command or an empty Context
+// if it has not been set.
+func GetServerContextFromCmd(cmd *cobra.Command) *server.Context {
+	if v := cmd.Context().Value(server.ServerContextKey); v != nil {
+		serverCtxPtr, _ := v.(*server.Context)
+		return serverCtxPtr
+	}
 
-// TelemetrySink is an interface for sending metrics to a telemetry backend.
-type TelemetrySink interface {
-	// IncrementCounter increments a counter metric identified by the provided
-	// keys.
-	IncrementCounter(key string, args ...string)
-	// MeasureSince measures the time since the provided start time,
-	// identified by the provided keys.
-	MeasureSince(key string, start time.Time, args ...string)
+	return newDefaultContextWithLogger(
+		&noop.Logger[any, log.Logger]{},
+	)
 }
