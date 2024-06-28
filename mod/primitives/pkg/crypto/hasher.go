@@ -18,9 +18,11 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package merkle
+package crypto
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+)
 
 // Hasher can be re-used for efficiently conducting multiple rounds of hashing.
 type Hasher[T ~[32]byte] interface {

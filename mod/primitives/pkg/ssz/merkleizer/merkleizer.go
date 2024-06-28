@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 )
@@ -35,7 +35,7 @@ import (
 type merkleizer[
 	SpecT any, RootT ~[32]byte, T Basic[SpecT, RootT],
 ] struct {
-	hasher      merkle.Hasher[RootT]
+	rootHasher  merkle.RootHasher[RootT]
 	bytesBuffer bytes.Buffer[RootT]
 }
 
@@ -44,7 +44,10 @@ func New[
 	SpecT any, RootT ~[32]byte, T Basic[SpecT, RootT],
 ]() Merkleizer[SpecT, RootT, T] {
 	return &merkleizer[SpecT, RootT, T]{
-		hasher:      merkle.NewHasher[RootT](sha256.Sum256),
+		rootHasher: merkle.NewRootHasher[RootT](
+			crypto.NewHasher[RootT](crypto.Sha256),
+			merkle.BuildParentTreeRoots,
+		),
 		bytesBuffer: bytes.NewReusableBuffer[RootT](),
 	}
 }
@@ -244,9 +247,7 @@ func (m *merkleizer[SpecT, RootT, T]) Merkleize(
 		effectiveLimit = math.U64(limit[0])
 	}
 
-	return merkle.NewRootWithMaxLeaves(
-		chunks, effectiveLimit, merkle.BuildParentTreeRoots, m.hasher,
-	)
+	return m.rootHasher.NewRootWithMaxLeaves(chunks, effectiveLimit)
 }
 
 // pack packs a list of SSZ-marshallable elements into a single byte slice.

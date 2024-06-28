@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package sha256
+package crypto
 
 import (
 	"hash"
@@ -34,12 +34,12 @@ var sha256Pool = sync.Pool{New: func() interface{} {
 	return sha256.New()
 }}
 
-// Sum256 defines a function that returns the sha256 checksum of the data passed
+// Sha256 defines a function that returns the sha256 checksum of the data passed
 // in.
 // https://github.com/ethereum/consensus-specs/blob/v0.9.3/specs/core/0_beacon-chain.md#hash
 //
 //nolint:lll // url.
-func Sum256(data []byte) [32]byte {
+func Sha256(data []byte) [32]byte { // TODO: rename to Sha256
 	h, ok := sha256Pool.Get().(hash.Hash)
 	if !ok {
 		h = sha256.New()

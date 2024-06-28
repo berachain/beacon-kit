@@ -20,7 +20,7 @@
 
 package zero
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 
 // NumZeroHashes is the number of pre-computed zero-hashes.
 const NumZeroHashes = 64
@@ -36,7 +36,7 @@ func InitZeroHashes(zeroHashesLevels int) {
 		v := [64]byte{}
 		copy(v[:32], Hashes[i][:])
 		copy(v[32:], Hashes[i][:])
-		Hashes[i+1] = sha256.Sum256(v[:])
+		Hashes[i+1] = crypto.Sha256(v[:])
 	}
 }
 

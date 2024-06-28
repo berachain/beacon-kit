@@ -25,7 +25,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/prysmaticlabs/gohashtree"
 )
 
@@ -38,7 +38,7 @@ type KZGCommitment [48]byte
 //
 //nolint:lll // link.
 func (c KZGCommitment) ToVersionedHash() [32]byte {
-	sum := sha256.Sum256(c[:])
+	sum := crypto.Sha256(c[:])
 	// Prefix the hash with the BlobCommitmentVersion
 	// to create a versioned hash.
 	sum[0] = constants.BlobCommitmentVersion

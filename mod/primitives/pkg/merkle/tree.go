@@ -25,7 +25,7 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
 	"github.com/prysmaticlabs/gohashtree"
@@ -135,9 +135,9 @@ func (m *Tree[RootT]) Insert(item [32]byte, index int) error {
 
 	//nolint:mnd // 5 as defined by the library.
 	if m.depth > 5 {
-		hashFn = sha256.CustomSHA256Hasher()
+		hashFn = crypto.CustomSHA256Hasher()
 	} else {
-		hashFn = sha256.Sum256
+		hashFn = crypto.Sha256
 	}
 
 	for i := range m.depth {

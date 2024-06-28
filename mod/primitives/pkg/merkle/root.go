@@ -25,6 +25,7 @@ import (
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
 	"github.com/prysmaticlabs/gohashtree"
@@ -46,12 +47,29 @@ const (
 // RootHashFn is a function that hashes the input leaves into the output.
 type RootHashFn[RootT ~[32]byte] func(output, input []RootT) error
 
+// RootHasher is a struct that hashes the input leaves into the output.
+type RootHasher[RootT ~[32]byte] struct {
+	// Hasher is the underlying hasher for combi and mixins.
+	crypto.Hasher[RootT]
+	// rootHashFn is the underlying root hasher for the tree.
+	rootHashFn RootHashFn[RootT]
+}
+
+// NewRootHasher constructs a new RootHasher.
+func NewRootHasher[RootT ~[32]byte](
+	hasher crypto.Hasher[RootT],
+	rootHashFn RootHashFn[RootT],
+) RootHasher[RootT] {
+	return RootHasher[RootT]{
+		Hasher:     hasher,
+		rootHashFn: rootHashFn,
+	}
+}
+
 // NewRootWithMaxLeaves constructs a Merkle tree root from a set of.
-func NewRootWithMaxLeaves[RootT ~[32]byte](
+func (rh *RootHasher[RootT]) NewRootWithMaxLeaves(
 	leaves []RootT,
 	limit math.U64,
-	rootsHasher RootHashFn[RootT],
-	hasher Hasher[RootT],
 ) (RootT, error) {
 	count := math.U64(len(leaves))
 	if count > limit {
@@ -64,22 +82,18 @@ func NewRootWithMaxLeaves[RootT ~[32]byte](
 		return leaves[0], nil
 	}
 
-	return NewRootWithDepth(
+	return rh.NewRootWithDepth(
 		leaves,
 		count.NextPowerOfTwo().ILog2Ceil(),
 		limit.NextPowerOfTwo().ILog2Ceil(),
-		rootsHasher,
-		hasher,
 	)
 }
 
 // NewRootWithDepth constructs a Merkle tree root from a set of leaves.
-func NewRootWithDepth[RootT ~[32]byte](
+func (rh *RootHasher[RootT]) NewRootWithDepth(
 	leaves []RootT,
 	depth uint8,
 	limitDepth uint8,
-	rootsHasher RootHashFn[RootT],
-	hasher Hasher[RootT],
 ) (RootT, error) {
 	// Short-circuit to getting memory from the buffer.
 	if len(leaves) == 0 {
@@ -93,7 +107,7 @@ func NewRootWithDepth[RootT ~[32]byte](
 			leaves = append(leaves, zero.Hashes[i])
 		}
 
-		if err = rootsHasher(leaves, leaves); err != nil {
+		if err = rh.rootHashFn(leaves, leaves); err != nil {
 			return zero.Hashes[limitDepth], err
 		}
 		leaves = leaves[:(layerLen+1)/two]
@@ -107,7 +121,7 @@ func NewRootWithDepth[RootT ~[32]byte](
 	// Handle the case where the tree is not full.
 	h := leaves[0]
 	for j := depth; j < limitDepth; j++ {
-		h = hasher.Combi(h, zero.Hashes[j])
+		h = rh.Combi(h, zero.Hashes[j])
 	}
 
 	return h, nil
