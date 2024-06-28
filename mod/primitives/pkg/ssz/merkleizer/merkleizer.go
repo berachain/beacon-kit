@@ -232,15 +232,31 @@ func (m *merkleizer[SpecT, RootT, T]) Merkleize(
 	limit ...uint64,
 ) (RootT, error) {
 	var (
+		// effectiveLimit is used to track the "virtual padding of"
 		effectiveLimit math.U64
 		lenChunks      = uint64(len(chunks))
 	)
 
+	// The merkleization depends on the effective input, which must be padded/limited
 	switch {
+	// From Spec:
+	//
+	// if no limit: pad the chunks with zeroed chunks to
+	// next_pow_of_two(len(chunks)) (virtually for memory efficiency).
 	case len(limit) == 0:
 		effectiveLimit = math.U64(lenChunks).NextPowerOfTwo()
+
+	// From Spec:
+	//
+	// limit >= len(chunks), pad the chunks with zeroed chunks to
+	// next_pow_of_two(limit) (virtually for memory efficiency).
 	case limit[0] >= lenChunks:
 		effectiveLimit = math.U64(limit[0]).NextPowerOfTwo()
+
+	// From Spec:
+	//
+	// if limit < len(chunks): do not merkleize,
+	// input exceeds limit. Raise an error instead.
 	default:
 		if limit[0] < lenChunks {
 			return RootT{}, errors.New("input exceeds limit")
@@ -248,6 +264,14 @@ func (m *merkleizer[SpecT, RootT, T]) Merkleize(
 		effectiveLimit = math.U64(limit[0])
 	}
 
+	// From Spec:
+	//
+	// If 1 chunk: the root is the chunk itself.
+	if effectiveLimit == 1 {
+		return chunks[0], nil
+	}
+
+	// If > 1 chunks: merkleize as binary tree.
 	return m.rootHasher.NewRootWithMaxLeaves(chunks, effectiveLimit)
 }
 
