@@ -135,7 +135,7 @@ func (sp *StateProcessor[
 	reveal crypto.BLSSignature,
 ) (common.Bytes32, error) {
 	newMix := make([]byte, constants.RootLength)
-	revealHash := sha256.Sum256(reveal[:])
+	revealHash := sha256.Hash(reveal[:])
 	// Apparently this library giga fast? Good project? lmeow.
 	if numXor := xor.Bytes(
 		newMix, mix[:], revealHash[:],

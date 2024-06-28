@@ -28,7 +28,8 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
@@ -38,10 +39,12 @@ import (
 
 // Test NewRootWithMaxLeaves with empty leaves.
 func TestNewRootWithMaxLeaves_EmptyLeaves(t *testing.T) {
-	buffer := getBuffer("reusable")
-	hasher := merkle.NewHasher(buffer, gohashtree.Hash)
+	hasher := crypto.NewHasher[[32]byte](sha256.Hash)
+	rootHasher := merkle.NewRootHasher[[32]byte](
+		hasher, merkle.BuildParentTreeRoots,
+	)
 
-	root, err := hasher.NewRootWithMaxLeaves(nil, 0)
+	root, err := rootHasher.NewRootWithMaxLeaves([][32]byte{}, 0)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -52,10 +55,12 @@ func TestNewRootWithMaxLeaves_EmptyLeaves(t *testing.T) {
 
 // Test NewRootWithDepth with empty leaves.
 func TestNewRootWithDepth_EmptyLeaves(t *testing.T) {
-	buffer := getBuffer("reusable")
-	hasher := merkle.NewHasher(buffer, gohashtree.Hash)
+	hasher := crypto.NewHasher[[32]byte](sha256.Hash)
+	rootHasher := merkle.NewRootHasher[[32]byte](
+		hasher, merkle.BuildParentTreeRoots,
+	)
 
-	root, err := hasher.NewRootWithDepth([][32]byte{}, 0, 0)
+	root, err := rootHasher.NewRootWithDepth([][32]byte{}, 0, 0)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -73,13 +78,15 @@ func createDummyLeaf(value byte) [32]byte {
 
 // Test NewRootWithMaxLeaves with one leaf.
 func TestNewRootWithMaxLeaves_OneLeaf(t *testing.T) {
-	buffer := getBuffer("reusable")
-	hasher := merkle.NewHasher(buffer, gohashtree.Hash)
+	hasher := crypto.NewHasher[[32]byte](sha256.Hash)
+	rootHasher := merkle.NewRootHasher[[32]byte](
+		hasher, merkle.BuildParentTreeRoots,
+	)
 
 	leaf := createDummyLeaf(1)
 	leaves := [][32]byte{leaf}
 
-	root, err := hasher.NewRootWithMaxLeaves(leaves, 1)
+	root, err := rootHasher.NewRootWithMaxLeaves(leaves, 1)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -87,16 +94,16 @@ func TestNewRootWithMaxLeaves_OneLeaf(t *testing.T) {
 	require.Equal(t, leaf, root)
 }
 
-// Benchmark using a reusable buffer
-//
 // goos: darwin
 // goarch: arm64
 // pkg: github.com/berachain/beacon-kit/mod/primitives/pkg/merkle
 // BenchmarkHasherWithReusableBuffer-12
-// 29875  37987 ns/op  0 B/op  0 allocs/op.
-func BenchmarkHasherWithReusableBuffer(b *testing.B) {
-	buffer := getBuffer("reusable")
-	hasher := merkle.NewHasher(buffer, gohashtree.Hash)
+// 30064  38818 ns/op  0 B/op  0 allocs/op.
+func BenchmarkHasher(b *testing.B) {
+	hasher := crypto.NewHasher[[32]byte](sha256.Hash)
+	rootHasher := merkle.NewRootHasher[[32]byte](
+		hasher, merkle.BuildParentTreeRoots,
+	)
 
 	leaves := make([][32]byte, 1000)
 	for i := range 1000 {
@@ -105,43 +112,8 @@ func BenchmarkHasherWithReusableBuffer(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err := hasher.NewRootWithMaxLeaves(leaves, math.U64(len(leaves)))
+		_, err := rootHasher.NewRootWithMaxLeaves(leaves, math.U64(len(leaves)))
 		require.NoError(b, err)
-	}
-}
-
-// Benchmark using a single-use buffer
-//
-// goos: darwin
-// goarch: arm64
-// pkg: github.com/berachain/beacon-kit/mod/primitives/pkg/merkle
-// BenchmarkHasherWithSingleUseBuffer-12
-// 29114  38953 ns/op  16384 B/op  1 allocs/op.
-func BenchmarkHasherWithSingleUseBuffer(b *testing.B) {
-	buffer := getBuffer("singleuse")
-	hasher := merkle.NewHasher(buffer, gohashtree.Hash)
-
-	leaves := make([][32]byte, 1000)
-	for i := range 1000 {
-		leaves[i] = createDummyLeaf(byte(i))
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		_, err := hasher.NewRootWithMaxLeaves(leaves, math.U64(len(leaves)))
-		require.NoError(b, err)
-	}
-}
-
-// getBuffer returns a buffer of the given type.
-func getBuffer(usageType string) bytes.Buffer[[32]byte] {
-	switch usageType {
-	case "reusable":
-		return bytes.NewReusableBuffer[[32]byte]()
-	case "singleuse":
-		return bytes.NewSingleuseBuffer[[32]byte]()
-	default:
-		panic("unknown usage type: " + usageType)
 	}
 }
 
@@ -375,19 +347,18 @@ func TestNewRootWithDepth(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			buffer := getBuffer("reusable")
-			hasher := merkle.NewHasher(buffer, func(dst, src [][32]byte) error {
+			rootHashFn := func(dst, src [][32]byte) error {
 				if tt.wantErr {
 					return errors.New("hasher error")
 				}
 				copy(dst, src)
 				return nil
-			})
+			}
+			hasher := crypto.NewHasher[[32]byte](sha256.Hash)
+			rootHasher := merkle.NewRootHasher(hasher, rootHashFn)
 
-			root, err := hasher.NewRootWithDepth(
-				tt.leaves,
-				uint8(tt.depth),
-				uint8(tt.depth),
+			root, err := rootHasher.NewRootWithDepth(
+				tt.leaves, uint8(tt.depth), uint8(tt.depth),
 			)
 			if tt.wantErr {
 				require.Error(t, err,

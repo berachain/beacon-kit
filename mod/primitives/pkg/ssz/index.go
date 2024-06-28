@@ -117,9 +117,9 @@ func (g GeneralizedIndex[RootT]) CalculateMerkleRoot(
 	}
 	for i, h := range proof {
 		if g.IndexBit(i) {
-			leaf = sha256.Sum256(append(h[:], leaf[:]...))
+			leaf = sha256.Hash(append(h[:], leaf[:]...))
 		} else {
-			leaf = sha256.Sum256(append(leaf[:], h[:]...))
+			leaf = sha256.Hash(append(leaf[:], h[:]...))
 		}
 	}
 	return leaf, nil
@@ -226,7 +226,7 @@ func (gs GeneralizedIndicies[RootT]) CalculateMultiMerkleRoot(
 			if sibling, ok = objects[k^1]; ok {
 				if _, ok = objects[k/2]; !ok {
 					obj := objects[(k|1)^1]
-					objects[k/2] = sha256.Sum256(append(obj[:], sibling[:]...))
+					objects[k/2] = sha256.Hash(append(obj[:], sibling[:]...))
 					//nolint:mnd // from spec.
 					keys = append(keys, k/2)
 				}

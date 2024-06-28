@@ -25,8 +25,7 @@ import (
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
 	"github.com/prysmaticlabs/gohashtree"
@@ -45,31 +44,30 @@ const (
 	two = 2
 )
 
-type HasherFn[RootT ~[32]byte] func([]RootT, []RootT) error
+// RootHashFn is a function that hashes the input leaves into the output.
+type RootHashFn[RootT ~[32]byte] func(output, input []RootT) error
 
-// Hasher can be re-used for constructing Merkle tree roots.
-type Hasher[RootT ~[32]byte] struct {
-	// buffer is a reusable buffer for hashing.
-	buffer bytes.Buffer[RootT]
-	// hasher is the hashing function to use.
-	hasher HasherFn[RootT]
-	hh     *HasherFunc[RootT]
+// RootHasher is a struct that hashes the input leaves into the output.
+type RootHasher[RootT ~[32]byte] struct {
+	// Hasher is the underlying hasher for combi and mixins.
+	crypto.Hasher[RootT]
+	// rootHashFn is the underlying root hasher for the tree.
+	rootHashFn RootHashFn[RootT]
 }
 
-// NewHasher creates a new merkle Hasher.
-func NewHasher[RootT ~[32]byte](
-	buffer bytes.Buffer[RootT],
-	hashFn HasherFn[RootT],
-) *Hasher[RootT] {
-	return &Hasher[RootT]{
-		buffer: buffer,
-		hasher: hashFn,
-		hh:     NewHasherFunc[RootT](sha256.Sum256),
+// NewRootHasher constructs a new RootHasher.
+func NewRootHasher[RootT ~[32]byte](
+	hasher crypto.Hasher[RootT],
+	rootHashFn RootHashFn[RootT],
+) RootHasher[RootT] {
+	return RootHasher[RootT]{
+		Hasher:     hasher,
+		rootHashFn: rootHashFn,
 	}
 }
 
 // NewRootWithMaxLeaves constructs a Merkle tree root from a set of.
-func (m *Hasher[RootT]) NewRootWithMaxLeaves(
+func (rh *RootHasher[RootT]) NewRootWithMaxLeaves(
 	leaves []RootT,
 	limit math.U64,
 ) (RootT, error) {
@@ -80,13 +78,11 @@ func (m *Hasher[RootT]) NewRootWithMaxLeaves(
 	if limit == 0 {
 		return zero.Hashes[0], nil
 	}
-	if limit == 1 {
-		if count == 1 {
-			return leaves[0], nil
-		}
+	if limit == 1 && count == 1 {
+		return leaves[0], nil
 	}
 
-	return m.NewRootWithDepth(
+	return rh.NewRootWithDepth(
 		leaves,
 		count.NextPowerOfTwo().ILog2Ceil(),
 		limit.NextPowerOfTwo().ILog2Ceil(),
@@ -94,7 +90,7 @@ func (m *Hasher[RootT]) NewRootWithMaxLeaves(
 }
 
 // NewRootWithDepth constructs a Merkle tree root from a set of leaves.
-func (m *Hasher[RootT]) NewRootWithDepth(
+func (rh *RootHasher[RootT]) NewRootWithDepth(
 	leaves []RootT,
 	depth uint8,
 	limitDepth uint8,
@@ -104,11 +100,6 @@ func (m *Hasher[RootT]) NewRootWithDepth(
 		return zero.Hashes[limitDepth], nil
 	}
 
-	// Preallocate a single buffer large enough for the maximum layer size
-	// TODO: It seems that BuildParentTreeRoots has different behaviour
-	// when we pass leaves in directly.
-	buf := m.buffer.Get((len(leaves) + 1) / two)
-
 	var err error
 	for i := range depth {
 		layerLen := len(leaves)
@@ -116,21 +107,21 @@ func (m *Hasher[RootT]) NewRootWithDepth(
 			leaves = append(leaves, zero.Hashes[i])
 		}
 
-		newLayerSize := (layerLen + 1) / two
-		if err = m.hasher(buf[:newLayerSize], leaves); err != nil {
-			return zero.Hashes[depth], err
+		if err = rh.rootHashFn(leaves, leaves); err != nil {
+			return zero.Hashes[limitDepth], err
 		}
-		leaves, buf = buf[:newLayerSize], leaves
+		leaves = leaves[:(layerLen+1)/two]
 	}
 
+	// If something went wrong, return the zero hash of limitDepth.
 	if len(leaves) != 1 {
 		return zero.Hashes[limitDepth], nil
 	}
 
-	// Handle the case where the tree is not full
+	// Handle the case where the tree is not full.
 	h := leaves[0]
 	for j := depth; j < limitDepth; j++ {
-		h = m.hh.Combi(h, zero.Hashes[j])
+		h = rh.Combi(h, zero.Hashes[j])
 	}
 
 	return h, nil
@@ -141,16 +132,13 @@ func (m *Hasher[RootT]) NewRootWithDepth(
 func BuildParentTreeRoots[RootT ~[32]byte](
 	outputList, inputList []RootT,
 ) error {
-	err := BuildParentTreeRootsWithNRoutines(
+	return BuildParentTreeRootsWithNRoutines(
 		//#nosec:G103 // on purpose.
 		*(*[][32]byte)(unsafe.Pointer(&outputList)),
 		//#nosec:G103 // on purpose.
 		*(*[][32]byte)(unsafe.Pointer(&inputList)),
 		runtime.GOMAXPROCS(0)-1,
 	)
-
-	// Convert out back to []RootT using unsafe pointer cas
-	return err
 }
 
 // BuildParentTreeRootsWithNRoutines optimizes hashing of a list of roots
