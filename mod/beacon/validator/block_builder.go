@@ -50,10 +50,6 @@ func (s *Service[
 	)
 
 	defer s.metrics.measureRequestBlockForProposalTime(startTime)
-	s.logger.Info(
-		"Requesting beacon block assembly",
-		"slot", requestedSlot.Base10(),
-	)
 
 	// The goal here is to acquire a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
