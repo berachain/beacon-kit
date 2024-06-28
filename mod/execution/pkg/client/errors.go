@@ -58,7 +58,7 @@ var (
 
 // Handles errors received from the RPC server according to the specification.
 func (s *EngineClient[
-	ExecutionPayloadT, PayloadAttributesT,
+	_, _,
 ]) handleRPCError(
 	err error,
 ) error {
