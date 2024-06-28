@@ -20,30 +20,30 @@
 
 package ssz
 
-// BaseMerkleizer provides basic merkleization operations for SSZ types.
-type BaseMerkleizer[
-	SpecT any, RootT ~[32]byte, T Base[T],
-] interface {
-	MerkleizeByteSlice(value []byte) (RootT, error)
-	Merkleize(chunks []RootT, limit ...uint64) (RootT, error)
-}
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+)
 
-// BasicMerkleizer provides merkleization operations for basic SSZ types.
-type BasicMerkleizer[
-	SpecT any, RootT ~[32]byte, T Basic[T],
-] interface {
-	BaseMerkleizer[SpecT, RootT, T]
-	MerkleizeBasic(value T) (RootT, error)
-	MerkleizeVecBasic(value []T) (RootT, error)
-	MerkleizeListBasic(value []T, limit ...uint64) (RootT, error)
-}
-
-// CompositeMerkleizer provides merkleization operations for composite SSZ
-// types.
-type CompositeMerkleizer[
-	SpecT any, RootT ~[32]byte, T Composite[T],
-] interface {
-	BaseMerkleizer[SpecT, RootT, T]
-	MerkleizeVecComposite(value []T) (RootT, error)
-	MerkleizeListComposite(value []T, limit ...uint64) (RootT, error)
+// MerkleTree returns a Merkle tree of the given leaves.
+// As defined in the Ethereum 2.0 Spec:
+// https://github.com/ethereum/consensus-specs/blob/dev/ssz/merkle-proofs.md#generalized-merkle-tree-index
+//
+//nolint:lll // link.
+func MerkleTree[LeafT ~[32]byte](
+	leaves []LeafT,
+	hashFn func([]byte) LeafT,
+) []LeafT {
+	/*
+	   Return an array representing the tree nodes by generalized index:
+	   [0, 1, 2, 3, 4, 5, 6, 7], where each layer is a power of 2. The 0 index is ignored. The 1 index is the root.
+	   The result will be twice the size as the padded bottom layer for the input leaves.
+	*/
+	bottomLength := math.U64(len(leaves)).NextPowerOfTwo()
+	//nolint:mnd // 2 is okay.
+	o := make([]LeafT, bottomLength*2)
+	copy(o[bottomLength:], leaves)
+	for i := bottomLength - 1; i > 0; i-- {
+		o[i] = hashFn(append(o[i*2][:], o[i*2+1][:]...))
+	}
+	return o
 }

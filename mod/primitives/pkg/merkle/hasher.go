@@ -99,9 +99,9 @@ func (m *Hasher[RootT]) NewRootWithDepth(
 	depth uint8,
 	limitDepth uint8,
 ) (RootT, error) {
-	// Return zerohash at depth
+	// Short-circuit to getting memory from the buffer.
 	if len(leaves) == 0 {
-		return zero.Hashes[depth], nil
+		return zero.Hashes[limitDepth], nil
 	}
 
 	// Preallocate a single buffer large enough for the maximum layer size
@@ -122,9 +122,11 @@ func (m *Hasher[RootT]) NewRootWithDepth(
 		}
 		leaves, buf = buf[:newLayerSize], leaves
 	}
+
 	if len(leaves) != 1 {
-		return zero.Hashes[depth], nil
+		return zero.Hashes[limitDepth], nil
 	}
+
 	// Handle the case where the tree is not full
 	h := leaves[0]
 	for j := depth; j < limitDepth; j++ {

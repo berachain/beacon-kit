@@ -28,7 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
@@ -82,7 +82,7 @@ func GetGenesisValidatorRootCmd(cs common.ChainSpec) *cobra.Command {
 				)
 			}
 
-			merkleizer := ssz.NewMerkleizer[
+			merkleizer := merkleizer.New[
 				common.ChainSpec, [32]byte, *types.Validator,
 			]()
 			var validatorsRoot common.Root

@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package ssz
+package merkleizer
 
 import (
 	"reflect"
@@ -30,43 +30,6 @@ func SizeOfBasic[RootT ~[32]byte, B Basic[SpecT, RootT], SpecT any](
 ) uint64 {
 	// TODO: Boolean maybe this doesnt work.
 	return uint64(reflect.TypeOf(b).Size())
-}
-
-// SizeOfComposite returns the size of a composite type.
-func SizeOfComposite[RootT ~[32]byte, C Composite[SpecT, RootT], SpecT any](
-	c C,
-) uint64 {
-	//#nosec:G701 // This is a safe operation.
-	return uint64(c.SizeSSZ())
-}
-
-// SizeOfContainer returns the size of a container type.
-func SizeOfContainer[RootT ~[32]byte, C Container[SpecT, RootT], SpecT any](
-	c C,
-) int {
-	size := 0
-	rValue := reflect.ValueOf(c)
-	if rValue.Kind() == reflect.Ptr {
-		rValue = rValue.Elem()
-	}
-	for i := range rValue.NumField() {
-		fieldValue := rValue.Field(i)
-		if !fieldValue.CanInterface() {
-			return -1
-		}
-
-		// TODO: handle different types.
-		field, ok := fieldValue.Interface().(Basic[SpecT, RootT])
-		if !ok {
-			return -1
-		}
-		size += field.SizeSSZ()
-
-		// TODO: handle the offset calculation.
-	}
-
-	// TODO: This doesn't yet handle anything to do with offset calculation.
-	return size
 }
 
 // ChunkCount returns the number of chunks required to store a value.

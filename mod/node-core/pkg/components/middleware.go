@@ -51,8 +51,7 @@ func ProvideABCIMiddleware(
 	if err != nil {
 		return nil, err
 	}
-	return middleware.
-		NewABCIMiddleware[
+	return middleware.NewABCIMiddleware[
 		*AvailabilityStore, *BeaconBlock, BeaconState,
 		*BlobSidecars, *Deposit, *ExecutionPayload, *Genesis,
 	](
