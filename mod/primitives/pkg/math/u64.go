@@ -137,7 +137,7 @@ func (u *U64) UnmarshalText(input []byte) error {
 	return nil
 }
 
-// String returns the string representation of the U64.
+// Base10 returns the string representation of the U64.
 func (u U64) Base10() string {
 	return strconv.FormatUint(uint64(u), 10)
 }

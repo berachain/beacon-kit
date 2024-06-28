@@ -45,15 +45,14 @@ func (vu ValidatorUpdates) RemoveDuplicates() ValidatorUpdates {
 	duplicateCheck := make(map[crypto.BLSPubkey]struct{})
 	j := len(vu) - 1
 	for i := j; i >= 0; i-- {
-		update := vu[i]
-		if _, exists := duplicateCheck[update.Pubkey]; !exists {
-			duplicateCheck[update.Pubkey] = struct{}{}
+		if _, exists := duplicateCheck[vu[i].Pubkey]; !exists {
+			duplicateCheck[vu[i].Pubkey] = struct{}{}
 			vu[j] = vu[i]
 			j--
 		}
 	}
-	vu = vu[j+1:]
-	return vu
+
+	return vu[j+1:]
 }
 
 // Sort sorts the validator updates.
