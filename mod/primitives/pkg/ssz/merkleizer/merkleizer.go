@@ -192,7 +192,7 @@ func (m *merkleizer[RootT, T]) Merkleize(
 	// From Spec:
 	//
 	// If 1 chunk: the root is the chunk itself.
-	if effectiveLimit == 1 {
+	if lenChunks == 1 && effectiveLimit == 1 {
 		return chunks[0], nil
 	}
 
