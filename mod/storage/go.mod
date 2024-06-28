@@ -28,6 +28,8 @@ require (
 require (
 	github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a // indirect
 	github.com/dvsekhvalnov/jose2go v1.7.0 // indirect
+	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
+	github.com/minio/sha256-simd v1.0.1 // indirect
 )
 
 require (
