@@ -5,11 +5,15 @@ go 1.22.4
 replace (
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240628155326-d426a5db6775
+	cosmossdk.io/core => github.com/cosmos/cosmos-sdk/core v0.12.1-0.20240628155326-d426a5db6775
+	cosmossdk.io/depinject => github.com/cosmos/cosmos-sdk/depinject v1.0.0-alpha.4.0.20240628155326-d426a5db6775
+	cosmossdk.io/x/auth => github.com/cosmos/cosmos-sdk/x/auth v0.0.0-20240628155326-d426a5db6775
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240623110059-dec2d5583e39
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240624204242-8877694ebd14
 )
 
 require (
+	cosmossdk.io/x/consensus v0.0.0-20240628155326-d426a5db6775
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240617161612-ab1257fcf5a1
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610210054-bfdc14c4013c
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240618214413-d5ec0e66b3dd
@@ -20,13 +24,79 @@ require (
 )
 
 require (
+	buf.build/gen/go/cometbft/cometbft/protocolbuffers/go v1.34.2-20240312114316-c0d3497e35d6.2 // indirect
+	buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.34.2-20240130113600-88ef6483f90f.2 // indirect
+	cosmossdk.io/api v0.7.5 // indirect
+	cosmossdk.io/collections v0.4.0 // indirect
+	cosmossdk.io/core v0.12.1-0.20231114100755-569e3ff6a0d7
+	cosmossdk.io/depinject v1.0.0-alpha.4 // indirect
+	cosmossdk.io/errors v1.0.1 // indirect
+	cosmossdk.io/log v1.3.1 // indirect
+	cosmossdk.io/math v1.3.0 // indirect
+	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc // indirect
+	cosmossdk.io/x/tx v0.13.3 // indirect
+	filippo.io/edwards25519 v1.1.0 // indirect
+	github.com/DataDog/zstd v1.5.5 // indirect
+	github.com/beorn7/perks v1.0.1 // indirect
+	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/cockroachdb/pebble v1.1.0 // indirect
+	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
+	github.com/cometbft/cometbft-db v0.12.0 // indirect
+	github.com/cosmos/btcutil v1.0.5 // indirect
+	github.com/cosmos/cosmos-db v1.0.2 // indirect
+	github.com/cosmos/cosmos-proto v1.0.0-beta.5 // indirect
+	github.com/cosmos/cosmos-sdk v0.51.0 // indirect
+	github.com/cosmos/ics23/go v0.10.0 // indirect
+	github.com/dgraph-io/badger/v4 v4.2.0 // indirect
+	github.com/dgraph-io/ristretto v0.1.1 // indirect
+	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/go-kit/kit v0.13.0 // indirect
+	github.com/golang/glog v1.2.0 // indirect
+	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
+	github.com/golang/snappy v0.0.5-0.20220116011046-fa5810519dcb // indirect
+	github.com/google/btree v1.1.2 // indirect
+	github.com/google/flatbuffers v2.0.8+incompatible // indirect
+	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
+	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
+	github.com/hashicorp/go-metrics v0.5.3 // indirect
+	github.com/hashicorp/golang-lru v1.0.2 // indirect
+	github.com/hdevalence/ed25519consensus v0.2.0 // indirect
+	github.com/iancoleman/strcase v0.3.0 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/jmhodges/levigo v1.0.0 // indirect
+	github.com/klauspost/compress v1.17.8 // indirect
+	github.com/libp2p/go-buffer-pool v0.1.0 // indirect
+	github.com/linxGnu/grocksdb v1.8.14 // indirect
+	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
+	github.com/prometheus/client_golang v1.19.1 // indirect
+	github.com/prometheus/client_model v0.6.1 // indirect
+	github.com/prometheus/common v0.55.0 // indirect
+	github.com/prometheus/procfs v0.15.1 // indirect
+	github.com/rs/zerolog v1.33.0 // indirect
+	github.com/spf13/cast v1.6.0 // indirect
+	github.com/spf13/cobra v1.8.1 // indirect
+	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d // indirect
+	github.com/tendermint/go-amino v0.16.0 // indirect
+	gitlab.com/yawning/secp256k1-voi v0.0.0-20230925100816-f2616030848b // indirect
+	gitlab.com/yawning/tuplehash v0.0.0-20230713102510-df83abbf9a02 // indirect
+	go.etcd.io/bbolt v1.4.0-alpha.0.0.20240404170359-43604f3112c5 // indirect
+	go.opencensus.io v0.24.0 // indirect
+	google.golang.org/genproto v0.0.0-20240227224415-6ceb2ff114de // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20240318140521-94a12d6c2237 // indirect
+	sigs.k8s.io/yaml v1.4.0 // indirect
+)
+
+require (
 	github.com/berachain/beacon-kit/mod/async v0.0.0-20240624011057-b0afb8163f14
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0 // indirect
 	github.com/cockroachdb/errors v1.11.3 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect
-	github.com/cosmos/crypto v0.0.0-20240312084433-de8f9c76030d // indirect
+	github.com/cosmos/crypto v0.1.0 // indirect
 	github.com/cosmos/gogoproto v1.5.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
