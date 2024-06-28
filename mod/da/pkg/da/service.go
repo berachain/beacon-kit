@@ -191,20 +191,20 @@ func (s *Service[_, _, BlobSidecarsT, _, _]) receiveSidecars(
 	}
 
 	s.logger.Info(
-		"Received incoming blob sidecars 🚔",
+		"Received incoming blob sidecars",
 	)
 
 	// Verify the blobs and ensure they match the local state.
 	if err := s.bp.VerifySidecars(sidecars); err != nil {
 		s.logger.Error(
-			"rejecting incoming blob sidecars ❌",
+			"rejecting incoming blob sidecars",
 			"reason", err,
 		)
 		return err
 	}
 
 	s.logger.Info(
-		"Blob sidecars verification succeeded - accepting incoming blob sidecars 💦",
+		"Blob sidecars verification succeeded - accepting incoming blob sidecars",
 		"num_blobs",
 		sidecars.Len(),
 	)
