@@ -204,7 +204,7 @@ func (pb *PayloadBuilder[
 		args = append(args, "num_blobs", len(blobsBundle.GetBlobs()))
 	}
 
-	pb.logger.Info("Payload retrieved from local builder 🏗️ ", args...)
+	pb.logger.Info("Payload retrieved from local builder", args...)
 
 	// If the payload was built by a different builder, something is
 	// wrong the EL<>CL setup.
@@ -238,7 +238,7 @@ func (pb *PayloadBuilder[
 	}
 
 	pb.logger.Info(
-		"Sending startup forkchoice update to execution client 🚀 ",
+		"Sending startup forkchoice update to execution client",
 		"head_eth1_hash", lph.GetBlockHash(),
 		"safe_eth1_hash", lph.GetParentHash(),
 		"finalized_eth1_hash", lph.GetParentHash(),

@@ -65,7 +65,7 @@ func ProvideAvailibilityStore[
 				filedb.WithLogger(in.Logger),
 			),
 		),
-		in.Logger.With("service", "beacon-kit.da.store"),
+		in.Logger.With("service", "da-store"),
 		in.ChainSpec,
 	), nil
 }
