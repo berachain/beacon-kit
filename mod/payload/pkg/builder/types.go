@@ -25,16 +25,16 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // BeaconState defines the interface for accessing various state-related data
 // required for block processing.
-type BeaconState[ExecutionPayloadHeaderT interface {
-	GetBlockHash() common.ExecutionHash
-	GetParentHash() common.ExecutionHash
-}] interface {
+type BeaconState[
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
+] interface {
 	// GetRandaoMixAtIndex retrieves the RANDAO mix at a specified index.
 	GetRandaoMixAtIndex(uint64) (common.Bytes32, error)
 	// ExpectedWithdrawals lists the expected withdrawals in the current state.
@@ -49,6 +49,39 @@ type BeaconState[ExecutionPayloadHeaderT interface {
 	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
 	// GetBlockRootAtIndex retrieves the block root at a specified index.
 	GetBlockRootAtIndex(uint64) (common.Root, error)
+}
+
+// ExecutionPayload is the interface for the execution payload.
+type ExecutionPayload[T constraints.ForkTyped[T]] interface {
+	constraints.ForkTyped[T]
+	// GetBlockHash returns the block hash.
+	GetBlockHash() common.ExecutionHash
+	// GetFeeRecipient returns the fee recipient.
+	GetFeeRecipient() common.ExecutionAddress
+	// GetParentHash returns the parent hash.
+	GetParentHash() common.ExecutionHash
+}
+
+// ExecutionPayloadHeader is the interface for the execution payload header.
+type ExecutionPayloadHeader interface {
+	// GetBlockHash returns the block hash.
+	GetBlockHash() common.ExecutionHash
+	// GetParentHash returns the parent hash.
+	GetParentHash() common.ExecutionHash
+}
+
+// PayloadAttributes is the interface for the payload attributes.
+type PayloadAttributes[SelfT any] interface {
+	engineprimitives.PayloadAttributer
+	// New creates a new payload attributes instance.
+	New(
+		uint32,
+		uint64,
+		common.Bytes32,
+		common.ExecutionAddress,
+		[]*engineprimitives.Withdrawal,
+		common.Root,
+	) (SelfT, error)
 }
 
 // ExecutionEngine is the interface for the execution engine.

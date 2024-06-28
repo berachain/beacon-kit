@@ -21,12 +21,10 @@
 package builder
 
 import (
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -34,27 +32,9 @@ import (
 // execution client.
 type PayloadBuilder[
 	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
-	ExecutionPayloadT interface {
-		constraints.ForkTyped[ExecutionPayloadT]
-		GetBlockHash() common.ExecutionHash
-		GetFeeRecipient() common.ExecutionAddress
-		GetParentHash() common.ExecutionHash
-	},
-	ExecutionPayloadHeaderT interface {
-		GetBlockHash() common.ExecutionHash
-		GetParentHash() common.ExecutionHash
-	},
-	PayloadAttributesT interface {
-		engineprimitives.PayloadAttributer
-		New(
-			uint32,
-			uint64,
-			common.Bytes32,
-			common.ExecutionAddress,
-			[]*engineprimitives.Withdrawal,
-			common.Root,
-		) (PayloadAttributesT, error)
-	},
+	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
+	PayloadAttributesT PayloadAttributes[PayloadAttributesT],
 	PayloadIDT ~[8]byte,
 ] struct {
 	// cfg holds the configuration settings for the PayloadBuilder.
@@ -73,34 +53,16 @@ type PayloadBuilder[
 	]
 	// attributesFactory is used to create attributes for the
 	attributesFactory *attributes.Factory[
-		BeaconStateT, PayloadAttributesT, *engineprimitives.Withdrawal,
+		BeaconStateT, PayloadAttributesT,
 	]
 }
 
 // New creates a new service.
 func New[
 	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
-	ExecutionPayloadT interface {
-		constraints.ForkTyped[ExecutionPayloadT]
-		GetBlockHash() common.ExecutionHash
-		GetParentHash() common.ExecutionHash
-		GetFeeRecipient() common.ExecutionAddress
-	},
-	ExecutionPayloadHeaderT interface {
-		GetBlockHash() common.ExecutionHash
-		GetParentHash() common.ExecutionHash
-	},
-	PayloadAttributesT interface {
-		engineprimitives.PayloadAttributer
-		New(
-			uint32,
-			uint64,
-			common.Bytes32,
-			common.ExecutionAddress,
-			[]*engineprimitives.Withdrawal,
-			common.Root,
-		) (PayloadAttributesT, error)
-	},
+	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
+	PayloadAttributesT PayloadAttributes[PayloadAttributesT],
 	PayloadIDT ~[8]byte,
 ](
 	cfg *Config,
@@ -111,7 +73,7 @@ func New[
 		PayloadIDT, [32]byte, math.Slot,
 	],
 	af *attributes.Factory[
-		BeaconStateT, PayloadAttributesT, *engineprimitives.Withdrawal,
+		BeaconStateT, PayloadAttributesT,
 	],
 ) *PayloadBuilder[
 	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,

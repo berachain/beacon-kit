@@ -29,21 +29,16 @@ import (
 
 // ProvideAttributesFactory provides an AttributesFactory for the client.
 func ProvideAttributesFactory[
-	BeaconStateT attributes.BeaconState[WithdrawalT],
-	PayloadAttributesT interface {
-		New(
-			uint32, uint64, common.Bytes32, common.ExecutionAddress,
-			[]WithdrawalT, common.Root,
-		) (PayloadAttributesT, error)
-	},
+	BeaconStateT attributes.BeaconState,
+	PayloadAttributesT PayloadAttributes[PayloadAttributesT],
 	WithdrawalT any,
 ](
 	chainSpec common.ChainSpec,
 	logger log.Logger[any],
 	cfg *config.Config,
-) (*attributes.Factory[BeaconStateT, PayloadAttributesT, WithdrawalT], error) {
+) (*attributes.Factory[BeaconStateT, PayloadAttributesT], error) {
 	return attributes.NewAttributesFactory[
-		BeaconStateT, PayloadAttributesT, WithdrawalT,
+		BeaconStateT, PayloadAttributesT,
 	](
 		chainSpec,
 		logger,
