@@ -61,6 +61,7 @@ func (e *ExecutionPayload) Empty(forkVersion uint32) *ExecutionPayload {
 // ToHeader converts the ExecutionPayload to an ExecutionPayloadHeader.
 func (e *ExecutionPayload) ToHeader(
 	txsMerkleizer engineprimitives.TxsMerkleizer,
+	maxWithdrawalsPerPayload uint64,
 ) (*ExecutionPayloadHeader, error) {
 	// Get the merkle roots of transactions and withdrawals in parallel.
 	var (
@@ -79,7 +80,7 @@ func (e *ExecutionPayload) ToHeader(
 
 	g.Go(func() error {
 		var withdrawalsRootErr error
-		wds := ssz.ListCompositeFromElements(e.GetWithdrawals()...)
+		wds := ssz.ListCompositeFromElements(maxWithdrawalsPerPayload, e.GetWithdrawals()...)
 		withdrawalsRoot, withdrawalsRootErr = wds.HashTreeRoot()
 		return withdrawalsRootErr
 	})
