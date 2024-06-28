@@ -18,6 +18,8 @@ github.com/berachain/beacon-kit/mod/log v0.0.0-20240610210054-bfdc14c4013c h1:7f
 github.com/berachain/beacon-kit/mod/log v0.0.0-20240610210054-bfdc14c4013c/go.mod h1:nFybcw/ZhJ6Gu66dna301W2I7u61skm2HfHxQmdR68Q=
 github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240627201655-33a34cec850e h1:/MlOTT6MqJ5MbOUGf4YMo5SgrB0UgUDv0R6Bj+awn4g=
 github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240627201655-33a34cec850e/go.mod h1:SR9DyddnG1jRxscSEHHQt9E6RaIi/2morGi0YgO4P6s=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240628194805-e388cbc5533e h1:qsua/BkzmZtBtE7yMhCPcU1B+f4HGARN5yyfu2m8ucA=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240628194805-e388cbc5533e/go.mod h1:SR9DyddnG1jRxscSEHHQt9E6RaIi/2morGi0YgO4P6s=
 github.com/bits-and-blooms/bitset v1.13.0 h1:bAQ9OPNFYbGHV6Nez0tmNI0RiEu7/hxlYJRUA0wFAVE=
 github.com/bits-and-blooms/bitset v1.13.0/go.mod h1:7hO7Gc7Pp1vODcmWvKMRA9BNmbv6a/7QIWpPxHddWR8=
 github.com/btcsuite/btcd/btcec/v2 v2.3.3 h1:6+iXlDKE8RMtKsvK0gshlXIuPbyWM/h84Ensb7o3sC0=

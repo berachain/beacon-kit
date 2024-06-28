@@ -6,7 +6,7 @@ require (
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240624204855-d8809d5c8588
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240618214413-d5ec0e66b3dd
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610215715-5f91f661ac83
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240627134700-de48919ec4d6
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240628194805-e388cbc5533e
 	github.com/stretchr/testify v1.9.0
 )
 
