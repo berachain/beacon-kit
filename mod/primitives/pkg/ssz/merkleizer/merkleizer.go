@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 )
@@ -45,7 +46,7 @@ func New[
 ]() Merkleizer[SpecT, RootT, T] {
 	return &merkleizer[SpecT, RootT, T]{
 		rootHasher: merkle.NewRootHasher[RootT](
-			crypto.NewHasher[RootT](crypto.Sha256),
+			crypto.NewHasher[RootT](sha256.Hash),
 			merkle.BuildParentTreeRoots,
 		),
 		bytesBuffer: bytes.NewReusableBuffer[RootT](),

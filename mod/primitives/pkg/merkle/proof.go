@@ -20,7 +20,7 @@
 
 package merkle
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 
 // VerifyProof given a tree root, a leaf, the generalized merkle index
 // of the leaf in the tree, and the proof itself.
@@ -78,9 +78,9 @@ func RootFromBranch[RootT, BranchT ~[32]byte](
 
 	//nolint:mnd // 5 as defined by the library.
 	if depth > 5 {
-		hashFn = crypto.CustomSHA256Hasher()
+		hashFn = sha256.CustomHashFn()
 	} else {
-		hashFn = crypto.Sha256
+		hashFn = sha256.Hash
 	}
 
 	for i := range depth {

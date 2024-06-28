@@ -29,6 +29,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
@@ -38,7 +39,7 @@ import (
 
 // Test NewRootWithMaxLeaves with empty leaves.
 func TestNewRootWithMaxLeaves_EmptyLeaves(t *testing.T) {
-	hasher := crypto.NewHasher[[32]byte](crypto.Sha256)
+	hasher := crypto.NewHasher[[32]byte](sha256.Hash)
 	rootHasher := merkle.NewRootHasher[[32]byte](
 		hasher, merkle.BuildParentTreeRoots,
 	)
@@ -54,7 +55,7 @@ func TestNewRootWithMaxLeaves_EmptyLeaves(t *testing.T) {
 
 // Test NewRootWithDepth with empty leaves.
 func TestNewRootWithDepth_EmptyLeaves(t *testing.T) {
-	hasher := crypto.NewHasher[[32]byte](crypto.Sha256)
+	hasher := crypto.NewHasher[[32]byte](sha256.Hash)
 	rootHasher := merkle.NewRootHasher[[32]byte](
 		hasher, merkle.BuildParentTreeRoots,
 	)
@@ -77,7 +78,7 @@ func createDummyLeaf(value byte) [32]byte {
 
 // Test NewRootWithMaxLeaves with one leaf.
 func TestNewRootWithMaxLeaves_OneLeaf(t *testing.T) {
-	hasher := crypto.NewHasher[[32]byte](crypto.Sha256)
+	hasher := crypto.NewHasher[[32]byte](sha256.Hash)
 	rootHasher := merkle.NewRootHasher[[32]byte](
 		hasher, merkle.BuildParentTreeRoots,
 	)
@@ -99,7 +100,7 @@ func TestNewRootWithMaxLeaves_OneLeaf(t *testing.T) {
 // BenchmarkHasherWithReusableBuffer-12
 // 30064  38818 ns/op  0 B/op  0 allocs/op.
 func BenchmarkHasher(b *testing.B) {
-	hasher := crypto.NewHasher[[32]byte](crypto.Sha256)
+	hasher := crypto.NewHasher[[32]byte](sha256.Hash)
 	rootHasher := merkle.NewRootHasher[[32]byte](
 		hasher, merkle.BuildParentTreeRoots,
 	)
@@ -353,7 +354,7 @@ func TestNewRootWithDepth(t *testing.T) {
 				copy(dst, src)
 				return nil
 			}
-			hasher := crypto.NewHasher[[32]byte](crypto.Sha256)
+			hasher := crypto.NewHasher[[32]byte](sha256.Hash)
 			rootHasher := merkle.NewRootHasher(hasher, rootHashFn)
 
 			root, err := rootHasher.NewRootWithDepth(

@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package crypto
+package sha256
 
 import (
 	"hash"
@@ -35,11 +35,11 @@ var sha256Pool = sync.Pool{New: func() interface{} {
 }}
 
 // Sha256 defines a function that returns the sha256 checksum of the data passed
-// in.
+// in. Adheres to the crypto.HashFn signature.
 // https://github.com/ethereum/consensus-specs/blob/v0.9.3/specs/core/0_beacon-chain.md#hash
 //
 //nolint:lll // url.
-func Sha256(data []byte) [32]byte { // TODO: rename to Sha256
+func Hash(data []byte) [32]byte {
 	h, ok := sha256Pool.Get().(hash.Hash)
 	if !ok {
 		h = sha256.New()
@@ -54,13 +54,13 @@ func Sha256(data []byte) [32]byte { // TODO: rename to Sha256
 	return b
 }
 
-// CustomSHA256Hasher provides a hash function utilizing
+// CustomHashFn provides a hash function utilizing
 // an internal hasher. It is not thread-safe as the same
 // hasher instance is reused.
 //
 // Note: This method is more efficient only if the callback
 // is invoked more than 5 times.
-func CustomSHA256Hasher() func([]byte) [32]byte {
+func CustomHashFn() func([]byte) [32]byte {
 	hasher, ok := sha256Pool.Get().(hash.Hash)
 	if !ok {
 		hasher = sha256.New()
