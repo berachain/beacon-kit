@@ -22,7 +22,7 @@ package merkleizer
 
 // Merkleizer can be used for merkleizing SSZ types.
 type Merkleizer[
-	SpecT any, RootT ~[32]byte, T Basic[SpecT, RootT],
+	RootT ~[32]byte, T SSZObject[RootT],
 ] interface {
 	MerkleizeBasic(value T) (RootT, error)
 	MerkleizeVecBasic(value []T) (RootT, error)
@@ -34,6 +34,6 @@ type Merkleizer[
 
 	// TODO: Move to a separate Merkleizer type for container(s).
 	MerkleizeContainer(
-		value Container[SpecT, RootT], spec ...SpecT,
+		value SSZObject[RootT],
 	) (RootT, error)
 }

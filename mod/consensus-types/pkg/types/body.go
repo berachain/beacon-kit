@@ -203,9 +203,7 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 		err        error
 		layer      = make([]common.Root, BodyLengthDeneb)
 		randao     = b.GetRandaoReveal()
-		merkleizer = merkleizer.New[
-			common.ChainSpec, [32]byte, common.Root,
-		]()
+		merkleizer = merkleizer.New[[32]byte, common.Root]()
 	)
 
 	layer[0], err = merkleizer.MerkleizeByteSlice(randao[:])

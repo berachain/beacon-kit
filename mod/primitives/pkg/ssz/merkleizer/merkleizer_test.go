@@ -48,7 +48,7 @@ func (u BasicItem) MarshalSSZ() ([]byte, error) {
 // HashTreeRoot computes the Merkle root of the U64 using SSZ hashing rules.
 func (u BasicItem) HashTreeRoot() ([32]byte, error) {
 	// In practice we can use a simpler function.
-	merkleizer := merkleizer.New[any, [32]byte, BasicItem]()
+	merkleizer := merkleizer.New[[32]byte, BasicItem]()
 	return merkleizer.MerkleizeBasic(u)
 }
 
@@ -66,7 +66,7 @@ func (c *BasicContainer[SpecT]) SizeSSZ() int {
 // HashTreeRoot computes the Merkle root of the container using SSZ hashing
 // rules.
 func (c *BasicContainer[SpecT]) HashTreeRoot() ([32]byte, error) {
-	merkleizer := merkleizer.New[SpecT, [32]byte, common.Root]()
+	merkleizer := merkleizer.New[[32]byte, common.Root]()
 	return merkleizer.MerkleizeContainer(c)
 }
 

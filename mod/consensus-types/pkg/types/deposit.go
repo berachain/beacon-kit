@@ -83,7 +83,7 @@ type Deposits []*Deposit
 // HashTreeRoot returns the hash tree root of the Withdrawals list.
 func (d Deposits) HashTreeRoot() (common.Root, error) {
 	// TODO: read max deposits from the chain spec.
-	merkleizer := merkleizer.New[common.ChainSpec, [32]byte, *Deposit]()
+	merkleizer := merkleizer.New[[32]byte, *Deposit]()
 	return merkleizer.MerkleizeListComposite(
 		d, constants.MaxDepositsPerBlock,
 	)

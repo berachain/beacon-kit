@@ -173,7 +173,7 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 	}
 
 	header, err := payload.ToHeader(
-		merkleizer.New[common.ChainSpec, [32]byte, common.Root](), uint64(16),
+		merkleizer.New[[32]byte, common.Root](), uint64(16),
 	)
 	require.NoError(t, err)
 	require.NotNil(t, header)
