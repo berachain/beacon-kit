@@ -112,8 +112,8 @@ github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240618214413-d5ec0e66b3dd h1:QH
 github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240618214413-d5ec0e66b3dd/go.mod h1:ft214cxJaqrRPOuAjpYwgA9AOElJnHrDZZEQ0jZPWwQ=
 github.com/berachain/beacon-kit/mod/payload v0.0.0-20240624003607-df94860f8eeb h1:/aKXt8E60/AMOod4MMhbf+8POaIE1vW43ufnTdAZ3uo=
 github.com/berachain/beacon-kit/mod/payload v0.0.0-20240624003607-df94860f8eeb/go.mod h1:IFOWyTyeFcwsTkJc0Ud9uMLxQ8r4SyZNFiXpDQaJAgc=
-github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240624204855-d8809d5c8588 h1:zL2vsFmWlm+vbmX17Uc97sVBxjlPlMqQ7Jna0I99uyY=
-github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240624204855-d8809d5c8588/go.mod h1:xg8BworJAcrzTzbTgP/637Be89xAtrRzGkXKSzuRMkQ=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240627134700-de48919ec4d6 h1:5gY+D3SGJJ78t32qIMfC2KQxz5ieXDcCsh544tzdQ6c=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240627134700-de48919ec4d6/go.mod h1:SR9DyddnG1jRxscSEHHQt9E6RaIi/2morGi0YgO4P6s=
 github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240624003607-df94860f8eeb h1:Z9hmZ7UatAS2xaAq104mSVwuNzshJh6YCH1hfMP7Ucc=
 github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240624003607-df94860f8eeb/go.mod h1:SoPgkydkLS+bbNQu6iLJiRrS+wncytSQ2AjWBj57zFQ=
 github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240624003607-df94860f8eeb h1:LmYd/RSR1itlg5BprDcxzvIgDbJ1pn4mELpt+/t/HkM=
@@ -176,8 +176,8 @@ github.com/cockroachdb/redact v1.1.5 h1:u1PMllDkdFfPWaNGMyLD1+so+aq3uUItthCFqzwP
 github.com/cockroachdb/redact v1.1.5/go.mod h1:BVNblN9mBWFyMyqK1k3AAiSxhvhfK2oOZZ2lK+dpvRg=
 github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 h1:zuQyyAKVxetITBuuhv3BI9cMrmStnpT18zmgmTxunpo=
 github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06/go.mod h1:7nc4anLGjupUW/PeY5qiNYsdNXj7zopG+eqsS7To5IQ=
-github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240625053718-5a9f3b4a787f h1:2OwGk7p0iTC+toiY0UilNtbApAzS6pY4BYwBoMT0QT0=
-github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240625053718-5a9f3b4a787f/go.mod h1:bORJpwfl1GNRYjzS9oKVWwcMiY9OSt7lU8gf8Xil4Xw=
+github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240627055712-4f91afce3247 h1:O21PwIxGHo9PwOXWU1NQjCmdSZnj0dU+PLjupDQxHA8=
+github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240627055712-4f91afce3247/go.mod h1:bORJpwfl1GNRYjzS9oKVWwcMiY9OSt7lU8gf8Xil4Xw=
 github.com/cometbft/cometbft-db v0.12.0 h1:v77/z0VyfSU7k682IzZeZPFZrQAKiQwkqGN0QzAjMi0=
 github.com/cometbft/cometbft-db v0.12.0/go.mod h1:aX2NbCrjNVd2ZajYxt1BsiFf/Z+TQ2MN0VxdicheYuw=
 github.com/cometbft/cometbft/api v1.0.0-rc.1 h1:GtdXwDGlqwHYs16A4egjwylfYOMYyEacLBrs3Zvpt7g=

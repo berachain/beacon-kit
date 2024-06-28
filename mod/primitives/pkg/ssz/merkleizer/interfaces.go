@@ -17,20 +17,23 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
-package ssz
 
-import (
-	"github.com/berachain/beacon-kit/mod/errors"
-)
+package merkleizer
 
-var (
-	// ErrInvalidNilSlice is returned when the input slice is nil.
-	ErrInvalidNilSlice = errors.New("invalid empty slice")
+// Merkleizer can be used for merkleizing SSZ types.
+type Merkleizer[
+	SpecT any, RootT ~[32]byte, T Basic[SpecT, RootT],
+] interface {
+	MerkleizeBasic(value T) (RootT, error)
+	MerkleizeVecBasic(value []T) (RootT, error)
+	MerkleizeListBasic(value []T, limit ...uint64) (RootT, error)
+	MerkleizeVecComposite(value []T) (RootT, error)
+	MerkleizeListComposite(value []T, limit ...uint64) (RootT, error)
+	MerkleizeByteSlice(value []byte) (RootT, error)
+	Merkleize(chunks []RootT, limit ...uint64) (RootT, error)
 
-	// ErrInvalidLength is returned when the input byte slice has an invalid
-	// length.
-	ErrInvalidLength = errors.New("invalid byte length")
-
-	// ErrInvalidByteValue is returned when the input byte has an invalid value.
-	ErrInvalidByteValue = errors.New("invalid byte value")
-)
+	// TODO: Move to a separate Merkleizer type for container(s).
+	MerkleizeContainer(
+		value Container[SpecT, RootT], spec ...SpecT,
+	) (RootT, error)
+}
