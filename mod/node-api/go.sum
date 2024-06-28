@@ -1,6 +1,7 @@
 github.com/DataDog/zstd v1.5.5/go.mod h1:g4AWEaM3yOg3HYfnJ3YIawPnVdXJh9QME85blwSAmyw=
 github.com/Microsoft/go-winio v0.6.2/go.mod h1:yd8OoFMLzJbo9gZq8j5qaps8bJ9aShtEA8Ipt1oGCvU=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
+github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240628194805-e388cbc5533e h1:e6nI9g82dBk5Q+pf13tI86isnyU0j0GHtph+QBU9a6A=
 github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240628194805-e388cbc5533e/go.mod h1:oEkyPYpa75fCF+hVAglHMBHbhtcr2nFvhQWz9rO2Y3E=
 github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240624204855-d8809d5c8588/go.mod h1:vBKE/+MvPSRztNcZMzVCYSMRo08zcqxgMcl4q1XepK4=
 github.com/berachain/beacon-kit/mod/errors v0.0.0-20240618214413-d5ec0e66b3dd/go.mod h1:iXa+Q+i0q+GCpLzkusulO57K5vlkDgM77jtfMr3QdFA=
