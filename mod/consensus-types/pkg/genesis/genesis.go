@@ -25,6 +25,7 @@ import (
 	"encoding/json"
 	"math/big"
 
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -151,7 +152,8 @@ func DefaultGenesisExecutionPayloadHeaderDeneb() (
 	g.Go(func() error {
 		var err error
 		wds := ssz.ListCompositeFromElements(
-			16, []*engineprimitives.Withdrawal{}...,
+			spec.DevnetChainSpec().MaxWithdrawalsPerPayload(),
+			[]*engineprimitives.Withdrawal{}...,
 		)
 		emptyWithdrawalsRoot, err = wds.HashTreeRoot()
 		return err

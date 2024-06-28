@@ -184,7 +184,6 @@ func executableDataToExecutionPayloadHeader(
 
 		g.Go(func() error {
 			var withdrawalsRootErr error
-			// todo: use
 			wds := ssz.ListCompositeFromElements(
 				maxWithdrawalsPerPayload, withdrawals...,
 			)

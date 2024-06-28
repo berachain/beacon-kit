@@ -38,7 +38,10 @@ type ListBasic[T Basic[T]] struct {
 
 // ListBasicFromElements creates a new ListComposite from elements.
 // TODO: Deprecate once off of Fastssz
-func ListBasicFromElements[T Basic[T]](limit uint64, elements ...T) *ListBasic[T] {
+func ListBasicFromElements[T Basic[T]](
+	limit uint64,
+	elements ...T,
+) *ListBasic[T] {
 	return &ListBasic[T]{
 		t:     elements,
 		limit: limit,
@@ -56,7 +59,7 @@ func (l ListBasic[T]) SizeSSZ() int {
 func (l ListBasic[T]) HashTreeRootWith(
 	merkleizer BasicMerkleizer[common.ChainSpec, [32]byte, T],
 ) ([32]byte, error) {
-	return merkleizer.MerkleizeListBasic(l.t, uint64(l.limit))
+	return merkleizer.MerkleizeListBasic(l.t, l.limit)
 }
 
 // HashTreeRoot returns the Merkle root of the ListBasic.
@@ -152,7 +155,10 @@ func (l ListComposite[T]) MarshalSSZ() ([]byte, error) {
 }
 
 // NewFromSSZ creates a new ListComposite from SSZ format.
-func (ListComposite[T]) NewFromSSZ(buf []byte, limit uint64) (*ListComposite[T], error) {
+func (ListComposite[T]) NewFromSSZ(
+	buf []byte,
+	limit uint64,
+) (*ListComposite[T], error) {
 	var t T
 	if !t.IsFixed() {
 		panic("not implemented yet")

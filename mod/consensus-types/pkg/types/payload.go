@@ -80,7 +80,9 @@ func (e *ExecutionPayload) ToHeader(
 
 	g.Go(func() error {
 		var withdrawalsRootErr error
-		wds := ssz.ListCompositeFromElements(maxWithdrawalsPerPayload, e.GetWithdrawals()...)
+		wds := ssz.ListCompositeFromElements(
+			maxWithdrawalsPerPayload,
+			e.GetWithdrawals()...)
 		withdrawalsRoot, withdrawalsRootErr = wds.HashTreeRoot()
 		return withdrawalsRootErr
 	})
