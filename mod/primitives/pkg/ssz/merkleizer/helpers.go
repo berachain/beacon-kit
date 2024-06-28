@@ -21,16 +21,11 @@
 package merkleizer
 
 import (
+	"encoding/binary"
 	"reflect"
-)
 
-// SizeOfBasic returns the size of a basic type.
-func SizeOfBasic[RootT ~[32]byte, B Basic[SpecT, RootT], SpecT any](
-	b B,
-) uint64 {
-	// TODO: Boolean maybe this doesnt work.
-	return uint64(reflect.TypeOf(b).Size())
-}
+	"github.com/prysmaticlabs/gohashtree"
+)
 
 // ChunkCount returns the number of chunks required to store a value.
 func ChunkCountBasic[RootT ~[32]byte, B Basic[SpecT, RootT], SpecT any](
@@ -56,7 +51,8 @@ func ChunkCountBasicList[SpecT any, RootT ~[32]byte, B Basic[SpecT, RootT]](
 	if numItems == 0 {
 		return 1
 	}
-	size := SizeOfBasic[RootT, B, SpecT](b[0])
+	//#nosec:G103 // its fine.
+	size := uint64(b[0].SizeSSZ())
 	//nolint:mnd // 32 is okay.
 	limit := (maxCapacity*size + 31) / 32
 	if limit != 0 {
@@ -84,4 +80,18 @@ func ChunkCountContainer[SpecT any, RootT ~[32]byte, C Container[SpecT, RootT]](
 ) uint64 {
 	//#nosec:G701 // This is a safe operation.
 	return uint64(reflect.ValueOf(c).NumField())
+}
+
+// MixinLength mixes in the length of an element.
+func MixinLength[RootT ~[32]byte](element RootT, length uint64) RootT {
+	// Mix in the length of the element.
+	//
+	//nolint:mnd // its okay.
+	chunks := make([][32]byte, 2)
+	chunks[0] = element
+	binary.LittleEndian.PutUint64(chunks[1][:], length)
+	if err := gohashtree.Hash(chunks, chunks); err != nil {
+		return [32]byte{}
+	}
+	return chunks[0]
 }

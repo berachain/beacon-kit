@@ -20,8 +20,6 @@
 
 package merkleizer
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
-
 // MerkleizeListBasic implements the SSZ merkleization algorithm for a list of
 // basic types.
 func (m *merkleizer[SpecT, RootT, T]) MerkleizeListBasic(
@@ -46,7 +44,7 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeListBasic(
 	if err != nil {
 		return [32]byte{}, err
 	}
-	return merkle.MixinLength(root, uint64(len(value))), nil
+	return MixinLength(root, uint64(len(value))), nil
 }
 
 // MerkleizeListComposite implements the SSZ merkleization algorithm for a list
@@ -81,5 +79,5 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeListComposite(
 		return RootT{}, err
 	}
 
-	return merkle.MixinLength(root, uint64(len(value))), nil
+	return MixinLength(root, uint64(len(value))), nil
 }
