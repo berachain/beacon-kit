@@ -23,33 +23,43 @@ package noop
 // Logger is a logger that performs no operations. It can be used in
 // environments where logging should be disabled. It implements the Logger
 // interface with no-op methods.
-type Logger[KeyValT any] struct{}
+type Logger[KeyValT any, ImplT any] struct{}
 
-// NewLogger creates a blank no-op logger.
-func NewLogger() *Logger[any] {
-	return &Logger[any]{}
+// NewLogger creates a blank no-op AdvancedLogger.
+func NewLogger[ImplT any]() *Logger[any, ImplT] {
+	return &Logger[any, ImplT]{}
 }
 
 // Info logs an informational message with associated key-value pairs. This
 // method does nothing.
-func (n *Logger[KeyValT]) Info(string, ...KeyValT) {
+func (n *Logger[KeyValT, ImplT]) Info(string, ...KeyValT) {
 	// No operation
 }
 
 // Warn logs a warning message with associated key-value pairs. This method does
 // nothing.
-func (n *Logger[KeyValT]) Warn(string, ...KeyValT) {
+func (n *Logger[KeyValT, ImplT]) Warn(string, ...KeyValT) {
 	// No operation
 }
 
 // Error logs an error message with associated key-value pairs. This method does
 // nothing.
-func (n *Logger[KeyValT]) Error(string, ...KeyValT) {
+func (n *Logger[KeyValT, ImplT]) Error(string, ...KeyValT) {
 	// No operation
 }
 
 // Debug logs a debug message with associated key-value pairs. This method does
 // nothing.
-func (n *Logger[KeyValT]) Debug(string, ...KeyValT) {
+func (n *Logger[KeyValT, ImplT]) Debug(string, ...KeyValT) {
 	// No operation
+}
+
+// With returns a new AdvancedLogger with the provided key-value pairs. This
+// method does nothing.
+func (n *Logger[KeyValT, ImplT]) With(...KeyValT) ImplT {
+	return any(n).(ImplT)
+}
+
+func (n *Logger[KeyValT, ImplT]) Impl() any {
+	return nil
 }
