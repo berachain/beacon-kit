@@ -75,7 +75,7 @@ func (VectorBasic[T]) NewFromSSZ(buf []byte) (VectorBasic[T], error) {
 }
 
 // isFixed returns true if the VectorBasic is fixed size.
-func (VectorBasic[T]) isFixed() bool {
+func (VectorBasic[T]) IsFixed() bool {
 	return true
 }
 
@@ -142,7 +142,7 @@ func (VectorComposite[T]) NewFromSSZ(
 }
 
 // isFixed returns true if the VectorBasic is fixed size.
-func (VectorComposite[T]) isFixed() bool {
+func (VectorComposite[T]) IsFixed() bool {
 	var t T
 	return t.IsFixed()
 }
