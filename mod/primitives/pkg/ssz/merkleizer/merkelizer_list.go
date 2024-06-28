@@ -20,11 +20,9 @@
 
 package merkleizer
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
-
 // MerkleizeListBasic implements the SSZ merkleization algorithm for a list of
 // basic types.
-func (m *merkleizer[SpecT, RootT, T]) MerkleizeListBasic(
+func (m *merkleizer[RootT, T]) MerkleizeListBasic(
 	value []T,
 	limit ...uint64,
 ) (RootT, error) {
@@ -41,17 +39,17 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeListBasic(
 	}
 
 	root, err := m.Merkleize(
-		packed, ChunkCountBasicList[SpecT](value, effectiveLimit),
+		packed, ChunkCountBasicList(value, effectiveLimit),
 	)
 	if err != nil {
 		return [32]byte{}, err
 	}
-	return merkle.MixinLength(root, uint64(len(value))), nil
+	return MixinLength(root, uint64(len(value))), nil
 }
 
 // MerkleizeListComposite implements the SSZ merkleization algorithm for a list
 // of composite types.
-func (m *merkleizer[SpecT, RootT, T]) MerkleizeListComposite(
+func (m *merkleizer[RootT, T]) MerkleizeListComposite(
 	value []T,
 	limit ...uint64,
 ) (RootT, error) {
@@ -75,11 +73,11 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeListComposite(
 	}
 
 	root, err := m.Merkleize(
-		htrs, ChunkCountCompositeList[SpecT](value, effectiveLimit),
+		htrs, ChunkCountCompositeList(value, effectiveLimit),
 	)
 	if err != nil {
 		return RootT{}, err
 	}
 
-	return merkle.MixinLength(root, uint64(len(value))), nil
+	return MixinLength(root, uint64(len(value))), nil
 }

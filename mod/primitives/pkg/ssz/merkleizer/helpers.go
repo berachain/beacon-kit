@@ -21,23 +21,11 @@
 package merkleizer
 
 import (
+	"encoding/binary"
 	"reflect"
+
+	"github.com/prysmaticlabs/gohashtree"
 )
-
-// SizeOfBasic returns the size of a basic type.
-func SizeOfBasic[RootT ~[32]byte, B Basic[SpecT, RootT], SpecT any](
-	b B,
-) uint64 {
-	// TODO: Boolean maybe this doesnt work.
-	return uint64(reflect.TypeOf(b).Size())
-}
-
-// ChunkCount returns the number of chunks required to store a value.
-func ChunkCountBasic[RootT ~[32]byte, B Basic[SpecT, RootT], SpecT any](
-	B,
-) uint64 {
-	return 1
-}
 
 // ChunkCountBitListVec returns the number of chunks required to store a bitlist
 // or bitvector.
@@ -48,7 +36,7 @@ func ChunkCountBitListVec[T any](t []T) uint64 {
 
 // ChunkCountBasicList returns the number of chunks required to store a list
 // or vector of basic types.
-func ChunkCountBasicList[SpecT any, RootT ~[32]byte, B Basic[SpecT, RootT]](
+func ChunkCountBasicList[RootT ~[32]byte, B SSZObject[RootT]](
 	b []B,
 	maxCapacity uint64,
 ) uint64 {
@@ -56,7 +44,8 @@ func ChunkCountBasicList[SpecT any, RootT ~[32]byte, B Basic[SpecT, RootT]](
 	if numItems == 0 {
 		return 1
 	}
-	size := SizeOfBasic[RootT, B, SpecT](b[0])
+	//#nosec:G103 // its fine.
+	size := uint64(b[0].SizeSSZ())
 	//nolint:mnd // 32 is okay.
 	limit := (maxCapacity*size + 31) / 32
 	if limit != 0 {
@@ -69,7 +58,7 @@ func ChunkCountBasicList[SpecT any, RootT ~[32]byte, B Basic[SpecT, RootT]](
 // ChunkCountCompositeList returns the number of chunks required to store a
 // list or vector of composite types.
 func ChunkCountCompositeList[
-	SpecT any, RootT ~[32]byte, C Composite[SpecT, RootT],
+	RootT ~[32]byte, C SSZObject[RootT],
 ](
 	c []C,
 	limit uint64,
@@ -79,9 +68,23 @@ func ChunkCountCompositeList[
 
 // ChunkCountContainer returns the number of chunks required to store a
 // container.
-func ChunkCountContainer[SpecT any, RootT ~[32]byte, C Container[SpecT, RootT]](
+func ChunkCountContainer[RootT ~[32]byte, C SSZObject[RootT]](
 	c C,
 ) uint64 {
 	//#nosec:G701 // This is a safe operation.
 	return uint64(reflect.ValueOf(c).NumField())
+}
+
+// MixinLength mixes in the length of an element.
+func MixinLength[RootT ~[32]byte](element RootT, length uint64) RootT {
+	// Mix in the length of the element.
+	//
+	//nolint:mnd // its okay.
+	chunks := make([][32]byte, 2)
+	chunks[0] = element
+	binary.LittleEndian.PutUint64(chunks[1][:], length)
+	if err := gohashtree.Hash(chunks, chunks); err != nil {
+		return [32]byte{}
+	}
+	return chunks[0]
 }

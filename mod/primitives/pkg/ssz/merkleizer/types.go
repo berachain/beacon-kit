@@ -20,24 +20,12 @@
 
 package merkleizer
 
-// Basic defines an interface for SSZ basic types which includes methods for
+// SSZObject defines an interface for SSZ basic types which includes methods for
 // determining the size of the SSZ encoding and computing the hash tree root.
-type Basic[SpecT any, RootT ~[32]byte] interface {
+type SSZObject[RootT ~[32]byte] interface {
 	// SizeSSZ returns the size in bytes of the SSZ-encoded data.
 	SizeSSZ() int
 	// HashTreeRoot computes and returns the hash tree root of the data as
 	// RootT and an error if the computation fails.
 	HashTreeRoot() (RootT, error)
-}
-
-// Composite is an interface that embeds the Basic interface. It is used for
-// types that are composed of other SSZ encodable values.
-type Composite[SpecT any, RootT ~[32]byte] interface {
-	Basic[SpecT, RootT]
-}
-
-// Container is an interface for SSZ container types that can be marshaled and
-// unmarshaled.
-type Container[SpecT any, RootT ~[32]byte] interface {
-	Composite[SpecT, RootT]
 }

@@ -137,9 +137,7 @@ func NewStateProcessor[
 		cs:              cs,
 		executionEngine: executionEngine,
 		signer:          signer,
-		txsMerkleizer: merkleizer.New[
-			common.ChainSpec, [32]byte, common.Root,
-		](),
+		txsMerkleizer:   merkleizer.New[[32]byte, common.Root](),
 	}
 }
 

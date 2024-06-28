@@ -22,7 +22,7 @@ package ssz
 
 // BaseMerkleizer provides basic merkleization operations for SSZ types.
 type BaseMerkleizer[
-	SpecT any, RootT ~[32]byte, T Base[T],
+	RootT ~[32]byte, T Base[T],
 ] interface {
 	MerkleizeByteSlice(value []byte) (RootT, error)
 	Merkleize(chunks []RootT, limit ...uint64) (RootT, error)
@@ -30,9 +30,9 @@ type BaseMerkleizer[
 
 // BasicMerkleizer provides merkleization operations for basic SSZ types.
 type BasicMerkleizer[
-	SpecT any, RootT ~[32]byte, T Basic[T],
+	RootT ~[32]byte, T Basic[T],
 ] interface {
-	BaseMerkleizer[SpecT, RootT, T]
+	BaseMerkleizer[RootT, T]
 	MerkleizeBasic(value T) (RootT, error)
 	MerkleizeVecBasic(value []T) (RootT, error)
 	MerkleizeListBasic(value []T, limit ...uint64) (RootT, error)
@@ -43,7 +43,7 @@ type BasicMerkleizer[
 type CompositeMerkleizer[
 	SpecT any, RootT ~[32]byte, T Composite[T],
 ] interface {
-	BaseMerkleizer[SpecT, RootT, T]
+	BaseMerkleizer[RootT, T]
 	MerkleizeVecComposite(value []T) (RootT, error)
 	MerkleizeListComposite(value []T, limit ...uint64) (RootT, error)
 }
