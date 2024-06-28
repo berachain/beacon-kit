@@ -34,7 +34,7 @@ import (
 )
 
 func TestRegistry_StartAll(t *testing.T) {
-	logger := noop.NewLogger()
+	logger := noop.NewLogger[any]()
 	registry := service.NewRegistry(service.WithLogger(logger))
 
 	service1 := &mocks.Basic{}
@@ -63,7 +63,7 @@ func TestRegistry_StartAll(t *testing.T) {
 }
 
 func TestRegistry_FetchService(t *testing.T) {
-	logger := noop.NewLogger()
+	logger := noop.NewLogger[any]()
 	registry := service.NewRegistry(service.WithLogger(logger))
 
 	service1 := new(mocks.Basic)
