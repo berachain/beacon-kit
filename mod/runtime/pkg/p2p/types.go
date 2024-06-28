@@ -18,25 +18,11 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package middleware
+package p2p
 
-import "errors"
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 
-var (
-	// ErrUndefinedValidatorUpdate is returned when an undefined validator
-	// update is
-	// encountered.
-	ErrUndefinedValidatorUpdate = errors.New("undefined validator update")
-	// ErrUnexpectedEvent is returned when an unexpected event is encountered.
-	ErrUnexpectedEvent = errors.New("unexpected event")
-	// ErrInvalidProcessProposalRequestType is returned when an invalid
-	// process proposal request type is encountered.
-	ErrInvalidProcessProposalRequestType = errors.New(
-		"invalid process proposal request type",
-	)
-	// ErrInvalidFinalizeBlockRequestType is returned when an invalid
-	// finalize block request type is encountered.
-	ErrInvalidFinalizeBlockRequestType = errors.New(
-		"invalid pre block request type",
-	)
-)
+type BeaconBlock[SelfT any] interface {
+	constraints.SSZMarshallable
+	NewFromSSZ([]byte, uint32) (SelfT, error)
+}
