@@ -72,33 +72,6 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeVecBasic(
 	return m.Merkleize(packed)
 }
 
-// MerkleizeListBasic implements the SSZ merkleization algorithm for a list of
-// basic types.
-func (m *merkleizer[SpecT, RootT, T]) MerkleizeListBasic(
-	value []T,
-	limit ...uint64,
-) (RootT, error) {
-	packed, err := m.pack(value)
-	if err != nil {
-		return [32]byte{}, err
-	}
-
-	var effectiveLimit uint64
-	if len(limit) > 0 {
-		effectiveLimit = limit[0]
-	} else {
-		effectiveLimit = uint64(len(packed))
-	}
-
-	root, err := m.Merkleize(
-		packed, ChunkCountBasicList[SpecT](value, effectiveLimit),
-	)
-	if err != nil {
-		return [32]byte{}, err
-	}
-	return merkle.MixinLength(root, uint64(len(value))), nil
-}
-
 // TODO: MerkleizeBitlist
 
 // MerkleizeContainer implements the SSZ merkleization algorithm for a
@@ -159,41 +132,6 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeVecComposite(
 	return m.Merkleize(htrs)
 }
 
-// MerkleizeListComposite implements the SSZ merkleization algorithm for a list
-// of composite types.
-func (m *merkleizer[SpecT, RootT, T]) MerkleizeListComposite(
-	value []T,
-	limit ...uint64,
-) (RootT, error) {
-	var (
-		err  error
-		htrs = m.bytesBuffer.Get(len(value))
-	)
-
-	for i, el := range value {
-		htrs[i], err = el.HashTreeRoot()
-		if err != nil {
-			return RootT{}, err
-		}
-	}
-
-	var effectiveLimit uint64
-	if len(limit) > 0 {
-		effectiveLimit = limit[0]
-	} else {
-		effectiveLimit = uint64(len(value))
-	}
-
-	root, err := m.Merkleize(
-		htrs, ChunkCountCompositeList[SpecT](value, effectiveLimit),
-	)
-	if err != nil {
-		return RootT{}, err
-	}
-
-	return merkle.MixinLength(root, uint64(len(value))), nil
-}
-
 // MerkleizeByteSlice hashes a byteslice by chunkifying it and returning the
 // corresponding HTR as if it were a fixed vector of bytes of the given length.
 func (m *merkleizer[SpecT, RootT, T]) MerkleizeByteSlice(
@@ -208,39 +146,42 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeByteSlice(
 
 // Merkleize hashes a list of chunks and returns the HTR of the list of.
 //
+// From Spec:
+//
 // merkleize(chunks, limit=None): Given ordered BYTES_PER_CHUNK-byte chunks,
 // merkleize the chunks, and return the root: The merkleization depends on the
-// effective input, which must be padded/limited:
-//
-//	if no limit:
-//		pad the chunks with zeroed chunks to next_pow_of_two(len(chunks))
-//
-// (virtually for memory efficiency).
-//
-//	if limit >= len(chunks):
-//		pad the chunks with zeroed chunks to next_pow_of_two(limit) (virtually for
-//
-// memory efficiency).
-//
-//	if limit < len(chunks):
-//		do not merkleize, input exceeds limit. Raise an error instead.
-//	  Then, merkleize the chunks (empty input is padded to 1 zero chunk):
-//	 If 1 chunk: the root is the chunk itself.
-//	If > 1 chunks: merkleize as binary tree.
+// effective input, which must be padded/limited.
 func (m *merkleizer[SpecT, RootT, T]) Merkleize(
 	chunks []RootT,
 	limit ...uint64,
 ) (RootT, error) {
 	var (
+		// effectiveLimit is used to track the "virtual padding of"
 		effectiveLimit math.U64
 		lenChunks      = uint64(len(chunks))
 	)
 
+	// The merkleization depends on the effective input, which must be
+	// padded/limited
 	switch {
+	// From Spec:
+	//
+	// if no limit: pad the chunks with zeroed chunks to
+	// next_pow_of_two(len(chunks)) (virtually for memory efficiency).
 	case len(limit) == 0:
 		effectiveLimit = math.U64(lenChunks).NextPowerOfTwo()
+
+	// From Spec:
+	//
+	// limit >= len(chunks), pad the chunks with zeroed chunks to
+	// next_pow_of_two(limit) (virtually for memory efficiency).
 	case limit[0] >= lenChunks:
 		effectiveLimit = math.U64(limit[0]).NextPowerOfTwo()
+
+	// From Spec:
+	//
+	// if limit < len(chunks): do not merkleize,
+	// input exceeds limit. Raise an error instead.
 	default:
 		if limit[0] < lenChunks {
 			return RootT{}, errors.New("input exceeds limit")
@@ -248,6 +189,14 @@ func (m *merkleizer[SpecT, RootT, T]) Merkleize(
 		effectiveLimit = math.U64(limit[0])
 	}
 
+	// From Spec:
+	//
+	// If 1 chunk: the root is the chunk itself.
+	if effectiveLimit == 1 {
+		return chunks[0], nil
+	}
+
+	// If > 1 chunks: merkleize as binary tree.
 	return m.rootHasher.NewRootWithMaxLeaves(chunks, effectiveLimit)
 }
 
