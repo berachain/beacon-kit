@@ -208,25 +208,11 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeByteSlice(
 
 // Merkleize hashes a list of chunks and returns the HTR of the list of.
 //
+// From Spec:
+//
 // merkleize(chunks, limit=None): Given ordered BYTES_PER_CHUNK-byte chunks,
 // merkleize the chunks, and return the root: The merkleization depends on the
-// effective input, which must be padded/limited:
-//
-//	if no limit:
-//		pad the chunks with zeroed chunks to next_pow_of_two(len(chunks))
-//
-// (virtually for memory efficiency).
-//
-//	if limit >= len(chunks):
-//		pad the chunks with zeroed chunks to next_pow_of_two(limit) (virtually for
-//
-// memory efficiency).
-//
-//	if limit < len(chunks):
-//		do not merkleize, input exceeds limit. Raise an error instead.
-//	  Then, merkleize the chunks (empty input is padded to 1 zero chunk):
-//	 If 1 chunk: the root is the chunk itself.
-//	If > 1 chunks: merkleize as binary tree.
+// effective input, which must be padded/limited
 func (m *merkleizer[SpecT, RootT, T]) Merkleize(
 	chunks []RootT,
 	limit ...uint64,
