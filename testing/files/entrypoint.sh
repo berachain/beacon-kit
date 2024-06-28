@@ -71,8 +71,11 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 		--chain-id $CHAINID \
 		--home $HOMEDIR \
 		--consensus-key-algo $CONSENSUS_KEY_ALGO
+	echo yipee0
 	./build/bin/beacond genesis add-premined-deposit --home $HOMEDIR
+	echo yipee1
 	./build/bin/beacond genesis collect-premined-deposits --home $HOMEDIR 
+	echo yipeee2
 	./build/bin/beacond genesis execution-payload "$ETH_GENESIS" --home $HOMEDIR
 fi
 
@@ -83,6 +86,7 @@ BEACON_START_CMD="./build/bin/beacond start "$TRACE" \
 --beacon-kit.logger.log-level $LOGLEVEL
 "
 
+echo yipeee3
 # Conditionally add the rpc-dial-url flag if RPC_DIAL_URL is not empty
 if [ -n "$RPC_DIAL_URL" ]; then
 	# this will overwrite the default dial url

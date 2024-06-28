@@ -4,14 +4,12 @@ buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.34.2-20240130113600-88e
 buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.34.2-20240130113600-88ef6483f90f.2/go.mod h1:HqcXMSa5qnNuakaMUo+hWhF51mKbcrZxGl9Vp5EeJXc=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
-cosmossdk.io/api v0.7.3-0.20240623110059-dec2d5583e39 h1:QKFMx4L7KPbysdkQ7dfISBJkoCjsg0lXYg7EHILW3TA=
-cosmossdk.io/api v0.7.3-0.20240623110059-dec2d5583e39/go.mod h1:K2KfzTU5Pl/YK8ixSxB4X0d+8fticxef1nzOBp2WfP8=
+cosmossdk.io/api v0.7.3-0.20240628155326-d426a5db6775 h1:5lcxwkRRxIahjPdwPohLAJjg3xZ2FMmuhJdJcoKOFNw=
+cosmossdk.io/api v0.7.3-0.20240628155326-d426a5db6775/go.mod h1:5tcrMbzQJlJl7SReX8UcF7dJboRoMNdA8Uj35Mctjlk=
 cosmossdk.io/collections v0.4.0 h1:PFmwj2W8szgpD5nOd8GWH6AbYNi1f2J6akWXJ7P5t9s=
 cosmossdk.io/collections v0.4.0/go.mod h1:oa5lUING2dP+gdDquow+QjlF45eL1t4TJDypgGd+tv0=
-cosmossdk.io/core v0.12.1-0.20240623110059-dec2d5583e39 h1:Su69DjhpTkamJ/DVu1KHGjoZMAZI6nm7c+LMdZEPLxM=
-cosmossdk.io/core v0.12.1-0.20240623110059-dec2d5583e39/go.mod h1:eBtj3y4YZqvQ+ZcYHl+yRT8sI8A3cywZ/iuZ4Y7unWc=
-cosmossdk.io/core/testing v0.0.0-20240623110059-dec2d5583e39 h1:GukgmenKzePHzd4qeO3FxCTfleV1HI1AzTT7h/Zkdjk=
-cosmossdk.io/core/testing v0.0.0-20240623110059-dec2d5583e39/go.mod h1:jhrNiB7gYDZ78Z370pyBIw/DjKEg0R27NOcWwqd4Bho=
+cosmossdk.io/core/testing v0.0.0-20240628155326-d426a5db6775 h1:+97me7xQuVSyQfkc0brW7bhwKQmngy/YpeCs/C7RjZA=
+cosmossdk.io/core/testing v0.0.0-20240628155326-d426a5db6775/go.mod h1:s6VKCgPZqs+CnW+18fNQqKoQtqxZ+U9bjz9BcySgNPs=
 cosmossdk.io/depinject v1.0.0-alpha.4.0.20240620161400-a6407f411e80 h1:54V3vZwVMMI9oSsQcl575dIMLTRVWy5DS6EPMLHmqw4=
 cosmossdk.io/depinject v1.0.0-alpha.4.0.20240620161400-a6407f411e80/go.mod h1:LagZ736fsOQ1RRSz+IitdiNpgcTKmqYuXpwCv1y+jDQ=
 cosmossdk.io/errors v1.0.1 h1:bzu+Kcr0kS/1DuPBtUFdWjzLqyUuCiyHjyJB6srBV/0=
@@ -106,6 +104,8 @@ github.com/berachain/beacon-kit/mod/storage v0.0.0-20240624003607-df94860f8eeb h
 github.com/berachain/beacon-kit/mod/storage v0.0.0-20240624003607-df94860f8eeb/go.mod h1:3S0/lau+3c5ccavJv1e7CIWSQgGsPd5xroCoh/IcSd0=
 github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240628175732-ab2d37478785 h1:oI5I1FJLQthWojKUjtyronbubgHMfwpJTb10U8ToPjA=
 github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240628175732-ab2d37478785/go.mod h1:cvdy9dmULJ6vAJRv/xFXlEXoHonI3Wol+WoDg3P9h8M=
+github.com/berachain/cosmos-sdk/core v0.7.1-0.20240628175732-ab2d37478785 h1:FGoNNPkEoZnp47MnqJ9zvGcw1pJT3cbtg9frSKmLObc=
+github.com/berachain/cosmos-sdk/core v0.7.1-0.20240628175732-ab2d37478785/go.mod h1:y/LnxW6nMaPDS++FhpNo9/vo6TN1OBKgtn1goYo2IkI=
 github.com/berachain/cosmos-sdk/runtime/v2 v2.0.0-20240628175732-ab2d37478785 h1:Kj72JLY+PNGv1xATQb1VKLQqjnLe5UdW7lltLQzOSyo=
 github.com/berachain/cosmos-sdk/runtime/v2 v2.0.0-20240628175732-ab2d37478785/go.mod h1:dV61MN3IJ6kYKVspLRPZ6zKxc3sltC2VVGK7TITPyl0=
 github.com/berachain/cosmos-sdk/server/v2 v2.0.0-20240628175732-ab2d37478785 h1:zVNgtAHkTbpIb1y9NPV0LgseNDEE01oKQzUKRZWUEe8=

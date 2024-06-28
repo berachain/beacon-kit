@@ -21,6 +21,7 @@
 package builder
 
 import (
+	"fmt"
 	"os"
 
 	"cosmossdk.io/client/v2/autocli"
@@ -115,6 +116,7 @@ func (
 		return nil, err
 	}
 
+	fmt.Println("depinject gud")
 	// build the server
 	// TOOD: move into server once depinject gets sorted
 	cb.server = serverv2.NewServer(
@@ -122,6 +124,7 @@ func (
 		cmtServer,
 		grpc.New[NodeT, T](),
 	)
+	fmt.Println("server gud")
 
 	// pass in deps to build the root command
 	rootCmd := cmdlib.New(
@@ -145,6 +148,8 @@ func (
 		chainSpec,
 	)
 
+	fmt.Println("commands gud")
+
 	// get the default command config with the server
 	cmdConfig, err := cmdlib.DefaultCommandConfig(
 		rootCmd.Command(),
@@ -164,6 +169,7 @@ func (
 		cmdConfig,
 		cb.server,
 	)
+	fmt.Println("add commands gud")
 
 	return rootCmd, nil
 }

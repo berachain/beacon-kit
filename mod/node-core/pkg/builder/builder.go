@@ -22,6 +22,7 @@ package builder
 
 import (
 	"context"
+	"fmt"
 
 	"cosmossdk.io/core/transaction"
 	"cosmossdk.io/depinject"
@@ -104,6 +105,7 @@ func (nb *NodeBuilder[NodeT, T]) Build(
 	); err != nil {
 		panic(err)
 	}
+	fmt.Println("node depinject gud")
 
 	// This is a bit of a meme until server/v2.
 	// consensusEngine := comet.NewConsensus(abciMiddleware)

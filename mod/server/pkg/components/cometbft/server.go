@@ -21,13 +21,13 @@
 package cometbft
 
 import (
-	"log"
-
+	"cosmossdk.io/core/log"
 	"cosmossdk.io/core/transaction"
 	serverv2 "cosmossdk.io/server/v2"
 	sdkcomet "cosmossdk.io/server/v2/cometbft"
 	"cosmossdk.io/store/v2/snapshots"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
+	nodecomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/spf13/viper"
 )
@@ -44,20 +44,19 @@ type Server[
 	NodeT types.Node[T], T transaction.Tx, ValidatorUpdateT any,
 ] struct {
 	*sdkcomet.CometBFTServer[NodeT, T]
-	// TxCodec transaction.Codec[T]
+	txCodec transaction.Codec[T]
 }
 
+// NewServer returns a new CometBFT server.
+// Init MUST be called before the server is used.
 func NewServer[
 	NodeT types.Node[T], T transaction.Tx, ValidatorUpdateT any,
 ](
 	txCodec transaction.Codec[T],
-	consensus *cometbft.ConsensusEngine[T, ValidatorUpdateT],
 ) *Server[NodeT, T, ValidatorUpdateT] {
-	options := sdkcomet.DefaultServerOptions[T]()
-	options.PrepareProposalHandler = consensus.PrepareProposal
-	options.ProcessProposalHandler = consensus.ProcessProposal
 	return &Server[NodeT, T, ValidatorUpdateT]{
-		sdkcomet.New[NodeT, T](txCodec, options),
+		nil,
+		txCodec,
 	}
 }
 
@@ -66,6 +65,20 @@ func NewServer[
 func (s *Server[NodeT, T, ValidatorUpdateT]) Init(
 	node NodeT, v *viper.Viper, logger log.Logger,
 ) error {
+	var middleware *nodecomponents.ABCIMiddleware
+	registry := node.GetServiceRegistry()
+	if err := registry.FetchService(&middleware); err != nil {
+		return err
+	}
+	engine := cometbft.NewConsensusEngine[T, ValidatorUpdateT](
+		s.txCodec,
+		middleware,
+	)
+	options := sdkcomet.DefaultServerOptions[T]()
+	options.PrepareProposalHandler = engine.PrepareProposal
+	options.ProcessProposalHandler = engine.ProcessProposal
+	s.CometBFTServer = sdkcomet.New[NodeT, T](s.txCodec, options)
+
 	s.Config = sdkcomet.Config{CmtConfig: sdkcomet.GetConfigFromViper(v), ConsensusAuthority: node.GetConsensusAuthority()}
 	// TODO: set these; what is the appropriate presence of the Store interface here?
 	var ss snapshots.StorageSnapshotter
@@ -76,7 +89,7 @@ func (s *Server[NodeT, T, ValidatorUpdateT]) Init(
 		return err
 	}
 
-	sm := snapshots.NewManager(snapshotStore, s.Options.SnapshotOptions, sc, ss, nil, s.logger)
+	sm := snapshots.NewManager(snapshotStore, s.Options.SnapshotOptions, sc, ss, nil, s.Logger)
 	s.Consensus.SetSnapshotManager(sm)
 	return nil
 }

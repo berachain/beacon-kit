@@ -21,6 +21,7 @@
 package components
 
 import (
+	"fmt"
 	"strings"
 
 	"cosmossdk.io/depinject"
@@ -44,10 +45,17 @@ func ProvideJWTSecret(in JWTSecretInput) (*jwt.Secret, error) {
 
 // LoadJWTFromFile reads the JWT secret from a file and returns it.
 func LoadJWTFromFile(filepath string) (*jwt.Secret, error) {
+	fmt.Println("JWT filepath", filepath)
 	data, err := afero.ReadFile(afero.NewOsFs(), filepath)
 	if err != nil {
 		// Return an error if the file cannot be read.
 		return nil, err
 	}
-	return jwt.NewFromHex(strings.TrimSpace(string(data)))
+	secret, err := jwt.NewFromHex(strings.TrimSpace(string(data)))
+	if err != nil {
+		// Return an error if the secret cannot be created.
+		return nil, err
+	}
+	fmt.Println("jwt gud")
+	return secret, nil
 }

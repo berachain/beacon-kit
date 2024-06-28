@@ -21,6 +21,8 @@
 package components
 
 import (
+	"fmt"
+
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -37,5 +39,10 @@ type ConfigInput struct {
 func ProvideConfig(in ConfigInput) (*config.Config, error) {
 	// AppOpts is not populated when called from CLI
 	// Read the directory
-	return config.ReadConfigFromAppOpts(in.AppOpts)
+	config, err := config.ReadConfigFromAppOpts(in.AppOpts)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println("config gud")
+	return config, nil
 }

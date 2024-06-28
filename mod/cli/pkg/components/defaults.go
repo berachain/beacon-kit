@@ -26,6 +26,7 @@ import "github.com/cosmos/cosmos-sdk/codec"
 // the client.
 func DefaultClientComponents() []any {
 	return []any{
+		// nodecomponents.DefaultComponentsWithStandardTypes(),
 		ProvideClientContext,
 		ProvideKeyring,
 		ProvideLogger,

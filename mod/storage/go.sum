@@ -3,8 +3,8 @@ buf.build/gen/go/cometbft/cometbft/protocolbuffers/go v1.34.2-20240312114316-c0d
 buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.34.2-20240130113600-88ef6483f90f.2 h1:b7EEYTUHmWSBEyISHlHvXbJPqtKiHRuUignL1tsHnNQ=
 buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.34.2-20240130113600-88ef6483f90f.2/go.mod h1:HqcXMSa5qnNuakaMUo+hWhF51mKbcrZxGl9Vp5EeJXc=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
-cosmossdk.io/api v0.7.3-0.20240623110059-dec2d5583e39 h1:QKFMx4L7KPbysdkQ7dfISBJkoCjsg0lXYg7EHILW3TA=
-cosmossdk.io/api v0.7.3-0.20240623110059-dec2d5583e39/go.mod h1:K2KfzTU5Pl/YK8ixSxB4X0d+8fticxef1nzOBp2WfP8=
+cosmossdk.io/api v0.7.3-0.20240628155326-d426a5db6775 h1:5lcxwkRRxIahjPdwPohLAJjg3xZ2FMmuhJdJcoKOFNw=
+cosmossdk.io/api v0.7.3-0.20240628155326-d426a5db6775/go.mod h1:5tcrMbzQJlJl7SReX8UcF7dJboRoMNdA8Uj35Mctjlk=
 cosmossdk.io/collections v0.4.0 h1:PFmwj2W8szgpD5nOd8GWH6AbYNi1f2J6akWXJ7P5t9s=
 cosmossdk.io/collections v0.4.0/go.mod h1:oa5lUING2dP+gdDquow+QjlF45eL1t4TJDypgGd+tv0=
 cosmossdk.io/core v0.12.1-0.20240623110059-dec2d5583e39 h1:Su69DjhpTkamJ/DVu1KHGjoZMAZI6nm7c+LMdZEPLxM=
@@ -21,8 +21,8 @@ cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc h1:R9O9d75e0qZYUsVV0zzi+
 cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc/go.mod h1:amTTatOUV3u1PsKmNb87z6/galCxrRbz9kRdJkL0DyU=
 cosmossdk.io/x/accounts v0.0.0-20240623110059-dec2d5583e39 h1:1vO1+ZyKvpg0NxyrXNrLW6NqD8Ly6O67H2Dx8jESu+g=
 cosmossdk.io/x/accounts v0.0.0-20240623110059-dec2d5583e39/go.mod h1:nOSx3lOJCTqsMyEIZG1LHeRhTWplMxjBGsZS+FqP8x4=
-cosmossdk.io/x/auth v0.0.0-20240623110059-dec2d5583e39 h1:pkq447wHSmRCiDLHnvHRcDhcrUuMFeq3qpGt+FWG+EQ=
-cosmossdk.io/x/auth v0.0.0-20240623110059-dec2d5583e39/go.mod h1:P3ePo0LbH3mgfbNDeMWY46Qz6POeP1GOSczT0DKcjOQ=
+cosmossdk.io/x/auth v0.0.0-20240628155326-d426a5db6775 h1:6Oy6+65+LT6PBDf7ElMLyTkNiwUaiTVSSPYUpetomto=
+cosmossdk.io/x/auth v0.0.0-20240628155326-d426a5db6775/go.mod h1:KRpK44bjQUA6qEs5avmOs7GRPxH1qGVy77XhP3L7hrk=
 cosmossdk.io/x/consensus v0.0.0-20240623110059-dec2d5583e39 h1:kWsmTakMXQYuGGzt5e+UNUKXp8LLz6qHOTflCDohIQc=
 cosmossdk.io/x/consensus v0.0.0-20240623110059-dec2d5583e39/go.mod h1:btQneZ1sAduh6iVvMIUsR7gEYlgaxM3zOff/9e90Pdk=
 cosmossdk.io/x/tx v0.13.4-0.20240623110059-dec2d5583e39 h1:fZvdmYfQdJ+CX5axx3ChtLOCAIXoLzLoFf7hHAI+fws=

@@ -23,7 +23,6 @@ package components
 import (
 	"cosmossdk.io/core/transaction"
 	"cosmossdk.io/depinject"
-	cmtconsensus "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
 	nodecomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/server/pkg/components/cometbft"
@@ -33,8 +32,7 @@ import (
 type CometServerInput[T transaction.Tx, ValidatorUpdateT any] struct {
 	depinject.In
 
-	TxCodec         *nodecomponents.TxCodec[T]
-	ConsensusEngine *cmtconsensus.ConsensusEngine[T, ValidatorUpdateT]
+	TxCodec *nodecomponents.TxCodec[T]
 }
 
 // ProvideCometServer is the provider for the CometServer for the depinject
@@ -46,6 +44,5 @@ func ProvideCometServer[
 ) *cometbft.Server[NodeT, T, ValidatorUpdateT] {
 	return cometbft.NewServer[NodeT, T, ValidatorUpdateT](
 		in.TxCodec,
-		in.ConsensusEngine,
 	)
 }

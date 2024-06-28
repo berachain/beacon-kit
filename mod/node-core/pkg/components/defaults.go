@@ -79,6 +79,7 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideNoopTxConfig,
 		ProvideTxCodec[transaction.Tx],
 		ProvideStoreOptions,
+		ProvideAddressCodec,
 		codec.ProvideInterfaceRegistry,
 		codec.ProvideProtoCodec,
 		codec.ProvideLegacyAmino,

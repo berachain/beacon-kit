@@ -1,6 +1,7 @@
 package components
 
 import (
+	"fmt"
 	"path/filepath"
 
 	"cosmossdk.io/depinject"
@@ -27,6 +28,7 @@ func ProvideStoreOptions(in StoreConfigInput) *root.FactoryOptions {
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println("scRawDb gud")
 	return &root.FactoryOptions{
 		Logger:  in.Logger,
 		RootDir: homeDir,

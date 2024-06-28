@@ -21,6 +21,7 @@
 package components
 
 import (
+	"fmt"
 	"io"
 
 	"cosmossdk.io/depinject"
@@ -43,5 +44,6 @@ func ProvideLogger(
 	in LoggerInput,
 ) log.Logger {
 	logger := phuslu.NewLogger[log.Logger](in.Out, in.Cfg.GetLogger())
+	fmt.Println("logger gud")
 	return logger
 }

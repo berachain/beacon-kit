@@ -90,6 +90,6 @@ func (app *BeaconApp[T]) GetStore() any {
 	return app.App.GetStore()
 }
 
-func (app *BeaconApp[T]) GetAppManager() *appmanager.AppManager[T] {
+func (app *BeaconApp[T]) GetAppManager() appmanager.AppManager[T] {
 	return app.App.GetAppManager()
 }

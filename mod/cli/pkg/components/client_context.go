@@ -21,6 +21,7 @@
 package components
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -77,6 +78,7 @@ func ProvideClientContext(
 	}
 
 	clientCtx = clientCtx.WithTxConfig(txConfig)
+	fmt.Println("clientctx gud")
 
 	return clientCtx, nil
 }
