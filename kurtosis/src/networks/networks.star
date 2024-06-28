@@ -19,7 +19,6 @@ def get_genesis_data(plan):
 
         # The following fields are not relevant for our testing, but are required by the parent
         "",  # genesis_validators_root
-        0,  # cancun_time
         0,  # prague_time
     )
 
