@@ -33,7 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
@@ -203,7 +203,7 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 		err        error
 		layer      = make([]common.Root, BodyLengthDeneb)
 		randao     = b.GetRandaoReveal()
-		merkleizer = ssz.NewMerkleizer[
+		merkleizer = merkleizer.New[
 			common.ChainSpec, [32]byte, common.Root,
 		]()
 	)

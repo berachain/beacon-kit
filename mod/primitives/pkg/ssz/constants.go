@@ -18,4 +18,15 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package merkle_test
+package ssz
+
+const (
+	// BytesPerChunk is the number of bytes per chunk.
+	BytesPerChunk = 32
+
+	// BytesPerLengthOffset is the number of bytes per serialized length offset.
+	BytesPerLengthOffset = 4
+
+	// BitsPerByte is the number of bits per byte.
+	BitsPerByte = 8
+)

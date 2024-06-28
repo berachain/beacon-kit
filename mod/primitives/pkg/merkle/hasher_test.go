@@ -55,7 +55,7 @@ func TestNewRootWithDepth_EmptyLeaves(t *testing.T) {
 	buffer := getBuffer("reusable")
 	hasher := merkle.NewHasher(buffer, gohashtree.Hash)
 
-	root, err := hasher.NewRootWithDepth(nil, 0, 5)
+	root, err := hasher.NewRootWithDepth([][32]byte{}, 0, 0)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -341,7 +341,7 @@ func TestNewRootWithDepth(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "odd number of leaves",
+			name: "not enough depth",
 			leaves: [][32]byte{
 				createDummyLeaf(1),
 				createDummyLeaf(2),
@@ -349,7 +349,18 @@ func TestNewRootWithDepth(t *testing.T) {
 			},
 			depth:    1,
 			expected: zero.Hashes[1],
-			wantErr:  false,
+			wantErr:  true,
+		},
+		{
+			name: "odd leaves",
+			leaves: [][32]byte{
+				createDummyLeaf(1),
+				createDummyLeaf(2),
+				createDummyLeaf(3),
+			},
+			depth:    2,
+			expected: zero.Hashes[1],
+			wantErr:  true,
 		},
 		{
 			name: "hasher returns error",
