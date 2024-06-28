@@ -34,7 +34,7 @@ const (
 )
 
 func TestNewTreeFromLeavesWithDepth_NoItemsProvided(t *testing.T) {
-	_, err := merkle.NewTreeFromLeavesWithDepth[[32]byte, [32]byte](
+	_, err := merkle.NewTreeFromLeavesWithDepth[[32]byte](
 		nil,
 		treeDepth,
 	)
@@ -52,7 +52,7 @@ func TestNewTreeFromLeavesWithDepth_DepthSupport(t *testing.T) {
 		byteslib.ToBytes32([]byte("GGGGGGG")),
 	}
 	// Supported depth
-	m1, err := merkle.NewTreeFromLeavesWithDepth[[32]byte, [32]byte](
+	m1, err := merkle.NewTreeFromLeavesWithDepth[[32]byte](
 		items,
 		merkle.MaxTreeDepth,
 	)
@@ -61,7 +61,7 @@ func TestNewTreeFromLeavesWithDepth_DepthSupport(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, proof, int(merkle.MaxTreeDepth)+1)
 	// Unsupported depth
-	_, err = merkle.NewTreeFromLeavesWithDepth[[32]byte, [32]byte](
+	_, err = merkle.NewTreeFromLeavesWithDepth[[32]byte](
 		items,
 		merkle.MaxTreeDepth+1,
 	)
@@ -79,11 +79,12 @@ func TestMerkleTree_IsValidMerkleBranch(t *testing.T) {
 		byteslib.ToBytes32([]byte("G")),
 		byteslib.ToBytes32([]byte("H")),
 	}
-	m, err := merkle.NewTreeFromLeavesWithDepth[[32]byte, [32]byte](
+	m, err := merkle.NewTreeFromLeavesWithDepth[[32]byte](
 		items,
 		treeDepth,
 	)
 	require.NoError(t, err)
+
 	proof, err := m.MerkleProofWithMixin(0)
 	require.NoError(t, err)
 	require.Len(
@@ -91,11 +92,13 @@ func TestMerkleTree_IsValidMerkleBranch(t *testing.T) {
 		proof,
 		int(treeDepth)+1,
 	)
+
 	root, err := m.HashTreeRoot()
 	require.NoError(t, err)
 	require.True(t, merkle.VerifyProof(
 		root, items[0], 0, proof,
 	), "First Merkle proof did not verify")
+
 	proof, err = m.MerkleProofWithMixin(3)
 	require.NoError(t, err)
 	require.True(
@@ -131,7 +134,7 @@ func TestMerkleTree_VerifyProof(t *testing.T) {
 		byteslib.ToBytes32([]byte("H")),
 	}
 
-	m, err := merkle.NewTreeFromLeavesWithDepth[[32]byte, [32]byte](
+	m, err := merkle.NewTreeFromLeavesWithDepth[[32]byte](
 		items,
 		treeDepth,
 	)
@@ -173,7 +176,7 @@ func TestMerkleTree_NegativeIndexes(t *testing.T) {
 		byteslib.ToBytes32([]byte("G")),
 		byteslib.ToBytes32([]byte("H")),
 	}
-	m, err := merkle.NewTreeFromLeavesWithDepth[[32]byte, [32]byte](
+	m, err := merkle.NewTreeFromLeavesWithDepth[[32]byte](
 		items,
 		treeDepth,
 	)
@@ -189,7 +192,7 @@ func TestMerkleTree_VerifyProof_TrieUpdated(t *testing.T) {
 		{3},
 		{4},
 	}
-	m, err := merkle.NewTreeFromLeavesWithDepth[[32]byte, [32]byte](
+	m, err := merkle.NewTreeFromLeavesWithDepth[[32]byte](
 		items,
 		treeDepth+1,
 	)
@@ -236,7 +239,7 @@ func BenchmarkNewTreeFromLeavesWithDepth(b *testing.B) {
 		byteslib.ToBytes32([]byte("GGGGGGG")),
 	}
 	for i := 0; i < b.N; i++ {
-		_, err := merkle.NewTreeFromLeavesWithDepth[[32]byte, [32]byte](
+		_, err := merkle.NewTreeFromLeavesWithDepth[[32]byte](
 			items,
 			treeDepth,
 		)
@@ -251,7 +254,7 @@ func BenchmarkInsertTrie_Optimized(b *testing.B) {
 	for i := range numDeposits {
 		items[i] = byteslib.ToBytes32([]byte(strconv.Itoa(i)))
 	}
-	tr, err := merkle.NewTreeFromLeavesWithDepth[[32]byte, [32]byte](
+	tr, err := merkle.NewTreeFromLeavesWithDepth[[32]byte](
 		items,
 		treeDepth,
 	)
@@ -275,7 +278,7 @@ func BenchmarkGenerateProof(b *testing.B) {
 		byteslib.ToBytes32([]byte("FFFFFF")),
 		byteslib.ToBytes32([]byte("GGGGGGG")),
 	}
-	goodTree, err := merkle.NewTreeFromLeavesWithDepth[[32]byte, [32]byte](
+	goodTree, err := merkle.NewTreeFromLeavesWithDepth[[32]byte](
 		items,
 		treeDepth,
 	)
@@ -299,7 +302,7 @@ func BenchmarkIsValidMerkleBranch(b *testing.B) {
 		byteslib.ToBytes32([]byte("FFFFFF")),
 		byteslib.ToBytes32([]byte("GGGGGGG")),
 	}
-	m, err := merkle.NewTreeFromLeavesWithDepth[[32]byte, [32]byte](
+	m, err := merkle.NewTreeFromLeavesWithDepth[[32]byte](
 		items,
 		treeDepth,
 	)

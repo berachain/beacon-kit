@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"golang.org/x/sync/errgroup"
 )
@@ -58,7 +59,9 @@ func (e *ExecutionPayload) Empty(forkVersion uint32) *ExecutionPayload {
 }
 
 // ToHeader converts the ExecutionPayload to an ExecutionPayloadHeader.
-func (e *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
+func (e *ExecutionPayload) ToHeader(
+	txsMerkleizer engineprimitives.TxsMerkleizer,
+) (*ExecutionPayloadHeader, error) {
 	// Get the merkle roots of transactions and withdrawals in parallel.
 	var (
 		g, _            = errgroup.WithContext(context.Background())
@@ -70,15 +73,14 @@ func (e *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 		var txsRootErr error
 		txsRoot, txsRootErr = engineprimitives.Transactions(
 			e.GetTransactions(),
-		).HashTreeRoot()
+		).HashTreeRootWith(txsMerkleizer)
 		return txsRootErr
 	})
 
 	g.Go(func() error {
 		var withdrawalsRootErr error
-		withdrawalsRoot, withdrawalsRootErr = engineprimitives.Withdrawals(
-			e.GetWithdrawals(),
-		).HashTreeRoot()
+		wds := ssz.ListCompositeFromElements(e.GetWithdrawals()...)
+		withdrawalsRoot, withdrawalsRootErr = wds.HashTreeRoot()
 		return withdrawalsRootErr
 	})
 

@@ -227,6 +227,9 @@ type (
 	// BlockEvent is a type alias for the block event.
 	BlockEvent = asynctypes.Event[*BeaconBlock]
 
+	// GenesisEvent is a type alias for the genesis event.
+	GenesisEvent = asynctypes.Event[*Genesis]
+
 	// SidecarEvent is a type alias for the sidecar event.
 	SidecarEvent = asynctypes.Event[*BlobSidecars]
 
@@ -245,6 +248,8 @@ type (
 /* -------------------------------------------------------------------------- */
 
 type (
+	// GenesisBroker is a type alias for the genesis feed.
+	GenesisBroker = broker.Broker[*GenesisEvent]
 
 	// SidecarsBroker is a type alias for the blob feed.
 	SidecarsBroker = broker.Broker[*SidecarEvent]

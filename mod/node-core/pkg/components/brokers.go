@@ -38,6 +38,13 @@ func ProvideBlockFeed() *BlockBroker {
 	)
 }
 
+// ProvideGenesisBroker provides a genesis feed for the depinject framework.
+func ProvideGenesisBroker() *GenesisBroker {
+	return broker.New[*GenesisEvent](
+		"genesis-broker",
+	)
+}
+
 // ProvideSlotBroker provides a slot feed for the depinject framework.
 func ProvideSlotBroker() *SlotBroker {
 	return broker.New[*SlotEvent](

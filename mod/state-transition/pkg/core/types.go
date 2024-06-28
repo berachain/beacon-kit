@@ -170,7 +170,9 @@ type ExecutionPayload[
 	GetBaseFeePerGas() math.U256L
 	GetBlobGasUsed() math.U64
 	GetExcessBlobGas() math.U64
-	ToHeader() (ExecutionPayloadHeaderT, error)
+	ToHeader(
+		txsMerkleizer engineprimitives.TxsMerkleizer,
+	) (ExecutionPayloadHeaderT, error)
 }
 
 type ExecutionPayloadHeader interface {

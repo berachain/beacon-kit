@@ -57,7 +57,7 @@ func (sp *StateProcessor[
 	// Get the execution payload header.
 	g.Go(func() error {
 		var err error
-		header, err = payload.ToHeader()
+		header, err = payload.ToHeader(sp.txsMerkleizer)
 		return err
 	})
 

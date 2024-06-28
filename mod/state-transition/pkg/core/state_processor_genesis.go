@@ -24,7 +24,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
@@ -111,9 +111,11 @@ func (sp *StateProcessor[
 	}
 
 	var validatorsRoot common.Root
-	validatorsRoot, err = ssz.MerkleizeListComposite[
-		common.ChainSpec, math.U64,
-	](validators, uint64(len(validators)))
+	merkleizer := merkleizer.New[common.ChainSpec, [32]byte, ValidatorT]()
+	validatorsRoot, err = merkleizer.MerkleizeListComposite(
+		validators,
+		uint64(len(validators)),
+	)
 	if err != nil {
 		return nil, err
 	}
