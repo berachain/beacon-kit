@@ -40,6 +40,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
@@ -179,6 +180,7 @@ type (
 		*ExecutionPayloadHeader,
 		*engineprimitives.PayloadAttributes[*Withdrawal],
 		engineprimitives.PayloadID,
+		*Withdrawal,
 	]
 
 	// StateProcessor is the type alias for the state processor interface.
@@ -266,3 +268,21 @@ type (
 	// ValidatorUpdateBroker is a type alias for the validator update feed.
 	ValidatorUpdateBroker = broker.Broker[*ValidatorUpdateEvent]
 )
+
+/* -------------------------------------------------------------------------- */
+/*                                Interfaces                                  */
+/* -------------------------------------------------------------------------- */
+
+// PayloadAttributes is the interface for the payload attributes.
+type PayloadAttributes[SelfT any, WithdrawalT any] interface {
+	engineprimitives.PayloadAttributer
+	// New creates a new payload attributes instance.
+	New(
+		uint32,
+		uint64,
+		common.Bytes32,
+		common.ExecutionAddress,
+		[]WithdrawalT,
+		common.Root,
+	) (SelfT, error)
+}
