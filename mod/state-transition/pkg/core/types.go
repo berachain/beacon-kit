@@ -172,6 +172,7 @@ type ExecutionPayload[
 	GetExcessBlobGas() math.U64
 	ToHeader(
 		txsMerkleizer engineprimitives.TxsMerkleizer,
+		maxWithdrawalsPerPayload uint64,
 	) (ExecutionPayloadHeaderT, error)
 }
 

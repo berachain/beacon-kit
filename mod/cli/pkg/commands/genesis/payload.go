@@ -44,7 +44,7 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func AddExecutionPayloadCmd() *cobra.Command {
+func AddExecutionPayloadCmd(chainSpec common.ChainSpec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "execution-payload [eth/genesis/file.json]",
 		Short: "adds the eth1 genesis execution payload to the genesis file",
@@ -102,6 +102,7 @@ func AddExecutionPayloadCmd() *cobra.Command {
 			header, err := executableDataToExecutionPayloadHeader(
 				version.ToUint32(genesisInfo.ForkVersion),
 				payload,
+				chainSpec.MaxWithdrawalsPerPayload(),
 			)
 			if err != nil {
 				return errors.Wrap(
@@ -134,6 +135,7 @@ func AddExecutionPayloadCmd() *cobra.Command {
 func executableDataToExecutionPayloadHeader(
 	forkVersion uint32,
 	data *ethengineprimitives.ExecutableData,
+	maxWithdrawalsPerPayload uint64,
 ) (*types.ExecutionPayloadHeader, error) {
 	var executionPayloadHeader *types.ExecutionPayloadHeader
 	switch forkVersion {
@@ -182,7 +184,9 @@ func executableDataToExecutionPayloadHeader(
 
 		g.Go(func() error {
 			var withdrawalsRootErr error
-			wds := ssz.ListCompositeFromElements(withdrawals...)
+			wds := ssz.ListCompositeFromElements(
+				maxWithdrawalsPerPayload, withdrawals...,
+			)
 			withdrawalsRoot, withdrawalsRootErr = wds.HashTreeRoot()
 			return withdrawalsRootErr
 		})
