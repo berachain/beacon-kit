@@ -36,7 +36,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// CollectGenesisDepositsCmd - return the cobra command to collect genesis transactions.
+// CollectGenesisDepositsCmd - return the cobra
+// command to collect genesis transactions.
 func CollectGenesisDepositsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "collect-premined-deposits",

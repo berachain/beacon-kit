@@ -401,3 +401,48 @@ func TestNewRootWithDepth(t *testing.T) {
 		})
 	}
 }
+
+func TestNewRootWithMaxLeaves(t *testing.T) {
+	buffer := getBuffer("reusable")
+	hasher := merkle.NewHasher(buffer, gohashtree.Hash)
+
+	tests := []struct {
+		name     string
+		leaves   [][32]byte
+		limit    uint64
+		expected error
+	}{
+		{
+			name:     "Exceeds limit",
+			leaves:   createLeaves(11), // Assuming limit is 10
+			limit:    10,
+			expected: errors.New("number of leaves exceeds limit"),
+		},
+		{
+			name:     "Valid leaves within limit",
+			leaves:   createLeaves(8), // Within limit
+			limit:    10,
+			expected: nil,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := hasher.NewRootWithMaxLeaves(tc.leaves, math.U64(tc.limit))
+			if tc.expected != nil {
+				require.Error(t, err)
+				require.Equal(t, tc.expected.Error(), err.Error())
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+func createLeaves(count int) [][32]byte {
+	leaves := make([][32]byte, count)
+	for i := range leaves {
+		leaves[i] = createDummyLeaf(byte(i))
+	}
+	return leaves
+}

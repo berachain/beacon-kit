@@ -58,7 +58,7 @@ func UnmarshalUint64Text(input []byte) (uint64, error) {
 		return 0, ErrUint64Range
 	}
 	var dec uint64
-	for i := 0; i < len(raw); i++ {
+	for i := range len(raw) {
 		nib := decodeNibble(raw[i])
 		if nib == badNibble {
 			return dec, ErrInvalidString
