@@ -34,7 +34,7 @@ import (
 
 // merkleizer can be used for merkleizing SSZ types.
 type merkleizer[
-	SpecT any, RootT ~[32]byte, T Basic[SpecT, RootT],
+	RootT ~[32]byte, T SSZObject[RootT],
 ] struct {
 	rootHasher  merkle.RootHasher[RootT]
 	bytesBuffer bytes.Buffer[RootT]
@@ -42,9 +42,9 @@ type merkleizer[
 
 // New creates a new merkleizer with a reusable hasher and bytes buffer.
 func New[
-	SpecT any, RootT ~[32]byte, T Basic[SpecT, RootT],
-]() Merkleizer[SpecT, RootT, T] {
-	return &merkleizer[SpecT, RootT, T]{
+	RootT ~[32]byte, T SSZObject[RootT],
+]() *merkleizer[RootT, T] {
+	return &merkleizer[RootT, T]{
 		rootHasher: merkle.NewRootHasher[RootT](
 			crypto.NewHasher[RootT](sha256.Hash),
 			merkle.BuildParentTreeRoots,
@@ -54,7 +54,7 @@ func New[
 }
 
 // MerkleizeBasic hashes the packed value and returns the HTR.
-func (m *merkleizer[SpecT, RootT, T]) MerkleizeBasic(
+func (m *merkleizer[RootT, T]) MerkleizeBasic(
 	value T,
 ) (RootT, error) {
 	return m.MerkleizeVecBasic([]T{value})
@@ -62,7 +62,7 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeBasic(
 
 // MerkleizeVecBasic implements the SSZ merkleization algorithm
 // for a vector of basic types.
-func (m *merkleizer[SpecT, RootT, T]) MerkleizeVecBasic(
+func (m *merkleizer[RootT, T]) MerkleizeVecBasic(
 	value []T,
 ) (RootT, error) {
 	packed, err := m.pack(value)
@@ -78,8 +78,8 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeVecBasic(
 // container.
 //
 // TODO: Make a separate merkleizer for container and list of containers.
-func (m *merkleizer[SpecT, RootT, T]) MerkleizeContainer(
-	value Container[SpecT, RootT], _ ...SpecT,
+func (m *merkleizer[RootT, T]) MerkleizeContainer(
+	value SSZObject[RootT],
 ) (RootT, error) {
 	rValue := reflect.ValueOf(value)
 	if rValue.Kind() == reflect.Ptr {
@@ -98,7 +98,7 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeContainer(
 		}
 
 		// TODO: handle different types.
-		field, ok := fieldValue.Interface().(Basic[SpecT, RootT])
+		field, ok := fieldValue.Interface().(SSZObject[RootT])
 		if !ok {
 			return RootT{}, errors.Newf(
 				"field %d does not implement Hashable",
@@ -115,7 +115,7 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeContainer(
 
 // MerkleizeVecComposite implements the SSZ merkleization algorithm for a vector
 // of composite types.
-func (m *merkleizer[SpecT, RootT, T]) MerkleizeVecComposite(
+func (m *merkleizer[RootT, T]) MerkleizeVecComposite(
 	value []T,
 ) (RootT, error) {
 	var (
@@ -134,7 +134,7 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeVecComposite(
 
 // MerkleizeByteSlice hashes a byteslice by chunkifying it and returning the
 // corresponding HTR as if it were a fixed vector of bytes of the given length.
-func (m *merkleizer[SpecT, RootT, T]) MerkleizeByteSlice(
+func (m *merkleizer[RootT, T]) MerkleizeByteSlice(
 	input []byte,
 ) (RootT, error) {
 	chunks, numChunks, err := m.partitionBytes(input)
@@ -151,7 +151,7 @@ func (m *merkleizer[SpecT, RootT, T]) MerkleizeByteSlice(
 // merkleize(chunks, limit=None): Given ordered BYTES_PER_CHUNK-byte chunks,
 // merkleize the chunks, and return the root: The merkleization depends on the
 // effective input, which must be padded/limited.
-func (m *merkleizer[SpecT, RootT, T]) Merkleize(
+func (m *merkleizer[RootT, T]) Merkleize(
 	chunks []RootT,
 	limit ...uint64,
 ) (RootT, error) {
@@ -201,7 +201,7 @@ func (m *merkleizer[SpecT, RootT, T]) Merkleize(
 }
 
 // pack packs a list of SSZ-marshallable elements into a single byte slice.
-func (m *merkleizer[SpecT, RootT, T]) pack(values []T) ([]RootT, error) {
+func (m *merkleizer[RootT, T]) pack(values []T) ([]RootT, error) {
 	// Pack each element into separate buffers.
 	var packed []byte
 	for _, el := range values {
@@ -217,7 +217,7 @@ func (m *merkleizer[SpecT, RootT, T]) pack(values []T) ([]RootT, error) {
 			)
 		}
 
-		// TODO: Do we need a safety check for Basic only here?
+		// TODO: Do we need a safety check for SSZObject only here?
 		// TODO: use a real interface instead of hood inline.
 		el, ok := reflect.ValueOf(el).
 			Interface().(interface{ MarshalSSZ() ([]byte, error) })
@@ -225,7 +225,7 @@ func (m *merkleizer[SpecT, RootT, T]) pack(values []T) ([]RootT, error) {
 			return nil, errors.Newf("unsupported type %T", el)
 		}
 
-		// TODO: Do we need a safety check for Basic only here?
+		// TODO: Do we need a safety check for SSZObject only here?
 		buf, err := el.MarshalSSZ()
 		if err != nil {
 			return nil, err
@@ -238,7 +238,7 @@ func (m *merkleizer[SpecT, RootT, T]) pack(values []T) ([]RootT, error) {
 }
 
 // partitionBytes partitions a byte slice into chunks of a given length.
-func (m *merkleizer[SpecT, RootT, T]) partitionBytes(input []byte) (
+func (m *merkleizer[RootT, T]) partitionBytes(input []byte) (
 	[]RootT, uint64, error,
 ) {
 	//nolint:mnd // we add 31 in order to round up the division.

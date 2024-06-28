@@ -27,13 +27,6 @@ import (
 	"github.com/prysmaticlabs/gohashtree"
 )
 
-// ChunkCount returns the number of chunks required to store a value.
-func ChunkCountBasic[RootT ~[32]byte, B Basic[SpecT, RootT], SpecT any](
-	B,
-) uint64 {
-	return 1
-}
-
 // ChunkCountBitListVec returns the number of chunks required to store a bitlist
 // or bitvector.
 func ChunkCountBitListVec[T any](t []T) uint64 {
@@ -43,7 +36,7 @@ func ChunkCountBitListVec[T any](t []T) uint64 {
 
 // ChunkCountBasicList returns the number of chunks required to store a list
 // or vector of basic types.
-func ChunkCountBasicList[SpecT any, RootT ~[32]byte, B Basic[SpecT, RootT]](
+func ChunkCountBasicList[RootT ~[32]byte, B SSZObject[RootT]](
 	b []B,
 	maxCapacity uint64,
 ) uint64 {
@@ -65,7 +58,7 @@ func ChunkCountBasicList[SpecT any, RootT ~[32]byte, B Basic[SpecT, RootT]](
 // ChunkCountCompositeList returns the number of chunks required to store a
 // list or vector of composite types.
 func ChunkCountCompositeList[
-	SpecT any, RootT ~[32]byte, C Composite[SpecT, RootT],
+	RootT ~[32]byte, C SSZObject[RootT],
 ](
 	c []C,
 	limit uint64,
@@ -75,7 +68,7 @@ func ChunkCountCompositeList[
 
 // ChunkCountContainer returns the number of chunks required to store a
 // container.
-func ChunkCountContainer[SpecT any, RootT ~[32]byte, C Container[SpecT, RootT]](
+func ChunkCountContainer[RootT ~[32]byte, C SSZObject[RootT]](
 	c C,
 ) uint64 {
 	//#nosec:G701 // This is a safe operation.
