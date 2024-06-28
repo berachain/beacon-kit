@@ -30,6 +30,7 @@ func DefaultClientComponents() []any {
 		ProvideKeyring,
 		ProvideLogger,
 
+		// server v2
 		codec.ProvideInterfaceRegistry,
 		codec.ProvideAddressCodec,
 		codec.ProvideProtoCodec,

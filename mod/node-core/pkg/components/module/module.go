@@ -27,12 +27,15 @@ import (
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"cosmossdk.io/core/registry"
 	"cosmossdk.io/core/transaction"
+	sdkconsensustypes "cosmossdk.io/x/consensus/types"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/consensus/pkg"
+	consensus "github.com/berachain/beacon-kit/mod/consensus/pkg"
 	consensustypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/comet"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"google.golang.org/grpc"
 )
 
 const (
@@ -59,6 +62,7 @@ var (
 type AppModule[T transaction.Tx, ValidatorUpdateT any] struct {
 	ABCIMiddleware *components.ABCIMiddleware
 	TxCodec        transaction.Codec[T]
+	msgServer      *comet.MsgServer
 }
 
 // NewAppModule creates a new AppModule object.
@@ -101,6 +105,13 @@ func (AppModule[T, ValidatorUpdateT]) DefaultGenesis() json.RawMessage {
 		panic(err)
 	}
 	return bz
+}
+
+// RegisterServices registers module services.
+func (am AppModule[T, ValidatorUpdateT]) RegisterServices(registrar grpc.ServiceRegistrar) error {
+	// lolololololololololololololololololololololololololololololololololololol
+	sdkconsensustypes.RegisterMsgServer(registrar, am.msgServer)
+	return nil
 }
 
 // ValidateGenesis performs genesis state validation for the beacon module.
