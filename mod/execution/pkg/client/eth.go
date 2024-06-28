@@ -30,7 +30,7 @@ import (
 
 // HeaderByNumber retrieves the block header by its number.
 func (s *EngineClient[
-	ExecutionPayloadT, PayloadAttributesT,
+	_, _,
 ]) HeaderByNumber(
 	ctx context.Context,
 	number *big.Int,
@@ -62,7 +62,7 @@ func (s *EngineClient[
 
 // HeaderByHash retrieves the block header by its hash.
 func (s *EngineClient[
-	ExecutionPayloadT, PayloadAttributesT,
+	_, _,
 ]) HeaderByHash(
 	ctx context.Context,
 	hash common.ExecutionHash,

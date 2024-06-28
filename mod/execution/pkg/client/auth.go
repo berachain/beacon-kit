@@ -28,7 +28,7 @@ import (
 
 // jwtRefreshLoop refreshes the JWT token for the execution client.
 func (s *EngineClient[
-	ExecutionPayloadT, PayloadAttributesT,
+	_, _,
 ]) jwtRefreshLoop(
 	ctx context.Context,
 ) {
@@ -54,7 +54,7 @@ func (s *EngineClient[
 // buildJWTHeader builds an http.Header that has the JWT token
 // attached for authorization.
 func (s *EngineClient[
-	ExecutionPayloadT, PayloadAttributesT,
+	_, _,
 ]) buildJWTHeader() (http.Header, error) {
 	header := make(http.Header)
 

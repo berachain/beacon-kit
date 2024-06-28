@@ -22,12 +22,15 @@ package client
 
 import (
 	"time"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
-// ExecutionPayload is an interface that defines the Version method.
-type ExecutionPayload interface {
-	// Version returns the version of the payload.
-	Version() uint32
+type PayloadAttributes interface {
+	// IsNil returns true if the payload attributes are nil.
+	IsNil() bool
+	// GetSuggestedFeeRecipient returns the suggested fee recipient.
+	GetSuggestedFeeRecipient() common.ExecutionAddress
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.
@@ -35,9 +38,6 @@ type TelemetrySink interface {
 	// IncrementCounter increments a counter metric identified by the provided
 	// keys.
 	IncrementCounter(key string, args ...string)
-	// SetGauge sets a gauge metric to the specified value, identified by the
-	// provided keys.
-	SetGauge(key string, value int64, args ...string)
 	// MeasureSince measures the time since the provided start time,
 	// identified by the provided keys.
 	MeasureSince(key string, start time.Time, args ...string)
