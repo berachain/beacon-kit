@@ -44,7 +44,7 @@ func ChunkCountBasicList[RootT ~[32]byte, B SSZObject[RootT]](
 	if numItems == 0 {
 		return 1
 	}
-	//#nosec:G103 // its fine.
+	//#nosec:G701 // its fine.
 	size := uint64(b[0].SizeSSZ())
 	//nolint:mnd // 32 is okay.
 	limit := (maxCapacity*size + 31) / 32
