@@ -6,9 +6,9 @@ replace (
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240623110059-dec2d5583e39
 	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240623110059-dec2d5583e39
-	cosmossdk.io/runtime/v2 => cosmossdk.io/runtime/v2 v2.0.0-20240627192737-afddef390642
-	cosmossdk.io/server/v2/appmanager => cosmossdk.io/server/v2/appmanager v0.0.0-20240627192737-afddef390642
-	cosmossdk.io/server/v2/cometbft => cosmossdk.io/server/v2/cometbft v0.0.0-20240627192737-afddef390642
+	cosmossdk.io/runtime/v2 => github.com/berachain/cosmos-sdk/runtime/v2 v2.0.0-20240627214151-8adce88544c9
+	cosmossdk.io/server/v2/appmanager => github.com/berachain/cosmos-sdk/server/v2/appmanager v0.0.0-20240627214151-8adce88544c9
+	cosmossdk.io/server/v2/cometbft => github.com/berachain/cosmos-sdk/server/v2/cometbft v0.0.0-20240627214151-8adce88544c9
 	github.com/berachain/beacon-kit/mod/consensus => ../consensus
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240627214151-8adce88544c9
 )

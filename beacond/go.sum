@@ -28,8 +28,6 @@ cosmossdk.io/server/v2 v2.0.0-20240624191328-722ac39873e4 h1:5aDnTjeR9X+Ey2uhyhY
 cosmossdk.io/server/v2 v2.0.0-20240624191328-722ac39873e4/go.mod h1:tipsG13IvXM770UgAND0+kWtV/C2F7Oct0HUIfY50v8=
 cosmossdk.io/server/v2/appmanager v0.0.0-20240624191328-722ac39873e4 h1:nIpps9YyKk6OaWXDWrLgvUuAdIBmLsSrjyJHlME8jdc=
 cosmossdk.io/server/v2/appmanager v0.0.0-20240624191328-722ac39873e4/go.mod h1:gFlSQXvvR4YMmUXHAxuMfXmWfqQkt6wAkMJBxXVJP0s=
-cosmossdk.io/server/v2/cometbft v0.0.0-20240627192737-afddef390642 h1:nWFaDP+OZ1+2Wj1AwvsYuDwl+HXcQ3gQZCqMPloG0d8=
-cosmossdk.io/server/v2/cometbft v0.0.0-20240627192737-afddef390642/go.mod h1:FDnSph3Ui2l5qC6EgKugSmEYXP/JRQhFNX8Auxy/t3s=
 cosmossdk.io/server/v2/stf v0.0.0-20240623110059-dec2d5583e39 h1:wB6pmjaBklCiUO2juRBC7ZljaWn/UW7oi9fnY50WkcQ=
 cosmossdk.io/server/v2/stf v0.0.0-20240623110059-dec2d5583e39/go.mod h1:bTFJu59P5lJqCQDaNEUruMEScikeBHtRVuWMAOLbUgk=
 cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc h1:R9O9d75e0qZYUsVV0zzi+D7cNLnX2JrUOQNoIPaF0Bg=
@@ -132,6 +130,8 @@ github.com/berachain/beacon-kit/mod/storage v0.0.0-20240624003607-df94860f8eeb h
 github.com/berachain/beacon-kit/mod/storage v0.0.0-20240624003607-df94860f8eeb/go.mod h1:3S0/lau+3c5ccavJv1e7CIWSQgGsPd5xroCoh/IcSd0=
 github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240627214151-8adce88544c9 h1:lPnuz5jJY57b5Fm2jxows5cuRXOBXdElU475lCFJNRY=
 github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240627214151-8adce88544c9/go.mod h1:Lx+ymdrVVjj/HZhzVZBl03twwsMECkEO1moLnPJkjMs=
+github.com/berachain/cosmos-sdk/server/v2/cometbft v0.0.0-20240627214151-8adce88544c9 h1:Bxp790tkcLJkmkwNH5446If4n6/mBcvTj3DNowH2/M0=
+github.com/berachain/cosmos-sdk/server/v2/cometbft v0.0.0-20240627214151-8adce88544c9/go.mod h1:FDnSph3Ui2l5qC6EgKugSmEYXP/JRQhFNX8Auxy/t3s=
 github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816 h1:41iFGWnSlI2gVpmOtVTJZNodLdLQLn/KsJqFvXwnd/s=
 github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
 github.com/bits-and-blooms/bitset v1.13.0 h1:bAQ9OPNFYbGHV6Nez0tmNI0RiEu7/hxlYJRUA0wFAVE=
