@@ -29,9 +29,7 @@ func DefaultClientComponents() []any {
 		ProvideClientContext,
 		ProvideKeyring,
 		ProvideLogger,
-
 		codec.ProvideInterfaceRegistry,
-		codec.ProvideAddressCodec,
 		codec.ProvideProtoCodec,
 		codec.ProvideLegacyAmino,
 	}

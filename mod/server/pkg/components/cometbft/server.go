@@ -21,11 +21,15 @@
 package cometbft
 
 import (
+	"log"
+
 	"cosmossdk.io/core/transaction"
 	serverv2 "cosmossdk.io/server/v2"
 	sdkcomet "cosmossdk.io/server/v2/cometbft"
+	"cosmossdk.io/store/v2/snapshots"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
+	"github.com/spf13/viper"
 )
 
 // assert that CometBFTServer implements the ServerComponent interface
@@ -59,26 +63,20 @@ func NewServer[
 
 // Init wraps the default Init method and sets the PrepareProposal and
 // ProcessProposal handlers.
-// func (s *Server[NodeT, T, ValidatorUpdateT]) Init(
-// 	node NodeT, v *viper.Viper, logger log.Logger,
-// ) error {
-// 	if err := s.CometBFTServer.Init(node, v, logger); err != nil {
-// 		return err
-// 	}
-// 	var middleware *nodecomponents.ABCIMiddleware
-// 	registry := node.GetServiceRegistry()
-// 	if err := registry.FetchService(&middleware); err != nil {
-// 		return err
-// 	}
+func (s *Server[NodeT, T, ValidatorUpdateT]) Init(
+	node NodeT, v *viper.Viper, logger log.Logger,
+) error {
+	s.Config = sdkcomet.Config{CmtConfig: sdkcomet.GetConfigFromViper(v), ConsensusAuthority: node.GetConsensusAuthority()}
+	// TODO: set these; what is the appropriate presence of the Store interface here?
+	var ss snapshots.StorageSnapshotter
+	var sc snapshots.CommitSnapshotter
 
-// 	engine := cometbft.NewConsensusEngine[T, ValidatorUpdateT](
-// 		consensustypes.CometBFTConsensus,
-// 		s.TxCodec,
-// 		middleware,
-// 	)
+	snapshotStore, err := sdkcomet.GetSnapshotStore(s.Config.CmtConfig.RootDir)
+	if err != nil {
+		return err
+	}
 
-// 	s.CometBFTServer.App.SetMempool(mempool.NoOpMempool[T]{})
-// 	s.CometBFTServer.App.SetPrepareProposalHandler(engine.Prepare)
-// 	s.CometBFTServer.App.SetProcessProposalHandler(engine.Process)
-// 	return nil
-// }
+	sm := snapshots.NewManager(snapshotStore, s.Options.SnapshotOptions, sc, ss, nil, s.logger)
+	s.Consensus.SetSnapshotManager(sm)
+	return nil
+}
