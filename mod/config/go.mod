@@ -2,6 +2,8 @@ module github.com/berachain/beacon-kit/mod/config
 
 go 1.22.4
 
+replace github.com/cosmos/crypto => github.com/cosmos/crypto v0.0.0-20240312084433-de8f9c76030d
+
 require (
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240624204855-d8809d5c8588
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240610210054-bfdc14c4013c

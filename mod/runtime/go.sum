@@ -113,8 +113,8 @@ github.com/cosmos/cosmos-sdk/depinject v1.0.0-alpha.4.0.20240628155326-d426a5db6
 github.com/cosmos/cosmos-sdk/depinject v1.0.0-alpha.4.0.20240628155326-d426a5db6775/go.mod h1:+7Skn+mwpMVufkROtwrXgbUiYuBXEu5rtznvN2yPZkA=
 github.com/cosmos/cosmos-sdk/x/auth v0.0.0-20240628155326-d426a5db6775 h1:3ZE9tQy5itqC8g+XqDuGmlLX09aXO3gNtQ6M2y0gJpc=
 github.com/cosmos/cosmos-sdk/x/auth v0.0.0-20240628155326-d426a5db6775/go.mod h1:KRpK44bjQUA6qEs5avmOs7GRPxH1qGVy77XhP3L7hrk=
-github.com/cosmos/crypto v0.1.0 h1:jy58haX1JdcTS9sReuatXGUQAcN/Cq/itBpjZkfGp/4=
-github.com/cosmos/crypto v0.1.0/go.mod h1:b6VWz3HczIpBaQPvI7KrbQeF3pXHh0al3T5e0uwMBQw=
+github.com/cosmos/crypto v0.0.0-20240312084433-de8f9c76030d h1:jvmjxQ1je5eI4/pBuw0hIh7cRQHypQFltn6tcMhwiUc=
+github.com/cosmos/crypto v0.0.0-20240312084433-de8f9c76030d/go.mod h1:0mwg1fWGQjRi86KM/TQ5pUgBU84rWSYi/yhBg6/Aff0=
 github.com/cosmos/go-bip39 v1.0.0 h1:pcomnQdrdH22njcAatO0yWojsUnCO3y2tNoV1cb6hHY=
 github.com/cosmos/go-bip39 v1.0.0/go.mod h1:RNJv0H/pOIVgxw6KS7QeX2a0Uo0aKUlfhZ4xuwvCdJw=
 github.com/cosmos/gogogateway v1.2.0 h1:Ae/OivNhp8DqBi/sh2A8a1D0y638GpL3tkmLQAiKxTE=
