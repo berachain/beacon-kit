@@ -93,6 +93,11 @@ func (l ListBasic[T]) NewFromSSZ(buf []byte) (*ListBasic[T], error) {
 	}, err
 }
 
+// IsFixed returns true if the ListBasic is fixed size.
+func (l ListBasic[T]) IsFixed() bool {
+	return false
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                  Composite                                 */
 /* -------------------------------------------------------------------------- */
@@ -170,4 +175,9 @@ func (ListComposite[T]) NewFromSSZ(
 		t:     elems,
 		limit: limit,
 	}, nil
+}
+
+// IsFixed returns true if the ListBasic is fixed size.
+func (l ListComposite[T]) IsFixed() bool {
+	return false
 }

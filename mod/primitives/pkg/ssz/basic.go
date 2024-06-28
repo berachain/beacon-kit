@@ -65,6 +65,11 @@ func (b Bool) HashTreeRoot() ([32]byte, error) {
 	return [32]byte(buf), nil
 }
 
+// IsFixed returns true if the bool is fixed size.
+func (Bool) IsFixed() bool {
+	return true
+}
+
 // ChunkCount returns the number of chunks required to store the bool.
 func (Bool) ChunkCount() uint64 {
 	return 1
@@ -104,6 +109,11 @@ func (u U8) HashTreeRoot() ([32]byte, error) {
 	buf := make([]byte, 32)
 	buf[0] = byte(u)
 	return [32]byte(buf), nil
+}
+
+// IsFixed returns true if the bool is fixed size.
+func (U8) IsFixed() bool {
+	return true
 }
 
 // ChunkCount returns the number of chunks required to store the uint8.
@@ -147,6 +157,11 @@ func (u U16) HashTreeRoot() ([32]byte, error) {
 	return [32]byte(buf), nil
 }
 
+// IsFixed returns true if the bool is fixed size.
+func (U16) IsFixed() bool {
+	return true
+}
+
 // ChunkCount returns the number of chunks required to store the uint16.
 func (U16) ChunkCount() uint64 {
 	return 1
@@ -186,6 +201,11 @@ func (u U32) HashTreeRoot() ([32]byte, error) {
 	buf := make([]byte, 32)
 	binary.LittleEndian.PutUint32(buf[:4], uint32(u))
 	return [32]byte(buf), nil
+}
+
+// IsFixed returns true if the bool is fixed size.
+func (U32) IsFixed() bool {
+	return true
 }
 
 // ChunkCount returns the number of chunks required to store the uint32.
@@ -229,6 +249,11 @@ func (u U64) HashTreeRoot() ([32]byte, error) {
 	return [32]byte(buf), nil
 }
 
+// IsFixed returns true if the bool is fixed size.
+func (U64) IsFixed() bool {
+	return true
+}
+
 // ChunkCount returns the number of chunks required to store the uint64.
 func (U64) ChunkCount() uint64 {
 	return 1
@@ -266,6 +291,11 @@ func (b Byte) HashTreeRoot() ([32]byte, error) {
 	buf := make([]byte, 32)
 	buf[0] = byte(b)
 	return [32]byte(buf), nil
+}
+
+// IsFixed returns true if the bool is fixed size.
+func (Byte) IsFixed() bool {
+	return true
 }
 
 // ChunkCount returns the number of chunks required to store the byte.

@@ -74,6 +74,11 @@ func (VectorBasic[T]) NewFromSSZ(buf []byte) (VectorBasic[T], error) {
 	return serializer.UnmarshalVectorFixed[T](buf)
 }
 
+// isFixed returns true if the VectorBasic is fixed size.
+func (VectorBasic[T]) isFixed() bool {
+	return true
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                  Composite                                 */
 /* -------------------------------------------------------------------------- */
@@ -134,4 +139,10 @@ func (VectorComposite[T]) NewFromSSZ(
 	}
 
 	return serializer.UnmarshalVectorFixed[T](buf)
+}
+
+// isFixed returns true if the VectorBasic is fixed size.
+func (VectorComposite[T]) isFixed() bool {
+	var t T
+	return t.IsFixed()
 }

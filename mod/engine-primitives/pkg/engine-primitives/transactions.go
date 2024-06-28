@@ -23,6 +23,7 @@ package engineprimitives
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 )
 
@@ -30,7 +31,7 @@ import (
 // received in the execution payload.
 //
 // TODO: make it take a generic SpecT type.
-type Transactions [][]byte
+type Transactions ssz.ListComposite[*ssz.ListBasic[ssz.Byte]]
 
 // HashTreeRoot returns the hash tree root of the Transactions list.
 //
