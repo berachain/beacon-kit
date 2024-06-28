@@ -17,20 +17,25 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
-package ssz
+
+package context
 
 import (
-	"github.com/berachain/beacon-kit/mod/errors"
+	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/log/pkg/noop"
+	"github.com/cosmos/cosmos-sdk/server"
+	"github.com/spf13/cobra"
 )
 
-var (
-	// ErrInvalidNilSlice is returned when the input slice is nil.
-	ErrInvalidNilSlice = errors.New("invalid empty slice")
+// GetServerContextFromCmd returns a Context from a command or an empty Context
+// if it has not been set.
+func GetServerContextFromCmd(cmd *cobra.Command) *server.Context {
+	if v := cmd.Context().Value(server.ServerContextKey); v != nil {
+		serverCtxPtr, _ := v.(*server.Context)
+		return serverCtxPtr
+	}
 
-	// ErrInvalidLength is returned when the input byte slice has an invalid
-	// length.
-	ErrInvalidLength = errors.New("invalid byte length")
-
-	// ErrInvalidByteValue is returned when the input byte has an invalid value.
-	ErrInvalidByteValue = errors.New("invalid byte value")
-)
+	return newDefaultContextWithLogger(
+		&noop.Logger[any, log.Logger]{},
+	)
+}

@@ -20,30 +20,30 @@
 
 package ssz
 
-// BaseMerkleizer provides basic merkleization operations for SSZ types.
-type BaseMerkleizer[
-	SpecT any, RootT ~[32]byte, T Base[T],
-] interface {
-	MerkleizeByteSlice(value []byte) (RootT, error)
-	Merkleize(chunks []RootT, limit ...uint64) (RootT, error)
+// Base defines the interface for a base type, all SSZable types should
+// implement
+// this interface.
+type Base[BaseT any] interface {
+	// NewFromSSZ creates a new composite type from an SSZ byte slice.
+	NewFromSSZ([]byte) (BaseT, error)
+	// MarshalSSZ serializes the composite type to an SSZ byte slice.
+	MarshalSSZ() ([]byte, error)
+	// SizeSSZ returns the size of the composite type when serialized.
+	SizeSSZ() int
+	// HashTreeRoot returns the hash tree root of the composite type.
+	HashTreeRoot() ([32]byte, error)
 }
 
-// BasicMerkleizer provides merkleization operations for basic SSZ types.
-type BasicMerkleizer[
-	SpecT any, RootT ~[32]byte, T Basic[T],
-] interface {
-	BaseMerkleizer[SpecT, RootT, T]
-	MerkleizeBasic(value T) (RootT, error)
-	MerkleizeVecBasic(value []T) (RootT, error)
-	MerkleizeListBasic(value []T, limit ...uint64) (RootT, error)
+// Basic defines the interface for a basic type.
+type Basic[BasicT any] interface {
+	Base[BasicT]
+	// Then we add an additional restriction to the following:
+	~bool | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 /* TODO: 128, 256 */
 }
 
-// CompositeMerkleizer provides merkleization operations for composite SSZ
-// types.
-type CompositeMerkleizer[
-	SpecT any, RootT ~[32]byte, T Composite[T],
-] interface {
-	BaseMerkleizer[SpecT, RootT, T]
-	MerkleizeVecComposite(value []T) (RootT, error)
-	MerkleizeListComposite(value []T, limit ...uint64) (RootT, error)
+// Composite defines the interface for a composite type.
+type Composite[CompositeT any] interface {
+	Base[CompositeT]
+	// IsFixed returns true if the composite type has a fixed size.
+	IsFixed() bool
 }

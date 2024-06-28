@@ -4,7 +4,7 @@ go 1.22.4
 
 require (
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240624003607-df94860f8eeb
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240624204855-d8809d5c8588
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240627134700-de48919ec4d6
 	github.com/go-playground/validator/v10 v10.20.0
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/stretchr/testify v1.9.0

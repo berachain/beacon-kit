@@ -17,27 +17,20 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
+package serializer
 
-package ssz
+import (
+	"github.com/berachain/beacon-kit/mod/errors"
+)
 
-// Basic defines an interface for SSZ basic types which includes methods for
-// determining the size of the SSZ encoding and computing the hash tree root.
-type Basic[SpecT any, RootT ~[32]byte] interface {
-	// SizeSSZ returns the size in bytes of the SSZ-encoded data.
-	SizeSSZ() int
-	// HashTreeRoot computes and returns the hash tree root of the data as
-	// RootT and an error if the computation fails.
-	HashTreeRoot() (RootT, error)
-}
+var (
+	// ErrInvalidNilSlice is returned when the input slice is nil.
+	ErrInvalidNilSlice = errors.New("invalid empty slice")
 
-// Composite is an interface that embeds the Basic interface. It is used for
-// types that are composed of other SSZ encodable values.
-type Composite[SpecT any, RootT ~[32]byte] interface {
-	Basic[SpecT, RootT]
-}
+	// ErrInvalidLength is returned when the input byte slice has an invalid
+	// length.
+	ErrInvalidLength = errors.New("invalid byte length")
 
-// Container is an interface for SSZ container types that can be marshaled and
-// unmarshaled.
-type Container[SpecT any, RootT ~[32]byte] interface {
-	Composite[SpecT, RootT]
-}
+	// ErrInvalidByteValue is returned when the input byte has an invalid value.
+	ErrInvalidByteValue = errors.New("invalid byte value")
+)

@@ -18,19 +18,17 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package ssz_test
+package merkleizer_test
 
 import (
 	"crypto/sha256"
+	"encoding/binary"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 	"github.com/stretchr/testify/require"
 )
-
-// Check for interface implementation.
-var _ ssz.Basic[any, [32]byte] = BasicItem(0)
 
 // BasicItem represents a basic item in the SSZ Spec.
 type BasicItem uint64
@@ -42,13 +40,15 @@ func (u BasicItem) SizeSSZ() int {
 
 // MarshalSSZ marshals the U64 into a byte slice.
 func (u BasicItem) MarshalSSZ() ([]byte, error) {
-	return ssz.MarshalU64(u), nil
+	buf := make([]byte, 8)
+	binary.LittleEndian.PutUint64(buf, uint64(u))
+	return buf, nil
 }
 
 // HashTreeRoot computes the Merkle root of the U64 using SSZ hashing rules.
 func (u BasicItem) HashTreeRoot() ([32]byte, error) {
 	// In practice we can use a simpler function.
-	merkleizer := ssz.NewMerkleizer[any, [32]byte, BasicItem]()
+	merkleizer := merkleizer.New[any, [32]byte, BasicItem]()
 	return merkleizer.MerkleizeBasic(u)
 }
 
@@ -60,17 +60,15 @@ type BasicContainer[SpecT any] struct {
 
 // SizeSSZ returns the size of the container in bytes.
 func (c *BasicContainer[SpecT]) SizeSSZ() int {
-	return ssz.SizeOfContainer[[32]byte, *BasicContainer[SpecT], SpecT](c)
+	return c.Item1.SizeSSZ() + c.Item2.SizeSSZ()
 }
 
 // HashTreeRoot computes the Merkle root of the container using SSZ hashing
 // rules.
 func (c *BasicContainer[SpecT]) HashTreeRoot() ([32]byte, error) {
-	merkleizer := ssz.NewMerkleizer[SpecT, [32]byte, common.Root]()
+	merkleizer := merkleizer.New[SpecT, [32]byte, common.Root]()
 	return merkleizer.MerkleizeContainer(c)
 }
-
-func (c *BasicContainer[SpecT]) IsContainer() {}
 
 // TestBasicItemMerkleization tests the Merkleization of a basic item.
 func TestBasicContainerMerkleization(t *testing.T) {
