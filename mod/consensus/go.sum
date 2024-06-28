@@ -2,8 +2,8 @@ buf.build/gen/go/cometbft/cometbft/protocolbuffers/go v1.34.2-20240312114316-c0d
 buf.build/gen/go/cometbft/cometbft/protocolbuffers/go v1.34.2-20240312114316-c0d3497e35d6.2/go.mod h1:1+3gJj2NvZ1mTLAtHu+lMhOjGgQPiCKCeo+9MBww0Eo=
 buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.34.2-20240130113600-88ef6483f90f.2 h1:b7EEYTUHmWSBEyISHlHvXbJPqtKiHRuUignL1tsHnNQ=
 buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.34.2-20240130113600-88ef6483f90f.2/go.mod h1:HqcXMSa5qnNuakaMUo+hWhF51mKbcrZxGl9Vp5EeJXc=
-cosmossdk.io/api v0.7.3-0.20240623110059-dec2d5583e39 h1:QKFMx4L7KPbysdkQ7dfISBJkoCjsg0lXYg7EHILW3TA=
-cosmossdk.io/api v0.7.3-0.20240623110059-dec2d5583e39/go.mod h1:K2KfzTU5Pl/YK8ixSxB4X0d+8fticxef1nzOBp2WfP8=
+cosmossdk.io/api v0.7.3-0.20240628155326-d426a5db6775 h1:5lcxwkRRxIahjPdwPohLAJjg3xZ2FMmuhJdJcoKOFNw=
+cosmossdk.io/api v0.7.3-0.20240628155326-d426a5db6775/go.mod h1:5tcrMbzQJlJl7SReX8UcF7dJboRoMNdA8Uj35Mctjlk=
 cosmossdk.io/core v0.12.1-0.20240623110059-dec2d5583e39 h1:Su69DjhpTkamJ/DVu1KHGjoZMAZI6nm7c+LMdZEPLxM=
 cosmossdk.io/core v0.12.1-0.20240623110059-dec2d5583e39/go.mod h1:eBtj3y4YZqvQ+ZcYHl+yRT8sI8A3cywZ/iuZ4Y7unWc=
 github.com/berachain/beacon-kit/mod/errors v0.0.0-20240624210933-3baa52ebb587 h1:/wWG280cpGabhh60II/QDx32YRWZi7G9JEmiB1zoRMU=
