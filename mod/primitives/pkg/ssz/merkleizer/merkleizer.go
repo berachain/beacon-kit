@@ -43,7 +43,7 @@ type merkleizer[
 // New creates a new merkleizer with a reusable hasher and bytes buffer.
 func New[
 	RootT ~[32]byte, T SSZObject[RootT],
-]() *merkleizer[RootT, T] {
+]() Merkleizer[RootT, T] {
 	return &merkleizer[RootT, T]{
 		rootHasher: merkle.NewRootHasher[RootT](
 			crypto.NewHasher[RootT](sha256.Hash),
