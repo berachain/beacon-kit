@@ -31,18 +31,27 @@ import (
 /* -------------------------------------------------------------------------- */
 
 // ListBasic is a list of basic types.
-type ListBasic[T Basic[T]] []T
+type ListBasic[T Basic[T]] struct {
+	t     []T
+	limit uint64
+}
 
 // ListBasicFromElements creates a new ListComposite from elements.
 // TODO: Deprecate once off of Fastssz
-func ListBasicFromElements[T Basic[T]](elements ...T) ListBasic[T] {
-	return elements
+func ListBasicFromElements[T Basic[T]](
+	limit uint64,
+	elements ...T,
+) *ListBasic[T] {
+	return &ListBasic[T]{
+		t:     elements,
+		limit: limit,
+	}
 }
 
 // SizeSSZ returns the size of the list in bytes.
 func (l ListBasic[T]) SizeSSZ() int {
 	// The same for ListBasic as for VectorBasic.
-	return VectorBasic[T](l).SizeSSZ()
+	return VectorBasic[T](l.t).SizeSSZ()
 }
 
 // HashTreeRootWith returns the Merkle root of the ListBasic
@@ -50,7 +59,7 @@ func (l ListBasic[T]) SizeSSZ() int {
 func (l ListBasic[T]) HashTreeRootWith(
 	merkleizer BasicMerkleizer[common.ChainSpec, [32]byte, T],
 ) ([32]byte, error) {
-	return merkleizer.MerkleizeListBasic(l)
+	return merkleizer.MerkleizeListBasic(l.t, l.limit)
 }
 
 // HashTreeRoot returns the Merkle root of the ListBasic.
@@ -63,24 +72,27 @@ func (l ListBasic[T]) HashTreeRoot() ([32]byte, error) {
 
 // MarshalSSZTo marshals the ListBasic into SSZ format.
 func (l ListBasic[T]) MarshalSSZTo(out []byte) ([]byte, error) {
-	return VectorBasic[T](l).MarshalSSZTo(out)
+	return VectorBasic[T](l.t).MarshalSSZTo(out)
 }
 
 // MarshalSSZ marshals the ListBasic into SSZ format.
 func (l ListBasic[T]) MarshalSSZ() ([]byte, error) {
 	// The same for ListBasic as for VectorBasic.
-	return VectorBasic[T](l).MarshalSSZ()
+	return VectorBasic[T](l.t).MarshalSSZ()
 }
 
 // NewFromSSZ creates a new ListBasic from SSZ format.
-func (ListBasic[T]) NewFromSSZ(buf []byte) (ListBasic[T], error) {
+func (l ListBasic[T]) NewFromSSZ(buf []byte) (*ListBasic[T], error) {
 	// The same for ListBasic as for VectorBasic
 	var (
 		t   = make(VectorBasic[T], 0)
 		err error
 	)
+
 	t, err = t.NewFromSSZ(buf)
-	return ListBasic[T](t), err
+	return &ListBasic[T]{
+		t: t,
+	}, err
 }
 
 /* -------------------------------------------------------------------------- */
@@ -88,20 +100,26 @@ func (ListBasic[T]) NewFromSSZ(buf []byte) (ListBasic[T], error) {
 /* -------------------------------------------------------------------------- */
 
 // ListComposite is a list of Composite types.
-type ListComposite[T Composite[T]] []T
+type ListComposite[T Composite[T]] struct {
+	t     []T
+	limit uint64
+}
 
 // ListCompositeFromElements creates a new ListComposite from elements.
 // TODO: Deprecate once off of Fastssz
 func ListCompositeFromElements[T Composite[T]](
-	elements ...T,
-) ListComposite[T] {
-	return elements
+	limit uint64, elements ...T,
+) *ListComposite[T] {
+	return &ListComposite[T]{
+		t:     elements,
+		limit: limit,
+	}
 }
 
 // SizeSSZ returns the size of the list in bytes.
 func (l ListComposite[T]) SizeSSZ() int {
 	// The same for ListComposite as for VectorComposite.
-	return VectorComposite[T](l).SizeSSZ()
+	return VectorComposite[T](l.t).SizeSSZ()
 }
 
 // HashTreeRootWith returns the Merkle root of the ListComposite
@@ -109,7 +127,7 @@ func (l ListComposite[T]) SizeSSZ() int {
 func (l ListComposite[T]) HashTreeRootWith(
 	merkleizer CompositeMerkleizer[common.ChainSpec, [32]byte, T],
 ) ([32]byte, error) {
-	return merkleizer.MerkleizeListComposite(l)
+	return merkleizer.MerkleizeListComposite(l.t)
 }
 
 // HashTreeRoot returns the Merkle root of the ListComposite.
@@ -128,7 +146,7 @@ func (l ListComposite[T]) MarshalSSZTo(out []byte) ([]byte, error) {
 	}
 
 	// Safe to use Vector helper for a list here.
-	return serializer.MarshalVectorFixed(out, l)
+	return serializer.MarshalVectorFixed(out, l.t)
 }
 
 // MarshalSSZ marshals the ListComposite into SSZ format.
@@ -137,12 +155,23 @@ func (l ListComposite[T]) MarshalSSZ() ([]byte, error) {
 }
 
 // NewFromSSZ creates a new ListComposite from SSZ format.
-func (ListComposite[T]) NewFromSSZ(buf []byte) (ListComposite[T], error) {
+func (ListComposite[T]) NewFromSSZ(
+	buf []byte,
+	limit uint64,
+) (*ListComposite[T], error) {
 	var t T
 	if !t.IsFixed() {
 		panic("not implemented yet")
 	}
 
 	// We can use Vector helper for a list here, it is safe.
-	return serializer.UnmarshalVectorFixed[T](buf)
+	elems, err := serializer.UnmarshalVectorFixed[T](buf)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ListComposite[T]{
+		t:     elems,
+		limit: limit,
+	}, nil
 }
