@@ -31,8 +31,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 // NewValidateDeposit creates a new command for validating a deposit message.
@@ -151,7 +151,7 @@ func getBLSSigner(
 	cmd *cobra.Command,
 ) (crypto.BLSSigner, error) {
 	var blsSigner crypto.BLSSigner
-	supplies := []interface{}{viper.GetViper()}
+	supplies := []interface{}{client.GetViperFromCmd(cmd)}
 	overrideFlag, err := cmd.Flags().GetBool(overrideNodeKey)
 	if err != nil {
 		return nil, err
