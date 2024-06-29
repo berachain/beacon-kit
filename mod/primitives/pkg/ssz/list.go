@@ -148,6 +148,8 @@ func (l ListComposite[T]) IsFixed() bool {
 
 // N returns the N value as defined in the SSZ specification.
 func (l ListComposite[T]) N() uint64 {
+	// list: ordered variable-length homogeneous collection, limited to N values
+	// notation List[type, N], e.g. List[uint64, N]
 	return l.limit
 }
 
