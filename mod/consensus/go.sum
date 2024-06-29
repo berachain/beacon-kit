@@ -8,8 +8,8 @@ github.com/berachain/beacon-kit/mod/errors v0.0.0-20240624210933-3baa52ebb587 h1
 github.com/berachain/beacon-kit/mod/errors v0.0.0-20240624210933-3baa52ebb587/go.mod h1:iXa+Q+i0q+GCpLzkusulO57K5vlkDgM77jtfMr3QdFA=
 github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240624165659-90675b692325 h1:GzIrXpB1cHkLuzJDL+ItiALjYydVzieBskUYcfch5J8=
 github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240624165659-90675b692325/go.mod h1:xg8BworJAcrzTzbTgP/637Be89xAtrRzGkXKSzuRMkQ=
-github.com/berachain/cosmos-sdk/server/v2/cometbft v0.0.0-20240624204242-8877694ebd14 h1:LI5gsl/za1TjIBbdvkuLN71P0mLjP7133YRJaEtWEGs=
-github.com/berachain/cosmos-sdk/server/v2/cometbft v0.0.0-20240624204242-8877694ebd14/go.mod h1:S30WqOiHFbQyVocw5SJlY/5GWGO2FHOBlxcon6HbvXo=
+github.com/berachain/cosmos-sdk/server/v2/cometbft v0.0.0-20240628155326-d426a5db6775 h1:UG0Ya6pVAHMOrfi6kSK62+ewapMc2OVRqYVqDQI1GXc=
+github.com/berachain/cosmos-sdk/server/v2/cometbft v0.0.0-20240628155326-d426a5db6775/go.mod h1:pPDXyC5TttnPjj4vL0aLpqBkPbRewN++VaxnhwIHiCM=
 github.com/btcsuite/btcd/btcec/v2 v2.3.3 h1:6+iXlDKE8RMtKsvK0gshlXIuPbyWM/h84Ensb7o3sC0=
 github.com/btcsuite/btcd/btcec/v2 v2.3.3/go.mod h1:zYzJ8etWJQIv1Ogk7OzpWjowwOdXY1W/17j2MW85J04=
 github.com/btcsuite/btcd/btcutil v1.1.5 h1:+wER79R5670vs/ZusMTF1yTcRYE5GUsFbdjdisflzM8=

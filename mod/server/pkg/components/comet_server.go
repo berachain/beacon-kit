@@ -24,16 +24,18 @@ import (
 	"cosmossdk.io/core/transaction"
 	"cosmossdk.io/depinject"
 	sdkcomet "cosmossdk.io/server/v2/cometbft"
+	"cosmossdk.io/server/v2/cometbft/mempool"
+	consensus "github.com/berachain/beacon-kit/mod/consensus/pkg"
 	nodecomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/server/pkg/components/comet"
 )
 
 // CometServerInput is the input for the CometServer for the depinject package.
-type CometServerInput[T transaction.Tx] struct {
+type CometServerInput[T transaction.Tx, ValidatorUpdateT any] struct {
 	depinject.In
-
-	TxCodec *nodecomponents.TxCodec[T]
+	ConsensusEngine consensus.Engine[T, ValidatorUpdateT]
+	TxCodec         *nodecomponents.TxCodec[T]
 }
 
 // ProvideCometServer is the provider for the CometServer for the depinject
@@ -41,10 +43,16 @@ type CometServerInput[T transaction.Tx] struct {
 func ProvideCometServer[
 	NodeT types.Node[T], T transaction.Tx, ValidatorUpdateT any,
 ](
-	in CometServerInput[T],
+	in CometServerInput[T, ValidatorUpdateT],
 ) *comet.Server[NodeT, T, ValidatorUpdateT] {
+
+	options := sdkcomet.DefaultServerOptions[T]()
+	options.Mempool = mempool.NoOpMempool[T]{}
+	options.PrepareProposalHandler = in.ConsensusEngine.Prepare
+	options.ProcessProposalHandler = in.ConsensusEngine.Process
+
 	return &comet.Server[NodeT, T, ValidatorUpdateT]{
-		CometBFTServer: sdkcomet.New[NodeT, T](in.TxCodec),
+		CometBFTServer: sdkcomet.New[NodeT, T](in.TxCodec, options),
 		TxCodec:        in.TxCodec,
 	}
 }

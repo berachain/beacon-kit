@@ -25,10 +25,6 @@ import (
 	"cosmossdk.io/log"
 	serverv2 "cosmossdk.io/server/v2"
 	sdkcomet "cosmossdk.io/server/v2/cometbft"
-	"cosmossdk.io/server/v2/cometbft/mempool"
-	consensus "github.com/berachain/beacon-kit/mod/consensus/pkg"
-	consensustypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
-	nodecomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/spf13/viper"
 )
@@ -48,28 +44,12 @@ type Server[
 	TxCodec transaction.Codec[T]
 }
 
-// Init wraps the default Init method and sets the PrepareProposal and
-// ProcessProposal handlers.
+// don't need this anymore
 func (s *Server[NodeT, T, ValidatorUpdateT]) Init(
 	node NodeT, v *viper.Viper, logger log.Logger,
 ) error {
 	if err := s.CometBFTServer.Init(node, v, logger); err != nil {
 		return err
 	}
-	var middleware *nodecomponents.ABCIMiddleware
-	registry := node.GetServiceRegistry()
-	if err := registry.FetchService(&middleware); err != nil {
-		return err
-	}
-
-	engine := consensus.NewEngine[T, ValidatorUpdateT](
-		consensustypes.CometBFTConsensus,
-		s.TxCodec,
-		middleware,
-	)
-
-	s.CometBFTServer.App.SetMempool(mempool.NoOpMempool[T]{})
-	s.CometBFTServer.App.SetPrepareProposalHandler(engine.Prepare)
-	s.CometBFTServer.App.SetProcessProposalHandler(engine.Process)
 	return nil
 }
