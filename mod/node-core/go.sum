@@ -108,8 +108,8 @@ github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240624003607-df948
 github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240624003607-df94860f8eeb/go.mod h1:RvAUQ7z/nf5kjSQVn0mnTpjOelHLs/KAw+iMhhIL2Ik=
 github.com/berachain/beacon-kit/mod/storage v0.0.0-20240624003607-df94860f8eeb h1:g0HIyzCHDvQorlK9adNLpfSqpkhoHWWGUYhnwvGVtac=
 github.com/berachain/beacon-kit/mod/storage v0.0.0-20240624003607-df94860f8eeb/go.mod h1:3S0/lau+3c5ccavJv1e7CIWSQgGsPd5xroCoh/IcSd0=
-github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240624204242-8877694ebd14 h1:jE2h/YhdIT6ikVgvWTntt8+DZ2ZyIU9tDHsFz1vgt/0=
-github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240624204242-8877694ebd14/go.mod h1:hCN0m+X7MmJvJ2ukDDRDyScC+30wXHtXTdx6vleSnBU=
+github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240628155326-d426a5db6775 h1:KulT0TwopY5EiEr+fCncmmTbwTAGwOCCAdcHY+NTVJk=
+github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240628155326-d426a5db6775/go.mod h1:cvdy9dmULJ6vAJRv/xFXlEXoHonI3Wol+WoDg3P9h8M=
 github.com/berachain/cosmos-sdk/runtime/v2 v2.0.0-20240624204242-8877694ebd14 h1:4Vk8VKXahnHubJjjlFLkacVHxQOInHJfmo8utIGe+Js=
 github.com/berachain/cosmos-sdk/runtime/v2 v2.0.0-20240624204242-8877694ebd14/go.mod h1:S0wDEqzNr1wDjuBRcUxWesT0oX5+qJGYQXO78IOmK2Y=
 github.com/berachain/cosmos-sdk/server/v2/appmanager v0.0.0-20240628155326-d426a5db6775 h1:qXqIwqPSw0EckJ0b+KJBvWn7r/ClltlWmgY8U0P1Vfw=
