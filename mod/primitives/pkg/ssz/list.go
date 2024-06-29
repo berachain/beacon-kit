@@ -123,96 +123,96 @@ func (l ListBasic[B]) NewFromSSZ(buf []byte) (*ListBasic[B], error) {
 /* -------------------------------------------------------------------------- */
 
 // ListComposite is a list of Composite types.
-type ListComposite[T Composite[T]] struct {
-	t     []T
-	limit uint64
+type ListComposite[C Composite[C]] struct {
+	elements []C
+	limit    uint64
 }
 
 // ListCompositeFromElements creates a new ListComposite from elements.
 // TODO: Deprecate once off of Fastssz
-func ListCompositeFromElements[T Composite[T]](
-	limit uint64, elements ...T,
-) *ListComposite[T] {
-	return &ListComposite[T]{
-		t:     elements,
-		limit: limit,
+func ListCompositeFromElements[C Composite[C]](
+	limit uint64, elements ...C,
+) *ListComposite[C] {
+	return &ListComposite[C]{
+		elements: elements,
+		limit:    limit,
 	}
 }
 
 // IsFixed returns true if the ListBasic is fixed size.
-func (l ListComposite[T]) IsFixed() bool {
+func (l ListComposite[C]) IsFixed() bool {
 	// We recursively define "variable-size" types to be lists, unions, Bitlists.
 	// Therefore all Lists are NOT fixed.
 	return false
 }
 
 // N returns the N value as defined in the SSZ specification.
-func (l ListComposite[T]) N() uint64 {
+func (l ListComposite[C]) N() uint64 {
 	// list: ordered variable-length homogeneous collection, limited to N values
 	// notation List[type, N], e.g. List[uint64, N]
 	return l.limit
 }
 
 // ChunkCount returns the number of chunks in the VectorComposite.
-func (l ListComposite[T]) ChunkCount() uint64 {
+func (l ListComposite[C]) ChunkCount() uint64 {
 	// List[C, N] and Vector[C, N], where C is a composite type: N
 	return (l.N())
 }
 
 // SizeSSZ returns the size of the list in bytes.
-func (l ListComposite[T]) SizeSSZ() int {
+func (l ListComposite[C]) SizeSSZ() int {
 	// The same for ListComposite as for VectorComposite.
-	return VectorComposite[T](l.t).SizeSSZ()
+	return VectorComposite[C](l.elements).SizeSSZ()
 }
 
 // HashTreeRootWith returns the Merkle root of the ListComposite
 // with a given merkleizer.
-func (l ListComposite[T]) HashTreeRootWith(
-	merkleizer CompositeMerkleizer[common.ChainSpec, [32]byte, T],
+func (l ListComposite[C]) HashTreeRootWith(
+	merkleizer CompositeMerkleizer[common.ChainSpec, [32]byte, C],
 ) ([32]byte, error) {
-	return merkleizer.MerkleizeListComposite(l.t)
+	return merkleizer.MerkleizeListComposite(l.elements)
 }
 
 // HashTreeRoot returns the Merkle root of the ListComposite.
-func (l ListComposite[T]) HashTreeRoot() ([32]byte, error) {
+func (l ListComposite[C]) HashTreeRoot() ([32]byte, error) {
 	// Create a merkleizer
-	return l.HashTreeRootWith(merkleizer.New[[32]byte, T]())
+	return l.HashTreeRootWith(merkleizer.New[[32]byte, C]())
 }
 
 // MarshalSSZTo marshals the ListComposite into SSZ format.
-func (l ListComposite[T]) MarshalSSZTo(out []byte) ([]byte, error) {
-	var t T
-	if !t.IsFixed() {
+func (l ListComposite[C]) MarshalSSZTo(out []byte) ([]byte, error) {
+	var c C
+	if !c.IsFixed() {
 		panic("not implemented yet")
 	}
 
 	// Safe to use Vector helper for a list here.
-	return serializer.MarshalVectorFixed(out, l.t)
+	return serializer.MarshalVectorFixed(out, l.elements)
 }
 
 // MarshalSSZ marshals the ListComposite into SSZ format.
-func (l ListComposite[T]) MarshalSSZ() ([]byte, error) {
+func (l ListComposite[C]) MarshalSSZ() ([]byte, error) {
 	return l.MarshalSSZTo(make([]byte, 0, l.SizeSSZ()))
 }
 
 // NewFromSSZ creates a new ListComposite from SSZ format.
-func (ListComposite[T]) NewFromSSZ(
+func (ListComposite[C]) NewFromSSZ(
 	buf []byte,
 	limit uint64,
-) (*ListComposite[T], error) {
-	var t T
-	if !t.IsFixed() {
+) (*ListComposite[C], error) {
+	var c C
+	if !c.IsFixed() {
 		panic("not implemented yet")
 	}
 
 	// We can use Vector helper for a list here, it is safe.
-	elems, err := serializer.UnmarshalVectorFixed[T](buf)
+	elements, err := serializer.UnmarshalVectorFixed[C](buf)
 	if err != nil {
 		return nil, err
 	}
 
-	return &ListComposite[T]{
-		t:     elems,
-		limit: limit,
+	return &ListComposite[C]{
+		elements: elements,
+		limit:    limit,
 	}, nil
 }
