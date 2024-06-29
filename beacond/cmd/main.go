@@ -98,8 +98,6 @@ func run() error {
 				nodecomponents.ProvideTxCodec[tx],
 				servercomponents.ProvideCometServer[node, tx, validatorUpdate],
 				servercomponents.ProvideConsensusEngine[tx, validatorUpdate],
-				// server v2
-				nodecomponents.ProvideMessageServer,
 			)...,
 		),
 		clibuilder.SupplyModuleDeps[node, tx, validatorUpdate](

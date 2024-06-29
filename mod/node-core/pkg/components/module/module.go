@@ -59,9 +59,6 @@ var (
 	_ module.HasABCIEndBlock = AppModule[
 		transaction.Tx, appmodulev2.ValidatorUpdate,
 	]{}
-	// _ module.HasServices = AppModule[
-	// 	transaction.Tx, appmodulev2.ValidatorUpdate,
-	// ]{}
 )
 
 // AppModule implements an application module for the beacon module.
@@ -76,10 +73,12 @@ type AppModule[T transaction.Tx, ValidatorUpdateT any] struct {
 func NewAppModule[T transaction.Tx, ValidatorUpdateT any](
 	abciMiddleware *components.ABCIMiddleware,
 	txCodec transaction.Codec[T],
+	msgServer *comet.MsgServer,
 ) AppModule[T, ValidatorUpdateT] {
 	return AppModule[T, ValidatorUpdateT]{
 		ABCIMiddleware: abciMiddleware,
 		TxCodec:        txCodec,
+		msgServer:      msgServer,
 	}
 }
 

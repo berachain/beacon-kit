@@ -81,7 +81,6 @@ func DefaultComponentsWithStandardTypes() []any {
 
 		// server v2
 		ProvideStoreOptions,
-		ProvideMessageServer,
 
 		codec.ProvideInterfaceRegistry,
 		codec.ProvideAddressCodec,
