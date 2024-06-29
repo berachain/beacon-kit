@@ -32,7 +32,8 @@ func (m *merkleizer[RootT, T]) MerkleizeVectorBasic(
 	return m.Merkleize(packed)
 }
 
-// MerkleizeVectorComposite implements the SSZ merkleization algorithm for a vector
+// MerkleizeVectorComposite implements the SSZ merkleization algorithm for a
+// vector
 // of composite types.
 func (m *merkleizer[RootT, T]) MerkleizeVectorComposite(
 	value []T,
