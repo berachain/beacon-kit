@@ -105,10 +105,7 @@ func (m *merkleizer[RootT, T]) MerkleizeContainer(
 func (m *merkleizer[RootT, T]) MerkleizeByteSlice(
 	input []byte,
 ) (RootT, error) {
-	chunks, numChunks, err := chunkifyBytes[RootT](input)
-	if err != nil {
-		return RootT{}, err
-	}
+	chunks, numChunks := chunkifyBytes[RootT](input)
 	return m.Merkleize(chunks, numChunks)
 }
 

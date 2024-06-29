@@ -46,12 +46,13 @@ func pack[
 		packed = append(packed, buf...)
 	}
 
-	return chunkifyBytes[RootT](packed)
+	chunks, numChunks := chunkifyBytes[RootT](packed)
+	return chunks, numChunks, nil
 }
 
 // chunkifyBytes partitions a byte slice into chunks of a given length.
 func chunkifyBytes[RootT ~[32]byte](input []byte) (
-	[]RootT, uint64, error,
+	[]RootT, uint64,
 ) {
 	//nolint:mnd // we add 31 in order to round up the division.
 	numChunks := max((len(input)+31)/constants.RootLength, 1)
@@ -61,16 +62,18 @@ func chunkifyBytes[RootT ~[32]byte](input []byte) (
 		copy(chunks[i][:], input[32*i:])
 	}
 	//#nosec:G701 // numChunks is always >= 1.
-	return chunks, uint64(numChunks), nil
+	return chunks, uint64(numChunks)
 }
 
 // packBits packs a list of SSZ-marshallable bitlists into a single byte slice.
+//
+//nolint:unused // todo eventually implement this function.
 func packBits[
 	RootT ~[32]byte,
 	T interface {
 		MarshalSSZ() ([]byte, error)
 	},
-](values []T) ([]RootT, error) {
+]([]T) ([]RootT, error) {
 	// pack_bits(bits): Given the bits of bitlist or bitvector, get
 	// bitfield_bytes by packing them in bytes and aligning to the start.
 	// The length-delimiting bit for bitlists is excluded. Then return pack

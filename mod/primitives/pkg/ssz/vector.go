@@ -53,12 +53,17 @@ func (VectorBasic[B]) IsFixed() bool {
 
 // ChunkCount returns the number of chunks in the VectorBasic.
 func (l VectorBasic[B]) ChunkCount() uint64 {
+	// List[B, N] and Vector[B, N], where B is a basic type:
+	// (N * size_of(B) + 31) // 32 (dividing by chunk size, rounding up)
 	var b B
+	//nolint:mnd // 31 is okay.
 	return (l.N()*uint64(b.SizeSSZ()) + 31) / constants.RootLength
 }
 
-// N returns the N value as defined in the SSZ specification
+// N returns the N value as defined in the SSZ specification.
 func (l VectorBasic[B]) N() uint64 {
+	// vector: ordered fixed-length homogeneous collection, with N values
+	// notation Vector[type, N], e.g. Vector[uint64, N]
 	return uint64(len(l))
 }
 
@@ -112,8 +117,10 @@ func (VectorComposite[T]) IsFixed() bool {
 	return t.IsFixed()
 }
 
-// N returns the N value as defined in the SSZ specification
+// N returns the N value as defined in the SSZ specification.
 func (l VectorComposite[T]) N() uint64 {
+	// vector: ordered fixed-length homogeneous collection, with N values
+	// notation Vector[type, N], e.g. Vector[uint64, N]
 	return uint64(len(l))
 }
 
@@ -121,6 +128,12 @@ func (l VectorComposite[T]) N() uint64 {
 func (l VectorComposite[T]) SizeSSZ() int {
 	var t T
 	return t.SizeSSZ() * len(l)
+}
+
+// ChunkCount returns the number of chunks in the VectorComposite.
+func (l VectorComposite[T]) ChunkCount() uint64 {
+	// List[C, N] and Vector[C, N], where C is a composite type: N
+	return (l.N())
 }
 
 // HashTreeRootWith returns the Merkle root of the VectorComposite

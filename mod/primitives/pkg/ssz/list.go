@@ -54,14 +54,19 @@ func (l ListBasic[B]) IsFixed() bool {
 	return false
 }
 
-// N returns the N value as defined in the SSZ specification
+// N returns the N value as defined in the SSZ specification.
 func (l ListBasic[B]) N() uint64 {
+	// list: ordered variable-length homogeneous collection, limited to N values
+	// notation List[type, N], e.g. List[uint64, N]
 	return l.limit
 }
 
 // ChunkCount returns the number of chunks in the ListBasic.
 func (l ListBasic[B]) ChunkCount() uint64 {
+	// List[B, N] and Vector[B, N], where B is a basic type:
+	// (N * size_of(B) + 31) // 32 (dividing by chunk size, rounding up)
 	var b B
+	//nolint:mnd // 31 is okay.
 	return (l.N()*uint64(b.SizeSSZ()) + 31) / constants.RootLength
 }
 
@@ -136,9 +141,15 @@ func (l ListComposite[T]) IsFixed() bool {
 	return false
 }
 
-// N returns the N value as defined in the SSZ specification
+// N returns the N value as defined in the SSZ specification.
 func (l ListComposite[T]) N() uint64 {
 	return l.limit
+}
+
+// ChunkCount returns the number of chunks in the VectorComposite.
+func (l ListComposite[T]) ChunkCount() uint64 {
+	// List[C, N] and Vector[C, N], where C is a composite type: N
+	return (l.N())
 }
 
 // SizeSSZ returns the size of the list in bytes.
