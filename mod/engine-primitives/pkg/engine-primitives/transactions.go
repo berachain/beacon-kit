@@ -23,38 +23,23 @@ package engineprimitives
 import (
 	"unsafe"
 
+	constants "github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 )
 
 // Transactions is a typealias for [][]byte, which is how transactions are
 // received in the execution payload.
-//
-// TODO: make it take a generic SpecT type.
 type Transactions = ssz.ListComposite[ssz.ByteVector]
 
-func TransactionsFromBytes(data [][]byte) Transactions {
-	return *(*Transactions)(unsafe.Pointer(&data))
+// TransactionsFromBytes creates a Transactions object from a byte slice.
+func TransactionsFromBytes(data [][]byte) *Transactions {
+	return ssz.ListCompositeFromElements(
+		// TODO: Move this value to chain spec.
+		constants.MaxTxsPerPayload,
+		*(*[]ssz.ByteVector)(unsafe.Pointer(&data))...)
 }
 
-// // HashTreeRoot returns the hash tree root of the Transactions list.
-// //
-// // NOTE: Uses a new merkleizer for each call.
-// func (txs Transactions) HashTreeRoot() (common.Root, error) {
-// 	return txs.HashTreeRootWith(
-// 		merkleizer.New[[32]byte, common.Root](),
-// 	)
-// }
-
-// TxsMerkleizer is a ssz merkleizer used for transactions.
-//
 // TODO: make the ChainSpec a generic on this type.
-type TxsMerkleizer merkleizer.Merkleizer[[32]byte, ssz.ListComposite[ssz.ByteVector]]
-
-// // HashTreeRootWith returns the hash tree root of the Transactions list
-// // using the given merkleizer.
-// func (txs Transactions) HashTreeRootWith(
-// 	merkleizer TxsMerkleizer,
-// ) (common.Root, error) {
-// 	return
-// }
+type TxsMerkleizer merkleizer.
+	Merkleizer[[32]byte, ssz.ListComposite[ssz.ByteVector]]

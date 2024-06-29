@@ -178,6 +178,10 @@ func (VectorComposite[C]) NewFromSSZ(
 	return serializer.UnmarshalVectorFixed[C](buf)
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                    Byte                                    */
+/* -------------------------------------------------------------------------- */
+
 // ByteVector represents a list of bytes with a maximum length.
 type ByteVector []byte
 
@@ -186,7 +190,8 @@ func NewByteVector(elements []byte) ByteVector {
 	return elements
 }
 
-// HashTreeRootWith returns the Merkle root of the ByteVector using the provided merkleizer.
+// HashTreeRootWith returns the Merkle root of the ByteVector using the provided
+// merkleizer.
 func (l ByteVector) HashTreeRootWith(
 	merkleizer merkleizer.Merkleizer[[32]byte, Byte],
 ) ([32]byte, error) {

@@ -29,11 +29,11 @@ import (
 )
 
 func TestTransactions(t *testing.T) {
-	txs := engineprimitives.Transactions{
-		[]byte("transaction1"),
-		[]byte("transaction2"),
-		[]byte("transaction3"),
-	}
+	txs := engineprimitives.TransactionsFromBytes(
+		[][]byte{[]byte("transaction1"),
+			[]byte("transaction2"),
+			[]byte("transaction3")},
+	)
 
 	root, err := txs.HashTreeRoot()
 	require.NoError(t, err)

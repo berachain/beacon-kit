@@ -51,7 +51,8 @@ func ListBasicFromElements[B Basic[B]](
 
 // IsFixed returns true if the ListBasic is fixed size.
 func (l ListBasic[B]) IsFixed() bool {
-	// We recursively define "variable-size" types to be lists, unions, Bitlists.
+	// We recursively define "variable-size" types to be lists, unions,
+	// Bitlists.
 	// Therefore all Lists are NOT fixed.
 	return false
 }
@@ -141,7 +142,8 @@ func ListCompositeFromElements[C Composite[C]](
 
 // IsFixed returns true if the ListBasic is fixed size.
 func (l ListComposite[C]) IsFixed() bool {
-	// We recursively define "variable-size" types to be lists, unions, Bitlists.
+	// We recursively define "variable-size" types to be lists, unions,
+	// Bitlists.
 	// Therefore all Lists are NOT fixed.
 	return false
 }
@@ -170,7 +172,7 @@ func (l ListComposite[C]) SizeSSZ() int {
 func (l ListComposite[C]) HashTreeRootWith(
 	merkleizer CompositeMerkleizer[common.ChainSpec, [32]byte, C],
 ) ([32]byte, error) {
-	return merkleizer.MerkleizeListComposite(l.elements)
+	return merkleizer.MerkleizeListComposite(l.elements, l.limit)
 }
 
 // HashTreeRoot returns the Merkle root of the ListComposite.
