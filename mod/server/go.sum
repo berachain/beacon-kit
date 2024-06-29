@@ -24,8 +24,6 @@ cosmossdk.io/server/v2/appmanager v0.0.0-20240624191328-722ac39873e4 h1:nIpps9Yy
 cosmossdk.io/server/v2/appmanager v0.0.0-20240624191328-722ac39873e4/go.mod h1:gFlSQXvvR4YMmUXHAxuMfXmWfqQkt6wAkMJBxXVJP0s=
 cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc h1:R9O9d75e0qZYUsVV0zzi+D7cNLnX2JrUOQNoIPaF0Bg=
 cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc/go.mod h1:amTTatOUV3u1PsKmNb87z6/galCxrRbz9kRdJkL0DyU=
-cosmossdk.io/store/v2 v2.0.0-20240625055312-26913b073414 h1:gSEV0T4+JBMVw02wQkF1fMLO04gqve+G9Yp+yCwk2Rk=
-cosmossdk.io/store/v2 v2.0.0-20240625055312-26913b073414/go.mod h1:WTREhkflCGsyhc40WC821UEDSwG3xQNOQKWyz8hyf+A=
 cosmossdk.io/x/accounts v0.0.0-20240625055312-26913b073414 h1:U6nXsk+Q7YdhQ7ObslI62zB3E7NcfTJ9x7iEp6A3JX4=
 cosmossdk.io/x/accounts v0.0.0-20240625055312-26913b073414/go.mod h1:nOSx3lOJCTqsMyEIZG1LHeRhTWplMxjBGsZS+FqP8x4=
 cosmossdk.io/x/accounts/defaults/lockup v0.0.0-20240417181816-5e7aae0db1f5 h1:eb0kcGyaYHSS0do7+MIWg7UKlskSH01biRNENbm/zDA=
@@ -116,6 +114,8 @@ github.com/berachain/cosmos-sdk/server/v2 v2.0.0-20240628155326-d426a5db6775 h1:
 github.com/berachain/cosmos-sdk/server/v2 v2.0.0-20240628155326-d426a5db6775/go.mod h1:GzSm8Cj64xe5vaCunl1YNyOpJ0/YXXwsL0QejvK/ErQ=
 github.com/berachain/cosmos-sdk/server/v2/cometbft v0.0.0-20240628155326-d426a5db6775 h1:UG0Ya6pVAHMOrfi6kSK62+ewapMc2OVRqYVqDQI1GXc=
 github.com/berachain/cosmos-sdk/server/v2/cometbft v0.0.0-20240628155326-d426a5db6775/go.mod h1:pPDXyC5TttnPjj4vL0aLpqBkPbRewN++VaxnhwIHiCM=
+github.com/berachain/cosmos-sdk/store/v2 v2.0.0-20240628155326-d426a5db6775 h1:TkiDfj83GyyaLlLPl1238w3ra+0jHHoSW1G9ZQjx0KQ=
+github.com/berachain/cosmos-sdk/store/v2 v2.0.0-20240628155326-d426a5db6775/go.mod h1:4TjTSDlpS4RIoaiUyLu0eRp0GQB/0Q+js7Ixa/UM7Rs=
 github.com/bgentry/speakeasy v0.2.0 h1:tgObeVOf8WAvtuAX6DhJ4xks4CFNwPDZiqzGqIHE51E=
 github.com/bgentry/speakeasy v0.2.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
 github.com/bits-and-blooms/bitset v1.13.0 h1:bAQ9OPNFYbGHV6Nez0tmNI0RiEu7/hxlYJRUA0wFAVE=

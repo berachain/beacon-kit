@@ -30,8 +30,6 @@ cosmossdk.io/server/v2/stf v0.0.0-20240628155326-d426a5db6775 h1:8ZLGDTeFKGaQNqz
 cosmossdk.io/server/v2/stf v0.0.0-20240628155326-d426a5db6775/go.mod h1:XW9eLJQhZtP6Z/92F0fmL3SJt57yX1G47rXyAa06ptM=
 cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc h1:R9O9d75e0qZYUsVV0zzi+D7cNLnX2JrUOQNoIPaF0Bg=
 cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc/go.mod h1:amTTatOUV3u1PsKmNb87z6/galCxrRbz9kRdJkL0DyU=
-cosmossdk.io/store/v2 v2.0.0-20240625055312-26913b073414 h1:gSEV0T4+JBMVw02wQkF1fMLO04gqve+G9Yp+yCwk2Rk=
-cosmossdk.io/store/v2 v2.0.0-20240625055312-26913b073414/go.mod h1:WTREhkflCGsyhc40WC821UEDSwG3xQNOQKWyz8hyf+A=
 cosmossdk.io/tools/confix v0.1.1 h1:aexyRv9+y15veH3Qw16lxQwo+ki7r2I+g0yNTEFEQM8=
 cosmossdk.io/tools/confix v0.1.1/go.mod h1:nQVvP1tHsGXS83PonPVWJtSbddIqyjEw99L4M3rPJyQ=
 cosmossdk.io/x/accounts v0.0.0-20240625055312-26913b073414 h1:U6nXsk+Q7YdhQ7ObslI62zB3E7NcfTJ9x7iEp6A3JX4=
@@ -128,6 +126,8 @@ github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240628155326-d426a5db6775 h1:K
 github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240628155326-d426a5db6775/go.mod h1:cvdy9dmULJ6vAJRv/xFXlEXoHonI3Wol+WoDg3P9h8M=
 github.com/berachain/cosmos-sdk/server/v2/cometbft v0.0.0-20240628155326-d426a5db6775 h1:UG0Ya6pVAHMOrfi6kSK62+ewapMc2OVRqYVqDQI1GXc=
 github.com/berachain/cosmos-sdk/server/v2/cometbft v0.0.0-20240628155326-d426a5db6775/go.mod h1:pPDXyC5TttnPjj4vL0aLpqBkPbRewN++VaxnhwIHiCM=
+github.com/berachain/cosmos-sdk/store/v2 v2.0.0-20240628155326-d426a5db6775 h1:TkiDfj83GyyaLlLPl1238w3ra+0jHHoSW1G9ZQjx0KQ=
+github.com/berachain/cosmos-sdk/store/v2 v2.0.0-20240628155326-d426a5db6775/go.mod h1:4TjTSDlpS4RIoaiUyLu0eRp0GQB/0Q+js7Ixa/UM7Rs=
 github.com/bgentry/speakeasy v0.2.0 h1:tgObeVOf8WAvtuAX6DhJ4xks4CFNwPDZiqzGqIHE51E=
 github.com/bgentry/speakeasy v0.2.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
 github.com/bits-and-blooms/bitset v1.13.0 h1:bAQ9OPNFYbGHV6Nez0tmNI0RiEu7/hxlYJRUA0wFAVE=
