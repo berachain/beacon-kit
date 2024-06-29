@@ -26,7 +26,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/serializer"
 )
 
-// Mock type implementing the required interface for testing
 type MockType struct {
 	data []byte
 }
