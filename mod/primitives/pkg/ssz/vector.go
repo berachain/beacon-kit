@@ -83,7 +83,6 @@ func (l VectorBasic[B]) HashTreeRootWith(
 		return merkleizer.MerkleizeByteSlice(
 			*(*[]byte)(unsafe.Pointer(&l)),
 		)
-
 	}
 	return merkleizer.MerkleizeVectorBasic(l)
 }

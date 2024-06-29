@@ -174,7 +174,7 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 	}
 
 	header, err := payload.ToHeader(
-		merkleizer.New[[32]byte, ssz.ListComposite[ssz.ByteVector]](),
+		merkleizer.New[[32]byte, ssz.VectorBasic[ssz.Byte]](),
 		uint64(16),
 	)
 	require.NoError(t, err)
