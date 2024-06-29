@@ -21,6 +21,8 @@
 package ssz
 
 import (
+	"unsafe"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
@@ -73,6 +75,16 @@ func (l VectorBasic[B]) N() uint64 {
 func (l VectorBasic[B]) HashTreeRootWith(
 	merkleizer BasicMerkleizer[[32]byte, B],
 ) ([32]byte, error) {
+	var b B
+	// If this is a Vector of Bytes, we can use the optimized
+	// version of the merkleizer opposed to having to iterate through
+	// each byte by byte.
+	if _, ok := any(b).(Byte); ok {
+		return merkleizer.MerkleizeByteSlice(
+			*(*[]byte)(unsafe.Pointer(&l)),
+		)
+
+	}
 	return merkleizer.MerkleizeVectorBasic(l)
 }
 
@@ -176,55 +188,4 @@ func (VectorComposite[C]) NewFromSSZ(
 	}
 
 	return serializer.UnmarshalVectorFixed[C](buf)
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                    Byte                                    */
-/* -------------------------------------------------------------------------- */
-
-// ByteVector represents a list of bytes with a maximum length.
-type ByteVector []byte
-
-// NewByteVector creates a new ByteVector with the given elements and limit.
-func NewByteVector(elements []byte) ByteVector {
-	return elements
-}
-
-// HashTreeRootWith returns the Merkle root of the ByteVector using the provided
-// merkleizer.
-func (l ByteVector) HashTreeRootWith(
-	merkleizer merkleizer.Merkleizer[[32]byte, Byte],
-) ([32]byte, error) {
-	return merkleizer.MerkleizeByteSlice(l)
-}
-
-// HashTreeRoot returns the Merkle root of the ByteVector.
-func (l ByteVector) HashTreeRoot() ([32]byte, error) {
-	return l.HashTreeRootWith(merkleizer.New[[32]byte, Byte]())
-}
-
-// MarshalSSZTo marshals the ByteVector into SSZ format.
-func (l ByteVector) MarshalSSZTo(out []byte) ([]byte, error) {
-	out = append(out, l...)
-	return out, nil
-}
-
-// MarshalSSZ marshals the ByteVector into SSZ format.
-func (l ByteVector) MarshalSSZ() ([]byte, error) {
-	return l.MarshalSSZTo(make([]byte, 0, l.SizeSSZ()))
-}
-
-// SizeSSZ returns the SSZ encoded size of the ByteVector.
-func (l ByteVector) SizeSSZ() int {
-	return len(l)
-}
-
-// NewFromSSZ creates a new ByteVector from SSZ format.
-func (ByteVector) NewFromSSZ(buf []byte) (ByteVector, error) {
-	return buf, nil
-}
-
-// IsFixed returns true if the ByteVector is fixed size.
-func (ByteVector) IsFixed() bool {
-	return true
 }

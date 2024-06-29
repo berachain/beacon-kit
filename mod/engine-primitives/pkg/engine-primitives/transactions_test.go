@@ -40,26 +40,4 @@ func TestTransactions(t *testing.T) {
 	require.NotNil(t, root)
 
 	require.NotEqual(t, common.Root{}, root)
-
-	// Create two identical Transactions
-	txs1 := engineprimitives.TransactionsFromBytes(
-		[][]byte{[]byte("transaction1"),
-			[]byte("transaction2"),
-			[]byte("transaction3")},
-	)
-	txs2 := engineprimitives.Transactions2FromBytes(
-		[][]byte{[]byte("transaction1"),
-			[]byte("transaction2"),
-			[]byte("transaction3")},
-	)
-
-	// Calculate HashTreeRoot for both
-	root1, err1 := txs1.HashTreeRoot()
-	require.NoError(t, err1)
-	root2, err2 := txs2.HashTreeRoot()
-	require.NoError(t, err2)
-
-	// Check if the roots are equal
-	require.Equal(t, root1, root2, "HashTreeRoot of identical Transactions should be equal")
-
 }
