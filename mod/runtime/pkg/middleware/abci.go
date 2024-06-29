@@ -23,7 +23,6 @@ package middleware
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
