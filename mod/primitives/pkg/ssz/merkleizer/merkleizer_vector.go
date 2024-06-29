@@ -18,32 +18,38 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package ssz
+package merkleizer
 
-// BaseMerkleizer provides basic merkleization operations for SSZ types.
-type BaseMerkleizer[
-	RootT ~[32]byte, T Base[T],
-] interface {
-	MerkleizeByteSlice(value []byte) (RootT, error)
-	Merkleize(chunks []RootT, limit ...uint64) (RootT, error)
+// MerkleizeVectorBasic implements the SSZ merkleization algorithm
+// for a vector of basic types.
+func (m *merkleizer[RootT, T]) MerkleizeVectorBasic(
+	value []T,
+) (RootT, error) {
+	// merkleize(pack(value))
+	// if value is a basic object or a vector of basic objects.
+	packed, _, err := pack[RootT](value)
+	if err != nil {
+		return [32]byte{}, err
+	}
+	return m.Merkleize(packed)
 }
 
-// BasicMerkleizer provides merkleization operations for basic SSZ types.
-type BasicMerkleizer[
-	RootT ~[32]byte, T Basic[T],
-] interface {
-	BaseMerkleizer[RootT, T]
-	MerkleizeBasic(value T) (RootT, error)
-	MerkleizeVectorBasic(value []T) (RootT, error)
-	MerkleizeListBasic(value []T, limit ...uint64) (RootT, error)
-}
+// MerkleizeVectorComposite implements the SSZ merkleization algorithm for a
+// vector
+// of composite types.
+func (m *merkleizer[RootT, T]) MerkleizeVectorComposite(
+	value []T,
+) (RootT, error) {
+	var (
+		err  error
+		htrs = m.bytesBuffer.Get(len(value))
+	)
 
-// CompositeMerkleizer provides merkleization operations for composite SSZ
-// types.
-type CompositeMerkleizer[
-	SpecT any, RootT ~[32]byte, T Composite[T],
-] interface {
-	BaseMerkleizer[RootT, T]
-	MerkleizeVectorComposite(value []T) (RootT, error)
-	MerkleizeListComposite(value []T, limit ...uint64) (RootT, error)
+	for i, el := range value {
+		htrs[i], err = el.HashTreeRoot()
+		if err != nil {
+			return RootT{}, err
+		}
+	}
+	return m.Merkleize(htrs)
 }

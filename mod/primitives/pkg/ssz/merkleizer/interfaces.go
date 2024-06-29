@@ -25,9 +25,9 @@ type Merkleizer[
 	RootT ~[32]byte, T SSZObject[RootT],
 ] interface {
 	MerkleizeBasic(value T) (RootT, error)
-	MerkleizeVecBasic(value []T) (RootT, error)
+	MerkleizeVectorBasic(value []T) (RootT, error)
 	MerkleizeListBasic(value []T, limit ...uint64) (RootT, error)
-	MerkleizeVecComposite(value []T) (RootT, error)
+	MerkleizeVectorComposite(value []T) (RootT, error)
 	MerkleizeListComposite(value []T, limit ...uint64) (RootT, error)
 	MerkleizeByteSlice(value []byte) (RootT, error)
 	Merkleize(chunks []RootT, limit ...uint64) (RootT, error)
