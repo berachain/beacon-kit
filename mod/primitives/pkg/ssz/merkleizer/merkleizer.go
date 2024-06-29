@@ -25,7 +25,6 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -106,7 +105,7 @@ func (m *merkleizer[RootT, T]) MerkleizeContainer(
 func (m *merkleizer[RootT, T]) MerkleizeByteSlice(
 	input []byte,
 ) (RootT, error) {
-	chunks, numChunks, err := m.partitionBytes(input)
+	chunks, numChunks, err := chunkifyBytes[RootT](input)
 	if err != nil {
 		return RootT{}, err
 	}
@@ -167,35 +166,4 @@ func (m *merkleizer[RootT, T]) Merkleize(
 
 	// If > 1 chunks: merkleize as binary tree.
 	return m.rootHasher.NewRootWithMaxLeaves(chunks, effectiveLimit)
-}
-
-// pack packs a list of SSZ-marshallable elements into a single byte slice.
-func (m *merkleizer[RootT, T]) pack(values []T) ([]RootT, error) {
-	// Pack each element into separate buffers.
-	var packed []byte
-	for _, el := range values {
-		buf, err := el.MarshalSSZ()
-		if err != nil {
-			return nil, err
-		}
-		packed = append(packed, buf...)
-	}
-
-	root, _, err := m.partitionBytes(packed)
-	return root, err
-}
-
-// partitionBytes partitions a byte slice into chunks of a given length.
-func (m *merkleizer[RootT, T]) partitionBytes(input []byte) (
-	[]RootT, uint64, error,
-) {
-	//nolint:mnd // we add 31 in order to round up the division.
-	numChunks := max((len(input)+31)/constants.RootLength, 1)
-	// TODO: figure out how to safely chunk these bytes.
-	chunks := make([]RootT, numChunks)
-	for i := range chunks {
-		copy(chunks[i][:], input[32*i:])
-	}
-	//#nosec:G701 // numChunks is always >= 1.
-	return chunks, uint64(numChunks), nil
 }

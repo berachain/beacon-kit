@@ -26,7 +26,15 @@ func (m *merkleizer[RootT, T]) MerkleizeListBasic(
 	value []T,
 	limit ...uint64,
 ) (RootT, error) {
-	packed, err := m.pack(value)
+	// mix_in_length(
+	// 		merkleize(
+	// 			pack(value),
+	// 			limit=chunk_count(type),
+	// 		),
+	//      len(value),
+	// )
+	// if value is a list of basic objects.
+	packed, _, err := pack[RootT](value)
 	if err != nil {
 		return [32]byte{}, err
 	}

@@ -25,7 +25,9 @@ package merkleizer
 func (m *merkleizer[RootT, T]) MerkleizeVectorBasic(
 	value []T,
 ) (RootT, error) {
-	packed, err := m.pack(value)
+	// merkleize(pack(value))
+	// if value is a basic object or a vector of basic objects.
+	packed, _, err := pack[RootT](value)
 	if err != nil {
 		return [32]byte{}, err
 	}

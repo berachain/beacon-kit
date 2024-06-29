@@ -45,6 +45,18 @@ func (l VectorBasic[T]) SizeSSZ() int {
 	return t.SizeSSZ() * len(l)
 }
 
+// isFixed returns true if the VectorBasic is fixed size.
+func (VectorBasic[T]) IsFixed() bool {
+	return true
+}
+
+// ChunkCount returns the number of chunks in the VectorBasic.
+func (l VectorBasic[T]) ChunkCount() uint64 {
+	// We re-use the chunkcount function for lists, however
+	// we pass in the length of the vector as the max capacity.
+	return merkleizer.ChunkCountBasicList(l, uint64(len(l)))
+}
+
 // HashTreeRootWith returns the Merkle root of the VectorBasic
 // with a given merkleizer.
 func (l VectorBasic[T]) HashTreeRootWith(
@@ -72,11 +84,6 @@ func (l VectorBasic[T]) MarshalSSZ() ([]byte, error) {
 // NewFromSSZ creates a new VectorBasic from SSZ format.
 func (VectorBasic[T]) NewFromSSZ(buf []byte) (VectorBasic[T], error) {
 	return serializer.UnmarshalVectorFixed[T](buf)
-}
-
-// isFixed returns true if the VectorBasic is fixed size.
-func (VectorBasic[T]) IsFixed() bool {
-	return true
 }
 
 /* -------------------------------------------------------------------------- */
