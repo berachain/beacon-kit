@@ -68,13 +68,11 @@ func AddCommands[NodeT types.Node[T], T transaction.Tx](
 ) error {
 	originalPersistentPreRunE := rootCmd.PersistentPreRunE
 	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
-		home, err := cmd.Flags().GetString(serverv2.FlagHome)
-		if err != nil {
-			return err
-		}
+		// set the default command outputs
+		cmd.SetOut(cmd.OutOrStdout())
+		cmd.SetErr(cmd.ErrOrStderr())
 
-		err = configHandle(server, home, cmd)
-		if err != nil {
+		if err := configHandle(server, cmd); err != nil {
 			return err
 		}
 
@@ -93,28 +91,35 @@ func AddCommands[NodeT types.Node[T], T transaction.Tx](
 // configHandle writes the default config to the home directory if it does not exist and sets the server context
 func configHandle[NodeT types.Node[T], T transaction.Tx](
 	s *serverv2.Server[NodeT, T],
-	home string,
 	cmd *cobra.Command,
 ) error {
-	if _, err := os.Stat(filepath.Join(home, "config")); os.IsNotExist(err) {
-		if err = s.WriteConfig(filepath.Join(home, "config")); err != nil {
+	home, err := cmd.Flags().GetString(serverv2.FlagHome)
+	if err != nil {
+		return err
+	}
+
+	configDir := filepath.Join(home, "config")
+
+	// we need to check app.toml as the config folder can already exist for the client.toml
+	if _, err := os.Stat(filepath.Join(configDir, "app.toml")); os.IsNotExist(err) {
+		if err = s.WriteConfig(configDir); err != nil {
 			return err
 		}
 	}
 
-	viper, err := serverv2.ReadConfig(filepath.Join(home, "config"))
-	if err != nil {
-		return err
-	}
-	viper.Set(serverv2.FlagHome, home)
-	if err := viper.BindPFlags(cmd.Flags()); err != nil {
-		return err
-	}
-
-	log, err := serverv2.NewLogger(viper, cmd.OutOrStdout())
+	v, err := serverv2.ReadConfig(configDir)
 	if err != nil {
 		return err
 	}
 
-	return serverv2.SetCmdServerContext(cmd, viper, log)
+	if err := v.BindPFlags(cmd.Flags()); err != nil {
+		return err
+	}
+
+	log, err := serverv2.NewLogger(v, cmd.OutOrStdout())
+	if err != nil {
+		return err
+	}
+
+	return serverv2.SetCmdServerContext(cmd, v, log)
 }
