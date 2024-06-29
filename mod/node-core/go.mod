@@ -23,7 +23,7 @@ require (
 	cosmossdk.io/runtime/v2 v2.0.0-20240623110059-dec2d5583e39
 	cosmossdk.io/server/v2 v2.0.0-20240624191328-722ac39873e4
 	cosmossdk.io/server/v2/appmanager v0.0.0-20240624191328-722ac39873e4
-	cosmossdk.io/store/v2 v2.0.0-20240515130459-16437119e0d8
+	cosmossdk.io/store/v2 v2.0.0-20240625055312-26913b073414
 	cosmossdk.io/x/tx v0.13.4-0.20240623110059-dec2d5583e39
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240624204855-d8809d5c8588
 	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240624003607-df94860f8eeb
@@ -71,11 +71,11 @@ require (
 	cosmossdk.io/errors v1.0.1 // indirect
 	cosmossdk.io/math v1.3.0 // indirect
 	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc // indirect
-	cosmossdk.io/x/accounts v0.0.0-20240623110059-dec2d5583e39 // indirect
-	cosmossdk.io/x/auth v0.0.0-20240623110059-dec2d5583e39 // indirect
-	cosmossdk.io/x/bank v0.0.0-20240623110059-dec2d5583e39 // indirect
-	cosmossdk.io/x/consensus v0.0.0-20240623110059-dec2d5583e39
-	cosmossdk.io/x/staking v0.0.0-20240623110059-dec2d5583e39 // indirect
+	cosmossdk.io/x/accounts v0.0.0-20240625055312-26913b073414 // indirect
+	cosmossdk.io/x/auth v0.0.0-20240624211517-0b35bcebefbf // indirect
+	cosmossdk.io/x/bank v0.0.0-20240625055312-26913b073414 // indirect
+	cosmossdk.io/x/consensus v0.0.0-20240628155326-d426a5db6775
+	cosmossdk.io/x/staking v0.0.0-20240624211517-0b35bcebefbf // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect
@@ -229,8 +229,8 @@ require (
 	golang.org/x/sys v0.21.0 // indirect
 	golang.org/x/term v0.21.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
-	google.golang.org/genproto v0.0.0-20240617180043-68d350f18fd4 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20240617180043-68d350f18fd4 // indirect
+	google.golang.org/genproto v0.0.0-20240624140628-dc46fd24d27d // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20240624140628-dc46fd24d27d // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240624140628-dc46fd24d27d // indirect
 	google.golang.org/grpc v1.64.0
 	gopkg.in/ini.v1 v1.67.0 // indirect

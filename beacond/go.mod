@@ -45,11 +45,11 @@ require (
 	cosmossdk.io/store/v2 v2.0.0-20240625055312-26913b073414 // indirect
 	cosmossdk.io/tools/confix v0.1.1 // indirect
 	cosmossdk.io/x/accounts v0.0.0-20240625055312-26913b073414 // indirect
-	cosmossdk.io/x/auth v0.0.0-20240623110059-dec2d5583e39 // indirect
+	cosmossdk.io/x/auth v0.0.0-20240624211517-0b35bcebefbf // indirect
 	cosmossdk.io/x/bank v0.0.0-20240625055312-26913b073414 // indirect
-	cosmossdk.io/x/consensus v0.0.0-20240623110059-dec2d5583e39 // indirect
+	cosmossdk.io/x/consensus v0.0.0-20240628155326-d426a5db6775 // indirect
 	cosmossdk.io/x/gov v0.0.0-20240625055312-26913b073414 // indirect
-	cosmossdk.io/x/staking v0.0.0-20240623110059-dec2d5583e39 // indirect
+	cosmossdk.io/x/staking v0.0.0-20240624211517-0b35bcebefbf // indirect
 	cosmossdk.io/x/tx v0.13.4-0.20240623110059-dec2d5583e39 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
@@ -79,6 +79,7 @@ require (
 	github.com/bgentry/speakeasy v0.2.0 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
+	github.com/bufbuild/protocompile v0.14.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/chzyer/readline v1.5.1 // indirect
 	github.com/cockroachdb/errors v1.11.3 // indirect

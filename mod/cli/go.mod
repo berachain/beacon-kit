@@ -44,6 +44,7 @@ require (
 	cosmossdk.io/server/v2/cometbft v0.0.0-00010101000000-000000000000 // indirect
 	cosmossdk.io/server/v2/stf v0.0.0-20240623110059-dec2d5583e39 // indirect
 	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240625165558-8d611ba7d436 // indirect
+	github.com/bufbuild/protocompile v0.14.0 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a // indirect
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
@@ -59,12 +60,12 @@ require (
 	cosmossdk.io/errors v1.0.1 // indirect
 	cosmossdk.io/math v1.3.0 // indirect
 	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc // indirect
-	cosmossdk.io/store/v2 v2.0.0-20240624211517-0b35bcebefbf // indirect
-	cosmossdk.io/x/accounts v0.0.0-20240624211517-0b35bcebefbf // indirect
+	cosmossdk.io/store/v2 v2.0.0-20240625055312-26913b073414 // indirect
+	cosmossdk.io/x/accounts v0.0.0-20240625055312-26913b073414 // indirect
 	cosmossdk.io/x/auth v0.0.0-20240624211517-0b35bcebefbf // indirect
-	cosmossdk.io/x/bank v0.0.0-20240624211517-0b35bcebefbf // indirect
-	cosmossdk.io/x/consensus v0.0.0-20240624211517-0b35bcebefbf // indirect
-	cosmossdk.io/x/gov v0.0.0-20240623110059-dec2d5583e39 // indirect
+	cosmossdk.io/x/bank v0.0.0-20240625055312-26913b073414 // indirect
+	cosmossdk.io/x/consensus v0.0.0-20240628155326-d426a5db6775 // indirect
+	cosmossdk.io/x/gov v0.0.0-20240625055312-26913b073414 // indirect
 	cosmossdk.io/x/staking v0.0.0-20240624211517-0b35bcebefbf // indirect
 	cosmossdk.io/x/tx v0.13.4-0.20240623110059-dec2d5583e39 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
@@ -112,8 +113,8 @@ require (
 	github.com/cosmos/ledger-cosmos-go v0.13.3 // indirect
 	github.com/crate-crypto/go-ipa v0.0.0-20240223125850-b1e8a79f509c // indirect
 	github.com/crate-crypto/go-kzg-4844 v1.0.0 // indirect
-	github.com/creachadair/atomicfile v0.3.1 // indirect
-	github.com/creachadair/tomledit v0.0.24 // indirect
+	github.com/creachadair/atomicfile v0.3.4 // indirect
+	github.com/creachadair/tomledit v0.0.26 // indirect
 	github.com/danieljoos/wincred v1.2.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/deckarep/golang-set/v2 v2.6.0 // indirect
