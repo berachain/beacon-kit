@@ -28,4 +28,6 @@ type SSZObject[RootT ~[32]byte] interface {
 	// HashTreeRoot computes and returns the hash tree root of the data as
 	// RootT and an error if the computation fails.
 	HashTreeRoot() (RootT, error)
+	// MarshalSSZ marshals the data into SSZ format.
+	MarshalSSZ() ([]byte, error)
 }
