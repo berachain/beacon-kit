@@ -23,7 +23,10 @@ package beacon
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
+	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
+	consensusv1 "cosmossdk.io/api/cosmos/consensus/v1"
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"cosmossdk.io/core/registry"
 	"cosmossdk.io/core/transaction"
@@ -35,6 +38,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/comet"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/version"
 	"google.golang.org/grpc"
 )
 
@@ -55,6 +59,9 @@ var (
 	_ module.HasABCIEndBlock = AppModule[
 		transaction.Tx, appmodulev2.ValidatorUpdate,
 	]{}
+	// _ module.HasServices = AppModule[
+	// 	transaction.Tx, appmodulev2.ValidatorUpdate,
+	// ]{}
 )
 
 // AppModule implements an application module for the beacon module.
@@ -155,4 +162,28 @@ func (am AppModule[T, ValidatorUpdateT]) EndBlock(
 		am.TxCodec,
 		am.ABCIMiddleware,
 	).EndBlock(ctx)
+}
+
+// AutoCLIOptions implements the autocli.HasAutoCLIConfig interface.
+func (am AppModule[T, ValidatorUpdateT]) AutoCLIOptions() *autocliv1.ModuleOptions {
+	return &autocliv1.ModuleOptions{
+		Tx: &autocliv1.ServiceCommandDescriptor{
+			Service: consensusv1.Msg_ServiceDesc.ServiceName,
+			RpcCommandOptions: []*autocliv1.RpcCommandOptions{
+				{
+					RpcMethod: "UpdateParams",
+					Use:       "update-params-proposal [params]",
+					Short:     "Submit a proposal to update consensus module params. Note: the entire params must be provided.",
+					Example:   fmt.Sprintf(`%s tx consensus update-params-proposal '{ params }'`, version.AppName),
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{
+						{ProtoField: "block"},
+						{ProtoField: "evidence"},
+						{ProtoField: "validator"},
+						{ProtoField: "abci"},
+					},
+					GovProposal: true,
+				},
+			},
+		},
+	}
 }
