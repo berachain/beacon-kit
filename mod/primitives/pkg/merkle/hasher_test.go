@@ -173,7 +173,8 @@ func Test_GoHashTreeHashConformance(t *testing.T) {
 			merkle.MinParallelizationSize / 2,
 			false,
 		},
-		{"AtMinParallelizationSize", merkle.MinParallelizationSize, false},
+		{"AtMinParallelizationSize",
+			merkle.MinParallelizationSize, false},
 		{
 			"AboveMinParallelizationSize",
 			merkle.MinParallelizationSize * 2,
@@ -192,7 +193,8 @@ func Test_GoHashTreeHashConformance(t *testing.T) {
 			merkle.MinParallelizationSize - 2,
 			false,
 		},
-		{"TestOddLength", merkle.MinParallelizationSize + 1, true},
+		{"TestOddLength",
+			merkle.MinParallelizationSize + 1, true},
 	}
 
 	for _, tc := range testCases {
@@ -229,6 +231,7 @@ func TestBuildParentTreeRootsWithNRoutines_DivisionByZero(t *testing.T) {
 	require.NoError(
 		t,
 		err,
+
 		"BuildParentTreeRootsWithNRoutines should handle n=0 without error",
 	)
 }
@@ -264,7 +267,8 @@ func requireGoHashTreeEquivalence(
 
 	// Check for errors
 	if !expectError {
-		require.NoError(t, err1, "BuildParentTreeRootsWithNRoutines failed")
+		require.NoError(t, err1,
+			"BuildParentTreeRootsWithNRoutines failed")
 		require.NoError(t, err2, "gohashtree.Hash failed")
 	} else {
 		if err1 == nil && err2 == nil {
@@ -368,6 +372,76 @@ func TestNewRootWithDepth(t *testing.T) {
 					"Test case %s", tt.name)
 				require.Equal(t, tt.expected, root,
 					"Test case %s", tt.name)
+			}
+		})
+	}
+}
+
+func TestNewRootWithMaxLeaves(t *testing.T) {
+	tests := []struct {
+		name     string
+		leaves   [][32]byte
+		limit    uint64
+		wantErr  bool
+		errMsg   string
+		expected [32]byte
+	}{
+		{
+			name:     "Empty leaves",
+			leaves:   [][32]byte{},
+			limit:    0,
+			wantErr:  false,
+			expected: zero.Hashes[0],
+		},
+		{
+			name:     "One leaf",
+			leaves:   [][32]byte{createDummyLeaf(1)},
+			limit:    1,
+			wantErr:  false,
+			expected: createDummyLeaf(1),
+		},
+		{
+			name:    "Exceeds limit",
+			leaves:  make([][32]byte, 11),
+			limit:   10,
+			wantErr: true,
+			errMsg:  "number of leaves exceeds limit",
+		},
+		{
+			name: "Power of two leaves",
+			leaves: [][32]byte{
+				createDummyLeaf(1),
+				createDummyLeaf(2),
+				createDummyLeaf(3),
+				createDummyLeaf(4),
+			},
+			limit:   4,
+			wantErr: false,
+			expected: [32]uint8{
+				0xbf, 0xe3, 0xc6, 0x65, 0xd2, 0xe5, 0x61, 0xf1, 0x3b, 0x30, 0x60,
+				0x6c, 0x58, 0xc, 0xb7, 0x3, 0xb2, 0x4, 0x12, 0x87, 0xe2, 0x12, 0xad,
+				0xe1, 0x10, 0xf0, 0xbf, 0xd8, 0x56, 0x3e, 0x21, 0xbb},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			hasher := crypto.NewHasher[[32]byte](sha256.Hash)
+			rootHasher := merkle.NewRootHasher[[32]byte](
+				hasher, merkle.BuildParentTreeRoots,
+			)
+			root, err := rootHasher.NewRootWithMaxLeaves(tt.leaves,
+				math.U64(tt.limit))
+			if tt.wantErr {
+				require.Error(t, err,
+					"Expected error in test case %s", tt.name)
+				require.Equal(t, tt.errMsg, err.Error(),
+					"Error message mismatch in test case %s", tt.name)
+			} else {
+				require.NoError(t, err,
+					"Unexpected error in test case %s", tt.name)
+				require.Equal(t, tt.expected, root,
+					"Root mismatch in test case %s", tt.name)
 			}
 		})
 	}
