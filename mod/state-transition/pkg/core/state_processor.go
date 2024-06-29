@@ -27,6 +27,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
@@ -136,7 +138,7 @@ func NewStateProcessor[
 		cs:              cs,
 		executionEngine: executionEngine,
 		signer:          signer,
-		// txsMerkleizer:   merkleizer.New[[32]byte, common.Root](),
+		txsMerkleizer:   merkleizer.New[[32]byte, ssz.VectorBasic[ssz.Byte]](),
 	}
 }
 

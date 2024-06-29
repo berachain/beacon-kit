@@ -74,7 +74,7 @@ func (e *ExecutionPayload) ToHeader(
 		var txsRootErr error
 		txsRoot, txsRootErr = engineprimitives.TransactionsFromBytes(
 			e.GetTransactions(),
-		).HashTreeRoot()
+		).HashTreeRootWith(txsMerkleizer)
 		return txsRootErr
 	})
 

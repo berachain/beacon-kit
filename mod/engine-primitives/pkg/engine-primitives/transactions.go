@@ -23,8 +23,9 @@ package engineprimitives
 import (
 	"unsafe"
 
-	constants "github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 )
 
 // Transactions is a typealias for [][]byte, which is how transactions are
@@ -34,7 +35,11 @@ type Transactions = ssz.ListComposite[ssz.VectorBasic[ssz.Byte]]
 // TransactionsFromBytes creates a Transactions object from a byte slice.
 func TransactionsFromBytes(data [][]byte) *Transactions {
 	return ssz.ListCompositeFromElements(
-		constants.MaxTxsPerPayload,
 		// TODO: Move this value to chain spec.
+		constants.MaxTxsPerPayload,
 		*(*[]ssz.VectorBasic[ssz.Byte])(unsafe.Pointer(&data))...)
 }
+
+// TODO: make the ChainSpec a generic on this type.
+type TxsMerkleizer merkleizer.
+	Merkleizer[[32]byte, ssz.VectorBasic[ssz.Byte]]
