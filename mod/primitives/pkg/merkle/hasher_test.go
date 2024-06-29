@@ -297,12 +297,11 @@ func requireGoHashTreeEquivalence(
 
 func TestNewRootWithDepth(t *testing.T) {
 	tests := []struct {
-		name       string
-		leaves     [][32]byte
-		depth      int
-		limitDepth uint8
-		expected   [32]byte
-		wantErr    bool
+		name     string
+		leaves   [][32]byte
+		depth    int
+		expected [32]byte
+		wantErr  bool
 	}{
 		{
 			name: "even number of leaves",
@@ -310,8 +309,7 @@ func TestNewRootWithDepth(t *testing.T) {
 				createDummyLeaf(1),
 				createDummyLeaf(2),
 			},
-			depth:      1,
-			limitDepth: 1,
+			depth: 1,
 			expected: [32]uint8{
 				0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
 				0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
@@ -325,10 +323,9 @@ func TestNewRootWithDepth(t *testing.T) {
 				createDummyLeaf(2),
 				createDummyLeaf(3),
 			},
-			depth:      1,
-			limitDepth: 1,
-			expected:   zero.Hashes[1],
-			wantErr:    true,
+			depth:    1,
+			expected: zero.Hashes[1],
+			wantErr:  true,
 		},
 		{
 			name: "odd leaves",
@@ -337,20 +334,18 @@ func TestNewRootWithDepth(t *testing.T) {
 				createDummyLeaf(2),
 				createDummyLeaf(3),
 			},
-			depth:      2,
-			limitDepth: 2,
-			expected:   zero.Hashes[1],
-			wantErr:    true,
+			depth:    2,
+			expected: zero.Hashes[1],
+			wantErr:  true,
 		},
 		{
 			name: "hasher returns error",
 			leaves: [][32]byte{
 				createDummyLeaf(1),
 			},
-			depth:      1,
-			limitDepth: 1,
-			expected:   zero.Hashes[1],
-			wantErr:    true,
+			depth:    1,
+			expected: zero.Hashes[1],
+			wantErr:  true,
 		},
 	}
 
@@ -367,7 +362,7 @@ func TestNewRootWithDepth(t *testing.T) {
 			rootHasher := merkle.NewRootHasher(hasher, rootHashFn)
 
 			root, err := rootHasher.NewRootWithDepth(
-				tt.leaves, uint8(tt.depth), tt.limitDepth,
+				tt.leaves, uint8(tt.depth), uint8(tt.depth),
 			)
 			if tt.wantErr {
 				require.Error(t, err,
