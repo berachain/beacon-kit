@@ -58,20 +58,21 @@ func UnmarshalVectorFixed[
 		t   T
 	)
 	elementSize := t.SizeSSZ()
-	if len(buf)%elementSize != 0 {
+	bufLen := len(buf)
+	if bufLen%elementSize != 0 {
 		return nil, fmt.Errorf(
 			"invalid buffer length %d for element size %d",
-			len(buf),
+			bufLen,
 			elementSize,
 		)
 	}
 
-	result := make([]T, 0, len(buf)/elementSize)
-	for i := 0; i < len(buf); i += elementSize {
-		if t, err = t.NewFromSSZ(buf[i : i+elementSize]); err != nil {
+	result := make([]T, bufLen/elementSize)
+	for i := 0; i < bufLen; i += elementSize {
+		if result[i/elementSize],
+			err = t.NewFromSSZ(buf[i : i+elementSize]); err != nil {
 			return nil, err
 		}
-		result = append(result, t)
 	}
 
 	return result, nil
