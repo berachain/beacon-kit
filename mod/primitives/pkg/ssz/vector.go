@@ -56,6 +56,7 @@ func (l VectorBasic[B]) ChunkCount() uint64 {
 	// List[B, N] and Vector[B, N], where B is a basic type:
 	// (N * size_of(B) + 31) // 32 (dividing by chunk size, rounding up)
 	var b B
+	//#nosec:G701 // its fine.
 	//nolint:mnd // 31 is okay.
 	return (l.N()*uint64(b.SizeSSZ()) + 31) / constants.RootLength
 }
