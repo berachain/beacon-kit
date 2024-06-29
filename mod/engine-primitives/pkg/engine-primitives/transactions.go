@@ -21,8 +21,9 @@
 package engineprimitives
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"unsafe"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 )
 
@@ -30,38 +31,30 @@ import (
 // received in the execution payload.
 //
 // TODO: make it take a generic SpecT type.
-type Transactions [][]byte
+type Transactions = ssz.ListComposite[ssz.ByteVector]
 
-// HashTreeRoot returns the hash tree root of the Transactions list.
-//
-// NOTE: Uses a new merkleizer for each call.
-func (txs Transactions) HashTreeRoot() (common.Root, error) {
-	return txs.HashTreeRootWith(
-		merkleizer.New[[32]byte, common.Root](),
-	)
+func TransactionsFromBytes(data [][]byte) Transactions {
+	return *(*Transactions)(unsafe.Pointer(&data))
 }
+
+// // HashTreeRoot returns the hash tree root of the Transactions list.
+// //
+// // NOTE: Uses a new merkleizer for each call.
+// func (txs Transactions) HashTreeRoot() (common.Root, error) {
+// 	return txs.HashTreeRootWith(
+// 		merkleizer.New[[32]byte, common.Root](),
+// 	)
+// }
 
 // TxsMerkleizer is a ssz merkleizer used for transactions.
 //
 // TODO: make the ChainSpec a generic on this type.
-type TxsMerkleizer merkleizer.Merkleizer[[32]byte, common.Root]
+type TxsMerkleizer merkleizer.Merkleizer[[32]byte, ssz.ListComposite[ssz.ByteVector]]
 
-// HashTreeRootWith returns the hash tree root of the Transactions list
-// using the given merkleizer.
-func (txs Transactions) HashTreeRootWith(
-	merkleizer TxsMerkleizer,
-) (common.Root, error) {
-	var (
-		err   error
-		roots = make([]common.Root, len(txs))
-	)
-
-	for i, tx := range txs {
-		roots[i], err = merkleizer.MerkleizeByteSlice(tx)
-		if err != nil {
-			return common.Root{}, err
-		}
-	}
-
-	return merkleizer.MerkleizeListComposite(roots, constants.MaxTxsPerPayload)
-}
+// // HashTreeRootWith returns the hash tree root of the Transactions list
+// // using the given merkleizer.
+// func (txs Transactions) HashTreeRootWith(
+// 	merkleizer TxsMerkleizer,
+// ) (common.Root, error) {
+// 	return
+// }
