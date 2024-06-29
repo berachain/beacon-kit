@@ -50,7 +50,7 @@ func (l VectorBasic[T]) SizeSSZ() int {
 func (l VectorBasic[T]) HashTreeRootWith(
 	merkleizer BasicMerkleizer[[32]byte, T],
 ) ([32]byte, error) {
-	return merkleizer.MerkleizeVecBasic(l)
+	return merkleizer.MerkleizeVectorBasic(l)
 }
 
 // HashTreeRoot returns the Merkle root of the VectorBasic.
@@ -105,7 +105,7 @@ func (l VectorComposite[T]) SizeSSZ() int {
 func (l VectorComposite[T]) HashTreeRootWith(
 	merkleizer CompositeMerkleizer[common.ChainSpec, [32]byte, T],
 ) ([32]byte, error) {
-	return merkleizer.MerkleizeVecComposite(l)
+	return merkleizer.MerkleizeVectorComposite(l)
 }
 
 // HashTreeRoot returns the Merkle root of the VectorComposite.

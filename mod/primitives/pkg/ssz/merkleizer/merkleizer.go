@@ -57,7 +57,7 @@ func New[
 func (m *merkleizer[RootT, T]) MerkleizeBasic(
 	value T,
 ) (RootT, error) {
-	return m.MerkleizeVecBasic([]T{value})
+	return m.MerkleizeVectorBasic([]T{value})
 }
 
 // TODO: MerkleizeBitlist
