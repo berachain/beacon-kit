@@ -2,26 +2,43 @@ package sszdb
 
 import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/schema"
-	ssz "github.com/ferranbt/fastssz"
+	fastssz "github.com/ferranbt/fastssz"
 )
 
-type SchemaDb struct {
-	*DB
+type SchemaDb[
+	ExecutionPayloadHeaderT interface {
+		constraints.SSZMarshallable
+		ssz.SSZTreeable
+		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
+		Version() uint32
+	},
+] struct {
+	*Backend
 	schemaRoot schema.SSZType
 }
 
-func NewSchemaDb(db *DB, monolith any) (*SchemaDb, error) {
+func NewSchemaDb[
+	ExecutionPayloadHeaderT interface {
+		constraints.SSZMarshallable
+		ssz.SSZTreeable
+		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
+		Version() uint32
+	},
+](db *Backend, monolith any) (*SchemaDb[ExecutionPayloadHeaderT], error) {
 	schema, err := schema.CreateSchema(monolith)
 	if err != nil {
 		return nil, err
 	}
-	return &SchemaDb{DB: db, schemaRoot: schema}, nil
+	return &SchemaDb[ExecutionPayloadHeaderT]{Backend: db, schemaRoot: schema}, nil
 }
 
-func (d *SchemaDb) getLeafBytes(path schema.ObjectPath) ([]byte, error) {
+func (d *SchemaDb[ExecutionPayloadHeaderT]) getLeafBytes(path schema.ObjectPath) ([]byte, error) {
 	node, err := schema.GetTreeNode(d.schemaRoot, path)
 	if err != nil {
 		return nil, err
@@ -41,7 +58,142 @@ func (d *SchemaDb) getLeafBytes(path schema.ObjectPath) ([]byte, error) {
 	return d.getNodeBytes(node.GIndex, size)
 }
 
-func (d *SchemaDb) GetGenesisValidatorsRoot() (common.Root, error) {
+func (d *SchemaDb[ExecutionPayloadHeaderT]) SetLatestExecutionPayloadHeader(
+	header ExecutionPayloadHeaderT,
+) error {
+	schemaNode, err := schema.GetTreeNode(
+		d.schemaRoot,
+		schema.Path("LatestExecutionPayloadHeader"))
+	if err != nil {
+		return err
+	}
+	treeNode, err := header.GetRootNode()
+	if err != nil {
+		return err
+	}
+
+	return d.save(treeNode, schemaNode.GIndex)
+}
+
+type executionPayloadHeaderDenebCodec []struct{}
+
+func (d *SchemaDb[ExecutionPayloadHeaderT]) GetLatestExecutionPayloadHeader() (
+	ExecutionPayloadHeaderT, error) {
+	var e ExecutionPayloadHeaderT
+	path := schema.Path("LatestExecutionPayloadHeader")
+
+	// TODO fix with codec injection?
+	switch header := any(e).(type) {
+	case *types.ExecutionPayloadHeaderDeneb:
+		bz, err := d.getLeafBytes(path.AppendName("ParentHash"))
+		if err != nil {
+			return e, err
+		}
+		copy(header.ParentHash[:], bz)
+
+		bz, err = d.getLeafBytes(path.AppendName("FeeRecipient"))
+		if err != nil {
+			return e, err
+		}
+		copy(header.FeeRecipient[:], bz)
+
+		bz, err = d.getLeafBytes(path.AppendName("StateRoot"))
+		if err != nil {
+			return e, err
+		}
+		copy(header.StateRoot[:], bz)
+
+		bz, err = d.getLeafBytes(path.AppendName("ReceiptsRoot"))
+		if err != nil {
+			return e, err
+		}
+		copy(header.ReceiptsRoot[:], bz)
+
+		bz, err = d.getLeafBytes(path.AppendName("LogsBloom"))
+		if err != nil {
+			return e, err
+		}
+		header.LogsBloom = bz
+
+		bz, err = d.getLeafBytes(path.AppendName("Random"))
+		if err != nil {
+			return e, err
+		}
+		copy(header.Random[:], bz)
+
+		bz, err = d.getLeafBytes(path.AppendName("Number"))
+		if err != nil {
+			return e, err
+		}
+		header.Number = math.U64(fastssz.UnmarshallUint64(bz))
+
+		bz, err = d.getLeafBytes(path.AppendName("GasLimit"))
+		if err != nil {
+			return e, err
+		}
+		header.GasLimit = math.U64(fastssz.UnmarshallUint64(bz))
+
+		bz, err = d.getLeafBytes(path.AppendName("GasUsed"))
+		if err != nil {
+			return e, err
+		}
+		header.GasUsed = math.U64(fastssz.UnmarshallUint64(bz))
+
+		bz, err = d.getLeafBytes(path.AppendName("Timestamp"))
+		if err != nil {
+			return e, err
+		}
+		header.Timestamp = math.U64(fastssz.UnmarshallUint64(bz))
+
+		bz, err = d.getLeafBytes(path.AppendName("ExtractData"))
+		if err != nil {
+			return e, err
+		}
+		header.ExtraData = bz
+
+		bz, err = d.getLeafBytes(path.AppendName("BaseFeePerGas"))
+		if err != nil {
+			return e, err
+		}
+		copy(header.BaseFeePerGas[:], bz)
+
+		bz, err = d.getLeafBytes(path.AppendName("BlockHash"))
+		if err != nil {
+			return e, err
+		}
+		copy(header.BlockHash[:], bz)
+
+		bz, err = d.getLeafBytes(path.AppendName("TransactionsRoot"))
+		if err != nil {
+			return e, err
+		}
+		copy(header.TransactionsRoot[:], bz)
+
+		bz, err = d.getLeafBytes(path.AppendName("WithdrawalsRoot"))
+		if err != nil {
+			return e, err
+		}
+		copy(header.WithdrawalsRoot[:], bz)
+
+		bz, err = d.getLeafBytes(path.AppendName("BlobGasUsed"))
+		if err != nil {
+			return e, err
+		}
+		header.BlobGasUsed = math.U64(fastssz.UnmarshallUint64(bz))
+
+		bz, err = d.getLeafBytes(path.AppendName("ExcessBlobGas"))
+		if err != nil {
+			return e, err
+		}
+		header.ExcessBlobGas = math.U64(fastssz.UnmarshallUint64(bz))
+	default:
+		return e, errors.New("unsupported payload header type")
+	}
+
+	return e, nil
+}
+
+func (d *SchemaDb[ExecutionPayloadHeaderT]) GetGenesisValidatorsRoot() (common.Root, error) {
 	path := schema.Path("GenesisValidatorsRoot")
 	bz, err := d.getLeafBytes(path)
 	if err != nil {
@@ -50,17 +202,17 @@ func (d *SchemaDb) GetGenesisValidatorsRoot() (common.Root, error) {
 	return common.Root(bz), nil
 }
 
-func (d *SchemaDb) GetSlot() (math.Slot, error) {
+func (d *SchemaDb[ExecutionPayloadHeaderT]) GetSlot() (math.Slot, error) {
 	path := schema.Path("Slot")
 	n, err := d.getLeafBytes(path)
 	if err != nil {
 		return 0, err
 	}
-	slot := ssz.UnmarshallUint64(n)
+	slot := fastssz.UnmarshallUint64(n)
 	return math.Slot(slot), nil
 }
 
-func (d *SchemaDb) GetFork() (*types.Fork, error) {
+func (d *SchemaDb[ExecutionPayloadHeaderT]) GetFork() (*types.Fork, error) {
 	f := &types.Fork{}
 	forkPath := schema.Path("Fork")
 	bz, err := d.getLeafBytes(forkPath.AppendName("PreviousVersion"))
@@ -79,25 +231,25 @@ func (d *SchemaDb) GetFork() (*types.Fork, error) {
 	if err != nil {
 		return nil, err
 	}
-	f.Epoch = math.Epoch(ssz.UnmarshallUint64(bz))
+	f.Epoch = math.Epoch(fastssz.UnmarshallUint64(bz))
 
 	return f, nil
 }
 
-func (d *SchemaDb) GetLatestBlockHeader() (*types.BeaconBlockHeader, error) {
+func (d *SchemaDb[ExecutionPayloadHeaderT]) GetLatestBlockHeader() (*types.BeaconBlockHeader, error) {
 	bh := &types.BeaconBlockHeader{}
 	path := schema.Path("LatestBlockHeader")
 	bz, err := d.getLeafBytes(path.AppendName("Slot"))
 	if err != nil {
 		return nil, err
 	}
-	bh.Slot = ssz.UnmarshallUint64(bz)
+	bh.Slot = fastssz.UnmarshallUint64(bz)
 
 	bz, err = d.getLeafBytes(path.AppendName("ProposerIndex"))
 	if err != nil {
 		return nil, err
 	}
-	bh.ProposerIndex = ssz.UnmarshallUint64(bz)
+	bh.ProposerIndex = fastssz.UnmarshallUint64(bz)
 
 	bz, err = d.getLeafBytes(path.AppendName("ParentBlockRoot"))
 	if err != nil {
@@ -120,7 +272,7 @@ func (d *SchemaDb) GetLatestBlockHeader() (*types.BeaconBlockHeader, error) {
 	return bh, nil
 }
 
-func (d *SchemaDb) GetBlockRoots() ([]common.Root, error) {
+func (d *SchemaDb[ExecutionPayloadHeaderT]) GetBlockRoots() ([]common.Root, error) {
 	path := schema.Path("BlockRoots", "__len__")
 	node, err := schema.GetTreeNode(d.schemaRoot, path)
 	if err != nil {
@@ -131,7 +283,7 @@ func (d *SchemaDb) GetBlockRoots() ([]common.Root, error) {
 		return nil, err
 	}
 
-	length := ssz.UnmarshallUint64(bz)
+	length := fastssz.UnmarshallUint64(bz)
 	roots := make([]common.Root, length)
 	for i := uint64(0); i < length; i++ {
 		path = schema.Path("BlockRoots").AppendIndex(i)
@@ -145,7 +297,7 @@ func (d *SchemaDb) GetBlockRoots() ([]common.Root, error) {
 	return roots, nil
 }
 
-func (d *SchemaDb) GetValidatorAtIndex(index uint64) (*types.Validator, error) {
+func (d *SchemaDb[ExecutionPayloadHeaderT]) GetValidatorAtIndex(index uint64) (*types.Validator, error) {
 	path := schema.Path("Validators").AppendIndex(index)
 	val := &types.Validator{}
 
@@ -165,42 +317,42 @@ func (d *SchemaDb) GetValidatorAtIndex(index uint64) (*types.Validator, error) {
 	if err != nil {
 		return nil, err
 	}
-	val.EffectiveBalance = math.U64(ssz.UnmarshallUint64(bz))
+	val.EffectiveBalance = math.U64(fastssz.UnmarshallUint64(bz))
 
 	bz, err = d.getLeafBytes(path.AppendName("Slashed"))
 	if err != nil {
 		return nil, err
 	}
-	val.Slashed = ssz.UnmarshalBool(bz)
+	val.Slashed = fastssz.UnmarshalBool(bz)
 
 	bz, err = d.getLeafBytes(path.AppendName("ActivationEligibilityEpoch"))
 	if err != nil {
 		return nil, err
 	}
-	val.ActivationEligibilityEpoch = math.Epoch(ssz.UnmarshallUint64(bz))
+	val.ActivationEligibilityEpoch = math.Epoch(fastssz.UnmarshallUint64(bz))
 
 	bz, err = d.getLeafBytes(path.AppendName("ActivationEpoch"))
 	if err != nil {
 		return nil, err
 	}
-	val.ActivationEpoch = math.Epoch(ssz.UnmarshallUint64(bz))
+	val.ActivationEpoch = math.Epoch(fastssz.UnmarshallUint64(bz))
 
 	bz, err = d.getLeafBytes(path.AppendName("ExitEpoch"))
 	if err != nil {
 		return nil, err
 	}
-	val.ExitEpoch = math.Epoch(ssz.UnmarshallUint64(bz))
+	val.ExitEpoch = math.Epoch(fastssz.UnmarshallUint64(bz))
 
 	bz, err = d.getLeafBytes(path.AppendName("WithdrawableEpoch"))
 	if err != nil {
 		return nil, err
 	}
-	val.WithdrawableEpoch = math.Epoch(ssz.UnmarshallUint64(bz))
+	val.WithdrawableEpoch = math.Epoch(fastssz.UnmarshallUint64(bz))
 
 	return val, nil
 }
 
-func (d *SchemaDb) GetValidators() ([]*types.Validator, error) {
+func (d *SchemaDb[ExecutionPayloadHeaderT]) GetValidators() ([]*types.Validator, error) {
 	path := schema.Path("Validators", "__len__")
 	node, err := schema.GetTreeNode(d.schemaRoot, path)
 	if err != nil {
@@ -211,7 +363,7 @@ func (d *SchemaDb) GetValidators() ([]*types.Validator, error) {
 		return nil, err
 	}
 
-	length := ssz.UnmarshallUint64(bz)
+	length := fastssz.UnmarshallUint64(bz)
 	validators := make([]*types.Validator, length)
 	for i := uint64(0); i < length; i++ {
 		val, err := d.GetValidatorAtIndex(i)

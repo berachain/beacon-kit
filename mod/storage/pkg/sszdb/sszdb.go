@@ -7,22 +7,21 @@ import (
 	"math"
 
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/sszdb/tree"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/cockroachdb/pebble"
-	ssz "github.com/ferranbt/fastssz"
 )
 
 const devDBPath = "./.tmp/sszdb.db"
 
-type DB struct {
+type Backend struct {
 	db *pebble.DB
 }
 
-type Config struct {
+type BackendConfig struct {
 	Path string
 }
 
-func New(cfg Config) (*DB, error) {
+func NewBackend(cfg BackendConfig) (*Backend, error) {
 	if cfg.Path == "" {
 		cfg.Path = devDBPath
 	}
@@ -30,16 +29,16 @@ func New(cfg Config) (*DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &DB{
+	return &Backend{
 		db: db,
 	}, nil
 }
 
-func (d *DB) Close() error {
+func (d *Backend) Close() error {
 	return d.db.Close()
 }
 
-func (d *DB) Get(key []byte) ([]byte, error) {
+func (d *Backend) Get(key []byte) ([]byte, error) {
 	if len(key) == 0 {
 		return nil, errors.New("key cannot be empty")
 	}
@@ -57,7 +56,7 @@ func (d *DB) Get(key []byte) ([]byte, error) {
 	return ret, nil
 }
 
-func (d *DB) Set(key []byte, value []byte) error {
+func (d *Backend) Set(key []byte, value []byte) error {
 	if len(key) == 0 {
 		return errors.New("key cannot be empty")
 	}
@@ -76,19 +75,19 @@ func keyBytes(gindex uint64) []byte {
 	return key
 }
 
-func (d *DB) SaveMonolith(mono ssz.HashRoot) error {
-	treeRoot, err := tree.NewTreeFromFastSSZ(mono)
+func (d *Backend) SaveMonolith(mono ssz.SSZTreeable) error {
+	treeRoot, err := mono.GetRootNode()
 	if err != nil {
 		return err
 	}
-	treeRoot.Hash()
+	treeRoot.CachedHash()
 	return d.save(treeRoot, 1)
 }
 
-func (d *DB) save(node *tree.Node, gindex uint64) error {
+func (d *Backend) save(node *ssz.Node, gindex uint64) error {
 	// Save the node
 	key := keyBytes(gindex)
-	if err := d.Set(key, node.Encode()); err != nil {
+	if err := d.Set(key, node.Value); err != nil {
 		return err
 	}
 
@@ -108,7 +107,7 @@ func (d *DB) save(node *tree.Node, gindex uint64) error {
 	return nil
 }
 
-func (d *DB) getNode(gindex uint64) (*tree.Node, error) {
+func (d *Backend) getNode(gindex uint64) (*ssz.Node, error) {
 	key := keyBytes(gindex)
 	bz, err := d.Get(key)
 	if err != nil {
@@ -117,10 +116,10 @@ func (d *DB) getNode(gindex uint64) (*tree.Node, error) {
 	if bz == nil {
 		return nil, nil
 	}
-	return tree.DecodeNode(bz)
+	return &ssz.Node{Value: bz}, nil
 }
 
-func (d *DB) mustGetNode(gindex uint64) (*tree.Node, error) {
+func (d *Backend) mustGetNode(gindex uint64) (*ssz.Node, error) {
 	key := keyBytes(gindex)
 	bz, err := d.Get(key)
 	if err != nil {
@@ -129,11 +128,11 @@ func (d *DB) mustGetNode(gindex uint64) (*tree.Node, error) {
 	if bz == nil {
 		return nil, fmt.Errorf("node not found at gindex %d", gindex)
 	}
-	return tree.DecodeNode(bz)
+	return &ssz.Node{Value: bz}, nil
 }
 
 // todo: refactor to use offset
-func (d *DB) getNodeBytes(gindex uint64, lenBz uint64) ([]byte, error) {
+func (d *Backend) getNodeBytes(gindex uint64, lenBz uint64) ([]byte, error) {
 	const chunksize = 32
 
 	numNodes := int(math.Ceil(float64(lenBz) / chunksize))
@@ -155,20 +154,4 @@ func (d *DB) getNodeBytes(gindex uint64, lenBz uint64) ([]byte, error) {
 	}
 
 	return buf.Bytes(), nil
-}
-
-func getLeftNode(node *ssz.Node) *ssz.Node {
-	left, err := node.Get(2)
-	if err != nil {
-		return nil
-	}
-	return left
-}
-
-func getRightNode(node *ssz.Node) *ssz.Node {
-	right, err := node.Get(3)
-	if err != nil {
-		return nil
-	}
-	return right
 }

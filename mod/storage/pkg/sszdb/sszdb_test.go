@@ -72,13 +72,13 @@ func TestDB_Metadata(t *testing.T) {
 	}
 
 	dir := t.TempDir() + "/sszdb.db"
-	db, err := sszdb.New(sszdb.Config{Path: dir})
+	db, err := sszdb.NewBackend(sszdb.BackendConfig{Path: dir})
 	require.NoError(t, err)
 
 	err = db.SaveMonolith(beacon)
 	require.NoError(t, err)
 
-	schemaDb, err := sszdb.NewSchemaDb(db, beacon)
+	schemaDb, err := sszdb.NewSchemaDb[*types.ExecutionPayloadHeader](db, beacon)
 	require.NoError(t, err)
 
 	bz, err := schemaDb.GetGenesisValidatorsRoot()

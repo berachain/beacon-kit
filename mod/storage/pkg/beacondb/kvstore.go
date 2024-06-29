@@ -26,9 +26,11 @@ import (
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/index"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/keys"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/sszdb"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -39,6 +41,7 @@ type KVStore[
 	Eth1DataT constraints.SSZMarshallable,
 	ExecutionPayloadHeaderT interface {
 		constraints.SSZMarshallable
+		ssz.SSZTreeable
 		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
 		Version() uint32
 	},
@@ -96,6 +99,7 @@ type KVStore[
 	slashings sdkcollections.Map[uint64, uint64]
 	// totalSlashing stores the total slashing in the vector range.
 	totalSlashing sdkcollections.Item[uint64]
+	sdb           *sszdb.SchemaDb[ExecutionPayloadHeaderT]
 }
 
 // New creates a new instance of Store.
@@ -106,12 +110,14 @@ func New[
 	Eth1DataT constraints.SSZMarshallable,
 	ExecutionPayloadHeaderT interface {
 		constraints.SSZMarshallable
+		ssz.SSZTreeable
 		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
 		Version() uint32
 	},
 	ForkT constraints.SSZMarshallable,
 	ValidatorT Validator,
 ](
+	sdb *sszdb.SchemaDb[ExecutionPayloadHeaderT],
 	kss store.KVStoreService,
 	payloadCodec *encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT],
 ) *KVStore[
@@ -123,6 +129,7 @@ func New[
 		ForkT, ValidatorT,
 	]{
 		ctx: nil,
+		sdb: sdb,
 		genesisValidatorsRoot: sdkcollections.NewItem(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.GenesisValidatorsRootPrefix}),

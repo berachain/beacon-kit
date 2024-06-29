@@ -24,6 +24,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
@@ -39,6 +40,7 @@ type ExecutionPayloadHeader struct {
 // and a full execution payload.
 type InnerExecutionPayloadHeader interface {
 	executionPayloadBody
+	ssz.SSZTreeable
 	GetTransactionsRoot() common.Root
 	GetWithdrawalsRoot() common.Root
 }
@@ -217,4 +219,8 @@ func (d *ExecutionPayloadHeaderDeneb) GetBlobGasUsed() math.U64 {
 // ExecutionPayloadHeaderDeneb.
 func (d *ExecutionPayloadHeaderDeneb) GetExcessBlobGas() math.U64 {
 	return d.ExcessBlobGas
+}
+
+func (d *ExecutionPayloadHeaderDeneb) GetRootNode() (*ssz.Node, error) {
+	return ssz.NewTreeFromFastSSZ(d)
 }

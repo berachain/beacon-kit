@@ -23,11 +23,16 @@ package components
 import (
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/sszdb"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/spf13/cast"
 )
 
 // StorageBackendInput is the input for the ProvideStorageBackend function.
@@ -62,12 +67,25 @@ func ProvideStorageBackend(
 type KVStoreInput struct {
 	depinject.In
 	Environment appmodule.Environment
+	AppOpts     servertypes.AppOptions
 }
 
 // ProvideKVStore is the depinject provider that returns a beacon KV store.
 func ProvideKVStore(
 	in KVStoreInput,
-) *KVStore {
+) (*KVStore, error) {
+	cfg := sszdb.BackendConfig{
+		Path: cast.ToString(in.AppOpts.Get(flags.FlagHome)) + "/data/sszdb.db",
+	}
+	backend, err := sszdb.NewBackend(cfg)
+	if err != nil {
+		return nil, err
+	}
+	szdb, err := sszdb.NewSchemaDb[*ExecutionPayloadHeader](backend, &deneb.BeaconState{})
+	if err != nil {
+		return nil, err
+	}
+
 	payloadCodec := &encoding.
 		SSZInterfaceCodec[*ExecutionPayloadHeader]{}
 	return beacondb.New[
@@ -76,5 +94,5 @@ func ProvideKVStore(
 		*ExecutionPayloadHeader,
 		*types.Fork,
 		*types.Validator,
-	](in.Environment.KVStoreService, payloadCodec)
+	](szdb, in.Environment.KVStoreService, payloadCodec), nil
 }

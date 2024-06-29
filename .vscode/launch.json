@@ -1,0 +1,58 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Start Beacon Kit",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/beacond/cmd/main.go",
+            "buildFlags": ["-tags='netgo,pebbledb,blst,bls12381,ckzg,cgo'"],
+            "args": [
+                "start",
+                "--pruning=nothing",
+                "--log_level",
+                "info",
+                "--api.enabled-unsafe-cors",
+                "--api.enable",
+                "--api.swagger",
+                "--minimum-gas-prices=0.0001abgt",
+                "--home",
+                "${workspaceFolder}/.tmp/beacond",
+                "--beacon-kit.engine.jwt-secret-path",
+                "${workspaceFolder}/testing/files/jwt.hex",
+                "--beacon-kit.kzg.trusted-setup-path",
+                "${workspaceFolder}/testing/files/kzg-trusted-setup.json",
+            ],
+            "env": {
+                "CHAIN_SPEC": "devnet"
+            },
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "debug beacond",
+            "type": "go",
+            "request": "launch",
+            "mode": "exec",
+            "program": "${workspaceFolder}/build/bin/beacond",
+            "args": [
+                "start",
+                "--pruning=nothing",
+                "--log_level",
+                "info",
+                "--api.enabled-unsafe-cors",
+                "--api.enable",
+                "--api.swagger",
+                "--minimum-gas-prices=0.0001abgt",
+                "--home",
+                "./.tmp/beacond",
+                "--beacon-kit.engine.jwt-secret-path",
+                "./testing/files/jwt.hex"
+            ],
+            "env": {
+                "CHAIN_SPEC": "devnet"
+            },
+            "console": "integratedTerminal"
+        }
+    ]
+}

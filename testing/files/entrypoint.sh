@@ -92,4 +92,5 @@ if [ -n "$RPC_DIAL_URL" ]; then
 fi
 
 # run the beacon node
-eval $BEACON_START_CMD
+# eval $BEACON_START_CMD
+echo $BEACON_START_CMD
