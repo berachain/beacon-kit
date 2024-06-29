@@ -302,8 +302,3 @@ func (Byte) IsFixed() bool {
 func (Byte) ChunkCount() uint64 {
 	return 1
 }
-
-// Unwrap returns the byte value.
-func (b Byte) Unwrap() byte {
-	return byte(b)
-}
