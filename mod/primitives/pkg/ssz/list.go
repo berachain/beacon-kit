@@ -22,6 +22,7 @@ package ssz
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/serializer"
 )
@@ -31,71 +32,82 @@ import (
 /* -------------------------------------------------------------------------- */
 
 // ListBasic is a list of basic types.
-type ListBasic[T Basic[T]] struct {
-	t     []T
-	limit uint64
+type ListBasic[B Basic[B]] struct {
+	elements []B
+	limit    uint64
 }
 
 // ListBasicFromElements creates a new ListComposite from elements.
 // TODO: Deprecate once off of Fastssz
-func ListBasicFromElements[T Basic[T]](
+func ListBasicFromElements[B Basic[B]](
 	limit uint64,
-	elements ...T,
-) *ListBasic[T] {
-	return &ListBasic[T]{
-		t:     elements,
-		limit: limit,
+	elements ...B,
+) *ListBasic[B] {
+	return &ListBasic[B]{
+		elements: elements,
+		limit:    limit,
 	}
 }
 
+// IsFixed returns true if the ListBasic is fixed size.
+func (l ListBasic[B]) IsFixed() bool {
+	return false
+}
+
+// N returns the N value as defined in the SSZ specification
+func (l ListBasic[B]) N() uint64 {
+	return l.limit
+}
+
+// ChunkCount returns the number of chunks in the ListBasic.
+func (l ListBasic[B]) ChunkCount() uint64 {
+	var b B
+	return (l.N()*uint64(b.SizeSSZ()) + 31) / constants.RootLength
+}
+
 // SizeSSZ returns the size of the list in bytes.
-func (l ListBasic[T]) SizeSSZ() int {
+func (l ListBasic[B]) SizeSSZ() int {
 	// The same for ListBasic as for VectorBasic.
-	return VectorBasic[T](l.t).SizeSSZ()
+	return VectorBasic[B](l.elements).SizeSSZ()
 }
 
 // HashTreeRootWith returns the Merkle root of the ListBasic
 // with a given merkleizer.
-func (l ListBasic[T]) HashTreeRootWith(
-	merkleizer BasicMerkleizer[[32]byte, T],
+func (l ListBasic[B]) HashTreeRootWith(
+	merkleizer BasicMerkleizer[[32]byte, B],
 ) ([32]byte, error) {
-	return merkleizer.MerkleizeListBasic(l.t, l.limit)
+	return merkleizer.MerkleizeListBasic(l.elements, l.limit)
 }
 
 // HashTreeRoot returns the Merkle root of the ListBasic.
-func (l ListBasic[T]) HashTreeRoot() ([32]byte, error) {
+func (l ListBasic[B]) HashTreeRoot() ([32]byte, error) {
 	// Create a merkleizer
-	return l.HashTreeRootWith(merkleizer.New[[32]byte, T]())
+	return l.HashTreeRootWith(merkleizer.New[[32]byte, B]())
 }
 
 // MarshalSSZTo marshals the ListBasic into SSZ format.
-func (l ListBasic[T]) MarshalSSZTo(out []byte) ([]byte, error) {
-	return VectorBasic[T](l.t).MarshalSSZTo(out)
+func (l ListBasic[B]) MarshalSSZTo(out []byte) ([]byte, error) {
+	return VectorBasic[B](l.elements).MarshalSSZTo(out)
 }
 
 // MarshalSSZ marshals the ListBasic into SSZ format.
-func (l ListBasic[T]) MarshalSSZ() ([]byte, error) {
+func (l ListBasic[B]) MarshalSSZ() ([]byte, error) {
 	// The same for ListBasic as for VectorBasic.
-	return VectorBasic[T](l.t).MarshalSSZ()
+	return VectorBasic[B](l.elements).MarshalSSZ()
 }
 
 // NewFromSSZ creates a new ListBasic from SSZ format.
-func (l ListBasic[T]) NewFromSSZ(buf []byte) (*ListBasic[T], error) {
+func (l ListBasic[B]) NewFromSSZ(buf []byte) (*ListBasic[B], error) {
 	// The same for ListBasic as for VectorBasic
 	var (
-		t   = make(VectorBasic[T], 0)
-		err error
+		elements = make(VectorBasic[B], 0)
+		err      error
 	)
 
-	t, err = t.NewFromSSZ(buf)
-	return &ListBasic[T]{
-		t: t,
+	elements, err = elements.NewFromSSZ(buf)
+	return &ListBasic[B]{
+		elements: elements,
 	}, err
-}
-
-// IsFixed returns true if the ListBasic is fixed size.
-func (l ListBasic[T]) IsFixed() bool {
-	return false
 }
 
 /* -------------------------------------------------------------------------- */
@@ -117,6 +129,16 @@ func ListCompositeFromElements[T Composite[T]](
 		t:     elements,
 		limit: limit,
 	}
+}
+
+// IsFixed returns true if the ListBasic is fixed size.
+func (l ListComposite[T]) IsFixed() bool {
+	return false
+}
+
+// N returns the N value as defined in the SSZ specification
+func (l ListComposite[T]) N() uint64 {
+	return l.limit
 }
 
 // SizeSSZ returns the size of the list in bytes.
@@ -175,9 +197,4 @@ func (ListComposite[T]) NewFromSSZ(
 		t:     elems,
 		limit: limit,
 	}, nil
-}
-
-// IsFixed returns true if the ListBasic is fixed size.
-func (l ListComposite[T]) IsFixed() bool {
-	return false
 }
