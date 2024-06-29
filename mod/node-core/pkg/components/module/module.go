@@ -163,6 +163,7 @@ func (am AppModule[T, ValidatorUpdateT]) EndBlock(
 	).EndBlock(ctx)
 }
 
+// proto will be sad that tendermint afk if we don't have this here
 // AutoCLIOptions implements the autocli.HasAutoCLIConfig interface.
 func (am AppModule[T, ValidatorUpdateT]) AutoCLIOptions() *autocliv1.ModuleOptions {
 	return &autocliv1.ModuleOptions{
