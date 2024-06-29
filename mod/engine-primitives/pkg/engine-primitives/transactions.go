@@ -30,6 +30,10 @@ import (
 
 // Transactions is a typealias for [][]byte, which is how transactions are
 // received in the execution payload.
+//
+// NOTE: We mightve made a mistake here,
+// I think this should be ssz.ListBasic[ssz.Byte]] @itsdevbear
+// TODO: Fix this in the next breaking change on bArtio.
 type Transactions = ssz.ListComposite[ssz.VectorBasic[ssz.Byte]]
 
 // TransactionsFromBytes creates a Transactions object from a byte slice.
