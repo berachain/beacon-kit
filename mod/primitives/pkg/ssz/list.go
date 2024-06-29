@@ -51,6 +51,8 @@ func ListBasicFromElements[B Basic[B]](
 
 // IsFixed returns true if the ListBasic is fixed size.
 func (l ListBasic[B]) IsFixed() bool {
+	// We recursively define "variable-size" types to be lists, unions, Bitlists.
+	// Therefore all Lists are NOT fixed.
 	return false
 }
 
@@ -139,6 +141,8 @@ func ListCompositeFromElements[T Composite[T]](
 
 // IsFixed returns true if the ListBasic is fixed size.
 func (l ListComposite[T]) IsFixed() bool {
+	// We recursively define "variable-size" types to be lists, unions, Bitlists.
+	// Therefore all Lists are NOT fixed.
 	return false
 }
 
