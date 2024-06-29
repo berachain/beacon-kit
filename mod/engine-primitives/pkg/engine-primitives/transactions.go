@@ -43,3 +43,18 @@ func TransactionsFromBytes(data [][]byte) *Transactions {
 // TODO: make the ChainSpec a generic on this type.
 type TxsMerkleizer merkleizer.
 	Merkleizer[[32]byte, ssz.ListComposite[ssz.ByteVector]]
+
+type Transactions2 = ssz.ListComposite[ssz.VectorBasic[ssz.Byte]]
+
+func Transactions2FromBytes(data [][]byte) *Transactions2 {
+	elements := make([]ssz.VectorBasic[ssz.Byte], len(data))
+	for i, bytes := range data {
+		elements[i] = ssz.VectorBasicFromElements[ssz.Byte](
+			(*(*[]ssz.Byte)(unsafe.Pointer(&bytes)))...,
+		)
+	}
+	return ssz.ListCompositeFromElements(
+		constants.MaxTxsPerPayload,
+		elements...,
+	)
+}
