@@ -21,41 +21,22 @@
 package builder
 
 import (
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // PayloadBuilder is used to build payloads on the
 // execution client.
 type PayloadBuilder[
-	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
-	ExecutionPayloadT interface {
-		constraints.ForkTyped[ExecutionPayloadT]
-		GetBlockHash() common.ExecutionHash
-		GetFeeRecipient() common.ExecutionAddress
-		GetParentHash() common.ExecutionHash
-	},
-	ExecutionPayloadHeaderT interface {
-		GetBlockHash() common.ExecutionHash
-		GetParentHash() common.ExecutionHash
-	},
-	PayloadAttributesT interface {
-		engineprimitives.PayloadAttributer
-		New(
-			uint32,
-			uint64,
-			common.Bytes32,
-			common.ExecutionAddress,
-			[]*engineprimitives.Withdrawal,
-			common.Root,
-		) (PayloadAttributesT, error)
-	},
+	BeaconStateT BeaconState[ExecutionPayloadHeaderT, WithdrawalT],
+	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
+	PayloadAttributesT PayloadAttributes[PayloadAttributesT, WithdrawalT],
 	PayloadIDT ~[8]byte,
+	WithdrawalT any,
 ] struct {
 	// cfg holds the configuration settings for the PayloadBuilder.
 	cfg *Config
@@ -73,35 +54,18 @@ type PayloadBuilder[
 	]
 	// attributesFactory is used to create attributes for the
 	attributesFactory *attributes.Factory[
-		BeaconStateT, PayloadAttributesT, *engineprimitives.Withdrawal,
+		BeaconStateT, PayloadAttributesT, WithdrawalT,
 	]
 }
 
 // New creates a new service.
 func New[
-	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
-	ExecutionPayloadT interface {
-		constraints.ForkTyped[ExecutionPayloadT]
-		GetBlockHash() common.ExecutionHash
-		GetParentHash() common.ExecutionHash
-		GetFeeRecipient() common.ExecutionAddress
-	},
-	ExecutionPayloadHeaderT interface {
-		GetBlockHash() common.ExecutionHash
-		GetParentHash() common.ExecutionHash
-	},
-	PayloadAttributesT interface {
-		engineprimitives.PayloadAttributer
-		New(
-			uint32,
-			uint64,
-			common.Bytes32,
-			common.ExecutionAddress,
-			[]*engineprimitives.Withdrawal,
-			common.Root,
-		) (PayloadAttributesT, error)
-	},
+	BeaconStateT BeaconState[ExecutionPayloadHeaderT, WithdrawalT],
+	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
+	PayloadAttributesT PayloadAttributes[PayloadAttributesT, WithdrawalT],
 	PayloadIDT ~[8]byte,
+	WithdrawalT any,
 ](
 	cfg *Config,
 	chainSpec common.ChainSpec,
@@ -111,15 +75,15 @@ func New[
 		PayloadIDT, [32]byte, math.Slot,
 	],
 	af *attributes.Factory[
-		BeaconStateT, PayloadAttributesT, *engineprimitives.Withdrawal,
+		BeaconStateT, PayloadAttributesT, WithdrawalT,
 	],
 ) *PayloadBuilder[
 	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	PayloadAttributesT, PayloadIDT,
+	PayloadAttributesT, PayloadIDT, WithdrawalT,
 ] {
 	return &PayloadBuilder[
 		BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-		PayloadAttributesT, PayloadIDT,
+		PayloadAttributesT, PayloadIDT, WithdrawalT,
 	]{
 		cfg:               cfg,
 		chainSpec:         chainSpec,
@@ -133,7 +97,7 @@ func New[
 // Enabled returns true if the payload builder is enabled.
 func (pb *PayloadBuilder[
 	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	PayloadAttributesT, PayloadIDT,
+	PayloadAttributesT, PayloadIDT, WithdrawalT,
 ]) Enabled() bool {
 	return pb.cfg.Enabled
 }

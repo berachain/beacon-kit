@@ -24,8 +24,7 @@ import "errors"
 
 var (
 	// ErrUndefinedValidatorUpdate is returned when an undefined validator
-	// update is
-	// encountered.
+	// update is encountered.
 	ErrUndefinedValidatorUpdate = errors.New(
 		"undefined validator update",
 	)

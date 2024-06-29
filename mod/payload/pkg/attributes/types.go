@@ -20,7 +20,10 @@
 
 package attributes
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+import (
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+)
 
 // BeaconState is an interface for accessing the beacon state.
 type BeaconState[WithdrawalT any] interface {
@@ -28,4 +31,18 @@ type BeaconState[WithdrawalT any] interface {
 	ExpectedWithdrawals() ([]WithdrawalT, error)
 	// GetRandaoMixAtIndex returns the randao mix at the given index.
 	GetRandaoMixAtIndex(index uint64) (common.Root, error)
+}
+
+// PayloadAttributes is the interface for the payload attributes.
+type PayloadAttributes[SelfT any, WithdrawalT any] interface {
+	engineprimitives.PayloadAttributer
+	// New creates a new payload attributes instance.
+	New(
+		uint32,
+		uint64,
+		common.Bytes32,
+		common.ExecutionAddress,
+		[]WithdrawalT,
+		common.Root,
+	) (SelfT, error)
 }

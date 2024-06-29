@@ -97,7 +97,6 @@ func run() error {
 				nodecomponents.ProvideChainSpec,
 				nodecomponents.ProvideTxCodec[tx],
 				servercomponents.ProvideCometServer[node, tx, validatorUpdate],
-				servercomponents.ProvideConsensusEngine[tx, validatorUpdate],
 			)...,
 		),
 		clibuilder.SupplyModuleDeps[node, tx, validatorUpdate](

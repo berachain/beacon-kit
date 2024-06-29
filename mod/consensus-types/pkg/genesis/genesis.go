@@ -25,11 +25,13 @@ import (
 	"encoding/json"
 	"math/big"
 
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"golang.org/x/sync/errgroup"
 )
@@ -149,7 +151,11 @@ func DefaultGenesisExecutionPayloadHeaderDeneb() (
 
 	g.Go(func() error {
 		var err error
-		emptyWithdrawalsRoot, err = engineprimitives.Withdrawals{}.HashTreeRoot()
+		wds := ssz.ListCompositeFromElements(
+			spec.DevnetChainSpec().MaxWithdrawalsPerPayload(),
+			[]*engineprimitives.Withdrawal{}...,
+		)
+		emptyWithdrawalsRoot, err = wds.HashTreeRoot()
 		return err
 	})
 

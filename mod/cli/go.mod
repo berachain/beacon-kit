@@ -9,6 +9,7 @@ replace (
 	cosmossdk.io/server/v2 => github.com/berachain/cosmos-sdk/server/v2 v2.0.0-20240628155326-d426a5db6775
 	cosmossdk.io/server/v2/cometbft => github.com/berachain/cosmos-sdk/server/v2/cometbft v0.0.0-20240628155326-d426a5db6775
 	cosmossdk.io/store/v2 => github.com/berachain/cosmos-sdk/store/v2 v2.0.0-20240628155326-d426a5db6775
+	github.com/berachain/beacon-kit/mod/server => ../server
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240628155326-d426a5db6775
 	github.com/cosmos/crypto => github.com/cosmos/crypto v0.0.0-20240312084433-de8f9c76030d
 )
@@ -27,7 +28,7 @@ require (
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240624210933-3baa52ebb587
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240619234034-fe96d94eafef
 	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240625165558-8d611ba7d436
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240624210933-3baa52ebb587
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240629042719-a35bdb8b1255
 	github.com/berachain/beacon-kit/mod/server v0.0.0-20240626181612-5a021068d586
 	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240625053718-5a9f3b4a787f
 	github.com/cosmos/cosmos-sdk v0.51.0

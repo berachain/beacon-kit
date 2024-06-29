@@ -69,7 +69,8 @@ func NewTreeWithMaxLeaves[RootT ~[32]byte](
 	)
 }
 
-// NewTreeFromLeaves constructs a Merkle tree from a sequence of byte slices.
+// NewTreeFromLeavesWithDepth constructs a Merkle tree
+// from a sequence of byte slices.
 // It will fill the tree with zero hashes to create the required depth.
 func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 	leaves []RootT,
@@ -134,9 +135,9 @@ func (m *Tree[RootT]) Insert(item [32]byte, index int) error {
 
 	//nolint:mnd // 5 as defined by the library.
 	if m.depth > 5 {
-		hashFn = sha256.CustomSHA256Hasher()
+		hashFn = sha256.CustomHashFn()
 	} else {
-		hashFn = sha256.Sum256
+		hashFn = sha256.Hash
 	}
 
 	for i := range m.depth {
@@ -224,7 +225,7 @@ func (m *Tree[RootT]) MerkleProofWithMixin(
 // MixinLength takes a root element and mixes in the length of the elements
 // that were hashed to produce it.
 //
-// TODO: move to ssz package.
+// TODO: move to ssz package. This binary tree shouldn't be coupled to SSZ imo.
 func MixinLength[RootT ~[32]byte](element RootT, length uint64) RootT {
 	chunks := make([][32]byte, two)
 	chunks[0] = element
