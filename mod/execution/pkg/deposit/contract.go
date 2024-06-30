@@ -26,6 +26,7 @@ import (
 
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/bind"
+	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -38,7 +39,7 @@ type WrappedBeaconDepositContract[
 	WithdrawalCredentialsT ~[32]byte,
 ] struct {
 	// BeaconDepositContract is a pointer to the codegen ABI binding.
-	BeaconDepositContract
+	deposit.BeaconDepositContract
 }
 
 // NewWrappedBeaconDepositContract creates a new BeaconDepositContract.
@@ -52,7 +53,7 @@ func NewWrappedBeaconDepositContract[
 	DepositT,
 	WithdrawalCredentialsT,
 ], error) {
-	contract, err := NewBeaconDepositContract(
+	contract, err := deposit.NewBeaconDepositContract(
 		address, client,
 	)
 
