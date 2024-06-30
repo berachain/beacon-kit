@@ -75,6 +75,16 @@ func (Bool) ChunkCount() uint64 {
 	return 1
 }
 
+// Default returns the default value of the bool.
+func (Bool) Default() Bool {
+	return false
+}
+
+// IsZero returns true if the bool is zero (false).
+func (b Bool) IsZero() bool {
+	return !bool(b)
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                     U8                                     */
 /* -------------------------------------------------------------------------- */
@@ -119,6 +129,16 @@ func (U8) IsFixed() bool {
 // ChunkCount returns the number of chunks required to store the uint8.
 func (U8) ChunkCount() uint64 {
 	return 1
+}
+
+// Default returns the default value of the uint8.
+func (U8) Default() U8 {
+	return 0
+}
+
+// IsZero returns true if the uint8 is zero.
+func (u U8) IsZero() bool {
+	return u == 0
 }
 
 /* -------------------------------------------------------------------------- */
@@ -167,6 +187,16 @@ func (U16) ChunkCount() uint64 {
 	return 1
 }
 
+// Default returns the default value of the uint16.
+func (U16) Default() U16 {
+	return 0
+}
+
+// IsZero returns true if the uint16 is zero.
+func (u U16) IsZero() bool {
+	return u == 0
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                     U32                                    */
 /* -------------------------------------------------------------------------- */
@@ -211,6 +241,16 @@ func (U32) IsFixed() bool {
 // ChunkCount returns the number of chunks required to store the uint32.
 func (U32) ChunkCount() uint64 {
 	return 1
+}
+
+// Default returns the default value of the uint32.
+func (U32) Default() U32 {
+	return 0
+}
+
+// IsZero returns true if the uint32 is zero.
+func (u U32) IsZero() bool {
+	return u == 0
 }
 
 /* -------------------------------------------------------------------------- */
@@ -259,6 +299,16 @@ func (U64) ChunkCount() uint64 {
 	return 1
 }
 
+// Default returns the default value of the uint64.
+func (U64) Default() U64 {
+	return 0
+}
+
+// IsZero returns true if the uint64 is zero.
+func (u U64) IsZero() bool {
+	return u == 0
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                    Byte                                    */
 /* -------------------------------------------------------------------------- */
@@ -301,4 +351,14 @@ func (Byte) IsFixed() bool {
 // ChunkCount returns the number of chunks required to store the byte.
 func (Byte) ChunkCount() uint64 {
 	return 1
+}
+
+// Default returns the default value of the byte.
+func (Byte) Default() Byte {
+	return 0
+}
+
+// IsZero returns true if the byte is zero.
+func (b Byte) IsZero() bool {
+	return b == 0
 }

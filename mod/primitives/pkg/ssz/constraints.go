@@ -32,6 +32,8 @@ type Base[BaseT any] interface {
 	SizeSSZ() int
 	// HashTreeRoot returns the hash tree root of the composite type.
 	HashTreeRoot() ([32]byte, error)
+	// IsFixed returns true if the type has a fixed size.
+	IsFixed() bool
 }
 
 // Basic defines the interface for a basic type.

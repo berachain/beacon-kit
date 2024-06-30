@@ -24,7 +24,7 @@ import (
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/serializer"
 )
@@ -60,7 +60,7 @@ func (l VectorBasic[B]) ChunkCount() uint64 {
 	var b B
 	//#nosec:G701 // its fine.
 	//nolint:mnd // 31 is okay.
-	return (l.N()*uint64(b.SizeSSZ()) + 31) / constants.RootLength
+	return (l.N()*uint64(b.SizeSSZ()) + 31) / constants.BytesPerChunk
 }
 
 // N returns the N value as defined in the SSZ specification.
