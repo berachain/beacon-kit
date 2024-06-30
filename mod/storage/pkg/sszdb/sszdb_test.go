@@ -70,6 +70,17 @@ func TestDB_Metadata(t *testing.T) {
 			WithdrawableEpoch:          456,
 		},
 	}
+	beacon.LatestExecutionPayloadHeader = &types.ExecutionPayloadHeaderDeneb{
+		StateRoot:    [32]byte{1, 2, 3, 4},
+		ReceiptsRoot: [32]byte{5, 6, 7, 8},
+		Random:       [32]byte{13, 14, 15, 16},
+		LogsBloom:    make([]byte, 256), // 256 bytes
+		Number:       123,
+		GasLimit:     456,
+		GasUsed:      789,
+		Timestamp:    101112,
+		ExtraData:    []byte{29, 30, 31, 32, 35},
+	}
 
 	dir := t.TempDir() + "/sszdb.db"
 	db, err := sszdb.NewBackend(sszdb.BackendConfig{Path: dir})
@@ -114,4 +125,8 @@ func TestDB_Metadata(t *testing.T) {
 	for i, v := range vals {
 		require.Equal(t, beacon.Validators[i], v)
 	}
+
+	header, err := schemaDb.GetLatestExecutionPayloadHeader()
+	require.NoError(t, err)
+	require.Equal(t, beacon.LatestExecutionPayloadHeader, header.InnerExecutionPayloadHeader)
 }

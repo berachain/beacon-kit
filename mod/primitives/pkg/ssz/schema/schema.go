@@ -44,7 +44,7 @@ func (b Basic) position(_ pathSegment) (uint64, uint8, error) {
 // Container Type
 
 type Container struct {
-	Fields     map[string]SSZType
+	Fields     []SSZType
 	FieldIndex map[string]uint64
 }
 
@@ -54,7 +54,7 @@ func (c Container) Length() uint64 { return uint64(len(c.Fields)) }
 
 func (c Container) Chunks() uint64 { return uint64(len(c.Fields)) }
 
-func (c Container) child(p pathSegment) SSZType { return c.Fields[p.s] }
+func (c Container) child(p pathSegment) SSZType { return c.Fields[c.FieldIndex[p.s]] }
 
 func (c Container) position(p pathSegment) (uint64, uint8, error) {
 	pos, ok := c.FieldIndex[p.s]
@@ -104,6 +104,16 @@ func (e Enumerable) IsByteVector() bool {
 	return e.Element.Size() == 1 && e.length > 0
 }
 
+func (e Enumerable) IsList() bool {
+	return e.maxLength > 0
+}
+
+func (e Enumerable) IsFixed() bool {
+	// TODO fill out cases, abstract
+	_, ok := e.Element.(Basic)
+	return ok
+}
+
 // Object Path
 
 type pathSegment struct {
@@ -139,29 +149,6 @@ type Node struct {
 func CreateSchema(obj any) (SSZType, error) {
 	typ := reflect.TypeOf(obj)
 	return traverse(typ, nil)
-}
-
-func PrintSchema(typ SSZType) string {
-	return printSchema(typ, 0)
-}
-
-func printSchema(typ SSZType, indent int) string {
-	idt := strings.Repeat("  ", indent)
-
-	switch t := typ.(type) {
-	case Basic:
-		return fmt.Sprintf("Basic{%d}", t.size)
-	case Container:
-		var fields []string
-		for name, field := range t.Fields {
-			fields = append(fields, fmt.Sprintf("%s%s: %s", idt, name, printSchema(field, indent+1)))
-		}
-		return fmt.Sprintf("Container{%d}:\n%s", t.Length(), strings.Join(fields, "\n"))
-	case Enumerable:
-		return fmt.Sprintf("Enumerable{%d, %d, %s}", t.Length(), t.maxLength, printSchema(t.Element, indent+1))
-	default:
-		return fmt.Sprintf("Unknown type: %T", typ)
-	}
 }
 
 // GetTreeNode locates a node in the SSZ merkle tree by its path and a root
@@ -250,7 +237,6 @@ func traverse(typ reflect.Type, field *reflect.StructField) (SSZType, error) {
 		return Enumerable{Element: elemType, length: uint64(typ.Len())}, nil
 	case reflect.Struct:
 		container := Container{
-			Fields:     make(map[string]SSZType),
 			FieldIndex: make(map[string]uint64),
 		}
 		for i, field := range flattenStructFields(typ) {
@@ -258,7 +244,7 @@ func traverse(typ reflect.Type, field *reflect.StructField) (SSZType, error) {
 			if err != nil {
 				return nil, err
 			}
-			container.Fields[field.Name] = sszType
+			container.Fields = append(container.Fields, sszType)
 			container.FieldIndex[field.Name] = uint64(i)
 		}
 		return container, nil

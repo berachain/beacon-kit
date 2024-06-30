@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"math"
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
@@ -131,26 +130,31 @@ func (d *Backend) mustGetNode(gindex uint64) (*ssz.Node, error) {
 	return &ssz.Node{Value: bz}, nil
 }
 
-// todo: refactor to use offset
-func (d *Backend) getNodeBytes(gindex uint64, lenBz uint64) ([]byte, error) {
-	const chunksize = 32
-
-	numNodes := int(math.Ceil(float64(lenBz) / chunksize))
-	rem := lenBz % chunksize
+func (d *Backend) getNodeBytes(
+	gindex uint64, length uint64, offset uint8,
+) ([]byte, error) {
+	const chunkSize = 32
 	var (
 		buf bytes.Buffer
+		i   int
+		l   = int(length)
+		o   = int(offset)
 	)
-	for i := 0; i < numNodes; i++ {
-		n, err := d.mustGetNode(gindex + uint64(i))
+	for ; l > 0; i++ {
+		node, err := d.mustGetNode(gindex + uint64(i))
 		if err != nil {
 			return nil, err
 		}
-		// last node
-		if i == numNodes-1 && rem != 0 {
-			buf.Write(n.Value[:rem])
-		} else {
-			buf.Write(n.Value)
+		end := l + o
+		if end > chunkSize {
+			end = chunkSize
 		}
+		n, err := buf.Write(node.Value[offset:end])
+		if err != nil {
+			return nil, err
+		}
+		l -= n + o
+		o = 0
 	}
 
 	return buf.Bytes(), nil
