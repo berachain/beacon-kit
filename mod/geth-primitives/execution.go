@@ -54,7 +54,3 @@ var (
 	// ZeroHash is the zero execution hash.
 	ZeroHash = ExecutionHash{}
 )
-
-func IsNullAddress(address ExecutionAddress) bool {
-	return address == ZeroAddress
-}

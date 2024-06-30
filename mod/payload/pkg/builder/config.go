@@ -24,7 +24,6 @@ import (
 	"time"
 
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
 const (
@@ -53,7 +52,7 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		Enabled:               true,
-		SuggestedFeeRecipient: common.ZeroAddress,
+		SuggestedFeeRecipient: gethprimitives.ZeroAddress,
 		PayloadTimeout:        defaultPayloadTimeout,
 	}
 }

@@ -61,7 +61,11 @@ func TestForkchoiceStateV1(t *testing.T) {
 	}
 	require.Equal(t, gethprimitives.ExecutionHash{0x1}, state.HeadBlockHash)
 	require.Equal(t, gethprimitives.ExecutionHash{0x2}, state.SafeBlockHash)
-	require.Equal(t, gethprimitives.ExecutionHash{0x3}, state.FinalizedBlockHash)
+	require.Equal(
+		t,
+		gethprimitives.ExecutionHash{0x3},
+		state.FinalizedBlockHash,
+	)
 
 	// Test marshaling
 	marshaledState, err := json.Marshal(state)

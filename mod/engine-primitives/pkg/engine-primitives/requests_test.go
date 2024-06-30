@@ -71,7 +71,10 @@ func (m MockExecutionPayload) GetExtraData() []byte {
 func (m MockExecutionPayload) GetBaseFeePerGas() math.Wei {
 	return math.Wei{}
 }
-func (m MockExecutionPayload) GetFeeRecipient() gethprimitives.ExecutionAddress {
+
+func (
+	m MockExecutionPayload,
+) GetFeeRecipient() gethprimitives.ExecutionAddress {
 	return gethprimitives.ExecutionAddress{}
 }
 func (m MockExecutionPayload) GetStateRoot() common.Bytes32 {
@@ -176,7 +179,9 @@ func TestHasValidVersionedAndBlockHashesPayloadError(t *testing.T) {
 
 func TestHasValidVersionedAndBlockHashesMismatchedHashes(t *testing.T) {
 	executionPayload := MockExecutionPayload{}
-	versionedHashes := []gethprimitives.ExecutionHash{gethprimitives.ExecutionHash{}}
+	versionedHashes := []gethprimitives.ExecutionHash{
+		gethprimitives.ExecutionHash{},
+	}
 	parentBeaconBlockRoot := common.Root{}
 	optimistic := false
 

@@ -101,11 +101,11 @@ func (s *EngineClient[
 
 	// If the suggested fee recipient is not set, log a warning.
 	if !attrs.IsNil() &&
-		attrs.GetSuggestedFeeRecipient() == (common.ZeroAddress) {
+		attrs.GetSuggestedFeeRecipient() == (gethprimitives.ZeroAddress) {
 		s.logger.Warn(
 			"Suggested fee recipient is not configured 🔆",
-			"fee-recipent", common.DisplayBytes(
-				common.ZeroAddress[:]).TerminalString(),
+			"fee-recipent", gethprimitives.DisplayBytes(
+				gethprimitives.ZeroAddress[:]).TerminalString(),
 		)
 	}
 

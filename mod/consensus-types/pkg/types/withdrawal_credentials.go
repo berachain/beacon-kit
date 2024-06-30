@@ -54,7 +54,7 @@ func (wc WithdrawalCredentials) ToExecutionAddress() (
 	error,
 ) {
 	if wc[0] != EthSecp256k1CredentialPrefix {
-		return common.ZeroAddress, ErrInvalidWithdrawalCredentials
+		return gethprimitives.ZeroAddress, ErrInvalidWithdrawalCredentials
 	}
 	return gethprimitives.ExecutionAddress(wc[12:]), nil
 }

@@ -93,7 +93,11 @@ func TestExecutableDataDeneb_Getters(t *testing.T) {
 	payload := generateExecutableDataDeneb()
 
 	require.Equal(t, gethprimitives.ExecutionHash{}, payload.GetParentHash())
-	require.Equal(t, gethprimitives.ExecutionAddress{}, payload.GetFeeRecipient())
+	require.Equal(
+		t,
+		gethprimitives.ExecutionAddress{},
+		payload.GetFeeRecipient(),
+	)
 	require.Equal(t, bytes.B32{}, payload.GetStateRoot())
 	require.Equal(t, bytes.B32{}, payload.GetReceiptsRoot())
 	require.Equal(t, make([]byte, 256), payload.GetLogsBloom())

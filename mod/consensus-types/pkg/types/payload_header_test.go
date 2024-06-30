@@ -67,7 +67,11 @@ func TestExecutionPayloadHeaderDeneb_Getters(t *testing.T) {
 	require.NotNil(t, header)
 
 	require.Equal(t, gethprimitives.ExecutionHash{}, header.GetParentHash())
-	require.Equal(t, gethprimitives.ExecutionAddress{}, header.GetFeeRecipient())
+	require.Equal(
+		t,
+		gethprimitives.ExecutionAddress{},
+		header.GetFeeRecipient(),
+	)
 	require.Equal(t, bytes.B32{}, header.GetStateRoot())
 	require.Equal(t, bytes.B32{}, header.GetReceiptsRoot())
 	require.Equal(t, make([]byte, 256), header.GetLogsBloom())
