@@ -22,7 +22,7 @@ package cache
 
 import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	lru "github.com/hashicorp/golang-lru/v2/expirable"
 )
 
@@ -36,7 +36,7 @@ type EngineCache struct {
 	// headerByHashCache is an LRU cache that maps block hashes to their
 	// corresponding headers.
 	headerByHashCache *lru.LRU[
-		common.ExecutionHash, *engineprimitives.Header,
+		gethprimitives.ExecutionHash, *engineprimitives.Header,
 	]
 }
 
@@ -53,7 +53,7 @@ func NewEngineCache(
 			config.HeaderTTL,
 		),
 		headerByHashCache: lru.NewLRU[
-			common.ExecutionHash, *engineprimitives.Header,
+			gethprimitives.ExecutionHash, *engineprimitives.Header,
 		](
 			config.HeaderSize,
 			nil,
@@ -76,7 +76,7 @@ func (c *EngineCache) HeaderByNumber(
 
 // HeaderByHash returns the header with the given hash.
 func (c *EngineCache) HeaderByHash(
-	hash common.ExecutionHash,
+	hash gethprimitives.ExecutionHash,
 ) (*engineprimitives.Header, bool) {
 	return c.headerByHashCache.Get(hash)
 }

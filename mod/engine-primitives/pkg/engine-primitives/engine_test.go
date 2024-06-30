@@ -25,7 +25,7 @@ import (
 	"testing"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/stretchr/testify/require"
 )
 
@@ -55,13 +55,13 @@ func TestPayloadID(t *testing.T) {
 
 func TestForkchoiceStateV1(t *testing.T) {
 	state := &engineprimitives.ForkchoiceStateV1{
-		HeadBlockHash:      common.ExecutionHash{0x1},
-		SafeBlockHash:      common.ExecutionHash{0x2},
-		FinalizedBlockHash: common.ExecutionHash{0x3},
+		HeadBlockHash:      gethprimitives.ExecutionHash{0x1},
+		SafeBlockHash:      gethprimitives.ExecutionHash{0x2},
+		FinalizedBlockHash: gethprimitives.ExecutionHash{0x3},
 	}
-	require.Equal(t, common.ExecutionHash{0x1}, state.HeadBlockHash)
-	require.Equal(t, common.ExecutionHash{0x2}, state.SafeBlockHash)
-	require.Equal(t, common.ExecutionHash{0x3}, state.FinalizedBlockHash)
+	require.Equal(t, gethprimitives.ExecutionHash{0x1}, state.HeadBlockHash)
+	require.Equal(t, gethprimitives.ExecutionHash{0x2}, state.SafeBlockHash)
+	require.Equal(t, gethprimitives.ExecutionHash{0x3}, state.FinalizedBlockHash)
 
 	// Test marshaling
 	marshaledState, err := json.Marshal(state)
@@ -77,10 +77,10 @@ func TestForkchoiceStateV1(t *testing.T) {
 func TestPayloadStatusV1(t *testing.T) {
 	status := &engineprimitives.PayloadStatusV1{
 		Status:          engineprimitives.PayloadStatusValid,
-		LatestValidHash: &common.ExecutionHash{0x1},
+		LatestValidHash: &gethprimitives.ExecutionHash{0x1},
 	}
 	require.Equal(t, engineprimitives.PayloadStatusValid, status.Status)
-	require.Equal(t, &common.ExecutionHash{0x1}, status.LatestValidHash)
+	require.Equal(t, &gethprimitives.ExecutionHash{0x1}, status.LatestValidHash)
 
 	// Test marshaling
 	marshaledStatus, err := json.Marshal(status)

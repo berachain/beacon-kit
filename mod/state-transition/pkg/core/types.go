@@ -81,7 +81,9 @@ type BeaconBlockBody[
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	],
-	ExecutionPayloadHeaderT interface{ GetBlockHash() common.ExecutionHash },
+	ExecutionPayloadHeaderT interface {
+		GetBlockHash() gethprimitives.ExecutionHash
+	},
 	WithdrawalT any,
 ] interface {
 	constraints.EmptyWithVersion[BeaconBlockBodyT]
@@ -94,7 +96,7 @@ type BeaconBlockBody[
 	// HashTreeRoot returns the hash tree root of the block body.
 	HashTreeRoot() ([32]byte, error)
 	// GetBlobKzgCommitments returns the KZG commitments for the blobs.
-	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
+	GetBlobKzgCommitments() eip4844.KZGCommitments[gethprimitives.ExecutionHash]
 }
 
 // BlobSidecars is the interface for blobs sidecars.
@@ -155,8 +157,8 @@ type ExecutionPayload[
 ] interface {
 	constraints.EngineType[ExecutionPayloadT]
 	GetTransactions() [][]byte
-	GetParentHash() common.ExecutionHash
-	GetBlockHash() common.ExecutionHash
+	GetParentHash() gethprimitives.ExecutionHash
+	GetBlockHash() gethprimitives.ExecutionHash
 	GetPrevRandao() common.Bytes32
 	GetWithdrawals() []WithdrawalT
 	GetFeeRecipient() gethprimitives.ExecutionAddress
@@ -178,8 +180,8 @@ type ExecutionPayload[
 }
 
 type ExecutionPayloadHeader interface {
-	GetParentHash() common.ExecutionHash
-	GetBlockHash() common.ExecutionHash
+	GetParentHash() gethprimitives.ExecutionHash
+	GetBlockHash() gethprimitives.ExecutionHash
 	GetPrevRandao() common.Bytes32
 	GetFeeRecipient() gethprimitives.ExecutionAddress
 	GetStateRoot() common.Bytes32

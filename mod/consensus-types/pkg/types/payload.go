@@ -139,7 +139,7 @@ type ExecutableDataDeneb struct {
 	Timestamp     math.U64                        `json:"timestamp"                    gencodec:"required"`
 	ExtraData     []byte                          `json:"extraData"                    gencodec:"required" ssz-max:"32"`
 	BaseFeePerGas math.Wei                        `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
-	BlockHash     common.ExecutionHash            `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
+	BlockHash     gethprimitives.ExecutionHash    `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
 	Transactions  [][]byte                        `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
 	Withdrawals   []*engineprimitives.Withdrawal  `json:"withdrawals"                                      ssz-max:"16"`
 	BlobGasUsed   math.U64                        `json:"blobGasUsed"`
@@ -169,7 +169,7 @@ func (d *ExecutableDataDeneb) IsBlinded() bool {
 }
 
 // GetParentHash returns the parent hash of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetParentHash() common.ExecutionHash {
+func (d *ExecutableDataDeneb) GetParentHash() gethprimitives.ExecutionHash {
 	return d.ParentHash
 }
 
@@ -229,7 +229,7 @@ func (d *ExecutableDataDeneb) GetBaseFeePerGas() math.Wei {
 }
 
 // GetBlockHash returns the block hash of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetBlockHash() common.ExecutionHash {
+func (d *ExecutableDataDeneb) GetBlockHash() gethprimitives.ExecutionHash {
 	return d.BlockHash
 }
 

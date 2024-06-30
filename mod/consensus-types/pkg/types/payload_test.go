@@ -37,7 +37,7 @@ import (
 
 func generateExecutableDataDeneb() *types.ExecutableDataDeneb {
 	return &types.ExecutableDataDeneb{
-		ParentHash:    common.ExecutionHash{},
+		ParentHash:    gethprimitives.ExecutionHash{},
 		FeeRecipient:  gethprimitives.ExecutionAddress{},
 		StateRoot:     bytes.B32{},
 		ReceiptsRoot:  bytes.B32{},
@@ -49,7 +49,7 @@ func generateExecutableDataDeneb() *types.ExecutableDataDeneb {
 		Timestamp:     math.U64(0),
 		ExtraData:     []byte{},
 		BaseFeePerGas: math.Wei{},
-		BlockHash:     common.ExecutionHash{},
+		BlockHash:     gethprimitives.ExecutionHash{},
 		Transactions:  [][]byte{},
 		Withdrawals:   []*engineprimitives.Withdrawal{},
 		BlobGasUsed:   math.U64(0),
@@ -104,7 +104,7 @@ func TestExecutableDataDeneb_Getters(t *testing.T) {
 	require.Equal(t, math.U64(0), payload.GetTimestamp())
 	require.Equal(t, []byte{}, payload.GetExtraData())
 	require.Equal(t, math.Wei{}, payload.GetBaseFeePerGas())
-	require.Equal(t, common.ExecutionHash{}, payload.GetBlockHash())
+	require.Equal(t, gethprimitives.ExecutionHash{}, payload.GetBlockHash())
 	require.Equal(t, [][]byte{}, payload.GetTransactions())
 	require.Equal(t, []*engineprimitives.Withdrawal{}, payload.GetWithdrawals())
 	require.Equal(t, math.U64(0), payload.GetBlobGasUsed())
@@ -165,7 +165,7 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 			Timestamp:     math.U64(0),
 			ExtraData:     []byte{},
 			BaseFeePerGas: math.Wei{},
-			BlockHash:     common.ExecutionHash{},
+			BlockHash:     gethprimitives.ExecutionHash{},
 			Transactions:  [][]byte{},
 			Withdrawals:   []*engineprimitives.Withdrawal{},
 			BlobGasUsed:   math.U64(0),

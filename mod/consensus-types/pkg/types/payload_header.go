@@ -100,7 +100,7 @@ type ExecutionPayloadHeaderDeneb struct {
 	Timestamp        math.U64                        `json:"timestamp"                       gencodec:"required"`
 	ExtraData        []byte                          `json:"extraData"                       gencodec:"required" ssz-max:"32"`
 	BaseFeePerGas    math.Wei                        `json:"baseFeePerGas"    ssz-size:"32"  gencodec:"required"`
-	BlockHash        common.ExecutionHash            `json:"blockHash"        ssz-size:"32"  gencodec:"required"`
+	BlockHash        gethprimitives.ExecutionHash    `json:"blockHash"        ssz-size:"32"  gencodec:"required"`
 	TransactionsRoot common.Root                     `json:"transactionsRoot" ssz-size:"32"  gencodec:"required"`
 	WithdrawalsRoot  common.Root                     `json:"withdrawalsRoot"  ssz-size:"32"`
 	BlobGasUsed      math.U64                        `json:"blobGasUsed"`
@@ -193,7 +193,7 @@ func (d *ExecutionPayloadHeaderDeneb) GetBaseFeePerGas() math.Wei {
 }
 
 // GetBlockHash returns the block hash of the ExecutionPayloadHeaderDeneb.
-func (d *ExecutionPayloadHeaderDeneb) GetBlockHash() common.ExecutionHash {
+func (d *ExecutionPayloadHeaderDeneb) GetBlockHash() gethprimitives.ExecutionHash {
 	return d.BlockHash
 }
 

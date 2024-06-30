@@ -25,6 +25,7 @@ import (
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -90,7 +91,7 @@ type ExecutionEngine[PayloadAttributesT any] interface {
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
 		req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
-	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
+	) (*engineprimitives.PayloadID, *gethprimitives.ExecutionHash, error)
 }
 
 // EventFeed is a generic interface for sending events.
@@ -112,9 +113,9 @@ type ExecutionPayloadHeader interface {
 	// GetTimestamp returns the timestamp.
 	GetTimestamp() math.U64
 	// GetBlockHash returns the block hash.
-	GetBlockHash() common.ExecutionHash
+	GetBlockHash() gethprimitives.ExecutionHash
 	// GetParentHash returns the parent hash.
-	GetParentHash() common.ExecutionHash
+	GetParentHash() gethprimitives.ExecutionHash
 }
 
 // Genesis is the interface for the genesis.
@@ -138,8 +139,8 @@ type LocalBuilder[BeaconStateT any] interface {
 		slot math.Slot,
 		timestamp uint64,
 		parentBlockRoot common.Root,
-		headEth1BlockHash common.ExecutionHash,
-		finalEth1BlockHash common.ExecutionHash,
+		headEth1BlockHash gethprimitives.ExecutionHash,
+		finalEth1BlockHash gethprimitives.ExecutionHash,
 	) (*engineprimitives.PayloadID, error)
 	// SendForceHeadFCU sends a force head FCU request.
 	SendForceHeadFCU(

@@ -112,7 +112,7 @@ func (ee *Engine[
 ]) NotifyForkchoiceUpdate(
 	ctx context.Context,
 	req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
-) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
+) (*engineprimitives.PayloadID, *gethprimitives.ExecutionHash, error) {
 	// Log the forkchoice update attempt.
 	hasPayloadAttributes := !req.PayloadAttributes.IsNil()
 	ee.metrics.markNotifyForkchoiceUpdateCalled(hasPayloadAttributes)
@@ -251,7 +251,7 @@ func (ee *Engine[
 	case jsonrpc.IsPreDefinedError(err):
 		// Protect against possible nil value.
 		if lastValidHash == nil {
-			lastValidHash = &common.ExecutionHash{}
+			lastValidHash = &gethprimitives.ExecutionHash{}
 		}
 
 		ee.metrics.markNewPayloadJSONRPCError(
