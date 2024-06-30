@@ -81,7 +81,9 @@ func ProvideKVStore(
 	if err != nil {
 		return nil, err
 	}
-	szdb, err := sszdb.NewSchemaDb[*ExecutionPayloadHeader](backend, &deneb.BeaconState{})
+	stateObject := &deneb.BeaconState{}
+	stateObject.EmptyState()
+	szdb, err := sszdb.NewSchemaDb[*ExecutionPayloadHeader](backend, stateObject)
 	if err != nil {
 		return nil, err
 	}

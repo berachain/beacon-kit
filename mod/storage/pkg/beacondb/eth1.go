@@ -20,6 +20,13 @@
 
 package beacondb
 
+import (
+	"bytes"
+	"fmt"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
+
 // GetLatestExecutionPayloadHeader retrieves the latest execution payload
 // header from the BeaconStore.
 func (kv *KVStore[
@@ -28,7 +35,36 @@ func (kv *KVStore[
 ]) GetLatestExecutionPayloadHeader() (
 	ExecutionPayloadHeaderT, error,
 ) {
-	return kv.sdb.GetLatestExecutionPayloadHeader()
+	var t ExecutionPayloadHeaderT
+	forkVersion, err := kv.latestExecutionPayloadVersion.Get(kv.ctx)
+	if err != nil {
+		return t, err
+	}
+	kv.latestExecutionPayloadCodec.SetActiveForkVersion(forkVersion)
+	header, err := kv.latestExecutionPayloadHeader.Get(kv.ctx)
+	if err != nil {
+		return t, err
+	}
+	headerSSZDB, err := kv.sdb.GetLatestExecutionPayloadHeader()
+	if err != nil {
+		return t, err
+	}
+	sszRoot, err := headerSSZDB.HashTreeRoot()
+	if err != nil {
+		return t, err
+	}
+	root, err := header.HashTreeRoot()
+	if err != nil {
+		return t, err
+	}
+	sdkCtx := sdk.UnwrapSDKContext(kv.ctx)
+	fmt.Printf(
+		"*** exec-mode=%d GET LatestExecutionPayloadHeader iavl=%x sszdb=%x\n",
+		sdkCtx.ExecMode(), root, sszRoot)
+	if !bytes.Equal(sszRoot[:], root[:]) {
+		fmt.Printf("ERROR: latest execution payload header SSZDB root does not match BeaconStore root\n")
+	}
+	return header, nil
 }
 
 // SetLatestExecutionPayloadHeader sets the latest execution payload header in
@@ -47,6 +83,12 @@ func (kv *KVStore[
 	if err := kv.sdb.SetLatestExecutionPayloadHeader(payloadHeader); err != nil {
 		return err
 	}
+	root, err := payloadHeader.HashTreeRoot()
+	if err != nil {
+		return err
+	}
+	sdkCtx := sdk.UnwrapSDKContext(kv.ctx)
+	fmt.Printf("*** exec-mode=%d SET LatestExecutionPayloadHeader: %x\n", sdkCtx.ExecMode(), root)
 	return kv.latestExecutionPayloadHeader.Set(kv.ctx, payloadHeader)
 }
 

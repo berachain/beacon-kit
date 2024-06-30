@@ -1,7 +1,6 @@
 package schema_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
@@ -13,5 +12,4 @@ func Test_CreateSchema(t *testing.T) {
 	root, err := schema.CreateSchema(deneb.BeaconState{})
 	require.NoError(t, err)
 	require.NotNil(t, root)
-	fmt.Println(schema.PrintSchema(root))
 }

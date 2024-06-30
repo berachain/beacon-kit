@@ -63,6 +63,15 @@ type BeaconState struct {
 	TotalSlashing math.Gwei `json:"totalSlashing"`
 }
 
+func (b *BeaconState) EmptyState() {
+	b.Fork = &types.Fork{}
+	b.Eth1Data = &types.Eth1Data{}
+	b.Validators = []*types.Validator{}
+	b.LatestExecutionPayloadHeader = &types.ExecutionPayloadHeaderDeneb{
+		LogsBloom: make([]byte, 256),
+	}
+}
+
 func (b *BeaconState) GetRootNode() (*ssz.Node, error) {
 	return ssz.NewTreeFromFastSSZ(b)
 }

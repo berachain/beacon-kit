@@ -2,6 +2,7 @@ package sszdb
 
 import (
 	"encoding/binary"
+
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
@@ -31,12 +32,16 @@ func NewSchemaDb[
 		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
 		Version() uint32
 	},
-](db *Backend, monolith any) (*SchemaDb[ExecutionPayloadHeaderT], error) {
+](db *Backend, monolith ssz.SSZTreeable) (*SchemaDb[ExecutionPayloadHeaderT], error) {
 	schema, err := schema.CreateSchema(monolith)
 	if err != nil {
 		return nil, err
 	}
-	return &SchemaDb[ExecutionPayloadHeaderT]{Backend: db, schemaRoot: schema}, nil
+	schemaDB := &SchemaDb[ExecutionPayloadHeaderT]{Backend: db, schemaRoot: schema}
+	if err := schemaDB.bootstrap(monolith); err != nil {
+		return nil, err
+	}
+	return schemaDB, nil
 }
 
 func (d *SchemaDb[ExecutionPayloadHeaderT]) getLeafBytes(
@@ -59,6 +64,22 @@ func (d *SchemaDb[ExecutionPayloadHeaderT]) getLeafBytes(
 	}
 
 	return d.getNodeBytes(node.GIndex, size, node.Offset)
+}
+
+func (d *SchemaDb[ExecutionPayloadHeaderT]) bootstrap(monolith ssz.SSZTreeable) error {
+	bootstrapped, err := d.Get([]byte("bootstrapped"))
+	if err != nil {
+		return err
+	}
+	if bootstrapped != nil {
+		return nil
+	}
+	err = d.SaveMonolith(monolith)
+	if err != nil {
+		return err
+	}
+	d.Set([]byte("bootstrapped"), []byte{1})
+	return nil
 }
 
 type offsetBytes struct {
