@@ -25,6 +25,7 @@ import "github.com/ethereum/go-ethereum/rpc"
 type (
 	BlockNumber = rpc.BlockNumber
 	Client      = rpc.Client
+	DataError   = rpc.DataError
 )
 
 //nolint:gochecknoglobals // its okay.
