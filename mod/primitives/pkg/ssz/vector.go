@@ -28,11 +28,19 @@ import (
 )
 
 /* -------------------------------------------------------------------------- */
-/*                                    Basic                                   */
+/*                                Type Definitions                            */
 /* -------------------------------------------------------------------------- */
 
-// VectorBasic is a vector of basic types.
-type VectorBasic[B Basic[B]] []B
+type (
+	// VectorBasic is a vector of basic types.
+	VectorBasic[B Basic[B]] []B
+	// VectorComposite is a vector of Composite types.
+	VectorComposite[C Composite[C]] []C
+)
+
+/* -------------------------------------------------------------------------- */
+/*                                    Basic                                   */
+/* -------------------------------------------------------------------------- */
 
 // VectorBasicFromElements creates a new ListComposite from elements.
 // TODO: Deprecate once off of Fastssz
@@ -100,9 +108,6 @@ func (VectorBasic[B]) NewFromSSZ(buf []byte) (VectorBasic[B], error) {
 /* -------------------------------------------------------------------------- */
 /*                                  Composite                                 */
 /* -------------------------------------------------------------------------- */
-
-// VectorComposite is a vector of Composite types.
-type VectorComposite[C Composite[C]] []C
 
 // VectorCompositeFromElements creates a new VectorComposite from elements.
 // TODO: Deprecate once off of Fastssz

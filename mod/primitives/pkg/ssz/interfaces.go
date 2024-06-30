@@ -20,9 +20,11 @@
 
 package ssz
 
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
+
 // BaseMerkleizer provides basic merkleization operations for SSZ types.
 type BaseMerkleizer[
-	RootT ~[32]byte, T Base[T],
+	RootT ~[32]byte, T types.SSZType[T],
 ] interface {
 	MerkleizeByteSlice(value []byte) (RootT, error)
 	Merkleize(chunks []RootT, limit ...uint64) (RootT, error)

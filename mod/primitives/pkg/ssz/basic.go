@@ -24,13 +24,36 @@ package ssz
 import (
 	"encoding/binary"
 	"fmt"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
+)
+
+/* -------------------------------------------------------------------------- */
+/*                                Type Definitions                            */
+/* -------------------------------------------------------------------------- */
+
+// Ensure types implement types.SSZType
+var (
+	_ types.SSZType[Bool] = (*Bool)(nil)
+	_ types.SSZType[U8]   = (*U8)(nil)
+	_ types.SSZType[U16]  = (*U16)(nil)
+	_ types.SSZType[U32]  = (*U32)(nil)
+	_ types.SSZType[U64]  = (*U64)(nil)
+	_ types.SSZType[Byte] = (*Byte)(nil)
+)
+
+type (
+	Bool bool
+	U8   uint8
+	U16  uint16
+	U32  uint32
+	U64  uint64
+	Byte byte
 )
 
 /* -------------------------------------------------------------------------- */
 /*                                    Bool                                    */
 /* -------------------------------------------------------------------------- */
-
-type Bool bool
 
 // SizeSSZ returns the size of the bool in bytes.
 func (b Bool) SizeSSZ() int {
@@ -70,6 +93,11 @@ func (Bool) IsFixed() bool {
 	return true
 }
 
+// Type returns the type of the bool.
+func (Bool) Type() types.Type {
+	return types.Basic
+}
+
 // ChunkCount returns the number of chunks required to store the bool.
 func (Bool) ChunkCount() uint64 {
 	return 1
@@ -78,8 +106,6 @@ func (Bool) ChunkCount() uint64 {
 /* -------------------------------------------------------------------------- */
 /*                                     U8                                     */
 /* -------------------------------------------------------------------------- */
-
-type U8 uint8
 
 // SizeSSZ returns the size of the uint8 in bytes.
 func (u U8) SizeSSZ() int {
@@ -116,6 +142,11 @@ func (U8) IsFixed() bool {
 	return true
 }
 
+// Type returns the type of the U8.
+func (U8) Type() types.Type {
+	return types.Basic
+}
+
 // ChunkCount returns the number of chunks required to store the uint8.
 func (U8) ChunkCount() uint64 {
 	return 1
@@ -124,8 +155,6 @@ func (U8) ChunkCount() uint64 {
 /* -------------------------------------------------------------------------- */
 /*                                     U16                                    */
 /* -------------------------------------------------------------------------- */
-
-type U16 uint16
 
 // SizeSSZ returns the size of the uint16 in bytes.
 func (u U16) SizeSSZ() int {
@@ -162,6 +191,11 @@ func (U16) IsFixed() bool {
 	return true
 }
 
+// Type returns the type of the U16.
+func (U16) Type() types.Type {
+	return types.Basic
+}
+
 // ChunkCount returns the number of chunks required to store the uint16.
 func (U16) ChunkCount() uint64 {
 	return 1
@@ -170,8 +204,6 @@ func (U16) ChunkCount() uint64 {
 /* -------------------------------------------------------------------------- */
 /*                                     U32                                    */
 /* -------------------------------------------------------------------------- */
-
-type U32 uint32
 
 // SizeSSZ returns the size of the uint32 in bytes.
 func (u U32) SizeSSZ() int {
@@ -208,6 +240,11 @@ func (U32) IsFixed() bool {
 	return true
 }
 
+// Type returns the type of the U32.
+func (U32) Type() types.Type {
+	return types.Basic
+}
+
 // ChunkCount returns the number of chunks required to store the uint32.
 func (U32) ChunkCount() uint64 {
 	return 1
@@ -216,8 +253,6 @@ func (U32) ChunkCount() uint64 {
 /* -------------------------------------------------------------------------- */
 /*                                     U64                                    */
 /* -------------------------------------------------------------------------- */
-
-type U64 uint64
 
 // SizeSSZ returns the size of the uint64 in bytes.
 func (u U64) SizeSSZ() int {
@@ -254,6 +289,11 @@ func (U64) IsFixed() bool {
 	return true
 }
 
+// Type returns the type of the U64.
+func (U64) Type() types.Type {
+	return types.Basic
+}
+
 // ChunkCount returns the number of chunks required to store the uint64.
 func (U64) ChunkCount() uint64 {
 	return 1
@@ -262,8 +302,6 @@ func (U64) ChunkCount() uint64 {
 /* -------------------------------------------------------------------------- */
 /*                                    Byte                                    */
 /* -------------------------------------------------------------------------- */
-
-type Byte byte
 
 // SizeSSZ returns the size of the byte slice in bytes.
 func (b Byte) SizeSSZ() int {
@@ -296,6 +334,11 @@ func (b Byte) HashTreeRoot() ([32]byte, error) {
 // IsFixed returns true if the bool is fixed size.
 func (Byte) IsFixed() bool {
 	return true
+}
+
+// Type returns the type of the Byte.
+func (Byte) Type() types.Type {
+	return types.Basic
 }
 
 // ChunkCount returns the number of chunks required to store the byte.

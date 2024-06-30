@@ -20,30 +20,16 @@
 
 package ssz
 
-// Base defines the interface for a base type, all SSZable types should
-// implement
-// this interface.
-type Base[BaseT any] interface {
-	// NewFromSSZ creates a new composite type from an SSZ byte slice.
-	NewFromSSZ([]byte) (BaseT, error)
-	// MarshalSSZ serializes the composite type to an SSZ byte slice.
-	MarshalSSZ() ([]byte, error)
-	// SizeSSZ returns the size of the composite type when serialized.
-	SizeSSZ() int
-	// HashTreeRoot returns the hash tree root of the composite type.
-	HashTreeRoot() ([32]byte, error)
-}
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
 
 // Basic defines the interface for a basic type.
-type Basic[BasicT any] interface {
-	Base[BasicT]
+type Basic[SelfT any] interface {
+	types.SSZType[SelfT]
 	// Then we add an additional restriction to the following:
 	~bool | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 /* TODO: 128, 256 */
 }
 
 // Composite defines the interface for a composite type.
 type Composite[CompositeT any] interface {
-	Base[CompositeT]
-	// IsFixed returns true if the composite type has a fixed size.
-	IsFixed() bool
+	types.SSZType[CompositeT]
 }
