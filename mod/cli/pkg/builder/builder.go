@@ -32,9 +32,10 @@ import (
 	serverv2 "cosmossdk.io/server/v2"
 	"cosmossdk.io/server/v2/api/grpc"
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
+	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/context"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/server/pkg/components/comet"
+	"github.com/berachain/beacon-kit/mod/server/pkg/components/cometbft"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -92,7 +93,7 @@ func (
 		clientCtx   client.Context
 		chainSpec   common.ChainSpec
 		logger      log.Logger
-		cmtServer   *comet.Server[NodeT, T, ValidatorUpdateT]
+		cmtServer   *cometbft.Server[NodeT, T, ValidatorUpdateT]
 	)
 	// build dependencies for the root command
 	if err := depinject.Inject(
@@ -192,14 +193,12 @@ func (cb *CLIBuilder[NodeT, T, ValidatorUpdateT]) InterceptConfigsPreRunHandler(
 	cmd *cobra.Command, logger log.Logger, customAppConfigTemplate string,
 	customAppConfig interface{}, cmtConfig *cmtcfg.Config,
 ) error {
-	serverCtx, err := server.InterceptConfigsAndCreateContext(
-		cmd, customAppConfigTemplate, customAppConfig, cmtConfig)
+	serverCtx, err := context.InterceptConfigsAndCreateContext(
+		cmd, customAppConfigTemplate, customAppConfig, cmtConfig, logger)
 	if err != nil {
 		return err
 	}
 	fmt.Println("viper", serverCtx.Viper.Get("home"))
-
-	serverCtx.Logger = logger
 
 	// set server context
 	return server.SetCmdServerContext(cmd, serverCtx)

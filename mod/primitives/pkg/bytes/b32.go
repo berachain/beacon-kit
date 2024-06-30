@@ -64,3 +64,8 @@ func (h B32) SizeSSZ() int {
 	//nolint:mnd // vibes.
 	return 32
 }
+
+// MarshalSSZ implements the SSZ marshaling for B32.
+func (h B32) MarshalSSZ() ([]byte, error) {
+	return h[:], nil
+}

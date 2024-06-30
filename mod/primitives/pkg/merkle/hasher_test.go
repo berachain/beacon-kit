@@ -27,7 +27,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
@@ -37,34 +39,34 @@ import (
 
 // Test NewRootWithMaxLeaves with empty leaves.
 func TestNewRootWithMaxLeaves_EmptyLeaves(t *testing.T) {
-	buffer := getBuffer("reusable")
-	hasher := merkle.NewHasher(buffer, gohashtree.Hash)
+	hasher := crypto.NewHasher[[32]byte](sha256.Hash)
+	rootHasher := merkle.NewRootHasher[[32]byte](
+		hasher, merkle.BuildParentTreeRoots,
+	)
 
-	root, err := hasher.NewRootWithMaxLeaves(nil, 0)
+	root, err := rootHasher.NewRootWithMaxLeaves([][32]byte{}, 0)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
 
 	expectedRoot := zero.Hashes[0]
-	if root != expectedRoot {
-		t.Errorf("Expected root to be %v, got %v", expectedRoot, root)
-	}
+	require.Equal(t, expectedRoot, root)
 }
 
 // Test NewRootWithDepth with empty leaves.
 func TestNewRootWithDepth_EmptyLeaves(t *testing.T) {
-	buffer := getBuffer("reusable")
-	hasher := merkle.NewHasher(buffer, gohashtree.Hash)
+	hasher := crypto.NewHasher[[32]byte](sha256.Hash)
+	rootHasher := merkle.NewRootHasher[[32]byte](
+		hasher, merkle.BuildParentTreeRoots,
+	)
 
-	root, err := hasher.NewRootWithDepth(nil, 0)
+	root, err := rootHasher.NewRootWithDepth([][32]byte{}, 0, 0)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
 
 	expectedRoot := zero.Hashes[0]
-	if root != expectedRoot {
-		t.Errorf("Expected root to be %v, got %v", expectedRoot, root)
-	}
+	require.Equal(t, expectedRoot, root)
 }
 
 // Helper function to create a dummy leaf.
@@ -76,32 +78,32 @@ func createDummyLeaf(value byte) [32]byte {
 
 // Test NewRootWithMaxLeaves with one leaf.
 func TestNewRootWithMaxLeaves_OneLeaf(t *testing.T) {
-	buffer := getBuffer("reusable")
-	hasher := merkle.NewHasher(buffer, gohashtree.Hash)
+	hasher := crypto.NewHasher[[32]byte](sha256.Hash)
+	rootHasher := merkle.NewRootHasher[[32]byte](
+		hasher, merkle.BuildParentTreeRoots,
+	)
 
 	leaf := createDummyLeaf(1)
 	leaves := [][32]byte{leaf}
 
-	root, err := hasher.NewRootWithMaxLeaves(leaves, 1)
+	root, err := rootHasher.NewRootWithMaxLeaves(leaves, 1)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
 
-	if root != leaf {
-		t.Errorf("Expected root to be %v, got %v", leaf, root)
-	}
+	require.Equal(t, leaf, root)
 }
 
-// Benchmark using a reusable buffer
-//
 // goos: darwin
 // goarch: arm64
 // pkg: github.com/berachain/beacon-kit/mod/primitives/pkg/merkle
 // BenchmarkHasherWithReusableBuffer-12
-// 29875  37987 ns/op  0 B/op  0 allocs/op.
-func BenchmarkHasherWithReusableBuffer(b *testing.B) {
-	buffer := getBuffer("reusable")
-	hasher := merkle.NewHasher(buffer, gohashtree.Hash)
+// 30064  38818 ns/op  0 B/op  0 allocs/op.
+func BenchmarkHasher(b *testing.B) {
+	hasher := crypto.NewHasher[[32]byte](sha256.Hash)
+	rootHasher := merkle.NewRootHasher[[32]byte](
+		hasher, merkle.BuildParentTreeRoots,
+	)
 
 	leaves := make([][32]byte, 1000)
 	for i := range 1000 {
@@ -110,47 +112,8 @@ func BenchmarkHasherWithReusableBuffer(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err := hasher.NewRootWithMaxLeaves(leaves, math.U64(len(leaves)))
-		if err != nil {
-			b.Fatalf("Expected no error, got %v", err)
-		}
-	}
-}
-
-// Benchmark using a single-use buffer
-//
-// goos: darwin
-// goarch: arm64
-// pkg: github.com/berachain/beacon-kit/mod/primitives/pkg/merkle
-// BenchmarkHasherWithSingleUseBuffer-12
-// 29114  38953 ns/op  16384 B/op  1 allocs/op.
-func BenchmarkHasherWithSingleUseBuffer(b *testing.B) {
-	buffer := getBuffer("singleuse")
-	hasher := merkle.NewHasher(buffer, gohashtree.Hash)
-
-	leaves := make([][32]byte, 1000)
-	for i := range 1000 {
-		leaves[i] = createDummyLeaf(byte(i))
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		_, err := hasher.NewRootWithMaxLeaves(leaves, math.U64(len(leaves)))
-		if err != nil {
-			b.Fatalf("Expected no error, got %v", err)
-		}
-	}
-}
-
-// getBuffer returns a buffer of the given type.
-func getBuffer(usageType string) bytes.Buffer[[32]byte] {
-	switch usageType {
-	case "reusable":
-		return bytes.NewReusableBuffer[[32]byte]()
-	case "singleuse":
-		return bytes.NewSingleuseBuffer[[32]byte]()
-	default:
-		panic("unknown usage type: " + usageType)
+		_, err := rootHasher.NewRootWithMaxLeaves(leaves, math.U64(len(leaves)))
+		require.NoError(b, err)
 	}
 }
 
@@ -210,7 +173,8 @@ func Test_GoHashTreeHashConformance(t *testing.T) {
 			merkle.MinParallelizationSize / 2,
 			false,
 		},
-		{"AtMinParallelizationSize", merkle.MinParallelizationSize, false},
+		{"AtMinParallelizationSize",
+			merkle.MinParallelizationSize, false},
 		{
 			"AboveMinParallelizationSize",
 			merkle.MinParallelizationSize * 2,
@@ -229,7 +193,8 @@ func Test_GoHashTreeHashConformance(t *testing.T) {
 			merkle.MinParallelizationSize - 2,
 			false,
 		},
-		{"TestOddLength", merkle.MinParallelizationSize + 1, true},
+		{"TestOddLength",
+			merkle.MinParallelizationSize + 1, true},
 	}
 
 	for _, tc := range testCases {
@@ -266,6 +231,7 @@ func TestBuildParentTreeRootsWithNRoutines_DivisionByZero(t *testing.T) {
 	require.NoError(
 		t,
 		err,
+
 		"BuildParentTreeRootsWithNRoutines should handle n=0 without error",
 	)
 }
@@ -301,7 +267,8 @@ func requireGoHashTreeEquivalence(
 
 	// Check for errors
 	if !expectError {
-		require.NoError(t, err1, "BuildParentTreeRootsWithNRoutines failed")
+		require.NoError(t, err1,
+			"BuildParentTreeRootsWithNRoutines failed")
 		require.NoError(t, err2, "gohashtree.Hash failed")
 	} else {
 		if err1 == nil && err2 == nil {
@@ -325,5 +292,157 @@ func requireGoHashTreeEquivalence(
 				i, expectedOutput[i], output[i],
 			),
 		)
+	}
+}
+
+func TestNewRootWithDepth(t *testing.T) {
+	tests := []struct {
+		name     string
+		leaves   [][32]byte
+		depth    int
+		expected [32]byte
+		wantErr  bool
+	}{
+		{
+			name: "even number of leaves",
+			leaves: [][32]byte{
+				createDummyLeaf(1),
+				createDummyLeaf(2),
+			},
+			depth: 1,
+			expected: [32]uint8{
+				0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+				0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+				0x0, 0x0, 0x0, 0x0},
+			wantErr: false,
+		},
+		{
+			name: "not enough depth",
+			leaves: [][32]byte{
+				createDummyLeaf(1),
+				createDummyLeaf(2),
+				createDummyLeaf(3),
+			},
+			depth:    1,
+			expected: zero.Hashes[1],
+			wantErr:  true,
+		},
+		{
+			name: "odd leaves",
+			leaves: [][32]byte{
+				createDummyLeaf(1),
+				createDummyLeaf(2),
+				createDummyLeaf(3),
+			},
+			depth:    2,
+			expected: zero.Hashes[1],
+			wantErr:  true,
+		},
+		{
+			name: "hasher returns error",
+			leaves: [][32]byte{
+				createDummyLeaf(1),
+			},
+			depth:    1,
+			expected: zero.Hashes[1],
+			wantErr:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rootHashFn := func(dst, src [][32]byte) error {
+				if tt.wantErr {
+					return errors.New("hasher error")
+				}
+				copy(dst, src)
+				return nil
+			}
+			hasher := crypto.NewHasher[[32]byte](sha256.Hash)
+			rootHasher := merkle.NewRootHasher(hasher, rootHashFn)
+
+			root, err := rootHasher.NewRootWithDepth(
+				tt.leaves, uint8(tt.depth), uint8(tt.depth),
+			)
+			if tt.wantErr {
+				require.Error(t, err,
+					"Test case %s", tt.name)
+			} else {
+				require.NoError(t, err,
+					"Test case %s", tt.name)
+				require.Equal(t, tt.expected, root,
+					"Test case %s", tt.name)
+			}
+		})
+	}
+}
+
+func TestNewRootWithMaxLeaves(t *testing.T) {
+	tests := []struct {
+		name     string
+		leaves   [][32]byte
+		limit    uint64
+		wantErr  bool
+		errMsg   string
+		expected [32]byte
+	}{
+		{
+			name:     "Empty leaves",
+			leaves:   [][32]byte{},
+			limit:    0,
+			wantErr:  false,
+			expected: zero.Hashes[0],
+		},
+		{
+			name:     "One leaf",
+			leaves:   [][32]byte{createDummyLeaf(1)},
+			limit:    1,
+			wantErr:  false,
+			expected: createDummyLeaf(1),
+		},
+		{
+			name:    "Exceeds limit",
+			leaves:  make([][32]byte, 11),
+			limit:   10,
+			wantErr: true,
+			errMsg:  "number of leaves exceeds limit",
+		},
+		{
+			name: "Power of two leaves",
+			leaves: [][32]byte{
+				createDummyLeaf(1),
+				createDummyLeaf(2),
+				createDummyLeaf(3),
+				createDummyLeaf(4),
+			},
+			limit:   4,
+			wantErr: false,
+			expected: [32]uint8{
+				0xbf, 0xe3, 0xc6, 0x65, 0xd2, 0xe5, 0x61, 0xf1, 0x3b, 0x30, 0x60,
+				0x6c, 0x58, 0xc, 0xb7, 0x3, 0xb2, 0x4, 0x12, 0x87, 0xe2, 0x12, 0xad,
+				0xe1, 0x10, 0xf0, 0xbf, 0xd8, 0x56, 0x3e, 0x21, 0xbb},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			hasher := crypto.NewHasher[[32]byte](sha256.Hash)
+			rootHasher := merkle.NewRootHasher[[32]byte](
+				hasher, merkle.BuildParentTreeRoots,
+			)
+			root, err := rootHasher.NewRootWithMaxLeaves(tt.leaves,
+				math.U64(tt.limit))
+			if tt.wantErr {
+				require.Error(t, err,
+					"Expected error in test case %s", tt.name)
+				require.Equal(t, tt.errMsg, err.Error(),
+					"Error message mismatch in test case %s", tt.name)
+			} else {
+				require.NoError(t, err,
+					"Unexpected error in test case %s", tt.name)
+				require.Equal(t, tt.expected, root,
+					"Root mismatch in test case %s", tt.name)
+			}
+		})
 	}
 }

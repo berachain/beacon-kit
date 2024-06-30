@@ -23,6 +23,7 @@ package hex_test
 
 import (
 	"reflect"
+	"strconv"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
@@ -210,6 +211,39 @@ func TestDecodeFixedJSON(t *testing.T) {
 			} else {
 				require.NoError(t, err, "Test case : %s", tt.name)
 				require.Equal(t, []byte{0x48, 0x65, 0x6c, 0x6c, 0x6f}, tt.out, "Test case : %s", tt.name)
+			}
+		})
+	}
+}
+
+func BenchmarkDecodeFixedText(b *testing.B) {
+	typename := "exampleType"
+	sizes := []int{100, 1000, 10000} // Different input sizes
+
+	for _, size := range sizes {
+		benchName := "Size" + strconv.Itoa(size)
+		b.Run(benchName, func(b *testing.B) {
+			input := make(
+				[]byte,
+				size*2+2,
+			) // Each byte is represented by 2 hex characters + "0x" prefix
+			input[0] = '0'
+			input[1] = 'x'
+			for i := 2; i < len(input); i += 2 {
+				input[i] = 'a'
+				input[i+1] = 'f'
+			}
+			out := make(
+				[]byte,
+				size,
+			) // Adjust the size based on the expected output length
+
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				err := hex.DecodeFixedText(typename, input, out)
+				if err != nil {
+					b.Fatalf("DecodeFixedText failed: %v", err)
+				}
 			}
 		})
 	}

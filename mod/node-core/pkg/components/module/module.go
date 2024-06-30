@@ -33,8 +33,7 @@ import (
 	sdkconsensustypes "cosmossdk.io/x/consensus/types"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	consensus "github.com/berachain/beacon-kit/mod/consensus/pkg"
-	consensustypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/comet"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -145,8 +144,7 @@ func (am AppModule[T, ValidatorUpdateT]) InitGenesis(
 	ctx context.Context,
 	bz json.RawMessage,
 ) ([]ValidatorUpdateT, error) {
-	return consensus.NewEngine[T, ValidatorUpdateT](
-		consensustypes.CometBFTConsensus,
+	return cometbft.NewConsensusEngine[T, ValidatorUpdateT](
 		am.TxCodec,
 		am.ABCIMiddleware,
 	).InitGenesis(ctx, bz)
@@ -156,8 +154,7 @@ func (am AppModule[T, ValidatorUpdateT]) InitGenesis(
 func (am AppModule[T, ValidatorUpdateT]) EndBlock(
 	ctx context.Context,
 ) ([]ValidatorUpdateT, error) {
-	return consensus.NewEngine[T, ValidatorUpdateT](
-		consensustypes.CometBFTConsensus,
+	return cometbft.NewConsensusEngine[T, ValidatorUpdateT](
 		am.TxCodec,
 		am.ABCIMiddleware,
 	).EndBlock(ctx)

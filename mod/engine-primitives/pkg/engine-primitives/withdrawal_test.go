@@ -46,22 +46,6 @@ func TestWithdrawal(t *testing.T) {
 	require.Equal(t, math.Gwei(1000), withdrawal.GetAmount())
 }
 
-func TestWithdrawals(t *testing.T) {
-	withdrawals := engineprimitives.Withdrawals{
-		&engineprimitives.Withdrawal{
-			Index:     math.U64(1),
-			Validator: math.ValidatorIndex(1),
-			Address:   common.ExecutionAddress{1, 2, 3, 4},
-			Amount:    math.Gwei(1000),
-		},
-	}
-
-	root, err := withdrawals.HashTreeRoot()
-	require.NoError(t, err)
-
-	require.NotEqual(t, common.Root{}, root)
-}
-
 func TestWithdrawal_Equals(t *testing.T) {
 	withdrawal1 := &engineprimitives.Withdrawal{
 		Index:     math.U64(1),

@@ -20,20 +20,30 @@
 
 package ssz
 
-// Merkleizer can be used for merkleizing SSZ types.
-type Merkleizer[
-	SpecT any, RootT ~[32]byte, T Basic[SpecT, RootT],
+// BaseMerkleizer provides basic merkleization operations for SSZ types.
+type BaseMerkleizer[
+	RootT ~[32]byte, T Base[T],
 ] interface {
-	MerkleizeBasic(value T) (RootT, error)
-	MerkleizeVecBasic(value []T) (RootT, error)
-	MerkleizeListBasic(value []T, limit ...uint64) (RootT, error)
-	MerkleizeVecComposite(value []T) (RootT, error)
-	MerkleizeListComposite(value []T, limit ...uint64) (RootT, error)
 	MerkleizeByteSlice(value []byte) (RootT, error)
 	Merkleize(chunks []RootT, limit ...uint64) (RootT, error)
+}
 
-	// TODO: Move to a separate Merkleizer type for container(s).
-	MerkleizeContainer(
-		value Container[SpecT, RootT], spec ...SpecT,
-	) (RootT, error)
+// BasicMerkleizer provides merkleization operations for basic SSZ types.
+type BasicMerkleizer[
+	RootT ~[32]byte, T Basic[T],
+] interface {
+	BaseMerkleizer[RootT, T]
+	MerkleizeBasic(value T) (RootT, error)
+	MerkleizeVectorBasic(value []T) (RootT, error)
+	MerkleizeListBasic(value []T, limit ...uint64) (RootT, error)
+}
+
+// CompositeMerkleizer provides merkleization operations for composite SSZ
+// types.
+type CompositeMerkleizer[
+	SpecT any, RootT ~[32]byte, T Composite[T],
+] interface {
+	BaseMerkleizer[RootT, T]
+	MerkleizeVectorComposite(value []T) (RootT, error)
+	MerkleizeListComposite(value []T, limit ...uint64) (RootT, error)
 }

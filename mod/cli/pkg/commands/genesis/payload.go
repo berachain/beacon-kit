@@ -25,6 +25,7 @@ import (
 	"encoding/json"
 	"unsafe"
 
+	serverContext "github.com/berachain/beacon-kit/mod/cli/pkg/utils/context"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
@@ -32,8 +33,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
-	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	ethengineprimitives "github.com/ethereum/go-ethereum/beacon/engine"
@@ -43,7 +44,7 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func AddExecutionPayloadCmd() *cobra.Command {
+func AddExecutionPayloadCmd(chainSpec common.ChainSpec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "execution-payload [eth/genesis/file.json]",
 		Short: "adds the eth1 genesis execution payload to the genesis file",
@@ -69,7 +70,7 @@ func AddExecutionPayloadCmd() *cobra.Command {
 				nil,
 			).ExecutionPayload
 
-			serverCtx := server.GetServerContextFromCmd(cmd)
+			serverCtx := serverContext.GetServerContextFromCmd(cmd)
 			config := serverCtx.Config
 
 			appGenesis, err := genutiltypes.AppGenesisFromFile(
@@ -101,6 +102,7 @@ func AddExecutionPayloadCmd() *cobra.Command {
 			header, err := executableDataToExecutionPayloadHeader(
 				version.ToUint32(genesisInfo.ForkVersion),
 				payload,
+				chainSpec.MaxWithdrawalsPerPayload(),
 			)
 			if err != nil {
 				return errors.Wrap(
@@ -133,6 +135,7 @@ func AddExecutionPayloadCmd() *cobra.Command {
 func executableDataToExecutionPayloadHeader(
 	forkVersion uint32,
 	data *ethengineprimitives.ExecutableData,
+	maxWithdrawalsPerPayload uint64,
 ) (*types.ExecutionPayloadHeader, error) {
 	var executionPayloadHeader *types.ExecutionPayloadHeader
 	switch forkVersion {
@@ -181,9 +184,10 @@ func executableDataToExecutionPayloadHeader(
 
 		g.Go(func() error {
 			var withdrawalsRootErr error
-			withdrawalsRoot, withdrawalsRootErr = engineprimitives.Withdrawals(
-				withdrawals,
-			).HashTreeRoot()
+			wds := ssz.ListCompositeFromElements(
+				maxWithdrawalsPerPayload, withdrawals...,
+			)
+			withdrawalsRoot, withdrawalsRootErr = wds.HashTreeRoot()
 			return withdrawalsRootErr
 		})
 

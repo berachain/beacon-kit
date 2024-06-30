@@ -24,7 +24,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
-// ActiveForkVersion returns the active fork version for a given slot.
+// ActiveForkVersionForSlot returns the active fork version for a given slot.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) ActiveForkVersionForSlot(
@@ -33,7 +33,7 @@ func (c chainSpec[
 	return c.ActiveForkVersionForEpoch(c.SlotToEpoch(slot))
 }
 
-// ActiveForkVersionBySlot returns the active fork version for a given epoch.
+// ActiveForkVersionForEpoch returns the active fork version for a given epoch.
 func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) ActiveForkVersionForEpoch(
