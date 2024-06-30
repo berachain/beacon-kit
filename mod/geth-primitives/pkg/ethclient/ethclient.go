@@ -18,15 +18,15 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package common
+package ethclient
 
-import (
-	"github.com/ethereum/go-ethereum/common"
+import "github.com/ethereum/go-ethereum/ethclient"
+
+type (
+	Client = ethclient.Client
 )
 
-// TODO: These eventually need to be moved, but fastssz is getting
-// mad when I try to use the ones in geth-primitives....
-type (
-	ExecutionAddress = common.Address
-	ExecutionHash    = common.Hash
+//nolint:gochecknoglobals // its okay.
+var (
+	NewClient = ethclient.NewClient
 )

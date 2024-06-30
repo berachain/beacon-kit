@@ -23,9 +23,9 @@ package client
 import (
 	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/rpc"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/http"
 	jsonrpc "github.com/berachain/beacon-kit/mod/primitives/pkg/net/json-rpc"
-	gethRPC "github.com/ethereum/go-ethereum/rpc"
 )
 
 // ErrUnauthenticatedConnection indicates that the connection is not
@@ -120,8 +120,8 @@ func (s *EngineClient[
 	case -32000:
 		s.metrics.incrementInternalServerErrorCounter()
 		// Only -32000 status codes are data errors in the RPC specification.
-		var errWithData gethRPC.DataError
-		errWithData, ok = err.(gethRPC.DataError) //nolint:errorlint // from prysm.
+		var errWithData rpc.DataError
+		errWithData, ok = err.(rpc.DataError) //nolint:errorlint // from prysm.
 		if !ok {
 			return errors.Wrapf(
 				errors.Join(jsonrpc.ErrServer, err),

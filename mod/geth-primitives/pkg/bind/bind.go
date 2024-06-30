@@ -18,15 +18,11 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package common
+package bind
 
-import (
-	"github.com/ethereum/go-ethereum/common"
-)
+import "github.com/ethereum/go-ethereum/accounts/abi/bind"
 
-// TODO: These eventually need to be moved, but fastssz is getting
-// mad when I try to use the ones in geth-primitives....
 type (
-	ExecutionAddress = common.Address
-	ExecutionHash    = common.Hash
+	ContractBackend = bind.ContractBackend
+	FilterOpts      = bind.FilterOpts
 )

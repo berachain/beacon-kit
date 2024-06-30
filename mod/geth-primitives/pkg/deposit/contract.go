@@ -18,15 +18,6 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package common
+package deposit
 
-import (
-	"github.com/ethereum/go-ethereum/common"
-)
-
-// TODO: These eventually need to be moved, but fastssz is getting
-// mad when I try to use the ones in geth-primitives....
-type (
-	ExecutionAddress = common.Address
-	ExecutionHash    = common.Hash
-)
+//go:generate go run github.com/ethereum/go-ethereum/cmd/abigen --abi=../../../../contracts/out/BeaconDepositContract.sol/BeaconDepositContract.abi.json --pkg=deposit --type=BeaconDepositContract --out=contract.abigen.go

@@ -18,15 +18,20 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package common
+package rpc
 
-import (
-	"github.com/ethereum/go-ethereum/common"
+import "github.com/ethereum/go-ethereum/rpc"
+
+type (
+	BlockNumber = rpc.BlockNumber
+	Client      = rpc.Client
+	DataError   = rpc.DataError
 )
 
-// TODO: These eventually need to be moved, but fastssz is getting
-// mad when I try to use the ones in geth-primitives....
-type (
-	ExecutionAddress = common.Address
-	ExecutionHash    = common.Hash
+//nolint:gochecknoglobals // its okay.
+var (
+	DialOptions = rpc.DialOptions
+	DialContext = rpc.DialContext
+	DialIPC     = rpc.DialIPC
+	WithHeaders = rpc.WithHeaders
 )

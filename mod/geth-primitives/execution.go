@@ -34,57 +34,36 @@ type (
 	//
 	// Related: https://eips.ethereum.org/EIPS/eip-55
 	ExecutionAddress = common.Address
-
 	// ExecutionHash represents a hash on the execution layer which is
 	// currently a Keccak256 hash.
 	ExecutionHash = common.Hash
-
 	// DisplayBytes is an alias for common.PrettyBytes.
-	DisplayBytes = common.PrettyBytes
-)
-
-//nolint:gochecknoglobals // alias.
-var (
-	HexToAddress   = common.HexToAddress
-	HexToHash      = common.HexToHash
-	Hex2BytesFixed = common.Hex2BytesFixed
-	FromHex        = common.FromHex
-)
-
-//nolint:gochecknoglobals // alias.
-var (
-	// ZeroAddress is the zero execution address.
-	ZeroAddress = ExecutionAddress{}
-	// ZeroHash is the zero execution hash.
-	ZeroHash = ExecutionHash{}
-)
-
-// There are some types we can borrow from geth.
-type (
+	DisplayBytes   = common.PrettyBytes
 	ExecutableData = engine.ExecutableData
+	Genesis        = core.Genesis
+	Block          = coretypes.Block
+	Body           = coretypes.Body
+	Log            = coretypes.Log
+	Header         = coretypes.Header
+	Receipt        = coretypes.Receipt
+	Transaction    = coretypes.Transaction
+	Transactions   = coretypes.Transactions
+	Withdrawal     = coretypes.Withdrawal
+	Withdrawals    = coretypes.Withdrawals
 )
 
+//nolint:gochecknoglobals // alias.
 var (
+	HexToAddress          = common.HexToAddress
+	HexToHash             = common.HexToHash
+	Hex2BytesFixed        = common.Hex2BytesFixed
+	FromHex               = common.FromHex
+	ZeroAddress           = ExecutionAddress{}
+	ZeroHash              = ExecutionHash{}
 	BlockToExecutableData = engine.BlockToExecutableData
 	NewBlockWithHeader    = coretypes.NewBlockWithHeader
 	DeriveSha             = coretypes.DeriveSha
 	EmptyUncleHash        = coretypes.EmptyUncleHash
-)
-
-type (
-	Genesis      = core.Genesis
-	Block        = coretypes.Block
-	Body         = coretypes.Body
-	Log          = coretypes.Log
-	Header       = coretypes.Header
-	Receipt      = coretypes.Receipt
-	Transaction  = coretypes.Transaction
-	Transactions = coretypes.Transactions
-	Withdrawal   = coretypes.Withdrawal
-	Withdrawals  = coretypes.Withdrawals
-)
-
-var (
-	NewStackTrie = trie.NewStackTrie
-	BytesToBloom = coretypes.BytesToBloom
+	NewStackTrie          = trie.NewStackTrie
+	BytesToBloom          = coretypes.BytesToBloom
 )

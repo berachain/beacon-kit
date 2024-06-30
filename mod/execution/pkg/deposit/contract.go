@@ -25,20 +25,19 @@ import (
 	"errors"
 
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/bind"
+	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 )
 
 // WrappedBeaconDepositContract is a struct that holds a pointer to an ABI.
-//
-//go:generate go run github.com/ethereum/go-ethereum/cmd/abigen --abi=../../../../contracts/out/BeaconDepositContract.sol/BeaconDepositContract.abi.json --pkg=deposit --type=BeaconDepositContract --out=contract.abigen.go
 type WrappedBeaconDepositContract[
 	DepositT Deposit[DepositT, WithdrawalCredentialsT],
 	WithdrawalCredentialsT ~[32]byte,
 ] struct {
 	// BeaconDepositContract is a pointer to the codegen ABI binding.
-	BeaconDepositContract
+	deposit.BeaconDepositContract
 }
 
 // NewWrappedBeaconDepositContract creates a new BeaconDepositContract.
@@ -52,7 +51,7 @@ func NewWrappedBeaconDepositContract[
 	DepositT,
 	WithdrawalCredentialsT,
 ], error) {
-	contract, err := NewBeaconDepositContract(
+	contract, err := deposit.NewBeaconDepositContract(
 		address, client,
 	)
 
