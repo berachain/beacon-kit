@@ -56,7 +56,7 @@ func (kv *KVStore[
 		return t, err
 	}
 	if !bytes.Equal(sszRoot[:], root[:]) {
-		return header, fmt.Errorf("payload %x != %x\n", root, sszRoot)
+		return header, fmt.Errorf("payload %x != %x", root, sszRoot)
 	}
 	return header, nil
 }
@@ -78,12 +78,6 @@ func (kv *KVStore[
 		kv.ctx, payloadHeader); err != nil {
 		return err
 	}
-	//root, err := payloadHeader.HashTreeRoot()
-	//if err != nil {
-	//	return err
-	//}
-	//sdkCtx := sdk.UnwrapSDKContext(kv.ctx)
-	//fmt.Printf("*** exec-mode=%d SET LatestExecutionPayloadHeader: %x\n", sdkCtx.ExecMode(), root)
 	return kv.latestExecutionPayloadHeader.Set(kv.ctx, payloadHeader)
 }
 

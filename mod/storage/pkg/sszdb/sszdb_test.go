@@ -2,6 +2,7 @@ package sszdb_test
 
 import (
 	"bytes"
+	"context"
 	"os"
 	"testing"
 
@@ -86,47 +87,53 @@ func TestDB_Metadata(t *testing.T) {
 	db, err := sszdb.NewBackend(sszdb.BackendConfig{Path: dir})
 	require.NoError(t, err)
 
+	ctx := context.TODO()
 	err = db.SaveMonolith(beacon)
+	require.NoError(t, err)
+	err = db.Commit(ctx)
 	require.NoError(t, err)
 
 	schemaDb, err := sszdb.NewSchemaDb[*types.ExecutionPayloadHeader](db, beacon)
 	require.NoError(t, err)
 
-	bz, err := schemaDb.GetGenesisValidatorsRoot()
+	bz, err := schemaDb.GetGenesisValidatorsRoot(ctx)
 	require.NoError(t, err)
 	require.True(t, bytes.Equal(bz[:], beacon.GenesisValidatorsRoot[:]))
 
-	slot, err := schemaDb.GetSlot()
+	slot, err := schemaDb.GetSlot(ctx)
 	require.NoError(t, err)
 	require.Equal(t, beacon.Slot, slot)
 
-	fork, err := schemaDb.GetFork()
+	fork, err := schemaDb.GetFork(ctx)
 	require.NoError(t, err)
 	require.Equal(t, beacon.Fork, fork)
 
-	latestHeader, err := schemaDb.GetLatestBlockHeader()
+	latestHeader, err := schemaDb.GetLatestBlockHeader(ctx)
 	require.NoError(t, err)
 	require.Equal(t, beacon.LatestBlockHeader, latestHeader)
 
-	roots, err := schemaDb.GetBlockRoots()
+	roots, err := schemaDb.GetBlockRoots(ctx)
 	require.NoError(t, err)
 	require.Equal(t, len(beacon.BlockRoots), len(roots))
 	for i, r := range roots {
 		require.Equal(t, beacon.BlockRoots[i], r)
 	}
 
-	val0, err := schemaDb.GetValidatorAtIndex(0)
+	val0, err := schemaDb.GetValidatorAtIndex(ctx, 0)
 	require.NoError(t, err)
 	require.Equal(t, beacon.Validators[0], val0)
 
-	vals, err := schemaDb.GetValidators()
+	vals, err := schemaDb.GetValidators(ctx)
 	require.NoError(t, err)
 	require.Equal(t, len(beacon.Validators), len(vals))
 	for i, v := range vals {
 		require.Equal(t, beacon.Validators[i], v)
 	}
 
-	header, err := schemaDb.GetLatestExecutionPayloadHeader()
+	header, err := schemaDb.GetLatestExecutionPayloadHeader(ctx)
 	require.NoError(t, err)
-	require.Equal(t, beacon.LatestExecutionPayloadHeader, header.InnerExecutionPayloadHeader)
+	require.Equal(t,
+		beacon.LatestExecutionPayloadHeader,
+		header.InnerExecutionPayloadHeader,
+	)
 }
