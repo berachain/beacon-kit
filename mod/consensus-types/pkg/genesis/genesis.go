@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -165,8 +166,8 @@ func DefaultGenesisExecutionPayloadHeaderDeneb() (
 	}
 
 	return &types.ExecutionPayloadHeaderDeneb{
-		ParentHash:   common.ZeroHash,
-		FeeRecipient: common.ZeroAddress,
+		ParentHash:   gethprimitives.ZeroHash,
+		FeeRecipient: gethprimitives.ZeroAddress,
 		StateRoot: common.Bytes32(common.Hex2BytesFixed(
 			"0x12965ab9cbe2d2203f61d23636eb7e998f167cb79d02e452f532535641e35bcc",
 			constants.RootLength,

@@ -24,8 +24,8 @@ import (
 	"context"
 	"errors"
 
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 )
@@ -46,7 +46,7 @@ func NewWrappedBeaconDepositContract[
 	DepositT Deposit[DepositT, WithdrawalCredentialsT],
 	WithdrawalCredentialsT ~[32]byte,
 ](
-	address common.ExecutionAddress,
+	address gethprimitives.ExecutionAddress,
 	client bind.ContractBackend,
 ) (*WrappedBeaconDepositContract[
 	DepositT,

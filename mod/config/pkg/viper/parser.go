@@ -24,6 +24,7 @@ import (
 	"net/url"
 	"reflect"
 
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	beaconurl "github.com/berachain/beacon-kit/mod/primitives/pkg/net/url"
 	"github.com/mitchellh/mapstructure"
@@ -33,7 +34,7 @@ import (
 // string to a `primitives.ExecutionAddresses` by parsing the string.
 func StringToExecutionAddressFunc() mapstructure.DecodeHookFunc {
 	return StringTo(
-		func(s string) (common.ExecutionAddress, error) {
+		func(s string) (gethprimitives.ExecutionAddress, error) {
 			return common.HexToAddress(s), nil
 		},
 	)

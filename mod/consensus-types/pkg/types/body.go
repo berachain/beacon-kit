@@ -29,6 +29,7 @@ import (
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/errors"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
@@ -185,14 +186,14 @@ func (b *BeaconBlockBodyDeneb) SetExecutionData(
 // GetBlobKzgCommitments returns the BlobKzgCommitments of the Body.
 func (
 	b *BeaconBlockBodyDeneb,
-) GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash] {
+) GetBlobKzgCommitments() eip4844.KZGCommitments[gethprimitives.ExecutionHash] {
 	return b.BlobKzgCommitments
 }
 
 // SetBlobKzgCommitments sets the BlobKzgCommitments of the
 // BeaconBlockBodyDeneb.
 func (b *BeaconBlockBodyDeneb) SetBlobKzgCommitments(
-	commitments eip4844.KZGCommitments[common.ExecutionHash],
+	commitments eip4844.KZGCommitments[gethprimitives.ExecutionHash],
 ) {
 	b.BlobKzgCommitments = commitments
 }

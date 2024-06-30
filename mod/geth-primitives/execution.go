@@ -18,10 +18,14 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package common
+package gethprimitives
 
 import (
+	"github.com/ethereum/go-ethereum/beacon/engine"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core"
+	coretypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/trie"
 )
 
 type (
@@ -34,6 +38,9 @@ type (
 	// ExecutionHash represents a hash on the execution layer which is
 	// currently a Keccak256 hash.
 	ExecutionHash = common.Hash
+
+	// DisplayBytes is an alias for common.PrettyBytes.
+	DisplayBytes = common.PrettyBytes
 )
 
 //nolint:gochecknoglobals // alias.
@@ -50,4 +57,34 @@ var (
 	ZeroAddress = ExecutionAddress{}
 	// ZeroHash is the zero execution hash.
 	ZeroHash = ExecutionHash{}
+)
+
+// There are some types we can borrow from geth.
+type (
+	ExecutableData = engine.ExecutableData
+)
+
+var (
+	BlockToExecutableData = engine.BlockToExecutableData
+	NewBlockWithHeader    = coretypes.NewBlockWithHeader
+	DeriveSha             = coretypes.DeriveSha
+	EmptyUncleHash        = coretypes.EmptyUncleHash
+)
+
+type (
+	Genesis      = core.Genesis
+	Block        = coretypes.Block
+	Body         = coretypes.Body
+	Log          = coretypes.Log
+	Header       = coretypes.Header
+	Receipt      = coretypes.Receipt
+	Transaction  = coretypes.Transaction
+	Transactions = coretypes.Transactions
+	Withdrawal   = coretypes.Withdrawal
+	Withdrawals  = coretypes.Withdrawals
+)
+
+var (
+	NewStackTrie = trie.NewStackTrie
+	BytesToBloom = coretypes.BytesToBloom
 )

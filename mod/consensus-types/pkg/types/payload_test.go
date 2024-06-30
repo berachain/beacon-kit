@@ -26,6 +26,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -36,8 +37,8 @@ import (
 
 func generateExecutableDataDeneb() *types.ExecutableDataDeneb {
 	return &types.ExecutableDataDeneb{
-		ParentHash:    common.ExecutionHash{},
-		FeeRecipient:  common.ExecutionAddress{},
+		ParentHash:    gethprimitives.ExecutionHash{},
+		FeeRecipient:  gethprimitives.ExecutionAddress{},
 		StateRoot:     bytes.B32{},
 		ReceiptsRoot:  bytes.B32{},
 		LogsBloom:     make([]byte, 256),
@@ -48,7 +49,7 @@ func generateExecutableDataDeneb() *types.ExecutableDataDeneb {
 		Timestamp:     math.U64(0),
 		ExtraData:     []byte{},
 		BaseFeePerGas: math.Wei{},
-		BlockHash:     common.ExecutionHash{},
+		BlockHash:     gethprimitives.ExecutionHash{},
 		Transactions:  [][]byte{},
 		Withdrawals:   []*engineprimitives.Withdrawal{},
 		BlobGasUsed:   math.U64(0),
@@ -91,8 +92,12 @@ func TestExecutableDataDeneb_GetTree(t *testing.T) {
 func TestExecutableDataDeneb_Getters(t *testing.T) {
 	payload := generateExecutableDataDeneb()
 
-	require.Equal(t, common.ExecutionHash{}, payload.GetParentHash())
-	require.Equal(t, common.ExecutionAddress{}, payload.GetFeeRecipient())
+	require.Equal(t, gethprimitives.ExecutionHash{}, payload.GetParentHash())
+	require.Equal(
+		t,
+		gethprimitives.ExecutionAddress{},
+		payload.GetFeeRecipient(),
+	)
 	require.Equal(t, bytes.B32{}, payload.GetStateRoot())
 	require.Equal(t, bytes.B32{}, payload.GetReceiptsRoot())
 	require.Equal(t, make([]byte, 256), payload.GetLogsBloom())
@@ -103,7 +108,7 @@ func TestExecutableDataDeneb_Getters(t *testing.T) {
 	require.Equal(t, math.U64(0), payload.GetTimestamp())
 	require.Equal(t, []byte{}, payload.GetExtraData())
 	require.Equal(t, math.Wei{}, payload.GetBaseFeePerGas())
-	require.Equal(t, common.ExecutionHash{}, payload.GetBlockHash())
+	require.Equal(t, gethprimitives.ExecutionHash{}, payload.GetBlockHash())
 	require.Equal(t, [][]byte{}, payload.GetTransactions())
 	require.Equal(t, []*engineprimitives.Withdrawal{}, payload.GetWithdrawals())
 	require.Equal(t, math.U64(0), payload.GetBlobGasUsed())
@@ -152,8 +157,8 @@ func TestExecutionPayload_Empty(t *testing.T) {
 func TestExecutionPayload_ToHeader(t *testing.T) {
 	payload := types.ExecutionPayload{
 		InnerExecutionPayload: &types.ExecutableDataDeneb{
-			ParentHash:    common.ExecutionHash{},
-			FeeRecipient:  common.ExecutionAddress{},
+			ParentHash:    gethprimitives.ExecutionHash{},
+			FeeRecipient:  gethprimitives.ExecutionAddress{},
 			StateRoot:     bytes.B32{},
 			ReceiptsRoot:  bytes.B32{},
 			LogsBloom:     make([]byte, 256),
@@ -164,7 +169,7 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 			Timestamp:     math.U64(0),
 			ExtraData:     []byte{},
 			BaseFeePerGas: math.Wei{},
-			BlockHash:     common.ExecutionHash{},
+			BlockHash:     gethprimitives.ExecutionHash{},
 			Transactions:  [][]byte{},
 			Withdrawals:   []*engineprimitives.Withdrawal{},
 			BlobGasUsed:   math.U64(0),

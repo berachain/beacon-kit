@@ -24,6 +24,7 @@ import (
 	"testing"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/stretchr/testify/require"
@@ -35,7 +36,7 @@ func TestPayloadAttributes(t *testing.T) {
 	forkVersion := uint32(1)
 	timestamp := uint64(123456789)
 	prevRandao := common.Bytes32{1, 2, 3}
-	suggestedFeeRecipient := common.ExecutionAddress{}
+	suggestedFeeRecipient := gethprimitives.ExecutionAddress{}
 	withdrawals := []Withdrawal{}
 	parentBeaconBlockRoot := common.Root{}
 
@@ -65,7 +66,7 @@ func TestPayloadAttributes(t *testing.T) {
 func TestNewPayloadAttributes_ErrorCases(t *testing.T) {
 	forkVersion := uint32(1)
 	prevRandao := common.Bytes32{1, 2, 3}
-	suggestedFeeRecipient := common.ExecutionAddress{}
+	suggestedFeeRecipient := gethprimitives.ExecutionAddress{}
 	withdrawals := []Withdrawal{}
 	parentBeaconBlockRoot := common.Root{}
 

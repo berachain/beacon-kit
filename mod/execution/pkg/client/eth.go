@@ -24,8 +24,7 @@ import (
 	"context"
 	"math/big"
 
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 )
 
 // HeaderByNumber retrieves the block header by its number.
@@ -34,7 +33,7 @@ func (s *EngineClient[
 ]) HeaderByNumber(
 	ctx context.Context,
 	number *big.Int,
-) (*engineprimitives.Header, error) {
+) (*gethprimitives.Header, error) {
 	// Infer the latest height if the number is nil.
 	if number == nil {
 		latest, err := s.BlockNumber(ctx)
@@ -65,8 +64,8 @@ func (s *EngineClient[
 	_, _,
 ]) HeaderByHash(
 	ctx context.Context,
-	hash common.ExecutionHash,
-) (*engineprimitives.Header, error) {
+	hash gethprimitives.ExecutionHash,
+) (*gethprimitives.Header, error) {
 	// Check the cache for the header.
 	header, ok := s.engineCache.HeaderByHash(hash)
 	if ok {

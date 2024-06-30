@@ -22,16 +22,24 @@
 package engineprimitives
 
 import (
+	"fmt"
+
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/ethereum/go-ethereum/beacon/engine"
 )
 
-// There are some types we can borrow from geth.
-type (
-	ClientVersionV1 = engine.ClientVersionV1
-	ExecutableData  = engine.ExecutableData
-)
+// ClientVersionV1 contains information which identifies a client
+// implementation.
+type ClientVersionV1 struct {
+	Code    string `json:"code"`
+	Name    string `json:"name"`
+	Version string `json:"version"`
+	Commit  string `json:"commit"`
+}
+
+func (v *ClientVersionV1) String() string {
+	return fmt.Sprintf("%s-%s-%s-%s", v.Code, v.Name, v.Version, v.Commit)
+}
 
 type PayloadStatusStr = string
 
@@ -66,15 +74,15 @@ type ForkchoiceResponseV1 struct {
 type ForkchoiceStateV1 struct {
 	// HeadBlockHash is the desired block hash of the head of the canonical
 	// chain.
-	HeadBlockHash common.ExecutionHash `json:"headBlockHash"`
+	HeadBlockHash gethprimitives.ExecutionHash `json:"headBlockHash"`
 	// SafeBlockHash is  the "safe" block hash of the canonical chain under
 	// certain
 	// synchrony and honesty assumptions. This value MUST be either equal to
 	// or an ancestor of `HeadBlockHash`.
-	SafeBlockHash common.ExecutionHash `json:"safeBlockHash"`
+	SafeBlockHash gethprimitives.ExecutionHash `json:"safeBlockHash"`
 	// FinalizedBlockHash is the desired block hash of the most recent finalized
 	// block
-	FinalizedBlockHash common.ExecutionHash `json:"finalizedBlockHash"`
+	FinalizedBlockHash gethprimitives.ExecutionHash `json:"finalizedBlockHash"`
 }
 
 // PayloadStatusV1 represents the status of a payload as per the EngineAPI
@@ -87,7 +95,7 @@ type PayloadStatusV1 struct {
 	Status string `json:"status"`
 	// LatestValidHash is the hash of the most recent valid block
 	// in the branch defined by payload and its ancestors
-	LatestValidHash *common.ExecutionHash `json:"latestValidHash"`
+	LatestValidHash *gethprimitives.ExecutionHash `json:"latestValidHash"`
 	// ValidationError is a message providing additional details on
 	// the validation error if the payload is classified as
 	// INVALID or INVALID_BLOCK_HASH
