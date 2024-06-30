@@ -21,6 +21,7 @@
 package state
 
 import (
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -77,5 +78,5 @@ type Validator[WithdrawalCredentialsT WithdrawalCredentials] interface {
 type WithdrawalCredentials interface {
 	// ToExecutionAddress converts the withdrawal credentials to an execution
 	// address.
-	ToExecutionAddress() (common.ExecutionAddress, error)
+	ToExecutionAddress() (gethprimitives.ExecutionAddress, error)
 }

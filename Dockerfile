@@ -56,6 +56,7 @@ COPY ./mod/runtime/go.mod ./mod/runtime/go.sum ./mod/runtime/
 COPY ./mod/state-transition/go.mod ./mod/state-transition/go.sum ./mod/state-transition/
 COPY ./mod/storage/go.mod ./mod/storage/go.sum ./mod/storage/
 COPY ./mod/errors/go.mod ./mod/errors/go.sum ./mod/errors/
+COPY ./mod/geth-primitives/go.mod ./mod/geth-primitives/go.sum ./mod/geth-primitives/
 
 RUN go work init && \
     go work use ./beacond && \
@@ -77,7 +78,8 @@ RUN go work init && \
     go work use ./mod/primitives && \
     go work use ./mod/runtime && \
     go work use ./mod/state-transition && \
-    go work use ./mod/storage
+    go work use ./mod/storage && \
+    go work use ./mod/geth-primitives
 
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/go/pkg/mod \

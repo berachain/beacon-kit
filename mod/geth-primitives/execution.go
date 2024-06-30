@@ -18,24 +18,43 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package spec
+package gethprimitives
 
 import (
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/chain"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/ethereum/go-ethereum/common"
 )
 
-// DevnetChainSpec is the ChainSpec for the localnet.
-func DevnetChainSpec() chain.Spec[
-	common.DomainType,
-	math.Epoch,
-	gethprimitives.ExecutionAddress,
-	math.Slot,
-	any,
-] {
-	testnetSpec := BaseSpec()
-	testnetSpec.DepositEth1ChainID = 80087
-	return chain.NewChainSpec(testnetSpec)
+type (
+	// ExecutionAddress represents an address on the execution layer
+	// which is derived via secp256k1 w/recovery bit.
+	//
+	// Related: https://eips.ethereum.org/EIPS/eip-55
+	ExecutionAddress = common.Address
+
+	// ExecutionHash represents a hash on the execution layer which is
+	// currently a Keccak256 hash.
+	ExecutionHash = common.Hash
+
+	// DisplayBytes is an alias for common.PrettyBytes.
+	DisplayBytes = common.PrettyBytes
+)
+
+//nolint:gochecknoglobals // alias.
+var (
+	HexToAddress   = common.HexToAddress
+	HexToHash      = common.HexToHash
+	Hex2BytesFixed = common.Hex2BytesFixed
+	FromHex        = common.FromHex
+)
+
+//nolint:gochecknoglobals // alias.
+var (
+	// ZeroAddress is the zero execution address.
+	ZeroAddress = ExecutionAddress{}
+	// ZeroHash is the zero execution hash.
+	ZeroHash = ExecutionHash{}
+)
+
+func IsNullAddress(address ExecutionAddress) bool {
+	return address == ZeroAddress
 }

@@ -26,6 +26,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -42,7 +43,7 @@ var (
 func generateExecutionPayloadHeaderDeneb() *types.ExecutionPayloadHeaderDeneb {
 	return &types.ExecutionPayloadHeaderDeneb{
 		ParentHash:       common.ExecutionHash{},
-		FeeRecipient:     common.ExecutionAddress{},
+		FeeRecipient:     gethprimitives.ExecutionAddress{},
 		StateRoot:        bytes.B32{},
 		ReceiptsRoot:     bytes.B32{},
 		LogsBloom:        make([]byte, 256),
@@ -66,8 +67,8 @@ func TestExecutionPayloadHeaderDeneb_Getters(t *testing.T) {
 
 	require.NotNil(t, header)
 
-	require.Equal(t, common.ExecutionHash{}, header.GetParentHash())
-	require.Equal(t, common.ExecutionAddress{}, header.GetFeeRecipient())
+	require.Equal(t, gethprimitives.ExecutionHash{}, header.GetParentHash())
+	require.Equal(t, gethprimitives.ExecutionAddress{}, header.GetFeeRecipient())
 	require.Equal(t, bytes.B32{}, header.GetStateRoot())
 	require.Equal(t, bytes.B32{}, header.GetReceiptsRoot())
 	require.Equal(t, make([]byte, 256), header.GetLogsBloom())

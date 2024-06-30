@@ -23,6 +23,7 @@ package builder
 import (
 	"time"
 
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
@@ -40,7 +41,7 @@ type Config struct {
 	Enabled bool `mapstructure:"enabled"`
 	// SuggestedFeeRecipient is the address that will receive the transaction
 	// fees produced by any blocks from this node.
-	SuggestedFeeRecipient common.ExecutionAddress `mapstructure:"suggested-fee-recipient"`
+	SuggestedFeeRecipient gethprimitives.ExecutionAddress `mapstructure:"suggested-fee-recipient"`
 	// PayloadTimeout is the timeout parameter for local build
 	// payload. This should match, or be slightly less than the configured
 	// timeout on your execution client. It also must be less than

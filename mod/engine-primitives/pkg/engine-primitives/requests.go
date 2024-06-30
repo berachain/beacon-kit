@@ -24,6 +24,7 @@ import (
 	"math/big"
 
 	"github.com/berachain/beacon-kit/mod/errors"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -47,7 +48,7 @@ type NewPayloadRequest[
 		GetTimestamp() math.U64
 		GetExtraData() []byte
 		GetBaseFeePerGas() math.Wei
-		GetFeeRecipient() common.ExecutionAddress
+		GetFeeRecipient() gethprimitives.ExecutionAddress
 		GetStateRoot() common.Bytes32
 		GetReceiptsRoot() common.Bytes32
 		GetLogsBloom() []byte
@@ -59,7 +60,7 @@ type NewPayloadRequest[
 	WithdrawalT interface {
 		GetIndex() math.U64
 		GetAmount() math.U64
-		GetAddress() common.ExecutionAddress
+		GetAddress() gethprimitives.ExecutionAddress
 		GetValidatorIndex() math.U64
 	},
 ] struct {
@@ -87,7 +88,7 @@ func BuildNewPayloadRequest[
 		GetTimestamp() math.U64
 		GetExtraData() []byte
 		GetBaseFeePerGas() math.Wei
-		GetFeeRecipient() common.ExecutionAddress
+		GetFeeRecipient() gethprimitives.ExecutionAddress
 		GetStateRoot() common.Bytes32
 		GetReceiptsRoot() common.Bytes32
 		GetLogsBloom() []byte
@@ -99,7 +100,7 @@ func BuildNewPayloadRequest[
 	WithdrawalT interface {
 		GetIndex() math.U64
 		GetAmount() math.U64
-		GetAddress() common.ExecutionAddress
+		GetAddress() gethprimitives.ExecutionAddress
 		GetValidatorIndex() math.U64
 	},
 ](

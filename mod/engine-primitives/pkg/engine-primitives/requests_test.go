@@ -25,6 +25,7 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives/mocks"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/require"
@@ -70,8 +71,8 @@ func (m MockExecutionPayload) GetExtraData() []byte {
 func (m MockExecutionPayload) GetBaseFeePerGas() math.Wei {
 	return math.Wei{}
 }
-func (m MockExecutionPayload) GetFeeRecipient() common.ExecutionAddress {
-	return common.ExecutionAddress{}
+func (m MockExecutionPayload) GetFeeRecipient() gethprimitives.ExecutionAddress {
+	return gethprimitives.ExecutionAddress{}
 }
 func (m MockExecutionPayload) GetStateRoot() common.Bytes32 {
 	return common.Bytes32{}
@@ -101,8 +102,8 @@ func (m MockWithdrawal) GetIndex() math.U64 {
 func (m MockWithdrawal) GetAmount() math.U64 {
 	return math.U64(0)
 }
-func (m MockWithdrawal) GetAddress() common.ExecutionAddress {
-	return common.ExecutionAddress{}
+func (m MockWithdrawal) GetAddress() gethprimitives.ExecutionAddress {
+	return gethprimitives.ExecutionAddress{}
 }
 func (m MockWithdrawal) GetValidatorIndex() math.U64 {
 	return math.U64(0)

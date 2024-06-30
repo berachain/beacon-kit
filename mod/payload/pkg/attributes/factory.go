@@ -21,6 +21,7 @@
 package attributes
 
 import (
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -38,7 +39,7 @@ type Factory[
 	logger log.Logger[any]
 	// suggestedFeeRecipient is the suggested fee recipient sent to
 	// the execution client for the payload build.
-	suggestedFeeRecipient common.ExecutionAddress
+	suggestedFeeRecipient gethprimitives.ExecutionAddress
 }
 
 // NewAttributesFactory creates a new instance of AttributesFactory.
@@ -49,7 +50,7 @@ func NewAttributesFactory[
 ](
 	chainSpec common.ChainSpec,
 	logger log.Logger[any],
-	suggestedFeeRecipient common.ExecutionAddress,
+	suggestedFeeRecipient gethprimitives.ExecutionAddress,
 ) *Factory[BeaconStateT, PayloadAttributesT, WithdrawalT] {
 	return &Factory[BeaconStateT, PayloadAttributesT, WithdrawalT]{
 		chainSpec:             chainSpec,

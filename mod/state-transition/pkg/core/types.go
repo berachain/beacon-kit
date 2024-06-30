@@ -24,6 +24,7 @@ import (
 	"context"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -158,7 +159,7 @@ type ExecutionPayload[
 	GetBlockHash() common.ExecutionHash
 	GetPrevRandao() common.Bytes32
 	GetWithdrawals() []WithdrawalT
-	GetFeeRecipient() common.ExecutionAddress
+	GetFeeRecipient() gethprimitives.ExecutionAddress
 	GetStateRoot() common.Bytes32
 	GetReceiptsRoot() common.Root
 	GetLogsBloom() []byte
@@ -180,7 +181,7 @@ type ExecutionPayloadHeader interface {
 	GetParentHash() common.ExecutionHash
 	GetBlockHash() common.ExecutionHash
 	GetPrevRandao() common.Bytes32
-	GetFeeRecipient() common.ExecutionAddress
+	GetFeeRecipient() gethprimitives.ExecutionAddress
 	GetStateRoot() common.Bytes32
 	GetReceiptsRoot() common.Root
 	GetLogsBloom() []byte
@@ -259,5 +260,5 @@ type Withdrawal[WithdrawalT any] interface {
 	// GetValidatorIndex returns the index of the validator.
 	GetValidatorIndex() math.ValidatorIndex
 	// GetAddress returns the address of the withdrawal.
-	GetAddress() common.ExecutionAddress
+	GetAddress() gethprimitives.ExecutionAddress
 }
