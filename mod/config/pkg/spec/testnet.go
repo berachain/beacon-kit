@@ -95,7 +95,7 @@ func BaseSpec() chain.SpecData[
 			0x00, 0x00, 0x00, 0x01,
 		},
 		// Eth1-related values.
-		DepositContractAddress: common.HexToAddress(
+		DepositContractAddress: gethprimitives.HexToAddress(
 			"0x4242424242424242424242424242424242424242",
 		),
 		DepositEth1ChainID:        uint64(80084),
