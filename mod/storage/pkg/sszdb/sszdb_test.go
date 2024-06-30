@@ -3,7 +3,6 @@ package sszdb_test
 import (
 	"bytes"
 	"context"
-	"os"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
@@ -13,23 +12,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func testBeaconState() (*deneb.BeaconState, error) {
-	bz, err := os.ReadFile("./testdata/beacon.ssz")
-	if err != nil {
-		return nil, err
-	}
-	state := &deneb.BeaconState{}
-	err = state.UnmarshalSSZ(bz)
-	if err != nil {
-		return nil, err
-	}
-	return state, nil
-}
-
 func TestDB_Metadata(t *testing.T) {
-	beacon, err := testBeaconState()
-	require.NoError(t, err)
-
+	beacon := &deneb.BeaconState{}
 	beacon.GenesisValidatorsRoot = [32]byte{7, 7, 7, 7}
 	beacon.Slot = 777
 	beacon.Fork = &types.Fork{
