@@ -74,12 +74,10 @@ github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
-github.com/berachain/beacon-kit/mod/async v0.0.0-20240624003607-df94860f8eeb h1:4N/wng6MC9Kz5O7diKcJI/k7gnP0o/5hPu+cYZIJpCc=
-github.com/berachain/beacon-kit/mod/async v0.0.0-20240624003607-df94860f8eeb/go.mod h1:ycwqumRG49gb8qg87cc6kVgPeiUDaFMajjLko54Ey+I=
 github.com/berachain/beacon-kit/mod/errors v0.0.0-20240619160923-72a9b26aa13d h1:pMwA4gmPFhh0g6QT9siRG5+nLyOWR/iKXDdztGjCAs8=
 github.com/berachain/beacon-kit/mod/errors v0.0.0-20240619160923-72a9b26aa13d/go.mod h1:iXa+Q+i0q+GCpLzkusulO57K5vlkDgM77jtfMr3QdFA=
-github.com/berachain/beacon-kit/mod/execution v0.0.0-20240624003607-df94860f8eeb h1:0YujSn8n7xcdIoL+CTyZKNKlFzr5RZZGNMVASDRYBQ4=
-github.com/berachain/beacon-kit/mod/execution v0.0.0-20240624003607-df94860f8eeb/go.mod h1:73gSLnCU166Rtqv5Y+1UxDljKu6iy3qgR+tKu6H8ZOY=
+github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240630232851-507966e7b554 h1:ncyX8KQML4j1VgZJjRkJXPD0hHrK53FHTHBwVclNO94=
+github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240630232851-507966e7b554/go.mod h1:0qcwSY0kGp1HBANAz72576+g5T2BhYFviU5M80N0JzI=
 github.com/berachain/beacon-kit/mod/log v0.0.0-20240619234034-fe96d94eafef h1:KYnx+uPEKHax/OOcIfkzELEvgkBOy+I3LhZk1p6rtwU=
 github.com/berachain/beacon-kit/mod/log v0.0.0-20240619234034-fe96d94eafef/go.mod h1:xP5KcG56VfbPgz2ZRHerxm90MkjXMSDaGZNOOO5yfH4=
 github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240624204855-d8809d5c8588 h1:zL2vsFmWlm+vbmX17Uc97sVBxjlPlMqQ7Jna0I99uyY=
@@ -463,7 +461,6 @@ github.com/minio/sha256-simd v1.0.1 h1:6kaan5IFmwTNynnKKpDHe6FWHohJOHhCPchzK49dz
 github.com/minio/sha256-simd v1.0.1/go.mod h1:Pz6AKMiUdngCLpeTL/RJY1M9rUuPMYujV5xJjtbRSN8=
 github.com/mitchellh/go-testing-interface v1.14.1 h1:jrgshOhYAUVNMAJiKbEu7EqAwgJJ2JqpQmpLJOu07cU=
 github.com/mitchellh/go-testing-interface v1.14.1/go.mod h1:gfgS7OtZj6MA4U1UrDRp04twqAjfvlZyCfX3sDjEym8=
-github.com/mitchellh/mapstructure v1.4.1/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
 github.com/mitchellh/mapstructure v1.5.0 h1:jeMsZIYE/09sWLaz43PL7Gy6RuMjD2eJVyuac5Z2hdY=
 github.com/mitchellh/mapstructure v1.5.0/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
 github.com/mitchellh/pointerstructure v1.2.1 h1:ZhBBeX8tSlRpu/FFhXH4RC4OJzFlqsQhoHZAz4x7TIw=
