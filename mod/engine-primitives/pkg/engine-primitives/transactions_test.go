@@ -29,7 +29,7 @@ import (
 )
 
 func TestTransactions(t *testing.T) {
-	txs := engineprimitives.TransactionsFromBytes(
+	txs := engineprimitives.BartioTransactionsFromBytes(
 		[][]byte{[]byte("transaction1"),
 			[]byte("transaction2"),
 			[]byte("transaction3")},

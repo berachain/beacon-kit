@@ -31,17 +31,37 @@ import (
 // Transactions is a typealias for [][]byte, which is how transactions are
 // received in the execution payload.
 //
-// NOTE: We mightve made a mistake here,
-// I think this should be ssz.ListBasic[ssz.Byte]] @itsdevbear
-// TODO: Fix this in the next breaking change on bArtio.
-type Transactions = ssz.ListComposite[ssz.VectorBasic[ssz.Byte]]
+// NOTE: We made a mistake on bArtio here. This shoudl've been ssz.ListBasic
+// for the actual transactions type.
+// TODO: We will deprecate this type in the future.
+type BartioTransactions = ssz.ListComposite[ssz.VectorBasic[ssz.Byte]]
 
-// TransactionsFromBytes creates a Transactions object from a byte slice.
-func TransactionsFromBytes(data [][]byte) *Transactions {
+// BartioTransactionsFromBytes creates a Transactions object from a byte slice.
+func BartioTransactionsFromBytes(data [][]byte) *BartioTransactions {
 	return ssz.ListCompositeFromElements(
 		// TODO: Move this value to chain spec.
 		constants.MaxTxsPerPayload,
 		*(*[]ssz.VectorBasic[ssz.Byte])(unsafe.Pointer(&data))...)
+}
+
+// Transactions is a typealias for [][]byte, which is how transactions are
+// received in the execution payload.
+type Transactions = ssz.ListComposite[*ssz.ListBasic[ssz.Byte]]
+
+// TransactionsFromBytes creates a Transactions object from a byte slice.
+func TransactionsFromBytes(data [][]byte) *Transactions {
+	d := *(*[][]ssz.Byte)(unsafe.Pointer(&data))
+	txs := make([]*ssz.ListBasic[ssz.Byte], 0)
+	for _, i := range d {
+		txs = append(
+			txs,
+			ssz.ListBasicFromElements(constants.MaxBytesPerTransaction, i...),
+		)
+	}
+	return ssz.ListCompositeFromElements(
+		// TODO: Move this value to chain spec.
+		constants.MaxTxsPerPayload, txs...,
+	)
 }
 
 // TODO: make the ChainSpec a generic on this type.

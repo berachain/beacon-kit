@@ -176,7 +176,7 @@ func executableDataToExecutionPayloadHeader(
 
 		g.Go(func() error {
 			var txsRootErr error
-			txsRoot, txsRootErr = engineprimitives.TransactionsFromBytes(
+			txsRoot, txsRootErr = engineprimitives.BartioTransactionsFromBytes(
 				data.Transactions,
 			).HashTreeRoot()
 			return txsRootErr
