@@ -143,9 +143,12 @@ func (d *Backend) stage(
 	return d.stageInBranch(d.branchID(ctx), node, gindex)
 }
 
+//
 //nolint:mnd // there is nothing magic about the number 2
 func (d *Backend) stageInBranch(
-	branchID uint8, node *ssz.Node, gindex uint64,
+	branchID uint8,
+	node *ssz.Node,
+	gindex uint64,
 ) error {
 	d.branches[branchID][gindex] = node.Value
 	switch {
@@ -180,7 +183,10 @@ func (d *Backend) Commit(ctx context.Context) error {
 	return nil
 }
 
-func (d *Backend) mustGetNode(ctx context.Context, gindex uint64) (*ssz.Node, error) {
+func (d *Backend) mustGetNode(
+	ctx context.Context,
+	gindex uint64,
+) (*ssz.Node, error) {
 	nodeBz := d.getFromStage(ctx, gindex)
 	if nodeBz != nil {
 		return &ssz.Node{Value: nodeBz}, nil
@@ -198,7 +204,10 @@ func (d *Backend) mustGetNode(ctx context.Context, gindex uint64) (*ssz.Node, er
 }
 
 func (d *Backend) getNodeBytes(
-	ctx context.Context, gindex uint64, length uint64, offset uint8,
+	ctx context.Context,
+	gindex uint64,
+	length uint64,
+	offset uint8,
 ) ([]byte, error) {
 	const chunkSize = 32
 	var (
