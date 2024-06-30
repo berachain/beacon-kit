@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/trie"
 )
 
 // NewPayloadRequest as per the Ethereum 2.0 specification:
@@ -126,12 +125,12 @@ func BuildNewPayloadRequest[
 //nolint:lll
 func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAndBlockHashes() error {
 	var (
-		gethWithdrawals []*types.Withdrawal
+		gethWithdrawals []*gethprimitives.Withdrawal
 		withdrawalsHash *gethprimitives.ExecutionHash
 		blobHashes      = make([]gethprimitives.ExecutionHash, 0)
 		payload         = n.ExecutionPayload
 		txs             = make(
-			[]*types.Transaction,
+			[]*gethprimitives.Transaction,
 			len(payload.GetTransactions()),
 		)
 	)
@@ -139,7 +138,7 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAnd
 	// Extracts and validates the blob hashes from the transactions in the
 	// execution payload.
 	for i, encTx := range payload.GetTransactions() {
-		var tx types.Transaction
+		var tx gethprimitives.Transaction
 		if err := tx.UnmarshalBinary(encTx); err != nil {
 			return errors.Wrapf(err, "invalid transaction %d", i)
 		}
@@ -174,20 +173,20 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAnd
 	// Construct the withdrawals and withdrawals hash.
 	if payload.GetWithdrawals() != nil {
 		gethWithdrawals = make(
-			[]*types.Withdrawal,
+			[]*gethprimitives.Withdrawal,
 			len(payload.GetWithdrawals()),
 		)
 		for i, wd := range payload.GetWithdrawals() {
-			gethWithdrawals[i] = &types.Withdrawal{
+			gethWithdrawals[i] = &gethprimitives.Withdrawal{
 				Index:     wd.GetIndex().Unwrap(),
 				Amount:    wd.GetAmount().Unwrap(),
 				Address:   wd.GetAddress(),
 				Validator: wd.GetValidatorIndex().Unwrap(),
 			}
 		}
-		h := types.DeriveSha(
-			types.Withdrawals(gethWithdrawals),
-			trie.NewStackTrie(nil),
+		h := gethprimitives.DeriveSha(
+			gethprimitives.Withdrawals(gethWithdrawals),
+			gethprimitives.NewStackTrie(nil),
 		)
 		withdrawalsHash = &h
 	}
@@ -199,7 +198,7 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAnd
 			UncleHash:        types.EmptyUncleHash,
 			Coinbase:         payload.GetFeeRecipient(),
 			Root:             gethprimitives.ExecutionHash(payload.GetStateRoot()),
-			TxHash:           types.DeriveSha(types.Transactions(txs), trie.NewStackTrie(nil)),
+			TxHash:           types.DeriveSha(types.Transactions(txs), gethprimitives.NewStackTrie(nil)),
 			ReceiptHash:      gethprimitives.ExecutionHash(payload.GetReceiptsRoot()),
 			Bloom:            types.BytesToBloom(payload.GetLogsBloom()),
 			Difficulty:       big.NewInt(0),

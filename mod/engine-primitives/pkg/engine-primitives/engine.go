@@ -28,7 +28,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 )
 
-// ClientVersionV1 contains information which identifies a client implementation.
+// ClientVersionV1 contains information which identifies a client
+// implementation.
 type ClientVersionV1 struct {
 	Code    string `json:"code"`
 	Name    string `json:"name"`

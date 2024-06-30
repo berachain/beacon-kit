@@ -23,6 +23,9 @@ package gethprimitives
 import (
 	"github.com/ethereum/go-ethereum/beacon/engine"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core"
+	coretypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/trie"
 )
 
 type (
@@ -59,4 +62,23 @@ var (
 // There are some types we can borrow from geth.
 type (
 	ExecutableData = engine.ExecutableData
+)
+
+var (
+	BlockToExecutableData = engine.BlockToExecutableData
+	DeriveSha             = coretypes.DeriveSha
+)
+
+type (
+	Genesis     = core.Genesis
+	Block       = coretypes.Block
+	Log         = coretypes.Log
+	Receipt     = coretypes.Receipt
+	Transaction = coretypes.Transaction
+	Withdrawal  = coretypes.Withdrawal
+	Withdrawals = coretypes.Withdrawals
+)
+
+var (
+	NewStackTrie = trie.NewStackTrie
 )
