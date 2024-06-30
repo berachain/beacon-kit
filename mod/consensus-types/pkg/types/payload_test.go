@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/stretchr/testify/require"
@@ -178,7 +179,8 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 	}
 
 	header, err := payload.ToHeader(
-		merkleizer.New[[32]byte, common.Root](), uint64(16),
+		merkleizer.New[[32]byte, ssz.VectorBasic[ssz.Byte]](),
+		uint64(16),
 	)
 	require.NoError(t, err)
 	require.NotNil(t, header)

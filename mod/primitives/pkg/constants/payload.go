@@ -37,4 +37,13 @@ const (
 	// MaxWithdrawalsPerPayload is the maximum number of withdrawals in a
 	// execution payload.
 	MaxWithdrawalsPerPayload uint64 = 16
+
+	// MaxBytesPerTransaction is the maximum number of bytes per transaction.
+	MaxBytesPerTransaction uint64 = 1073741824 // 2^30
+
+	// BytesPerLogsBloom is the number of bytes in a logs bloom filter.
+	BytesPerLogsBloom uint64 = 256 // 2^8
+
+	// MaxExtraDataBytes is the maximum number of extra data bytes.
+	MaxExtraDataBytes uint64 = 32 // 2^5
 )

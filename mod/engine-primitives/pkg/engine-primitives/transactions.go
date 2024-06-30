@@ -21,47 +21,49 @@
 package engineprimitives
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"unsafe"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 )
 
 // Transactions is a typealias for [][]byte, which is how transactions are
 // received in the execution payload.
 //
-// TODO: make it take a generic SpecT type.
-type Transactions [][]byte
+// NOTE: We made a mistake on bArtio here. This shoudl've been ssz.ListBasic
+// for the actual transactions type.
+// TODO: We will deprecate this type in the future.
+type BartioTransactions = ssz.ListComposite[ssz.VectorBasic[ssz.Byte]]
 
-// HashTreeRoot returns the hash tree root of the Transactions list.
-//
-// NOTE: Uses a new merkleizer for each call.
-func (txs Transactions) HashTreeRoot() (common.Root, error) {
-	return txs.HashTreeRootWith(
-		merkleizer.New[[32]byte, common.Root](),
-	)
+// BartioTransactionsFromBytes creates a Transactions object from a byte slice.
+func BartioTransactionsFromBytes(data [][]byte) *BartioTransactions {
+	return ssz.ListCompositeFromElements(
+		// TODO: Move this value to chain spec.
+		constants.MaxTxsPerPayload,
+		*(*[]ssz.VectorBasic[ssz.Byte])(unsafe.Pointer(&data))...)
 }
 
-// TxsMerkleizer is a ssz merkleizer used for transactions.
-//
-// TODO: make the ChainSpec a generic on this type.
-type TxsMerkleizer merkleizer.Merkleizer[[32]byte, common.Root]
+// Transactions is a typealias for [][]byte, which is how transactions are
+// received in the execution payload.
+type Transactions = ssz.ListComposite[*ssz.ListBasic[ssz.Byte]]
 
-// HashTreeRootWith returns the hash tree root of the Transactions list
-// using the given merkleizer.
-func (txs Transactions) HashTreeRootWith(
-	merkleizer TxsMerkleizer,
-) (common.Root, error) {
-	var (
-		err   error
-		roots = make([]common.Root, len(txs))
-	)
-
-	for i, tx := range txs {
-		roots[i], err = merkleizer.MerkleizeByteSlice(tx)
-		if err != nil {
-			return common.Root{}, err
-		}
+// TransactionsFromBytes creates a Transactions object from a byte slice.
+func TransactionsFromBytes(data [][]byte) *Transactions {
+	d := *(*[][]ssz.Byte)(unsafe.Pointer(&data))
+	txs := make([]*ssz.ListBasic[ssz.Byte], 0)
+	for _, i := range d {
+		txs = append(
+			txs,
+			ssz.ListBasicFromElements(constants.MaxBytesPerTransaction, i...),
+		)
 	}
-
-	return merkleizer.MerkleizeListComposite(roots, constants.MaxTxsPerPayload)
+	return ssz.ListCompositeFromElements(
+		// TODO: Move this value to chain spec.
+		constants.MaxTxsPerPayload, txs...,
+	)
 }
+
+// TODO: make the ChainSpec a generic on this type.
+type TxsMerkleizer merkleizer.
+	Merkleizer[[32]byte, ssz.VectorBasic[ssz.Byte]]

@@ -146,7 +146,7 @@ func DefaultGenesisExecutionPayloadHeaderDeneb() (
 
 	g.Go(func() error {
 		var err error
-		emptyTxsRoot, err = engineprimitives.Transactions{}.HashTreeRoot()
+		emptyTxsRoot, err = engineprimitives.BartioTransactions{}.HashTreeRoot()
 		return err
 	})
 
