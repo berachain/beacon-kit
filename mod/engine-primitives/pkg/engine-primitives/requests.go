@@ -28,7 +28,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/ethereum/go-ethereum/core/types"
 )
 
 // NewPayloadRequest as per the Ethereum 2.0 specification:
@@ -192,15 +191,15 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAnd
 	}
 
 	// Verify that the payload is telling the truth about it's block hash.
-	if block := types.NewBlockWithHeader(
-		&types.Header{
+	if block := gethprimitives.NewBlockWithHeader(
+		&gethprimitives.Header{
 			ParentHash:       payload.GetParentHash(),
-			UncleHash:        types.EmptyUncleHash,
+			UncleHash:        gethprimitives.EmptyUncleHash,
 			Coinbase:         payload.GetFeeRecipient(),
 			Root:             gethprimitives.ExecutionHash(payload.GetStateRoot()),
-			TxHash:           types.DeriveSha(types.Transactions(txs), gethprimitives.NewStackTrie(nil)),
+			TxHash:           gethprimitives.DeriveSha(gethprimitives.Transactions(txs), gethprimitives.NewStackTrie(nil)),
 			ReceiptHash:      gethprimitives.ExecutionHash(payload.GetReceiptsRoot()),
-			Bloom:            types.BytesToBloom(payload.GetLogsBloom()),
+			Bloom:            gethprimitives.BytesToBloom(payload.GetLogsBloom()),
 			Difficulty:       big.NewInt(0),
 			Number:           new(big.Int).SetUint64(payload.GetNumber().Unwrap()),
 			GasLimit:         payload.GetGasLimit().Unwrap(),
@@ -214,7 +213,7 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAnd
 			BlobGasUsed:      payload.GetBlobGasUsed().UnwrapPtr(),
 			ParentBeaconRoot: (*gethprimitives.ExecutionHash)(n.ParentBeaconBlockRoot),
 		},
-	).WithBody(types.Body{
+	).WithBody(gethprimitives.Body{
 		Transactions: txs, Uncles: nil, Withdrawals: gethWithdrawals,
 	}); block.Hash() != payload.GetBlockHash() {
 		return errors.Wrapf(ErrPayloadBlockHashMismatch,

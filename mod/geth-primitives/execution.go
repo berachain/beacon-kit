@@ -66,19 +66,25 @@ type (
 
 var (
 	BlockToExecutableData = engine.BlockToExecutableData
+	NewBlockWithHeader    = coretypes.NewBlockWithHeader
 	DeriveSha             = coretypes.DeriveSha
+	EmptyUncleHash        = coretypes.EmptyUncleHash
 )
 
 type (
-	Genesis     = core.Genesis
-	Block       = coretypes.Block
-	Log         = coretypes.Log
-	Receipt     = coretypes.Receipt
-	Transaction = coretypes.Transaction
-	Withdrawal  = coretypes.Withdrawal
-	Withdrawals = coretypes.Withdrawals
+	Genesis      = core.Genesis
+	Block        = coretypes.Block
+	Body         = coretypes.Body
+	Log          = coretypes.Log
+	Header       = coretypes.Header
+	Receipt      = coretypes.Receipt
+	Transaction  = coretypes.Transaction
+	Transactions = coretypes.Transactions
+	Withdrawal   = coretypes.Withdrawal
+	Withdrawals  = coretypes.Withdrawals
 )
 
 var (
 	NewStackTrie = trie.NewStackTrie
+	BytesToBloom = coretypes.BytesToBloom
 )
