@@ -25,9 +25,9 @@ import (
 	"errors"
 
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/bind"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 )
 
 // WrappedBeaconDepositContract is a struct that holds a pointer to an ABI.
