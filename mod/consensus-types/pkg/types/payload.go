@@ -174,7 +174,9 @@ func (d *ExecutableDataDeneb) GetParentHash() gethprimitives.ExecutionHash {
 }
 
 // GetFeeRecipient returns the fee recipient address of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetFeeRecipient() gethprimitives.ExecutionAddress {
+func (
+	d *ExecutableDataDeneb,
+) GetFeeRecipient() gethprimitives.ExecutionAddress {
 	return d.FeeRecipient
 }
 

@@ -128,7 +128,9 @@ func (d *ExecutionPayloadHeaderDeneb) IsBlinded() bool {
 }
 
 // GetParentHash returns the parent hash of the ExecutionPayloadHeaderDeneb.
-func (d *ExecutionPayloadHeaderDeneb) GetParentHash() gethprimitives.ExecutionHash {
+func (
+	d *ExecutionPayloadHeaderDeneb,
+) GetParentHash() gethprimitives.ExecutionHash {
 	return d.ParentHash
 }
 
@@ -193,7 +195,9 @@ func (d *ExecutionPayloadHeaderDeneb) GetBaseFeePerGas() math.Wei {
 }
 
 // GetBlockHash returns the block hash of the ExecutionPayloadHeaderDeneb.
-func (d *ExecutionPayloadHeaderDeneb) GetBlockHash() gethprimitives.ExecutionHash {
+func (
+	d *ExecutionPayloadHeaderDeneb,
+) GetBlockHash() gethprimitives.ExecutionHash {
 	return d.BlockHash
 }
 

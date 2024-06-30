@@ -22,16 +22,23 @@
 package engineprimitives
 
 import (
+	"fmt"
+
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
-	"github.com/ethereum/go-ethereum/beacon/engine"
 )
 
-// There are some types we can borrow from geth.
-type (
-	ClientVersionV1 = engine.ClientVersionV1
-	ExecutableData  = engine.ExecutableData
-)
+// ClientVersionV1 contains information which identifies a client implementation.
+type ClientVersionV1 struct {
+	Code    string `json:"code"`
+	Name    string `json:"name"`
+	Version string `json:"version"`
+	Commit  string `json:"commit"`
+}
+
+func (v *ClientVersionV1) String() string {
+	return fmt.Sprintf("%s-%s-%s-%s", v.Code, v.Name, v.Version, v.Commit)
+}
 
 type PayloadStatusStr = string
 

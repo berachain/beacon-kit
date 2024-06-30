@@ -21,6 +21,7 @@
 package gethprimitives
 
 import (
+	"github.com/ethereum/go-ethereum/beacon/engine"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -53,4 +54,9 @@ var (
 	ZeroAddress = ExecutionAddress{}
 	// ZeroHash is the zero execution hash.
 	ZeroHash = ExecutionHash{}
+)
+
+// There are some types we can borrow from geth.
+type (
+	ExecutableData = engine.ExecutableData
 )
