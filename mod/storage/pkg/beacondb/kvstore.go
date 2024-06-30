@@ -302,4 +302,11 @@ func (kv *KVStore[
 	if kv.write != nil {
 		kv.write()
 	}
+	// TODO massive genesis hack
+	sdkCtx := sdk.UnwrapSDKContext(kv.ctx)
+	if sdkCtx.ExecMode() == 0 {
+		if err := kv.sdb.Commit(kv.ctx); err != nil {
+			panic(err)
+		}
+	}
 }

@@ -35,6 +35,7 @@ func init() {
 	appconfig.RegisterModule(&modulev1alpha1.Module{},
 		appconfig.Provide(
 			components.ProvideKVStore,
+			components.ProvideSSZBackend,
 			ProvideModule,
 		),
 	)

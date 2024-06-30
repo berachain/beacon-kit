@@ -21,8 +21,10 @@
 package components
 
 import (
+	"context"
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/depinject"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
@@ -30,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/sszdb"
+	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cast"
@@ -67,23 +70,52 @@ func ProvideStorageBackend(
 type KVStoreInput struct {
 	depinject.In
 	Environment appmodule.Environment
-	AppOpts     servertypes.AppOptions
+	SSZBackend  *sszdb.Backend
+}
+
+var _ storetypes.ABCIListener = &CommitListener{}
+
+type CommitListener struct {
+	*sszdb.Backend
+}
+
+func (c *CommitListener) ListenFinalizeBlock(
+	context.Context, cmtabci.FinalizeBlockRequest, cmtabci.FinalizeBlockResponse,
+) error {
+	return nil
+}
+
+func (c *CommitListener) ListenCommit(
+	ctx context.Context, _ cmtabci.CommitResponse, _ []*storetypes.StoreKVPair,
+) error {
+	return c.Commit(ctx)
+}
+
+func ProvideSSZBackend(
+	options servertypes.AppOptions,
+) (*sszdb.Backend, storetypes.StreamingManager, error) {
+	streamingManager := storetypes.StreamingManager{StopNodeOnErr: true}
+	cfg := sszdb.BackendConfig{
+		Path: cast.ToString(options.Get(flags.FlagHome)) + "/data/sszdb.db",
+	}
+	backend, err := sszdb.NewBackend(cfg)
+	if err != nil {
+		return nil, streamingManager, err
+	}
+	listener := &CommitListener{Backend: backend}
+	streamingManager.ABCIListeners = []storetypes.ABCIListener{listener}
+	return backend, streamingManager, nil
 }
 
 // ProvideKVStore is the depinject provider that returns a beacon KV store.
 func ProvideKVStore(
 	in KVStoreInput,
 ) (*KVStore, error) {
-	cfg := sszdb.BackendConfig{
-		Path: cast.ToString(in.AppOpts.Get(flags.FlagHome)) + "/data/sszdb.db",
-	}
-	backend, err := sszdb.NewBackend(cfg)
-	if err != nil {
-		return nil, err
-	}
 	stateObject := &deneb.BeaconState{}
 	stateObject.EmptyState()
-	szdb, err := sszdb.NewSchemaDb[*ExecutionPayloadHeader](backend, stateObject)
+	szdb, err := sszdb.NewSchemaDb[*ExecutionPayloadHeader](
+		in.SSZBackend, stateObject,
+	)
 	if err != nil {
 		return nil, err
 	}

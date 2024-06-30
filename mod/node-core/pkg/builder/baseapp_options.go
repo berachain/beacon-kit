@@ -21,6 +21,7 @@
 package builder
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/comet"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -64,5 +65,13 @@ func WithPreBlocker(
 ) func(bApp *baseapp.BaseApp) {
 	return func(bApp *baseapp.BaseApp) {
 		bApp.SetPreBlocker(preBlocker)
+	}
+}
+
+func WithStreamingManager(
+	streamingManager storetypes.StreamingManager,
+) func(bApp *baseapp.BaseApp) {
+	return func(bApp *baseapp.BaseApp) {
+		bApp.SetStreamingManager(streamingManager)
 	}
 }

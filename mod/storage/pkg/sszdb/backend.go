@@ -2,18 +2,23 @@ package sszdb
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/cockroachdb/pebble"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 const devDBPath = "./.tmp/sszdb.db"
 
+type leafCache map[uint64][]byte
+
 type Backend struct {
-	db *pebble.DB
+	db       *pebble.DB
+	branches map[uint8]leafCache
 }
 
 type BackendConfig struct {
@@ -29,7 +34,8 @@ func NewBackend(cfg BackendConfig) (*Backend, error) {
 		return nil, err
 	}
 	return &Backend{
-		db: db,
+		db:       db,
+		branches: make(map[uint8]leafCache),
 	}, nil
 }
 
@@ -106,19 +112,80 @@ func (d *Backend) save(node *ssz.Node, gindex uint64) error {
 	return nil
 }
 
-func (d *Backend) getNode(gindex uint64) (*ssz.Node, error) {
-	key := keyBytes(gindex)
-	bz, err := d.Get(key)
-	if err != nil {
-		return nil, err
+// TODO: big hacks. properly this db is a replacement for store/v1 or store/v2 to integrate
+// with SDK lifecycle hooks.  in lieu of that need to reach into sdk context to find the
+// exec mode (life cycle).
+func (d *Backend) branchID(ctx context.Context) uint8 {
+	const contextlessContext = 77
+	sdkCtx, ok := sdk.TryUnwrapSDKContext(ctx)
+	if !ok {
+		return contextlessContext
 	}
-	if bz == nil {
-		return nil, nil
-	}
-	return &ssz.Node{Value: bz}, nil
+	return uint8(sdkCtx.ExecMode())
 }
 
-func (d *Backend) mustGetNode(gindex uint64) (*ssz.Node, error) {
+func (d *Backend) getFromStage(ctx context.Context, gindex uint64) []byte {
+	branchID := d.branchID(ctx)
+	branch, ok := d.branches[branchID]
+	if !ok {
+		return nil
+	}
+	return branch[gindex]
+}
+
+func (d *Backend) stage(
+	ctx context.Context, node *ssz.Node, gindex uint64,
+) error {
+	branchID := d.branchID(ctx)
+	if _, ok := d.branches[branchID]; !ok {
+		d.branches[branchID] = make(leafCache)
+	}
+	return d.stageInBranch(d.branchID(ctx), node, gindex)
+}
+
+//nolint:mnd // there is nothing magic about the number 2
+func (d *Backend) stageInBranch(
+	branchID uint8, node *ssz.Node, gindex uint64,
+) error {
+	d.branches[branchID][gindex] = node.Value
+	switch {
+	case node.Left == nil && node.Right == nil:
+		return nil
+	case node.Left != nil && node.Right != nil:
+		if err := d.stageInBranch(branchID, node.Left, 2*gindex); err != nil {
+			return err
+		}
+		if err := d.stageInBranch(branchID, node.Right, 2*gindex+1); err != nil {
+			return err
+		}
+	default:
+		return errors.New("node has only one child")
+	}
+	return nil
+}
+
+func (d *Backend) Commit(ctx context.Context) error {
+	branchID := d.branchID(ctx)
+	branch, ok := d.branches[branchID]
+	if !ok {
+		return nil
+	}
+	for gindex, value := range branch {
+		key := keyBytes(gindex)
+		if err := d.Set(key, value); err != nil {
+			return err
+		}
+	}
+	d.branches = make(map[uint8]leafCache)
+	return nil
+}
+
+func (d *Backend) mustGetNode(ctx context.Context, gindex uint64) (*ssz.Node, error) {
+	nodeBz := d.getFromStage(ctx, gindex)
+	if nodeBz != nil {
+		return &ssz.Node{Value: nodeBz}, nil
+	}
+
 	key := keyBytes(gindex)
 	bz, err := d.Get(key)
 	if err != nil {
@@ -131,7 +198,7 @@ func (d *Backend) mustGetNode(gindex uint64) (*ssz.Node, error) {
 }
 
 func (d *Backend) getNodeBytes(
-	gindex uint64, length uint64, offset uint8,
+	ctx context.Context, gindex uint64, length uint64, offset uint8,
 ) ([]byte, error) {
 	const chunkSize = 32
 	var (
@@ -141,7 +208,7 @@ func (d *Backend) getNodeBytes(
 		o   = int(offset)
 	)
 	for ; l > 0; i++ {
-		node, err := d.mustGetNode(gindex + uint64(i))
+		node, err := d.mustGetNode(ctx, gindex+uint64(i))
 		if err != nil {
 			return nil, err
 		}
