@@ -23,6 +23,7 @@ package middleware
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
@@ -292,19 +293,19 @@ func (h *ABCIMiddleware[
 // PreBlock is called by the base app before the block is finalized. It
 // is responsible for aggregating oracle data from each validator and writing
 // the oracle data to the store.
-func (h *ABCIMiddleware[
-	_, _, _, _, _, _,
-]) PreBlock(
-	_ context.Context, req proto.Message,
-) error {
-	abciReq, ok := req.(*cmtabci.FinalizeBlockRequest)
-	if !ok {
-		return ErrInvalidFinalizeBlockRequestType
-	}	
-	h.req = abciReq
+// func (h *ABCIMiddleware[
+// 	_, _, _, _, _, _,
+// ]) PreBlock(
+// 	_ context.Context, req proto.Message,
+// ) error {
+// 	// abciReq, ok := req.(*cmtabci.FinalizeBlockRequest)
+// 	// if !ok {
+// 	// 	return ErrInvalidFinalizeBlockRequestType
+// 	// }
+// 	// h.req = abciReq
 
-	return nil
-}
+// 	return nil
+// }
 
 // EndBlock returns the validator set updates from the beacon state.
 func (h *ABCIMiddleware[
@@ -318,9 +319,10 @@ func (h *ABCIMiddleware[
 		BeaconBlockTxIndex,
 		BlobSidecarsTxIndex,
 		h.chainSpec.ActiveForkVersionForSlot(
-			math.Slot(h.req.Height),
+			math.Slot(h.req.GetHeight()),
 		))
 	if err != nil {
+		fmt.Println("ERROR EXTRACT")
 		// If we don't have a block, we can't do anything.
 		//nolint:nilerr // by design.
 		return nil, nil
@@ -328,13 +330,23 @@ func (h *ABCIMiddleware[
 
 	// Send the sidecars to the sidecars feed and wait for a response
 	if err = h.processSidecars(ctx, blobs); err != nil {
+		fmt.Println("ERROR PROCESS SIDECARS")
 		return nil, err
 	}
 
 	// Process the beacon block and return the validator updates.
-	return h.processBeaconBlock(
+	var updates transition.ValidatorUpdates
+	updates, err = h.processBeaconBlock(
 		ctx, blk,
 	)
+	if err != nil {
+		fmt.Println("ERROR PROCESS BEACON BLOCK")
+		return nil, err
+	}
+
+	fmt.Println("DONE END BLOCK")
+
+	return updates, nil
 }
 
 // processSidecars publishes the sidecars and waits for a response.

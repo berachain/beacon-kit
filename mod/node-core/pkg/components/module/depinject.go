@@ -28,7 +28,7 @@ import (
 	"cosmossdk.io/depinject/appconfig"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	modulev2 "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module/api/module/v2"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/comet"
+	cmtruntime "github.com/berachain/beacon-kit/mod/runtime/pkg/cometbft"
 )
 
 // TODO: we don't allow generics here? Why? Is it fixable?
@@ -51,7 +51,7 @@ type ModuleInput[T transaction.Tx] struct {
 	depinject.In
 	ABCIMiddleware *components.ABCIMiddleware
 	TxCodec        transaction.Codec[T]
-	MsgServer      *comet.MsgServer
+	MsgServer      *cmtruntime.MsgServer
 }
 
 // ModuleOutput is the output for the dep inject framework.

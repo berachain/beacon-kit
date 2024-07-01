@@ -21,6 +21,7 @@
 package encoding
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
@@ -43,6 +44,7 @@ func ExtractBlobsAndBlockFromRequest[
 	)
 
 	if req == nil {
+		fmt.Println("req is nil")
 		return blk, blobs, ErrNilABCIRequest
 	}
 
@@ -52,6 +54,7 @@ func ExtractBlobsAndBlockFromRequest[
 		forkVersion,
 	)
 	if err != nil {
+		fmt.Println("err unmarshal beacon block from abci request")
 		return blk, blobs, err
 	}
 
@@ -60,6 +63,7 @@ func ExtractBlobsAndBlockFromRequest[
 		blobSidecarsIndex,
 	)
 	if err != nil {
+		fmt.Println("err unmarshal blob sidecars from abci request")
 		return blk, blobs, err
 	}
 
@@ -77,6 +81,7 @@ func UnmarshalBeaconBlockFromABCIRequest[
 ) (BeaconBlockT, error) {
 	var blk BeaconBlockT
 	if req == nil {
+		fmt.Println("req is nil in unmarshal beacon block from abci request")
 		return blk, ErrNilABCIRequest
 	}
 
@@ -86,15 +91,18 @@ func UnmarshalBeaconBlockFromABCIRequest[
 	// Ensure there are transactions in the request and that the request is
 	// valid.
 	if txs == nil || lenTxs == 0 {
+		fmt.Println("txs is nil in unmarshal beacon block from abci request")
 		return blk, ErrNoBeaconBlockInRequest
 	}
 	if bzIndex >= lenTxs {
+		fmt.Println("bzIndex is out of bounds in unmarshal beacon block from abci request")
 		return blk, ErrBzIndexOutOfBounds
 	}
 
 	// Extract the beacon block from the ABCI request.
 	blkBz := txs[bzIndex]
 	if blkBz == nil {
+		fmt.Println("blkBz is nil in unmarshal beacon block from abci request")
 		return blk, ErrNilBeaconBlockInRequest
 	}
 

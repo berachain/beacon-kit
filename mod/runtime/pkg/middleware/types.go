@@ -30,6 +30,18 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
+// ABCIRequest represents the interface for an ABCI request.
+type ABCIRequest interface {
+	// GetHeight returns the height of the request.
+	GetHeight() int64
+	// GetTime returns the time of the request.
+	GetTime() time.Time
+	// GetTxs returns the transactions included in the request.
+	GetTxs() [][]byte
+	// SetTxs sets the transactions included in the request.
+	SetTxs([][]byte)
+}
+
 // BeaconBlock is an interface for accessing the beacon block.
 type BeaconBlock[T any] interface {
 	constraints.SSZMarshallable

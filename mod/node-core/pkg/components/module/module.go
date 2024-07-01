@@ -35,7 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/comet"
+	cmtruntime "github.com/berachain/beacon-kit/mod/runtime/pkg/cometbft"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
 	"google.golang.org/grpc"
@@ -63,49 +63,47 @@ var (
 // AppModule implements an application module for the beacon module.
 // It is a wrapper around the ABCIMiddleware.
 type AppModule[T transaction.Tx, ValidatorUpdateT any] struct {
-	ABCIMiddleware *components.ABCIMiddleware
-	TxCodec        transaction.Codec[T]
-	msgServer      *comet.MsgServer
+	abciMiddleware *components.ABCIMiddleware
+	txCodec        transaction.Codec[T]
+	msgServer      *cmtruntime.MsgServer
 }
 
 // NewAppModule creates a new AppModule object.
 func NewAppModule[T transaction.Tx, ValidatorUpdateT any](
 	abciMiddleware *components.ABCIMiddleware,
 	txCodec transaction.Codec[T],
-	msgServer *comet.MsgServer,
+	msgServer *cmtruntime.MsgServer,
 ) AppModule[T, ValidatorUpdateT] {
 	return AppModule[T, ValidatorUpdateT]{
-		ABCIMiddleware: abciMiddleware,
-		TxCodec:        txCodec,
+		abciMiddleware: abciMiddleware,
+		txCodec:        txCodec,
 		msgServer:      msgServer,
 	}
 }
 
 // Name is the name of this module.
-func (am AppModule[T, ValidatorUpdateT]) Name() string {
+func (AppModule[_, _]) Name() string {
 	return ModuleName
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
-func (AppModule[T, ValidatorUpdateT]) ConsensusVersion() uint64 {
+func (AppModule[_, _]) ConsensusVersion() uint64 {
 	return ConsensusVersion
 }
 
 // RegisterInterfaces registers the module's interface types.
-func (am AppModule[T, ValidatorUpdateT]) RegisterInterfaces(registry.InterfaceRegistrar) {}
+func (AppModule[_, _]) RegisterInterfaces(registry.InterfaceRegistrar) {}
 
 // IsOnePerModuleType implements the depinject.OnePerModuleType interface.
-func (am AppModule[T, ValidatorUpdateT]) IsOnePerModuleType() {}
+func (AppModule[_, _]) IsOnePerModuleType() {}
 
 // IsAppModule implements the appmodule.AppModule interface.
-func (am AppModule[T, ValidatorUpdateT]) IsAppModule() {}
+func (AppModule[_, _]) IsAppModule() {}
 
 // DefaultGenesis returns default genesis state as raw bytes
 // for the beacon module.
-func (AppModule[T, ValidatorUpdateT]) DefaultGenesis() json.RawMessage {
-	bz, err := json.Marshal(
-		genesis.DefaultGenesisDeneb(),
-	)
+func (AppModule[_, _]) DefaultGenesis() json.RawMessage {
+	bz, err := json.Marshal(genesis.DefaultGenesisDeneb())
 	if err != nil {
 		panic(err)
 	}
@@ -113,29 +111,27 @@ func (AppModule[T, ValidatorUpdateT]) DefaultGenesis() json.RawMessage {
 }
 
 // RegisterServices registers module services.
-func (am AppModule[T, ValidatorUpdateT]) RegisterServices(registrar grpc.ServiceRegistrar) error {
+func (am AppModule[_, _]) RegisterServices(
+	registrar grpc.ServiceRegistrar,
+) error {
 	// lolololololololololololololololololololololololololololololololololololol
 	sdkconsensustypes.RegisterMsgServer(registrar, am.msgServer)
 	return nil
 }
 
 // ValidateGenesis performs genesis state validation for the beacon module.
-func (AppModule[T, ValidatorUpdateT]) ValidateGenesis(
-	_ json.RawMessage,
-) error {
+func (AppModule[_, _]) ValidateGenesis(_ json.RawMessage) error {
 	return nil
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the
 // beacon module.
-func (am AppModule[T, ValidatorUpdateT]) ExportGenesis(
+func (AppModule[_, _]) ExportGenesis(
 	_ context.Context,
 ) (json.RawMessage, error) {
-	return json.Marshal(
-		&genesis.Genesis[
-			*types.Deposit, *types.ExecutionPayloadHeader,
-		]{},
-	)
+	return json.Marshal(&genesis.Genesis[
+		*types.Deposit, *types.ExecutionPayloadHeader,
+	]{})
 }
 
 // InitGenesis initializes the beacon module's state from a provided genesis
@@ -144,9 +140,18 @@ func (am AppModule[T, ValidatorUpdateT]) InitGenesis(
 	ctx context.Context,
 	bz json.RawMessage,
 ) ([]ValidatorUpdateT, error) {
+	tx, err := am.txCodec.DecodeJSON(bz)
+	if err != nil {
+		panic(err)
+		return nil, err
+	}
+	req := am.abciMiddleware.GetRequest()
+	req.SetTxs(append(req.GetTxs(), tx.Bytes()))
+	am.abciMiddleware.SetRequest(req)
+
 	return cometbft.NewConsensusEngine[T, ValidatorUpdateT](
-		am.TxCodec,
-		am.ABCIMiddleware,
+		am.txCodec,
+		am.abciMiddleware,
 	).InitGenesis(ctx, bz)
 }
 
@@ -155,14 +160,14 @@ func (am AppModule[T, ValidatorUpdateT]) EndBlock(
 	ctx context.Context,
 ) ([]ValidatorUpdateT, error) {
 	return cometbft.NewConsensusEngine[T, ValidatorUpdateT](
-		am.TxCodec,
-		am.ABCIMiddleware,
+		am.txCodec,
+		am.abciMiddleware,
 	).EndBlock(ctx)
 }
 
 // proto will be sad that tendermint afk if we don't have this here
 // AutoCLIOptions implements the autocli.HasAutoCLIConfig interface.
-func (am AppModule[T, ValidatorUpdateT]) AutoCLIOptions() *autocliv1.ModuleOptions {
+func (AppModule[_, _]) AutoCLIOptions() *autocliv1.ModuleOptions {
 	return &autocliv1.ModuleOptions{
 		Tx: &autocliv1.ServiceCommandDescriptor{
 			Service: consensusv1.Msg_ServiceDesc.ServiceName,

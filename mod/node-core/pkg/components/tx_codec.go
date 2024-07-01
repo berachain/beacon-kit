@@ -34,10 +34,13 @@ type TxCodec[T transaction.Tx] struct {
 
 // Decode implements transaction.Codec.
 func (t *TxCodec[T]) Decode(bz []byte) (T, error) {
-	var out T
+	out := *new(T)
 	tx, err := t.txConfig.TxDecoder()(bz)
 	if err != nil {
 		return out, err
+	}
+	if tx == nil {
+		return out, nil
 	}
 
 	var ok bool
@@ -51,10 +54,13 @@ func (t *TxCodec[T]) Decode(bz []byte) (T, error) {
 
 // DecodeJSON implements transaction.Codec.
 func (t *TxCodec[T]) DecodeJSON(bz []byte) (T, error) {
-	var out T
+	out := *new(T)
 	tx, err := t.txConfig.TxJSONDecoder()(bz)
 	if err != nil {
 		return out, err
+	}
+	if tx == nil {
+		return out, nil
 	}
 
 	var ok bool

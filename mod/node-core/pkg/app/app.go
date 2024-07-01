@@ -27,6 +27,7 @@ import (
 	serverv2 "cosmossdk.io/server/v2"
 	"cosmossdk.io/server/v2/appmanager"
 	bkcomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
+	bkappmanager "github.com/berachain/beacon-kit/mod/node-core/pkg/components/appmanager"
 	"github.com/cosmos/cosmos-sdk/client"
 )
 
@@ -40,7 +41,7 @@ var (
 // functions, as object capabilities aren't needed for testing.
 type BeaconApp[T transaction.Tx] struct {
 	*runtime.App[T]
-	Middleware *bkcomponents.ABCIMiddleware
+	middleware *bkcomponents.ABCIMiddleware
 }
 
 // NewBeaconKitApp returns a reference to an initialized BeaconApp.
@@ -49,7 +50,7 @@ func NewBeaconKitApp[T transaction.Tx](
 	middleware *bkcomponents.ABCIMiddleware,
 ) *BeaconApp[T] {
 	app := &BeaconApp[T]{
-		Middleware: middleware,
+		middleware: middleware,
 	}
 
 	// Build the runtime.App using the app builder.
@@ -58,7 +59,11 @@ func NewBeaconKitApp[T transaction.Tx](
 	if err != nil {
 		panic(err)
 	}
-	// baseAppOptions, baseapp.SetMempool(mempool.NoOpMempool{}),
+	appManager := bkappmanager.NewAppManager(
+		app.App.GetAppManager(),
+		middleware,
+	)
+	app.App.AppManager = appManager
 
 	// app.SetTxDecoder(bkcomponents.NoOpTxConfig{}.TxDecoder())
 
@@ -90,6 +95,6 @@ func (app *BeaconApp[T]) GetStore() any {
 	return app.App.GetStore()
 }
 
-func (app *BeaconApp[T]) GetAppManager() *appmanager.AppManager[T] {
+func (app *BeaconApp[T]) GetAppManager() appmanager.AppManager[T] {
 	return app.App.GetAppManager()
 }

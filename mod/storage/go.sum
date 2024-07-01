@@ -55,8 +55,8 @@ github.com/berachain/beacon-kit/mod/errors v0.0.0-20240617161612-ab1257fcf5a1 h1
 github.com/berachain/beacon-kit/mod/errors v0.0.0-20240617161612-ab1257fcf5a1/go.mod h1:iXa+Q+i0q+GCpLzkusulO57K5vlkDgM77jtfMr3QdFA=
 github.com/berachain/beacon-kit/mod/log v0.0.0-20240610210054-bfdc14c4013c h1:7f9dLYGOCMoV7LxT6YRmVSWLTPbGTTcxDPLPLvHGrOk=
 github.com/berachain/beacon-kit/mod/log v0.0.0-20240610210054-bfdc14c4013c/go.mod h1:nFybcw/ZhJ6Gu66dna301W2I7u61skm2HfHxQmdR68Q=
-github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240628155326-d426a5db6775 h1:KulT0TwopY5EiEr+fCncmmTbwTAGwOCCAdcHY+NTVJk=
-github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240628155326-d426a5db6775/go.mod h1:cvdy9dmULJ6vAJRv/xFXlEXoHonI3Wol+WoDg3P9h8M=
+github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240628175732-ab2d37478785 h1:oI5I1FJLQthWojKUjtyronbubgHMfwpJTb10U8ToPjA=
+github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240628175732-ab2d37478785/go.mod h1:cvdy9dmULJ6vAJRv/xFXlEXoHonI3Wol+WoDg3P9h8M=
 github.com/bgentry/speakeasy v0.2.0 h1:tgObeVOf8WAvtuAX6DhJ4xks4CFNwPDZiqzGqIHE51E=
 github.com/bgentry/speakeasy v0.2.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
 github.com/btcsuite/btcd/btcec/v2 v2.3.3 h1:6+iXlDKE8RMtKsvK0gshlXIuPbyWM/h84Ensb7o3sC0=
