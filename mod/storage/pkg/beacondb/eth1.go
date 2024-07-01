@@ -20,6 +20,11 @@
 
 package beacondb
 
+import (
+	"bytes"
+	"fmt"
+)
+
 // GetLatestExecutionPayloadHeader retrieves the latest execution payload
 // header from the BeaconStore.
 func (kv *KVStore[
@@ -28,13 +33,32 @@ func (kv *KVStore[
 ]) GetLatestExecutionPayloadHeader() (
 	ExecutionPayloadHeaderT, error,
 ) {
+	var t ExecutionPayloadHeaderT
 	forkVersion, err := kv.latestExecutionPayloadVersion.Get(kv.ctx)
 	if err != nil {
-		var t ExecutionPayloadHeaderT
 		return t, err
 	}
 	kv.latestExecutionPayloadCodec.SetActiveForkVersion(forkVersion)
-	return kv.latestExecutionPayloadHeader.Get(kv.ctx)
+	header, err := kv.latestExecutionPayloadHeader.Get(kv.ctx)
+	if err != nil {
+		return t, err
+	}
+	headerSSZDB, err := kv.sdb.GetLatestExecutionPayloadHeader(kv.ctx)
+	if err != nil {
+		return t, err
+	}
+	sszRoot, err := headerSSZDB.HashTreeRoot()
+	if err != nil {
+		return t, err
+	}
+	root, err := header.HashTreeRoot()
+	if err != nil {
+		return t, err
+	}
+	if !bytes.Equal(sszRoot[:], root[:]) {
+		return header, fmt.Errorf("payload %x != %x", root, sszRoot)
+	}
+	return header, nil
 }
 
 // SetLatestExecutionPayloadHeader sets the latest execution payload header in
@@ -45,12 +69,15 @@ func (kv *KVStore[
 ]) SetLatestExecutionPayloadHeader(
 	payloadHeader ExecutionPayloadHeaderT,
 ) error {
-	if err := kv.latestExecutionPayloadVersion.Set(
-		kv.ctx, payloadHeader.Version(),
-	); err != nil {
+	version := payloadHeader.Version()
+	if err := kv.latestExecutionPayloadVersion.Set(kv.ctx, version); err != nil {
 		return err
 	}
 	kv.latestExecutionPayloadCodec.SetActiveForkVersion(payloadHeader.Version())
+	if err := kv.sdb.SetLatestExecutionPayloadHeader(
+		kv.ctx, payloadHeader); err != nil {
+		return err
+	}
 	return kv.latestExecutionPayloadHeader.Set(kv.ctx, payloadHeader)
 }
 

@@ -22,6 +22,7 @@ package builder
 
 import (
 	"context"
+	storetypes "cosmossdk.io/store/types"
 	"io"
 
 	"cosmossdk.io/core/appmodule/v2"
@@ -79,10 +80,11 @@ func (nb *NodeBuilder[NodeT]) Build(
 
 	// variables to hold the components needed to set up BeaconApp
 	var (
-		chainSpec       common.ChainSpec
-		appBuilder      *runtime.AppBuilder
-		abciMiddleware  *components.ABCIMiddleware
-		serviceRegistry *service.Registry
+		chainSpec        common.ChainSpec
+		appBuilder       *runtime.AppBuilder
+		abciMiddleware   *components.ABCIMiddleware
+		serviceRegistry  *service.Registry
+		streamingManager storetypes.StreamingManager
 	)
 
 	// build all node components using depinject
@@ -104,6 +106,7 @@ func (nb *NodeBuilder[NodeT]) Build(
 		&chainSpec,
 		&abciMiddleware,
 		&serviceRegistry,
+		&streamingManager,
 	); err != nil {
 		panic(err)
 	}
@@ -123,6 +126,7 @@ func (nb *NodeBuilder[NodeT]) Build(
 				WithPrepareProposal(consensusEngine.PrepareProposal),
 				WithProcessProposal(consensusEngine.ProcessProposal),
 				WithPreBlocker(consensusEngine.PreBlock),
+				WithStreamingManager(streamingManager),
 			)...,
 		),
 	)
