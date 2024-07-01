@@ -31,14 +31,14 @@ import (
 /* -------------------------------------------------------------------------- */
 
 // Vector conforms to the SSZEenumerable interface.
-var _ types.SSZEnumerable[types.BaseSSZType] = (*Container)(nil)
+var _ types.SSZEnumerable[types.MinimalSSZType] = (*Container)(nil)
 
 type Container struct {
-	elements []types.BaseSSZType
+	elements []types.MinimalSSZType
 }
 
 // ContainerFromElements creates a new Container from elements.
-func ContainerFromElements(elements ...types.BaseSSZType) *Container {
+func ContainerFromElements(elements ...types.MinimalSSZType) *Container {
 	return &Container{
 		elements: elements,
 	}
@@ -83,7 +83,7 @@ func (c *Container) ChunkCount() uint64 {
 }
 
 // Elements returns the elements of the container.
-func (c *Container) Elements() []types.BaseSSZType {
+func (c *Container) Elements() []types.MinimalSSZType {
 	return c.elements
 }
 
@@ -93,14 +93,14 @@ func (c *Container) Elements() []types.BaseSSZType {
 
 // HashTreeRoot returns the hash tree root of the container.
 func (c *Container) HashTreeRootWith(
-	merkleizer VectorMerkleizer[[32]byte, types.BaseSSZType],
+	merkleizer VectorMerkleizer[[32]byte, types.MinimalSSZType],
 ) ([32]byte, error) {
 	return merkleizer.MerkleizeVectorCompositeOrContainer(c.elements)
 }
 
 // HashTreeRoot returns the hash tree root of the container.
 func (c *Container) HashTreeRoot() ([32]byte, error) {
-	return c.HashTreeRootWith(merkleizer.New[[32]byte, types.BaseSSZType]())
+	return c.HashTreeRootWith(merkleizer.New[[32]byte, types.MinimalSSZType]())
 }
 
 /* -------------------------------------------------------------------------- */

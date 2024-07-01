@@ -37,14 +37,16 @@ import (
 var _ types.SSZEnumerable[U64] = (*List[U64])(nil)
 
 // List is a list of basic types.
-type List[T types.SSZType[T]] struct {
+type List[T types.MinimalSSZType] struct {
+	// elements is the list of elements.
 	elements []T
-	limit    uint64
+	// limit is the maximum number of elements in the list.
+	limit uint64
 }
 
 // ListFromElements creates a new ListComposite from elements.
 // TODO: Deprecate once off of Fastssz
-func ListFromElements[T types.SSZType[T]](
+func ListFromElements[T types.MinimalSSZType](
 	limit uint64,
 	elements ...T,
 ) *List[T] {
@@ -54,7 +56,7 @@ func ListFromElements[T types.SSZType[T]](
 	}
 }
 
-// ByteList from Bytes creates a new ListComposite from bytes.
+// ByteList from Bytes creates a new List from bytes.
 func ByteListFromBytes(bytes []byte, limit uint64) *List[Byte] {
 	elements := *(*[]Byte)(unsafe.Pointer(&bytes))
 	return &List[Byte]{

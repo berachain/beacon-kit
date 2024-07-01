@@ -37,11 +37,11 @@ import (
 var _ types.SSZEnumerable[U64] = (Vector[U64])(nil)
 
 // Vector represents a vector of elements.
-type Vector[T types.SSZType[T]] []T
+type Vector[T types.MinimalSSZType] []T
 
 // VectorBasicFromElements creates a new ListComposite from elements.
 // TODO: Deprecate once off of Fastssz
-func VectorFromElements[T types.SSZType[T]](elements ...T) Vector[T] {
+func VectorFromElements[T types.MinimalSSZType](elements ...T) Vector[T] {
 	return elements
 }
 
