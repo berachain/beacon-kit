@@ -112,9 +112,10 @@ func (d *Backend) save(node *ssz.Node, gindex uint64) error {
 	return nil
 }
 
-// TODO: big hacks. properly this db is a replacement for store/v1 or store/v2 to integrate
-// with SDK lifecycle hooks.  in lieu of that need to reach into sdk context to find the
-// exec mode (life cycle).
+// TODO: big hacks. properly this db is a replacement for IAVL in store/v1 or a
+// store/v2 state commitment store in order to integrate with SDK lifecycle
+// hooks.  in lieu of this, need to reach into sdk context to find the exec mode
+// (life cycle).
 func (d *Backend) branchID(ctx context.Context) uint8 {
 	const contextlessContext = 77
 	sdkCtx, ok := sdk.TryUnwrapSDKContext(ctx)
@@ -225,7 +226,7 @@ func (d *Backend) getNodeBytes(
 		if end > chunkSize {
 			end = chunkSize
 		}
-		n, err := buf.Write(node.Value[offset:end])
+		n, err := buf.Write(node.Value[o:end])
 		if err != nil {
 			return nil, err
 		}
