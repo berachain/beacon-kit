@@ -6,12 +6,27 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
 )
 
+/* -------------------------------------------------------------------------- */
+/*                                Type Definitions                            */
+/* -------------------------------------------------------------------------- */
+
 // Vector conforms to the SSZEenumerable interface.
 var _ types.SSZEnumerable[types.BaseSSZType] = (*Container)(nil)
 
 type Container struct {
 	elements []types.BaseSSZType
 }
+
+// ContainerFromElements creates a new Container from elements.
+func ContainerFromElements(elements ...types.BaseSSZType) *Container {
+	return &Container{
+		elements: elements,
+	}
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                 BaseSSZType                                */
+/* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the container in bytes.
 func (c *Container) SizeSSZ() int {
@@ -20,13 +35,6 @@ func (c *Container) SizeSSZ() int {
 		size += element.SizeSSZ()
 	}
 	return size
-}
-
-// ContainerFromElements creates a new Container from elements.
-func ContainerFromElements(elements ...types.BaseSSZType) *Container {
-	return &Container{
-		elements: elements,
-	}
 }
 
 // IsFixed returns true if the container is fixed size.
