@@ -21,8 +21,11 @@
 package engineprimitives
 
 import (
+	"unsafe"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 )
 
@@ -39,6 +42,16 @@ func (txs Transactions) HashTreeRoot() (common.Root, error) {
 	return txs.HashTreeRootWith(
 		merkleizer.New[[32]byte, common.Root](),
 	)
+}
+
+type BartioTransactions = ssz.List[ssz.Vector[ssz.Byte]]
+
+// BartioTransactionsFromBytes creates a Transactions object from a byte slice.
+func BartioTransactionsFromBytes(data [][]byte) *BartioTransactions {
+	return ssz.ListFromElements(
+		// TODO: Move this value to chain spec.
+		constants.MaxTxsPerPayload,
+		*(*[]ssz.Vector[ssz.Byte])(unsafe.Pointer(&data))...)
 }
 
 // TxsMerkleizer is a ssz merkleizer used for transactions.

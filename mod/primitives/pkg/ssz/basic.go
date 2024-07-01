@@ -306,6 +306,10 @@ func (U64) ChunkCount() uint64 {
 /*                                    U256                                    */
 /* -------------------------------------------------------------------------- */
 
+func NewU256FromUint64(v uint64) *U256 {
+	return (*U256)(uint256.NewInt(0).SetUint64(v))
+}
+
 // SizeSSZ returns the size of the U256 in bytes.
 func (u *U256) SizeSSZ() int {
 	return 32
@@ -325,8 +329,7 @@ func (U256) NewFromSSZ(buf []byte) (*U256, error) {
 		)
 	}
 	u := new(uint256.Int)
-	u.UnmarshalSSZ(buf)
-	return (*U256)(u), nil
+	return (*U256)(u), u.UnmarshalSSZ(buf)
 }
 
 // HashTreeRoot returns the hash tree root of the U256.
