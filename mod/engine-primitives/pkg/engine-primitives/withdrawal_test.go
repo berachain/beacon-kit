@@ -22,10 +22,12 @@ package engineprimitives_test
 
 import (
 	"testing"
+	"unsafe"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -73,4 +75,33 @@ func TestWithdrawal_Equals(t *testing.T) {
 
 	// Test that Equals returns false for two different withdrawals
 	require.False(t, withdrawal1.Equals(withdrawal3))
+}
+
+func TestWithdrawal_HashTreeRoot(t *testing.T) {
+	withdrawal := &engineprimitives.Withdrawal{
+		Index:     math.U64(1),
+		Validator: math.ValidatorIndex(2),
+		Address:   gethprimitives.ExecutionAddress{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20},
+		Amount:    math.Gwei(1000),
+	}
+
+	// Get the hash tree root using the built-in method
+	builtInRoot, err := withdrawal.HashTreeRoot()
+	require.NoError(t, err)
+
+	// Create a Container with the same elements
+	addrBz := withdrawal.Address.Bytes()
+	container := ssz.ContainerFromElements(
+		ssz.U64(withdrawal.Index.Unwrap()),
+		ssz.U64(withdrawal.Validator),
+		ssz.VectorFromElements(*(*[]ssz.Byte)(unsafe.Pointer(&addrBz))...),
+		ssz.U64(withdrawal.Amount),
+	)
+
+	// Get the hash tree root using the Container
+	containerRoot, err := container.HashTreeRoot()
+	require.NoError(t, err)
+
+	// Compare the results
+	require.Equal(t, builtInRoot, containerRoot, "Hash tree roots should be equal")
 }
