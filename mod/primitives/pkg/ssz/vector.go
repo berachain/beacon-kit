@@ -121,7 +121,7 @@ func (v Vector[T]) HashTreeRoot() ([32]byte, error) {
 /* -------------------------------------------------------------------------- */
 
 // MarshalSSZToBytes marshals the VectorBasic into SSZ format.
-func (v Vector[T]) MarshalSSZTo(out []byte) ([]byte, error) {
+func (v Vector[T]) MarshalSSZTo(_ []byte) ([]byte, error) {
 	return nil, errors.New("not implemented yet")
 }
 
@@ -131,6 +131,6 @@ func (v Vector[T]) MarshalSSZ() ([]byte, error) {
 }
 
 // NewFromSSZ creates a new VectorBasic from SSZ format.
-func (v Vector[T]) NewFromSSZ(buf []byte) (Vector[T], error) {
+func (v Vector[T]) NewFromSSZ(_ []byte) (Vector[T], error) {
 	return nil, errors.New("not implemented yet")
 }
