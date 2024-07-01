@@ -21,8 +21,7 @@
 package ssz
 
 import (
-	"fmt"
-
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/serializer"
@@ -114,7 +113,7 @@ func (l List[B]) HashTreeRootWith(
 	case types.Composite:
 		return merkleizer.MerkleizeListComposite(l.elements, l.ChunkCount())
 	default:
-		return [32]byte{}, fmt.Errorf("unknown element type: %v", b.Type())
+		return [32]byte{}, errors.Wrapf(ErrUnknownType, "%v", b.Type())
 	}
 }
 
