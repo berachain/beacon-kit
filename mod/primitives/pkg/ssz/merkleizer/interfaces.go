@@ -27,7 +27,7 @@ type Merkleizer[
 	MerkleizeBasic(value T) (RootT, error)
 	MerkleizeVectorBasic(value []T) (RootT, error)
 	MerkleizeListBasic(value []T, limit ...uint64) (RootT, error)
-	MerkleizeVectorComposite(value []T) (RootT, error)
+	MerkleizeVectorCompositeOrContainer(value []T) (RootT, error)
 	MerkleizeListComposite(value []T, limit ...uint64) (RootT, error)
 	MerkleizeByteSlice(value []byte) (RootT, error)
 	Merkleize(chunks []RootT, limit ...uint64) (RootT, error)
