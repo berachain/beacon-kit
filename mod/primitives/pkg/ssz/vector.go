@@ -99,9 +99,9 @@ func (v Vector[B]) HashTreeRootWith(
 ) ([32]byte, error) {
 	var b B
 	if b.Type() == types.Basic {
-		return merkleizer.MerkleizeVectorBasic(l)
+		return merkleizer.MerkleizeVectorBasic(v)
 	}
-	return merkleizer.MerkleizeVectorComposite(l)
+	return merkleizer.MerkleizeVectorComposite(v)
 }
 
 // HashTreeRoot returns the Merkle root of the VectorBasic.
