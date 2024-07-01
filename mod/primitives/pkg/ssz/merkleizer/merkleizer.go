@@ -50,6 +50,10 @@ func New[
 	}
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                   Vector                                   */
+/* -------------------------------------------------------------------------- */
+
 // MerkleizeBasic hashes the packed value and returns the HTR.
 func (m *Merkleizer[RootT, T]) MerkleizeBasic(
 	value T,
@@ -65,10 +69,6 @@ func (m *Merkleizer[RootT, T]) MerkleizeByteSlice(
 	chunks, numChunks := chunkifyBytes[RootT](input)
 	return m.Merkleize(chunks, numChunks)
 }
-
-/* -------------------------------------------------------------------------- */
-/*                                   Vector                                   */
-/* -------------------------------------------------------------------------- */
 
 // MerkleizeVectorBasic implements the SSZ merkleization algorithm
 // for a vector of basic types.
