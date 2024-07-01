@@ -21,8 +21,6 @@
 package merkleizer
 
 import (
-	"reflect"
-
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -57,47 +55,6 @@ func (m *merkleizer[RootT, T]) MerkleizeBasic(
 	value T,
 ) (RootT, error) {
 	return m.MerkleizeVectorBasic([]T{value})
-}
-
-// TODO: MerkleizeBitlist
-
-// MerkleizeContainer implements the SSZ merkleization algorithm for a
-// container.
-//
-// TODO: Make a separate merkleizer for container and list of containers.
-func (m *merkleizer[RootT, T]) MerkleizeContainer(
-	value SSZObject[RootT],
-) (RootT, error) {
-	rValue := reflect.ValueOf(value)
-	if rValue.Kind() == reflect.Ptr {
-		rValue = rValue.Elem()
-	}
-	numFields := rValue.NumField()
-	htrs := make([]RootT, numFields)
-	var err error
-	for i := range numFields {
-		fieldValue := rValue.Field(i)
-		if !fieldValue.CanInterface() {
-			return RootT{}, errors.Newf(
-				"cannot interface with field %v",
-				fieldValue,
-			)
-		}
-
-		// TODO: handle different types.
-		field, ok := fieldValue.Interface().(SSZObject[RootT])
-		if !ok {
-			return RootT{}, errors.Newf(
-				"field %d does not implement Hashable",
-				i,
-			)
-		}
-		htrs[i], err = field.HashTreeRoot( /*args...*/ )
-		if err != nil {
-			return RootT{}, err
-		}
-	}
-	return m.Merkleize(htrs)
 }
 
 // MerkleizeByteSlice hashes a byteslice by chunkifying it and returning the

@@ -31,9 +31,4 @@ type Merkleizer[
 	MerkleizeListComposite(value []T, limit ...uint64) (RootT, error)
 	MerkleizeByteSlice(value []byte) (RootT, error)
 	Merkleize(chunks []RootT, limit ...uint64) (RootT, error)
-
-	// TODO: Move to a separate Merkleizer type for container(s).
-	MerkleizeContainer(
-		value SSZObject[RootT],
-	) (RootT, error)
 }
