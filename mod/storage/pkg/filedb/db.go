@@ -85,7 +85,15 @@ func (db *DB) Set(key []byte, value []byte) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to create file")
 	}
-	defer file.Close()
+
+	defer func() {
+		if cerr := file.Close(); cerr != nil {
+			db.logger.Error("Failed to close file", "error", cerr)
+			if err == nil {
+				err = errors.Wrap(cerr, "failed to close file")
+			}
+		}
+	}()
 
 	n, err := file.Write(value)
 	if err != nil {

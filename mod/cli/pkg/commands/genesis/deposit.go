@@ -174,19 +174,29 @@ func writeDepositToFile(
 		0o644, //nolint:mnd // file permissions.
 	)
 	if err != nil {
-		return err
+		return errors.Wrapf(ErrOpenFile, "%s: %w", outputDocument, err)
 	}
 
-	//#nosec:G307 // Ignore errors on this line.
-	defer outputFile.Close()
+	defer func() {
+		if cerr := outputFile.Close(); cerr != nil {
+			// If there's no error yet, set it to the close error
+			if err == nil {
+				err = errors.Wrapf(ErrCloseFile, "%w", cerr)
+			}
+		}
+	}()
 
 	bz, err := json.Marshal(depositMessage)
 	if err != nil {
-		return err
+		return errors.Wrapf(ErrMarshalDepositMessage, "%v, %w", depositMessage, err)
 	}
-	_, err = fmt.Fprintf(outputFile, "%s\n", bz)
 
-	return err
+	_, err = fmt.Fprintf(outputFile, "%s\n", bz)
+	if err != nil {
+		return errors.Wrapf(ErrWriteFile, "%w", err)
+	}
+
+	return nil
 }
 
 // getBLSSigner returns a BLS signer based on the override node key flag.
