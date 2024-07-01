@@ -21,6 +21,7 @@ def get_service_config_template(
         name,
         image,
         ports = None,
+        public_ports = None,
         files = None,
         entrypoint = None,
         cmd = None,
@@ -39,6 +40,7 @@ def get_service_config_template(
         "name": name,
         "image": image,
         "ports": ports,
+        "public_ports": public_ports,
         "files": files,
         "entrypoint": entrypoint,
         "cmd": cmd,
@@ -131,12 +133,23 @@ def validate_service_config_types(service_config):
     # TODO(validation): Implement validation for tolerations
     # TODO(validation): Implement validation for node_selectors
 
-def create_from_config(config):
+def create_public_port_specs_from_config(config, is_full_node):
+    ports = {}
+    if is_full_node:
+        ports = {}
+        for port_key, port_spec in config["public_ports"].items():
+            ports[port_key] = port_spec_lib.create_port_spec(port_spec)
+
+    return ports
+
+def create_from_config(config, is_full_node = False):
     validate_service_config_types(config)
 
     return ServiceConfig(
         image = config["image"],
         ports = port_spec_lib.create_port_specs_from_config(config),
+        # public port exposed for erigon node
+        public_ports = create_public_port_specs_from_config(config, is_full_node) if config["public_ports"] else {},
         files = config["files"] if config["files"] else {},
         entrypoint = config["entrypoint"] if config["entrypoint"] else [],
         cmd = [" ".join(config["cmd"])] if config["cmd"] else [],

@@ -1,6 +1,8 @@
 constants = import_module("../../constants.star")
 service_config_lib = import_module("../../lib/service_config.star")
 builtins = import_module("../../lib/builtins.star")
+port_spec_lib = import_module("../../lib/port_spec.star")
+shared_utils = import_module("github.com/ethpandaops/ethereum-package/src/shared_utils/shared_utils.star")
 
 RPC_PORT_NUM = 8545
 WS_PORT_NUM = 8546
@@ -24,20 +26,32 @@ def get_default_service_config(node_struct, node_module):
     node_labels = dict(settings.labels)
     node_labels["node_type"] = "execution"
 
-    sc = service_config_lib.get_service_config_template(
-        name = node_struct.el_service_name,
-        image = node_struct.el_image,
-        ports = node_module.USED_PORTS_TEMPLATE,
-        entrypoint = node_module.ENTRYPOINT,
-        cmd = node_module.CMD,
-        files = node_module.FILES,
-        min_cpu = settings.specs.min_cpu,
-        max_cpu = settings.specs.max_cpu,
-        min_memory = settings.specs.min_memory,
-        max_memory = settings.specs.max_memory,
-        labels = node_labels,
-        node_selectors = settings.node_selectors,
-    )
+    # Define common parameters
+    common_params = {
+        "name": node_struct.el_service_name,
+        "image": node_struct.el_image,
+        "ports": node_module.USED_PORTS_TEMPLATE,
+        "entrypoint": node_module.ENTRYPOINT,
+        "cmd": node_module.CMD,
+        "files": node_module.FILES,
+        "min_cpu": settings.specs.min_cpu,
+        "max_cpu": settings.specs.max_cpu,
+        "min_memory": settings.specs.min_memory,
+        "max_memory": settings.specs.max_memory,
+        "labels": node_labels,
+        "node_selectors": settings.node_selectors,
+    }
+
+    # Check if the node_struct.el_image has erigon keyword in it
+    # For otterscan, we need erigon RPC URL to connect to. By default, kurtosis assigns random public port to the service.
+    # We need to assign a specific port to the service to connect to the RPC URL.
+    # Note : public port is not supported on kubenernetes
+    if "erigon" in node_struct.el_image:
+        # Update common parameters with erigon-specific ones
+        common_params["public_ports"] = {"eth-json-rpc": port_spec_lib.get_port_spec_template(RPC_PORT_NUM, shared_utils.TCP_PROTOCOL)}
+
+    # Get the service config template
+    sc = service_config_lib.get_service_config_template(**common_params)
 
     return sc
 
@@ -107,10 +121,11 @@ def add_bootnodes(node_module, config, bootnodes):
 
     return config
 
-def deploy_nodes(plan, configs):
+def deploy_nodes(plan, configs, is_full_node = False):
     service_configs = {}
     for config in configs:
         service_configs[config["name"]] = service_config_lib.create_from_config(config)
+        service_configs[config["name"]] = service_config_lib.create_from_config(config, is_full_node)
 
     return plan.add_services(
         configs = service_configs,
