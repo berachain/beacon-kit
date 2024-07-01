@@ -49,3 +49,13 @@ type CompositeMerkleizer[
 	MerkleizeVectorComposite(value []T) (RootT, error)
 	MerkleizeListComposite(value []T, limit ...uint64) (RootT, error)
 }
+
+type VectorMerkelizer[RootT, T any] interface {
+	MerkleizeVectorBasic(value []T) (RootT, error)
+	MerkleizeVectorComposite(value []T) (RootT, error)
+}
+
+type ListMerkliezer[RootT, T any] interface {
+	MerkleizeListBasic(value []T, limit ...uint64) (RootT, error)
+	MerkleizeListComposite(value []T, limit ...uint64) (RootT, error)
+}

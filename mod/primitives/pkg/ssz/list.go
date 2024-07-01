@@ -28,26 +28,14 @@ import (
 )
 
 /* -------------------------------------------------------------------------- */
-/*                                Type Definitions                            */
-/* -------------------------------------------------------------------------- */
-
-type (
-	// ListBasic is a list of basic types.
-	ListBasic[B Basic[B]] struct {
-		elements []B
-		limit    uint64
-	}
-
-	// ListComposite is a list of Composite types.
-	ListComposite[C Composite[C]] struct {
-		elements []C
-		limit    uint64
-	}
-)
-
-/* -------------------------------------------------------------------------- */
 /*                                    Basic                                   */
 /* -------------------------------------------------------------------------- */
+
+// ListBasic is a list of basic types.
+type ListBasic[B Basic[B]] struct {
+	elements []B
+	limit    uint64
+}
 
 // ListBasicFromElements creates a new ListComposite from elements.
 // TODO: Deprecate once off of Fastssz
@@ -134,6 +122,12 @@ func (l ListBasic[B]) NewFromSSZ(buf []byte) (*ListBasic[B], error) {
 /* -------------------------------------------------------------------------- */
 /*                                  Composite                                 */
 /* -------------------------------------------------------------------------- */
+
+// ListComposite is a list of Composite types.
+type ListComposite[C Composite[C]] struct {
+	elements []C
+	limit    uint64
+}
 
 // ListCompositeFromElements creates a new ListComposite from elements.
 // TODO: Deprecate once off of Fastssz

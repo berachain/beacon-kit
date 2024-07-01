@@ -53,10 +53,11 @@ type SSZType[T any] interface {
 // SSZEnumerable is the interface for all SSZ enumerable types must implement.
 type SSZEnumerable[
 	SelfT BaseSSZType,
+	ElementT any,
 ] interface {
 	SSZType[SelfT]
 	// N returns the N value as defined in the SSZ specification.
 	N() uint64
 	// Elements returns the elements of the enumerable type.
-	Elements() []BaseSSZType
+	Elements() []ElementT
 }
