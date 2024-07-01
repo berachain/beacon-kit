@@ -63,7 +63,6 @@ func ProperTransactionsFromBytes(data [][]byte) *ProperTransactions {
 	for i, tx := range data {
 		//nolint:mnd // unhood later.
 		txs[i] = ssz.ByteListFromBytes(tx, 1073741824)
-
 	}
 
 	y := ssz.ListFromElements(constants.MaxTxsPerPayload, txs...)
