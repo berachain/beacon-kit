@@ -26,6 +26,7 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
+	"github.com/holiman/uint256"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -48,6 +49,7 @@ type (
 	U16  uint16
 	U32  uint32
 	U64  uint64
+	U256 uint256.Int
 	Byte byte
 )
 
@@ -296,6 +298,53 @@ func (U64) Type() types.Type {
 
 // ChunkCount returns the number of chunks required to store the uint64.
 func (U64) ChunkCount() uint64 {
+	return 1
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                    U256                                    */
+/* -------------------------------------------------------------------------- */
+
+// SizeSSZ returns the size of the U256 in bytes.
+func (u *U256) SizeSSZ() int {
+	return 32
+}
+
+// MarshalSSZ marshals the U256 into SSZ format.
+func (u *U256) MarshalSSZ() ([]byte, error) {
+	return (*uint256.Int)(u).MarshalSSZ()
+}
+
+// NewFromSSZ creates a new U256 from SSZ format.
+func (U256) NewFromSSZ(buf []byte) (*U256, error) {
+	if len(buf) != 32 {
+		return nil, fmt.Errorf(
+			"invalid buffer length: expected 32, got %d",
+			len(buf),
+		)
+	}
+	u := new(uint256.Int)
+	u.UnmarshalSSZ(buf)
+	return (*U256)(u), nil
+}
+
+// HashTreeRoot returns the hash tree root of the U256.
+func (u *U256) HashTreeRoot() ([32]byte, error) {
+	return (*uint256.Int)(u).HashTreeRoot()
+}
+
+// IsFixed returns true if the U256 is fixed size.
+func (*U256) IsFixed() bool {
+	return true
+}
+
+// Type returns the type of the U256.
+func (*U256) Type() types.Type {
+	return types.Basic
+}
+
+// ChunkCount returns the number of chunks required to store the U256.
+func (*U256) ChunkCount() uint64 {
 	return 1
 }
 
