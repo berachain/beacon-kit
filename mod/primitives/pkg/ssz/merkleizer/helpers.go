@@ -21,10 +21,7 @@
 package merkleizer
 
 import (
-	"encoding/binary"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
-	"github.com/prysmaticlabs/gohashtree"
 )
 
 // ChunkCountBitListVec returns the number of chunks required to store a bitlist
@@ -32,17 +29,6 @@ import (
 func ChunkCountBitListVec[T any](t []T) uint64 {
 	//nolint:mnd // 256 is okay.
 	return (uint64(len(t)) + 255) / 256
-}
-
-// MixinLength mixes in the length of an element.
-func MixinLength[RootT ~[32]byte](element RootT, length uint64) (RootT, error) {
-	// Mix in the length of the element.
-	//
-	//nolint:mnd // its okay.
-	chunks := make([][32]byte, 2)
-	chunks[0] = element
-	binary.LittleEndian.PutUint64(chunks[1][:], length)
-	return chunks[0], gohashtree.Hash(chunks, chunks)
 }
 
 // pack packs a list of SSZ-marshallable elements into a single byte slice.

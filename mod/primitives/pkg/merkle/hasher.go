@@ -59,8 +59,8 @@ type RootHasher[RootT ~[32]byte] struct {
 func NewRootHasher[RootT ~[32]byte](
 	hasher crypto.Hasher[RootT],
 	rootHashFn RootHashFn[RootT],
-) RootHasher[RootT] {
-	return RootHasher[RootT]{
+) *RootHasher[RootT] {
+	return &RootHasher[RootT]{
 		Hasher:     hasher,
 		rootHashFn: rootHashFn,
 	}

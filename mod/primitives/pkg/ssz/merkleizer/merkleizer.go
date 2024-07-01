@@ -33,7 +33,7 @@ import (
 type Merkleizer[
 	RootT ~[32]byte, T SSZObject[RootT],
 ] struct {
-	rootHasher  merkle.RootHasher[RootT]
+	rootHasher  *merkle.RootHasher[RootT]
 	bytesBuffer bytes.Buffer[RootT]
 }
 
@@ -132,7 +132,7 @@ func (m *Merkleizer[RootT, T]) MerkleizeListBasic(
 	if err != nil {
 		return [32]byte{}, err
 	}
-	return MixinLength(root, uint64(len(value)))
+	return m.rootHasher.MixIn(root, uint64(len(value))), nil
 }
 
 // MerkleizeListComposite implements the SSZ merkleization algorithm for a list
@@ -160,7 +160,7 @@ func (m *Merkleizer[RootT, T]) MerkleizeListComposite(
 		return RootT{}, err
 	}
 
-	return MixinLength(root, uint64(len(value)))
+	return m.rootHasher.MixIn(root, uint64(len(value))), nil
 }
 
 /* -------------------------------------------------------------------------- */
