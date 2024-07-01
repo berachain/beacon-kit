@@ -74,9 +74,9 @@ func (e *ExecutionPayload) ToHeader(
 
 	g.Go(func() error {
 		var txsRootErr error
-		txsRoot, txsRootErr = engineprimitives.BartioTransactionsFromBytes(
+		txsRoot, txsRootErr = engineprimitives.Transactions(
 			e.GetTransactions(),
-		).HashTreeRoot()
+		).HashTreeRootWith(txsMerkleizer)
 		return txsRootErr
 	})
 

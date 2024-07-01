@@ -343,7 +343,7 @@ func TestExecutableDataDenebHashTreeRoot(t *testing.T) {
 		ssz.U64(payload.GasLimit),
 		ssz.U64(payload.GasUsed),
 		ssz.U64(payload.Timestamp),
-		ssz.ByteListFromBytes(payload.ExtraData[:], 32),
+		ssz.ByteListFromBytes(payload.ExtraData, 32),
 		ssz.NewU256FromUint64(1234),
 		ssz.ByteVectorFromBytes(payload.BlockHash[:]),
 		engineprimitives.BartioTransactionsFromBytes(payload.Transactions),
@@ -355,6 +355,11 @@ func TestExecutableDataDenebHashTreeRoot(t *testing.T) {
 	// // Calculate HashTreeRoot using the container
 	containerRoot, err := container.HashTreeRoot()
 	require.NoError(t, err)
-	//Compare the results
-	require.Equal(t, typeRoot, containerRoot, "HashTreeRoot results should match")
+	// Compare the results
+	require.Equal(
+		t,
+		typeRoot,
+		containerRoot,
+		"HashTreeRoot results should match",
+	)
 }
