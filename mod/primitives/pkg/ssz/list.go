@@ -21,6 +21,8 @@
 package ssz
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/serializer"
@@ -89,10 +91,14 @@ func (l List[B]) HashTreeRootWith(
 	merkleizer ListMerkleizer[[32]byte, B],
 ) ([32]byte, error) {
 	var b B
-	if b.Type() == types.Basic {
+	switch b.Type() {
+	case types.Basic:
 		return merkleizer.MerkleizeListBasic(l.elements, l.ChunkCount())
+	case types.Composite:
+		return merkleizer.MerkleizeListComposite(l.elements, l.ChunkCount())
+	default:
+		return [32]byte{}, fmt.Errorf("unknown element type: %v", b.Type())
 	}
-	return merkleizer.MerkleizeListComposite(l.elements, l.ChunkCount())
 }
 
 // HashTreeRoot returns the Merkle root of the List.
