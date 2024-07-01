@@ -158,7 +158,7 @@ func (l ListComposite[C]) N() uint64 {
 // ChunkCount returns the number of chunks in the VectorComposite.
 func (l ListComposite[C]) ChunkCount() uint64 {
 	// List[C, N] and Vector[C, N], where C is a composite type: N
-	return (l.N())
+	return l.N()
 }
 
 // SizeSSZ returns the size of the list in bytes.
