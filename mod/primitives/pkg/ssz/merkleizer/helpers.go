@@ -35,17 +35,14 @@ func ChunkCountBitListVec[T any](t []T) uint64 {
 }
 
 // MixinLength mixes in the length of an element.
-func MixinLength[RootT ~[32]byte](element RootT, length uint64) RootT {
+func MixinLength[RootT ~[32]byte](element RootT, length uint64) (RootT, error) {
 	// Mix in the length of the element.
 	//
 	//nolint:mnd // its okay.
 	chunks := make([][32]byte, 2)
 	chunks[0] = element
 	binary.LittleEndian.PutUint64(chunks[1][:], length)
-	if err := gohashtree.Hash(chunks, chunks); err != nil {
-		return [32]byte{}
-	}
-	return chunks[0]
+	return chunks[0], gohashtree.Hash(chunks, chunks)
 }
 
 // pack packs a list of SSZ-marshallable elements into a single byte slice.

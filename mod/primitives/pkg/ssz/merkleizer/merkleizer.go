@@ -132,7 +132,7 @@ func (m *Merkleizer[RootT, T]) MerkleizeListBasic(
 	if err != nil {
 		return [32]byte{}, err
 	}
-	return MixinLength(root, uint64(len(value))), nil
+	return MixinLength(root, uint64(len(value)))
 }
 
 // MerkleizeListComposite implements the SSZ merkleization algorithm for a list
@@ -160,7 +160,7 @@ func (m *Merkleizer[RootT, T]) MerkleizeListComposite(
 		return RootT{}, err
 	}
 
-	return MixinLength(root, uint64(len(value))), nil
+	return MixinLength(root, uint64(len(value)))
 }
 
 /* -------------------------------------------------------------------------- */
