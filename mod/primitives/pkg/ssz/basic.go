@@ -27,6 +27,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
+	"github.com/holiman/uint256"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -35,12 +36,13 @@ import (
 
 // Ensure types implement types.SSZType.
 var (
-	_ types.SSZType[Bool] = (*Bool)(nil)
-	_ types.SSZType[U8]   = (*U8)(nil)
-	_ types.SSZType[U16]  = (*U16)(nil)
-	_ types.SSZType[U32]  = (*U32)(nil)
-	_ types.SSZType[U64]  = (*U64)(nil)
-	_ types.SSZType[Byte] = (*Byte)(nil)
+	_ types.SSZType[Bool]  = (*Bool)(nil)
+	_ types.SSZType[U8]    = (*U8)(nil)
+	_ types.SSZType[U16]   = (*U16)(nil)
+	_ types.SSZType[U32]   = (*U32)(nil)
+	_ types.SSZType[U64]   = (*U64)(nil)
+	_ types.SSZType[*U256] = (*U256)(nil)
+	_ types.SSZType[Byte]  = (*Byte)(nil)
 )
 
 type (
@@ -49,6 +51,7 @@ type (
 	U16  uint16
 	U32  uint32
 	U64  uint64
+	U256 uint256.Int
 	Byte byte
 )
 
@@ -306,8 +309,6 @@ func (U64) ChunkCount() uint64 {
 }
 
 /* -------------------------------------------------------------------------- */
-<<<<<<< Updated upstream
-=======
 /*                                    U256                                    */
 /* -------------------------------------------------------------------------- */
 
@@ -359,7 +360,6 @@ func (*U256) ChunkCount() uint64 {
 }
 
 /* -------------------------------------------------------------------------- */
->>>>>>> Stashed changes
 /*                                    Byte                                    */
 /* -------------------------------------------------------------------------- */
 
