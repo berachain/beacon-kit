@@ -21,6 +21,7 @@
 package spec
 
 import (
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/chain"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -30,7 +31,7 @@ import (
 func DevnetChainSpec() chain.Spec[
 	common.DomainType,
 	math.Epoch,
-	common.ExecutionAddress,
+	gethprimitives.ExecutionAddress,
 	math.Slot,
 	any,
 ] {

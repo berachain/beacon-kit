@@ -24,8 +24,8 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -98,7 +98,7 @@ func TestBeaconBlockBodyDeneb_SetExecutionData_Error(t *testing.T) {
 
 func TestBeaconBlockBodyDeneb_SetBlobKzgCommitments(t *testing.T) {
 	body := types.BeaconBlockBodyDeneb{}
-	commitments := eip4844.KZGCommitments[common.ExecutionHash]{}
+	commitments := eip4844.KZGCommitments[gethprimitives.ExecutionHash]{}
 	body.SetBlobKzgCommitments(commitments)
 
 	require.Equal(t, commitments, body.GetBlobKzgCommitments())

@@ -27,7 +27,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 	gjwt "github.com/golang-jwt/jwt/v5"
 )
@@ -53,7 +53,7 @@ func (s *EngineClient[
 // returns the latest valid hash or an error.
 func processPayloadStatusResult(
 	result *engineprimitives.PayloadStatusV1,
-) (*common.ExecutionHash, error) {
+) (*gethprimitives.ExecutionHash, error) {
 	switch result.Status {
 	case engineprimitives.PayloadStatusAccepted:
 		return nil, engineerrors.ErrAcceptedPayloadStatus

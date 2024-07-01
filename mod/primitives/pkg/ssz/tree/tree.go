@@ -18,22 +18,32 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package merkleizer
+package tree
 
-// Merkleizer can be used for merkleizing SSZ types.
-type Merkleizer[
-	RootT ~[32]byte, T SSZObject[RootT],
-] interface {
-	MerkleizeBasic(value T) (RootT, error)
-	MerkleizeVectorBasic(value []T) (RootT, error)
-	MerkleizeListBasic(value []T, limit ...uint64) (RootT, error)
-	MerkleizeVectorComposite(value []T) (RootT, error)
-	MerkleizeListComposite(value []T, limit ...uint64) (RootT, error)
-	MerkleizeByteSlice(value []byte) (RootT, error)
-	Merkleize(chunks []RootT, limit ...uint64) (RootT, error)
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+)
 
-	// TODO: Move to a separate Merkleizer type for container(s).
-	MerkleizeContainer(
-		value SSZObject[RootT],
-	) (RootT, error)
+// MerkleTree returns a Merkle tree of the given leaves.
+// As defined in the Ethereum 2.0 Spec:
+// https://github.com/ethereum/consensus-specs/blob/dev/ssz/merkle-proofs.md#generalized-merkle-tree-index
+//
+//nolint:lll // link.
+func NewLeaves[LeafT ~[32]byte](
+	leaves []LeafT,
+	hashFn func([]byte) LeafT,
+) []LeafT {
+	/*
+	   Return an array representing the tree nodes by generalized index:
+	   [0, 1, 2, 3, 4, 5, 6, 7], where each layer is a power of 2. The 0 index is ignored. The 1 index is the root.
+	   The result will be twice the size as the padded bottom layer for the input leaves.
+	*/
+	bottomLength := math.U64(len(leaves)).NextPowerOfTwo()
+	//nolint:mnd // 2 is okay.
+	o := make([]LeafT, bottomLength*2)
+	copy(o[bottomLength:], leaves)
+	for i := bottomLength - 1; i > 0; i-- {
+		o[i] = hashFn(append(o[i*2][:], o[i*2+1][:]...))
+	}
+	return o
 }

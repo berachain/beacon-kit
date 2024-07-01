@@ -20,9 +20,11 @@
 
 package ssz
 
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
+
 // BaseMerkleizer provides basic merkleization operations for SSZ types.
 type BaseMerkleizer[
-	RootT ~[32]byte, T Base[T],
+	RootT ~[32]byte, T types.SSZType[T],
 ] interface {
 	MerkleizeByteSlice(value []byte) (RootT, error)
 	Merkleize(chunks []RootT, limit ...uint64) (RootT, error)
@@ -30,20 +32,30 @@ type BaseMerkleizer[
 
 // BasicMerkleizer provides merkleization operations for basic SSZ types.
 type BasicMerkleizer[
-	RootT ~[32]byte, T Basic[T],
+	RootT ~[32]byte, T types.SSZType[T],
 ] interface {
 	BaseMerkleizer[RootT, T]
 	MerkleizeBasic(value T) (RootT, error)
 	MerkleizeVectorBasic(value []T) (RootT, error)
-	MerkleizeListBasic(value []T, limit ...uint64) (RootT, error)
+	MerkleizeListBasic(value []T, chunkCount uint64) (RootT, error)
 }
 
 // CompositeMerkleizer provides merkleization operations for composite SSZ
 // types.
 type CompositeMerkleizer[
-	SpecT any, RootT ~[32]byte, T Composite[T],
+	SpecT any, RootT ~[32]byte, T types.SSZType[T],
 ] interface {
 	BaseMerkleizer[RootT, T]
-	MerkleizeVectorComposite(value []T) (RootT, error)
-	MerkleizeListComposite(value []T, limit ...uint64) (RootT, error)
+	MerkleizeListComposite(value []T, chunkCount uint64) (RootT, error)
+	MerkleizeVectorCompositeOrContainer(value []T) (RootT, error)
+}
+
+type VectorMerkleizer[RootT, T any] interface {
+	MerkleizeVectorBasic(value []T) (RootT, error)
+	MerkleizeVectorCompositeOrContainer(value []T) (RootT, error)
+}
+
+type ListMerkleizer[RootT, T any] interface {
+	MerkleizeListBasic(value []T, chunkCount uint64) (RootT, error)
+	MerkleizeListComposite(value []T, chunkCount uint64) (RootT, error)
 }

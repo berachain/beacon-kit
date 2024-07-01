@@ -26,6 +26,7 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -304,7 +305,7 @@ func (s *Service[
 	body.SetEth1Data(eth1Data.New(
 		common.Bytes32{},
 		0,
-		common.ZeroHash,
+		gethprimitives.ZeroHash,
 	))
 
 	// Set the graffiti on the block body.

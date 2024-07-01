@@ -18,19 +18,11 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package engineprimitives
+package bind
 
-import (
-	coretypes "github.com/ethereum/go-ethereum/core/types"
-)
+import "github.com/ethereum/go-ethereum/accounts/abi/bind"
 
 type (
-	// Block represents a block on the execution layer.
-	Block = coretypes.Block
-
-	// Header represents a header on the execution layer.
-	Header = coretypes.Header
-
-	// Log represents a log on the execution layer.
-	Log = coretypes.Log
+	ContractBackend = bind.ContractBackend
+	FilterOpts      = bind.FilterOpts
 )

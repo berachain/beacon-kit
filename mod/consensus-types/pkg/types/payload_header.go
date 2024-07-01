@@ -21,6 +21,7 @@
 package types
 
 import (
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -89,23 +90,23 @@ func (e *ExecutionPayloadHeader) NewFromJSON(
 //go:generate go run github.com/ferranbt/fastssz/sszgen -path payload_header.go -objs ExecutionPayloadHeaderDeneb -include ../../../primitives/pkg/bytes,../../../primitives/pkg/common,../../../primitives/pkg/math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output payload_header.ssz.go
 //nolint:lll
 type ExecutionPayloadHeaderDeneb struct {
-	ParentHash       common.ExecutionHash    `json:"parentHash"       ssz-size:"32"  gencodec:"required"`
-	FeeRecipient     common.ExecutionAddress `json:"feeRecipient"     ssz-size:"20"  gencodec:"required"`
-	StateRoot        common.Bytes32          `json:"stateRoot"        ssz-size:"32"  gencodec:"required"`
-	ReceiptsRoot     common.Bytes32          `json:"receiptsRoot"     ssz-size:"32"  gencodec:"required"`
-	LogsBloom        []byte                  `json:"logsBloom"        ssz-size:"256" gencodec:"required"`
-	Random           common.Bytes32          `json:"prevRandao"       ssz-size:"32"  gencodec:"required"`
-	Number           math.U64                `json:"blockNumber"                     gencodec:"required"`
-	GasLimit         math.U64                `json:"gasLimit"                        gencodec:"required"`
-	GasUsed          math.U64                `json:"gasUsed"                         gencodec:"required"`
-	Timestamp        math.U64                `json:"timestamp"                       gencodec:"required"`
-	ExtraData        []byte                  `json:"extraData"                       gencodec:"required" ssz-max:"32"`
-	BaseFeePerGas    math.Wei                `json:"baseFeePerGas"    ssz-size:"32"  gencodec:"required"`
-	BlockHash        common.ExecutionHash    `json:"blockHash"        ssz-size:"32"  gencodec:"required"`
-	TransactionsRoot common.Root             `json:"transactionsRoot" ssz-size:"32"  gencodec:"required"`
-	WithdrawalsRoot  common.Root             `json:"withdrawalsRoot"  ssz-size:"32"`
-	BlobGasUsed      math.U64                `json:"blobGasUsed"`
-	ExcessBlobGas    math.U64                `json:"excessBlobGas"`
+	ParentHash       gethprimitives.ExecutionHash    `json:"parentHash"       ssz-size:"32"  gencodec:"required"`
+	FeeRecipient     gethprimitives.ExecutionAddress `json:"feeRecipient"     ssz-size:"20"  gencodec:"required"`
+	StateRoot        common.Bytes32                  `json:"stateRoot"        ssz-size:"32"  gencodec:"required"`
+	ReceiptsRoot     common.Bytes32                  `json:"receiptsRoot"     ssz-size:"32"  gencodec:"required"`
+	LogsBloom        []byte                          `json:"logsBloom"        ssz-size:"256" gencodec:"required"`
+	Random           common.Bytes32                  `json:"prevRandao"       ssz-size:"32"  gencodec:"required"`
+	Number           math.U64                        `json:"blockNumber"                     gencodec:"required"`
+	GasLimit         math.U64                        `json:"gasLimit"                        gencodec:"required"`
+	GasUsed          math.U64                        `json:"gasUsed"                         gencodec:"required"`
+	Timestamp        math.U64                        `json:"timestamp"                       gencodec:"required"`
+	ExtraData        []byte                          `json:"extraData"                       gencodec:"required" ssz-max:"32"`
+	BaseFeePerGas    math.Wei                        `json:"baseFeePerGas"    ssz-size:"32"  gencodec:"required"`
+	BlockHash        gethprimitives.ExecutionHash    `json:"blockHash"        ssz-size:"32"  gencodec:"required"`
+	TransactionsRoot common.Root                     `json:"transactionsRoot" ssz-size:"32"  gencodec:"required"`
+	WithdrawalsRoot  common.Root                     `json:"withdrawalsRoot"  ssz-size:"32"`
+	BlobGasUsed      math.U64                        `json:"blobGasUsed"`
+	ExcessBlobGas    math.U64                        `json:"excessBlobGas"`
 }
 
 type executionPayloadHeaderDenebMarshaling struct {
@@ -129,7 +130,9 @@ func (d *ExecutionPayloadHeaderDeneb) IsBlinded() bool {
 }
 
 // GetParentHash returns the parent hash of the ExecutionPayloadHeaderDeneb.
-func (d *ExecutionPayloadHeaderDeneb) GetParentHash() common.ExecutionHash {
+func (
+	d *ExecutionPayloadHeaderDeneb,
+) GetParentHash() gethprimitives.ExecutionHash {
 	return d.ParentHash
 }
 
@@ -137,7 +140,7 @@ func (d *ExecutionPayloadHeaderDeneb) GetParentHash() common.ExecutionHash {
 // ExecutionPayloadHeaderDeneb.
 //
 //nolint:lll // long variable names.
-func (d *ExecutionPayloadHeaderDeneb) GetFeeRecipient() common.ExecutionAddress {
+func (d *ExecutionPayloadHeaderDeneb) GetFeeRecipient() gethprimitives.ExecutionAddress {
 	return d.FeeRecipient
 }
 
@@ -194,7 +197,9 @@ func (d *ExecutionPayloadHeaderDeneb) GetBaseFeePerGas() math.Wei {
 }
 
 // GetBlockHash returns the block hash of the ExecutionPayloadHeaderDeneb.
-func (d *ExecutionPayloadHeaderDeneb) GetBlockHash() common.ExecutionHash {
+func (
+	d *ExecutionPayloadHeaderDeneb,
+) GetBlockHash() gethprimitives.ExecutionHash {
 	return d.BlockHash
 }
 

@@ -18,40 +18,20 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package serializer_test
+package rpc
 
-import (
-	"testing"
+import "github.com/ethereum/go-ethereum/rpc"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/serializer"
+type (
+	BlockNumber = rpc.BlockNumber
+	Client      = rpc.Client
+	DataError   = rpc.DataError
 )
 
-type MockType struct {
-	data []byte
-}
-
-func (m MockType) NewFromSSZ(data []byte) (MockType, error) {
-	return MockType{data: data}, nil
-}
-
-func (m MockType) SizeSSZ() int {
-	return 10
-}
-
-func BenchmarkUnmarshalVectorFixed(b *testing.B) {
-	// Prepare a buffer with mock data
-	elementSize := 10
-	numElements := 1000
-	buf := make([]byte, elementSize*numElements)
-	for i := 0; i < len(buf); i++ {
-		buf[i] = byte(i % 256)
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		_, err := serializer.UnmarshalVectorFixed[MockType](buf)
-		if err != nil {
-			b.Fatalf("unexpected error: %v", err)
-		}
-	}
-}
+//nolint:gochecknoglobals // its okay.
+var (
+	DialOptions = rpc.DialOptions
+	DialContext = rpc.DialContext
+	DialIPC     = rpc.DialIPC
+	WithHeaders = rpc.WithHeaders
+)

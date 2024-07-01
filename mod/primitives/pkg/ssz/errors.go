@@ -18,38 +18,9 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package merkleizer
+package ssz
 
-// MerkleizeVectorBasic implements the SSZ merkleization algorithm
-// for a vector of basic types.
-func (m *merkleizer[RootT, T]) MerkleizeVectorBasic(
-	value []T,
-) (RootT, error) {
-	// merkleize(pack(value))
-	// if value is a basic object or a vector of basic objects.
-	packed, _, err := pack[RootT](value)
-	if err != nil {
-		return [32]byte{}, err
-	}
-	return m.Merkleize(packed)
-}
+import "github.com/berachain/beacon-kit/mod/errors"
 
-// MerkleizeVectorComposite implements the SSZ merkleization algorithm for a
-// vector
-// of composite types.
-func (m *merkleizer[RootT, T]) MerkleizeVectorComposite(
-	value []T,
-) (RootT, error) {
-	var (
-		err  error
-		htrs = m.bytesBuffer.Get(len(value))
-	)
-
-	for i, el := range value {
-		htrs[i], err = el.HashTreeRoot()
-		if err != nil {
-			return RootT{}, err
-		}
-	}
-	return m.Merkleize(htrs)
-}
+// ErrUnknownType is returned when an unknown type is encountered.
+var ErrUnknownType = errors.New("unknown type")

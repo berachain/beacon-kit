@@ -17,20 +17,7 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
-package serializer
 
-import (
-	"github.com/berachain/beacon-kit/mod/errors"
-)
+package deposit
 
-var (
-	// ErrInvalidNilSlice is returned when the input slice is nil.
-	ErrInvalidNilSlice = errors.New("invalid empty slice")
-
-	// ErrInvalidLength is returned when the input byte slice has an invalid
-	// length.
-	ErrInvalidLength = errors.New("invalid byte length")
-
-	// ErrInvalidByteValue is returned when the input byte has an invalid value.
-	ErrInvalidByteValue = errors.New("invalid byte value")
-)
+//go:generate go run github.com/ethereum/go-ethereum/cmd/abigen --abi=../../../../contracts/out/BeaconDepositContract.sol/BeaconDepositContract.abi.json --pkg=deposit --type=BeaconDepositContract --out=contract.abigen.go
