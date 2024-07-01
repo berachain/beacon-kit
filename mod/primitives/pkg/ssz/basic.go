@@ -35,12 +35,13 @@ import (
 
 // Ensure types implement types.SSZType.
 var (
-	_ types.SSZType[Bool] = (*Bool)(nil)
-	_ types.SSZType[U8]   = (*U8)(nil)
-	_ types.SSZType[U16]  = (*U16)(nil)
-	_ types.SSZType[U32]  = (*U32)(nil)
-	_ types.SSZType[U64]  = (*U64)(nil)
-	_ types.SSZType[Byte] = (*Byte)(nil)
+	_ types.SSZType[Bool]  = (*Bool)(nil)
+	_ types.SSZType[U8]    = (*U8)(nil)
+	_ types.SSZType[U16]   = (*U16)(nil)
+	_ types.SSZType[U32]   = (*U32)(nil)
+	_ types.SSZType[U64]   = (*U64)(nil)
+	_ types.SSZType[*U256] = (*U256)(nil)
+	_ types.SSZType[Byte]  = (*Byte)(nil)
 )
 
 type (
