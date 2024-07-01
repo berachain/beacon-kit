@@ -85,7 +85,7 @@ func (l ListBasic[B]) SizeSSZ() int {
 func (l ListBasic[B]) HashTreeRootWith(
 	merkleizer BasicMerkleizer[[32]byte, B],
 ) ([32]byte, error) {
-	return merkleizer.MerkleizeListBasic(l.elements, l.limit)
+	return merkleizer.MerkleizeListBasic(l.elements, l.ChunkCount())
 }
 
 // HashTreeRoot returns the Merkle root of the ListBasic.
@@ -172,7 +172,7 @@ func (l ListComposite[C]) SizeSSZ() int {
 func (l ListComposite[C]) HashTreeRootWith(
 	merkleizer CompositeMerkleizer[common.ChainSpec, [32]byte, C],
 ) ([32]byte, error) {
-	return merkleizer.MerkleizeListComposite(l.elements)
+	return merkleizer.MerkleizeListComposite(l.elements, l.ChunkCount())
 }
 
 // HashTreeRoot returns the Merkle root of the ListComposite.
