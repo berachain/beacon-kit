@@ -54,14 +54,15 @@ func (l Vector[B]) SizeSSZ() int {
 
 // isFixed returns true if the VectorBasic is fixed size.
 func (Vector[B]) IsFixed() bool {
+	// If the element in the vector is fixed size, then
+	// the vector is fixed size.
 	var b B
 	return b.IsFixed()
 }
 
 // Type returns the type of the VectorBasic.
 func (l Vector[B]) Type() types.Type {
-	var b B
-	return b.Type()
+	return types.Composite
 }
 
 // ChunkCount returns the number of chunks in the VectorBasic.
