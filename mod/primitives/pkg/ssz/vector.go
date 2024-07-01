@@ -21,159 +21,121 @@
 package ssz
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/serializer"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
 )
 
 /* -------------------------------------------------------------------------- */
-/*                                    Basic                                   */
+/*                                Type Definitions                            */
 /* -------------------------------------------------------------------------- */
 
-// VectorBasic is a vector of basic types.
-type VectorBasic[B Basic[B]] []B
+// Vector conforms to the SSZEenumerable interface.
+var _ types.SSZEnumerable[Vector[U64], U64] = (Vector[U64])(nil)
+
+// Vector represents a vector of elements.
+type Vector[B types.SSZType[B]] []B
 
 // VectorBasicFromElements creates a new ListComposite from elements.
 // TODO: Deprecate once off of Fastssz
-func VectorBasicFromElements[B Basic[B]](elements ...B) VectorBasic[B] {
+func VectorFromElements[B Basic[B]](elements ...B) Vector[B] {
 	return elements
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                 BaseSSZType                                */
+/* -------------------------------------------------------------------------- */
+
 // SizeSSZ returns the size of the list in bytes.
-func (l VectorBasic[B]) SizeSSZ() int {
+func (v Vector[B]) SizeSSZ() int {
 	var b B
-	return b.SizeSSZ() * len(l)
+	return b.SizeSSZ() * len(v)
 }
 
 // isFixed returns true if the VectorBasic is fixed size.
-func (VectorBasic[B]) IsFixed() bool {
-	return true
+func (Vector[B]) IsFixed() bool {
+	// If the element in the vector is fixed size, then
+	// the vector is fixed size.
+	var b B
+	return b.IsFixed()
+}
+
+// Type returns the type of the VectorBasic.
+func (Vector[B]) Type() types.Type {
+	return types.Composite
 }
 
 // ChunkCount returns the number of chunks in the VectorBasic.
-func (l VectorBasic[B]) ChunkCount() uint64 {
-	// List[B, N] and Vector[B, N], where B is a basic type:
-	// (N * size_of(B) + 31) // 32 (dividing by chunk size, rounding up)
+func (v Vector[B]) ChunkCount() uint64 {
 	var b B
-	//#nosec:G701 // its fine.
-	//nolint:mnd // 31 is okay.
-	return (l.N()*uint64(b.SizeSSZ()) + 31) / constants.BytesPerChunk
+	switch b.Type() {
+	case types.Basic:
+		//#nosec:G701 // its fine.
+		//nolint:mnd // 31 is okay.
+		return (v.N()*uint64(b.SizeSSZ()) + 31) / constants.BytesPerChunk
+	default:
+		return v.N()
+	}
 }
 
 // N returns the N value as defined in the SSZ specification.
-func (l VectorBasic[B]) N() uint64 {
+func (v Vector[B]) N() uint64 {
 	// vector: ordered fixed-length homogeneous collection, with N values
 	// notation Vector[type, N], e.g. Vector[uint64, N]
-	return uint64(len(l))
+	return uint64(len(v))
 }
+
+// Elements returns the elements of the VectorBasic.
+func (v Vector[B]) Elements() []B {
+	return v
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                Merkleization                               */
+/* -------------------------------------------------------------------------- */
 
 // HashTreeRootWith returns the Merkle root of the VectorBasic
 // with a given merkleizer.
-func (l VectorBasic[B]) HashTreeRootWith(
-	merkleizer BasicMerkleizer[[32]byte, B],
+func (v Vector[B]) HashTreeRootWith(
+	merkleizer VectorMerkleizer[[32]byte, B],
 ) ([32]byte, error) {
-	return merkleizer.MerkleizeVectorBasic(l)
+	var b B
+	if b.Type() == types.Basic {
+		return merkleizer.MerkleizeVectorBasic(v)
+	}
+	return merkleizer.MerkleizeVectorCompositeOrContainer(v)
 }
 
 // HashTreeRoot returns the Merkle root of the VectorBasic.
-func (l VectorBasic[B]) HashTreeRoot() ([32]byte, error) {
-	// Create a merkleizer
-	return l.HashTreeRootWith(merkleizer.New[[32]byte, B]())
+func (v Vector[B]) HashTreeRoot() ([32]byte, error) {
+	return v.HashTreeRootWith(merkleizer.New[[32]byte, B]())
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                Serialization                               */
+/* -------------------------------------------------------------------------- */
+
 // MarshalSSZToBytes marshals the VectorBasic into SSZ format.
-func (l VectorBasic[B]) MarshalSSZTo(out []byte) ([]byte, error) {
-	return serializer.MarshalVectorFixed(out, l)
+func (v Vector[B]) MarshalSSZTo(out []byte) ([]byte, error) {
+	if !v.IsFixed() {
+		// return serializer.MarshalVectorVariable(out, l)
+		return nil, errors.New("not implemented yet")
+	}
+	return serializer.MarshalVectorFixed(out, v)
 }
 
 // MarshalSSZ marshals the VectorBasic into SSZ format.
-func (l VectorBasic[B]) MarshalSSZ() ([]byte, error) {
-	return l.MarshalSSZTo(make([]byte, 0, l.SizeSSZ()))
+func (v Vector[B]) MarshalSSZ() ([]byte, error) {
+	return v.MarshalSSZTo(make([]byte, 0, v.SizeSSZ()))
 }
 
 // NewFromSSZ creates a new VectorBasic from SSZ format.
-func (VectorBasic[B]) NewFromSSZ(buf []byte) (VectorBasic[B], error) {
+func (v Vector[B]) NewFromSSZ(buf []byte) (Vector[B], error) {
+	if !v.IsFixed() {
+		panic("not implemented yet")
+	}
+
 	return serializer.UnmarshalVectorFixed[B](buf)
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                  Composite                                 */
-/* -------------------------------------------------------------------------- */
-
-// VectorComposite is a vector of Composite types.
-type VectorComposite[C Composite[C]] []C
-
-// VectorCompositeFromElements creates a new VectorComposite from elements.
-// TODO: Deprecate once off of Fastssz
-func VectorCompositeFromElements[C Composite[C]](
-	elements ...C,
-) VectorComposite[C] {
-	return elements
-}
-
-// isFixed returns true if the VectorBasic is fixed size.
-func (VectorComposite[C]) IsFixed() bool {
-	var c C
-	return c.IsFixed()
-}
-
-// N returns the N value as defined in the SSZ specification.
-func (l VectorComposite[C]) N() uint64 {
-	// vector: ordered fixed-length homogeneous collection, with N values
-	// notation Vector[type, N], e.g. Vector[uint64, N]
-	return uint64(len(l))
-}
-
-// SizeSSZ returns the size of the list in bytes.
-func (l VectorComposite[C]) SizeSSZ() int {
-	var c C
-	return c.SizeSSZ() * len(l)
-}
-
-// ChunkCount returns the number of chunks in the VectorComposite.
-func (l VectorComposite[C]) ChunkCount() uint64 {
-	// List[C, N] and Vector[C, N], where C is a composite type: N
-	return (l.N())
-}
-
-// HashTreeRootWith returns the Merkle root of the VectorComposite
-// with a given merkleizer.
-func (l VectorComposite[C]) HashTreeRootWith(
-	merkleizer CompositeMerkleizer[common.ChainSpec, [32]byte, C],
-) ([32]byte, error) {
-	return merkleizer.MerkleizeVectorComposite(l)
-}
-
-// HashTreeRoot returns the Merkle root of the VectorComposite.
-func (l VectorComposite[C]) HashTreeRoot() ([32]byte, error) {
-	// Create a merkleizer
-	return l.HashTreeRootWith(merkleizer.New[[32]byte, C]())
-}
-
-// MarshalSSZToBytes marshals the VectorComposite into SSZ format.
-func (l VectorComposite[C]) MarshalSSZTo(out []byte) ([]byte, error) {
-	var c C
-	if !c.IsFixed() {
-		panic("not implemented yet")
-	}
-
-	return serializer.MarshalVectorFixed(out, l)
-}
-
-// MarshalSSZ marshals the VectorComposite into SSZ format.
-func (l VectorComposite[C]) MarshalSSZ() ([]byte, error) {
-	return l.MarshalSSZTo(make([]byte, 0, l.SizeSSZ()))
-}
-
-// NewFromSSZ creates a new VectorComposite from SSZ format.
-func (VectorComposite[C]) NewFromSSZ(
-	buf []byte,
-) (VectorComposite[C], error) {
-	var c C
-	if !c.IsFixed() {
-		panic("not implemented yet")
-	}
-
-	return serializer.UnmarshalVectorFixed[C](buf)
 }

@@ -35,9 +35,8 @@ func (m *merkleizer[RootT, T]) MerkleizeVectorBasic(
 }
 
 // MerkleizeVectorComposite implements the SSZ merkleization algorithm for a
-// vector
-// of composite types.
-func (m *merkleizer[RootT, T]) MerkleizeVectorComposite(
+// vector of composite types or a container.
+func (m *merkleizer[RootT, T]) MerkleizeVectorCompositeOrContainer(
 	value []T,
 ) (RootT, error) {
 	var (

@@ -76,8 +76,8 @@ func (l ListBasic[B]) ChunkCount() uint64 {
 
 // SizeSSZ returns the size of the list in bytes.
 func (l ListBasic[B]) SizeSSZ() int {
-	// The same for ListBasic as for VectorBasic.
-	return VectorBasic[B](l.elements).SizeSSZ()
+	// The same for ListBasic as for Vector.
+	return Vector[B](l.elements).SizeSSZ()
 }
 
 // HashTreeRootWith returns the Merkle root of the ListBasic
@@ -96,20 +96,20 @@ func (l ListBasic[B]) HashTreeRoot() ([32]byte, error) {
 
 // MarshalSSZTo marshals the ListBasic into SSZ format.
 func (l ListBasic[B]) MarshalSSZTo(out []byte) ([]byte, error) {
-	return VectorBasic[B](l.elements).MarshalSSZTo(out)
+	return Vector[B](l.elements).MarshalSSZTo(out)
 }
 
 // MarshalSSZ marshals the ListBasic into SSZ format.
 func (l ListBasic[B]) MarshalSSZ() ([]byte, error) {
-	// The same for ListBasic as for VectorBasic.
-	return VectorBasic[B](l.elements).MarshalSSZ()
+	// The same for ListBasic as for Vector.
+	return Vector[B](l.elements).MarshalSSZ()
 }
 
 // NewFromSSZ creates a new ListBasic from SSZ format.
 func (l ListBasic[B]) NewFromSSZ(buf []byte) (*ListBasic[B], error) {
-	// The same for ListBasic as for VectorBasic
+	// The same for ListBasic as for Vector
 	var (
-		elements = make(VectorBasic[B], 0)
+		elements = make(Vector[B], 0)
 		err      error
 	)
 
@@ -164,7 +164,7 @@ func (l ListComposite[C]) ChunkCount() uint64 {
 // SizeSSZ returns the size of the list in bytes.
 func (l ListComposite[C]) SizeSSZ() int {
 	// The same for ListComposite as for VectorComposite.
-	return VectorComposite[C](l.elements).SizeSSZ()
+	return Vector[C](l.elements).SizeSSZ()
 }
 
 // HashTreeRootWith returns the Merkle root of the ListComposite

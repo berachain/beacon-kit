@@ -23,6 +23,7 @@ package engineprimitives
 import (
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
 )
 
 // Withdrawal represents a validator withdrawal from the consensus layer.
@@ -81,4 +82,9 @@ func (Withdrawal) NewFromSSZ(bytes []byte) (*Withdrawal, error) {
 // IsFixed returns true if the Withdrawal is fixed size.
 func (Withdrawal) IsFixed() bool {
 	return true
+}
+
+// Type returns the type of the Withdrawal.
+func (Withdrawal) Type() types.Type {
+	return types.Composite
 }
