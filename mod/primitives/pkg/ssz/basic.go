@@ -32,7 +32,7 @@ import (
 /*                                Type Definitions                            */
 /* -------------------------------------------------------------------------- */
 
-// Ensure types implement types.SSZType
+// Ensure types implement types.SSZType.
 var (
 	_ types.SSZType[Bool] = (*Bool)(nil)
 	_ types.SSZType[U8]   = (*U8)(nil)
