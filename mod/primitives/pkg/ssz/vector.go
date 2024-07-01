@@ -24,7 +24,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/serializer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
 )
 
@@ -123,11 +122,7 @@ func (v Vector[B]) HashTreeRoot() ([32]byte, error) {
 
 // MarshalSSZToBytes marshals the VectorBasic into SSZ format.
 func (v Vector[B]) MarshalSSZTo(out []byte) ([]byte, error) {
-	if !v.IsFixed() {
-		// return serializer.MarshalVectorVariable(out, l)
-		return nil, errors.New("not implemented yet")
-	}
-	return serializer.MarshalVectorFixed(out, v)
+	return nil, errors.New("not implemented yet")
 }
 
 // MarshalSSZ marshals the VectorBasic into SSZ format.
@@ -137,9 +132,5 @@ func (v Vector[B]) MarshalSSZ() ([]byte, error) {
 
 // NewFromSSZ creates a new VectorBasic from SSZ format.
 func (v Vector[B]) NewFromSSZ(buf []byte) (Vector[B], error) {
-	if !v.IsFixed() {
-		panic("not implemented yet")
-	}
-
-	return serializer.UnmarshalVectorFixed[B](buf)
+	return nil, errors.New("not implemented yet")
 }

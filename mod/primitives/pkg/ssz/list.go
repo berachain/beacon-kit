@@ -24,7 +24,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/serializer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
 )
 
@@ -136,13 +135,8 @@ func (l List[B]) MarshalSSZ() ([]byte, error) {
 
 // NewFromSSZ creates a new List from SSZ format.
 func (l List[B]) NewFromSSZ(buf []byte, limit uint64) (*List[B], error) {
-	var b B
-	if !b.IsFixed() {
-		panic("not implemented yet")
-	}
-
 	// We can use Vector helper for a list here, it is safe.
-	elements, err := serializer.UnmarshalVectorFixed[B](buf)
+	elements, err := Vector[B](l.elements).NewFromSSZ(buf)
 	if err != nil {
 		return nil, err
 	}
