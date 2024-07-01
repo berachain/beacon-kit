@@ -21,6 +21,8 @@
 package ssz
 
 import (
+	"unsafe"
+
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
@@ -41,6 +43,12 @@ type Vector[T types.SSZType[T]] []T
 // TODO: Deprecate once off of Fastssz
 func VectorFromElements[T types.SSZType[T]](elements ...T) Vector[T] {
 	return elements
+}
+
+// ByteVectorFromBytes creates a new Vector[Byte]ß from bytes.
+func ByteVectorFromBytes(bytes []byte) Vector[Byte] {
+	v := *(*Vector[Byte])(unsafe.Pointer(&bytes))
+	return v
 }
 
 /* -------------------------------------------------------------------------- */
@@ -103,6 +111,7 @@ func (v Vector[T]) HashTreeRootWith(
 	var b T
 	switch b.Type() {
 	case types.Basic:
+
 		return merkleizer.MerkleizeVectorBasic(v)
 	case types.Composite:
 		return merkleizer.MerkleizeVectorCompositeOrContainer(v)

@@ -21,6 +21,8 @@
 package ssz
 
 import (
+	"unsafe"
+
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
@@ -47,6 +49,15 @@ func ListFromElements[T types.SSZType[T]](
 	elements ...T,
 ) *List[T] {
 	return &List[T]{
+		elements: elements,
+		limit:    limit,
+	}
+}
+
+// ByteList from Bytes creates a new ListComposite from bytes.
+func ByteListFromBytes(bytes []byte, limit uint64) *List[Byte] {
+	elements := *(*[]Byte)(unsafe.Pointer(&bytes))
+	return &List[Byte]{
 		elements: elements,
 		limit:    limit,
 	}
