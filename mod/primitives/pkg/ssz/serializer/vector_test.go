@@ -30,7 +30,7 @@ type MockType struct {
 	data []byte
 }
 
-func (m MockType) NewFromSSZ(data []byte) (MockType, error) {
+func (m MockType) FromSSZ(data []byte) (MockType, error) {
 	return MockType{data: data}, nil
 }
 

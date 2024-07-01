@@ -134,8 +134,8 @@ func (l List[B]) MarshalSSZ() ([]byte, error) {
 	return Vector[B](l.elements).MarshalSSZ()
 }
 
-// NewFromSSZ creates a new List from SSZ format.
-func (l List[B]) NewFromSSZ(buf []byte, limit uint64) (*List[B], error) {
+// FromSSZ creates a new List from SSZ format.
+func (l List[B]) FromSSZ(buf []byte, limit uint64) (*List[B], error) {
 	var b B
 	if !b.IsFixed() {
 		panic("not implemented yet")

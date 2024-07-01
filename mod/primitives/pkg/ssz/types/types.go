@@ -43,7 +43,7 @@ type BaseSSZType interface {
 // SSZType is the interface for all SSZ types.
 type SSZType[T any] interface {
 	BaseSSZType
-	NewFromSSZ([]byte) (T, error)
+	FromSSZ([]byte) (T, error)
 	// TODO: Enable
 	//
 	// ChunkCount returns the number of chunks required to store the type.

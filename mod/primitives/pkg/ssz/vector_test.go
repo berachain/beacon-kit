@@ -100,7 +100,7 @@ func TestVectorMarshalUnmarshal(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, marshaled, 5)
 
-		unmarshaled, err := ssz.Vector[ssz.U8]{}.NewFromSSZ(
+		unmarshaled, err := ssz.Vector[ssz.U8]{}.FromSSZ(
 			marshaled,
 		)
 		require.NoError(t, err)
@@ -116,7 +116,7 @@ func TestVectorMarshalUnmarshal(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, marshaled, 5)
 
-		unmarshaled, err := ssz.Vector[ssz.Bool]{}.NewFromSSZ(
+		unmarshaled, err := ssz.Vector[ssz.Bool]{}.FromSSZ(
 			marshaled,
 		)
 		require.NoError(t, err)
@@ -131,7 +131,7 @@ func TestVectorMarshalUnmarshal(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, marshaled, 40)
 
-		unmarshaled, err := ssz.Vector[ssz.U64]{}.NewFromSSZ(
+		unmarshaled, err := ssz.Vector[ssz.U64]{}.FromSSZ(
 			marshaled,
 		)
 		require.NoError(t, err)
@@ -140,7 +140,7 @@ func TestVectorMarshalUnmarshal(t *testing.T) {
 	})
 
 	t.Run("invalid buffer length", func(t *testing.T) {
-		_, err := ssz.Vector[ssz.U64]{}.NewFromSSZ(
+		_, err := ssz.Vector[ssz.U64]{}.FromSSZ(
 			[]byte{1, 2, 3},
 		) // Invalid length for uint64
 		require.Error(t, err)

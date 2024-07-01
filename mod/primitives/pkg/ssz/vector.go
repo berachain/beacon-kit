@@ -135,8 +135,8 @@ func (v Vector[B]) MarshalSSZ() ([]byte, error) {
 	return v.MarshalSSZTo(make([]byte, 0, v.SizeSSZ()))
 }
 
-// NewFromSSZ creates a new VectorBasic from SSZ format.
-func (v Vector[B]) NewFromSSZ(buf []byte) (Vector[B], error) {
+// FromSSZ creates a new VectorBasic from SSZ format.
+func (v Vector[B]) FromSSZ(buf []byte) (Vector[B], error) {
 	if !v.IsFixed() {
 		panic("not implemented yet")
 	}

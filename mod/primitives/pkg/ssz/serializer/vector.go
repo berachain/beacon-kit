@@ -47,7 +47,7 @@ func MarshalVectorFixed[T interface{ MarshalSSZ() ([]byte, error) }](
 // UnmarshalVectorFixed converts a byte slice into a slice of basic values.
 func UnmarshalVectorFixed[
 	T interface {
-		NewFromSSZ([]byte) (T, error)
+		FromSSZ([]byte) (T, error)
 		SizeSSZ() int
 	},
 ](
@@ -70,7 +70,7 @@ func UnmarshalVectorFixed[
 	result := make([]T, bufLen/elementSize)
 	for i := 0; i < bufLen; i += elementSize {
 		if result[i/elementSize],
-			err = t.NewFromSSZ(buf[i : i+elementSize]); err != nil {
+			err = t.FromSSZ(buf[i : i+elementSize]); err != nil {
 			return nil, err
 		}
 	}

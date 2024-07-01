@@ -68,8 +68,8 @@ func (b Bool) MarshalSSZ() ([]byte, error) {
 	return []byte{0}, nil
 }
 
-// NewFromSSZ creates a new Bool from SSZ format.
-func (Bool) NewFromSSZ(buf []byte) (Bool, error) {
+// FromSSZ creates a new Bool from SSZ format.
+func (Bool) FromSSZ(buf []byte) (Bool, error) {
 	if len(buf) != 1 {
 		return false, fmt.Errorf(
 			"invalid buffer length: expected 1, got %d",
@@ -117,8 +117,8 @@ func (u U8) MarshalSSZ() ([]byte, error) {
 	return []byte{byte(u)}, nil
 }
 
-// NewFromSSZ creates a new U8 from SSZ format.
-func (U8) NewFromSSZ(buf []byte) (U8, error) {
+// FromSSZ creates a new U8 from SSZ format.
+func (U8) FromSSZ(buf []byte) (U8, error) {
 	if len(buf) != 1 {
 		return 0, fmt.Errorf(
 			"invalid buffer length: expected 1, got %d",
@@ -168,8 +168,8 @@ func (u U16) MarshalSSZ() ([]byte, error) {
 	return buf, nil
 }
 
-// NewFromSSZ creates a new U16 from SSZ format.
-func (U16) NewFromSSZ(buf []byte) (U16, error) {
+// FromSSZ creates a new U16 from SSZ format.
+func (U16) FromSSZ(buf []byte) (U16, error) {
 	if len(buf) != 2 {
 		return 0, fmt.Errorf(
 			"invalid buffer length: expected 2, got %d",
@@ -217,8 +217,8 @@ func (u U32) MarshalSSZ() ([]byte, error) {
 	return buf, nil
 }
 
-// NewFromSSZ creates a new U32 from SSZ format.
-func (U32) NewFromSSZ(buf []byte) (U32, error) {
+// FromSSZ creates a new U32 from SSZ format.
+func (U32) FromSSZ(buf []byte) (U32, error) {
 	if len(buf) != 4 {
 		return 0, fmt.Errorf(
 			"invalid buffer length: expected 4, got %d",
@@ -266,8 +266,8 @@ func (u U64) MarshalSSZ() ([]byte, error) {
 	return buf, nil
 }
 
-// NewFromSSZ creates a new U64 from SSZ format.
-func (U64) NewFromSSZ(buf []byte) (U64, error) {
+// FromSSZ creates a new U64 from SSZ format.
+func (U64) FromSSZ(buf []byte) (U64, error) {
 	if len(buf) != 8 {
 		return 0, fmt.Errorf(
 			"invalid buffer length: expected 8, got %d",
@@ -313,8 +313,8 @@ func (b Byte) MarshalSSZ() ([]byte, error) {
 	return []byte{byte(b)}, nil
 }
 
-// NewFromSSZ creates a new Byte from SSZ format.
-func (Byte) NewFromSSZ(buf []byte) (Byte, error) {
+// FromSSZ creates a new Byte from SSZ format.
+func (Byte) FromSSZ(buf []byte) (Byte, error) {
 	if len(buf) != 1 {
 		return 0, fmt.Errorf(
 			"invalid buffer length: expected 1, got %d",
