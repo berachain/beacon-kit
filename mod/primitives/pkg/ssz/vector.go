@@ -33,7 +33,7 @@ import (
 /* -------------------------------------------------------------------------- */
 
 // Vector conforms to the SSZEenumerable interface.
-var _ types.SSZEnumerable[Vector[U64], U64] = (Vector[U64])(nil)
+var _ types.SSZEnumerable[U64] = (Vector[U64])(nil)
 
 // Vector represents a vector of elements.
 type Vector[B types.SSZType[B]] []B

@@ -30,8 +30,11 @@ import (
 )
 
 /* -------------------------------------------------------------------------- */
-/*                                    Basic                                   */
+/*                                Type Definitions                            */
 /* -------------------------------------------------------------------------- */
+
+// Vector conforms to the SSZEenumerable interface.
+var _ types.SSZEnumerable[U64] = (*List[U64])(nil)
 
 // List is a list of basic types.
 type List[B types.SSZType[B]] struct {
@@ -49,6 +52,16 @@ func ListFromElements[B types.SSZType[B]](
 		elements: elements,
 		limit:    limit,
 	}
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                 BaseSSZType                                */
+/* -------------------------------------------------------------------------- */
+
+// SizeSSZ returns the size of the list in bytes.
+func (l List[B]) SizeSSZ() int {
+	// The same for List as for Vector.
+	return Vector[B](l.elements).SizeSSZ()
 }
 
 // IsFixed returns true if the List is fixed size.
@@ -79,10 +92,14 @@ func (l List[B]) ChunkCount() uint64 {
 	}
 }
 
-// SizeSSZ returns the size of the list in bytes.
-func (l List[B]) SizeSSZ() int {
-	// The same for List as for Vector.
-	return Vector[B](l.elements).SizeSSZ()
+// Type returns the type of the List.
+func (l List[B]) Type() types.Type {
+	return types.Composite
+}
+
+// Elements returns the elements of the List.
+func (l List[B]) Elements() []B {
+	return l.elements
 }
 
 // HashTreeRootWith returns the Merkle root of the List
