@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 )
 
 // The AvailabilityStore interface is responsible for validating and storing
@@ -174,7 +175,7 @@ type ExecutionPayload[
 	GetBlobGasUsed() math.U64
 	GetExcessBlobGas() math.U64
 	ToHeader(
-		txsMerkleizer engineprimitives.TxsMerkleizer,
+		txsMerkleizer *merkleizer.Merkleizer[[32]byte, common.Root],
 		maxWithdrawalsPerPayload uint64,
 	) (ExecutionPayloadHeaderT, error)
 }

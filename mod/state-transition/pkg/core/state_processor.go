@@ -21,7 +21,6 @@
 package core
 
 import (
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -78,7 +77,7 @@ type StateProcessor[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	]
 	// txsMerkleizer is the merkleizer used for calculating transaction roots.
-	txsMerkleizer engineprimitives.TxsMerkleizer
+	txsMerkleizer *merkleizer.Merkleizer[[32]byte, common.Root]
 }
 
 // NewStateProcessor creates a new state processor.
