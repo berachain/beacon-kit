@@ -27,12 +27,7 @@ const (
 	Composite
 )
 
-// SSZType is the interface for all SSZ types.
-type SSZType[T any] interface {
-	// NewFromSSZ creates a new composite type from an SSZ byte slice.
-	NewFromSSZ([]byte) (T, error)
-	// MarshalSSZ serializes the composite type to an SSZ byte slice.
-	MarshalSSZ() ([]byte, error)
+type BaseSSZType interface {
 	// HashTreeRoot returns the hash tree root of the composite type.
 	HashTreeRoot() ([32]byte, error)
 	// MarshalSSZ marshals the type into SSZ format.
@@ -41,6 +36,14 @@ type SSZType[T any] interface {
 	SizeSSZ() int
 	// Type returns the type of the SSZ object.
 	Type() Type
+	// MarshalSSZ marshals the type into SSZ format.
+	MarshalSSZ() ([]byte, error)
+}
+
+// SSZType is the interface for all SSZ types.
+type SSZType[T any] interface {
+	BaseSSZType
+	NewFromSSZ([]byte) (T, error)
 	// TODO: Enable
 	//
 	// ChunkCount returns the number of chunks required to store the type.
@@ -49,12 +52,11 @@ type SSZType[T any] interface {
 
 // SSZEnumerable is the interface for all SSZ enumerable types must implement.
 type SSZEnumerable[
-	SelfT SSZType[SelfT],
-	ElementT SSZType[ElementT],
+	SelfT BaseSSZType,
 ] interface {
 	SSZType[SelfT]
 	// N returns the N value as defined in the SSZ specification.
 	N() uint64
 	// Elements returns the elements of the enumerable type.
-	Elements() []SSZType[ElementT]
+	Elements() []BaseSSZType
 }
