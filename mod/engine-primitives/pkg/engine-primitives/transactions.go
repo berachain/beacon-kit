@@ -61,13 +61,14 @@ type ProperTransactions = ssz.List[*ssz.List[ssz.Byte]]
 func ProperTransactionsFromBytes(data [][]byte) *ProperTransactions {
 	txs := make([]*ssz.List[ssz.Byte], len(data))
 	for i, tx := range data {
+		//nolint:mnd // unhood later.
 		txs[i] = ssz.ByteListFromBytes(tx, 1073741824)
 
 	}
 
 	y := ssz.ListFromElements(constants.MaxTxsPerPayload, txs...)
 
-	return ssz.ListFromElements[*ssz.List[ssz.Byte]](
+	return ssz.ListFromElements(
 		constants.MaxTxsPerPayload,
 		y.Elements()...,
 	)
