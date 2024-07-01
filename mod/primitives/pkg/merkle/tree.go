@@ -110,7 +110,10 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 		branches: layers,
 		leaves:   leaves,
 		depth:    depth,
-		hasher:   NewRootHasher[[32]byte](crypto.NewHasher[[32]byte](sha256.Hash), gohashtree.Hash),
+		hasher: NewRootHasher[[32]byte](
+			crypto.NewHasher[[32]byte](sha256.Hash),
+			gohashtree.Hash,
+		),
 	}, nil
 }
 

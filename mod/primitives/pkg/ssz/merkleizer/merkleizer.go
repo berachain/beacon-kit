@@ -43,7 +43,7 @@ func New[
 ]() *Merkleizer[RootT, T] {
 	return &Merkleizer[RootT, T]{
 		rootHasher: merkle.NewRootHasher(
-			crypto.NewHasher[RootT](sha256.Hash),
+			crypto.NewHasher[RootT](sha256.CustomHashFn()),
 			merkle.BuildParentTreeRoots,
 		),
 		bytesBuffer: bytes.NewReusableBuffer[RootT](),
