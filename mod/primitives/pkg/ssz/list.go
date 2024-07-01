@@ -164,7 +164,7 @@ func (l ListComposite[C]) ChunkCount() uint64 {
 // SizeSSZ returns the size of the list in bytes.
 func (l ListComposite[C]) SizeSSZ() int {
 	// The same for ListComposite as for VectorComposite.
-	return VectorComposite[C](l.elements).SizeSSZ()
+	return Vector[C](l.elements).SizeSSZ()
 }
 
 // HashTreeRootWith returns the Merkle root of the ListComposite
