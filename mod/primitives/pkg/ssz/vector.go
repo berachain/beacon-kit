@@ -111,7 +111,6 @@ func (v Vector[T]) HashTreeRootWith(
 	var b T
 	switch b.Type() {
 	case types.Basic:
-
 		return merkleizer.MerkleizeVectorBasic(v)
 	case types.Composite:
 		return merkleizer.MerkleizeVectorCompositeOrContainer(v)
