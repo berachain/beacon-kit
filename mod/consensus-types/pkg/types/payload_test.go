@@ -321,8 +321,7 @@ func TestExecutableDataDenebHashTreeRoot(t *testing.T) {
 		ExtraData:     []byte("extra"),
 		BaseFeePerGas: math.MustNewU256LFromBigInt(big.NewInt(1234)),
 		BlockHash:     gethprimitives.ExecutionHash{6},
-		// TODO: THERE IS CURRENTLY A MISMATCH IF THERE ARE TXS HERE.
-		Transactions:  [][]byte{},
+		Transactions:  [][]byte{[]byte("tx1"), []byte("tx2")},
 		Withdrawals:   []*engineprimitives.Withdrawal{{Index: 1, Amount: 100}},
 		BlobGasUsed:   2000,
 		ExcessBlobGas: 3000,
@@ -346,7 +345,7 @@ func TestExecutableDataDenebHashTreeRoot(t *testing.T) {
 		ssz.ByteListFromBytes(payload.ExtraData, 32),
 		ssz.NewU256FromUint64(1234),
 		ssz.ByteVectorFromBytes(payload.BlockHash[:]),
-		engineprimitives.BartioTransactionsFromBytes(payload.Transactions),
+		engineprimitives.ProperTransactionsFromBytes(payload.Transactions),
 		ssz.ListFromElements(16, payload.Withdrawals...),
 		ssz.U64(payload.BlobGasUsed),
 		ssz.U64(payload.ExcessBlobGas),

@@ -55,6 +55,24 @@ func BartioTransactionsFromBytes(data [][]byte) *BartioTransactions {
 		*(*[]ssz.Vector[ssz.Byte])(unsafe.Pointer(&data))...)
 }
 
+type ProperTransactions = ssz.List[*ssz.List[ssz.Byte]]
+
+// ProperTransactionsFromBytes creates a Transactions object from a byte slice.
+func ProperTransactionsFromBytes(data [][]byte) *ProperTransactions {
+	txs := make([]*ssz.List[ssz.Byte], len(data))
+	for i, tx := range data {
+		txs[i] = ssz.ByteListFromBytes(tx, 1073741824)
+
+	}
+
+	y := ssz.ListFromElements(constants.MaxTxsPerPayload, txs...)
+
+	return ssz.ListFromElements[*ssz.List[ssz.Byte]](
+		constants.MaxTxsPerPayload,
+		y.Elements()...,
+	)
+}
+
 // TxsMerkleizer is a ssz merkleizer used for transactions.
 //
 // TODO: make the ChainSpec a generic on this type.
