@@ -58,10 +58,9 @@ func ListFromElements[T types.MinimalSSZType](
 
 // ByteList from Bytes creates a new List from bytes.
 func ByteListFromBytes(bytes []byte, limit uint64) *List[Byte] {
-	//#nosec:G103 // its fine, but we should find  abetter solution.
-	elements := *(*[]Byte)(unsafe.Pointer(&bytes))
 	return &List[Byte]{
-		elements: elements,
+		//#nosec:G103 // its fine, but we should find a better solution.
+		elements: *(*[]Byte)(unsafe.Pointer(&bytes)),
 		limit:    limit,
 	}
 }
