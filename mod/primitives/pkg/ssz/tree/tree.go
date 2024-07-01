@@ -24,12 +24,12 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// MerkleTree returns a Merkle tree of the given leaves.
+// New returns a Merkle tree of the given leaves.
 // As defined in the Ethereum 2.0 Spec:
 // https://github.com/ethereum/consensus-specs/blob/dev/ssz/merkle-proofs.md#generalized-merkle-tree-index
 //
 //nolint:lll // link.
-func NewLeaves[LeafT ~[32]byte](
+func New[LeafT ~[32]byte](
 	leaves []LeafT,
 	hashFn func([]byte) LeafT,
 ) []LeafT {
