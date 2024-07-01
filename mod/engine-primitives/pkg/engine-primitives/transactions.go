@@ -21,8 +21,11 @@
 package engineprimitives
 
 import (
+	"unsafe"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 )
 
@@ -38,6 +41,35 @@ type Transactions [][]byte
 func (txs Transactions) HashTreeRoot() (common.Root, error) {
 	return txs.HashTreeRootWith(
 		merkleizer.New[[32]byte, common.Root](),
+	)
+}
+
+type BartioTransactions = ssz.List[ssz.Vector[ssz.Byte]]
+
+// BartioTransactionsFromBytes creates a Transactions object from a byte slice.
+func BartioTransactionsFromBytes(data [][]byte) *BartioTransactions {
+	return ssz.ListFromElements(
+		// TODO: Move this value to chain spec.
+		constants.MaxTxsPerPayload,
+		//#nosec:G103 // todo fix later.
+		*(*[]ssz.Vector[ssz.Byte])(unsafe.Pointer(&data))...)
+}
+
+type ProperTransactions = ssz.List[*ssz.List[ssz.Byte]]
+
+// ProperTransactionsFromBytes creates a Transactions object from a byte slice.
+func ProperTransactionsFromBytes(data [][]byte) *ProperTransactions {
+	txs := make([]*ssz.List[ssz.Byte], len(data))
+	for i, tx := range data {
+		//nolint:mnd // unhood later.
+		txs[i] = ssz.ByteListFromBytes(tx, 1073741824)
+	}
+
+	y := ssz.ListFromElements(constants.MaxTxsPerPayload, txs...)
+
+	return ssz.ListFromElements(
+		constants.MaxTxsPerPayload,
+		y.Elements()...,
 	)
 }
 

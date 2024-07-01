@@ -70,15 +70,6 @@ func (w *Withdrawal) GetAmount() math.Gwei {
 	return w.Amount
 }
 
-// NewFromSSZ returns a new Withdrawal from the provided SSZ bytes.
-func (*Withdrawal) NewFromSSZ(bytes []byte) (*Withdrawal, error) {
-	w := new(Withdrawal)
-	if err := w.UnmarshalSSZ(bytes); err != nil {
-		return nil, err
-	}
-	return w, nil
-}
-
 // IsFixed returns true if the Withdrawal is fixed size.
 func (*Withdrawal) IsFixed() bool {
 	return true

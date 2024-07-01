@@ -21,6 +21,8 @@
 package ssz
 
 import (
+	"unsafe"
+
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
@@ -35,12 +37,19 @@ import (
 var _ types.SSZEnumerable[U64] = (Vector[U64])(nil)
 
 // Vector represents a vector of elements.
-type Vector[T types.SSZType[T]] []T
+type Vector[T types.MinimalSSZType] []T
 
 // VectorBasicFromElements creates a new ListComposite from elements.
 // TODO: Deprecate once off of Fastssz
-func VectorFromElements[T types.SSZType[T]](elements ...T) Vector[T] {
+func VectorFromElements[T types.MinimalSSZType](elements ...T) Vector[T] {
 	return elements
+}
+
+// ByteVectorFromBytes creates a new Vector[Byte]ß from bytes.
+func ByteVectorFromBytes(bytes []byte) Vector[Byte] {
+	//#nosec:G103 // its fine, but we should find  abetter solution.
+	v := *(*Vector[Byte])(unsafe.Pointer(&bytes))
+	return v
 }
 
 /* -------------------------------------------------------------------------- */

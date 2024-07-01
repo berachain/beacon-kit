@@ -21,6 +21,8 @@
 package ssz
 
 import (
+	"unsafe"
+
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
@@ -35,18 +37,30 @@ import (
 var _ types.SSZEnumerable[U64] = (*List[U64])(nil)
 
 // List is a list of basic types.
-type List[T types.SSZType[T]] struct {
+type List[T types.MinimalSSZType] struct {
+	// elements is the list of elements.
 	elements []T
-	limit    uint64
+	// limit is the maximum number of elements in the list.
+	limit uint64
 }
 
 // ListFromElements creates a new ListComposite from elements.
 // TODO: Deprecate once off of Fastssz
-func ListFromElements[T types.SSZType[T]](
+func ListFromElements[T types.MinimalSSZType](
 	limit uint64,
 	elements ...T,
 ) *List[T] {
 	return &List[T]{
+		elements: elements,
+		limit:    limit,
+	}
+}
+
+// ByteList from Bytes creates a new List from bytes.
+func ByteListFromBytes(bytes []byte, limit uint64) *List[Byte] {
+	//#nosec:G103 // its fine, but we should find  abetter solution.
+	elements := *(*[]Byte)(unsafe.Pointer(&bytes))
+	return &List[Byte]{
 		elements: elements,
 		limit:    limit,
 	}
@@ -57,13 +71,13 @@ func ListFromElements[T types.SSZType[T]](
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the list in bytes.
-func (l List[T]) SizeSSZ() int {
+func (l *List[T]) SizeSSZ() int {
 	// The same for List as for Vector.
 	return Vector[T](l.elements).SizeSSZ()
 }
 
 // IsFixed returns true if the List is fixed size.
-func (l List[T]) IsFixed() bool {
+func (l *List[T]) IsFixed() bool {
 	// We recursively define "variable-size" types to be lists, unions,
 	// Bitlists.
 	// Therefore all Lists are NOT fixed.
@@ -71,14 +85,14 @@ func (l List[T]) IsFixed() bool {
 }
 
 // N returns the N value as defined in the SSZ specification.
-func (l List[T]) N() uint64 {
+func (l *List[T]) N() uint64 {
 	// list: ordered variable-length homogeneous collection, limited to N values
 	// notation List[type, N], e.g. List[uint64, N]
 	return l.limit
 }
 
 // ChunkCount returns the number of chunks in the List.
-func (l List[T]) ChunkCount() uint64 {
+func (l *List[T]) ChunkCount() uint64 {
 	var b T
 	switch b.Type() {
 	case types.Basic:
@@ -91,18 +105,18 @@ func (l List[T]) ChunkCount() uint64 {
 }
 
 // Type returns the type of the List.
-func (l List[T]) Type() types.Type {
+func (l *List[T]) Type() types.Type {
 	return types.Composite
 }
 
 // Elements returns the elements of the List.
-func (l List[T]) Elements() []T {
+func (l *List[T]) Elements() []T {
 	return l.elements
 }
 
 // HashTreeRootWith returns the Merkle root of the List
 // with a given merkleizer.
-func (l List[T]) HashTreeRootWith(
+func (l *List[T]) HashTreeRootWith(
 	merkleizer ListMerkleizer[[32]byte, T],
 ) ([32]byte, error) {
 	var b T
@@ -117,24 +131,24 @@ func (l List[T]) HashTreeRootWith(
 }
 
 // HashTreeRoot returns the Merkle root of the List.
-func (l List[T]) HashTreeRoot() ([32]byte, error) {
+func (l *List[T]) HashTreeRoot() ([32]byte, error) {
 	// Create a merkleizer
 	return l.HashTreeRootWith(merkleizer.New[[32]byte, T]())
 }
 
 // MarshalSSZTo marshals the List into SSZ format.
-func (l List[T]) MarshalSSZTo(out []byte) ([]byte, error) {
+func (l *List[T]) MarshalSSZTo(out []byte) ([]byte, error) {
 	return Vector[T](l.elements).MarshalSSZTo(out)
 }
 
 // MarshalSSZ marshals the List into SSZ format.
-func (l List[T]) MarshalSSZ() ([]byte, error) {
+func (l *List[T]) MarshalSSZ() ([]byte, error) {
 	// The same for List as for Vector.
 	return Vector[T](l.elements).MarshalSSZ()
 }
 
 // NewFromSSZ creates a new List from SSZ format.
-func (l List[T]) NewFromSSZ(buf []byte, limit uint64) (*List[T], error) {
+func (l *List[T]) NewFromSSZ(buf []byte, limit uint64) (*List[T], error) {
 	// We can use Vector helper for a list here, it is safe.
 	elements, err := Vector[T](l.elements).NewFromSSZ(buf)
 	if err != nil {

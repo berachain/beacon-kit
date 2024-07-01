@@ -22,6 +22,7 @@ package types_test
 
 import (
 	"encoding/json"
+	"math/big"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -30,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/stretchr/testify/require"
@@ -301,4 +303,62 @@ func TestExecutableDataDeneb_UnmarshalJSON_Error(t *testing.T) {
 			require.Contains(t, err.Error(), tc.expectedError)
 		})
 	}
+}
+
+func TestExecutableDataDenebHashTreeRoot(t *testing.T) {
+	// Create a sample ExecutableDataDeneb
+	payload := &types.ExecutableDataDeneb{
+		ParentHash:    gethprimitives.ExecutionHash{1},
+		FeeRecipient:  gethprimitives.ExecutionAddress{2},
+		StateRoot:     common.Bytes32{3},
+		ReceiptsRoot:  common.Bytes32{4},
+		LogsBloom:     make([]byte, 256),
+		Random:        common.Bytes32{5},
+		Number:        123,
+		GasLimit:      456,
+		GasUsed:       789,
+		Timestamp:     1000,
+		ExtraData:     []byte("extra"),
+		BaseFeePerGas: math.MustNewU256LFromBigInt(big.NewInt(1234)),
+		BlockHash:     gethprimitives.ExecutionHash{6},
+		Transactions:  [][]byte{[]byte("tx1"), []byte("tx2")},
+		Withdrawals:   []*engineprimitives.Withdrawal{{Index: 1, Amount: 100}},
+		BlobGasUsed:   2000,
+		ExcessBlobGas: 3000,
+	}
+
+	// Calculate HashTreeRoot using the type's method
+	typeRoot, err := payload.HashTreeRoot()
+	require.NoError(t, err)
+
+	container := ssz.ContainerFromElements(
+		ssz.ByteVectorFromBytes(payload.ParentHash[:]),
+		ssz.ByteVectorFromBytes(payload.FeeRecipient[:]),
+		ssz.ByteVectorFromBytes(payload.StateRoot[:]),
+		ssz.ByteVectorFromBytes(payload.ReceiptsRoot[:]),
+		ssz.ByteVectorFromBytes(payload.LogsBloom),
+		ssz.ByteVectorFromBytes(payload.Random[:]),
+		ssz.U64(payload.Number),
+		ssz.U64(payload.GasLimit),
+		ssz.U64(payload.GasUsed),
+		ssz.U64(payload.Timestamp),
+		ssz.ByteListFromBytes(payload.ExtraData, 32),
+		ssz.NewU256FromUint64(1234),
+		ssz.ByteVectorFromBytes(payload.BlockHash[:]),
+		engineprimitives.ProperTransactionsFromBytes(payload.Transactions),
+		ssz.ListFromElements(16, payload.Withdrawals...),
+		ssz.U64(payload.BlobGasUsed),
+		ssz.U64(payload.ExcessBlobGas),
+	)
+
+	// // Calculate HashTreeRoot using the container
+	containerRoot, err := container.HashTreeRoot()
+	require.NoError(t, err)
+	// Compare the results
+	require.Equal(
+		t,
+		typeRoot,
+		containerRoot,
+		"HashTreeRoot results should match",
+	)
 }

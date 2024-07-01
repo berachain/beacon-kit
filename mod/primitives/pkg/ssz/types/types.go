@@ -27,34 +27,36 @@ const (
 	Composite
 )
 
-type BaseSSZType interface {
-	// HashTreeRoot returns the hash tree root of the composite type.
-	HashTreeRoot() ([32]byte, error)
+// MinimalSSZType is the smallest interface of an SSZable type.
+type MinimalSSZType interface {
 	// MarshalSSZ marshals the type into SSZ format.
 	IsFixed() bool
-	// SizeSSZ returns the size of the type in bytes.
-	SizeSSZ() int
 	// Type returns the type of the SSZ object.
 	Type() Type
+	// SizeSSZ returns the size of the type in bytes.
+	SizeSSZ() int
+
+	// TODO: Do we want these off the minimal?
+	//
+	// HashTreeRoot returns the hash tree root of the composite type.
+	HashTreeRoot() ([32]byte, error)
 	// MarshalSSZ marshals the type into SSZ format.
 	MarshalSSZ() ([]byte, error)
 }
 
 // SSZType is the interface for all SSZ types.
 type SSZType[T any] interface {
-	BaseSSZType
-	NewFromSSZ([]byte) (T, error)
-	// TODO: Enable
-	//
+	MinimalSSZType
 	// ChunkCount returns the number of chunks required to store the type.
-	// ChunkCount() uint64
+	ChunkCount() uint64
+	NewFromSSZ([]byte) (T, error)
 }
 
 // SSZEnumerable is the interface for all SSZ enumerable types must implement.
 type SSZEnumerable[
 	ElementT any,
 ] interface {
-	BaseSSZType
+	MinimalSSZType
 	// N returns the N value as defined in the SSZ specification.
 	N() uint64
 	// Elements returns the elements of the enumerable type.
