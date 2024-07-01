@@ -24,7 +24,7 @@ package merkleizer
 // basic types.
 func (m *merkleizer[RootT, T]) MerkleizeListBasic(
 	value []T,
-	limit ...uint64,
+	chunkCount uint64,
 ) (RootT, error) {
 	// mix_in_length(
 	// 		merkleize(
@@ -39,15 +39,15 @@ func (m *merkleizer[RootT, T]) MerkleizeListBasic(
 		return [32]byte{}, err
 	}
 
-	var effectiveLimit uint64
-	if len(limit) > 0 {
-		effectiveLimit = limit[0]
-	} else {
-		effectiveLimit = uint64(len(packed))
-	}
+	// var effectiveLimit uint64
+	// if len(limit) > 0 {
+	// 	effectiveLimit = limit[0]
+	// } else {
+	// 	effectiveLimit = uint64(len(packed))
+	// }
 
 	root, err := m.Merkleize(
-		packed, ChunkCountBasicList(value, effectiveLimit),
+		packed, chunkCount,
 	)
 	if err != nil {
 		return [32]byte{}, err
@@ -59,7 +59,7 @@ func (m *merkleizer[RootT, T]) MerkleizeListBasic(
 // of composite types.
 func (m *merkleizer[RootT, T]) MerkleizeListComposite(
 	value []T,
-	limit ...uint64,
+	chunkCount uint64,
 ) (RootT, error) {
 	var (
 		err  error
@@ -73,15 +73,8 @@ func (m *merkleizer[RootT, T]) MerkleizeListComposite(
 		}
 	}
 
-	var effectiveLimit uint64
-	if len(limit) > 0 {
-		effectiveLimit = limit[0]
-	} else {
-		effectiveLimit = uint64(len(value))
-	}
-
 	root, err := m.Merkleize(
-		htrs, ChunkCountCompositeList(value, effectiveLimit),
+		htrs, chunkCount,
 	)
 	if err != nil {
 		return RootT{}, err

@@ -26,9 +26,9 @@ type Merkleizer[
 ] interface {
 	MerkleizeBasic(value T) (RootT, error)
 	MerkleizeVectorBasic(value []T) (RootT, error)
-	MerkleizeListBasic(value []T, limit ...uint64) (RootT, error)
+	MerkleizeListBasic(value []T, chunkCount uint64) (RootT, error)
 	MerkleizeVectorCompositeOrContainer(value []T) (RootT, error)
-	MerkleizeListComposite(value []T, limit ...uint64) (RootT, error)
+	MerkleizeListComposite(value []T, chunkCount uint64) (RootT, error)
 	MerkleizeByteSlice(value []byte) (RootT, error)
 	Merkleize(chunks []RootT, limit ...uint64) (RootT, error)
 }
