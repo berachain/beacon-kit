@@ -152,7 +152,7 @@ func DefaultGenesisExecutionPayloadHeaderDeneb() (
 
 	g.Go(func() error {
 		var err error
-		wds := ssz.ListCompositeFromElements(
+		wds := ssz.ListFromElements(
 			spec.DevnetChainSpec().MaxWithdrawalsPerPayload(),
 			[]*engineprimitives.Withdrawal{}...,
 		)

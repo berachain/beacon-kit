@@ -33,7 +33,7 @@ import (
 /* -------------------------------------------------------------------------- */
 
 // Vector conforms to the SSZEenumerable interface.
-var _ types.SSZEnumerable[Vector[U64], U64] = (Vector[U64])(nil)
+var _ types.SSZEnumerable[U64] = (Vector[U64])(nil)
 
 // Vector represents a vector of elements.
 type Vector[B types.SSZType[B]] []B
@@ -102,10 +102,14 @@ func (v Vector[B]) HashTreeRootWith(
 	merkleizer VectorMerkleizer[[32]byte, B],
 ) ([32]byte, error) {
 	var b B
-	if b.Type() == types.Basic {
+	switch b.Type() {
+	case types.Basic:
 		return merkleizer.MerkleizeVectorBasic(v)
+	case types.Composite:
+		return merkleizer.MerkleizeVectorCompositeOrContainer(v)
+	default:
+		return [32]byte{}, errors.Wrapf(ErrUnknownType, "%v", b.Type())
 	}
-	return merkleizer.MerkleizeVectorCompositeOrContainer(v)
 }
 
 // HashTreeRoot returns the Merkle root of the VectorBasic.
