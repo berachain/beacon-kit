@@ -72,6 +72,7 @@ func (v Vector[B]) ChunkCount() uint64 {
 	var b B
 	switch b.Type() {
 	case types.Basic:
+		//#nosec:G701 // its fine.
 		return (v.N()*uint64(b.SizeSSZ()) + 31) / constants.BytesPerChunk
 	default:
 		return v.N()
