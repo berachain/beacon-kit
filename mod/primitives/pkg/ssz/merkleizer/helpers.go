@@ -24,13 +24,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 )
 
-// ChunkCountBitListVec returns the number of chunks required to store a bitlist
-// or bitvector.
-func ChunkCountBitListVec[T any](t []T) uint64 {
-	//nolint:mnd // 256 is okay.
-	return (uint64(len(t)) + 255) / 256
-}
-
 // pack packs a list of SSZ-marshallable elements into a single byte slice.
 func pack[
 	RootT ~[32]byte,
