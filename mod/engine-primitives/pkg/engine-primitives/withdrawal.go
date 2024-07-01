@@ -88,3 +88,9 @@ func (*Withdrawal) IsFixed() bool {
 func (*Withdrawal) Type() types.Type {
 	return types.Composite
 }
+
+// ChunkCount returns the number of chunks in the Withdrawal.
+func (*Withdrawal) ChunkCount() uint64 {
+	//nolint:mnd // 4 chunks bc 4 elements.
+	return 4
+}

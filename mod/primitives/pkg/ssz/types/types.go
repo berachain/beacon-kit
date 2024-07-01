@@ -38,6 +38,8 @@ type BaseSSZType interface {
 	Type() Type
 	// MarshalSSZ marshals the type into SSZ format.
 	MarshalSSZ() ([]byte, error)
+	// ChunkCount returns the number of chunks required to store the type.
+	ChunkCount() uint64
 }
 
 // SSZType is the interface for all SSZ types.
