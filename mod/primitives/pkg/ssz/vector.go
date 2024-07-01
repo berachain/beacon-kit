@@ -35,11 +35,11 @@ import (
 var _ types.SSZEnumerable[U64] = (Vector[U64])(nil)
 
 // Vector represents a vector of elements.
-type Vector[B types.SSZType[B]] []B
+type Vector[T types.SSZType[T]] []T
 
 // VectorBasicFromElements creates a new ListComposite from elements.
 // TODO: Deprecate once off of Fastssz
-func VectorFromElements[B Basic[B]](elements ...B) Vector[B] {
+func VectorFromElements[T types.SSZType[T]](elements ...T) Vector[T] {
 	return elements
 }
 
@@ -48,27 +48,27 @@ func VectorFromElements[B Basic[B]](elements ...B) Vector[B] {
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the list in bytes.
-func (v Vector[B]) SizeSSZ() int {
-	var b B
+func (v Vector[T]) SizeSSZ() int {
+	var b T
 	return b.SizeSSZ() * len(v)
 }
 
 // isFixed returns true if the VectorBasic is fixed size.
-func (Vector[B]) IsFixed() bool {
+func (Vector[T]) IsFixed() bool {
 	// If the element in the vector is fixed size, then
 	// the vector is fixed size.
-	var b B
+	var b T
 	return b.IsFixed()
 }
 
 // Type returns the type of the VectorBasic.
-func (Vector[B]) Type() types.Type {
+func (Vector[T]) Type() types.Type {
 	return types.Composite
 }
 
 // ChunkCount returns the number of chunks in the VectorBasic.
-func (v Vector[B]) ChunkCount() uint64 {
-	var b B
+func (v Vector[T]) ChunkCount() uint64 {
+	var b T
 	switch b.Type() {
 	case types.Basic:
 		//#nosec:G701 // its fine.
@@ -80,14 +80,14 @@ func (v Vector[B]) ChunkCount() uint64 {
 }
 
 // N returns the N value as defined in the SSZ specification.
-func (v Vector[B]) N() uint64 {
+func (v Vector[T]) N() uint64 {
 	// vector: ordered fixed-length homogeneous collection, with N values
 	// notation Vector[type, N], e.g. Vector[uint64, N]
 	return uint64(len(v))
 }
 
 // Elements returns the elements of the VectorBasic.
-func (v Vector[B]) Elements() []B {
+func (v Vector[T]) Elements() []T {
 	return v
 }
 
@@ -97,10 +97,10 @@ func (v Vector[B]) Elements() []B {
 
 // HashTreeRootWith returns the Merkle root of the VectorBasic
 // with a given merkleizer.
-func (v Vector[B]) HashTreeRootWith(
-	merkleizer VectorMerkleizer[[32]byte, B],
+func (v Vector[T]) HashTreeRootWith(
+	merkleizer VectorMerkleizer[[32]byte, T],
 ) ([32]byte, error) {
-	var b B
+	var b T
 	switch b.Type() {
 	case types.Basic:
 		return merkleizer.MerkleizeVectorBasic(v)
@@ -112,8 +112,8 @@ func (v Vector[B]) HashTreeRootWith(
 }
 
 // HashTreeRoot returns the Merkle root of the VectorBasic.
-func (v Vector[B]) HashTreeRoot() ([32]byte, error) {
-	return v.HashTreeRootWith(merkleizer.New[[32]byte, B]())
+func (v Vector[T]) HashTreeRoot() ([32]byte, error) {
+	return v.HashTreeRootWith(merkleizer.New[[32]byte, T]())
 }
 
 /* -------------------------------------------------------------------------- */
@@ -121,16 +121,16 @@ func (v Vector[B]) HashTreeRoot() ([32]byte, error) {
 /* -------------------------------------------------------------------------- */
 
 // MarshalSSZToBytes marshals the VectorBasic into SSZ format.
-func (v Vector[B]) MarshalSSZTo(out []byte) ([]byte, error) {
+func (v Vector[T]) MarshalSSZTo(out []byte) ([]byte, error) {
 	return nil, errors.New("not implemented yet")
 }
 
 // MarshalSSZ marshals the VectorBasic into SSZ format.
-func (v Vector[B]) MarshalSSZ() ([]byte, error) {
+func (v Vector[T]) MarshalSSZ() ([]byte, error) {
 	return v.MarshalSSZTo(make([]byte, 0, v.SizeSSZ()))
 }
 
 // NewFromSSZ creates a new VectorBasic from SSZ format.
-func (v Vector[B]) NewFromSSZ(buf []byte) (Vector[B], error) {
+func (v Vector[T]) NewFromSSZ(buf []byte) (Vector[T], error) {
 	return nil, errors.New("not implemented yet")
 }

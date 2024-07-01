@@ -32,7 +32,7 @@ type BaseMerkleizer[
 
 // BasicMerkleizer provides merkleization operations for basic SSZ types.
 type BasicMerkleizer[
-	RootT ~[32]byte, T Basic[T],
+	RootT ~[32]byte, T types.SSZType[T],
 ] interface {
 	BaseMerkleizer[RootT, T]
 	MerkleizeBasic(value T) (RootT, error)
@@ -43,7 +43,7 @@ type BasicMerkleizer[
 // CompositeMerkleizer provides merkleization operations for composite SSZ
 // types.
 type CompositeMerkleizer[
-	SpecT any, RootT ~[32]byte, T Composite[T],
+	SpecT any, RootT ~[32]byte, T types.SSZType[T],
 ] interface {
 	BaseMerkleizer[RootT, T]
 	MerkleizeListComposite(value []T, chunkCount uint64) (RootT, error)
