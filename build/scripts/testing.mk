@@ -19,10 +19,16 @@ IPC_PATH = .tmp/eth-home/eth-engine.ipc
 HTTP_URL = localhost:8551
 IPC_PREFIX = ipc://
 HTTP_PREFIX = http://
+INTERNAL_IP=$(hostname -I | awk '{print $1}')
 
 ## Testing:
 start: ## start an ephemeral `beacond` node
 	@JWT_SECRET_PATH=$(JWT_PATH) ${TESTAPP_FILES_DIR}/entrypoint.sh
+
+start-validator: ## start an ephemeral `beacond` node
+	JWT_SECRET_PATH=$(JWT_PATH) ${TESTAPP_FILES_DIR}/entrypoint.sh 1 validator
+start-node: ## start an ephemeral `beacond` node
+	JWT_SECRET_PATH=$(JWT_PATH) ${TESTAPP_FILES_DIR}/entrypoint.sh 1 node
 
 # start-ipc is currently only supported while running eth client the host machine
 # Only works with geth-host rn
@@ -87,6 +93,36 @@ start-geth: ## start an ephemeral `geth` node with docker
 	--authrpc.vhosts "*" \
 	--datadir ${ETH_DATA_DIR} \
 	--ipcpath ${IPC_PATH}
+
+start-geth-init:
+	sudo chmod 777 -R .tmp
+	rm -rf ${ETH_DATA_DIR}
+
+	docker run \
+	--rm -d -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	-v $(PWD)/.tmp:/.tmp \
+	ethereum/client-go init \
+	--datadir ${ETH_DATA_DIR} \
+	${ETH_GENESIS_PATH}
+
+start-geth-run:
+	sudo chmod 777 -R .tmp
+	docker run --name execution-geth \
+	-p 30303:30303 \
+	-p 8545:8545 \
+	-p 8551:8551 \
+	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	-v $(PWD)/.tmp:/.tmp \
+	ethereum/client-go \
+	--http \
+	--http.addr 0.0.0.0 \
+	--http.api eth,net \
+	--authrpc.addr 0.0.0.0 \
+	--authrpc.jwtsecret $(JWT_PATH) \
+	--authrpc.vhosts "*" \
+	--datadir ${ETH_DATA_DIR} \
+	--ipcpath ${IPC_PATH}
+	--nat extip:${INTERNAL_IP}
 
 start-geth-host: ## start a local ephemeral `geth` node on host machine
 	rm -rf ${ETH_DATA_DIR}

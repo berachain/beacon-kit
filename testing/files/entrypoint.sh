@@ -47,6 +47,8 @@ GENESIS=$HOMEDIR/config/genesis.json
 TMP_GENESIS=$HOMEDIR/config/tmp_genesis.json
 ETH_GENESIS=$(resolve_path "./testing/files/eth-genesis.json")
 
+sudo chmod 777 -R ./.tmp
+
 # used to exit on first error (any non-zero exit code)
 set -e
 
@@ -55,10 +57,14 @@ make build
 
 overwrite="N"
 if [ -d $HOMEDIR ]; then
-	printf "\nAn existing folder at '%s' was found. You can choose to delete this folder and start a new local node with new keys from genesis. When declined, the existing local node is started. \n" $HOMEDIR
-	echo "Overwrite the existing configuration and start a new local node? [y/n]"
-	read -r overwrite
-else	
+  if [ $1 == "1" ]; then
+    printf "\nAn existing folder at '%s' was found. skip overwrite\n" $HOMEDIR
+  else
+    printf "\nAn existing folder at '%s' was found. You can choose to delete this folder and start a new local node with new keys from genesis. When declined, the existing local node is started. \n" $HOMEDIR
+    echo "Overwrite the existing configuration and start a new local node? [y/n]"
+    read -r overwrite
+  fi
+else
 overwrite="Y"
 fi
 
@@ -71,6 +77,9 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 		--chain-id $CHAINID \
 		--home $HOMEDIR \
 		--consensus-key-algo $CONSENSUS_KEY_ALGO
+	if [ $2 == "validator" ]; then
+	  cp -rf ./testing/files/priv_validator_key.json $HOMEDIR/config/priv_validator_key.json
+	fi
 	./build/bin/beacond genesis add-premined-deposit --home $HOMEDIR
 	./build/bin/beacond genesis collect-premined-deposits --home $HOMEDIR 
 	./build/bin/beacond genesis execution-payload "$ETH_GENESIS" --home $HOMEDIR
