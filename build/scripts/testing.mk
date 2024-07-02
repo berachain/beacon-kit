@@ -235,7 +235,7 @@ start-erigon-validator-run:
 	--networkid 80087 \
 	--db.size.limit	3000MB \
 	--datadir .tmp/erigon \
-	--rpc.allow-unprotected-txs
+	--rpc.allow-unprotected-txs \
 	--nat extip:${INTERNAL_IP}
 
 start-erigon-node-run:
