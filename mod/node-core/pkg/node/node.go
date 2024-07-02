@@ -43,7 +43,7 @@ type node[T transaction.Tx] struct {
 
 // New returns a new node.
 func New[NodeT types.Node[T], T transaction.Tx]() NodeT {
-	return types.Node[transaction.Tx](&node[transaction.Tx]{}).(NodeT)
+	return any(&node[T]{}).(NodeT)
 }
 
 // Start starts the node.

@@ -24,6 +24,7 @@ import (
 	"context"
 
 	"cosmossdk.io/core/transaction"
+	sdktransaction "cosmossdk.io/core/transaction"
 	"cosmossdk.io/server/v2/cometbft/handlers"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
@@ -36,7 +37,7 @@ import (
 func NewConsensusEngine[
 	T transaction.Tx, ValidatorUpdateT any,
 ](
-	txCodec transaction.Codec[T],
+	txCodec sdktransaction.Codec[T],
 	m Middleware,
 ) *ConsensusEngine[T, ValidatorUpdateT] {
 	return &ConsensusEngine[T, ValidatorUpdateT]{
@@ -49,7 +50,7 @@ func NewConsensusEngine[
 // Right now, it is very coupled to the sdk base app and we will
 // eventually fully decouple this.
 type ConsensusEngine[T transaction.Tx, ValidatorUpdateT any] struct {
-	txCodec transaction.Codec[T]
+	txCodec sdktransaction.Codec[T]
 	Middleware
 }
 

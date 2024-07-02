@@ -98,6 +98,7 @@ func UnmarshalBeaconBlockFromABCIRequest[
 		fmt.Println("bzIndex is out of bounds in unmarshal beacon block from abci request")
 		return blk, ErrBzIndexOutOfBounds
 	}
+	fmt.Println("REEEE1")
 
 	// Extract the beacon block from the ABCI request.
 	blkBz := txs[bzIndex]

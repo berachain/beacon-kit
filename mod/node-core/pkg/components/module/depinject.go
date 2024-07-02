@@ -21,13 +21,23 @@
 package beacon
 
 import (
+	// runtimev2 "cosmossdk.io/api/cosmos/app/runtime/v2"
+	// appv1alpha1 "cosmossdk.io/api/cosmos/app/v1alpha1"
 	"cosmossdk.io/core/appmodule"
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
+
+	// "cosmossdk.io/core/legacy"
+	// "cosmossdk.io/core/registry"
 	"cosmossdk.io/core/transaction"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
+
+	// "cosmossdk.io/log"
+	// "cosmossdk.io/runtime/v2"
+	// rootstorev2 "cosmossdk.io/store/v2/root"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	modulev2 "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module/api/module/v2"
+
 	cmtruntime "github.com/berachain/beacon-kit/mod/runtime/pkg/cometbft"
 )
 
@@ -35,12 +45,25 @@ import (
 //
 //nolint:gochecknoinits // required by sdk.
 func init() {
+	// appconfig.Register(&runtimev2.Module{},
+	// 	appconfig.Provide(
+	// 		runtime.ProvideAppBuilder[*bktransaction.SSZTx],
+	// 		runtime.ProvideEnvironment[*bktransaction.SSZTx],
+	// 		runtime.ProvideModuleManager[*bktransaction.SSZTx],
+	// 		runtime.ProvideGenesisTxHandler[*bktransaction.SSZTx],
+	// 		runtime.ProvideCometService,
+	// 		runtime.ProvideAppVersionModifier[*bktransaction.SSZTx],
+	// 	),
+	// 	appconfig.Invoke(runtime.SetupAppBuilder),
+	// )
 	appconfig.RegisterModule(&modulev2.Module{},
 		appconfig.Provide(
 			components.ProvideKVStore,
 			components.ProvideMessageServer,
 			ProvideModule[
-				transaction.Tx, appmodulev2.ValidatorUpdate, // TODO: idk man
+				// *bktransaction.SSZTx,
+				transaction.Tx,
+				appmodulev2.ValidatorUpdate, // TODO: idk man
 			],
 		),
 	)

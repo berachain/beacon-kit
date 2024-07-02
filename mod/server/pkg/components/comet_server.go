@@ -23,7 +23,6 @@ package components
 import (
 	"cosmossdk.io/core/transaction"
 	"cosmossdk.io/depinject"
-	nodecomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	cmtserver "github.com/berachain/beacon-kit/mod/server/pkg/components/cometbft"
 )
@@ -31,7 +30,7 @@ import (
 // CometServerInput is the input for the CometServer for the depinject package.
 type CometServerInput[T transaction.Tx, ValidatorUpdateT any] struct {
 	depinject.In
-	TxCodec *nodecomponents.TxCodec[T]
+	TxCodec transaction.Codec[T]
 }
 
 // ProvideCometServer is the provider for the CometServer for the depinject

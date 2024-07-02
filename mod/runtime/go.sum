@@ -8,6 +8,8 @@ cosmossdk.io/api v0.7.3-0.20240628155326-d426a5db6775 h1:5lcxwkRRxIahjPdwPohLAJj
 cosmossdk.io/api v0.7.3-0.20240628155326-d426a5db6775/go.mod h1:5tcrMbzQJlJl7SReX8UcF7dJboRoMNdA8Uj35Mctjlk=
 cosmossdk.io/collections v0.4.0 h1:PFmwj2W8szgpD5nOd8GWH6AbYNi1f2J6akWXJ7P5t9s=
 cosmossdk.io/collections v0.4.0/go.mod h1:oa5lUING2dP+gdDquow+QjlF45eL1t4TJDypgGd+tv0=
+cosmossdk.io/core v0.12.1-0.20240628155326-d426a5db6775 h1:fjwhZEa2OzlDpLoIN0Ko21bxkxd6+DH7uyKShxN1EPs=
+cosmossdk.io/core v0.12.1-0.20240628155326-d426a5db6775/go.mod h1:y/LnxW6nMaPDS++FhpNo9/vo6TN1OBKgtn1goYo2IkI=
 cosmossdk.io/errors v1.0.1 h1:bzu+Kcr0kS/1DuPBtUFdWjzLqyUuCiyHjyJB6srBV/0=
 cosmossdk.io/errors v1.0.1/go.mod h1:MeelVSZThMi4bEakzhhhE/CKqVv3nOJDA25bIqRDu/U=
 cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce h1:udTT5vz8tu5WfnHnDJv9Mb2iwHimMa9zJDsMksrRU2o=
@@ -111,8 +113,6 @@ github.com/cosmos/cosmos-db v1.0.2 h1:hwMjozuY1OlJs/uh6vddqnk9j7VamLv+0DBlbEXbAK
 github.com/cosmos/cosmos-db v1.0.2/go.mod h1:Z8IXcFJ9PqKK6BIsVOB3QXtkKoqUOp1vRvPT39kOXEA=
 github.com/cosmos/cosmos-proto v1.0.0-beta.5 h1:eNcayDLpip+zVLRLYafhzLvQlSmyab+RC5W7ZfmxJLA=
 github.com/cosmos/cosmos-proto v1.0.0-beta.5/go.mod h1:hQGLpiIUloJBMdQMMWb/4wRApmI9hjHH05nefC0Ojec=
-github.com/cosmos/cosmos-sdk/core v0.12.1-0.20240628155326-d426a5db6775 h1:PzCWIG7YFaelh/xVvonrLKya8P5uAWf351QaNoQB/3s=
-github.com/cosmos/cosmos-sdk/core v0.12.1-0.20240628155326-d426a5db6775/go.mod h1:y/LnxW6nMaPDS++FhpNo9/vo6TN1OBKgtn1goYo2IkI=
 github.com/cosmos/cosmos-sdk/depinject v1.0.0-alpha.4.0.20240628155326-d426a5db6775 h1:03IP+6SFKf4CeNpsl3bdeWs4ijT2KY3xOF9aKoZPOPM=
 github.com/cosmos/cosmos-sdk/depinject v1.0.0-alpha.4.0.20240628155326-d426a5db6775/go.mod h1:+7Skn+mwpMVufkROtwrXgbUiYuBXEu5rtznvN2yPZkA=
 github.com/cosmos/crypto v0.0.0-20240312084433-de8f9c76030d h1:jvmjxQ1je5eI4/pBuw0hIh7cRQHypQFltn6tcMhwiUc=

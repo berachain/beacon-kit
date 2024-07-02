@@ -27,6 +27,8 @@ import (
 	"time"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -57,6 +59,8 @@ func (h *ABCIMiddleware[
 	if err := json.Unmarshal(bz, data); err != nil {
 		return nil, err
 	}
+	yip := any(*data).(*genesis.Genesis[*types.Deposit, *types.ExecutionPayloadHeader])
+	fmt.Println("GENESIS DATA", *yip)
 	// Send a request to the chain service to process the genesis data.
 	if err := h.genesisBroker.Publish(ctx, asynctypes.NewEvent(
 		ctx, events.GenesisDataProcessRequest, *data,

@@ -21,65 +21,78 @@
 package components
 
 import (
-	"errors"
-
 	"cosmossdk.io/core/transaction"
-	"cosmossdk.io/depinject"
-	"github.com/cosmos/cosmos-sdk/client"
+	bktransaction "github.com/berachain/beacon-kit/mod/node-core/pkg/components/transaction"
 )
 
-type TxCodec[T transaction.Tx] struct {
-	txConfig client.TxConfig
+// import (
+// 	"errors"
+
+// 	"cosmossdk.io/core/transaction"
+// 	"cosmossdk.io/depinject"
+// 	"github.com/cosmos/cosmos-sdk/client"
+// )
+
+// func ProvideTxCodec[T transaction.Tx]() transaction.Codec[T] {
+// 	return &bktransaction.SSZTxCodec[T]{}
+// }
+
+func ProvideTxCodec[T transaction.Tx]() transaction.Codec[T] {
+	return &bktransaction.BytesTxCodec[T]{}
 }
 
-// Decode implements transaction.Codec.
-func (t *TxCodec[T]) Decode(bz []byte) (T, error) {
-	out := *new(T)
-	tx, err := t.txConfig.TxDecoder()(bz)
-	if err != nil {
-		return out, err
-	}
-	if tx == nil {
-		return out, nil
-	}
+// type TxCodec[T transaction.Tx] struct {
+// 	txConfig client.TxConfig
+// }
 
-	var ok bool
-	out, ok = tx.(T)
-	if !ok {
-		return out, errors.New("unexpected Tx type")
-	}
+// // Decode implements transaction.Codec.
+// func (t *TxCodec[T]) Decode(bz []byte) (T, error) {
+// 	out := *new(T)
+// 	tx, err := t.txConfig.TxDecoder()(bz)
+// 	if err != nil {
+// 		return out, err
+// 	}
+// 	if tx == nil {
+// 		return out, nil
+// 	}
 
-	return out, nil
-}
+// 	var ok bool
+// 	out, ok = tx.(T)
+// 	if !ok {
+// 		return out, errors.New("unexpected Tx type")
+// 	}
 
-// DecodeJSON implements transaction.Codec.
-func (t *TxCodec[T]) DecodeJSON(bz []byte) (T, error) {
-	out := *new(T)
-	tx, err := t.txConfig.TxJSONDecoder()(bz)
-	if err != nil {
-		return out, err
-	}
-	if tx == nil {
-		return out, nil
-	}
+// 	return out, nil
+// }
 
-	var ok bool
-	out, ok = tx.(T)
-	if !ok {
-		return out, errors.New("unexpected Tx type")
-	}
+// // DecodeJSON implements transaction.Codec.
+// func (t *TxCodec[T]) DecodeJSON(bz []byte) (T, error) {
+// 	out := *new(T)
+// 	tx, err := t.txConfig.TxJSONDecoder()(bz)
+// 	if err != nil {
+// 		return out, err
+// 	}
+// 	if tx == nil {
+// 		return out, nil
+// 	}
 
-	return out, nil
-}
+// 	var ok bool
+// 	out, ok = tx.(T)
+// 	if !ok {
+// 		return out, errors.New("unexpected Tx type")
+// 	}
 
-type TxCodecInput struct {
-	depinject.In
+// 	return out, nil
+// }
 
-	TxConfig client.TxConfig
-}
+// type TxCodecInput struct {
+// 	depinject.In
 
-func ProvideTxCodec[T transaction.Tx](in TxCodecInput) *TxCodec[T] {
-	return &TxCodec[T]{
-		txConfig: in.TxConfig,
-	}
-}
+// 	TxConfig client.TxConfig
+// }
+
+// func ProvideTxCodec[T transaction.Tx](in TxCodecInput) *TxCodec[T] {
+// 	return &TxCodec[T]{
+// 		txConfig: in.TxConfig,
+// 	}
+// }

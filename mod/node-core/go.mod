@@ -5,6 +5,7 @@ go 1.22.4
 replace (
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240628155326-d426a5db6775
+	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240628155326-d426a5db6775
 	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240623110059-dec2d5583e39
 	cosmossdk.io/runtime/v2 => github.com/berachain/cosmos-sdk/runtime/v2 v2.0.0-20240628175732-ab2d37478785
 	cosmossdk.io/server/v2/appmanager => github.com/berachain/cosmos-sdk/server/v2/appmanager v0.0.0-20240628175732-ab2d37478785
@@ -74,7 +75,7 @@ require (
 	cosmossdk.io/math v1.3.0 // indirect
 	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc // indirect
 	cosmossdk.io/x/accounts v0.0.0-20240625055312-26913b073414 // indirect
-	cosmossdk.io/x/auth v0.0.0-20240624211517-0b35bcebefbf
+	cosmossdk.io/x/auth v0.0.0-20240624211517-0b35bcebefbf // indirect
 	cosmossdk.io/x/bank v0.0.0-20240625055312-26913b073414 // indirect
 	cosmossdk.io/x/consensus v0.0.0-20240628155326-d426a5db6775
 	cosmossdk.io/x/staking v0.0.0-20240624211517-0b35bcebefbf // indirect
@@ -103,7 +104,7 @@ require (
 	github.com/cosmos/crypto v0.1.1 // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
-	github.com/cosmos/gogoproto v1.5.0 // indirect
+	github.com/cosmos/gogoproto v1.5.0
 	github.com/cosmos/iavl v1.2.0 // indirect
 	github.com/cosmos/ics23/go v0.10.0 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.13.3 // indirect
