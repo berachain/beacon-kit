@@ -141,15 +141,15 @@ func (am AppModule[T, ValidatorUpdateT]) InitGenesis(
 	bz json.RawMessage,
 ) ([]ValidatorUpdateT, error) {
 	fmt.Println("BYTES BYTES BYTES", bz)
-	tx, err := am.txCodec.DecodeJSON(bz)
-	if err != nil {
-		panic(err)
-		return nil, err
-	}
+	// tx, err := am.txCodec.DecodeJSON(bz)
+	// if err != nil {
+	// 	panic(err)
+	// 	return nil, err
+	// }
 
-	req := am.abciMiddleware.GetRequest()
-	req.SetTxs(append(req.GetTxs(), tx.Bytes()))
-	am.abciMiddleware.SetRequest(req)
+	// req := am.abciMiddleware.GetRequest()
+	// req.SetTxs(append(req.GetTxs(), bz))
+	// am.abciMiddleware.SetRequest(req)
 
 	return cometbft.NewConsensusEngine[T, ValidatorUpdateT](
 		am.txCodec,

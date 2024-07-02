@@ -23,7 +23,6 @@ require (
 	cosmossdk.io/server/v2/cometbft v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240625165558-8d611ba7d436
 	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240625165558-8d611ba7d436
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240627134700-de48919ec4d6
 	github.com/spf13/viper v1.19.0
 )
 
@@ -49,19 +48,22 @@ require (
 	github.com/DataDog/datadog-go v4.8.3+incompatible // indirect
 	github.com/DataDog/zstd v1.5.5 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
+	github.com/VictoriaMetrics/fastcache v1.12.2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/berachain/beacon-kit/mod/async v0.0.0-20240624011057-b0afb8163f14 // indirect
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240624204855-d8809d5c8588 // indirect
 	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240624003607-df94860f8eeb // indirect
-	github.com/berachain/beacon-kit/mod/config v0.0.0-20240614154006-a5defa6198f5 // indirect
-	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240624003607-df94860f8eeb // indirect
+	github.com/berachain/beacon-kit/mod/config v0.0.0-20240628210719-e32b1662132e // indirect
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240702154025-071b95a5f03f // indirect
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240623073416-b8ac8605c6a0 // indirect
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240624204855-d8809d5c8588 // indirect
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240624210933-3baa52ebb587 // indirect
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240624003607-df94860f8eeb // indirect
-	github.com/berachain/beacon-kit/mod/log v0.0.0-20240619234034-fe96d94eafef // indirect
+	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240630225951-a5075323fa26 // indirect
+	github.com/berachain/beacon-kit/mod/log v0.0.0-20240624033454-8f3451361f44 // indirect
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240618214413-d5ec0e66b3dd // indirect
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240624003607-df94860f8eeb // indirect
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240627201655-33a34cec850e // indirect
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240624003607-df94860f8eeb // indirect
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240624003607-df94860f8eeb // indirect
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240624003607-df94860f8eeb // indirect
@@ -75,9 +77,9 @@ require (
 	github.com/cockroachdb/pebble v1.1.1 // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
-	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240628152055-7beea3974193 // indirect
+	github.com/cometbft/cometbft v1.0.0-rc1.0.20240702102754-c4fa9a6225b0 // indirect
 	github.com/cometbft/cometbft-db v0.12.0 // indirect
-	github.com/cometbft/cometbft/api v1.0.0-rc.1 // indirect
+	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240702102754-c4fa9a6225b0 // indirect
 	github.com/consensys/bavard v0.1.13 // indirect
 	github.com/consensys/gnark-crypto v0.12.1 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
@@ -145,6 +147,7 @@ require (
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hashicorp/yamux v0.1.1 // indirect
 	github.com/hdevalence/ed25519consensus v0.2.0 // indirect
+	github.com/holiman/bloomfilter/v2 v2.0.3 // indirect
 	github.com/holiman/uint256 v1.2.5-0.20240612125212-75a520988c94 // indirect
 	github.com/huandu/skiplist v1.2.0 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect
@@ -175,6 +178,7 @@ require (
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
 	github.com/petermattis/goid v0.0.0-20240607163614-bb94eb51e7a7 // indirect
+	github.com/phuslu/log v1.0.106 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_golang v1.19.1 // indirect
