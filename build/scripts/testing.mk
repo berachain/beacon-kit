@@ -19,7 +19,7 @@ IPC_PATH = .tmp/eth-home/eth-engine.ipc
 HTTP_URL = localhost:8551
 IPC_PREFIX = ipc://
 HTTP_PREFIX = http://
-INTERNAL_IP=$(hostname -I | awk '{print $1}')
+INTERNAL_IP=$(shell hostname -I | awk '{print $1}')
 
 ## Testing:
 start: ## start an ephemeral `beacond` node
