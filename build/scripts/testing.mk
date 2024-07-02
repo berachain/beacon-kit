@@ -178,7 +178,7 @@ start-erigon: ## start an ephemeral `erigon` node
 	docker run \
     --rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
     -v $(PWD)/.tmp:/.tmp \
-    thorax/erigon:latest init \
+    thorax/erigon:v2.60.2 init \
     --datadir .tmp/erigon \
     ${ETH_GENESIS_PATH}
 
@@ -188,7 +188,7 @@ start-erigon: ## start an ephemeral `erigon` node
 	-p 8551:8551 \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	thorax/erigon:latest \
+	thorax/erigon:v2.60.2 \
 	--http \
 	--http.addr 0.0.0.0 \
 	--http.api eth,net \
@@ -209,7 +209,7 @@ start-erigon-init:
 	docker run \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	thorax/erigon:latest init \
+	thorax/erigon:v2.60.2 init \
 	--datadir .tmp/erigon \
 	${ETH_GENESIS_PATH}
 
@@ -221,10 +221,10 @@ start-erigon-validator-run:
 	-p 8551:8551 \
 	--rm -d -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	thorax/erigon:latest \
+	thorax/erigon:v2.60.2 \
 	--http \
 	--http.addr 0.0.0.0 \
-	--http.api eth,net,debug \
+	--http.api eth,erigon,web3,net,debug,trace,txpool \
 	--http.vhosts "*" \
 	--port 30303 \
 	--http.corsdomain "*" \
@@ -246,10 +246,10 @@ start-erigon-node-run:
 	-p 8551:8551 \
 	--rm -d -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	thorax/erigon:latest \
+	thorax/erigon:v2.60.2 \
 	--http \
 	--http.addr 0.0.0.0 \
-	--http.api eth,net,debug \
+	--http.api eth,erigon,web3,net,debug,trace,txpool \
 	--http.vhosts "*" \
 	--port 30303 \
 	--http.corsdomain "*" \
