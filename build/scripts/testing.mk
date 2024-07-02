@@ -213,7 +213,7 @@ start-erigon-init:
 	--datadir .tmp/erigon \
 	${ETH_GENESIS_PATH}
 
-start-erigon-run:
+start-erigon-validator-run:
 	sudo chmod 777 -R .tmp
 	docker run --name execution-erigon \
 	-p 30303:30303 \
@@ -236,6 +236,32 @@ start-erigon-run:
 	--db.size.limit	3000MB \
 	--datadir .tmp/erigon \
 	--nat extip:${INTERNAL_IP}
+
+start-erigon-node-run:
+	sudo chmod 777 -R .tmp
+	docker run --name execution-erigon \
+	-p 30303:30303 \
+	-p 8545:8545 \
+	-p 8551:8551 \
+	--rm -d -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	-v $(PWD)/.tmp:/.tmp \
+	thorax/erigon:latest \
+	--http \
+	--http.addr 0.0.0.0 \
+	--http.api eth,net,debug \
+	--http.vhosts "*" \
+	--port 30303 \
+	--http.corsdomain "*" \
+	--http.port 8545 \
+	--authrpc.addr	0.0.0.0 \
+	--authrpc.jwtsecret $(JWT_PATH) \
+	--authrpc.vhosts "*" \
+	--networkid 80087 \
+	--db.size.limit	3000MB \
+	--datadir .tmp/erigon \
+	--nat extip:${INTERNAL_IP} \
+	--trustedpeers "" \
+	--bootnodes ""
 
 start-ethereumjs:
 	rm -rf .tmp/ethereumjs
