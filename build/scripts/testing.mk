@@ -203,6 +203,40 @@ start-erigon: ## start an ephemeral `erigon` node
 	--db.size.limit	3000MB \
 	--datadir .tmp/erigon
 
+start-erigon-init:
+	sudo chmod 777 -R .tmp
+	rm -rf .tmp/erigon
+	docker run \
+	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	-v $(PWD)/.tmp:/.tmp \
+	thorax/erigon:latest init \
+	--datadir .tmp/erigon \
+	${ETH_GENESIS_PATH}
+
+start-erigon-run:
+	sudo chmod 777 -R .tmp
+	docker run \
+	-p 30303:30303 \
+	-p 8545:8545 \
+	-p 8551:8551 \
+	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	-v $(PWD)/.tmp:/.tmp \
+	thorax/erigon:latest \
+	--http \
+	--http.addr 0.0.0.0 \
+	--http.api eth,net \
+	--http.vhosts "*" \
+	--port 30303 \
+	--http.corsdomain "*" \
+	--http.port 8545 \
+	--authrpc.addr	0.0.0.0 \
+	--authrpc.jwtsecret $(JWT_PATH) \
+	--authrpc.vhosts "*" \
+	--networkid 80087 \
+	--db.size.limit	3000MB \
+	--datadir .tmp/erigon \
+	--nat extip:${INTERNAL_IP}
+
 start-ethereumjs:
 	rm -rf .tmp/ethereumjs
 	docker run \
