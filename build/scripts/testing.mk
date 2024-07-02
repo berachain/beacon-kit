@@ -27,7 +27,9 @@ start: ## start an ephemeral `beacond` node
 
 start-validator: ## start an ephemeral `beacond` node
 	JWT_SECRET_PATH=$(JWT_PATH) ${TESTAPP_FILES_DIR}/entrypoint.sh 1 validator
-start-node: ## start an ephemeral `beacond` node
+start-node-init: ## start an ephemeral `beacond` node
+	JWT_SECRET_PATH=$(JWT_PATH) ${TESTAPP_FILES_DIR}/entrypoint.sh 1 node onlyInit
+start-node-run: ## start an ephemeral `beacond` node
 	JWT_SECRET_PATH=$(JWT_PATH) ${TESTAPP_FILES_DIR}/entrypoint.sh 1 node
 
 # start-ipc is currently only supported while running eth client the host machine

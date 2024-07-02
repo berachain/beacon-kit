@@ -71,12 +71,16 @@ fi
 export CHAIN_SPEC="devnet"
 
 # Setup local node if overwrite is set to Yes, otherwise skip setup
-if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
+if [[ $overwrite == "y" || $overwrite == "Y" || $3 == "onlyInit" ]]; then
 	rm -rf $HOMEDIR
 	./build/bin/beacond init $MONIKER \
 		--chain-id $CHAINID \
 		--home $HOMEDIR \
 		--consensus-key-algo $CONSENSUS_KEY_ALGO
+	if [ $3 == "onlyInit" ]; then
+	  exit 0
+	fi
+
 	if [ $2 == "validator" ]; then
 	  cp -rf ./testing/files/priv_validator_key.json $HOMEDIR/config/priv_validator_key.json
 	fi
