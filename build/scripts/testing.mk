@@ -111,7 +111,7 @@ start-geth-run:
 	-p 30303:30303 \
 	-p 8545:8545 \
 	-p 8551:8551 \
-	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	--rm -d -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
 	ethereum/client-go \
 	--http \
@@ -121,7 +121,7 @@ start-geth-run:
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--authrpc.vhosts "*" \
 	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH}
+	--ipcpath ${IPC_PATH} \
 	--nat extip:${INTERNAL_IP}
 
 start-geth-host: ## start a local ephemeral `geth` node on host machine
