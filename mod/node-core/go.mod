@@ -33,8 +33,8 @@ require (
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240624003607-df94860f8eeb
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240624003607-df94860f8eeb
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240624003607-df94860f8eeb
-	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240628152055-7beea3974193
-	github.com/cometbft/cometbft/api v1.0.0-rc.1
+	github.com/cometbft/cometbft v1.0.0-rc1.0.20240702102754-c4fa9a6225b0
+	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240702102754-c4fa9a6225b0
 	github.com/cosmos/cosmos-db v1.0.2
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
 	github.com/cosmos/cosmos-sdk v0.51.0
@@ -51,6 +51,7 @@ require (
 	github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a // indirect
 	github.com/holiman/bloomfilter/v2 v2.0.3 // indirect
 	github.com/mitchellh/pointerstructure v1.2.1 // indirect
+	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/phuslu/log v1.0.106 // indirect
 )
 
@@ -181,7 +182,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_golang v1.19.1 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
-	github.com/prometheus/common v0.54.0 // indirect
+	github.com/prometheus/common v0.55.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/prysmaticlabs/gohashtree v0.0.4-beta // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
