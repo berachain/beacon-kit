@@ -54,7 +54,7 @@ func ExtractBlobsAndBlockFromRequest[
 		forkVersion,
 	)
 	if err != nil {
-		fmt.Println("err unmarshal beacon block from abci request")
+		fmt.Println("err unmarshal beacon block from abci request", err)
 		return blk, blobs, err
 	}
 
@@ -63,7 +63,7 @@ func ExtractBlobsAndBlockFromRequest[
 		blobSidecarsIndex,
 	)
 	if err != nil {
-		fmt.Println("err unmarshal blob sidecars from abci request")
+		fmt.Println("err unmarshal blob sidecars from abci request", err)
 		return blk, blobs, err
 	}
 

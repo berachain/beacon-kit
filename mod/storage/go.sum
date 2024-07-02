@@ -1,5 +1,5 @@
-buf.build/gen/go/cometbft/cometbft/protocolbuffers/go v1.34.2-20240312114316-c0d3497e35d6.2 h1:8VkyRIbykZFl0asd5Cbp9GNMVYGxL5wzimdbb98ydGQ=
-buf.build/gen/go/cometbft/cometbft/protocolbuffers/go v1.34.2-20240312114316-c0d3497e35d6.2/go.mod h1:1+3gJj2NvZ1mTLAtHu+lMhOjGgQPiCKCeo+9MBww0Eo=
+buf.build/gen/go/cometbft/cometbft/protocolbuffers/go v1.34.2-20240701160653-fedbb9acfd2f.2 h1:90/4O5QkHb8EZdA2SAhueRzYw6u5ZHCPKtReFqshnTY=
+buf.build/gen/go/cometbft/cometbft/protocolbuffers/go v1.34.2-20240701160653-fedbb9acfd2f.2/go.mod h1:1+3gJj2NvZ1mTLAtHu+lMhOjGgQPiCKCeo+9MBww0Eo=
 buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.34.2-20240130113600-88ef6483f90f.2 h1:b7EEYTUHmWSBEyISHlHvXbJPqtKiHRuUignL1tsHnNQ=
 buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.34.2-20240130113600-88ef6483f90f.2/go.mod h1:HqcXMSa5qnNuakaMUo+hWhF51mKbcrZxGl9Vp5EeJXc=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
@@ -21,6 +21,8 @@ cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc h1:R9O9d75e0qZYUsVV0zzi+
 cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc/go.mod h1:amTTatOUV3u1PsKmNb87z6/galCxrRbz9kRdJkL0DyU=
 cosmossdk.io/x/accounts v0.0.0-20240625055312-26913b073414 h1:U6nXsk+Q7YdhQ7ObslI62zB3E7NcfTJ9x7iEp6A3JX4=
 cosmossdk.io/x/accounts v0.0.0-20240625055312-26913b073414/go.mod h1:nOSx3lOJCTqsMyEIZG1LHeRhTWplMxjBGsZS+FqP8x4=
+cosmossdk.io/x/auth v0.0.0-20240702142007-7b23e52b0bd8 h1:KnSwg0OsJRoGLRig2j05HjIo8ytTT7OKTyduxP8zvLQ=
+cosmossdk.io/x/auth v0.0.0-20240702142007-7b23e52b0bd8/go.mod h1:GjeVaHbaLhJWKYBXewtL8wRCX+Li/+FTzkw40lUGRG8=
 cosmossdk.io/x/consensus v0.0.0-20240628155326-d426a5db6775 h1:c8k2kYnwCdKn3bdWt4J5Z842gL6d1XKik56bCkgYcx4=
 cosmossdk.io/x/consensus v0.0.0-20240628155326-d426a5db6775/go.mod h1:40qCK+//KoQu77Cd5hSauHPbuIjCwT0M7J0UiEcFUyY=
 cosmossdk.io/x/tx v0.13.4-0.20240623110059-dec2d5583e39 h1:fZvdmYfQdJ+CX5axx3ChtLOCAIXoLzLoFf7hHAI+fws=
@@ -103,8 +105,6 @@ github.com/cosmos/cosmos-db v1.0.2 h1:hwMjozuY1OlJs/uh6vddqnk9j7VamLv+0DBlbEXbAK
 github.com/cosmos/cosmos-db v1.0.2/go.mod h1:Z8IXcFJ9PqKK6BIsVOB3QXtkKoqUOp1vRvPT39kOXEA=
 github.com/cosmos/cosmos-proto v1.0.0-beta.5 h1:eNcayDLpip+zVLRLYafhzLvQlSmyab+RC5W7ZfmxJLA=
 github.com/cosmos/cosmos-proto v1.0.0-beta.5/go.mod h1:hQGLpiIUloJBMdQMMWb/4wRApmI9hjHH05nefC0Ojec=
-github.com/cosmos/cosmos-sdk/x/auth v0.0.0-20240628155326-d426a5db6775 h1:3ZE9tQy5itqC8g+XqDuGmlLX09aXO3gNtQ6M2y0gJpc=
-github.com/cosmos/cosmos-sdk/x/auth v0.0.0-20240628155326-d426a5db6775/go.mod h1:KRpK44bjQUA6qEs5avmOs7GRPxH1qGVy77XhP3L7hrk=
 github.com/cosmos/crypto v0.0.0-20240312084433-de8f9c76030d h1:jvmjxQ1je5eI4/pBuw0hIh7cRQHypQFltn6tcMhwiUc=
 github.com/cosmos/crypto v0.0.0-20240312084433-de8f9c76030d/go.mod h1:0mwg1fWGQjRi86KM/TQ5pUgBU84rWSYi/yhBg6/Aff0=
 github.com/cosmos/go-bip39 v1.0.0 h1:pcomnQdrdH22njcAatO0yWojsUnCO3y2tNoV1cb6hHY=
