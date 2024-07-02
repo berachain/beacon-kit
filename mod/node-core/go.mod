@@ -26,13 +26,14 @@ require (
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240624204855-d8809d5c8588
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240624204855-d8809d5c8588
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240624003607-df94860f8eeb
+	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240630225951-a5075323fa26
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240619234034-fe96d94eafef
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240624003607-df94860f8eeb
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240627134700-de48919ec4d6
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240624003607-df94860f8eeb
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240624003607-df94860f8eeb
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240624003607-df94860f8eeb
-	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240627055712-4f91afce3247
+	github.com/cometbft/cometbft v1.0.0-alpha.2.0.20240628152055-7beea3974193
 	github.com/cometbft/cometbft/api v1.0.0-rc.1
 	github.com/cosmos/cosmos-db v1.0.2
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
@@ -46,7 +47,9 @@ require (
 )
 
 require (
+	github.com/VictoriaMetrics/fastcache v1.12.2 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a // indirect
+	github.com/holiman/bloomfilter/v2 v2.0.3 // indirect
 	github.com/mitchellh/pointerstructure v1.2.1 // indirect
 	github.com/phuslu/log v1.0.106 // indirect
 )

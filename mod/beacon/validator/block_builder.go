@@ -26,6 +26,7 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -50,10 +51,6 @@ func (s *Service[
 	)
 
 	defer s.metrics.measureRequestBlockForProposalTime(startTime)
-	s.logger.Info(
-		"Requesting beacon block assembly 🙈",
-		"slot", requestedSlot.Base10(),
-	)
 
 	// The goal here is to acquire a payload whose parent is the previously
 	// finalized block, such that, if this payload is accepted, it will be
@@ -121,7 +118,7 @@ func (s *Service[
 	}
 
 	s.logger.Info(
-		"Beacon block successfully built 🛠️ ",
+		"Beacon block successfully built",
 		"slot", requestedSlot.Base10(),
 		"state_root", blk.GetStateRoot(),
 		"duration", time.Since(startTime).String(),
@@ -308,7 +305,7 @@ func (s *Service[
 	body.SetEth1Data(eth1Data.New(
 		common.Bytes32{},
 		0,
-		common.ZeroHash,
+		gethprimitives.ZeroHash,
 	))
 
 	// Set the graffiti on the block body.

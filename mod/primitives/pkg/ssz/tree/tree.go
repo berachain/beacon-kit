@@ -18,17 +18,32 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package merkle
+package tree
 
-// U64 is an interface that wraps the uint64 type.
-// It is used to prevent circular dependencies between
-// the merkle package and the primitives package.
-type U64[T ~uint64] interface {
-	~uint64
-	// NextPowerOfTwo returns the smallest power of
-	// two that is greater than or equal to T.
-	NextPowerOfTwo() T
-	// ILog2Ceil returns the ceiling of the binary
-	// logarithm of T as a uint8.
-	ILog2Ceil() uint8
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+)
+
+// New returns a Merkle tree of the given leaves.
+// As defined in the Ethereum 2.0 Spec:
+// https://github.com/ethereum/consensus-specs/blob/dev/ssz/merkle-proofs.md#generalized-merkle-tree-index
+//
+//nolint:lll // link.
+func New[LeafT ~[32]byte](
+	leaves []LeafT,
+	hashFn func([]byte) LeafT,
+) []LeafT {
+	/*
+	   Return an array representing the tree nodes by generalized index:
+	   [0, 1, 2, 3, 4, 5, 6, 7], where each layer is a power of 2. The 0 index is ignored. The 1 index is the root.
+	   The result will be twice the size as the padded bottom layer for the input leaves.
+	*/
+	bottomLength := math.U64(len(leaves)).NextPowerOfTwo()
+	//nolint:mnd // 2 is okay.
+	o := make([]LeafT, bottomLength*2)
+	copy(o[bottomLength:], leaves)
+	for i := bottomLength - 1; i > 0; i-- {
+		o[i] = hashFn(append(o[i*2][:], o[i*2+1][:]...))
+	}
+	return o
 }

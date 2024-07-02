@@ -21,67 +21,64 @@
 package merkleizer
 
 import (
-	"reflect"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 )
 
-// SizeOfBasic returns the size of a basic type.
-func SizeOfBasic[RootT ~[32]byte, B Basic[SpecT, RootT], SpecT any](
-	b B,
-) uint64 {
-	// TODO: Boolean maybe this doesnt work.
-	return uint64(reflect.TypeOf(b).Size())
-}
-
-// ChunkCount returns the number of chunks required to store a value.
-func ChunkCountBasic[RootT ~[32]byte, B Basic[SpecT, RootT], SpecT any](
-	B,
-) uint64 {
-	return 1
-}
-
-// ChunkCountBitListVec returns the number of chunks required to store a bitlist
-// or bitvector.
-func ChunkCountBitListVec[T any](t []T) uint64 {
-	//nolint:mnd // 256 is okay.
-	return (uint64(len(t)) + 255) / 256
-}
-
-// ChunkCountBasicList returns the number of chunks required to store a list
-// or vector of basic types.
-func ChunkCountBasicList[SpecT any, RootT ~[32]byte, B Basic[SpecT, RootT]](
-	b []B,
-	maxCapacity uint64,
-) uint64 {
-	numItems := uint64(len(b))
-	if numItems == 0 {
-		return 1
-	}
-	size := SizeOfBasic[RootT, B, SpecT](b[0])
-	//nolint:mnd // 32 is okay.
-	limit := (maxCapacity*size + 31) / 32
-	if limit != 0 {
-		return limit
-	}
-
-	return numItems
-}
-
-// ChunkCountCompositeList returns the number of chunks required to store a
-// list or vector of composite types.
-func ChunkCountCompositeList[
-	SpecT any, RootT ~[32]byte, C Composite[SpecT, RootT],
+// pack packs a list of SSZ-marshallable elements into a single byte slice.
+func pack[
+	RootT ~[32]byte,
+	T interface {
+		MarshalSSZ() ([]byte, error)
+	},
 ](
-	c []C,
-	limit uint64,
-) uint64 {
-	return max(uint64(len(c)), limit)
+	values []T,
+) ([]RootT, uint64, error) {
+	// pack(values): Given ordered objects of the same basic type:
+	// Serialize values into bytes.
+	// If not aligned to a multiple of BYTES_PER_CHUNK bytes,
+	// right-pad with zeroes to the next multiple.
+	// Partition the bytes into BYTES_PER_CHUNK-byte chunks.
+	// Return the chunks.
+	var packed []byte
+	for _, el := range values {
+		buf, err := el.MarshalSSZ()
+		if err != nil {
+			return nil, 0, err
+		}
+		packed = append(packed, buf...)
+	}
+
+	chunks, numChunks := chunkifyBytes[RootT](packed)
+	return chunks, numChunks, nil
 }
 
-// ChunkCountContainer returns the number of chunks required to store a
-// container.
-func ChunkCountContainer[SpecT any, RootT ~[32]byte, C Container[SpecT, RootT]](
-	c C,
-) uint64 {
-	//#nosec:G701 // This is a safe operation.
-	return uint64(reflect.ValueOf(c).NumField())
+// chunkifyBytes partitions a byte slice into chunks of a given length.
+func chunkifyBytes[RootT ~[32]byte](input []byte) (
+	[]RootT, uint64,
+) {
+	//nolint:mnd // we add 31 in order to round up the division.
+	numChunks := max((len(input)+31)/constants.RootLength, 1)
+	// TODO: figure out how to safely chunk these bytes.
+	chunks := make([]RootT, numChunks)
+	for i := range chunks {
+		copy(chunks[i][:], input[32*i:])
+	}
+	//#nosec:G701 // numChunks is always >= 1.
+	return chunks, uint64(numChunks)
+}
+
+// packBits packs a list of SSZ-marshallable bitlists into a single byte slice.
+//
+//nolint:unused // todo eventually implement this function.
+func packBits[
+	RootT ~[32]byte,
+	T interface {
+		MarshalSSZ() ([]byte, error)
+	},
+]([]T) ([]RootT, error) {
+	// pack_bits(bits): Given the bits of bitlist or bitvector, get
+	// bitfield_bytes by packing them in bytes and aligning to the start.
+	// The length-delimiting bit for bitlists is excluded. Then return pack
+	// (bitfield_bytes).
+	panic("not yet implemented")
 }

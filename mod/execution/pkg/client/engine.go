@@ -28,6 +28,7 @@ import (
 	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
@@ -38,13 +39,13 @@ import (
 
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
 func (s *EngineClient[
-	ExecutionPayloadT, PayloadAttributesT,
+	ExecutionPayloadT, _,
 ]) NewPayload(
 	ctx context.Context,
 	payload ExecutionPayloadT,
-	versionedHashes []common.ExecutionHash,
+	versionedHashes []gethprimitives.ExecutionHash,
 	parentBeaconBlockRoot *common.Root,
-) (*common.ExecutionHash, error) {
+) (*gethprimitives.ExecutionHash, error) {
 	var (
 		startTime    = time.Now()
 		cctx, cancel = s.createContextWithTimeout(ctx)
@@ -84,13 +85,13 @@ func (s *EngineClient[
 
 // ForkchoiceUpdated calls the engine_forkchoiceUpdatedV1 method via JSON-RPC.
 func (s *EngineClient[
-	ExecutionPayloadT, PayloadAttributesT,
+	_, PayloadAttributesT,
 ]) ForkchoiceUpdated(
 	ctx context.Context,
 	state *engineprimitives.ForkchoiceStateV1,
 	attrs PayloadAttributesT,
 	forkVersion uint32,
-) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
+) (*engineprimitives.PayloadID, *gethprimitives.ExecutionHash, error) {
 	var (
 		startTime    = time.Now()
 		cctx, cancel = s.createContextWithTimeout(ctx)
@@ -100,11 +101,11 @@ func (s *EngineClient[
 
 	// If the suggested fee recipient is not set, log a warning.
 	if !attrs.IsNil() &&
-		attrs.GetSuggestedFeeRecipient() == (common.ZeroAddress) {
+		attrs.GetSuggestedFeeRecipient() == (gethprimitives.ZeroAddress) {
 		s.logger.Warn(
 			"Suggested fee recipient is not configured 🔆",
-			"fee-recipent", common.DisplayBytes(
-				common.ZeroAddress[:]).TerminalString(),
+			"fee-recipent", gethprimitives.DisplayBytes(
+				gethprimitives.ZeroAddress[:]).TerminalString(),
 		)
 	}
 
@@ -135,7 +136,7 @@ func (s *EngineClient[
 // GetPayload calls the engine_getPayloadVX method via JSON-RPC. It returns
 // the execution data as well as the blobs bundle.
 func (s *EngineClient[
-	ExecutionPayloadT, PayloadAttributesT,
+	ExecutionPayloadT, _,
 ]) GetPayload(
 	ctx context.Context,
 	payloadID engineprimitives.PayloadID,
@@ -168,7 +169,7 @@ func (s *EngineClient[
 // ExchangeCapabilities calls the engine_exchangeCapabilities method via
 // JSON-RPC.
 func (s *EngineClient[
-	ExecutionPayloadT, PayloadAttributesT,
+	_, _,
 ]) ExchangeCapabilities(
 	ctx context.Context,
 ) ([]string, error) {

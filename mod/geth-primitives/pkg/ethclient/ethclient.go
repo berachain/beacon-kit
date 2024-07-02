@@ -18,15 +18,15 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package ssz
+package ethclient
 
-const (
-	// BytesPerChunk is the number of bytes per chunk.
-	BytesPerChunk = 32
+import "github.com/ethereum/go-ethereum/ethclient"
 
-	// BytesPerLengthOffset is the number of bytes per serialized length offset.
-	BytesPerLengthOffset = 4
+type (
+	Client = ethclient.Client
+)
 
-	// BitsPerByte is the number of bits per byte.
-	BitsPerByte = 8
+//nolint:gochecknoglobals // its okay.
+var (
+	NewClient = ethclient.NewClient
 )

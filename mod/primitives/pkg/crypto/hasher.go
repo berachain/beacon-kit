@@ -18,38 +18,45 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package merkle
+package crypto
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+)
+
+// Hasher can be re-used for efficiently conducting multiple rounds of hashing.
+type Hasher[T ~[32]byte] interface {
+	Hash(a []byte) T
+	Combi(a, b T) T
+	MixIn(a T, i uint64) T
+}
 
 // HashFn is the generic hash function signature.
 type HashFn func(input []byte) [32]byte
 
-// HasherFunc defines a structure to hold a hash function and can be used for
-// multiple rounds of
-// hashing.
-type HasherFunc[T ~[32]byte] struct {
+// hasher holds a underlying byte slice to efficiently conduct
+// multiple rounds of hashing.
+type hasher[T ~[32]byte] struct {
 	b        [64]byte
 	hashFunc HashFn
 }
 
-// NewHasherFunc is the constructor for the object
-// that fulfills the Hasher interface.
-func NewHasherFunc[T ~[32]byte](h HashFn) *HasherFunc[T] {
-	return &HasherFunc[T]{
+// NewHasher is the constructor for the object that fulfills
+// the Hasher interface.
+func NewHasher[T ~[32]byte](h HashFn) Hasher[T] {
+	return &hasher[T]{
 		b:        [64]byte{},
 		hashFunc: h,
 	}
 }
 
-// Hash utilizes the provided hash function for
-// the object.
-func (h *HasherFunc[T]) Hash(a []byte) T {
+// Hash utilizes the provided hash function for the object.
+func (h *hasher[T]) Hash(a []byte) T {
 	return T(h.hashFunc(a))
 }
 
 // Combi appends the two inputs and hashes them.
-func (h *HasherFunc[T]) Combi(a, b T) T {
+func (h *hasher[T]) Combi(a, b T) T {
 	copy(h.b[:32], a[:])
 	copy(h.b[32:], b[:])
 	return h.Hash(h.b[:])
@@ -58,7 +65,7 @@ func (h *HasherFunc[T]) Combi(a, b T) T {
 // MixIn works like Combi, but using an integer as the second input.
 //
 //nolint:mnd // its okay.
-func (h *HasherFunc[T]) MixIn(a T, i uint64) T {
+func (h *hasher[T]) MixIn(a T, i uint64) T {
 	copy(h.b[:32], a[:])
 	copy(h.b[32:], make([]byte, 32))
 	binary.LittleEndian.PutUint64(h.b[32:], i)

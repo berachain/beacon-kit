@@ -24,11 +24,13 @@ import (
 	"context"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 )
 
 // The AvailabilityStore interface is responsible for validating and storing
@@ -80,7 +82,9 @@ type BeaconBlockBody[
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	],
-	ExecutionPayloadHeaderT interface{ GetBlockHash() common.ExecutionHash },
+	ExecutionPayloadHeaderT interface {
+		GetBlockHash() gethprimitives.ExecutionHash
+	},
 	WithdrawalT any,
 ] interface {
 	constraints.EmptyWithVersion[BeaconBlockBodyT]
@@ -93,7 +97,7 @@ type BeaconBlockBody[
 	// HashTreeRoot returns the hash tree root of the block body.
 	HashTreeRoot() ([32]byte, error)
 	// GetBlobKzgCommitments returns the KZG commitments for the blobs.
-	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
+	GetBlobKzgCommitments() eip4844.KZGCommitments[gethprimitives.ExecutionHash]
 }
 
 // BlobSidecars is the interface for blobs sidecars.
@@ -154,11 +158,11 @@ type ExecutionPayload[
 ] interface {
 	constraints.EngineType[ExecutionPayloadT]
 	GetTransactions() [][]byte
-	GetParentHash() common.ExecutionHash
-	GetBlockHash() common.ExecutionHash
+	GetParentHash() gethprimitives.ExecutionHash
+	GetBlockHash() gethprimitives.ExecutionHash
 	GetPrevRandao() common.Bytes32
 	GetWithdrawals() []WithdrawalT
-	GetFeeRecipient() common.ExecutionAddress
+	GetFeeRecipient() gethprimitives.ExecutionAddress
 	GetStateRoot() common.Bytes32
 	GetReceiptsRoot() common.Root
 	GetLogsBloom() []byte
@@ -171,15 +175,16 @@ type ExecutionPayload[
 	GetBlobGasUsed() math.U64
 	GetExcessBlobGas() math.U64
 	ToHeader(
-		txsMerkleizer engineprimitives.TxsMerkleizer,
+		txsMerkleizer *merkleizer.Merkleizer[[32]byte, common.Root],
+		maxWithdrawalsPerPayload uint64,
 	) (ExecutionPayloadHeaderT, error)
 }
 
 type ExecutionPayloadHeader interface {
-	GetParentHash() common.ExecutionHash
-	GetBlockHash() common.ExecutionHash
+	GetParentHash() gethprimitives.ExecutionHash
+	GetBlockHash() gethprimitives.ExecutionHash
 	GetPrevRandao() common.Bytes32
-	GetFeeRecipient() common.ExecutionAddress
+	GetFeeRecipient() gethprimitives.ExecutionAddress
 	GetStateRoot() common.Bytes32
 	GetReceiptsRoot() common.Root
 	GetLogsBloom() []byte
@@ -258,5 +263,5 @@ type Withdrawal[WithdrawalT any] interface {
 	// GetValidatorIndex returns the index of the validator.
 	GetValidatorIndex() math.ValidatorIndex
 	// GetAddress returns the address of the withdrawal.
-	GetAddress() common.ExecutionAddress
+	GetAddress() gethprimitives.ExecutionAddress
 }

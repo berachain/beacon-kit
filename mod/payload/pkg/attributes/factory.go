@@ -21,6 +21,7 @@
 package attributes
 
 import (
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -29,16 +30,7 @@ import (
 // Factory is a factory for creating payload attributes.
 type Factory[
 	BeaconStateT BeaconState[WithdrawalT],
-	PayloadAttributesT interface {
-		New(
-			uint32,
-			uint64,
-			common.Bytes32,
-			common.ExecutionAddress,
-			[]WithdrawalT,
-			common.Root,
-		) (PayloadAttributesT, error)
-	},
+	PayloadAttributesT PayloadAttributes[PayloadAttributesT, WithdrawalT],
 	WithdrawalT any,
 ] struct {
 	// chainSpec is the chain spec for the attributes factory.
@@ -47,27 +39,18 @@ type Factory[
 	logger log.Logger[any]
 	// suggestedFeeRecipient is the suggested fee recipient sent to
 	// the execution client for the payload build.
-	suggestedFeeRecipient common.ExecutionAddress
+	suggestedFeeRecipient gethprimitives.ExecutionAddress
 }
 
 // NewAttributesFactory creates a new instance of AttributesFactory.
 func NewAttributesFactory[
 	BeaconStateT BeaconState[WithdrawalT],
-	PayloadAttributesT interface {
-		New(
-			uint32,
-			uint64,
-			common.Bytes32,
-			common.ExecutionAddress,
-			[]WithdrawalT,
-			common.Root,
-		) (PayloadAttributesT, error)
-	},
+	PayloadAttributesT PayloadAttributes[PayloadAttributesT, WithdrawalT],
 	WithdrawalT any,
 ](
 	chainSpec common.ChainSpec,
 	logger log.Logger[any],
-	suggestedFeeRecipient common.ExecutionAddress,
+	suggestedFeeRecipient gethprimitives.ExecutionAddress,
 ) *Factory[BeaconStateT, PayloadAttributesT, WithdrawalT] {
 	return &Factory[BeaconStateT, PayloadAttributesT, WithdrawalT]{
 		chainSpec:             chainSpec,
@@ -78,7 +61,9 @@ func NewAttributesFactory[
 
 // CreateAttributes creates a new instance of PayloadAttributes.
 func (f *Factory[
-	BeaconStateT, PayloadAttributesT, WithdrawalT,
+	BeaconStateT,
+	PayloadAttributesT,
+	WithdrawalT,
 ]) BuildPayloadAttributes(
 	st BeaconStateT,
 	slot math.Slot,

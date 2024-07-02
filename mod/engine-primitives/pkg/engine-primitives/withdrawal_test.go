@@ -24,8 +24,9 @@ import (
 	"testing"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -33,14 +34,14 @@ func TestWithdrawal(t *testing.T) {
 	withdrawal := engineprimitives.Withdrawal{
 		Index:     math.U64(1),
 		Validator: math.ValidatorIndex(1),
-		Address:   common.ExecutionAddress{1, 2, 3, 4, 5},
+		Address:   gethprimitives.ExecutionAddress{1, 2, 3, 4, 5},
 		Amount:    math.Gwei(1000),
 	}
 
 	require.Equal(t, math.U64(1), withdrawal.GetIndex())
 	require.Equal(t, math.ValidatorIndex(1), withdrawal.GetValidatorIndex())
 	require.Equal(t,
-		common.ExecutionAddress{1, 2, 3, 4, 5},
+		gethprimitives.ExecutionAddress{1, 2, 3, 4, 5},
 		withdrawal.GetAddress(),
 	)
 	require.Equal(t, math.Gwei(1000), withdrawal.GetAmount())
@@ -50,21 +51,21 @@ func TestWithdrawal_Equals(t *testing.T) {
 	withdrawal1 := &engineprimitives.Withdrawal{
 		Index:     math.U64(1),
 		Validator: math.ValidatorIndex(1),
-		Address:   common.ExecutionAddress{1, 2, 3, 4, 5},
+		Address:   gethprimitives.ExecutionAddress{1, 2, 3, 4, 5},
 		Amount:    math.Gwei(1000),
 	}
 
 	withdrawal2 := &engineprimitives.Withdrawal{
 		Index:     math.U64(1),
 		Validator: math.ValidatorIndex(1),
-		Address:   common.ExecutionAddress{1, 2, 3, 4, 5},
+		Address:   gethprimitives.ExecutionAddress{1, 2, 3, 4, 5},
 		Amount:    math.Gwei(1000),
 	}
 
 	withdrawal3 := &engineprimitives.Withdrawal{
 		Index:     math.U64(2),
 		Validator: math.ValidatorIndex(2),
-		Address:   common.ExecutionAddress{2, 3, 4, 5, 6},
+		Address:   gethprimitives.ExecutionAddress{2, 3, 4, 5, 6},
 		Amount:    math.Gwei(2000),
 	}
 
@@ -73,4 +74,58 @@ func TestWithdrawal_Equals(t *testing.T) {
 
 	// Test that Equals returns false for two different withdrawals
 	require.False(t, withdrawal1.Equals(withdrawal3))
+}
+
+func TestWithdrawal_HashTreeRoot(t *testing.T) {
+	withdrawal := &engineprimitives.Withdrawal{
+		Index:     math.U64(1),
+		Validator: math.ValidatorIndex(2),
+		Address: gethprimitives.ExecutionAddress{
+			1,
+			2,
+			3,
+			4,
+			5,
+			6,
+			7,
+			8,
+			9,
+			10,
+			11,
+			12,
+			13,
+			14,
+			15,
+			16,
+			17,
+			18,
+			19,
+			20,
+		},
+		Amount: math.Gwei(1000),
+	}
+
+	// Get the hash tree root using the built-in method
+	builtInRoot, err := withdrawal.HashTreeRoot()
+	require.NoError(t, err)
+
+	// Create a Container with the same elements
+	container := ssz.ContainerFromElements(
+		ssz.U64(withdrawal.Index.Unwrap()),
+		ssz.U64(withdrawal.Validator),
+		ssz.ByteVectorFromBytes(withdrawal.Address.Bytes()),
+		ssz.U64(withdrawal.Amount),
+	)
+
+	// Get the hash tree root using the Container
+	containerRoot, err := container.HashTreeRoot()
+	require.NoError(t, err)
+
+	// Compare the results
+	require.Equal(
+		t,
+		builtInRoot,
+		containerRoot,
+		"Hash tree roots should be equal",
+	)
 }

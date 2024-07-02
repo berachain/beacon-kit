@@ -25,6 +25,7 @@ import (
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -33,15 +34,15 @@ import (
 // returns the payload ID.
 func (pb *PayloadBuilder[
 	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	PayloadAttributesT, PayloadIDT,
+	PayloadAttributesT, PayloadIDT, WithdrawalT,
 ]) RequestPayloadAsync(
 	ctx context.Context,
 	st BeaconStateT,
 	slot math.Slot,
 	timestamp uint64,
 	parentBlockRoot common.Root,
-	headEth1BlockHash common.ExecutionHash,
-	finalEth1BlockHash common.ExecutionHash,
+	headEth1BlockHash gethprimitives.ExecutionHash,
+	finalEth1BlockHash gethprimitives.ExecutionHash,
 ) (*PayloadIDT, error) {
 	if !pb.Enabled() {
 		return nil, ErrPayloadBuilderDisabled
@@ -94,15 +95,15 @@ func (pb *PayloadBuilder[
 // blocks until the payload is delivered.
 func (pb *PayloadBuilder[
 	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	PayloadAttributesT, PayloadIDT,
+	PayloadAttributesT, PayloadIDT, WithdrawalT,
 ]) RequestPayloadSync(
 	ctx context.Context,
 	st BeaconStateT,
 	slot math.Slot,
 	timestamp uint64,
 	parentBlockRoot common.Root,
-	parentEth1Hash common.ExecutionHash,
-	finalBlockHash common.ExecutionHash,
+	parentEth1Hash gethprimitives.ExecutionHash,
+	finalBlockHash gethprimitives.ExecutionHash,
 ) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
 	if !pb.Enabled() {
 		return nil, ErrPayloadBuilderDisabled
@@ -155,7 +156,7 @@ func (pb *PayloadBuilder[
 // execution client to return the payload.
 func (pb *PayloadBuilder[
 	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	PayloadAttributesT, PayloadIDT,
+	PayloadAttributesT, PayloadIDT, WithdrawalT,
 ]) RetrievePayload(
 	ctx context.Context,
 	slot math.Slot,
@@ -204,7 +205,7 @@ func (pb *PayloadBuilder[
 		args = append(args, "num_blobs", len(blobsBundle.GetBlobs()))
 	}
 
-	pb.logger.Info("Payload retrieved from local builder 🏗️ ", args...)
+	pb.logger.Info("Payload retrieved from local builder", args...)
 
 	// If the payload was built by a different builder, something is
 	// wrong the EL<>CL setup.
@@ -226,7 +227,7 @@ func (pb *PayloadBuilder[
 // of some kind.
 func (pb *PayloadBuilder[
 	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	PayloadAttributesT, PayloadIDT,
+	PayloadAttributesT, PayloadIDT, WithdrawalT,
 ]) SendForceHeadFCU(
 	ctx context.Context,
 	st BeaconStateT,
@@ -238,7 +239,7 @@ func (pb *PayloadBuilder[
 	}
 
 	pb.logger.Info(
-		"Sending startup forkchoice update to execution client 🚀 ",
+		"Sending startup forkchoice update to execution client",
 		"head_eth1_hash", lph.GetBlockHash(),
 		"safe_eth1_hash", lph.GetParentHash(),
 		"finalized_eth1_hash", lph.GetParentHash(),

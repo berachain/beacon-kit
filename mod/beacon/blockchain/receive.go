@@ -60,13 +60,13 @@ func (s *Service[
 	// If the block is nil or a nil pointer, exit early.
 	if blk.IsNil() {
 		s.logger.Warn(
-			"Aborting block verification - beacon block not found in proposal 🚫",
+			"Aborting block verification - beacon block not found in proposal",
 		)
 		return errors.WrapNonFatal(ErrNilBlk)
 	}
 
 	s.logger.Info(
-		"Received incoming beacon block 📫",
+		"Received incoming beacon block",
 		"state_root", blk.GetStateRoot(),
 	)
 
@@ -96,7 +96,7 @@ func (s *Service[
 	}
 
 	s.logger.Info(
-		"State root verification succeeded - accepting incoming beacon block 🏎️ ",
+		"State root verification succeeded - accepting incoming beacon block",
 		"state_root",
 		blk.GetStateRoot(),
 	)
