@@ -219,12 +219,12 @@ start-erigon-run:
 	-p 30303:30303 \
 	-p 8545:8545 \
 	-p 8551:8551 \
-	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	--rm -d -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
 	thorax/erigon:latest \
 	--http \
 	--http.addr 0.0.0.0 \
-	--http.api eth,net \
+	--http.api eth,net,debug \
 	--http.vhosts "*" \
 	--port 30303 \
 	--http.corsdomain "*" \
