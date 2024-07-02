@@ -215,7 +215,7 @@ start-erigon-init:
 
 start-erigon-run:
 	sudo chmod 777 -R .tmp
-	docker run \
+	docker run --name execution-erigon \
 	-p 30303:30303 \
 	-p 8545:8545 \
 	-p 8551:8551 \
