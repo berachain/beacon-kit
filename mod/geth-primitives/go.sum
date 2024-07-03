@@ -59,8 +59,8 @@ github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 h1:rpfIENRNNilwHwZeG5+P150SMrnN
 github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0/go.mod h1:v57UDF4pDQJcEfFUCRop3lJL149eHGSe9Jvczhzjo/0=
 github.com/ethereum/c-kzg-4844 v1.0.2 h1:8tV84BCEiPeOkiVgW9mpYBeBUir2bkCNVqxPwwVeO+s=
 github.com/ethereum/c-kzg-4844 v1.0.2/go.mod h1:VewdlzQmpT5QSrVhbBuGoCdFJkpaJlO1aQputP83wc0=
-github.com/ethereum/go-ethereum v1.14.5 h1:szuFzO1MhJmweXjoM5nSAeDvjNUH3vIQoMzzQnfvjpw=
-github.com/ethereum/go-ethereum v1.14.5/go.mod h1:VEDGGhSxY7IEjn98hJRFXl/uFvpRgbIIf2PpXiyGGgc=
+github.com/ethereum/go-ethereum v1.14.6 h1:ZTxnErSopkDyxdvB8zW/KcK+/AVrdil/TzoWXVKaaC8=
+github.com/ethereum/go-ethereum v1.14.6/go.mod h1:hglUZo/5pVIYXNyYjWzsAUDpT/zI+WbWo/Nih7ot+G0=
 github.com/ethereum/go-verkle v0.1.1-0.20240306133620-7d920df305f0 h1:KrE8I4reeVvf7C1tm8elRjj4BdscTYzz/WAbYyf/JI4=
 github.com/ethereum/go-verkle v0.1.1-0.20240306133620-7d920df305f0/go.mod h1:D9AJLVXSyZQXJQVk8oh1EwjISE+sJTn2duYIZC0dy3w=
 github.com/fjl/memsize v0.0.2 h1:27txuSD9or+NZlnOWdKUxeBzTAUkWCVh+4Gf2dWFOzA=

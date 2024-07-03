@@ -18,7 +18,7 @@ require (
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240627201655-33a34cec850e
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240702102754-c4fa9a6225b0
 	github.com/cosmos/cosmos-sdk v0.51.0
-	github.com/ethereum/go-ethereum v1.14.5
+	github.com/ethereum/go-ethereum v1.14.6
 	github.com/holiman/uint256 v1.2.5-0.20240612125212-75a520988c94
 	github.com/kurtosis-tech/kurtosis/api/golang v0.90.1
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8
