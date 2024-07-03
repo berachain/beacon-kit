@@ -102,6 +102,5 @@ func (h B48) HashTreeRoot() ([32]byte, error) {
 	result := make([][32]byte, 2)
 	copy(result[0][:], h[:])
 	gohashtree.HashChunks(result, result)
-	gohashtree.HashChunks(result, result)
 	return result[0], nil
 }
