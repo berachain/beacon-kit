@@ -56,9 +56,7 @@ func BenchmarkB96_MarshalJSON(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_, err := json.Marshal(data)
-		if err != nil {
-			b.Fatal(err)
-		}
+		require.NoError(b, err)
 	}
 }
 
@@ -71,8 +69,6 @@ func BenchmarkB96_UnmarshalJSON(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		err := data.UnmarshalJSON(jsonData)
-		if err != nil {
-			b.Fatal(err)
-		}
+		require.NoError(b, err)
 	}
 }
