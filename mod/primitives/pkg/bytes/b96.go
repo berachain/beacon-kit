@@ -60,11 +60,6 @@ func (h *B96) String() string {
 /*                                JSONMarshaler                               */
 /* -------------------------------------------------------------------------- */
 
-// MarshalJSON implements the json.Marshaler interface for B96.
-func (h B96) MarshalJSON() ([]byte, error) {
-	return h[:96], nil
-}
-
 // UnmarshalJSON implements the json.Unmarshaler interface for B96.
 func (h *B96) UnmarshalJSON(input []byte) error {
 	return unmarshalJSONHelper(h[:], input)
