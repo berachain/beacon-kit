@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -22,11 +22,14 @@ package bytes
 
 import (
 	"encoding/hex"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
 )
 
-// ------------------------------ B48 ------------------------------
+var _ types.MinimalSSZType = (*B48)(nil)
 
-// B48 represents a 48-byte array.
+// B48 represents a 48-byte fixed-size byte array.
+// For SSZ purposes it is serialized a `Vector[Byte, 48]`.
 type B48 [48]byte
 
 // ToBytes48 is a utility function that transforms a byte slice into a fixed
@@ -35,15 +38,9 @@ func ToBytes48(input []byte) B48 {
 	return B48(ExtendToSize(input, B48Size))
 }
 
-// UnmarshalJSON implements the json.Unmarshaler interface for B48.
-func (h *B48) UnmarshalJSON(input []byte) error {
-	return unmarshalJSONHelper(h[:], input)
-}
-
-// String returns the hex string representation of B48.
-func (h B48) String() string {
-	return "0x" + hex.EncodeToString(h[:])
-}
+/* -------------------------------------------------------------------------- */
+/*                                TextMarshaler                               */
+/* -------------------------------------------------------------------------- */
 
 // MarshalText implements the encoding.TextMarshaler interface for B48.
 func (h B48) MarshalText() ([]byte, error) {
@@ -53,4 +50,54 @@ func (h B48) MarshalText() ([]byte, error) {
 // UnmarshalText implements the encoding.TextUnmarshaler interface for B48.
 func (h *B48) UnmarshalText(text []byte) error {
 	return UnmarshalTextHelper(h[:], text)
+}
+
+// String returns the hex string representation of B48.
+func (h *B48) String() string {
+	return "0x" + hex.EncodeToString(h[:])
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                JSONMarshaler                               */
+/* -------------------------------------------------------------------------- */
+
+// MarshalJSON implements the json.Marshaler interface for B48.
+func (h B48) MarshalJSON() ([]byte, error) {
+	return h[:48], nil
+}
+
+// UnmarshalJSON implements the json.Unmarshaler interface for B48.
+func (h *B48) UnmarshalJSON(input []byte) error {
+	return unmarshalJSONHelper(h[:], input)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                SSZMarshaler                                */
+/* -------------------------------------------------------------------------- */
+
+// SizeSSZ returns the size of its SSZ encoding in bytes.
+func (h B48) SizeSSZ() int {
+	return B48Size
+}
+
+// MarshalSSZ implements the SSZ marshaling for B48.
+func (h B48) MarshalSSZ() ([]byte, error) {
+	return h[:], nil
+}
+
+// IsFixed returns true if the length of the B48 is fixed.
+func (h B48) IsFixed() bool {
+	return true
+}
+
+// Type returns the type of the B48.
+func (h B48) Type() types.Type {
+	return types.Composite
+}
+
+// HashTreeRoot returns the hash tree root of the B48.
+func (h B48) HashTreeRoot() ([32]byte, error) {
+	var result [32]byte
+	copy(result[:], h[:])
+	return result, nil
 }
