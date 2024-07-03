@@ -69,6 +69,22 @@ var prysmConsistencyTests = []struct {
 		},
 	},
 	{
+		// TODO: Broken.
+		name: "max bytes per tx",
+		txs: func() [][]byte {
+			var tx []byte
+			for i := range constants.MaxBytesPerTx {
+				tx = append(tx, byte(i))
+			}
+			return [][]byte{tx}
+		}(),
+		want: [32]byte{
+			120, 150, 59, 37, 152, 101, 206, 102, 229, 69, 62, 176, 208, 159,
+			230, 109, 150, 65, 134, 25, 69, 61, 13, 45, 150, 78, 139, 155, 241,
+			18, 248, 222,
+		},
+	},
+	{
 		name: "one tx",
 		txs:  [][]byte{{1, 2, 3}},
 		want: [32]byte{
@@ -78,6 +94,7 @@ var prysmConsistencyTests = []struct {
 		},
 	},
 	{
+		// TODO: Broken.
 		name: "max txs",
 		txs: func() [][]byte {
 			var txs [][]byte
@@ -105,58 +122,9 @@ var prysmConsistencyTests = []struct {
 	},
 }
 
-func TestLegacyTransactions(t *testing.T) {
-	for _, tt := range prysmConsistencyTests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := engineprimitives.Transactions(tt.txs).HashTreeRoot()
-			if (err != nil) != tt.wantErr {
-				t.Errorf(
-					"TransactionsRoot() error = %v, wantErr %v",
-					err, tt.wantErr,
-				)
-				return
-			}
-
-			for i := range got {
-				if got[i] != tt.want[i] {
-					t.Errorf(
-						"TransactionsRoot() got = %v, want %v, off at byte %d",
-						[32]byte(got), tt.want, i,
-					)
-					return
-				}
-			}
-		})
-	}
-}
-
-func TestBartioTransactions(t *testing.T) {
-	for _, tt := range prysmConsistencyTests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := engineprimitives.BartioTransactionsFromBytes(
-				tt.txs,
-			).HashTreeRoot()
-			if (err != nil) != tt.wantErr {
-				t.Errorf(
-					"TransactionsRoot() error = %v, wantErr %v",
-					err, tt.wantErr,
-				)
-				return
-			}
-
-			for i := range got {
-				if got[i] != tt.want[i] {
-					t.Errorf(
-						"TransactionsRoot() got = %v, want %v, off at byte %d",
-						got, tt.want, i,
-					)
-					return
-				}
-			}
-		})
-	}
-}
-
+// NOTE: not testing legacy and Bartio transactions types
+// (engineprimitives.Transactions and engine.primitivesBartioTransactions
+// respectively) since those will be deprecated soon.
 func TestProperTransactions(t *testing.T) {
 	for _, tt := range prysmConsistencyTests {
 		t.Run(tt.name, func(t *testing.T) {

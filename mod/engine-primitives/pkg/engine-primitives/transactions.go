@@ -31,6 +31,8 @@ import (
 
 // Transactions is a typealias for [][]byte, which is how transactions are
 // received in the execution payload.
+//
+// TODO: Remove and deprecate this type once migrated to ProperTransactions.
 type Transactions [][]byte
 
 // HashTreeRoot returns the hash tree root of the Transactions list.
@@ -42,6 +44,7 @@ func (txs Transactions) HashTreeRoot() (common.Root, error) {
 	)
 }
 
+// TODO: Remove and deprecate this type once migrated to ProperTransactions.
 type BartioTransactions = ssz.List[ssz.Vector[ssz.Byte]]
 
 // BartioTransactionsFromBytes creates a Transactions object from a byte slice.
