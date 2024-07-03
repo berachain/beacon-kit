@@ -4,6 +4,7 @@ go 1.22.4
 
 require (
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240624204855-d8809d5c8588
+	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240703145037-b5612ab256db
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240610210054-bfdc14c4013c
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240624204855-d8809d5c8588
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240624003607-df94860f8eeb
