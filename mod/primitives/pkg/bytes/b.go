@@ -23,9 +23,7 @@ package bytes
 import (
 	"reflect"
 
-	"encoding/hex"
-
-	primitiveshex "github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 )
 
@@ -43,7 +41,7 @@ func (b Bytes) MarshalText() ([]byte, error) {
 
 // UnmarshalText implements encoding.TextUnmarshaler.
 func (b *Bytes) UnmarshalText(input []byte) error {
-	dec, err := primitiveshex.UnmarshalByteText(input)
+	dec, err := hex.UnmarshalByteText(input)
 	if err != nil {
 		return err
 	}
@@ -58,5 +56,5 @@ func (b *Bytes) UnmarshalJSON(input []byte) error {
 
 // String returns the hex encoding of b.
 func (b Bytes) String() string {
-	return "0x" + hex.EncodeToString(b)
+	return hex.FromBytes(b[:]).Unwrap()
 }
