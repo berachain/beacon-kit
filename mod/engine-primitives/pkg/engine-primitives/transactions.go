@@ -31,8 +31,6 @@ import (
 
 // Transactions is a typealias for [][]byte, which is how transactions are
 // received in the execution payload.
-//
-// TODO: make it take a generic SpecT type.
 type Transactions [][]byte
 
 // HashTreeRoot returns the hash tree root of the Transactions list.
@@ -61,21 +59,13 @@ type ProperTransactions = ssz.List[*ssz.List[ssz.Byte]]
 func ProperTransactionsFromBytes(data [][]byte) *ProperTransactions {
 	txs := make([]*ssz.List[ssz.Byte], len(data))
 	for i, tx := range data {
-		//nolint:mnd // unhood later.
-		txs[i] = ssz.ByteListFromBytes(tx, 1073741824)
+		txs[i] = ssz.ByteListFromBytes(tx, constants.MaxBytesPerTx)
 	}
 
-	y := ssz.ListFromElements(constants.MaxTxsPerPayload, txs...)
-
-	return ssz.ListFromElements(
-		constants.MaxTxsPerPayload,
-		y.Elements()...,
-	)
+	return ssz.ListFromElements(constants.MaxTxsPerPayload, txs...)
 }
 
 // TxsMerkleizer is a ssz merkleizer used for transactions.
-//
-// TODO: make the ChainSpec a generic on this type.
 type TxsMerkleizer merkleizer.Merkleizer[[32]byte, common.Root]
 
 // HashTreeRootWith returns the hash tree root of the Transactions list
