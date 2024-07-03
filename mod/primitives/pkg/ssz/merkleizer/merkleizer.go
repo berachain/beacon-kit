@@ -61,6 +61,17 @@ func (m *Merkleizer[RootT, T]) MerkleizeBasic(
 	return m.MerkleizeVectorBasic([]T{value})
 }
 
+// MerkleizeByteSlice hashes a byteslice by chunkifying it and returning the
+// corresponding HTR as if it were a fixed vector of bytes of the given length.
+//
+// TODO: Deprecate once transactions and randao are no longer using this.
+func (m *Merkleizer[RootT, T]) MerkleizeByteSlice(
+	input []byte,
+) (RootT, error) {
+	chunks, numChunks := m.chunkifyBytes(input)
+	return m.Merkleize(chunks, numChunks)
+}
+
 // MerkleizeVectorBasic implements the SSZ merkleization algorithm
 // for a vector of basic types.
 func (m *Merkleizer[RootT, T]) MerkleizeVectorBasic(
@@ -99,20 +110,6 @@ func (m *Merkleizer[RootT, T]) MerkleizeVectorCompositeOrContainer(
 /* -------------------------------------------------------------------------- */
 /*                                    List                                    */
 /* -------------------------------------------------------------------------- */
-
-// MerkleizeListBytes hashes a byteslice by chunkifying it, hashing to determine
-// the HTR, and mixing in the length of the list.
-//
-// TODO: only kept for backwards compatibility used by transactions and randao.
-func (m *Merkleizer[RootT, T]) MerkleizeListBytes(input []byte) (RootT, error) {
-	chunks, numChunks := m.chunkifyBytes(input)
-	root, err := m.Merkleize(chunks, numChunks)
-	if err != nil {
-		return RootT{}, err
-	}
-
-	return m.rootHasher.MixIn(root, uint64(len(input))), nil
-}
 
 // MerkleizeListBasic implements the SSZ merkleization algorithm for a list of
 // basic types.

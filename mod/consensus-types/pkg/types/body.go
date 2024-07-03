@@ -207,8 +207,8 @@ func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 		merkleizer = merkleizer.New[[32]byte, common.Root]()
 	)
 
-	// TODO: use ByteListFromBytes and the corresponding HashTreeRoot function.
-	layer[0], err = merkleizer.MerkleizeListBytes(randao[:])
+	// TODO: deprecate usage of this func in favor of ByteListFromBytes.
+	layer[0], err = merkleizer.MerkleizeByteSlice(randao[:])
 	if err != nil {
 		return nil, err
 	}
