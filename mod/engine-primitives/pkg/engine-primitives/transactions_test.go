@@ -63,25 +63,25 @@ var prysmConsistencyTests = []struct {
 			[]byte("transaction3"),
 		},
 		want: [32]byte{
-			102, 209, 140, 87, 217, 28, 68, 12, 133, 42, 77, 136, 191, 18,
-			234, 105, 166, 228, 216, 235, 230, 95, 200, 73, 85, 33, 134,
-			254, 219, 97, 82, 209,
-		},
-	},
-	{
-		name: "one tx",
-		txs:  [][]byte{{1, 2, 3}},
-		want: [32]byte{
 			139, 213, 123, 109, 253, 176, 23, 93, 101, 51, 142, 198, 119,
 			250, 13, 242, 79, 219, 180, 165, 254, 181, 9, 178, 4, 253,
 			110, 75, 50, 25, 17, 141,
 		},
 	},
 	{
+		name: "one tx",
+		txs:  [][]byte{{1, 2, 3}},
+		want: [32]byte{
+			102, 209, 140, 87, 217, 28, 68, 12, 133, 42, 77, 136, 191, 18,
+			234, 105, 166, 228, 216, 235, 230, 95, 200, 73, 85, 33, 134,
+			254, 219, 97, 82, 209,
+		},
+	},
+	{
 		name: "max txs",
 		txs: func() [][]byte {
 			var txs [][]byte
-			for i := 0; i < int(constants.MaxTxsPerPayload); i++ {
+			for range int(constants.MaxTxsPerPayload) {
 				txs = append(txs, []byte{})
 			}
 			return txs
@@ -96,7 +96,7 @@ var prysmConsistencyTests = []struct {
 		name: "exceed max txs",
 		txs: func() [][]byte {
 			var txs [][]byte
-			for i := 0; i < int(constants.MaxTxsPerPayload)+1; i++ {
+			for range int(constants.MaxTxsPerPayload) + 1 {
 				txs = append(txs, []byte{})
 			}
 			return txs
