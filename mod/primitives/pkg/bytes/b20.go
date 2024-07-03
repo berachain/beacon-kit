@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -25,34 +25,34 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
 )
 
-var _ types.MinimalSSZType = (*B48)(nil)
+var _ types.MinimalSSZType = (*B20)(nil)
 
-// B48 represents a 48-byte fixed-size byte array.
-// For SSZ purposes it is serialized a `Vector[Byte, 48]`.
-type B48 [48]byte
+// B20 represents a 20-byte fixed-size byte array.
+// For SSZ purposes it is serialized a `Vector[Byte, 20]`.
+type B20 [20]byte
 
-// ToBytes48 is a utility function that transforms a byte slice into a fixed
-// 48-byte array. If the input exceeds 48 bytes, it gets truncated.
-func ToBytes48(input []byte) B48 {
-	return B48(ExtendToSize(input, B48Size))
+// ToBytes20 is a utility function that transforms a byte slice into a fixed
+// 20-byte array. If the input exceeds 20 bytes, it gets truncated.
+func ToBytes20(input []byte) B20 {
+	return B20(ExtendToSize(input, B20Size))
 }
 
 /* -------------------------------------------------------------------------- */
 /*                                TextMarshaler                               */
 /* -------------------------------------------------------------------------- */
 
-// MarshalText implements the encoding.TextMarshaler interface for B48.
-func (h B48) MarshalText() ([]byte, error) {
+// MarshalText implements the encoding.TextMarshaler interface for B20.
+func (h B20) MarshalText() ([]byte, error) {
 	return []byte(h.String()), nil
 }
 
-// UnmarshalText implements the encoding.TextUnmarshaler interface for B48.
-func (h *B48) UnmarshalText(text []byte) error {
+// UnmarshalText implements the encoding.TextUnmarshaler interface for B20.
+func (h *B20) UnmarshalText(text []byte) error {
 	return UnmarshalTextHelper(h[:], text)
 }
 
-// String returns the hex string representation of B48.
-func (h B48) String() string {
+// String returns the hex string representation of B20.
+func (h *B20) String() string {
 	return hex.FromBytes(h[:]).Unwrap()
 }
 
@@ -60,13 +60,13 @@ func (h B48) String() string {
 /*                                JSONMarshaler                               */
 /* -------------------------------------------------------------------------- */
 
-// MarshalJSON implements the json.Marshaler interface for B48.
-func (h B48) MarshalJSON() ([]byte, error) {
-	return h[:48], nil
+// MarshalJSON implements the json.Marshaler interface for B20.
+func (h B20) MarshalJSON() ([]byte, error) {
+	return h[:20], nil
 }
 
-// UnmarshalJSON implements the json.Unmarshaler interface for B48.
-func (h *B48) UnmarshalJSON(input []byte) error {
+// UnmarshalJSON implements the json.Unmarshaler interface for B20.
+func (h *B20) UnmarshalJSON(input []byte) error {
 	return unmarshalJSONHelper(h[:], input)
 }
 
@@ -75,27 +75,27 @@ func (h *B48) UnmarshalJSON(input []byte) error {
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of its SSZ encoding in bytes.
-func (h B48) SizeSSZ() int {
-	return B48Size
+func (h B20) SizeSSZ() int {
+	return B20Size
 }
 
-// MarshalSSZ implements the SSZ marshaling for B48.
-func (h B48) MarshalSSZ() ([]byte, error) {
+// MarshalSSZ implements the SSZ marshaling for B20.
+func (h B20) MarshalSSZ() ([]byte, error) {
 	return h[:], nil
 }
 
-// IsFixed returns true if the length of the B48 is fixed.
-func (h B48) IsFixed() bool {
+// IsFixed returns true if the length of the B20 is fixed.
+func (h B20) IsFixed() bool {
 	return true
 }
 
-// Type returns the type of the B48.
-func (h B48) Type() types.Type {
+// Type returns the type of the B20.
+func (h B20) Type() types.Type {
 	return types.Composite
 }
 
-// HashTreeRoot returns the hash tree root of the B48.
-func (h B48) HashTreeRoot() ([32]byte, error) {
+// HashTreeRoot returns the hash tree root of the B20.
+func (h B20) HashTreeRoot() ([32]byte, error) {
 	var result [32]byte
 	copy(result[:], h[:])
 	return result, nil

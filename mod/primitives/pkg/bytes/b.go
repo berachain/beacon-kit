@@ -38,11 +38,6 @@ func (b Bytes) MarshalText() ([]byte, error) {
 	return hex.EncodeBytes(b)
 }
 
-// UnmarshalJSON implements json.Unmarshaler.
-func (b *Bytes) UnmarshalJSON(input []byte) error {
-	return hex.UnmarshalJSONText(input, b, bytesT)
-}
-
 // UnmarshalText implements encoding.TextUnmarshaler.
 func (b *Bytes) UnmarshalText(input []byte) error {
 	dec, err := hex.UnmarshalByteText(input)
@@ -53,7 +48,12 @@ func (b *Bytes) UnmarshalText(input []byte) error {
 	return nil
 }
 
+// UnmarshalJSON implements json.Unmarshaler.
+func (b *Bytes) UnmarshalJSON(input []byte) error {
+	return hex.UnmarshalJSONText(input, b, bytesT)
+}
+
 // String returns the hex encoding of b.
 func (b Bytes) String() hex.String {
-	return hex.FromBytes(b)
+	return hex.FromBytes(b[:])
 }
