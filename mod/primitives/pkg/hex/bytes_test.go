@@ -167,10 +167,7 @@ func TestDecodeFixedJSON(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := hex.DecodeFixedJSON(
-				tt.input,
-				tt.out,
-			)
+			err := hex.DecodeFixedJSON(tt.input, tt.out)
 			if tt.expectErr {
 				require.Error(t, err, "Test case : %s", tt.name)
 			} else {
