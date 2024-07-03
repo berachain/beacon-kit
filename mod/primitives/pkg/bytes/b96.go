@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 //
-//nolint:dupl // it's okay to have similar code for different types
+
 package bytes
 
 import (
@@ -100,9 +100,15 @@ func (h B96) Type() types.Type {
 
 // HashTreeRoot returns the hash tree root of the B96.
 func (h B96) HashTreeRoot() ([32]byte, error) {
+	//nolint:mnd, for a tree height of 2 we need 2 working chunks.
 	var result = make([][32]byte, 2)
 	//#nosec:G103 // on purpose.
-	gohashtree.HashChunks(result, unsafe.Slice((*[32]byte)(unsafe.Pointer(&h[0])), 4))
+	gohashtree.HashChunks(
+		result,
+		//nolint:mnd // we need 4 leaves.
+		//#nosec:G103 // on purpose.
+		unsafe.Slice((*[32]byte)(unsafe.Pointer(&h[0])), 4),
+	)
 	gohashtree.HashChunks(result, result)
 	return result[0], nil
 }
