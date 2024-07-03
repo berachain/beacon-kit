@@ -83,6 +83,8 @@ func DecodeFixedJSON(
 	return DecodeFixedText(input[1:len(input)-1], out)
 }
 
+// DecodeVariableText decodes the input as a string with 0x prefix. The length
+// of the output is determined by the input length.
 func DecodeVariableText(input []byte) ([]byte, error) {
 	raw, err := formatAndValidateText(input)
 	if err != nil {
