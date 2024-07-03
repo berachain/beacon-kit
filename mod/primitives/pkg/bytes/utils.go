@@ -25,24 +25,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 )
 
-// ------------------------------ Helpers ------------------------------
-
-// Helper function to unmarshal JSON for various byte types.
-func unmarshalJSONHelper(target []byte, input []byte) error {
-	bz := Bytes{}
-	if err := bz.UnmarshalJSON(input); err != nil {
-		return err
-	}
-	if len(bz) != len(target) {
-		return errors.Newf(
-			"incorrect length, expected %d bytes but got %d",
-			len(target), len(bz),
-		)
-	}
-	copy(target, bz)
-	return nil
-}
-
 // UnmarshalTextHelper function to unmarshal text for various byte types.
 func UnmarshalTextHelper(target []byte, text []byte) error {
 	dec, err := hex.UnmarshalByteText(text)

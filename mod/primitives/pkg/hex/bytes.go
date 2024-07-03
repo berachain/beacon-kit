@@ -38,6 +38,23 @@ func UnmarshalByteText(input []byte) ([]byte, error) {
 	return dec, nil
 }
 
+// EncodeFixedJSON encodes the input byte slice as a JSON string with 0x prefix.
+// This function is commonly used to implement the MarshalJSON method for fixed-size types.
+func EncodeFixedJSON(input []byte) ([]byte, error) {
+	if len(input) == 0 {
+		return []byte(`"0x"`), nil
+	}
+
+	result := make([]byte, len(input)*2+4)
+	result[0] = '"'
+	result[1] = '0'
+	result[2] = 'x'
+	hex.Encode(result[3:], input)
+	result[len(result)-1] = '"'
+
+	return result, nil
+}
+
 // DecodeFixedJSON decodes the input as a string with 0x prefix. The length
 // of out determines the required input length. This function is commonly used
 // to implement the UnmarshalJSON method for fixed-size types.
