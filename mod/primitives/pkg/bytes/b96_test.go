@@ -18,31 +18,34 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package bytes
+package bytes_test
 
-// Constants representing various byte sizes commonly used in the package.
-const (
-	// B1Size represents a 1-byte size.
-	B1Size = 1
+import (
+	"testing"
 
-	// B4Size represents a 4-byte size.
-	B4Size = 4
-
-	// B8Size represents an 8-byte size.
-	B8Size = 8
-
-	// B16Size represents a 16-byte size.
-	B16Size = 16
-
-	// B20Size represents a 20-byte size.
-	B20Size = 20
-
-	// B32Size represents a 32-byte size.
-	B32Size = 32
-
-	// B48Size represents a 48-byte size.
-	B48Size = 48
-
-	// B96Size represents a 96-byte size.
-	B96Size = 96
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
+	"github.com/stretchr/testify/require"
 )
+
+func TestB96_HashTreeRoot(t *testing.T) {
+	tests := []struct {
+		name  string
+		input bytes.B96
+		want  [32]byte
+	}{
+		{
+			name:  "Zero bytes",
+			input: bytes.B96{},
+			want:  zero.Hashes[2],
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := tt.input.HashTreeRoot()
+			require.NoError(t, err)
+			require.Equal(t, tt.want, result)
+		})
+	}
+}
