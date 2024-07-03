@@ -18,24 +18,6 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package spec
+package serializer
 
-import (
-	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-)
-
-// DevnetChainSpec is the ChainSpec for the localnet.
-func DevnetChainSpec() chain.Spec[
-	common.DomainType,
-	math.Epoch,
-	gethprimitives.ExecutionAddress,
-	math.Slot,
-	any,
-] {
-	testnetSpec := BaseSpec()
-	testnetSpec.DepositEth1ChainID = 80087
-	return chain.NewChainSpec(testnetSpec)
-}
+// Types that need to be handled with the "non receiver solution."

@@ -17,25 +17,44 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
+//
 
-package spec
+package bytes
 
 import (
-	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"reflect"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 )
 
-// DevnetChainSpec is the ChainSpec for the localnet.
-func DevnetChainSpec() chain.Spec[
-	common.DomainType,
-	math.Epoch,
-	gethprimitives.ExecutionAddress,
-	math.Slot,
-	any,
-] {
-	testnetSpec := BaseSpec()
-	testnetSpec.DepositEth1ChainID = 80087
-	return chain.NewChainSpec(testnetSpec)
+//nolint:gochecknoglobals // reflect.Type of Bytes set at runtime
+var bytesT = reflect.TypeOf(Bytes(nil))
+
+// Bytes marshals/unmarshals as a JSON string with 0x prefix.
+// The empty slice marshals as "0x".
+type Bytes []byte
+
+// MarshalText implements encoding.TextMarshaler.
+func (b Bytes) MarshalText() ([]byte, error) {
+	return hex.EncodeBytes(b)
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (b *Bytes) UnmarshalJSON(input []byte) error {
+	return hex.UnmarshalJSONText(input, b, bytesT)
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (b *Bytes) UnmarshalText(input []byte) error {
+	dec, err := hex.UnmarshalByteText(input)
+	if err != nil {
+		return err
+	}
+	*b = Bytes(dec)
+	return nil
+}
+
+// String returns the hex encoding of b.
+func (b Bytes) String() hex.String {
+	return hex.FromBytes(b)
 }

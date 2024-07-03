@@ -5,6 +5,7 @@ use (
 	./build/tools
 	./mod/async
 	./mod/beacon
+	./mod/chain-spec
 	./mod/cli
 	./mod/config
 	./mod/consensus

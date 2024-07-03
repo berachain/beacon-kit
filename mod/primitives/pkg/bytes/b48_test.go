@@ -18,24 +18,34 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package spec
+package bytes_test
 
 import (
-	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"testing"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
+	"github.com/stretchr/testify/require"
 )
 
-// DevnetChainSpec is the ChainSpec for the localnet.
-func DevnetChainSpec() chain.Spec[
-	common.DomainType,
-	math.Epoch,
-	gethprimitives.ExecutionAddress,
-	math.Slot,
-	any,
-] {
-	testnetSpec := BaseSpec()
-	testnetSpec.DepositEth1ChainID = 80087
-	return chain.NewChainSpec(testnetSpec)
+func TestB48_HashTreeRoot(t *testing.T) {
+	tests := []struct {
+		name  string
+		input bytes.B48
+		want  [32]byte
+	}{
+		{
+			name:  "Zero bytes",
+			input: bytes.B48{},
+			want:  zero.Hashes[1],
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := tt.input.HashTreeRoot()
+			require.NoError(t, err)
+			require.Equal(t, tt.want, result)
+		})
+	}
 }
