@@ -44,6 +44,26 @@ func (txs Transactions) HashTreeRoot() (common.Root, error) {
 	)
 }
 
+// HashTreeRootWith returns the hash tree root of the Transactions list
+// using the given merkleizer.
+func (txs Transactions) HashTreeRootWith(
+	merkleizer *merkleizer.Merkleizer[[32]byte, common.Root],
+) (common.Root, error) {
+	var (
+		err   error
+		roots = make([]common.Root, len(txs))
+	)
+
+	for i, tx := range txs {
+		roots[i], err = merkleizer.MerkleizeByteSlice(tx)
+		if err != nil {
+			return common.Root{}, err
+		}
+	}
+
+	return merkleizer.MerkleizeListComposite(roots, constants.MaxTxsPerPayload)
+}
+
 // TODO: Remove and deprecate this type once migrated to ProperTransactions.
 type BartioTransactions = ssz.List[ssz.Vector[ssz.Byte]]
 
@@ -65,27 +85,4 @@ func ProperTransactionsFromBytes(data [][]byte) *ProperTransactions {
 	}
 
 	return ssz.ListFromElements(constants.MaxTxsPerPayload, txs...)
-}
-
-// TxsMerkleizer is a ssz merkleizer used for transactions.
-type TxsMerkleizer merkleizer.Merkleizer[[32]byte, common.Root]
-
-// HashTreeRootWith returns the hash tree root of the Transactions list
-// using the given merkleizer.
-func (txs Transactions) HashTreeRootWith(
-	merkleizer *merkleizer.Merkleizer[[32]byte, common.Root],
-) (common.Root, error) {
-	var (
-		err   error
-		roots = make([]common.Root, len(txs))
-	)
-
-	for i, tx := range txs {
-		roots[i], err = merkleizer.MerkleizeByteSlice(tx)
-		if err != nil {
-			return common.Root{}, err
-		}
-	}
-
-	return merkleizer.MerkleizeListComposite(roots, constants.MaxTxsPerPayload)
 }
