@@ -21,26 +21,8 @@
 package bytes
 
 import (
-	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 )
-
-// UnmarshalTextHelper function to unmarshal text for various byte types.
-func UnmarshalTextHelper(target []byte, text []byte) error {
-	dec, err := hex.DecodeVariableText(text)
-	if err != nil {
-		return err
-	}
-
-	if len(dec) != len(target) {
-		return errors.Newf(
-			"incorrect length, expected %d bytes but got %d",
-			len(target), len(dec),
-		)
-	}
-	copy(target, dec)
-	return nil
-}
 
 // MustFromHex returns the bytes represented by the given hex string.
 // It panics if the input is not a valid hex string.

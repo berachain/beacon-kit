@@ -54,7 +54,7 @@ func (h B8) MarshalText() ([]byte, error) {
 
 // UnmarshalText implements the encoding.TextUnmarshaler interface for B8.
 func (h *B8) UnmarshalText(text []byte) error {
-	return UnmarshalTextHelper(h[:], text)
+	return hex.DecodeFixedText(text, h[:])
 }
 
 /* -------------------------------------------------------------------------- */
