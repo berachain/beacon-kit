@@ -21,31 +21,37 @@
 package hex
 
 import (
-	"encoding/json"
 	"errors"
-	"reflect"
 )
 
 var (
-	ErrEmptyString     = errors.New("empty hex string")
-	ErrMissingPrefix   = errors.New("hex string without 0x prefix")
-	ErrOddLength       = errors.New("hex string of odd length")
-	ErrNonQuotedString = errors.New("non-quoted hex string")
-	ErrInvalidString   = errors.New("invalid hex string")
+	// ErrEmptyString is returned when an empty hex string is provided.
+	ErrEmptyString = errors.New("empty hex string")
 
+	// ErrMissingPrefix is returned when a hex string is missing the "0x" prefix.
+	ErrMissingPrefix = errors.New("hex string without 0x prefix")
+
+	// ErrOddLength is returned when a hex string has an odd number of characters.
+	ErrOddLength = errors.New("hex string of odd length")
+
+	// ErrNonQuotedString is returned when a hex string is not properly quoted.
+	ErrNonQuotedString = errors.New("non-quoted hex string")
+
+	// ErrInvalidString is returned when a hex string contains invalid characters.
+	ErrInvalidString = errors.New("invalid hex string")
+
+	// ErrLeadingZero is returned when a hex number has leading zero digits.
 	ErrLeadingZero = errors.New("hex number with leading zero digits")
+
+	// ErrEmptyNumber is returned when the hex string is just "0x".
 	ErrEmptyNumber = errors.New("hex string \"0x\"")
+
+	// ErrUint64Range is returned when a hex number exceeds 64 bits.
 	ErrUint64Range = errors.New("hex number > 64 bits")
+
+	// ErrBig256Range is returned when a hex number exceeds 256 bits.
 	ErrBig256Range = errors.New("hex number > 256 bits")
 
+	// ErrInvalidBigWordSize is returned when an unexpected big.Word size is encountered.
 	ErrInvalidBigWordSize = errors.New("weird big.Word size")
 )
-
-// WrapUnmarshalError wraps an error occurring during JSON unmarshaling.
-func WrapUnmarshalError(err error, t reflect.Type) error {
-	if err != nil {
-		err = &json.UnmarshalTypeError{Value: err.Error(), Type: t}
-	}
-
-	return err
-}
