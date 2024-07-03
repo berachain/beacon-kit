@@ -52,6 +52,7 @@ var (
 	// ErrBig256Range is returned when a hex number exceeds 256 bits.
 	ErrBig256Range = errors.New("hex number > 256 bits")
 
-	// ErrInvalidBigWordSize is returned when an unexpected big.Word size is encountered.
+	// ErrInvalidBigWordSize is returned when an unexpected
+	// big.Word size is encountered.
 	ErrInvalidBigWordSize = errors.New("weird big.Word size")
 )

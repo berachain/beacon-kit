@@ -23,13 +23,9 @@ package bytes
 
 import (
 	"encoding/hex"
-	"reflect"
 
 	customhex "github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 )
-
-//nolint:gochecknoglobals // reflect.Type of Bytes set at runtime
-var bytesT = reflect.TypeOf(Bytes(nil))
 
 // Bytes marshals/unmarshals as a JSON string with 0x prefix.
 // The empty slice marshals as "0x".
