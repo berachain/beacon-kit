@@ -48,7 +48,6 @@ func ProvideStateProcessor(
 		*BeaconBlockBody,
 		*BeaconBlockHeader,
 		BeaconState,
-		*BlobSidecars,
 		*transition.Context,
 		*Deposit,
 		*types.Eth1Data,
