@@ -17,7 +17,8 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
-
+//
+//nolint:dupl // it's okay to have similar code for different types
 package bytes
 
 import (
