@@ -36,7 +36,7 @@ type Bytes []byte
 
 // MarshalText implements encoding.TextMarshaler.
 func (b Bytes) MarshalText() ([]byte, error) {
-	return []byte(b.String()), nil
+	return hex.EncodeBytes(b)
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler.
@@ -55,6 +55,6 @@ func (b *Bytes) UnmarshalJSON(input []byte) error {
 }
 
 // String returns the hex encoding of b.
-func (b Bytes) String() string {
-	return hex.FromBytes(b[:]).Unwrap()
+func (b Bytes) String() hex.String {
+	return hex.FromBytes(b[:])
 }
