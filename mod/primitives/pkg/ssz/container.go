@@ -37,7 +37,8 @@ import (
 var _ types.SSZEnumerable[types.MinimalSSZType] = (*Container)(nil)
 
 type Container struct {
-	elements []types.MinimalSSZType
+	fieldIndex map[string]int
+	elements   []types.MinimalSSZType
 }
 
 // ContainerFromElements creates a new Container from elements.
@@ -50,11 +51,18 @@ func ContainerFromElements(elements ...types.MinimalSSZType) *Container {
 // NewContainer creates a new Container from any struct, using reflection to get
 // all the fields and put them into the elements list.
 func NewContainer(v interface{}) (*Container, error) {
-	val := reflect.ValueOf(v)
+	var (
+		val        = reflect.ValueOf(v)
+		typ        = reflect.TypeOf(v)
+		fieldIndex = make(map[string]int)
+		elements   []types.MinimalSSZType
+		j          int
+	)
 
 	// If v is a pointer, get the value it points to
 	if val.Kind() == reflect.Ptr {
 		val = val.Elem()
+		typ = typ.Elem()
 	}
 
 	// Ensure v is a struct
@@ -62,22 +70,42 @@ func NewContainer(v interface{}) (*Container, error) {
 		return nil, fmt.Errorf("input must be a struct or pointer to struct")
 	}
 
-	// TODO: check struct tags to exclude fields.
-	elements := make([]types.MinimalSSZType, 0, val.NumField())
+	for i := range flattenStructFields(typ) {
+		field := typ.Field(i)
+		path := field.Tag.Get("ssz-path")
+		if path == "" {
+			continue
+		}
 
-	for i := 0; i < val.NumField(); i++ {
-		field := val.Field(i)
+		fieldValue := val.Field(i)
 
 		// Check if the field implements SSZType
-		if sszType, ok := field.Interface().(types.MinimalSSZType); ok {
+		if sszType, ok := fieldValue.Interface().(types.MinimalSSZType); ok {
 			elements = append(elements, sszType)
+			fieldIndex[path] = j
 		} else {
 			return nil, fmt.Errorf("field %s does not implement MinimalSSZType",
 				val.Type().Field(i).Name)
 		}
+		j++
 	}
 
-	return &Container{elements: elements}, nil
+	return &Container{elements: elements, fieldIndex: fieldIndex}, nil
+}
+
+func flattenStructFields(typ reflect.Type) []reflect.StructField {
+	var fields []reflect.StructField
+	for i := range typ.NumField() {
+		field := typ.Field(i)
+		if field.Anonymous {
+			// flatten embedded struct fields
+			embedded := flattenStructFields(field.Type)
+			fields = append(fields, embedded...)
+		} else {
+			fields = append(fields, field)
+		}
+	}
+	return fields
 }
 
 /* -------------------------------------------------------------------------- */

@@ -45,7 +45,7 @@ var (
 )
 
 type (
-	Bool uint64
+	Bool bool
 	U8   uint8
 	U16  uint16
 	U32  uint32
@@ -58,10 +58,6 @@ type (
 /*                                    Bool                                    */
 /* -------------------------------------------------------------------------- */
 
-type SSZBool struct {
-	bool
-}
-
 // SizeSSZ returns the size of the bool in bytes.
 func (Bool) SizeSSZ() int {
 	return constants.BoolSize
@@ -69,7 +65,7 @@ func (Bool) SizeSSZ() int {
 
 // MarshalSSZ marshals the bool into SSZ format.
 func (b Bool) MarshalSSZ() ([]byte, error) {
-	if b > 0 {
+	if b {
 		return []byte{1}, nil
 	}
 	return []byte{0}, nil
@@ -78,19 +74,19 @@ func (b Bool) MarshalSSZ() ([]byte, error) {
 // NewFromSSZ creates a new Bool from SSZ format.
 func (Bool) NewFromSSZ(buf []byte) (Bool, error) {
 	if len(buf) != constants.BoolSize {
-		return 0, fmt.Errorf(
+		return false, fmt.Errorf(
 			"invalid buffer length: expected %d, got %d",
 			constants.BoolSize,
 			len(buf),
 		)
 	}
-	return Bool(buf[0]), nil
+	return Bool(buf[0] != 0), nil
 }
 
 // HashTreeRoot returns the hash tree root of the bool.
 func (b Bool) HashTreeRoot() ([32]byte, error) {
 	buf := make([]byte, constants.BytesPerChunk)
-	if b > 0 {
+	if b {
 		buf[0] = 1
 	}
 	return [constants.BytesPerChunk]byte(buf), nil
@@ -109,10 +105,6 @@ func (Bool) Type() types.Type {
 // ChunkCount returns the number of chunks required to store the bool.
 func (Bool) ChunkCount() uint64 {
 	return 1
-}
-
-func (b Bool) Value() bool {
-	return b > 0
 }
 
 /* -------------------------------------------------------------------------- */
