@@ -26,17 +26,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 )
 
-func UnmarshalByteText(input []byte) ([]byte, error) {
-	raw, err := formatAndValidateText(input)
-	if err != nil {
-		return []byte{}, err
-	}
-	dec := make([]byte, len(raw)/encDecRatio)
-	if _, err = hex.Decode(dec, raw); err != nil {
-		return []byte{}, err
-	}
-	return dec, nil
-}
+/* -------------------------------------------------------------------------- */
+/*                                   Encode                                   */
+/* -------------------------------------------------------------------------- */
 
 // EncodeFixedText encodes the input byte slice as a string with 0x prefix.
 // This function is commonly used to implement the String method for fixed-size
@@ -74,6 +66,10 @@ func EncodeFixedJSON(input []byte) []byte {
 	return result
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                   Decode                                   */
+/* -------------------------------------------------------------------------- */
+
 // DecodeFixedJSON decodes the input as a string with 0x prefix. The length
 // of out determines the required input length. This function is commonly used
 // to implement the UnmarshalJSON method for fixed-size types.
@@ -85,6 +81,18 @@ func DecodeFixedJSON(
 		return ErrNonQuotedString
 	}
 	return DecodeFixedText(input[1:len(input)-1], out)
+}
+
+func DecodeVariableText(input []byte) ([]byte, error) {
+	raw, err := formatAndValidateText(input)
+	if err != nil {
+		return []byte{}, err
+	}
+	dec := make([]byte, len(raw)/encDecRatio)
+	if _, err = hex.Decode(dec, raw); err != nil {
+		return []byte{}, err
+	}
+	return dec, nil
 }
 
 // DecodeFixedText decodes the input as a string with 0x prefix. The length

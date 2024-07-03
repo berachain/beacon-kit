@@ -29,7 +29,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestUnmarshalByteText(t *testing.T) {
+func TestDecodeVariableText(t *testing.T) {
 	tests := []struct {
 		name      string
 		input     []byte
@@ -64,7 +64,7 @@ func TestUnmarshalByteText(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := hex.UnmarshalByteText(tt.input)
+			result, err := hex.DecodeVariableText(tt.input)
 			if tt.expectErr {
 				require.Error(t, err, "Test case : %s", tt.name)
 			} else {

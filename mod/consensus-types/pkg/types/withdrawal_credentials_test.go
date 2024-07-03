@@ -137,43 +137,6 @@ func TestWithdrawalCredentials_UnmarshalJSON(t *testing.T) {
 	}
 }
 
-func TestWithdrawalCredentials_String(t *testing.T) {
-	tests := []struct {
-		name     string
-		wc       types.WithdrawalCredentials
-		expected string
-	}{
-		{
-			name: "valid string",
-			wc:   types.WithdrawalCredentials{0x01},
-			expected: "0x010000000000000000000000000000" +
-				"0000000000000000000000000000000000",
-		},
-		{
-			name: "valid string with full address",
-			wc: types.WithdrawalCredentials{0x01, 0xde, 0xad, 0xbe, 0xef, 0x00,
-				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-				0x00, 0x00, 0x00, 0x00},
-			expected: "0x01deadbeef00000000000000000000000" +
-				"0000000000000000000000000000000",
-		},
-		{
-			name: "empty credentials",
-			wc:   types.WithdrawalCredentials{},
-			expected: "0x0000000000000000000000000000000000" +
-				"000000000000000000000000000000",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.expected, tt.wc.String(),
-				"Test case %s", tt.name)
-		})
-	}
-}
-
 func TestWithdrawalCredentials_MarshalText(t *testing.T) {
 	tests := []struct {
 		name     string

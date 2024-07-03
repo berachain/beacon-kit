@@ -71,20 +71,21 @@ func formatAndValidateText(input []byte) ([]byte, error) {
 
 // formatAndValidateNumber checks the input text for a hex number.
 func formatAndValidateNumber[T []byte | string](input T) (T, error) {
+	var t T
 	// realistically, this shouldn't rarely error if called on
 	// unwrapped hex.String
 	if len(input) == 0 {
-		return *new(T), ErrEmptyString
+		return t, ErrEmptyString
 	}
 	if !has0xPrefix(input) {
-		return *new(T), ErrMissingPrefix
+		return t, ErrMissingPrefix
 	}
 	input = input[2:]
 	if len(input) == 0 {
-		return *new(T), ErrEmptyNumber
+		return t, ErrEmptyNumber
 	}
 	if len(input) > 1 && input[0] == '0' {
-		return *new(T), ErrLeadingZero
+		return t, ErrLeadingZero
 	}
 	return input, nil
 }

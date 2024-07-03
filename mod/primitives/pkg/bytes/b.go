@@ -43,7 +43,7 @@ func (b *Bytes) UnmarshalJSON(input []byte) error {
 
 // UnmarshalText implements encoding.TextUnmarshaler.
 func (b *Bytes) UnmarshalText(input []byte) error {
-	dec, err := customhex.UnmarshalByteText(input)
+	dec, err := customhex.DecodeVariableText(input)
 	if err != nil {
 		return err
 	}
