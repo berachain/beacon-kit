@@ -101,5 +101,6 @@ func (h B48) Type() types.Type {
 // HashTreeRoot returns the hash tree root of the B48.
 func (h B48) HashTreeRoot() ([32]byte, error) {
 	var result = make([][32]byte, 1)
+	//#nosec:G103 // on purpose.
 	return [32]byte(result[0]), gohashtree.Hash(result, unsafe.Slice((*[32]byte)(unsafe.Pointer(&h[0])), 2))
 }
