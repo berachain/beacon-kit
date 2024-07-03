@@ -87,7 +87,9 @@ var prysmConsistencyTests = []struct {
 	},
 }
 
-func TestByteSliceMerkleization(t *testing.T) {
+// NOTE: not testing legacy byte list merkleization
+// (merkleizer.MerkleizeByteSlice) as it will be deprecated soon.
+func TestByteListMerkleization(t *testing.T) {
 	merkleizer := merkleizer.New[[32]byte, ssz.Byte]()
 
 	for _, tt := range prysmConsistencyTests {
