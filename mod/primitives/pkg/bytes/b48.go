@@ -100,7 +100,7 @@ func (h B48) Type() types.Type {
 
 // HashTreeRoot returns the hash tree root of the B48.
 func (h B48) HashTreeRoot() ([32]byte, error) {
-	var result = make([][32]byte, 1)
+	result := make([][32]byte, 1)
 	return result[0], gohashtree.Hash(
 		result,
 		//nolint:mnd // we need 2 leaves.
