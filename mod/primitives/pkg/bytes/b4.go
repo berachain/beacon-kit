@@ -49,7 +49,7 @@ func ToBytes4(input []byte) B4 {
 
 // MarshalText implements the encoding.TextMarshaler interface for B4.
 func (h B4) MarshalText() ([]byte, error) {
-	return []byte(h.String()), nil
+	return []byte("0x" + hex.EncodeToString(h[:])), nil
 }
 
 // UnmarshalText implements the encoding.TextUnmarshaler interface for B4.
