@@ -26,6 +26,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
 )
 
+const (
+	// B32Size represents a 32-byte size.
+	B32Size = 32
+)
+
 var _ types.MinimalSSZType = (*B32)(nil)
 
 // B32 represents a 32-byte fixed-size byte array.

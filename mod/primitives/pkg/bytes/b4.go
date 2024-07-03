@@ -25,6 +25,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
 )
 
+const (
+	// B4Size represents a 4-byte size.
+	B4Size = 4
+)
+
 var _ types.MinimalSSZType = (*B4)(nil)
 
 // B4 represents a 4-byte fixed-size byte array.

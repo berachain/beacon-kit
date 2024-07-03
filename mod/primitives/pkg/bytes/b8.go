@@ -26,6 +26,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
 )
 
+const (
+	// B8Size represents an 8-byte size.
+	B8Size = 8
+)
+
 var _ types.MinimalSSZType = (*B8)(nil)
 
 // B8 represents an 8-byte fixed-size byte array.

@@ -26,6 +26,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
 )
 
+const (
+	// B20Size represents a 20-byte size.
+	B20Size = 20
+)
+
 var _ types.MinimalSSZType = (*B20)(nil)
 
 // B20 represents a 20-byte fixed-size byte array.
