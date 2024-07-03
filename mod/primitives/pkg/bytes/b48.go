@@ -53,7 +53,7 @@ func (h *B48) UnmarshalText(text []byte) error {
 }
 
 // String returns the hex string representation of B48.
-func (h *B48) String() string {
+func (h B48) String() string {
 	return "0x" + hex.EncodeToString(h[:])
 }
 
