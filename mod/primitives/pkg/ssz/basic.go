@@ -51,6 +51,9 @@ type (
 	U32  uint32
 	U64  uint64
 	U256 uint256.Int
+
+	// 8-bit opaque data container, equivalent in serialization and hashing to
+	// uint8.
 	Byte = U8
 )
 
