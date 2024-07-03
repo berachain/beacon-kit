@@ -20,9 +20,7 @@
 
 package bytes
 
-import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
-)
+import "encoding/hex"
 
 // B8 represents a 4-byte array.
 type B8 [8]byte
@@ -40,7 +38,7 @@ func ToBytes8(input []byte) B8 {
 
 // String returns the hex string representation of B8.
 func (h B8) String() string {
-	return hex.FromBytes(h[:]).Unwrap()
+	return "0x" + hex.EncodeToString(h[:])
 }
 
 // MarshalText implements the encoding.TextMarshaler interface for B8.

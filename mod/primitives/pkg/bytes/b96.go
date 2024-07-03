@@ -21,7 +21,7 @@
 package bytes
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
+	"encoding/hex"
 )
 
 // B96 represents a 96-byte array.
@@ -45,7 +45,7 @@ func (h *B96) UnmarshalJSON(input []byte) error {
 
 // String returns the hex string representation of Bytes96.
 func (h B96) String() string {
-	return hex.FromBytes(h[:]).Unwrap()
+	return "0x" + hex.EncodeToString(h[:])
 }
 
 // UnmarshalText implements the encoding.TextUnmarshaler interface for Bytes96.

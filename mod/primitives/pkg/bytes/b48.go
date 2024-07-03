@@ -21,7 +21,7 @@
 package bytes
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
+	"encoding/hex"
 )
 
 // ------------------------------ B48 ------------------------------
@@ -42,7 +42,7 @@ func (h *B48) UnmarshalJSON(input []byte) error {
 
 // String returns the hex string representation of B48.
 func (h B48) String() string {
-	return hex.FromBytes(h[:]).Unwrap()
+	return "0x" + hex.EncodeToString(h[:])
 }
 
 // MarshalText implements the encoding.TextMarshaler interface for B48.
