@@ -80,8 +80,6 @@ type TxsMerkleizer merkleizer.Merkleizer[[32]byte, common.Root]
 
 // HashTreeRootWith returns the hash tree root of the Transactions list
 // using the given merkleizer.
-//
-// TODO: deprecate in favor of proper transactions.
 func (txs Transactions) HashTreeRootWith(
 	merkleizer *merkleizer.Merkleizer[[32]byte, common.Root],
 ) (common.Root, error) {
