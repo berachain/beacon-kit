@@ -17,44 +17,35 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
-//
 
-package bytes
+package bytes_test
 
 import (
-	"reflect"
+	"testing"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
+	"github.com/stretchr/testify/require"
 )
 
-//nolint:gochecknoglobals // reflect.Type of Bytes set at runtime
-var bytesT = reflect.TypeOf(Bytes(nil))
-
-// Bytes marshals/unmarshals as a JSON string with 0x prefix.
-// The empty slice marshals as "0x".
-type Bytes []byte
-
-// MarshalText implements encoding.TextMarshaler.
-func (b Bytes) MarshalText() ([]byte, error) {
-	return hex.EncodeBytes(b)
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (b *Bytes) UnmarshalJSON(input []byte) error {
-	return hex.UnmarshalJSONText(input, b, bytesT)
-}
-
-// UnmarshalText implements encoding.TextUnmarshaler.
-func (b *Bytes) UnmarshalText(input []byte) error {
-	dec, err := hex.UnmarshalByteText(input)
-	if err != nil {
-		return err
+func TestB48_HashTreeRoot(t *testing.T) {
+	tests := []struct {
+		name  string
+		input bytes.B48
+		want  [32]byte
+	}{
+		{
+			name:  "Zero bytes",
+			input: bytes.B48{},
+			want:  zero.Hashes[1],
+		},
 	}
-	*b = Bytes(dec)
-	return nil
-}
 
-// String returns the hex encoding of b.
-func (b Bytes) String() hex.String {
-	return hex.FromBytes(b)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := tt.input.HashTreeRoot()
+			require.NoError(t, err)
+			require.Equal(t, tt.want, result)
+		})
+	}
 }
