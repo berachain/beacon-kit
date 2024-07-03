@@ -21,8 +21,6 @@
 package bytes
 
 import (
-	"reflect"
-
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 )
@@ -151,18 +149,4 @@ func PrependExtendToSize(slice []byte, length int) []byte {
 		return slice
 	}
 	return append(make([]byte, length-len(slice)), slice...)
-}
-
-// UnmarshalFixedJSON decodes the input as a string with 0x prefix. The length
-// of out determines the required input length. This function is commonly used
-// to implement the UnmarshalJSON method for fixed-size types.
-func UnmarshalFixedJSON(typ reflect.Type, input, out []byte) error {
-	return hex.DecodeFixedJSON(typ, bytesT, input, out)
-}
-
-// UnmarshalFixedText decodes the input as a string with 0x prefix. The length
-// of out determines the required input length. This function is commonly used
-// to implement the UnmarshalText method for fixed-size types.
-func UnmarshalFixedText(typename string, input, out []byte) error {
-	return hex.DecodeFixedText(typename, input, out)
 }

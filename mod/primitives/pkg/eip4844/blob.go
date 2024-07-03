@@ -24,6 +24,7 @@ import (
 	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 )
 
 // Blob represents an EIP-4844 data blob.
@@ -31,7 +32,9 @@ type Blob [131072]byte
 
 // UnmarshalJSON parses a blob in hex syntax.
 func (b *Blob) UnmarshalJSON(input []byte) error {
-	return bytes.UnmarshalFixedJSON(reflect.TypeOf(Blob{}), input, b[:])
+	return hex.DecodeFixedJSON(
+		reflect.TypeOf(Blob{}),
+		reflect.TypeOf(bytes.Bytes{}), input, b[:])
 }
 
 // MarshalText returns the hex representation of b.

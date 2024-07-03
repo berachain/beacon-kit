@@ -24,7 +24,6 @@ package bytes_test
 import (
 	stdbytes "bytes"
 	"fmt"
-	"reflect"
 	"strings"
 	"testing"
 
@@ -1453,102 +1452,6 @@ func TestToBytes8(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := bytes.ToBytes8(tt.input)
 			require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
-		})
-	}
-}
-
-func TestUnmarshalFixedJSON(t *testing.T) {
-	tests := []struct {
-		name     string
-		typ      reflect.Type
-		input    []byte
-		out      []byte
-		expected []byte
-		wantErr  bool
-	}{
-		{
-			name:     "Valid input",
-			typ:      reflect.TypeOf([4]byte{}),
-			input:    []byte(`"0x01020304"`),
-			out:      make([]byte, 4),
-			expected: []byte{0x01, 0x02, 0x03, 0x04},
-			wantErr:  false,
-		},
-		{
-			name:     "Invalid input - not hex",
-			typ:      reflect.TypeOf([4]byte{}),
-			input:    []byte(`"01020304"`),
-			out:      make([]byte, 4),
-			expected: nil,
-			wantErr:  true,
-		},
-		{
-			name:     "Invalid input - wrong length",
-			typ:      reflect.TypeOf([4]byte{}),
-			input:    []byte(`"0x010203"`),
-			out:      make([]byte, 4),
-			expected: nil,
-			wantErr:  true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := bytes.UnmarshalFixedJSON(tt.typ, tt.input, tt.out)
-			if tt.wantErr {
-				require.Error(t, err, "Test case: %s", tt.name)
-			} else {
-				require.NoError(t, err, "Test case: %s", tt.name)
-				require.Equal(t, tt.expected, tt.out, "Test case: %s", tt.name)
-			}
-		})
-	}
-}
-
-func TestUnmarshalFixedText(t *testing.T) {
-	tests := []struct {
-		name     string
-		typename string
-		input    []byte
-		out      []byte
-		expected []byte
-		wantErr  bool
-	}{
-		{
-			name:     "Valid input",
-			typename: "B4",
-			input:    []byte("0x01020304"),
-			out:      make([]byte, 4),
-			expected: []byte{0x01, 0x02, 0x03, 0x04},
-			wantErr:  false,
-		},
-		{
-			name:     "Invalid input - not hex",
-			typename: "B4",
-			input:    []byte("01020304"),
-			out:      make([]byte, 4),
-			expected: nil,
-			wantErr:  true,
-		},
-		{
-			name:     "Invalid input - wrong length",
-			typename: "B4",
-			input:    []byte("0x010203"),
-			out:      make([]byte, 4),
-			expected: nil,
-			wantErr:  true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := bytes.UnmarshalFixedText(tt.typename, tt.input, tt.out)
-			if tt.wantErr {
-				require.Error(t, err, "Test case: %s", tt.name)
-			} else {
-				require.NoError(t, err, "Test case: %s", tt.name)
-				require.Equal(t, tt.expected, tt.out, "Test case: %s", tt.name)
-			}
 		})
 	}
 }
