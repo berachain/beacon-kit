@@ -20,6 +20,4 @@
 
 package serializer
 
-// Types that need to be handled with the "non receiver solution"/
-//
-// Bool,U8,16,32,64 - Bytes1,2,4,8,16,20,32
+// Types that need to be handled with the "non receiver solution."
