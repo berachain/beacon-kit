@@ -46,6 +46,7 @@ func EncodeFixedText(input []byte) string {
 		return "0x"
 	}
 
+	//nolint:mnd // its okay.
 	result := make([]byte, len(input)*2+2)
 	result[0] = '0'
 	result[1] = 'x'
@@ -62,6 +63,7 @@ func EncodeFixedJSON(input []byte) []byte {
 		return []byte(`"0x"`)
 	}
 
+	//nolint:mnd // its okay.
 	result := make([]byte, len(input)*2+4)
 	result[0] = '"'
 	result[1] = '0'
