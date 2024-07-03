@@ -22,7 +22,8 @@
 package bytes
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
+	"encoding/hex"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
 )
 
@@ -59,7 +60,7 @@ func (h *B8) UnmarshalText(text []byte) error {
 
 // String returns the hex string representation of B8.
 func (h B8) String() string {
-	return hex.FromBytes(h[:]).Unwrap()
+	return "0x" + hex.EncodeToString(h[:])
 }
 
 /* -------------------------------------------------------------------------- */
