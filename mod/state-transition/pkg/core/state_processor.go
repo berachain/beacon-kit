@@ -398,7 +398,7 @@ func (sp *StateProcessor[
 	} else if parentBlockRoot != blk.GetParentBlockRoot() {
 		return errors.Wrapf(ErrParentRootMismatch,
 			"expected: %s, got: %s",
-			parentBlockRoot.String(), blk.GetParentBlockRoot().String(),
+			parentBlockRoot, blk.GetParentBlockRoot(),
 		)
 	}
 

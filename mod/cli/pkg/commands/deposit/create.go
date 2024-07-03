@@ -133,10 +133,10 @@ func createValidatorCmd(
 		// signature and return early.
 		logger.Info(
 			"Deposit Message CallData",
-			"pubkey", depositMsg.Pubkey.String(),
+			"pubkey", depositMsg.Pubkey,
 			"withdrawal credentials", depositMsg.Credentials.String(),
 			"amount", depositMsg.Amount,
-			"signature", signature.String(),
+			"signature", signature,
 		)
 
 		// TODO: once broadcast is fixed, remove this.

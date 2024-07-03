@@ -197,32 +197,6 @@ func TestBytes4UnmarshalJSON(t *testing.T) {
 	}
 }
 
-func TestBytes4String(t *testing.T) {
-	tests := []struct {
-		name string
-		h    bytes.B4
-		want string
-	}{
-		{
-			name: "non-empty bytes",
-			h:    bytes.B4{0x01, 0x02, 0x03, 0x04},
-			want: "0x01020304",
-		},
-		{
-			name: "empty bytes",
-			h:    bytes.B4{},
-			want: "0x00000000",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := tt.h.String()
-			require.Equal(t, tt.want, got, "Test case %s", tt.name)
-		})
-	}
-}
-
 func TestBytes4MarshalText(t *testing.T) {
 	tests := []struct {
 		name string
@@ -512,35 +486,6 @@ func TestBytes32MarshalText(t *testing.T) {
 	}
 }
 
-func TestBytes32String(t *testing.T) {
-	tests := []struct {
-		name  string
-		input bytes.B32
-		want  string
-	}{
-		{
-			name: "valid input",
-			input: bytes.B32{0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
-				0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10,
-				0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a,
-				0x1b, 0x1c, 0x1d, 0x1e, 0x1f, 0x20},
-			want: "0x0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20",
-		},
-		{
-			name:  "empty input",
-			input: bytes.B32{},
-			want:  "0x0000000000000000000000000000000000000000000000000000000000000000",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := tt.input.String()
-			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
-		})
-	}
-}
-
 func TestToBytes32(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -595,81 +540,6 @@ func TestHashTreeRoot(t *testing.T) {
 			result, err := tt.input.HashTreeRoot()
 			require.NoError(t, err, "Test case: %s", tt.name)
 			require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
-		})
-	}
-}
-
-func TestBytes48String(t *testing.T) {
-	tests := []struct {
-		name  string
-		input bytes.B48
-		want  string
-	}{
-		{
-			name: "valid input",
-			input: bytes.B48{
-				0x01,
-				0x02,
-				0x03,
-				0x04,
-				0x05,
-				0x06,
-				0x07,
-				0x08,
-				0x09,
-				0x0a,
-				0x0b,
-				0x0c,
-				0x0d,
-				0x0e,
-				0x0f,
-				0x10,
-				0x11,
-				0x12,
-				0x13,
-				0x14,
-				0x15,
-				0x16,
-				0x17,
-				0x18,
-				0x19,
-				0x1a,
-				0x1b,
-				0x1c,
-				0x1d,
-				0x1e,
-				0x1f,
-				0x20,
-				0x21,
-				0x22,
-				0x23,
-				0x24,
-				0x25,
-				0x26,
-				0x27,
-				0x28,
-				0x29,
-				0x2a,
-				0x2b,
-				0x2c,
-				0x2d,
-				0x2e,
-				0x2f,
-				0x30,
-			},
-			want: "0x0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f30",
-		},
-		{
-			name:  "empty input",
-			input: bytes.B48{},
-			want:  "0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := tt.input.String()
-			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
 		})
 	}
 }
@@ -1052,38 +922,6 @@ func TestBytes96MarshalText(t *testing.T) {
 	}
 }
 
-func TestBytes96String(t *testing.T) {
-	tests := []struct {
-		name string
-		h    bytes.B96
-		want string
-	}{
-		{
-			name: "non-empty bytes",
-			h: func() bytes.B96 {
-				var b bytes.B96
-				for i := range b {
-					b[i] = 0x01
-				}
-				return b
-			}(),
-			want: "0x" + strings.Repeat("01", 96),
-		},
-		{
-			name: "empty bytes",
-			h:    bytes.B96{},
-			want: "0x" + strings.Repeat("00", 96),
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := tt.h.String()
-			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
-		})
-	}
-}
-
 func TestToBytes96(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -1149,32 +987,6 @@ func TestBytes8UnmarshalJSON(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 			}
-		})
-	}
-}
-
-func TestBytes8String(t *testing.T) {
-	tests := []struct {
-		name string
-		h    bytes.B8
-		want string
-	}{
-		{
-			name: "non-empty bytes",
-			h:    bytes.B8{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
-			want: "0x0102030405060708",
-		},
-		{
-			name: "empty bytes",
-			h:    bytes.B8{},
-			want: "0x0000000000000000",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := tt.h.String()
-			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
 		})
 	}
 }

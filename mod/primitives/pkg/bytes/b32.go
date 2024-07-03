@@ -57,11 +57,6 @@ func (h *B32) UnmarshalText(text []byte) error {
 	return UnmarshalTextHelper(h[:], text)
 }
 
-// String returns the hex string representation of B32.
-func (h B32) String() string {
-	return "0x" + hex.EncodeToString(h[:])
-}
-
 /* -------------------------------------------------------------------------- */
 /*                                JSONMarshaler                               */
 /* -------------------------------------------------------------------------- */

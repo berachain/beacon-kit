@@ -58,11 +58,6 @@ func (h *B96) UnmarshalText(text []byte) error {
 	return UnmarshalTextHelper(h[:], text)
 }
 
-// String returns the hex string representation of B96.
-func (h *B96) String() string {
-	return "0x" + hex.EncodeToString(h[:])
-}
-
 /* -------------------------------------------------------------------------- */
 /*                                JSONMarshaler                               */
 /* -------------------------------------------------------------------------- */
