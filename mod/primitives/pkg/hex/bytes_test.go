@@ -22,7 +22,6 @@
 package hex_test
 
 import (
-	"reflect"
 	"strconv"
 	"testing"
 
@@ -169,8 +168,6 @@ func TestDecodeFixedJSON(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := hex.DecodeFixedJSON(
-				reflect.TypeOf(tt.typename),
-				reflect.TypeOf(tt.input),
 				tt.input,
 				tt.out,
 			)

@@ -21,8 +21,6 @@
 package eip4844
 
 import (
-	"reflect"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
@@ -64,8 +62,6 @@ func (c KZGCommitment) HashTreeRoot() ([32]byte, error) {
 // UnmarshalJSON parses a commitment in hex syntax.
 func (c *KZGCommitment) UnmarshalJSON(input []byte) error {
 	return hex.DecodeFixedJSON(
-		reflect.TypeOf(KZGCommitment{}),
-		reflect.TypeOf(bytes.Bytes{}),
 		input,
 		c[:],
 	)
