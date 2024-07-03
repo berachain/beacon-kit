@@ -134,7 +134,7 @@ func createValidatorCmd(
 		logger.Info(
 			"Deposit Message CallData",
 			"pubkey", depositMsg.Pubkey,
-			"withdrawal credentials", depositMsg.Credentials.String(),
+			"withdrawal credentials", depositMsg.Credentials,
 			"amount", depositMsg.Amount,
 			"signature", signature,
 		)

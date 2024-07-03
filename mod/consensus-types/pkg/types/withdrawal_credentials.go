@@ -65,13 +65,6 @@ func (wc *WithdrawalCredentials) UnmarshalJSON(input []byte) error {
 	return (*common.Bytes32)(wc).UnmarshalJSON(input)
 }
 
-// String returns the hex string representation of Bytes32.
-// TODO: Figure out how to not have to do this.
-func (wc WithdrawalCredentials) String() string {
-	s, _ := common.Bytes32(wc).MarshalText()
-	return string(s)
-}
-
 // MarshalText implements the encoding.TextMarshaler interface for Bytes32.
 // TODO: Figure out how to not have to do this.
 func (wc WithdrawalCredentials) MarshalText() ([]byte, error) {
