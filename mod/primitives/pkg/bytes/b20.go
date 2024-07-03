@@ -68,7 +68,7 @@ func (h *B20) String() string {
 
 // MarshalJSON implements the json.Marshaler interface for B20.
 func (h B20) MarshalJSON() ([]byte, error) {
-	return hex.EncodeFixedJSON(h[:])
+	return hex.EncodeFixedJSON(h[:]), nil
 }
 
 // UnmarshalJSON implements the json.Unmarshaler interface for B20.
