@@ -35,7 +35,6 @@ func (h *B8) UnmarshalJSON(input []byte) error {
 // ToBytes8 is a utility function that transforms a byte slice into a fixed
 // 8-byte array. If the input exceeds 4 bytes, it gets truncated.
 func ToBytes8(input []byte) B8 {
-	
 	return [8]byte(ExtendToSize(input, B8Size))
 }
 
