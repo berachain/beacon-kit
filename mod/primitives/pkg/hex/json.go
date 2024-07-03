@@ -22,18 +22,20 @@ package hex
 
 import (
 	"encoding"
-	"reflect"
+	"encoding/hex"
 )
+
+//nolint:gochecknoglobals // it's okay.
+var EncodeToString = hex.EncodeToString
 
 // UnmarshalJSONText unmarshals a JSON string with a 0x prefix into a given
 // TextUnmarshaler. It validates the input and then removes the surrounding
 // quotes before passing the inner content to the UnmarshalText method.
 func UnmarshalJSONText(input []byte,
 	u encoding.TextUnmarshaler,
-	t reflect.Type,
 ) error {
 	if err := ValidateUnmarshalInput(input); err != nil {
-		return WrapUnmarshalError(err, t)
+		return err
 	}
-	return WrapUnmarshalError(u.UnmarshalText(input[1:len(input)-1]), t)
+	return u.UnmarshalText(input[1 : len(input)-1])
 }

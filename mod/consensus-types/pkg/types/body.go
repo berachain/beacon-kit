@@ -34,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
@@ -201,14 +200,12 @@ func (b *BeaconBlockBodyDeneb) SetBlobKzgCommitments(
 // GetTopLevelRoots returns the top-level roots of the BeaconBlockBodyDeneb.
 func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 	var (
-		err        error
-		layer      = make([]common.Root, BodyLengthDeneb)
-		randao     = b.GetRandaoReveal()
-		merkleizer = merkleizer.New[[32]byte, common.Root]()
+		err    error
+		layer  = make([]common.Root, BodyLengthDeneb)
+		randao = b.GetRandaoReveal()
 	)
 
-	// TODO: deprecate usage of this func in favor of ByteListFromBytes.
-	layer[0], err = merkleizer.MerkleizeByteSlice(randao[:])
+	layer[0], err = randao.HashTreeRoot()
 	if err != nil {
 		return nil, err
 	}

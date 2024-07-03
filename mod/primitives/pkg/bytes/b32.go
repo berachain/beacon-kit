@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 //
-
+//nolint:dupl // it's okay to have similar code for different types
 package bytes
 
 import (
@@ -49,26 +49,26 @@ func ToBytes32(input []byte) B32 {
 
 // MarshalText implements the encoding.TextMarshaler interface for B32.
 func (h B32) MarshalText() ([]byte, error) {
-	return []byte(h.String()), nil
+	return []byte("0x" + hex.EncodeToString(h[:])), nil
 }
 
 // UnmarshalText implements the encoding.TextUnmarshaler interface for B32.
 func (h *B32) UnmarshalText(text []byte) error {
-	return UnmarshalTextHelper(h[:], text)
-}
-
-// String returns the hex string representation of B32.
-func (h B32) String() string {
-	return hex.FromBytes(h[:]).Unwrap()
+	return hex.DecodeFixedText(text, h[:])
 }
 
 /* -------------------------------------------------------------------------- */
 /*                                JSONMarshaler                               */
 /* -------------------------------------------------------------------------- */
 
+// MarshalJSON implements the json.Marshaler interface for B32.
+func (h B32) MarshalJSON() ([]byte, error) {
+	return hex.EncodeFixedJSON(h[:]), nil
+}
+
 // UnmarshalJSON implements the json.Unmarshaler interface for B32.
 func (h *B32) UnmarshalJSON(input []byte) error {
-	return unmarshalJSONHelper(h[:], input)
+	return hex.DecodeFixedJSON(input, h[:])
 }
 
 /* -------------------------------------------------------------------------- */
@@ -97,5 +97,7 @@ func (h B32) Type() types.Type {
 
 // HashTreeRoot returns the hash tree root of the B32.
 func (h B32) HashTreeRoot() ([32]byte, error) {
-	return h, nil
+	var result [32]byte
+	copy(result[:], h[:])
+	return result, nil
 }

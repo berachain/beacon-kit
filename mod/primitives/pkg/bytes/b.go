@@ -22,13 +22,10 @@
 package bytes
 
 import (
-	"reflect"
+	"encoding/hex"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
+	customhex "github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 )
-
-//nolint:gochecknoglobals // reflect.Type of Bytes set at runtime
-var bytesT = reflect.TypeOf(Bytes(nil))
 
 // Bytes marshals/unmarshals as a JSON string with 0x prefix.
 // The empty slice marshals as "0x".
@@ -36,17 +33,17 @@ type Bytes []byte
 
 // MarshalText implements encoding.TextMarshaler.
 func (b Bytes) MarshalText() ([]byte, error) {
-	return hex.EncodeBytes(b)
+	return []byte(b.String()), nil
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (b *Bytes) UnmarshalJSON(input []byte) error {
-	return hex.UnmarshalJSONText(input, b, bytesT)
+	return customhex.UnmarshalJSONText(input, b)
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler.
 func (b *Bytes) UnmarshalText(input []byte) error {
-	dec, err := hex.UnmarshalByteText(input)
+	dec, err := customhex.DecodeVariableText(input)
 	if err != nil {
 		return err
 	}
@@ -55,6 +52,6 @@ func (b *Bytes) UnmarshalText(input []byte) error {
 }
 
 // String returns the hex encoding of b.
-func (b Bytes) String() hex.String {
-	return hex.FromBytes(b)
+func (b Bytes) String() string {
+	return "0x" + hex.EncodeToString(b)
 }

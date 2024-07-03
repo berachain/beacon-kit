@@ -21,45 +21,8 @@
 package bytes
 
 import (
-	"reflect"
-
-	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 )
-
-// ------------------------------ Helpers ------------------------------
-
-// Helper function to unmarshal JSON for various byte types.
-func unmarshalJSONHelper(target []byte, input []byte) error {
-	bz := Bytes{}
-	if err := bz.UnmarshalJSON(input); err != nil {
-		return err
-	}
-	if len(bz) != len(target) {
-		return errors.Newf(
-			"incorrect length, expected %d bytes but got %d",
-			len(target), len(bz),
-		)
-	}
-	copy(target, bz)
-	return nil
-}
-
-// UnmarshalTextHelper function to unmarshal text for various byte types.
-func UnmarshalTextHelper(target []byte, text []byte) error {
-	bz := Bytes{}
-	if err := bz.UnmarshalText(text); err != nil {
-		return err
-	}
-	if len(bz) != len(target) {
-		return errors.Newf(
-			"incorrect length, expected %d bytes but got %d",
-			len(target), len(bz),
-		)
-	}
-	copy(target, bz)
-	return nil
-}
 
 // MustFromHex returns the bytes represented by the given hex string.
 // It panics if the input is not a valid hex string.
@@ -85,44 +48,6 @@ func FromHex(input string) ([]byte, error) {
 	return h, nil
 }
 
-// SafeCopy creates a copy of the provided byte slice. If the input slice is
-// non-nil and has a length of 32 bytes, it assumes the slice represents a hash
-// and copies it into a fixed-size array before returning a slice of that array.
-// For other non-nil slices, it returns a dynamically allocated copy. If the
-// input slice is nil, it returns nil.
-func SafeCopy(src []byte) []byte {
-	if src == nil {
-		return nil
-	}
-
-	//nolint:mnd // 32 bytes.
-	if len(src) == 32 {
-		var copied [32]byte
-		copy(copied[:], src)
-		return copied[:]
-	}
-
-	copied := make([]byte, len(src))
-	copy(copied, src)
-	return copied
-}
-
-// SafeCopy2D creates a copy of a two-dimensional byte slice. It iterates over
-// the outer slice, copying each inner slice using SafeCopy. If the input is
-// non-nil, it returns a copy of the
-// two-dimensional slice. If the input is nil, it returns nil.
-func SafeCopy2D(src [][]byte) [][]byte {
-	if src == nil {
-		return nil
-	}
-
-	copied := make([][]byte, len(src))
-	for i, s := range src {
-		copied[i] = SafeCopy(s)
-	}
-	return copied
-}
-
 // CopyAndReverseEndianess will copy the input byte slice and return the
 // flipped version of it.
 func CopyAndReverseEndianess(input []byte) []byte {
@@ -141,28 +66,4 @@ func ExtendToSize(slice []byte, length int) []byte {
 		return slice
 	}
 	return append(slice, make([]byte, length-len(slice))...)
-}
-
-// PrependExtendToSize extends a byte slice to a specified length by
-// prepending zero bytes. It returns the original slice if it's
-// already larger.
-func PrependExtendToSize(slice []byte, length int) []byte {
-	if len(slice) >= length {
-		return slice
-	}
-	return append(make([]byte, length-len(slice)), slice...)
-}
-
-// UnmarshalFixedJSON decodes the input as a string with 0x prefix. The length
-// of out determines the required input length. This function is commonly used
-// to implement the UnmarshalJSON method for fixed-size types.
-func UnmarshalFixedJSON(typ reflect.Type, input, out []byte) error {
-	return hex.DecodeFixedJSON(typ, bytesT, input, out)
-}
-
-// UnmarshalFixedText decodes the input as a string with 0x prefix. The length
-// of out determines the required input length. This function is commonly used
-// to implement the UnmarshalText method for fixed-size types.
-func UnmarshalFixedText(typename string, input, out []byte) error {
-	return hex.DecodeFixedText(typename, input, out)
 }

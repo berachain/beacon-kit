@@ -127,7 +127,7 @@ func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
 			outputDocument, _ := cmd.Flags().GetString(flags.FlagOutputDocument)
 			if outputDocument == "" {
 				outputDocument, err = makeOutputFilepath(config.RootDir,
-					crypto.BLSPubkey(valPubKey.Bytes()).String())
+					fmt.Sprint(crypto.BLSPubkey(valPubKey.Bytes())))
 				if err != nil {
 					return errors.Wrap(err, "failed to create output file path")
 				}

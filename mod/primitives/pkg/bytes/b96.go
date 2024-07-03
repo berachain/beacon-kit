@@ -50,26 +50,26 @@ func ToBytes96(input []byte) B96 {
 
 // MarshalText implements the encoding.TextMarshaler interface for B96.
 func (h B96) MarshalText() ([]byte, error) {
-	return []byte(h.String()), nil
+	return []byte("0x" + hex.EncodeToString(h[:])), nil
 }
 
 // UnmarshalText implements the encoding.TextUnmarshaler interface for B96.
 func (h *B96) UnmarshalText(text []byte) error {
-	return UnmarshalTextHelper(h[:], text)
-}
-
-// String returns the hex string representation of B96.
-func (h *B96) String() string {
-	return hex.FromBytes(h[:]).Unwrap()
+	return hex.DecodeFixedText(text, h[:])
 }
 
 /* -------------------------------------------------------------------------- */
 /*                                JSONMarshaler                               */
 /* -------------------------------------------------------------------------- */
 
+// MarshalJSON implements the json.Marshaler interface for B96.
+func (h *B96) MarshalJSON() ([]byte, error) {
+	return hex.EncodeFixedJSON(h[:]), nil
+}
+
 // UnmarshalJSON implements the json.Unmarshaler interface for B96.
 func (h *B96) UnmarshalJSON(input []byte) error {
-	return unmarshalJSONHelper(h[:], input)
+	return hex.DecodeFixedJSON(input, h[:])
 }
 
 /* -------------------------------------------------------------------------- */

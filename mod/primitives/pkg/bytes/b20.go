@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 //
-
+//nolint:dupl // it's okay to have similar code for different types
 package bytes
 
 import (
@@ -49,26 +49,26 @@ func ToBytes20(input []byte) B20 {
 
 // MarshalText implements the encoding.TextMarshaler interface for B20.
 func (h B20) MarshalText() ([]byte, error) {
-	return []byte(h.String()), nil
+	return []byte("0x" + hex.EncodeToString(h[:])), nil
 }
 
 // UnmarshalText implements the encoding.TextUnmarshaler interface for B20.
 func (h *B20) UnmarshalText(text []byte) error {
-	return UnmarshalTextHelper(h[:], text)
-}
-
-// String returns the hex string representation of B20.
-func (h *B20) String() string {
-	return hex.FromBytes(h[:]).Unwrap()
+	return hex.DecodeFixedText(text, h[:])
 }
 
 /* -------------------------------------------------------------------------- */
 /*                                JSONMarshaler                               */
 /* -------------------------------------------------------------------------- */
 
+// MarshalJSON implements the json.Marshaler interface for B20.
+func (h B20) MarshalJSON() ([]byte, error) {
+	return hex.EncodeFixedJSON(h[:]), nil
+}
+
 // UnmarshalJSON implements the json.Unmarshaler interface for B20.
 func (h *B20) UnmarshalJSON(input []byte) error {
-	return unmarshalJSONHelper(h[:], input)
+	return hex.DecodeFixedJSON(input, h[:])
 }
 
 /* -------------------------------------------------------------------------- */

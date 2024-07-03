@@ -49,26 +49,26 @@ func ToBytes4(input []byte) B4 {
 
 // MarshalText implements the encoding.TextMarshaler interface for B4.
 func (h B4) MarshalText() ([]byte, error) {
-	return []byte(h.String()), nil
+	return []byte("0x" + hex.EncodeToString(h[:])), nil
 }
 
 // UnmarshalText implements the encoding.TextUnmarshaler interface for B4.
 func (h *B4) UnmarshalText(text []byte) error {
-	return UnmarshalTextHelper(h[:], text)
-}
-
-// String returns the hex string representation of B4.
-func (h B4) String() string {
-	return hex.FromBytes(h[:]).Unwrap()
+	return hex.DecodeFixedText(text, h[:])
 }
 
 /* -------------------------------------------------------------------------- */
 /*                                JSONMarshaler                               */
 /* -------------------------------------------------------------------------- */
 
+// MarshalJSON implements the json.Marshaler interface for B4.
+func (h B4) MarshalJSON() ([]byte, error) {
+	return hex.EncodeFixedJSON(h[:]), nil
+}
+
 // UnmarshalJSON implements the json.Unmarshaler interface for B4.
 func (h *B4) UnmarshalJSON(input []byte) error {
-	return unmarshalJSONHelper(h[:], input)
+	return hex.DecodeFixedJSON(input, h[:])
 }
 
 /* -------------------------------------------------------------------------- */

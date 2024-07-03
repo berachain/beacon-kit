@@ -22,19 +22,70 @@ package hex
 
 import (
 	"encoding/hex"
-	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/errors"
 )
 
-func EncodeBytes[B ~[]byte](b B) ([]byte, error) {
-	result := make([]byte, len(b)*2+prefixLen)
-	copy(result, prefix)
-	hex.Encode(result[prefixLen:], b)
-	return result, nil
+/* -------------------------------------------------------------------------- */
+/*                                   Encode                                   */
+/* -------------------------------------------------------------------------- */
+
+// EncodeFixedText encodes the input byte slice as a string with 0x prefix.
+// This function is commonly used to implement the String method for fixed-size
+// types.
+func EncodeFixedText(input []byte) string {
+	if len(input) == 0 {
+		return "0x"
+	}
+
+	//nolint:mnd // its okay.
+	result := make([]byte, len(input)*2+2)
+	result[0] = '0'
+	result[1] = 'x'
+	hex.Encode(result[2:], input)
+
+	return string(result)
 }
 
-func UnmarshalByteText(input []byte) ([]byte, error) {
+// EncodeFixedJSON encodes the input byte slice as a JSON string with 0x prefix.
+// This function is commonly used to implement the MarshalJSON method for
+// fixed-size types.
+func EncodeFixedJSON(input []byte) []byte {
+	if len(input) == 0 {
+		return []byte(`"0x"`)
+	}
+
+	//nolint:mnd // adding 4 -> 2 for 0x and then 2 for "".
+	result := make([]byte, len(input)*2+4)
+	result[0] = '"'
+	result[1] = '0'
+	result[2] = 'x'
+	hex.Encode(result[3:], input)
+	result[len(result)-1] = '"'
+
+	return result
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   Decode                                   */
+/* -------------------------------------------------------------------------- */
+
+// DecodeFixedJSON decodes the input as a string with 0x prefix. The length
+// of out determines the required input length. This function is commonly used
+// to implement the UnmarshalJSON method for fixed-size types.
+func DecodeFixedJSON(
+	input,
+	out []byte,
+) error {
+	if !isQuotedString(input) {
+		return ErrNonQuotedString
+	}
+	return DecodeFixedText(input[1:len(input)-1], out)
+}
+
+// DecodeVariableText decodes the input as a string with 0x prefix. The length
+// of the output is determined by the input length.
+func DecodeVariableText(input []byte) ([]byte, error) {
 	raw, err := formatAndValidateText(input)
 	if err != nil {
 		return []byte{}, err
@@ -46,32 +97,17 @@ func UnmarshalByteText(input []byte) ([]byte, error) {
 	return dec, nil
 }
 
-// DecodeFixedJSON decodes the input as a string with 0x prefix. The length
-// of out determines the required input length. This function is commonly used
-// to implement the UnmarshalJSON method for fixed-size types.
-func DecodeFixedJSON(typ reflect.Type,
-	bytesT reflect.Type,
-	input,
-	out []byte) error {
-	if !isQuotedString(input) {
-		return WrapUnmarshalError(ErrNonQuotedString, bytesT)
-	}
-	return WrapUnmarshalError(
-		DecodeFixedText(typ.String(), input[1:len(input)-1], out), typ,
-	)
-}
-
 // DecodeFixedText decodes the input as a string with 0x prefix. The length
 // of out determines the required input length.
-func DecodeFixedText(typename string, input, out []byte) error {
+func DecodeFixedText(input, out []byte) error {
 	raw, err := formatAndValidateText(input)
 	if err != nil {
 		return err
 	}
 	if len(raw)/encDecRatio != len(out) {
 		return errors.Newf(
-			"hex string has length %d, want %d for %s",
-			len(raw), len(out)*encDecRatio, typename,
+			"hex string has length %d, want %d",
+			len(raw), len(out)*encDecRatio,
 		)
 	}
 	// Pre-verify syntax and decode in a single pass
