@@ -111,6 +111,7 @@ func (h *ABCIMiddleware[
 	ctx context.Context,
 	slot math.Slot,
 ) ([]byte, []byte, error) {
+	fmt.Println("PREPARE PROPOSAL CALLED")
 	var (
 		g                           errgroup.Group
 		startTime                   = time.Now()
@@ -139,9 +140,13 @@ func (h *ABCIMiddleware[
 		return sidecarsErr
 	})
 
+	if err := g.Wait(); err != nil {
+		return nil, nil, err
+	}
 	// Wait for both processes to complete and then
 	// return the appropriate response.
-	return beaconBlockBz, sidecarsBz, g.Wait()
+	fmt.Println("PREPARE PROPOSAL CALLED WITH", beaconBlockBz, sidecarsBz)
+	return beaconBlockBz, sidecarsBz, nil
 }
 
 // waitForSidecars waits for the sidecars to be built and returns them.
