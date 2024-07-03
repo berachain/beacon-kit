@@ -18,22 +18,42 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package merkleizer
+package bytes
 
-// SSZObject defines an interface for SSZ basic types which includes methods for
-// determining the size of the SSZ encoding and computing the hash tree root.
-type SSZObject[RootT ~[32]byte] interface {
-	// SizeSSZ returns the size in bytes of the SSZ-encoded data.
-	SizeSSZ() int
-	// HashTreeRoot computes and returns the hash tree root of the data as
-	// RootT and an error if the computation fails.
-	HashTreeRoot() (RootT, error)
-	// MarshalSSZ marshals the data into SSZ format.
-	MarshalSSZ() ([]byte, error)
+import (
+	"reflect"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
+)
+
+//nolint:gochecknoglobals // reflect.Type of Bytes set at runtime
+var bytesT = reflect.TypeOf(Bytes(nil))
+
+// Bytes marshals/unmarshals as a JSON string with 0x prefix.
+// The empty slice marshals as "0x".
+type Bytes []byte
+
+// MarshalText implements encoding.TextMarshaler.
+func (b Bytes) MarshalText() ([]byte, error) {
+	return hex.EncodeBytes(b)
 }
 
-// Buffer is a reusable buffer for SSZ encoding.
-type Buffer[T any] interface {
-	// Get returns a slice of the buffer with the given size.
-	Get(size int) []T
+// UnmarshalJSON implements json.Unmarshaler.
+func (b *Bytes) UnmarshalJSON(input []byte) error {
+	return hex.UnmarshalJSONText(input, b, bytesT)
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (b *Bytes) UnmarshalText(input []byte) error {
+	dec, err := hex.UnmarshalByteText(input)
+	if err != nil {
+		return err
+	}
+	*b = Bytes(dec)
+	return nil
+}
+
+// String returns the hex encoding of b.
+func (b Bytes) String() hex.String {
+	return hex.FromBytes(b)
 }

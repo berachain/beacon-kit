@@ -36,7 +36,7 @@ func (h *B8) UnmarshalJSON(input []byte) error {
 // 8-byte array. If the input exceeds 4 bytes, it gets truncated.
 func ToBytes8(input []byte) B8 {
 	//nolint:mnd // 8 bytes.
-	return [8]byte(ExtendToSize(input, 8))
+	return [8]byte(ExtendToSize(input, B8Size))
 }
 
 // String returns the hex string representation of B8.

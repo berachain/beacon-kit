@@ -27,12 +27,39 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 )
 
-//nolint:gochecknoglobals // reflect.Type of Bytes set at runtime
-var bytesT = reflect.TypeOf(Bytes(nil))
+// ------------------------------ Helpers ------------------------------
 
-// Bytes marshals/unmarshals as a JSON string with 0x prefix.
-// The empty slice marshals as "0x".
-type Bytes []byte
+// Helper function to unmarshal JSON for various byte types.
+func unmarshalJSONHelper(target []byte, input []byte) error {
+	bz := Bytes{}
+	if err := bz.UnmarshalJSON(input); err != nil {
+		return err
+	}
+	if len(bz) != len(target) {
+		return errors.Newf(
+			"incorrect length, expected %d bytes but got %d",
+			len(target), len(bz),
+		)
+	}
+	copy(target, bz)
+	return nil
+}
+
+// UnmarshalTextHelper function to unmarshal text for various byte types.
+func UnmarshalTextHelper(target []byte, text []byte) error {
+	bz := Bytes{}
+	if err := bz.UnmarshalText(text); err != nil {
+		return err
+	}
+	if len(bz) != len(target) {
+		return errors.Newf(
+			"incorrect length, expected %d bytes but got %d",
+			len(target), len(bz),
+		)
+	}
+	copy(target, bz)
+	return nil
+}
 
 // MustFromHex returns the bytes represented by the given hex string.
 // It panics if the input is not a valid hex string.
@@ -124,65 +151,6 @@ func PrependExtendToSize(slice []byte, length int) []byte {
 		return slice
 	}
 	return append(make([]byte, length-len(slice)), slice...)
-}
-
-// ------------------------------ Helpers ------------------------------
-
-// Helper function to unmarshal JSON for various byte types.
-func unmarshalJSONHelper(target []byte, input []byte) error {
-	bz := Bytes{}
-	if err := bz.UnmarshalJSON(input); err != nil {
-		return err
-	}
-	if len(bz) != len(target) {
-		return errors.Newf(
-			"incorrect length, expected %d bytes but got %d",
-			len(target), len(bz),
-		)
-	}
-	copy(target, bz)
-	return nil
-}
-
-// UnmarshalTextHelper function to unmarshal text for various byte types.
-func UnmarshalTextHelper(target []byte, text []byte) error {
-	bz := Bytes{}
-	if err := bz.UnmarshalText(text); err != nil {
-		return err
-	}
-	if len(bz) != len(target) {
-		return errors.Newf(
-			"incorrect length, expected %d bytes but got %d",
-			len(target), len(bz),
-		)
-	}
-	copy(target, bz)
-	return nil
-}
-
-// MarshalText implements encoding.TextMarshaler.
-func (b Bytes) MarshalText() ([]byte, error) {
-	return hex.EncodeBytes(b)
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (b *Bytes) UnmarshalJSON(input []byte) error {
-	return hex.UnmarshalJSONText(input, b, bytesT)
-}
-
-// UnmarshalText implements encoding.TextUnmarshaler.
-func (b *Bytes) UnmarshalText(input []byte) error {
-	dec, err := hex.UnmarshalByteText(input)
-	if err != nil {
-		return err
-	}
-	*b = Bytes(dec)
-	return nil
-}
-
-// String returns the hex encoding of b.
-func (b Bytes) String() hex.String {
-	return hex.FromBytes(b)
 }
 
 // UnmarshalFixedJSON decodes the input as a string with 0x prefix. The length

@@ -33,7 +33,7 @@ type B48 [48]byte
 // 48-byte array. If the input exceeds 48 bytes, it gets truncated.
 func ToBytes48(input []byte) B48 {
 	//nolint:mnd // 48 bytes.
-	return B48(ExtendToSize(input, 48))
+	return B48(ExtendToSize(input, B48Size))
 }
 
 // UnmarshalJSON implements the json.Unmarshaler interface for B48.
