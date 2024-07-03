@@ -118,7 +118,7 @@ func New[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
 ] {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kss)
-	return &KVStore[
+	store := &KVStore[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 		ForkT, ValidatorT,
 	]{
@@ -247,6 +247,10 @@ func New[
 			encoding.SSZValueCodec[BeaconBlockHeaderT]{},
 		),
 	}
+	if _, err := schemaBuilder.Build(); err != nil {
+		panic(err)
+	}
+	return store
 }
 
 // Copy returns a copy of the Store.

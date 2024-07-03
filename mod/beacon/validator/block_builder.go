@@ -60,12 +60,14 @@ func (s *Service[
 	// and safe block hashes to the execution client.
 	fmt.Println("BUILD BLOCK AND SIDECARS context type", reflect.TypeOf(ctx))
 	st := s.bsb.StateFromContext(ctx)
+	fmt.Println("state from ctx", st)
 
 	// Prepare the state such that it is ready to build a block for
 	// the requested slot
 	if _, err := s.stateProcessor.ProcessSlots(st, requestedSlot); err != nil {
 		return blk, sidecars, err
 	}
+	fmt.Println("PROCESSED")
 
 	// Build the reveal for the current slot.
 	// TODO: We can optimize to pre-compute this in parallel?

@@ -176,14 +176,13 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _,
 ]) ProcessSlots(
-	st BeaconStateT, slot math.U64,
+	beaconState BeaconStateT, slot math.U64,
 ) (transition.ValidatorUpdates, error) {
 	var (
 		validatorUpdates      transition.ValidatorUpdates
 		epochValidatorUpdates transition.ValidatorUpdates
 	)
-
-	stateSlot, err := st.GetSlot()
+	stateSlot, err := beaconState.GetSlot()
 	if err != nil {
 		return nil, err
 	}
@@ -191,14 +190,14 @@ func (sp *StateProcessor[
 	// Iterate until we are "caught up".
 	for ; stateSlot < slot; stateSlot++ {
 		// Process the slot
-		if err = sp.processSlot(st); err != nil {
+		if err = sp.processSlot(beaconState); err != nil {
 			return nil, err
 		}
 
 		// Process the Epoch Boundary.
 		if uint64(stateSlot+1)%sp.cs.SlotsPerEpoch() == 0 {
 			if epochValidatorUpdates, err =
-				sp.processEpoch(st); err != nil {
+				sp.processEpoch(beaconState); err != nil {
 				return nil, err
 			}
 			validatorUpdates = append(
@@ -209,7 +208,7 @@ func (sp *StateProcessor[
 
 		// We update on the state because we need to
 		// update the state for calls within processSlot/Epoch().
-		if err = st.SetSlot(stateSlot + 1); err != nil {
+		if err = beaconState.SetSlot(stateSlot + 1); err != nil {
 			return nil, err
 		}
 	}
