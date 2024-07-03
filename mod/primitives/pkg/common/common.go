@@ -28,6 +28,7 @@ import (
 
 //nolint:lll
 type (
+	Bytes20 = bytes.B20
 	// Bytes32 defines the commonly used 32-byte array.
 	Bytes32 = bytes.B32
 
