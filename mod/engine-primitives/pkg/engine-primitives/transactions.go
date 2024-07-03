@@ -89,7 +89,7 @@ func (txs Transactions) HashTreeRootWith(
 	)
 
 	for i, tx := range txs {
-		roots[i], err = merkleizer.MerkleizeByteSlice(tx)
+		roots[i], err = merkleizer.MerkleizeListBytes(tx)
 		if err != nil {
 			return common.Root{}, err
 		}

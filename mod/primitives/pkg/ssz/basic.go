@@ -51,7 +51,7 @@ type (
 	U32  uint32
 	U64  uint64
 	U256 uint256.Int
-	Byte byte
+	Byte = U8
 )
 
 /* -------------------------------------------------------------------------- */
@@ -355,53 +355,5 @@ func (*U256) Type() types.Type {
 
 // ChunkCount returns the number of chunks required to store the U256.
 func (*U256) ChunkCount() uint64 {
-	return 1
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                    Byte                                    */
-/* -------------------------------------------------------------------------- */
-
-// SizeSSZ returns the size of the byte slice in bytes.
-func (Byte) SizeSSZ() int {
-	return constants.ByteSize
-}
-
-// MarshalSSZ marshals the byte into SSZ format.
-func (b Byte) MarshalSSZ() ([]byte, error) {
-	return []byte{byte(b)}, nil
-}
-
-// NewFromSSZ creates a new Byte from SSZ format.
-func (Byte) NewFromSSZ(buf []byte) (Byte, error) {
-	if len(buf) != constants.ByteSize {
-		return 0, fmt.Errorf(
-			"invalid buffer length: expected %d, got %d",
-			constants.ByteSize,
-			len(buf),
-		)
-	}
-	return Byte(buf[0]), nil
-}
-
-// HashTreeRoot returns the hash tree root of the byte.
-func (b Byte) HashTreeRoot() ([32]byte, error) {
-	buf := make([]byte, constants.BytesPerChunk)
-	buf[0] = byte(b)
-	return [32]byte(buf), nil
-}
-
-// IsFixed returns true if the bool is fixed size.
-func (Byte) IsFixed() bool {
-	return true
-}
-
-// Type returns the type of the Byte.
-func (Byte) Type() types.Type {
-	return types.Basic
-}
-
-// ChunkCount returns the number of chunks required to store the byte.
-func (Byte) ChunkCount() uint64 {
 	return 1
 }

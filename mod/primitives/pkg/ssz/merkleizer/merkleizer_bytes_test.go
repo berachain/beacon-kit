@@ -25,6 +25,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 )
 
@@ -83,14 +84,15 @@ var prysmConsistencyTests = []struct {
 }
 
 func TestByteSliceMerkleization(t *testing.T) {
-	merkleizer := merkleizer.New[[32]byte, BasicItem]()
+	merkleizer := merkleizer.New[[32]byte, ssz.Byte]()
 
 	for _, tt := range prysmConsistencyTests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.maxLength == 0 {
 				tt.maxLength = constants.RootLength
 			}
-			got, err := merkleizer.MerkleizeByteSlice(tt.slice)
+			byteList := ssz.ByteListFromBytes(tt.slice, tt.maxLength)
+			got, err := byteList.HashTreeRootWith(merkleizer)
 			if (err != nil) != tt.wantErr {
 				t.Errorf(
 					"ByteSliceRoot() error = %v, wantErr %v", err, tt.wantErr,
