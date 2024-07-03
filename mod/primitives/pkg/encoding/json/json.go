@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package hex
+package json
 
 import (
 	"encoding"
@@ -36,4 +36,19 @@ func UnmarshalJSONText(input []byte,
 		return WrapUnmarshalError(err, t)
 	}
 	return WrapUnmarshalError(u.UnmarshalText(input[1:len(input)-1]), t)
+}
+
+// ValidateUnmarshalInput validates the input byte slice for unmarshaling.
+// It returns an error iff input is not a quoted string.
+// This is used to prevent exposing validation logic to the caller.
+func ValidateUnmarshalInput(input []byte) error {
+	if !isQuotedString(string(input)) {
+		return ErrNonQuotedString
+	}
+	return nil
+}
+
+// isQuotedString returns true if input has quotes.
+func isQuotedString[T []byte | string](input T) bool {
+	return len(input) >= 2 && input[0] == '"' && input[len(input)-1] == '"'
 }

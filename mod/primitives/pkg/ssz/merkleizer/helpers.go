@@ -20,10 +20,6 @@
 
 package merkleizer
 
-import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
-)
-
 // pack packs a list of SSZ-marshallable elements into a single byte slice.
 func pack[
 	RootT ~[32]byte,
@@ -57,7 +53,7 @@ func chunkifyBytes[RootT ~[32]byte](input []byte) (
 	[]RootT, uint64,
 ) {
 	//nolint:mnd // we add 31 in order to round up the division.
-	numChunks := max((len(input)+31)/constants.RootLength, 1)
+	numChunks := max((len(input)+31)/32, 1)
 	// TODO: figure out how to safely chunk these bytes.
 	chunks := make([]RootT, numChunks)
 	for i := range chunks {

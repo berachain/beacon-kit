@@ -55,7 +55,7 @@ func ConvertWithdrawalCredentials(credentials string) (
 	if err != nil {
 		return types.WithdrawalCredentials{}, err
 	}
-	if len(credentialsBytes) != constants.RootLength {
+	if len(credentialsBytes) != common.B32Size {
 		return types.WithdrawalCredentials{},
 			ErrInvalidWithdrawalCredentialsLength
 	}
@@ -105,7 +105,7 @@ func ConvertGenesisValidatorRoot(root string) (common.Root, error) {
 	if err != nil {
 		return common.Root{}, err
 	}
-	if len(rootBytes) != constants.RootLength {
+	if len(rootBytes) != common.B32Size {
 		return common.Root{}, ErrInvalidRootLength
 	}
 	return common.Root(rootBytes), nil

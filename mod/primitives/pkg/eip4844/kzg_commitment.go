@@ -24,6 +24,7 @@ import (
 	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 	"github.com/prysmaticlabs/gohashtree"
@@ -49,7 +50,7 @@ func (c KZGCommitment) ToVersionedHash() [32]byte {
 func (c KZGCommitment) ToHashChunks() [][32]byte {
 	chunks := make([][32]byte, 2) //nolint:mnd // 2 chunks.
 	copy(chunks[0][:], c[:])
-	copy(chunks[1][:], c[constants.RootLength:])
+	copy(chunks[1][:], c[common.B32Size:])
 	gohashtree.HashChunks(chunks, chunks)
 	return chunks
 }

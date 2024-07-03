@@ -27,7 +27,8 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/constants"
 )
 
@@ -116,7 +117,7 @@ func (u U64) MarshalText() ([]byte, error) {
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (u *U64) UnmarshalJSON(input []byte) error {
-	return hex.UnmarshalJSONText(input, u, uint64T)
+	return json.UnmarshalJSONText(input, u, uint64T)
 }
 
 // ---------------------------------- Hex ----------------------------------

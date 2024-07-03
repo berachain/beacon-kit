@@ -41,29 +41,6 @@ func NewString[T []byte | string](s T) String {
 	return String(str)
 }
 
-// UnmarshalText implements the encoding.TextUnmarshaler interface.
-// It validates the input text as a hex string and
-// assigns it to the String type.
-// Returns an error if the input is not a valid hex string.
-func (s *String) UnmarshalText(text []byte) error {
-	str := string(text)
-	err := isValidHex(str)
-	if err != nil {
-		return errors.Wrapf(ErrInvalidString, "%s", str)
-	}
-	*s = String(str)
-	return nil
-}
-
-func isValidHex(str string) error {
-	if len(str) == 0 {
-		return ErrEmptyString
-	} else if !has0xPrefix(str) {
-		return ErrMissingPrefix
-	}
-	return nil
-}
-
 // NewStringStrict creates a hex string with 0x prefix. It errors if any of the
 // string invariants are violated.
 func NewStringStrict[T []byte | string](s T) (String, error) {
@@ -104,13 +81,36 @@ func FromBigInt(bigint *big.Int) String {
 	return NewString("0x" + bigint.Text(hexBase)[1:])
 }
 
+// UnmarshalText implements the encoding.TextUnmarshaler interface.
+// It validates the input text as a hex string and
+// assigns it to the String type.
+// Returns an error if the input is not a valid hex string.
+func (s *String) UnmarshalText(text []byte) error {
+	str := string(text)
+	err := isValidHex(str)
+	if err != nil {
+		return errors.Wrapf(ErrInvalidString, "%s", str)
+	}
+	*s = String(str)
+	return nil
+}
+
+func isValidHex(str string) error {
+	if len(str) == 0 {
+		return ErrEmptyString
+	} else if !has0xPrefix(str) {
+		return ErrMissingPrefix
+	}
+	return nil
+}
+
 func FromJSONString[B ~[]byte](b B) String {
 	return NewString(bytes.Trim(b, "\""))
 }
 
 // Has0xPrefix returns true if s has a 0x prefix.
 func (s String) Has0xPrefix() bool {
-	return has0xPrefix[string](string(s))
+	return has0xPrefix(string(s))
 }
 
 // IsEmpty returns true if s is empty.

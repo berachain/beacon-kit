@@ -22,7 +22,6 @@ package core
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -134,12 +133,12 @@ func (sp *StateProcessor[
 	mix common.Bytes32,
 	reveal crypto.BLSSignature,
 ) (common.Bytes32, error) {
-	newMix := make([]byte, constants.RootLength)
+	newMix := make([]byte, common.B32Size)
 	revealHash := sha256.Hash(reveal[:])
 	// Apparently this library giga fast? Good project? lmeow.
 	if numXor := xor.Bytes(
 		newMix, mix[:], revealHash[:],
-	); numXor != constants.RootLength {
+	); numXor != common.B32Size {
 		return common.Bytes32{}, ErrXorInvalid
 	}
 	return common.Bytes32(newMix), nil

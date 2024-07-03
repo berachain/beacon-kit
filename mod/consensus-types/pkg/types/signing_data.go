@@ -24,7 +24,6 @@ import (
 	"encoding/binary"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 )
 
 // SigningData as defined in the Ethereum 2.0 specification.
@@ -60,7 +59,7 @@ func ComputeSigningRootUInt64(
 	value uint64,
 	domain common.Domain,
 ) (common.Root, error) {
-	bz := make([]byte, constants.RootLength)
+	bz := make([]byte, common.B32Size)
 	binary.LittleEndian.PutUint64(bz, value)
 	return (&SigningData{
 		ObjectRoot: common.Root(bz),

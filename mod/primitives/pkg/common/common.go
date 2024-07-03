@@ -60,3 +60,7 @@ type (
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
 	ForkDigest = bytes.B4
 )
+
+const (
+	B32Size = bytes.B32Size
+)

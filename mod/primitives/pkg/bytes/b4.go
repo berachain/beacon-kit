@@ -21,7 +21,7 @@
 package bytes
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 )
 
 // B4 represents a 4-byte array.

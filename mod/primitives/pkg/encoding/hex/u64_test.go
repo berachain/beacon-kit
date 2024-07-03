@@ -23,7 +23,8 @@ package hex_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/stretchr/testify/require"
 )
 
@@ -69,7 +70,7 @@ func TestValidateUnmarshalInput(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := hex.ValidateUnmarshalInput(test.input)
+			err := json.ValidateUnmarshalInput(test.input)
 			if test.expected != nil {
 				require.Equal(t, test.expected, err, "Test case %s", test.name)
 			} else {

@@ -24,7 +24,7 @@ import (
 	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 )
 
 // ------------------------------ Helpers ------------------------------
