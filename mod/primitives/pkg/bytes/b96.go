@@ -24,6 +24,7 @@ package bytes
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
+	"github.com/prysmaticlabs/gohashtree"
 )
 
 const (
@@ -98,6 +99,6 @@ func (h B96) Type() types.Type {
 // HashTreeRoot returns the hash tree root of the B96.
 func (h B96) HashTreeRoot() ([32]byte, error) {
 	var result [32]byte
-	copy(result[:], h[:])
+	gohashtree.HashByteSlice(result[:], h[:])
 	return result, nil
 }
