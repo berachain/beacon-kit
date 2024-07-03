@@ -47,7 +47,6 @@ type BartioTransactions = ssz.List[ssz.Vector[ssz.Byte]]
 // BartioTransactionsFromBytes creates a Transactions object from a byte slice.
 func BartioTransactionsFromBytes(data [][]byte) *BartioTransactions {
 	return ssz.ListFromElements(
-		// TODO: Move this value to chain spec.
 		constants.MaxTxsPerPayload,
 		//#nosec:G103 // todo fix later.
 		*(*[]ssz.Vector[ssz.Byte])(unsafe.Pointer(&data))...)

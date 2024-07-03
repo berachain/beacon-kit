@@ -121,7 +121,7 @@ func TestLegacyTransactions(t *testing.T) {
 				if got[i] != tt.want[i] {
 					t.Errorf(
 						"TransactionsRoot() got = %v, want %v, off at byte %d",
-						got, tt.want, i,
+						[32]byte(got), tt.want, i,
 					)
 					return
 				}
