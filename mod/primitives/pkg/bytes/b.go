@@ -55,5 +55,5 @@ func (b *Bytes) UnmarshalJSON(input []byte) error {
 
 // String returns the hex encoding of b.
 func (b Bytes) String() hex.String {
-	return hex.FromBytes(b[:])
+	return hex.FromBytes(b)
 }
