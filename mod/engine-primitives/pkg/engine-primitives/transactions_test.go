@@ -27,7 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 )
 
-// Tests consistency of our HashTreeRoot implementations with Prysm's.
+// Tests consistency of our HashTreeRoot implementation with Prysm's.
 // https://github.com/prysmaticlabs/prysm/blob/8070fc8ecef3c2003dea7e1fe6dba179ddf76151/encoding/ssz/htrutils_test.go#L67
 //
 //nolint:lll // link.
