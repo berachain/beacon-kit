@@ -21,6 +21,9 @@
 package ssz
 
 import (
+	"fmt"
+	"reflect"
+
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
@@ -42,6 +45,39 @@ func ContainerFromElements(elements ...types.MinimalSSZType) *Container {
 	return &Container{
 		elements: elements,
 	}
+}
+
+// NewContainer creates a new Container from any struct, using reflection to get
+// all the fields and put them into the elements list.
+func NewContainer(v interface{}) (*Container, error) {
+	val := reflect.ValueOf(v)
+
+	// If v is a pointer, get the value it points to
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+
+	// Ensure v is a struct
+	if val.Kind() != reflect.Struct {
+		return nil, fmt.Errorf("input must be a struct or pointer to struct")
+	}
+
+	// TODO: check struct tags to exclude fields.
+	elements := make([]types.MinimalSSZType, 0, val.NumField())
+
+	for i := 0; i < val.NumField(); i++ {
+		field := val.Field(i)
+
+		// Check if the field implements SSZType
+		if sszType, ok := field.Interface().(types.MinimalSSZType); ok {
+			elements = append(elements, sszType)
+		} else {
+			return nil, fmt.Errorf("field %s does not implement MinimalSSZType",
+				val.Type().Field(i).Name)
+		}
+	}
+
+	return &Container{elements: elements}, nil
 }
 
 /* -------------------------------------------------------------------------- */
