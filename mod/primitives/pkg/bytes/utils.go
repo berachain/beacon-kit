@@ -45,17 +45,18 @@ func unmarshalJSONHelper(target []byte, input []byte) error {
 
 // UnmarshalTextHelper function to unmarshal text for various byte types.
 func UnmarshalTextHelper(target []byte, text []byte) error {
-	bz := Bytes{}
-	if err := bz.UnmarshalText(text); err != nil {
+	dec, err := hex.UnmarshalByteText(text)
+	if err != nil {
 		return err
 	}
-	if len(bz) != len(target) {
+
+	if len(dec) != len(target) {
 		return errors.Newf(
 			"incorrect length, expected %d bytes but got %d",
-			len(target), len(bz),
+			len(target), len(dec),
 		)
 	}
-	copy(target, bz)
+	copy(target, dec)
 	return nil
 }
 

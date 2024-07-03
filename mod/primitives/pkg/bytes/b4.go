@@ -22,8 +22,7 @@
 package bytes
 
 import (
-	"encoding/hex"
-
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
 )
 
@@ -69,7 +68,7 @@ func (h B4) String() string {
 
 // UnmarshalJSON implements the json.Unmarshaler interface for B4.
 func (h *B4) UnmarshalJSON(input []byte) error {
-	return unmarshalJSONHelper(h[:], input)
+	return hex.DecodeFixedJSON(input, h[:])
 }
 
 /* -------------------------------------------------------------------------- */

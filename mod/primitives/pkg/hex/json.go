@@ -22,6 +22,7 @@ package hex
 
 import (
 	"encoding"
+	"encoding/hex"
 )
 
 // UnmarshalJSONText unmarshals a JSON string with a 0x prefix into a given
@@ -35,3 +36,5 @@ func UnmarshalJSONText(input []byte,
 	}
 	return u.UnmarshalText(input[1 : len(input)-1])
 }
+
+var EncodeToString = hex.EncodeToString
