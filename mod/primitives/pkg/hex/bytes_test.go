@@ -116,7 +116,7 @@ func TestDecodeFixedText(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			out := make([]byte, len(tt.expected))
-			err := hex.DecodeFixedText(tt.typename, tt.input, out)
+			err := hex.DecodeFixedText(tt.input, out)
 			if tt.expectErr {
 				require.Error(t, err, "Test case : %s", tt.name)
 			} else {
@@ -179,7 +179,6 @@ func TestDecodeFixedJSON(t *testing.T) {
 }
 
 func BenchmarkDecodeFixedText(b *testing.B) {
-	typename := "exampleType"
 	sizes := []int{100, 1000, 10000} // Different input sizes
 
 	for _, size := range sizes {
@@ -202,7 +201,7 @@ func BenchmarkDecodeFixedText(b *testing.B) {
 
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
-				err := hex.DecodeFixedText(typename, input, out)
+				err := hex.DecodeFixedText(input, out)
 				if err != nil {
 					b.Fatalf("DecodeFixedText failed: %v", err)
 				}
