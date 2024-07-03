@@ -22,8 +22,6 @@
 package bytes
 
 import (
-	"unsafe"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
 	"github.com/prysmaticlabs/gohashtree"
@@ -100,11 +98,10 @@ func (h B48) Type() types.Type {
 
 // HashTreeRoot returns the hash tree root of the B48.
 func (h B48) HashTreeRoot() ([32]byte, error) {
-	result := make([][32]byte, 1)
-	return result[0], gohashtree.Hash(
-		result,
-		//nolint:mnd // we need 2 leaves.
-		//#nosec:G103 // on purpose.
-		unsafe.Slice((*[32]byte)(unsafe.Pointer(&h[0])), 2),
-	)
+	//nolint:mnd // for a tree height of 1 we need 2 working chunks.
+	result := make([][32]byte, 2)
+	copy(result[0][:], h[:])
+	gohashtree.HashChunks(result, result)
+	gohashtree.HashChunks(result, result)
+	return result[0], nil
 }
