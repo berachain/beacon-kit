@@ -102,13 +102,3 @@ func ExtendToSize(slice []byte, length int) []byte {
 	}
 	return append(slice, make([]byte, length-len(slice))...)
 }
-
-// PrependExtendToSize extends a byte slice to a specified length by
-// prepending zero bytes. It returns the original slice if it's
-// already larger.
-func PrependExtendToSize(slice []byte, length int) []byte {
-	if len(slice) >= length {
-		return slice
-	}
-	return append(make([]byte, length-len(slice)), slice...)
-}

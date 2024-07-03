@@ -158,39 +158,6 @@ func TestReverseEndianness(t *testing.T) {
 	}
 }
 
-func TestPrependExtendToSize(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    []byte
-		length   int
-		expected []byte
-	}{
-		{name: "Extend smaller slice",
-			input:    []byte{1, 2, 3},
-			length:   5,
-			expected: []byte{0, 0, 1, 2, 3}},
-		{name: "Extend equal size slice",
-			input:    []byte{4, 5, 6},
-			length:   3,
-			expected: []byte{4, 5, 6}},
-		{name: "Extend larger slice, to smaller size does nothing",
-			input:    []byte{7, 8, 9},
-			length:   2,
-			expected: []byte{7, 8, 9}},
-		{name: "Extend empty slice",
-			input:    []byte{},
-			length:   4,
-			expected: []byte{0, 0, 0, 0}},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := bytes.PrependExtendToSize(tt.input, tt.length)
-			require.Equal(t, tt.expected, result, "Test case %s", tt.name)
-		})
-	}
-}
-
 func TestBytes4UnmarshalJSON(t *testing.T) {
 	tests := []struct {
 		name    string
