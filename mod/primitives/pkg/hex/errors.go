@@ -28,16 +28,19 @@ var (
 	// ErrEmptyString is returned when an empty hex string is provided.
 	ErrEmptyString = errors.New("empty hex string")
 
-	// ErrMissingPrefix is returned when a hex string is missing the "0x" prefix.
+	// ErrMissingPrefix is returned when a hex string is missing the "0x"
+	// prefix.
 	ErrMissingPrefix = errors.New("hex string without 0x prefix")
 
-	// ErrOddLength is returned when a hex string has an odd number of characters.
+	// ErrOddLength is returned when a hex string has an odd number of
+	// characters.
 	ErrOddLength = errors.New("hex string of odd length")
 
 	// ErrNonQuotedString is returned when a hex string is not properly quoted.
 	ErrNonQuotedString = errors.New("non-quoted hex string")
 
-	// ErrInvalidString is returned when a hex string contains invalid characters.
+	// ErrInvalidString is returned when a hex string contains invalid
+	// characters.
 	ErrInvalidString = errors.New("invalid hex string")
 
 	// ErrLeadingZero is returned when a hex number has leading zero digits.
