@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit/mod/payload
 
-go 1.22.4
+go 1.22.5
 
 require (
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240624204855-d8809d5c8588
