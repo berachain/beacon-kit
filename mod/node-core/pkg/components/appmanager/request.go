@@ -20,7 +20,11 @@ func blockToABCIRequest[T transaction.Tx](
 	for i, tx := range block.Txs {
 		txs[i] = tx.Bytes()
 	}
-	return &abciRequest{}
+	return &abciRequest{
+		height: int64(block.Height),
+		time:   block.Time,
+		txs:    txs,
+	}
 }
 
 func (req *abciRequest) GetHeight() int64 {

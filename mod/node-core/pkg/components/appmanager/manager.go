@@ -2,7 +2,6 @@ package appmanager
 
 import (
 	"context"
-	"fmt"
 
 	appmanager "cosmossdk.io/core/app"
 	corestore "cosmossdk.io/core/store"
@@ -34,35 +33,16 @@ func (am *AppManager[T]) InitGenesis(
 	initGenesisJSON []byte,
 	txDecoder transaction.Codec[T],
 ) (*appmanager.BlockResponse, corestore.WriterMap, error) {
-	// var genTxs []T
-	// var rawMessages map[string]json.RawMessage
-	// if err := json.Unmarshal(initGenesisJSON, &rawMessages); err != nil {
-	// 	return nil, nil, fmt.Errorf("failed to unmarshal initGenesisJSON: %w", err)
-	// }
-	// // decode transactions
-	// for _, rawMessage := range rawMessages {
-	// 	tx, err := txDecoder.DecodeJSON(rawMessage)
-	// 	if err != nil {
-	// 		return nil, nil, fmt.Errorf("failed to decode tx: %w", err)
-	// 	}
-	// 	genTxs = append(genTxs, tx)
-	// }
-
-	// blockRequest.Txs = genTxs
-
 	am.abciMiddleware.SetRequest(blockToABCIRequest(blockRequest))
 	resp, writerMap, err := am.AppManager.InitGenesis(ctx, blockRequest, initGenesisJSON, txDecoder)
 	if err != nil {
 		return nil, nil, err
 	}
-	fmt.Println("DONE INIT GENESIS")
 
 	// run block
 	// TODO: in an ideal world, genesis state is simply an initial state being applied
 	// unaware of what that state means in relation to every other, so here we can
 	// chain genesis
-	// blockRequest.Txs = genTxs
-
 	return resp, writerMap, nil
 }
 

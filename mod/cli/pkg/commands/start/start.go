@@ -22,13 +22,13 @@ package start
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"cosmossdk.io/core/transaction"
 	serverv2 "cosmossdk.io/server/v2"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -76,7 +76,7 @@ func NewStartCmd[NodeT types.Node[T], T transaction.Tx](
 			}()
 
 			if err := server.Start(ctx); err != nil {
-				return fmt.Errorf("failed to start servers: %w", err)
+				return errors.Newf("failed to start servers: %w", err)
 			}
 
 			return nil

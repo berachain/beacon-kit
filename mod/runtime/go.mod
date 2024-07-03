@@ -15,7 +15,6 @@ replace (
 
 require (
 	cosmossdk.io/x/consensus v0.0.0-20240628155326-d426a5db6775
-	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240702154025-071b95a5f03f
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240624204855-d8809d5c8588
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240624033454-8f3451361f44
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240618214413-d5ec0e66b3dd
@@ -30,41 +29,13 @@ require (
 	cosmossdk.io/x/auth v0.0.0-20240624211517-0b35bcebefbf // indirect
 	cosmossdk.io/x/bank v0.0.0-20240625055312-26913b073414 // indirect
 	cosmossdk.io/x/staking v0.0.0-20240624211517-0b35bcebefbf // indirect
-	github.com/Microsoft/go-winio v0.6.2 // indirect
-	github.com/VictoriaMetrics/fastcache v1.12.2 // indirect
-	github.com/berachain/beacon-kit/mod/config v0.0.0-20240628210719-e32b1662132e // indirect
-	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240624204855-d8809d5c8588 // indirect
-	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240630225951-a5075323fa26 // indirect
-	github.com/bits-and-blooms/bitset v1.13.0 // indirect
+	github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a // indirect
-	github.com/consensys/bavard v0.1.13 // indirect
-	github.com/consensys/gnark-crypto v0.12.1 // indirect
-	github.com/crate-crypto/go-ipa v0.0.0-20240223125850-b1e8a79f509c // indirect
-	github.com/crate-crypto/go-kzg-4844 v1.0.0 // indirect
-	github.com/deckarep/golang-set/v2 v2.6.0 // indirect
 	github.com/dvsekhvalnov/jose2go v1.7.0 // indirect
-	github.com/ethereum/c-kzg-4844 v1.0.2 // indirect
-	github.com/ethereum/go-verkle v0.1.1-0.20240306133620-7d920df305f0 // indirect
-	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1 // indirect
-	github.com/go-ole/go-ole v1.3.0 // indirect
-	github.com/gofrs/flock v0.8.1 // indirect
-	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
-	github.com/holiman/bloomfilter/v2 v2.0.3 // indirect
-	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
-	github.com/mattn/go-runewidth v0.0.15 // indirect
-	github.com/minio/sha256-simd v1.0.1 // indirect
-	github.com/mitchellh/mapstructure v1.5.0 // indirect
-	github.com/mmcloughlin/addchain v0.4.0 // indirect
-	github.com/olekukonko/tablewriter v0.0.5 // indirect
-	github.com/prysmaticlabs/gohashtree v0.0.4-beta // indirect
-	github.com/rivo/uniseg v0.4.7 // indirect
-	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
-	github.com/tklauser/go-sysconf v0.3.14 // indirect
-	github.com/tklauser/numcpus v0.8.0 // indirect
-	github.com/yusufpapurcu/wmi v1.2.4 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
-	rsc.io/tmplfunc v0.0.3 // indirect
+	github.com/onsi/gomega v1.33.1 // indirect
+	github.com/sagikazarmark/locafero v0.6.0 // indirect
+	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8 // indirect
 )
 
 require (

@@ -24,11 +24,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"time"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -59,8 +58,6 @@ func (h *ABCIMiddleware[
 	if err := json.Unmarshal(bz, data); err != nil {
 		return nil, err
 	}
-	yip := any(*data).(*genesis.Genesis[*types.Deposit, *types.ExecutionPayloadHeader])
-	fmt.Println("GENESIS DATA", *yip)
 	// Send a request to the chain service to process the genesis data.
 	if err := h.genesisBroker.Publish(ctx, asynctypes.NewEvent(
 		ctx, events.GenesisDataProcessRequest, *data,
@@ -74,10 +71,7 @@ func (h *ABCIMiddleware[
 		return genesisErr
 	})
 
-	if err := g.Wait(); err != nil {
-		return nil, err
-	}
-	return valUpdates, nil
+	return valUpdates, g.Wait()
 }
 
 // waitForGenesisData waits for the genesis data to be processed and returns
@@ -85,7 +79,8 @@ func (h *ABCIMiddleware[
 func (h *ABCIMiddleware[
 	_, _, _, _, _, GenesisT,
 ]) waitForGenesisData(ctx context.Context) (
-	transition.ValidatorUpdates, error) {
+	transition.ValidatorUpdates, error,
+) {
 	select {
 	case msg := <-h.valUpdateSub:
 		if msg.Type() != events.ValidatorSetUpdated {
@@ -111,7 +106,7 @@ func (h *ABCIMiddleware[
 	ctx context.Context,
 	slot math.Slot,
 ) ([]byte, []byte, error) {
-	fmt.Println("PREPARE PROPOSAL CALLED")
+	fmt.Println("PREPARE PROPOSAL context type", reflect.TypeOf(ctx))
 	var (
 		g                           errgroup.Group
 		startTime                   = time.Now()
@@ -140,13 +135,9 @@ func (h *ABCIMiddleware[
 		return sidecarsErr
 	})
 
-	if err := g.Wait(); err != nil {
-		return nil, nil, err
-	}
 	// Wait for both processes to complete and then
 	// return the appropriate response.
-	fmt.Println("PREPARE PROPOSAL CALLED WITH", beaconBlockBz, sidecarsBz)
-	return beaconBlockBz, sidecarsBz, nil
+	return beaconBlockBz, sidecarsBz, g.Wait()
 }
 
 // waitForSidecars waits for the sidecars to be built and returns them.
@@ -331,7 +322,6 @@ func (h *ABCIMiddleware[
 			math.Slot(h.req.GetHeight()),
 		))
 	if err != nil {
-		fmt.Println("ERROR EXTRACT")
 		// If we don't have a block, we can't do anything.
 		//nolint:nilerr // by design.
 		return nil, nil
@@ -339,23 +329,11 @@ func (h *ABCIMiddleware[
 
 	// Send the sidecars to the sidecars feed and wait for a response
 	if err = h.processSidecars(ctx, blobs); err != nil {
-		fmt.Println("ERROR PROCESS SIDECARS")
 		return nil, err
 	}
 
 	// Process the beacon block and return the validator updates.
-	var updates transition.ValidatorUpdates
-	updates, err = h.processBeaconBlock(
-		ctx, blk,
-	)
-	if err != nil {
-		fmt.Println("ERROR PROCESS BEACON BLOCK")
-		return nil, err
-	}
-
-	fmt.Println("DONE END BLOCK")
-
-	return updates, nil
+	return h.processBeaconBlock(ctx, blk)
 }
 
 // processSidecars publishes the sidecars and waits for a response.

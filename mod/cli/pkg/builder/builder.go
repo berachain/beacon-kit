@@ -21,7 +21,6 @@
 package builder
 
 import (
-	"fmt"
 	"os"
 
 	"cosmossdk.io/client/v2/autocli"
@@ -198,7 +197,6 @@ func (cb *CLIBuilder[NodeT, T, ValidatorUpdateT]) InterceptConfigsPreRunHandler(
 	if err != nil {
 		return err
 	}
-	fmt.Println("viper", serverCtx.Viper.Get("home"))
 
 	// set server context
 	return server.SetCmdServerContext(cmd, serverCtx)

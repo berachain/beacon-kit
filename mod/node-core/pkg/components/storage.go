@@ -21,7 +21,7 @@
 package components
 
 import (
-	"cosmossdk.io/core/appmodule"
+	"cosmossdk.io/core/appmodule/v2"
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"

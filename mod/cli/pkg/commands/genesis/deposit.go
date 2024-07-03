@@ -68,13 +68,11 @@ func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
 				depositAmountString string
 				depositAmount       math.Gwei
 			)
-			fmt.Println("gettign the bls signer")
 			// Get the BLS signer.
 			blsSigner, err := getBLSSigner(client.GetViperFromCmd(cmd))
 			if err != nil {
 				return err
 			}
-			fmt.Println("lol")
 			// Get the deposit amount.
 			depositAmountString, err = cmd.Flags().GetString(depositAmountFlag)
 			if err != nil {
@@ -191,7 +189,6 @@ func writeDepositToFile(
 // getBLSSigner returns a BLS signer based on the override node key flag.
 func getBLSSigner(v *viper.Viper) (crypto.BLSSigner, error) {
 	var blsSigner crypto.BLSSigner
-	fmt.Println("with viper", v.Get("home"))
 	if err := depinject.Inject(
 		depinject.Configs(
 			depinject.Supply(

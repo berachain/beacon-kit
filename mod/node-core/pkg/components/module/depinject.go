@@ -45,23 +45,11 @@ import (
 //
 //nolint:gochecknoinits // required by sdk.
 func init() {
-	// appconfig.Register(&runtimev2.Module{},
-	// 	appconfig.Provide(
-	// 		runtime.ProvideAppBuilder[*bktransaction.SSZTx],
-	// 		runtime.ProvideEnvironment[*bktransaction.SSZTx],
-	// 		runtime.ProvideModuleManager[*bktransaction.SSZTx],
-	// 		runtime.ProvideGenesisTxHandler[*bktransaction.SSZTx],
-	// 		runtime.ProvideCometService,
-	// 		runtime.ProvideAppVersionModifier[*bktransaction.SSZTx],
-	// 	),
-	// 	appconfig.Invoke(runtime.SetupAppBuilder),
-	// )
 	appconfig.RegisterModule(&modulev2.Module{},
 		appconfig.Provide(
 			components.ProvideKVStore,
 			components.ProvideMessageServer,
 			ProvideModule[
-				// *bktransaction.SSZTx,
 				transaction.Tx,
 				appmodulev2.ValidatorUpdate, // TODO: idk man
 			],

@@ -55,7 +55,11 @@ var (
 	_ module.HasABCIGenesis = AppModule[
 		transaction.Tx, appmodulev2.ValidatorUpdate,
 	]{}
-	_ module.HasABCIEndBlock = AppModule[
+	_ appmodulev2.HasEndBlocker = AppModule[
+		transaction.Tx, appmodulev2.ValidatorUpdate,
+	]{}
+
+	_ appmodulev2.HasUpdateValidators = AppModule[
 		transaction.Tx, appmodulev2.ValidatorUpdate,
 	]{}
 )
@@ -63,9 +67,10 @@ var (
 // AppModule implements an application module for the beacon module.
 // It is a wrapper around the ABCIMiddleware.
 type AppModule[T transaction.Tx, ValidatorUpdateT any] struct {
-	abciMiddleware *components.ABCIMiddleware
-	txCodec        transaction.Codec[T]
-	msgServer      *cmtruntime.MsgServer
+	abciMiddleware  *components.ABCIMiddleware
+	txCodec         transaction.Codec[T]
+	msgServer       *cmtruntime.MsgServer
+	consensusEngine *cometbft.ConsensusEngine[T, ValidatorUpdateT]
 }
 
 // NewAppModule creates a new AppModule object.
@@ -78,6 +83,10 @@ func NewAppModule[T transaction.Tx, ValidatorUpdateT any](
 		abciMiddleware: abciMiddleware,
 		txCodec:        txCodec,
 		msgServer:      msgServer,
+		consensusEngine: cometbft.NewConsensusEngine[T, ValidatorUpdateT](
+			txCodec,
+			abciMiddleware,
+		),
 	}
 }
 
@@ -140,31 +149,21 @@ func (am AppModule[T, ValidatorUpdateT]) InitGenesis(
 	ctx context.Context,
 	bz json.RawMessage,
 ) ([]ValidatorUpdateT, error) {
-	fmt.Println("BYTES BYTES BYTES", bz)
-	// tx, err := am.txCodec.DecodeJSON(bz)
-	// if err != nil {
-	// 	panic(err)
-	// 	return nil, err
-	// }
-
-	// req := am.abciMiddleware.GetRequest()
-	// req.SetTxs(append(req.GetTxs(), bz))
-	// am.abciMiddleware.SetRequest(req)
-
-	return cometbft.NewConsensusEngine[T, ValidatorUpdateT](
-		am.txCodec,
-		am.abciMiddleware,
-	).InitGenesis(ctx, bz)
+	return am.consensusEngine.InitGenesis(ctx, bz)
 }
 
 // EndBlock returns the validator set updates from the beacon state.
 func (am AppModule[T, ValidatorUpdateT]) EndBlock(
 	ctx context.Context,
+) error {
+	return am.consensusEngine.EndBlock(ctx)
+}
+
+// EndBlock returns the validator set updates from the beacon state.
+func (am AppModule[T, ValidatorUpdateT]) UpdateValidators(
+	ctx context.Context,
 ) ([]ValidatorUpdateT, error) {
-	return cometbft.NewConsensusEngine[T, ValidatorUpdateT](
-		am.txCodec,
-		am.abciMiddleware,
-	).EndBlock(ctx)
+	return am.consensusEngine.UpdateValidators(ctx)
 }
 
 // proto will be sad that tendermint afk if we don't have this here

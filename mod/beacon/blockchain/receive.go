@@ -22,6 +22,8 @@ package blockchain
 
 import (
 	"context"
+	"fmt"
+	"reflect"
 	"time"
 
 	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
@@ -49,6 +51,7 @@ func (s *Service[
 	blk BeaconBlockT,
 ) error {
 	// Grab a copy of the state to verify the incoming block.
+	fmt.Println("VERIFY INCOMING BLOCK context type", reflect.TypeOf(ctx))
 	preState := s.sb.StateFromContext(ctx)
 
 	// Force a sync of the startup head if we haven't done so already.

@@ -21,7 +21,6 @@
 package context
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -30,6 +29,7 @@ import (
 	"time"
 
 	sdklog "cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -57,7 +57,7 @@ func InterceptConfigsAndCreateContext(
 	// The underscore character is used as a separator.
 	executableName, err := os.Executable()
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch executable name: %w", err)
+		return nil, errors.Newf("failed to fetch executable name: %w", err)
 	}
 
 	basename := path.Base(executableName)
@@ -84,7 +84,7 @@ func InterceptConfigsAndCreateContext(
 	// return value is a CometBFT configuration object
 	serverCtx.Config = config
 	if err = bindFlags(basename, cmd, serverCtx.Viper); err != nil {
-		return nil, fmt.Errorf("error binding flags for basename '%s': %w",
+		return nil, errors.Newf("error binding flags for basename '%s': %w",
 			basename, err)
 	}
 
@@ -150,26 +150,26 @@ func populateConfigFileWithDefaults(
 	if customAppTemplate != "" {
 		// set the configuration template
 		if config.SetConfigTemplate(customAppTemplate) != nil {
-			return fmt.Errorf("failed to set config template: %w", statError)
+			return errors.Newf("failed to set config template: %w", statError)
 		}
 
 		if rootViper.Unmarshal(&customConfig) != nil {
-			return fmt.Errorf("failed to parse %s: %w",
+			return errors.Newf("failed to parse %s: %w",
 				appCfgFilePath, statError)
 		}
 
 		if config.WriteConfigFile(appCfgFilePath, customConfig) != nil {
-			return fmt.Errorf("failed to write %s: %w", appCfgFilePath,
+			return errors.Newf("failed to write %s: %w", appCfgFilePath,
 				statError)
 		}
 	} else {
 		appConf, err := config.ParseConfig(rootViper)
 		if err != nil {
-			return fmt.Errorf("failed to parse %s: %w", appCfgFilePath, err)
+			return errors.Newf("failed to parse %s: %w", appCfgFilePath, err)
 		}
 
 		if config.WriteConfigFile(appCfgFilePath, appConf) != nil {
-			return fmt.Errorf("failed to write %s: %w", appCfgFilePath, err)
+			return errors.Newf("failed to write %s: %w", appCfgFilePath, err)
 		}
 	}
 	return nil
@@ -223,7 +223,7 @@ func interceptConfigs(
 	rootViper.AddConfigPath(configPath)
 
 	if err := rootViper.MergeInConfig(); err != nil {
-		return nil, fmt.Errorf("failed to merge configuration: %w", err)
+		return nil, errors.Newf("failed to merge configuration: %w", err)
 	}
 
 	return conf, nil
@@ -246,7 +246,7 @@ func writeCometConfig(
 		cmtcfg.EnsureRoot(rootDir)
 
 		if err = conf.ValidateBasic(); err != nil {
-			return fmt.Errorf("error in config file: %w", err)
+			return errors.Newf("error in config file: %w", err)
 		}
 
 		defaultCometCfg := cmtcfg.DefaultConfig()
@@ -275,7 +275,7 @@ func writeCometConfig(
 		rootViper.AddConfigPath(configPath)
 
 		if err = rootViper.ReadInConfig(); err != nil {
-			return fmt.Errorf("failed to read in %s: %w", cmtCfgFile, err)
+			return errors.Newf("failed to read in %s: %w", cmtCfgFile, err)
 		}
 	}
 	return nil
@@ -287,7 +287,7 @@ func bindFlags(
 ) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = fmt.Errorf("bindFlags failed: %v", r)
+			err = errors.Newf("bindFlags failed: %v", r)
 		}
 	}()
 

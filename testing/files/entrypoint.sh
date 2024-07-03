@@ -38,7 +38,7 @@ resolve_path() {
 
 CHAINID="beacond-2061"
 MONIKER="localtestnet"
-LOGLEVEL="info"
+LOGLEVEL="debug"
 CONSENSUS_KEY_ALGO="bls12_381"
 HOMEDIR="./.tmp/beacond"
 

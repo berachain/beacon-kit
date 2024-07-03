@@ -22,6 +22,8 @@ package validator
 
 import (
 	"context"
+	"fmt"
+	"reflect"
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
@@ -56,6 +58,7 @@ func (s *Service[
 	// the next finalized block in the chain. A byproduct of this design
 	// is that we get the nice property of lazily propagating the finalized
 	// and safe block hashes to the execution client.
+	fmt.Println("BUILD BLOCK AND SIDECARS context type", reflect.TypeOf(ctx))
 	st := s.bsb.StateFromContext(ctx)
 
 	// Prepare the state such that it is ready to build a block for

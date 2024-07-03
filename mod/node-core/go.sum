@@ -20,10 +20,6 @@ cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce h1:udTT5vz8tu5WfnHnDJv9Mb2
 cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce/go.mod h1:QFKLI3pmk619LV+uh4DKxVBlNCGQhvTyoVYBaxHaTNM=
 cosmossdk.io/math v1.3.0 h1:RC+jryuKeytIiictDslBP9i1fhkVm6ZDmZEoNP316zE=
 cosmossdk.io/math v1.3.0/go.mod h1:vnRTxewy+M7BtXBNFybkuhSH4WfedVAAnERHgVFhp3k=
-cosmossdk.io/server/v2 v2.0.0-20240624191328-722ac39873e4 h1:5aDnTjeR9X+Ey2uhyhYmxTcLLnvjUfXRZvlCNTTOZy0=
-cosmossdk.io/server/v2 v2.0.0-20240624191328-722ac39873e4/go.mod h1:tipsG13IvXM770UgAND0+kWtV/C2F7Oct0HUIfY50v8=
-cosmossdk.io/server/v2/stf v0.0.0-20240623110059-dec2d5583e39 h1:wB6pmjaBklCiUO2juRBC7ZljaWn/UW7oi9fnY50WkcQ=
-cosmossdk.io/server/v2/stf v0.0.0-20240623110059-dec2d5583e39/go.mod h1:bTFJu59P5lJqCQDaNEUruMEScikeBHtRVuWMAOLbUgk=
 cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc h1:R9O9d75e0qZYUsVV0zzi+D7cNLnX2JrUOQNoIPaF0Bg=
 cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc/go.mod h1:amTTatOUV3u1PsKmNb87z6/galCxrRbz9kRdJkL0DyU=
 cosmossdk.io/x/accounts v0.0.0-20240625055312-26913b073414 h1:U6nXsk+Q7YdhQ7ObslI62zB3E7NcfTJ9x7iEp6A3JX4=
@@ -112,10 +108,14 @@ github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240628175732-ab2d37478785 h1:o
 github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240628175732-ab2d37478785/go.mod h1:cvdy9dmULJ6vAJRv/xFXlEXoHonI3Wol+WoDg3P9h8M=
 github.com/berachain/cosmos-sdk/runtime/v2 v2.0.0-20240628175732-ab2d37478785 h1:Kj72JLY+PNGv1xATQb1VKLQqjnLe5UdW7lltLQzOSyo=
 github.com/berachain/cosmos-sdk/runtime/v2 v2.0.0-20240628175732-ab2d37478785/go.mod h1:dV61MN3IJ6kYKVspLRPZ6zKxc3sltC2VVGK7TITPyl0=
-github.com/berachain/cosmos-sdk/server/v2/appmanager v0.0.0-20240628175732-ab2d37478785 h1:Ubz6sjhZ+ISBsw+BeytGWgFXORkxo6nkjN7Y6+hhUWQ=
-github.com/berachain/cosmos-sdk/server/v2/appmanager v0.0.0-20240628175732-ab2d37478785/go.mod h1:2NkCk1/pQTCxZTS6UiN+DU0pYv0LC2QWbRWJtC8HMAI=
+github.com/berachain/cosmos-sdk/server/v2 v2.0.0-20240703212220-fa840c5a6038 h1:BTi1WcLJ2o/g3eQlkZnTgGxRMaZ0UQECGxF1JO8Fhf0=
+github.com/berachain/cosmos-sdk/server/v2 v2.0.0-20240703212220-fa840c5a6038/go.mod h1:t85/BhV1PtbOIo64s29aO2Gt5JGKMG7oKijyvqA24/U=
+github.com/berachain/cosmos-sdk/server/v2/appmanager v0.0.0-20240703212220-fa840c5a6038 h1:a7LsBiBFJjstStQ/qQuJ9sDrhwJWkHhEjcY2qAE6gQU=
+github.com/berachain/cosmos-sdk/server/v2/appmanager v0.0.0-20240703212220-fa840c5a6038/go.mod h1:Rc5Czh8ZKtrZqh0IqIpwVqj8zGCJPO9fu+qAs7EoKaA=
 github.com/berachain/cosmos-sdk/server/v2/cometbft v0.0.0-20240628175732-ab2d37478785 h1:wd4xDaNnhTzkNzqCOUjiKyeLkkPj/vmWCi584U1q4RI=
 github.com/berachain/cosmos-sdk/server/v2/cometbft v0.0.0-20240628175732-ab2d37478785/go.mod h1:pPDXyC5TttnPjj4vL0aLpqBkPbRewN++VaxnhwIHiCM=
+github.com/berachain/cosmos-sdk/server/v2/stf v0.0.0-20240703212220-fa840c5a6038 h1:b9VoL3QuBxliGrFWeiYGS97mteMuh7AmyO4syO0rCWQ=
+github.com/berachain/cosmos-sdk/server/v2/stf v0.0.0-20240703212220-fa840c5a6038/go.mod h1:XW9eLJQhZtP6Z/92F0fmL3SJt57yX1G47rXyAa06ptM=
 github.com/berachain/cosmos-sdk/store/v2 v2.0.0-20240628175732-ab2d37478785 h1:QjeSC1mPWqNrU8QoBpqY2goEqSy87A4ZysR8O6k/j38=
 github.com/berachain/cosmos-sdk/store/v2 v2.0.0-20240628175732-ab2d37478785/go.mod h1:4TjTSDlpS4RIoaiUyLu0eRp0GQB/0Q+js7Ixa/UM7Rs=
 github.com/bgentry/speakeasy v0.2.0 h1:tgObeVOf8WAvtuAX6DhJ4xks4CFNwPDZiqzGqIHE51E=

@@ -22,6 +22,8 @@ package cometbft
 
 import (
 	"context"
+	"fmt"
+	"reflect"
 
 	"cosmossdk.io/core/transaction"
 	sdktransaction "cosmossdk.io/core/transaction"
@@ -50,8 +52,9 @@ func NewConsensusEngine[
 // Right now, it is very coupled to the sdk base app and we will
 // eventually fully decouple this.
 type ConsensusEngine[T transaction.Tx, ValidatorUpdateT any] struct {
-	txCodec sdktransaction.Codec[T]
 	Middleware
+	txCodec    sdktransaction.Codec[T]
+	valUpdates transition.ValidatorUpdates
 }
 
 func (c *ConsensusEngine[T, ValidatorUpdateT]) InitGenesis(
@@ -62,6 +65,7 @@ func (c *ConsensusEngine[T, ValidatorUpdateT]) InitGenesis(
 	if err != nil {
 		return nil, err
 	}
+	c.valUpdates = updates
 	// Convert updates into the Cosmos SDK format.
 	return iter.MapErr[
 		*transition.ValidatorUpdate, ValidatorUpdateT,
@@ -75,6 +79,7 @@ func (c *ConsensusEngine[T, ValidatorUpdateT]) Prepare(
 	txs []T,
 	req proto.Message,
 ) ([]T, error) {
+	fmt.Println("CONSENSUS ENGINE PREPARE context type", reflect.TypeOf(ctx))
 	abciReq, ok := req.(*cmtabci.PrepareProposalRequest)
 	if !ok {
 		return nil, ErrInvalidRequestType
@@ -110,25 +115,23 @@ func (c *ConsensusEngine[T, ValidatorUpdateT]) Process(
 	return c.Middleware.ProcessProposal(ctx, abciReq)
 }
 
-// // TODO: Decouple Comet Types
-// func (c *ConsensusEngine[T, ValidatorUpdateT]) PreBlock(
-// 	ctx context.Context, msg proto.Message,
-// ) error {
-// 	req, ok := msg.(*cmtabci.FinalizeBlockRequest)
-// 	if !ok {
-// 		return ErrInvalidRequestType
-// 	}
-// 	return c.Middleware.PreBlock(ctx, req)
-// }
-
 func (c *ConsensusEngine[T, ValidatorUpdateT]) EndBlock(
 	ctx context.Context,
-) ([]ValidatorUpdateT, error) {
+) error {
 	updates, err := c.Middleware.EndBlock(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
+	if updates != nil {
+		c.valUpdates = updates
+	}
+	return nil
+}
+
+func (c *ConsensusEngine[T, ValidatorUpdateT]) UpdateValidators(
+	ctx context.Context,
+) ([]ValidatorUpdateT, error) {
 	return iter.MapErr[
 		*transition.ValidatorUpdate, ValidatorUpdateT,
-	](updates, convertValidatorUpdate)
+	](c.valUpdates, convertValidatorUpdate)
 }
