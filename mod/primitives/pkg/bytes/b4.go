@@ -35,8 +35,7 @@ func (h *B4) UnmarshalJSON(input []byte) error {
 // ToBytes4 is a utility function that transforms a byte slice into a fixed
 // 4-byte array. If the input exceeds 4 bytes, it gets truncated.
 func ToBytes4(input []byte) B4 {
-	//nolint:mnd // 32 bytes.
-	return [4]byte(ExtendToSize(input, 4))
+	return [4]byte(ExtendToSize(input, B4Size))
 }
 
 // String returns the hex string representation of B4.

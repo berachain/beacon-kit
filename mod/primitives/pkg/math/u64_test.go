@@ -25,7 +25,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/require"
@@ -636,19 +635,19 @@ func TestGweiFromWei(t *testing.T) {
 		},
 		{
 			name:     "one gwei",
-			input:    big.NewInt(constants.GweiPerWei),
+			input:    big.NewInt(math.GweiPerWei),
 			expected: math.Gwei(1),
 		},
 		{
 			name:     "arbitrary wei",
-			input:    big.NewInt(constants.GweiPerWei * 123456789),
+			input:    big.NewInt(math.GweiPerWei * 123456789),
 			expected: math.Gwei(123456789),
 		},
 		{
 			name: "max uint64 wei",
 			input: new(
 				big.Int,
-			).Mul(big.NewInt(constants.GweiPerWei), new(big.Int).SetUint64(^uint64(0))),
+			).Mul(big.NewInt(math.GweiPerWei), new(big.Int).SetUint64(^uint64(0))),
 			expected: math.Gwei(1<<64 - 1),
 		},
 	}
@@ -675,21 +674,21 @@ func TestGwei_ToWei(t *testing.T) {
 		{
 			name:     "one gwei",
 			input:    math.Gwei(1),
-			expected: big.NewInt(constants.GweiPerWei),
+			expected: big.NewInt(math.GweiPerWei),
 		},
 		{
 			name:  "arbitrary gwei",
 			input: math.Gwei(123456789),
 			expected: new(
 				big.Int,
-			).Mul(big.NewInt(constants.GweiPerWei), big.NewInt(123456789)),
+			).Mul(big.NewInt(math.GweiPerWei), big.NewInt(123456789)),
 		},
 		{
 			name:  "max uint64 gwei",
 			input: math.Gwei(1<<64 - 1),
 			expected: new(
 				big.Int,
-			).Mul(big.NewInt(constants.GweiPerWei), new(big.Int).SetUint64(1<<64-1)),
+			).Mul(big.NewInt(math.GweiPerWei), new(big.Int).SetUint64(1<<64-1)),
 		},
 	}
 
