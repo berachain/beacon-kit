@@ -25,7 +25,6 @@ import (
 	"bytes"
 	"encoding"
 	"math/big"
-	"reflect"
 	"strconv"
 	"testing"
 
@@ -334,7 +333,6 @@ func TestUnmarshalJSONText(t *testing.T) {
 			err := hex.UnmarshalJSONText(
 				tt.input,
 				tt.unmarshaler,
-				reflect.TypeOf(tt.unmarshaler),
 			)
 			if tt.expectErr {
 				require.Error(t, err, "Test case: %s", tt.name)

@@ -42,7 +42,7 @@ func (b Bytes) MarshalText() ([]byte, error) {
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (b *Bytes) UnmarshalJSON(input []byte) error {
-	return customhex.UnmarshalJSONText(input, b, bytesT)
+	return customhex.UnmarshalJSONText(input, b)
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler.

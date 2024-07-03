@@ -24,15 +24,11 @@ import (
 	"encoding/binary"
 	"math/big"
 	"math/bits"
-	"reflect"
 	"strconv"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/constants"
 )
-
-//nolint:gochecknoglobals // stores the reflect type of U64.
-var uint64T = reflect.TypeOf(U64(0))
 
 //nolint:lll
 type (
@@ -116,7 +112,7 @@ func (u U64) MarshalText() ([]byte, error) {
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (u *U64) UnmarshalJSON(input []byte) error {
-	return hex.UnmarshalJSONText(input, u, uint64T)
+	return hex.UnmarshalJSONText(input, u)
 }
 
 // ---------------------------------- Hex ----------------------------------
