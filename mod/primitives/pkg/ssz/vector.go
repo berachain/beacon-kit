@@ -45,11 +45,16 @@ func VectorFromElements[T types.MinimalSSZType](elements ...T) Vector[T] {
 	return elements
 }
 
-// ByteVectorFromBytes creates a new Vector[Byte]ß from bytes.
+// BitVectorFromBytes creates a new Vector[Bool] (bitvector) from bools.
+func BitVectorFromBytes(bools []bool) Vector[Bool] {
+	//#nosec:G103 // its fine, but we should find a better solution.
+	return *(*Vector[Bool])(unsafe.Pointer(&bools))
+}
+
+// ByteVectorFromBytes creates a new Vector[Byte] from bytes.
 func ByteVectorFromBytes(bytes []byte) Vector[Byte] {
-	//#nosec:G103 // its fine, but we should find  abetter solution.
-	v := *(*Vector[Byte])(unsafe.Pointer(&bytes))
-	return v
+	//#nosec:G103 // its fine, but we should find a better solution.
+	return *(*Vector[Byte])(unsafe.Pointer(&bytes))
 }
 
 /* -------------------------------------------------------------------------- */

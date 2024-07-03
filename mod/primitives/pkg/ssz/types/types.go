@@ -49,6 +49,7 @@ type SSZType[T any] interface {
 	MinimalSSZType
 	// ChunkCount returns the number of chunks required to store the type.
 	ChunkCount() uint64
+	// NewFromSSZ creates a new SSZType from SSZ encoded bytes.
 	NewFromSSZ([]byte) (T, error)
 }
 

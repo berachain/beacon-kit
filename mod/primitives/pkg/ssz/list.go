@@ -56,6 +56,16 @@ func ListFromElements[T types.MinimalSSZType](
 	}
 }
 
+// BitListFromBytes creates a new List[Bool] (bitlist) from bools.
+func BitListFromBytes(bools []bool, limit uint64) *List[Bool] {
+	//#nosec:G103 // its fine, but we should find  abetter solution.
+	elements := *(*[]Bool)(unsafe.Pointer(&bools))
+	return &List[Bool]{
+		elements: elements,
+		limit:    limit,
+	}
+}
+
 // ByteList from Bytes creates a new List from bytes.
 func ByteListFromBytes(bytes []byte, limit uint64) *List[Byte] {
 	//#nosec:G103 // its fine, but we should find  abetter solution.
