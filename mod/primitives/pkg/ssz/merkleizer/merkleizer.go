@@ -103,7 +103,7 @@ func (m *Merkleizer[RootT, T]) MerkleizeVectorCompositeOrContainer(
 // MerkleizeListBytes hashes a byteslice by chunkifying it, hashing to determine
 // the HTR, and mixing in the length of the list.
 //
-// TODO: deprecate once transactions no longer uses this.
+// TODO: only kept for backwards compatibility used by transactions and randao.
 func (m *Merkleizer[RootT, T]) MerkleizeListBytes(input []byte) (RootT, error) {
 	chunks, numChunks := m.chunkifyBytes(input)
 	root, err := m.Merkleize(chunks, numChunks)
