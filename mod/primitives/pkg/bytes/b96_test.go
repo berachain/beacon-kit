@@ -21,6 +21,7 @@
 package bytes_test
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
@@ -47,5 +48,28 @@ func TestB96_HashTreeRoot(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, tt.want, result)
 		})
+	}
+}
+
+func BenchmarkB96_MarshalJSON(b *testing.B) {
+	data := bytes.B96{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, err := json.Marshal(data)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkB96_UnmarshalJSON(b *testing.B) {
+	jsonData := []byte(`"0x0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5fdd"`)
+	var data bytes.B96
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		err := data.UnmarshalJSON(jsonData)
+		if err != nil {
+			b.Fatal(err)
+		}
 	}
 }
