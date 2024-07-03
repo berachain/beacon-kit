@@ -18,23 +18,27 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package bytes_test
+package buffer_test
 
 import (
 	"math/rand"
 	"testing"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes/buffer"
 )
 
+type bufferI interface {
+	Get(size int) [][32]byte
+}
+
 // getBuffer returns a buffer of the given type.
-func getBuffer(usageType string) bytes.Buffer[[32]byte] {
+func getBuffer(usageType string) bufferI {
 	switch usageType {
 	case "reusable":
-		return bytes.NewReusableBuffer[[32]byte]()
+		return buffer.NewReusableBuffer[[32]byte]()
 	case "singleuse":
-		return bytes.NewSingleuseBuffer[[32]byte]()
+		return buffer.NewSingleuseBuffer[[32]byte]()
 	default:
 		panic("unknown usage type: " + usageType)
 	}
