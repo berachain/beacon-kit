@@ -21,7 +21,6 @@ github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b/go.mod h1:Vz9D
 github.com/cockroachdb/redact v1.1.5 h1:u1PMllDkdFfPWaNGMyLD1+so+aq3uUItthCFqzwPJ30=
 github.com/cockroachdb/redact v1.1.5/go.mod h1:BVNblN9mBWFyMyqK1k3AAiSxhvhfK2oOZZ2lK+dpvRg=
 github.com/cometbft/cometbft v1.0.0-rc1.0.20240702102754-c4fa9a6225b0 h1:vO9K86uuk2ZBuiOjAGM/yFrGEWdNPEv/wmPxFRzuFRo=
-github.com/cometbft/cometbft v1.0.0-rc1.0.20240702102754-c4fa9a6225b0/go.mod h1:64cB2wvltmK5plHlJFLYOZYGsaTKNW2EZgcHBisHP7o=
 github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240702102754-c4fa9a6225b0 h1:X6qp8ZhLKhk1Vw4JHqWVZKt21xomVWykr6ltY4yXIno=
 github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240702102754-c4fa9a6225b0/go.mod h1:NDFKiBBD8HJC6QQLAoUI99YhsiRZtg2+FJWfk6A6m6o=
 github.com/cosmos/crypto v0.0.0-20240312084433-de8f9c76030d h1:jvmjxQ1je5eI4/pBuw0hIh7cRQHypQFltn6tcMhwiUc=
