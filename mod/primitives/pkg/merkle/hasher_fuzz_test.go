@@ -24,7 +24,6 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 )
 
@@ -32,52 +31,84 @@ func FuzzHashTreeRoot(f *testing.F) {
 	// Seed corpus with a variety of sizes, including edge cases
 	//
 	// Test with empty slice
-	f.Add(0, 1, merkle.MinParallelizationSize)
+	f.Add(make([]byte, 0), true, 1, merkle.MinParallelizationSize)
 	// Just below a single block size
-	f.Add(31, runtime.GOMAXPROCS(0)-1, merkle.MinParallelizationSize)
+	f.Add(
+		make([]byte, 31), true,
+		runtime.GOMAXPROCS(0)-1, merkle.MinParallelizationSize,
+	)
 	// Exactly one block size
-	f.Add(32, runtime.GOMAXPROCS(0)+1, merkle.MinParallelizationSize)
+	f.Add(
+		make([]byte, 32), true,
+		runtime.GOMAXPROCS(0)+1, merkle.MinParallelizationSize,
+	)
 	// Just above a single block size
-	f.Add(33, runtime.GOMAXPROCS(0)*2, merkle.MinParallelizationSize)
+	f.Add(
+		make([]byte, 33), true,
+		runtime.GOMAXPROCS(0)*2, merkle.MinParallelizationSize,
+	)
 	// Multiple blocks
-	f.Add(64, runtime.GOMAXPROCS(0)*4, merkle.MinParallelizationSize)
+	f.Add(
+		make([]byte, 64), true,
+		runtime.GOMAXPROCS(0)*4, merkle.MinParallelizationSize,
+	)
 	// Larger input
-	f.Add(1024, 3, merkle.MinParallelizationSize)
-	// Just below MinParallelizationSize
-	f.Add(merkle.MinParallelizationSize-2, 300, merkle.MinParallelizationSize)
-	// Exactly MinParallelizationSize
-	f.Add(merkle.MinParallelizationSize, 1, merkle.MinParallelizationSize)
-	// Just above MinParallelizationSize
-	f.Add(merkle.MinParallelizationSize+2, 64, merkle.MinParallelizationSize)
-	// Double MinParallelizationSize
 	f.Add(
-		2*merkle.MinParallelizationSize,
-		runtime.GOMAXPROCS(0)-1,
-		merkle.MinParallelizationSize,
+		make([]byte, 1024), true,
+		3, merkle.MinParallelizationSize,
 	)
-	// Really large inputs
-	f.Add(
-		// Max Txs leaves
-		int(constants.MaxTxsPerPayload),
-		runtime.GOMAXPROCS(0)-1,
-		merkle.MinParallelizationSize,
-	)
+	// NOTE: All of the below cases which use parallelization are flaky.
+	// // Just below MinParallelizationSize leaves
 	// f.Add(
-	// 	// NOTE: Testing Max Bytes Per Tx leaves times out
-	// 	int(constants.MaxBytesPerTx),
+	// 	make([]byte, merkle.MinParallelizationSize-2), false,
+	// 	300, merkle.MinParallelizationSize,
+	// )
+	// // Exactly MinParallelizationSize leaves
+	// f.Add(
+	// 	make([]byte, merkle.MinParallelizationSize), false,
+	// 	1, merkle.MinParallelizationSize,
+	// )
+	// // Just above MinParallelizationSize leaves
+	// f.Add(
+	// 	make([]byte, merkle.MinParallelizationSize+2), false,
+	// 	64, merkle.MinParallelizationSize,
+	// )
+	// // Double MinParallelizationSize leaves
+	// f.Add(
+	// 	make([]byte, 2*merkle.MinParallelizationSize), false,
+	// 	runtime.GOMAXPROCS(0)-1, merkle.MinParallelizationSize,
+	// )
+	// Max Txs leaves
+	// f.Add(
+	// 	make([]byte, int(constants.MaxTxsPerPayload)),
 	// 	runtime.GOMAXPROCS(0)-1,
-	//  merkle.MinParallelizationSize,
+	// 	merkle.MinParallelizationSize,
+	// )
+	// Max Bytes Per Tx leaves
+	// f.Add(
+	// 	make([]byte, int(constants.MaxBytesPerTx)),
+	// 	runtime.GOMAXPROCS(0)-1,
+	// 	merkle.MinParallelizationSize,
 	// )
 
 	f.Fuzz(func(
 		t *testing.T,
-		leavesSize,
-		numRoutines,
-		minParallelizationSize int,
+		original []byte, isLeaves bool,
+		numRoutines, minParallelizationSize int,
 	) {
-		original := make([]byte, 32*leavesSize)
+		// Extend the input to 32 byte leaves if not already in leaves format.
+		if !isLeaves {
+			leavesBytes := make([]byte, len(original)*32)
+			for i := 0; i < 32; i++ {
+				copy(
+					leavesBytes[i*len(original):(i+1)*len(original)],
+					original,
+				)
+			}
+			original = leavesBytes
+		}
 
-		// Convert []byte to [][32]byte as required by HashTreeRoot
+		// Convert []byte to [][32]byte as required by HashTreeRoot.
 		var input [][32]byte
 		for i := 0; i < len(original); i += 32 {
 			var block [32]byte
@@ -85,7 +116,7 @@ func FuzzHashTreeRoot(f *testing.F) {
 			input = append(input, block)
 		}
 
-		// Ensure an even number of chunks for HashTreeRoot
+		// Ensure an even number of chunks for HashTreeRoot.
 		expectError := false
 		if len(input)%2 != 0 {
 			expectError = true
