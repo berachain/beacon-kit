@@ -63,6 +63,8 @@ func (m *Merkleizer[RootT, T]) MerkleizeBasic(
 
 // MerkleizeByteSlice hashes a byteslice by chunkifying it and returning the
 // corresponding HTR as if it were a fixed vector of bytes of the given length.
+//
+// TODO: Deprecate in favor of Merkelize(List/Vector)Basic with type T = Byte.
 func (m *Merkleizer[RootT, T]) MerkleizeByteSlice(
 	input []byte,
 ) (RootT, error) {
