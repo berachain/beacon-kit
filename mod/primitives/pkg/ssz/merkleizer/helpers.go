@@ -25,7 +25,14 @@ import (
 )
 
 // pack packs a list of SSZ-marshallable elements into a single byte slice.
-func (m *Merkleizer[RootT, T]) pack(values []T) ([]RootT, uint64, error) {
+func pack[
+	RootT ~[32]byte,
+	T interface {
+		MarshalSSZ() ([]byte, error)
+	},
+](
+	values []T,
+) ([]RootT, uint64, error) {
 	// pack(values): Given ordered objects of the same basic type:
 	// Serialize values into bytes.
 	// If not aligned to a multiple of BYTES_PER_CHUNK bytes,
@@ -41,15 +48,18 @@ func (m *Merkleizer[RootT, T]) pack(values []T) ([]RootT, uint64, error) {
 		packed = append(packed, buf...)
 	}
 
-	chunks, numChunks := m.chunkifyBytes(packed)
+	chunks, numChunks := chunkifyBytes[RootT](packed)
 	return chunks, numChunks, nil
 }
 
 // chunkifyBytes partitions a byte slice into chunks of a given length.
-func (m *Merkleizer[RootT, T]) chunkifyBytes(input []byte) ([]RootT, uint64) {
+func chunkifyBytes[RootT ~[32]byte](input []byte) (
+	[]RootT, uint64,
+) {
 	//nolint:mnd // we add 31 in order to round up the division.
 	numChunks := max((len(input)+31)/constants.RootLength, 1)
-	chunks := m.bytesBuffer.Get(numChunks)
+	// TODO: figure out how to safely chunk these bytes.
+	chunks := make([]RootT, numChunks)
 	for i := range chunks {
 		copy(chunks[i][:], input[32*i:])
 	}
@@ -60,7 +70,12 @@ func (m *Merkleizer[RootT, T]) chunkifyBytes(input []byte) ([]RootT, uint64) {
 // packBits packs a list of SSZ-marshallable bitlists into a single byte slice.
 //
 //nolint:unused // todo eventually implement this function.
-func (m *Merkleizer[RootT, T]) packBits([]T) ([]RootT, error) {
+func packBits[
+	RootT ~[32]byte,
+	T interface {
+		MarshalSSZ() ([]byte, error)
+	},
+]([]T) ([]RootT, error) {
 	// pack_bits(bits): Given the bits of bitlist or bitvector, get
 	// bitfield_bytes by packing them in bytes and aligning to the start.
 	// The length-delimiting bit for bitlists is excluded. Then return pack
