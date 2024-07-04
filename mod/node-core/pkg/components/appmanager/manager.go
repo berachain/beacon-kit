@@ -7,19 +7,18 @@ import (
 	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/core/transaction"
 	appmanagerv2 "cosmossdk.io/server/v2/appmanager"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 )
 
 // AppManager is a wrapper around the AppManager from the Cosmos SDK.
 // It is a wrapper around the ABCIMiddleware.
 type AppManager[T transaction.Tx] struct {
 	appmanagerv2.AppManager[T]
-	abciMiddleware *components.ABCIMiddleware
+	abciMiddleware *ABCIMiddleware
 }
 
 func NewAppManager[T transaction.Tx](
 	am appmanagerv2.AppManager[T],
-	middleware *components.ABCIMiddleware,
+	middleware *ABCIMiddleware,
 ) *AppManager[T] {
 	return &AppManager[T]{
 		am,

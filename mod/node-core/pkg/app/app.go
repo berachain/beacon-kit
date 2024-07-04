@@ -27,7 +27,6 @@ import (
 	serverv2 "cosmossdk.io/server/v2"
 	"cosmossdk.io/server/v2/appmanager"
 	bkcomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
-	bkappmanager "github.com/berachain/beacon-kit/mod/node-core/pkg/components/appmanager"
 	"github.com/cosmos/cosmos-sdk/client"
 )
 
@@ -53,12 +52,6 @@ func NewBeaconKitApp[T transaction.Tx](
 		App:        sdkApp,
 		middleware: middleware,
 	}
-	// set app manager
-	appManager := bkappmanager.NewAppManager(
-		app.App.GetAppManager(),
-		middleware,
-	)
-	app.App.AppManager = appManager
 
 	// app.SetTxDecoder(bkcomponents.NoOpTxConfig{}.TxDecoder())
 
