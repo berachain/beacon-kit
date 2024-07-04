@@ -125,6 +125,7 @@ start-geth-run:
 	--datadir ${ETH_DATA_DIR} \
 	--ipcpath ${IPC_PATH} \
 	--rpc.allow-unprotected-txs \
+	--miner.gaslimit 100000000 \
 	--nat extip:${INTERNAL_IP}
 
 start-geth-host: ## start a local ephemeral `geth` node on host machine
