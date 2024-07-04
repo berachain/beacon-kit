@@ -26,6 +26,7 @@ import "github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
 type BaseMerkleizer[
 	RootT ~[32]byte, T types.SSZType[T],
 ] interface {
+	MerkleizeByteSlice(value []byte) (RootT, error)
 	Merkleize(chunks []RootT, limit ...uint64) (RootT, error)
 }
 

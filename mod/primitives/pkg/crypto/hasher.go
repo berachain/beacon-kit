@@ -37,9 +37,8 @@ type HashFn func(input []byte) [32]byte
 // hasher holds a underlying byte slice to efficiently conduct
 // multiple rounds of hashing.
 type hasher[T ~[32]byte] struct {
-	b         [64]byte
-	hashFunc  HashFn
-	zeroBytes []byte
+	b        [64]byte
+	hashFunc HashFn
 }
 
 // NewHasher is the constructor for the object that fulfills
@@ -48,8 +47,6 @@ func NewHasher[T ~[32]byte](h HashFn) Hasher[T] {
 	return &hasher[T]{
 		b:        [64]byte{},
 		hashFunc: h,
-		//nolint:mnd // its okay.
-		zeroBytes: make([]byte, 32),
 	}
 }
 
@@ -67,10 +64,10 @@ func (h *hasher[T]) Combi(a, b T) T {
 
 // MixIn works like Combi, but using an integer as the second input.
 //
-
+//nolint:mnd // its okay.
 func (h *hasher[T]) MixIn(a T, i uint64) T {
 	copy(h.b[:32], a[:])
-	copy(h.b[32:], h.zeroBytes)
+	copy(h.b[32:], make([]byte, 32))
 	binary.LittleEndian.PutUint64(h.b[32:], i)
 	return h.Hash(h.b[:])
 }

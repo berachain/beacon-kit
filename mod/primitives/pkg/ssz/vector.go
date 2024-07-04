@@ -45,9 +45,9 @@ func VectorFromElements[T types.MinimalSSZType](elements ...T) Vector[T] {
 	return elements
 }
 
-// ByteVectorFromBytes creates a new Vector[Byte] from bytes.
+// ByteVectorFromBytes creates a new Vector[Byte]ß from bytes.
 func ByteVectorFromBytes(bytes []byte) Vector[Byte] {
-	//#nosec:G103 // its fine, but we should find a better solution.
+	//#nosec:G103 // its fine, but we should find  abetter solution.
 	v := *(*Vector[Byte])(unsafe.Pointer(&bytes))
 	return v
 }
