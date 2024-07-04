@@ -31,6 +31,9 @@ const (
 	// payload.
 	MaxTxsPerPayload uint64 = 1048576
 
+	// MaxBytesPerTx is the maximum number of bytes per transaction.
+	MaxBytesPerTx uint64 = 1073741824
+
 	// MaxDepositsPerBlock is the maximum number of deposits per block.
 	MaxDepositsPerBlock uint64 = 16
 
