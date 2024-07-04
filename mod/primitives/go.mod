@@ -6,7 +6,7 @@ require (
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240703145037-b5612ab256db
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610210054-bfdc14c4013c
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240630225951-a5075323fa26
-	github.com/ethereum/go-ethereum v1.14.5
+	github.com/ethereum/go-ethereum v1.14.6
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/holiman/uint256 v1.2.5-0.20240612125212-75a520988c94
 	github.com/minio/sha256-simd v1.0.1
