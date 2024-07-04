@@ -71,11 +71,11 @@ func FuzzHashTreeRoot(f *testing.F) {
 
 	f.Fuzz(func(
 		t *testing.T,
-		leaveSize,
+		leavesSize,
 		numRoutines,
 		minParallelizationSize int,
 	) {
-		original := make([]byte, 32*leaveSize)
+		original := make([]byte, 32*leavesSize)
 
 		// Convert []byte to [][32]byte as required by HashTreeRoot
 		var input [][32]byte
