@@ -186,7 +186,12 @@ func TestB96HashTreeRoot(t *testing.T) {
 			merkleizer := merkleizer.New[[32]byte, bytes.B32]()
 			root2, err := merkleizer.MerkleizeByteSlice(tt.input[:])
 			require.NoError(t, err)
-			require.Equal(t, root1, root2, "HashTreeRoot and HashTreeRoot2 should produce the same result")
+			require.Equal(
+				t,
+				root1,
+				root2,
+				"HashTreeRoot and HashTreeRoot2 should produce the same result",
+			)
 		})
 	}
 }
