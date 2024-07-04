@@ -84,6 +84,7 @@ func DefaultComponentsWithStandardTypes() []any {
 
 		// server v2
 		ProvideSDKApp[transaction.Tx],
+		ProvideStateStore[transaction.Tx],
 		ProvideStoreOptions,
 
 		codec.ProvideInterfaceRegistry,

@@ -22,12 +22,15 @@ package components
 
 import (
 	"cosmossdk.io/core/appmodule/v2"
+	"cosmossdk.io/core/transaction"
 	"cosmossdk.io/depinject"
+	"cosmossdk.io/runtime/v2"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
+	beacondbv2 "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/v2"
 )
 
 // StorageBackendInput is the input for the ProvideStorageBackend function.
@@ -56,6 +59,28 @@ func ProvideStorageBackend(
 		in.KVStore,
 		in.DepositStore,
 	)
+}
+
+// use this one!!
+type StateStoreInput[T transaction.Tx] struct {
+	depinject.In
+	App *runtime.App[T]
+}
+
+// use this one!!
+func ProvideStateStore[T transaction.Tx](
+	in StateStoreInput[T],
+) *StateStore {
+	rootStore := in.App.GetStore()
+	payloadCodec := &encoding.
+		SSZInterfaceCodec[*ExecutionPayloadHeader]{}
+	return beacondbv2.New[
+		*BeaconBlockHeader,
+		*types.Eth1Data,
+		*ExecutionPayloadHeader,
+		*types.Fork,
+		*types.Validator,
+	](rootStore, payloadCodec)
 }
 
 // KVStoreInput is the input for the ProvideKVStore function.

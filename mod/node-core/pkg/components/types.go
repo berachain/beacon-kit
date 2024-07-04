@@ -47,6 +47,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
+	beacondbv2 "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/v2"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 )
@@ -165,6 +166,11 @@ type (
 
 	// KVStore is a type alias for the KV store.
 	KVStore = beacondb.KVStore[
+		*BeaconBlockHeader, *types.Eth1Data, *ExecutionPayloadHeader,
+		*types.Fork, *types.Validator,
+	]
+
+	StateStore = beacondbv2.Store[
 		*BeaconBlockHeader, *types.Eth1Data, *ExecutionPayloadHeader,
 		*types.Fork, *types.Validator,
 	]

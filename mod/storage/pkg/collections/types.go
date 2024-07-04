@@ -1,9 +1,9 @@
 package collections
 
-import "cosmossdk.io/store/v2"
+import "cosmossdk.io/runtime/v2"
 
 type Store interface {
-	store.RootStore
+	runtime.Store
 	AddChange([]byte, []byte, []byte)
 }
 

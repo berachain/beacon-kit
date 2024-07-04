@@ -3,7 +3,7 @@ package beacondb
 import (
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
-	storev2 "cosmossdk.io/store/v2"
+	"cosmossdk.io/runtime/v2"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/keys"
@@ -24,7 +24,7 @@ type Store[
 	ForkT constraints.SSZMarshallable,
 	ValidatorT Validator,
 ] struct {
-	storev2.RootStore
+	runtime.Store
 	changeSet *store.Changeset
 	// Versioning
 	// genesisValidatorsRoot is the root of the genesis validators.
@@ -91,7 +91,7 @@ func New[
 	ForkT constraints.SSZMarshallable,
 	ValidatorT Validator,
 ](
-	kss store.KVStoreService,
+	rootStore runtime.Store,
 	payloadCodec *encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT],
 ) *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
@@ -229,7 +229,7 @@ func (s *Store[
 	if s.changeSet.Size() == 0 {
 		return store.Hash{}, nil
 	}
-	return s.RootStore.Commit(s.changeSet)
+	return s.Store.Commit(s.changeSet)
 }
 
 // Note: this function does not enforce the invariant that
