@@ -29,7 +29,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/stretchr/testify/require"
 )
 

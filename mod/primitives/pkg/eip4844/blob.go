@@ -21,8 +21,6 @@
 package eip4844
 
 import (
-	"reflect"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 )
 
@@ -31,7 +29,7 @@ type Blob [131072]byte
 
 // UnmarshalJSON parses a blob in hex syntax.
 func (b *Blob) UnmarshalJSON(input []byte) error {
-	return bytes.UnmarshalFixedJSON(reflect.TypeOf(Blob{}), input, b[:])
+	return bytes.UnmarshalFixedJSON(input, b[:])
 }
 
 // MarshalText returns the hex representation of b.
