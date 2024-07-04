@@ -69,7 +69,6 @@ var prysmConsistencyTests = []struct {
 		},
 	},
 	{
-		// TODO: Broken.
 		name: "max bytes per tx",
 		txs: func() [][]byte {
 			var tx []byte
@@ -94,7 +93,6 @@ var prysmConsistencyTests = []struct {
 		},
 	},
 	{
-		// TODO: Broken.
 		name: "max txs",
 		txs: func() [][]byte {
 			var txs [][]byte
