@@ -9,7 +9,7 @@ replace (
 	cosmossdk.io/depinject => github.com/cosmos/cosmos-sdk/depinject v1.0.0-alpha.4.0.20240628155326-d426a5db6775
 	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240702142007-7b23e52b0bd8
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240623110059-dec2d5583e39
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240628175732-ab2d37478785
+	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240704182039-aa953f8c7f29
 	github.com/cosmos/crypto => github.com/cosmos/crypto v0.0.0-20240312084433-de8f9c76030d
 )
 

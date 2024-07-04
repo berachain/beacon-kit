@@ -6,13 +6,13 @@ replace (
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240628155326-d426a5db6775
 	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240623110059-dec2d5583e39
-	cosmossdk.io/server/v2 => github.com/berachain/cosmos-sdk/server/v2 v2.0.0-20240703215955-39221a775848
-	cosmossdk.io/server/v2/appmanager => github.com/berachain/cosmos-sdk/server/v2/appmanager v0.0.0-20240703215955-39221a775848
-	cosmossdk.io/server/v2/cometbft => github.com/berachain/cosmos-sdk/server/v2/cometbft v0.0.0-20240628175732-ab2d37478785
-	cosmossdk.io/store/v2 => github.com/berachain/cosmos-sdk/store/v2 v2.0.0-20240628175732-ab2d37478785
+	cosmossdk.io/server/v2 => github.com/berachain/cosmos-sdk/server/v2 v2.0.0-20240704182039-aa953f8c7f29
+	cosmossdk.io/server/v2/appmanager => github.com/berachain/cosmos-sdk/server/v2/appmanager v0.0.0-20240704182039-aa953f8c7f29
+	cosmossdk.io/server/v2/cometbft => github.com/berachain/cosmos-sdk/server/v2/cometbft v0.0.0-20240704182039-aa953f8c7f29
+	cosmossdk.io/store/v2 => github.com/berachain/cosmos-sdk/store/v2 v2.0.0-20240704182039-aa953f8c7f29
 	github.com/berachain/beacon-kit/mod/node-core => ../node-core
 	github.com/berachain/beacon-kit/mod/runtime => ../runtime
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240628175732-ab2d37478785
+	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240704182039-aa953f8c7f29
 	github.com/cosmos/crypto => github.com/cosmos/crypto v0.0.0-20240312084433-de8f9c76030d
 )
 
@@ -24,7 +24,6 @@ require (
 	cosmossdk.io/server/v2/cometbft v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240625165558-8d611ba7d436
 	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240625165558-8d611ba7d436
-	github.com/cosmos/gogoproto v1.5.0
 	github.com/spf13/viper v1.19.0
 )
 
@@ -92,6 +91,7 @@ require (
 	github.com/cosmos/crypto v0.1.1 // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
+	github.com/cosmos/gogoproto v1.5.0 // indirect
 	github.com/cosmos/iavl v1.2.0 // indirect
 	github.com/cosmos/ics23/go v0.10.0 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.13.3 // indirect

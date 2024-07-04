@@ -7,18 +7,18 @@ replace (
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240628155326-d426a5db6775
 	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240628155326-d426a5db6775
 	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240623110059-dec2d5583e39
-	cosmossdk.io/server/v2 => github.com/berachain/cosmos-sdk/server/v2 v2.0.0-20240703215955-39221a775848
-	cosmossdk.io/server/v2/appmanager => github.com/berachain/cosmos-sdk/server/v2/appmanager v0.0.0-20240703215955-39221a775848
-	cosmossdk.io/server/v2/cometbft => github.com/berachain/cosmos-sdk/server/v2/cometbft v0.0.0-20240628175732-ab2d37478785
-	cosmossdk.io/server/v2/stf => github.com/berachain/cosmos-sdk/server/v2/stf v0.0.0-20240703215955-39221a775848
-	cosmossdk.io/store/v2 => github.com/berachain/cosmos-sdk/store/v2 v2.0.0-20240628175732-ab2d37478785
+	cosmossdk.io/server/v2 => github.com/berachain/cosmos-sdk/server/v2 v2.0.0-20240704182039-aa953f8c7f29
+	cosmossdk.io/server/v2/appmanager => github.com/berachain/cosmos-sdk/server/v2/appmanager v0.0.0-20240704182039-aa953f8c7f29
+	cosmossdk.io/server/v2/cometbft => github.com/berachain/cosmos-sdk/server/v2/cometbft v0.0.0-20240704182039-aa953f8c7f29
+	cosmossdk.io/server/v2/stf => github.com/berachain/cosmos-sdk/server/v2/stf v0.0.0-20240704182039-aa953f8c7f29
+	cosmossdk.io/store/v2 => github.com/berachain/cosmos-sdk/store/v2 v2.0.0-20240704182039-aa953f8c7f29
 	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240702142007-7b23e52b0bd8
 	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240623110059-dec2d5583e39
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240623110059-dec2d5583e39
 	github.com/berachain/beacon-kit/mod/node-core => ../mod/node-core
 	github.com/berachain/beacon-kit/mod/runtime => ../mod/runtime
 	github.com/berachain/beacon-kit/mod/server => ../mod/server
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240628175732-ab2d37478785
+	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240704182039-aa953f8c7f29
 	github.com/cosmos/crypto => github.com/cosmos/crypto v0.0.0-20240312084433-de8f9c76030d
 )
 
