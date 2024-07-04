@@ -21,7 +21,6 @@
 package merkle
 
 import (
-	"runtime"
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -59,8 +58,8 @@ type RootHasher[RootT ~[32]byte] struct {
 func NewRootHasher[RootT ~[32]byte](
 	hasher crypto.Hasher[RootT],
 	rootHashFn RootHashFn[RootT],
-) RootHasher[RootT] {
-	return RootHasher[RootT]{
+) *RootHasher[RootT] {
+	return &RootHasher[RootT]{
 		Hasher:     hasher,
 		rootHashFn: rootHashFn,
 	}
@@ -129,15 +128,16 @@ func (rh *RootHasher[RootT]) NewRootWithDepth(
 
 // BuildParentTreeRoots calls BuildParentTreeRootsWithNRoutines with the
 // number of routines set to runtime.GOMAXPROCS(0)-1.
+//
+// TODO: enable parallelization.
 func BuildParentTreeRoots[RootT ~[32]byte](
 	outputList, inputList []RootT,
 ) error {
-	return BuildParentTreeRootsWithNRoutines(
+	return gohashtree.Hash(
 		//#nosec:G103 // on purpose.
 		*(*[][32]byte)(unsafe.Pointer(&outputList)),
 		//#nosec:G103 // on purpose.
 		*(*[][32]byte)(unsafe.Pointer(&inputList)),
-		runtime.GOMAXPROCS(0)-1,
 	)
 }
 
@@ -149,7 +149,7 @@ func BuildParentTreeRoots[RootT ~[32]byte](
 // TODO: We do not use generics here due to the gohashtree library not
 // supporting generics.
 func BuildParentTreeRootsWithNRoutines(
-	outputList, inputList [][32]byte, n int,
+	outputList, inputList [][32]byte, n int, minParallelizationSize int,
 ) error {
 	// Validate input list length.
 	inputLength := len(inputList)
@@ -162,8 +162,7 @@ func BuildParentTreeRootsWithNRoutines(
 
 	// If the input list is small, hash it using the default method since
 	// the overhead of parallelizing the hashing process is not worth it.
-	if inputLength < MinParallelizationSize {
-		//#nosec:G103 // used of unsafe calls should be audited.
+	if inputLength < minParallelizationSize {
 		return gohashtree.Hash(outputList, inputList)
 	}
 
@@ -178,14 +177,14 @@ func BuildParentTreeRootsWithNRoutines(
 	for j := range n + 1 {
 		eg.Go(func() error {
 			// inputList:  [-------------------2*groupSize-------------------]
-			//              ^                  ^                    ^        ^
-			//              |                  |                    |        |
-			// j*2*groupSize   (j+1)*2*groupSize    (j+2)*2*groupSize   End
+			//              ^                ^               ^              ^
+			//       |                 |                     |              |
+			// j*2*groupSize   (j+1)*2*groupSize    (j+2)*2*groupSize      End
 			//
 			// outputList: [---------groupSize---------]
 			//              ^                         ^
 			//              |                         |
-			//             j*groupSize         (j+1)*groupSize
+			//         j*groupSize             (j+1)*groupSize
 			//
 			// Each goroutine processes a segment of inputList that is twice as
 			// large as the segment it fills in outputList. This is because the

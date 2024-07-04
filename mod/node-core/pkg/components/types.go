@@ -37,6 +37,7 @@ import (
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
@@ -286,7 +287,7 @@ type PayloadAttributes[SelfT any, WithdrawalT any] interface {
 		uint32,
 		uint64,
 		common.Bytes32,
-		common.ExecutionAddress,
+		gethprimitives.ExecutionAddress,
 		[]WithdrawalT,
 		common.Root,
 	) (SelfT, error)

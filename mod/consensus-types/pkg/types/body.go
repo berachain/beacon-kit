@@ -29,11 +29,11 @@ import (
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/errors"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
@@ -185,14 +185,14 @@ func (b *BeaconBlockBodyDeneb) SetExecutionData(
 // GetBlobKzgCommitments returns the BlobKzgCommitments of the Body.
 func (
 	b *BeaconBlockBodyDeneb,
-) GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash] {
+) GetBlobKzgCommitments() eip4844.KZGCommitments[gethprimitives.ExecutionHash] {
 	return b.BlobKzgCommitments
 }
 
 // SetBlobKzgCommitments sets the BlobKzgCommitments of the
 // BeaconBlockBodyDeneb.
 func (b *BeaconBlockBodyDeneb) SetBlobKzgCommitments(
-	commitments eip4844.KZGCommitments[common.ExecutionHash],
+	commitments eip4844.KZGCommitments[gethprimitives.ExecutionHash],
 ) {
 	b.BlobKzgCommitments = commitments
 }
@@ -200,13 +200,11 @@ func (b *BeaconBlockBodyDeneb) SetBlobKzgCommitments(
 // GetTopLevelRoots returns the top-level roots of the BeaconBlockBodyDeneb.
 func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 	var (
-		err        error
-		layer      = make([]common.Root, BodyLengthDeneb)
-		randao     = b.GetRandaoReveal()
-		merkleizer = merkleizer.New[[32]byte, common.Root]()
+		err   error
+		layer = make([]common.Root, BodyLengthDeneb)
 	)
 
-	layer[0], err = merkleizer.MerkleizeByteSlice(randao[:])
+	layer[0], err = b.GetRandaoReveal().HashTreeRoot()
 	if err != nil {
 		return nil, err
 	}

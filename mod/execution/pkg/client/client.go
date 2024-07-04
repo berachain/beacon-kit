@@ -30,10 +30,10 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/cache"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
+	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/rpc"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
-	ethrpc "github.com/ethereum/go-ethereum/rpc"
 )
 
 // EngineClient is a struct that holds a pointer to an Eth1Client.
@@ -223,7 +223,7 @@ func (s *EngineClient[
 	ctx context.Context,
 ) error {
 	var (
-		client *ethrpc.Client
+		client *rpc.Client
 		err    error
 	)
 
@@ -236,19 +236,19 @@ func (s *EngineClient[
 			if header, err = s.buildJWTHeader(); err != nil {
 				return err
 			}
-			if client, err = ethrpc.DialOptions(
-				ctx, s.cfg.RPCDialURL.String(), ethrpc.WithHeaders(header),
+			if client, err = rpc.DialOptions(
+				ctx, s.cfg.RPCDialURL.String(), rpc.WithHeaders(header),
 			); err != nil {
 				return err
 			}
 		} else {
-			if client, err = ethrpc.DialContext(
+			if client, err = rpc.DialContext(
 				ctx, s.cfg.RPCDialURL.String()); err != nil {
 				return err
 			}
 		}
 	case s.cfg.RPCDialURL.IsIPC():
-		if client, err = ethrpc.DialIPC(
+		if client, err = rpc.DialIPC(
 			ctx, s.cfg.RPCDialURL.Path); err != nil {
 			s.logger.Error("failed to dial IPC", "err", err)
 			return err

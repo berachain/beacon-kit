@@ -21,197 +21,141 @@
 package ssz
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"unsafe"
+
+	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/serializer"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
 )
 
 /* -------------------------------------------------------------------------- */
-/*                                    Basic                                   */
+/*                                Type Definitions                            */
 /* -------------------------------------------------------------------------- */
 
-// ListBasic is a list of basic types.
-type ListBasic[B Basic[B]] struct {
-	elements []B
-	limit    uint64
+// Vector conforms to the SSZEenumerable interface.
+var _ types.SSZEnumerable[U64] = (*List[U64])(nil)
+
+// List is a list of basic types.
+type List[T types.MinimalSSZType] struct {
+	// elements is the list of elements.
+	elements []T
+	// limit is the maximum number of elements in the list.
+	limit uint64
 }
 
-// ListBasicFromElements creates a new ListComposite from elements.
+// ListFromElements creates a new ListComposite from elements.
 // TODO: Deprecate once off of Fastssz
-func ListBasicFromElements[B Basic[B]](
+func ListFromElements[T types.MinimalSSZType](
 	limit uint64,
-	elements ...B,
-) *ListBasic[B] {
-	return &ListBasic[B]{
+	elements ...T,
+) *List[T] {
+	return &List[T]{
 		elements: elements,
 		limit:    limit,
 	}
 }
 
-// IsFixed returns true if the ListBasic is fixed size.
-func (l ListBasic[B]) IsFixed() bool {
-	// We recursively define "variable-size" types to be lists, unions, Bitlists.
-	// Therefore all Lists are NOT fixed.
-	return false
-}
-
-// N returns the N value as defined in the SSZ specification.
-func (l ListBasic[B]) N() uint64 {
-	// list: ordered variable-length homogeneous collection, limited to N values
-	// notation List[type, N], e.g. List[uint64, N]
-	return l.limit
-}
-
-// ChunkCount returns the number of chunks in the ListBasic.
-func (l ListBasic[B]) ChunkCount() uint64 {
-	// List[B, N] and Vector[B, N], where B is a basic type:
-	// (N * size_of(B) + 31) // 32 (dividing by chunk size, rounding up)
-	var b B
-	//#nosec:G701 // its fine.
-	//nolint:mnd // 31 is okay.
-	return (l.N()*uint64(b.SizeSSZ()) + 31) / constants.RootLength
-}
-
-// SizeSSZ returns the size of the list in bytes.
-func (l ListBasic[B]) SizeSSZ() int {
-	// The same for ListBasic as for VectorBasic.
-	return VectorBasic[B](l.elements).SizeSSZ()
-}
-
-// HashTreeRootWith returns the Merkle root of the ListBasic
-// with a given merkleizer.
-func (l ListBasic[B]) HashTreeRootWith(
-	merkleizer BasicMerkleizer[[32]byte, B],
-) ([32]byte, error) {
-	return merkleizer.MerkleizeListBasic(l.elements, l.limit)
-}
-
-// HashTreeRoot returns the Merkle root of the ListBasic.
-func (l ListBasic[B]) HashTreeRoot() ([32]byte, error) {
-	// Create a merkleizer
-	return l.HashTreeRootWith(merkleizer.New[[32]byte, B]())
-}
-
-// MarshalSSZTo marshals the ListBasic into SSZ format.
-func (l ListBasic[B]) MarshalSSZTo(out []byte) ([]byte, error) {
-	return VectorBasic[B](l.elements).MarshalSSZTo(out)
-}
-
-// MarshalSSZ marshals the ListBasic into SSZ format.
-func (l ListBasic[B]) MarshalSSZ() ([]byte, error) {
-	// The same for ListBasic as for VectorBasic.
-	return VectorBasic[B](l.elements).MarshalSSZ()
-}
-
-// NewFromSSZ creates a new ListBasic from SSZ format.
-func (l ListBasic[B]) NewFromSSZ(buf []byte) (*ListBasic[B], error) {
-	// The same for ListBasic as for VectorBasic
-	var (
-		elements = make(VectorBasic[B], 0)
-		err      error
-	)
-
-	elements, err = elements.NewFromSSZ(buf)
-	return &ListBasic[B]{
-		elements: elements,
-	}, err
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                  Composite                                 */
-/* -------------------------------------------------------------------------- */
-
-// ListComposite is a list of Composite types.
-type ListComposite[C Composite[C]] struct {
-	elements []C
-	limit    uint64
-}
-
-// ListCompositeFromElements creates a new ListComposite from elements.
-// TODO: Deprecate once off of Fastssz
-func ListCompositeFromElements[C Composite[C]](
-	limit uint64, elements ...C,
-) *ListComposite[C] {
-	return &ListComposite[C]{
+// ByteList from Bytes creates a new List from bytes.
+func ByteListFromBytes(bytes []byte, limit uint64) *List[Byte] {
+	//#nosec:G103 // its fine, but we should find  abetter solution.
+	elements := *(*[]Byte)(unsafe.Pointer(&bytes))
+	return &List[Byte]{
 		elements: elements,
 		limit:    limit,
 	}
 }
 
-// IsFixed returns true if the ListBasic is fixed size.
-func (l ListComposite[C]) IsFixed() bool {
-	// We recursively define "variable-size" types to be lists, unions, Bitlists.
+/* -------------------------------------------------------------------------- */
+/*                                 BaseSSZType                                */
+/* -------------------------------------------------------------------------- */
+
+// SizeSSZ returns the size of the list in bytes.
+func (l *List[T]) SizeSSZ() int {
+	// The same for List as for Vector.
+	return Vector[T](l.elements).SizeSSZ()
+}
+
+// IsFixed returns true if the List is fixed size.
+func (l *List[T]) IsFixed() bool {
+	// We recursively define "variable-size" types to be lists, unions,
+	// Bitlists.
 	// Therefore all Lists are NOT fixed.
 	return false
 }
 
 // N returns the N value as defined in the SSZ specification.
-func (l ListComposite[C]) N() uint64 {
+func (l *List[T]) N() uint64 {
 	// list: ordered variable-length homogeneous collection, limited to N values
 	// notation List[type, N], e.g. List[uint64, N]
 	return l.limit
 }
 
-// ChunkCount returns the number of chunks in the VectorComposite.
-func (l ListComposite[C]) ChunkCount() uint64 {
-	// List[C, N] and Vector[C, N], where C is a composite type: N
-	return (l.N())
+// ChunkCount returns the number of chunks in the List.
+func (l *List[T]) ChunkCount() uint64 {
+	var b T
+	switch b.Type() {
+	case types.Basic:
+		//#nosec:G701 // its fine.
+		//nolint:mnd // 31 is okay.
+		return (l.N()*uint64(b.SizeSSZ()) + 31) / constants.BytesPerChunk
+	default:
+		return l.N()
+	}
 }
 
-// SizeSSZ returns the size of the list in bytes.
-func (l ListComposite[C]) SizeSSZ() int {
-	// The same for ListComposite as for VectorComposite.
-	return VectorComposite[C](l.elements).SizeSSZ()
+// Type returns the type of the List.
+func (l *List[T]) Type() types.Type {
+	return types.Composite
 }
 
-// HashTreeRootWith returns the Merkle root of the ListComposite
+// Elements returns the elements of the List.
+func (l *List[T]) Elements() []T {
+	return l.elements
+}
+
+// HashTreeRootWith returns the Merkle root of the List
 // with a given merkleizer.
-func (l ListComposite[C]) HashTreeRootWith(
-	merkleizer CompositeMerkleizer[common.ChainSpec, [32]byte, C],
+func (l *List[T]) HashTreeRootWith(
+	merkleizer ListMerkleizer[[32]byte, T],
 ) ([32]byte, error) {
-	return merkleizer.MerkleizeListComposite(l.elements)
+	var b T
+	switch b.Type() {
+	case types.Basic:
+		return merkleizer.MerkleizeListBasic(l.elements, l.ChunkCount())
+	case types.Composite:
+		return merkleizer.MerkleizeListComposite(l.elements, l.ChunkCount())
+	default:
+		return [32]byte{}, errors.Wrapf(ErrUnknownType, "%v", b.Type())
+	}
 }
 
-// HashTreeRoot returns the Merkle root of the ListComposite.
-func (l ListComposite[C]) HashTreeRoot() ([32]byte, error) {
+// HashTreeRoot returns the Merkle root of the List.
+func (l *List[T]) HashTreeRoot() ([32]byte, error) {
 	// Create a merkleizer
-	return l.HashTreeRootWith(merkleizer.New[[32]byte, C]())
+	return l.HashTreeRootWith(merkleizer.New[[32]byte, T]())
 }
 
-// MarshalSSZTo marshals the ListComposite into SSZ format.
-func (l ListComposite[C]) MarshalSSZTo(out []byte) ([]byte, error) {
-	var c C
-	if !c.IsFixed() {
-		panic("not implemented yet")
-	}
-
-	// Safe to use Vector helper for a list here.
-	return serializer.MarshalVectorFixed(out, l.elements)
+// MarshalSSZTo marshals the List into SSZ format.
+func (l *List[T]) MarshalSSZTo(out []byte) ([]byte, error) {
+	return Vector[T](l.elements).MarshalSSZTo(out)
 }
 
-// MarshalSSZ marshals the ListComposite into SSZ format.
-func (l ListComposite[C]) MarshalSSZ() ([]byte, error) {
-	return l.MarshalSSZTo(make([]byte, 0, l.SizeSSZ()))
+// MarshalSSZ marshals the List into SSZ format.
+func (l *List[T]) MarshalSSZ() ([]byte, error) {
+	// The same for List as for Vector.
+	return Vector[T](l.elements).MarshalSSZ()
 }
 
-// NewFromSSZ creates a new ListComposite from SSZ format.
-func (ListComposite[C]) NewFromSSZ(
-	buf []byte,
-	limit uint64,
-) (*ListComposite[C], error) {
-	var c C
-	if !c.IsFixed() {
-		panic("not implemented yet")
-	}
-
+// NewFromSSZ creates a new List from SSZ format.
+func (l *List[T]) NewFromSSZ(buf []byte, limit uint64) (*List[T], error) {
 	// We can use Vector helper for a list here, it is safe.
-	elements, err := serializer.UnmarshalVectorFixed[C](buf)
+	elements, err := Vector[T](l.elements).NewFromSSZ(buf)
 	if err != nil {
 		return nil, err
 	}
 
-	return &ListComposite[C]{
+	return &List[T]{
 		elements: elements,
 		limit:    limit,
 	}, nil

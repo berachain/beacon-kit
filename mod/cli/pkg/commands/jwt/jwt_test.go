@@ -21,12 +21,12 @@
 package jwt_test
 
 import (
+	"encoding/hex"
 	"os"
 	"path/filepath"
 	"testing"
 
 	jwt "github.com/berachain/beacon-kit/mod/cli/pkg/commands/jwt"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )
@@ -114,7 +114,8 @@ func checkAuthFileIntegrity(tb testing.TB, fPath string) {
 
 	enc, err := afero.ReadFile(fs, fPath)
 	require.NoError(tb, err)
-	decoded, err := hexutil.Decode(string(enc))
+	var decoded = make([]byte, hex.DecodedLen(len(enc[2:])))
+	_, err = hex.Decode(decoded, enc[2:])
 	require.NoError(tb, err)
 	require.Len(tb, decoded, 32)
 }
