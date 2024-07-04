@@ -23,8 +23,8 @@ package e2e_test
 import (
 	"math/big"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/deposit"
-	byteslib "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/testing/e2e/suite"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -204,11 +204,9 @@ func (s *BeaconKitE2ESuite) generateNewDepositTx(
 	s.Require().Len(pubkey, 48)
 
 	// Generate the credentials.
-	credentials := byteslib.PrependExtendToSize(
-		s.GenesisAccount().Address().Bytes(),
-		32,
+	credentials := types.NewCredentialsFromExecutionAddress(
+		s.GenesisAccount().Address(),
 	)
-	credentials[0] = 0x01
 
 	// Generate the signature.
 	signature := [96]byte{}
@@ -221,5 +219,5 @@ func (s *BeaconKitE2ESuite) generateNewDepositTx(
 		Signer:   signer,
 		Nonce:    nonce,
 		GasLimit: 600000,
-	}, pubkey, credentials, 32*suite.OneGwei, signature[:])
+	}, pubkey, credentials[:], 32*suite.OneGwei, signature[:])
 }
