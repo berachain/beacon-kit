@@ -126,6 +126,7 @@ start-geth-run:
 	--ipcpath ${IPC_PATH} \
 	--rpc.allow-unprotected-txs \
 	--miner.gaslimit 100000000 \
+	--syncmode "snap" \
 	--nat extip:${INTERNAL_IP}
 
 start-geth-host: ## start a local ephemeral `geth` node on host machine
