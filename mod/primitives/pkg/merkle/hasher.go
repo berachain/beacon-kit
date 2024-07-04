@@ -21,13 +21,15 @@
 package merkle
 
 import (
-	"runtime"
 	"unsafe"
+
+	"golang.org/x/sync/errgroup"
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
+
 	"github.com/prysmaticlabs/gohashtree"
 )
 
@@ -128,15 +130,16 @@ func (rh *RootHasher[RootT]) NewRootWithDepth(
 
 // BuildParentTreeRoots calls BuildParentTreeRootsWithNRoutines with the
 // number of routines set to runtime.GOMAXPROCS(0)-1.
+//
+// TODO: enable parallelization.
 func BuildParentTreeRoots[RootT ~[32]byte](
 	outputList, inputList []RootT,
 ) error {
-	return BuildParentTreeRootsWithNRoutines(
+	return gohashtree.Hash(
 		//#nosec:G103 // on purpose.
 		*(*[][32]byte)(unsafe.Pointer(&outputList)),
 		//#nosec:G103 // on purpose.
 		*(*[][32]byte)(unsafe.Pointer(&inputList)),
-		runtime.GOMAXPROCS(0)-1,
 	)
 }
 
@@ -148,63 +151,59 @@ func BuildParentTreeRoots[RootT ~[32]byte](
 // TODO: We do not use generics here due to the gohashtree library not
 // supporting generics.
 func BuildParentTreeRootsWithNRoutines(
-	outputList, inputList [][32]byte, _ int,
+	outputList, inputList [][32]byte, n int,
 ) error {
-	return gohashtree.Hash(outputList, inputList)
+	// Validate input list length.
+	inputLength := len(inputList)
+	if inputLength%2 != 0 {
+		return ErrOddLengthTreeRoots
+	}
+
+	// Build output variables
+	outputLength := inputLength / two
+
+	// If the input list is small, hash it using the default method since
+	// the overhead of parallelizing the hashing process is not worth it.
+	if inputLength < MinParallelizationSize {
+		return gohashtree.Hash(outputList, inputList)
+	}
+
+	// Otherwise parallelize the hashing process for large inputs.
+	// Take the max(n, 1) to prevent division by 0.
+	groupSize := inputLength / (two * max(n, 1))
+	twiceGroupSize := two * groupSize
+	eg := new(errgroup.Group)
+
+	// if n is 0 the parallelization is disabled and the whole inputList is
+	// hashed in the main goroutine at the end of this function.
+	for j := range n + 1 {
+		eg.Go(func() error {
+			// inputList:  [-------------------2*groupSize-------------------]
+			//              ^                ^               ^              ^
+			//       |                 |                     |              |
+			// j*2*groupSize   (j+1)*2*groupSize    (j+2)*2*groupSize      End
+			//
+			// outputList: [---------groupSize---------]
+			//              ^                         ^
+			//              |                         |
+			//         j*groupSize             (j+1)*groupSize
+			//
+			// Each goroutine processes a segment of inputList that is twice as
+			// large as the segment it fills in outputList. This is because the
+			// hash
+			// operation reduces the
+			// size of the input by half.
+			// Define the segment of the inputList each goroutine will process.
+			segmentStart := j * twiceGroupSize
+			segmentEnd := min((j+1)*twiceGroupSize, inputLength)
+
+			return gohashtree.Hash(
+				outputList[j*groupSize:min((j+1)*groupSize, outputLength)],
+				inputList[segmentStart:segmentEnd],
+			)
+		})
+	}
+
+	// Wait for all goroutines to complete.
+	return eg.Wait()
 }
-
-// 	// Validate input list length.
-// 	inputLength := len(inputList)
-// 	if inputLength%2 != 0 {
-// 		return ErrOddLengthTreeRoots
-// 	}
-
-// 	// Build output variables
-// 	outputLength := inputLength / two
-
-// 	// If the input list is small, hash it using the default method since
-// 	// the overhead of parallelizing the hashing process is not worth it.
-// 	if inputLength < MinParallelizationSize {
-// 		//#nosec:G103 // used of unsafe calls should be audited.
-// 		return gohashtree.Hash(outputList, inputList)
-// 	}
-
-// 	// Otherwise parallelize the hashing process for large inputs.
-// 	// Take the max(n, 1) to prevent division by 0.
-// 	groupSize := inputLength / (two * max(n, 1))
-// 	twiceGroupSize := two * groupSize
-// 	eg := new(errgroup.Group)
-
-// 	// if n is 0 the parallelization is disabled and the whole inputList is
-// 	// hashed in the main goroutine at the end of this function.
-// 	for j := range n + 1 {
-// 		eg.Go(func() error {
-// 			// inputList:  [-------------------2*groupSize-------------------] 			//
-//            ^                  ^                    ^        ^ 			//
-//    |                  |                    |        |
-// 			// j*2*groupSize   (j+1)*2*groupSize    (j+2)*2*groupSize   End
-// 			//
-// 			// outputList: [---------groupSize---------]
-// 			//              ^                         ^
-// 			//              |                         |
-// 			//             j*groupSize         (j+1)*groupSize
-// 			//
-// 			// Each goroutine processes a segment of inputList that is twice as 			//
-// large as the segment it fills in outputList. This is because the
-// 			// hash
-// 			// operation reduces the
-// 			// size of the input by half.
-// 			// Define the segment of the inputList each goroutine will process.
-// 			segmentStart := j * twiceGroupSize
-// 			segmentEnd := min((j+1)*twiceGroupSize, inputLength)
-
-// 			return gohashtree.Hash(
-// 				outputList[j*groupSize:min((j+1)*groupSize, outputLength)],
-// 				inputList[segmentStart:segmentEnd],
-// 			)
-// 		})
-// 	}
-
-// 	// Wait for all goroutines to complete.
-// 	return eg.Wait()
-// }
