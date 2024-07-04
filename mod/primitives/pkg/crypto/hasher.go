@@ -46,8 +46,9 @@ type hasher[T ~[32]byte] struct {
 // the Hasher interface.
 func NewHasher[T ~[32]byte](h HashFn) Hasher[T] {
 	return &hasher[T]{
-		b:         [64]byte{},
-		hashFunc:  h,
+		b:        [64]byte{},
+		hashFunc: h,
+		//nolint:mnd // its okay.
 		zeroBytes: make([]byte, 32),
 	}
 }
