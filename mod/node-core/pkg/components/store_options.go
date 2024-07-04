@@ -23,23 +23,23 @@ type StoreConfigInput struct {
 
 func ProvideStoreOptions(in StoreConfigInput) *root.FactoryOptions {
 	homeDir := cast.ToString(in.AppOpts.Get(serverv2.FlagHome))
-	scRawDb, err := db.NewPebbleDB("application", filepath.Join(homeDir, "data"))
+	scRawDb, err := db.NewDB(
+		db.DBTypePebbleDB,
+		"application",
+		filepath.Join(homeDir, "data"),
+		nil,
+	)
 	if err != nil {
 		panic(err)
 	}
+
 	return &root.FactoryOptions{
-		Logger:  in.Logger,
-		RootDir: homeDir,
-		SSType:  0,
-		SCType:  0,
-		SCPruningOption: &store.PruningOption{
-			KeepRecent: 0,
-			Interval:   0,
-		},
-		IavlConfig: &iavl.Config{
-			CacheSize:              100_000,
-			SkipFastStorageUpgrade: true,
-		},
-		SCRawDB: scRawDb,
+		Logger:          in.Logger,
+		RootDir:         homeDir,
+		SSType:          root.SSTypeSQLite,
+		SCType:          root.SCTypeIavl,
+		SCPruningOption: store.NewPruningOption(store.PruningNothing),
+		IavlConfig:      iavl.DefaultConfig(),
+		SCRawDB:         scRawDb,
 	}
 }
