@@ -76,8 +76,8 @@ github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
-github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240703214451-988cfc795108 h1:pfDVtiJOgYwA19V7TBFDoRxGQv13i+AFaoOj6bqETOg=
-github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240703214451-988cfc795108/go.mod h1:RQqaVJLHazMnUoNpRz93oBy3C4ZMPL9dDqu5ht0A7Xo=
+github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240704044702-dcccc69b1d26 h1:C6/b8a+cVE9RM8PMDJmQBsb9olymC8Rd6Cq/SpC/d3w=
+github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240704044702-dcccc69b1d26/go.mod h1:0dFNxa2FhP1fpgb+yQMngF1mYfphl3SQQulpPuWZrX4=
 github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240624204855-d8809d5c8588 h1:xzUcoddAOV96URK/FQAxdJTfkcE0mK0Fq4CdHJA5wuI=
 github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240624204855-d8809d5c8588/go.mod h1:vBKE/+MvPSRztNcZMzVCYSMRo08zcqxgMcl4q1XepK4=
 github.com/berachain/beacon-kit/mod/errors v0.0.0-20240624204855-d8809d5c8588 h1:ttz1uBLuOA4BTpIi1rra+CSRiQaFxkgWcvIcGPmLyVw=
