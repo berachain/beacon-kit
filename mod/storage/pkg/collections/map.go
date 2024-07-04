@@ -75,7 +75,7 @@ func (m Map[K, V]) Iterate() (sdkcollections.Iterator[K, V], error) {
 	}
 	reader, err = readerMap.GetReader(m.storeKey)
 
-	iter, err = reader.Iterator(m.keyPrefix,  NextBytesPrefixKey(m.keyPrefix))
+	iter, err = reader.Iterator(m.keyPrefix, sdkcollections.NextBytesPrefixKey(m.keyPrefix))
 	if err != nil {
 		return sdkcollections.Iterator[K, V]{}, err
 	}
