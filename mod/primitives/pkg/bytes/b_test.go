@@ -1337,7 +1337,7 @@ func TestUnmarshalFixedJSON(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := bytes.UnmarshalFixedJSON(tt.typ, tt.input, tt.out)
+			err := bytes.UnmarshalFixedJSON(tt.input, tt.out)
 			if tt.wantErr {
 				require.Error(t, err, "Test case: %s", tt.name)
 			} else {
@@ -1385,7 +1385,7 @@ func TestUnmarshalFixedText(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := bytes.UnmarshalFixedText(tt.typename, tt.input, tt.out)
+			err := bytes.UnmarshalFixedText(tt.input, tt.out)
 			if tt.wantErr {
 				require.Error(t, err, "Test case: %s", tt.name)
 			} else {
