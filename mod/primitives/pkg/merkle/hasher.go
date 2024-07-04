@@ -149,7 +149,7 @@ func BuildParentTreeRoots[RootT ~[32]byte](
 // TODO: We do not use generics here due to the gohashtree library not
 // supporting generics.
 func BuildParentTreeRootsWithNRoutines(
-	outputList, inputList [][32]byte, n int,
+	outputList, inputList [][32]byte, n int, minParallelizationSize int,
 ) error {
 	// Validate input list length.
 	inputLength := len(inputList)
@@ -162,7 +162,7 @@ func BuildParentTreeRootsWithNRoutines(
 
 	// If the input list is small, hash it using the default method since
 	// the overhead of parallelizing the hashing process is not worth it.
-	if inputLength < MinParallelizationSize {
+	if inputLength < minParallelizationSize {
 		return gohashtree.Hash(outputList, inputList)
 	}
 

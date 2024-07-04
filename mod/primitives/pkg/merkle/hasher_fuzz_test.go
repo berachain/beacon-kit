@@ -32,48 +32,51 @@ func FuzzHashTreeRoot(f *testing.F) {
 	// Seed corpus with a variety of sizes, including edge cases
 	//
 	// Test with empty slice
-	f.Add([]byte{}, 1)
+	f.Add(0, 1, merkle.MinParallelizationSize)
 	// Just below a single block size
-	f.Add(make([]byte, 31), runtime.GOMAXPROCS(0)-1)
+	f.Add(31, runtime.GOMAXPROCS(0)-1, merkle.MinParallelizationSize)
 	// Exactly one block size
-	f.Add(make([]byte, 32), runtime.GOMAXPROCS(0)+1)
+	f.Add(32, runtime.GOMAXPROCS(0)+1, merkle.MinParallelizationSize)
 	// Just above a single block size
-	f.Add(make([]byte, 33), runtime.GOMAXPROCS(0)*2)
+	f.Add(33, runtime.GOMAXPROCS(0)*2, merkle.MinParallelizationSize)
 	// Multiple blocks
-	f.Add(make([]byte, 64), runtime.GOMAXPROCS(0)*4)
+	f.Add(64, runtime.GOMAXPROCS(0)*4, merkle.MinParallelizationSize)
 	// Larger input
-	f.Add(make([]byte, 1024), 3)
+	f.Add(1024, 3, merkle.MinParallelizationSize)
 	// Just below MinParallelizationSize
-	f.Add(make([]byte, merkle.MinParallelizationSize-2), 300)
+	f.Add(merkle.MinParallelizationSize-2, 300, merkle.MinParallelizationSize)
 	// Exactly MinParallelizationSize
-	f.Add(make([]byte, merkle.MinParallelizationSize), 1)
+	f.Add(merkle.MinParallelizationSize, 1, merkle.MinParallelizationSize)
 	// Just above MinParallelizationSize
-	f.Add(make([]byte, merkle.MinParallelizationSize+2), 64)
+	f.Add(merkle.MinParallelizationSize+2, 64, merkle.MinParallelizationSize)
 	// Double MinParallelizationSize
 	f.Add(
-		make([]byte, 2*merkle.MinParallelizationSize),
+		2*merkle.MinParallelizationSize,
 		runtime.GOMAXPROCS(0)-1,
+		merkle.MinParallelizationSize,
 	)
-	// Large inputs
+	// Really large inputs
 	f.Add(
-		make([]byte, 32*merkle.MinParallelizationSize), // 5000 leaves
+		// Max Txs leaves
+		int(constants.MaxTxsPerPayload),
 		runtime.GOMAXPROCS(0)-1,
+		merkle.MinParallelizationSize,
 	)
-	f.Add(
-		make([]byte, 64*merkle.MinParallelizationSize), // 10000 leaves
-		runtime.GOMAXPROCS(0)-1,
-	)
-	f.Add(
-		make([]byte, 32*constants.MaxTxsPerPayload), // Max Txs leaves
-		runtime.GOMAXPROCS(0)-1,
-	)
-	// Testing Max Bytes Per Tx leaves times out
 	// f.Add(
-	// 	make([]byte, 32*constants.MaxBytesPerTx),
+	// 	// NOTE: Testing Max Bytes Per Tx leaves times out
+	// 	int(constants.MaxBytesPerTx),
 	// 	runtime.GOMAXPROCS(0)-1,
+	//  merkle.MinParallelizationSize,
 	// )
 
-	f.Fuzz(func(t *testing.T, original []byte, numRoutines int) {
+	f.Fuzz(func(
+		t *testing.T,
+		leaveSize,
+		numRoutines,
+		minParallelizationSize int,
+	) {
+		original := make([]byte, 32*leaveSize)
+
 		// Convert []byte to [][32]byte as required by HashTreeRoot
 		var input [][32]byte
 		for i := 0; i < len(original); i += 32 {
@@ -88,6 +91,8 @@ func FuzzHashTreeRoot(f *testing.F) {
 			expectError = true
 		}
 
-		requireGoHashTreeEquivalence(t, input, numRoutines, expectError)
+		requireGoHashTreeEquivalence(
+			t, input, numRoutines, minParallelizationSize, expectError,
+		)
 	})
 }
