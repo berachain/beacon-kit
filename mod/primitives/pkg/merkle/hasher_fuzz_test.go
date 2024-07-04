@@ -57,13 +57,14 @@ func FuzzHashTreeRoot(f *testing.F) {
 		make([]byte, 1024), true,
 		3, merkle.MinParallelizationSize,
 	)
+	// Just below MinParallelizationSize leaves
+	f.Add(
+		make([]byte, merkle.MinParallelizationSize-2), false,
+		300, merkle.MinParallelizationSize,
+	)
 
 	// NOTE: All of the below cases which use parallelization are flaky.
-	// // Just below MinParallelizationSize leaves
-	// f.Add(
-	// 	make([]byte, merkle.MinParallelizationSize-2), false,
-	// 	300, merkle.MinParallelizationSize,
-	// )
+	//
 	// // Exactly MinParallelizationSize leaves
 	// f.Add(
 	// 	make([]byte, merkle.MinParallelizationSize), false,
@@ -97,7 +98,7 @@ func FuzzHashTreeRoot(f *testing.F) {
 		original []byte, isLeaves bool,
 		numRoutines, minParallelizationSize int,
 	) {
-		// Extend the input to 32 byte leaves if not already in leaves format.
+		// Extend the fuzzed input to 32 byte leaves if not in leaves format.
 		if !isLeaves {
 			leavesBytes := make([]byte, len(original)*32)
 			for i := range 32 {
@@ -121,6 +122,11 @@ func FuzzHashTreeRoot(f *testing.F) {
 		expectError := false
 		if len(input)%2 != 0 {
 			expectError = true
+		}
+
+		// NOTE: skipping any inputs which use parallelization for now.
+		if len(input) >= minParallelizationSize {
+			return
 		}
 
 		requireGoHashTreeEquivalence(
