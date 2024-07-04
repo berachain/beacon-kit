@@ -100,7 +100,8 @@ func (h B48) Type() types.Type {
 func (h B48) HashTreeRoot() ([32]byte, error) {
 	//nolint:mnd // for a tree height of 1 we need 2 working chunks.
 	result := make([][32]byte, 2)
-	copy(result[0][:], h[:])
+	copy(result[0][:], h[:32])
+	copy(result[1][:], h[32:48])
 	gohashtree.HashChunks(result, result)
 	return result[0], nil
 }

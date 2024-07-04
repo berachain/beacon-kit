@@ -200,12 +200,11 @@ func (b *BeaconBlockBodyDeneb) SetBlobKzgCommitments(
 // GetTopLevelRoots returns the top-level roots of the BeaconBlockBodyDeneb.
 func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 	var (
-		err    error
-		layer  = make([]common.Root, BodyLengthDeneb)
-		randao = b.GetRandaoReveal()
+		err   error
+		layer = make([]common.Root, BodyLengthDeneb)
 	)
 
-	layer[0], err = randao.HashTreeRoot()
+	layer[0], err = b.GetRandaoReveal().HashTreeRoot()
 	if err != nil {
 		return nil, err
 	}
