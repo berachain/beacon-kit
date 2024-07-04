@@ -118,7 +118,7 @@ start-geth-run:
 	ethereum/client-go:v1.14.6 \
 	--http \
 	--http.addr 0.0.0.0 \
-	--http.api eth,net,debug \
+	--http.api eth,net,debug,txpool \
 	--authrpc.addr 0.0.0.0 \
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--authrpc.vhosts "*" \
