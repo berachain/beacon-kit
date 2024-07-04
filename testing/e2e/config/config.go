@@ -196,9 +196,8 @@ func defaultValidators() NodeSet {
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
-				ElType: "erigon",
-				// TODO: ERIGON IS SO COOKED DOCKER WISE
-				Replicas: 0,
+				ElType:   "erigon",
+				Replicas: 1,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
@@ -230,9 +229,8 @@ func defaultFullNodes() NodeSet {
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
-				ElType: "erigon",
-				// TODO: ERIGON IS SO COOKED DOCKER WISE
-				Replicas: 0,
+				ElType:   "erigon",
+				Replicas: 1,
 				KZGImpl:  "crate-crypto/go-kzg-4844",
 			},
 			{
