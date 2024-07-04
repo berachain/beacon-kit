@@ -29,11 +29,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const (
-	treeDepth uint8 = 32
-)
-
 func TestNewTreeFromLeavesWithDepth_NoItemsProvided(t *testing.T) {
+	treeDepth := uint8(32)
 	_, err := merkle.NewTreeFromLeavesWithDepth[[32]byte](
 		nil,
 		treeDepth,
@@ -69,6 +66,7 @@ func TestNewTreeFromLeavesWithDepth_DepthSupport(t *testing.T) {
 }
 
 func TestMerkleTree_IsValidMerkleBranch(t *testing.T) {
+	treeDepth := uint8(32)
 	items := [][32]byte{
 		byteslib.ToBytes32([]byte("A")),
 		byteslib.ToBytes32([]byte("B")),
@@ -123,6 +121,7 @@ func TestMerkleTree_IsValidMerkleBranch(t *testing.T) {
 }
 
 func TestMerkleTree_VerifyProof(t *testing.T) {
+	treeDepth := uint8(32)
 	items := [][32]byte{
 		byteslib.ToBytes32([]byte("A")),
 		byteslib.ToBytes32([]byte("B")),
@@ -166,6 +165,7 @@ func TestMerkleTree_VerifyProof(t *testing.T) {
 }
 
 func TestMerkleTree_NegativeIndexes(t *testing.T) {
+	treeDepth := uint8(32)
 	items := [][32]byte{
 		byteslib.ToBytes32([]byte("A")),
 		byteslib.ToBytes32([]byte("B")),
@@ -186,6 +186,7 @@ func TestMerkleTree_NegativeIndexes(t *testing.T) {
 }
 
 func TestMerkleTree_VerifyProof_TrieUpdated(t *testing.T) {
+	treeDepth := uint8(32)
 	items := [][32]byte{
 		{1},
 		{2},
@@ -229,6 +230,7 @@ func TestMerkleTree_VerifyProof_TrieUpdated(t *testing.T) {
 }
 
 func BenchmarkNewTreeFromLeavesWithDepth(b *testing.B) {
+	treeDepth := uint8(32)
 	items := [][32]byte{
 		byteslib.ToBytes32([]byte("A")),
 		byteslib.ToBytes32([]byte("BB")),
@@ -248,6 +250,7 @@ func BenchmarkNewTreeFromLeavesWithDepth(b *testing.B) {
 }
 
 func BenchmarkInsertTrie_Optimized(b *testing.B) {
+	treeDepth := uint8(32)
 	b.StopTimer()
 	numDeposits := 16000
 	items := make([][32]byte, numDeposits)
@@ -268,6 +271,7 @@ func BenchmarkInsertTrie_Optimized(b *testing.B) {
 }
 
 func BenchmarkGenerateProof(b *testing.B) {
+	treeDepth := uint8(32)
 	b.StopTimer()
 	items := [][32]byte{
 		byteslib.ToBytes32([]byte("A")),
@@ -292,6 +296,7 @@ func BenchmarkGenerateProof(b *testing.B) {
 }
 
 func BenchmarkIsValidMerkleBranch(b *testing.B) {
+	treeDepth := uint8(4)
 	b.StopTimer()
 	items := [][32]byte{
 		byteslib.ToBytes32([]byte("A")),
@@ -306,6 +311,7 @@ func BenchmarkIsValidMerkleBranch(b *testing.B) {
 		items,
 		treeDepth,
 	)
+
 	require.NoError(b, err)
 	proof, err := m.MerkleProofWithMixin(2)
 	require.NoError(b, err)
@@ -314,10 +320,9 @@ func BenchmarkIsValidMerkleBranch(b *testing.B) {
 	require.NoError(b, err)
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		if ok := merkle.IsValidMerkleBranch(
-			items[2], proof, treeDepth, 2, root,
-		); !ok {
-			b.Error("Merkle proof did not verify")
-		}
+		ok := merkle.IsValidMerkleBranch(
+			items[2], proof, treeDepth+1, 2, root,
+		)
+		require.True(b, ok, "Merkle proof did not verify")
 	}
 }
