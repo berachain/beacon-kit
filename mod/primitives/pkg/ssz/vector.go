@@ -24,8 +24,10 @@ import (
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/tree"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
 )
 
@@ -142,4 +144,19 @@ func (v Vector[T]) MarshalSSZ() ([]byte, error) {
 // NewFromSSZ creates a new VectorBasic from SSZ format.
 func (v Vector[T]) NewFromSSZ(_ []byte) (Vector[T], error) {
 	return nil, errors.New("not implemented yet")
+}
+
+func (v Vector[T]) GIndex(gIndex math.U64, path tree.ObjectPath) *tree.Node {
+	head, rest := path.Index()
+	if head > v.N() {
+		return nil
+	}
+	gIndex = gIndex*(math.U64(v.N()).NextPowerOfTwo()+1) + math.U64(head)
+	var t T
+	if gid, ok := any(t).(tree.GIndexed); ok {
+		return gid.GIndex(gIndex, rest)
+	}
+	// TODO offset
+	return &tree.Node{GIndex: gIndex, Offset: 0}
+
 }

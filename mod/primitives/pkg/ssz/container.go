@@ -25,7 +25,9 @@ import (
 	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/tree"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
 )
 
@@ -41,10 +43,28 @@ type Container struct {
 	elements   []types.MinimalSSZType
 }
 
+type ContainerField struct {
+	Name  string
+	Value types.MinimalSSZType
+}
+
 // ContainerFromElements creates a new Container from elements.
 func ContainerFromElements(elements ...types.MinimalSSZType) *Container {
 	return &Container{
 		elements: elements,
+	}
+}
+
+func ContainerFromFields(fields []ContainerField) *Container {
+	elements := make([]types.MinimalSSZType, len(fields))
+	fieldIndex := make(map[string]int)
+	for i, field := range fields {
+		elements[i] = field.Value
+		fieldIndex[field.Name] = i
+	}
+	return &Container{
+		elements:   elements,
+		fieldIndex: fieldIndex,
 	}
 }
 
@@ -78,15 +98,33 @@ func NewContainer(v interface{}) (*Container, error) {
 		}
 
 		fieldValue := val.Field(i)
+		if field.Type.Kind() == reflect.Ptr {
+			fieldValue = fieldValue.Elem()
+		}
 
-		// Check if the field implements SSZType
-		if sszType, ok := fieldValue.Interface().(types.MinimalSSZType); ok {
-			elements = append(elements, sszType)
+		if fieldValue.Kind() == reflect.Struct {
+			// Recursively add the fields of the struct
+			container, err := NewContainer(fieldValue.Interface())
+			if err != nil {
+				return nil, err
+			}
+			elements = append(elements, container)
 			fieldIndex[path] = j
 		} else {
-			return nil, fmt.Errorf("field %s does not implement MinimalSSZType",
-				val.Type().Field(i).Name)
+			switch sszType := fieldValue.Interface().(type) {
+			case types.MinimalSSZType:
+				elements = append(elements, sszType)
+				fieldIndex[path] = j
+			}
 		}
+
+		// else if sszType, ok := fieldValue.Interface().(types.MinimalSSZType); ok {
+		// 	elements = append(elements, sszType)
+		// 	fieldIndex[path] = j
+		// } else {
+		// 	return nil, fmt.Errorf("field %s does not implement MinimalSSZType",
+		// 		val.Type().Field(i).Name)
+		// }
 		j++
 	}
 
@@ -185,3 +223,32 @@ func (c *Container) MarshalSSZ() ([]byte, error) {
 func (c *Container) NewFromSSZ(_ []byte) (*Container, error) {
 	return nil, errors.New("not implemented yet")
 }
+
+type Schema struct {
+	cache map[string]uint64
+}
+
+func (c *Container) GIndex(gIndex math.U64, path tree.ObjectPath) *tree.Node {
+	head, rest := path.Head()
+	if index, ok := c.fieldIndex[head]; ok {
+		gIndex = gIndex*math.U64(c.N()).NextPowerOfTwo() + math.U64(index)
+		field := c.elements[index]
+		if gid, ok := field.(tree.GIndexed); ok {
+			return gid.GIndex(gIndex, rest)
+		} else {
+			// TODO calc offset
+			return &tree.Node{GIndex: gIndex}
+		}
+	}
+	return nil
+}
+
+/*
+func (c *Container) Default() *Container {
+	for i, element := range c.elements {
+		if enum, ok := element.(types.SSZEnumerable[types.MinimalSSZType]); ok {
+			c.elements[i] = enum.Default()
+		}
+	}
+}
+*/

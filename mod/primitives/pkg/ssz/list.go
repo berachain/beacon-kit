@@ -24,8 +24,10 @@ import (
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/tree"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
 )
 
@@ -159,4 +161,20 @@ func (l *List[T]) NewFromSSZ(buf []byte, limit uint64) (*List[T], error) {
 		elements: elements,
 		limit:    limit,
 	}, nil
+}
+
+func (l *List[T]) GIndex(gIndex math.U64, path tree.ObjectPath) *tree.Node {
+	// TODO err check
+	head, rest := path.Index()
+
+	if head > l.limit {
+		return nil
+	}
+	gIndex = 2*gIndex*(math.U64(l.limit).NextPowerOfTwo()) + math.U64(head)
+	var t T
+	if gid, ok := any(t).(tree.GIndexed); ok {
+		return gid.GIndex(gIndex, rest)
+	}
+	// TODO offset
+	return &tree.Node{GIndex: gIndex, Offset: 0}
 }

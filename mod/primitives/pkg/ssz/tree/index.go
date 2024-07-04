@@ -22,6 +22,8 @@ package tree
 
 import (
 	"sort"
+	"strconv"
+	"strings"
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
@@ -249,4 +251,32 @@ func (gs GeneralizedIndicies[RootT]) VerifyMerkleMultiproof(
 		return false
 	}
 	return calculatedRoot == root
+}
+
+type GIndexed interface {
+	GIndex(math.U64, ObjectPath) *Node
+}
+
+type Node struct {
+	GIndex math.U64
+	Offset uint8
+}
+
+type ObjectPath string
+
+func (o ObjectPath) Head() (string, ObjectPath) {
+	parts := strings.Split(string(o), "/")
+	head := parts[0]
+	rest := ObjectPath(strings.Join(parts[1:], "/"))
+	return head, rest
+}
+
+func (o ObjectPath) Field() (string, ObjectPath) {
+	return o.Head()
+}
+
+func (o ObjectPath) Index() (uint64, ObjectPath) {
+	head, rest := o.Head()
+	i, _ := strconv.ParseUint(head, 10, 64)
+	return i, rest
 }

@@ -24,6 +24,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
 //go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../../../primitives/pkg/crypto,../../../../primitives/pkg/common,../../../../primitives/pkg/bytes,../../../../consensus-types/pkg/types,../../../../engine-primitives/pkg/engine-primitives,../../../../primitives/pkg/math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil,../../../../primitives/pkg/common/common.go -output deneb.ssz.go
@@ -47,7 +48,7 @@ type BeaconState struct {
 	LatestExecutionPayloadHeader *types.ExecutionPayloadHeaderDeneb `json:"latestExecutionPayloadHeader"`
 
 	// Registry
-	Validators []*types.Validator `json:"validators" ssz-max:"1099511627776"`
+	Validators []*types.Validator `json:"validators" ssz-max:"1099511627776" ssz-path:"validators"`
 	Balances   []uint64           `json:"balances"   ssz-max:"1099511627776"`
 
 	// Randomness
@@ -60,4 +61,17 @@ type BeaconState struct {
 	// Slashing
 	Slashings     []uint64  `json:"slashings"     ssz-max:"1099511627776"`
 	TotalSlashing math.Gwei `json:"totalSlashing"`
+}
+
+func (b *BeaconState) Default(spec common.ChainSpec) *ssz.Container {
+	return ssz.ContainerFromFields(
+		[]ssz.ContainerField{
+			{
+				Name: "validators",
+				Value: ssz.ListFromElements(
+					spec.ValidatorRegistryLimit(),
+					(&types.Validator{}).Default(),
+				),
+			},
+		})
 }

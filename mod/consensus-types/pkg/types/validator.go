@@ -21,9 +21,12 @@
 package types
 
 import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
 )
 
 // Validator as defined in the Ethereum 2.0 Spec
@@ -207,4 +210,25 @@ func (v Validator) GetWithdrawableEpoch() math.Epoch {
 // GetWithdrawalCredentials returns the withdrawal credentials of the validator.
 func (v Validator) GetWithdrawalCredentials() WithdrawalCredentials {
 	return v.WithdrawalCredentials
+}
+
+func (v Validator) Default() types.MinimalSSZType {
+	return ssz.ContainerFromFields(
+		[]ssz.ContainerField{
+			{Name: "pubkey", Value: v.Pubkey},
+			{
+				Name:  "withdrawal_credentials",
+				Value: bytes.B32(v.WithdrawalCredentials),
+			},
+			{Name: "effective_balance", Value: ssz.U64(v.EffectiveBalance)},
+			{Name: "slashed", Value: ssz.Bool(v.Slashed)},
+			{
+				Name:  "activation_eligibility_epoch",
+				Value: ssz.U64(v.ActivationEligibilityEpoch),
+			},
+			{Name: "activation_epoch", Value: ssz.U64(v.ActivationEpoch)},
+			{Name: "exit_epoch", Value: ssz.U64(v.ExitEpoch)},
+			{Name: "withdrawable_epoch", Value: ssz.U64(v.WithdrawableEpoch)},
+		},
+	)
 }

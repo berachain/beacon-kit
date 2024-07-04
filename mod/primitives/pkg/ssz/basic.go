@@ -107,6 +107,10 @@ func (Bool) ChunkCount() uint64 {
 	return 1
 }
 
+func (Bool) Default() Bool {
+	return Bool(false)
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                     U8                                     */
 /* -------------------------------------------------------------------------- */
@@ -307,6 +311,10 @@ func (U64) ChunkCount() uint64 {
 	return 1
 }
 
+func (U64) Default() types.MinimalSSZType {
+	return U64(0)
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                    U256                                    */
 /* -------------------------------------------------------------------------- */
@@ -404,4 +412,8 @@ func (Byte) Type() types.Type {
 // ChunkCount returns the number of chunks required to store the byte.
 func (Byte) ChunkCount() uint64 {
 	return 1
+}
+
+func (Byte) Default() types.MinimalSSZType {
+	return Byte(0)
 }
