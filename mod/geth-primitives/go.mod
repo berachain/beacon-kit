@@ -1,8 +1,8 @@
 module github.com/berachain/beacon-kit/mod/geth-primitives
 
-go 1.22.4
+go 1.22.5
 
-require github.com/ethereum/go-ethereum v1.14.5
+require github.com/ethereum/go-ethereum v1.14.6
 
 require (
 	github.com/DataDog/zstd v1.5.5 // indirect
