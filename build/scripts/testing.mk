@@ -103,7 +103,7 @@ start-geth-init:
 	docker run \
 	--rm -d -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	ethereum/client-go init \
+	ethereum/client-go:v1.14.6 init \
 	--datadir ${ETH_DATA_DIR} \
 	${ETH_GENESIS_PATH}
 
@@ -115,7 +115,7 @@ start-geth-run:
 	-p 8551:8551 \
 	--rm -d -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
-	ethereum/client-go \
+	ethereum/client-go:v1.14.6 \
 	--http \
 	--http.addr 0.0.0.0 \
 	--http.api eth,net,debug \
@@ -124,6 +124,7 @@ start-geth-run:
 	--authrpc.vhosts "*" \
 	--datadir ${ETH_DATA_DIR} \
 	--ipcpath ${IPC_PATH} \
+	--rpc.allow-unprotected-txs \
 	--nat extip:${INTERNAL_IP}
 
 start-geth-host: ## start a local ephemeral `geth` node on host machine
@@ -236,6 +237,7 @@ start-erigon-validator-run:
 	--db.size.limit	3000MB \
 	--datadir .tmp/erigon \
 	--rpc.allow-unprotected-txs \
+	--miner.gaslimit 100000000 \
 	--nat extip:${INTERNAL_IP}
 
 start-erigon-node-run:
@@ -262,6 +264,9 @@ start-erigon-node-run:
 	--datadir .tmp/erigon \
 	--rpc.allow-unprotected-txs \
 	--nat extip:${INTERNAL_IP} \
+	--verbosity "debug" \
+    --log.console.verbosity "debug" \
+    --miner.gaslimit 100000000 \
 	--trustedpeers "" \
 	--bootnodes ""
 
