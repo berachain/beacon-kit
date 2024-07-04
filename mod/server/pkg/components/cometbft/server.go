@@ -21,17 +21,13 @@
 package cometbft
 
 import (
-	"context"
-
 	"cosmossdk.io/core/transaction"
 	"cosmossdk.io/log"
 	serverv2 "cosmossdk.io/server/v2"
 	sdkcomet "cosmossdk.io/server/v2/cometbft"
-	"cosmossdk.io/server/v2/cometbft/handlers"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
 	nodecomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
-	"github.com/cosmos/gogoproto/proto"
 	"github.com/spf13/viper"
 )
 
@@ -75,29 +71,9 @@ func (s *Server[NodeT, T, ValidatorUpdateT]) Init(
 		s.txCodec, middleware,
 	)
 	options := sdkcomet.DefaultServerOptions[T]()
-	options.PrepareProposalHandler = s.prepareHandler(node, engine)
-	options.ProcessProposalHandler = s.processHandler(node, engine)
+	options.PrepareProposalHandler = engine.Prepare
+	options.ProcessProposalHandler = engine.Process
 	s.CometBFTServer = sdkcomet.New[NodeT, T](s.txCodec, options)
 
 	return s.CometBFTServer.Init(node, v, logger)
-}
-
-// annoying from sdk
-func (s *Server[NodeT, T, ValidatorUpdateT]) prepareHandler(
-	node NodeT, engine *cometbft.ConsensusEngine[T, ValidatorUpdateT],
-) handlers.PrepareHandler[T] {
-	return func(ctx context.Context, am handlers.AppManager[T], txs []T, msg proto.Message) ([]T, error) {
-		ctx = node.GetAppManager().MakeContext(ctx)
-		return engine.Prepare(ctx, am, txs, msg)
-	}
-}
-
-// builds the funny execution context that cosmos enforces
-func (s *Server[NodeT, T, ValidatorUpdateT]) processHandler(
-	node NodeT, engine *cometbft.ConsensusEngine[T, ValidatorUpdateT],
-) handlers.ProcessHandler[T] {
-	return func(ctx context.Context, am handlers.AppManager[T], txs []T, msg proto.Message) error {
-		ctx = node.GetAppManager().MakeContext(ctx)
-		return engine.Process(ctx, am, txs, msg)
-	}
 }
