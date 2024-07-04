@@ -57,6 +57,7 @@ func FuzzHashTreeRoot(f *testing.F) {
 		make([]byte, 1024), true,
 		3, merkle.MinParallelizationSize,
 	)
+
 	// NOTE: All of the below cases which use parallelization are flaky.
 	// // Just below MinParallelizationSize leaves
 	// f.Add(
@@ -99,7 +100,7 @@ func FuzzHashTreeRoot(f *testing.F) {
 		// Extend the input to 32 byte leaves if not already in leaves format.
 		if !isLeaves {
 			leavesBytes := make([]byte, len(original)*32)
-			for i := 0; i < 32; i++ {
+			for i := range 32 {
 				copy(
 					leavesBytes[i*len(original):(i+1)*len(original)],
 					original,
