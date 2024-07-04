@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit/mod/consensus-types
 
-go 1.22.4
+go 1.22.5
 
 require (
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240628210719-e32b1662132e

@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit/mod/node-api
 
-go 1.22.4
+go 1.22.5
 
 require (
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240624003607-df94860f8eeb
