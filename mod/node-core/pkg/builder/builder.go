@@ -78,6 +78,7 @@ func (nb *NodeBuilder[NodeT, T]) Build(
 	var (
 		chainSpec       common.ChainSpec
 		appBuilder      *runtime.AppBuilder[T]
+		sdkApp          *runtime.App[T]
 		abciMiddleware  *components.ABCIMiddleware
 		serviceRegistry *service.Registry
 	)
@@ -98,6 +99,7 @@ func (nb *NodeBuilder[NodeT, T]) Build(
 			),
 		),
 		&appBuilder,
+		&sdkApp,
 		&chainSpec,
 		&abciMiddleware,
 		&serviceRegistry,
@@ -118,7 +120,7 @@ func (nb *NodeBuilder[NodeT, T]) Build(
 	// 	WithPreBlocker(abciMiddleware.PreBlock),
 	// )...,
 	app := app.NewBeaconKitApp[T](
-		appBuilder,
+		sdkApp,
 		abciMiddleware,
 	)
 	nb.node.RegisterApp(app)

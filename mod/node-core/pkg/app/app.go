@@ -46,19 +46,14 @@ type BeaconApp[T transaction.Tx] struct {
 
 // NewBeaconKitApp returns a reference to an initialized BeaconApp.
 func NewBeaconKitApp[T transaction.Tx](
-	appBuilder *runtime.AppBuilder[T],
+	sdkApp *runtime.App[T],
 	middleware *bkcomponents.ABCIMiddleware,
 ) *BeaconApp[T] {
 	app := &BeaconApp[T]{
+		App:        sdkApp,
 		middleware: middleware,
 	}
-
-	// Build the runtime.App using the app builder.
-	var err error
-	app.App, err = appBuilder.Build()
-	if err != nil {
-		panic(err)
-	}
+	// set app manager
 	appManager := bkappmanager.NewAppManager(
 		app.App.GetAppManager(),
 		middleware,
