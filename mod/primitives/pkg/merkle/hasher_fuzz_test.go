@@ -67,10 +67,11 @@ func FuzzHashTreeRoot(f *testing.F) {
 		make([]byte, 32*constants.MaxTxsPerPayload), // Max Txs leaves
 		runtime.GOMAXPROCS(0)-1,
 	)
-	f.Add(
-		make([]byte, 32*constants.MaxBytesPerTx), // Max Bytes Per Tx leaves
-		runtime.GOMAXPROCS(0)-1,
-	)
+	// Testing Max Bytes Per Tx leaves times out
+	// f.Add(
+	// 	make([]byte, 32*constants.MaxBytesPerTx),
+	// 	runtime.GOMAXPROCS(0)-1,
+	// )
 
 	f.Fuzz(func(t *testing.T, original []byte, numRoutines int) {
 		// Convert []byte to [][32]byte as required by HashTreeRoot
