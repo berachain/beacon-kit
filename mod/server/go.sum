@@ -20,6 +20,8 @@ cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce h1:udTT5vz8tu5WfnHnDJv9Mb2
 cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce/go.mod h1:QFKLI3pmk619LV+uh4DKxVBlNCGQhvTyoVYBaxHaTNM=
 cosmossdk.io/math v1.3.0 h1:RC+jryuKeytIiictDslBP9i1fhkVm6ZDmZEoNP316zE=
 cosmossdk.io/math v1.3.0/go.mod h1:vnRTxewy+M7BtXBNFybkuhSH4WfedVAAnERHgVFhp3k=
+cosmossdk.io/runtime/v2 v2.0.0-20240623110059-dec2d5583e39 h1:mboMyY8Rv6Y+0opbNZGAftxGEK7ng1/SkJKCmAOxC9M=
+cosmossdk.io/runtime/v2 v2.0.0-20240623110059-dec2d5583e39/go.mod h1:S0wDEqzNr1wDjuBRcUxWesT0oX5+qJGYQXO78IOmK2Y=
 cosmossdk.io/server/v2/stf v0.0.0-20240623110059-dec2d5583e39 h1:wB6pmjaBklCiUO2juRBC7ZljaWn/UW7oi9fnY50WkcQ=
 cosmossdk.io/server/v2/stf v0.0.0-20240623110059-dec2d5583e39/go.mod h1:bTFJu59P5lJqCQDaNEUruMEScikeBHtRVuWMAOLbUgk=
 cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc h1:R9O9d75e0qZYUsVV0zzi+D7cNLnX2JrUOQNoIPaF0Bg=
@@ -104,8 +106,6 @@ github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240627201655-33a34cec850
 github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240627201655-33a34cec850e/go.mod h1:SR9DyddnG1jRxscSEHHQt9E6RaIi/2morGi0YgO4P6s=
 github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240624003607-df94860f8eeb h1:LmYd/RSR1itlg5BprDcxzvIgDbJ1pn4mELpt+/t/HkM=
 github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240624003607-df94860f8eeb/go.mod h1:RvAUQ7z/nf5kjSQVn0mnTpjOelHLs/KAw+iMhhIL2Ik=
-github.com/berachain/beacon-kit/mod/storage v0.0.0-20240624003607-df94860f8eeb h1:g0HIyzCHDvQorlK9adNLpfSqpkhoHWWGUYhnwvGVtac=
-github.com/berachain/beacon-kit/mod/storage v0.0.0-20240624003607-df94860f8eeb/go.mod h1:3S0/lau+3c5ccavJv1e7CIWSQgGsPd5xroCoh/IcSd0=
 github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240704182039-aa953f8c7f29 h1:OtF6jGdveOujRsuQljsv/1U80iS9UBnscMDkR6mYOG0=
 github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240704182039-aa953f8c7f29/go.mod h1:pZfCKHg1osWIcf0pYeVuIuJiyoOP+J57QH4efkFERFQ=
 github.com/berachain/cosmos-sdk/server/v2 v2.0.0-20240704182039-aa953f8c7f29 h1:Ewvlj2dHoQrN6sxki8dSY3bYwJ3q21AO7r/u+YXQbTM=

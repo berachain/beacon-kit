@@ -495,8 +495,8 @@ github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240624041151-58d9ba1eb6b4/go.mo
 github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240624210933-3baa52ebb587/go.mod h1:ft214cxJaqrRPOuAjpYwgA9AOElJnHrDZZEQ0jZPWwQ=
 github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240624041151-58d9ba1eb6b4/go.mod h1:hBVU5IzPwbAW0gsOZn78eWXV8uip8aI2Q3WzUZTKEoI=
 github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240624210933-3baa52ebb587/go.mod h1:EdsoYtMMfgh4VHnAEwQKz7KNdzPTYNd/uOsRB4FhZ9M=
-github.com/berachain/cosmos-sdk/runtime/v2 v2.0.0-20240704182039-aa953f8c7f29 h1:JL963y9sj2sTC0bvVo08wN37VFgMwnulbz+lAKGHQJM=
-github.com/berachain/cosmos-sdk/runtime/v2 v2.0.0-20240704182039-aa953f8c7f29/go.mod h1:nnTAESF6KYVLOgg9AqFpSeNsAC36tu73i63mjg5ET2Q=
+github.com/berachain/cosmos-sdk/collections v0.0.0-20240704223606-1ecddb481069 h1:rZveT3EO9/Cl8+u7F/OkUeNf69CLCc85zYwhwejoSfU=
+github.com/berachain/cosmos-sdk/collections v0.0.0-20240704223606-1ecddb481069/go.mod h1:uEftEH5ZpE/ruj8GJvO1mmjKj2a1shnYqCx7zhZSrIo=
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
 github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
 github.com/blang/semver/v4 v4.0.0 h1:1PFHFE6yCCTv8C1TeyNNarDzntLi7wMI5i/pzqYIsAM=
