@@ -233,7 +233,6 @@ func TestBuildParentTreeRootsWithNRoutines_DivisionByZero(t *testing.T) {
 	require.NoError(
 		t,
 		err,
-
 		"BuildParentTreeRootsWithNRoutines should handle n=0 without error",
 	)
 }
@@ -256,6 +255,15 @@ func requireGoHashTreeEquivalence(
 	output := make([][32]byte, len(inputListCopy)/2)
 	var err1, err2 error
 
+	// STABLE on fuzzing
+	// // Run prysm's VectorizedSha256
+	// if expectError {
+	// 	err1 = fmt.Errorf("odd number of chucnks")
+	// } else {
+	// 	output = htr.VectorizedSha256(inputListCopy)
+	// }
+
+	// NOT STABLE on fuzzing
 	// Run merkle.BuildParentTreeRootsWithNRoutines
 	err1 = merkle.BuildParentTreeRootsWithNRoutines(
 		output,
@@ -432,7 +440,7 @@ func TestNewRootWithMaxLeaves(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			hasher := crypto.NewHasher[[32]byte](sha256.Hash)
-			rootHasher := merkle.NewRootHasher[[32]byte](
+			rootHasher := merkle.NewRootHasher(
 				hasher, merkle.BuildParentTreeRoots,
 			)
 			root, err := rootHasher.NewRootWithMaxLeaves(tt.leaves,

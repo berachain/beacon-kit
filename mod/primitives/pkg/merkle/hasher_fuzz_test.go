@@ -24,6 +24,7 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 )
 
@@ -62,42 +63,37 @@ func FuzzHashTreeRoot(f *testing.F) {
 		make([]byte, merkle.MinParallelizationSize-2), false,
 		300, merkle.MinParallelizationSize,
 	)
-
-	// NOTE: All of the below cases which use parallelization are flaky.
-	//
-	// // Exactly MinParallelizationSize leaves
-	// f.Add(
-	// 	make([]byte, merkle.MinParallelizationSize), false,
-	// 	1, merkle.MinParallelizationSize,
-	// )
-	// // Just above MinParallelizationSize leaves
-	// f.Add(
-	// 	make([]byte, merkle.MinParallelizationSize+2), false,
-	// 	64, merkle.MinParallelizationSize,
-	// )
-	// // Double MinParallelizationSize leaves
-	// f.Add(
-	// 	make([]byte, 2*merkle.MinParallelizationSize), false,
-	// 	runtime.GOMAXPROCS(0)-1, merkle.MinParallelizationSize,
-	// )
+	// Exactly MinParallelizationSize leaves
+	f.Add(
+		make([]byte, merkle.MinParallelizationSize), false,
+		1, merkle.MinParallelizationSize,
+	)
+	// Just above MinParallelizationSize leaves
+	f.Add(
+		make([]byte, merkle.MinParallelizationSize+2), false,
+		64, merkle.MinParallelizationSize,
+	)
+	// Double MinParallelizationSize leaves
+	f.Add(
+		make([]byte, 2*merkle.MinParallelizationSize), false,
+		runtime.GOMAXPROCS(0)-1, merkle.MinParallelizationSize,
+	)
 	// Max Txs leaves
-	// f.Add(
-	// 	make([]byte, int(constants.MaxTxsPerPayload)),
-	// 	runtime.GOMAXPROCS(0)-1,
-	// 	merkle.MinParallelizationSize,
-	// )
-	// Max Bytes Per Tx leaves
-	// f.Add(
-	// 	make([]byte, int(constants.MaxBytesPerTx)),
-	// 	runtime.GOMAXPROCS(0)-1,
-	// 	merkle.MinParallelizationSize,
-	// )
+	f.Add(
+		make([]byte, int(constants.MaxTxsPerPayload)), false,
+		runtime.GOMAXPROCS(0)-1,
+		merkle.MinParallelizationSize,
+	)
 
 	f.Fuzz(func(
 		t *testing.T,
 		original []byte, isLeaves bool,
 		numRoutines, minParallelizationSize int,
 	) {
+		if numRoutines < 1 {
+			return
+		}
+
 		// Extend the fuzzed input to 32 byte leaves if not in leaves format.
 		if !isLeaves {
 			leavesBytes := make([]byte, len(original)*32)
@@ -122,11 +118,6 @@ func FuzzHashTreeRoot(f *testing.F) {
 		expectError := false
 		if len(input)%2 != 0 {
 			expectError = true
-		}
-
-		// NOTE: skipping any inputs which use parallelization for now.
-		if len(input) >= minParallelizationSize {
-			return
 		}
 
 		requireGoHashTreeEquivalence(

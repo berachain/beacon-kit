@@ -48,6 +48,7 @@ require (
 
 require (
 	github.com/VictoriaMetrics/fastcache v1.12.2 // indirect
+	github.com/cespare/cp v1.1.1 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a // indirect
 	github.com/holiman/bloomfilter/v2 v2.0.3 // indirect
 	github.com/mitchellh/pointerstructure v1.2.1 // indirect

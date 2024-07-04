@@ -34,6 +34,7 @@ require (
 )
 
 require (
+	github.com/cespare/cp v1.1.1 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a // indirect
 	github.com/ethereum/go-ethereum v1.14.6 // indirect
 	github.com/mitchellh/pointerstructure v1.2.1 // indirect
