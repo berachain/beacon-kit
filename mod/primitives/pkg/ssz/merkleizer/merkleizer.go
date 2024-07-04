@@ -63,12 +63,10 @@ func (m *Merkleizer[RootT, T]) MerkleizeBasic(
 
 // MerkleizeByteSlice hashes a byteslice by chunkifying it and returning the
 // corresponding HTR as if it were a fixed vector of bytes of the given length.
-//
-// TODO: Deprecate once transactions and randao are no longer using this.
 func (m *Merkleizer[RootT, T]) MerkleizeByteSlice(
 	input []byte,
 ) (RootT, error) {
-	chunks, numChunks := m.chunkifyBytes(input)
+	chunks, numChunks := chunkifyBytes[RootT](input)
 	return m.Merkleize(chunks, numChunks)
 }
 
@@ -79,11 +77,10 @@ func (m *Merkleizer[RootT, T]) MerkleizeVectorBasic(
 ) (RootT, error) {
 	// merkleize(pack(value))
 	// if value is a basic object or a vector of basic objects.
-	packed, _, err := m.pack(value)
+	packed, _, err := pack[RootT](value)
 	if err != nil {
-		return RootT{}, err
+		return [32]byte{}, err
 	}
-
 	return m.Merkleize(packed)
 }
 
@@ -103,7 +100,6 @@ func (m *Merkleizer[RootT, T]) MerkleizeVectorCompositeOrContainer(
 			return RootT{}, err
 		}
 	}
-
 	return m.Merkleize(htrs)
 }
 
@@ -125,16 +121,17 @@ func (m *Merkleizer[RootT, T]) MerkleizeListBasic(
 	//      len(value),
 	// )
 	// if value is a list of basic objects.
-	packed, _, err := m.pack(value)
+	packed, _, err := pack[RootT](value)
 	if err != nil {
-		return RootT{}, err
+		return [32]byte{}, err
 	}
 
-	root, err := m.Merkleize(packed, chunkCount)
+	root, err := m.Merkleize(
+		packed, chunkCount,
+	)
 	if err != nil {
-		return RootT{}, err
+		return [32]byte{}, err
 	}
-
 	return m.rootHasher.MixIn(root, uint64(len(value))), nil
 }
 
@@ -156,7 +153,9 @@ func (m *Merkleizer[RootT, T]) MerkleizeListComposite(
 		}
 	}
 
-	root, err := m.Merkleize(htrs, chunkCount)
+	root, err := m.Merkleize(
+		htrs, chunkCount,
+	)
 	if err != nil {
 		return RootT{}, err
 	}
