@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit/build/tools
 
-go 1.22.4
+go 1.22.5
 
 // staticcheck fix
 replace honnef.co/go/tools v0.2.1 => github.com/honnef/go-tools v0.5.0-0.dev.0.20240621230735-3fe6ed0ecdfe
@@ -9,7 +9,7 @@ require (
 	github.com/bazelbuild/buildtools v0.0.0-20240606140350-80f1f6802857
 	github.com/bufbuild/buf v1.34.0
 	github.com/cosmos/gosec/v2 v2.0.0-20230124142343-bf28a33fadf2
-	github.com/ethereum/go-ethereum v1.14.5
+	github.com/ethereum/go-ethereum v1.14.6
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
 	github.com/fjl/gencodec v0.0.0-20230517082657-f9840df7b83e
 	github.com/golangci/golangci-lint v1.59.1
