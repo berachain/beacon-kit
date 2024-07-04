@@ -24,7 +24,6 @@ import (
 	"fmt"
 	"math/rand"
 	"runtime"
-	"sync"
 	"testing"
 	"time"
 
@@ -235,30 +234,6 @@ func TestBuildParentTreeRootsWithNRoutines_DivisionByZero(t *testing.T) {
 
 		"BuildParentTreeRootsWithNRoutines should handle n=0 without error",
 	)
-}
-
-// Compares results of parallelized and non-parallelized implementations of
-// BuildParentTreeRoots.
-func TestBuildParentTreeRootsWithNRoutines_Parallelization(t *testing.T) {
-	largeSlice := make([][32]byte, 32*merkle.MinParallelizationSize)
-	secondLargeSlice := make([][32]byte, 32*merkle.MinParallelizationSize)
-	hash1 := make([][32]byte, 16*merkle.MinParallelizationSize)
-	wg := sync.WaitGroup{}
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		err := merkle.BuildParentTreeRootsWithNRoutines(
-			hash1, largeSlice, runtime.GOMAXPROCS(0)-1,
-		)
-		require.NoError(t, err)
-	}()
-	wg.Wait()
-	hash2 := make([][32]byte, 16*merkle.MinParallelizationSize)
-	err := merkle.BuildParentTreeRoots(hash2, secondLargeSlice)
-	require.NoError(t, err)
-	for i, r := range hash1 {
-		require.Equal(t, r, hash2[i])
-	}
 }
 
 // requireGoHashTreeEquivalence is a helper function to ensure that the output

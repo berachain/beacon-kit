@@ -24,6 +24,7 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 )
 
@@ -51,6 +52,23 @@ func FuzzHashTreeRoot(f *testing.F) {
 	// Double MinParallelizationSize
 	f.Add(
 		make([]byte, 2*merkle.MinParallelizationSize),
+		runtime.GOMAXPROCS(0)-1,
+	)
+	// Large inputs
+	f.Add(
+		make([]byte, 32*merkle.MinParallelizationSize), // 5000 leaves
+		runtime.GOMAXPROCS(0)-1,
+	)
+	f.Add(
+		make([]byte, 64*merkle.MinParallelizationSize), // 10000 leaves
+		runtime.GOMAXPROCS(0)-1,
+	)
+	f.Add(
+		make([]byte, 32*constants.MaxTxsPerPayload), // Max Txs leaves
+		runtime.GOMAXPROCS(0)-1,
+	)
+	f.Add(
+		make([]byte, 32*constants.MaxBytesPerTx), // Max Bytes Per Tx leaves
 		runtime.GOMAXPROCS(0)-1,
 	)
 
