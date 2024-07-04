@@ -120,8 +120,8 @@ github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240624003607-df948
 github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240624003607-df94860f8eeb/go.mod h1:RvAUQ7z/nf5kjSQVn0mnTpjOelHLs/KAw+iMhhIL2Ik=
 github.com/berachain/beacon-kit/mod/storage v0.0.0-20240624003607-df94860f8eeb h1:g0HIyzCHDvQorlK9adNLpfSqpkhoHWWGUYhnwvGVtac=
 github.com/berachain/beacon-kit/mod/storage v0.0.0-20240624003607-df94860f8eeb/go.mod h1:3S0/lau+3c5ccavJv1e7CIWSQgGsPd5xroCoh/IcSd0=
-github.com/berachain/cometbft v0.0.0-20240704172353-eb265f54a807 h1:bTlyZqC0dqaaOTkdxb870XCeqnpzL7YuPele4Oc94oU=
-github.com/berachain/cometbft v0.0.0-20240704172353-eb265f54a807/go.mod h1:bluxxex9Ik+Ll6TnshRwwDDgPEaF8M4vbhEKA9W7JaQ=
+github.com/berachain/cometbft v0.0.0-20240704174221-91b9121412d2 h1:3qH02C0eDbQPor56TyEWrVKRK343/ZvHGOtAPwn7yPU=
+github.com/berachain/cometbft v0.0.0-20240704174221-91b9121412d2/go.mod h1:bluxxex9Ik+Ll6TnshRwwDDgPEaF8M4vbhEKA9W7JaQ=
 github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240624014538-75ba469b1881 h1:08l5GGkl19zIShnUZKiU7ONTfK7L9KS/b82Mdrc+Fz8=
 github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240624014538-75ba469b1881/go.mod h1:hCN0m+X7MmJvJ2ukDDRDyScC+30wXHtXTdx6vleSnBU=
 github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816 h1:41iFGWnSlI2gVpmOtVTJZNodLdLQLn/KsJqFvXwnd/s=
