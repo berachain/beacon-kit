@@ -6,6 +6,7 @@ import (
 	"cosmossdk.io/runtime/v2"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/index"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/keys"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/collections"
 )
@@ -57,9 +58,9 @@ type Store[
 	// validatorIndex provides the next available index for a new validator.
 	validatorIndex collections.Sequence
 	// validators stores the list of validators.
-	// validators *collections.IndexedMap[
-	// 	uint64, ValidatorT, index.ValidatorsIndex[ValidatorT],
-	// ]
+	validators *collections.IndexedMap[
+		uint64, ValidatorT, index.ValidatorsIndex[ValidatorT],
+	]
 	// balances stores the list of balances.
 	balances collections.Map[uint64, uint64]
 	// nextWithdrawalIndex stores the next global withdrawal index.
@@ -164,10 +165,12 @@ func New[
 		store.accessor,
 	)
 	// store.validators = collections.NewIndexedMap(
+	// 	storeKey,
 	// 	[]byte{keys.ValidatorByIndexPrefix},
 	// 	sdkcollections.Uint64Key,
 	// 	encoding.SSZValueCodec[ValidatorT]{},
-	// 	index.NewValidatorsIndex[ValidatorT](schemaBuilder),
+	// 	index.NewValidatorsIndex[ValidatorT](),
+	// 	store.accessor,
 	// )
 	store.balances = collections.NewMap(
 		storeKey,
