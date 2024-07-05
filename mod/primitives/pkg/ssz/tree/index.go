@@ -280,3 +280,7 @@ func (o ObjectPath) Index() (uint64, ObjectPath) {
 	i, _ := strconv.ParseUint(head, 10, 64)
 	return i, rest
 }
+
+func (o ObjectPath) Empty() bool {
+	return o == ""
+}

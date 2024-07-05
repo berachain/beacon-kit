@@ -43,28 +43,10 @@ type Container struct {
 	elements   []types.MinimalSSZType
 }
 
-type ContainerField struct {
-	Name  string
-	Value types.MinimalSSZType
-}
-
 // ContainerFromElements creates a new Container from elements.
 func ContainerFromElements(elements ...types.MinimalSSZType) *Container {
 	return &Container{
 		elements: elements,
-	}
-}
-
-func ContainerFromFields(fields []ContainerField) *Container {
-	elements := make([]types.MinimalSSZType, len(fields))
-	fieldIndex := make(map[string]int)
-	for i, field := range fields {
-		elements[i] = field.Value
-		fieldIndex[field.Name] = i
-	}
-	return &Container{
-		elements:   elements,
-		fieldIndex: fieldIndex,
 	}
 }
 
@@ -224,11 +206,10 @@ func (c *Container) NewFromSSZ(_ []byte) (*Container, error) {
 	return nil, errors.New("not implemented yet")
 }
 
-type Schema struct {
-	cache map[string]uint64
-}
-
 func (c *Container) GIndex(gIndex math.U64, path tree.ObjectPath) *tree.Node {
+	if path.Empty() {
+		return &tree.Node{GIndex: gIndex}
+	}
 	head, rest := path.Head()
 	if index, ok := c.fieldIndex[head]; ok {
 		gIndex = gIndex*math.U64(c.N()).NextPowerOfTwo() + math.U64(index)
@@ -252,3 +233,73 @@ func (c *Container) Default() *Container {
 	}
 }
 */
+
+type ContainerField struct {
+	Name  string
+	Value types.MinimalSSZType
+}
+
+func ContainerFromFields(fields []ContainerField) *Container {
+	elements := make([]types.MinimalSSZType, len(fields))
+	fieldIndex := make(map[string]int)
+	for i, field := range fields {
+		elements[i] = field.Value
+		fieldIndex[field.Name] = i
+	}
+	return &Container{
+		elements:   elements,
+		fieldIndex: fieldIndex,
+	}
+}
+
+type FieldDef[ContainerT any] struct {
+	Name string
+	Get  func(c ContainerT) types.MinimalSSZType
+}
+
+type Schema[ContainerT any] struct {
+	Fields []FieldDef[ContainerT]
+}
+
+func (s *Schema[ContainerT]) DefineField(
+	name string,
+	get func(ContainerT) types.MinimalSSZType,
+) {
+	s.Fields = append(s.Fields, FieldDef[ContainerT]{Name: name, Get: get})
+}
+
+func ContainerFromSchema[ContainerT HasSchema[ContainerT]](
+	c ContainerT,
+) *Container {
+	c = c.Default()
+	schema := c.Schema()
+	elements := make([]types.MinimalSSZType, len(schema.Fields))
+	fieldIndex := make(map[string]int)
+	for i, field := range schema.Fields {
+		elements[i] = field.Get(c)
+		fieldIndex[field.Name] = i
+	}
+	return &Container{
+		elements:   elements,
+		fieldIndex: fieldIndex,
+	}
+}
+
+type HasSchema[ContainerT any] interface {
+	Schema() *Schema[ContainerT]
+	Default() ContainerT
+}
+
+// A schema is: An overlay over an arbitrary struct mapping its fields to named
+// ssz fields with following properties:
+// 1) Order
+// 2) Default values
+// 3) SSZ Type
+//
+// It can be reused to deterministically hash or marshal a struct into ssz bytes
+// Field names are required for gindex navigation
+// Setters can be used to invalidate a portion a large SSZ for partial rehashing
+// and database storage
+//
+// When creating the SSZ object for GIndex mapping the *FromSchema functions
+// must provide some default values for structs, lists and vectors.

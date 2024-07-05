@@ -25,6 +25,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	ssztypes "github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
 )
 
 //go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../../../primitives/pkg/crypto,../../../../primitives/pkg/common,../../../../primitives/pkg/bytes,../../../../consensus-types/pkg/types,../../../../engine-primitives/pkg/engine-primitives,../../../../primitives/pkg/math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil,../../../../primitives/pkg/common/common.go -output deneb.ssz.go
@@ -63,15 +64,34 @@ type BeaconState struct {
 	TotalSlashing math.Gwei `json:"totalSlashing"`
 }
 
-func (b *BeaconState) Default(spec common.ChainSpec) *ssz.Container {
-	return ssz.ContainerFromFields(
-		[]ssz.ContainerField{
-			{
-				Name: "validators",
-				Value: ssz.ListFromElements(
-					spec.ValidatorRegistryLimit(),
-					(&types.Validator{}).Default(),
-				),
-			},
-		})
+func (*BeaconState) Schema() *ssz.Schema[*BeaconState] {
+	s := &ssz.Schema[*BeaconState]{}
+	s.DefineField(
+		"genesis_validators_root",
+		func(b *BeaconState) ssztypes.MinimalSSZType {
+			return b.GenesisValidatorsRoot
+		},
+	)
+	s.DefineField("fork", func(b *BeaconState) ssztypes.MinimalSSZType {
+		fork := b.Fork
+		if fork == nil {
+			fork = new(types.Fork)
+		}
+		return ssz.ContainerFromSchema(fork)
+	})
+	s.DefineField("validators", func(b *BeaconState) ssztypes.MinimalSSZType {
+		vals := b.Validators
+		if len(vals) == 0 {
+			vals = []*types.Validator{new(types.Validator)}
+		}
+		return ssz.ListFromSchema(1099511627776, vals)
+	})
+	return s
+}
+
+func (b *BeaconState) Default() *BeaconState {
+	if b == nil {
+		return &BeaconState{}
+	}
+	return b
 }

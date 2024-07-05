@@ -212,23 +212,27 @@ func (v Validator) GetWithdrawalCredentials() WithdrawalCredentials {
 	return v.WithdrawalCredentials
 }
 
-func (v Validator) Default() types.MinimalSSZType {
-	return ssz.ContainerFromFields(
-		[]ssz.ContainerField{
-			{Name: "pubkey", Value: v.Pubkey},
-			{
-				Name:  "withdrawal_credentials",
-				Value: bytes.B32(v.WithdrawalCredentials),
-			},
-			{Name: "effective_balance", Value: ssz.U64(v.EffectiveBalance)},
-			{Name: "slashed", Value: ssz.Bool(v.Slashed)},
-			{
-				Name:  "activation_eligibility_epoch",
-				Value: ssz.U64(v.ActivationEligibilityEpoch),
-			},
-			{Name: "activation_epoch", Value: ssz.U64(v.ActivationEpoch)},
-			{Name: "exit_epoch", Value: ssz.U64(v.ExitEpoch)},
-			{Name: "withdrawable_epoch", Value: ssz.U64(v.WithdrawableEpoch)},
+func (*Validator) Schema() *ssz.Schema[*Validator] {
+	s := &ssz.Schema[*Validator]{}
+	s.DefineField(
+		"pubkey",
+		func(v *Validator) types.MinimalSSZType { return v.Pubkey },
+	)
+	s.DefineField(
+		"withdrawal_credentials",
+		func(v *Validator) types.MinimalSSZType {
+			return bytes.B32(v.WithdrawalCredentials)
 		},
 	)
+	s.DefineField("slashed", func(v *Validator) types.MinimalSSZType {
+		return ssz.Bool(v.Slashed)
+	})
+	return s
+}
+
+func (v *Validator) Default() *Validator {
+	if v == nil {
+		return &Validator{}
+	}
+	return v
 }

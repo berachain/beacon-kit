@@ -23,6 +23,8 @@ package types
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	ssztypes "github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
 )
 
 // Fork as defined in the Ethereum 2.0 specification:
@@ -50,4 +52,28 @@ func (f *Fork) New(
 		CurrentVersion:  currentVersion,
 		Epoch:           epoch,
 	}
+}
+
+func (*Fork) Schema() *ssz.Schema[*Fork] {
+	s := &ssz.Schema[*Fork]{}
+	s.DefineField(
+		"previous_version",
+		func(f *Fork) ssztypes.MinimalSSZType { return f.PreviousVersion },
+	)
+	s.DefineField(
+		"current_version",
+		func(f *Fork) ssztypes.MinimalSSZType { return f.CurrentVersion },
+	)
+	s.DefineField(
+		"epoch",
+		func(f *Fork) ssztypes.MinimalSSZType { return ssz.U64(f.Epoch) },
+	)
+	return s
+}
+
+func (f *Fork) Default() *Fork {
+	if f == nil {
+		return &Fork{}
+	}
+	return f
 }

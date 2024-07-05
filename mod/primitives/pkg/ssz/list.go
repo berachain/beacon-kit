@@ -43,7 +43,8 @@ type List[T types.MinimalSSZType] struct {
 	// elements is the list of elements.
 	elements []T
 	// limit is the maximum number of elements in the list.
-	limit uint64
+	limit  uint64
+	sample tree.GIndexed
 }
 
 // ListFromElements creates a new ListComposite from elements.
@@ -164,6 +165,9 @@ func (l *List[T]) NewFromSSZ(buf []byte, limit uint64) (*List[T], error) {
 }
 
 func (l *List[T]) GIndex(gIndex math.U64, path tree.ObjectPath) *tree.Node {
+	if path.Empty() {
+		return &tree.Node{GIndex: gIndex, Offset: 0}
+	}
 	// TODO err check
 	head, rest := path.Index()
 
@@ -171,10 +175,22 @@ func (l *List[T]) GIndex(gIndex math.U64, path tree.ObjectPath) *tree.Node {
 		return nil
 	}
 	gIndex = 2*gIndex*(math.U64(l.limit).NextPowerOfTwo()) + math.U64(head)
-	var t T
-	if gid, ok := any(t).(tree.GIndexed); ok {
-		return gid.GIndex(gIndex, rest)
+	if l.sample != nil {
+		return l.sample.GIndex(gIndex, rest)
 	}
 	// TODO offset
 	return &tree.Node{GIndex: gIndex, Offset: 0}
+}
+
+func ListFromSchema[ContainerT HasSchema[ContainerT]](
+	limit uint64,
+	elements []ContainerT,
+) *List[*Container] {
+	var c ContainerT
+	sample := ContainerFromSchema(c.Default())
+	var containers []*Container
+	for _, element := range elements {
+		containers = append(containers, ContainerFromSchema(element))
+	}
+	return &List[*Container]{elements: containers, limit: limit, sample: sample}
 }
