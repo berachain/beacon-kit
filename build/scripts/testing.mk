@@ -119,7 +119,6 @@ start-geth-validator-run:
 	--rpc.allow-unprotected-txs \
 	--miner.gaslimit 100000000 \
 	--syncmode "full" \
-	--gcmode "archive" \
 	--nat extip:${INTERNAL_IP}
 
 start-geth-node-run:
@@ -136,7 +135,6 @@ start-geth-node-run:
 	--rpc.allow-unprotected-txs \
 	--miner.gaslimit 100000000 \
 	--syncmode "snap" \
-	--gcmode "archive" \
 	--nat extip:${INTERNAL_IP}
 
 start-geth-run-local:
