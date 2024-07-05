@@ -414,59 +414,58 @@ func broadcastDepositTx(
 	}
 	return gethCommon.Hash{}, nil
 
-	//
-	//latestNonceForDeposit, err := engineClient.NonceAt(
-	//	cmd.Context(),
-	//	ethCrypto.PubkeyToAddress(privKey.PublicKey),
-	//	nil,
-	//)
-	//fmt.Println("LATEST NONCE", latestNonceForDeposit)
+	latestNonceForDeposit, err := engineClient.NonceAt(
+		cmd.Context(),
+		ethCrypto.PubkeyToAddress(privKey.PublicKey),
+		nil,
+	)
+	fmt.Println("LATEST NONCE", latestNonceForDeposit)
 
-	//tx, err := depositContract.Deposit(
-	//	&bind.TransactOpts{
-	//		From: ethCrypto.PubkeyToAddress(privKey.PublicKey),
-	//		Signer: func(
-	//			_ common.ExecutionAddress, tx *ethTypes.Transaction,
-	//		) (*ethTypes.Transaction, error) {
-	//			return ethTypes.SignTx(
-	//				//tx, ethTypes.NewEIP155Signer(chainID),
-	//				tx, ethTypes.LatestSignerForChainID(chainID),
-	//				privKey,
-	//			)
-	//		},
-	//		Nonce:     new(big.Int).SetUint64(latestNonceForDeposit),
-	//		Value:     depositMsg.Amount.ToWei(),
-	//		GasTipCap: big.NewInt(1000000000),
-	//		GasFeeCap: big.NewInt(1000000000),
-	//		GasLimit:  600000,
-	//	},
-	//	depositMsg.Pubkey[:],
-	//	depositMsg.Credentials[:],
-	//	uint64(depositMsg.Amount), // 32 eth is minimum deposit amount.
-	//	signature[:],
-	//)
-	//if err != nil {
-	//	fmt.Errorf("error in depositing: %v", err)
-	//	return gethCommon.Hash{}, err
-	//}
+	depositTx, err := depositContract.Deposit(
+		&bind.TransactOpts{
+			From: ethCrypto.PubkeyToAddress(privKey.PublicKey),
+			Signer: func(
+				_ common.ExecutionAddress, tx *ethTypes.Transaction,
+			) (*ethTypes.Transaction, error) {
+				return ethTypes.SignTx(
+					//tx, ethTypes.NewEIP155Signer(chainID),
+					tx, ethTypes.LatestSignerForChainID(chainID),
+					privKey,
+				)
+			},
+			Nonce:     new(big.Int).SetUint64(latestNonceForDeposit),
+			Value:     depositMsg.Amount.ToWei(),
+			GasTipCap: big.NewInt(1000000000),
+			GasFeeCap: big.NewInt(1000000000),
+			GasLimit:  600000,
+		},
+		depositMsg.Pubkey[:],
+		depositMsg.Credentials[:],
+		uint64(depositMsg.Amount), // 32 eth is minimum deposit amount.
+		signature[:],
+	)
+	if err != nil {
+		fmt.Errorf("error in depositing: %v", err)
+		return gethCommon.Hash{}, err
+	}
 
 	// wait for 10 seconds
 	//time.Sleep(10 * time.Second)
 	//// Wait for the transaction to be mined and check the status.
-	//receipt, err := bind.WaitMined(cmd.Context(), engineClient, tx)
-	//if err != nil {
-	//	fmt.Errorf("error in waiting for transaction to be mined: %v", err)
-	//	return gethCommon.Hash{}, err
-	//}
-	//fmt.Println("RECEIPT", receipt)
-	//
-	//fmt.Println("transaction hash", receipt.TxHash)
-	//fmt.Println("transaction hash", receipt.Logs)
-	//if receipt.Status != 1 {
-	//	return gethCommon.Hash{}, parser.ErrDepositTransactionFailed
-	//}
-	//
-	//return receipt.TxHash, nil
+	receipt, err := bind.WaitMined(cmd.Context(), engineClient, depositTx)
+	if err != nil {
+		fmt.Errorf("error in waiting for transaction to be mined: %v", err)
+		return gethCommon.Hash{}, err
+	}
+	fmt.Println("RECEIPT", receipt)
+
+	fmt.Println("transaction hash", receipt.TxHash)
+	fmt.Println("transaction hash", receipt.Logs)
+	if receipt.Status != 1 {
+		return gethCommon.Hash{}, parser.ErrDepositTransactionFailed
+	}
+
+	return receipt.TxHash, nil
 }
 
 func loadFromFile(path string) (*jwt.Secret, error) {
