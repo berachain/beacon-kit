@@ -135,9 +135,9 @@ type KVStore[
 	// ValidatorIndexByPubkey retrieves the validator index by the given pubkey.
 	ValidatorIndexByPubkey(pubkey crypto.BLSPubkey) (math.ValidatorIndex, error)
 	// AddValidator adds a validator.
-	AddValidator(
-		val ValidatorT,
-	) error
+	AddValidator(val ValidatorT) error
+	// AddValidatorBartio adds a validator to the Bartio chain.
+	AddValidatorBartio(val ValidatorT) error
 	// ValidatorIndexByCometBFTAddress retrieves the validator index by the
 	// given comet BFT address.
 	ValidatorIndexByCometBFTAddress(
