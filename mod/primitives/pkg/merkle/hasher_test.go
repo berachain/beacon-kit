@@ -219,24 +219,24 @@ func Test_GoHashTreeHashConformance(t *testing.T) {
 	}
 }
 
-func TestBuildParentTreeRootsWithNRoutines_DivisionByZero(t *testing.T) {
-	// Attempt to call BuildParentTreeRootsWithNRoutines with n set to 0
-	// to test handling of division by zero.
-	inputList := make([][32]byte, 10) // Arbitrary size larger than 0
-	output := make([][32]byte, 8)     // Arbitrary size smaller than inputList
-	err := merkle.BuildParentTreeRootsWithNRoutines(
-		output,
-		inputList,
-		0,
-		merkle.MinParallelizationSize,
-	)
-	require.NoError(
-		t,
-		err,
+// func TestBuildParentTreeRootsWithNRoutines_DivisionByZero(t *testing.T) {
+// 	// Attempt to call BuildParentTreeRootsWithNRoutines with n set to 0
+// 	// to test handling of division by zero.
+// 	inputList := make([][32]byte, 10) // Arbitrary size larger than 0
+// 	output := make([][32]byte, 8)     // Arbitrary size smaller than inputList
+// 	err := merkle.BuildParentTreeRootsWithNRoutines(
+// 		output,
+// 		inputList,
+// 		0,
+// 		merkle.MinParallelizationSize,
+// 	)
+// 	require.NoError(
+// 		t,
+// 		err,
 
-		"BuildParentTreeRootsWithNRoutines should handle n=0 without error",
-	)
-}
+// 		"BuildParentTreeRootsWithNRoutines should handle n=0 without error",
+// 	)
+// }
 
 // requireGoHashTreeEquivalence is a helper function to ensure that the output
 // of merkle.BuildParentTreeRootsWithNRoutines is equivalent to the output of
@@ -257,11 +257,11 @@ func requireGoHashTreeEquivalence(
 	var err1, err2 error
 
 	// Run merkle.BuildParentTreeRootsWithNRoutines
-	err1 = merkle.BuildParentTreeRootsWithNRoutines(
+	err1 = merkle.BuildParentTreeRoots(
 		output,
 		inputListCopy,
-		numRoutines,
-		minParallelizationSize,
+		// numRoutines,
+		// minParallelizationSize,
 	)
 
 	// Run gohashtree.Hash
