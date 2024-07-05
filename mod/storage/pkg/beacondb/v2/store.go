@@ -91,7 +91,6 @@ func New[
 	ForkT constraints.SSZMarshallable,
 	ValidatorT Validator,
 ](
-	rootStore runtime.Store,
 	payloadCodec *encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT],
 ) *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
@@ -238,6 +237,12 @@ func (s *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
 ]) AddChange(storeKey []byte, key []byte, value []byte) {
 	s.changeSet.Add(storeKey, key, value, false)
+}
+
+func (s *Store[
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
+]) SetBackendStore(store runtime.Store) {
+	s.Store = store
 }
 
 func (s *Store[

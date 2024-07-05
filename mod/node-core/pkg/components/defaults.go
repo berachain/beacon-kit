@@ -83,7 +83,7 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideTxCodec[transaction.Tx],
 
 		// server v2
-		ProvideSDKApp[transaction.Tx],
+		// ProvideSDKApp[transaction.Tx],
 		ProvideStateStore[transaction.Tx],
 		ProvideStoreOptions,
 

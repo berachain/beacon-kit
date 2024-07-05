@@ -27,6 +27,7 @@ import (
 	serverv2 "cosmossdk.io/server/v2"
 	"cosmossdk.io/server/v2/appmanager"
 	bkcomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
+	bkappmanager "github.com/berachain/beacon-kit/mod/node-core/pkg/components/appmanager"
 	"github.com/cosmos/cosmos-sdk/client"
 )
 
@@ -45,13 +46,22 @@ type BeaconApp[T transaction.Tx] struct {
 
 // NewBeaconKitApp returns a reference to an initialized BeaconApp.
 func NewBeaconKitApp[T transaction.Tx](
-	sdkApp *runtime.App[T],
+	appBuilder *runtime.AppBuilder[T],
 	middleware *bkcomponents.ABCIMiddleware,
 ) *BeaconApp[T] {
 	app := &BeaconApp[T]{
-		App:        sdkApp,
 		middleware: middleware,
 	}
+	var err error
+	app.App, err = appBuilder.Build()
+	if err != nil {
+		panic(err)
+	}
+	appManager := bkappmanager.NewAppManager(
+		app.App.GetAppManager(),
+		middleware,
+	)
+	app.App.AppManager = appManager
 
 	// app.SetTxDecoder(bkcomponents.NoOpTxConfig{}.TxDecoder())
 
