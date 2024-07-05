@@ -21,11 +21,16 @@
 package deposit
 
 import (
+	"context"
 	"crypto/ecdsa"
 	"fmt"
+	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/deposit"
+	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 	"net/url"
 	"os"
+	"time"
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
@@ -35,7 +40,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
-	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -44,7 +48,7 @@ import (
 	myUrl "github.com/berachain/beacon-kit/mod/primitives/pkg/net/url"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	ethTypes "github.com/ethereum/go-ethereum/core/types"
+	gethCommon "github.com/ethereum/go-ethereum/common"
 	ethCrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/spf13/cobra"
@@ -93,8 +97,8 @@ func createValidatorCmd(
 ) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		var (
-			privKey *ecdsa.PrivateKey
 			logger  = log.NewLogger(os.Stdout)
+			privKey *ecdsa.PrivateKey
 		)
 
 		broadcast, err := cmd.Flags().GetBool(broadcastDeposit)
@@ -154,7 +158,6 @@ func createValidatorCmd(
 			amount,
 		)
 		if err != nil {
-			fmt.Errorf("error in creating and signing deposit message: %v", err)
 			return err
 		}
 
@@ -165,7 +168,6 @@ func createValidatorCmd(
 			chainSpec.DomainTypeDeposit(),
 			signer.BLSSigner{}.VerifySignature,
 		); err != nil {
-			fmt.Errorf("error in verifying deposit message: %v", err)
 			return err
 		}
 
@@ -178,8 +180,9 @@ func createValidatorCmd(
 			"amount", depositMsg.Amount,
 			"signature", signature.String(),
 		)
+
 		if broadcast {
-			var txHash common.Hash32
+			var txHash gethCommon.Hash
 			txHash, err = broadcastDepositTx(
 				cmd, depositMsg, signature, privKey, logger, spec.DevnetChainSpec(),
 			)
@@ -189,7 +192,7 @@ func createValidatorCmd(
 
 			logger.Info(
 				"Deposit transaction successful",
-				"txHash", txHash.String(),
+				"txHash", txHash.Hex(),
 			)
 		}
 
@@ -207,7 +210,7 @@ func broadcastDepositTx(
 	privKey *ecdsa.PrivateKey,
 	logger log.Logger,
 	chainSpec common.ChainSpec,
-) (common.Hash32, error) {
+) (gethCommon.Hash, error) {
 	// Spin up an engine client to broadcast the deposit transaction.
 	// TODO: This should read in the actual config file. I'm going to rope
 	// if I keep trying this right now so it's a flag lol! 🥲
@@ -216,25 +219,22 @@ func broadcastDepositTx(
 	// Parse the engine RPC URL.
 	engineRPCURL, err := cmd.Flags().GetString(engineRPCURL)
 	if err != nil {
-		fmt.Errorf("error in getting engine rpc url: %v", err)
-		return common.Hash32{}, err
+		return gethCommon.Hash{}, err
 	}
-	fmt.Println("engineRPCURL", engineRPCURL)
 
 	parsedURL, err := url.Parse(engineRPCURL)
 	if err != nil {
-		fmt.Errorf("err in parsing engine rpc url: %v", err)
-		return common.Hash32{}, err
+		return gethCommon.Hash{}, err
 	}
-	fmt.Println("parsedURL", parsedURL)
 
 	cfg.Engine.RPCDialURL = convertURLToConnectionURL(parsedURL)
 	fmt.Println("RPCDialURL", cfg.Engine.RPCDialURL)
+
 	// Load the JWT secret.
 	cfg.Engine.JWTSecretPath, err = cmd.Flags().GetString(jwtSecretPath)
 	if err != nil {
 		fmt.Errorf("error in getting jwt secret path: %v", err)
-		return common.Hash32{}, err
+		return gethCommon.Hash{}, err
 	}
 
 	jwtSecret, err := loadFromFile(cfg.Engine.JWTSecretPath)
@@ -244,6 +244,7 @@ func broadcastDepositTx(
 		panic(err)
 	}
 
+	// TODO: This is a WIP. I'm not sure how to get the engine client to work
 	//config := &beaconClient.Config{}
 	//
 	//var telemetrySink beaconClient.TelemetrySink
@@ -269,23 +270,17 @@ func broadcastDepositTx(
 	}
 
 	if engineClient == nil {
-		fmt.Errorf("failed to create Ethereum client")
+		return gethCommon.Hash{}, errors.New("failed to create Ethereum client")
 	}
 
-	depositContract, err := deposit.NewBeaconDepositContract(
-		chainSpec.DepositContractAddress(),
-		engineClient,
-	)
-	if err != nil {
-		return common.Hash32{}, err
-	}
+	depositContractAddress := chainSpec.DepositContractAddress()
+	//depositContractAddressAfterConversion := gethCommon.HexToAddress(depositContractAddress.String())
+	//fmt.Println("DEPOSIT CONTRACT ADDRESS AFTER CONVERSION", depositContractAddressAfterConversion)
 
-	fmt.Println("DEPOSIT CONTRACT", depositContract)
 	chainID, err := engineClient.ChainID(cmd.Context())
 	if err != nil {
-		return common.Hash32{}, err
+		return gethCommon.Hash{}, err
 	}
-	fmt.Println("CHAIN ID", chainID)
 
 	latestNonce, err := engineClient.NonceAt(
 		cmd.Context(),
@@ -293,53 +288,54 @@ func broadcastDepositTx(
 		nil,
 	)
 	fmt.Println("LATEST NONCE", latestNonce)
-	if err != nil {
-		fmt.Println("PANIC AT NONCE")
-		panic(err)
-	}
-	contractAbi, err := deposit.BeaconDepositContractMetaData.GetAbi()
+
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("CONTRACT ABI", contractAbi)
+	// one way
+	//contractAbi, err := deposit.BeaconDepositContractMetaData.GetAbi()
+	//if err != nil {
+	//	panic(err)
+	//}
+	//fmt.Println("CONTRACT ABI", contractAbi)
+	//
+	//callData, err := contractAbi.Pack(
+	//	"deposit",
+	//	depositMsg.Pubkey[:],
+	//	depositMsg.Credentials[:],
+	//	uint64(0),
+	//	signature[:],
+	//)
+	//fmt.Println("CALL DATA", callData)
+	//
+	//if err != nil {
+	//	fmt.Println("PANIC AT PACK")
+	//	panic(err)
+	//}
+	//
+	//tx := ethTypes.NewTx(
+	//	&ethTypes.DynamicFeeTx{
+	//		Nonce:     latestNonce,
+	//		ChainID:   chainID,
+	//		To:        &depositContractAddress,
+	//		Value:     depositMsg.Amount.ToWei(),
+	//		Data:      callData,
+	//		GasTipCap: big.NewInt(1000000000),
+	//		GasFeeCap: big.NewInt(1000000000),
+	//		Gas:       500000,
+	//	},
+	//)
+	//
+	//fmt.Println("TX", tx)
+	//
+	//signedTx, err := ethTypes.SignTx(tx, ethTypes.LatestSignerForChainID(chainID), privKey)
+	//fmt.Println("SIGNED TX", signedTx)
+	//
+	//if err != nil {
+	//	fmt.Errorf("error in signing tx: %v", err)
+	//}
 
-	callData, err := contractAbi.Pack(
-		"deposit",
-		depositMsg.Pubkey[:],
-		depositMsg.Credentials[:],
-		uint64(0),
-		signature[:],
-	)
-	fmt.Println("CALL DATA", callData)
-	if err != nil {
-		fmt.Println("PANIC AT PACK")
-		panic(err)
-	}
-
-	//chainID := big.NewInt(int64(chainSpec.DepositEth1ChainID()))
-	depositContractAddress := chainSpec.DepositContractAddress()
-	tx := ethTypes.NewTx(
-		&ethTypes.DynamicFeeTx{
-			Nonce:     latestNonce,
-			ChainID:   chainID,
-			To:        &depositContractAddress,
-			Value:     depositMsg.Amount.ToWei(),
-			Data:      callData,
-			GasTipCap: big.NewInt(1000000000),
-			GasFeeCap: big.NewInt(1000000000),
-			Gas:       500000,
-		},
-	)
-
-	fmt.Println("TX", tx)
-	signedTx, err := ethTypes.SignTx(tx, ethTypes.LatestSignerForChainID(chainID), privKey)
-	fmt.Println("SIGNED TX", signedTx)
-	fmt.Errorf("error in signing tx: %v", err)
-	if err != nil {
-		fmt.Println("PANIC AT SIGN TX", err)
-	}
-
-	//Now send this raw transaction through your RPC client
+	////Now send this raw transaction through your RPC client
 	//_, err = engineClient.CallContract(
 	//	cmd.Context(),
 	//	ethereum.CallMsg{
@@ -362,44 +358,115 @@ func broadcastDepositTx(
 	//}
 	//
 	//fmt.Println("CONTRACT CALLED")
+	// Getting same error using both approaches
 
+	// One approach to send deposit txn - is through go bindings
 	//Send the deposit to the deposit contract.
-	tx, err = depositContract.Deposit(
-		&bind.TransactOpts{
-			From: ethCrypto.PubkeyToAddress(privKey.PublicKey),
-			Signer: func(
-				_ common.ExecutionAddress, tx *ethTypes.Transaction,
-			) (*ethTypes.Transaction, error) {
-				return ethTypes.SignTx(
-					tx, ethTypes.NewEIP155Signer(chainID),
-					privKey,
-				)
-			},
-			Nonce:     big.NewInt(int64(latestNonce)),
-			Value:     depositMsg.Amount.ToWei(),
-			GasTipCap: big.NewInt(1000000000),
-			GasFeeCap: big.NewInt(1000000000),
-		},
-		depositMsg.Pubkey[:],
-		depositMsg.Credentials[:],
-		0,
-		signature[:],
+
+	depositContract, err := deposit.NewBeaconDepositContract(
+		depositContractAddress,
+		engineClient,
 	)
 	if err != nil {
-		fmt.Errorf("error in depositing: %v", err)
-		return common.Hash32{}, err
+		return gethCommon.Hash{}, err
 	}
 
-	// Wait for the transaction to be mined and check the status.
-	receipt, err := bind.WaitMined(cmd.Context(), engineClient, tx)
+	fmt.Println("from", ethCrypto.PubkeyToAddress(privKey.PublicKey))
+	fromAddress := ethCrypto.PubkeyToAddress(privKey.PublicKey)
+
+	allowDepositTx, err := depositContract.AllowDeposit(&bind.TransactOpts{
+		From: fromAddress,
+		Signer: func(
+			_ common.ExecutionAddress, tx *ethTypes.Transaction,
+		) (*ethTypes.Transaction, error) {
+			return ethTypes.SignTx(
+				tx, ethTypes.LatestSignerForChainID(chainID),
+				privKey,
+			)
+		},
+		//Nonce: new(big.Int).SetUint64(latestNonce),
+		//Value:     depositMsg.Amount.ToWei(),
+		GasTipCap: big.NewInt(1000000000),
+		GasFeeCap: big.NewInt(1000000000),
+		GasLimit:  30000000, // without this gets executed reverted
+	},
+		fromAddress,
+		1,
+	)
+
 	if err != nil {
-		return common.Hash32{}, err
-	}
-	if receipt.Status != 1 {
-		return common.Hash32{}, parser.ErrDepositTransactionFailed
+		fmt.Errorf("error in allowing depositing: %v", err)
+		return gethCommon.Hash{}, err
 	}
 
-	return common.Hash32(receipt.TxHash), nil
+	time.Sleep(10 * time.Second)
+	// Wait for the transaction to be mined and check the status.
+	receiptAllow, err := bind.WaitMined(context.Background(), engineClient, allowDepositTx)
+	if err != nil {
+		fmt.Errorf("error in waiting for transaction to be mined: %v", err)
+		return gethCommon.Hash{}, err
+	}
+	fmt.Println("receiptAllow", receiptAllow)
+
+	fmt.Println("transaction hash", receiptAllow.TxHash)
+	if receiptAllow.Status != 1 {
+		return gethCommon.Hash{}, parser.ErrDepositTransactionFailed
+	}
+	return gethCommon.Hash{}, nil
+
+	//
+	//latestNonceForDeposit, err := engineClient.NonceAt(
+	//	cmd.Context(),
+	//	ethCrypto.PubkeyToAddress(privKey.PublicKey),
+	//	nil,
+	//)
+	//fmt.Println("LATEST NONCE", latestNonceForDeposit)
+
+	//tx, err := depositContract.Deposit(
+	//	&bind.TransactOpts{
+	//		From: ethCrypto.PubkeyToAddress(privKey.PublicKey),
+	//		Signer: func(
+	//			_ common.ExecutionAddress, tx *ethTypes.Transaction,
+	//		) (*ethTypes.Transaction, error) {
+	//			return ethTypes.SignTx(
+	//				//tx, ethTypes.NewEIP155Signer(chainID),
+	//				tx, ethTypes.LatestSignerForChainID(chainID),
+	//				privKey,
+	//			)
+	//		},
+	//		Nonce:     new(big.Int).SetUint64(latestNonceForDeposit),
+	//		Value:     depositMsg.Amount.ToWei(),
+	//		GasTipCap: big.NewInt(1000000000),
+	//		GasFeeCap: big.NewInt(1000000000),
+	//		GasLimit:  600000,
+	//	},
+	//	depositMsg.Pubkey[:],
+	//	depositMsg.Credentials[:],
+	//	uint64(depositMsg.Amount), // 32 eth is minimum deposit amount.
+	//	signature[:],
+	//)
+	//if err != nil {
+	//	fmt.Errorf("error in depositing: %v", err)
+	//	return gethCommon.Hash{}, err
+	//}
+
+	// wait for 10 seconds
+	//time.Sleep(10 * time.Second)
+	//// Wait for the transaction to be mined and check the status.
+	//receipt, err := bind.WaitMined(cmd.Context(), engineClient, tx)
+	//if err != nil {
+	//	fmt.Errorf("error in waiting for transaction to be mined: %v", err)
+	//	return gethCommon.Hash{}, err
+	//}
+	//fmt.Println("RECEIPT", receipt)
+	//
+	//fmt.Println("transaction hash", receipt.TxHash)
+	//fmt.Println("transaction hash", receipt.Logs)
+	//if receipt.Status != 1 {
+	//	return gethCommon.Hash{}, parser.ErrDepositTransactionFailed
+	//}
+	//
+	//return receipt.TxHash, nil
 }
 
 func loadFromFile(path string) (*jwt.Secret, error) {
@@ -449,15 +516,11 @@ func getBLSSigner(
 	supplies := []interface{}{client.GetViperFromCmd(cmd)}
 	overrideFlag, err := cmd.Flags().GetBool(overrideNodeKey)
 	if err != nil {
-		fmt.Errorf("error in getting override node key: %v", err)
 		return nil, err
 	}
 
-	fmt.Println("overrideFlag", overrideFlag)
-
 	// Build the BLS signer.
 	if overrideFlag {
-		fmt.Println("if override flag is ", overrideFlag)
 		var (
 			validatorPrivKey string
 			legacyInput      components.LegacyKey
@@ -485,7 +548,6 @@ func getBLSSigner(
 		),
 		&blsSigner,
 	); err != nil {
-		fmt.Errorf("error in injecting bls signer: %v", err)
 		return nil, err
 	}
 
