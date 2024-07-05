@@ -255,16 +255,14 @@ func requireGoHashTreeEquivalence(
 	output := make([][32]byte, len(inputListCopy)/2)
 	var err1, err2 error
 
-	// STABLE on fuzzing
-	// // Run prysm's VectorizedSha256
+	// Prysm's VectorizedSha256 is STABLE on fuzzing
 	// if expectError {
-	// 	err1 = fmt.Errorf("odd number of chucnks")
+	// 	err1 = fmt.Errorf("expecting error")
 	// } else {
 	// 	output = htr.VectorizedSha256(inputListCopy)
 	// }
 
-	// NOT STABLE on fuzzing
-	// Run merkle.BuildParentTreeRootsWithNRoutines
+	// Ours is NOT STABLE on fuzzing
 	err1 = merkle.BuildParentTreeRootsWithNRoutines(
 		output,
 		inputListCopy,

@@ -90,7 +90,7 @@ func FuzzHashTreeRoot(f *testing.F) {
 		original []byte, isLeaves bool,
 		numRoutines, minParallelizationSize int,
 	) {
-		if numRoutines < 1 {
+		if numRoutines < 0 {
 			return
 		}
 

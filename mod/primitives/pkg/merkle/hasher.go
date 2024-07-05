@@ -206,6 +206,9 @@ func BuildParentTreeRootsWithNRoutines(
 			)
 		})
 	}
+	if err := eg.Wait(); err != nil {
+		return err
+	}
 
 	defer func() {
 		// Copy the results from workingSpace to outputList
@@ -213,5 +216,5 @@ func BuildParentTreeRootsWithNRoutines(
 		outputList = outputList[:outputLength]
 	}()
 
-	return eg.Wait()
+	return nil
 }
