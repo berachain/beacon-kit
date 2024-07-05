@@ -15,7 +15,7 @@ replace (
 
 require (
 	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240624003607-df94860f8eeb
-	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240624003607-df94860f8eeb
+	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240705192155-574f2bd748a3
 	github.com/cosmos/cosmos-sdk v0.51.0
 	go.uber.org/automaxprocs v1.5.3
 )
@@ -50,7 +50,7 @@ require (
 	github.com/VictoriaMetrics/fastcache v1.12.2 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/berachain/beacon-kit/mod/async v0.0.0-20240624003607-df94860f8eeb // indirect
+	github.com/berachain/beacon-kit/mod/async v0.0.0-20240624011057-b0afb8163f14 // indirect
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240624204855-d8809d5c8588 // indirect
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240614154006-a5defa6198f5 // indirect
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240624003607-df94860f8eeb // indirect
@@ -62,7 +62,7 @@ require (
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240619234034-fe96d94eafef // indirect
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240618214413-d5ec0e66b3dd // indirect
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240624003607-df94860f8eeb // indirect
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240627134700-de48919ec4d6 // indirect
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240705192155-574f2bd748a3 // indirect
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240624003607-df94860f8eeb // indirect
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240624003607-df94860f8eeb // indirect
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240624003607-df94860f8eeb // indirect

@@ -28,8 +28,8 @@ import (
 	"strconv"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 )
 
 var _ types.SSZType[U64] = (*U64)(nil)
