@@ -17,7 +17,8 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
-
+//
+//nolint:dupl // it's okay to have similar code for different types
 package math
 
 import (
@@ -34,7 +35,7 @@ import (
 // Ensure type implements types.SSZType.
 var _ types.SSZType[U8] = (*U8)(nil)
 
-// U8 represents a 8-bit unsigned integer that is both SSZ and JSON
+// U8 represents a 8-bit unsigned integer that is both SSZ and JSON.
 type U8 uint8
 
 /* -------------------------------------------------------------------------- */

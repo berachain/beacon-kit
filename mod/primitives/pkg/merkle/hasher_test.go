@@ -243,7 +243,7 @@ func Test_GoHashTreeHashConformance(t *testing.T) {
 // gohashtree.Hash.
 func requireGoHashTreeEquivalence(
 	t *testing.T,
-	inputList [][32]byte, numRoutines int, minParallelizationSize int,
+	inputList [][32]byte, _ int, _ int,
 	expectError bool,
 ) {
 	t.Helper()
