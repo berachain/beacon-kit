@@ -24,8 +24,8 @@ package math
 import (
 	"fmt"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 )
 
 /* -------------------------------------------------------------------------- */

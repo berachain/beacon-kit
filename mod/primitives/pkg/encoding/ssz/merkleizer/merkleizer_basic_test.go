@@ -25,7 +25,7 @@ import (
 	"encoding/binary"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkleizer"
 	"github.com/stretchr/testify/require"
 )
 
