@@ -120,10 +120,6 @@ github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240624003607-df948
 github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240624003607-df94860f8eeb/go.mod h1:RvAUQ7z/nf5kjSQVn0mnTpjOelHLs/KAw+iMhhIL2Ik=
 github.com/berachain/beacon-kit/mod/storage v0.0.0-20240624003607-df94860f8eeb h1:g0HIyzCHDvQorlK9adNLpfSqpkhoHWWGUYhnwvGVtac=
 github.com/berachain/beacon-kit/mod/storage v0.0.0-20240624003607-df94860f8eeb/go.mod h1:3S0/lau+3c5ccavJv1e7CIWSQgGsPd5xroCoh/IcSd0=
-github.com/berachain/cometbft v0.0.0-20240704195113-b5c9a511a3ea h1:DsoVIVXpV+6JRF1UGr42jwal4MwzcP44e5Z4na1s3E8=
-github.com/berachain/cometbft v0.0.0-20240704195113-b5c9a511a3ea/go.mod h1:bluxxex9Ik+Ll6TnshRwwDDgPEaF8M4vbhEKA9W7JaQ=
-github.com/berachain/cometbft/api v0.0.0-20240704195113-b5c9a511a3ea h1:5Oxf18ITo9Ymonw2No2vNTzA7JWWwsfXPDSByQUG4RM=
-github.com/berachain/cometbft/api v0.0.0-20240704195113-b5c9a511a3ea/go.mod h1:NDFKiBBD8HJC6QQLAoUI99YhsiRZtg2+FJWfk6A6m6o=
 github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240624014538-75ba469b1881 h1:08l5GGkl19zIShnUZKiU7ONTfK7L9KS/b82Mdrc+Fz8=
 github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240624014538-75ba469b1881/go.mod h1:hCN0m+X7MmJvJ2ukDDRDyScC+30wXHtXTdx6vleSnBU=
 github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816 h1:41iFGWnSlI2gVpmOtVTJZNodLdLQLn/KsJqFvXwnd/s=
@@ -180,8 +176,12 @@ github.com/cockroachdb/redact v1.1.5 h1:u1PMllDkdFfPWaNGMyLD1+so+aq3uUItthCFqzwP
 github.com/cockroachdb/redact v1.1.5/go.mod h1:BVNblN9mBWFyMyqK1k3AAiSxhvhfK2oOZZ2lK+dpvRg=
 github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 h1:zuQyyAKVxetITBuuhv3BI9cMrmStnpT18zmgmTxunpo=
 github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06/go.mod h1:7nc4anLGjupUW/PeY5qiNYsdNXj7zopG+eqsS7To5IQ=
+github.com/cometbft/cometbft v1.0.0-rc1.0.20240705183350-8b262bdd1d36 h1:+yRt+GqmVGpt/vfciYBUnBfc4VbwYAqkqiEWANMavzg=
+github.com/cometbft/cometbft v1.0.0-rc1.0.20240705183350-8b262bdd1d36/go.mod h1:F87UbrbvLr1kAdXy72uqEijE+36I9GO6XMrG71rxHlA=
 github.com/cometbft/cometbft-db v0.12.0 h1:v77/z0VyfSU7k682IzZeZPFZrQAKiQwkqGN0QzAjMi0=
 github.com/cometbft/cometbft-db v0.12.0/go.mod h1:aX2NbCrjNVd2ZajYxt1BsiFf/Z+TQ2MN0VxdicheYuw=
+github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240702102754-c4fa9a6225b0 h1:X6qp8ZhLKhk1Vw4JHqWVZKt21xomVWykr6ltY4yXIno=
+github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240702102754-c4fa9a6225b0/go.mod h1:NDFKiBBD8HJC6QQLAoUI99YhsiRZtg2+FJWfk6A6m6o=
 github.com/consensys/bavard v0.1.13 h1:oLhMLOFGTLdlda/kma4VOJazblc7IM5y5QPd2A/YjhQ=
 github.com/consensys/bavard v0.1.13/go.mod h1:9ItSMtA/dXMAiL7BG6bqW2m3NdSEObYWoH223nGHukI=
 github.com/consensys/gnark-crypto v0.12.1 h1:lHH39WuuFgVHONRl3J0LRBtuYdQTumFSDtJF7HpyG8M=
@@ -195,8 +195,8 @@ github.com/cosmos/cosmos-db v1.0.2 h1:hwMjozuY1OlJs/uh6vddqnk9j7VamLv+0DBlbEXbAK
 github.com/cosmos/cosmos-db v1.0.2/go.mod h1:Z8IXcFJ9PqKK6BIsVOB3QXtkKoqUOp1vRvPT39kOXEA=
 github.com/cosmos/cosmos-proto v1.0.0-beta.5 h1:eNcayDLpip+zVLRLYafhzLvQlSmyab+RC5W7ZfmxJLA=
 github.com/cosmos/cosmos-proto v1.0.0-beta.5/go.mod h1:hQGLpiIUloJBMdQMMWb/4wRApmI9hjHH05nefC0Ojec=
-github.com/cosmos/crypto v0.0.0-20240312084433-de8f9c76030d h1:jvmjxQ1je5eI4/pBuw0hIh7cRQHypQFltn6tcMhwiUc=
-github.com/cosmos/crypto v0.0.0-20240312084433-de8f9c76030d/go.mod h1:0mwg1fWGQjRi86KM/TQ5pUgBU84rWSYi/yhBg6/Aff0=
+github.com/cosmos/crypto v0.1.1 h1:AM0FJULxiDtFl7j3sYawx8smSE42YrxnqBDiZnDTVmM=
+github.com/cosmos/crypto v0.1.1/go.mod h1:b6VWz3HczIpBaQPvI7KrbQeF3pXHh0al3T5e0uwMBQw=
 github.com/cosmos/go-bip39 v1.0.0 h1:pcomnQdrdH22njcAatO0yWojsUnCO3y2tNoV1cb6hHY=
 github.com/cosmos/go-bip39 v1.0.0/go.mod h1:RNJv0H/pOIVgxw6KS7QeX2a0Uo0aKUlfhZ4xuwvCdJw=
 github.com/cosmos/gogogateway v1.2.0 h1:Ae/OivNhp8DqBi/sh2A8a1D0y638GpL3tkmLQAiKxTE=
