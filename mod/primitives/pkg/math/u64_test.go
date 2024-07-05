@@ -25,6 +25,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/serialization"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/require"
 )
@@ -76,7 +77,7 @@ func TestU64_UnmarshalSSZ(t *testing.T) {
 		{
 			name: "invalid data - short buffer",
 			data: []byte{0, 0, 0},
-			err:  math.ErrUnexpectedInputLengthBase,
+			err:  serialization.ErrUnexpectedInputLengthBase,
 		},
 		{
 			name:     "valid data - max uint64",
@@ -91,7 +92,7 @@ func TestU64_UnmarshalSSZ(t *testing.T) {
 		{
 			name: "invalid data - long buffer",
 			data: []byte{0, 0, 0, 0, 0, 0, 0, 0, 1},
-			err:  math.ErrUnexpectedInputLengthBase,
+			err:  serialization.ErrUnexpectedInputLengthBase,
 		},
 		{
 			name:     "valid data - one",
