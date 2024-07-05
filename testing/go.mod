@@ -16,7 +16,7 @@ require (
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240630232851-507966e7b554
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240619234034-fe96d94eafef
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240627201655-33a34cec850e
-	github.com/cometbft/cometbft v1.0.0-rc1.0.20240702102754-c4fa9a6225b0
+	github.com/cometbft/cometbft v1.0.0-rc1.0.20240705183350-8b262bdd1d36
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/ethereum/go-ethereum v1.14.6
 	github.com/holiman/uint256 v1.2.5-0.20240612125212-75a520988c94
@@ -70,7 +70,7 @@ require (
 	github.com/cosmos/btcutil v1.0.5 // indirect
 	github.com/cosmos/cosmos-db v1.0.2 // indirect
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5 // indirect
-	github.com/cosmos/crypto v0.0.0-20240312084433-de8f9c76030d // indirect
+	github.com/cosmos/crypto v0.1.1 // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
 	github.com/cosmos/gogoproto v1.5.0 // indirect
@@ -152,7 +152,6 @@ require (
 	github.com/kurtosis-tech/kurtosis/path-compression v0.0.0-20240618201332-f662d454b084 // indirect
 	github.com/kurtosis-tech/stacktrace v0.0.0-20211028211901-1c67a77b5409 // indirect
 	github.com/lib/pq v1.10.9 // indirect
-	github.com/libp2p/go-buffer-pool v0.1.0 // indirect
 	github.com/linxGnu/grocksdb v1.9.2 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
