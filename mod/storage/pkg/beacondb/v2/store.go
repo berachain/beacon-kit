@@ -55,7 +55,7 @@ type Store[
 	latestExecutionPayloadHeader collections.Item[ExecutionPayloadHeaderT]
 	// Registry
 	// validatorIndex provides the next available index for a new validator.
-	// validatorIndex collections.Sequence
+	validatorIndex collections.Sequence
 	// validators stores the list of validators.
 	// validators *collections.IndexedMap[
 	// 	uint64, ValidatorT, index.ValidatorsIndex[ValidatorT],
@@ -158,10 +158,11 @@ func New[
 		payloadCodec,
 		store.accessor,
 	)
-	// store.validatorIndex = collections.NewSequence(
-	// 	storeKey,
-	// 	[]byte{keys.ValidatorIndexPrefix},
-	// )
+	store.validatorIndex = collections.NewSequence(
+		storeKey,
+		[]byte{keys.ValidatorIndexPrefix},
+		store.accessor,
+	)
 	// store.validators = collections.NewIndexedMap(
 	// 	[]byte{keys.ValidatorByIndexPrefix},
 	// 	sdkcollections.Uint64Key,

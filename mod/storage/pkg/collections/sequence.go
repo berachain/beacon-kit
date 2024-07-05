@@ -16,8 +16,8 @@ type Sequence struct {
 // a Schema, a Prefix and humanized name for the sequence.
 func NewSequence(
 	storeKey, key []byte, storeAccessor StoreAccessor,
-) *Sequence {
-	seq := &Sequence{
+) Sequence {
+	seq := Sequence{
 		NewItem(
 			storeKey,
 			key,
