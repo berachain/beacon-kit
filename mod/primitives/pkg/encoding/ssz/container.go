@@ -22,8 +22,8 @@ package ssz
 
 import (
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkleizer"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 )
 
 /* -------------------------------------------------------------------------- */

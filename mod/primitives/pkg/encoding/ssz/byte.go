@@ -13,83 +13,77 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package math
+package ssz
 
 import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
-	"github.com/holiman/uint256"
 )
 
 /* -------------------------------------------------------------------------- */
 /*                                Type Definitions                            */
 /* -------------------------------------------------------------------------- */
 
-// Ensure type implements types.SSZType.
-var _ types.SSZType[*U256] = (*U256)(nil)
+// Ensure types implement types.SSZType.
+var (
+	_ types.SSZType[Byte] = (*Byte)(nil)
+)
 
-// U256 represents a 256-bit unsigned integer that is both SSZ and JSON.
-type U256 uint256.Int
+type (
+	Byte byte
+)
 
 /* -------------------------------------------------------------------------- */
-/*                                    U256                                    */
+/*                                    Byte                                    */
 /* -------------------------------------------------------------------------- */
 
-func NewU256FromUint64(v uint64) *U256 {
-	return (*U256)(uint256.NewInt(0).SetUint64(v))
+// SizeSSZ returns the size of the byte slice in bytes.
+func (Byte) SizeSSZ() int {
+	return constants.ByteSize
 }
 
-// SizeSSZ returns the size of the U256 in bytes.
-func (U256) SizeSSZ() int {
-	return constants.U256Size
+// MarshalSSZ marshals the byte into SSZ format.
+func (b Byte) MarshalSSZ() ([]byte, error) {
+	return []byte{byte(b)}, nil
 }
 
-// MarshalSSZ marshals the U256 into SSZ format.
-func (u *U256) MarshalSSZ() ([]byte, error) {
-	return (*uint256.Int)(u).MarshalSSZ()
-}
-
-// NewFromSSZ creates a new U256 from SSZ format.
-func (U256) NewFromSSZ(buf []byte) (*U256, error) {
-	if len(buf) != constants.U256Size {
-		return nil, fmt.Errorf(
+// NewFromSSZ creates a new Byte from SSZ format.
+func (Byte) NewFromSSZ(buf []byte) (Byte, error) {
+	if len(buf) != constants.ByteSize {
+		return 0, fmt.Errorf(
 			"invalid buffer length: expected %d, got %d",
-			constants.U256Size,
+			constants.ByteSize,
 			len(buf),
 		)
 	}
-	u := new(uint256.Int)
-	return (*U256)(u), u.UnmarshalSSZ(buf)
+	return Byte(buf[0]), nil
 }
 
-// HashTreeRoot returns the hash tree root of the U256.
-func (u *U256) HashTreeRoot() ([32]byte, error) {
-	return (*uint256.Int)(u).HashTreeRoot()
+// HashTreeRoot returns the hash tree root of the byte.
+func (b Byte) HashTreeRoot() ([32]byte, error) {
+	buf := make([]byte, constants.BytesPerChunk)
+	buf[0] = byte(b)
+	return [32]byte(buf), nil
 }
 
-// IsFixed returns true if the U256 is fixed size.
-func (*U256) IsFixed() bool {
+// IsFixed returns true if the bool is fixed size.
+func (Byte) IsFixed() bool {
 	return true
 }
 
-// Type returns the type of the U256.
-func (*U256) Type() types.Type {
+// Type returns the type of the Byte.
+func (Byte) Type() types.Type {
 	return types.Basic
 }
 
-// ChunkCount returns the number of chunks required to store the U256.
-func (*U256) ChunkCount() uint64 {
+// ChunkCount returns the number of chunks required to store the byte.
+func (Byte) ChunkCount() uint64 {
 	return 1
-}
-
-// Unwrap returns the underlying uint256.Int.
-func (u *U256) Unwrap() *uint256.Int {
-	return (*uint256.Int)(u)
 }

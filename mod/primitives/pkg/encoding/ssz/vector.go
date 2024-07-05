@@ -24,9 +24,9 @@ import (
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkleizer"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -34,7 +34,7 @@ import (
 /* -------------------------------------------------------------------------- */
 
 // Vector conforms to the SSZEenumerable interface.
-var _ types.SSZEnumerable[U64] = (Vector[U64])(nil)
+var _ types.SSZEnumerable[Byte] = (Vector[Byte])(nil)
 
 // Vector represents a vector of elements.
 type Vector[T types.MinimalSSZType] []T

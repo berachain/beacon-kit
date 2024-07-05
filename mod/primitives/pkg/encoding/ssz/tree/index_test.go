@@ -23,7 +23,7 @@ package tree_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/tree"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/tree"
 	"github.com/stretchr/testify/require"
 )
 
