@@ -152,7 +152,11 @@ func TestGetPathIndices(t *testing.T) {
 		index  tree.GeneralizedIndex[[32]byte]
 		expect tree.GeneralizedIndicies[[32]byte]
 	}{
-		{name: "No Path", index: 1, expect: []tree.GeneralizedIndex[[32]byte]{}},
+		{
+			name:   "No Path",
+			index:  1,
+			expect: []tree.GeneralizedIndex[[32]byte]{},
+		},
 		{name: "Single Path", index: 3,
 			expect: []tree.GeneralizedIndex[[32]byte]{3}},
 		{name: "Multiple Paths", index: 5,
@@ -251,7 +255,11 @@ func TestVerifyMerkleProof(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := tt.index.VerifyMerkleProof(tt.leaf, tt.proof, tt.root)
+			result, err := tt.index.VerifyMerkleProof(
+				tt.leaf,
+				tt.proof,
+				tt.root,
+			)
 			require.Equal(t, tt.expectValid, result)
 			if tt.expectErr {
 				require.Error(t, err)
@@ -347,7 +355,10 @@ func TestCalculateMultiMerkleRoot(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := tt.indices.CalculateMultiMerkleRoot(tt.leaves, tt.proof)
+			result, err := tt.indices.CalculateMultiMerkleRoot(
+				tt.leaves,
+				tt.proof,
+			)
 			if tt.expectErr {
 				require.Error(t, err)
 			} else {
@@ -414,7 +425,11 @@ func TestVerifyMerkleMultiproof(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := tt.indices.VerifyMerkleMultiproof(tt.leaves, tt.proof, tt.root)
+			result := tt.indices.VerifyMerkleMultiproof(
+				tt.leaves,
+				tt.proof,
+				tt.root,
+			)
 			require.Equal(t, tt.expect, result)
 		})
 	}
