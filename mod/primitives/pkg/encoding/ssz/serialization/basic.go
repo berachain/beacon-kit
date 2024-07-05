@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -22,7 +22,6 @@ package serialization
 
 import (
 	"encoding/binary"
-	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 )
@@ -34,7 +33,7 @@ import (
 // UnmarshalBool unmarshals a bool from SSZ format.
 func UnmarshalBool[T ~bool](buf []byte) (T, error) {
 	if len(buf) != constants.BoolSize {
-		return false, fmt.Errorf("invalid bool length: %d", len(buf))
+		return false, ErrUnexpectedInputLength(constants.BoolSize, len(buf))
 	}
 	return T(buf[0] != 0), nil
 }
@@ -54,7 +53,7 @@ func MarshalBool[T ~bool](b T) []byte {
 // UnmarshalByte unmarshals a byte from SSZ format.
 func UnmarshalByte[T ~byte](buf []byte) (T, error) {
 	if len(buf) != constants.ByteSize {
-		return 0, fmt.Errorf("invalid byte length: %d", len(buf))
+		return 0, ErrUnexpectedInputLength(constants.ByteSize, len(buf))
 	}
 	return T(buf[0]), nil
 }
@@ -86,7 +85,7 @@ func MarshalU8[T ~uint8](u T) []byte {
 // UnmarshalU16 unmarshals a uint16 from SSZ format.
 func UnmarshalU16[T ~uint16](buf []byte) (T, error) {
 	if len(buf) != constants.U16Size {
-		return 0, fmt.Errorf("invalid uint16 length: %d", len(buf))
+		return 0, ErrUnexpectedInputLength(constants.U16Size, len(buf))
 	}
 	return T(binary.LittleEndian.Uint16(buf)), nil
 }
@@ -105,7 +104,7 @@ func MarshalU16[T ~uint16](u T) []byte {
 // UnmarshalU32 unmarshals a uint32 from SSZ format.
 func UnmarshalU32[T ~uint32](buf []byte) (T, error) {
 	if len(buf) != constants.U32Size {
-		return 0, fmt.Errorf("invalid uint32 length: %d", len(buf))
+		return 0, ErrUnexpectedInputLength(constants.U32Size, len(buf))
 	}
 	return T(binary.LittleEndian.Uint32(buf)), nil
 }
@@ -124,7 +123,7 @@ func MarshalU32[T ~uint32](u T) []byte {
 // UnmarshalU64 unmarshals a uint64 from SSZ format.
 func UnmarshalU64[T ~uint64](buf []byte) (T, error) {
 	if len(buf) != constants.U64Size {
-		return 0, fmt.Errorf("invalid uint64 length: %d", len(buf))
+		return 0, ErrUnexpectedInputLength(constants.U64Size, len(buf))
 	}
 	return T(binary.LittleEndian.Uint64(buf)), nil
 }
