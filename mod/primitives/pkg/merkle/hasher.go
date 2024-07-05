@@ -21,6 +21,7 @@
 package merkle
 
 import (
+	"runtime"
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -133,11 +134,13 @@ func (rh *RootHasher[RootT]) NewRootWithDepth(
 func BuildParentTreeRoots[RootT ~[32]byte](
 	outputList, inputList []RootT,
 ) error {
-	return gohashtree.Hash(
+	return BuildParentTreeRootsWithNRoutines(
 		//#nosec:G103 // on purpose.
 		*(*[][32]byte)(unsafe.Pointer(&outputList)),
 		//#nosec:G103 // on purpose.
 		*(*[][32]byte)(unsafe.Pointer(&inputList)),
+		runtime.GOMAXPROCS(0)-1,
+		MinParallelizationSize,
 	)
 }
 
@@ -172,6 +175,9 @@ func BuildParentTreeRootsWithNRoutines(
 	twiceGroupSize := two * groupSize
 	eg := new(errgroup.Group)
 
+	// TODO: Move to re-usable buffer
+	workingSpace := make([][32]byte, outputLength)
+
 	// if n is 0 the parallelization is disabled and the whole inputList is
 	// hashed in the main goroutine at the end of this function.
 	for j := range n + 1 {
@@ -181,27 +187,30 @@ func BuildParentTreeRootsWithNRoutines(
 			//       |                 |                     |              |
 			// j*2*groupSize   (j+1)*2*groupSize    (j+2)*2*groupSize      End
 			//
-			// outputList: [---------groupSize---------]
+			// workingSpace: [---------groupSize---------]
 			//              ^                         ^
 			//              |                         |
 			//         j*groupSize             (j+1)*groupSize
 			//
 			// Each goroutine processes a segment of inputList that is twice as
-			// large as the segment it fills in outputList. This is because the
-			// hash
-			// operation reduces the
-			// size of the input by half.
+			// large as the segment it fills in workingSpace. This is because the
+			// hash operation reduces the size of the input by half.
 			// Define the segment of the inputList each goroutine will process.
 			segmentStart := j * twiceGroupSize
 			segmentEnd := min((j+1)*twiceGroupSize, inputLength)
 
 			return gohashtree.Hash(
-				outputList[j*groupSize:min((j+1)*groupSize, outputLength)],
+				workingSpace[j*groupSize:min((j+1)*groupSize, outputLength)],
 				inputList[segmentStart:segmentEnd],
 			)
 		})
 	}
 
-	// Wait for all goroutines to complete.
+	defer func() {
+		// Copy the results from workingSpace to outputList
+		copy(outputList, workingSpace)
+		outputList = outputList[:outputLength]
+	}()
+
 	return eg.Wait()
 }
