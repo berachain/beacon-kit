@@ -34,7 +34,7 @@ import (
 /* -------------------------------------------------------------------------- */
 
 // Vector conforms to the SSZEenumerable interface.
-var _ types.SSZEnumerable[U64] = (*List[U64])(nil)
+var _ types.SSZEnumerable[Byte] = (*List[Byte])(nil)
 
 // List is a list of basic types.
 type List[T types.MinimalSSZType] struct {

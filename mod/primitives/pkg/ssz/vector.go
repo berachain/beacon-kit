@@ -34,7 +34,7 @@ import (
 /* -------------------------------------------------------------------------- */
 
 // Vector conforms to the SSZEenumerable interface.
-var _ types.SSZEnumerable[U64] = (Vector[U64])(nil)
+var _ types.SSZEnumerable[Byte] = (Vector[Byte])(nil)
 
 // Vector represents a vector of elements.
 type Vector[T types.MinimalSSZType] []T
