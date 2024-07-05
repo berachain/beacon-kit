@@ -23,8 +23,8 @@ package ssz_test
 import (
 	"testing"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/stretchr/testify/require"
 )
 
