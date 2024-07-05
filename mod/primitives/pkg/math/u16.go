@@ -23,9 +23,9 @@ package math
 
 import (
 	"encoding/binary"
-	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/serialization"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 )
 
@@ -50,21 +50,12 @@ func (U16) SizeSSZ() int {
 
 // MarshalSSZ marshals the uint16 into SSZ format.
 func (u U16) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, constants.U16Size)
-	binary.LittleEndian.PutUint16(buf, uint16(u))
-	return buf, nil
+	return serialization.MarshalU16(u), nil
 }
 
 // NewFromSSZ creates a new U16 from SSZ format.
 func (U16) NewFromSSZ(buf []byte) (U16, error) {
-	if len(buf) != constants.U16Size {
-		return 0, fmt.Errorf(
-			"invalid buffer length: expected %d, got %d",
-			constants.U16Size,
-			len(buf),
-		)
-	}
-	return U16(binary.LittleEndian.Uint16(buf)), nil
+	return serialization.UnmarshalU16[U16](buf)
 }
 
 // HashTreeRoot returns the hash tree root of the uint16.

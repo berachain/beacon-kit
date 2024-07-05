@@ -22,13 +22,13 @@ package math
 
 import (
 	"encoding/binary"
-	"fmt"
 	"math/big"
 	"math/bits"
 	"strconv"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/serialization"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 )
 
@@ -67,29 +67,21 @@ type (
 
 // MarshalSSZTo serializes the U64 into a byte slice.
 func (u U64) MarshalSSZTo(buf []byte) ([]byte, error) {
-	binary.LittleEndian.PutUint64(buf, uint64(u))
-	return buf, nil
+	return serialization.MarshalU64(u), nil
 }
 
 // MarshalSSZ serializes the U64 into a byte slice.
 func (u U64) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, constants.U64Size)
-	if _, err := u.MarshalSSZTo(buf); err != nil {
-		return nil, err
-	}
-	return buf, nil
+	return serialization.MarshalU64(u), nil
 }
 
 // UnmarshalSSZ deserializes the U64 from a byte slice.
 func (u *U64) UnmarshalSSZ(buf []byte) error {
-	if len(buf) != constants.U64Size {
-		return ErrUnexpectedInputLength(
-			constants.U64Size, len(buf))
+	val, err := serialization.UnmarshalU64[U64](buf)
+	if err != nil {
+		return err
 	}
-	if u == nil {
-		u = new(U64)
-	}
-	*u = U64(binary.LittleEndian.Uint64(buf))
+	*u = val
 	return nil
 }
 
@@ -122,14 +114,7 @@ func (U64) ChunkCount() uint64 {
 
 // NewFromSSZ creates a new U64 from SSZ format.
 func (U64) NewFromSSZ(buf []byte) (U64, error) {
-	if len(buf) != constants.U64Size {
-		return 0, fmt.Errorf(
-			"invalid buffer length: expected %d, got %d",
-			constants.U64Size,
-			len(buf),
-		)
-	}
-	return U64(binary.LittleEndian.Uint64(buf)), nil
+	return serialization.UnmarshalU64[U64](buf)
 }
 
 // -------------------------- JSONMarshallable -------------------------
