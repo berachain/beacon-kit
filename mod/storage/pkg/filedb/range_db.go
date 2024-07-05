@@ -26,7 +26,7 @@ import (
 	"strconv"
 
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	db "github.com/berachain/beacon-kit/mod/storage/pkg/interfaces"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 )
