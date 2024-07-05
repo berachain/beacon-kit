@@ -107,7 +107,9 @@ func (s U256L) Unwrap() [32]byte {
 
 // UnwrapU256 converts an U256L to a *U256.
 func (s U256L) UnwrapU256() *U256 {
-	return (*U256)((uint256.NewInt(0).SetBytes(byteslib.CopyAndReverseEndianess(s[:]))))
+	return (*U256)(
+		(uint256.NewInt(0).SetBytes(byteslib.CopyAndReverseEndianess(s[:]))),
+	)
 }
 
 // UnwrapBig converts a U256 to a non-negative big.Int.

@@ -45,7 +45,7 @@ func TestLittleEndian_UInt256(t *testing.T) {
 		le, err := math.NewU256L(tc.input)
 		require.NoError(t, err)
 		expected := new(huint256.Int).SetBytes(tc.expected)
-		require.Equal(t, expected, le.UnwrapU256())
+		require.Equal(t, expected, le.UnwrapU256().Unwrap())
 	}
 }
 
@@ -336,7 +336,7 @@ func TestMustNewU256L(t *testing.T) {
 			} else {
 				result := math.MustNewU256L(tt.input)
 				expected := new(huint256.Int).SetBytes(tt.expected)
-				require.Equal(t, expected, result.UnwrapU256(), "Test case %s", tt.name)
+				require.Equal(t, expected, result.UnwrapU256().Unwrap(), "Test case %s", tt.name)
 			}
 		})
 	}
@@ -394,7 +394,7 @@ func TestNewU256LFromBigEndian(t *testing.T) {
 				require.ErrorIs(t, err, tt.err, "Test case: %s", tt.name)
 			} else {
 				require.NoError(t, err, "Test case: %s", tt.name)
-				require.Equal(t, expected, result.UnwrapU256(), "Test case: %s", tt.name)
+				require.Equal(t, expected, result.UnwrapU256().Unwrap(), "Test case: %s", tt.name)
 			}
 		})
 	}
@@ -429,7 +429,7 @@ func TestMustNewU256LFromBigEndian(t *testing.T) {
 			} else {
 				result := math.MustNewU256LFromBigEndian(tt.input)
 				expected := new(huint256.Int).SetBytes(tt.expected)
-				require.Equal(t, expected, result.UnwrapU256(), "Test case: %s", tt.name)
+				require.Equal(t, expected, result.UnwrapU256().Unwrap(), "Test case: %s", tt.name)
 			}
 		})
 	}
@@ -483,7 +483,7 @@ func TestMustNewU256LFromBigInt(t *testing.T) {
 			} else {
 				result := math.MustNewU256LFromBigInt(tt.input)
 				expected := new(huint256.Int).SetBytes(tt.expected)
-				require.Equal(t, expected, result.UnwrapU256(), "Test case: %s", tt.name)
+				require.Equal(t, expected, result.UnwrapU256().Unwrap(), "Test case: %s", tt.name)
 			}
 		})
 	}
