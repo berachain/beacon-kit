@@ -1,6 +1,8 @@
 package collections
 
-import "cosmossdk.io/runtime/v2"
+import (
+	"cosmossdk.io/runtime/v2"
+)
 
 type Store interface {
 	runtime.Store

@@ -21,8 +21,9 @@
 package engineprimitives
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
 )
 
 // Withdrawal represents a validator withdrawal from the consensus layer.
@@ -35,7 +36,7 @@ type Withdrawal struct {
 	Validator math.ValidatorIndex `json:"validatorIndex"`
 	// Address is the execution address where the withdrawal will be sent.
 	// It has a fixed size of 20 bytes.
-	Address common.ExecutionAddress `json:"address"        ssz-size:"20"`
+	Address gethprimitives.ExecutionAddress `json:"address"        ssz-size:"20"`
 	// Amount is the amount of Gwei to be withdrawn.
 	Amount math.Gwei `json:"amount"`
 }
@@ -60,7 +61,7 @@ func (w *Withdrawal) GetValidatorIndex() math.ValidatorIndex {
 }
 
 // GetAddress returns the execution address where the withdrawal will be sent.
-func (w *Withdrawal) GetAddress() common.ExecutionAddress {
+func (w *Withdrawal) GetAddress() gethprimitives.ExecutionAddress {
 	return w.Address
 }
 
@@ -69,16 +70,12 @@ func (w *Withdrawal) GetAmount() math.Gwei {
 	return w.Amount
 }
 
-// NewFromSSZ returns a new Withdrawal from the provided SSZ bytes.
-func (Withdrawal) NewFromSSZ(bytes []byte) (*Withdrawal, error) {
-	w := new(Withdrawal)
-	if err := w.UnmarshalSSZ(bytes); err != nil {
-		return nil, err
-	}
-	return w, nil
+// IsFixed returns true if the Withdrawal is fixed size.
+func (*Withdrawal) IsFixed() bool {
+	return true
 }
 
-// IsFixed returns true if the Withdrawal is fixed size.
-func (Withdrawal) IsFixed() bool {
-	return true
+// Type returns the type of the Withdrawal.
+func (*Withdrawal) Type() types.Type {
+	return types.Composite
 }

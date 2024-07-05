@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit/mod/node-core
 
-go 1.22.4
+go 1.22.5
 
 replace (
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
@@ -16,6 +16,7 @@ replace (
 	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240702142007-7b23e52b0bd8
 	github.com/berachain/beacon-kit/mod/consensus => ../consensus
 	github.com/berachain/beacon-kit/mod/runtime => ../runtime
+	github.com/berachain/beacon-kit/mod/storage => ../storage
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240704182039-aa953f8c7f29
 	github.com/cosmos/crypto => github.com/cosmos/crypto v0.0.0-20240312084433-de8f9c76030d
 )
@@ -39,13 +40,15 @@ require (
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240624204855-d8809d5c8588
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240624210933-3baa52ebb587
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240624003607-df94860f8eeb
+	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240630225951-a5075323fa26
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240624033454-8f3451361f44
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240624003607-df94860f8eeb
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240627201655-33a34cec850e
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240624003607-df94860f8eeb
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240624003607-df94860f8eeb
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240624003607-df94860f8eeb
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240702102754-c4fa9a6225b0
+	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240702102754-c4fa9a6225b0
+	github.com/cosmos/cosmos-db v1.0.2
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/crate-crypto/go-kzg-4844 v1.0.0
@@ -61,7 +64,9 @@ require (
 	cosmossdk.io/server/v2/stf v0.0.0-20240623110059-dec2d5583e39 // indirect
 	github.com/VictoriaMetrics/fastcache v1.12.2 // indirect
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240630225951-a5075323fa26 // indirect
+	github.com/VictoriaMetrics/fastcache v1.12.2 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a // indirect
+	github.com/holiman/bloomfilter/v2 v2.0.3 // indirect
 	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240702102754-c4fa9a6225b0 // indirect
 	github.com/cosmos/cosmos-db v1.0.2 // indirect
 	github.com/holiman/bloomfilter/v2 v2.0.3 // indirect
@@ -124,7 +129,7 @@ require (
 	github.com/dvsekhvalnov/jose2go v1.7.0 // indirect
 	github.com/emicklei/dot v1.6.2 // indirect
 	github.com/ethereum/c-kzg-4844 v1.0.2 // indirect
-	github.com/ethereum/go-ethereum v1.14.5 // indirect
+	github.com/ethereum/go-ethereum v1.14.6 // indirect
 	github.com/ethereum/go-verkle v0.1.1-0.20240306133620-7d920df305f0 // indirect
 	github.com/fatih/color v1.17.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect

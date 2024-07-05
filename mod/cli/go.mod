@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit/mod/cli
 
-go 1.22.4
+go 1.22.5
 
 replace (
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
@@ -14,6 +14,7 @@ replace (
 	github.com/berachain/beacon-kit/mod/node-core => ../node-core
 	github.com/berachain/beacon-kit/mod/runtime => ../runtime
 	github.com/berachain/beacon-kit/mod/server => ../server
+	github.com/berachain/beacon-kit/mod/storage => ../storage
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240704182039-aa953f8c7f29
 	github.com/cosmos/crypto => github.com/cosmos/crypto v0.0.0-20240312084433-de8f9c76030d
 )
@@ -35,8 +36,9 @@ require (
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240629042719-a35bdb8b1255
 	github.com/berachain/beacon-kit/mod/server v0.0.0-20240626181612-5a021068d586
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240702102754-c4fa9a6225b0
+	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240630225951-a5075323fa26
+	github.com/cometbft/cometbft v1.0.0-rc1.0.20240702102754-c4fa9a6225b0
 	github.com/cosmos/cosmos-sdk v0.51.0
-	github.com/ethereum/go-ethereum v1.14.5
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cobra v1.8.1
@@ -53,7 +55,9 @@ require (
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240630225951-a5075323fa26 // indirect
 	github.com/bufbuild/protocompile v0.14.0 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a // indirect
+	github.com/ethereum/go-ethereum v1.14.6 // indirect
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect
+	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/phuslu/log v1.0.106 // indirect
 	github.com/rs/zerolog v1.33.0 // indirect

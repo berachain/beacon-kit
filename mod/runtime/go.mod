@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit/mod/runtime
 
-go 1.22.4
+go 1.22.5
 
 replace (
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
@@ -18,7 +18,7 @@ require (
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240624204855-d8809d5c8588
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240624033454-8f3451361f44
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240618214413-d5ec0e66b3dd
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240627201655-33a34cec850e
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240627134700-de48919ec4d6
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240702102754-c4fa9a6225b0
 	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240702102754-c4fa9a6225b0
 	github.com/stretchr/testify v1.9.0
@@ -114,7 +114,7 @@ require (
 	github.com/cosmos/gogoproto v1.5.0
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
-	github.com/ethereum/go-ethereum v1.14.5 // indirect
+	github.com/ethereum/go-ethereum v1.14.6 // indirect
 	github.com/getsentry/sentry-go v0.28.1 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect

@@ -23,11 +23,11 @@ package store_test
 import (
 	"testing"
 
+	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
 	"github.com/berachain/beacon-kit/mod/da/pkg/store"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/chain"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 )
 
@@ -117,7 +117,7 @@ func TestBuildPruneRangeFn(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			cs := chain.NewChainSpec(
 				chain.SpecData[
-					bytes.B4, math.U64, common.Address, math.U64, any,
+					bytes.B4, math.U64, gethprimitives.ExecutionAddress, math.U64, any,
 				]{
 					SlotsPerEpoch:                    tt.slotsPerEpoch,
 					MinEpochsForBlobsSidecarsRequest: tt.minEpochs,

@@ -12,6 +12,7 @@ replace (
 	cosmossdk.io/store/v2 => github.com/berachain/cosmos-sdk/store/v2 v2.0.0-20240704182039-aa953f8c7f29
 	github.com/berachain/beacon-kit/mod/node-core => ../node-core
 	github.com/berachain/beacon-kit/mod/runtime => ../runtime
+	github.com/berachain/beacon-kit/mod/storage => ../storage
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240704182039-aa953f8c7f29
 	github.com/cosmos/crypto => github.com/cosmos/crypto v0.0.0-20240312084433-de8f9c76030d
 )
@@ -34,6 +35,7 @@ require (
 	cosmossdk.io/collections v0.4.0 // indirect
 	cosmossdk.io/errors v1.0.1 // indirect
 	cosmossdk.io/math v1.3.0 // indirect
+	cosmossdk.io/runtime/v2 v2.0.0-20240623110059-dec2d5583e39 // indirect
 	cosmossdk.io/server/v2/appmanager v0.0.0-20240624191328-722ac39873e4 // indirect
 	cosmossdk.io/server/v2/stf v0.0.0-20240623110059-dec2d5583e39 // indirect
 	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc // indirect

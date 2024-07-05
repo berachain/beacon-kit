@@ -31,3 +31,9 @@ type SSZObject[RootT ~[32]byte] interface {
 	// MarshalSSZ marshals the data into SSZ format.
 	MarshalSSZ() ([]byte, error)
 }
+
+// Buffer is a reusable buffer for SSZ encoding.
+type Buffer[T any] interface {
+	// Get returns a slice of the buffer with the given size.
+	Get(size int) []T
+}
