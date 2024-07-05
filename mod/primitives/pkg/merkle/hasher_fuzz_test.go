@@ -90,10 +90,6 @@ func FuzzHashTreeRoot(f *testing.F) {
 		original []byte, isLeaves bool,
 		numRoutines, minParallelizationSize int,
 	) {
-		if numRoutines < 0 {
-			return
-		}
-
 		// Extend the fuzzed input to 32 byte leaves if not in leaves format.
 		if !isLeaves {
 			leavesBytes := make([]byte, len(original)*32)
