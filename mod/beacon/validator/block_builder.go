@@ -57,11 +57,11 @@ func (s *Service[
 	// the next finalized block in the chain. A byproduct of this design
 	// is that we get the nice property of lazily propagating the finalized
 	// and safe block hashes to the execution client.
-	st := s.bsb.StateFromContext(ctx)
+	st := s.bsb.StateFromContext(ctx) // s.bsb = storage.go / Backend
 
 	// Prepare the state such that it is ready to build a block for
 	// the requested slot
-	if _, err := s.stateProcessor.ProcessSlots(st, requestedSlot); err != nil {
+	if _, err := s.stateProcessor.ProcessSlots(st, requestedSlot); err != nil { // s.stateProcessor = state_processor.go
 		return blk, sidecars, err
 	}
 

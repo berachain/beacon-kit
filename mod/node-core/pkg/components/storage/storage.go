@@ -134,7 +134,7 @@ func (k Backend[
 	return state.NewBeaconStateFromDB[
 		BeaconStateT, BeaconStateMarshallableT,
 	](
-		k.bs.WithContext(ctx), k.cs,
+		k.bs.WithContext(ctx), k.cs, // k.bs = kvstore.go / KVStore
 	)
 }
 

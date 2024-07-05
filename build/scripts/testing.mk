@@ -107,6 +107,9 @@ start-geth-init:
 	--datadir ${ETH_DATA_DIR} \
 	${ETH_GENESIS_PATH}
 
+start-geth-init-local:
+	geth init --datadir ${ETH_DATA_DIR} ${ETH_GENESIS_PATH}
+
 start-geth-run:
 	sudo chmod 777 -R .tmp
 	docker run --name execution-geth \
@@ -128,6 +131,20 @@ start-geth-run:
 	--miner.gaslimit 100000000 \
 	--syncmode "snap" \
 	--nat extip:${INTERNAL_IP}
+
+start-geth-run-local:
+	geth \
+	--http \
+	--http.addr 0.0.0.0 \
+	--http.api eth,net,debug,txpool \
+	--authrpc.addr 0.0.0.0 \
+	--authrpc.jwtsecret $(JWT_PATH) \
+	--authrpc.vhosts "*" \
+	--datadir ${ETH_DATA_DIR} \
+	--ipcpath ${IPC_PATH} \
+	--rpc.allow-unprotected-txs \
+	--miner.gaslimit 100000000 \
+	--syncmode "snap"
 
 start-geth-host: ## start a local ephemeral `geth` node on host machine
 	rm -rf ${ETH_DATA_DIR}

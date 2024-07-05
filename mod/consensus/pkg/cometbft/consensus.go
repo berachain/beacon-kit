@@ -63,7 +63,7 @@ func (c *ConsensusEngine[ValidatorUpdateT]) PrepareProposal(
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
 	slot := math.Slot(req.Height)
-	blkBz, sidecarsBz, err := c.Middleware.PrepareProposal(ctx, slot)
+	blkBz, sidecarsBz, err := c.Middleware.PrepareProposal(ctx, slot) // c.Middleware = ABCIMiddleware
 	if err != nil {
 		return nil, err
 	}
