@@ -22,13 +22,17 @@ package math
 
 import (
 	"encoding/binary"
+	"fmt"
 	"math/big"
 	"math/bits"
 	"strconv"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
 )
+
+var _ types.SSZType[U64] = (*U64)(nil)
 
 //nolint:lll
 type (
@@ -94,13 +98,38 @@ func (u U64) SizeSSZ() int {
 	return constants.U64Size
 }
 
-// HashTreeRoot computes the Merkle root of the U64 using SSZ hashing rules.
+// HashTreeRoot returns the hash tree root of the uint64.
 func (u U64) HashTreeRoot() ([32]byte, error) {
-	buf := make([]byte, constants.U64Size)
-	binary.LittleEndian.PutUint64(buf, uint64(u))
-	var hashRoot [32]byte
-	copy(hashRoot[:], buf)
-	return hashRoot, nil
+	buf := make([]byte, constants.BytesPerChunk)
+	binary.LittleEndian.PutUint64(buf[:constants.U64Size], uint64(u))
+	return [32]byte(buf), nil
+}
+
+// IsFixed returns true if the bool is fixed size.
+func (U64) IsFixed() bool {
+	return true
+}
+
+// Type returns the type of the U64.
+func (U64) Type() types.Type {
+	return types.Basic
+}
+
+// ChunkCount returns the number of chunks required to store the uint64.
+func (U64) ChunkCount() uint64 {
+	return 1
+}
+
+// NewFromSSZ creates a new U64 from SSZ format.
+func (U64) NewFromSSZ(buf []byte) (U64, error) {
+	if len(buf) != constants.U64Size {
+		return 0, fmt.Errorf(
+			"invalid buffer length: expected %d, got %d",
+			constants.U64Size,
+			len(buf),
+		)
+	}
+	return U64(binary.LittleEndian.Uint64(buf)), nil
 }
 
 // -------------------------- JSONMarshallable -------------------------
