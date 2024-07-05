@@ -23,14 +23,12 @@ package merkle
 import (
 	"unsafe"
 
-	"golang.org/x/sync/errgroup"
-
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
-
 	"github.com/prysmaticlabs/gohashtree"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
