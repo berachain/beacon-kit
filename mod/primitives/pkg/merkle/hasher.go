@@ -21,15 +21,16 @@
 package merkle
 
 import (
-	"runtime"
 	"unsafe"
+
+	"golang.org/x/sync/errgroup"
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
+
 	"github.com/prysmaticlabs/gohashtree"
-	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -134,13 +135,11 @@ func (rh *RootHasher[RootT]) NewRootWithDepth(
 func BuildParentTreeRoots[RootT ~[32]byte](
 	outputList, inputList []RootT,
 ) error {
-	return BuildParentTreeRootsWithNRoutines(
+	return gohashtree.Hash(
 		//#nosec:G103 // on purpose.
 		*(*[][32]byte)(unsafe.Pointer(&outputList)),
 		//#nosec:G103 // on purpose.
 		*(*[][32]byte)(unsafe.Pointer(&inputList)),
-		runtime.GOMAXPROCS(0)-1,
-		MinParallelizationSize,
 	)
 }
 
