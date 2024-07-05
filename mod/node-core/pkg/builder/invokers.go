@@ -21,13 +21,20 @@
 package builder
 
 import (
+	"cosmossdk.io/core/transaction"
 	"cosmossdk.io/log"
+	"cosmossdk.io/runtime/v2"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 )
 
 // SetLoggerConfig sets the logger configuration. It acts as an invoker
 // for the depinject framework.
 func SetLoggerConfig(config *config.Config, logger log.Logger) {
 	logger.(*phuslu.Logger[log.Logger]).WithConfig(*config.GetLogger())
+}
+
+func SetStateStore[T transaction.Tx](app *runtime.App[T], stateStore *components.StateStore) {
+	stateStore.SetBackendStore(app.GetStore())
 }

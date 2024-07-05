@@ -78,9 +78,9 @@ func (nb *NodeBuilder[NodeT, T]) Build(
 	var (
 		chainSpec       common.ChainSpec
 		appBuilder      *runtime.AppBuilder[T]
-		sdkApp          *runtime.App[T]
 		abciMiddleware  *components.ABCIMiddleware
 		serviceRegistry *service.Registry
+		stateStore      *components.StateStore
 	)
 
 	// build all node components using depinject
@@ -99,8 +99,8 @@ func (nb *NodeBuilder[NodeT, T]) Build(
 			),
 		),
 		&appBuilder,
-		&sdkApp,
 		&chainSpec,
+		&stateStore,
 		&abciMiddleware,
 		&serviceRegistry,
 	); err != nil {
@@ -120,9 +120,10 @@ func (nb *NodeBuilder[NodeT, T]) Build(
 	// 	WithPreBlocker(abciMiddleware.PreBlock),
 	// )...,
 	app := app.NewBeaconKitApp[T](
-		sdkApp,
+		appBuilder,
 		abciMiddleware,
 	)
+	stateStore.SetBackendStore(app.GetStore().(runtime.Store))
 	nb.node.RegisterApp(app)
 	nb.node.SetServiceRegistry(serviceRegistry)
 
