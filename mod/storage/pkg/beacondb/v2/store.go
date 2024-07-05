@@ -100,7 +100,9 @@ func New[
 	store := &Store[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 		ForkT, ValidatorT,
-	]{}
+	]{
+		changeSet: store.NewChangeset(),
+	}
 
 	store.genesisValidatorsRoot = collections.NewItem(
 		storeKey,

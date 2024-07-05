@@ -29,14 +29,20 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state/v2"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
+	beacondbv2 "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/v2"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 )
 
 // KVStore is a type alias for the beacon store with the generics defined using
 // primitives.
 type KVStore = beacondb.KVStore[
+	*types.BeaconBlockHeader, *types.Eth1Data, *types.ExecutionPayloadHeader,
+	*types.Fork, *types.Validator,
+]
+
+type StateStore = beacondbv2.Store[
 	*types.BeaconBlockHeader, *types.Eth1Data, *types.ExecutionPayloadHeader,
 	*types.Fork, *types.Validator,
 ]
@@ -71,10 +77,10 @@ type Backend[
 	],
 	DepositStoreT *deposit.KVStore[*types.Deposit],
 ] struct {
-	chainSpec common.ChainSpec
+	chainSpec         common.ChainSpec
 	availabilityStore AvailabilityStoreT
-	stateStore *KVStore
-	depositStore DepositStoreT
+	stateStore        *StateStore
+	depositStore      DepositStoreT
 }
 
 func NewBackend[
@@ -95,7 +101,7 @@ func NewBackend[
 ](
 	chainSpec common.ChainSpec,
 	availabilityStore AvailabilityStoreT,
-	stateStore *KVStore,
+	stateStore *StateStore,
 	depositStore DepositStoreT,
 ) *Backend[
 	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT,
@@ -105,10 +111,10 @@ func NewBackend[
 		AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT,
 		BeaconStateMarshallableT, DepositStoreT,
 	]{
-		chainSpec: chainSpec,
+		chainSpec:         chainSpec,
 		availabilityStore: availabilityStore,
-		stateStore: stateStore,
-		depositStore: depositStore,
+		stateStore:        stateStore,
+		depositStore:      depositStore,
 	}
 }
 
@@ -129,12 +135,12 @@ func (k Backend[
 	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT,
 	BeaconStateMarshallableT, DepositStoreT,
 ]) StateFromContext(
-	ctx context.Context,
+	_ context.Context,
 ) BeaconStateT {
 	return state.NewBeaconStateFromDB[
 		BeaconStateT, BeaconStateMarshallableT,
 	](
-		k.stateStore.WithContext(ctx), k.chainSpec,
+		k.stateStore, k.chainSpec,
 	)
 }
 
@@ -142,7 +148,7 @@ func (k Backend[
 func (k Backend[
 	AvailabilityStoreT, BeaconBlockBodyT, BeaconStateT,
 	BeaconStateMarshallableT, DepositStoreT,
-]) BeaconStore() *KVStore {
+]) BeaconStore() *StateStore {
 	return k.stateStore
 }
 

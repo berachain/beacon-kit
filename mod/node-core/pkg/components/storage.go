@@ -56,7 +56,7 @@ func ProvideStorageBackend(
 	](
 		in.ChainSpec,
 		in.AvailabilityStore,
-		in.KVStore,
+		in.StateStore,
 		in.DepositStore,
 	)
 }
