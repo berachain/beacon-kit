@@ -29,23 +29,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 )
 
-/* -------------------------------------------------------------------------- */
-/*                                Type Definitions                            */
-/* -------------------------------------------------------------------------- */
-
 // Ensure types implement types.SSZType.
 var _ types.SSZType[U32] = (*U32)(nil)
 
 // U32 represents a 32-bit unsigned integer that is both SSZ and JSON.
 type U32 uint32
-
-/* -------------------------------------------------------------------------- */
-/*                                     U8                                     */
-/* -------------------------------------------------------------------------- */
-
-/* -------------------------------------------------------------------------- */
-/*                                     U32                                    */
-/* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the uint32 in bytes.
 func (U32) SizeSSZ() int {

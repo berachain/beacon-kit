@@ -28,19 +28,11 @@ import (
 	"github.com/holiman/uint256"
 )
 
-/* -------------------------------------------------------------------------- */
-/*                                Type Definitions                            */
-/* -------------------------------------------------------------------------- */
-
 // Ensure type implements types.SSZType.
 var _ types.SSZType[*U256] = (*U256)(nil)
 
 // U256 represents a 256-bit unsigned integer that is both SSZ and JSON.
 type U256 uint256.Int
-
-/* -------------------------------------------------------------------------- */
-/*                                    U256                                    */
-/* -------------------------------------------------------------------------- */
 
 func NewU256FromUint64(v uint64) *U256 {
 	return (*U256)(uint256.NewInt(0).SetUint64(v))

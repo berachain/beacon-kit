@@ -27,19 +27,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 )
 
-/* -------------------------------------------------------------------------- */
-/*                                Type Definitions                            */
-/* -------------------------------------------------------------------------- */
-
 // Ensure type implements types.SSZType.
 var _ types.SSZType[U8] = (*U8)(nil)
 
 // U8 represents a 8-bit unsigned integer that is both SSZ and JSON.
 type U8 uint8
-
-/* -------------------------------------------------------------------------- */
-/*                                     U8                                     */
-/* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the uint8 in bytes.
 func (U8) SizeSSZ() int {
