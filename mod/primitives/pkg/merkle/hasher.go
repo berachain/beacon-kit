@@ -119,18 +119,15 @@ func (rh *RootHasher[RootT]) NewRootWithDepth(
 	}
 
 	// Handle the case where the tree is not full.
-	h := leaves[0]
 	for j := depth; j < limitDepth; j++ {
-		h = rh.Combi(h, zero.Hashes[j])
+		leaves[0] = rh.Combi(leaves[0], zero.Hashes[j])
 	}
 
-	return h, nil
+	return leaves[0], nil
 }
 
 // BuildParentTreeRoots calls BuildParentTreeRootsWithNRoutines with the
 // number of routines set to runtime.GOMAXPROCS(0)-1.
-//
-// TODO: enable parallelization.
 func BuildParentTreeRoots[RootT ~[32]byte](
 	outputList, inputList []RootT,
 ) error {
