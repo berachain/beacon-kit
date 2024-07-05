@@ -21,31 +21,17 @@
 package hex
 
 import (
-	"encoding/json"
-	"errors"
-	"reflect"
+	"encoding"
 )
 
-var (
-	ErrEmptyString     = errors.New("empty hex string")
-	ErrMissingPrefix   = errors.New("hex string without 0x prefix")
-	ErrOddLength       = errors.New("hex string of odd length")
-	ErrNonQuotedString = errors.New("non-quoted hex string")
-	ErrInvalidString   = errors.New("invalid hex string")
-
-	ErrLeadingZero = errors.New("hex number with leading zero digits")
-	ErrEmptyNumber = errors.New("hex string \"0x\"")
-	ErrUint64Range = errors.New("hex number > 64 bits")
-	ErrBig256Range = errors.New("hex number > 256 bits")
-
-	ErrInvalidBigWordSize = errors.New("weird big.Word size")
-)
-
-// WrapUnmarshalError wraps an error occurring during JSON unmarshaling.
-func WrapUnmarshalError(err error, t reflect.Type) error {
-	if err != nil {
-		err = &json.UnmarshalTypeError{Value: err.Error(), Type: t}
+// UnmarshalJSONText unmarshals a JSON string with a 0x prefix into a given
+// TextUnmarshaler. It validates the input and then removes the surrounding
+// quotes before passing the inner content to the UnmarshalText method.
+func UnmarshalJSONText(input []byte,
+	u encoding.TextUnmarshaler,
+) error {
+	if err := ValidateUnmarshalInput(input); err != nil {
+		return err
 	}
-
-	return err
+	return u.UnmarshalText(input[1 : len(input)-1])
 }

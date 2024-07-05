@@ -17,23 +17,39 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
+//
 
-package hex
+package bytes
 
 import (
-	"encoding"
-	"reflect"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 )
 
-// UnmarshalJSONText unmarshals a JSON string with a 0x prefix into a given
-// TextUnmarshaler. It validates the input and then removes the surrounding
-// quotes before passing the inner content to the UnmarshalText method.
-func UnmarshalJSONText(input []byte,
-	u encoding.TextUnmarshaler,
-	t reflect.Type,
-) error {
-	if err := ValidateUnmarshalInput(input); err != nil {
-		return WrapUnmarshalError(err, t)
+// Bytes marshals/unmarshals as a JSON string with 0x prefix.
+// The empty slice marshals as "0x".
+type Bytes []byte
+
+// MarshalText implements encoding.TextMarshaler.
+func (b Bytes) MarshalText() ([]byte, error) {
+	return hex.EncodeBytes(b)
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (b *Bytes) UnmarshalJSON(input []byte) error {
+	return hex.UnmarshalJSONText(input, b)
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (b *Bytes) UnmarshalText(input []byte) error {
+	dec, err := hex.UnmarshalByteText(input)
+	if err != nil {
+		return err
 	}
-	return WrapUnmarshalError(u.UnmarshalText(input[1:len(input)-1]), t)
+	*b = Bytes(dec)
+	return nil
+}
+
+// String returns the hex encoding of b.
+func (b Bytes) String() hex.String {
+	return hex.FromBytes(b)
 }

@@ -18,8 +18,6 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package constants
+package serializer
 
-const (
-	GweiPerWei = 1e9
-)
+// Types that need to be handled with the "non receiver solution."
