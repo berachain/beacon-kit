@@ -202,7 +202,12 @@ func (sp *StateProcessor[
 		math.Gwei(sp.cs.MaxEffectiveBalance()),
 	)
 
-	if err := st.AddValidator(val); err != nil {
+	// TODO: This is a bug that lives on bArtio. Delete this eventually.
+	if sp.cs.DepositEth1ChainID() == 80084 {
+		if err := st.AddValidatorBartio(val); err != nil {
+			return err
+		}
+	} else if err := st.AddValidator(val); err != nil {
 		return err
 	}
 
