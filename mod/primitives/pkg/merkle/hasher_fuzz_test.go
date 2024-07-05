@@ -80,7 +80,7 @@ func FuzzHashTreeRoot(f *testing.F) {
 
 	f.Fuzz(func(
 		t *testing.T,
-		original []byte, isLeaves bool, minParallelizationSize uint32,
+		original []byte, isLeaves bool, minParallelizationSize int,
 	) {
 		// Extend the fuzzed input to 32 byte leaves if not in leaves format.
 		if !isLeaves {
@@ -109,7 +109,7 @@ func FuzzHashTreeRoot(f *testing.F) {
 		}
 
 		requireGoHashTreeEquivalence(
-			t, input, int(minParallelizationSize), expectError,
+			t, input, minParallelizationSize, expectError,
 		)
 	})
 }
