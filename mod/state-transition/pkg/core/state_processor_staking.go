@@ -203,7 +203,8 @@ func (sp *StateProcessor[
 	)
 
 	// TODO: This is a bug that lives on bArtio. Delete this eventually.
-	if sp.cs.DepositEth1ChainID() == 80084 {
+	const bArtioChainID = 80084
+	if sp.cs.DepositEth1ChainID() == bArtioChainID {
 		if err := st.AddValidatorBartio(val); err != nil {
 			return err
 		}
