@@ -17,79 +17,74 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
-
+//
+//nolint:dupl // it's okay to have similar code for different types
 package math
 
 import (
+	"encoding/binary"
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
-	"github.com/holiman/uint256"
 )
 
 /* -------------------------------------------------------------------------- */
 /*                                Type Definitions                            */
 /* -------------------------------------------------------------------------- */
 
-// Ensure type implements types.SSZType.
-var _ types.SSZType[*U256] = (*U256)(nil)
+// Ensure types implement types.SSZType.
+var _ types.SSZType[U16] = (*U16)(nil)
 
-// U256 represents a 256-bit unsigned integer that is both SSZ and JSON.
-type U256 uint256.Int
+// U16 represents a 16-bit unsigned integer that is both SSZ and JSON.
+type U16 uint16
 
 /* -------------------------------------------------------------------------- */
-/*                                    U256                                    */
+/*                                     U16                                    */
 /* -------------------------------------------------------------------------- */
 
-func NewU256FromUint64(v uint64) *U256 {
-	return (*U256)(uint256.NewInt(0).SetUint64(v))
+// SizeSSZ returns the size of the uint16 in bytes.
+func (U16) SizeSSZ() int {
+	return constants.U16Size
 }
 
-// SizeSSZ returns the size of the U256 in bytes.
-func (U256) SizeSSZ() int {
-	return constants.U256Size
+// MarshalSSZ marshals the uint16 into SSZ format.
+func (u U16) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, constants.U16Size)
+	binary.LittleEndian.PutUint16(buf, uint16(u))
+	return buf, nil
 }
 
-// MarshalSSZ marshals the U256 into SSZ format.
-func (u *U256) MarshalSSZ() ([]byte, error) {
-	return (*uint256.Int)(u).MarshalSSZ()
-}
-
-// NewFromSSZ creates a new U256 from SSZ format.
-func (U256) NewFromSSZ(buf []byte) (*U256, error) {
-	if len(buf) != constants.U256Size {
-		return nil, fmt.Errorf(
+// NewFromSSZ creates a new U16 from SSZ format.
+func (U16) NewFromSSZ(buf []byte) (U16, error) {
+	if len(buf) != constants.U16Size {
+		return 0, fmt.Errorf(
 			"invalid buffer length: expected %d, got %d",
-			constants.U256Size,
+			constants.U16Size,
 			len(buf),
 		)
 	}
-	u := new(uint256.Int)
-	return (*U256)(u), u.UnmarshalSSZ(buf)
+	return U16(binary.LittleEndian.Uint16(buf)), nil
 }
 
-// HashTreeRoot returns the hash tree root of the U256.
-func (u *U256) HashTreeRoot() ([32]byte, error) {
-	return (*uint256.Int)(u).HashTreeRoot()
+// HashTreeRoot returns the hash tree root of the uint16.
+func (u U16) HashTreeRoot() ([32]byte, error) {
+	buf := make([]byte, constants.BytesPerChunk)
+	binary.LittleEndian.PutUint16(buf[:constants.U16Size], uint16(u))
+	return [32]byte(buf), nil
 }
 
-// IsFixed returns true if the U256 is fixed size.
-func (*U256) IsFixed() bool {
+// IsFixed returns true if the bool is fixed size.
+func (U16) IsFixed() bool {
 	return true
 }
 
-// Type returns the type of the U256.
-func (*U256) Type() types.Type {
+// Type returns the type of the U16.
+func (U16) Type() types.Type {
 	return types.Basic
 }
 
-// ChunkCount returns the number of chunks required to store the U256.
-func (*U256) ChunkCount() uint64 {
+// ChunkCount returns the number of chunks required to store the uint16.
+func (U16) ChunkCount() uint64 {
 	return 1
-}
-
-// Unwrap returns the underlying uint256.Int.
-func (u *U256) Unwrap() *uint256.Int {
-	return (*uint256.Int)(u)
 }
