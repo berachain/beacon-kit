@@ -25,11 +25,10 @@ import (
 	"bytes"
 	"encoding"
 	"math/big"
-	"reflect"
 	"strconv"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/stretchr/testify/require"
 )
 
@@ -334,7 +333,6 @@ func TestUnmarshalJSONText(t *testing.T) {
 			err := hex.UnmarshalJSONText(
 				tt.input,
 				tt.unmarshaler,
-				reflect.TypeOf(tt.unmarshaler),
 			)
 			if tt.expectErr {
 				require.Error(t, err, "Test case: %s", tt.name)

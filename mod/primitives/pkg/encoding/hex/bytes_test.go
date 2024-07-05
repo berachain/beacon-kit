@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -22,11 +22,10 @@
 package hex_test
 
 import (
-	"reflect"
 	"strconv"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/stretchr/testify/require"
 )
 
@@ -149,7 +148,7 @@ func TestDecodeFixedText(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			out := make([]byte, len(tt.expected))
-			err := hex.DecodeFixedText(tt.typename, tt.input, out)
+			err := hex.DecodeFixedText(tt.input, out)
 			if tt.expectErr {
 				require.Error(t, err, "Test case : %s", tt.name)
 			} else {
@@ -201,8 +200,6 @@ func TestDecodeFixedJSON(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := hex.DecodeFixedJSON(
-				reflect.TypeOf(tt.typename),
-				reflect.TypeOf(tt.input),
 				tt.input,
 				tt.out,
 			)
@@ -217,7 +214,6 @@ func TestDecodeFixedJSON(t *testing.T) {
 }
 
 func BenchmarkDecodeFixedText(b *testing.B) {
-	typename := "exampleType"
 	sizes := []int{100, 1000, 10000} // Different input sizes
 
 	for _, size := range sizes {
@@ -240,7 +236,7 @@ func BenchmarkDecodeFixedText(b *testing.B) {
 
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
-				err := hex.DecodeFixedText(typename, input, out)
+				err := hex.DecodeFixedText(input, out)
 				if err != nil {
 					b.Fatalf("DecodeFixedText failed: %v", err)
 				}

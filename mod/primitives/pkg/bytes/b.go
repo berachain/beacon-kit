@@ -17,17 +17,13 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
+//
 
 package bytes
 
 import (
-	"reflect"
-
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 )
-
-//nolint:gochecknoglobals // reflect.Type of Bytes set at runtime
-var bytesT = reflect.TypeOf(Bytes(nil))
 
 // Bytes marshals/unmarshals as a JSON string with 0x prefix.
 // The empty slice marshals as "0x".
@@ -40,7 +36,7 @@ func (b Bytes) MarshalText() ([]byte, error) {
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (b *Bytes) UnmarshalJSON(input []byte) error {
-	return hex.UnmarshalJSONText(input, b, bytesT)
+	return hex.UnmarshalJSONText(input, b)
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler.
