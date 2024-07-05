@@ -100,25 +100,14 @@ start-geth-init:
 	sudo chmod 777 -R .tmp
 	rm -rf ${ETH_DATA_DIR}
 
-	docker run \
-	--rm -d -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	-v $(PWD)/.tmp:/.tmp \
-	ethereum/client-go:v1.14.6 init \
-	--datadir ${ETH_DATA_DIR} \
-	${ETH_GENESIS_PATH}
+	geth init --datadir ${ETH_DATA_DIR} ${ETH_GENESIS_PATH}
 
 start-geth-init-local:
 	geth init --datadir ${ETH_DATA_DIR} ${ETH_GENESIS_PATH}
 
 start-geth-run:
 	sudo chmod 777 -R .tmp
-	docker run --name execution-geth \
-	-p 30303:30303 \
-	-p 8545:8545 \
-	-p 8551:8551 \
-	--rm -d -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	-v $(PWD)/.tmp:/.tmp \
-	ethereum/client-go:v1.14.6 \
+	geth \
 	--http \
 	--http.addr 0.0.0.0 \
 	--http.api eth,net,debug,txpool \
