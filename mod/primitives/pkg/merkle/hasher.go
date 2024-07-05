@@ -25,6 +25,7 @@ import (
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes/buffer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
@@ -53,6 +54,8 @@ type RootHasher[RootT ~[32]byte] struct {
 	crypto.Hasher[RootT]
 	// rootHashFn is the underlying root hasher for the tree.
 	rootHashFn RootHashFn[RootT]
+	// bytesBuffer is reused for the working space during the hashing process.
+	bytesBuffer *buffer.ReusableBuffer[RootT]
 }
 
 // NewRootHasher constructs a new RootHasher.
@@ -61,8 +64,9 @@ func NewRootHasher[RootT ~[32]byte](
 	rootHashFn RootHashFn[RootT],
 ) *RootHasher[RootT] {
 	return &RootHasher[RootT]{
-		Hasher:     hasher,
-		rootHashFn: rootHashFn,
+		Hasher:      hasher,
+		rootHashFn:  rootHashFn,
+		bytesBuffer: buffer.NewReusableBuffer[RootT](),
 	}
 }
 
@@ -141,6 +145,8 @@ func BuildParentTreeRoots[RootT ~[32]byte](
 	)
 }
 
+var reusableBuffer = buffer.NewReusableBuffer[[32]byte]()
+
 // BuildParentTreeRootsWithNRoutines optimizes hashing of a list of roots
 // using CPU-specific vector instructions and parallel processing. This
 // method adapts to the host machine's hardware for potential performance
@@ -177,10 +183,8 @@ func BuildParentTreeRootsWithNRoutines(
 	eg := new(errgroup.Group)
 
 	// Use a buffer to store the results of the hashing process.
-	//
-	// TODO: Move to re-usable buffer.
 	outputLength := inputLength / two
-	workingSpace := make([][32]byte, outputLength)
+	workingSpace := reusableBuffer.Get(outputLength)
 
 	// If n is 0 the parallelization is disabled and the whole inputList is
 	// hashed in the main goroutine at the end of this function.
