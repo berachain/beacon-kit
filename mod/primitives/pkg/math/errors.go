@@ -27,6 +27,9 @@ import (
 )
 
 var (
+	// ErrUnexpectedInputLengthBase is the base error for unexpected input
+	// length errors.
+	ErrUnexpectedInputLengthBase = errors.New("unexpected input length")
 
 	// ErrNilBigInt is returned when a nil big.Int is provided to a.
 	ErrNilBigInt = errors.New("big.Int is nil")
@@ -35,6 +38,14 @@ var (
 	// function that requires a positive big.Int.
 	ErrNegativeBigIntBase = errors.New("big.Int is negative")
 )
+
+// ErrUnexpectedInputLength returns an error indicating that the input length.
+func ErrUnexpectedInputLength(expected, actual int) error {
+	return errors.Wrapf(
+		ErrUnexpectedInputLengthBase,
+		"expected %d, got %d", expected, actual,
+	)
+}
 
 // ErrNegativeBigInt returns an error indicating that a negative big.Int was
 // provided.

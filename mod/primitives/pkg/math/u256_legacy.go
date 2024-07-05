@@ -25,7 +25,6 @@ import (
 
 	byteslib "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
-	serialization "github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/serialization"
 	"github.com/holiman/uint256"
 )
 
@@ -48,7 +47,7 @@ type U256L [32]byte
 func NewU256L(bz []byte) (U256L, error) {
 	// Ensure that we are not silently truncating the input.
 	if len(bz) > U256NumBytes {
-		return U256L{}, serialization.ErrUnexpectedInputLength(U256NumBytes, len(bz))
+		return U256L{}, ErrUnexpectedInputLength(U256NumBytes, len(bz))
 	}
 	return U256L(byteslib.ExtendToSize(bz, U256NumBytes)), nil
 }
@@ -108,9 +107,7 @@ func (s U256L) Unwrap() [32]byte {
 
 // UnwrapU256 converts an U256L to a *U256.
 func (s U256L) UnwrapU256() *U256 {
-	return (*U256)(
-		(uint256.NewInt(0).SetBytes(byteslib.CopyAndReverseEndianess(s[:]))),
-	)
+	return (*U256)((uint256.NewInt(0).SetBytes(byteslib.CopyAndReverseEndianess(s[:]))))
 }
 
 // UnwrapBig converts a U256 to a non-negative big.Int.
@@ -160,7 +157,7 @@ func (s U256L) MarshalSSZ() ([]byte, error) {
 // UnmarshalSSZ deserializes a U256L from a byte slice.
 func (s *U256L) UnmarshalSSZ(buf []byte) error {
 	if len(buf) != U256NumBytes {
-		return serialization.ErrUnexpectedInputLength(U256NumBytes, len(buf))
+		return ErrUnexpectedInputLength(U256NumBytes, len(buf))
 	}
 	copy(s[:], buf)
 	return nil
