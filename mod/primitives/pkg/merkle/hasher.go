@@ -176,7 +176,13 @@ func BuildParentTreeRootsWithNRoutines(
 	twiceGroupSize := two * groupSize
 	eg := new(errgroup.Group)
 
-	// if n is 0 the parallelization is disabled and the whole inputList is
+	// Use a buffer to store the results of the hashing process.
+	//
+	// TODO: Move to re-usable buffer.
+	outputLength := inputLength / two
+	workingSpace := make([][32]byte, outputLength)
+
+	// If n is 0 the parallelization is disabled and the whole inputList is
 	// hashed in the main goroutine at the end of this function.
 	for j := range n {
 		eg.Go(func() error {
@@ -199,7 +205,7 @@ func BuildParentTreeRootsWithNRoutines(
 			segmentEnd := (j + 1) * twiceGroupSize
 
 			return gohashtree.Hash(
-				outputList[j*groupSize:],
+				workingSpace[j*groupSize:],
 				inputList[segmentStart:segmentEnd],
 			)
 		})
@@ -207,11 +213,17 @@ func BuildParentTreeRootsWithNRoutines(
 
 	// Hash the last segment of the inputList.
 	if err := gohashtree.Hash(
-		outputList[n*groupSize:],
+		workingSpace[n*groupSize:],
 		inputList[n*twiceGroupSize:],
 	); err != nil {
 		return err
 	}
+
+	defer func() {
+		// Copy the results from workingSpace to outputList
+		copy(outputList, workingSpace)
+		outputList = outputList[:outputLength]
+	}()
 
 	return eg.Wait()
 }
