@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"reflect"
 
+	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/collections/codec"
 )
 
@@ -127,13 +128,13 @@ func (m *IndexedMap[PrimaryKey, Value, Idx]) Get(pk PrimaryKey) (Value, error) {
 }
 
 // Iterate allows to iterate over the objects given a Ranger of the primary key.
-func (m *IndexedMap[PrimaryKey, Value, Idx]) Iterate(ctx context.Context, ranger Ranger[PrimaryKey]) (Iterator[PrimaryKey, Value], error) {
+func (m *IndexedMap[PrimaryKey, Value, Idx]) Iterate(ctx context.Context, ranger sdkcollections.Ranger[PrimaryKey]) (sdkcollections.Iterator[PrimaryKey, Value], error) {
 	return m.m.Iterate()
 }
 
 // Has reports if exists a value with the provided primary key.
-func (m *IndexedMap[PrimaryKey, Value, Idx]) Has(ctx context.Context, pk PrimaryKey) (bool, error) {
-	return m.m.Has(ctx, pk)
+func (m *IndexedMap[PrimaryKey, Value, Idx]) Has(pk PrimaryKey) (bool, error) {
+	return m.m.Has(pk)
 }
 
 // Set maps the value using the primary key. It will also iterate every index and instruct them to
@@ -143,7 +144,7 @@ func (m *IndexedMap[PrimaryKey, Value, Idx]) Set(ctx context.Context, pk Primary
 	if err != nil {
 		return err
 	}
-	return m.m.Set(ctx, pk, value)
+	return m.m.Set(pk, value)
 }
 
 // Remove removes the value associated with the primary key from the map. Then
@@ -154,30 +155,30 @@ func (m *IndexedMap[PrimaryKey, Value, Idx]) Remove(ctx context.Context, pk Prim
 	if err != nil {
 		return err
 	}
-	return m.m.Remove(ctx, pk)
+	return m.m.Remove(pk)
 }
 
-// Walk applies the same semantics as Map.Walk.
-func (m *IndexedMap[PrimaryKey, Value, Idx]) Walk(ctx context.Context, ranger Ranger[PrimaryKey], walkFunc func(key PrimaryKey, value Value) (stop bool, err error)) error {
-	return m.m.Walk(ctx, ranger, walkFunc)
-}
+// // Walk applies the same semantics as Map.Walk.
+// func (m *IndexedMap[PrimaryKey, Value, Idx]) Walk(ctx context.Context, ranger Ranger[PrimaryKey], walkFunc func(key PrimaryKey, value Value) (stop bool, err error)) error {
+// 	return m.m.Walk(ctx, ranger, walkFunc)
+// }
 
 // IterateRaw iterates the IndexedMap using raw bytes keys. Follows the same semantics as Map.IterateRaw
-func (m *IndexedMap[PrimaryKey, Value, Idx]) IterateRaw(ctx context.Context, start, end []byte, order Order) (Iterator[PrimaryKey, Value], error) {
-	return m.m.IterateRaw(ctx, start, end, order)
+func (m *IndexedMap[PrimaryKey, Value, Idx]) IterateRaw(start, end []byte) (sdkcollections.Iterator[PrimaryKey, Value], error) {
+	return m.m.IterateRaw(start, end)
 }
 
 func (m *IndexedMap[PrimaryKey, Value, Idx]) KeyCodec() codec.KeyCodec[PrimaryKey] {
-	return m.m.KeyCodec()
+	return m.m.KeyCodec
 }
 
 func (m *IndexedMap[PrimaryKey, Value, Idx]) ValueCodec() codec.ValueCodec[Value] {
-	return m.m.ValueCodec()
+	return m.m.ValueCodec
 }
 
 func (m *IndexedMap[PrimaryKey, Value, Idx]) ref(ctx context.Context, pk PrimaryKey, value Value) error {
 	for _, index := range m.computedIndexes {
-		err := index.Reference(ctx, pk, value, cachedGet[PrimaryKey, Value](ctx, m, pk))
+		err := index.Reference(ctx, pk, value, cachedGet[PrimaryKey, Value](m, pk))
 		if err != nil {
 			return err
 		}
@@ -187,7 +188,7 @@ func (m *IndexedMap[PrimaryKey, Value, Idx]) ref(ctx context.Context, pk Primary
 
 func (m *IndexedMap[PrimaryKey, Value, Idx]) unref(ctx context.Context, pk PrimaryKey) error {
 	for _, index := range m.computedIndexes {
-		err := index.Unreference(ctx, pk, cachedGet[PrimaryKey, Value](ctx, m, pk))
+		err := index.Unreference(ctx, pk, cachedGet[PrimaryKey, Value](m, pk))
 		if err != nil {
 			return err
 		}
@@ -198,8 +199,8 @@ func (m *IndexedMap[PrimaryKey, Value, Idx]) unref(ctx context.Context, pk Prima
 // cachedGet returns a function that gets the value V, given the key K but
 // returns always the same result on multiple calls.
 func cachedGet[K, V any, M interface {
-	Get(ctx context.Context, key K) (V, error)
-}](ctx context.Context, m M, key K,
+	Get(key K) (V, error)
+}](m M, key K,
 ) func() (V, error) {
 	var (
 		value      V
@@ -211,7 +212,7 @@ func cachedGet[K, V any, M interface {
 		if calledOnce {
 			return value, err
 		}
-		value, err = m.Get(ctx, key)
+		value, err = m.Get(key)
 		calledOnce = true
 		return value, err
 	}

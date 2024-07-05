@@ -246,7 +246,7 @@ func (s *Store[
 ]) GetTotalActiveBalances(
 	slotsPerEpoch uint64,
 ) (math.Gwei, error) {
-	iter, err := s.validators.Indexes.EffectiveBalance.Iterate(nil)
+	iter, err := s.validators.Indexes.EffectiveBalance.Iterate(nil, nil)
 	if err != nil {
 		return 0, err
 	}
