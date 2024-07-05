@@ -107,7 +107,6 @@ func TestVectorHashTreeRootQ(t *testing.T) {
 		}
 		return true
 	}
-
 	c := quick.Config{MaxCount: 1000000}
 	if err := quick.Check(f, &c); err != nil {
 		t.Error(err)
@@ -130,5 +129,4 @@ func TestVectorHashTreeRootPrysm(t *testing.T) {
 	if err := quick.Check(f, &c); err != nil {
 		t.Error(err)
 	}
-
 }
