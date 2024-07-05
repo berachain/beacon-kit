@@ -21,9 +21,12 @@
 package ssz_test
 
 import (
+	"reflect"
 	"testing"
+	"testing/quick"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/prysmaticlabs/prysm/v5/consensus-types/primitives"
 	"github.com/stretchr/testify/require"
 )
 
@@ -90,4 +93,42 @@ func TestVectorHashTreeRoot(t *testing.T) {
 		require.NoError(t, err2)
 		require.Equal(t, root1, root2)
 	})
+}
+
+func TestVectorHashTreeRootQ(t *testing.T) {
+	f := func(a, b ssz.Vector[ssz.Byte]) bool {
+		root1, err1 := a.HashTreeRoot()
+		root2, err2 := b.HashTreeRoot()
+		if err1 != nil || err2 != nil {
+			return false
+		}
+		if reflect.DeepEqual(a, b) {
+			return reflect.DeepEqual(root1, root2)
+		}
+		return true
+	}
+
+	c := quick.Config{MaxCount: 1000000}
+	if err := quick.Check(f, &c); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestVectorHashTreeRootPrysm(t *testing.T) {
+	f := func(s []byte) bool {
+		a := primitives.SSZBytes(s)
+		b := ssz.ByteVectorFromBytes(a)
+
+		root1, err1 := a.HashTreeRoot()
+		root2, err2 := b.HashTreeRoot()
+		if err1 != nil || err2 != nil {
+			return false
+		}
+		return reflect.DeepEqual(root1, root2)
+	}
+	c := quick.Config{MaxCount: 1000000}
+	if err := quick.Check(f, &c); err != nil {
+		t.Error(err)
+	}
+
 }
