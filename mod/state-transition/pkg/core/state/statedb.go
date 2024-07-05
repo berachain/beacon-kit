@@ -238,10 +238,12 @@ func (s *StateDB[
 		return nil, err
 	}
 
+	bound := min(
+		totalValidators, s.cs.MaxValidatorsPerWithdrawalsSweep(),
+	)
+
 	// Iterate through indices to find the next validators to withdraw.
-	for range min(
-		s.cs.MaxValidatorsPerWithdrawalsSweep(), totalValidators,
-	) {
+	for range bound {
 		validator, err = s.ValidatorByIndex(validatorIndex)
 		if err != nil {
 			return nil, err

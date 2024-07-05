@@ -152,6 +152,7 @@ type WriteOnlyValidators[ValidatorT any] interface {
 	) error
 
 	AddValidator(ValidatorT) error
+	AddValidatorBartio(ValidatorT) error
 }
 
 // ReadOnlyValidators has read access to validator methods.
