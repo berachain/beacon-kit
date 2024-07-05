@@ -25,6 +25,7 @@ import (
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/errors"
+	buffer "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes/buffer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
@@ -53,6 +54,8 @@ type RootHasher[RootT ~[32]byte] struct {
 	crypto.Hasher[RootT]
 	// rootHashFn is the underlying root hasher for the tree.
 	rootHashFn RootHashFn[RootT]
+	// buffer is a reusable buffer for hashing.
+	buffer *buffer.ReusableBuffer[RootT]
 }
 
 // NewRootHasher constructs a new RootHasher.
@@ -63,6 +66,7 @@ func NewRootHasher[RootT ~[32]byte](
 	return &RootHasher[RootT]{
 		Hasher:     hasher,
 		rootHashFn: rootHashFn,
+		buffer:     buffer.NewReusableBuffer[RootT](),
 	}
 }
 
@@ -100,17 +104,21 @@ func (rh *RootHasher[RootT]) NewRootWithDepth(
 		return zero.Hashes[limitDepth], nil
 	}
 
-	var err error
+	var (
+		err error
+		buf = rh.buffer.Get((len(leaves) + 1) / two)
+	)
+
 	for i := range depth {
 		layerLen := len(leaves)
 		if layerLen%two == 1 {
 			leaves = append(leaves, zero.Hashes[i])
 		}
 
-		if err = rh.rootHashFn(leaves, leaves); err != nil {
+		if err = rh.rootHashFn(buf, leaves); err != nil {
 			return zero.Hashes[limitDepth], err
 		}
-		leaves = leaves[:(layerLen+1)/two]
+		leaves = buf[:(layerLen+1)/two]
 	}
 
 	// If something went wrong, return the zero hash of limitDepth.
