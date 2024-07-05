@@ -78,6 +78,7 @@ if [[ $overwrite == "y" || $overwrite == "Y" || $3 == "onlyInit" ]]; then
 		--home $HOMEDIR \
 		--consensus-key-algo $CONSENSUS_KEY_ALGO
 	if [ $3 == "onlyInit" ]; then
+	  cp -rf ./testing/files/genesis.json $HOMEDIR/config/genesis.json
 	  exit 0
 	fi
 
@@ -87,6 +88,7 @@ if [[ $overwrite == "y" || $overwrite == "Y" || $3 == "onlyInit" ]]; then
 	./build/bin/beacond genesis add-premined-deposit --home $HOMEDIR
 	./build/bin/beacond genesis collect-premined-deposits --home $HOMEDIR 
 	./build/bin/beacond genesis execution-payload "$ETH_GENESIS" --home $HOMEDIR
+	cp -rf ./testing/files/genesis.json $HOMEDIR/config/genesis.json
 fi
 
 
