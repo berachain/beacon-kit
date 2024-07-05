@@ -21,7 +21,6 @@
 package merkle_test
 
 import (
-	"runtime"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
@@ -32,63 +31,56 @@ func FuzzHashTreeRoot(f *testing.F) {
 	// Seed corpus with a variety of sizes, including edge cases
 	//
 	// Test with empty slice
-	f.Add(make([]byte, 0), true, 1, merkle.MinParallelizationSize)
+	f.Add(make([]byte, 0), true, merkle.MinParallelizationSize)
 	// Just below a single block size
 	f.Add(
-		make([]byte, 31), true,
-		runtime.GOMAXPROCS(0)-1, merkle.MinParallelizationSize,
+		make([]byte, 31), true, merkle.MinParallelizationSize,
 	)
 	// Exactly one block size
 	f.Add(
-		make([]byte, 32), true,
-		runtime.GOMAXPROCS(0)+1, merkle.MinParallelizationSize,
+		make([]byte, 32), true, merkle.MinParallelizationSize,
 	)
 	// Just above a single block size
 	f.Add(
-		make([]byte, 33), true,
-		runtime.GOMAXPROCS(0)*2, merkle.MinParallelizationSize,
+		make([]byte, 33), true, merkle.MinParallelizationSize,
 	)
 	// Multiple blocks
 	f.Add(
-		make([]byte, 64), true,
-		runtime.GOMAXPROCS(0)*4, merkle.MinParallelizationSize,
+		make([]byte, 64), true, merkle.MinParallelizationSize,
 	)
 	// Larger input
 	f.Add(
-		make([]byte, 1024), true,
-		3, merkle.MinParallelizationSize,
+		make([]byte, 1024), true, merkle.MinParallelizationSize,
 	)
 	// Just below MinParallelizationSize leaves
 	f.Add(
 		make([]byte, merkle.MinParallelizationSize-2), false,
-		300, merkle.MinParallelizationSize,
+		merkle.MinParallelizationSize,
 	)
 	// Exactly MinParallelizationSize leaves
 	f.Add(
 		make([]byte, merkle.MinParallelizationSize), false,
-		1, merkle.MinParallelizationSize,
+		merkle.MinParallelizationSize,
 	)
 	// Just above MinParallelizationSize leaves
 	f.Add(
 		make([]byte, merkle.MinParallelizationSize+2), false,
-		64, merkle.MinParallelizationSize,
+		merkle.MinParallelizationSize,
 	)
 	// Double MinParallelizationSize leaves
 	f.Add(
 		make([]byte, 2*merkle.MinParallelizationSize), false,
-		runtime.GOMAXPROCS(0)-1, merkle.MinParallelizationSize,
+		merkle.MinParallelizationSize,
 	)
 	// Max Txs leaves
 	f.Add(
 		make([]byte, int(constants.MaxTxsPerPayload)), false,
-		runtime.GOMAXPROCS(0)-1,
 		merkle.MinParallelizationSize,
 	)
 
 	f.Fuzz(func(
 		t *testing.T,
-		original []byte, isLeaves bool,
-		numRoutines, minParallelizationSize int,
+		original []byte, isLeaves bool, minParallelizationSize int,
 	) {
 		// Extend the fuzzed input to 32 byte leaves if not in leaves format.
 		if !isLeaves {
@@ -117,7 +109,7 @@ func FuzzHashTreeRoot(f *testing.F) {
 		}
 
 		requireGoHashTreeEquivalence(
-			t, input, numRoutines, minParallelizationSize, expectError,
+			t, input, minParallelizationSize, expectError,
 		)
 	})
 }

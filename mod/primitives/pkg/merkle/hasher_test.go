@@ -23,7 +23,6 @@ package merkle_test
 import (
 	"fmt"
 	"math/rand"
-	"runtime"
 	"testing"
 	"time"
 
@@ -211,7 +210,6 @@ func Test_GoHashTreeHashConformance(t *testing.T) {
 			requireGoHashTreeEquivalence(
 				t,
 				inputList,
-				runtime.GOMAXPROCS(0)-1,
 				merkle.MinParallelizationSize,
 				tc.wantErr,
 			)
@@ -227,7 +225,6 @@ func TestBuildParentTreeRootsWithNRoutines_DivisionByZero(t *testing.T) {
 	err := merkle.BuildParentTreeRootsWithNRoutines(
 		output,
 		inputList,
-		0,
 		merkle.MinParallelizationSize,
 	)
 	require.NoError(
@@ -242,8 +239,7 @@ func TestBuildParentTreeRootsWithNRoutines_DivisionByZero(t *testing.T) {
 // gohashtree.Hash.
 func requireGoHashTreeEquivalence(
 	t *testing.T,
-	inputList [][32]byte, numRoutines int, minParallelizationSize int,
-	expectError bool,
+	inputList [][32]byte, minParallelizationSize int, expectError bool,
 ) {
 	t.Helper()
 
@@ -255,18 +251,10 @@ func requireGoHashTreeEquivalence(
 	output := make([][32]byte, len(inputListCopy)/2)
 	var err1, err2 error
 
-	// Prysm's VectorizedSha256 is STABLE on fuzzing
-	// if expectError {
-	// 	err1 = fmt.Errorf("expecting error")
-	// } else {
-	// 	output = htr.VectorizedSha256(inputListCopy)
-	// }
-
-	// Ours is NOT STABLE on fuzzing
+	// Run parallel hasher.
 	err1 = merkle.BuildParentTreeRootsWithNRoutines(
 		output,
 		inputListCopy,
-		numRoutines,
 		minParallelizationSize,
 	)
 

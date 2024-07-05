@@ -21,6 +21,7 @@
 package merkle
 
 import (
+	"runtime"
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -149,7 +150,7 @@ func BuildParentTreeRoots[RootT ~[32]byte](
 // TODO: We do not use generics here due to the gohashtree library not
 // supporting generics.
 func BuildParentTreeRootsWithNRoutines(
-	outputList, inputList [][32]byte, n int, minParallelizationSize int,
+	outputList, inputList [][32]byte, minParallelizationSize int,
 ) error {
 	// Validate input list length.
 	inputLength := len(inputList)
@@ -166,9 +167,11 @@ func BuildParentTreeRootsWithNRoutines(
 		return gohashtree.Hash(outputList, inputList)
 	}
 
+	// Get the number of goroutines to use.
+	n := runtime.GOMAXPROCS(0) - 1
+
 	// Otherwise parallelize the hashing process for large inputs.
-	// Take the max(n, 1) to prevent division by 0.
-	groupSize := inputLength / (two * max(n, 1))
+	groupSize := inputLength / (two * (n + 1))
 	twiceGroupSize := two * groupSize
 	eg := new(errgroup.Group)
 
@@ -177,7 +180,7 @@ func BuildParentTreeRootsWithNRoutines(
 
 	// if n is 0 the parallelization is disabled and the whole inputList is
 	// hashed in the main goroutine at the end of this function.
-	for j := range n + 1 {
+	for j := range n {
 		eg.Go(func() error {
 			// inputList:  [-------------------2*groupSize-------------------]
 			//              ^                ^               ^              ^
@@ -195,15 +198,19 @@ func BuildParentTreeRootsWithNRoutines(
 			// hash operation reduces the size of the input by half.
 			// Define the segment of the inputList each goroutine will process.
 			segmentStart := j * twiceGroupSize
-			segmentEnd := min((j+1)*twiceGroupSize, inputLength)
+			segmentEnd := (j + 1) * twiceGroupSize
 
 			return gohashtree.Hash(
-				workingSpace[j*groupSize:min((j+1)*groupSize, outputLength)],
+				workingSpace[j*groupSize:],
 				inputList[segmentStart:segmentEnd],
 			)
 		})
 	}
-	if err := eg.Wait(); err != nil {
+
+	if err := gohashtree.Hash(
+		workingSpace[n*groupSize:],
+		inputList[n*twiceGroupSize:],
+	); err != nil {
 		return err
 	}
 
@@ -213,5 +220,5 @@ func BuildParentTreeRootsWithNRoutines(
 		outputList = outputList[:outputLength]
 	}()
 
-	return nil
+	return eg.Wait()
 }
