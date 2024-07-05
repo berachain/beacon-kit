@@ -193,7 +193,8 @@ func BuildParentTreeRootsWithNRoutines(
 			//         j*groupSize             (j+1)*groupSize
 			//
 			// Each goroutine processes a segment of inputList that is twice as
-			// large as the segment it fills in workingSpace. This is because the
+			// large as the segment it fills in workingSpace. This is because
+			// the
 			// hash operation reduces the size of the input by half.
 			// Define the segment of the inputList each goroutine will process.
 			segmentStart := j * twiceGroupSize
