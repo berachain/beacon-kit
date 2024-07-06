@@ -18,7 +18,7 @@
 ###           Stage 0 - Build Arguments             ###
 #######################################################
 
-ARG GO_VERSION=1.22.4
+ARG GO_VERSION=1.22.5
 ARG RUNNER_IMAGE=alpine:3.20
 ARG BUILD_TAGS="netgo,muslc,blst,bls12381,pebbledb"
 ARG NAME=beacond
@@ -57,6 +57,7 @@ COPY ./mod/state-transition/go.mod ./mod/state-transition/go.sum ./mod/state-tra
 COPY ./mod/storage/go.mod ./mod/storage/go.sum ./mod/storage/
 COPY ./mod/errors/go.mod ./mod/errors/go.sum ./mod/errors/
 COPY ./mod/geth-primitives/go.mod ./mod/geth-primitives/go.sum ./mod/geth-primitives/
+COPY ./mod/chain-spec/go.mod ./mod/chain-spec/
 
 RUN go work init && \
     go work use ./beacond && \
@@ -79,7 +80,8 @@ RUN go work init && \
     go work use ./mod/runtime && \
     go work use ./mod/state-transition && \
     go work use ./mod/storage && \
-    go work use ./mod/geth-primitives
+    go work use ./mod/geth-primitives && \
+    go work use ./mod/chain-spec
 
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/go/pkg/mod \

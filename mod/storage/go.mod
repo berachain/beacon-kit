@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit/mod/storage
 
-go 1.22.4
+go 1.22.5
 
 replace (
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240623110059-dec2d5583e39
@@ -17,8 +17,8 @@ require (
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240617161612-ab1257fcf5a1
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610210054-bfdc14c4013c
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240627134700-de48919ec4d6
-	github.com/cometbft/cometbft v1.0.0-rc1.0.20240702102754-c4fa9a6225b0
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240705193247-d464364483df
+	github.com/cometbft/cometbft v1.0.0-rc1.0.20240705183350-8b262bdd1d36
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/spf13/afero v1.11.0
@@ -26,9 +26,12 @@ require (
 )
 
 require (
+	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240703145037-b5612ab256db // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a // indirect
 	github.com/dvsekhvalnov/jose2go v1.7.0 // indirect
+	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
+	github.com/prysmaticlabs/gohashtree v0.0.4-beta // indirect
 )
 
 require (
@@ -58,14 +61,14 @@ require (
 	github.com/cosmos/btcutil v1.0.5 // indirect
 	github.com/cosmos/cosmos-db v1.0.2 // indirect
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5 // indirect
-	github.com/cosmos/crypto v0.0.0-20240312084433-de8f9c76030d // indirect
+	github.com/cosmos/crypto v0.1.1 // indirect
 	github.com/cosmos/gogoproto v1.5.0 // indirect
 	github.com/cosmos/ics23/go v0.10.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
 	github.com/dgraph-io/badger/v4 v4.2.0 // indirect
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/ethereum/go-ethereum v1.14.5 // indirect
+	github.com/ethereum/go-ethereum v1.14.6 // indirect
 	github.com/getsentry/sentry-go v0.28.1 // indirect
 	github.com/go-kit/kit v0.13.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
@@ -89,7 +92,6 @@ require (
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
-	github.com/libp2p/go-buffer-pool v0.1.0 // indirect
 	github.com/linxGnu/grocksdb v1.9.2 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
@@ -115,10 +117,10 @@ require (
 	github.com/tendermint/go-amino v0.16.0 // indirect
 	go.etcd.io/bbolt v1.4.0-alpha.1 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	golang.org/x/crypto v0.24.0 // indirect
+	golang.org/x/crypto v0.25.0 // indirect
 	golang.org/x/exp v0.0.0-20240613232115-7f521ea00fb8 // indirect
 	golang.org/x/net v0.26.0 // indirect
-	golang.org/x/sys v0.21.0 // indirect
+	golang.org/x/sys v0.22.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 	google.golang.org/genproto v0.0.0-20240617180043-68d350f18fd4 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240617180043-68d350f18fd4 // indirect

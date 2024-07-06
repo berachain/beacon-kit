@@ -25,8 +25,8 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -111,10 +111,10 @@ func TestWithdrawal_HashTreeRoot(t *testing.T) {
 
 	// Create a Container with the same elements
 	container := ssz.ContainerFromElements(
-		ssz.U64(withdrawal.Index.Unwrap()),
-		ssz.U64(withdrawal.Validator),
+		withdrawal.Index,
+		withdrawal.Validator,
 		ssz.ByteVectorFromBytes(withdrawal.Address.Bytes()),
-		ssz.U64(withdrawal.Amount),
+		withdrawal.Amount,
 	)
 
 	// Get the hash tree root using the Container
