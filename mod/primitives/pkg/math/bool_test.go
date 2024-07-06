@@ -21,18 +21,18 @@
 package math_test
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
-	"github.com/stretchr/testify/require"
 	"testing"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/stretchr/testify/require"
 )
 
 func TestBool(t *testing.T) {
 	var b math.Bool
 	require.Equal(t, constants.BoolSize, b.SizeSSZ())
-	require.Equal(t, true, b.IsFixed())
+	require.True(t, b.IsFixed())
 	require.Equal(t, types.Basic, b.Type())
 	require.Equal(t, uint64(0x1), b.ChunkCount())
 }
@@ -89,8 +89,7 @@ func TestBool_NewFromSSZ(t *testing.T) {
 		{name: "ValidTrue 2", input: []byte{2}, expected: true, err: false},
 		{name: "InvalidLength", input: []byte{}, expected: false, err: true},
 	}
-	var inputBool math.Bool
-	inputBool = true
+	var inputBool math.Bool = true
 
 	for _, tt := range tests {
 		result, err := inputBool.NewFromSSZ(tt.input)

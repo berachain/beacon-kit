@@ -25,15 +25,14 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
-	"github.com/stretchr/testify/require"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/stretchr/testify/require"
 )
 
 func TestU256(t *testing.T) {
 	var u math.U256
 	require.Equal(t, constants.U256Size, u.SizeSSZ())
-	require.Equal(t, true, u.IsFixed())
+	require.True(t, u.IsFixed())
 	require.Equal(t, types.Basic, u.Type())
 	require.Equal(t, uint64(1), u.ChunkCount())
 }

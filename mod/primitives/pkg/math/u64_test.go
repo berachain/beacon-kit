@@ -21,12 +21,12 @@
 package math_test
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 	"math/big"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/require"
 )
@@ -777,7 +777,7 @@ func TestU64_UnwrapPtr(t *testing.T) {
 func TestU64(t *testing.T) {
 	var u math.U64
 	require.Equal(t, constants.U64Size, u.SizeSSZ())
-	require.Equal(t, true, u.IsFixed())
+	require.True(t, u.IsFixed())
 	require.Equal(t, types.Basic, u.Type())
 	require.Equal(t, uint64(1), u.ChunkCount())
 }
@@ -798,8 +798,7 @@ func TestU64_NewFromSSZ(t *testing.T) {
 			err:      true},
 	}
 
-	var u64 math.U64
-	u64 = 1
+	var u64 math.U64 = 1
 
 	for _, tt := range tests {
 		result, err := u64.NewFromSSZ(tt.input)

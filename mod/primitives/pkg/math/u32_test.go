@@ -25,15 +25,14 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
-	"github.com/stretchr/testify/require"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/stretchr/testify/require"
 )
 
 func TestU32(t *testing.T) {
 	var u math.U32
 	require.Equal(t, constants.U32Size, u.SizeSSZ())
-	require.Equal(t, true, u.IsFixed())
+	require.True(t, u.IsFixed())
 	require.Equal(t, types.Basic, u.Type())
 	require.Equal(t, uint64(1), u.ChunkCount())
 }
@@ -90,8 +89,7 @@ func TestU32_NewFromSSZ(t *testing.T) {
 		{name: "InvalidLength", input: []byte{1, 0, 0}, expected: 0, err: true},
 	}
 
-	var u32 math.U32
-	u32 = 1
+	var u32 math.U32 = 1
 
 	for _, tt := range tests {
 		result, err := u32.NewFromSSZ(tt.input)
