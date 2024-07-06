@@ -34,14 +34,6 @@ type Node[RootT ~[32]byte] struct {
 	gIndex GeneralizedIndex[RootT]
 }
 
-// NewRootNode creates a new Node with the given value.
-func NewRootNode[RootT ~[32]byte](value RootT) *Node[RootT] {
-	return &Node[RootT]{
-		value:  value,
-		gIndex: 1,
-	}
-}
-
 // NewZeroNode creates a new Node with a zero value.
 func NewZeroNodeAtDepth[RootT ~[32]byte](
 	d uint8,
@@ -49,6 +41,18 @@ func NewZeroNodeAtDepth[RootT ~[32]byte](
 ) *Node[RootT] {
 	return &Node[RootT]{
 		value:  zero.Hashes[d],
+		gIndex: NewGeneralizedIndex[RootT](d, layerIndex),
+	}
+}
+
+// NewNodeAtDepth creates a new Node with the given value and depth.
+func NewNodeAtDepth[RootT ~[32]byte](
+	value RootT,
+	d uint8,
+	layerIndex uint64,
+) *Node[RootT] {
+	return &Node[RootT]{
+		value:  value,
 		gIndex: NewGeneralizedIndex[RootT](d, layerIndex),
 	}
 }

@@ -101,11 +101,7 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 	// Create leaf nodes
 	currentLayer := make([]*Node[RootT], len(chunks))
 	for i, leaf := range chunks {
-		gIndex := NewGeneralizedIndex[RootT](limitDepth, uint64(i))
-		currentLayer[i] = &Node[RootT]{
-			value:  leaf,
-			gIndex: gIndex,
-		}
+		currentLayer[i] = NewNodeAtDepth(leaf, depth, uint64(i))
 	}
 
 	// Build the tree bottom-up
