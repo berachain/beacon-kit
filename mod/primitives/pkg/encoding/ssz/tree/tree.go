@@ -82,28 +82,26 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 	depth uint8,
 	limitDepth uint8,
 ) (*Tree[RootT], error) {
-
-	if err := VerifySufficientDepth(len(chunks), limitDepth); err != nil {
-		return &Tree[RootT]{}, err
-	}
-
 	rh := merkle.NewRootHasher(
 		crypto.NewHasher[RootT](sha256.Hash),
 		merkle.BuildParentTreeRoots,
 	)
 
-	// Create the root node
-	root := &Node[RootT]{}
-	currentLayer := make([]*Node[RootT], len(chunks))
-
 	// Handle the case where the tree is not full
-	if len(currentLayer) == 0 {
+	if len(chunks) == 0 {
 		return &Tree[RootT]{
-			root:   root,
+			root:   &Node[RootT]{},
 			hasher: rh,
 		}, nil
 	}
 
+	if err := VerifySufficientDepth(len(chunks), limitDepth); err != nil {
+		return &Tree[RootT]{}, err
+	}
+
+	// Create the root node
+	root := &Node[RootT]{}
+	currentLayer := make([]*Node[RootT], len(chunks))
 	// Create leaf nodes
 	for i, leaf := range chunks {
 		currentLayer[i] = &Node[RootT]{value: leaf}
@@ -118,7 +116,7 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 			if i+1 < len(currentLayer) {
 				right = currentLayer[i+1]
 			} else {
-				right = &Node[RootT]{value: zero.Hashes[d]}
+				right = NewZeroNodeAtDepth[RootT](d)
 			}
 			parent := NewNodeFromChildren(left, right, rh.Combi)
 			nextLayer[i/2] = parent
@@ -161,10 +159,5 @@ func VerifySufficientDepth(numLeaves int, depth uint8) error {
 				numLeaves, depth),
 		)
 	}
-
-	fmt.Println("VerifySufficientDepth")
-	fmt.Println(numLeaves)
-	fmt.Println(depth)
-	fmt.Println(1 << depth)
 	return nil
 }

@@ -20,6 +20,8 @@
 
 package tree
 
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
+
 // Node represents a node in the tree backing of an SSZ object.
 type Node[RootT ~[32]byte] struct {
 	// left is the left child node.
@@ -30,9 +32,18 @@ type Node[RootT ~[32]byte] struct {
 	value RootT
 }
 
+// NewZeroNode creates a new Node with a zero value.
+func NewZeroNodeAtDepth[RootT ~[32]byte](d uint8) *Node[RootT] {
+	return &Node[RootT]{
+		value: zero.Hashes[d],
+	}
+}
+
 // NewNodeFromChildren creates a new Node from left and right child nodes.
 // It calculates the value of the new node by combining the values of its children.
-func NewNodeFromChildren[RootT ~[32]byte](left, right *Node[RootT], hasher func(RootT, RootT) RootT) *Node[RootT] {
+func NewNodeFromChildren[RootT ~[32]byte](
+	left, right *Node[RootT], hasher func(RootT, RootT) RootT,
+) *Node[RootT] {
 	return &Node[RootT]{
 		left:  left,
 		right: right,
