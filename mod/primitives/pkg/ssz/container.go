@@ -224,15 +224,28 @@ func (c *Container) GIndex(gIndex math.U64, path tree.ObjectPath) *tree.Node {
 	return nil
 }
 
-/*
-func (c *Container) Default() *Container {
-	for i, element := range c.elements {
-		if enum, ok := element.(types.SSZEnumerable[types.MinimalSSZType]); ok {
-			c.elements[i] = enum.Default()
-		}
+func (c *Container) GIndex2(gIndex math.U64, indexPath []uint64) *tree.Node {
+	if len(indexPath) == 0 {
+		return &tree.Node{GIndex: gIndex}
+	}
+	head, rest := indexPath[0], indexPath[1:]
+	gIndex = gIndex*math.U64(c.N()).NextPowerOfTwo() + math.U64(head)
+	field := c.elements[head]
+	if gid, ok := field.(tree.GIndexed); ok {
+		return gid.GIndex2(gIndex, rest)
+	} else {
+		// TODO calc offset
+		return &tree.Node{GIndex: gIndex}
 	}
 }
-*/
+
+func (c *Container) Get(index int) types.MinimalSSZType {
+	return c.elements[index]
+}
+
+// --------------------------------------------------------------
+// Schema Prototyping
+// --------------------------------------------------------------
 
 type ContainerField struct {
 	Name  string

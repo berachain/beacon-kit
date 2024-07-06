@@ -255,6 +255,7 @@ func (gs GeneralizedIndicies[RootT]) VerifyMerkleMultiproof(
 
 type GIndexed interface {
 	GIndex(math.U64, ObjectPath) *Node
+	GIndex2(math.U64, []uint64) *Node
 }
 
 type Node struct {

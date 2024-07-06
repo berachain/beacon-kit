@@ -194,3 +194,15 @@ func ListFromSchema[ContainerT HasSchema[ContainerT]](
 	}
 	return &List[*Container]{elements: containers, limit: limit, sample: sample}
 }
+
+func ListSelect[T any](
+	fn func(t T) types.MinimalSSZType,
+	elements []T,
+	limit uint64,
+) *List[types.MinimalSSZType] {
+	var es []types.MinimalSSZType
+	for _, element := range elements {
+		es = append(es, fn(element))
+	}
+	return &List[types.MinimalSSZType]{elements: es, limit: limit}
+}
