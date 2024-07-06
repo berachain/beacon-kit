@@ -6,6 +6,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/tree"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
 	"github.com/stretchr/testify/require"
@@ -189,6 +190,59 @@ func Test_Record(t *testing.T) {
 	record := NewMonolithRecord(state)
 	require.Equal(t, math.U64(8), record.BytesField(1).GIndex)
 	require.Equal(t, math.U64(9), record.UintField(1).GIndex)
+}
+
+// --------------------------------------------------------------------------------
+// This section shows the minimal surface required by the SSZ schema
+// --------------------------------------------------------------------------------
+
+func Test_Minimal_Schema(t *testing.T) {
+	nestedType := schema.Container{
+		Fields: []schema.SSZType{
+			schema.NewBasic(32),
+			schema.NewBasic(8),
+			schema.NewList(schema.NewBasic(32), 10),
+		},
+		FieldIndex: map[string]uint64{
+			"bytes_field":   0,
+			"uint_field":    1,
+			"list_of_bytes": 2,
+		},
+	}
+	root := schema.Container{
+		Fields: []schema.SSZType{
+			schema.NewBasic(32),
+			schema.NewBasic(8),
+			schema.NewList(schema.NewBasic(8), 1000),
+			schema.NewList(nestedType, 1000),
+			nestedType,
+		},
+		FieldIndex: map[string]uint64{
+			"bytes_field":       0,
+			"uint_field":        1,
+			"list_of_basic":     2,
+			"list_of_container": 3,
+		},
+	}
+
+	assertIndex := func(path tree.ObjectPath, expect uint64) {
+		node, err := schema.GetTreeNode(root, path)
+		require.NoError(t, err)
+		require.Equalf(
+			t,
+			expect,
+			node.GIndex,
+			"expected %d, got %d",
+			expect,
+			node.GIndex,
+		)
+	}
+
+	assertIndex("bytes_field", 8)
+	assertIndex("uint_field", 9)
+	assertIndex("list_of_container", 11)
+	assertIndex("list_of_container/12", 11*2*1024+12)
+	assertIndex("list_of_container/12/uint_field", (11*2*1024+12)*4+1)
 }
 
 // --------------------------------------------------------------------------------

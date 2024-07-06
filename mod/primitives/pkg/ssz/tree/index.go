@@ -266,6 +266,9 @@ type Node struct {
 type ObjectPath string
 
 func (o ObjectPath) Head() (string, ObjectPath) {
+	if o == "" {
+		return "", ""
+	}
 	parts := strings.Split(string(o), "/")
 	head := parts[0]
 	rest := ObjectPath(strings.Join(parts[1:], "/"))
