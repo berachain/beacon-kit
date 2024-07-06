@@ -20,8 +20,6 @@
 
 package tree
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
-
 // Node represents a node in the tree backing of an SSZ object.
 type Node[RootT ~[32]byte] struct {
 	// left is the left child node.
@@ -32,17 +30,6 @@ type Node[RootT ~[32]byte] struct {
 	value RootT
 	// GeneralizedIndex is the generalized index of the node.
 	gIndex GeneralizedIndex[RootT]
-}
-
-// NewZeroNode creates a new Node with a zero value.
-func NewZeroNodeAtDepth[RootT ~[32]byte](
-	d uint8,
-	layerIndex uint64,
-) *Node[RootT] {
-	return &Node[RootT]{
-		value:  zero.Hashes[d],
-		gIndex: NewGeneralizedIndex[RootT](d, layerIndex),
-	}
 }
 
 // NewNodeAtDepth creates a new Node with the given value and depth.

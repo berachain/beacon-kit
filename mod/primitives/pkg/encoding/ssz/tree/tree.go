@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
 )
 
 // New returns a Merkle tree of the given leaves.
@@ -112,7 +113,7 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 			if i+1 < len(currentLayer) {
 				right = currentLayer[i+1]
 			} else {
-				right = NewZeroNodeAtDepth[RootT](d, uint64(i+1))
+				right = NewNodeAtDepth[RootT](zero.Hashes[d], d, uint64(i+1))
 			}
 			parent := NewNodeFromChildren(left, right, rh.Combi)
 			currentLayer[i/2] = parent
@@ -122,7 +123,7 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 	currentNode := currentLayer[0]
 	for j := depth; j < limitDepth; j++ {
 		currentNode = NewNodeFromChildren(
-			currentNode, NewZeroNodeAtDepth[RootT](j, 1), rh.Combi,
+			currentNode, NewNodeAtDepth[RootT](zero.Hashes[j], j, 1), rh.Combi,
 		)
 	}
 
