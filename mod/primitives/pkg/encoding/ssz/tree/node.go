@@ -30,12 +30,23 @@ type Node[RootT ~[32]byte] struct {
 	right *Node[RootT]
 	// value holds the node's serialized data and/or hash.
 	value RootT
+	// GeneralizedIndex is the generalized index of the node.
+	gIndex GeneralizedIndex[RootT]
+}
+
+// NewRootNode creates a new Node with the given value.
+func NewRootNode[RootT ~[32]byte](value RootT) *Node[RootT] {
+	return &Node[RootT]{
+		value:  value,
+		gIndex: 1,
+	}
 }
 
 // NewZeroNode creates a new Node with a zero value.
-func NewZeroNodeAtDepth[RootT ~[32]byte](d uint8) *Node[RootT] {
+func NewZeroNodeAtDepth[RootT ~[32]byte](d uint8, gIndex GeneralizedIndex[RootT]) *Node[RootT] {
 	return &Node[RootT]{
-		value: zero.Hashes[d],
+		value:  zero.Hashes[d],
+		gIndex: gIndex,
 	}
 }
 
@@ -46,9 +57,10 @@ func NewNodeFromChildren[RootT ~[32]byte](
 	left, right *Node[RootT], hasher func(RootT, RootT) RootT,
 ) *Node[RootT] {
 	return &Node[RootT]{
-		left:  left,
-		right: right,
-		value: hasher(left.value, right.value),
+		left:   left,
+		right:  right,
+		value:  hasher(left.value, right.value),
+		gIndex: left.gIndex.Parent(),
 	}
 }
 

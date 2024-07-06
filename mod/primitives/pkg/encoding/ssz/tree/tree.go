@@ -101,31 +101,40 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 	// Create leaf nodes
 	currentLayer := make([]*Node[RootT], len(chunks))
 	for i, leaf := range chunks {
-		currentLayer[i] = &Node[RootT]{value: leaf}
+		gIndex := NewGeneralizedIndex[RootT](uint8(limitDepth), uint64(i))
+		currentLayer[i] = &Node[RootT]{
+			value:  leaf,
+			gIndex: gIndex,
+		}
 	}
 
 	// Build the tree bottom-up
-	for d := range depth {
-		newLayerSize := (len(currentLayer) + 1) / 2
+	for d := uint8(0); d < depth; d++ {
 		for i := 0; i < len(currentLayer); i += 2 {
 			left := currentLayer[i]
 			var right *Node[RootT]
 			if i+1 < len(currentLayer) {
 				right = currentLayer[i+1]
 			} else {
-				right = NewZeroNodeAtDepth[RootT](d)
+				right = NewZeroNodeAtDepth(d, NewGeneralizedIndex[RootT](limitDepth-d, uint64(i+1)))
 			}
 			parent := NewNodeFromChildren(left, right, rh.Combi)
 			currentLayer[i/2] = parent
 		}
-		currentLayer = currentLayer[:newLayerSize]
 	}
 	// If we need to extend the tree to be deeper, we do it virtually.
 	currentNode := currentLayer[0]
 	for j := depth; j < limitDepth; j++ {
-		currentNode = NewNodeFromChildren(
-			currentNode, NewZeroNodeAtDepth[RootT](j), rh.Combi,
-		)
+		zeroNode := NewZeroNodeAtDepth(j, NewGeneralizedIndex[RootT](limitDepth-j, 1))
+		currentNode = NewNodeFromChildren(currentNode, zeroNode, rh.Combi)
+	}
+
+	if currentNode == nil {
+		return &Tree[RootT]{}, errors.New("failed to build tree")
+	}
+
+	if currentNode.gIndex != 1 {
+		return &Tree[RootT]{}, errors.New("failed to build tree bad gindex")
 	}
 
 	return &Tree[RootT]{
