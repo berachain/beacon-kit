@@ -129,13 +129,9 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 			currentNode, NewZeroNodeAtDepth[RootT](j), rh.Combi,
 		)
 	}
-	h := currentNode.value
-
-	root := currentLayer[0]
-	root.value = h
 
 	return &Tree[RootT]{
-		root:   root,
+		root:   currentNode,
 		hasher: rh,
 	}, nil
 }
