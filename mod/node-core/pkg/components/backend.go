@@ -23,45 +23,44 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 )
 
-// StateProcessorInput is the input for the state processor for the depinject
-// framework.
-type StateProcessorInput struct {
+// StorageBackendInput is the input for the ProvideStorageBackend function.
+type StorageBackendInput struct {
 	depinject.In
-	ChainSpec       common.ChainSpec
-	ExecutionEngine *ExecutionEngine
-	Signer          crypto.BLSSigner
+	AvailabilityStore *AvailabilityStore
+	ChainSpec         common.ChainSpec
+	DepositStore      *DepositStore
+	KVStore           *KVStore
 }
 
-// ProvideStateProcessor provides the state processor to the depinject
-// framework.
-func ProvideStateProcessor(
-	in StateProcessorInput,
-) StateProcessor {
-	return core.NewStateProcessor[
-		*BeaconBlock,
+// ProvideStorageBackend is the depinject provider that returns a beacon storage
+// backend.
+func ProvideStorageBackend(
+	in StorageBackendInput,
+) *StorageBackend {
+	return storage.NewBackend[
+		*AvailabilityStore,
 		*BeaconBlockBody,
 		*BeaconBlockHeader,
 		*BeaconState,
-		*transition.Context,
+		*BeaconStateMarshallable,
+		*BlobSidecars,
 		*Deposit,
+		*DepositStore,
 		*types.Eth1Data,
-		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*types.Fork,
-		*types.ForkData,
 		*KVStore,
 		*types.Validator,
 		*Withdrawal,
-		types.WithdrawalCredentials,
+		WithdrawalCredentials,
 	](
 		in.ChainSpec,
-		in.ExecutionEngine,
-		in.Signer,
+		in.AvailabilityStore,
+		in.KVStore,
+		in.DepositStore,
 	)
 }

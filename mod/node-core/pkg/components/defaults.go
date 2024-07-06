@@ -29,7 +29,7 @@ func DefaultComponentsWithStandardTypes() []any {
 	return []any{
 		ProvideABCIMiddleware,
 		ProvideAttributesFactory[
-			BeaconState,
+			*BeaconState,
 			*engineprimitives.PayloadAttributes[*Withdrawal],
 			*Withdrawal,
 		],

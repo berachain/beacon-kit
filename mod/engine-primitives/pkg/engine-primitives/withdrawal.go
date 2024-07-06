@@ -41,6 +41,20 @@ type Withdrawal struct {
 	Amount math.Gwei `json:"amount"`
 }
 
+func (w *Withdrawal) New(
+	index math.U64,
+	validator math.ValidatorIndex,
+	address gethprimitives.ExecutionAddress,
+	amount math.Gwei,
+) *Withdrawal {
+	return &Withdrawal{
+		Index:     index,
+		Validator: validator,
+		Address:   address,
+		Amount:    amount,
+	}
+}
+
 // Equals returns true if the Withdrawal is equal to the other.
 func (w *Withdrawal) Equals(other *Withdrawal) bool {
 	return w.Index == other.Index &&
