@@ -98,9 +98,8 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 		return &Tree[RootT]{}, err
 	}
 
-	// Create the root node
-	currentLayer := make([]*Node[RootT], len(chunks))
 	// Create leaf nodes
+	currentLayer := make([]*Node[RootT], len(chunks))
 	for i, leaf := range chunks {
 		currentLayer[i] = &Node[RootT]{value: leaf}
 	}
