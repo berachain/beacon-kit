@@ -8,7 +8,14 @@ import (
 	"strings"
 )
 
-const chunkSize = 32
+const (
+	uint8Size   = 1
+	uint16Size  = 2
+	uint32Size  = 4
+	uint64Size  = 8
+	uint128Size = 16
+	chunkSize   = 32
+)
 
 type SSZType interface {
 	Size() uint64
@@ -24,12 +31,12 @@ type basic struct {
 	size uint64
 }
 
-func UInt8() SSZType   { return basic{size: 1} }
-func UInt16() SSZType  { return basic{size: 2} }
-func UInt32() SSZType  { return basic{size: 4} }
-func UInt64() SSZType  { return basic{size: 8} }
-func UInt128() SSZType { return basic{size: 16} }
-func UInt256() SSZType { return basic{size: 32} }
+func UInt8() SSZType   { return basic{size: uint8Size} }
+func UInt16() SSZType  { return basic{size: uint16Size} }
+func UInt32() SSZType  { return basic{size: uint32Size} }
+func UInt64() SSZType  { return basic{size: uint64Size} }
+func UInt128() SSZType { return basic{size: uint128Size} }
+func UInt256() SSZType { return basic{size: chunkSize} }
 
 func (b basic) Size() uint64 { return b.size }
 
