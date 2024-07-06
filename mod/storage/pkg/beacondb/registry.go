@@ -30,9 +30,7 @@ import (
 func (kv *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
-]) AddValidator(
-	val ValidatorT,
-) error {
+]) AddValidator(val ValidatorT) error {
 	// Get the ne
 	idx, err := kv.validatorIndex.Next(kv.ctx)
 	if err != nil {
@@ -51,9 +49,7 @@ func (kv *KVStore[
 func (kv *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
-]) AddValidatorBartio(
-	val ValidatorT,
-) error {
+]) AddValidatorBartio(val ValidatorT) error {
 	// Get the ne
 	idx, err := kv.validatorIndex.Next(kv.ctx)
 	if err != nil {
@@ -84,9 +80,7 @@ func (kv *KVStore[
 func (kv *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
-]) RemoveValidatorAtIndex(
-	idx math.ValidatorIndex,
-) error {
+]) RemoveValidatorAtIndex(idx math.ValidatorIndex) error {
 	return kv.validators.Remove(kv.ctx, uint64(idx))
 }
 

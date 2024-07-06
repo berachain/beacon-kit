@@ -45,7 +45,7 @@ type ValidatorServiceInput struct {
 	LocalBuilder    *LocalBuilder
 	Logger          log.Logger
 	StateProcessor  StateProcessor
-	StorageBackend  StorageBackend
+	StorageBackend  *StorageBackend
 	Signer          crypto.BLSSigner
 	SidecarsFeed    *SidecarsBroker
 	SlotBroker      *broker.Broker[*asynctypes.Event[math.Slot]]
@@ -66,7 +66,7 @@ func ProvideValidatorService(
 	return validator.NewService[
 		*BeaconBlock,
 		*BeaconBlockBody,
-		BeaconState,
+		*BeaconState,
 		*BlobSidecars,
 		*Deposit,
 		*DepositStore,
@@ -87,7 +87,7 @@ func ProvideValidatorService(
 			in.TelemetrySink,
 		),
 		in.LocalBuilder,
-		[]validator.PayloadBuilder[BeaconState, *ExecutionPayload]{
+		[]validator.PayloadBuilder[*BeaconState, *ExecutionPayload]{
 			in.LocalBuilder,
 		},
 		in.TelemetrySink,
