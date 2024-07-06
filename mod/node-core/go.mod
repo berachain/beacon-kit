@@ -48,8 +48,6 @@ require (
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240705193247-d464364483df
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240705183350-8b262bdd1d36
-	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240702102754-c4fa9a6225b0
-	github.com/cosmos/cosmos-db v1.0.2
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/crate-crypto/go-kzg-4844 v1.0.0
@@ -63,8 +61,6 @@ require (
 require (
 	cosmossdk.io/server/v2/cometbft v0.0.0-00010101000000-000000000000 // indirect
 	cosmossdk.io/server/v2/stf v0.0.0-20240623110059-dec2d5583e39 // indirect
-	github.com/VictoriaMetrics/fastcache v1.12.2 // indirect
-	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240630225951-a5075323fa26 // indirect
 	github.com/VictoriaMetrics/fastcache v1.12.2 // indirect
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df // indirect
 	github.com/bufbuild/protocompile v0.14.0 // indirect

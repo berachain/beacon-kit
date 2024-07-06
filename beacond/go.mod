@@ -25,8 +25,8 @@ replace (
 
 require (
 	cosmossdk.io/core v0.12.1-0.20240623110059-dec2d5583e39
-	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240625043140-4f4da3669e01
-	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240625165558-8d611ba7d436
+	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240705193247-d464364483df
+	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240705192155-574f2bd748a3
 	github.com/berachain/beacon-kit/mod/server v0.0.0-00010101000000-000000000000
 	github.com/cosmos/cosmos-sdk v0.51.0
 	go.uber.org/automaxprocs v1.5.3
@@ -66,29 +66,27 @@ require (
 	github.com/VictoriaMetrics/fastcache v1.12.2 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/berachain/beacon-kit/mod/async v0.0.0-20240625043140-4f4da3669e01 // indirect
-	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240625043140-4f4da3669e01 // indirect
+	github.com/berachain/beacon-kit/mod/async v0.0.0-20240705193247-d464364483df // indirect
+	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240705193247-d464364483df // indirect
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df // indirect
-	github.com/berachain/beacon-kit/mod/config v0.0.0-20240628210719-e32b1662132e // indirect
+	github.com/berachain/beacon-kit/mod/config v0.0.0-20240705193247-d464364483df // indirect
 	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240625165558-8d611ba7d436 // indirect
-	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240702154025-071b95a5f03f // indirect
-	github.com/berachain/beacon-kit/mod/da v0.0.0-20240625043140-4f4da3669e01 // indirect
-	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240625043140-4f4da3669e01 // indirect
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240625043140-4f4da3669e01 // indirect
-	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240625043140-4f4da3669e01 // indirect
-	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240630225951-a5075323fa26 // indirect
-	github.com/berachain/beacon-kit/mod/log v0.0.0-20240625043140-4f4da3669e01 // indirect
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240705193247-d464364483df // indirect
+	github.com/berachain/beacon-kit/mod/da v0.0.0-20240705193247-d464364483df // indirect
+	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240705193247-d464364483df // indirect
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df // indirect
+	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240705193247-d464364483df // indirect
+	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240705193247-d464364483df // indirect
+	github.com/berachain/beacon-kit/mod/log v0.0.0-20240705193247-d464364483df // indirect
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240625043140-4f4da3669e01 // indirect
-	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240625043140-4f4da3669e01 // indirect
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240627201655-33a34cec850e // indirect
-	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240625043140-4f4da3669e01 // indirect
-	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240625043140-4f4da3669e01 // indirect
-	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240625043140-4f4da3669e01 // indirect
+	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df // indirect
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240705193247-d464364483df // indirect
+	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240705193247-d464364483df // indirect
+	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240705193247-d464364483df // indirect
+	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240705193247-d464364483df // indirect
 	github.com/bgentry/speakeasy v0.2.0 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
-	github.com/bufbuild/protocompile v0.14.0 // indirect
-	github.com/cespare/cp v1.1.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/chzyer/readline v1.5.1 // indirect
 	github.com/cockroachdb/errors v1.11.3 // indirect

@@ -35,6 +35,7 @@ require (
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240705193247-d464364483df
+	github.com/berachain/beacon-kit/mod/server v0.0.0-00010101000000-000000000000
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240705183350-8b262bdd1d36
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
@@ -49,18 +50,14 @@ require (
 	cosmossdk.io/server/v2/appmanager v0.0.0-20240624191328-722ac39873e4 // indirect
 	cosmossdk.io/server/v2/cometbft v0.0.0-00010101000000-000000000000 // indirect
 	cosmossdk.io/server/v2/stf v0.0.0-20240623110059-dec2d5583e39 // indirect
-	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240625165558-8d611ba7d436 // indirect
-	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240630225951-a5075323fa26 // indirect
-	github.com/bufbuild/protocompile v0.14.0 // indirect
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df // indirect
-	github.com/bufbuild/protocompile v0.14.0 // indirect
-	github.com/cespare/cp v1.1.1 // indirect
+	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240625165558-8d611ba7d436 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a // indirect
+	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240702102754-c4fa9a6225b0 // indirect
 	github.com/ethereum/go-ethereum v1.14.6 // indirect
-	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/phuslu/log v1.0.108-0.20240705160716-a8f8c12ae6c6 // indirect
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
+	github.com/phuslu/log v1.0.108-0.20240705160716-a8f8c12ae6c6 // indirect
 	github.com/rs/zerolog v1.33.0 // indirect
 )
 
@@ -110,7 +107,6 @@ require (
 	github.com/cockroachdb/redact v1.1.5 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
 	github.com/cometbft/cometbft-db v0.12.0 // indirect
-	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240702102754-c4fa9a6225b0 // indirect
 	github.com/consensys/bavard v0.1.13 // indirect
 	github.com/consensys/gnark-crypto v0.12.1 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect

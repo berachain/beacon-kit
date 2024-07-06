@@ -42,13 +42,12 @@ require (
 	github.com/cosmos/iavl v1.2.0 // indirect
 	github.com/dvsekhvalnov/jose2go v1.7.0 // indirect
 	github.com/emicklei/dot v1.6.2 // indirect
+	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
+	github.com/prysmaticlabs/gohashtree v0.0.4-beta // indirect
 	github.com/tidwall/btree v1.7.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
-	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
-	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/prysmaticlabs/gohashtree v0.0.4-beta // indirect
 )
 
 require (
