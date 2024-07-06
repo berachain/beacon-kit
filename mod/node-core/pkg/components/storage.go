@@ -47,6 +47,7 @@ func ProvideStorageBackend(
 	return storage.NewBackend[
 		*AvailabilityStore,
 		*BeaconBlockBody,
+		*BeaconBlockHeader,
 		BeaconState,
 		*BeaconStateMarshallable,
 		*DepositStore,
