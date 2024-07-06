@@ -79,7 +79,7 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 	leaves []RootT,
 	depth uint8,
 ) (*Tree[RootT], error) {
-	if err := verifySufficientDepth(len(leaves), depth); err != nil {
+	if err := VerifySufficientDepth(len(leaves), depth); err != nil {
 		return &Tree[RootT]{}, err
 	}
 

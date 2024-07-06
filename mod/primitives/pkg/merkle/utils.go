@@ -26,8 +26,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 )
 
-// verifySufficientDepth ensures that the depth is sufficient to build a tree.
-func verifySufficientDepth(numLeaves int, depth uint8) error {
+// VerifySufficientDepth ensures that the depth is sufficient to build a tree.
+func VerifySufficientDepth(numLeaves int, depth uint8) error {
 	switch {
 	case numLeaves == 0:
 		return ErrEmptyLeaves
