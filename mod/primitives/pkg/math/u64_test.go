@@ -21,6 +21,8 @@
 package math_test
 
 import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 	"math/big"
 	"testing"
 
@@ -728,7 +730,8 @@ func TestU64_Base10(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := tt.value.Base10()
-			require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
+			require.Equal(t, tt.expected, result,
+				"Test case: %s", tt.name)
 		})
 	}
 }
@@ -765,7 +768,47 @@ func TestU64_UnwrapPtr(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := tt.value.UnwrapPtr()
 			require.NotNil(t, result)
-			require.Equal(t, tt.expected, *result, "Test case: %s", tt.name)
+			require.Equal(t, tt.expected, *result,
+				"Test case: %s", tt.name)
 		})
+	}
+}
+
+func TestU64(t *testing.T) {
+	var u math.U64
+	require.Equal(t, constants.U64Size, u.SizeSSZ())
+	require.Equal(t, true, u.IsFixed())
+	require.Equal(t, types.Basic, u.Type())
+	require.Equal(t, uint64(1), u.ChunkCount())
+}
+
+func TestU64_NewFromSSZ(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    []byte
+		expected math.U64
+		err      bool
+	}{
+		{name: "Valid1", input: []byte{1, 0, 0, 0, 0, 0, 0, 0},
+			expected: 1, err: false},
+		{name: "Valid0", input: []byte{0, 0, 0, 0, 0, 0, 0, 0},
+			expected: 0, err: false},
+		{name: "InvalidLength", input: []byte{1, 0, 0, 0, 0, 0, 0},
+			expected: 0,
+			err:      true},
+	}
+
+	var u64 math.U64
+	u64 = 1
+
+	for _, tt := range tests {
+		result, err := u64.NewFromSSZ(tt.input)
+		if tt.err {
+			require.Error(t, err, "Test name %s", tt.name)
+		} else {
+			require.NoError(t, err, "Test name %s", tt.name)
+			require.Equal(t, tt.expected, result,
+				"Test name %s", tt.name)
+		}
 	}
 }
