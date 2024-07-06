@@ -66,7 +66,8 @@ type KVStore[
 	eth1Data sdkcollections.Item[Eth1DataT]
 	// eth1DepositIndex is the index of the latest eth1 deposit.
 	eth1DepositIndex sdkcollections.Item[uint64]
-	// latestExecutionPayload stores the latest execution payload version.
+	// latestExecutionPayloadVersion stores the latest execution payload
+	// version.
 	latestExecutionPayloadVersion sdkcollections.Item[uint32]
 	// latestExecutionPayloadCodec is the codec for the latest execution
 	// payload, it allows us to update the codec with the latest version.

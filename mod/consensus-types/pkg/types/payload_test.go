@@ -22,22 +22,25 @@ package types_test
 
 import (
 	"encoding/json"
+	"math/big"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkleizer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/stretchr/testify/require"
 )
 
 func generateExecutableDataDeneb() *types.ExecutableDataDeneb {
 	return &types.ExecutableDataDeneb{
-		ParentHash:    common.ExecutionHash{},
-		FeeRecipient:  common.ExecutionAddress{},
+		ParentHash:    gethprimitives.ExecutionHash{},
+		FeeRecipient:  gethprimitives.ExecutionAddress{},
 		StateRoot:     bytes.B32{},
 		ReceiptsRoot:  bytes.B32{},
 		LogsBloom:     make([]byte, 256),
@@ -48,7 +51,7 @@ func generateExecutableDataDeneb() *types.ExecutableDataDeneb {
 		Timestamp:     math.U64(0),
 		ExtraData:     []byte{},
 		BaseFeePerGas: math.Wei{},
-		BlockHash:     common.ExecutionHash{},
+		BlockHash:     gethprimitives.ExecutionHash{},
 		Transactions:  [][]byte{},
 		Withdrawals:   []*engineprimitives.Withdrawal{},
 		BlobGasUsed:   math.U64(0),
@@ -91,8 +94,12 @@ func TestExecutableDataDeneb_GetTree(t *testing.T) {
 func TestExecutableDataDeneb_Getters(t *testing.T) {
 	payload := generateExecutableDataDeneb()
 
-	require.Equal(t, common.ExecutionHash{}, payload.GetParentHash())
-	require.Equal(t, common.ExecutionAddress{}, payload.GetFeeRecipient())
+	require.Equal(t, gethprimitives.ExecutionHash{}, payload.GetParentHash())
+	require.Equal(
+		t,
+		gethprimitives.ExecutionAddress{},
+		payload.GetFeeRecipient(),
+	)
 	require.Equal(t, bytes.B32{}, payload.GetStateRoot())
 	require.Equal(t, bytes.B32{}, payload.GetReceiptsRoot())
 	require.Equal(t, make([]byte, 256), payload.GetLogsBloom())
@@ -103,7 +110,7 @@ func TestExecutableDataDeneb_Getters(t *testing.T) {
 	require.Equal(t, math.U64(0), payload.GetTimestamp())
 	require.Equal(t, []byte{}, payload.GetExtraData())
 	require.Equal(t, math.Wei{}, payload.GetBaseFeePerGas())
-	require.Equal(t, common.ExecutionHash{}, payload.GetBlockHash())
+	require.Equal(t, gethprimitives.ExecutionHash{}, payload.GetBlockHash())
 	require.Equal(t, [][]byte{}, payload.GetTransactions())
 	require.Equal(t, []*engineprimitives.Withdrawal{}, payload.GetWithdrawals())
 	require.Equal(t, math.U64(0), payload.GetBlobGasUsed())
@@ -152,8 +159,8 @@ func TestExecutionPayload_Empty(t *testing.T) {
 func TestExecutionPayload_ToHeader(t *testing.T) {
 	payload := types.ExecutionPayload{
 		InnerExecutionPayload: &types.ExecutableDataDeneb{
-			ParentHash:    common.ExecutionHash{},
-			FeeRecipient:  common.ExecutionAddress{},
+			ParentHash:    gethprimitives.ExecutionHash{},
+			FeeRecipient:  gethprimitives.ExecutionAddress{},
 			StateRoot:     bytes.B32{},
 			ReceiptsRoot:  bytes.B32{},
 			LogsBloom:     make([]byte, 256),
@@ -164,7 +171,7 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 			Timestamp:     math.U64(0),
 			ExtraData:     []byte{},
 			BaseFeePerGas: math.Wei{},
-			BlockHash:     common.ExecutionHash{},
+			BlockHash:     gethprimitives.ExecutionHash{},
 			Transactions:  [][]byte{},
 			Withdrawals:   []*engineprimitives.Withdrawal{},
 			BlobGasUsed:   math.U64(0),
@@ -296,4 +303,62 @@ func TestExecutableDataDeneb_UnmarshalJSON_Error(t *testing.T) {
 			require.Contains(t, err.Error(), tc.expectedError)
 		})
 	}
+}
+
+func TestExecutableDataDenebHashTreeRoot(t *testing.T) {
+	// Create a sample ExecutableDataDeneb
+	payload := &types.ExecutableDataDeneb{
+		ParentHash:    gethprimitives.ExecutionHash{1},
+		FeeRecipient:  gethprimitives.ExecutionAddress{2},
+		StateRoot:     common.Bytes32{3},
+		ReceiptsRoot:  common.Bytes32{4},
+		LogsBloom:     make([]byte, 256),
+		Random:        common.Bytes32{5},
+		Number:        123,
+		GasLimit:      456,
+		GasUsed:       789,
+		Timestamp:     1000,
+		ExtraData:     []byte("extra"),
+		BaseFeePerGas: math.MustNewU256LFromBigInt(big.NewInt(1234)),
+		BlockHash:     gethprimitives.ExecutionHash{6},
+		Transactions:  [][]byte{[]byte("tx1"), []byte("tx2")},
+		Withdrawals:   []*engineprimitives.Withdrawal{{Index: 1, Amount: 100}},
+		BlobGasUsed:   2000,
+		ExcessBlobGas: 3000,
+	}
+
+	// Calculate HashTreeRoot using the type's method
+	typeRoot, err := payload.HashTreeRoot()
+	require.NoError(t, err)
+
+	container := ssz.ContainerFromElements(
+		ssz.ByteVectorFromBytes(payload.ParentHash[:]),
+		ssz.ByteVectorFromBytes(payload.FeeRecipient[:]),
+		ssz.ByteVectorFromBytes(payload.StateRoot[:]),
+		ssz.ByteVectorFromBytes(payload.ReceiptsRoot[:]),
+		ssz.ByteVectorFromBytes(payload.LogsBloom),
+		ssz.ByteVectorFromBytes(payload.Random[:]),
+		payload.Number,
+		payload.GasLimit,
+		payload.GasUsed,
+		payload.Timestamp,
+		ssz.ByteListFromBytes(payload.ExtraData, 32),
+		math.NewU256FromUint64(1234),
+		ssz.ByteVectorFromBytes(payload.BlockHash[:]),
+		engineprimitives.ProperTransactionsFromBytes(payload.Transactions),
+		ssz.ListFromElements(16, payload.Withdrawals...),
+		payload.BlobGasUsed,
+		payload.ExcessBlobGas,
+	)
+
+	// // Calculate HashTreeRoot using the container
+	containerRoot, err := container.HashTreeRoot()
+	require.NoError(t, err)
+	// Compare the results
+	require.Equal(
+		t,
+		typeRoot,
+		containerRoot,
+		"HashTreeRoot results should match",
+	)
 }

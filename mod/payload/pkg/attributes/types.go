@@ -22,6 +22,7 @@ package attributes
 
 import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
@@ -41,7 +42,7 @@ type PayloadAttributes[SelfT any, WithdrawalT any] interface {
 		uint32,
 		uint64,
 		common.Bytes32,
-		common.ExecutionAddress,
+		gethprimitives.ExecutionAddress,
 		[]WithdrawalT,
 		common.Root,
 	) (SelfT, error)

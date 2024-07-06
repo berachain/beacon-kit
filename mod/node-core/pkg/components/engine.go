@@ -29,6 +29,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/engine"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
@@ -56,7 +57,7 @@ func ProvideEngineClient[
 			uint32,
 			uint64,
 			common.Bytes32,
-			common.ExecutionAddress,
+			gethprimitives.ExecutionAddress,
 			[]WithdrawalT,
 			common.Root,
 		) (PayloadAttributesT, error)

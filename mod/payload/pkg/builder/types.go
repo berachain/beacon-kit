@@ -24,6 +24,7 @@ import (
 	"context"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -56,19 +57,19 @@ type BeaconState[
 type ExecutionPayload[T constraints.ForkTyped[T]] interface {
 	constraints.ForkTyped[T]
 	// GetBlockHash returns the block hash.
-	GetBlockHash() common.ExecutionHash
+	GetBlockHash() gethprimitives.ExecutionHash
 	// GetFeeRecipient returns the fee recipient.
-	GetFeeRecipient() common.ExecutionAddress
+	GetFeeRecipient() gethprimitives.ExecutionAddress
 	// GetParentHash returns the parent hash.
-	GetParentHash() common.ExecutionHash
+	GetParentHash() gethprimitives.ExecutionHash
 }
 
 // ExecutionPayloadHeader is the interface for the execution payload header.
 type ExecutionPayloadHeader interface {
 	// GetBlockHash returns the block hash.
-	GetBlockHash() common.ExecutionHash
+	GetBlockHash() gethprimitives.ExecutionHash
 	// GetParentHash returns the parent hash.
-	GetParentHash() common.ExecutionHash
+	GetParentHash() gethprimitives.ExecutionHash
 }
 
 // PayloadAttributes is the interface for the payload attributes.
@@ -82,7 +83,7 @@ type PayloadAttributes[
 		uint32,
 		uint64,
 		common.Bytes32,
-		common.ExecutionAddress,
+		gethprimitives.ExecutionAddress,
 		[]WithdrawalT,
 		common.Root,
 	) (SelfT, error)
@@ -102,5 +103,5 @@ type ExecutionEngine[
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
 		req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
-	) (*PayloadIDT, *common.ExecutionHash, error)
+	) (*PayloadIDT, *gethprimitives.ExecutionHash, error)
 }

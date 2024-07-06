@@ -29,8 +29,8 @@ import (
 	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	jsonrpc "github.com/berachain/beacon-kit/mod/primitives/pkg/net/json-rpc"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 )
@@ -112,7 +112,7 @@ func (ee *Engine[
 ]) NotifyForkchoiceUpdate(
 	ctx context.Context,
 	req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
-) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
+) (*engineprimitives.PayloadID, *gethprimitives.ExecutionHash, error) {
 	// Log the forkchoice update attempt.
 	hasPayloadAttributes := !req.PayloadAttributes.IsNil()
 	ee.metrics.markNotifyForkchoiceUpdateCalled(hasPayloadAttributes)
@@ -251,7 +251,7 @@ func (ee *Engine[
 	case jsonrpc.IsPreDefinedError(err):
 		// Protect against possible nil value.
 		if lastValidHash == nil {
-			lastValidHash = &common.ExecutionHash{}
+			lastValidHash = &gethprimitives.ExecutionHash{}
 		}
 
 		ee.metrics.markNewPayloadJSONRPCError(

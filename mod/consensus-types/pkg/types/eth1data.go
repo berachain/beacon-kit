@@ -21,6 +21,7 @@
 package types
 
 import (
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -32,14 +33,14 @@ type Eth1Data struct {
 	// DepositCount is the number of deposits in the deposit tree.
 	DepositCount uint64 `json:"depositCount"`
 	// BlockHash is the hash of the block corresponding to the Eth1Data.
-	BlockHash common.ExecutionHash `json:"blockHash"    ssz-size:"32"`
+	BlockHash gethprimitives.ExecutionHash `json:"blockHash"    ssz-size:"32"`
 }
 
 // New creates a new Eth1Data.
 func (e *Eth1Data) New(
 	depositRoot common.Root,
 	depositCount math.U64,
-	blockHash common.ExecutionHash,
+	blockHash gethprimitives.ExecutionHash,
 ) *Eth1Data {
 	e = &Eth1Data{
 		DepositRoot:  depositRoot,

@@ -25,15 +25,15 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 	"github.com/stretchr/testify/require"
 )
 
 func TestNewFromHex(t *testing.T) {
 	wantValid := jwt.Secret(
-		common.FromHex(
+		gethprimitives.FromHex(
 			"1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
 		),
 	)
@@ -92,7 +92,7 @@ func TestSecretString(t *testing.T) {
 		{
 			name: "mask secret correctly",
 			secret: jwt.Secret(
-				common.FromHex(
+				gethprimitives.FromHex(
 					"1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
 				),
 			),

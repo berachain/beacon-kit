@@ -28,10 +28,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"golang.org/x/sync/errgroup"
 )
@@ -151,7 +152,7 @@ func DefaultGenesisExecutionPayloadHeaderDeneb() (
 
 	g.Go(func() error {
 		var err error
-		wds := ssz.ListCompositeFromElements(
+		wds := ssz.ListFromElements(
 			spec.DevnetChainSpec().MaxWithdrawalsPerPayload(),
 			[]*engineprimitives.Withdrawal{}...,
 		)
@@ -165,13 +166,13 @@ func DefaultGenesisExecutionPayloadHeaderDeneb() (
 	}
 
 	return &types.ExecutionPayloadHeaderDeneb{
-		ParentHash:   common.ZeroHash,
-		FeeRecipient: common.ZeroAddress,
-		StateRoot: common.Bytes32(common.Hex2BytesFixed(
+		ParentHash:   gethprimitives.ZeroHash,
+		FeeRecipient: gethprimitives.ZeroAddress,
+		StateRoot: common.Bytes32(gethprimitives.Hex2BytesFixed(
 			"0x12965ab9cbe2d2203f61d23636eb7e998f167cb79d02e452f532535641e35bcc",
 			constants.RootLength,
 		)),
-		ReceiptsRoot: common.Bytes32(common.Hex2BytesFixed(
+		ReceiptsRoot: common.Bytes32(gethprimitives.Hex2BytesFixed(
 			"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
 			constants.RootLength,
 		)),
@@ -185,7 +186,7 @@ func DefaultGenesisExecutionPayloadHeaderDeneb() (
 		ExtraData: make([]byte, constants.ExtraDataLength),
 		//nolint:mnd // default value.
 		BaseFeePerGas: math.MustNewU256LFromBigInt(big.NewInt(3906250)),
-		BlockHash: common.HexToHash(
+		BlockHash: gethprimitives.HexToHash(
 			"0xcfff92cd918a186029a847b59aca4f83d3941df5946b06bca8de0861fc5d0850",
 		),
 		TransactionsRoot: emptyTxsRoot,
