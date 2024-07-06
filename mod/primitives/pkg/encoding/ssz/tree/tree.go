@@ -126,7 +126,9 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 	// If we need to extend the tree to be deeper, we do it virtually.
 	currentNode := currentLayer[0]
 	for j := depth; j < limitDepth; j++ {
-		currentNode = NewNodeFromChildren(currentNode, NewZeroNodeAtDepth[RootT](j), rh.Combi)
+		currentNode = NewNodeFromChildren(
+			currentNode, NewZeroNodeAtDepth[RootT](j), rh.Combi,
+		)
 	}
 	h := currentNode.value
 
