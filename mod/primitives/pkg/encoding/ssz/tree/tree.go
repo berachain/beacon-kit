@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
-	"github.com/prysmaticlabs/gohashtree"
 )
 
 // New returns a Merkle tree of the given leaves.
@@ -58,8 +57,8 @@ func New[LeafT ~[32]byte](
 
 // Tree represents a Merkle tree structure.
 type Tree[RootT ~[32]byte] struct {
-	root   *Node
-	hasher *merkle.RootHasher[[32]byte]
+	root   *Node[RootT]
+	hasher *merkle.RootHasher[RootT]
 }
 
 // NewTreeFromLeaves constructs a Merkle tree, with the minimum
@@ -79,23 +78,23 @@ func NewTreeFromLeaves[RootT ~[32]byte](
 // from a sequence of byte slices.
 // It will fill the tree with zero hashes to create the required depth.
 func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
-	leaves []RootT,
+	chunks []RootT,
 	depth uint8,
 	limitDepth uint8,
 ) (*Tree[RootT], error) {
 
-	if err := VerifySufficientDepth(len(leaves), limitDepth); err != nil {
+	if err := VerifySufficientDepth(len(chunks), limitDepth); err != nil {
 		return &Tree[RootT]{}, err
 	}
 
 	rh := merkle.NewRootHasher(
-		crypto.NewHasher[[32]byte](sha256.Hash),
-		gohashtree.Hash,
+		crypto.NewHasher[RootT](sha256.Hash),
+		merkle.BuildParentTreeRoots,
 	)
 
 	// Create the root node
-	root := &Node{}
-	currentLayer := make([]*Node, len(leaves))
+	root := &Node[RootT]{}
+	currentLayer := make([]*Node[RootT], len(chunks))
 
 	// Handle the case where the tree is not full
 	if len(currentLayer) == 0 {
@@ -106,27 +105,22 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 	}
 
 	// Create leaf nodes
-	for i, leaf := range leaves {
-		currentLayer[i] = &Node{value: leaf[:]}
+	for i, leaf := range chunks {
+		currentLayer[i] = &Node[RootT]{value: leaf}
 	}
 
 	// Build the tree bottom-up
 	for d := uint8(0); d < depth; d++ {
-		nextLayer := make([]*Node, (len(currentLayer)+1)/2)
+		nextLayer := make([]*Node[RootT], (len(currentLayer)+1)/2)
 		for i := 0; i < len(currentLayer); i += 2 {
 			left := currentLayer[i]
-			var right *Node
+			var right *Node[RootT]
 			if i+1 < len(currentLayer) {
 				right = currentLayer[i+1]
 			} else {
-				right = &Node{value: zero.Hashes[d][:]}
+				right = &Node[RootT]{value: zero.Hashes[d]}
 			}
-			h := rh.Combi([32]byte(left.value), [32]byte(right.value))
-			parent := &Node{
-				left:  left,
-				right: right,
-				value: h[:],
-			}
+			parent := NewNodeFromChildren(left, right, rh.Combi)
 			nextLayer[i/2] = parent
 		}
 		currentLayer = nextLayer
@@ -134,8 +128,7 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 
 	h := currentLayer[0].value
 	for j := depth; j < limitDepth; j++ {
-		x := rh.Combi([32]byte(h), zero.Hashes[j])
-		h = x[:]
+		h = rh.Combi(h, zero.Hashes[j])
 	}
 
 	root = currentLayer[0]
@@ -152,9 +145,7 @@ func (t *Tree[RootT]) Root() RootT {
 	if t.root == nil {
 		return RootT{}
 	}
-	var root RootT
-	copy(root[:], t.root.value)
-	return root
+	return t.root.value
 }
 
 // VerifySufficientDepth ensures that the depth is sufficient to build a tree.
