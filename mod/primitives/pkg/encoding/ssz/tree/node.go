@@ -43,7 +43,10 @@ func NewRootNode[RootT ~[32]byte](value RootT) *Node[RootT] {
 }
 
 // NewZeroNode creates a new Node with a zero value.
-func NewZeroNodeAtDepth[RootT ~[32]byte](d uint8, layerIndex uint64) *Node[RootT] {
+func NewZeroNodeAtDepth[RootT ~[32]byte](
+	d uint8,
+	layerIndex uint64,
+) *Node[RootT] {
 	return &Node[RootT]{
 		value:  zero.Hashes[d],
 		gIndex: NewGeneralizedIndex[RootT](d, layerIndex),
