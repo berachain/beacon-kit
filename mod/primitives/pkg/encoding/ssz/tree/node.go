@@ -40,7 +40,8 @@ func NewZeroNodeAtDepth[RootT ~[32]byte](d uint8) *Node[RootT] {
 }
 
 // NewNodeFromChildren creates a new Node from left and right child nodes.
-// It calculates the value of the new node by combining the values of its children.
+// It calculates the value of the new node by combining the values of its
+// children.
 func NewNodeFromChildren[RootT ~[32]byte](
 	left, right *Node[RootT], hasher func(RootT, RootT) RootT,
 ) *Node[RootT] {

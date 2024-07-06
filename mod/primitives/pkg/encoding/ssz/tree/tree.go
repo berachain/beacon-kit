@@ -100,7 +100,6 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 	}
 
 	// Create the root node
-	root := &Node[RootT]{}
 	currentLayer := make([]*Node[RootT], len(chunks))
 	// Create leaf nodes
 	for i, leaf := range chunks {
@@ -108,7 +107,8 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 	}
 
 	// Build the tree bottom-up
-	for d := uint8(0); d < depth; d++ {
+	for d := range depth {
+		//nolint:mnd // its okay.
 		nextLayer := make([]*Node[RootT], (len(currentLayer)+1)/2)
 		for i := 0; i < len(currentLayer); i += 2 {
 			left := currentLayer[i]
@@ -129,7 +129,7 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 		h = rh.Combi(h, zero.Hashes[j])
 	}
 
-	root = currentLayer[0]
+	root := currentLayer[0]
 	root.value = h
 
 	return &Tree[RootT]{

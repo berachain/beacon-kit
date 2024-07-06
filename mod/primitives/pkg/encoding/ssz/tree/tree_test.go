@@ -81,13 +81,13 @@ func TestCompareTreeToBytes96HashTreeRoot(t *testing.T) {
 	t.Run("compare tree to Bytes96 hash tree root", func(t *testing.T) {
 		// Create a sample Bytes96 (3 x 32 bytes)
 		bytes96 := [96]byte{}
-		for i := 0; i < 96; i++ {
+		for i := range 96 {
 			bytes96[i] = byte(i)
 		}
 
 		// Split Bytes96 into 3 chunks of 32 bytes each
 		var leaves [][32]byte
-		for i := 0; i < 3; i++ {
+		for i := range 3 {
 			var leaf [32]byte
 			copy(leaf[:], bytes96[i*32:(i+1)*32])
 			leaves = append(leaves, leaf)
