@@ -106,8 +106,7 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 
 	// Build the tree bottom-up
 	for d := range depth {
-		//nolint:mnd // its okay.
-		nextLayer := make([]*Node[RootT], (len(currentLayer)+1)/2)
+		newLayerSize := (len(currentLayer) + 1) / 2
 		for i := 0; i < len(currentLayer); i += 2 {
 			left := currentLayer[i]
 			var right *Node[RootT]
@@ -117,11 +116,10 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 				right = NewZeroNodeAtDepth[RootT](d)
 			}
 			parent := NewNodeFromChildren(left, right, rh.Combi)
-			nextLayer[i/2] = parent
+			currentLayer[i/2] = parent
 		}
-		currentLayer = nextLayer
+		currentLayer = currentLayer[:newLayerSize]
 	}
-
 	// If we need to extend the tree to be deeper, we do it virtually.
 	currentNode := currentLayer[0]
 	for j := depth; j < limitDepth; j++ {
