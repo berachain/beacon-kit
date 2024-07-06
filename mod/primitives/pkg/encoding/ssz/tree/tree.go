@@ -116,7 +116,7 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 			if i+1 < len(currentLayer) {
 				right = currentLayer[i+1]
 			} else {
-				right = NewZeroNodeAtDepth(d, NewGeneralizedIndex[RootT](limitDepth-d, uint64(i+1)))
+				right = NewZeroNodeAtDepth[RootT](d, uint64(i+1))
 			}
 			parent := NewNodeFromChildren(left, right, rh.Combi)
 			currentLayer[i/2] = parent
@@ -125,7 +125,7 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 	// If we need to extend the tree to be deeper, we do it virtually.
 	currentNode := currentLayer[0]
 	for j := depth; j < limitDepth; j++ {
-		zeroNode := NewZeroNodeAtDepth(j, NewGeneralizedIndex[RootT](limitDepth-j, 1))
+		zeroNode := NewZeroNodeAtDepth[RootT](j, 1)
 		currentNode = NewNodeFromChildren(currentNode, zeroNode, rh.Combi)
 	}
 
