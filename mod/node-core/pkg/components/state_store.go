@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
+	beacondbv2 "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/v2"
 )
 
 // KVStoreInput is the input for the ProvideKVStore function.
@@ -35,6 +36,7 @@ type KVStoreInput struct {
 }
 
 // ProvideKVStore is the depinject provider that returns a beacon KV store.
+// legacy state store
 func ProvideKVStore(
 	in KVStoreInput,
 ) *KVStore {
@@ -47,4 +49,14 @@ func ProvideKVStore(
 		*types.Fork,
 		*types.Validator,
 	](in.Environment.KVStoreService, payloadCodec)
+}
+
+func ProvideStateStore() *StateStore {
+	payloadCodec := &encoding.
+		SSZInterfaceCodec[*ExecutionPayloadHeader]{}
+	return beacondbv2.New[*BeaconBlockHeader,
+		*types.Eth1Data,
+		*ExecutionPayloadHeader,
+		*types.Fork,
+		*types.Validator](payloadCodec)
 }
