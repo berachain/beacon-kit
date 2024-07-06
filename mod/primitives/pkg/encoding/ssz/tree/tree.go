@@ -84,8 +84,6 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 	limitDepth uint8,
 ) (*Tree[RootT], error) {
 
-	fmt.Println("DEPTH", depth, "LIMIT DEPTH", limitDepth)
-
 	if err := VerifySufficientDepth(len(leaves), limitDepth); err != nil {
 		return &Tree[RootT]{}, err
 	}
