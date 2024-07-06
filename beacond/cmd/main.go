@@ -31,8 +31,7 @@ import (
 	nodebuilder "github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
 	nodecomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	beacon "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module"
-
-	// "github.com/berachain/beacon-kit/mod/node-core/pkg/components/transaction"
+	// "github.com/berachain/beacon-kit/mod/node-core/pkg/components/transaction".
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	servercomponents "github.com/berachain/beacon-kit/mod/server/pkg/components"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -47,7 +46,7 @@ type node = types.Node[tx]
 type validatorUpdate = appmodulev2.ValidatorUpdate
 
 // run runs the beacon node. it is also the central injection point of generic
-// hard types
+// hard types.
 func run() error {
 	// Set the uber max procs
 	if _, err := maxprocs.Set(); err != nil {
