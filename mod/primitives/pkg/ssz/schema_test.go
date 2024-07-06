@@ -197,33 +197,18 @@ func Test_Record(t *testing.T) {
 // --------------------------------------------------------------------------------
 
 func Test_Minimal_Schema(t *testing.T) {
-	nestedType := schema.Container{
-		Fields: []schema.SSZType{
-			schema.NewBasic(32),
-			schema.NewBasic(8),
-			schema.NewList(schema.NewBasic(32), 10),
-		},
-		FieldIndex: map[string]uint64{
-			"bytes_field":   0,
-			"uint_field":    1,
-			"list_of_bytes": 2,
-		},
-	}
-	root := schema.Container{
-		Fields: []schema.SSZType{
-			schema.NewBasic(32),
-			schema.NewBasic(8),
-			schema.NewList(schema.NewBasic(8), 1000),
-			schema.NewList(nestedType, 1000),
-			nestedType,
-		},
-		FieldIndex: map[string]uint64{
-			"bytes_field":       0,
-			"uint_field":        1,
-			"list_of_basic":     2,
-			"list_of_container": 3,
-		},
-	}
+	nestedType := schema.Container(
+		schema.Field(0, "bytes_field", schema.Basic(32)),
+		schema.Field(1, "uint_field", schema.Basic(8)),
+		schema.Field(2, "list_of_bytes", schema.List(schema.Basic(32), 10)),
+	)
+	root := schema.Container(
+		schema.Field(0, "bytes_field", schema.Basic(32)),
+		schema.Field(1, "uint_field", schema.Basic(8)),
+		schema.Field(2, "list_of_basic", schema.List(schema.Basic(8), 1000)),
+		schema.Field(3, "list_of_container", schema.List(nestedType, 1000)),
+		schema.Field(4, "nested", nestedType),
+	)
 
 	assertIndex := func(path tree.ObjectPath, expect uint64) {
 		node, err := schema.GetTreeNode(root, path)
