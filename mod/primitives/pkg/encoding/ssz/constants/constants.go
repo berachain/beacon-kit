@@ -30,9 +30,6 @@ const (
 	// BitsPerByte is the number of bits per byte.
 	BitsPerByte = 8
 
-	// ByteSize is the size of a single byte.
-	ByteSize = 1
-
 	// BoolSize is the size of a boolean in bytes.
 	BoolSize = 1
 

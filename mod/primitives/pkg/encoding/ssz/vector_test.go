@@ -30,13 +30,13 @@ import (
 
 func TestVectorSizeSSZ(t *testing.T) {
 	t.Run("uint8 vector", func(t *testing.T) {
-		vector := ssz.Vector[ssz.Byte]{1, 2, 3, 4, 5}
+		vector := ssz.Vector[math.U8]{1, 2, 3, 4, 5}
 		require.Len(t, vector, 5)
 		require.Equal(t, 5, vector.SizeSSZ())
 	})
 
 	t.Run("byte slice vector", func(t *testing.T) {
-		vector := ssz.Vector[math.U8]{1, 2, 3, 4, 5, 6, 7, 8}
+		vector := ssz.Vector[math.Byte]{1, 2, 3, 4, 5, 6, 7, 8}
 		require.Len(t, vector, 8)
 		require.Equal(t, 8, vector.SizeSSZ())
 	})

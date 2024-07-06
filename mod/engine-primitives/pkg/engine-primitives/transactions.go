@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkleizer"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // Transactions is a typealias for [][]byte, which is how transactions are
@@ -65,21 +66,21 @@ func (txs Transactions) HashTreeRootWith(
 }
 
 // TODO: Remove and deprecate this type once migrated to ProperTransactions.
-type BartioTransactions = ssz.List[ssz.Vector[ssz.Byte]]
+type BartioTransactions = ssz.List[ssz.Vector[math.Byte]]
 
 // BartioTransactionsFromBytes creates a Transactions object from a byte slice.
 func BartioTransactionsFromBytes(data [][]byte) *BartioTransactions {
 	return ssz.ListFromElements(
 		constants.MaxTxsPerPayload,
 		//#nosec:G103 // todo fix later.
-		*(*[]ssz.Vector[ssz.Byte])(unsafe.Pointer(&data))...)
+		*(*[]ssz.Vector[math.Byte])(unsafe.Pointer(&data))...)
 }
 
-type ProperTransactions = ssz.List[*ssz.List[ssz.Byte]]
+type ProperTransactions = ssz.List[*ssz.List[math.Byte]]
 
 // ProperTransactionsFromBytes creates a Transactions object from a byte slice.
 func ProperTransactionsFromBytes(data [][]byte) *ProperTransactions {
-	txs := make([]*ssz.List[ssz.Byte], len(data))
+	txs := make([]*ssz.List[math.Byte], len(data))
 	for i, tx := range data {
 		txs[i] = ssz.ByteListFromBytes(tx, constants.MaxBytesPerTx)
 	}

@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkleizer"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // Tests consistency of our HashTreeRoot implementation with Prysm's.
@@ -90,7 +91,7 @@ var prysmConsistencyTests = []struct {
 // NOTE: not testing legacy byte list merkleization
 // (merkleizer.MerkleizeByteSlice) as it will be deprecated soon.
 func TestByteListMerkleization(t *testing.T) {
-	merkleizer := merkleizer.New[[32]byte, ssz.Byte]()
+	merkleizer := merkleizer.New[[32]byte, math.Byte]()
 
 	for _, tt := range prysmConsistencyTests {
 		t.Run(tt.name, func(t *testing.T) {

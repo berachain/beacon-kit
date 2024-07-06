@@ -27,14 +27,15 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkleizer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 /* -------------------------------------------------------------------------- */
 /*                                Type Definitions                            */
 /* -------------------------------------------------------------------------- */
 
-// Vector conforms to the SSZEenumerable interface.
-var _ types.SSZEnumerable[Byte] = (*List[Byte])(nil)
+// List conforms to the SSZEenumerable interface.
+var _ types.SSZEnumerable[math.Byte] = (*List[math.Byte])(nil)
 
 // List is a list of basic types.
 type List[T types.MinimalSSZType] struct {
@@ -57,10 +58,10 @@ func ListFromElements[T types.MinimalSSZType](
 }
 
 // ByteList from Bytes creates a new List from bytes.
-func ByteListFromBytes(bytes []byte, limit uint64) *List[Byte] {
+func ByteListFromBytes(bytes []byte, limit uint64) *List[math.Byte] {
 	//#nosec:G103 // its fine, but we should find  abetter solution.
-	elements := *(*[]Byte)(unsafe.Pointer(&bytes))
-	return &List[Byte]{
+	elements := *(*[]math.Byte)(unsafe.Pointer(&bytes))
+	return &List[math.Byte]{
 		elements: elements,
 		limit:    limit,
 	}

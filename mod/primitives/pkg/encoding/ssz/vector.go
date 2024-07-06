@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkleizer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -34,7 +35,7 @@ import (
 /* -------------------------------------------------------------------------- */
 
 // Vector conforms to the SSZEenumerable interface.
-var _ types.SSZEnumerable[Byte] = (Vector[Byte])(nil)
+var _ types.SSZEnumerable[math.Byte] = (Vector[math.Byte])(nil)
 
 // Vector represents a vector of elements.
 type Vector[T types.MinimalSSZType] []T
@@ -45,10 +46,10 @@ func VectorFromElements[T types.MinimalSSZType](elements ...T) Vector[T] {
 	return elements
 }
 
-// ByteVectorFromBytes creates a new Vector[Byte]ß from bytes.
-func ByteVectorFromBytes(bytes []byte) Vector[Byte] {
-	//#nosec:G103 // its fine, but we should find  abetter solution.
-	v := *(*Vector[Byte])(unsafe.Pointer(&bytes))
+// ByteVectorFromBytes creates a new Vector[math.Byte] from bytes.
+func ByteVectorFromBytes(bytes []byte) Vector[math.Byte] {
+	//#nosec:G103 // its fine, but we should find a better solution.
+	v := *(*Vector[math.Byte])(unsafe.Pointer(&bytes))
 	return v
 }
 

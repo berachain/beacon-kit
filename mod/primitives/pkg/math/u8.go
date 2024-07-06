@@ -32,11 +32,18 @@ import (
 /*                                Type Definitions                            */
 /* -------------------------------------------------------------------------- */
 
-// Ensure type implements types.SSZType.
-var _ types.SSZType[U8] = (*U8)(nil)
+// Ensure types implement types.SSZType.
+var (
+	_ types.SSZType[U8]   = (*U8)(nil)
+	_ types.SSZType[Byte] = (*Byte)(nil)
+)
 
 // U8 represents a 8-bit unsigned integer that is both SSZ and JSON.
 type U8 uint8
+
+// Byte is an alias for U8. 8-bit opaque data container, equivalent in
+// serialization and hashing to uint8.
+type Byte = U8
 
 /* -------------------------------------------------------------------------- */
 /*                                     U8                                     */
