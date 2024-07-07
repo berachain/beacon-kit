@@ -55,13 +55,13 @@ func (v vector) HashChunkCount() uint64 {
 	return chunks
 }
 
-func (v vector) child(_ string) SSZType {
-	return v.Element
-}
-
 // typ.length describes the length for vector types.
 func (v vector) Length() uint64 {
 	return v.length
+}
+
+func (v vector) child(_ string) SSZType {
+	return v.Element
 }
 
 func (v vector) position(p string) (uint64, uint8, error) {

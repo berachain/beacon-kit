@@ -74,7 +74,7 @@ func GetTreeNode(typ SSZType, path []string) (Node, error) {
 				return Node{}, err
 			}
 			i := uint64(1)
-			if l, ok := typ.(list); ok && l.IsList() {
+			if typ.ID().IsList() {
 				i = 2
 			}
 			gindex = gindex*i*nextPowerOfTwo(typ.HashChunkCount()) + pos

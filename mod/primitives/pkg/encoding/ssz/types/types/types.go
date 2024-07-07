@@ -49,6 +49,11 @@ func (t Type) IsEnumerable() bool {
 	return t == Vector || t == List
 }
 
+// IsList returns true if the type is a list type.
+func (t Type) IsList() bool {
+	return t == List
+}
+
 // IsContainer returns true if the type is a container type.
 func (t Type) IsContainer() bool {
 	return t == Container
