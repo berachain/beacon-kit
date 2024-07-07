@@ -29,15 +29,14 @@ import (
 )
 
 const (
-	B4Size   = 4
-	B8Size   = 8
-	B16Size  = 16
-	B20Size  = 20
-	B32Size  = 32
-	B48Size  = 48
-	B64Size  = 64
-	B96Size  = 96
-	B256Size = 256
+	B4Size  = 4
+	B8Size  = 8
+	B16Size = 16
+	B20Size = 20
+	B32Size = 32
+	B48Size = 48
+	B64Size = 64
+	B96Size = 96
 )
 
 // B4 creates a Vector of 4 bytes (32 bits).
@@ -78,11 +77,6 @@ func B64() SSZType {
 // B96 creates a Vector of 96 bytes (768 bits).
 func B96() SSZType {
 	return Vector(U8(), B96Size)
-}
-
-// B256 creates a Vector of 256 bytes (2048 bits).
-func B256() SSZType {
-	return Vector(U8(), B256Size)
 }
 
 type vector struct {
