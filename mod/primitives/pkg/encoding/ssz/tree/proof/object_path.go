@@ -40,10 +40,10 @@ func (p ObjectPath[_]) Split() []string {
 func (p ObjectPath[RootT]) ToGeneralizedIndex(
 	rootObject types.MinimalSSZType,
 ) (tree.GeneralizedIndex[RootT], error) {
-	root := tree.GeneralizedIndex[RootT](1)
+	currentGIndex := tree.GeneralizedIndex[RootT](1)
 	for _, p := range p.Split() {
 		_ = p
 		// do work in this loop
 	}
-	return root, nil
+	return currentGIndex, nil
 }
