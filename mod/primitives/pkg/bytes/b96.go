@@ -98,7 +98,8 @@ func (h B96) Type() types.Type {
 	return types.Vector
 }
 
-// ItemLength returns the length of the item in the B96.
+// ItemLength returns the required bytes to represent the root
+// element of the B96.
 func (h B96) ItemLength() uint64 {
 	return constants.BytesPerChunk
 }
