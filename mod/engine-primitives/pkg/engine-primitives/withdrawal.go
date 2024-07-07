@@ -22,7 +22,6 @@ package engineprimitives
 
 import (
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -92,12 +91,12 @@ func (*Withdrawal) IsFixed() bool {
 }
 
 // Type returns the type of the Withdrawal.
-func (w *Withdrawal) Type() schema.SSZType {
+func (*Withdrawal) Type() schema.SSZType {
 	return schema.Container(
-		schema.Field("index", w.Index.Type()),
-		schema.Field("validator_index", w.Validator.Type()),
-		schema.Field("address", bytes.B20(w.Address).Type()),
-		schema.Field("amount", w.Amount.Type()),
+		schema.Field("index", schema.U64()),
+		schema.Field("validator_index", schema.U64()),
+		schema.Field("address", schema.B20()),
+		schema.Field("amount", schema.U64()),
 	)
 }
 
