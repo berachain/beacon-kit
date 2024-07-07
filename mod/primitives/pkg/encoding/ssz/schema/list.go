@@ -57,6 +57,7 @@ func (l list) Length() uint64 {
 	return l.limit
 }
 
+// position returns the chunk index and offset for a given list index.
 func (l list) position(p string) (uint64, uint8, error) {
 	i, err := strconv.ParseUint(p, 10, 64)
 	if err != nil {
@@ -67,8 +68,4 @@ func (l list) position(p string) (uint64, uint8, error) {
 	return uint64(math.Floor(float64(start) / chunkSize)),
 		uint8(start % chunkSize),
 		nil
-}
-
-func (l list) IsList() bool {
-	return true
 }
