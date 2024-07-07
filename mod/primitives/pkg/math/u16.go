@@ -84,6 +84,11 @@ func (U16) Type() types.Type {
 	return types.Basic
 }
 
+// ItemLength returns the number of bytes required to store the uint16.
+func (U16) ItemLength() uint64 {
+	return constants.U16Size
+}
+
 // ChunkCount returns the number of chunks required to store the uint16.
 func (U16) ChunkCount() uint64 {
 	return 1

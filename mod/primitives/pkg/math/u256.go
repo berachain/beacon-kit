@@ -84,6 +84,11 @@ func (*U256) Type() types.Type {
 	return types.Basic
 }
 
+// ItemLength returns the number of bytes required to represent the U256.
+func (*U256) ItemLength() uint64 {
+	return constants.BytesPerChunk
+}
+
 // ChunkCount returns the number of chunks required to store the U256.
 func (*U256) ChunkCount() uint64 {
 	return 1

@@ -100,6 +100,11 @@ func (v Vector[T]) Elements() []T {
 	return v
 }
 
+// ItemLength returns the length of the item in the VectorBasic.
+func (v Vector[T]) ItemLength() uint64 {
+	return constants.BytesPerChunk
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                Merkleization                               */
 /* -------------------------------------------------------------------------- */

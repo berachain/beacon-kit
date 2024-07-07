@@ -23,6 +23,7 @@ package bytes
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 	"github.com/prysmaticlabs/gohashtree"
 )
@@ -96,7 +97,11 @@ func (h B48) Type() types.Type {
 	return types.Composite
 }
 
-// HashTreeRoot returns the hash tree root of the B48.
+// ItemLength returns the length of the item in the B48.
+func (h B48) ItemLength() uint64 {
+	return constants.BytesPerChunk
+}
+
 func (h B48) HashTreeRoot() ([32]byte, error) {
 	//nolint:mnd // for a tree height of 1 we need 2 working chunks.
 	result := make([][32]byte, 2)

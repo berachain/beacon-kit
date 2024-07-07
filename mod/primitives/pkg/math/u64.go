@@ -120,6 +120,11 @@ func (U64) ChunkCount() uint64 {
 	return 1
 }
 
+// ItemLength returns the number of bytes required to represent the uint64.
+func (U64) ItemLength() uint64 {
+	return constants.U64Size
+}
+
 // NewFromSSZ creates a new U64 from SSZ format.
 func (U64) NewFromSSZ(buf []byte) (U64, error) {
 	if len(buf) != constants.U64Size {

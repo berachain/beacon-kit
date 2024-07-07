@@ -114,6 +114,11 @@ func (l *List[T]) Elements() []T {
 	return l.elements
 }
 
+// ItemLength returns the length of the item in the VectorBasic.
+func (v List[T]) ItemLength() uint64 {
+	return constants.BytesPerChunk
+}
+
 // HashTreeRootWith returns the Merkle root of the List
 // with a given merkleizer.
 func (l *List[T]) HashTreeRootWith(
