@@ -38,15 +38,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
-	rollserv "github.com/rollkit/cosmos-sdk-starter/server"
-	rollconf "github.com/rollkit/rollkit/config"
-	"github.com/spf13/cobra"
 )
-
-func addFlags(cmd *cobra.Command) {
-	flags.AddBeaconKitFlags(cmd)
-	rollconf.AddFlags(cmd)
-}
 
 // DefaultRootCommandSetup sets up the default commands for the root command.
 func DefaultRootCommandSetup[T types.Node](
@@ -57,8 +49,7 @@ func DefaultRootCommandSetup[T types.Node](
 ) {
 	// Setup the custom start command options.
 	startCmdOptions := server.StartCmdOptions[T]{
-		AddFlags:            addFlags,
-		StartCommandHandler: rollserv.StartHandler[T],
+		AddFlags: flags.AddBeaconKitFlags,
 	}
 
 	// Add all the commands to the root command.
