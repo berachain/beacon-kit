@@ -32,7 +32,7 @@ const chunkSize = constants.BytesPerChunk
 type SSZType interface {
 	ID() types.Type
 	ItemLength() uint64
-	Chunks() uint64
+	HashChunkCount() uint64
 
 	position(p string) (uint64, uint8, error)
 	child(p string) SSZType
@@ -77,7 +77,7 @@ func GetTreeNode(typ SSZType, path []string) (Node, error) {
 			if l, ok := typ.(list); ok && l.IsList() {
 				i = 2
 			}
-			gindex = gindex*i*nextPowerOfTwo(typ.Chunks()) + pos
+			gindex = gindex*i*nextPowerOfTwo(typ.HashChunkCount()) + pos
 			typ = typ.child(p)
 			offset = off
 		}

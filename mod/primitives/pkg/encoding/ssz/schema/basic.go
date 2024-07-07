@@ -72,7 +72,7 @@ func (b basic) ItemLength() uint64 { return uint64(b) }
 
 // Chunks returns the number of 32-byte chunks required to represent the basic
 // type.
-func (b basic) Chunks() uint64 { return 1 }
+func (b basic) HashChunkCount() uint64 { return 1 }
 
 // child returns the basic type itself, as it has no children.
 func (b basic) child(_ string) SSZType { return b }

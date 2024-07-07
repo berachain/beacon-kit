@@ -42,7 +42,7 @@ func (l list) ID() types.Type { return types.List }
 
 func (l list) ItemLength() uint64 { return l.Element.ItemLength() }
 
-func (l list) Chunks() uint64 {
+func (l list) HashChunkCount() uint64 {
 	totalBytes := l.Length() * l.Element.ItemLength()
 	chunks := (totalBytes + chunkSize - 1) / chunkSize
 	return chunks

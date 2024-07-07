@@ -100,7 +100,7 @@ func (v vector) ID() types.Type { return types.Vector }
 
 func (v vector) ItemLength() uint64 { return chunkSize }
 
-func (v vector) Chunks() uint64 {
+func (v vector) HashChunkCount() uint64 {
 	totalBytes := v.Length() * v.Element.ItemLength()
 	chunks := (totalBytes + chunkSize - 1) / chunkSize
 	return chunks

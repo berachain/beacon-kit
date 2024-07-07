@@ -52,7 +52,7 @@ func (c container) ItemLength() uint64 { return chunkSize }
 
 func (c container) Length() uint64 { return uint64(len(c.Fields)) }
 
-func (c container) Chunks() uint64 { return uint64(len(c.Fields)) }
+func (c container) HashChunkCount() uint64 { return uint64(len(c.Fields)) }
 
 func (c container) child(p string) SSZType {
 	return c.Fields[c.FieldIndex[p]]
