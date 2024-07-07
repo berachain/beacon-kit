@@ -25,13 +25,12 @@ type Type uint8
 const (
 	Unknown Type = iota
 	Basic
-	U64
 	Elements
 	Container
 )
 
 func (t Type) IsBasic() bool {
-	return t == Basic || t == U64
+	return t == Basic
 }
 
 func (t Type) IsComposite() bool {
