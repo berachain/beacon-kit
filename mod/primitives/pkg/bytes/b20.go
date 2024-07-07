@@ -93,7 +93,7 @@ func (h B20) IsFixed() bool {
 
 // Type returns the type of the B20.
 func (h B20) Type() types.Type {
-	return types.Composite
+	return types.Elements
 }
 
 // ItemLength returns the required bytes to represent the root

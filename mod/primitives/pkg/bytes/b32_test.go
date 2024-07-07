@@ -70,5 +70,5 @@ func TestB32IsFixed(t *testing.T) {
 func TestB32Type(t *testing.T) {
 	var b bytes.B32
 	require.Equal(t, types.Composite, b.Type(),
-		"Type should return types.Composite for B32")
+		"Type should return types.Elements for B32")
 }

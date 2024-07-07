@@ -99,7 +99,7 @@ func (h B8) ItemLength() uint64 {
 
 // Type returns the type of the B8.
 func (h B8) Type() types.Type {
-	return types.Composite
+	return types.Elements
 }
 
 // HashTreeRoot returns the hash tree root of the B8.
