@@ -1,3 +1,23 @@
+// SPDX-License-Identifier: BUSL-1.1
+//
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is governed by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
+//
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
+//
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
+//
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
+
 package schema
 
 import (
@@ -5,15 +25,8 @@ import (
 	"fmt"
 	"math"
 	"strconv"
-)
 
-const (
-	uint8Size   = 1
-	uint16Size  = 2
-	uint32Size  = 4
-	uint64Size  = 8
-	uint128Size = 16
-	chunkSize   = 32
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 )
 
 type SSZType interface {
@@ -30,12 +43,12 @@ type basic struct {
 	size uint64
 }
 
-func UInt8() SSZType   { return basic{size: uint8Size} }
-func UInt16() SSZType  { return basic{size: uint16Size} }
-func UInt32() SSZType  { return basic{size: uint32Size} }
-func UInt64() SSZType  { return basic{size: uint64Size} }
-func UInt128() SSZType { return basic{size: uint128Size} }
-func UInt256() SSZType { return basic{size: chunkSize} }
+func UInt8() SSZType   { return basic{size: constants.U8Size} }
+func UInt16() SSZType  { return basic{size: constants.U16Size} }
+func UInt32() SSZType  { return basic{size: constants.U32Size} }
+func UInt64() SSZType  { return basic{size: constants.U64Size} }
+func UInt128() SSZType { return basic{size: constants.U128Size} }
+func UInt256() SSZType { return basic{size: constants.U256Size} }
 
 func (b basic) Size() uint64 { return b.size }
 
@@ -73,7 +86,7 @@ func Container(fields ...field) SSZType {
 	return container{Fields: types, FieldIndex: fieldIndex}
 }
 
-func (c container) Size() uint64 { return chunkSize }
+func (c container) Size() uint64 { return constants.BytesPerChunk }
 
 func (c container) Length() uint64 { return uint64(len(c.Fields)) }
 
@@ -111,10 +124,10 @@ type enumerable struct {
 	maxLength uint64
 }
 
-func (e enumerable) Size() uint64 { return chunkSize }
+func (e enumerable) Size() uint64 { return constants.BytesPerChunk }
 
 func (e enumerable) Chunks() uint64 {
-	x := float64(e.Length()*e.Element.Size()) / chunkSize
+	x := float64(e.Length()*e.Element.Size()) / constants.BytesPerChunk
 	return uint64(math.Ceil(x))
 }
 
@@ -135,8 +148,8 @@ func (e enumerable) position(p string) (uint64, uint8, error) {
 		return 0, 0, fmt.Errorf("expected index, got name %s", p)
 	}
 	start := i * e.Element.Size()
-	return uint64(math.Floor(float64(start) / chunkSize)),
-		uint8(start % chunkSize),
+	return uint64(math.Floor(float64(start) / constants.BytesPerChunk)),
+		uint8(start % constants.BytesPerChunk),
 		nil
 }
 
