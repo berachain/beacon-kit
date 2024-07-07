@@ -32,20 +32,18 @@ import (
 /* -------------------------------------------------------------------------- */
 
 // Vector conforms to the SSZEenumerable interface.
-var _ types.SSZEnumerable[proof.Field] = (*Container)(nil)
+var _ types.SSZEnumerable[*proof.Field] = (*Container)(nil)
 
 type Container struct {
-	fields     []proof.Field
+	fields     []*proof.Field
 	fieldIndex map[string]uint64
 }
 
 // ContainerFromElements creates a new Container from elements.
-func ContainerFromElements(fields ...proof.Field) *Container {
+func ContainerFromElements(fields ...*proof.Field) *Container {
 	fieldIndex := make(map[string]uint64)
-	types := make([]proof.SSZType, len(fields))
 	for i, f := range fields {
 		fieldIndex[f.GetName()] = uint64(i)
-		types[i] = f
 	}
 
 	return &Container{
@@ -93,12 +91,12 @@ func (c *Container) ChunkCount() uint64 {
 }
 
 // Elements returns the elements of the container.
-func (c *Container) Elements() []proof.Field {
+func (c *Container) Elements() []*proof.Field {
 	return c.fields
 }
 
 // GetFieldByName returns the field with the given name.
-func (c *Container) GetFieldByName(name string) proof.Field {
+func (c *Container) GetFieldByName(name string) *proof.Field {
 	return c.fields[c.fieldIndex[name]]
 }
 
@@ -113,14 +111,14 @@ func (c *Container) GetFieldIndex(name string) uint64 {
 
 // HashTreeRoot returns the hash tree root of the container.
 func (c *Container) HashTreeRootWith(
-	merkleizer VectorMerkleizer[[32]byte, proof.Field],
+	merkleizer VectorMerkleizer[[32]byte, *proof.Field],
 ) ([32]byte, error) {
 	return merkleizer.MerkleizeVectorCompositeOrContainer(c.fields)
 }
 
 // HashTreeRoot returns the hash tree root of the container.
 func (c *Container) HashTreeRoot() ([32]byte, error) {
-	return c.HashTreeRootWith(merkleizer.New[[32]byte, proof.Field]())
+	return c.HashTreeRootWith(merkleizer.New[[32]byte, *proof.Field]())
 }
 
 /* -------------------------------------------------------------------------- */
