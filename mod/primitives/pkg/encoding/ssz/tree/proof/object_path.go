@@ -44,6 +44,7 @@ func (p ObjectPath[RootT]) ToGeneralizedIndex(
 	currentObject := rootObject
 	for _, p := range p.Split() {
 		_ = p
+		_ = rootObject
 		_ = currentObject
 		// do work in this loop
 	}
