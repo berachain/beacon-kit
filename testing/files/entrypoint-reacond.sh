@@ -36,11 +36,11 @@ resolve_path() {
     echo "$abs_path"
 }
 
-CHAINID="beacond-2061"
+CHAINID="reacond-2061"
 MONIKER="localtestnet"
 LOGLEVEL="info"
 CONSENSUS_KEY_ALGO="bls12_381"
-HOMEDIR="./.tmp/beacond"
+HOMEDIR="./.tmp/reacond"
 
 # Path variables
 GENESIS=$HOMEDIR/config/genesis.json
@@ -51,7 +51,7 @@ ETH_GENESIS=$(resolve_path "./testing/files/eth-genesis.json")
 set -e
 
 # Reinstall daemon
-make build
+make build-reacond
 
 overwrite="N"
 if [ -d $HOMEDIR ]; then
@@ -67,26 +67,30 @@ export CHAIN_SPEC="devnet"
 # Setup local node if overwrite is set to Yes, otherwise skip setup
 if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	rm -rf $HOMEDIR
-	./build/bin/beacond init $MONIKER \
+	./build/bin/reacond init $MONIKER \
 		--chain-id $CHAINID \
 		--home $HOMEDIR \
 		--consensus-key-algo $CONSENSUS_KEY_ALGO
-	./build/bin/beacond genesis add-premined-deposit --home $HOMEDIR
-	./build/bin/beacond genesis collect-premined-deposits --home $HOMEDIR 
-	./build/bin/beacond genesis execution-payload "$ETH_GENESIS" --home $HOMEDIR
+	./build/bin/reacond genesis add-premined-deposit --home $HOMEDIR
+	./build/bin/reacond genesis collect-premined-deposits --home $HOMEDIR 
+	./build/bin/reacond genesis execution-payload "$ETH_GENESIS" --home $HOMEDIR
 fi
 
-sed -i '' -e "s/^timeout_propose = \".*\"$/timeout_propose = \"5.5s\"/" "$HOMEDIR/config/config.toml"
+ADDRESS=$(jq -r '.address' $HOMEDIR/config/priv_validator_key.json)
+PUB_KEY=$(jq -r '.pub_key' $HOMEDIR/config/priv_validator_key.json)
+jq --argjson pubKey "$PUB_KEY" '.consensus["validators"]=[{"address": "'$ADDRESS'", "pub_key": $pubKey, "power": "32000000000", "name": "Rollkit Sequencer"}]' $GENESIS > temp.json && mv temp.json $GENESIS
+
+sed -i '' -e "s/^timeout_propose = \".*\"$/timeout_propose = \"1s\"/" "$HOMEDIR/config/config.toml"
 sed -i '' -e "s/^timeout_propose_delta = \".*\"$/timeout_propose_delta = \"500ms\"/" "$HOMEDIR/config/config.toml"
 sed -i '' -e "s/^timeout_prevote = \".*\"$/timeout_prevote = \"500ms\"/" "$HOMEDIR/config/config.toml"
 sed -i '' -e "s/^timeout_precommit = \".*\"$/timeout_precommit = \"500ms\"/" "$HOMEDIR/config/config.toml"
 sed -i '' -e "s/^timeout_commit = \".*\"$/timeout_commit = \"5s\"/" "$HOMEDIR/config/config.toml"
-sed -i '' -e "s/^payload-timeout = \".*\"$/payload-timeout = \"5s\"/" "$HOMEDIR/config/app.toml"
-
+sed -i '' -e "s/^payload-timeout = \".*\"$/payload-timeout = \"1s\"/" "$HOMEDIR/config/app.toml"
 
 # Start the node (remove the --pruning=nothing flag if historical queries are not needed)
-BEACON_START_CMD="./build/bin/beacond start --pruning=nothing "$TRACE" \
+BEACON_START_CMD="./build/bin/reacond start --pruning=nothing "$TRACE" \
 --log_level $LOGLEVEL --api.enabled-unsafe-cors \
+--rollkit.aggregator --rollkit.da_address http://0.0.0.0:7980 --rollkit.block_time 5s --rpc.laddr tcp://127.0.0.1:36657 --grpc.address 127.0.0.1:9290 --p2p.laddr "0.0.0.0:36656" \
 --api.enable --api.swagger --minimum-gas-prices=0.0001abgt \
 --home $HOMEDIR --beacon-kit.engine.jwt-secret-path ${JWT_SECRET_PATH}"
 

@@ -51,6 +51,7 @@ func BaseSpec() chain.SpecData[
 	any,
 ] {
 	cmtConsensusParams := cmttypes.DefaultConsensusParams()
+	cmtConsensusParams.Block.MaxBytes = 104857600
 	cmtConsensusParams.Validator.PubKeyTypes = []string{crypto.CometBLSType}
 
 	return chain.SpecData[

@@ -48,7 +48,18 @@ start-reth: ## start an ephemeral `reth` node
 	--authrpc.addr "0.0.0.0" \
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH}
+	--ipcpath ${IPC_PATH} \
+	--builder.deadline 6 \
+    --builder.max-tasks 20 \
+    --txpool.pending-max-count 10000000 \
+    --txpool.pending-max-size 10000 \
+    --txpool.basefee-max-count 10000000 \
+    --txpool.basefee-max-size 10000 \
+    --txpool.queued-max-count 10000000 \
+    --txpool.queued-max-size 10000 \
+    --txpool.max-account-slots 10000000 \
+    --txpool.max-cached-entries 10000000 \
+    --rpc-cache.max-receipts 10000000
 
 start-reth-host: ## start a local ephemeral `reth` node on host machine
 	rm -rf ${ETH_DATA_DIR}
@@ -115,7 +126,9 @@ start-nethermind: ## start an ephemeral `nethermind` node
 	--JsonRpc.Host 0.0.0.0 \
 	--JsonRpc.JwtSecretFile ../$(JWT_PATH) \
 	--Sync.PivotNumber 0 \
-	--Init.ChainSpecPath ../$(TESTAPP_FILES_DIR)/eth-nether-genesis.json
+	--Init.ChainSpecPath ../$(TESTAPP_FILES_DIR)/eth-nether-genesis.json \
+	--Blocks.TargetBlockGasLimit 1000000000 \
+	--JsonRpc.RequestQueueLimit 0
 
 start-besu: ## start an ephemeral `besu` node
 	docker run \
