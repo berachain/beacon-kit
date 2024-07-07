@@ -76,6 +76,11 @@ func (Bool) Type() types.Type {
 	return types.Basic
 }
 
+// ItemLength returns the number of bytes required to store the bool.
+func (Bool) ItemLength() uint64 {
+	return 1
+}
+
 // ChunkCount returns the number of chunks required to store the bool.
 func (Bool) ChunkCount() uint64 {
 	return 1

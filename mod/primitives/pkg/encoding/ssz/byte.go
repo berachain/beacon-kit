@@ -83,6 +83,11 @@ func (Byte) Type() types.Type {
 	return types.Basic
 }
 
+// ItemLength returns the number of bytes required to represent the byte.
+func (Byte) ItemLength() uint64 {
+	return constants.ByteSize
+}
+
 // ChunkCount returns the number of chunks required to store the byte.
 func (Byte) ChunkCount() uint64 {
 	return 1
