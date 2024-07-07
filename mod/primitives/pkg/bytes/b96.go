@@ -95,7 +95,7 @@ func (h B96) IsFixed() bool {
 // ItemLength returns the required bytes to represent the root
 // element of the B96.
 func (h B96) Type() types.Type {
-	return types.Elements
+	return types.Vector
 }
 
 // ItemLength returns the length of the item in the B96.

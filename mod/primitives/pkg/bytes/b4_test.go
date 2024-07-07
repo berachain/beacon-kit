@@ -102,7 +102,7 @@ func TestBytes4Type(t *testing.T) {
 		{
 			name:  "type of B4",
 			input: bytes.B4{0x01, 0x02, 0x03, 0x04},
-			want:  types.Elements,
+			want:  types.Vector,
 		},
 	}
 

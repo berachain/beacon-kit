@@ -94,7 +94,7 @@ func (h B48) IsFixed() bool {
 
 // Type returns the type of the B48.
 func (h B48) Type() types.Type {
-	return types.Elements
+	return types.Vector
 }
 
 // ItemLength returns the required bytes to represent the root

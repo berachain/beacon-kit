@@ -72,7 +72,7 @@ func (Vector[T]) IsFixed() bool {
 
 // Type returns the type of the VectorBasic.
 func (Vector[T]) Type() types.Type {
-	return types.Elements
+	return types.Vector
 }
 
 // ChunkCount returns the number of chunks in the VectorBasic.

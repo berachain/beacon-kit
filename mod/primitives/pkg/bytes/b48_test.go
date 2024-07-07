@@ -97,6 +97,6 @@ func TestB48IsFixed(t *testing.T) {
 
 func TestB48Type(t *testing.T) {
 	var b bytes.B48
-	require.Equal(t, types.Elements, b.Type(),
-		"Type should return types.Elements for B48")
+	require.Equal(t, types.Vector, b.Type(),
+		"Type should return types.Vector for B48")
 }

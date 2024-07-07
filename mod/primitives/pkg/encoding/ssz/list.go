@@ -106,7 +106,7 @@ func (l *List[T]) ChunkCount() uint64 {
 
 // Type returns the type of the List.
 func (l *List[T]) Type() types.Type {
-	return types.Elements
+	return types.List
 }
 
 // Elements returns the elements of the List.
