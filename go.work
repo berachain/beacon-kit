@@ -3,6 +3,7 @@ go 1.22.5
 use (
 	./beacond
 	./build/tools
+	./examples/reacond
 	./mod/async
 	./mod/beacon
 	./mod/chain-spec
