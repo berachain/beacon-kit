@@ -27,7 +27,11 @@ func GetElemType(element SSZType, indexOrVariableName interface{}) (SSZType, err
 		}
 		return element.(Container[SSZType]).GetFieldByName(variableName), nil
 	case types.Elements:
-		return element.(Elements), nil
+		index, ok := indexOrVariableName.(uint64)
+		if !ok {
+			return nil, fmt.Errorf("expected string variable name for Container type, got %T", indexOrVariableName)
+		}
+		return element.(Elements).ElementAtIndex(index), nil
 	default:
 		return nil, fmt.Errorf("unsupported type: %T", element)
 	}

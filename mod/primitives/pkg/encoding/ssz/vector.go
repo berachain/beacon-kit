@@ -100,6 +100,14 @@ func (v Vector[T]) Elements() []T {
 	return v
 }
 
+// ElementAtIndex returns the element at the given index
+func (v Vector[T]) ElementAtIndex(i uint64) T {
+	if i >= uint64(len(v)) {
+		panic("index out of range")
+	}
+	return v[i]
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                Merkleization                               */
 /* -------------------------------------------------------------------------- */

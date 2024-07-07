@@ -13,6 +13,7 @@ type SSZType interface {
 type Elements interface {
 	SSZType
 	ElementType() types.Type
+	ElementAtIndex(i uint64) SSZType
 }
 type Container[T SSZType] interface {
 	SSZType
