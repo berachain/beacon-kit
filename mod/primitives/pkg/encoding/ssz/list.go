@@ -43,7 +43,6 @@ type List[T types.MinimalSSZType] struct {
 	elements []T
 	// limit is the maximum number of elements in the list.
 	limit uint64
-	t     schema.SSZType
 }
 
 // ListFromElements creates a new ListComposite from elements.
