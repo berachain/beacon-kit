@@ -66,7 +66,7 @@ func Test_Schema_Paths(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(strings.ReplaceAll(tc.path, "/", "."), func(t *testing.T) {
-			objectPath := proof.ObjectPathPath(tc.path)
+			objectPath := proof.ObjectPath(tc.path)
 			node, err := schema.GetTreeNode(root, objectPath.Split())
 			require.NoError(t, err)
 			require.Equalf(
@@ -116,7 +116,7 @@ func TestNestedSchemas(t *testing.T) {
 	t.Run("Test schema", func(t *testing.T) {
 		node, err := schema.GetTreeNode(
 			testSchema,
-			proof.ObjectPathPath("my_field1").Split(),
+			proof.ObjectPath("my_field1").Split(),
 		)
 		require.NoError(t, err)
 		require.Equal(t, uint64(2), node.GIndex)
@@ -128,7 +128,7 @@ func TestNestedSchemas(t *testing.T) {
 
 		node, err := schema.GetTreeNode(
 			nested1Schema,
-			proof.ObjectPathPath("my_field3").Split(),
+			proof.ObjectPath("my_field3").Split(),
 		)
 		require.NoError(t, err)
 		require.Equal(t, uint64(1), node.GIndex)
@@ -138,7 +138,7 @@ func TestNestedSchemas(t *testing.T) {
 	t.Run("Nested field access", func(t *testing.T) {
 		node, err := schema.GetTreeNode(
 			testSchema,
-			proof.ObjectPathPath("nested1/my_field3").Split(),
+			proof.ObjectPath("nested1/my_field3").Split(),
 		)
 		require.NoError(t, err)
 		// I think this something is up here.
