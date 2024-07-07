@@ -20,8 +20,11 @@
 
 package proof
 
+// Field represents a named value of a generic type.
 type Field[T any] struct {
-	name  string
+	// name is the name of the field
+	name string
+	// value is the value of the field
 	value T
 }
 
