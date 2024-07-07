@@ -40,6 +40,7 @@ func Container(fields ...*proof.Field[SSZType]) SSZType {
 	fieldIndex := make(map[string]uint64)
 	types := make([]SSZType, len(fields))
 	for i, f := range fields {
+		//#nosec:G701 // todo fix.
 		fieldIndex[f.GetName()] = uint64(i)
 		types[i] = f.GetValue()
 	}

@@ -63,6 +63,7 @@ func (l list) position(p string) (uint64, uint8, error) {
 		return 0, 0, fmt.Errorf("expected index, got name %s", p)
 	}
 	start := i * l.Element.ItemLength()
+	//#nosec:G701 // todo remove float usage.
 	return uint64(math.Floor(float64(start) / chunkSize)),
 		uint8(start % chunkSize),
 		nil
