@@ -252,7 +252,7 @@ func TestBytes20Type(t *testing.T) {
 				0x13,
 				0x14,
 			},
-			want: types.Composite,
+			want: types.Elements,
 		},
 	}
 

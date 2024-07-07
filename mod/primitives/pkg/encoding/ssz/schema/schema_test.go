@@ -114,10 +114,14 @@ func TestNestedSchemas(t *testing.T) {
 	testSchema := (&Test{}).DefineSSZSchema()
 
 	t.Run("Test schema", func(t *testing.T) {
+<<<<<<< Updated upstream
 		node, err := schema.GetTreeNode(
 			testSchema,
 			proof.ObjectPath("my_field1").Split(),
 		)
+=======
+		node, err := schema.GetTreeNode(testSchema, proof.ObjectPath("my_field1").Split())
+>>>>>>> Stashed changes
 		require.NoError(t, err)
 		require.Equal(t, uint64(2), node.GIndex)
 		require.Equal(t, uint8(0), node.Offset)
@@ -126,15 +130,20 @@ func TestNestedSchemas(t *testing.T) {
 	t.Run("Nested1 schema", func(t *testing.T) {
 		nested1Schema := Nested1{}.DefineSSZSchema()
 
+<<<<<<< Updated upstream
 		node, err := schema.GetTreeNode(
 			nested1Schema,
 			proof.ObjectPath("my_field3").Split(),
 		)
+=======
+		node, err := schema.GetTreeNode(nested1Schema, proof.ObjectPath("my_field3").Split())
+>>>>>>> Stashed changes
 		require.NoError(t, err)
 		require.Equal(t, uint64(1), node.GIndex)
 		require.Equal(t, uint8(0), node.Offset)
 	})
 
+<<<<<<< Updated upstream
 	// TODO: I THINK THERE IS A BUG HERE
 	// t.Run("Nested field access", func(t *testing.T) {
 	// 	node, err := schema.GetTreeNode(
@@ -146,4 +155,13 @@ func TestNestedSchemas(t *testing.T) {
 	// 	require.Equal(t, uint64(6), node.GIndex)
 	// 	require.Equal(t, uint8(0), node.Offset)
 	// })
+=======
+	t.Run("Nested field access", func(t *testing.T) {
+		node, err := schema.GetTreeNode(testSchema, proof.ObjectPath("nested1/my_field3").Split())
+		require.NoError(t, err)
+		// I think this something is up here.
+		require.Equal(t, uint64(6), node.GIndex)
+		require.Equal(t, uint8(0), node.Offset)
+	})
+>>>>>>> Stashed changes
 }

@@ -23,9 +23,20 @@ package types
 type Type uint8
 
 const (
-	Basic Type = iota
-	Composite
+	Unknown Type = iota
+	Basic
+	U64
+	Elements
+	Container
 )
+
+func (t Type) IsBasic() bool {
+	return t == Basic || t == U64
+}
+
+func (t Type) IsComposite() bool {
+	return t == Elements || t == Container
+}
 
 // MinimalSSZType is the smallest interface of an SSZable type.
 type MinimalSSZType interface {
@@ -61,4 +72,5 @@ type SSZEnumerable[
 	N() uint64
 	// Elements returns the elements of the enumerable type.
 	Elements() []ElementT
+	ChunkCount() uint64
 }

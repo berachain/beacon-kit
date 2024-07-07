@@ -91,5 +91,5 @@ func (*Withdrawal) IsFixed() bool {
 
 // Type returns the type of the Withdrawal.
 func (*Withdrawal) Type() types.Type {
-	return types.Composite
+	return types.Container
 }

@@ -101,7 +101,7 @@ func TestBytes8Type(t *testing.T) {
 		{
 			name:  "type of B8",
 			input: bytes.B8{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
-			want:  types.Composite,
+			want:  types.Elements,
 		},
 	}
 

@@ -92,7 +92,7 @@ func (h B32) IsFixed() bool {
 
 // Type returns the type of the B32.
 func (h B32) Type() types.Type {
-	return types.Composite
+	return types.Elements
 }
 
 // HashTreeRoot returns the hash tree root of the B32.
