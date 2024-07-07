@@ -84,7 +84,9 @@ func run() error {
 		// Set the NodeBuilderFunc to the NodeBuilder Build.
 		clibuilder.WithNodeBuilderFunc[types.Node](nb.Build),
 		// Set the Default Config to the Default.
-		clibuilder.WithRootCommandSetup[types.Node](commands.DefaultRootCommandSetup),
+		clibuilder.WithRootCommandSetup[types.Node](
+			commands.DefaultRootCommandSetup,
+		),
 	)
 
 	cmd, err := cb.Build()
