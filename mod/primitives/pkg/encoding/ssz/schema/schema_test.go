@@ -111,6 +111,7 @@ func TestNestedSchemas(t *testing.T) {
 	t.Run("Nested field access", func(t *testing.T) {
 		node, err := schema.GetTreeNode(testSchema, schema.Path("nested1/my_field3"))
 		require.NoError(t, err)
+		// this should be GIndex of 5 not 3.
 		require.Equal(t, uint64(5), node.GIndex)
 		require.Equal(t, uint8(0), node.Offset)
 	})
