@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_Minimal_Schema(t *testing.T) {
+func Test_Schema_Paths(t *testing.T) {
 	nestedType := schema.Container(
 		schema.Field("bytes32", schema.Bytes(32)),
 		schema.Field("uint64", schema.UInt64()),
@@ -21,6 +21,7 @@ func Test_Minimal_Schema(t *testing.T) {
 		schema.Field("list_uint64", schema.List(schema.UInt64(), 1000)),
 		schema.Field("list_nested", schema.List(nestedType, 1000)),
 		schema.Field("nested", nestedType),
+		schema.Field("vector_uint128", schema.Vector(schema.UInt128(), 20)),
 	)
 
 	cases := []struct {
@@ -38,6 +39,9 @@ func Test_Minimal_Schema(t *testing.T) {
 		{path: "nested/uint64", gindex: 12*4 + 1},
 		{path: "nested/bytes256", gindex: 12*4 + 3},
 		{path: "nested/bytes256/30", gindex: (12*4 + 3) * 8, offset: 30},
+		{path: "vector_uint128", gindex: 13},
+		// 20 128-bit ints occupy 320 bytes (10 chunks), nextPowerOfTwo(10) = 16
+		{path: "vector_uint128/5", gindex: 13*16 + (5 / 2), offset: 16},
 	}
 	for _, tc := range cases {
 		t.Run(strings.ReplaceAll(tc.path, "/", "."), func(t *testing.T) {
@@ -51,7 +55,14 @@ func Test_Minimal_Schema(t *testing.T) {
 				"expected %d, got %d",
 				tc.gindex,
 				node.GIndex)
-			require.Equal(t, node.Offset, tc.offset)
+			require.Equal(
+				t,
+				node.Offset,
+				tc.offset,
+				"expected %d, got %d",
+				tc.offset,
+				node.Offset,
+			)
 		})
 	}
 }
