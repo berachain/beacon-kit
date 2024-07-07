@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math"
 	"strconv"
-	"strings"
 )
 
 const (
@@ -152,10 +151,6 @@ type Node struct {
 	Offset uint8
 }
 
-func Path(path string) []string {
-	return strings.Split(path, "/")
-}
-
 // GetTreeNode locates a node in the SSZ merkle tree by its path and a root
 // schema node to begin traversal from with gindex 1.
 //
@@ -169,6 +164,7 @@ func GetTreeNode(typ SSZType, path []string) (Node, error) {
 		if p == "__len__" {
 			if _, ok := typ.(enumerable); !ok {
 				return Node{}, fmt.Errorf("type %T is not enumerable", typ)
+
 			}
 			gindex = 2*gindex + 1
 			offset = 0
