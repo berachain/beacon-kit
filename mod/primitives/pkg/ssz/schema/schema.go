@@ -53,20 +53,19 @@ type container struct {
 }
 
 type field struct {
-	name  string
-	typ   SSZType
-	order uint64
+	name string
+	typ  SSZType
 }
 
-func Field(order uint64, name string, typ SSZType) field {
-	return field{name: name, typ: typ, order: order}
+func Field(name string, typ SSZType) field {
+	return field{name: name, typ: typ}
 }
 
 func Container(fields ...field) container {
 	fieldIndex := make(map[string]uint64)
 	var types []SSZType
-	for _, f := range fields {
-		fieldIndex[f.name] = uint64(f.order)
+	for i, f := range fields {
+		fieldIndex[f.name] = uint64(i)
 		types = append(types, f.typ)
 	}
 	return container{Fields: types, FieldIndex: fieldIndex}

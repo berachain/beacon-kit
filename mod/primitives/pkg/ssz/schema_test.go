@@ -194,20 +194,22 @@ func Test_Record(t *testing.T) {
 
 // --------------------------------------------------------------------------------
 // This section shows the minimal surface required by the SSZ schema
+// The resulting construction has some code dupliation between usages of
+// ContainerFromElements(...) but completely decouples schema building from SSZ.
 // --------------------------------------------------------------------------------
 
 func Test_Minimal_Schema(t *testing.T) {
 	nestedType := schema.Container(
-		schema.Field(0, "bytes_field", schema.Basic(32)),
-		schema.Field(1, "uint_field", schema.Basic(8)),
-		schema.Field(2, "list_of_bytes", schema.List(schema.Basic(32), 10)),
+		schema.Field("bytes_field", schema.Basic(32)),
+		schema.Field("uint_field", schema.Basic(8)),
+		schema.Field("list_of_bytes", schema.List(schema.Basic(32), 10)),
 	)
 	root := schema.Container(
-		schema.Field(0, "bytes_field", schema.Basic(32)),
-		schema.Field(1, "uint_field", schema.Basic(8)),
-		schema.Field(2, "list_of_basic", schema.List(schema.Basic(8), 1000)),
-		schema.Field(3, "list_of_container", schema.List(nestedType, 1000)),
-		schema.Field(4, "nested", nestedType),
+		schema.Field("bytes_field", schema.Basic(32)),
+		schema.Field("uint_field", schema.Basic(8)),
+		schema.Field("list_of_basic", schema.List(schema.Basic(8), 1000)),
+		schema.Field("list_of_container", schema.List(nestedType, 1000)),
+		schema.Field("nested", nestedType),
 	)
 
 	assertIndex := func(path tree.ObjectPath, expect uint64) {
