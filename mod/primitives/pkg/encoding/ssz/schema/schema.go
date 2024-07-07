@@ -141,17 +141,8 @@ func (e enumerable) position(p string) (uint64, uint8, error) {
 		nil
 }
 
-func (e enumerable) IsByteVector() bool {
-	return e.Element.Size() == 1 && e.length > 0
-}
-
 func (e enumerable) IsList() bool {
 	return e.maxLength > 0
-}
-
-func (e enumerable) IsFixed() bool {
-	_, ok := e.Element.(basic)
-	return ok
 }
 
 type Node struct {
@@ -187,8 +178,7 @@ func GetTreeNode(typ SSZType, path []string) (Node, error) {
 				return Node{}, err
 			}
 			i := uint64(1)
-			if e, ok := typ.(enumerable); ok && e.maxLength > 0 {
-				// list case
+			if e, ok := typ.(enumerable); ok && e.IsList() {
 				i = 2
 			}
 			gindex = gindex*i*nextPowerOfTwo(typ.Chunks()) + pos
