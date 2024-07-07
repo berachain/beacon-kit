@@ -20,12 +20,30 @@
 
 package proof
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/tree"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
+)
 
 // ObjectPath represents a path to an object in a Merkle tree.
-type ObjectPath string
+type ObjectPath[RootT ~[32]byte] string
 
 // Split returns the path split by "/".
-func (p ObjectPath) Split() []string {
+func (p ObjectPath[_]) Split() []string {
 	return strings.Split(string(p), "/")
+}
+
+// ToGeneralizedIndex converts the path to a generalized index given a starting
+// root object.
+func (p ObjectPath[RootT]) ToGeneralizedIndex(
+	rootObject types.MinimalSSZType,
+) (tree.GeneralizedIndex[RootT], error) {
+	root := tree.GeneralizedIndex[RootT](1)
+	for _, p := range p.Split() {
+		_ = p
+		// do work in this loop
+	}
+	return root, nil
 }
