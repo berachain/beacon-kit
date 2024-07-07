@@ -116,7 +116,7 @@ func (l *List[T]) Elements() []T {
 
 // ItemLength returns the required bytes to represent the root
 // element of the List.
-func (v List[T]) ItemLength() uint64 {
+func (l List[T]) ItemLength() uint64 {
 	return constants.BytesPerChunk
 }
 
