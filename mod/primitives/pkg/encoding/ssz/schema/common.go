@@ -34,9 +34,7 @@ const (
 )
 
 // Basic SSZ types.
-//
-//nolint:gochecknoglobals // reduce allocs.
-var (
+const (
 	boolType = basic(constants.BoolSize)
 	u8Type   = basic(constants.U8Size)
 	u16Type  = basic(constants.U16Size)

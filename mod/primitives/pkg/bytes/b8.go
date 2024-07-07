@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 //
-
+//nolint:dupl // it's okay to duplicate the code for different types
 package bytes
 
 import (
