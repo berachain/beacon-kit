@@ -52,6 +52,7 @@ func (l list) child(_ string) SSZType {
 	return l.Element
 }
 
+// typ.length describes the limit for list types.
 func (l list) Length() uint64 {
 	return l.limit
 }
