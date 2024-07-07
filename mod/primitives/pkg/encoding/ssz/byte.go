@@ -84,12 +84,6 @@ func (Byte) Type() schema.SSZType {
 	return schema.U8()
 }
 
-// ItemLength returns the required bytes to represent the root
-// element of the Byte.
-func (Byte) ItemLength() uint64 {
-	return constants.ByteSize
-}
-
 // ChunkCount returns the number of chunks required to store the byte.
 func (Byte) ChunkCount() uint64 {
 	return 1

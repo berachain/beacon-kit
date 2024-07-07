@@ -49,12 +49,6 @@ func (U32) SizeSSZ() int {
 	return constants.U32Size
 }
 
-// ItemLength returns the required bytes to represent the root
-// element of the U32.
-func (U32) ItemLength() uint64 {
-	return constants.U32Size
-}
-
 // MarshalSSZ marshals the uint32 into SSZ format.
 func (u U32) MarshalSSZ() ([]byte, error) {
 	buf := make([]byte, constants.U32Size)

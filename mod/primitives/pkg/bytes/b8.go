@@ -23,7 +23,6 @@ package bytes
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 )
@@ -90,12 +89,6 @@ func (h B8) MarshalSSZ() ([]byte, error) {
 // IsFixed returns true if the length of the B8 is fixed.
 func (h B8) IsFixed() bool {
 	return true
-}
-
-// ItemLength returns the required bytes to represent the root
-// element of the B8.
-func (h B8) ItemLength() uint64 {
-	return constants.BytesPerChunk
 }
 
 // Type returns the type of the B8.

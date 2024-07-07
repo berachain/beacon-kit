@@ -85,12 +85,6 @@ func (*U256) Type() schema.SSZType {
 	return schema.U256()
 }
 
-// ItemLength returns the required bytes to represent the root
-// element of the U256.
-func (*U256) ItemLength() uint64 {
-	return constants.BytesPerChunk
-}
-
 // ChunkCount returns the number of chunks required to store the U256.
 func (*U256) ChunkCount() uint64 {
 	return 1

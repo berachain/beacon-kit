@@ -22,7 +22,6 @@ package ssz
 
 import (
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkleizer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
@@ -95,12 +94,6 @@ func (c *Container) ChunkCount() uint64 {
 // Elements returns the elements of the container.
 func (c *Container) Elements() []types.MinimalSSZType {
 	return c.elements
-}
-
-// ItemLength returns the required bytes to represent the root
-// element of the container.
-func (c *Container) ItemLength() uint64 {
-	return constants.BytesPerChunk
 }
 
 /* -------------------------------------------------------------------------- */

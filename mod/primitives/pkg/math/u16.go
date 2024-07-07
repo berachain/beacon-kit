@@ -85,12 +85,6 @@ func (U16) Type() schema.SSZType {
 	return schema.U16()
 }
 
-// ItemLength returns the required bytes to represent the root
-// element of the U16.
-func (U16) ItemLength() uint64 {
-	return constants.U16Size
-}
-
 // ChunkCount returns the number of chunks required to store the uint16.
 func (U16) ChunkCount() uint64 {
 	return 1

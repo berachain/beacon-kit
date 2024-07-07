@@ -120,12 +120,6 @@ func (l *List[T]) Elements() []T {
 	return l.elements
 }
 
-// ItemLength returns the required bytes to represent the root
-// element of the List.
-func (l List[T]) ItemLength() uint64 {
-	return constants.BytesPerChunk
-}
-
 // HashTreeRootWith returns the Merkle root of the List
 // with a given merkleizer.
 func (l *List[T]) HashTreeRootWith(
