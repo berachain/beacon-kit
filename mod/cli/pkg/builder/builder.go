@@ -116,7 +116,7 @@ func (cb *CLIBuilder[T]) Build() (*cmdlib.Root, error) {
 	}
 
 	// apply default root command setup
-	cmdlib.DefaultRootCommandSetup(
+	cb.rootCmdSetup(
 		rootCmd,
 		mm,
 		cb.nodeBuilderFunc,

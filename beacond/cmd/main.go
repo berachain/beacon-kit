@@ -25,6 +25,7 @@ import (
 	"os"
 
 	clibuilder "github.com/berachain/beacon-kit/mod/cli/pkg/builder"
+	"github.com/berachain/beacon-kit/mod/cli/pkg/commands"
 	clicomponents "github.com/berachain/beacon-kit/mod/cli/pkg/components"
 	nodebuilder "github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
 	nodecomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
@@ -82,6 +83,8 @@ func run() error {
 		),
 		// Set the NodeBuilderFunc to the NodeBuilder Build.
 		clibuilder.WithNodeBuilderFunc[types.Node](nb.Build),
+		// Set the Default Config to the Default.
+		clibuilder.WithRootCommandSetup[types.Node](commands.DefaultRootCommandSetup),
 	)
 
 	cmd, err := cb.Build()
