@@ -52,7 +52,8 @@ func (U32) SizeSSZ() int {
 	return constants.U32Size
 }
 
-// ItemLength returns the number of bytes required to represent the uint32.
+// ItemLength returns the required bytes to represent the root
+// element of the U32.
 func (U32) ItemLength() uint64 {
 	return constants.U32Size
 }

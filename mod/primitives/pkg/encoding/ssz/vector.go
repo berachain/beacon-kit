@@ -100,7 +100,8 @@ func (v Vector[T]) Elements() []T {
 	return v
 }
 
-// ItemLength returns the length of the item in the VectorBasic.
+// ItemLength returns the required bytes to represent the root
+// element of the Vector.
 func (v Vector[T]) ItemLength() uint64 {
 	return constants.BytesPerChunk
 }

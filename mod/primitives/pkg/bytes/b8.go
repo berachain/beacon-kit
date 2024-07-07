@@ -91,7 +91,8 @@ func (h B8) IsFixed() bool {
 	return true
 }
 
-// ItemLength returns the length of the item in the B4.
+// ItemLength returns the required bytes to represent the root
+// element of the B8.
 func (h B8) ItemLength() uint64 {
 	return constants.BytesPerChunk
 }

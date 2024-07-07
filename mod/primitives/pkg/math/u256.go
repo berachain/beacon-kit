@@ -84,7 +84,8 @@ func (*U256) Type() types.Type {
 	return types.Basic
 }
 
-// ItemLength returns the number of bytes required to represent the U256.
+// ItemLength returns the required bytes to represent the root
+// element of the U256.
 func (*U256) ItemLength() uint64 {
 	return constants.BytesPerChunk
 }

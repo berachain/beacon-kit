@@ -83,7 +83,8 @@ func (U8) Type() types.Type {
 	return types.Basic
 }
 
-// ItemLength returns the size of the uint8 in bytes.
+// ItemLength returns the required bytes to represent the root
+// element of the U8.
 func (U8) ItemLength() uint64 {
 	return constants.U8Size
 }

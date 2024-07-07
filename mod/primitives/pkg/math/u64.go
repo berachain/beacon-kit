@@ -120,7 +120,8 @@ func (U64) ChunkCount() uint64 {
 	return 1
 }
 
-// ItemLength returns the number of bytes required to represent the uint64.
+// ItemLength returns the required bytes to represent the root
+// element of the U64.
 func (U64) ItemLength() uint64 {
 	return constants.U64Size
 }

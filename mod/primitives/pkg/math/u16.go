@@ -84,7 +84,8 @@ func (U16) Type() types.Type {
 	return types.Basic
 }
 
-// ItemLength returns the number of bytes required to store the uint16.
+// ItemLength returns the required bytes to represent the root
+// element of the 16.
 func (U16) ItemLength() uint64 {
 	return constants.U16Size
 }

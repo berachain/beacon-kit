@@ -83,7 +83,8 @@ func (Byte) Type() types.Type {
 	return types.Basic
 }
 
-// ItemLength returns the number of bytes required to represent the byte.
+// ItemLength returns the required bytes to represent the root
+// element of the Byte.
 func (Byte) ItemLength() uint64 {
 	return constants.ByteSize
 }

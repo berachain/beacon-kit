@@ -76,7 +76,8 @@ func (Bool) Type() types.Type {
 	return types.Basic
 }
 
-// ItemLength returns the number of bytes required to store the bool.
+// ItemLength returns the required bytes to represent the root
+// element of the Bool.
 func (Bool) ItemLength() uint64 {
 	return 1
 }

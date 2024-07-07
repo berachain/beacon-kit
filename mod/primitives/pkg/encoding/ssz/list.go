@@ -114,7 +114,8 @@ func (l *List[T]) Elements() []T {
 	return l.elements
 }
 
-// ItemLength returns the length of the item in the VectorBasic.
+// ItemLength returns the required bytes to represent the root
+// element of the List.
 func (v List[T]) ItemLength() uint64 {
 	return constants.BytesPerChunk
 }

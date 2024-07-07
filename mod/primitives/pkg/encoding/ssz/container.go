@@ -88,7 +88,8 @@ func (c *Container) Elements() []types.MinimalSSZType {
 	return c.elements
 }
 
-// ItemLength returns the length of the container.
+// ItemLength returns the required bytes to represent the root
+// element of the container.
 func (c *Container) ItemLength() uint64 {
 	return constants.BytesPerChunk
 }

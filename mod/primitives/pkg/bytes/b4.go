@@ -96,7 +96,8 @@ func (h B4) Type() types.Type {
 	return types.Composite
 }
 
-// ItemLength returns the length of the item in the B4.
+// ItemLength returns the required bytes to represent the root
+// element of the B4.
 func (h B4) ItemLength() uint64 {
 	return constants.BytesPerChunk
 }
