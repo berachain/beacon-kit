@@ -2,7 +2,7 @@
 pragma solidity ^0.8.25;
 
 /// @title RandaoTester
-/// @dev This contract is used during integration testing of
+/// @dev This contract is used during the integration testing of
 ///      EIP-4399 in BeaconKit.
 ///      DO NOT USE THIS FOR GENERATING RANDOMNESS IN PRODUCTION
 //       FOR ANYTHING IMPORTANT.
