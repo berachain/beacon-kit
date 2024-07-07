@@ -41,8 +41,10 @@ func (p ObjectPath[RootT]) ToGeneralizedIndex(
 	rootObject types.MinimalSSZType,
 ) (tree.GeneralizedIndex[RootT], error) {
 	currentGIndex := tree.GeneralizedIndex[RootT](1)
+	currentObject := rootObject
 	for _, p := range p.Split() {
 		_ = p
+		_ = currentObject
 		// do work in this loop
 	}
 	return currentGIndex, nil
