@@ -24,8 +24,19 @@ type Type uint8
 
 const (
 	Basic Type = iota
-	Composite
+	Elements
+	Container
 )
+
+// IsBasic returns true if the type is a basic type.
+func (t Type) IsBasic() bool {
+	return t == Basic
+}
+
+// IsComposite returns true if the type is a composite type.
+func (t Type) IsComposite() bool {
+	return t == Elements || t == Container
+}
 
 // MinimalSSZType is the smallest interface of an SSZable type.
 type MinimalSSZType interface {

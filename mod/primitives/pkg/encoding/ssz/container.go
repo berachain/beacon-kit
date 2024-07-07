@@ -75,7 +75,7 @@ func (c *Container) N() uint64 {
 
 // Type returns the type of the container.
 func (*Container) Type() types.Type {
-	return types.Composite
+	return types.Container
 }
 
 // ChunkCount returns the number of chunks in the container.
