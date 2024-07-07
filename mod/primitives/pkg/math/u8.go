@@ -25,6 +25,7 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 )
 
@@ -79,8 +80,8 @@ func (U8) IsFixed() bool {
 }
 
 // Type returns the type of the U8.
-func (U8) Type() types.Type {
-	return types.Basic
+func (U8) Type() schema.SSZType {
+	return schema.U8()
 }
 
 // ItemLength returns the required bytes to represent the root

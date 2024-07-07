@@ -5,23 +5,24 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/tree/proof"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_Schema_Paths(t *testing.T) {
 	nestedType := schema.Container(
 		schema.Field("bytes32", schema.Bytes(32)),
-		schema.Field("uint64", schema.UInt64()),
+		schema.Field("uint64", schema.U64()),
 		schema.Field("list_bytes32", schema.List(schema.Bytes(32), 10)),
 		schema.Field("bytes256", schema.Bytes(256)),
 	)
 	root := schema.Container(
 		schema.Field("bytes32", schema.Bytes(32)),
-		schema.Field("uint32", schema.UInt32()),
-		schema.Field("list_uint64", schema.List(schema.UInt64(), 1000)),
+		schema.Field("uint32", schema.U32()),
+		schema.Field("list_uint64", schema.List(schema.U64(), 1000)),
 		schema.Field("list_nested", schema.List(nestedType, 1000)),
 		schema.Field("nested", nestedType),
-		schema.Field("vector_uint128", schema.Vector(schema.UInt128(), 20)),
+		schema.Field("vector_uint128", schema.Vector(schema.U128(), 20)),
 	)
 
 	cases := []struct {
@@ -45,8 +46,8 @@ func Test_Schema_Paths(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(strings.ReplaceAll(tc.path, "/", "."), func(t *testing.T) {
-			objectPath := schema.Path(tc.path)
-			node, err := schema.GetTreeNode(root, objectPath)
+			objectPath := proof.ObjectPath(tc.path)
+			node, err := schema.GetTreeNode(root, objectPath.Split())
 			require.NoError(t, err)
 			require.Equalf(
 				t,

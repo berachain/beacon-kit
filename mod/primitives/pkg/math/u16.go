@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -26,6 +26,7 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 )
 
@@ -80,12 +81,12 @@ func (U16) IsFixed() bool {
 }
 
 // Type returns the type of the U16.
-func (U16) Type() types.Type {
-	return types.Basic
+func (U16) Type() schema.SSZType {
+	return schema.U16()
 }
 
 // ItemLength returns the required bytes to represent the root
-// element of the 16.
+// element of the U16.
 func (U16) ItemLength() uint64 {
 	return constants.U16Size
 }

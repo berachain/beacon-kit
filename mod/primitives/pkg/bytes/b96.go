@@ -24,6 +24,7 @@ package bytes
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 	"github.com/prysmaticlabs/gohashtree"
 )
@@ -92,10 +93,9 @@ func (h B96) IsFixed() bool {
 	return true
 }
 
-// ItemLength returns the required bytes to represent the root
-// element of the B96.
-func (h B96) Type() types.Type {
-	return types.Composite
+// Type returns the SSZ type of B96.
+func (h B96) Type() schema.SSZType {
+	return schema.B96()
 }
 
 // ItemLength returns the length of the item in the B96.

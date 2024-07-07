@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkleizer"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 )
 
@@ -42,6 +43,7 @@ type List[T types.MinimalSSZType] struct {
 	elements []T
 	// limit is the maximum number of elements in the list.
 	limit uint64
+	t     schema.SSZType
 }
 
 // ListFromElements creates a new ListComposite from elements.
@@ -94,8 +96,8 @@ func (l *List[T]) N() uint64 {
 // ChunkCount returns the number of chunks in the List.
 func (l *List[T]) ChunkCount() uint64 {
 	var b T
-	switch b.Type() {
-	case types.Basic:
+	switch t := b.Type().ID(); {
+	case t.IsBasic():
 		//#nosec:G701 // its fine.
 		//nolint:mnd // 31 is okay.
 		return (l.N()*uint64(b.SizeSSZ()) + 31) / constants.BytesPerChunk
@@ -105,8 +107,13 @@ func (l *List[T]) ChunkCount() uint64 {
 }
 
 // Type returns the type of the List.
-func (l *List[T]) Type() types.Type {
-	return types.Composite
+func (l *List[T]) Type() schema.SSZType {
+	var t T
+	// TODO: Fix this is a bad hack.
+	if l == nil {
+		return schema.List(t.Type(), 0)
+	}
+	return schema.List(t.Type(), l.limit)
 }
 
 // Elements returns the elements of the List.
@@ -126,10 +133,10 @@ func (l *List[T]) HashTreeRootWith(
 	merkleizer ListMerkleizer[[32]byte, T],
 ) ([32]byte, error) {
 	var b T
-	switch b.Type() {
-	case types.Basic:
+	switch t := b.Type().ID(); {
+	case t.IsBasic():
 		return merkleizer.MerkleizeListBasic(l.elements, l.ChunkCount())
-	case types.Composite:
+	case t.IsComposite():
 		return merkleizer.MerkleizeListComposite(l.elements, l.ChunkCount())
 	default:
 		return [32]byte{}, errors.Wrapf(ErrUnknownType, "%v", b.Type())

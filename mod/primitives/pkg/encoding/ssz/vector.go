@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkleizer"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 )
 
@@ -71,15 +72,16 @@ func (Vector[T]) IsFixed() bool {
 }
 
 // Type returns the type of the VectorBasic.
-func (Vector[T]) Type() types.Type {
-	return types.Composite
+func (v Vector[T]) Type() schema.SSZType {
+	var t T
+	return schema.Vector(t.Type(), uint64(len(v)))
 }
 
 // ChunkCount returns the number of chunks in the VectorBasic.
 func (v Vector[T]) ChunkCount() uint64 {
 	var b T
-	switch b.Type() {
-	case types.Basic:
+	switch t := b.Type().ID(); {
+	case t.IsBasic():
 		//#nosec:G701 // its fine.
 		//nolint:mnd // 31 is okay.
 		return (v.N()*uint64(b.SizeSSZ()) + 31) / constants.BytesPerChunk
@@ -116,10 +118,10 @@ func (v Vector[T]) HashTreeRootWith(
 	merkleizer VectorMerkleizer[[32]byte, T],
 ) ([32]byte, error) {
 	var b T
-	switch b.Type() {
-	case types.Basic:
+	switch t := b.Type().ID(); {
+	case t.IsBasic():
 		return merkleizer.MerkleizeVectorBasic(v)
-	case types.Composite:
+	case t.IsComposite():
 		return merkleizer.MerkleizeVectorCompositeOrContainer(v)
 	default:
 		return [32]byte{}, errors.Wrapf(ErrUnknownType, "%v", b.Type())

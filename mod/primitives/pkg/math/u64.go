@@ -29,6 +29,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 )
 
@@ -111,8 +112,8 @@ func (U64) IsFixed() bool {
 }
 
 // Type returns the type of the U64.
-func (U64) Type() types.Type {
-	return types.Basic
+func (U64) Type() schema.SSZType {
+	return schema.U64()
 }
 
 // ChunkCount returns the number of chunks required to store the uint64.

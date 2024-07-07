@@ -21,9 +21,12 @@
 package ssz
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkleizer"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 )
 
@@ -36,6 +39,7 @@ var _ types.SSZEnumerable[types.MinimalSSZType] = (*Container)(nil)
 
 type Container struct {
 	elements []types.MinimalSSZType
+	t        schema.SSZType
 }
 
 // ContainerFromElements creates a new Container from elements.
@@ -73,9 +77,17 @@ func (c *Container) N() uint64 {
 	return uint64(len(c.elements))
 }
 
+// WithSchema sets the schema of the container.
+// Temporary Hack.
+func (c *Container) WithSchema(t schema.SSZType) *Container {
+	c.t = t
+	fmt.Println("SETTING SCHEMA")
+	return c
+}
+
 // Type returns the type of the container.
-func (*Container) Type() types.Type {
-	return types.Composite
+func (c *Container) Type() schema.SSZType {
+	return c.t
 }
 
 // ChunkCount returns the number of chunks in the container.
