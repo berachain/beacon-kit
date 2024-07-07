@@ -21,8 +21,6 @@
 package ssz
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkleizer"
@@ -81,7 +79,6 @@ func (c *Container) N() uint64 {
 // Temporary Hack.
 func (c *Container) WithSchema(t schema.SSZType) *Container {
 	c.t = t
-	fmt.Println("SETTING SCHEMA")
 	return c
 }
 
