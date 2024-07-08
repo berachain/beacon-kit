@@ -61,12 +61,12 @@ func (b basic) HashChunkCount() uint64 { return 1 }
 /* -------------------------------------------------------------------------- */
 
 type vector struct {
-	Element SSZType
-	length  uint64
+	elementType SSZType
+	length      uint64
 }
 
-func Vector(element SSZType, length uint64) SSZType {
-	return vector{Element: element, length: length}
+func Vector(elementType SSZType, length uint64) SSZType {
+	return vector{elementType: elementType, length: length}
 }
 
 func Bytes(length uint64) SSZType {
@@ -86,7 +86,7 @@ func (v vector) ItemPosition(p string) (uint64, uint8, uint8, error) {
 	if err != nil {
 		return 0, 0, 0, fmt.Errorf("expected index, got name %s", p)
 	}
-	start := i * v.Element.ItemLength()
+	start := i * v.elementType.ItemLength()
 	//#nosec:G701 // todo remove float usage.
 	return uint64(math.Floor(float64(start) / constants.BytesPerChunk)),
 		uint8(
@@ -96,7 +96,7 @@ func (v vector) ItemPosition(p string) (uint64, uint8, uint8, error) {
 }
 
 func (v vector) HashChunkCount() uint64 {
-	totalBytes := v.Length() * v.Element.ItemLength()
+	totalBytes := v.Length() * v.elementType.ItemLength()
 	chunks := (totalBytes + constants.BytesPerChunk - 1) / constants.BytesPerChunk
 	return chunks
 }
@@ -107,7 +107,7 @@ func (v vector) Length() uint64 {
 }
 
 func (v vector) ElementType(_ string) SSZType {
-	return v.Element
+	return v.elementType
 }
 
 /* -------------------------------------------------------------------------- */
