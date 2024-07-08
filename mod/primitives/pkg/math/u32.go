@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 //
-//nolint:dupl // it's okay to have similar code for different types
+
 package math
 
 import (
@@ -49,6 +49,12 @@ type U32 uint32
 
 // SizeSSZ returns the size of the uint32 in bytes.
 func (U32) SizeSSZ() int {
+	return constants.U32Size
+}
+
+// ItemLength returns the required bytes to represent the root
+// element of the U32.
+func (U32) ItemLength() uint64 {
 	return constants.U32Size
 }
 

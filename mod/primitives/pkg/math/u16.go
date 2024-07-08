@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 //
-//nolint:dupl // it's okay to have similar code for different types
+
 package math
 
 import (
@@ -82,6 +82,12 @@ func (U16) IsFixed() bool {
 // Type returns the type of the U16.
 func (U16) Type() types.Type {
 	return types.Basic
+}
+
+// ItemLength returns the required bytes to represent the root
+// element of the 16.
+func (U16) ItemLength() uint64 {
+	return constants.U16Size
 }
 
 // ChunkCount returns the number of chunks required to store the uint16.

@@ -47,7 +47,7 @@ func ProvideLocalBuilder(
 	in LocalBuilderInput,
 ) *LocalBuilder {
 	return payloadbuilder.New[
-		BeaconState, *ExecutionPayload, *ExecutionPayloadHeader,
+		*BeaconState, *ExecutionPayload, *ExecutionPayloadHeader,
 	](
 		&in.Cfg.PayloadBuilder,
 		in.ChainSpec,

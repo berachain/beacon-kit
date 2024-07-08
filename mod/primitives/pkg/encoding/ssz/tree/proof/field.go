@@ -18,32 +18,27 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package core
+package proof
 
-import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	"github.com/sourcegraph/conc/iter"
-)
+// Field represents a named value of a generic type.
+type Field[T any] struct {
+	// name is the name of the field
+	name string
+	// value is the value of the field
+	value T
+}
 
-// processSyncCommitteeUpdates processes the sync committee updates.
-func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _,
-]) processSyncCommitteeUpdates(
-	st BeaconStateT,
-) (transition.ValidatorUpdates, error) {
-	vals, err := st.GetValidatorsByEffectiveBalance()
-	if err != nil {
-		return nil, err
-	}
+// NewField creates a new field.
+func NewField[T any](name string, value T) *Field[T] {
+	return &Field[T]{name: name, value: value}
+}
 
-	return iter.MapErr(
-		vals,
-		func(val *ValidatorT) (*transition.ValidatorUpdate, error) {
-			v := (*val)
-			return &transition.ValidatorUpdate{
-				Pubkey:           v.GetPubkey(),
-				EffectiveBalance: v.GetEffectiveBalance(),
-			}, nil
-		},
-	)
+// GetName returns the name of the field.
+func (f Field[_]) GetName() string {
+	return f.name
+}
+
+// GetValue returns the value of the field.
+func (f Field[T]) GetValue() T {
+	return f.value
 }
