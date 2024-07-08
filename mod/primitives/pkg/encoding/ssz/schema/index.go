@@ -18,19 +18,19 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package tree
+package schema
 
 import (
+	"math/bits"
 	"sort"
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 type (
 	// GeneralizedIndex is a generalized index.
-	GeneralizedIndex[RootT ~[32]byte] math.U64
+	GeneralizedIndex[RootT ~[32]byte] uint64
 
 	// GeneralizedIndicies is a list of generalized indices.
 	GeneralizedIndicies[RootT ~[32]byte] []GeneralizedIndex[RootT]
@@ -47,7 +47,7 @@ func NewGeneralizedIndex[RootT ~[32]byte](
 
 // Length returns the length of the generalized index.
 func (g GeneralizedIndex[RootT]) Length() uint64 {
-	return uint64(math.U64(g).ILog2Floor())
+	return uint64(ILog2Floor(uint64(g)))
 }
 
 // IndexBit returns the bit at the specified position in a generalized index.
@@ -141,9 +141,9 @@ func (g GeneralizedIndex[RootT]) VerifyMerkleProof(
 func (gs GeneralizedIndicies[RootT]) Concat() GeneralizedIndex[RootT] {
 	o := GeneralizedIndex[RootT](1)
 	for _, i := range gs {
-		floorPower := math.U64(i).PrevPowerOfTwo()
+		floorPower := PrevPowerOfTwo(uint64(i))
 		o = GeneralizedIndex[RootT](
-			math.U64(o)*floorPower + (math.U64(i) - floorPower),
+			uint64(o)*floorPower + (uint64(i) - floorPower),
 		)
 	}
 	return o
@@ -249,4 +249,37 @@ func (gs GeneralizedIndicies[RootT]) VerifyMerkleMultiproof(
 		return false
 	}
 	return calculatedRoot == root
+}
+
+// ILog2Ceil returns the ceiling of the base 2 logarithm of the U64.
+func ILog2Ceil(u uint64) uint8 {
+	// Log2(0) is undefined, should we panic?
+	if u == 0 {
+		return 0
+	}
+	//#nosec:G701 // we handle the case of u == 0 above, so this is safe.
+	return uint8(bits.Len64(uint64(u - 1)))
+}
+
+// ILog2Floor returns the floor of the base 2 logarithm of the U64.
+func ILog2Floor(u uint64) uint8 {
+	// Log2(0) is undefined, should we panic?
+	if u == 0 {
+		return 0
+	}
+	//#nosec:G701 // we handle the case of u == 0 above, so this is safe.
+	return uint8(bits.Len64(uint64(u))) - 1
+}
+
+func PrevPowerOfTwo(u uint64) uint64 {
+	if u == 0 {
+		return 1
+	}
+	u |= u >> 1
+	u |= u >> 2
+	u |= u >> 4
+	u |= u >> 8
+	u |= u >> 16
+	u |= u >> 32
+	return u - (u >> 1)
 }

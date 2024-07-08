@@ -18,14 +18,49 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package proof
+package schema
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 // ObjectPath represents a path to an object in a Merkle tree.
-type ObjectPath string
+type ObjectPath[RootT ~[32]byte] string
 
 // Split returns the path split by "/".
-func (p ObjectPath) Split() []string {
+func (p ObjectPath[_]) Split() []string {
 	return strings.Split(string(p), "/")
+}
+
+// GetGeneralizedIndex converts a path to a generalized index representing its position in the Merkle tree.
+func (p ObjectPath[RootT]) GetGeneralizedIndex(typ SSZType) (GeneralizedIndex[RootT], uint8, error) {
+	gIndex := GeneralizedIndex[RootT](1)
+	offset := uint8(0)
+	for _, part := range p.Split() {
+		if typ.ID().IsBasic() {
+			return 0, 0, fmt.Errorf("cannot descend further from basic type")
+		}
+
+		if part == "__len__" {
+			if !typ.ID().IsEnumerable() {
+				return 0, 0, fmt.Errorf("__len__ is only valid for enumerable types")
+			}
+			gIndex = gIndex.RightChild()
+		} else {
+			pos, off, err := typ.position(part)
+			if err != nil {
+				return 0, 0, err
+			}
+			i := uint64(1)
+			if typ.ID().IsList() {
+				i = 2
+			}
+			gIndex = GeneralizedIndex[RootT](uint64(gIndex)*i*nextPowerOfTwo(typ.HashChunkCount()) + pos)
+			typ = typ.child(part)
+			offset = off
+		}
+	}
+
+	return gIndex, offset, nil
 }

@@ -25,7 +25,6 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/tree/proof"
 	"github.com/stretchr/testify/require"
 )
 
@@ -66,7 +65,7 @@ func Test_Schema_Paths(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(strings.ReplaceAll(tc.path, "/", "."), func(t *testing.T) {
-			objectPath := proof.ObjectPath(tc.path)
+			objectPath := schema.ObjectPath[[32]byte](tc.path)
 			node, err := schema.GetTreeNode(root, objectPath.Split())
 			require.NoError(t, err)
 			require.Equalf(
