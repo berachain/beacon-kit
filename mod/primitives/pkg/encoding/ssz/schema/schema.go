@@ -21,8 +21,6 @@
 package schema
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types/types"
 )
@@ -53,36 +51,9 @@ type Node struct {
 // schema node to begin traversal from with gindex 1.
 //
 //nolint:mnd // binary math
-func GetTreeNode(typ SSZType, path []string) (Node, error) {
-	var (
-		gindex = uint64(1)
-		offset uint8
-	)
-	for _, p := range path {
-		if p == "__len__" {
-			if !typ.ID().IsEnumerable() {
-				return Node{}, fmt.Errorf(
-					"type %T is not a list or vector",
-					typ,
-				)
-			}
-			gindex = 2*gindex + 1
-			offset = 0
-		} else {
-			pos, off, err := typ.position(p)
-			if err != nil {
-				return Node{}, err
-			}
-			i := uint64(1)
-			if typ.ID().IsList() {
-				i = 2
-			}
-			gindex = gindex*i*nextPowerOfTwo(typ.HashChunkCount()) + pos
-			typ = typ.child(p)
-			offset = off
-		}
-	}
-	return Node{SSZType: typ, GIndex: gindex, Offset: offset}, nil
+func GetTreeNode(typ SSZType, path ObjectPath[[32]byte]) (Node, error) {
+	gindex, offset, err := path.GetGeneralizedIndex(typ)
+	return Node{SSZType: typ, GIndex: uint64(gindex), Offset: offset}, err
 }
 
 //nolint:mnd // binary math

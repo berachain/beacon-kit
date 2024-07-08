@@ -33,8 +33,11 @@ func (p ObjectPath[_]) Split() []string {
 	return strings.Split(string(p), "/")
 }
 
-// GetGeneralizedIndex converts a path to a generalized index representing its position in the Merkle tree.
-func (p ObjectPath[RootT]) GetGeneralizedIndex(typ SSZType) (GeneralizedIndex[RootT], uint8, error) {
+// GetGeneralizedIndex converts a path to a generalized index representing its
+// position in the Merkle tree.
+func (p ObjectPath[RootT]) GetGeneralizedIndex(
+	typ SSZType,
+) (GeneralizedIndex[RootT], uint8, error) {
 	gIndex := GeneralizedIndex[RootT](1)
 	offset := uint8(0)
 	for _, part := range p.Split() {
@@ -44,7 +47,9 @@ func (p ObjectPath[RootT]) GetGeneralizedIndex(typ SSZType) (GeneralizedIndex[Ro
 
 		if part == "__len__" {
 			if !typ.ID().IsEnumerable() {
-				return 0, 0, fmt.Errorf("__len__ is only valid for enumerable types")
+				return 0, 0, fmt.Errorf(
+					"__len__ is only valid for enumerable types",
+				)
 			}
 			gIndex = gIndex.RightChild()
 		} else {

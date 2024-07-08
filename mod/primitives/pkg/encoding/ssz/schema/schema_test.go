@@ -66,7 +66,7 @@ func Test_Schema_Paths(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(strings.ReplaceAll(tc.path, "/", "."), func(t *testing.T) {
 			objectPath := schema.ObjectPath[[32]byte](tc.path)
-			node, err := schema.GetTreeNode(root, objectPath.Split())
+			node, err := schema.GetTreeNode(root, objectPath)
 			require.NoError(t, err)
 			require.Equalf(
 				t,
