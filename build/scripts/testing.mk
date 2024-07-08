@@ -119,6 +119,8 @@ start-geth-validator-run:
 	--rpc.allow-unprotected-txs \
 	--miner.gaslimit 100000000 \
 	--syncmode "full" \
+	--history.state 0 \
+	--history.transactions 0 \
 	--nat extip:${INTERNAL_IP}
 
 start-geth-node-run:
