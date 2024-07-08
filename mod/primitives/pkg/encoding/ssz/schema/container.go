@@ -51,18 +51,18 @@ func (c container) ID() types.Type { return types.Container }
 
 func (c container) ItemLength() uint64 { return chunkSize }
 
+func (c container) ItemPosition(p string) (uint64, uint8, uint8, error) {
+	pos, ok := c.FieldIndex[p]
+	if !ok {
+		return 0, 0, 0, fmt.Errorf("field %s not found", p)
+	}
+	return pos, 0, uint8(c.Fields[pos].ItemLength()), nil
+}
+
 func (c container) Length() uint64 { return uint64(len(c.Fields)) }
 
 func (c container) HashChunkCount() uint64 { return uint64(len(c.Fields)) }
 
 func (c container) child(p string) SSZType {
 	return c.Fields[c.FieldIndex[p]]
-}
-
-func (c container) position(p string) (uint64, uint8, error) {
-	pos, ok := c.FieldIndex[p]
-	if !ok {
-		return 0, 0, fmt.Errorf("field %s not found", p)
-	}
-	return pos, 0, nil
 }

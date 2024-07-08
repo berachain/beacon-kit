@@ -258,7 +258,7 @@ func ILog2Ceil(u uint64) uint8 {
 		return 0
 	}
 	//#nosec:G701 // we handle the case of u == 0 above, so this is safe.
-	return uint8(bits.Len64(uint64(u - 1)))
+	return uint8(bits.Len64(u - 1))
 }
 
 // ILog2Floor returns the floor of the base 2 logarithm of the U64.
@@ -268,9 +268,12 @@ func ILog2Floor(u uint64) uint8 {
 		return 0
 	}
 	//#nosec:G701 // we handle the case of u == 0 above, so this is safe.
-	return uint8(bits.Len64(uint64(u))) - 1
+	return uint8(bits.Len64((u))) - 1
 }
 
+// NextPowerOfTwo returns the next power of 2 for the given input.
+//
+//nolint:mnd // todo fix.
 func PrevPowerOfTwo(u uint64) uint64 {
 	if u == 0 {
 		return 1

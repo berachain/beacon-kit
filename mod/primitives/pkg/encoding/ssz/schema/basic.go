@@ -35,6 +35,11 @@ func (b basic) ID() types.Type { return types.Basic }
 // ItemLength returns the size of the basic type in bytes.
 func (b basic) ItemLength() uint64 { return uint64(b) }
 
+// position always returns an error for basic types, as they have no children.
+func (b basic) ItemPosition(_ string) (uint64, uint8, uint8, error) {
+	return 0, 0, 0, errors.New("basic type has no children")
+}
+
 // Chunks returns the number of 32-byte chunks required to represent the basic
 // type.
 func (b basic) HashChunkCount() uint64 { return 1 }

@@ -30,9 +30,8 @@ const chunkSize = constants.BytesPerChunk
 type SSZType interface {
 	ID() types.Type
 	ItemLength() uint64
+	ItemPosition(p string) (uint64, uint8, uint8, error)
 	HashChunkCount() uint64
-
-	position(p string) (uint64, uint8, error)
 	child(p string) SSZType
 }
 
@@ -50,7 +49,7 @@ type Node struct {
 // GetTreeNode locates a node in the SSZ merkle tree by its path and a root
 // schema node to begin traversal from with gindex 1.
 //
-//nolint:mnd // binary math
+
 func GetTreeNode(typ SSZType, path ObjectPath[[32]byte]) (Node, error) {
 	gindex, offset, err := path.GetGeneralizedIndex(typ)
 	return Node{SSZType: typ, GIndex: uint64(gindex), Offset: offset}, err

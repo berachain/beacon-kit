@@ -58,14 +58,14 @@ func (l list) Length() uint64 {
 }
 
 // position returns the chunk index and offset for a given list index.
-func (l list) position(p string) (uint64, uint8, error) {
+func (l list) ItemPosition(p string) (uint64, uint8, uint8, error) {
 	i, err := strconv.ParseUint(p, 10, 64)
 	if err != nil {
-		return 0, 0, fmt.Errorf("expected index, got name %s", p)
+		return 0, 0, 0, fmt.Errorf("expected index, got name %s", p)
 	}
 	start := i * l.elementType.ItemLength()
 	//#nosec:G701 // todo remove float usage.
 	return uint64(math.Floor(float64(start) / chunkSize)),
-		uint8(start % chunkSize),
+		uint8(start % chunkSize), uint8(start%32 + l.ItemLength()),
 		nil
 }

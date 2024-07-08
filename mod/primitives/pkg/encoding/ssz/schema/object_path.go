@@ -21,7 +21,7 @@
 package schema
 
 import (
-	"fmt"
+	"errors"
 	"strings"
 )
 
@@ -42,30 +42,34 @@ func (p ObjectPath[RootT]) GetGeneralizedIndex(
 	offset := uint8(0)
 	for _, part := range p.Split() {
 		if typ.ID().IsBasic() {
-			return 0, 0, fmt.Errorf("cannot descend further from basic type")
+			return 0, 0, errors.New("cannot descend further from basic type")
 		}
-
 		if part == "__len__" {
 			if !typ.ID().IsEnumerable() {
-				return 0, 0, fmt.Errorf(
-					"__len__ is only valid for enumerable types",
-				)
+				return 0, 0, errors.New("__len__ is only valid for enumerable types")
 			}
 			gIndex = gIndex.RightChild()
 		} else {
-			pos, off, err := typ.position(part)
+			pos, start, _, err := typ.ItemPosition(part)
 			if err != nil {
 				return 0, 0, err
 			}
-			i := uint64(1)
-			if typ.ID().IsList() {
-				i = 2
-			}
-			gIndex = GeneralizedIndex[RootT](uint64(gIndex)*i*nextPowerOfTwo(typ.HashChunkCount()) + pos)
+			gIndex = GeneralizedIndex[RootT](
+				uint64(gIndex)*getBaseIndex(typ)*nextPowerOfTwo(typ.HashChunkCount()) + pos,
+			)
 			typ = typ.child(part)
-			offset = off
+			offset = start
 		}
 	}
 
 	return gIndex, offset, nil
+}
+
+// getBaseIndex returns the base index for a given SSZ type.
+// For list types, it returns 2, for all other types it returns 1.
+func getBaseIndex(typ SSZType) uint64 {
+	if typ.ID().IsList() {
+		return 2
+	}
+	return 1
 }
