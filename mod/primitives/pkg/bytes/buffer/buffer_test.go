@@ -30,7 +30,6 @@ import (
 
 type bufferI interface {
 	Get(size int) [][32]byte
-	Reset(size int)
 }
 
 // getBuffer returns a buffer of the given type.
@@ -83,33 +82,6 @@ func TestReusableGet(t *testing.T) {
 
 			result[0] = [32]byte{}
 			result[0][i] = byte(i)
-		}
-	}
-}
-
-func TestReusableReset(t *testing.T) {
-	buffer := getBuffer("reusable")
-
-	// Fill the buffer with some data
-	initialSize := 10
-	data := buffer.Get(initialSize)
-	for i := range data {
-		data[i] = [32]byte{byte(i)}
-	}
-
-	// Reset the buffer
-	buffer.Reset(initialSize)
-
-	// Get the buffer again and check if it has been reset
-	resetData := buffer.Get(initialSize)
-	for i := range resetData {
-		for j := range resetData[i] {
-			if resetData[i][j] != 0 {
-				t.Errorf(
-					"Expected resetData[%d][%d] to be 0, got %d",
-					i, j, resetData[i][j],
-				)
-			}
 		}
 	}
 }

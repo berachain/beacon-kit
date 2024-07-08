@@ -47,13 +47,6 @@ func (b *ReusableBuffer[RootT]) Get(size int) []RootT {
 	return b.internal[:size]
 }
 
-// Reset resets the internal buffer to its initial state.
-func (b *ReusableBuffer[RootT]) Reset(size int) {
-	for i := range size {
-		b.internal[i] = RootT{}
-	}
-}
-
 // grow resizes the internal buffer by the requested delta.
 func (b *ReusableBuffer[RootT]) grow(delta int) {
 	b.internal = append(b.internal, make([]RootT, delta)...)
@@ -74,6 +67,3 @@ func NewSingleuseBuffer[RootT ~[32]byte]() *SingleUseBuffer[RootT] {
 func (b *SingleUseBuffer[RootT]) Get(size int) []RootT {
 	return make([]RootT, size)
 }
-
-// Reset is a no-op for this buffer.
-func (b *SingleUseBuffer[RootT]) Reset(size int) {}

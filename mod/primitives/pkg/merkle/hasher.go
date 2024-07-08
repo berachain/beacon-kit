@@ -111,13 +111,14 @@ func (rh *RootHasher[RootT]) NewRootWithDepth(
 			leaves = append(leaves, zero.Hashes[i])
 		}
 
-		output := rh.bytesBuffer.Get((layerLen + 1) / two)
+		outputLen := (layerLen + 1) / two
+		output := rh.bytesBuffer.Get(outputLen)
 		if err = rh.rootHashFn(output, leaves); err != nil {
 			return zero.Hashes[limitDepth], err
 		}
-		newLeaves := make([]RootT, (layerLen+1)/two)
-		copy(newLeaves, output)
-		leaves = newLeaves
+
+		leaves = leaves[:outputLen]
+		copy(leaves, output)
 	}
 
 	// If something went wrong, return the zero hash of limitDepth.
