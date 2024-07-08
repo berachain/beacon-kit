@@ -86,7 +86,9 @@ func (v vector) ItemPosition(p string) (uint64, uint8, uint8, error) {
 		return 0, 0, 0, fmt.Errorf("expected index, got name %s", p)
 	}
 	start := i * v.elementType.ItemLength()
-	return start / 32, uint8(start % 32), uint8(start%32 + v.ItemLength()), nil
+	return start / constants.BytesPerChunk,
+		uint8(start % constants.BytesPerChunk),
+		uint8(start%constants.BytesPerChunk + v.ItemLength()), nil
 }
 
 func (v vector) HashChunkCount() uint64 {
@@ -144,7 +146,9 @@ func (l list) ItemPosition(p string) (uint64, uint8, uint8, error) {
 		return 0, 0, 0, fmt.Errorf("expected index, got name %s", p)
 	}
 	start := i * l.elementType.ItemLength()
-	return start / 32, uint8(start % 32), uint8(start%32 + l.ItemLength()), nil
+	return start / constants.BytesPerChunk,
+		uint8(start % constants.BytesPerChunk),
+		uint8(start%constants.BytesPerChunk + l.ItemLength()), nil
 }
 
 /* -------------------------------------------------------------------------- */

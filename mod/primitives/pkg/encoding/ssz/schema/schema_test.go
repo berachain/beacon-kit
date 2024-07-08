@@ -109,9 +109,21 @@ func TestGetTreeNodeEdgeCases(t *testing.T) {
 		expectError bool
 	}{
 		{name: "Invalid field", path: "nonexistent", expectError: true},
-		{name: "Invalid nested field", path: "nested/nonexistent", expectError: true},
-		{name: "Too deep nesting", path: "nested/uint64/extra", expectError: true},
-		{name: "Valid deep nesting", path: "list_nested/5/bytes256/31", expectError: false},
+		{
+			name:        "Invalid nested field",
+			path:        "nested/nonexistent",
+			expectError: true,
+		},
+		{
+			name:        "Too deep nesting",
+			path:        "nested/uint64/extra",
+			expectError: true,
+		},
+		{
+			name:        "Valid deep nesting",
+			path:        "list_nested/5/bytes256/31",
+			expectError: false,
+		},
 		{name: "Empty path", path: "", expectError: true},
 	}
 
