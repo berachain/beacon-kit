@@ -76,14 +76,16 @@ func TestWithdrawalUnmarshalSSZ(t *testing.T) {
 			input: []byte{
 				1, 0, 0, 0, 0, 0, 0, 0, // Index: 1
 				2, 0, 0, 0, 0, 0, 0, 0, // Validator: 2
-				1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, // Address
+				1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+				12, 13, 14, 15, 16, 17, 18, 19, 20, // Address
 				100, 0, 0, 0, 0, 0, 0, 0, // Amount: 100
 			},
 			want: &engineprimitives.Withdrawal{
 				Index:     math.U64(1),
 				Validator: math.ValidatorIndex(2),
-				Address:   [20]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20},
-				Amount:    math.Gwei(100),
+				Address: [20]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+					11, 12, 13, 14, 15, 16, 17, 18, 19, 20},
+				Amount: math.Gwei(100),
 			},
 			wantErr: false,
 		},
@@ -104,14 +106,16 @@ func TestWithdrawalUnmarshalSSZ(t *testing.T) {
 			input: []byte{
 				255, 255, 255, 255, 255, 255, 255, 255, // Index: max uint64
 				255, 255, 255, 255, 255, 255, 255, 255, // Validator: max uint64
-				255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, // Address
+				255, 255, 255, 255, 255, 255, 255, 255, 255,
+				255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, // Address
 				255, 255, 255, 255, 255, 255, 255, 255, // Amount: max uint64
 			},
 			want: &engineprimitives.Withdrawal{
 				Index:     math.U64(^uint64(0)),
 				Validator: math.ValidatorIndex(^uint64(0)),
-				Address:   [20]byte{255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255},
-				Amount:    math.Gwei(^uint64(0)),
+				Address: [20]byte{255, 255, 255, 255, 255, 255, 255,
+					255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255},
+				Amount: math.Gwei(^uint64(0)),
 			},
 			wantErr: false,
 		},
