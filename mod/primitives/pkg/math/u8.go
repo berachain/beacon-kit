@@ -83,6 +83,12 @@ func (U8) Type() types.Type {
 	return types.Basic
 }
 
+// ItemLength returns the required bytes to represent the root
+// element of the U8.
+func (U8) ItemLength() uint64 {
+	return constants.U8Size
+}
+
 // ChunkCount returns the number of chunks required to store the uint8.
 func (U8) ChunkCount() uint64 {
 	return 1
