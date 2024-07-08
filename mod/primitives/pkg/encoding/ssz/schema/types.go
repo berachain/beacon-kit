@@ -87,7 +87,9 @@ func (v vector) ItemPosition(p string) (uint64, uint8, uint8, error) {
 	}
 	start := i * v.elementType.ItemLength()
 	return start / constants.BytesPerChunk,
+		//#nosec:G701 // can't overflow.
 		uint8(start % constants.BytesPerChunk),
+		//#nosec:G701 // can't overflow.
 		uint8(start%constants.BytesPerChunk + v.ItemLength()), nil
 }
 
@@ -147,7 +149,9 @@ func (l list) ItemPosition(p string) (uint64, uint8, uint8, error) {
 	}
 	start := i * l.elementType.ItemLength()
 	return start / constants.BytesPerChunk,
+		//#nosec:G701 // can't overflow.
 		uint8(start % constants.BytesPerChunk),
+		//#nosec:G701 // can't overflow.
 		uint8(start%constants.BytesPerChunk + l.ItemLength()), nil
 }
 
