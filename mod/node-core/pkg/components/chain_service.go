@@ -45,7 +45,7 @@ type ChainServiceInput struct {
 	Logger                log.Logger
 	Signer                crypto.BLSSigner
 	StateProcessor        StateProcessor
-	StorageBackend        StorageBackend
+	StorageBackend        *StorageBackend
 	TelemetrySink         *metrics.TelemetrySink
 	ValidatorUpdateBroker *ValidatorUpdateBroker
 }
@@ -59,7 +59,7 @@ func ProvideChainService(
 		*BeaconBlock,
 		*BeaconBlockBody,
 		*BeaconBlockHeader,
-		BeaconState,
+		*BeaconState,
 		*BlobSidecars,
 		*Deposit,
 		*ExecutionPayload,

@@ -23,7 +23,6 @@ package merkle_test
 import (
 	"fmt"
 	"math/rand"
-	"runtime"
 	"testing"
 	"time"
 
@@ -211,7 +210,6 @@ func Test_GoHashTreeHashConformance(t *testing.T) {
 			requireGoHashTreeEquivalence(
 				t,
 				inputList,
-				runtime.GOMAXPROCS(0)-1,
 				merkle.MinParallelizationSize,
 				tc.wantErr,
 			)
@@ -219,32 +217,30 @@ func Test_GoHashTreeHashConformance(t *testing.T) {
 	}
 }
 
-func TestBuildParentTreeRootsWithNRoutines_DivisionByZero(t *testing.T) {
-	// Attempt to call BuildParentTreeRootsWithNRoutines with n set to 0
-	// to test handling of division by zero.
-	inputList := make([][32]byte, 10) // Arbitrary size larger than 0
-	output := make([][32]byte, 8)     // Arbitrary size smaller than inputList
-	err := merkle.BuildParentTreeRootsWithNRoutines(
-		output,
-		inputList,
-		0,
-		merkle.MinParallelizationSize,
-	)
-	require.NoError(
-		t,
-		err,
-
-		"BuildParentTreeRootsWithNRoutines should handle n=0 without error",
-	)
-}
+// TODO: Re-enable once N routines is parameterized.
+// func TestBuildParentTreeRootsWithNRoutines_DivisionByZero(t *testing.T) {
+// 	// Attempt to call BuildParentTreeRootsWithNRoutines with n set to 0
+// 	// to test handling of division by zero.
+// 	inputList := make([][32]byte, 10) // Arbitrary size larger than 0
+// 	output := make([][32]byte, 8)     // Arbitrary size smaller than inputList
+// 	err := merkle.BuildParentTreeRootsWithNRoutines(
+// 		output,
+// 		inputList,
+// 		merkle.MinParallelizationSize,
+// 	)
+// 	require.NoError(
+// 		t,
+// 		err,
+// 		"BuildParentTreeRootsWithNRoutines should handle n=0 without error",
+// 	)
+// }
 
 // requireGoHashTreeEquivalence is a helper function to ensure that the output
 // of merkle.BuildParentTreeRootsWithNRoutines is equivalent to the output of
 // gohashtree.Hash.
 func requireGoHashTreeEquivalence(
 	t *testing.T,
-	inputList [][32]byte, numRoutines int, minParallelizationSize int,
-	expectError bool,
+	inputList [][32]byte, minParallelizationSize int, expectError bool,
 ) {
 	t.Helper()
 
@@ -256,11 +252,10 @@ func requireGoHashTreeEquivalence(
 	output := make([][32]byte, len(inputListCopy)/2)
 	var err1, err2 error
 
-	// Run merkle.BuildParentTreeRootsWithNRoutines
+	// Run parallel hasher.
 	err1 = merkle.BuildParentTreeRootsWithNRoutines(
 		output,
 		inputListCopy,
-		numRoutines,
 		minParallelizationSize,
 	)
 
@@ -432,7 +427,7 @@ func TestNewRootWithMaxLeaves(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			hasher := crypto.NewHasher[[32]byte](sha256.Hash)
-			rootHasher := merkle.NewRootHasher[[32]byte](
+			rootHasher := merkle.NewRootHasher(
 				hasher, merkle.BuildParentTreeRoots,
 			)
 			root, err := rootHasher.NewRootWithMaxLeaves(tt.leaves,

@@ -31,14 +31,20 @@ import (
 // BeaconState is the interface for the beacon state. It
 // is a combination of the read-only and write-only beacon state types.
 type BeaconState[
+	T any,
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-	Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-	ValidatorT, WithdrawalT any,
+	Eth1DataT,
+	ExecutionPayloadHeaderT,
+	ForkT,
+	KVStoreT,
+	ValidatorT,
+	WithdrawalT any,
 ] interface {
-	Copy() BeaconState[
-		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-		ValidatorT, WithdrawalT,
-	]
+	NewFromDB(
+		bdb KVStoreT,
+		cs common.ChainSpec,
+	) T
+	Copy() T
 	Save()
 	Context() context.Context
 	HashTreeRoot() ([32]byte, error)
@@ -78,23 +84,6 @@ type ReadOnlyBeaconState[
 	ValidatorIndexByCometBFTAddress(
 		cometBFTAddress []byte,
 	) (math.ValidatorIndex, error)
-}
-
-// BeaconBlockHeader is the interface for a beacon block header.
-type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
-	New(
-		slot math.Slot,
-		proposerIndex math.ValidatorIndex,
-		parentBlockRoot common.Root,
-		stateRoot common.Root,
-		bodyRoot common.Root,
-	) BeaconBlockHeaderT
-	HashTreeRoot() ([32]byte, error)
-	GetSlot() math.Slot
-	GetProposerIndex() math.ValidatorIndex
-	GetParentBlockRoot() common.Root
-	GetStateRoot() common.Root
-	SetStateRoot(common.Root)
 }
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
@@ -152,6 +141,7 @@ type WriteOnlyValidators[ValidatorT any] interface {
 	) error
 
 	AddValidator(ValidatorT) error
+	AddValidatorBartio(ValidatorT) error
 }
 
 // ReadOnlyValidators has read access to validator methods.

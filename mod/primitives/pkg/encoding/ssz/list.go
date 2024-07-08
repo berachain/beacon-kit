@@ -24,9 +24,9 @@ import (
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkleizer"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -34,7 +34,7 @@ import (
 /* -------------------------------------------------------------------------- */
 
 // Vector conforms to the SSZEenumerable interface.
-var _ types.SSZEnumerable[U64] = (*List[U64])(nil)
+var _ types.SSZEnumerable[Byte] = (*List[Byte])(nil)
 
 // List is a list of basic types.
 type List[T types.MinimalSSZType] struct {
@@ -112,6 +112,12 @@ func (l *List[T]) Type() types.Type {
 // Elements returns the elements of the List.
 func (l *List[T]) Elements() []T {
 	return l.elements
+}
+
+// ItemLength returns the required bytes to represent the root
+// element of the List.
+func (l List[T]) ItemLength() uint64 {
+	return constants.BytesPerChunk
 }
 
 // HashTreeRootWith returns the Merkle root of the List

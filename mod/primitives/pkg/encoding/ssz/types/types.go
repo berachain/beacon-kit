@@ -35,6 +35,8 @@ type MinimalSSZType interface {
 	Type() Type
 	// SizeSSZ returns the size of the type in bytes.
 	SizeSSZ() int
+	// ItemLength returns the number of bytes required to represent the type.
+	ItemLength() uint64
 
 	// TODO: Do we want these off the minimal?
 	//

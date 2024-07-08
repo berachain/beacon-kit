@@ -24,39 +24,9 @@ import (
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
 )
-
-// StorageBackendInput is the input for the ProvideStorageBackend function.
-type StorageBackendInput struct {
-	depinject.In
-	AvailabilityStore *AvailabilityStore
-	ChainSpec         common.ChainSpec
-	DepositStore      *DepositStore
-	KVStore           *KVStore
-}
-
-// ProvideStorageBackend is the depinject provider that returns a beacon storage
-// backend.
-func ProvideStorageBackend(
-	in StorageBackendInput,
-) StorageBackend {
-	return storage.NewBackend[
-		*AvailabilityStore,
-		*BeaconBlockBody,
-		BeaconState,
-		*BeaconStateMarshallable,
-		*DepositStore,
-	](
-		in.ChainSpec,
-		in.AvailabilityStore,
-		in.KVStore,
-		in.DepositStore,
-	)
-}
 
 // KVStoreInput is the input for the ProvideKVStore function.
 type KVStoreInput struct {
