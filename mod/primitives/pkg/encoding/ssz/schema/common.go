@@ -34,36 +34,26 @@ const (
 )
 
 // Basic SSZ types.
-const (
-	boolType = basic(constants.BoolSize)
-	u8Type   = basic(constants.U8Size)
-	u16Type  = basic(constants.U16Size)
-	u32Type  = basic(constants.U32Size)
-	u64Type  = basic(constants.U64Size)
-	u128Type = basic(constants.U128Size)
-	u256Type = basic(constants.U256Size)
-)
-
 // Bool returns an SSZType representing a boolean.
-func Bool() SSZType { return boolType }
+func Bool() SSZType { return basic(constants.BoolSize) }
 
 // U8 returns an SSZType representing an 8-bit unsigned integer.
-func U8() SSZType { return u8Type }
+func U8() SSZType { return basic(constants.U8Size) }
 
 // U16 returns an SSZType representing a 16-bit unsigned integer.
-func U16() SSZType { return u16Type }
+func U16() SSZType { return basic(constants.U16Size) }
 
 // U32 returns an SSZType representing a 32-bit unsigned integer.
-func U32() SSZType { return u32Type }
+func U32() SSZType { return basic(constants.U32Size) }
 
 // U64 returns an SSZType representing a 64-bit unsigned integer.
-func U64() SSZType { return u64Type }
+func U64() SSZType { return basic(constants.U64Size) }
 
 // U128 returns an SSZType representing a 128-bit unsigned integer.
-func U128() SSZType { return u128Type }
+func U128() SSZType { return basic(constants.U128Size) }
 
 // U256 returns an SSZType representing a 256-bit unsigned integer.
-func U256() SSZType { return u256Type }
+func U256() SSZType { return basic(constants.U256Size) }
 
 // B4 creates a Vector of 4 bytes (32 bits).
 func B4() SSZType { return Vector(U8(), B4Size) }
