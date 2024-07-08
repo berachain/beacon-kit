@@ -75,6 +75,7 @@ func (p ObjectPath[RootT]) GetGeneralizedIndex(
 		}
 
 		if part == "__len__" {
+			typ = U64()
 			if !typ.ID().IsList() {
 				return 0, 0, errors.New("__len__ is only valid for List types")
 			}
