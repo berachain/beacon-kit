@@ -89,7 +89,8 @@ func (p ObjectPath[RootT]) GetGeneralizedIndex(
 				return 0, 0, err
 			}
 
-			gIndex = gIndex*getBaseIndex(typ)*pow.NextPowerOfTwo(typ.HashChunkCount()) + pos
+			gIndex = gIndex*getBaseIndex(typ)*
+				pow.NextPowerOfTwo(typ.HashChunkCount()) + pos
 			typ = typ.ElementType(part)
 			offset = start
 		}

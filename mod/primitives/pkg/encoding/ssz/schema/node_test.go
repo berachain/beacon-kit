@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -66,28 +66,28 @@ func Test_Schema_Paths(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(strings.ReplaceAll(tc.path, "/", "."), func(t *testing.T) {
 			objectPath := schema.ObjectPath[[32]byte](tc.path)
-			node, err := schema.GetTreeNode(root, objectPath)
+			node, err := schema.NewTreeNode(root, objectPath)
 			require.NoError(t, err)
 			require.Equalf(
 				t,
 				tc.gindex,
-				node.GIndex,
+				node.GIndex().Unwrap(),
 				"expected %d, got %d",
 				tc.gindex,
-				node.GIndex)
+				node.GIndex().Unwrap())
 			require.Equal(
 				t,
-				node.Offset,
+				node.Offset(),
 				tc.offset,
 				"expected %d, got %d",
 				tc.offset,
-				node.Offset,
+				node.Offset(),
 			)
 		})
 	}
 }
 
-func TestGetTreeNodeEdgeCases(t *testing.T) {
+func TestNewTreeNodeEdgeCases(t *testing.T) {
 	nestedType := schema.Container(
 		schema.Field("uint64", schema.U64()),
 		schema.Field("bytes32", schema.B32()),
@@ -130,7 +130,7 @@ func TestGetTreeNodeEdgeCases(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			objectPath := schema.ObjectPath[[32]byte](tc.path)
-			_, err := schema.GetTreeNode(root, objectPath)
+			_, err := schema.NewTreeNode(root, objectPath)
 			if tc.expectError {
 				require.Error(t, err)
 			} else {

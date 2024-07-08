@@ -30,6 +30,23 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types/types"
 )
 
+// SSZType represents an interface for Simple Serialize (SSZ) types.
+type SSZType interface {
+	// ID returns the type identifier for the SSZ type.
+	ID() types.Type
+	// ItemLength returns the length of an item in bytes for the SSZ type.
+	ItemLength() uint64
+	// ItemPosition calculates the position of an item within the SSZ type.
+	// It returns the generalized index, start offset, end offset, and any error
+	// encountered.
+	ItemPosition(p string) (uint64, uint8, uint8, error)
+	// ElementType returns the SSZ type of the element at the given path.
+	ElementType(p string) SSZType
+	// HashChunkCount returns the number of 32-byte chunks required to represent
+	// the SSZ type in a Merkle tree.
+	HashChunkCount() uint64
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                    Basic                                   */
 /* -------------------------------------------------------------------------- */

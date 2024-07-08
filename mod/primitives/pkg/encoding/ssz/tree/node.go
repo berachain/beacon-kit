@@ -18,41 +18,23 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package pow
+package tree
 
-// NextPowerOfTwo returns the next power of 2 for the given input.
-//
-//nolint:mnd // todo fix.
-func PrevPowerOfTwo[U64T ~uint64](u U64T) U64T {
-	if u == 0 {
-		return 1
-	}
-	u |= u >> 1
-	u |= u >> 2
-	u |= u >> 4
-	u |= u >> 8
-	u |= u >> 16
-	u |= u >> 32
-	return u - (u >> 1)
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
+
+type Node[T any] struct {
+	SSZType T
+
+	GIndex uint64
+	Offset uint8
 }
 
-// NextPowerOfTwo returns the next power of 2 for the given input.
-//
-//nolint:mnd // todo fix.
-func NextPowerOfTwo[U64T ~uint64](u U64T) U64T {
-	if u == 0 {
-		return 1
-	}
-	if u > 1<<63 {
-		panic("Next power of 2 is 1 << 64.")
-	}
-	u--
-	u |= u >> 1
-	u |= u >> 2
-	u |= u >> 4
-	u |= u >> 8
-	u |= u >> 16
-	u |= u >> 32
-	u++
-	return u
+// NewTreeNode locates a node in the SSZ merkle tree by its path and a root
+// schema node to begin traversal from with gindex 1.
+func NewTreeNode[T schema.SSZType](
+	typ T,
+	path schema.ObjectPath[[32]byte],
+) (Node[T], error) {
+	gindex, offset, err := path.GetGeneralizedIndex(typ)
+	return Node[T]{SSZType: typ, GIndex: uint64(gindex), Offset: offset}, err
 }

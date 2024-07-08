@@ -46,6 +46,11 @@ func NewGeneralizedIndex[RootT ~[32]byte](
 	return GeneralizedIndex[RootT]((1 << depth) + index)
 }
 
+// Unwrap returns the underlying uint64 value of the GeneralizedIndex.
+func (g GeneralizedIndex[RootT]) Unwrap() uint64 {
+	return uint64(g)
+}
+
 // Length returns the length of the generalized index.
 func (g GeneralizedIndex[RootT]) Length() uint64 {
 	return uint64(log.ILog2Floor(uint64(g)))

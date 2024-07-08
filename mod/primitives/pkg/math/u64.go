@@ -182,7 +182,7 @@ func (u U64) UnwrapPtr() *uint64 {
 //
 // https://github.com/ethereum/consensus-specs/blob/dev/ssz/merkle-proofs.md#helper-functions
 //
-//nolint:mnd,lll // powers of 2.
+//nolint:lll // powers of 2.
 func (u U64) NextPowerOfTwo() U64 {
 	return pow.NextPowerOfTwo(u)
 }
@@ -195,7 +195,7 @@ func (u U64) NextPowerOfTwo() U64 {
 //
 // https://github.com/ethereum/consensus-specs/blob/dev/ssz/merkle-proofs.md#helper-functions
 //
-//nolint:mnd,lll // From Ethereum 2.0 spec.
+//nolint:lll // From Ethereum 2.0 spec.
 func (u U64) PrevPowerOfTwo() U64 {
 	return pow.PrevPowerOfTwo(u)
 }
