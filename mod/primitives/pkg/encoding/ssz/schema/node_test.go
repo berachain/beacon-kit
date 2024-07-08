@@ -30,13 +30,13 @@ import (
 
 func Test_Schema_Paths(t *testing.T) {
 	nestedType := schema.Container(
-		schema.Field("bytes32", schema.Bytes(32)),
+		schema.Field("bytes32", schema.ByteVector(32)),
 		schema.Field("uint64", schema.U64()),
-		schema.Field("list_bytes32", schema.List(schema.Bytes(32), 10)),
-		schema.Field("bytes256", schema.Bytes(256)),
+		schema.Field("list_bytes32", schema.List(schema.ByteVector(32), 10)),
+		schema.Field("bytes256", schema.ByteVector(256)),
 	)
 	root := schema.Container(
-		schema.Field("bytes32", schema.Bytes(32)),
+		schema.Field("bytes32", schema.ByteVector(32)),
 		schema.Field("uint32", schema.U32()),
 		schema.Field("list_uint64", schema.List(schema.U64(), 1000)),
 		schema.Field("list_nested", schema.List(nestedType, 1000)),

@@ -85,12 +85,8 @@ func Vector(elementType SSZType, length uint64) SSZType {
 	return vector{elementType: elementType, length: length}
 }
 
-func Bytes(length uint64) SSZType {
+func ByteVector(length uint64) SSZType {
 	return Vector(U8(), length)
-}
-
-func ByteList(length uint64) SSZType {
-	return List(U8(), length)
 }
 
 func (v vector) ID() types.Type { return types.Vector }
@@ -137,6 +133,10 @@ type list struct {
 
 func List(elementType SSZType, limit uint64) SSZType {
 	return list{elementType: elementType, limit: limit}
+}
+
+func ByteList(limit uint64) SSZType {
+	return List(U8(), limit)
 }
 
 func (l list) ID() types.Type { return types.List }

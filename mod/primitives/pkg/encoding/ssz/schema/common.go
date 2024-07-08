@@ -23,14 +23,15 @@ package schema
 import "github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 
 const (
-	B4Size  = 4
-	B8Size  = 8
-	B16Size = 16
-	B20Size = 20
-	B32Size = 32
-	B48Size = 48
-	B64Size = 64
-	B96Size = 96
+	B4Size   = 4
+	B8Size   = 8
+	B16Size  = 16
+	B20Size  = 20
+	B32Size  = 32
+	B48Size  = 48
+	B64Size  = 64
+	B96Size  = 96
+	B256Size = 256
 )
 
 // Basic SSZ types.
@@ -55,26 +56,29 @@ func U128() SSZType { return basic(constants.U128Size) }
 // U256 returns an SSZType representing a 256-bit unsigned integer.
 func U256() SSZType { return basic(constants.U256Size) }
 
-// B4 creates a Vector of 4 bytes (32 bits).
-func B4() SSZType { return Vector(U8(), B4Size) }
+// B4 creates a ByteVector of 4 bytes (32 bits).
+func B4() SSZType { return ByteVector(B4Size) }
 
-// B8 creates a Vector of 8 bytes (64 bits).
-func B8() SSZType { return Vector(U8(), B8Size) }
+// B8 creates a ByteVector of 8 bytes (64 bits).
+func B8() SSZType { return ByteVector(B8Size) }
 
-// B16 creates a Vector of 16 bytes (128 bits).
-func B16() SSZType { return Vector(U8(), B16Size) }
+// B16 creates a ByteVector of 16 bytes (128 bits).
+func B16() SSZType { return ByteVector(B16Size) }
 
-// B20 creates a Vector of 20 bytes (160 bits).
-func B20() SSZType { return Vector(U8(), B20Size) }
+// B20 creates a ByteVector of 20 bytes (160 bits).
+func B20() SSZType { return ByteVector(B20Size) }
 
-// B32 creates a Vector of 32 bytes (256 bits).
-func B32() SSZType { return Vector(U8(), B32Size) }
+// B32 creates a ByteVector of 32 bytes (256 bits).
+func B32() SSZType { return ByteVector(B32Size) }
 
-// B48 creates a Vector of 48 bytes (384 bits).
-func B48() SSZType { return Vector(U8(), B48Size) }
+// B48 creates a ByteVector of 48 bytes (384 bits).
+func B48() SSZType { return ByteVector(B48Size) }
 
-// B64 creates a Vector of 64 bytes (512 bits).
-func B64() SSZType { return Vector(U8(), B64Size) }
+// B64 creates a ByteVector of 64 bytes (512 bits).
+func B64() SSZType { return ByteVector(B64Size) }
 
-// B96 creates a Vector of 96 bytes (768 bits).
-func B96() SSZType { return Vector(U8(), B96Size) }
+// B96 creates a ByteVector of 96 bytes (768 bits).
+func B96() SSZType { return ByteVector(B96Size) }
+
+// B256 creates a Vector of 256 bytes (2048 bits).
+func B256() SSZType { return Vector(U8(), B256Size) }
