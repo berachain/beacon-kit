@@ -40,11 +40,18 @@ func NewReusableBuffer[RootT ~[32]byte]() *ReusableBuffer[RootT] {
 
 // Get returns a slice of the internal buffer of roots of the given size.
 func (b *ReusableBuffer[RootT]) Get(size int) []RootT {
-	if size > len(b.internal) {
-		b.grow(size - len(b.internal))
+	if delta := size - len(b.internal); delta > 0 {
+		b.grow(delta)
 	}
 
 	return b.internal[:size]
+}
+
+// Reset resets the internal buffer to its initial state.
+func (b *ReusableBuffer[RootT]) Reset(size int) {
+	for i := range size {
+		b.internal[i] = RootT{}
+	}
 }
 
 // grow resizes the internal buffer by the requested delta.
@@ -67,3 +74,6 @@ func NewSingleuseBuffer[RootT ~[32]byte]() *SingleUseBuffer[RootT] {
 func (b *SingleUseBuffer[RootT]) Get(size int) []RootT {
 	return make([]RootT, size)
 }
+
+// Reset is a no-op for this buffer.
+func (b *SingleUseBuffer[RootT]) Reset(size int) {}
