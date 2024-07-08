@@ -251,6 +251,8 @@ func (gs GeneralizedIndicies[RootT]) VerifyMerkleMultiproof(
 	return calculatedRoot == root
 }
 
+// TODO: figure out how to get rid of these math functions.
+
 // ILog2Ceil returns the ceiling of the base 2 logarithm of the U64.
 func ILog2Ceil(u uint64) uint8 {
 	// Log2(0) is undefined, should we panic?
@@ -285,4 +287,18 @@ func PrevPowerOfTwo(u uint64) uint64 {
 	u |= u >> 16
 	u |= u >> 32
 	return u - (u >> 1)
+}
+
+// NextPowerOfTwo returns the next power of 2 for the given input.
+//
+//nolint:mnd // todo fix.
+func NextPowerOfTwo(v uint64) uint64 {
+	v--
+	v |= v >> 1
+	v |= v >> 2
+	v |= v >> 4
+	v |= v >> 8
+	v |= v >> 16
+	v++
+	return v
 }

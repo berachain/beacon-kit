@@ -54,15 +54,3 @@ func GetTreeNode(typ SSZType, path ObjectPath[[32]byte]) (Node, error) {
 	gindex, offset, err := path.GetGeneralizedIndex(typ)
 	return Node{SSZType: typ, GIndex: uint64(gindex), Offset: offset}, err
 }
-
-//nolint:mnd // binary math
-func nextPowerOfTwo(v uint64) uint64 {
-	v--
-	v |= v >> 1
-	v |= v >> 2
-	v |= v >> 4
-	v |= v >> 8
-	v |= v >> 16
-	v++
-	return v
-}
