@@ -29,8 +29,6 @@ const initialBufferSize = 64
 // NOTE: this buffer is currently only safe for use in a single thread.
 type ReusableBuffer[RootT ~[32]byte] struct {
 	internal []RootT
-
-	// TODO: add a mutex for multi-thread safety.
 }
 
 // NewReusableBuffer creates a new re-usable buffer for merkle tree hashing.
