@@ -34,11 +34,10 @@ type Node[RootT ~[32]byte] struct {
 // NewTreeNode locates a node in the SSZ merkle tree by its path and a root
 // schema node to begin traversal from with gindex 1.
 func NewTreeNode[RootT ~[32]byte](
-	typ SSZType, path ObjectPath[RootT],
+	root SSZType, path ObjectPath[RootT],
 ) (Node[RootT], error) {
-	gindex, offset, err := path.GetGeneralizedIndex(typ)
-	// TODO: Should typ here be what is outputted from traversing the path?
-	return Node[RootT]{SSZTyp: typ, gIndex: gindex, offset: offset}, err
+	found, gindex, offset, err := path.GetGeneralizedIndex(root)
+	return Node[RootT]{SSZType: found, gIndex: gindex, offset: offset}, err
 }
 
 // GeIndex returns the generalized index of the node in the Merkle tree.
