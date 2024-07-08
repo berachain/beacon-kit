@@ -21,6 +21,8 @@
 package state
 
 import (
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -61,6 +63,7 @@ type BeaconStateMarshallable[
 
 // StateStore is the interface for the key-value store holding the beacon state.
 type StateStore[
+	T,
 	BeaconBlockHeaderT,
 	Eth1DataT,
 	ExecutionPayloadHeaderT,
@@ -71,6 +74,7 @@ type StateStore[
 	Save()
 	// GetLatestExecutionPayloadHeader retrieves the latest execution payload
 	// header.
+	Copy() T
 	GetLatestExecutionPayloadHeader() (
 		ExecutionPayloadHeaderT, error,
 	)
@@ -160,6 +164,9 @@ type StateStore[
 	AddValidator(
 		val ValidatorT,
 	) error
+	AddValidatorBartio(val ValidatorT) error
+	// ValidatorIndexByCometBFTAddress retrieves the validator index by the
+	// given comet BFT address.
 	// ValidatorIndexByCometBFTAddress retrieves the validator index by the
 	// given comet BFT address.
 	ValidatorIndexByCometBFTAddress(
@@ -192,4 +199,79 @@ type WithdrawalCredentials interface {
 	// ToExecutionAddress converts the withdrawal credentials to an execution
 	// address.
 	ToExecutionAddress() (common.ExecutionAddress, error)
+}
+
+type StateStoreI[
+	BeaconBlockHeaderT any,
+	BeaconStateT any,
+	BeaconStateMarshallableT BeaconStateMarshallable[
+		BeaconStateMarshallableT,
+		BeaconBlockHeaderT,
+		Eth1DataT,
+		ExecutionPayloadHeaderT,
+		ForkT,
+		ValidatorT,
+	],
+	Eth1DataT any,
+	ExecutionPayloadHeaderT any,
+	ForkT any,
+	StateStoreT StateStore[
+		StateStoreT,
+		BeaconBlockHeaderT,
+		Eth1DataT,
+		ExecutionPayloadHeaderT,
+		ForkT,
+		ValidatorT,
+	],
+	ValidatorT Validator[WithdrawalCredentialsT],
+	WithdrawalCredentialsT WithdrawalCredentials,
+] interface {
+	AddValidator(val ValidatorT) error
+	DecreaseBalance(idx math.U64, delta math.U64) error
+	ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error)
+	GetBalance(idx math.U64) (math.U64, error)
+	GetBalances() ([]uint64, error)
+	GetBlockRootAtIndex(index uint64) (bytes.B32, error)
+	GetEth1Data() (Eth1DataT, error)
+	GetEth1DepositIndex() (uint64, error)
+	GetFork() (ForkT, error)
+	GetGenesisValidatorsRoot() (bytes.B32, error)
+	GetLatestBlockHeader() (BeaconBlockHeaderT, error)
+	GetLatestExecutionPayloadHeader() (ExecutionPayloadHeaderT, error)
+	GetNextWithdrawalIndex() (uint64, error)
+	GetNextWithdrawalValidatorIndex() (math.U64, error)
+	GetRandaoMixAtIndex(index uint64) (bytes.B32, error)
+	GetSlashingAtIndex(index uint64) (math.U64, error)
+	GetSlashings() ([]uint64, error)
+	GetSlot() (math.U64, error)
+	GetTotalActiveBalances(uint64) (math.U64, error)
+	GetTotalSlashing() (math.U64, error)
+	GetTotalValidators() (uint64, error)
+	GetValidators() ([]ValidatorT, error)
+	GetValidatorsByEffectiveBalance() ([]ValidatorT, error)
+	HashTreeRoot() ([32]byte, error)
+	IncreaseBalance(idx math.U64, delta math.U64) error
+	RemoveValidatorAtIndex(idx math.U64) error
+	Save()
+	SetBalance(idx math.U64, balance math.U64) error
+	SetEth1Data(data Eth1DataT) error
+	SetEth1DepositIndex(index uint64) error
+	SetFork(fork ForkT) error
+	SetGenesisValidatorsRoot(root bytes.B32) error
+	SetLatestBlockHeader(header BeaconBlockHeaderT) error
+	SetLatestExecutionPayloadHeader(payloadHeader ExecutionPayloadHeaderT) error
+	SetNextWithdrawalIndex(index uint64) error
+	SetNextWithdrawalValidatorIndex(index math.U64) error
+	SetSlashingAtIndex(index uint64, amount math.U64) error
+	SetSlot(slot math.U64) error
+	SetTotalSlashing(total math.U64) error
+	StateRootAtIndex(index uint64) (bytes.B32, error)
+	UpdateBlockRootAtIndex(index uint64, root bytes.B32) error
+	UpdateRandaoMixAtIndex(index uint64, mix bytes.B32) error
+	UpdateSlashingAtIndex(index uint64, amount math.U64) error
+	UpdateStateRootAtIndex(index uint64, root bytes.B32) error
+	UpdateValidatorAtIndex(index math.U64, validator ValidatorT) error
+	ValidatorByIndex(index math.U64) (ValidatorT, error)
+	ValidatorIndexByCometBFTAddress(cometBFTAddress []byte) (math.U64, error)
+	ValidatorIndexByPubkey(pubkey bytes.B48) (math.U64, error)
 }

@@ -21,6 +21,8 @@
 package beacondb
 
 import (
+	"context"
+
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 	"cosmossdk.io/runtime/v2"
@@ -244,17 +246,48 @@ func New[
 
 // if commit errors should we still reset? maybe just do an
 // explicit call instead of defer to prevent that case
+// TODO: return store hash
 func (s *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
-]) Save() (store.Hash, error) {
+]) Save() {
 	// reset the changeset following the commit
 	defer func() {
 		s.changeSet = store.NewChangeset()
 	}()
 	if s.changeSet.Size() == 0 {
-		return store.Hash{}, nil
+		return
 	}
-	return s.Store.Commit(s.changeSet)
+	s.Store.Commit(s.changeSet)
+}
+
+// TODO: deprecate
+func (s *Store[
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
+]) Copy() *Store[
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
+] {
+	return s
+}
+
+// TODO: deprecate
+func (s *Store[
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT,
+]) Context() context.Context {
+	panic("REEEE")
+}
+
+// WithContext returns a copy of the Store with the given context.
+func (s *Store[
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT,
+]) WithContext(
+	ctx context.Context,
+) *Store[
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT,
+] {
+	panic("REEEE")
 }
 
 // Note: this function does not enforce the invariant that

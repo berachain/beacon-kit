@@ -34,6 +34,7 @@ type StorageBackendInput struct {
 	ChainSpec         common.ChainSpec
 	DepositStore      *DepositStore
 	KVStore           *KVStore
+	StateStore        *StateStore
 }
 
 // ProvideStorageBackend is the depinject provider that returns a beacon storage
@@ -53,14 +54,14 @@ func ProvideStorageBackend(
 		*types.Eth1Data,
 		*ExecutionPayloadHeader,
 		*types.Fork,
-		*KVStore,
+		*StateStore,
 		*types.Validator,
 		*Withdrawal,
 		WithdrawalCredentials,
 	](
 		in.ChainSpec,
 		in.AvailabilityStore,
-		in.KVStore,
+		in.StateStore,
 		in.DepositStore,
 	)
 }

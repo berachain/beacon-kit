@@ -48,6 +48,15 @@ func (s *Store[
 	// return s.balances.Set(idx, uint64(val.GetEffectiveBalance()))
 }
 
+// AddValidator registers a new validator in the beacon state.
+func (s *Store[
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT,
+]) AddValidatorBartio(val ValidatorT) error {
+	// Get the ne
+	panic("REEEE")
+}
+
 // UpdateValidatorAtIndex updates a validator at a specific index.
 func (s *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,

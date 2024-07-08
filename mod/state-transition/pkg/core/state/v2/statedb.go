@@ -21,8 +21,6 @@
 package state
 
 import (
-	"reflect"
-
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -34,7 +32,6 @@ import (
 //nolint:revive // todo fix somehow
 type StateDB[
 	BeaconBlockHeaderT any,
-	BeaconStateT any,
 	BeaconStateMarshallableT BeaconStateMarshallable[
 		BeaconStateMarshallableT,
 		BeaconBlockHeaderT,
@@ -47,6 +44,7 @@ type StateDB[
 	ExecutionPayloadHeaderT any,
 	ForkT any,
 	StateStoreT StateStore[
+		StateStoreT,
 		BeaconBlockHeaderT,
 		Eth1DataT,
 		ExecutionPayloadHeaderT,
@@ -57,6 +55,7 @@ type StateDB[
 	WithdrawalCredentialsT WithdrawalCredentials,
 ] struct {
 	StateStore[
+		StateStoreT,
 		BeaconBlockHeaderT,
 		Eth1DataT,
 		ExecutionPayloadHeaderT,
@@ -66,43 +65,26 @@ type StateDB[
 	cs common.ChainSpec
 }
 
-// NewBeaconStateFromDB creates a new beacon state from an underlying state db.
-func NewBeaconStateFromDB[
-	BeaconBlockHeaderT any,
-	BeaconStateT any,
-	BeaconStateMarshallableT BeaconStateMarshallable[
-		BeaconStateMarshallableT,
-		BeaconBlockHeaderT,
-		Eth1DataT,
-		ExecutionPayloadHeaderT,
-		ForkT,
-		ValidatorT,
-	],
-	Eth1DataT any,
-	ExecutionPayloadHeaderT any,
-	ForkT any,
-	StateStoreT StateStore[
-		BeaconBlockHeaderT,
-		Eth1DataT,
-		ExecutionPayloadHeaderT,
-		ForkT,
-		ValidatorT,
-	],
-	ValidatorT Validator[WithdrawalCredentialsT],
-	WithdrawalCredentialsT WithdrawalCredentials,
-](
-	bdb StateStore[
-		BeaconBlockHeaderT,
-		Eth1DataT,
-		ExecutionPayloadHeaderT,
-		ForkT,
-		ValidatorT,
-	],
+// NewFromDB creates a new beacon state from an underlying state db.
+func (s *StateDB[
+	BeaconBlockHeaderT, BeaconStateMarshallableT,
+	Eth1DataT, ExecutionPayloadHeaderT, ForkT, StateStoreT,
+	ValidatorT, WithdrawalCredentialsT,
+]) NewFromDB(
+	bdb StateStoreT,
 	cs common.ChainSpec,
-) BeaconStateT {
+) *StateDB[
+	BeaconBlockHeaderT,
+	BeaconStateMarshallableT,
+	Eth1DataT,
+	ExecutionPayloadHeaderT,
+	ForkT,
+	StateStoreT,
+	ValidatorT,
+	WithdrawalCredentialsT,
+] {
 	result := &StateDB[
 		BeaconBlockHeaderT,
-		BeaconStateT,
 		BeaconStateMarshallableT,
 		Eth1DataT,
 		ExecutionPayloadHeaderT,
@@ -116,24 +98,34 @@ func NewBeaconStateFromDB[
 	}
 
 	// TODO: Fix this is hood as fuck.
-	return reflect.ValueOf(result).Interface().(BeaconStateT)
+	// return reflect.ValueOf(result).Interface().(BeaconStateT)
+	return result
 }
 
-// // Copy returns a copy of the beacon state.
-// func (s *StateDB[
-// 	BeaconStateT, BeaconStateMarshallableT, KVStoreT, ForkT,
-// 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-// 	ValidatorT, WithdrawalCredentialsT,
-// ]) Copy() BeaconStateT {
-// 	return NewBeaconStateFromDB[BeaconStateT, BeaconStateMarshallableT](
-// 		s.StateStore.Copy(),
-// 		s.cs,
-// 	)
-// }
+// Copy returns a copy of the beacon state.
+func (s *StateDB[
+	BeaconBlockHeaderT, BeaconStateMarshallableT,
+	Eth1DataT, ExecutionPayloadHeaderT, ForkT, StateStoreT,
+	ValidatorT, WithdrawalCredentialsT,
+]) Copy() *StateDB[
+	BeaconBlockHeaderT,
+	BeaconStateMarshallableT,
+	Eth1DataT,
+	ExecutionPayloadHeaderT,
+	ForkT,
+	StateStoreT,
+	ValidatorT,
+	WithdrawalCredentialsT,
+] {
+	return s.NewFromDB(
+		s.StateStore.Copy(),
+		s.cs,
+	)
+}
 
 // IncreaseBalance increases the balance of a validator.
 func (s *StateDB[
-	BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT,
+	BeaconBlockHeaderT, BeaconStateMarshallableT,
 	Eth1DataT, ExecutionPayloadHeaderT, ForkT, StateStoreT,
 	ValidatorT, WithdrawalCredentialsT,
 ]) IncreaseBalance(
@@ -149,7 +141,7 @@ func (s *StateDB[
 
 // DecreaseBalance decreases the balance of a validator.
 func (s *StateDB[
-	BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT,
+	BeaconBlockHeaderT, BeaconStateMarshallableT,
 	Eth1DataT, ExecutionPayloadHeaderT, ForkT, StateStoreT,
 	ValidatorT, WithdrawalCredentialsT,
 ]) DecreaseBalance(
@@ -165,7 +157,7 @@ func (s *StateDB[
 
 // UpdateSlashingAtIndex sets the slashing amount in the store.
 func (s *StateDB[
-	BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT,
+	BeaconBlockHeaderT, BeaconStateMarshallableT,
 	Eth1DataT, ExecutionPayloadHeaderT, ForkT, StateStoreT,
 	ValidatorT, WithdrawalCredentialsT,
 ]) UpdateSlashingAtIndex(
@@ -200,7 +192,7 @@ func (s *StateDB[
 //
 //nolint:lll
 func (s *StateDB[
-	BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT,
+	BeaconBlockHeaderT, BeaconStateMarshallableT,
 	Eth1DataT, ExecutionPayloadHeaderT, ForkT, StateStoreT,
 	ValidatorT, WithdrawalCredentialsT,
 ]) ExpectedWithdrawals() ([]*engineprimitives.Withdrawal, error) {
@@ -293,7 +285,7 @@ func (s *StateDB[
 //
 //nolint:funlen,gocognit // todo fix somehow
 func (s *StateDB[
-	BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT,
+	BeaconBlockHeaderT, BeaconStateMarshallableT,
 	Eth1DataT, ExecutionPayloadHeaderT, ForkT, StateStoreT,
 	ValidatorT, WithdrawalCredentialsT,
 ]) HashTreeRoot() ([32]byte, error) {

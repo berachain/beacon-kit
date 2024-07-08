@@ -34,12 +34,12 @@ type BeaconState[
 	Eth1DataT,
 	ExecutionPayloadHeaderT,
 	ForkT,
-	KVStoreT,
+	StateStoreT,
 	ValidatorT,
 	WithdrawalT any,
 ] interface {
 	NewFromDB(
-		bdb KVStoreT,
+		bdb StateStoreT,
 		cs common.ChainSpec,
 	) T
 	Copy() T

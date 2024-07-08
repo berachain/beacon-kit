@@ -23,25 +23,46 @@ package beacondb
 import (
 	"cosmossdk.io/core/store"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 func (s *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
-]) SetGenesisValidatorRoot(
+]) SetGenesisValidatorsRoot(
 	root common.Root,
-) {
+) error {
 	if s.changeSet == nil {
 		s.changeSet = store.NewChangeset()
 	}
 	s.changeSet.Add([]byte("genesis"), []byte("genesis_validator_root"), root[:], false)
+	return nil
 }
 
 func (s *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
-]) GetGenesisValidatorRoot() (common.Root, error) {
+]) GetGenesisValidatorsRoot() (common.Root, error) {
 	bz, err := s.genesisValidatorsRoot.Get()
 	if err != nil {
 		return common.Root{}, err
 	}
 	return common.Root(bz), nil
+}
+
+// GetSlot returns the current slot.
+func (s *Store[
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT,
+]) GetSlot() (math.Slot, error) {
+	slot, err := s.slot.Get()
+	return math.Slot(slot), err
+}
+
+// SetSlot sets the current slot.
+func (s *Store[
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT,
+]) SetSlot(
+	slot math.Slot,
+) error {
+	return s.slot.Set(uint64(slot))
 }
