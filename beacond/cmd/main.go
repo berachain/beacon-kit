@@ -31,6 +31,7 @@ import (
 	nodebuilder "github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
 	nodecomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	beacon "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module"
+
 	// "github.com/berachain/beacon-kit/mod/node-core/pkg/components/transaction".
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	servercomponents "github.com/berachain/beacon-kit/mod/server/pkg/components"
