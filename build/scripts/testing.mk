@@ -117,7 +117,6 @@ start-geth-validator-run:
 	--datadir ${ETH_DATA_DIR} \
 	--ipcpath ${IPC_PATH} \
 	--rpc.allow-unprotected-txs \
-	--miner.gaslimit 100000000 \
 	--syncmode "full" \
 	--history.state 0 \
 	--history.transactions 0 \
@@ -135,7 +134,6 @@ start-geth-node-run:
 	--datadir ${ETH_DATA_DIR} \
 	--ipcpath ${IPC_PATH} \
 	--rpc.allow-unprotected-txs \
-	--miner.gaslimit 100000000 \
 	--syncmode "snap" \
 	--nat extip:${INTERNAL_IP}
 
