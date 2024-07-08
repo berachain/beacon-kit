@@ -25,6 +25,7 @@ import (
 	"math"
 	"strconv"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types/types"
 )
 
@@ -44,7 +45,7 @@ func (l list) ItemLength() uint64 { return l.elementType.ItemLength() }
 
 func (l list) HashChunkCount() uint64 {
 	totalBytes := l.Length() * l.elementType.ItemLength()
-	chunks := (totalBytes + chunkSize - 1) / chunkSize
+	chunks := (totalBytes + constants.BytesPerChunk - 1) / constants.BytesPerChunk
 	return chunks
 }
 
@@ -65,7 +66,7 @@ func (l list) ItemPosition(p string) (uint64, uint8, uint8, error) {
 	}
 	start := i * l.elementType.ItemLength()
 	//#nosec:G701 // todo remove float usage.
-	return uint64(math.Floor(float64(start) / chunkSize)),
-		uint8(start % chunkSize), uint8(start%32 + l.ItemLength()),
+	return uint64(math.Floor(float64(start) / constants.BytesPerChunk)),
+		uint8(start % constants.BytesPerChunk), uint8(start%32 + l.ItemLength()),
 		nil
 }

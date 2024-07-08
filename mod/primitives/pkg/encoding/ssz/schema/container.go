@@ -23,6 +23,7 @@ package schema
 import (
 	"fmt"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/tree/proof"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types/types"
 )
@@ -49,7 +50,7 @@ func Container(fields ...*proof.Field[SSZType]) SSZType {
 
 func (c container) ID() types.Type { return types.Container }
 
-func (c container) ItemLength() uint64 { return chunkSize }
+func (c container) ItemLength() uint64 { return constants.BytesPerChunk }
 
 func (c container) ItemPosition(p string) (uint64, uint8, uint8, error) {
 	pos, ok := c.FieldIndex[p]

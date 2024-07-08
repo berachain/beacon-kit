@@ -25,6 +25,7 @@ import (
 	"math"
 	"strconv"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types/types"
 )
 
@@ -47,7 +48,7 @@ func ByteList(length uint64) SSZType {
 
 func (v vector) ID() types.Type { return types.Vector }
 
-func (v vector) ItemLength() uint64 { return chunkSize }
+func (v vector) ItemLength() uint64 { return constants.BytesPerChunk }
 
 func (v vector) ItemPosition(p string) (uint64, uint8, uint8, error) {
 	i, err := strconv.ParseUint(p, 10, 64)
@@ -56,14 +57,14 @@ func (v vector) ItemPosition(p string) (uint64, uint8, uint8, error) {
 	}
 	start := i * v.Element.ItemLength()
 	//#nosec:G701 // todo remove float usage.
-	return uint64(math.Floor(float64(start) / chunkSize)),
-		uint8(start % chunkSize), uint8(start%32 + v.ItemLength()),
+	return uint64(math.Floor(float64(start) / constants.BytesPerChunk)),
+		uint8(start % constants.BytesPerChunk), uint8(start%32 + v.ItemLength()),
 		nil
 }
 
 func (v vector) HashChunkCount() uint64 {
 	totalBytes := v.Length() * v.Element.ItemLength()
-	chunks := (totalBytes + chunkSize - 1) / chunkSize
+	chunks := (totalBytes + constants.BytesPerChunk - 1) / constants.BytesPerChunk
 	return chunks
 }
 

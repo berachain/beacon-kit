@@ -21,11 +21,8 @@
 package schema
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types/types"
 )
-
-const chunkSize = constants.BytesPerChunk
 
 type SSZType interface {
 	ID() types.Type
