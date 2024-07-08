@@ -23,6 +23,8 @@ package schema
 import (
 	"errors"
 	"strings"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math/pow"
 )
 
 // ObjectPath represents a path to an object in a Merkle tree.
@@ -87,7 +89,7 @@ func (p ObjectPath[RootT]) GetGeneralizedIndex(
 				return 0, 0, err
 			}
 
-			gIndex = gIndex*getBaseIndex(typ)*NextPowerOfTwo(typ.HashChunkCount()) + pos
+			gIndex = gIndex*getBaseIndex(typ)*pow.NextPowerOfTwo(typ.HashChunkCount()) + pos
 			typ = typ.ElementType(part)
 			offset = start
 		}

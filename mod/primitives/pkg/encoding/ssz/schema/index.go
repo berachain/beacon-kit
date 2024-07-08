@@ -21,11 +21,12 @@
 package schema
 
 import (
-	"math/bits"
 	"sort"
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math/log"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math/pow"
 )
 
 type (
@@ -47,7 +48,7 @@ func NewGeneralizedIndex[RootT ~[32]byte](
 
 // Length returns the length of the generalized index.
 func (g GeneralizedIndex[RootT]) Length() uint64 {
-	return uint64(ILog2Floor(uint64(g)))
+	return uint64(log.ILog2Floor(uint64(g)))
 }
 
 // IndexBit returns the bit at the specified position in a generalized index.
@@ -141,9 +142,9 @@ func (g GeneralizedIndex[RootT]) VerifyMerkleProof(
 func (gs GeneralizedIndicies[RootT]) Concat() GeneralizedIndex[RootT] {
 	o := GeneralizedIndex[RootT](1)
 	for _, i := range gs {
-		floorPower := PrevPowerOfTwo(uint64(i))
+		floorPower := pow.PrevPowerOfTwo(i)
 		o = GeneralizedIndex[RootT](
-			uint64(o)*floorPower + (uint64(i) - floorPower),
+			uint64(o)*uint64(floorPower) + (uint64(i) - uint64(floorPower)),
 		)
 	}
 	return o
@@ -249,56 +250,4 @@ func (gs GeneralizedIndicies[RootT]) VerifyMerkleMultiproof(
 		return false
 	}
 	return calculatedRoot == root
-}
-
-// TODO: figure out how to get rid of these math functions.
-
-// ILog2Ceil returns the ceiling of the base 2 logarithm of the U64.
-func ILog2Ceil(u uint64) uint8 {
-	// Log2(0) is undefined, should we panic?
-	if u == 0 {
-		return 0
-	}
-	//#nosec:G701 // we handle the case of u == 0 above, so this is safe.
-	return uint8(bits.Len64(u - 1))
-}
-
-// ILog2Floor returns the floor of the base 2 logarithm of the U64.
-func ILog2Floor(u uint64) uint8 {
-	// Log2(0) is undefined, should we panic?
-	if u == 0 {
-		return 0
-	}
-	//#nosec:G701 // we handle the case of u == 0 above, so this is safe.
-	return uint8(bits.Len64((u))) - 1
-}
-
-// NextPowerOfTwo returns the next power of 2 for the given input.
-//
-//nolint:mnd // todo fix.
-func PrevPowerOfTwo(u uint64) uint64 {
-	if u == 0 {
-		return 1
-	}
-	u |= u >> 1
-	u |= u >> 2
-	u |= u >> 4
-	u |= u >> 8
-	u |= u >> 16
-	u |= u >> 32
-	return u - (u >> 1)
-}
-
-// NextPowerOfTwo returns the next power of 2 for the given input.
-//
-//nolint:mnd // todo fix.
-func NextPowerOfTwo(v uint64) uint64 {
-	v--
-	v |= v >> 1
-	v |= v >> 2
-	v |= v >> 4
-	v |= v >> 8
-	v |= v >> 16
-	v++
-	return v
 }

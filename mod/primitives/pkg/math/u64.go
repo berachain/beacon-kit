@@ -24,13 +24,14 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math/big"
-	"math/bits"
 	"strconv"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math/log"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math/pow"
 )
 
 var _ types.SSZType[U64] = (*U64)(nil)
@@ -183,21 +184,7 @@ func (u U64) UnwrapPtr() *uint64 {
 //
 //nolint:mnd,lll // powers of 2.
 func (u U64) NextPowerOfTwo() U64 {
-	if u == 0 {
-		return 1
-	}
-	if u > 1<<63 {
-		panic("Next power of 2 is 1 << 64.")
-	}
-	u--
-	u |= u >> 1
-	u |= u >> 2
-	u |= u >> 4
-	u |= u >> 8
-	u |= u >> 16
-	u |= u >> 32
-	u++
-	return u
+	return pow.NextPowerOfTwo(u)
 }
 
 // Get the power of 2 for given input, or the closest lower power of 2 if the
@@ -210,36 +197,17 @@ func (u U64) NextPowerOfTwo() U64 {
 //
 //nolint:mnd,lll // From Ethereum 2.0 spec.
 func (u U64) PrevPowerOfTwo() U64 {
-	if u == 0 {
-		return 1
-	}
-	u |= u >> 1
-	u |= u >> 2
-	u |= u >> 4
-	u |= u >> 8
-	u |= u >> 16
-	u |= u >> 32
-	return u - (u >> 1)
+	return pow.PrevPowerOfTwo(u)
 }
 
 // ILog2Ceil returns the ceiling of the base 2 logarithm of the U64.
 func (u U64) ILog2Ceil() uint8 {
-	// Log2(0) is undefined, should we panic?
-	if u == 0 {
-		return 0
-	}
-	//#nosec:G701 // we handle the case of u == 0 above, so this is safe.
-	return uint8(bits.Len64(uint64(u - 1)))
+	return log.ILog2Ceil(u)
 }
 
 // ILog2Floor returns the floor of the base 2 logarithm of the U64.
 func (u U64) ILog2Floor() uint8 {
-	// Log2(0) is undefined, should we panic?
-	if u == 0 {
-		return 0
-	}
-	//#nosec:G701 // we handle the case of u == 0 above, so this is safe.
-	return uint8(bits.Len64(uint64(u))) - 1
+	return log.ILog2Floor(u)
 }
 
 // ---------------------------- Gwei Methods ----------------------------
