@@ -23,7 +23,6 @@ package schema
 import (
 	"errors"
 	"fmt"
-	"math"
 	"strconv"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
@@ -87,12 +86,7 @@ func (v vector) ItemPosition(p string) (uint64, uint8, uint8, error) {
 		return 0, 0, 0, fmt.Errorf("expected index, got name %s", p)
 	}
 	start := i * v.elementType.ItemLength()
-	//#nosec:G701 // todo remove float usage.
-	return uint64(math.Floor(float64(start) / constants.BytesPerChunk)),
-		uint8(
-			start % constants.BytesPerChunk,
-		), uint8(start%32 + v.ItemLength()),
-		nil
+	return start / 32, uint8(start % 32), uint8(start%32 + v.ItemLength()), nil
 }
 
 func (v vector) HashChunkCount() uint64 {
@@ -150,12 +144,7 @@ func (l list) ItemPosition(p string) (uint64, uint8, uint8, error) {
 		return 0, 0, 0, fmt.Errorf("expected index, got name %s", p)
 	}
 	start := i * l.elementType.ItemLength()
-	//#nosec:G701 // todo remove float usage.
-	return uint64(math.Floor(float64(start) / constants.BytesPerChunk)),
-		uint8(
-			start % constants.BytesPerChunk,
-		), uint8(start%32 + l.ItemLength()),
-		nil
+	return start / 32, uint8(start % 32), uint8(start%32 + l.ItemLength()), nil
 }
 
 /* -------------------------------------------------------------------------- */

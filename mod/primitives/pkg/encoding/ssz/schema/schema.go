@@ -45,8 +45,6 @@ type Node struct {
 
 // GetTreeNode locates a node in the SSZ merkle tree by its path and a root
 // schema node to begin traversal from with gindex 1.
-//
-
 func GetTreeNode(typ SSZType, path ObjectPath[[32]byte]) (Node, error) {
 	gindex, offset, err := path.GetGeneralizedIndex(typ)
 	return Node{SSZType: typ, GIndex: uint64(gindex), Offset: offset}, err

@@ -86,3 +86,44 @@ func Test_Schema_Paths(t *testing.T) {
 		})
 	}
 }
+
+func TestGetTreeNodeEdgeCases(t *testing.T) {
+	nestedType := schema.Container(
+		schema.Field("uint64", schema.U64()),
+		schema.Field("bytes32", schema.B32()),
+		schema.Field("bytes256", schema.Vector(schema.U8(), 256)),
+	)
+
+	root := schema.Container(
+		schema.Field("bytes32", schema.B32()),
+		schema.Field("uint32", schema.U32()),
+		schema.Field("list_uint64", schema.List(schema.U64(), 1000)),
+		schema.Field("list_nested", schema.List(nestedType, 1000)),
+		schema.Field("nested", nestedType),
+		schema.Field("vector_uint128", schema.Vector(schema.U128(), 20)),
+	)
+
+	cases := []struct {
+		name        string
+		path        string
+		expectError bool
+	}{
+		{name: "Invalid field", path: "nonexistent", expectError: true},
+		{name: "Invalid nested field", path: "nested/nonexistent", expectError: true},
+		{name: "Too deep nesting", path: "nested/uint64/extra", expectError: true},
+		{name: "Valid deep nesting", path: "list_nested/5/bytes256/31", expectError: false},
+		{name: "Empty path", path: "", expectError: true},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			objectPath := schema.ObjectPath[[32]byte](tc.path)
+			_, err := schema.GetTreeNode(root, objectPath)
+			if tc.expectError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
