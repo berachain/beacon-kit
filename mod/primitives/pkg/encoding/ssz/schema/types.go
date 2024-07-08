@@ -188,6 +188,7 @@ func (c container) ItemPosition(p string) (uint64, uint8, uint8, error) {
 	if !ok {
 		return 0, 0, 0, fmt.Errorf("field %s not found", p)
 	}
+	//#nosec:G701 // can't overflow.
 	return pos, 0, uint8(c.Fields[pos].ItemLength()), nil
 }
 
