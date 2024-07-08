@@ -38,7 +38,7 @@ func NewTreeNode[RootT ~[32]byte](
 ) (Node[RootT], error) {
 	gindex, offset, err := path.GetGeneralizedIndex(typ)
 	// TODO: Should typ here be what is outputted from traversing the path?
-	return Node[RootT]{SSZType: typ, gIndex: gindex, offset: offset}, err
+	return Node[RootT]{SSZTyp: typ, gIndex: gindex, offset: offset}, err
 }
 
 // GeIndex returns the generalized index of the node in the Merkle tree.
@@ -51,3 +51,4 @@ func (n Node[RootT]) GIndex() GeneralizedIndex[RootT] {
 func (n Node[_]) Offset() uint8 {
 	return n.offset
 }
+e
