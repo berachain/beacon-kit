@@ -33,7 +33,7 @@ import (
 // ensures it matches the local state.
 func (sp *StateProcessor[
 	BeaconBlockT, _, _, BeaconStateT,
-	_, _, _, _, _, _, _, ForkDataT, _, _, _,
+	_, _, _, _, _, _, ForkDataT, _, _, _, _,
 ]) processRandaoReveal(
 	st BeaconStateT,
 	blk BeaconBlockT,

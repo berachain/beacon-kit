@@ -29,24 +29,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkleizer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 )
-
-// The AvailabilityStore interface is responsible for validating and storing
-// sidecars for specific blocks, as well as verifying sidecars that have already
-// been stored.
-type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
-	// IsDataAvailable ensures that all blobs referenced in the block are
-	// securely stored before it returns without an error.
-	IsDataAvailable(
-		context.Context, math.Slot, BeaconBlockBodyT,
-	) bool
-
-	// Persist makes sure that the sidecar remains accessible for data
-	// availability checks throughout the beacon node's operation.
-	Persist(math.Slot, BlobSidecarsT) error
-}
 
 // BeaconBlock represents a generic interface for a beacon block.
 type BeaconBlock[
@@ -82,9 +67,7 @@ type BeaconBlockBody[
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	],
-	ExecutionPayloadHeaderT interface {
-		GetBlockHash() gethprimitives.ExecutionHash
-	},
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	WithdrawalT any,
 ] interface {
 	constraints.EmptyWithVersion[BeaconBlockBodyT]
@@ -100,9 +83,21 @@ type BeaconBlockBody[
 	GetBlobKzgCommitments() eip4844.KZGCommitments[gethprimitives.ExecutionHash]
 }
 
-// BlobSidecars is the interface for blobs sidecars.
-type BlobSidecars interface {
-	Len() int
+// BeaconBlockHeader is the interface for a beacon block header.
+type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
+	New(
+		slot math.Slot,
+		proposerIndex math.ValidatorIndex,
+		parentBlockRoot common.Root,
+		stateRoot common.Root,
+		bodyRoot common.Root,
+	) BeaconBlockHeaderT
+	HashTreeRoot() ([32]byte, error)
+	GetSlot() math.Slot
+	GetProposerIndex() math.ValidatorIndex
+	GetParentBlockRoot() common.Root
+	GetStateRoot() common.Root
+	SetStateRoot(common.Root)
 }
 
 // Context defines an interface for managing state transition context.
@@ -122,9 +117,6 @@ type Context interface {
 	// GetSkipValidateResult returns whether to validate the result of the state
 	// transition.
 	GetSkipValidateResult() bool
-
-	// Unwrap returns the underlying golang standard library context.
-	Unwrap() context.Context
 }
 
 // Deposit is the interface for a deposit.
@@ -134,12 +126,8 @@ type Deposit[
 ] interface {
 	// GetAmount returns the amount of the deposit.
 	GetAmount() math.Gwei
-	// GetIndex returns the index of the deposit.
-	GetIndex() uint64
 	// GetPubkey returns the public key of the validator.
 	GetPubkey() crypto.BLSPubkey
-	// GetSignature returns the signature of the deposit.
-	GetSignature() crypto.BLSSignature
 	// GetWithdrawalCredentials returns the withdrawal credentials.
 	GetWithdrawalCredentials() WithdrawlCredentialsT
 	// VerifySignature verifies the deposit and creates a validator.
@@ -181,21 +169,7 @@ type ExecutionPayload[
 }
 
 type ExecutionPayloadHeader interface {
-	GetParentHash() gethprimitives.ExecutionHash
 	GetBlockHash() gethprimitives.ExecutionHash
-	GetPrevRandao() common.Bytes32
-	GetFeeRecipient() gethprimitives.ExecutionAddress
-	GetStateRoot() common.Bytes32
-	GetReceiptsRoot() common.Root
-	GetLogsBloom() []byte
-	GetNumber() math.U64
-	GetGasLimit() math.U64
-	GetTimestamp() math.U64
-	GetGasUsed() math.U64
-	GetExtraData() []byte
-	GetBaseFeePerGas() math.U256L
-	GetBlobGasUsed() math.U64
-	GetExcessBlobGas() math.U64
 }
 
 // ExecutionEngine is the interface for the execution engine.
