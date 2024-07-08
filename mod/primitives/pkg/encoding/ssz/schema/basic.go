@@ -46,8 +46,3 @@ func (b basic) HashChunkCount() uint64 { return 1 }
 
 // child returns the basic type itself, as it has no children.
 func (b basic) child(_ string) SSZType { return b }
-
-// position always returns an error for basic types, as they have no children.
-func (b basic) position(_ string) (uint64, uint8, error) {
-	return 0, 0, errors.New("basic type has no children")
-}

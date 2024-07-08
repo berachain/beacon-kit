@@ -62,7 +62,7 @@ func (p ObjectPath[_]) Split() []string {
 //
 //	typ = get_elem_type(typ, p)
 //
-// return root
+// return root.
 func (p ObjectPath[RootT]) GetGeneralizedIndex(
 	typ SSZType,
 ) (GeneralizedIndex[RootT], uint8, error) {
@@ -98,6 +98,7 @@ func (p ObjectPath[RootT]) GetGeneralizedIndex(
 // For list types, it returns 2, for all other types it returns 1.
 func getBaseIndex(typ SSZType) uint64 {
 	if typ.ID().IsList() {
+		//nolint:mnd // 2 is allowed.
 		return 2
 	}
 	return 1
