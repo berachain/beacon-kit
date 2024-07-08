@@ -115,7 +115,6 @@ def add_bootnodes(node_module, config, bootnodes):
 def deploy_nodes(plan, configs, is_full_node = False):
     service_configs = {}
     for config in configs:
-        service_configs[config["name"]] = service_config_lib.create_from_config(config)
         service_configs[config["name"]] = service_config_lib.create_from_config(config, is_full_node)
 
     return plan.add_services(
