@@ -21,25 +21,18 @@
 package deposit
 
 import (
-	"context"
-	"crypto/ecdsa"
-	"fmt"
-	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/deposit"
-	ethTypes "github.com/ethereum/go-ethereum/core/types"
-	"math/big"
-	"net/url"
-	"os"
-	"time"
-
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	"crypto/ecdsa"
+	"fmt"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/parser"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/errors"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -49,9 +42,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	gethCommon "github.com/ethereum/go-ethereum/common"
+	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	ethCrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/spf13/cobra"
+	"math/big"
+	"net/url"
+	"os"
+	"time"
 )
 
 // NewValidateDeposit creates a new command for validating a deposit message.
@@ -374,45 +372,45 @@ func broadcastDepositTx(
 	fmt.Println("from", ethCrypto.PubkeyToAddress(privKey.PublicKey))
 	fromAddress := ethCrypto.PubkeyToAddress(privKey.PublicKey)
 
-	allowDepositTx, err := depositContract.AllowDeposit(&bind.TransactOpts{
-		From: fromAddress,
-		Signer: func(
-			_ common.ExecutionAddress, tx *ethTypes.Transaction,
-		) (*ethTypes.Transaction, error) {
-			return ethTypes.SignTx(
-				tx, ethTypes.LatestSignerForChainID(chainID),
-				privKey,
-			)
-		},
-		//Nonce: new(big.Int).SetUint64(latestNonce),
-		//Value:     depositMsg.Amount.ToWei(),
-		GasTipCap: big.NewInt(1000000000),
-		GasFeeCap: big.NewInt(1000000000),
-		GasLimit:  30000000, // without this gets executed reverted
-	},
-		fromAddress,
-		1,
-	)
+	// first call AllowDeposit
+	//allowDepositTx, err := depositContract.AllowDeposit(&bind.TransactOpts{
+	//	From: fromAddress,
+	//	Signer: func(
+	//		_ common.ExecutionAddress, tx *ethTypes.Transaction,
+	//	) (*ethTypes.Transaction, error) {
+	//		return ethTypes.SignTx(
+	//			tx, ethTypes.LatestSignerForChainID(chainID),
+	//			privKey,
+	//		)
+	//	},
+	//	//Nonce: new(big.Int).SetUint64(latestNonce),
+	//	//Value:     depositMsg.Amount.ToWei(),
+	//	GasTipCap: big.NewInt(1000000000),
+	//	GasFeeCap: big.NewInt(1000000000),
+	//	GasLimit:  30000000, // without this gets executed reverted
+	//},
+	//	fromAddress,
+	//	5,
+	//)
 
-	if err != nil {
-		fmt.Errorf("error in allowing depositing: %v", err)
-		return gethCommon.Hash{}, err
-	}
+	//if err != nil {
+	//	fmt.Errorf("error in allowing depositing: %v", err)
+	//	return gethCommon.Hash{}, err
+	//}
 
-	time.Sleep(10 * time.Second)
-	// Wait for the transaction to be mined and check the status.
-	receiptAllow, err := bind.WaitMined(context.Background(), engineClient, allowDepositTx)
-	if err != nil {
-		fmt.Errorf("error in waiting for transaction to be mined: %v", err)
-		return gethCommon.Hash{}, err
-	}
-	fmt.Println("receiptAllow", receiptAllow)
-
-	fmt.Println("transaction hash", receiptAllow.TxHash)
-	if receiptAllow.Status != 1 {
-		return gethCommon.Hash{}, parser.ErrDepositTransactionFailed
-	}
-	return gethCommon.Hash{}, nil
+	//time.Sleep(10 * time.Second)
+	//// Wait for the transaction to be mined and check the status.
+	//receiptAllow, err := bind.WaitMined(context.Background(), engineClient, allowDepositTx)
+	//if err != nil {
+	//	fmt.Errorf("error in waiting for transaction to be mined: %v", err)
+	//	return gethCommon.Hash{}, err
+	//}
+	//fmt.Println("receiptAllow", receiptAllow)
+	//
+	//fmt.Println("transaction hash", receiptAllow.TxHash)
+	//if receiptAllow.Status != 1 {
+	//	return gethCommon.Hash{}, parser.ErrDepositTransactionFailed
+	//}
 
 	latestNonceForDeposit, err := engineClient.NonceAt(
 		cmd.Context(),
@@ -423,12 +421,11 @@ func broadcastDepositTx(
 
 	depositTx, err := depositContract.Deposit(
 		&bind.TransactOpts{
-			From: ethCrypto.PubkeyToAddress(privKey.PublicKey),
+			From: fromAddress,
 			Signer: func(
 				_ common.ExecutionAddress, tx *ethTypes.Transaction,
 			) (*ethTypes.Transaction, error) {
 				return ethTypes.SignTx(
-					//tx, ethTypes.NewEIP155Signer(chainID),
 					tx, ethTypes.LatestSignerForChainID(chainID),
 					privKey,
 				)
@@ -449,23 +446,22 @@ func broadcastDepositTx(
 		return gethCommon.Hash{}, err
 	}
 
-	// wait for 10 seconds
-	//time.Sleep(10 * time.Second)
-	//// Wait for the transaction to be mined and check the status.
-	receipt, err := bind.WaitMined(cmd.Context(), engineClient, depositTx)
+	time.Sleep(10 * time.Second)
+
+	// Wait for the transaction to be mined and check the status.
+	Depositreceipt, err := bind.WaitMined(cmd.Context(), engineClient, depositTx)
 	if err != nil {
 		fmt.Errorf("error in waiting for transaction to be mined: %v", err)
 		return gethCommon.Hash{}, err
 	}
-	fmt.Println("RECEIPT", receipt)
+	fmt.Println("RECEIPT", Depositreceipt)
 
-	fmt.Println("transaction hash", receipt.TxHash)
-	fmt.Println("transaction hash", receipt.Logs)
-	if receipt.Status != 1 {
+	fmt.Println("transaction hash", Depositreceipt.TxHash)
+	if Depositreceipt.Status != 1 {
 		return gethCommon.Hash{}, parser.ErrDepositTransactionFailed
 	}
 
-	return receipt.TxHash, nil
+	return Depositreceipt.TxHash, nil
 }
 
 func loadFromFile(path string) (*jwt.Secret, error) {
