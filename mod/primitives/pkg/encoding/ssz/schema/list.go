@@ -30,26 +30,26 @@ import (
 
 // List Type.
 type list struct {
-	Element SSZType
-	limit   uint64
+	elementType SSZType
+	limit       uint64
 }
 
-func List(element SSZType, limit uint64) SSZType {
-	return list{Element: element, limit: limit}
+func List(elementType SSZType, limit uint64) SSZType {
+	return list{elementType: elementType, limit: limit}
 }
 
 func (l list) ID() types.Type { return types.List }
 
-func (l list) ItemLength() uint64 { return l.Element.ItemLength() }
+func (l list) ItemLength() uint64 { return l.elementType.ItemLength() }
 
 func (l list) HashChunkCount() uint64 {
-	totalBytes := l.Length() * l.Element.ItemLength()
+	totalBytes := l.Length() * l.elementType.ItemLength()
 	chunks := (totalBytes + chunkSize - 1) / chunkSize
 	return chunks
 }
 
 func (l list) child(_ string) SSZType {
-	return l.Element
+	return l.elementType
 }
 
 // typ.length describes the limit for list types.
@@ -63,7 +63,7 @@ func (l list) position(p string) (uint64, uint8, error) {
 	if err != nil {
 		return 0, 0, fmt.Errorf("expected index, got name %s", p)
 	}
-	start := i * l.Element.ItemLength()
+	start := i * l.elementType.ItemLength()
 	//#nosec:G701 // todo remove float usage.
 	return uint64(math.Floor(float64(start) / chunkSize)),
 		uint8(start % chunkSize),
