@@ -23,6 +23,7 @@ package beacondb
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/collections/indexes"
 )
 
 // AddValidator registers a new validator in the beacon state.
@@ -32,20 +33,19 @@ func (s *Store[
 ]) AddValidator(
 	val ValidatorT,
 ) error {
-	panic("REEEE")
-	// // Get the ne
-	// idx, err := s.validatorIndex.Next()
-	// if err != nil {
-	// 	return err
-	// }
+	// Get the ne
+	idx, err := s.validatorIndex.Next()
+	if err != nil {
+		return err
+	}
 
-	// // Push onto the validators list.
-	// if err = s.validators.Set(idx, val); err != nil {
-	// 	return err
-	// }
+	// Push onto the validators list.
+	if err = s.validators.Set(idx, val); err != nil {
+		return err
+	}
 
-	// // Push onto the balances list.
-	// return s.balances.Set(idx, uint64(val.GetEffectiveBalance()))
+	// Push onto the balances list.
+	return s.balances.Set(idx, uint64(val.GetEffectiveBalance()))
 }
 
 // AddValidator registers a new validator in the beacon state.
@@ -54,7 +54,18 @@ func (s *Store[
 	ForkT, ValidatorT,
 ]) AddValidatorBartio(val ValidatorT) error {
 	// Get the ne
-	panic("REEEE")
+	idx, err := s.validatorIndex.Next()
+	if err != nil {
+		return err
+	}
+
+	// Push onto the validators list.
+	if err = s.validators.Set(idx, val); err != nil {
+		return err
+	}
+
+	// Push onto the balances list.
+	return s.balances.Set(idx, uint64(val.GetEffectiveBalance()))
 }
 
 // UpdateValidatorAtIndex updates a validator at a specific index.
@@ -65,8 +76,7 @@ func (s *Store[
 	index math.ValidatorIndex,
 	val ValidatorT,
 ) error {
-	panic("REEEE")
-	// return s.validators.Set(uint64(index), val)
+	return s.validators.Set(uint64(index), val)
 }
 
 // RemoveValidatorAtIndex removes a validator at a specified index.
@@ -76,8 +86,7 @@ func (s *Store[
 ]) RemoveValidatorAtIndex(
 	idx math.ValidatorIndex,
 ) error {
-	panic("REEEE")
-	// return s.validators.Remove(uint64(idx))
+	return s.validators.Remove(uint64(idx))
 }
 
 // ValidatorIndexByPubkey returns the validator address by index.
@@ -87,14 +96,11 @@ func (s *Store[
 ]) ValidatorIndexByPubkey(
 	pubkey crypto.BLSPubkey,
 ) (math.ValidatorIndex, error) {
-	panic("REEEE")
-	// idx, err := s.validators.Indexes.Pubkey.MatchExact(
-	// 	pubkey[:],
-	// )
-	// if err != nil {
-	// 	return 0, err
-	// }
-	// return math.ValidatorIndex(idx), nil
+	idx, err := s.validators.Indexes.Pubkey.MatchExact(pubkey[:])
+	if err != nil {
+		return 0, err
+	}
+	return math.ValidatorIndex(idx), nil
 }
 
 // ValidatorIndexByCometBFTAddress returns the validator address by index.
@@ -104,14 +110,13 @@ func (s *Store[
 ]) ValidatorIndexByCometBFTAddress(
 	cometBFTAddress []byte,
 ) (math.ValidatorIndex, error) {
-	panic("REEEE")
-	// idx, err := s.validators.Indexes.CometBFTAddress.MatchExact(
-	// 	cometBFTAddress,
-	// )
-	// if err != nil {
-	// 	return 0, err
-	// }
-	// return math.ValidatorIndex(idx), nil
+	idx, err := s.validators.Indexes.CometBFTAddress.MatchExact(
+		cometBFTAddress,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return math.ValidatorIndex(idx), nil
 }
 
 // ValidatorByIndex returns the validator address by index.
@@ -121,13 +126,12 @@ func (s *Store[
 ]) ValidatorByIndex(
 	index math.ValidatorIndex,
 ) (ValidatorT, error) {
-	panic("REEEE")
-	// val, err := s.validators.Get(uint64(index))
-	// if err != nil {
-	// 	var t ValidatorT
-	// 	return t, err
-	// }
-	// return val, err
+	val, err := s.validators.Get(uint64(index))
+	if err != nil {
+		var t ValidatorT
+		return t, err
+	}
+	return val, err
 }
 
 // GetValidators retrieves all validators from the beacon state.
@@ -137,27 +141,26 @@ func (s *Store[
 ]) GetValidators() (
 	[]ValidatorT, error,
 ) {
-	panic("REEEE")
-	// var (
-	// 	vals []ValidatorT
-	// 	val  ValidatorT
-	// )
+	var (
+		vals []ValidatorT
+		val  ValidatorT
+	)
 
-	// iter, err := s.validators.Iterate(nil)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	iter, err := s.validators.Iterate()
+	if err != nil {
+		return nil, err
+	}
 
-	// for iter.Valid() {
-	// 	val, err = iter.Value()
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	vals = append(vals, val)
-	// 	iter.Next()
-	// }
+	for iter.Valid() {
+		val, err = iter.Value()
+		if err != nil {
+			return nil, err
+		}
+		vals = append(vals, val)
+		iter.Next()
+	}
 
-	// return vals, nil
+	return vals, nil
 }
 
 // GetTotalValidators returns the total number of validators.
@@ -165,12 +168,11 @@ func (s *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetTotalValidators() (uint64, error) {
-	panic("REEEE")
-	// validators, err := s.GetValidators()
-	// if err != nil {
-	// 	return 0, err
-	// }
-	// return uint64(len(validators)), nil
+	validators, err := s.GetValidators()
+	if err != nil {
+		return 0, err
+	}
+	return uint64(len(validators)), nil
 }
 
 // GetValidatorsByEffectiveBalance retrieves all validators sorted by
@@ -181,32 +183,29 @@ func (s *Store[
 ]) GetValidatorsByEffectiveBalance() (
 	[]ValidatorT, error,
 ) {
-	panic("REEEE")
-	// var (
-	// 	vals []ValidatorT
-	// 	v    ValidatorT
-	// 	idx  uint64
-	// )
+	var (
+		vals []ValidatorT
+		v    ValidatorT
+		idx  uint64
+	)
 
-	// iter, err := s.validators.Indexes.EffectiveBalance.Iterate(
-	// 	nil,
-	// )
-	// if err != nil {
-	// 	return nil, err
-	// }
+	iter, err := s.validators.Indexes.EffectiveBalance.Iterate()
+	if err != nil {
+		return nil, err
+	}
 
-	// // Iterate over all validators and collect them.
-	// for ; iter.Valid(); iter.Next() {
-	// 	idx, err = iter.PrimaryKey()
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	if v, err = s.validators.Get(idx); err != nil {
-	// 		return nil, err
-	// 	}
-	// 	vals = append(vals, v)
-	// }
-	// return vals, nil
+	// Iterate over all validators and collect them.
+	for ; iter.Valid(); iter.Next() {
+		idx, err = iter.PrimaryKey()
+		if err != nil {
+			return nil, err
+		}
+		if v, err = s.validators.Get(idx); err != nil {
+			return nil, err
+		}
+		vals = append(vals, v)
+	}
+	return vals, nil
 }
 
 // GetBalance returns the balance of a validator.
@@ -216,9 +215,8 @@ func (s *Store[
 ]) GetBalance(
 	idx math.ValidatorIndex,
 ) (math.Gwei, error) {
-	panic("REEEE")
-	// balance, err := s.balances.Get(uint64(idx))
-	// return math.Gwei(balance), err
+	balance, err := s.balances.Get(uint64(idx))
+	return math.Gwei(balance), err
 }
 
 // SetBalance sets the balance of a validator.
@@ -229,8 +227,7 @@ func (s *Store[
 	idx math.ValidatorIndex,
 	balance math.Gwei,
 ) error {
-	panic("REEEE")
-	// return s.balances.Set(uint64(idx), uint64(balance))
+	return s.balances.Set(uint64(idx), uint64(balance))
 }
 
 // GetBalances returns the balancse of all validator.
@@ -238,23 +235,22 @@ func (s *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetBalances() ([]uint64, error) {
-	panic("REEEE")
-	// var balances []uint64
-	// iter, err := s.balances.Iterate(nil)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	var balances []uint64
+	iter, err := s.balances.Iterate()
+	if err != nil {
+		return nil, err
+	}
 
-	// var balance uint64
-	// for iter.Valid() {
-	// 	balance, err = iter.Value()
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	balances = append(balances, balance)
-	// 	iter.Next()
-	// }
-	// return balances, nil
+	var balance uint64
+	for iter.Valid() {
+		balance, err = iter.Value()
+		if err != nil {
+			return nil, err
+		}
+		balances = append(balances, balance)
+		iter.Next()
+	}
+	return balances, nil
 }
 
 // GetTotalActiveBalances returns the total active balances of all validatorkv.
@@ -266,26 +262,25 @@ func (s *Store[
 ]) GetTotalActiveBalances(
 	slotsPerEpoch uint64,
 ) (math.Gwei, error) {
-	panic("REEEE")
-	// iter, err := s.validators.Indexes.EffectiveBalance.Iterate(nil, nil)
-	// if err != nil {
-	// 	return 0, err
-	// }
+	iter, err := s.validators.Indexes.EffectiveBalance.Iterate()
+	if err != nil {
+		return 0, err
+	}
 
-	// slot, err := s.slot.Get()
-	// if err != nil {
-	// 	return 0, err
-	// }
+	slot, err := s.slot.Get()
+	if err != nil {
+		return 0, err
+	}
 
-	// totalActiveBalances := math.Gwei(0)
-	// epoch := math.Epoch(slot / slotsPerEpoch)
-	// return totalActiveBalances, indexes.ScanValues(
-	// 	s.validators, iter, func(v ValidatorT,
-	// 	) bool {
-	// 		if v.IsActive(epoch) {
-	// 			totalActiveBalances += v.GetEffectiveBalance()
-	// 		}
-	// 		return false
-	// 	},
-	// )
+	totalActiveBalances := math.Gwei(0)
+	epoch := math.Epoch(slot / slotsPerEpoch)
+	return totalActiveBalances, indexes.ScanValues(
+		s.validators, iter, func(v ValidatorT,
+		) bool {
+			if v.IsActive(epoch) {
+				totalActiveBalances += v.GetEffectiveBalance()
+			}
+			return false
+		},
+	)
 }

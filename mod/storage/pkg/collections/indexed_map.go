@@ -21,7 +21,6 @@
 package collections
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"reflect"
@@ -45,10 +44,10 @@ type Index[PrimaryKey, Value any] interface {
 	// Reference creates a reference between the provided primary key and value.
 	// It provides a lazyOldValue function that if called will attempt to fetch
 	// the previous old value, returns ErrNotFound if no value existed.
-	Reference(ctx context.Context, pk PrimaryKey, newValue Value, lazyOldValue func() (Value, error)) error
+	Reference(pk PrimaryKey, newValue Value, lazyOldValue func() (Value, error)) error
 	// Unreference removes the reference between the primary key and value.
 	// If error is ErrNotFound then it means that the value did not exist before.
-	Unreference(ctx context.Context, pk PrimaryKey, lazyOldValue func() (Value, error)) error
+	Unreference(pk PrimaryKey, lazyOldValue func() (Value, error)) error
 }
 
 // IndexedMap works like a Map but creates references between fields of Value and its PrimaryKey.
@@ -148,7 +147,7 @@ func (m *IndexedMap[PrimaryKey, Value, Idx]) Get(pk PrimaryKey) (Value, error) {
 }
 
 // Iterate allows to iterate over the objects given a Ranger of the primary key.
-func (m *IndexedMap[PrimaryKey, Value, Idx]) Iterate(ctx context.Context, ranger sdkcollections.Ranger[PrimaryKey]) (sdkcollections.Iterator[PrimaryKey, Value], error) {
+func (m *IndexedMap[PrimaryKey, Value, Idx]) Iterate() (sdkcollections.Iterator[PrimaryKey, Value], error) {
 	return m.m.Iterate()
 }
 
@@ -159,8 +158,8 @@ func (m *IndexedMap[PrimaryKey, Value, Idx]) Has(pk PrimaryKey) (bool, error) {
 
 // Set maps the value using the primary key. It will also iterate every index and instruct them to
 // add or update the indexes.
-func (m *IndexedMap[PrimaryKey, Value, Idx]) Set(ctx context.Context, pk PrimaryKey, value Value) error {
-	err := m.ref(ctx, pk, value)
+func (m *IndexedMap[PrimaryKey, Value, Idx]) Set(pk PrimaryKey, value Value) error {
+	err := m.ref(pk, value)
 	if err != nil {
 		return err
 	}
@@ -170,8 +169,8 @@ func (m *IndexedMap[PrimaryKey, Value, Idx]) Set(ctx context.Context, pk Primary
 // Remove removes the value associated with the primary key from the map. Then
 // it iterates over all the indexes and instructs them to remove all the references
 // associated with the removed value.
-func (m *IndexedMap[PrimaryKey, Value, Idx]) Remove(ctx context.Context, pk PrimaryKey) error {
-	err := m.unref(ctx, pk)
+func (m *IndexedMap[PrimaryKey, Value, Idx]) Remove(pk PrimaryKey) error {
+	err := m.unref(pk)
 	if err != nil {
 		return err
 	}
@@ -179,8 +178,8 @@ func (m *IndexedMap[PrimaryKey, Value, Idx]) Remove(ctx context.Context, pk Prim
 }
 
 // // Walk applies the same semantics as Map.Walk.
-// func (m *IndexedMap[PrimaryKey, Value, Idx]) Walk(ctx context.Context, ranger Ranger[PrimaryKey], walkFunc func(key PrimaryKey, value Value) (stop bool, err error)) error {
-// 	return m.m.Walk(ctx, ranger, walkFunc)
+// func (m *IndexedMap[PrimaryKey, Value, Idx]) Walk(ranger Ranger[PrimaryKey], walkFunc func(key PrimaryKey, value Value) (stop bool, err error)) error {
+// 	return m.m.Walk(ranger, walkFunc)
 // }
 
 // IterateRaw iterates the IndexedMap using raw bytes keys. Follows the same semantics as Map.IterateRaw
@@ -196,9 +195,9 @@ func (m *IndexedMap[PrimaryKey, Value, Idx]) ValueCodec() codec.ValueCodec[Value
 	return m.m.ValueCodec
 }
 
-func (m *IndexedMap[PrimaryKey, Value, Idx]) ref(ctx context.Context, pk PrimaryKey, value Value) error {
+func (m *IndexedMap[PrimaryKey, Value, Idx]) ref(pk PrimaryKey, value Value) error {
 	for _, index := range m.computedIndexes {
-		err := index.Reference(ctx, pk, value, cachedGet[PrimaryKey, Value](m, pk))
+		err := index.Reference(pk, value, cachedGet[PrimaryKey, Value](m, pk))
 		if err != nil {
 			return err
 		}
@@ -206,9 +205,9 @@ func (m *IndexedMap[PrimaryKey, Value, Idx]) ref(ctx context.Context, pk Primary
 	return nil
 }
 
-func (m *IndexedMap[PrimaryKey, Value, Idx]) unref(ctx context.Context, pk PrimaryKey) error {
+func (m *IndexedMap[PrimaryKey, Value, Idx]) unref(pk PrimaryKey) error {
 	for _, index := range m.computedIndexes {
-		err := index.Unreference(ctx, pk, cachedGet[PrimaryKey, Value](m, pk))
+		err := index.Unreference(pk, cachedGet[PrimaryKey, Value](m, pk))
 		if err != nil {
 			return err
 		}

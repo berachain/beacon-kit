@@ -28,12 +28,12 @@ import (
 	"cosmossdk.io/runtime/v2"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/index"
+	indexv2 "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/index/v2"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/keys"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/collections"
 )
 
-const moduleName = "beacon"
+const ModuleName = "beacon"
 
 // Store is a wrapper around storev2.RootStore
 type Store[
@@ -81,7 +81,7 @@ type Store[
 	validatorIndex collections.Sequence
 	// validators stores the list of validators.
 	validators *collections.IndexedMap[
-		uint64, ValidatorT, index.ValidatorsIndex[ValidatorT],
+		uint64, ValidatorT, indexv2.ValidatorsIndex[ValidatorT],
 	]
 	// balances stores the list of balances.
 	balances collections.Map[uint64, uint64]
@@ -118,7 +118,7 @@ func New[
 ) *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
 ] {
-	storeKey := []byte(moduleName)
+	storeKey := []byte(ModuleName)
 	store := &Store[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 		ForkT, ValidatorT,
@@ -188,14 +188,14 @@ func New[
 		[]byte{keys.ValidatorIndexPrefix},
 		store.accessor,
 	)
-	// store.validators = collections.NewIndexedMap(
-	// 	storeKey,
-	// 	[]byte{keys.ValidatorByIndexPrefix},
-	// 	sdkcollections.Uint64Key,
-	// 	encoding.SSZValueCodec[ValidatorT]{},
-	// 	index.NewValidatorsIndex[ValidatorT](),
-	// 	store.accessor,
-	// )
+	store.validators = collections.NewIndexedMap(
+		storeKey,
+		[]byte{keys.ValidatorByIndexPrefix},
+		sdkcollections.Uint64Key,
+		encoding.SSZValueCodec[ValidatorT]{},
+		indexv2.NewValidatorsIndex[ValidatorT](store.accessor),
+		store.accessor,
+	)
 	store.balances = collections.NewMap(
 		storeKey,
 		[]byte{keys.BalancesPrefix},
