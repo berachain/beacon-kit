@@ -72,7 +72,7 @@ func (v vector) Length() uint64 {
 	return v.length
 }
 
-func (v vector) child(_ string) SSZType {
+func (v vector) ElementType(_ string) SSZType {
 	return v.Element
 }
 

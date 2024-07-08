@@ -31,8 +31,8 @@ type SSZType interface {
 	ID() types.Type
 	ItemLength() uint64
 	ItemPosition(p string) (uint64, uint8, uint8, error)
+	ElementType(p string) SSZType
 	HashChunkCount() uint64
-	child(p string) SSZType
 }
 
 // Container Type

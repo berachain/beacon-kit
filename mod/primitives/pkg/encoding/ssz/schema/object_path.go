@@ -66,9 +66,10 @@ func (p ObjectPath[_]) Split() []string {
 func (p ObjectPath[RootT]) GetGeneralizedIndex(
 	typ SSZType,
 ) (GeneralizedIndex[RootT], uint8, error) {
-	gIndex := GeneralizedIndex[RootT](1)
+	gIndex := uint64(1)
 	offset := uint8(0)
 	for _, part := range p.Split() {
+		// If we descend to a basic type, the path cannot continue further
 		if typ.ID().IsBasic() {
 			return 0, 0, errors.New("cannot descend further from basic type")
 		}
@@ -77,21 +78,21 @@ func (p ObjectPath[RootT]) GetGeneralizedIndex(
 			if !typ.ID().IsList() {
 				return 0, 0, errors.New("__len__ is only valid for List types")
 			}
-			gIndex = gIndex.RightChild()
+			//nolint:mnd // from spec.
+			gIndex = gIndex*2 + 1
 		} else {
 			pos, start, _, err := typ.ItemPosition(part)
 			if err != nil {
 				return 0, 0, err
 			}
-			gIndex = GeneralizedIndex[RootT](
-				uint64(gIndex)*getBaseIndex(typ)*nextPowerOfTwo(typ.HashChunkCount()) + pos,
-			)
-			typ = typ.child(part)
+
+			gIndex = gIndex*getBaseIndex(typ)*nextPowerOfTwo(typ.HashChunkCount()) + pos
+			typ = typ.ElementType(part)
 			offset = start
 		}
 	}
 
-	return gIndex, offset, nil
+	return GeneralizedIndex[RootT](gIndex), offset, nil
 }
 
 // getBaseIndex returns the base index for a given SSZ type.

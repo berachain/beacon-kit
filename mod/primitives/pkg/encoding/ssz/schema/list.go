@@ -48,7 +48,7 @@ func (l list) HashChunkCount() uint64 {
 	return chunks
 }
 
-func (l list) child(_ string) SSZType {
+func (l list) ElementType(_ string) SSZType {
 	return l.elementType
 }
 

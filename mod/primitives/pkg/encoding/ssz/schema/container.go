@@ -59,10 +59,10 @@ func (c container) ItemPosition(p string) (uint64, uint8, uint8, error) {
 	return pos, 0, uint8(c.Fields[pos].ItemLength()), nil
 }
 
+func (c container) ElementType(p string) SSZType {
+	return c.Fields[c.FieldIndex[p]]
+}
+
 func (c container) Length() uint64 { return uint64(len(c.Fields)) }
 
 func (c container) HashChunkCount() uint64 { return uint64(len(c.Fields)) }
-
-func (c container) child(p string) SSZType {
-	return c.Fields[c.FieldIndex[p]]
-}

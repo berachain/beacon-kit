@@ -40,9 +40,9 @@ func (b basic) ItemPosition(_ string) (uint64, uint8, uint8, error) {
 	return 0, 0, 0, errors.New("basic type has no children")
 }
 
+// child returns the basic type itself, as it has no children.
+func (b basic) ElementType(_ string) SSZType { return b }
+
 // Chunks returns the number of 32-byte chunks required to represent the basic
 // type.
 func (b basic) HashChunkCount() uint64 { return 1 }
-
-// child returns the basic type itself, as it has no children.
-func (b basic) child(_ string) SSZType { return b }
