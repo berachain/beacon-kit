@@ -45,8 +45,8 @@ func (p ObjectPath[RootT]) GetGeneralizedIndex(
 			return 0, 0, errors.New("cannot descend further from basic type")
 		}
 		if part == "__len__" {
-			if !typ.ID().IsEnumerable() {
-				return 0, 0, errors.New("__len__ is only valid for enumerable types")
+			if !typ.ID().IsList() {
+				return 0, 0, errors.New("__len__ is only valid for List types")
 			}
 			gIndex = gIndex.RightChild()
 		} else {
