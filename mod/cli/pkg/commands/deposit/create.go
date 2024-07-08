@@ -25,6 +25,11 @@ import (
 	"cosmossdk.io/log"
 	"crypto/ecdsa"
 	"fmt"
+	"math/big"
+	"net/url"
+	"os"
+	"time"
+
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/parser"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
@@ -46,10 +51,6 @@ import (
 	ethCrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/spf13/cobra"
-	"math/big"
-	"net/url"
-	"os"
-	"time"
 )
 
 // NewValidateDeposit creates a new command for validating a deposit message.
@@ -231,15 +232,13 @@ func broadcastDepositTx(
 	// Load the JWT secret.
 	cfg.Engine.JWTSecretPath, err = cmd.Flags().GetString(jwtSecretPath)
 	if err != nil {
-		fmt.Errorf("error in getting jwt secret path: %v", err)
 		return gethCommon.Hash{}, err
 	}
 
 	jwtSecret, err := loadFromFile(cfg.Engine.JWTSecretPath)
 	fmt.Println("jwtSecret", jwtSecret)
 	if err != nil {
-		fmt.Errorf("error in loading jwt secret: %v", err)
-		panic(err)
+		return gethCommon.Hash{}, errors.Wrapf(err, "error in loading jwt secret")
 	}
 
 	// TODO: This is a WIP. I'm not sure how to get the engine client to work
@@ -263,11 +262,7 @@ func broadcastDepositTx(
 	//}
 
 	engineClient, err := ethclient.Dial("http://localhost:8545")
-	if err != nil {
-		fmt.Errorf("failed to connect to the Ethereum client: %v", err)
-	}
-
-	if engineClient == nil {
+	if err != nil || engineClient == nil {
 		return gethCommon.Hash{}, errors.New("failed to create Ethereum client")
 	}
 
@@ -280,15 +275,15 @@ func broadcastDepositTx(
 		return gethCommon.Hash{}, err
 	}
 
-	latestNonce, err := engineClient.NonceAt(
+	latestNonce, errNonce := engineClient.NonceAt(
 		cmd.Context(),
 		ethCrypto.PubkeyToAddress(privKey.PublicKey),
 		nil,
 	)
 	fmt.Println("LATEST NONCE", latestNonce)
 
-	if err != nil {
-		panic(err)
+	if errNonce != nil {
+		panic(errNonce)
 	}
 	// one way
 	//contractAbi, err := deposit.BeaconDepositContractMetaData.GetAbi()
@@ -324,12 +319,12 @@ func broadcastDepositTx(
 	//	},
 	//)
 	//
-	//fmt.Println("TX", tx)
+	// fmt.Println("TX", tx)
 	//
-	//signedTx, err := ethTypes.SignTx(tx, ethTypes.LatestSignerForChainID(chainID), privKey)
-	//fmt.Println("SIGNED TX", signedTx)
+	// signedTx, err := ethTypes.SignTx(tx, ethTypes.LatestSignerForChainID(chainID), privKey)
+	// fmt.Println("SIGNED TX", signedTx)
 	//
-	//if err != nil {
+	// if err != nil {
 	//	fmt.Errorf("error in signing tx: %v", err)
 	//}
 
@@ -345,9 +340,9 @@ func broadcastDepositTx(
 	//	big.NewInt(0),
 	//)
 	//
-	//fmt.Errorf("error in calling contract: %v", err)
+	// fmt.Errorf("error in calling contract: %v", err)
 	//
-	//if err = engineClient.SendTransaction(
+	// if err = engineClient.SendTransaction(
 	//	cmd.Context(),
 	//	signedTx,
 	//); err != nil {
@@ -355,11 +350,11 @@ func broadcastDepositTx(
 	//	panic(err)
 	//}
 	//
-	//fmt.Println("CONTRACT CALLED")
+	// fmt.Println("CONTRACT CALLED")
 	// Getting same error using both approaches
 
 	// One approach to send deposit txn - is through go bindings
-	//Send the deposit to the deposit contract.
+	// Send the deposit to the deposit contract.
 
 	depositContract, err := deposit.NewBeaconDepositContract(
 		depositContractAddress,
@@ -373,7 +368,7 @@ func broadcastDepositTx(
 	fromAddress := ethCrypto.PubkeyToAddress(privKey.PublicKey)
 
 	// first call AllowDeposit
-	//allowDepositTx, err := depositContract.AllowDeposit(&bind.TransactOpts{
+	// allowDepositTx, err := depositContract.AllowDeposit(&bind.TransactOpts{
 	//	From: fromAddress,
 	//	Signer: func(
 	//		_ common.ExecutionAddress, tx *ethTypes.Transaction,
@@ -400,23 +395,26 @@ func broadcastDepositTx(
 
 	//time.Sleep(10 * time.Second)
 	//// Wait for the transaction to be mined and check the status.
-	//receiptAllow, err := bind.WaitMined(context.Background(), engineClient, allowDepositTx)
-	//if err != nil {
+	// receiptAllow, err := bind.WaitMined(context.Background(), engineClient, allowDepositTx)
+	// if err != nil {
 	//	fmt.Errorf("error in waiting for transaction to be mined: %v", err)
 	//	return gethCommon.Hash{}, err
 	//}
-	//fmt.Println("receiptAllow", receiptAllow)
+	// fmt.Println("receiptAllow", receiptAllow)
 	//
-	//fmt.Println("transaction hash", receiptAllow.TxHash)
-	//if receiptAllow.Status != 1 {
+	// fmt.Println("transaction hash", receiptAllow.TxHash)
+	// if receiptAllow.Status != 1 {
 	//	return gethCommon.Hash{}, parser.ErrDepositTransactionFailed
 	//}
 
-	latestNonceForDeposit, err := engineClient.NonceAt(
+	latestNonceForDeposit, errInNonce := engineClient.NonceAt(
 		cmd.Context(),
 		ethCrypto.PubkeyToAddress(privKey.PublicKey),
 		nil,
 	)
+	if errInNonce != nil {
+		return gethCommon.Hash{}, errInNonce
+	}
 	fmt.Println("LATEST NONCE", latestNonceForDeposit)
 
 	depositTx, err := depositContract.Deposit(
@@ -442,32 +440,29 @@ func broadcastDepositTx(
 		signature[:],
 	)
 	if err != nil {
-		fmt.Errorf("error in depositing: %v", err)
-		return gethCommon.Hash{}, err
+		return gethCommon.Hash{}, errors.Wrapf(err, "error in depositing")
 	}
 
 	time.Sleep(10 * time.Second)
 
 	// Wait for the transaction to be mined and check the status.
-	Depositreceipt, err := bind.WaitMined(cmd.Context(), engineClient, depositTx)
+	depositReceipt, err := bind.WaitMined(cmd.Context(), engineClient, depositTx)
 	if err != nil {
-		fmt.Errorf("error in waiting for transaction to be mined: %v", err)
-		return gethCommon.Hash{}, err
+		return gethCommon.Hash{}, errors.Wrapf(err, "waiting for transaction to be mined")
 	}
-	fmt.Println("RECEIPT", Depositreceipt)
+	fmt.Println("RECEIPT", depositReceipt)
 
-	fmt.Println("transaction hash", Depositreceipt.TxHash)
-	if Depositreceipt.Status != 1 {
+	fmt.Println("transaction hash", depositReceipt.TxHash)
+	if depositReceipt.Status != 1 {
 		return gethCommon.Hash{}, parser.ErrDepositTransactionFailed
 	}
 
-	return Depositreceipt.TxHash, nil
+	return depositReceipt.TxHash, nil
 }
 
 func loadFromFile(path string) (*jwt.Secret, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		fmt.Errorf("error in reading file: %v", err)
 		return nil, err
 	}
 
