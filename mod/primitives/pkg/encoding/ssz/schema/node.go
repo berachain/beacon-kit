@@ -51,4 +51,3 @@ func (n Node[RootT]) GIndex() GeneralizedIndex[RootT] {
 func (n Node[_]) Offset() uint8 {
 	return n.offset
 }
-e
