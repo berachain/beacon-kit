@@ -30,8 +30,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types/types"
 )
 
-// SSZType represents an interface for Simple Serialize (SSZ) types.
-type SSZType interface {
+// TypeDef represents an interface for Simple Serialize (SSZ) types.
+type TypeDef interface {
 	// ID returns the type identifier for the SSZ type.
 	ID() types.Type
 	// ItemLength returns the length of an item in bytes for the SSZ type.
@@ -41,7 +41,7 @@ type SSZType interface {
 	// encountered.
 	ItemPosition(p string) (uint64, uint8, uint8, error)
 	// ElementType returns the SSZ type of the element at the given path.
-	ElementType(p string) SSZType
+	ElementType(p string) TypeDef
 	// HashChunkCount returns the number of 32-byte chunks required to represent
 	// the SSZ type in a Merkle tree.
 	HashChunkCount() uint64
@@ -66,7 +66,7 @@ func (b basic) ItemPosition(_ string) (uint64, uint8, uint8, error) {
 }
 
 // child returns the basic type itself, as it has no children.
-func (b basic) ElementType(_ string) SSZType { return b }
+func (b basic) ElementType(_ string) TypeDef { return b }
 
 // Chunks returns the number of 32-byte chunks required to represent the basic
 // type.
@@ -77,15 +77,15 @@ func (b basic) HashChunkCount() uint64 { return 1 }
 /* -------------------------------------------------------------------------- */
 
 type vector struct {
-	elementType SSZType
+	elementType TypeDef
 	length      uint64
 }
 
-func Vector(elementType SSZType, length uint64) SSZType {
+func Vector(elementType TypeDef, length uint64) TypeDef {
 	return vector{elementType: elementType, length: length}
 }
 
-func ByteVector(length uint64) SSZType {
+func ByteVector(length uint64) TypeDef {
 	return Vector(U8(), length)
 }
 
@@ -117,7 +117,7 @@ func (v vector) Length() uint64 {
 	return v.length
 }
 
-func (v vector) ElementType(_ string) SSZType {
+func (v vector) ElementType(_ string) TypeDef {
 	return v.elementType
 }
 
@@ -127,15 +127,15 @@ func (v vector) ElementType(_ string) SSZType {
 
 // List Type.
 type list struct {
-	elementType SSZType
+	elementType TypeDef
 	limit       uint64
 }
 
-func List(elementType SSZType, limit uint64) SSZType {
+func List(elementType TypeDef, limit uint64) TypeDef {
 	return list{elementType: elementType, limit: limit}
 }
 
-func ByteList(limit uint64) SSZType {
+func ByteList(limit uint64) TypeDef {
 	return List(U8(), limit)
 }
 
@@ -149,7 +149,7 @@ func (l list) HashChunkCount() uint64 {
 	return chunks
 }
 
-func (l list) ElementType(_ string) SSZType {
+func (l list) ElementType(_ string) TypeDef {
 	return l.elementType
 }
 
@@ -177,17 +177,17 @@ func (l list) ItemPosition(p string) (uint64, uint8, uint8, error) {
 /* -------------------------------------------------------------------------- */
 
 type container struct {
-	Fields     []SSZType
+	Fields     []TypeDef
 	FieldIndex map[string]uint64
 }
 
-func Field(name string, typ SSZType) *proof.Field[SSZType] {
+func Field(name string, typ TypeDef) *proof.Field[TypeDef] {
 	return proof.NewField(name, typ)
 }
 
-func Container(fields ...*proof.Field[SSZType]) SSZType {
+func Container(fields ...*proof.Field[TypeDef]) TypeDef {
 	fieldIndex := make(map[string]uint64)
-	types := make([]SSZType, len(fields))
+	types := make([]TypeDef, len(fields))
 	for i, f := range fields {
 		//#nosec:G701 // todo fix.
 		fieldIndex[f.GetName()] = uint64(i)
@@ -209,7 +209,7 @@ func (c container) ItemPosition(p string) (uint64, uint8, uint8, error) {
 	return pos, 0, uint8(c.Fields[pos].ItemLength()), nil
 }
 
-func (c container) ElementType(p string) SSZType {
+func (c container) ElementType(p string) TypeDef {
 	return c.Fields[c.FieldIndex[p]]
 }
 

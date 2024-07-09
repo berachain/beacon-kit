@@ -106,7 +106,7 @@ func (l *List[T]) ChunkCount() uint64 {
 }
 
 // Type returns the type of the List.
-func (l *List[T]) Type() schema.SSZType {
+func (l *List[T]) Type() schema.TypeDef {
 	var t T
 	// TODO: Fix this is a bad hack.
 	if l == nil {

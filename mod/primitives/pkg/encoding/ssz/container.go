@@ -36,7 +36,7 @@ var _ types.SSZEnumerable[types.MinimalSSZType] = (*Container)(nil)
 
 type Container struct {
 	elements []types.MinimalSSZType
-	t        schema.SSZType
+	t        schema.TypeDef
 }
 
 // ContainerFromElements creates a new Container from elements.
@@ -76,13 +76,13 @@ func (c *Container) N() uint64 {
 
 // WithSchema sets the schema of the container.
 // Temporary Hack.
-func (c *Container) WithSchema(t schema.SSZType) *Container {
+func (c *Container) WithSchema(t schema.TypeDef) *Container {
 	c.t = t
 	return c
 }
 
 // Type returns the type of the container.
-func (c *Container) Type() schema.SSZType {
+func (c *Container) Type() schema.TypeDef {
 	return c.t
 }
 

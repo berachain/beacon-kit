@@ -92,7 +92,7 @@ func (h B20) IsFixed() bool {
 }
 
 // Type returns the type of the B20.
-func (h B20) Type() schema.SSZType {
+func (h B20) Type() schema.TypeDef {
 	return schema.B20()
 }
 

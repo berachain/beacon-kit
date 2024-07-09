@@ -113,7 +113,7 @@ func (U64) IsFixed() bool {
 }
 
 // Type returns the type of the U64.
-func (U64) Type() schema.SSZType {
+func (U64) Type() schema.TypeDef {
 	return schema.U64()
 }
 

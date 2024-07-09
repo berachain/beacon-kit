@@ -81,7 +81,7 @@ func (*U256) IsFixed() bool {
 }
 
 // Type returns the type of the U256.
-func (*U256) Type() schema.SSZType {
+func (*U256) Type() schema.TypeDef {
 	return schema.U256()
 }
 

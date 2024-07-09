@@ -81,7 +81,7 @@ func (U32) IsFixed() bool {
 }
 
 // Type returns the type of the U32.
-func (U32) Type() schema.SSZType {
+func (U32) Type() schema.TypeDef {
 	return schema.U32()
 }
 

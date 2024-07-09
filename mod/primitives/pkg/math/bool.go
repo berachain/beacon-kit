@@ -73,7 +73,7 @@ func (Bool) IsFixed() bool {
 }
 
 // Type returns the type of the bool.
-func (Bool) Type() schema.SSZType {
+func (Bool) Type() schema.TypeDef {
 	return schema.Bool()
 }
 

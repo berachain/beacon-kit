@@ -80,7 +80,7 @@ func (Byte) IsFixed() bool {
 }
 
 // Type returns the type of the Byte.
-func (Byte) Type() schema.SSZType {
+func (Byte) Type() schema.TypeDef {
 	return schema.U8()
 }
 

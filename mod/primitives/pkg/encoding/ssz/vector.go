@@ -72,7 +72,7 @@ func (Vector[T]) IsFixed() bool {
 }
 
 // Type returns the type of the VectorBasic.
-func (v Vector[T]) Type() schema.SSZType {
+func (v Vector[T]) Type() schema.TypeDef {
 	var t T
 	return schema.Vector(t.Type(), uint64(len(v)))
 }

@@ -91,7 +91,7 @@ func (*Withdrawal) IsFixed() bool {
 }
 
 // Type returns the type of the Withdrawal.
-func (*Withdrawal) Type() schema.SSZType {
+func (*Withdrawal) Type() schema.TypeDef {
 	return schema.Container(
 		schema.Field("index", schema.U64()),
 		schema.Field("validator_index", schema.U64()),

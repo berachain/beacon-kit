@@ -71,7 +71,7 @@ type MinimalSSZType interface {
 	// MarshalSSZ marshals the type into SSZ format.
 	IsFixed() bool
 	// Type returns the type of the SSZ object.
-	Type() schema.SSZType
+	Type() schema.TypeDef
 }
 
 // SSZType is the interface for all SSZ types.

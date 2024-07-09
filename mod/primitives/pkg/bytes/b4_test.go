@@ -97,7 +97,7 @@ func TestBytes4Type(t *testing.T) {
 	tests := []struct {
 		name  string
 		input bytes.B4
-		want  schema.SSZType
+		want  schema.TypeDef
 	}{
 		{
 			name:  "type of B4",

@@ -80,7 +80,7 @@ func (U8) IsFixed() bool {
 }
 
 // Type returns the type of the U8.
-func (U8) Type() schema.SSZType {
+func (U8) Type() schema.TypeDef {
 	return schema.U8()
 }
 
