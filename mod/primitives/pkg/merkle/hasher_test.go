@@ -96,8 +96,8 @@ func TestNewRootWithMaxLeaves_OneLeaf(t *testing.T) {
 // goos: darwin
 // goarch: arm64
 // pkg: github.com/berachain/beacon-kit/mod/primitives/pkg/merkle
-// BenchmarkHasherWithReusableBuffer-12
-// 30064  38818 ns/op  0 B/op  0 allocs/op.
+// BenchmarkHasher-12
+// 25684  34712 ns/op  0 B/op  0 allocs/op.
 func BenchmarkHasher(b *testing.B) {
 	hasher := crypto.NewHasher[[32]byte](sha256.Hash)
 	rootHasher := merkle.NewRootHasher[[32]byte](
