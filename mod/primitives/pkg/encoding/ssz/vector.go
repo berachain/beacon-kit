@@ -21,6 +21,7 @@
 package ssz
 
 import (
+	"io"
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -144,4 +145,8 @@ func (v Vector[T]) MarshalSSZ() ([]byte, error) {
 // NewFromSSZ creates a new VectorBasic from SSZ format.
 func (v Vector[T]) NewFromSSZ(_ []byte) (Vector[T], error) {
 	return nil, errors.New("not implemented yet")
+}
+
+func (v Vector[T]) EncodeSSZ(w io.Writer, buf [32]byte) (int, error) {
+
 }

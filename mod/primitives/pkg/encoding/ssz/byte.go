@@ -22,6 +22,7 @@ package ssz
 
 import (
 	"fmt"
+	"io"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
@@ -87,4 +88,9 @@ func (Byte) Type() schema.SSZType {
 // ChunkCount returns the number of chunks required to store the byte.
 func (Byte) ChunkCount() uint64 {
 	return 1
+}
+
+func (b Byte) EncodeSSZ(w io.Writer, buf [32]byte) (int, error) {
+	buf[0] = byte(b)
+	return w.Write(buf[:1])
 }

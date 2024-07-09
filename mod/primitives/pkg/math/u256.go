@@ -22,6 +22,7 @@ package math
 
 import (
 	"fmt"
+	"io"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
@@ -93,4 +94,9 @@ func (*U256) ChunkCount() uint64 {
 // Unwrap returns the underlying uint256.Int.
 func (u *U256) Unwrap() *uint256.Int {
 	return (*uint256.Int)(u)
+}
+
+func (u *U256) EncodeSSZ(w io.Writer, buf [32]byte) (int, error) {
+	u.Unwrap().WriteToSlice(buf[:])
+	return w.Write(buf[:])
 }

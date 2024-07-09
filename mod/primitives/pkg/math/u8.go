@@ -23,6 +23,7 @@ package math
 
 import (
 	"fmt"
+	"io"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
@@ -87,4 +88,9 @@ func (U8) Type() schema.SSZType {
 // ChunkCount returns the number of chunks required to store the uint8.
 func (U8) ChunkCount() uint64 {
 	return 1
+}
+
+func (u U8) EncodeSSZ(w io.Writer, buf [32]byte) (int, error) {
+	buf[0] = byte(u)
+	return w.Write(buf[:1])
 }

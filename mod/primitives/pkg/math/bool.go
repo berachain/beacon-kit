@@ -22,6 +22,7 @@ package math
 
 import (
 	"fmt"
+	"io"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
@@ -80,4 +81,13 @@ func (Bool) Type() schema.SSZType {
 // ChunkCount returns the number of chunks required to store the bool.
 func (Bool) ChunkCount() uint64 {
 	return 1
+}
+
+func (b Bool) EncodeSSZ(w io.Writer, buf [32]byte) (int, error) {
+	if b {
+		buf[0] = 1
+	} else {
+		buf[0] = 0
+	}
+	return w.Write(buf[:1])
 }

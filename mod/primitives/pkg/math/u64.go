@@ -23,6 +23,7 @@ package math
 import (
 	"encoding/binary"
 	"fmt"
+	"io"
 	"math/big"
 	"strconv"
 
@@ -224,4 +225,9 @@ func (u Gwei) ToWei() *big.Int {
 	gweiAmount := big.NewInt(0).SetUint64(u.Unwrap())
 	intToGwei := big.NewInt(0).SetUint64(GweiPerWei)
 	return gweiAmount.Mul(gweiAmount, intToGwei)
+}
+
+func (u U64) EncodeSSZ(w io.Writer, buf [32]byte) (int, error) {
+	binary.LittleEndian.PutUint64(buf[:], uint64(u))
+	return w.Write(buf[:constants.U32Size])
 }

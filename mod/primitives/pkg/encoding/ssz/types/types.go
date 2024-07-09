@@ -20,7 +20,11 @@
 
 package types
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
+import (
+	"io"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
+)
 
 // MinimalSSZType is the smallest interface of an SSZable type.
 type MinimalSSZType interface {
@@ -37,6 +41,8 @@ type MinimalSSZType interface {
 	HashTreeRoot() ([32]byte, error)
 	// MarshalSSZ marshals the type into SSZ format.
 	MarshalSSZ() ([]byte, error)
+
+	EncodeSSZ(io.Writer, [32]byte) (int, error)
 }
 
 // SSZType is the interface for all SSZ types.
