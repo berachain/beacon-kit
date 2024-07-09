@@ -21,7 +21,7 @@ require (
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/ethereum/go-ethereum v1.14.6
 	github.com/holiman/uint256 v1.2.5-0.20240612125212-75a520988c94
-	github.com/kurtosis-tech/kurtosis/api/golang v0.90.1
+	github.com/kurtosis-tech/kurtosis/api/golang v1.0.0
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8
 	github.com/stretchr/testify v1.9.0
 )
