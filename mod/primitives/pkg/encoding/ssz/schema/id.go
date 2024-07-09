@@ -18,13 +18,50 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package schema
 
 import (
 	"go/types"
-
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 )
+
+type ID uint8
+
+const (
+	Basic ID = iota
+	Vector
+	List
+	Container
+)
+
+// IsBasic returns true if the type is a basic type.
+func (t ID) IsBasic() bool {
+	return t == Basic
+}
+
+// IsElements returns true if the type is an enumerable type.
+func (t ID) IsElements() bool {
+	return t == Vector || t == List
+}
+
+// IsComposite returns true if the type is a composite type.
+func (t ID) IsComposite() bool {
+	return t == Vector || t == List || t == Container
+}
+
+// IsEnumerable returns true if the type is an enumerable type.
+func (t ID) IsEnumerable() bool {
+	return t == Vector || t == List
+}
+
+// IsList returns true if the type is a list type.
+func (t ID) IsList() bool {
+	return t == List
+}
+
+// IsContainer returns true if the type is a container type.
+func (t ID) IsContainer() bool {
+	return t == Container
+}
 
 /* -------------------------------------------------------------------------- */
 /*                              Type Definitions                              */
@@ -71,7 +108,7 @@ type MinimalSSZType interface {
 	// MarshalSSZ marshals the type into SSZ format.
 	IsFixed() bool
 	// Type returns the type of the SSZ object.
-	Type() schema.TypeDef
+	Type() TypeDef
 }
 
 // SSZType is the interface for all SSZ types.

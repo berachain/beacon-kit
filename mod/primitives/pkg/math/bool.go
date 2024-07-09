@@ -25,11 +25,10 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 )
 
-// Ensure type implements types.SSZType.
-var _ types.SSZType[Bool] = (*Bool)(nil)
+// Ensure type implements schema.SSZType.
+var _ schema.SSZType[Bool] = (*Bool)(nil)
 
 type Bool bool
 

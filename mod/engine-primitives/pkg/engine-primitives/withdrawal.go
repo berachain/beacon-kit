@@ -92,7 +92,7 @@ func (*Withdrawal) IsFixed() bool {
 
 // Type returns the type of the Withdrawal.
 func (*Withdrawal) Type() schema.TypeDef {
-	return schema.Container(
+	return schema.DefineContainer(
 		schema.Field("index", schema.U64()),
 		schema.Field("validator_index", schema.U64()),
 		schema.Field("address", schema.B20()),

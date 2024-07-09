@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 )
@@ -37,9 +37,9 @@ type Buffer[T any] interface {
 	Get(size int) []T
 }
 
-// merkleizer can be used for merkleizing SSZ types.
+// merkleizer can be used for merkleizing SSZ schema.
 type Merkleizer[
-	RootT ~[32]byte, T types.MerkleizableSSZObject[RootT],
+	RootT ~[32]byte, T schema.MerkleizableSSZObject[RootT],
 ] struct {
 	rootHasher  *merkle.RootHasher[RootT]
 	bytesBuffer Buffer[RootT]
@@ -48,7 +48,7 @@ type Merkleizer[
 // NewMerkleizer creates a new merkleizer with a reusable hasher and bytes
 // buffer.
 func NewMerkleizer[
-	RootT ~[32]byte, T types.MerkleizableSSZObject[RootT],
+	RootT ~[32]byte, T schema.MerkleizableSSZObject[RootT],
 ]() *Merkleizer[RootT, T] {
 	return &Merkleizer[RootT, T]{
 		rootHasher: merkle.NewRootHasher(
@@ -82,7 +82,7 @@ func (m *Merkleizer[RootT, T]) MerkleizeByteSlice(
 }
 
 // MerkleizeVectorBasic implements the SSZ merkleization algorithm
-// for a vector of basic types.
+// for a vector of basic schema.
 func (m *Merkleizer[RootT, T]) MerkleizeVectorBasic(
 	value []T,
 ) (RootT, error) {
@@ -119,7 +119,7 @@ func (m *Merkleizer[RootT, T]) MerkleizeVectorCompositeOrContainer(
 /* -------------------------------------------------------------------------- */
 
 // MerkleizeListBasic implements the SSZ merkleization algorithm for a list of
-// basic types.
+// basic schema.
 func (m *Merkleizer[RootT, T]) MerkleizeListBasic(
 	value []T,
 	chunkCount uint64,
@@ -147,7 +147,7 @@ func (m *Merkleizer[RootT, T]) MerkleizeListBasic(
 }
 
 // MerkleizeListComposite implements the SSZ merkleization algorithm for a list
-// of composite types.
+// of composite schema.
 func (m *Merkleizer[RootT, T]) MerkleizeListComposite(
 	value []T,
 	chunkCount uint64,

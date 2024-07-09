@@ -56,29 +56,29 @@ func U128() TypeDef { return basic(constants.U128Size) }
 // U256 returns an TypeDef representing a 256-bit unsigned integer.
 func U256() TypeDef { return basic(constants.U256Size) }
 
-// B4 creates a ByteVector of 4 bytes (32 bits).
-func B4() TypeDef { return ByteVector(B4Size) }
+// B4 creates a DefineByteVector of 4 bytes (32 bits).
+func B4() TypeDef { return DefineByteVector(B4Size) }
 
-// B8 creates a ByteVector of 8 bytes (64 bits).
-func B8() TypeDef { return ByteVector(B8Size) }
+// B8 creates a DefineByteVector of 8 bytes (64 bits).
+func B8() TypeDef { return DefineByteVector(B8Size) }
 
-// B16 creates a ByteVector of 16 bytes (128 bits).
-func B16() TypeDef { return ByteVector(B16Size) }
+// B16 creates a DefineByteVector of 16 bytes (128 bits).
+func B16() TypeDef { return DefineByteVector(B16Size) }
 
-// B20 creates a ByteVector of 20 bytes (160 bits).
-func B20() TypeDef { return ByteVector(B20Size) }
+// B20 creates a DefineByteVector of 20 bytes (160 bits).
+func B20() TypeDef { return DefineByteVector(B20Size) }
 
-// B32 creates a ByteVector of 32 bytes (256 bits).
-func B32() TypeDef { return ByteVector(B32Size) }
+// B32 creates a DefineByteVector of 32 bytes (256 bits).
+func B32() TypeDef { return DefineByteVector(B32Size) }
 
-// B48 creates a ByteVector of 48 bytes (384 bits).
-func B48() TypeDef { return ByteVector(B48Size) }
+// B48 creates a DefineByteVector of 48 bytes (384 bits).
+func B48() TypeDef { return DefineByteVector(B48Size) }
 
-// B64 creates a ByteVector of 64 bytes (512 bits).
-func B64() TypeDef { return ByteVector(B64Size) }
+// B64 creates a DefineByteVector of 64 bytes (512 bits).
+func B64() TypeDef { return DefineByteVector(B64Size) }
 
-// B96 creates a ByteVector of 96 bytes (768 bits).
-func B96() TypeDef { return ByteVector(B96Size) }
+// B96 creates a DefineByteVector of 96 bytes (768 bits).
+func B96() TypeDef { return DefineByteVector(B96Size) }
 
 // B256 creates a Vector of 256 bytes (2048 bits).
-func B256() TypeDef { return Vector(U8(), B256Size) }
+func B256() TypeDef { return DefineVector(U8(), B256Size) }

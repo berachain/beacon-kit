@@ -29,12 +29,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math/pow"
 )
 
-var _ types.SSZType[U64] = (*U64)(nil)
+var _ schema.SSZType[U64] = (*U64)(nil)
 
 //nolint:lll
 type (

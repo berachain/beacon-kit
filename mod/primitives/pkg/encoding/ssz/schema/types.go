@@ -27,13 +27,12 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle/proof"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types/types"
 )
 
 // TypeDef represents an interface for Simple Serialize (SSZ) types.
 type TypeDef interface {
 	// ID returns the type identifier for the SSZ type.
-	ID() types.Type
+	ID() ID
 	// ItemLength returns the length of an item in bytes for the SSZ type.
 	ItemLength() uint64
 	// ItemPosition calculates the position of an item within the SSZ type.
@@ -55,7 +54,7 @@ type TypeDef interface {
 type basic uint64
 
 // ID returns the type ID of the basic type.
-func (b basic) ID() types.Type { return types.Basic }
+func (b basic) ID() ID { return Basic }
 
 // ItemLength returns the size of the basic type in bytes.
 func (b basic) ItemLength() uint64 { return uint64(b) }
@@ -81,15 +80,15 @@ type vector struct {
 	length      uint64
 }
 
-func Vector(elementType TypeDef, length uint64) TypeDef {
+func DefineVector(elementType TypeDef, length uint64) TypeDef {
 	return vector{elementType: elementType, length: length}
 }
 
-func ByteVector(length uint64) TypeDef {
-	return Vector(U8(), length)
+func DefineByteVector(length uint64) TypeDef {
+	return DefineVector(U8(), length)
 }
 
-func (v vector) ID() types.Type { return types.Vector }
+func (v vector) ID() ID { return Vector }
 
 func (v vector) ItemLength() uint64 { return constants.BytesPerChunk }
 
@@ -112,7 +111,7 @@ func (v vector) HashChunkCount() uint64 {
 	return chunks
 }
 
-// typ.length describes the length for vector types.
+// typ.length describes the length for vector
 func (v vector) Length() uint64 {
 	return v.length
 }
@@ -131,15 +130,15 @@ type list struct {
 	limit       uint64
 }
 
-func List(elementType TypeDef, limit uint64) TypeDef {
+func DefineList(elementType TypeDef, limit uint64) TypeDef {
 	return list{elementType: elementType, limit: limit}
 }
 
-func ByteList(limit uint64) TypeDef {
-	return List(U8(), limit)
+func DefineByteList(limit uint64) TypeDef {
+	return DefineList(U8(), limit)
 }
 
-func (l list) ID() types.Type { return types.List }
+func (l list) ID() ID { return List }
 
 func (l list) ItemLength() uint64 { return l.elementType.ItemLength() }
 
@@ -153,7 +152,7 @@ func (l list) ElementType(_ string) TypeDef {
 	return l.elementType
 }
 
-// typ.length describes the limit for list types.
+// typ.length describes the limit for list
 func (l list) Length() uint64 {
 	return l.limit
 }
@@ -185,7 +184,7 @@ func Field(name string, typ TypeDef) *proof.Field[TypeDef] {
 	return proof.NewField(name, typ)
 }
 
-func Container(fields ...*proof.Field[TypeDef]) TypeDef {
+func DefineContainer(fields ...*proof.Field[TypeDef]) TypeDef {
 	fieldIndex := make(map[string]uint64)
 	types := make([]TypeDef, len(fields))
 	for i, f := range fields {
@@ -196,7 +195,7 @@ func Container(fields ...*proof.Field[TypeDef]) TypeDef {
 	return container{Fields: types, FieldIndex: fieldIndex}
 }
 
-func (c container) ID() types.Type { return types.Container }
+func (c container) ID() ID { return Container }
 
 func (c container) ItemLength() uint64 { return constants.BytesPerChunk }
 

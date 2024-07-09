@@ -27,7 +27,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -35,14 +34,14 @@ import (
 /* -------------------------------------------------------------------------- */
 
 // Vector conforms to the SSZEenumerable interface.
-var _ types.SSZEnumerable[Byte] = (Vector[Byte])(nil)
+var _ schema.SSZEnumerable[Byte] = (Vector[Byte])(nil)
 
 // Vector represents a vector of elements.
-type Vector[T types.MinimalSSZType] []T
+type Vector[T schema.MinimalSSZType] []T
 
 // VectorBasicFromElements creates a new ListComposite from elements.
 // TODO: Deprecate once off of Fastssz
-func VectorFromElements[T types.MinimalSSZType](elements ...T) Vector[T] {
+func VectorFromElements[T schema.MinimalSSZType](elements ...T) Vector[T] {
 	return elements
 }
 
@@ -74,7 +73,7 @@ func (Vector[T]) IsFixed() bool {
 // Type returns the type of the VectorBasic.
 func (v Vector[T]) Type() schema.TypeDef {
 	var t T
-	return schema.Vector(t.Type(), uint64(len(v)))
+	return schema.DefineVector(t.Type(), uint64(len(v)))
 }
 
 // ChunkCount returns the number of chunks in the VectorBasic.
