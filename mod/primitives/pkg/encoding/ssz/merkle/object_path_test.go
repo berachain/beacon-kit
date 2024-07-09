@@ -72,7 +72,7 @@ func Test_ObjectPath(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(strings.ReplaceAll(tc.path, "/", "."), func(t *testing.T) {
-			objectPath := merkle.ObjectPath[[32]byte](tc.path)
+			objectPath := merkle.ObjectPath[uint64, [32]byte](tc.path)
 			typ, gindex, offset, err := objectPath.GetGeneralizedIndex(root)
 
 			if tc.error != "" {

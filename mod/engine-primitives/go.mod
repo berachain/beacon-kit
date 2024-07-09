@@ -2,8 +2,6 @@ module github.com/berachain/beacon-kit/mod/engine-primitives
 
 go 1.22.5
 
-replace github.com/berachain/beacon-kit/mod/primitives => ../primitives
-
 require (
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240618214413-d5ec0e66b3dd
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240630225951-a5075323fa26
@@ -12,6 +10,8 @@ require (
 	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
 	github.com/stretchr/testify v1.9.0
 )
+
+replace github.com/berachain/beacon-kit/mod/primitives => ../primitives
 
 require (
 	github.com/DataDog/zstd v1.5.5 // indirect

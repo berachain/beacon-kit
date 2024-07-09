@@ -29,10 +29,10 @@ import (
 )
 
 // ObjectPath represents a path to an object in a Merkle tree.
-type ObjectPath[RootT ~[32]byte] string
+type ObjectPath[GeneralizedIndexT ~uint64, RootT ~[32]byte] string
 
 // Split returns the path split by "/".
-func (p ObjectPath[_]) Split() []string {
+func (p ObjectPath[_, _]) Split() []string {
 	return strings.Split(string(p), "/")
 }
 
@@ -66,9 +66,9 @@ func (p ObjectPath[_]) Split() []string {
 //	typ = get_elem_type(typ, p)
 //
 // return root.
-func (p ObjectPath[RootT]) GetGeneralizedIndex(
+func (p ObjectPath[GeneralizedIndexT, RootT]) GetGeneralizedIndex(
 	typ schema.TypeDef,
-) (schema.TypeDef, GeneralizedIndex[RootT], uint8, error) {
+) (schema.TypeDef, GeneralizedIndexT, uint8, error) {
 	gIndex := uint64(1)
 	offset := uint8(0)
 	for _, part := range p.Split() {
@@ -101,7 +101,7 @@ func (p ObjectPath[RootT]) GetGeneralizedIndex(
 		}
 	}
 
-	return typ, GeneralizedIndex[RootT](gIndex), offset, nil
+	return typ, GeneralizedIndexT(gIndex), offset, nil
 }
 
 // getBaseIndex returns the base index for a given SSZ type.
