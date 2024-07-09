@@ -57,7 +57,7 @@ func TestNewGeneralizedIndex(t *testing.T) {
 
 func TestConcatGeneralizedIndices(t *testing.T) {
 	tests := []struct {
-		indices merkle.GeneralizedIndicies[[32]byte]
+		indices merkle.GeneralizedIndices[[32]byte]
 		expect  merkle.GeneralizedIndex[[32]byte]
 	}{
 		{indices: []merkle.GeneralizedIndex[[32]byte]{1, 2, 3}, expect: 0x05},
@@ -125,7 +125,7 @@ func TestGetBranchIndices(t *testing.T) {
 	tests := []struct {
 		name   string
 		index  merkle.GeneralizedIndex[[32]byte]
-		expect merkle.GeneralizedIndicies[[32]byte]
+		expect merkle.GeneralizedIndices[[32]byte]
 	}{
 		{name: "Single Branch", index: 1,
 			expect: []merkle.GeneralizedIndex[[32]byte]{}},
@@ -153,7 +153,7 @@ func TestGetPathIndices(t *testing.T) {
 	tests := []struct {
 		name   string
 		index  merkle.GeneralizedIndex[[32]byte]
-		expect merkle.GeneralizedIndicies[[32]byte]
+		expect merkle.GeneralizedIndices[[32]byte]
 	}{
 		{
 			name:   "No Path",
@@ -276,8 +276,8 @@ func TestVerifyMerkleProof(t *testing.T) {
 func TestGetHelperIndices(t *testing.T) {
 	tests := []struct {
 		name    string
-		indices merkle.GeneralizedIndicies[[32]byte]
-		expect  merkle.GeneralizedIndicies[[32]byte]
+		indices merkle.GeneralizedIndices[[32]byte]
+		expect  merkle.GeneralizedIndices[[32]byte]
 	}{
 		{
 			name:    "No Indices",
@@ -313,7 +313,7 @@ func TestGetHelperIndices(t *testing.T) {
 func TestCalculateMultiMerkleRoot(t *testing.T) {
 	tests := []struct {
 		name      string
-		indices   merkle.GeneralizedIndicies[[32]byte]
+		indices   merkle.GeneralizedIndices[[32]byte]
 		leaves    [][32]byte
 		proof     [][32]byte
 		expect    [32]byte
@@ -375,7 +375,7 @@ func TestCalculateMultiMerkleRoot(t *testing.T) {
 func TestVerifyMerkleMultiproof(t *testing.T) {
 	tests := []struct {
 		name    string
-		indices merkle.GeneralizedIndicies[[32]byte]
+		indices merkle.GeneralizedIndices[[32]byte]
 		leaves  [][32]byte
 		proof   [][32]byte
 		root    [32]byte
