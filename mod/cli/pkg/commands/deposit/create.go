@@ -275,16 +275,16 @@ func broadcastDepositTx(
 		return gethCommon.Hash{}, err
 	}
 
-	latestNonce, errNonce := engineClient.NonceAt(
-		cmd.Context(),
-		ethCrypto.PubkeyToAddress(privKey.PublicKey),
-		nil,
-	)
-	fmt.Println("LATEST NONCE", latestNonce)
+	//latestNonce, errNonce := engineClient.NonceAt(
+	//	cmd.Context(),
+	//	ethCrypto.PubkeyToAddress(privKey.PublicKey),
+	//	nil,
+	//)
+	//fmt.Println("LATEST NONCE", latestNonce)
 
-	if errNonce != nil {
-		panic(errNonce)
-	}
+	//if errNonce != nil {
+	//	panic(errNonce)
+	//}
 	// one way
 	//contractAbi, err := deposit.BeaconDepositContractMetaData.GetAbi()
 	//if err != nil {
