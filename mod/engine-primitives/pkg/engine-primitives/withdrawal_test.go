@@ -27,7 +27,6 @@ import (
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
@@ -146,7 +145,7 @@ func TestWithdrawalMethods(t *testing.T) {
 	})
 
 	t.Run("Type", func(t *testing.T) {
-		require.Equal(t, types.Composite, withdrawal.Type())
+		require.True(t, withdrawal.Type().ID().IsContainer())
 	})
 
 	t.Run("ItemLength", func(t *testing.T) {

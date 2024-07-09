@@ -399,14 +399,22 @@ func TestExecutableDataDeneb_Marshal_Error(t *testing.T) {
 			setup: func(payload *types.ExecutableDataDeneb) {
 				payload.LogsBloom = nil
 			},
-			err: fastssz.ErrBytesLengthFn("ExecutableDataDeneb.LogsBloom", 0, 256),
+			err: fastssz.ErrBytesLengthFn(
+				"ExecutableDataDeneb.LogsBloom",
+				0,
+				256,
+			),
 		},
 		{
 			name: "invalid ExtraData",
 			setup: func(payload *types.ExecutableDataDeneb) {
 				payload.ExtraData = make([]byte, 33)
 			},
-			err: fastssz.ErrBytesLengthFn("ExecutableDataDeneb.ExtraData", 33, 32),
+			err: fastssz.ErrBytesLengthFn(
+				"ExecutableDataDeneb.ExtraData",
+				33,
+				32,
+			),
 		},
 		{
 			name: "invalid Transactions size of individual elements",
@@ -436,7 +444,11 @@ func TestExecutableDataDeneb_Marshal_Error(t *testing.T) {
 			setup: func(payload *types.ExecutableDataDeneb) {
 				payload.Withdrawals = make([]*engineprimitives.Withdrawal, 17)
 			},
-			err: fastssz.ErrListTooBigFn("ExecutableDataDeneb.Withdrawals", 17, 16),
+			err: fastssz.ErrListTooBigFn(
+				"ExecutableDataDeneb.Withdrawals",
+				17,
+				16,
+			),
 		},
 	}
 
@@ -463,7 +475,11 @@ func TestExecutableDataDeneb_HasTreeRootWith_Error(t *testing.T) {
 			setup: func(payload *types.ExecutableDataDeneb) {
 				payload.LogsBloom = nil
 			},
-			err: fastssz.ErrBytesLengthFn("ExecutableDataDeneb.LogsBloom", 0, 256),
+			err: fastssz.ErrBytesLengthFn(
+				"ExecutableDataDeneb.LogsBloom",
+				0,
+				256,
+			),
 		},
 		{
 			name: "invalid ExtraData",

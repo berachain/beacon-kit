@@ -73,29 +73,19 @@ func Test_ObjectPath(t *testing.T) {
 		t.Run(strings.ReplaceAll(tc.path, "/", "."), func(t *testing.T) {
 			objectPath := schema.ObjectPath[[32]byte](tc.path)
 			typ, gindex, offset, err := objectPath.GetGeneralizedIndex(root)
+
 			if tc.error != "" {
 				require.ErrorContains(t, err, tc.error)
 				return
-			} else {
-				require.NoError(t, err)
 			}
-			require.NotNil(t, typ)
+
 			require.NoError(t, err)
-			require.Equalf(
-				t,
-				tc.gindex,
-				uint64(gindex),
-				"expected %d, got %d",
-				tc.gindex,
-				uint64(gindex))
+			require.NotNil(
+				t, typ, "Type should not be nil")
 			require.Equal(
-				t,
-				tc.offset,
-				offset,
-				"expected %d, got %d",
-				tc.offset,
-				offset,
+				t, tc.gindex, uint64(gindex), "Unexpected generalized index",
 			)
+			require.Equal(t, tc.offset, offset, "Unexpected offset")
 		})
 	}
 }
