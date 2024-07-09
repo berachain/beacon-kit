@@ -95,7 +95,7 @@ func (s *Service[
 
 	// We have to assemble the block body prior to producing the sidecars
 	// since we need to generate the inclusion proofs.
-	if err = s.buildBlockBody(ctx, st, blk, reveal, envelope); err != nil {
+	if err = s.buildBlockBody(st, blk, reveal, envelope); err != nil {
 		return blk, sidecars, err
 	}
 
@@ -264,7 +264,6 @@ func (s *Service[
 	BeaconBlockT, _, BeaconStateT, _,
 	_, _, Eth1DataT, ExecutionPayloadT, _, _,
 ]) buildBlockBody(
-	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
 	reveal crypto.BLSSignature,
@@ -294,7 +293,7 @@ func (s *Service[
 	}
 
 	// Dequeue deposits from the state.
-	deposits, err := s.bsb.DepositStore(ctx).GetDepositsByIndex(
+	deposits, err := s.bsb.DepositStore().GetDepositsByIndex(
 		depositIndex,
 		s.chainSpec.MaxDepositsPerBlock(),
 	)

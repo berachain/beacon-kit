@@ -21,8 +21,6 @@
 package storage
 
 import (
-	"context"
-
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
@@ -120,9 +118,7 @@ func NewBackend[
 // given context.
 func (k Backend[
 	AvailabilityStoreT, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) AvailabilityStore(
-	_ context.Context,
-) AvailabilityStoreT {
+]) AvailabilityStore() AvailabilityStoreT {
 	return k.availabilityStore
 }
 
@@ -138,8 +134,6 @@ func (k Backend[
 // DepositStore returns the deposit store struct initialized with a.
 func (k Backend[
 	_, _, _, _, _, _, _, DepositStoreT, _, _, _, _, _, _, _,
-]) DepositStore(
-	_ context.Context,
-) DepositStoreT {
+]) DepositStore() DepositStoreT {
 	return k.depositStore
 }
