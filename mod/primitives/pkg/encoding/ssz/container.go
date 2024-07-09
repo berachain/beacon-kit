@@ -22,7 +22,7 @@ package ssz
 
 import (
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkleizer"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 )
@@ -109,7 +109,9 @@ func (c *Container) HashTreeRootWith(
 
 // HashTreeRoot returns the hash tree root of the container.
 func (c *Container) HashTreeRoot() ([32]byte, error) {
-	return c.HashTreeRootWith(merkleizer.New[[32]byte, types.MinimalSSZType]())
+	return c.HashTreeRootWith(
+		merkle.NewMerkleizer[[32]byte, types.MinimalSSZType](),
+	)
 }
 
 /* -------------------------------------------------------------------------- */

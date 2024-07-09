@@ -31,7 +31,7 @@ import (
 /* -------------------------------------------------------------------------- */
 
 // SSZTypeDef defines the interface that type definitions must adhere to.
-// An SSZTypeDef *REPRESENTS* an underyling type, but it is NOT an instance
+// An SSZTypeDef *REPRESENTS* an underlying type, but it is NOT an instance
 // of this type.
 type SSZTypeDef interface {
 	// ID returns the type identifier for the SSZ type.

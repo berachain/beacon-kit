@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package merkleizer
+package merkle
 
 import (
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -45,8 +45,9 @@ type Merkleizer[
 	bytesBuffer Buffer[RootT]
 }
 
-// New creates a new merkleizer with a reusable hasher and bytes buffer.
-func New[
+// NewMerkleizer creates a new merkleizer with a reusable hasher and bytes
+// buffer.
+func NewMerkleizer[
 	RootT ~[32]byte, T types.MerkleizableSSZObject[RootT],
 ]() *Merkleizer[RootT, T] {
 	return &Merkleizer[RootT, T]{

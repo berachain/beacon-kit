@@ -26,7 +26,7 @@ import (
 )
 
 // TODO: Figure out what the best way to do our DB types is?
-// Should this even be a DB package, shoudl we just have a tree that
+// Should this even be a DB package, should we just have a tree that
 // is completely decoupled fromt he DB?
 // Putting this here for now just to make the deps nicely structured
 // but long term we need to figure out the play.

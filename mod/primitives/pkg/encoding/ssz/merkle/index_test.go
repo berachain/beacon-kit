@@ -40,7 +40,10 @@ func TestNewGeneralizedIndex(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		result := merkle.NewGeneralizedIndex[[32]byte](tt.depth, tt.index)
+		result := merkle.NewGeneralizedIndex[[32]byte](
+			tt.depth,
+			tt.index,
+		)
 		require.Equal(
 			t,
 			tt.expect,

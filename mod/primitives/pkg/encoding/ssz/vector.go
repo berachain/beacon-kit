@@ -25,7 +25,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkleizer"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 )
@@ -107,7 +107,7 @@ func (v Vector[T]) Elements() []T {
 /* -------------------------------------------------------------------------- */
 
 // HashTreeRootWith returns the Merkle root of the VectorBasic
-// with a given merkleizer.
+// with a given merkle.
 func (v Vector[T]) HashTreeRootWith(
 	merkleizer VectorMerkleizer[[32]byte, T],
 ) ([32]byte, error) {
@@ -124,7 +124,7 @@ func (v Vector[T]) HashTreeRootWith(
 
 // HashTreeRoot returns the Merkle root of the VectorBasic.
 func (v Vector[T]) HashTreeRoot() ([32]byte, error) {
-	return v.HashTreeRootWith(merkleizer.New[[32]byte, T]())
+	return v.HashTreeRootWith(merkle.NewMerkleizer[[32]byte, T]())
 }
 
 /* -------------------------------------------------------------------------- */

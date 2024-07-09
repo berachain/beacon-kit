@@ -18,14 +18,14 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package merkleizer_test
+package merkle_test
 
 import (
 	"crypto/sha256"
 	"encoding/binary"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkleizer"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/stretchr/testify/require"
 )
 
@@ -47,8 +47,8 @@ func (u BasicItem) MarshalSSZ() ([]byte, error) {
 // HashTreeRoot computes the Merkle root of the U64 using SSZ hashing rules.
 func (u BasicItem) HashTreeRoot() ([32]byte, error) {
 	// In practice we can use a simpler function.
-	merkleizer := merkleizer.New[[32]byte, BasicItem]()
-	return merkleizer.MerkleizeBasic(u)
+	return merkle.
+		NewMerkleizer[[32]byte, BasicItem]().MerkleizeBasic(u)
 }
 
 // BasicContainer represents a container of two basic items.
@@ -65,10 +65,10 @@ func (c *BasicContainer[SpecT]) SizeSSZ() int {
 // HashTreeRoot computes the Merkle root of the container using SSZ hashing
 // rules.
 func (c *BasicContainer[SpecT]) HashTreeRoot() ([32]byte, error) {
-	merkleizer := merkleizer.New[[32]byte, BasicItem]()
-	return merkleizer.MerkleizeVectorCompositeOrContainer(
-		[]BasicItem{c.Item1, c.Item2},
-	)
+	return merkle.NewMerkleizer[[32]byte, BasicItem]().
+		MerkleizeVectorCompositeOrContainer(
+			[]BasicItem{c.Item1, c.Item2},
+		)
 }
 
 // MarshalSSZ marshals the container into a byte slice.
@@ -86,17 +86,6 @@ func (c *BasicContainer[SpecT]) MarshalSSZ() ([]byte, error) {
 	copy(buf[8:], item2Bytes)
 	return buf, nil
 }
-
-// TestBasicItemMerkleization tests the Merkleization of a basic item.
-func TestBasicItemMerkleization(t *testing.T) {
-	item := BasicItem(42)
-
-	// Merkleize the item.
-	actualRoot, err := item.HashTreeRoot()
-	require.NoError(t, err)
-
-	// Manually compute the expected root.
-	buf := make([]byte, 32)
 
 // TestBasicItemMerkleization tests the Merkleization of a basic item.
 func TestBasicContainerMerkleization(t *testing.T) {

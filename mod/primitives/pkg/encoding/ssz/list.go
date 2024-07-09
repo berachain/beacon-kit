@@ -25,7 +25,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkleizer"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 )
@@ -121,7 +121,7 @@ func (l *List[T]) Elements() []T {
 }
 
 // HashTreeRootWith returns the Merkle root of the List
-// with a given merkleizer.
+// with a given merkle.
 func (l *List[T]) HashTreeRootWith(
 	merkleizer ListMerkleizer[[32]byte, T],
 ) ([32]byte, error) {
@@ -139,7 +139,7 @@ func (l *List[T]) HashTreeRootWith(
 // HashTreeRoot returns the Merkle root of the List.
 func (l *List[T]) HashTreeRoot() ([32]byte, error) {
 	// Create a merkleizer
-	return l.HashTreeRootWith(merkleizer.New[[32]byte, T]())
+	return l.HashTreeRootWith(merkle.NewMerkleizer[[32]byte, T]())
 }
 
 // MarshalSSZTo marshals the List into SSZ format.
