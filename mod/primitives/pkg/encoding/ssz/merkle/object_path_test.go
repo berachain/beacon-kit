@@ -30,19 +30,19 @@ import (
 )
 
 func Test_ObjectPath(t *testing.T) {
-	nested := schema.DefineContainer(
+	nested := schema.Container(
 		schema.Field("bytes32", schema.B32()),
 		schema.Field("uint64", schema.U64()),
-		schema.Field("list_bytes32", schema.DefineList(schema.B32(), 10)),
-		schema.Field("bytes256", schema.DefineVector(schema.U8(), 256)),
+		schema.Field("list_bytes32", schema.List(schema.B32(), 10)),
+		schema.Field("bytes256", schema.Vector(schema.U8(), 256)),
 	)
-	root := schema.DefineContainer(
+	root := schema.Container(
 		schema.Field("bytes32", schema.B32()),
 		schema.Field("uint32", schema.U32()),
-		schema.Field("list_uint64", schema.DefineList(schema.U64(), 1000)),
-		schema.Field("list_nested", schema.DefineList(nested, 1000)),
+		schema.Field("list_uint64", schema.List(schema.U64(), 1000)),
+		schema.Field("list_nested", schema.List(nested, 1000)),
 		schema.Field("nested", nested),
-		schema.Field("vector_uint64", schema.DefineVector(schema.U64(), 40)),
+		schema.Field("vector_uint64", schema.Vector(schema.U64(), 40)),
 	)
 
 	cases := []struct {

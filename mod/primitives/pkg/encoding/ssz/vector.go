@@ -73,7 +73,7 @@ func (Vector[T]) IsFixed() bool {
 // Type returns the type of the VectorBasic.
 func (v Vector[T]) Type() schema.SSZType {
 	var t T
-	return schema.DefineVector(t.Type(), uint64(len(v)))
+	return schema.Vector(t.Type(), uint64(len(v)))
 }
 
 // ChunkCount returns the number of chunks in the VectorBasic.

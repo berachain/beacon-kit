@@ -109,9 +109,9 @@ func (l *List[T]) Type() schema.SSZType {
 	var t T
 	// TODO: Fix this is a bad hack.
 	if l == nil {
-		return schema.DefineList(t.Type(), 0)
+		return schema.List(t.Type(), 0)
 	}
-	return schema.DefineList(t.Type(), l.limit)
+	return schema.List(t.Type(), l.limit)
 }
 
 // Elements returns the elements of the List.
