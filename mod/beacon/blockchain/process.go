@@ -26,28 +26,17 @@ import (
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	"golang.org/x/sync/errgroup"
 )
 
 // ProcessGenesisData processes the genesis state and initializes the beacon
 // state.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconBlockHeaderT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	ExecutionPayloadT,
-	ExecutionPayloadHeaderT,
-	GenesisT,
+	_, _, _, _, _, _, _, _, _, GenesisT, _, _,
 ]) ProcessGenesisData(
 	ctx context.Context,
 	genesisData GenesisT,
-) ([]*transition.ValidatorUpdate, error) {
+) (transition.ValidatorUpdates, error) {
 	return s.sp.InitializePreminedBeaconStateFromEth1(
 		s.sb.StateFromContext(ctx),
 		genesisData.GetDeposits(),
@@ -56,54 +45,27 @@ func (s *Service[
 	)
 }
 
-// ProcessBlockAndBlobs receives an incoming beacon block, it first validates
+// ProcessBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconBlockHeaderT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	ExecutionPayloadT,
-	ExecutionPayloadHeaderT,
-	GenesisT,
-]) ProcessBlockAndBlobs(
+	_, BeaconBlockT, _, _, _, _, _, _, _, _, _, _,
+]) ProcessBeaconBlock(
 	ctx context.Context,
 	blk BeaconBlockT,
-	sidecars BlobSidecarsT,
-) ([]*transition.ValidatorUpdate, error) {
-	var (
-		g, gCtx    = errgroup.WithContext(ctx)
-		st         = s.sb.StateFromContext(ctx)
-		valUpdates []*transition.ValidatorUpdate
-	)
-
+) (transition.ValidatorUpdates, error) {
 	// If the block is nil, exit early.
 	if blk.IsNil() {
 		return nil, ErrNilBlk
 	}
 
-	// Launch a goroutine to process the incoming beacon block.
-	g.Go(func() error {
-		var err error
-		// We set `OptimisticEngine` to true since this is called during
-		// FinalizeBlock. We want to assume the payload is valid. If it
-		// ends up not being valid later, the node will simply AppHash,
-		// which is completely fine. This means we were syncing from a
-		// bad peer, and we would likely AppHash anyways.
-		valUpdates, err = s.processBeaconBlock(gCtx, st, blk)
-		return err
-	})
-
-	// Launch a goroutine to process the blob sidecars.
-	g.Go(func() error {
-		return s.processBlobSidecars(gCtx, blk.GetSlot(), sidecars)
-	})
-
-	// Wait for the goroutines to finish.
-	if err := g.Wait(); err != nil {
+	// We set `OptimisticEngine` to true since this is called during
+	// FinalizeBlock. We want to assume the payload is valid. If it
+	// ends up not being valid later, the node will simply AppHash,
+	// which is completely fine. This means we were syncing from a
+	// bad peer, and we would likely AppHash anyways.
+	st := s.sb.StateFromContext(ctx)
+	valUpdates, err := s.executeStateTransition(ctx, st, blk)
+	if err != nil {
 		return nil, err
 	}
 
@@ -121,33 +83,27 @@ func (s *Service[
 	// TODO: this is hood as fuck.
 	// We won't send a fcu if the block is bad, should be addressed
 	// via ticker later.
-	go func() {
-		s.blockFeed.Send(
-			asynctypes.NewEvent(ctx, events.BeaconBlockFinalized, blk),
-		)
-		s.sendPostBlockFCU(ctx, st, blk)
-	}()
+	if err = s.blkBroker.Publish(ctx,
+		asynctypes.NewEvent(
+			ctx, events.BeaconBlockFinalized, blk,
+		),
+	); err != nil {
+		return nil, err
+	}
 
-	return valUpdates, nil
+	go s.sendPostBlockFCU(ctx, st, blk)
+
+	return valUpdates.RemoveDuplicates().Sort(), nil
 }
 
-// ProcessBeaconBlock processes the beacon block.
+// executeStateTransition runs the stf.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconBlockHeaderT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	ExecutionPayloadT,
-	ExecutionPayloadHeaderT,
-	GenesisT,
-]) processBeaconBlock(
+	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _, _, _,
+]) executeStateTransition(
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
-) ([]*transition.ValidatorUpdate, error) {
+) (transition.ValidatorUpdates, error) {
 	startTime := time.Now()
 	defer s.metrics.measureStateTransitionDuration(startTime)
 	valUpdates, err := s.sp.Transition(
@@ -173,30 +129,4 @@ func (s *Service[
 		blk,
 	)
 	return valUpdates, err
-}
-
-// ProcessBlobSidecars processes the blob sidecars.
-func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconBlockHeaderT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	ExecutionPayloadT,
-	ExecutionPayloadHeaderT,
-	GenesisT,
-]) processBlobSidecars(
-	ctx context.Context,
-	slot math.Slot,
-	sidecars BlobSidecarsT,
-) error {
-	startTime := time.Now()
-	defer s.metrics.measureBlobProcessingDuration(startTime)
-	return s.bp.ProcessBlobs(
-		slot,
-		s.sb.AvailabilityStore(ctx),
-		sidecars,
-	)
 }

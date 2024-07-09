@@ -26,7 +26,7 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
@@ -35,12 +35,12 @@ const EthSecp256k1CredentialPrefix = byte(iota + 1)
 
 // WithdrawalCredentials is a staking credential that is used to identify a
 // validator.
-type WithdrawalCredentials bytes.B32
+type WithdrawalCredentials common.Bytes32
 
 // NewCredentialsFromExecutionAddress creates a new WithdrawalCredentials from
 // an.
 func NewCredentialsFromExecutionAddress(
-	address common.ExecutionAddress,
+	address gethprimitives.ExecutionAddress,
 ) WithdrawalCredentials {
 	credentials := WithdrawalCredentials{}
 	credentials[0] = 0x01
@@ -50,35 +50,35 @@ func NewCredentialsFromExecutionAddress(
 
 // ToExecutionAddress converts the WithdrawalCredentials to an ExecutionAddress.
 func (wc WithdrawalCredentials) ToExecutionAddress() (
-	common.ExecutionAddress,
+	gethprimitives.ExecutionAddress,
 	error,
 ) {
 	if wc[0] != EthSecp256k1CredentialPrefix {
-		return common.ZeroAddress, ErrInvalidWithdrawalCredentials
+		return gethprimitives.ZeroAddress, ErrInvalidWithdrawalCredentials
 	}
-	return common.ExecutionAddress(wc[12:]), nil
+	return gethprimitives.ExecutionAddress(wc[12:]), nil
 }
 
 // UnmarshalJSON implements the json.Unmarshaler interface for Bytes32.
 // TODO: Figure out how to not have to do this.
 func (wc *WithdrawalCredentials) UnmarshalJSON(input []byte) error {
-	return (*bytes.B32)(wc).UnmarshalJSON(input)
+	return (*common.Bytes32)(wc).UnmarshalJSON(input)
 }
 
 // String returns the hex string representation of Bytes32.
 // TODO: Figure out how to not have to do this.
 func (wc WithdrawalCredentials) String() string {
-	return bytes.B32(wc).String()
+	return common.Bytes32(wc).String()
 }
 
 // MarshalText implements the encoding.TextMarshaler interface for Bytes32.
 // TODO: Figure out how to not have to do this.
 func (wc WithdrawalCredentials) MarshalText() ([]byte, error) {
-	return bytes.B32(wc).MarshalText()
+	return common.Bytes32(wc).MarshalText()
 }
 
 // UnmarshalText implements the encoding.TextUnmarshaler interface for Bytes32.
 // TODO: Figure out how to not have to do this.
 func (wc *WithdrawalCredentials) UnmarshalText(text []byte) error {
-	return (*bytes.B32)(wc).UnmarshalText(text)
+	return (*common.Bytes32)(wc).UnmarshalText(text)
 }

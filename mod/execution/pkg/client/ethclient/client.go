@@ -22,23 +22,17 @@ package ethclient
 
 import (
 	"context"
-	"encoding/json"
 
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/ethereum/go-ethereum/rpc"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/ethclient"
+	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/rpc"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 )
 
 // Eth1Client is a struct that holds the Ethereum 1 client and
 // its configuration.
 type Eth1Client[
-	ExecutionPayloadT interface {
-		json.Marshaler
-		json.Unmarshaler
-		Empty(uint32) ExecutionPayloadT
-		Version() uint32
-	},
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 ] struct {
 	*ethclient.Client
 }
@@ -46,12 +40,7 @@ type Eth1Client[
 // NewEth1Client creates a new Ethereum 1 client with the provided
 // context and options.
 func NewEth1Client[
-	ExecutionPayloadT interface {
-		json.Marshaler
-		json.Unmarshaler
-		Empty(uint32) ExecutionPayloadT
-		Version() uint32
-	},
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 ](client *ethclient.Client) (*Eth1Client[ExecutionPayloadT], error) {
 	c := &Eth1Client[ExecutionPayloadT]{
 		Client: client,
@@ -61,12 +50,7 @@ func NewEth1Client[
 
 // NewFromRPCClient creates a new Ethereum 1 client from an RPC client.
 func NewFromRPCClient[
-	ExecutionPayloadT interface {
-		json.Marshaler
-		json.Unmarshaler
-		Empty(uint32) ExecutionPayloadT
-		Version() uint32
-	},
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 ](rpcClient *rpc.Client) (*Eth1Client[ExecutionPayloadT], error) {
 	return NewEth1Client[ExecutionPayloadT](ethclient.NewClient(rpcClient))
 }
@@ -74,9 +58,9 @@ func NewFromRPCClient[
 // ExecutionBlockByHash fetches an execution engine block by hash by calling
 // eth_blockByHash via JSON-RPC.
 func (s *Eth1Client[ExecutionPayloadT]) ExecutionBlockByHash(
-	ctx context.Context, hash common.ExecutionHash, withTxs bool,
-) (*engineprimitives.Block, error) {
-	result := &engineprimitives.Block{}
+	ctx context.Context, hash gethprimitives.ExecutionHash, withTxs bool,
+) (*gethprimitives.Block, error) {
+	result := &gethprimitives.Block{}
 	err := s.Client.Client().CallContext(
 		ctx, result, BlockByHashMethod, hash, withTxs)
 	return result, err
@@ -86,8 +70,8 @@ func (s *Eth1Client[ExecutionPayloadT]) ExecutionBlockByHash(
 // by calling eth_getBlockByNumber via JSON-RPC.
 func (s *Eth1Client[ExecutionPayloadT]) ExecutionBlockByNumber(
 	ctx context.Context, num rpc.BlockNumber, withTxs bool,
-) (*engineprimitives.Block, error) {
-	result := &engineprimitives.Block{}
+) (*gethprimitives.Block, error) {
+	result := &gethprimitives.Block{}
 	err := s.Client.Client().CallContext(
 		ctx, result, BlockByNumberMethod, num, withTxs)
 	return result, err

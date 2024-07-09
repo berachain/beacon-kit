@@ -24,8 +24,8 @@ import (
 	"strconv"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
 // engineMetrics is a struct that contains metrics for the engine.
@@ -49,17 +49,10 @@ func newEngineMetrics(
 
 // markNewPayloadCalled increments the counter for new payload calls.
 func (em *engineMetrics) markNewPayloadCalled(
-	payloadHash common.ExecutionHash,
-	parentHash common.ExecutionHash,
+	payloadHash gethprimitives.ExecutionHash,
+	parentHash gethprimitives.ExecutionHash,
 	isOptimistic bool,
 ) {
-	em.logger.Info(
-		"Calling new payload",
-		"payload_block_hash", payloadHash,
-		"payload_parent_block_hash", parentHash,
-		"is_optimistic", isOptimistic,
-	)
-
 	em.sink.IncrementCounter(
 		"beacon_kit.execution.engine.new_payload",
 		"payload_block_hash", payloadHash.Hex(),
@@ -68,11 +61,30 @@ func (em *engineMetrics) markNewPayloadCalled(
 	)
 }
 
+// markNewPayloadValid increments the counter for valid payloads.
+func (em *engineMetrics) markNewPayloadValid(
+	payloadHash gethprimitives.ExecutionHash,
+	parentHash gethprimitives.ExecutionHash,
+	isOptimistic bool,
+) {
+	em.logger.Info(
+		"Inserted new payload into execution chain",
+		"payload_block_hash", payloadHash,
+		"payload_parent_block_hash", parentHash,
+		"is_optimistic", isOptimistic,
+	)
+
+	em.sink.IncrementCounter(
+		"beacon_kit.execution.engine.new_payload_valid",
+		"is_optimistic", strconv.FormatBool(isOptimistic),
+	)
+}
+
 // markNewPayloadAcceptedSyncingPayloadStatus increments
 // the counter for accepted syncing payload status.
 func (em *engineMetrics) markNewPayloadAcceptedSyncingPayloadStatus(
-	payloadHash common.ExecutionHash,
-	parentHash common.ExecutionHash,
+	payloadHash gethprimitives.ExecutionHash,
+	parentHash gethprimitives.ExecutionHash,
 	isOptimistic bool,
 ) {
 	em.errorLoggerFn(isOptimistic)(
@@ -92,7 +104,7 @@ func (em *engineMetrics) markNewPayloadAcceptedSyncingPayloadStatus(
 // markNewPayloadInvalidPayloadStatus increments the counter
 // for invalid payload status.
 func (em *engineMetrics) markNewPayloadInvalidPayloadStatus(
-	payloadHash common.ExecutionHash,
+	payloadHash gethprimitives.ExecutionHash,
 	isOptimistic bool,
 ) {
 	em.errorLoggerFn(isOptimistic)(
@@ -110,8 +122,8 @@ func (em *engineMetrics) markNewPayloadInvalidPayloadStatus(
 
 // markNewPayloadJSONRPCError increments the counter for JSON-RPC errors.
 func (em *engineMetrics) markNewPayloadJSONRPCError(
-	payloadHash common.ExecutionHash,
-	lastValidHash common.ExecutionHash,
+	payloadHash gethprimitives.ExecutionHash,
+	lastValidHash gethprimitives.ExecutionHash,
 	isOptimistic bool,
 	err error,
 ) {
@@ -133,7 +145,7 @@ func (em *engineMetrics) markNewPayloadJSONRPCError(
 
 // markNewPayloadUndefinedError increments the counter for undefined errors.
 func (em *engineMetrics) markNewPayloadUndefinedError(
-	payloadHash common.ExecutionHash,
+	payloadHash gethprimitives.ExecutionHash,
 	isOptimistic bool,
 	err error,
 ) {
@@ -155,19 +167,34 @@ func (em *engineMetrics) markNewPayloadUndefinedError(
 // markNotifyForkchoiceUpdateCalled increments the counter for
 // notify forkchoice update calls.
 func (em *engineMetrics) markNotifyForkchoiceUpdateCalled(
-	state *engineprimitives.ForkchoiceStateV1,
 	hasPayloadAttributes bool,
 ) {
-	em.logger.Info("Notifying forkchoice update",
-		"head_eth1_hash", state.HeadBlockHash,
-		"safe_eth1_hash", state.SafeBlockHash,
-		"finalized_eth1_hash", state.FinalizedBlockHash,
-		"has_attributes", hasPayloadAttributes,
-	)
-
 	em.sink.IncrementCounter(
 		"beacon_kit.execution.engine.forkchoice_update",
 		"has_payload_attributes", strconv.FormatBool(hasPayloadAttributes),
+	)
+}
+
+// markForkchoiceUpdateValid increments the counter for valid forkchoice
+// updates.
+func (em *engineMetrics) markForkchoiceUpdateValid(
+	state *engineprimitives.ForkchoiceStateV1,
+	hasPayloadAttributes bool,
+	payloadID *engineprimitives.PayloadID,
+) {
+	args := []any{
+		"head_block_hash", state.HeadBlockHash,
+		"safe_block_hash", state.SafeBlockHash,
+		"finalized_block_hash", state.FinalizedBlockHash,
+		"with_attributes", hasPayloadAttributes,
+	}
+	if hasPayloadAttributes {
+		args = append(args, "payload_id", payloadID)
+	}
+	em.logger.Info("Forkchoice updated", args...)
+
+	em.sink.IncrementCounter(
+		"beacon_kit.execution.engine.forkchoice_update_valid",
 	)
 }
 

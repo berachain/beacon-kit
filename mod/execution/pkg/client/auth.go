@@ -27,7 +27,9 @@ import (
 )
 
 // jwtRefreshLoop refreshes the JWT token for the execution client.
-func (s *EngineClient[ExecutionPayloadT]) jwtRefreshLoop(
+func (s *EngineClient[
+	_, _,
+]) jwtRefreshLoop(
 	ctx context.Context,
 ) {
 	s.logger.Info("Starting JWT refresh loop 🔄")
@@ -40,12 +42,10 @@ func (s *EngineClient[ExecutionPayloadT]) jwtRefreshLoop(
 		case <-ticker.C:
 			if err := s.dialExecutionRPCClient(ctx); err != nil {
 				s.logger.Error(
-					"failed to refresh engine auth token",
+					"Failed to refresh engine auth token",
 					"err",
 					err,
 				)
-			} else {
-				s.logger.Info("Successfully refreshed engine auth token")
 			}
 		}
 	}
@@ -53,15 +53,15 @@ func (s *EngineClient[ExecutionPayloadT]) jwtRefreshLoop(
 
 // buildJWTHeader builds an http.Header that has the JWT token
 // attached for authorization.
-//
-//nolint:lll
-func (s *EngineClient[ExecutionPayloadT]) buildJWTHeader() (http.Header, error) {
+func (s *EngineClient[
+	_, _,
+]) buildJWTHeader() (http.Header, error) {
 	header := make(http.Header)
 
 	// Build the JWT token.
 	token, err := buildSignedJWT(s.jwtSecret)
 	if err != nil {
-		s.logger.Error("failed to build JWT token", "err", err)
+		s.logger.Error("Failed to build JWT token", "err", err)
 		return header, err
 	}
 

@@ -20,18 +20,22 @@
 
 package phuslu
 
-import "time"
-
 // Config is a structure that defines the configuration for the logger.
 type Config struct {
 	// TimeFormat is a string that defines the format of the time in
 	// the logger.
-	TimeFormat string
+	TimeFormat string `mapstructure:"time-format"`
+	// Logger will log messages with verbosity up to LogLevel.
+	LogLevel string `mapstructure:"log-level"`
+	// pretty or json.
+	Style string `mapstructure:"style"`
 }
 
 // DefaultConfig is a function that returns a new Config with default values.
-func DefaultConfig() *Config {
-	return &Config{
-		TimeFormat: time.RFC3339,
+func DefaultConfig() Config {
+	return Config{
+		TimeFormat: "RFC3339",
+		LogLevel:   "info",
+		Style:      StylePretty,
 	}
 }

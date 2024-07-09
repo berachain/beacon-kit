@@ -26,18 +26,18 @@ import (
 )
 
 // Opt is a type that defines a function that modifies NodeBuilder.
-type Opt[NodeT types.NodeI] func(*NodeBuilder[NodeT])
+type Opt[NodeT types.Node] func(*NodeBuilder[NodeT])
 
 // WithDepInjectConfig is a function that sets the dependency injection
 // configuration for the NodeBuilder.
-func WithDepInjectConfig[NodeT types.NodeI](cfg depinject.Config) Opt[NodeT] {
+func WithDepInjectConfig[NodeT types.Node](cfg depinject.Config) Opt[NodeT] {
 	return func(nb *NodeBuilder[NodeT]) {
 		nb.depInjectCfg = cfg
 	}
 }
 
 // WithComponents is a function that sets the components for the NodeBuilder.
-func WithComponents[NodeT types.NodeI](components []any) Opt[NodeT] {
+func WithComponents[NodeT types.Node](components []any) Opt[NodeT] {
 	return func(nb *NodeBuilder[NodeT]) {
 		nb.components = components
 	}

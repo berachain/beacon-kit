@@ -33,20 +33,15 @@ const defaultRetryInterval = 20 * time.Second
 
 // depositFetcher processes a deposit event.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
-	ExecutionPayloadT, SubscriptionT,
-	WithdrawalCredentialsT, DepositT,
+	_, _, _, _, _, _,
 ]) depositFetcher(ctx context.Context) {
-	ch := make(chan BlockEventT)
-	sub := s.feed.Subscribe(ch)
-	defer sub.Unsubscribe()
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case event := <-ch:
-			if event.Is(events.BeaconBlockFinalized) {
-				blockNum := event.Data().
+		case msg := <-s.feed:
+			if msg.Is(events.BeaconBlockFinalized) {
+				blockNum := msg.Data().
 					GetBody().GetExecutionPayload().GetNumber()
 				s.fetchAndStoreDeposits(ctx, blockNum-s.eth1FollowDistance)
 			}
@@ -57,9 +52,7 @@ func (s *Service[
 // depositCatchupFetcher fetches deposits for blocks that failed to be
 // processed.
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
-	ExecutionPayloadT, SubscriptionT,
-	WithdrawalCredentialsT, DepositT,
+	_, _, _, _, _, _,
 ]) depositCatchupFetcher(ctx context.Context) {
 	ticker := time.NewTicker(defaultRetryInterval)
 	defer ticker.Stop()
@@ -86,9 +79,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	BeaconBlockT, BeaconBlockBodyT, BlockEventT,
-	ExecutionPayloadT, SubscriptionT,
-	WithdrawalCredentialsT, DepositT,
+	_, _, _, _, _, _,
 ]) fetchAndStoreDeposits(ctx context.Context, blockNum math.U64) {
 	deposits, err := s.dc.ReadDeposits(ctx, blockNum)
 	if err != nil {

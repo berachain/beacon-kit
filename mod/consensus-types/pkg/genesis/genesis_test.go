@@ -25,6 +25,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -48,20 +49,22 @@ func TestDefaultGenesisDeneb(t *testing.T) {
 		t.Errorf("Expected no deposits, but got %v", len(g.Deposits))
 	}
 	// add assertions for ExecutionPayloadHeader
-	payloadHeader := g.ExecutionPayloadHeader
-	if payloadHeader == nil {
-		t.Errorf("Expected ExecutionPayloadHeader to be non-nil")
-	}
-
-	require.Equal(t, common.ZeroHash, payloadHeader.GetParentHash(),
+	require.NotNil(t, g.ExecutionPayloadHeader,
+		"Expected ExecutionPayloadHeader to be non-nil")
+	require.Equal(t, gethprimitives.ZeroHash,
+		g.ExecutionPayloadHeader.GetParentHash(),
 		"Unexpected ParentHash")
-	require.Equal(t, common.ZeroAddress, payloadHeader.GetFeeRecipient(),
+	require.Equal(t, gethprimitives.ZeroAddress,
+		g.ExecutionPayloadHeader.GetFeeRecipient(),
 		"Unexpected FeeRecipient")
-	require.Equal(t, math.U64(30000000), payloadHeader.GetGasLimit(),
+	require.Equal(t, math.U64(30000000),
+		g.ExecutionPayloadHeader.GetGasLimit(),
 		"Unexpected GasLimit")
-	require.Equal(t, math.U64(0), payloadHeader.GetGasUsed(),
+	require.Equal(t, math.U64(0),
+		g.ExecutionPayloadHeader.GetGasUsed(),
 		"Unexpected GasUsed")
-	require.Equal(t, math.U64(0), payloadHeader.GetTimestamp(),
+	require.Equal(t, math.U64(0),
+		g.ExecutionPayloadHeader.GetTimestamp(),
 		"Unexpected Timestamp")
 }
 
@@ -69,6 +72,34 @@ func TestDefaultGenesisExecutionPayloadHeaderDeneb(t *testing.T) {
 	header, err := genesis.DefaultGenesisExecutionPayloadHeaderDeneb()
 	require.NoError(t, err)
 	require.NotNil(t, header)
+}
+
+func TestGenesisGetForkVersion(t *testing.T) {
+	g := genesis.DefaultGenesisDeneb()
+	forkVersion := g.GetForkVersion()
+	require.Equal(
+		t,
+		version.FromUint32[common.Version](version.Deneb),
+		forkVersion,
+	)
+}
+
+func TestGenesisGetDeposits(t *testing.T) {
+	g := genesis.DefaultGenesisDeneb()
+	deposits := g.GetDeposits()
+	require.Empty(t, deposits)
+}
+
+func TestGenesisGetExecutionPayloadHeader(t *testing.T) {
+	g := genesis.DefaultGenesisDeneb()
+	header := g.GetExecutionPayloadHeader()
+	require.NotNil(t, header)
+}
+
+func TestDefaultGenesisDenebPanics(t *testing.T) {
+	require.NotPanics(t, func() {
+		genesis.DefaultGenesisDeneb()
+	})
 }
 
 func TestGenesisUnmarshalJSON(t *testing.T) {

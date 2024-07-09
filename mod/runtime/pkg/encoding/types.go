@@ -23,7 +23,7 @@ package encoding
 import (
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 )
 
 // ABCIRequest represents the interface for an ABCI request.
@@ -37,6 +37,6 @@ type ABCIRequest interface {
 }
 
 type BeaconBlock[T any] interface {
-	ssz.Marshallable
+	constraints.SSZMarshallable
 	NewFromSSZ([]byte, uint32) (T, error)
 }

@@ -54,6 +54,12 @@ const (
 	kzgRoot             = beaconKitRoot + "kzg."
 	KZGTrustedSetupPath = kzgRoot + "trusted-setup-path"
 	KZGImplementation   = kzgRoot + "implementation"
+
+	// Logger Config.
+	loggerRoot = beaconKitRoot + "logger."
+	TimeFormat = loggerRoot + "time-format"
+	LogLevel   = loggerRoot + "log-level"
+	Style      = loggerRoot + "style"
 )
 
 // AddBeaconKitFlags implements servertypes.ModuleInitFlags interface.
@@ -65,11 +71,14 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 		"path to the execution client secret",
 	)
 	startCmd.Flags().String(
-		RPCDialURL, defaultCfg.Engine.RPCDialURL.String(), "rpc dial url")
+		RPCDialURL, defaultCfg.Engine.RPCDialURL.String(), "rpc dial url",
+	)
 	startCmd.Flags().Uint64(
-		RPCRetries, defaultCfg.Engine.RPCRetries, "rpc retries")
+		RPCRetries, defaultCfg.Engine.RPCRetries, "rpc retries",
+	)
 	startCmd.Flags().Duration(
-		RPCTimeout, defaultCfg.Engine.RPCTimeout, "rpc timeout")
+		RPCTimeout, defaultCfg.Engine.RPCTimeout, "rpc timeout",
+	)
 	startCmd.Flags().Duration(
 		RPCStartupCheckInterval,
 		defaultCfg.Engine.RPCStartupCheckInterval,
@@ -94,5 +103,20 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 		KZGImplementation,
 		defaultCfg.KZG.Implementation,
 		"kzg implementation",
+	)
+	startCmd.Flags().String(
+		TimeFormat,
+		defaultCfg.Logger.TimeFormat,
+		"time format",
+	)
+	startCmd.Flags().String(
+		LogLevel,
+		defaultCfg.Logger.LogLevel,
+		"log level",
+	)
+	startCmd.Flags().String(
+		Style,
+		defaultCfg.Logger.Style,
+		"style",
 	)
 }

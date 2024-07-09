@@ -21,29 +21,25 @@
 package engine
 
 import (
-	"encoding/json"
-
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // ExecutionPayload represents the payload of an execution block.
 type ExecutionPayload[ExecutionPayloadT, WithdrawalT any] interface {
-	json.Marshaler
-	json.Unmarshaler
-	IsNil() bool
-	Version() uint32
-	Empty(uint32) ExecutionPayloadT
+	constraints.EngineType[ExecutionPayloadT]
 	GetPrevRandao() common.Bytes32
-	GetBlockHash() common.ExecutionHash
-	GetParentHash() common.ExecutionHash
+	GetBlockHash() gethprimitives.ExecutionHash
+	GetParentHash() gethprimitives.ExecutionHash
 	GetNumber() math.U64
 	GetGasLimit() math.U64
 	GetGasUsed() math.U64
 	GetTimestamp() math.U64
 	GetExtraData() []byte
 	GetBaseFeePerGas() math.Wei
-	GetFeeRecipient() common.ExecutionAddress
+	GetFeeRecipient() gethprimitives.ExecutionAddress
 	GetStateRoot() common.Bytes32
 	GetReceiptsRoot() common.Bytes32
 	GetLogsBloom() []byte
@@ -58,7 +54,16 @@ type TelemetrySink interface {
 	// IncrementCounter increments a counter metric identified by the provided
 	// keys.
 	IncrementCounter(key string, args ...string)
-	// SetGauge sets a gauge metric to the specified value, identified by the
-	// provided keys.
-	SetGauge(key string, value int64, args ...string)
+}
+
+// Withdrawal is the interface for a withdrawal.
+type Withdrawal[WithdrawalT any] interface {
+	// GetAmount returns the amount of the withdrawal.
+	GetAmount() math.Gwei
+	// GetIndex returns the public key of the validator.
+	GetIndex() math.U64
+	// GetValidatorIndex returns the index of the validator.
+	GetValidatorIndex() math.ValidatorIndex
+	// GetAddress returns the address of the withdrawal.
+	GetAddress() gethprimitives.ExecutionAddress
 }

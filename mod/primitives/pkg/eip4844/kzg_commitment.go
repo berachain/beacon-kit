@@ -21,8 +21,6 @@
 package eip4844
 
 import (
-	"reflect"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
@@ -38,7 +36,7 @@ type KZGCommitment [48]byte
 //
 //nolint:lll // link.
 func (c KZGCommitment) ToVersionedHash() [32]byte {
-	sum := sha256.Sum256(c[:])
+	sum := sha256.Hash(c[:])
 	// Prefix the hash with the BlobCommitmentVersion
 	// to create a versioned hash.
 	sum[0] = constants.BlobCommitmentVersion
@@ -63,7 +61,6 @@ func (c KZGCommitment) HashTreeRoot() ([32]byte, error) {
 // UnmarshalJSON parses a commitment in hex syntax.
 func (c *KZGCommitment) UnmarshalJSON(input []byte) error {
 	return bytes.UnmarshalFixedJSON(
-		reflect.TypeOf(KZGCommitment{}),
 		input,
 		c[:],
 	)

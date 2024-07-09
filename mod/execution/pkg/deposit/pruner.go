@@ -31,11 +31,10 @@ func BuildPruneRangeFn[
 	DepositT Deposit[DepositT, WithdrawalCredentialsT],
 	ExecutionPayloadT ExecutionPayload,
 	WithdrawalCredentialsT any,
-
 ](cs common.ChainSpec) func(BlockEventT) (uint64, uint64) {
 	return func(event BlockEventT) (uint64, uint64) {
 		deposits := event.Data().GetBody().GetDeposits()
-		if len(deposits) == 0 {
+		if len(deposits) == 0 || cs.MaxDepositsPerBlock() == 0 {
 			return 0, 0
 		}
 		index := deposits[len(deposits)-1].GetIndex()

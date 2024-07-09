@@ -24,7 +24,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -47,7 +47,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 			pubkey: [48]byte{0x01},
 			withdrawalCredentials: types.
 				NewCredentialsFromExecutionAddress(
-					common.ExecutionAddress{0x01},
+					gethprimitives.ExecutionAddress{0x01},
 				),
 			amount:                    32e9,
 			effectiveBalanceIncrement: 1e9,
@@ -56,7 +56,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 				Pubkey: [48]byte{0x01},
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						common.ExecutionAddress{0x01},
+						gethprimitives.ExecutionAddress{0x01},
 					),
 				EffectiveBalance: 32e9,
 				Slashed:          false,
@@ -79,7 +79,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 			pubkey: [48]byte{0x02},
 			withdrawalCredentials: types.
 				NewCredentialsFromExecutionAddress(
-					common.ExecutionAddress{0x02},
+					gethprimitives.ExecutionAddress{0x02},
 				),
 			amount:                    40e9,
 			effectiveBalanceIncrement: 1e9,
@@ -88,7 +88,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 				Pubkey: [48]byte{0x02},
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						common.ExecutionAddress{0x02},
+						gethprimitives.ExecutionAddress{0x02},
 					),
 				EffectiveBalance: 32e9,
 				Slashed:          false,
@@ -111,7 +111,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 			pubkey: [48]byte{0x03},
 			withdrawalCredentials: types.
 				NewCredentialsFromExecutionAddress(
-					common.ExecutionAddress{0x03},
+					gethprimitives.ExecutionAddress{0x03},
 				),
 			amount:                    32.5e9,
 			effectiveBalanceIncrement: 1e9,
@@ -120,7 +120,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 				Pubkey: [48]byte{0x03},
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						common.ExecutionAddress{0x03},
+						gethprimitives.ExecutionAddress{0x03},
 					),
 				EffectiveBalance: 32e9,
 				Slashed:          false,
@@ -362,7 +362,7 @@ func TestValidator_IsFullyWithdrawable(t *testing.T) {
 			validator: &types.Validator{
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						common.ExecutionAddress{0x01},
+						gethprimitives.ExecutionAddress{0x01},
 					),
 				WithdrawableEpoch: 5,
 			},
@@ -386,7 +386,7 @@ func TestValidator_IsFullyWithdrawable(t *testing.T) {
 			validator: &types.Validator{
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						common.ExecutionAddress{0x01},
+						gethprimitives.ExecutionAddress{0x01},
 					),
 				WithdrawableEpoch: 5,
 			},
@@ -399,7 +399,7 @@ func TestValidator_IsFullyWithdrawable(t *testing.T) {
 			validator: &types.Validator{
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						common.ExecutionAddress{0x01},
+						gethprimitives.ExecutionAddress{0x01},
 					),
 				WithdrawableEpoch: 5,
 			},
@@ -431,7 +431,7 @@ func TestValidator_IsPartiallyWithdrawable(t *testing.T) {
 			validator: &types.Validator{
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						common.ExecutionAddress{0x01},
+						gethprimitives.ExecutionAddress{0x01},
 					),
 				EffectiveBalance: maxEffectiveBalance,
 			},
@@ -454,7 +454,7 @@ func TestValidator_IsPartiallyWithdrawable(t *testing.T) {
 			validator: &types.Validator{
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						common.ExecutionAddress{0x01},
+						gethprimitives.ExecutionAddress{0x01},
 					),
 				EffectiveBalance: maxEffectiveBalance - 1,
 			},
@@ -466,7 +466,7 @@ func TestValidator_IsPartiallyWithdrawable(t *testing.T) {
 			validator: &types.Validator{
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						common.ExecutionAddress{0x01},
+						gethprimitives.ExecutionAddress{0x01},
 					),
 				EffectiveBalance: maxEffectiveBalance,
 			},
@@ -498,7 +498,7 @@ func TestValidator_HasEth1WithdrawalCredentials(t *testing.T) {
 			validator: &types.Validator{
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						common.ExecutionAddress{0x01},
+						gethprimitives.ExecutionAddress{0x01},
 					),
 			},
 			want: true,
@@ -559,8 +559,9 @@ func TestValidator_HasMaxEffectiveBalance(t *testing.T) {
 
 func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 	tests := []struct {
-		name      string
-		validator *types.Validator
+		name       string
+		validator  *types.Validator
+		invalidSSZ bool
 	}{
 		{
 			name: "normal case",
@@ -568,7 +569,7 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 				Pubkey: [48]byte{0x01},
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						common.ExecutionAddress{0x01},
+						gethprimitives.ExecutionAddress{0x01},
 					),
 				EffectiveBalance: 32e9,
 				Slashed:          false,
@@ -585,6 +586,7 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 					constants.FarFutureEpoch,
 				),
 			},
+			invalidSSZ: false,
 		},
 		{
 			name: "slashed validator",
@@ -592,7 +594,7 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 				Pubkey: [48]byte{0x02},
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						common.ExecutionAddress{0x02},
+						gethprimitives.ExecutionAddress{0x02},
 					),
 				EffectiveBalance:           32e9,
 				Slashed:                    true,
@@ -601,6 +603,7 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 				ExitEpoch:                  10,
 				WithdrawableEpoch:          15,
 			},
+			invalidSSZ: false,
 		},
 		{
 			name: "validator with zero balance",
@@ -608,7 +611,7 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 				Pubkey: [48]byte{0x03},
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						common.ExecutionAddress{0x03},
+						gethprimitives.ExecutionAddress{0x03},
 					),
 				EffectiveBalance: 0,
 				Slashed:          false,
@@ -625,6 +628,7 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 					constants.FarFutureEpoch,
 				),
 			},
+			invalidSSZ: false,
 		},
 		{
 			name: "validator with non-default epochs",
@@ -632,7 +636,7 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 				Pubkey: [48]byte{0x04},
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						common.ExecutionAddress{0x04},
+						gethprimitives.ExecutionAddress{0x04},
 					),
 				EffectiveBalance:           16e9,
 				Slashed:                    false,
@@ -641,28 +645,44 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 				ExitEpoch:                  20,
 				WithdrawableEpoch:          25,
 			},
+			invalidSSZ: false,
+		},
+		{
+			name:       "invalid SSZ size",
+			validator:  &types.Validator{},
+			invalidSSZ: true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Marshal the validator
-			marshaled, err := tt.validator.MarshalSSZ()
-			require.NoError(t, err)
+			if tt.invalidSSZ {
+				// Create a byte slice with an invalid size (not 121)
+				invalidSizeData := make([]byte, 120)
+				var v types.Validator
+				err := v.UnmarshalSSZ(invalidSizeData)
+				require.Error(t, err, "Test case: %s", tt.name)
+				require.Equal(t, ssz.ErrSize, err,
+					"Test case: %s", tt.name)
+			} else {
+				// Marshal the validator
+				marshaled, err := tt.validator.MarshalSSZ()
+				require.NoError(t, err)
 
-			// Unmarshal into a new validator
-			var unmarshaled types.Validator
-			err = unmarshaled.UnmarshalSSZ(marshaled)
-			require.NoError(t, err)
+				// Unmarshal into a new validator
+				var unmarshaled types.Validator
+				err = unmarshaled.UnmarshalSSZ(marshaled)
+				require.NoError(t, err)
 
-			// Check if the original and unmarshaled validators are equal
-			require.Equal(
-				t,
-				tt.validator,
-				&unmarshaled,
-				"Test case: %s",
-				tt.name,
-			)
+				// Check if the original and unmarshaled validators are equal
+				require.Equal(
+					t,
+					tt.validator,
+					&unmarshaled,
+					"Test case: %s",
+					tt.name,
+				)
+			}
 		})
 	}
 }
@@ -678,7 +698,7 @@ func TestValidator_HashTreeRoot(t *testing.T) {
 				Pubkey: [48]byte{0x01},
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						common.ExecutionAddress{0x01},
+						gethprimitives.ExecutionAddress{0x01},
 					),
 				EffectiveBalance: 32e9,
 				Slashed:          false,
@@ -702,7 +722,7 @@ func TestValidator_HashTreeRoot(t *testing.T) {
 				Pubkey: [48]byte{0x02},
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						common.ExecutionAddress{0x02},
+						gethprimitives.ExecutionAddress{0x02},
 					),
 				EffectiveBalance:           32e9,
 				Slashed:                    true,
@@ -730,6 +750,253 @@ func TestValidator_HashTreeRoot(t *testing.T) {
 			tree, err := tt.validator.GetTree()
 			require.NoError(t, err)
 			require.NotNil(t, tree)
+		})
+	}
+}
+
+func TestValidator_SetEffectiveBalance(t *testing.T) {
+	tests := []struct {
+		name      string
+		balance   math.Gwei
+		validator *types.Validator
+		want      math.Gwei
+	}{
+		{
+			name:    "set effective balance",
+			balance: 32e9,
+			validator: &types.Validator{
+				EffectiveBalance: 0,
+			},
+			want: 32e9,
+		},
+		{
+			name:    "update effective balance",
+			balance: 16e9,
+			validator: &types.Validator{
+				EffectiveBalance: 32e9,
+			},
+			want: 16e9,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.validator.SetEffectiveBalance(tt.balance)
+			require.Equal(t, tt.want, tt.validator.EffectiveBalance,
+				"Test case: %s", tt.name)
+		})
+	}
+}
+
+func TestValidator_GetWithdrawableEpoch(t *testing.T) {
+	tests := []struct {
+		name      string
+		validator *types.Validator
+		want      math.Epoch
+	}{
+		{
+			name: "get withdrawable epoch",
+			validator: &types.Validator{
+				WithdrawableEpoch: 10,
+			},
+			want: 10,
+		},
+		{
+			name: "get far future withdrawable epoch",
+			validator: &types.Validator{
+				WithdrawableEpoch: math.Epoch(constants.FarFutureEpoch),
+			},
+			want: math.Epoch(constants.FarFutureEpoch),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.validator.GetWithdrawableEpoch()
+			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
+		})
+	}
+}
+
+func TestValidator_GetWithdrawalCredentials(t *testing.T) {
+	tests := []struct {
+		name      string
+		validator *types.Validator
+		want      types.WithdrawalCredentials
+	}{
+		{
+			name: "get withdrawal credentials",
+			validator: &types.Validator{
+				WithdrawalCredentials: types.NewCredentialsFromExecutionAddress(
+					gethprimitives.ExecutionAddress{0x01},
+				),
+			},
+			want: types.NewCredentialsFromExecutionAddress(
+				gethprimitives.ExecutionAddress{0x01},
+			),
+		},
+		{
+			name: "get empty withdrawal credentials",
+			validator: &types.Validator{
+				WithdrawalCredentials: types.WithdrawalCredentials{0x00},
+			},
+			want: types.WithdrawalCredentials{0x00},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.validator.GetWithdrawalCredentials()
+			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
+		})
+	}
+}
+
+func TestValidator_IsSlashed(t *testing.T) {
+	tests := []struct {
+		name      string
+		validator *types.Validator
+		want      bool
+	}{
+		{
+			name: "validator is slashed",
+			validator: &types.Validator{
+				Slashed: true,
+			},
+			want: true,
+		},
+		{
+			name: "validator is not slashed",
+			validator: &types.Validator{
+				Slashed: false,
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.validator.IsSlashed()
+			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
+		})
+	}
+}
+
+func TestValidator_New(t *testing.T) {
+	tests := []struct {
+		name                      string
+		pubkey                    crypto.BLSPubkey
+		withdrawalCredentials     types.WithdrawalCredentials
+		amount                    math.Gwei
+		effectiveBalanceIncrement math.Gwei
+		maxEffectiveBalance       math.Gwei
+		want                      *types.Validator
+	}{
+		{
+			name:   "create new validator",
+			pubkey: [48]byte{0x01},
+			withdrawalCredentials: types.
+				NewCredentialsFromExecutionAddress(
+					gethprimitives.ExecutionAddress{0x01},
+				),
+			amount:                    32e9,
+			effectiveBalanceIncrement: 1e9,
+			maxEffectiveBalance:       32e9,
+			want: &types.Validator{
+				Pubkey: [48]byte{0x01},
+				WithdrawalCredentials: types.
+					NewCredentialsFromExecutionAddress(
+						gethprimitives.ExecutionAddress{0x01},
+					),
+				EffectiveBalance: 32e9,
+				Slashed:          false,
+				ActivationEligibilityEpoch: math.Epoch(
+					constants.FarFutureEpoch,
+				),
+				ActivationEpoch: math.Epoch(
+					constants.FarFutureEpoch,
+				),
+				ExitEpoch: math.Epoch(
+					constants.FarFutureEpoch,
+				),
+				WithdrawableEpoch: math.Epoch(
+					constants.FarFutureEpoch,
+				),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			v := &types.Validator{}
+			got := v.New(
+				tt.pubkey,
+				tt.withdrawalCredentials,
+				tt.amount,
+				tt.effectiveBalanceIncrement,
+				tt.maxEffectiveBalance,
+			)
+			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
+		})
+	}
+}
+
+func TestValidator_GetPubkey(t *testing.T) {
+	tests := []struct {
+		name      string
+		validator *types.Validator
+		want      crypto.BLSPubkey
+	}{
+		{
+			name: "get pubkey",
+			validator: &types.Validator{
+				Pubkey: [48]byte{0x01},
+			},
+			want: [48]byte{0x01},
+		},
+		{
+			name: "get pubkey with multiple bytes",
+			validator: &types.Validator{
+				Pubkey: [48]byte{0x01, 0x02, 0x03},
+			},
+			want: [48]byte{0x01, 0x02, 0x03},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.validator.GetPubkey()
+			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
+		})
+	}
+}
+
+func TestValidator_GetEffectiveBalance(t *testing.T) {
+	tests := []struct {
+		name      string
+		validator *types.Validator
+		want      math.Gwei
+	}{
+		{
+			name: "get effective balance",
+			validator: &types.Validator{
+				EffectiveBalance: 32e9,
+			},
+			want: 32e9,
+		},
+		{
+			name: "get zero effective balance",
+			validator: &types.Validator{
+				EffectiveBalance: 0,
+			},
+			want: 0,
+		},
+		{
+			name: "get maximum effective balance",
+			validator: &types.Validator{
+				EffectiveBalance: math.Gwei(1<<64 - 1),
+			},
+			want: math.Gwei(1<<64 - 1),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.validator.GetEffectiveBalance()
+			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
 		})
 	}
 }

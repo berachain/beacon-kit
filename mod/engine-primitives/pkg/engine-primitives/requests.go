@@ -24,10 +24,10 @@ import (
 	"math/big"
 
 	"github.com/berachain/beacon-kit/mod/errors"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/trie"
 )
 
 // NewPayloadRequest as per the Ethereum 2.0 specification:
@@ -36,19 +36,17 @@ import (
 //nolint:lll
 type NewPayloadRequest[
 	ExecutionPayloadT interface {
-		Empty(uint32) ExecutionPayloadT
-		IsNil() bool
-		Version() uint32
+		constraints.ForkTyped[ExecutionPayloadT]
 		GetPrevRandao() common.Bytes32
-		GetBlockHash() common.ExecutionHash
-		GetParentHash() common.ExecutionHash
+		GetBlockHash() gethprimitives.ExecutionHash
+		GetParentHash() gethprimitives.ExecutionHash
 		GetNumber() math.U64
 		GetGasLimit() math.U64
 		GetGasUsed() math.U64
 		GetTimestamp() math.U64
 		GetExtraData() []byte
 		GetBaseFeePerGas() math.Wei
-		GetFeeRecipient() common.ExecutionAddress
+		GetFeeRecipient() gethprimitives.ExecutionAddress
 		GetStateRoot() common.Bytes32
 		GetReceiptsRoot() common.Bytes32
 		GetLogsBloom() []byte
@@ -60,14 +58,14 @@ type NewPayloadRequest[
 	WithdrawalT interface {
 		GetIndex() math.U64
 		GetAmount() math.U64
-		GetAddress() common.ExecutionAddress
+		GetAddress() gethprimitives.ExecutionAddress
 		GetValidatorIndex() math.U64
 	},
 ] struct {
 	// ExecutionPayload is the payload to the execution client.
 	ExecutionPayload ExecutionPayloadT
 	// VersionedHashes is the versioned hashes of the execution payload.
-	VersionedHashes []common.ExecutionHash
+	VersionedHashes []gethprimitives.ExecutionHash
 	// ParentBeaconBlockRoot is the root of the parent beacon block.
 	ParentBeaconBlockRoot *common.Root
 	// Optimistic is a flag that indicates if the payload should be
@@ -78,19 +76,17 @@ type NewPayloadRequest[
 // BuildNewPayloadRequest builds a new payload request.
 func BuildNewPayloadRequest[
 	ExecutionPayloadT interface {
-		Empty(uint32) ExecutionPayloadT
-		IsNil() bool
-		Version() uint32
+		constraints.ForkTyped[ExecutionPayloadT]
 		GetPrevRandao() common.Bytes32
-		GetBlockHash() common.ExecutionHash
-		GetParentHash() common.ExecutionHash
+		GetBlockHash() gethprimitives.ExecutionHash
+		GetParentHash() gethprimitives.ExecutionHash
 		GetNumber() math.U64
 		GetGasLimit() math.U64
 		GetGasUsed() math.U64
 		GetTimestamp() math.U64
 		GetExtraData() []byte
 		GetBaseFeePerGas() math.Wei
-		GetFeeRecipient() common.ExecutionAddress
+		GetFeeRecipient() gethprimitives.ExecutionAddress
 		GetStateRoot() common.Bytes32
 		GetReceiptsRoot() common.Bytes32
 		GetLogsBloom() []byte
@@ -102,12 +98,12 @@ func BuildNewPayloadRequest[
 	WithdrawalT interface {
 		GetIndex() math.U64
 		GetAmount() math.U64
-		GetAddress() common.ExecutionAddress
+		GetAddress() gethprimitives.ExecutionAddress
 		GetValidatorIndex() math.U64
 	},
 ](
 	executionPayload ExecutionPayloadT,
-	versionedHashes []common.ExecutionHash,
+	versionedHashes []gethprimitives.ExecutionHash,
 	parentBeaconBlockRoot *common.Root,
 	optimistic bool,
 ) *NewPayloadRequest[ExecutionPayloadT, WithdrawalT] {
@@ -128,12 +124,12 @@ func BuildNewPayloadRequest[
 //nolint:lll
 func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAndBlockHashes() error {
 	var (
-		gethWithdrawals []*types.Withdrawal
-		withdrawalsHash *common.ExecutionHash
-		blobHashes      = make([]common.ExecutionHash, 0)
+		gethWithdrawals []*gethprimitives.Withdrawal
+		withdrawalsHash *gethprimitives.ExecutionHash
+		blobHashes      = make([]gethprimitives.ExecutionHash, 0)
 		payload         = n.ExecutionPayload
 		txs             = make(
-			[]*types.Transaction,
+			[]*gethprimitives.Transaction,
 			len(payload.GetTransactions()),
 		)
 	)
@@ -141,7 +137,7 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAnd
 	// Extracts and validates the blob hashes from the transactions in the
 	// execution payload.
 	for i, encTx := range payload.GetTransactions() {
-		var tx types.Transaction
+		var tx gethprimitives.Transaction
 		if err := tx.UnmarshalBinary(encTx); err != nil {
 			return errors.Wrapf(err, "invalid transaction %d", i)
 		}
@@ -176,34 +172,34 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAnd
 	// Construct the withdrawals and withdrawals hash.
 	if payload.GetWithdrawals() != nil {
 		gethWithdrawals = make(
-			[]*types.Withdrawal,
+			[]*gethprimitives.Withdrawal,
 			len(payload.GetWithdrawals()),
 		)
 		for i, wd := range payload.GetWithdrawals() {
-			gethWithdrawals[i] = &types.Withdrawal{
+			gethWithdrawals[i] = &gethprimitives.Withdrawal{
 				Index:     wd.GetIndex().Unwrap(),
 				Amount:    wd.GetAmount().Unwrap(),
 				Address:   wd.GetAddress(),
 				Validator: wd.GetValidatorIndex().Unwrap(),
 			}
 		}
-		h := types.DeriveSha(
-			types.Withdrawals(gethWithdrawals),
-			trie.NewStackTrie(nil),
+		h := gethprimitives.DeriveSha(
+			gethprimitives.Withdrawals(gethWithdrawals),
+			gethprimitives.NewStackTrie(nil),
 		)
 		withdrawalsHash = &h
 	}
 
 	// Verify that the payload is telling the truth about it's block hash.
-	if block := types.NewBlockWithHeader(
-		&types.Header{
+	if block := gethprimitives.NewBlockWithHeader(
+		&gethprimitives.Header{
 			ParentHash:       payload.GetParentHash(),
-			UncleHash:        types.EmptyUncleHash,
+			UncleHash:        gethprimitives.EmptyUncleHash,
 			Coinbase:         payload.GetFeeRecipient(),
-			Root:             common.ExecutionHash(payload.GetStateRoot()),
-			TxHash:           types.DeriveSha(types.Transactions(txs), trie.NewStackTrie(nil)),
-			ReceiptHash:      common.ExecutionHash(payload.GetReceiptsRoot()),
-			Bloom:            types.BytesToBloom(payload.GetLogsBloom()),
+			Root:             gethprimitives.ExecutionHash(payload.GetStateRoot()),
+			TxHash:           gethprimitives.DeriveSha(gethprimitives.Transactions(txs), gethprimitives.NewStackTrie(nil)),
+			ReceiptHash:      gethprimitives.ExecutionHash(payload.GetReceiptsRoot()),
+			Bloom:            gethprimitives.BytesToBloom(payload.GetLogsBloom()),
 			Difficulty:       big.NewInt(0),
 			Number:           new(big.Int).SetUint64(payload.GetNumber().Unwrap()),
 			GasLimit:         payload.GetGasLimit().Unwrap(),
@@ -211,13 +207,13 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAnd
 			Time:             payload.GetTimestamp().Unwrap(),
 			BaseFee:          payload.GetBaseFeePerGas().UnwrapBig(),
 			Extra:            payload.GetExtraData(),
-			MixDigest:        common.ExecutionHash(payload.GetPrevRandao()),
+			MixDigest:        gethprimitives.ExecutionHash(payload.GetPrevRandao()),
 			WithdrawalsHash:  withdrawalsHash,
 			ExcessBlobGas:    payload.GetExcessBlobGas().UnwrapPtr(),
 			BlobGasUsed:      payload.GetBlobGasUsed().UnwrapPtr(),
-			ParentBeaconRoot: (*common.ExecutionHash)(n.ParentBeaconBlockRoot),
+			ParentBeaconRoot: (*gethprimitives.ExecutionHash)(n.ParentBeaconBlockRoot),
 		},
-	).WithBody(types.Body{
+	).WithBody(gethprimitives.Body{
 		Transactions: txs, Uncles: nil, Withdrawals: gethWithdrawals,
 	}); block.Hash() != payload.GetBlockHash() {
 		return errors.Wrapf(ErrPayloadBlockHashMismatch,
@@ -228,26 +224,43 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAnd
 	return nil
 }
 
-type ForkchoiceUpdateRequest struct {
+type ForkchoiceUpdateRequest[PayloadAttributesT any] struct {
 	// State is the forkchoice state.
 	State *ForkchoiceStateV1
 	// PayloadAttributes is the payload attributer.
-	PayloadAttributes PayloadAttributer
+	PayloadAttributes PayloadAttributesT
 	// ForkVersion is the fork version that we
 	// are going to be submitting for.
 	ForkVersion uint32
 }
 
 // BuildForkchoiceUpdateRequest builds a forkchoice update request.
-func BuildForkchoiceUpdateRequest(
+func BuildForkchoiceUpdateRequest[
+	PayloadAttributesT any,
+](
 	state *ForkchoiceStateV1,
-	payloadAttributes PayloadAttributer,
+	payloadAttributes PayloadAttributesT,
 	forkVersion uint32,
-) *ForkchoiceUpdateRequest {
-	return &ForkchoiceUpdateRequest{
+) *ForkchoiceUpdateRequest[PayloadAttributesT] {
+	return &ForkchoiceUpdateRequest[PayloadAttributesT]{
 		State:             state,
 		PayloadAttributes: payloadAttributes,
 		ForkVersion:       forkVersion,
+	}
+}
+
+// BuildForkchoiceUpdateRequestNoAttrs builds a forkchoice update request
+// without
+// any attributes.
+func BuildForkchoiceUpdateRequestNoAttrs[
+	PayloadAttributesT any,
+](
+	state *ForkchoiceStateV1,
+	forkVersion uint32,
+) *ForkchoiceUpdateRequest[PayloadAttributesT] {
+	return &ForkchoiceUpdateRequest[PayloadAttributesT]{
+		State:       state,
+		ForkVersion: forkVersion,
 	}
 }
 

@@ -27,13 +27,10 @@ import (
 
 // processSyncCommitteeUpdates processes the sync committee updates.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _,
 ]) processSyncCommitteeUpdates(
 	st BeaconStateT,
-) ([]*transition.ValidatorUpdate, error) {
+) (transition.ValidatorUpdates, error) {
 	vals, err := st.GetValidatorsByEffectiveBalance()
 	if err != nil {
 		return nil, err

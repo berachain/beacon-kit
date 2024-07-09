@@ -21,14 +21,14 @@
 package beacondb
 
 import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
 // Validator represents an interface for a validator in the beacon chain.
 type Validator interface {
-	ssz.Marshallable
+	constraints.SSZMarshallable
 	// GetPubkey returns the BLS public key of the validator.
 	GetPubkey() crypto.BLSPubkey
 	// GetEffectiveBalance returns the effective balance of the validator in

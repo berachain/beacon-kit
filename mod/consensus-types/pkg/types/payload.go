@@ -22,12 +22,14 @@ package types
 
 import (
 	"context"
-	"sync/atomic"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkleizer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"golang.org/x/sync/errgroup"
@@ -37,12 +39,6 @@ import (
 // all fork versions.
 type ExecutionPayload struct {
 	InnerExecutionPayload
-	// header is a cache of the ExecutionPayloadHeader to
-	// avoid recomputing it every time.
-	header atomic.Pointer[ExecutionPayloadHeader]
-	// root is the hash tree root of the ExecutionPayload.
-	// It is a cache to avoid recomputing it every time.
-	root atomic.Pointer[common.Root]
 }
 
 // InnerExecutionPayload represents the inner execution payload.
@@ -64,43 +60,11 @@ func (e *ExecutionPayload) Empty(forkVersion uint32) *ExecutionPayload {
 	return e
 }
 
-// HashTreeRoot returns the hash tree root of the ExecutionPayload.
-func (e *ExecutionPayload) HashTreeRoot() ([32]byte, error) {
-	// Use root if found.
-	if root := e.root.Load(); root != nil {
-		return *root, nil
-	}
-
-	// Check for a header so that we don't have to re-merkleize the
-	// transactions and withdrawals
-	if header := e.header.Load(); header != nil {
-		return header.HashTreeRoot()
-	}
-
-	// Otherwise fall back to the full builder.
-	header, err := e.ToHeader()
-	if err != nil {
-		return [32]byte{}, err
-	} else if header == nil {
-		return [32]byte{}, ErrNilPayloadHeader
-	}
-	e.header.Store(header)
-
-	// Cache the root.
-	root, err := header.HashTreeRoot()
-	if err != nil {
-		return [32]byte{}, err
-	}
-	e.root.Store((*common.Root)(&root))
-	return root, nil
-}
-
 // ToHeader converts the ExecutionPayload to an ExecutionPayloadHeader.
-func (e *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
-	if header := e.header.Load(); header != nil {
-		return header, nil
-	}
-
+func (e *ExecutionPayload) ToHeader(
+	txsMerkleizer *merkleizer.Merkleizer[[32]byte, common.Root],
+	maxWithdrawalsPerPayload uint64,
+) (*ExecutionPayloadHeader, error) {
 	// Get the merkle roots of transactions and withdrawals in parallel.
 	var (
 		g, _            = errgroup.WithContext(context.Background())
@@ -112,15 +76,16 @@ func (e *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 		var txsRootErr error
 		txsRoot, txsRootErr = engineprimitives.Transactions(
 			e.GetTransactions(),
-		).HashTreeRoot()
+		).HashTreeRootWith(txsMerkleizer)
 		return txsRootErr
 	})
 
 	g.Go(func() error {
 		var withdrawalsRootErr error
-		withdrawalsRoot, withdrawalsRootErr = engineprimitives.Withdrawals(
-			e.GetWithdrawals(),
-		).HashTreeRoot()
+		wds := ssz.ListFromElements(
+			maxWithdrawalsPerPayload,
+			e.GetWithdrawals()...)
+		withdrawalsRoot, withdrawalsRootErr = wds.HashTreeRoot()
 		return withdrawalsRootErr
 	})
 
@@ -129,10 +94,9 @@ func (e *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 		return nil, err
 	}
 
-	var header *ExecutionPayloadHeader
 	switch e.Version() {
 	case version.Deneb:
-		header = &ExecutionPayloadHeader{
+		return &ExecutionPayloadHeader{
 			InnerExecutionPayloadHeader: &ExecutionPayloadHeaderDeneb{
 				ParentHash:       e.GetParentHash(),
 				FeeRecipient:     e.GetFeeRecipient(),
@@ -152,13 +116,10 @@ func (e *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 				BlobGasUsed:      e.GetBlobGasUsed(),
 				ExcessBlobGas:    e.GetExcessBlobGas(),
 			},
-		}
+		}, nil
 	default:
 		return nil, errors.New("unknown fork version")
 	}
-
-	e.header.Store(header)
-	return header, nil
 }
 
 // ExecutableDataDeneb is the execution payload for Deneb.
@@ -167,23 +128,23 @@ func (e *ExecutionPayload) ToHeader() (*ExecutionPayloadHeader, error) {
 //go:generate go run github.com/fjl/gencodec -type ExecutableDataDeneb -field-override executableDataDenebMarshaling -out payload.json.go
 //nolint:lll
 type ExecutableDataDeneb struct {
-	ParentHash    common.ExecutionHash           `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
-	FeeRecipient  common.ExecutionAddress        `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
-	StateRoot     bytes.B32                      `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
-	ReceiptsRoot  bytes.B32                      `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
-	LogsBloom     []byte                         `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
-	Random        bytes.B32                      `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
-	Number        math.U64                       `json:"blockNumber"                  gencodec:"required"`
-	GasLimit      math.U64                       `json:"gasLimit"                     gencodec:"required"`
-	GasUsed       math.U64                       `json:"gasUsed"                      gencodec:"required"`
-	Timestamp     math.U64                       `json:"timestamp"                    gencodec:"required"`
-	ExtraData     []byte                         `json:"extraData"                    gencodec:"required" ssz-max:"32"`
-	BaseFeePerGas math.Wei                       `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
-	BlockHash     common.ExecutionHash           `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
-	Transactions  [][]byte                       `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
-	Withdrawals   []*engineprimitives.Withdrawal `json:"withdrawals"                                      ssz-max:"16"`
-	BlobGasUsed   math.U64                       `json:"blobGasUsed"`
-	ExcessBlobGas math.U64                       `json:"excessBlobGas"`
+	ParentHash    gethprimitives.ExecutionHash    `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
+	FeeRecipient  gethprimitives.ExecutionAddress `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
+	StateRoot     common.Bytes32                  `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
+	ReceiptsRoot  common.Bytes32                  `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
+	LogsBloom     []byte                          `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
+	Random        common.Bytes32                  `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
+	Number        math.U64                        `json:"blockNumber"                  gencodec:"required"`
+	GasLimit      math.U64                        `json:"gasLimit"                     gencodec:"required"`
+	GasUsed       math.U64                        `json:"gasUsed"                      gencodec:"required"`
+	Timestamp     math.U64                        `json:"timestamp"                    gencodec:"required"`
+	ExtraData     []byte                          `json:"extraData"                    gencodec:"required" ssz-max:"32"`
+	BaseFeePerGas math.Wei                        `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
+	BlockHash     gethprimitives.ExecutionHash    `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
+	Transactions  [][]byte                        `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
+	Withdrawals   []*engineprimitives.Withdrawal  `json:"withdrawals"                                      ssz-max:"16"`
+	BlobGasUsed   math.U64                        `json:"blobGasUsed"`
+	ExcessBlobGas math.U64                        `json:"excessBlobGas"`
 }
 
 // JSON type overrides for ExecutableDataDeneb.
@@ -209,22 +170,24 @@ func (d *ExecutableDataDeneb) IsBlinded() bool {
 }
 
 // GetParentHash returns the parent hash of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetParentHash() common.ExecutionHash {
+func (d *ExecutableDataDeneb) GetParentHash() gethprimitives.ExecutionHash {
 	return d.ParentHash
 }
 
 // GetFeeRecipient returns the fee recipient address of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetFeeRecipient() common.ExecutionAddress {
+func (
+	d *ExecutableDataDeneb,
+) GetFeeRecipient() gethprimitives.ExecutionAddress {
 	return d.FeeRecipient
 }
 
 // GetStateRoot returns the state root of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetStateRoot() bytes.B32 {
+func (d *ExecutableDataDeneb) GetStateRoot() common.Bytes32 {
 	return d.StateRoot
 }
 
 // GetReceiptsRoot returns the receipts root of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetReceiptsRoot() bytes.B32 {
+func (d *ExecutableDataDeneb) GetReceiptsRoot() common.Bytes32 {
 	return d.ReceiptsRoot
 }
 
@@ -234,7 +197,7 @@ func (d *ExecutableDataDeneb) GetLogsBloom() []byte {
 }
 
 // GetPrevRandao returns the previous Randao value of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetPrevRandao() bytes.B32 {
+func (d *ExecutableDataDeneb) GetPrevRandao() common.Bytes32 {
 	return d.Random
 }
 
@@ -269,7 +232,7 @@ func (d *ExecutableDataDeneb) GetBaseFeePerGas() math.Wei {
 }
 
 // GetBlockHash returns the block hash of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetBlockHash() common.ExecutionHash {
+func (d *ExecutableDataDeneb) GetBlockHash() gethprimitives.ExecutionHash {
 	return d.BlockHash
 }
 

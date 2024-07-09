@@ -31,10 +31,8 @@ import (
 // processExecutionPayload processes the execution payload and ensures it
 // matches the local state.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	BeaconBlockT, _, _, BeaconStateT, ContextT,
+	_, _, _, ExecutionPayloadHeaderT, _, _, _, _, _, _,
 ]) processExecutionPayload(
 	ctx ContextT,
 	st BeaconStateT,
@@ -59,7 +57,9 @@ func (sp *StateProcessor[
 	// Get the execution payload header.
 	g.Go(func() error {
 		var err error
-		header, err = payload.ToHeader()
+		header, err = payload.ToHeader(
+			sp.txsMerkleizer, sp.cs.MaxWithdrawalsPerPayload(),
+		)
 		return err
 	})
 
@@ -75,10 +75,8 @@ func (sp *StateProcessor[
 // state
 // and the execution engine.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	BeaconBlockT, _, _, BeaconStateT,
+	_, _, _, _, _, _, _, _, _, _, _,
 ]) validateExecutionPayload(
 	ctx context.Context,
 	st BeaconStateT,

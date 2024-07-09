@@ -29,12 +29,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const (
-	treeDepth uint8 = 32
-)
-
 func TestNewTreeFromLeavesWithDepth_NoItemsProvided(t *testing.T) {
-	_, err := merkle.NewTreeFromLeavesWithDepth[[32]byte, [32]byte](
+	treeDepth := uint8(32)
+	_, err := merkle.NewTreeFromLeavesWithDepth[[32]byte](
 		nil,
 		treeDepth,
 	)
@@ -52,7 +49,7 @@ func TestNewTreeFromLeavesWithDepth_DepthSupport(t *testing.T) {
 		byteslib.ToBytes32([]byte("GGGGGGG")),
 	}
 	// Supported depth
-	m1, err := merkle.NewTreeFromLeavesWithDepth[[32]byte, [32]byte](
+	m1, err := merkle.NewTreeFromLeavesWithDepth[[32]byte](
 		items,
 		merkle.MaxTreeDepth,
 	)
@@ -61,7 +58,7 @@ func TestNewTreeFromLeavesWithDepth_DepthSupport(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, proof, int(merkle.MaxTreeDepth)+1)
 	// Unsupported depth
-	_, err = merkle.NewTreeFromLeavesWithDepth[[32]byte, [32]byte](
+	_, err = merkle.NewTreeFromLeavesWithDepth[[32]byte](
 		items,
 		merkle.MaxTreeDepth+1,
 	)
@@ -69,6 +66,7 @@ func TestNewTreeFromLeavesWithDepth_DepthSupport(t *testing.T) {
 }
 
 func TestMerkleTree_IsValidMerkleBranch(t *testing.T) {
+	treeDepth := uint8(32)
 	items := [][32]byte{
 		byteslib.ToBytes32([]byte("A")),
 		byteslib.ToBytes32([]byte("B")),
@@ -79,11 +77,12 @@ func TestMerkleTree_IsValidMerkleBranch(t *testing.T) {
 		byteslib.ToBytes32([]byte("G")),
 		byteslib.ToBytes32([]byte("H")),
 	}
-	m, err := merkle.NewTreeFromLeavesWithDepth[[32]byte, [32]byte](
+	m, err := merkle.NewTreeFromLeavesWithDepth[[32]byte](
 		items,
 		treeDepth,
 	)
 	require.NoError(t, err)
+
 	proof, err := m.MerkleProofWithMixin(0)
 	require.NoError(t, err)
 	require.Len(
@@ -91,11 +90,13 @@ func TestMerkleTree_IsValidMerkleBranch(t *testing.T) {
 		proof,
 		int(treeDepth)+1,
 	)
+
 	root, err := m.HashTreeRoot()
 	require.NoError(t, err)
 	require.True(t, merkle.VerifyProof(
 		root, items[0], 0, proof,
 	), "First Merkle proof did not verify")
+
 	proof, err = m.MerkleProofWithMixin(3)
 	require.NoError(t, err)
 	require.True(
@@ -120,6 +121,7 @@ func TestMerkleTree_IsValidMerkleBranch(t *testing.T) {
 }
 
 func TestMerkleTree_VerifyProof(t *testing.T) {
+	treeDepth := uint8(32)
 	items := [][32]byte{
 		byteslib.ToBytes32([]byte("A")),
 		byteslib.ToBytes32([]byte("B")),
@@ -131,7 +133,7 @@ func TestMerkleTree_VerifyProof(t *testing.T) {
 		byteslib.ToBytes32([]byte("H")),
 	}
 
-	m, err := merkle.NewTreeFromLeavesWithDepth[[32]byte, [32]byte](
+	m, err := merkle.NewTreeFromLeavesWithDepth[[32]byte](
 		items,
 		treeDepth,
 	)
@@ -163,6 +165,7 @@ func TestMerkleTree_VerifyProof(t *testing.T) {
 }
 
 func TestMerkleTree_NegativeIndexes(t *testing.T) {
+	treeDepth := uint8(32)
 	items := [][32]byte{
 		byteslib.ToBytes32([]byte("A")),
 		byteslib.ToBytes32([]byte("B")),
@@ -173,7 +176,7 @@ func TestMerkleTree_NegativeIndexes(t *testing.T) {
 		byteslib.ToBytes32([]byte("G")),
 		byteslib.ToBytes32([]byte("H")),
 	}
-	m, err := merkle.NewTreeFromLeavesWithDepth[[32]byte, [32]byte](
+	m, err := merkle.NewTreeFromLeavesWithDepth[[32]byte](
 		items,
 		treeDepth,
 	)
@@ -183,13 +186,14 @@ func TestMerkleTree_NegativeIndexes(t *testing.T) {
 }
 
 func TestMerkleTree_VerifyProof_TrieUpdated(t *testing.T) {
+	treeDepth := uint8(32)
 	items := [][32]byte{
 		{1},
 		{2},
 		{3},
 		{4},
 	}
-	m, err := merkle.NewTreeFromLeavesWithDepth[[32]byte, [32]byte](
+	m, err := merkle.NewTreeFromLeavesWithDepth[[32]byte](
 		items,
 		treeDepth+1,
 	)
@@ -226,6 +230,7 @@ func TestMerkleTree_VerifyProof_TrieUpdated(t *testing.T) {
 }
 
 func BenchmarkNewTreeFromLeavesWithDepth(b *testing.B) {
+	treeDepth := uint8(32)
 	items := [][32]byte{
 		byteslib.ToBytes32([]byte("A")),
 		byteslib.ToBytes32([]byte("BB")),
@@ -236,7 +241,7 @@ func BenchmarkNewTreeFromLeavesWithDepth(b *testing.B) {
 		byteslib.ToBytes32([]byte("GGGGGGG")),
 	}
 	for i := 0; i < b.N; i++ {
-		_, err := merkle.NewTreeFromLeavesWithDepth[[32]byte, [32]byte](
+		_, err := merkle.NewTreeFromLeavesWithDepth[[32]byte](
 			items,
 			treeDepth,
 		)
@@ -245,13 +250,14 @@ func BenchmarkNewTreeFromLeavesWithDepth(b *testing.B) {
 }
 
 func BenchmarkInsertTrie_Optimized(b *testing.B) {
+	treeDepth := uint8(32)
 	b.StopTimer()
 	numDeposits := 16000
 	items := make([][32]byte, numDeposits)
 	for i := range numDeposits {
 		items[i] = byteslib.ToBytes32([]byte(strconv.Itoa(i)))
 	}
-	tr, err := merkle.NewTreeFromLeavesWithDepth[[32]byte, [32]byte](
+	tr, err := merkle.NewTreeFromLeavesWithDepth[[32]byte](
 		items,
 		treeDepth,
 	)
@@ -265,6 +271,7 @@ func BenchmarkInsertTrie_Optimized(b *testing.B) {
 }
 
 func BenchmarkGenerateProof(b *testing.B) {
+	treeDepth := uint8(32)
 	b.StopTimer()
 	items := [][32]byte{
 		byteslib.ToBytes32([]byte("A")),
@@ -275,7 +282,7 @@ func BenchmarkGenerateProof(b *testing.B) {
 		byteslib.ToBytes32([]byte("FFFFFF")),
 		byteslib.ToBytes32([]byte("GGGGGGG")),
 	}
-	goodTree, err := merkle.NewTreeFromLeavesWithDepth[[32]byte, [32]byte](
+	goodTree, err := merkle.NewTreeFromLeavesWithDepth[[32]byte](
 		items,
 		treeDepth,
 	)
@@ -289,6 +296,7 @@ func BenchmarkGenerateProof(b *testing.B) {
 }
 
 func BenchmarkIsValidMerkleBranch(b *testing.B) {
+	treeDepth := uint8(4)
 	b.StopTimer()
 	items := [][32]byte{
 		byteslib.ToBytes32([]byte("A")),
@@ -299,10 +307,11 @@ func BenchmarkIsValidMerkleBranch(b *testing.B) {
 		byteslib.ToBytes32([]byte("FFFFFF")),
 		byteslib.ToBytes32([]byte("GGGGGGG")),
 	}
-	m, err := merkle.NewTreeFromLeavesWithDepth[[32]byte, [32]byte](
+	m, err := merkle.NewTreeFromLeavesWithDepth[[32]byte](
 		items,
 		treeDepth,
 	)
+
 	require.NoError(b, err)
 	proof, err := m.MerkleProofWithMixin(2)
 	require.NoError(b, err)
@@ -311,10 +320,9 @@ func BenchmarkIsValidMerkleBranch(b *testing.B) {
 	require.NoError(b, err)
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		if ok := merkle.IsValidMerkleBranch(
-			items[2], proof, treeDepth, 2, root,
-		); !ok {
-			b.Error("Merkle proof did not verify")
-		}
+		ok := merkle.IsValidMerkleBranch(
+			items[2], proof, treeDepth+1, 2, root,
+		)
+		require.True(b, ok, "Merkle proof did not verify")
 	}
 }

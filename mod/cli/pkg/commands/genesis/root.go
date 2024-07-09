@@ -27,8 +27,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkleizer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
@@ -67,7 +67,10 @@ func GetGenesisValidatorRootCmd(cs common.ChainSpec) *cobra.Command {
 			}
 
 			depositCount := uint64(len(genesis.AppState.Beacon.Deposits))
-			validators := make([]*types.Validator, depositCount)
+			validators := make(
+				[]*types.Validator,
+				depositCount,
+			)
 			for i, deposit := range genesis.AppState.Beacon.Deposits {
 				var val *types.Validator
 				validators[i] = val.New(
@@ -79,10 +82,13 @@ func GetGenesisValidatorRootCmd(cs common.ChainSpec) *cobra.Command {
 				)
 			}
 
+			merkleizer := merkleizer.New[
+				[32]byte, *types.Validator,
+			]()
 			var validatorsRoot common.Root
-			validatorsRoot, err = ssz.MerkleizeListComposite[
-				common.ChainSpec, math.U64,
-			](validators, uint64(len(validators)))
+			validatorsRoot, err = merkleizer.MerkleizeListComposite(
+				validators, uint64(len(validators)),
+			)
 			if err != nil {
 				return errors.Wrap(err, "failed to get validators root")
 			}

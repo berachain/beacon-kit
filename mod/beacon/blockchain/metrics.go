@@ -52,14 +52,6 @@ func (cm *chainMetrics) measureStateTransitionDuration(
 	)
 }
 
-// measureBlobProcessingDuration measures the time to process
-// the blobs for a block.
-func (cm *chainMetrics) measureBlobProcessingDuration(start time.Time) {
-	cm.sink.MeasureSince(
-		"beacon_kit.beacon.blockchain.blob_processing_duration", start,
-	)
-}
-
 // markRebuildPayloadForRejectedBlockSuccess increments the counter for the
 // number of times
 // the validator successfully rebuilt the payload for a rejected block.

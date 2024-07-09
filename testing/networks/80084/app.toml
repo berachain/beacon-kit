@@ -248,6 +248,17 @@ rpc-jwt-refresh-interval = "30s"
 # Path to the execution client JWT-secret
 jwt-secret-path = "./jwt.hex"
 
+[beacon-kit.logger]
+# TimeFormat is a string that defines the format of the time in the logger.
+time-format = "RFC3339"
+
+# LogLevel is the level of logging. Logger will log messages with verbosity up 
+# to LogLevel.
+log-level = "info"
+
+# Style is the style of the logger.
+style = "pretty"
+
 [beacon-kit.kzg]
 # Path to the trusted setup path.
 trusted-setup-path = "./testing/files/kzg-trusted-setup.json"
@@ -267,7 +278,7 @@ suggested-fee-recipient = "0x0000000000000000000000000000000000000000"
 # The timeout for local build payload. This should match, or be slightly less
 # than the configured timeout on your execution client. It also must be less than
 # timeout_proposal in the CometBFT configuration.
-payload-timeout = "1.1s"
+payload-timeout = "1s"
 
 [beacon-kit.validator]
 # Graffiti string that will be included in the graffiti field of the beacon block.

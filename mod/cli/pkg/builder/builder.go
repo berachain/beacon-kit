@@ -21,18 +21,17 @@
 package builder
 
 import (
-	"io"
 	"os"
 
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
-	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
+	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/context"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -41,27 +40,26 @@ import (
 )
 
 // CLIBuilder is the builder for the commands.Root (root command).
-type CLIBuilder[T servertypes.Application] struct {
+type CLIBuilder[T types.Node] struct {
 	depInjectCfg depinject.Config
 	name         string
 	description  string
 	// components is a list of component providers for depinject.
 	components []any
 	// suppliers is a list of suppliers for depinject.
-	suppliers  []any
+	suppliers []any
+	// runHandler is a function to set up run handlers for the command.
 	runHandler runHandler
-	// appCreator is a function that builds the Node, eventually called by the
-	// cosmos-sdk.
+	// nodeBuilderFunc is a function that builds the Node,
+	// eventually called by the cosmos-sdk.
 	// TODO: CLI should not know about the AppCreator
-	appCreator servertypes.AppCreator[T]
+	nodeBuilderFunc servertypes.AppCreator[T]
 	// rootCmdSetup is a function that sets up the root command.
 	rootCmdSetup rootCmdSetup[T]
-	// logger is the logger
-	// logger log.Logger
 }
 
 // New returns a new CLIBuilder with the given options.
-func New[T servertypes.Application](opts ...Opt[T]) *CLIBuilder[T] {
+func New[T types.Node](opts ...Opt[T]) *CLIBuilder[T] {
 	cb := &CLIBuilder[T]{
 		suppliers: []any{
 			os.Stdout, // supply io.Writer for logger
@@ -82,6 +80,7 @@ func (cb *CLIBuilder[T]) Build() (*cmdlib.Root, error) {
 		mm          *module.Manager
 		clientCtx   client.Context
 		chainSpec   common.ChainSpec
+		logger      log.Logger
 	)
 	// build dependencies for the root command
 	if err := depinject.Inject(
@@ -94,10 +93,11 @@ func (cb *CLIBuilder[T]) Build() (*cmdlib.Root, error) {
 				cb.components...,
 			),
 		),
-		&autoCliOpts,
 		&mm,
+		&logger,
 		&clientCtx,
 		&chainSpec,
+		&autoCliOpts,
 	); err != nil {
 		return nil, err
 	}
@@ -106,7 +106,7 @@ func (cb *CLIBuilder[T]) Build() (*cmdlib.Root, error) {
 	rootCmd := cmdlib.New(
 		cb.name,
 		cb.description,
-		cb.defaultRunHandler(),
+		cb.defaultRunHandler(logger),
 		clientCtx,
 	)
 
@@ -119,7 +119,7 @@ func (cb *CLIBuilder[T]) Build() (*cmdlib.Root, error) {
 	cmdlib.DefaultRootCommandSetup(
 		rootCmd,
 		mm,
-		cb.appCreator,
+		cb.nodeBuilderFunc,
 		chainSpec,
 	)
 
@@ -127,10 +127,13 @@ func (cb *CLIBuilder[T]) Build() (*cmdlib.Root, error) {
 }
 
 // defaultRunHandler returns the default run handler for the CLIBuilder.
-func (cb *CLIBuilder[T]) defaultRunHandler() func(cmd *cobra.Command) error {
+func (cb *CLIBuilder[T]) defaultRunHandler(logger log.Logger) func(
+	cmd *cobra.Command,
+) error {
 	return func(cmd *cobra.Command) error {
 		return cb.InterceptConfigsPreRunHandler(
 			cmd,
+			logger,
 			DefaultAppConfigTemplate(),
 			DefaultAppConfig(),
 			DefaultCometConfig(),
@@ -142,32 +145,15 @@ func (cb *CLIBuilder[T]) defaultRunHandler() func(cmd *cobra.Command) error {
 // InterceptConfigsAndCreateContext except it also sets the server context on
 // the command and the server logger.
 func (cb *CLIBuilder[T]) InterceptConfigsPreRunHandler(
-	cmd *cobra.Command, customAppConfigTemplate string,
+	cmd *cobra.Command, logger log.Logger, customAppConfigTemplate string,
 	customAppConfig interface{}, cmtConfig *cmtcfg.Config,
 ) error {
-	serverCtx, err := server.InterceptConfigsAndCreateContext(
-		cmd, customAppConfigTemplate, customAppConfig, cmtConfig)
-	if err != nil {
-		return err
-	}
-
-	// overwrite default server logger
-	serverCtx.Logger, err = CreatePhusluLogger(
-		serverCtx, cmd.OutOrStdout(),
-	)
+	serverCtx, err := context.InterceptConfigsAndCreateContext(
+		cmd, customAppConfigTemplate, customAppConfig, cmtConfig, logger)
 	if err != nil {
 		return err
 	}
 
 	// set server context
 	return server.SetCmdServerContext(cmd, serverCtx)
-}
-
-// CreatePhusluLogger creates a a phuslu logger with the given output.
-// It reads the log level and format from the server context.
-func CreatePhusluLogger(
-	ctx *server.Context, out io.Writer,
-) (log.Logger, error) {
-	logLvlStr := ctx.Viper.GetString(flags.FlagLogLevel)
-	return phuslu.NewLogger[log.Logger](logLvlStr, out), nil
 }

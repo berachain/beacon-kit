@@ -62,6 +62,7 @@ type ValidatorBalanceData struct {
 	Balance uint64 `json:"balance,string"`
 }
 
+//nolint:staticcheck // todo: figure this out.
 type CommitteeData struct {
 	Index      uint64   `json:"index,string"`
 	Slot       uint64   `json:"slot,string"`

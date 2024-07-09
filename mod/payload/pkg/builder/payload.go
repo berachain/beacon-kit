@@ -25,7 +25,7 @@ import (
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/errors"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -33,15 +33,16 @@ import (
 // RequestPayloadAsync builds a payload for the given slot and
 // returns the payload ID.
 func (pb *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT, PayloadIDT,
+	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	PayloadAttributesT, PayloadIDT, WithdrawalT,
 ]) RequestPayloadAsync(
 	ctx context.Context,
 	st BeaconStateT,
 	slot math.Slot,
 	timestamp uint64,
 	parentBlockRoot common.Root,
-	headEth1BlockHash common.ExecutionHash,
-	finalEth1BlockHash common.ExecutionHash,
+	headEth1BlockHash gethprimitives.ExecutionHash,
+	finalEth1BlockHash gethprimitives.ExecutionHash,
 ) (*PayloadIDT, error) {
 	if !pb.Enabled() {
 		return nil, ErrPayloadBuilderDisabled
@@ -62,13 +63,13 @@ func (pb *PayloadBuilder[
 	attrs, err := pb.attributesFactory.
 		BuildPayloadAttributes(st, slot, timestamp, parentBlockRoot)
 	if err != nil {
-		return nil, errors.Newf("%w error when getting payload attributes", err)
+		return nil, err
 	}
 
 	// Submit the forkchoice update to the execution client.
 	var payloadID *PayloadIDT
 	payloadID, _, err = pb.ee.NotifyForkchoiceUpdate(
-		ctx, &engineprimitives.ForkchoiceUpdateRequest{
+		ctx, &engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT]{
 			State: &engineprimitives.ForkchoiceStateV1{
 				HeadBlockHash:      headEth1BlockHash,
 				SafeBlockHash:      finalEth1BlockHash,
@@ -84,18 +85,6 @@ func (pb *PayloadBuilder[
 
 	// Only add to cache if we received back a payload ID.
 	if payloadID != nil {
-		pb.logger.Info(
-			"Bob the builder; can we forkchoice update it?;"+
-				" bob the builder; yes we can 🚧",
-			"head_eth1_hash",
-			headEth1BlockHash,
-			"for_slot",
-			slot.Base10(),
-			"parent_block_root",
-			parentBlockRoot,
-			"payload_id",
-			payloadID,
-		)
 		pb.pc.Set(slot, parentBlockRoot, *payloadID)
 	}
 
@@ -105,15 +94,16 @@ func (pb *PayloadBuilder[
 // RequestPayloadSync request a payload for the given slot and
 // blocks until the payload is delivered.
 func (pb *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT, PayloadIDT,
+	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	PayloadAttributesT, PayloadIDT, WithdrawalT,
 ]) RequestPayloadSync(
 	ctx context.Context,
 	st BeaconStateT,
 	slot math.Slot,
 	timestamp uint64,
 	parentBlockRoot common.Root,
-	parentEth1Hash common.ExecutionHash,
-	finalBlockHash common.ExecutionHash,
+	parentEth1Hash gethprimitives.ExecutionHash,
+	finalBlockHash gethprimitives.ExecutionHash,
 ) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
 	if !pb.Enabled() {
 		return nil, ErrPayloadBuilderDisabled
@@ -165,7 +155,8 @@ func (pb *PayloadBuilder[
 // retrieve a payload, it will build a new payload and wait for the
 // execution client to return the payload.
 func (pb *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT, PayloadIDT,
+	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	PayloadAttributesT, PayloadIDT, WithdrawalT,
 ]) RetrievePayload(
 	ctx context.Context,
 	slot math.Slot,
@@ -214,7 +205,7 @@ func (pb *PayloadBuilder[
 		args = append(args, "num_blobs", len(blobsBundle.GetBlobs()))
 	}
 
-	pb.logger.Info("Payload retrieved from local builder 🏗️ ", args...)
+	pb.logger.Info("Payload retrieved from local builder", args...)
 
 	// If the payload was built by a different builder, something is
 	// wrong the EL<>CL setup.
@@ -235,7 +226,8 @@ func (pb *PayloadBuilder[
 // TODO: This should be moved onto a "sync service"
 // of some kind.
 func (pb *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT, PayloadIDT,
+	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	PayloadAttributesT, PayloadIDT, WithdrawalT,
 ]) SendForceHeadFCU(
 	ctx context.Context,
 	st BeaconStateT,
@@ -247,7 +239,7 @@ func (pb *PayloadBuilder[
 	}
 
 	pb.logger.Info(
-		"Sending startup forkchoice update to execution client 🚀 ",
+		"Sending startup forkchoice update to execution client",
 		"head_eth1_hash", lph.GetBlockHash(),
 		"safe_eth1_hash", lph.GetParentHash(),
 		"finalized_eth1_hash", lph.GetParentHash(),
@@ -255,14 +247,15 @@ func (pb *PayloadBuilder[
 	)
 
 	// Submit the forkchoice update to the execution client.
+	var attrs PayloadAttributesT
 	_, _, err = pb.ee.NotifyForkchoiceUpdate(
-		ctx, &engineprimitives.ForkchoiceUpdateRequest{
+		ctx, &engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT]{
 			State: &engineprimitives.ForkchoiceStateV1{
 				HeadBlockHash:      lph.GetBlockHash(),
 				SafeBlockHash:      lph.GetParentHash(),
 				FinalizedBlockHash: lph.GetParentHash(),
 			},
-			PayloadAttributes: nil,
+			PayloadAttributes: attrs,
 			ForkVersion:       pb.chainSpec.ActiveForkVersionForSlot(slot),
 		},
 	)

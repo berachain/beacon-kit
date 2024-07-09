@@ -23,7 +23,6 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
@@ -44,7 +43,6 @@ func ProvideDBManager(
 	return manager.NewDBManager[
 		*BeaconBlock,
 		*BlockEvent,
-		event.Subscription,
 	](
 		in.Logger.With("service", "db-manager"),
 		in.DepositPruner,

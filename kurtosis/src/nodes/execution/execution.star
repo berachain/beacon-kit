@@ -107,14 +107,6 @@ def add_bootnodes(node_module, config, bootnodes):
 
     return config
 
-def deploy_node(plan, config):
-    service_config = service_config_lib.create_from_config(config)
-
-    return plan.add_service(
-        name = config["name"],
-        config = service_config,
-    )
-
 def deploy_nodes(plan, configs):
     service_configs = {}
     for config in configs:
@@ -136,17 +128,6 @@ def generate_node_config(plan, node_modules, node_struct, bootnode_enode_addrs =
         el_service_config_dict = add_bootnodes(node_module, el_service_config_dict, bootnode_enode_addrs)
 
     return el_service_config_dict
-
-def create_node(plan, node_modules, node_struct, bootnode_enode_addrs = []):
-    el_service_config_dict = generate_node_config(plan, node_modules, node_struct, bootnode_enode_addrs)
-    el_client_service = deploy_node(plan, el_service_config_dict)
-
-    enode_addr = get_enode_addr(plan, node_struct.el_service_name)
-    return {
-        "name": node_struct.el_service_name,
-        "service": el_client_service,
-        "enode_addr": enode_addr,
-    }
 
 def add_metrics(metrics_enabled_services, node, el_service_name, el_client_service, node_modules):
     if node.el_type != "ethereumjs":

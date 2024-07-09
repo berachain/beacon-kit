@@ -23,16 +23,16 @@ package commands
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 )
 
 // PostSetupFn is a function that is called after the application is created
 // and the cosmos server is started.
-type PostSetupFn[T servertypes.Application] func(
+type PostSetupFn[T types.Node] func(
 	app T, svrCtx *server.Context, clientCtx client.Context,
 	ctx context.Context, g *errgroup.Group) error
 

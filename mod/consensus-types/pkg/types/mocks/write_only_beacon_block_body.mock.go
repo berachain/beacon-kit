@@ -171,6 +171,39 @@ func (_c *WriteOnlyBeaconBlockBody_SetExecutionData_Call) RunAndReturn(run func(
 	return _c
 }
 
+// SetGraffiti provides a mock function with given fields: _a0
+func (_m *WriteOnlyBeaconBlockBody) SetGraffiti(_a0 bytes.B32) {
+	_m.Called(_a0)
+}
+
+// WriteOnlyBeaconBlockBody_SetGraffiti_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetGraffiti'
+type WriteOnlyBeaconBlockBody_SetGraffiti_Call struct {
+	*mock.Call
+}
+
+// SetGraffiti is a helper method to define mock.On call
+//   - _a0 bytes.B32
+func (_e *WriteOnlyBeaconBlockBody_Expecter) SetGraffiti(_a0 interface{}) *WriteOnlyBeaconBlockBody_SetGraffiti_Call {
+	return &WriteOnlyBeaconBlockBody_SetGraffiti_Call{Call: _e.mock.On("SetGraffiti", _a0)}
+}
+
+func (_c *WriteOnlyBeaconBlockBody_SetGraffiti_Call) Run(run func(_a0 bytes.B32)) *WriteOnlyBeaconBlockBody_SetGraffiti_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(bytes.B32))
+	})
+	return _c
+}
+
+func (_c *WriteOnlyBeaconBlockBody_SetGraffiti_Call) Return() *WriteOnlyBeaconBlockBody_SetGraffiti_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *WriteOnlyBeaconBlockBody_SetGraffiti_Call) RunAndReturn(run func(bytes.B32)) *WriteOnlyBeaconBlockBody_SetGraffiti_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SetRandaoReveal provides a mock function with given fields: _a0
 func (_m *WriteOnlyBeaconBlockBody) SetRandaoReveal(_a0 bytes.B96) {
 	_m.Called(_a0)

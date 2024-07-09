@@ -44,10 +44,10 @@ func run() error {
 	// Build the node using the node-core.
 	nb := nodebuilder.New(
 		// Set the DepInject Configuration to the Default.
-		nodebuilder.WithDepInjectConfig[types.NodeI](
+		nodebuilder.WithDepInjectConfig[types.Node](
 			nodebuilder.DefaultDepInjectConfig()),
 		// Set the Runtime Components to the Default.
-		nodebuilder.WithComponents[types.NodeI](
+		nodebuilder.WithComponents[types.Node](
 			nodecomponents.DefaultComponentsWithStandardTypes(),
 		),
 	)
@@ -55,15 +55,15 @@ func run() error {
 	// Build the root command using the builder
 	cb := clibuilder.New(
 		// Set the Name to the Default.
-		clibuilder.WithName[types.NodeI](nodebuilder.DefaultAppName),
+		clibuilder.WithName[types.Node](nodebuilder.DefaultAppName),
 		// Set the Description to the Default.
-		clibuilder.WithDescription[types.NodeI](nodebuilder.DefaultDescription),
+		clibuilder.WithDescription[types.Node](nodebuilder.DefaultDescription),
 		// Set the DepInject Configuration to the Default.
-		clibuilder.WithDepInjectConfig[types.NodeI](
+		clibuilder.WithDepInjectConfig[types.Node](
 			nodebuilder.DefaultDepInjectConfig(),
 		),
 		// Set the Runtime Components to the Default.
-		clibuilder.WithComponents[types.NodeI](
+		clibuilder.WithComponents[types.Node](
 			append(
 				clicomponents.DefaultClientComponents(),
 				// TODO: remove these, and eventually pull cfg and chainspec
@@ -73,20 +73,16 @@ func run() error {
 				nodecomponents.ProvideChainSpec,
 			),
 		),
-		clibuilder.SupplyModuleDeps[types.NodeI](
+		clibuilder.SupplyModuleDeps[types.Node](
 			beacon.SupplyModuleDependencies(),
 		),
 		// Set the Run Handler to the Default.
-		clibuilder.WithRunHandler[types.NodeI](
+		clibuilder.WithRunHandler[types.Node](
 			server.InterceptConfigsPreRunHandler,
 		),
-		// Set the AppCreator to the NodeBuilder AppCreator.
-		clibuilder.WithAppCreator[types.NodeI](nb.AppCreator),
+		// Set the NodeBuilderFunc to the NodeBuilder Build.
+		clibuilder.WithNodeBuilderFunc[types.Node](nb.Build),
 	)
-
-	// we never have to call nb.build() because this function is passed
-	// to the cli through the clibuilder.WithAppCreator option, eventually to be
-	// called by the cosmos-sdk
 
 	cmd, err := cb.Build()
 	if err != nil {

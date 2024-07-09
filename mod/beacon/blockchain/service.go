@@ -25,8 +25,10 @@ import (
 	"sync"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
@@ -44,6 +46,12 @@ type Service[
 	ExecutionPayloadT ExecutionPayload,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
+	PayloadAttributesT interface {
+		IsNil() bool
+		Version() uint32
+		GetSuggestedFeeRecipient() gethprimitives.ExecutionAddress
+	},
+	WithdrawalT any,
 ] struct {
 	// sb represents the backend storage for beacon states and associated
 	// sidecars.
@@ -58,13 +66,10 @@ type Service[
 	// cs holds the chain specifications.
 	cs common.ChainSpec
 	// ee is the execution engine responsible for processing execution payloads.
-	ee ExecutionEngine
+
+	ee ExecutionEngine[PayloadAttributesT]
 	// lb is a local builder for constructing new beacon states.
 	lb LocalBuilder[BeaconStateT]
-	// bp is the blob processor for processing incoming blobs.
-	bp BlobProcessor[
-		AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT, ExecutionPayloadT,
-	]
 	// sp is the state processor for beacon blocks and states.
 	sp StateProcessor[
 		BeaconBlockT,
@@ -76,8 +81,12 @@ type Service[
 	]
 	// metrics is the metrics for the service.
 	metrics *chainMetrics
-	// blockFeed is the event feed for new blocks.
-	blockFeed EventFeed[*asynctypes.Event[BeaconBlockT]]
+	// genesisBroker is the event feed for genesis data.
+	genesisBroker EventFeed[*asynctypes.Event[GenesisT]]
+	// blkBroker is the event feed for new blocks.
+	blkBroker EventFeed[*asynctypes.Event[BeaconBlockT]]
+	// validatorUpdateBroker is the event feed for validator updates.
+	validatorUpdateBroker EventFeed[*asynctypes.Event[transition.ValidatorUpdates]]
 	// optimisticPayloadBuilds is a flag used when the optimistic payload
 	// builder is enabled.
 	optimisticPayloadBuilds bool
@@ -100,6 +109,12 @@ func NewService[
 	ExecutionPayloadT ExecutionPayload,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
+	PayloadAttributesT interface {
+		IsNil() bool
+		Version() uint32
+		GetSuggestedFeeRecipient() gethprimitives.ExecutionAddress
+	},
+	WithdrawalT any,
 ](
 	sb StorageBackend[
 		AvailabilityStoreT,
@@ -109,11 +124,8 @@ func NewService[
 	],
 	logger log.Logger[any],
 	cs common.ChainSpec,
-	ee ExecutionEngine,
+	ee ExecutionEngine[PayloadAttributesT],
 	lb LocalBuilder[BeaconStateT],
-	bp BlobProcessor[
-		AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT, ExecutionPayloadT,
-	],
 	sp StateProcessor[
 		BeaconBlockT,
 		BeaconStateT,
@@ -123,27 +135,31 @@ func NewService[
 		ExecutionPayloadHeaderT,
 	],
 	ts TelemetrySink,
-	blockFeed EventFeed[*asynctypes.Event[BeaconBlockT]],
+	genesisBroker EventFeed[*asynctypes.Event[GenesisT]],
+	blkBroker EventFeed[*asynctypes.Event[BeaconBlockT]],
+	//nolint:lll // annoying formatter.
+	validatorUpdateBroker EventFeed[*asynctypes.Event[transition.ValidatorUpdates]],
 	optimisticPayloadBuilds bool,
 ) *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, DepositT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, GenesisT,
+	ExecutionPayloadHeaderT, GenesisT, PayloadAttributesT, WithdrawalT,
 ] {
 	return &Service[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 		BeaconStateT, BlobSidecarsT, DepositT, ExecutionPayloadT,
-		ExecutionPayloadHeaderT, GenesisT,
+		ExecutionPayloadHeaderT, GenesisT, PayloadAttributesT, WithdrawalT,
 	]{
 		sb:                      sb,
 		logger:                  logger,
 		cs:                      cs,
 		ee:                      ee,
 		lb:                      lb,
-		bp:                      bp,
 		sp:                      sp,
 		metrics:                 newChainMetrics(ts),
-		blockFeed:               blockFeed,
+		genesisBroker:           genesisBroker,
+		blkBroker:               blkBroker,
+		validatorUpdateBroker:   validatorUpdateBroker,
 		optimisticPayloadBuilds: optimisticPayloadBuilds,
 		forceStartupSyncOnce:    new(sync.Once),
 	}
@@ -151,33 +167,139 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconBlockHeaderT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	ExecutionPayloadT,
-	ExecutionPayloadHeaderT,
-	GenesisT,
+	_, _, _, _, _, _, _, _, _, _, _, _,
 ]) Name() string {
 	return "blockchain"
 }
 
 func (s *Service[
-	AvailabilityStoreT,
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconBlockHeaderT,
-	BeaconStateT,
-	BlobSidecarsT,
-	DepositT,
-	ExecutionPayloadT,
-	ExecutionPayloadHeaderT,
-	GenesisT,
-]) Start(
-	context.Context,
-) error {
+	_, _, _, _, _, _, _, _, _, _, _, _,
+]) Start(ctx context.Context) error {
+	subBlkCh, err := s.blkBroker.Subscribe()
+	if err != nil {
+		return err
+	}
+	subGenCh, err := s.genesisBroker.Subscribe()
+	if err != nil {
+		return err
+	}
+	go s.start(ctx, subBlkCh, subGenCh)
 	return nil
+}
+
+func (s *Service[
+	_, BeaconBlockT, _, _, _, _, _, _, _, GenesisT, _, _,
+]) start(
+	ctx context.Context,
+	subBlkCh chan *asynctypes.Event[BeaconBlockT],
+	subGenCh chan *asynctypes.Event[GenesisT],
+) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case msg := <-subBlkCh:
+			switch msg.Type() {
+			case events.BeaconBlockReceived:
+				s.handleBeaconBlockReceived(msg)
+			case events.BeaconBlockFinalizedRequest:
+				s.handleBeaconBlockFinalization(msg)
+			}
+		case msg := <-subGenCh:
+			if msg.Type() == events.GenesisDataProcessRequest {
+				s.handleProcessGenesisDataRequest(msg)
+			}
+		}
+	}
+}
+
+func (s *Service[
+	_, _, _, _, _, _, _, _, _, GenesisT, _, _,
+]) handleProcessGenesisDataRequest(msg *asynctypes.Event[GenesisT]) {
+	if msg.Error() != nil {
+		s.logger.Error("Error processing genesis data", "error", msg.Error())
+		return
+	}
+
+	// Process the genesis data.
+	valUpdates, err := s.ProcessGenesisData(msg.Context(), msg.Data())
+	if err != nil {
+		s.logger.Error("Failed to process genesis data", "error", err)
+	}
+
+	// Publish the validator set updated event.
+	if err = s.validatorUpdateBroker.Publish(
+		msg.Context(),
+		asynctypes.NewEvent(
+			msg.Context(),
+			events.ValidatorSetUpdated,
+			valUpdates,
+			err,
+		),
+	); err != nil {
+		s.logger.Error(
+			"Failed to publish validator set updated event",
+			"error",
+			err,
+		)
+	}
+}
+
+func (s *Service[
+	_, BeaconBlockT, _, _, _, _, _, _, _, _, _, _,
+]) handleBeaconBlockReceived(
+	msg *asynctypes.Event[BeaconBlockT],
+) {
+	// If the block is nil, exit early.
+	if msg.Error() != nil {
+		s.logger.Error("Error processing beacon block", "error", msg.Error())
+		return
+	}
+
+	// Publish the verified block event.
+	if err := s.blkBroker.Publish(
+		msg.Context(),
+		asynctypes.NewEvent(
+			msg.Context(),
+			events.BeaconBlockVerified,
+			msg.Data(),
+			s.VerifyIncomingBlock(msg.Context(), msg.Data()),
+		),
+	); err != nil {
+		s.logger.Error("Failed to publish verified block", "error", err)
+	}
+}
+
+func (s *Service[
+	_, BeaconBlockT, _, _, _, _, _, _, _, _, _, _,
+]) handleBeaconBlockFinalization(
+	msg *asynctypes.Event[BeaconBlockT],
+) {
+	// If there's an error in the event, log it and return
+	if msg.Error() != nil {
+		s.logger.Error("Error verifying beacon block", "error", msg.Error())
+		return
+	}
+
+	// Process the verified block
+	valUpdates, err := s.ProcessBeaconBlock(msg.Context(), msg.Data())
+	if err != nil {
+		s.logger.Error("Failed to process verified beacon block", "error", err)
+	}
+
+	// Publish the validator set updated event
+	if err = s.validatorUpdateBroker.Publish(
+		msg.Context(),
+		asynctypes.NewEvent(
+			msg.Context(),
+			events.ValidatorSetUpdated,
+			valUpdates,
+			err,
+		)); err != nil {
+		s.logger.Error(
+			"Failed to publish validator set updated event",
+			"error",
+			err,
+		)
+	}
 }

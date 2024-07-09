@@ -26,6 +26,8 @@
 package pruner
 
 import (
+	"context"
+
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -41,15 +43,14 @@ type BlockEvent[BeaconBlockT BeaconBlock] interface {
 	Data() BeaconBlockT
 }
 
-type Subscription interface {
-	Unsubscribe()
+// Prunable is an interface representing a store that can be pruned.
+type Prunable interface {
+	// Prune prunes the store from [start, end).
+	Prune(start, end uint64) error
 }
 
-// BlockFeed is an interface for subscribing to block events.
-type BlockFeed[
-	BeaconBlockT BeaconBlock,
-	BlockEventT BlockEvent[BeaconBlockT],
-	SubscriptionT Subscription,
-] interface {
-	Subscribe(chan<- (BlockEventT)) SubscriptionT
+// Pruner is an interface for pruning a prunable type.
+type Pruner[PrunableT Prunable] interface {
+	Name() string
+	Start(ctx context.Context)
 }

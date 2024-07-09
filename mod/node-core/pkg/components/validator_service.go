@@ -23,7 +23,7 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/async/pkg/event"
+	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/config"
@@ -38,29 +38,35 @@ import (
 // ValidatorServiceInput is the input for the validator service provider.
 type ValidatorServiceInput struct {
 	depinject.In
-	BeaconBlockFeed *BlockFeed
+	BeaconBlockFeed *BlockBroker
 	BlobProcessor   *BlobProcessor
 	Cfg             *config.Config
 	ChainSpec       common.ChainSpec
 	LocalBuilder    *LocalBuilder
 	Logger          log.Logger
 	StateProcessor  StateProcessor
-	StorageBackend  StorageBackend
+	StorageBackend  *StorageBackend
 	Signer          crypto.BLSSigner
-	SidecarsFeed    *BlobFeed
-	SlotFeed        *event.FeedOf[asynctypes.EventID, *asynctypes.Event[math.Slot]]
+	SidecarsFeed    *SidecarsBroker
+	SlotBroker      *broker.Broker[*asynctypes.Event[math.Slot]]
 	TelemetrySink   *metrics.TelemetrySink
 }
 
 // ProvideValidatorService is a depinject provider for the validator service.
 func ProvideValidatorService(
 	in ValidatorServiceInput,
-) *ValidatorService {
+) (*ValidatorService, error) {
+	slotSubscription, err := in.SlotBroker.Subscribe()
+	if err != nil {
+		in.Logger.Error("failed to subscribe to slot feed", "err", err)
+		return nil, err
+	}
+
 	// Build the builder service.
 	return validator.NewService[
 		*BeaconBlock,
 		*BeaconBlockBody,
-		BeaconState,
+		*BeaconState,
 		*BlobSidecars,
 		*Deposit,
 		*DepositStore,
@@ -81,12 +87,12 @@ func ProvideValidatorService(
 			in.TelemetrySink,
 		),
 		in.LocalBuilder,
-		[]validator.PayloadBuilder[BeaconState, *ExecutionPayload]{
+		[]validator.PayloadBuilder[*BeaconState, *ExecutionPayload]{
 			in.LocalBuilder,
 		},
 		in.TelemetrySink,
 		in.BeaconBlockFeed,
 		in.SidecarsFeed,
-		in.SlotFeed,
-	)
+		slotSubscription,
+	), nil
 }

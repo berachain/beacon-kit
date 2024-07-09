@@ -25,11 +25,12 @@ import (
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
@@ -43,7 +44,7 @@ type BeaconBlock[
 	Eth1DataT,
 	ExecutionPayloadT any,
 ] interface {
-	ssz.Marshallable
+	constraints.SSZMarshallable
 	// NewWithVersion creates a new beacon block with the given parameters.
 	NewWithVersion(
 		slot math.Slot,
@@ -67,9 +68,8 @@ type BeaconBlock[
 type BeaconBlockBody[
 	DepositT, Eth1DataT, ExecutionPayloadT any,
 ] interface {
-	ssz.Marshallable
-	// IsNil checks if the beacon block body is nil.
-	IsNil() bool
+	constraints.SSZMarshallable
+	constraints.Nillable
 	// SetRandaoReveal sets the Randao reveal of the beacon block body.
 	SetRandaoReveal(crypto.BLSSignature)
 	// SetEth1Data sets the Eth1 data of the beacon block body.
@@ -78,9 +78,11 @@ type BeaconBlockBody[
 	SetDeposits([]DepositT)
 	// SetExecutionData sets the execution data of the beacon block body.
 	SetExecutionData(ExecutionPayloadT) error
+	// SetGraffiti sets the graffiti of the beacon block body.
+	SetGraffiti(common.Bytes32)
 	// SetBlobKzgCommitments sets the blob KZG commitments of the beacon block
 	// body.
-	SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
+	SetBlobKzgCommitments(eip4844.KZGCommitments[gethprimitives.ExecutionHash])
 }
 
 // BeaconState represents a beacon state interface.
@@ -140,7 +142,7 @@ type Eth1Data[T any] interface {
 	New(
 		depositRoot common.Root,
 		depositCount math.U64,
-		blockHash common.ExecutionHash,
+		blockHash gethprimitives.ExecutionHash,
 	) T
 }
 
@@ -149,9 +151,18 @@ type ExecutionPayloadHeader interface {
 	// GetTimestamp returns the timestamp of the execution payload header.
 	GetTimestamp() math.U64
 	// GetBlockHash returns the block hash of the execution payload header.
-	GetBlockHash() common.ExecutionHash
+	GetBlockHash() gethprimitives.ExecutionHash
 	// GetParentHash returns the parent hash of the execution payload header.
-	GetParentHash() common.ExecutionHash
+	GetParentHash() gethprimitives.ExecutionHash
+}
+
+// EventSubscription represents the event subscription interface.
+type EventSubscription[T any] chan T
+
+// EventPublisher represents the event publisher interface.
+type EventPublisher[T any] interface {
+	// PublishEvent publishes an event.
+	Publish(context.Context, T) error
 }
 
 // ForkData represents the fork data interface.
@@ -185,8 +196,8 @@ type PayloadBuilder[BeaconStateT, ExecutionPayloadT any] interface {
 		slot math.Slot,
 		timestamp uint64,
 		parentBlockRoot common.Root,
-		headEth1BlockHash common.ExecutionHash,
-		finalEth1BlockHash common.ExecutionHash,
+		headEth1BlockHash gethprimitives.ExecutionHash,
+		finalEth1BlockHash gethprimitives.ExecutionHash,
 	) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
 }
 
@@ -200,13 +211,13 @@ type StateProcessor[
 	// ProcessSlot processes the slot.
 	ProcessSlots(
 		st BeaconStateT, slot math.Slot,
-	) ([]*transition.ValidatorUpdate, error)
+	) (transition.ValidatorUpdates, error)
 	// Transition performs the core state transition.
 	Transition(
 		ctx ContextT,
 		st BeaconStateT,
 		blk BeaconBlockT,
-	) ([]*transition.ValidatorUpdate, error)
+	) (transition.ValidatorUpdates, error)
 }
 
 // StorageBackend is the interface for the storage backend.

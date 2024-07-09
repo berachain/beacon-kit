@@ -25,14 +25,14 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 )
 
 // HexRegexp is a regular expression to match hexadecimal characters.
 var HexRegexp = regexp.MustCompile(`^(?:0x)?[0-9a-fA-F]*$`)
 
-// JWTLength defines the length of the JWT byte array to be 32 bytes as
+// EthereumJWTLength defines the length of the JWT byte array to be 32 bytes as
 // defined the Engine API specification.
 // https://github.com/ethereum/execution-apis/blob/main/src/engine/authentication.md
 //
@@ -50,7 +50,7 @@ func NewFromHex(hexStr string) (*Secret, error) {
 	}
 
 	// Convert the hex string to a byte array.
-	bz := common.FromHex(hexStr)
+	bz := gethprimitives.FromHex(hexStr)
 	if bz == nil || len(bz) != EthereumJWTLength {
 		return nil, ErrLengthMismatch
 	}

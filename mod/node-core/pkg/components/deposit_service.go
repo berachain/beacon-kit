@@ -21,9 +21,10 @@
 package components
 
 import (
+	"errors"
+
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/async/pkg/event"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
@@ -37,7 +38,7 @@ type DepositServiceIn struct {
 	BeaconDepositContract *deposit.WrappedBeaconDepositContract[
 		*Deposit, types.WithdrawalCredentials,
 	]
-	BlockFeed     *BlockFeed
+	BlockBroker   *BlockBroker
 	ChainSpec     common.ChainSpec
 	DepositStore  *DepositStore
 	EngineClient  *EngineClient
@@ -47,7 +48,13 @@ type DepositServiceIn struct {
 
 // ProvideDepositService provides the deposit service to the depinject
 // framework.
-func ProvideDepositService(in DepositServiceIn) *DepositService {
+func ProvideDepositService(in DepositServiceIn) (*DepositService, error) {
+	blkSub, err := in.BlockBroker.Subscribe()
+	if err != nil {
+		in.Logger.Error("failed to subscribe to block feed", "err", err)
+		return nil, errors.New("failed to subscribe to block feed")
+	}
+
 	// Build the deposit service.
 	return deposit.NewService[
 		*BeaconBlockBody,
@@ -55,13 +62,12 @@ func ProvideDepositService(in DepositServiceIn) *DepositService {
 		*BlockEvent,
 		*DepositStore,
 		*ExecutionPayload,
-		event.Subscription,
 	](
 		in.Logger.With("service", "deposit"),
 		math.U64(in.ChainSpec.Eth1FollowDistance()),
 		in.TelemetrySink,
 		in.DepositStore,
 		in.BeaconDepositContract,
-		in.BlockFeed,
-	)
+		blkSub,
+	), nil
 }

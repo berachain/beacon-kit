@@ -25,9 +25,8 @@ import (
 	"testing"
 	"time"
 
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/cache"
-	ethcommon "github.com/ethereum/go-ethereum/common"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/stretchr/testify/require"
 )
 
@@ -47,7 +46,7 @@ func TestEth1HeaderCache(t *testing.T) {
 
 	t.Run("Set and Get", func(t *testing.T) {
 		number := uint64(1234)
-		h := &engineprimitives.Header{
+		h := &gethprimitives.Header{
 			Number: new(big.Int).SetUint64(number),
 		}
 		hash := h.Hash()
@@ -67,12 +66,12 @@ func TestEth1HeaderCache(t *testing.T) {
 		h1, ok := cacheUnderTest.HeaderByNumber(number)
 		require.True(t, ok)
 		require.NotNil(t, h1)
-		require.Equal(t, ethcommon.HexToHash("0x0"), h1.ParentHash)
+		require.Equal(t, gethprimitives.HexToHash("0x0"), h1.ParentHash)
 
 		oldHash := h1.Hash()
 
-		parentHash := ethcommon.HexToHash("0x1234")
-		newHeader := &engineprimitives.Header{
+		parentHash := gethprimitives.HexToHash("0x1234")
+		newHeader := &gethprimitives.Header{
 			Number:     new(big.Int).SetUint64(number),
 			ParentHash: parentHash,
 		}
@@ -96,7 +95,7 @@ func TestEth1HeaderCache(t *testing.T) {
 
 	t.Run("Prune and verify deletion", func(t *testing.T) {
 		for i := range uint64(20) {
-			h := &engineprimitives.Header{
+			h := &gethprimitives.Header{
 				Number: new(big.Int).SetUint64(i),
 			}
 			cacheUnderTest.AddHeader(h)

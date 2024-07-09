@@ -21,11 +21,11 @@
 package core
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkleizer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
@@ -34,16 +34,14 @@ import (
 //
 //nolint:gocognit,funlen // todo fix.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	_, BeaconBlockBodyT, BeaconBlockHeaderT, BeaconStateT, _, DepositT,
+	Eth1DataT, _, ExecutionPayloadHeaderT, ForkT, _, _, ValidatorT, _, _,
 ]) InitializePreminedBeaconStateFromEth1(
 	st BeaconStateT,
 	deposits []DepositT,
 	executionPayloadHeader ExecutionPayloadHeaderT,
 	genesisVersion common.Version,
-) ([]*transition.ValidatorUpdate, error) {
+) (transition.ValidatorUpdates, error) {
 	var (
 		blkHeader BeaconBlockHeaderT
 		blkBody   BeaconBlockBodyT
@@ -69,7 +67,7 @@ func (sp *StateProcessor[
 	}
 
 	if err := st.SetEth1Data(eth1Data.New(
-		bytes.B32(common.ZeroHash),
+		common.Bytes32(gethprimitives.ZeroHash),
 		0,
 		executionPayloadHeader.GetBlockHash(),
 	)); err != nil {
@@ -93,7 +91,7 @@ func (sp *StateProcessor[
 	for i := range sp.cs.EpochsPerHistoricalVector() {
 		if err = st.UpdateRandaoMixAtIndex(
 			i,
-			bytes.B32(executionPayloadHeader.GetBlockHash()),
+			common.Bytes32(executionPayloadHeader.GetBlockHash()),
 		); err != nil {
 			return nil, err
 		}
@@ -114,9 +112,11 @@ func (sp *StateProcessor[
 	}
 
 	var validatorsRoot common.Root
-	validatorsRoot, err = ssz.MerkleizeListComposite[
-		common.ChainSpec, math.U64,
-	](validators, uint64(len(validators)))
+	merkleizer := merkleizer.New[[32]byte, ValidatorT]()
+	validatorsRoot, err = merkleizer.MerkleizeListComposite(
+		validators,
+		uint64(len(validators)),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +156,7 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	var updates []*transition.ValidatorUpdate
+	var updates transition.ValidatorUpdates
 	updates, err = sp.processSyncCommitteeUpdates(st)
 	if err != nil {
 		return nil, err

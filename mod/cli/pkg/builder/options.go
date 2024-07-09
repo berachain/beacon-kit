@@ -23,30 +23,31 @@ package builder
 import (
 	"cosmossdk.io/depinject"
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cobra"
 )
 
 // Opt is a type that defines a function that modifies CLIBuilder.
-type Opt[T servertypes.Application] func(*CLIBuilder[T])
+type Opt[T types.Node] func(*CLIBuilder[T])
 
 // WithName sets the name for the CLIBuilder.
-func WithName[T servertypes.Application](name string) Opt[T] {
+func WithName[T types.Node](name string) Opt[T] {
 	return func(cb *CLIBuilder[T]) {
 		cb.name = name
 	}
 }
 
 // WithDescription sets the description for the CLIBuilder.
-func WithDescription[T servertypes.Application](description string) Opt[T] {
+func WithDescription[T types.Node](description string) Opt[T] {
 	return func(cb *CLIBuilder[T]) {
 		cb.description = description
 	}
 }
 
 // WithDepInjectConfig sets the depinject config for the CLIBuilder.
-func WithDepInjectConfig[T servertypes.Application](
+func WithDepInjectConfig[T types.Node](
 	cfg depinject.Config) Opt[T] {
 	return func(cb *CLIBuilder[T]) {
 		cb.depInjectCfg = cfg
@@ -54,7 +55,7 @@ func WithDepInjectConfig[T servertypes.Application](
 }
 
 // WithComponents sets the components for the CLIBuilder.
-func WithComponents[T servertypes.Application](components []any) Opt[T] {
+func WithComponents[T types.Node](components []any) Opt[T] {
 	return func(cb *CLIBuilder[T]) {
 		cb.components = components
 	}
@@ -62,14 +63,14 @@ func WithComponents[T servertypes.Application](components []any) Opt[T] {
 
 // SupplyModuleDeps populates the slice of direct module dependencies to be
 // supplied to depinject.
-func SupplyModuleDeps[T servertypes.Application](deps []any) Opt[T] {
+func SupplyModuleDeps[T types.Node](deps []any) Opt[T] {
 	return func(cb *CLIBuilder[T]) {
 		cb.suppliers = append(cb.suppliers, deps...)
 	}
 }
 
 // WithRunHandler sets the run handler for the CLIBuilder.
-func WithRunHandler[T servertypes.Application](
+func WithRunHandler[T types.Node](
 	runHandler func(cmd *cobra.Command,
 		customAppConfigTemplate string,
 		customAppConfig interface{},
@@ -82,17 +83,17 @@ func WithRunHandler[T servertypes.Application](
 }
 
 // WithDefaultRootCommandSetup sets the root command setup func to the default.
-func WithDefaultRootCommandSetup[T servertypes.Application]() Opt[T] {
+func WithDefaultRootCommandSetup[T types.Node]() Opt[T] {
 	return func(cb *CLIBuilder[T]) {
 		cb.rootCmdSetup = cmdlib.DefaultRootCommandSetup
 	}
 }
 
-// WithAppCreator sets the cosmos app creator for the CLIBuilder.
-func WithAppCreator[T servertypes.Application](
-	appCreator servertypes.AppCreator[T],
+// WithNodeBuilderFunc sets the cosmos app creator for the CLIBuilder.
+func WithNodeBuilderFunc[T types.Node](
+	nodeBuilderFunc servertypes.AppCreator[T],
 ) Opt[T] {
 	return func(cb *CLIBuilder[T]) {
-		cb.appCreator = appCreator
+		cb.nodeBuilderFunc = nodeBuilderFunc
 	}
 }

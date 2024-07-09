@@ -119,14 +119,6 @@ def get_persistent_peers(plan, peers):
         persistent_peers[i] = persistent_peers[i] + "@" + peer_service.ip_address + ":26656"
     return ",".join(persistent_peers)
 
-def create_node(plan, node_struct, peers, paired_el_client_name, jwt_file = None, kzg_trusted_setup_file = None):
-    beacond_config = create_node_config(plan, node_struct, peers, paired_el_client_name, jwt_file, kzg_trusted_setup_file)
-
-    return plan.add_service(
-        name = node_struct.cl_service_name,
-        config = beacond_config,
-    )
-
 def init_consensus_nodes():
     genesis_file = "{}/config/genesis.json".format("$BEACOND_HOME")
 

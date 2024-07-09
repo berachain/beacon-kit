@@ -21,14 +21,12 @@
 package types
 
 import (
-	"encoding/json"
-
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	eip4844 "github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 )
 
 // RawBeaconBlockBody is the interface for a beacon block body.
@@ -43,29 +41,30 @@ type WriteOnlyBeaconBlockBody interface {
 	SetDeposits([]*Deposit)
 	SetEth1Data(*Eth1Data)
 	SetExecutionData(*ExecutionPayload) error
-	SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
+	SetBlobKzgCommitments(eip4844.KZGCommitments[gethprimitives.ExecutionHash])
 	SetRandaoReveal(crypto.BLSSignature)
+	SetGraffiti(common.Bytes32)
 }
 
 // ReadOnlyBeaconBlockBody is the interface for
 // a read-only beacon block body.
 type ReadOnlyBeaconBlockBody interface {
-	ssz.Marshallable
+	constraints.SSZMarshallable
 	IsNil() bool
 
 	// Execution returns the execution data of the block.
 	GetDeposits() []*Deposit
 	GetEth1Data() *Eth1Data
-	GetGraffiti() bytes.B32
+	GetGraffiti() common.Bytes32
 	GetRandaoReveal() crypto.BLSSignature
 	GetExecutionPayload() *ExecutionPayload
-	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
+	GetBlobKzgCommitments() eip4844.KZGCommitments[gethprimitives.ExecutionHash]
 	GetTopLevelRoots() ([][32]byte, error)
 }
 
 // RawBeaconBlock is the interface for a beacon block.
 type RawBeaconBlock[BeaconBlockBodyT RawBeaconBlockBody] interface {
-	ssz.Marshallable
+	constraints.SSZMarshallable
 	SetStateRoot(common.Root)
 	GetStateRoot() common.Root
 	IsNil() bool
@@ -79,21 +78,20 @@ type RawBeaconBlock[BeaconBlockBodyT RawBeaconBlockBody] interface {
 
 // executionPayloadBody is the interface for the execution data of a block.
 type executionPayloadBody interface {
-	ssz.Marshallable
-	json.Marshaler
-	json.Unmarshaler
+	constraints.SSZMarshallable
+	constraints.JSONMarshallable
 	IsNil() bool
 	Version() uint32
 	GetPrevRandao() common.Bytes32
-	GetBlockHash() common.ExecutionHash
-	GetParentHash() common.ExecutionHash
+	GetBlockHash() gethprimitives.ExecutionHash
+	GetParentHash() gethprimitives.ExecutionHash
 	GetNumber() math.U64
 	GetGasLimit() math.U64
 	GetGasUsed() math.U64
 	GetTimestamp() math.U64
 	GetExtraData() []byte
 	GetBaseFeePerGas() math.Wei
-	GetFeeRecipient() common.ExecutionAddress
+	GetFeeRecipient() gethprimitives.ExecutionAddress
 	GetStateRoot() common.Bytes32
 	GetReceiptsRoot() common.Bytes32
 	GetLogsBloom() []byte

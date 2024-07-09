@@ -13,41 +13,40 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
+//
 
 package bytes
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 )
 
-// B32 represents a 32-byte array.
+const (
+	// B32Size represents a 32-byte size.
+	B32Size = 32
+)
+
+var _ types.MinimalSSZType = (*B32)(nil)
+
+// B32 represents a 32-byte fixed-size byte array.
+// For SSZ purposes it is serialized a `Vector[Byte, 32]`.
 type B32 [32]byte
 
 // ToBytes32 is a utility function that transforms a byte slice into a fixed
 // 32-byte array. If the input exceeds 32 bytes, it gets truncated.
 func ToBytes32(input []byte) B32 {
-	//nolint:mnd // 32 bytes.
-	return B32(ExtendToSize(input, 32))
+	return B32(ExtendToSize(input, B32Size))
 }
 
-// UnmarshalJSON implements the json.Unmarshaler interface for B32.
-func (h *B32) UnmarshalJSON(input []byte) error {
-	return unmarshalJSONHelper(h[:], input)
-}
-
-// String returns the hex string representation of B32.
-func (h B32) String() string {
-	return hex.FromBytes(h[:]).Unwrap()
-}
-
-// HashTreeRoot returns the hash tree root of the B32.
-func (h B32) HashTreeRoot() ([32]byte, error) {
-	return h, nil
-}
+/* -------------------------------------------------------------------------- */
+/*                                TextMarshaler                               */
+/* -------------------------------------------------------------------------- */
 
 // MarshalText implements the encoding.TextMarshaler interface for B32.
 func (h B32) MarshalText() ([]byte, error) {
@@ -59,8 +58,51 @@ func (h *B32) UnmarshalText(text []byte) error {
 	return UnmarshalTextHelper(h[:], text)
 }
 
+// String returns the hex string representation of B32.
+func (h B32) String() string {
+	return hex.FromBytes(h[:]).Unwrap()
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                JSONMarshaler                               */
+/* -------------------------------------------------------------------------- */
+
+// UnmarshalJSON implements the json.Unmarshaler interface for B32.
+func (h *B32) UnmarshalJSON(input []byte) error {
+	return unmarshalJSONHelper(h[:], input)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                SSZMarshaler                                */
+/* -------------------------------------------------------------------------- */
+
 // SizeSSZ returns the size of its SSZ encoding in bytes.
 func (h B32) SizeSSZ() int {
-	//nolint:mnd // vibes.
-	return 32
+	return B32Size
+}
+
+// MarshalSSZ implements the SSZ marshaling for B32.
+func (h B32) MarshalSSZ() ([]byte, error) {
+	return h[:], nil
+}
+
+// IsFixed returns true if the length of the B32 is fixed.
+func (h B32) IsFixed() bool {
+	return true
+}
+
+// Type returns the type of the B32.
+func (h B32) Type() types.Type {
+	return types.Composite
+}
+
+// ItemLength returns the required bytes to represent the root
+// element of the B32.
+func (h B32) ItemLength() uint64 {
+	return constants.BytesPerChunk
+}
+
+// HashTreeRoot returns the hash tree root of the B32.
+func (h B32) HashTreeRoot() ([32]byte, error) {
+	return h, nil
 }

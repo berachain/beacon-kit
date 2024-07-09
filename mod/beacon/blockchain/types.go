@@ -25,9 +25,10 @@ import (
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
@@ -47,9 +48,8 @@ type BeaconBlock[
 	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
 	ExecutionPayloadT any,
 ] interface {
-	ssz.Marshallable
-	// IsNil checks if the beacon block is nil.
-	IsNil() bool
+	constraints.SSZMarshallable
+	constraints.Nillable
 	// GetSlot returns the slot of the beacon block.
 	GetSlot() math.Slot
 	// GetParentBlockRoot returns the parent block root of the beacon block.
@@ -62,9 +62,8 @@ type BeaconBlock[
 
 // BeaconBlockBody represents the interface for the beacon block body.
 type BeaconBlockBody[ExecutionPayloadT any] interface {
-	ssz.Marshallable
-	// IsNil checks if the beacon block body is nil.
-	IsNil() bool
+	constraints.SSZMarshallable
+	constraints.Nillable
 	// GetExecutionPayload returns the execution payload of the beacon block
 	// body.
 	GetExecutionPayload() ExecutionPayloadT
@@ -72,55 +71,36 @@ type BeaconBlockBody[ExecutionPayloadT any] interface {
 
 // BeaconBlockHeader represents the interface for the beacon block header.
 type BeaconBlockHeader interface {
-	ssz.Marshallable
+	constraints.SSZMarshallable
 	// SetStateRoot sets the state root of the beacon block header.
 	SetStateRoot(common.Root)
 }
 
-// BlobProcessor is the interface for the blobs processor.
-type BlobProcessor[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
-	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
-	BlobSidecarsT,
-	ExecutionPayloadT any,
-] interface {
-	// ProcessBlobs processes the blobs and ensures they match the local state.
-	ProcessBlobs(
-		slot math.Slot,
-		avs AvailabilityStoreT,
-		sidecars BlobSidecarsT,
-	) error
-	// VerifyBlobs verifies the blobs and ensures they match the local state.
-	VerifyBlobs(
-		slot math.Slot,
-		sidecars BlobSidecarsT,
-	) error
-}
-
 // BlobSidecars is the interface for blobs sidecars.
 type BlobSidecars interface {
-	ssz.Marshallable
-	// IsNil checks if the blobs sidecars is nil.
-	IsNil() bool
+	constraints.SSZMarshallable
+	constraints.Nillable
 	// Len returns the length of the blobs sidecars.
 	Len() int
 }
 
 // ExecutionEngine is the interface for the execution engine.
-type ExecutionEngine interface {
+type ExecutionEngine[PayloadAttributesT any] interface {
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
-		req *engineprimitives.ForkchoiceUpdateRequest,
-	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
+		req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
+	) (*engineprimitives.PayloadID, *gethprimitives.ExecutionHash, error)
 }
 
 // EventFeed is a generic interface for sending events.
 type EventFeed[EventT any] interface {
 	// Send sends an event and returns the number of
 	// subscribers that received it.
-	Send(event EventT) int
+	Publish(ctx context.Context, event EventT) error
+	// Subscribe returns a channel that will receive events.
+	Subscribe() (chan EventT, error)
 }
 
 // ExecutionPayload is the interface for the execution payload.
@@ -133,9 +113,9 @@ type ExecutionPayloadHeader interface {
 	// GetTimestamp returns the timestamp.
 	GetTimestamp() math.U64
 	// GetBlockHash returns the block hash.
-	GetBlockHash() common.ExecutionHash
+	GetBlockHash() gethprimitives.ExecutionHash
 	// GetParentHash returns the parent hash.
-	GetParentHash() common.ExecutionHash
+	GetParentHash() gethprimitives.ExecutionHash
 }
 
 // Genesis is the interface for the genesis.
@@ -159,8 +139,8 @@ type LocalBuilder[BeaconStateT any] interface {
 		slot math.Slot,
 		timestamp uint64,
 		parentBlockRoot common.Root,
-		headEth1BlockHash common.ExecutionHash,
-		finalEth1BlockHash common.ExecutionHash,
+		headEth1BlockHash gethprimitives.ExecutionHash,
+		finalEth1BlockHash gethprimitives.ExecutionHash,
 	) (*engineprimitives.PayloadID, error)
 	// SendForceHeadFCU sends a force head FCU request.
 	SendForceHeadFCU(
@@ -214,17 +194,17 @@ type StateProcessor[
 		[]DepositT,
 		ExecutionPayloadHeaderT,
 		common.Version,
-	) ([]*transition.ValidatorUpdate, error)
+	) (transition.ValidatorUpdates, error)
 	// ProcessSlots processes the state transition for a range of slots.
 	ProcessSlots(
 		BeaconStateT, math.Slot,
-	) ([]*transition.ValidatorUpdate, error)
+	) (transition.ValidatorUpdates, error)
 	// Transition processes the state transition for a given block.
 	Transition(
 		ContextT,
 		BeaconStateT,
 		BeaconBlockT,
-	) ([]*transition.ValidatorUpdate, error)
+	) (transition.ValidatorUpdates, error)
 }
 
 // StorageBackend defines an interface for accessing various storage components

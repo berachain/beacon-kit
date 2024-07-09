@@ -22,7 +22,6 @@ package client
 
 import (
 	"context"
-	"encoding/json"
 	"math/big"
 	"net/http"
 	"strings"
@@ -31,19 +30,16 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/cache"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
+	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/rpc"
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
-	ethrpc "github.com/ethereum/go-ethereum/rpc"
 )
 
 // EngineClient is a struct that holds a pointer to an Eth1Client.
 type EngineClient[
-	ExecutionPayloadT interface {
-		Empty(uint32) ExecutionPayloadT
-		Version() uint32
-		json.Marshaler
-		json.Unmarshaler
-	},
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+	PayloadAttributesT PayloadAttributes,
 ] struct {
 	// Eth1Client is a struct that holds the Ethereum 1 client and
 	// its configuration.
@@ -68,19 +64,19 @@ type EngineClient[
 // New creates a new engine client EngineClient.
 // It takes an Eth1Client as an argument and returns a pointer  to an
 // EngineClient.
-func New[ExecutionPayloadT interface {
-	Empty(uint32) ExecutionPayloadT
-	Version() uint32
-	json.Marshaler
-	json.Unmarshaler
-}](
+func New[
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+	PayloadAttributesT PayloadAttributes,
+](
 	cfg *Config,
 	logger log.Logger[any],
 	jwtSecret *jwt.Secret,
 	telemetrySink TelemetrySink,
 	eth1ChainID *big.Int,
-) *EngineClient[ExecutionPayloadT] {
-	return &EngineClient[ExecutionPayloadT]{
+) *EngineClient[
+	ExecutionPayloadT, PayloadAttributesT,
+] {
+	return &EngineClient[ExecutionPayloadT, PayloadAttributesT]{
 		cfg:          cfg,
 		logger:       logger,
 		jwtSecret:    jwtSecret,
@@ -93,12 +89,16 @@ func New[ExecutionPayloadT interface {
 }
 
 // Name returns the name of the engine client.
-func (s *EngineClient[ExecutionPayloadT]) Name() string {
+func (s *EngineClient[
+	_, _,
+]) Name() string {
 	return "engine-client"
 }
 
 // Start the engine client.
-func (s *EngineClient[ExecutionPayloadT]) Start(
+func (s *EngineClient[
+	_, _,
+]) Start(
 	ctx context.Context,
 ) error {
 	if s.cfg.RPCDialURL.IsHTTP() || s.cfg.RPCDialURL.IsHTTPS() {
@@ -152,7 +152,9 @@ func (s *EngineClient[ExecutionPayloadT]) Start(
 
 // setupConnection dials the execution client and
 // ensures the chain ID is correct.
-func (s *EngineClient[ExecutionPayloadT]) initializeConnection(
+func (s *EngineClient[
+	_, _,
+]) initializeConnection(
 	ctx context.Context,
 ) error {
 	var (
@@ -215,11 +217,13 @@ func (s *EngineClient[ExecutionPayloadT]) initializeConnection(
 /* -------------------------------------------------------------------------- */
 
 // dialExecutionRPCClient dials the execution client's RPC endpoint.
-func (s *EngineClient[ExecutionPayloadT]) dialExecutionRPCClient(
+func (s *EngineClient[
+	ExecutionPayloadT, _,
+]) dialExecutionRPCClient(
 	ctx context.Context,
 ) error {
 	var (
-		client *ethrpc.Client
+		client *rpc.Client
 		err    error
 	)
 
@@ -232,19 +236,19 @@ func (s *EngineClient[ExecutionPayloadT]) dialExecutionRPCClient(
 			if header, err = s.buildJWTHeader(); err != nil {
 				return err
 			}
-			if client, err = ethrpc.DialOptions(
-				ctx, s.cfg.RPCDialURL.String(), ethrpc.WithHeaders(header),
+			if client, err = rpc.DialOptions(
+				ctx, s.cfg.RPCDialURL.String(), rpc.WithHeaders(header),
 			); err != nil {
 				return err
 			}
 		} else {
-			if client, err = ethrpc.DialContext(
+			if client, err = rpc.DialContext(
 				ctx, s.cfg.RPCDialURL.String()); err != nil {
 				return err
 			}
 		}
 	case s.cfg.RPCDialURL.IsIPC():
-		if client, err = ethrpc.DialIPC(
+		if client, err = rpc.DialIPC(
 			ctx, s.cfg.RPCDialURL.Path); err != nil {
 			s.logger.Error("failed to dial IPC", "err", err)
 			return err
