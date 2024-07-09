@@ -26,8 +26,8 @@ import (
 	"testing/quick"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
-	"github.com/prysmaticlabs/prysm/v5/consensus-types/primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	ztyp "github.com/protolambda/ztyp/tree"
 	"github.com/stretchr/testify/require"
 )
 
@@ -114,17 +114,18 @@ func TestVectorHashTreeRootQ(t *testing.T) {
 	}
 }
 
-func TestVectorHashTreeRootPrysm(t *testing.T) {
-	f := func(s []byte) bool {
-		a := primitives.SSZBytes(s)
-		b := ssz.ByteVectorFromBytes(a)
+func TestVectorHashTreeRootZTyp(t *testing.T) {
+	hFn := ztyp.GetHashFn()
 
-		root1, err1 := a.HashTreeRoot()
-		root2, err2 := b.HashTreeRoot()
-		if err1 != nil || err2 != nil {
+	f := func(s []byte) bool {
+		a := ssz.ByteVectorFromBytes(s)
+
+		root1, err := a.HashTreeRoot()
+		root2 := hFn.ByteVectorHTR(s)
+		if err != nil {
 			return false
 		}
-		return reflect.DeepEqual(root1, root2)
+		return reflect.DeepEqual(root1, [32]byte(root2))
 	}
 	c := quick.Config{MaxCount: 1000000}
 	if err := quick.Check(f, &c); err != nil {
