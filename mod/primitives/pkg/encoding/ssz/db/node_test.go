@@ -24,6 +24,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/db"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/stretchr/testify/require"
 )
@@ -65,8 +67,8 @@ func Test_Schema_Paths(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(strings.ReplaceAll(tc.path, "/", "."), func(t *testing.T) {
-			objectPath := schema.ObjectPath[[32]byte](tc.path)
-			node, err := schema.NewTreeNode(root, objectPath)
+			objectPath := merkle.ObjectPath[[32]byte](tc.path)
+			node, err := db.NewTreeNode(root, objectPath)
 			require.NoError(t, err)
 			require.Equalf(
 				t,
@@ -129,8 +131,8 @@ func TestNewTreeNodeEdgeCases(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			objectPath := schema.ObjectPath[[32]byte](tc.path)
-			_, err := schema.NewTreeNode(root, objectPath)
+			objectPath := merkle.ObjectPath[[32]byte](tc.path)
+			_, err := db.NewTreeNode(root, objectPath)
 			if tc.expectError {
 				require.Error(t, err)
 			} else {
