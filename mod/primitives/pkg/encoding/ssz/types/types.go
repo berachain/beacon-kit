@@ -22,21 +22,33 @@ package types
 
 import "github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 
+/* -------------------------------------------------------------------------- */
+/*                              Type Definitions                              */
+/* -------------------------------------------------------------------------- */
+
+/* -------------------------------------------------------------------------- */
+/*                                 SSZ Objects                                */
+/* -------------------------------------------------------------------------- */
+
+// SSZObject defines an interface for SSZ basic types which includes methods for
+// determining the size of the SSZ encoding and computing the hash tree root.
+type MerkleizableSSZObject[RootT ~[32]byte] interface {
+	// SizeSSZ returns the size in bytes of the SSZ-encoded data.
+	SizeSSZ() int
+	// HashTreeRoot computes and returns the hash tree root of the data as
+	// RootT and an error if the computation fails.
+	HashTreeRoot() (RootT, error)
+	// MarshalSSZ marshals the data into SSZ format.
+	MarshalSSZ() ([]byte, error)
+}
+
 // MinimalSSZType is the smallest interface of an SSZable type.
 type MinimalSSZType interface {
+	MerkleizableSSZObject[[32]byte]
 	// MarshalSSZ marshals the type into SSZ format.
 	IsFixed() bool
 	// Type returns the type of the SSZ object.
 	Type() schema.SSZType
-	// SizeSSZ returns the size of the type in bytes.
-	SizeSSZ() int
-
-	// TODO: Do we want these off the minimal?
-	//
-	// HashTreeRoot returns the hash tree root of the composite type.
-	HashTreeRoot() ([32]byte, error)
-	// MarshalSSZ marshals the type into SSZ format.
-	MarshalSSZ() ([]byte, error)
 }
 
 // SSZType is the interface for all SSZ types.

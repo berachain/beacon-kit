@@ -71,6 +71,33 @@ func (c *BasicContainer[SpecT]) HashTreeRoot() ([32]byte, error) {
 	)
 }
 
+// MarshalSSZ marshals the container into a byte slice.
+func (c *BasicContainer[SpecT]) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, c.SizeSSZ())
+	item1Bytes, err := c.Item1.MarshalSSZ()
+	if err != nil {
+		return nil, err
+	}
+	item2Bytes, err := c.Item2.MarshalSSZ()
+	if err != nil {
+		return nil, err
+	}
+	copy(buf[:8], item1Bytes)
+	copy(buf[8:], item2Bytes)
+	return buf, nil
+}
+
+// TestBasicItemMerkleization tests the Merkleization of a basic item.
+func TestBasicItemMerkleization(t *testing.T) {
+	item := BasicItem(42)
+
+	// Merkleize the item.
+	actualRoot, err := item.HashTreeRoot()
+	require.NoError(t, err)
+
+	// Manually compute the expected root.
+	buf := make([]byte, 32)
+
 // TestBasicItemMerkleization tests the Merkleization of a basic item.
 func TestBasicContainerMerkleization(t *testing.T) {
 	container := BasicContainer[any]{

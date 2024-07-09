@@ -25,13 +25,14 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes/buffer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 )
 
 // merkleizer can be used for merkleizing SSZ types.
 type Merkleizer[
-	RootT ~[32]byte, T SSZObject[RootT],
+	RootT ~[32]byte, T types.MerkleizableSSZObject[RootT],
 ] struct {
 	rootHasher  *merkle.RootHasher[RootT]
 	bytesBuffer Buffer[RootT]
@@ -39,7 +40,7 @@ type Merkleizer[
 
 // New creates a new merkleizer with a reusable hasher and bytes buffer.
 func New[
-	RootT ~[32]byte, T SSZObject[RootT],
+	RootT ~[32]byte, T types.MerkleizableSSZObject[RootT],
 ]() *Merkleizer[RootT, T] {
 	return &Merkleizer[RootT, T]{
 		rootHasher: merkle.NewRootHasher(

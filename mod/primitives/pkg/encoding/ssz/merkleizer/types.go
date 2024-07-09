@@ -20,18 +20,6 @@
 
 package merkleizer
 
-// SSZObject defines an interface for SSZ basic types which includes methods for
-// determining the size of the SSZ encoding and computing the hash tree root.
-type SSZObject[RootT ~[32]byte] interface {
-	// SizeSSZ returns the size in bytes of the SSZ-encoded data.
-	SizeSSZ() int
-	// HashTreeRoot computes and returns the hash tree root of the data as
-	// RootT and an error if the computation fails.
-	HashTreeRoot() (RootT, error)
-	// MarshalSSZ marshals the data into SSZ format.
-	MarshalSSZ() ([]byte, error)
-}
-
 // Buffer is a reusable buffer for SSZ encoding.
 type Buffer[T any] interface {
 	// Get returns a slice of the buffer with the given size.
