@@ -111,7 +111,7 @@ func (v vector) HashChunkCount() uint64 {
 	return chunks
 }
 
-// typ.length describes the length for vector
+// typ.length describes the length for vector.
 func (v vector) Length() uint64 {
 	return v.length
 }
@@ -152,7 +152,7 @@ func (l list) ElementType(_ string) TypeDef {
 	return l.elementType
 }
 
-// typ.length describes the limit for list
+// typ.length describes the limit for list.
 func (l list) Length() uint64 {
 	return l.limit
 }

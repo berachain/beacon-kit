@@ -34,7 +34,10 @@ func Test_Schema_Paths(t *testing.T) {
 	nestedType := schema.DefineContainer(
 		schema.Field("bytes32", schema.DefineByteVector(32)),
 		schema.Field("uint64", schema.U64()),
-		schema.Field("list_bytes32", schema.DefineList(schema.DefineByteVector(32), 10)),
+		schema.Field(
+			"list_bytes32",
+			schema.DefineList(schema.DefineByteVector(32), 10),
+		),
 		schema.Field("bytes256", schema.DefineByteVector(256)),
 	)
 	root := schema.DefineContainer(
