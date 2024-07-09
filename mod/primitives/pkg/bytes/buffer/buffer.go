@@ -25,10 +25,10 @@ const initialBufferSize = 64
 
 // ReusableBuffer is a re-usable buffer for merkle tree hashing. Prevents
 // unnecessary allocations and garbage collection of byte slices.
+//
+// NOTE: this buffer is currently only safe for use in a single thread.
 type ReusableBuffer[RootT ~[32]byte] struct {
 	internal []RootT
-
-	// TODO: add a mutex for multi-thread safety.
 }
 
 // NewReusableBuffer creates a new re-usable buffer for merkle tree hashing.
@@ -40,8 +40,8 @@ func NewReusableBuffer[RootT ~[32]byte]() *ReusableBuffer[RootT] {
 
 // Get returns a slice of the internal buffer of roots of the given size.
 func (b *ReusableBuffer[RootT]) Get(size int) []RootT {
-	if size > len(b.internal) {
-		b.grow(size - len(b.internal))
+	if delta := size - len(b.internal); delta > 0 {
+		b.grow(delta)
 	}
 
 	return b.internal[:size]
@@ -55,12 +55,10 @@ func (b *ReusableBuffer[RootT]) grow(delta int) {
 // singleuseBuffer is a buffer for a single use case. Allocates new
 // memory for each use (call to `Get`).
 //
-// NOTE: this buffer is ONLY meant to be used in a single thread.
+// NOTE: this buffer is only used for testing.
 type SingleUseBuffer[RootT ~[32]byte] struct{}
 
 // NewSingleuseBuffer creates a new single-use buffer.
-//
-
 func NewSingleuseBuffer[RootT ~[32]byte]() *SingleUseBuffer[RootT] {
 	return &SingleUseBuffer[RootT]{}
 }
