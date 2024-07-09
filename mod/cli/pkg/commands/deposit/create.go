@@ -24,7 +24,6 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	"crypto/ecdsa"
-	"fmt"
 	"math/big"
 	"net/url"
 	"os"
@@ -227,7 +226,7 @@ func broadcastDepositTx(
 	}
 
 	cfg.Engine.RPCDialURL = convertURLToConnectionURL(parsedURL)
-	fmt.Println("RPCDialURL", cfg.Engine.RPCDialURL)
+	logger.Info("RPCDialURL", "url", cfg.Engine.RPCDialURL)
 
 	// Load the JWT secret.
 	cfg.Engine.JWTSecretPath, err = cmd.Flags().GetString(jwtSecretPath)
@@ -236,7 +235,8 @@ func broadcastDepositTx(
 	}
 
 	jwtSecret, err := loadFromFile(cfg.Engine.JWTSecretPath)
-	fmt.Println("jwtSecret", jwtSecret)
+	logger.Info("jwtSecret", "jwtSecret", jwtSecret)
+
 	if err != nil {
 		return gethCommon.Hash{}, errors.Wrapf(err, "error in loading jwt secret")
 	}
@@ -275,16 +275,6 @@ func broadcastDepositTx(
 		return gethCommon.Hash{}, err
 	}
 
-	//latestNonce, errNonce := engineClient.NonceAt(
-	//	cmd.Context(),
-	//	ethCrypto.PubkeyToAddress(privKey.PublicKey),
-	//	nil,
-	//)
-	//fmt.Println("LATEST NONCE", latestNonce)
-
-	//if errNonce != nil {
-	//	panic(errNonce)
-	//}
 	// one way
 	//contractAbi, err := deposit.BeaconDepositContractMetaData.GetAbi()
 	//if err != nil {
@@ -364,48 +354,8 @@ func broadcastDepositTx(
 		return gethCommon.Hash{}, err
 	}
 
-	fmt.Println("from", ethCrypto.PubkeyToAddress(privKey.PublicKey))
+	logger.Info("from", "from", ethCrypto.PubkeyToAddress(privKey.PublicKey))
 	fromAddress := ethCrypto.PubkeyToAddress(privKey.PublicKey)
-
-	// first call AllowDeposit
-	// allowDepositTx, err := depositContract.AllowDeposit(&bind.TransactOpts{
-	//	From: fromAddress,
-	//	Signer: func(
-	//		_ common.ExecutionAddress, tx *ethTypes.Transaction,
-	//	) (*ethTypes.Transaction, error) {
-	//		return ethTypes.SignTx(
-	//			tx, ethTypes.LatestSignerForChainID(chainID),
-	//			privKey,
-	//		)
-	//	},
-	//	//Nonce: new(big.Int).SetUint64(latestNonce),
-	//	//Value:     depositMsg.Amount.ToWei(),
-	//	GasTipCap: big.NewInt(1000000000),
-	//	GasFeeCap: big.NewInt(1000000000),
-	//	GasLimit:  30000000, // without this gets executed reverted
-	//},
-	//	fromAddress,
-	//	5,
-	//)
-
-	//if err != nil {
-	//	fmt.Errorf("error in allowing depositing: %v", err)
-	//	return gethCommon.Hash{}, err
-	//}
-
-	//time.Sleep(10 * time.Second)
-	//// Wait for the transaction to be mined and check the status.
-	// receiptAllow, err := bind.WaitMined(context.Background(), engineClient, allowDepositTx)
-	// if err != nil {
-	//	fmt.Errorf("error in waiting for transaction to be mined: %v", err)
-	//	return gethCommon.Hash{}, err
-	//}
-	// fmt.Println("receiptAllow", receiptAllow)
-	//
-	// fmt.Println("transaction hash", receiptAllow.TxHash)
-	// if receiptAllow.Status != 1 {
-	//	return gethCommon.Hash{}, parser.ErrDepositTransactionFailed
-	//}
 
 	latestNonceForDeposit, errInNonce := engineClient.NonceAt(
 		cmd.Context(),
@@ -415,7 +365,7 @@ func broadcastDepositTx(
 	if errInNonce != nil {
 		return gethCommon.Hash{}, errInNonce
 	}
-	fmt.Println("LATEST NONCE", latestNonceForDeposit)
+	logger.Info("LATEST NONCE", "nonce", latestNonceForDeposit)
 
 	depositTx, err := depositContract.Deposit(
 		&bind.TransactOpts{
@@ -449,9 +399,7 @@ func broadcastDepositTx(
 	if err != nil {
 		return gethCommon.Hash{}, errors.Wrapf(err, "waiting for transaction to be mined")
 	}
-	fmt.Println("RECEIPT", depositReceipt)
 
-	fmt.Println("transaction hash", depositReceipt.TxHash)
 	if depositReceipt.Status != 1 {
 		return gethCommon.Hash{}, parser.ErrDepositTransactionFailed
 	}
@@ -539,8 +487,6 @@ func getBLSSigner(
 	); err != nil {
 		return nil, err
 	}
-
-	fmt.Println("blsSigner", blsSigner)
 
 	return blsSigner, nil
 }
