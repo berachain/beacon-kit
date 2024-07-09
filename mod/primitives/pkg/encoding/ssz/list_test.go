@@ -21,49 +21,49 @@
 package ssz_test
 
 import (
-        "reflect"
-        "testing"
-        "testing/quick"
+	"reflect"
+	"testing"
+	"testing/quick"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
-        ztyp "github.com/protolambda/ztyp/tree"
+	ztyp "github.com/protolambda/ztyp/tree"
 )
 
 func TestListHashTreeRootQ(t *testing.T) {
-        f := func(a, b []byte, limit uint64) bool {
-                aL := ssz.ByteListFromBytes(a, limit)
-                bL := ssz.ByteListFromBytes(b, limit)
-                root1, err1 := aL.HashTreeRoot()
-                root2, err2 := bL.HashTreeRoot()
-                if err1 != nil || err2 != nil {
-                        return false
-                }
-                if reflect.DeepEqual(a, b) {
-                        return reflect.DeepEqual(root1, root2)
-                }
-                return true
-        }
-        c := quick.Config{MaxCount: 1000000}
-        if err := quick.Check(f, &c); err != nil {
-                t.Error(err)
-        }
+	f := func(a, b []byte, limit uint64) bool {
+		aL := ssz.ByteListFromBytes(a, limit)
+		bL := ssz.ByteListFromBytes(b, limit)
+		root1, err1 := aL.HashTreeRoot()
+		root2, err2 := bL.HashTreeRoot()
+		if err1 != nil || err2 != nil {
+			return false
+		}
+		if reflect.DeepEqual(a, b) {
+			return reflect.DeepEqual(root1, root2)
+		}
+		return true
+	}
+	c := quick.Config{MaxCount: 1000000}
+	if err := quick.Check(f, &c); err != nil {
+		t.Error(err)
+	}
 }
 
 func TestListHashTreeRootZtyp(t *testing.T) {
-        hFn := ztyp.GetHashFn()
+	hFn := ztyp.GetHashFn()
 
-        f := func(s []byte, limit uint64) bool {
-                a := ssz.ByteListFromBytes(s, limit)
+	f := func(s []byte, limit uint64) bool {
+		a := ssz.ByteListFromBytes(s, limit)
 
-                root1, err := a.HashTreeRoot()
-                root2 := hFn.ByteListHTR(s, limit)
-                if err != nil {
-                        return false
-                }
-                return reflect.DeepEqual(root1, [32]byte(root2))
-        }
-        c := quick.Config{MaxCount: 1000000}
-        if err := quick.Check(f, &c); err != nil {
-                t.Error(err)
-        }
+		root1, err := a.HashTreeRoot()
+		root2 := hFn.ByteListHTR(s, limit)
+		if err != nil {
+			return false
+		}
+		return reflect.DeepEqual(root1, [32]byte(root2))
+	}
+	c := quick.Config{MaxCount: 1000000}
+	if err := quick.Check(f, &c); err != nil {
+		t.Error(err)
+	}
 }
