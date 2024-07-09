@@ -126,23 +126,8 @@ func (k Backend[
 	return k.availabilityStore
 }
 
-// BeaconState returns the beacon state struct initialized with a given
-// context and the store key.
-// func (k Backend[
-// 	AvailabilityStoreT, BeaconBlockBodyT, BeaconBlockHeaderT, BeaconStateT,
-// 	BeaconStateMarshallableT, BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT,
-// 	ExecutionPayloadHeaderT, ForkT, KVStoreT, ValidatorT,
-// 	WithdrawalT, WithdrawalCredentialsT,
-// ]) StateFromContext(
-// 	ctx context.Context,
-// ) BeaconStateT {
-// 	var st BeaconStateT
-// 	return st.NewFromDB(
-// 		k.stateStore.WithContext(ctx), k.chainSpec,
-// 	)
-// }
-
-// BeaconStore returns the beacon store struct.
+// BeaconState returns a new BeaconState initialized with the state store and
+// chain spec.
 func (k Backend[
 	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _,
 ]) BeaconState() BeaconStateT {

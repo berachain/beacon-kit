@@ -21,8 +21,6 @@
 package beacondb
 
 import (
-	"context"
-
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 	"cosmossdk.io/runtime/v2"
@@ -267,27 +265,6 @@ func (s *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
 ] {
 	return s
-}
-
-// TODO: deprecate
-// func (s *Store[
-// 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-// 	ForkT, ValidatorT,
-// ]) Context() context.Context {
-// 	panic("REEEE")
-// }
-
-// WithContext returns a copy of the Store with the given context.
-func (s *Store[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
-]) WithContext(
-	ctx context.Context,
-) *Store[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
-] {
-	panic("REEEE")
 }
 
 // Note: this function does not enforce the invariant that
