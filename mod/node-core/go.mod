@@ -45,7 +45,7 @@ require (
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240705193247-d464364483df
+	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240709172723-b24ce6cf7d74
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240705193247-d464364483df
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240705183350-8b262bdd1d36
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
