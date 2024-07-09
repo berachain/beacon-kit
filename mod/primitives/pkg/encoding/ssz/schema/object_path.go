@@ -79,12 +79,12 @@ func (p ObjectPath[RootT]) GetGeneralizedIndex(
 		}
 
 		if part == "__len__" {
-			typ = U64()
 			if !typ.ID().IsList() {
 				return nil, 0, 0, errors.New(
 					"__len__ is only valid for List types",
 				)
 			}
+			typ = U64()
 			//nolint:mnd // from spec.
 			gIndex = gIndex*2 + 1
 		} else {
