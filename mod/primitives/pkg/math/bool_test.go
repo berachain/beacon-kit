@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -24,7 +24,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/require"
 )
@@ -33,7 +33,7 @@ func TestBool(t *testing.T) {
 	var b math.Bool
 	require.Equal(t, constants.BoolSize, b.SizeSSZ())
 	require.True(t, b.IsFixed())
-	require.Equal(t, types.Basic, b.Type())
+	require.Equal(t, schema.Bool(), b.Type())
 	require.Equal(t, uint64(0x1), b.ChunkCount())
 }
 
@@ -48,12 +48,8 @@ func TestBool_MarshalSSZ(t *testing.T) {
 
 	for _, tt := range tests {
 		result, err := tt.input.MarshalSSZ()
-		if err != nil {
-			require.Error(t, err)
-		} else {
-			require.NoError(t, err)
-			require.Equal(t, tt.expected, result)
-		}
+		require.NoError(t, err)
+		require.Equal(t, tt.expected, result)
 	}
 }
 
@@ -68,12 +64,8 @@ func TestBool_HashTreeRoot(t *testing.T) {
 
 	for _, tt := range tests {
 		result, err := tt.input.HashTreeRoot()
-		if err != nil {
-			require.Error(t, err)
-		} else {
-			require.NoError(t, err)
-			require.Equal(t, tt.expected, result)
-		}
+		require.NoError(t, err)
+		require.Equal(t, tt.expected, result)
 	}
 }
 
@@ -89,7 +81,7 @@ func TestBool_NewFromSSZ(t *testing.T) {
 		{name: "ValidTrue 2", input: []byte{2}, expected: true, err: false},
 		{name: "InvalidLength", input: []byte{}, expected: false, err: true},
 	}
-	var inputBool math.Bool = true
+	var inputBool math.Bool
 
 	for _, tt := range tests {
 		result, err := inputBool.NewFromSSZ(tt.input)
@@ -97,8 +89,7 @@ func TestBool_NewFromSSZ(t *testing.T) {
 			require.Error(t, err, "Test name %s", tt.name)
 		} else {
 			require.NoError(t, err, "Test name %s", tt.name)
-			require.Equal(t, tt.expected, result,
-				"Test name %s", tt.name)
+			require.Equal(t, tt.expected, result, "Test name %s", tt.name)
 		}
 	}
 }

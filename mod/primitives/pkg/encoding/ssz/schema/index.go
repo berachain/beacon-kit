@@ -18,19 +18,20 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package tree
+package schema
 
 import (
 	"sort"
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math/log"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math/pow"
 )
 
 type (
 	// GeneralizedIndex is a generalized index.
-	GeneralizedIndex[RootT ~[32]byte] math.U64
+	GeneralizedIndex[RootT ~[32]byte] uint64
 
 	// GeneralizedIndicies is a list of generalized indices.
 	GeneralizedIndicies[RootT ~[32]byte] []GeneralizedIndex[RootT]
@@ -45,9 +46,14 @@ func NewGeneralizedIndex[RootT ~[32]byte](
 	return GeneralizedIndex[RootT]((1 << depth) + index)
 }
 
+// Unwrap returns the underlying uint64 value of the GeneralizedIndex.
+func (g GeneralizedIndex[RootT]) Unwrap() uint64 {
+	return uint64(g)
+}
+
 // Length returns the length of the generalized index.
 func (g GeneralizedIndex[RootT]) Length() uint64 {
-	return uint64(math.U64(g).ILog2Floor())
+	return uint64(log.ILog2Floor(uint64(g)))
 }
 
 // IndexBit returns the bit at the specified position in a generalized index.
@@ -141,9 +147,9 @@ func (g GeneralizedIndex[RootT]) VerifyMerkleProof(
 func (gs GeneralizedIndicies[RootT]) Concat() GeneralizedIndex[RootT] {
 	o := GeneralizedIndex[RootT](1)
 	for _, i := range gs {
-		floorPower := math.U64(i).PrevPowerOfTwo()
+		floorPower := pow.PrevPowerOfTwo(i)
 		o = GeneralizedIndex[RootT](
-			math.U64(o)*floorPower + (math.U64(i) - floorPower),
+			uint64(o)*uint64(floorPower) + (uint64(i) - uint64(floorPower)),
 		)
 	}
 	return o

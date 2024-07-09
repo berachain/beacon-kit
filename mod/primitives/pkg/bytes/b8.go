@@ -18,12 +18,12 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 //
-
+//nolint:dupl // it's okay to duplicate the code for different types
 package bytes
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 )
 
@@ -91,15 +91,9 @@ func (h B8) IsFixed() bool {
 	return true
 }
 
-// ItemLength returns the required bytes to represent the root
-// element of the B8.
-func (h B8) ItemLength() uint64 {
-	return constants.BytesPerChunk
-}
-
 // Type returns the type of the B8.
-func (h B8) Type() types.Type {
-	return types.Composite
+func (h B8) Type() schema.SSZType {
+	return schema.B8()
 }
 
 // HashTreeRoot returns the hash tree root of the B8.

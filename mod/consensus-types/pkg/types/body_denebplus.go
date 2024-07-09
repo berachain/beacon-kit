@@ -48,7 +48,7 @@ type BeaconBlockBodyDenebPlus struct {
 	// SlashingInfo is the list of slashing info included in the body.
 	SlashingInfo []*SlashingInfo `ssz-max:"256"`
 	// BlobKzgCommitments is the list of KZG commitments for the EIP-4844 blobs.
-	BlobKzgCommitments []eip4844.KZGCommitment `ssz-size:"?,48" ssz-max:"16"`
+	BlobKzgCommitments []eip4844.KZGCommitment `ssz-max:"16"  ssz-size:"?,48"`
 }
 
 // IsNil checks if the BeaconBlockBodyDenebPlus is nil.
