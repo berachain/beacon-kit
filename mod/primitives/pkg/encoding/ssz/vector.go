@@ -108,7 +108,7 @@ func (v Vector[T]) Elements() []T {
 // HashTreeRootWith returns the Merkle root of the VectorBasic
 // with a given merkle.
 func (v Vector[T]) HashTreeRootWith(
-	merkleizer VectorMerkleizer[[32]byte, T],
+	merkleizer *merkle.Merkleizer[[32]byte, T],
 ) ([32]byte, error) {
 	var b T
 	switch t := b.Type().ID(); {

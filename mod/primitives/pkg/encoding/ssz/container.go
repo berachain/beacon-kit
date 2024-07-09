@@ -101,7 +101,7 @@ func (c *Container) Elements() []schema.MinimalSSZType {
 
 // HashTreeRoot returns the hash tree root of the container.
 func (c *Container) HashTreeRootWith(
-	merkleizer VectorMerkleizer[[32]byte, schema.MinimalSSZType],
+	merkleizer *merkle.Merkleizer[[32]byte, schema.MinimalSSZType],
 ) ([32]byte, error) {
 	return merkleizer.MerkleizeVectorCompositeOrContainer(c.elements)
 }

@@ -122,7 +122,7 @@ func (l *List[T]) Elements() []T {
 // HashTreeRootWith returns the Merkle root of the List
 // with a given merkle.
 func (l *List[T]) HashTreeRootWith(
-	merkleizer ListMerkleizer[[32]byte, T],
+	merkleizer *merkle.Merkleizer[[32]byte, T],
 ) ([32]byte, error) {
 	var b T
 	switch t := b.Type().ID(); {
