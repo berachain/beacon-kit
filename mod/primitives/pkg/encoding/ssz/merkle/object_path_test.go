@@ -84,7 +84,7 @@ func Test_ObjectPath(t *testing.T) {
 			require.NotNil(
 				t, typ, "Type should not be nil")
 			require.Equal(
-				t, tc.gindex, uint64(gindex), "Unexpected generalized index",
+				t, tc.gindex, gindex, "Unexpected generalized index",
 			)
 			require.Equal(t, tc.offset, offset, "Unexpected offset")
 		})

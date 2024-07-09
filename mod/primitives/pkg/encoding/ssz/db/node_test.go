@@ -70,16 +70,16 @@ func Test_Schema_Paths(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(strings.ReplaceAll(tc.path, "/", "."), func(t *testing.T) {
-			objectPath := merkle.ObjectPath[[32]byte](tc.path)
+			objectPath := merkle.ObjectPath[uint64, [32]byte](tc.path)
 			node, err := db.NewTreeNode(root, objectPath)
 			require.NoError(t, err)
 			require.Equalf(
 				t,
 				tc.gindex,
-				node.GIndex().Unwrap(),
+				node.GIndex(),
 				"expected %d, got %d",
 				tc.gindex,
-				node.GIndex().Unwrap())
+				node.GIndex())
 			require.Equal(
 				t,
 				node.Offset(),
@@ -134,7 +134,7 @@ func TestNewTreeNodeEdgeCases(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			objectPath := merkle.ObjectPath[[32]byte](tc.path)
+			objectPath := merkle.ObjectPath[uint64, [32]byte](tc.path)
 			_, err := db.NewTreeNode(root, objectPath)
 			if tc.expectError {
 				require.Error(t, err)
