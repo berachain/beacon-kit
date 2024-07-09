@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 )
 
+// NodeBuilder is a construction helper for creating nodes that implement the types.NodeI interface.
 // TODO: #Make nodebuilder build a node. Currently this is just a builder for
 // the AppCreator function, which is eventually called by cosmos to build a
 // node.

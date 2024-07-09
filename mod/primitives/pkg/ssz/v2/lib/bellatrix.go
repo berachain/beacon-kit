@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-// fixture from fast ssz
+// Package ssz contains fixture from fast ssz
 //
 //nolint:tagliatelle,lll // imported test
 package ssz

@@ -28,8 +28,9 @@ type Spec[
 	SlotT ~uint64,
 	CometBFTConfigT any,
 ] interface {
-	// Gwei value constants.
-	//
+
+	//// Gwei value constants.
+
 	// MinDepositAmount returns the minimum amount of Gwei required for a
 	// deposit.
 	MinDepositAmount() uint64
@@ -42,8 +43,8 @@ type Spec[
 	// calculations.
 	EffectiveBalanceIncrement() uint64
 
-	// Time parameters constants.
-	//
+	//// Time parameters constants.
+
 	// SlotsPerEpoch returns the number of slots in an epoch.
 	SlotsPerEpoch() uint64
 	// SlotsPerHistoricalRoot returns the number of slots per historical root.
@@ -52,8 +53,8 @@ type Spec[
 	// an inactivity penalty is applied.
 	MinEpochsToInactivityPenalty() uint64
 
-	// Signature Domains
-	//
+	//// Signature Domains
+
 	// DomainTypeProposer returns the domain for proposer signatures.
 	DomainTypeProposer() DomainTypeT
 	// DomainTypeAttester returns the domain for attester signatures.
@@ -71,8 +72,8 @@ type Spec[
 	// DomainTypeApplicationMask returns the domain for application signatures.
 	DomainTypeApplicationMask() DomainTypeT
 
-	// Eth1-related values.
-	//
+	//// Eth1-related values.
+
 	// DepositContractAddress returns the deposit contract address.
 	DepositContractAddress() ExecutionAddressT
 	// MaxDepositsPerBlock returns the maximum number of deposit operations per
@@ -86,14 +87,14 @@ type Spec[
 	// TargetSecondsPerEth1Block returns the target time between eth1 blocks.
 	TargetSecondsPerEth1Block() uint64
 
-	// Fork-related values.
-	//
+	//// Fork-related values.
+
 	// ElectraForkEpoch returns the epoch at which the Electra fork takes
 	// effect.
 	ElectraForkEpoch() EpochT
 
-	// State list lengths
-	//
+	//// State list lengths
+
 	// EpochsPerHistoricalVector returns the length of the historical vector.
 	EpochsPerHistoricalVector() uint64
 	// EpochsPerSlashingsVector returns the length of the slashing vector.
@@ -105,16 +106,16 @@ type Spec[
 	// registry.
 	ValidatorRegistryLimit() uint64
 
-	// Rewards and Penalties
-	//
+	//// Rewards and Penalties
+
 	// InactivityPenaltyQuotient returns the inactivity penalty quotient.
 	InactivityPenaltyQuotient() uint64
 	// ProportionalSlashingMultiplier returns the multiplier for calculating
 	// slashing penalties.
 	ProportionalSlashingMultiplier() uint64
 
-	// Capella Values
-	//
+	//// Capella Values
+
 	// MaxWithdrawalsPerPayload returns the maximum number of withdrawals per
 	// payload.
 	MaxWithdrawalsPerPayload() uint64
@@ -122,8 +123,8 @@ type Spec[
 	// per withdrawal sweep.
 	MaxValidatorsPerWithdrawalsSweep() uint64
 
-	// Deneb Values
-	//
+	//// Deneb Values
+
 	// MinEpochsForBlobsSidecarsRequest returns the minimum number of epochs for
 	// blob sidecar requests.
 	MinEpochsForBlobsSidecarsRequest() uint64
@@ -137,8 +138,8 @@ type Spec[
 	// BytesPerBlob returns the number of bytes per blob.
 	BytesPerBlob() uint64
 
-	// Helpers for ChainSpecData
-	//
+	//// Helpers for ChainSpecData
+
 	// ActiveForkVersionForSlot returns the active fork version for a given
 	// slot.
 	ActiveForkVersionForSlot(slot SlotT) uint32
@@ -151,7 +152,7 @@ type Spec[
 	// availability period relative to the current slot.
 	WithinDAPeriod(block, current SlotT) bool
 
-	// CometBFT Consensus
+	// GetCometBFTConfigForSlot retrieves the CometBFT configuration for a specific slot.
 	GetCometBFTConfigForSlot(slot SlotT) CometBFTConfigT
 }
 
