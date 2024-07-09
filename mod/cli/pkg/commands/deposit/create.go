@@ -429,7 +429,6 @@ func broadcastDepositTx(
 				)
 			},
 			Nonce:     new(big.Int).SetUint64(latestNonceForDeposit),
-			Value:     depositMsg.Amount.ToWei(),
 			GasTipCap: big.NewInt(1000000000),
 			GasFeeCap: big.NewInt(1000000000),
 			GasLimit:  600000,
