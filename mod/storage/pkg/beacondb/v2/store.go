@@ -270,12 +270,12 @@ func (s *Store[
 }
 
 // TODO: deprecate
-func (s *Store[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
-]) Context() context.Context {
-	panic("REEEE")
-}
+// func (s *Store[
+// 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+// 	ForkT, ValidatorT,
+// ]) Context() context.Context {
+// 	panic("REEEE")
+// }
 
 // WithContext returns a copy of the Store with the given context.
 func (s *Store[

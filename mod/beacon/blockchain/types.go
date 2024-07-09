@@ -217,8 +217,8 @@ type StorageBackend[
 ] interface {
 	// AvailabilityStore returns the availability store for the given context.
 	AvailabilityStore(context.Context) AvailabilityStoreT
-	// StateFromContext retrieves the beacon state from the given context.
-	StateFromContext(context.Context) BeaconStateT
+	// BeaconState retrieves the beacon state from the given context.
+	BeaconState() BeaconStateT
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.

@@ -72,8 +72,8 @@ type KVStore[
 	ForkT,
 	ValidatorT any,
 ] interface {
-	// Context returns the context of the key-value store.
-	Context() context.Context
+	// // Context returns the context of the key-value store.
+	// Context() context.Context
 	// WithContext returns a new key-value store with the given context.
 	WithContext(
 		ctx context.Context,

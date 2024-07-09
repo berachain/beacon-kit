@@ -41,7 +41,7 @@ func (s *Service[
 ) (transition.ValidatorUpdates, error) {
 	fmt.Println("PROCESS GENESIS DATA context type", reflect.TypeOf(ctx))
 	return s.sp.InitializePreminedBeaconStateFromEth1(
-		s.sb.StateFromContext(ctx),
+		s.sb.BeaconState(),
 		genesisData.GetDeposits(),
 		genesisData.GetExecutionPayloadHeader(),
 		genesisData.GetForkVersion(),
@@ -67,7 +67,7 @@ func (s *Service[
 	// which is completely fine. This means we were syncing from a
 	// bad peer, and we would likely AppHash anyways.
 	fmt.Println("PROCESS BEACON BLOCK context type", reflect.TypeOf(ctx))
-	st := s.sb.StateFromContext(ctx)
+	st := s.sb.BeaconState()
 	valUpdates, err := s.executeStateTransition(ctx, st, blk)
 	if err != nil {
 		return nil, err

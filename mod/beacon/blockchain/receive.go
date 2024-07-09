@@ -52,7 +52,7 @@ func (s *Service[
 ) error {
 	// Grab a copy of the state to verify the incoming block.
 	fmt.Println("VERIFY INCOMING BLOCK context type", reflect.TypeOf(ctx))
-	preState := s.sb.StateFromContext(ctx)
+	preState := s.sb.BeaconState()
 
 	// Force a sync of the startup head if we haven't done so already.
 	//

@@ -60,7 +60,7 @@ func (s *Service[
 	// is that we get the nice property of lazily propagating the finalized
 	// and safe block hashes to the execution client.
 	fmt.Println("BUILD BLOCK AND SIDECARS context type", reflect.TypeOf(ctx))
-	st := s.bsb.StateFromContext(ctx)
+	st := s.bsb.BeaconState()
 	fmt.Println("state from ctx", st)
 
 	// Prepare the state such that it is ready to build a block for
