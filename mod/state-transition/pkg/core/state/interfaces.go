@@ -30,21 +30,21 @@ import (
 
 // KVStore is the interface for the key-value store holding the beacon state.
 type KVStore[
-	KVStoreT any,
-	ForkT any,
-	BeaconBlockHeaderT any,
-	Eth1DataT any,
-	ExecutionPayloadHeaderT any,
+	T,
+	BeaconBlockHeaderT,
+	Eth1DataT,
+	ExecutionPayloadHeaderT,
+	ForkT,
 	ValidatorT any,
 ] interface {
 	// Context returns the context of the key-value store.
 	Context() context.Context
 	// WithContext returns a new key-value store with the given context.
-	WithContext(
-		ctx context.Context,
-	) KVStoreT
+	WithContext(ctx context.Context) T
 	// Save saves the key-value store.
 	Save()
+	// Copy returns a copy of the key-value store.
+	Copy() T
 	// GetLatestExecutionPayloadHeader retrieves the latest execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (
@@ -64,8 +64,6 @@ type KVStore[
 	GetBalance(idx math.ValidatorIndex) (math.Gwei, error)
 	// SetBalance sets the balance of a validator.
 	SetBalance(idx math.ValidatorIndex, balance math.Gwei) error
-	// Copy returns a copy of the key-value store.
-	Copy() KVStoreT
 	// GetSlot retrieves the current slot.
 	GetSlot() (math.Slot, error)
 	// SetSlot sets the current slot.
@@ -135,9 +133,9 @@ type KVStore[
 	// ValidatorIndexByPubkey retrieves the validator index by the given pubkey.
 	ValidatorIndexByPubkey(pubkey crypto.BLSPubkey) (math.ValidatorIndex, error)
 	// AddValidator adds a validator.
-	AddValidator(
-		val ValidatorT,
-	) error
+	AddValidator(val ValidatorT) error
+	// AddValidatorBartio adds a validator to the Bartio chain.
+	AddValidatorBartio(val ValidatorT) error
 	// ValidatorIndexByCometBFTAddress retrieves the validator index by the
 	// given comet BFT address.
 	ValidatorIndexByCometBFTAddress(

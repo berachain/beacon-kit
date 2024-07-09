@@ -25,6 +25,7 @@ import (
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes/buffer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
@@ -53,6 +54,8 @@ type RootHasher[RootT ~[32]byte] struct {
 	crypto.Hasher[RootT]
 	// rootHashFn is the underlying root hasher for the tree.
 	rootHashFn RootHashFn[RootT]
+	// bytesBuffer is a buffer to store the output of the hashing process.
+	bytesBuffer *buffer.ReusableBuffer[RootT]
 }
 
 // NewRootHasher constructs a new RootHasher.
@@ -61,8 +64,9 @@ func NewRootHasher[RootT ~[32]byte](
 	rootHashFn RootHashFn[RootT],
 ) *RootHasher[RootT] {
 	return &RootHasher[RootT]{
-		Hasher:     hasher,
-		rootHashFn: rootHashFn,
+		Hasher:      hasher,
+		rootHashFn:  rootHashFn,
+		bytesBuffer: buffer.NewReusableBuffer[RootT](),
 	}
 }
 
@@ -107,10 +111,14 @@ func (rh *RootHasher[RootT]) NewRootWithDepth(
 			leaves = append(leaves, zero.Hashes[i])
 		}
 
-		if err = rh.rootHashFn(leaves, leaves); err != nil {
+		outputLen := (layerLen + 1) / two
+		output := rh.bytesBuffer.Get(outputLen)
+		if err = rh.rootHashFn(output, leaves); err != nil {
 			return zero.Hashes[limitDepth], err
 		}
-		leaves = leaves[:(layerLen+1)/two]
+
+		leaves = leaves[:outputLen]
+		copy(leaves, output)
 	}
 
 	// If something went wrong, return the zero hash of limitDepth.
@@ -127,10 +135,8 @@ func (rh *RootHasher[RootT]) NewRootWithDepth(
 	return h, nil
 }
 
-// BuildParentTreeRoots calls BuildParentTreeRootsWithNRoutines with the
-// number of routines set to runtime.GOMAXPROCS(0)-1.
-//
-// TODO: enable parallelization.
+// BuildParentTreeRoots calls BuildParentTreeRootsWithNRoutines to
+// parallelize the hashing process.
 func BuildParentTreeRoots[RootT ~[32]byte](
 	outputList, inputList []RootT,
 ) error {
@@ -139,7 +145,6 @@ func BuildParentTreeRoots[RootT ~[32]byte](
 		*(*[][32]byte)(unsafe.Pointer(&outputList)),
 		//#nosec:G103 // on purpose.
 		*(*[][32]byte)(unsafe.Pointer(&inputList)),
-		runtime.GOMAXPROCS(0)-1,
 		MinParallelizationSize,
 	)
 }
@@ -149,10 +154,13 @@ func BuildParentTreeRoots[RootT ~[32]byte](
 // method adapts to the host machine's hardware for potential performance
 // gains over sequential hashing.
 //
+// NOTE: Currently we use `runtime.GOMAXPROCS(0)-1` as the number of
+// goroutines to use.
+//
 // TODO: We do not use generics here due to the gohashtree library not
 // supporting generics.
 func BuildParentTreeRootsWithNRoutines(
-	outputList, inputList [][32]byte, n int, minParallelizationSize int,
+	outputList, inputList [][32]byte, minParallelizationSize int,
 ) error {
 	// Validate input list length.
 	inputLength := len(inputList)
@@ -160,58 +168,58 @@ func BuildParentTreeRootsWithNRoutines(
 		return ErrOddLengthTreeRoots
 	}
 
-	// Build output variables
-	outputLength := inputLength / two
-
 	// If the input list is small, hash it using the default method since
 	// the overhead of parallelizing the hashing process is not worth it.
 	if inputLength < minParallelizationSize {
 		return gohashtree.Hash(outputList, inputList)
 	}
 
+	// Get the number of goroutines to use.
+	//
+	// TODO: parameterize n and allow this to be specified by caller.
+	n := runtime.GOMAXPROCS(0) - 1
+
 	// Otherwise parallelize the hashing process for large inputs.
-	// Take the max(n, 1) to prevent division by 0.
-	groupSize := inputLength / (two * max(n, 1))
+	groupSize := inputLength / (two * (n + 1))
 	twiceGroupSize := two * groupSize
 	eg := new(errgroup.Group)
 
-	// TODO: Move to re-usable buffer
-	workingSpace := make([][32]byte, outputLength)
-
-	// if n is 0 the parallelization is disabled and the whole inputList is
+	// If n is 0 the parallelization is disabled and the whole inputList is
 	// hashed in the main goroutine at the end of this function.
-	for j := range n + 1 {
+	for j := range n {
 		eg.Go(func() error {
 			// inputList:  [-------------------2*groupSize-------------------]
-			//              ^                ^               ^              ^
-			//       |                 |                     |              |
+			//        ______^           ____^               ^               ^
+			//       |                 |                    |               |
 			// j*2*groupSize   (j+1)*2*groupSize    (j+2)*2*groupSize      End
 			//
-			// workingSpace: [---------groupSize---------]
-			//              ^                         ^
-			//              |                         |
-			//         j*groupSize             (j+1)*groupSize
+			// outputList:   [---------groupSize---------]
+			//                ^                         ^
+			//                |                         |
+			//           j*groupSize             (j+1)*groupSize
 			//
 			// Each goroutine processes a segment of inputList that is twice as
-			// large as the segment it fills in workingSpace. This is because
-			// the
+			// large as the segment it fills in outputList. This is because the
 			// hash operation reduces the size of the input by half.
+
 			// Define the segment of the inputList each goroutine will process.
 			segmentStart := j * twiceGroupSize
-			segmentEnd := min((j+1)*twiceGroupSize, inputLength)
+			segmentEnd := (j + 1) * twiceGroupSize
 
 			return gohashtree.Hash(
-				workingSpace[j*groupSize:min((j+1)*groupSize, outputLength)],
+				outputList[j*groupSize:],
 				inputList[segmentStart:segmentEnd],
 			)
 		})
 	}
 
-	defer func() {
-		// Copy the results from workingSpace to outputList
-		copy(outputList, workingSpace)
-		outputList = outputList[:outputLength]
-	}()
+	// Hash the last segment of the inputList.
+	if err := gohashtree.Hash(
+		outputList[n*groupSize:],
+		inputList[n*twiceGroupSize:],
+	); err != nil {
+		return err
+	}
 
 	return eg.Wait()
 }

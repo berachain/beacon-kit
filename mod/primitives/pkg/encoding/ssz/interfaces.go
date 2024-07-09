@@ -20,7 +20,7 @@
 
 package ssz
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/types"
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 
 // BaseMerkleizer provides basic merkleization operations for SSZ types.
 type BaseMerkleizer[

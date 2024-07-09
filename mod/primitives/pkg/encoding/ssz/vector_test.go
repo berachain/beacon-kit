@@ -25,8 +25,9 @@ import (
 	"testing"
 	"testing/quick"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
 	"github.com/prysmaticlabs/prysm/v5/consensus-types/primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/require"
 )
 
@@ -38,25 +39,25 @@ func TestVectorSizeSSZ(t *testing.T) {
 	})
 
 	t.Run("byte slice vector", func(t *testing.T) {
-		vector := ssz.Vector[ssz.U8]{1, 2, 3, 4, 5, 6, 7, 8}
+		vector := ssz.Vector[math.U8]{1, 2, 3, 4, 5, 6, 7, 8}
 		require.Len(t, vector, 8)
 		require.Equal(t, 8, vector.SizeSSZ())
 	})
 
 	t.Run("uint64 vector", func(t *testing.T) {
-		vector := ssz.Vector[ssz.U64]{1, 2, 3, 4, 5}
+		vector := ssz.Vector[math.U64]{1, 2, 3, 4, 5}
 		require.Len(t, vector, 5)
 		require.Equal(t, 40, vector.SizeSSZ())
 	})
 
 	t.Run("bool vector", func(t *testing.T) {
-		vector := ssz.Vector[ssz.Bool]{true, false, true}
+		vector := ssz.Vector[math.Bool]{true, false, true}
 		require.Len(t, vector, 3)
 		require.Equal(t, 3, vector.SizeSSZ())
 	})
 
 	t.Run("empty vector", func(t *testing.T) {
-		vector := ssz.Vector[ssz.U64]{}
+		vector := ssz.Vector[math.U64]{}
 		require.Empty(t, vector)
 		require.Equal(t, 0, vector.SizeSSZ())
 	})
@@ -64,29 +65,29 @@ func TestVectorSizeSSZ(t *testing.T) {
 
 func TestVectorHashTreeRoot(t *testing.T) {
 	t.Run("uint8 vector", func(t *testing.T) {
-		vector := ssz.Vector[ssz.U8]{1, 2, 3, 4, 5}
+		vector := ssz.Vector[math.U8]{1, 2, 3, 4, 5}
 		root, err := vector.HashTreeRoot()
 		require.NoError(t, err)
 		require.NotEqual(t, [32]byte{}, root)
 	})
 
 	t.Run("bool vector", func(t *testing.T) {
-		vector := ssz.Vector[ssz.Bool]{true, false, true, false}
+		vector := ssz.Vector[math.Bool]{true, false, true, false}
 		root, err := vector.HashTreeRoot()
 		require.NoError(t, err)
 		require.NotEqual(t, [32]byte{}, root)
 	})
 
 	t.Run("uint64 vector", func(t *testing.T) {
-		vector := ssz.Vector[ssz.U64]{1, 2, 3, 4, 5}
+		vector := ssz.Vector[math.U64]{1, 2, 3, 4, 5}
 		root, err := vector.HashTreeRoot()
 		require.NoError(t, err)
 		require.NotEqual(t, [32]byte{}, root)
 	})
 
 	t.Run("consistency", func(t *testing.T) {
-		vector1 := ssz.Vector[ssz.U8]{1, 2, 3, 4, 5}
-		vector2 := ssz.Vector[ssz.U8]{1, 2, 3, 4, 5}
+		vector1 := ssz.Vector[math.U8]{1, 2, 3, 4, 5}
+		vector2 := ssz.Vector[math.U8]{1, 2, 3, 4, 5}
 		root1, err1 := vector1.HashTreeRoot()
 		root2, err2 := vector2.HashTreeRoot()
 		require.NoError(t, err1)
