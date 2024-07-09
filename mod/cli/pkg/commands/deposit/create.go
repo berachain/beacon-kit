@@ -47,7 +47,6 @@ import (
 	gethCommon "github.com/ethereum/go-ethereum/common"
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	ethCrypto "github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/spf13/cobra"
 )
 
@@ -240,37 +239,17 @@ func broadcastDepositTx(
 		return gethCommon.Hash{}, errors.Wrapf(err, "error in loading jwt secret")
 	}
 
-	// TODO: This is a WIP. I'm not sure how to get the engine client to work
-	// config := &beaconClient.Config{}
-	//
-	// var telemetrySink beaconClient.TelemetrySink
-
+	// TODO: Need to figure out how to get the engine client to work
 	// Spin up the engine client.
-	// engineClient := engineclient.New[ExecutionPayload, PayloadAttributes](
-	// config,
-	// logger,
-	// jwtSecret,
-	// telemetrySink,
-	// new(big.Int).SetUint64(chainSpec.DepositEth1ChainID()
-	// ))
-	// engineClient := engineclient.New(
-	//	engineclient.WithEngineConfig(&cfg.Engine),
-	//	engineclient.WithJWTSecret(jwtSecret),
-	//	engineclient.WithLogger(logger),
-	//)
+	engineClient, err := setupEngineClient(
+		cfg.Engine.RPCDialURL,
+		jwtSecret,
+		chainSpec,
+		logger)
+	logger.Info("engineClient", "engineClient", engineClient)
+	err = engineClient.Start(cmd.Context())
 
-	// engineClient, err := setupEngineClient(
-	// cfg.Engine.RPCDialURL,
-	// jwtSecret,
-	// chainSpec,
-	// logger)
-	// fmt.Println("engineClient", engineClient)
-	// err = engine ̰Client.Start(cmd.Context())
-	// if err != nil {
-	//	fmt.Println("err in starting engine client", err)
-	//}
-
-	engineClient, err := ethclient.Dial("http://localhost:8545")
+	//engineClient, err := ethclient.Dial("http://localhost:8545")
 	if err != nil || engineClient == nil {
 		return gethCommon.Hash{}, errors.New("failed to create Ethereum client")
 	}
@@ -287,7 +266,6 @@ func broadcastDepositTx(
 	// if err != nil {
 	//	panic(err)
 	//}
-	// fmt.Println("CONTRACT ABI", contractAbi)
 	//
 	// callData, err := contractAbi.Pack(
 	//	"deposit",
@@ -296,7 +274,6 @@ func broadcastDepositTx(
 	//	uint64(0),
 	//	signature[:],
 	//)
-	// fmt.Println("CALL DATA", callData)
 	//
 	// if err != nil {
 	//	fmt.Println("PANIC AT PACK")
@@ -315,8 +292,6 @@ func broadcastDepositTx(
 	//		Gas:       500000,
 	//	},
 	//)
-	//
-	// fmt.Println("TX", tx)
 	//
 	// signedTx, err := ethTypes.SignTx(
 	// tx, ethTypes.LatestSignerForChainID(chainID),
