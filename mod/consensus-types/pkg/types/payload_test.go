@@ -34,10 +34,20 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkleizer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
+	fastssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
 )
 
 func generateExecutableDataDeneb() *types.ExecutableDataDeneb {
+	transactions := make([][]byte, 1)
+	transactions[0] = make([]byte, 0)
+	withdrawals := make([]*engineprimitives.Withdrawal, 1)
+	withdrawals[0] = &engineprimitives.Withdrawal{
+		Index:     0,
+		Validator: 0,
+		Address:   common.ExecutionAddress{},
+		Amount:    0,
+	}
 	return &types.ExecutableDataDeneb{
 		ParentHash:    gethprimitives.ExecutionHash{},
 		FeeRecipient:  gethprimitives.ExecutionAddress{},
@@ -52,8 +62,8 @@ func generateExecutableDataDeneb() *types.ExecutableDataDeneb {
 		ExtraData:     []byte{},
 		BaseFeePerGas: math.Wei{},
 		BlockHash:     gethprimitives.ExecutionHash{},
-		Transactions:  [][]byte{},
-		Withdrawals:   []*engineprimitives.Withdrawal{},
+		Transactions:  transactions,
+		Withdrawals:   withdrawals,
 		BlobGasUsed:   math.U64(0),
 		ExcessBlobGas: math.U64(0),
 	}
@@ -75,7 +85,11 @@ func TestExecutableDataDeneb_Serialization(t *testing.T) {
 func TestExecutableDataDeneb_SizeSSZ(t *testing.T) {
 	payload := generateExecutableDataDeneb()
 	size := payload.SizeSSZ()
-	require.Equal(t, 528, size)
+	require.Equal(t, 576, size)
+
+	state := &types.ExecutableDataDeneb{}
+	err := state.UnmarshalSSZ([]byte{0x01, 0x02, 0x03}) // Invalid data
+	require.ErrorIs(t, err, fastssz.ErrSize)
 }
 
 func TestExecutableDataDeneb_HashTreeRoot(t *testing.T) {
@@ -93,13 +107,24 @@ func TestExecutableDataDeneb_GetTree(t *testing.T) {
 
 func TestExecutableDataDeneb_Getters(t *testing.T) {
 	payload := generateExecutableDataDeneb()
-
 	require.Equal(t, gethprimitives.ExecutionHash{}, payload.GetParentHash())
 	require.Equal(
 		t,
 		gethprimitives.ExecutionAddress{},
 		payload.GetFeeRecipient(),
 	)
+
+	transactions := make([][]byte, 1)
+	transactions[0] = make([]byte, 0)
+	withdrawals := make([]*engineprimitives.Withdrawal, 1)
+	withdrawals[0] = &engineprimitives.Withdrawal{
+		Index:     0,
+		Validator: 0,
+		Address:   common.ExecutionAddress{},
+		Amount:    0,
+	}
+	require.Equal(t, common.ExecutionHash{}, payload.GetParentHash())
+	require.Equal(t, common.ExecutionAddress{}, payload.GetFeeRecipient())
 	require.Equal(t, bytes.B32{}, payload.GetStateRoot())
 	require.Equal(t, bytes.B32{}, payload.GetReceiptsRoot())
 	require.Equal(t, make([]byte, 256), payload.GetLogsBloom())
@@ -111,8 +136,8 @@ func TestExecutableDataDeneb_Getters(t *testing.T) {
 	require.Equal(t, []byte{}, payload.GetExtraData())
 	require.Equal(t, math.Wei{}, payload.GetBaseFeePerGas())
 	require.Equal(t, gethprimitives.ExecutionHash{}, payload.GetBlockHash())
-	require.Equal(t, [][]byte{}, payload.GetTransactions())
-	require.Equal(t, []*engineprimitives.Withdrawal{}, payload.GetWithdrawals())
+	require.Equal(t, transactions, payload.GetTransactions())
+	require.Equal(t, withdrawals, payload.GetWithdrawals())
 	require.Equal(t, math.U64(0), payload.GetBlobGasUsed())
 	require.Equal(t, math.U64(0), payload.GetExcessBlobGas())
 }
@@ -361,4 +386,124 @@ func TestExecutableDataDenebHashTreeRoot(t *testing.T) {
 		containerRoot,
 		"HashTreeRoot results should match",
 	)
+}
+
+func TestExecutableDataDeneb_Marshal_Error(t *testing.T) {
+	tests := []struct {
+		name  string
+		setup func(payload *types.ExecutableDataDeneb)
+		err   error
+	}{
+		{
+			name: "invalid LogsBloom",
+			setup: func(payload *types.ExecutableDataDeneb) {
+				payload.LogsBloom = nil
+			},
+			err: fastssz.ErrBytesLengthFn("ExecutableDataDeneb.LogsBloom", 0, 256),
+		},
+		{
+			name: "invalid ExtraData",
+			setup: func(payload *types.ExecutableDataDeneb) {
+				payload.ExtraData = make([]byte, 33)
+			},
+			err: fastssz.ErrBytesLengthFn("ExecutableDataDeneb.ExtraData", 33, 32),
+		},
+		{
+			name: "invalid Transactions size of individual elements",
+			setup: func(payload *types.ExecutableDataDeneb) {
+				payload.Transactions = make([][]byte, 1)
+				payload.Transactions[0] = make([]byte, 1073741825)
+			},
+			err: fastssz.ErrBytesLengthFn(
+				"ExecutableDataDeneb.Transactions[ii]",
+				1073741825,
+				1073741824,
+			),
+		},
+		{
+			name: "invalid Transactions size",
+			setup: func(payload *types.ExecutableDataDeneb) {
+				payload.Transactions = make([][]byte, 1048577)
+			},
+			err: fastssz.ErrListTooBigFn(
+				"ExecutableDataDeneb.Transactions",
+				1048577,
+				1048576,
+			),
+		},
+		{
+			name: "invalid Withdrawals",
+			setup: func(payload *types.ExecutableDataDeneb) {
+				payload.Withdrawals = make([]*engineprimitives.Withdrawal, 17)
+			},
+			err: fastssz.ErrListTooBigFn("ExecutableDataDeneb.Withdrawals", 17, 16),
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			payload := generateExecutableDataDeneb()
+			if tc.setup != nil {
+				tc.setup(payload)
+			}
+			_, err := payload.MarshalSSZ()
+			require.EqualError(t, err, tc.err.Error())
+		})
+	}
+}
+
+func TestExecutableDataDeneb_HasTreeRootWith_Error(t *testing.T) {
+	tests := []struct {
+		name  string
+		setup func(payload *types.ExecutableDataDeneb)
+		err   error
+	}{
+		{
+			name: "invalid LogsBloom",
+			setup: func(payload *types.ExecutableDataDeneb) {
+				payload.LogsBloom = nil
+			},
+			err: fastssz.ErrBytesLengthFn("ExecutableDataDeneb.LogsBloom", 0, 256),
+		},
+		{
+			name: "invalid ExtraData",
+			setup: func(payload *types.ExecutableDataDeneb) {
+				payload.ExtraData = make([]byte, 33)
+			},
+			err: fastssz.ErrIncorrectListSize,
+		},
+		{
+			name: "invalid Transactions size of individual elements",
+			setup: func(payload *types.ExecutableDataDeneb) {
+				payload.Transactions = make([][]byte, 1)
+				payload.Transactions[0] = make([]byte, 1073741825)
+			},
+			err: fastssz.ErrIncorrectListSize,
+		},
+		{
+			name: "invalid Transactions size",
+			setup: func(payload *types.ExecutableDataDeneb) {
+				payload.Transactions = make([][]byte, 1048577)
+			},
+			err: fastssz.ErrIncorrectListSize,
+		},
+		{
+			name: "invalid Withdrawals",
+			setup: func(payload *types.ExecutableDataDeneb) {
+				payload.Withdrawals = make([]*engineprimitives.Withdrawal, 17)
+			},
+			err: fastssz.ErrIncorrectListSize,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			payload := generateExecutableDataDeneb()
+			if tc.setup != nil {
+				tc.setup(payload)
+			}
+			_, err := payload.HashTreeRoot()
+			require.EqualError(t, err, tc.err.Error())
+		})
+	}
 }
