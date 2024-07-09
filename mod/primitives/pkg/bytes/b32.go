@@ -23,7 +23,7 @@ package bytes
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 )
 
@@ -92,14 +92,8 @@ func (h B32) IsFixed() bool {
 }
 
 // Type returns the type of the B32.
-func (h B32) Type() types.Type {
-	return types.Composite
-}
-
-// ItemLength returns the required bytes to represent the root
-// element of the B32.
-func (h B32) ItemLength() uint64 {
-	return constants.BytesPerChunk
+func (h B32) Type() schema.SSZType {
+	return schema.B32()
 }
 
 // HashTreeRoot returns the hash tree root of the B32.

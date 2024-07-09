@@ -20,23 +20,16 @@
 
 package types
 
-type Type uint8
-
-const (
-	Basic Type = iota
-	Composite
-)
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 
 // MinimalSSZType is the smallest interface of an SSZable type.
 type MinimalSSZType interface {
 	// MarshalSSZ marshals the type into SSZ format.
 	IsFixed() bool
 	// Type returns the type of the SSZ object.
-	Type() Type
+	Type() schema.SSZType
 	// SizeSSZ returns the size of the type in bytes.
 	SizeSSZ() int
-	// ItemLength returns the number of bytes required to represent the type.
-	ItemLength() uint64
 
 	// TODO: Do we want these off the minimal?
 	//

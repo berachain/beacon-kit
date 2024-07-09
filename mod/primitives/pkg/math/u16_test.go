@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -24,7 +24,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/require"
 )
@@ -33,7 +33,7 @@ func TestU16(t *testing.T) {
 	var u math.U16
 	require.Equal(t, constants.U16Size, u.SizeSSZ())
 	require.True(t, u.IsFixed())
-	require.Equal(t, types.Basic, u.Type())
+	require.Equal(t, schema.U16(), u.Type())
 	require.Equal(t, uint64(1), u.ChunkCount())
 }
 
@@ -76,7 +76,6 @@ func TestU16_HashTreeRoot(t *testing.T) {
 		}
 	}
 }
-
 func TestU16_NewFromSSZ(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -89,16 +88,13 @@ func TestU16_NewFromSSZ(t *testing.T) {
 		{name: "InvalidLength", input: []byte{1}, expected: 0, err: true},
 	}
 
-	var u16 math.U16 = 1
-
 	for _, tt := range tests {
-		result, err := u16.NewFromSSZ(tt.input)
+		result, err := math.U16(0).NewFromSSZ(tt.input)
 		if tt.err {
 			require.Error(t, err, "Test name %s", tt.name)
 		} else {
 			require.NoError(t, err, "Test name %s", tt.name)
-			require.Equal(t, tt.expected, result,
-				"Test name %s", tt.name)
+			require.Equal(t, tt.expected, result, "Test name %s", tt.name)
 		}
 	}
 }
