@@ -67,8 +67,8 @@ func (p ObjectPath[_, _]) Split() []string {
 //
 // return root.
 func (p ObjectPath[GeneralizedIndexT, RootT]) GetGeneralizedIndex(
-	typ schema.TypeDef,
-) (schema.TypeDef, GeneralizedIndexT, uint8, error) {
+	typ schema.SSZType,
+) (schema.SSZType, GeneralizedIndexT, uint8, error) {
 	gIndex := uint64(1)
 	offset := uint8(0)
 	for _, part := range p.Split() {
@@ -106,7 +106,7 @@ func (p ObjectPath[GeneralizedIndexT, RootT]) GetGeneralizedIndex(
 
 // getBaseIndex returns the base index for a given SSZ type.
 // For list types, it returns 2, for all other types it returns 1.
-func getBaseIndex(typ schema.TypeDef) uint64 {
+func getBaseIndex(typ schema.SSZType) uint64 {
 	if typ.ID().IsList() {
 		//nolint:mnd // 2 is allowed.
 		return 2

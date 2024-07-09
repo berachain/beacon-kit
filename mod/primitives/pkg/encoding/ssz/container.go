@@ -31,15 +31,15 @@ import (
 /* -------------------------------------------------------------------------- */
 
 // Vector conforms to the SSZEenumerable interface.
-var _ schema.SSZEnumerable[schema.MinimalSSZType] = (*Container)(nil)
+var _ schema.SSZEnumerable[schema.MinimalSSZObject] = (*Container)(nil)
 
 type Container struct {
-	elements []schema.MinimalSSZType
-	t        schema.TypeDef
+	elements []schema.MinimalSSZObject
+	t        schema.SSZType
 }
 
 // ContainerFromElements creates a new Container from elements.
-func ContainerFromElements(elements ...schema.MinimalSSZType) *Container {
+func ContainerFromElements(elements ...schema.MinimalSSZObject) *Container {
 	return &Container{
 		elements: elements,
 	}
@@ -75,13 +75,13 @@ func (c *Container) N() uint64 {
 
 // WithSchema sets the schema of the container.
 // Temporary Hack.
-func (c *Container) WithSchema(t schema.TypeDef) *Container {
+func (c *Container) WithSchema(t schema.SSZType) *Container {
 	c.t = t
 	return c
 }
 
 // Type returns the type of the container.
-func (c *Container) Type() schema.TypeDef {
+func (c *Container) Type() schema.SSZType {
 	return c.t
 }
 
@@ -91,7 +91,7 @@ func (c *Container) ChunkCount() uint64 {
 }
 
 // Elements returns the elements of the container.
-func (c *Container) Elements() []schema.MinimalSSZType {
+func (c *Container) Elements() []schema.MinimalSSZObject {
 	return c.elements
 }
 
@@ -101,7 +101,7 @@ func (c *Container) Elements() []schema.MinimalSSZType {
 
 // HashTreeRoot returns the hash tree root of the container.
 func (c *Container) HashTreeRootWith(
-	merkleizer *merkle.Merkleizer[[32]byte, schema.MinimalSSZType],
+	merkleizer *merkle.Merkleizer[[32]byte, schema.MinimalSSZObject],
 ) ([32]byte, error) {
 	return merkleizer.MerkleizeVectorCompositeOrContainer(c.elements)
 }
@@ -109,7 +109,7 @@ func (c *Container) HashTreeRootWith(
 // HashTreeRoot returns the hash tree root of the container.
 func (c *Container) HashTreeRoot() ([32]byte, error) {
 	return c.HashTreeRootWith(
-		merkle.NewMerkleizer[[32]byte, schema.MinimalSSZType](),
+		merkle.NewMerkleizer[[32]byte, schema.MinimalSSZObject](),
 	)
 }
 

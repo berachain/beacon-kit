@@ -37,7 +37,7 @@ import (
 var _ schema.SSZEnumerable[Byte] = (*List[Byte])(nil)
 
 // List is a list of basic types.
-type List[T schema.MinimalSSZType] struct {
+type List[T schema.MinimalSSZObject] struct {
 	// elements is the list of elements.
 	elements []T
 	// limit is the maximum number of elements in the list.
@@ -46,7 +46,7 @@ type List[T schema.MinimalSSZType] struct {
 
 // ListFromElements creates a new ListComposite from elements.
 // TODO: Deprecate once off of Fastssz
-func ListFromElements[T schema.MinimalSSZType](
+func ListFromElements[T schema.MinimalSSZObject](
 	limit uint64,
 	elements ...T,
 ) *List[T] {
@@ -105,7 +105,7 @@ func (l *List[T]) ChunkCount() uint64 {
 }
 
 // Type returns the type of the List.
-func (l *List[T]) Type() schema.TypeDef {
+func (l *List[T]) Type() schema.SSZType {
 	var t T
 	// TODO: Fix this is a bad hack.
 	if l == nil {

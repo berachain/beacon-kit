@@ -20,10 +20,6 @@
 
 package schema
 
-import (
-	"go/types"
-)
-
 type ID uint8
 
 const (
@@ -67,12 +63,12 @@ func (t ID) IsContainer() bool {
 /*                              Type Definitions                              */
 /* -------------------------------------------------------------------------- */
 
-// SSZTypeDef defines the interface that type definitions must adhere to.
-// An SSZTypeDef *REPRESENTS* an underlying type, but it is NOT an instance
+// SSZType defines the interface that type definitions must adhere to.
+// An SSZType *REPRESENTS* an underlying type, but it is NOT an instance
 // of this type.
-type SSZTypeDef interface {
+type SSZType interface {
 	// ID returns the type identifier for the SSZ type.
-	ID() types.Type
+	ID() ID
 	// ItemLength returns the length of an item in bytes for the SSZ type.
 	ItemLength() uint64
 	// ItemPosition calculates the position of an item within the SSZ type.
@@ -80,7 +76,7 @@ type SSZTypeDef interface {
 	// encountered.
 	ItemPosition(p string) (uint64, uint8, uint8, error)
 	// ElementType returns the SSZ type of the element at the given path.
-	ElementType(p string) SSZTypeDef
+	ElementType(p string) SSZType
 	// HashChunkCount returns the number of 32-byte chunks required to represent
 	// the SSZ type in a Merkle tree.
 	HashChunkCount() uint64
@@ -102,18 +98,18 @@ type MerkleizableSSZObject[RootT ~[32]byte] interface {
 	MarshalSSZ() ([]byte, error)
 }
 
-// MinimalSSZType is the smallest interface of an SSZable type.
-type MinimalSSZType interface {
+// MinimalSSZObject is the smallest interface of an SSZable type.
+type MinimalSSZObject interface {
 	MerkleizableSSZObject[[32]byte]
 	// MarshalSSZ marshals the type into SSZ format.
 	IsFixed() bool
 	// Type returns the type of the SSZ object.
-	Type() TypeDef
+	Type() SSZType
 }
 
-// SSZType is the interface for all SSZ types.
-type SSZType[T any] interface {
-	MinimalSSZType
+// SSZObject is the interface for all SSZ types.
+type SSZObject[T any] interface {
+	MinimalSSZObject
 	// ChunkCount returns the number of chunks required to store the type.
 	ChunkCount() uint64
 	NewFromSSZ([]byte) (T, error)
@@ -123,7 +119,7 @@ type SSZType[T any] interface {
 type SSZEnumerable[
 	ElementT any,
 ] interface {
-	MinimalSSZType
+	MinimalSSZObject
 	// N returns the N value as defined in the SSZ specification.
 	N() uint64
 	// Elements returns the elements of the enumerable type.

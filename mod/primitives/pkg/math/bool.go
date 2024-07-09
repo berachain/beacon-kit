@@ -27,8 +27,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 )
 
-// Ensure type implements schema.SSZType.
-var _ schema.SSZType[Bool] = (*Bool)(nil)
+// Ensure type implements schema.SSZObject.
+var _ schema.SSZObject[Bool] = (*Bool)(nil)
 
 type Bool bool
 
@@ -72,7 +72,7 @@ func (Bool) IsFixed() bool {
 }
 
 // Type returns the type of the bool.
-func (Bool) Type() schema.TypeDef {
+func (Bool) Type() schema.SSZType {
 	return schema.Bool()
 }
 

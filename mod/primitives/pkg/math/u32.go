@@ -33,8 +33,8 @@ import (
 /*                                Type Definitions                            */
 /* -------------------------------------------------------------------------- */
 
-// Ensure types implement schema.SSZType.
-var _ schema.SSZType[U32] = (*U32)(nil)
+// Ensure types implement schema.SSZObject.
+var _ schema.SSZObject[U32] = (*U32)(nil)
 
 // U32 represents a 32-bit unsigned integer that is both SSZ and JSON.
 type U32 uint32
@@ -80,7 +80,7 @@ func (U32) IsFixed() bool {
 }
 
 // Type returns the type of the U32.
-func (U32) Type() schema.TypeDef {
+func (U32) Type() schema.SSZType {
 	return schema.U32()
 }
 

@@ -31,7 +31,7 @@ const (
 	B4Size = 4
 )
 
-var _ schema.MinimalSSZType = (*B4)(nil)
+var _ schema.MinimalSSZObject = (*B4)(nil)
 
 // B4 represents a 4-byte fixed-size byte array.
 // For SSZ purposes it is serialized a `Vector[Byte, 4]`.
@@ -91,7 +91,7 @@ func (h B4) IsFixed() bool {
 }
 
 // Type returns the type of the B4.
-func (h B4) Type() schema.TypeDef {
+func (h B4) Type() schema.SSZType {
 	return schema.B4()
 }
 

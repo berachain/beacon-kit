@@ -31,9 +31,9 @@ import (
 /*                                Type Definitions                            */
 /* -------------------------------------------------------------------------- */
 
-// Ensure types implement schema.SSZType.
+// Ensure types implement schema.SSZObject.
 var (
-	_ schema.SSZType[Byte] = (*Byte)(nil)
+	_ schema.SSZObject[Byte] = (*Byte)(nil)
 )
 
 type (
@@ -79,7 +79,7 @@ func (Byte) IsFixed() bool {
 }
 
 // Type returns the type of the Byte.
-func (Byte) Type() schema.TypeDef {
+func (Byte) Type() schema.SSZType {
 	return schema.U8()
 }
 

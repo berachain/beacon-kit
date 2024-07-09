@@ -33,8 +33,8 @@ import (
 /*                                Type Definitions                            */
 /* -------------------------------------------------------------------------- */
 
-// Ensure types implement schema.SSZType.
-var _ schema.SSZType[U16] = (*U16)(nil)
+// Ensure types implement schema.SSZObject.
+var _ schema.SSZObject[U16] = (*U16)(nil)
 
 // U16 represents a 16-bit unsigned integer that is both SSZ and JSON.
 type U16 uint16
@@ -80,7 +80,7 @@ func (U16) IsFixed() bool {
 }
 
 // Type returns the type of the U16.
-func (U16) Type() schema.TypeDef {
+func (U16) Type() schema.SSZType {
 	return schema.U16()
 }
 

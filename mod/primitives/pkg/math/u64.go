@@ -33,7 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math/pow"
 )
 
-var _ schema.SSZType[U64] = (*U64)(nil)
+var _ schema.SSZObject[U64] = (*U64)(nil)
 
 //nolint:lll
 type (
@@ -112,7 +112,7 @@ func (U64) IsFixed() bool {
 }
 
 // Type returns the type of the U64.
-func (U64) Type() schema.TypeDef {
+func (U64) Type() schema.SSZType {
 	return schema.U64()
 }
 

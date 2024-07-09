@@ -31,7 +31,7 @@ const (
 	B20Size = 20
 )
 
-var _ schema.MinimalSSZType = (*B20)(nil)
+var _ schema.MinimalSSZObject = (*B20)(nil)
 
 // B20 represents a 20-byte fixed-size byte array.
 // For SSZ purposes it is serialized a `Vector[Byte, 20]`.
@@ -91,7 +91,7 @@ func (h B20) IsFixed() bool {
 }
 
 // Type returns the type of the B20.
-func (h B20) Type() schema.TypeDef {
+func (h B20) Type() schema.SSZType {
 	return schema.B20()
 }
 

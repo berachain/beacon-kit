@@ -31,7 +31,7 @@ const (
 	B32Size = 32
 )
 
-var _ schema.MinimalSSZType = (*B32)(nil)
+var _ schema.MinimalSSZObject = (*B32)(nil)
 
 // B32 represents a 32-byte fixed-size byte array.
 // For SSZ purposes it is serialized a `Vector[Byte, 32]`.
@@ -91,7 +91,7 @@ func (h B32) IsFixed() bool {
 }
 
 // Type returns the type of the B32.
-func (h B32) Type() schema.TypeDef {
+func (h B32) Type() schema.SSZType {
 	return schema.B32()
 }
 

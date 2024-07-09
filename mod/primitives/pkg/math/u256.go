@@ -32,8 +32,8 @@ import (
 /*                                Type Definitions                            */
 /* -------------------------------------------------------------------------- */
 
-// Ensure type implements schema.SSZType.
-var _ schema.SSZType[*U256] = (*U256)(nil)
+// Ensure type implements schema.SSZObject.
+var _ schema.SSZObject[*U256] = (*U256)(nil)
 
 // U256 represents a 256-bit unsigned integer that is both SSZ and JSON.
 type U256 uint256.Int
@@ -80,7 +80,7 @@ func (*U256) IsFixed() bool {
 }
 
 // Type returns the type of the U256.
-func (*U256) Type() schema.TypeDef {
+func (*U256) Type() schema.SSZType {
 	return schema.U256()
 }
 

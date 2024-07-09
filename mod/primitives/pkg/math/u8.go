@@ -32,8 +32,8 @@ import (
 /*                                Type Definitions                            */
 /* -------------------------------------------------------------------------- */
 
-// Ensure type implements schema.SSZType.
-var _ schema.SSZType[U8] = (*U8)(nil)
+// Ensure type implements schema.SSZObject.
+var _ schema.SSZObject[U8] = (*U8)(nil)
 
 // U8 represents a 8-bit unsigned integer that is both SSZ and JSON.
 type U8 uint8
@@ -79,7 +79,7 @@ func (U8) IsFixed() bool {
 }
 
 // Type returns the type of the U8.
-func (U8) Type() schema.TypeDef {
+func (U8) Type() schema.SSZType {
 	return schema.U8()
 }
 

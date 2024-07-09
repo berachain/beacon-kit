@@ -35,50 +35,50 @@ const (
 )
 
 // Basic SSZ types.
-// Bool returns an TypeDef representing a boolean.
-func Bool() TypeDef { return basic(constants.BoolSize) }
+// Bool returns an SSZType representing a boolean.
+func Bool() SSZType { return basic(constants.BoolSize) }
 
-// U8 returns an TypeDef representing an 8-bit unsigned integer.
-func U8() TypeDef { return basic(constants.U8Size) }
+// U8 returns an SSZType representing an 8-bit unsigned integer.
+func U8() SSZType { return basic(constants.U8Size) }
 
-// U16 returns an TypeDef representing a 16-bit unsigned integer.
-func U16() TypeDef { return basic(constants.U16Size) }
+// U16 returns an SSZType representing a 16-bit unsigned integer.
+func U16() SSZType { return basic(constants.U16Size) }
 
-// U32 returns an TypeDef representing a 32-bit unsigned integer.
-func U32() TypeDef { return basic(constants.U32Size) }
+// U32 returns an SSZType representing a 32-bit unsigned integer.
+func U32() SSZType { return basic(constants.U32Size) }
 
-// U64 returns an TypeDef representing a 64-bit unsigned integer.
-func U64() TypeDef { return basic(constants.U64Size) }
+// U64 returns an SSZType representing a 64-bit unsigned integer.
+func U64() SSZType { return basic(constants.U64Size) }
 
-// U128 returns an TypeDef representing a 128-bit unsigned integer.
-func U128() TypeDef { return basic(constants.U128Size) }
+// U128 returns an SSZType representing a 128-bit unsigned integer.
+func U128() SSZType { return basic(constants.U128Size) }
 
-// U256 returns an TypeDef representing a 256-bit unsigned integer.
-func U256() TypeDef { return basic(constants.U256Size) }
+// U256 returns an SSZType representing a 256-bit unsigned integer.
+func U256() SSZType { return basic(constants.U256Size) }
 
 // B4 creates a DefineByteVector of 4 bytes (32 bits).
-func B4() TypeDef { return DefineByteVector(B4Size) }
+func B4() SSZType { return DefineByteVector(B4Size) }
 
 // B8 creates a DefineByteVector of 8 bytes (64 bits).
-func B8() TypeDef { return DefineByteVector(B8Size) }
+func B8() SSZType { return DefineByteVector(B8Size) }
 
 // B16 creates a DefineByteVector of 16 bytes (128 bits).
-func B16() TypeDef { return DefineByteVector(B16Size) }
+func B16() SSZType { return DefineByteVector(B16Size) }
 
 // B20 creates a DefineByteVector of 20 bytes (160 bits).
-func B20() TypeDef { return DefineByteVector(B20Size) }
+func B20() SSZType { return DefineByteVector(B20Size) }
 
 // B32 creates a DefineByteVector of 32 bytes (256 bits).
-func B32() TypeDef { return DefineByteVector(B32Size) }
+func B32() SSZType { return DefineByteVector(B32Size) }
 
 // B48 creates a DefineByteVector of 48 bytes (384 bits).
-func B48() TypeDef { return DefineByteVector(B48Size) }
+func B48() SSZType { return DefineByteVector(B48Size) }
 
 // B64 creates a DefineByteVector of 64 bytes (512 bits).
-func B64() TypeDef { return DefineByteVector(B64Size) }
+func B64() SSZType { return DefineByteVector(B64Size) }
 
 // B96 creates a DefineByteVector of 96 bytes (768 bits).
-func B96() TypeDef { return DefineByteVector(B96Size) }
+func B96() SSZType { return DefineByteVector(B96Size) }
 
 // B256 creates a Vector of 256 bytes (2048 bits).
-func B256() TypeDef { return DefineVector(U8(), B256Size) }
+func B256() SSZType { return DefineVector(U8(), B256Size) }

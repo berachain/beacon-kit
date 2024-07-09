@@ -37,11 +37,11 @@ import (
 var _ schema.SSZEnumerable[Byte] = (Vector[Byte])(nil)
 
 // Vector represents a vector of elements.
-type Vector[T schema.MinimalSSZType] []T
+type Vector[T schema.MinimalSSZObject] []T
 
 // VectorBasicFromElements creates a new ListComposite from elements.
 // TODO: Deprecate once off of Fastssz
-func VectorFromElements[T schema.MinimalSSZType](elements ...T) Vector[T] {
+func VectorFromElements[T schema.MinimalSSZObject](elements ...T) Vector[T] {
 	return elements
 }
 
@@ -71,7 +71,7 @@ func (Vector[T]) IsFixed() bool {
 }
 
 // Type returns the type of the VectorBasic.
-func (v Vector[T]) Type() schema.TypeDef {
+func (v Vector[T]) Type() schema.SSZType {
 	var t T
 	return schema.DefineVector(t.Type(), uint64(len(v)))
 }
