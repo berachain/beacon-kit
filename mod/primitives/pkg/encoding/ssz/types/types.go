@@ -20,11 +20,34 @@
 
 package types
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
+import (
+	"go/types"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
+)
 
 /* -------------------------------------------------------------------------- */
 /*                              Type Definitions                              */
 /* -------------------------------------------------------------------------- */
+
+// SSZTypeDef defines the interface that type definitions must adhere to.
+// An SSZTypeDef *REPRESENTS* an underyling type, but it is NOT an instance
+// of this type.
+type SSZTypeDef interface {
+	// ID returns the type identifier for the SSZ type.
+	ID() types.Type
+	// ItemLength returns the length of an item in bytes for the SSZ type.
+	ItemLength() uint64
+	// ItemPosition calculates the position of an item within the SSZ type.
+	// It returns the generalized index, start offset, end offset, and any error
+	// encountered.
+	ItemPosition(p string) (uint64, uint8, uint8, error)
+	// ElementType returns the SSZ type of the element at the given path.
+	ElementType(p string) SSZTypeDef
+	// HashChunkCount returns the number of 32-byte chunks required to represent
+	// the SSZ type in a Merkle tree.
+	HashChunkCount() uint64
+}
 
 /* -------------------------------------------------------------------------- */
 /*                                 SSZ Objects                                */
