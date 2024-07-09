@@ -21,14 +21,13 @@
 package deposit
 
 import (
-	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
 	"crypto/ecdsa"
 	"math/big"
 	"net/url"
 	"os"
-	"time"
 
+	"cosmossdk.io/depinject"
+	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/parser"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
@@ -242,22 +241,32 @@ func broadcastDepositTx(
 	}
 
 	// TODO: This is a WIP. I'm not sure how to get the engine client to work
-	//config := &beaconClient.Config{}
+	// config := &beaconClient.Config{}
 	//
-	//var telemetrySink beaconClient.TelemetrySink
+	// var telemetrySink beaconClient.TelemetrySink
 
 	// Spin up the engine client.
-	//engineClient := engineclient.New[ExecutionPayload, PayloadAttributes](config, logger, jwtSecret, telemetrySink, new(big.Int).SetUint64(chainSpec.DepositEth1ChainID()))
-	//engineClient := engineclient.New(
+	// engineClient := engineclient.New[ExecutionPayload, PayloadAttributes](
+	// config,
+	// logger,
+	// jwtSecret,
+	// telemetrySink,
+	// new(big.Int).SetUint64(chainSpec.DepositEth1ChainID()
+	// ))
+	// engineClient := engineclient.New(
 	//	engineclient.WithEngineConfig(&cfg.Engine),
 	//	engineclient.WithJWTSecret(jwtSecret),
 	//	engineclient.WithLogger(logger),
 	//)
 
-	//engineClient, err := setupEngineClient(cfg.Engine.RPCDialURL, jwtSecret, chainSpec, logger)
-	//fmt.Println("engineClient", engineClient)
-	//err = engine ̰Client.Start(cmd.Context())
-	//if err != nil {
+	// engineClient, err := setupEngineClient(
+	// cfg.Engine.RPCDialURL,
+	// jwtSecret,
+	// chainSpec,
+	// logger)
+	// fmt.Println("engineClient", engineClient)
+	// err = engine ̰Client.Start(cmd.Context())
+	// if err != nil {
 	//	fmt.Println("err in starting engine client", err)
 	//}
 
@@ -267,8 +276,6 @@ func broadcastDepositTx(
 	}
 
 	depositContractAddress := chainSpec.DepositContractAddress()
-	//depositContractAddressAfterConversion := gethCommon.HexToAddress(depositContractAddress.String())
-	//fmt.Println("DEPOSIT CONTRACT ADDRESS AFTER CONVERSION", depositContractAddressAfterConversion)
 
 	chainID, err := engineClient.ChainID(cmd.Context())
 	if err != nil {
@@ -276,27 +283,27 @@ func broadcastDepositTx(
 	}
 
 	// one way
-	//contractAbi, err := deposit.BeaconDepositContractMetaData.GetAbi()
-	//if err != nil {
+	// contractAbi, err := deposit.BeaconDepositContractMetaData.GetAbi()
+	// if err != nil {
 	//	panic(err)
 	//}
-	//fmt.Println("CONTRACT ABI", contractAbi)
+	// fmt.Println("CONTRACT ABI", contractAbi)
 	//
-	//callData, err := contractAbi.Pack(
+	// callData, err := contractAbi.Pack(
 	//	"deposit",
 	//	depositMsg.Pubkey[:],
 	//	depositMsg.Credentials[:],
 	//	uint64(0),
 	//	signature[:],
 	//)
-	//fmt.Println("CALL DATA", callData)
+	// fmt.Println("CALL DATA", callData)
 	//
-	//if err != nil {
+	// if err != nil {
 	//	fmt.Println("PANIC AT PACK")
 	//	panic(err)
 	//}
 	//
-	//tx := ethTypes.NewTx(
+	// tx := ethTypes.NewTx(
 	//	&ethTypes.DynamicFeeTx{
 	//		Nonce:     latestNonce,
 	//		ChainID:   chainID,
@@ -311,7 +318,10 @@ func broadcastDepositTx(
 	//
 	// fmt.Println("TX", tx)
 	//
-	// signedTx, err := ethTypes.SignTx(tx, ethTypes.LatestSignerForChainID(chainID), privKey)
+	// signedTx, err := ethTypes.SignTx(
+	// tx, ethTypes.LatestSignerForChainID(chainID),
+	// privKey
+	// )
 	// fmt.Println("SIGNED TX", signedTx)
 	//
 	// if err != nil {
@@ -319,7 +329,7 @@ func broadcastDepositTx(
 	//}
 
 	////Now send this raw transaction through your RPC client
-	//_, err = engineClient.CallContract(
+	// _, err = engineClient.CallContract(
 	//	cmd.Context(),
 	//	ethereum.CallMsg{
 	//		From:  ethCrypto.PubkeyToAddress(privKey.PublicKey),
@@ -335,7 +345,7 @@ func broadcastDepositTx(
 	// if err = engineClient.SendTransaction(
 	//	cmd.Context(),
 	//	signedTx,
-	//); err != nil {
+	// ); err != nil {
 	//	fmt.Println("PANIC AT SEND TRANSACTION")
 	//	panic(err)
 	//}
@@ -378,10 +388,13 @@ func broadcastDepositTx(
 					privKey,
 				)
 			},
-			Nonce:     new(big.Int).SetUint64(latestNonceForDeposit),
+			Nonce: new(big.Int).SetUint64(latestNonceForDeposit),
+			//nolint:mnd // The gas tip cap
 			GasTipCap: big.NewInt(1000000000),
+			//nolint:mnd // The gas fee cap
 			GasFeeCap: big.NewInt(1000000000),
-			GasLimit:  600000,
+			//nolint:mnd // The gas limit
+			GasLimit: 600000,
 		},
 		depositMsg.Pubkey[:],
 		depositMsg.Credentials[:],
@@ -392,12 +405,13 @@ func broadcastDepositTx(
 		return gethCommon.Hash{}, errors.Wrapf(err, "error in depositing")
 	}
 
-	time.Sleep(10 * time.Second)
-
 	// Wait for the transaction to be mined and check the status.
 	depositReceipt, err := bind.WaitMined(cmd.Context(), engineClient, depositTx)
 	if err != nil {
-		return gethCommon.Hash{}, errors.Wrapf(err, "waiting for transaction to be mined")
+		return gethCommon.Hash{}, errors.Wrapf(
+			err,
+			"waiting for transaction to be mined",
+		)
 	}
 
 	if depositReceipt.Status != 1 {
@@ -428,20 +442,28 @@ type PayloadAttributes struct {
 }
 
 func (p PayloadAttributes) IsNil() bool {
-	//TODO implement me
+	// TODO implement me
 	panic("implement me")
 }
 
+//nolint:lll
 func (p PayloadAttributes) GetSuggestedFeeRecipient() gethprimitives.ExecutionAddress {
-	//TODO implement me
+	// TODO implement me
 	panic("implement me")
 }
 
-func setupEngineClient(rpcUrl *myUrl.ConnectionURL, secret *jwt.Secret, chainSpec common.ChainSpec, logger log.Logger) (*engineclient.EngineClient[ExecutionPayload, PayloadAttributes], error) {
-	cfg := &engineclient.Config{RPCDialURL: rpcUrl}
+func setupEngineClient(rpcURL *myUrl.ConnectionURL,
+	secret *jwt.Secret,
+	chainSpec common.ChainSpec,
+	logger log.Logger,
+) (*engineclient.EngineClient[ExecutionPayload, PayloadAttributes], error) {
+	cfg := &engineclient.Config{RPCDialURL: rpcURL}
 	var telemetrySink engineclient.TelemetrySink
 	eth1ChainID := new(big.Int).SetUint64(chainSpec.DepositEth1ChainID())
-	engineClient := engineclient.New[ExecutionPayload, PayloadAttributes](cfg, logger, secret, telemetrySink, eth1ChainID)
+	engineClient := engineclient.New[
+		ExecutionPayload,
+		PayloadAttributes](
+		cfg, logger, secret, telemetrySink, eth1ChainID)
 	return engineClient, nil
 }
 
