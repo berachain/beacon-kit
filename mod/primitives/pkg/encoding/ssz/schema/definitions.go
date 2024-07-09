@@ -63,12 +63,12 @@ type vector struct {
 	length      uint64
 }
 
-func Vector(elementType SSZType, length uint64) SSZType {
+func DefineVector(elementType SSZType, length uint64) SSZType {
 	return vector{elementType: elementType, length: length}
 }
 
-func ByteVector(length uint64) SSZType {
-	return Vector(U8(), length)
+func DefineByteVector(length uint64) SSZType {
+	return DefineVector(U8(), length)
 }
 
 func (v vector) ID() ID { return Vector }
@@ -113,12 +113,12 @@ type list struct {
 	limit       uint64
 }
 
-func List(elementType SSZType, limit uint64) SSZType {
+func DefineList(elementType SSZType, limit uint64) SSZType {
 	return list{elementType: elementType, limit: limit}
 }
 
-func ByteList(limit uint64) SSZType {
-	return List(U8(), limit)
+func DefineByteList(limit uint64) SSZType {
+	return DefineList(U8(), limit)
 }
 
 func (l list) ID() ID { return List }
@@ -167,7 +167,7 @@ func Field(name string, typ SSZType) *proof.Field[SSZType] {
 	return proof.NewField(name, typ)
 }
 
-func Container(fields ...*proof.Field[SSZType]) SSZType {
+func DefineContainer(fields ...*proof.Field[SSZType]) SSZType {
 	fieldIndex := make(map[string]uint64)
 	types := make([]SSZType, len(fields))
 	for i, f := range fields {
