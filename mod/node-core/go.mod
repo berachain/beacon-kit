@@ -5,7 +5,7 @@ go 1.22.5
 replace (
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240628155326-d426a5db6775
-	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240628155326-d426a5db6775
+	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240709121431-13b80960d2e8
 	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240623110059-dec2d5583e39
 	cosmossdk.io/runtime/v2 => github.com/berachain/cosmos-sdk/runtime/v2 v2.0.0-20240704182039-aa953f8c7f29
 	cosmossdk.io/server/v2 => github.com/berachain/cosmos-sdk/server/v2 v2.0.0-20240704182039-aa953f8c7f29
@@ -45,7 +45,7 @@ require (
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240709172723-b24ce6cf7d74
+	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240709192405-e1a4b882c9ab
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240705193247-d464364483df
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240705183350-8b262bdd1d36
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5

@@ -4,8 +4,8 @@ buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.34.2-20240130113600-88e
 buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.34.2-20240130113600-88ef6483f90f.2/go.mod h1:HqcXMSa5qnNuakaMUo+hWhF51mKbcrZxGl9Vp5EeJXc=
 cosmossdk.io/api v0.7.3-0.20240628155326-d426a5db6775 h1:5lcxwkRRxIahjPdwPohLAJjg3xZ2FMmuhJdJcoKOFNw=
 cosmossdk.io/api v0.7.3-0.20240628155326-d426a5db6775/go.mod h1:5tcrMbzQJlJl7SReX8UcF7dJboRoMNdA8Uj35Mctjlk=
-cosmossdk.io/core v0.12.1-0.20240628155326-d426a5db6775 h1:fjwhZEa2OzlDpLoIN0Ko21bxkxd6+DH7uyKShxN1EPs=
-cosmossdk.io/core v0.12.1-0.20240628155326-d426a5db6775/go.mod h1:y/LnxW6nMaPDS++FhpNo9/vo6TN1OBKgtn1goYo2IkI=
+cosmossdk.io/core v0.12.1-0.20240709121431-13b80960d2e8 h1:RTAqALx2v0cHgvabJmYuRMgcH/cZiwdbaOGBWhS463Q=
+cosmossdk.io/core v0.12.1-0.20240709121431-13b80960d2e8/go.mod h1:y/LnxW6nMaPDS++FhpNo9/vo6TN1OBKgtn1goYo2IkI=
 github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610210054-bfdc14c4013c h1:rPoD2zVkIzuMC4R/XMuwx6eanJL8ccu37sLro+eIj3Y=
 github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610210054-bfdc14c4013c/go.mod h1:xgngH5/PYbyW+YDEmRhbBy3V333GXsNWF4DAkjYCmfs=
 github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240705193247-d464364483df h1:fTMGgHAPOEq2QxyzUts3+sIC/BHi2cf/H+tleb1kax4=

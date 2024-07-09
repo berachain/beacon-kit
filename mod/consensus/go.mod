@@ -5,7 +5,7 @@ go 1.22.5
 replace (
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240628155326-d426a5db6775
-	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240628155326-d426a5db6775
+	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240709121431-13b80960d2e8
 	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240623110059-dec2d5583e39
 	cosmossdk.io/server/v2 => github.com/berachain/cosmos-sdk/server/v2 v2.0.0-20240704182039-aa953f8c7f29
 	cosmossdk.io/server/v2/appmanager => github.com/berachain/cosmos-sdk/server/v2/appmanager v0.0.0-20240704182039-aa953f8c7f29

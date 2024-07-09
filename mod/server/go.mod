@@ -70,7 +70,7 @@ require (
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df // indirect
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240705193247-d464364483df // indirect
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240705193247-d464364483df // indirect
-	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240705193247-d464364483df // indirect
+	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240709192405-e1a4b882c9ab // indirect
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240705193247-d464364483df // indirect
 	github.com/bgentry/speakeasy v0.2.0 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect

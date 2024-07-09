@@ -5,7 +5,8 @@ go 1.22.5
 replace (
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240628155326-d426a5db6775
-	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240628155326-d426a5db6775
+	cosmossdk.io/client/v2 => cosmossdk.io/client/v2 v2.0.0-20240709121431-13b80960d2e8
+	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240709121431-13b80960d2e8
 	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240623110059-dec2d5583e39
 	cosmossdk.io/server/v2 => github.com/berachain/cosmos-sdk/server/v2 v2.0.0-20240704182039-aa953f8c7f29
 	cosmossdk.io/server/v2/appmanager => github.com/berachain/cosmos-sdk/server/v2/appmanager v0.0.0-20240704182039-aa953f8c7f29
@@ -38,7 +39,6 @@ require (
 	cosmossdk.io/api v0.7.5 // indirect
 	cosmossdk.io/client/v2 v2.0.0-beta.2 // indirect
 	cosmossdk.io/collections v0.4.0 // indirect
-	cosmossdk.io/core/testing v0.0.0-20240620161400-a6407f411e80 // indirect
 	cosmossdk.io/depinject v1.0.0-alpha.4.0.20240620161400-a6407f411e80 // indirect
 	cosmossdk.io/errors v1.0.1 // indirect
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce // indirect
@@ -52,12 +52,10 @@ require (
 	cosmossdk.io/store/v2 v2.0.0-20240625055312-26913b073414 // indirect
 	cosmossdk.io/tools/confix v0.1.1 // indirect
 	cosmossdk.io/x/accounts v0.0.0-20240709121431-13b80960d2e8 // indirect
-	cosmossdk.io/x/accounts/defaults/lockup v0.0.0-20240417181816-5e7aae0db1f5 // indirect
 	cosmossdk.io/x/auth v0.0.0-20240624211517-0b35bcebefbf // indirect
 	cosmossdk.io/x/bank v0.0.0-20240709121431-13b80960d2e8 // indirect
 	cosmossdk.io/x/consensus v0.0.0-20240628155326-d426a5db6775 // indirect
 	cosmossdk.io/x/gov v0.0.0-20240709121431-13b80960d2e8 // indirect
-	cosmossdk.io/x/protocolpool v0.0.0-20230925135524-a1bc045b3190 // indirect
 	cosmossdk.io/x/staking v0.0.0-20240624211517-0b35bcebefbf // indirect
 	cosmossdk.io/x/tx v0.13.4-0.20240623110059-dec2d5583e39 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
@@ -85,7 +83,7 @@ require (
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240709190614-86197af4034c // indirect
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240709190614-86197af4034c // indirect
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240709190614-86197af4034c // indirect
-	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240709190614-86197af4034c // indirect
+	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240709192405-e1a4b882c9ab // indirect
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240709190614-86197af4034c // indirect
 	github.com/bgentry/speakeasy v0.2.0 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
@@ -147,7 +145,6 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/golang/glog v1.2.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
-	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v0.0.5-0.20220116011046-fa5810519dcb // indirect
 	github.com/google/btree v1.1.2 // indirect
