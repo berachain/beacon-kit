@@ -26,7 +26,7 @@ import (
 	"strconv"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/tree/proof"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle/proof"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types/types"
 )
 

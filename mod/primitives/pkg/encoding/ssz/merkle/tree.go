@@ -18,18 +18,16 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package tree
+package merkle
 
-import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-)
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/math/pow"
 
 // New returns a Merkle tree of the given leaves.
 // As defined in the Ethereum 2.0 Spec:
 // https://github.com/ethereum/consensus-specs/blob/dev/ssz/merkle-proofs.md#generalized-merkle-tree-index
 //
 //nolint:lll // link.
-func New[LeafT ~[32]byte](
+func NewTree[LeafT ~[32]byte](
 	leaves []LeafT,
 	hashFn func([]byte) LeafT,
 ) []LeafT {
@@ -38,7 +36,7 @@ func New[LeafT ~[32]byte](
 	   [0, 1, 2, 3, 4, 5, 6, 7], where each layer is a power of 2. The 0 index is ignored. The 1 index is the root.
 	   The result will be twice the size as the padded bottom layer for the input leaves.
 	*/
-	bottomLength := math.U64(len(leaves)).NextPowerOfTwo()
+	bottomLength := pow.NextPowerOfTwo(uint64(len(leaves)))
 	//nolint:mnd // 2 is okay.
 	o := make([]LeafT, bottomLength*2)
 	copy(o[bottomLength:], leaves)

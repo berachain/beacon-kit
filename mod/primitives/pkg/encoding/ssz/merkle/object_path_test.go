@@ -18,12 +18,13 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package schema_test
+package merkle_test
 
 import (
 	"strings"
 	"testing"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/stretchr/testify/require"
 )
@@ -71,7 +72,7 @@ func Test_ObjectPath(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(strings.ReplaceAll(tc.path, "/", "."), func(t *testing.T) {
-			objectPath := schema.ObjectPath[[32]byte](tc.path)
+			objectPath := merkle.ObjectPath[[32]byte](tc.path)
 			typ, gindex, offset, err := objectPath.GetGeneralizedIndex(root)
 
 			if tc.error != "" {
