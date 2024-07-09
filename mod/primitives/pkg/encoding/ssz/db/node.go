@@ -25,6 +25,12 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 )
 
+// TODO: Figure out what the best way to do our DB types is?
+// Should this even be a DB package, shoudl we just have a tree that
+// is completely decoupled fromt he DB?
+// Putting this here for now just to make the deps nicely structured
+// but long term we need to figure out the play.
+
 // Node represents a node in the SSZ merkle tree.
 type Node[RootT ~[32]byte] struct {
 	// SSZType is the SSZ type of the node.
