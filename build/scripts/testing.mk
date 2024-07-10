@@ -120,6 +120,9 @@ start-geth-validator-run:
 	--syncmode "full" \
 	--state.scheme "hash" \
 	--gcmode "archive" \
+	--rpc.evmtimeout "10s" \
+	--txpool.globalslots 1000000 \
+	--txpool.globalqueue 3000000 \
 	--nat extip:${INTERNAL_IP}
 
 start-geth-node-run:
@@ -137,6 +140,9 @@ start-geth-node-run:
 	--syncmode "snap" \
 	--state.scheme "hash" \
     --gcmode "archive" \
+    --rpc.evmtimeout "10s" \
+	--txpool.globalslots 1000000 \
+	--txpool.globalqueue 3000000 \
 	--nat extip:${INTERNAL_IP}
 
 start-geth-run-local:
