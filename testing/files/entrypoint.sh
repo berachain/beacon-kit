@@ -80,7 +80,7 @@ if [[ $overwrite == "y" || $overwrite == "Y" || $3 == "onlyInit" ]]; then
       --consensus-key-algo $CONSENSUS_KEY_ALGO
 
 	if [ $2 == "validator" ]; then
-  	cp -rf "./testing/files/beacond-validator-$3" $HOMEDIR/
+  	cp -rf "./testing/files/beacond-validator-$3/*" $HOMEDIR/
   fi
 
 	if [ $3 == "onlyInit" ]; then
