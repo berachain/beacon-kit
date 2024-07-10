@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"runtime"
 
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/telemetry"
 	"github.com/berachain/beacon-kit/mod/log"
 )
 
@@ -34,13 +35,13 @@ type versionMetrics struct {
 	// logger is the logger used to log information about the version.
 	logger log.Logger[any]
 	// sink is the telemetry sink used to report metrics.
-	sink TelemetrySink
+	sink telemetry.Sink
 }
 
 // newVersionMetrics creates a new instance of versionMetrics.
 func newVersionMetrics(
 	logger log.Logger[any],
-	sink TelemetrySink,
+	sink telemetry.Sink,
 ) *versionMetrics {
 	return &versionMetrics{
 		system: runtime.GOOS + "/" + runtime.GOARCH,

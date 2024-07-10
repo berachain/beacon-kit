@@ -73,7 +73,7 @@ func TestRegistry_FetchService(t *testing.T) {
 	}
 
 	var fetchedService *mocks.Basic
-	if err := registry.FetchService(&fetchedService); err != nil {
+	if err := registry.FetchService(fetchedService); err != nil {
 		t.Fatalf("Failed to fetch service: %v", err)
 	}
 

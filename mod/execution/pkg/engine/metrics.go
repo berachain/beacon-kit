@@ -25,20 +25,21 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/telemetry"
 	"github.com/berachain/beacon-kit/mod/log"
 )
 
 // engineMetrics is a struct that contains metrics for the engine.
 type engineMetrics struct {
 	// TelemetrySink is the sink for the metrics.
-	sink TelemetrySink
+	sink telemetry.Sink
 	// logger is the logger for the engineMetrics.
 	logger log.Logger[any]
 }
 
 // newEngineMetrics creates a new engineMetrics.
 func newEngineMetrics(
-	sink TelemetrySink,
+	sink telemetry.Sink,
 	logger log.Logger[any],
 ) *engineMetrics {
 	return &engineMetrics{

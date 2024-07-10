@@ -25,26 +25,41 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
-	"github.com/berachain/beacon-kit/mod/da/pkg/types"
+	kzgtypes "github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
+	kzgI "github.com/berachain/beacon-kit/mod/interfaces/pkg/da/kzg"
+	datypes "github.com/berachain/beacon-kit/mod/interfaces/pkg/da/types"
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/telemetry"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"golang.org/x/sync/errgroup"
 )
 
 // Verifier is responsible for verifying blobs, including their
 // inclusion and KZG proofs.
-type Verifier struct {
+type Verifier[
+	BeaconBlockHeaderT any,
+	BlobSidecarT datypes.BlobSidecar[
+		BlobSidecarT, BeaconBlockHeaderT,
+	],
+	BlobSidecarsT datypes.BlobSidecars[BlobSidecarsT, BlobSidecarT],
+] struct {
 	// proofVerifier is used to verify the KZG proofs of the blobs.
-	proofVerifier kzg.BlobProofVerifier
+	proofVerifier kzgI.BlobProofVerifier[*kzgtypes.BlobProofArgs]
 	// metrics collects and reports metrics related to the verification process.
 	metrics *verifierMetrics
 }
 
 // NewVerifier creates a new Verifier with the given proof verifier.
-func NewVerifier(
-	proofVerifier kzg.BlobProofVerifier,
-	telemetrySink TelemetrySink,
-) *Verifier {
-	return &Verifier{
+func NewVerifier[
+	BeaconBlockHeaderT any,
+	BlobSidecarT datypes.BlobSidecar[
+		BlobSidecarT, BeaconBlockHeaderT,
+	],
+	BlobSidecarsT datypes.BlobSidecars[BlobSidecarsT, BlobSidecarT],
+](
+	proofVerifier kzgI.BlobProofVerifier[*kzgtypes.BlobProofArgs],
+	telemetrySink telemetry.Sink,
+) *Verifier[BeaconBlockHeaderT, BlobSidecarT, BlobSidecarsT] {
+	return &Verifier[BeaconBlockHeaderT, BlobSidecarT, BlobSidecarsT]{
 		proofVerifier: proofVerifier,
 		metrics:       newVerifierMetrics(telemetrySink),
 	}
@@ -52,8 +67,10 @@ func NewVerifier(
 
 // VerifySidecars verifies the blobs for both inclusion as well
 // as the KZG proofs.
-func (bv *Verifier) VerifySidecars(
-	sidecars *types.BlobSidecars, kzgOffset uint64,
+func (bv *Verifier[
+	BeaconBlockHeaderT, BlobSidecarT, BlobSidecarsT,
+]) VerifySidecars(
+	sidecars BlobSidecarsT, kzgOffset uint64,
 ) error {
 	var (
 		g, _      = errgroup.WithContext(context.Background())
@@ -61,7 +78,7 @@ func (bv *Verifier) VerifySidecars(
 	)
 
 	defer bv.metrics.measureVerifySidecarsDuration(
-		startTime, math.U64(len(sidecars.Sidecars)),
+		startTime, math.U64(sidecars.Len()),
 		bv.proofVerifier.GetImplementation(),
 	)
 
@@ -87,40 +104,51 @@ func (bv *Verifier) VerifySidecars(
 	return g.Wait()
 }
 
-func (bv *Verifier) VerifyInclusionProofs(
-	scs *types.BlobSidecars,
+// VerifyInclusionProofs verifies the inclusion proofs on the sidecars.
+func (bv *Verifier[
+	BeaconBlockHeaderT, BlobSidecarT, BlobSidecarsT,
+]) VerifyInclusionProofs(
+	scs BlobSidecarsT,
 	kzgOffset uint64,
 ) error {
 	startTime := time.Now()
 	defer bv.metrics.measureVerifyInclusionProofsDuration(
-		startTime, math.U64(len(scs.Sidecars)),
+		startTime, math.U64(scs.Len()),
 	)
 	return scs.VerifyInclusionProofs(kzgOffset)
 }
 
 // VerifyKZGProofs verifies the sidecars.
-func (bv *Verifier) VerifyKZGProofs(
-	scs *types.BlobSidecars,
+func (bv *Verifier[
+	BeaconBlockHeaderT, BlobSidecarT, BlobSidecarsT,
+]) VerifyKZGProofs(
+	scs BlobSidecarsT,
 ) error {
 	start := time.Now()
 	defer bv.metrics.measureVerifyKZGProofsDuration(
-		start, math.U64(len(scs.Sidecars)),
+		start, math.U64(scs.Len()),
 		bv.proofVerifier.GetImplementation(),
 	)
 
-	switch len(scs.Sidecars) {
+	switch scs.Len() {
 	case 0:
 		return nil
 	case 1:
+		blob, err := scs.Get(0)
+		if err != nil {
+			return err
+		}
 		// This method is fastest for a single blob.
 		return bv.proofVerifier.VerifyBlobProof(
-			&scs.Sidecars[0].Blob,
-			scs.Sidecars[0].KzgProof,
-			scs.Sidecars[0].KzgCommitment,
+			blob.GetBlob(),
+			blob.GetProof(),
+			blob.GetCommitment(),
 		)
 	default:
 		// For multiple blobs batch verification is more performant
 		// than verifying each blob individually (even when done in parallel).
-		return bv.proofVerifier.VerifyBlobProofBatch(kzg.ArgsFromSidecars(scs))
+		return bv.proofVerifier.VerifyBlobProofBatch(
+			kzg.ArgsFromSidecars(scs),
+		)
 	}
 }

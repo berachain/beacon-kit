@@ -33,8 +33,9 @@ import (
 // RequestPayloadAsync builds a payload for the given slot and
 // returns the payload ID.
 func (pb *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	PayloadAttributesT, PayloadIDT, WithdrawalT,
+	BeaconStateT, BeaconBlockHeaderT, BlobsBundleT, Eth1DataT,
+	ExecutionPayloadT, ExecutionPayloadEnvelopeT, ExecutionPayloadHeaderT,
+	ForkT, KVStoreT, PayloadAttributesT, PayloadIDT, ValidatorT, WithdrawalT,
 ]) RequestPayloadAsync(
 	ctx context.Context,
 	st BeaconStateT,
@@ -94,8 +95,9 @@ func (pb *PayloadBuilder[
 // RequestPayloadSync request a payload for the given slot and
 // blocks until the payload is delivered.
 func (pb *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	PayloadAttributesT, PayloadIDT, WithdrawalT,
+	BeaconStateT, BeaconBlockHeaderT, BlobsBundleT, Eth1DataT,
+	ExecutionPayloadT, ExecutionPayloadEnvelopeT, ExecutionPayloadHeaderT,
+	ForkT, KVStoreT, PayloadAttributesT, PayloadIDT, ValidatorT, WithdrawalT,
 ]) RequestPayloadSync(
 	ctx context.Context,
 	st BeaconStateT,
@@ -104,9 +106,10 @@ func (pb *PayloadBuilder[
 	parentBlockRoot common.Root,
 	parentEth1Hash gethprimitives.ExecutionHash,
 	finalBlockHash gethprimitives.ExecutionHash,
-) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
+) (ExecutionPayloadEnvelopeT, error) {
+	var payloadEnv ExecutionPayloadEnvelopeT
 	if !pb.Enabled() {
-		return nil, ErrPayloadBuilderDisabled
+		return payloadEnv, ErrPayloadBuilderDisabled
 	}
 
 	// Build the payload and wait for the execution client to
@@ -121,9 +124,9 @@ func (pb *PayloadBuilder[
 		finalBlockHash,
 	)
 	if err != nil {
-		return nil, err
+		return payloadEnv, err
 	} else if payloadID == nil {
-		return nil, ErrNilPayloadID
+		return payloadEnv, ErrNilPayloadID
 	}
 
 	// Wait for the payload to be delivered to the execution client.
@@ -137,7 +140,7 @@ func (pb *PayloadBuilder[
 		// before the timestamp expires.
 		break
 	case <-ctx.Done():
-		return nil, ctx.Err()
+		return payloadEnv, ctx.Err()
 	}
 
 	// Get the payload from the execution client.
@@ -155,22 +158,24 @@ func (pb *PayloadBuilder[
 // retrieve a payload, it will build a new payload and wait for the
 // execution client to return the payload.
 func (pb *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	PayloadAttributesT, PayloadIDT, WithdrawalT,
+	BeaconStateT, BeaconBlockHeaderT, BlobsBundleT, Eth1DataT,
+	ExecutionPayloadT, ExecutionPayloadEnvelopeT, ExecutionPayloadHeaderT,
+	ForkT, KVStoreT, PayloadAttributesT, PayloadIDT, ValidatorT, WithdrawalT,
 ]) RetrievePayload(
 	ctx context.Context,
 	slot math.Slot,
 	parentBlockRoot common.Root,
-) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
+) (ExecutionPayloadEnvelopeT, error) {
+	var payloadEnv ExecutionPayloadEnvelopeT
 	if !pb.Enabled() {
-		return nil, ErrPayloadBuilderDisabled
+		return payloadEnv, ErrPayloadBuilderDisabled
 	}
 
 	// Attempt to see if we previously fired off a payload built for
 	// this particular slot and parent block root.
 	payloadID, found := pb.pc.Get(slot, parentBlockRoot)
 	if !found {
-		return nil, ErrPayloadIDNotFound
+		return payloadEnv, ErrPayloadIDNotFound
 	}
 
 	envelope, err := pb.ee.GetPayload(
@@ -181,9 +186,9 @@ func (pb *PayloadBuilder[
 		},
 	)
 	if err != nil {
-		return nil, err
-	} else if envelope == nil {
-		return nil, ErrNilPayloadEnvelope
+		return payloadEnv, err
+	} else if envelope.IsNil() {
+		return payloadEnv, ErrNilPayloadEnvelope
 	}
 
 	overrideBuilder := envelope.ShouldOverrideBuilder()
@@ -201,7 +206,7 @@ func (pb *PayloadBuilder[
 	}
 
 	blobsBundle := envelope.GetBlobsBundle()
-	if blobsBundle != nil {
+	if !blobsBundle.IsNil() {
 		args = append(args, "num_blobs", len(blobsBundle.GetBlobs()))
 	}
 
@@ -226,8 +231,9 @@ func (pb *PayloadBuilder[
 // TODO: This should be moved onto a "sync service"
 // of some kind.
 func (pb *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	PayloadAttributesT, PayloadIDT, WithdrawalT,
+	BeaconStateT, BeaconBlockHeaderT, BlobsBundleT, Eth1DataT,
+	ExecutionPayloadT, ExecutionPayloadEnvelopeT, ExecutionPayloadHeaderT,
+	ForkT, KVStoreT, PayloadAttributesT, PayloadIDT, ValidatorT, WithdrawalT,
 ]) SendForceHeadFCU(
 	ctx context.Context,
 	st BeaconStateT,

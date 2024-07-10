@@ -31,6 +31,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/cache"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/rpc"
+	engineprimitives "github.com/berachain/beacon-kit/mod/interfaces/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/telemetry"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
@@ -38,12 +40,22 @@ import (
 
 // EngineClient is a struct that holds a pointer to an Eth1Client.
 type EngineClient[
+	BlobsBundleT constraints.Nillable,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
-	PayloadAttributesT PayloadAttributes,
+	ExecutionPayloadEnvelopeT engineprimitives.ExecutionPayloadEnvelope[
+		ExecutionPayloadEnvelopeT, BlobsBundleT, ExecutionPayloadT,
+	],
+	PayloadAttributesT engineprimitives.PayloadAttributes[
+		PayloadAttributesT,
+		WithdrawalT,
+	],
+	WithdrawalT any,
 ] struct {
 	// Eth1Client is a struct that holds the Ethereum 1 client and
 	// its configuration.
-	*ethclient.Eth1Client[ExecutionPayloadT]
+	*ethclient.Eth1Client[
+		BlobsBundleT, ExecutionPayloadT, ExecutionPayloadEnvelopeT,
+	]
 	// cfg is the supplied configuration for the engine client.
 	cfg *Config
 	// logger is the logger for the engine client.
@@ -65,22 +77,36 @@ type EngineClient[
 // It takes an Eth1Client as an argument and returns a pointer  to an
 // EngineClient.
 func New[
+	BlobsBundleT constraints.Nillable,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
-	PayloadAttributesT PayloadAttributes,
+	ExecutionPayloadEnvelopeT engineprimitives.ExecutionPayloadEnvelope[
+		ExecutionPayloadEnvelopeT, BlobsBundleT, ExecutionPayloadT,
+	],
+	PayloadAttributesT engineprimitives.PayloadAttributes[
+		PayloadAttributesT,
+		WithdrawalT,
+	],
+	WithdrawalT any,
 ](
 	cfg *Config,
 	logger log.Logger[any],
 	jwtSecret *jwt.Secret,
-	telemetrySink TelemetrySink,
+	telemetrySink telemetry.Sink,
 	eth1ChainID *big.Int,
 ) *EngineClient[
-	ExecutionPayloadT, PayloadAttributesT,
+	BlobsBundleT, ExecutionPayloadT, ExecutionPayloadEnvelopeT,
+	PayloadAttributesT, WithdrawalT,
 ] {
-	return &EngineClient[ExecutionPayloadT, PayloadAttributesT]{
-		cfg:          cfg,
-		logger:       logger,
-		jwtSecret:    jwtSecret,
-		Eth1Client:   new(ethclient.Eth1Client[ExecutionPayloadT]),
+	return &EngineClient[
+		BlobsBundleT, ExecutionPayloadT, ExecutionPayloadEnvelopeT,
+		PayloadAttributesT, WithdrawalT,
+	]{
+		cfg:       cfg,
+		logger:    logger,
+		jwtSecret: jwtSecret,
+		Eth1Client: new(ethclient.Eth1Client[
+			BlobsBundleT, ExecutionPayloadT, ExecutionPayloadEnvelopeT,
+		]),
 		capabilities: make(map[string]struct{}),
 		engineCache:  cache.NewEngineCacheWithDefaultConfig(),
 		eth1ChainID:  eth1ChainID,
@@ -90,14 +116,14 @@ func New[
 
 // Name returns the name of the engine client.
 func (s *EngineClient[
-	_, _,
+	_, _, _, _, _,
 ]) Name() string {
 	return "engine-client"
 }
 
 // Start the engine client.
 func (s *EngineClient[
-	_, _,
+	_, _, _, _, _,
 ]) Start(
 	ctx context.Context,
 ) error {
@@ -153,7 +179,7 @@ func (s *EngineClient[
 // setupConnection dials the execution client and
 // ensures the chain ID is correct.
 func (s *EngineClient[
-	_, _,
+	_, _, _, _, _,
 ]) initializeConnection(
 	ctx context.Context,
 ) error {
@@ -218,7 +244,7 @@ func (s *EngineClient[
 
 // dialExecutionRPCClient dials the execution client's RPC endpoint.
 func (s *EngineClient[
-	ExecutionPayloadT, _,
+	BlobsBundleT, ExecutionPayloadT, ExecutionPayloadEnvelopeT, _, _,
 ]) dialExecutionRPCClient(
 	ctx context.Context,
 ) error {
@@ -261,7 +287,9 @@ func (s *EngineClient[
 	}
 
 	// Refresh the execution client with the new client.
-	s.Eth1Client, err = ethclient.NewFromRPCClient[ExecutionPayloadT](
+	s.Eth1Client, err = ethclient.NewFromRPCClient[
+		BlobsBundleT, ExecutionPayloadT, ExecutionPayloadEnvelopeT,
+	](
 		client,
 	)
 	return err

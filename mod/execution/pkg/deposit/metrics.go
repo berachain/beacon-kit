@@ -23,17 +23,18 @@ package deposit
 import (
 	"strconv"
 
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/telemetry"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // metrics is a struct that contains metrics for the deposit service.
 type metrics struct {
 	// sink is the telemetry sink.
-	sink TelemetrySink
+	sink telemetry.Sink
 }
 
 // newtMetrics creates a new instance of the metrics struct.
-func newMetrics(sink TelemetrySink) *metrics {
+func newMetrics(sink telemetry.Sink) *metrics {
 	return &metrics{
 		sink: sink,
 	}

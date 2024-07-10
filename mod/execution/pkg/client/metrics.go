@@ -23,20 +23,21 @@ package client
 import (
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/telemetry"
 	"github.com/berachain/beacon-kit/mod/log"
 )
 
 // clientMetrics is a struct that contains metrics for the engine.
 type clientMetrics struct {
 	// TelemetrySink is the sink for the metrics.
-	sink TelemetrySink
+	sink telemetry.Sink
 	// logger is the logger for the engineMetrics.
 	logger log.Logger[any]
 }
 
 // newClientMetrics creates a new engineMetrics.
 func newClientMetrics(
-	sink TelemetrySink,
+	sink telemetry.Sink,
 	logger log.Logger[any],
 ) *clientMetrics {
 	return &clientMetrics{

@@ -25,7 +25,6 @@ import (
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -35,15 +34,13 @@ import (
 // DepositServiceIn is the input for the deposit service.
 type DepositServiceIn struct {
 	depinject.In
-	BeaconDepositContract *deposit.WrappedBeaconDepositContract[
-		*Deposit, types.WithdrawalCredentials,
-	]
-	BlockBroker   *BlockBroker
-	ChainSpec     common.ChainSpec
-	DepositStore  *DepositStore
-	EngineClient  *EngineClient
-	Logger        log.Logger
-	TelemetrySink *metrics.TelemetrySink
+	BeaconDepositContract *DepositContract
+	BlockBroker           *BlockBroker
+	ChainSpec             common.ChainSpec
+	DepositStore          *DepositStore
+	EngineClient          *EngineClient
+	Logger                log.Logger
+	TelemetrySink         *metrics.TelemetrySink
 }
 
 // ProvideDepositService provides the deposit service to the depinject
@@ -57,11 +54,16 @@ func ProvideDepositService(in DepositServiceIn) (*DepositService, error) {
 
 	// Build the deposit service.
 	return deposit.NewService[
-		*BeaconBlockBody,
 		*BeaconBlock,
-		*BlockEvent,
+		*BeaconBlockBody,
+		*BeaconBlockHeader,
+		*Deposit,
 		*DepositStore,
+		*Eth1Data,
 		*ExecutionPayload,
+		*ExecutionPayloadHeader,
+		*ForkData,
+		*Withdrawal,
 	](
 		in.Logger.With("service", "deposit"),
 		math.U64(in.ChainSpec.Eth1FollowDistance()),

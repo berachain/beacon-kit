@@ -24,16 +24,9 @@ import (
 	"context"
 	"reflect"
 
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/log"
 )
-
-// Basic is the minimal interface for a service.
-type Basic interface {
-	// Start spawns any goroutines required by the service.
-	Start(ctx context.Context) error
-	// Name returns the name of the service.
-	Name() string
-}
 
 // Registry provides a useful pattern for managing services.
 // It allows for ease of dependency management and ensures services
@@ -42,7 +35,7 @@ type Registry struct {
 	// logger is the logger for the Registry.
 	logger log.Logger[any]
 	// services is a map of service type -> service instance.
-	services map[string]Basic
+	services map[string]runtime.BasicService
 	// serviceTypes is an ordered slice of registered service types.
 	serviceTypes []string
 }
@@ -50,7 +43,7 @@ type Registry struct {
 // NewRegistry starts a registry instance for convenience.
 func NewRegistry(opts ...RegistryOption) *Registry {
 	r := &Registry{
-		services: make(map[string]Basic),
+		services: make(map[string]runtime.BasicService),
 	}
 
 	for _, opt := range opts {
@@ -81,7 +74,7 @@ func (s *Registry) StartAll(ctx context.Context) error {
 
 // RegisterService appends a service constructor function to the service
 // registry.
-func (s *Registry) RegisterService(service Basic) error {
+func (s *Registry) RegisterService(service runtime.BasicService) error {
 	typeName := service.Name()
 	if _, exists := s.services[typeName]; exists {
 		return errServiceAlreadyExists(typeName)
@@ -95,7 +88,7 @@ func (s *Registry) RegisterService(service Basic) error {
 // to a service currently stored in the service registry. This ensures the
 // input argument is set to the right pointer that refers to the originally
 // registered service.
-func (s *Registry) FetchService(service interface{}) error {
+func (s *Registry) FetchService(service runtime.BasicService) error {
 	serviceType := reflect.TypeOf(service)
 	if serviceType.Kind() != reflect.Ptr ||
 		serviceType.Elem().Kind() != reflect.Ptr {

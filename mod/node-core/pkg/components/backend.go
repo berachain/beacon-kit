@@ -22,7 +22,6 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
@@ -50,11 +49,13 @@ func ProvideStorageBackend(
 		*BlobSidecars,
 		*Deposit,
 		*DepositStore,
-		*types.Eth1Data,
+		*Eth1Data,
+		*ExecutionPayload,
 		*ExecutionPayloadHeader,
-		*types.Fork,
+		*Fork,
+		*ForkData,
 		*KVStore,
-		*types.Validator,
+		*Validator,
 		*Withdrawal,
 		WithdrawalCredentials,
 	](

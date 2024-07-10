@@ -33,6 +33,13 @@ type BlobSidecars struct {
 	Sidecars []*BlobSidecar `ssz-max:"6"`
 }
 
+// NewBlobSidecars creates a new BlobSidecars.
+func (bs *BlobSidecars) NewFromSidecars(sidecars []*BlobSidecar) *BlobSidecars {
+	return &BlobSidecars{
+		Sidecars: sidecars,
+	}
+}
+
 // IsNil checks to see if blobs are nil.
 func (bs *BlobSidecars) IsNil() bool {
 	return bs == nil || bs.Sidecars == nil
@@ -87,4 +94,16 @@ func (bs *BlobSidecars) VerifyInclusionProofs(
 // Len returns the number of sidecars in the sidecar.
 func (bs *BlobSidecars) Len() int {
 	return len(bs.Sidecars)
+}
+
+func (bs *BlobSidecars) Get(idx uint32) (*BlobSidecar, error) {
+	if idx >= uint32(len(bs.Sidecars)) {
+		return nil, ErrInvalidSidecarIndex
+	}
+	return bs.Sidecars[idx], nil
+}
+
+// GetSidecars returns all sidecars.
+func (bs *BlobSidecars) GetSidecars() []*BlobSidecar {
+	return bs.Sidecars
 }

@@ -26,6 +26,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	consensustypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/ckzg"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/gokzg"
@@ -113,7 +114,11 @@ func TestArgsFromSidecars(t *testing.T) {
 		},
 	}
 
-	args := kzg.ArgsFromSidecars(scs)
+	args := kzg.ArgsFromSidecars[
+		*consensustypes.BeaconBlockHeader,
+		*types.BlobSidecar,
+		*types.BlobSidecars,
+	](scs)
 
 	require.Len(t, args.Blobs, 1)
 	require.Len(t, args.Proofs, 1)

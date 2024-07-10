@@ -26,9 +26,9 @@ import (
 	"strconv"
 
 	"github.com/berachain/beacon-kit/mod/errors"
+	db "github.com/berachain/beacon-kit/mod/interfaces/pkg/storage"
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/storage/pruner"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
-	db "github.com/berachain/beacon-kit/mod/storage/pkg/interfaces"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 )
 
 // two is a constant for the number 2.

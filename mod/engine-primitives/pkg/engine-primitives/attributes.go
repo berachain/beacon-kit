@@ -22,20 +22,17 @@ package engineprimitives
 
 import (
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	engineprimitives "github.com/berachain/beacon-kit/mod/interfaces/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
-// PayloadAttributer represents payload attributes of a block.
-type PayloadAttributer interface {
-	constraints.Versionable
-	constraints.Nillable
-	// GetSuggestedFeeRecipient returns the suggested fee recipient for the
-	// block.
-	GetSuggestedFeeRecipient() gethprimitives.ExecutionAddress
-}
+// Compile-time assertion that PayloadAttributes implements the
+// PayloadAttributes interface.
+var _ engineprimitives.PayloadAttributes[
+	*PayloadAttributes[any], any,
+] = (*PayloadAttributes[any])(nil)
 
 // PayloadAttributes is the attributes of a block payload.
 //

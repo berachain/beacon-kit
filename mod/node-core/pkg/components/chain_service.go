@@ -25,7 +25,6 @@ import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/config"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -44,7 +43,7 @@ type ChainServiceInput struct {
 	LocalBuilder          *LocalBuilder
 	Logger                log.Logger
 	Signer                crypto.BLSSigner
-	StateProcessor        StateProcessor
+	StateProcessor        *StateProcessor
 	StorageBackend        *StorageBackend
 	TelemetrySink         *metrics.TelemetrySink
 	ValidatorUpdateBroker *ValidatorUpdateBroker
@@ -60,12 +59,20 @@ func ProvideChainService(
 		*BeaconBlockBody,
 		*BeaconBlockHeader,
 		*BeaconState,
+		*BlobsBundle,
 		*BlobSidecars,
 		*Deposit,
+		*DepositStore,
+		*Eth1Data,
 		*ExecutionPayload,
+		*ExecutionPayloadEnvelope,
 		*ExecutionPayloadHeader,
+		*Fork,
 		*Genesis,
-		*engineprimitives.PayloadAttributes[*Withdrawal],
+		*KVStore,
+		*PayloadAttributes,
+		PayloadID,
+		*Validator,
 		*Withdrawal,
 	](
 		in.StorageBackend,

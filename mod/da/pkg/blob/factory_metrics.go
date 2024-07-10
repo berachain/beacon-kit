@@ -23,18 +23,19 @@ package blob
 import (
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/telemetry"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // factoryMetrics is a struct that contains metrics for the factory.
 type factoryMetrics struct {
 	// TelemetrySink is the sink for the metrics.
-	sink TelemetrySink
+	sink telemetry.Sink
 }
 
 // newFactoryMetrics creates a new factoryMetrics.
 func newFactoryMetrics(
-	sink TelemetrySink,
+	sink telemetry.Sink,
 ) *factoryMetrics {
 	return &factoryMetrics{
 		sink: sink,

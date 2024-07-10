@@ -24,6 +24,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/telemetry"
 	"github.com/berachain/beacon-kit/mod/log"
 )
 
@@ -47,7 +48,7 @@ type ReportingService struct {
 // NewReportingService creates a new VersionReporterService.
 func NewReportingService(
 	logger log.Logger[any],
-	telemetrySink TelemetrySink,
+	telemetrySink telemetry.Sink,
 	version string,
 ) *ReportingService {
 	return &ReportingService{

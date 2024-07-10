@@ -22,6 +22,8 @@ package attributes
 
 import (
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	engineprimitives "github.com/berachain/beacon-kit/mod/interfaces/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/state-transition/state"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -29,8 +31,20 @@ import (
 
 // Factory is a factory for creating payload attributes.
 type Factory[
-	BeaconStateT BeaconState[WithdrawalT],
-	PayloadAttributesT PayloadAttributes[PayloadAttributesT, WithdrawalT],
+	BeaconStateT state.BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, Eth1DataT,
+		ExecutionPayloadHeaderT, ForkT, KVStoreT,
+		ValidatorT, WithdrawalT,
+	],
+	BeaconBlockHeaderT any,
+	Eth1DataT any,
+	ExecutionPayloadHeaderT any,
+	ForkT any,
+	KVStoreT any,
+	PayloadAttributesT engineprimitives.PayloadAttributes[
+		PayloadAttributesT, WithdrawalT,
+	],
+	ValidatorT any,
 	WithdrawalT any,
 ] struct {
 	// chainSpec is the chain spec for the attributes factory.
@@ -44,26 +58,43 @@ type Factory[
 
 // NewAttributesFactory creates a new instance of AttributesFactory.
 func NewAttributesFactory[
-	BeaconStateT BeaconState[WithdrawalT],
-	PayloadAttributesT PayloadAttributes[PayloadAttributesT, WithdrawalT],
+	BeaconStateT state.BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, Eth1DataT,
+		ExecutionPayloadHeaderT, ForkT, KVStoreT,
+		ValidatorT, WithdrawalT,
+	],
+	BeaconBlockHeaderT any,
+	Eth1DataT any,
+	ExecutionPayloadHeaderT any,
+	ForkT any,
+	KVStoreT any,
+	PayloadAttributesT engineprimitives.PayloadAttributes[
+		PayloadAttributesT, WithdrawalT,
+	],
+	ValidatorT any,
 	WithdrawalT any,
 ](
 	chainSpec common.ChainSpec,
 	logger log.Logger[any],
 	suggestedFeeRecipient gethprimitives.ExecutionAddress,
-) *Factory[BeaconStateT, PayloadAttributesT, WithdrawalT] {
-	return &Factory[BeaconStateT, PayloadAttributesT, WithdrawalT]{
+) *Factory[
+	BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, KVStoreT, PayloadAttributesT, ValidatorT, WithdrawalT,
+] {
+	return &Factory[
+		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		ForkT, KVStoreT, PayloadAttributesT, ValidatorT, WithdrawalT,
+	]{
 		chainSpec:             chainSpec,
 		logger:                logger,
 		suggestedFeeRecipient: suggestedFeeRecipient,
 	}
 }
 
-// CreateAttributes creates a new instance of PayloadAttributes.
+// BuildPayloadAttributes builds a new instance of PayloadAttributes.
 func (f *Factory[
-	BeaconStateT,
-	PayloadAttributesT,
-	WithdrawalT,
+	BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, KVStoreT, PayloadAttributesT, ValidatorT, WithdrawalT,
 ]) BuildPayloadAttributes(
 	st BeaconStateT,
 	slot math.Slot,

@@ -29,42 +29,40 @@ package pruner
 import (
 	"context"
 
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/storage/pruner"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 )
 
 // Compile-time check to ensure pruner implements the Pruner interface.
-var _ Pruner[Prunable] = (*pruner[
-	BeaconBlock, BlockEvent[BeaconBlock], Prunable,
-])(nil)
+var _ pruner.Pruner[pruner.Prunable] = (*Pruner[any, pruner.Prunable])(nil)
 
-// pruner is a struct that holds the prunable interface and a notifier
+// Pruner is a struct that holds the prunable interface and a notifier
 // channel.
-type pruner[
-	BeaconBlockT BeaconBlock,
-	BlockEventT BlockEvent[BeaconBlockT],
-	PrunableT Prunable,
+type Pruner[
+	BeaconBlockT any,
+	PrunableT pruner.Prunable,
 ] struct {
-	prunable     Prunable
+	prunable     pruner.Prunable
 	logger       log.Logger[any]
 	name         string
-	feed         chan BlockEventT
-	pruneRangeFn func(BlockEventT) (uint64, uint64)
+	feed         chan *asynctypes.Event[BeaconBlockT]
+	pruneRangeFn func(*asynctypes.Event[BeaconBlockT]) (uint64, uint64)
 }
 
 // NewPruner creates a new Pruner.
 func NewPruner[
-	BeaconBlockT BeaconBlock,
-	BlockEventT BlockEvent[BeaconBlockT],
-	PrunableT Prunable,
+	BeaconBlockT any,
+	PrunableT pruner.Prunable,
 ](
 	logger log.Logger[any],
-	prunable Prunable,
+	prunable pruner.Prunable,
 	name string,
-	feed chan BlockEventT,
-	pruneRangeFn func(BlockEventT) (uint64, uint64),
-) Pruner[PrunableT] {
-	return &pruner[BeaconBlockT, BlockEventT, PrunableT]{
+	feed chan *asynctypes.Event[BeaconBlockT],
+	pruneRangeFn func(*asynctypes.Event[BeaconBlockT]) (uint64, uint64),
+) pruner.Pruner[PrunableT] {
+	return &Pruner[BeaconBlockT, PrunableT]{
 		logger:       logger,
 		prunable:     prunable,
 		name:         name,
@@ -74,12 +72,12 @@ func NewPruner[
 }
 
 // Start starts the Pruner by listening for new indexes to prune.
-func (p *pruner[_, _, _]) Start(ctx context.Context) {
+func (p *Pruner[_, _]) Start(ctx context.Context) {
 	go p.start(ctx)
 }
 
 // start listens for new indexes to prune.
-func (p *pruner[_, _, _]) start(ctx context.Context) {
+func (p *Pruner[_, _]) start(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -99,6 +97,6 @@ func (p *pruner[_, _, _]) start(ctx context.Context) {
 }
 
 // Name returns the name of the Pruner.
-func (p *pruner[_, _, _]) Name() string {
+func (p *Pruner[_, _]) Name() string {
 	return p.name
 }

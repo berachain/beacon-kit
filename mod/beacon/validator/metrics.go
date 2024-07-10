@@ -23,18 +23,19 @@ package validator
 import (
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/telemetry"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // validatorMetrics is a struct that contains metrics for the chain.
 type validatorMetrics struct {
 	// sink is the sink for the metrics.
-	sink TelemetrySink
+	sink telemetry.Sink
 }
 
 // newValidatorMetrics creates a new validatorMetrics.
 func newValidatorMetrics(
-	sink TelemetrySink,
+	sink telemetry.Sink,
 ) *validatorMetrics {
 	return &validatorMetrics{
 		sink: sink,

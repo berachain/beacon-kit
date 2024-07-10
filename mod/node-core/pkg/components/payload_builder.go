@@ -47,7 +47,19 @@ func ProvideLocalBuilder(
 	in LocalBuilderInput,
 ) *LocalBuilder {
 	return payloadbuilder.New[
-		*BeaconState, *ExecutionPayload, *ExecutionPayloadHeader,
+		*BeaconState,
+		*BeaconBlockHeader,
+		*BlobsBundle,
+		*Eth1Data,
+		*ExecutionPayload,
+		*ExecutionPayloadEnvelope,
+		*ExecutionPayloadHeader,
+		*Fork,
+		*KVStore,
+		*PayloadAttributes,
+		PayloadID,
+		*Validator,
+		*Withdrawal,
 	](
 		&in.Cfg.PayloadBuilder,
 		in.ChainSpec,

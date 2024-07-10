@@ -34,8 +34,9 @@ import (
 //
 //nolint:gocognit,funlen // todo fix.
 func (sp *StateProcessor[
-	_, BeaconBlockBodyT, BeaconBlockHeaderT, BeaconStateT, _, DepositT,
-	Eth1DataT, _, ExecutionPayloadHeaderT, ForkT, _, _, ValidatorT, _, _,
+	_, BeaconBlockBodyT, BeaconBlockHeaderT, BeaconStateT, _, _, DepositT,
+	Eth1DataT, _, _, ExecutionPayloadHeaderT, ForkT, _, _, _, _,
+	ValidatorT, _, _,
 ]) InitializePreminedBeaconStateFromEth1(
 	st BeaconStateT,
 	deposits []DepositT,

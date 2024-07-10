@@ -58,6 +58,7 @@ COPY ./mod/storage/go.mod ./mod/storage/go.sum ./mod/storage/
 COPY ./mod/errors/go.mod ./mod/errors/go.sum ./mod/errors/
 COPY ./mod/geth-primitives/go.mod ./mod/geth-primitives/go.sum ./mod/geth-primitives/
 COPY ./mod/chain-spec/go.mod ./mod/chain-spec/
+COPY ./mod/interfaces/go.mod ./mod/interfaces/
 
 RUN go work init && \
     go work use ./beacond && \
@@ -81,7 +82,8 @@ RUN go work init && \
     go work use ./mod/state-transition && \
     go work use ./mod/storage && \
     go work use ./mod/geth-primitives && \
-    go work use ./mod/chain-spec
+    go work use ./mod/chain-spec && \
+    go work use ./mod/interfaces
 
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/go/pkg/mod \

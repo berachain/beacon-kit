@@ -26,8 +26,8 @@ import (
 
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/storage/mocks"
 	file "github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/interfaces/mocks"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"

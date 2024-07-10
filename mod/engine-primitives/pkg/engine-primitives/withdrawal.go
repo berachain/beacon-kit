@@ -22,9 +22,13 @@ package engineprimitives
 
 import (
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	engineprimitives "github.com/berachain/beacon-kit/mod/interfaces/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
+
+// Compile-time assertion that Withdrawal implements the Withdrawal interface.
+var _ engineprimitives.Withdrawal[*Withdrawal] = (*Withdrawal)(nil)
 
 // Withdrawal represents a validator withdrawal from the consensus layer.
 //

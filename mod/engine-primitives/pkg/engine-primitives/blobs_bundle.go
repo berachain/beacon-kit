@@ -34,6 +34,11 @@ type BlobsBundleV1[
 	Blobs []*B `json:"blobs"`
 }
 
+// IsNil returns if the blobs bundle is nil.
+func (b *BlobsBundleV1[C, P, B]) IsNil() bool {
+	return b == nil
+}
+
 // GetCommitments returns the slice of commitments in the bundle.
 func (b *BlobsBundleV1[C, P, B]) GetCommitments() []C {
 	return b.Commitments

@@ -20,7 +20,10 @@
 
 package service
 
-import "github.com/berachain/beacon-kit/mod/log"
+import (
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/runtime"
+	"github.com/berachain/beacon-kit/mod/log"
+)
 
 // RegistryOption is a functional option for the Registry.
 type RegistryOption func(*Registry) error
@@ -34,7 +37,7 @@ func WithLogger(logger log.Logger[any]) RegistryOption {
 }
 
 // WithService is an Option that registers a service with the Registry.
-func WithService(svc Basic) RegistryOption {
+func WithService(svc runtime.BasicService) RegistryOption {
 	return func(r *Registry) error {
 		return r.RegisterService(svc)
 	}

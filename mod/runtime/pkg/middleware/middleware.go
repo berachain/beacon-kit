@@ -25,6 +25,10 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/beacon"
+	types "github.com/berachain/beacon-kit/mod/interfaces/pkg/consensus-types"
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/runtime"
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/telemetry"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/p2p"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -32,7 +36,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	rp2p "github.com/berachain/beacon-kit/mod/runtime/pkg/p2p"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
@@ -40,24 +43,34 @@ import (
 // ABCIMiddleware is a middleware between ABCI and the validator logic.
 type ABCIMiddleware[
 	AvailabilityStoreT any,
-	BeaconBlockT BeaconBlock[BeaconBlockT],
+	BeaconBlockT types.BeaconBlock[
+		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+		DepositT, Eth1DataT, ExecutionPayloadT,
+	],
+	BeaconBlockBodyT types.BeaconBlockBody[
+		BeaconBlockBodyT, DepositT, Eth1DataT, ExecutionPayloadT,
+	],
+	BeaconBlockHeaderT any,
 	BlobSidecarsT constraints.SSZMarshallable,
 	DepositT,
+	Eth1DataT any,
 	ExecutionPayloadT any,
-	GenesisT Genesis,
+	ExecutionPayloadHeaderT types.ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	GenesisT types.Genesis[DepositT, ExecutionPayloadHeaderT],
 ] struct {
 	// chainSpec is the chain specification.
 	chainSpec common.ChainSpec
 	// chainService represents the blockchain service.
-	chainService BlockchainService[
-		BeaconBlockT, BlobSidecarsT, DepositT, GenesisT,
+	chainService beacon.BlockchainService[
+		BeaconBlockT, BlobSidecarsT, DepositT,
+		ExecutionPayloadHeaderT, GenesisT,
 	]
 	// TODO: we will eventually gossip the blobs separately from
 	// CometBFT, but for now, these are no-op gossipers.
 	blobGossiper p2p.PublisherReceiver[
 		BlobSidecarsT,
 		[]byte,
-		encoding.ABCIRequest,
+		runtime.ABCIRequest,
 		BlobSidecarsT,
 	]
 	// TODO: we will eventually gossip the blocks separately from
@@ -65,7 +78,7 @@ type ABCIMiddleware[
 	beaconBlockGossiper p2p.PublisherReceiver[
 		BeaconBlockT,
 		[]byte,
-		encoding.ABCIRequest,
+		runtime.ABCIRequest,
 		BeaconBlockT,
 	]
 	// metrics is the metrics emitter.
@@ -100,39 +113,51 @@ type ABCIMiddleware[
 // NewABCIMiddleware creates a new instance of the Handler struct.
 func NewABCIMiddleware[
 	AvailabilityStoreT any,
-	BeaconBlockT BeaconBlock[BeaconBlockT],
+	BeaconBlockT types.BeaconBlock[
+		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+		DepositT, Eth1DataT, ExecutionPayloadT,
+	],
+	BeaconBlockBodyT types.BeaconBlockBody[
+		BeaconBlockBodyT, DepositT, Eth1DataT, ExecutionPayloadT,
+	],
+	BeaconBlockHeaderT any,
 	BlobSidecarsT constraints.SSZMarshallable,
 	DepositT,
+	Eth1DataT any,
 	ExecutionPayloadT any,
-	GenesisT Genesis,
+	ExecutionPayloadHeaderT types.ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	GenesisT types.Genesis[DepositT, ExecutionPayloadHeaderT],
 ](
 	chainSpec common.ChainSpec,
-	chainService BlockchainService[
-		BeaconBlockT, BlobSidecarsT, DepositT, GenesisT,
+	chainService beacon.BlockchainService[
+		BeaconBlockT, BlobSidecarsT, DepositT,
+		ExecutionPayloadHeaderT, GenesisT,
 	],
 	logger log.Logger[any],
-	telemetrySink TelemetrySink,
+	telemetrySink telemetry.Sink,
 	genesisBroker *broker.Broker[*asynctypes.Event[GenesisT]],
 	blkBroker *broker.Broker[*asynctypes.Event[BeaconBlockT]],
 	sidecarsBroker *broker.Broker[*asynctypes.Event[BlobSidecarsT]],
 	slotBroker *broker.Broker[*asynctypes.Event[math.Slot]],
 	valUpdateSub chan *asynctypes.Event[transition.ValidatorUpdates],
 ) *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockHeaderT, BlobSidecarsT, DepositT, Eth1DataT,
+	ExecutionPayloadT, ExecutionPayloadHeaderT, GenesisT,
 ] {
 	return &ABCIMiddleware[
-		AvailabilityStoreT, BeaconBlockT,
-		BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+		BeaconBlockHeaderT, BlobSidecarsT, DepositT, Eth1DataT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT, GenesisT,
 	]{
 		chainSpec:    chainSpec,
 		chainService: chainService,
 		blobGossiper: rp2p.NewNoopBlobHandler[
-			BlobSidecarsT, encoding.ABCIRequest,
+			BlobSidecarsT, runtime.ABCIRequest,
 		](),
 		beaconBlockGossiper: rp2p.
 			NewNoopBlockGossipHandler[
-			BeaconBlockT, encoding.ABCIRequest,
+			BeaconBlockT, runtime.ABCIRequest,
 		](
 			chainSpec,
 		),
@@ -156,15 +181,14 @@ func NewABCIMiddleware[
 
 // Name returns the name of the middleware.
 func (am *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+	_, _, _, _, _, _, _, _, _, _,
 ]) Name() string {
 	return "abci-middleware"
 }
 
 // Start the middleware.
 func (am *ABCIMiddleware[
-	_, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
 	subBlkCh, err := am.blkBroker.Subscribe()
 	if err != nil {
@@ -182,7 +206,7 @@ func (am *ABCIMiddleware[
 
 // start starts the middleware.
 func (am *ABCIMiddleware[
-	_, BeaconBlockT, BlobSidecarsT, _, _, _,
+	_, BeaconBlockT, _, _, BlobSidecarsT, _, _, _, _, _,
 ]) start(
 	ctx context.Context,
 	blkCh chan *asynctypes.Event[BeaconBlockT],

@@ -23,6 +23,10 @@ package state
 import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	types "github.com/berachain/beacon-kit/mod/interfaces/pkg/consensus-types"
+	engineprimitives "github.com/berachain/beacon-kit/mod/interfaces/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/state-transition/state"
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/storage/beacondb"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -32,7 +36,7 @@ import (
 //nolint:revive // todo fix somehow
 type StateDB[
 	BeaconBlockHeaderT any,
-	BeaconStateMarshallableT BeaconStateMarshallable[
+	BeaconStateMarshallableT state.Marshallable[
 		BeaconStateMarshallableT,
 		BeaconBlockHeaderT,
 		Eth1DataT,
@@ -43,7 +47,7 @@ type StateDB[
 	Eth1DataT,
 	ExecutionPayloadHeaderT,
 	ForkT any,
-	KVStoreT KVStore[
+	KVStoreT beacondb.KVStore[
 		KVStoreT,
 		BeaconBlockHeaderT,
 		Eth1DataT,
@@ -51,11 +55,11 @@ type StateDB[
 		ForkT,
 		ValidatorT,
 	],
-	ValidatorT Validator[WithdrawalCredentialsT],
-	WithdrawalT Withdrawal[WithdrawalT],
-	WithdrawalCredentialsT WithdrawalCredentials,
+	ValidatorT types.Validator[ValidatorT, WithdrawalCredentialsT],
+	WithdrawalT engineprimitives.Withdrawal[WithdrawalT],
+	WithdrawalCredentialsT types.WithdrawalCredentials[WithdrawalCredentialsT],
 ] struct {
-	KVStore[
+	beacondb.KVStore[
 		KVStoreT,
 		BeaconBlockHeaderT,
 		Eth1DataT,

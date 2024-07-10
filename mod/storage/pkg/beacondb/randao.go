@@ -24,8 +24,8 @@ import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 
 // UpdateRandaoMixAtIndex sets the current RANDAO mix in the store.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) UpdateRandaoMixAtIndex(
 	index uint64,
 	mix common.Bytes32,
@@ -35,8 +35,8 @@ func (kv *KVStore[
 
 // GetRandaoMixAtIndex retrieves the current RANDAO mix from the store.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) GetRandaoMixAtIndex(
 	index uint64,
 ) (common.Bytes32, error) {

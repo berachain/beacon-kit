@@ -24,10 +24,9 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	storev2 "cosmossdk.io/store/v2/db"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
+	prunerI "github.com/berachain/beacon-kit/mod/interfaces/pkg/storage/pruner"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	depositstore "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
@@ -44,15 +43,9 @@ type DepositStoreInput struct {
 
 // ProvideDepositStore is a function that provides the module to the
 // application.
-func ProvideDepositStore[
-	DepositT interface {
-		constraints.SSZMarshallable
-		GetIndex() uint64
-		HashTreeRoot() ([32]byte, error)
-	},
-](
+func ProvideDepositStore(
 	in DepositStoreInput,
-) (*depositstore.KVStore[DepositT], error) {
+) (*DepositStore, error) {
 	name := "deposits"
 	dir := cast.ToString(in.AppOpts.Get(flags.FlagHome)) + "/data"
 	kvp, err := storev2.NewDB(storev2.DBTypePebbleDB, name, dir, nil)
@@ -60,7 +53,7 @@ func ProvideDepositStore[
 		return nil, err
 	}
 
-	return depositstore.NewStore[DepositT](
+	return depositstore.NewStore[*Deposit](
 		&depositstore.KVStoreProvider{
 			KVStoreWithBatch: kvp,
 		},
@@ -79,29 +72,30 @@ type DepositPrunerInput struct {
 // ProvideDepositPruner provides a deposit pruner for the depinject framework.
 func ProvideDepositPruner(
 	in DepositPrunerInput,
-) (pruner.Pruner[*DepositStore], error) {
+) (prunerI.Pruner[*DepositStore], error) {
 	subCh, err := in.BlockBroker.Subscribe()
 	if err != nil {
 		in.Logger.Error("failed to subscribe to block feed", "err", err)
 		return nil, err
 	}
-
 	return pruner.NewPruner[
-		*BeaconBlock,
-		*BlockEvent,
-		*DepositStore,
+		*BeaconBlock, *DepositStore,
 	](
 		in.Logger.With("service", manager.DepositPrunerName),
 		in.DepositStore,
 		manager.DepositPrunerName,
 		subCh,
 		deposit.BuildPruneRangeFn[
-			*BeaconBlockBody,
 			*BeaconBlock,
-			*BlockEvent,
+			*BeaconBlockBody,
+			*BeaconBlockHeader,
 			*Deposit,
+			*Eth1Data,
 			*ExecutionPayload,
-			types.WithdrawalCredentials,
+			*ExecutionPayloadHeader,
+			*ForkData,
+			*Withdrawal,
+			WithdrawalCredentials,
 		](in.ChainSpec),
 	), nil
 }

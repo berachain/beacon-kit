@@ -23,9 +23,9 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/storage/pruner"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 )
 
 // DBManagerInput is the input for the dep inject framework.
@@ -40,10 +40,7 @@ type DBManagerInput struct {
 func ProvideDBManager(
 	in DBManagerInput,
 ) (*DBManager, error) {
-	return manager.NewDBManager[
-		*BeaconBlock,
-		*BlockEvent,
-	](
+	return manager.NewDBManager(
 		in.Logger.With("service", "db-manager"),
 		in.DepositPruner,
 		in.AvailabilityPruner,

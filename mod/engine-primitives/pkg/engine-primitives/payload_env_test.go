@@ -26,7 +26,8 @@ import (
 	"testing"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives/mocks"
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/engine-primitives/mocks"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/require"
 )
@@ -44,7 +45,9 @@ func (m MockExecutionPayloadT) UnmarshalJSON(data []byte) error {
 }
 
 func TestExecutionPayloadEnvelope(t *testing.T) {
-	blobsBundle := &mocks.BlobsBundle{}
+	blobsBundle := &mocks.BlobsBundle[
+		eip4844.KZGCommitment, eip4844.KZGProof, eip4844.Blob,
+	]{}
 
 	// Convert the int to a byte slice
 	valueBytes := make([]byte, 8)
@@ -57,8 +60,10 @@ func TestExecutionPayloadEnvelope(t *testing.T) {
 	}
 
 	envelope := &engineprimitives.ExecutionPayloadEnvelope[
+		*mocks.BlobsBundle[
+			eip4844.KZGCommitment, eip4844.KZGProof, eip4844.Blob,
+		],
 		MockExecutionPayloadT,
-		*mocks.BlobsBundle,
 	]{
 		ExecutionPayload: MockExecutionPayloadT{Value: "test"},
 		BlockValue:       blockValue,

@@ -22,8 +22,8 @@ package beacondb
 
 // SetFork sets the fork version for the given epoch.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) SetFork(
 	fork ForkT,
 ) error {
@@ -32,8 +32,8 @@ func (kv *KVStore[
 
 // GetFork gets the fork version for the given epoch.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) GetFork() (ForkT, error) {
 	return kv.fork.Get(kv.ctx)
 }

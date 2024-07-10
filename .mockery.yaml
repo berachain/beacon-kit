@@ -43,17 +43,7 @@ packages:
       recursive: True
       with-expecter: true
       all: True
-  github.com/berachain/beacon-kit/mod/storage/pkg/interfaces:
-    config:
-      recursive: False
-      with-expecter: true
-      all: True
   github.com/berachain/beacon-kit/mod/consensus-types/pkg/types:
-    config:
-      recursive: False
-      with-expecter: true
-      all: True
-  github.com/berachain/beacon-kit/mod/storage/pkg/pruner:
     config:
       recursive: False
       with-expecter: true
@@ -67,4 +57,79 @@ packages:
     config:
       recursive: False
       with-expecter: true
+      all: True
+  github.com/berachain/beacon-kit/mod/interfaces/pkg/beacon:
+    config:
+      recursive: True
+      with-expecter: True
+      all: True
+  # github.com/berachain/beacon-kit/mod/interfaces/pkg/consensus-types:
+  #   config:
+  #     recursive: True
+  #     with-expecter: True
+  #     all: True
+  github.com/berachain/beacon-kit/mod/interfaces/pkg/da/blob:
+    config:
+      recursive: True
+      with-expecter: True
+      all: True
+  github.com/berachain/beacon-kit/mod/interfaces/pkg/da/store:
+    config:
+      recursive: True
+      with-expecter: True
+      all: True
+  github.com/berachain/beacon-kit/mod/interfaces/pkg/da/kzg:
+    config:
+      recursive: True
+      with-expecter: True
+      all: True
+  github.com/berachain/beacon-kit/mod/interfaces/pkg/da/types:
+    config:
+      recursive: True
+      with-expecter: True
+      all: True
+  github.com/berachain/beacon-kit/mod/interfaces/pkg/engine-primitives:
+    config:
+      recursive: True
+      with-expecter: True
+      all: True
+  github.com/berachain/beacon-kit/mod/interfaces/pkg/execution:
+    config:
+      recursive: True
+      with-expecter: True
+      all: True
+  github.com/berachain/beacon-kit/mod/interfaces/pkg/log:
+    config:
+      recursive: True
+      with-expecter: True
+      all: True
+  github.com/berachain/beacon-kit/mod/interfaces/pkg/p2p:
+    config:
+      recursive: True
+      with-expecter: True
+      all: True
+  github.com/berachain/beacon-kit/mod/interfaces/pkg/payload:
+    config:
+      recursive: True
+      with-expecter: True
+      all: True
+  github.com/berachain/beacon-kit/mod/interfaces/pkg/runtime:
+    config:
+      recursive: True
+      with-expecter: True
+      all: True
+  github.com/berachain/beacon-kit/mod/interfaces/pkg/state-transition/core:
+    config:
+      recursive: True
+      with-expecter: True
+      all: True
+  github.com/berachain/beacon-kit/mod/interfaces/pkg/state-transition/state:
+    config:
+      recursive: True
+      with-expecter: True
+      all: True
+  github.com/berachain/beacon-kit/mod/interfaces/pkg/storage:
+    config:
+      recursive: True
+      with-expecter: True
       all: True

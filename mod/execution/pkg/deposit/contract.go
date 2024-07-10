@@ -27,13 +27,15 @@ import (
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/bind"
 	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/deposit"
+	types "github.com/berachain/beacon-kit/mod/interfaces/pkg/consensus-types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // WrappedBeaconDepositContract is a struct that holds a pointer to an ABI.
 type WrappedBeaconDepositContract[
-	DepositT Deposit[DepositT, WithdrawalCredentialsT],
+	DepositT types.Deposit[DepositT, ForkDataT, WithdrawalCredentialsT],
+	ForkDataT any,
 	WithdrawalCredentialsT ~[32]byte,
 ] struct {
 	// BeaconDepositContract is a pointer to the codegen ABI binding.
@@ -42,14 +44,14 @@ type WrappedBeaconDepositContract[
 
 // NewWrappedBeaconDepositContract creates a new BeaconDepositContract.
 func NewWrappedBeaconDepositContract[
-	DepositT Deposit[DepositT, WithdrawalCredentialsT],
+	DepositT types.Deposit[DepositT, ForkDataT, WithdrawalCredentialsT],
+	ForkDataT any,
 	WithdrawalCredentialsT ~[32]byte,
 ](
 	address gethprimitives.ExecutionAddress,
 	client bind.ContractBackend,
 ) (*WrappedBeaconDepositContract[
-	DepositT,
-	WithdrawalCredentialsT,
+	DepositT, ForkDataT, WithdrawalCredentialsT,
 ], error) {
 	contract, err := deposit.NewBeaconDepositContract(
 		address, client,
@@ -62,8 +64,7 @@ func NewWrappedBeaconDepositContract[
 	}
 
 	return &WrappedBeaconDepositContract[
-		DepositT,
-		WithdrawalCredentialsT,
+		DepositT, ForkDataT, WithdrawalCredentialsT,
 	]{
 		BeaconDepositContract: *contract,
 	}, nil
@@ -71,8 +72,7 @@ func NewWrappedBeaconDepositContract[
 
 // ReadDeposits reads deposits from the deposit contract.
 func (dc *WrappedBeaconDepositContract[
-	DepositT,
-	WithdrawalCredentialsT,
+	DepositT, ForkDataT, WithdrawalCredentialsT,
 ]) ReadDeposits(
 	ctx context.Context,
 	blkNum math.U64,

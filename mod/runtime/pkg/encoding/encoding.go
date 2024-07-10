@@ -23,16 +23,17 @@ package encoding
 import (
 	"reflect"
 
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 )
 
 // ExtractBlobsAndBlockFromRequest extracts the blobs and block from an ABCI
 // request.
 func ExtractBlobsAndBlockFromRequest[
-	BeaconBlockT BeaconBlock[BeaconBlockT],
+	BeaconBlockT constraints.NewFromSSZable[BeaconBlockT],
 	BlobSidecarsT constraints.SSZMarshallable,
 ](
-	req ABCIRequest,
+	req runtime.ABCIRequest,
 	beaconBlkIndex uint,
 	blobSidecarsIndex uint,
 	forkVersion uint32,
@@ -69,9 +70,9 @@ func ExtractBlobsAndBlockFromRequest[
 // UnmarshalBeaconBlockFromABCIRequest extracts a beacon block from an ABCI
 // request.
 func UnmarshalBeaconBlockFromABCIRequest[
-	BeaconBlockT BeaconBlock[BeaconBlockT],
+	BeaconBlockT constraints.NewFromSSZable[BeaconBlockT],
 ](
-	req ABCIRequest,
+	req runtime.ABCIRequest,
 	bzIndex uint,
 	forkVersion uint32,
 ) (BeaconBlockT, error) {
@@ -104,14 +105,13 @@ func UnmarshalBeaconBlockFromABCIRequest[
 // UnmarshalBlobSidecarsFromABCIRequest extracts blob sidecars from an ABCI
 // request.
 func UnmarshalBlobSidecarsFromABCIRequest[
-	T interface{ UnmarshalSSZ([]byte) error },
+	BlobSidecarsT constraints.SSZMarshallable,
 ](
-	req ABCIRequest,
+	req runtime.ABCIRequest,
 	bzIndex uint,
-) (T, error) {
-	var sidecars T
-
-	sidecars, ok := reflect.New(reflect.TypeOf(sidecars).Elem()).Interface().(T)
+) (BlobSidecarsT, error) {
+	var sidecars BlobSidecarsT
+	sidecars, ok := reflect.New(reflect.TypeOf(sidecars).Elem()).Interface().(BlobSidecarsT)
 	if !ok {
 		return sidecars, ErrInvalidType
 	}

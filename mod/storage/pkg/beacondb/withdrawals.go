@@ -24,16 +24,16 @@ import "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 
 // GetNextWithdrawalIndex returns the next withdrawal index.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) GetNextWithdrawalIndex() (uint64, error) {
 	return kv.nextWithdrawalIndex.Get(kv.ctx)
 }
 
 // SetNextWithdrawalIndex sets the next withdrawal index.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) SetNextWithdrawalIndex(
 	index uint64,
 ) error {
@@ -42,8 +42,8 @@ func (kv *KVStore[
 
 // GetNextWithdrawalValidatorIndex returns the next withdrawal validator index.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) GetNextWithdrawalValidatorIndex() (
 	math.ValidatorIndex, error,
 ) {
@@ -53,8 +53,8 @@ func (kv *KVStore[
 
 // SetNextWithdrawalValidatorIndex sets the next withdrawal validator index.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+	ValidatorT, WithdrawalCredentialsT,
 ]) SetNextWithdrawalValidatorIndex(
 	index math.ValidatorIndex,
 ) error {

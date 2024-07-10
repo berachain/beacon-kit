@@ -20,19 +20,32 @@
 
 package deposit
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+import (
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	types "github.com/berachain/beacon-kit/mod/interfaces/pkg/consensus-types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+)
 
 func BuildPruneRangeFn[
-	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
-	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
-	BlockEventT BlockEvent[
-		DepositT, BeaconBlockBodyT, BeaconBlockT, ExecutionPayloadT,
+	BeaconBlockT types.BeaconBlock[
+		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+		DepositT, Eth1DataT, ExecutionPayloadT,
 	],
-	DepositT Deposit[DepositT, WithdrawalCredentialsT],
-	ExecutionPayloadT ExecutionPayload,
+	BeaconBlockBodyT types.BeaconBlockBody[
+		BeaconBlockBodyT, DepositT, Eth1DataT, ExecutionPayloadT,
+	],
+	BeaconBlockHeaderT any,
+	DepositT types.Deposit[DepositT, ForkDataT, WithdrawalCredentialsT],
+	Eth1DataT any,
+	ExecutionPayloadT types.ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
+	],
+	ExecutionPayloadHeaderT types.ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	ForkDataT any,
+	WithdrawalT any,
 	WithdrawalCredentialsT any,
-](cs common.ChainSpec) func(BlockEventT) (uint64, uint64) {
-	return func(event BlockEventT) (uint64, uint64) {
+](cs common.ChainSpec) func(*asynctypes.Event[BeaconBlockT]) (uint64, uint64) {
+	return func(event *asynctypes.Event[BeaconBlockT]) (uint64, uint64) {
 		deposits := event.Data().GetBody().GetDeposits()
 		if len(deposits) == 0 || cs.MaxDepositsPerBlock() == 0 {
 			return 0, 0

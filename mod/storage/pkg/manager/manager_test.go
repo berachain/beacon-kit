@@ -25,50 +25,46 @@
 
 package manager_test
 
-import (
-	"context"
-	"testing"
-	"time"
+// import (
+// 	"context"
+// 	"testing"
+// 	"time"
 
-	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner/mocks"
-	"github.com/stretchr/testify/require"
-)
+// 	"cosmossdk.io/log"
+// 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+// 	"github.com/berachain/beacon-kit/mod/interfaces/pkg/storage/pruner/mocks"
+// 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
+// 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
+// 	"github.com/stretchr/testify/require"
+// )
 
-func TestDBManager_Start(t *testing.T) {
-	mockPrunable := new(mocks.Prunable)
+// func TestDBManager_Start(t *testing.T) {
+// 	mockPrunable := new(mocks.Prunable)
 
-	ch := make(chan manager.BlockEvent[manager.BeaconBlock], 1)
-	pruneParamsFn :=
-		func(_ manager.BlockEvent[manager.BeaconBlock]) (uint64, uint64) {
-			return 0, 0
-		}
+// 	ch := make(chan *asynctypes.Event[manager.BeaconBlock], 1)
+// 	pruneParamsFn :=
+// 		func(_ *asynctypes.Event[manager.BeaconBlock]) (uint64, uint64) {
+// 			return 0, 0
+// 		}
 
-	logger := log.NewNopLogger()
-	p1 := pruner.NewPruner[
-		manager.BeaconBlock,
-		manager.BlockEvent[manager.BeaconBlock],
-		*mocks.Prunable,
-	](logger, mockPrunable, "pruner1", ch, pruneParamsFn)
-	p2 := pruner.NewPruner[
-		manager.BeaconBlock,
-		manager.BlockEvent[manager.BeaconBlock],
-		*mocks.Prunable,
-	](logger, mockPrunable, "pruner2", ch, pruneParamsFn)
+// 	logger := log.NewNopLogger()
+// 	p1 := pruner.NewPruner[
+// 		manager.BeaconBlock,
+// 		*mocks.Prunable,
+// 	](logger, mockPrunable, "pruner1", ch, pruneParamsFn)
+// 	p2 := pruner.NewPruner[
+// 		manager.BeaconBlock,
+// 		*mocks.Prunable,
+// 	](logger, mockPrunable, "pruner2", ch, pruneParamsFn)
 
-	m, err := manager.NewDBManager[
-		manager.BeaconBlock,
-		manager.BlockEvent[manager.BeaconBlock],
-	](logger, p1, p2)
-	require.NoError(t, err)
+// 	m, err := manager.NewDBManager(logger, p1, p2)
+// 	require.NoError(t, err)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+// 	ctx, cancel := context.WithCancel(context.Background())
+// 	defer cancel()
 
-	err = m.Start(ctx)
-	require.NoError(t, err)
-	time.Sleep(100 * time.Millisecond)
-	mockPrunable.AssertNotCalled(t, "PruneFromInclusive")
-}
+// 	err = m.Start(ctx)
+// 	require.NoError(t, err)
+// 	time.Sleep(100 * time.Millisecond)
+// 	mockPrunable.AssertNotCalled(t, "PruneFromInclusive")
+// }

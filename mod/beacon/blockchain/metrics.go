@@ -23,18 +23,19 @@ package blockchain
 import (
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/telemetry"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // chainMetrics is a struct that contains metrics for the chain.
 type chainMetrics struct {
 	// sink is the sink for the metrics.
-	sink TelemetrySink
+	sink telemetry.Sink
 }
 
 // newChainMetrics creates a new chainMetrics.
 func newChainMetrics(
-	sink TelemetrySink,
+	sink telemetry.Sink,
 ) *chainMetrics {
 	return &chainMetrics{
 		sink: sink,

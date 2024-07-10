@@ -52,8 +52,16 @@ func ProvideABCIMiddleware(
 		return nil, err
 	}
 	return middleware.NewABCIMiddleware[
-		*AvailabilityStore, *BeaconBlock, *BlobSidecars,
-		*Deposit, *ExecutionPayload, *Genesis,
+		*AvailabilityStore,
+		*BeaconBlock,
+		*BeaconBlockBody,
+		*BeaconBlockHeader,
+		*BlobSidecars,
+		*Deposit,
+		*Eth1Data,
+		*ExecutionPayload,
+		*ExecutionPayloadHeader,
+		*Genesis,
 	](
 		in.ChainSpec,
 		in.ChainService,

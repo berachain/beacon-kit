@@ -2,7 +2,10 @@ module github.com/berachain/beacon-kit/mod/chain-spec
 
 go 1.22.5
 
+replace github.com/berachain/beacon-kit/mod/interfaces => ../interfaces
+
 require (
+	github.com/berachain/beacon-kit/mod/interfaces v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240705193247-d464364483df
 	github.com/stretchr/testify v1.9.0
 )

@@ -23,8 +23,11 @@ package store
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/da/pkg/types"
+	// "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
+	types "github.com/berachain/beacon-kit/mod/interfaces/pkg/consensus-types"
+	datypes "github.com/berachain/beacon-kit/mod/interfaces/pkg/da/types"
+	db "github.com/berachain/beacon-kit/mod/interfaces/pkg/storage"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -32,9 +35,23 @@ import (
 )
 
 // Store is the default implementation of the AvailabilityStore.
-type Store[BeaconBlockBodyT BeaconBlockBody] struct {
+type Store[
+	BeaconBlockBodyT types.BeaconBlockBody[
+		BeaconBlockBodyT, DepositT, Eth1DataT, ExecutionPayloadT,
+	],
+	BeaconBlockHeaderT any,
+	BlobSidecarT datypes.BlobSidecar[
+		BlobSidecarT, BeaconBlockHeaderT,
+	],
+	BlobSidecarsT datypes.BlobSidecars[
+		BlobSidecarsT, BlobSidecarT,
+	],
+	DepositT any,
+	Eth1DataT any,
+	ExecutionPayloadT any,
+] struct {
 	// IndexDB is a basic database interface.
-	IndexDB
+	db.IndexDB
 	// logger is used for logging.
 	logger log.Logger[any]
 	// chainSpec contains the chain specification.
@@ -42,12 +59,32 @@ type Store[BeaconBlockBodyT BeaconBlockBody] struct {
 }
 
 // New creates a new instance of the AvailabilityStore.
-func New[BeaconBlockT BeaconBlockBody](
-	db IndexDB,
+func New[
+	BeaconBlockBodyT types.BeaconBlockBody[
+		BeaconBlockBodyT, DepositT, Eth1DataT, ExecutionPayloadT,
+	],
+	BeaconBlockHeaderT any,
+	BlobSidecarT datypes.BlobSidecar[
+		BlobSidecarT, BeaconBlockHeaderT,
+	],
+	BlobSidecarsT datypes.BlobSidecars[
+		BlobSidecarsT, BlobSidecarT,
+	],
+	DepositT any,
+	Eth1DataT any,
+	ExecutionPayloadT any,
+](
+	db db.IndexDB,
 	logger log.Logger[any],
 	chainSpec common.ChainSpec,
-) *Store[BeaconBlockT] {
-	return &Store[BeaconBlockT]{
+) *Store[
+	BeaconBlockBodyT, BeaconBlockHeaderT, BlobSidecarT,
+	BlobSidecarsT, DepositT, Eth1DataT, ExecutionPayloadT,
+] {
+	return &Store[
+		BeaconBlockBodyT, BeaconBlockHeaderT, BlobSidecarT,
+		BlobSidecarsT, DepositT, Eth1DataT, ExecutionPayloadT,
+	]{
 		IndexDB:   db,
 		chainSpec: chainSpec,
 		logger:    logger,
@@ -56,7 +93,7 @@ func New[BeaconBlockT BeaconBlockBody](
 
 // IsDataAvailable ensures that all blobs referenced in the block are
 // stored before it returns without an error.
-func (s *Store[BeaconBlockBodyT]) IsDataAvailable(
+func (s *Store[BeaconBlockBodyT, _, _, _, _, _, _]) IsDataAvailable(
 	_ context.Context,
 	slot math.Slot,
 	body BeaconBlockBodyT,
@@ -73,21 +110,22 @@ func (s *Store[BeaconBlockBodyT]) IsDataAvailable(
 
 // Persist ensures the sidecar data remains accessible, utilizing parallel
 // processing for efficiency.
-func (s *Store[BeaconBlockT]) Persist(
+func (s *Store[_, _, BlobSidecarT, BlobSidecarsT, _, _, _]) Persist(
 	slot math.Slot,
-	sidecars *types.BlobSidecars,
+	sidecars BlobSidecarsT,
 ) error {
 	// Exit early if there are no sidecars to store.
 	if sidecars.IsNil() || sidecars.Len() == 0 {
 		return nil
 	}
+	sidecar, _ := sidecars.Get(0)
 
 	// Check to see if we are required to store the sidecar anymore, if
 	// this sidecar is from outside the required DA period, we can skip it.
 	if !s.chainSpec.WithinDAPeriod(
 		// slot in which the sidecar was included.
 		// (Safe to assume all sidecars are in same slot at this point).
-		sidecars.Sidecars[0].BeaconBlockHeader.GetSlot(),
+		sidecar.GetSlot(),
 		// current slot
 		slot,
 	) {
@@ -96,17 +134,18 @@ func (s *Store[BeaconBlockT]) Persist(
 
 	// Store each sidecar in parallel.
 	if err := errors.Join(iter.Map(
-		sidecars.Sidecars,
-		func(sidecar **types.BlobSidecar) error {
-			if *sidecar == nil {
+		sidecars.GetSidecars(),
+		func(sidecar *BlobSidecarT) error {
+			sc := *sidecar
+			if (sc).IsNil() {
 				return ErrAttemptedToStoreNilSidecar
 			}
-			sc := *sidecar
 			bz, err := sc.MarshalSSZ()
 			if err != nil {
 				return err
 			}
-			return s.Set(uint64(slot), sc.KzgCommitment[:], bz)
+			commitment := sc.GetCommitment()
+			return s.Set(uint64(slot), commitment[:], bz)
 		},
 	)...); err != nil {
 		return err

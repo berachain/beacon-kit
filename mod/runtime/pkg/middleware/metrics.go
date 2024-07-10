@@ -22,17 +22,19 @@ package middleware
 
 import (
 	"time"
+
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/telemetry"
 )
 
 // ABCIMiddlewareMetrics is a struct that contains metrics for the chain.
 type ABCIMiddlewareMetrics struct {
 	// sink is the sink for the metrics.
-	sink TelemetrySink
+	sink telemetry.Sink
 }
 
 // newABCIMiddlewareMetrics creates a new ABCIMiddlewareMetrics.
 func newABCIMiddlewareMetrics(
-	sink TelemetrySink,
+	sink telemetry.Sink,
 ) *ABCIMiddlewareMetrics {
 	return &ABCIMiddlewareMetrics{
 		sink: sink,

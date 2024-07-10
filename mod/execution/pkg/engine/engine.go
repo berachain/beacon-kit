@@ -30,7 +30,12 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	types "github.com/berachain/beacon-kit/mod/interfaces/pkg/consensus-types"
+	engineprimitivesI "github.com/berachain/beacon-kit/mod/interfaces/pkg/engine-primitives"
+	engineprimtives "github.com/berachain/beacon-kit/mod/interfaces/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/telemetry"
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	jsonrpc "github.com/berachain/beacon-kit/mod/primitives/pkg/net/json-rpc"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 )
@@ -38,16 +43,26 @@ import (
 // Engine is Beacon-Kit's implementation of the `ExecutionEngine`
 // from the Ethereum 2.0 Specification.
 type Engine[
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, WithdrawalT,
+	BlobsBundleT constraints.Nillable,
+	ExecutionPayloadT types.ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	],
-	PayloadAttributesT engineprimitives.PayloadAttributer,
+	ExecutionPayloadEnvelopeT engineprimitivesI.ExecutionPayloadEnvelope[
+		ExecutionPayloadEnvelopeT, BlobsBundleT, ExecutionPayloadT,
+	],
+	ExecutionPayloadHeaderT types.ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	PayloadAttributesT engineprimitivesI.PayloadAttributes[
+		PayloadAttributesT, WithdrawalT,
+	],
 	PayloadIDT ~[8]byte,
-	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalT engineprimtives.Withdrawal[WithdrawalT],
 ] struct {
 	// ec is the engine client that the engine will use to
 	// interact with the execution layer.
-	ec *client.EngineClient[ExecutionPayloadT, PayloadAttributesT]
+	ec *client.EngineClient[
+		BlobsBundleT, ExecutionPayloadT, ExecutionPayloadEnvelopeT,
+		PayloadAttributesT, WithdrawalT,
+	]
 	// logger is the logger for the engine.
 	logger log.Logger[any]
 	// metrics is the metrics for the engine.
@@ -58,21 +73,35 @@ type Engine[
 
 // New creates a new Engine.
 func New[
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, WithdrawalT,
+	BlobsBundleT constraints.Nillable,
+	ExecutionPayloadT types.ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	],
-	PayloadAttributesT engineprimitives.PayloadAttributer,
+	ExecutionPayloadEnvelopeT engineprimitivesI.ExecutionPayloadEnvelope[
+		ExecutionPayloadEnvelopeT, BlobsBundleT, ExecutionPayloadT,
+	],
+	ExecutionPayloadHeaderT types.ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	PayloadAttributesT engineprimitivesI.PayloadAttributes[
+		PayloadAttributesT, WithdrawalT,
+	],
 	PayloadIDT ~[8]byte,
-	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalT engineprimtives.Withdrawal[WithdrawalT],
 ](
-	ec *client.EngineClient[ExecutionPayloadT, PayloadAttributesT],
+	ec *client.EngineClient[
+		BlobsBundleT, ExecutionPayloadT, ExecutionPayloadEnvelopeT,
+		PayloadAttributesT, WithdrawalT,
+	],
 	logger log.Logger[any],
 	statusPublisher *broker.Broker[*asynctypes.Event[*service.StatusEvent]],
-	telemtrySink TelemetrySink,
+	telemtrySink telemetry.Sink,
 ) *Engine[
-	ExecutionPayloadT, PayloadAttributesT, PayloadIDT, WithdrawalT,
+	BlobsBundleT, ExecutionPayloadT, ExecutionPayloadEnvelopeT,
+	ExecutionPayloadHeaderT, PayloadAttributesT, PayloadIDT, WithdrawalT,
 ] {
-	return &Engine[ExecutionPayloadT, PayloadAttributesT, PayloadIDT, WithdrawalT]{
+	return &Engine[
+		BlobsBundleT, ExecutionPayloadT, ExecutionPayloadEnvelopeT,
+		ExecutionPayloadHeaderT, PayloadAttributesT, PayloadIDT, WithdrawalT,
+	]{
 		ec:              ec,
 		logger:          logger,
 		metrics:         newEngineMetrics(telemtrySink, logger),
@@ -81,7 +110,7 @@ func New[
 }
 
 // Start spawns any goroutines required by the service.
-func (ee *Engine[_, _, _, _]) Start(
+func (ee *Engine[_, _, _, _, _, _, _]) Start(
 	ctx context.Context,
 ) error {
 	go func() {
@@ -95,11 +124,11 @@ func (ee *Engine[_, _, _, _]) Start(
 
 // GetPayload returns the payload and blobs bundle for the given slot.
 func (ee *Engine[
-	ExecutionPayloadT, _, _, _,
+	_, ExecutionPayloadT, ExecutionPayloadEnvelopeT, _, _, _, _,
 ]) GetPayload(
 	ctx context.Context,
 	req *engineprimitives.GetPayloadRequest[engineprimitives.PayloadID],
-) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
+) (ExecutionPayloadEnvelopeT, error) {
 	return ee.ec.GetPayload(
 		ctx, req.PayloadID,
 		req.ForkVersion,
@@ -108,7 +137,7 @@ func (ee *Engine[
 
 // NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
 func (ee *Engine[
-	_, PayloadAttributesT, _, _,
+	_, _, _, _, PayloadAttributesT, _, _,
 ]) NotifyForkchoiceUpdate(
 	ctx context.Context,
 	req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
@@ -182,7 +211,7 @@ func (ee *Engine[
 // VerifyAndNotifyNewPayload verifies the new payload and notifies the
 // execution client.
 func (ee *Engine[
-	ExecutionPayloadT, _, _, WithdrawalT,
+	_, ExecutionPayloadT, _, _, _, _, WithdrawalT,
 ]) VerifyAndNotifyNewPayload(
 	ctx context.Context,
 	req *engineprimitives.NewPayloadRequest[

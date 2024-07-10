@@ -48,6 +48,15 @@ func NewCredentialsFromExecutionAddress(
 	return credentials
 }
 
+func (wc WithdrawalCredentials) NewFromExecutionAddress(
+	address gethprimitives.ExecutionAddress,
+) WithdrawalCredentials {
+	credentials := WithdrawalCredentials{}
+	credentials[0] = 0x01
+	copy(credentials[12:], address[:])
+	return credentials
+}
+
 // ToExecutionAddress converts the WithdrawalCredentials to an ExecutionAddress.
 func (wc WithdrawalCredentials) ToExecutionAddress() (
 	gethprimitives.ExecutionAddress,
@@ -61,8 +70,8 @@ func (wc WithdrawalCredentials) ToExecutionAddress() (
 
 // UnmarshalJSON implements the json.Unmarshaler interface for Bytes32.
 // TODO: Figure out how to not have to do this.
-func (wc *WithdrawalCredentials) UnmarshalJSON(input []byte) error {
-	return (*common.Bytes32)(wc).UnmarshalJSON(input)
+func (wc WithdrawalCredentials) UnmarshalJSON(input []byte) error {
+	return (*common.Bytes32)(&wc).UnmarshalJSON(input)
 }
 
 // String returns the hex string representation of Bytes32.
@@ -79,6 +88,6 @@ func (wc WithdrawalCredentials) MarshalText() ([]byte, error) {
 
 // UnmarshalText implements the encoding.TextUnmarshaler interface for Bytes32.
 // TODO: Figure out how to not have to do this.
-func (wc *WithdrawalCredentials) UnmarshalText(text []byte) error {
-	return (*common.Bytes32)(wc).UnmarshalText(text)
+func (wc WithdrawalCredentials) UnmarshalText(text []byte) error {
+	return (*common.Bytes32)(&wc).UnmarshalText(text)
 }

@@ -23,18 +23,19 @@ package blob
 import (
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/telemetry"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // verifierMetrics is a struct that contains metrics for the verifier.
 type verifierMetrics struct {
 	// TelemetrySink is the sink for the metrics.
-	sink TelemetrySink
+	sink telemetry.Sink
 }
 
 // newVerifierMetrics creates a new verifierMetrics.
 func newVerifierMetrics(
-	sink TelemetrySink,
+	sink telemetry.Sink,
 ) *verifierMetrics {
 	return &verifierMetrics{
 		sink: sink,

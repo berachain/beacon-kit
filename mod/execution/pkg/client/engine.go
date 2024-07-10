@@ -39,7 +39,7 @@ import (
 
 // NewPayload calls the engine_newPayloadVX method via JSON-RPC.
 func (s *EngineClient[
-	ExecutionPayloadT, _,
+	_, ExecutionPayloadT, _, _, _,
 ]) NewPayload(
 	ctx context.Context,
 	payload ExecutionPayloadT,
@@ -85,7 +85,7 @@ func (s *EngineClient[
 
 // ForkchoiceUpdated calls the engine_forkchoiceUpdatedV1 method via JSON-RPC.
 func (s *EngineClient[
-	_, PayloadAttributesT,
+	_, _, _, PayloadAttributesT, _,
 ]) ForkchoiceUpdated(
 	ctx context.Context,
 	state *engineprimitives.ForkchoiceStateV1,
@@ -136,12 +136,12 @@ func (s *EngineClient[
 // GetPayload calls the engine_getPayloadVX method via JSON-RPC. It returns
 // the execution data as well as the blobs bundle.
 func (s *EngineClient[
-	ExecutionPayloadT, _,
+	_, ExecutionPayloadT, ExecutionPayloadEnvelopeT, _, _,
 ]) GetPayload(
 	ctx context.Context,
 	payloadID engineprimitives.PayloadID,
 	forkVersion uint32,
-) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
+) (ExecutionPayloadEnvelopeT, error) {
 	var (
 		startTime    = time.Now()
 		cctx, cancel = s.createContextWithTimeout(ctx)
@@ -157,9 +157,10 @@ func (s *EngineClient[
 			s.metrics.incrementGetPayloadTimeout()
 		}
 		return result, s.handleRPCError(err)
-	case result == nil:
+	case result.IsNil():
 		return result, engineerrors.ErrNilExecutionPayloadEnvelope
-	case result.GetBlobsBundle() == nil && forkVersion >= version.Deneb:
+	// TODO: test whether this causes a panic @archbear
+	case result.GetBlobsBundle().IsNil() && forkVersion >= version.Deneb:
 		return result, engineerrors.ErrNilBlobsBundle
 	}
 
@@ -169,7 +170,7 @@ func (s *EngineClient[
 // ExchangeCapabilities calls the engine_exchangeCapabilities method via
 // JSON-RPC.
 func (s *EngineClient[
-	_, _,
+	_, _, _, _, _,
 ]) ExchangeCapabilities(
 	ctx context.Context,
 ) ([]string, error) {

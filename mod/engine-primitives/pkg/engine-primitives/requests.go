@@ -30,7 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// NewPayloadRequest as per the Ethereum 2.0 specification:
+// Newa as per the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/beacon-chain.md#modified-newpayloadrequest
 //
 //nolint:lll

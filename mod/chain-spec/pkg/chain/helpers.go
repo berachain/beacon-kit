@@ -25,7 +25,7 @@ import (
 )
 
 // ActiveForkVersionForSlot returns the active fork version for a given slot.
-func (c chainSpec[
+func (c spec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) ActiveForkVersionForSlot(
 	slot SlotT,
@@ -34,12 +34,12 @@ func (c chainSpec[
 }
 
 // ActiveForkVersionForEpoch returns the active fork version for a given epoch.
-func (c chainSpec[
+func (c spec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) ActiveForkVersionForEpoch(
 	epoch EpochT,
 ) uint32 {
-	if epoch >= c.Data.ElectraForkEpoch {
+	if epoch >= c.data.ElectraForkEpoch {
 		return version.Electra
 	}
 
@@ -47,7 +47,7 @@ func (c chainSpec[
 }
 
 // SlotToEpoch converts a slot to an epoch.
-func (c chainSpec[
+func (c spec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) SlotToEpoch(slot SlotT) EpochT {
 	//#nosec:G701 // realistically fine in practice.
@@ -57,7 +57,7 @@ func (c chainSpec[
 // WithinDAPeriod checks if the block epoch is within
 // MIN_EPOCHS_FOR_BLOB_SIDECARS_REQUESTS
 // of the given current epoch.
-func (c chainSpec[
+func (c spec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) WithinDAPeriod(
 	block, current SlotT,

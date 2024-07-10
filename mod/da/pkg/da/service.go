@@ -24,20 +24,25 @@ import (
 	"context"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/async/event"
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/da/blob"
+	dastore "github.com/berachain/beacon-kit/mod/interfaces/pkg/da/store"
+	datypes "github.com/berachain/beacon-kit/mod/interfaces/pkg/da/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 )
 
 type Service[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	AvailabilityStoreT dastore.AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	BeaconBlockBodyT any,
-	BlobSidecarsT BlobSidecar,
+	BlobSidecarT any,
+	BlobSidecarsT datypes.BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	//nolint:lll // formatter.
-	EventPublisherSubscriberT EventPublisherSubscriber[*asynctypes.Event[BlobSidecarsT]],
+	EventPublisherSubscriberT event.Feed[*asynctypes.Event[BlobSidecarsT]],
 	ExecutionPayloadT any,
 ] struct {
 	avs AvailabilityStoreT
-	bp  BlobProcessor[
+	bp  blob.Processor[
 		AvailabilityStoreT, BeaconBlockBodyT,
 		BlobSidecarsT, ExecutionPayloadT,
 	]
@@ -47,28 +52,27 @@ type Service[
 
 // NewService returns a new DA service.
 func NewService[
-	AvailabilityStoreT AvailabilityStore[
-		BeaconBlockBodyT, BlobSidecarsT,
-	],
+	AvailabilityStoreT dastore.AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	BeaconBlockBodyT any,
-	BlobSidecarsT BlobSidecar,
+	BlobSidecarT any,
+	BlobSidecarsT datypes.BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	//nolint:lll // formatter.
-	EventPublisherSubscriberT EventPublisherSubscriber[*asynctypes.Event[BlobSidecarsT]],
+	EventPublisherSubscriberT event.Feed[*asynctypes.Event[BlobSidecarsT]],
 	ExecutionPayloadT any,
 ](
 	avs AvailabilityStoreT,
-	bp BlobProcessor[
+	bp blob.Processor[
 		AvailabilityStoreT, BeaconBlockBodyT,
 		BlobSidecarsT, ExecutionPayloadT,
 	],
 	sidecarsBroker EventPublisherSubscriberT,
 	logger log.Logger[any],
 ) *Service[
-	AvailabilityStoreT, BeaconBlockBodyT,
+	AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarT,
 	BlobSidecarsT, EventPublisherSubscriberT, ExecutionPayloadT,
 ] {
 	return &Service[
-		AvailabilityStoreT, BeaconBlockBodyT,
+		AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarT,
 		BlobSidecarsT, EventPublisherSubscriberT, ExecutionPayloadT,
 	]{
 		avs:            avs,
@@ -79,12 +83,12 @@ func NewService[
 }
 
 // Name returns the name of the service.
-func (s *Service[_, _, _, _, _]) Name() string {
+func (s *Service[_, _, _, _, _, _]) Name() string {
 	return "da"
 }
 
 // Start starts the service.
-func (s *Service[_, _, _, _, _]) Start(ctx context.Context) error {
+func (s *Service[_, _, _, _, _, _]) Start(ctx context.Context) error {
 	subSidecarsCh, err := s.sidecarsBroker.Subscribe()
 	if err != nil {
 		return err
@@ -94,7 +98,7 @@ func (s *Service[_, _, _, _, _]) Start(ctx context.Context) error {
 }
 
 // start starts the service.
-func (s *Service[_, _, BlobSidecarsT, _, _]) start(
+func (s *Service[_, _, _, BlobSidecarsT, _, _]) start(
 	ctx context.Context,
 	sidecarsCh chan *asynctypes.Event[BlobSidecarsT],
 ) {
@@ -116,7 +120,7 @@ func (s *Service[_, _, BlobSidecarsT, _, _]) start(
 // handleBlobSidecarsProcessRequest handles the BlobSidecarsProcessRequest
 // event.
 // It processes the sidecars and publishes a BlobSidecarsProcessed event.
-func (s *Service[_, _, BlobSidecarsT, _, _]) handleBlobSidecarsProcessRequest(
+func (s *Service[_, _, _, BlobSidecarsT, _, _]) handleBlobSidecarsProcessRequest(
 	msg *asynctypes.Event[BlobSidecarsT],
 ) {
 	err := s.processSidecars(msg.Context(), msg.Data())
@@ -143,7 +147,7 @@ func (s *Service[_, _, BlobSidecarsT, _, _]) handleBlobSidecarsProcessRequest(
 
 // handleBlobSidecarsReceived handles the BlobSidecarsReceived event.
 // It receives the sidecars and publishes a BlobSidecarsProcessed event.
-func (s *Service[_, _, BlobSidecarsT, _, _]) handleBlobSidecarsReceived(
+func (s *Service[_, _, _, BlobSidecarsT, _, _]) handleBlobSidecarsReceived(
 	msg *asynctypes.Event[BlobSidecarsT],
 ) {
 	err := s.receiveSidecars(msg.Data())
@@ -169,7 +173,7 @@ func (s *Service[_, _, BlobSidecarsT, _, _]) handleBlobSidecarsReceived(
 }
 
 // ProcessSidecars processes the blob sidecars.
-func (s *Service[_, _, BlobSidecarsT, _, _]) processSidecars(
+func (s *Service[_, _, _, BlobSidecarsT, _, _]) processSidecars(
 	_ context.Context,
 	sidecars BlobSidecarsT,
 ) error {
@@ -182,7 +186,7 @@ func (s *Service[_, _, BlobSidecarsT, _, _]) processSidecars(
 }
 
 // VerifyIncomingBlobs receives blobs from the network and processes them.
-func (s *Service[_, _, BlobSidecarsT, _, _]) receiveSidecars(
+func (s *Service[_, _, _, BlobSidecarsT, _, _]) receiveSidecars(
 	sidecars BlobSidecarsT,
 ) error {
 	// If there are no blobs to verify, return early.

@@ -23,8 +23,12 @@ package blob
 import (
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/da/pkg/types"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	types "github.com/berachain/beacon-kit/mod/interfaces/pkg/consensus-types"
+	datypes "github.com/berachain/beacon-kit/mod/interfaces/pkg/da/types"
+	engineprimitivesI "github.com/berachain/beacon-kit/mod/interfaces/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/telemetry"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 	"golang.org/x/sync/errgroup"
@@ -32,11 +36,27 @@ import (
 
 // SidecarFactory is a factory for sidecars.
 type SidecarFactory[
-	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody,
+	BeaconBlockT types.BeaconBlock[
+		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+		DepositT, Eth1DataT, ExecutionPayloadT,
+	],
+	BeaconBlockBodyT types.BeaconBlockBody[
+		BeaconBlockBodyT, DepositT, Eth1DataT, ExecutionPayloadT,
+	],
+	BeaconBlockHeaderT types.BeaconBlockHeader[BeaconBlockHeaderT],
+	BlobsBundleT engineprimitivesI.BlobsBundle[
+		eip4844.KZGCommitment, eip4844.KZGProof, eip4844.Blob,
+	],
+	BlobSidecarT datypes.BlobSidecar[
+		BlobSidecarT, BeaconBlockHeaderT,
+	],
+	BlobSidecarsT datypes.BlobSidecars[BlobSidecarsT, BlobSidecarT],
+	DepositT any,
+	Eth1DataT any,
+	ExecutionPayloadT any,
 ] struct {
 	// chainSpec defines the specifications of the blockchain.
-	chainSpec ChainSpec
+	chainSpec common.ChainSpec
 	// kzgPosition is the position of the KZG commitment in the block.
 	//
 	// TODO: This needs to be made configurable / modular.
@@ -47,15 +67,37 @@ type SidecarFactory[
 
 // NewSidecarFactory creates a new sidecar factory.
 func NewSidecarFactory[
-	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
-	BeaconBlockBodyT BeaconBlockBody,
+	BeaconBlockT types.BeaconBlock[
+		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+		DepositT, Eth1DataT, ExecutionPayloadT,
+	],
+	BeaconBlockBodyT types.BeaconBlockBody[
+		BeaconBlockBodyT, DepositT, Eth1DataT, ExecutionPayloadT,
+	],
+	BeaconBlockHeaderT types.BeaconBlockHeader[BeaconBlockHeaderT],
+	BlobsBundleT engineprimitivesI.BlobsBundle[
+		eip4844.KZGCommitment, eip4844.KZGProof, eip4844.Blob,
+	],
+	BlobSidecarT datypes.BlobSidecar[
+		BlobSidecarT, BeaconBlockHeaderT,
+	],
+	BlobSidecarsT datypes.BlobSidecars[BlobSidecarsT, BlobSidecarT],
+	DepositT any,
+	Eth1DataT any,
+	ExecutionPayloadT any,
 ](
-	chainSpec ChainSpec,
+	chainSpec common.ChainSpec,
 	// todo: calculate from config.
 	kzgPosition uint64,
-	telemetrySink TelemetrySink,
-) *SidecarFactory[BeaconBlockT, BeaconBlockBodyT] {
-	return &SidecarFactory[BeaconBlockT, BeaconBlockBodyT]{
+	telemetrySink telemetry.Sink,
+) *SidecarFactory[
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT, BlobsBundleT,
+	BlobSidecarT, BlobSidecarsT, DepositT, Eth1DataT, ExecutionPayloadT,
+] {
+	return &SidecarFactory[
+		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT, BlobsBundleT,
+		BlobSidecarT, BlobSidecarsT, DepositT, Eth1DataT, ExecutionPayloadT,
+	]{
 		chainSpec: chainSpec,
 		// TODO: This should be configurable / modular.
 		kzgPosition: kzgPosition,
@@ -64,16 +106,20 @@ func NewSidecarFactory[
 }
 
 // BuildSidecars builds a sidecar.
-func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildSidecars(
+func (f *SidecarFactory[
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT, BlobsBundleT,
+	BlobSidecarT, BlobSidecarsT, DepositT, Eth1DataT, ExecutionPayloadT,
+]) BuildSidecars(
 	blk BeaconBlockT,
-	bundle engineprimitives.BlobsBundle,
-) (*types.BlobSidecars, error) {
+	bundle BlobsBundleT,
+) (BlobSidecarsT, error) {
 	var (
+		out         BlobSidecarsT
 		blobs       = bundle.GetBlobs()
 		commitments = bundle.GetCommitments()
 		proofs      = bundle.GetProofs()
 		numBlobs    = uint64(len(blobs))
-		sidecars    = make([]*types.BlobSidecar, numBlobs)
+		sidecars    = make([]BlobSidecarT, numBlobs)
 		body        = blk.GetBody()
 		g           = errgroup.Group{}
 	)
@@ -82,6 +128,7 @@ func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildSidecars(
 	defer f.metrics.measureBuildSidecarsDuration(
 		startTime, math.U64(numBlobs),
 	)
+	var sidecar BlobSidecarT
 	for i := range numBlobs {
 		g.Go(func() error {
 			inclusionProof, err := f.BuildKZGInclusionProof(
@@ -90,7 +137,7 @@ func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildSidecars(
 			if err != nil {
 				return err
 			}
-			sidecars[i] = types.BuildBlobSidecar(
+			sidecars[i] = sidecar.New(
 				math.U64(i), blk.GetHeader(),
 				blobs[i],
 				commitments[i],
@@ -100,12 +147,14 @@ func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildSidecars(
 			return nil
 		})
 	}
-
-	return &types.BlobSidecars{Sidecars: sidecars}, g.Wait()
+	return out.NewFromSidecars(sidecars), g.Wait()
 }
 
 // BuildKZGInclusionProof builds a KZG inclusion proof.
-func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildKZGInclusionProof(
+func (f *SidecarFactory[
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT, BlobsBundleT,
+	BlobSidecarT, BlobSidecarsT, DepositT, Eth1DataT, ExecutionPayloadT,
+]) BuildKZGInclusionProof(
 	body BeaconBlockBodyT,
 	index math.U64,
 ) ([][32]byte, error) {
@@ -131,7 +180,10 @@ func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildKZGInclusionProof(
 }
 
 // BuildBlockBodyProof builds a block body proof.
-func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildBlockBodyProof(
+func (f *SidecarFactory[
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT, BlobsBundleT,
+	BlobSidecarT, BlobSidecarsT, DepositT, Eth1DataT, ExecutionPayloadT,
+]) BuildBlockBodyProof(
 	body BeaconBlockBodyT,
 ) ([][32]byte, error) {
 	startTime := time.Now()
@@ -153,7 +205,10 @@ func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildBlockBodyProof(
 }
 
 // BuildCommitmentProof builds a commitment proof.
-func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildCommitmentProof(
+func (f *SidecarFactory[
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT, BlobsBundleT,
+	BlobSidecarT, BlobSidecarsT, DepositT, Eth1DataT, ExecutionPayloadT,
+]) BuildCommitmentProof(
 	body BeaconBlockBodyT,
 	index math.U64,
 ) ([][32]byte, error) {

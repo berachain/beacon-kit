@@ -24,37 +24,19 @@ import (
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/ckzg"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/gokzg"
 	kzgtypes "github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
-	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/da/kzg"
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/da/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 )
-
-// BlobProofVerifier is a verifier for blobs.
-type BlobProofVerifier interface {
-	// GetImplementation returns the implementation of the verifier.
-	GetImplementation() string
-	// VerifyBlobProof verifies that the blob data corresponds to the provided
-	// commitment.
-	VerifyBlobProof(
-		blob *eip4844.Blob,
-		proof eip4844.KZGProof,
-		commitment eip4844.KZGCommitment,
-	) error
-	// VerifyBlobProofBatch verifies the KZG proof that the polynomial
-	// represented
-	// by the blob evaluated at the given point is the claimed value.
-	// For most implementations it is more efficient than VerifyBlobProof when
-	// verifying multiple proofs.
-	VerifyBlobProofBatch(*kzgtypes.BlobProofArgs) error
-}
 
 // NewBlobProofVerifier creates a new BlobVerifier with the given
 // implementation.
 func NewBlobProofVerifier(
 	impl string,
 	ts *gokzg4844.JSONTrustedSetup,
-) (BlobProofVerifier, error) {
+) (kzg.BlobProofVerifier[*kzgtypes.BlobProofArgs], error) {
 	switch impl {
 	case gokzg.Implementation:
 		return gokzg.NewVerifier(ts)
@@ -70,18 +52,24 @@ func NewBlobProofVerifier(
 }
 
 // ArgsFromSidecars converts a BlobSidecars to a slice of BlobProofArgs.
-func ArgsFromSidecars(
-	scs *types.BlobSidecars,
+func ArgsFromSidecars[
+	BeaconBlockHeaderT any,
+	BlobSidecarT types.BlobSidecar[BlobSidecarT, BeaconBlockHeaderT],
+	BlobSidecarsT types.BlobSidecars[BlobSidecarsT, BlobSidecarT],
+](
+	scs BlobSidecarsT,
 ) *kzgtypes.BlobProofArgs {
 	proofArgs := &kzgtypes.BlobProofArgs{
-		Blobs:       make([]*eip4844.Blob, len(scs.Sidecars)),
-		Proofs:      make([]eip4844.KZGProof, len(scs.Sidecars)),
-		Commitments: make([]eip4844.KZGCommitment, len(scs.Sidecars)),
+		Blobs:       make([]*eip4844.Blob, scs.Len()),
+		Proofs:      make([]eip4844.KZGProof, scs.Len()),
+		Commitments: make([]eip4844.KZGCommitment, scs.Len()),
 	}
-	for i, sidecar := range scs.Sidecars {
-		proofArgs.Blobs[i] = &sidecar.Blob
-		proofArgs.Proofs[i] = sidecar.KzgProof
-		proofArgs.Commitments[i] = sidecar.KzgCommitment
+	for i := range uint32(scs.Len()) {
+		//nosec: G701 // definitively no error here
+		sidecar, _ := scs.Get(i)
+		proofArgs.Blobs[i] = sidecar.GetBlob()
+		proofArgs.Proofs[i] = sidecar.GetProof()
+		proofArgs.Commitments[i] = sidecar.GetCommitment()
 	}
 	return proofArgs
 }

@@ -69,6 +69,29 @@ func BuildBlobSidecar(
 	}
 }
 
+func (b *BlobSidecar) New(
+	index math.U64,
+	header *types.BeaconBlockHeader,
+	blob *eip4844.Blob,
+	commitment eip4844.KZGCommitment,
+	proof eip4844.KZGProof,
+	inclusionProof [][32]byte,
+) *BlobSidecar {
+	return &BlobSidecar{
+		Index:             index.Unwrap(),
+		Blob:              *blob,
+		KzgCommitment:     commitment,
+		KzgProof:          proof,
+		BeaconBlockHeader: header,
+		InclusionProof:    inclusionProof,
+	}
+}
+
+// IsNil checks if the blob sidecar is nil.
+func (b *BlobSidecar) IsNil() bool {
+	return b == nil
+}
+
 // HasValidInclusionProof verifies the inclusion proof of the
 // blob in the beacon body.
 func (b *BlobSidecar) HasValidInclusionProof(
@@ -93,4 +116,24 @@ func (b *BlobSidecar) HasValidInclusionProof(
 		gIndex,
 		b.BeaconBlockHeader.BodyRoot,
 	)
+}
+
+// GetSlot returns the slot that the blob sidecar is for.
+func (b *BlobSidecar) GetSlot() math.Slot {
+	return b.BeaconBlockHeader.GetSlot()
+}
+
+// GetBlob returns the blob.
+func (b *BlobSidecar) GetBlob() *eip4844.Blob {
+	return &b.Blob
+}
+
+// GetCommitment returns the KZG commitment.
+func (b *BlobSidecar) GetCommitment() eip4844.KZGCommitment {
+	return b.KzgCommitment
+}
+
+// GetProof returns the KZG proof.
+func (b *BlobSidecar) GetProof() eip4844.KZGProof {
+	return b.KzgProof
 }

@@ -21,22 +21,46 @@
 package builder
 
 import (
+	types "github.com/berachain/beacon-kit/mod/interfaces/pkg/consensus-types"
+	engineprimitives "github.com/berachain/beacon-kit/mod/interfaces/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/execution"
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/payload"
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/state-transition/state"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // PayloadBuilder is used to build payloads on the
 // execution client.
 type PayloadBuilder[
-	BeaconStateT BeaconState[ExecutionPayloadHeaderT, WithdrawalT],
-	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	PayloadAttributesT PayloadAttributes[PayloadAttributesT, WithdrawalT],
+	BeaconStateT state.BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, Eth1DataT,
+		ExecutionPayloadHeaderT, ForkT, KVStoreT,
+		ValidatorT, WithdrawalT,
+	],
+	BeaconBlockHeaderT any,
+	BlobsBundleT engineprimitives.BlobsBundle[
+		eip4844.KZGCommitment, eip4844.KZGProof, eip4844.Blob,
+	],
+	Eth1DataT any,
+	ExecutionPayloadT types.ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
+	],
+	ExecutionPayloadEnvelopeT engineprimitives.ExecutionPayloadEnvelope[
+		ExecutionPayloadEnvelopeT, BlobsBundleT, ExecutionPayloadT,
+	],
+	ExecutionPayloadHeaderT types.ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	ForkT any,
+	KVStoreT any,
+	PayloadAttributesT engineprimitives.PayloadAttributes[
+		PayloadAttributesT, WithdrawalT,
+	],
 	PayloadIDT ~[8]byte,
-	WithdrawalT any,
+	ValidatorT any,
+	WithdrawalT engineprimitives.Withdrawal[WithdrawalT],
 ] struct {
 	// cfg holds the configuration settings for the PayloadBuilder.
 	cfg *Config
@@ -45,7 +69,10 @@ type PayloadBuilder[
 	// logger is used for logging within the PayloadBuilder.
 	logger log.Logger[any]
 	// ee is the execution engine.
-	ee ExecutionEngine[ExecutionPayloadT, PayloadAttributesT, PayloadIDT]
+	ee execution.Engine[
+		BlobsBundleT, ExecutionPayloadT, ExecutionPayloadEnvelopeT,
+		ExecutionPayloadHeaderT, PayloadAttributesT, PayloadIDT, WithdrawalT,
+	]
 	// pc is the payload ID cache, it is used to store
 	// "in-flight" payloads that are being built on
 	// the execution client.
@@ -53,51 +80,77 @@ type PayloadBuilder[
 		PayloadIDT, [32]byte, math.Slot,
 	]
 	// attributesFactory is used to create attributes for the
-	attributesFactory *attributes.Factory[
+	attributesFactory payload.AttributesFactory[
 		BeaconStateT, PayloadAttributesT, WithdrawalT,
 	]
 }
 
 // New creates a new service.
 func New[
-	BeaconStateT BeaconState[ExecutionPayloadHeaderT, WithdrawalT],
-	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	PayloadAttributesT PayloadAttributes[PayloadAttributesT, WithdrawalT],
+	BeaconStateT state.BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, Eth1DataT,
+		ExecutionPayloadHeaderT, ForkT, KVStoreT,
+		ValidatorT, WithdrawalT,
+	],
+	BeaconBlockHeaderT any,
+	BlobsBundleT engineprimitives.BlobsBundle[
+		eip4844.KZGCommitment, eip4844.KZGProof, eip4844.Blob,
+	],
+	Eth1DataT any,
+	ExecutionPayloadT types.ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
+	],
+	ExecutionPayloadEnvelopeT engineprimitives.ExecutionPayloadEnvelope[
+		ExecutionPayloadEnvelopeT, BlobsBundleT, ExecutionPayloadT,
+	],
+	ExecutionPayloadHeaderT types.ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	ForkT any,
+	KVStoreT any,
+	PayloadAttributesT engineprimitives.PayloadAttributes[
+		PayloadAttributesT, WithdrawalT,
+	],
 	PayloadIDT ~[8]byte,
-	WithdrawalT any,
+	ValidatorT any,
+	WithdrawalT engineprimitives.Withdrawal[WithdrawalT],
 ](
 	cfg *Config,
 	chainSpec common.ChainSpec,
 	logger log.Logger[any],
-	ee ExecutionEngine[ExecutionPayloadT, PayloadAttributesT, PayloadIDT],
+	ee execution.Engine[
+		BlobsBundleT, ExecutionPayloadT, ExecutionPayloadEnvelopeT,
+		ExecutionPayloadHeaderT, PayloadAttributesT, PayloadIDT, WithdrawalT,
+	],
 	pc *cache.PayloadIDCache[
 		PayloadIDT, [32]byte, math.Slot,
 	],
-	af *attributes.Factory[
+	attributesFactory payload.AttributesFactory[
 		BeaconStateT, PayloadAttributesT, WithdrawalT,
 	],
 ) *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	PayloadAttributesT, PayloadIDT, WithdrawalT,
+	BeaconStateT, BeaconBlockHeaderT, BlobsBundleT, Eth1DataT,
+	ExecutionPayloadT, ExecutionPayloadEnvelopeT, ExecutionPayloadHeaderT,
+	ForkT, KVStoreT, PayloadAttributesT, PayloadIDT, ValidatorT, WithdrawalT,
 ] {
 	return &PayloadBuilder[
-		BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-		PayloadAttributesT, PayloadIDT, WithdrawalT,
+		BeaconStateT, BeaconBlockHeaderT, BlobsBundleT, Eth1DataT,
+		ExecutionPayloadT, ExecutionPayloadEnvelopeT,
+		ExecutionPayloadHeaderT, ForkT, KVStoreT, PayloadAttributesT,
+		PayloadIDT, ValidatorT, WithdrawalT,
 	]{
 		cfg:               cfg,
 		chainSpec:         chainSpec,
 		logger:            logger,
 		ee:                ee,
 		pc:                pc,
-		attributesFactory: af,
+		attributesFactory: attributesFactory,
 	}
 }
 
 // Enabled returns true if the payload builder is enabled.
 func (pb *PayloadBuilder[
-	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	PayloadAttributesT, PayloadIDT, WithdrawalT,
+	BeaconStateT, BeaconBlockHeaderT, BlobsBundleT, Eth1DataT,
+	ExecutionPayloadT, ExecutionPayloadEnvelopeT, ExecutionPayloadHeaderT,
+	ForkT, KVStoreT, PayloadAttributesT, PayloadIDT, ValidatorT, WithdrawalT,
 ]) Enabled() bool {
 	return pb.cfg.Enabled
 }

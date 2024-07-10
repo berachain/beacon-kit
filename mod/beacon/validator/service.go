@@ -24,9 +24,20 @@ import (
 	"context"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/async/event"
+	types "github.com/berachain/beacon-kit/mod/interfaces/pkg/consensus-types"
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/da/blob"
+	engineprimitives "github.com/berachain/beacon-kit/mod/interfaces/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/node-core/storage"
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/payload"
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/state-transition/core"
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/state-transition/state"
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/storage/deposit"
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/telemetry"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
@@ -34,20 +45,44 @@ import (
 
 // Service is responsible for building beacon blocks.
 type Service[
-	BeaconBlockT BeaconBlock[
-		BeaconBlockT, BeaconBlockBodyT, DepositT, Eth1DataT, ExecutionPayloadT,
-	],
-	BeaconBlockBodyT BeaconBlockBody[
+	AvailabilityStoreT any,
+	BeaconBlockT types.BeaconBlock[
+		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 		DepositT, Eth1DataT, ExecutionPayloadT,
 	],
-	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
-	BlobSidecarsT,
-	DepositT any,
-	DepositStoreT DepositStore[DepositT],
-	Eth1DataT Eth1Data[Eth1DataT],
-	ExecutionPayloadT any,
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	ForkDataT ForkData[ForkDataT],
+	BeaconBlockBodyT types.BeaconBlockBody[
+		BeaconBlockBodyT, DepositT, Eth1DataT, ExecutionPayloadT,
+	],
+	BeaconBlockHeaderT types.BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconStateT state.BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		ForkT, KVStoreT, ValidatorT, WithdrawalT,
+	],
+	BlobsBundleT engineprimitives.BlobsBundle[
+		eip4844.KZGCommitment, eip4844.KZGProof, eip4844.Blob,
+	],
+	BlobSidecarsT any,
+	DepositT types.Deposit[DepositT, ForkDataT, WithdrawalCredentialsT],
+	DepositStoreT deposit.Store[DepositT],
+	Eth1DataT types.Eth1Data[Eth1DataT],
+	ExecutionPayloadT types.ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
+	],
+	ExecutionPayloadEnvelopeT engineprimitives.ExecutionPayloadEnvelope[
+		ExecutionPayloadEnvelopeT, BlobsBundleT, ExecutionPayloadT,
+	],
+	//nolint:lll // annoying formatter
+	ExecutionPayloadHeaderT types.ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	ForkT types.Fork[ForkT],
+	ForkDataT types.ForkData[ForkDataT],
+	PayloadAttributesT engineprimitives.PayloadAttributes[
+		PayloadAttributesT, WithdrawalT,
+	],
+	PayloadIDT ~[8]byte,
+	KVStoreT any,
+	ValidatorT types.Validator[ValidatorT, WithdrawalCredentialsT],
+	WithdrawalT engineprimitives.Withdrawal[WithdrawalT],
+	WithdrawalCredentialsT types.WithdrawalCredentials[WithdrawalCredentialsT],
 ] struct {
 	// cfg is the validator config.
 	cfg *Config
@@ -58,88 +93,126 @@ type Service[
 	// signer is used to retrieve the public key of this node.
 	signer crypto.BLSSigner
 	// blobFactory is used to create blob sidecars for blocks.
-	blobFactory BlobFactory[
-		BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
-		DepositT, Eth1DataT, ExecutionPayloadT,
+	blobFactory blob.SidecarFactory[
+		BeaconBlockT, BeaconBlockBodyT, BlobsBundleT, BlobSidecarsT,
 	]
 	// bsb is the beacon state backend.
-	bsb StorageBackend[
-		BeaconStateT, DepositT, DepositStoreT, ExecutionPayloadHeaderT,
+	bsb storage.Backend[
+		AvailabilityStoreT, BeaconStateT, DepositStoreT,
 	]
 	// stateProcessor is responsible for processing the state.
-	stateProcessor StateProcessor[
-		BeaconBlockT,
-		BeaconStateT,
-		*transition.Context,
-		ExecutionPayloadHeaderT,
+	stateProcessor core.StateProcessor[
+		BeaconBlockT, BeaconStateT, BlobSidecarsT,
+		*transition.Context, DepositT, ExecutionPayloadHeaderT,
 	]
 	// localPayloadBuilder represents the local block builder, this builder
 	// is connected to this nodes execution client via the EngineAPI.
 	// Building blocks are done by submitting forkchoice updates through.
 	// The local Builder.
-	localPayloadBuilder PayloadBuilder[BeaconStateT, ExecutionPayloadT]
+	localPayloadBuilder payload.Builder[
+		BeaconStateT, BlobsBundleT, ExecutionPayloadT,
+		ExecutionPayloadEnvelopeT, ExecutionPayloadHeaderT,
+		PayloadAttributesT, PayloadIDT, WithdrawalT,
+	]
 	// remotePayloadBuilders represents a list of remote block builders, these
 	// builders are connected to other execution clients via the EngineAPI.
-	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT]
+	remotePayloadBuilders []payload.Builder[
+		BeaconStateT, BlobsBundleT, ExecutionPayloadT,
+		ExecutionPayloadEnvelopeT, ExecutionPayloadHeaderT,
+		PayloadAttributesT, PayloadIDT, WithdrawalT,
+	]
 	// metrics is a metrics collector.
 	metrics *validatorMetrics
 	// blkBroker is a publisher for blocks.
-	blkBroker EventPublisher[*asynctypes.Event[BeaconBlockT]]
+	blkBroker event.Feed[*asynctypes.Event[BeaconBlockT]]
 	// sidecarBroker is a publisher for sidecars.
-	sidecarBroker EventPublisher[*asynctypes.Event[BlobSidecarsT]]
+	sidecarBroker event.Feed[*asynctypes.Event[BlobSidecarsT]]
 	// newSlotSub is a feed for slots.
 	newSlotSub chan *asynctypes.Event[math.Slot]
 }
 
 // NewService creates a new validator service.
 func NewService[
-	BeaconBlockT BeaconBlock[
-		BeaconBlockT, BeaconBlockBodyT, DepositT, Eth1DataT, ExecutionPayloadT,
-	],
-	BeaconBlockBodyT BeaconBlockBody[
+	AvailabilityStoreT any,
+	BeaconBlockT types.BeaconBlock[
+		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 		DepositT, Eth1DataT, ExecutionPayloadT,
 	],
-	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
-	BlobSidecarsT,
-	DepositT any,
-	DepositStoreT DepositStore[DepositT],
-	Eth1DataT Eth1Data[Eth1DataT],
-	ExecutionPayloadT any,
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	ForkDataT ForkData[ForkDataT],
+	BeaconBlockBodyT types.BeaconBlockBody[
+		BeaconBlockBodyT, DepositT, Eth1DataT, ExecutionPayloadT,
+	],
+	BeaconBlockHeaderT types.BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconStateT state.BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		ForkT, KVStoreT, ValidatorT, WithdrawalT,
+	],
+	BlobsBundleT engineprimitives.BlobsBundle[
+		eip4844.KZGCommitment, eip4844.KZGProof, eip4844.Blob,
+	],
+	BlobSidecarsT any,
+	DepositT types.Deposit[DepositT, ForkDataT, WithdrawalCredentialsT],
+	DepositStoreT deposit.Store[DepositT],
+	Eth1DataT types.Eth1Data[Eth1DataT],
+	ExecutionPayloadT types.ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
+	],
+	ExecutionPayloadEnvelopeT engineprimitives.ExecutionPayloadEnvelope[
+		ExecutionPayloadEnvelopeT, BlobsBundleT, ExecutionPayloadT,
+	],
+	//nolint:lll // annoying formatter
+	ExecutionPayloadHeaderT types.ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	ForkT types.Fork[ForkT],
+	ForkDataT types.ForkData[ForkDataT],
+	PayloadAttributesT engineprimitives.PayloadAttributes[
+		PayloadAttributesT, WithdrawalT,
+	],
+	PayloadIDT ~[8]byte,
+	KVStoreT any,
+	ValidatorT types.Validator[ValidatorT, WithdrawalCredentialsT],
+	WithdrawalT engineprimitives.Withdrawal[WithdrawalT],
+	WithdrawalCredentialsT types.WithdrawalCredentials[WithdrawalCredentialsT],
 ](
 	cfg *Config,
 	logger log.Logger[any],
 	chainSpec common.ChainSpec,
-	bsb StorageBackend[
-		BeaconStateT, DepositT, DepositStoreT, ExecutionPayloadHeaderT,
+	bsb storage.Backend[
+		AvailabilityStoreT, BeaconStateT, DepositStoreT,
 	],
-	stateProcessor StateProcessor[
-		BeaconBlockT,
-		BeaconStateT,
-		*transition.Context,
-		ExecutionPayloadHeaderT,
+	stateProcessor core.StateProcessor[
+		BeaconBlockT, BeaconStateT, BlobSidecarsT,
+		*transition.Context, DepositT, ExecutionPayloadHeaderT,
 	],
 	signer crypto.BLSSigner,
-	blobFactory BlobFactory[
-		BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
-		DepositT, Eth1DataT, ExecutionPayloadT,
+	blobFactory blob.SidecarFactory[
+		BeaconBlockT, BeaconBlockBodyT, BlobsBundleT, BlobSidecarsT,
 	],
-	localPayloadBuilder PayloadBuilder[BeaconStateT, ExecutionPayloadT],
-	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT],
-	ts TelemetrySink,
-	blkBroker EventPublisher[*asynctypes.Event[BeaconBlockT]],
-	sidecarBroker EventPublisher[*asynctypes.Event[BlobSidecarsT]],
+	localPayloadBuilder payload.Builder[
+		BeaconStateT, BlobsBundleT, ExecutionPayloadT,
+		ExecutionPayloadEnvelopeT, ExecutionPayloadHeaderT,
+		PayloadAttributesT, PayloadIDT, WithdrawalT,
+	],
+	remotePayloadBuilders []payload.Builder[
+		BeaconStateT, BlobsBundleT, ExecutionPayloadT,
+		ExecutionPayloadEnvelopeT, ExecutionPayloadHeaderT,
+		PayloadAttributesT, PayloadIDT, WithdrawalT,
+	],
+	ts telemetry.Sink,
+	blkBroker event.Feed[*asynctypes.Event[BeaconBlockT]],
+	sidecarBroker event.Feed[*asynctypes.Event[BlobSidecarsT]],
 	newSlotSub chan *asynctypes.Event[math.Slot],
 ) *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
-	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ForkDataT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BeaconStateT, BlobsBundleT, BlobSidecarsT, DepositT, DepositStoreT,
+	Eth1DataT, ExecutionPayloadT, ExecutionPayloadEnvelopeT,
+	ExecutionPayloadHeaderT, ForkT, ForkDataT, PayloadAttributesT,
+	PayloadIDT, KVStoreT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ] {
 	return &Service[
-		BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
-		DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
-		ExecutionPayloadHeaderT, ForkDataT,
+		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+		BeaconStateT, BlobsBundleT, BlobSidecarsT, DepositT, DepositStoreT,
+		Eth1DataT, ExecutionPayloadT, ExecutionPayloadEnvelopeT,
+		ExecutionPayloadHeaderT, ForkT, ForkDataT, PayloadAttributesT,
+		PayloadIDT, KVStoreT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 	]{
 		cfg:                   cfg,
 		logger:                logger,
@@ -159,14 +232,14 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) Name() string {
 	return "validator"
 }
 
 // Start starts the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) Start(
 	ctx context.Context,
 ) error {
@@ -176,7 +249,7 @@ func (s *Service[
 
 // start starts the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) start(
 	ctx context.Context,
 ) {
@@ -194,7 +267,7 @@ func (s *Service[
 
 // handleBlockRequest handles a block request.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) handleNewSlot(msg *asynctypes.Event[math.Slot]) {
 	blk, sidecars, err := s.buildBlockAndSidecars(
 		msg.Context(), msg.Data(),

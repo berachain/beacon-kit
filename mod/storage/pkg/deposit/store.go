@@ -27,12 +27,9 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
+	types "github.com/berachain/beacon-kit/mod/interfaces/pkg/consensus-types"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 )
-
-// Deposit is a struct that holds the deposit information.
-var _ pruner.Prunable = (*KVStore[Deposit])(nil)
 
 const KeyDepositPrefix = "deposit"
 
@@ -47,15 +44,33 @@ func (p *KVStoreProvider) OpenKVStore(context.Context) store.KVStore {
 
 // KVStore is a simple KV store based implementation that assumes
 // the deposit indexes are tracked outside of the kv store.
-type KVStore[DepositT Deposit] struct {
+type KVStore[
+	DepositT types.Deposit[
+		DepositT,
+		ForkDataT,
+		WithdrawalCredentialsT,
+	],
+	ForkDataT any,
+	WithdrawalCredentialsT any,
+] struct {
 	store sdkcollections.Map[uint64, DepositT]
 	mu    sync.RWMutex
 }
 
 // NewStore creates a new deposit store.
-func NewStore[DepositT Deposit](kvsp store.KVStoreService) *KVStore[DepositT] {
+func NewStore[
+	DepositT types.Deposit[
+		DepositT,
+		ForkDataT,
+		WithdrawalCredentialsT,
+	],
+	ForkDataT any,
+	WithdrawalCredentialsT any,
+](
+	kvsp store.KVStoreService,
+) *KVStore[DepositT, ForkDataT, WithdrawalCredentialsT] {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kvsp)
-	return &KVStore[DepositT]{
+	return &KVStore[DepositT, ForkDataT, WithdrawalCredentialsT]{
 		store: sdkcollections.NewMap(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{uint8(0)}),
@@ -69,7 +84,9 @@ func NewStore[DepositT Deposit](kvsp store.KVStoreService) *KVStore[DepositT] {
 // GetDepositsByIndex returns the first N deposits starting from the given
 // index. If N is greater than the number of deposits, it returns up to the
 // last deposit.
-func (kv *KVStore[DepositT]) GetDepositsByIndex(
+func (kv *KVStore[
+	DepositT, ForkDataT, WithdrawalCredentialsT,
+]) GetDepositsByIndex(
 	startIndex uint64,
 	numView uint64,
 ) ([]DepositT, error) {
@@ -90,14 +107,18 @@ func (kv *KVStore[DepositT]) GetDepositsByIndex(
 }
 
 // EnqueueDeposit pushes the deposit to the queue.
-func (kv *KVStore[DepositT]) EnqueueDeposit(deposit DepositT) error {
+func (kv *KVStore[
+	DepositT, ForkDataT, WithdrawalCredentialsT,
+]) EnqueueDeposit(deposit DepositT) error {
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
 	return kv.setDeposit(deposit)
 }
 
 // EnqueueDeposits pushes multiple deposits to the queue.
-func (kv *KVStore[DepositT]) EnqueueDeposits(deposits []DepositT) error {
+func (kv *KVStore[
+	DepositT, ForkDataT, WithdrawalCredentialsT,
+]) EnqueueDeposits(deposits []DepositT) error {
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
 	for _, deposit := range deposits {
@@ -109,12 +130,16 @@ func (kv *KVStore[DepositT]) EnqueueDeposits(deposits []DepositT) error {
 }
 
 // setDeposit sets the deposit in the store.
-func (kv *KVStore[DepositT]) setDeposit(deposit DepositT) error {
+func (kv *KVStore[
+	DepositT, ForkDataT, WithdrawalCredentialsT,
+]) setDeposit(deposit DepositT) error {
 	return kv.store.Set(context.TODO(), deposit.GetIndex(), deposit)
 }
 
 // Prune removes the [start, end) deposits from the store.
-func (kv *KVStore[DepositT]) Prune(start, end uint64) error {
+func (kv *KVStore[
+	DepositT, ForkDataT, WithdrawalCredentialsT,
+]) Prune(start, end uint64) error {
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
 	for i := range end {

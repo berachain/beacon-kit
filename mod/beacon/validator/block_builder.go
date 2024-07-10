@@ -24,7 +24,6 @@ import (
 	"context"
 	"time"
 
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
@@ -38,7 +37,8 @@ import (
 
 // buildBlockAndSidecars builds a new beacon block.
 func (s *Service[
-	BeaconBlockT, _, _, BlobSidecarsT, _, _, _, _, _, _,
+	_, BeaconBlockT, _, _, _, _, BlobSidecarsT, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) buildBlockAndSidecars(
 	ctx context.Context,
 	requestedSlot math.Slot,
@@ -84,7 +84,7 @@ func (s *Service[
 	envelope, err := s.retrieveExecutionPayload(ctx, st, blk)
 	if err != nil {
 		return blk, sidecars, err
-	} else if envelope == nil {
+	} else if envelope.IsNil() {
 		return blk, sidecars, ErrNilPayload
 	}
 
@@ -129,7 +129,8 @@ func (s *Service[
 
 // getEmptyBeaconBlockForSlot creates a new empty block.
 func (s *Service[
-	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _,
+	_, BeaconBlockT, _, _, BeaconStateT, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) getEmptyBeaconBlockForSlot(
 	st BeaconStateT, requestedSlot math.Slot,
 ) (BeaconBlockT, error) {
@@ -167,7 +168,8 @@ func (s *Service[
 
 // buildRandaoReveal builds a randao reveal for the given slot.
 func (s *Service[
-	_, _, BeaconStateT, _, _, _, _, _, _, ForkDataT,
+	_, _, _, _, BeaconStateT, _, _, _, _, _, _,
+	_, _, _, ForkDataT, _, _, _, _, _, _,
 ]) buildRandaoReveal(
 	st BeaconStateT,
 	slot math.Slot,
@@ -199,11 +201,12 @@ func (s *Service[
 
 // retrieveExecutionPayload retrieves the execution payload for the block.
 func (s *Service[
-	BeaconBlockT, _, BeaconStateT, _, _, _, _,
-	ExecutionPayloadT, ExecutionPayloadHeaderT, _,
+	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _, _,
+	ExecutionPayloadEnvelopeT, ExecutionPayloadHeaderT, _, _, _, _, _, _, _, _,
 ]) retrieveExecutionPayload(
 	ctx context.Context, st BeaconStateT, blk BeaconBlockT,
-) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
+) (ExecutionPayloadEnvelopeT, error) {
+	var payloadEnv ExecutionPayloadEnvelopeT
 	//
 	// TODO: Add external block builders to this flow.
 	//
@@ -225,7 +228,7 @@ func (s *Service[
 		var lph ExecutionPayloadHeaderT
 		lph, err = st.GetLatestExecutionPayloadHeader()
 		if err != nil {
-			return nil, err
+			return payloadEnv, err
 		}
 
 		// If we failed to retrieve the payload, request a synchrnous payload.
@@ -256,14 +259,14 @@ func (s *Service[
 
 // BuildBlockBody assembles the block body with necessary components.
 func (s *Service[
-	BeaconBlockT, _, BeaconStateT, _,
-	_, _, Eth1DataT, ExecutionPayloadT, _, _,
+	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, Eth1DataT, _,
+	ExecutionPayloadEnvelopeT, ExecutionPayloadHeaderT, _, _, _, _, _, _, _, _,
 ]) buildBlockBody(
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
 	reveal crypto.BLSSignature,
-	envelope engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT],
+	envelope ExecutionPayloadEnvelopeT,
 ) error {
 	// Assemble a new block with the payload.
 	body := blk.GetBody()
@@ -276,7 +279,7 @@ func (s *Service[
 
 	// If we get returned a nil blobs bundle, we should return an error.
 	blobsBundle := envelope.GetBlobsBundle()
-	if blobsBundle == nil {
+	if blobsBundle.IsNil() {
 		return ErrNilBlobsBundle
 	}
 
@@ -317,7 +320,8 @@ func (s *Service[
 // computeAndSetStateRoot computes the state root of an outgoing block
 // and sets it in the block.
 func (s *Service[
-	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _,
+	_, BeaconBlockT, _, _, BeaconStateT, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) computeAndSetStateRoot(
 	ctx context.Context,
 	st BeaconStateT,
@@ -338,7 +342,8 @@ func (s *Service[
 
 // computeStateRoot computes the state root of an outgoing block.
 func (s *Service[
-	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _,
+	_, BeaconBlockT, _, _, BeaconStateT, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) computeStateRoot(
 	ctx context.Context,
 	st BeaconStateT,

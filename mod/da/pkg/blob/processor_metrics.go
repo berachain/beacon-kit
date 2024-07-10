@@ -23,18 +23,19 @@ package blob
 import (
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/telemetry"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // processorMetrics is a struct that contains metrics for the processor.
 type processorMetrics struct {
 	// TelemetrySink is the sink for the metrics.
-	sink TelemetrySink
+	sink telemetry.Sink
 }
 
 // newProcessorMetrics creates a new processorMetrics.
 func newProcessorMetrics(
-	sink TelemetrySink,
+	sink telemetry.Sink,
 ) *processorMetrics {
 	return &processorMetrics{
 		sink: sink,

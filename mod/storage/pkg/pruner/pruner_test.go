@@ -31,14 +31,30 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	prunerI "github.com/berachain/beacon-kit/mod/interfaces/pkg/storage/pruner"
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/storage/pruner/mocks"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner/mocks"
 	"github.com/stretchr/testify/mock"
 )
 
-func pruneRangeFn[EventT pruner.BlockEvent[pruner.BeaconBlock]](
-	event EventT,
+type BeaconBlock interface {
+	GetSlot() math.U64
+}
+
+type beaconBlock struct {
+	slot math.U64
+}
+
+func (b *beaconBlock) GetSlot() math.U64 {
+	return b.slot
+}
+
+func pruneRangeFn[
+	BeaconBlockT BeaconBlock,
+](
+	event *asynctypes.Event[BeaconBlockT],
 ) (uint64, uint64) {
 	slot := event.Data().GetSlot().Unwrap()
 	return slot, slot
@@ -70,16 +86,15 @@ func TestPruner(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			logger := log.NewNopLogger()
-			ch := make(chan pruner.BlockEvent[pruner.BeaconBlock])
+			ch := make(chan *asynctypes.Event[BeaconBlock])
 			mockPrunable := new(mocks.Prunable)
 			mockPrunable.On("Prune", mock.Anything, mock.Anything).
 				Return(nil)
 
 			// create Pruner with a Noop logger
 			testPruner := pruner.NewPruner[
-				pruner.BeaconBlock,
-				pruner.BlockEvent[pruner.BeaconBlock],
-				pruner.Prunable,
+				BeaconBlock,
+				prunerI.Prunable,
 			](logger, mockPrunable, "TestPruner", ch, pruneRangeFn)
 
 			ctx, cancel := context.WithCancel(context.Background())
@@ -90,12 +105,13 @@ func TestPruner(t *testing.T) {
 
 			// notify the pruner with the indexes to prune
 			for _, index := range tt.pruneIndexes {
-				block := mocks.BeaconBlock{}
-				block.On("GetSlot").Return(math.U64(index))
-				event := mocks.BlockEvent[pruner.BeaconBlock]{}
-				event.On("Data").Return(&block)
-				event.On("Is", mock.Anything).Return(true)
-				ch <- &event
+				block := &beaconBlock{
+					slot: math.U64(index),
+				}
+				event := asynctypes.NewEvent[BeaconBlock](
+					context.TODO(), "test", block, nil,
+				)
+				ch <- event
 			}
 
 			// some time for the goroutine to process the requests

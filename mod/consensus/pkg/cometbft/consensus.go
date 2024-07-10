@@ -23,6 +23,7 @@ package cometbft
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/interfaces/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -33,12 +34,12 @@ import (
 // Right now, it is very coupled to the sdk base app and we will
 // eventually fully decouple this.
 type ConsensusEngine[ValidatorUpdateT any] struct {
-	Middleware
+	runtime.Middleware
 }
 
 // NewConsensusEngine returns a new consensus middleware.
 func NewConsensusEngine[ValidatorUpdateT any](
-	m Middleware,
+	m runtime.Middleware,
 ) *ConsensusEngine[ValidatorUpdateT] {
 	return &ConsensusEngine[ValidatorUpdateT]{
 		Middleware: m,
