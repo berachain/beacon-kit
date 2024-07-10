@@ -227,7 +227,6 @@ def run(plan, network_configuration = {}, node_settings = {}, eth_json_rpc_endpo
             plan.print("Launching otterscan")
             otterscan.launch_otterscan(
                 plan,
-                full_node_el_clients,
                 s.client,
             )
     plan.print("Successfully launched development network")

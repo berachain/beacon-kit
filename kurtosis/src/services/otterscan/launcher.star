@@ -14,40 +14,23 @@ USED_PORTS = {
 
 def launch_otterscan(
         plan,
-        full_node_el_clients,
         client_from_user):
-    el_client_info = {}
-
-    # TODO: If client_from_user is other than erigon node, give error or something to user.
-    # Get the full_node_el_clients that match the client_from_user
-    for full_node_el_client_name, full_node_el_client_service in full_node_el_clients.items():
-        if full_node_el_client_name in client_from_user:
-            rpc_port = full_node_el_client_service.ports["eth-json-rpc"].number
-            name = full_node_el_client_name
-
-            el_client_info = get_el_client_info(
-                rpc_port,
-                name,
-            )
-            break
-    config = get_config(el_client_info.get("RPC_Url"))
+    # Currently fetching the public port from service config is not allowed,
+    # .ports["eth-json-rpc"].number returns the private port. Hence hardcoding the public port.
+    if client_from_user.split("-")[2] != "erigon":
+        fail("Currently only erigon client is supported for otterscan")
+    config = get_config()
     plan.add_service(SERVICE_NAME, config)
 
-def get_config(RPC_Url):
+def get_config():
+    public_rpc_port_num = 8547
+    el_client_rpc_url = "http://localhost:{}/".format(
+        public_rpc_port_num,
+    )
     return ServiceConfig(
         image = IMAGE_NAME,
         ports = USED_PORTS,
         env_vars = {
-            "ERIGON_URL": RPC_Url,
+            "ERIGON_URL": el_client_rpc_url,
         },
     )
-
-def get_el_client_info(rpc_port_num, full_name):
-    el_client_rpc_url = "http://localhost:{}/".format(
-        rpc_port_num,
-    )
-    el_client_type = full_name.split("-")[2]
-    return {
-        "RPC_Url": el_client_rpc_url,
-        "Eth_Type": el_client_type,
-    }

@@ -6,6 +6,7 @@ shared_utils = import_module("github.com/ethpandaops/ethereum-package/src/shared
 
 RPC_PORT_NUM = 8545
 ENGINE_RPC_PORT_NUM = 8551
+PUBLIC_RPC_PORT_NUM = 8547
 
 # Port IDs
 RPC_PORT_ID = "eth-json-rpc"
@@ -39,7 +40,7 @@ def get_default_service_config(node_struct, node_module):
     # Note : public port is not supported on kubenernetes
     if "erigon" in node_struct.el_image:
         # Update common parameters with erigon-specific ones
-        common_params["public_ports"] = {"eth-json-rpc": port_spec_lib.get_port_spec_template(RPC_PORT_NUM, shared_utils.TCP_PROTOCOL)}
+        common_params["public_ports"] = {"eth-json-rpc": port_spec_lib.get_port_spec_template(PUBLIC_RPC_PORT_NUM, shared_utils.TCP_PROTOCOL)}
 
     # Get the service config template
     sc = service_config_lib.get_service_config_template(**common_params)
