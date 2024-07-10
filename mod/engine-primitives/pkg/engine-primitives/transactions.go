@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkleizer"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 )
 
 // Transactions is a typealias for [][]byte, which is how transactions are
@@ -40,14 +40,14 @@ type Transactions [][]byte
 // NOTE: Uses a new merkleizer for each call.
 func (txs Transactions) HashTreeRoot() (common.Root, error) {
 	return txs.HashTreeRootWith(
-		merkleizer.New[[32]byte, common.Root](),
+		merkle.NewMerkleizer[[32]byte, common.Root](),
 	)
 }
 
 // HashTreeRootWith returns the hash tree root of the Transactions list
-// using the given merkleizer.
+// using the given merkle.
 func (txs Transactions) HashTreeRootWith(
-	merkleizer *merkleizer.Merkleizer[[32]byte, common.Root],
+	merkleizer *merkle.Merkleizer[[32]byte, common.Root],
 ) (common.Root, error) {
 	var (
 		err   error

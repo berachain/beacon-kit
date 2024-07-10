@@ -18,22 +18,41 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package merkleizer
+package pow
 
-// SSZObject defines an interface for SSZ basic types which includes methods for
-// determining the size of the SSZ encoding and computing the hash tree root.
-type SSZObject[RootT ~[32]byte] interface {
-	// SizeSSZ returns the size in bytes of the SSZ-encoded data.
-	SizeSSZ() int
-	// HashTreeRoot computes and returns the hash tree root of the data as
-	// RootT and an error if the computation fails.
-	HashTreeRoot() (RootT, error)
-	// MarshalSSZ marshals the data into SSZ format.
-	MarshalSSZ() ([]byte, error)
+// NextPowerOfTwo returns the next power of 2 for the given input.
+//
+//nolint:mnd // todo fix.
+func PrevPowerOfTwo[U64T ~uint64](u U64T) U64T {
+	if u == 0 {
+		return 1
+	}
+	u |= u >> 1
+	u |= u >> 2
+	u |= u >> 4
+	u |= u >> 8
+	u |= u >> 16
+	u |= u >> 32
+	return u - (u >> 1)
 }
 
-// Buffer is a reusable buffer for SSZ encoding.
-type Buffer[T any] interface {
-	// Get returns a slice of the buffer with the given size.
-	Get(size int) []T
+// NextPowerOfTwo returns the next power of 2 for the given input.
+//
+//nolint:mnd // todo fix.
+func NextPowerOfTwo[U64T ~uint64](u U64T) U64T {
+	if u == 0 {
+		return 1
+	}
+	if u > 1<<63 {
+		panic("Next power of 2 is 1 << 64.")
+	}
+	u--
+	u |= u >> 1
+	u |= u >> 2
+	u |= u >> 4
+	u |= u >> 8
+	u |= u >> 16
+	u |= u >> 32
+	u++
+	return u
 }

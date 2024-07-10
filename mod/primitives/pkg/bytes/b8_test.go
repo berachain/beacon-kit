@@ -24,7 +24,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/stretchr/testify/require"
 )
 
@@ -96,12 +96,12 @@ func TestBytes8Type(t *testing.T) {
 	tests := []struct {
 		name  string
 		input bytes.B8
-		want  types.Type
+		want  schema.SSZType
 	}{
 		{
 			name:  "type of B8",
 			input: bytes.B8{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
-			want:  types.Composite,
+			want:  schema.B8(),
 		},
 	}
 

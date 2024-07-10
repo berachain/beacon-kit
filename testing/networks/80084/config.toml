@@ -468,7 +468,7 @@ timeout_precommit_delta = "500ms"
 # height (this gives us a chance to receive some more precommits, even
 # though we already have +2/3).
 # Set to 0 if you want to make progress as soon as the node has all the precommits.
-timeout_commit = "750ms"
+timeout_commit = "500ms"
 
 # Deprecated: set `timeout_commit` to 0 instead.
 skip_timeout_commit = false

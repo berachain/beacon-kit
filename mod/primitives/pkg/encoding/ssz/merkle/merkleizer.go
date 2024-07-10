@@ -18,32 +18,40 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package merkleizer
+package merkle
 
 import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes/buffer"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 )
 
-// merkleizer can be used for merkleizing SSZ types.
+// Buffer is a reusable buffer for SSZ encoding.
+type Buffer[T any] interface {
+	// Get returns a slice of the buffer with the given size.
+	Get(size int) []T
+}
+
+// merkleizer can be used for merkleizing SSZ schema.
 type Merkleizer[
-	RootT ~[32]byte, T SSZObject[RootT],
+	RootT ~[32]byte, T schema.MerkleizableSSZObject[RootT],
 ] struct {
 	rootHasher  *merkle.RootHasher[RootT]
 	bytesBuffer Buffer[RootT]
 }
 
-// New creates a new merkleizer with a reusable hasher and bytes buffer.
-func New[
-	RootT ~[32]byte, T SSZObject[RootT],
+// NewMerkleizer creates a new merkleizer with a reusable hasher and bytes
+// buffer.
+func NewMerkleizer[
+	RootT ~[32]byte, T schema.MerkleizableSSZObject[RootT],
 ]() *Merkleizer[RootT, T] {
 	return &Merkleizer[RootT, T]{
 		rootHasher: merkle.NewRootHasher(
-			crypto.NewHasher[RootT](sha256.CustomHashFn()),
+			merkle.NewHasher[RootT](sha256.CustomHashFn()),
 			merkle.BuildParentTreeRoots,
 		),
 		bytesBuffer: buffer.NewReusableBuffer[RootT](),
@@ -73,7 +81,7 @@ func (m *Merkleizer[RootT, T]) MerkleizeByteSlice(
 }
 
 // MerkleizeVectorBasic implements the SSZ merkleization algorithm
-// for a vector of basic types.
+// for a vector of basic schema.
 func (m *Merkleizer[RootT, T]) MerkleizeVectorBasic(
 	value []T,
 ) (RootT, error) {
@@ -110,7 +118,7 @@ func (m *Merkleizer[RootT, T]) MerkleizeVectorCompositeOrContainer(
 /* -------------------------------------------------------------------------- */
 
 // MerkleizeListBasic implements the SSZ merkleization algorithm for a list of
-// basic types.
+// basic schema.
 func (m *Merkleizer[RootT, T]) MerkleizeListBasic(
 	value []T,
 	chunkCount uint64,
@@ -138,7 +146,7 @@ func (m *Merkleizer[RootT, T]) MerkleizeListBasic(
 }
 
 // MerkleizeListComposite implements the SSZ merkleization algorithm for a list
-// of composite types.
+// of composite schema.
 func (m *Merkleizer[RootT, T]) MerkleizeListComposite(
 	value []T,
 	chunkCount uint64,
@@ -223,4 +231,67 @@ func (m *Merkleizer[RootT, T]) Merkleize(
 
 	// If > 1 chunks: merkleize as binary tree.
 	return m.rootHasher.NewRootWithMaxLeaves(chunks, effectiveLimit)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                              Helper Functions                              */
+/* -------------------------------------------------------------------------- */
+
+// pack packs a list of SSZ-marshallable elements into a single byte slice.
+func pack[
+	RootT ~[32]byte,
+	T interface {
+		MarshalSSZ() ([]byte, error)
+	},
+](
+	values []T,
+) ([]RootT, uint64, error) {
+	// pack(values): Given ordered objects of the same basic type:
+	// Serialize values into bytes.
+	// If not aligned to a multiple of BYTES_PER_CHUNK bytes,
+	// right-pad with zeroes to the next multiple.
+	// Partition the bytes into BYTES_PER_CHUNK-byte chunks.
+	// Return the chunks.
+	var packed []byte
+	for _, el := range values {
+		buf, err := el.MarshalSSZ()
+		if err != nil {
+			return nil, 0, err
+		}
+		packed = append(packed, buf...)
+	}
+
+	chunks, numChunks := chunkifyBytes[RootT](packed)
+	return chunks, numChunks, nil
+}
+
+// chunkifyBytes partitions a byte slice into chunks of a given length.
+func chunkifyBytes[RootT ~[32]byte](input []byte) (
+	[]RootT, uint64,
+) {
+	//nolint:mnd // we add 31 in order to round up the division.
+	numChunks := max((len(input)+31)/constants.RootLength, 1)
+	// TODO: figure out how to safely chunk these bytes.
+	chunks := make([]RootT, numChunks)
+	for i := range chunks {
+		copy(chunks[i][:], input[32*i:])
+	}
+	//#nosec:G701 // numChunks is always >= 1.
+	return chunks, uint64(numChunks)
+}
+
+// packBits packs a list of SSZ-marshallable bitlists into a single byte slice.
+//
+//nolint:unused // todo eventually implement this function.
+func packBits[
+	RootT ~[32]byte,
+	T interface {
+		MarshalSSZ() ([]byte, error)
+	},
+]([]T) ([]RootT, error) {
+	// pack_bits(bits): Given the bits of bitlist or bitvector, get
+	// bitfield_bytes by packing them in bytes and aligning to the start.
+	// The length-delimiting bit for bitlists is excluded. Then return pack
+	// (bitfield_bytes).
+	panic("not yet implemented")
 }

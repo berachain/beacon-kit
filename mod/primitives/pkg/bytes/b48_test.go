@@ -24,7 +24,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
 	"github.com/stretchr/testify/require"
 )
@@ -97,6 +97,6 @@ func TestB48IsFixed(t *testing.T) {
 
 func TestB48Type(t *testing.T) {
 	var b bytes.B48
-	require.Equal(t, types.Composite, b.Type(),
-		"Type should return types.Composite for B48")
+	require.Equal(t, schema.B48(), b.Type(),
+		"Type should return schema.B48() for B48")
 }
