@@ -2,6 +2,8 @@ module github.com/berachain/beacon-kit/mod/consensus-types
 
 go 1.22.5
 
+replace github.com/berachain/beacon-kit/mod/primitives => ../primitives
+
 require (
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240705193247-d464364483df
@@ -9,7 +11,7 @@ require (
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240705193247-d464364483df
 	github.com/ethereum/go-ethereum v1.14.6
-	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
+	github.com/ferranbt/fastssz v0.1.4-0.20240629094022-eac385e6ee79
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/sync v0.7.0
 

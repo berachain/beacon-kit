@@ -25,7 +25,6 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
@@ -111,7 +110,7 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 		leaves:   leaves,
 		depth:    depth,
 		hasher: NewRootHasher[[32]byte](
-			crypto.NewHasher[[32]byte](sha256.Hash),
+			NewHasher[[32]byte](sha256.Hash),
 			gohashtree.Hash,
 		),
 	}, nil

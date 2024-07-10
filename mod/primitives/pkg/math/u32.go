@@ -27,15 +27,14 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 )
 
 /* -------------------------------------------------------------------------- */
 /*                                Type Definitions                            */
 /* -------------------------------------------------------------------------- */
 
-// Ensure types implement types.SSZType.
-var _ types.SSZType[U32] = (*U32)(nil)
+// Ensure types implement schema.SSZObject.
+var _ schema.SSZObject[U32] = (*U32)(nil)
 
 // U32 represents a 32-bit unsigned integer that is both SSZ and JSON.
 type U32 uint32

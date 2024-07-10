@@ -18,30 +18,35 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package schema_test
+package db_test
 
 import (
 	"strings"
 	"testing"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/db"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_Schema_Paths(t *testing.T) {
-	nestedType := schema.Container(
-		schema.Field("bytes32", schema.ByteVector(32)),
+	nestedType := schema.DefineContainer(
+		schema.Field("bytes32", schema.DefineByteVector(32)),
 		schema.Field("uint64", schema.U64()),
-		schema.Field("list_bytes32", schema.List(schema.ByteVector(32), 10)),
-		schema.Field("bytes256", schema.ByteVector(256)),
+		schema.Field(
+			"list_bytes32",
+			schema.DefineList(schema.DefineByteVector(32), 10),
+		),
+		schema.Field("bytes256", schema.DefineByteVector(256)),
 	)
-	root := schema.Container(
-		schema.Field("bytes32", schema.ByteVector(32)),
+	root := schema.DefineContainer(
+		schema.Field("bytes32", schema.DefineByteVector(32)),
 		schema.Field("uint32", schema.U32()),
-		schema.Field("list_uint64", schema.List(schema.U64(), 1000)),
-		schema.Field("list_nested", schema.List(nestedType, 1000)),
+		schema.Field("list_uint64", schema.DefineList(schema.U64(), 1000)),
+		schema.Field("list_nested", schema.DefineList(nestedType, 1000)),
 		schema.Field("nested", nestedType),
-		schema.Field("vector_uint128", schema.Vector(schema.U128(), 20)),
+		schema.Field("vector_uint128", schema.DefineVector(schema.U128(), 20)),
 	)
 
 	cases := []struct {
@@ -65,16 +70,16 @@ func Test_Schema_Paths(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(strings.ReplaceAll(tc.path, "/", "."), func(t *testing.T) {
-			objectPath := schema.ObjectPath[[32]byte](tc.path)
-			node, err := schema.NewTreeNode(root, objectPath)
+			objectPath := merkle.ObjectPath[uint64, [32]byte](tc.path)
+			node, err := db.NewTreeNode(root, objectPath)
 			require.NoError(t, err)
 			require.Equalf(
 				t,
 				tc.gindex,
-				node.GIndex().Unwrap(),
+				node.GIndex(),
 				"expected %d, got %d",
 				tc.gindex,
-				node.GIndex().Unwrap())
+				node.GIndex())
 			require.Equal(
 				t,
 				node.Offset(),
@@ -88,19 +93,19 @@ func Test_Schema_Paths(t *testing.T) {
 }
 
 func TestNewTreeNodeEdgeCases(t *testing.T) {
-	nestedType := schema.Container(
+	nestedType := schema.DefineContainer(
 		schema.Field("uint64", schema.U64()),
 		schema.Field("bytes32", schema.B32()),
-		schema.Field("bytes256", schema.Vector(schema.U8(), 256)),
+		schema.Field("bytes256", schema.DefineVector(schema.U8(), 256)),
 	)
 
-	root := schema.Container(
+	root := schema.DefineContainer(
 		schema.Field("bytes32", schema.B32()),
 		schema.Field("uint32", schema.U32()),
-		schema.Field("list_uint64", schema.List(schema.U64(), 1000)),
-		schema.Field("list_nested", schema.List(nestedType, 1000)),
+		schema.Field("list_uint64", schema.DefineList(schema.U64(), 1000)),
+		schema.Field("list_nested", schema.DefineList(nestedType, 1000)),
 		schema.Field("nested", nestedType),
-		schema.Field("vector_uint128", schema.Vector(schema.U128(), 20)),
+		schema.Field("vector_uint128", schema.DefineVector(schema.U128(), 20)),
 	)
 
 	cases := []struct {
@@ -129,8 +134,8 @@ func TestNewTreeNodeEdgeCases(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			objectPath := schema.ObjectPath[[32]byte](tc.path)
-			_, err := schema.NewTreeNode(root, objectPath)
+			objectPath := merkle.ObjectPath[uint64, [32]byte](tc.path)
+			_, err := db.NewTreeNode(root, objectPath)
 			if tc.expectError {
 				require.Error(t, err)
 			} else {

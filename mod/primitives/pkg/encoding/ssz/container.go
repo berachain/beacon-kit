@@ -22,9 +22,8 @@ package ssz
 
 import (
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkleizer"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -32,15 +31,15 @@ import (
 /* -------------------------------------------------------------------------- */
 
 // Vector conforms to the SSZEenumerable interface.
-var _ types.SSZEnumerable[types.MinimalSSZType] = (*Container)(nil)
+var _ schema.SSZEnumerable[schema.MinimalSSZObject] = (*Container)(nil)
 
 type Container struct {
-	elements []types.MinimalSSZType
+	elements []schema.MinimalSSZObject
 	t        schema.SSZType
 }
 
 // ContainerFromElements creates a new Container from elements.
-func ContainerFromElements(elements ...types.MinimalSSZType) *Container {
+func ContainerFromElements(elements ...schema.MinimalSSZObject) *Container {
 	return &Container{
 		elements: elements,
 	}
@@ -92,7 +91,7 @@ func (c *Container) ChunkCount() uint64 {
 }
 
 // Elements returns the elements of the container.
-func (c *Container) Elements() []types.MinimalSSZType {
+func (c *Container) Elements() []schema.MinimalSSZObject {
 	return c.elements
 }
 
@@ -102,14 +101,16 @@ func (c *Container) Elements() []types.MinimalSSZType {
 
 // HashTreeRoot returns the hash tree root of the container.
 func (c *Container) HashTreeRootWith(
-	merkleizer VectorMerkleizer[[32]byte, types.MinimalSSZType],
+	merkleizer *merkle.Merkleizer[[32]byte, schema.MinimalSSZObject],
 ) ([32]byte, error) {
 	return merkleizer.MerkleizeVectorCompositeOrContainer(c.elements)
 }
 
 // HashTreeRoot returns the hash tree root of the container.
 func (c *Container) HashTreeRoot() ([32]byte, error) {
-	return c.HashTreeRootWith(merkleizer.New[[32]byte, types.MinimalSSZType]())
+	return c.HashTreeRootWith(
+		merkle.NewMerkleizer[[32]byte, schema.MinimalSSZObject](),
+	)
 }
 
 /* -------------------------------------------------------------------------- */

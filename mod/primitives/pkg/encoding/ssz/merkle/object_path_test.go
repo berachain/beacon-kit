@@ -18,30 +18,31 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package schema_test
+package merkle_test
 
 import (
 	"strings"
 	"testing"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_ObjectPath(t *testing.T) {
-	nested := schema.Container(
+	nested := schema.DefineContainer(
 		schema.Field("bytes32", schema.B32()),
 		schema.Field("uint64", schema.U64()),
-		schema.Field("list_bytes32", schema.List(schema.B32(), 10)),
-		schema.Field("bytes256", schema.Vector(schema.U8(), 256)),
+		schema.Field("list_bytes32", schema.DefineList(schema.B32(), 10)),
+		schema.Field("bytes256", schema.DefineVector(schema.U8(), 256)),
 	)
-	root := schema.Container(
+	root := schema.DefineContainer(
 		schema.Field("bytes32", schema.B32()),
 		schema.Field("uint32", schema.U32()),
-		schema.Field("list_uint64", schema.List(schema.U64(), 1000)),
-		schema.Field("list_nested", schema.List(nested, 1000)),
+		schema.Field("list_uint64", schema.DefineList(schema.U64(), 1000)),
+		schema.Field("list_nested", schema.DefineList(nested, 1000)),
 		schema.Field("nested", nested),
-		schema.Field("vector_uint64", schema.Vector(schema.U64(), 40)),
+		schema.Field("vector_uint64", schema.DefineVector(schema.U64(), 40)),
 	)
 
 	cases := []struct {
@@ -71,7 +72,7 @@ func Test_ObjectPath(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(strings.ReplaceAll(tc.path, "/", "."), func(t *testing.T) {
-			objectPath := schema.ObjectPath[[32]byte](tc.path)
+			objectPath := merkle.ObjectPath[uint64, [32]byte](tc.path)
 			typ, gindex, offset, err := objectPath.GetGeneralizedIndex(root)
 
 			if tc.error != "" {
@@ -83,7 +84,7 @@ func Test_ObjectPath(t *testing.T) {
 			require.NotNil(
 				t, typ, "Type should not be nil")
 			require.Equal(
-				t, tc.gindex, uint64(gindex), "Unexpected generalized index",
+				t, tc.gindex, gindex, "Unexpected generalized index",
 			)
 			require.Equal(t, tc.offset, offset, "Unexpected offset")
 		})

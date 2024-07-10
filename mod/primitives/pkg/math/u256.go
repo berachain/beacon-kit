@@ -25,7 +25,6 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 	"github.com/holiman/uint256"
 )
 
@@ -33,8 +32,8 @@ import (
 /*                                Type Definitions                            */
 /* -------------------------------------------------------------------------- */
 
-// Ensure type implements types.SSZType.
-var _ types.SSZType[*U256] = (*U256)(nil)
+// Ensure type implements schema.SSZObject.
+var _ schema.SSZObject[*U256] = (*U256)(nil)
 
 // U256 represents a 256-bit unsigned integer that is both SSZ and JSON.
 type U256 uint256.Int
