@@ -118,8 +118,8 @@ start-geth-validator-run:
 	--ipcpath ${IPC_PATH} \
 	--rpc.allow-unprotected-txs \
 	--syncmode "full" \
-	--history.state 0 \
-	--history.transactions 0 \
+	--state.scheme "hash" \
+	--gcmode "archive" \
 	--nat extip:${INTERNAL_IP}
 
 start-geth-node-run:
@@ -135,6 +135,8 @@ start-geth-node-run:
 	--ipcpath ${IPC_PATH} \
 	--rpc.allow-unprotected-txs \
 	--syncmode "snap" \
+	--state.scheme "hash" \
+    --gcmode "archive" \
 	--nat extip:${INTERNAL_IP}
 
 start-geth-run-local:
@@ -148,7 +150,6 @@ start-geth-run-local:
 	--datadir ${ETH_DATA_DIR} \
 	--ipcpath ${IPC_PATH} \
 	--rpc.allow-unprotected-txs \
-	--miner.gaslimit 100000000 \
 	--syncmode "snap"
 
 start-geth-host: ## start a local ephemeral `geth` node on host machine
