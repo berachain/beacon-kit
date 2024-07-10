@@ -18,22 +18,23 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package tree
+package merkle
 
 import (
 	"sort"
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math/log"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math/pow"
 )
 
 type (
 	// GeneralizedIndex is a generalized index.
-	GeneralizedIndex[RootT ~[32]byte] math.U64
+	GeneralizedIndex[RootT ~[32]byte] uint64
 
-	// GeneralizedIndicies is a list of generalized indices.
-	GeneralizedIndicies[RootT ~[32]byte] []GeneralizedIndex[RootT]
+	// GeneralizedIndices is a list of generalized indices.
+	GeneralizedIndices[RootT ~[32]byte] []GeneralizedIndex[RootT]
 )
 
 // NewGeneralizedIndex calculates the generalized index from the depth and
@@ -45,9 +46,14 @@ func NewGeneralizedIndex[RootT ~[32]byte](
 	return GeneralizedIndex[RootT]((1 << depth) + index)
 }
 
+// Unwrap returns the underlying uint64 value of the GeneralizedIndex.
+func (g GeneralizedIndex[RootT]) Unwrap() uint64 {
+	return uint64(g)
+}
+
 // Length returns the length of the generalized index.
 func (g GeneralizedIndex[RootT]) Length() uint64 {
-	return uint64(math.U64(g).ILog2Floor())
+	return uint64(log.ILog2Floor(uint64(g)))
 }
 
 // IndexBit returns the bit at the specified position in a generalized index.
@@ -81,7 +87,7 @@ func (g GeneralizedIndex[RootT]) Parent() GeneralizedIndex[RootT] {
 
 // GetBranchIndices returns the generalized indices of the nodes on the path
 // from the root to the leaf.
-func (g GeneralizedIndex[RootT]) GetBranchIndices() GeneralizedIndicies[RootT] {
+func (g GeneralizedIndex[RootT]) GetBranchIndices() GeneralizedIndices[RootT] {
 	// Get the generalized indices of the sister chunks along the path from the
 	// chunk with the
 	// given tree index to the root.
@@ -94,7 +100,7 @@ func (g GeneralizedIndex[RootT]) GetBranchIndices() GeneralizedIndicies[RootT] {
 
 // GetPathIndices returns the generalized indices of the nodes on the path from
 // the leaf to the root.
-func (g GeneralizedIndex[RootT]) GetPathIndices() GeneralizedIndicies[RootT] {
+func (g GeneralizedIndex[RootT]) GetPathIndices() GeneralizedIndices[RootT] {
 	// Get the generalized indices of the sister chunks along the path from the
 	// chunk with the
 	// given tree index to the root.
@@ -138,12 +144,12 @@ func (g GeneralizedIndex[RootT]) VerifyMerkleProof(
 
 // Concat multiple generalized indices into a single generalized index
 // representing the path from the first to the last node.
-func (gs GeneralizedIndicies[RootT]) Concat() GeneralizedIndex[RootT] {
+func (gs GeneralizedIndices[RootT]) Concat() GeneralizedIndex[RootT] {
 	o := GeneralizedIndex[RootT](1)
 	for _, i := range gs {
-		floorPower := math.U64(i).PrevPowerOfTwo()
+		floorPower := pow.PrevPowerOfTwo(i)
 		o = GeneralizedIndex[RootT](
-			math.U64(o)*floorPower + (math.U64(i) - floorPower),
+			uint64(o)*uint64(floorPower) + (uint64(i) - uint64(floorPower)),
 		)
 	}
 	return o
@@ -154,8 +160,8 @@ func (gs GeneralizedIndicies[RootT]) Concat() GeneralizedIndex[RootT] {
 // decreasing order is chosen deliberately to ensure equivalence to the order of
 // hashes in a regular single-item Merkle proof in the single-item case.
 func (
-	gs GeneralizedIndicies[RootT],
-) GetHelperIndices() GeneralizedIndicies[RootT] {
+	gs GeneralizedIndices[RootT],
+) GetHelperIndices() GeneralizedIndices[RootT] {
 	allHelperIndices := make(map[GeneralizedIndex[RootT]]struct{})
 	allPathIndices := make(map[GeneralizedIndex[RootT]]struct{})
 
@@ -185,7 +191,7 @@ func (
 
 // CalculateMultiMerkleRoot calculates the Merkle root for multiple leaves with
 // their corresponding proofs and indices.
-func (gs GeneralizedIndicies[RootT]) CalculateMultiMerkleRoot(
+func (gs GeneralizedIndices[RootT]) CalculateMultiMerkleRoot(
 	leaves []RootT,
 	proof []RootT,
 ) (RootT, error) {
@@ -239,7 +245,7 @@ func (gs GeneralizedIndicies[RootT]) CalculateMultiMerkleRoot(
 
 // VerifyMerkleMultiproof verifies the Merkle multiproof by comparing the
 // calculated root with the provided root.
-func (gs GeneralizedIndicies[RootT]) VerifyMerkleMultiproof(
+func (gs GeneralizedIndices[RootT]) VerifyMerkleMultiproof(
 	leaves []RootT,
 	proof []RootT,
 	root RootT,
