@@ -21,8 +21,6 @@
 package core
 
 import (
-	"fmt"
-
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
@@ -56,13 +54,9 @@ func (sp *StateProcessor[
 		math.U64(constants.GenesisEpoch),
 	)
 
-	fmt.Println("BEFORE SETTING SLOT")
-
 	if err := st.SetSlot(0); err != nil {
 		return nil, err
 	}
-
-	fmt.Println("AFTER SETTING SLOT")
 
 	if err := st.SetFork(fork); err != nil {
 		return nil, err
@@ -103,16 +97,12 @@ func (sp *StateProcessor[
 		}
 	}
 
-	fmt.Println("ABOUT TO PROCESS DEPOSITS")
-
 	for _, deposit := range deposits {
 		// TODO: process deposits into eth1 data.
 		if err = sp.processDeposit(st, deposit); err != nil {
 			return nil, err
 		}
 	}
-
-	fmt.Println("AFTER PROCESSING DEPOSITS")
 
 	// TODO: process activations.
 	var validators []ValidatorT
@@ -172,6 +162,5 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 	st.Save()
-	fmt.Println("SAVED!!!")
 	return updates, nil
 }

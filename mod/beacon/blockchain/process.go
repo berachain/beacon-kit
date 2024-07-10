@@ -22,8 +22,6 @@ package blockchain
 
 import (
 	"context"
-	"fmt"
-	"reflect"
 	"time"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
@@ -39,7 +37,6 @@ func (s *Service[
 	ctx context.Context,
 	genesisData GenesisT,
 ) (transition.ValidatorUpdates, error) {
-	fmt.Println("PROCESS GENESIS DATA context type", reflect.TypeOf(ctx))
 	return s.sp.InitializePreminedBeaconStateFromEth1(
 		s.sb.BeaconState(),
 		genesisData.GetDeposits(),
@@ -66,7 +63,6 @@ func (s *Service[
 	// ends up not being valid later, the node will simply AppHash,
 	// which is completely fine. This means we were syncing from a
 	// bad peer, and we would likely AppHash anyways.
-	fmt.Println("PROCESS BEACON BLOCK context type", reflect.TypeOf(ctx))
 	st := s.sb.BeaconState()
 	valUpdates, err := s.executeStateTransition(ctx, st, blk)
 	if err != nil {

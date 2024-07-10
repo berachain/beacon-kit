@@ -22,8 +22,6 @@ package validator
 
 import (
 	"context"
-	"fmt"
-	"reflect"
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
@@ -59,16 +57,13 @@ func (s *Service[
 	// the next finalized block in the chain. A byproduct of this design
 	// is that we get the nice property of lazily propagating the finalized
 	// and safe block hashes to the execution client.
-	fmt.Println("BUILD BLOCK AND SIDECARS context type", reflect.TypeOf(ctx))
 	st := s.bsb.BeaconState()
-	fmt.Println("state from ctx", st)
 
 	// Prepare the state such that it is ready to build a block for
 	// the requested slot
 	if _, err := s.stateProcessor.ProcessSlots(st, requestedSlot); err != nil {
 		return blk, sidecars, err
 	}
-	fmt.Println("PROCESSED")
 
 	// Build the reveal for the current slot.
 	// TODO: We can optimize to pre-compute this in parallel?

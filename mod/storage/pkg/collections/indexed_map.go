@@ -59,7 +59,6 @@ type IndexedMap[PrimaryKey, Value, Idx any] struct {
 	Indexes         Idx
 	computedIndexes []Index[PrimaryKey, Value]
 	m               Map[PrimaryKey, Value]
-	sa              StoreAccessor
 }
 
 // NewIndexedMapSafe behaves like NewIndexedMap but returns errors.

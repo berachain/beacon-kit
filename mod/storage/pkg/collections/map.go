@@ -22,6 +22,7 @@ package collections
 
 import (
 	"bytes"
+	"errors"
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/collections/codec"
@@ -64,7 +65,6 @@ func (m *Map[K, V]) Get(key K) (V, error) {
 	if err != nil {
 		return result, err
 	}
-
 	return m.ValueCodec.Decode(res)
 }
 
@@ -92,11 +92,14 @@ func (m *Map[K, V]) Has(key K) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	res, err := m.storeAccessor().QueryState(m.storeKey, prefixedKey)
+	_, err = m.storeAccessor().QueryState(m.storeKey, prefixedKey)
 	if err != nil {
+		if errors.Is(err, sdkcollections.ErrNotFound) {
+			return false, nil
+		}
 		return false, err
 	}
-	return res == nil, nil
+	return true, nil
 }
 
 // Remove removes the key from the storage.

@@ -69,12 +69,12 @@ func NewMulti[ReferenceKey, PrimaryKey, Value any](
 	}
 }
 
-func (m *Multi[ReferenceKey, PrimaryKey, Value]) Reference(pk PrimaryKey, newValue Value, lazyOldValue func() (Value, error)) error {
+func (multi *Multi[ReferenceKey, PrimaryKey, Value]) Reference(pk PrimaryKey, newValue Value, lazyOldValue func() (Value, error)) error {
 	oldValue, err := lazyOldValue()
 	switch {
 	// if no error it means the value existed, and we need to remove the old indexes
 	case err == nil:
-		err = m.unreference(pk, oldValue)
+		err = multi.unreference(pk, oldValue)
 		if err != nil {
 			return err
 		}
@@ -86,37 +86,37 @@ func (m *Multi[ReferenceKey, PrimaryKey, Value]) Reference(pk PrimaryKey, newVal
 		return err
 	}
 	// create new indexes
-	refKey, err := m.getRefKey(pk, newValue)
+	refKey, err := multi.getRefKey(pk, newValue)
 	if err != nil {
 		return err
 	}
-	return m.refKeys.Set(sdkcollections.Join(refKey, pk))
+	return multi.refKeys.Set(sdkcollections.Join(refKey, pk))
 }
 
-func (m *Multi[ReferenceKey, PrimaryKey, Value]) Unreference(pk PrimaryKey, getValue func() (Value, error)) error {
+func (multi *Multi[ReferenceKey, PrimaryKey, Value]) Unreference(pk PrimaryKey, getValue func() (Value, error)) error {
 	value, err := getValue()
 	if err != nil {
 		return err
 	}
-	return m.unreference(pk, value)
+	return multi.unreference(pk, value)
 }
 
-func (m *Multi[ReferenceKey, PrimaryKey, Value]) unreference(pk PrimaryKey, value Value) error {
-	refKey, err := m.getRefKey(pk, value)
+func (multi *Multi[ReferenceKey, PrimaryKey, Value]) unreference(pk PrimaryKey, value Value) error {
+	refKey, err := multi.getRefKey(pk, value)
 	if err != nil {
 		return err
 	}
-	return m.refKeys.Remove(sdkcollections.Join(refKey, pk))
+	return multi.refKeys.Remove(sdkcollections.Join(refKey, pk))
 }
 
-func (m *Multi[ReferenceKey, PrimaryKey, Value]) Iterate() (MultiIterator[ReferenceKey, PrimaryKey], error) {
-	iter, err := m.refKeys.Iterate()
+func (multi *Multi[ReferenceKey, PrimaryKey, Value]) Iterate() (MultiIterator[ReferenceKey, PrimaryKey], error) {
+	iter, err := multi.refKeys.Iterate()
 	return (MultiIterator[ReferenceKey, PrimaryKey])(iter), err
 }
 
 // MatchExact returns a MultiIterator containing all the primary keys referenced by the provided reference key.
-func (m *Multi[ReferenceKey, PrimaryKey, Value]) MatchExact(refKey ReferenceKey) (MultiIterator[ReferenceKey, PrimaryKey], error) {
-	return m.Iterate()
+func (multi *Multi[ReferenceKey, PrimaryKey, Value]) MatchExact(refKey ReferenceKey) (MultiIterator[ReferenceKey, PrimaryKey], error) {
+	return multi.Iterate()
 }
 
 // MultiIterator is just a KeySetIterator with key as Pair[ReferenceKey, PrimaryKey].

@@ -95,7 +95,7 @@ func NewValidatorsIndex[ValidatorT Validator](
 	return ValidatorsIndex[ValidatorT]{
 		Pubkey: indexes.NewUnique(
 			storeKey,
-			sdkcollections.NewPrefix(validatorPubkeyToIndexPrefix),
+			[]byte(validatorPubkeyToIndexPrefix),
 			sdkcollections.BytesKey,
 			sdkcollections.Uint64Key,
 			sa,
@@ -106,7 +106,7 @@ func NewValidatorsIndex[ValidatorT Validator](
 		),
 		EffectiveBalance: indexes.NewMulti(
 			storeKey,
-			sdkcollections.NewPrefix(validatorEffectiveBalanceToIndexPrefix),
+			[]byte(validatorEffectiveBalanceToIndexPrefix),
 			sdkcollections.Uint64Key,
 			sdkcollections.Uint64Key,
 			sa,
@@ -116,7 +116,7 @@ func NewValidatorsIndex[ValidatorT Validator](
 		),
 		CometBFTAddress: indexes.NewUnique(
 			storeKey,
-			sdkcollections.NewPrefix(validatorConsAddrToIndexPrefix),
+			[]byte(validatorConsAddrToIndexPrefix),
 			sdkcollections.BytesKey,
 			sdkcollections.Uint64Key,
 			sa,

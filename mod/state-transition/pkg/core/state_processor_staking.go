@@ -106,8 +106,6 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	fmt.Println("ABOUT TO APPLY DEPOSIT!!")
-
 	return sp.applyDeposit(st, dep)
 }
 
@@ -150,13 +148,11 @@ func (sp *StateProcessor[
 		epoch                 math.Epoch
 		err                   error
 	)
-
 	// Get the current slot.
 	slot, err := st.GetSlot()
 	if err != nil {
 		return err
 	}
-
 	// At genesis, the validators sign over an empty root.
 	if slot == 0 {
 		genesisValidatorsRoot = common.Root{}
@@ -167,7 +163,6 @@ func (sp *StateProcessor[
 			return err
 		}
 	}
-
 	// Get the current epoch.
 	epoch = sp.cs.SlotToEpoch(slot)
 
@@ -186,7 +181,11 @@ func (sp *StateProcessor[
 	}
 
 	// Add the validator to the registry.
-	return sp.addValidatorToRegistry(st, dep)
+	if err := sp.addValidatorToRegistry(st, dep); err != nil {
+		return err
+	}
+	fmt.Println("EVERYTHING GOOD ABOUT THIS VALIDATOR YIPEEE")
+	return nil
 }
 
 // addValidatorToRegistry adds a validator to the registry.
@@ -214,7 +213,6 @@ func (sp *StateProcessor[
 	} else if err := st.AddValidator(val); err != nil {
 		return err
 	}
-
 	idx, err := st.ValidatorIndexByPubkey(val.GetPubkey())
 	if err != nil {
 		return err

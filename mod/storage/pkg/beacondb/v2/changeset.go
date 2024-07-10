@@ -20,7 +20,11 @@
 
 package beacondb
 
-import "cosmossdk.io/core/store"
+import (
+	"fmt"
+
+	"cosmossdk.io/core/store"
+)
 
 // Changeset is a wrapper around store.Changeset that holds a map of changes
 // for more efficient querying
@@ -47,7 +51,7 @@ func NewChangesetWithPairs(pairs map[string]store.KVPairs) *Changeset {
 	}
 	for storeKey, kvPairs := range pairs {
 		for _, pair := range kvPairs {
-			cs.changes[string(storeKey)+string(pair.Key)] = pair.Value
+			cs.changes[buildPath([]byte(storeKey), pair.Key)] = pair.Value
 		}
 	}
 	return cs
@@ -55,25 +59,34 @@ func NewChangesetWithPairs(pairs map[string]store.KVPairs) *Changeset {
 
 // Add adds a change to the changeset and changes map
 func (cs *Changeset) Add(storeKey, key, value []byte, remove bool) {
+	keyPath := buildPath(storeKey, key)
 	// add/remove the change to the map of changes
 	if remove {
-		cs.changes[string(storeKey)+string(key)] = nil
+		cs.changes[keyPath] = nil
 	} else {
-		cs.changes[string(storeKey)+string(key)] = value
+		cs.changes[keyPath] = value
 	}
+	fmt.Println("ADDING CHANGE TO CHANGESET", keyPath, value, remove)
 	cs.Changeset.Add(storeKey, key, value, remove)
 }
 
 // AddKVPair adds a KVPair to the Changeset and changes map
 func (cs *Changeset) AddKVPair(storeKey []byte, pair store.KVPair) {
 	cs.Add(storeKey, pair.Key, pair.Value, pair.Remove)
-	cs.Changeset.Add(storeKey, pair.Key, pair.Value, pair.Remove)
 }
 
 // Query queries the changeset with the given store key and key
 func (cs *Changeset) Query(storeKey []byte, key []byte) ([]byte, bool) {
-	if value, found := cs.changes[string(storeKey)+string(key)]; found {
+	keyPath := buildPath(storeKey, key)
+	fmt.Println("QUERYING CHANGESET WITH ", keyPath)
+	fmt.Println("KEY", key)
+	if value, found := cs.changes[keyPath]; found {
+		fmt.Println("FUCKING FOUND")
 		return value, true
 	}
 	return nil, false
+}
+
+func buildPath(storeKey []byte, key []byte) string {
+	return string(append(storeKey, key...))
 }

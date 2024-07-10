@@ -21,6 +21,8 @@
 package beacondb
 
 import (
+	"fmt"
+
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/runtime/v2"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
@@ -280,17 +282,24 @@ func (s *Store[
 func (s *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
 ]) QueryState(storeKey, key []byte) ([]byte, error) {
+	// first query the change set
 	value, found := s.changeSet.Query(storeKey, key)
 	if found {
 		return value, nil
 	}
+	fmt.Println("NOT FOUND")
+	// query the underlying store with the latest version
 	version, err := s.GetLatestVersion()
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("VERSION VERSION:", version)
 	resp, err := s.Query(storeKey, version, key, false)
 	if err != nil {
 		return nil, err
+	}
+	if resp.Value == nil {
+		return nil, sdkcollections.ErrNotFound
 	}
 	return resp.Value, nil
 }
