@@ -127,6 +127,7 @@ start-geth-validator-run:
 	--rpc.evmtimeout "10s" \
 	--txpool.globalslots 1000000 \
 	--txpool.globalqueue 3000000 \
+	--http.vhosts "*" \
 	--nat extip:${INTERNAL_IP}
 
 start-geth-node-run:
