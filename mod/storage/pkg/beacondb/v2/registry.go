@@ -21,6 +21,8 @@
 package beacondb
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/collections/indexes"
@@ -150,8 +152,9 @@ func (s *Store[
 	if err != nil {
 		return nil, err
 	}
-
+	fmt.Println("NOT GETTING ERROR AFTER ITERATE")
 	for iter.Valid() {
+		fmt.Println("ABOUT TO RETRIEVE VALUE")
 		val, err = iter.Value()
 		if err != nil {
 			return nil, err
@@ -159,7 +162,7 @@ func (s *Store[
 		vals = append(vals, val)
 		iter.Next()
 	}
-
+	fmt.Println("HENLO AFTER ITERATE")
 	return vals, nil
 }
 

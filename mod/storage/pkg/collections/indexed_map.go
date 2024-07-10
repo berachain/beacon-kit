@@ -58,7 +58,7 @@ type Index[PrimaryKey, Value any] interface {
 type IndexedMap[PrimaryKey, Value, Idx any] struct {
 	Indexes         Idx
 	computedIndexes []Index[PrimaryKey, Value]
-	m               Map[PrimaryKey, Value]
+	primaryMap      Map[PrimaryKey, Value]
 }
 
 // NewIndexedMapSafe behaves like NewIndexedMap but returns errors.
@@ -85,7 +85,7 @@ func NewIndexedMapSafe[K, V, I any](
 	return &IndexedMap[K, V, I]{
 		computedIndexes: indexesList,
 		Indexes:         indexes,
-		m:               NewMap(storeKey, keyPrefix, pkCodec, valueCodec, sa),
+		primaryMap:      NewMap(storeKey, keyPrefix, pkCodec, valueCodec, sa),
 	}, nil
 }
 
@@ -141,39 +141,39 @@ func NewIndexedMap[K, V, I any](
 }
 
 // Get gets the object given its primary key.
-func (m *IndexedMap[PrimaryKey, Value, Idx]) Get(pk PrimaryKey) (Value, error) {
-	return m.m.Get(pk)
+func (im *IndexedMap[PrimaryKey, Value, Idx]) Get(pk PrimaryKey) (Value, error) {
+	return im.primaryMap.Get(pk)
 }
 
 // Iterate allows to iterate over the objects given a Ranger of the primary key.
-func (m *IndexedMap[PrimaryKey, Value, Idx]) Iterate() (sdkcollections.Iterator[PrimaryKey, Value], error) {
-	return m.m.Iterate()
+func (im *IndexedMap[PrimaryKey, Value, Idx]) Iterate() (sdkcollections.Iterator[PrimaryKey, Value], error) {
+	return im.primaryMap.Iterate()
 }
 
 // Has reports if exists a value with the provided primary key.
-func (m *IndexedMap[PrimaryKey, Value, Idx]) Has(pk PrimaryKey) (bool, error) {
-	return m.m.Has(pk)
+func (im *IndexedMap[PrimaryKey, Value, Idx]) Has(pk PrimaryKey) (bool, error) {
+	return im.primaryMap.Has(pk)
 }
 
 // Set maps the value using the primary key. It will also iterate every index and instruct them to
 // add or update the indexes.
-func (m *IndexedMap[PrimaryKey, Value, Idx]) Set(pk PrimaryKey, value Value) error {
-	err := m.ref(pk, value)
+func (im *IndexedMap[PrimaryKey, Value, Idx]) Set(pk PrimaryKey, value Value) error {
+	err := im.ref(pk, value)
 	if err != nil {
 		return err
 	}
-	return m.m.Set(pk, value)
+	return im.primaryMap.Set(pk, value)
 }
 
 // Remove removes the value associated with the primary key from the map. Then
 // it iterates over all the indexes and instructs them to remove all the references
 // associated with the removed value.
-func (m *IndexedMap[PrimaryKey, Value, Idx]) Remove(pk PrimaryKey) error {
-	err := m.unref(pk)
+func (im *IndexedMap[PrimaryKey, Value, Idx]) Remove(pk PrimaryKey) error {
+	err := im.unref(pk)
 	if err != nil {
 		return err
 	}
-	return m.m.Remove(pk)
+	return im.primaryMap.Remove(pk)
 }
 
 // // Walk applies the same semantics as Map.Walk.
@@ -182,21 +182,21 @@ func (m *IndexedMap[PrimaryKey, Value, Idx]) Remove(pk PrimaryKey) error {
 // }
 
 // IterateRaw iterates the IndexedMap using raw bytes keys. Follows the same semantics as Map.IterateRaw
-func (m *IndexedMap[PrimaryKey, Value, Idx]) IterateRaw(start, end []byte) (sdkcollections.Iterator[PrimaryKey, Value], error) {
-	return m.m.IterateRaw(start, end)
+func (im *IndexedMap[PrimaryKey, Value, Idx]) IterateRaw(start, end []byte) (sdkcollections.Iterator[PrimaryKey, Value], error) {
+	return im.primaryMap.IterateRaw(start, end)
 }
 
-func (m *IndexedMap[PrimaryKey, Value, Idx]) KeyCodec() codec.KeyCodec[PrimaryKey] {
-	return m.m.KeyCodec
+func (im *IndexedMap[PrimaryKey, Value, Idx]) KeyCodec() codec.KeyCodec[PrimaryKey] {
+	return im.primaryMap.KeyCodec
 }
 
-func (m *IndexedMap[PrimaryKey, Value, Idx]) ValueCodec() codec.ValueCodec[Value] {
-	return m.m.ValueCodec
+func (im *IndexedMap[PrimaryKey, Value, Idx]) ValueCodec() codec.ValueCodec[Value] {
+	return im.primaryMap.ValueCodec
 }
 
-func (m *IndexedMap[PrimaryKey, Value, Idx]) ref(pk PrimaryKey, value Value) error {
-	for _, index := range m.computedIndexes {
-		err := index.Reference(pk, value, cachedGet[PrimaryKey, Value](m, pk))
+func (im *IndexedMap[PrimaryKey, Value, Idx]) ref(pk PrimaryKey, value Value) error {
+	for _, index := range im.computedIndexes {
+		err := index.Reference(pk, value, cachedGet[PrimaryKey, Value](im, pk))
 		if err != nil {
 			return err
 		}
@@ -204,9 +204,9 @@ func (m *IndexedMap[PrimaryKey, Value, Idx]) ref(pk PrimaryKey, value Value) err
 	return nil
 }
 
-func (m *IndexedMap[PrimaryKey, Value, Idx]) unref(pk PrimaryKey) error {
-	for _, index := range m.computedIndexes {
-		err := index.Unreference(pk, cachedGet[PrimaryKey, Value](m, pk))
+func (im *IndexedMap[PrimaryKey, Value, Idx]) unref(pk PrimaryKey) error {
+	for _, index := range im.computedIndexes {
+		err := index.Unreference(pk, cachedGet[PrimaryKey, Value](im, pk))
 		if err != nil {
 			return err
 		}

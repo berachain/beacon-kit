@@ -21,6 +21,8 @@
 package core
 
 import (
+	"fmt"
+
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
@@ -96,21 +98,22 @@ func (sp *StateProcessor[
 			return nil, err
 		}
 	}
-
+	st.Save()
 	for _, deposit := range deposits {
+		fmt.Println("DEPOSIT, ", deposit)
 		// TODO: process deposits into eth1 data.
 		if err = sp.processDeposit(st, deposit); err != nil {
 			return nil, err
 		}
 	}
-
+	fmt.Println("DEPOSIT DONE??")
 	// TODO: process activations.
 	var validators []ValidatorT
 	validators, err = st.GetValidators()
 	if err != nil {
 		return nil, err
 	}
-
+	st.Save()
 	var validatorsRoot common.Root
 	merkleizer := merkleizer.New[[32]byte, ValidatorT]()
 	validatorsRoot, err = merkleizer.MerkleizeListComposite(
