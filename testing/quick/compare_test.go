@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package ssz_test
+package compare_test
 
 import (
 	"testing"
@@ -28,14 +28,31 @@ import (
 	ztyp "github.com/protolambda/ztyp/tree"
 )
 
-func TestListHashTreeRootZtyp(t *testing.T) {
-	hFn := ztyp.GetHashFn()
+var hFn = ztyp.GetHashFn()
 
+func TestListHashTreeRootZtyp(t *testing.T) {
 	f := func(s []byte, limit uint64) bool {
 		a := ssz.ByteListFromBytes(s, limit)
 
 		root1, err := a.HashTreeRoot()
 		root2 := hFn.ByteListHTR(s, limit)
+		if err != nil {
+			return false
+		}
+		return root1 == [32]byte(root2)
+	}
+	c := quick.Config{MaxCount: 1000000}
+	if err := quick.Check(f, &c); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestVectorHashTreeRootZTyp(t *testing.T) {
+	f := func(s []byte) bool {
+		a := ssz.ByteVectorFromBytes(s)
+
+		root1, err := a.HashTreeRoot()
+		root2 := hFn.ByteVectorHTR(s)
 		if err != nil {
 			return false
 		}

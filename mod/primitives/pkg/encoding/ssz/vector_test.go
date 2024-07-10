@@ -22,11 +22,9 @@ package ssz_test
 
 import (
 	"testing"
-	"testing/quick"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	ztyp "github.com/protolambda/ztyp/tree"
 	"github.com/stretchr/testify/require"
 )
 
@@ -93,23 +91,4 @@ func TestVectorHashTreeRoot(t *testing.T) {
 		require.NoError(t, err2)
 		require.Equal(t, root1, root2)
 	})
-}
-
-func TestVectorHashTreeRootZTyp(t *testing.T) {
-	hFn := ztyp.GetHashFn()
-
-	f := func(s []byte) bool {
-		a := ssz.ByteVectorFromBytes(s)
-
-		root1, err := a.HashTreeRoot()
-		root2 := hFn.ByteVectorHTR(s)
-		if err != nil {
-			return false
-		}
-		return root1 == [32]byte(root2)
-	}
-	c := quick.Config{MaxCount: 1000000}
-	if err := quick.Check(f, &c); err != nil {
-		t.Error(err)
-	}
 }
