@@ -26,7 +26,6 @@ import (
 	"reflect"
 
 	"cosmossdk.io/core/transaction"
-	sdktransaction "cosmossdk.io/core/transaction"
 	"cosmossdk.io/server/v2/cometbft/handlers"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
@@ -39,7 +38,7 @@ import (
 func NewConsensusEngine[
 	T transaction.Tx, ValidatorUpdateT any,
 ](
-	txCodec sdktransaction.Codec[T],
+	txCodec transaction.Codec[T],
 	m Middleware,
 ) *ConsensusEngine[T, ValidatorUpdateT] {
 	return &ConsensusEngine[T, ValidatorUpdateT]{
@@ -53,7 +52,7 @@ func NewConsensusEngine[
 // eventually fully decouple this.
 type ConsensusEngine[T transaction.Tx, ValidatorUpdateT any] struct {
 	Middleware
-	txCodec    sdktransaction.Codec[T]
+	txCodec    transaction.Codec[T]
 	valUpdates transition.ValidatorUpdates
 }
 
@@ -128,9 +127,8 @@ func (c *ConsensusEngine[T, ValidatorUpdateT]) EndBlock(
 	return nil
 }
 
-func (c *ConsensusEngine[T, ValidatorUpdateT]) UpdateValidators(
-	ctx context.Context,
-) ([]ValidatorUpdateT, error) {
+func (c *ConsensusEngine[T, ValidatorUpdateT]) UpdateValidators() (
+	[]ValidatorUpdateT, error) {
 	return iter.MapErr[
 		*transition.ValidatorUpdate, ValidatorUpdateT,
 	](c.valUpdates, convertValidatorUpdate)

@@ -21,6 +21,7 @@
 package collections
 
 func query(store Store, storeKey, key []byte) ([]byte, error) {
+
 	version, err := store.GetLatestVersion()
 	if err != nil {
 		return nil, err

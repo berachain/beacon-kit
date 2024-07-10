@@ -60,7 +60,7 @@ func (m *Map[K, V]) Get(key K) (V, error) {
 	if err != nil {
 		return result, err
 	}
-	res, err := query(m.storeAccessor(), m.storeKey, prefixedKey)
+	res, err := m.storeAccessor().QueryState(m.storeKey, prefixedKey)
 	if err != nil {
 		return result, err
 	}
@@ -75,12 +75,11 @@ func (m *Map[K, V]) Set(key K, value V) error {
 	if err != nil {
 		return err
 	}
-	store := m.storeAccessor()
 	encodedValue, err := m.ValueCodec.Encode(value)
 	if err != nil {
 		return err
 	}
-	store.AddChange(m.storeKey, prefixedKey, encodedValue)
+	m.storeAccessor().AddChange(m.storeKey, prefixedKey, encodedValue)
 	return nil
 }
 
@@ -93,7 +92,7 @@ func (m *Map[K, V]) Has(key K) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	res, err := query(m.storeAccessor(), m.storeKey, prefixedKey)
+	res, err := m.storeAccessor().QueryState(m.storeKey, prefixedKey)
 	if err != nil {
 		return false, err
 	}
@@ -110,8 +109,7 @@ func (m *Map[K, V]) Remove(key K) error {
 	if err != nil {
 		return err
 	}
-	store := m.storeAccessor()
-	store.AddChange(m.storeKey, prefixedKey, nil)
+	m.storeAccessor().AddChange(m.storeKey, prefixedKey, nil)
 	return nil
 }
 
@@ -145,7 +143,9 @@ func (m *Map[K, V]) IterateRaw(
 		return sdkcollections.Iterator[K, V]{}, err
 	}
 	reader, err = readerMap.GetReader(m.storeKey)
-
+	if err != nil {
+		return sdkcollections.Iterator[K, V]{}, err
+	}
 	iter, err = reader.Iterator(start, end)
 	if err != nil {
 		return sdkcollections.Iterator[K, V]{}, err

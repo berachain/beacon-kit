@@ -47,7 +47,7 @@ func NewItem[V any](
 
 func (i *Item[V]) Get() (V, error) {
 	var result V
-	res, err := query(i.storeAccessor(), i.storeKey, i.key)
+	res, err := i.storeAccessor().QueryState(i.storeKey, i.key)
 	if err != nil {
 		return result, err
 	}
@@ -56,11 +56,10 @@ func (i *Item[V]) Get() (V, error) {
 }
 
 func (i *Item[V]) Set(value V) error {
-	store := i.storeAccessor()
 	encodedValue, err := i.valueCodec.Encode(value)
 	if err != nil {
 		return err
 	}
-	store.AddChange(i.storeKey, i.key, encodedValue)
+	i.storeAccessor().AddChange(i.storeKey, i.key, encodedValue)
 	return nil
 }

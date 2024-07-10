@@ -27,6 +27,7 @@ import (
 type Store interface {
 	runtime.Store
 	AddChange([]byte, []byte, []byte)
+	QueryState([]byte, []byte) ([]byte, error)
 }
 
 type StoreAccessor func() Store

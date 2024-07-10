@@ -163,7 +163,7 @@ func (am AppModule[T, ValidatorUpdateT]) EndBlock(
 func (am AppModule[T, ValidatorUpdateT]) UpdateValidators(
 	ctx context.Context,
 ) ([]ValidatorUpdateT, error) {
-	return am.consensusEngine.UpdateValidators(ctx)
+	return am.consensusEngine.UpdateValidators()
 }
 
 // proto will be sad that tendermint afk if we don't have this here

@@ -21,7 +21,6 @@
 package beacondb
 
 import (
-	"cosmossdk.io/core/store"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -31,9 +30,6 @@ func (s *Store[
 ]) SetGenesisValidatorsRoot(
 	root common.Root,
 ) error {
-	if s.changeSet == nil {
-		s.changeSet = store.NewChangeset()
-	}
 	s.changeSet.Add([]byte("genesis"), []byte("genesis_validator_root"), root[:], false)
 	return nil
 }

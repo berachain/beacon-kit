@@ -22,7 +22,6 @@ package beacondb
 
 import (
 	sdkcollections "cosmossdk.io/collections"
-	"cosmossdk.io/core/store"
 	"cosmossdk.io/runtime/v2"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
@@ -46,7 +45,7 @@ type Store[
 	ValidatorT Validator,
 ] struct {
 	runtime.Store
-	changeSet *store.Changeset
+	changeSet *Changeset
 	// Versioning
 	// genesisValidatorsRoot is the root of the genesis validators.
 	genesisValidatorsRoot collections.Item[[]byte]
@@ -121,7 +120,7 @@ func New[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 		ForkT, ValidatorT,
 	]{
-		changeSet: store.NewChangeset(),
+		changeSet: NewChangeset(),
 	}
 
 	store.genesisValidatorsRoot = collections.NewItem(
@@ -250,12 +249,12 @@ func (s *Store[
 ]) Save() {
 	// reset the changeset following the commit
 	defer func() {
-		s.changeSet = store.NewChangeset()
+		s.changeSet = NewChangeset()
 	}()
 	if s.changeSet.Size() == 0 {
 		return
 	}
-	s.Store.Commit(s.changeSet)
+	s.Store.Commit(s.changeSet.Changeset)
 }
 
 // TODO: deprecate
@@ -273,6 +272,27 @@ func (s *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
 ]) AddChange(storeKey []byte, key []byte, value []byte) {
 	s.changeSet.Add(storeKey, key, value, false)
+}
+
+// QueryState queries and returns the value with the given storeKey and key.
+// It will first query the working changeset, and if it misses it will query the
+// store.
+func (s *Store[
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
+]) QueryState(storeKey, key []byte) ([]byte, error) {
+	value, found := s.changeSet.Query(storeKey, key)
+	if found {
+		return value, nil
+	}
+	version, err := s.GetLatestVersion()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := s.Query(storeKey, version, key, false)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Value, nil
 }
 
 func (s *Store[

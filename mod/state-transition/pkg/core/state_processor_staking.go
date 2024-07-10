@@ -21,6 +21,8 @@
 package core
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -93,7 +95,6 @@ func (sp *StateProcessor[
 	// ) {
 	// 	return errors.New("invalid merkle branch")
 	// }
-
 	depositIndex, err := st.GetEth1DepositIndex()
 	if err != nil {
 		return err
@@ -104,6 +105,8 @@ func (sp *StateProcessor[
 	); err != nil {
 		return err
 	}
+
+	fmt.Println("ABOUT TO APPLY DEPOSIT!!")
 
 	return sp.applyDeposit(st, dep)
 }
