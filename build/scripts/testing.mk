@@ -178,7 +178,17 @@ start-ethereumjs:
 	--rpcEngine \
 	--jwtSecret ../../$(JWT_PATH) \
 	--rpcEngineAddr 0.0.0.0 \
-	--dataDir .tmp/ethereumjs
+	--dataDir .tmp/ethereumjs \
+	--rpcAddr 0.0.0.0 \
+	--rpc \
+    --rpcCors=* \
+	--isSingleNode \
+	--ws \
+	--rpcEngineAuth \
+    --rpcEnginePort=8551 \
+    --sync=full
+
+
 
 SHORT_FUZZ_TIME=10s
 MEDIUM_FUZZ_TIME=30s
