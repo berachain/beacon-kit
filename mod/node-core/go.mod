@@ -20,7 +20,7 @@ require (
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240710022902-57d64ab384c7
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/consensus v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240710023256-e9246f6a35e1
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240710022615-726645827bad
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240710022615-726645827bad
@@ -29,9 +29,9 @@ require (
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240710021622-37e8e3e7e155
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240710022448-e56f337d051f
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240710022902-57d64ab384c7
-	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240705193247-d464364483df
+	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240710023256-e9246f6a35e1
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240705193247-d464364483df
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240705183350-8b262bdd1d36
 	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240702102754-c4fa9a6225b0
@@ -49,8 +49,6 @@ require (
 require (
 	github.com/VictoriaMetrics/fastcache v1.12.2 // indirect
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df // indirect
-	github.com/bufbuild/protocompile v0.14.0 // indirect
-	github.com/cespare/cp v1.1.1 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a // indirect
 	github.com/holiman/bloomfilter/v2 v2.0.3 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
