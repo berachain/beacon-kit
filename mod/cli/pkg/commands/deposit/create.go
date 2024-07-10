@@ -22,7 +22,6 @@ package deposit
 
 import (
 	"crypto/ecdsa"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 	"net/url"
 	"os"
@@ -46,6 +45,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	gethcommon "github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	gethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/spf13/cobra"
 )
