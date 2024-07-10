@@ -77,7 +77,7 @@ require (
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240705193247-d464364483df // indirect
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240618214413-d5ec0e66b3dd // indirect
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df // indirect
-	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240705193247-d464364483df // indirect
+	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240710022902-57d64ab384c7 // indirect
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240705193247-d464364483df // indirect
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240705193247-d464364483df // indirect
 	github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816 // indirect

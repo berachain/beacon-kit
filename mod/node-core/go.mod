@@ -18,7 +18,7 @@ require (
 	cosmossdk.io/store/v2 v2.0.0-20240515130459-16437119e0d8
 	cosmossdk.io/x/tx v0.13.4-0.20240623110059-dec2d5583e39
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240705193247-d464364483df
+	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240710022902-57d64ab384c7
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/consensus v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240710022615-726645827bad
@@ -30,7 +30,7 @@ require (
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240710021622-37e8e3e7e155
-	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240705193247-d464364483df
+	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240710022902-57d64ab384c7
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240705193247-d464364483df
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240705183350-8b262bdd1d36
