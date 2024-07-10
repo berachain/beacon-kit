@@ -74,13 +74,13 @@ export CHAIN_SPEC="devnet"
 if [[ $overwrite == "y" || $overwrite == "Y" || $3 == "onlyInit" ]]; then
 	rm -rf $HOMEDIR
 
-  ./build/bin/beacond init $MONIKER \
-      --chain-id $CHAINID \
-      --home $HOMEDIR \
-      --consensus-key-algo $CONSENSUS_KEY_ALGO
-
 	if [ $2 == "validator" ]; then
-  	cp -rf "./testing/files/beacond-validator-$3/*" $HOMEDIR/
+  	cp -rf "./testing/files/beacond-validator-$3" $HOMEDIR/
+  else
+    ./build/bin/beacond init $MONIKER \
+    --chain-id $CHAINID \
+    --home $HOMEDIR \
+    --consensus-key-algo $CONSENSUS_KEY_ALGO
   fi
 
 	if [ $3 == "onlyInit" ]; then
