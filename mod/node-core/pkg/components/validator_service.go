@@ -70,10 +70,10 @@ func ProvideValidatorService(
 		*BlobSidecars,
 		*Deposit,
 		*DepositStore,
-		*types.Eth1Data,
+		*Eth1Data,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
-		*types.ForkData,
+		*ForkData,
 	](
 		&in.Cfg.Validator,
 		in.Logger.With("service", "validator"),
