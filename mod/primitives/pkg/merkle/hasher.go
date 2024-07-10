@@ -21,205 +21,53 @@
 package merkle
 
 import (
-	"runtime"
-	"unsafe"
-
-	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes/buffer"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
-	"github.com/prysmaticlabs/gohashtree"
-	"golang.org/x/sync/errgroup"
+	"encoding/binary"
 )
 
-const (
-	// MinParallelizationSize is the minimum size of the input list that
-	// should be hashed using the default method. If the input list is smaller
-	// than this size, the overhead of parallelizing the hashing process is.
-	//
-	// TODO: This value is arbitrary and should be benchmarked to find the
-	// optimal value.
-	MinParallelizationSize = 5000
-	// two is a constant to make the linter happy.
-	two = 2
-)
-
-// RootHashFn is a function that hashes the input leaves into the output.
-type RootHashFn[RootT ~[32]byte] func(output, input []RootT) error
-
-// RootHasher is a struct that hashes the input leaves into the output.
-type RootHasher[RootT ~[32]byte] struct {
-	// Hasher is the underlying hasher for combi and mixins.
-	crypto.Hasher[RootT]
-	// rootHashFn is the underlying root hasher for the tree.
-	rootHashFn RootHashFn[RootT]
-	// bytesBuffer is a buffer to store the output of the hashing process.
-	bytesBuffer *buffer.ReusableBuffer[RootT]
+// Hasher can be re-used for efficiently conducting multiple rounds of hashing.
+type Hasher[T ~[32]byte] interface {
+	Hash(a []byte) T
+	Combi(a, b T) T
+	MixIn(a T, i uint64) T
 }
 
-// NewRootHasher constructs a new RootHasher.
-func NewRootHasher[RootT ~[32]byte](
-	hasher crypto.Hasher[RootT],
-	rootHashFn RootHashFn[RootT],
-) *RootHasher[RootT] {
-	return &RootHasher[RootT]{
-		Hasher:      hasher,
-		rootHashFn:  rootHashFn,
-		bytesBuffer: buffer.NewReusableBuffer[RootT](),
+// HashFn is the generic hash function signature.
+type HashFn func(input []byte) [32]byte
+
+// hasher holds a underlying byte slice to efficiently conduct
+// multiple rounds of hashing.
+type hasher[T ~[32]byte] struct {
+	b        [64]byte
+	hashFunc HashFn
+}
+
+// NewHasher is the constructor for the object that fulfills
+// the Hasher interface.
+func NewHasher[T ~[32]byte](h HashFn) Hasher[T] {
+	return &hasher[T]{
+		b:        [64]byte{},
+		hashFunc: h,
 	}
 }
 
-// NewRootWithMaxLeaves constructs a Merkle tree root from a set of.
-func (rh *RootHasher[RootT]) NewRootWithMaxLeaves(
-	leaves []RootT,
-	limit math.U64,
-) (RootT, error) {
-	count := math.U64(len(leaves))
-	if count > limit {
-		return zero.Hashes[0], errors.New("number of leaves exceeds limit")
-	}
-	if limit == 0 {
-		return zero.Hashes[0], nil
-	}
-	if limit == 1 && count == 1 {
-		return leaves[0], nil
-	}
-
-	return rh.NewRootWithDepth(
-		leaves,
-		count.NextPowerOfTwo().ILog2Ceil(),
-		limit.NextPowerOfTwo().ILog2Ceil(),
-	)
+// Hash utilizes the provided hash function for the object.
+func (h *hasher[T]) Hash(a []byte) T {
+	return T(h.hashFunc(a))
 }
 
-// NewRootWithDepth constructs a Merkle tree root from a set of leaves.
-func (rh *RootHasher[RootT]) NewRootWithDepth(
-	leaves []RootT,
-	depth uint8,
-	limitDepth uint8,
-) (RootT, error) {
-	// Short-circuit to getting memory from the buffer.
-	if len(leaves) == 0 {
-		return zero.Hashes[limitDepth], nil
-	}
-
-	var err error
-	for i := range depth {
-		layerLen := len(leaves)
-		if layerLen%two == 1 {
-			leaves = append(leaves, zero.Hashes[i])
-		}
-
-		outputLen := (layerLen + 1) / two
-		output := rh.bytesBuffer.Get(outputLen)
-		if err = rh.rootHashFn(output, leaves); err != nil {
-			return zero.Hashes[limitDepth], err
-		}
-
-		leaves = leaves[:outputLen]
-		copy(leaves, output)
-	}
-
-	// If something went wrong, return the zero hash of limitDepth.
-	if len(leaves) != 1 {
-		return zero.Hashes[limitDepth], nil
-	}
-
-	// Handle the case where the tree is not full.
-	h := leaves[0]
-	for j := depth; j < limitDepth; j++ {
-		h = rh.Combi(h, zero.Hashes[j])
-	}
-
-	return h, nil
+// Combi appends the two inputs and hashes them.
+func (h *hasher[T]) Combi(a, b T) T {
+	copy(h.b[:32], a[:])
+	copy(h.b[32:], b[:])
+	return h.Hash(h.b[:])
 }
 
-// BuildParentTreeRoots calls BuildParentTreeRootsWithNRoutines to
-// parallelize the hashing process.
-func BuildParentTreeRoots[RootT ~[32]byte](
-	outputList, inputList []RootT,
-) error {
-	return BuildParentTreeRootsWithNRoutines(
-		//#nosec:G103 // on purpose.
-		*(*[][32]byte)(unsafe.Pointer(&outputList)),
-		//#nosec:G103 // on purpose.
-		*(*[][32]byte)(unsafe.Pointer(&inputList)),
-		MinParallelizationSize,
-	)
-}
-
-// BuildParentTreeRootsWithNRoutines optimizes hashing of a list of roots
-// using CPU-specific vector instructions and parallel processing. This
-// method adapts to the host machine's hardware for potential performance
-// gains over sequential hashing.
+// MixIn works like Combi, but using an integer as the second input.
 //
-// NOTE: Currently we use `runtime.GOMAXPROCS(0)-1` as the number of
-// goroutines to use.
-//
-// TODO: We do not use generics here due to the gohashtree library not
-// supporting generics.
-func BuildParentTreeRootsWithNRoutines(
-	outputList, inputList [][32]byte, minParallelizationSize int,
-) error {
-	// Validate input list length.
-	inputLength := len(inputList)
-	if inputLength%2 != 0 {
-		return ErrOddLengthTreeRoots
-	}
-
-	// If the input list is small, hash it using the default method since
-	// the overhead of parallelizing the hashing process is not worth it.
-	if inputLength < minParallelizationSize {
-		return gohashtree.Hash(outputList, inputList)
-	}
-
-	// Get the number of goroutines to use.
-	//
-	// TODO: parameterize n and allow this to be specified by caller.
-	n := runtime.GOMAXPROCS(0) - 1
-
-	// Otherwise parallelize the hashing process for large inputs.
-	groupSize := inputLength / (two * (n + 1))
-	twiceGroupSize := two * groupSize
-	eg := new(errgroup.Group)
-
-	// If n is 0 the parallelization is disabled and the whole inputList is
-	// hashed in the main goroutine at the end of this function.
-	for j := range n {
-		eg.Go(func() error {
-			// inputList:  [-------------------2*groupSize-------------------]
-			//        ______^           ____^               ^               ^
-			//       |                 |                    |               |
-			// j*2*groupSize   (j+1)*2*groupSize    (j+2)*2*groupSize      End
-			//
-			// outputList:   [---------groupSize---------]
-			//                ^                         ^
-			//                |                         |
-			//           j*groupSize             (j+1)*groupSize
-			//
-			// Each goroutine processes a segment of inputList that is twice as
-			// large as the segment it fills in outputList. This is because the
-			// hash operation reduces the size of the input by half.
-
-			// Define the segment of the inputList each goroutine will process.
-			segmentStart := j * twiceGroupSize
-			segmentEnd := (j + 1) * twiceGroupSize
-
-			return gohashtree.Hash(
-				outputList[j*groupSize:],
-				inputList[segmentStart:segmentEnd],
-			)
-		})
-	}
-
-	// Hash the last segment of the inputList.
-	if err := gohashtree.Hash(
-		outputList[n*groupSize:],
-		inputList[n*twiceGroupSize:],
-	); err != nil {
-		return err
-	}
-
-	return eg.Wait()
+//nolint:mnd // its okay.
+func (h *hasher[T]) MixIn(a T, i uint64) T {
+	copy(h.b[:32], a[:])
+	copy(h.b[32:], make([]byte, 32))
+	binary.LittleEndian.PutUint64(h.b[32:], i)
+	return h.Hash(h.b[:])
 }

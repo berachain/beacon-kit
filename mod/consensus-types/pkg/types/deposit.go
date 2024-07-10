@@ -24,7 +24,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkleizer"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -83,7 +83,7 @@ type Deposits []*Deposit
 // HashTreeRoot returns the hash tree root of the Withdrawals list.
 func (d Deposits) HashTreeRoot() (common.Root, error) {
 	// TODO: read max deposits from the chain spec.
-	merkleizer := merkleizer.New[[32]byte, *Deposit]()
+	merkleizer := merkle.NewMerkleizer[[32]byte, *Deposit]()
 	return merkleizer.MerkleizeListComposite(
 		d, constants.MaxDepositsPerBlock,
 	)

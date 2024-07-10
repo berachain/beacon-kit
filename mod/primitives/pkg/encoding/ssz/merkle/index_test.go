@@ -18,12 +18,12 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package tree_test
+package merkle_test
 
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/tree"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/stretchr/testify/require"
 )
 
@@ -31,7 +31,7 @@ func TestNewGeneralizedIndex(t *testing.T) {
 	tests := []struct {
 		depth  uint8
 		index  uint64
-		expect tree.GeneralizedIndex[[32]byte]
+		expect merkle.GeneralizedIndex[[32]byte]
 	}{
 		{depth: 0, index: 0, expect: 1},
 		{depth: 1, index: 1, expect: 3},
@@ -40,7 +40,10 @@ func TestNewGeneralizedIndex(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		result := tree.NewGeneralizedIndex[[32]byte](tt.depth, tt.index)
+		result := merkle.NewGeneralizedIndex[[32]byte](
+			tt.depth,
+			tt.index,
+		)
 		require.Equal(
 			t,
 			tt.expect,
@@ -54,11 +57,11 @@ func TestNewGeneralizedIndex(t *testing.T) {
 
 func TestConcatGeneralizedIndices(t *testing.T) {
 	tests := []struct {
-		indices tree.GeneralizedIndicies[[32]byte]
-		expect  tree.GeneralizedIndex[[32]byte]
+		indices merkle.GeneralizedIndices[[32]byte]
+		expect  merkle.GeneralizedIndex[[32]byte]
 	}{
-		{indices: []tree.GeneralizedIndex[[32]byte]{1, 2, 3}, expect: 0x05},
-		{indices: []tree.GeneralizedIndex[[32]byte]{4, 5, 6}, expect: 0x46},
+		{indices: []merkle.GeneralizedIndex[[32]byte]{1, 2, 3}, expect: 0x05},
+		{indices: []merkle.GeneralizedIndex[[32]byte]{4, 5, 6}, expect: 0x46},
 	}
 
 	for _, tt := range tests {
@@ -74,7 +77,7 @@ func TestConcatGeneralizedIndices(t *testing.T) {
 }
 
 func TestGeneralizedIndexMethods(t *testing.T) {
-	gi := tree.GeneralizedIndex[[32]byte](12) // Example index
+	gi := merkle.GeneralizedIndex[[32]byte](12) // Example index
 
 	require.Equal(
 		t,
@@ -94,25 +97,25 @@ func TestGeneralizedIndexMethods(t *testing.T) {
 	)
 	require.Equal(
 		t,
-		tree.GeneralizedIndex[[32]byte](13),
+		merkle.GeneralizedIndex[[32]byte](13),
 		gi.Sibling(),
 		"Incorrect sibling index",
 	)
 	require.Equal(
 		t,
-		tree.GeneralizedIndex[[32]byte](24),
+		merkle.GeneralizedIndex[[32]byte](24),
 		gi.LeftChild(),
 		"Incorrect right child index",
 	)
 	require.Equal(
 		t,
-		tree.GeneralizedIndex[[32]byte](25),
+		merkle.GeneralizedIndex[[32]byte](25),
 		gi.RightChild(),
 		"Incorrect left child index",
 	)
 	require.Equal(
 		t,
-		tree.GeneralizedIndex[[32]byte](6),
+		merkle.GeneralizedIndex[[32]byte](6),
 		gi.Parent(),
 		"Incorrect parent index",
 	)
@@ -121,15 +124,15 @@ func TestGeneralizedIndexMethods(t *testing.T) {
 func TestGetBranchIndices(t *testing.T) {
 	tests := []struct {
 		name   string
-		index  tree.GeneralizedIndex[[32]byte]
-		expect tree.GeneralizedIndicies[[32]byte]
+		index  merkle.GeneralizedIndex[[32]byte]
+		expect merkle.GeneralizedIndices[[32]byte]
 	}{
 		{name: "Single Branch", index: 1,
-			expect: []tree.GeneralizedIndex[[32]byte]{}},
+			expect: []merkle.GeneralizedIndex[[32]byte]{}},
 		{name: "Two Branches", index: 3,
-			expect: []tree.GeneralizedIndex[[32]byte]{2}},
+			expect: []merkle.GeneralizedIndex[[32]byte]{2}},
 		{name: "Multiple Branches", index: 5,
-			expect: []tree.GeneralizedIndex[[32]byte]{4, 3}},
+			expect: []merkle.GeneralizedIndex[[32]byte]{4, 3}},
 	}
 
 	for _, tt := range tests {
@@ -149,18 +152,18 @@ func TestGetBranchIndices(t *testing.T) {
 func TestGetPathIndices(t *testing.T) {
 	tests := []struct {
 		name   string
-		index  tree.GeneralizedIndex[[32]byte]
-		expect tree.GeneralizedIndicies[[32]byte]
+		index  merkle.GeneralizedIndex[[32]byte]
+		expect merkle.GeneralizedIndices[[32]byte]
 	}{
 		{
 			name:   "No Path",
 			index:  1,
-			expect: []tree.GeneralizedIndex[[32]byte]{},
+			expect: []merkle.GeneralizedIndex[[32]byte]{},
 		},
 		{name: "Single Path", index: 3,
-			expect: []tree.GeneralizedIndex[[32]byte]{3}},
+			expect: []merkle.GeneralizedIndex[[32]byte]{3}},
 		{name: "Multiple Paths", index: 5,
-			expect: []tree.GeneralizedIndex[[32]byte]{5, 2}},
+			expect: []merkle.GeneralizedIndex[[32]byte]{5, 2}},
 	}
 
 	for _, tt := range tests {
@@ -180,7 +183,7 @@ func TestGetPathIndices(t *testing.T) {
 func TestCalculateMerkleRoot(t *testing.T) {
 	tests := []struct {
 		name      string
-		index     tree.GeneralizedIndex[[32]byte]
+		index     merkle.GeneralizedIndex[[32]byte]
 		leaf      [32]byte
 		proof     [][32]byte
 		expect    [32]byte
@@ -188,7 +191,7 @@ func TestCalculateMerkleRoot(t *testing.T) {
 	}{
 		{
 			name:  "Valid Proof",
-			index: tree.GeneralizedIndex[[32]byte](3),
+			index: merkle.GeneralizedIndex[[32]byte](3),
 			leaf:  [32]byte{0x01},
 			proof: [][32]byte{{0x02}},
 			expect: [32]byte{
@@ -199,7 +202,7 @@ func TestCalculateMerkleRoot(t *testing.T) {
 		},
 		{
 			name:      "Invalid Proof Length",
-			index:     tree.GeneralizedIndex[[32]byte](3),
+			index:     merkle.GeneralizedIndex[[32]byte](3),
 			leaf:      [32]byte{0x01},
 			proof:     [][32]byte{{0x02}, {0x03}},
 			expect:    [32]byte{},
@@ -223,7 +226,7 @@ func TestCalculateMerkleRoot(t *testing.T) {
 func TestVerifyMerkleProof(t *testing.T) {
 	tests := []struct {
 		name        string
-		index       tree.GeneralizedIndex[[32]byte]
+		index       merkle.GeneralizedIndex[[32]byte]
 		leaf        [32]byte
 		proof       [][32]byte
 		root        [32]byte
@@ -232,7 +235,7 @@ func TestVerifyMerkleProof(t *testing.T) {
 	}{
 		{
 			name:  "Valid Proof",
-			index: tree.GeneralizedIndex[[32]byte](3),
+			index: merkle.GeneralizedIndex[[32]byte](3),
 			leaf:  [32]byte{0x01},
 			proof: [][32]byte{{0x02}},
 			root: [32]byte{
@@ -244,7 +247,7 @@ func TestVerifyMerkleProof(t *testing.T) {
 		},
 		{
 			name:        "Invalid Proof",
-			index:       tree.GeneralizedIndex[[32]byte](3),
+			index:       merkle.GeneralizedIndex[[32]byte](3),
 			leaf:        [32]byte{0x01},
 			proof:       [][32]byte{{0x02}, {0x04}},
 			root:        [32]byte{0x01},
@@ -273,28 +276,28 @@ func TestVerifyMerkleProof(t *testing.T) {
 func TestGetHelperIndices(t *testing.T) {
 	tests := []struct {
 		name    string
-		indices tree.GeneralizedIndicies[[32]byte]
-		expect  tree.GeneralizedIndicies[[32]byte]
+		indices merkle.GeneralizedIndices[[32]byte]
+		expect  merkle.GeneralizedIndices[[32]byte]
 	}{
 		{
 			name:    "No Indices",
-			indices: []tree.GeneralizedIndex[[32]byte]{},
-			expect:  []tree.GeneralizedIndex[[32]byte]{},
+			indices: []merkle.GeneralizedIndex[[32]byte]{},
+			expect:  []merkle.GeneralizedIndex[[32]byte]{},
 		},
 		{
 			name:    "Single Index",
-			indices: []tree.GeneralizedIndex[[32]byte]{1},
-			expect:  []tree.GeneralizedIndex[[32]byte]{},
+			indices: []merkle.GeneralizedIndex[[32]byte]{1},
+			expect:  []merkle.GeneralizedIndex[[32]byte]{},
 		},
 		{
 			name:    "Multiple Indices",
-			indices: []tree.GeneralizedIndex[[32]byte]{3, 5},
-			expect:  []tree.GeneralizedIndex[[32]byte]{4},
+			indices: []merkle.GeneralizedIndex[[32]byte]{3, 5},
+			expect:  []merkle.GeneralizedIndex[[32]byte]{4},
 		},
 		{
 			name:    "Overlapping Indices",
-			indices: []tree.GeneralizedIndex[[32]byte]{3, 7},
-			expect:  []tree.GeneralizedIndex[[32]byte]{6, 2},
+			indices: []merkle.GeneralizedIndex[[32]byte]{3, 7},
+			expect:  []merkle.GeneralizedIndex[[32]byte]{6, 2},
 		},
 	}
 
@@ -310,7 +313,7 @@ func TestGetHelperIndices(t *testing.T) {
 func TestCalculateMultiMerkleRoot(t *testing.T) {
 	tests := []struct {
 		name      string
-		indices   tree.GeneralizedIndicies[[32]byte]
+		indices   merkle.GeneralizedIndices[[32]byte]
 		leaves    [][32]byte
 		proof     [][32]byte
 		expect    [32]byte
@@ -318,7 +321,7 @@ func TestCalculateMultiMerkleRoot(t *testing.T) {
 	}{
 		{
 			name:    "Valid Multi Merkle Root",
-			indices: []tree.GeneralizedIndex[[32]byte]{3, 5},
+			indices: []merkle.GeneralizedIndex[[32]byte]{3, 5},
 			leaves:  [][32]byte{{0x01}, {0x02}},
 			proof:   [][32]byte{{0x03}},
 			expect: [32]byte{
@@ -329,7 +332,7 @@ func TestCalculateMultiMerkleRoot(t *testing.T) {
 		},
 		{
 			name:      "Mismatched Leaves and Indices Length",
-			indices:   []tree.GeneralizedIndex[[32]byte]{3, 5},
+			indices:   []merkle.GeneralizedIndex[[32]byte]{3, 5},
 			leaves:    [][32]byte{{0x01}},
 			proof:     [][32]byte{{0x03}},
 			expect:    [32]byte{},
@@ -337,7 +340,7 @@ func TestCalculateMultiMerkleRoot(t *testing.T) {
 		},
 		{
 			name:      "Mismatched Proof and Helper Indices Length",
-			indices:   []tree.GeneralizedIndex[[32]byte]{3, 5},
+			indices:   []merkle.GeneralizedIndex[[32]byte]{3, 5},
 			leaves:    [][32]byte{{0x01}, {0x02}},
 			proof:     [][32]byte{},
 			expect:    [32]byte{},
@@ -345,7 +348,7 @@ func TestCalculateMultiMerkleRoot(t *testing.T) {
 		},
 		{
 			name:      "Empty Indices and Leaves",
-			indices:   []tree.GeneralizedIndex[[32]byte]{},
+			indices:   []merkle.GeneralizedIndex[[32]byte]{},
 			leaves:    [][32]byte{},
 			proof:     [][32]byte{},
 			expect:    [32]byte{},
@@ -372,7 +375,7 @@ func TestCalculateMultiMerkleRoot(t *testing.T) {
 func TestVerifyMerkleMultiproof(t *testing.T) {
 	tests := []struct {
 		name    string
-		indices tree.GeneralizedIndicies[[32]byte]
+		indices merkle.GeneralizedIndices[[32]byte]
 		leaves  [][32]byte
 		proof   [][32]byte
 		root    [32]byte
@@ -380,7 +383,7 @@ func TestVerifyMerkleMultiproof(t *testing.T) {
 	}{
 		{
 			name:    "Valid Merkle Multiproof",
-			indices: []tree.GeneralizedIndex[[32]byte]{3, 5},
+			indices: []merkle.GeneralizedIndex[[32]byte]{3, 5},
 			leaves:  [][32]byte{{0x01}, {0x02}},
 			proof:   [][32]byte{{0x03}},
 			root: [32]byte{
@@ -391,7 +394,7 @@ func TestVerifyMerkleMultiproof(t *testing.T) {
 		},
 		{
 			name:    "Invalid Merkle Multiproof",
-			indices: []tree.GeneralizedIndex[[32]byte]{3, 5},
+			indices: []merkle.GeneralizedIndex[[32]byte]{3, 5},
 			leaves:  [][32]byte{{0x01}, {0x02}},
 			proof:   [][32]byte{{0x03}},
 			root:    [32]byte{},
@@ -399,7 +402,7 @@ func TestVerifyMerkleMultiproof(t *testing.T) {
 		},
 		{
 			name:    "Mismatched Leaves and Indices Length",
-			indices: []tree.GeneralizedIndex[[32]byte]{3, 5},
+			indices: []merkle.GeneralizedIndex[[32]byte]{3, 5},
 			leaves:  [][32]byte{{0x01}},
 			proof:   [][32]byte{{0x03}},
 			root:    [32]byte{},
@@ -407,7 +410,7 @@ func TestVerifyMerkleMultiproof(t *testing.T) {
 		},
 		{
 			name:    "Mismatched Proof and Helper Indices Length",
-			indices: []tree.GeneralizedIndex[[32]byte]{3, 5},
+			indices: []merkle.GeneralizedIndex[[32]byte]{3, 5},
 			leaves:  [][32]byte{{0x01}, {0x02}},
 			proof:   [][32]byte{},
 			root:    [32]byte{},
@@ -415,7 +418,7 @@ func TestVerifyMerkleMultiproof(t *testing.T) {
 		},
 		{
 			name:    "Empty Indices and Leaves",
-			indices: []tree.GeneralizedIndex[[32]byte]{},
+			indices: []merkle.GeneralizedIndex[[32]byte]{},
 			leaves:  [][32]byte{},
 			proof:   [][32]byte{},
 			root:    [32]byte{},
