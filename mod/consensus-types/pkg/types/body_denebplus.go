@@ -91,6 +91,11 @@ func (b *BeaconBlockBodyDenebPlus) SetBlobKzgCommitments(
 	b.BlobKzgCommitments = commitments
 }
 
+// SetEth1Data sets the SetEth1Data of the BeaconBlockBodyDeneb.
+func (b *BeaconBlockBodyDenebPlus) SetEth1Data(eth1Data *Eth1Data) {
+	b.Eth1Data = eth1Data
+}
+
 // GetTopLevelRoots returns the top-level roots of the BeaconBlockBodyDenebPlus.
 func (b *BeaconBlockBodyDenebPlus) GetTopLevelRoots() ([][32]byte, error) {
 	var (

@@ -114,12 +114,6 @@ func (b *BeaconBlockBodyBase) GetEth1Data() *Eth1Data {
 	return b.Eth1Data
 }
 
-// SetBlobKzgCommitments sets the BlobKzgCommitments of the
-// BeaconBlockBodyDeneb.
-func (b *BeaconBlockBodyDeneb) SetEth1Data(eth1Data *Eth1Data) {
-	b.Eth1Data = eth1Data
-}
-
 // GetGraffiti returns the Graffiti of the Body.
 func (b *BeaconBlockBodyBase) GetGraffiti() common.Bytes32 {
 	return b.Graffiti
