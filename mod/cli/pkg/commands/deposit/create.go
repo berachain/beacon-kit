@@ -22,6 +22,7 @@ package deposit
 
 import (
 	"crypto/ecdsa"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"math/big"
 	"net/url"
 	"os"
@@ -241,13 +242,21 @@ func broadcastDepositTx(
 
 	// TODO: Need to figure out how to get the engine client to work
 	// Spin up the engine client.
-	engineClient, err := setupEngineClient(
-		cfg.Engine.RPCDialURL,
-		jwtSecret,
-		chainSpec,
-		logger)
-	logger.Info("engineClient", "engineClient", engineClient)
+
+	eth1ChainID := new(big.Int).SetUint64(chainSpec.DepositEth1ChainID())
+
+	engineClient := engineclient.New[
+		*types.ExecutionPayload,
+		*engineprimitives.PayloadAttributes[*engineprimitives.Withdrawal]](
+		&cfg.Engine, logger, jwtSecret, nil, eth1ChainID)
 	err = engineClient.Start(cmd.Context())
+
+	//engineClient, err := setupEngineClient(
+	//	cfg.Engine.RPCDialURL,
+	//	jwtSecret,
+	//	chainSpec,
+	//	logger)
+	//logger.Info("engineClient", "engineClient", engineClient)
 
 	//engineClient, err := ethclient.Dial("http://localhost:8545")
 	if err != nil || engineClient == nil {
@@ -256,10 +265,10 @@ func broadcastDepositTx(
 
 	depositContractAddress := chainSpec.DepositContractAddress()
 
-	chainID, err := engineClient.ChainID(cmd.Context())
-	if err != nil {
-		return gethCommon.Hash{}, err
-	}
+	//chainID, err := engineClient.ChainID(cmd.Context())
+	//if err != nil {
+	//	return gethCommon.Hash{}, err
+	//}
 
 	// one way
 	// contractAbi, err := deposit.BeaconDepositContractMetaData.GetAbi()
@@ -347,6 +356,7 @@ func broadcastDepositTx(
 		ethCrypto.PubkeyToAddress(privKey.PublicKey),
 		nil,
 	)
+	logger.Info("error in nonce", "error", errInNonce)
 	if errInNonce != nil {
 		return gethCommon.Hash{}, errInNonce
 	}
@@ -359,7 +369,7 @@ func broadcastDepositTx(
 				_ common.ExecutionAddress, tx *ethTypes.Transaction,
 			) (*ethTypes.Transaction, error) {
 				return ethTypes.SignTx(
-					tx, ethTypes.LatestSignerForChainID(chainID),
+					tx, ethTypes.LatestSignerForChainID(eth1ChainID),
 					privKey,
 				)
 			},
