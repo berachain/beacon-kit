@@ -15,7 +15,7 @@ replace (
 
 require (
 	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240710022902-57d64ab384c7
-	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240705193247-d464364483df
+	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240710023144-cd73de9f7378
 	github.com/cosmos/cosmos-sdk v0.51.0
 	go.uber.org/automaxprocs v1.5.3
 )
