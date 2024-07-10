@@ -25,8 +25,12 @@ INTERNAL_IP := $(shell hostname -I | awk '{print $$1}')
 start: ## start an ephemeral `beacond` node
 	@JWT_SECRET_PATH=$(JWT_PATH) ${TESTAPP_FILES_DIR}/entrypoint.sh
 
-start-validator: ## start an ephemeral `beacond` node
-	JWT_SECRET_PATH=$(JWT_PATH) ${TESTAPP_FILES_DIR}/entrypoint.sh 1 validator
+start-validator-1: ## start an ephemeral `beacond` node
+	JWT_SECRET_PATH=$(JWT_PATH) ${TESTAPP_FILES_DIR}/entrypoint.sh 1 validator 1
+start-validator-2: ## start an ephemeral `beacond` node
+	JWT_SECRET_PATH=$(JWT_PATH) ${TESTAPP_FILES_DIR}/entrypoint.sh 1 validator 2
+start-validator-3: ## start an ephemeral `beacond` node
+	JWT_SECRET_PATH=$(JWT_PATH) ${TESTAPP_FILES_DIR}/entrypoint.sh 1 validator 3
 start-node-init: ## start an ephemeral `beacond` node
 	JWT_SECRET_PATH=$(JWT_PATH) ${TESTAPP_FILES_DIR}/entrypoint.sh 1 node onlyInit
 start-node-run: ## start an ephemeral `beacond` node
