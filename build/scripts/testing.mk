@@ -224,7 +224,7 @@ start-erigon: ## start an ephemeral `erigon` node
 	--authrpc.addr	0.0.0.0 \
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--authrpc.vhosts "*" \
-	--networkid 80087 \
+	--networkid 2012 \
 	--db.size.limit	3000MB \
 	--datadir .tmp/erigon
 
@@ -257,7 +257,7 @@ start-erigon-validator-run:
 	--authrpc.addr	0.0.0.0 \
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--authrpc.vhosts "*" \
-	--networkid 80087 \
+	--networkid 2012 \
 	--db.size.limit	3000MB \
 	--datadir .tmp/erigon \
 	--rpc.allow-unprotected-txs \
@@ -283,7 +283,7 @@ start-erigon-node-run:
 	--authrpc.addr	0.0.0.0 \
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--authrpc.vhosts "*" \
-	--networkid 80087 \
+	--networkid 2012 \
 	--db.size.limit	3000MB \
 	--datadir .tmp/erigon \
 	--rpc.allow-unprotected-txs \

@@ -67,7 +67,8 @@ func (s *Service[
 
 	// Build the reveal for the current slot.
 	// TODO: We can optimize to pre-compute this in parallel?
-	reveal, err := s.buildRandaoReveal(st, requestedSlot)
+	// Sign epoch ??
+	reveal, err := s.buildRandaoReveal(st, requestedSlot) // 这里BLS签名了
 	if err != nil {
 		return blk, sidecars, err
 	}
