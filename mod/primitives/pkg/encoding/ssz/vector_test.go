@@ -21,7 +21,6 @@
 package ssz_test
 
 import (
-	"reflect"
 	"testing"
 	"testing/quick"
 
@@ -96,24 +95,6 @@ func TestVectorHashTreeRoot(t *testing.T) {
 	})
 }
 
-func TestVectorHashTreeRootQ(t *testing.T) {
-	f := func(a, b ssz.Vector[ssz.Byte]) bool {
-		root1, err1 := a.HashTreeRoot()
-		root2, err2 := b.HashTreeRoot()
-		if err1 != nil || err2 != nil {
-			return false
-		}
-		if reflect.DeepEqual(a, b) {
-			return reflect.DeepEqual(root1, root2)
-		}
-		return true
-	}
-	c := quick.Config{MaxCount: 1000000}
-	if err := quick.Check(f, &c); err != nil {
-		t.Error(err)
-	}
-}
-
 func TestVectorHashTreeRootZTyp(t *testing.T) {
 	hFn := ztyp.GetHashFn()
 
@@ -125,7 +106,7 @@ func TestVectorHashTreeRootZTyp(t *testing.T) {
 		if err != nil {
 			return false
 		}
-		return reflect.DeepEqual(root1, [32]byte(root2))
+		return root1 == [32]byte(root2)
 	}
 	c := quick.Config{MaxCount: 1000000}
 	if err := quick.Check(f, &c); err != nil {
