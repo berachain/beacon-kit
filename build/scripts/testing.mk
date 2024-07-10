@@ -100,10 +100,10 @@ start-geth-init:
 	sudo chmod 777 -R .tmp
 	rm -rf ${ETH_DATA_DIR}
 
-	geth init --datadir ${ETH_DATA_DIR} ${ETH_GENESIS_PATH} --state.scheme "hash"
+	geth init --state.scheme "hash" --datadir ${ETH_DATA_DIR} ${ETH_GENESIS_PATH}
 
 start-geth-init-local:
-	geth init --datadir ${ETH_DATA_DIR} ${ETH_GENESIS_PATH} --state.scheme "hash"
+	geth init --state.scheme "hash" --datadir ${ETH_DATA_DIR} ${ETH_GENESIS_PATH}
 
 start-geth-validator-run:
 	sudo chmod 777 -R .tmp
