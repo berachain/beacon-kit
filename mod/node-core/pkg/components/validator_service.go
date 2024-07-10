@@ -23,16 +23,11 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
-	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/config"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // ValidatorServiceInput is the input for the validator service provider.
@@ -48,7 +43,8 @@ type ValidatorServiceInput struct {
 	StorageBackend  *StorageBackend
 	Signer          crypto.BLSSigner
 	SidecarsFeed    *SidecarsBroker
-	SlotBroker      *broker.Broker[*asynctypes.Event[math.Slot]]
+	SidecarFactory  *SidecarFactory
+	SlotBroker      *SlotBroker
 	TelemetrySink   *metrics.TelemetrySink
 }
 
@@ -81,11 +77,7 @@ func ProvideValidatorService(
 		in.StorageBackend,
 		in.StateProcessor,
 		in.Signer,
-		dablob.NewSidecarFactory[*BeaconBlock, *BeaconBlockBody](
-			in.ChainSpec,
-			types.KZGPositionDeneb,
-			in.TelemetrySink,
-		),
+		in.SidecarFactory,
 		in.LocalBuilder,
 		[]validator.PayloadBuilder[*BeaconState, *ExecutionPayload]{
 			in.LocalBuilder,

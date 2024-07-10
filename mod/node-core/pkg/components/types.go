@@ -100,14 +100,17 @@ type (
 		*Validator,
 	]
 
-	// BlobSidecars is a type alias for the blob sidecars.
-	BlobSidecars = datypes.BlobSidecars
-
 	// BlobProcessor is a type alias for the blob processor.
 	BlobProcessor = dablob.Processor[
 		*AvailabilityStore,
 		*BeaconBlockBody,
 	]
+
+	// BlobSidecars is a type alias for the blob sidecars.
+	BlobSidecars = datypes.BlobSidecars
+
+	// BlobVerifier is a type alias for the blob verifier.
+	BlobVerifier = dablob.Verifier
 
 	// ChainService is a type alias for the chain service.
 	ChainService = blockchain.Service[
@@ -225,6 +228,12 @@ type (
 
 	// PayloadID is a type alias for the payload ID.
 	PayloadID = engineprimitives.PayloadID
+
+	// SidecarFactory is a type alias for the sidecar factory.
+	SidecarFactory = dablob.SidecarFactory[
+		*BeaconBlock,
+		*BeaconBlockBody,
+	]
 
 	// StateProcessor is the type alias for the state processor interface.
 	StateProcessor = blockchain.StateProcessor[
