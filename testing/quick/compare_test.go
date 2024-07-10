@@ -28,6 +28,7 @@ import (
 	ztyp "github.com/protolambda/ztyp/tree"
 )
 
+var c = quick.Config{MaxCount: 1000000}
 var hFn = ztyp.GetHashFn()
 
 func TestListHashTreeRootZtyp(t *testing.T) {
@@ -41,7 +42,6 @@ func TestListHashTreeRootZtyp(t *testing.T) {
 		}
 		return root1 == [32]byte(root2)
 	}
-	c := quick.Config{MaxCount: 1000000}
 	if err := quick.Check(f, &c); err != nil {
 		t.Error(err)
 	}
@@ -58,7 +58,6 @@ func TestVectorHashTreeRootZTyp(t *testing.T) {
 		}
 		return root1 == [32]byte(root2)
 	}
-	c := quick.Config{MaxCount: 1000000}
 	if err := quick.Check(f, &c); err != nil {
 		t.Error(err)
 	}
