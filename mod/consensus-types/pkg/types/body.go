@@ -55,7 +55,8 @@ type BeaconBlockBody struct {
 	RawBeaconBlockBody
 }
 
-// Empty returns a new BeaconBlockBody with empty fields for the given fork version.
+// Empty returns a new BeaconBlockBody with empty fields
+// for the given fork version.
 func (b *BeaconBlockBody) Empty(forkVersion uint32) *BeaconBlockBody {
 	switch forkVersion {
 	case version.Deneb:

@@ -37,7 +37,7 @@ type EthAccount struct {
 	pk   *ecdsa.PrivateKey
 }
 
-// NewEthAccountFromHex creates a new Ethereum account from hexadecimal private key.
+// NewEthAccountFromHex creates a new Ethereum account from hex private key.
 func NewEthAccountFromHex(
 	name string,
 	hexPk string,
