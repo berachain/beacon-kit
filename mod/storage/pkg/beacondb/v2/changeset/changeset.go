@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package beacondb
+package changeset
 
 import "cosmossdk.io/core/store"
 
@@ -30,24 +30,24 @@ type Changeset struct {
 	changes map[string][]byte
 }
 
-// NewChangeset initializes a new Changeset with an empty store.Changeset and
+// New initializes a new Changeset with an empty store.Changeset and
 // changes map.
-func NewChangeset() *Changeset {
+func New() *Changeset {
 	return &Changeset{
 		Changeset: store.NewChangeset(),
 		changes:   make(map[string][]byte),
 	}
 }
 
-// NewChangesetWithPairs creates a new changeset with the given pairs.
-func NewChangesetWithPairs(pairs map[string]store.KVPairs) *Changeset {
+// NewWithPairs creates a new changeset with the given pairs.
+func NewWithPairs(pairs map[string]store.KVPairs) *Changeset {
 	cs := &Changeset{
 		Changeset: store.NewChangesetWithPairs(pairs),
 		changes:   make(map[string][]byte),
 	}
 	for storeKey, kvPairs := range pairs {
 		for _, pair := range kvPairs {
-			cs.changes[string(storeKey)+string(pair.Key)] = pair.Value
+			cs.changes[buildKey([]byte(storeKey), pair.Key)] = pair.Value
 		}
 	}
 	return cs
@@ -57,9 +57,9 @@ func NewChangesetWithPairs(pairs map[string]store.KVPairs) *Changeset {
 func (cs *Changeset) Add(storeKey, key, value []byte, remove bool) {
 	// add/remove the change to the map of changes
 	if remove {
-		cs.changes[string(storeKey)+string(key)] = nil
+		cs.changes[buildKey(storeKey, key)] = nil
 	} else {
-		cs.changes[string(storeKey)+string(key)] = value
+		cs.changes[buildKey(storeKey, key)] = value
 	}
 	cs.Changeset.Add(storeKey, key, value, remove)
 }
@@ -72,8 +72,19 @@ func (cs *Changeset) AddKVPair(storeKey []byte, pair store.KVPair) {
 
 // Query queries the changeset with the given store key and key
 func (cs *Changeset) Query(storeKey []byte, key []byte) ([]byte, bool) {
-	if value, found := cs.changes[string(storeKey)+string(key)]; found {
+	if value, found := cs.changes[buildKey(storeKey, key)]; found {
 		return value, true
 	}
 	return nil, false
+}
+
+// Flush resets the changeset and changes map.
+func (cs *Changeset) Flush() {
+	cs.Changeset = store.NewChangeset()
+	cs.changes = make(map[string][]byte)
+}
+
+// buildKey is a helper function to build a key from a store key and key
+func buildKey(storeKey, key []byte) string {
+	return string(storeKey) + string(key)
 }

@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
 	indexv2 "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/index/v2"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/keys"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/v2/changeset"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/collections"
 )
 
@@ -45,7 +46,7 @@ type Store[
 	ValidatorT Validator,
 ] struct {
 	runtime.Store
-	changeSet *Changeset
+	changeSet *changeset.Changeset
 	// Versioning
 	// genesisValidatorsRoot is the root of the genesis validators.
 	genesisValidatorsRoot collections.Item[[]byte]
@@ -120,7 +121,7 @@ func New[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 		ForkT, ValidatorT,
 	]{
-		changeSet: NewChangeset(),
+		changeSet: changeset.New(),
 	}
 
 	store.genesisValidatorsRoot = collections.NewItem(
@@ -249,7 +250,7 @@ func (s *Store[
 ]) Save() {
 	// reset the changeset following the commit
 	defer func() {
-		s.changeSet = NewChangeset()
+		s.changeSet.Flush()
 	}()
 	if s.changeSet.Size() == 0 {
 		return
