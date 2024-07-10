@@ -14,6 +14,8 @@ github.com/berachain/beacon-kit/mod/config v0.0.0-20240705193247-d464364483df h1
 github.com/berachain/beacon-kit/mod/config v0.0.0-20240705193247-d464364483df/go.mod h1:xTHttdHtO63VauLvYve/J3DBLtXJKNk0dw5RhAo636k=
 github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240705193247-d464364483df h1:x/K/kfR9oqFg7eYyIp4K0/MjjpOmoOoS7PXrmlmUeP8=
 github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240705193247-d464364483df/go.mod h1:J+tG78TB7Vrcdo01qP64OPBcynGxeYSy8Grq7BIIr8o=
+github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240710022615-726645827bad h1:cNtVWFUtqG/71tZ8SXqivbO8OOCvcnSRkHiEpsA9M9g=
+github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240710022615-726645827bad/go.mod h1:VRSCYfECVQDtO65DLD0Bh92W15hBchYC61dyg87hRK8=
 github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df h1:6MJllcmMFt6dtvftM5zmdl1WVDpqZkNy3hFXVZtNV0s=
 github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df/go.mod h1:yRD7rmnyaaqgq/6+eIVqvSkFJXuLXpBddUu59HUOrtc=
 github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240705193247-d464364483df h1:74LcTGSWRxCeehY7O4g6XZ2r4PY604n9U2/981iLtFk=
