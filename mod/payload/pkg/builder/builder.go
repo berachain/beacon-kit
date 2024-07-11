@@ -21,6 +21,8 @@
 package builder
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
@@ -99,5 +101,7 @@ func (pb *PayloadBuilder[
 	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 	PayloadAttributesT, PayloadIDT, WithdrawalT,
 ]) Enabled() bool {
-	return pb.cfg.Enabled
+	fmt.Println("PAYLOAD BUILDER ENABLED", pb.cfg.Enabled)
+	// return pb.cfg.Enabled
+	return true
 }

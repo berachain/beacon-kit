@@ -84,10 +84,12 @@ func (c *ConsensusEngine[T, ValidatorUpdateT]) Prepare(
 		return nil, ErrInvalidRequestType
 	}
 	slot := math.Slot(abciReq.Height)
+	fmt.Println("GOT SLOT IN CONSENSUS PREPARE", slot)
 	blkBz, sidecarsBz, err := c.Middleware.PrepareProposal(ctx, slot)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("GOT BLOCK IN CONSENSUS PREPARE")
 	blkTx, err := c.txCodec.Decode(blkBz)
 	if err != nil {
 		return nil, err

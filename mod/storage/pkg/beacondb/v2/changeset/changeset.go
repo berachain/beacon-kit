@@ -28,6 +28,7 @@ import "cosmossdk.io/core/store"
 type Changeset struct {
 	*store.Changeset
 	changes map[string][]byte
+	Count   int
 }
 
 // New initializes a new Changeset with an empty store.Changeset and
@@ -62,6 +63,12 @@ func (cs *Changeset) Add(storeKey, key, value []byte, remove bool) {
 		cs.changes[buildKey(storeKey, key)] = value
 	}
 	cs.Changeset.Add(storeKey, key, value, remove)
+	// TODO: remove
+	if !remove {
+		cs.Count++
+	} else {
+		cs.Count--
+	}
 }
 
 // AddKVPair adds a KVPair to the Changeset and changes map

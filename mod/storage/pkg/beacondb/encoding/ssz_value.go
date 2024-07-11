@@ -21,7 +21,6 @@
 package encoding
 
 import (
-	"fmt"
 	"reflect"
 
 	"cosmossdk.io/collections/codec"
@@ -45,7 +44,6 @@ func (SSZValueCodec[T]) Encode(value T) ([]byte, error) {
 // Decode unmarshals the provided bytes into a value of type T.
 func (SSZValueCodec[T]) Decode(b []byte) (T, error) {
 	var v T
-	fmt.Println("DECODING BYTES", b)
 	//nolint:errcheck // will error in unmarshal if there is a problem.
 	v = reflect.New(reflect.TypeOf(v).Elem()).Interface().(T)
 	if err := v.UnmarshalSSZ(b); err != nil {

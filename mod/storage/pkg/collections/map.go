@@ -35,7 +35,7 @@ type Map[K, V any] struct {
 	KeyCodec      codec.KeyCodec[K]
 	ValueCodec    codec.ValueCodec[V]
 	storeAccessor StoreAccessor
-	Count         int
+	Size          int // TODO: remove this, temp field for debugging
 }
 
 func NewMap[K, V any](
@@ -81,7 +81,7 @@ func (m *Map[K, V]) Set(key K, value V) error {
 		return err
 	}
 	m.storeAccessor().AddChange(m.storeKey, prefixedKey, encodedValue)
-	m.Count++
+	m.Size++
 	return nil
 }
 
@@ -115,7 +115,7 @@ func (m *Map[K, V]) Remove(key K) error {
 		return err
 	}
 	m.storeAccessor().AddChange(m.storeKey, prefixedKey, nil)
-	m.Count--
+	m.Size--
 	return nil
 }
 
@@ -135,8 +135,12 @@ func (m *Map[K, V]) NumKeys() (int, error) {
 	if err != nil {
 		return 0, err
 	}
+
+	prefixedStart := m.keyPrefix
+	prefixedEnd := sdkcollections.NextBytesPrefixKey(m.keyPrefix)
+
 	// retrieve iterator from reader
-	iter, err := reader.Iterator(nil, nil)
+	iter, err := reader.Iterator(prefixedStart, prefixedEnd)
 	if err != nil {
 		return 0, err
 	}
@@ -148,9 +152,15 @@ func (m *Map[K, V]) NumKeys() (int, error) {
 	return count, nil
 }
 
+// IterateRaw iterates over the collection. The iteration range is untyped, it uses raw
+// bytes. The resulting Iterator is typed.
+// A nil start iterates from the first key contained in the collection.
+// A nil end iterates up to the last key contained in the collection.
+// A nil start and a nil end iterates over every key contained in the collection.
 func (m *Map[K, V]) IterateRaw(
 	start, end []byte,
 ) (sdkcollections.Iterator[K, V], error) {
+	// prepend start/end range with keyPrefix
 	prefixedStart := append(m.keyPrefix, start...)
 	var prefixedEnd []byte
 	if end == nil {
@@ -159,27 +169,35 @@ func (m *Map[K, V]) IterateRaw(
 		prefixedEnd = append(m.keyPrefix, end...)
 	}
 
+	// input validation
 	if bytes.Compare(prefixedStart, prefixedEnd) == 1 {
 		return sdkcollections.Iterator[K, V]{}, sdkcollections.ErrInvalidIterator
 	}
 
+	// declare intermediary vars
 	var (
-		iter   store.Iterator
-		reader store.Reader
+		iter      store.Iterator
+		reader    store.Reader
+		readerMap store.ReaderMap
+		err       error
 	)
-	_, readerMap, err := m.storeAccessor().StateLatest()
+	// get latest reader map
+	_, readerMap, err = m.storeAccessor().StateLatest()
 	if err != nil {
 		return sdkcollections.Iterator[K, V]{}, err
 	}
+	// get reader with the storeKey from reader map
 	reader, err = readerMap.GetReader(m.storeKey)
 	if err != nil {
 		return sdkcollections.Iterator[K, V]{}, err
 	}
-	iter, err = reader.Iterator(start, end)
+	// get iterator from reader with the prefixed start and end
+	iter, err = reader.Iterator(prefixedStart, prefixedEnd)
 	if err != nil {
 		return sdkcollections.Iterator[K, V]{}, err
 	}
 
+	// return iterator with key/value codecs and reader iterator
 	return sdkcollections.Iterator[K, V]{
 		KeyCodec:     m.KeyCodec,
 		ValueCodec:   m.ValueCodec,

@@ -107,6 +107,7 @@ func (sp *StateProcessor[
 		}
 	}
 	fmt.Println("DEPOSIT DONE??")
+	_, _ = st.GetTotalValidators()
 	// TODO: process activations.
 	var validators []ValidatorT
 	validators, err = st.GetValidators()
@@ -164,6 +165,7 @@ func (sp *StateProcessor[
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("SAVING STATE PROCESSOR GENESIS")
 	st.Save()
 	return updates, nil
 }

@@ -96,7 +96,7 @@ func (h *ABCIMiddleware[
 }
 
 /* -------------------------------------------------------------------------- */
-/*                               PrepareProposal                              */
+/*                               `Prepare`Proposal                              */
 /* -------------------------------------------------------------------------- */
 
 // prepareProposal is the internal handler for preparing proposals.

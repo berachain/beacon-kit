@@ -80,7 +80,7 @@ fi
 # Start the node (remove the --pruning=nothing flag if historical queries are not needed)
 BEACON_START_CMD="./build/bin/beacond start "$TRACE" \
 --home $HOMEDIR --beacon-kit.engine.jwt-secret-path ${JWT_SECRET_PATH}
---beacon-kit.logger.log-level $LOGLEVEL
+--beacon-kit.logger.log-level $LOGLEVEL 
 "
 
 # Conditionally add the rpc-dial-url flag if RPC_DIAL_URL is not empty

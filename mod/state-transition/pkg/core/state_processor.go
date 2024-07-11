@@ -21,6 +21,8 @@
 package core
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/errors"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -178,17 +180,21 @@ func (sp *StateProcessor[
 		validatorUpdates      transition.ValidatorUpdates
 		epochValidatorUpdates transition.ValidatorUpdates
 	)
+	fmt.Println("PROCESSING SLOTS from STATE PROCESSOR")
 	stateSlot, err := beaconState.GetSlot()
 	if err != nil {
 		return nil, err
 	}
-
+	fmt.Println("STATE SLOT:", stateSlot)
 	// Iterate until we are "caught up".
 	for ; stateSlot < slot; stateSlot++ {
+		fmt.Println("ABOUT TO PROCESS SLOT")
+		beaconState.Save()
 		// Process the slot
 		if err = sp.processSlot(beaconState); err != nil {
 			return nil, err
 		}
+		fmt.Println("SLOT PROCESSED!")
 
 		// Process the Epoch Boundary.
 		if uint64(stateSlot+1)%sp.cs.SlotsPerEpoch() == 0 {
@@ -208,7 +214,7 @@ func (sp *StateProcessor[
 			return nil, err
 		}
 	}
-
+	beaconState.Save()
 	return validatorUpdates, nil
 }
 
@@ -222,7 +228,7 @@ func (sp *StateProcessor[
 	if err != nil {
 		return err
 	}
-
+	fmt.Println("ERMST 1")
 	// Before we make any changes, we calculate the previous state root.
 	prevStateRoot, err := st.HashTreeRoot()
 	if err != nil {

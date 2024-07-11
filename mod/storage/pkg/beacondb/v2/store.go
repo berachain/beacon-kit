@@ -251,6 +251,7 @@ func (s *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
 ]) Save() {
 	// reset the changeset following the commit
+	fmt.Println("SAVING CHANGESET WITH SIZE", s.changeSet.Size())
 	defer func() {
 		s.changeSet.Flush()
 	}()
@@ -294,7 +295,6 @@ func (s *Store[
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("STORE VERSION:", version)
 	resp, err := s.Query(storeKey, version, key, false)
 	if err != nil {
 		return nil, err
@@ -302,6 +302,7 @@ func (s *Store[
 	if resp.Value == nil {
 		return nil, sdkcollections.ErrNotFound
 	}
+	fmt.Println("CHANGE SET SIZE", s.changeSet.Size())
 	return resp.Value, nil
 }
 

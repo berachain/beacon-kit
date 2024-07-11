@@ -30,8 +30,7 @@ func (s *Store[
 ]) SetGenesisValidatorsRoot(
 	root common.Root,
 ) error {
-	s.changeSet.Add([]byte("genesis"), []byte("genesis_validator_root"), root[:], false)
-	return nil
+	return s.genesisValidatorsRoot.Set(root[:])
 }
 
 func (s *Store[
