@@ -37,17 +37,17 @@ const (
 	// struct.
 	BodyLengthDeneb uint64 = 6
 
-	// KZGPosition is the position of BlobKzgCommitments in the block body.
+	// KZGPositionDeneb is the position of BlobKzgCommitments in the block body.
 	KZGPositionDeneb = BodyLengthDeneb - 1
 
 	// KZGMerkleIndexDeneb is the merkle index of BlobKzgCommitments' root
 	// in the merkle tree built from the block body.
 	KZGMerkleIndexDeneb = 26
 
-	// Size of LogsBloom in bytes.
+	// LogsBloomSize is the size of LogsBloom in bytes.
 	LogsBloomSize = 256
 
-	// Size of ExtraData in bytes.
+	// ExtraDataSize is the size of ExtraData in bytes.
 	ExtraDataSize = 32
 )
 
@@ -55,7 +55,8 @@ type BeaconBlockBody struct {
 	RawBeaconBlockBody
 }
 
-// RawBeaconBlockBody is an interface for the different beacon block body.
+// Empty returns a new BeaconBlockBody with empty fields
+// for the given fork version.
 func (b *BeaconBlockBody) Empty(forkVersion uint32) *BeaconBlockBody {
 	switch forkVersion {
 	case version.Deneb:
@@ -114,8 +115,7 @@ func (b *BeaconBlockBodyBase) GetEth1Data() *Eth1Data {
 	return b.Eth1Data
 }
 
-// SetBlobKzgCommitments sets the BlobKzgCommitments of the
-// BeaconBlockBodyDeneb.
+// SetEth1Data sets the Eth1Data of the BeaconBlockBodyDeneb.
 func (b *BeaconBlockBodyDeneb) SetEth1Data(eth1Data *Eth1Data) {
 	b.Eth1Data = eth1Data
 }
