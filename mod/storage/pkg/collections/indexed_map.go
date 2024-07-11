@@ -150,6 +150,15 @@ func (im *IndexedMap[PrimaryKey, Value, Idx]) Iterate() (sdkcollections.Iterator
 	return im.primaryMap.Iterate()
 }
 
+func (im *IndexedMap[PrimaryKey, Value, Idx]) NumKeys() (uint64, error) {
+	numKeys, err := im.primaryMap.NumKeys()
+	if err != nil {
+		return 0, err
+	}
+	fmt.Println("ACTUAL NUMBER OF KEYS", im.primaryMap.Count)
+	return uint64(numKeys), nil
+}
+
 // Has reports if exists a value with the provided primary key.
 func (im *IndexedMap[PrimaryKey, Value, Idx]) Has(pk PrimaryKey) (bool, error) {
 	return im.primaryMap.Has(pk)

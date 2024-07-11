@@ -286,15 +286,15 @@ func (s *Store[
 	// first query the change set
 	value, found := s.changeSet.Query(storeKey, key)
 	if found {
+		fmt.Println("FOUND IN CHANGESET")
 		return value, nil
 	}
-	fmt.Println("NOT FOUND")
 	// query the underlying store with the latest version
 	version, err := s.GetLatestVersion()
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("VERSION VERSION:", version)
+	fmt.Println("STORE VERSION:", version)
 	resp, err := s.Query(storeKey, version, key, false)
 	if err != nil {
 		return nil, err

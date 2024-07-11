@@ -35,6 +35,7 @@ type Map[K, V any] struct {
 	KeyCodec      codec.KeyCodec[K]
 	ValueCodec    codec.ValueCodec[V]
 	storeAccessor StoreAccessor
+	Count         int
 }
 
 func NewMap[K, V any](
@@ -80,6 +81,7 @@ func (m *Map[K, V]) Set(key K, value V) error {
 		return err
 	}
 	m.storeAccessor().AddChange(m.storeKey, prefixedKey, encodedValue)
+	m.Count++
 	return nil
 }
 
@@ -113,13 +115,37 @@ func (m *Map[K, V]) Remove(key K) error {
 		return err
 	}
 	m.storeAccessor().AddChange(m.storeKey, prefixedKey, nil)
+	m.Count--
 	return nil
 }
 
-// Iterate provides an Iterator over K and V. It accepts a Ranger interface.
-// A nil ranger equals to iterate over all the keys in ascending order.
+// Iterate provides an Iterator over K and V in ascending order.
 func (m *Map[K, V]) Iterate() (sdkcollections.Iterator[K, V], error) {
-	return m.IterateRaw(m.keyPrefix, nil)
+	return m.IterateRaw(nil, nil)
+}
+
+func (m *Map[K, V]) NumKeys() (int, error) {
+	// get latest reader map
+	_, readerMap, err := m.storeAccessor().StateLatest()
+	if err != nil {
+		return 0, err
+	}
+	// retrieve reader from reader map
+	reader, err := readerMap.GetReader(m.storeKey)
+	if err != nil {
+		return 0, err
+	}
+	// retrieve iterator from reader
+	iter, err := reader.Iterator(nil, nil)
+	if err != nil {
+		return 0, err
+	}
+	defer iter.Close()
+	count := 0
+	for ; iter.Valid(); iter.Next() {
+		count++
+	}
+	return count, nil
 }
 
 func (m *Map[K, V]) IterateRaw(

@@ -23,6 +23,8 @@ package beacondb
 import (
 	"fmt"
 
+	sdkcollections "cosmossdk.io/collections"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/collections/indexes"
@@ -35,7 +37,7 @@ func (s *Store[
 ]) AddValidator(
 	val ValidatorT,
 ) error {
-	// Get the ne
+	// Get the next validator index.
 	idx, err := s.validatorIndex.Next()
 	if err != nil {
 		return err
@@ -55,7 +57,7 @@ func (s *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) AddValidatorBartio(val ValidatorT) error {
-	// Get the ne
+	// Get the next validator index.
 	idx, err := s.validatorIndex.Next()
 	if err != nil {
 		return err
@@ -147,22 +149,29 @@ func (s *Store[
 		vals []ValidatorT
 		val  ValidatorT
 	)
-
+	s.Save()
 	iter, err := s.validators.Iterate()
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("NOT GETTING ERROR AFTER ITERATE")
-	for iter.Valid() {
-		fmt.Println("ABOUT TO RETRIEVE VALUE")
-		val, err = iter.Value()
+
+	keys, err := iter.Keys()
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println("KEYS:", keys)
+	for _, k := range keys {
+		val, err = s.validators.Get(k)
 		if err != nil {
+			if errors.Is(err, sdkcollections.ErrNotFound) {
+				continue
+			}
 			return nil, err
 		}
 		vals = append(vals, val)
-		iter.Next()
 	}
-	fmt.Println("HENLO AFTER ITERATE")
+	iter.Close()
+	fmt.Println("HENLO AFTER ITERATE", vals)
 	return vals, nil
 }
 
@@ -171,11 +180,12 @@ func (s *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetTotalValidators() (uint64, error) {
-	validators, err := s.GetValidators()
-	if err != nil {
-		return 0, err
-	}
-	return uint64(len(validators)), nil
+	// validators, err := s.GetValidators()
+	// if err != nil {
+	// 	return 0, err
+	// }
+	// return uint64(len(validators)), nil
+	return s.validators.NumKeys()
 }
 
 // GetValidatorsByEffectiveBalance retrieves all validators sorted by
