@@ -23,7 +23,6 @@ package components
 import (
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
 )
@@ -42,9 +41,9 @@ func ProvideKVStore(
 		SSZInterfaceCodec[*ExecutionPayloadHeader]{}
 	return beacondb.New[
 		*BeaconBlockHeader,
-		*types.Eth1Data,
+		*Eth1Data,
 		*ExecutionPayloadHeader,
-		*types.Fork,
-		*types.Validator,
+		*Fork,
+		*Validator,
 	](in.Environment.KVStoreService, payloadCodec)
 }
