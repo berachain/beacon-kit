@@ -36,20 +36,13 @@ type BeaconDepositContractInput struct {
 
 // ProvideBeaconDepositContract provides a beacon deposit contract through the
 // dep inject framework.
-func ProvideBeaconDepositContract[
-	DepositT deposit.Deposit[DepositT, WithdrawalCredentialsT],
-	ExecutionPayloadT deposit.ExecutionPayload,
-	WithdrawalT any,
-	WithdrawalCredentialsT ~[32]byte,
-](
+func ProvideBeaconDepositContract(
 	in BeaconDepositContractInput,
-) (
-	*deposit.WrappedBeaconDepositContract[DepositT, WithdrawalCredentialsT],
-	error,
-) {
+) (*DepositContract, error) {
 	// Build the deposit contract.
 	return deposit.NewWrappedBeaconDepositContract[
-		DepositT, WithdrawalCredentialsT,
+		*Deposit,
+		WithdrawalCredentials,
 	](
 		in.ChainSpec.DepositContractAddress(),
 		in.EngineClient,
