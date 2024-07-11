@@ -132,6 +132,8 @@ start-geth-validator-run:
 	--nat extip:${INTERNAL_IP}
 
 start-geth-node-run:
+	@echo --bootnodes "${BOOT_NODES}"
+
 	sudo chmod 777 -R .tmp
 	geth \
 	--http \
@@ -150,7 +152,7 @@ start-geth-node-run:
 	--txpool.globalslots 1000000 \
 	--txpool.globalqueue 3000000 \
 	--http.vhosts "*" \
-	--bootnodes ${BOOT_NODES} \
+	--bootnodes "${BOOT_NODES}" \
 	--nat extip:${INTERNAL_IP}
 
 start-geth-run-local:
