@@ -76,11 +76,15 @@ func TestVectorHashTreeRootZTyp(t *testing.T) {
 
 func TestExecutableDataDenebHashTreeRootZrnt(t *testing.T) {
 	f := func(payload *types.ExecutableDataDeneb, logsBloom [256]byte) bool {
-		// skip in these cases lest we trigger a nil-pointer dereference in fastssz's HashTreeRootWith
-		if payload == nil || payload.Withdrawals == nil || slices.Contains(payload.Withdrawals, nil) ||
-			payload.Transactions == nil || slices.ContainsFunc(payload.Transactions, func(e []byte) bool {
-			return e == nil
-		}) {
+		// skip these cases lest we trigger a
+		// nil-pointer dereference in fastssz
+		if payload == nil ||
+			payload.Withdrawals == nil ||
+			slices.Contains(payload.Withdrawals, nil) ||
+			payload.Transactions == nil ||
+			slices.ContainsFunc(payload.Transactions, func(e []byte) bool {
+				return e == nil
+			}) {
 			return true
 		}
 
@@ -107,7 +111,8 @@ func TestExecutableDataDenebHashTreeRootZrnt(t *testing.T) {
 			ExtraData:     payload.ExtraData,
 			BaseFeePerGas: baseFeePerGas,
 			BlockHash:     ztree.Root(payload.BlockHash),
-			Transactions:  *(*zcommon.PayloadTransactions)(unsafe.Pointer(&payload.Transactions)),
+			Transactions: *(*zcommon.PayloadTransactions)(
+				unsafe.Pointer(&payload.Transactions)),
 			Withdrawals:   *(*zcommon.Withdrawals)(unsafe.Pointer(&payload.Withdrawals)),
 			BlobGasUsed:   zview.Uint64View(payload.BlobGasUsed.Unwrap()),
 			ExcessBlobGas: zview.Uint64View(payload.ExcessBlobGas.Unwrap()),
@@ -135,8 +140,10 @@ func TestExecutableDataDenebHashTreeRootZrnt(t *testing.T) {
 		)
 		containerRoot, err := container.HashTreeRoot()
 		if err != nil {
+			t.Log("Failed to calculate HashTreeRoot on container payload:", err)
 			return false
 		}
+		//nolint:gocritic // ok
 		return typeRoot == containerRoot && typeRoot == zRoot
 	}
 	if err := quick.Check(f, &c); err != nil {
