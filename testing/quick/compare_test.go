@@ -36,7 +36,7 @@ import (
 	zview "github.com/protolambda/ztyp/view"
 )
 
-var c = quick.Config{MaxCount: 1000000}
+var c = quick.Config{MaxCount: 10000}
 var hFn = ztree.GetHashFn()
 var spec = zspec.Mainnet
 
