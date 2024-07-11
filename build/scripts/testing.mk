@@ -20,6 +20,7 @@ HTTP_URL = localhost:8551
 IPC_PREFIX = ipc://
 HTTP_PREFIX = http://
 INTERNAL_IP := $(shell hostname -I | awk '{print $$1}')
+BOOT_NODES = "enode://9ae3ec5d62ffb4a6664e911507d421db996c870e8e6b7da66dbe4b68302f2273a6c0622d7d446fa3a0652082e53ad79acd5214f0eb3755735425d223dce901cb@10.0.11.187:30303,enode://49ddd0089ba3b0308d61858cdbad081b5691145c3a0a7b12dddf92ae056e8a9cb64b65c02ac02a43df6e48c3b071933f28cc644d25dbaae9cf316b79c24049eb@10.0.4.236:30303,enode://4fb3aa830f1bac6be33a0d4cf522ad52850970f3aad7effc7c3bae32369dff05444e44e13ccb00aecbcbcf34a296a175d5b200d35b67028f34e62e066cc50d66@10.0.8.119:30303"
 
 ## Testing:
 start: ## start an ephemeral `beacond` node
@@ -149,6 +150,7 @@ start-geth-node-run:
 	--txpool.globalslots 1000000 \
 	--txpool.globalqueue 3000000 \
 	--http.vhosts "*" \
+	--bootnodes ${BOOT_NODES} \
 	--nat extip:${INTERNAL_IP}
 
 start-geth-run-local:
