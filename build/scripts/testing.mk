@@ -110,7 +110,7 @@ start-geth-init:
 start-geth-init-local:
 	geth init --state.scheme "hash" --datadir ${ETH_DATA_DIR} ${ETH_GENESIS_PATH}
 
-start-geth-validator-run:
+start-geth-archive-run:
 	sudo chmod 777 -R .tmp
 	geth \
 	--http \
@@ -132,7 +132,7 @@ start-geth-validator-run:
 	--bootnodes "${BOOT_NODES}" \
 	--nat extip:${INTERNAL_IP}
 
-start-geth-node-run:
+start-geth-node-snap-run:
 	sudo chmod 777 -R .tmp
 	geth \
 	--http \
@@ -146,7 +146,6 @@ start-geth-node-run:
 	--rpc.allow-unprotected-txs \
 	--syncmode "snap" \
 	--state.scheme "hash" \
-    --gcmode "archive" \
     --rpc.evmtimeout "10s" \
 	--txpool.globalslots 1000000 \
 	--txpool.globalqueue 3000000 \
