@@ -46,6 +46,7 @@ HOMEDIR="./.tmp/beacond"
 GENESIS=$HOMEDIR/config/genesis.json
 TMP_GENESIS=$HOMEDIR/config/tmp_genesis.json
 ETH_GENESIS=$(resolve_path "./testing/files/eth-genesis.json")
+PERSISTENT_PEERS="834419a275ea8584d9e0d62be054517fb28d6b82@10.0.11.187:26656,d1a215e21aec12057b2f195f472f065326ce331e@10.0.4.236:26656,3987bb7be4024fbc04cbf21b54935be3fe90ecc2@10.0.8.119:26656"
 
 sudo chmod 777 -R ./.tmp
 
@@ -98,6 +99,7 @@ fi
 BEACON_START_CMD="./build/bin/beacond start --pruning=nothing "$TRACE" \
 --log_level $LOGLEVEL --api.enabled-unsafe-cors \
 --api.enable --api.swagger --minimum-gas-prices=0.0001abgt \
+--p2p.persistent_peers $PERSISTENT_PEERS \
 --home $HOMEDIR --beacon-kit.engine.jwt-secret-path ${JWT_SECRET_PATH}"
 
 # Conditionally add the rpc-dial-url flag if RPC_DIAL_URL is not empty
