@@ -1,0 +1,4 @@
+PEER=`./build/bin/beacond tendermint show-node-id --home ./.tmp/beacond/`
+INTERNAL_IP=`hostname -I | awk '{print $1}'`
+
+echo "$PEER@$INTERNAL_IP:26656"
