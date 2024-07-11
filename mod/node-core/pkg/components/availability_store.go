@@ -26,7 +26,6 @@ import (
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
@@ -47,12 +46,10 @@ type AvailabilityStoreInput struct {
 }
 
 // ProvideAvailibilityStore provides the availability store.
-func ProvideAvailibilityStore[
-	BeaconBlockBodyT types.RawBeaconBlockBody,
-](
+func ProvideAvailibilityStore(
 	in AvailabilityStoreInput,
-) (*dastore.Store[BeaconBlockBodyT], error) {
-	return dastore.New[BeaconBlockBodyT](
+) (*AvailabilityStore, error) {
+	return dastore.New[*BeaconBlockBody](
 		filedb.NewRangeDB(
 			filedb.NewDB(
 				filedb.WithRootDirectory(
@@ -84,8 +81,8 @@ type AvailabilityPrunerInput struct {
 // framework.
 func ProvideAvailabilityPruner(
 	in AvailabilityPrunerInput,
-) (pruner.Pruner[*filedb.RangeDB], error) {
-	rangeDB, ok := in.AvailabilityStore.IndexDB.(*filedb.RangeDB)
+) (DAPruner, error) {
+	rangeDB, ok := in.AvailabilityStore.IndexDB.(*IndexDB)
 	if !ok {
 		in.Logger.Error("availability store does not have a range db")
 		return nil, errors.New("availability store does not have a range db")
@@ -101,7 +98,7 @@ func ProvideAvailabilityPruner(
 	return pruner.NewPruner[
 		*BeaconBlock,
 		*BlockEvent,
-		*filedb.RangeDB,
+		*IndexDB,
 	](
 		in.Logger.With("service", manager.AvailabilityPrunerName),
 		rangeDB,
