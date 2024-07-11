@@ -135,7 +135,7 @@ start-geth-node-run:
 	geth \
 	--http \
 	--http.addr 0.0.0.0 \
-	--http.api eth,net,debug,txpool \
+	--http.api eth,net,debug,txpool,admin \
 	--authrpc.addr 0.0.0.0 \
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--authrpc.vhosts "*" \
