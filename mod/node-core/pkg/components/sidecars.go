@@ -20,41 +20,27 @@
 
 package components
 
-func DefaultComponentsWithStandardTypes() []any {
-	return []any{
-		ProvideABCIMiddleware,
-		ProvideAttributesFactory,
-		ProvideAvailabilityPruner,
-		ProvideAvailibilityStore,
-		ProvideBlsSigner,
-		ProvideBlobFeed,
-		ProvideBlockFeed,
-		ProvideBlobProcessor,
-		ProvideBlobProofVerifier,
-		ProvideBlobVerifier,
-		ProvideChainService,
-		ProvideChainSpec,
-		ProvideConfig,
-		ProvideDAService,
-		ProvideDBManager,
-		ProvideDepositPruner,
-		ProvideDepositService,
-		ProvideDepositStore,
-		ProvideBeaconDepositContract,
-		ProvideEngineClient,
-		ProvideExecutionEngine,
-		ProvideGenesisBroker,
-		ProvideJWTSecret,
-		ProvideLocalBuilder,
-		ProvideServiceRegistry,
-		ProvideSidecarFactory,
-		ProvideStateProcessor,
-		ProvideSlotBroker,
-		ProvideStatusBroker,
-		ProvideStorageBackend,
-		ProvideTelemetrySink,
-		ProvideTrustedSetup,
-		ProvideValidatorService,
-		ProvideValidatorUpdateBroker,
-	}
+import (
+	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+)
+
+type SidecarFactoryInput struct {
+	depinject.In
+	ChainSpec     common.ChainSpec
+	TelemetrySink *metrics.TelemetrySink
+}
+
+func ProvideSidecarFactory(in SidecarFactoryInput) *SidecarFactory {
+	return dablob.NewSidecarFactory[
+		*BeaconBlock,
+		*BeaconBlockBody,
+	](
+		in.ChainSpec,
+		types.KZGPositionDeneb,
+		in.TelemetrySink,
+	)
 }
