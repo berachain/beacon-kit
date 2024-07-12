@@ -44,8 +44,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// NewValidateDeposit creates a new command for validating a deposit message.
-func NewCreateValidator[ExecutionPayloadT constraints.EngineType[ExecutionPayloadT]](
+// NewCreateValidator creates a new command to create a validator deposit.
+func NewCreateValidator[
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+](
 	chainSpec common.ChainSpec,
 ) *cobra.Command {
 	cmd := &cobra.Command{
@@ -76,7 +78,11 @@ func NewCreateValidator[ExecutionPayloadT constraints.EngineType[ExecutionPayloa
 }
 
 // createValidatorCmd returns a command that builds a create validator request.
-func createValidatorCmd[ExecutionPayloadT constraints.EngineType[ExecutionPayloadT]](
+//
+//nolint:gocognit // The function is not complex.
+func createValidatorCmd[
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+](
 	chainSpec common.ChainSpec,
 ) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
@@ -164,7 +170,9 @@ func createValidatorCmd[ExecutionPayloadT constraints.EngineType[ExecutionPayloa
 	}
 }
 
-func broadcastDepositTx[ExecutionPayloadT constraints.EngineType[ExecutionPayloadT]](
+func broadcastDepositTx[
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+](
 	cmd *cobra.Command,
 	depositMsg *types.DepositMessage,
 	signature crypto.BLSSignature,

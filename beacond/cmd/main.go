@@ -62,7 +62,9 @@ func run() error {
 		// Set the Name to the Default.
 		clibuilder.WithName[node, *executionPayload](nodebuilder.DefaultAppName),
 		// Set the Description to the Default.
-		clibuilder.WithDescription[node, *executionPayload](nodebuilder.DefaultDescription),
+		clibuilder.WithDescription[node, *executionPayload](
+			nodebuilder.DefaultDescription,
+		),
 		// Set the DepInject Configuration to the Default.
 		clibuilder.WithDepInjectConfig[node, *executionPayload](
 			nodebuilder.DefaultDepInjectConfig(),

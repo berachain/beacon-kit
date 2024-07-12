@@ -136,9 +136,9 @@ func (cb *CLIBuilder[T, ExecutionPayloadT]) Build() (*cmdlib.Root, error) {
 }
 
 // defaultRunHandler returns the default run handler for the CLIBuilder.
-func (cb *CLIBuilder[T, ExecutionPayloadT]) defaultRunHandler(logger log.Logger) func(
-	cmd *cobra.Command,
-) error {
+func (cb *CLIBuilder[T, ExecutionPayloadT]) defaultRunHandler(
+	logger log.Logger,
+) func(cmd *cobra.Command) error {
 	return func(cmd *cobra.Command) error {
 		return cb.InterceptConfigsPreRunHandler(
 			cmd,
