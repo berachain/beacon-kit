@@ -237,6 +237,9 @@ func broadcastDepositTx[
 					privKey,
 				)
 			},
+			//nolint:mnd // The gas tip cap.
+			// It is necessary for besu to work, not sure why though.
+			GasTipCap: big.NewInt(1000000000),
 		},
 		depositMsg.Pubkey[:],
 		depositMsg.Credentials[:],
