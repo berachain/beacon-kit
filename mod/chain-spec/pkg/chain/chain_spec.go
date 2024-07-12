@@ -180,7 +180,8 @@ type Spec[
 	// availability period relative to the current slot.
 	WithinDAPeriod(block, current SlotT) bool
 
-	// GetCometBFTConfigForSlot retrieves the CometBFT config for a specific slot.
+	// GetCometBFTConfigForSlot retrieves the CometBFT config for a specific
+	// slot.
 	GetCometBFTConfigForSlot(slot SlotT) CometBFTConfigT
 }
 
