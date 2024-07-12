@@ -58,10 +58,7 @@ func TestDBManager_Start(t *testing.T) {
 		*mocks.Prunable,
 	](logger, mockPrunable, "pruner2", ch, pruneParamsFn)
 
-	m, err := manager.NewDBManager[
-		manager.BeaconBlock,
-		manager.BlockEvent[manager.BeaconBlock],
-	](logger, p1, p2)
+	m, err := manager.NewDBManager(logger, p1, p2)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())

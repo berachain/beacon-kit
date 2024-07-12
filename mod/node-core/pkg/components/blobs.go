@@ -23,14 +23,11 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
-	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/da/pkg/da"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
-	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -57,31 +54,39 @@ func ProvideBlobProofVerifier(
 	)
 }
 
+// BlobVerifierInput is the input for the BlobVerifier.
+type BlobVerifierInput struct {
+	depinject.In
+	BlobProofVerifier kzg.BlobProofVerifier
+	TelemetrySink     *metrics.TelemetrySink
+}
+
+// ProvideBlobVerifier is a function that provides the BlobVerifier to the
+// depinject framework.
+func ProvideBlobVerifier(in BlobVerifierInput) *BlobVerifier {
+	return dablob.NewVerifier(in.BlobProofVerifier, in.TelemetrySink)
+}
+
 // BlobProcessorIn is the input for the BlobProcessor.
 type BlobProcessorIn struct {
 	depinject.In
 
-	BlobProofVerifier kzg.BlobProofVerifier
-	ChainSpec         common.ChainSpec
-	Logger            log.Logger
-	TelemetrySink     *metrics.TelemetrySink
+	BlobVerifier  *BlobVerifier
+	ChainSpec     common.ChainSpec
+	Logger        log.Logger
+	TelemetrySink *metrics.TelemetrySink
 }
 
 // ProvideBlobProcessor is a function that provides the BlobProcessor to the
 // depinject framework.
-func ProvideBlobProcessor[
-	BeaconBlockBodyT types.RawBeaconBlockBody,
-](in BlobProcessorIn) *dablob.Processor[
-	*dastore.Store[BeaconBlockBodyT],
-	BeaconBlockBodyT,
-] {
+func ProvideBlobProcessor(in BlobProcessorIn) *BlobProcessor {
 	return dablob.NewProcessor[
-		*dastore.Store[BeaconBlockBodyT],
-		BeaconBlockBodyT,
+		*AvailabilityStore,
+		*BeaconBlockBody,
 	](
 		in.Logger.With("service", "blob-processor"),
 		in.ChainSpec,
-		dablob.NewVerifier(in.BlobProofVerifier, in.TelemetrySink),
+		in.BlobVerifier,
 		types.BlockBodyKZGOffset,
 		in.TelemetrySink,
 	)
@@ -91,29 +96,20 @@ func ProvideBlobProcessor[
 type DAServiceIn struct {
 	depinject.In
 
-	AvailabilityStore *dastore.Store[*BeaconBlockBody]
+	AvailabilityStore *AvailabilityStore
 	SidecarsBroker    *SidecarsBroker
-	BlobProcessor     *dablob.Processor[
-		*dastore.Store[*BeaconBlockBody],
-		*BeaconBlockBody,
-	]
-	Logger log.Logger
+	BlobProcessor     *BlobProcessor
+	Logger            log.Logger
 }
 
 // ProvideDAService is a function that provides the BlobService to the
 // depinject framework.
-func ProvideDAService(in DAServiceIn) *da.Service[
-	*dastore.Store[*BeaconBlockBody],
-	*BeaconBlockBody,
-	*BlobSidecars,
-	*broker.Broker[*asynctypes.Event[*BlobSidecars]],
-	*ExecutionPayload,
-] {
+func ProvideDAService(in DAServiceIn) *DAService {
 	return da.NewService[
-		*dastore.Store[*BeaconBlockBody],
+		*AvailabilityStore,
 		*BeaconBlockBody,
 		*BlobSidecars,
-		*broker.Broker[*asynctypes.Event[*BlobSidecars]],
+		*SidecarsBroker,
 		*ExecutionPayload,
 	](
 		in.AvailabilityStore,
