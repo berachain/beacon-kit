@@ -115,11 +115,6 @@ func (b *BeaconBlockBodyBase) GetEth1Data() *Eth1Data {
 	return b.Eth1Data
 }
 
-// SetEth1Data sets the Eth1Data of the BeaconBlockBodyDeneb.
-func (b *BeaconBlockBodyDeneb) SetEth1Data(eth1Data *Eth1Data) {
-	b.Eth1Data = eth1Data
-}
-
 // GetGraffiti returns the Graffiti of the Body.
 func (b *BeaconBlockBodyBase) GetGraffiti() common.Bytes32 {
 	return b.Graffiti
