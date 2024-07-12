@@ -20,7 +20,11 @@
 
 package changeset
 
-import "cosmossdk.io/core/store"
+import (
+	"sync"
+
+	"cosmossdk.io/core/store"
+)
 
 // Changeset is a wrapper around store.Changeset that holds a map of changes
 // for more efficient querying
@@ -28,7 +32,8 @@ import "cosmossdk.io/core/store"
 type Changeset struct {
 	*store.Changeset
 	changes map[string][]byte
-	Count   int
+
+	mu *sync.RWMutex
 }
 
 // New initializes a new Changeset with an empty store.Changeset and
@@ -37,6 +42,7 @@ func New() *Changeset {
 	return &Changeset{
 		Changeset: store.NewChangeset(),
 		changes:   make(map[string][]byte),
+		mu:        &sync.RWMutex{},
 	}
 }
 
@@ -56,6 +62,8 @@ func NewWithPairs(pairs map[string]store.KVPairs) *Changeset {
 
 // Add adds a change to the changeset and changes map
 func (cs *Changeset) Add(storeKey, key, value []byte, remove bool) {
+	defer cs.mu.Unlock()
+	cs.mu.Lock()
 	// add/remove the change to the map of changes
 	if remove {
 		cs.changes[buildKey(storeKey, key)] = nil
@@ -63,18 +71,13 @@ func (cs *Changeset) Add(storeKey, key, value []byte, remove bool) {
 		cs.changes[buildKey(storeKey, key)] = value
 	}
 	cs.Changeset.Add(storeKey, key, value, remove)
-	// TODO: remove
-	if !remove {
-		cs.Count++
-	} else {
-		cs.Count--
-	}
 }
 
 // AddKVPair adds a KVPair to the Changeset and changes map
 func (cs *Changeset) AddKVPair(storeKey []byte, pair store.KVPair) {
+	defer cs.mu.Unlock()
+	cs.mu.Lock()
 	cs.Add(storeKey, pair.Key, pair.Value, pair.Remove)
-	cs.Changeset.Add(storeKey, pair.Key, pair.Value, pair.Remove)
 }
 
 // Query queries the changeset with the given store key and key

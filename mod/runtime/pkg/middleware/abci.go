@@ -23,8 +23,6 @@ package middleware
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-	"reflect"
 	"time"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
@@ -106,7 +104,6 @@ func (h *ABCIMiddleware[
 	ctx context.Context,
 	slot math.Slot,
 ) ([]byte, []byte, error) {
-	fmt.Println("PREPARE PROPOSAL context type", reflect.TypeOf(ctx))
 	var (
 		g                           errgroup.Group
 		startTime                   = time.Now()
