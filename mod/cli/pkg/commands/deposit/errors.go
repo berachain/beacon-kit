@@ -28,4 +28,14 @@ var (
 	ErrValidatorPrivateKeyRequired = errors.New(
 		"validator private key required",
 	)
+	// ErrDepositTransactionFailed is returned when the deposit transaction
+	// fails.
+	ErrDepositTransactionFailed = errors.New(
+		"deposit transaction failed",
+	)
+	// ErrPrivateKeyRequired is returned when the broadcast flag is set but a
+	// private key is not provided.
+	ErrPrivateKeyRequired = errors.New(
+		"private key required",
+	)
 )

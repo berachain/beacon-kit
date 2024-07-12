@@ -34,6 +34,11 @@ import (
 	"go.uber.org/automaxprocs/maxprocs"
 )
 
+type (
+	node             = types.Node
+	executionPayload = nodecomponents.ExecutionPayload
+)
+
 // run runs the beacon node.
 func run() error {
 	// Set the uber max procs
@@ -44,10 +49,10 @@ func run() error {
 	// Build the node using the node-core.
 	nb := nodebuilder.New(
 		// Set the DepInject Configuration to the Default.
-		nodebuilder.WithDepInjectConfig[types.Node](
+		nodebuilder.WithDepInjectConfig[node](
 			nodebuilder.DefaultDepInjectConfig()),
 		// Set the Runtime Components to the Default.
-		nodebuilder.WithComponents[types.Node](
+		nodebuilder.WithComponents[node](
 			nodecomponents.DefaultComponentsWithStandardTypes(),
 		),
 	)
@@ -55,15 +60,15 @@ func run() error {
 	// Build the root command using the builder
 	cb := clibuilder.New(
 		// Set the Name to the Default.
-		clibuilder.WithName[types.Node](nodebuilder.DefaultAppName),
+		clibuilder.WithName[node, *executionPayload](nodebuilder.DefaultAppName),
 		// Set the Description to the Default.
-		clibuilder.WithDescription[types.Node](nodebuilder.DefaultDescription),
+		clibuilder.WithDescription[node, *executionPayload](nodebuilder.DefaultDescription),
 		// Set the DepInject Configuration to the Default.
-		clibuilder.WithDepInjectConfig[types.Node](
+		clibuilder.WithDepInjectConfig[node, *executionPayload](
 			nodebuilder.DefaultDepInjectConfig(),
 		),
 		// Set the Runtime Components to the Default.
-		clibuilder.WithComponents[types.Node](
+		clibuilder.WithComponents[node, *executionPayload](
 			append(
 				clicomponents.DefaultClientComponents(),
 				// TODO: remove these, and eventually pull cfg and chainspec
@@ -73,15 +78,15 @@ func run() error {
 				nodecomponents.ProvideChainSpec,
 			),
 		),
-		clibuilder.SupplyModuleDeps[types.Node](
+		clibuilder.SupplyModuleDeps[node, *executionPayload](
 			beacon.SupplyModuleDependencies(),
 		),
 		// Set the Run Handler to the Default.
-		clibuilder.WithRunHandler[types.Node](
+		clibuilder.WithRunHandler[node, *executionPayload](
 			server.InterceptConfigsPreRunHandler,
 		),
 		// Set the NodeBuilderFunc to the NodeBuilder Build.
-		clibuilder.WithNodeBuilderFunc[types.Node](nb.Build),
+		clibuilder.WithNodeBuilderFunc[node, *executionPayload](nb.Build),
 	)
 
 	cmd, err := cb.Build()

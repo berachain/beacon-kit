@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/context"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -40,7 +41,10 @@ import (
 )
 
 // CLIBuilder is the builder for the commands.Root (root command).
-type CLIBuilder[T types.Node] struct {
+type CLIBuilder[
+	T types.Node,
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+] struct {
 	depInjectCfg depinject.Config
 	name         string
 	description  string
@@ -59,8 +63,13 @@ type CLIBuilder[T types.Node] struct {
 }
 
 // New returns a new CLIBuilder with the given options.
-func New[T types.Node](opts ...Opt[T]) *CLIBuilder[T] {
-	cb := &CLIBuilder[T]{
+func New[
+	T types.Node,
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+](
+	opts ...Opt[T, ExecutionPayloadT],
+) *CLIBuilder[T, ExecutionPayloadT] {
+	cb := &CLIBuilder[T, ExecutionPayloadT]{
 		suppliers: []any{
 			os.Stdout, // supply io.Writer for logger
 			viper.GetViper(),
@@ -73,7 +82,7 @@ func New[T types.Node](opts ...Opt[T]) *CLIBuilder[T] {
 }
 
 // Build builds the CLI commands.
-func (cb *CLIBuilder[T]) Build() (*cmdlib.Root, error) {
+func (cb *CLIBuilder[T, ExecutionPayloadT]) Build() (*cmdlib.Root, error) {
 	// allocate memory to hold the dependencies
 	var (
 		autoCliOpts autocli.AppOptions
@@ -116,7 +125,7 @@ func (cb *CLIBuilder[T]) Build() (*cmdlib.Root, error) {
 	}
 
 	// apply default root command setup
-	cmdlib.DefaultRootCommandSetup(
+	cmdlib.DefaultRootCommandSetup[T, ExecutionPayloadT](
 		rootCmd,
 		mm,
 		cb.nodeBuilderFunc,
@@ -127,7 +136,7 @@ func (cb *CLIBuilder[T]) Build() (*cmdlib.Root, error) {
 }
 
 // defaultRunHandler returns the default run handler for the CLIBuilder.
-func (cb *CLIBuilder[T]) defaultRunHandler(logger log.Logger) func(
+func (cb *CLIBuilder[T, ExecutionPayloadT]) defaultRunHandler(logger log.Logger) func(
 	cmd *cobra.Command,
 ) error {
 	return func(cmd *cobra.Command) error {
@@ -144,7 +153,7 @@ func (cb *CLIBuilder[T]) defaultRunHandler(logger log.Logger) func(
 // InterceptConfigsPreRunHandler is identical to
 // InterceptConfigsAndCreateContext except it also sets the server context on
 // the command and the server logger.
-func (cb *CLIBuilder[T]) InterceptConfigsPreRunHandler(
+func (cb *CLIBuilder[T, ExecutionPayloadT]) InterceptConfigsPreRunHandler(
 	cmd *cobra.Command, logger log.Logger, customAppConfigTemplate string,
 	customAppConfig interface{}, cmtConfig *cmtcfg.Config,
 ) error {
