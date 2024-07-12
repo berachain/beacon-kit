@@ -20,7 +20,7 @@
 
 package pow
 
-// PrevPowerOfTwo returns the next power of 2 for the given input.
+// PrevPowerOfTwo returns the previous power of 2 for the given input.
 //
 //nolint:mnd // todo fix.
 func PrevPowerOfTwo[U64T ~uint64](u U64T) U64T {
