@@ -188,12 +188,12 @@ func (sp *StateProcessor[
 	fmt.Println("STATE SLOT:", stateSlot)
 	// Iterate until we are "caught up".
 	for ; stateSlot < slot; stateSlot++ {
-		fmt.Println("ABOUT TO PROCESS SLOT")
-		beaconState.Save()
+		fmt.Println("ABOUT TO PROCESS SLOT", stateSlot)
 		// Process the slot
 		if err = sp.processSlot(beaconState); err != nil {
 			return nil, err
 		}
+		beaconState.Save()
 		fmt.Println("SLOT PROCESSED!")
 
 		// Process the Epoch Boundary.
@@ -228,7 +228,6 @@ func (sp *StateProcessor[
 	if err != nil {
 		return err
 	}
-	fmt.Println("ERMST 1")
 	// Before we make any changes, we calculate the previous state root.
 	prevStateRoot, err := st.HashTreeRoot()
 	if err != nil {

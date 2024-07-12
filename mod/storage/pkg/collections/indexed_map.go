@@ -155,8 +155,6 @@ func (im *IndexedMap[PrimaryKey, Value, Idx]) NumKeys() (uint64, error) {
 	if err != nil {
 		return 0, err
 	}
-	fmt.Println("KEYS IN PRIMARY MAP", numKeys)
-	fmt.Println("ACTUAL NUMBER OF KEYS", im.primaryMap.Size)
 	return uint64(numKeys), nil
 }
 

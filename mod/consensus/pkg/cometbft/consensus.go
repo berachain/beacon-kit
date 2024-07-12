@@ -23,7 +23,6 @@ package cometbft
 import (
 	"context"
 	"fmt"
-	"reflect"
 
 	"cosmossdk.io/core/transaction"
 	"cosmossdk.io/server/v2/cometbft/handlers"
@@ -78,7 +77,6 @@ func (c *ConsensusEngine[T, ValidatorUpdateT]) Prepare(
 	txs []T,
 	req proto.Message,
 ) ([]T, error) {
-	fmt.Println("CONSENSUS ENGINE PREPARE context type", reflect.TypeOf(ctx))
 	abciReq, ok := req.(*cmtabci.PrepareProposalRequest)
 	if !ok {
 		return nil, ErrInvalidRequestType

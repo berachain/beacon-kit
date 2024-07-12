@@ -21,8 +21,6 @@
 package beacondb
 
 import (
-	"fmt"
-
 	sdkcollections "cosmossdk.io/collections"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -159,7 +157,6 @@ func (s *Store[
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("KEYS:", keys)
 	for _, k := range keys {
 		val, err = s.validators.Get(k)
 		if err != nil {
@@ -171,7 +168,6 @@ func (s *Store[
 		vals = append(vals, val)
 	}
 	iter.Close()
-	fmt.Println("HENLO AFTER ITERATE", vals)
 	return vals, nil
 }
 

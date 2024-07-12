@@ -21,8 +21,6 @@
 package state
 
 import (
-	"fmt"
-
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -291,27 +289,22 @@ func (s *StateDB[
 	Eth1DataT, ExecutionPayloadHeaderT, ForkT, StateStoreT,
 	ValidatorT, WithdrawalCredentialsT,
 ]) HashTreeRoot() ([32]byte, error) {
-	fmt.Println("QUERYING STATE DB HASH TREE ROOT")
 	slot, err := s.GetSlot()
 	if err != nil {
 		return [32]byte{}, err
 	}
-	fmt.Println("GOT SLOT FROM STATE DB", slot)
 	fork, err := s.GetFork()
 	if err != nil {
 		return [32]byte{}, err
 	}
-	fmt.Println("GOT FORK FROM STATE DB", fork)
 	genesisValidatorsRoot, err := s.GetGenesisValidatorsRoot()
 	if err != nil {
 		return [32]byte{}, err
 	}
-	fmt.Println("GOT GENESIS VALIDATORS ROOT FROM STATE DB", genesisValidatorsRoot)
 	latestBlockHeader, err := s.GetLatestBlockHeader()
 	if err != nil {
 		return [32]byte{}, err
 	}
-	fmt.Println("GOT LATEST BLOCK HEADER FROM STATE DB", latestBlockHeader)
 	blockRoots := make([]common.Root, s.cs.SlotsPerHistoricalRoot())
 	for i := range s.cs.SlotsPerHistoricalRoot() {
 		blockRoots[i], err = s.GetBlockRootAtIndex(i)
@@ -319,7 +312,6 @@ func (s *StateDB[
 			return [32]byte{}, err
 		}
 	}
-	fmt.Println("GOT BLOCK ROOTS FROM STATE DB", blockRoots)
 	stateRoots := make([]common.Root, s.cs.SlotsPerHistoricalRoot())
 	for i := range s.cs.SlotsPerHistoricalRoot() {
 		stateRoots[i], err = s.StateRootAtIndex(i)
@@ -327,7 +319,6 @@ func (s *StateDB[
 			return [32]byte{}, err
 		}
 	}
-	fmt.Println("GOT STATE ROOTS FROM STATE DB", stateRoots)
 
 	latestExecutionPayloadHeader, err := s.GetLatestExecutionPayloadHeader()
 	if err != nil {

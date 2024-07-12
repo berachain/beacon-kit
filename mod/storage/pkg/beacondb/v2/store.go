@@ -21,8 +21,6 @@
 package beacondb
 
 import (
-	"fmt"
-
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/runtime/v2"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
@@ -251,7 +249,6 @@ func (s *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
 ]) Save() {
 	// reset the changeset following the commit
-	fmt.Println("SAVING CHANGESET WITH SIZE", s.changeSet.Size())
 	defer func() {
 		s.changeSet.Flush()
 	}()
@@ -287,7 +284,6 @@ func (s *Store[
 	// first query the change set
 	value, found := s.changeSet.Query(storeKey, key)
 	if found {
-		fmt.Println("FOUND IN CHANGESET")
 		return value, nil
 	}
 	// query the underlying store with the latest version
@@ -302,7 +298,6 @@ func (s *Store[
 	if resp.Value == nil {
 		return nil, sdkcollections.ErrNotFound
 	}
-	fmt.Println("CHANGE SET SIZE", s.changeSet.Size())
 	return resp.Value, nil
 }
 

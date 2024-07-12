@@ -21,8 +21,6 @@
 package core
 
 import (
-	"fmt"
-
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
@@ -98,15 +96,14 @@ func (sp *StateProcessor[
 			return nil, err
 		}
 	}
+	// TODO: why do we need save here?
 	st.Save()
 	for _, deposit := range deposits {
-		fmt.Println("DEPOSIT, ", deposit)
 		// TODO: process deposits into eth1 data.
 		if err = sp.processDeposit(st, deposit); err != nil {
 			return nil, err
 		}
 	}
-	fmt.Println("DEPOSIT DONE??")
 	_, _ = st.GetTotalValidators()
 	// TODO: process activations.
 	var validators []ValidatorT
@@ -164,7 +161,6 @@ func (sp *StateProcessor[
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("SAVING STATE PROCESSOR GENESIS")
 	st.Save()
 	return updates, nil
 }
