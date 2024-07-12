@@ -114,7 +114,6 @@ func (sp *StateProcessor[
 	if err != nil {
 		return nil, err
 	}
-	st.Save()
 	var validatorsRoot common.Root
 	merkleizer := merkleizer.New[[32]byte, ValidatorT]()
 	validatorsRoot, err = merkleizer.MerkleizeListComposite(

@@ -138,7 +138,7 @@ func (s *Service[
 	var blk BeaconBlockT
 	// Create a new block.
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
-		uint64(requestedSlot-1) % s.chainSpec.SlotsPerHistoricalRoot(),
+		(requestedSlot.Unwrap() - 1) % s.chainSpec.SlotsPerHistoricalRoot(),
 	)
 
 	if err != nil {
@@ -230,7 +230,7 @@ func (s *Service[
 			return nil, err
 		}
 
-		// If we failed to retrieve the payload, request a synchrnous payload.
+		// If we failed to retrieve the payload, request a synchronous payload.
 		//
 		// NOTE: The state here is properly configured by the
 		// prepareStateForBuilding
@@ -246,7 +246,7 @@ func (s *Service[
 			max(
 				//#nosec:G701
 				uint64(time.Now().Unix()+1),
-				uint64((lph.GetTimestamp()+1)),
+				lph.GetTimestamp().Unwrap()+1,
 			),
 			blk.GetParentBlockRoot(),
 			lph.GetBlockHash(),

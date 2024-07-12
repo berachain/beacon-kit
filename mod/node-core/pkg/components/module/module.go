@@ -156,7 +156,10 @@ func (am AppModule[T, ValidatorUpdateT]) InitGenesis(
 func (am AppModule[T, ValidatorUpdateT]) EndBlock(
 	ctx context.Context,
 ) error {
-	return am.consensusEngine.EndBlock(ctx)
+	if err := am.consensusEngine.EndBlock(ctx); err != nil {
+		return err
+	}
+	return nil
 }
 
 // EndBlock returns the validator set updates from the beacon state.
