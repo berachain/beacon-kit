@@ -115,7 +115,7 @@ start-geth-archive-run:
 	geth \
 	--http \
 	--http.addr 0.0.0.0 \
-	--http.api eth,net,debug,txpool \
+	--http.api eth,web3,net,debug,txpool,admin \
 	--authrpc.addr 0.0.0.0 \
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--authrpc.vhosts "*" \
@@ -137,7 +137,7 @@ start-geth-node-snap-run:
 	geth \
 	--http \
 	--http.addr 0.0.0.0 \
-	--http.api eth,net,debug,txpool,admin \
+	--http.api eth,web3,net,debug,txpool,admin \
 	--authrpc.addr 0.0.0.0 \
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--authrpc.vhosts "*" \
