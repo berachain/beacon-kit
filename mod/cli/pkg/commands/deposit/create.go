@@ -240,6 +240,12 @@ func broadcastDepositTx[
 			//nolint:mnd // The gas tip cap.
 			// It is necessary for besu to work, not sure why though.
 			GasTipCap: big.NewInt(1000000000),
+			//nolint:mnd // The gas fee cap.
+			// It is necessary for ethereumjs to work.
+			GasFeeCap: big.NewInt(1000000000),
+			//nolint:mnd // The gas limit.
+			// It is necessary for ethereumjs to work.
+			GasLimit: 600000,
 		},
 		depositMsg.Pubkey[:],
 		depositMsg.Credentials[:],
