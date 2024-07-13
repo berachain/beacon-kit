@@ -21,8 +21,6 @@
 package core
 
 import (
-	"fmt"
-
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
@@ -55,7 +53,7 @@ func (sp *StateProcessor[
 		genesisVersion,
 		math.U64(constants.GenesisEpoch),
 	)
-	fmt.Println("INIT GEN SET SLOT", 0)
+
 	if err := st.SetSlot(0); err != nil {
 		return nil, err
 	}
@@ -99,8 +97,6 @@ func (sp *StateProcessor[
 		}
 	}
 	// TODO: why do we need save here?
-	// @archbear its likely the call to get/set effective balance in
-	// processDeposits, since it iterates over the validator map.
 	st.Save()
 	for _, deposit := range deposits {
 		// TODO: process deposits into eth1 data.
@@ -108,9 +104,7 @@ func (sp *StateProcessor[
 			return nil, err
 		}
 	}
-	// save is required before iterating bc the iterator only
-	// looks at the underlying store and never queries the CS
-	st.Save()
+	_, _ = st.GetTotalValidators()
 	// TODO: process activations.
 	var validators []ValidatorT
 	validators, err = st.GetValidators()

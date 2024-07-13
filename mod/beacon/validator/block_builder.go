@@ -62,7 +62,7 @@ func (s *Service[
 	fmt.Println("BEFORE PROCESSING SLOT!!")
 	// Prepare the state such that it is ready to build a block for
 	// the requested slot
-	if _, err := s.stateProcessor.ProcessSlots(st, requestedSlot, false); err != nil {
+	if _, err := s.stateProcessor.ProcessSlots(st, requestedSlot); err != nil {
 		return blk, sidecars, err
 	}
 	fmt.Println("AFTER PROCESSING SLOT!!")

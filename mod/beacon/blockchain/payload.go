@@ -199,7 +199,7 @@ func (s *Service[
 
 	// We process the slot to update any RANDAO values.
 	if _, err = s.sp.ProcessSlots(
-		st, slot, true,
+		st, slot,
 	); err != nil {
 		return err
 	}

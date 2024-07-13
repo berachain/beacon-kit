@@ -258,14 +258,13 @@ func (s *Store[
 	s.Store.Commit(s.changeSet.Changeset)
 }
 
+// TODO: deprecate
 func (s *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
 ]) Copy() *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
 ] {
-	store := *s
-	store.changeSet = s.changeSet.Copy()
-	return &store
+	return s
 }
 
 // Note: this function does not enforce the invariant that

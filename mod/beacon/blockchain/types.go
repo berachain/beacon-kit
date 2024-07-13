@@ -197,7 +197,7 @@ type StateProcessor[
 	) (transition.ValidatorUpdates, error)
 	// ProcessSlots processes the state transition for a range of slots.
 	ProcessSlots(
-		BeaconStateT, math.Slot, bool,
+		BeaconStateT, math.Slot,
 	) (transition.ValidatorUpdates, error)
 	// Transition processes the state transition for a given block.
 	Transition(
