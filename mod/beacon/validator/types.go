@@ -210,7 +210,7 @@ type StateProcessor[
 ] interface {
 	// ProcessSlot processes the slot.
 	ProcessSlots(
-		st BeaconStateT, slot math.Slot,
+		st BeaconStateT, slot math.Slot, persist bool,
 	) (transition.ValidatorUpdates, error)
 	// Transition performs the core state transition.
 	Transition(

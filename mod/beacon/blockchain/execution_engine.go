@@ -63,7 +63,7 @@ func (s *Service[
 	lph ExecutionPayloadHeaderT,
 ) {
 	stCopy := st.Copy()
-	if _, err := s.sp.ProcessSlots(stCopy, blk.GetSlot()+1); err != nil {
+	if _, err := s.sp.ProcessSlots(stCopy, blk.GetSlot()+1, false); err != nil {
 		s.logger.Error(
 			"failed to process slots in non-optimistic payload",
 			"error", err,

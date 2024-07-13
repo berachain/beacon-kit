@@ -155,11 +155,10 @@ func (sp *StateProcessor[
 	}
 
 	// Process the slots.
-	validatorUpdates, err := sp.ProcessSlots(st, blk.GetSlot())
+	validatorUpdates, err := sp.ProcessSlots(st, blk.GetSlot(), true)
 	if err != nil {
 		return nil, err
 	}
-
 	// Process the block.
 	if err = sp.ProcessBlock(ctx, st, blk); err != nil {
 		return nil, err
@@ -174,7 +173,7 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _,
 ]) ProcessSlots(
-	beaconState BeaconStateT, slot math.U64,
+	beaconState BeaconStateT, slot math.U64, persist bool,
 ) (transition.ValidatorUpdates, error) {
 	var (
 		validatorUpdates      transition.ValidatorUpdates
@@ -209,9 +208,13 @@ func (sp *StateProcessor[
 
 		// We update on the state because we need to
 		// update the state for calls within processSlot/Epoch().
+		fmt.Println("PROCESS SLOT SET SLOT", stateSlot+1)
 		if err = beaconState.SetSlot(stateSlot + 1); err != nil {
 			return nil, err
 		}
+	}
+	if persist {
+		beaconState.Save()
 	}
 	return validatorUpdates, nil
 }

@@ -94,6 +94,19 @@ func (cs *Changeset) Flush() {
 	cs.changes = make(map[string][]byte)
 }
 
+func (cs *Changeset) Copy() *Changeset {
+	changeSet := *cs.Changeset
+	changes := make(map[string][]byte)
+	for k, v := range cs.changes {
+		changes[k] = v
+	}
+	return &Changeset{
+		Changeset: &changeSet,
+		changes:   changes,
+		mu:        &sync.RWMutex{},
+	}
+}
+
 // buildKey is a helper function to build a key from a store key and key
 func buildKey(storeKey, key []byte) string {
 	return string(storeKey) + string(key)
