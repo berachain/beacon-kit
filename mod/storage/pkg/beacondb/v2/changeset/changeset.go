@@ -33,7 +33,6 @@ import (
 type Changeset struct {
 	*store.Changeset
 	*db.MemDB
-	changes map[string][]byte
 
 	mu *sync.RWMutex
 }
@@ -43,7 +42,6 @@ type Changeset struct {
 func New() *Changeset {
 	return &Changeset{
 		Changeset: store.NewChangeset(),
-		changes:   make(map[string][]byte),
 		MemDB:     db.NewMemDB(),
 		mu:        &sync.RWMutex{},
 	}
@@ -57,15 +55,13 @@ func (cs *Changeset) GetChanges() *store.Changeset {
 func NewWithPairs(pairs map[string]store.KVPairs) *Changeset {
 	cs := &Changeset{
 		Changeset: store.NewChangesetWithPairs(pairs),
-		// changes:   make(map[string][]byte),
-		MemDB: db.NewMemDB(),
-		mu:    &sync.RWMutex{},
+		MemDB:     db.NewMemDB(),
+		mu:        &sync.RWMutex{},
 	}
 	for storeKey, kvPairs := range pairs {
 		for _, pair := range kvPairs {
-			// cs.changes[buildKey([]byte(storeKey), pair.Key)] = pair.Value
 			if err := cs.Set(
-				buildDBKey([]byte(storeKey), pair.Key),
+				buildKey([]byte(storeKey), pair.Key),
 				pair.Value,
 			); err != nil {
 				panic(err)
@@ -75,7 +71,7 @@ func NewWithPairs(pairs map[string]store.KVPairs) *Changeset {
 	return cs
 }
 
-func buildDBKey(storeKey, key []byte) []byte {
+func buildKey(storeKey, key []byte) []byte {
 	return append(storeKey, key...)
 }
 
@@ -85,13 +81,11 @@ func (cs *Changeset) Add(storeKey, key, value []byte, remove bool) error {
 	cs.mu.Lock()
 	// add/remove the change to the map of changes
 	if remove {
-		cs.changes[buildKey(storeKey, key)] = nil
-		if err := cs.MemDB.Delete(buildDBKey(storeKey, key)); err != nil {
+		if err := cs.MemDB.Delete(buildKey(storeKey, key)); err != nil {
 			return err
 		}
 	} else {
-		cs.changes[buildKey(storeKey, key)] = value
-		if err := cs.MemDB.Set(buildDBKey(storeKey, key), value); err != nil {
+		if err := cs.MemDB.Set(buildKey(storeKey, key), value); err != nil {
 			return err
 		}
 	}
@@ -107,14 +101,11 @@ func (cs *Changeset) AddKVPair(storeKey []byte, pair store.KVPair) {
 }
 
 // Query queries the changeset with the given store key and key
-// TODO: FIX THIS RNRNRNRNRNRNNR encoding error probably from bytes being
-// returned wrong? getting from the wrong key? idk
 func (cs *Changeset) Query(storeKey []byte, key []byte) ([]byte, bool) {
-	// if value, found := cs.changes[buildKey(storeKey, key)]; found {
-	// 	return value, true
-	// }
-	if value, err := cs.MemDB.Get(buildDBKey(storeKey, key)); err == nil {
-		return value, true
+	// Note: MemDB returns no error but value is nil if key is not found,
+	// so we need to check if value is nil
+	if value, err := cs.MemDB.Get(buildKey(storeKey, key)); err == nil {
+		return value, value != nil
 	}
 	return nil, false
 }
@@ -123,11 +114,5 @@ func (cs *Changeset) Query(storeKey []byte, key []byte) ([]byte, bool) {
 func (cs *Changeset) Flush() {
 	cs.Changeset = store.NewChangeset()
 	cs.MemDB.Close()
-	cs.changes = make(map[string][]byte)
 	cs.MemDB = db.NewMemDB()
-}
-
-// buildKey is a helper function to build a key from a store key and key
-func buildKey(storeKey, key []byte) string {
-	return string(storeKey) + string(key)
 }
