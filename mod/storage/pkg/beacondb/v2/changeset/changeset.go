@@ -24,6 +24,7 @@ import (
 	"sync"
 
 	"cosmossdk.io/core/store"
+	db "github.com/cosmos/cosmos-db"
 )
 
 // Changeset is a wrapper around store.Changeset that holds a map of changes
@@ -31,6 +32,7 @@ import (
 // INVARIANT: changes map and Changeset are always in sync
 type Changeset struct {
 	*store.Changeset
+	*db.MemDB
 	changes map[string][]byte
 
 	mu *sync.RWMutex
@@ -42,35 +44,59 @@ func New() *Changeset {
 	return &Changeset{
 		Changeset: store.NewChangeset(),
 		changes:   make(map[string][]byte),
+		MemDB:     db.NewMemDB(),
 		mu:        &sync.RWMutex{},
 	}
+}
+
+func (cs *Changeset) GetChanges() *store.Changeset {
+	return cs.Changeset
 }
 
 // NewWithPairs creates a new changeset with the given pairs.
 func NewWithPairs(pairs map[string]store.KVPairs) *Changeset {
 	cs := &Changeset{
 		Changeset: store.NewChangesetWithPairs(pairs),
-		changes:   make(map[string][]byte),
+		// changes:   make(map[string][]byte),
+		MemDB: db.NewMemDB(),
+		mu:    &sync.RWMutex{},
 	}
 	for storeKey, kvPairs := range pairs {
 		for _, pair := range kvPairs {
-			cs.changes[buildKey([]byte(storeKey), pair.Key)] = pair.Value
+			// cs.changes[buildKey([]byte(storeKey), pair.Key)] = pair.Value
+			if err := cs.Set(
+				buildDBKey([]byte(storeKey), pair.Key),
+				pair.Value,
+			); err != nil {
+				panic(err)
+			}
 		}
 	}
 	return cs
 }
 
+func buildDBKey(storeKey, key []byte) []byte {
+	return append(storeKey, key...)
+}
+
 // Add adds a change to the changeset and changes map
-func (cs *Changeset) Add(storeKey, key, value []byte, remove bool) {
+func (cs *Changeset) Add(storeKey, key, value []byte, remove bool) error {
 	defer cs.mu.Unlock()
 	cs.mu.Lock()
 	// add/remove the change to the map of changes
 	if remove {
 		cs.changes[buildKey(storeKey, key)] = nil
+		if err := cs.MemDB.Delete(buildDBKey(storeKey, key)); err != nil {
+			return err
+		}
 	} else {
 		cs.changes[buildKey(storeKey, key)] = value
+		if err := cs.MemDB.Set(buildDBKey(storeKey, key), value); err != nil {
+			return err
+		}
 	}
 	cs.Changeset.Add(storeKey, key, value, remove)
+	return nil
 }
 
 // AddKVPair adds a KVPair to the Changeset and changes map
@@ -81,8 +107,13 @@ func (cs *Changeset) AddKVPair(storeKey []byte, pair store.KVPair) {
 }
 
 // Query queries the changeset with the given store key and key
+// TODO: FIX THIS RNRNRNRNRNRNNR encoding error probably from bytes being
+// returned wrong? getting from the wrong key? idk
 func (cs *Changeset) Query(storeKey []byte, key []byte) ([]byte, bool) {
-	if value, found := cs.changes[buildKey(storeKey, key)]; found {
+	// if value, found := cs.changes[buildKey(storeKey, key)]; found {
+	// 	return value, true
+	// }
+	if value, err := cs.MemDB.Get(buildDBKey(storeKey, key)); err == nil {
 		return value, true
 	}
 	return nil, false
@@ -91,7 +122,9 @@ func (cs *Changeset) Query(storeKey []byte, key []byte) ([]byte, bool) {
 // Flush resets the changeset and changes map.
 func (cs *Changeset) Flush() {
 	cs.Changeset = store.NewChangeset()
+	cs.MemDB.Close()
 	cs.changes = make(map[string][]byte)
+	cs.MemDB = db.NewMemDB()
 }
 
 // buildKey is a helper function to build a key from a store key and key

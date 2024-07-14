@@ -23,11 +23,13 @@ package beacondb
 import (
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/runtime/v2"
+	"cosmossdk.io/store"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
 	indexv2 "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/index/v2"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/keys"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/v2/changeset"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/v2/iterator"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/collections"
 )
 
@@ -245,9 +247,7 @@ func New[
 // if commit errors should we still reset? maybe just do an
 // explicit call instead of defer to prevent that case
 // TODO: return store hash
-func (s *Store[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
-]) Save() {
+func (s *Store[_, _, _, _, _]) Save() {
 	// reset the changeset following the commit
 	defer func() {
 		s.changeSet.Flush()
@@ -255,7 +255,7 @@ func (s *Store[
 	if s.changeSet.Size() == 0 {
 		return
 	}
-	s.Store.Commit(s.changeSet.Changeset)
+	s.Store.Commit(s.changeSet.GetChanges())
 }
 
 // TODO: deprecate
@@ -269,18 +269,14 @@ func (s *Store[
 
 // Note: this function does not enforce the invariant that
 // the changeset must not be nil. more performant ish but less safe
-func (s *Store[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
-]) AddChange(storeKey []byte, key []byte, value []byte) {
+func (s *Store[_, _, _, _, _]) AddChange(storeKey []byte, key []byte, value []byte) {
 	s.changeSet.Add(storeKey, key, value, false)
 }
 
 // QueryState queries and returns the value with the given storeKey and key.
 // It will first query the working changeset, and if it misses it will query the
 // store.
-func (s *Store[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
-]) QueryState(storeKey, key []byte) ([]byte, error) {
+func (s *Store[_, _, _, _, _]) QueryState(storeKey, key []byte) ([]byte, error) {
 	// first query the change set
 	value, found := s.changeSet.Query(storeKey, key)
 	if found {
@@ -301,14 +297,14 @@ func (s *Store[
 	return resp.Value, nil
 }
 
-func (s *Store[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
-]) SetBackendStore(store runtime.Store) {
+func (s *Store[_, _, _, _, _]) SetBackendStore(store runtime.Store) {
 	s.Store = store
 }
 
-func (s *Store[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
-]) accessor() collections.Store {
+func (s *Store[_, _, _, _, _]) accessor() collections.Store {
 	return s
+}
+
+func (s *Store[_, _, _, _, _]) Iterator(start, end []byte) store.Iterator {
+	return iterator.New(start, end, s.Store, s.changeSet)
 }
