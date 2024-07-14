@@ -161,6 +161,6 @@ func (sp *StateProcessor[
 	if err != nil {
 		return nil, err
 	}
-	st.Save()
+	// st.Save()
 	return updates, nil
 }

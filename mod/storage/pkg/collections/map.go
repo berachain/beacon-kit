@@ -26,7 +26,6 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/collections/codec"
-	"cosmossdk.io/core/store"
 )
 
 type Map[K, V any] struct {
@@ -174,25 +173,7 @@ func (m *Map[K, V]) IterateRaw(
 		return sdkcollections.Iterator[K, V]{}, sdkcollections.ErrInvalidIterator
 	}
 
-	// declare intermediary vars
-	var (
-		iter      store.Iterator
-		reader    store.Reader
-		readerMap store.ReaderMap
-		err       error
-	)
-	// get latest reader map
-	_, readerMap, err = m.storeAccessor().StateLatest()
-	if err != nil {
-		return sdkcollections.Iterator[K, V]{}, err
-	}
-	// get reader with the storeKey from reader map
-	reader, err = readerMap.GetReader(m.storeKey)
-	if err != nil {
-		return sdkcollections.Iterator[K, V]{}, err
-	}
-	// get iterator from reader with the prefixed start and end
-	iter, err = reader.Iterator(prefixedStart, prefixedEnd)
+	iter, err := m.storeAccessor().Iterator(prefixedStart, prefixedEnd)
 	if err != nil {
 		return sdkcollections.Iterator[K, V]{}, err
 	}

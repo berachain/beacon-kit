@@ -305,6 +305,26 @@ func (s *Store[_, _, _, _, _]) accessor() collections.Store {
 	return s
 }
 
-func (s *Store[_, _, _, _, _]) Iterator(start, end []byte) store.Iterator {
-	return iterator.New(start, end, s.Store, s.changeSet)
+func (s *Store[_, _, _, _, _]) Iterator(start, end []byte) (store.Iterator, error) {
+	_, readerMap, err := s.StateLatest()
+	if err != nil {
+		return nil, err
+	}
+	// get reader with the storeKey from reader map
+	reader, err := readerMap.GetReader([]byte(ModuleName))
+	if err != nil {
+		return nil, err
+	}
+	// get iterator from reader with the prefixed start and end
+	stateIter, err := reader.Iterator(start, end)
+	if err != nil {
+		return nil, err
+	}
+
+	changeSetIter, err := s.changeSet.Iterator(start, end)
+	if err != nil {
+		return nil, err
+	}
+
+	return iterator.New(start, end, stateIter, changeSetIter), nil
 }

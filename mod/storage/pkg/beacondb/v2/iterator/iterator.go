@@ -1,9 +1,9 @@
 package iterator
 
 import (
-	"cosmossdk.io/runtime/v2"
+	"fmt"
+
 	"cosmossdk.io/store"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/v2/changeset"
 )
 
 type Iterator interface {
@@ -34,20 +34,26 @@ type Iterator interface {
 	Close() error
 }
 
+// Iterator is a wrapper around the store and changeset iterators,
+// and provides an iterator which iterates over all changes in the
+// changeset and store, skipping duplicates.
 type iterator struct {
-	changeset *changeset.Changeset
-	store     runtime.Store
+	changeset store.Iterator
+	store     store.Iterator
 
 	start []byte
 	end   []byte
+
+	seen map[string]struct{}
 }
 
-func New(start, end []byte, store runtime.Store, changeset *changeset.Changeset) store.Iterator {
+func New(start, end []byte, store store.Iterator, changeset store.Iterator) store.Iterator {
 	return &iterator{
 		changeset: changeset,
 		store:     store,
 		start:     start,
 		end:       end,
+		seen:      make(map[string]struct{}),
 	}
 }
 
@@ -56,24 +62,50 @@ func (i *iterator) Domain() (start []byte, end []byte) {
 }
 
 func (i *iterator) Valid() bool {
-	return false
+	return i.changeset.Valid() || i.store.Valid()
 }
 
 func (i *iterator) Next() {
+	if i.changeset.Valid() {
+		i.changeset.Next()
+		i.seen[string(i.changeset.Key())] = struct{}{}
+		return
+	}
+	i.store.Next()
+	for i.store.Valid() {
+		if _, ok := i.seen[string(i.store.Key())]; !ok {
+			break
+		}
+		i.store.Next()
+	}
 }
 
 func (i *iterator) Key() (key []byte) {
-	return nil
+	if i.changeset.Valid() {
+		fmt.Println("changeset key: ", i.changeset.Key())
+		return i.changeset.Key()
+	}
+	fmt.Println("store key: ", i.store.Key())
+	return i.store.Key()
 }
 
 func (i *iterator) Value() (value []byte) {
-	return nil
+	if i.changeset.Valid() {
+		return i.changeset.Value()
+	}
+	return i.store.Value()
 }
 
 func (i *iterator) Error() error {
-	return nil
+	if i.changeset.Valid() {
+		return i.changeset.Error()
+	}
+	return i.store.Error()
 }
 
 func (i *iterator) Close() error {
-	return nil
+	if err := i.changeset.Close(); err != nil {
+		return err
+	}
+	return i.store.Close()
 }
