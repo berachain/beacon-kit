@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
+	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/bind"
 	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/rpc"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
@@ -38,7 +39,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	ethbind "github.com/ethereum/go-ethereum/accounts/abi/bind"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/spf13/cobra"
@@ -257,7 +258,7 @@ func broadcastDepositTx[
 	}
 
 	// Wait for the transaction to be mined and check the status.
-	depositReceipt, err := bind.WaitMined(cmd.Context(), ethClient, depositTx)
+	depositReceipt, err := ethbind.WaitMined(cmd.Context(), ethClient, depositTx)
 	if err != nil {
 		return common.ExecutionHash{}, errors.Wrapf(
 			err,

@@ -25,4 +25,5 @@ import "github.com/ethereum/go-ethereum/accounts/abi/bind"
 type (
 	ContractBackend = bind.ContractBackend
 	FilterOpts      = bind.FilterOpts
+	TransactOpts    = bind.TransactOpts
 )
