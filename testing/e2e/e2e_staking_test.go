@@ -93,7 +93,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// Wait for the transaction to be mined.
 	receipt, err := bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
 	s.Require().NoError(err)
-	s.Require().Equal(uint64(1), receipt.Status)
+	s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
 
 	tx, err = dc.AllowDeposit(&bind.TransactOpts{
 		From:   genesisAccount.Address(),
@@ -104,7 +104,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// Wait for the transaction to be mined.
 	receipt, err = bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
 	s.Require().NoError(err)
-	s.Require().Equal(uint64(1), receipt.Status)
+	s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
 
 	// Get the nonce.
 	nonce, err := s.JSONRPCBalancer().NonceAt(
@@ -132,7 +132,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 			)
 			receipt, err = bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
 			s.Require().NoError(err)
-			s.Require().Equal(uint64(1), receipt.Status)
+			s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
 			s.Logger().
 				Info("Deposit transaction mined", "txHash", receipt.TxHash.Hex())
 		}
