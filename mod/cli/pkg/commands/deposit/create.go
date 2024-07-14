@@ -39,7 +39,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/cosmos/cosmos-sdk/client"
-	ethbind "github.com/ethereum/go-ethereum/accounts/abi/bind"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/spf13/cobra"
@@ -258,7 +257,7 @@ func broadcastDepositTx[
 	}
 
 	// Wait for the transaction to be mined and check the status.
-	depositReceipt, err := ethbind.WaitMined(cmd.Context(), ethClient, depositTx)
+	depositReceipt, err := bind.WaitMined(cmd.Context(), ethClient, depositTx)
 	if err != nil {
 		return common.ExecutionHash{}, errors.Wrapf(
 			err,
