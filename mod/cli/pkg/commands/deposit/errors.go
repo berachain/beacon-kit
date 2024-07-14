@@ -38,4 +38,8 @@ var (
 	ErrPrivateKeyRequired = errors.New(
 		"private key required",
 	)
+
+	// ErrDepositReceiptEmpty is returned when the deposit receipt is nil.
+	ErrDepositReceiptEmpty = errors.New(
+		"deposit receipt is nil")
 )

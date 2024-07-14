@@ -264,6 +264,9 @@ func broadcastDepositTx[
 			"waiting for transaction to be mined",
 		)
 	}
+	if depositReceipt == nil {
+		return common.ExecutionHash{}, ErrDepositReceiptEmpty
+	}
 	if depositReceipt.Status == ethtypes.ReceiptStatusFailed {
 		return common.ExecutionHash{}, ErrDepositTransactionFailed
 	}
