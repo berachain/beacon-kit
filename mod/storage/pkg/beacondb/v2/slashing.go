@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-func (s *Store[
+func (s *StoreManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetSlashings() ([]uint64, error) {
@@ -48,7 +48,7 @@ func (s *Store[
 }
 
 // GetSlashingAtIndex retrieves the slashing amount by index from the store.
-func (s *Store[
+func (s *StoreManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetSlashingAtIndex(
@@ -64,7 +64,7 @@ func (s *Store[
 }
 
 // SetSlashingAtIndex sets the slashing amount in the store.
-func (s *Store[
+func (s *StoreManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) SetSlashingAtIndex(
@@ -75,7 +75,7 @@ func (s *Store[
 }
 
 // GetTotalSlashing retrieves the total slashing amount from the store.
-func (s *Store[
+func (s *StoreManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetTotalSlashing() (math.Gwei, error) {
@@ -89,7 +89,7 @@ func (s *Store[
 }
 
 // SetTotalSlashing sets the total slashing amount in the store.
-func (s *Store[
+func (s *StoreManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) SetTotalSlashing(

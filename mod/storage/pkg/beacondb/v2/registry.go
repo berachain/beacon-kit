@@ -21,15 +21,15 @@
 package beacondb
 
 import (
-	sdkcollections "cosmossdk.io/collections"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/collections"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/collections/indexes"
 )
 
 // AddValidator registers a new validator in the beacon state.
-func (s *Store[
+func (s *StoreManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) AddValidator(
@@ -51,7 +51,7 @@ func (s *Store[
 }
 
 // AddValidator registers a new validator in the beacon state.
-func (s *Store[
+func (s *StoreManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) AddValidatorBartio(val ValidatorT) error {
@@ -71,7 +71,7 @@ func (s *Store[
 }
 
 // UpdateValidatorAtIndex updates a validator at a specific index.
-func (s *Store[
+func (s *StoreManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) UpdateValidatorAtIndex(
@@ -82,7 +82,7 @@ func (s *Store[
 }
 
 // RemoveValidatorAtIndex removes a validator at a specified index.
-func (s *Store[
+func (s *StoreManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) RemoveValidatorAtIndex(
@@ -92,7 +92,7 @@ func (s *Store[
 }
 
 // ValidatorIndexByPubkey returns the validator address by index.
-func (s *Store[
+func (s *StoreManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) ValidatorIndexByPubkey(
@@ -106,7 +106,7 @@ func (s *Store[
 }
 
 // ValidatorIndexByCometBFTAddress returns the validator address by index.
-func (s *Store[
+func (s *StoreManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) ValidatorIndexByCometBFTAddress(
@@ -122,7 +122,7 @@ func (s *Store[
 }
 
 // ValidatorByIndex returns the validator address by index.
-func (s *Store[
+func (s *StoreManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) ValidatorByIndex(
@@ -137,7 +137,7 @@ func (s *Store[
 }
 
 // GetValidators retrieves all validators from the beacon state.
-func (s *Store[
+func (s *StoreManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetValidators() (
@@ -160,7 +160,7 @@ func (s *Store[
 	for _, k := range keys {
 		val, err = s.validators.Get(k)
 		if err != nil {
-			if errors.Is(err, sdkcollections.ErrNotFound) {
+			if errors.Is(err, collections.ErrNotFound) {
 				continue
 			}
 			return nil, err
@@ -172,7 +172,7 @@ func (s *Store[
 }
 
 // GetTotalValidators returns the total number of validators.
-func (s *Store[
+func (s *StoreManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetTotalValidators() (uint64, error) {
@@ -186,7 +186,7 @@ func (s *Store[
 
 // GetValidatorsByEffectiveBalance retrieves all validators sorted by
 // effective balance from the beacon state.
-func (s *Store[
+func (s *StoreManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetValidatorsByEffectiveBalance() (
@@ -218,7 +218,7 @@ func (s *Store[
 }
 
 // GetBalance returns the balance of a validator.
-func (s *Store[
+func (s *StoreManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetBalance(
@@ -229,7 +229,7 @@ func (s *Store[
 }
 
 // SetBalance sets the balance of a validator.
-func (s *Store[
+func (s *StoreManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) SetBalance(
@@ -240,7 +240,7 @@ func (s *Store[
 }
 
 // GetBalances returns the balancse of all validator.
-func (s *Store[
+func (s *StoreManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetBalances() ([]uint64, error) {
@@ -265,7 +265,7 @@ func (s *Store[
 // GetTotalActiveBalances returns the total active balances of all validatorkv.
 // TODO: unhood this and probably store this as just a value changed on writekv.
 // TODO: this shouldn't live in Store
-func (s *Store[
+func (s *StoreManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetTotalActiveBalances(

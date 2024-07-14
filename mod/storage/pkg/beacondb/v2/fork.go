@@ -21,7 +21,7 @@
 package beacondb
 
 // SetFork sets the fork version for the given epoch.
-func (s *Store[
+func (s *StoreManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) SetFork(
@@ -31,7 +31,7 @@ func (s *Store[
 }
 
 // GetFork gets the fork version for the given epoch.
-func (s *Store[
+func (s *StoreManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetFork() (ForkT, error) {

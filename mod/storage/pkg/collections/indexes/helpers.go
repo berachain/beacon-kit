@@ -40,7 +40,7 @@ type iterator[K any] interface {
 // ScanValues collects all the values from an Index iterator and the IndexedMap in a lazy way.
 // The iterator is closed when this function exits.
 func ScanValues[K, V any, I iterator[K], Idx collections.Indexes[K, V]](
-	indexedMap *collections.IndexedMap[K, V, Idx],
+	indexedMap *collections.IndexedMapKeeper[K, V, Idx],
 	iter I,
 	f func(value V) (stop bool),
 ) error {

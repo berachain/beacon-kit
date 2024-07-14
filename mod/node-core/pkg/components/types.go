@@ -171,7 +171,7 @@ type (
 		*types.Fork, *types.Validator,
 	]
 
-	StateStore = beacondbv2.Store[
+	StateStore = beacondbv2.StoreManager[
 		*BeaconBlockHeader, *types.Eth1Data, *ExecutionPayloadHeader,
 		*types.Fork, *types.Validator,
 	]

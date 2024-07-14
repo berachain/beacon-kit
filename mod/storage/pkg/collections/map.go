@@ -28,7 +28,9 @@ import (
 	"cosmossdk.io/collections/codec"
 )
 
-type Map[K, V any] struct {
+// A MapKeeper works as an intermediary that holds a certain configuration,
+// and uses that configuration to interact with the underlying store.
+type MapKeeper[K, V any] struct {
 	storeKey      []byte
 	keyPrefix     []byte
 	KeyCodec      codec.KeyCodec[K]
@@ -37,14 +39,14 @@ type Map[K, V any] struct {
 	Size          int // TODO: remove this, temp field for debugging
 }
 
-func NewMap[K, V any](
+func NewMapKeeper[K, V any](
 	storeKey []byte,
 	keyPrefix []byte,
 	keyCodec codec.KeyCodec[K],
 	valueCodec codec.ValueCodec[V],
 	storeAccessor StoreAccessor,
-) Map[K, V] {
-	return Map[K, V]{
+) MapKeeper[K, V] {
+	return MapKeeper[K, V]{
 		storeKey:      storeKey,
 		keyPrefix:     keyPrefix,
 		KeyCodec:      keyCodec,
@@ -53,7 +55,8 @@ func NewMap[K, V any](
 	}
 }
 
-func (m *Map[K, V]) Get(key K) (V, error) {
+// Get retrieves the value from the store, and returns the decoded value.
+func (m *MapKeeper[K, V]) Get(key K) (V, error) {
 	var result V
 	prefixedKey, err := sdkcollections.EncodeKeyWithPrefix(
 		m.keyPrefix, m.KeyCodec, key,
@@ -68,7 +71,8 @@ func (m *Map[K, V]) Get(key K) (V, error) {
 	return m.ValueCodec.Decode(res)
 }
 
-func (m *Map[K, V]) Set(key K, value V) error {
+// Set sets the value in the store with the encoded key and value.
+func (m *MapKeeper[K, V]) Set(key K, value V) error {
 	prefixedKey, err := sdkcollections.EncodeKeyWithPrefix(
 		m.keyPrefix, m.KeyCodec, key,
 	)
@@ -86,7 +90,7 @@ func (m *Map[K, V]) Set(key K, value V) error {
 
 // Has reports whether the key is present in storage or not.
 // Errors with ErrEncoding if key encoding fails.
-func (m *Map[K, V]) Has(key K) (bool, error) {
+func (m *MapKeeper[K, V]) Has(key K) (bool, error) {
 	prefixedKey, err := sdkcollections.EncodeKeyWithPrefix(
 		m.keyPrefix, m.KeyCodec, key,
 	)
@@ -95,7 +99,7 @@ func (m *Map[K, V]) Has(key K) (bool, error) {
 	}
 	_, err = m.storeAccessor().QueryState(m.storeKey, prefixedKey)
 	if err != nil {
-		if errors.Is(err, sdkcollections.ErrNotFound) {
+		if errors.Is(err, ErrNotFound) {
 			return false, nil
 		}
 		return false, err
@@ -106,7 +110,7 @@ func (m *Map[K, V]) Has(key K) (bool, error) {
 // Remove removes the key from the storage.
 // Errors with ErrEncoding if key encoding fails.
 // If the key does not exist then this is a no-op.
-func (m *Map[K, V]) Remove(key K) error {
+func (m *MapKeeper[K, V]) Remove(key K) error {
 	prefixedKey, err := sdkcollections.EncodeKeyWithPrefix(
 		m.keyPrefix, m.KeyCodec, key,
 	)
@@ -119,11 +123,12 @@ func (m *Map[K, V]) Remove(key K) error {
 }
 
 // Iterate provides an Iterator over K and V in ascending order.
-func (m *Map[K, V]) Iterate() (sdkcollections.Iterator[K, V], error) {
+func (m *MapKeeper[K, V]) Iterate() (sdkcollections.Iterator[K, V], error) {
 	return m.IterateRaw(nil, nil)
 }
 
-func (m *Map[K, V]) NumKeys() (int, error) {
+// TODO: remove this when not needed
+func (m *MapKeeper[K, V]) NumKeys() (int, error) {
 	// get latest reader map
 	_, readerMap, err := m.storeAccessor().StateLatest()
 	if err != nil {
@@ -156,7 +161,7 @@ func (m *Map[K, V]) NumKeys() (int, error) {
 // A nil start iterates from the first key contained in the collection.
 // A nil end iterates up to the last key contained in the collection.
 // A nil start and a nil end iterates over every key contained in the collection.
-func (m *Map[K, V]) IterateRaw(
+func (m *MapKeeper[K, V]) IterateRaw(
 	start, end []byte,
 ) (sdkcollections.Iterator[K, V], error) {
 	// prepend start/end range with keyPrefix

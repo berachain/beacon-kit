@@ -80,7 +80,7 @@ func (multi *Multi[ReferenceKey, PrimaryKey, Value]) Reference(pk PrimaryKey, ne
 		}
 	// if error is ErrNotFound, it means that the object does not exist, so we're creating indexes for the first time.
 	// we do nothing.
-	case errors.Is(err, sdkcollections.ErrNotFound):
+	case errors.Is(err, collections.ErrNotFound):
 	// default case means that there was some other error
 	default:
 		return err

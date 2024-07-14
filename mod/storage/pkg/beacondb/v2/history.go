@@ -23,7 +23,7 @@ package beacondb
 import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 
 // UpdateBlockRootAtIndex sets a block root in the BeaconStore.
-func (s *Store[
+func (s *StoreManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) UpdateBlockRootAtIndex(
@@ -34,7 +34,7 @@ func (s *Store[
 }
 
 // GetBlockRootAtIndex retrieves the block root from the BeaconStore.
-func (s *Store[
+func (s *StoreManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetBlockRootAtIndex(
@@ -48,7 +48,7 @@ func (s *Store[
 }
 
 // SetLatestBlockHeader sets the latest block header in the BeaconStore.
-func (s *Store[
+func (s *StoreManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) SetLatestBlockHeader(
@@ -58,7 +58,7 @@ func (s *Store[
 }
 
 // GetLatestBlockHeader retrieves the latest block header from the BeaconStore.
-func (s *Store[
+func (s *StoreManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetLatestBlockHeader() (
@@ -68,7 +68,7 @@ func (s *Store[
 }
 
 // UpdateStateRootAtIndex updates the state root at the given slot.
-func (s *Store[
+func (s *StoreManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) UpdateStateRootAtIndex(
@@ -79,7 +79,7 @@ func (s *Store[
 }
 
 // StateRootAtIndex returns the state root at the given slot.
-func (s *Store[
+func (s *StoreManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) StateRootAtIndex(

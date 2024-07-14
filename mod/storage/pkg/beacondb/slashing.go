@@ -21,9 +21,9 @@
 package beacondb
 
 import (
-	"cosmossdk.io/collections"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/collections"
 )
 
 func (kv *KVStore[

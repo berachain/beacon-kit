@@ -33,7 +33,7 @@ import (
 // It creates relationships between reference and primary key of the value.
 type Unique[ReferenceKey, PrimaryKey, Value any] struct {
 	getRefKey func(PrimaryKey, Value) (ReferenceKey, error)
-	refKeys   collections.Map[ReferenceKey, PrimaryKey]
+	refKeys   collections.MapKeeper[ReferenceKey, PrimaryKey]
 }
 
 // NewUnique instantiates a new Unique index.
@@ -47,7 +47,7 @@ func NewUnique[ReferenceKey, PrimaryKey, Value any](
 ) *Unique[ReferenceKey, PrimaryKey, Value] {
 	return &Unique[ReferenceKey, PrimaryKey, Value]{
 		getRefKey: getRefKeyFunc,
-		refKeys:   collections.NewMap(storeKey, keyPrefix, refCodec, codec.KeyToValueCodec(pkCodec), sa),
+		refKeys:   collections.NewMapKeeper(storeKey, keyPrefix, refCodec, codec.KeyToValueCodec(pkCodec), sa),
 	}
 }
 
@@ -62,7 +62,7 @@ func (unique *Unique[ReferenceKey, PrimaryKey, Value]) Reference(pk PrimaryKey, 
 		}
 	// if error is ErrNotFound, it means that the object does not exist, so we're creating indexes for the first time.
 	// we do nothing.
-	case errors.Is(err, sdkcollections.ErrNotFound):
+	case errors.Is(err, collections.ErrNotFound):
 	// default case means that there was some other error
 	default:
 		return err
