@@ -147,6 +147,7 @@ func (s *Store[
 		vals []ValidatorT
 		val  ValidatorT
 	)
+	s.Save()
 	iter, err := s.validators.Iterate()
 	if err != nil {
 		return nil, err
