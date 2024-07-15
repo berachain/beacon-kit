@@ -176,12 +176,11 @@ func (s *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetTotalValidators() (uint64, error) {
-	// validators, err := s.GetValidators()
-	// if err != nil {
-	// 	return 0, err
-	// }
-	// return uint64(len(validators)), nil
-	return s.validators.NumKeys()
+	validators, err := s.GetValidators()
+	if err != nil {
+		return 0, err
+	}
+	return uint64(len(validators)), nil
 }
 
 // GetValidatorsByEffectiveBalance retrieves all validators sorted by
