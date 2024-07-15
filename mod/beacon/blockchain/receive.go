@@ -50,7 +50,7 @@ func (s *Service[
 	blk BeaconBlockT,
 ) error {
 	// Grab a copy of the state to verify the incoming block.
-	preState := s.sb.BeaconState()
+	preState := s.sb.StateFromContext(ctx)
 
 	// Force a sync of the startup head if we haven't done so already.
 	//

@@ -58,5 +58,6 @@ func ProvideStateStore() *StateStore {
 		*types.Eth1Data,
 		*ExecutionPayloadHeader,
 		*types.Fork,
-		*types.Validator](payloadCodec)
+		*types.Validator,
+	](payloadCodec)
 }

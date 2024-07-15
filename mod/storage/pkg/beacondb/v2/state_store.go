@@ -1,33 +1,34 @@
 package beacondb
 
 import (
+	"context"
+	"fmt"
+
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/runtime/v2"
 	"cosmossdk.io/store"
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/v2/changeset"
+	storectx "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/v2/context"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/v2/iterator"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/collections"
 )
 
 type StateStore struct {
+	ctx *storectx.Context
 	runtime.Store
-	changeSet *changeset.Changeset
 }
 
 func NewStore() *StateStore {
-	return &StateStore{
-		changeSet: changeset.New(),
-	}
+	return &StateStore{}
 }
 
 func (s *StateStore) AddChange(storeKey []byte, key []byte, value []byte) {
-	s.changeSet.Add(storeKey, key, value, false)
+	s.ctx.Changeset.Add(storeKey, key, value, false)
 }
 
 func (s *StateStore) QueryState(storeKey, key []byte) ([]byte, error) {
 	// first query the change set
-	value, found := s.changeSet.Query(storeKey, key)
+	value, found := s.ctx.Changeset.Query(storeKey, key)
 	if found {
 		return value, nil
 	}
@@ -70,7 +71,7 @@ func (s *StateStore) Iterator(start, end []byte) (store.Iterator, error) {
 		return nil, err
 	}
 
-	changeSetIter, err := s.changeSet.Iterator(start, end)
+	changeSetIter, err := s.ctx.Changeset.Iterator(start, end)
 	if err != nil {
 		return nil, err
 	}
@@ -84,17 +85,33 @@ func (s *StateStore) Iterator(start, end []byte) (store.Iterator, error) {
 func (s *StateStore) Save() {
 	// reset the changeset following the commit
 	defer func() {
-		s.changeSet.Flush()
+		s.ctx.Changeset.Flush()
 	}()
-	if s.changeSet.Size() == 0 {
+	if s.ctx.Changeset.Size() == 0 {
 		return
 	}
-	s.Store.Commit(s.changeSet.GetChanges())
+	s.Store.Commit(s.ctx.Changeset.GetChanges())
+}
+
+func (s *StateStore) Context() context.Context {
+	return s.ctx
+}
+
+func (s *StateStore) WithContext(ctx context.Context) *StateStore {
+	fmt.Println("WITH CONTEXT")
+	storeCtx, ok := ctx.(*storectx.Context)
+	if !ok {
+		storeCtx = storectx.New(ctx)
+	}
+	cpy := *s
+	s.ctx = storeCtx
+	return &cpy
 }
 
 // TODO: hack to get around IAVL versioning issues (a call to save must be made
 // before any queries to SC)
 func (s *StateStore) Init() {
+	s.ctx = storectx.New(context.Background())
 	s.AddChange([]byte("beacon"), []byte("umst"), []byte("umst"))
 	s.Save()
 }

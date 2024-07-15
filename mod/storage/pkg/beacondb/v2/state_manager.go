@@ -21,6 +21,8 @@
 package beacondb
 
 import (
+	"context"
+
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/runtime/v2"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
@@ -253,21 +255,23 @@ func (s *StateManager[
 ]) Copy() *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
 ] {
-	st := s.CopyWithEmptyChangeset()
-	st.store.changeSet = s.store.changeSet.Copy()
-	return st
+	st := *s
+	st.store.WithContext(s.store.ctx.Copy())
+	return &st
+}
+
+func (s *StateManager[_, _, _, _, _]) Context() context.Context {
+	return s.store.ctx
 }
 
 func (s *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
-]) CopyWithEmptyChangeset() *StateManager[
+]) WithContext(ctx context.Context) *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
 ] {
-	st := New[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT](
-		s.latestExecutionPayloadCodec,
-	)
-	st.store.SetStore(s.store)
-	return st
+	cpy := *s
+	cpy.store = s.store.WithContext(ctx)
+	return &cpy
 }
 
 func (s *StateManager[_, _, _, _, _]) SetStateStore(store runtime.Store) {

@@ -21,6 +21,8 @@
 package collections
 
 import (
+	"errors"
+
 	sdkcollections "cosmossdk.io/collections"
 )
 
@@ -45,9 +47,6 @@ func NewSequence(
 			storeAccessor,
 		),
 	}
-	// i worry this breaks cause the collection set is not
-	// committed yet.
-	seq.Set(DefaultSequenceStart)
 	return seq
 }
 
@@ -55,7 +54,15 @@ func NewSequence(
 // is set then the DefaultSequenceStart is returned.
 // Errors on encoding issues.
 func (s *Sequence) Peek() (uint64, error) {
-	return s.Item.Get()
+	v, err := s.Item.Get()
+	switch {
+	case err == nil:
+		return v, nil
+	case errors.Is(err, ErrNotFound):
+		return DefaultSequenceStart, nil
+	default:
+		return 0, err
+	}
 }
 
 // Next returns the next sequence number, and sets the next expected sequence.

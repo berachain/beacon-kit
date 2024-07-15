@@ -58,7 +58,7 @@ func (s *Service[
 	// the next finalized block in the chain. A byproduct of this design
 	// is that we get the nice property of lazily propagating the finalized
 	// and safe block hashes to the execution client.
-	st := s.bsb.BeaconState()
+	st := s.bsb.StateFromContext(ctx)
 	fmt.Println("BEFORE PROCESSING SLOT!!")
 	// Prepare the state such that it is ready to build a block for
 	// the requested slot

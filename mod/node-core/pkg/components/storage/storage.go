@@ -21,6 +21,8 @@
 package storage
 
 import (
+	"context"
+
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
@@ -120,6 +122,16 @@ func (k Backend[
 	AvailabilityStoreT, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) AvailabilityStore() AvailabilityStoreT {
 	return k.availabilityStore
+}
+
+// StateFromContext returns a new BeaconState initialized with a given context.
+func (k Backend[
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _,
+]) StateFromContext(
+	ctx context.Context,
+) BeaconStateT {
+	var st BeaconStateT
+	return st.NewFromDB(k.stateStore.WithContext(ctx), k.chainSpec)
 }
 
 // BeaconState returns a new BeaconState initialized with the state store and

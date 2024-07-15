@@ -39,7 +39,7 @@ func (s *Service[
 	genesisData GenesisT,
 ) (transition.ValidatorUpdates, error) {
 	return s.sp.InitializePreminedBeaconStateFromEth1(
-		s.sb.BeaconState(),
+		s.sb.StateFromContext(ctx),
 		genesisData.GetDeposits(),
 		genesisData.GetExecutionPayloadHeader(),
 		genesisData.GetForkVersion(),
@@ -64,7 +64,7 @@ func (s *Service[
 	// ends up not being valid later, the node will simply AppHash,
 	// which is completely fine. This means we were syncing from a
 	// bad peer, and we would likely AppHash anyways.
-	st := s.sb.BeaconState()
+	st := s.sb.StateFromContext(ctx)
 	valUpdates, err := s.executeStateTransition(ctx, st, blk)
 	if err != nil {
 		return nil, err
