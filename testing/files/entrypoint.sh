@@ -75,7 +75,7 @@ export CHAIN_SPEC="devnet"
 if [[ $overwrite == "y" || $overwrite == "Y" || $3 == "onlyInit" ]]; then
 	rm -rf $HOMEDIR
 
-	if [ $2 == "validator" && $3 != "locally" ]; then
+	if [[ $2 == "validator" && $3 != "locally" ]]; then
 	  echo "aaaaaaaa"
   	sudo cp -rf "./testing/files/beacond-validator-$3" $HOMEDIR/
   else
@@ -85,19 +85,19 @@ if [[ $overwrite == "y" || $overwrite == "Y" || $3 == "onlyInit" ]]; then
     --consensus-key-algo $CONSENSUS_KEY_ALGO
   fi
 
-	if [ $3 == "onlyInit" ]; then
+	if [[ $3 == "onlyInit" ]]; then
 	  cp -rf ./testing/files/genesis.json $HOMEDIR/config/genesis.json
 	  exit 0
 	fi
 
-  if [ $3 == "locally" ]; then
+  if [[ $3 == "locally" ]]; then
     ./build/bin/beacond genesis add-premined-deposit --home $HOMEDIR
   fi
 
   ./build/bin/beacond genesis collect-premined-deposits --home $HOMEDIR
   ./build/bin/beacond genesis execution-payload "$ETH_GENESIS" --home $HOMEDIR
 
-	if [ $3 != "locally" ]; then
+	if [[ $3 != "locally" ]]; then
 	  cp -rf ./testing/files/genesis.json $HOMEDIR/config/genesis.json
 	fi
 fi
