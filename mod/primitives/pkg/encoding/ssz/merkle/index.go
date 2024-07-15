@@ -52,8 +52,8 @@ func (g GeneralizedIndex[RootT]) Unwrap() uint64 {
 }
 
 // Length returns the length of the generalized index.
-func (g GeneralizedIndex[RootT]) Length() uint64 {
-	return uint64(log.ILog2Floor(uint64(g)))
+func (g GeneralizedIndex[RootT]) Length() int {
+	return int(log.ILog2Floor(g))
 }
 
 // IndexBit returns the bit at the specified position in a generalized index.
@@ -116,7 +116,7 @@ func (g GeneralizedIndex[RootT]) CalculateMerkleRoot(
 	leaf RootT,
 	proof []RootT,
 ) (RootT, error) {
-	if uint64(len(proof)) != g.Length() {
+	if len(proof) != g.Length() {
 		return RootT{},
 			errors.Newf("expected proof length %d, received %d", g.Length(),
 				len(proof))
@@ -148,9 +148,8 @@ func (gs GeneralizedIndices[RootT]) Concat() GeneralizedIndex[RootT] {
 	o := GeneralizedIndex[RootT](1)
 	for _, i := range gs {
 		floorPower := pow.PrevPowerOfTwo(i)
-		o = GeneralizedIndex[RootT](
-			uint64(o)*uint64(floorPower) + (uint64(i) - uint64(floorPower)),
-		)
+		o *= floorPower
+		o += i - floorPower
 	}
 	return o
 }

@@ -26,7 +26,6 @@ import (
 	"strconv"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle/proof"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -163,11 +162,11 @@ type container struct {
 	FieldIndex map[string]uint64
 }
 
-func Field(name string, typ SSZType) *proof.Field[SSZType] {
-	return proof.NewField(name, typ)
+func Field(name string, typ SSZType) *field[SSZType] {
+	return newField(name, typ)
 }
 
-func DefineContainer(fields ...*proof.Field[SSZType]) SSZType {
+func DefineContainer(fields ...*field[SSZType]) SSZType {
 	fieldIndex := make(map[string]uint64)
 	types := make([]SSZType, len(fields))
 	for i, f := range fields {
