@@ -22,6 +22,7 @@ package blockchain
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
@@ -118,6 +119,7 @@ func (s *Service[
 ) error {
 	startTime := time.Now()
 	defer s.metrics.measureStateRootVerificationTime(startTime)
+	fmt.Println("VERIFYING STATE ROOT")
 	if _, err := s.sp.Transition(
 		// We run with a non-optimistic engine here to ensure
 		// that the proposer does not try to push through a bad block.
@@ -128,7 +130,7 @@ func (s *Service[
 			SkipValidateResult:      false,
 			SkipValidateRandao:      false,
 		},
-		st, blk,
+		st, blk, true,
 	); errors.Is(err, engineerrors.ErrAcceptedPayloadStatus) {
 		// It is safe for the validator to ignore this error since
 		// the state transition will enforce that the block is part

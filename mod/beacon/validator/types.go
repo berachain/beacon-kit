@@ -217,6 +217,7 @@ type StateProcessor[
 		ctx ContextT,
 		st BeaconStateT,
 		blk BeaconBlockT,
+		persist bool,
 	) (transition.ValidatorUpdates, error)
 }
 

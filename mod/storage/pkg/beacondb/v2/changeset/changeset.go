@@ -110,3 +110,16 @@ func (cs *Changeset) Flush() {
 	cs.MemDB.Close()
 	cs.MemDB = db.NewMemDB()
 }
+
+func (cs *Changeset) Copy() *Changeset {
+	cs.mu.RLock()
+	defer cs.mu.RUnlock()
+	csCopy := New()
+	for _, change := range cs.Changeset.Changes {
+		for _, kvpair := range change.StateChanges {
+			csCopy.Add(change.Actor, kvpair.Key, kvpair.Value, kvpair.Remove)
+		}
+	}
+
+	return csCopy
+}

@@ -347,6 +347,7 @@ func (s *Service[
 ) (common.Root, error) {
 	startTime := time.Now()
 	defer s.metrics.measureStateRootComputationTime(startTime)
+	fmt.Println("COMPUTING STATE ROOT TRANSITION")
 	if _, err := s.stateProcessor.Transition(
 		// TODO: We should think about how having optimistic
 		// engine enabled here would affect the proposer when
@@ -358,7 +359,7 @@ func (s *Service[
 			SkipValidateResult:      true,
 			SkipValidateRandao:      true,
 		},
-		st, blk,
+		st, blk, false,
 	); err != nil {
 		return common.Root{}, err
 	}

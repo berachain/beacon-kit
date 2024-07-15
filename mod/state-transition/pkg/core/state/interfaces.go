@@ -45,6 +45,9 @@ type KVStore[
 	Save()
 	// Copy returns a copy of the key-value store.
 	Copy() T
+	// CopyWithEmptyChangeset returns a copy of the key-value store with an empty
+	// changeset.
+	CopyWithEmptyChangeset() T
 	// GetLatestExecutionPayloadHeader retrieves the latest execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (

@@ -149,6 +149,7 @@ func (sp *StateProcessor[
 	ctx ContextT,
 	st BeaconStateT,
 	blk BeaconBlockT,
+	persist bool,
 ) (transition.ValidatorUpdates, error) {
 	if blk.IsNil() {
 		return nil, nil
@@ -167,7 +168,9 @@ func (sp *StateProcessor[
 
 	// We only want to persist state changes if we successfully
 	// processed the block.
-	st.Save()
+	if persist {
+		// st.Save()
+	}
 	return validatorUpdates, nil
 }
 

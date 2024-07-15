@@ -96,7 +96,7 @@ func (s *StateDB[
 		WithdrawalT,
 		WithdrawalCredentialsT,
 	]{
-		KVStore: bdb,
+		KVStore: bdb.CopyWithEmptyChangeset(),
 		cs:      cs,
 	}
 }

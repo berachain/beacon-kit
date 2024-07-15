@@ -22,6 +22,7 @@ package blockchain
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
@@ -106,6 +107,7 @@ func (s *Service[
 ) (transition.ValidatorUpdates, error) {
 	startTime := time.Now()
 	defer s.metrics.measureStateTransitionDuration(startTime)
+	fmt.Println("EXECUTING STATE TRANSITION")
 	valUpdates, err := s.sp.Transition(
 		&transition.Context{
 			Context:          ctx,
@@ -127,6 +129,7 @@ func (s *Service[
 		},
 		st,
 		blk,
+		false,
 	)
 	return valUpdates, err
 }

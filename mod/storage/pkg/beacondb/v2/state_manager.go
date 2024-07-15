@@ -253,7 +253,21 @@ func (s *StateManager[
 ]) Copy() *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
 ] {
-	return s
+	st := s.CopyWithEmptyChangeset()
+	st.store.changeSet = s.store.changeSet.Copy()
+	return st
+}
+
+func (s *StateManager[
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
+]) CopyWithEmptyChangeset() *StateManager[
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
+] {
+	st := New[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT](
+		s.latestExecutionPayloadCodec,
+	)
+	st.store.SetStore(s.store)
+	return st
 }
 
 func (s *StateManager[_, _, _, _, _]) SetStateStore(store runtime.Store) {
