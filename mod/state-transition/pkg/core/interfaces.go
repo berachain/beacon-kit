@@ -81,6 +81,9 @@ type ReadOnlyBeaconState[
 	ValidatorIndexByCometBFTAddress(
 		cometBFTAddress []byte,
 	) (math.ValidatorIndex, error)
+
+	// todo: remove
+	Init()
 }
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.

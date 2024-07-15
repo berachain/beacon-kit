@@ -54,6 +54,8 @@ func (sp *StateProcessor[
 		math.U64(constants.GenesisEpoch),
 	)
 
+	st.Init()
+
 	if err := st.SetSlot(0); err != nil {
 		return nil, err
 	}
@@ -96,8 +98,7 @@ func (sp *StateProcessor[
 			return nil, err
 		}
 	}
-	// TODO: why do we need save here?
-	st.Save()
+
 	for _, deposit := range deposits {
 		// TODO: process deposits into eth1 data.
 		if err = sp.processDeposit(st, deposit); err != nil {

@@ -51,6 +51,9 @@ func (s *StateStore) QueryState(storeKey, key []byte) ([]byte, error) {
 }
 
 func (s *StateStore) SetStore(store runtime.Store) {
+	// cs := changeset.New()
+	// cs.Add([]byte("beacon"), []byte("umst"), []byte("umst"), false)
+	// store.Commit(cs.GetChanges())
 	s.Store = store
 }
 
@@ -90,4 +93,11 @@ func (s *StateStore) Save() {
 		return
 	}
 	s.Store.Commit(s.changeSet.GetChanges())
+}
+
+// TODO: hack to get around IAVL versioning issues (a call to save must be made
+// before any queries to SC)
+func (s *StateStore) Init() {
+	s.AddChange([]byte("beacon"), []byte("umst"), []byte("umst"))
+	s.Save()
 }

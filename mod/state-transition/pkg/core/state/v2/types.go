@@ -68,6 +68,8 @@ type StateManager[
 	ForkT,
 	ValidatorT any,
 ] interface {
+	// todo: remove
+	Init()
 	// Save saves the key-value store.
 	Save()
 	// GetLatestExecutionPayloadHeader retrieves the latest execution payload

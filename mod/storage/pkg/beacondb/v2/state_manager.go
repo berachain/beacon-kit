@@ -263,3 +263,7 @@ func (s *StateManager[_, _, _, _, _]) SetStateStore(store runtime.Store) {
 func (s *StateManager[_, _, _, _, _]) stateStore() collections.Store {
 	return s.store
 }
+
+func (s *StateManager[_, _, _, _, _]) Init() {
+	s.store.Init()
+}
