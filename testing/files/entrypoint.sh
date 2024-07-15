@@ -76,8 +76,7 @@ if [[ $overwrite == "y" || $overwrite == "Y" || $3 == "onlyInit" ]]; then
 	rm -rf $HOMEDIR
 
 	if [[ $2 == "validator" && $3 != "locally" ]]; then
-	  echo "aaaaaaaa"
-  	sudo cp -rf "./testing/files/beacond-validator-$3" $HOMEDIR/
+  	cp -rf "./testing/files/beacond-validator-$3" $HOMEDIR/
   else
     ./build/bin/beacond init $MONIKER \
     --chain-id $CHAINID \
