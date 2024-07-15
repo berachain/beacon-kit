@@ -147,7 +147,7 @@ func (s *StateManager[
 		vals []ValidatorT
 		val  ValidatorT
 	)
-	s.Save()
+	// s.Save()
 	iter, err := s.validators.Iterate()
 	if err != nil {
 		return nil, err

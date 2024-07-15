@@ -40,9 +40,12 @@ func (i *iterator) Valid() bool {
 func (i *iterator) Next() {
 	if i.changeset.Valid() {
 		i.changeset.Next()
-		i.seen[string(i.changeset.Key())] = struct{}{}
+		if i.changeset.Valid() {
+			i.seen[string(i.changeset.Key())] = struct{}{}
+		}
 		return
 	}
+
 	i.store.Next()
 	for i.store.Valid() {
 		if _, ok := i.seen[string(i.store.Key())]; !ok {

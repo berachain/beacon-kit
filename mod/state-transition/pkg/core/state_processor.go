@@ -193,7 +193,7 @@ func (sp *StateProcessor[
 		if err = sp.processSlot(beaconState); err != nil {
 			return nil, err
 		}
-		beaconState.Save()
+		// beaconState.Save()
 		fmt.Println("SLOT PROCESSED!")
 
 		// Process the Epoch Boundary.
@@ -214,7 +214,7 @@ func (sp *StateProcessor[
 			return nil, err
 		}
 	}
-	beaconState.Save()
+	// beaconState.Save()
 	return validatorUpdates, nil
 }
 

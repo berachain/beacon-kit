@@ -58,10 +58,10 @@ func NewWithPairs(pairs map[string]store.KVPairs) *Changeset {
 		MemDB:     db.NewMemDB(),
 		mu:        &sync.RWMutex{},
 	}
-	for storeKey, kvPairs := range pairs {
+	for _, kvPairs := range pairs {
 		for _, pair := range kvPairs {
 			if err := cs.Set(
-				buildKey([]byte(storeKey), pair.Key),
+				pair.Key,
 				pair.Value,
 			); err != nil {
 				panic(err)
@@ -71,21 +71,17 @@ func NewWithPairs(pairs map[string]store.KVPairs) *Changeset {
 	return cs
 }
 
-func buildKey(storeKey, key []byte) []byte {
-	return append(storeKey, key...)
-}
-
 // Add adds a change to the changeset and changes map
 func (cs *Changeset) Add(storeKey, key, value []byte, remove bool) error {
 	defer cs.mu.Unlock()
 	cs.mu.Lock()
 	// add/remove the change to the map of changes
 	if remove {
-		if err := cs.MemDB.Delete(buildKey(storeKey, key)); err != nil {
+		if err := cs.MemDB.Delete(key); err != nil {
 			return err
 		}
 	} else {
-		if err := cs.MemDB.Set(buildKey(storeKey, key), value); err != nil {
+		if err := cs.MemDB.Set(key, value); err != nil {
 			return err
 		}
 	}
@@ -102,16 +98,10 @@ func (cs *Changeset) AddKVPair(storeKey []byte, pair store.KVPair) {
 func (cs *Changeset) Query(storeKey []byte, key []byte) ([]byte, bool) {
 	// Note: MemDB returns no error but value is nil if key is not found,
 	// so we need to check if value is nil
-	if value, err := cs.MemDB.Get(buildKey(storeKey, key)); err == nil {
+	if value, err := cs.MemDB.Get(key); err == nil {
 		return value, value != nil
 	}
 	return nil, false
-}
-
-func (cs *Changeset) Iterator(storeKey, start, end []byte) (db.Iterator, error) {
-	prefixedStart := buildKey(storeKey, start)
-	prefixedEnd := buildKey(storeKey, end)
-	return cs.MemDB.Iterator(prefixedStart, prefixedEnd)
 }
 
 // Flush resets the changeset and changes map.

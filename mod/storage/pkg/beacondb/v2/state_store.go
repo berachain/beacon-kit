@@ -70,7 +70,7 @@ func (s *StateStore) Iterator(start, end []byte) (store.Iterator, error) {
 		return nil, err
 	}
 
-	changeSetIter, err := s.changeSet.Iterator([]byte(ModuleName), start, end)
+	changeSetIter, err := s.changeSet.Iterator(start, end)
 	if err != nil {
 		return nil, err
 	}
