@@ -30,7 +30,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/bind"
+	gethprimitivescrypto "github.com/berachain/beacon-kit/mod/geth-primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/rpc"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
@@ -39,8 +41,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/cosmos/cosmos-sdk/client"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/spf13/cobra"
 )
 
@@ -190,9 +190,13 @@ func broadcastDepositTx[
 	if fundingPrivKey == "" {
 		return common.ExecutionHash{}, ErrPrivateKeyRequired
 	}
-	privKey, err = ethcrypto.HexToECDSA(fundingPrivKey)
+	privKey, err = gethprimitivescrypto.HexToECDSA(fundingPrivKey)
 	if err != nil {
 		return common.ExecutionHash{}, err
+	}
+
+	if privKey == nil {
+		return common.ExecutionHash{}, ErrPrivateKeyEmpty
 	}
 
 	// Parse the execution client RPC URL.
@@ -227,13 +231,13 @@ func broadcastDepositTx[
 	}
 	depositTx, err := depositContract.Deposit(
 		&bind.TransactOpts{
-			From: ethcrypto.PubkeyToAddress(privKey.PublicKey),
+			From: gethprimitivescrypto.PubkeyToAddress(privKey.PublicKey),
 			Signer: func(
-				_ common.ExecutionAddress, tx *ethtypes.Transaction,
-			) (*ethtypes.Transaction, error) {
-				return ethtypes.SignTx(
+				_ common.ExecutionAddress, tx *gethprimitives.Transaction,
+			) (*gethprimitives.Transaction, error) {
+				return gethprimitives.SignTx(
 					tx,
-					ethtypes.LatestSignerForChainID(eth1ChainID),
+					gethprimitives.LatestSignerForChainID(eth1ChainID),
 					privKey,
 				)
 			},
@@ -267,8 +271,12 @@ func broadcastDepositTx[
 	if depositReceipt == nil {
 		return common.ExecutionHash{}, ErrDepositReceiptEmpty
 	}
-	if depositReceipt.Status == ethtypes.ReceiptStatusFailed {
-		return common.ExecutionHash{}, ErrDepositTransactionFailed
+	if depositReceipt.Status == gethprimitives.ReceiptStatusFailed {
+		return common.ExecutionHash{},
+			errors.Wrapf(
+				ErrDepositTransactionFailed,
+				"transaction hash: %s", depositReceipt.TxHash.Hex(),
+			)
 	}
 
 	return depositReceipt.TxHash, nil
