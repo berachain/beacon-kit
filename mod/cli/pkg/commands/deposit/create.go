@@ -205,7 +205,6 @@ func broadcastDepositTx[
 		return common.ExecutionHash{}, err
 	}
 	eth1ChainID := new(big.Int).SetUint64(chainSpec.DepositEth1ChainID())
-	depositContractAddress := chainSpec.DepositContractAddress()
 
 	// Dial the execution client.
 	rpcClient, err := rpc.DialContext(
@@ -223,7 +222,7 @@ func broadcastDepositTx[
 
 	// Send the deposit to the deposit contract through abi bindings.
 	depositContract, err := deposit.NewBeaconDepositContract(
-		depositContractAddress,
+		chainSpec.DepositContractAddress(),
 		ethClient,
 	)
 	if err != nil {
@@ -242,13 +241,10 @@ func broadcastDepositTx[
 				)
 			},
 			//nolint:mnd // The gas tip cap.
-			// It is necessary for besu to work, not sure why though.
 			GasTipCap: big.NewInt(1000000000),
 			//nolint:mnd // The gas fee cap.
-			// It is necessary for ethereumjs to work.
 			GasFeeCap: big.NewInt(1000000000),
 			//nolint:mnd // The gas limit.
-			// It is necessary for ethereumjs to work.
 			GasLimit: 600000,
 		},
 		depositMsg.Pubkey[:],
