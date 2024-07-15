@@ -38,8 +38,6 @@ const (
 
 // Tree[RootT] implements a Merkle tree that has been optimized to
 // handle leaves that are 32 bytes in size.
-//
-// TODO: deprecate in favor of ssz/merkle/tree.go.
 type Tree[RootT ~[32]byte] struct {
 	depth    uint8
 	branches [][]RootT
@@ -109,7 +107,7 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 		branches: layers,
 		leaves:   leaves,
 		depth:    depth,
-		hasher: NewRootHasher[[32]byte](
+		hasher: NewRootHasher(
 			NewHasher[[32]byte](sha256.Hash),
 			gohashtree.Hash,
 		),
