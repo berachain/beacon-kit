@@ -95,8 +95,6 @@ func (cs *Changeset) Add(storeKey, key, value []byte, remove bool) error {
 
 // AddKVPair adds a KVPair to the Changeset and changes map
 func (cs *Changeset) AddKVPair(storeKey []byte, pair store.KVPair) {
-	defer cs.mu.Unlock()
-	cs.mu.Lock()
 	cs.Add(storeKey, pair.Key, pair.Value, pair.Remove)
 }
 
@@ -108,6 +106,12 @@ func (cs *Changeset) Query(storeKey []byte, key []byte) ([]byte, bool) {
 		return value, value != nil
 	}
 	return nil, false
+}
+
+func (cs *Changeset) Iterator(storeKey, start, end []byte) (db.Iterator, error) {
+	prefixedStart := buildKey(storeKey, start)
+	prefixedEnd := buildKey(storeKey, end)
+	return cs.MemDB.Iterator(prefixedStart, prefixedEnd)
 }
 
 // Flush resets the changeset and changes map.

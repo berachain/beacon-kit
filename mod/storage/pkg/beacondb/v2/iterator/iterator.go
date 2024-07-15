@@ -6,34 +6,6 @@ import (
 	"cosmossdk.io/store"
 )
 
-type Iterator interface {
-	// Domain returns the start (inclusive) and end (exclusive) limits of the iterator.
-	// CONTRACT: start, end readonly []byte
-	Domain() (start []byte, end []byte)
-
-	// Valid returns whether the current iterator is valid. Once invalid, the Iterator remains
-	// invalid forever.
-	Valid() bool
-
-	// Next moves the iterator to the next key in the database, as defined by order of iteration.
-	// If Valid returns false, this method will panic.
-	Next()
-
-	// Key returns the key at the current position. Panics if the iterator is invalid.
-	// CONTRACT: key readonly []byte
-	Key() (key []byte)
-
-	// Value returns the value at the current position. Panics if the iterator is invalid.
-	// CONTRACT: value readonly []byte
-	Value() (value []byte)
-
-	// Error returns the last error encountered by the iterator, if any.
-	Error() error
-
-	// Close closes the iterator, relasing any allocated resources.
-	Close() error
-}
-
 // Iterator is a wrapper around the store and changeset iterators,
 // and provides an iterator which iterates over all changes in the
 // changeset and store, skipping duplicates.
@@ -71,12 +43,11 @@ func (i *iterator) Next() {
 		i.seen[string(i.changeset.Key())] = struct{}{}
 		return
 	}
-	i.store.Next()
 	for i.store.Valid() {
+		i.store.Next()
 		if _, ok := i.seen[string(i.store.Key())]; !ok {
 			break
 		}
-		i.store.Next()
 	}
 }
 
