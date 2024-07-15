@@ -24,9 +24,9 @@ import (
 	"cosmossdk.io/collections/codec"
 )
 
-// An ItemKeeper is an intermediary that holds a certain configuration,
+// An Item is an intermediary that holds a certain configuration,
 // and uses that configuration to interact with the underlying store.
-type ItemKeeper[V any] struct {
+type Item[V any] struct {
 	storeKey      []byte
 	key           []byte
 	valueCodec    codec.ValueCodec[V]
@@ -38,8 +38,8 @@ func NewItemKeeper[V any](
 	key []byte,
 	valueCodec codec.ValueCodec[V],
 	storeAccessor StoreAccessor,
-) ItemKeeper[V] {
-	return ItemKeeper[V]{
+) Item[V] {
+	return Item[V]{
 		storeKey:      storeKey,
 		key:           key,
 		valueCodec:    valueCodec,
@@ -48,7 +48,7 @@ func NewItemKeeper[V any](
 }
 
 // Get retrieves the value from the store, and returns the decoded value.
-func (i *ItemKeeper[V]) Get() (V, error) {
+func (i *Item[V]) Get() (V, error) {
 	var result V
 	res, err := i.storeAccessor().QueryState(i.storeKey, i.key)
 	if err != nil {
@@ -59,7 +59,7 @@ func (i *ItemKeeper[V]) Get() (V, error) {
 }
 
 // Set sets the value in the store with the encoded key and value.
-func (i *ItemKeeper[V]) Set(value V) error {
+func (i *Item[V]) Set(value V) error {
 	encodedValue, err := i.valueCodec.Encode(value)
 	if err != nil {
 		return err

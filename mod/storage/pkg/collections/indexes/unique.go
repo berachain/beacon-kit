@@ -33,7 +33,7 @@ import (
 // It creates relationships between reference and primary key of the value.
 type Unique[ReferenceKey, PrimaryKey, Value any] struct {
 	getRefKey func(PrimaryKey, Value) (ReferenceKey, error)
-	refKeys   collections.MapKeeper[ReferenceKey, PrimaryKey]
+	refKeys   collections.Map[ReferenceKey, PrimaryKey]
 }
 
 // NewUnique instantiates a new Unique index.

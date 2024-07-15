@@ -47,53 +47,53 @@ type StoreManager[
 	store *StateStore
 	// Versioning
 	// genesisValidatorsRoot is the root of the genesis validators.
-	genesisValidatorsRoot collections.ItemKeeper[[]byte]
+	genesisValidatorsRoot collections.Item[[]byte]
 	// slot is the current slot.
-	slot collections.ItemKeeper[uint64]
+	slot collections.Item[uint64]
 	// fork is the current fork
-	fork collections.ItemKeeper[ForkT]
+	fork collections.Item[ForkT]
 	// History
 	// latestBlockHeader stores the latest beacon block header.
-	latestBlockHeader collections.ItemKeeper[BeaconBlockHeaderT]
+	latestBlockHeader collections.Item[BeaconBlockHeaderT]
 	// blockRoots stores the block roots for the current epoch.
-	blockRoots collections.MapKeeper[uint64, []byte]
+	blockRoots collections.Map[uint64, []byte]
 	// stateRoots stores the state roots for the current epoch.
-	stateRoots collections.MapKeeper[uint64, []byte]
+	stateRoots collections.Map[uint64, []byte]
 	// Eth1
 	// eth1Data stores the latest eth1 data.
-	eth1Data collections.ItemKeeper[Eth1DataT]
+	eth1Data collections.Item[Eth1DataT]
 	// eth1DepositIndex is the index of the latest eth1 deposit.
-	eth1DepositIndex collections.ItemKeeper[uint64]
+	eth1DepositIndex collections.Item[uint64]
 	// latestExecutionPayload stores the latest execution payload version.
-	latestExecutionPayloadVersion collections.ItemKeeper[uint32]
+	latestExecutionPayloadVersion collections.Item[uint32]
 	// latestExecutionPayloadCodec is the codec for the latest execution
 	// payload, it allows us to update the codec with the latest version.
 	latestExecutionPayloadCodec *encoding.
 					SSZInterfaceCodec[ExecutionPayloadHeaderT]
 	// latestExecutionPayloadHeader stores the latest execution payload header.
-	latestExecutionPayloadHeader collections.ItemKeeper[ExecutionPayloadHeaderT]
+	latestExecutionPayloadHeader collections.Item[ExecutionPayloadHeaderT]
 	// Registry
 	// validatorIndex provides the next available index for a new validator.
 	validatorIndex collections.Sequence
 	// validators stores the list of validators.
-	validators *collections.IndexedMapKeeper[
+	validators *collections.IndexedMap[
 		uint64, ValidatorT, indexv2.ValidatorsIndex[ValidatorT],
 	]
 	// balances stores the list of balances.
-	balances collections.MapKeeper[uint64, uint64]
+	balances collections.Map[uint64, uint64]
 	// nextWithdrawalIndex stores the next global withdrawal index.
-	nextWithdrawalIndex collections.ItemKeeper[uint64]
+	nextWithdrawalIndex collections.Item[uint64]
 	// nextWithdrawalValidatorIndex stores the next withdrawal validator index
 	// for each validator.
-	nextWithdrawalValidatorIndex collections.ItemKeeper[uint64]
+	nextWithdrawalValidatorIndex collections.Item[uint64]
 	// Randomness
 	// randaoMix stores the randao mix for the current epoch.
-	randaoMix collections.MapKeeper[uint64, []byte]
+	randaoMix collections.Map[uint64, []byte]
 	// Slashings
 	// slashings stores the slashings for the current epoch.
-	slashings collections.MapKeeper[uint64, uint64]
+	slashings collections.Map[uint64, uint64]
 	// totalSlashing stores the total slashing in the vector range.
-	totalSlashing collections.ItemKeeper[uint64]
+	totalSlashing collections.Item[uint64]
 }
 
 // New creates a new instance of Store.

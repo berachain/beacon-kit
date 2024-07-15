@@ -27,7 +27,7 @@ import (
 
 // KeySet builds on top of a Map and represents a collection retaining only a set of keys and no value.
 type KeySet[K any] struct {
-	m MapKeeper[K, sdkcollections.NoValue]
+	m Map[K, sdkcollections.NoValue]
 }
 
 // NewKeySet returns a KeySet given a schema, prefix, name, and key codec.
@@ -65,7 +65,7 @@ func (k *KeySet[K]) Remove(key K) error {
 
 // Iterate iterates over the keys in the KeySet.
 func (k *KeySet[K]) Iterate() (sdkcollections.KeySetIterator[K], error) {
-	iter, err := (*MapKeeper[K, sdkcollections.NoValue])(&k.m).Iterate()
+	iter, err := (*Map[K, sdkcollections.NoValue])(&k.m).Iterate()
 	if err != nil {
 		return sdkcollections.KeySetIterator[K]{}, err
 	}

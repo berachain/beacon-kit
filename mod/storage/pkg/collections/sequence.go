@@ -29,7 +29,7 @@ const DefaultSequenceStart uint64 = 0
 
 // Sequence builds on top of an Item, and represents a monotonically increasing number.
 type Sequence struct {
-	ItemKeeper[uint64]
+	Item[uint64]
 }
 
 // NewSequence instantiates a new sequence given
@@ -55,7 +55,7 @@ func NewSequence(
 // is set then the DefaultSequenceStart is returned.
 // Errors on encoding issues.
 func (s *Sequence) Peek() (uint64, error) {
-	return s.ItemKeeper.Get()
+	return s.Item.Get()
 }
 
 // Next returns the next sequence number, and sets the next expected sequence.
@@ -71,5 +71,5 @@ func (s *Sequence) Next() (uint64, error) {
 // Set hard resets the sequence to the provided value.
 // Errors on encoding issues.
 func (s *Sequence) Set(value uint64) error {
-	return s.ItemKeeper.Set(value)
+	return s.Item.Set(value)
 }
