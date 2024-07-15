@@ -243,7 +243,7 @@ rpc-timeout = "2s"
 rpc-startup-check-interval = "3s"
 
 # Interval for the JWT refresh.
-rpc-jwt-refresh-interval = "20s"
+rpc-jwt-refresh-interval = "30s"
 
 # Path to the execution client JWT-secret
 jwt-secret-path = "./jwt.hex"
@@ -252,7 +252,7 @@ jwt-secret-path = "./jwt.hex"
 # TimeFormat is a string that defines the format of the time in the logger.
 time-format = "RFC3339"
 
-# LogLevel is the level of logging. Logger will log messages with verbosity up 
+# LogLevel is the level of logging. Logger will log messages with verbosity up
 # to LogLevel.
 log-level = "info"
 
@@ -271,14 +271,14 @@ implementation = "crate-crypto/go-kzg-4844"
 # Enabled determines if the local payload builder is enabled.
 enabled = true
 
-# Post bellatrix, this address will receive the transaction fees produced by any blocks 
+# Post bellatrix, this address will receive the transaction fees produced by any blocks
 # from this node.
 suggested-fee-recipient = "0x0000000000000000000000000000000000000000"
 
 # The timeout for local build payload. This should match, or be slightly less
 # than the configured timeout on your execution client. It also must be less than
 # timeout_proposal in the CometBFT configuration.
-payload-timeout = "1.2s"
+payload-timeout = "850ms"
 
 [beacon-kit.validator]
 # Graffiti string that will be included in the graffiti field of the beacon block.

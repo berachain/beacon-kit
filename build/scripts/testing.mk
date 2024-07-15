@@ -26,12 +26,16 @@ BOOT_NODES = "enode://dea0da1a78ec8534ae607d330996f7a1bcf83ca092bbc6027a54d1e53a
 start: ## start an ephemeral `beacond` node
 	@JWT_SECRET_PATH=$(JWT_PATH) ${TESTAPP_FILES_DIR}/entrypoint.sh
 
+start-validator-locally: ## start an ephemeral `beacond` node
+	JWT_SECRET_PATH=$(JWT_PATH) ${TESTAPP_FILES_DIR}/entrypoint.sh 1 validator locally
 start-validator-1: ## start an ephemeral `beacond` node
 	JWT_SECRET_PATH=$(JWT_PATH) ${TESTAPP_FILES_DIR}/entrypoint.sh 1 validator 1
 start-validator-2: ## start an ephemeral `beacond` node
 	JWT_SECRET_PATH=$(JWT_PATH) ${TESTAPP_FILES_DIR}/entrypoint.sh 1 validator 2
 start-validator-3: ## start an ephemeral `beacond` node
 	JWT_SECRET_PATH=$(JWT_PATH) ${TESTAPP_FILES_DIR}/entrypoint.sh 1 validator 3
+start-validator-4: ## start an ephemeral `beacond` node
+	JWT_SECRET_PATH=$(JWT_PATH) ${TESTAPP_FILES_DIR}/entrypoint.sh 1 validator 4
 start-node-init: ## start an ephemeral `beacond` node
 	JWT_SECRET_PATH=$(JWT_PATH) ${TESTAPP_FILES_DIR}/entrypoint.sh 1 node onlyInit
 start-node-run: ## start an ephemeral `beacond` node

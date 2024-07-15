@@ -1,0 +1,11 @@
+{
+  "address": "5B84B93E30F971CA69CCC870137792BAC1613030",
+  "pub_key": {
+    "type": "cometbft/PubKeyBls12_381",
+    "value": "lC2MVa4kXtXsmkG6uKXBhMQvSVhgzaqZbJEONx91H8+EtdJswOGvASHNuUHujum/"
+  },
+  "priv_key": {
+    "type": "cometbft/PrivKeyBls12_381",
+    "value": "E25tFogkhWB6b/PjeH81obzZk/pYuyD2kw7rBVBF4Kw="
+  }
+}
