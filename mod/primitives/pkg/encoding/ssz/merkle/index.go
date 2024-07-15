@@ -21,7 +21,7 @@
 package merkle
 
 import (
-	"sort"
+	"slices"
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
@@ -89,8 +89,7 @@ func (g GeneralizedIndex[RootT]) Parent() GeneralizedIndex[RootT] {
 // from the root to the leaf.
 func (g GeneralizedIndex[RootT]) GetBranchIndices() GeneralizedIndices[RootT] {
 	// Get the generalized indices of the sister chunks along the path from the
-	// chunk with the
-	// given tree index to the root.
+	// chunk with the given tree index to the root.
 	o := []GeneralizedIndex[RootT]{g.Sibling()}
 	for o[len(o)-1] > 1 {
 		o = append(o, o[len(o)-1].Parent().Sibling())
@@ -102,8 +101,7 @@ func (g GeneralizedIndex[RootT]) GetBranchIndices() GeneralizedIndices[RootT] {
 // the leaf to the root.
 func (g GeneralizedIndex[RootT]) GetPathIndices() GeneralizedIndices[RootT] {
 	// Get the generalized indices of the sister chunks along the path from the
-	// chunk with the
-	// given tree index to the root.
+	// chunk with the given tree index to the root.
 	o := []GeneralizedIndex[RootT]{g}
 	for o[len(o)-1] > 1 {
 		o = append(o, o[len(o)-1].Parent())
@@ -135,7 +133,7 @@ func (g GeneralizedIndex[RootT]) CalculateMerkleRoot(
 // leaf, proof, and root.
 func (g GeneralizedIndex[RootT]) VerifyMerkleProof(
 	leaf RootT,
-	proof []RootT, // .Bytes32,
+	proof []RootT,
 	root RootT,
 ) (bool, error) {
 	calculated, err := g.CalculateMerkleRoot(leaf, proof)
@@ -180,9 +178,9 @@ func (
 		}
 	}
 
-	// Sort in decreasing order
-	sort.Slice(difference, func(i, j int) bool {
-		return difference[i] > difference[j]
+	// Sort in decreasing order.
+	slices.SortFunc(difference, func(i, j GeneralizedIndex[RootT]) int {
+		return int(j - i)
 	})
 
 	return difference
@@ -215,12 +213,13 @@ func (gs GeneralizedIndices[RootT]) CalculateMultiMerkleRoot(
 		objects[index] = proof[i]
 	}
 
+	// Extract keys into slice to traverse in descending order.
 	keys := make([]GeneralizedIndex[RootT], 0, len(objects))
 	for k := range objects {
 		keys = append(keys, k)
 	}
-	sort.Slice(keys, func(i, j int) bool {
-		return keys[i] > keys[j]
+	slices.SortFunc(keys, func(i, j GeneralizedIndex[RootT]) int {
+		return int(j - i)
 	})
 
 	pos := 0
@@ -239,7 +238,7 @@ func (gs GeneralizedIndices[RootT]) CalculateMultiMerkleRoot(
 		}
 		pos++
 	}
-	return objects[GeneralizedIndex[RootT](1)], nil
+	return objects[1], nil
 }
 
 // VerifyMerkleMultiproof verifies the Merkle multiproof by comparing the

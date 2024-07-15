@@ -21,24 +21,24 @@
 package schema
 
 // Field represents a named value of a generic type.
-type field[T any] struct {
+type Field[T any] struct {
 	// name is the name of the field
 	name string
 	// value is the value of the field
 	value T
 }
 
-// newField creates a new field.
-func newField[T any](name string, value T) *field[T] {
-	return &field[T]{name: name, value: value}
+// NewField creates a new field.
+func NewField(name string, typ SSZType) *Field[SSZType] {
+	return &Field[SSZType]{name: name, value: typ}
 }
 
 // GetName returns the name of the field.
-func (f field[_]) GetName() string {
+func (f Field[_]) GetName() string {
 	return f.name
 }
 
 // GetValue returns the value of the field.
-func (f field[T]) GetValue() T {
+func (f Field[T]) GetValue() T {
 	return f.value
 }

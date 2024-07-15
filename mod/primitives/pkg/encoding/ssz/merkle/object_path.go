@@ -86,9 +86,9 @@ func (p ObjectPath[GeneralizedIndexT, RootT]) GetGeneralizedIndex(
 				)
 			}
 			typ = schema.U64()
-			//nolint:mnd // from spec.
+
 			gIndex *= 2
-			gIndex += 1
+			gIndex++
 		} else {
 			pos, start, _, err := typ.ItemPosition(part)
 			if err != nil {
