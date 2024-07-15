@@ -43,11 +43,12 @@ func (i *iterator) Next() {
 		i.seen[string(i.changeset.Key())] = struct{}{}
 		return
 	}
+	i.store.Next()
 	for i.store.Valid() {
-		i.store.Next()
 		if _, ok := i.seen[string(i.store.Key())]; !ok {
 			break
 		}
+		i.store.Next()
 	}
 }
 

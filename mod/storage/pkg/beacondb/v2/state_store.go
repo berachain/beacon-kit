@@ -51,9 +51,6 @@ func (s *StateStore) QueryState(storeKey, key []byte) ([]byte, error) {
 }
 
 func (s *StateStore) SetStore(store runtime.Store) {
-	// cs := changeset.New()
-	// cs.Add([]byte("beacon"), []byte("umst"), []byte("umst"), false)
-	// store.Commit(cs.GetChanges())
 	s.Store = store
 }
 
@@ -73,7 +70,7 @@ func (s *StateStore) Iterator(start, end []byte) (store.Iterator, error) {
 		return nil, err
 	}
 
-	changeSetIter, err := s.changeSet.Iterator(start, end)
+	changeSetIter, err := s.changeSet.Iterator([]byte(ModuleName), start, end)
 	if err != nil {
 		return nil, err
 	}
