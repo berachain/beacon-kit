@@ -85,7 +85,7 @@ func NewIndexedMapSafe[K, V, I any](
 	return &IndexedMap[K, V, I]{
 		computedIndexes: indexesList,
 		Indexes:         indexes,
-		primaryMap:      NewMapKeeper(storeKey, keyPrefix, pkCodec, valueCodec, sa),
+		primaryMap:      NewMap(storeKey, keyPrefix, pkCodec, valueCodec, sa),
 	}, nil
 }
 

@@ -33,7 +33,7 @@ type Item[V any] struct {
 	storeAccessor StoreAccessor
 }
 
-func NewItemKeeper[V any](
+func NewItem[V any](
 	storeKey []byte,
 	key []byte,
 	valueCodec codec.ValueCodec[V],

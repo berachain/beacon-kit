@@ -39,7 +39,7 @@ type Map[K, V any] struct {
 	Size          int // TODO: remove this, temp field for debugging
 }
 
-func NewMapKeeper[K, V any](
+func NewMap[K, V any](
 	storeKey []byte,
 	keyPrefix []byte,
 	keyCodec codec.KeyCodec[K],

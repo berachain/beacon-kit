@@ -38,7 +38,7 @@ func NewSequence(
 	storeKey, key []byte, storeAccessor StoreAccessor,
 ) Sequence {
 	seq := Sequence{
-		NewItemKeeper(
+		NewItem(
 			storeKey,
 			key,
 			sdkcollections.Uint64Value,

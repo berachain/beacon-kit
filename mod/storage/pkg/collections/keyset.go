@@ -38,7 +38,7 @@ func NewKeySet[K any](
 	storeAccessor StoreAccessor,
 ) KeySet[K] {
 	return KeySet[K]{
-		m: NewMapKeeper(storeKey, keyPrefix, keyCodec, NoValueCodec(), storeAccessor),
+		m: NewMap(storeKey, keyPrefix, keyCodec, NoValueCodec(), storeAccessor),
 	}
 }
 

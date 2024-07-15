@@ -47,7 +47,7 @@ func NewUnique[ReferenceKey, PrimaryKey, Value any](
 ) *Unique[ReferenceKey, PrimaryKey, Value] {
 	return &Unique[ReferenceKey, PrimaryKey, Value]{
 		getRefKey: getRefKeyFunc,
-		refKeys:   collections.NewMapKeeper(storeKey, keyPrefix, refCodec, codec.KeyToValueCodec(pkCodec), sa),
+		refKeys:   collections.NewMap(storeKey, keyPrefix, refCodec, codec.KeyToValueCodec(pkCodec), sa),
 	}
 }
 

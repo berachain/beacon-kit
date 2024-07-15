@@ -122,58 +122,58 @@ func New[
 		store: NewStore(),
 	}
 
-	store.genesisValidatorsRoot = collections.NewItemKeeper(
+	store.genesisValidatorsRoot = collections.NewItem(
 		storeKey,
 		[]byte{keys.GenesisValidatorsRootPrefix},
 		sdkcollections.BytesValue,
 		store.stateStore,
 	)
-	store.slot = collections.NewItemKeeper(
+	store.slot = collections.NewItem(
 		storeKey,
 		[]byte{keys.SlotPrefix},
 		sdkcollections.Uint64Value,
 		store.stateStore,
 	)
-	store.fork = collections.NewItemKeeper(
+	store.fork = collections.NewItem(
 		storeKey,
 		[]byte{keys.ForkPrefix},
 		encoding.SSZValueCodec[ForkT]{},
 		store.stateStore,
 	)
-	store.blockRoots = collections.NewMapKeeper(
+	store.blockRoots = collections.NewMap(
 		storeKey,
 		[]byte{keys.BlockRootsPrefix},
 		sdkcollections.Uint64Key,
 		sdkcollections.BytesValue,
 		store.stateStore,
 	)
-	store.stateRoots = collections.NewMapKeeper(
+	store.stateRoots = collections.NewMap(
 		storeKey,
 		[]byte{keys.StateRootsPrefix},
 		sdkcollections.Uint64Key,
 		sdkcollections.BytesValue,
 		store.stateStore,
 	)
-	store.eth1Data = collections.NewItemKeeper(
+	store.eth1Data = collections.NewItem(
 		storeKey,
 		[]byte{keys.Eth1DataPrefix},
 		encoding.SSZValueCodec[Eth1DataT]{},
 		store.stateStore,
 	)
-	store.eth1DepositIndex = collections.NewItemKeeper(
+	store.eth1DepositIndex = collections.NewItem(
 		storeKey,
 		[]byte{keys.Eth1DepositIndexPrefix},
 		sdkcollections.Uint64Value,
 		store.stateStore,
 	)
-	store.latestExecutionPayloadVersion = collections.NewItemKeeper(
+	store.latestExecutionPayloadVersion = collections.NewItem(
 		storeKey,
 		[]byte{keys.LatestExecutionPayloadVersionPrefix},
 		sdkcollections.Uint32Value,
 		store.stateStore,
 	)
 	store.latestExecutionPayloadCodec = payloadCodec
-	store.latestExecutionPayloadHeader = collections.NewItemKeeper(
+	store.latestExecutionPayloadHeader = collections.NewItem(
 		storeKey,
 		[]byte{keys.LatestExecutionPayloadHeaderPrefix},
 		payloadCodec,
@@ -192,46 +192,46 @@ func New[
 		indexv2.NewValidatorsIndex[ValidatorT](store.stateStore),
 		store.stateStore,
 	)
-	store.balances = collections.NewMapKeeper(
+	store.balances = collections.NewMap(
 		storeKey,
 		[]byte{keys.BalancesPrefix},
 		sdkcollections.Uint64Key,
 		sdkcollections.Uint64Value,
 		store.stateStore,
 	)
-	store.randaoMix = collections.NewMapKeeper(
+	store.randaoMix = collections.NewMap(
 		storeKey,
 		[]byte{keys.RandaoMixPrefix},
 		sdkcollections.Uint64Key,
 		sdkcollections.BytesValue,
 		store.stateStore,
 	)
-	store.slashings = collections.NewMapKeeper(
+	store.slashings = collections.NewMap(
 		storeKey,
 		[]byte{keys.SlashingsPrefix},
 		sdkcollections.Uint64Key,
 		sdkcollections.Uint64Value,
 		store.stateStore,
 	)
-	store.nextWithdrawalIndex = collections.NewItemKeeper(
+	store.nextWithdrawalIndex = collections.NewItem(
 		storeKey,
 		[]byte{keys.NextWithdrawalIndexPrefix},
 		sdkcollections.Uint64Value,
 		store.stateStore,
 	)
-	store.nextWithdrawalValidatorIndex = collections.NewItemKeeper(
+	store.nextWithdrawalValidatorIndex = collections.NewItem(
 		storeKey,
 		[]byte{keys.NextWithdrawalValidatorIndexPrefix},
 		sdkcollections.Uint64Value,
 		store.stateStore,
 	)
-	store.totalSlashing = collections.NewItemKeeper(
+	store.totalSlashing = collections.NewItem(
 		storeKey,
 		[]byte{keys.TotalSlashingPrefix},
 		sdkcollections.Uint64Value,
 		store.stateStore,
 	)
-	store.latestBlockHeader = collections.NewItemKeeper(
+	store.latestBlockHeader = collections.NewItem(
 		storeKey,
 		[]byte{keys.LatestBeaconBlockHeaderPrefix},
 		encoding.SSZValueCodec[BeaconBlockHeaderT]{},
