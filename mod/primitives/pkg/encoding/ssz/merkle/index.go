@@ -222,8 +222,10 @@ func (gs GeneralizedIndices[RootT]) CalculateMultiMerkleRoot(
 		return int(j - i)
 	})
 
-	pos := 0
-	var sibling RootT
+	var (
+		pos     int
+		sibling RootT
+	)
 	for pos < len(keys) {
 		k := keys[pos]
 		if _, ok := objects[k]; ok {
