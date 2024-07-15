@@ -29,7 +29,7 @@ import (
 )
 
 // AddValidator registers a new validator in the beacon state.
-func (s *StoreManager[
+func (s *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) AddValidator(
@@ -51,7 +51,7 @@ func (s *StoreManager[
 }
 
 // AddValidator registers a new validator in the beacon state.
-func (s *StoreManager[
+func (s *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) AddValidatorBartio(val ValidatorT) error {
@@ -71,7 +71,7 @@ func (s *StoreManager[
 }
 
 // UpdateValidatorAtIndex updates a validator at a specific index.
-func (s *StoreManager[
+func (s *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) UpdateValidatorAtIndex(
@@ -82,7 +82,7 @@ func (s *StoreManager[
 }
 
 // RemoveValidatorAtIndex removes a validator at a specified index.
-func (s *StoreManager[
+func (s *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) RemoveValidatorAtIndex(
@@ -92,7 +92,7 @@ func (s *StoreManager[
 }
 
 // ValidatorIndexByPubkey returns the validator address by index.
-func (s *StoreManager[
+func (s *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) ValidatorIndexByPubkey(
@@ -106,7 +106,7 @@ func (s *StoreManager[
 }
 
 // ValidatorIndexByCometBFTAddress returns the validator address by index.
-func (s *StoreManager[
+func (s *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) ValidatorIndexByCometBFTAddress(
@@ -122,7 +122,7 @@ func (s *StoreManager[
 }
 
 // ValidatorByIndex returns the validator address by index.
-func (s *StoreManager[
+func (s *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) ValidatorByIndex(
@@ -137,7 +137,7 @@ func (s *StoreManager[
 }
 
 // GetValidators retrieves all validators from the beacon state.
-func (s *StoreManager[
+func (s *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetValidators() (
@@ -172,7 +172,7 @@ func (s *StoreManager[
 }
 
 // GetTotalValidators returns the total number of validators.
-func (s *StoreManager[
+func (s *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetTotalValidators() (uint64, error) {
@@ -186,7 +186,7 @@ func (s *StoreManager[
 
 // GetValidatorsByEffectiveBalance retrieves all validators sorted by
 // effective balance from the beacon state.
-func (s *StoreManager[
+func (s *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetValidatorsByEffectiveBalance() (
@@ -218,7 +218,7 @@ func (s *StoreManager[
 }
 
 // GetBalance returns the balance of a validator.
-func (s *StoreManager[
+func (s *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetBalance(
@@ -229,7 +229,7 @@ func (s *StoreManager[
 }
 
 // SetBalance sets the balance of a validator.
-func (s *StoreManager[
+func (s *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) SetBalance(
@@ -240,7 +240,7 @@ func (s *StoreManager[
 }
 
 // GetBalances returns the balancse of all validator.
-func (s *StoreManager[
+func (s *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetBalances() ([]uint64, error) {
@@ -265,7 +265,7 @@ func (s *StoreManager[
 // GetTotalActiveBalances returns the total active balances of all validatorkv.
 // TODO: unhood this and probably store this as just a value changed on writekv.
 // TODO: this shouldn't live in Store
-func (s *StoreManager[
+func (s *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetTotalActiveBalances(

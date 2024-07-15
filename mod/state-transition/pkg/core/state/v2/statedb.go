@@ -43,7 +43,7 @@ type StateDB[
 	Eth1DataT any,
 	ExecutionPayloadHeaderT any,
 	ForkT any,
-	StateStoreT StateStore[
+	StateStoreT StateManager[
 		StateStoreT,
 		BeaconBlockHeaderT,
 		Eth1DataT,
@@ -54,7 +54,7 @@ type StateDB[
 	ValidatorT Validator[WithdrawalCredentialsT],
 	WithdrawalCredentialsT WithdrawalCredentials,
 ] struct {
-	StateStore[
+	StateManager[
 		StateStoreT,
 		BeaconBlockHeaderT,
 		Eth1DataT,
@@ -93,8 +93,8 @@ func (s *StateDB[
 		ValidatorT,
 		WithdrawalCredentialsT,
 	]{
-		StateStore: bdb,
-		cs:         cs,
+		StateManager: bdb,
+		cs:           cs,
 	}
 
 	// TODO: Fix this is hood as fuck.
@@ -118,7 +118,7 @@ func (s *StateDB[
 	WithdrawalCredentialsT,
 ] {
 	return s.NewFromDB(
-		s.StateStore.Copy(),
+		s.StateManager.Copy(),
 		s.cs,
 	)
 }

@@ -59,8 +59,8 @@ type BeaconStateMarshallable[
 	) (T, error)
 }
 
-// StateStore is the interface for the key-value store holding the beacon state.
-type StateStore[
+// StateManager is the interface for the key-value store holding the beacon state.
+type StateManager[
 	T,
 	BeaconBlockHeaderT,
 	Eth1DataT,

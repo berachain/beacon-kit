@@ -23,7 +23,7 @@ package beacondb
 import "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 
 // GetNextWithdrawalIndex returns the next withdrawal index.
-func (s *StoreManager[
+func (s *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetNextWithdrawalIndex() (uint64, error) {
@@ -31,7 +31,7 @@ func (s *StoreManager[
 }
 
 // SetNextWithdrawalIndex sets the next withdrawal index.
-func (s *StoreManager[
+func (s *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) SetNextWithdrawalIndex(
@@ -41,7 +41,7 @@ func (s *StoreManager[
 }
 
 // GetNextWithdrawalValidatorIndex returns the next withdrawal validator index.
-func (s *StoreManager[
+func (s *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetNextWithdrawalValidatorIndex() (
@@ -52,7 +52,7 @@ func (s *StoreManager[
 }
 
 // SetNextWithdrawalValidatorIndex sets the next withdrawal validator index.
-func (s *StoreManager[
+func (s *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) SetNextWithdrawalValidatorIndex(

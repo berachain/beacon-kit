@@ -25,7 +25,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-func (s *StoreManager[
+func (s *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
 ]) SetGenesisValidatorsRoot(
 	root common.Root,
@@ -33,7 +33,7 @@ func (s *StoreManager[
 	return s.genesisValidatorsRoot.Set(root[:])
 }
 
-func (s *StoreManager[
+func (s *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
 ]) GetGenesisValidatorsRoot() (common.Root, error) {
 	bz, err := s.genesisValidatorsRoot.Get()
@@ -44,7 +44,7 @@ func (s *StoreManager[
 }
 
 // GetSlot returns the current slot.
-func (s *StoreManager[
+func (s *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetSlot() (math.Slot, error) {
@@ -53,7 +53,7 @@ func (s *StoreManager[
 }
 
 // SetSlot sets the current slot.
-func (s *StoreManager[
+func (s *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) SetSlot(

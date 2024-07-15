@@ -32,8 +32,8 @@ import (
 
 const ModuleName = "beacon"
 
-// StoreManager is a wrapper around storev2.RootStore
-type StoreManager[
+// StateManager is a wrapper around storev2.RootStore
+type StateManager[
 	BeaconBlockHeaderT constraints.SSZMarshallable,
 	Eth1DataT constraints.SSZMarshallable,
 	ExecutionPayloadHeaderT interface {
@@ -111,11 +111,11 @@ func New[
 	ValidatorT Validator,
 ](
 	payloadCodec *encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT],
-) *StoreManager[
+) *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
 ] {
 	storeKey := []byte(ModuleName)
-	store := &StoreManager[
+	store := &StateManager[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 		ForkT, ValidatorT,
 	]{
@@ -243,23 +243,23 @@ func New[
 // if commit errors should we still reset? maybe just do an
 // explicit call instead of defer to prevent that case
 // TODO: return store hash
-func (s *StoreManager[_, _, _, _, _]) Save() {
+func (s *StateManager[_, _, _, _, _]) Save() {
 	s.store.Save()
 }
 
 // TODO: deprecate
-func (s *StoreManager[
+func (s *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
-]) Copy() *StoreManager[
+]) Copy() *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
 ] {
 	return s
 }
 
-func (s *StoreManager[_, _, _, _, _]) SetStateStore(store runtime.Store) {
+func (s *StateManager[_, _, _, _, _]) SetStateStore(store runtime.Store) {
 	s.store.SetStore(store)
 }
 
-func (s *StoreManager[_, _, _, _, _]) stateStore() collections.Store {
+func (s *StateManager[_, _, _, _, _]) stateStore() collections.Store {
 	return s.store
 }
