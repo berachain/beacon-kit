@@ -33,6 +33,6 @@ var (
 	ErrNilBlkBody = errors.New("nil block body")
 	// ErrNilBlk is an error for when the beacon block is nil.
 	ErrNilBlk = errors.New("nil beacon block")
-	// ErrDataNotAvailable.
+	// ErrDataNotAvailable indicates that the required data is not available.
 	ErrDataNotAvailable = errors.New("data not available")
 )

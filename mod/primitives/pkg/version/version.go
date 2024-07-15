@@ -30,6 +30,7 @@ const (
 	Bellatrix
 	Capella
 	Deneb
+	DenebPlus
 	Electra
 )
 

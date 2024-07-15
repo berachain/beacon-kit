@@ -271,14 +271,14 @@ implementation = "crate-crypto/go-kzg-4844"
 # Enabled determines if the local payload builder is enabled.
 enabled = true
 
-# Post bellatrix, this address will receive the transaction fees produced by any blocks 
+# Post bellatrix, this address will receive the transaction fees produced by any blocks
 # from this node.
 suggested-fee-recipient = "0x0000000000000000000000000000000000000000"
 
 # The timeout for local build payload. This should match, or be slightly less
 # than the configured timeout on your execution client. It also must be less than
 # timeout_proposal in the CometBFT configuration.
-payload-timeout = "1s"
+payload-timeout = "850ms"
 
 [beacon-kit.validator]
 # Graffiti string that will be included in the graffiti field of the beacon block.
