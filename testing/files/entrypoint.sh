@@ -91,10 +91,9 @@ if [[ $overwrite == "y" || $overwrite == "Y" || $3 == "onlyInit" ]]; then
 
   if [ $3 == "locally" ]; then
     ./build/bin/beacond genesis add-premined-deposit --home $HOMEDIR
+    ./build/bin/beacond genesis collect-premined-deposits --home $HOMEDIR
+    ./build/bin/beacond genesis execution-payload "$ETH_GENESIS" --home $HOMEDIR
   fi
-
-	./build/bin/beacond genesis collect-premined-deposits --home $HOMEDIR
-	./build/bin/beacond genesis execution-payload "$ETH_GENESIS" --home $HOMEDIR
 
 	if [ $3 != "locally" ]; then
 	  cp -rf ./testing/files/genesis.json $HOMEDIR/config/genesis.json
