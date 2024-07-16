@@ -84,8 +84,7 @@ func RootFromBranch[RootT, BranchT ~[32]byte](
 	}
 
 	for i := range depth {
-		//nolint:mnd // from spec.
-		ithBit := (index >> i) & 0x01
+		ithBit := (index >> i) & 1
 		if ithBit == 1 {
 			copy(hashInput[:32], branch[i][:])
 			copy(hashInput[32:], merkleRoot[:])

@@ -160,11 +160,14 @@ func (gs GeneralizedIndices) GetHelperIndices() GeneralizedIndices {
 
 // Comparator function used to sort generalized indices in reverse order.
 func GeneralizedIndexReverseComparator(i, j GeneralizedIndex) int {
-	if i < j {
+	switch {
+	case i < j:
 		return 1
-	} else if i == j {
+	case i == j:
 		return 0
-	} else {
+	case i > j:
 		return -1
+	default:
+		panic("unreachable")
 	}
 }

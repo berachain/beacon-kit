@@ -23,30 +23,31 @@ package merkle
 import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math/pow"
 )
 
-// BuildProofFromLeaves builds a Merkle proof from the given leaves and index.
-// The leaves are assumed to be hashed into 32 byte roots already.
+// BuildProofFromLeaves builds a Merkle proof from the given leaves and the
+// index of the leaf. The leaves are assumed to be hashed into 32 byte roots.
 func BuildProofFromLeaves[RootT ~[32]byte](
 	leaves []RootT,
-	index GeneralizedIndex,
+	index uint64,
 ) ([]RootT, error) {
-	tree := newTree(leaves)
-	return buildSingleProofFromTree(tree, index)
+	tree, depth := newTree(leaves)
+	return buildSingleProofFromTree(tree, NewGeneralizedIndex(depth, index))
 }
 
 // newTree returns a Merkle tree of the given leaves. Returns an array
 // representing the tree nodes by generalized index: [0, 1, 2, 3, 4, 5, 6, 7],
 // where each layer is a power of 2. The 0 index is ignored. The 1 index is the
 // root. The result will be twice the size as the padded bottom layer for the
-// input leaves.
+// input leaves. Also returns the depth of the tree.
 //
 // As defined in the Ethereum 2.0 Spec:
 // https://github.com/ethereum/consensus-specs/blob/dev/ssz/merkle-proofs.md#generalized-merkle-tree-index
 //
 //nolint:lll // link.
-func newTree[RootT ~[32]byte](leaves []RootT) []RootT {
+func newTree[RootT ~[32]byte](leaves []RootT) ([]RootT, uint8) {
 	bottomLength := pow.NextPowerOfTwo(uint64(len(leaves)))
 	//nolint:mnd // 2 is okay.
 	o := make([]RootT, bottomLength*2)
@@ -62,7 +63,7 @@ func newTree[RootT ~[32]byte](leaves []RootT) []RootT {
 	for i := bottomLength - 1; i > 0; i-- {
 		o[i] = hashFn(append(o[i*2][:], o[i*2+1][:]...))
 	}
-	return o
+	return o, log.ILog2Ceil(bottomLength)
 }
 
 // buildSingleProofFromTree returns a Merkle proof of the given tree from the
