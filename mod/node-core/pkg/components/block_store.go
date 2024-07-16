@@ -20,43 +20,36 @@
 
 package components
 
-func DefaultComponentsWithStandardTypes() []any {
-	return []any{
-		ProvideABCIMiddleware,
-		ProvideAttributesFactory,
-		ProvideAvailabilityPruner,
-		ProvideAvailibilityStore,
-		ProvideBlsSigner,
-		ProvideBlobFeed,
-		ProvideBlockFeed,
-		ProvideBlobProcessor,
-		ProvideBlobProofVerifier,
-		ProvideBlobVerifier,
-		ProvideBlockService,
-		ProvideBlockStore,
-		ProvideChainService,
-		ProvideChainSpec,
-		ProvideConfig,
-		ProvideDAService,
-		ProvideDBManager,
-		ProvideDepositPruner,
-		ProvideDepositService,
-		ProvideDepositStore,
-		ProvideBeaconDepositContract,
-		ProvideEngineClient,
-		ProvideExecutionEngine,
-		ProvideGenesisBroker,
-		ProvideJWTSecret,
-		ProvideLocalBuilder,
-		ProvideServiceRegistry,
-		ProvideSidecarFactory,
-		ProvideStateProcessor,
-		ProvideSlotBroker,
-		ProvideStatusBroker,
-		ProvideStorageBackend,
-		ProvideTelemetrySink,
-		ProvideTrustedSetup,
-		ProvideValidatorService,
-		ProvideValidatorUpdateBroker,
+import (
+	"cosmossdk.io/depinject"
+	storev2 "cosmossdk.io/store/v2/db"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/block"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/spf13/cast"
+)
+
+// BlockStoreInput is the input for the dep inject framework.
+type BlockStoreInput struct {
+	depinject.In
+	AppOpts servertypes.AppOptions
+}
+
+// ProvideBlockStore is a function that provides the module to the
+// application.
+func ProvideBlockStore(
+	in BlockStoreInput,
+) (*BlockStore, error) {
+	name := "blocks"
+	dir := cast.ToString(in.AppOpts.Get(flags.FlagHome)) + "/data"
+	kvp, err := storev2.NewDB(storev2.DBTypePebbleDB, name, dir, nil)
+	if err != nil {
+		return nil, err
 	}
+
+	return block.NewStore[*BeaconBlock](
+		&block.KVStoreProvider{
+			KVStoreWithBatch: kvp,
+		},
+	), nil
 }

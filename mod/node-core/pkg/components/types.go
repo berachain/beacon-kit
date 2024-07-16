@@ -23,6 +23,7 @@ package components
 import (
 	broker "github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/beacon/block"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
@@ -46,6 +47,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
 	statedb "github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
+	blockstore "github.com/berachain/beacon-kit/mod/storage/pkg/block"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
@@ -111,6 +113,11 @@ type (
 
 	// BlobVerifier is a type alias for the blob verifier.
 	BlobVerifier = dablob.Verifier
+
+	BlockService = block.Service[*BeaconBlock]
+
+	// BlockStore is a type alias for the block store.
+	BlockStore = blockstore.KVStore[*BeaconBlock]
 
 	// ChainService is a type alias for the chain service.
 	ChainService = blockchain.Service[

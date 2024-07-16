@@ -20,43 +20,24 @@
 
 package components
 
-func DefaultComponentsWithStandardTypes() []any {
-	return []any{
-		ProvideABCIMiddleware,
-		ProvideAttributesFactory,
-		ProvideAvailabilityPruner,
-		ProvideAvailibilityStore,
-		ProvideBlsSigner,
-		ProvideBlobFeed,
-		ProvideBlockFeed,
-		ProvideBlobProcessor,
-		ProvideBlobProofVerifier,
-		ProvideBlobVerifier,
-		ProvideBlockService,
-		ProvideBlockStore,
-		ProvideChainService,
-		ProvideChainSpec,
-		ProvideConfig,
-		ProvideDAService,
-		ProvideDBManager,
-		ProvideDepositPruner,
-		ProvideDepositService,
-		ProvideDepositStore,
-		ProvideBeaconDepositContract,
-		ProvideEngineClient,
-		ProvideExecutionEngine,
-		ProvideGenesisBroker,
-		ProvideJWTSecret,
-		ProvideLocalBuilder,
-		ProvideServiceRegistry,
-		ProvideSidecarFactory,
-		ProvideStateProcessor,
-		ProvideSlotBroker,
-		ProvideStatusBroker,
-		ProvideStorageBackend,
-		ProvideTelemetrySink,
-		ProvideTrustedSetup,
-		ProvideValidatorService,
-		ProvideValidatorUpdateBroker,
-	}
+import (
+	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/beacon/block"
+	"github.com/berachain/beacon-kit/mod/log"
+)
+
+type BlockServiceInput struct {
+	depinject.In
+
+	Logger      log.Logger[any]
+	BlockBroker *BlockBroker
+	BlockStore  *BlockStore
+}
+
+func ProvideBlockService(in BlockServiceInput) *BlockService {
+	return block.NewService(
+		in.Logger,
+		in.BlockBroker,
+		in.BlockStore,
+	)
 }

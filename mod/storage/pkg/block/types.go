@@ -18,45 +18,10 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package block
 
-func DefaultComponentsWithStandardTypes() []any {
-	return []any{
-		ProvideABCIMiddleware,
-		ProvideAttributesFactory,
-		ProvideAvailabilityPruner,
-		ProvideAvailibilityStore,
-		ProvideBlsSigner,
-		ProvideBlobFeed,
-		ProvideBlockFeed,
-		ProvideBlobProcessor,
-		ProvideBlobProofVerifier,
-		ProvideBlobVerifier,
-		ProvideBlockService,
-		ProvideBlockStore,
-		ProvideChainService,
-		ProvideChainSpec,
-		ProvideConfig,
-		ProvideDAService,
-		ProvideDBManager,
-		ProvideDepositPruner,
-		ProvideDepositService,
-		ProvideDepositStore,
-		ProvideBeaconDepositContract,
-		ProvideEngineClient,
-		ProvideExecutionEngine,
-		ProvideGenesisBroker,
-		ProvideJWTSecret,
-		ProvideLocalBuilder,
-		ProvideServiceRegistry,
-		ProvideSidecarFactory,
-		ProvideStateProcessor,
-		ProvideSlotBroker,
-		ProvideStatusBroker,
-		ProvideStorageBackend,
-		ProvideTelemetrySink,
-		ProvideTrustedSetup,
-		ProvideValidatorService,
-		ProvideValidatorUpdateBroker,
-	}
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+
+type BeaconBlock interface {
+	constraints.SSZMarshallable
 }
