@@ -133,6 +133,7 @@ start-geth-archive-run:
 	--txpool.globalslots 1000000 \
 	--txpool.globalqueue 3000000 \
 	--http.vhosts "*" \
+	--miner.gasprice 100000000 \
 	--bootnodes "${BOOT_NODES}" \
 	--nat extip:${INTERNAL_IP}
 
@@ -154,6 +155,7 @@ start-geth-node-snap-run:
 	--txpool.globalslots 1000000 \
 	--txpool.globalqueue 3000000 \
 	--http.vhosts "*" \
+	--miner.gasprice 100000000 \
 	--bootnodes "${BOOT_NODES}" \
 	--nat extip:${INTERNAL_IP}
 
