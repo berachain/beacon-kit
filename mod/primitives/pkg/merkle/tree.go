@@ -28,7 +28,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
-	"github.com/prysmaticlabs/gohashtree"
 )
 
 const (
@@ -43,7 +42,7 @@ type Tree[RootT ~[32]byte] struct {
 	branches [][]RootT
 	leaves   []RootT
 
-	hasher *RootHasher[[32]byte]
+	hasher Hasher[[32]byte]
 }
 
 // NewTreeFromLeaves constructs a Merkle tree, with the minimum
@@ -107,10 +106,7 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 		branches: layers,
 		leaves:   leaves,
 		depth:    depth,
-		hasher: NewRootHasher(
-			NewHasher[[32]byte](sha256.Hash),
-			gohashtree.Hash,
-		),
+		hasher:   NewHasher[[32]byte](sha256.Hash),
 	}, nil
 }
 

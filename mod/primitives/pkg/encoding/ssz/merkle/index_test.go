@@ -159,7 +159,11 @@ func TestGetPathIndices(t *testing.T) {
 			expect: []merkle.GeneralizedIndex{},
 		},
 		{name: "Single Path", index: 3, expect: []merkle.GeneralizedIndex{3}},
-		{name: "Multiple Paths", index: 5, expect: []merkle.GeneralizedIndex{5, 2}},
+		{
+			name:   "Multiple Paths",
+			index:  5,
+			expect: []merkle.GeneralizedIndex{5, 2},
+		},
 	}
 
 	for _, tt := range tests {

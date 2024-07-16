@@ -27,6 +27,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 )
 
+// Inspired by the Ethereum 2.0 spec:
+// https://github.com/ethereum/consensus-specs/blob/dev/ssz/merkle-proofs.md#merkle-multiproofs
+//
+//nolint:lll // link.
+
 // CalculateMerkleRoot calculates the Merkle root from the leaf and proof.
 func CalculateMerkleRoot[RootT ~[32]byte](
 	index GeneralizedIndex,

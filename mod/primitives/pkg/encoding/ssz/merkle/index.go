@@ -27,6 +27,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math/pow"
 )
 
+// Inspired by the Ethereum 2.0 spec:
+// https://github.com/ethereum/consensus-specs/blob/dev/ssz/merkle-proofs.md#helpers-for-generalized-indices
+//
+//nolint:lll // link.
+
 type (
 	// GeneralizedIndex is a generalized index.
 	GeneralizedIndex uint64
@@ -36,12 +41,15 @@ type (
 )
 
 // NewGeneralizedIndex calculates the generalized index from the depth and
-// index.
+// index. Inspired by:
+// https://github.com/protolambda/remerkleable/blob/master/remerkleable/tree.py#L20
+//
+//nolint:lll // link.
 func NewGeneralizedIndex(
 	depth uint8,
 	index uint64,
 ) GeneralizedIndex {
-	return GeneralizedIndex((1 << depth) + index)
+	return GeneralizedIndex((1 << depth) | index)
 }
 
 // Unwrap returns the underlying uint64 value of the GeneralizedIndex.

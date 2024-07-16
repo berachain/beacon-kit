@@ -59,7 +59,11 @@ func TestCalculateMerkleRoot(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := merkle.CalculateMerkleRoot(tt.index, tt.leaf, tt.proof)
+			result, err := merkle.CalculateMerkleRoot(
+				tt.index,
+				tt.leaf,
+				tt.proof,
+			)
 			if tt.expectErr {
 				require.Error(t, err)
 			} else {

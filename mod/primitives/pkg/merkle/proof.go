@@ -61,7 +61,7 @@ func IsValidMerkleBranch[RootT, BranchT ~[32]byte](
 
 // RootFromBranch calculates the Merkle root from a leaf and a branch.
 // Inspired by:
-// https://github.com/sigp/lighthouse/blob/2cd0e609f59391692b4c8e989e26e0dac61ff801/consensus/merkle_proof/src/lib.rs#L357
+// https://github.com/sigp/lighthouse/blob/stable/consensus/merkle_proof/src/lib.rs#L372
 //
 //nolint:lll
 func RootFromBranch[RootT, BranchT ~[32]byte](
