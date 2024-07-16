@@ -21,6 +21,7 @@
 package merkle
 
 import (
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math/pow"
 )
@@ -30,7 +31,7 @@ import (
 func BuildProofFromLeaves[RootT ~[32]byte](
 	leaves []RootT,
 	index GeneralizedIndex,
-) []RootT {
+) ([]RootT, error) {
 	tree := newTree(leaves)
 	return buildSingleProofFromTree(tree, index)
 }
@@ -45,9 +46,7 @@ func BuildProofFromLeaves[RootT ~[32]byte](
 // https://github.com/ethereum/consensus-specs/blob/dev/ssz/merkle-proofs.md#generalized-merkle-tree-index
 //
 //nolint:lll // link.
-func newTree[RootT ~[32]byte](
-	leaves []RootT,
-) []RootT {
+func newTree[RootT ~[32]byte](leaves []RootT) []RootT {
 	bottomLength := pow.NextPowerOfTwo(uint64(len(leaves)))
 	//nolint:mnd // 2 is okay.
 	o := make([]RootT, bottomLength*2)
@@ -76,13 +75,30 @@ func newTree[RootT ~[32]byte](
 func buildSingleProofFromTree[RootT ~[32]byte](
 	tree []RootT,
 	index GeneralizedIndex,
-) []RootT {
-	depth := index.Length()
+) ([]RootT, error) {
+	treeLen := GeneralizedIndex(len(tree))
+	if pow.PrevPowerOfTwo(treeLen) != treeLen {
+		return nil, errors.Newf(
+			"invalid tree length (%d), must be power of 2", treeLen,
+		)
+	}
+	if index >= treeLen {
+		return nil, errors.Newf(
+			"generalized index (%d) must be less than tree length (%d)",
+			index, treeLen,
+		)
+	}
+	if index < pow.PrevPowerOfTwo(treeLen-1) {
+		return nil, errors.Newf(
+			"generalized index (%d) must be of a leaf in the tree", index,
+		)
+	}
 
+	depth := index.Length()
 	proof := make([]RootT, depth)
 	for i := range depth {
 		proof[i] = tree[index.Sibling()]
 		index = index.Parent()
 	}
-	return proof
+	return proof, nil
 }

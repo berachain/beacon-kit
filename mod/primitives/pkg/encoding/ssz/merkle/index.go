@@ -59,6 +59,7 @@ func (g GeneralizedIndex) Unwrap() uint64 {
 
 // Length returns the length of the generalized index.
 func (g GeneralizedIndex) Length() int {
+	//#nosec:G701 // uint8 cannot overflow int.
 	return int(log.ILog2Floor(g))
 }
 
@@ -152,9 +153,18 @@ func (gs GeneralizedIndices) GetHelperIndices() GeneralizedIndices {
 	}
 
 	// Sort in decreasing order.
-	slices.SortFunc(difference, func(i, j GeneralizedIndex) int {
-		return int(j - i)
-	})
+	slices.SortFunc(difference, GeneralizedIndexReverseComparator)
 
 	return difference
+}
+
+// Comparator function used to sort generalized indices in reverse order.
+func GeneralizedIndexReverseComparator(i, j GeneralizedIndex) int {
+	if i < j {
+		return 1
+	} else if i == j {
+		return 0
+	} else {
+		return -1
+	}
 }

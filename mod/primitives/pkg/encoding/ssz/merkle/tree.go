@@ -99,9 +99,7 @@ func CalculateMultiMerkleRoot[RootT ~[32]byte](
 	for k := range objects {
 		keys = append(keys, k)
 	}
-	slices.SortFunc(keys, func(i, j GeneralizedIndex) int {
-		return int(j - i)
-	})
+	slices.SortFunc(keys, GeneralizedIndexReverseComparator)
 
 	return hashMerkleRoot(objects, keys), nil
 }
