@@ -18,22 +18,29 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package merkleizer
+package components
 
-// SSZObject defines an interface for SSZ basic types which includes methods for
-// determining the size of the SSZ encoding and computing the hash tree root.
-type SSZObject[RootT ~[32]byte] interface {
-	// SizeSSZ returns the size in bytes of the SSZ-encoded data.
-	SizeSSZ() int
-	// HashTreeRoot computes and returns the hash tree root of the data as
-	// RootT and an error if the computation fails.
-	HashTreeRoot() (RootT, error)
-	// MarshalSSZ marshals the data into SSZ format.
-	MarshalSSZ() ([]byte, error)
+import (
+	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+)
+
+type SidecarFactoryInput struct {
+	depinject.In
+	ChainSpec     common.ChainSpec
+	TelemetrySink *metrics.TelemetrySink
 }
 
-// Buffer is a reusable buffer for SSZ encoding.
-type Buffer[T any] interface {
-	// Get returns a slice of the buffer with the given size.
-	Get(size int) []T
+func ProvideSidecarFactory(in SidecarFactoryInput) *SidecarFactory {
+	return dablob.NewSidecarFactory[
+		*BeaconBlock,
+		*BeaconBlockBody,
+	](
+		in.ChainSpec,
+		types.KZGPositionDeneb,
+		in.TelemetrySink,
+	)
 }

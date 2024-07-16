@@ -25,16 +25,15 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 )
 
 /* -------------------------------------------------------------------------- */
 /*                                Type Definitions                            */
 /* -------------------------------------------------------------------------- */
 
-// Ensure types implement types.SSZType.
+// Ensure types implement schema.SSZObject.
 var (
-	_ types.SSZType[Byte] = (*Byte)(nil)
+	_ schema.SSZObject[Byte] = (*Byte)(nil)
 )
 
 type (

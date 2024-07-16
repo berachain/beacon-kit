@@ -24,7 +24,6 @@ package bytes
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 	"github.com/prysmaticlabs/gohashtree"
 )
 
@@ -33,7 +32,7 @@ const (
 	B96Size = 96
 )
 
-var _ types.MinimalSSZType = (*B96)(nil)
+var _ schema.MinimalSSZObject = (*B96)(nil)
 
 // B96 represents a 96-byte fixed-size byte array.
 // For SSZ purposes it is serialized a `Vector[Byte, 96]`.

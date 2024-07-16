@@ -96,8 +96,7 @@ type ExecutionEngine[PayloadAttributesT any] interface {
 
 // EventFeed is a generic interface for sending events.
 type EventFeed[EventT any] interface {
-	// Send sends an event and returns the number of
-	// subscribers that received it.
+	// Publish sends an event and returns an error if any occurred.
 	Publish(ctx context.Context, event EventT) error
 	// Subscribe returns a channel that will receive events.
 	Subscribe() (chan EventT, error)

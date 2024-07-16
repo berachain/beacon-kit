@@ -36,7 +36,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// CollectGenTxsCmd - return the cobra command to collect genesis transactions.
+// CollectGenesisDepositsCmd - return the cobra command to
+// collect genesis transactions.
 func CollectGenesisDepositsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "collect-premined-deposits",
@@ -106,7 +107,8 @@ func CollectGenesisDepositsCmd() *cobra.Command {
 	return cmd
 }
 
-// CollectValidatorJSONFiles.
+// CollectValidatorJSONFiles collects JSON files from the specified directory
+// and unmarshals them into a list of Deposit objects.
 func CollectValidatorJSONFiles(
 	genTxsDir string,
 	genesis *genutiltypes.AppGenesis,

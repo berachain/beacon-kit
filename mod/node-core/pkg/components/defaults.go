@@ -22,8 +22,6 @@ package components
 
 import (
 	"cosmossdk.io/core/transaction"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 
 	// bktransaction "github.com/berachain/beacon-kit/mod/node-core/pkg/components/transaction"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -32,18 +30,15 @@ import (
 func DefaultComponentsWithStandardTypes() []any {
 	return []any{
 		ProvideABCIMiddleware,
-		ProvideAttributesFactory[
-			*BeaconState,
-			*engineprimitives.PayloadAttributes[*Withdrawal],
-			*Withdrawal,
-		],
+		ProvideAttributesFactory,
 		ProvideAvailabilityPruner,
-		ProvideAvailibilityStore[*BeaconBlockBody],
+		ProvideAvailibilityStore,
 		ProvideBlsSigner,
 		ProvideBlobFeed,
 		ProvideBlockFeed,
-		ProvideBlobProcessor[*BeaconBlockBody],
+		ProvideBlobProcessor,
 		ProvideBlobProofVerifier,
+		ProvideBlobVerifier,
 		ProvideChainService,
 		ProvideChainSpec,
 		ProvideConfig,
@@ -51,25 +46,15 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideDBManager,
 		ProvideDepositPruner,
 		ProvideDepositService,
-		ProvideDepositStore[*Deposit],
-		ProvideBeaconDepositContract[
-			*Deposit, *ExecutionPayload,
-			*Withdrawal, types.WithdrawalCredentials,
-		],
-		ProvideEngineClient[
-			*ExecutionPayload,
-			*engineprimitives.PayloadAttributes[*Withdrawal],
-		],
-		ProvideExecutionEngine[
-			*ExecutionPayload,
-			*engineprimitives.PayloadAttributes[*Withdrawal],
-			engineprimitives.PayloadID,
-			*Withdrawal,
-		],
+		ProvideDepositStore,
+		ProvideBeaconDepositContract,
+		ProvideEngineClient,
+		ProvideExecutionEngine,
 		ProvideGenesisBroker,
 		ProvideJWTSecret,
 		ProvideLocalBuilder,
 		ProvideServiceRegistry,
+		ProvideSidecarFactory,
 		ProvideStateProcessor,
 		ProvideSlotBroker,
 		ProvideStatusBroker,

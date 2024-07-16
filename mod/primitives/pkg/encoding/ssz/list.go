@@ -25,9 +25,8 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkleizer"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -35,10 +34,10 @@ import (
 /* -------------------------------------------------------------------------- */
 
 // Vector conforms to the SSZEenumerable interface.
-var _ types.SSZEnumerable[Byte] = (*List[Byte])(nil)
+var _ schema.SSZEnumerable[Byte] = (*List[Byte])(nil)
 
 // List is a list of basic types.
-type List[T types.MinimalSSZType] struct {
+type List[T schema.MinimalSSZObject] struct {
 	// elements is the list of elements.
 	elements []T
 	// limit is the maximum number of elements in the list.
@@ -47,7 +46,7 @@ type List[T types.MinimalSSZType] struct {
 
 // ListFromElements creates a new ListComposite from elements.
 // TODO: Deprecate once off of Fastssz
-func ListFromElements[T types.MinimalSSZType](
+func ListFromElements[T schema.MinimalSSZObject](
 	limit uint64,
 	elements ...T,
 ) *List[T] {
@@ -110,9 +109,9 @@ func (l *List[T]) Type() schema.SSZType {
 	var t T
 	// TODO: Fix this is a bad hack.
 	if l == nil {
-		return schema.List(t.Type(), 0)
+		return schema.DefineList(t.Type(), 0)
 	}
-	return schema.List(t.Type(), l.limit)
+	return schema.DefineList(t.Type(), l.limit)
 }
 
 // Elements returns the elements of the List.
@@ -121,9 +120,9 @@ func (l *List[T]) Elements() []T {
 }
 
 // HashTreeRootWith returns the Merkle root of the List
-// with a given merkleizer.
+// with a given merkle.
 func (l *List[T]) HashTreeRootWith(
-	merkleizer ListMerkleizer[[32]byte, T],
+	merkleizer *merkle.Merkleizer[[32]byte, T],
 ) ([32]byte, error) {
 	var b T
 	switch t := b.Type().ID(); {
@@ -139,7 +138,7 @@ func (l *List[T]) HashTreeRootWith(
 // HashTreeRoot returns the Merkle root of the List.
 func (l *List[T]) HashTreeRoot() ([32]byte, error) {
 	// Create a merkleizer
-	return l.HashTreeRootWith(merkleizer.New[[32]byte, T]())
+	return l.HashTreeRootWith(merkle.NewMerkleizer[[32]byte, T]())
 }
 
 // MarshalSSZTo marshals the List into SSZ format.

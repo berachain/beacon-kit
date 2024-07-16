@@ -24,7 +24,6 @@ package bytes
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
 )
 
 const (
@@ -32,7 +31,7 @@ const (
 	B4Size = 4
 )
 
-var _ types.MinimalSSZType = (*B4)(nil)
+var _ schema.MinimalSSZObject = (*B4)(nil)
 
 // B4 represents a 4-byte fixed-size byte array.
 // For SSZ purposes it is serialized a `Vector[Byte, 4]`.

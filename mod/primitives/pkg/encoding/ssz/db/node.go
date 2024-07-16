@@ -18,14 +18,25 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package schema
+package db
+
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
+)
+
+// TODO: Figure out what the best way to do our DB types is?
+// Should this even be a DB package, should we just have a tree that
+// is completely decoupled fromt he DB?
+// Putting this here for now just to make the deps nicely structured
+// but long term we need to figure out the play.
 
 // Node represents a node in the SSZ merkle tree.
-type Node[RootT ~[32]byte] struct {
+type Node[GIndexT ~uint64, RootT ~[32]byte] struct {
 	// SSZType is the SSZ type of the node.
-	SSZType
+	schema.SSZType
 	// gIndex is the generalized index of the node in the Merkle tree.
-	gIndex GeneralizedIndex[RootT]
+	gIndex GIndexT
 	// offset is the byte offset within the 32-byte chunk where the node's data
 	// begins.
 	offset uint8
@@ -33,20 +44,24 @@ type Node[RootT ~[32]byte] struct {
 
 // NewTreeNode locates a node in the SSZ merkle tree by its path and a root
 // schema node to begin traversal from with gindex 1.
-func NewTreeNode[RootT ~[32]byte](
-	root SSZType, path ObjectPath[RootT],
-) (Node[RootT], error) {
+func NewTreeNode[GIndexT ~uint64, RootT ~[32]byte](
+	root schema.SSZType, path merkle.ObjectPath[GIndexT, RootT],
+) (Node[GIndexT, RootT], error) {
 	found, gindex, offset, err := path.GetGeneralizedIndex(root)
-	return Node[RootT]{SSZType: found, gIndex: gindex, offset: offset}, err
+	return Node[GIndexT, RootT]{
+		SSZType: found,
+		gIndex:  gindex,
+		offset:  offset,
+	}, err
 }
 
 // GeIndex returns the generalized index of the node in the Merkle tree.
-func (n Node[RootT]) GIndex() GeneralizedIndex[RootT] {
+func (n Node[GIndexT, RootT]) GIndex() GIndexT {
 	return n.gIndex
 }
 
 // Offset returns the byte offset within the 32-byte chunk where the node's data
 // begins.
-func (n Node[_]) Offset() uint8 {
+func (n Node[_, _]) Offset() uint8 {
 	return n.offset
 }
