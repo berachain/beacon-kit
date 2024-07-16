@@ -27,7 +27,7 @@ import (
 )
 
 // BuildProofFromLeaves builds a Merkle proof from the given leaves and index.
-// The leaves are assumed to be hashed already.
+// The leaves are assumed to be hashed into 32 byte roots already.
 func BuildProofFromLeaves[RootT ~[32]byte](
 	leaves []RootT,
 	index GeneralizedIndex,
@@ -66,7 +66,7 @@ func newTree[RootT ~[32]byte](leaves []RootT) []RootT {
 }
 
 // buildSingleProofFromTree returns a Merkle proof of the given tree from the
-// given index. Tree is assumed to be ordered as nodes by generalized index.
+// given leaf index. Tree nodes are assumed to be ordered by generalized index.
 //
 // Inspired by the Ethereum 2.0 Spec:
 // https://github.com/ethereum/consensus-specs/blob/dev/tests/core/pyspec/eth2spec/test/helpers/merkle.py
