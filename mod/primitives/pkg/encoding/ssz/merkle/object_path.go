@@ -86,17 +86,16 @@ func (p ObjectPath[GeneralizedIndexT, RootT]) GetGeneralizedIndex(
 				)
 			}
 			typ = schema.U64()
-
-			gIndex *= 2
-			gIndex++
+			//nolint:mnd // from spec.
+			gIndex = gIndex*2 + 1
 		} else {
 			pos, start, _, err := typ.ItemPosition(part)
 			if err != nil {
 				return nil, 0, 0, err
 			}
 
-			gIndex *= getBaseIndex(typ) * pow.NextPowerOfTwo(typ.HashChunkCount())
-			gIndex += pos
+			gIndex = gIndex*getBaseIndex(typ)*
+				pow.NextPowerOfTwo(typ.HashChunkCount()) + pos
 			typ = typ.ElementType(part)
 			offset = start
 		}
