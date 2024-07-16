@@ -30,12 +30,12 @@ import (
 func BuildProofFromLeaves[RootT ~[32]byte](
 	leaves []RootT,
 	index GeneralizedIndex,
-) ([]RootT, error) {
-	tree := NewTree(leaves)
-	return BuildSingleProofFromTree(tree, index)
+) []RootT {
+	tree := newTree(leaves)
+	return buildSingleProofFromTree(tree, index)
 }
 
-// NewTree returns a Merkle tree of the given leaves. Returns an array
+// newTree returns a Merkle tree of the given leaves. Returns an array
 // representing the tree nodes by generalized index: [0, 1, 2, 3, 4, 5, 6, 7],
 // where each layer is a power of 2. The 0 index is ignored. The 1 index is the
 // root. The result will be twice the size as the padded bottom layer for the
@@ -45,7 +45,7 @@ func BuildProofFromLeaves[RootT ~[32]byte](
 // https://github.com/ethereum/consensus-specs/blob/dev/ssz/merkle-proofs.md#generalized-merkle-tree-index
 //
 //nolint:lll // link.
-func NewTree[RootT ~[32]byte](
+func newTree[RootT ~[32]byte](
 	leaves []RootT,
 ) []RootT {
 	bottomLength := pow.NextPowerOfTwo(uint64(len(leaves)))
@@ -66,17 +66,17 @@ func NewTree[RootT ~[32]byte](
 	return o
 }
 
-// BuildSingleProofFromTree returns a Merkle proof of the given tree from the
+// buildSingleProofFromTree returns a Merkle proof of the given tree from the
 // given index. Tree is assumed to be ordered as nodes by generalized index.
 //
 // Inspired by the Ethereum 2.0 Spec:
 // https://github.com/ethereum/consensus-specs/blob/dev/tests/core/pyspec/eth2spec/test/helpers/merkle.py
 //
 //nolint:lll // link.
-func BuildSingleProofFromTree[RootT ~[32]byte](
+func buildSingleProofFromTree[RootT ~[32]byte](
 	tree []RootT,
 	index GeneralizedIndex,
-) ([]RootT, error) {
+) []RootT {
 	depth := index.Length()
 
 	proof := make([]RootT, depth)
@@ -84,5 +84,5 @@ func BuildSingleProofFromTree[RootT ~[32]byte](
 		proof[i] = tree[index.Sibling()]
 		index = index.Parent()
 	}
-	return proof, nil
+	return proof
 }

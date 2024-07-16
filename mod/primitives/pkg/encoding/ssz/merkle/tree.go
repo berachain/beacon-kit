@@ -103,6 +103,21 @@ func CalculateMultiMerkleRoot[RootT ~[32]byte](
 		return int(j - i)
 	})
 
+	return hashMerkleRoot(objects, keys), nil
+}
+
+// hashMerkleRoot hashes the objects in the given keys to the root.
+func hashMerkleRoot[RootT ~[32]byte](
+	objects map[GeneralizedIndex]RootT,
+	keys GeneralizedIndices,
+) RootT {
+	var hashFn func([]byte) [32]byte
+	if len(keys) > 5 { //nolint:mnd // 5 as defined by the library.
+		hashFn = sha256.CustomHashFn()
+	} else {
+		hashFn = sha256.Hash
+	}
+
 	var (
 		pos   int
 		left  RootT
@@ -110,17 +125,32 @@ func CalculateMultiMerkleRoot[RootT ~[32]byte](
 	)
 	for pos < len(keys) {
 		k := keys[pos]
-		if _, ok := objects[k^1]; ok {
-			if _, ok = objects[k/2]; !ok {
-				left = objects[(k|1)^1]
-				right = objects[k|1]
-				objects[k/2] = sha256.Hash(append(left[:], right[:]...))
-				keys = append(keys, k/2) //nolint:mnd // from spec.
-			}
+		if _, ok := objects[k]; !ok {
+			pos++
+			continue
 		}
+		if _, ok := objects[k.Sibling()]; !ok {
+			pos++
+			continue
+		}
+		parent := k.Parent()
+		if _, ok := objects[parent]; ok {
+			pos++
+			continue
+		}
+
+		if k%2 == 0 {
+			left = objects[k]
+			right = objects[k.Sibling()]
+		} else {
+			left = objects[k.Sibling()]
+			right = objects[k]
+		}
+		objects[parent] = hashFn(append(left[:], right[:]...))
+		keys = append(keys, parent)
 		pos++
 	}
-	return objects[1], nil
+	return objects[1]
 }
 
 // VerifyMerkleMultiproof verifies the Merkle multiproof by comparing the

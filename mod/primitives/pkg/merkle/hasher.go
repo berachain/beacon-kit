@@ -64,8 +64,6 @@ func (h *hasher[T]) Combi(a, b T) T {
 }
 
 // MixIn works like Combi, but using an integer as the second input.
-//
-//nolint:mnd // its okay.
 func (h *hasher[T]) MixIn(a T, i uint64) T {
 	copy(h.buffer[:32], a[:])
 	binary.LittleEndian.PutUint64(h.buffer[32:40], i)
