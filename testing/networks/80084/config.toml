@@ -453,7 +453,7 @@ version = "v0"
 wal_file = "data/cs.wal/wal"
 
 # How long we wait for a proposal block before prevoting nil
-timeout_propose = "1.25s"
+timeout_propose = "1s"
 # How much timeout_propose increases with each round
 timeout_propose_delta = "500ms"
 # How long we wait after receiving +2/3 prevotes for “anything” (ie. not a single block or nil)
@@ -468,7 +468,7 @@ timeout_precommit_delta = "500ms"
 # height (this gives us a chance to receive some more precommits, even
 # though we already have +2/3).
 # Set to 0 if you want to make progress as soon as the node has all the precommits.
-timeout_commit = "750ms"
+timeout_commit = "500ms"
 
 # Deprecated: set `timeout_commit` to 0 instead.
 skip_timeout_commit = false

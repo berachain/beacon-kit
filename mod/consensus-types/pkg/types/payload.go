@@ -29,7 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkleizer"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"golang.org/x/sync/errgroup"
@@ -62,7 +62,7 @@ func (e *ExecutionPayload) Empty(forkVersion uint32) *ExecutionPayload {
 
 // ToHeader converts the ExecutionPayload to an ExecutionPayloadHeader.
 func (e *ExecutionPayload) ToHeader(
-	txsMerkleizer *merkleizer.Merkleizer[[32]byte, common.Root],
+	txsMerkleizer *merkle.Merkleizer[[32]byte, common.Root],
 	maxWithdrawalsPerPayload uint64,
 ) (*ExecutionPayloadHeader, error) {
 	// Get the merkle roots of transactions and withdrawals in parallel.

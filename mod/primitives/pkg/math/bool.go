@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -24,11 +24,11 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 )
 
-// Ensure type implements types.SSZType.
-var _ types.SSZType[Bool] = (*Bool)(nil)
+// Ensure type implements schema.SSZObject.
+var _ schema.SSZObject[Bool] = (*Bool)(nil)
 
 type Bool bool
 
@@ -72,8 +72,8 @@ func (Bool) IsFixed() bool {
 }
 
 // Type returns the type of the bool.
-func (Bool) Type() types.Type {
-	return types.Basic
+func (Bool) Type() schema.SSZType {
+	return schema.Bool()
 }
 
 // ChunkCount returns the number of chunks required to store the bool.

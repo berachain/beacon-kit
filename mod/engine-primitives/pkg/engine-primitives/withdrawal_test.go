@@ -25,18 +25,20 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 )
 
 func TestWithdrawal(t *testing.T) {
-	withdrawal := engineprimitives.Withdrawal{
-		Index:     math.U64(1),
-		Validator: math.ValidatorIndex(1),
-		Address:   gethprimitives.ExecutionAddress{1, 2, 3, 4, 5},
-		Amount:    math.Gwei(1000),
-	}
+	withdrawal := (&engineprimitives.Withdrawal{}).New(
+		math.U64(1),
+		math.ValidatorIndex(1),
+		gethprimitives.ExecutionAddress{1, 2, 3, 4, 5},
+		math.Gwei(1000),
+	)
 
 	require.Equal(t, math.U64(1), withdrawal.GetIndex())
 	require.Equal(t, math.ValidatorIndex(1), withdrawal.GetValidatorIndex())
@@ -128,4 +130,33 @@ func TestWithdrawal_HashTreeRoot(t *testing.T) {
 		containerRoot,
 		"Hash tree roots should be equal",
 	)
+}
+
+func TestWithdrawalMethods(t *testing.T) {
+	withdrawal := &engineprimitives.Withdrawal{
+		Index:     math.U64(1),
+		Validator: math.ValidatorIndex(2),
+		Address:   [20]byte{1, 2, 3},
+		Amount:    math.Gwei(100),
+	}
+
+	t.Run("IsFixed", func(t *testing.T) {
+		require.True(t, withdrawal.IsFixed())
+	})
+
+	t.Run("Type", func(t *testing.T) {
+		require.True(t, withdrawal.Type().ID().IsContainer())
+	})
+
+	t.Run("ItemLength", func(t *testing.T) {
+		require.Equal(t, uint64(constants.RootLength), withdrawal.ItemLength())
+	})
+
+	t.Run("Getters", func(t *testing.T) {
+		require.Equal(t, math.U64(1), withdrawal.GetIndex())
+		require.Equal(t, math.ValidatorIndex(2), withdrawal.GetValidatorIndex())
+		require.Equal(t, common.Address([20]byte{0x01, 0x02, 0x03}),
+			withdrawal.GetAddress())
+		require.Equal(t, math.U64(100), withdrawal.GetAmount())
+	})
 }

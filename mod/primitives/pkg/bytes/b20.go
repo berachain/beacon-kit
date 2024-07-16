@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -23,7 +23,7 @@ package bytes
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 )
 
 const (
@@ -31,7 +31,7 @@ const (
 	B20Size = 20
 )
 
-var _ types.MinimalSSZType = (*B20)(nil)
+var _ schema.MinimalSSZObject = (*B20)(nil)
 
 // B20 represents a 20-byte fixed-size byte array.
 // For SSZ purposes it is serialized a `Vector[Byte, 20]`.
@@ -91,8 +91,8 @@ func (h B20) IsFixed() bool {
 }
 
 // Type returns the type of the B20.
-func (h B20) Type() types.Type {
-	return types.Composite
+func (h B20) Type() schema.SSZType {
+	return schema.B20()
 }
 
 // HashTreeRoot returns the hash tree root of the B20.

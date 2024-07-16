@@ -18,32 +18,41 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package tree
+package pow
 
-import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-)
-
-// New returns a Merkle tree of the given leaves.
-// As defined in the Ethereum 2.0 Spec:
-// https://github.com/ethereum/consensus-specs/blob/dev/ssz/merkle-proofs.md#generalized-merkle-tree-index
+// PrevPowerOfTwo returns the previous power of 2 for the given input.
 //
-//nolint:lll // link.
-func New[LeafT ~[32]byte](
-	leaves []LeafT,
-	hashFn func([]byte) LeafT,
-) []LeafT {
-	/*
-	   Return an array representing the tree nodes by generalized index:
-	   [0, 1, 2, 3, 4, 5, 6, 7], where each layer is a power of 2. The 0 index is ignored. The 1 index is the root.
-	   The result will be twice the size as the padded bottom layer for the input leaves.
-	*/
-	bottomLength := math.U64(len(leaves)).NextPowerOfTwo()
-	//nolint:mnd // 2 is okay.
-	o := make([]LeafT, bottomLength*2)
-	copy(o[bottomLength:], leaves)
-	for i := bottomLength - 1; i > 0; i-- {
-		o[i] = hashFn(append(o[i*2][:], o[i*2+1][:]...))
+//nolint:mnd // todo fix.
+func PrevPowerOfTwo[U64T ~uint64](u U64T) U64T {
+	if u == 0 {
+		return 1
 	}
-	return o
+	u |= u >> 1
+	u |= u >> 2
+	u |= u >> 4
+	u |= u >> 8
+	u |= u >> 16
+	u |= u >> 32
+	return u - (u >> 1)
+}
+
+// NextPowerOfTwo returns the next power of 2 for the given input.
+//
+//nolint:mnd // todo fix.
+func NextPowerOfTwo[U64T ~uint64](u U64T) U64T {
+	if u == 0 {
+		return 1
+	}
+	if u > 1<<63 {
+		panic("Next power of 2 is 1 << 64.")
+	}
+	u--
+	u |= u >> 1
+	u |= u >> 2
+	u |= u >> 4
+	u |= u >> 8
+	u |= u >> 16
+	u |= u >> 32
+	u++
+	return u
 }

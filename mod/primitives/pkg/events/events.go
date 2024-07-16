@@ -21,12 +21,10 @@
 package events
 
 const (
-	MissedSlot                  = "missed-slot"
 	NewSlot                     = "new-slot"
 	BeaconBlockBuilt            = "beacon-block-built"
 	BeaconBlockReceived         = "beacon-block-received"
 	BeaconBlockVerified         = "beacon-block-verified"
-	BeaconBlockRejected         = "beacon-block-rejected"
 	BeaconBlockFinalizedRequest = "beacon-block-finalized-request"
 	BeaconBlockFinalized        = "beacon-block-finalized"
 	ValidatorSetUpdated         = "validator-set-updated"

@@ -18,12 +18,12 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 //
-//nolint:dupl // it's okay to have similar code for different types
+//nolint:dupl // it's okay to duplicate the code for different types
 package bytes
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 )
 
 const (
@@ -31,7 +31,7 @@ const (
 	B8Size = 8
 )
 
-var _ types.MinimalSSZType = (*B8)(nil)
+var _ schema.MinimalSSZObject = (*B8)(nil)
 
 // B8 represents an 8-byte fixed-size byte array.
 // For SSZ purposes it is serialized a `Vector[Byte, 8]`.
@@ -91,8 +91,8 @@ func (h B8) IsFixed() bool {
 }
 
 // Type returns the type of the B8.
-func (h B8) Type() types.Type {
-	return types.Composite
+func (h B8) Type() schema.SSZType {
+	return schema.B8()
 }
 
 // HashTreeRoot returns the hash tree root of the B8.
