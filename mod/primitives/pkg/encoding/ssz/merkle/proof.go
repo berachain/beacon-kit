@@ -77,6 +77,7 @@ func buildSingleProofFromTree[RootT ~[32]byte](
 	tree []RootT,
 	index GeneralizedIndex,
 ) ([]RootT, error) {
+	//#nosec:G701 // len(tree) cannot be greater than max uint64.
 	treeLen := GeneralizedIndex(len(tree))
 	if pow.PrevPowerOfTwo(treeLen) != treeLen {
 		return nil, errors.Newf(
