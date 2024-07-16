@@ -163,6 +163,11 @@ func (sp *StateProcessor[
 	if err != nil {
 		return nil, err
 	}
-	// st.Save()
+	st.Save()
+	// slot, err := st.GetSlot()
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// fmt.Println("SAVING WITH SLOT", slot)
 	return updates, nil
 }

@@ -82,7 +82,7 @@ type (
 	// BeaconState is a type alias for the BeaconState.
 	BeaconState = statedbv2.StateDB[
 		*BeaconBlockHeader, *BeaconStateMarshallable, *types.Eth1Data,
-		*ExecutionPayloadHeader, *types.Fork, *StateStore,
+		*ExecutionPayloadHeader, *types.Fork, *StateManager,
 		*types.Validator, types.WithdrawalCredentials,
 	]
 
@@ -205,7 +205,7 @@ type (
 		*Validator,
 	]
 
-	StateStore = beacondbv2.StateManager[
+	StateManager = beacondbv2.StateManager[
 		*BeaconBlockHeader,
 		*Eth1Data,
 		*ExecutionPayloadHeader,
@@ -261,7 +261,7 @@ type (
 		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
-		*StateStore,
+		*StateManager,
 		*Validator,
 		*Withdrawal,
 		WithdrawalCredentials,

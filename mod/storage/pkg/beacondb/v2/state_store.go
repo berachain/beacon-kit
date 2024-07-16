@@ -2,7 +2,6 @@ package beacondb
 
 import (
 	"context"
-	"fmt"
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/runtime/v2"
@@ -87,7 +86,8 @@ func (s *StateStore) Save() {
 	defer func() {
 		s.ctx.Changeset.Flush()
 	}()
-	if s.ctx.Changeset.Size() == 0 {
+	size := s.ctx.Changeset.Size()
+	if size == 0 {
 		return
 	}
 	s.Store.Commit(s.ctx.Changeset.GetChanges())
@@ -98,7 +98,6 @@ func (s *StateStore) Context() context.Context {
 }
 
 func (s *StateStore) WithContext(ctx context.Context) *StateStore {
-	fmt.Println("WITH CONTEXT")
 	storeCtx, ok := ctx.(*storectx.Context)
 	if !ok {
 		storeCtx = storectx.New(ctx)

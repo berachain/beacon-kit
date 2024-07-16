@@ -82,7 +82,7 @@ func (nb *NodeBuilder[NodeT, T]) Build(
 		appBuilder      *runtime.AppBuilder[T]
 		abciMiddleware  *components.ABCIMiddleware
 		serviceRegistry *service.Registry
-		stateStore      *components.StateStore
+		stateStore      *components.StateManager
 	)
 
 	// build all node components using depinject

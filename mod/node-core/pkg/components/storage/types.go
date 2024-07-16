@@ -63,8 +63,8 @@ type DepositStore[DepositT any] interface {
 	EnqueueDeposits(deposits []DepositT) error
 }
 
-// KVStore is the interface for the key-value store holding the beacon state.
-type KVStore[
+// StateManager is the interface for the key-value store holding the beacon state.
+type StateManager[
 	T,
 	BeaconBlockHeaderT,
 	Eth1DataT,

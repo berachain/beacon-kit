@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state/v2"
 )
 
 // Backend is a struct that holds the storage backend. It provides a simple
@@ -39,7 +39,7 @@ type Backend[
 	BeaconBlockHeaderT core.BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT core.BeaconState[
 		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-		ForkT, KVStoreT, ValidatorT, WithdrawalT,
+		ForkT, StateManagerT, ValidatorT, WithdrawalT,
 	],
 	BeaconStateMarshallableT state.BeaconStateMarshallable[
 		BeaconStateMarshallableT, BeaconBlockHeaderT, Eth1DataT,
@@ -51,8 +51,8 @@ type Backend[
 	Eth1DataT,
 	ExecutionPayloadHeaderT,
 	ForkT any,
-	KVStoreT KVStore[
-		KVStoreT, BeaconBlockHeaderT, Eth1DataT,
+	StateManagerT StateManager[
+		StateManagerT, BeaconBlockHeaderT, Eth1DataT,
 		ExecutionPayloadHeaderT, ForkT, ValidatorT,
 	],
 	ValidatorT Validator[WithdrawalCredentialsT],
@@ -61,7 +61,7 @@ type Backend[
 ] struct {
 	chainSpec         common.ChainSpec
 	availabilityStore AvailabilityStoreT
-	stateStore        KVStoreT
+	stateManager      StateManagerT
 	depositStore      DepositStoreT
 }
 
@@ -73,7 +73,7 @@ func NewBackend[
 	BeaconBlockHeaderT core.BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT core.BeaconState[
 		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-		ForkT, KVStoreT, ValidatorT, WithdrawalT,
+		ForkT, StateManagerT, ValidatorT, WithdrawalT,
 	],
 	BeaconStateMarshallableT state.BeaconStateMarshallable[
 		BeaconStateMarshallableT, BeaconBlockHeaderT, Eth1DataT,
@@ -85,8 +85,8 @@ func NewBackend[
 	Eth1DataT,
 	ExecutionPayloadHeaderT,
 	ForkT any,
-	KVStoreT KVStore[
-		KVStoreT, BeaconBlockHeaderT, Eth1DataT,
+	StateManagerT StateManager[
+		StateManagerT, BeaconBlockHeaderT, Eth1DataT,
 		ExecutionPayloadHeaderT, ForkT, ValidatorT,
 	],
 	ValidatorT Validator[WithdrawalCredentialsT],
@@ -95,23 +95,23 @@ func NewBackend[
 ](
 	chainSpec common.ChainSpec,
 	availabilityStore AvailabilityStoreT,
-	stateStore KVStoreT,
+	stateManager StateManagerT,
 	depositStore DepositStoreT,
 ) *Backend[
 	AvailabilityStoreT, BeaconBlockBodyT, BeaconBlockHeaderT, BeaconStateT,
 	BeaconStateMarshallableT, BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT,
-	ExecutionPayloadHeaderT, ForkT, KVStoreT, ValidatorT,
+	ExecutionPayloadHeaderT, ForkT, StateManagerT, ValidatorT,
 	WithdrawalT, WithdrawalCredentialsT,
 ] {
 	return &Backend[
 		AvailabilityStoreT, BeaconBlockBodyT, BeaconBlockHeaderT, BeaconStateT,
 		BeaconStateMarshallableT, BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT,
-		ExecutionPayloadHeaderT, ForkT, KVStoreT, ValidatorT,
+		ExecutionPayloadHeaderT, ForkT, StateManagerT, ValidatorT,
 		WithdrawalT, WithdrawalCredentialsT,
 	]{
 		chainSpec:         chainSpec,
 		availabilityStore: availabilityStore,
-		stateStore:        stateStore,
+		stateManager:      stateManager,
 		depositStore:      depositStore,
 	}
 }
@@ -131,16 +131,7 @@ func (k Backend[
 	ctx context.Context,
 ) BeaconStateT {
 	var st BeaconStateT
-	return st.NewFromDB(k.stateStore.WithContext(ctx), k.chainSpec)
-}
-
-// BeaconState returns a new BeaconState initialized with the state store and
-// chain spec.
-func (k Backend[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _,
-]) BeaconState() BeaconStateT {
-	var st BeaconStateT
-	return st.NewFromDB(k.stateStore, k.chainSpec)
+	return st.NewFromDB(k.stateManager.WithContext(ctx), k.chainSpec)
 }
 
 // DepositStore returns the deposit store struct initialized with a.

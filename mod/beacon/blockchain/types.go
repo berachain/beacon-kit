@@ -217,8 +217,6 @@ type StorageBackend[
 ] interface {
 	// AvailabilityStore returns the availability store for the given context.
 	AvailabilityStore() AvailabilityStoreT
-	// BeaconState retrieves the beacon state from the given context.
-	BeaconState() BeaconStateT
 	// StateFromContext retrieves the beacon state from the given context.
 	StateFromContext(context.Context) BeaconStateT
 }

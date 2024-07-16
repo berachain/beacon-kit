@@ -255,9 +255,8 @@ func (s *StateManager[
 ]) Copy() *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
 ] {
-	st := *s
-	st.store.WithContext(s.store.ctx.Copy())
-	return &st
+	st := s.WithContext(s.store.ctx.Copy())
+	return st
 }
 
 func (s *StateManager[_, _, _, _, _]) Context() context.Context {
@@ -269,9 +268,11 @@ func (s *StateManager[
 ]) WithContext(ctx context.Context) *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
 ] {
-	cpy := *s
+	cpy := New[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT](
+		s.latestExecutionPayloadCodec,
+	)
 	cpy.store = s.store.WithContext(ctx)
-	return &cpy
+	return cpy
 }
 
 func (s *StateManager[_, _, _, _, _]) SetStateStore(store runtime.Store) {

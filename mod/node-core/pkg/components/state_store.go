@@ -50,7 +50,7 @@ func ProvideKVStore(
 	](in.Environment.KVStoreService, payloadCodec)
 }
 
-func ProvideStateStore() *StateStore {
+func ProvideStateStore() *StateManager {
 	payloadCodec := &encoding.
 		SSZInterfaceCodec[*ExecutionPayloadHeader]{}
 	return beacondbv2.New[*BeaconBlockHeader,

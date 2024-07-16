@@ -28,8 +28,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// KVStore is the interface for the key-value store holding the beacon state.
-type KVStore[
+// StateManager is the interface for the key-value store holding the beacon state.
+type StateManager[
 	T,
 	BeaconBlockHeaderT,
 	Eth1DataT,

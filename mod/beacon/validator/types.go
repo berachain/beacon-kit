@@ -230,8 +230,6 @@ type StorageBackend[
 ] interface {
 	// DepositStore retrieves the deposit store.
 	DepositStore() DepositStoreT
-	// BeaconState retrieves the beacon state.
-	BeaconState() BeaconStateT
 	// StateFromContext returns a new BeaconState initialized with a given context.
 	StateFromContext(ctx context.Context) BeaconStateT
 }

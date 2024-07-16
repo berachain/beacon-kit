@@ -96,6 +96,8 @@ func (s *Service[
 		return err
 	}
 
+	fmt.Println("BLOCK HEIGHT", blk.GetSlot())
+
 	s.logger.Info(
 		"State root verification succeeded - accepting incoming beacon block",
 		"state_root",
