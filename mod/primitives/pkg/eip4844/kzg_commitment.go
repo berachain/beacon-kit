@@ -88,15 +88,15 @@ func (c KZGCommitments[HashT]) ToVersionedHashes() []HashT {
 
 // Leafify converts the commitments to a slice of leaves. Each leaf is the
 // hash tree root of each commitment.
-func (c KZGCommitments[HashT]) Leafify() [][32]byte {
+func (c KZGCommitments[HashT]) Leafify() ([][32]byte, error) {
 	var (
 		leaves = make([][32]byte, len(c))
 		err    error
 	)
 	for i, commitment := range c {
 		if leaves[i], err = commitment.HashTreeRoot(); err != nil {
-			panic(err)
+			return nil, err
 		}
 	}
-	return leaves
+	return leaves, nil
 }
