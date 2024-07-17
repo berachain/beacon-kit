@@ -21,8 +21,6 @@
 package core
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/mod/errors"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -194,7 +192,6 @@ func (sp *StateProcessor[
 		if err = sp.processSlot(beaconState); err != nil {
 			return nil, err
 		}
-		// beaconState.Save()
 
 		// Process the Epoch Boundary.
 		if uint64(stateSlot+1)%sp.cs.SlotsPerEpoch() == 0 {
@@ -214,7 +211,6 @@ func (sp *StateProcessor[
 			return nil, err
 		}
 	}
-	// beaconState.Save()
 	return validatorUpdates, nil
 }
 
@@ -402,10 +398,6 @@ func (sp *StateProcessor[
 			"expected: %s, got: %s",
 			parentBlockRoot.String(), blk.GetParentBlockRoot().String(),
 		)
-	} else {
-		fmt.Println("LATEST BLOCK HEADER SLOT", latestBlockHeader.GetSlot())
-		fmt.Println("BLOCK SLOT", blk.GetSlot())
-		fmt.Println("CURRENT SLOT STATE", slot)
 	}
 
 	// Ensure the block is within the acceptable range.

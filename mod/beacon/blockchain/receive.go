@@ -128,7 +128,7 @@ func (s *Service[
 			SkipValidateResult:      false,
 			SkipValidateRandao:      false,
 		},
-		st, blk, true,
+		st, blk, false,
 	); errors.Is(err, engineerrors.ErrAcceptedPayloadStatus) {
 		// It is safe for the validator to ignore this error since
 		// the state transition will enforce that the block is part

@@ -20,7 +20,9 @@
 
 package beacondb
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+)
 
 // UpdateBlockRootAtIndex sets a block root in the BeaconStore.
 func (s *StateManager[

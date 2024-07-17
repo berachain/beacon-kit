@@ -23,7 +23,6 @@ package middleware
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
@@ -311,7 +310,6 @@ func (h *ABCIMiddleware[
 ]) EndBlock(
 	ctx context.Context,
 ) (transition.ValidatorUpdates, error) {
-	fmt.Println("CALLING END BLOCK")
 	blk, blobs, err := encoding.
 		ExtractBlobsAndBlockFromRequest[BeaconBlockT, BlobSidecarsT](
 		h.req,
