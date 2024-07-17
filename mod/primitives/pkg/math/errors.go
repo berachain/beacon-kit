@@ -34,8 +34,8 @@ var (
 	// ErrNilBigInt is returned when a nil big.Int is provided to a.
 	ErrNilBigInt = errors.New("big.Int is nil")
 
-	// ErrNegativeBigIntBase is returned when a negative big.Int is provided to a
-	// function that requires a positive big.Int.
+	// ErrNegativeBigIntBase is returned when a negative big.Int is provided to
+	// a function that requires a positive big.Int.
 	ErrNegativeBigIntBase = errors.New("big.Int is negative")
 )
 

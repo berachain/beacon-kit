@@ -81,4 +81,4 @@ func B64() SSZType { return DefineByteVector(B64Size) }
 func B96() SSZType { return DefineByteVector(B96Size) }
 
 // B256 creates a Vector of 256 bytes (2048 bits).
-func B256() SSZType { return DefineVector(U8(), B256Size) }
+func B256() SSZType { return DefineByteVector(B256Size) }
