@@ -95,7 +95,7 @@ func (cs *Changeset) AddKVPair(storeKey []byte, pair store.KVPair) {
 }
 
 // Query queries the changeset with the given store key and key
-func (cs *Changeset) Query(storeKey []byte, key []byte) ([]byte, bool) {
+func (cs *Changeset) Query(storeKey, key []byte) ([]byte, bool) {
 	// Note: MemDB returns no error but value is nil if key is not found,
 	// so we need to check if value is nil
 	if value, err := cs.MemDB.Get(key); err == nil {

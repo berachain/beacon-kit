@@ -23,6 +23,7 @@ package middleware
 import (
 	"context"
 
+	corestore "cosmossdk.io/core/store"
 	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -34,6 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	rp2p "github.com/berachain/beacon-kit/mod/runtime/pkg/p2p"
+	beaconstore "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/v2/store"
 )
 
 // ABCIMiddleware is a middleware between ABCI and the validator logic.
@@ -94,6 +96,8 @@ type ABCIMiddleware[
 	// valUpdateSub is the channel for listening for incoming validator set
 	// updates.
 	valUpdateSub chan *asynctypes.Event[transition.ValidatorUpdates]
+
+	blockStore *beaconstore.BlockStore
 }
 
 // NewABCIMiddleware creates a new instance of the Handler struct.
@@ -106,6 +110,7 @@ func NewABCIMiddleware[
 	GenesisT Genesis,
 ](
 	chainSpec common.ChainSpec,
+	blockStore *beaconstore.BlockStore,
 	// chainService BlockchainService[
 	// 	BeaconBlockT, BlobSidecarsT, DepositT, GenesisT,
 	// ],
@@ -219,4 +224,13 @@ func (am *ABCIMiddleware[_, _, _, _, _, _]) SetRequest(
 	req ABCIRequest,
 ) {
 	am.req = req
+}
+
+// GetStateChanges gets a slice of the state changes for the current block
+func (am *ABCIMiddleware[_, _, _, _, _, _]) GetBlockStateChanges() []corestore.StateChanges {
+	return am.blockStore.GetChanges().Changes
+}
+
+func (am *ABCIMiddleware[_, _, _, _, _, _]) FlushBlockStore() {
+	am.blockStore.Flush()
 }

@@ -21,6 +21,8 @@
 package core
 
 import (
+	"fmt"
+
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
@@ -98,7 +100,6 @@ func (sp *StateProcessor[
 			return nil, err
 		}
 	}
-
 	for _, deposit := range deposits {
 		// TODO: process deposits into eth1 data.
 		if err = sp.processDeposit(st, deposit); err != nil {
@@ -163,11 +164,7 @@ func (sp *StateProcessor[
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("RIGHT ABOUT TO SAVE")
 	st.Save()
-	// slot, err := st.GetSlot()
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// fmt.Println("SAVING WITH SLOT", slot)
 	return updates, nil
 }

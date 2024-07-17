@@ -126,6 +126,7 @@ func (nb *NodeBuilder[NodeT, T]) Build(
 		abciMiddleware,
 	)
 	stateStore.SetStateStore(app.GetStore().(runtime.Store))
+
 	nb.node.RegisterApp(app)
 	nb.node.SetServiceRegistry(serviceRegistry)
 

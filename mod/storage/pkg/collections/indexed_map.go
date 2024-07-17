@@ -204,7 +204,7 @@ func (im *IndexedMap[PrimaryKey, Value, Idx]) ValueCodec() codec.ValueCodec[Valu
 
 func (im *IndexedMap[PrimaryKey, Value, Idx]) ref(pk PrimaryKey, value Value) error {
 	for _, index := range im.computedIndexes {
-		err := index.Reference(pk, value, cachedGet[PrimaryKey, Value](im, pk))
+		err := index.Reference(pk, value, cachedGet(im, pk))
 		if err != nil {
 			return err
 		}
@@ -214,7 +214,7 @@ func (im *IndexedMap[PrimaryKey, Value, Idx]) ref(pk PrimaryKey, value Value) er
 
 func (im *IndexedMap[PrimaryKey, Value, Idx]) unref(pk PrimaryKey) error {
 	for _, index := range im.computedIndexes {
-		err := index.Unreference(pk, cachedGet[PrimaryKey, Value](im, pk))
+		err := index.Unreference(pk, cachedGet(im, pk))
 		if err != nil {
 			return err
 		}

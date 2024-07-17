@@ -21,8 +21,6 @@
 package beacondb
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -50,7 +48,6 @@ func (s *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetSlot() (math.Slot, error) {
-	fmt.Println("GETTING SLOT")
 	slot, err := s.slot.Get()
 	return math.Slot(slot), err
 }

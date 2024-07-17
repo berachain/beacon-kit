@@ -47,6 +47,7 @@ import (
 	statedbv2 "github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state/v2"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	beacondbv2 "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/v2"
+	beaconstore "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/v2/store"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
@@ -212,6 +213,10 @@ type (
 		*Fork,
 		*Validator,
 	]
+
+	StateStore = beaconstore.StateStore
+
+	BlockStore = beaconstore.BlockStore
 
 	// LegacyKey type alias to LegacyKey used for LegacySinger construction.
 	LegacyKey = signer.LegacyKey

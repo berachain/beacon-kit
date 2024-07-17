@@ -107,6 +107,7 @@ func (s *Service[
 	if s.shouldBuildOptimisticPayloads() {
 		go s.handleOptimisticPayloadBuild(ctx, postState, blk)
 	}
+	fmt.Println("VERIFICATION SUCCESS")
 
 	return nil
 }

@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
 	beacondbv2 "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/v2"
+	beaconstore "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/v2/store"
 )
 
 // KVStoreInput is the input for the ProvideKVStore function.
@@ -50,7 +51,29 @@ func ProvideKVStore(
 	](in.Environment.KVStoreService, payloadCodec)
 }
 
-func ProvideStateStore() *StateManager {
+func ProvideBlockStore() *BlockStore {
+	return beaconstore.NewBlockStore()
+}
+
+// depinject input for ProvideStateStore
+type StateStoreInput struct {
+	depinject.In
+	BlockStore *BlockStore
+}
+
+// ProvideStateStore will initialize a new StateStore with a new root store
+// as its localStore
+func ProvideStateStore(
+	in StateStoreInput,
+) *StateStore {
+	return beaconstore.NewStore(in.BlockStore)
+}
+
+// ProvideStateManager will initialize a new StateManager with the given
+// stateStore
+func ProvideStateManager(
+	stateStore *StateStore,
+) *StateManager {
 	payloadCodec := &encoding.
 		SSZInterfaceCodec[*ExecutionPayloadHeader]{}
 	return beacondbv2.New[*BeaconBlockHeader,
@@ -58,5 +81,5 @@ func ProvideStateStore() *StateManager {
 		*ExecutionPayloadHeader,
 		*Fork,
 		*Validator,
-	](payloadCodec)
+	](payloadCodec, stateStore)
 }

@@ -21,15 +21,15 @@
 package collections
 
 import (
-	"cosmossdk.io/runtime/v2"
+	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/store"
 )
 
 type Store interface {
-	runtime.Store
 	AddChange([]byte, []byte, []byte)
 	QueryState([]byte, []byte) ([]byte, error)
 	Iterator(start, end []byte) (store.Iterator, error)
+	StateLatest() (uint64, corestore.ReaderMap, error)
 }
 
 type StoreAccessor func() Store

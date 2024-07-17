@@ -70,5 +70,14 @@ func (am *AppManager[T]) DeliverBlock(
 	block *appmanager.BlockRequest[T],
 ) (*appmanager.BlockResponse, corestore.WriterMap, error) {
 	am.abciMiddleware.SetRequest(blockToABCIRequest(block))
-	return am.AppManager.DeliverBlock(ctx, block)
+	resp, writerMap, err := am.AppManager.DeliverBlock(ctx, block)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// apply the block state changes to the writer map
+	writerMap.ApplyStateChanges(am.abciMiddleware.GetBlockStateChanges())
+	// reset the BlockStore
+	am.abciMiddleware.FlushBlockStore()
+	return resp, writerMap, nil
 }

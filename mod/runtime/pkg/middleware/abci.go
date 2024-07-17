@@ -23,6 +23,7 @@ package middleware
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
@@ -216,9 +217,14 @@ func (h *ABCIMiddleware[
 		return h.verifyBlobSidecars(ctx, sidecars)
 	})
 
+	if err := g.Wait(); err != nil {
+		return err
+	}
+	fmt.Println("PROCESS PROPOSAL SUCCESS")
+
 	// Wait for both processes to complete and then
 	// return the appropriate response.s
-	return g.Wait()
+	return nil
 }
 
 // verifyBeaconBlock handles the processing of the beacon block.
@@ -310,6 +316,7 @@ func (h *ABCIMiddleware[
 ]) EndBlock(
 	ctx context.Context,
 ) (transition.ValidatorUpdates, error) {
+	fmt.Println("CALLING END BLOCK")
 	blk, blobs, err := encoding.
 		ExtractBlobsAndBlockFromRequest[BeaconBlockT, BlobSidecarsT](
 		h.req,

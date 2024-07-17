@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
 	indexv2 "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/index/v2"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/keys"
+	store "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/v2/store"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/collections"
 )
 
@@ -46,7 +47,7 @@ type StateManager[
 	ForkT constraints.SSZMarshallable,
 	ValidatorT Validator,
 ] struct {
-	store *StateStore
+	store *store.StateStore
 	// Versioning
 	// genesisValidatorsRoot is the root of the genesis validators.
 	genesisValidatorsRoot collections.Item[[]byte]
@@ -113,6 +114,7 @@ func New[
 	ValidatorT Validator,
 ](
 	payloadCodec *encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT],
+	stateStore *store.StateStore,
 ) *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
 ] {
@@ -121,7 +123,7 @@ func New[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 		ForkT, ValidatorT,
 	]{
-		store: NewStore(),
+		store: stateStore,
 	}
 
 	store.genesisValidatorsRoot = collections.NewItem(
@@ -255,12 +257,12 @@ func (s *StateManager[
 ]) Copy() *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
 ] {
-	st := s.WithContext(s.store.ctx.Copy())
+	st := s.WithContext(s.store.Context().Copy())
 	return st
 }
 
 func (s *StateManager[_, _, _, _, _]) Context() context.Context {
-	return s.store.ctx
+	return s.store.Context()
 }
 
 func (s *StateManager[
@@ -270,8 +272,8 @@ func (s *StateManager[
 ] {
 	cpy := New[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT](
 		s.latestExecutionPayloadCodec,
+		s.store.WithContext(ctx),
 	)
-	cpy.store = s.store.WithContext(ctx)
 	return cpy
 }
 

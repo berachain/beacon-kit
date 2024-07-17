@@ -65,11 +65,12 @@ func (s *Service[
 	// which is completely fine. This means we were syncing from a
 	// bad peer, and we would likely AppHash anyways.
 	st := s.sb.StateFromContext(ctx)
+	fmt.Println("PROCESSING BEACON BLOCK, ABOUT TO EXECUTE STATE TRANSITION")
 	valUpdates, err := s.executeStateTransition(ctx, st, blk)
 	if err != nil {
 		return nil, err
 	}
-
+	fmt.Println("STATE TRANSITION SUCCESS")
 	// If the blobs needed to process the block are not available, we
 	// return an error. It is safe to use the slot off of the beacon block
 	// since it has been verified as correct already.
@@ -93,7 +94,7 @@ func (s *Service[
 	}
 
 	go s.sendPostBlockFCU(ctx, st, blk)
-
+	fmt.Println("FINALIZED BEACON BLOCK")
 	return valUpdates.RemoveDuplicates().Sort(), nil
 }
 
