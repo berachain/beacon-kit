@@ -68,6 +68,8 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideTxCodec[transaction.Tx],
 
 		// server v2
+		ProvideQueryServer,
+
 		ProvideBlockStore,
 		ProvideStateStore, // i pray this works otherwise i kms
 		ProvideStateManager,

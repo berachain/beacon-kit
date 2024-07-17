@@ -99,6 +99,7 @@ func run() error {
 				nodecomponents.ProvideNoopTxConfig,
 				nodecomponents.ProvideConfig,
 				nodecomponents.ProvideChainSpec,
+				nodecomponents.ProvideQueryServer,
 				nodecomponents.ProvideTxCodec[tx],
 				servercomponents.ProvideCometServer[node, tx, validatorUpdate],
 			)...,

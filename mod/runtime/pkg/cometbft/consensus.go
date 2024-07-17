@@ -36,6 +36,8 @@ type ChainSpec interface {
 	GetCometBFTConfigForSlot(math.Slot) any
 }
 
+// ========================== CONSENSUS PARAMS STORE ==========================
+
 // ConsensusParamsStore is a store for consensus parameters.
 type ConsensusParamsStore struct {
 	cs ChainSpec
@@ -74,6 +76,11 @@ func (s *ConsensusParamsStore) Set(
 	return nil
 }
 
+// ========================== MSG SERVER ==========================
+
+// assert that MsgServer implements types.MsgServer
+var _ types.MsgServer = &MsgServer{}
+
 // LOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOL
 type MsgServer struct {
 	eventService event.Service
@@ -98,6 +105,7 @@ func (m MsgServer) Params(
 	return &types.QueryParamsResponse{Params: &params}, nil
 }
 
+// UpdateParams updates the consensus parameters
 func (m MsgServer) UpdateParams(
 	ctx context.Context, msg *types.MsgUpdateParams,
 ) (*types.MsgUpdateParamsResponse, error) {
@@ -116,6 +124,38 @@ func (m MsgServer) UpdateParams(
 }
 
 // annoying from sdk v2
-func (m MsgServer) SetCometInfo(ctx context.Context, msg *types.MsgSetCometInfo) (*types.MsgSetCometInfoResponse, error) {
+func (m MsgServer) SetCometInfo(_ context.Context, _ *types.MsgSetCometInfo) (*types.MsgSetCometInfoResponse, error) {
 	return &types.MsgSetCometInfoResponse{}, nil
+}
+
+// ========================== QUERY SERVER ==========================
+
+// assert that QueryServer implements types.QueryServer
+var _ types.QueryServer = &QueryServer{}
+
+// QueryServer is the query server for the consensus module
+type QueryServer struct {
+	cs ChainSpec
+}
+
+func NewQueryServer(cs ChainSpec) *QueryServer {
+	return &QueryServer{
+		cs: cs,
+	}
+}
+
+// Params queries params of consensus module
+func (q QueryServer) Params(
+	ctx context.Context, req *types.QueryParamsRequest,
+) (*types.QueryParamsResponse, error) {
+	params := q.cs.
+		GetCometBFTConfigForSlot(0).(*cmttypes.ConsensusParams).ToProto()
+	return &types.QueryParamsResponse{Params: &params}, nil
+}
+
+// annoying from sdk v3
+func (q QueryServer) GetCometInfo(_ context.Context, _ *types.QueryGetCometInfoRequest) (*types.QueryGetCometInfoResponse, error) {
+	cmtInfo := q.cs.
+		GetCometBFTConfigForSlot(0).(*types.CometInfo)
+	return &types.QueryGetCometInfoResponse{CometInfo: cmtInfo}, nil
 }

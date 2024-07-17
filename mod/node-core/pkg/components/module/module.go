@@ -36,6 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	cmtruntime "github.com/berachain/beacon-kit/mod/runtime/pkg/cometbft"
+	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
 	"google.golang.org/grpc"
@@ -70,6 +71,7 @@ type AppModule[T transaction.Tx, ValidatorUpdateT any] struct {
 	abciMiddleware  *components.ABCIMiddleware
 	txCodec         transaction.Codec[T]
 	msgServer       *cmtruntime.MsgServer
+	queryServer     *cmtruntime.QueryServer
 	consensusEngine *cometbft.ConsensusEngine[T, ValidatorUpdateT]
 }
 
@@ -78,11 +80,13 @@ func NewAppModule[T transaction.Tx, ValidatorUpdateT any](
 	abciMiddleware *components.ABCIMiddleware,
 	txCodec transaction.Codec[T],
 	msgServer *cmtruntime.MsgServer,
+	queryServer *cmtruntime.QueryServer,
 ) AppModule[T, ValidatorUpdateT] {
 	return AppModule[T, ValidatorUpdateT]{
 		abciMiddleware: abciMiddleware,
 		txCodec:        txCodec,
 		msgServer:      msgServer,
+		queryServer:    queryServer,
 		consensusEngine: cometbft.NewConsensusEngine[T, ValidatorUpdateT](
 			txCodec,
 			abciMiddleware,
@@ -125,6 +129,7 @@ func (am AppModule[_, _]) RegisterServices(
 ) error {
 	// lolololololololololololololololololololololololololololololololololololol
 	sdkconsensustypes.RegisterMsgServer(registrar, am.msgServer)
+	sdkconsensustypes.RegisterQueryServer(registrar, am.queryServer)
 	return nil
 }
 
@@ -173,6 +178,19 @@ func (am AppModule[T, ValidatorUpdateT]) UpdateValidators(
 // AutoCLIOptions implements the autocli.HasAutoCLIConfig interface.
 func (AppModule[_, _]) AutoCLIOptions() *autocliv1.ModuleOptions {
 	return &autocliv1.ModuleOptions{
+		Query: &autocliv1.ServiceCommandDescriptor{
+			Service: consensusv1.Query_ServiceDesc.ServiceName,
+			RpcCommandOptions: []*autocliv1.RpcCommandOptions{
+				{
+					RpcMethod: "Params",
+					Use:       "params",
+					Short:     "Query the current consensus parameters",
+				},
+			},
+			SubCommands: map[string]*autocliv1.ServiceCommandDescriptor{
+				"comet": cmtservice.CometBFTAutoCLIDescriptor,
+			},
+		},
 		Tx: &autocliv1.ServiceCommandDescriptor{
 			Service: consensusv1.Msg_ServiceDesc.ServiceName,
 			RpcCommandOptions: []*autocliv1.RpcCommandOptions{

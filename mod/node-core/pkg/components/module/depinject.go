@@ -63,6 +63,7 @@ type ModuleInput[T transaction.Tx] struct {
 	ABCIMiddleware *components.ABCIMiddleware
 	TxCodec        transaction.Codec[T]
 	MsgServer      *cmtruntime.MsgServer
+	QueryServer    *cmtruntime.QueryServer
 }
 
 // ModuleOutput is the output for the dep inject framework.
@@ -80,6 +81,7 @@ func ProvideModule[T transaction.Tx, ValidatorUpdateT any](
 			in.ABCIMiddleware,
 			in.TxCodec,
 			in.MsgServer,
+			in.QueryServer,
 		),
 	}, nil
 }

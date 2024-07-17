@@ -43,3 +43,16 @@ func ProvideMessageServer(
 		in.ChainSpec,
 	)
 }
+
+type QueryServerInput struct {
+	depinject.In
+	ChainSpec common.ChainSpec
+}
+
+func ProvideQueryServer(
+	in QueryServerInput,
+) *cometbft.QueryServer {
+	return cometbft.NewQueryServer(
+		in.ChainSpec,
+	)
+}
