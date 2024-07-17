@@ -53,6 +53,7 @@ type ConsensusEngine[T transaction.Tx, ValidatorUpdateT any] struct {
 	Middleware
 	txCodec    transaction.Codec[T]
 	valUpdates transition.ValidatorUpdates
+	genTxs     []T
 }
 
 func (c *ConsensusEngine[T, ValidatorUpdateT]) InitGenesis(
@@ -83,6 +84,7 @@ func (c *ConsensusEngine[T, ValidatorUpdateT]) Prepare(
 	if !ok {
 		return nil, ErrInvalidRequestType
 	}
+
 	slot := math.Slot(abciReq.Height)
 	fmt.Println("GOT SLOT IN CONSENSUS PREPARE", slot)
 	blkBz, sidecarsBz, err := c.Middleware.PrepareProposal(ctx, slot)
@@ -98,6 +100,10 @@ func (c *ConsensusEngine[T, ValidatorUpdateT]) Prepare(
 	if err != nil {
 		return nil, err
 	}
+	if slot <= 1 {
+		c.genTxs = []T{blkTx, sidecarsTx}
+		return []T{}, nil
+	}
 	return []T{blkTx, sidecarsTx}, nil
 }
 
@@ -112,6 +118,12 @@ func (c *ConsensusEngine[T, ValidatorUpdateT]) Process(
 	abciReq, ok := req.(*cmtabci.ProcessProposalRequest)
 	if !ok {
 		return ErrInvalidRequestType
+	}
+	if abciReq.Height <= 1 {
+		fmt.Println("PROCESS DOES SOMETHING BECAUSE WERE IN GENESIS")
+		abciReq.Txs = iter.Map(c.genTxs, func(tx *T) []byte {
+			return (*tx).Bytes()
+		})
 	}
 	return c.Middleware.ProcessProposal(ctx, abciReq)
 }

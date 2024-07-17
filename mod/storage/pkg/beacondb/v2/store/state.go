@@ -22,15 +22,15 @@ const (
 
 // StateStore is a store for the state of the beacon
 type StateStore struct {
-	ctx        *storectx.Context
-	blockStore *BlockStore
-	chainStore runtime.Store
+	ctx            *storectx.Context
+	transientState *BlockStore
+	state          runtime.Store
 }
 
 // NewStore creates a new state store
 func NewStore(blockStore *BlockStore) *StateStore {
 	return &StateStore{
-		blockStore: blockStore,
+		transientState: blockStore,
 	}
 }
 
@@ -50,20 +50,20 @@ func (s *StateStore) QueryState(storeKey, key []byte) ([]byte, error) {
 	}
 
 	// NOT FOUND IN CHANGESET -> QUERY BLOCK STORE
-	value, found = s.blockStore.Query(storeKey, key)
+	value, found = s.transientState.Query(storeKey, key)
 	if found {
 		return value, nil
 	}
 
 	// NOT FOUND IN BLOCK STORE -> QUERY COMMIT STORE
-	version, err := s.chainStore.GetLatestVersion()
+	version, err := s.state.GetLatestVersion()
 	if err != nil {
 		return nil, err
 	}
 	// if the version is 0, we're in genesis
 	if version != 0 {
 		var resp storev2.QueryResult
-		resp, err = s.chainStore.Query(storeKey, version, key, false)
+		resp, err = s.state.Query(storeKey, version, key, false)
 		if err != nil {
 			// TODO: clean this up
 			if errors.Is(err, sdkcollections.ErrNotFound) {
@@ -79,14 +79,14 @@ func (s *StateStore) QueryState(storeKey, key []byte) ([]byte, error) {
 }
 
 func (s *StateStore) SetStore(store runtime.Store) {
-	s.chainStore = store
+	s.state = store
 }
 
 // Iterator returns a combined iterator over the the changeset, the block store,
 // and the chain store
 func (s *StateStore) Iterator(start, end []byte) (store.Iterator, error) {
 	// get chain store iterator
-	_, readerMap, err := s.chainStore.StateLatest()
+	_, readerMap, err := s.state.StateLatest()
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +108,7 @@ func (s *StateStore) Iterator(start, end []byte) (store.Iterator, error) {
 	}
 
 	// get block store iterator
-	blockStoreIter, err := s.blockStore.Iterator(start, end)
+	blockStoreIter, err := s.transientState.Iterator(start, end)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +126,7 @@ func (s *StateStore) Save() {
 		return
 	}
 	// commit changes to block store
-	s.blockStore.Commit(s.ctx.Changeset.GetChanges())
+	s.transientState.Commit(s.ctx.Changeset.GetChanges())
 }
 
 // Context returns the context of the StateStore
@@ -135,7 +135,7 @@ func (s *StateStore) Context() *storectx.Context {
 }
 
 func (s *StateStore) BlockChanges() corestore.Changeset {
-	return *s.blockStore.GetChanges()
+	return *s.transientState.GetChanges()
 }
 
 // WithContext returns a new StateStore with the given context
@@ -147,8 +147,8 @@ func (s *StateStore) WithContext(ctx context.Context) *StateStore {
 		storeCtx = storectx.New(ctx)
 	}
 	// initialize a new StateStore with the current block store and chain store
-	storeCopy := NewStore(s.blockStore)
-	storeCopy.SetStore(s.chainStore)
+	storeCopy := NewStore(s.transientState)
+	storeCopy.SetStore(s.state)
 	// set the context to the given context
 	storeCopy.ctx = storeCtx
 	return storeCopy
@@ -166,5 +166,5 @@ func (s *StateStore) Init() {
 // TODO: remove this when no needed
 // StateLatest returns the latest state from the chain store
 func (s *StateStore) StateLatest() (uint64, corestore.ReaderMap, error) {
-	return s.chainStore.StateLatest()
+	return s.state.StateLatest()
 }

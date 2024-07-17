@@ -217,14 +217,9 @@ func (h *ABCIMiddleware[
 		return h.verifyBlobSidecars(ctx, sidecars)
 	})
 
-	if err := g.Wait(); err != nil {
-		return err
-	}
-	fmt.Println("PROCESS PROPOSAL SUCCESS")
-
 	// Wait for both processes to complete and then
 	// return the appropriate response.s
-	return nil
+	return g.Wait()
 }
 
 // verifyBeaconBlock handles the processing of the beacon block.
