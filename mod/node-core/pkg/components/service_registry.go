@@ -34,7 +34,7 @@ type ServiceRegistryInput struct {
 	depinject.In
 	ABCIService           *ABCIMiddleware
 	BlockBroker           *BlockBroker
-	BlockService          *BlockService
+	BlockService          BlockService
 	ChainService          *ChainService
 	DBManager             *DBManager
 	DAService             *DAService

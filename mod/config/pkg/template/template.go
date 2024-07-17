@@ -84,4 +84,14 @@ graffiti = "{{.BeaconKit.Validator.Graffiti}}"
 # EnableOptimisticPayloadBuilds enables building the next block's payload optimistically in
 # process-proposal to allow for the execution client to have more time to assemble the block.
 enable-optimistic-payload-builds = "{{.BeaconKit.Validator.EnableOptimisticPayloadBuilds}}"
+
+[beacon-kit.block-service]
+# Enabled determines if the block service is enabled.
+enabled = "{{ .BeaconKit.BlockService.Enabled }}"
+
+# PrunerEnabled determines if the block pruner is enabled.
+pruner-enabled = "{{ .BeaconKit.BlockService.PrunerEnabled }}"
+
+# AvailabilityWindow is the number of slots to keep in the store.
+availability-window = "{{ .BeaconKit.BlockService.AvailabilityWindow }}"
 `

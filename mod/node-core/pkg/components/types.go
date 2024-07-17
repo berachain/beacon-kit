@@ -353,4 +353,7 @@ type (
 
 	// DepositPruner is a type alias for the deposit pruner.
 	DepositPruner = pruner.Pruner[*DepositStore]
+
+	// BlockPruner is a type alias for the block pruner.
+	BlockPruner = pruner.Pruner[*BlockStore]
 )

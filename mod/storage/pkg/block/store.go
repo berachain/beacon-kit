@@ -27,7 +27,10 @@ import (
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 )
+
+var _ pruner.Prunable = (*KVStore[BeaconBlock])(nil)
 
 const KeyBlockPrefix = "block"
 
@@ -45,6 +48,8 @@ func (p *KVStoreProvider) OpenKVStore(context.Context) store.KVStore {
 type KVStore[BeaconBlockT BeaconBlock] struct {
 	store sdkcollections.Map[uint64, BeaconBlockT]
 	mu    sync.RWMutex
+
+	earliestSlot uint64
 }
 
 // NewStore creates a new block store.
@@ -60,6 +65,8 @@ func NewStore[BeaconBlockT BeaconBlock](
 			sdkcollections.Uint64Key,
 			encoding.SSZValueCodec[BeaconBlockT]{},
 		),
+		mu:           sync.RWMutex{},
+		earliestSlot: 0,
 	}
 }
 
@@ -80,4 +87,18 @@ func (kv *KVStore[BeaconBlockT]) Set(slot uint64, blk BeaconBlockT) error {
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
 	return kv.store.Set(context.TODO(), slot, blk)
+}
+
+// Prune removes the [start, end) blocks from the store.
+func (kv *KVStore[BeaconBlockT]) Prune(start, end uint64) error {
+	kv.mu.Lock()
+	defer kv.mu.Unlock()
+	for i := max(start, kv.earliestSlot); i < end; i++ {
+		// This only errors if the key passed in cannot be encoded.
+		if err := kv.store.Remove(context.TODO(), i); err != nil {
+			return err
+		}
+	}
+	kv.earliestSlot = end
+	return nil
 }

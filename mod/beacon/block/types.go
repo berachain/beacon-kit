@@ -21,6 +21,7 @@
 package block
 
 import (
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -30,6 +31,16 @@ type BeaconBlock interface {
 	constraints.SSZMarshallable
 	// GetSlot returns the slot of the block.
 	GetSlot() math.U64
+}
+
+// Event is an interface for block events.
+type Event[BeaconBlockT BeaconBlock] interface {
+	// Type returns the type of the event.
+	Type() asynctypes.EventID
+	// Is returns true if the event is of the given type.
+	Is(asynctypes.EventID) bool
+	// Data returns the data of the event.
+	Data() BeaconBlockT
 }
 
 // EventFeed is a generic interface for sending events.

@@ -23,19 +23,24 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/beacon/block"
+	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
 )
 
+// BlockServiceInput is the input for the block service.
 type BlockServiceInput struct {
 	depinject.In
 
+	Config      *config.Config
 	Logger      log.Logger[any]
 	BlockBroker *BlockBroker
 	BlockStore  *BlockStore
 }
 
-func ProvideBlockService(in BlockServiceInput) *BlockService {
+// ProvideBlockService provides the block service.
+func ProvideBlockService(in BlockServiceInput) BlockService {
 	return block.NewService(
+		in.Config.BlockService,
 		in.Logger,
 		in.BlockBroker,
 		in.BlockStore,

@@ -22,8 +22,13 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	"cosmossdk.io/log"
 	storev2 "cosmossdk.io/store/v2/db"
+	blockservice "github.com/berachain/beacon-kit/mod/beacon/block"
+	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/block"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cast"
@@ -51,5 +56,41 @@ func ProvideBlockStore(
 		&block.KVStoreProvider{
 			KVStoreWithBatch: kvp,
 		},
+	), nil
+}
+
+// BlockPrunerInput is the input for the block pruner.
+type BlockPrunerInput struct {
+	depinject.In
+
+	Config      *config.Config
+	BlockBroker *BlockBroker
+	BlockStore  *BlockStore
+	Logger      log.Logger
+}
+
+// ProvideBlockPruner provides a block pruner for the depinject framework.
+func ProvideBlockPruner(
+	in BlockPrunerInput,
+) (BlockPruner, error) {
+	subCh, err := in.BlockBroker.Subscribe()
+	if err != nil {
+		in.Logger.Error("failed to subscribe to block feed", "err", err)
+		return nil, err
+	}
+
+	return pruner.NewPruner[
+		*BeaconBlock,
+		*BlockEvent,
+		*BlockStore,
+	](
+		in.Logger.With("service", manager.BlockPrunerName),
+		in.BlockStore,
+		manager.BlockPrunerName,
+		subCh,
+		blockservice.BuildPruneRangeFn[
+			*BeaconBlock,
+			*BlockEvent,
+		](in.Config.BlockService),
 	), nil
 }

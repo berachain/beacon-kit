@@ -21,6 +21,7 @@
 package config
 
 import (
+	"github.com/berachain/beacon-kit/mod/beacon/block"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/config/pkg/template"
 	viperlib "github.com/berachain/beacon-kit/mod/config/pkg/viper"
@@ -46,6 +47,7 @@ func DefaultConfig() *Config {
 		KZG:            kzg.DefaultConfig(),
 		PayloadBuilder: builder.DefaultConfig(),
 		Validator:      validator.DefaultConfig(),
+		BlockService:   block.DefaultConfig(),
 	}
 }
 
@@ -61,6 +63,8 @@ type Config struct {
 	PayloadBuilder builder.Config `mapstructure:"payload-builder"`
 	// Validator is the configuration for the validator client.
 	Validator validator.Config `mapstructure:"validator"`
+	// BlockService is the configuration for the block service.
+	BlockService block.Config `mapstructure:"block-service"`
 }
 
 // GetEngine returns the execution client configuration.

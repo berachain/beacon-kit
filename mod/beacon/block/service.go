@@ -24,39 +24,46 @@ import (
 	"context"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/beacon/block/noop"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/block"
 )
 
+// NewService creates a new block service.
+func NewService[BeaconBlockT BeaconBlock](
+	config Config,
+	logger log.Logger[any],
+	blkBroker EventFeed[*asynctypes.Event[BeaconBlockT]],
+	store *block.KVStore[BeaconBlockT],
+) Service[BeaconBlockT] {
+	if config.Enabled {
+		return &service[BeaconBlockT]{
+			logger:    logger,
+			blkBroker: blkBroker,
+			store:     store,
+		}
+	}
+	return &noop.Service{}
+}
+
 // Service is a service that listens for blocks and stores them in a KVStore.
-type Service[BeaconBlockT BeaconBlock] struct {
+type service[BeaconBlockT BeaconBlock] struct {
 	// logger is used for logging information and errors.
 	logger    log.Logger[any]
 	blkBroker EventFeed[*asynctypes.Event[BeaconBlockT]]
 	store     *block.KVStore[BeaconBlockT]
 }
 
-// NewService creates a new block service.
-func NewService[BeaconBlockT BeaconBlock](
-	logger log.Logger[any],
-	blkBroker EventFeed[*asynctypes.Event[BeaconBlockT]],
-	store *block.KVStore[BeaconBlockT],
-) *Service[BeaconBlockT] {
-	return &Service[BeaconBlockT]{
-		logger:    logger,
-		blkBroker: blkBroker,
-		store:     store,
-	}
-}
+func (s *service[BeaconBlockT]) IsBlockService() {}
 
 // Name returns the name of the service.
-func (s *Service[BeaconBlockT]) Name() string {
+func (s *service[BeaconBlockT]) Name() string {
 	return "block-service"
 }
 
 // Start starts the block service.
-func (s *Service[BeaconBlockT]) Start(ctx context.Context) error {
+func (s *service[BeaconBlockT]) Start(ctx context.Context) error {
 	subBlkCh, err := s.blkBroker.Subscribe()
 	if err != nil {
 		s.logger.Error("failed to subscribe to block events", "error", err)
@@ -67,7 +74,7 @@ func (s *Service[BeaconBlockT]) Start(ctx context.Context) error {
 }
 
 // listenAndStore listens for blocks and stores them in the KVStore.
-func (s *Service[BeaconBlockT]) listenAndStore(
+func (s *service[BeaconBlockT]) listenAndStore(
 	ctx context.Context,
 	subBlkCh <-chan *asynctypes.Event[BeaconBlockT],
 ) {
