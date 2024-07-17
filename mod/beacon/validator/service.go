@@ -22,7 +22,6 @@ package validator
 
 import (
 	"context"
-	"fmt"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -197,7 +196,6 @@ func (s *Service[
 func (s *Service[
 	_, _, _, _, _, _, _, _, _, _,
 ]) handleNewSlot(msg *asynctypes.Event[math.Slot]) {
-	fmt.Println("HANDLING NEW SLOT!!!, number", msg.Data())
 	blk, sidecars, err := s.buildBlockAndSidecars(
 		msg.Context(), msg.Data(),
 	)

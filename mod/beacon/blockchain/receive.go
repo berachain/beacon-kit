@@ -22,7 +22,6 @@ package blockchain
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
@@ -96,8 +95,6 @@ func (s *Service[
 		return err
 	}
 
-	fmt.Println("BLOCK HEIGHT", blk.GetSlot())
-
 	s.logger.Info(
 		"State root verification succeeded - accepting incoming beacon block",
 		"state_root",
@@ -107,7 +104,6 @@ func (s *Service[
 	if s.shouldBuildOptimisticPayloads() {
 		go s.handleOptimisticPayloadBuild(ctx, postState, blk)
 	}
-	fmt.Println("VERIFICATION SUCCESS")
 
 	return nil
 }
@@ -122,7 +118,6 @@ func (s *Service[
 ) error {
 	startTime := time.Now()
 	defer s.metrics.measureStateRootVerificationTime(startTime)
-	fmt.Println("VERIFYING STATE ROOT")
 	if _, err := s.sp.Transition(
 		// We run with a non-optimistic engine here to ensure
 		// that the proposer does not try to push through a bad block.

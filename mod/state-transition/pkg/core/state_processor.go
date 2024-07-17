@@ -183,21 +183,18 @@ func (sp *StateProcessor[
 		validatorUpdates      transition.ValidatorUpdates
 		epochValidatorUpdates transition.ValidatorUpdates
 	)
-	fmt.Println("PROCESSING SLOTS from STATE PROCESSOR")
+
 	stateSlot, err := beaconState.GetSlot()
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("STATE SLOT:", stateSlot)
 	// Iterate until we are "caught up".
 	for ; stateSlot < slot; stateSlot++ {
-		fmt.Println("ABOUT TO PROCESS SLOT", stateSlot)
 		// Process the slot
 		if err = sp.processSlot(beaconState); err != nil {
 			return nil, err
 		}
 		// beaconState.Save()
-		fmt.Println("SLOT PROCESSED!")
 
 		// Process the Epoch Boundary.
 		if uint64(stateSlot+1)%sp.cs.SlotsPerEpoch() == 0 {
@@ -405,6 +402,10 @@ func (sp *StateProcessor[
 			"expected: %s, got: %s",
 			parentBlockRoot.String(), blk.GetParentBlockRoot().String(),
 		)
+	} else {
+		fmt.Println("LATEST BLOCK HEADER SLOT", latestBlockHeader.GetSlot())
+		fmt.Println("BLOCK SLOT", blk.GetSlot())
+		fmt.Println("CURRENT SLOT STATE", slot)
 	}
 
 	// Ensure the block is within the acceptable range.

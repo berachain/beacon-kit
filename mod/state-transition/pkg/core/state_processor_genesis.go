@@ -21,8 +21,6 @@
 package core
 
 import (
-	"fmt"
-
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
@@ -164,7 +162,7 @@ func (sp *StateProcessor[
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("RIGHT ABOUT TO SAVE")
+
 	st.Save()
 	return updates, nil
 }
