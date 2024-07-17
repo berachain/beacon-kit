@@ -32,21 +32,22 @@ import (
 
 func Test_Schema_Paths(t *testing.T) {
 	nestedType := schema.DefineContainer(
-		schema.Field("bytes32", schema.DefineByteVector(32)),
-		schema.Field("uint64", schema.U64()),
-		schema.Field(
-			"list_bytes32",
-			schema.DefineList(schema.DefineByteVector(32), 10),
+		schema.NewField("bytes32", schema.DefineByteVector(32)),
+		schema.NewField("uint64", schema.U64()),
+		schema.NewField(
+			"list_bytes32", schema.DefineList(schema.DefineByteVector(32), 10),
 		),
-		schema.Field("bytes256", schema.DefineByteVector(256)),
+		schema.NewField("bytes256", schema.DefineByteVector(256)),
 	)
 	root := schema.DefineContainer(
-		schema.Field("bytes32", schema.DefineByteVector(32)),
-		schema.Field("uint32", schema.U32()),
-		schema.Field("list_uint64", schema.DefineList(schema.U64(), 1000)),
-		schema.Field("list_nested", schema.DefineList(nestedType, 1000)),
-		schema.Field("nested", nestedType),
-		schema.Field("vector_uint128", schema.DefineVector(schema.U128(), 20)),
+		schema.NewField("bytes32", schema.DefineByteVector(32)),
+		schema.NewField("uint32", schema.U32()),
+		schema.NewField("list_uint64", schema.DefineList(schema.U64(), 1000)),
+		schema.NewField("list_nested", schema.DefineList(nestedType, 1000)),
+		schema.NewField("nested", nestedType),
+		schema.NewField(
+			"vector_uint128", schema.DefineVector(schema.U128(), 20),
+		),
 	)
 
 	cases := []struct {
@@ -94,18 +95,20 @@ func Test_Schema_Paths(t *testing.T) {
 
 func TestNewTreeNodeEdgeCases(t *testing.T) {
 	nestedType := schema.DefineContainer(
-		schema.Field("uint64", schema.U64()),
-		schema.Field("bytes32", schema.B32()),
-		schema.Field("bytes256", schema.DefineVector(schema.U8(), 256)),
+		schema.NewField("uint64", schema.U64()),
+		schema.NewField("bytes32", schema.B32()),
+		schema.NewField("bytes256", schema.DefineVector(schema.U8(), 256)),
 	)
 
 	root := schema.DefineContainer(
-		schema.Field("bytes32", schema.B32()),
-		schema.Field("uint32", schema.U32()),
-		schema.Field("list_uint64", schema.DefineList(schema.U64(), 1000)),
-		schema.Field("list_nested", schema.DefineList(nestedType, 1000)),
-		schema.Field("nested", nestedType),
-		schema.Field("vector_uint128", schema.DefineVector(schema.U128(), 20)),
+		schema.NewField("bytes32", schema.B32()),
+		schema.NewField("uint32", schema.U32()),
+		schema.NewField("list_uint64", schema.DefineList(schema.U64(), 1000)),
+		schema.NewField("list_nested", schema.DefineList(nestedType, 1000)),
+		schema.NewField("nested", nestedType),
+		schema.NewField(
+			"vector_uint128", schema.DefineVector(schema.U128(), 20),
+		),
 	)
 
 	cases := []struct {
