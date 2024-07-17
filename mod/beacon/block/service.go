@@ -44,6 +44,7 @@ func NewService[BeaconBlockT BeaconBlock](
 			store:     store,
 		}
 	}
+	logger.Warn("block service is disabled, skipping storing blocks")
 	return &noop.Service{}
 }
 
