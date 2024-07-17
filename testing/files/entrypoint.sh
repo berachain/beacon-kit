@@ -79,7 +79,7 @@ fi
 
 # Start the node (remove the --pruning=nothing flag if historical queries are not needed)
 BEACON_START_CMD="./build/bin/beacond start --pruning=nothing "$TRACE" \
---log_level $LOGLEVEL --api.enabled-unsafe-cors \
+--beacon-kit.logger.log-level $LOGLEVEL --api.enabled-unsafe-cors \
 --api.enable --api.swagger --minimum-gas-prices=0.0001abgt \
 --home $HOMEDIR --beacon-kit.engine.jwt-secret-path ${JWT_SECRET_PATH}"
 
