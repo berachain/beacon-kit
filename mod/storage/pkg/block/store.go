@@ -74,12 +74,7 @@ func NewStore[BeaconBlockT BeaconBlock](
 func (kv *KVStore[BeaconBlockT]) Get(slot uint64) (BeaconBlockT, error) {
 	kv.mu.RLock()
 	defer kv.mu.RUnlock()
-	var (
-		blk BeaconBlockT
-		err error
-	)
-	blk, err = kv.store.Get(context.TODO(), slot)
-	return blk, err
+	return kv.store.Get(context.TODO(), slot)
 }
 
 // Set sets the block by a given index in the store.
