@@ -22,11 +22,11 @@ package math_test
 
 import (
 	"math/big"
-	"reflect"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/require"
 )
@@ -187,10 +187,8 @@ func TestU64_UnmarshalJSON(t *testing.T) {
 		{"Zero value", "\"0x0\"", 0, nil},
 		{"Max uint64 value", "\"0xffffffffffffffff\"", ^uint64(0), nil},
 		{"Invalid hex string", "\"0xxyz\"", 0,
-			hex.WrapUnmarshalError(
-				hex.ErrInvalidString,
-				reflect.TypeOf(math.U64(0)),
-			)},
+			hex.ErrInvalidString,
+		},
 	}
 
 	for _, tt := range tests {
@@ -636,19 +634,19 @@ func TestGweiFromWei(t *testing.T) {
 		},
 		{
 			name:     "one gwei",
-			input:    big.NewInt(constants.GweiPerWei),
+			input:    big.NewInt(math.GweiPerWei),
 			expected: math.Gwei(1),
 		},
 		{
 			name:     "arbitrary wei",
-			input:    big.NewInt(constants.GweiPerWei * 123456789),
+			input:    big.NewInt(math.GweiPerWei * 123456789),
 			expected: math.Gwei(123456789),
 		},
 		{
 			name: "max uint64 wei",
 			input: new(
 				big.Int,
-			).Mul(big.NewInt(constants.GweiPerWei), new(big.Int).SetUint64(^uint64(0))),
+			).Mul(big.NewInt(math.GweiPerWei), new(big.Int).SetUint64(^uint64(0))),
 			expected: math.Gwei(1<<64 - 1),
 		},
 	}
@@ -675,21 +673,21 @@ func TestGwei_ToWei(t *testing.T) {
 		{
 			name:     "one gwei",
 			input:    math.Gwei(1),
-			expected: big.NewInt(constants.GweiPerWei),
+			expected: big.NewInt(math.GweiPerWei),
 		},
 		{
 			name:  "arbitrary gwei",
 			input: math.Gwei(123456789),
 			expected: new(
 				big.Int,
-			).Mul(big.NewInt(constants.GweiPerWei), big.NewInt(123456789)),
+			).Mul(big.NewInt(math.GweiPerWei), big.NewInt(123456789)),
 		},
 		{
 			name:  "max uint64 gwei",
 			input: math.Gwei(1<<64 - 1),
 			expected: new(
 				big.Int,
-			).Mul(big.NewInt(constants.GweiPerWei), new(big.Int).SetUint64(1<<64-1)),
+			).Mul(big.NewInt(math.GweiPerWei), new(big.Int).SetUint64(1<<64-1)),
 		},
 	}
 
@@ -732,7 +730,8 @@ func TestU64_Base10(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := tt.value.Base10()
-			require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
+			require.Equal(t, tt.expected, result,
+				"Test case: %s", tt.name)
 		})
 	}
 }
@@ -769,7 +768,46 @@ func TestU64_UnwrapPtr(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := tt.value.UnwrapPtr()
 			require.NotNil(t, result)
-			require.Equal(t, tt.expected, *result, "Test case: %s", tt.name)
+			require.Equal(t, tt.expected, *result,
+				"Test case: %s", tt.name)
 		})
+	}
+}
+
+func TestU64(t *testing.T) {
+	var u math.U64
+	require.Equal(t, constants.U64Size, u.SizeSSZ())
+	require.True(t, u.IsFixed())
+	require.Equal(t, schema.U64(), u.Type())
+	require.Equal(t, uint64(1), u.ChunkCount())
+}
+
+func TestU64_NewFromSSZ(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    []byte
+		expected math.U64
+		err      bool
+	}{
+		{name: "Valid1", input: []byte{1, 0, 0, 0, 0, 0, 0, 0},
+			expected: 1, err: false},
+		{name: "Valid0", input: []byte{0, 0, 0, 0, 0, 0, 0, 0},
+			expected: 0, err: false},
+		{name: "InvalidLength", input: []byte{1, 0, 0, 0, 0, 0, 0},
+			expected: 0,
+			err:      true},
+	}
+
+	var u64 math.U64 = 1
+
+	for _, tt := range tests {
+		result, err := u64.NewFromSSZ(tt.input)
+		if tt.err {
+			require.Error(t, err, "Test name %s", tt.name)
+		} else {
+			require.NoError(t, err, "Test name %s", tt.name)
+			require.Equal(t, tt.expected, result,
+				"Test name %s", tt.name)
+		}
 	}
 }

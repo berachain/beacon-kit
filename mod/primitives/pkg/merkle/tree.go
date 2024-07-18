@@ -28,7 +28,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
-	"github.com/prysmaticlabs/gohashtree"
 )
 
 const (
@@ -38,12 +37,12 @@ const (
 
 // Tree[RootT] implements a Merkle tree that has been optimized to
 // handle leaves that are 32 bytes in size.
-//
-// TODO: deprecate in favor of ssz/merkle/tree.go.
 type Tree[RootT ~[32]byte] struct {
 	depth    uint8
 	branches [][]RootT
 	leaves   []RootT
+
+	hasher Hasher[[32]byte]
 }
 
 // NewTreeFromLeaves constructs a Merkle tree, with the minimum
@@ -107,6 +106,7 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 		branches: layers,
 		leaves:   leaves,
 		depth:    depth,
+		hasher:   NewHasher[[32]byte](sha256.Hash),
 	}, nil
 }
 
@@ -135,9 +135,9 @@ func (m *Tree[RootT]) Insert(item [32]byte, index int) error {
 
 	//nolint:mnd // 5 as defined by the library.
 	if m.depth > 5 {
-		hashFn = sha256.CustomSHA256Hasher()
+		hashFn = sha256.CustomHashFn()
 	} else {
-		hashFn = sha256.Sum256
+		hashFn = sha256.Hash
 	}
 
 	for i := range m.depth {
@@ -182,7 +182,7 @@ func (m *Tree[RootT]) HashTreeRoot() ([32]byte, error) {
 		m.leaves[0] == zero.Hashes[0] {
 		numItems = 0
 	}
-	return MixinLength(m.Root(), numItems), nil
+	return m.hasher.MixIn(m.Root(), numItems), nil
 }
 
 // MerkleProof computes a proof from a tree's branches using a Merkle index.
@@ -220,18 +220,4 @@ func (m *Tree[RootT]) MerkleProofWithMixin(
 	mixin := [32]byte{}
 	binary.LittleEndian.PutUint64(mixin[:8], uint64(len(m.leaves)))
 	return append(proof, mixin), nil
-}
-
-// MixinLength takes a root element and mixes in the length of the elements
-// that were hashed to produce it.
-//
-// TODO: move to ssz package.
-func MixinLength[RootT ~[32]byte](element RootT, length uint64) RootT {
-	chunks := make([][32]byte, two)
-	chunks[0] = element
-	binary.LittleEndian.PutUint64(chunks[1][:], length)
-	if err := gohashtree.Hash(chunks, chunks); err != nil {
-		return [32]byte{}
-	}
-	return chunks[0]
 }

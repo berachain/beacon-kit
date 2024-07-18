@@ -62,7 +62,7 @@ func (sp *StateProcessor[
 // processDeposits processes the deposits and ensures they match the
 // local state.
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, DepositT, _, _, _, _, _, _, _, _,
+	_, _, _, BeaconStateT, _, DepositT, _, _, _, _, _, _, _, _, _,
 ]) processDeposits(
 	st BeaconStateT,
 	deposits []DepositT,
@@ -78,7 +78,7 @@ func (sp *StateProcessor[
 
 // processDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, DepositT, _, _, _, _, _, _, _, _,
+	_, _, _, BeaconStateT, _, DepositT, _, _, _, _, _, _, _, _, _,
 ]) processDeposit(
 	st BeaconStateT,
 	dep DepositT,
@@ -110,7 +110,7 @@ func (sp *StateProcessor[
 
 // applyDeposit processes the deposit and ensures it matches the local state.
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, DepositT, _, _, _, _, _, ValidatorT, _, _,
+	_, _, _, BeaconStateT, _, DepositT, _, _, _, _, _, _, ValidatorT, _, _,
 ]) applyDeposit(
 	st BeaconStateT,
 	dep DepositT,
@@ -137,7 +137,7 @@ func (sp *StateProcessor[
 
 // createValidator creates a validator if the deposit is valid.
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, DepositT, _, _, _, _, ForkDataT, _, _, _,
+	_, _, _, BeaconStateT, _, DepositT, _, _, _, _, ForkDataT, _, _, _, _,
 ]) createValidator(
 	st BeaconStateT,
 	dep DepositT,
@@ -188,7 +188,7 @@ func (sp *StateProcessor[
 
 // addValidatorToRegistry adds a validator to the registry.
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, DepositT, _, _, _, _, _, ValidatorT, _, _,
+	_, _, _, BeaconStateT, _, DepositT, _, _, _, _, _, _, ValidatorT, _, _,
 ]) addValidatorToRegistry(
 	st BeaconStateT,
 	dep DepositT,
@@ -202,7 +202,13 @@ func (sp *StateProcessor[
 		math.Gwei(sp.cs.MaxEffectiveBalance()),
 	)
 
-	if err := st.AddValidator(val); err != nil {
+	// TODO: This is a bug that lives on bArtio. Delete this eventually.
+	const bArtioChainID = 80084
+	if sp.cs.DepositEth1ChainID() == bArtioChainID {
+		if err := st.AddValidatorBartio(val); err != nil {
+			return err
+		}
+	} else if err := st.AddValidator(val); err != nil {
 		return err
 	}
 

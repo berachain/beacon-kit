@@ -24,25 +24,24 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 )
 
 // NoopBlockGossipHandler is a gossip handler that simply returns the
 // ssz marshalled data as a "reference" to the object it receives.
-type NoopBlockGossipHandler[BeaconBlockT interface {
-	constraints.SSZMarshallable
-	NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
-}, ReqT encoding.ABCIRequest] struct {
+type NoopBlockGossipHandler[
+	BeaconBlockT BeaconBlock[BeaconBlockT],
+	ReqT encoding.ABCIRequest,
+] struct {
 	NoopGossipHandler[BeaconBlockT, []byte]
 	chainSpec common.ChainSpec
 }
 
-func NewNoopBlockGossipHandler[BeaconBlockT interface {
-	constraints.SSZMarshallable
-	NewFromSSZ([]byte, uint32) (BeaconBlockT, error)
-}, ReqT encoding.ABCIRequest](
+func NewNoopBlockGossipHandler[
+	BeaconBlockT BeaconBlock[BeaconBlockT],
+	ReqT encoding.ABCIRequest,
+](
 	chainSpec common.ChainSpec,
 ) NoopBlockGossipHandler[BeaconBlockT, ReqT] {
 	return NoopBlockGossipHandler[BeaconBlockT, ReqT]{

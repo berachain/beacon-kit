@@ -22,10 +22,8 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 )
 
@@ -47,18 +45,18 @@ func ProvideStateProcessor(
 		*BeaconBlock,
 		*BeaconBlockBody,
 		*BeaconBlockHeader,
-		BeaconState,
-		*BlobSidecars,
-		*transition.Context,
+		*BeaconState,
+		*Context,
 		*Deposit,
-		*types.Eth1Data,
+		*Eth1Data,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
-		*types.Fork,
-		*types.ForkData,
-		*types.Validator,
+		*Fork,
+		*ForkData,
+		*KVStore,
+		*Validator,
 		*Withdrawal,
-		types.WithdrawalCredentials,
+		WithdrawalCredentials,
 	](
 		in.ChainSpec,
 		in.ExecutionEngine,

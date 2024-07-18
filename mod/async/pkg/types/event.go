@@ -54,7 +54,7 @@ func NewEvent[
 	}
 }
 
-// Name returns the name of the event.
+// Type returns the type of the event.
 func (e Event[DataT]) Type() EventID {
 	return e.eventType
 }
@@ -64,7 +64,7 @@ func (e Event[DataT]) Context() context.Context {
 	return e.ctx
 }
 
-// Event returns the beacon event.
+// Data returns the data associated with the event.
 func (e Event[DataT]) Data() DataT {
 	return e.data
 }

@@ -25,9 +25,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
@@ -40,20 +38,10 @@ type BeaconBlock[T any] interface {
 	NewFromSSZ([]byte, uint32) (T, error)
 }
 
-// BeaconState is an interface for accessing the beacon state.
-type BeaconState interface {
-	// ValidatorIndexByPubkey returns the validator index for the given pubkey.
-	ValidatorIndexByPubkey(
-		pubkey crypto.BLSPubkey,
-	) (math.ValidatorIndex, error)
-	// GetBlockRootAtIndex returns the block root at the given index.
-	GetBlockRootAtIndex(
-		index uint64,
-	) (common.Root, error)
-	// ValidatorIndexByCometBFTAddress returns the validator index for the given
-	ValidatorIndexByCometBFTAddress(
-		cometBFTAddress []byte,
-	) (math.ValidatorIndex, error)
+// TelemetrySink is an interface for sending metrics to a telemetry backend.
+type TelemetrySink interface {
+	// MeasureSince measures the time since the given time.
+	MeasureSince(key string, start time.Time, args ...string)
 }
 
 // BlockchainService defines the interface for interacting with the blockchain
@@ -84,39 +72,7 @@ type BlockchainService[
 	) error
 }
 
-// DAService.
-type DAService[
-	BlobSidecarsT any,
-] interface {
-	// ProcessSidecars
-	ProcessSidecars(
-		context.Context,
-		BlobSidecarsT,
-	) error
-	// ReceiveSidecars
-	ReceiveSidecars(
-		_ context.Context,
-		sidecars BlobSidecarsT,
-	) error
-}
-
-// ExecutionPayloadHeader is the interface for the execution data of a block.
-type ExecutionPayloadHeader[T any] interface {
-	NewFromJSON([]byte, uint32) (T, error)
-}
-
 // Genesis is the interface for the genesis data.
 type Genesis interface {
 	json.Unmarshaler
-}
-
-// TelemetrySink is an interface for sending metrics to a telemetry backend.
-type TelemetrySink interface {
-	// MeasureSince measures the time since the given time.
-	MeasureSince(key string, start time.Time, args ...string)
-}
-
-// StorageBackend is an interface for accessing the storage backend.
-type StorageBackend[BeaconStateT any] interface {
-	StateFromContext(ctx context.Context) BeaconStateT
 }

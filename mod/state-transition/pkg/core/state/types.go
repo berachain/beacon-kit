@@ -21,6 +21,7 @@
 package state
 
 import (
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -73,9 +74,19 @@ type Validator[WithdrawalCredentialsT WithdrawalCredentials] interface {
 	IsPartiallyWithdrawable(amount1 math.Gwei, amount2 math.Gwei) bool
 }
 
+// Withdrawal represents an interface for a withdrawal.
+type Withdrawal[T any] interface {
+	New(
+		index math.U64,
+		validator math.ValidatorIndex,
+		address gethprimitives.ExecutionAddress,
+		amount math.Gwei,
+	) T
+}
+
 // WithdrawalCredentials represents an interface for withdrawal credentials.
 type WithdrawalCredentials interface {
 	// ToExecutionAddress converts the withdrawal credentials to an execution
 	// address.
-	ToExecutionAddress() (common.ExecutionAddress, error)
+	ToExecutionAddress() (gethprimitives.ExecutionAddress, error)
 }

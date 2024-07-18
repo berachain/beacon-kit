@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit/build/tools
 
-go 1.22.4
+go 1.22.5
 
 // staticcheck fix
 replace honnef.co/go/tools v0.2.1 => github.com/honnef/go-tools v0.5.0-0.dev.0.20240621230735-3fe6ed0ecdfe
@@ -9,8 +9,8 @@ require (
 	github.com/bazelbuild/buildtools v0.0.0-20240606140350-80f1f6802857
 	github.com/bufbuild/buf v1.34.0
 	github.com/cosmos/gosec/v2 v2.0.0-20230124142343-bf28a33fadf2
-	github.com/ethereum/go-ethereum v1.14.5
-	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1
+	github.com/ethereum/go-ethereum v1.14.6
+	github.com/ferranbt/fastssz v0.1.4-0.20240629094022-eac385e6ee79
 	github.com/fjl/gencodec v0.0.0-20230517082657-f9840df7b83e
 	github.com/golangci/golangci-lint v1.59.1
 	github.com/google/addlicense v1.1.1
@@ -70,6 +70,7 @@ require (
 	github.com/butuzov/mirror v1.2.0 // indirect
 	github.com/catenacyber/perfsprint v0.7.1 // indirect
 	github.com/ccojocar/zxcvbn-go v1.0.2 // indirect
+	github.com/cespare/cp v1.1.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charithe/durationcheck v0.0.10 // indirect
 	github.com/chavacava/garif v0.1.0 // indirect
@@ -131,7 +132,7 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.0.0 // indirect
 	github.com/go-xmlfmt/xmlfmt v1.1.2 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
-	github.com/gofrs/flock v0.8.1 // indirect
+	github.com/gofrs/flock v0.12.0 // indirect
 	github.com/gofrs/uuid/v5 v5.2.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
@@ -215,6 +216,7 @@ require (
 	github.com/moby/term v0.5.0 // indirect
 	github.com/moricho/tparallel v0.3.1 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
+	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/nakabonne/nestif v0.3.1 // indirect
 	github.com/nbutton23/zxcvbn-go v0.0.0-20210217022336-fa2cb2858354 // indirect
 	github.com/nishanths/exhaustive v0.12.0 // indirect
@@ -233,7 +235,7 @@ require (
 	github.com/polyfloyd/go-errorlint v1.5.2 // indirect
 	github.com/prometheus/client_golang v1.19.1 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
-	github.com/prometheus/common v0.54.0 // indirect
+	github.com/prometheus/common v0.55.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/quasilyte/go-ruleguard v0.4.2 // indirect
 	github.com/quasilyte/go-ruleguard/dsl v0.3.22 // indirect
@@ -313,14 +315,14 @@ require (
 	go.uber.org/automaxprocs v1.5.3 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
-	golang.org/x/crypto v0.24.0 // indirect
+	golang.org/x/crypto v0.25.0 // indirect
 	golang.org/x/exp v0.0.0-20240613232115-7f521ea00fb8 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20240613232115-7f521ea00fb8 // indirect
 	golang.org/x/mod v0.18.0 // indirect
 	golang.org/x/net v0.26.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/sys v0.21.0 // indirect
-	golang.org/x/term v0.21.0 // indirect
+	golang.org/x/sys v0.22.0 // indirect
+	golang.org/x/term v0.22.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.22.0 // indirect

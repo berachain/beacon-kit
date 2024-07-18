@@ -20,9 +20,7 @@
 
 package merkle
 
-import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
-)
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 
 // VerifyProof given a tree root, a leaf, the generalized merkle index
 // of the leaf in the tree, and the proof itself.
@@ -63,7 +61,7 @@ func IsValidMerkleBranch[RootT, BranchT ~[32]byte](
 
 // RootFromBranch calculates the Merkle root from a leaf and a branch.
 // Inspired by:
-// https://github.com/sigp/lighthouse/blob/2cd0e609f59391692b4c8e989e26e0dac61ff801/consensus/merkle_proof/src/lib.rs#L357
+// https://github.com/sigp/lighthouse/blob/stable/consensus/merkle_proof/src/lib.rs#L372
 //
 //nolint:lll
 func RootFromBranch[RootT, BranchT ~[32]byte](
@@ -80,14 +78,13 @@ func RootFromBranch[RootT, BranchT ~[32]byte](
 
 	//nolint:mnd // 5 as defined by the library.
 	if depth > 5 {
-		hashFn = sha256.CustomSHA256Hasher()
+		hashFn = sha256.CustomHashFn()
 	} else {
-		hashFn = sha256.Sum256
+		hashFn = sha256.Hash
 	}
 
 	for i := range depth {
-		//nolint:mnd // from spec.
-		ithBit := (index >> i) & 0x01
+		ithBit := (index >> i) & 1
 		if ithBit == 1 {
 			copy(hashInput[:32], branch[i][:])
 			copy(hashInput[32:], merkleRoot[:])

@@ -40,12 +40,14 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
 
+// NodeBuilder is a construction helper for creating nodes that implement
+// the types.NodeI interface.
 // TODO: #Make nodebuilder build a node. Currently this is just a builder for
 // the AppCreator function, which is eventually called by cosmos to build a
 // node.
 type NodeBuilder[NodeT types.Node] struct {
 	node NodeT
-	// depinjectCfg holds is an extendable config container used by the
+	// depInjectCfg holds is an extendable config container used by the
 	// depinject framework.
 	depInjectCfg depinject.Config
 	// components is a list of components to provide.

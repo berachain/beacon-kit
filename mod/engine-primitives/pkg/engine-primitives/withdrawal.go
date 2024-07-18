@@ -21,7 +21,9 @@
 package engineprimitives
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -35,9 +37,23 @@ type Withdrawal struct {
 	Validator math.ValidatorIndex `json:"validatorIndex"`
 	// Address is the execution address where the withdrawal will be sent.
 	// It has a fixed size of 20 bytes.
-	Address common.ExecutionAddress `json:"address"        ssz-size:"20"`
+	Address gethprimitives.ExecutionAddress `json:"address"        ssz-size:"20"`
 	// Amount is the amount of Gwei to be withdrawn.
 	Amount math.Gwei `json:"amount"`
+}
+
+func (w *Withdrawal) New(
+	index math.U64,
+	validator math.ValidatorIndex,
+	address gethprimitives.ExecutionAddress,
+	amount math.Gwei,
+) *Withdrawal {
+	return &Withdrawal{
+		Index:     index,
+		Validator: validator,
+		Address:   address,
+		Amount:    amount,
+	}
 }
 
 // Equals returns true if the Withdrawal is equal to the other.
@@ -60,7 +76,7 @@ func (w *Withdrawal) GetValidatorIndex() math.ValidatorIndex {
 }
 
 // GetAddress returns the execution address where the withdrawal will be sent.
-func (w *Withdrawal) GetAddress() common.ExecutionAddress {
+func (w *Withdrawal) GetAddress() gethprimitives.ExecutionAddress {
 	return w.Address
 }
 
@@ -69,16 +85,23 @@ func (w *Withdrawal) GetAmount() math.Gwei {
 	return w.Amount
 }
 
-// NewFromSSZ returns a new Withdrawal from the provided SSZ bytes.
-func (Withdrawal) NewFromSSZ(bytes []byte) (*Withdrawal, error) {
-	w := new(Withdrawal)
-	if err := w.UnmarshalSSZ(bytes); err != nil {
-		return nil, err
-	}
-	return w, nil
+// IsFixed returns true if the Withdrawal is fixed size.
+func (*Withdrawal) IsFixed() bool {
+	return true
 }
 
-// IsFixed returns true if the Withdrawal is fixed size.
-func (Withdrawal) IsFixed() bool {
-	return true
+// Type returns the type of the Withdrawal.
+func (*Withdrawal) Type() schema.SSZType {
+	return schema.DefineContainer(
+		schema.NewField("index", schema.U64()),
+		schema.NewField("validator_index", schema.U64()),
+		schema.NewField("address", schema.B20()),
+		schema.NewField("amount", schema.U64()),
+	)
+}
+
+// ItemLength returns the required bytes to represent the root
+// element of the Withdrawal.
+func (*Withdrawal) ItemLength() uint64 {
+	return constants.RootLength
 }

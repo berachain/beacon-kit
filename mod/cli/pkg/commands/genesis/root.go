@@ -27,8 +27,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
@@ -82,11 +82,10 @@ func GetGenesisValidatorRootCmd(cs common.ChainSpec) *cobra.Command {
 				)
 			}
 
-			merkleizer := merkleizer.New[
-				common.ChainSpec, [32]byte, *types.Validator,
-			]()
 			var validatorsRoot common.Root
-			validatorsRoot, err = merkleizer.MerkleizeListComposite(
+			validatorsRoot, err = merkle.NewMerkleizer[
+				[32]byte, *types.Validator,
+			]().MerkleizeListComposite(
 				validators, uint64(len(validators)),
 			)
 			if err != nil {

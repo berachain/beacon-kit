@@ -21,8 +21,8 @@
 package common
 
 import (
+	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/chain"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 

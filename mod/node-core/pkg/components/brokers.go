@@ -53,7 +53,7 @@ func ProvideSlotBroker() *SlotBroker {
 }
 
 // ProvideStatusBroker provides a status feed.
-func ProvideStatusBroker() *broker.Broker[*StatusEvent] {
+func ProvideStatusBroker() *StatusBroker {
 	return broker.New[*StatusEvent](
 		"status-broker",
 	)

@@ -21,6 +21,7 @@
 package types
 
 import (
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -40,7 +41,7 @@ type WriteOnlyBeaconBlockBody interface {
 	SetDeposits([]*Deposit)
 	SetEth1Data(*Eth1Data)
 	SetExecutionData(*ExecutionPayload) error
-	SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
+	SetBlobKzgCommitments(eip4844.KZGCommitments[gethprimitives.ExecutionHash])
 	SetRandaoReveal(crypto.BLSSignature)
 	SetGraffiti(common.Bytes32)
 }
@@ -57,7 +58,7 @@ type ReadOnlyBeaconBlockBody interface {
 	GetGraffiti() common.Bytes32
 	GetRandaoReveal() crypto.BLSSignature
 	GetExecutionPayload() *ExecutionPayload
-	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
+	GetBlobKzgCommitments() eip4844.KZGCommitments[gethprimitives.ExecutionHash]
 	GetTopLevelRoots() ([][32]byte, error)
 }
 
@@ -82,15 +83,15 @@ type executionPayloadBody interface {
 	IsNil() bool
 	Version() uint32
 	GetPrevRandao() common.Bytes32
-	GetBlockHash() common.ExecutionHash
-	GetParentHash() common.ExecutionHash
+	GetBlockHash() gethprimitives.ExecutionHash
+	GetParentHash() gethprimitives.ExecutionHash
 	GetNumber() math.U64
 	GetGasLimit() math.U64
 	GetGasUsed() math.U64
 	GetTimestamp() math.U64
 	GetExtraData() []byte
 	GetBaseFeePerGas() math.Wei
-	GetFeeRecipient() common.ExecutionAddress
+	GetFeeRecipient() gethprimitives.ExecutionAddress
 	GetStateRoot() common.Bytes32
 	GetReceiptsRoot() common.Bytes32
 	GetLogsBloom() []byte

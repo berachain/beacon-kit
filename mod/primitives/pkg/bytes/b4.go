@@ -17,32 +17,35 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
-
+//
+//nolint:dupl // it's okay to duplicate the code for different types
 package bytes
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/hex"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 )
 
-// B4 represents a 4-byte array.
-type B4 [4]byte
+const (
+	// B4Size represents a 4-byte size.
+	B4Size = 4
+)
 
-// UnmarshalJSON implements the json.Unmarshaler interface for B4.
-func (h *B4) UnmarshalJSON(input []byte) error {
-	return unmarshalJSONHelper(h[:], input)
-}
+var _ schema.MinimalSSZObject = (*B4)(nil)
+
+// B4 represents a 4-byte fixed-size byte array.
+// For SSZ purposes it is serialized a `Vector[Byte, 4]`.
+type B4 [4]byte
 
 // ToBytes4 is a utility function that transforms a byte slice into a fixed
 // 4-byte array. If the input exceeds 4 bytes, it gets truncated.
 func ToBytes4(input []byte) B4 {
-	//nolint:mnd // 32 bytes.
-	return [4]byte(ExtendToSize(input, 4))
+	return B4(ExtendToSize(input, B4Size))
 }
 
-// String returns the hex string representation of B4.
-func (h B4) String() string {
-	return hex.FromBytes(h[:]).Unwrap()
-}
+/* -------------------------------------------------------------------------- */
+/*                                TextMarshaler                               */
+/* -------------------------------------------------------------------------- */
 
 // MarshalText implements the encoding.TextMarshaler interface for B4.
 func (h B4) MarshalText() ([]byte, error) {
@@ -52,4 +55,49 @@ func (h B4) MarshalText() ([]byte, error) {
 // UnmarshalText implements the encoding.TextUnmarshaler interface for B4.
 func (h *B4) UnmarshalText(text []byte) error {
 	return UnmarshalTextHelper(h[:], text)
+}
+
+// String returns the hex string representation of B4.
+func (h B4) String() string {
+	return hex.FromBytes(h[:]).Unwrap()
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                JSONMarshaler                               */
+/* -------------------------------------------------------------------------- */
+
+// UnmarshalJSON implements the json.Unmarshaler interface for B4.
+func (h *B4) UnmarshalJSON(input []byte) error {
+	return unmarshalJSONHelper(h[:], input)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                SSZMarshaler                                */
+/* -------------------------------------------------------------------------- */
+
+// SizeSSZ returns the size of its SSZ encoding in bytes.
+func (h B4) SizeSSZ() int {
+	return B4Size
+}
+
+// MarshalSSZ implements the SSZ marshaling for B4.
+func (h B4) MarshalSSZ() ([]byte, error) {
+	return h[:], nil
+}
+
+// IsFixed returns true if the length of the B4 is fixed.
+func (h B4) IsFixed() bool {
+	return true
+}
+
+// Type returns the type of the B4.
+func (h B4) Type() schema.SSZType {
+	return schema.B4()
+}
+
+// HashTreeRoot returns the hash tree root of the B4.
+func (h B4) HashTreeRoot() ([32]byte, error) {
+	var result [32]byte
+	copy(result[:], h[:])
+	return result, nil
 }

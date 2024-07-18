@@ -31,4 +31,6 @@ const (
 	DepositPrunerName = "deposit-store-pruner"
 	// AvailabilityPrunerName is the name of the availability store pruner.
 	AvailabilityPrunerName = "availability-store-pruner"
+	// BlockPrunerName is the name of the block store pruner.
+	BlockPrunerName = "block-store-pruner"
 )

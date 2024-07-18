@@ -23,8 +23,8 @@ package e2e_test
 import (
 	"math/big"
 
-	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
-	byteslib "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/deposit"
 	"github.com/berachain/beacon-kit/testing/e2e/suite"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -93,7 +93,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// Wait for the transaction to be mined.
 	receipt, err := bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
 	s.Require().NoError(err)
-	s.Require().Equal(uint64(1), receipt.Status)
+	s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
 
 	tx, err = dc.AllowDeposit(&bind.TransactOpts{
 		From:   genesisAccount.Address(),
@@ -104,7 +104,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// Wait for the transaction to be mined.
 	receipt, err = bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
 	s.Require().NoError(err)
-	s.Require().Equal(uint64(1), receipt.Status)
+	s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
 
 	// Get the nonce.
 	nonce, err := s.JSONRPCBalancer().NonceAt(
@@ -132,7 +132,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 			)
 			receipt, err = bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
 			s.Require().NoError(err)
-			s.Require().Equal(uint64(1), receipt.Status)
+			s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
 			s.Logger().
 				Info("Deposit transaction mined", "txHash", receipt.TxHash.Hex())
 		}
@@ -204,11 +204,9 @@ func (s *BeaconKitE2ESuite) generateNewDepositTx(
 	s.Require().Len(pubkey, 48)
 
 	// Generate the credentials.
-	credentials := byteslib.PrependExtendToSize(
-		s.GenesisAccount().Address().Bytes(),
-		32,
+	credentials := types.NewCredentialsFromExecutionAddress(
+		s.GenesisAccount().Address(),
 	)
-	credentials[0] = 0x01
 
 	// Generate the signature.
 	signature := [96]byte{}
@@ -221,5 +219,5 @@ func (s *BeaconKitE2ESuite) generateNewDepositTx(
 		Signer:   signer,
 		Nonce:    nonce,
 		GasLimit: 600000,
-	}, pubkey, credentials, 32*suite.OneGwei, signature[:])
+	}, pubkey, credentials[:], 32*suite.OneGwei, signature[:])
 }

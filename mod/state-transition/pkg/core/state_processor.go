@@ -21,13 +21,13 @@
 package core
 
 import (
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/ssz/merkleizer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
@@ -44,26 +44,26 @@ type StateProcessor[
 	],
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT BeaconState[
+		BeaconStateT,
 		BeaconBlockHeaderT, Eth1DataT,
-		ExecutionPayloadHeaderT, ForkT,
+		ExecutionPayloadHeaderT, ForkT, KVStoreT,
 		ValidatorT, WithdrawalT,
 	],
-	BlobSidecarsT BlobSidecars,
 	ContextT Context,
 	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
 	Eth1DataT interface {
-		New(common.Root, math.U64, common.ExecutionHash) Eth1DataT
+		New(common.Root, math.U64, gethprimitives.ExecutionHash) Eth1DataT
 		GetDepositCount() math.U64
 	},
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	],
-
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	ForkT interface {
 		New(common.Version, common.Version, math.Epoch) ForkT
 	},
 	ForkDataT ForkData[ForkDataT],
+	KVStoreT any,
 	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalCredentialsT ~[32]byte,
@@ -77,7 +77,7 @@ type StateProcessor[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	]
 	// txsMerkleizer is the merkleizer used for calculating transaction roots.
-	txsMerkleizer engineprimitives.TxsMerkleizer
+	txsMerkleizer *merkle.Merkleizer[[32]byte, common.Root]
 }
 
 // NewStateProcessor creates a new state processor.
@@ -94,14 +94,13 @@ func NewStateProcessor[
 	],
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT BeaconState[
-		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-		ValidatorT, WithdrawalT,
+		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+		KVStoreT, ValidatorT, WithdrawalT,
 	],
-	BlobSidecarsT BlobSidecars,
 	ContextT Context,
 	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
 	Eth1DataT interface {
-		New(common.Root, math.U64, common.ExecutionHash) Eth1DataT
+		New(common.Root, math.U64, gethprimitives.ExecutionHash) Eth1DataT
 		GetDepositCount() math.U64
 	},
 	ExecutionPayloadT ExecutionPayload[
@@ -112,6 +111,7 @@ func NewStateProcessor[
 		New(common.Version, common.Version, math.Epoch) ForkT
 	},
 	ForkDataT ForkData[ForkDataT],
+	KVStoreT any,
 	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalCredentialsT ~[32]byte,
@@ -123,32 +123,26 @@ func NewStateProcessor[
 	signer crypto.BLSSigner,
 ) *StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	BeaconStateT, ContextT, DepositT, Eth1DataT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, ForkT, ForkDataT, KVStoreT, ValidatorT,
+	WithdrawalT, WithdrawalCredentialsT,
 ] {
 	return &StateProcessor[
 		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-		BeaconStateT, BlobSidecarsT, ContextT,
-		DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-		ForkT, ForkDataT, ValidatorT, WithdrawalT,
-		WithdrawalCredentialsT,
+		BeaconStateT, ContextT, DepositT, Eth1DataT, ExecutionPayloadT,
+		ExecutionPayloadHeaderT, ForkT, ForkDataT, KVStoreT, ValidatorT,
+		WithdrawalT, WithdrawalCredentialsT,
 	]{
 		cs:              cs,
 		executionEngine: executionEngine,
 		signer:          signer,
-		txsMerkleizer: merkleizer.New[
-			common.ChainSpec, [32]byte, common.Root,
-		](),
+		txsMerkleizer:   merkle.NewMerkleizer[[32]byte, common.Root](),
 	}
 }
 
 // Transition is the main function for processing a state transition.
 func (sp *StateProcessor[
-	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	BeaconStateT, BlobSidecarsT, ContextT,
-	DepositT, Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	ForkT, ForkDataT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	BeaconBlockT, _, _, BeaconStateT, ContextT, _, _, _, _, _, _, _, _, _, _,
 ]) Transition(
 	ctx ContextT,
 	st BeaconStateT,
@@ -278,7 +272,7 @@ func (sp *StateProcessor[
 // ProcessBlock processes the block, it optionally verifies the
 // state root.
 func (sp *StateProcessor[
-	BeaconBlockT, _, _, BeaconStateT, _, ContextT, _, _, _, _, _, _, _, _, _,
+	BeaconBlockT, _, _, BeaconStateT, ContextT, _, _, _, _, _, _, _, _, _, _,
 ]) ProcessBlock(
 	ctx ContextT,
 	st BeaconStateT,

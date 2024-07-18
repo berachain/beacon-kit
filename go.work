@@ -1,10 +1,11 @@
-go 1.22.4
+go 1.22.5
 
 use (
 	./beacond
 	./build/tools
 	./mod/async
 	./mod/beacon
+	./mod/chain-spec
 	./mod/cli
 	./mod/config
 	./mod/consensus
@@ -13,6 +14,7 @@ use (
 	./mod/engine-primitives
 	./mod/errors
 	./mod/execution
+	./mod/geth-primitives
 	./mod/log
 	./mod/node-api
 	./mod/node-core

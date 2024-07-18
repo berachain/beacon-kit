@@ -21,6 +21,7 @@
 package engine
 
 import (
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -30,15 +31,15 @@ import (
 type ExecutionPayload[ExecutionPayloadT, WithdrawalT any] interface {
 	constraints.EngineType[ExecutionPayloadT]
 	GetPrevRandao() common.Bytes32
-	GetBlockHash() common.ExecutionHash
-	GetParentHash() common.ExecutionHash
+	GetBlockHash() gethprimitives.ExecutionHash
+	GetParentHash() gethprimitives.ExecutionHash
 	GetNumber() math.U64
 	GetGasLimit() math.U64
 	GetGasUsed() math.U64
 	GetTimestamp() math.U64
 	GetExtraData() []byte
 	GetBaseFeePerGas() math.Wei
-	GetFeeRecipient() common.ExecutionAddress
+	GetFeeRecipient() gethprimitives.ExecutionAddress
 	GetStateRoot() common.Bytes32
 	GetReceiptsRoot() common.Bytes32
 	GetLogsBloom() []byte
@@ -53,15 +54,10 @@ type TelemetrySink interface {
 	// IncrementCounter increments a counter metric identified by the provided
 	// keys.
 	IncrementCounter(key string, args ...string)
-	// SetGauge sets a gauge metric to the specified value, identified by the
-	// provided keys.
-	SetGauge(key string, value int64, args ...string)
 }
 
 // Withdrawal is the interface for a withdrawal.
 type Withdrawal[WithdrawalT any] interface {
-	// Equals returns true if the withdrawal is equal to the other.
-	Equals(WithdrawalT) bool
 	// GetAmount returns the amount of the withdrawal.
 	GetAmount() math.Gwei
 	// GetIndex returns the public key of the validator.
@@ -69,5 +65,5 @@ type Withdrawal[WithdrawalT any] interface {
 	// GetValidatorIndex returns the index of the validator.
 	GetValidatorIndex() math.ValidatorIndex
 	// GetAddress returns the address of the withdrawal.
-	GetAddress() common.ExecutionAddress
+	GetAddress() gethprimitives.ExecutionAddress
 }
