@@ -26,7 +26,7 @@ import (
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
+	dastore "github.com/berachain/beacon-kit/mod/node-storage/pkg/da"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"

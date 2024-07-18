@@ -21,7 +21,6 @@
 package config
 
 import (
-	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/config/pkg/template"
 	viperlib "github.com/berachain/beacon-kit/mod/config/pkg/viper"
@@ -29,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	log "github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
+	blockstore "github.com/berachain/beacon-kit/mod/node-storage/pkg/block"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"

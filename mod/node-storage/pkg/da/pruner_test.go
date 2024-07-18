@@ -24,8 +24,8 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
-	"github.com/berachain/beacon-kit/mod/da/pkg/store"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	store "github.com/berachain/beacon-kit/mod/node-storage/pkg/da"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/require"

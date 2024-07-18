@@ -18,6 +18,7 @@ use (
 	./mod/log
 	./mod/node-api
 	./mod/node-core
+	./mod/node-storage
 	./mod/p2p
 	./mod/payload
 	./mod/primitives

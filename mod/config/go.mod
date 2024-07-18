@@ -2,32 +2,32 @@ module github.com/berachain/beacon-kit/mod/config
 
 go 1.22.5
 
+replace github.com/berachain/beacon-kit/mod/node-storage => ../node-storage
+
 require (
-	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240718074353-1a991cfeed63
-	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/da v0.0.0-20240610210054-bfdc14c4013c
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df
+	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240718150252-43c5fccdbee0
+	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240718150252-43c5fccdbee0
+	github.com/berachain/beacon-kit/mod/da v0.0.0-20240718150252-43c5fccdbee0
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240718150252-43c5fccdbee0
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240624003607-df94860f8eeb
-	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/log v0.0.0-20240624033454-8f3451361f44
+	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240718150252-43c5fccdbee0
+	github.com/berachain/beacon-kit/mod/log v0.0.0-20240718150252-43c5fccdbee0
+	github.com/berachain/beacon-kit/mod/node-storage v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240624003607-df94860f8eeb
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240710021622-37e8e3e7e155
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240718150252-43c5fccdbee0
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240705183350-8b262bdd1d36
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/spf13/viper v1.19.0
 )
 
 require (
-	cosmossdk.io/collections v0.4.0 // indirect
-	cosmossdk.io/core v0.12.1-0.20240623110059-dec2d5583e39 // indirect
 	github.com/DataDog/zstd v1.5.5 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/VictoriaMetrics/fastcache v1.12.2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/berachain/beacon-kit/mod/async v0.0.0-20240624003607-df94860f8eeb // indirect
+	github.com/berachain/beacon-kit/mod/async v0.0.0-20240718150252-43c5fccdbee0 // indirect
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240710022615-726645827bad // indirect
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240710022615-726645827bad // indirect
-	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240718074353-1a991cfeed63 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
