@@ -8,7 +8,7 @@ replace (
 	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240623110059-dec2d5583e39
 	github.com/berachain/beacon-kit/mod/beacon => ../beacon
 	github.com/berachain/beacon-kit/mod/config => ../config
-	github.com/berachain/beacon-kit/mod/consensus => ../consensus
+	github.com/berachain/beacon-kit/mod/node-api => ../node-api
 	github.com/berachain/beacon-kit/mod/storage => ../storage
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240624014538-75ba469b1881
 )
@@ -35,7 +35,7 @@ require (
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240710022448-e56f337d051f
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240717210058-a144e074f6b2
-	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240710023256-e9246f6a35e1
+	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6650da31
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240705193247-d464364483df
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240705183350-8b262bdd1d36
 	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240702102754-c4fa9a6225b0
@@ -65,7 +65,6 @@ require (
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/phuslu/log v1.0.108-0.20240705160716-a8f8c12ae6c6 // indirect
-	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	golang.org/x/time v0.5.0 // indirect

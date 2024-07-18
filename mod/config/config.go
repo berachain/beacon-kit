@@ -21,7 +21,7 @@
 package config
 
 import (
-	"github.com/berachain/beacon-kit/mod/beacon/block"
+	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/config/pkg/template"
 	viperlib "github.com/berachain/beacon-kit/mod/config/pkg/viper"
@@ -43,12 +43,12 @@ type AppOptions interface {
 // DefaultConfig returns the default configuration for a BeaconKit chain.
 func DefaultConfig() *Config {
 	return &Config{
-		Engine:         engineclient.DefaultConfig(),
-		Logger:         log.DefaultConfig(),
-		KZG:            kzg.DefaultConfig(),
-		PayloadBuilder: builder.DefaultConfig(),
-		Validator:      validator.DefaultConfig(),
-		BlockService:   block.DefaultConfig(),
+		Engine:            engineclient.DefaultConfig(),
+		Logger:            log.DefaultConfig(),
+		KZG:               kzg.DefaultConfig(),
+		PayloadBuilder:    builder.DefaultConfig(),
+		Validator:         validator.DefaultConfig(),
+		BlockStoreService: blockstore.DefaultConfig(),
 		NodeAPI:        server.DefaultConfig(),
 	}
 }
@@ -65,8 +65,8 @@ type Config struct {
 	PayloadBuilder builder.Config `mapstructure:"payload-builder"`
 	// Validator is the configuration for the validator client.
 	Validator validator.Config `mapstructure:"validator"`
-	// BlockService is the configuration for the block service.
-	BlockService block.Config `mapstructure:"block-service"`
+	// BlockStoreService is the configuration for the block store service.
+	BlockStoreService blockstore.Config `mapstructure:"block-store-service"`
 	// NodeAPI is the configuration for the node API.
 	NodeAPI server.Config `mapstructure:"node-api"`
 }

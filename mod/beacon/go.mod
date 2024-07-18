@@ -15,7 +15,6 @@ require (
 
 replace (
 	github.com/berachain/beacon-kit/mod/engine-primitives => ../engine-primitives
-	github.com/berachain/beacon-kit/mod/primitives => ../primitives
 	github.com/berachain/beacon-kit/mod/storage => ../storage
 )
 

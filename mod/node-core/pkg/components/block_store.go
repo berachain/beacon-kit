@@ -24,7 +24,7 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	storev2 "cosmossdk.io/store/v2/db"
-	blockservice "github.com/berachain/beacon-kit/mod/beacon/block"
+	blockservice "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/block"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
@@ -91,6 +91,6 @@ func ProvideBlockPruner(
 		blockservice.BuildPruneRangeFn[
 			*BeaconBlock,
 			*BlockEvent,
-		](in.Config.BlockService),
+		](in.Config.BlockStoreService),
 	), nil
 }

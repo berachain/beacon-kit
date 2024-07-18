@@ -18,27 +18,16 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package block
+package blockstore
 
-const (
-	DefaultAvailabilityWindow = 1000
-)
+import "context"
 
-// Config is the configuration for the block service.
-type Config struct {
-	// Enabled enables the block service.
-	Enabled bool `mapstructure:"enabled"`
-	// PrunerEnabled enables the block pruner.
-	PrunerEnabled bool `mapstructure:"pruner-enabled"`
-	// AvailabilityWindow is the number of slots to keep in the store.
-	AvailabilityWindow uint64 `mapstructure:"availability-window"`
-}
-
-// DefaultConfig returns the default configuration for the block service.
-func DefaultConfig() Config {
-	return Config{
-		Enabled:            false,
-		PrunerEnabled:      false,
-		AvailabilityWindow: DefaultAvailabilityWindow,
-	}
+// Service is the interface for a block service.
+type Service[BeaconBlockT BeaconBlock] interface {
+	// annoying required method to satisfy depinject
+	IsBlockService()
+	// Name returns the name of the service.
+	Name() string
+	// Start starts the service.
+	Start(ctx context.Context) error
 }

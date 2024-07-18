@@ -22,7 +22,7 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/beacon/block"
+	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
 )
@@ -37,10 +37,10 @@ type BlockServiceInput struct {
 	BlockStore  *BlockStore
 }
 
-// ProvideBlockService provides the block service.
-func ProvideBlockService(in BlockServiceInput) BlockService {
-	return block.NewService(
-		in.Config.BlockService,
+// ProvideBlockStoreService provides the block service.
+func ProvideBlockStoreService(in BlockServiceInput) BlockStoreService {
+	return blockstore.NewService(
+		in.Config.BlockStoreService,
 		in.Logger,
 		in.BlockBroker,
 		in.BlockStore,
