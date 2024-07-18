@@ -32,6 +32,7 @@ func NewBackend[
 	Eth1DataT,
 	ExecutionPayloadHeaderT,
 	ForkT any,
+	NodeT nodetypes.Node,
 	StateStoreT state.KVStore[
 		StateStoreT, BeaconBlockHeaderT, Eth1DataT,
 		ExecutionPayloadHeaderT, ForkT, ValidatorT,
@@ -40,7 +41,7 @@ func NewBackend[
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalCredentialsT WithdrawalCredentials,
 ](
-	node nodetypes.Node,
+	node NodeT,
 	sb *storage.Backend[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 		BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BlockStoreT,
@@ -50,14 +51,14 @@ func NewBackend[
 ) Backend[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, BlockStoreT, DepositT, DepositStoreT,
-	Eth1DataT, ExecutionPayloadHeaderT, ForkT, StateStoreT, ValidatorT,
+	Eth1DataT, ExecutionPayloadHeaderT, ForkT, NodeT, StateStoreT, ValidatorT,
 	WithdrawalT, WithdrawalCredentialsT,
 ] {
 	return &backend[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 		BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BlockStoreT,
 		DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-		StateStoreT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+		NodeT, StateStoreT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 	]{
 		node:    node,
 		Backend: sb,
@@ -86,6 +87,7 @@ type backend[
 	Eth1DataT,
 	ExecutionPayloadHeaderT,
 	ForkT any,
+	NodeT nodetypes.Node,
 	StateStoreT state.KVStore[
 		StateStoreT, BeaconBlockHeaderT, Eth1DataT,
 		ExecutionPayloadHeaderT, ForkT, ValidatorT,
@@ -94,7 +96,7 @@ type backend[
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalCredentialsT WithdrawalCredentials,
 ] struct {
-	node nodetypes.Node
+	node NodeT
 	*storage.Backend[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 		BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BlockStoreT,
@@ -103,11 +105,17 @@ type backend[
 	]
 }
 
+func (b *backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, NodeT, _, _, _, _,
+]) AttachNode(node NodeT) {
+	b.node = node
+}
+
 // StateFromContext returns a state from the context.
 // It wraps the StorageBackend.StateFromContext method to allow for state ID
 // querying.
 func (b *backend[
-	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) StateFromContext(
 	ctx context.Context,
 	stateID string,

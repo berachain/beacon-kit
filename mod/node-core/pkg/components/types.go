@@ -41,6 +41,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/server"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
+	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -246,6 +247,7 @@ type (
 		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
+		nodetypes.Node,
 		*KVStore,
 		*Validator,
 		*Withdrawal,
@@ -253,7 +255,10 @@ type (
 	]
 
 	// NodeAPIServer is a type alias for the node API server.
-	NodeAPIServer = server.Server
+	NodeAPIServer = server.Server[
+		nodetypes.Node,
+		*Validator,
+	]
 
 	// PayloadAttributes is a type alias for the payload attributes.
 	PayloadAttributes = engineprimitives.PayloadAttributes[*Withdrawal]

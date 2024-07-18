@@ -18,39 +18,18 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package handlers
+package utils
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/berachain/beacon-kit/mod/node-api/server/types"
-	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )
 
-type CustomValidator struct {
-	Validator *validator.Validate
-}
-
-func (cv *CustomValidator) Validate(i interface{}) error {
-	if err := cv.Validator.Struct(i); err != nil {
-		var validationErrors validator.ValidationErrors
-		hasValidationErrors := errors.As(err, &validationErrors)
-		if !hasValidationErrors || len(validationErrors) == 0 {
-			return nil
-		}
-		firstError := validationErrors[0]
-		field := firstError.Field()
-		value := firstError.Value()
-		return echo.NewHTTPError(http.StatusBadRequest,
-			fmt.Sprintf("Invalid %s: %s", field, value))
-	}
-	return nil
-}
-
-func CustomHTTPErrorHandler(err error, c echo.Context) {
+// HTTPErrorHandler is a custom HTTP error handler for the API.
+func HTTPErrorHandler(err error, c echo.Context) {
 	code := http.StatusInternalServerError
 	var message any = http.StatusText(code)
 	httpError := &echo.HTTPError{}
@@ -68,6 +47,7 @@ func CustomHTTPErrorHandler(err error, c echo.Context) {
 	}
 }
 
+// BindAndValidate binds the request to the given type and validates the request.
 func BindAndValidate[T any](c echo.Context) (*T, error) {
 	t := new(T)
 	if err := c.Bind(t); err != nil {
@@ -79,6 +59,14 @@ func BindAndValidate[T any](c echo.Context) (*T, error) {
 	return t, nil
 }
 
+// WrapData wraps the given data in a DataResponse.
 func WrapData(nested any) types.DataResponse {
 	return types.DataResponse{Data: nested}
+}
+
+// UseMiddlewares adds middlewares to the echo instance.
+func UseMiddlewares(e *echo.Echo, middlewares ...echo.MiddlewareFunc) {
+	for _, middleware := range middlewares {
+		e.Use(middleware)
+	}
 }

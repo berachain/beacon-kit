@@ -18,27 +18,38 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package backend
+package beacon
 
 import (
 	"context"
+	"net/http"
 
-	"github.com/berachain/beacon-kit/mod/node-api/server/types"
+	types "github.com/berachain/beacon-kit/mod/node-api/server/types"
+	"github.com/berachain/beacon-kit/mod/node-api/server/utils"
+	echo "github.com/labstack/echo/v4"
 )
 
-// TODO: Implement this.
-func (h Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) GetBlockRewards(
-	_ context.Context,
-	_ string,
-) (*types.BlockRewardsData, error) {
-	return &types.BlockRewardsData{
-		ProposerIndex:     1,
-		Total:             1,
-		Attestations:      1,
-		SyncAggregate:     1,
-		ProposerSlashings: 1,
-		AttesterSlashings: 1,
-	}, nil
+func (h Handler[_]) GetStateRoot(c echo.Context) error {
+	params, err := utils.BindAndValidate[types.StateIDRequest](c)
+	if err != nil {
+		return err
+	}
+	if params == nil {
+		return echo.ErrInternalServerError
+	}
+	stateRoot, err := h.backend.GetStateRoot(
+		context.TODO(),
+		params.StateID,
+	)
+	if err != nil {
+		return err
+	}
+	if len(stateRoot) == 0 {
+		return echo.NewHTTPError(http.StatusNotFound, "State not found")
+	}
+	return c.JSON(http.StatusOK, types.ValidatorResponse{
+		ExecutionOptimistic: false, // stubbed
+		Finalized:           false, // stubbed
+		Data:                utils.WrapData(types.RootData{Root: stateRoot}),
+	})
 }

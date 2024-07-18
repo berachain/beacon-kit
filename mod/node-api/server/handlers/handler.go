@@ -21,13 +21,30 @@
 package handlers
 
 import (
+	"github.com/berachain/beacon-kit/mod/node-api/server/handlers/beacon"
+	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/labstack/echo/v4"
 )
 
-type RouteHandlers[ValidatorT any] struct {
-	Backend BackendHandlers[ValidatorT]
+// RouteHandlers is the interface for the route handlers.
+type RouteHandlers[
+	ValidatorT any,
+] struct {
+	beacon.Handler[ValidatorT]
 }
 
-func (rh RouteHandlers[ValidatorT]) NotImplemented(_ echo.Context) error {
+// New creates a new route handlers.
+func New[
+	NodeT nodetypes.Node,
+	ValidatorT any,
+](
+	backend Backend[NodeT, ValidatorT],
+) RouteHandlers[ValidatorT] {
+	return RouteHandlers[ValidatorT]{
+		beacon.NewHandler(backend),
+	}
+}
+
+func (rh RouteHandlers[_]) NotImplemented(_ echo.Context) error {
 	return echo.ErrNotImplemented
 }

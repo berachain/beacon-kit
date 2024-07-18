@@ -1,15 +1,16 @@
-package handlers
+package beacon
 
 import (
 	"context"
 	"net/http"
 
 	types "github.com/berachain/beacon-kit/mod/node-api/server/types"
+	"github.com/berachain/beacon-kit/mod/node-api/server/utils"
 	echo "github.com/labstack/echo/v4"
 )
 
-func (rh RouteHandlers[_]) GetStateValidators(c echo.Context) error {
-	params, err := BindAndValidate[types.StateValidatorsGetRequest](c)
+func (h Handler[_]) GetStateValidators(c echo.Context) error {
+	params, err := utils.BindAndValidate[types.StateValidatorsGetRequest](c)
 	if err != nil {
 		return err
 	}
@@ -19,7 +20,7 @@ func (rh RouteHandlers[_]) GetStateValidators(c echo.Context) error {
 	if len(params.Status) > 0 {
 		return echo.ErrNotImplemented
 	}
-	validators, err := rh.Backend.GetStateValidators(
+	validators, err := h.backend.GetStateValidators(
 		context.TODO(),
 		params.StateID,
 		params.ID,
@@ -37,15 +38,15 @@ func (rh RouteHandlers[_]) GetStateValidators(c echo.Context) error {
 		Data:                validators})
 }
 
-func (rh RouteHandlers[_]) PostStateValidators(c echo.Context) error {
-	params, err := BindAndValidate[types.StateValidatorsPostRequest](c)
+func (h Handler[_]) PostStateValidators(c echo.Context) error {
+	params, err := utils.BindAndValidate[types.StateValidatorsPostRequest](c)
 	if err != nil {
 		return err
 	}
 	if params == nil {
 		return echo.ErrInternalServerError
 	}
-	validators, err := rh.Backend.GetStateValidators(
+	validators, err := h.backend.GetStateValidators(
 		context.TODO(),
 		params.StateID,
 		params.IDs,
@@ -60,15 +61,15 @@ func (rh RouteHandlers[_]) PostStateValidators(c echo.Context) error {
 		Data:                validators})
 }
 
-func (rh RouteHandlers[_]) GetStateValidatorBalances(c echo.Context) error {
-	params, err := BindAndValidate[types.ValidatorBalancesGetRequest](c)
+func (h Handler[_]) GetStateValidatorBalances(c echo.Context) error {
+	params, err := utils.BindAndValidate[types.ValidatorBalancesGetRequest](c)
 	if err != nil {
 		return err
 	}
 	if params == nil {
 		return echo.ErrInternalServerError
 	}
-	balances, err := rh.Backend.GetStateValidatorBalances(
+	balances, err := h.backend.GetStateValidatorBalances(
 		context.TODO(),
 		params.StateID,
 		params.ID,
@@ -83,7 +84,7 @@ func (rh RouteHandlers[_]) GetStateValidatorBalances(c echo.Context) error {
 	})
 }
 
-func (rh RouteHandlers[_]) PostStateValidatorBalances(c echo.Context) error {
+func (h Handler[_]) PostStateValidatorBalances(c echo.Context) error {
 	params := &types.ValidatorBalancesPostRequest{}
 	if err := (&echo.DefaultBinder{}).BindBody(c, &params.IDs); err != nil {
 		return err
@@ -97,7 +98,7 @@ func (rh RouteHandlers[_]) PostStateValidatorBalances(c echo.Context) error {
 	if err := c.Validate(params); err != nil {
 		return err
 	}
-	balances, err := rh.Backend.GetStateValidatorBalances(
+	balances, err := h.backend.GetStateValidatorBalances(
 		context.TODO(),
 		params.StateID,
 		params.IDs,
@@ -112,15 +113,15 @@ func (rh RouteHandlers[_]) PostStateValidatorBalances(c echo.Context) error {
 	})
 }
 
-func (rh RouteHandlers[_]) GetBlockRewards(c echo.Context) error {
-	params, err := BindAndValidate[types.BlockIDRequest](c)
+func (h Handler[_]) GetBlockRewards(c echo.Context) error {
+	params, err := utils.BindAndValidate[types.BlockIDRequest](c)
 	if err != nil {
 		return err
 	}
 	if params == nil {
 		return echo.ErrInternalServerError
 	}
-	rewards, err := rh.Backend.GetBlockRewards(context.TODO(), params.BlockID)
+	rewards, err := h.backend.GetBlockRewards(context.TODO(), params.BlockID)
 	if err != nil {
 		return err
 	}

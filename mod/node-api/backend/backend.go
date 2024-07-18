@@ -21,8 +21,9 @@
 package backend
 
 import (
-	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-api/backend/storage"
+	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
@@ -45,6 +46,7 @@ type Backend[
 	Eth1DataT,
 	ExecutionPayloadHeaderT,
 	ForkT any,
+	NodeT nodetypes.Node,
 	StateStoreT state.KVStore[
 		StateStoreT, BeaconBlockHeaderT, Eth1DataT,
 		ExecutionPayloadHeaderT, ForkT, ValidatorT,
@@ -56,8 +58,8 @@ type Backend[
 	storage.Backend[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 		BeaconStateT, BlobSidecarsT, BlockStoreT, DepositT, DepositStoreT,
-		Eth1DataT, ExecutionPayloadHeaderT, ForkT, StateStoreT, ValidatorT,
-		WithdrawalT, WithdrawalCredentialsT,
+		Eth1DataT, ExecutionPayloadHeaderT, ForkT, NodeT, StateStoreT,
+		ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 	]
 }
 
@@ -87,6 +89,7 @@ func New[
 	Eth1DataT,
 	ExecutionPayloadHeaderT,
 	ForkT any,
+	NodeT nodetypes.Node,
 	StateStoreT state.KVStore[
 		StateStoreT, BeaconBlockHeaderT, Eth1DataT,
 		ExecutionPayloadHeaderT, ForkT, ValidatorT,
@@ -98,20 +101,20 @@ func New[
 	storageBackend storage.Backend[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 		BeaconStateT, BlobSidecarsT, BlockStoreT, DepositT, DepositStoreT,
-		Eth1DataT, ExecutionPayloadHeaderT, ForkT, StateStoreT, ValidatorT,
-		WithdrawalT, WithdrawalCredentialsT,
+		Eth1DataT, ExecutionPayloadHeaderT, ForkT, NodeT, StateStoreT,
+		ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 	],
 ) *Backend[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, BlockStoreT, DepositT, DepositStoreT,
-	Eth1DataT, ExecutionPayloadHeaderT, ForkT, StateStoreT, ValidatorT,
-	WithdrawalT, WithdrawalCredentialsT,
+	Eth1DataT, ExecutionPayloadHeaderT, ForkT, NodeT, StateStoreT,
+	ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ] {
 	return &Backend[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 		BeaconStateT, BlobSidecarsT, BlockStoreT, DepositT, DepositStoreT,
-		Eth1DataT, ExecutionPayloadHeaderT, ForkT, StateStoreT, ValidatorT,
-		WithdrawalT, WithdrawalCredentialsT,
+		Eth1DataT, ExecutionPayloadHeaderT, ForkT, NodeT, StateStoreT,
+		ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 	]{
 		Backend: storageBackend,
 	}

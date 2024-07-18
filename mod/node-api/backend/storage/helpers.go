@@ -5,15 +5,22 @@ import (
 )
 
 const (
-	Finalized int64 = iota
+	StateIDGenesis   = "genesis"
+	StateIDFinalized = "finalized"
+	StateIDJustified = "justified"
+	StateIDHead      = "head"
+)
+
+const (
+	Head int64 = iota
 	Genesis
 )
 
 func heightFromStateID(stateID string) (int64, error) {
 	switch stateID {
-	case "finalized", "justified", "head":
-		return Finalized, nil
-	case "genesis":
+	case StateIDFinalized, StateIDJustified, StateIDHead:
+		return Head, nil
+	case StateIDGenesis:
 		return Genesis, nil
 	default:
 		slot, err := hex.String(stateID).ToUint64()

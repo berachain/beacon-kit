@@ -21,36 +21,17 @@
 package handlers
 
 import (
-	"context"
-
-	types "github.com/berachain/beacon-kit/mod/node-api/server/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/node-api/server/handlers/beacon"
+	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 )
 
-type BackendHandlers[ValidatorT any] interface {
-	GetGenesis(ctx context.Context) (common.Root, error)
-	GetStateRoot(
-		ctx context.Context,
-		stateID string,
-	) (common.Bytes32, error)
-	GetStateValidators(
-		ctx context.Context,
-		stateID string,
-		id []string,
-		status []string,
-	) ([]*types.ValidatorData[ValidatorT], error)
-	GetStateValidator(
-		ctx context.Context,
-		stateID string,
-		validatorID string,
-	) (*types.ValidatorData[ValidatorT], error)
-	GetStateValidatorBalances(
-		ctx context.Context,
-		stateID string,
-		id []string,
-	) ([]*types.ValidatorBalanceData, error)
-	GetBlockRewards(
-		ctx context.Context,
-		blockID string,
-	) (*types.BlockRewardsData, error)
+// Backend is the interface for the backend of the API.
+type Backend[
+	NodeT nodetypes.Node,
+	ValidatorT any,
+] interface {
+	AttachNode(node NodeT)
+
+	// BeaconBackend is the interface for the beacon backend.
+	beacon.Backend[ValidatorT]
 }
