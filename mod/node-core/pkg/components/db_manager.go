@@ -31,6 +31,7 @@ type DBManagerInput struct {
 	depinject.In
 	AvailabilityPruner DAPruner
 	DepositPruner      DepositPruner
+	BlockPruner        BlockPruner
 	Logger             log.Logger
 }
 
@@ -42,5 +43,6 @@ func ProvideDBManager(
 		in.Logger.With("service", "db-manager"),
 		in.DepositPruner,
 		in.AvailabilityPruner,
+		in.BlockPruner,
 	)
 }

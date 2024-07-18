@@ -18,46 +18,33 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package blockstore
 
-func DefaultComponentsWithStandardTypes() []any {
-	return []any{
-		ProvideABCIMiddleware,
-		ProvideAttributesFactory,
-		ProvideAvailabilityPruner,
-		ProvideAvailibilityStore,
-		ProvideBlsSigner,
-		ProvideBlobFeed,
-		ProvideBlockFeed,
-		ProvideBlobProcessor,
-		ProvideBlobProofVerifier,
-		ProvideBlobVerifier,
-		ProvideBlockStoreService,
-		ProvideBlockPruner,
-		ProvideBlockStore,
-		ProvideChainService,
-		ProvideChainSpec,
-		ProvideConfig,
-		ProvideDAService,
-		ProvideDBManager,
-		ProvideDepositPruner,
-		ProvideDepositService,
-		ProvideDepositStore,
-		ProvideBeaconDepositContract,
-		ProvideEngineClient,
-		ProvideExecutionEngine,
-		ProvideGenesisBroker,
-		ProvideJWTSecret,
-		ProvideLocalBuilder,
-		ProvideServiceRegistry,
-		ProvideSidecarFactory,
-		ProvideStateProcessor,
-		ProvideSlotBroker,
-		ProvideStatusBroker,
-		ProvideStorageBackend,
-		ProvideTelemetrySink,
-		ProvideTrustedSetup,
-		ProvideValidatorService,
-		ProvideValidatorUpdateBroker,
-	}
+import (
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+)
+
+// BeaconBlock is a generic interface for a beacon block.
+type BeaconBlock interface {
+	constraints.SSZMarshallable
+	// GetSlot returns the slot of the block.
+	GetSlot() math.U64
+}
+
+// Event is an interface for block events.
+type Event[BeaconBlockT BeaconBlock] interface {
+	// Type returns the type of the event.
+	Type() asynctypes.EventID
+	// Is returns true if the event is of the given type.
+	Is(asynctypes.EventID) bool
+	// Data returns the data of the event.
+	Data() BeaconBlockT
+}
+
+// EventFeed is a generic interface for sending events.
+type EventFeed[EventT any] interface {
+	// Subscribe returns a channel that will receive events.
+	Subscribe() (chan EventT, error)
 }

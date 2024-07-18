@@ -18,46 +18,27 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package blockstore
 
-func DefaultComponentsWithStandardTypes() []any {
-	return []any{
-		ProvideABCIMiddleware,
-		ProvideAttributesFactory,
-		ProvideAvailabilityPruner,
-		ProvideAvailibilityStore,
-		ProvideBlsSigner,
-		ProvideBlobFeed,
-		ProvideBlockFeed,
-		ProvideBlobProcessor,
-		ProvideBlobProofVerifier,
-		ProvideBlobVerifier,
-		ProvideBlockStoreService,
-		ProvideBlockPruner,
-		ProvideBlockStore,
-		ProvideChainService,
-		ProvideChainSpec,
-		ProvideConfig,
-		ProvideDAService,
-		ProvideDBManager,
-		ProvideDepositPruner,
-		ProvideDepositService,
-		ProvideDepositStore,
-		ProvideBeaconDepositContract,
-		ProvideEngineClient,
-		ProvideExecutionEngine,
-		ProvideGenesisBroker,
-		ProvideJWTSecret,
-		ProvideLocalBuilder,
-		ProvideServiceRegistry,
-		ProvideSidecarFactory,
-		ProvideStateProcessor,
-		ProvideSlotBroker,
-		ProvideStatusBroker,
-		ProvideStorageBackend,
-		ProvideTelemetrySink,
-		ProvideTrustedSetup,
-		ProvideValidatorService,
-		ProvideValidatorUpdateBroker,
+const (
+	DefaultAvailabilityWindow = 1000
+)
+
+// Config is the configuration for the block service.
+type Config struct {
+	// Enabled enables the block service.
+	Enabled bool `mapstructure:"enabled"`
+	// PrunerEnabled enables the block pruner.
+	PrunerEnabled bool `mapstructure:"pruner-enabled"`
+	// AvailabilityWindow is the number of slots to keep in the store.
+	AvailabilityWindow uint64 `mapstructure:"availability-window"`
+}
+
+// DefaultConfig returns the default configuration for the block service.
+func DefaultConfig() Config {
+	return Config{
+		Enabled:            false,
+		PrunerEnabled:      false,
+		AvailabilityWindow: DefaultAvailabilityWindow,
 	}
 }

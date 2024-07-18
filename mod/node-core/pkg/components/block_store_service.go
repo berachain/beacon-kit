@@ -22,48 +22,27 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
+	"github.com/berachain/beacon-kit/mod/config"
+	"github.com/berachain/beacon-kit/mod/log"
 )
 
-// StorageBackendInput is the input for the ProvideStorageBackend function.
-type StorageBackendInput struct {
+// BlockServiceInput is the input for the block service.
+type BlockServiceInput struct {
 	depinject.In
-	AvailabilityStore *AvailabilityStore
-	ChainSpec         common.ChainSpec
-	DepositStore      *DepositStore
-	KVStore           *KVStore
-	BlockStore        *BlockStore
+
+	Config      *config.Config
+	Logger      log.Logger[any]
+	BlockBroker *BlockBroker
+	BlockStore  *BlockStore
 }
 
-// ProvideStorageBackend is the depinject provider that returns a beacon storage
-// backend.
-func ProvideStorageBackend(
-	in StorageBackendInput,
-) *StorageBackend {
-	return storage.NewBackend[
-		*AvailabilityStore,
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*BeaconBlockHeader,
-		*BeaconState,
-		*BeaconStateMarshallable,
-		*BlobSidecars,
-		*BlockStore,
-		*Deposit,
-		*DepositStore,
-		*Eth1Data,
-		*ExecutionPayloadHeader,
-		*Fork,
-		*KVStore,
-		*Validator,
-		*Withdrawal,
-		WithdrawalCredentials,
-	](
-		in.ChainSpec,
-		in.AvailabilityStore,
-		in.KVStore,
-		in.DepositStore,
+// ProvideBlockStoreService provides the block service.
+func ProvideBlockStoreService(in BlockServiceInput) BlockStoreService {
+	return blockstore.NewService(
+		in.Config.BlockStoreService,
+		in.Logger,
+		in.BlockBroker,
 		in.BlockStore,
 	)
 }
