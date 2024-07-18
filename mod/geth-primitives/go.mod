@@ -3,6 +3,7 @@ module github.com/berachain/beacon-kit/mod/geth-primitives
 go 1.22.5
 
 require github.com/ethereum/go-ethereum v1.14.6
+replace github.com/ethereum/go-ethereum v1.14.6 => github.com/Particle-Network/go-ethereum v1.14.60
 
 require (
 	github.com/DataDog/zstd v1.5.5 // indirect
