@@ -26,7 +26,7 @@ contract BeaconProver is Verifier {
         SSZ.Validator calldata validator,
         uint64 validatorIndex
     )
-        external 
+        external
         view
     {
         // First check that the validator index is that of the block proposer.
@@ -53,7 +53,7 @@ contract BeaconProver is Verifier {
         SSZ.Validator calldata validator,
         uint64 validatorIndex
     )
-        internal 
+        internal
         view
     {
         if (validatorIndex >= VALIDATOR_REGISTRY_LIMIT) {

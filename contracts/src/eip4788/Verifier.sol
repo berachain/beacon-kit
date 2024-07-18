@@ -9,11 +9,7 @@ abstract contract Verifier {
     error InvalidProof();
     error RootNotFound();
 
-    function getBlockRoot(uint64 ts)
-        internal
-        view
-        returns (bytes32 root)
-    {
+    function getBlockRoot(uint64 ts) internal view returns (bytes32 root) {
         assembly ("memory-safe") {
             mstore(0, ts)
             let success := staticcall(gas(), BEACON_ROOTS, 0, 0x20, 0, 0x20)
