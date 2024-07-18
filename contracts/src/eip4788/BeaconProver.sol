@@ -3,7 +3,6 @@ pragma solidity ^0.8.21;
 
 import { SSZ } from "./SSZ.sol";
 import { Verifier } from "./Verifier.sol";
-import { ValidatorVerifier } from "./ValidatorVerifier.sol";
 
 /// @author Berachain Team
 /// @author [madlabman](https://github.com/madlabman/eip-4788-proof)
@@ -27,7 +26,8 @@ contract BeaconProver is Verifier {
         SSZ.Validator calldata validator,
         uint64 validatorIndex
     )
-        external
+        external 
+        view
     {
         // First check that the validator index is that of the block proposer.
         if (validatorIndex != blockHeader.proposerIndex) {
@@ -35,7 +35,7 @@ contract BeaconProver is Verifier {
         }
 
         // Then verify that the block header is the valid block header for this time.
-        bytes32 expectedBeaconRoot = getParentBlockRoot(timestamp);
+        bytes32 expectedBeaconRoot = getBlockRoot(timestamp);
         bytes32 givenBeaconRoot = SSZ.beaconHeaderHashTreeRoot(blockHeader);
         if (expectedBeaconRoot != givenBeaconRoot) {
             revert RootNotFound();
@@ -53,7 +53,8 @@ contract BeaconProver is Verifier {
         SSZ.Validator calldata validator,
         uint64 validatorIndex
     )
-        internal
+        internal 
+        view
     {
         if (validatorIndex >= VALIDATOR_REGISTRY_LIMIT) {
             revert IndexOutOfRange();

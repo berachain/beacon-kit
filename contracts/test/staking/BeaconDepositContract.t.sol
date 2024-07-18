@@ -2,8 +2,7 @@
 pragma solidity ^0.8.25;
 
 import { SoladyTest } from "@solady/test/utils/SoladyTest.sol";
-import { IBeaconDepositContract } from
-    "../src/staking/IBeaconDepositContract.sol";
+import { IBeaconDepositContract } from "@src/staking/IBeaconDepositContract.sol";
 import { SoladyTest } from "@solady/test/utils/SoladyTest.sol";
 import { BeaconDepositContract } from "@src/staking/BeaconDepositContract.sol";
 
