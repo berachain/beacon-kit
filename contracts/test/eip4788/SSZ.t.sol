@@ -2,7 +2,7 @@
 pragma solidity ^0.8.21;
 
 import { Test } from "@forge-std/Test.sol";
-import { SSZ } from "@src/eip4788/SSZ.sol";
+import { SSZ } from "@src/eip4788/libraries/SSZ.sol";
 
 contract SSZTest is Test {
     function test_toLittleEndian() public pure {
