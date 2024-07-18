@@ -51,7 +51,7 @@ func (s *Eth1Client[ExecutionPayloadT]) NewPayload(
 	}
 }
 
-// newPayload is used to call the underlying JSON-RPC method for newPayload.
+// NewPayloadV3 is used to call the underlying JSON-RPC method for newPayload.
 func (s *Eth1Client[ExecutionPayloadT]) NewPayloadV3(
 	ctx context.Context,
 	payload ExecutionPayloadT,

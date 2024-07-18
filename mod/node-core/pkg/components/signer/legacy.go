@@ -84,7 +84,7 @@ func (LegacySigner) VerifySignature(
 // LegacyKey is a byte array that represents a BLS12-381 secret key.
 type LegacyKey [constants.BLSSecretKeyLength]byte
 
-// GetLegacyInput returns a LegacyInput from a hex-encoded string.
+// LegacyKeyFromString returns a LegacyKey from a hex-encoded string.
 func LegacyKeyFromString(privKey string) (LegacyKey, error) {
 	privKeyBz, err := hex.DecodeString(privKey)
 	if err != nil {
