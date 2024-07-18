@@ -38,7 +38,7 @@ type BlockServiceInput struct {
 }
 
 // ProvideBlockStoreService provides the block service.
-func ProvideBlockStoreService(in BlockServiceInput) BlockStoreService {
+func ProvideBlockStoreService(in BlockServiceInput) *BlockStoreService {
 	return blockstore.NewService(
 		in.Config.BlockStoreService,
 		in.Logger,
