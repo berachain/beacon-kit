@@ -20,13 +20,12 @@ contract BeaconProver is Verifier {
         valGIndex = _valGIndex;
     }
 
-    // naive, unoptimized implementation
     function proveBlockProposer(
         SSZ.BeaconBlockHeader calldata blockHeader,
+        uint64 timestamp,
         bytes32[] calldata validatorProof,
         SSZ.Validator calldata validator,
-        uint64 validatorIndex,
-        uint64 timestamp
+        uint64 validatorIndex
     )
         external
     {
@@ -35,22 +34,22 @@ contract BeaconProver is Verifier {
             revert InvalidProposer();
         }
 
-        // Then check that the validator is a validator of the beacon chain during this time.
-        proveValidator(validatorProof, validator, validatorIndex, timestamp);
-
-        // Finally verify that the block header is the valid block header for this time.
+        // Then verify that the block header is the valid block header for this time.
         bytes32 expectedBeaconRoot = getParentBlockRoot(timestamp);
         bytes32 givenBeaconRoot = SSZ.beaconHeaderHashTreeRoot(blockHeader);
         if (expectedBeaconRoot != givenBeaconRoot) {
             revert RootNotFound();
         }
+
+        // Finally check that the validator is a validator of the beacon chain during this time.
+        proveValidator(expectedBeaconRoot, validatorProof, validator, validatorIndex);
     }
 
     function proveValidator(
+        bytes32 beaconBlockRoot,
         bytes32[] calldata validatorProof,
         SSZ.Validator calldata validator,
-        uint64 validatorIndex,
-        uint64 ts
+        uint64 validatorIndex
     )
         internal
     {
@@ -60,9 +59,8 @@ contract BeaconProver is Verifier {
 
         uint256 gI = valGIndex + validatorIndex;
         bytes32 validatorRoot = SSZ.validatorHashTreeRoot(validator);
-        bytes32 blockRoot = getParentBlockRoot(ts);
 
-        if (!SSZ.verifyProof(validatorProof, blockRoot, validatorRoot, gI)) {
+        if (!SSZ.verifyProof(validatorProof, beaconBlockRoot, validatorRoot, gI)) {
             revert InvalidProof();
         }
     }
