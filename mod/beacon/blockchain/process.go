@@ -121,11 +121,13 @@ func (s *Service[
 			// of validators in their process proposal call and thus
 			// the "verification aspect" of this NewPayload call is
 			// actually irrelevant at this point.
-			SkipPayloadVerification: true,
+			SkipPayloadVerification: false,
+			SkipValidateResult:      false,
+			SkipValidateRandao:      false,
 		},
 		st,
 		blk,
-		false,
+		true,
 	)
 	return valUpdates, err
 }

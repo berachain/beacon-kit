@@ -21,8 +21,6 @@
 package components
 
 import (
-	"fmt"
-
 	"cosmossdk.io/core/transaction"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/runtime/v2"
@@ -38,7 +36,6 @@ type SDKAppInput[T transaction.Tx] struct {
 func ProvideSDKApp[T transaction.Tx](
 	in SDKAppInput[T],
 ) (*runtime.App[T], error) {
-	fmt.Println("PP BUILDER", in.AppBuilder)
 	app, err := in.AppBuilder.Build()
 	if err != nil {
 		return nil, err

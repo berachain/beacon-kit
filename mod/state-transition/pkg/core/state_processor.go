@@ -21,8 +21,6 @@
 package core
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/mod/errors"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -161,7 +159,6 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	fmt.Println("EXECUTING STATE TRANSITION, ABOUT TO PROCESS BLOCK", "slot", blk.GetSlot())
 	// Process the block.
 	if err = sp.ProcessBlock(ctx, st, blk); err != nil {
 		return nil, err
@@ -285,7 +282,6 @@ func (sp *StateProcessor[
 	if err := sp.processBlockHeader(st, blk); err != nil {
 		return err
 	}
-	fmt.Println("PROCESS BLOCK RUN")
 	// process the execution payload.
 	if err := sp.processExecutionPayload(
 		ctx, st, blk,
@@ -354,7 +350,8 @@ func (sp *StateProcessor[
 	} else if err = sp.processRandaoMixesReset(st); err != nil {
 		return nil, err
 	}
-	return sp.processSyncCommitteeUpdates(st)
+	updates, err := sp.processSyncCommitteeUpdates(st)
+	return updates, err
 }
 
 // processBlockHeader processes the header and ensures it matches the local

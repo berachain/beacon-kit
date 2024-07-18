@@ -190,7 +190,6 @@ func (ee *Engine[
 		ExecutionPayloadT, WithdrawalT,
 	],
 ) error {
-	ee.logger.Error("VERIFYING AND NOTIFYING NEW PAYLOAD")
 	// Log the new payload attempt.
 	ee.metrics.markNewPayloadCalled(
 		req.ExecutionPayload.GetBlockHash(),

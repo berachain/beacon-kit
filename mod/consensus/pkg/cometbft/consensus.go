@@ -22,7 +22,6 @@ package cometbft
 
 import (
 	"context"
-	"fmt"
 
 	"cosmossdk.io/core/transaction"
 	"cosmossdk.io/server/v2/cometbft/handlers"
@@ -60,7 +59,6 @@ func (c *ConsensusEngine[T, ValidatorUpdateT]) InitGenesis(
 	ctx context.Context,
 	bz []byte,
 ) ([]ValidatorUpdateT, error) {
-	fmt.Println("INIT GENESIS CALLED")
 	updates, err := c.Middleware.InitGenesis(ctx, bz)
 	if err != nil {
 		return nil, err
@@ -79,7 +77,6 @@ func (c *ConsensusEngine[T, ValidatorUpdateT]) Prepare(
 	txs []T,
 	req proto.Message,
 ) ([]T, error) {
-	fmt.Println("PREPARE CALLED")
 	abciReq, ok := req.(*cmtabci.PrepareProposalRequest)
 	if !ok {
 		return nil, ErrInvalidRequestType
@@ -112,13 +109,11 @@ func (c *ConsensusEngine[T, ValidatorUpdateT]) Process(
 	txs []T,
 	req proto.Message,
 ) error {
-	fmt.Println("PROCESS CALLED")
 	abciReq, ok := req.(*cmtabci.ProcessProposalRequest)
 	if !ok {
 		return ErrInvalidRequestType
 	}
 	if abciReq.Height <= 1 {
-		fmt.Println("PROCESS DOES SOMETHING BECAUSE WERE IN GENESIS")
 		abciReq.Txs = iter.Map(c.genTxs, func(tx *T) []byte {
 			return (*tx).Bytes()
 		})
@@ -129,7 +124,6 @@ func (c *ConsensusEngine[T, ValidatorUpdateT]) Process(
 func (c *ConsensusEngine[T, ValidatorUpdateT]) EndBlock(
 	ctx context.Context,
 ) error {
-	fmt.Println("END BLOCK CALLED")
 	updates, err := c.Middleware.EndBlock(ctx)
 	if err != nil {
 		return err
