@@ -39,6 +39,7 @@ func NewService[
 	store BlockStoreT,
 ) *Service[BeaconBlockT, BlockStoreT] {
 	return &Service[BeaconBlockT, BlockStoreT]{
+		config:    config,
 		logger:    logger,
 		blkBroker: blkBroker,
 		store:     store,
