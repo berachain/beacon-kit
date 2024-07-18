@@ -18,27 +18,66 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package proof
+package log_test
 
-// Field represents a named value of a generic type.
-type Field[T any] struct {
-	// name is the name of the field
-	name string
-	// value is the value of the field
-	value T
+import (
+	"testing"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math/log"
+)
+
+func TestILog2Ceil(t *testing.T) {
+	tests := []struct {
+		input    uint64
+		expected uint8
+	}{
+		{0, 0},
+		{1, 0},
+		{2, 1},
+		{3, 2},
+		{4, 2},
+		{5, 3},
+		{8, 3},
+		{9, 4},
+		{16, 4},
+		{17, 5},
+	}
+
+	for _, test := range tests {
+		result := log.ILog2Ceil(test.input)
+		if result != test.expected {
+			t.Errorf(
+				"ILog2Ceil(%d) = %d; want %d",
+				test.input, result, test.expected,
+			)
+		}
+	}
 }
 
-// NewField creates a new field.
-func NewField[T any](name string, value T) *Field[T] {
-	return &Field[T]{name: name, value: value}
-}
+func TestILog2Floor(t *testing.T) {
+	tests := []struct {
+		input    uint64
+		expected uint8
+	}{
+		{0, 0},
+		{1, 0},
+		{2, 1},
+		{3, 1},
+		{4, 2},
+		{5, 2},
+		{8, 3},
+		{9, 3},
+		{16, 4},
+		{17, 4},
+	}
 
-// GetName returns the name of the field.
-func (f Field[_]) GetName() string {
-	return f.name
-}
-
-// GetValue returns the value of the field.
-func (f Field[T]) GetValue() T {
-	return f.value
+	for _, test := range tests {
+		result := log.ILog2Floor(test.input)
+		if result != test.expected {
+			t.Errorf(
+				"ILog2Floor(%d) = %d; want %d",
+				test.input, result, test.expected,
+			)
+		}
+	}
 }

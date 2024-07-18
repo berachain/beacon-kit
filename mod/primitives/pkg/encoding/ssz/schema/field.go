@@ -18,32 +18,27 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package deposit
+package schema
 
-import (
-	"strconv"
-
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-)
-
-// metrics is a struct that contains metrics for the deposit service.
-type metrics struct {
-	// sink is the telemetry sink.
-	sink TelemetrySink
+// Field represents a named value of a generic type.
+type Field[T any] struct {
+	// name is the name of the field
+	name string
+	// value is the value of the field
+	value T
 }
 
-// newMetrics creates a new instance of the metrics struct.
-func newMetrics(sink TelemetrySink) *metrics {
-	return &metrics{
-		sink: sink,
-	}
+// NewField creates a new field.
+func NewField(name string, typ SSZType) *Field[SSZType] {
+	return &Field[SSZType]{name: name, value: typ}
 }
 
-// markFailedToGetBlockLogs increments the counter for failed to get block logs.
-func (m *metrics) markFailedToGetBlockLogs(blockNum math.U64) {
-	m.sink.IncrementCounter(
-		"beacon_kit.execution.deposit.failed_to_get_block_logs",
-		"block_num",
-		strconv.FormatUint(uint64(blockNum), 10),
-	)
+// GetName returns the name of the field.
+func (f Field[_]) GetName() string {
+	return f.name
+}
+
+// GetValue returns the value of the field.
+func (f Field[T]) GetValue() T {
+	return f.value
 }

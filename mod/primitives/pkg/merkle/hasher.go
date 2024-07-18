@@ -34,18 +34,19 @@ type Hasher[T ~[32]byte] interface {
 // HashFn is the generic hash function signature.
 type HashFn func(input []byte) [32]byte
 
-// hasher holds a underlying byte slice to efficiently conduct
+// hasher holds a underlying byte buffers to efficiently conduct
 // multiple rounds of hashing.
 type hasher[T ~[32]byte] struct {
-	b        [64]byte
-	hashFunc HashFn
+	buffer     [64]byte
+	hashFunc   HashFn
+	emptyBytes [24]byte
 }
 
 // NewHasher is the constructor for the object that fulfills
 // the Hasher interface.
 func NewHasher[T ~[32]byte](h HashFn) Hasher[T] {
 	return &hasher[T]{
-		b:        [64]byte{},
+		buffer:   [64]byte{},
 		hashFunc: h,
 	}
 }
@@ -57,17 +58,15 @@ func (h *hasher[T]) Hash(a []byte) T {
 
 // Combi appends the two inputs and hashes them.
 func (h *hasher[T]) Combi(a, b T) T {
-	copy(h.b[:32], a[:])
-	copy(h.b[32:], b[:])
-	return h.Hash(h.b[:])
+	copy(h.buffer[:32], a[:])
+	copy(h.buffer[32:], b[:])
+	return h.Hash(h.buffer[:])
 }
 
 // MixIn works like Combi, but using an integer as the second input.
-//
-//nolint:mnd // its okay.
 func (h *hasher[T]) MixIn(a T, i uint64) T {
-	copy(h.b[:32], a[:])
-	copy(h.b[32:], make([]byte, 32))
-	binary.LittleEndian.PutUint64(h.b[32:], i)
-	return h.Hash(h.b[:])
+	copy(h.buffer[:32], a[:])
+	binary.LittleEndian.PutUint64(h.buffer[32:40], i)
+	copy(h.buffer[40:], h.emptyBytes[:])
+	return h.Hash(h.buffer[:])
 }
