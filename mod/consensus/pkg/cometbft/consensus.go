@@ -29,7 +29,8 @@ import (
 	"github.com/sourcegraph/conc/iter"
 )
 
-// Consensus is used to decouple the Comet consensus engine from the Cosmos SDK.
+// ConsensusEngine is used to decouple the Comet consensus engine from
+// the Cosmos SDK.
 // Right now, it is very coupled to the sdk base app and we will
 // eventually fully decouple this.
 type ConsensusEngine[ValidatorUpdateT any] struct {

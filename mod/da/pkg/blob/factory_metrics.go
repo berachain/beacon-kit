@@ -41,7 +41,7 @@ func newFactoryMetrics(
 	}
 }
 
-// measureBuildSidecarDuration measures the duration of the build sidecar.
+// measureBuildSidecarsDuration measures the duration of the build sidecars.
 func (fm *factoryMetrics) measureBuildSidecarsDuration(
 	startTime time.Time, numSidecars math.U64,
 ) {

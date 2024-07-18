@@ -25,15 +25,15 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 )
 
 /* -------------------------------------------------------------------------- */
 /*                                Type Definitions                            */
 /* -------------------------------------------------------------------------- */
 
-// Ensure type implements types.SSZType.
-var _ types.SSZType[U8] = (*U8)(nil)
+// Ensure type implements schema.SSZObject.
+var _ schema.SSZObject[U8] = (*U8)(nil)
 
 // U8 represents a 8-bit unsigned integer that is both SSZ and JSON.
 type U8 uint8
@@ -79,8 +79,8 @@ func (U8) IsFixed() bool {
 }
 
 // Type returns the type of the U8.
-func (U8) Type() types.Type {
-	return types.Basic
+func (U8) Type() schema.SSZType {
+	return schema.U8()
 }
 
 // ChunkCount returns the number of chunks required to store the uint8.

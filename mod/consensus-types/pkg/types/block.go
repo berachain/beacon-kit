@@ -67,6 +67,11 @@ func (w *BeaconBlock) NewWithVersion(
 			BeaconBlockHeaderBase: base,
 			Body:                  &BeaconBlockBodyDeneb{},
 		}
+	case version.DenebPlus:
+		block = &BeaconBlockDenebPlus{
+			BeaconBlockHeaderBase: base,
+			Body:                  &BeaconBlockBodyDenebPlus{},
+		}
 	default:
 		return &BeaconBlock{}, ErrForkVersionNotSupported
 	}
@@ -100,54 +105,4 @@ func (w *BeaconBlock) IsNil() bool {
 	return w == nil ||
 		w.RawBeaconBlock == nil ||
 		w.RawBeaconBlock.IsNil()
-}
-
-// BeaconBlockDeneb represents a block in the beacon chain during
-// the Deneb fork.
-//
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path block.go -objs BeaconBlockDeneb -include ../../../primitives/pkg/common,../../../primitives/pkg/crypto,../../../primitives/pkg/math,..,./header.go,./withdrawal_credentials.go,../../../engine-primitives/pkg/engine-primitives/withdrawal.go,./deposit.go,./payload.go,./deposit.go,../../../primitives/pkg/eip4844,../../../primitives/pkg/bytes,./eth1data.go,../../../primitives/pkg/math,../../../primitives/pkg/common,./body.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output block.ssz.go
-type BeaconBlockDeneb struct {
-	// BeaconBlockHeaderBase is the base of the BeaconBlockDeneb.
-	BeaconBlockHeaderBase
-	// Body is the body of the BeaconBlockDeneb, containing the block's
-	// operations.
-	Body *BeaconBlockBodyDeneb
-}
-
-// Version identifies the version of the BeaconBlockDeneb.
-func (b *BeaconBlockDeneb) Version() uint32 {
-	return version.Deneb
-}
-
-// IsNil checks if the BeaconBlockDeneb instance is nil.
-func (b *BeaconBlockDeneb) IsNil() bool {
-	return b == nil
-}
-
-// SetStateRoot sets the state root of the BeaconBlockDeneb.
-func (b *BeaconBlockDeneb) SetStateRoot(root common.Root) {
-	b.StateRoot = root
-}
-
-// GetBody retrieves the body of the BeaconBlockDeneb.
-func (b *BeaconBlockDeneb) GetBody() *BeaconBlockBody {
-	return &BeaconBlockBody{RawBeaconBlockBody: b.Body}
-}
-
-// GetHeader builds a BeaconBlockHeader from the BeaconBlockDeneb.
-func (b BeaconBlockDeneb) GetHeader() *BeaconBlockHeader {
-	bodyRoot, err := b.GetBody().HashTreeRoot()
-	if err != nil {
-		return nil
-	}
-
-	return &BeaconBlockHeader{
-		BeaconBlockHeaderBase: BeaconBlockHeaderBase{
-			Slot:            b.Slot,
-			ProposerIndex:   b.ProposerIndex,
-			ParentBlockRoot: b.ParentBlockRoot,
-			StateRoot:       b.StateRoot,
-		},
-		BodyRoot: bodyRoot,
-	}
 }

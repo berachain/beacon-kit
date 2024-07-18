@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -24,7 +24,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/stretchr/testify/require"
 )
 
@@ -97,12 +97,12 @@ func TestBytes4Type(t *testing.T) {
 	tests := []struct {
 		name  string
 		input bytes.B4
-		want  types.Type
+		want  schema.SSZType
 	}{
 		{
 			name:  "type of B4",
 			input: bytes.B4{0x01, 0x02, 0x03, 0x04},
-			want:  types.Composite,
+			want:  schema.B4(),
 		},
 	}
 

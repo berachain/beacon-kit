@@ -13,12 +13,12 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 //
-//nolint:dupl // it's okay to have similar code for different types
+//nolint:dupl // it's okay to duplicate code for different types
 package math
 
 import (
@@ -26,22 +26,18 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 )
 
 /* -------------------------------------------------------------------------- */
 /*                                Type Definitions                            */
 /* -------------------------------------------------------------------------- */
 
-// Ensure types implement types.SSZType.
-var _ types.SSZType[U32] = (*U32)(nil)
+// Ensure types implement schema.SSZObject.
+var _ schema.SSZObject[U32] = (*U32)(nil)
 
 // U32 represents a 32-bit unsigned integer that is both SSZ and JSON.
 type U32 uint32
-
-/* -------------------------------------------------------------------------- */
-/*                                     U8                                     */
-/* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
 /*                                     U32                                    */
@@ -84,8 +80,8 @@ func (U32) IsFixed() bool {
 }
 
 // Type returns the type of the U32.
-func (U32) Type() types.Type {
-	return types.Basic
+func (U32) Type() schema.SSZType {
+	return schema.U32()
 }
 
 // ChunkCount returns the number of chunks required to store the uint32.

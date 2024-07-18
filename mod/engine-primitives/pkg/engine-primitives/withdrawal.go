@@ -22,7 +22,8 @@ package engineprimitives
 
 import (
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -39,6 +40,20 @@ type Withdrawal struct {
 	Address gethprimitives.ExecutionAddress `json:"address"        ssz-size:"20"`
 	// Amount is the amount of Gwei to be withdrawn.
 	Amount math.Gwei `json:"amount"`
+}
+
+func (w *Withdrawal) New(
+	index math.U64,
+	validator math.ValidatorIndex,
+	address gethprimitives.ExecutionAddress,
+	amount math.Gwei,
+) *Withdrawal {
+	return &Withdrawal{
+		Index:     index,
+		Validator: validator,
+		Address:   address,
+		Amount:    amount,
+	}
 }
 
 // Equals returns true if the Withdrawal is equal to the other.
@@ -76,6 +91,17 @@ func (*Withdrawal) IsFixed() bool {
 }
 
 // Type returns the type of the Withdrawal.
-func (*Withdrawal) Type() types.Type {
-	return types.Composite
+func (*Withdrawal) Type() schema.SSZType {
+	return schema.DefineContainer(
+		schema.NewField("index", schema.U64()),
+		schema.NewField("validator_index", schema.U64()),
+		schema.NewField("address", schema.B20()),
+		schema.NewField("amount", schema.U64()),
+	)
+}
+
+// ItemLength returns the required bytes to represent the root
+// element of the Withdrawal.
+func (*Withdrawal) ItemLength() uint64 {
+	return constants.RootLength
 }

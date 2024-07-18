@@ -30,21 +30,21 @@ import (
 
 // KVStore is the interface for the key-value store holding the beacon state.
 type KVStore[
-	KVStoreT any,
-	ForkT any,
-	BeaconBlockHeaderT any,
-	Eth1DataT any,
-	ExecutionPayloadHeaderT any,
+	T,
+	BeaconBlockHeaderT,
+	Eth1DataT,
+	ExecutionPayloadHeaderT,
+	ForkT,
 	ValidatorT any,
 ] interface {
 	// Context returns the context of the key-value store.
 	Context() context.Context
 	// WithContext returns a new key-value store with the given context.
-	WithContext(
-		ctx context.Context,
-	) KVStoreT
+	WithContext(ctx context.Context) T
 	// Save saves the key-value store.
 	Save()
+	// Copy returns a copy of the key-value store.
+	Copy() T
 	// GetLatestExecutionPayloadHeader retrieves the latest execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (
@@ -64,8 +64,6 @@ type KVStore[
 	GetBalance(idx math.ValidatorIndex) (math.Gwei, error)
 	// SetBalance sets the balance of a validator.
 	SetBalance(idx math.ValidatorIndex, balance math.Gwei) error
-	// Copy returns a copy of the key-value store.
-	Copy() KVStoreT
 	// GetSlot retrieves the current slot.
 	GetSlot() (math.Slot, error)
 	// SetSlot sets the current slot.

@@ -29,7 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkleizer"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -81,6 +81,23 @@ type BeaconBlockBody[
 	HashTreeRoot() ([32]byte, error)
 	// GetBlobKzgCommitments returns the KZG commitments for the blobs.
 	GetBlobKzgCommitments() eip4844.KZGCommitments[gethprimitives.ExecutionHash]
+}
+
+// BeaconBlockHeader is the interface for a beacon block header.
+type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
+	New(
+		slot math.Slot,
+		proposerIndex math.ValidatorIndex,
+		parentBlockRoot common.Root,
+		stateRoot common.Root,
+		bodyRoot common.Root,
+	) BeaconBlockHeaderT
+	HashTreeRoot() ([32]byte, error)
+	GetSlot() math.Slot
+	GetProposerIndex() math.ValidatorIndex
+	GetParentBlockRoot() common.Root
+	GetStateRoot() common.Root
+	SetStateRoot(common.Root)
 }
 
 // Context defines an interface for managing state transition context.
@@ -146,7 +163,7 @@ type ExecutionPayload[
 	GetBlobGasUsed() math.U64
 	GetExcessBlobGas() math.U64
 	ToHeader(
-		txsMerkleizer *merkleizer.Merkleizer[[32]byte, common.Root],
+		txsMerkleizer *merkle.Merkleizer[[32]byte, common.Root],
 		maxWithdrawalsPerPayload uint64,
 	) (ExecutionPayloadHeaderT, error)
 }

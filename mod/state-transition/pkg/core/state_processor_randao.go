@@ -33,7 +33,7 @@ import (
 // ensures it matches the local state.
 func (sp *StateProcessor[
 	BeaconBlockT, _, _, BeaconStateT,
-	_, _, _, _, _, _, ForkDataT, _, _, _,
+	_, _, _, _, _, _, ForkDataT, _, _, _, _,
 ]) processRandaoReveal(
 	st BeaconStateT,
 	blk BeaconBlockT,
@@ -105,7 +105,7 @@ func (sp *StateProcessor[
 //
 //nolint:lll
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _,
 ]) processRandaoMixesReset(
 	st BeaconStateT,
 ) error {
@@ -129,7 +129,7 @@ func (sp *StateProcessor[
 
 // buildRandaoMix as defined in the Ethereum 2.0 specification.
 func (sp *StateProcessor[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) buildRandaoMix(
 	mix common.Bytes32,
 	reveal crypto.BLSSignature,

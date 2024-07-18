@@ -24,16 +24,16 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 )
 
 /* -------------------------------------------------------------------------- */
 /*                                Type Definitions                            */
 /* -------------------------------------------------------------------------- */
 
-// Ensure types implement types.SSZType.
+// Ensure types implement schema.SSZObject.
 var (
-	_ types.SSZType[Byte] = (*Byte)(nil)
+	_ schema.SSZObject[Byte] = (*Byte)(nil)
 )
 
 type (
@@ -79,8 +79,8 @@ func (Byte) IsFixed() bool {
 }
 
 // Type returns the type of the Byte.
-func (Byte) Type() types.Type {
-	return types.Basic
+func (Byte) Type() schema.SSZType {
+	return schema.U8()
 }
 
 // ChunkCount returns the number of chunks required to store the byte.

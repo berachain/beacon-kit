@@ -3,8 +3,8 @@ module github.com/berachain/beacon-kit/mod/node-api
 go 1.22.5
 
 require (
-	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240705193247-d464364483df
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240710022615-726645827bad
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240710021622-37e8e3e7e155
 	github.com/go-playground/validator/v10 v10.20.0
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/stretchr/testify v1.9.0
@@ -15,10 +15,10 @@ require (
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/VictoriaMetrics/fastcache v1.12.2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240703145037-b5612ab256db // indirect
-	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240705193247-d464364483df // indirect
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240624204855-d8809d5c8588 // indirect
-	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240630225951-a5075323fa26 // indirect
+	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df // indirect
+	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240710022615-726645827bad // indirect
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df // indirect
+	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240705193247-d464364483df // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -38,7 +38,7 @@ require (
 	github.com/ethereum/c-kzg-4844 v1.0.2 // indirect
 	github.com/ethereum/go-ethereum v1.14.6 // indirect
 	github.com/ethereum/go-verkle v0.1.1-0.20240306133620-7d920df305f0 // indirect
-	github.com/ferranbt/fastssz v0.1.4-0.20240422063434-a4db75388da1 // indirect
+	github.com/ferranbt/fastssz v0.1.4-0.20240629094022-eac385e6ee79 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/getsentry/sentry-go v0.28.1 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
@@ -85,7 +85,7 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	golang.org/x/crypto v0.25.0 // indirect
 	golang.org/x/exp v0.0.0-20240613232115-7f521ea00fb8 // indirect
-	golang.org/x/net v0.26.0 // indirect
+	golang.org/x/net v0.27.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/sys v0.22.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
