@@ -7,18 +7,18 @@ import { SSZ } from "./libraries/SSZ.sol";
 
 import { Verifier } from "./Verifier.sol";
 
-import { IBeaconProver } from "./interfaces/IBeaconProver.sol";
+import { IBeaconVerifier } from "./interfaces/IBeaconVerifier.sol";
 
 /// @author Berachain Team
 /// @author [madlabman](https://github.com/madlabman/eip-4788-proof)
-contract BeaconProver is Verifier, Ownable, IBeaconProver {
+contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     uint64 internal constant VALIDATOR_REGISTRY_LIMIT = 1 << 40;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                          STORAGE                           */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-    /// @inheritdoc IBeaconProver
+    /// @inheritdoc IBeaconVerifier
     uint256 public valGIndex;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -44,25 +44,25 @@ contract BeaconProver is Verifier, Ownable, IBeaconProver {
     /*                     BEACON ROOT VIEWS                      */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-    /// @inheritdoc IBeaconProver
-    function getBeaconBlockRootAt(uint64 timestamp)
+    /// @inheritdoc IBeaconVerifier
+    function getParentBlockRootAt(uint64 timestamp)
         external
         view
         returns (bytes32)
     {
-        return getBeaconBlockRoot(timestamp);
+        return getParentBeaconBlockRoot(timestamp);
     }
 
-    /// @inheritdoc IBeaconProver
-    function getCurrentBeaconBlockRoot() external view returns (bytes32) {
-        return getBeaconBlockRoot(uint64(block.timestamp));
+    /// @inheritdoc IBeaconVerifier
+    function getParentBlockRoot() external view returns (bytes32) {
+        return getParentBeaconBlockRoot(uint64(block.timestamp));
     }
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                           PROOFS                           */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-    /// @inheritdoc IBeaconProver
+    /// @inheritdoc IBeaconVerifier
     function proveBlockProposer(
         SSZ.BeaconBlockHeader calldata blockHeader,
         uint64 timestamp,
@@ -79,7 +79,7 @@ contract BeaconProver is Verifier, Ownable, IBeaconProver {
         }
 
         // Then verify that the block header is the valid block header for this time.
-        bytes32 expectedBeaconRoot = getBeaconBlockRoot(timestamp);
+        bytes32 expectedBeaconRoot = getParentBeaconBlockRoot(timestamp);
         bytes32 givenBeaconRoot = SSZ.beaconHeaderHashTreeRoot(blockHeader);
         if (expectedBeaconRoot != givenBeaconRoot) {
             revert RootNotFound();

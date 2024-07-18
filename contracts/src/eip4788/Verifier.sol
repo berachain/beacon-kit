@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.21;
 
+/// @author [madlabman](https://github.com/madlabman/eip-4788-proof)
 abstract contract Verifier {
     address public constant BEACON_ROOTS =
         0x000F3df6D732807Ef1319fB7B8bB8522d0Beac02;
@@ -9,7 +10,7 @@ abstract contract Verifier {
     error InvalidProof();
     error RootNotFound();
 
-    function getBeaconBlockRoot(uint64 ts)
+    function getParentBeaconBlockRoot(uint64 ts)
         internal
         view
         returns (bytes32 root)
@@ -25,10 +26,3 @@ abstract contract Verifier {
         }
     }
 }
-
-// // 0x6CA6EE42e875BD2840279E725D14C4c4cc0bE5d8
-// contract ExVerifier is Verifier {
-//     function getCurrentBeaconBlockRoot() external view returns (bytes32 root) {
-//         return getBeaconBlockRoot(uint64(block.timestamp));
-//     }
-// }

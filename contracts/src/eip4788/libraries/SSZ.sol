@@ -209,8 +209,10 @@ library SSZ {
         return bytes32(v ? 1 << 248 : 0);
     }
 
-    /// @notice Modified version of `verify` from `MerkleProofLib` to support generalized indices and sha256 precompile.
-    /// @dev Returns whether `leaf` exists in the Merkle tree with `root`, given `proof`.
+    /// @notice Modified version of `verify` from `MerkleProofLib` to support 
+    /// generalized indices and sha256 precompile.
+    /// @dev Returns whether `leaf` exists in the Merkle tree with `root`, given
+    /// `proof`.
     function verifyProof(
         bytes32[] calldata proof,
         bytes32 root,
@@ -226,8 +228,10 @@ library SSZ {
             if proof.length {
                 // Left shift by 5 is equivalent to multiplying by 0x20.
                 let end := add(proof.offset, shl(5, proof.length))
+
                 // Initialize `offset` to the offset of `proof` in the calldata.
                 let offset := proof.offset
+
                 // Iterate over proof elements to compute root hash.
                 for { } 1 { } {
                     // Slot of `leaf` in scratch space.
@@ -239,13 +243,14 @@ library SSZ {
                         mstore(0x00, 0x5849603f)
                         revert(0x1c, 0x04)
                     }
+
                     // Store elements to hash contiguously in scratch space.
                     // Scratch space is 64 bytes (0x00 - 0x3f) and both elements are 32 bytes.
                     mstore(scratch, leaf)
                     mstore(xor(scratch, 0x20), calldataload(offset))
+
                     // Call sha256 precompile
-                    let result :=
-                        staticcall(gas(), SHA256, 0x00, 0x40, 0x00, 0x20)
+                    let result := staticcall(gas(), SHA256, 0x00, 0x40, 0x00, 0x20)
 
                     if eq(result, 0) { revert(0, 0) }
 
@@ -255,6 +260,7 @@ library SSZ {
                     if iszero(lt(offset, end)) { break }
                 }
             }
+
             // index != 1
             if gt(sub(index, 1), 0) {
                 // revert BranchHasMissingItem()
