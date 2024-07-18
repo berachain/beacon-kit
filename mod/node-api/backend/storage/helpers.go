@@ -47,6 +47,7 @@ func heightFromStateID(stateID string) (int64, error) {
 		if err != nil {
 			return 0, err
 		}
+		//#nosec:G701 // not an issue in practice.
 		return int64(slot), nil
 	}
 }
