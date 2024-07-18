@@ -22,6 +22,7 @@ package core
 
 import (
 	"context"
+	"fmt"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -45,6 +46,7 @@ func (sp *StateProcessor[
 		g, gCtx = errgroup.WithContext(context.Background())
 	)
 
+	fmt.Println("GET SKIP PAYLOAD VERIFICATION", ctx.GetSkipPayloadVerification())
 	// Skip payload verification if the context is configured as such.
 	if !ctx.GetSkipPayloadVerification() {
 		g.Go(func() error {

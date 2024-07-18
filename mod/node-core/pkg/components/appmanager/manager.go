@@ -74,7 +74,6 @@ func (am *AppManager[T]) DeliverBlock(
 	if err != nil {
 		return nil, nil, err
 	}
-
 	// apply the block state changes to the writer map
 	if err := writerMap.ApplyStateChanges(am.abciMiddleware.GetBlockStateChanges()); err != nil {
 		return nil, nil, err

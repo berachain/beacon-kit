@@ -113,6 +113,7 @@ func (ee *Engine[
 	ctx context.Context,
 	req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
 ) (*engineprimitives.PayloadID, *gethprimitives.ExecutionHash, error) {
+
 	// Log the forkchoice update attempt.
 	hasPayloadAttributes := !req.PayloadAttributes.IsNil()
 	ee.metrics.markNotifyForkchoiceUpdateCalled(hasPayloadAttributes)
@@ -189,6 +190,7 @@ func (ee *Engine[
 		ExecutionPayloadT, WithdrawalT,
 	],
 ) error {
+	ee.logger.Error("VERIFYING AND NOTIFYING NEW PAYLOAD")
 	// Log the new payload attempt.
 	ee.metrics.markNewPayloadCalled(
 		req.ExecutionPayload.GetBlockHash(),

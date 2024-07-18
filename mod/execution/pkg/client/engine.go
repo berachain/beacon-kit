@@ -109,9 +109,14 @@ func (s *EngineClient[
 		)
 	}
 
+	hasAttrs := !attrs.IsNil()
+	s.logger.Error("SENDING FCU WITH THESE ARGS", "hash", state.HeadBlockHash, "forkVersion", forkVersion, "hasAttrs", hasAttrs)
+
 	result, err := s.Eth1Client.ForkchoiceUpdated(
 		cctx, state, attrs, forkVersion,
 	)
+
+	s.logger.Error("GOT THIS BACK", "result", result, "err", err)
 
 	if err != nil {
 		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {

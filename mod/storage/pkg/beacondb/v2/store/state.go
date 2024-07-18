@@ -134,10 +134,6 @@ func (s *StateStore) Context() *storectx.Context {
 	return s.ctx
 }
 
-func (s *StateStore) BlockChanges() corestore.Changeset {
-	return *s.transientState.GetChanges()
-}
-
 // WithContext returns a new StateStore with the given context
 // Invariant: the blockStore in the retuned copy must always point to the same
 // blockStore as the current state
