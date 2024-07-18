@@ -34,7 +34,7 @@ type ServiceRegistryInput struct {
 	depinject.In
 	ABCIService           *ABCIMiddleware
 	BlockBroker           *BlockBroker
-	BlockService          BlockService
+	BlockStoreService     BlockStoreService
 	ChainService          *ChainService
 	DBManager             *DBManager
 	DAService             *DAService
@@ -56,7 +56,7 @@ func ProvideServiceRegistry(
 	return service.NewRegistry(
 		service.WithLogger(in.Logger),
 		service.WithService(in.ValidatorService),
-		service.WithService(in.BlockService),
+		service.WithService(in.BlockStoreService),
 		service.WithService(in.ChainService),
 		service.WithService(in.DAService),
 		service.WithService(in.DepositService),

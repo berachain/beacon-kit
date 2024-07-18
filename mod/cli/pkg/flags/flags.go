@@ -61,11 +61,13 @@ const (
 	LogLevel   = loggerRoot + "log-level"
 	Style      = loggerRoot + "style"
 
-	// Block Service Config.
-	blockServiceRoot               = beaconKitRoot + "block-service."
-	BlockServiceEnabled            = blockServiceRoot + "enabled"
-	BlockServicePrunerEnabled      = blockServiceRoot + "pruner-enabled"
-	BlockServiceAvailabilityWindow = blockServiceRoot + "availability-window"
+	// Block Store Service Config.
+	blockStoreServiceRoot          = beaconKitRoot + "block-store-service."
+	BlockStoreServiceEnabled       = blockStoreServiceRoot + "enabled"
+	BlockStoreServicePrunerEnabled = blockStoreServiceRoot +
+		"pruner-enabled"
+	BlockStoreServiceAvailabilityWindow = blockStoreServiceRoot +
+		"availability-window"
 )
 
 // AddBeaconKitFlags implements servertypes.ModuleInitFlags interface.
@@ -126,18 +128,18 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 		"style",
 	)
 	startCmd.Flags().Bool(
-		BlockServiceEnabled,
-		defaultCfg.BlockService.Enabled,
+		BlockStoreServiceEnabled,
+		defaultCfg.BlockStoreService.Enabled,
 		"block service enabled",
 	)
 	startCmd.Flags().Bool(
-		BlockServicePrunerEnabled,
-		defaultCfg.BlockService.PrunerEnabled,
+		BlockStoreServicePrunerEnabled,
+		defaultCfg.BlockStoreService.PrunerEnabled,
 		"block service pruner enabled",
 	)
 	startCmd.Flags().Uint64(
-		BlockServiceAvailabilityWindow,
-		defaultCfg.BlockService.AvailabilityWindow,
+		BlockStoreServiceAvailabilityWindow,
+		defaultCfg.BlockStoreService.AvailabilityWindow,
 		"block service availability window",
 	)
 }

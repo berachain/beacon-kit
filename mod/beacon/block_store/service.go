@@ -18,13 +18,13 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package block
+package blockstore
 
 import (
 	"context"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
-	"github.com/berachain/beacon-kit/mod/beacon/block/noop"
+	"github.com/berachain/beacon-kit/mod/beacon/block_store/noop"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/block"

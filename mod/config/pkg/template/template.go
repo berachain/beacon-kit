@@ -85,13 +85,13 @@ graffiti = "{{.BeaconKit.Validator.Graffiti}}"
 # process-proposal to allow for the execution client to have more time to assemble the block.
 enable-optimistic-payload-builds = "{{.BeaconKit.Validator.EnableOptimisticPayloadBuilds}}"
 
-[beacon-kit.block-service]
-# Enabled determines if the block service is enabled.
-enabled = "{{ .BeaconKit.BlockService.Enabled }}"
+[beacon-kit.block-store-service]
+# Enabled determines if the block store service is enabled.
+enabled = "{{ .BeaconKit.BlockStoreService.Enabled }}"
 
 # PrunerEnabled determines if the block pruner is enabled.
-pruner-enabled = "{{ .BeaconKit.BlockService.PrunerEnabled }}"
+pruner-enabled = "{{ .BeaconKit.BlockStoreService.PrunerEnabled }}"
 
 # AvailabilityWindow is the number of slots to keep in the store.
-availability-window = "{{ .BeaconKit.BlockService.AvailabilityWindow }}"
+availability-window = "{{ .BeaconKit.BlockStoreService.AvailabilityWindow }}"
 `

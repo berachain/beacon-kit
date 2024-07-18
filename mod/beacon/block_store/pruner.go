@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package block
+package blockstore
 
 // BuildPruneRangeFn builds a function that returns the range of blocks to
 // prune.
@@ -30,6 +30,9 @@ func BuildPruneRangeFn[
 ) func(BlockEventT) (uint64, uint64) {
 	return func(event BlockEventT) (uint64, uint64) {
 		blk := event.Data()
+		if blk.GetSlot().Unwrap() < cfg.AvailabilityWindow {
+			return 0, 0
+		}
 		return 0, blk.GetSlot().Unwrap() - cfg.AvailabilityWindow
 	}
 }
