@@ -42,7 +42,9 @@ contract BeaconProver is Verifier {
         }
 
         // Finally check that the validator is a validator of the beacon chain during this time.
-        proveValidator(expectedBeaconRoot, validatorProof, validator, validatorIndex);
+        proveValidator(
+            expectedBeaconRoot, validatorProof, validator, validatorIndex
+        );
     }
 
     function proveValidator(
@@ -60,7 +62,9 @@ contract BeaconProver is Verifier {
         uint256 gI = valGIndex + validatorIndex;
         bytes32 validatorRoot = SSZ.validatorHashTreeRoot(validator);
 
-        if (!SSZ.verifyProof(validatorProof, beaconBlockRoot, validatorRoot, gI)) {
+        if (
+            !SSZ.verifyProof(validatorProof, beaconBlockRoot, validatorRoot, gI)
+        ) {
             revert InvalidProof();
         }
     }
