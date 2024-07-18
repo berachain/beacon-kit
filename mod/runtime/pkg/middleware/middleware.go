@@ -144,6 +144,7 @@ func NewABCIMiddleware[
 		metrics:        newABCIMiddlewareMetrics(telemetrySink),
 		genesisBroker:  genesisBroker,
 		blkBroker:      blkBroker,
+		blockStore:     blockStore,
 		sidecarsBroker: sidecarsBroker,
 		slotBroker:     slotBroker,
 		blkCh: make(

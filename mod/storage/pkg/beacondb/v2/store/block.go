@@ -1,6 +1,7 @@
 package store
 
 import (
+	"fmt"
 	"sync"
 
 	"cosmossdk.io/core/store"
@@ -82,6 +83,9 @@ func (bs *BlockStore) Commit(changes *store.Changeset) {
 }
 
 func (bs *BlockStore) GetChanges() *store.Changeset {
+	fmt.Println("GETTING TO THIS POINT")
+	fmt.Println(bs)
+	fmt.Println("GETTING CHANGES", bs.blockChanges)
 	return bs.blockChanges.Changeset
 }
 

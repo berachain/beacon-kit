@@ -76,8 +76,9 @@ func (am *AppManager[T]) DeliverBlock(
 	}
 
 	// apply the block state changes to the writer map
-	writerMap.ApplyStateChanges(am.abciMiddleware.GetBlockStateChanges())
-	// reset the BlockStore
+	if err := writerMap.ApplyStateChanges(am.abciMiddleware.GetBlockStateChanges()); err != nil {
+		return nil, nil, err
+	}
 	am.abciMiddleware.FlushBlockStore()
 	return resp, writerMap, nil
 }

@@ -79,5 +79,6 @@ func ProvideChainService(
 		in.ValidatorUpdateBroker,
 		// If optimistic is enabled, we want to skip post finalization FCUs.
 		in.Cfg.Validator.EnableOptimisticPayloadBuilds,
+		// true,
 	)
 }

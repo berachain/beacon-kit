@@ -116,6 +116,10 @@ func (s *Service[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
+	persist := false
+	if blk.GetSlot() <= 1 {
+		persist = true
+	}
 	startTime := time.Now()
 	defer s.metrics.measureStateRootVerificationTime(startTime)
 	if _, err := s.sp.Transition(
@@ -128,7 +132,7 @@ func (s *Service[
 			SkipValidateResult:      false,
 			SkipValidateRandao:      false,
 		},
-		st, blk, false,
+		st, blk, persist,
 	); errors.Is(err, engineerrors.ErrAcceptedPayloadStatus) {
 		// It is safe for the validator to ignore this error since
 		// the state transition will enforce that the block is part
