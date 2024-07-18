@@ -1,0 +1,15 @@
+network:
+  chain_id: 80084
+full_node_configuration:
+  - nodes:
+    el_type: geth
+      el_image: ethereum/client-go:latest
+      options:
+        - "--rpc.allow-unprotected-txs"
+    beacon_node:
+      el_image: ghcr.io/berachain/beacon-kit:main
+      options:   
+
+
+
+

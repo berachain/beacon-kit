@@ -1,0 +1,3 @@
+name: github.com/berachain/beacon-kit/testing/fullnode
+description: |-
+  A package for running a full node connected to Bartio network with kurtosis.
