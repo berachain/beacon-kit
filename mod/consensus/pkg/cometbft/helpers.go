@@ -47,21 +47,73 @@ func convertValidatorUpdate[ValidatorUpdateT any](
 	}).(ValidatorUpdateT), nil
 }
 
-func convertPrepareProposalToIncomingSlot[IncomingSlotT any](
-	_ *cmtabci.PrepareProposalRequest,
-) (IncomingSlotT, error) {
-	var t IncomingSlotT
+func (c *ConsensusEngine[_, SlotDataT, _, _]) convertPrepareProposalToSlotData(
+	req *cmtabci.PrepareProposalRequest,
+) (SlotDataT, error) {
+	var t SlotDataT
+	t.SetSlot(uint64(req.Height))
 	return t, nil
-	// mapped := newIncomingSlot(uint64(req.Height))
-	// return any(mapped).(IncomingSlotT), nil
 }
 
-// type IncomingSlot struct {
-// 	slot uint64
+// // attestationDataFromVotes returns a list of attestation data from the
+// // comet vote info. This is used to build the attestations for the block.
+// func (h *ValidatorMiddleware[
+// 	AvailabilityStoreT,
+// 	BeaconBlockT,
+// 	BeaconBlockBodyT,
+// 	BeaconStateT,
+// 	BlobsSidecarsT,
+// 	DepositStoreT,
+// ]) attestationDataFromVotes(
+// 	st BeaconStateT,
+// 	root primitives.Root,
+// 	votes []v1.ExtendedVoteInfo,
+// 	slot uint64,
+// ) ([]*types.AttestationData, error) {
+// 	var err error
+// 	var index math.U64
+// 	attestations := make([]*types.AttestationData, len(votes))
+// 	for i, vote := range votes {
+// 		index, err = st.ValidatorIndexByCometBFTAddress(vote.Validator.Address)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		attestations[i] = &types.AttestationData{
+// 			Slot:            slot,
+// 			Index:           index.Unwrap(),
+// 			BeaconBlockRoot: root,
+// 		}
+// 	}
+// 	// Attestations are sorted by index.
+// 	sort.Slice(attestations, func(i, j int) bool {
+// 		return attestations[i].Index < attestations[j].Index
+// 	})
+// 	return attestations, nil
 // }
 
-// func newIncomingSlot(slot uint64) IncomingSlot {
-// 	return IncomingSlot{
-// 		slot: slot,
+// // slashingInfoFromMisbehaviors returns a list of slashing info from the
+// // comet misbehaviors.
+// func slashingInfoFromMisbehaviors(
+// 	st BeaconStateT,
+// 	misbehaviors []v1.Misbehavior,
+// ) ([]*types.SlashingInfo, error) {
+// 	var err error
+// 	var index math.U64
+// 	slashingInfo := make([]*types.SlashingInfo, len(misbehaviors))
+// 	for i, misbehavior := range misbehaviors {
+// 		index, err = st.ValidatorIndexByCometBFTAddress(
+// 			misbehavior.Validator.Address,
+// 		)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		slashingInfo[i] = &types.SlashingInfo{
+// 			//#nosec:G701 // safe.
+// 			Slot:  uint64(misbehavior.GetHeight()),
+// 			Index: index.Unwrap(),
+// 		}
 // 	}
+// 	return slashingInfo, nil
 // }
+
+// ProcessProposalHandler

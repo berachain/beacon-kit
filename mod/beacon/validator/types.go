@@ -210,7 +210,7 @@ type PayloadBuilder[BeaconStateT, ExecutionPayloadT any] interface {
 	) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
 }
 
-type IncomingSlot[AttestationDataT, SlashingInfoT any] interface {
+type SlotData[AttestationDataT, SlashingInfoT any] interface {
 	// GetSlot returns the slot of the incoming slot.
 	GetSlot() uint64
 	// GetAttestationData returns the attestation data of the incoming slot.

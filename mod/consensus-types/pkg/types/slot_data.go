@@ -20,8 +20,8 @@
 
 package types
 
-// IncomingSlot represents the data to be used to propose a block.
-type IncomingSlot struct {
+// SlotData represents the data to be used to propose a block.
+type SlotData struct {
 	// Slot is the slot number of the incoming slot.
 	Slot uint64
 	// AttestationData is the attestation data of the incoming slot.
@@ -30,32 +30,32 @@ type IncomingSlot struct {
 	SlashingInfo []*SlashingInfo
 }
 
-// GetSlot retrieves the slot of the IncomingSlot.
-func (b *IncomingSlot) GetSlot() uint64 {
+// GetSlot retrieves the slot of the SlotData.
+func (b *SlotData) GetSlot() uint64 {
 	return b.Slot
 }
 
-// GetAttestationData retrieves the attestation data of the IncomingSlot.
-func (b *IncomingSlot) GetAttestationData() []*AttestationData {
+// GetAttestationData retrieves the attestation data of the SlotData.
+func (b *SlotData) GetAttestationData() []*AttestationData {
 	return b.AttestationData
 }
 
-// GetSlashingInfo retrieves the slashing info of the IncomingSlot.
-func (b *IncomingSlot) GetSlashingInfo() []*SlashingInfo {
+// GetSlashingInfo retrieves the slashing info of the SlotData.
+func (b *SlotData) GetSlashingInfo() []*SlashingInfo {
 	return b.SlashingInfo
 }
 
-// SetSlot sets the slot of the IncomingSlot.
-func (b *IncomingSlot) SetSlot(slot uint64) {
+// SetSlot sets the slot of the SlotData.
+func (b *SlotData) SetSlot(slot uint64) {
 	b.Slot = slot
 }
 
-// SetAttestationData sets the attestation data of the IncomingSlot.
-func (b *IncomingSlot) SetAttestationData(attestationData []*AttestationData) {
+// SetAttestationData sets the attestation data of the SlotData.
+func (b *SlotData) SetAttestationData(attestationData []*AttestationData) {
 	b.AttestationData = attestationData
 }
 
-// SetSlashingInfo sets the slashing info of the IncomingSlot.
-func (b *IncomingSlot) SetSlashingInfo(slashingInfo []*SlashingInfo) {
+// SetSlashingInfo sets the slashing info of the SlotData.
+func (b *SlotData) SetSlashingInfo(slashingInfo []*SlashingInfo) {
 	b.SlashingInfo = slashingInfo
 }

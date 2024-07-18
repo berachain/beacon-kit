@@ -34,30 +34,30 @@ import (
 // eventually fully decouple this.
 type ConsensusEngine[
 	AttestationDataT any,
-	IncomingSlotT IncomingSlot[AttestationDataT, SlashingInfoT],
+	SlotDataT SlotData[AttestationDataT, SlashingInfoT],
 	SlashingInfoT,
 	ValidatorUpdateT any,
 ] struct {
-	Middleware[AttestationDataT, IncomingSlotT, SlashingInfoT]
+	Middleware[AttestationDataT, SlotDataT, SlashingInfoT]
 }
 
 // NewConsensusEngine returns a new consensus middleware.
 func NewConsensusEngine[
 	AttestationDataT any,
-	IncomingSlotT IncomingSlot[AttestationDataT, SlashingInfoT],
+	SlotDataT SlotData[AttestationDataT, SlashingInfoT],
 	SlashingInfoT,
 	ValidatorUpdateT any,
 ](
-	m Middleware[AttestationDataT, IncomingSlotT, SlashingInfoT],
+	m Middleware[AttestationDataT, SlotDataT, SlashingInfoT],
 ) *ConsensusEngine[
 	AttestationDataT,
-	IncomingSlotT,
+	SlotDataT,
 	SlashingInfoT,
 	ValidatorUpdateT,
 ] {
 	return &ConsensusEngine[
 		AttestationDataT,
-		IncomingSlotT,
+		SlotDataT,
 		SlashingInfoT,
 		ValidatorUpdateT,
 	]{
@@ -80,14 +80,14 @@ func (c *ConsensusEngine[_, _, _, ValidatorUpdateT]) InitGenesis(
 // TODO: Decouple Comet Types
 func (c *ConsensusEngine[
 	AttestationDataT,
-	IncomingSlotT,
+	SlotDataT,
 	SlashingInfoT,
 	ValidatorUpdateT,
 ]) PrepareProposal(
 	ctx sdk.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
-	incomingSlotData, err := convertPrepareProposalToIncomingSlot[IncomingSlotT](
+	SlotDataData, err := c.convertPrepareProposalToSlotData(
 		req,
 	)
 	if err != nil {
@@ -95,7 +95,7 @@ func (c *ConsensusEngine[
 	}
 	blkBz, sidecarsBz, err := c.Middleware.PrepareProposal(
 		ctx,
-		incomingSlotData,
+		SlotDataData,
 	)
 	if err != nil {
 		return nil, err

@@ -60,7 +60,7 @@ type (
 		*Deposit,
 		*ExecutionPayload,
 		*Genesis,
-		*IncomingSlot,
+		*SlotData,
 	]
 
 	// AttestationData is a type alias for the attestation data.
@@ -201,8 +201,8 @@ type (
 		*ExecutionPayloadHeader,
 	]
 
-	// IncomingSlot is a type alias for the incoming slot.
-	IncomingSlot = types.IncomingSlot
+	// SlotData is a type alias for the incoming slot.
+	SlotData = types.SlotData
 
 	// IndexDB is a type alias for the range DB.
 	IndexDB = filedb.RangeDB
@@ -289,7 +289,7 @@ type (
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*ForkData,
-		*IncomingSlot,
+		*SlotData,
 		*SlashingInfo,
 	]
 
@@ -315,7 +315,7 @@ type (
 	SidecarEvent = asynctypes.Event[*BlobSidecars]
 
 	// SlotEvent is a type alias for the slot event.
-	SlotEvent = asynctypes.Event[*IncomingSlot]
+	SlotEvent = asynctypes.Event[*SlotData]
 
 	// StatusEvent is a type alias for the status event.
 	StatusEvent = asynctypes.Event[*service.StatusEvent]

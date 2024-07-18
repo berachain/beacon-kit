@@ -101,10 +101,10 @@ func (h *ABCIMiddleware[
 
 // prepareProposal is the internal handler for preparing proposals.
 func (h *ABCIMiddleware[
-	_, _, _, _, _, _, IncomingSlotT,
+	_, _, _, _, _, _, SlotDataT,
 ]) PrepareProposal(
 	ctx context.Context,
-	slot IncomingSlotT,
+	slot SlotDataT,
 ) ([]byte, []byte, error) {
 	var (
 		g                           errgroup.Group

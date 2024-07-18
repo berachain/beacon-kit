@@ -114,7 +114,7 @@ func (nb *NodeBuilder[NodeT]) Build(
 	// This is a bit of a meme until server/v2.
 	consensusEngine := cometbft.NewConsensusEngine[
 		consensustypes.AttestationData,
-		*consensustypes.IncomingSlot,
+		*consensustypes.SlotData,
 		consensustypes.SlashingInfo,
 		appmodule.ValidatorUpdate,
 	](

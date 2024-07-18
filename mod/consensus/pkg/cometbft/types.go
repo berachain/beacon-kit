@@ -30,13 +30,13 @@ import (
 // Middleware is the interface for the CometBFT middleware.
 type Middleware[
 	AttestationDataT any,
-	IncomingSlotT IncomingSlot[AttestationDataT, SlashingInfoT],
+	SlotDataT SlotData[AttestationDataT, SlashingInfoT],
 	SlashingInfoT any,
 ] interface {
 	InitGenesis(
 		ctx context.Context, bz []byte,
 	) (transition.ValidatorUpdates, error)
-	PrepareProposal(context.Context, IncomingSlotT) ([]byte, []byte, error)
+	PrepareProposal(context.Context, SlotDataT) ([]byte, []byte, error)
 	ProcessProposal(
 		ctx context.Context, req proto.Message,
 	) (proto.Message, error)
@@ -44,12 +44,12 @@ type Middleware[
 	EndBlock(ctx context.Context) (transition.ValidatorUpdates, error)
 }
 
-// IncomingSlot is the interface for the incoming slot.
-type IncomingSlot[AttestationDataT, SlashingInfoT any] interface {
-	// SetSlot sets the slot of the IncomingSlot.
+// SlotData is the interface for the incoming slot.
+type SlotData[AttestationDataT, SlashingInfoT any] interface {
+	// SetSlot sets the slot of the SlotData.
 	SetSlot(slot uint64)
-	// SetAttestationData sets the attestation data of the IncomingSlot.
+	// SetAttestationData sets the attestation data of the SlotData.
 	SetAttestationData(attestationData []*AttestationDataT)
-	// SetSlashingInfo sets the slashing info of the IncomingSlot.
+	// SetSlashingInfo sets the slashing info of the SlotData.
 	SetSlashingInfo(slashingInfo []*SlashingInfoT)
 }

@@ -44,7 +44,7 @@ type ABCIMiddleware[
 	DepositT,
 	ExecutionPayloadT any,
 	GenesisT Genesis,
-	IncomingSlotT any,
+	SlotDataT any,
 ] struct {
 	// chainSpec is the chain specification.
 	chainSpec common.ChainSpec
@@ -82,7 +82,7 @@ type ABCIMiddleware[
 	// sidecarsBroker is a feed for sidecars.
 	sidecarsBroker *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
 	// slotBroker is a feed for slots.
-	slotBroker *broker.Broker[*asynctypes.Event[IncomingSlotT]]
+	slotBroker *broker.Broker[*asynctypes.Event[SlotDataT]]
 
 	// TODO: this is a temporary hack.
 	req *cmtabci.FinalizeBlockRequest
@@ -105,7 +105,7 @@ func NewABCIMiddleware[
 	DepositT,
 	ExecutionPayloadT any,
 	GenesisT Genesis,
-	IncomingSlotT any,
+	SlotDataT any,
 ](
 	chainSpec common.ChainSpec,
 	chainService BlockchainService[
@@ -116,15 +116,15 @@ func NewABCIMiddleware[
 	genesisBroker *broker.Broker[*asynctypes.Event[GenesisT]],
 	blkBroker *broker.Broker[*asynctypes.Event[BeaconBlockT]],
 	sidecarsBroker *broker.Broker[*asynctypes.Event[BlobSidecarsT]],
-	slotBroker *broker.Broker[*asynctypes.Event[IncomingSlotT]],
+	slotBroker *broker.Broker[*asynctypes.Event[SlotDataT]],
 	valUpdateSub chan *asynctypes.Event[transition.ValidatorUpdates],
 ) *ABCIMiddleware[
 	AvailabilityStoreT, BeaconBlockT, BlobSidecarsT, DepositT,
-	ExecutionPayloadT, GenesisT, IncomingSlotT,
+	ExecutionPayloadT, GenesisT, SlotDataT,
 ] {
 	return &ABCIMiddleware[
 		AvailabilityStoreT, BeaconBlockT, BlobSidecarsT, DepositT,
-		ExecutionPayloadT, GenesisT, IncomingSlotT,
+		ExecutionPayloadT, GenesisT, SlotDataT,
 	]{
 		chainSpec:    chainSpec,
 		chainService: chainService,
@@ -158,7 +158,7 @@ func NewABCIMiddleware[
 // Name returns the name of the middleware.
 func (am *ABCIMiddleware[
 	AvailabilityStoreT, BeaconBlockT, BlobSidecarsT, DepositT,
-	ExecutionPayloadT, GenesisT, IncomingSlotT,
+	ExecutionPayloadT, GenesisT, SlotDataT,
 ]) Name() string {
 	return "abci-middleware"
 }

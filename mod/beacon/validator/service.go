@@ -49,7 +49,7 @@ type Service[
 	ExecutionPayloadT any,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	ForkDataT ForkData[ForkDataT],
-	IncomingSlotT IncomingSlot[AttestationDataT, SlashingInfoT],
+	SlotDataT SlotData[AttestationDataT, SlashingInfoT],
 	SlashingInfoT any,
 ] struct {
 	// cfg is the validator config.
@@ -91,7 +91,7 @@ type Service[
 	// sidecarBroker is a publisher for sidecars.
 	sidecarBroker EventPublisher[*asynctypes.Event[BlobSidecarsT]]
 	// newSlotSub is a feed for slots.
-	newSlotSub chan *asynctypes.Event[IncomingSlotT]
+	newSlotSub chan *asynctypes.Event[SlotDataT]
 }
 
 // NewService creates a new validator service.
@@ -112,7 +112,7 @@ func NewService[
 	ExecutionPayloadT any,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	ForkDataT ForkData[ForkDataT],
-	IncomingSlotT IncomingSlot[AttestationDataT, SlashingInfoT],
+	SlotDataT SlotData[AttestationDataT, SlashingInfoT],
 	SlashingInfoT any,
 ](
 	cfg *Config,
@@ -137,16 +137,16 @@ func NewService[
 	ts TelemetrySink,
 	blkBroker EventPublisher[*asynctypes.Event[BeaconBlockT]],
 	sidecarBroker EventPublisher[*asynctypes.Event[BlobSidecarsT]],
-	newSlotSub chan *asynctypes.Event[IncomingSlotT],
+	newSlotSub chan *asynctypes.Event[SlotDataT],
 ) *Service[
 	AttestationDataT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ForkDataT, IncomingSlotT, SlashingInfoT,
+	ExecutionPayloadHeaderT, ForkDataT, SlotDataT, SlashingInfoT,
 ] {
 	return &Service[
 		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 		BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
-		ExecutionPayloadHeaderT, ForkDataT, IncomingSlotT, SlashingInfoT,
+		ExecutionPayloadHeaderT, ForkDataT, SlotDataT, SlashingInfoT,
 	]{
 		cfg:                   cfg,
 		logger:                logger,
@@ -201,8 +201,8 @@ func (s *Service[
 
 // handleBlockRequest handles a block request.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, IncomingSlotT, _,
-]) handleNewSlot(msg *asynctypes.Event[IncomingSlotT]) {
+	_, _, _, _, _, _, _, _, _, _, _, SlotDataT, _,
+]) handleNewSlot(msg *asynctypes.Event[SlotDataT]) {
 	blk, sidecars, err := s.buildBlockAndSidecars(
 		msg.Context(), msg.Data(),
 	)

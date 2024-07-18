@@ -39,10 +39,10 @@ import (
 // buildBlockAndSidecars builds a new beacon block.
 func (s *Service[
 	AttestationDataT, BeaconBlockT, _, _,
-	BlobSidecarsT, _, _, _, _, _, _, IncomingSlotT, SlashingInfoT,
+	BlobSidecarsT, _, _, _, _, _, _, SlotDataT, SlashingInfoT,
 ]) buildBlockAndSidecars(
 	ctx context.Context,
-	slotData IncomingSlotT,
+	slotData SlotDataT,
 ) (BeaconBlockT, BlobSidecarsT, error) {
 	var (
 		blk       BeaconBlockT
@@ -260,14 +260,14 @@ func (s *Service[
 // BuildBlockBody assembles the block body with necessary components.
 func (s *Service[
 	AttestationDataT, BeaconBlockT, _, BeaconStateT, _,
-	_, _, Eth1DataT, ExecutionPayloadT, _, _, IncomingSlotT, SlashingInfoT,
+	_, _, Eth1DataT, ExecutionPayloadT, _, _, SlotDataT, SlashingInfoT,
 ]) buildBlockBody(
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
 	reveal crypto.BLSSignature,
 	envelope engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT],
-	slotData IncomingSlotT,
+	slotData SlotDataT,
 ) error {
 	// Assemble a new block with the payload.
 	body := blk.GetBody()

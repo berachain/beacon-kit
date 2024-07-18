@@ -119,7 +119,7 @@ func (am AppModule) InitGenesis(
 ) ([]appmodule.ValidatorUpdate, error) {
 	return cometbft.NewConsensusEngine[
 		types.AttestationData,
-		*types.IncomingSlot,
+		*types.SlotData,
 		types.SlashingInfo,
 		appmodule.ValidatorUpdate,
 	](
@@ -133,7 +133,7 @@ func (am AppModule) EndBlock(
 ) ([]appmodule.ValidatorUpdate, error) {
 	return cometbft.NewConsensusEngine[
 		types.AttestationData,
-		*types.IncomingSlot,
+		*types.SlotData,
 		types.SlashingInfo,
 		appmodule.ValidatorUpdate,
 	](
