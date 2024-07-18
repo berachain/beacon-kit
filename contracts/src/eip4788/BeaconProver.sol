@@ -27,7 +27,7 @@ contract BeaconProver is Verifier {
         SSZ.Validator calldata validator,
         uint64 validatorIndex,
         uint64 timestamp
-    ) 
+    )
         external
     {
         // First check that the validator index is that of the block proposer.
@@ -38,7 +38,7 @@ contract BeaconProver is Verifier {
         // Then check that the validator is a validator of the beacon chain during this time.
         proveValidator(validatorProof, validator, validatorIndex, timestamp);
 
-        // Finally verify that the block header is the valid block header for this slot & time.
+        // Finally verify that the block header is the valid block header for this time.
         bytes32 expectedBeaconRoot = getParentBlockRoot(timestamp);
         bytes32 givenBeaconRoot = SSZ.beaconHeaderHashTreeRoot(blockHeader);
         if (expectedBeaconRoot != givenBeaconRoot) {
