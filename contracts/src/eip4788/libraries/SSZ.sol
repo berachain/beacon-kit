@@ -9,15 +9,6 @@ library SSZ {
     error BranchHasMissingItem();
     error BranchHasExtraItem();
 
-    /// Withdrawal represents a validator withdrawal from the consensus layer.
-    /// See EIP-4895: Beacon chain push withdrawals as operations.
-    struct Withdrawal {
-        uint64 index;
-        uint64 validatorIndex;
-        address _address;
-        uint64 amount;
-    }
-
     // As defined in phase0/beacon-chain.md:356
     struct Validator {
         bytes pubkey;
@@ -37,31 +28,6 @@ library SSZ {
         bytes32 parentRoot;
         bytes32 stateRoot;
         bytes32 bodyRoot;
-    }
-
-    /// Inspired by https://github.com/succinctlabs/telepathy-contracts/blob/main/src/libraries/SimpleSerialize.sol#L59
-    function withdrawalHashTreeRoot(Withdrawal memory withdrawal)
-        internal
-        pure
-        returns (bytes32)
-    {
-        return sha256(
-            bytes.concat(
-                sha256(
-                    bytes.concat(
-                        toLittleEndian(withdrawal.index),
-                        toLittleEndian(withdrawal.validatorIndex)
-                    )
-                ),
-                sha256(
-                    bytes.concat(
-                        bytes20(withdrawal._address),
-                        bytes12(0),
-                        toLittleEndian(withdrawal.amount)
-                    )
-                )
-            )
-        );
     }
 
     function validatorHashTreeRoot(Validator memory validator)
