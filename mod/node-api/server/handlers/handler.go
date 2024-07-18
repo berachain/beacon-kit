@@ -21,14 +21,13 @@
 package handlers
 
 import (
-	"github.com/berachain/beacon-kit/mod/node-api/server/types"
 	"github.com/labstack/echo/v4"
 )
 
-type RouteHandlers struct {
-	Backend types.BackendHandlers
+type RouteHandlers[ValidatorT any] struct {
+	Backend BackendHandlers[ValidatorT]
 }
 
-func (rh RouteHandlers) NotImplemented(_ echo.Context) error {
+func (rh RouteHandlers[ValidatorT]) NotImplemented(_ echo.Context) error {
 	return echo.ErrNotImplemented
 }

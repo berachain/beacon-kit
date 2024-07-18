@@ -18,38 +18,39 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package main
+package handlers
 
 import (
-	"github.com/berachain/beacon-kit/mod/node-api/backend"
-	"github.com/berachain/beacon-kit/mod/node-api/server"
-	"github.com/berachain/beacon-kit/mod/node-api/server/handlers"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"context"
+
+	types "github.com/berachain/beacon-kit/mod/node-api/server/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
-func NewServer(corsConfig middleware.CORSConfig,
-	loggingConfig middleware.LoggerConfig) *echo.Echo {
-	e := echo.New()
-	e.HTTPErrorHandler = handlers.CustomHTTPErrorHandler
-	e.Validator = &handlers.CustomValidator{
-		Validator: server.ConstructValidator(),
-	}
-	server.UseMiddlewares(e,
-		middleware.CORSWithConfig(corsConfig),
-		middleware.LoggerWithConfig(loggingConfig))
-	server.AssignRoutes(
-		e,
-		handlers.RouteHandlers{Backend: backend.NewMockBackend()},
-	)
-	return e
-}
-
-func run() {
-	e := NewServer(middleware.DefaultCORSConfig, middleware.DefaultLoggerConfig)
-	e.Logger.Fatal(e.Start(":8080"))
-}
-
-func main() {
-	run()
+type BackendHandlers[ValidatorT any] interface {
+	GetGenesis(ctx context.Context) (common.Root, error)
+	GetStateRoot(
+		ctx context.Context,
+		stateID string,
+	) (common.Bytes32, error)
+	GetStateValidators(
+		ctx context.Context,
+		stateID string,
+		id []string,
+		status []string,
+	) ([]*types.ValidatorData[ValidatorT], error)
+	GetStateValidator(
+		ctx context.Context,
+		stateID string,
+		validatorID string,
+	) (*types.ValidatorData[ValidatorT], error)
+	GetStateValidatorBalances(
+		ctx context.Context,
+		stateID string,
+		id []string,
+	) ([]*types.ValidatorBalanceData, error)
+	GetBlockRewards(
+		ctx context.Context,
+		blockID string,
+	) (*types.BlockRewardsData, error)
 }

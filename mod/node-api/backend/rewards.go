@@ -26,7 +26,10 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/server/types"
 )
 
-func (h Backend) GetBlockRewards(
+// TODO: Implement this.
+func (h Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) GetBlockRewards(
 	_ context.Context,
 	_ string,
 ) (*types.BlockRewardsData, error) {

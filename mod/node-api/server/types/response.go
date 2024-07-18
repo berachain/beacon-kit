@@ -21,7 +21,6 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
@@ -50,11 +49,11 @@ type ValidatorResponse struct {
 	Data                any  `json:"data"`
 }
 
-type ValidatorData struct {
-	Index     uint64           `json:"index,string"`
-	Balance   uint64           `json:"balance,string"`
-	Status    string           `json:"status"`
-	Validator *types.Validator `json:"validator"`
+type ValidatorData[ValidatorT any] struct {
+	Index     uint64     `json:"index,string"`
+	Balance   uint64     `json:"balance,string"`
+	Status    string     `json:"status"`
+	Validator ValidatorT `json:"validator"`
 }
 
 type ValidatorBalanceData struct {

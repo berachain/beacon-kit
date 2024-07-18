@@ -37,6 +37,8 @@ import (
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
+	"github.com/berachain/beacon-kit/mod/node-api/backend"
+	"github.com/berachain/beacon-kit/mod/node-api/server"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
@@ -229,6 +231,29 @@ type (
 		PayloadID,
 		*Withdrawal,
 	]
+
+	// NodeAPIBackend is a type alias for the node API backend.
+	NodeAPIBackend = backend.Backend[
+		*AvailabilityStore,
+		*BeaconBlock,
+		*BeaconBlockBody,
+		*BeaconBlockHeader,
+		*BeaconState,
+		*BlobSidecars,
+		*BlockStore,
+		*Deposit,
+		*DepositStore,
+		*Eth1Data,
+		*ExecutionPayloadHeader,
+		*Fork,
+		*KVStore,
+		*Validator,
+		*Withdrawal,
+		WithdrawalCredentials,
+	]
+
+	// NodeAPIServer is a type alias for the node API server.
+	NodeAPIServer = server.Server
 
 	// PayloadAttributes is a type alias for the payload attributes.
 	PayloadAttributes = engineprimitives.PayloadAttributes[*Withdrawal]

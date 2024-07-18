@@ -18,38 +18,37 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package handlers
 
 import (
 	"context"
+	"net/http"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	types "github.com/berachain/beacon-kit/mod/node-api/server/types"
+	echo "github.com/labstack/echo/v4"
 )
 
-type BackendHandlers interface {
-	GetGenesis(ctx context.Context) (common.Root, error)
-	GetStateRoot(
-		ctx context.Context,
-		stateID string,
-	) (common.Bytes32, error)
-	GetStateValidators(
-		ctx context.Context,
-		stateID string,
-		id []string,
-		status []string,
-	) ([]*ValidatorData, error)
-	GetStateValidator(
-		ctx context.Context,
-		stateID string,
-		validatorID string,
-	) (*ValidatorData, error)
-	GetStateValidatorBalances(
-		ctx context.Context,
-		stateID string,
-		id []string,
-	) ([]*ValidatorBalanceData, error)
-	GetBlockRewards(
-		ctx context.Context,
-		blockID string,
-	) (*BlockRewardsData, error)
+func (rh RouteHandlers[_]) GetStateRoot(c echo.Context) error {
+	params, err := BindAndValidate[types.StateIDRequest](c)
+	if err != nil {
+		return err
+	}
+	if params == nil {
+		return echo.ErrInternalServerError
+	}
+	stateRoot, err := rh.Backend.GetStateRoot(
+		context.TODO(),
+		params.StateID,
+	)
+	if err != nil {
+		return err
+	}
+	if len(stateRoot) == 0 {
+		return echo.NewHTTPError(http.StatusNotFound, "State not found")
+	}
+	return c.JSON(http.StatusOK, types.ValidatorResponse{
+		ExecutionOptimistic: false, // stubbed
+		Finalized:           false, // stubbed
+		Data:                WrapData(types.RootData{Root: stateRoot}),
+	})
 }

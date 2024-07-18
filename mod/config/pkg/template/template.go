@@ -94,4 +94,11 @@ pruner-enabled = "{{ .BeaconKit.BlockService.PrunerEnabled }}"
 
 # AvailabilityWindow is the number of slots to keep in the store.
 availability-window = "{{ .BeaconKit.BlockService.AvailabilityWindow }}"
+
+[beacon-kit.node-api]
+# Enabled determines if the node API is enabled.
+enabled = "{{ .BeaconKit.NodeAPI.Enabled }}"
+
+# Address is the address to bind the node API to.
+address = "{{ .BeaconKit.NodeAPI.Address }}"
 `

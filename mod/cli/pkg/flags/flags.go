@@ -66,6 +66,11 @@ const (
 	BlockServiceEnabled            = blockServiceRoot + "enabled"
 	BlockServicePrunerEnabled      = blockServiceRoot + "pruner-enabled"
 	BlockServiceAvailabilityWindow = blockServiceRoot + "availability-window"
+
+	// Node API Config.
+	nodeAPIRoot    = beaconKitRoot + "node-api."
+	NodeAPIEnabled = nodeAPIRoot + "enabled"
+	NodeAPIAddress = nodeAPIRoot + "address"
 )
 
 // AddBeaconKitFlags implements servertypes.ModuleInitFlags interface.
@@ -139,5 +144,15 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 		BlockServiceAvailabilityWindow,
 		defaultCfg.BlockService.AvailabilityWindow,
 		"block service availability window",
+	)
+	startCmd.Flags().Bool(
+		NodeAPIEnabled,
+		defaultCfg.NodeAPI.Enabled,
+		"node api enabled",
+	)
+	startCmd.Flags().String(
+		NodeAPIAddress,
+		defaultCfg.NodeAPI.Address,
+		"node api address",
 	)
 }
