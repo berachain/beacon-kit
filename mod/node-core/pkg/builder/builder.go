@@ -27,6 +27,7 @@ import (
 	"cosmossdk.io/core/appmodule/v2"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	consensustypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/app"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
@@ -111,7 +112,9 @@ func (nb *NodeBuilder[NodeT]) Build(
 	}
 
 	// This is a bit of a meme until server/v2.
-	consensusEngine := cometbft.NewConsensusEngine[appmodule.ValidatorUpdate](
+	consensusEngine := cometbft.NewConsensusEngine[
+		consensustypes.IncomingSlot, appmodule.ValidatorUpdate,
+	](
 		abciMiddleware,
 	)
 

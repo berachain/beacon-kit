@@ -40,7 +40,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
@@ -61,7 +60,11 @@ type (
 		*Deposit,
 		*ExecutionPayload,
 		*Genesis,
+		*IncomingSlot,
 	]
+
+	// AttestationData is a type alias for the attestation data.
+	AttestationData = types.AttestationData
 
 	// AttributesFactory is a type alias for the attributes factory.
 	AttributesFactory = attributes.Factory[
@@ -198,6 +201,9 @@ type (
 		*ExecutionPayloadHeader,
 	]
 
+	// IncomingSlot is a type alias for the incoming slot.
+	IncomingSlot = types.IncomingSlot
+
 	// IndexDB is a type alias for the range DB.
 	IndexDB = filedb.RangeDB
 
@@ -235,6 +241,9 @@ type (
 		*BeaconBlockBody,
 	]
 
+	// SlashingInfo is a type alias for the slashing info.
+	SlashingInfo = types.SlashingInfo
+
 	// StateProcessor is the type alias for the state processor interface.
 	StateProcessor = blockchain.StateProcessor[
 		*BeaconBlock,
@@ -269,6 +278,7 @@ type (
 
 	// ValidatorService is a type alias for the validator service.
 	ValidatorService = validator.Service[
+		*AttestationData,
 		*BeaconBlock,
 		*BeaconBlockBody,
 		*BeaconState,
@@ -279,6 +289,8 @@ type (
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*ForkData,
+		*IncomingSlot,
+		*SlashingInfo,
 	]
 
 	// Withdrawal is a type alias for the engineprimitives withdrawal.
@@ -303,7 +315,7 @@ type (
 	SidecarEvent = asynctypes.Event[*BlobSidecars]
 
 	// SlotEvent is a type alias for the slot event.
-	SlotEvent = asynctypes.Event[math.Slot]
+	SlotEvent = asynctypes.Event[*IncomingSlot]
 
 	// StatusEvent is a type alias for the status event.
 	StatusEvent = asynctypes.Event[*service.StatusEvent]

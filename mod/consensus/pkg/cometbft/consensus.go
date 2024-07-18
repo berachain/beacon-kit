@@ -23,7 +23,6 @@ package cometbft
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/sourcegraph/conc/iter"
@@ -33,20 +32,20 @@ import (
 // the Cosmos SDK.
 // Right now, it is very coupled to the sdk base app and we will
 // eventually fully decouple this.
-type ConsensusEngine[ValidatorUpdateT any] struct {
-	Middleware
+type ConsensusEngine[IncomingSlotT, ValidatorUpdateT any] struct {
+	Middleware[IncomingSlotT]
 }
 
 // NewConsensusEngine returns a new consensus middleware.
-func NewConsensusEngine[ValidatorUpdateT any](
-	m Middleware,
-) *ConsensusEngine[ValidatorUpdateT] {
-	return &ConsensusEngine[ValidatorUpdateT]{
+func NewConsensusEngine[IncomingSlotT, ValidatorUpdateT any](
+	m Middleware[IncomingSlotT],
+) *ConsensusEngine[IncomingSlotT, ValidatorUpdateT] {
+	return &ConsensusEngine[IncomingSlotT, ValidatorUpdateT]{
 		Middleware: m,
 	}
 }
 
-func (c *ConsensusEngine[ValidatorUpdateT]) InitGenesis(
+func (c *ConsensusEngine[IncomingSlotT, ValidatorUpdateT]) InitGenesis(
 	ctx context.Context,
 	genesisBz []byte,
 ) ([]ValidatorUpdateT, error) {
@@ -59,12 +58,20 @@ func (c *ConsensusEngine[ValidatorUpdateT]) InitGenesis(
 }
 
 // TODO: Decouple Comet Types
-func (c *ConsensusEngine[ValidatorUpdateT]) PrepareProposal(
+func (c *ConsensusEngine[IncomingSlotT, ValidatorUpdateT]) PrepareProposal(
 	ctx sdk.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
-	slot := math.Slot(req.Height)
-	blkBz, sidecarsBz, err := c.Middleware.PrepareProposal(ctx, slot)
+	incomingSlotData, err := convertPrepareProposalToIncomingSlot[IncomingSlotT](
+		req,
+	)
+	if err != nil {
+		return nil, err
+	}
+	blkBz, sidecarsBz, err := c.Middleware.PrepareProposal(
+		ctx,
+		&incomingSlotData,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +81,7 @@ func (c *ConsensusEngine[ValidatorUpdateT]) PrepareProposal(
 }
 
 // TODO: Decouple Comet Types
-func (c *ConsensusEngine[ValidatorUpdateT]) ProcessProposal(
+func (c *ConsensusEngine[IncomingSlotT, ValidatorUpdateT]) ProcessProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
@@ -86,14 +93,14 @@ func (c *ConsensusEngine[ValidatorUpdateT]) ProcessProposal(
 }
 
 // TODO: Decouple Comet Types
-func (c *ConsensusEngine[ValidatorUpdateT]) PreBlock(
+func (c *ConsensusEngine[IncomingSlotT, ValidatorUpdateT]) PreBlock(
 	ctx sdk.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) error {
 	return c.Middleware.PreBlock(ctx, req)
 }
 
-func (c *ConsensusEngine[ValidatorUpdateT]) EndBlock(
+func (c *ConsensusEngine[IncomingSlotT, ValidatorUpdateT]) EndBlock(
 	ctx context.Context,
 ) ([]ValidatorUpdateT, error) {
 	updates, err := c.Middleware.EndBlock(ctx)

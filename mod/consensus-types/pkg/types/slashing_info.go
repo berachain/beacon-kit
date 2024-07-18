@@ -34,3 +34,23 @@ type SlashingInfo struct {
 	// ValidatorIndex is the validator index of the slashing info.
 	Index uint64
 }
+
+// GetSlot returns the slot of the slashing info.
+func (s *SlashingInfo) GetSlot() uint64 {
+	return s.Slot
+}
+
+// GetIndex returns the index of the slashing info.
+func (s *SlashingInfo) GetIndex() uint64 {
+	return s.Index
+}
+
+// SetSlot sets the slot of the slashing info.
+func (s *SlashingInfo) SetSlot(slot uint64) {
+	s.Slot = slot
+}
+
+// SetIndex sets the index of the slashing info.
+func (s *SlashingInfo) SetIndex(index uint64) {
+	s.Index = index
+}

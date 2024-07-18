@@ -24,6 +24,7 @@ import (
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
+	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
 // convertValidatorUpdate abstracts the conversion of a
@@ -44,4 +45,21 @@ func convertValidatorUpdate[ValidatorUpdateT any](
 		//#nosec:G701 // this is safe.
 		Power: int64(update.EffectiveBalance.Unwrap()),
 	}).(ValidatorUpdateT), nil
+}
+
+func convertPrepareProposalToIncomingSlot[IncomingSlotT any](
+	req *cmtabci.PrepareProposalRequest,
+) (IncomingSlotT, error) {
+	mapped := newIncomingSlot(uint64(req.Height))
+	return any(mapped).(IncomingSlotT), nil
+}
+
+type IncomingSlot struct {
+	slot uint64
+}
+
+func newIncomingSlot(slot uint64) IncomingSlot {
+	return IncomingSlot{
+		slot: slot,
+	}
 }

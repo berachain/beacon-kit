@@ -38,3 +38,33 @@ type AttestationData struct {
 	// BeaconBlockRoot is the root of the beacon block.
 	BeaconBlockRoot common.Root
 }
+
+// GetSlot returns the slot of the attestation data.
+func (a *AttestationData) GetSlot() uint64 {
+	return a.Slot
+}
+
+// GetIndex returns the index of the attestation data.
+func (a *AttestationData) GetIndex() uint64 {
+	return a.Index
+}
+
+// GetBeaconBlockRoot returns the beacon block root of the attestation data.
+func (a *AttestationData) GetBeaconBlockRoot() common.Root {
+	return a.BeaconBlockRoot
+}
+
+// SetSlot sets the slot of the attestation data.
+func (a *AttestationData) SetSlot(slot uint64) {
+	a.Slot = slot
+}
+
+// SetIndex sets the index of the attestation data.
+func (a *AttestationData) SetIndex(index uint64) {
+	a.Index = index
+}
+
+// SetBeaconBlockRoot sets the beacon block root of the attestation data.
+func (a *AttestationData) SetBeaconBlockRoot(root common.Root) {
+	a.BeaconBlockRoot = root
+}

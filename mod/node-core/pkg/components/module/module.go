@@ -117,7 +117,9 @@ func (am AppModule) InitGenesis(
 	ctx context.Context,
 	bz json.RawMessage,
 ) ([]appmodule.ValidatorUpdate, error) {
-	return cometbft.NewConsensusEngine[appmodule.ValidatorUpdate](
+	return cometbft.NewConsensusEngine[
+		types.IncomingSlot, appmodule.ValidatorUpdate,
+	](
 		am.ABCIMiddleware,
 	).InitGenesis(ctx, bz)
 }
@@ -126,7 +128,9 @@ func (am AppModule) InitGenesis(
 func (am AppModule) EndBlock(
 	ctx context.Context,
 ) ([]appmodule.ValidatorUpdate, error) {
-	return cometbft.NewConsensusEngine[appmodule.ValidatorUpdate](
+	return cometbft.NewConsensusEngine[
+		types.IncomingSlot, appmodule.ValidatorUpdate,
+	](
 		am.ABCIMiddleware,
 	).EndBlock(ctx)
 }

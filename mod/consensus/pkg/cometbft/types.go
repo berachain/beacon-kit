@@ -23,16 +23,15 @@ package cometbft
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/cosmos/gogoproto/proto"
 )
 
-type Middleware interface {
+type Middleware[IncomingSlotDataT any] interface {
 	InitGenesis(
 		ctx context.Context, bz []byte,
 	) (transition.ValidatorUpdates, error)
-	PrepareProposal(context.Context, math.Slot) ([]byte, []byte, error)
+	PrepareProposal(context.Context, *IncomingSlotDataT) ([]byte, []byte, error)
 	ProcessProposal(
 		ctx context.Context, req proto.Message,
 	) (proto.Message, error)

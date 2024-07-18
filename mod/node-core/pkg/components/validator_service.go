@@ -60,6 +60,7 @@ func ProvideValidatorService(
 
 	// Build the builder service.
 	return validator.NewService[
+		*AttestationData,
 		*BeaconBlock,
 		*BeaconBlockBody,
 		*BeaconState,
@@ -70,6 +71,8 @@ func ProvideValidatorService(
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*ForkData,
+		*IncomingSlot,
+		*SlashingInfo,
 	](
 		&in.Cfg.Validator,
 		in.Logger.With("service", "validator"),
