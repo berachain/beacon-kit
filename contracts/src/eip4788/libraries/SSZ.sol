@@ -76,7 +76,7 @@ library SSZ {
                 let end := add(source, shl(5, count))
 
                 for { } 1 { } {
-                    // Read next two hashes to hash
+                    // Read the next two hashes to hash
                     mstore(0x00, mload(source))
                     mstore(0x20, mload(add(source, 0x20)))
 

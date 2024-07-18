@@ -19,14 +19,14 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @inheritdoc IBeaconVerifier
-    uint256 public valGIndex;
+    uint256 public validatorsGIndex;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                       ADMIN FUNCTIONS                      */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     constructor(uint256 _valGIndex) {
-        valGIndex = _valGIndex;
+        validatorsGIndex = _valGIndex;
 
         _initializeOwner(msg.sender);
     }
@@ -38,6 +38,10 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
         returns (bool guard)
     {
         return true;
+    }
+
+    function setValidatorsGIndex(uint256 _valGIndex) external onlyOwner {
+        validatorsGIndex = _valGIndex;
     }
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -109,7 +113,7 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
             revert IndexOutOfRange();
         }
 
-        uint256 gI = valGIndex + validatorIndex;
+        uint256 gI = validatorsGIndex + validatorIndex;
         bytes32 validatorRoot = SSZ.validatorHashTreeRoot(validator);
 
         if (
