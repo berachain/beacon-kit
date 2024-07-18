@@ -152,6 +152,7 @@ func createValidatorCmd[
 		)
 
 		if broadcast {
+			logger.Info("Broadcasting deposit transaction")
 			var txHash common.ExecutionHash
 			txHash, err = broadcastDepositTx[ExecutionPayloadT](
 				cmd, depositMsg, signature, chainSpec,
@@ -194,7 +195,6 @@ func broadcastDepositTx[
 	if err != nil {
 		return common.ExecutionHash{}, err
 	}
-
 	if privKey == nil {
 		return common.ExecutionHash{}, ErrPrivateKeyEmpty
 	}
