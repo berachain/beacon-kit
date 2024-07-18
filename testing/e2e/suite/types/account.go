@@ -37,7 +37,7 @@ type EthAccount struct {
 	pk   *ecdsa.PrivateKey
 }
 
-// NewEthAccount creates a new Ethereum account.
+// NewEthAccountFromHex creates a new Ethereum account from hex private key.
 func NewEthAccountFromHex(
 	name string,
 	hexPk string,
@@ -89,7 +89,7 @@ func (a EthAccount) SignerFunc(chainID *big.Int) bind.SignerFn {
 	}
 }
 
-// PrivateKey returns the private key of the account.
+// PublicKey returns the public key of the account.
 func (a EthAccount) PublicKey() *ecdsa.PublicKey {
 	return &a.pk.PublicKey
 }

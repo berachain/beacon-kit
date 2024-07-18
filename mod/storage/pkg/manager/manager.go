@@ -33,40 +33,28 @@ import (
 )
 
 // DBManager is a manager for all pruners.
-type DBManager[
-	BeaconBlockT BeaconBlock,
-	BlockEventT BlockEvent[BeaconBlockT],
-] struct {
+type DBManager struct {
 	pruners []pruner.Pruner[pruner.Prunable]
 	logger  log.Logger[any]
 }
 
-func NewDBManager[
-	BeaconBlockT BeaconBlock,
-	BlockEventT BlockEvent[BeaconBlockT],
-](
+func NewDBManager(
 	logger log.Logger[any],
 	pruners ...pruner.Pruner[pruner.Prunable],
-) (*DBManager[BeaconBlockT, BlockEventT], error) {
-	return &DBManager[
-		BeaconBlockT, BlockEventT,
-	]{
+) (*DBManager, error) {
+	return &DBManager{
 		logger:  logger,
 		pruners: pruners,
 	}, nil
 }
 
 // Name returns the name of the Basic Service.
-func (m *DBManager[
-	_, _,
-]) Name() string {
+func (m *DBManager) Name() string {
 	return "db-manager"
 }
 
 // Start starts all pruners.
-func (m *DBManager[
-	_, _,
-]) Start(ctx context.Context) error {
+func (m *DBManager) Start(ctx context.Context) error {
 	for _, pruner := range m.pruners {
 		pruner.Start(ctx)
 	}

@@ -33,6 +33,7 @@ type Backend struct {
 	getNewStateDB func(context.Context, string) StateDB
 }
 
+// New creates and returns a new Backend instance.
 // TODO: need to add state_id resolver; possible values are: "head" (canonical
 // head in node's view), "genesis", "finalized", "justified", <slot>, <hex
 // encoded stateRoot with 0x prefix>.

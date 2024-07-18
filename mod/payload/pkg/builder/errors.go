@@ -34,20 +34,7 @@ var (
 	// cache.
 	ErrPayloadIDNotFound = errors.New("unable to find payload ID in cache")
 
-	// ErrCachedPayloadNotFoundOnExecutionClient is returned when a cached
-	// payloadID is not found on the execution client.
-	ErrCachedPayloadNotFoundOnExecutionClient = errors.New(
-		"cached payload ID could not be resolved on execution client",
-	)
-
-	// ErrLocalBuildingDisabled is returned when local building is disabled.
-	ErrLocalBuildingDisabled = errors.New("local building is disabled")
-
 	// ErrNilPayloadEnvelope is returned when a nil payload envelope is
 	// received.
 	ErrNilPayloadEnvelope = errors.New("received nil payload envelope")
-
-	// ErrNilPayload is returned when a nil payload envelope is
-	// received.
-	ErrNilPayload = errors.New("received nil payload envelope")
 )

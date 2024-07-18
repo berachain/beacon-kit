@@ -24,7 +24,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/require"
 )
@@ -33,7 +33,7 @@ func TestU32(t *testing.T) {
 	var u math.U32
 	require.Equal(t, constants.U32Size, u.SizeSSZ())
 	require.True(t, u.IsFixed())
-	require.Equal(t, types.Basic, u.Type())
+	require.Equal(t, schema.U32(), u.Type())
 	require.Equal(t, uint64(1), u.ChunkCount())
 }
 

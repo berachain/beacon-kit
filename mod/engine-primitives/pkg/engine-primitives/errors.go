@@ -26,9 +26,6 @@ var (
 	// ErrInvalidTimestamp indicates that the provided timestamp is not valid.
 	ErrInvalidTimestamp = errors.New("invalid timestamp")
 
-	// ErrInvalidRandao indicates that the provided RANDAO value is not valid.
-	ErrInvalidRandao = errors.New("invalid randao")
-
 	// ErrNilWithdrawals indicates that the withdrawals are in a
 	// Capella versioned payload.
 	ErrNilWithdrawals = errors.New("nil withdrawals post capella")

@@ -32,7 +32,7 @@ type metrics struct {
 	sink TelemetrySink
 }
 
-// newtMetrics creates a new instance of the metrics struct.
+// newMetrics creates a new instance of the metrics struct.
 func newMetrics(sink TelemetrySink) *metrics {
 	return &metrics{
 		sink: sink,

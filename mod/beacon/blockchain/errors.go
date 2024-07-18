@@ -23,16 +23,8 @@ package blockchain
 import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
-	// ErrInvalidPayload indicates that the payload of a beacon block is
-	// invalid.
-	ErrInvalidPayload = errors.New("invalid payload")
-	// ErrNoPayloadInBeaconBlock indicates that a beacon block was expected to
-	// have a payload, but none was found.
-	ErrNoPayloadInBeaconBlock = errors.New("no payload in beacon block")
-	// ErrNilBlkBody is an error for when the block body is nil.
-	ErrNilBlkBody = errors.New("nil block body")
 	// ErrNilBlk is an error for when the beacon block is nil.
 	ErrNilBlk = errors.New("nil beacon block")
-	// ErrDataNotAvailable.
+	// ErrDataNotAvailable indicates that the required data is not available.
 	ErrDataNotAvailable = errors.New("data not available")
 )

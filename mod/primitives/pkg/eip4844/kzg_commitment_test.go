@@ -233,7 +233,8 @@ func TestKZGCommitments_Leafify(t *testing.T) {
 			}
 
 			commitments := eip4844.KZGCommitments[[32]byte](tt.input)
-			leaves := commitments.Leafify()
+			leaves, err := commitments.Leafify()
+			require.NoError(t, err)
 			require.Equal(t, expected, leaves,
 				"Leaves do not match expected for test: "+tt.name)
 		})

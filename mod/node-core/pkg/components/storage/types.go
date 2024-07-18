@@ -44,6 +44,16 @@ type AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT any] interface {
 	Persist(math.Slot, BlobSidecarsT) error
 }
 
+// BlockStore is the interface for block storage.
+type BlockStore[BeaconBlockT any] interface {
+	// Get retrieves the block at the given slot.
+	Get(slot uint64) (BeaconBlockT, error)
+	// Prune prunes the block store of [start, end).
+	Prune(start, end uint64) error
+	// Set sets the block at the given slot.
+	Set(slot uint64, block BeaconBlockT) error
+}
+
 // Deposit is a struct that represents a deposit.
 type Deposit interface {
 	constraints.SSZMarshallable

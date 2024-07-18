@@ -22,7 +22,6 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
@@ -34,6 +33,7 @@ type StorageBackendInput struct {
 	ChainSpec         common.ChainSpec
 	DepositStore      *DepositStore
 	KVStore           *KVStore
+	BlockStore        *BlockStore
 }
 
 // ProvideStorageBackend is the depinject provider that returns a beacon storage
@@ -43,18 +43,20 @@ func ProvideStorageBackend(
 ) *StorageBackend {
 	return storage.NewBackend[
 		*AvailabilityStore,
+		*BeaconBlock,
 		*BeaconBlockBody,
 		*BeaconBlockHeader,
 		*BeaconState,
 		*BeaconStateMarshallable,
 		*BlobSidecars,
+		*BlockStore,
 		*Deposit,
 		*DepositStore,
-		*types.Eth1Data,
+		*Eth1Data,
 		*ExecutionPayloadHeader,
-		*types.Fork,
+		*Fork,
 		*KVStore,
-		*types.Validator,
+		*Validator,
 		*Withdrawal,
 		WithdrawalCredentials,
 	](
@@ -62,5 +64,6 @@ func ProvideStorageBackend(
 		in.AvailabilityStore,
 		in.KVStore,
 		in.DepositStore,
+		in.BlockStore,
 	)
 }

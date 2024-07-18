@@ -21,6 +21,7 @@
 package config
 
 import (
+	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/config/pkg/template"
 	viperlib "github.com/berachain/beacon-kit/mod/config/pkg/viper"
@@ -41,11 +42,12 @@ type AppOptions interface {
 // DefaultConfig returns the default configuration for a BeaconKit chain.
 func DefaultConfig() *Config {
 	return &Config{
-		Engine:         engineclient.DefaultConfig(),
-		Logger:         log.DefaultConfig(),
-		KZG:            kzg.DefaultConfig(),
-		PayloadBuilder: builder.DefaultConfig(),
-		Validator:      validator.DefaultConfig(),
+		Engine:            engineclient.DefaultConfig(),
+		Logger:            log.DefaultConfig(),
+		KZG:               kzg.DefaultConfig(),
+		PayloadBuilder:    builder.DefaultConfig(),
+		Validator:         validator.DefaultConfig(),
+		BlockStoreService: blockstore.DefaultConfig(),
 	}
 }
 
@@ -61,6 +63,8 @@ type Config struct {
 	PayloadBuilder builder.Config `mapstructure:"payload-builder"`
 	// Validator is the configuration for the validator client.
 	Validator validator.Config `mapstructure:"validator"`
+	// BlockStoreService is the configuration for the block store service.
+	BlockStoreService blockstore.Config `mapstructure:"block-store-service"`
 }
 
 // GetEngine returns the execution client configuration.

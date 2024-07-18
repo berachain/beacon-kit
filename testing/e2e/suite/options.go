@@ -20,36 +20,5 @@
 
 package suite
 
-import (
-	"context"
-
-	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/testing/e2e/config"
-)
-
-// Type Option is a function that sets a field on the KurtosisE2ESuite.
+// Option is a functional option for the KurtosisE2ESuite.
 type Option func(*KurtosisE2ESuite) error
-
-// WithConfig sets the E2ETestConfig for the test suite.
-func WithConfig(cfg *config.E2ETestConfig) Option {
-	return func(s *KurtosisE2ESuite) error {
-		s.cfg = cfg
-		return nil
-	}
-}
-
-// WithContext sets the context for the test suite.
-func WithContext(ctx context.Context) Option {
-	return func(s *KurtosisE2ESuite) error {
-		s.ctx = ctx
-		return nil
-	}
-}
-
-// WithLogger sets the logger for the test suite.
-func WithLogger(logger log.Logger) Option {
-	return func(s *KurtosisE2ESuite) error {
-		s.logger = logger
-		return nil
-	}
-}

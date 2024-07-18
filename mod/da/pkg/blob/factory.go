@@ -160,9 +160,13 @@ func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildCommitmentProof(
 	startTime := time.Now()
 	defer f.metrics.measureBuildCommitmentProofDuration(startTime)
 
+	commitmentsLeaves, err := body.GetBlobKzgCommitments().Leafify()
+	if err != nil {
+		return nil, err
+	}
+
 	bodyTree, err := merkle.NewTreeWithMaxLeaves[[32]byte](
-		body.GetBlobKzgCommitments().Leafify(),
-		f.chainSpec.MaxBlobCommitmentsPerBlock(),
+		commitmentsLeaves, f.chainSpec.MaxBlobCommitmentsPerBlock(),
 	)
 	if err != nil {
 		return nil, err

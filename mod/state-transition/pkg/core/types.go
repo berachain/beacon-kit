@@ -29,7 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkleizer"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -163,7 +163,7 @@ type ExecutionPayload[
 	GetBlobGasUsed() math.U64
 	GetExcessBlobGas() math.U64
 	ToHeader(
-		txsMerkleizer *merkleizer.Merkleizer[[32]byte, common.Root],
+		txsMerkleizer *merkle.Merkleizer[[32]byte, common.Root],
 		maxWithdrawalsPerPayload uint64,
 	) (ExecutionPayloadHeaderT, error)
 }

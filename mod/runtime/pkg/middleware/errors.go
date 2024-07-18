@@ -23,10 +23,6 @@ package middleware
 import "errors"
 
 var (
-	// ErrUndefinedValidatorUpdate is returned when an undefined validator
-	// update is
-	// encountered.
-	ErrUndefinedValidatorUpdate = errors.New("undefined validator update")
 	// ErrUnexpectedEvent is returned when an unexpected event is encountered.
 	ErrUnexpectedEvent = errors.New("unexpected event")
 	// ErrInvalidProcessProposalRequestType is returned when an invalid

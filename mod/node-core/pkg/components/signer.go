@@ -50,10 +50,15 @@ func ProvideBlsSigner(in BlsSignerInput) (crypto.BLSSigner, error) {
 		privValStateFile := cast.ToString(
 			in.AppOpts.Get("priv_validator_state_file"),
 		)
-		return signer.NewBLSSigner(
-			filepath.Join(homeDir, privValKeyFile),
-			filepath.Join(homeDir, privValStateFile),
-		), nil
+		// If privValKeyFile is not an absolute path, join with homeDir
+		if !filepath.IsAbs(privValKeyFile) {
+			privValKeyFile = filepath.Join(homeDir, privValKeyFile)
+		}
+		// If privValStateFile is not an absolute path, join with homeDir
+		if !filepath.IsAbs(privValStateFile) {
+			privValStateFile = filepath.Join(homeDir, privValStateFile)
+		}
+		return signer.NewBLSSigner(privValKeyFile, privValStateFile), nil
 	}
 	return signer.NewLegacySigner(in.PrivKey)
 }

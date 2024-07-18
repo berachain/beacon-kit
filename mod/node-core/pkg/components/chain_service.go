@@ -25,7 +25,6 @@ import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/config"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -65,7 +64,7 @@ func ProvideChainService(
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*Genesis,
-		*engineprimitives.PayloadAttributes[*Withdrawal],
+		*PayloadAttributes,
 		*Withdrawal,
 	](
 		in.StorageBackend,

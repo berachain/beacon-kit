@@ -26,10 +26,8 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/config"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/engine"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
@@ -47,26 +45,13 @@ type EngineClientInputs struct {
 }
 
 // ProvideEngineClient creates a new EngineClient.
-func ProvideEngineClient[
-	ExecutionPayloadT engine.ExecutionPayload[
-		ExecutionPayloadT, WithdrawalT,
-	],
-	PayloadAttributesT interface {
-		engineprimitives.PayloadAttributer
-		New(
-			uint32,
-			uint64,
-			common.Bytes32,
-			gethprimitives.ExecutionAddress,
-			[]WithdrawalT,
-			common.Root,
-		) (PayloadAttributesT, error)
-	},
-	WithdrawalT any,
-](
+func ProvideEngineClient(
 	in EngineClientInputs,
-) *client.EngineClient[ExecutionPayloadT, PayloadAttributesT] {
-	return client.New[ExecutionPayloadT, PayloadAttributesT](
+) *EngineClient {
+	return client.New[
+		*ExecutionPayload,
+		*PayloadAttributes,
+	](
 		in.Config.GetEngine(),
 		in.Logger.With("service", "engine.client"),
 		in.JWTSecret,
@@ -76,15 +61,9 @@ func ProvideEngineClient[
 }
 
 // EngineClientInputs is the input for the EngineClient.
-type ExecutionEngineInputs[
-	ExecutionPayloadT engine.ExecutionPayload[
-		ExecutionPayloadT, WithdrawalT,
-	],
-	PayloadAttributesT engineprimitives.PayloadAttributer,
-	WithdrawalT any,
-] struct {
+type ExecutionEngineInputs struct {
 	depinject.In
-	EngineClient  *client.EngineClient[ExecutionPayloadT, PayloadAttributesT]
+	EngineClient  *EngineClient
 	Logger        log.Logger
 	StatusBroker  *StatusBroker
 	TelemetrySink *metrics.TelemetrySink
@@ -92,28 +71,14 @@ type ExecutionEngineInputs[
 
 // ProvideExecutionEngine provides the execution engine to the depinject
 // framework.
-func ProvideExecutionEngine[
-	ExecutionPayloadT engine.ExecutionPayload[
-		ExecutionPayloadT, WithdrawalT,
-	],
-	PayloadAttributesT engineprimitives.PayloadAttributer,
-	PayloadIDT ~[8]byte,
-	WithdrawalT engine.Withdrawal[WithdrawalT],
-](
-	in ExecutionEngineInputs[
-		ExecutionPayloadT,
-		PayloadAttributesT,
-		WithdrawalT,
-	],
-) *engine.Engine[
-	ExecutionPayloadT, PayloadAttributesT,
-	PayloadIDT, WithdrawalT,
-] {
+func ProvideExecutionEngine(
+	in ExecutionEngineInputs,
+) *ExecutionEngine {
 	return engine.New[
-		ExecutionPayloadT,
-		PayloadAttributesT,
-		PayloadIDT,
-		WithdrawalT,
+		*ExecutionPayload,
+		*PayloadAttributes,
+		PayloadID,
+		*Withdrawal,
 	](
 		in.EngineClient,
 		in.Logger.With("service", "execution-engine"),

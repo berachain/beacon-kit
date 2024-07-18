@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -24,7 +24,7 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/holiman/uint256"
 )
 
@@ -32,8 +32,8 @@ import (
 /*                                Type Definitions                            */
 /* -------------------------------------------------------------------------- */
 
-// Ensure type implements types.SSZType.
-var _ types.SSZType[*U256] = (*U256)(nil)
+// Ensure type implements schema.SSZObject.
+var _ schema.SSZObject[*U256] = (*U256)(nil)
 
 // U256 represents a 256-bit unsigned integer that is both SSZ and JSON.
 type U256 uint256.Int
@@ -80,14 +80,8 @@ func (*U256) IsFixed() bool {
 }
 
 // Type returns the type of the U256.
-func (*U256) Type() types.Type {
-	return types.Basic
-}
-
-// ItemLength returns the required bytes to represent the root
-// element of the U256.
-func (*U256) ItemLength() uint64 {
-	return constants.BytesPerChunk
+func (*U256) Type() schema.SSZType {
+	return schema.U256()
 }
 
 // ChunkCount returns the number of chunks required to store the U256.

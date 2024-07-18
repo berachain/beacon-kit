@@ -27,10 +27,9 @@ const (
 	// algorithm.
 	CometBLSType = "bls12_381"
 
-	// TODO: Move this, it doesn't really belong here.
-	//
 	// CometBLSPower is the voting power given to a validator when they
 	// are in the active set.
+	// TODO: Move this, it doesn't really belong here.
 	CometBLSPower = 1e10
 )
 

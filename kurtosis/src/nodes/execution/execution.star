@@ -3,19 +3,10 @@ service_config_lib = import_module("../../lib/service_config.star")
 builtins = import_module("../../lib/builtins.star")
 
 RPC_PORT_NUM = 8545
-WS_PORT_NUM = 8546
-DISCOVERY_PORT_NUM = 30303
 ENGINE_RPC_PORT_NUM = 8551
-METRICS_PORT_NUM = 9001
 
 # Port IDs
 RPC_PORT_ID = "eth-json-rpc"
-WS_PORT_ID = "eth-json-rpc-ws"
-TCP_DISCOVERY_PORT_ID = "tcp-discovery"
-UDP_DISCOVERY_PORT_ID = "udp-discovery"
-ENGINE_RPC_PORT_ID = "engine-rpc"
-ENGINE_WS_PORT_ID = "engineWs"
-METRICS_PORT_ID = "metrics"
 
 # Because structs are immutable, we pass around a map to allow full modification up until we create the final ServiceConfig
 def get_default_service_config(node_struct, node_module):

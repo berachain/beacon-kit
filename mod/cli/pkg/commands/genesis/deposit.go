@@ -46,7 +46,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-// CollectGenTxsCmd - return the cobra command to collect genesis transactions.
+// AddGenesisDepositCmd - returns the cobra command to
+// add a premined deposit to the genesis file.
 func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add-premined-deposit",

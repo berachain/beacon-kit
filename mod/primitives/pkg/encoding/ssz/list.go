@@ -25,8 +25,8 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkleizer"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -34,10 +34,10 @@ import (
 /* -------------------------------------------------------------------------- */
 
 // Vector conforms to the SSZEenumerable interface.
-var _ types.SSZEnumerable[Byte] = (*List[Byte])(nil)
+var _ schema.SSZEnumerable[Byte] = (*List[Byte])(nil)
 
 // List is a list of basic types.
-type List[T types.MinimalSSZType] struct {
+type List[T schema.MinimalSSZObject] struct {
 	// elements is the list of elements.
 	elements []T
 	// limit is the maximum number of elements in the list.
@@ -46,7 +46,7 @@ type List[T types.MinimalSSZType] struct {
 
 // ListFromElements creates a new ListComposite from elements.
 // TODO: Deprecate once off of Fastssz
-func ListFromElements[T types.MinimalSSZType](
+func ListFromElements[T schema.MinimalSSZObject](
 	limit uint64,
 	elements ...T,
 ) *List[T] {
@@ -94,8 +94,8 @@ func (l *List[T]) N() uint64 {
 // ChunkCount returns the number of chunks in the List.
 func (l *List[T]) ChunkCount() uint64 {
 	var b T
-	switch b.Type() {
-	case types.Basic:
+	switch t := b.Type().ID(); {
+	case t.IsBasic():
 		//#nosec:G701 // its fine.
 		//nolint:mnd // 31 is okay.
 		return (l.N()*uint64(b.SizeSSZ()) + 31) / constants.BytesPerChunk
@@ -105,8 +105,13 @@ func (l *List[T]) ChunkCount() uint64 {
 }
 
 // Type returns the type of the List.
-func (l *List[T]) Type() types.Type {
-	return types.Composite
+func (l *List[T]) Type() schema.SSZType {
+	var t T
+	// TODO: Fix this is a bad hack.
+	if l == nil {
+		return schema.DefineList(t.Type(), 0)
+	}
+	return schema.DefineList(t.Type(), l.limit)
 }
 
 // Elements returns the elements of the List.
@@ -114,22 +119,16 @@ func (l *List[T]) Elements() []T {
 	return l.elements
 }
 
-// ItemLength returns the required bytes to represent the root
-// element of the List.
-func (l List[T]) ItemLength() uint64 {
-	return constants.BytesPerChunk
-}
-
 // HashTreeRootWith returns the Merkle root of the List
-// with a given merkleizer.
+// with a given merkle.
 func (l *List[T]) HashTreeRootWith(
-	merkleizer ListMerkleizer[[32]byte, T],
+	merkleizer *merkle.Merkleizer[[32]byte, T],
 ) ([32]byte, error) {
 	var b T
-	switch b.Type() {
-	case types.Basic:
+	switch t := b.Type().ID(); {
+	case t.IsBasic():
 		return merkleizer.MerkleizeListBasic(l.elements, l.ChunkCount())
-	case types.Composite:
+	case t.IsComposite():
 		return merkleizer.MerkleizeListComposite(l.elements, l.ChunkCount())
 	default:
 		return [32]byte{}, errors.Wrapf(ErrUnknownType, "%v", b.Type())
@@ -139,7 +138,7 @@ func (l *List[T]) HashTreeRootWith(
 // HashTreeRoot returns the Merkle root of the List.
 func (l *List[T]) HashTreeRoot() ([32]byte, error) {
 	// Create a merkleizer
-	return l.HashTreeRootWith(merkleizer.New[[32]byte, T]())
+	return l.HashTreeRootWith(merkle.NewMerkleizer[[32]byte, T]())
 }
 
 // MarshalSSZTo marshals the List into SSZ format.
