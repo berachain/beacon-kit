@@ -32,20 +32,40 @@ import (
 // the Cosmos SDK.
 // Right now, it is very coupled to the sdk base app and we will
 // eventually fully decouple this.
-type ConsensusEngine[IncomingSlotT, ValidatorUpdateT any] struct {
-	Middleware[IncomingSlotT]
+type ConsensusEngine[
+	AttestationDataT any,
+	IncomingSlotT IncomingSlot[AttestationDataT, SlashingInfoT],
+	SlashingInfoT,
+	ValidatorUpdateT any,
+] struct {
+	Middleware[AttestationDataT, IncomingSlotT, SlashingInfoT]
 }
 
 // NewConsensusEngine returns a new consensus middleware.
-func NewConsensusEngine[IncomingSlotT, ValidatorUpdateT any](
-	m Middleware[IncomingSlotT],
-) *ConsensusEngine[IncomingSlotT, ValidatorUpdateT] {
-	return &ConsensusEngine[IncomingSlotT, ValidatorUpdateT]{
+func NewConsensusEngine[
+	AttestationDataT any,
+	IncomingSlotT IncomingSlot[AttestationDataT, SlashingInfoT],
+	SlashingInfoT,
+	ValidatorUpdateT any,
+](
+	m Middleware[AttestationDataT, IncomingSlotT, SlashingInfoT],
+) *ConsensusEngine[
+	AttestationDataT,
+	IncomingSlotT,
+	SlashingInfoT,
+	ValidatorUpdateT,
+] {
+	return &ConsensusEngine[
+		AttestationDataT,
+		IncomingSlotT,
+		SlashingInfoT,
+		ValidatorUpdateT,
+	]{
 		Middleware: m,
 	}
 }
 
-func (c *ConsensusEngine[IncomingSlotT, ValidatorUpdateT]) InitGenesis(
+func (c *ConsensusEngine[_, _, _, ValidatorUpdateT]) InitGenesis(
 	ctx context.Context,
 	genesisBz []byte,
 ) ([]ValidatorUpdateT, error) {
@@ -58,7 +78,12 @@ func (c *ConsensusEngine[IncomingSlotT, ValidatorUpdateT]) InitGenesis(
 }
 
 // TODO: Decouple Comet Types
-func (c *ConsensusEngine[IncomingSlotT, ValidatorUpdateT]) PrepareProposal(
+func (c *ConsensusEngine[
+	AttestationDataT,
+	IncomingSlotT,
+	SlashingInfoT,
+	ValidatorUpdateT,
+]) PrepareProposal(
 	ctx sdk.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
@@ -70,7 +95,7 @@ func (c *ConsensusEngine[IncomingSlotT, ValidatorUpdateT]) PrepareProposal(
 	}
 	blkBz, sidecarsBz, err := c.Middleware.PrepareProposal(
 		ctx,
-		&incomingSlotData,
+		incomingSlotData,
 	)
 	if err != nil {
 		return nil, err
@@ -81,7 +106,7 @@ func (c *ConsensusEngine[IncomingSlotT, ValidatorUpdateT]) PrepareProposal(
 }
 
 // TODO: Decouple Comet Types
-func (c *ConsensusEngine[IncomingSlotT, ValidatorUpdateT]) ProcessProposal(
+func (c *ConsensusEngine[_, _, _, ValidatorUpdateT]) ProcessProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
@@ -93,14 +118,14 @@ func (c *ConsensusEngine[IncomingSlotT, ValidatorUpdateT]) ProcessProposal(
 }
 
 // TODO: Decouple Comet Types
-func (c *ConsensusEngine[IncomingSlotT, ValidatorUpdateT]) PreBlock(
+func (c *ConsensusEngine[_, _, _, ValidatorUpdateT]) PreBlock(
 	ctx sdk.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) error {
 	return c.Middleware.PreBlock(ctx, req)
 }
 
-func (c *ConsensusEngine[IncomingSlotT, ValidatorUpdateT]) EndBlock(
+func (c *ConsensusEngine[_, _, _, ValidatorUpdateT]) EndBlock(
 	ctx context.Context,
 ) ([]ValidatorUpdateT, error) {
 	updates, err := c.Middleware.EndBlock(ctx)

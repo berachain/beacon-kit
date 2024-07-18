@@ -48,18 +48,20 @@ func convertValidatorUpdate[ValidatorUpdateT any](
 }
 
 func convertPrepareProposalToIncomingSlot[IncomingSlotT any](
-	req *cmtabci.PrepareProposalRequest,
+	_ *cmtabci.PrepareProposalRequest,
 ) (IncomingSlotT, error) {
-	mapped := newIncomingSlot(uint64(req.Height))
-	return any(mapped).(IncomingSlotT), nil
+	var t IncomingSlotT
+	return t, nil
+	// mapped := newIncomingSlot(uint64(req.Height))
+	// return any(mapped).(IncomingSlotT), nil
 }
 
-type IncomingSlot struct {
-	slot uint64
-}
+// type IncomingSlot struct {
+// 	slot uint64
+// }
 
-func newIncomingSlot(slot uint64) IncomingSlot {
-	return IncomingSlot{
-		slot: slot,
-	}
-}
+// func newIncomingSlot(slot uint64) IncomingSlot {
+// 	return IncomingSlot{
+// 		slot: slot,
+// 	}
+// }

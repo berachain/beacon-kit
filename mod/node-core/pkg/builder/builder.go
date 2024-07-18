@@ -113,7 +113,10 @@ func (nb *NodeBuilder[NodeT]) Build(
 
 	// This is a bit of a meme until server/v2.
 	consensusEngine := cometbft.NewConsensusEngine[
-		consensustypes.IncomingSlot, appmodule.ValidatorUpdate,
+		consensustypes.AttestationData,
+		*consensustypes.IncomingSlot,
+		consensustypes.SlashingInfo,
+		appmodule.ValidatorUpdate,
 	](
 		abciMiddleware,
 	)

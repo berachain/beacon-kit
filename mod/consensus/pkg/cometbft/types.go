@@ -27,14 +27,29 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 )
 
-type Middleware[IncomingSlotDataT any] interface {
+// Middleware is the interface for the CometBFT middleware.
+type Middleware[
+	AttestationDataT any,
+	IncomingSlotT IncomingSlot[AttestationDataT, SlashingInfoT],
+	SlashingInfoT any,
+] interface {
 	InitGenesis(
 		ctx context.Context, bz []byte,
 	) (transition.ValidatorUpdates, error)
-	PrepareProposal(context.Context, *IncomingSlotDataT) ([]byte, []byte, error)
+	PrepareProposal(context.Context, IncomingSlotT) ([]byte, []byte, error)
 	ProcessProposal(
 		ctx context.Context, req proto.Message,
 	) (proto.Message, error)
 	PreBlock(_ context.Context, req proto.Message) error
 	EndBlock(ctx context.Context) (transition.ValidatorUpdates, error)
+}
+
+// IncomingSlot is the interface for the incoming slot.
+type IncomingSlot[AttestationDataT, SlashingInfoT any] interface {
+	// SetSlot sets the slot of the IncomingSlot.
+	SetSlot(slot uint64)
+	// SetAttestationData sets the attestation data of the IncomingSlot.
+	SetAttestationData(attestationData []*AttestationDataT)
+	// SetSlashingInfo sets the slashing info of the IncomingSlot.
+	SetSlashingInfo(slashingInfo []*SlashingInfoT)
 }
