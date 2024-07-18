@@ -29,8 +29,43 @@ import (
 	echo "github.com/labstack/echo/v4"
 )
 
-func (h Handler[_]) GetStateValidators(c echo.Context) error {
-	params, err := utils.BindAndValidate[types.StateValidatorsGetRequest](c)
+func (rh RouteHandlers) GetGenesis(c echo.Context) error {
+	genesisRoot, err := rh.Backend.GetGenesis(context.TODO())
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK,
+		WrapData(types.GenesisData{
+			GenesisTime:           "1590832934", // stub
+			GenesisValidatorsRoot: genesisRoot,
+			GenesisForkVersion:    "0x00000000", // stub
+		}))
+}
+
+func (rh RouteHandlers) GetStateRoot(c echo.Context) error {
+	params, err := BindAndValidate[types.StateIDRequest](c)
+	if err != nil {
+		return err
+	}
+	if params == nil {
+		return echo.ErrInternalServerError
+	}
+	stateRoot, err := rh.Backend.GetStateRoot(
+		context.TODO(),
+		params.StateID,
+	)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, types.ValidatorResponse{
+		ExecutionOptimistic: false, // stubbed
+		Finalized:           false, // stubbed
+		Data:                WrapData(types.RootData{Root: stateRoot}),
+	})
+}
+
+func (rh RouteHandlers) GetStateValidators(c echo.Context) error {
+	params, err := BindAndValidate[types.StateValidatorsGetRequest](c)
 	if err != nil {
 		return err
 	}
