@@ -33,12 +33,6 @@ func (rh RouteHandlers) GetGenesis(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	if len(genesisRoot) == 0 {
-		return echo.NewHTTPError(
-			http.StatusNotFound,
-			"Chain genesis info is not yet known",
-		)
-	}
 	return c.JSON(http.StatusOK,
 		WrapData(types.GenesisData{
 			GenesisTime:           "1590832934", // stub
@@ -61,9 +55,6 @@ func (rh RouteHandlers) GetStateRoot(c echo.Context) error {
 	)
 	if err != nil {
 		return err
-	}
-	if len(stateRoot) == 0 {
-		return echo.NewHTTPError(http.StatusNotFound, "State not found")
 	}
 	return c.JSON(http.StatusOK, types.ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed
