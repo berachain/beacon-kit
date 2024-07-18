@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package server
+package server_test
 
 // type testcase struct {
 // 	method         string
@@ -69,13 +69,15 @@ package server
 // 			method:         "GET",
 // 			endpoint:       "/eth/v1/beacon/genesis",
 // 			expectedStatus: http.StatusOK,
-// 			expectedBody:   "{\"data\":{\"genesis_time\":\"1590832934\",\"genesis_validators_root\":\"0x0100000000000000000000000000000000000000000000000000000000000000\",\"genesis_fork_version\":\"0x00000000\"}}\n",
+// 			expectedBody:
+// "{\"data\":{\"genesis_time\":\"1590832934\",\"genesis_validators_root\":\"0x0100000000000000000000000000000000000000000000000000000000000000\",\"genesis_fork_version\":\"0x00000000\"}}\n",
 // 		},
 // 		{
 // 			method:         "GET",
 // 			endpoint:       "/eth/v1/beacon/states/:state_id/root",
 // 			expectedStatus: http.StatusOK,
-// 			expectedBody:   "{\"execution_optimistic\":false,\"finalized\":false,\"data\":{\"data\":{\"root\":\"0x0100000000000000000000000000000000000000000000000000000000000000\"}}}\n",
+// 			expectedBody:
+// "{\"execution_optimistic\":false,\"finalized\":false,\"data\":{\"data\":{\"root\":\"0x0100000000000000000000000000000000000000000000000000000000000000\"}}}\n",
 // 		},
 // 		{
 // 			method:         "GET",
@@ -91,32 +93,37 @@ package server
 // 			method:         "GET",
 // 			endpoint:       "/eth/v1/beacon/states/:state_id/validators?id=1",
 // 			expectedStatus: http.StatusOK,
-// 			expectedBody:   "{\"execution_optimistic\":false,\"finalized\":false,\"data\":[{\"index\":\"1\",\"balance\":\"1\",\"status\":\"active\",\"validator\":{\"pubkey\":\"0x010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\",\"withdrawalCredentials\":\"0x0100000000000000000000000000000000000000000000000000000000000000\",\"effectiveBalance\":\"0x0\",\"slashed\":false,\"activationEligibilityEpoch\":\"0x0\",\"activationEpoch\":\"0x0\",\"exitEpoch\":\"0x0\",\"withdrawableEpoch\":\"0x0\"}}]}\n",
+// 			expectedBody:
+// "{\"execution_optimistic\":false,\"finalized\":false,\"data\":[{\"index\":\"1\",\"balance\":\"1\",\"status\":\"active\",\"validator\":{\"pubkey\":\"0x010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\",\"withdrawalCredentials\":\"0x0100000000000000000000000000000000000000000000000000000000000000\",\"effectiveBalance\":\"0x0\",\"slashed\":false,\"activationEligibilityEpoch\":\"0x0\",\"activationEpoch\":\"0x0\",\"exitEpoch\":\"0x0\",\"withdrawableEpoch\":\"0x0\"}}]}\n",
 // 		},
 // 		{
 // 			method:         "POST",
 // 			endpoint:       "/eth/v1/beacon/states/:state_id/validators",
 // 			body:           `{"ids":["1"]}`,
 // 			expectedStatus: http.StatusOK,
-// 			expectedBody:   "{\"execution_optimistic\":false,\"finalized\":false,\"data\":[{\"index\":\"1\",\"balance\":\"1\",\"status\":\"active\",\"validator\":{\"pubkey\":\"0x010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\",\"withdrawalCredentials\":\"0x0100000000000000000000000000000000000000000000000000000000000000\",\"effectiveBalance\":\"0x0\",\"slashed\":false,\"activationEligibilityEpoch\":\"0x0\",\"activationEpoch\":\"0x0\",\"exitEpoch\":\"0x0\",\"withdrawableEpoch\":\"0x0\"}}]}\n",
+// 			expectedBody:
+// "{\"execution_optimistic\":false,\"finalized\":false,\"data\":[{\"index\":\"1\",\"balance\":\"1\",\"status\":\"active\",\"validator\":{\"pubkey\":\"0x010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\",\"withdrawalCredentials\":\"0x0100000000000000000000000000000000000000000000000000000000000000\",\"effectiveBalance\":\"0x0\",\"slashed\":false,\"activationEligibilityEpoch\":\"0x0\",\"activationEpoch\":\"0x0\",\"exitEpoch\":\"0x0\",\"withdrawableEpoch\":\"0x0\"}}]}\n",
 // 		},
 // 		{
 // 			method:         "GET",
-// 			endpoint:       "/eth/v1/beacon/states/:state_id/validators/:validator_id",
+// 			endpoint:
+// "/eth/v1/beacon/states/:state_id/validators/:validator_id",
 // 			expectedStatus: http.StatusNotImplemented,
 // 		},
 // 		{
 // 			method:         "GET",
 // 			endpoint:       "/eth/v1/beacon/states/:state_id/validator_balances?id=1",
 // 			expectedStatus: http.StatusOK,
-// 			expectedBody:   "{\"execution_optimistic\":false,\"finalized\":false,\"data\":[{\"index\":\"1\",\"balance\":\"1\"}]}\n",
+// 			expectedBody:
+// "{\"execution_optimistic\":false,\"finalized\":false,\"data\":[{\"index\":\"1\",\"balance\":\"1\"}]}\n",
 // 		},
 // 		{
 // 			method:         "POST",
 // 			endpoint:       "/eth/v1/beacon/states/:state_id/validator_balances",
 // 			body:           `["1"]`,
 // 			expectedStatus: http.StatusOK,
-// 			expectedBody:   "{\"execution_optimistic\":false,\"finalized\":false,\"data\":[{\"index\":\"1\",\"balance\":\"1\"}]}\n",
+// 			expectedBody:
+// "{\"execution_optimistic\":false,\"finalized\":false,\"data\":[{\"index\":\"1\",\"balance\":\"1\"}]}\n",
 // 		},
 // 		{
 // 			method:         "GET",
@@ -197,7 +204,8 @@ package server
 // 			method:         "GET",
 // 			endpoint:       "/eth/v1/beacon/rewards/blocks/:block_id",
 // 			expectedStatus: http.StatusOK,
-// 			expectedBody:   "{\"execution_optimistic\":false,\"finalized\":false,\"data\":{\"proposer_index\":\"1\",\"total\":\"1\",\"attestations\":\"1\",\"sync_aggregate\":\"1\",\"proposer_slashings\":\"1\",\"attester_slashings\":\"1\"}}\n",
+// 			expectedBody:
+// "{\"execution_optimistic\":false,\"finalized\":false,\"data\":{\"proposer_index\":\"1\",\"total\":\"1\",\"attestations\":\"1\",\"sync_aggregate\":\"1\",\"proposer_slashings\":\"1\",\"attester_slashings\":\"1\"}}\n",
 // 		},
 // 		{
 // 			method:         "POST",

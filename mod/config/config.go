@@ -22,7 +22,6 @@ package config
 
 import (
 	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
-	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/config/pkg/template"
 	viperlib "github.com/berachain/beacon-kit/mod/config/pkg/viper"
@@ -50,7 +49,7 @@ func DefaultConfig() *Config {
 		PayloadBuilder:    builder.DefaultConfig(),
 		Validator:         validator.DefaultConfig(),
 		BlockStoreService: blockstore.DefaultConfig(),
-		NodeAPI:        server.DefaultConfig(),
+		NodeAPI:           server.DefaultConfig(),
 	}
 }
 

@@ -26,18 +26,17 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/node-api/backend/storage"
 	"github.com/berachain/beacon-kit/mod/node-api/server/types"
-	apitypes "github.com/berachain/beacon-kit/mod/node-api/server/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // GetGenesis returns the genesis state of the beacon chain.
-func (h Backend[
+func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) GetGenesis(ctx context.Context) (common.Root, error) {
 	// needs genesis_time and gensis_fork_version
-	st, err := h.StateFromContext(ctx, storage.StateIDFinalized)
+	st, err := b.StateFromContext(ctx, storage.StateIDFinalized)
 	if err != nil {
 		return common.Root{}, err
 	}
@@ -45,13 +44,13 @@ func (h Backend[
 }
 
 // GetStateRoot returns the root of the state at the given stateID.
-func (h Backend[
+func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) GetStateRoot(
 	ctx context.Context,
 	stateID string,
 ) (common.Bytes32, error) {
-	st, err := h.StateFromContext(ctx, stateID)
+	st, err := b.StateFromContext(ctx, stateID)
 	if err != nil {
 		return common.Bytes32{}, err
 	}
@@ -67,14 +66,14 @@ func (h Backend[
 }
 
 // GetStateFork returns the fork of the state at the given stateID.
-func (h Backend[
+func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, ForkT, _, _, _, _, _,
 ]) GetStateFork(
 	ctx context.Context,
 	stateID string,
 ) (ForkT, error) {
 	var fork ForkT
-	st, err := h.StateFromContext(ctx, stateID)
+	st, err := b.StateFromContext(ctx, stateID)
 	if err != nil {
 		return fork, err
 	}
@@ -82,13 +81,13 @@ func (h Backend[
 }
 
 // GetBlockRoot returns the root of the block at the given stateID.
-func (h Backend[
+func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) GetBlockRoot(
 	ctx context.Context,
 	stateID string,
 ) (common.Bytes32, error) {
-	st, err := h.StateFromContext(ctx, stateID)
+	st, err := b.StateFromContext(ctx, stateID)
 	if err != nil {
 		return common.Bytes32{}, err
 	}
@@ -104,7 +103,7 @@ func (h Backend[
 }
 
 // TODO: Implement this.
-func (h Backend[
+func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) GetBlockRewards(
 	_ context.Context,
@@ -126,7 +125,7 @@ func (b Backend[
 	ctx context.Context,
 	stateID string,
 	validatorID string,
-) (*apitypes.ValidatorData[ValidatorT], error) {
+) (*types.ValidatorData[ValidatorT], error) {
 	st, err := b.StateFromContext(ctx, stateID)
 	if err != nil {
 		return nil, err
@@ -143,7 +142,7 @@ func (b Backend[
 	if balanceErr != nil {
 		return nil, balanceErr
 	}
-	return &apitypes.ValidatorData[ValidatorT]{
+	return &types.ValidatorData[ValidatorT]{
 		Index:     index.Unwrap(),
 		Balance:   balance.Unwrap(),
 		Status:    "active",
@@ -158,8 +157,8 @@ func (b Backend[
 	stateID string,
 	id []string,
 	_ []string,
-) ([]*apitypes.ValidatorData[ValidatorT], error) {
-	validators := make([]*apitypes.ValidatorData[ValidatorT], 0)
+) ([]*types.ValidatorData[ValidatorT], error) {
+	validators := make([]*types.ValidatorData[ValidatorT], 0)
 	for _, indexOrKey := range id {
 		validatorData, err := b.GetStateValidator(ctx, stateID, indexOrKey)
 		if err != nil {
@@ -176,22 +175,23 @@ func (b Backend[
 	ctx context.Context,
 	stateID string,
 	id []string,
-) ([]*apitypes.ValidatorBalanceData, error) {
+) ([]*types.ValidatorBalanceData, error) {
 	st, err := b.StateFromContext(ctx, stateID)
 	if err != nil {
 		return nil, err
 	}
-	balances := make([]*apitypes.ValidatorBalanceData, 0)
+	balances := make([]*types.ValidatorBalanceData, 0)
 	for _, indexOrKey := range id {
 		index, indexErr := b.getValidatorIndex(st, indexOrKey)
 		if indexErr != nil {
 			return nil, indexErr
 		}
-		balance, err := st.GetBalance(index)
+		var balance math.U64
+		balance, err = st.GetBalance(index)
 		if err != nil {
 			return nil, err
 		}
-		balances = append(balances, &apitypes.ValidatorBalanceData{
+		balances = append(balances, &types.ValidatorBalanceData{
 			Index:   index.Unwrap(),
 			Balance: balance.Unwrap(),
 		})

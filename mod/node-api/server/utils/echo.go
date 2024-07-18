@@ -47,7 +47,8 @@ func HTTPErrorHandler(err error, c echo.Context) {
 	}
 }
 
-// BindAndValidate binds the request to the given type and validates the request.
+// BindAndValidate binds the request to the given type and validates the
+// request.
 func BindAndValidate[T any](c echo.Context) (*T, error) {
 	t := new(T)
 	if err := c.Bind(t); err != nil {
