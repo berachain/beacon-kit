@@ -20,7 +20,7 @@ require (
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240711183925-948692fddcbe
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/ethereum/go-ethereum v1.14.6
-	github.com/holiman/uint256 v1.2.5-0.20240612125212-75a520988c94
+	github.com/holiman/uint256 v1.3.0
 	github.com/kurtosis-tech/kurtosis/api/golang v1.0.0
 	github.com/protolambda/zrnt v0.32.2
 	github.com/protolambda/ztyp v0.2.2
