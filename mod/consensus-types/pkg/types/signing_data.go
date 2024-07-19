@@ -37,24 +37,27 @@ type SigningData struct {
 	Domain     common.Domain `ssz-size:"32"`
 }
 
-func (w *SigningData) SizeSSZ() uint32 { return 64 }
-
-func (w *SigningData) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineStaticBytes(codec, &w.ObjectRoot)
-	ssz.DefineStaticBytes(codec, &w.Domain)
+// SizeSSZ returns the size of the SigningData object in SSZ encoding.
+func (*SigningData) SizeSSZ() uint32 {
+	//nolint:mnd // 32*2 = 64.
+	return 64
 }
 
-// HashTreeRoot ssz hashes the SigningData object
+// DefineSSZ defines the SSZ encoding for the SigningData object.
+func (s *SigningData) DefineSSZ(codec *ssz.Codec) {
+	ssz.DefineStaticBytes(codec, &s.ObjectRoot)
+	ssz.DefineStaticBytes(codec, &s.Domain)
+}
+
+// HashTreeRoot computes the SSZ hash tree root of the SigningData object.
 func (s *SigningData) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashSequential(s), nil
 }
 
-// MarshalSSZ marshals the SigningData object to SSZ format.
+// MarshalSSZTo marshals the SigningData object to SSZ format into the provided
+// buffer.
 func (s *SigningData) MarshalSSZTo(buf []byte) ([]byte, error) {
-	if err := ssz.EncodeToBytes(buf, s); err != nil {
-		return nil, err
-	}
-	return buf, nil
+	return buf, ssz.EncodeToBytes(buf, s)
 }
 
 // MarshalSSZ marshals the SigningData object to SSZ format.

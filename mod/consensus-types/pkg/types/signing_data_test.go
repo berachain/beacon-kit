@@ -21,11 +21,11 @@
 package types_test
 
 import (
+	"io"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
-	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -68,7 +68,7 @@ func TestSigningData_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 			name:     "Invalid Buffer Size",
 			data:     generateSigningData(),
 			expected: nil,
-			err:      ssz.ErrSize,
+			err:      io.ErrUnexpectedEOF,
 		},
 	}
 
