@@ -61,7 +61,7 @@ func TestForkData_SizeSSZ(t *testing.T) {
 
 	size := forkData.SizeSSZ()
 
-	require.Equal(t, 36, size)
+	require.Equal(t, uint32(36), size)
 }
 
 func TestForkData_HashTreeRoot(t *testing.T) {
