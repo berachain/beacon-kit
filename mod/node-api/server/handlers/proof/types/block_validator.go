@@ -26,12 +26,12 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// BeaconBlockValidatorPubkey represents a block in the beacon chain during the
-// DenebPlus fork, with only the minimally required values to prove a
-// validator's pubkey.
+// BeaconBlockFoValidator represents a block in the beacon chain during the
+// DenebPlus fork, with only the minimally required values to prove a validator
+// exists in this block.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path block_validator_pubkey.go -objs BeaconBlockValidatorPubkey -include ../../../../../primitives/pkg/crypto,../../../../../primitives/pkg/common,../../../../../primitives/pkg/bytes,../../../../../consensus-types/pkg/types,../../../../../engine-primitives/pkg/engine-primitives,../../../../../primitives/pkg/math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil,../../../../../primitives/pkg/common/common.go -output block_validator_pubkey.ssz.go
-type BeaconBlockValidatorPubkey struct {
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path block_validator.go -objs BeaconBlockForValidator -include ../../../../../primitives/pkg/crypto,../../../../../primitives/pkg/common,../../../../../primitives/pkg/bytes,../../../../../consensus-types/pkg/types,../../../../../engine-primitives/pkg/engine-primitives,../../../../../primitives/pkg/math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil,../../../../../primitives/pkg/common/common.go -output block_validator.ssz.go
+type BeaconBlockForValidator struct {
 	// Slot represents the position of the block in the chain.
 	Slot math.Slot
 	// ProposerIndex is the index of the validator who proposed the block.
@@ -40,14 +40,14 @@ type BeaconBlockValidatorPubkey struct {
 	ParentBlockRoot common.Root
 	// StateRoot is the summary of the BeaconState type with only the required
 	// raw values to prove a validator's pubkey.
-	StateRoot *BeaconStateValidatorPubkey
+	StateRoot *BeaconStateForValidator
 	// BodyRoot is the root of the block body.
 	BodyRoot common.Root
 }
 
-// BeaconStateValidatorPubkey is the summary of the BeaconState type with only
-// the required raw values to prove a validator's pubkey.
-type BeaconStateValidatorPubkey struct {
+// BeaconStateForValidator is the summary of the BeaconState type with only
+// the required raw values to prove a validator exists in this state.
+type BeaconStateForValidator struct {
 	GenesisValidatorsRoot common.Root
 	Slot                  math.Slot
 	// Fork is the hash tree root of the Fork.

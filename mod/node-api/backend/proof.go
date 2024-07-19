@@ -18,16 +18,22 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package proof
+package backend
 
 import (
 	"context"
 )
 
-// Backend is the interface for backend of the beacon API.
-type Backend[ValidatorT any] interface {
-	GetStateAllValidators(
-		ctx context.Context,
-		stateID string,
-	) ([]ValidatorT, error)
+func (b Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _,
+]) GetStateAllValidators(
+	ctx context.Context,
+	stateID string,
+) ([]ValidatorT, error) {
+	st, err := b.StateFromContext(ctx, stateID)
+	if err != nil {
+		return nil, err
+	}
+
+	return st.GetValidators()
 }

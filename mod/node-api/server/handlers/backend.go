@@ -22,6 +22,7 @@ package handlers
 
 import (
 	"github.com/berachain/beacon-kit/mod/node-api/server/handlers/beacon"
+	"github.com/berachain/beacon-kit/mod/node-api/server/handlers/proof"
 	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 )
 
@@ -34,4 +35,6 @@ type Backend[
 
 	// BeaconBackend is the interface for the beacon backend.
 	beacon.Backend[ValidatorT]
+	// ProofBackend is the interface for the proof backend.
+	proof.Backend[ValidatorT]
 }
