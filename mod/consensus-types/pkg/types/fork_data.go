@@ -63,31 +63,31 @@ func (*ForkData) SizeSSZ() uint32 {
 }
 
 // DefineSSZ defines the SSZ encoding for the ForkData object.
-func (f *ForkData) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineStaticBytes(codec, &f.CurrentVersion)
-	ssz.DefineStaticBytes(codec, &f.GenesisValidatorsRoot)
+func (fd *ForkData) DefineSSZ(codec *ssz.Codec) {
+	ssz.DefineStaticBytes(codec, &fd.CurrentVersion)
+	ssz.DefineStaticBytes(codec, &fd.GenesisValidatorsRoot)
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the ForkData object.
-func (f *ForkData) HashTreeRoot() ([32]byte, error) {
-	return ssz.HashSequential(f), nil
+func (fd *ForkData) HashTreeRoot() ([32]byte, error) {
+	return ssz.HashSequential(fd), nil
 }
 
 // MarshalSSZTo marshals the ForkData object to SSZ format into the provided
 // buffer.
-func (f *ForkData) MarshalSSZTo(buf []byte) ([]byte, error) {
-	return buf, ssz.EncodeToBytes(buf, f)
+func (fd *ForkData) MarshalSSZTo(buf []byte) ([]byte, error) {
+	return buf, ssz.EncodeToBytes(buf, fd)
 }
 
 // MarshalSSZ marshals the ForkData object to SSZ format.
-func (f *ForkData) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, f.SizeSSZ())
-	return f.MarshalSSZTo(buf)
+func (fd *ForkData) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, fd.SizeSSZ())
+	return fd.MarshalSSZTo(buf)
 }
 
 // UnmarshalSSZ unmarshals the ForkData object from SSZ format.
-func (f *ForkData) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, f)
+func (fd *ForkData) UnmarshalSSZ(buf []byte) error {
+	return ssz.DecodeFromBytes(buf, fd)
 }
 
 // ComputeDomain as defined in the Ethereum 2.0 specification.
