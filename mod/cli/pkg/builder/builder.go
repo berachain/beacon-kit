@@ -28,6 +28,7 @@ import (
 	"cosmossdk.io/log"
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/context"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	cmtcfg "github.com/cometbft/cometbft/config"
@@ -87,7 +88,8 @@ func (cb *CLIBuilder[T]) Build() (*cmdlib.Root, error) {
 		depinject.Configs(
 			cb.depInjectCfg,
 			depinject.Supply(
-				cb.suppliers...,
+				append(
+					cb.suppliers, &components.StorageBackend{})...,
 			),
 			depinject.Provide(
 				cb.components...,

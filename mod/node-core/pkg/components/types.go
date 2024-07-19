@@ -21,6 +21,7 @@
 package components
 
 import (
+	"cosmossdk.io/core/appmodule/v2"
 	broker "github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
@@ -28,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
 	consruntimetypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/da/pkg/da"
@@ -130,6 +132,23 @@ type (
 		*Genesis,
 		*PayloadAttributes,
 		*Withdrawal,
+	]
+
+	// ConsensusEngine is a type alias for the consensus engine.
+	ConsensusEngine = cometbft.ConsensusEngine[
+		AttestationData,
+		*BeaconState,
+		SlashingInfo,
+		*SlotData,
+		*StorageBackend,
+		*ValidatorUpdate,
+	]
+
+	// ConsensusMiddleware is a type alias for the consensus middleware.
+	ConsensusMiddleware = cometbft.Middleware[
+		AttestationData,
+		SlashingInfo,
+		*SlotData,
 	]
 
 	// Context is a type alias for the transition context.
@@ -293,6 +312,9 @@ type (
 		*SlashingInfo,
 		*SlotData,
 	]
+
+	// ValidatorUpdate is a type alias for the validator update.
+	ValidatorUpdate = appmodule.ValidatorUpdate
 
 	// Withdrawal is a type alias for the engineprimitives withdrawal.
 	Withdrawal = engineprimitives.Withdrawal
