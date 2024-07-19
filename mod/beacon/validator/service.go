@@ -49,8 +49,8 @@ type Service[
 	ExecutionPayloadT any,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	ForkDataT ForkData[ForkDataT],
-	SlotDataT SlotData[AttestationDataT, SlashingInfoT],
 	SlashingInfoT any,
+	SlotDataT SlotData[AttestationDataT, SlashingInfoT],
 ] struct {
 	// cfg is the validator config.
 	cfg *Config
@@ -112,8 +112,8 @@ func NewService[
 	ExecutionPayloadT any,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	ForkDataT ForkData[ForkDataT],
-	SlotDataT SlotData[AttestationDataT, SlashingInfoT],
 	SlashingInfoT any,
+	SlotDataT SlotData[AttestationDataT, SlashingInfoT],
 ](
 	cfg *Config,
 	logger log.Logger[any],
@@ -141,12 +141,12 @@ func NewService[
 ) *Service[
 	AttestationDataT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ForkDataT, SlotDataT, SlashingInfoT,
+	ExecutionPayloadHeaderT, ForkDataT, SlashingInfoT, SlotDataT,
 ] {
 	return &Service[
 		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 		BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
-		ExecutionPayloadHeaderT, ForkDataT, SlotDataT, SlashingInfoT,
+		ExecutionPayloadHeaderT, ForkDataT, SlashingInfoT, SlotDataT,
 	]{
 		cfg:                   cfg,
 		logger:                logger,
@@ -201,7 +201,7 @@ func (s *Service[
 
 // handleBlockRequest handles a block request.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, SlotDataT, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, SlotDataT,
 ]) handleNewSlot(msg *asynctypes.Event[SlotDataT]) {
 	blk, sidecars, err := s.buildBlockAndSidecars(
 		msg.Context(), msg.Data(),

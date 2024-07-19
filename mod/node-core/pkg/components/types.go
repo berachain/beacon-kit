@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	consruntimetypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/da/pkg/da"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
@@ -202,7 +203,7 @@ type (
 	]
 
 	// SlotData is a type alias for the incoming slot.
-	SlotData = types.SlotData
+	SlotData = consruntimetypes.SlotData[types.AttestationData, types.SlashingInfo]
 
 	// IndexDB is a type alias for the range DB.
 	IndexDB = filedb.RangeDB
@@ -289,8 +290,8 @@ type (
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*ForkData,
-		*SlotData,
 		*SlashingInfo,
+		*SlotData,
 	]
 
 	// Withdrawal is a type alias for the engineprimitives withdrawal.

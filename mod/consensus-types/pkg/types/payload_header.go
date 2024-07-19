@@ -50,7 +50,7 @@ func (e *ExecutionPayloadHeader) Empty(
 ) *ExecutionPayloadHeader {
 	e = new(ExecutionPayloadHeader)
 	switch forkVersion {
-	case version.Deneb:
+	case version.Deneb, version.DenebPlus:
 		e.InnerExecutionPayloadHeader = &ExecutionPayloadHeaderDeneb{}
 	default:
 		panic(

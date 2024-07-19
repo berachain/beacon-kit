@@ -23,6 +23,7 @@ package cometbft
 import (
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
@@ -47,11 +48,20 @@ func convertValidatorUpdate[ValidatorUpdateT any](
 	}).(ValidatorUpdateT), nil
 }
 
-func (c *ConsensusEngine[_, SlotDataT, _, _]) convertPrepareProposalToSlotData(
+func (c *ConsensusEngine[
+	AttestationDataT,
+	SlashingInfoT,
+	SlotDataT,
+	_,
+]) convertPrepareProposalToSlotData(
 	req *cmtabci.PrepareProposalRequest,
 ) (SlotDataT, error) {
 	var t SlotDataT
-	t.SetSlot(uint64(req.Height))
+	t = t.New(
+		math.U64(req.Height),
+		nil,
+		nil,
+	)
 	return t, nil
 }
 

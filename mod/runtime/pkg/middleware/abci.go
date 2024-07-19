@@ -104,7 +104,7 @@ func (h *ABCIMiddleware[
 	_, _, _, _, _, _, SlotDataT,
 ]) PrepareProposal(
 	ctx context.Context,
-	slot SlotDataT,
+	slotData SlotDataT,
 ) ([]byte, []byte, error) {
 	var (
 		g                           errgroup.Group
@@ -117,7 +117,7 @@ func (h *ABCIMiddleware[
 	// Send a request to the validator service to give us a beacon block
 	// and blob sidecards to pass to ABCI.
 	if err := h.slotBroker.Publish(ctx, asynctypes.NewEvent(
-		ctx, events.NewSlot, slot,
+		ctx, events.NewSlot, slotData,
 	)); err != nil {
 		return nil, nil, err
 	}

@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
+	consruntimetypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
@@ -119,8 +120,11 @@ func (am AppModule) InitGenesis(
 ) ([]appmodule.ValidatorUpdate, error) {
 	return cometbft.NewConsensusEngine[
 		types.AttestationData,
-		*types.SlotData,
 		types.SlashingInfo,
+		*consruntimetypes.SlotData[
+			types.AttestationData,
+			types.SlashingInfo,
+		],
 		appmodule.ValidatorUpdate,
 	](
 		am.ABCIMiddleware,
@@ -133,8 +137,11 @@ func (am AppModule) EndBlock(
 ) ([]appmodule.ValidatorUpdate, error) {
 	return cometbft.NewConsensusEngine[
 		types.AttestationData,
-		*types.SlotData,
 		types.SlashingInfo,
+		*consruntimetypes.SlotData[
+			types.AttestationData,
+			types.SlashingInfo,
+		],
 		appmodule.ValidatorUpdate,
 	](
 		am.ABCIMiddleware,

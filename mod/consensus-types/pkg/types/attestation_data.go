@@ -33,7 +33,7 @@ import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 type AttestationData struct {
 	// Slot is the slot number of the attestation data.
 	Slot uint64
-	// Index is the committee index of the attestation data.
+	// Index is the index of the validator.
 	Index uint64
 	// BeaconBlockRoot is the root of the beacon block.
 	BeaconBlockRoot common.Root

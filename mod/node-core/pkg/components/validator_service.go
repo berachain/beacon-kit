@@ -71,8 +71,8 @@ func ProvideValidatorService(
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*ForkData,
-		*SlotData,
 		*SlashingInfo,
+		*SlotData,
 	](
 		&in.Cfg.Validator,
 		in.Logger.With("service", "validator"),

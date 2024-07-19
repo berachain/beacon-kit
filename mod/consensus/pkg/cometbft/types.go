@@ -23,15 +23,16 @@ package cometbft
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/cosmos/gogoproto/proto"
 )
 
 // Middleware is the interface for the CometBFT middleware.
 type Middleware[
-	AttestationDataT any,
-	SlotDataT SlotData[AttestationDataT, SlashingInfoT],
+	AttestationDataT,
 	SlashingInfoT any,
+	SlotDataT SlotData[AttestationDataT, SlashingInfoT, SlotDataT],
 ] interface {
 	InitGenesis(
 		ctx context.Context, bz []byte,
@@ -44,12 +45,10 @@ type Middleware[
 	EndBlock(ctx context.Context) (transition.ValidatorUpdates, error)
 }
 
-// SlotData is the interface for the incoming slot.
-type SlotData[AttestationDataT, SlashingInfoT any] interface {
-	// SetSlot sets the slot of the SlotData.
-	SetSlot(slot uint64)
-	// SetAttestationData sets the attestation data of the SlotData.
-	SetAttestationData(attestationData []*AttestationDataT)
-	// SetSlashingInfo sets the slashing info of the SlotData.
-	SetSlashingInfo(slashingInfo []*SlashingInfoT)
+type SlotData[AttestationDataT, SlashingInfoT, SlotDataT any] interface {
+	New(
+		math.Slot,
+		[]*AttestationDataT,
+		[]*SlashingInfoT,
+	) SlotDataT
 }

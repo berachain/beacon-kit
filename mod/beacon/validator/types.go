@@ -210,9 +210,10 @@ type PayloadBuilder[BeaconStateT, ExecutionPayloadT any] interface {
 	) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
 }
 
+// SlotData represents the slot data interface.
 type SlotData[AttestationDataT, SlashingInfoT any] interface {
 	// GetSlot returns the slot of the incoming slot.
-	GetSlot() uint64
+	GetSlot() math.Slot
 	// GetAttestationData returns the attestation data of the incoming slot.
 	GetAttestationData() []AttestationDataT
 	// GetSlashingInfo returns the slashing info of the incoming slot.

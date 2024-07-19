@@ -39,7 +39,7 @@ import (
 // buildBlockAndSidecars builds a new beacon block.
 func (s *Service[
 	AttestationDataT, BeaconBlockT, _, _,
-	BlobSidecarsT, _, _, _, _, _, _, SlotDataT, SlashingInfoT,
+	BlobSidecarsT, _, _, _, _, _, _, SlashingInfoT, SlotDataT,
 ]) buildBlockAndSidecars(
 	ctx context.Context,
 	slotData SlotDataT,
@@ -62,20 +62,23 @@ func (s *Service[
 
 	// Prepare the state such that it is ready to build a block for
 	// the requested slot
-	if _, err := s.stateProcessor.ProcessSlots(st, math.U64(slotData.GetSlot())); err != nil {
+	if _, err := s.stateProcessor.ProcessSlots(
+		st,
+		slotData.GetSlot(),
+	); err != nil {
 		return blk, sidecars, err
 	}
 
 	// Build the reveal for the current slot.
 	// TODO: We can optimize to pre-compute this in parallel?
-	reveal, err := s.buildRandaoReveal(st, math.U64(slotData.GetSlot()))
+	reveal, err := s.buildRandaoReveal(st, slotData.GetSlot())
 	if err != nil {
 		return blk, sidecars, err
 	}
 
 	// Create a new empty block from the current state.
 	blk, err = s.getEmptyBeaconBlockForSlot(
-		st, math.U64(slotData.GetSlot()),
+		st, slotData.GetSlot(),
 	)
 	if err != nil {
 		return blk, sidecars, err
@@ -122,7 +125,7 @@ func (s *Service[
 
 	s.logger.Info(
 		"Beacon block successfully built",
-		"slot", math.U64(slotData.GetSlot()).Base10(),
+		"slot", slotData.GetSlot().Base10(),
 		"state_root", blk.GetStateRoot(),
 		"duration", time.Since(startTime).String(),
 	)
@@ -260,7 +263,7 @@ func (s *Service[
 // BuildBlockBody assembles the block body with necessary components.
 func (s *Service[
 	AttestationDataT, BeaconBlockT, _, BeaconStateT, _,
-	_, _, Eth1DataT, ExecutionPayloadT, _, _, SlotDataT, SlashingInfoT,
+	_, _, Eth1DataT, ExecutionPayloadT, _, _, SlashingInfoT, SlotDataT,
 ]) buildBlockBody(
 	ctx context.Context,
 	st BeaconStateT,
@@ -315,11 +318,12 @@ func (s *Service[
 	// Set the graffiti on the block body.
 	body.SetGraffiti(bytes.ToBytes32([]byte(s.cfg.Graffiti)))
 
-	// TODO: figure out when to actually hard fork this.
-	const FARFUTURE_SLOT = 0xFFFFFFFFFFFFFFFF
-	if s.chainSpec.ActiveForkVersionForEpoch(
-		FARFUTURE_SLOT,
-	) > version.DenebPlus {
+	// Get the epoch to find the active fork version.
+	epoch := s.chainSpec.SlotToEpoch(blk.GetSlot())
+	activeForkVersion := s.chainSpec.ActiveForkVersionForEpoch(
+		epoch,
+	)
+	if activeForkVersion >= version.DenebPlus {
 		// Set the attestations on the block body.
 		body.SetAttestations(slotData.GetAttestationData())
 

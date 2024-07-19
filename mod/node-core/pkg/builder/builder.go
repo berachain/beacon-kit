@@ -29,6 +29,7 @@ import (
 	"cosmossdk.io/log"
 	consensustypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
+	consruntimetypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/app"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
@@ -114,8 +115,11 @@ func (nb *NodeBuilder[NodeT]) Build(
 	// This is a bit of a meme until server/v2.
 	consensusEngine := cometbft.NewConsensusEngine[
 		consensustypes.AttestationData,
-		*consensustypes.SlotData,
 		consensustypes.SlashingInfo,
+		*consruntimetypes.SlotData[
+			consensustypes.AttestationData,
+			consensustypes.SlashingInfo,
+		],
 		appmodule.ValidatorUpdate,
 	](
 		abciMiddleware,
