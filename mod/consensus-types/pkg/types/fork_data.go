@@ -30,7 +30,6 @@ import (
 // ForkData as defined in the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#forkdata
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path fork_data.go -objs ForkData -include ../../../primitives/pkg/bytes,../../../primitives/pkg/common -output fork_data.ssz.go
 //nolint:lll
 type ForkData struct {
 	// CurrentVersion is the current version of the fork.
