@@ -60,7 +60,7 @@ CMD = [
     "--port",
     str(DISCOVERY_PORT_NUM),
     "--http.api",
-    "eth,erigon,engine,web3,net,debug,trace,txpool,admin",
+    "eth,erigon,engine,web3,net,debug,trace,txpool,admin,ots",
     "--http.vhosts",
     "'*'",
     "--ws",
