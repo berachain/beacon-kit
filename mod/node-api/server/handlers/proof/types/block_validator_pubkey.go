@@ -23,7 +23,6 @@ package types
 import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -41,46 +40,39 @@ type BeaconBlockValidatorPubkey struct {
 	ParentBlockRoot common.Root
 	// StateRoot is the summary of the BeaconState type with only the required
 	// raw values to prove a validator's pubkey.
-	StateRoot *struct {
-		GenesisValidatorsRoot common.Root
-		Slot                  math.Slot
-		// Fork is the hash tree root of the Fork.
-		Fork common.Root
-		// LatestBlockHeader is the hash tree root of the latest block header.
-		LatestBlockHeader common.Root
-		// BlockRoots is the hash tree root of the block headers buffer.
-		BlockRoots common.Root
-		// StateRoots is the hash tree root of the beacon states buffer.
-		StateRoots common.Root
-		// Eth1Data is the hash tree root of the eth1 data.
-		Eth1Data         common.Root
-		Eth1DepositIndex uint64
-		// LatestExecutionPayloadHeader is the hash tree root of the latest
-		// execution payload header.
-		LatestExecutionPayloadHeader common.Root
-		// Validators is the list of the summary of the Validator type with only
-		// the required raw values to prove a validator's pubkey.
-		Validators []*struct {
-			// Pubkey is the validator's 48-byte BLS public key.
-			Pubkey                     crypto.BLSPubkey `ssz-size:"48"`
-			WithdrawalCredentials      types.WithdrawalCredentials
-			EffectiveBalance           math.Gwei
-			Slashed                    bool
-			ActivationEligibilityEpoch math.Epoch
-			ActivationEpoch            math.Epoch
-			ExitEpoch                  math.Epoch
-			WithdrawableEpoch          math.Epoch
-		} `ssz-max:"1099511627776"`
-		// Balances is the hash tree root of the validator balances.
-		Balances common.Root
-		// RandaoMixes is the hash tree root of the randao mixes.
-		RandaoMixes                  common.Root
-		NextWithdrawalIndex          uint64
-		NextWithdrawalValidatorIndex math.ValidatorIndex
-		// Slashings is the hash tree root of the slashings.
-		Slashings     common.Root
-		TotalSlashing math.Gwei
-	}
+	StateRoot *BeaconStateValidatorPubkey
 	// BodyRoot is the root of the block body.
 	BodyRoot common.Root
+}
+
+// BeaconStateValidatorPubkey is the summary of the BeaconState type with only
+// the required raw values to prove a validator's pubkey.
+type BeaconStateValidatorPubkey struct {
+	GenesisValidatorsRoot common.Root
+	Slot                  math.Slot
+	// Fork is the hash tree root of the Fork.
+	Fork common.Root
+	// LatestBlockHeader is the hash tree root of the latest block header.
+	LatestBlockHeader common.Root
+	// BlockRoots is the hash tree root of the block headers buffer.
+	BlockRoots common.Root
+	// StateRoots is the hash tree root of the beacon states buffer.
+	StateRoots common.Root
+	// Eth1Data is the hash tree root of the eth1 data.
+	Eth1Data         common.Root
+	Eth1DepositIndex uint64
+	// LatestExecutionPayloadHeader is the hash tree root of the latest
+	// execution payload header.
+	LatestExecutionPayloadHeader common.Root
+	// Validators is the list of Validators with the field Pubkey to prove.
+	Validators []*types.Validator `ssz-max:"1099511627776"`
+	// Balances is the hash tree root of the validator balances.
+	Balances common.Root
+	// RandaoMixes is the hash tree root of the randao mixes.
+	RandaoMixes                  common.Root
+	NextWithdrawalIndex          uint64
+	NextWithdrawalValidatorIndex math.ValidatorIndex
+	// Slashings is the hash tree root of the slashings.
+	Slashings     common.Root
+	TotalSlashing math.Gwei
 }

@@ -24,6 +24,6 @@ import (
 	echo "github.com/labstack/echo/v4"
 )
 
-func (h HandlerProof[_]) GetProposer(echo.Context) error {
+func (h Handler[_]) GetProposer(echo.Context) error {
 	return nil
 }

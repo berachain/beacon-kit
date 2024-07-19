@@ -31,8 +31,8 @@ import (
 type RouteHandlers[
 	ValidatorT any,
 ] struct {
-	*beacon.HandlerBeacon[ValidatorT]
-	*proof.HandlerProof[ValidatorT]
+	beaconHandler[ValidatorT]
+	proofHandler[ValidatorT]
 }
 
 // New creates a new route handlers.
@@ -43,8 +43,12 @@ func New[
 	backend Backend[NodeT, ValidatorT],
 ) RouteHandlers[ValidatorT] {
 	return RouteHandlers[ValidatorT]{
-		HandlerBeacon: beacon.NewHandlerBeacon(backend),
-		HandlerProof:  proof.NewHandlerProof[ValidatorT](backend),
+		beaconHandler: beaconHandler[ValidatorT]{
+			beacon.NewHandler(backend),
+		},
+		proofHandler: proofHandler[ValidatorT]{
+			proof.NewHandler[ValidatorT](backend),
+		},
 	}
 }
 

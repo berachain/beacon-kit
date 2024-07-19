@@ -20,16 +20,16 @@
 
 package proof
 
-// HandlerProof is the handler for the proof API.
-type HandlerProof[ValidatorT any] struct {
+// Handler is the handler for the proof API.
+type Handler[ValidatorT any] struct {
 	backend Backend[ValidatorT]
 }
 
-// NewHandlerProof creates a new handler for the proof API.
-func NewHandlerProof[ValidatorT any](
+// NewHandler creates a new handler for the proof API.
+func NewHandler[ValidatorT any](
 	backend Backend[ValidatorT],
-) *HandlerProof[ValidatorT] {
-	return &HandlerProof[ValidatorT]{
+) *Handler[ValidatorT] {
+	return &Handler[ValidatorT]{
 		backend: backend,
 	}
 }

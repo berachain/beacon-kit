@@ -18,18 +18,19 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package beacon
+package handlers
 
-// Handler is the handler for the beacon API.
-type Handler[ValidatorT any] struct {
-	backend Backend[ValidatorT]
-}
+import (
+	"github.com/berachain/beacon-kit/mod/node-api/server/handlers/beacon"
+	"github.com/berachain/beacon-kit/mod/node-api/server/handlers/proof"
+)
 
-// NewHandler creates a new handler for the beacon API.
-func NewHandler[ValidatorT any](
-	backend Backend[ValidatorT],
-) *Handler[ValidatorT] {
-	return &Handler[ValidatorT]{
-		backend: backend,
+// Necessary type definitions to embed the specific handlers.
+type (
+	beaconHandler[ValidatorT any] struct {
+		*beacon.Handler[ValidatorT]
 	}
-}
+	proofHandler[ValidatorT any] struct {
+		*proof.Handler[ValidatorT]
+	}
+)
