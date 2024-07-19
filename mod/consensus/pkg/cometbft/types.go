@@ -28,6 +28,13 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 )
 
+// BeaconState is an interface for accessing the beacon state.
+type BeaconState interface {
+	ValidatorIndexByCometBFTAddress(
+		cometBFTAddress []byte,
+	) (math.ValidatorIndex, error)
+}
+
 // Middleware is the interface for the CometBFT middleware.
 type Middleware[
 	AttestationDataT,
@@ -51,4 +58,11 @@ type SlotData[AttestationDataT, SlashingInfoT, SlotDataT any] interface {
 		[]*AttestationDataT,
 		[]*SlashingInfoT,
 	) SlotDataT
+}
+
+// StorageBackend defines an interface for accessing various storage components
+// required by the beacon node.
+type StorageBackend[BeaconStateT BeaconState] interface {
+	// StateFromContext retrieves the beacon state from the given context.
+	StateFromContext(context.Context) BeaconStateT
 }

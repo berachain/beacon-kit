@@ -51,14 +51,17 @@ var (
 // It is a wrapper around the ABCIMiddleware.
 type AppModule struct {
 	ABCIMiddleware *components.ABCIMiddleware
+	StorageBackend *components.StorageBackend
 }
 
 // NewAppModule creates a new AppModule object.
 func NewAppModule(
 	abciMiddleware *components.ABCIMiddleware,
+	storageBackend *components.StorageBackend,
 ) AppModule {
 	return AppModule{
 		ABCIMiddleware: abciMiddleware,
+		StorageBackend: storageBackend,
 	}
 }
 
@@ -120,14 +123,17 @@ func (am AppModule) InitGenesis(
 ) ([]appmodule.ValidatorUpdate, error) {
 	return cometbft.NewConsensusEngine[
 		types.AttestationData,
+		*components.BeaconState,
 		types.SlashingInfo,
 		*consruntimetypes.SlotData[
 			types.AttestationData,
 			types.SlashingInfo,
 		],
+		components.StorageBackend,
 		appmodule.ValidatorUpdate,
 	](
 		am.ABCIMiddleware,
+		*am.StorageBackend,
 	).InitGenesis(ctx, bz)
 }
 
@@ -137,13 +143,16 @@ func (am AppModule) EndBlock(
 ) ([]appmodule.ValidatorUpdate, error) {
 	return cometbft.NewConsensusEngine[
 		types.AttestationData,
+		*components.BeaconState,
 		types.SlashingInfo,
 		*consruntimetypes.SlotData[
 			types.AttestationData,
 			types.SlashingInfo,
 		],
+		components.StorageBackend,
 		appmodule.ValidatorUpdate,
 	](
 		am.ABCIMiddleware,
+		*am.StorageBackend,
 	).EndBlock(ctx)
 }

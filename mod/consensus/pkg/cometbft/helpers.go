@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // convertValidatorUpdate abstracts the conversion of a
@@ -50,10 +51,13 @@ func convertValidatorUpdate[ValidatorUpdateT any](
 
 func (c *ConsensusEngine[
 	AttestationDataT,
+	BeaconStateT,
 	SlashingInfoT,
 	SlotDataT,
+	StorageBackendT,
 	_,
 ]) convertPrepareProposalToSlotData(
+	_ sdk.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (SlotDataT, error) {
 	var t SlotDataT
