@@ -24,6 +24,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/karalabe/ssz"
 )
 
 // ForkData as defined in the Ethereum 2.0 specification:
@@ -53,6 +54,40 @@ func (fd *ForkData) New(
 	currentVersion common.Version, genesisValidatorsRoot common.Root,
 ) *ForkData {
 	return NewForkData(currentVersion, genesisValidatorsRoot)
+}
+
+// SizeSSZ returns the size of the SigningData object in SSZ encoding.
+func (*ForkData) SizeSSZ() uint32 {
+	//nolint:mnd // 32+4 = 36.
+	return 36
+}
+
+// DefineSSZ defines the SSZ encoding for the ForkData object.
+func (f *ForkData) DefineSSZ(codec *ssz.Codec) {
+	ssz.DefineStaticBytes(codec, &f.CurrentVersion)
+	ssz.DefineStaticBytes(codec, &f.GenesisValidatorsRoot)
+}
+
+// HashTreeRoot computes the SSZ hash tree root of the ForkData object.
+func (f *ForkData) HashTreeRoot() ([32]byte, error) {
+	return ssz.HashSequential(f), nil
+}
+
+// MarshalSSZTo marshals the ForkData object to SSZ format into the provided
+// buffer.
+func (f *ForkData) MarshalSSZTo(buf []byte) ([]byte, error) {
+	return buf, ssz.EncodeToBytes(buf, f)
+}
+
+// MarshalSSZ marshals the ForkData object to SSZ format.
+func (f *ForkData) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, f.SizeSSZ())
+	return f.MarshalSSZTo(buf)
+}
+
+// UnmarshalSSZ unmarshals the ForkData object from SSZ format.
+func (f *ForkData) UnmarshalSSZ(buf []byte) error {
+	return ssz.DecodeFromBytes(buf, f)
 }
 
 // ComputeDomain as defined in the Ethereum 2.0 specification.
