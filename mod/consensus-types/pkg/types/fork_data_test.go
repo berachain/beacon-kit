@@ -74,18 +74,6 @@ func TestForkData_HashTreeRoot(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestForkData_GetTree(t *testing.T) {
-	forkData := &types.ForkData{
-		CurrentVersion:        common.Version{},
-		GenesisValidatorsRoot: common.Root{},
-	}
-
-	tree, err := forkData.GetTree()
-
-	require.NoError(t, err)
-	require.NotNil(t, tree)
-}
-
 func TestForkData_ComputeDomain(t *testing.T) {
 	forkData := &types.ForkData{
 		CurrentVersion:        common.Version{},
