@@ -18,36 +18,16 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package handlers
+package routes
 
 import (
-	"github.com/berachain/beacon-kit/mod/node-api/server/handlers/beacon"
-	"github.com/berachain/beacon-kit/mod/node-api/server/handlers/proof"
-	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
+	"github.com/berachain/beacon-kit/mod/node-api/server/handlers"
 	"github.com/labstack/echo/v4"
 )
 
-// RouteHandlers is the interface for the route handlers.
-type RouteHandlers[
-	ValidatorT any,
-] struct {
-	*beacon.HandlerBeacon[ValidatorT]
-	*proof.HandlerProof[ValidatorT]
-}
-
-// New creates a new route handlers.
-func New[
-	NodeT nodetypes.Node,
-	ValidatorT any,
-](
-	backend Backend[NodeT, ValidatorT],
-) RouteHandlers[ValidatorT] {
-	return RouteHandlers[ValidatorT]{
-		HandlerBeacon: beacon.NewHandlerBeacon(backend),
-		HandlerProof:  proof.NewHandlerProof[ValidatorT](backend),
-	}
-}
-
-func (rh RouteHandlers[_]) NotImplemented(_ echo.Context) error {
-	return echo.ErrNotImplemented
+func assignProofRoutes[ValidatorT any](
+	e *echo.Echo,
+	h handlers.RouteHandlers[ValidatorT],
+) {
+	e.GET("/eth/v1/proof/proposer", h.GetProposer)
 }

@@ -36,6 +36,7 @@ func Assign[ValidatorT any](
 	assignDebugRoutes(e, handler)
 	assignEventsRoutes(e, handler)
 	aasignNodeRoutes(e, handler)
+	assignProofRoutes(e, handler)
 	assignValidatorRoutes(e, handler)
 	assignRewardsRoutes(e, handler)
 }

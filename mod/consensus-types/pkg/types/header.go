@@ -65,7 +65,7 @@ func (b *BeaconBlockHeaderBase) GetStateRoot() common.Root {
 type BeaconBlockHeader struct {
 	// BeaconBlockHeaderBase is the base of the block.
 	BeaconBlockHeaderBase
-	// 	// BodyRoot is the root of the block body.
+	// BodyRoot is the root of the block body.
 	BodyRoot common.Root `json:"bodyRoot"`
 }
 

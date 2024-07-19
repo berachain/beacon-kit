@@ -18,36 +18,18 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package handlers
+package proof
 
-import (
-	"github.com/berachain/beacon-kit/mod/node-api/server/handlers/beacon"
-	"github.com/berachain/beacon-kit/mod/node-api/server/handlers/proof"
-	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
-	"github.com/labstack/echo/v4"
-)
-
-// RouteHandlers is the interface for the route handlers.
-type RouteHandlers[
-	ValidatorT any,
-] struct {
-	*beacon.HandlerBeacon[ValidatorT]
-	*proof.HandlerProof[ValidatorT]
+// HandlerProof is the handler for the proof API.
+type HandlerProof[ValidatorT any] struct {
+	backend Backend[ValidatorT]
 }
 
-// New creates a new route handlers.
-func New[
-	NodeT nodetypes.Node,
-	ValidatorT any,
-](
-	backend Backend[NodeT, ValidatorT],
-) RouteHandlers[ValidatorT] {
-	return RouteHandlers[ValidatorT]{
-		HandlerBeacon: beacon.NewHandlerBeacon(backend),
-		HandlerProof:  proof.NewHandlerProof[ValidatorT](backend),
+// NewHandlerProof creates a new handler for the proof API.
+func NewHandlerProof[ValidatorT any](
+	backend Backend[ValidatorT],
+) *HandlerProof[ValidatorT] {
+	return &HandlerProof[ValidatorT]{
+		backend: backend,
 	}
-}
-
-func (rh RouteHandlers[_]) NotImplemented(_ echo.Context) error {
-	return echo.ErrNotImplemented
 }

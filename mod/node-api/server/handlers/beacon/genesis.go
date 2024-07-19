@@ -29,7 +29,7 @@ import (
 	echo "github.com/labstack/echo/v4"
 )
 
-func (h Handler[_]) GetGenesis(c echo.Context) error {
+func (h HandlerBeacon[_]) GetGenesis(c echo.Context) error {
 	genesisRoot, err := h.backend.GetGenesis(context.TODO())
 	if err != nil {
 		return err

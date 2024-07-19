@@ -29,7 +29,7 @@ import (
 	echo "github.com/labstack/echo/v4"
 )
 
-func (h Handler[_]) GetStateValidators(c echo.Context) error {
+func (h HandlerBeacon[_]) GetStateValidators(c echo.Context) error {
 	params, err := utils.BindAndValidate[types.StateValidatorsGetRequest](c)
 	if err != nil {
 		return err
@@ -58,7 +58,7 @@ func (h Handler[_]) GetStateValidators(c echo.Context) error {
 		Data:                validators})
 }
 
-func (h Handler[_]) PostStateValidators(c echo.Context) error {
+func (h HandlerBeacon[_]) PostStateValidators(c echo.Context) error {
 	params, err := utils.BindAndValidate[types.StateValidatorsPostRequest](c)
 	if err != nil {
 		return err
@@ -81,7 +81,7 @@ func (h Handler[_]) PostStateValidators(c echo.Context) error {
 		Data:                validators})
 }
 
-func (h Handler[_]) GetStateValidatorBalances(c echo.Context) error {
+func (h HandlerBeacon[_]) GetStateValidatorBalances(c echo.Context) error {
 	params, err := utils.BindAndValidate[types.ValidatorBalancesGetRequest](c)
 	if err != nil {
 		return err
@@ -104,7 +104,7 @@ func (h Handler[_]) GetStateValidatorBalances(c echo.Context) error {
 	})
 }
 
-func (h Handler[_]) PostStateValidatorBalances(c echo.Context) error {
+func (h HandlerBeacon[_]) PostStateValidatorBalances(c echo.Context) error {
 	params := &types.ValidatorBalancesPostRequest{}
 	if err := (&echo.DefaultBinder{}).BindBody(c, &params.IDs); err != nil {
 		return err
@@ -133,7 +133,7 @@ func (h Handler[_]) PostStateValidatorBalances(c echo.Context) error {
 	})
 }
 
-func (h Handler[_]) GetBlockRewards(c echo.Context) error {
+func (h HandlerBeacon[_]) GetBlockRewards(c echo.Context) error {
 	params, err := utils.BindAndValidate[types.BlockIDRequest](c)
 	if err != nil {
 		return err
