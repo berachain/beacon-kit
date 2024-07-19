@@ -25,6 +25,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/karalabe/ssz"
 )
 
 // SigningData as defined in the Ethereum 2.0 specification.
@@ -35,6 +36,37 @@ import (
 type SigningData struct {
 	ObjectRoot common.Root   `ssz-size:"32"`
 	Domain     common.Domain `ssz-size:"32"`
+}
+
+func (w *SigningData) SizeSSZ() uint32 { return 64 }
+
+func (w *SigningData) DefineSSZ(codec *ssz.Codec) {
+	ssz.DefineStaticBytes(codec, &w.ObjectRoot)
+	ssz.DefineStaticBytes(codec, &w.Domain)
+}
+
+// HashTreeRoot ssz hashes the SigningData object
+func (s *SigningData) HashTreeRoot() ([32]byte, error) {
+	return ssz.HashSequential(s), nil
+}
+
+// MarshalSSZ marshals the SigningData object to SSZ format.
+func (s *SigningData) MarshalSSZTo(buf []byte) ([]byte, error) {
+	if err := ssz.EncodeToBytes(buf, s); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// MarshalSSZ marshals the SigningData object to SSZ format.
+func (s *SigningData) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, s.SizeSSZ())
+	return s.MarshalSSZTo(buf)
+}
+
+// UnmarshalSSZ unmarshals the SigningData object from SSZ format.
+func (s *SigningData) UnmarshalSSZ(buf []byte) error {
+	return ssz.DecodeFromBytes(buf, s)
 }
 
 // ComputeSigningRoot as defined in the Ethereum 2.0 specification.

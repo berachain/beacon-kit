@@ -91,18 +91,3 @@ func TestSigningData_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 		})
 	}
 }
-
-func TestSigningData_GetTree(t *testing.T) {
-	data := generateSigningData()
-
-	tree, err := data.GetTree()
-	require.NoError(t, err)
-	require.NotNil(t, tree)
-
-	expectedRoot, err := data.HashTreeRoot()
-	require.NoError(t, err)
-
-	// Compare the tree root with the expected root
-	actualRoot := tree.Hash()
-	require.Equal(t, string(expectedRoot[:]), string(actualRoot))
-}
