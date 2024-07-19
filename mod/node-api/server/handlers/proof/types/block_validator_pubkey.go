@@ -31,7 +31,7 @@ import (
 // DenebPlus fork, with only the minimally required values to prove a
 // validator's pubkey.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path block_validator_pubkey.go -objs BeaconBlockValidatorPubkey -include ../../../primitives/pkg/common,../../../primitives/pkg/crypto,../../../primitives/pkg/math,..,./header.go,./withdrawal_credentials.go,../../../engine-primitives/pkg/engine-primitives/withdrawal.go,./deposit.go,./payload.go,./deposit.go,../../../primitives/pkg/eip4844,../../../primitives/pkg/bytes,./eth1data.go,../../../primitives/pkg/math,../../../primitives/pkg/common,./body.go,./body_denebplus.go,./attestation_data.go,./slashing_info.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output block_validator_pubkey.ssz.go
+//go:generate go run github.com/ferranbt/fastssz/sszgen --path block_validator_pubkey.go -objs BeaconBlockValidatorPubkey -include ../../../../../primitives/pkg/crypto,../../../../../primitives/pkg/common,../../../../../primitives/pkg/bytes,../../../../../consensus-types/pkg/types,../../../../../engine-primitives/pkg/engine-primitives,../../../../../primitives/pkg/math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil,../../../../../primitives/pkg/common/common.go -output block_validator_pubkey.ssz.go
 type BeaconBlockValidatorPubkey struct {
 	// Slot represents the position of the block in the chain.
 	Slot math.Slot
@@ -70,7 +70,7 @@ type BeaconBlockValidatorPubkey struct {
 			ActivationEpoch            math.Epoch
 			ExitEpoch                  math.Epoch
 			WithdrawableEpoch          math.Epoch
-		}
+		} `ssz-max:"1099511627776"`
 		// Balances is the hash tree root of the validator balances.
 		Balances common.Root
 		// RandaoMixes is the hash tree root of the randao mixes.
