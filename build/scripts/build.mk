@@ -84,6 +84,11 @@ BUILD_TARGETS := build install
 ## Build: 
 build: BUILD_ARGS=-o $(OUT_DIR)/beacond ## build `beacond`
 
+build-reacond: BUILD_ARGS=-o $(OUT_DIR)/reacond ## build `reacond`
+build-reacond: $(OUT_DIR)/
+	@echo "Building examples/reacond/cmd"
+	@cd ${CURRENT_DIR}/examples/reacond/cmd && go build -mod=readonly $(BUILD_FLAGS) $(BUILD_ARGS) ./.
+
 $(BUILD_TARGETS): $(OUT_DIR)/
 	@echo "Building ${TESTAPP_CMD_DIR}"
 	@cd ${CURRENT_DIR}/$(TESTAPP_CMD_DIR) && go $@ -mod=readonly $(BUILD_FLAGS) $(BUILD_ARGS) ./.

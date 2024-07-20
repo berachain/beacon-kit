@@ -22,7 +22,6 @@ package builder
 
 import (
 	"cosmossdk.io/depinject"
-	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -82,10 +81,10 @@ func WithRunHandler[T types.Node](
 	}
 }
 
-// WithDefaultRootCommandSetup sets the root command setup func to the default.
-func WithDefaultRootCommandSetup[T types.Node]() Opt[T] {
+// WithRootCommandSetup sets the root command setup func to the default.
+func WithRootCommandSetup[T types.Node](rootCmdSetup rootCmdSetup[T]) Opt[T] {
 	return func(cb *CLIBuilder[T]) {
-		cb.rootCmdSetup = cmdlib.DefaultRootCommandSetup
+		cb.rootCmdSetup = rootCmdSetup
 	}
 }
 

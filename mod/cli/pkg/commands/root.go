@@ -33,6 +33,10 @@ type Root struct {
 	cmd *cobra.Command
 }
 
+func (root *Root) Command() *cobra.Command {
+	return root.cmd
+}
+
 // New returns a new root command with the provided configuration.
 func New(name string,
 	description string,
