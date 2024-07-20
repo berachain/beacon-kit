@@ -105,3 +105,8 @@ func (b *BeaconBlockHeader) New(
 func (b *BeaconBlockHeader) SetStateRoot(stateRoot common.Root) {
 	b.StateRoot = stateRoot
 }
+
+// GetBodyRoot retrieves the body root of the BeaconBlockHeader.
+func (b *BeaconBlockHeader) GetBodyRoot() common.Root {
+	return b.BodyRoot
+}

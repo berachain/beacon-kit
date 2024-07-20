@@ -29,5 +29,5 @@ func assignProofRoutes[ValidatorT any](
 	e *echo.Echo,
 	h handlers.RouteHandlers[ValidatorT],
 ) {
-	e.GET("/eth/v1/proof/blocks/:block_id/proposer", h.GetBlockProposer)
+	e.GET("/eth/v1/proof/state/:state_id/block_proposer", h.GetBlockProposer)
 }

@@ -131,9 +131,12 @@ func (b *backend[
 	b.node = node
 }
 
-// StateFromContext returns a state from the context.
-// It wraps the StorageBackend.StateFromContext method to allow for state ID
-// querying.
+// StateFromContext returns a state from the context. It wraps the
+// StorageBackend.StateFromContext method to allow for state ID querying.
+//
+// NOTE: Right now, `stateID` only supports querying by "head" (all of "head",
+// "finalized", "justified" are the same), "genesis", and <slot>. We do NOT 
+// support querying by <stateRoot>.
 func (b *backend[
 	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) StateFromContext(

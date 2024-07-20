@@ -24,6 +24,6 @@ import (
 	echo "github.com/labstack/echo/v4"
 )
 
-func (h Handler[_]) GetBlockProposer(echo.Context) error {
+func (h Handler[_]) GetBlockProposer(c echo.Context) error {
 	return nil
 }

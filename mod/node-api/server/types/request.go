@@ -28,6 +28,10 @@ type BlockIDRequest struct {
 	BlockID string `param:"block_id" validate:"required,block_id"`
 }
 
+type BlockProposerProofRequest struct {
+	StateIDRequest
+}
+
 type StateValidatorsGetRequest struct {
 	StateIDRequest
 	ID     []string `query:"id"     validate:"dive,validator_id"`

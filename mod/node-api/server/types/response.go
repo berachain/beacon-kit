@@ -22,11 +22,19 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 type ErrorResponse struct {
 	Code    int `json:"code"`
 	Message any `json:"message"`
+}
+
+type BlockProposerProofResponse[ValidatorT, BeaconBlockHeaderT any] struct {
+	Proof             []common.Root       `json:"proof"`
+	Validator         ValidatorT          `json:"validator"`
+	ValidatorIndex    math.ValidatorIndex `json:"validator_index"`
+	BeaconBlockHeader BeaconBlockHeaderT  `json:"beacon_block_header"`
 }
 
 type DataResponse struct {
