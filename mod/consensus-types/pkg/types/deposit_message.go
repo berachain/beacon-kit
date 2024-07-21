@@ -76,16 +76,17 @@ func CreateAndSignDepositMessage(
 }
 
 // New creates a new deposit message.
-func (d *DepositMessage) New(
+func (dm *DepositMessage) New(
 	pubkey crypto.BLSPubkey,
 	credentials WithdrawalCredentials,
 	amount math.Gwei,
 ) *DepositMessage {
-	return &DepositMessage{
+	dm = &DepositMessage{
 		Pubkey:      pubkey,
 		Credentials: credentials,
 		Amount:      amount,
 	}
+	return dm
 }
 
 // SizeSSZ returns the size of the DepositMessage object in SSZ encoding.
@@ -106,7 +107,8 @@ func (dm *DepositMessage) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashSequential(dm), nil
 }
 
-// MarshalSSZTo marshals the DepositMessage object to SSZ format into the provided
+// MarshalSSZTo marshals the DepositMessage object to SSZ format into the
+// provided
 // buffer.
 func (dm *DepositMessage) MarshalSSZTo(buf []byte) ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, dm)
@@ -125,7 +127,7 @@ func (dm *DepositMessage) UnmarshalSSZ(buf []byte) error {
 
 // VerifyCreateValidator verifies the deposit data when attempting to create a
 // new validator from a given deposit.
-func (d *DepositMessage) VerifyCreateValidator(
+func (dm *DepositMessage) VerifyCreateValidator(
 	forkData *ForkData,
 	signature crypto.BLSSignature,
 	domainType common.DomainType,
@@ -138,13 +140,13 @@ func (d *DepositMessage) VerifyCreateValidator(
 		return err
 	}
 
-	signingRoot, err := ComputeSigningRoot(d, domain)
+	signingRoot, err := ComputeSigningRoot(dm, domain)
 	if err != nil {
 		return err
 	}
 
 	if err = signatureVerificationFn(
-		d.Pubkey, signingRoot[:], signature,
+		dm.Pubkey, signingRoot[:], signature,
 	); err != nil {
 		return errors.Join(err, ErrDepositMessage)
 	}
