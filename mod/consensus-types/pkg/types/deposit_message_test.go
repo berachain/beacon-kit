@@ -21,6 +21,7 @@
 package types_test
 
 import (
+	"io"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -29,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/mocks"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -94,7 +94,7 @@ func TestDepositMessage_MarshalSSZTo(t *testing.T) {
 		Amount:      math.Gwei(1000),
 	}
 
-	buf := make([]byte, 0, original.SizeSSZ())
+	buf := make([]byte, original.SizeSSZ())
 	data, err := original.MarshalSSZTo(buf)
 	require.NoError(t, err)
 
@@ -104,24 +104,13 @@ func TestDepositMessage_MarshalSSZTo(t *testing.T) {
 	require.Equal(t, original, &unmarshalled)
 }
 
-func TestDepositMessage_GetTree(t *testing.T) {
-	original := &types.DepositMessage{
-		Pubkey:      crypto.BLSPubkey{},
-		Credentials: types.WithdrawalCredentials{},
-		Amount:      math.Gwei(1000),
-	}
-
-	tree, err := original.GetTree()
-	require.NoError(t, err)
-	require.NotNil(t, tree)
-}
 func TestDepositMessage_UnmarshalSSZ_ErrSize(t *testing.T) {
 	buf := make([]byte, 10) // size less than 88
 
 	var unmarshalledDepositMessage types.DepositMessage
 	err := unmarshalledDepositMessage.UnmarshalSSZ(buf)
 
-	require.ErrorIs(t, err, ssz.ErrSize)
+	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
 
 func TestDepositMessage_VerifyCreateValidator_Error(t *testing.T) {
