@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/pruning"
 	"github.com/cosmos/cosmos-sdk/client/snapshot"
@@ -41,7 +42,10 @@ import (
 )
 
 // DefaultRootCommandSetup sets up the default commands for the root command.
-func DefaultRootCommandSetup[T types.Node](
+func DefaultRootCommandSetup[
+	T types.Node,
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+](
 	root *Root,
 	mm *module.Manager,
 	appCreator servertypes.AppCreator[T],
@@ -65,7 +69,7 @@ func DefaultRootCommandSetup[T types.Node](
 		// `genesis`
 		genesis.Commands(chainSpec),
 		// `deposit`
-		deposit.Commands(chainSpec),
+		deposit.Commands[ExecutionPayloadT](chainSpec),
 		// `jwt`
 		jwt.Commands(),
 		// `keys`

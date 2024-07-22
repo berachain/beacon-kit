@@ -18,15 +18,14 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package bind
+package crypto
 
-import "github.com/ethereum/go-ethereum/accounts/abi/bind"
-
-type (
-	ContractBackend = bind.ContractBackend
-	FilterOpts      = bind.FilterOpts
-	TransactOpts    = bind.TransactOpts
+import (
+	"github.com/ethereum/go-ethereum/crypto"
 )
 
-//nolint:gochecknoglobals //used an alias.
-var WaitMined = bind.WaitMined
+//nolint:gochecknoglobals // alias.
+var (
+	HexToECDSA      = crypto.HexToECDSA
+	PubkeyToAddress = crypto.PubkeyToAddress
+)
