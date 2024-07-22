@@ -24,6 +24,7 @@ import (
 	"cosmossdk.io/core/appmodule/v2"
 	broker "github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
@@ -48,6 +49,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
 	statedb "github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/block"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
@@ -117,6 +119,12 @@ type (
 
 	// BlobVerifier is a type alias for the blob verifier.
 	BlobVerifier = dablob.Verifier
+
+	// BlockStoreService is a type alias for the block store service.
+	BlockStoreService = blockstore.Service[*BeaconBlock, *BlockStore]
+
+	// BlockStore is a type alias for the block store.
+	BlockStore = block.KVStore[*BeaconBlock]
 
 	// ChainService is a type alias for the chain service.
 	ChainService = blockchain.Service[
@@ -280,11 +288,13 @@ type (
 	// StorageBackend is the type alias for the storage backend interface.
 	StorageBackend = storage.Backend[
 		*AvailabilityStore,
+		*BeaconBlock,
 		*BeaconBlockBody,
 		*BeaconBlockHeader,
 		*BeaconState,
 		*BeaconStateMarshallable,
 		*BlobSidecars,
+		*BlockStore,
 		*Deposit,
 		*DepositStore,
 		*Eth1Data,
@@ -384,4 +394,7 @@ type (
 
 	// DepositPruner is a type alias for the deposit pruner.
 	DepositPruner = pruner.Pruner[*DepositStore]
+
+	// BlockPruner is a type alias for the block pruner.
+	BlockPruner = pruner.Pruner[*BlockStore]
 )

@@ -45,7 +45,7 @@ import (
 // node.
 type NodeBuilder[NodeT types.Node] struct {
 	node NodeT
-	// depinjectCfg holds is an extendable config container used by the
+	// depInjectCfg holds is an extendable config container used by the
 	// depinject framework.
 	depInjectCfg depinject.Config
 	// components is a list of components to provide.

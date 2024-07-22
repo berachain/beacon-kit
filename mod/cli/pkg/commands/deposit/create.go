@@ -21,24 +21,35 @@
 package deposit
 
 import (
+	"crypto/ecdsa"
+	"math/big"
 	"os"
 
-	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/parser"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/bind"
+	gethprimitivescrypto "github.com/berachain/beacon-kit/mod/geth-primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/deposit"
+	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/rpc"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 )
 
-// NewValidateDeposit creates a new command for validating a deposit message.
-//
-
-func NewCreateValidator(chainSpec common.ChainSpec) *cobra.Command {
+// NewCreateValidator creates a new command to create a validator deposit.
+func NewCreateValidator[
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+](
+	chainSpec common.ChainSpec,
+) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-validator",
 		Short: "Creates a validator deposit",
@@ -47,7 +58,7 @@ func NewCreateValidator(chainSpec common.ChainSpec) *cobra.Command {
 		amount, current version, and genesis validator root. If the broadcast
 		flag is set to true, a private key must be provided to sign the transaction.`,
 		Args: cobra.ExactArgs(4), //nolint:mnd // The number of arguments.
-		RunE: createValidatorCmd(chainSpec),
+		RunE: createValidatorCmd[ExecutionPayloadT](chainSpec),
 	}
 
 	cmd.Flags().BoolP(
@@ -61,25 +72,26 @@ func NewCreateValidator(chainSpec common.ChainSpec) *cobra.Command {
 	)
 	cmd.Flags().
 		String(valPrivateKey, defaultValidatorPrivateKey, valPrivateKeyMsg)
-	cmd.Flags().String(jwtSecretPath, defaultJWTSecretPath, jwtSecretPathMsg)
-	cmd.Flags().String(engineRPCURL, defaultEngineRPCURL, engineRPCURLMsg)
+	cmd.Flags().String(rpcURL, defaultRPCURL, rpcURLMsg)
 
 	return cmd
 }
 
 // createValidatorCmd returns a command that builds a create validator request.
 //
-// TODO: Implement broadcast functionality. Currently, the implementation works
-// for the geth client but something about the Deposit binding is not handling
-// other execution layers correctly. Peep the commit history for what we had.
-// 🤷‍♂️.
-func createValidatorCmd(
+//nolint:gocognit // The function is not complex.
+func createValidatorCmd[
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+](
 	chainSpec common.ChainSpec,
 ) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		var (
-			logger = log.NewLogger(os.Stdout)
-		)
+		logger := log.NewLogger(os.Stdout)
+
+		broadcast, err := cmd.Flags().GetBool(broadcastDeposit)
+		if err != nil {
+			return err
+		}
 
 		// Get the BLS signer.
 		blsSigner, err := getBLSSigner(cmd)
@@ -139,19 +151,138 @@ func createValidatorCmd(
 			"signature", signature.String(),
 		)
 
-		// TODO: once broadcast is fixed, remove this.
-		logger.Info("Send the above calldata to the deposit contract 🫡")
+		if broadcast {
+			logger.Info("Broadcasting deposit transaction")
+			var txHash common.ExecutionHash
+			txHash, err = broadcastDepositTx[ExecutionPayloadT](
+				cmd, depositMsg, signature, chainSpec,
+			)
+			if err != nil {
+				return err
+			}
+
+			logger.Info(
+				"Deposit transaction successful",
+				"txHash", txHash.Hex(),
+			)
+		}
 
 		return nil
 	}
+}
+
+func broadcastDepositTx[
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+](
+	cmd *cobra.Command,
+	depositMsg *types.DepositMessage,
+	signature crypto.BLSSignature,
+	chainSpec common.ChainSpec,
+) (common.ExecutionHash, error) {
+	// Parse the private key.
+	var (
+		fundingPrivKey string
+		privKey        *ecdsa.PrivateKey
+	)
+	fundingPrivKey, err := cmd.Flags().GetString(privateKey)
+	if err != nil {
+		return common.ExecutionHash{}, err
+	}
+	if fundingPrivKey == "" {
+		return common.ExecutionHash{}, ErrPrivateKeyRequired
+	}
+	privKey, err = gethprimitivescrypto.HexToECDSA(fundingPrivKey)
+	if err != nil {
+		return common.ExecutionHash{}, err
+	}
+	if privKey == nil {
+		return common.ExecutionHash{}, ErrPrivateKeyEmpty
+	}
+
+	// Parse the execution client RPC URL.
+	rpcURL, err := cmd.Flags().GetString(rpcURL)
+	if err != nil {
+		return common.ExecutionHash{}, err
+	}
+	eth1ChainID := new(big.Int).SetUint64(chainSpec.DepositEth1ChainID())
+
+	// Dial the execution client.
+	rpcClient, err := rpc.DialContext(
+		cmd.Context(), rpcURL,
+	)
+	if err != nil {
+		return common.ExecutionHash{}, err
+	}
+	ethClient, err := ethclient.NewFromRPCClient[ExecutionPayloadT](
+		rpcClient,
+	)
+	if err != nil {
+		return common.ExecutionHash{}, err
+	}
+
+	// Send the deposit to the deposit contract through abi bindings.
+	depositContract, err := deposit.NewBeaconDepositContract(
+		chainSpec.DepositContractAddress(),
+		ethClient,
+	)
+	if err != nil {
+		return common.ExecutionHash{}, err
+	}
+	depositTx, err := depositContract.Deposit(
+		&bind.TransactOpts{
+			From: gethprimitivescrypto.PubkeyToAddress(privKey.PublicKey),
+			Signer: func(
+				_ common.ExecutionAddress, tx *gethprimitives.Transaction,
+			) (*gethprimitives.Transaction, error) {
+				return gethprimitives.SignTx(
+					tx,
+					gethprimitives.LatestSignerForChainID(eth1ChainID),
+					privKey,
+				)
+			},
+			//nolint:mnd // The gas tip cap.
+			GasTipCap: big.NewInt(1000000000),
+			//nolint:mnd // The gas fee cap.
+			GasFeeCap: big.NewInt(1000000000),
+			//nolint:mnd // The gas limit.
+			GasLimit: 600000,
+		},
+		depositMsg.Pubkey[:],
+		depositMsg.Credentials[:],
+		depositMsg.Amount.Unwrap(),
+		signature[:],
+	)
+	if err != nil {
+		return common.ExecutionHash{}, errors.Wrapf(err, "error in depositing")
+	}
+
+	// Wait for the transaction to be mined and check the status.
+	depositReceipt, err := bind.WaitMined(cmd.Context(), ethClient, depositTx)
+	if err != nil {
+		return common.ExecutionHash{}, errors.Wrapf(
+			err,
+			"waiting for transaction to be mined",
+		)
+	}
+	if depositReceipt == nil {
+		return common.ExecutionHash{}, ErrDepositReceiptEmpty
+	}
+	if depositReceipt.Status == gethprimitives.ReceiptStatusFailed {
+		return common.ExecutionHash{},
+			errors.Wrapf(
+				ErrDepositTransactionFailed,
+				"transaction hash: %s", depositReceipt.TxHash.Hex(),
+			)
+	}
+
+	return depositReceipt.TxHash, nil
 }
 
 // getBLSSigner returns a BLS signer based on the override commands key flag.
 func getBLSSigner(
 	cmd *cobra.Command,
 ) (crypto.BLSSigner, error) {
-	var blsSigner crypto.BLSSigner
-	supplies := []interface{}{client.GetViperFromCmd(cmd)}
+	var legacyKey components.LegacyKey
 	overrideFlag, err := cmd.Flags().GetBool(overrideNodeKey)
 	if err != nil {
 		return nil, err
@@ -159,10 +290,7 @@ func getBLSSigner(
 
 	// Build the BLS signer.
 	if overrideFlag {
-		var (
-			validatorPrivKey string
-			legacyInput      components.LegacyKey
-		)
+		var validatorPrivKey string
 		validatorPrivKey, err = cmd.Flags().GetString(valPrivateKey)
 		if err != nil {
 			return nil, err
@@ -170,24 +298,16 @@ func getBLSSigner(
 		if validatorPrivKey == "" {
 			return nil, ErrValidatorPrivateKeyRequired
 		}
-		legacyInput, err = signer.LegacyKeyFromString(validatorPrivKey)
+		legacyKey, err = signer.LegacyKeyFromString(validatorPrivKey)
 		if err != nil {
 			return nil, err
 		}
-		supplies = append(supplies, legacyInput)
 	}
 
-	if err = depinject.Inject(
-		depinject.Configs(
-			depinject.Supply(supplies...),
-			depinject.Provide(
-				components.ProvideBlsSigner,
-			),
-		),
-		&blsSigner,
-	); err != nil {
-		return nil, err
-	}
-
-	return blsSigner, nil
+	return components.ProvideBlsSigner(
+		components.BlsSignerInput{
+			AppOpts: client.GetViperFromCmd(cmd),
+			PrivKey: legacyKey,
+		},
+	)
 }
