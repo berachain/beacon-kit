@@ -102,8 +102,8 @@ github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df h1
 github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df/go.mod h1:yRD7rmnyaaqgq/6+eIVqvSkFJXuLXpBddUu59HUOrtc=
 github.com/berachain/beacon-kit/mod/execution v0.0.0-20240705193247-d464364483df h1:H6BHipSq4spa06PGLp8osdJ8LTwz7POQa015RruWJfw=
 github.com/berachain/beacon-kit/mod/execution v0.0.0-20240705193247-d464364483df/go.mod h1:RwyZdP3Th3Qxgr/tdmEt0Zev92Ue30/CwEvvwksP76c=
-github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240705193247-d464364483df h1:74LcTGSWRxCeehY7O4g6XZ2r4PY604n9U2/981iLtFk=
-github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240705193247-d464364483df/go.mod h1:NItiDark82XGGPNYs3J0CdkXEtkGatE/QP3nu3jpeNs=
+github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240722101705-632d23f22727 h1:n0XYvSZNZ75nmVWc8oWMGyNuc1/GyReZuftHN1mR5Wk=
+github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240722101705-632d23f22727/go.mod h1:VYTntyGvk7kjxSQXqR6f2vXsg3pK61chuczquPIdGIA=
 github.com/berachain/beacon-kit/mod/log v0.0.0-20240705193247-d464364483df h1:SnzeY9SCmKyEx0iGC/C/8E39ozpl/g5yI7lFXpmbMBI=
 github.com/berachain/beacon-kit/mod/log v0.0.0-20240705193247-d464364483df/go.mod h1:mJ0ZlK+izcPWcveHAtM4+W0a+8jhu5Y4DMPL2Takacg=
 github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240710023144-cd73de9f7378 h1:aNUHZ8DXojoBjYSRuJ9ydBdvCa3EgaGo+LppIdbMmr4=
@@ -424,8 +424,8 @@ github.com/holiman/billy v0.0.0-20240322075458-72a4e81ec6da h1:8qEhdMGSUx67L2s5a
 github.com/holiman/billy v0.0.0-20240322075458-72a4e81ec6da/go.mod h1:5GuXa7vkL8u9FkFuWdVvfR5ix8hRB7DbOAaYULamFpc=
 github.com/holiman/bloomfilter/v2 v2.0.3 h1:73e0e/V0tCydx14a0SCYS/EWCxgwLZ18CZcZKVu0fao=
 github.com/holiman/bloomfilter/v2 v2.0.3/go.mod h1:zpoh+gs7qcpqrHr3dB55AMiJwo0iURXE7ZOP9L9hSkA=
-github.com/holiman/uint256 v1.2.5-0.20240612125212-75a520988c94 h1:U7b97MpLtTUkckSdQD5m9HjdP07g+bdmeGA56EWGkA0=
-github.com/holiman/uint256 v1.2.5-0.20240612125212-75a520988c94/go.mod h1:EOMSn4q6Nyt9P6efbI3bueV4e1b3dGlUCXeiRV4ng7E=
+github.com/holiman/uint256 v1.3.0 h1:4wdcm/tnd0xXdu7iS3ruNvxkWwrb4aeBQv19ayYn8F4=
+github.com/holiman/uint256 v1.3.0/go.mod h1:EOMSn4q6Nyt9P6efbI3bueV4e1b3dGlUCXeiRV4ng7E=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
 github.com/huandu/go-assert v1.1.5 h1:fjemmA7sSfYHJD7CUqs9qTwwfdNAx7/j2/ZlHXzNB3c=
 github.com/huandu/go-assert v1.1.5/go.mod h1:yOLvuqZwmcHIC5rIzrBhT7D3Q9c3GFnd0JrPVhn/06U=

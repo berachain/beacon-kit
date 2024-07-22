@@ -24,76 +24,104 @@ import (
 	"cosmossdk.io/depinject"
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cobra"
 )
 
 // Opt is a type that defines a function that modifies CLIBuilder.
-type Opt[T types.Node] func(*CLIBuilder[T])
+type Opt[
+	T types.Node,
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+] func(*CLIBuilder[T, ExecutionPayloadT])
 
 // WithName sets the name for the CLIBuilder.
-func WithName[T types.Node](name string) Opt[T] {
-	return func(cb *CLIBuilder[T]) {
+func WithName[
+	T types.Node,
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+](name string) Opt[T, ExecutionPayloadT] {
+	return func(cb *CLIBuilder[T, ExecutionPayloadT]) {
 		cb.name = name
 	}
 }
 
 // WithDescription sets the description for the CLIBuilder.
-func WithDescription[T types.Node](description string) Opt[T] {
-	return func(cb *CLIBuilder[T]) {
+func WithDescription[
+	T types.Node,
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+](description string) Opt[T, ExecutionPayloadT] {
+	return func(cb *CLIBuilder[T, ExecutionPayloadT]) {
 		cb.description = description
 	}
 }
 
 // WithDepInjectConfig sets the depinject config for the CLIBuilder.
-func WithDepInjectConfig[T types.Node](
-	cfg depinject.Config) Opt[T] {
-	return func(cb *CLIBuilder[T]) {
+func WithDepInjectConfig[
+	T types.Node,
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+](
+	cfg depinject.Config) Opt[T, ExecutionPayloadT] {
+	return func(cb *CLIBuilder[T, ExecutionPayloadT]) {
 		cb.depInjectCfg = cfg
 	}
 }
 
 // WithComponents sets the components for the CLIBuilder.
-func WithComponents[T types.Node](components []any) Opt[T] {
-	return func(cb *CLIBuilder[T]) {
+func WithComponents[
+	T types.Node,
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+](components []any) Opt[T, ExecutionPayloadT] {
+	return func(cb *CLIBuilder[T, ExecutionPayloadT]) {
 		cb.components = components
 	}
 }
 
 // SupplyModuleDeps populates the slice of direct module dependencies to be
 // supplied to depinject.
-func SupplyModuleDeps[T types.Node](deps []any) Opt[T] {
-	return func(cb *CLIBuilder[T]) {
+func SupplyModuleDeps[
+	T types.Node,
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+](deps []any) Opt[T, ExecutionPayloadT] {
+	return func(cb *CLIBuilder[T, ExecutionPayloadT]) {
 		cb.suppliers = append(cb.suppliers, deps...)
 	}
 }
 
 // WithRunHandler sets the run handler for the CLIBuilder.
-func WithRunHandler[T types.Node](
+func WithRunHandler[
+	T types.Node,
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+](
 	runHandler func(cmd *cobra.Command,
 		customAppConfigTemplate string,
 		customAppConfig interface{},
 		cmtConfig *cmtcfg.Config,
 	) error,
-) Opt[T] {
-	return func(cb *CLIBuilder[T]) {
+) Opt[T, ExecutionPayloadT] {
+	return func(cb *CLIBuilder[T, ExecutionPayloadT]) {
 		cb.runHandler = runHandler
 	}
 }
 
 // WithDefaultRootCommandSetup sets the root command setup func to the default.
-func WithDefaultRootCommandSetup[T types.Node]() Opt[T] {
-	return func(cb *CLIBuilder[T]) {
-		cb.rootCmdSetup = cmdlib.DefaultRootCommandSetup
+func WithDefaultRootCommandSetup[
+	T types.Node,
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+]() Opt[T, ExecutionPayloadT] {
+	return func(cb *CLIBuilder[T, ExecutionPayloadT]) {
+		cb.rootCmdSetup = cmdlib.DefaultRootCommandSetup[T, ExecutionPayloadT]
 	}
 }
 
 // WithNodeBuilderFunc sets the cosmos app creator for the CLIBuilder.
-func WithNodeBuilderFunc[T types.Node](
+func WithNodeBuilderFunc[
+	T types.Node,
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+](
 	nodeBuilderFunc servertypes.AppCreator[T],
-) Opt[T] {
-	return func(cb *CLIBuilder[T]) {
+) Opt[T, ExecutionPayloadT] {
+	return func(cb *CLIBuilder[T, ExecutionPayloadT]) {
 		cb.nodeBuilderFunc = nodeBuilderFunc
 	}
 }
