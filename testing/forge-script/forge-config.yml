@@ -1,0 +1,9 @@
+deployment:
+  script_path: https://github.com/Perelyn-sama/solidity-scripting/blob/master/script/NFT.s.sol
+  rpc_url:
+  constructor_args:
+    gas_limit: 0
+    gas_price: 0
+    value: 0
+    constructor_args: []
+    deployer_address:
