@@ -27,16 +27,16 @@ type SlotData[AttestationDataT, SlashingInfoT any] struct {
 	// Slot is the slot number of the incoming slot.
 	math.Slot
 	// AttestationData is the attestation data of the incoming slot.
-	AttestationData []*AttestationDataT
+	AttestationData []AttestationDataT
 	// SlashingInfo is the slashing info of the incoming slot.
-	SlashingInfo []*SlashingInfoT
+	SlashingInfo []SlashingInfoT
 }
 
 // New creates a new SlotData instance.
 func (b *SlotData[AttestationDataT, SlashingInfoT]) New(
 	slot math.Slot,
-	attestationData []*AttestationDataT,
-	slashingInfo []*SlashingInfoT,
+	attestationData []AttestationDataT,
+	slashingInfo []SlashingInfoT,
 ) *SlotData[AttestationDataT, SlashingInfoT] {
 	b = &SlotData[AttestationDataT, SlashingInfoT]{
 		Slot:            slot,
@@ -55,7 +55,7 @@ func (b *SlotData[AttestationDataT, SlashingInfoT]) GetSlot() math.Slot {
 func (b *SlotData[
 	AttestationDataT,
 	SlashingInfoT,
-]) GetAttestationData() []*AttestationDataT {
+]) GetAttestationData() []AttestationDataT {
 	return b.AttestationData
 }
 
@@ -63,20 +63,20 @@ func (b *SlotData[
 func (b *SlotData[
 	AttestationDataT,
 	SlashingInfoT,
-]) GetSlashingInfo() []*SlashingInfoT {
+]) GetSlashingInfo() []SlashingInfoT {
 	return b.SlashingInfo
 }
 
 // SetAttestationData sets the attestation data of the SlotData.
 func (b *SlotData[AttestationDataT, SlashingInfoT]) SetAttestationData(
-	attestationData []*AttestationDataT,
+	attestationData []AttestationDataT,
 ) {
 	b.AttestationData = attestationData
 }
 
 // SetSlashingInfo sets the slashing info of the SlotData.
 func (b *SlotData[AttestationDataT, SlashingInfoT]) SetSlashingInfo(
-	slashingInfo []*SlashingInfoT,
+	slashingInfo []SlashingInfoT,
 ) {
 	b.SlashingInfo = slashingInfo
 }

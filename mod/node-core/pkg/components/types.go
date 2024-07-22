@@ -136,9 +136,9 @@ type (
 
 	// ConsensusEngine is a type alias for the consensus engine.
 	ConsensusEngine = cometbft.ConsensusEngine[
-		AttestationData,
+		*AttestationData,
 		*BeaconState,
-		SlashingInfo,
+		*SlashingInfo,
 		*SlotData,
 		*StorageBackend,
 		*ValidatorUpdate,
@@ -146,8 +146,8 @@ type (
 
 	// ConsensusMiddleware is a type alias for the consensus middleware.
 	ConsensusMiddleware = cometbft.Middleware[
-		AttestationData,
-		SlashingInfo,
+		*AttestationData,
+		*SlashingInfo,
 		*SlotData,
 	]
 
@@ -222,7 +222,10 @@ type (
 	]
 
 	// SlotData is a type alias for the incoming slot.
-	SlotData = consruntimetypes.SlotData[types.AttestationData, types.SlashingInfo]
+	SlotData = consruntimetypes.SlotData[
+		*types.AttestationData,
+		*types.SlashingInfo,
+	]
 
 	// IndexDB is a type alias for the range DB.
 	IndexDB = filedb.RangeDB

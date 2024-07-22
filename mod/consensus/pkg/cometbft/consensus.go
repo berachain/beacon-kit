@@ -33,9 +33,9 @@ import (
 // Right now, it is very coupled to the sdk base app and we will
 // eventually fully decouple this.
 type ConsensusEngine[
-	AttestationDataT any,
+	AttestationDataT AttestationData[AttestationDataT],
 	BeaconStateT BeaconState,
-	SlashingInfoT any,
+	SlashingInfoT SlashingInfo[SlashingInfoT],
 	SlotDataT SlotData[AttestationDataT, SlashingInfoT, SlotDataT],
 	StorageBackendT StorageBackend[BeaconStateT],
 	ValidatorUpdateT any,
@@ -46,9 +46,9 @@ type ConsensusEngine[
 
 // NewConsensusEngine returns a new consensus middleware.
 func NewConsensusEngine[
-	AttestationDataT any,
+	AttestationDataT AttestationData[AttestationDataT],
 	BeaconStateT BeaconState,
-	SlashingInfoT any,
+	SlashingInfoT SlashingInfo[SlashingInfoT],
 	SlotDataT SlotData[AttestationDataT, SlashingInfoT, SlotDataT],
 	StorageBackendT StorageBackend[BeaconStateT],
 	ValidatorUpdateT any,

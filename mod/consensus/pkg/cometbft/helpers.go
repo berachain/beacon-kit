@@ -21,11 +21,14 @@
 package cometbft
 
 import (
+	"sort"
+
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
+	v1 "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -49,85 +52,107 @@ func convertValidatorUpdate[ValidatorUpdateT any](
 	}).(ValidatorUpdateT), nil
 }
 
+// convertPrepareProposalToSlotData converts a prepare proposal request to
+// a slot data.
 func (c *ConsensusEngine[
-	AttestationDataT,
-	BeaconStateT,
-	SlashingInfoT,
-	SlotDataT,
-	StorageBackendT,
-	_,
+	_, _, _, SlotDataT, _, _,
 ]) convertPrepareProposalToSlotData(
-	_ sdk.Context,
+	ctx sdk.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (SlotDataT, error) {
 	var t SlotDataT
+
+	// Get the attestation data from the votes.
+	attestationData, err := c.attestationsFromVotes(
+		ctx,
+		req.LocalLastCommit.Votes,
+		uint64(req.Height),
+	)
+	if err != nil {
+		return t, err
+	}
+
+	// Get the slashing info from the misbehaviors.
+	slashingInfo, err := c.slashingInfoFromMisbehaviors(
+		ctx,
+		req.Misbehavior,
+	)
+	if err != nil {
+		return t, err
+	}
+
+	// Create the slot data.
 	t = t.New(
 		math.U64(req.Height),
-		nil,
-		nil,
+		attestationData,
+		slashingInfo,
 	)
 	return t, nil
 }
 
-// // attestationDataFromVotes returns a list of attestation data from the
-// // comet vote info. This is used to build the attestations for the block.
-// func (h *ValidatorMiddleware[
-// 	AvailabilityStoreT,
-// 	BeaconBlockT,
-// 	BeaconBlockBodyT,
-// 	BeaconStateT,
-// 	BlobsSidecarsT,
-// 	DepositStoreT,
-// ]) attestationDataFromVotes(
-// 	st BeaconStateT,
-// 	root primitives.Root,
-// 	votes []v1.ExtendedVoteInfo,
-// 	slot uint64,
-// ) ([]*types.AttestationData, error) {
-// 	var err error
-// 	var index math.U64
-// 	attestations := make([]*types.AttestationData, len(votes))
-// 	for i, vote := range votes {
-// 		index, err = st.ValidatorIndexByCometBFTAddress(vote.Validator.Address)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		attestations[i] = &types.AttestationData{
-// 			Slot:            slot,
-// 			Index:           index.Unwrap(),
-// 			BeaconBlockRoot: root,
-// 		}
-// 	}
-// 	// Attestations are sorted by index.
-// 	sort.Slice(attestations, func(i, j int) bool {
-// 		return attestations[i].Index < attestations[j].Index
-// 	})
-// 	return attestations, nil
-// }
+// attestationsFromVotes returns a list of attestation data from the votes.
+func (c *ConsensusEngine[
+	AttestationDataT, _, _, _, _, _,
+]) attestationsFromVotes(
+	ctx sdk.Context,
+	votes []v1.ExtendedVoteInfo,
+	slot uint64,
+) ([]AttestationDataT, error) {
+	var err error
+	var index math.U64
+	attestations := make([]AttestationDataT, len(votes))
+	st := c.sb.StateFromContext(ctx)
+	root, err := st.HashTreeRoot()
+	if err != nil {
+		return nil, err
+	}
+	for i, vote := range votes {
+		index, err = st.ValidatorIndexByCometBFTAddress(vote.Validator.Address)
+		if err != nil {
+			return nil, err
+		}
 
-// // slashingInfoFromMisbehaviors returns a list of slashing info from the
-// // comet misbehaviors.
-// func slashingInfoFromMisbehaviors(
-// 	st BeaconStateT,
-// 	misbehaviors []v1.Misbehavior,
-// ) ([]*types.SlashingInfo, error) {
-// 	var err error
-// 	var index math.U64
-// 	slashingInfo := make([]*types.SlashingInfo, len(misbehaviors))
-// 	for i, misbehavior := range misbehaviors {
-// 		index, err = st.ValidatorIndexByCometBFTAddress(
-// 			misbehavior.Validator.Address,
-// 		)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		slashingInfo[i] = &types.SlashingInfo{
-// 			//#nosec:G701 // safe.
-// 			Slot:  uint64(misbehavior.GetHeight()),
-// 			Index: index.Unwrap(),
-// 		}
-// 	}
-// 	return slashingInfo, nil
-// }
+		var t AttestationDataT
+		t = t.New(
+			slot,
+			index.Unwrap(),
+			root,
+		)
+		attestations[i] = t
+	}
 
-// ProcessProposalHandler
+	// Attestations are sorted by index.
+	sort.Slice(attestations, func(i, j int) bool {
+		return attestations[i].GetIndex() < attestations[j].GetIndex()
+	})
+	return attestations, nil
+}
+
+// slashingInfoFromMisbehaviors returns a list of slashing info from the
+// comet misbehaviors.
+func (c *ConsensusEngine[
+	_, _, SlashingInfoT, _, _, _,
+]) slashingInfoFromMisbehaviors(
+	ctx sdk.Context,
+	misbehaviors []v1.Misbehavior,
+) ([]SlashingInfoT, error) {
+	var err error
+	var index math.U64
+	st := c.sb.StateFromContext(ctx)
+	slashingInfo := make([]SlashingInfoT, len(misbehaviors))
+	for i, misbehavior := range misbehaviors {
+		index, err = st.ValidatorIndexByCometBFTAddress(
+			misbehavior.Validator.Address,
+		)
+		if err != nil {
+			return nil, err
+		}
+		var t SlashingInfoT
+		t = t.New(
+			uint64(misbehavior.GetHeight()),
+			index.Unwrap(),
+		)
+		slashingInfo[i] = t
+	}
+	return slashingInfo, nil
+}

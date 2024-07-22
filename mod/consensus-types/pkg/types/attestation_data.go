@@ -39,6 +39,19 @@ type AttestationData struct {
 	BeaconBlockRoot common.Root
 }
 
+// New creates a new attestation data instance.
+func (a *AttestationData) New(
+	slot, index uint64,
+	beaconBlockRoot common.Root,
+) *AttestationData {
+	a = &AttestationData{
+		Slot:            slot,
+		Index:           index,
+		BeaconBlockRoot: beaconBlockRoot,
+	}
+	return a
+}
+
 // GetSlot returns the slot of the attestation data.
 func (a *AttestationData) GetSlot() uint64 {
 	return a.Slot

@@ -35,6 +35,15 @@ type SlashingInfo struct {
 	Index uint64
 }
 
+// New creates a new slashing info instance.
+func (s *SlashingInfo) New(slot, index uint64) *SlashingInfo {
+	s = &SlashingInfo{
+		Slot:  slot,
+		Index: index,
+	}
+	return s
+}
+
 // GetSlot returns the slot of the slashing info.
 func (s *SlashingInfo) GetSlot() uint64 {
 	return s.Slot

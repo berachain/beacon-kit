@@ -37,9 +37,9 @@ func ProvideConsensusEngine(
 	in ConsensusEngineInput,
 ) (*ConsensusEngine, error) {
 	return cometbft.NewConsensusEngine[
-		AttestationData,
+		*AttestationData,
 		*BeaconState,
-		SlashingInfo,
+		*SlashingInfo,
 		*SlotData,
 		*StorageBackend,
 		*ValidatorUpdate,

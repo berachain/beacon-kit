@@ -122,12 +122,12 @@ func (am AppModule) InitGenesis(
 	bz json.RawMessage,
 ) ([]appmodule.ValidatorUpdate, error) {
 	return cometbft.NewConsensusEngine[
-		types.AttestationData,
+		*types.AttestationData,
 		*components.BeaconState,
-		types.SlashingInfo,
+		*types.SlashingInfo,
 		*consruntimetypes.SlotData[
-			types.AttestationData,
-			types.SlashingInfo,
+			*types.AttestationData,
+			*types.SlashingInfo,
 		],
 		components.StorageBackend,
 		appmodule.ValidatorUpdate,
@@ -142,12 +142,12 @@ func (am AppModule) EndBlock(
 	ctx context.Context,
 ) ([]appmodule.ValidatorUpdate, error) {
 	return cometbft.NewConsensusEngine[
-		types.AttestationData,
+		*types.AttestationData,
 		*components.BeaconState,
-		types.SlashingInfo,
+		*types.SlashingInfo,
 		*consruntimetypes.SlotData[
-			types.AttestationData,
-			types.SlashingInfo,
+			*types.AttestationData,
+			*types.SlashingInfo,
 		],
 		components.StorageBackend,
 		appmodule.ValidatorUpdate,
