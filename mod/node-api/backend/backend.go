@@ -24,6 +24,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-api/backend/storage"
 	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
@@ -61,6 +62,7 @@ type Backend[
 		Eth1DataT, ExecutionPayloadHeaderT, ForkT, NodeT, StateStoreT,
 		ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 	]
+	cs common.ChainSpec
 }
 
 // New creates and returns a new Backend instance.
@@ -104,6 +106,7 @@ func New[
 		Eth1DataT, ExecutionPayloadHeaderT, ForkT, NodeT, StateStoreT,
 		ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 	],
+	cs common.ChainSpec,
 ) *Backend[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BlobSidecarsT, BlockStoreT, DepositT, DepositStoreT,
@@ -117,5 +120,6 @@ func New[
 		ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 	]{
 		Backend: storageBackend,
+		cs:      cs,
 	}
 }

@@ -41,7 +41,8 @@ func heightFromStateID(stateID string) (int64, error) {
 	case StateIDFinalized, StateIDJustified, StateIDHead:
 		return Head, nil
 	case StateIDGenesis:
-		return Genesis, nil
+		// return Genesis, nil
+		return Head, nil
 	default:
 		slot, err := hex.String(stateID).ToUint64()
 		if err != nil {

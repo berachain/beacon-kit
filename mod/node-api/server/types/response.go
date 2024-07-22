@@ -20,10 +20,6 @@
 
 package types
 
-import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-)
-
 type ErrorResponse struct {
 	Code    int `json:"code"`
 	Message any `json:"message"`
@@ -33,46 +29,8 @@ type DataResponse struct {
 	Data any `json:"data"`
 }
 
-type GenesisData struct {
-	GenesisTime           string         `json:"genesis_time"`
-	GenesisValidatorsRoot common.Bytes32 `json:"genesis_validators_root"`
-	GenesisForkVersion    string         `json:"genesis_fork_version"`
-}
-
-type RootData struct {
-	Root common.Root `json:"root"`
-}
-
 type ValidatorResponse struct {
 	ExecutionOptimistic bool `json:"execution_optimistic"`
 	Finalized           bool `json:"finalized"`
 	Data                any  `json:"data"`
-}
-
-type ValidatorData[ValidatorT any] struct {
-	Index     uint64     `json:"index,string"`
-	Balance   uint64     `json:"balance,string"`
-	Status    string     `json:"status"`
-	Validator ValidatorT `json:"validator"`
-}
-
-type ValidatorBalanceData struct {
-	Index   uint64 `json:"index,string"`
-	Balance uint64 `json:"balance,string"`
-}
-
-//nolint:staticcheck // todo: figure this out.
-type CommitteeData struct {
-	Index      uint64   `json:"index,string"`
-	Slot       uint64   `json:"slot,string"`
-	Validators []uint64 `json:"validators,string"`
-}
-
-type BlockRewardsData struct {
-	ProposerIndex     uint64 `json:"proposer_index,string"`
-	Total             uint64 `json:"total,string"`
-	Attestations      uint64 `json:"attestations,string"`
-	SyncAggregate     uint64 `json:"sync_aggregate,string"`
-	ProposerSlashings uint64 `json:"proposer_slashings,string"`
-	AttesterSlashings uint64 `json:"attester_slashings,string"`
 }

@@ -24,7 +24,7 @@ import (
 	"context"
 	"net/http"
 
-	types "github.com/berachain/beacon-kit/mod/node-api/server/types"
+	types "github.com/berachain/beacon-kit/mod/node-api/server/types/beacon"
 	"github.com/berachain/beacon-kit/mod/node-api/server/utils"
 	echo "github.com/labstack/echo/v4"
 )
@@ -78,7 +78,8 @@ func (h Handler[_]) PostStateValidators(c echo.Context) error {
 	return c.JSON(http.StatusOK, types.ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed
 		Finalized:           false, // stubbed
-		Data:                validators})
+		Data:                validators,
+	})
 }
 
 func (h Handler[_]) GetStateValidatorBalances(c echo.Context) error {

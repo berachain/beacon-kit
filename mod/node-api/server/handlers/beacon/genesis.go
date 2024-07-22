@@ -24,7 +24,7 @@ import (
 	"context"
 	"net/http"
 
-	types "github.com/berachain/beacon-kit/mod/node-api/server/types"
+	types "github.com/berachain/beacon-kit/mod/node-api/server/types/beacon"
 	"github.com/berachain/beacon-kit/mod/node-api/server/utils"
 	echo "github.com/labstack/echo/v4"
 )

@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/backend/storage"
 	"github.com/berachain/beacon-kit/mod/node-api/server"
 	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/labstack/echo/v4/middleware"
 )
 
@@ -34,6 +35,7 @@ type NodeAPIBackendInput struct {
 	depinject.In
 
 	StorageBackend *StorageBackend
+	ChainSpec      common.ChainSpec
 }
 
 func ProvideNodeAPIBackend(in NodeAPIBackendInput) *NodeAPIBackend {
@@ -80,7 +82,10 @@ func ProvideNodeAPIBackend(in NodeAPIBackendInput) *NodeAPIBackend {
 		*Validator,
 		*Withdrawal,
 		WithdrawalCredentials,
-	](storageBackend)
+	](
+		storageBackend,
+		in.ChainSpec,
+	)
 }
 
 type NodeAPIServerInput struct {

@@ -25,7 +25,7 @@ import (
 	"strconv"
 
 	"github.com/berachain/beacon-kit/mod/node-api/backend/storage"
-	"github.com/berachain/beacon-kit/mod/node-api/server/types"
+	types "github.com/berachain/beacon-kit/mod/node-api/server/types/beacon"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -36,7 +36,7 @@ func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) GetGenesis(ctx context.Context) (common.Root, error) {
 	// needs genesis_time and gensis_fork_version
-	st, err := b.StateFromContext(ctx, storage.StateIDFinalized)
+	st, err := b.StateFromContext(ctx, storage.StateIDGenesis)
 	if err != nil {
 		return common.Root{}, err
 	}
@@ -58,11 +58,10 @@ func (b Backend[
 	if err != nil {
 		return common.Bytes32{}, err
 	}
-	block, err := st.StateRootAtIndex(slot.Unwrap())
-	if err != nil {
-		return common.Bytes32{}, err
-	}
-	return block.HashTreeRoot()
+	// As calculated by the beacon chain. Ideally, this logic
+	// should be abstracted by the beacon chain.
+	index := slot.Unwrap() % b.cs.SlotsPerHistoricalRoot()
+	return st.StateRootAtIndex(index)
 }
 
 // GetStateFork returns the fork of the state at the given stateID.
@@ -95,11 +94,7 @@ func (b Backend[
 	if err != nil {
 		return common.Bytes32{}, err
 	}
-	block, err := st.GetBlockRootAtIndex(slot.Unwrap())
-	if err != nil {
-		return common.Bytes32{}, err
-	}
-	return block.HashTreeRoot()
+	return st.GetBlockRootAtIndex(slot.Unwrap())
 }
 
 // TODO: Implement this.

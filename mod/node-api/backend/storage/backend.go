@@ -116,13 +116,13 @@ type backend[
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalCredentialsT WithdrawalCredentials,
 ] struct {
-	node NodeT
 	*storage.Backend[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 		BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BlockStoreT,
 		DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
 		StateStoreT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 	]
+	node NodeT
 }
 
 func (b *backend[

@@ -23,7 +23,7 @@ package beacon
 import (
 	"context"
 
-	types "github.com/berachain/beacon-kit/mod/node-api/server/types"
+	types "github.com/berachain/beacon-kit/mod/node-api/server/types/beacon"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
@@ -34,6 +34,10 @@ type Backend[ValidatorT any] interface {
 		ctx context.Context,
 		stateID string,
 	) (common.Bytes32, error)
+	// GetStateFork(
+	// 	ctx context.Context,
+	// 	stateID string,
+	// ) (*types.Fork, error)
 	GetStateValidators(
 		ctx context.Context,
 		stateID string,
