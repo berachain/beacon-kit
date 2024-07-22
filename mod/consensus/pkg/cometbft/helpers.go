@@ -66,6 +66,7 @@ func (c *ConsensusEngine[
 	attestationData, err := c.attestationsFromVotes(
 		ctx,
 		req.LocalLastCommit.Votes,
+		//#nosec:G701 // safe.
 		uint64(req.Height),
 	)
 	if err != nil {
@@ -149,6 +150,7 @@ func (c *ConsensusEngine[
 		}
 		var t SlashingInfoT
 		t = t.New(
+			//#nosec:G701 // safe.
 			uint64(misbehavior.GetHeight()),
 			index.Unwrap(),
 		)
