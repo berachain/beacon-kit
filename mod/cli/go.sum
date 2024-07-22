@@ -102,8 +102,8 @@ github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df h1
 github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df/go.mod h1:yRD7rmnyaaqgq/6+eIVqvSkFJXuLXpBddUu59HUOrtc=
 github.com/berachain/beacon-kit/mod/execution v0.0.0-20240705193247-d464364483df h1:H6BHipSq4spa06PGLp8osdJ8LTwz7POQa015RruWJfw=
 github.com/berachain/beacon-kit/mod/execution v0.0.0-20240705193247-d464364483df/go.mod h1:RwyZdP3Th3Qxgr/tdmEt0Zev92Ue30/CwEvvwksP76c=
-github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240705193247-d464364483df h1:74LcTGSWRxCeehY7O4g6XZ2r4PY604n9U2/981iLtFk=
-github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240705193247-d464364483df/go.mod h1:NItiDark82XGGPNYs3J0CdkXEtkGatE/QP3nu3jpeNs=
+github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240722101705-632d23f22727 h1:n0XYvSZNZ75nmVWc8oWMGyNuc1/GyReZuftHN1mR5Wk=
+github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240722101705-632d23f22727/go.mod h1:VYTntyGvk7kjxSQXqR6f2vXsg3pK61chuczquPIdGIA=
 github.com/berachain/beacon-kit/mod/log v0.0.0-20240705193247-d464364483df h1:SnzeY9SCmKyEx0iGC/C/8E39ozpl/g5yI7lFXpmbMBI=
 github.com/berachain/beacon-kit/mod/log v0.0.0-20240705193247-d464364483df/go.mod h1:mJ0ZlK+izcPWcveHAtM4+W0a+8jhu5Y4DMPL2Takacg=
 github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240710023144-cd73de9f7378 h1:aNUHZ8DXojoBjYSRuJ9ydBdvCa3EgaGo+LppIdbMmr4=
