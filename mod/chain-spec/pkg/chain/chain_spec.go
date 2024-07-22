@@ -104,7 +104,8 @@ type Spec[
 	TargetSecondsPerEth1Block() uint64
 
 	// Fork-related values.
-
+	// DenebPlusForkEpoch returns the epoch at which the Deneb+ fork takes
+	DenebPlusForkEpoch() EpochT
 	// ElectraForkEpoch returns the epoch at which the Electra fork takes
 	// effect.
 	ElectraForkEpoch() EpochT
@@ -358,6 +359,13 @@ func (c chainSpec[
 	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
 ]) TargetSecondsPerEth1Block() uint64 {
 	return c.Data.TargetSecondsPerEth1Block
+}
+
+// DenebPlusForEpoch returns the epoch of the Deneb+ fork.
+func (c chainSpec[
+	DomainTypeT, EpochT, ExecutionAddressT, SlotT, CometBFTConfigT,
+]) DenebPlusForkEpoch() EpochT {
+	return c.Data.DenebPlusForkEpoch
 }
 
 // ElectraForkEpoch returns the epoch of the Electra fork.

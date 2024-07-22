@@ -39,6 +39,10 @@ func (w *BeaconBlock) Empty(forkVersion uint32) *BeaconBlock {
 		return &BeaconBlock{
 			RawBeaconBlock: (*BeaconBlockDeneb)(nil),
 		}
+	case version.DenebPlus:
+		return &BeaconBlock{
+			RawBeaconBlock: (*BeaconBlockDenebPlus)(nil),
+		}
 	default:
 		panic("fork version not supported")
 	}
@@ -90,6 +94,8 @@ func (w *BeaconBlock) NewFromSSZ(
 	switch forkVersion {
 	case version.Deneb:
 		block.RawBeaconBlock = &BeaconBlockDeneb{}
+	case version.DenebPlus:
+		block.RawBeaconBlock = &BeaconBlockDenebPlus{}
 	default:
 		return block, ErrForkVersionNotSupported
 	}
