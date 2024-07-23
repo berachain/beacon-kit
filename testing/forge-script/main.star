@@ -1,22 +1,60 @@
-load("@yaml//:parse.bzl", "parse")
+# Main function to load config, deploy contracts, and interact with them
+CONFIG_DIR_PATH = "/config"
 
-# Load the YAML configuration
-def load_config(file_path):
-    config_content = read_file(file_path)
-    return parse(config_content)
+def run(plan,deployment = {}):
+    deployed_contracts = deploy_contracts(plan,deployment)
+    # for name, address in deployed_contracts.items():
+    #     print("Contract " + name + " deployed at: " + address)
+    # interact_with_contracts(deployed_contracts, deployment["interactions"])
 
 # Define the function to run the Forge script for deployment
-def deploy_contracts(config):
-    script_path = config["deployment"]["script_path"]
-    deploy_command = ["forge", "script", script_path, "--broadcast", "--gas-limit", str(config["deployment"]["params"]["gas"])]
+def deploy_contracts(plan,deployment):
 
-    result = run_command(deploy_command)
-    if result.return_code != 0:
-        fail("Deployment script failed: " + result.stderr)
+    script_path = deployment["script_path"]
+    plan.print("script_path: " + script_path)
+    # Pull the file from github using curl
+    # Fetch the content of the file from script_path
+    script_content = plan.upload_files(src = script_path, name = "script",description = "Uploading deployment script")
 
-    # Extract contract addresses from the output
-    deployed_contracts = extract_addresses(result.stdout)
-    return deployed_contracts
+    plan.print("script_content: " + script_content)
+    gas = str(deployment["params"]["gas"])
+    plan.print("gas: " + gas)
+
+
+    # add a service
+    service = plan.add_service(
+        name = "foundry",
+        config = ServiceConfig(
+        image = "ghcr.io/foundry-rs/foundry:latest",
+        cmd = [
+        "-c",
+        "sleep 99",
+        ],
+        files = {
+            CONFIG_DIR_PATH: script_content,
+        },
+        )
+        )
+
+    plan.print("service: " + str(service))  
+    # deploy_command = ["forge", "script", str(script_content), "--broadcast", "--gas-limit", gas]
+    # deploy_command = "tail -f /dev/null"
+    plan.print("Service name", service.name)
+    # plan.exec(
+    #     service_name = service.name,
+    #     recipe = ExecRecipe(
+    #         command = [deploy_command],
+    #     ),
+    # )
+
+    # plan.print("deploy_command: " + str(deploy_command))
+    # result = run_command(deploy_command)
+    # if result.return_code != 0:
+    #     fail("Deployment script failed: " + result.stderr)
+
+    # # Extract contract addresses from the output
+    # deployed_contracts = extract_addresses(result.stdout)
+    # return deployed_contracts
 
 # Define the contract interaction function
 def interact_with_contracts(deployed_contracts, interactions):
@@ -30,22 +68,10 @@ def interact_with_contracts(deployed_contracts, interactions):
             if result.return_code != 0:
                 fail("Interaction with " + contract_name + " failed: " + result.stderr)
 
-# Main function to load config, deploy contracts, and interact with them
-def main():
-    config = load_config("config.yaml")
-    deployed_contracts = deploy_contracts(config)
-    for name, address in deployed_contracts.items():
-        print("Contract " + name + " deployed at: " + address)
-    interact_with_contracts(deployed_contracts, config["interactions"])
-
-# Utility function to read file content
-def read_file(file_path):
-    with open(file_path, 'r') as file:
-        return file.read()
 
 # Utility function to run a command
 def run_command(command):
-    return execute({
+    return ExecRecipe({
         "args": command,
         "env_vars": {},
         "workdir": "",
@@ -61,6 +87,3 @@ def extract_addresses(output):
         "ContractB": "0xContractBAddress"
     }
     return deployed_contracts
-
-# Entry point
-main()
