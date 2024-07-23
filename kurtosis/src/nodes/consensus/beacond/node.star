@@ -1,7 +1,5 @@
 # Contains functionality for initializing and starting the nodes
 
-bash = import_module("../../../lib/bash.star")  # Import helper module
-
 def start(persistent_peers, is_seed, validator_index, config_settings, app_settings, kzg_impl):
     mv_genesis = "mv root/.tmp_genesis/genesis.json /root/.beacond/config/genesis.json"
     set_config = 'sed -i "s/^prometheus = false$/prometheus = {}/" {}/config/config.toml'.format("$BEACOND_ENABLE_PROMETHEUS", "$BEACOND_HOME")
