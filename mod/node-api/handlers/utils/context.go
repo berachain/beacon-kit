@@ -28,10 +28,10 @@ import (
 // TODO: add validation logic
 func BindAndValidate[RequestT any, ContextT context.Context](
 	c ContextT,
-) (*RequestT, error) {
+) (RequestT, error) {
 	var req RequestT
 	if err := c.Bind(&req); err != nil {
-		return nil, types.ErrInvalidRequest
+		return req, types.ErrInvalidRequest
 	}
-	return &req, nil
+	return req, nil
 }
