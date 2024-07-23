@@ -36,6 +36,11 @@ const (
 	Genesis
 )
 
+// SlotFromStateID returns a slot from the state ID.
+//
+// NOTE: Right now, `stateID` only supports querying by "head" (all of "head",
+// "finalized", "justified" are the same), "genesis", and <slot>. We do NOT
+// support querying by <stateRoot>.
 func SlotFromStateID(stateID string) (uint64, error) {
 	switch stateID {
 	case StateIDFinalized, StateIDJustified, StateIDHead:
@@ -55,6 +60,8 @@ func SlotFromStateID(stateID string) (uint64, error) {
 // BlockID shares the same semantics as StateID, with the addition of
 // being able to query state by block hash, but since query by hash is
 // unsupported for now, we can reuse the same function.
+//
+// NOTE: We do NOT support querying by <blockRoot>.
 func SlotFromBlockID(blockID string) (uint64, error) {
 	return SlotFromStateID(blockID)
 }
