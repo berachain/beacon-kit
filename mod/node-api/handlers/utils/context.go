@@ -28,13 +28,13 @@ import (
 // BindAndValidate binds the request to the context and validates it.
 func BindAndValidate[RequestT any, ContextT context.Context](
 	c ContextT,
-) (*RequestT, error) {
+) (RequestT, error) {
 	var req RequestT
 	if err := c.Bind(&req); err != nil {
-		return nil, types.ErrInvalidRequest
+		return req, types.ErrInvalidRequest
 	}
 	if err := c.Validate(&req); err != nil {
-		return nil, types.ErrInvalidRequest
+		return req, types.ErrInvalidRequest
 	}
-	return &req, nil
+	return req, nil
 }
