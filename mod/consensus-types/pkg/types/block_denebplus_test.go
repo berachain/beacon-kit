@@ -101,7 +101,7 @@ func generateBeaconBlockDenebPlus() *types.BeaconBlockDenebPlus {
 
 func TestBeaconBlockDenebPlus_Version(t *testing.T) {
 	block := generateBeaconBlockDenebPlus()
-	require.Equal(t, version.Deneb, block.Version())
+	require.Equal(t, version.DenebPlus, block.Version())
 }
 
 func TestBeaconBlockDenebPlus_IsNil(t *testing.T) {
