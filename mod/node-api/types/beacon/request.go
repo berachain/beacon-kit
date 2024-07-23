@@ -30,7 +30,7 @@ type StateValidatorsGetRequest struct {
 
 type StateValidatorsPostRequest struct {
 	types.StateIDRequest
-	IDs      []string `json:"IDs"      validate:"dive,validator_id"`
+	IDs      []string `json:"ids"      validate:"dive,validator_id"`
 	Statuses []string `json:"statuses" validate:"dive,validator_status"`
 }
 

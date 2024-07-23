@@ -18,23 +18,29 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package utils
+package handlers
 
-import (
-	"github.com/berachain/beacon-kit/mod/node-api/types"
-	"github.com/berachain/beacon-kit/mod/node-api/types/context"
-)
+import "github.com/berachain/beacon-kit/mod/node-api/types/context"
 
-// BindAndValidate binds the request to the context and validates it.
-func BindAndValidate[RequestT any, ContextT context.Context](
-	c ContextT,
-) (*RequestT, error) {
-	var req RequestT
-	if err := c.Bind(&req); err != nil {
-		return nil, types.ErrInvalidRequest
+// Route is a route for the node API.
+type Route[ContextT context.Context] struct {
+	Method  string
+	Path    string
+	Handler handlerFn[ContextT]
+}
+
+// RouteSet is a set of routes for the node API.
+type RouteSet[ContextT context.Context] struct {
+	BasePath string
+	Routes   []Route[ContextT]
+}
+
+// NewRouteSet creates a new route set.
+func NewRouteSet[ContextT context.Context](
+	basePath string, routes ...Route[ContextT],
+) RouteSet[ContextT] {
+	return RouteSet[ContextT]{
+		BasePath: basePath,
+		Routes:   routes,
 	}
-	if err := c.Validate(&req); err != nil {
-		return nil, types.ErrInvalidRequest
-	}
-	return &req, nil
 }

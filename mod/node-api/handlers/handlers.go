@@ -26,26 +26,6 @@ import (
 
 type handlerFn[ContextT context.Context] func(c ContextT) (any, error)
 
-type Route[ContextT context.Context] struct {
-	Method  string
-	Path    string
-	Handler handlerFn[ContextT]
-}
-
-type RouteSet[ContextT context.Context] struct {
-	BasePath string
-	Routes   []Route[ContextT]
-}
-
-func NewRouteSet[ContextT context.Context](
-	basePath string, routes ...Route[ContextT],
-) RouteSet[ContextT] {
-	return RouteSet[ContextT]{
-		BasePath: basePath,
-		Routes:   routes,
-	}
-}
-
 type Handlers[ContextT context.Context] interface {
 	RegisterRoutes()
 	RouteSet() RouteSet[ContextT]

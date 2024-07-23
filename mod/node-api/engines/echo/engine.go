@@ -44,6 +44,7 @@ func NewDefaultEngine() *Engine {
 	engine.Validator = &CustomValidator{
 		Validator: ConstructValidator(),
 	}
+	engine.HideBanner = true
 	return New(engine)
 }
 

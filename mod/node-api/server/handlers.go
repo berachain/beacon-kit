@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/types/context"
 )
 
+// DefaultHandlers returns the default handlers for the node API.
 func DefaultHandlers[
 	ContextT context.Context,
 	ForkT any,

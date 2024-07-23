@@ -28,7 +28,6 @@ import (
 	apicontext "github.com/berachain/beacon-kit/mod/node-api/types/context"
 )
 
-// TODO: reintroduce request validator
 type Server[
 	ContextT apicontext.Context,
 	EngineT Engine[ContextT, EngineT],
