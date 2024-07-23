@@ -42,6 +42,7 @@ var spec = chain.NewChainSpec(
 	chain.SpecData[
 		domainType, epoch, executionAddress, slot, cometBFTConfig,
 	]{
+		DenebPlusForkEpoch:               9,
 		ElectraForkEpoch:                 10,
 		SlotsPerEpoch:                    32,
 		MinEpochsForBlobsSidecarsRequest: 5,
@@ -56,7 +57,7 @@ func TestActiveForkVersionForEpoch(t *testing.T) {
 		epoch    epoch
 		expected uint32
 	}{
-		{name: "Before Electra Fork", epoch: 9, expected: version.Deneb},
+		{name: "Before Electra Fork", epoch: 9, expected: version.DenebPlus},
 		{name: "At Electra Fork", epoch: 10, expected: version.Electra},
 		{name: "After Electra Fork", epoch: 11, expected: version.Electra},
 	}
@@ -104,7 +105,11 @@ func TestActiveForkVersionForSlot(t *testing.T) {
 		expected uint32
 	}{
 		{name: "Before Electra Fork", slot: 0, expected: version.Deneb},
-		{name: "Just Before Electra Fork", slot: 319, expected: version.Deneb},
+		{
+			name:     "Just Before Electra Fork",
+			slot:     319,
+			expected: version.DenebPlus,
+		},
 		{name: "At Electra Fork", slot: 320, expected: version.Electra},
 		{name: "After Electra Fork", slot: 640, expected: version.Electra},
 	}

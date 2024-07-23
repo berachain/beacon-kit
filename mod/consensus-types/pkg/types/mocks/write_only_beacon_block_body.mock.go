@@ -26,6 +26,39 @@ func (_m *WriteOnlyBeaconBlockBody) EXPECT() *WriteOnlyBeaconBlockBody_Expecter 
 	return &WriteOnlyBeaconBlockBody_Expecter{mock: &_m.Mock}
 }
 
+// SetAttestations provides a mock function with given fields: _a0
+func (_m *WriteOnlyBeaconBlockBody) SetAttestations(_a0 []*types.AttestationData) {
+	_m.Called(_a0)
+}
+
+// WriteOnlyBeaconBlockBody_SetAttestations_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetAttestations'
+type WriteOnlyBeaconBlockBody_SetAttestations_Call struct {
+	*mock.Call
+}
+
+// SetAttestations is a helper method to define mock.On call
+//   - _a0 []*types.AttestationData
+func (_e *WriteOnlyBeaconBlockBody_Expecter) SetAttestations(_a0 interface{}) *WriteOnlyBeaconBlockBody_SetAttestations_Call {
+	return &WriteOnlyBeaconBlockBody_SetAttestations_Call{Call: _e.mock.On("SetAttestations", _a0)}
+}
+
+func (_c *WriteOnlyBeaconBlockBody_SetAttestations_Call) Run(run func(_a0 []*types.AttestationData)) *WriteOnlyBeaconBlockBody_SetAttestations_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].([]*types.AttestationData))
+	})
+	return _c
+}
+
+func (_c *WriteOnlyBeaconBlockBody_SetAttestations_Call) Return() *WriteOnlyBeaconBlockBody_SetAttestations_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *WriteOnlyBeaconBlockBody_SetAttestations_Call) RunAndReturn(run func([]*types.AttestationData)) *WriteOnlyBeaconBlockBody_SetAttestations_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SetBlobKzgCommitments provides a mock function with given fields: _a0
 func (_m *WriteOnlyBeaconBlockBody) SetBlobKzgCommitments(_a0 eip4844.KZGCommitments[common.Hash]) {
 	_m.Called(_a0)
@@ -233,6 +266,39 @@ func (_c *WriteOnlyBeaconBlockBody_SetRandaoReveal_Call) Return() *WriteOnlyBeac
 }
 
 func (_c *WriteOnlyBeaconBlockBody_SetRandaoReveal_Call) RunAndReturn(run func(bytes.B96)) *WriteOnlyBeaconBlockBody_SetRandaoReveal_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SetSlashingInfo provides a mock function with given fields: _a0
+func (_m *WriteOnlyBeaconBlockBody) SetSlashingInfo(_a0 []*types.SlashingInfo) {
+	_m.Called(_a0)
+}
+
+// WriteOnlyBeaconBlockBody_SetSlashingInfo_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetSlashingInfo'
+type WriteOnlyBeaconBlockBody_SetSlashingInfo_Call struct {
+	*mock.Call
+}
+
+// SetSlashingInfo is a helper method to define mock.On call
+//   - _a0 []*types.SlashingInfo
+func (_e *WriteOnlyBeaconBlockBody_Expecter) SetSlashingInfo(_a0 interface{}) *WriteOnlyBeaconBlockBody_SetSlashingInfo_Call {
+	return &WriteOnlyBeaconBlockBody_SetSlashingInfo_Call{Call: _e.mock.On("SetSlashingInfo", _a0)}
+}
+
+func (_c *WriteOnlyBeaconBlockBody_SetSlashingInfo_Call) Run(run func(_a0 []*types.SlashingInfo)) *WriteOnlyBeaconBlockBody_SetSlashingInfo_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].([]*types.SlashingInfo))
+	})
+	return _c
+}
+
+func (_c *WriteOnlyBeaconBlockBody_SetSlashingInfo_Call) Return() *WriteOnlyBeaconBlockBody_SetSlashingInfo_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *WriteOnlyBeaconBlockBody_SetSlashingInfo_Call) RunAndReturn(run func([]*types.SlashingInfo)) *WriteOnlyBeaconBlockBody_SetSlashingInfo_Call {
 	_c.Call.Return(run)
 	return _c
 }

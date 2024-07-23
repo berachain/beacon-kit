@@ -20,7 +20,7 @@ require (
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240710022615-726645827bad
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240710022615-726645827bad
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240705193247-d464364483df
+	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240722101705-632d23f22727
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240710023144-cd73de9f7378
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240710022448-e56f337d051f
@@ -37,6 +37,7 @@ require (
 require (
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a // indirect
+	github.com/ethereum/go-ethereum v1.14.6 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/phuslu/log v1.0.108-0.20240705160716-a8f8c12ae6c6 // indirect
 	github.com/rs/zerolog v1.33.0 // indirect

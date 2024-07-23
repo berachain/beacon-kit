@@ -44,6 +44,8 @@ type WriteOnlyBeaconBlockBody interface {
 	SetBlobKzgCommitments(eip4844.KZGCommitments[gethprimitives.ExecutionHash])
 	SetRandaoReveal(crypto.BLSSignature)
 	SetGraffiti(common.Bytes32)
+	SetAttestations([]*AttestationData)
+	SetSlashingInfo([]*SlashingInfo)
 }
 
 // ReadOnlyBeaconBlockBody is the interface for
