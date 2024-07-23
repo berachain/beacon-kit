@@ -36,13 +36,15 @@ import (
 
 // BeaconBlock represents a beacon block interface.
 type BeaconBlock[
+	AttestationDataT any,
 	BeaconBlockT any,
 	BeaconBlockBodyT BeaconBlockBody[
-		DepositT, Eth1DataT, ExecutionPayloadT,
+		AttestationDataT, DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
 	],
 	DepositT,
 	Eth1DataT,
-	ExecutionPayloadT any,
+	ExecutionPayloadT,
+	SlashingInfoT any,
 ] interface {
 	constraints.SSZMarshallable
 	// NewWithVersion creates a new beacon block with the given parameters.
@@ -66,7 +68,7 @@ type BeaconBlock[
 
 // BeaconBlockBody represents a beacon block body interface.
 type BeaconBlockBody[
-	DepositT, Eth1DataT, ExecutionPayloadT any,
+	AttestationDataT, DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT any,
 ] interface {
 	constraints.SSZMarshallable
 	constraints.Nillable
@@ -80,6 +82,10 @@ type BeaconBlockBody[
 	SetExecutionData(ExecutionPayloadT) error
 	// SetGraffiti sets the graffiti of the beacon block body.
 	SetGraffiti(common.Bytes32)
+	// SetAttestations sets the attestations of the beacon block body.
+	SetAttestations([]AttestationDataT)
+	// SetSlashingInfo sets the slashing info of the beacon block body.
+	SetSlashingInfo([]SlashingInfoT)
 	// SetBlobKzgCommitments sets the blob KZG commitments of the beacon block
 	// body.
 	SetBlobKzgCommitments(eip4844.KZGCommitments[gethprimitives.ExecutionHash])
@@ -109,16 +115,19 @@ type BeaconState[ExecutionPayloadHeaderT any] interface {
 
 // BlobFactory represents a blob factory interface.
 type BlobFactory[
+	AttestationDataT any,
 	BeaconBlockT BeaconBlock[
-		BeaconBlockT, BeaconBlockBodyT, DepositT, Eth1DataT, ExecutionPayloadT,
+		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, DepositT,
+		Eth1DataT, ExecutionPayloadT, SlashingInfoT,
 	],
 	BeaconBlockBodyT BeaconBlockBody[
-		DepositT, Eth1DataT, ExecutionPayloadT,
+		AttestationDataT, DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
 	],
 	BlobSidecarsT,
 	DepositT,
 	Eth1DataT,
-	ExecutionPayloadT any,
+	ExecutionPayloadT,
+	SlashingInfoT any,
 ] interface {
 	// BuildSidecars builds sidecars for a given block and blobs bundle.
 	BuildSidecars(
@@ -199,6 +208,16 @@ type PayloadBuilder[BeaconStateT, ExecutionPayloadT any] interface {
 		headEth1BlockHash gethprimitives.ExecutionHash,
 		finalEth1BlockHash gethprimitives.ExecutionHash,
 	) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
+}
+
+// SlotData represents the slot data interface.
+type SlotData[AttestationDataT, SlashingInfoT any] interface {
+	// GetSlot returns the slot of the incoming slot.
+	GetSlot() math.Slot
+	// GetAttestationData returns the attestation data of the incoming slot.
+	GetAttestationData() []AttestationDataT
+	// GetSlashingInfo returns the slashing info of the incoming slot.
+	GetSlashingInfo() []SlashingInfoT
 }
 
 // StateProcessor defines the interface for processing the state.

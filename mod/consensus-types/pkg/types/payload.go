@@ -52,7 +52,7 @@ type InnerExecutionPayload interface {
 func (e *ExecutionPayload) Empty(forkVersion uint32) *ExecutionPayload {
 	e = new(ExecutionPayload)
 	switch forkVersion {
-	case version.Deneb:
+	case version.Deneb, version.DenebPlus:
 		e.InnerExecutionPayload = &ExecutableDataDeneb{}
 	default:
 		panic("unknown fork version")
@@ -95,7 +95,7 @@ func (e *ExecutionPayload) ToHeader(
 	}
 
 	switch e.Version() {
-	case version.Deneb:
+	case version.Deneb, version.DenebPlus:
 		return &ExecutionPayloadHeader{
 			InnerExecutionPayloadHeader: &ExecutionPayloadHeaderDeneb{
 				ParentHash:       e.GetParentHash(),

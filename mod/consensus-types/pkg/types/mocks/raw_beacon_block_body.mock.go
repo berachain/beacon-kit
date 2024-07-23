@@ -627,6 +627,39 @@ func (_c *RawBeaconBlockBody_MarshalSSZTo_Call) RunAndReturn(run func([]byte) ([
 	return _c
 }
 
+// SetAttestations provides a mock function with given fields: _a0
+func (_m *RawBeaconBlockBody) SetAttestations(_a0 []*types.AttestationData) {
+	_m.Called(_a0)
+}
+
+// RawBeaconBlockBody_SetAttestations_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetAttestations'
+type RawBeaconBlockBody_SetAttestations_Call struct {
+	*mock.Call
+}
+
+// SetAttestations is a helper method to define mock.On call
+//   - _a0 []*types.AttestationData
+func (_e *RawBeaconBlockBody_Expecter) SetAttestations(_a0 interface{}) *RawBeaconBlockBody_SetAttestations_Call {
+	return &RawBeaconBlockBody_SetAttestations_Call{Call: _e.mock.On("SetAttestations", _a0)}
+}
+
+func (_c *RawBeaconBlockBody_SetAttestations_Call) Run(run func(_a0 []*types.AttestationData)) *RawBeaconBlockBody_SetAttestations_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].([]*types.AttestationData))
+	})
+	return _c
+}
+
+func (_c *RawBeaconBlockBody_SetAttestations_Call) Return() *RawBeaconBlockBody_SetAttestations_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *RawBeaconBlockBody_SetAttestations_Call) RunAndReturn(run func([]*types.AttestationData)) *RawBeaconBlockBody_SetAttestations_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SetBlobKzgCommitments provides a mock function with given fields: _a0
 func (_m *RawBeaconBlockBody) SetBlobKzgCommitments(_a0 eip4844.KZGCommitments[common.Hash]) {
 	_m.Called(_a0)
@@ -834,6 +867,39 @@ func (_c *RawBeaconBlockBody_SetRandaoReveal_Call) Return() *RawBeaconBlockBody_
 }
 
 func (_c *RawBeaconBlockBody_SetRandaoReveal_Call) RunAndReturn(run func(bytes.B96)) *RawBeaconBlockBody_SetRandaoReveal_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SetSlashingInfo provides a mock function with given fields: _a0
+func (_m *RawBeaconBlockBody) SetSlashingInfo(_a0 []*types.SlashingInfo) {
+	_m.Called(_a0)
+}
+
+// RawBeaconBlockBody_SetSlashingInfo_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetSlashingInfo'
+type RawBeaconBlockBody_SetSlashingInfo_Call struct {
+	*mock.Call
+}
+
+// SetSlashingInfo is a helper method to define mock.On call
+//   - _a0 []*types.SlashingInfo
+func (_e *RawBeaconBlockBody_Expecter) SetSlashingInfo(_a0 interface{}) *RawBeaconBlockBody_SetSlashingInfo_Call {
+	return &RawBeaconBlockBody_SetSlashingInfo_Call{Call: _e.mock.On("SetSlashingInfo", _a0)}
+}
+
+func (_c *RawBeaconBlockBody_SetSlashingInfo_Call) Run(run func(_a0 []*types.SlashingInfo)) *RawBeaconBlockBody_SetSlashingInfo_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].([]*types.SlashingInfo))
+	})
+	return _c
+}
+
+func (_c *RawBeaconBlockBody_SetSlashingInfo_Call) Return() *RawBeaconBlockBody_SetSlashingInfo_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *RawBeaconBlockBody_SetSlashingInfo_Call) RunAndReturn(run func([]*types.SlashingInfo)) *RawBeaconBlockBody_SetSlashingInfo_Call {
 	_c.Call.Return(run)
 	return _c
 }

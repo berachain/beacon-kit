@@ -38,10 +38,11 @@ import (
 
 // buildBlockAndSidecars builds a new beacon block.
 func (s *Service[
-	BeaconBlockT, _, _, BlobSidecarsT, _, _, _, _, _, _,
+	AttestationDataT, BeaconBlockT, _, _,
+	BlobSidecarsT, _, _, _, _, _, _, SlashingInfoT, SlotDataT,
 ]) buildBlockAndSidecars(
 	ctx context.Context,
-	requestedSlot math.Slot,
+	slotData SlotDataT,
 ) (BeaconBlockT, BlobSidecarsT, error) {
 	var (
 		blk       BeaconBlockT
@@ -61,20 +62,23 @@ func (s *Service[
 
 	// Prepare the state such that it is ready to build a block for
 	// the requested slot
-	if _, err := s.stateProcessor.ProcessSlots(st, requestedSlot); err != nil {
+	if _, err := s.stateProcessor.ProcessSlots(
+		st,
+		slotData.GetSlot(),
+	); err != nil {
 		return blk, sidecars, err
 	}
 
 	// Build the reveal for the current slot.
 	// TODO: We can optimize to pre-compute this in parallel?
-	reveal, err := s.buildRandaoReveal(st, requestedSlot)
+	reveal, err := s.buildRandaoReveal(st, slotData.GetSlot())
 	if err != nil {
 		return blk, sidecars, err
 	}
 
 	// Create a new empty block from the current state.
 	blk, err = s.getEmptyBeaconBlockForSlot(
-		st, requestedSlot,
+		st, slotData.GetSlot(),
 	)
 	if err != nil {
 		return blk, sidecars, err
@@ -90,7 +94,9 @@ func (s *Service[
 
 	// We have to assemble the block body prior to producing the sidecars
 	// since we need to generate the inclusion proofs.
-	if err = s.buildBlockBody(ctx, st, blk, reveal, envelope); err != nil {
+	if err = s.buildBlockBody(
+		ctx, st, blk, reveal, envelope, slotData,
+	); err != nil {
 		return blk, sidecars, err
 	}
 
@@ -119,7 +125,7 @@ func (s *Service[
 
 	s.logger.Info(
 		"Beacon block successfully built",
-		"slot", requestedSlot.Base10(),
+		"slot", slotData.GetSlot().Base10(),
 		"state_root", blk.GetStateRoot(),
 		"duration", time.Since(startTime).String(),
 	)
@@ -129,7 +135,7 @@ func (s *Service[
 
 // getEmptyBeaconBlockForSlot creates a new empty block.
 func (s *Service[
-	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _,
+	_, BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
 ]) getEmptyBeaconBlockForSlot(
 	st BeaconStateT, requestedSlot math.Slot,
 ) (BeaconBlockT, error) {
@@ -167,7 +173,7 @@ func (s *Service[
 
 // buildRandaoReveal builds a randao reveal for the given slot.
 func (s *Service[
-	_, _, BeaconStateT, _, _, _, _, _, _, ForkDataT,
+	_, _, _, BeaconStateT, _, _, _, _, _, _, ForkDataT, _, _,
 ]) buildRandaoReveal(
 	st BeaconStateT,
 	slot math.Slot,
@@ -199,8 +205,8 @@ func (s *Service[
 
 // retrieveExecutionPayload retrieves the execution payload for the block.
 func (s *Service[
-	BeaconBlockT, _, BeaconStateT, _, _, _, _,
-	ExecutionPayloadT, ExecutionPayloadHeaderT, _,
+	_, BeaconBlockT, _, BeaconStateT, _, _, _, _,
+	ExecutionPayloadT, ExecutionPayloadHeaderT, _, _, _,
 ]) retrieveExecutionPayload(
 	ctx context.Context, st BeaconStateT, blk BeaconBlockT,
 ) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
@@ -256,14 +262,15 @@ func (s *Service[
 
 // BuildBlockBody assembles the block body with necessary components.
 func (s *Service[
-	BeaconBlockT, _, BeaconStateT, _,
-	_, _, Eth1DataT, ExecutionPayloadT, _, _,
+	AttestationDataT, BeaconBlockT, _, BeaconStateT, _,
+	_, _, Eth1DataT, ExecutionPayloadT, _, _, SlashingInfoT, SlotDataT,
 ]) buildBlockBody(
 	_ context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
 	reveal crypto.BLSSignature,
 	envelope engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT],
+	slotData SlotDataT,
 ) error {
 	// Assemble a new block with the payload.
 	body := blk.GetBody()
@@ -311,13 +318,26 @@ func (s *Service[
 	// Set the graffiti on the block body.
 	body.SetGraffiti(bytes.ToBytes32([]byte(s.cfg.Graffiti)))
 
+	// Get the epoch to find the active fork version.
+	epoch := s.chainSpec.SlotToEpoch(blk.GetSlot())
+	activeForkVersion := s.chainSpec.ActiveForkVersionForEpoch(
+		epoch,
+	)
+	if activeForkVersion >= version.DenebPlus {
+		// Set the attestations on the block body.
+		body.SetAttestations(slotData.GetAttestationData())
+
+		// Set the slashing info on the block body.
+		body.SetSlashingInfo(slotData.GetSlashingInfo())
+	}
+
 	return body.SetExecutionData(envelope.GetExecutionPayload())
 }
 
 // computeAndSetStateRoot computes the state root of an outgoing block
 // and sets it in the block.
 func (s *Service[
-	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _,
+	_, BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
 ]) computeAndSetStateRoot(
 	ctx context.Context,
 	st BeaconStateT,
@@ -338,7 +358,7 @@ func (s *Service[
 
 // computeStateRoot computes the state root of an outgoing block.
 func (s *Service[
-	BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _,
+	_, BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
 ]) computeStateRoot(
 	ctx context.Context,
 	st BeaconStateT,

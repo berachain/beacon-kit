@@ -38,6 +38,7 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideChainService,
 		ProvideChainSpec,
 		ProvideConfig,
+		ProvideConsensusEngine,
 		ProvideDAService,
 		ProvideDBManager,
 		ProvideDepositPruner,
