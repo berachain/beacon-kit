@@ -22,114 +22,66 @@ package server
 
 import (
 	"context"
-	"log"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/node-api/backend"
-	"github.com/berachain/beacon-kit/mod/node-api/backend/storage"
-	"github.com/berachain/beacon-kit/mod/node-api/server/handlers"
-	"github.com/berachain/beacon-kit/mod/node-api/server/routes"
-	"github.com/berachain/beacon-kit/mod/node-api/server/utils"
-	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
-	echo "github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers"
+	apicontext "github.com/berachain/beacon-kit/mod/node-api/types/context"
 )
 
-var _ service.Basic = (*Server[nodetypes.Node, any])(nil)
-
-// Server is the server for the node API.
+// TODO: reintroduce request validator
 type Server[
-	NodeT nodetypes.Node,
-	ValidatorT any,
+	ContextT apicontext.Context,
+	EngineT Engine[ContextT, EngineT],
 ] struct {
-	*echo.Echo
-	config  Config
-	backend handlers.Backend[NodeT, ValidatorT]
+	engine EngineT
+	config Config
+	logger log.Logger[any]
 }
 
-// New creates a new node API server.
+// TODO: custom logger.
 func New[
-	AvailabilityStoreT storage.AvailabilityStore[
-		BeaconBlockBodyT, BlobSidecarsT,
-	],
-	BeaconBlockT any,
-	BeaconBlockBodyT types.RawBeaconBlockBody,
-	BeaconBlockHeaderT core.BeaconBlockHeader[BeaconBlockHeaderT],
-	BeaconStateT core.BeaconState[
-		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-		ForkT, StateStoreT, ValidatorT, WithdrawalT,
-	],
-	BeaconStateMarshallableT state.BeaconStateMarshallable[
-		BeaconStateMarshallableT, BeaconBlockHeaderT, Eth1DataT,
-		ExecutionPayloadHeaderT, ForkT, ValidatorT,
-	],
-	BlobSidecarsT any,
-	BlockStoreT storage.BlockStore[BeaconBlockT],
-	DepositT storage.Deposit,
-	DepositStoreT storage.DepositStore[DepositT],
-	Eth1DataT,
-	ExecutionPayloadHeaderT,
-	ForkT any,
-	NodeT nodetypes.Node,
-	StateStoreT state.KVStore[
-		StateStoreT, BeaconBlockHeaderT, Eth1DataT,
-		ExecutionPayloadHeaderT, ForkT, ValidatorT,
-	],
-	ValidatorT storage.Validator[WithdrawalCredentialsT],
-	WithdrawalT storage.Withdrawal[WithdrawalT],
-	WithdrawalCredentialsT storage.WithdrawalCredentials,
+	ContextT apicontext.Context,
+	EngineT Engine[ContextT, EngineT],
 ](
 	config Config,
-	backend *backend.Backend[
-		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-		BeaconStateT, BlobSidecarsT, BlockStoreT, DepositT, DepositStoreT,
-		Eth1DataT, ExecutionPayloadHeaderT, ForkT, NodeT, StateStoreT,
-		ValidatorT, WithdrawalT, WithdrawalCredentialsT,
-	],
-	corsConfig middleware.CORSConfig,
-	loggingConfig middleware.LoggerConfig,
-) *Server[NodeT, ValidatorT] {
-	e := echo.New()
-	e.HTTPErrorHandler = utils.HTTPErrorHandler
-	e.Validator = &utils.CustomValidator{
-		Validator: utils.ConstructValidator(),
+	engine EngineT,
+	logger log.Logger[any],
+	handlers ...handlers.Handlers[ContextT],
+) *Server[ContextT, EngineT] {
+	for _, handler := range handlers {
+		handler.RegisterRoutes()
+		engine.RegisterRoutes(handler.RouteSet())
 	}
-	utils.UseMiddlewares(
-		e,
-		middleware.CORSWithConfig(corsConfig),
-		middleware.LoggerWithConfig(loggingConfig))
-	routes.Assign(
-		e,
-		handlers.New(backend),
-	)
-	return &Server[NodeT, ValidatorT]{
-		Echo:    e,
-		config:  config,
-		backend: backend,
+	return &Server[ContextT, EngineT]{
+		engine: engine,
+		config: config,
+		logger: logger,
 	}
 }
 
-// Start starts the node API server.
-func (s *Server[NodeT, ValidatorT]) Start(_ context.Context) error {
+func (s *Server[_, _]) Start(ctx context.Context) error {
 	if !s.config.Enabled {
 		return nil
 	}
-	go func() {
-		if err := s.Echo.Start(s.config.Address); err != nil {
-			log.Printf("Failed to start server: %v", err)
-		}
-	}()
+	go s.start(ctx)
 	return nil
 }
 
-// Name returns the name of the service.
-func (s *Server[NodeT, ValidatorT]) Name() string {
-	return "node-api"
+func (s *Server[_, _]) start(ctx context.Context) {
+	errCh := make(chan error)
+	go func() {
+		errCh <- s.engine.Run(s.config.Address)
+	}()
+	for {
+		select {
+		case err := <-errCh:
+			s.logger.Error(err.Error())
+		case <-ctx.Done():
+			return
+		}
+	}
 }
 
-func (s *Server[NodeT, ValidatorT]) AttachNode(node NodeT) {
-	s.backend.AttachNode(node)
+func (s *Server[_, _]) Name() string {
+	return "node-api-server"
 }

@@ -18,36 +18,53 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package beacon
 
 import (
+	types "github.com/berachain/beacon-kit/mod/node-api/types/beacon"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// Fork as defined in the Ethereum 2.0 specification:
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#fork
-//
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path fork.go -objs Fork -include ../../../primitives/pkg/bytes,../../../primitives/pkg/math,../../../primitives/pkg/common -output fork.ssz.go
-//nolint:lll
-type Fork struct {
-	// PreviousVersion is the last version before the fork.
-	PreviousVersion common.Version `json:"previous_version"`
-	// CurrentVersion is the first version after the fork.
-	CurrentVersion common.Version `json:"current_version"`
-	// Epoch is the epoch at which the fork occurred.
-	Epoch math.Epoch `json:"epoch"`
+// Backend is the interface for backend of the beacon API.
+type Backend[ForkT, ValidatorT any] interface {
+	GenesisBackend
+	BlockBackend
+	ValidatorBackend[ValidatorT]
+	StateRootAtSlot(
+		slot uint64,
+	) (common.Root, error)
+	StateForkAtSlot(
+		slot uint64,
+	) (ForkT, error)
 }
 
-// New creates a new fork.
-func (f *Fork) New(
-	previousVersion common.Version,
-	currentVersion common.Version,
-	epoch math.Epoch,
-) *Fork {
-	return &Fork{
-		PreviousVersion: previousVersion,
-		CurrentVersion:  currentVersion,
-		Epoch:           epoch,
-	}
+type GenesisBackend interface {
+	GenesisValidatorsRoot(
+		slot uint64,
+	) (common.Root, error)
+}
+
+type BlockBackend interface {
+	BlockRootAtSlot(
+		slot uint64,
+	) (common.Root, error)
+	BlockRewardsAtSlot(
+		slot uint64,
+	) (*types.BlockRewardsData, error)
+}
+
+type ValidatorBackend[ValidatorT any] interface {
+	ValidatorByID(
+		slot uint64,
+		id string,
+	) (*types.ValidatorData[ValidatorT], error)
+	ValidatorsByIDs(
+		slot uint64,
+		ids []string,
+		statuses []string,
+	) ([]*types.ValidatorData[ValidatorT], error)
+	ValidatorBalancesByIDs(
+		slot uint64,
+		ids []string,
+	) ([]*types.ValidatorBalanceData, error)
 }

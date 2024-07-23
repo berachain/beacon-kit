@@ -38,6 +38,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-api/backend"
+	"github.com/berachain/beacon-kit/mod/node-api/engines/echo"
 	"github.com/berachain/beacon-kit/mod/node-api/server"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
@@ -241,6 +242,7 @@ type (
 		*BeaconBlockBody,
 		*BeaconBlockHeader,
 		*BeaconState,
+		*BeaconStateMarshallable,
 		*BlobSidecars,
 		*BlockStore,
 		*Deposit,
@@ -250,15 +252,22 @@ type (
 		*Fork,
 		nodetypes.Node,
 		*KVStore,
+		*StorageBackend,
 		*Validator,
 		*Withdrawal,
 		WithdrawalCredentials,
 	]
 
+	// NodeAPIContext is a type alias for the node API context.
+	NodeAPIContext = echo.Context
+
+	// NodeAPIEngine is a type alias for the node API engine.
+	NodeAPIEngine = echo.Engine
+
 	// NodeAPIServer is a type alias for the node API server.
 	NodeAPIServer = server.Server[
-		nodetypes.Node,
-		*Validator,
+		NodeAPIContext,
+		*NodeAPIEngine,
 	]
 
 	// PayloadAttributes is a type alias for the payload attributes.

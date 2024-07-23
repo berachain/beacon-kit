@@ -18,36 +18,29 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package utils
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"strconv"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// Fork as defined in the Ethereum 2.0 specification:
-// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#fork
-//
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path fork.go -objs Fork -include ../../../primitives/pkg/bytes,../../../primitives/pkg/math,../../../primitives/pkg/common -output fork.ssz.go
-//nolint:lll
-type Fork struct {
-	// PreviousVersion is the last version before the fork.
-	PreviousVersion common.Version `json:"previous_version"`
-	// CurrentVersion is the first version after the fork.
-	CurrentVersion common.Version `json:"current_version"`
-	// Epoch is the epoch at which the fork occurred.
-	Epoch math.Epoch `json:"epoch"`
-}
-
-// New creates a new fork.
-func (f *Fork) New(
-	previousVersion common.Version,
-	currentVersion common.Version,
-	epoch math.Epoch,
-) *Fork {
-	return &Fork{
-		PreviousVersion: previousVersion,
-		CurrentVersion:  currentVersion,
-		Epoch:           epoch,
+// ValidatorIndexByID parses a validator index from a string.
+// The string can be either a validator index or a validator pubkey.
+func ValidatorIndexByID[
+	BeaconStateT interface {
+		ValidatorIndexByPubkey(key crypto.BLSPubkey) (math.U64, error)
+	},
+](st BeaconStateT, keyOrIndex string) (math.U64, error) {
+	index, err := strconv.ParseUint(keyOrIndex, 10, 64)
+	if err == nil {
+		return math.U64(index), nil
 	}
+	var key crypto.BLSPubkey
+	if err = key.UnmarshalText([]byte(keyOrIndex)); err != nil {
+		return math.U64(0), err
+	}
+	return st.ValidatorIndexByPubkey(key)
 }

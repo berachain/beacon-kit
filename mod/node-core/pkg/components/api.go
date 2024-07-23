@@ -22,14 +22,20 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/node-api/backend"
-	"github.com/berachain/beacon-kit/mod/node-api/backend/storage"
+	"github.com/berachain/beacon-kit/mod/node-api/engines/echo"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 	"github.com/berachain/beacon-kit/mod/node-api/server"
 	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/labstack/echo/v4/middleware"
 )
+
+// TODO: we could make engine type configurable
+func ProvideNodeAPIEngine() *NodeAPIEngine {
+	return echo.NewDefaultEngine()
+}
 
 type NodeAPIBackendInput struct {
 	depinject.In
@@ -39,30 +45,6 @@ type NodeAPIBackendInput struct {
 }
 
 func ProvideNodeAPIBackend(in NodeAPIBackendInput) *NodeAPIBackend {
-	var node nodetypes.Node
-	storageBackend := storage.NewBackend[
-		*AvailabilityStore,
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*BeaconBlockHeader,
-		*BeaconState,
-		*BeaconStateMarshallable,
-		*BlobSidecars,
-		*BlockStore,
-		*Deposit,
-		*DepositStore,
-		*Eth1Data,
-		*ExecutionPayloadHeader,
-		*Fork,
-		nodetypes.Node,
-		*KVStore,
-		*Validator,
-		*Withdrawal,
-		WithdrawalCredentials,
-	](
-		node,
-		in.StorageBackend,
-	)
 	return backend.New[
 		*AvailabilityStore,
 		*BeaconBlock,
@@ -79,46 +61,49 @@ func ProvideNodeAPIBackend(in NodeAPIBackendInput) *NodeAPIBackend {
 		*Fork,
 		nodetypes.Node,
 		*KVStore,
+		*StorageBackend,
 		*Validator,
 		*Withdrawal,
 		WithdrawalCredentials,
 	](
-		storageBackend,
+		in.StorageBackend,
 		in.ChainSpec,
 	)
+}
+
+type NodeAPIHandlersInput struct {
+	depinject.In
+
+	Backend *NodeAPIBackend
+}
+
+func ProvideNodeAPIHandlers(
+	in NodeAPIHandlersInput,
+) []handlers.Handlers[NodeAPIContext] {
+	return server.DefaultHandlers[
+		NodeAPIContext,
+		*Fork,
+		*Validator,
+	](in.Backend)
 }
 
 type NodeAPIServerInput struct {
 	depinject.In
 
-	Config         *config.Config
-	NodeAPIBackend *NodeAPIBackend
+	Engine   *NodeAPIEngine
+	Config   *config.Config
+	Logger   log.Logger
+	Handlers []handlers.Handlers[NodeAPIContext]
 }
 
 func ProvideNodeAPIServer(in NodeAPIServerInput) *NodeAPIServer {
 	return server.New[
-		*AvailabilityStore,
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*BeaconBlockHeader,
-		*BeaconState,
-		*BeaconStateMarshallable,
-		*BlobSidecars,
-		*BlockStore,
-		*Deposit,
-		*DepositStore,
-		*Eth1Data,
-		*ExecutionPayloadHeader,
-		*Fork,
-		nodetypes.Node,
-		*KVStore,
-		*Validator,
-		*Withdrawal,
-		WithdrawalCredentials,
+		NodeAPIContext,
+		*NodeAPIEngine,
 	](
 		in.Config.NodeAPI,
-		in.NodeAPIBackend,
-		middleware.DefaultCORSConfig,
-		middleware.DefaultLoggerConfig,
+		in.Engine,
+		in.Logger.With("service", "node-api-server"),
+		in.Handlers...,
 	)
 }

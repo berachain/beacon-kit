@@ -85,7 +85,7 @@ func (nb *NodeBuilder[NodeT]) Build(
 		appBuilder      *runtime.AppBuilder
 		abciMiddleware  *components.ABCIMiddleware
 		serviceRegistry *service.Registry
-		apiServer       *components.NodeAPIServer
+		apiBackend      *components.NodeAPIBackend
 	)
 
 	// build all node components using depinject
@@ -107,7 +107,7 @@ func (nb *NodeBuilder[NodeT]) Build(
 		&chainSpec,
 		&abciMiddleware,
 		&serviceRegistry,
-		&apiServer,
+		&apiBackend,
 	); err != nil {
 		panic(err)
 	}
@@ -131,7 +131,7 @@ func (nb *NodeBuilder[NodeT]) Build(
 		),
 	)
 	// TODO: so hood
-	apiServer.AttachNode(nb.node)
+	apiBackend.AttachNode(nb.node)
 	nb.node.SetServiceRegistry(serviceRegistry)
 
 	// TODO: put this in some post node creation hook/listener.

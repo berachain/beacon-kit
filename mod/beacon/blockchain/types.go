@@ -215,7 +215,7 @@ type StorageBackend[
 	BlobSidecarsT any,
 ] interface {
 	// AvailabilityStore returns the availability store for the given context.
-	AvailabilityStore(context.Context) AvailabilityStoreT
+	AvailabilityStore() AvailabilityStoreT
 	// StateFromContext retrieves the beacon state from the given context.
 	StateFromContext(context.Context) BeaconStateT
 }

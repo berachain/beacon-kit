@@ -50,6 +50,8 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideJWTSecret,
 		ProvideLocalBuilder,
 		ProvideNodeAPIBackend,
+		ProvideNodeAPIEngine,
+		ProvideNodeAPIHandlers,
 		ProvideNodeAPIServer,
 		ProvideServiceRegistry,
 		ProvideSidecarFactory,

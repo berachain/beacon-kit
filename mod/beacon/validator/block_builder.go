@@ -259,7 +259,7 @@ func (s *Service[
 	BeaconBlockT, _, BeaconStateT, _,
 	_, _, Eth1DataT, ExecutionPayloadT, _, _,
 ]) buildBlockBody(
-	ctx context.Context,
+	_ context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
 	reveal crypto.BLSSignature,
@@ -289,7 +289,7 @@ func (s *Service[
 	}
 
 	// Dequeue deposits from the state.
-	deposits, err := s.bsb.DepositStore(ctx).GetDepositsByIndex(
+	deposits, err := s.bsb.DepositStore().GetDepositsByIndex(
 		depositIndex,
 		s.chainSpec.MaxDepositsPerBlock(),
 	)

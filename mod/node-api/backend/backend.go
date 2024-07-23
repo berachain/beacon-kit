@@ -22,55 +22,17 @@ package backend
 
 import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/node-api/backend/storage"
 	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
+// Backend is the db access layer for the beacon node-api.
+// It serves as a wrapper around the storage backend and provides an abstraction
+// over building the query context for a given state.
 type Backend[
-	AvailabilityStoreT storage.AvailabilityStore[
-		BeaconBlockBodyT, BlobSidecarsT,
-	],
-	BeaconBlockT any,
-	BeaconBlockBodyT types.RawBeaconBlockBody,
-	BeaconBlockHeaderT core.BeaconBlockHeader[BeaconBlockHeaderT],
-	BeaconStateT core.BeaconState[
-		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-		ForkT, StateStoreT, ValidatorT, WithdrawalT,
-	],
-	BlobSidecarsT any,
-	BlockStoreT storage.BlockStore[BeaconBlockT],
-	DepositT storage.Deposit,
-	DepositStoreT storage.DepositStore[DepositT],
-	Eth1DataT,
-	ExecutionPayloadHeaderT,
-	ForkT any,
-	NodeT nodetypes.Node,
-	StateStoreT state.KVStore[
-		StateStoreT, BeaconBlockHeaderT, Eth1DataT,
-		ExecutionPayloadHeaderT, ForkT, ValidatorT,
-	],
-	ValidatorT storage.Validator[WithdrawalCredentialsT],
-	WithdrawalT storage.Withdrawal[WithdrawalT],
-	WithdrawalCredentialsT storage.WithdrawalCredentials,
-] struct {
-	storage.Backend[
-		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-		BeaconStateT, BlobSidecarsT, BlockStoreT, DepositT, DepositStoreT,
-		Eth1DataT, ExecutionPayloadHeaderT, ForkT, NodeT, StateStoreT,
-		ValidatorT, WithdrawalT, WithdrawalCredentialsT,
-	]
-	cs common.ChainSpec
-}
-
-// New creates and returns a new Backend instance.
-// TODO: need to add state_id resolver; possible values are: "head" (canonical
-// head in node's view), "genesis", "finalized", "justified", <slot>, <hex
-// encoded stateRoot with 0x prefix>.
-func New[
-	AvailabilityStoreT storage.AvailabilityStore[
+	AvailabilityStoreT AvailabilityStore[
 		BeaconBlockBodyT, BlobSidecarsT,
 	],
 	BeaconBlockT any,
@@ -85,9 +47,9 @@ func New[
 		ExecutionPayloadHeaderT, ForkT, ValidatorT,
 	],
 	BlobSidecarsT any,
-	BlockStoreT storage.BlockStore[BeaconBlockT],
-	DepositT storage.Deposit,
-	DepositStoreT storage.DepositStore[DepositT],
+	BlockStoreT BlockStore[BeaconBlockT],
+	DepositT Deposit,
+	DepositStoreT DepositStore[DepositT],
 	Eth1DataT,
 	ExecutionPayloadHeaderT,
 	ForkT any,
@@ -96,30 +58,94 @@ func New[
 		StateStoreT, BeaconBlockHeaderT, Eth1DataT,
 		ExecutionPayloadHeaderT, ForkT, ValidatorT,
 	],
-	ValidatorT storage.Validator[WithdrawalCredentialsT],
-	WithdrawalT storage.Withdrawal[WithdrawalT],
-	WithdrawalCredentialsT storage.WithdrawalCredentials,
-](
-	storageBackend storage.Backend[
-		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-		BeaconStateT, BlobSidecarsT, BlockStoreT, DepositT, DepositStoreT,
-		Eth1DataT, ExecutionPayloadHeaderT, ForkT, NodeT, StateStoreT,
-		ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	StorageBackendT StorageBackend[
+		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
 	],
+	ValidatorT Validator[WithdrawalCredentialsT],
+	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalCredentialsT WithdrawalCredentials,
+] struct {
+	sb   StorageBackendT
+	cs   common.ChainSpec
+	node NodeT
+}
+
+// New creates and returns a new Backend instance.
+// TODO: need to add state_id resolver; possible values are: "head" (canonical
+// head in node's view), "genesis", "finalized", "justified", <slot>, <hex
+// encoded stateRoot with 0x prefix>.
+func New[
+	AvailabilityStoreT AvailabilityStore[
+		BeaconBlockBodyT, BlobSidecarsT,
+	],
+	BeaconBlockT any,
+	BeaconBlockBodyT types.RawBeaconBlockBody,
+	BeaconBlockHeaderT core.BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconStateT core.BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		ForkT, StateStoreT, ValidatorT, WithdrawalT,
+	],
+	BeaconStateMarshallableT state.BeaconStateMarshallable[
+		BeaconStateMarshallableT, BeaconBlockHeaderT, Eth1DataT,
+		ExecutionPayloadHeaderT, ForkT, ValidatorT,
+	],
+	BlobSidecarsT any,
+	BlockStoreT BlockStore[BeaconBlockT],
+	DepositT Deposit,
+	DepositStoreT DepositStore[DepositT],
+	Eth1DataT,
+	ExecutionPayloadHeaderT,
+	ForkT any,
+	NodeT nodetypes.Node,
+	StateStoreT state.KVStore[
+		StateStoreT, BeaconBlockHeaderT, Eth1DataT,
+		ExecutionPayloadHeaderT, ForkT, ValidatorT,
+	],
+	StorageBackendT StorageBackend[
+		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
+	],
+	ValidatorT Validator[WithdrawalCredentialsT],
+	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalCredentialsT WithdrawalCredentials,
+](
+	storageBackend StorageBackendT,
 	cs common.ChainSpec,
 ) *Backend[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	BeaconStateT, BlobSidecarsT, BlockStoreT, DepositT, DepositStoreT,
-	Eth1DataT, ExecutionPayloadHeaderT, ForkT, NodeT, StateStoreT,
-	ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BlockStoreT,
+	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+	NodeT, StateStoreT, StorageBackendT, ValidatorT, WithdrawalT,
+	WithdrawalCredentialsT,
 ] {
 	return &Backend[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-		BeaconStateT, BlobSidecarsT, BlockStoreT, DepositT, DepositStoreT,
-		Eth1DataT, ExecutionPayloadHeaderT, ForkT, NodeT, StateStoreT,
-		ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+		BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BlockStoreT,
+		DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+		NodeT, StateStoreT, StorageBackendT, ValidatorT, WithdrawalT,
+		WithdrawalCredentialsT,
 	]{
-		Backend: storageBackend,
-		cs:      cs,
+		sb: storageBackend,
+		cs: cs,
 	}
+}
+
+func (b *Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, NodeT, _, _, _, _, _,
+]) AttachNode(node NodeT) {
+	b.node = node
+}
+
+func (b *Backend[
+	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) StateFromSlot(
+	slot uint64,
+) (BeaconStateT, error) {
+	var state BeaconStateT
+	//#nosec:G701 // not an issue in practice.
+	queryCtx, err := b.node.CreateQueryContext(int64(slot), false)
+	if err != nil {
+		return state, err
+	}
+
+	return b.sb.StateFromContext(queryCtx), nil
 }
