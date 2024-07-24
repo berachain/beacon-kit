@@ -1,5 +1,5 @@
 deployment:
-  script_path: "NFT.s.sol"
+  script_path: "example/NFT.s.sol"
   params:
     gas: 60000
   # script_path: "https://github.com/Perelyn-sama/solidity-scripting/blob/master/script/NFT.s.sol"
