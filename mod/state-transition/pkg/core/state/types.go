@@ -37,7 +37,7 @@ type BeaconStateMarshallable[
 	ForkT,
 	ValidatorT any,
 ] interface {
-	constraints.SSZMarshallable
+	constraints.SSZMarshallableDynamic
 	// New returns a new instance of the BeaconStateMarshallable.
 	New(
 		forkVersion uint32,

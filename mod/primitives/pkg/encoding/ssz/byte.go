@@ -45,7 +45,7 @@ type (
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the byte slice in bytes.
-func (Byte) SizeSSZ() int {
+func (Byte) SizeSSZ() uint32 {
 	return constants.ByteSize
 }
 

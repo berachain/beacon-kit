@@ -70,6 +70,11 @@ func (f *Fork) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, f)
 }
 
+// MarshalSSZTo marshals the Fork object to SSZ format and writes it to the given writer.
+func (f *Fork) MarshalSSZTo(buf []byte) ([]byte, error) {
+	return buf, ssz.EncodeToBytes(buf, f)
+}
+
 // UnmarshalSSZ unmarshals the Fork object from SSZ format.
 func (f *Fork) UnmarshalSSZ(buf []byte) error {
 	return ssz.DecodeFromBytes(buf, f)

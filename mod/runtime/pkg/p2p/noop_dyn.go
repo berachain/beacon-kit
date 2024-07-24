@@ -28,14 +28,14 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 )
 
-// NoopGossipHandler is a gossip handler that simply returns the
+// NoopGossipHandlerDyn is a gossip handler that simply returns the
 // ssz marshalled data as a "reference" to the object it receives.
-type NoopGossipHandler[
+type NoopGossipHandlerDyn[
 	DataT constraints.SSZMarshallableDynamic, BytesT ~[]byte,
 ] struct{}
 
-// Publish creates a new NoopGossipHandler.
-func (n NoopGossipHandler[DataT, BytesT]) Publish(
+// Publish creates a new NoopGossipHandlerDyn.
+func (n NoopGossipHandlerDyn[DataT, BytesT]) Publish(
 	_ context.Context,
 	data DataT,
 ) (BytesT, error) {
@@ -43,7 +43,7 @@ func (n NoopGossipHandler[DataT, BytesT]) Publish(
 }
 
 // Request simply returns the reference it receives.
-func (n NoopGossipHandler[DataT, BytesT]) Request(
+func (n NoopGossipHandlerDyn[DataT, BytesT]) Request(
 	_ context.Context,
 	ref BytesT,
 ) (DataT, error) {

@@ -33,7 +33,7 @@ var _ schema.SSZObject[Bool] = (*Bool)(nil)
 type Bool bool
 
 // SizeSSZ returns the size of the bool in bytes.
-func (Bool) SizeSSZ() int {
+func (Bool) SizeSSZ() uint32 {
 	return constants.BoolSize
 }
 

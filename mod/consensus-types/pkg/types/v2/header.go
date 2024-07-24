@@ -76,7 +76,7 @@ func (b *BeaconBlockHeader) New(
 
 // SizeSSZ returns the size of the BeaconBlockHeader object in SSZ encoding.
 func (b *BeaconBlockHeader) SizeSSZ() uint32 {
-	return 4 + // Slot
+	return 8 + // Slot
 		8 + // ProposerIndex
 		32 + // ParentBlockRoot
 		32 + // StateRoot
@@ -90,6 +90,22 @@ func (b *BeaconBlockHeader) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineStaticBytes(codec, &b.ParentBlockRoot)
 	ssz.DefineStaticBytes(codec, &b.StateRoot)
 	ssz.DefineStaticBytes(codec, &b.BodyRoot)
+}
+
+// MarshalSSZToBytes marshals the BeaconBlockHeader object to SSZ format.
+func (b *BeaconBlockHeader) MarshalSSZTo(buf []byte) ([]byte, error) {
+	return buf, ssz.EncodeToBytes(buf, b)
+}
+
+// MarshalSSZ marshals the BeaconBlockBody object to SSZ format.
+func (b *BeaconBlockHeader) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, b.SizeSSZ())
+	return buf, ssz.EncodeToBytes(buf, b)
+}
+
+// UnmarshalSSZ unmarshals the BeaconBlockBody object from SSZ format.
+func (b *BeaconBlockHeader) UnmarshalSSZ(buf []byte) error {
+	return ssz.DecodeFromBytes(buf, b)
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the BeaconBlockHeader object.

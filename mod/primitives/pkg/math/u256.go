@@ -47,7 +47,7 @@ func NewU256FromUint64(v uint64) *U256 {
 }
 
 // SizeSSZ returns the size of the U256 in bytes.
-func (U256) SizeSSZ() int {
+func (U256) SizeSSZ() uint32 {
 	return constants.U256Size
 }
 

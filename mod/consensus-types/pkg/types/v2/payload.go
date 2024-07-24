@@ -21,15 +21,21 @@
 package types
 
 import (
+	"context"
+	"fmt"
+
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/errors"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	ourssz "github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/holiman/uint256"
 	"github.com/karalabe/ssz"
+	"golang.org/x/sync/errgroup"
 )
 
 //go:generate go run github.com/fjl/gencodec -type ExecutionPayload -out payload.json.go -field-override executionPayloadMarshaling
@@ -107,8 +113,61 @@ func (e *ExecutionPayload) ToHeader(
 	txsMerkleizer *merkle.Merkleizer[[32]byte, common.Root],
 	maxWithdrawalsPerPayload uint64,
 ) (*ExecutionPayloadHeader, error) {
-	// // Get the merkle roots of transactions and withdrawals in parallel.
-	return nil, nil
+	// Get the merkle roots of transactions and withdrawals in parallel.
+	var (
+		g, _            = errgroup.WithContext(context.Background())
+		txsRoot         common.Root
+		withdrawalsRoot common.Root
+	)
+
+	g.Go(func() error {
+		var txsRootErr error
+		txsRoot, txsRootErr = engineprimitives.Transactions(
+			e.GetTransactions(),
+		).HashTreeRootWith(txsMerkleizer)
+		return txsRootErr
+	})
+
+	g.Go(func() error {
+		var withdrawalsRootErr error
+		wds := ourssz.ListFromElements(
+			maxWithdrawalsPerPayload,
+			e.GetWithdrawals()...)
+		withdrawalsRoot, withdrawalsRootErr = wds.HashTreeRoot()
+		return withdrawalsRootErr
+	})
+
+	fmt.Println("REEE")
+
+	// Wait for the goroutines to finish.
+	if err := g.Wait(); err != nil {
+		return nil, err
+	}
+
+	switch e.Version() {
+	case version.Deneb, version.DenebPlus:
+		return &ExecutionPayloadHeader{
+			ParentHash:       e.GetParentHash(),
+			FeeRecipient:     e.GetFeeRecipient(),
+			StateRoot:        e.GetStateRoot(),
+			ReceiptsRoot:     e.GetReceiptsRoot(),
+			LogsBloom:        [256]byte(e.GetLogsBloom()),
+			Random:           e.GetPrevRandao(),
+			Number:           e.GetNumber(),
+			GasLimit:         e.GetGasLimit(),
+			GasUsed:          e.GetGasUsed(),
+			Timestamp:        e.GetTimestamp(),
+			ExtraData:        e.GetExtraData(),
+			BaseFeePerGas:    e.GetBaseFeePerGas(),
+			BlockHash:        e.GetBlockHash(),
+			TransactionsRoot: txsRoot,
+			WithdrawalsRoot:  withdrawalsRoot,
+			BlobGasUsed:      e.GetBlobGasUsed(),
+			ExcessBlobGas:    e.GetExcessBlobGas(),
+		}, nil
+	default:
+		return nil, errors.New("unknown fork version")
+	}
 }
 
 // JSON type overrides for ExecutionPayload.

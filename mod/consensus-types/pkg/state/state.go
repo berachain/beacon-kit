@@ -23,8 +23,7 @@ package state
 import (
 	"reflect"
 
-	deneb "github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types/v2"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -40,7 +39,7 @@ type BeaconStateMarshallable[
 	ValidatorT any,
 ] struct {
 	// TODO: decouple from deneb.BeaconState
-	*deneb.BeaconState
+	*types.BeaconState
 }
 
 // New creates a new BeaconState.
@@ -85,7 +84,7 @@ func (st *BeaconStateMarshallable[
 			ValidatorT,
 		]{
 			// TODO: Unhack reflection.
-			BeaconState: &deneb.BeaconState{
+			BeaconState: &types.BeaconState{
 				Slot:                  slot,
 				GenesisValidatorsRoot: genesisValidatorsRoot,
 				Fork: reflect.ValueOf(fork).
@@ -96,16 +95,15 @@ func (st *BeaconStateMarshallable[
 				StateRoots: stateRoots,
 				LatestExecutionPayloadHeader: reflect.
 					ValueOf(latestExecutionPayloadHeader).
-					Interface().(*types.ExecutionPayloadHeader).
-					InnerExecutionPayloadHeader.(*types.ExecutionPayloadHeaderDeneb),
+					Interface().(*types.ExecutionPayloadHeader),
 				Eth1Data: reflect.ValueOf(eth1Data).
 					Interface().(*types.Eth1Data),
-				Eth1DepositIndex: eth1DepositIndex,
+				Eth1DepositIndex: math.U64(eth1DepositIndex),
 				Validators: reflect.ValueOf(validators).
 					Interface().([]*types.Validator),
 				Balances:                     balances,
 				RandaoMixes:                  randaoMixes,
-				NextWithdrawalIndex:          nextWithdrawalIndex,
+				NextWithdrawalIndex:          math.U64(nextWithdrawalIndex),
 				NextWithdrawalValidatorIndex: nextWithdrawalValidatorIndex,
 				Slashings:                    slashings,
 				TotalSlashing:                totalSlashing,

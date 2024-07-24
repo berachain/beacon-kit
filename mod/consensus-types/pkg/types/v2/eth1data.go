@@ -74,6 +74,11 @@ func (e *Eth1Data) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, e)
 }
 
+// MarshalSSZTo marshals the Eth1Data object into a pre-allocated byte slice.
+func (e *Eth1Data) MarshalSSZTo(dst []byte) ([]byte, error) {
+	return dst, ssz.EncodeToBytes(dst, e)
+}
+
 // UnmarshalSSZ unmarshals the Eth1Data object from SSZ format.
 func (e *Eth1Data) UnmarshalSSZ(buf []byte) error {
 	return ssz.DecodeFromBytes(buf, e)

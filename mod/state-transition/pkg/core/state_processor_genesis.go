@@ -82,9 +82,10 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	if err = st.SetLatestBlockHeader(blkHeader.New(
-		0, 0, common.Root{}, common.Root{}, bodyRoot,
-	)); err != nil {
+	if err = st.SetLatestBlockHeader(
+		blkHeader.New(
+			0, 0, common.Root{}, common.Root{}, bodyRoot,
+		)); err != nil {
 		return nil, err
 	}
 

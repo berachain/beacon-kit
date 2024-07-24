@@ -43,7 +43,7 @@ type U8 uint8
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the uint8 in bytes.
-func (U8) SizeSSZ() int {
+func (U8) SizeSSZ() uint32 {
 	return constants.U8Size
 }
 

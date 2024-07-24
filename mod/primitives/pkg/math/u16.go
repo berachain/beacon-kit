@@ -44,7 +44,7 @@ type U16 uint16
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the uint16 in bytes.
-func (U16) SizeSSZ() int {
+func (U16) SizeSSZ() uint32 {
 	return constants.U16Size
 }
 

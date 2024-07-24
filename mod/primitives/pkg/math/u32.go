@@ -44,7 +44,7 @@ type U32 uint32
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the uint32 in bytes.
-func (U32) SizeSSZ() int {
+func (U32) SizeSSZ() uint32 {
 	return constants.U32Size
 }
 

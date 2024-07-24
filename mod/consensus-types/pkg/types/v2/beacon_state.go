@@ -59,7 +59,7 @@ type BeaconState struct {
 	NextWithdrawalValidatorIndex math.ValidatorIndex
 
 	// Slashing
-	Slashings     []math.U64 `ssz-max:"1099511627776"`
+	Slashings     []uint64 `ssz-max:"1099511627776"`
 	TotalSlashing math.Gwei
 }
 
@@ -109,4 +109,21 @@ func (obj *BeaconState) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineSliceOfUint64sContent(codec, &obj.Balances, 1099511627776)         // Field  (10) -                     Balances - ? bytes
 	ssz.DefineSliceOfStaticBytesContent(codec, &obj.RandaoMixes, 65536)          // Field  (11) -                  RandaoMixes - ? bytes
 	ssz.DefineSliceOfUint64sContent(codec, &obj.Slashings, 1099511627776)        // Field  (14) -                    Slashings - ? bytes
+}
+
+func (s *BeaconState) HashTreeRoot() ([32]byte, error) {
+	return ssz.HashConcurrent(s), nil
+}
+
+func (s *BeaconState) MarshalSSZTo(buf []byte) ([]byte, error) {
+	return buf, ssz.EncodeToBytes(buf, s)
+}
+
+func (s *BeaconState) UnmarshalSSZ(buf []byte) error {
+	return ssz.DecodeFromBytes(buf, s)
+}
+
+func (s *BeaconState) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, 0, s.SizeSSZ(false))
+	return buf, ssz.EncodeToBytes(buf, s)
 }

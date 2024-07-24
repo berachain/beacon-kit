@@ -27,7 +27,7 @@ import (
 
 	serverContext "github.com/berachain/beacon-kit/mod/cli/pkg/utils/context"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types/v2"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
@@ -196,27 +196,26 @@ func executableDataToExecutionPayloadHeader(
 		}
 
 		executionPayloadHeader = &types.ExecutionPayloadHeader{
-			InnerExecutionPayloadHeader: &types.ExecutionPayloadHeaderDeneb{
-				ParentHash:   data.ParentHash,
-				FeeRecipient: data.FeeRecipient,
-				StateRoot:    common.Bytes32(data.StateRoot),
-				ReceiptsRoot: common.Bytes32(data.ReceiptsRoot),
-				LogsBloom:    data.LogsBloom,
-				Random:       common.Bytes32(data.Random),
-				Number:       math.U64(data.Number),
-				GasLimit:     math.U64(data.GasLimit),
-				GasUsed:      math.U64(data.GasUsed),
-				Timestamp:    math.U64(data.Timestamp),
-				ExtraData:    data.ExtraData,
-				BaseFeePerGas: math.MustNewU256LFromBigInt(
-					data.BaseFeePerGas,
-				),
-				BlockHash:        data.BlockHash,
-				TransactionsRoot: txsRoot,
-				WithdrawalsRoot:  withdrawalsRoot,
-				BlobGasUsed:      math.U64(blobGasUsed),
-				ExcessBlobGas:    math.U64(excessBlobGas),
-			}}
+			ParentHash:   data.ParentHash,
+			FeeRecipient: data.FeeRecipient,
+			StateRoot:    common.Bytes32(data.StateRoot),
+			ReceiptsRoot: common.Bytes32(data.ReceiptsRoot),
+			LogsBloom:    [256]byte(data.LogsBloom),
+			Random:       common.Bytes32(data.Random),
+			Number:       math.U64(data.Number),
+			GasLimit:     math.U64(data.GasLimit),
+			GasUsed:      math.U64(data.GasUsed),
+			Timestamp:    math.U64(data.Timestamp),
+			ExtraData:    data.ExtraData,
+			BaseFeePerGas: math.MustNewU256LFromBigInt(
+				data.BaseFeePerGas,
+			),
+			BlockHash:        data.BlockHash,
+			TransactionsRoot: txsRoot,
+			WithdrawalsRoot:  withdrawalsRoot,
+			BlobGasUsed:      math.U64(blobGasUsed),
+			ExcessBlobGas:    math.U64(excessBlobGas),
+		}
 	default:
 		return nil, errors.Newf("unsupported fork version %d", forkVersion)
 	}

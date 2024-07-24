@@ -22,10 +22,45 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/karalabe/ssz"
 )
+
+// Deposits is a typealias for a list of Deposits.
+type Deposits []*Deposit
+
+// HashTreeRoot returns the hash tree root of the Withdrawals list.
+func (d Deposits) DefineSSZ(c *ssz.Codec) {
+	ssz.DefineSliceOfStaticObjectsOffset(c, (*[]*Deposit)(&d), constants.MaxDepositsPerBlock)
+}
+
+// SizeSSZ returns the size of the Deposits object in SSZ encoding.
+func (d *Deposits) SizeSSZ(isFixed bool) uint32 {
+	return ssz.SizeSliceOfStaticObjects(*(*[]*Deposit)(d))
+}
+
+// MarshalSSZ marshals the Deposits object to SSZ format.
+func (d *Deposits) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, d.SizeSSZ(false))
+	return buf, ssz.EncodeToBytes(buf, d)
+}
+
+// UnmarshalSSZ unmarshals the Deposits object from SSZ format.
+func (d *Deposits) UnmarshalSSZ(buf []byte) error {
+	return ssz.DecodeFromBytes(buf, d)
+}
+
+// MarshalSSZTo marshals the Deposits object to the provided buffer in SSZ format.
+func (d *Deposits) MarshalSSZTo(buf []byte) ([]byte, error) {
+	return buf, ssz.EncodeToBytes(buf, d)
+}
+
+// HashTreeRoot returns the hash tree root of the Deposits object.
+func (d Deposits) HashTreeRoot() ([32]byte, error) {
+	return ssz.HashSequential(d), nil
+}
 
 // Deposit into the consensus layer from the deposit contract in the execution
 // layer.

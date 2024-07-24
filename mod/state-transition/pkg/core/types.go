@@ -204,7 +204,7 @@ type Validator[
 	ValidatorT any,
 	WithdrawalCredentialsT ~[32]byte,
 ] interface {
-	constraints.SSZMarshallable
+	constraints.SSZMarshallableStatic
 	// New creates a new validator with the given parameters.
 	New(
 		pubkey crypto.BLSPubkey,

@@ -38,7 +38,7 @@ func ProvideKVStore(
 	in KVStoreInput,
 ) *KVStore {
 	payloadCodec := &encoding.
-		SSZInterfaceCodec[*ExecutionPayloadHeader]{}
+		SSZInterfaceCodecDyn[*ExecutionPayloadHeader]{}
 	return beacondb.New[
 		*BeaconBlockHeader,
 		*Eth1Data,

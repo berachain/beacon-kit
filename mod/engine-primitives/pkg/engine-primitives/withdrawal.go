@@ -25,6 +25,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/karalabe/ssz"
 )
 
 // Withdrawal represents a validator withdrawal from the consensus layer.
@@ -102,4 +103,28 @@ func (*Withdrawal) Type() schema.SSZType {
 // element of the Withdrawal.
 func (*Withdrawal) ItemLength() uint64 {
 	return constants.RootLength
+}
+
+// SizeSSZ returns the size of the Withdrawal in bytes when SSZ encoded.
+func (*Withdrawal) SizeSSZ() uint32 {
+	return 44 // 8 + 8 + 20 + 8 = 44, rounded up to 32-byte boundary
+}
+
+// MarshalSSZ marshals the Withdrawal into SSZ format.
+func (w *Withdrawal) DefineSSZ(c *ssz.Codec) {
+	ssz.DefineUint64(c, &w.Index)
+	ssz.DefineUint64(c, &w.Validator)
+	ssz.DefineStaticBytes(c, &w.Address)
+	ssz.DefineUint64(c, &w.Amount)
+}
+
+// HashTreeRoot
+func (w *Withdrawal) HashTreeRoot() ([32]byte, error) {
+	return ssz.HashSequential(w), nil
+}
+
+// MarshalSSZ marshals the Withdrawal object to SSZ format.
+func (w *Withdrawal) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, w.SizeSSZ())
+	return buf, ssz.EncodeToBytes(buf, w)
 }

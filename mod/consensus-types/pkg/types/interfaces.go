@@ -21,6 +21,7 @@
 package types
 
 import (
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types/v2"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
@@ -38,35 +39,35 @@ type RawBeaconBlockBody interface {
 
 // WriteOnlyBeaconBlockBody is the interface for a write-only beacon block body.
 type WriteOnlyBeaconBlockBody interface {
-	SetDeposits([]*Deposit)
-	SetEth1Data(*Eth1Data)
-	SetExecutionData(*ExecutionPayload) error
+	SetDeposits([]*types.Deposit)
+	SetEth1Data(*types.Eth1Data)
+	SetExecutionData(*types.ExecutionPayload) error
 	SetBlobKzgCommitments(eip4844.KZGCommitments[gethprimitives.ExecutionHash])
 	SetRandaoReveal(crypto.BLSSignature)
 	SetGraffiti(common.Bytes32)
-	SetAttestations([]*AttestationData)
-	SetSlashingInfo([]*SlashingInfo)
+	SetAttestations([]*types.AttestationData)
+	SetSlashingInfo([]*types.SlashingInfo)
 }
 
 // ReadOnlyBeaconBlockBody is the interface for
 // a read-only beacon block body.
 type ReadOnlyBeaconBlockBody interface {
-	constraints.SSZMarshallable
+	constraints.SSZMarshallableDynamic
 	IsNil() bool
 
 	// Execution returns the execution data of the block.
-	GetDeposits() []*Deposit
-	GetEth1Data() *Eth1Data
+	GetDeposits() []*types.Deposit
+	GetEth1Data() *types.Eth1Data
 	GetGraffiti() common.Bytes32
 	GetRandaoReveal() crypto.BLSSignature
-	GetExecutionPayload() *ExecutionPayload
+	GetExecutionPayload() *types.ExecutionPayload
 	GetBlobKzgCommitments() eip4844.KZGCommitments[gethprimitives.ExecutionHash]
 	GetTopLevelRoots() ([][32]byte, error)
 }
 
 // RawBeaconBlock is the interface for a beacon block.
 type RawBeaconBlock[BeaconBlockBodyT RawBeaconBlockBody] interface {
-	constraints.SSZMarshallable
+	constraints.SSZMarshallableDynamic
 	SetStateRoot(common.Root)
 	GetStateRoot() common.Root
 	IsNil() bool
@@ -75,12 +76,12 @@ type RawBeaconBlock[BeaconBlockBodyT RawBeaconBlockBody] interface {
 	GetProposerIndex() math.ValidatorIndex
 	GetParentBlockRoot() common.Root
 	GetBody() BeaconBlockBodyT
-	GetHeader() *BeaconBlockHeader
+	GetHeader() *types.BeaconBlockHeader
 }
 
 // executionPayloadBody is the interface for the execution data of a block.
 type executionPayloadBody interface {
-	constraints.SSZMarshallable
+	constraints.SSZMarshallableDynamic
 	constraints.JSONMarshallable
 	IsNil() bool
 	Version() uint32

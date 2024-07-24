@@ -22,6 +22,7 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/karalabe/ssz"
 	"github.com/sourcegraph/conc/iter"
 )
 
@@ -85,4 +86,36 @@ func (bs *BlobSidecars) VerifyInclusionProofs(
 // Len returns the number of sidecars in the sidecar.
 func (bs *BlobSidecars) Len() int {
 	return len(bs.Sidecars)
+}
+
+// DefineSSZ defines the SSZ encoding for the BlobSidecars object.
+func (bs *BlobSidecars) DefineSSZ(codec *ssz.Codec) {
+	ssz.DefineSliceOfDynamicObjectsOffset(codec, &bs.Sidecars, 6)
+	ssz.DefineSliceOfDynamicObjectsContent(codec, &bs.Sidecars, 6)
+}
+
+// SizeSSZ returns the size of the BlobSidecars object in SSZ encoding.
+func (bs *BlobSidecars) SizeSSZ(isFixed bool) uint32 {
+	return 4 + ssz.SizeSliceOfDynamicObjects(bs.Sidecars)
+}
+
+// MarshalSSZ marshals the BlobSidecars object to SSZ format.
+func (bs *BlobSidecars) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, bs.SizeSSZ(false))
+	return buf, ssz.EncodeToBytes(buf, bs)
+}
+
+// UnmarshalSSZ unmarshals the BlobSidecars object from SSZ format.
+func (bs *BlobSidecars) UnmarshalSSZ(buf []byte) error {
+	return ssz.DecodeFromBytes(buf, bs)
+}
+
+// MarshalSSZTo marshals the BlobSidecars object to the provided buffer in SSZ format.
+func (bs *BlobSidecars) MarshalSSZTo(buf []byte) ([]byte, error) {
+	return buf, ssz.EncodeToBytes(buf, bs)
+}
+
+// HashTreeRoot returns the hash tree root of the BlobSidecars object.
+func (bs *BlobSidecars) HashTreeRoot() ([32]byte, error) {
+	return ssz.HashSequential(bs), nil
 }

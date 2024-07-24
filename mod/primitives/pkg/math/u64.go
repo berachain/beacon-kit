@@ -95,7 +95,7 @@ func (u *U64) UnmarshalSSZ(buf []byte) error {
 }
 
 // SizeSSZ returns the size of the U64 in bytes.
-func (u U64) SizeSSZ() int {
+func (u U64) SizeSSZ() uint32 {
 	return constants.U64Size
 }
 

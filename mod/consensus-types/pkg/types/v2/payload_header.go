@@ -230,3 +230,24 @@ func (obj *ExecutionPayloadHeader) DefineSSZ(codec *ssz.Codec) {
 	// Define the dynamic data (fields)
 	ssz.DefineDynamicBytesContent(codec, &obj.ExtraData, 32) // Field  (10) -        ExtraData - ? bytes
 }
+
+// MarshalSSZTo marshals the object into a preallocated buffer.
+func (obj *ExecutionPayloadHeader) MarshalSSZTo(buf []byte) ([]byte, error) {
+	return buf, ssz.EncodeToBytes(buf, obj)
+}
+
+// MarshalSSZ marshals the object into a new buffer.
+func (obj *ExecutionPayloadHeader) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, obj.SizeSSZ(false))
+	return obj.MarshalSSZTo(buf)
+}
+
+// UnmarshalSSZ unmarshals the object from the provided buffer.
+func (obj *ExecutionPayloadHeader) UnmarshalSSZ(buf []byte) error {
+	return ssz.DecodeFromBytes(buf, obj)
+}
+
+// HashTreeRoot returns the hash tree root of the object.
+func (obj *ExecutionPayloadHeader) HashTreeRoot() ([32]byte, error) {
+	return ssz.HashConcurrent(obj), nil
+}

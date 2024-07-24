@@ -35,14 +35,14 @@ import (
 // KVStore is a wrapper around an sdk.Context
 // that provides access to all beacon related data.
 type KVStore[
-	BeaconBlockHeaderT constraints.SSZMarshallable,
-	Eth1DataT constraints.SSZMarshallable,
+	BeaconBlockHeaderT constraints.SSZMarshallableStatic,
+	Eth1DataT constraints.SSZMarshallableStatic,
 	ExecutionPayloadHeaderT interface {
-		constraints.SSZMarshallable
+		constraints.SSZMarshallableDynamic
 		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
 		Version() uint32
 	},
-	ForkT constraints.SSZMarshallable,
+	ForkT constraints.SSZMarshallableStatic,
 	ValidatorT Validator,
 ] struct {
 	ctx   context.Context
@@ -72,7 +72,7 @@ type KVStore[
 	// latestExecutionPayloadCodec is the codec for the latest execution
 	// payload, it allows us to update the codec with the latest version.
 	latestExecutionPayloadCodec *encoding.
-					SSZInterfaceCodec[ExecutionPayloadHeaderT]
+					SSZInterfaceCodecDyn[ExecutionPayloadHeaderT]
 	// latestExecutionPayloadHeader stores the latest execution payload header.
 	latestExecutionPayloadHeader sdkcollections.Item[ExecutionPayloadHeaderT]
 	// Registry
@@ -103,18 +103,18 @@ type KVStore[
 //
 //nolint:funlen // its not overly complex.
 func New[
-	BeaconBlockHeaderT constraints.SSZMarshallable,
-	Eth1DataT constraints.SSZMarshallable,
+	BeaconBlockHeaderT constraints.SSZMarshallableStatic,
+	Eth1DataT constraints.SSZMarshallableStatic,
 	ExecutionPayloadHeaderT interface {
-		constraints.SSZMarshallable
+		constraints.SSZMarshallableDynamic
 		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
 		Version() uint32
 	},
-	ForkT constraints.SSZMarshallable,
+	ForkT constraints.SSZMarshallableStatic,
 	ValidatorT Validator,
 ](
 	kss store.KVStoreService,
-	payloadCodec *encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT],
+	payloadCodec *encoding.SSZInterfaceCodecDyn[ExecutionPayloadHeaderT],
 ) *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
 ] {
@@ -140,7 +140,7 @@ func New[
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.ForkPrefix}),
 			keys.ForkPrefixHumanReadable,
-			encoding.SSZValueCodec[ForkT]{},
+			encoding.SSZValueCodecStatic[ForkT]{},
 		),
 		blockRoots: sdkcollections.NewMap(
 			schemaBuilder,
@@ -160,7 +160,7 @@ func New[
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.Eth1DataPrefix}),
 			keys.Eth1DataPrefixHumanReadable,
-			encoding.SSZValueCodec[Eth1DataT]{},
+			encoding.SSZValueCodecStatic[Eth1DataT]{},
 		),
 		eth1DepositIndex: sdkcollections.NewItem(
 			schemaBuilder,
@@ -195,7 +195,7 @@ func New[
 			sdkcollections.NewPrefix([]byte{keys.ValidatorByIndexPrefix}),
 			keys.ValidatorByIndexPrefixHumanReadable,
 			sdkcollections.Uint64Key,
-			encoding.SSZValueCodec[ValidatorT]{},
+			encoding.SSZValueCodecStatic[ValidatorT]{},
 			index.NewValidatorsIndex[ValidatorT](schemaBuilder),
 		),
 		balances: sdkcollections.NewMap(
@@ -245,7 +245,7 @@ func New[
 				[]byte{keys.LatestBeaconBlockHeaderPrefix},
 			),
 			keys.LatestBeaconBlockHeaderPrefixHumanReadable,
-			encoding.SSZValueCodec[BeaconBlockHeaderT]{},
+			encoding.SSZValueCodecStatic[BeaconBlockHeaderT]{},
 		),
 	}
 }

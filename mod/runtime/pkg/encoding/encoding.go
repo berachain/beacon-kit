@@ -30,7 +30,7 @@ import (
 // request.
 func ExtractBlobsAndBlockFromRequest[
 	BeaconBlockT BeaconBlock[BeaconBlockT],
-	BlobSidecarsT constraints.SSZMarshallable,
+	BlobSidecarsT constraints.SSZMarshallableDynamic,
 ](
 	req ABCIRequest,
 	beaconBlkIndex uint,

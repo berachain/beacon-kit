@@ -20,8 +20,22 @@
 
 package types
 
-import "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+import (
+	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types/v2"
+	"github.com/karalabe/ssz"
+)
 
 type ValidatorsMarshaling struct {
-	Validators []*types.Validator `json:"validators" ssz-max:"1099511627776"`
+	Validators []*types.Validator `json:"validators"`
+}
+
+// DefineSSZ defines the SSZ encoding for the ValidatorsMarshaling object.
+func (v *ValidatorsMarshaling) DefineSSZ(codec *ssz.Codec) {
+	ssz.DefineSliceOfStaticObjectsOffset(codec, &v.Validators, 1099511627776)
+	ssz.DefineSliceOfStaticObjectsContent(codec, &v.Validators, 1099511627776)
+}
+
+// SizeSSZ returns the size of the ValidatorsMarshaling object in SSZ encoding.
+func (v *ValidatorsMarshaling) SizeSSZ(isFixed bool) uint32 {
+	return 4 + ssz.SizeSliceOfStaticObjects(v.Validators)
 }

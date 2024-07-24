@@ -23,7 +23,7 @@ package types_test
 import (
 	"testing"
 
-	ctypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	ctypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types/v2"
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	byteslib "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
@@ -84,10 +84,8 @@ func TestValidateBlockRoots(t *testing.T) {
 		Index: 0,
 		Blob:  eip4844.Blob{},
 		BeaconBlockHeader: &ctypes.BeaconBlockHeader{
-			BeaconBlockHeaderBase: ctypes.BeaconBlockHeaderBase{
-				StateRoot: [32]byte{1},
-			},
-			BodyRoot: [32]byte{2},
+			StateRoot: [32]byte{1},
+			BodyRoot:  [32]byte{2},
 		},
 		InclusionProof: [][32]byte{
 			byteslib.ToBytes32([]byte("1")),
@@ -117,10 +115,8 @@ func TestValidateBlockRoots(t *testing.T) {
 		Index: 0,
 		Blob:  eip4844.Blob{},
 		BeaconBlockHeader: &ctypes.BeaconBlockHeader{
-			BeaconBlockHeaderBase: ctypes.BeaconBlockHeaderBase{
-				StateRoot: [32]byte{1},
-			},
-			BodyRoot: [32]byte{3},
+			StateRoot: [32]byte{1},
+			BodyRoot:  [32]byte{3},
 		},
 		InclusionProof: [][32]byte{
 			byteslib.ToBytes32([]byte("1")),

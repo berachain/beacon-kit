@@ -50,8 +50,8 @@ func ContainerFromElements(elements ...schema.MinimalSSZObject) *Container {
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the container in bytes.
-func (c *Container) SizeSSZ() int {
-	size := 0
+func (c *Container) SizeSSZ() uint32 {
+	size := uint32(0)
 	for _, element := range c.elements {
 		size += element.SizeSSZ()
 	}

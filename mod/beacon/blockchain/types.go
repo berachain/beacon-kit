@@ -48,7 +48,7 @@ type BeaconBlock[
 	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
 	ExecutionPayloadT any,
 ] interface {
-	constraints.SSZMarshallable
+	constraints.SSZMarshallableDynamic
 	constraints.Nillable
 	// GetSlot returns the slot of the beacon block.
 	GetSlot() math.Slot
@@ -62,7 +62,7 @@ type BeaconBlock[
 
 // BeaconBlockBody represents the interface for the beacon block body.
 type BeaconBlockBody[ExecutionPayloadT any] interface {
-	constraints.SSZMarshallable
+	constraints.SSZMarshallableDynamic
 	constraints.Nillable
 	// GetExecutionPayload returns the execution payload of the beacon block
 	// body.
@@ -71,14 +71,14 @@ type BeaconBlockBody[ExecutionPayloadT any] interface {
 
 // BeaconBlockHeader represents the interface for the beacon block header.
 type BeaconBlockHeader interface {
-	constraints.SSZMarshallable
+	constraints.SSZMarshallableStatic
 	// SetStateRoot sets the state root of the beacon block header.
 	SetStateRoot(common.Root)
 }
 
 // BlobSidecars is the interface for blobs sidecars.
 type BlobSidecars interface {
-	constraints.SSZMarshallable
+	constraints.SSZMarshallableDynamic
 	constraints.Nillable
 	// Len returns the length of the blobs sidecars.
 	Len() int
