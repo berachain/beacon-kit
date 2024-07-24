@@ -26,7 +26,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/app"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
 
 // Compile-time assertion that node implements the NodeI interface.
@@ -51,7 +50,7 @@ func (n *node) Start(ctx context.Context) error {
 }
 
 // SetApplication sets the application.
-func (n *node) RegisterApp(a servertypes.Application) {
+func (n *node) RegisterApp(a types.Application) {
 	//nolint:errcheck // BeaconApp is our servertypes.Application
 	n.BeaconApp = a.(*app.BeaconApp)
 }

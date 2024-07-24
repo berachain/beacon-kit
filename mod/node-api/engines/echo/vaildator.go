@@ -18,14 +18,40 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package server
+package echo
 
 import (
+	"errors"
+	"fmt"
+	"net/http"
 	"regexp"
 	"strconv"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/labstack/echo/v4"
 )
+
+// CustomValidator is a custom validator for the API.
+type CustomValidator struct {
+	Validator *validator.Validate
+}
+
+// Validate validates the given interface.
+func (cv *CustomValidator) Validate(i interface{}) error {
+	if err := cv.Validator.Struct(i); err != nil {
+		var validationErrors validator.ValidationErrors
+		hasValidationErrors := errors.As(err, &validationErrors)
+		if !hasValidationErrors || len(validationErrors) == 0 {
+			return nil
+		}
+		firstError := validationErrors[0]
+		field := firstError.Field()
+		value := firstError.Value()
+		return echo.NewHTTPError(http.StatusBadRequest,
+			fmt.Sprintf("Invalid %s: %s", field, value))
+	}
+	return nil
+}
 
 func ConstructValidator() *validator.Validate {
 	validators := map[string](func(fl validator.FieldLevel) bool){

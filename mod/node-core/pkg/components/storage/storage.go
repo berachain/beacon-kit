@@ -127,9 +127,7 @@ func NewBackend[
 // given context.
 func (k Backend[
 	AvailabilityStoreT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) AvailabilityStore(
-	_ context.Context,
-) AvailabilityStoreT {
+]) AvailabilityStore() AvailabilityStoreT {
 	return k.as
 }
 
@@ -165,8 +163,6 @@ func (k Backend[
 // DepositStore returns the deposit store struct initialized with a.
 func (k Backend[
 	_, _, _, _, _, _, _, _, _, DepositStoreT, _, _, _, _, _, _, _,
-]) DepositStore(
-	_ context.Context,
-) DepositStoreT {
+]) DepositStore() DepositStoreT {
 	return k.ds
 }

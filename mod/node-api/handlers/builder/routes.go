@@ -18,38 +18,20 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package builder
 
 import (
-	"context"
+	"net/http"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 )
 
-type BackendHandlers interface {
-	GetGenesis(ctx context.Context) (common.Root, error)
-	GetStateRoot(
-		ctx context.Context,
-		stateID string,
-	) (common.Bytes32, error)
-	GetStateValidators(
-		ctx context.Context,
-		stateID string,
-		id []string,
-		status []string,
-	) ([]*ValidatorData, error)
-	GetStateValidator(
-		ctx context.Context,
-		stateID string,
-		validatorID string,
-	) (*ValidatorData, error)
-	GetStateValidatorBalances(
-		ctx context.Context,
-		stateID string,
-		id []string,
-	) ([]*ValidatorBalanceData, error)
-	GetBlockRewards(
-		ctx context.Context,
-		blockID string,
-	) (*BlockRewardsData, error)
+func (h *Handler[ContextT]) RegisterRoutes() {
+	h.routes.Routes = []handlers.Route[ContextT]{
+		{
+			Method:  http.MethodGet,
+			Path:    "/eth/v1/builder/states/:state_id/expected_withdrawals",
+			Handler: h.NotImplemented,
+		},
+	}
 }

@@ -20,38 +20,32 @@
 
 package types
 
-type StateIDRequest struct {
-	StateID string `param:"state_id" validate:"required,state_id"`
-}
-
-type BlockIDRequest struct {
-	BlockID string `param:"block_id" validate:"required,block_id"`
-}
+import "github.com/berachain/beacon-kit/mod/node-api/types"
 
 type StateValidatorsGetRequest struct {
-	StateIDRequest
-	ID     []string `query:"id"     validate:"dive,validator_id"`
-	Status []string `query:"status" validate:"dive,validator_status"`
+	types.StateIDRequest
+	IDs      []string `query:"id"     validate:"dive,validator_id"`
+	Statuses []string `query:"status" validate:"dive,validator_status"`
 }
 
 type StateValidatorsPostRequest struct {
-	StateIDRequest
-	IDs      []string `json:"IDs"      validate:"dive,validator_id"`
+	types.StateIDRequest
+	IDs      []string `json:"ids"      validate:"dive,validator_id"`
 	Statuses []string `json:"statuses" validate:"dive,validator_status"`
 }
 
 type StateValidatorRequest struct {
-	StateIDRequest
+	types.StateIDRequest
 	ValidatorID string `query:"validator_id" validate:"required,validator_id"`
 }
 
 type ValidatorBalancesGetRequest struct {
-	StateIDRequest
-	ID []string `query:"id" validate:"dive,validator_id"`
+	types.StateIDRequest
+	IDs []string `query:"id" validate:"dive,validator_id"`
 }
 
 type ValidatorBalancesPostRequest struct {
-	StateIDRequest
+	types.StateIDRequest
 	IDs []string `validate:"dive,validator_id"`
 }
 
@@ -72,14 +66,14 @@ type SlotRequest struct {
 }
 
 type CommitteesRequest struct {
-	StateIDRequest
+	types.StateIDRequest
 	EpochOptionalRequest
 	CommitteeIndexRequest
 	SlotRequest
 }
 
 type SyncCommitteesRequest struct {
-	StateIDRequest
+	types.StateIDRequest
 	EpochOptionalRequest
 }
 
@@ -89,6 +83,6 @@ type BeaconHeadersRequest struct {
 }
 
 type BlobSidecarRequest struct {
-	BlockIDRequest
+	types.BlockIDRequest
 	Indices []string `query:"indices" validate:"dive,uint64"`
 }

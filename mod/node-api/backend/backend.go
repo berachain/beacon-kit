@@ -23,77 +23,131 @@ package backend
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
-type Backend struct {
-	getNewStateDB func(context.Context, string) StateDB
+// Backend is the db access layer for the beacon node-api.
+// It serves as a wrapper around the storage backend and provides an abstraction
+// over building the query context for a given state.
+type Backend[
+	AvailabilityStoreT AvailabilityStore[
+		BeaconBlockBodyT, BlobSidecarsT,
+	],
+	BeaconBlockT any,
+	BeaconBlockBodyT any,
+	BeaconBlockHeaderT core.BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconStateT core.BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		ForkT, StateStoreT, ValidatorT, WithdrawalT,
+	],
+	BeaconStateMarshallableT state.BeaconStateMarshallable[
+		BeaconStateMarshallableT, BeaconBlockHeaderT, Eth1DataT,
+		ExecutionPayloadHeaderT, ForkT, ValidatorT,
+	],
+	BlobSidecarsT any,
+	BlockStoreT BlockStore[BeaconBlockT],
+	ContextT context.Context,
+	DepositT Deposit,
+	DepositStoreT DepositStore[DepositT],
+	Eth1DataT,
+	ExecutionPayloadHeaderT,
+	ForkT any,
+	NodeT Node[ContextT],
+	StateStoreT state.KVStore[
+		StateStoreT, BeaconBlockHeaderT, Eth1DataT,
+		ExecutionPayloadHeaderT, ForkT, ValidatorT,
+	],
+	StorageBackendT StorageBackend[
+		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
+	],
+	ValidatorT Validator[WithdrawalCredentialsT],
+	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalCredentialsT WithdrawalCredentials,
+] struct {
+	sb   StorageBackendT
+	cs   common.ChainSpec
+	node NodeT
 }
 
 // New creates and returns a new Backend instance.
 // TODO: need to add state_id resolver; possible values are: "head" (canonical
 // head in node's view), "genesis", "finalized", "justified", <slot>, <hex
 // encoded stateRoot with 0x prefix>.
-func New(
-	getNewStateDB func(ctx context.Context, stateId string) StateDB,
-) *Backend {
-	return &Backend{
-		getNewStateDB: getNewStateDB,
+func New[
+	AvailabilityStoreT AvailabilityStore[
+		BeaconBlockBodyT, BlobSidecarsT,
+	],
+	BeaconBlockT any,
+	BeaconBlockBodyT any,
+	BeaconBlockHeaderT core.BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconStateT core.BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		ForkT, StateStoreT, ValidatorT, WithdrawalT,
+	],
+	BeaconStateMarshallableT state.BeaconStateMarshallable[
+		BeaconStateMarshallableT, BeaconBlockHeaderT, Eth1DataT,
+		ExecutionPayloadHeaderT, ForkT, ValidatorT,
+	],
+	BlobSidecarsT any,
+	BlockStoreT BlockStore[BeaconBlockT],
+	ContextT context.Context,
+	DepositT Deposit,
+	DepositStoreT DepositStore[DepositT],
+	Eth1DataT,
+	ExecutionPayloadHeaderT,
+	ForkT any,
+	NodeT Node[ContextT],
+	StateStoreT state.KVStore[
+		StateStoreT, BeaconBlockHeaderT, Eth1DataT,
+		ExecutionPayloadHeaderT, ForkT, ValidatorT,
+	],
+	StorageBackendT StorageBackend[
+		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
+	],
+	ValidatorT Validator[WithdrawalCredentialsT],
+	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalCredentialsT WithdrawalCredentials,
+](
+	storageBackend StorageBackendT,
+	cs common.ChainSpec,
+) *Backend[
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BlockStoreT,
+	ContextT, DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+	NodeT, StateStoreT, StorageBackendT, ValidatorT, WithdrawalT,
+	WithdrawalCredentialsT,
+] {
+	return &Backend[
+		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+		BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BlockStoreT,
+		ContextT, DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+		NodeT, StateStoreT, StorageBackendT, ValidatorT, WithdrawalT,
+		WithdrawalCredentialsT,
+	]{
+		sb: storageBackend,
+		cs: cs,
 	}
 }
 
-type StateDB interface {
-	GetGenesisValidatorsRoot() (common.Root, error)
-	GetSlot() (math.Slot, error)
-	GetLatestExecutionPayloadHeader() (
-		*types.ExecutionPayloadHeader, error,
-	)
-	SetLatestExecutionPayloadHeader(
-		payloadHeader *types.ExecutionPayloadHeader,
-	) error
-	GetEth1DepositIndex() (uint64, error)
-	SetEth1DepositIndex(
-		index uint64,
-	) error
-	GetBalance(idx math.ValidatorIndex) (math.Gwei, error)
-	SetBalance(idx math.ValidatorIndex, balance math.Gwei) error
-	SetSlot(slot math.Slot) error
-	GetFork() (*types.Fork, error)
-	SetFork(fork *types.Fork) error
-	GetLatestBlockHeader() (*types.BeaconBlockHeader, error)
-	SetLatestBlockHeader(header *types.BeaconBlockHeader) error
-	GetBlockRootAtIndex(index uint64) (common.Root, error)
-	StateRootAtIndex(index uint64) (common.Root, error)
-	GetEth1Data() (*types.Eth1Data, error)
-	SetEth1Data(data *types.Eth1Data) error
-	GetValidators() ([]*types.Validator, error)
-	GetBalances() ([]uint64, error)
-	GetNextWithdrawalIndex() (uint64, error)
-	SetNextWithdrawalIndex(index uint64) error
-	GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error)
-	SetNextWithdrawalValidatorIndex(index math.ValidatorIndex) error
-	GetTotalSlashing() (math.Gwei, error)
-	SetTotalSlashing(total math.Gwei) error
-	GetRandaoMixAtIndex(index uint64) (common.Bytes32, error)
-	GetSlashings() ([]uint64, error)
-	SetSlashingAtIndex(index uint64, amount math.Gwei) error
-	GetSlashingAtIndex(index uint64) (math.Gwei, error)
-	GetTotalValidators() (uint64, error)
-	GetTotalActiveBalances(uint64) (math.Gwei, error)
-	ValidatorByIndex(index math.ValidatorIndex) (*types.Validator, error)
-	UpdateBlockRootAtIndex(index uint64, root common.Root) error
-	UpdateStateRootAtIndex(index uint64, root common.Root) error
-	UpdateRandaoMixAtIndex(index uint64, mix common.Bytes32) error
-	UpdateValidatorAtIndex(
-		index math.ValidatorIndex,
-		validator *types.Validator,
-	) error
-	ValidatorIndexByPubkey(pubkey crypto.BLSPubkey) (math.ValidatorIndex, error)
-	AddValidator(
-		val *types.Validator,
-	) error
-	GetValidatorsByEffectiveBalance() ([]*types.Validator, error)
+func (b *Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, NodeT, _, _, _, _, _,
+]) AttachNode(node NodeT) {
+	b.node = node
+}
+
+func (b *Backend[
+	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) StateFromSlot(
+	slot uint64,
+) (BeaconStateT, error) {
+	var state BeaconStateT
+	//#nosec:G701 // not an issue in practice.
+	queryCtx, err := b.node.CreateQueryContext(int64(slot), false)
+	if err != nil {
+		return state, err
+	}
+
+	return b.sb.StateFromContext(queryCtx), nil
 }
