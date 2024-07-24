@@ -18,25 +18,29 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package debug
 
 import (
-	"context"
-
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers"
+	"github.com/berachain/beacon-kit/mod/node-api/types"
+	"github.com/berachain/beacon-kit/mod/node-api/types/context"
 )
 
-// Node defines the API for the node application.
-// It extends the Application interface from the Cosmos SDK.
-type Node interface {
-	servertypes.Application
+type Handler[ContextT context.Context] struct {
+	routes handlers.RouteSet[ContextT]
+}
 
-	// Start starts the node.
-	Start(ctx context.Context) error
+func NewHandler[ContextT context.Context]() *Handler[ContextT] {
+	h := &Handler[ContextT]{
+		routes: handlers.NewRouteSet[ContextT](""),
+	}
+	return h
+}
 
-	// RegisterApp sets the node's application.
-	RegisterApp(app servertypes.Application)
-	// SetServiceRegistry sets the node's service registry.
-	SetServiceRegistry(registry *service.Registry)
+func (h *Handler[ContextT]) RouteSet() handlers.RouteSet[ContextT] {
+	return h.routes
+}
+
+func (h *Handler[ContextT]) NotImplemented(_ ContextT) (any, error) {
+	return nil, types.ErrNotImplemented
 }

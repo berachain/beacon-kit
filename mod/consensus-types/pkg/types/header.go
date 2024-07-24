@@ -77,8 +77,8 @@ func NewBeaconBlockHeader(
 ) *BeaconBlockHeader {
 	return &BeaconBlockHeader{
 		BeaconBlockHeaderBase: BeaconBlockHeaderBase{
-			Slot:            uint64(slot),
-			ProposerIndex:   uint64(proposerIndex),
+			Slot:            slot.Unwrap(),
+			ProposerIndex:   proposerIndex.Unwrap(),
 			ParentBlockRoot: parentBlockRoot,
 			StateRoot:       stateRoot,
 		},

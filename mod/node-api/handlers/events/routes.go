@@ -18,38 +18,20 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package main
+package events
 
 import (
-	"github.com/berachain/beacon-kit/mod/node-api/backend"
-	"github.com/berachain/beacon-kit/mod/node-api/server"
-	"github.com/berachain/beacon-kit/mod/node-api/server/handlers"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"net/http"
+
+	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 )
 
-func NewServer(corsConfig middleware.CORSConfig,
-	loggingConfig middleware.LoggerConfig) *echo.Echo {
-	e := echo.New()
-	e.HTTPErrorHandler = handlers.CustomHTTPErrorHandler
-	e.Validator = &handlers.CustomValidator{
-		Validator: server.ConstructValidator(),
+func (h *Handler[ContextT]) RegisterRoutes() {
+	h.routes.Routes = []handlers.Route[ContextT]{
+		{
+			Method:  http.MethodGet,
+			Path:    "/eth/v1/events",
+			Handler: h.NotImplemented,
+		},
 	}
-	server.UseMiddlewares(e,
-		middleware.CORSWithConfig(corsConfig),
-		middleware.LoggerWithConfig(loggingConfig))
-	server.AssignRoutes(
-		e,
-		handlers.RouteHandlers{Backend: backend.NewMockBackend()},
-	)
-	return e
-}
-
-func run() {
-	e := NewServer(middleware.DefaultCORSConfig, middleware.DefaultLoggerConfig)
-	e.Logger.Fatal(e.Start(":8080"))
-}
-
-func main() {
-	run()
 }

@@ -106,7 +106,7 @@ func (s *Store[BeaconBlockT]) Persist(
 			if err != nil {
 				return err
 			}
-			return s.Set(uint64(slot), sc.KzgCommitment[:], bz)
+			return s.Set(slot.Unwrap(), sc.KzgCommitment[:], bz)
 		},
 	)...); err != nil {
 		return err

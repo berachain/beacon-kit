@@ -18,24 +18,23 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package backend
+package server
 
 import (
-	"context"
-
-	"github.com/berachain/beacon-kit/mod/node-api/server/types"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon"
+	"github.com/berachain/beacon-kit/mod/node-api/types/context"
 )
 
-func (h Backend) GetBlockRewards(
-	_ context.Context,
-	_ string,
-) (*types.BlockRewardsData, error) {
-	return &types.BlockRewardsData{
-		ProposerIndex:     1,
-		Total:             1,
-		Attestations:      1,
-		SyncAggregate:     1,
-		ProposerSlashings: 1,
-		AttesterSlashings: 1,
-	}, nil
+type Engine[ContextT context.Context, T any] interface {
+	Run(addr string) error
+	RegisterRoutes(handlers.RouteSet[ContextT])
+}
+
+type Backend[ForkT, ValidatorT any] interface {
+	BeaconBackend[ForkT, ValidatorT]
+}
+
+type BeaconBackend[ForkT, ValidatorT any] interface {
+	beacon.Backend[ForkT, ValidatorT]
 }

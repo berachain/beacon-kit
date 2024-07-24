@@ -247,7 +247,7 @@ type StorageBackend[
 	ExecutionPayloadHeaderT any,
 ] interface {
 	// DepositStore retrieves the deposit store.
-	DepositStore(context.Context) DepositStoreT
+	DepositStore() DepositStoreT
 	// StateFromContext retrieves the beacon state from the context.
 	StateFromContext(context.Context) BeaconStateT
 }

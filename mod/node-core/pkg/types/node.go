@@ -18,17 +18,24 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package handlers
+package types
 
 import (
-	"github.com/berachain/beacon-kit/mod/node-api/server/types"
-	"github.com/labstack/echo/v4"
+	"context"
+
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 )
 
-type RouteHandlers struct {
-	Backend types.BackendHandlers
-}
+// Node defines the API for the node application.
+// It extends the Application interface from the Cosmos SDK.
+type Node interface {
+	Application
 
-func (rh RouteHandlers) NotImplemented(_ echo.Context) error {
-	return echo.ErrNotImplemented
+	// Start starts the node.
+	Start(ctx context.Context) error
+
+	// RegisterApp sets the node's application.
+	RegisterApp(app Application)
+	// SetServiceRegistry sets the node's service registry.
+	SetServiceRegistry(registry *service.Registry)
 }

@@ -6,7 +6,11 @@ replace (
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240623110059-dec2d5583e39
 	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240623110059-dec2d5583e39
-	github.com/berachain/beacon-kit/mod/consensus => ../consensus
+	github.com/berachain/beacon-kit/mod/beacon => ../beacon
+	github.com/berachain/beacon-kit/mod/config => ../config
+	github.com/berachain/beacon-kit/mod/node-api => ../node-api
+	github.com/berachain/beacon-kit/mod/node-api/engines => ../node-api/engines
+	github.com/berachain/beacon-kit/mod/storage => ../storage
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240624014538-75ba469b1881
 )
 
@@ -20,7 +24,7 @@ require (
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240718074353-1a991cfeed63
 	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240710022902-57d64ab384c7
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240710023256-e9246f6a35e1
+	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240723155519-565f208d5482
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240724161918-96b9bf999de2
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240710022615-726645827bad
@@ -28,11 +32,13 @@ require (
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240705193247-d464364483df
+	github.com/berachain/beacon-kit/mod/node-api v0.0.0-20240717210058-a144e074f6b2
+	github.com/berachain/beacon-kit/mod/node-api/engines v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240710022448-e56f337d051f
-	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240710022902-57d64ab384c7
-	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240710023256-e9246f6a35e1
-	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240718074353-1a991cfeed63
+	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240717210058-a144e074f6b2
+	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6650da31
+	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240723155519-565f208d5482
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240711183925-948692fddcbe
 	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240711183925-948692fddcbe
 	github.com/cosmos/cosmos-db v1.0.2
@@ -50,11 +56,22 @@ require (
 	github.com/VictoriaMetrics/fastcache v1.12.2 // indirect
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a // indirect
+	github.com/gabriel-vasile/mimetype v1.4.4 // indirect
+	github.com/go-playground/locales v0.14.1 // indirect
+	github.com/go-playground/universal-translator v0.18.1 // indirect
+	github.com/go-playground/validator/v10 v10.22.0 // indirect
+	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/holiman/bloomfilter/v2 v2.0.3 // indirect
 	github.com/karalabe/ssz v0.2.1-0.20240724074312-3d1ff7a6f7c4 // indirect
+	github.com/labstack/echo/v4 v4.12.0 // indirect
+	github.com/labstack/gommon v0.4.2 // indirect
+	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/phuslu/log v1.0.108-0.20240705160716-a8f8c12ae6c6 // indirect
 	github.com/prysmaticlabs/go-bitfield v0.0.0-20240618144021-706c95b2dd15 // indirect
+	github.com/valyala/bytebufferpool v1.0.0 // indirect
+	github.com/valyala/fasttemplate v1.2.2 // indirect
+	golang.org/x/time v0.5.0 // indirect
 )
 
 require (

@@ -21,17 +21,13 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
-type ErrorResponse struct {
-	Code    int `json:"code"`
-	Message any `json:"message"`
-}
-
-type DataResponse struct {
-	Data any `json:"data"`
+type ValidatorResponse struct {
+	ExecutionOptimistic bool `json:"execution_optimistic"`
+	Finalized           bool `json:"finalized"`
+	Data                any  `json:"data"`
 }
 
 type GenesisData struct {
@@ -44,17 +40,10 @@ type RootData struct {
 	Root common.Root `json:"root"`
 }
 
-type ValidatorResponse struct {
-	ExecutionOptimistic bool `json:"execution_optimistic"`
-	Finalized           bool `json:"finalized"`
-	Data                any  `json:"data"`
-}
-
-type ValidatorData struct {
-	Index     uint64           `json:"index,string"`
-	Balance   uint64           `json:"balance,string"`
-	Status    string           `json:"status"`
-	Validator *types.Validator `json:"validator"`
+type ValidatorData[ValidatorT any] struct {
+	ValidatorBalanceData
+	Status    string     `json:"status"`
+	Validator ValidatorT `json:"validator"`
 }
 
 type ValidatorBalanceData struct {
