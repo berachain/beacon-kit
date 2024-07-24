@@ -28,7 +28,6 @@ import (
 // Fork as defined in the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#fork
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path fork.go -objs Fork -include ../../../primitives/pkg/bytes,../../../primitives/pkg/math,../../../primitives/pkg/common -output fork.ssz.go
 //nolint:lll
 type Fork struct {
 	// PreviousVersion is the last version before the fork.

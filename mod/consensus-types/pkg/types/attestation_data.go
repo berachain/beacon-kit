@@ -28,8 +28,6 @@ package types
 import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 
 // AttestationData represents an attestation data.
-//
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path attestation_data.go -objs AttestationData -include ../../../primitives/pkg/bytes,../../../primitives/pkg/common -output attestation_data.ssz.go
 type AttestationData struct {
 	// Slot is the slot number of the attestation data.
 	Slot uint64
