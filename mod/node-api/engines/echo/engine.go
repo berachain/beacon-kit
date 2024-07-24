@@ -29,16 +29,18 @@ import (
 
 type Engine struct {
 	*echo.Echo
+	logger log.ApiLogger[any]
 }
 
-func New(e *echo.Echo) *Engine {
+func New(e *echo.Echo, logger log.ApiLogger[any]) *Engine {
 	return &Engine{
-		Echo: e,
+		Echo:   e,
+		logger: logger,
 	}
 }
 
 func NewDefaultEngine(
-	logger log.Logger[any],
+	logger log.ApiLogger[any],
 ) *Engine {
 	engine := echo.New()
 	engine.Use(middleware.CORSWithConfig(
@@ -48,7 +50,7 @@ func NewDefaultEngine(
 		Validator: ConstructValidator(),
 	}
 	engine.HideBanner = true
-	return New(engine)
+	return New(engine, logger)
 }
 
 func (e *Engine) Run(addr string) error {
@@ -58,6 +60,7 @@ func (e *Engine) Run(addr string) error {
 func (e *Engine) RegisterRoutes(hs handlers.RouteSet[Context]) {
 	group := e.Group(hs.BasePath)
 	for _, route := range hs.Routes {
+		route.DecorateWithLogs(e.logger)
 		group.Add(
 			route.Method,
 			route.Path,

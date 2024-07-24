@@ -27,7 +27,6 @@ import (
 )
 
 func (h *Handler[ContextT, _, _]) GetStateValidators(c ContextT) (any, error) {
-	h.Logger().Api("Received GetValidators request")
 	params, err := utils.BindAndValidate[beacontypes.StateValidatorsGetRequest](
 		c, h.Logger(),
 	)
@@ -58,7 +57,6 @@ func (h *Handler[ContextT, _, _]) GetStateValidators(c ContextT) (any, error) {
 		Finalized:           false, // stubbed
 		Data:                validators,
 	}
-	h.Logger().Api("Successfully retrieved validators", "response", response)
 	return response, nil
 }
 
