@@ -27,9 +27,9 @@ import (
 )
 
 func (h *Handler[ContextT, _, _]) GetStateValidators(c ContextT) (any, error) {
-	h.logger.Api("Received GetValidators request")
+	h.Logger().Api("Received GetValidators request")
 	params, err := utils.BindAndValidate[beacontypes.StateValidatorsGetRequest](
-		c, h.logger,
+		c, h.Logger(),
 	)
 	if err != nil {
 		return nil, err
@@ -58,13 +58,13 @@ func (h *Handler[ContextT, _, _]) GetStateValidators(c ContextT) (any, error) {
 		Finalized:           false, // stubbed
 		Data:                validators,
 	}
-	h.logger.Api("Successfully retrieved validators", "response", response)
+	h.Logger().Api("Successfully retrieved validators", "response", response)
 	return response, nil
 }
 
 func (h *Handler[ContextT, _, _]) PostStateValidators(c ContextT) (any, error) {
 	params, err := utils.BindAndValidate[beacontypes.StateValidatorsPostRequest](
-		c, h.logger,
+		c, h.Logger(),
 	)
 	if err != nil {
 		return nil, err
@@ -96,7 +96,7 @@ func (h *Handler[ContextT, _, _]) GetStateValidatorBalances(
 	c ContextT,
 ) (any, error) {
 	params, err := utils.BindAndValidate[beacontypes.ValidatorBalancesGetRequest](
-		c, h.logger,
+		c, h.Logger(),
 	)
 	if err != nil {
 		return nil, err
@@ -123,7 +123,7 @@ func (h *Handler[ContextT, _, _]) PostStateValidatorBalances(
 	c ContextT,
 ) (any, error) {
 	params, err := utils.BindAndValidate[beacontypes.ValidatorBalancesPostRequest](
-		c, h.logger,
+		c, h.Logger(),
 	)
 	if err != nil {
 		return nil, err

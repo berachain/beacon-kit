@@ -29,7 +29,9 @@ import (
 	gommonlog "github.com/labstack/gommon/log"
 )
 
-// assert that logger implements echo.Logger
+// TODO: DELETE THIS
+
+// assert that logger implements echo.Logger.
 var _ echo.Logger = &logger{}
 
 // logger is an adapter that allows a log.Logger to be used as an echo.Logger.

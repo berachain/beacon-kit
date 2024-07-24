@@ -28,22 +28,23 @@ import (
 )
 
 type Handler[ContextT context.Context] struct {
-	routes handlers.RouteSet[ContextT]
-	logger log.ApiLogger[any]
+	*handlers.BaseHandler[ContextT]
 }
 
 func NewHandler[ContextT context.Context](
 	logger log.ApiLogger[any],
 ) *Handler[ContextT] {
 	h := &Handler[ContextT]{
-		routes: handlers.NewRouteSet[ContextT](""),
-		logger: logger,
+		BaseHandler: handlers.NewBaseHandler[ContextT](
+			handlers.NewRouteSet[ContextT](""),
+			logger,
+		),
 	}
 	return h
 }
 
 func (h *Handler[ContextT]) RouteSet() handlers.RouteSet[ContextT] {
-	return h.routes
+	return h.BaseHandler.RouteSet()
 }
 
 func (h *Handler[ContextT]) NotImplemented(_ ContextT) (any, error) {

@@ -27,7 +27,7 @@ import (
 )
 
 func (h *Handler[ContextT]) RegisterRoutes() {
-	h.routes.Routes = []handlers.Route[ContextT]{
+	h.BaseHandler.AddRoutes([]handlers.Route[ContextT]{
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/config/fork_schedule",
@@ -43,5 +43,5 @@ func (h *Handler[ContextT]) RegisterRoutes() {
 			Path:    "/eth/v1/config/deposit_contract",
 			Handler: h.NotImplemented,
 		},
-	}
+	})
 }

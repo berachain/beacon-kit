@@ -21,12 +21,52 @@
 package handlers
 
 import (
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-api/types/context"
 )
 
+// handlerFn enforces a signature for all handler functions.
 type handlerFn[ContextT context.Context] func(c ContextT) (any, error)
 
+// Handlers is an interface that all handlers must implement.
 type Handlers[ContextT context.Context] interface {
+	// RegisterRoutes is a method that registers the routes for the handler.
 	RegisterRoutes()
 	RouteSet() RouteSet[ContextT]
+}
+
+// BaseHandler is a base handler for all handlers. It abstracts the route set
+// and logger from the handler.
+type BaseHandler[ContextT context.Context] struct {
+	routes RouteSet[ContextT]
+	logger log.ApiLogger[any]
+}
+
+// NewBaseHandler initializes a new base handler with the given routes and
+// logger.
+func NewBaseHandler[ContextT context.Context](
+	routes RouteSet[ContextT],
+	logger log.ApiLogger[any],
+) *BaseHandler[ContextT] {
+	return &BaseHandler[ContextT]{
+		routes: routes,
+		logger: logger,
+	}
+}
+
+// RouteSet returns the route set for the base handler.
+func (b *BaseHandler[ContextT]) RouteSet() RouteSet[ContextT] {
+	return b.routes
+}
+
+// Logger is used to access the logger for the base handler.
+func (b *BaseHandler[ContextT]) Logger() log.ApiLogger[any] {
+	return b.logger
+}
+
+// AddRoutes adds the given slice of routes to the base handler.
+func (b *BaseHandler[ContextT]) AddRoutes(
+	routes []Route[ContextT],
+) {
+	b.routes.Routes = append(b.routes.Routes, routes...)
 }

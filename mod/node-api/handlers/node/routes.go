@@ -27,7 +27,7 @@ import (
 )
 
 func (h *Handler[ContextT]) RegisterRoutes() {
-	h.routes.Routes = []handlers.Route[ContextT]{
+	h.BaseHandler.AddRoutes([]handlers.Route[ContextT]{
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/node/identity",
@@ -63,5 +63,5 @@ func (h *Handler[ContextT]) RegisterRoutes() {
 			Path:    "/eth/v1/node/health",
 			Handler: h.NotImplemented,
 		},
-	}
+	})
 }

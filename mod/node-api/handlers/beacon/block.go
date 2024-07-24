@@ -27,12 +27,12 @@ import (
 )
 
 func (h *Handler[ContextT, _, _]) GetBlockRewards(c ContextT) (any, error) {
-	h.logger.Info("API: Received request to get block rewards")
-	params, err := utils.BindAndValidate[types.BlockIDRequest](c, h.logger)
+	h.Logger().Info("API: Received request to get block rewards")
+	params, err := utils.BindAndValidate[types.BlockIDRequest](c, h.Logger())
 	if err != nil {
 		return nil, err
 	}
-	h.logger.Info("API: Request validation successful with params: %+v", params)
+	h.Logger().Info("API: Request validation successful with params: %+v", params)
 	slot, err := utils.SlotFromBlockID(params.BlockID)
 	if err != nil {
 		return nil, err
@@ -46,6 +46,6 @@ func (h *Handler[ContextT, _, _]) GetBlockRewards(c ContextT) (any, error) {
 		Finalized:           false, // stubbed
 		Data:                rewards,
 	}
-	h.logger.Info("API: Successfully retrieved block rewards: %+v", response)
+	h.Logger().Info("API: Successfully retrieved block rewards: %+v", response)
 	return response, nil
 }

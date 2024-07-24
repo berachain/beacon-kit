@@ -27,7 +27,7 @@ import (
 )
 
 func (h *Handler[ContextT]) RegisterRoutes() {
-	h.routes.Routes = []handlers.Route[ContextT]{
+	h.BaseHandler.AddRoutes([]handlers.Route[ContextT]{
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v2/debug/beacon/states/:state_id",
@@ -43,5 +43,5 @@ func (h *Handler[ContextT]) RegisterRoutes() {
 			Path:    "/eth/v1/debug/fork_choice",
 			Handler: h.NotImplemented,
 		},
-	}
+	})
 }

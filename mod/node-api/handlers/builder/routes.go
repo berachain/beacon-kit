@@ -27,11 +27,11 @@ import (
 )
 
 func (h *Handler[ContextT]) RegisterRoutes() {
-	h.routes.Routes = []handlers.Route[ContextT]{
+	h.BaseHandler.AddRoutes([]handlers.Route[ContextT]{
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/builder/states/:state_id/expected_withdrawals",
 			Handler: h.NotImplemented,
 		},
-	}
+	})
 }

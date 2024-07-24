@@ -157,8 +157,11 @@ func (cb *CLIBuilder[T, ExecutionPayloadT]) defaultRunHandler(
 // InterceptConfigsAndCreateContext except it also sets the server context on
 // the command and the server logger.
 func (cb *CLIBuilder[T, ExecutionPayloadT]) InterceptConfigsPreRunHandler(
-	cmd *cobra.Command, logger log.AdvancedLogger[any, sdklog.Logger], customAppConfigTemplate string,
-	customAppConfig interface{}, cmtConfig *cmtcfg.Config,
+	cmd *cobra.Command,
+	logger log.AdvancedLogger[any, sdklog.Logger],
+	customAppConfigTemplate string,
+	customAppConfig interface{},
+	cmtConfig *cmtcfg.Config,
 ) error {
 	serverCtx, err := context.InterceptConfigsAndCreateContext(
 		cmd, customAppConfigTemplate, customAppConfig, cmtConfig, logger)
