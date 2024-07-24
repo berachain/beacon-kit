@@ -21,6 +21,7 @@
 package merkle_test
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -89,4 +90,61 @@ func Test_ObjectPath(t *testing.T) {
 			require.Equal(t, tc.offset, offset, "Unexpected offset")
 		})
 	}
+}
+
+func TestPaths(t *testing.T) {
+	bs := schema.DefineContainer(
+		schema.NewField("GenesisValidatorsRoot", schema.B32()),
+		schema.NewField("Slot", schema.U64()),
+		schema.NewField("Fork", schema.B32()),
+		schema.NewField("LatestBlockHeader", schema.B32()),
+		schema.NewField("BlockRoots", schema.B32()),
+		schema.NewField("StateRoots", schema.B32()),
+		schema.NewField("Eth1Data", schema.B32()),
+		schema.NewField("Eth1DepositIndex", schema.U64()),
+		schema.NewField("LatestExecutionPayloadHeader", schema.B32()),
+		schema.NewField("Validators", schema.DefineList(schema.DefineContainer(
+			schema.NewField("Pubkey", schema.B48()),
+			schema.NewField("WithdrawalCredentials", schema.B32()),
+			schema.NewField("EffectiveBalance", schema.U64()),
+			schema.NewField("Slashed", schema.Bool()),
+			schema.NewField("ActivationEligibilityEpoch", schema.U64()),
+			schema.NewField("ActivationEpoch", schema.U64()),
+			schema.NewField("ExitEpoch", schema.U64()),
+			schema.NewField("WithdrawableEpoch", schema.U64()),
+		), 1099511627776)),
+		schema.NewField("Balances", schema.B32()),
+		schema.NewField("RandaoMixes", schema.B32()),
+		schema.NewField("NextWithdrawalIndex", schema.U64()),
+		schema.NewField("NextWithdrawalValidatorIndex", schema.U64()),
+		schema.NewField("Slashings", schema.B32()),
+		schema.NewField("TotalSlashing", schema.U64()),
+	)
+
+	blockHeader := schema.DefineContainer(
+		schema.NewField("Slot", schema.U64()),
+		schema.NewField("ProposerIndex", schema.U64()),
+		schema.NewField("ParentBlockRoot", schema.B32()),
+		schema.NewField("State", bs),
+		schema.NewField("BodyRoot", schema.B32()),
+	)
+
+	val0PubKeyPath := merkle.ObjectPath[merkle.GeneralizedIndex, [32]byte](
+		"State/Validators/0/Pubkey",
+	)
+	_, gindex, offset, err := val0PubKeyPath.GetGeneralizedIndex(blockHeader)
+	require.NoError(t, err)
+	fmt.Println("gIndex", gindex)
+	fmt.Println("offset", offset)
+
+	// ethBlockNumberPath := merkle.ObjectPath[merkle.GeneralizedIndex, [32]byte](
+	// 	"State/LatestExecutionPayloadHeader/Number",
+	// )
+	// typ, gindex, offset, err = ethBlockNumberPath.GetGeneralizedIndex(blockHeader)
+	// require.NoError(t, err)
+	// require.Equal(t, schema.U64(), typ)
+	// fmt.Println("gIndex", gindex)
+	// fmt.Println("offset", offset)
+
+	panic("see logs")
 }

@@ -21,35 +21,57 @@
 package echo
 
 import (
-	"errors"
 	"net/http"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 	"github.com/berachain/beacon-kit/mod/node-api/types"
 	"github.com/labstack/echo/v4"
 )
 
-func buildHandler(
+// ErrorResponse is a response that is returned when an error occurs.
+type ErrorResponse struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
+// errorMiddleware is a middleware that converts errors to an HTTP status code
+// and response.
+func errorMiddleware(
 	handler *handlers.Route[Context],
 ) echo.HandlerFunc {
 	return func(c Context) error {
 		data, err := handler.Handler(c)
-		return c.JSON(codeFromError(err), data)
+		code, response := responseFromError(data, err)
+		return c.JSON(code, response)
 	}
 }
 
-// codeFromError converts an error to an HTTP status code.
-func codeFromError(err error) int {
+// responseFromErr converts an error to an HTTP status code and response. If
+// the error is nil, the response is returned as is.
+func responseFromError(data any, err error) (int, any) {
 	switch {
 	case err == nil:
-		return http.StatusOK
+		return http.StatusOK, data
 	case errors.Is(err, types.ErrNotFound):
-		return http.StatusNotFound
+		return http.StatusNotFound, ErrorResponse{
+			Code:    http.StatusNotFound,
+			Message: err.Error(),
+		}
 	case errors.Is(err, types.ErrInvalidRequest):
-		return http.StatusBadRequest
+		return http.StatusBadRequest, ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: err.Error(),
+		}
 	case errors.Is(err, types.ErrNotImplemented):
-		return http.StatusNotImplemented
+		return http.StatusNotImplemented, ErrorResponse{
+			Code:    http.StatusNotImplemented,
+			Message: err.Error(),
+		}
 	default:
-		return http.StatusInternalServerError
+		return http.StatusInternalServerError, ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		}
 	}
 }

@@ -21,16 +21,27 @@
 package proof
 
 import (
+	"github.com/berachain/beacon-kit/mod/errors"
+
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
-	types "github.com/berachain/beacon-kit/mod/node-api/types/proof"
+	"github.com/berachain/beacon-kit/mod/node-api/types"
+	ptypes "github.com/berachain/beacon-kit/mod/node-api/types/proof"
 )
 
 // GetBlockProposer returns the block proposer for the given block id along
 // with a merkle proof that can be verified against the beacon block root.
-func (h *Handler[ContextT, _, _]) GetBlockProposer(c ContextT) (any, error) {
-	params, err := utils.BindAndValidate[types.BlockProposerProofRequest](c)
+func (
+	h *Handler[ContextT, BeaconBlockHeaderT, ValidatorT],
+) GetBlockProposer(c ContextT) (any, error) {
+	params, err := utils.BindAndValidate[ptypes.BlockProposerProofRequest](c)
 	if err != nil {
 		return nil, err
+	}
+
+	if params.BlockID == "error" {
+		return nil, errors.Join(
+			types.ErrNotFound, errors.New("my custom error"),
+		)
 	}
 
 	// Get the slot from the given input of block id.
@@ -40,16 +51,21 @@ func (h *Handler[ContextT, _, _]) GetBlockProposer(c ContextT) (any, error) {
 	}
 
 	// Get the beacon block header for the desired slot.
-	_, err = h.backend.BlockHeader(slot)
+	blockHeader, err := h.backend.BlockHeader(slot)
 	if err != nil {
 		return nil, err
 	}
 
 	// Get the entire validator registry.
-	_, err = h.backend.AllValidators(slot)
+	validators, err := h.backend.AllValidators(slot)
 	if err != nil {
 		return nil, err
 	}
 
-	return nil, nil
+	return ptypes.BlockProposerProofResponse[
+		BeaconBlockHeaderT, ValidatorT,
+	]{
+		BeaconBlockHeader: blockHeader,
+		Validator:         validators[blockHeader.GetProposerIndex()],
+	}, nil
 }

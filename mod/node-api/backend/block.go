@@ -31,12 +31,24 @@ func (b Backend[
 ]) BlockHeader(
 	slot uint64,
 ) (BeaconBlockHeaderT, error) {
-	var blockHeader BeaconBlockHeaderT
+	var (
+		blockHeader BeaconBlockHeaderT
+		stateRoot   common.Root
+	)
 	st, err := b.stateFromSlot(slot)
 	if err != nil {
 		return blockHeader, err
 	}
-	return st.GetLatestBlockHeader()
+	blockHeader, err = st.GetLatestBlockHeader()
+	if err != nil {
+		return blockHeader, err
+	}
+	stateRoot, err = b.StateRootAtSlot(slot)
+	if err != nil {
+		return blockHeader, err
+	}
+	blockHeader.SetStateRoot(stateRoot)
+	return blockHeader, nil
 }
 
 // GetBlockRoot returns the root of the block at the given stateID.

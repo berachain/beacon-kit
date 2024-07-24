@@ -58,7 +58,7 @@ func (e *Engine) RegisterRoutes(hs *handlers.RouteSet[Context]) {
 		group.Add(
 			route.Method,
 			route.Path,
-			buildHandler(route),
+			errorMiddleware(route),
 		)
 	}
 }

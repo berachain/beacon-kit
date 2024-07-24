@@ -22,17 +22,17 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-type BlockProposerProofResponse[ValidatorT, BeaconBlockHeaderT any] struct {
+type BlockProposerProofResponse[BeaconBlockHeaderT, ValidatorT any] struct {
 	// ValidatorProof can be verified against the beacon block root. Use a
 	// Generalized Index of `z + (8 * ValidatorIndex)`, where z is the
 	// Generalized Index of the 0 validator in the beacon block. In DenebPlus,
 	// z is 3254554418216960.
 	ValidatorProof []common.Root `json:"validator_proof"`
 	// Validator is the Validator struct of the block proposer.
-	Validator         ValidatorT          `json:"validator"`
-	ValidatorIndex    math.ValidatorIndex `json:"validator_index"`
-	BeaconBlockHeader BeaconBlockHeaderT  `json:"beacon_block_header"`
+	Validator ValidatorT `json:"validator"`
+	// BeaconBlockHeader is the block header of which the hash tree root is the
+	// beacon block root to verify against.
+	BeaconBlockHeader BeaconBlockHeaderT `json:"beacon_block_header"`
 }
