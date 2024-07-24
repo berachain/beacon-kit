@@ -52,7 +52,7 @@ func (e *Engine) Run(addr string) error {
 	return e.Echo.Start(addr)
 }
 
-func (e *Engine) RegisterRoutes(hs handlers.RouteSet[Context]) {
+func (e *Engine) RegisterRoutes(hs *handlers.RouteSet[Context]) {
 	group := e.Group(hs.BasePath)
 	for _, route := range hs.Routes {
 		group.Add(

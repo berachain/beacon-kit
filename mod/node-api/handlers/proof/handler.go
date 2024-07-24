@@ -18,29 +18,45 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package node
+package proof
 
 import (
+	"errors"
+
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
-	"github.com/berachain/beacon-kit/mod/node-api/types"
 	"github.com/berachain/beacon-kit/mod/node-api/types/context"
 )
 
-type Handler[ContextT context.Context] struct {
-	routes *handlers.RouteSet[ContextT]
+// Handler is the handler for the proof API.
+type Handler[
+	ContextT context.Context,
+	// ForkT any,
+	ValidatorT any,
+] struct {
+	backend Backend[ValidatorT]
+	routes  *handlers.RouteSet[ContextT]
 }
 
-func NewHandler[ContextT context.Context]() *Handler[ContextT] {
-	h := &Handler[ContextT]{
-		routes: handlers.NewRouteSet[ContextT](""),
+// NewHandler creates a new handler for the proof API.
+func NewHandler[
+	ContextT context.Context,
+	// ForkT any,
+	ValidatorT any,
+](
+	backend Backend[ValidatorT],
+) *Handler[ContextT, ValidatorT] {
+	h := &Handler[ContextT, ValidatorT]{
+		backend: backend,
+		routes:  handlers.NewRouteSet[ContextT](""),
 	}
 	return h
 }
 
-func (h *Handler[ContextT]) RouteSet() *handlers.RouteSet[ContextT] {
+func (h *Handler[ContextT, _]) RouteSet() *handlers.RouteSet[ContextT] {
 	return h.routes
 }
 
-func (h *Handler[ContextT]) NotImplemented(_ ContextT) (any, error) {
-	return nil, types.ErrNotImplemented
+// NotImplemented is a placeholder for the proof API.
+func (h *Handler[ContextT, _]) NotImplemented(_ ContextT) (any, error) {
+	return nil, errors.New("not implemented")
 }

@@ -18,29 +18,16 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package node
+package types
 
 import (
-	"github.com/berachain/beacon-kit/mod/node-api/handlers"
-	"github.com/berachain/beacon-kit/mod/node-api/types"
-	"github.com/berachain/beacon-kit/mod/node-api/types/context"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-type Handler[ContextT context.Context] struct {
-	routes *handlers.RouteSet[ContextT]
-}
-
-func NewHandler[ContextT context.Context]() *Handler[ContextT] {
-	h := &Handler[ContextT]{
-		routes: handlers.NewRouteSet[ContextT](""),
-	}
-	return h
-}
-
-func (h *Handler[ContextT]) RouteSet() *handlers.RouteSet[ContextT] {
-	return h.routes
-}
-
-func (h *Handler[ContextT]) NotImplemented(_ ContextT) (any, error) {
-	return nil, types.ErrNotImplemented
+type BlockProposerProofResponse[ValidatorT, BeaconBlockHeaderT any] struct {
+	Proof             []common.Root       `json:"proof"`
+	Validator         ValidatorT          `json:"validator"`
+	ValidatorIndex    math.ValidatorIndex `json:"validator_index"`
+	BeaconBlockHeader BeaconBlockHeaderT  `json:"beacon_block_header"`
 }

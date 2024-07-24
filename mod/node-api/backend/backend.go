@@ -137,9 +137,10 @@ func (b *Backend[
 	b.node = node
 }
 
+// stateFromSlot returns the state at the given slot using query context.
 func (b *Backend[
 	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) StateFromSlot(
+]) stateFromSlot(
 	slot uint64,
 ) (BeaconStateT, error) {
 	var state BeaconStateT

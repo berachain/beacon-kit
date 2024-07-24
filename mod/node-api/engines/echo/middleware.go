@@ -30,7 +30,7 @@ import (
 )
 
 func buildHandler(
-	handler handlers.Route[Context],
+	handler *handlers.Route[Context],
 ) echo.HandlerFunc {
 	return func(c Context) error {
 		data, err := handler.Handler(c)

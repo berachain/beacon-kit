@@ -28,5 +28,5 @@ type handlerFn[ContextT context.Context] func(c ContextT) (any, error)
 
 type Handlers[ContextT context.Context] interface {
 	RegisterRoutes()
-	RouteSet() RouteSet[ContextT]
+	RouteSet() *RouteSet[ContextT]
 }

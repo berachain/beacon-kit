@@ -27,7 +27,7 @@ import (
 )
 
 func (h *Handler[ContextT]) RegisterRoutes() {
-	h.routes.Routes = []handlers.Route[ContextT]{
+	h.routes.Routes = []*handlers.Route[ContextT]{
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v2/debug/beacon/states/:state_id",

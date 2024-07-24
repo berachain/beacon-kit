@@ -65,7 +65,7 @@ func (b *BeaconBlockHeaderBase) GetStateRoot() common.Root {
 type BeaconBlockHeader struct {
 	// BeaconBlockHeaderBase is the base of the block.
 	BeaconBlockHeaderBase
-	// 	// BodyRoot is the root of the block body.
+	// BodyRoot is the root of the block body.
 	BodyRoot common.Root `json:"bodyRoot"`
 }
 
@@ -104,4 +104,9 @@ func (b *BeaconBlockHeader) New(
 // SetStateRoot sets the state root of the BeaconBlockHeader.
 func (b *BeaconBlockHeader) SetStateRoot(stateRoot common.Root) {
 	b.StateRoot = stateRoot
+}
+
+// GetBodyRoot retrieves the body root of the BeaconBlockHeader.
+func (b *BeaconBlockHeader) GetBodyRoot() common.Root {
+	return b.BodyRoot
 }

@@ -18,57 +18,44 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package beacon
+package backend
 
 import (
-	types "github.com/berachain/beacon-kit/mod/node-api/types/beacon"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
-// Backend is the interface for backend of the beacon API.
-type Backend[ForkT, ValidatorT any] interface {
-	BlockBackend
-	GenesisBackend
-	StateBackend[ForkT]
-	ValidatorBackend[ValidatorT]
+// GetStateRoot returns the root of the state at the given stateID.
+func (b Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) StateRootAtSlot(
+	slot uint64,
+) (common.Root, error) {
+	st, err := b.stateFromSlot(slot)
+	if err != nil {
+		return common.Root{}, err
+	}
+	// This is required to handle the semantical expectation that
+	// 0 -> latest despite 0 != latest.
+	latestSlot, err := st.GetSlot()
+	if err != nil {
+		return common.Root{}, err
+	}
+	// As calculated by the beacon chain. Ideally, this logic
+	// should be abstracted by the beacon chain.
+	index := latestSlot.Unwrap() % b.cs.SlotsPerHistoricalRoot()
+	return st.StateRootAtIndex(index)
 }
 
-type BlockBackend interface {
-	BlockRootAtSlot(
-		slot uint64,
-	) (common.Root, error)
-	BlockRewardsAtSlot(
-		slot uint64,
-	) (*types.BlockRewardsData, error)
-}
-
-type GenesisBackend interface {
-	GenesisValidatorsRoot(
-		slot uint64,
-	) (common.Root, error)
-}
-
-type StateBackend[ForkT any] interface {
-	StateRootAtSlot(
-		slot uint64,
-	) (common.Root, error)
-	StateForkAtSlot(
-		slot uint64,
-	) (ForkT, error)
-}
-
-type ValidatorBackend[ValidatorT any] interface {
-	ValidatorByID(
-		slot uint64,
-		id string,
-	) (*types.ValidatorData[ValidatorT], error)
-	ValidatorsByIDs(
-		slot uint64,
-		ids []string,
-		statuses []string,
-	) ([]*types.ValidatorData[ValidatorT], error)
-	ValidatorBalancesByIDs(
-		slot uint64,
-		ids []string,
-	) ([]*types.ValidatorBalanceData, error)
+// GetStateFork returns the fork of the state at the given stateID.
+func (b Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, ForkT, _, _, _, _, _, _,
+]) StateForkAtSlot(
+	slot uint64,
+) (ForkT, error) {
+	var fork ForkT
+	st, err := b.stateFromSlot(slot)
+	if err != nil {
+		return fork, err
+	}
+	return st.GetFork()
 }

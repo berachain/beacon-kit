@@ -18,29 +18,6 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package node
+package proof
 
-import (
-	"github.com/berachain/beacon-kit/mod/node-api/handlers"
-	"github.com/berachain/beacon-kit/mod/node-api/types"
-	"github.com/berachain/beacon-kit/mod/node-api/types/context"
-)
-
-type Handler[ContextT context.Context] struct {
-	routes *handlers.RouteSet[ContextT]
-}
-
-func NewHandler[ContextT context.Context]() *Handler[ContextT] {
-	h := &Handler[ContextT]{
-		routes: handlers.NewRouteSet[ContextT](""),
-	}
-	return h
-}
-
-func (h *Handler[ContextT]) RouteSet() *handlers.RouteSet[ContextT] {
-	return h.routes
-}
-
-func (h *Handler[ContextT]) NotImplemented(_ ContextT) (any, error) {
-	return nil, types.ErrNotImplemented
-}
+func (h *Handler[ContextT, _]) RegisterRoutes() {}

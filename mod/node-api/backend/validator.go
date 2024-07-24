@@ -23,91 +23,19 @@ package backend
 import (
 	"github.com/berachain/beacon-kit/mod/node-api/backend/utils"
 	types "github.com/berachain/beacon-kit/mod/node-api/types/beacon"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// GetGenesis returns the genesis state of the beacon chain.
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) GenesisValidatorsRoot(
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _,
+]) AllValidators(
 	slot uint64,
-) (common.Root, error) {
-	// needs genesis_time and gensis_fork_version
-	st, err := b.StateFromSlot(slot)
+) ([]ValidatorT, error) {
+	st, err := b.stateFromSlot(slot)
 	if err != nil {
-		return common.Root{}, err
+		return nil, err
 	}
-	return st.GetGenesisValidatorsRoot()
-}
-
-// GetStateRoot returns the root of the state at the given stateID.
-func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) StateRootAtSlot(
-	slot uint64,
-) (common.Root, error) {
-	st, err := b.StateFromSlot(slot)
-	if err != nil {
-		return common.Root{}, err
-	}
-	// This is required to handle the semantical expectation that
-	// 0 -> latest despite 0 != latest.
-	latestSlot, err := st.GetSlot()
-	if err != nil {
-		return common.Root{}, err
-	}
-	// As calculated by the beacon chain. Ideally, this logic
-	// should be abstracted by the beacon chain.
-	index := latestSlot.Unwrap() % b.cs.SlotsPerHistoricalRoot()
-	return st.StateRootAtIndex(index)
-}
-
-// GetStateFork returns the fork of the state at the given stateID.
-func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, ForkT, _, _, _, _, _, _,
-]) StateForkAtSlot(
-	slot uint64,
-) (ForkT, error) {
-	var fork ForkT
-	st, err := b.StateFromSlot(slot)
-	if err != nil {
-		return fork, err
-	}
-	return st.GetFork()
-}
-
-// GetBlockRoot returns the root of the block at the given stateID.
-func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) BlockRootAtSlot(
-	slot uint64,
-) (common.Root, error) {
-	st, err := b.StateFromSlot(slot)
-	if err != nil {
-		return common.Root{}, err
-	}
-	latestSlot, err := st.GetSlot()
-	if err != nil {
-		return common.Root{}, err
-	}
-	return st.GetBlockRootAtIndex(latestSlot.Unwrap())
-}
-
-// TODO: Implement this.
-func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) BlockRewardsAtSlot(
-	_ uint64,
-) (*types.BlockRewardsData, error) {
-	return &types.BlockRewardsData{
-		ProposerIndex:     1,
-		Total:             1,
-		Attestations:      1,
-		SyncAggregate:     1,
-		ProposerSlashings: 1,
-		AttesterSlashings: 1,
-	}, nil
+	return st.GetValidators()
 }
 
 func (b Backend[
@@ -119,7 +47,7 @@ func (b Backend[
 	// TODO: to adhere to the spec, this shouldn't error if the error
 	// is not found, but i can't think of a way to do that without coupling
 	// db impl to the api impl.
-	st, err := b.StateFromSlot(slot)
+	st, err := b.stateFromSlot(slot)
 	if err != nil {
 		return nil, err
 	}
@@ -173,7 +101,7 @@ func (b Backend[
 	ids []string,
 ) ([]*types.ValidatorBalanceData, error) {
 	var index math.U64
-	st, err := b.StateFromSlot(slot)
+	st, err := b.stateFromSlot(slot)
 	if err != nil {
 		return nil, err
 	}

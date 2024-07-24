@@ -28,7 +28,7 @@ import (
 
 //nolint:funlen // routes are long
 func (h *Handler[ContextT, _, _]) RegisterRoutes() {
-	h.routes.Routes = []handlers.Route[ContextT]{
+	h.routes.Routes = []*handlers.Route[ContextT]{
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/beacon/genesis",

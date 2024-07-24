@@ -18,29 +18,42 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package node
+package backend
 
 import (
-	"github.com/berachain/beacon-kit/mod/node-api/handlers"
-	"github.com/berachain/beacon-kit/mod/node-api/types"
-	"github.com/berachain/beacon-kit/mod/node-api/types/context"
+	types "github.com/berachain/beacon-kit/mod/node-api/types/beacon"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
-type Handler[ContextT context.Context] struct {
-	routes *handlers.RouteSet[ContextT]
-}
-
-func NewHandler[ContextT context.Context]() *Handler[ContextT] {
-	h := &Handler[ContextT]{
-		routes: handlers.NewRouteSet[ContextT](""),
+// GetBlockRoot returns the root of the block at the given stateID.
+func (b Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) BlockRootAtSlot(
+	slot uint64,
+) (common.Root, error) {
+	st, err := b.stateFromSlot(slot)
+	if err != nil {
+		return common.Root{}, err
 	}
-	return h
+	latestSlot, err := st.GetSlot()
+	if err != nil {
+		return common.Root{}, err
+	}
+	return st.GetBlockRootAtIndex(latestSlot.Unwrap())
 }
 
-func (h *Handler[ContextT]) RouteSet() *handlers.RouteSet[ContextT] {
-	return h.routes
-}
-
-func (h *Handler[ContextT]) NotImplemented(_ ContextT) (any, error) {
-	return nil, types.ErrNotImplemented
+// TODO: Implement this.
+func (b Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) BlockRewardsAtSlot(
+	_ uint64,
+) (*types.BlockRewardsData, error) {
+	return &types.BlockRewardsData{
+		ProposerIndex:     1,
+		Total:             1,
+		Attestations:      1,
+		SyncAggregate:     1,
+		ProposerSlashings: 1,
+		AttesterSlashings: 1,
+	}, nil
 }

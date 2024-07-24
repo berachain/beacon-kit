@@ -34,7 +34,7 @@ type Handler[
 	ValidatorT any,
 ] struct {
 	backend Backend[ForkT, ValidatorT]
-	routes  handlers.RouteSet[ContextT]
+	routes  *handlers.RouteSet[ContextT]
 }
 
 // NewHandler creates a new handler for the beacon API.
@@ -52,7 +52,7 @@ func NewHandler[
 	return h
 }
 
-func (h *Handler[ContextT, _, _]) RouteSet() handlers.RouteSet[ContextT] {
+func (h *Handler[ContextT, _, _]) RouteSet() *handlers.RouteSet[ContextT] {
 	return h.routes
 }
 

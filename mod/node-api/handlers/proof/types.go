@@ -18,29 +18,13 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package node
+package proof
 
-import (
-	"github.com/berachain/beacon-kit/mod/node-api/handlers"
-	"github.com/berachain/beacon-kit/mod/node-api/types"
-	"github.com/berachain/beacon-kit/mod/node-api/types/context"
-)
-
-type Handler[ContextT context.Context] struct {
-	routes *handlers.RouteSet[ContextT]
+// Backend is the interface for backend of the proof API.
+type Backend[ValidatorT any] interface {
+	ValidatorBackend[ValidatorT]
 }
 
-func NewHandler[ContextT context.Context]() *Handler[ContextT] {
-	h := &Handler[ContextT]{
-		routes: handlers.NewRouteSet[ContextT](""),
-	}
-	return h
-}
-
-func (h *Handler[ContextT]) RouteSet() *handlers.RouteSet[ContextT] {
-	return h.routes
-}
-
-func (h *Handler[ContextT]) NotImplemented(_ ContextT) (any, error) {
-	return nil, types.ErrNotImplemented
+type ValidatorBackend[ValidatorT any] interface {
+	AllValidators(slot uint64) ([]ValidatorT, error)
 }

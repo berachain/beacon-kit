@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/debug"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/events"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/node"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof"
 	"github.com/berachain/beacon-kit/mod/node-api/types/context"
 )
 
@@ -46,5 +47,6 @@ func DefaultHandlers[
 		debug.NewHandler[ContextT](),
 		events.NewHandler[ContextT](),
 		node.NewHandler[ContextT](),
+		proof.NewHandler[ContextT](backend),
 	}
 }

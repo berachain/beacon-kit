@@ -18,29 +18,20 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package node
+package backend
 
-import (
-	"github.com/berachain/beacon-kit/mod/node-api/handlers"
-	"github.com/berachain/beacon-kit/mod/node-api/types"
-	"github.com/berachain/beacon-kit/mod/node-api/types/context"
-)
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 
-type Handler[ContextT context.Context] struct {
-	routes *handlers.RouteSet[ContextT]
-}
-
-func NewHandler[ContextT context.Context]() *Handler[ContextT] {
-	h := &Handler[ContextT]{
-		routes: handlers.NewRouteSet[ContextT](""),
+// GetGenesis returns the genesis state of the beacon chain.
+func (b Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) GenesisValidatorsRoot(
+	slot uint64,
+) (common.Root, error) {
+	// needs genesis_time and gensis_fork_version
+	st, err := b.stateFromSlot(slot)
+	if err != nil {
+		return common.Root{}, err
 	}
-	return h
-}
-
-func (h *Handler[ContextT]) RouteSet() *handlers.RouteSet[ContextT] {
-	return h.routes
-}
-
-func (h *Handler[ContextT]) NotImplemented(_ ContextT) (any, error) {
-	return nil, types.ErrNotImplemented
+	return st.GetGenesisValidatorsRoot()
 }

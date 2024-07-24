@@ -27,7 +27,7 @@ import (
 )
 
 type Handler[ContextT context.Context] struct {
-	routes handlers.RouteSet[ContextT]
+	routes *handlers.RouteSet[ContextT]
 }
 
 func NewHandler[ContextT context.Context]() *Handler[ContextT] {
@@ -37,7 +37,7 @@ func NewHandler[ContextT context.Context]() *Handler[ContextT] {
 	return h
 }
 
-func (h *Handler[ContextT]) RouteSet() handlers.RouteSet[ContextT] {
+func (h *Handler[ContextT]) RouteSet() *handlers.RouteSet[ContextT] {
 	return h.routes
 }
 
