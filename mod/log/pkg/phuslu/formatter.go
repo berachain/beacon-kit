@@ -86,8 +86,8 @@ func (f *Formatter) Format(
 	return out.Write(buffer.Bytes)
 }
 
-// SetNoLevelFormat sets the no level header colors and labels.
-func (f *Formatter) SetNoLevelFormat(
+// FormatNoLevelHeader sets the no level header colors and labels.
+func (f *Formatter) FormatNoLevelHeader(
 	color, label string,
 ) {
 	f.noLevelColor = color
