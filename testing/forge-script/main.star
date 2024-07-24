@@ -1,5 +1,6 @@
 CONFIG_DIR_PATH = "/app/scripts"
 IMAGE_FOUNDRY = "ghcr.io/foundry-rs/foundry:latest"
+
 def run(plan, deployment = {}):
     deployed_contracts = deploy_contracts(plan, deployment)
     # for name, address in deployed_contracts.items():
@@ -16,12 +17,12 @@ def deploy_contracts(plan, deployment):
 
     rpc_url = deployment["rpc_url"]
     plan.print("rpc_url: " + rpc_url)
+
     # TODO: Pull the file from github using curl
     # Fetch the content of the file from script_path
     script_content = plan.upload_files(src = script_path, name = "deployscript", description = "Uploading deployment script")
 
     folder = plan.upload_files(src = "github.com/nidhi-singh02/solidity-scripting/", name = "folder")
-
 
     plan.print("script_content: " + script_content)
     gas = str(deployment["params"]["gas"])
@@ -45,18 +46,17 @@ def deploy_contracts(plan, deployment):
 
     # plan.print("service: " + str(service))
     # plan.print("Service name", service.name)
-    deploy_command = "forge script "+ str(CONFIG_DIR_PATH) + " --broadcast --gas-limit "+ gas
+    deploy_command = "forge script " + str(CONFIG_DIR_PATH) + " --broadcast --gas-limit " + gas
     plan.print("deploy_command: " + str(deploy_command))
 
     # deploy_command = "tail -f /dev/null"
-
 
     plan.print("Script content name: " + str(script_content))
     # run_command = "forge script "+str(CONFIG_DIR_PATH)+"/NFT.s.sol"+":"+contract_name+" --broadcast --gas-limit "+ gas
     # plan.print("run_command: " + str(run_command))
 
-# "forge script "+str(CONFIG_DIR_PATH)+"/"+script_content+":"+contract_name+" --broadcast --gas-limit "+ gas
-    run_command = "cd /app/folder && forge build && forge script /app/folder/script/NFT.s.sol"+":"+contract_name+" --broadcast --gas-limit "+ gas+ " --rpc-url " + rpc_url + " -vvvv"
+    # "forge script "+str(CONFIG_DIR_PATH)+"/"+script_content+":"+contract_name+" --broadcast --gas-limit "+ gas
+    run_command = "cd /app/folder && forge build && forge script /app/folder/script/NFT.s.sol" + ":" + contract_name + " --broadcast --gas-limit " + gas + " --rpc-url " + rpc_url + " -vvvv"
     plan.print("run_command: " + str(run_command))
 
     plan.run_sh(
@@ -76,7 +76,6 @@ def deploy_contracts(plan, deployment):
     #     ),
     # )
 
-    
     # result = run_command(deploy_command)
     # if result.return_code != 0:
     #     fail("Deployment script failed: " + result.stderr)
