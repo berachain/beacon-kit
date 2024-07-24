@@ -35,10 +35,10 @@ import (
 //nolint:lll
 type DepositMessage struct {
 	// Public key of the validator specified in the deposit.
-	Pubkey crypto.BLSPubkey `json:"pubkey"      ssz-max:"48"`
+	Pubkey crypto.BLSPubkey `json:"pubkey"`
 	// A staking credentials with
 	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
-	Credentials WithdrawalCredentials `json:"credentials"              ssz-size:"32"`
+	Credentials WithdrawalCredentials `json:"credentials"`
 	// Deposit amount in gwei.
 	Amount math.Gwei `json:"amount"`
 }
