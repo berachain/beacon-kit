@@ -10,6 +10,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/holiman/uint256"
 )
 
@@ -18,21 +19,21 @@ var _ = (*executionPayloadMarshaling)(nil)
 // MarshalJSON marshals as JSON.
 func (e ExecutionPayload) MarshalJSON() ([]byte, error) {
 	type ExecutionPayload struct {
-		ParentHash    common.Hash                    `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
-		FeeRecipient  common.Address                 `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
-		StateRoot     bytes.B32                      `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
-		ReceiptsRoot  bytes.B32                      `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
-		LogsBloom     bytes.Bytes                    `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
-		Random        bytes.B32                      `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
-		Number        math.U64                       `json:"blockNumber"                  gencodec:"required"`
-		GasLimit      math.U64                       `json:"gasLimit"                     gencodec:"required"`
-		GasUsed       math.U64                       `json:"gasUsed"                      gencodec:"required"`
-		Timestamp     math.U64                       `json:"timestamp"                    gencodec:"required"`
-		ExtraData     bytes.Bytes                    `json:"extraData"                    gencodec:"required" ssz-max:"32"`
-		BaseFeePerGas *uint256.Int                   `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
-		BlockHash     common.Hash                    `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
-		Transactions  []bytes.Bytes                  `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
-		Withdrawals   []*engineprimitives.Withdrawal `json:"withdrawals"                                      ssz-max:"16"`
+		ParentHash    common.Hash                    `json:"parentHash" gencodec:"required"`
+		FeeRecipient  common.Address                 `json:"feeRecipient" gencodec:"required"`
+		StateRoot     bytes.B32                      `json:"stateRoot" gencodec:"required"`
+		ReceiptsRoot  bytes.B32                      `json:"receiptsRoot" gencodec:"required"`
+		LogsBloom     bytes.Bytes                    `json:"logsBloom" gencodec:"required"`
+		Random        bytes.B32                      `json:"prevRandao" gencodec:"required"`
+		Number        math.U64                       `json:"blockNumber" gencodec:"required"`
+		GasLimit      math.U64                       `json:"gasLimit" gencodec:"required"`
+		GasUsed       math.U64                       `json:"gasUsed" gencodec:"required"`
+		Timestamp     math.U64                       `json:"timestamp" gencodec:"required"`
+		ExtraData     bytes.Bytes                    `json:"extraData" gencodec:"required"`
+		BaseFeePerGas hexutil.Big               `json:"baseFeePerGas" gencodec:"required"`
+		BlockHash     common.Hash                    `json:"blockHash" gencodec:"required"`
+		Transactions  []bytes.Bytes                  `json:"transactions" gencodec:"required"`
+		Withdrawals   []*engineprimitives.Withdrawal `json:"withdrawals"`
 		BlobGasUsed   math.U64                       `json:"blobGasUsed"`
 		ExcessBlobGas math.U64                       `json:"excessBlobGas"`
 	}
@@ -48,13 +49,11 @@ func (e ExecutionPayload) MarshalJSON() ([]byte, error) {
 	enc.GasUsed = e.GasUsed
 	enc.Timestamp = e.Timestamp
 	enc.ExtraData = e.ExtraData
-	enc.BaseFeePerGas = e.BaseFeePerGas
+	enc.BaseFeePerGas = hexutil.Big(*e.BaseFeePerGas.ToBig())
 	enc.BlockHash = e.BlockHash
-	if e.Transactions != nil {
-		enc.Transactions = make([]bytes.Bytes, len(e.Transactions))
-		for k, v := range e.Transactions {
-			enc.Transactions[k] = v
-		}
+	enc.Transactions = make([]bytes.Bytes, len(e.Transactions))
+	for k, v := range e.Transactions {
+		enc.Transactions[k] = v
 	}
 	enc.Withdrawals = e.Withdrawals
 	enc.BlobGasUsed = e.BlobGasUsed
@@ -65,21 +64,21 @@ func (e ExecutionPayload) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (e *ExecutionPayload) UnmarshalJSON(input []byte) error {
 	type ExecutionPayload struct {
-		ParentHash    *common.Hash                   `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
-		FeeRecipient  *common.Address                `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
-		StateRoot     *bytes.B32                     `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
-		ReceiptsRoot  *bytes.B32                     `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
-		LogsBloom     *bytes.Bytes                   `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
-		Random        *bytes.B32                     `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
-		Number        *math.U64                      `json:"blockNumber"                  gencodec:"required"`
-		GasLimit      *math.U64                      `json:"gasLimit"                     gencodec:"required"`
-		GasUsed       *math.U64                      `json:"gasUsed"                      gencodec:"required"`
-		Timestamp     *math.U64                      `json:"timestamp"                    gencodec:"required"`
-		ExtraData     *bytes.Bytes                   `json:"extraData"                    gencodec:"required" ssz-max:"32"`
-		BaseFeePerGas *uint256.Int                   `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
-		BlockHash     *common.Hash                   `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
-		Transactions  []bytes.Bytes                  `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
-		Withdrawals   []*engineprimitives.Withdrawal `json:"withdrawals"                                      ssz-max:"16"`
+		ParentHash    *common.Hash                   `json:"parentHash" gencodec:"required"`
+		FeeRecipient  *common.Address                `json:"feeRecipient" gencodec:"required"`
+		StateRoot     *bytes.B32                     `json:"stateRoot" gencodec:"required"`
+		ReceiptsRoot  *bytes.B32                     `json:"receiptsRoot" gencodec:"required"`
+		LogsBloom     *bytes.Bytes                   `json:"logsBloom" gencodec:"required"`
+		Random        *bytes.B32                     `json:"prevRandao" gencodec:"required"`
+		Number        *math.U64                      `json:"blockNumber" gencodec:"required"`
+		GasLimit      *math.U64                      `json:"gasLimit" gencodec:"required"`
+		GasUsed       *math.U64                      `json:"gasUsed" gencodec:"required"`
+		Timestamp     *math.U64                      `json:"timestamp" gencodec:"required"`
+		ExtraData     *bytes.Bytes                   `json:"extraData" gencodec:"required"`
+		BaseFeePerGas *hexutil.Big                  `json:"baseFeePerGas" gencodec:"required"`
+		BlockHash     *common.Hash                   `json:"blockHash" gencodec:"required"`
+		Transactions  []bytes.Bytes                  `json:"transactions" gencodec:"required"`
+		Withdrawals   []*engineprimitives.Withdrawal `json:"withdrawals"`
 		BlobGasUsed   *math.U64                      `json:"blobGasUsed"`
 		ExcessBlobGas *math.U64                      `json:"excessBlobGas"`
 	}
@@ -137,7 +136,7 @@ func (e *ExecutionPayload) UnmarshalJSON(input []byte) error {
 	if dec.BaseFeePerGas == nil {
 		return errors.New("missing required field 'baseFeePerGas' for ExecutionPayload")
 	}
-	e.BaseFeePerGas = dec.BaseFeePerGas
+	e.BaseFeePerGas = uint256.MustFromBig(dec.BaseFeePerGas.ToInt())
 	if dec.BlockHash == nil {
 		return errors.New("missing required field 'blockHash' for ExecutionPayload")
 	}

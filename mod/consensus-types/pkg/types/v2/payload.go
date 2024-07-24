@@ -62,16 +62,13 @@ type ExecutionPayload struct {
 // SizeSSZ returns either the static size of the object if fixed == true, or
 // the total size otherwise.
 func (e *ExecutionPayload) SizeSSZ(fixed bool) uint32 {
-	// Start out with the static size
-	size := uint32(512)
+	var size = uint32(32 + 20 + 32 + 32 + 256 + 32 + 8 + 8 + 8 + 8 + 4 + 32 + 32 + 4 + 4 + 8 + 8)
 	if fixed {
 		return size
 	}
-	// Append all the dynamic sizes
-	size += ssz.SizeDynamicBytes(e.ExtraData)           // Field (10) - ExtraData    - max 32 bytes (not enforced)
-	size += ssz.SizeSliceOfDynamicBytes(e.Transactions) // Field (13) - Transactions - max 1048576 items, 1073741824 bytes each (not enforced)
-	size += ssz.SizeSliceOfStaticObjects(e.Withdrawals) // Field (14) - Withdrawals  - max 16 items, 44 bytes each (not enforced)
-
+	size += ssz.SizeDynamicBytes(e.ExtraData)
+	size += ssz.SizeSliceOfDynamicBytes(e.Transactions)
+	size += ssz.SizeSliceOfStaticObjects(e.Withdrawals)
 	return size
 }
 
@@ -92,10 +89,14 @@ func (obj *ExecutionPayload) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineUint256(codec, &obj.BaseFeePerGas)                                       // Field  (11) - BaseFeePerGas -  32 bytes
 	ssz.DefineStaticBytes(codec, &obj.BlockHash)                                       // Field  (12) -     BlockHash -  32 bytes
 	ssz.DefineSliceOfDynamicBytesOffset(codec, &obj.Transactions, 1048576, 1073741824) // Offset (13) -  Transactions -   4 bytes
+	ssz.DefineSliceOfStaticObjectsOffset(codec, &obj.Withdrawals, 16)                  // Offset (14) -   Withdrawals -   4 bytes
+	ssz.DefineUint64(codec, &obj.BlobGasUsed)                                          // Field  (15) -   BlobGasUsed -   8 bytes
+	ssz.DefineUint64(codec, &obj.ExcessBlobGas)                                        // Field  (16) - ExcessBlobGas -   8 bytes
 
 	// Define the dynamic data (fields)
 	ssz.DefineDynamicBytesContent(codec, &obj.ExtraData, 32)                            // Field  (10) -     ExtraData - ? bytes
 	ssz.DefineSliceOfDynamicBytesContent(codec, &obj.Transactions, 1048576, 1073741824) // Field  (13) -  Transactions - ? bytes
+	ssz.DefineSliceOfStaticObjectsContent(codec, &obj.Withdrawals, 16)                  // Field  (14) -   Withdrawals - ? bytes
 }
 
 // HashTreeRootSSZ returns the root of the hash tree.

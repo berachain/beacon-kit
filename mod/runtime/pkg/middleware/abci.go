@@ -203,6 +203,7 @@ func (h *ABCIMiddleware[
 
 	// Request the beacon block.
 	if blk, err = h.beaconBlockGossiper.Request(ctx, abciReq); err != nil {
+		h.logger.Error("Error requesting beacon block", "error", err)
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
 
@@ -213,6 +214,7 @@ func (h *ABCIMiddleware[
 
 	// Request the blob sidecars.
 	if sidecars, err = h.blobGossiper.Request(ctx, abciReq); err != nil {
+		h.logger.Error("Error requesting block sidecars", "error", err)
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
 

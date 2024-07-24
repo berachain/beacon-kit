@@ -142,5 +142,6 @@ func (c *ConsensusEngine[_, _, _, _, _, ValidatorUpdateT]) EndBlock(
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("ENDBLOCK", updates)
 	return iter.MapErr(updates, convertValidatorUpdate[ValidatorUpdateT])
 }

@@ -22,6 +22,7 @@ package blockchain
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
@@ -199,6 +200,7 @@ func (s *Service[
 		case <-ctx.Done():
 			return
 		case msg := <-subBlkCh:
+			fmt.Println("RECEIVED MESSAGE IN BLOCKCHAIN", msg.Type())
 			switch msg.Type() {
 			case events.BeaconBlockReceived:
 				s.handleBeaconBlockReceived(msg)
@@ -250,6 +252,8 @@ func (s *Service[
 ]) handleBeaconBlockReceived(
 	msg *asynctypes.Event[BeaconBlockT],
 ) {
+
+	fmt.Println("HANDLE BEACON BLOCK RECEIVED", msg.Data())
 	// If the block is nil, exit early.
 	if msg.Error() != nil {
 		s.logger.Error("Error processing beacon block", "error", msg.Error())
@@ -275,11 +279,15 @@ func (s *Service[
 ]) handleBeaconBlockFinalization(
 	msg *asynctypes.Event[BeaconBlockT],
 ) {
+
+	fmt.Println("HANDLE BEACON BLOCK FINALZIATION", msg.Data())
 	// If there's an error in the event, log it and return
 	if msg.Error() != nil {
 		s.logger.Error("Error verifying beacon block", "error", msg.Error())
 		return
 	}
+
+	fmt.Println("HANDLE BEACON BLOCK FINALIZATION")
 
 	// Process the verified block
 	valUpdates, err := s.ProcessBeaconBlock(msg.Context(), msg.Data())

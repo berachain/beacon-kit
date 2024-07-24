@@ -22,6 +22,7 @@ package blockchain
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
@@ -53,6 +54,7 @@ func (s *Service[
 	ctx context.Context,
 	blk BeaconBlockT,
 ) (transition.ValidatorUpdates, error) {
+	fmt.Println("ABC ARE WE GETTING HERE")
 	// If the block is nil, exit early.
 	if blk.IsNil() {
 		return nil, ErrNilBlk

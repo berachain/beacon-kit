@@ -24,7 +24,7 @@ import (
 	"context"
 	"strconv"
 
-	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types/v2"
 	serverType "github.com/berachain/beacon-kit/mod/node-api/server/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"

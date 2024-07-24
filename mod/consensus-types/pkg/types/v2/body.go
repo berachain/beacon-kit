@@ -114,7 +114,7 @@ func (b *BeaconBlockBody) IsNil() bool {
 
 // SizeSSZ returns the size of the Eth1Data object in SSZ encoding.
 func (b *BeaconBlockBody) SizeSSZ(fixed bool) uint32 {
-	var size = uint32(96 + (*Eth1Data)(nil).SizeSSZ() + 32 + 12)
+	var size = uint32(96 + (*Eth1Data)(nil).SizeSSZ() + 32 + 4 + 4 + 4)
 	if fixed {
 		return size
 	}
@@ -130,10 +130,9 @@ func (b *BeaconBlockBody) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineStaticBytes(codec, &b.RandaoReveal)
 	ssz.DefineStaticObject(codec, &b.Eth1Data)
 	ssz.DefineStaticBytes(codec, &b.Graffiti)
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &b.Deposits, 16)           // Offset ( 6) -              Deposits -  4 bytes
-	ssz.DefineDynamicObjectOffset(codec, &b.ExecutionPayload)              // Offset ( 9) -      ExecutionPayload -  4 bytes
-	ssz.DefineSliceOfStaticBytesOffset(codec, &b.BlobKzgCommitments, 4096) // Offset (11) -    BlobKzgCommitments -  4 bytes
-
+	ssz.DefineSliceOfStaticObjectsOffset(codec, &b.Deposits, 16)            // Offset ( 6) -              Deposits -  4 bytes
+	ssz.DefineDynamicObjectOffset(codec, &b.ExecutionPayload)               // Offset ( 9) -      ExecutionPayload -  4 bytes
+	ssz.DefineSliceOfStaticBytesOffset(codec, &b.BlobKzgCommitments, 4096)  // Offset (11) -    BlobKzgCommitments -  4 bytes
 	ssz.DefineSliceOfStaticObjectsContent(codec, &b.Deposits, 16)           // Field  ( 6) -              Deposits - ? bytes
 	ssz.DefineDynamicObjectContent(codec, &b.ExecutionPayload)              // Field  ( 9) -      ExecutionPayload - ? bytes
 	ssz.DefineSliceOfStaticBytesContent(codec, &b.BlobKzgCommitments, 4096) // Field  (11) -    BlobKzgCommitments - ? bytes

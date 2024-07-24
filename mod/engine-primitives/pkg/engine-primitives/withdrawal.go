@@ -107,15 +107,15 @@ func (*Withdrawal) ItemLength() uint64 {
 
 // SizeSSZ returns the size of the Withdrawal in bytes when SSZ encoded.
 func (*Withdrawal) SizeSSZ() uint32 {
-	return 44 // 8 + 8 + 20 + 8 = 44, rounded up to 32-byte boundary
+	return 8 + 8 + 20 + 8
 }
 
 // MarshalSSZ marshals the Withdrawal into SSZ format.
 func (w *Withdrawal) DefineSSZ(c *ssz.Codec) {
-	ssz.DefineUint64(c, &w.Index)
-	ssz.DefineUint64(c, &w.Validator)
-	ssz.DefineStaticBytes(c, &w.Address)
-	ssz.DefineUint64(c, &w.Amount)
+	ssz.DefineUint64(c, &w.Index)        // Field  (0) -     Index -  8 bytes
+	ssz.DefineUint64(c, &w.Validator)    // Field  (1) - Validator -  8 bytes
+	ssz.DefineStaticBytes(c, &w.Address) // Field  (2) -   Address - 20 bytes
+	ssz.DefineUint64(c, &w.Amount)       // Field  (3) -    Amount -  8 bytes
 }
 
 // HashTreeRoot
