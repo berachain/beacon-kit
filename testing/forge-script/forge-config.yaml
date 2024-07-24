@@ -1,9 +1,9 @@
 deployment:
-  script_path: "example/NFT.s.sol"
+  script_path: "/testing/forge-script/example/NFT.s.sol"
+  contract_name: "MyScript"
+  rpc_url: localhost:8545
   params:
     gas: 60000
-  # script_path: "https://github.com/Perelyn-sama/solidity-scripting/blob/master/script/NFT.s.sol"
-  rpc_url:
   # constructor_args:
   #   gas_limit: 0
   #   gas_price: 0
