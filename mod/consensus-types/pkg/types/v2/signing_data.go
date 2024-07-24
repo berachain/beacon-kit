@@ -33,9 +33,15 @@ import (
 //
 //nolint:lll // link.
 type SigningData struct {
-	ObjectRoot common.Root   `ssz-size:"32"`
-	Domain     common.Domain `ssz-size:"32"`
+	// ObjectRoot is the hash tree root of the object being signed.
+	ObjectRoot common.Root
+	// Domain is the domain the object is being signed in.
+	Domain common.Domain
 }
+
+/* -------------------------------------------------------------------------- */
+/*                                     SSZ                                    */
+/* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the SigningData object in SSZ encoding.
 func (*SigningData) SizeSSZ() uint32 {

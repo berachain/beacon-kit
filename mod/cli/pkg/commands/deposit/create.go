@@ -27,7 +27,7 @@ import (
 
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/parser"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	typesv2 "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types/v2"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
@@ -120,8 +120,8 @@ func createValidatorCmd[
 		}
 
 		// Create and sign the deposit message.
-		depositMsg, signature, err := types.CreateAndSignDepositMessage(
-			types.NewForkData(currentVersion, genesisValidatorRoot),
+		depositMsg, signature, err := typesv2.CreateAndSignDepositMessage(
+			typesv2.NewForkData(currentVersion, genesisValidatorRoot),
 			chainSpec.DomainTypeDeposit(),
 			blsSigner,
 			credentials,
@@ -133,7 +133,7 @@ func createValidatorCmd[
 
 		// Verify the deposit message.
 		if err = depositMsg.VerifyCreateValidator(
-			types.NewForkData(currentVersion, genesisValidatorRoot),
+			typesv2.NewForkData(currentVersion, genesisValidatorRoot),
 			signature,
 			chainSpec.DomainTypeDeposit(),
 			signer.BLSSigner{}.VerifySignature,
@@ -175,7 +175,7 @@ func broadcastDepositTx[
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 ](
 	cmd *cobra.Command,
-	depositMsg *types.DepositMessage,
+	depositMsg *typesv2.DepositMessage,
 	signature crypto.BLSSignature,
 	chainSpec common.ChainSpec,
 ) (common.ExecutionHash, error) {

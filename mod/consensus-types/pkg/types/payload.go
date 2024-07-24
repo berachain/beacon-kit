@@ -123,6 +123,8 @@ func (e *ExecutionPayload) ToHeader(
 }
 
 // ExecutableDataDeneb is the execution payload for Deneb.
+//
+//nolint:lll
 type ExecutableDataDeneb struct {
 	ParentHash    gethprimitives.ExecutionHash    `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
 	FeeRecipient  gethprimitives.ExecutionAddress `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`

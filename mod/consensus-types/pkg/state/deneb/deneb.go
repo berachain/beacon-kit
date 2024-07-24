@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
+//nolint:lll // bet.
 type BeaconState struct {
 	// Versioning
 	//

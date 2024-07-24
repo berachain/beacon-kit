@@ -83,6 +83,8 @@ func (e *ExecutionPayloadHeader) NewFromJSON(
 }
 
 // ExecutionPayloadHeaderDeneb is the execution header payload of Deneb.
+//
+//nolint:lll
 type ExecutionPayloadHeaderDeneb struct {
 	ParentHash       gethprimitives.ExecutionHash    `json:"parentHash"       ssz-size:"32"  gencodec:"required"`
 	FeeRecipient     gethprimitives.ExecutionAddress `json:"feeRecipient"     ssz-size:"20"  gencodec:"required"`
