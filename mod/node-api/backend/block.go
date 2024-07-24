@@ -35,19 +35,25 @@ func (b Backend[
 		blockHeader BeaconBlockHeaderT
 		stateRoot   common.Root
 	)
+
 	st, err := b.stateFromSlot(slot)
 	if err != nil {
 		return blockHeader, err
 	}
+
 	blockHeader, err = st.GetLatestBlockHeader()
 	if err != nil {
 		return blockHeader, err
 	}
+
+	// The state root must be patched onto the latest block header since it is
+	// committed to state with a 0 state root.
 	stateRoot, err = b.StateRootAtSlot(slot)
 	if err != nil {
 		return blockHeader, err
 	}
 	blockHeader.SetStateRoot(stateRoot)
+
 	return blockHeader, nil
 }
 

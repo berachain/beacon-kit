@@ -35,7 +35,7 @@ type Backend[
 	AvailabilityStoreT AvailabilityStore[
 		BeaconBlockBodyT, BlobSidecarsT,
 	],
-	BeaconBlockT any,
+	BeaconBlockT BeaconBlock[BeaconBlockBodyT, BeaconBlockHeaderT],
 	BeaconBlockBodyT any,
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT core.BeaconState[
@@ -49,7 +49,7 @@ type Backend[
 	BlobSidecarsT any,
 	BlockStoreT BlockStore[BeaconBlockT],
 	ContextT context.Context,
-	DepositT Deposit,
+	DepositT Deposit[DepositT],
 	DepositStoreT DepositStore[DepositT],
 	Eth1DataT,
 	ExecutionPayloadHeaderT,
@@ -76,7 +76,7 @@ func New[
 	AvailabilityStoreT AvailabilityStore[
 		BeaconBlockBodyT, BlobSidecarsT,
 	],
-	BeaconBlockT any,
+	BeaconBlockT BeaconBlock[BeaconBlockBodyT, BeaconBlockHeaderT],
 	BeaconBlockBodyT any,
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT core.BeaconState[
@@ -90,7 +90,7 @@ func New[
 	BlobSidecarsT any,
 	BlockStoreT BlockStore[BeaconBlockT],
 	ContextT context.Context,
-	DepositT Deposit,
+	DepositT Deposit[DepositT],
 	DepositStoreT DepositStore[DepositT],
 	Eth1DataT,
 	ExecutionPayloadHeaderT,

@@ -23,9 +23,11 @@ package backend
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -41,6 +43,20 @@ type AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT any] interface {
 	// Persist makes sure that the sidecar remains accessible for data
 	// availability checks throughout the beacon node's operation.
 	Persist(math.Slot, BlobSidecarsT) error
+}
+
+// BeaconBlock is the interface for a beacon block.
+type BeaconBlock[BeaconBlockBodyT, BeaconBlockHeaderT any] interface {
+	constraints.SSZMarshallable
+	SetStateRoot(common.Root)
+	GetStateRoot() common.Root
+	IsNil() bool
+	Version() uint32
+	GetSlot() math.Slot
+	GetProposerIndex() math.ValidatorIndex
+	GetParentBlockRoot() common.Root
+	GetBody() BeaconBlockBodyT
+	GetHeader() BeaconBlockHeaderT
 }
 
 // BeaconBlockHeader is the interface for a beacon block header.
@@ -72,9 +88,16 @@ type BlockStore[BeaconBlockT any] interface {
 }
 
 // Deposit is a struct that represents a deposit.
-type Deposit interface {
+type Deposit[DepositT any] interface {
 	constraints.SSZMarshallable
 	GetIndex() uint64
+	New(
+		pubkey crypto.BLSPubkey,
+		credentials types.WithdrawalCredentials,
+		amount math.Gwei,
+		signature crypto.BLSSignature,
+		index uint64,
+	) DepositT
 }
 
 // DepositStore defines the interface for deposit storage.
