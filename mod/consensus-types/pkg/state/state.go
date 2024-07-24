@@ -76,7 +76,7 @@ func (st *BeaconStateMarshallable[
 	ValidatorT,
 ], error) {
 	switch forkVersion {
-	case version.Deneb:
+	case version.Deneb, version.DenebPlus:
 		return &BeaconStateMarshallable[
 			BeaconBlockHeaderT,
 			Eth1DataT,

@@ -21,6 +21,7 @@
 package components
 
 import (
+	"cosmossdk.io/core/appmodule/v2"
 	broker "github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
@@ -30,6 +31,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	typesv2 "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types/v2"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
+	consruntimetypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/da/pkg/da"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
@@ -42,7 +45,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
@@ -64,7 +66,11 @@ type (
 		*Deposit,
 		*ExecutionPayload,
 		*Genesis,
+		*SlotData,
 	]
+
+	// AttestationData is a type alias for the attestation data.
+	AttestationData = types.AttestationData
 
 	// AttributesFactory is a type alias for the attributes factory.
 	AttributesFactory = attributes.Factory[
@@ -137,6 +143,23 @@ type (
 		*Withdrawal,
 	]
 
+	// ConsensusEngine is a type alias for the consensus engine.
+	ConsensusEngine = cometbft.ConsensusEngine[
+		*AttestationData,
+		*BeaconState,
+		*SlashingInfo,
+		*SlotData,
+		*StorageBackend,
+		*ValidatorUpdate,
+	]
+
+	// ConsensusMiddleware is a type alias for the consensus middleware.
+	ConsensusMiddleware = cometbft.Middleware[
+		*AttestationData,
+		*SlashingInfo,
+		*SlotData,
+	]
+
 	// Context is a type alias for the transition context.
 	Context = transition.Context
 
@@ -207,6 +230,12 @@ type (
 		*ExecutionPayloadHeader,
 	]
 
+	// SlotData is a type alias for the incoming slot.
+	SlotData = consruntimetypes.SlotData[
+		*types.AttestationData,
+		*types.SlashingInfo,
+	]
+
 	// IndexDB is a type alias for the range DB.
 	IndexDB = filedb.RangeDB
 
@@ -244,6 +273,9 @@ type (
 		*BeaconBlockBody,
 	]
 
+	// SlashingInfo is a type alias for the slashing info.
+	SlashingInfo = types.SlashingInfo
+
 	// StateProcessor is the type alias for the state processor interface.
 	StateProcessor = blockchain.StateProcessor[
 		*BeaconBlock,
@@ -280,6 +312,7 @@ type (
 
 	// ValidatorService is a type alias for the validator service.
 	ValidatorService = validator.Service[
+		*AttestationData,
 		*BeaconBlock,
 		*BeaconBlockBody,
 		*BeaconState,
@@ -290,7 +323,12 @@ type (
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*ForkData,
+		*SlashingInfo,
+		*SlotData,
 	]
+
+	// ValidatorUpdate is a type alias for the validator update.
+	ValidatorUpdate = appmodule.ValidatorUpdate
 
 	// Withdrawal is a type alias for the engineprimitives withdrawal.
 	Withdrawal = engineprimitives.Withdrawal
@@ -314,7 +352,7 @@ type (
 	SidecarEvent = asynctypes.Event[*BlobSidecars]
 
 	// SlotEvent is a type alias for the slot event.
-	SlotEvent = asynctypes.Event[math.Slot]
+	SlotEvent = asynctypes.Event[*SlotData]
 
 	// StatusEvent is a type alias for the status event.
 	StatusEvent = asynctypes.Event[*service.StatusEvent]

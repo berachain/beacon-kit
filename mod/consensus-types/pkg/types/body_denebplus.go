@@ -89,7 +89,31 @@ func (b *BeaconBlockBodyDenebPlus) SetBlobKzgCommitments(
 	b.BlobKzgCommitments = commitments
 }
 
-// SetEth1Data sets the Eth1Data of the BeaconBlockBodyDeneb.
+// GetAttestations returns the Attestations of the BeaconBlockBodyDenebPlus.
+func (b *BeaconBlockBodyDenebPlus) GetAttestations() []*AttestationData {
+	return b.Attestations
+}
+
+// SetAttestations sets the Attestations of the BeaconBlockBodyDenebPlus.
+func (b *BeaconBlockBodyDenebPlus) SetAttestations(
+	attestations []*AttestationData,
+) {
+	b.Attestations = attestations
+}
+
+// GetSlashingInfo returns the SlashingInfo of the BeaconBlockBodyDenebPlus.
+func (b *BeaconBlockBodyDenebPlus) GetSlashingInfo() []*SlashingInfo {
+	return b.SlashingInfo
+}
+
+// SetSlashingInfo sets the SlashingInfo of the BeaconBlockBodyDenebPlus.
+func (b *BeaconBlockBodyDenebPlus) SetSlashingInfo(
+	slashingInfo []*SlashingInfo,
+) {
+	b.SlashingInfo = slashingInfo
+}
+
+// SetEth1Data sets the Eth1Data of the BeaconBlockBodyDenebPlus.
 func (b *BeaconBlockBodyDenebPlus) SetEth1Data(eth1Data *Eth1Data) {
 	b.Eth1Data = eth1Data
 }

@@ -37,7 +37,7 @@ type BeaconBlockDenebPlus struct {
 
 // Version identifies the version of the BeaconBlockDenebPlus.
 func (b *BeaconBlockDenebPlus) Version() uint32 {
-	return version.Deneb
+	return version.DenebPlus
 }
 
 // IsNil checks if the BeaconBlockDenebPlus instance is nil.

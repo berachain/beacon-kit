@@ -89,6 +89,26 @@ func (b *BeaconBlockBodyDeneb) SetEth1Data(eth1Data *Eth1Data) {
 	b.Eth1Data = eth1Data
 }
 
+// SetDeposits is not implemented for BeaconBlockDeneb.
+func (b *BeaconBlockBodyDeneb) GetAttestations() []*AttestationData {
+	panic("not implemented")
+}
+
+// SetDeposits is not implemented for BeaconBlockDeneb.
+func (b *BeaconBlockBodyDeneb) SetAttestations(_ []*AttestationData) {
+	panic("not implemented")
+}
+
+// GetSlashingInfo is not implemented for BeaconBlockDeneb.
+func (b *BeaconBlockBodyDeneb) GetSlashingInfo() []*SlashingInfo {
+	panic("not implemented")
+}
+
+// SetSlashingInfo is not implemented for BeaconBlockDeneb.
+func (b *BeaconBlockBodyDeneb) SetSlashingInfo(_ []*SlashingInfo) {
+	panic("not implemented")
+}
+
 // GetTopLevelRoots returns the top-level roots of the BeaconBlockBodyDeneb.
 func (b *BeaconBlockBodyDeneb) GetTopLevelRoots() ([][32]byte, error) {
 	var (

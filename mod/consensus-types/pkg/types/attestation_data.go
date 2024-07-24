@@ -31,8 +31,51 @@ import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 type AttestationData struct {
 	// Slot is the slot number of the attestation data.
 	Slot uint64
-	// Index is the committee index of the attestation data.
+	// Index is the index of the validator.
 	Index uint64
 	// BeaconBlockRoot is the root of the beacon block.
 	BeaconBlockRoot common.Root
+}
+
+// New creates a new attestation data instance.
+func (a *AttestationData) New(
+	slot, index uint64,
+	beaconBlockRoot common.Root,
+) *AttestationData {
+	a = &AttestationData{
+		Slot:            slot,
+		Index:           index,
+		BeaconBlockRoot: beaconBlockRoot,
+	}
+	return a
+}
+
+// GetSlot returns the slot of the attestation data.
+func (a *AttestationData) GetSlot() uint64 {
+	return a.Slot
+}
+
+// GetIndex returns the index of the attestation data.
+func (a *AttestationData) GetIndex() uint64 {
+	return a.Index
+}
+
+// GetBeaconBlockRoot returns the beacon block root of the attestation data.
+func (a *AttestationData) GetBeaconBlockRoot() common.Root {
+	return a.BeaconBlockRoot
+}
+
+// SetSlot sets the slot of the attestation data.
+func (a *AttestationData) SetSlot(slot uint64) {
+	a.Slot = slot
+}
+
+// SetIndex sets the index of the attestation data.
+func (a *AttestationData) SetIndex(index uint64) {
+	a.Index = index
+}
+
+// SetBeaconBlockRoot sets the beacon block root of the attestation data.
+func (a *AttestationData) SetBeaconBlockRoot(root common.Root) {
+	a.BeaconBlockRoot = root
 }

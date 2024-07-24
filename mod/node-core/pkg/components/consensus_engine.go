@@ -20,45 +20,31 @@
 
 package components
 
-func DefaultComponentsWithStandardTypes() []any {
-	return []any{
-		ProvideABCIMiddleware,
-		ProvideAttributesFactory,
-		ProvideAvailabilityPruner,
-		ProvideAvailibilityStore,
-		ProvideBlsSigner,
-		ProvideBlobFeed,
-		ProvideBlockFeed,
-		ProvideBlobProcessor,
-		ProvideBlobProofVerifier,
-		ProvideBlobVerifier,
-		ProvideBlockStoreService,
-		ProvideBlockPruner,
-		ProvideBlockStore,
-		ProvideChainService,
-		ProvideChainSpec,
-		ProvideConfig,
-		ProvideConsensusEngine,
-		ProvideDAService,
-		ProvideDBManager,
-		ProvideDepositPruner,
-		ProvideDepositService,
-		ProvideDepositStore,
-		ProvideBeaconDepositContract,
-		ProvideEngineClient,
-		ProvideExecutionEngine,
-		ProvideGenesisBroker,
-		ProvideJWTSecret,
-		ProvideLocalBuilder,
-		ProvideServiceRegistry,
-		ProvideSidecarFactory,
-		ProvideStateProcessor,
-		ProvideSlotBroker,
-		ProvideStatusBroker,
-		ProvideStorageBackend,
-		ProvideTelemetrySink,
-		ProvideTrustedSetup,
-		ProvideValidatorService,
-		ProvideValidatorUpdateBroker,
-	}
+import (
+	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
+)
+
+// ConsensusEngineInput is the input for the consensus engine.
+type ConsensusEngineInput struct {
+	depinject.In
+	ConsensusMiddleware *ABCIMiddleware
+	StorageBackend      *StorageBackend
+}
+
+// ProvideConsensusEngine is a depinject provider for the consensus engine.
+func ProvideConsensusEngine(
+	in ConsensusEngineInput,
+) (*ConsensusEngine, error) {
+	return cometbft.NewConsensusEngine[
+		*AttestationData,
+		*BeaconState,
+		*SlashingInfo,
+		*SlotData,
+		*StorageBackend,
+		*ValidatorUpdate,
+	](
+		in.ConsensusMiddleware,
+		in.StorageBackend,
+	), nil
 }

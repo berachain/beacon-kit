@@ -41,6 +41,8 @@ func (c chainSpec[
 ) uint32 {
 	if epoch >= c.Data.ElectraForkEpoch {
 		return version.Electra
+	} else if epoch >= c.Data.DenebPlusForkEpoch {
+		return version.DenebPlus
 	}
 
 	return version.Deneb
