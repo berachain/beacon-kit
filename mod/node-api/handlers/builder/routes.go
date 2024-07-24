@@ -18,24 +18,20 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package backend
+package builder
 
 import (
-	"context"
+	"net/http"
 
-	"github.com/berachain/beacon-kit/mod/node-api/types"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 )
 
-func (h Backend) GetBlockRewards(
-	_ context.Context,
-	_ string,
-) (*types.BlockRewardsData, error) {
-	return &types.BlockRewardsData{
-		ProposerIndex:     1,
-		Total:             1,
-		Attestations:      1,
-		SyncAggregate:     1,
-		ProposerSlashings: 1,
-		AttesterSlashings: 1,
-	}, nil
+func (h *Handler[ContextT]) RegisterRoutes() {
+	h.BaseHandler.AddRoutes([]handlers.Route[ContextT]{
+		{
+			Method:  http.MethodGet,
+			Path:    "/eth/v1/builder/states/:state_id/expected_withdrawals",
+			Handler: h.NotImplemented,
+		},
+	})
 }
