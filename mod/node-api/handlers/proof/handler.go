@@ -30,33 +30,33 @@ import (
 // Handler is the handler for the proof API.
 type Handler[
 	ContextT context.Context,
-	// ForkT any,
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	ValidatorT any,
 ] struct {
-	backend Backend[ValidatorT]
+	backend Backend[BeaconBlockHeaderT, ValidatorT]
 	routes  *handlers.RouteSet[ContextT]
 }
 
 // NewHandler creates a new handler for the proof API.
 func NewHandler[
 	ContextT context.Context,
-	// ForkT any,
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	ValidatorT any,
 ](
-	backend Backend[ValidatorT],
-) *Handler[ContextT, ValidatorT] {
-	h := &Handler[ContextT, ValidatorT]{
+	backend Backend[BeaconBlockHeaderT, ValidatorT],
+) *Handler[ContextT, BeaconBlockHeaderT, ValidatorT] {
+	h := &Handler[ContextT, BeaconBlockHeaderT, ValidatorT]{
 		backend: backend,
 		routes:  handlers.NewRouteSet[ContextT](""),
 	}
 	return h
 }
 
-func (h *Handler[ContextT, _]) RouteSet() *handlers.RouteSet[ContextT] {
+func (h *Handler[ContextT, _, _]) RouteSet() *handlers.RouteSet[ContextT] {
 	return h.routes
 }
 
 // NotImplemented is a placeholder for the proof API.
-func (h *Handler[ContextT, _]) NotImplemented(_ ContextT) (any, error) {
+func (h *Handler[ContextT, _, _]) NotImplemented(_ ContextT) (any, error) {
 	return nil, errors.New("not implemented")
 }

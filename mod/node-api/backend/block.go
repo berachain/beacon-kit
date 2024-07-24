@@ -25,6 +25,20 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
+// BlockHeader returns the block header at the given slot.
+func (b Backend[
+	_, _, _, BeaconBlockHeaderT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) BlockHeader(
+	slot uint64,
+) (BeaconBlockHeaderT, error) {
+	var blockHeader BeaconBlockHeaderT
+	st, err := b.stateFromSlot(slot)
+	if err != nil {
+		return blockHeader, err
+	}
+	return st.GetLatestBlockHeader()
+}
+
 // GetBlockRoot returns the root of the block at the given stateID.
 func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,

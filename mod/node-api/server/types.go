@@ -21,6 +21,7 @@
 package server
 
 import (
+	"github.com/berachain/beacon-kit/mod/node-api/backend"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof"
@@ -32,15 +33,22 @@ type Engine[ContextT context.Context, T any] interface {
 	RegisterRoutes(*handlers.RouteSet[ContextT])
 }
 
-type Backend[ForkT, ValidatorT any] interface {
+type Backend[
+	BeaconBlockHeaderT backend.BeaconBlockHeader[BeaconBlockHeaderT],
+	ForkT,
+	ValidatorT any,
+] interface {
 	BeaconBackend[ForkT, ValidatorT]
-	ProofBackend[ValidatorT]
+	ProofBackend[BeaconBlockHeaderT, ValidatorT]
 }
 
 type BeaconBackend[ForkT, ValidatorT any] interface {
 	beacon.Backend[ForkT, ValidatorT]
 }
 
-type ProofBackend[ValidatorT any] interface {
-	proof.Backend[ValidatorT]
+type ProofBackend[
+	BeaconBlockHeaderT backend.BeaconBlockHeader[BeaconBlockHeaderT],
+	ValidatorT any,
+] interface {
+	proof.Backend[BeaconBlockHeaderT, ValidatorT]
 }

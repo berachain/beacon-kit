@@ -37,7 +37,7 @@ type Backend[
 	],
 	BeaconBlockT any,
 	BeaconBlockBodyT any,
-	BeaconBlockHeaderT core.BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT core.BeaconState[
 		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 		ForkT, StateStoreT, ValidatorT, WithdrawalT,
@@ -78,7 +78,7 @@ func New[
 	],
 	BeaconBlockT any,
 	BeaconBlockBodyT any,
-	BeaconBlockHeaderT core.BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT core.BeaconState[
 		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 		ForkT, StateStoreT, ValidatorT, WithdrawalT,

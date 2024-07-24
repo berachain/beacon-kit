@@ -21,6 +21,7 @@
 package server
 
 import (
+	"github.com/berachain/beacon-kit/mod/node-api/backend"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/builder"
@@ -35,10 +36,11 @@ import (
 // DefaultHandlers returns the default handlers for the node API.
 func DefaultHandlers[
 	ContextT context.Context,
+	BeaconBlockHeaderT backend.BeaconBlockHeader[BeaconBlockHeaderT],
 	ForkT any,
 	ValidatorT any,
 ](
-	backend Backend[ForkT, ValidatorT],
+	backend Backend[BeaconBlockHeaderT, ForkT, ValidatorT],
 ) []handlers.Handlers[ContextT] {
 	return []handlers.Handlers[ContextT]{
 		beacon.NewHandler[ContextT](backend),

@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 )
 
-func (h *Handler[ContextT, _]) RegisterRoutes() {
+func (h *Handler[ContextT, _, _]) RegisterRoutes() {
 	h.routes.Routes = []*handlers.Route[ContextT]{
 		{
 			Method:  http.MethodGet,

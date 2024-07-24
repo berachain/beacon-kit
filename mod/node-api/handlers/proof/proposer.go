@@ -25,19 +25,27 @@ import (
 	types "github.com/berachain/beacon-kit/mod/node-api/types/proof"
 )
 
-// GetBlockProposer returns the block proposer for the given state id along
+// GetBlockProposer returns the block proposer for the given block id along
 // with a merkle proof that can be verified against the beacon block root.
-func (h *Handler[ContextT, _]) GetBlockProposer(c ContextT) (any, error) {
+func (h *Handler[ContextT, _, _]) GetBlockProposer(c ContextT) (any, error) {
 	params, err := utils.BindAndValidate[types.BlockProposerProofRequest](c)
 	if err != nil {
 		return nil, err
 	}
 
+	// Get the slot from the given input of block id.
 	slot, err := utils.SlotFromBlockID(params.BlockID)
 	if err != nil {
 		return nil, err
 	}
 
+	// Get the beacon block header for the desired slot.
+	_, err = h.backend.BlockHeader(slot)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the entire validator registry.
 	_, err = h.backend.AllValidators(slot)
 	if err != nil {
 		return nil, err
