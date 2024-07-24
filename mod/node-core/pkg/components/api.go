@@ -34,8 +34,8 @@ import (
 )
 
 // TODO: we could make engine type configurable
-func ProvideNodeAPIEngine() *NodeAPIEngine {
-	return echo.NewDefaultEngine()
+func ProvideNodeAPIEngine(logger log.Logger) *NodeAPIEngine {
+	return echo.NewDefaultEngine(logger)
 }
 
 type NodeAPIBackendInput struct {

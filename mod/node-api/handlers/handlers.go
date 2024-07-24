@@ -21,6 +21,8 @@
 package handlers
 
 import (
+	"github.com/berachain/beacon-kit/mod/log"
+
 	"github.com/berachain/beacon-kit/mod/node-api/types/context"
 )
 
@@ -29,4 +31,13 @@ type handlerFn[ContextT context.Context] func(c ContextT) (any, error)
 type Handlers[ContextT context.Context] interface {
 	RegisterRoutes()
 	RouteSet() RouteSet[ContextT]
+}
+
+type BaseHandler[ContextT context.Context] struct {
+	logger log.Logger[any]
+	routes RouteSet[ContextT]
+}
+
+func (b *BaseHandler[ContextT]) RouteSet() RouteSet[ContextT] {
+	return b.routes
 }

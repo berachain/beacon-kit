@@ -21,6 +21,7 @@
 package echo
 
 import (
+	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -36,7 +37,9 @@ func New(e *echo.Echo) *Engine {
 	}
 }
 
-func NewDefaultEngine() *Engine {
+func NewDefaultEngine(
+	logger log.Logger,
+) *Engine {
 	engine := echo.New()
 	engine.Use(middleware.CORSWithConfig(
 		middleware.DefaultCORSConfig,
@@ -44,7 +47,8 @@ func NewDefaultEngine() *Engine {
 	engine.Validator = &CustomValidator{
 		Validator: ConstructValidator(),
 	}
-	engine.HideBanner = true
+
+	engine.Logger = NewLogger(logger, engine.Logger)
 	return New(engine)
 }
 
