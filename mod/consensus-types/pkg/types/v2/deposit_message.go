@@ -89,6 +89,10 @@ func (dm *DepositMessage) New(
 	return dm
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                     SSZ                                    */
+/* -------------------------------------------------------------------------- */
+
 // SizeSSZ returns the size of the DepositMessage object in SSZ encoding.
 func (*DepositMessage) SizeSSZ() uint32 {
 	//nolint:mnd // 48 + 32 + 8 = 88.

@@ -24,6 +24,7 @@ import (
 	"encoding/json"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	typesv2 "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types/v2"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -75,7 +76,7 @@ func GetGenesisValidatorRootCmd(cs common.ChainSpec) *cobra.Command {
 				var val *types.Validator
 				validators[i] = val.New(
 					deposit.Pubkey,
-					types.WithdrawalCredentials(deposit.Credentials),
+					typesv2.WithdrawalCredentials(deposit.Credentials),
 					deposit.Amount,
 					math.Gwei(cs.EffectiveBalanceIncrement()),
 					math.Gwei(cs.MaxEffectiveBalance()),

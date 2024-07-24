@@ -60,8 +60,6 @@ func (b *BeaconBlockHeaderBase) GetStateRoot() common.Root {
 }
 
 // BeaconBlockHeader is the header of a beacon block.
-//
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path header.go -objs BeaconBlockHeaderBase,BeaconBlockHeader -include ../../../primitives/pkg/common,../../../primitives/pkg/math,../../../primitives/pkg/bytes,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output header.ssz.go
 type BeaconBlockHeader struct {
 	// BeaconBlockHeaderBase is the base of the block.
 	BeaconBlockHeaderBase
