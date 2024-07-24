@@ -48,7 +48,6 @@ func NewDefaultEngine(
 		Validator: ConstructValidator(),
 	}
 	engine.HideBanner = true
-	engine.Logger = NewLogger(logger, engine.Logger)
 	return New(engine)
 }
 
