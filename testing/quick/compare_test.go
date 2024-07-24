@@ -26,7 +26,7 @@ import (
 	"testing/quick"
 	"unsafe"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types/v2"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
 	zcommon "github.com/protolambda/zrnt/eth2/beacon/common"
@@ -75,7 +75,7 @@ func TestVectorHashTreeRootZTyp(t *testing.T) {
 }
 
 func TestExecutableDataDenebHashTreeRootZrnt(t *testing.T) {
-	f := func(payload *types.ExecutableDataDeneb, logsBloom [256]byte) bool {
+	f := func(payload *types.ExecutionPayload, logsBloom [256]byte) bool {
 		// skip these cases lest we trigger a
 		// nil-pointer dereference in fastssz
 		if payload == nil ||
@@ -88,7 +88,7 @@ func TestExecutableDataDenebHashTreeRootZrnt(t *testing.T) {
 			return true
 		}
 
-		payload.LogsBloom = logsBloom[:]
+		payload.LogsBloom = logsBloom
 		typeRoot, err := payload.HashTreeRoot()
 		if err != nil {
 			t.Log("Failed to calculate HashTreeRoot on payload:", err)
@@ -96,7 +96,7 @@ func TestExecutableDataDenebHashTreeRootZrnt(t *testing.T) {
 		}
 
 		baseFeePerGas := zview.Uint256View{}
-		baseFeePerGas.SetBytes32(payload.BaseFeePerGas.Unwrap())
+		baseFeePerGas = zview.Uint256View(*payload.BaseFeePerGas)
 		zpayload := zdeneb.ExecutionPayload{
 			ParentHash:    ztree.Root(payload.ParentHash),
 			FeeRecipient:  zcommon.Eth1Address(payload.FeeRecipient),
@@ -124,14 +124,14 @@ func TestExecutableDataDenebHashTreeRootZrnt(t *testing.T) {
 			ssz.ByteVectorFromBytes(payload.FeeRecipient[:]),
 			ssz.ByteVectorFromBytes(payload.StateRoot[:]),
 			ssz.ByteVectorFromBytes(payload.ReceiptsRoot[:]),
-			ssz.ByteVectorFromBytes(payload.LogsBloom),
+			ssz.ByteVectorFromBytes(payload.LogsBloom[:]),
 			ssz.ByteVectorFromBytes(payload.Random[:]),
 			payload.Number,
 			payload.GasLimit,
 			payload.GasUsed,
 			payload.Timestamp,
 			ssz.ByteListFromBytes(payload.ExtraData, 32),
-			payload.BaseFeePerGas.UnwrapU256(),
+			payload.BaseFeePerGas,
 			ssz.ByteVectorFromBytes(payload.BlockHash[:]),
 			engineprimitives.ProperTransactionsFromBytes(payload.Transactions),
 			ssz.ListFromElements(16, payload.Withdrawals...),
