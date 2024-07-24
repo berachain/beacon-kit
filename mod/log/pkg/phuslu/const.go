@@ -43,6 +43,7 @@ const (
 	fatalColor   = red
 	panicColor   = red
 	defaultColor = gray
+	apiColor     = blue
 	traceLabel   = "TRCE"
 	debugLabel   = "DBUG"
 	infoLabel    = "INFO"
@@ -50,7 +51,8 @@ const (
 	errorLabel   = "ERRR"
 	fatalLabel   = "FATAL"
 	panicLabel   = "PANIC"
-	defaultLabel = " ???"
+	defaultLabel = "???"
+	apiLabel     = "API"
 
 	// output styles flags.
 	StylePretty = "pretty"

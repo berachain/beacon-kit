@@ -21,7 +21,7 @@
 package echo
 
 import (
-	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -38,7 +38,7 @@ func New(e *echo.Echo) *Engine {
 }
 
 func NewDefaultEngine(
-	logger log.Logger,
+	logger log.Logger[any],
 ) *Engine {
 	engine := echo.New()
 	engine.Use(middleware.CORSWithConfig(

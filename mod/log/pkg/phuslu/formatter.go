@@ -27,11 +27,17 @@ import (
 )
 
 // Formatter is a custom formatter for log messages.
-type Formatter struct{}
+type Formatter struct {
+	noLevelColor string
+	noLevelLabel string
+}
 
 // NewFormatter creates a new Formatter with default settings.
 func NewFormatter() *Formatter {
-	return &Formatter{}
+	return &Formatter{
+		noLevelColor: defaultColor,
+		noLevelLabel: defaultLabel,
+	}
 }
 
 // Format formats the log message.
@@ -64,7 +70,7 @@ func (f *Formatter) Format(
 	case "panic":
 		color, label = panicColor, panicLabel
 	default:
-		color, label = defaultColor, defaultLabel
+		color, label = f.noLevelColor, f.noLevelLabel
 	}
 
 	f.printWithColor(args, buffer, color, label)
@@ -78,6 +84,14 @@ func (f *Formatter) Format(
 	}
 
 	return out.Write(buffer.Bytes)
+}
+
+// SetNoLevelFormat sets the no level header colors and labels.
+func (f *Formatter) SetNoLevelFormat(
+	color, label string,
+) {
+	f.noLevelColor = color
+	f.noLevelLabel = label
 }
 
 // printWithColor prints the log message with color.

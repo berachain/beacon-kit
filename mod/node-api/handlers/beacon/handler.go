@@ -23,6 +23,8 @@ package beacon
 import (
 	"errors"
 
+	"github.com/berachain/beacon-kit/mod/log"
+
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 	"github.com/berachain/beacon-kit/mod/node-api/types/context"
 )
@@ -35,6 +37,7 @@ type Handler[
 ] struct {
 	backend Backend[ForkT, ValidatorT]
 	routes  handlers.RouteSet[ContextT]
+	logger  log.ApiLogger[any]
 }
 
 // NewHandler creates a new handler for the beacon API.
@@ -44,10 +47,12 @@ func NewHandler[
 	ValidatorT any,
 ](
 	backend Backend[ForkT, ValidatorT],
+	logger log.ApiLogger[any],
 ) *Handler[ContextT, ForkT, ValidatorT] {
 	h := &Handler[ContextT, ForkT, ValidatorT]{
 		backend: backend,
 		routes:  handlers.NewRouteSet[ContextT](""),
+		logger:  logger,
 	}
 	return h
 }

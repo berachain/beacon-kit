@@ -27,7 +27,7 @@ import (
 )
 
 func (h *Handler[ContextT, _, _]) GetStateRoot(c ContextT) (any, error) {
-	params, err := utils.BindAndValidate[types.StateIDRequest](c)
+	params, err := utils.BindAndValidate[types.StateIDRequest](c, h.logger)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func (h *Handler[ContextT, _, _]) GetStateRoot(c ContextT) (any, error) {
 }
 
 func (h *Handler[ContextT, ForkT, _]) GetStateFork(c ContextT) (any, error) {
-	params, err := utils.BindAndValidate[types.StateIDRequest](c)
+	params, err := utils.BindAndValidate[types.StateIDRequest](c, h.logger)
 	if err != nil {
 		return nil, err
 	}

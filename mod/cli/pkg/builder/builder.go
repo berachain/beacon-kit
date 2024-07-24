@@ -25,9 +25,10 @@ import (
 
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
+	sdklog "cosmossdk.io/log"
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/context"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -90,7 +91,7 @@ func (cb *CLIBuilder[T, ExecutionPayloadT]) Build() (*cmdlib.Root, error) {
 		mm          *module.Manager
 		clientCtx   client.Context
 		chainSpec   common.ChainSpec
-		logger      log.Logger
+		logger      log.AdvancedLogger[any, sdklog.Logger]
 	)
 	// build dependencies for the root command
 	if err := depinject.Inject(
@@ -139,7 +140,7 @@ func (cb *CLIBuilder[T, ExecutionPayloadT]) Build() (*cmdlib.Root, error) {
 
 // defaultRunHandler returns the default run handler for the CLIBuilder.
 func (cb *CLIBuilder[T, ExecutionPayloadT]) defaultRunHandler(
-	logger log.Logger,
+	logger log.AdvancedLogger[any, sdklog.Logger],
 ) func(cmd *cobra.Command) error {
 	return func(cmd *cobra.Command) error {
 		return cb.InterceptConfigsPreRunHandler(
@@ -156,7 +157,7 @@ func (cb *CLIBuilder[T, ExecutionPayloadT]) defaultRunHandler(
 // InterceptConfigsAndCreateContext except it also sets the server context on
 // the command and the server logger.
 func (cb *CLIBuilder[T, ExecutionPayloadT]) InterceptConfigsPreRunHandler(
-	cmd *cobra.Command, logger log.Logger, customAppConfigTemplate string,
+	cmd *cobra.Command, logger log.AdvancedLogger[any, sdklog.Logger], customAppConfigTemplate string,
 	customAppConfig interface{}, cmtConfig *cmtcfg.Config,
 ) error {
 	serverCtx, err := context.InterceptConfigsAndCreateContext(

@@ -20,8 +20,6 @@
 
 package log
 
-import "io"
-
 // Logger is extremely similar to the Cosmos-SDK Logger interface.
 type Logger[KeyValT any] interface {
 	// Info takes a message and a set of key/value pairs and logs with level
@@ -42,9 +40,20 @@ type Logger[KeyValT any] interface {
 	Debug(msg string, keyVals ...KeyValT)
 }
 
-type LoggerWithWriter[KeyValT any] interface {
+// APILogger is a logger that can be used to log API messages.
+type ApiLogger[KeyValT any] interface {
 	Logger[KeyValT]
-	Writer() io.Writer
+	// Api logs a message with no level.
+	// The key of the tuple must be a string.
+	Api(msg string, keyVals ...KeyValT)
+}
+
+// ConfigurableLogger is a logger that can be configured with a config.
+type ConfigurableLogger[
+	ConfigurableLoggerT, KeyValT any, ConfigT any,
+] interface {
+	Logger[KeyValT]
+	WithConfig(config ConfigT) ConfigurableLoggerT
 }
 
 // AdvancedLogger is extremely similar to the Cosmos-SDK Logger interface,

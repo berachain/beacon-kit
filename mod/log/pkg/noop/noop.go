@@ -54,6 +54,10 @@ func (n *Logger[KeyValT, ImplT]) Debug(string, ...KeyValT) {
 	// No operation
 }
 
+func (n *Logger[KeyValT, ImplT]) Api(string, ...KeyValT) {
+	// No operation
+}
+
 // With returns a new AdvancedLogger with the provided key-value pairs. This
 // method does nothing.
 func (n *Logger[KeyValT, ImplT]) With(...KeyValT) ImplT {

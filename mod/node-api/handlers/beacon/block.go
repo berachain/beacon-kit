@@ -27,10 +27,12 @@ import (
 )
 
 func (h *Handler[ContextT, _, _]) GetBlockRewards(c ContextT) (any, error) {
-	params, err := utils.BindAndValidate[types.BlockIDRequest](c)
+	h.logger.Info("API: Received request to get block rewards")
+	params, err := utils.BindAndValidate[types.BlockIDRequest](c, h.logger)
 	if err != nil {
 		return nil, err
 	}
+	h.logger.Info("API: Request validation successful with params: %+v", params)
 	slot, err := utils.SlotFromBlockID(params.BlockID)
 	if err != nil {
 		return nil, err
@@ -39,9 +41,11 @@ func (h *Handler[ContextT, _, _]) GetBlockRewards(c ContextT) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return beacontypes.ValidatorResponse{
+	response := beacontypes.ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed
 		Finalized:           false, // stubbed
 		Data:                rewards,
-	}, nil
+	}
+	h.logger.Info("API: Successfully retrieved block rewards: %+v", response)
+	return response, nil
 }

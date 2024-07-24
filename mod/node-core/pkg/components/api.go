@@ -22,8 +22,9 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
+	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/config"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-api/backend"
 	"github.com/berachain/beacon-kit/mod/node-api/engines/echo"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
@@ -34,7 +35,7 @@ import (
 )
 
 // TODO: we could make engine type configurable
-func ProvideNodeAPIEngine(logger log.Logger) *NodeAPIEngine {
+func ProvideNodeAPIEngine(logger log.ApiLogger[any]) *NodeAPIEngine {
 	return echo.NewDefaultEngine(logger)
 }
 
@@ -75,8 +76,8 @@ func ProvideNodeAPIBackend(in NodeAPIBackendInput) *NodeAPIBackend {
 
 type NodeAPIHandlersInput struct {
 	depinject.In
-
 	Backend *NodeAPIBackend
+	Logger  log.ApiLogger[any]
 }
 
 func ProvideNodeAPIHandlers(
@@ -86,7 +87,7 @@ func ProvideNodeAPIHandlers(
 		NodeAPIContext,
 		*Fork,
 		*Validator,
-	](in.Backend)
+	](in.Backend, in.Logger)
 }
 
 type NodeAPIServerInput struct {
@@ -94,7 +95,7 @@ type NodeAPIServerInput struct {
 
 	Engine   *NodeAPIEngine
 	Config   *config.Config
-	Logger   log.Logger
+	Logger   log.AdvancedLogger[any, sdklog.Logger]
 	Handlers []handlers.Handlers[NodeAPIContext]
 }
 

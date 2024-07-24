@@ -21,6 +21,7 @@
 package server
 
 import (
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/builder"
@@ -38,13 +39,14 @@ func DefaultHandlers[
 	ValidatorT any,
 ](
 	backend Backend[ForkT, ValidatorT],
+	logger log.ApiLogger[any],
 ) []handlers.Handlers[ContextT] {
 	return []handlers.Handlers[ContextT]{
-		beacon.NewHandler[ContextT](backend),
-		builder.NewHandler[ContextT](),
-		config.NewHandler[ContextT](),
-		debug.NewHandler[ContextT](),
-		events.NewHandler[ContextT](),
-		node.NewHandler[ContextT](),
+		beacon.NewHandler[ContextT](backend, logger),
+		builder.NewHandler[ContextT](logger),
+		config.NewHandler[ContextT](logger),
+		debug.NewHandler[ContextT](logger),
+		events.NewHandler[ContextT](logger),
+		node.NewHandler[ContextT](logger),
 	}
 }
