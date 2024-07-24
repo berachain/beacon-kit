@@ -36,8 +36,6 @@ import (
 
 // BeaconBlockBodyDeneb represents the body of a beacon block in the Deneb
 // chain.
-//
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./body_deneb.go -objs BeaconBlockBodyDeneb -include ./body.go,../../../primitives/pkg/crypto,./payload.go,../../../primitives/pkg/eip4844,../../../primitives/pkg/bytes,./eth1data.go,../../../primitives/pkg/math,../../../primitives/pkg/common,./deposit.go,../../../engine-primitives/pkg/engine-primitives/withdrawal.go,./withdrawal_credentials.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output body_deneb.ssz.go
 type BeaconBlockBodyDeneb struct {
 	BeaconBlockBodyBase
 	// ExecutionPayload is the execution payload of the body.

@@ -23,7 +23,7 @@ package e2e_test
 import (
 	"math/big"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	typesv2 "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types/v2"
 	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/deposit"
 	"github.com/berachain/beacon-kit/testing/e2e/suite"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -204,7 +204,7 @@ func (s *BeaconKitE2ESuite) generateNewDepositTx(
 	s.Require().Len(pubkey, 48)
 
 	// Generate the credentials.
-	credentials := types.NewCredentialsFromExecutionAddress(
+	credentials := typesv2.NewCredentialsFromExecutionAddress(
 		s.GenesisAccount().Address(),
 	)
 

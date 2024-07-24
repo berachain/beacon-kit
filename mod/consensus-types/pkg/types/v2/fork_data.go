@@ -21,7 +21,6 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/karalabe/ssz"
@@ -54,6 +53,10 @@ func (fd *ForkData) New(
 ) *ForkData {
 	return NewForkData(currentVersion, genesisValidatorsRoot)
 }
+
+/* -------------------------------------------------------------------------- */
+/*                                     SSZ                                    */
+/* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the SigningData object in SSZ encoding.
 func (*ForkData) SizeSSZ() uint32 {
@@ -118,14 +121,8 @@ func (fd *ForkData) ComputeRandaoSigningRoot(
 		return common.Root{}, err
 	}
 
-	signingRoot, err := ComputeSigningRootUInt64(
+	return ComputeSigningRootUInt64(
 		uint64(epoch),
 		signingDomain,
 	)
-
-	if err != nil {
-		return common.Root{},
-			errors.Newf("failed to compute signing root: %w", err)
-	}
-	return signingRoot, nil
 }

@@ -30,8 +30,7 @@ import (
 // BlobSidecar as per the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/p2p-interface.md?ref=bankless.ghost.io#blobsidecar
 //
-//nolint:lll // link.
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path ./sidecar.go -objs BlobSidecar -include ../../../primitives/pkg/common,../../../primitives/pkg/bytes,../../../consensus-types/pkg/types,../../../primitives/pkg/math,../../../primitives/pkg/eip4844,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output sidecar.ssz.go
+//nolint:lll
 type BlobSidecar struct {
 	// Index represents the index of the blob in the block.
 	Index uint64

@@ -28,8 +28,6 @@ import (
 )
 
 // Withdrawal represents a validator withdrawal from the consensus layer.
-//
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path withdrawal.go -objs Withdrawal -include ../../../primitives/pkg/math,../../../primitives/pkg/common,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output withdrawal.ssz.go
 type Withdrawal struct {
 	// Index is the unique identifier for the withdrawal.
 	Index math.U64 `json:"index"`
