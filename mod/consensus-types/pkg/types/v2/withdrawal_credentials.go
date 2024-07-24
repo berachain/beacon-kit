@@ -23,7 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-package v2
+package types
 
 import (
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"

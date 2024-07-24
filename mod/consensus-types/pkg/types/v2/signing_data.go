@@ -93,6 +93,7 @@ func ComputeSigningRoot(
 func ComputeSigningRootUInt64(
 	value uint64,
 	domain common.Domain,
+
 ) (common.Root, error) {
 	bz := make([]byte, constants.RootLength)
 	binary.LittleEndian.PutUint64(bz, value)

@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	typesv2 "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types/v2"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/da/pkg/da"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
@@ -198,7 +199,7 @@ type (
 	Fork = types.Fork
 
 	// ForkData is a type alias for the fork data.
-	ForkData = types.ForkData
+	ForkData = typesv2.ForkData
 
 	// Genesis is a type alias for the genesis.
 	Genesis = genesis.Genesis[
@@ -295,7 +296,7 @@ type (
 	Withdrawal = engineprimitives.Withdrawal
 
 	// WithdrawalCredentials is a type alias for the withdrawal credentials.
-	WithdrawalCredentials = types.WithdrawalCredentials
+	WithdrawalCredentials = typesv2.WithdrawalCredentials
 )
 
 /* -------------------------------------------------------------------------- */

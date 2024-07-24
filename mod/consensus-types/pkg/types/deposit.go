@@ -21,6 +21,7 @@
 package types
 
 import (
+	typesv2 "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types/v2"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -35,7 +36,7 @@ type Deposit struct {
 	Pubkey crypto.BLSPubkey `json:"pubkey"      ssz-max:"48"`
 	// A staking credentials with
 	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
-	Credentials WithdrawalCredentials `json:"credentials"              ssz-size:"32"`
+	Credentials typesv2.WithdrawalCredentials `json:"credentials"              ssz-size:"32"`
 	// Deposit amount in gwei.
 	Amount math.Gwei `json:"amount"`
 	// Signature of the deposit data.
@@ -47,7 +48,7 @@ type Deposit struct {
 // NewDeposit creates a new Deposit instance.
 func NewDeposit(
 	pubkey crypto.BLSPubkey,
-	credentials WithdrawalCredentials,
+	credentials typesv2.WithdrawalCredentials,
 	amount math.Gwei,
 	signature crypto.BLSSignature,
 	index uint64,
@@ -64,7 +65,7 @@ func NewDeposit(
 // New creates a new Deposit instance.
 func (d *Deposit) New(
 	pubkey crypto.BLSPubkey,
-	credentials WithdrawalCredentials,
+	credentials typesv2.WithdrawalCredentials,
 	amount math.Gwei,
 	signature crypto.BLSSignature,
 	index uint64,
@@ -88,13 +89,13 @@ func (d Deposits) HashTreeRoot() (common.Root, error) {
 
 // VerifySignature verifies the deposit data and signature.
 func (d *Deposit) VerifySignature(
-	forkData *ForkData,
+	forkData *typesv2.ForkData,
 	domainType common.DomainType,
 	signatureVerificationFn func(
 		pubkey crypto.BLSPubkey, message []byte, signature crypto.BLSSignature,
 	) error,
 ) error {
-	return (&DepositMessage{
+	return (&typesv2.DepositMessage{
 		Pubkey:      d.Pubkey,
 		Credentials: d.Credentials,
 		Amount:      d.Amount,
@@ -125,6 +126,6 @@ func (d *Deposit) GetSignature() crypto.BLSSignature {
 }
 
 // GetWithdrawalCredentials returns the staking credentials of the deposit.
-func (d *Deposit) GetWithdrawalCredentials() WithdrawalCredentials {
+func (d *Deposit) GetWithdrawalCredentials() typesv2.WithdrawalCredentials {
 	return d.Credentials
 }
