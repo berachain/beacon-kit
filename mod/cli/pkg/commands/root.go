@@ -21,10 +21,10 @@
 package commands
 
 import (
+	serverv2 "cosmossdk.io/server/v2"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/config"
 	sdkclient "github.com/cosmos/cosmos-sdk/client"
 	sdkconfig "github.com/cosmos/cosmos-sdk/client/config"
-	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	"github.com/spf13/cobra"
 )
 
@@ -86,9 +86,7 @@ func New(
 
 // Run executes the root command.
 func (root *Root) Run(defaultNodeHome string) error {
-	return svrcmd.Execute(
-		root.cmd, "", defaultNodeHome,
-	)
+	return serverv2.Execute(root.cmd, "", defaultNodeHome)
 }
 
 // Command returns the root command.
