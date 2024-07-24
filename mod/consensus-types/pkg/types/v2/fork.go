@@ -18,11 +18,12 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package v2
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/karalabe/ssz"
 )
 
 // Fork as defined in the Ethereum 2.0 specification:
@@ -49,4 +50,16 @@ func (f *Fork) New(
 		CurrentVersion:  currentVersion,
 		Epoch:           epoch,
 	}
+}
+
+// SizeSSZ returns the SSZ encoded size of the Fork object in bytes.
+func (f *Fork) SizeSSZ() uint32 {
+	return 16 // 4 bytes for PreviousVersion + 4 bytes for CurrentVersion + 8 bytes for Epoch
+}
+
+// DefineSSZ defines the SSZ encoding for the Fork object.
+func (f *Fork) DefineSSZ(codec *ssz.Codec) {
+	ssz.DefineStaticBytes(codec, &f.PreviousVersion)
+	ssz.DefineStaticBytes(codec, &f.CurrentVersion)
+	ssz.DefineUint64(codec, &f.Epoch)
 }

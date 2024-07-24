@@ -123,10 +123,6 @@ func (e *ExecutionPayload) ToHeader(
 }
 
 // ExecutableDataDeneb is the execution payload for Deneb.
-//
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path payload.go -objs ExecutableDataDeneb -include ../../../primitives/pkg/common,../../../primitives/pkg/bytes,../../../engine-primitives/pkg/engine-primitives/withdrawal.go,../../../primitives/pkg/common,../../../primitives/pkg/math,../../../primitives/pkg/bytes,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output payload.ssz.go
-//go:generate go run github.com/fjl/gencodec -type ExecutableDataDeneb -field-override executableDataDenebMarshaling -out payload.json.go
-//nolint:lll
 type ExecutableDataDeneb struct {
 	ParentHash    gethprimitives.ExecutionHash    `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
 	FeeRecipient  gethprimitives.ExecutionAddress `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`

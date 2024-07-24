@@ -27,8 +27,6 @@ import (
 
 // BeaconBlockDenebPlus represents a block in the beacon chain during
 // the DenebPlus fork.
-//
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path block_denebplus.go -objs BeaconBlockDenebPlus -include ../../../primitives/pkg/common,../../../primitives/pkg/crypto,../../../primitives/pkg/math,..,./header.go,./withdrawal_credentials.go,../../../engine-primitives/pkg/engine-primitives/withdrawal.go,./deposit.go,./payload.go,./deposit.go,../../../primitives/pkg/eip4844,../../../primitives/pkg/bytes,./eth1data.go,../../../primitives/pkg/math,../../../primitives/pkg/common,./body.go,./body_denebplus.go,./attestation_data.go,./slashing_info.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output block_denebplus.ssz.go
 type BeaconBlockDenebPlus struct {
 	// BeaconBlockHeaderBase is the base of the BeaconBlockDenebPlus.
 	BeaconBlockHeaderBase

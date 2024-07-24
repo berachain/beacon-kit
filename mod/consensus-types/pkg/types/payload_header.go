@@ -83,10 +83,6 @@ func (e *ExecutionPayloadHeader) NewFromJSON(
 }
 
 // ExecutionPayloadHeaderDeneb is the execution header payload of Deneb.
-//
-//go:generate go run github.com/fjl/gencodec -type ExecutionPayloadHeaderDeneb -out payload_header.json.go -field-override executionPayloadHeaderDenebMarshaling
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path payload_header.go -objs ExecutionPayloadHeaderDeneb -include ../../../primitives/pkg/bytes,../../../primitives/pkg/common,../../../primitives/pkg/math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output payload_header.ssz.go
-//nolint:lll
 type ExecutionPayloadHeaderDeneb struct {
 	ParentHash       gethprimitives.ExecutionHash    `json:"parentHash"       ssz-size:"32"  gencodec:"required"`
 	FeeRecipient     gethprimitives.ExecutionAddress `json:"feeRecipient"     ssz-size:"20"  gencodec:"required"`

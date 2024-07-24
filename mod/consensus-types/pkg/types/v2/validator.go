@@ -18,12 +18,13 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package v2
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/karalabe/ssz"
 )
 
 // Validator as defined in the Ethereum 2.0 Spec
@@ -206,4 +207,22 @@ func (v Validator) GetWithdrawableEpoch() math.Epoch {
 // GetWithdrawalCredentials returns the withdrawal credentials of the validator.
 func (v Validator) GetWithdrawalCredentials() WithdrawalCredentials {
 	return v.WithdrawalCredentials
+}
+
+// SizeSSZ returns the size of the Validator object for SSZ encoding.
+func (v *Validator) SizeSSZ() (size uint32) {
+	size = 121 // Fixed size fields: PublicKey (48), WithdrawalCredentials (32), EffectiveBalance (8), Slashed (1), ActivationEligibilityEpoch (8), ActivationEpoch (8), ExitEpoch (8), WithdrawableEpoch (8)
+	return
+}
+
+// DefineSSZ defines the SSZ encoding for the Validator object.
+func (v *Validator) DefineSSZ(c *ssz.Codec) {
+	ssz.DefineStaticBytes(c, &v.Pubkey)
+	ssz.DefineStaticBytes(c, &v.WithdrawalCredentials)
+	ssz.DefineUint64(c, &v.EffectiveBalance)
+	ssz.DefineBool(c, &v.Slashed)
+	ssz.DefineUint64(c, &v.ActivationEligibilityEpoch)
+	ssz.DefineUint64(c, &v.ActivationEpoch)
+	ssz.DefineUint64(c, &v.ExitEpoch)
+	ssz.DefineUint64(c, &v.WithdrawableEpoch)
 }

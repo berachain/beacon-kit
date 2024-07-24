@@ -18,19 +18,20 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package v2
 
 import (
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/karalabe/ssz"
 )
 
 type Eth1Data struct {
 	// DepositRoot is the root of the deposit tree.
 	DepositRoot common.Root `json:"depositRoot"  ssz-size:"32"`
 	// DepositCount is the number of deposits in the deposit tree.
-	DepositCount uint64 `json:"depositCount"`
+	DepositCount math.U64 `json:"depositCount"`
 	// BlockHash is the hash of the block corresponding to the Eth1Data.
 	BlockHash gethprimitives.ExecutionHash `json:"blockHash"    ssz-size:"32"`
 }
@@ -43,13 +44,42 @@ func (e *Eth1Data) New(
 ) *Eth1Data {
 	e = &Eth1Data{
 		DepositRoot:  depositRoot,
-		DepositCount: uint64(depositCount),
+		DepositCount: depositCount,
 		BlockHash:    blockHash,
 	}
 	return e
 }
 
+// SizeSSZ returns the size of the Eth1Data object in SSZ encoding.
+func (*Eth1Data) SizeSSZ() uint32 {
+	//nolint:mnd // 32 + 8 + 32
+	return 72
+}
+
+// DefineSSZ defines the SSZ encoding for the Eth1Data object.
+func (e *Eth1Data) DefineSSZ(codec *ssz.Codec) {
+	ssz.DefineStaticBytes(codec, &e.DepositRoot)
+	ssz.DefineUint64(codec, &e.DepositCount)
+	ssz.DefineStaticBytes(codec, &e.BlockHash)
+}
+
+// HashTreeRoot computes the SSZ hash tree root of the Eth1Data object.
+func (e *Eth1Data) HashTreeRoot() [32]byte {
+	return ssz.HashSequential(e)
+}
+
+// MarshalSSZ marshals the Eth1Data object to SSZ format.
+func (e *Eth1Data) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, e.SizeSSZ())
+	return buf, ssz.EncodeToBytes(buf, e)
+}
+
+// UnmarshalSSZ unmarshals the Eth1Data object from SSZ format.
+func (e *Eth1Data) UnmarshalSSZ(buf []byte) error {
+	return ssz.DecodeFromBytes(buf, e)
+}
+
 // GetDepositCount returns the deposit count.
 func (e *Eth1Data) GetDepositCount() math.U64 {
-	return math.U64(e.DepositCount)
+	return e.DepositCount
 }

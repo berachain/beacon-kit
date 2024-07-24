@@ -18,28 +18,30 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package v2
 
 import (
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/karalabe/ssz"
 )
 
 // Deposit into the consensus layer from the deposit contract in the execution
 // layer.
+//
+//nolint:lll // struct tags.
 type Deposit struct {
 	// Public key of the validator specified in the deposit.
-	Pubkey crypto.BLSPubkey `json:"pubkey"      ssz-max:"48"`
+	Pubkey crypto.BLSPubkey `json:"pubkey"`
 	// A staking credentials with
 	// 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
-	Credentials WithdrawalCredentials `json:"credentials"              ssz-size:"32"`
+	Credentials types.WithdrawalCredentials `json:"credentials"`
 	// Deposit amount in gwei.
 	Amount math.Gwei `json:"amount"`
 	// Signature of the deposit data.
-	Signature crypto.BLSSignature `json:"signature"   ssz-max:"96"`
+	Signature crypto.BLSSignature `json:"signature"`
 	// Index of the deposit in the deposit contract.
 	Index uint64 `json:"index"`
 }
@@ -47,7 +49,7 @@ type Deposit struct {
 // NewDeposit creates a new Deposit instance.
 func NewDeposit(
 	pubkey crypto.BLSPubkey,
-	credentials WithdrawalCredentials,
+	credentials types.WithdrawalCredentials,
 	amount math.Gwei,
 	signature crypto.BLSSignature,
 	index uint64,
@@ -64,7 +66,7 @@ func NewDeposit(
 // New creates a new Deposit instance.
 func (d *Deposit) New(
 	pubkey crypto.BLSPubkey,
-	credentials WithdrawalCredentials,
+	credentials types.WithdrawalCredentials,
 	amount math.Gwei,
 	signature crypto.BLSSignature,
 	index uint64,
@@ -74,27 +76,15 @@ func (d *Deposit) New(
 	)
 }
 
-// Deposits is a typealias for a list of Deposits.
-type Deposits []*Deposit
-
-// HashTreeRoot returns the hash tree root of the Withdrawals list.
-func (d Deposits) HashTreeRoot() (common.Root, error) {
-	// TODO: read max deposits from the chain spec.
-	merkleizer := merkle.NewMerkleizer[[32]byte, *Deposit]()
-	return merkleizer.MerkleizeListComposite(
-		d, constants.MaxDepositsPerBlock,
-	)
-}
-
 // VerifySignature verifies the deposit data and signature.
 func (d *Deposit) VerifySignature(
-	forkData *ForkData,
+	forkData *types.ForkData,
 	domainType common.DomainType,
 	signatureVerificationFn func(
 		pubkey crypto.BLSPubkey, message []byte, signature crypto.BLSSignature,
 	) error,
 ) error {
-	return (&DepositMessage{
+	return (&types.DepositMessage{
 		Pubkey:      d.Pubkey,
 		Credentials: d.Credentials,
 		Amount:      d.Amount,
@@ -102,6 +92,45 @@ func (d *Deposit) VerifySignature(
 		forkData, d.Signature,
 		domainType, signatureVerificationFn,
 	)
+}
+
+// DefineSSZ defines the SSZ encoding for the Deposit object.
+func (d *Deposit) DefineSSZ(codec *ssz.Codec) {
+	ssz.DefineStaticBytes(codec, &d.Pubkey)
+	ssz.DefineStaticBytes(codec, &d.Credentials)
+	ssz.DefineUint64(codec, &d.Amount)
+	ssz.DefineStaticBytes(codec, &d.Signature)
+	ssz.DefineUint64(codec, &d.Index)
+}
+
+// SizeSSZ returns the size of the Deposit object in SSZ encoding.
+func (d *Deposit) SizeSSZ() uint32 {
+	return 48 + // Pubkey (BLSPubkey) size
+		32 + // Credentials (WithdrawalCredentials) size
+		8 + // Amount (Gwei) size
+		96 + // Signature (BLSSignature) size
+		8 // Index (uint64) size
+}
+
+// MarshalSSZ marshals the Deposit object into SSZ format.
+func (d *Deposit) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, d.SizeSSZ())
+	return buf, ssz.EncodeToBytes(buf, d)
+}
+
+// MarshalSSZTo marshals the Deposit object into a pre-allocated byte slice.
+func (d *Deposit) MarshalSSZTo(dst []byte) ([]byte, error) {
+	return dst, ssz.EncodeToBytes(dst, d)
+}
+
+// UnmarshalSSZ unmarshals the Deposit object from SSZ format.
+func (d *Deposit) UnmarshalSSZ(buf []byte) error {
+	return ssz.DecodeFromBytes(buf, d)
+}
+
+// HashTreeRoot computes the Merkleization of the Deposit object.
+func (d *Deposit) HashTreeRoot() ([32]byte, error) {
+	return ssz.HashSequential(d), nil
 }
 
 // GetAmount returns the deposit amount in gwei.
@@ -125,6 +154,6 @@ func (d *Deposit) GetSignature() crypto.BLSSignature {
 }
 
 // GetWithdrawalCredentials returns the staking credentials of the deposit.
-func (d *Deposit) GetWithdrawalCredentials() WithdrawalCredentials {
+func (d *Deposit) GetWithdrawalCredentials() types.WithdrawalCredentials {
 	return d.Credentials
 }

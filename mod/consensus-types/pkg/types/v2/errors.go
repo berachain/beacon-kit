@@ -18,10 +18,24 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package v2
 
-import "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+import "github.com/berachain/beacon-kit/mod/errors"
 
-type ValidatorsMarshaling struct {
-	Validators []*types.Validator `json:"validators" ssz-max:"1099511627776"`
-}
+var (
+	// ErrDepositMessage is an error for when the deposit signature doesn't
+	// match.
+	ErrDepositMessage = errors.New("invalid deposit message")
+
+	// ErrInvalidWithdrawalCredentials is an error for when the.
+	ErrInvalidWithdrawalCredentials = errors.New(
+		"invalid withdrawal credentials",
+	)
+
+	// ErrForkVersionNotSupported is an error for when the fork
+	// version is not supported.
+	ErrForkVersionNotSupported = errors.New("fork version not supported")
+
+	// ErrNilPayloadHeader is an error for when the payload header is nil.
+	ErrNilPayloadHeader = errors.New("nil payload header")
+)
