@@ -21,8 +21,8 @@
 package backend
 
 import (
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
+	"context"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
@@ -36,7 +36,7 @@ type Backend[
 		BeaconBlockBodyT, BlobSidecarsT,
 	],
 	BeaconBlockT any,
-	BeaconBlockBodyT types.RawBeaconBlockBody,
+	BeaconBlockBodyT any,
 	BeaconBlockHeaderT core.BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT core.BeaconState[
 		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
@@ -48,12 +48,13 @@ type Backend[
 	],
 	BlobSidecarsT any,
 	BlockStoreT BlockStore[BeaconBlockT],
+	ContextT context.Context,
 	DepositT Deposit,
 	DepositStoreT DepositStore[DepositT],
 	Eth1DataT,
 	ExecutionPayloadHeaderT,
 	ForkT any,
-	NodeT nodetypes.Node,
+	NodeT Node[ContextT],
 	StateStoreT state.KVStore[
 		StateStoreT, BeaconBlockHeaderT, Eth1DataT,
 		ExecutionPayloadHeaderT, ForkT, ValidatorT,
@@ -79,7 +80,7 @@ func New[
 		BeaconBlockBodyT, BlobSidecarsT,
 	],
 	BeaconBlockT any,
-	BeaconBlockBodyT types.RawBeaconBlockBody,
+	BeaconBlockBodyT any,
 	BeaconBlockHeaderT core.BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT core.BeaconState[
 		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
@@ -91,12 +92,13 @@ func New[
 	],
 	BlobSidecarsT any,
 	BlockStoreT BlockStore[BeaconBlockT],
+	ContextT context.Context,
 	DepositT Deposit,
 	DepositStoreT DepositStore[DepositT],
 	Eth1DataT,
 	ExecutionPayloadHeaderT,
 	ForkT any,
-	NodeT nodetypes.Node,
+	NodeT Node[ContextT],
 	StateStoreT state.KVStore[
 		StateStoreT, BeaconBlockHeaderT, Eth1DataT,
 		ExecutionPayloadHeaderT, ForkT, ValidatorT,
@@ -113,14 +115,14 @@ func New[
 ) *Backend[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BlockStoreT,
-	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+	ContextT, DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
 	NodeT, StateStoreT, StorageBackendT, ValidatorT, WithdrawalT,
 	WithdrawalCredentialsT,
 ] {
 	return &Backend[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 		BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BlockStoreT,
-		DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+		ContextT, DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
 		NodeT, StateStoreT, StorageBackendT, ValidatorT, WithdrawalT,
 		WithdrawalCredentialsT,
 	]{
@@ -130,13 +132,13 @@ func New[
 }
 
 func (b *Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, NodeT, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, NodeT, _, _, _, _, _,
 ]) AttachNode(node NodeT) {
 	b.node = node
 }
 
 func (b *Backend[
-	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) StateFromSlot(
 	slot uint64,
 ) (BeaconStateT, error) {

@@ -71,6 +71,13 @@ type DepositStore[DepositT any] interface {
 	EnqueueDeposits(deposits []DepositT) error
 }
 
+// Node is the interface for a node.
+type Node[ContextT any] interface {
+	// CreateQueryContext creates a query context for a given height and proof
+	// flag.
+	CreateQueryContext(height int64, prove bool) (ContextT, error)
+}
+
 // StorageBackend is the interface for the storage backend.
 type StorageBackend[
 	AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT any,

@@ -9,6 +9,7 @@ replace (
 	github.com/berachain/beacon-kit/mod/beacon => ../beacon
 	github.com/berachain/beacon-kit/mod/config => ../config
 	github.com/berachain/beacon-kit/mod/node-api => ../node-api
+	github.com/berachain/beacon-kit/mod/node-api/engines => ../node-api/engines
 	github.com/berachain/beacon-kit/mod/storage => ../storage
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240624014538-75ba469b1881
 )
@@ -32,11 +33,12 @@ require (
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/node-api v0.0.0-20240717210058-a144e074f6b2
+	github.com/berachain/beacon-kit/mod/node-api/engines v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240710022448-e56f337d051f
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240717210058-a144e074f6b2
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6650da31
-	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240718074353-1a991cfeed63
+	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240723155519-565f208d5482
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240711183925-948692fddcbe
 	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240711183925-948692fddcbe
 	github.com/cosmos/cosmos-db v1.0.2

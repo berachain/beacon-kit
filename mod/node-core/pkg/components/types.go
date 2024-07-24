@@ -58,6 +58,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 type (
@@ -274,6 +275,7 @@ type (
 		*BeaconStateMarshallable,
 		*BlobSidecars,
 		*BlockStore,
+		sdk.Context,
 		*Deposit,
 		*DepositStore,
 		*Eth1Data,

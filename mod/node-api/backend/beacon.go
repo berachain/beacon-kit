@@ -29,7 +29,7 @@ import (
 
 // GetGenesis returns the genesis state of the beacon chain.
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) GenesisValidatorsRoot(
 	slot uint64,
 ) (common.Root, error) {
@@ -43,7 +43,7 @@ func (b Backend[
 
 // GetStateRoot returns the root of the state at the given stateID.
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) StateRootAtSlot(
 	slot uint64,
 ) (common.Root, error) {
@@ -65,7 +65,7 @@ func (b Backend[
 
 // GetStateFork returns the fork of the state at the given stateID.
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, ForkT, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, ForkT, _, _, _, _, _, _,
 ]) StateForkAtSlot(
 	slot uint64,
 ) (ForkT, error) {
@@ -79,7 +79,7 @@ func (b Backend[
 
 // GetBlockRoot returns the root of the block at the given stateID.
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) BlockRootAtSlot(
 	slot uint64,
 ) (common.Root, error) {
@@ -96,7 +96,7 @@ func (b Backend[
 
 // TODO: Implement this.
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) BlockRewardsAtSlot(
 	_ uint64,
 ) (*types.BlockRewardsData, error) {
@@ -111,7 +111,7 @@ func (b Backend[
 }
 
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _,
 ]) ValidatorByID(
 	slot uint64,
 	id string,
@@ -146,7 +146,7 @@ func (b Backend[
 }
 
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _,
 ]) ValidatorsByIDs(
 	slot uint64,
 	ids []string,
@@ -167,7 +167,7 @@ func (b Backend[
 }
 
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) ValidatorBalancesByIDs(
 	slot uint64,
 	ids []string,

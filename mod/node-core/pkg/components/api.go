@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/server"
 	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // TODO: we could make engine type configurable
@@ -54,6 +55,7 @@ func ProvideNodeAPIBackend(in NodeAPIBackendInput) *NodeAPIBackend {
 		*BeaconStateMarshallable,
 		*BlobSidecars,
 		*BlockStore,
+		sdk.Context,
 		*Deposit,
 		*DepositStore,
 		*Eth1Data,
