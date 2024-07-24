@@ -26,7 +26,9 @@ import (
 )
 
 type BlockProposerProofResponse[ValidatorT, BeaconBlockHeaderT any] struct {
-	Proof             []common.Root       `json:"proof"`
+	// ValidatorProof can be verified against the beacon block root. Use a 
+	// Generalized Index of 
+	ValidatorProof    []common.Root       `json:"validator_proof"`
 	Validator         ValidatorT          `json:"validator"`
 	ValidatorIndex    math.ValidatorIndex `json:"validator_index"`
 	BeaconBlockHeader BeaconBlockHeaderT  `json:"beacon_block_header"`

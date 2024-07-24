@@ -20,4 +20,18 @@
 
 package proof
 
-func (h *Handler[ContextT, _]) RegisterRoutes() {}
+import (
+	"net/http"
+
+	"github.com/berachain/beacon-kit/mod/node-api/handlers"
+)
+
+func (h *Handler[ContextT, _]) RegisterRoutes() {
+	h.routes.Routes = []*handlers.Route[ContextT]{
+		{
+			Method:  http.MethodGet,
+			Path:    "eth/v1/proof/blocks/proposer/:block_id",
+			Handler: h.GetBlockProposer,
+		},
+	}
+}

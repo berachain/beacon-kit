@@ -57,9 +57,8 @@ func SlotFromStateID(stateID string) (uint64, error) {
 	}
 }
 
-// BlockID shares the same semantics as StateID, with the addition of
-// being able to query state by block hash, but since query by hash is
-// unsupported for now, we can reuse the same function.
+// BlockID shares the same semantics as StateID, being able to query blocks by
+// block root instead of states by state root (but this is not supported yet).
 //
 // NOTE: We do NOT support querying by <blockRoot>.
 func SlotFromBlockID(blockID string) (uint64, error) {

@@ -20,8 +20,28 @@
 
 package proof
 
+import (
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
+	types "github.com/berachain/beacon-kit/mod/node-api/types/proof"
+)
+
 // GetBlockProposer returns the block proposer for the given state id along
 // with a merkle proof that can be verified against the beacon block root.
 func (h *Handler[ContextT, _]) GetBlockProposer(c ContextT) (any, error) {
+	params, err := utils.BindAndValidate[types.BlockProposerProofRequest](c)
+	if err != nil {
+		return nil, err
+	}
+
+	slot, err := utils.SlotFromBlockID(params.BlockID)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = h.backend.AllValidators(slot)
+	if err != nil {
+		return nil, err
+	}
+
 	return nil, nil
 }

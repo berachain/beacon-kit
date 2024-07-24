@@ -98,6 +98,7 @@ type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
 	GetParentBlockRoot() common.Root
 	GetStateRoot() common.Root
 	SetStateRoot(common.Root)
+	GetBodyRoot() common.Root
 }
 
 // Context defines an interface for managing state transition context.
