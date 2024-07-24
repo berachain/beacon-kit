@@ -41,21 +41,21 @@ import (
 //go:generate go run github.com/fjl/gencodec -type ExecutionPayload -out payload.json.go -field-override executionPayloadMarshaling
 type ExecutionPayload struct {
 	version       uint32
-	ParentHash    gethprimitives.ExecutionHash    `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
-	FeeRecipient  gethprimitives.ExecutionAddress `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
-	StateRoot     common.Bytes32                  `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
-	ReceiptsRoot  common.Bytes32                  `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
-	LogsBloom     [256]byte                       `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
-	Random        common.Bytes32                  `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
-	Number        math.U64                        `json:"blockNumber"                  gencodec:"required"`
-	GasLimit      math.U64                        `json:"gasLimit"                     gencodec:"required"`
-	GasUsed       math.U64                        `json:"gasUsed"                      gencodec:"required"`
-	Timestamp     math.U64                        `json:"timestamp"                    gencodec:"required"`
-	ExtraData     []byte                          `json:"extraData"                    gencodec:"required" ssz-max:"32"`
-	BaseFeePerGas *uint256.Int                    `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
-	BlockHash     gethprimitives.ExecutionHash    `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
-	Transactions  [][]byte                        `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
-	Withdrawals   []*engineprimitives.Withdrawal  `json:"withdrawals"                                      ssz-max:"16"`
+	ParentHash    gethprimitives.ExecutionHash    `json:"parentHash" gencodec:"required"`
+	FeeRecipient  gethprimitives.ExecutionAddress `json:"feeRecipient" gencodec:"required"`
+	StateRoot     common.Bytes32                  `json:"stateRoot" gencodec:"required"`
+	ReceiptsRoot  common.Bytes32                  `json:"receiptsRoot" gencodec:"required"`
+	LogsBloom     [256]byte                       `json:"logsBloom" gencodec:"required"`
+	Random        common.Bytes32                  `json:"prevRandao" gencodec:"required"`
+	Number        math.U64                        `json:"blockNumber" gencodec:"required"`
+	GasLimit      math.U64                        `json:"gasLimit" gencodec:"required"`
+	GasUsed       math.U64                        `json:"gasUsed" gencodec:"required"`
+	Timestamp     math.U64                        `json:"timestamp" gencodec:"required"`
+	ExtraData     []byte                          `json:"extraData" gencodec:"required"`
+	BaseFeePerGas *uint256.Int                    `json:"baseFeePerGas" gencodec:"required"`
+	BlockHash     gethprimitives.ExecutionHash    `json:"blockHash" gencodec:"required"`
+	Transactions  [][]byte                        `json:"transactions" gencodec:"required"`
+	Withdrawals   []*engineprimitives.Withdrawal  `json:"withdrawals"`
 	BlobGasUsed   math.U64                        `json:"blobGasUsed"`
 	ExcessBlobGas math.U64                        `json:"excessBlobGas"`
 }

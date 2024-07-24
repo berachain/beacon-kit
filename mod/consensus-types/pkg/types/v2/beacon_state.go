@@ -39,8 +39,8 @@ type BeaconState struct {
 
 	// History
 	LatestBlockHeader *BeaconBlockHeader
-	BlockRoots        []common.Root `ssz-max:"8192"`
-	StateRoots        []common.Root `ssz-max:"8192"`
+	BlockRoots        []common.Root
+	StateRoots        []common.Root
 
 	// Eth1
 	Eth1Data                     *Eth1Data
@@ -48,18 +48,18 @@ type BeaconState struct {
 	LatestExecutionPayloadHeader *ExecutionPayloadHeader
 
 	// Registry
-	Validators []*Validator `ssz-max:"1099511627776"`
-	Balances   []uint64     `ssz-max:"1099511627776"`
+	Validators []*Validator
+	Balances   []uint64
 
 	// Randomness
-	RandaoMixes []common.Bytes32 `ssz-max:"65536"`
+	RandaoMixes []common.Bytes32
 
 	// Withdrawals
 	NextWithdrawalIndex          math.U64
 	NextWithdrawalValidatorIndex math.ValidatorIndex
 
 	// Slashing
-	Slashings     []uint64 `ssz-max:"1099511627776"`
+	Slashings     []uint64
 	TotalSlashing math.Gwei
 }
 

@@ -75,7 +75,7 @@ type BeaconBlockBody struct {
 	// ExecutionPayload is the execution payload of the body.
 	ExecutionPayload *ExecutionPayload
 	// BlobKzgCommitments is the list of KZG commitments for the EIP-4844 blobs.
-	BlobKzgCommitments []eip4844.KZGCommitment `ssz-size:"?,48" ssz-max:"16"`
+	BlobKzgCommitments []eip4844.KZGCommitment
 }
 
 func (b *BeaconBlockBody) Length() uint64 {
