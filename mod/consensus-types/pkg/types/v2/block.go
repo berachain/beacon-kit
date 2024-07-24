@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/karalabe/ssz"
@@ -38,25 +40,38 @@ func (b *BeaconBlock) NewWithVersion(
 // NewFromSSZ creates a new BeaconBlock from SSZ-encoded bytes.
 func (b *BeaconBlock) NewFromSSZ(data []byte, version uint32) (*BeaconBlock, error) {
 	newBlock := &BeaconBlock{}
+	fmt.Println("ARE WE REACHING HERE")
+	fmt.Println("HOW MANY BYTES", len(data))
 	if err := newBlock.UnmarshalSSZ(data); err != nil {
 		return nil, err
 	}
+	fmt.Println("BET BET BET")
 	newBlock.Body.version = version
 	return newBlock, nil
 }
 
 // DefineSSZ defines the SSZ encoding for the BeaconBlock object.
 func (b *BeaconBlock) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineUint64(codec, &b.Slot)
-	ssz.DefineUint64(codec, &b.ProposerIndex)
-	ssz.DefineStaticBytes(codec, &b.ParentBlockRoot)
-	ssz.DefineStaticBytes(codec, &b.StateRoot)
-	ssz.DefineDynamicObjectContent(codec, &b.Body)
+	// Define the static data (fields and dynamic offsets)
+	ssz.DefineUint64(codec, &b.Slot)                 // Field  (0) -          Slot -  8 bytes
+	ssz.DefineUint64(codec, &b.ProposerIndex)        // Field  (1) - ProposerIndex -  8 bytes
+	ssz.DefineStaticBytes(codec, &b.ParentBlockRoot) // Field  (2) -    ParentRoot - 32 bytes
+	ssz.DefineStaticBytes(codec, &b.StateRoot)       // Field  (3) -     StateRoot - 32 bytes
+	ssz.DefineDynamicObjectOffset(codec, &b.Body)    // Offset (4) -          Body -  4 bytes
+
+	// Define the dynamic data (fields)
+	ssz.DefineDynamicObjectContent(codec, &b.Body) // Field  (4) -          Body - ? bytes
 }
 
 // SizeSSZ returns the size of the BeaconBlock object in SSZ encoding.
 func (b *BeaconBlock) SizeSSZ(isFixed bool) uint32 {
-	return 131544
+	var size = uint32(8 + 8 + 32 + 32 + 4)
+	if isFixed {
+		return size
+	}
+	size += ssz.SizeDynamicObject(b.Body)
+
+	return size
 }
 
 // MarshalSSZ marshals the BeaconBlock object to SSZ format.

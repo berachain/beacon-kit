@@ -22,6 +22,7 @@ package p2p
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -55,7 +56,10 @@ func (n NoopBlockGossipHandler[BeaconBlockT, ReqT]) Publish(
 	_ context.Context,
 	data BeaconBlockT,
 ) ([]byte, error) {
-	return data.MarshalSSZ()
+	fmt.Println("NOOP BLOCK PUBLISH")
+	x, err := data.MarshalSSZ()
+	fmt.Println("NOOP BLOCK PUBLISH", len(x), err)
+	return x, err
 }
 
 // Request takes an ABCI Request and returns a BeaconBlock.
@@ -63,9 +67,10 @@ func (n NoopBlockGossipHandler[BeaconBlockT, ReqT]) Request(
 	_ context.Context,
 	req ReqT,
 ) (BeaconBlockT, error) {
-	return encoding.UnmarshalBeaconBlockFromABCIRequest[BeaconBlockT](
+	b, err := encoding.UnmarshalBeaconBlockFromABCIRequest[BeaconBlockT](
 		req,
 		0,
 		n.chainSpec.ActiveForkVersionForSlot(math.U64(req.GetHeight())),
 	)
+	return b, err
 }

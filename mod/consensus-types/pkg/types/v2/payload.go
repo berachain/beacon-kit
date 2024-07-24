@@ -22,7 +22,6 @@ package types
 
 import (
 	"context"
-	"fmt"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -62,13 +61,16 @@ type ExecutionPayload struct {
 
 // SizeSSZ returns either the static size of the object if fixed == true, or
 // the total size otherwise.
-func (obj *ExecutionPayload) SizeSSZ(fixed bool) uint32 {
-	var size = uint32(32 + 20 + 32 + 32 + 256 + 32 + 8 + 8 + 8 + 8 + 4 + 32 + 32 + 4)
+func (e *ExecutionPayload) SizeSSZ(fixed bool) uint32 {
+	// Start out with the static size
+	size := uint32(512)
 	if fixed {
 		return size
 	}
-	size += ssz.SizeDynamicBytes(obj.ExtraData)
-	size += ssz.SizeSliceOfDynamicBytes(obj.Transactions)
+	// Append all the dynamic sizes
+	size += ssz.SizeDynamicBytes(e.ExtraData)           // Field (10) - ExtraData    - max 32 bytes (not enforced)
+	size += ssz.SizeSliceOfDynamicBytes(e.Transactions) // Field (13) - Transactions - max 1048576 items, 1073741824 bytes each (not enforced)
+	size += ssz.SizeSliceOfStaticObjects(e.Withdrawals) // Field (14) - Withdrawals  - max 16 items, 44 bytes each (not enforced)
 
 	return size
 }
@@ -136,8 +138,6 @@ func (e *ExecutionPayload) ToHeader(
 		withdrawalsRoot, withdrawalsRootErr = wds.HashTreeRoot()
 		return withdrawalsRootErr
 	})
-
-	fmt.Println("REEE")
 
 	// Wait for the goroutines to finish.
 	if err := g.Wait(); err != nil {

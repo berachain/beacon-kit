@@ -23,6 +23,7 @@ package middleware
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
@@ -165,6 +166,8 @@ func (h *ABCIMiddleware[
 		if beaconBlock.Error() != nil {
 			return nil, beaconBlock.Error()
 		}
+
+		fmt.Println("BUILT BEACON BLOCK", beaconBlock.Data())
 		return h.beaconBlockGossiper.Publish(
 			ctx,
 			beaconBlock.Data(),
@@ -240,6 +243,7 @@ func (h *ABCIMiddleware[
 		return err
 	}
 
+	fmt.Println("POST PUBLISH BLOCK EVENT")
 	// Wait for a response.
 	select {
 	case <-ctx.Done():

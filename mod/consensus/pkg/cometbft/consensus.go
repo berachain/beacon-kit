@@ -22,6 +22,7 @@ package cometbft
 
 import (
 	"context"
+	"fmt"
 
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -129,12 +130,14 @@ func (c *ConsensusEngine[_, _, _, _, _, ValidatorUpdateT]) PreBlock(
 	ctx sdk.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) error {
+	fmt.Println("PRE BLOCK")
 	return c.Middleware.PreBlock(ctx, req)
 }
 
 func (c *ConsensusEngine[_, _, _, _, _, ValidatorUpdateT]) EndBlock(
 	ctx context.Context,
 ) ([]ValidatorUpdateT, error) {
+	fmt.Println("ENDBLOCK")
 	updates, err := c.Middleware.EndBlock(ctx)
 	if err != nil {
 		return nil, err

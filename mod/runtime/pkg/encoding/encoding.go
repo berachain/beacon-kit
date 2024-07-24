@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -21,6 +21,7 @@
 package encoding
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
@@ -42,6 +43,8 @@ func ExtractBlobsAndBlockFromRequest[
 		blk   BeaconBlockT
 	)
 
+	fmt.Println("ABC")
+
 	if req == nil {
 		return blk, blobs, ErrNilABCIRequest
 	}
@@ -51,6 +54,7 @@ func ExtractBlobsAndBlockFromRequest[
 		beaconBlkIndex,
 		forkVersion,
 	)
+
 	if err != nil {
 		return blk, blobs, err
 	}
@@ -97,8 +101,9 @@ func UnmarshalBeaconBlockFromABCIRequest[
 	if blkBz == nil {
 		return blk, ErrNilBeaconBlockInRequest
 	}
+	b, err := blk.NewFromSSZ(blkBz, forkVersion)
+	return b, err
 
-	return blk.NewFromSSZ(blkBz, forkVersion)
 }
 
 // UnmarshalBlobSidecarsFromABCIRequest extracts blob sidecars from an ABCI
@@ -110,7 +115,6 @@ func UnmarshalBlobSidecarsFromABCIRequest[
 	bzIndex uint,
 ) (T, error) {
 	var sidecars T
-
 	sidecars, ok := reflect.New(reflect.TypeOf(sidecars).Elem()).Interface().(T)
 	if !ok {
 		return sidecars, ErrInvalidType

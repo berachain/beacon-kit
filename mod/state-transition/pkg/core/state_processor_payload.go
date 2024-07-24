@@ -22,7 +22,6 @@ package core
 
 import (
 	"context"
-	"fmt"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -69,7 +68,6 @@ func (sp *StateProcessor[
 	}
 
 	// Set the latest execution payload header.
-	fmt.Println("HEADER", header)
 	return st.SetLatestExecutionPayloadHeader(header)
 }
 

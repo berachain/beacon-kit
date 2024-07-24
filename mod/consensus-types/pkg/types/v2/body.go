@@ -114,10 +114,11 @@ func (b *BeaconBlockBody) IsNil() bool {
 
 // SizeSSZ returns the size of the Eth1Data object in SSZ encoding.
 func (b *BeaconBlockBody) SizeSSZ(fixed bool) uint32 {
-	size := uint32(0)
-	size += uint32(b.RandaoReveal.SizeSSZ())
-	size += b.Eth1Data.SizeSSZ()
-	size += uint32(b.GetGraffiti().SizeSSZ())
+	var size = uint32(96 + (*Eth1Data)(nil).SizeSSZ() + 32 + 12)
+	if fixed {
+		return size
+	}
+
 	size += ssz.SizeSliceOfStaticObjects(b.Deposits)
 	size += ssz.SizeDynamicObject(b.ExecutionPayload)
 	size += ssz.SizeSliceOfStaticBytes(b.BlobKzgCommitments)
@@ -136,7 +137,6 @@ func (b *BeaconBlockBody) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineSliceOfStaticObjectsContent(codec, &b.Deposits, 16)           // Field  ( 6) -              Deposits - ? bytes
 	ssz.DefineDynamicObjectContent(codec, &b.ExecutionPayload)              // Field  ( 9) -      ExecutionPayload - ? bytes
 	ssz.DefineSliceOfStaticBytesContent(codec, &b.BlobKzgCommitments, 4096) // Field  (11) -    BlobKzgCommitments - ? bytes
-
 }
 
 // MarshalSSZ marshals the BeaconBlockBody object to SSZ format.
