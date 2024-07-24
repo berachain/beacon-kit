@@ -29,10 +29,10 @@ import (
 
 type Engine struct {
 	*echo.Echo
-	logger log.ApiLogger[any]
+	logger log.APILogger[any]
 }
 
-func New(e *echo.Echo, logger log.ApiLogger[any]) *Engine {
+func New(e *echo.Echo, logger log.APILogger[any]) *Engine {
 	return &Engine{
 		Echo:   e,
 		logger: logger,
@@ -40,7 +40,7 @@ func New(e *echo.Echo, logger log.ApiLogger[any]) *Engine {
 }
 
 func NewDefaultEngine(
-	logger log.ApiLogger[any],
+	logger log.APILogger[any],
 ) *Engine {
 	engine := echo.New()
 	engine.Use(middleware.CORSWithConfig(

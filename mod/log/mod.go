@@ -41,11 +41,11 @@ type Logger[KeyValT any] interface {
 }
 
 // APILogger is a logger that can be used to log API messages.
-type ApiLogger[KeyValT any] interface {
+type APILogger[KeyValT any] interface {
 	Logger[KeyValT]
-	// Api logs a message with no level.
+	// API logs a message with no level.
 	// The key of the tuple must be a string.
-	Api(msg string, keyVals ...KeyValT)
+	API(msg string, keyVals ...KeyValT)
 }
 
 // ConfigurableLogger is a logger that can be configured with a config.

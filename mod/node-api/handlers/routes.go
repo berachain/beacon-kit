@@ -34,15 +34,15 @@ type Route[ContextT context.Context] struct {
 
 // DecorateWithLogs adds logging to the route's handler function as soon as
 // a request is received and when a response is ready.
-func (r *Route[ContextT]) DecorateWithLogs(logger log.ApiLogger[any]) {
+func (r *Route[ContextT]) DecorateWithLogs(logger log.APILogger[any]) {
 	handler := r.Handler
 	r.Handler = func(ctx ContextT) (any, error) {
-		logger.Api("received request", "method", r.Method, "path", r.Path)
+		logger.API("received request", "method", r.Method, "path", r.Path)
 		res, err := handler(ctx)
 		if err != nil {
 			logger.Error("error handling request", "error", err)
 		}
-		logger.Api("request handled", "response", res)
+		logger.API("request handled", "response", res)
 		return res, err
 	}
 }

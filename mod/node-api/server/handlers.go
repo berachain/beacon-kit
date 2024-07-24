@@ -39,7 +39,7 @@ func DefaultHandlers[
 	ValidatorT any,
 ](
 	backend Backend[ForkT, ValidatorT],
-	logger log.ApiLogger[any],
+	logger log.APILogger[any],
 ) []handlers.Handlers[ContextT] {
 	return []handlers.Handlers[ContextT]{
 		beacon.NewHandler[ContextT](backend, logger),

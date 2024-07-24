@@ -39,14 +39,14 @@ type Handlers[ContextT context.Context] interface {
 // and logger from the handler.
 type BaseHandler[ContextT context.Context] struct {
 	routes RouteSet[ContextT]
-	logger log.ApiLogger[any]
+	logger log.APILogger[any]
 }
 
 // NewBaseHandler initializes a new base handler with the given routes and
 // logger.
 func NewBaseHandler[ContextT context.Context](
 	routes RouteSet[ContextT],
-	logger log.ApiLogger[any],
+	logger log.APILogger[any],
 ) *BaseHandler[ContextT] {
 	return &BaseHandler[ContextT]{
 		routes: routes,
@@ -60,7 +60,7 @@ func (b *BaseHandler[ContextT]) RouteSet() RouteSet[ContextT] {
 }
 
 // Logger is used to access the logger for the base handler.
-func (b *BaseHandler[ContextT]) Logger() log.ApiLogger[any] {
+func (b *BaseHandler[ContextT]) Logger() log.APILogger[any] {
 	return b.logger
 }
 

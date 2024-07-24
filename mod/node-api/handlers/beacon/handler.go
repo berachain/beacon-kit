@@ -45,7 +45,7 @@ func NewHandler[
 	ValidatorT any,
 ](
 	backend Backend[ForkT, ValidatorT],
-	logger log.ApiLogger[any],
+	logger log.APILogger[any],
 ) *Handler[ContextT, ForkT, ValidatorT] {
 	h := &Handler[ContextT, ForkT, ValidatorT]{
 		BaseHandler: handlers.NewBaseHandler[ContextT](

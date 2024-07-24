@@ -54,7 +54,7 @@ func (n *Logger[KeyValT, ImplT]) Debug(string, ...KeyValT) {
 	// No operation
 }
 
-func (n *Logger[KeyValT, ImplT]) Api(string, ...KeyValT) {
+func (n *Logger[KeyValT, ImplT]) API(string, ...KeyValT) {
 	// No operation
 }
 

@@ -176,9 +176,9 @@ func (l *Logger[ImplT]) setWriter(writer log.Writer) {
 // noLevel is the level for arbitrary log messages.
 const noLevel = log.PanicLevel + 1
 
-// Api logs a message at level <noLevel>. This will always be logged, regardless
+// API logs a message at level <noLevel>. This will always be logged, regardless
 // of the current log level, with the custom API colors and labels.
-func (l *Logger[ImplT]) Api(msg string, keyVals ...any) {
+func (l *Logger[ImplT]) API(msg string, keyVals ...any) {
 	// set the no level format to api
 	l.formatter.FormatNoLevelHeader(apiColor, apiLabel)
 	l.msgWithContext(msg, l.logger.WithLevel(noLevel), keyVals...)

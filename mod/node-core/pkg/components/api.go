@@ -35,7 +35,7 @@ import (
 )
 
 // TODO: we could make engine type configurable
-func ProvideNodeAPIEngine(logger log.ApiLogger[any]) *NodeAPIEngine {
+func ProvideNodeAPIEngine(logger log.APILogger[any]) *NodeAPIEngine {
 	return echo.NewDefaultEngine(logger)
 }
 
@@ -77,7 +77,7 @@ func ProvideNodeAPIBackend(in NodeAPIBackendInput) *NodeAPIBackend {
 type NodeAPIHandlersInput struct {
 	depinject.In
 	Backend *NodeAPIBackend
-	Logger  log.ApiLogger[any]
+	Logger  log.APILogger[any]
 }
 
 func ProvideNodeAPIHandlers(

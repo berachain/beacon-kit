@@ -32,7 +32,7 @@ type Handler[ContextT context.Context] struct {
 }
 
 func NewHandler[ContextT context.Context](
-	logger log.ApiLogger[any],
+	logger log.APILogger[any],
 ) *Handler[ContextT] {
 	h := &Handler[ContextT]{
 		BaseHandler: handlers.NewBaseHandler[ContextT](
