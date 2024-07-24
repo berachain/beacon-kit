@@ -24,6 +24,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	typesv2 "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types/v2"
 	"github.com/berachain/beacon-kit/mod/node-api/backend/mocks"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -79,7 +80,7 @@ func setReturnValues(sdb *mocks.StateDB) {
 	sdb.EXPECT().GetTotalActiveBalances(mock.Anything).Return(0, nil)
 	sdb.EXPECT().ValidatorByIndex(mock.Anything).Return(&types.Validator{
 		Pubkey:                     crypto.BLSPubkey{0x01},
-		WithdrawalCredentials:      types.WithdrawalCredentials{0x01},
+		WithdrawalCredentials:      typesv2.WithdrawalCredentials{0x01},
 		EffectiveBalance:           0,
 		Slashed:                    false,
 		ActivationEligibilityEpoch: 0,

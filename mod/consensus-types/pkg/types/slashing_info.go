@@ -26,8 +26,6 @@
 package types
 
 // SlashingInfo represents a slashing info.
-//
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path slashing_info.go -objs SlashingInfo -include ../../../primitives/pkg/bytes,../../../primitives/pkg/common -output slashing_info.ssz.go
 type SlashingInfo struct {
 	// Slot is the slot number of the slashing info.
 	Slot uint64
