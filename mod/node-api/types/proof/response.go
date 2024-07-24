@@ -26,8 +26,10 @@ import (
 )
 
 type BlockProposerProofResponse[ValidatorT, BeaconBlockHeaderT any] struct {
-	// ValidatorProof can be verified against the beacon block root. Use a 
-	// Generalized Index of 
+	// ValidatorProof can be verified against the beacon block root. Use a
+	// Generalized Index `z + (8 * ValidatorIndex)`, where z is the Generalized
+	// Index of the 0 validator in the beacon block. In DenebPlus, z is
+	// 3254554418216960.
 	ValidatorProof    []common.Root       `json:"validator_proof"`
 	Validator         ValidatorT          `json:"validator"`
 	ValidatorIndex    math.ValidatorIndex `json:"validator_index"`
