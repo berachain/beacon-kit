@@ -21,14 +21,13 @@
 package types_test
 
 import (
+	"io"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	typesv2 "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types/v2"
+	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types/v2"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -36,7 +35,7 @@ import (
 func generateValidDeposit() *types.Deposit {
 	var pubKey crypto.BLSPubkey
 	var signature crypto.BLSSignature
-	var credentials typesv2.WithdrawalCredentials
+	var credentials types.WithdrawalCredentials
 	amount := math.Gwei(32)
 	index := uint64(1)
 
@@ -92,24 +91,7 @@ func TestDeposit_HashTreeRoot(t *testing.T) {
 }
 
 func TestDeposit_SizeSSZ(t *testing.T) {
-	deposit := generateValidDeposit()
-
-	require.Equal(t, 192, deposit.SizeSSZ())
-}
-
-func TestDeposit_HashTreeRootWith(t *testing.T) {
-	deposit := generateValidDeposit()
-	require.NotNil(t, deposit)
-	hasher := ssz.NewHasher()
-	require.NotNil(t, hasher)
-	err := deposit.HashTreeRootWith(hasher)
-	require.NoError(t, err)
-}
-
-func TestDeposit_GetTree(t *testing.T) {
-	deposit := generateValidDeposit()
-	_, err := deposit.GetTree()
-	require.NoError(t, err)
+	require.Equal(t, uint32(192), generateValidDeposit().SizeSSZ())
 }
 
 func TestDeposit_UnmarshalSSZ_ErrSize(t *testing.T) {
@@ -119,13 +101,13 @@ func TestDeposit_UnmarshalSSZ_ErrSize(t *testing.T) {
 	var unmarshalledDeposit types.Deposit
 	err := unmarshalledDeposit.UnmarshalSSZ(buf)
 
-	require.ErrorIs(t, err, ssz.ErrSize)
+	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
 
 func TestDeposit_VerifySignature(t *testing.T) {
 	deposit := generateValidDeposit()
 
-	forkData := &typesv2.ForkData{
+	forkData := &types.ForkData{
 		CurrentVersion:        common.Version{0x00, 0x00, 0x00, 0x04},
 		GenesisValidatorsRoot: common.Root{0x00, 0x00, 0x00, 0x00},
 	}
