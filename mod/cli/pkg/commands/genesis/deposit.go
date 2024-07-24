@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/context"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/parser"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	typesv2 "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types/v2"
 	"github.com/berachain/beacon-kit/mod/errors"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
@@ -93,12 +94,12 @@ func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
 				version.Deneb,
 			)
 
-			depositMsg, signature, err := types.CreateAndSignDepositMessage(
-				types.NewForkData(currentVersion, common.Root{}),
+			depositMsg, signature, err := typesv2.CreateAndSignDepositMessage(
+				typesv2.NewForkData(currentVersion, common.Root{}),
 				cs.DomainTypeDeposit(),
 				blsSigner,
 				// TODO: configurable.
-				types.NewCredentialsFromExecutionAddress(
+				typesv2.NewCredentialsFromExecutionAddress(
 					gethprimitives.ExecutionAddress{},
 				),
 				depositAmount,
@@ -109,7 +110,7 @@ func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
 
 			// Verify the deposit message.
 			if err = depositMsg.VerifyCreateValidator(
-				types.NewForkData(currentVersion, common.Root{}),
+				typesv2.NewForkData(currentVersion, common.Root{}),
 				signature,
 				cs.DomainTypeDeposit(),
 				signer.BLSSigner{}.VerifySignature,

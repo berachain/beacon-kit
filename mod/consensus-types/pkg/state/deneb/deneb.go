@@ -26,8 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path deneb.go -objs BeaconState -include ../../../../primitives/pkg/crypto,../../../../primitives/pkg/common,../../../../primitives/pkg/bytes,../../../../consensus-types/pkg/types,../../../../engine-primitives/pkg/engine-primitives,../../../../primitives/pkg/math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil,../../../../primitives/pkg/common/common.go -output deneb.ssz.go
-//nolint:lll // various json tags.
+//nolint:lll // bet.
 type BeaconState struct {
 	// Versioning
 	//

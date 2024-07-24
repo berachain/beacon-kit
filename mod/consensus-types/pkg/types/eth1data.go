@@ -26,7 +26,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path eth1data.go -objs Eth1Data -include ../../../primitives/pkg/common,../../../primitives/pkg/bytes,$GETH_PKG_INCLUDE/common -output eth1data.ssz.go
 type Eth1Data struct {
 	// DepositRoot is the root of the deposit tree.
 	DepositRoot common.Root `json:"depositRoot"  ssz-size:"32"`
