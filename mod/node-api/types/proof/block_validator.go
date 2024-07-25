@@ -82,6 +82,8 @@ func NewBeaconBlockForValidator[
 
 // BeaconStateForValidator is the SSZ summary of the BeaconState type with only
 // the required raw values to prove a validator exists in this state.
+//
+//nolint:funlen // all lines are required to pack the entire beacon state.
 type BeaconStateForValidator struct {
 	GenesisValidatorsRoot common.Root
 	Slot                  math.Slot

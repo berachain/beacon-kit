@@ -43,7 +43,7 @@ type Backend[
 }
 
 type BlockBackend[BeaconBlockHeaderT any] interface {
-	BlockHeader(slot uint64) (BeaconBlockHeaderT, error)
+	BlockHeaderAtSlot(slot uint64) (BeaconBlockHeaderT, error)
 }
 
 type StateBackend[BeaconStateT any] interface {

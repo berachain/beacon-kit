@@ -23,12 +23,13 @@ package backend
 import (
 	types "github.com/berachain/beacon-kit/mod/node-api/types/beacon"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // BlockHeader returns the block header at the given slot.
 func (b Backend[
 	_, _, _, BeaconBlockHeaderT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) BlockHeader(
+]) BlockHeaderAtSlot(
 	slot uint64,
 ) (BeaconBlockHeaderT, error) {
 	var (
@@ -67,11 +68,22 @@ func (b Backend[
 	if err != nil {
 		return common.Root{}, err
 	}
-	latestSlot, err := st.GetSlot()
-	if err != nil {
-		return common.Root{}, err
+
+	// This is required to handle the semantical expectation that
+	// 0 -> latest despite 0 != latest.
+	if slot == 0 {
+		var latestSlot math.U64
+		latestSlot, err = st.GetSlot()
+		if err != nil {
+			return common.Root{}, err
+		}
+		slot = latestSlot.Unwrap()
 	}
-	return st.GetBlockRootAtIndex(latestSlot.Unwrap())
+
+	// As calculated by the beacon chain. Ideally, this logic
+	// should be abstracted by the beacon chain.
+	index := slot % b.cs.SlotsPerHistoricalRoot()
+	return st.GetBlockRootAtIndex(index)
 }
 
 // TODO: Implement this.

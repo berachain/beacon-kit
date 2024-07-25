@@ -22,6 +22,7 @@ package backend
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // StateFromSlot returns the state at the given slot using query context.
@@ -50,15 +51,21 @@ func (b Backend[
 	if err != nil {
 		return common.Root{}, err
 	}
+
 	// This is required to handle the semantical expectation that
 	// 0 -> latest despite 0 != latest.
-	latestSlot, err := st.GetSlot()
-	if err != nil {
-		return common.Root{}, err
+	if slot == 0 {
+		var latestSlot math.U64
+		latestSlot, err = st.GetSlot()
+		if err != nil {
+			return common.Root{}, err
+		}
+		slot = latestSlot.Unwrap()
 	}
+
 	// As calculated by the beacon chain. Ideally, this logic
 	// should be abstracted by the beacon chain.
-	index := latestSlot.Unwrap() % b.cs.SlotsPerHistoricalRoot()
+	index := slot % b.cs.SlotsPerHistoricalRoot()
 	return st.StateRootAtIndex(index)
 }
 

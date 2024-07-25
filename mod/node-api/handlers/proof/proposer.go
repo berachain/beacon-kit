@@ -24,6 +24,7 @@ import (
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/mod/node-api/types"
 	ptypes "github.com/berachain/beacon-kit/mod/node-api/types/proof"
 )
 
@@ -32,7 +33,7 @@ import (
 func (h *Handler[
 	ContextT, BeaconBlockHeaderT, _, _, _, _, ValidatorT,
 ]) GetBlockProposer(c ContextT) (any, error) {
-	params, err := utils.BindAndValidate[ptypes.BlockProposerProofRequest](c)
+	params, err := utils.BindAndValidate[types.BlockIDRequest](c)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +44,7 @@ func (h *Handler[
 	if err != nil {
 		return nil, err
 	}
-	blockHeader, err := h.backend.BlockHeader(slot)
+	blockHeader, err := h.backend.BlockHeaderAtSlot(slot)
 	if err != nil {
 		return nil, err
 	}

@@ -21,7 +21,6 @@
 package merkle_test
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -90,84 +89,4 @@ func Test_ObjectPath(t *testing.T) {
 			require.Equal(t, tc.offset, offset, "Unexpected offset")
 		})
 	}
-}
-
-func TestPaths(t *testing.T) {
-	bs := schema.DefineContainer(
-		schema.NewField("GenesisValidatorsRoot", schema.B32()),
-		schema.NewField("Slot", schema.U64()),
-		schema.NewField("Fork", schema.DefineContainer(
-			schema.NewField("PreviousVersion", schema.B4()),
-			schema.NewField("CurrentVersion", schema.B4()),
-			schema.NewField("Epoch", schema.U64()),
-		)),
-		schema.NewField("LatestBlockHeader", schema.DefineContainer(
-			schema.NewField("Slot", schema.U64()),
-			schema.NewField("ProposerIndex", schema.U64()),
-			schema.NewField("ParentBlockRoot", schema.B32()),
-			schema.NewField("StateRoot", schema.B32()),
-			schema.NewField("BodyRoot", schema.B32()),
-		)),
-		schema.NewField("BlockRoots", schema.DefineList(schema.B32(), 8192)),
-		schema.NewField("StateRoots", schema.DefineList(schema.B32(), 8192)),
-		schema.NewField("Eth1Data", schema.DefineContainer(
-			schema.NewField("DepositRoot", schema.B32()),
-			schema.NewField("DepositCount", schema.U64()),
-			schema.NewField("BlockHash", schema.B32()),
-		)),
-		schema.NewField("Eth1DepositIndex", schema.U64()),
-		schema.NewField("LatestExecutionPayloadHeader", schema.DefineContainer(
-			schema.NewField("ParentHash", schema.B32()),
-			schema.NewField("FeeRecipient", schema.B20()),
-			schema.NewField("StateRoot", schema.B32()),
-			schema.NewField("ReceiptsRoot", schema.B32()),
-			schema.NewField("LogsBloom", schema.B256()),
-			schema.NewField("Random", schema.U64()),
-			schema.NewField("Number", schema.U64()),
-			schema.NewField("GasLimit", schema.U64()),
-			schema.NewField("GasUsed", schema.U64()),
-			schema.NewField("Timestamp", schema.U64()),
-			schema.NewField("ExtraData", schema.DefineByteList(32)),
-			schema.NewField("BaseFeePerGas", schema.B32()),
-			schema.NewField("BlockHash", schema.B32()),
-			schema.NewField("TransactionsRoot", schema.B32()),
-			schema.NewField("WithdrawalsRoot", schema.B32()),
-			schema.NewField("BlobGasUsed", schema.U64()),
-			schema.NewField("ExcessBlobGas", schema.U64()),
-		)),
-		schema.NewField("Validators", schema.DefineList(schema.DefineContainer(
-			schema.NewField("Pubkey", schema.B48()),
-			schema.NewField("WithdrawalCredentials", schema.B32()),
-			schema.NewField("EffectiveBalance", schema.U64()),
-			schema.NewField("Slashed", schema.Bool()),
-			schema.NewField("ActivationEligibilityEpoch", schema.U64()),
-			schema.NewField("ActivationEpoch", schema.U64()),
-			schema.NewField("ExitEpoch", schema.U64()),
-			schema.NewField("WithdrawableEpoch", schema.U64()),
-		), 1099511627776)),
-		schema.NewField("Balances", schema.DefineList(schema.U64(), 1099511627776)),
-		schema.NewField("RandaoMixes", schema.DefineList(schema.B32(), 65536)),
-		schema.NewField("NextWithdrawalIndex", schema.U64()),
-		schema.NewField("NextWithdrawalValidatorIndex", schema.U64()),
-		schema.NewField("Slashings", schema.DefineList(schema.U64(), 1099511627776)),
-		schema.NewField("TotalSlashing", schema.U64()),
-	)
-
-	blockHeader := schema.DefineContainer(
-		schema.NewField("Slot", schema.U64()),
-		schema.NewField("ProposerIndex", schema.U64()),
-		schema.NewField("ParentBlockRoot", schema.B32()),
-		schema.NewField("State", bs),
-		schema.NewField("BodyRoot", schema.B32()),
-	)
-
-	val0PubKeyPath := merkle.ObjectPath[merkle.GeneralizedIndex, [32]byte](
-		"State/Validators/2",
-	)
-	_, gindex, offset, err := val0PubKeyPath.GetGeneralizedIndex(blockHeader)
-	require.NoError(t, err)
-	fmt.Println("gIndex", gindex)
-	fmt.Println("offset", offset)
-
-	panic("see logs")
 }

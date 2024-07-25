@@ -21,7 +21,8 @@
 package types
 
 const (
-	// ZeroValidatorGIndexDenebPlus is the generalized index of the 0 validator in the
+	// ZeroValidatorGIndexDenebPlus is the generalized index of the 0 validator
+	// in the
 	// beacon block in the DenebPlus fork.
 	ZeroValidatorGIndexDenebPlus = 406819302277120
 
