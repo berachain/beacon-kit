@@ -92,30 +92,3 @@ func (b *BeaconBlockHeaderBase) GetTree() (*ssz.Node, error) {
 
 
 
-// HashTreeRootWith ssz hashes the BeaconBlockHeader object with a hasher
-func (b *BeaconBlockHeader) HashTreeRootWith(hh ssz.HashWalker) (err error) {
-	indx := hh.Index()
-
-	// Field (0) 'Slot'
-	hh.PutUint64(uint64(b.Slot))
-
-	// Field (1) 'ProposerIndex'
-	hh.PutUint64(uint64(b.ProposerIndex))
-
-	// Field (2) 'ParentBlockRoot'
-	hh.PutBytes(b.ParentBlockRoot[:])
-
-	// Field (3) 'StateRoot'
-	hh.PutBytes(b.StateRoot[:])
-
-	// Field (4) 'BodyRoot'
-	hh.PutBytes(b.BodyRoot[:])
-
-	hh.Merkleize(indx)
-	return
-}
-
-// GetTree ssz hashes the BeaconBlockHeader object
-func (b *BeaconBlockHeader) GetTree() (*ssz.Node, error) {
-	return ssz.ProofTree(b)
-}
