@@ -22,7 +22,6 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	typesv2 "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types/v2"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
@@ -44,7 +43,7 @@ type BlobSidecar struct {
 	KzgProof eip4844.KZGProof
 	// BeaconBlockHeader represents the beacon block header for which this blob
 	// is being included.
-	BeaconBlockHeader *typesv2.BeaconBlockHeader
+	BeaconBlockHeader *types.BeaconBlockHeader
 	// InclusionProof is the inclusion proof of the blob in the beacon block
 	// body.
 	InclusionProof [][32]byte
@@ -61,18 +60,12 @@ func BuildBlobSidecar(
 	inclusionProof [][32]byte,
 ) *BlobSidecar {
 	return &BlobSidecar{
-		Index:         index.Unwrap(),
-		Blob:          *blob,
-		KzgCommitment: commitment,
-		KzgProof:      proof,
-		BeaconBlockHeader: &typesv2.BeaconBlockHeader{
-			Slot:            math.U64(header.Slot),
-			ProposerIndex:   math.U64(header.ProposerIndex),
-			ParentBlockRoot: header.ParentBlockRoot,
-			StateRoot:       header.StateRoot,
-			BodyRoot:        header.BodyRoot,
-		},
-		InclusionProof: inclusionProof,
+		Index:             index.Unwrap(),
+		Blob:              *blob,
+		KzgCommitment:     commitment,
+		KzgProof:          proof,
+		BeaconBlockHeader: header,
+		InclusionProof:    inclusionProof,
 	}
 }
 
@@ -131,9 +124,6 @@ func (b *BlobSidecar) MarshalSSZ() ([]byte, error) {
 
 // UnmarshalSSZ unmarshals the BlobSidecar object from SSZ format.
 func (b *BlobSidecar) UnmarshalSSZ(buf []byte) error {
-	if b.BeaconBlockHeader == nil {
-		b.BeaconBlockHeader = &typesv2.BeaconBlockHeader{}
-	}
 	return ssz.DecodeFromBytes(buf, b)
 }
 

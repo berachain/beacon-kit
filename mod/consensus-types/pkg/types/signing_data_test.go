@@ -24,7 +24,7 @@ import (
 	"io"
 	"testing"
 
-	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types/v2"
+	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/stretchr/testify/require"
 )
