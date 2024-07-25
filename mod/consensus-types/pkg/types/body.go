@@ -97,8 +97,6 @@ func BlockBodyKZGOffset(
 
 // BeaconBlockBodyBase represents the base body of a beacon block that is
 // shared between all forks.
-//
-
 type BeaconBlockBodyBase struct {
 	// RandaoReveal is the reveal of the RANDAO.
 	RandaoReveal crypto.BLSSignature `ssz-size:"96"`

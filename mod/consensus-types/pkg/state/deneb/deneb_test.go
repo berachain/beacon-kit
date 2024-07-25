@@ -42,6 +42,7 @@ func generateValidBeaconState() *deneb.BeaconState {
 	return &deneb.BeaconState{
 		BlockRoots:  []common.Root{},
 		StateRoots:  []common.Root{},
+		Fork:        &types.Fork{},
 		Validators:  []*types.Validator{},
 		Balances:    []uint64{},
 		RandaoMixes: []common.Bytes32{},
