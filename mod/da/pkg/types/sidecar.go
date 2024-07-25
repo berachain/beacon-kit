@@ -21,6 +21,8 @@
 package types
 
 import (
+	"fmt"
+
 	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types/v2"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -102,27 +104,28 @@ func (b *BlobSidecar) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineStaticBytes(codec, &b.KzgCommitment)
 	ssz.DefineStaticBytes(codec, &b.KzgProof)
 	ssz.DefineStaticObject(codec, &b.BeaconBlockHeader)
-	ssz.DefineUnsafeArrayOfStaticBytes(codec, b.InclusionProof)
+	ssz.DefineCheckedArrayOfStaticBytes(codec, &b.InclusionProof, 8)
 }
 
 // SizeSSZ returns the size of the BlobSidecar object in SSZ encoding.
-func (b *BlobSidecar) SizeSSZ(isFixed bool) uint32 {
+func (b *BlobSidecar) SizeSSZ() uint32 {
 	return 8 + // Index
 		131072 + // Blob
 		48 + // KzgCommitment
 		48 + // KzgProof
-		b.BeaconBlockHeader.SizeSSZ() + // BeaconBlockHeader
+		112 + // BeaconBlockHeader
 		8*32 // InclusionProof
 }
 
 // MarshalSSZ marshals the BlobSidecar object to SSZ format.
 func (b *BlobSidecar) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, b.SizeSSZ(false))
+	buf := make([]byte, b.SizeSSZ())
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
 // UnmarshalSSZ unmarshals the BlobSidecar object from SSZ format.
 func (b *BlobSidecar) UnmarshalSSZ(buf []byte) error {
+	fmt.Println("CALLING UNMARSHAL SSZ IN BLOB SIDECAR SINGULAR", b, "len(buf)", len(buf))
 	return ssz.DecodeFromBytes(buf, b)
 }
 

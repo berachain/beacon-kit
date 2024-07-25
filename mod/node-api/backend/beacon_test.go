@@ -18,33 +18,25 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package validator
+package backend_test
 
-const (
-	// defaultGraffiti is the default graffiti string.
-	defaultGraffiti = ""
+import (
+	"context"
+	"testing"
 
-	// defaultEnableOptimisticPayloadBuilds is the default
-	// for enabling the optimistic payload builder.
-	defaultEnableOptimisticPayloadBuilds = false
+	"github.com/berachain/beacon-kit/mod/node-api/backend"
+	"github.com/berachain/beacon-kit/mod/node-api/backend/mocks"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/stretchr/testify/require"
 )
 
-// Config is the validator configuration.
-//
-//nolint:lll // struct tags.
-type Config struct {
-	// Graffiti is the string that will be included in the
-	// graffiti field of the beacon block.
-	Graffiti string `mapstructure:"graffiti"`
-
-	// EnableOptimisticPayloadBuilds is the optimistic block builder.
-	EnableOptimisticPayloadBuilds bool `mapstructure:"enable-optimistic-payload-builds"`
-}
-
-// DefaultConfig returns the default fork configuration.
-func DefaultConfig() Config {
-	return Config{
-		Graffiti:                      defaultGraffiti,
-		EnableOptimisticPayloadBuilds: defaultEnableOptimisticPayloadBuilds,
-	}
+func TestGetGenesisValidatorsRoot(t *testing.T) {
+	sdb := &mocks.StateDB{}
+	b := backend.New(func(context.Context, string) backend.StateDB {
+		return sdb
+	})
+	sdb.EXPECT().GetGenesisValidatorsRoot().Return(common.Root{0x01}, nil)
+	root, err := b.GetGenesis(context.Background())
+	require.NoError(t, err)
+	require.Equal(t, common.Root{0x01}, root)
 }

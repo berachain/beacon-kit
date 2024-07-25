@@ -21,6 +21,8 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/karalabe/ssz"
 	"github.com/sourcegraph/conc/iter"
@@ -89,24 +91,39 @@ func (bs *BlobSidecars) Len() int {
 }
 
 // DefineSSZ defines the SSZ encoding for the BlobSidecars object.
-func (bs *BlobSidecars) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineSliceOfDynamicObjectsOffset(codec, &bs.Sidecars, 6)
-	ssz.DefineSliceOfDynamicObjectsContent(codec, &bs.Sidecars, 6)
+func (bs BlobSidecars) DefineSSZ(codec *ssz.Codec) {
+	ssz.DefineSliceOfStaticObjectsOffset(codec, &bs.Sidecars, 6)
+	ssz.DefineSliceOfStaticObjectsContent(codec, &bs.Sidecars, 6)
 }
 
 // SizeSSZ returns the size of the BlobSidecars object in SSZ encoding.
 func (bs *BlobSidecars) SizeSSZ(isFixed bool) uint32 {
-	return 4 + ssz.SizeSliceOfDynamicObjects(bs.Sidecars)
+	if isFixed {
+		return 4
+	}
+	return 4 + uint32(len(bs.Sidecars))*(*BlobSidecar)(nil).SizeSSZ()
 }
 
 // MarshalSSZ marshals the BlobSidecars object to SSZ format.
 func (bs *BlobSidecars) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, bs.SizeSSZ(false))
-	return buf, ssz.EncodeToBytes(buf, bs)
+	fmt.Printf("Debug: Starting MarshalSSZ for BlobSidecars\n")
+	size := bs.SizeSSZ(false)
+	fmt.Printf("Debug: Calculated size: %d\n", size)
+	buf := make([]byte, size)
+	fmt.Printf("Debug: Created buffer of length: %d\n", len(buf))
+	err := ssz.EncodeToBytes(buf, bs)
+	if err != nil {
+		fmt.Printf("Debug: Error in EncodeToBytes: %v\n", err)
+		return nil, err
+	}
+	fmt.Printf("Debug: Successfully encoded BlobSidecars. Buffer length: %d\n", len(buf))
+	return buf, nil
 }
 
 // UnmarshalSSZ unmarshals the BlobSidecars object from SSZ format.
 func (bs *BlobSidecars) UnmarshalSSZ(buf []byte) error {
+	fmt.Println("CALLING UNMARSHAL SSZ IN BLOB SIDECAR PLURALS", bs, "len(buf)", len(buf))
+	bs = &BlobSidecars{}
 	return ssz.DecodeFromBytes(buf, bs)
 }
 

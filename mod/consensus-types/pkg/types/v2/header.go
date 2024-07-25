@@ -76,11 +76,7 @@ func (b *BeaconBlockHeader) New(
 
 // SizeSSZ returns the size of the BeaconBlockHeader object in SSZ encoding.
 func (b *BeaconBlockHeader) SizeSSZ() uint32 {
-	return 8 + // Slot
-		8 + // ProposerIndex
-		32 + // ParentBlockRoot
-		32 + // StateRoot
-		32 // BodyRoot
+	return 112 // Total size: Slot (8) + ProposerIndex (8) + ParentBlockRoot (32) + StateRoot (32) + BodyRoot (32)
 }
 
 // DefineSSZ defines the SSZ encoding for the BeaconBlockHeader object.

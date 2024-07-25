@@ -23,6 +23,7 @@ package encoding
 import (
 	"fmt"
 	"reflect"
+	"runtime/debug"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 )
@@ -117,31 +118,53 @@ func UnmarshalBlobSidecarsFromABCIRequest[
 	var sidecars T
 	sidecars, ok := reflect.New(reflect.TypeOf(sidecars).Elem()).Interface().(T)
 	if !ok {
+		fmt.Printf("Debug: Invalid type conversion for sidecars\n")
 		return sidecars, ErrInvalidType
 	}
 
 	if req == nil {
+		fmt.Printf("Debug: Received nil ABCI request\n")
 		return sidecars, ErrNilABCIRequest
 	}
 
 	txs := req.GetTxs()
 	lenTxs := uint(len(txs))
+	fmt.Printf("Debug: Number of transactions in request: %d\n", lenTxs)
 
 	// Ensure there are transactions in the request and that the request is
 	// valid.
 	if txs == nil || lenTxs == 0 {
+		fmt.Printf("Debug: No transactions found in request\n")
 		return sidecars, ErrNoBeaconBlockInRequest
 	}
 	if bzIndex >= lenTxs {
+		fmt.Printf("Debug: bzIndex (%d) out of bounds. Max index: %d\n", bzIndex, lenTxs-1)
 		return sidecars, ErrBzIndexOutOfBounds
 	}
 
 	// Extract the blob sidecars from the ABCI request.
 	sidecarBz := txs[bzIndex]
 	if sidecarBz == nil {
+		fmt.Printf("Debug: Nil beacon block found at index %d\n", bzIndex)
 		return sidecars, ErrNilBeaconBlockInRequest
 	}
 
-	err := sidecars.UnmarshalSSZ(sidecarBz)
+	var err error
+	fmt.Printf("Debug: Attempting to unmarshal sidecar of length %d\n", len(sidecarBz))
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				fmt.Printf("Debug: Panic occurred during UnmarshalSSZ: %v\n", r)
+				fmt.Printf("Debug: Call stack:\n%s\n", debug.Stack())
+				err = fmt.Errorf("panic during UnmarshalSSZ: %v", r)
+			}
+		}()
+		err = sidecars.UnmarshalSSZ(sidecarBz)
+	}()
+	if err != nil {
+		fmt.Printf("Debug: Error unmarshalling sidecars: %v\n", err)
+	} else {
+		fmt.Printf("Debug: Successfully unmarshalled sidecars\n")
+	}
 	return sidecars, err
 }

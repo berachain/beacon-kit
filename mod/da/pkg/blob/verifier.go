@@ -22,6 +22,7 @@ package blob
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
@@ -65,26 +66,52 @@ func (bv *Verifier) VerifySidecars(
 		bv.proofVerifier.GetImplementation(),
 	)
 
+	fmt.Println("Starting sidecar verification",
+		"num_sidecars", len(sidecars.Sidecars),
+		"kzg_offset", kzgOffset)
+
 	// Verify the inclusion proofs on the blobs concurrently.
 	g.Go(func() error {
 		// TODO: KZGOffset needs to be configurable and not
 		// passed in.
-		return bv.VerifyInclusionProofs(
-			sidecars, kzgOffset,
-		)
+		err := bv.VerifyInclusionProofs(sidecars, kzgOffset)
+		if err != nil {
+			fmt.Println("Inclusion proof verification failed", "error", err)
+		} else {
+			fmt.Println("Inclusion proof verification succeeded")
+		}
+		return err
 	})
 
 	// Verify the KZG proofs on the blobs concurrently.
 	g.Go(func() error {
-		return bv.VerifyKZGProofs(sidecars)
+		err := bv.VerifyKZGProofs(sidecars)
+		if err != nil {
+			fmt.Println("KZG proof verification failed", "error", err)
+		} else {
+			fmt.Println("KZG proof verification succeeded")
+		}
+		return err
 	})
 
 	g.Go(func() error {
-		return sidecars.ValidateBlockRoots()
+		err := sidecars.ValidateBlockRoots()
+		if err != nil {
+			fmt.Println("Block root validation failed", "error", err)
+		} else {
+			fmt.Println("Block root validation succeeded")
+		}
+		return err
 	})
 
 	// Wait for all goroutines to finish and return the result.
-	return g.Wait()
+	err := g.Wait()
+	if err != nil {
+		fmt.Println("Sidecar verification failed", "error", err)
+	} else {
+		fmt.Println("Sidecar verification succeeded")
+	}
+	return err
 }
 
 func (bv *Verifier) VerifyInclusionProofs(

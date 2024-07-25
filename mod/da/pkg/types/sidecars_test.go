@@ -36,16 +36,7 @@ func TestEmptySidecarMarshalling(t *testing.T) {
 		Index:             0,
 		Blob:              eip4844.Blob{},
 		BeaconBlockHeader: &ctypes.BeaconBlockHeader{},
-		InclusionProof: [][32]byte{
-			byteslib.ToBytes32([]byte("1")),
-			byteslib.ToBytes32([]byte("2")),
-			byteslib.ToBytes32([]byte("3")),
-			byteslib.ToBytes32([]byte("4")),
-			byteslib.ToBytes32([]byte("5")),
-			byteslib.ToBytes32([]byte("6")),
-			byteslib.ToBytes32([]byte("7")),
-			byteslib.ToBytes32([]byte("8")),
-		},
+		InclusionProof:    [][32]byte{},
 	}
 
 	// Marshal the empty sidecar
