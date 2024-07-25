@@ -134,10 +134,10 @@ func (b *BeaconBlockHeader) MarshalSSZTo(buf []byte) ([]byte, error) {
 	return append(buf, bz...), nil
 }
 
-// HashTreeRootWith ssz hashes the BeaconBlockHeader object with a hasher
+// HashTreeRootWith ssz hashes the BeaconBlockHeader object with a hasher.
 func (b *BeaconBlockHeader) HashTreeRootWith(
 	hh fastssz.HashWalker,
-) (err error) {
+) error {
 	indx := hh.Index()
 
 	// Field (0) 'Slot'
@@ -156,10 +156,10 @@ func (b *BeaconBlockHeader) HashTreeRootWith(
 	hh.PutBytes(b.BodyRoot[:])
 
 	hh.Merkleize(indx)
-	return
+	return nil
 }
 
-// GetTree ssz hashes the BeaconBlockHeader object
+// GetTree ssz hashes the BeaconBlockHeader object.
 func (b *BeaconBlockHeader) GetTree() (*fastssz.Node, error) {
 	return fastssz.ProofTree(b)
 }

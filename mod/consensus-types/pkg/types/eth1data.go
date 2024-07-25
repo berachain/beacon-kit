@@ -23,9 +23,19 @@ package types
 import (
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
+)
+
+// ForkSize is the size of the Fork object in bytes.
+// 32 bytes for DepositRoot + 8 bytes for DepositCount + 8 bytes for BlockHash.
+const Eth1DataSize = 72
+
+var (
+	_ ssz.StaticObject                    = (*Eth1Data)(nil)
+	_ constraints.SSZMarshallableRootable = (*Eth1Data)(nil)
 )
 
 type Eth1Data struct {
@@ -61,8 +71,7 @@ func (e *Eth1Data) New(
 
 // SizeSSZ returns the size of the Eth1Data object in SSZ encoding.
 func (*Eth1Data) SizeSSZ() uint32 {
-	//nolint:mnd // 32 + 8 + 32
-	return 72
+	return Eth1DataSize
 }
 
 // DefineSSZ defines the SSZ encoding for the Eth1Data object.
@@ -101,8 +110,8 @@ func (e *Eth1Data) MarshalSSZTo(dst []byte) ([]byte, error) {
 /*                                   FastSSZ                                  */
 /* -------------------------------------------------------------------------- */
 
-// HashTreeRootWith ssz hashes the Eth1Data object with a hasher
-func (e *Eth1Data) HashTreeRootWith(hh fastssz.HashWalker) (err error) {
+// HashTreeRootWith ssz hashes the Eth1Data object with a hasher.
+func (e *Eth1Data) HashTreeRootWith(hh fastssz.HashWalker) error {
 	indx := hh.Index()
 
 	// Field (0) 'DepositRoot'
@@ -115,15 +124,15 @@ func (e *Eth1Data) HashTreeRootWith(hh fastssz.HashWalker) (err error) {
 	hh.PutBytes(e.BlockHash[:])
 
 	hh.Merkleize(indx)
-	return
+	return nil
 }
 
-// GetTree ssz hashes the Eth1Data object
+// GetTree ssz hashes the Eth1Data object.
 func (e *Eth1Data) GetTree() (*fastssz.Node, error) {
 	return fastssz.ProofTree(e)
 }
 
 // GetDepositCount returns the deposit count.
 func (e *Eth1Data) GetDepositCount() math.U64 {
-	return math.U64(e.DepositCount)
+	return e.DepositCount
 }
