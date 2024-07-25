@@ -22,7 +22,7 @@ package handlers
 
 import (
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/node-api/types/context"
+	"github.com/berachain/beacon-kit/mod/node-api/server/context"
 )
 
 // handlerFn enforces a signature for all handler functions.

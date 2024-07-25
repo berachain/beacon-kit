@@ -24,28 +24,30 @@ import (
 	"errors"
 
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
-	"github.com/berachain/beacon-kit/mod/node-api/types/context"
+	"github.com/berachain/beacon-kit/mod/node-api/server/context"
 )
 
 // Handler is the handler for the beacon API.
 type Handler[
+	BeaconBlockHeaderT BlockHeader,
 	ContextT context.Context,
 	ForkT any,
 	ValidatorT any,
 ] struct {
 	*handlers.BaseHandler[ContextT]
-	backend Backend[ForkT, ValidatorT]
+	backend Backend[BeaconBlockHeaderT, ForkT, ValidatorT]
 }
 
 // NewHandler creates a new handler for the beacon API.
 func NewHandler[
+	BeaconBlockHeaderT BlockHeader,
 	ContextT context.Context,
 	ForkT any,
 	ValidatorT any,
 ](
-	backend Backend[ForkT, ValidatorT],
-) *Handler[ContextT, ForkT, ValidatorT] {
-	h := &Handler[ContextT, ForkT, ValidatorT]{
+	backend Backend[BeaconBlockHeaderT, ForkT, ValidatorT],
+) *Handler[BeaconBlockHeaderT, ContextT, ForkT, ValidatorT] {
+	h := &Handler[BeaconBlockHeaderT, ContextT, ForkT, ValidatorT]{
 		BaseHandler: handlers.NewBaseHandler[ContextT](
 			handlers.NewRouteSet[ContextT](""),
 		),
@@ -55,6 +57,6 @@ func NewHandler[
 }
 
 // NotImplemented is a placeholder for the beacon API.
-func (h *Handler[ContextT, _, _]) NotImplemented(_ ContextT) (any, error) {
+func (h *Handler[_, ContextT, _, _]) NotImplemented(_ ContextT) (any, error) {
 	return nil, errors.New("not implemented")
 }

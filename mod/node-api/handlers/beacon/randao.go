@@ -18,24 +18,38 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package beacon
 
-import "github.com/berachain/beacon-kit/mod/errors"
+import (
+	"strconv"
 
-var (
-	// ErrDepositMessage is an error for when the deposit signature doesn't
-	// match.
-	ErrDepositMessage = errors.New("invalid deposit message")
-
-	// ErrInvalidWithdrawalCredentials is an error for when the.
-	ErrInvalidWithdrawalCredentials = errors.New(
-		"invalid withdrawal credentials",
-	)
-
-	// ErrForkVersionNotSupported is an error for when the fork
-	// version is not supported.
-	ErrForkVersionNotSupported = errors.New("fork version not supported")
-
-	// ErrNilPayloadHeader is an error for when the payload header is nil.
-	ErrNilPayloadHeader = errors.New("nil payload header")
+	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 )
+
+func (h *Handler[_, ContextT, _, _]) GetRandao(c ContextT) (any, error) {
+	req, err := utils.BindAndValidate[beacontypes.GetRandaoRequest](c)
+	if err != nil {
+		return nil, err
+	}
+	slot, err := utils.SlotFromStateID(req.StateID)
+	if err != nil {
+		return nil, err
+	}
+	epoch := uint64(0)
+	if req.Epoch != "" {
+		epoch, err = strconv.ParseUint(req.Epoch, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+	}
+	randao, err := h.backend.RandaoAtEpoch(slot, epoch)
+	if err != nil {
+		return nil, err
+	}
+	return beacontypes.ValidatorResponse{
+		ExecutionOptimistic: false, // stubbed
+		Finalized:           false, // stubbed
+		Data:                randao,
+	}, nil
+}

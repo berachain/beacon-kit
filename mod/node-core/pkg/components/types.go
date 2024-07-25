@@ -30,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	typesv2 "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types/v2"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
 	consruntimetypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
@@ -43,6 +42,12 @@ import (
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-api/backend"
 	"github.com/berachain/beacon-kit/mod/node-api/engines/echo"
+	beaconapi "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon"
+	builderapi "github.com/berachain/beacon-kit/mod/node-api/handlers/builder"
+	configapi "github.com/berachain/beacon-kit/mod/node-api/handlers/config"
+	debugapi "github.com/berachain/beacon-kit/mod/node-api/handlers/debug"
+	eventsapi "github.com/berachain/beacon-kit/mod/node-api/handlers/events"
+	nodeapi "github.com/berachain/beacon-kit/mod/node-api/handlers/node"
 	"github.com/berachain/beacon-kit/mod/node-api/server"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
@@ -227,7 +232,7 @@ type (
 	Fork = types.Fork
 
 	// ForkData is a type alias for the fork data.
-	ForkData = typesv2.ForkData
+	ForkData = types.ForkData
 
 	// Genesis is a type alias for the genesis.
 	Genesis = genesis.Genesis[
@@ -375,7 +380,7 @@ type (
 	Withdrawal = engineprimitives.Withdrawal
 
 	// WithdrawalCredentials is a type alias for the withdrawal credentials.
-	WithdrawalCredentials = typesv2.WithdrawalCredentials
+	WithdrawalCredentials = types.WithdrawalCredentials
 )
 
 /* -------------------------------------------------------------------------- */
@@ -439,4 +444,30 @@ type (
 
 	// BlockPruner is a type alias for the block pruner.
 	BlockPruner = pruner.Pruner[*BlockStore]
+)
+
+/* -------------------------------------------------------------------------- */
+/*                                API Handlers                                */
+/* -------------------------------------------------------------------------- */
+
+type (
+	// BeaconAPIHandler is a type alias for the beacon handler.
+	BeaconAPIHandler = beaconapi.Handler[
+		*BeaconBlockHeader, NodeAPIContext, *Fork, *Validator,
+	]
+
+	// BuilderAPIHandler is a type alias for the builder handler.
+	BuilderAPIHandler = builderapi.Handler[NodeAPIContext]
+
+	// ConfigAPIHandler is a type alias for the config handler.
+	ConfigAPIHandler = configapi.Handler[NodeAPIContext]
+
+	// DebugAPIHandler is a type alias for the debug handler.
+	DebugAPIHandler = debugapi.Handler[NodeAPIContext]
+
+	// EventsAPIHandler is a type alias for the events handler.
+	EventsAPIHandler = eventsapi.Handler[NodeAPIContext]
+
+	// NodeAPIHandler is a type alias for the node handler.
+	NodeAPIHandler = nodeapi.Handler[NodeAPIContext]
 )

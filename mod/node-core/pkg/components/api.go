@@ -74,22 +74,6 @@ func ProvideNodeAPIBackend(in NodeAPIBackendInput) *NodeAPIBackend {
 	)
 }
 
-type NodeAPIHandlersInput struct {
-	depinject.In
-	Backend *NodeAPIBackend
-	Config  *config.Config
-}
-
-func ProvideNodeAPIHandlers(
-	in NodeAPIHandlersInput,
-) []handlers.Handlers[NodeAPIContext] {
-	return server.DefaultHandlers[
-		NodeAPIContext,
-		*Fork,
-		*Validator,
-	](in.Backend)
-}
-
 type NodeAPIServerInput struct {
 	depinject.In
 

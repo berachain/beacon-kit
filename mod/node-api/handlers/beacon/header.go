@@ -21,52 +21,67 @@
 package beacon
 
 import (
+	"strconv"
+
 	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
-	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 )
 
-func (h *Handler[_, ContextT, _, _]) GetStateRoot(c ContextT) (any, error) {
-	req, err := utils.BindAndValidate[beacontypes.GetStateRootRequest](c, h.Logger())
+func (h *Handler[
+	BeaconBlockHeaderT, ContextT, _, _,
+]) GetBlockHeaders(c ContextT) (any, error) {
+	req, err := utils.BindAndValidate[beacontypes.GetBlockHeadersRequest](c)
 	if err != nil {
 		return nil, err
 	}
-	slot, err := utils.SlotFromStateID(req.StateID)
+	slot, err := strconv.ParseUint(req.Slot, 10, 64)
 	if err != nil {
 		return nil, err
 	}
-	stateRoot, err := h.backend.StateRootAtSlot(slot)
+	header, err := h.backend.BlockHeaderAtSlot(slot)
 	if err != nil {
 		return nil, err
-	}
-	if len(stateRoot) == 0 {
-		return nil, types.ErrNotFound
 	}
 	return beacontypes.ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed
 		Finalized:           false, // stubbed
-		Data: types.Wrap(
-			beacontypes.RootData{Root: stateRoot},
-		),
+		Data: &beacontypes.BlockHeaderResponse[BeaconBlockHeaderT]{
+			Root:      header.GetBodyRoot(),
+			Canonical: true,
+			Header: &beacontypes.BlockHeader[BeaconBlockHeaderT]{
+				Message:   header,
+				Signature: bytes.B48{}, // TODO: implement
+			},
+		},
 	}, nil
 }
 
-func (h *Handler[_, ContextT, _, _]) GetStateFork(c ContextT) (any, error) {
-	req, err := utils.BindAndValidate[beacontypes.GetStateForkRequest](c, h.Logger())
+func (h *Handler[
+	BeaconBlockHeaderT, ContextT, _, _,
+]) GetBlockHeaderByID(c ContextT) (any, error) {
+	req, err := utils.BindAndValidate[beacontypes.GetBlockHeaderRequest](c)
 	if err != nil {
 		return nil, err
 	}
-	slot, err := utils.SlotFromStateID(req.StateID)
+	slot, err := utils.SlotFromBlockID(req.BlockID)
 	if err != nil {
 		return nil, err
 	}
-	fork, err := h.backend.StateForkAtSlot(slot)
+	header, err := h.backend.BlockHeaderAtSlot(slot)
 	if err != nil {
 		return nil, err
 	}
 	return beacontypes.ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed
 		Finalized:           false, // stubbed
-		Data:                types.Wrap(fork),
+		Data: &beacontypes.BlockHeaderResponse[BeaconBlockHeaderT]{
+			Root:      header.GetBodyRoot(),
+			Canonical: true,
+			Header: &beacontypes.BlockHeader[BeaconBlockHeaderT]{
+				Message:   header,
+				Signature: bytes.B48{}, // TODO: implement
+			},
+		},
 	}, nil
 }

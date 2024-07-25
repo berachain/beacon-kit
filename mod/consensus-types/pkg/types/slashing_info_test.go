@@ -21,10 +21,10 @@
 package types_test
 
 import (
+	"io"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -64,7 +64,7 @@ func TestSlashingInfo_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 			name:     "Invalid Buffer Size",
 			data:     generateSlashingInfo(),
 			expected: nil,
-			err:      ssz.ErrSize,
+			err:      io.ErrUnexpectedEOF,
 		},
 	}
 

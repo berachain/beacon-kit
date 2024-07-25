@@ -24,7 +24,6 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	typesv2 "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types/v2"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -36,7 +35,7 @@ import (
 func generateValidDeposit() *types.Deposit {
 	var pubKey crypto.BLSPubkey
 	var signature crypto.BLSSignature
-	var credentials typesv2.WithdrawalCredentials
+	var credentials types.WithdrawalCredentials
 	amount := math.Gwei(32)
 	index := uint64(1)
 
@@ -125,7 +124,7 @@ func TestDeposit_UnmarshalSSZ_ErrSize(t *testing.T) {
 func TestDeposit_VerifySignature(t *testing.T) {
 	deposit := generateValidDeposit()
 
-	forkData := &typesv2.ForkData{
+	forkData := &types.ForkData{
 		CurrentVersion:        common.Version{0x00, 0x00, 0x00, 0x04},
 		GenesisValidatorsRoot: common.Root{0x00, 0x00, 0x00, 0x00},
 	}
@@ -149,5 +148,5 @@ func TestDeposit_Getters(t *testing.T) {
 	require.Equal(t, deposit.Credentials, deposit.GetWithdrawalCredentials())
 	require.Equal(t, deposit.Amount, deposit.GetAmount())
 	require.Equal(t, deposit.Signature, deposit.GetSignature())
-	require.Equal(t, deposit.Index, deposit.GetIndex())
+	require.Equal(t, math.U64(deposit.Index), deposit.GetIndex())
 }

@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/log/pkg/noop"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
-	apicontext "github.com/berachain/beacon-kit/mod/node-api/types/context"
+	apicontext "github.com/berachain/beacon-kit/mod/node-api/server/context"
 )
 
 type Server[
