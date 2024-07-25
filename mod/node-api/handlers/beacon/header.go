@@ -64,7 +64,7 @@ func (h *Handler[
 	if err != nil {
 		return nil, err
 	}
-	slot, err := utils.SlotFromBlockID(req.BlockID)
+	slot, err := utils.SlotFromBlockID(req.BlockID, h.backend)
 	if err != nil {
 		return nil, err
 	}
