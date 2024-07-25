@@ -30,7 +30,7 @@ import (
 // BeaconBlockHeaderSize is the size of the BeaconBlockHeader object in bytes.
 //
 // Total size: Slot (8) + ProposerIndex (8) +
-// ParentBlockRoot (32) + StateRoot (32) + BodyRoot (32)
+// ParentBlockRoot (32) + StateRoot (32) + BodyRoot (32).
 const BeaconBlockHeaderSize = 112
 
 var (
@@ -131,7 +131,7 @@ func (b *BeaconBlockHeader) HashTreeRoot() ([32]byte, error) {
 
 // GetSlot retrieves the slot of the BeaconBlockHeader.
 func (b *BeaconBlockHeader) GetSlot() math.Slot {
-	return math.Slot(b.Slot)
+	return b.Slot
 }
 
 // SetSlot sets the slot of the BeaconBlockHeader.
@@ -141,11 +141,13 @@ func (b *BeaconBlockHeader) SetSlot(slot math.Slot) {
 
 // GetProposerIndex retrieves the proposer index of the BeaconBlockHeader.
 func (b *BeaconBlockHeader) GetProposerIndex() math.ValidatorIndex {
-	return math.ValidatorIndex(b.ProposerIndex)
+	return b.ProposerIndex
 }
 
 // SetProposerIndex sets the proposer index of the BeaconBlockHeader.
-func (b *BeaconBlockHeader) SetProposerIndex(proposerIndex math.ValidatorIndex) {
+func (b *BeaconBlockHeader) SetProposerIndex(
+	proposerIndex math.ValidatorIndex,
+) {
 	b.ProposerIndex = proposerIndex
 }
 
