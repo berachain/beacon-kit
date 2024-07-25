@@ -59,7 +59,7 @@ func TestBeaconBlockHeader_SizeSSZ(t *testing.T) {
 	)
 
 	size := header.SizeSSZ()
-	require.Equal(t, 112, size)
+	require.Equal(t, uint32(112), size)
 }
 
 func TestBeaconBlockHeader_HashTreeRoot(t *testing.T) {
