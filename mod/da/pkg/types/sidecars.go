@@ -96,8 +96,8 @@ func (bs *BlobSidecars) DefineSSZ(codec *ssz.Codec) {
 }
 
 // SizeSSZ returns the size of the BlobSidecars object in SSZ encoding.
-func (bs *BlobSidecars) SizeSSZ(isFixed bool) uint32 {
-	if isFixed {
+func (bs *BlobSidecars) SizeSSZ(fixed bool) uint32 {
+	if fixed {
 		return 4
 	}
 	return 4 + ssz.SizeSliceOfStaticObjects(bs.Sidecars)
