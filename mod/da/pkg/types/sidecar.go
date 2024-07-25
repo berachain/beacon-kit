@@ -90,7 +90,7 @@ func (b *BlobSidecar) HasValidInclusionProof(
 	gIndex := kzgOffset + b.Index
 
 	// Verify the inclusion proof.
-	result := merkle.IsValidMerkleBranch(
+	return merkle.IsValidMerkleBranch(
 		leaf,
 		b.InclusionProof,
 		//#nosec:G701 // safe.
@@ -100,7 +100,6 @@ func (b *BlobSidecar) HasValidInclusionProof(
 		gIndex,
 		b.BeaconBlockHeader.BodyRoot,
 	)
-	return result
 }
 
 // DefineSSZ defines the SSZ encoding for the BlobSidecar object.
