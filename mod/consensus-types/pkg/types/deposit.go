@@ -154,8 +154,8 @@ func (d *Deposit) MarshalSSZTo(dst []byte) ([]byte, error) {
 	return dst, nil
 }
 
-// HashTreeRootWith ssz hashes the Deposit object with a hasher
-func (d *Deposit) HashTreeRootWith(hh fastssz.HashWalker) (err error) {
+// HashTreeRootWith ssz hashes the Deposit object with a hasher.
+func (d *Deposit) HashTreeRootWith(hh fastssz.HashWalker) error {
 	indx := hh.Index()
 
 	// Field (0) 'Pubkey'
@@ -174,10 +174,10 @@ func (d *Deposit) HashTreeRootWith(hh fastssz.HashWalker) (err error) {
 	hh.PutUint64(d.Index)
 
 	hh.Merkleize(indx)
-	return
+	return nil
 }
 
-// GetTree ssz hashes the Deposit object
+// GetTree ssz hashes the Deposit object.
 func (d *Deposit) GetTree() (*fastssz.Node, error) {
 	return fastssz.ProofTree(d)
 }

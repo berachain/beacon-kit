@@ -165,8 +165,8 @@ func (v *Validator) MarshalSSZTo(dst []byte) ([]byte, error) {
 	return dst, nil
 }
 
-// HashTreeRootWith ssz hashes the Validator object with a hasher
-func (v *Validator) HashTreeRootWith(hh fastssz.HashWalker) (err error) {
+// HashTreeRootWith ssz hashes the Validator object with a hasher.
+func (v *Validator) HashTreeRootWith(hh fastssz.HashWalker) error {
 	indx := hh.Index()
 
 	// Field (0) 'Pubkey'
@@ -194,10 +194,10 @@ func (v *Validator) HashTreeRootWith(hh fastssz.HashWalker) (err error) {
 	hh.PutUint64(uint64(v.WithdrawableEpoch))
 
 	hh.Merkleize(indx)
-	return
+	return nil
 }
 
-// GetTree ssz hashes the Validator object
+// GetTree ssz hashes the Validator object.
 func (v *Validator) GetTree() (*fastssz.Node, error) {
 	return fastssz.ProofTree(v)
 }
