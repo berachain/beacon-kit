@@ -20,19 +20,23 @@
 
 package types
 
-import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-)
+const (
+	// ZeroValidatorGIndexDenebPlus is the generalized index of the 0 validator in the
+	// beacon block in the DenebPlus fork.
+	ZeroValidatorGIndexDenebPlus = 406819302277120
 
-type BlockProposerProofResponse[BeaconBlockHeaderT, ValidatorT any] struct {
-	// ValidatorProof can be verified against the beacon block root. Use a
-	// Generalized Index of `z + ValidatorIndex`, where z is the Generalized
-	// Index of the 0 validator in the beacon block. In DenebPlus, z is
-	// 406819302277120.
-	ValidatorProof []common.Root `json:"validator_proof"`
-	// Validator is the Validator struct of the block proposer.
-	Validator ValidatorT `json:"validator"`
-	// BeaconBlockHeader is the block header of which the hash tree root is the
-	// beacon block root to verify against.
-	BeaconBlockHeader BeaconBlockHeaderT `json:"beacon_block_header"`
-}
+	// MaxBlockRoots is the maximum number of block roots in the beacon block.
+	MaxBlockRoots uint64 = 8192
+
+	// MaxStateRoots is the maximum number of state roots in the beacon state.
+	MaxStateRoots uint64 = 8192
+
+	// MaxBalances is the maximum number of balances in the beacon state.
+	MaxBalances uint64 = 1099511627776
+
+	// MaxRandaoMixes is the maximum number of randao mixes in the beacon state.
+	MaxRandaoMixes uint64 = 65536
+
+	// MaxSlashings is the maximum number of slashings in the beacon state.
+	MaxSlashings uint64 = 1099511627776
+)

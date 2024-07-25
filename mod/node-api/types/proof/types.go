@@ -27,8 +27,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// TODO: Remove unused functions on the interfaces.
-
 // BeaconBlockHeader is the interface for a beacon block header.
 type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
 	constraints.SSZMarshallable

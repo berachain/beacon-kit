@@ -168,7 +168,7 @@ func newBeaconStateForValidator[
 		}
 	}
 	if bsv.BlockRoots, err = ssz.ListFromElements(
-		8192, blockRoots...,
+		MaxBlockRoots, blockRoots...,
 	).HashTreeRoot(); err != nil {
 		return nil, err
 	}
@@ -180,7 +180,7 @@ func newBeaconStateForValidator[
 		}
 	}
 	if bsv.StateRoots, err = ssz.ListFromElements(
-		8192, stateRoots...,
+		MaxStateRoots, stateRoots...,
 	).HashTreeRoot(); err != nil {
 		return nil, err
 	}
@@ -220,7 +220,7 @@ func newBeaconStateForValidator[
 	}
 	if bsv.Balances, err = ssz.ListFromElements(
 		//#nosec:G103 // on purpose.
-		1099511627776, *(*[]math.U64)(unsafe.Pointer(&balances))...,
+		MaxBalances, *(*[]math.U64)(unsafe.Pointer(&balances))...,
 	).HashTreeRoot(); err != nil {
 		return nil, err
 	}
@@ -232,7 +232,7 @@ func newBeaconStateForValidator[
 		}
 	}
 	if bsv.RandaoMixes, err = ssz.ListFromElements(
-		65536, randaoMixes...,
+		MaxRandaoMixes, randaoMixes...,
 	).HashTreeRoot(); err != nil {
 		return nil, err
 	}
@@ -251,7 +251,7 @@ func newBeaconStateForValidator[
 		return nil, err
 	}
 	if bsv.Slashings, err = ssz.ListFromElements(
-		1099511627776, *(*[]math.U64)(unsafe.Pointer(&slashings))...,
+		MaxSlashings, *(*[]math.U64)(unsafe.Pointer(&slashings))...,
 	).HashTreeRoot(); err != nil {
 		return nil, err
 	}

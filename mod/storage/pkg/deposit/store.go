@@ -75,7 +75,7 @@ func (kv *KVStore[DepositT]) GetDepositsByIndex(
 ) ([]DepositT, error) {
 	kv.mu.RLock()
 	defer kv.mu.RUnlock()
-	deposits := make([]DepositT, numView)
+	deposits := []DepositT{}
 	for i := range numView {
 		deposit, err := kv.store.Get(context.TODO(), startIndex+i)
 		if errors.Is(err, sdkcollections.ErrNotFound) {
@@ -84,7 +84,7 @@ func (kv *KVStore[DepositT]) GetDepositsByIndex(
 		if err != nil {
 			return deposits, err
 		}
-		deposits[i] = deposit
+		deposits = append(deposits, deposit)
 	}
 	return deposits, nil
 }

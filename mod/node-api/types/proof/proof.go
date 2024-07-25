@@ -24,15 +24,29 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
-type BlockProposerProofResponse[BeaconBlockHeaderT, ValidatorT any] struct {
-	// ValidatorProof can be verified against the beacon block root. Use a
-	// Generalized Index of `z + ValidatorIndex`, where z is the Generalized
-	// Index of the 0 validator in the beacon block. In DenebPlus, z is
-	// 406819302277120.
-	ValidatorProof []common.Root `json:"validator_proof"`
-	// Validator is the Validator struct of the block proposer.
-	Validator ValidatorT `json:"validator"`
-	// BeaconBlockHeader is the block header of which the hash tree root is the
-	// beacon block root to verify against.
-	BeaconBlockHeader BeaconBlockHeaderT `json:"beacon_block_header"`
+// GetProofForProposer_FastSSZ generates a proof for the proposer validator in
+// the beacon block. It uses the fastssz library to generate the proof.
+func GetProofForProposer_FastSSZ(
+	beaconBlock *BeaconBlockForValidator,
+) ([]common.Root, error) {
+	// Get the proof tree to generate the proof.
+	proofTree, err := beaconBlock.GetTree()
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the generalized index of the proposer validator in the tree.
+	gIndex := int(ZeroValidatorGIndexDenebPlus + beaconBlock.ProposerIndex)
+
+	// Get the proof of the proposer validator in the tree.
+	proof, err := proofTree.Prove(gIndex)
+	if err != nil {
+		return nil, err
+	}
+	validatorProof := make([]common.Root, len(proof.Hashes))
+	for i, hash := range proof.Hashes {
+		validatorProof[i] = common.Root(hash)
+	}
+
+	return validatorProof, nil
 }

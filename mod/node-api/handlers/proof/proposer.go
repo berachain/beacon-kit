@@ -37,19 +37,16 @@ func (h *Handler[
 		return nil, err
 	}
 
-	// Get the slot from the given input of block id.
+	// Get the slot from the given input of block id, block header, and beacon
+	// state for the desired slot.
 	slot, err := utils.SlotFromBlockID(params.BlockID)
 	if err != nil {
 		return nil, err
 	}
-
-	// Get the beacon block header for the desired slot.
 	blockHeader, err := h.backend.BlockHeader(slot)
 	if err != nil {
 		return nil, err
 	}
-
-	// Get the entire beacon state for the desired slot.
 	beaconState, err := h.backend.StateFromSlot(slot)
 	if err != nil {
 		return nil, err
@@ -57,8 +54,16 @@ func (h *Handler[
 
 	// Get the beacon block struct for the proving the proposer validator
 	// exists within the state in this block.
-	beaconBlockProof, err := ptypes.NewBeaconBlockForValidator(
+	beaconBlockForValidatorProof, err := ptypes.NewBeaconBlockForValidator(
 		blockHeader, beaconState, h.backend.ChainSpec(),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// Generate the proof for the proposer validator.
+	validatorProof, err := ptypes.GetProofForProposer_FastSSZ(
+		beaconBlockForValidatorProof,
 	)
 	if err != nil {
 		return nil, err
@@ -66,12 +71,13 @@ func (h *Handler[
 
 	//#nosec:G103 // on purpose.
 	validators := *(*[]ValidatorT)(
-		unsafe.Pointer(&beaconBlockProof.StateRoot.Validators),
+		unsafe.Pointer(&beaconBlockForValidatorProof.StateRoot.Validators),
 	)
 
 	return ptypes.BlockProposerProofResponse[
 		BeaconBlockHeaderT, ValidatorT,
 	]{
+		ValidatorProof:    validatorProof,
 		BeaconBlockHeader: blockHeader,
 		Validator:         validators[blockHeader.GetProposerIndex()],
 	}, nil
