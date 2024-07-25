@@ -10,8 +10,6 @@ github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
 github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df h1:mnD1LKqDQ0n+OFdDqOuvKaEiUKRJzsO4V0wyyn/gJYg=
 github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df/go.mod h1:bTFB4Rdvm7D/WdwPYkqQ+8T0XOMBv0pzXfp1E46BFX8=
-github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240724161918-96b9bf999de2 h1:mfyStWXvCXM6kPHoajPD/bo6a9IXmk4jy6t9UGPo4uc=
-github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240724161918-96b9bf999de2/go.mod h1:yMltv/k9Edi62SBq2bbfJJafcQq8L5pAk5npM0dw+Nk=
 github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240710022615-726645827bad h1:cNtVWFUtqG/71tZ8SXqivbO8OOCvcnSRkHiEpsA9M9g=
 github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240710022615-726645827bad/go.mod h1:VRSCYfECVQDtO65DLD0Bh92W15hBchYC61dyg87hRK8=
 github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df h1:6MJllcmMFt6dtvftM5zmdl1WVDpqZkNy3hFXVZtNV0s=
@@ -124,8 +122,6 @@ github.com/holiman/uint256 v1.3.0 h1:4wdcm/tnd0xXdu7iS3ruNvxkWwrb4aeBQv19ayYn8F4
 github.com/holiman/uint256 v1.3.0/go.mod h1:EOMSn4q6Nyt9P6efbI3bueV4e1b3dGlUCXeiRV4ng7E=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
 github.com/ianlancetaylor/demangle v0.0.0-20200824232613-28f6c0f3b639/go.mod h1:aSSvb/t6k1mPoxDqO4vJh6VOCGPwU4O0C2/Eqndh1Sc=
-github.com/karalabe/ssz v0.2.1-0.20240724074312-3d1ff7a6f7c4 h1:CvO92iWYv7SS7hWzd1cYaAhGVZmanD/DtUfe0s+kTeg=
-github.com/karalabe/ssz v0.2.1-0.20240724074312-3d1ff7a6f7c4/go.mod h1:SUFJO5R2VkUK3vT80pjfIB/g7eaQgSU2RhbuL8GOJq4=
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/klauspost/compress v1.17.9 h1:6KIumPrER1LHsvBVuDa0r5xaG0Es51mhhB9BQB2qeMA=
@@ -186,8 +182,6 @@ github.com/prometheus/common v0.55.0 h1:KEi6DK7lXW/m7Ig5i47x0vRzuBsHuvJdi5ee6Y3G
 github.com/prometheus/common v0.55.0/go.mod h1:2SECS4xJG1kd8XF9IcM1gMX6510RAEL65zxzNImwdc8=
 github.com/prometheus/procfs v0.15.1 h1:YagwOFzUgYfKKHX6Dr+sHT7km/hxC76UB0learggepc=
 github.com/prometheus/procfs v0.15.1/go.mod h1:fB45yRUv8NstnjriLhBQLuOUt+WW4BsoGhij/e3PBqk=
-github.com/prysmaticlabs/go-bitfield v0.0.0-20240618144021-706c95b2dd15 h1:lC8kiphgdOBTcbTvo8MwkvpKjO0SlAgjv4xIK5FGJ94=
-github.com/prysmaticlabs/go-bitfield v0.0.0-20240618144021-706c95b2dd15/go.mod h1:8svFBIKKu31YriBG/pNizo9N0Jr9i5PQ+dFkxWg3x5k=
 github.com/prysmaticlabs/gohashtree v0.0.4-beta h1:H/EbCuXPeTV3lpKeXGPpEV9gsUpkqOOVnWapUyeWro4=
 github.com/prysmaticlabs/gohashtree v0.0.4-beta/go.mod h1:BFdtALS+Ffhg3lGQIHv9HDWuHS8cTvHZzrHWxwOtGOs=
 github.com/rivo/uniseg v0.2.0/go.mod h1:J6wj4VEh+S6ZtnVlnTBMWIodfgj8LQOQFoIToxlJtxc=

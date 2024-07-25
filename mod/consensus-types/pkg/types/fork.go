@@ -40,6 +40,10 @@ type Fork struct {
 	Epoch math.Epoch `json:"epoch"`
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                 Constructor                                */
+/* -------------------------------------------------------------------------- */
+
 // New creates a new fork.
 func (f *Fork) New(
 	previousVersion common.Version,
@@ -75,7 +79,8 @@ func (f *Fork) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, f)
 }
 
-// MarshalSSZTo marshals the Fork object to SSZ format and writes it to the given writer.
+// MarshalSSZTo marshals the Fork object to SSZ format and writes it to the
+// given writer.
 func (f *Fork) MarshalSSZTo(buf []byte) ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, f)
 }
