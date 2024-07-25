@@ -29,12 +29,12 @@ import (
 )
 
 // SSZValueCodec provides methods to encode and decode SSZ values.
-type SSZValueCodec[T constraints.SSZMarshallable] struct{}
+type SSZValueCodec[T constraints.SSZMarshalerUnmarshaler] struct{}
 
 // Assert that SSZValueCodec implements codec.ValueCodec.
 //
 //nolint:lll // annoying formatter.
-var _ codec.ValueCodec[constraints.SSZMarshallable] = SSZValueCodec[constraints.SSZMarshallable]{}
+var _ codec.ValueCodec[constraints.SSZMarshalerUnmarshaler] = SSZValueCodec[constraints.SSZMarshalerUnmarshaler]{}
 
 // Encode marshals the provided value into its SSZ encoding.
 func (SSZValueCodec[T]) Encode(value T) ([]byte, error) {
@@ -69,7 +69,7 @@ func (SSZValueCodec[T]) Stringify(value T) string {
 
 // ValueType returns the name of the interface that this codec is intended for.
 func (SSZValueCodec[T]) ValueType() string {
-	return "SSZMarshallable"
+	return "SSZMarshalerUnmarshaler"
 }
 
 // SSZInterfaceCodec provides methods to encode and decode SSZ values.
@@ -78,7 +78,7 @@ func (SSZValueCodec[T]) ValueType() string {
 // to create new instances of the underlying hard type since reflect cannot
 // infer the type of an interface.
 type SSZInterfaceCodec[T interface {
-	constraints.SSZMarshallable
+	constraints.SSZMarshalerUnmarshaler
 	NewFromSSZ([]byte, uint32) (T, error)
 	Version() uint32
 }] struct {
@@ -118,5 +118,5 @@ func (SSZInterfaceCodec[T]) Stringify(value T) string {
 
 // ValueType returns the name of the interface that this codec is intended for.
 func (SSZInterfaceCodec[T]) ValueType() string {
-	return "SSZMarshallable"
+	return "SSZMarshalerUnmarshaler"
 }

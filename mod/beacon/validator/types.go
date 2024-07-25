@@ -46,7 +46,7 @@ type BeaconBlock[
 	ExecutionPayloadT,
 	SlashingInfoT any,
 ] interface {
-	constraints.SSZMarshallable
+	constraints.SSZMarshalerUnmarshaler
 	// NewWithVersion creates a new beacon block with the given parameters.
 	NewWithVersion(
 		slot math.Slot,
@@ -70,7 +70,7 @@ type BeaconBlock[
 type BeaconBlockBody[
 	AttestationDataT, DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT any,
 ] interface {
-	constraints.SSZMarshallable
+	constraints.SSZMarshalerUnmarshaler
 	constraints.Nillable
 	// SetRandaoReveal sets the Randao reveal of the beacon block body.
 	SetRandaoReveal(crypto.BLSSignature)

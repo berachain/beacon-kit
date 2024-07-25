@@ -24,6 +24,6 @@ import "github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 
 // Deposit is a struct that represents a deposit.
 type Deposit interface {
-	constraints.SSZMarshallable
+	constraints.SSZMarshalerUnmarshaler
 	GetIndex() uint64
 }

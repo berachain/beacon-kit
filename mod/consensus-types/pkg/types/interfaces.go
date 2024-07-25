@@ -51,7 +51,7 @@ type WriteOnlyBeaconBlockBody interface {
 // ReadOnlyBeaconBlockBody is the interface for
 // a read-only beacon block body.
 type ReadOnlyBeaconBlockBody interface {
-	constraints.SSZMarshallable
+	constraints.SSZMarshalerUnmarshalerRootable
 	IsNil() bool
 
 	// Execution returns the execution data of the block.
@@ -66,7 +66,7 @@ type ReadOnlyBeaconBlockBody interface {
 
 // RawBeaconBlock is the interface for a beacon block.
 type RawBeaconBlock[BeaconBlockBodyT RawBeaconBlockBody] interface {
-	constraints.SSZMarshallable
+	constraints.SSZMarshalerUnmarshalerRootable
 	SetStateRoot(common.Root)
 	GetStateRoot() common.Root
 	IsNil() bool
@@ -80,7 +80,7 @@ type RawBeaconBlock[BeaconBlockBodyT RawBeaconBlockBody] interface {
 
 // executionPayloadBody is the interface for the execution data of a block.
 type executionPayloadBody interface {
-	constraints.SSZMarshallable
+	constraints.SSZMarshalerUnmarshalerRootable
 	constraints.JSONMarshallable
 	IsNil() bool
 	Version() uint32

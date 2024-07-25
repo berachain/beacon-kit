@@ -35,14 +35,14 @@ import (
 // KVStore is a wrapper around an sdk.Context
 // that provides access to all beacon related data.
 type KVStore[
-	BeaconBlockHeaderT constraints.SSZMarshallable,
-	Eth1DataT constraints.SSZMarshallable,
+	BeaconBlockHeaderT constraints.SSZMarshalerUnmarshaler,
+	Eth1DataT constraints.SSZMarshalerUnmarshaler,
 	ExecutionPayloadHeaderT interface {
-		constraints.SSZMarshallable
+		constraints.SSZMarshalerUnmarshaler
 		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
 		Version() uint32
 	},
-	ForkT constraints.SSZMarshallable,
+	ForkT constraints.SSZMarshalerUnmarshaler,
 	ValidatorT Validator,
 ] struct {
 	ctx   context.Context
@@ -103,14 +103,14 @@ type KVStore[
 //
 //nolint:funlen // its not overly complex.
 func New[
-	BeaconBlockHeaderT constraints.SSZMarshallable,
-	Eth1DataT constraints.SSZMarshallable,
+	BeaconBlockHeaderT constraints.SSZMarshalerUnmarshaler,
+	Eth1DataT constraints.SSZMarshalerUnmarshaler,
 	ExecutionPayloadHeaderT interface {
-		constraints.SSZMarshallable
+		constraints.SSZMarshalerUnmarshaler
 		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
 		Version() uint32
 	},
-	ForkT constraints.SSZMarshallable,
+	ForkT constraints.SSZMarshalerUnmarshaler,
 	ValidatorT Validator,
 ](
 	kss store.KVStoreService,

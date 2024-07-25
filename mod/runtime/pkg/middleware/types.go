@@ -32,7 +32,7 @@ import (
 
 // BeaconBlock is an interface for accessing the beacon block.
 type BeaconBlock[T any] interface {
-	constraints.SSZMarshallable
+	constraints.SSZMarshalerUnmarshaler
 	constraints.Nillable
 	GetSlot() math.Slot
 	NewFromSSZ([]byte, uint32) (T, error)

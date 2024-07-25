@@ -55,17 +55,6 @@ type BaseSSZObject interface {
 	UnmarshalSSZ([]byte) error
 }
 
-// SSZMarshallable is an interface that combines the ssz.Marshaler and
-// ssz.Unmarshaler interfaces.
-type SSZMarshallable interface {
-	BaseSSZObject
-	// SizeSSZ returns the size in bytes that the object would take when
-	// marshaled.
-	SizeSSZ() int
-	// HashTreeRoot returns the hash tree root of the object.
-	HashTreeRoot() ([32]byte, error)
-}
-
 // JSONMarshallable is an interface that combines the json.Marshaler and
 // json.Unmarshaler interfaces.
 type JSONMarshallable interface {
