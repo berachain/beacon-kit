@@ -40,8 +40,12 @@ import (
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
+	"github.com/berachain/beacon-kit/mod/node-api/backend"
+	"github.com/berachain/beacon-kit/mod/node-api/engines/echo"
+	"github.com/berachain/beacon-kit/mod/node-api/server"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
+	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
@@ -54,6 +58,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 type (
@@ -258,6 +263,42 @@ type (
 		*PayloadAttributes,
 		PayloadID,
 		*Withdrawal,
+	]
+
+	// NodeAPIBackend is a type alias for the node API backend.
+	NodeAPIBackend = backend.Backend[
+		*AvailabilityStore,
+		*BeaconBlock,
+		*BeaconBlockBody,
+		*BeaconBlockHeader,
+		*BeaconState,
+		*BeaconStateMarshallable,
+		*BlobSidecars,
+		*BlockStore,
+		sdk.Context,
+		*Deposit,
+		*DepositStore,
+		*Eth1Data,
+		*ExecutionPayloadHeader,
+		*Fork,
+		nodetypes.Node,
+		*KVStore,
+		*StorageBackend,
+		*Validator,
+		*Withdrawal,
+		WithdrawalCredentials,
+	]
+
+	// NodeAPIContext is a type alias for the node API context.
+	NodeAPIContext = echo.Context
+
+	// NodeAPIEngine is a type alias for the node API engine.
+	NodeAPIEngine = echo.Engine
+
+	// NodeAPIServer is a type alias for the node API server.
+	NodeAPIServer = server.Server[
+		NodeAPIContext,
+		*NodeAPIEngine,
 	]
 
 	// PayloadAttributes is a type alias for the payload attributes.

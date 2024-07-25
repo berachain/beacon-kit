@@ -21,161 +21,178 @@
 package backend
 
 import (
-	"context"
-	"strconv"
-
-	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types/v2"
-	serverType "github.com/berachain/beacon-kit/mod/node-api/server/types"
+	"github.com/berachain/beacon-kit/mod/node-api/backend/utils"
+	types "github.com/berachain/beacon-kit/mod/node-api/types/beacon"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-func (h Backend) GetGenesis(ctx context.Context) (common.Root, error) {
+// GetGenesis returns the genesis state of the beacon chain.
+func (b Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) GenesisValidatorsRoot(
+	slot uint64,
+) (common.Root, error) {
 	// needs genesis_time and gensis_fork_version
-	return h.getNewStateDB(ctx, "stateID").GetGenesisValidatorsRoot()
-}
-
-func (h Backend) GetStateRoot(
-	ctx context.Context,
-	stateID string,
-) (common.Bytes32, error) {
-	stateDB := h.getNewStateDB(ctx, stateID)
-	slot, err := stateDB.GetSlot()
+	st, err := b.StateFromSlot(slot)
 	if err != nil {
-		return common.Bytes32{}, err
+		return common.Root{}, err
 	}
-	block, err := stateDB.StateRootAtIndex(slot.Unwrap())
+	return st.GetGenesisValidatorsRoot()
+}
+
+// GetStateRoot returns the root of the state at the given stateID.
+func (b Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) StateRootAtSlot(
+	slot uint64,
+) (common.Root, error) {
+	st, err := b.StateFromSlot(slot)
 	if err != nil {
-		return common.Bytes32{}, err
+		return common.Root{}, err
 	}
-	root, err := block.HashTreeRoot()
+	// This is required to handle the semantical expectation that
+	// 0 -> latest despite 0 != latest.
+	latestSlot, err := st.GetSlot()
 	if err != nil {
-		return common.Bytes32{}, err
+		return common.Root{}, err
 	}
-	return root, nil
+	// As calculated by the beacon chain. Ideally, this logic
+	// should be abstracted by the beacon chain.
+	index := latestSlot.Unwrap() % b.cs.SlotsPerHistoricalRoot()
+	return st.StateRootAtIndex(index)
 }
 
-func (h Backend) GetStateFork(
-	ctx context.Context,
-	stateID string,
-) (*types.Fork, error) {
-	return h.getNewStateDB(ctx, stateID).GetFork()
-}
-
-func (h Backend) GetStateValidators(
-	ctx context.Context,
-	stateID string,
-	id []string,
-	_ []string,
-) ([]*serverType.ValidatorData, error) {
-	stateDB := h.getNewStateDB(ctx, stateID)
-	validators := make([]*serverType.ValidatorData, 0)
-	for _, indexOrKey := range id {
-		index, indexErr := getValidatorIndex(stateDB, indexOrKey)
-		if indexErr != nil {
-			return nil, indexErr
-		}
-		validator, validatorErr := stateDB.ValidatorByIndex(index)
-		if validatorErr != nil {
-			return nil, validatorErr
-		}
-		balance, balanceErr := stateDB.GetBalance(index)
-		if balanceErr != nil {
-			return nil, balanceErr
-		}
-		validators = append(validators, &serverType.ValidatorData{
-			Index:     index.Unwrap(),
-			Balance:   balance.Unwrap(),
-			Status:    "active",
-			Validator: validator,
-		})
-	}
-	return validators, nil
-}
-
-func getValidatorIndex(stateDB StateDB, keyOrIndex string) (math.U64, error) {
-	if index, err := strconv.ParseUint(keyOrIndex, 10, 64); err == nil {
-		return math.U64(index), nil
-	}
-	key := crypto.BLSPubkey{}
-	err := key.UnmarshalText([]byte(keyOrIndex))
+// GetStateFork returns the fork of the state at the given stateID.
+func (b Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, ForkT, _, _, _, _, _, _,
+]) StateForkAtSlot(
+	slot uint64,
+) (ForkT, error) {
+	var fork ForkT
+	st, err := b.StateFromSlot(slot)
 	if err != nil {
-		return math.U64(0), err
+		return fork, err
 	}
-	index, err := stateDB.ValidatorIndexByPubkey(key)
-	if err == nil {
-		return index, nil
-	}
-	return math.U64(0), err
+	return st.GetFork()
 }
 
-func (h Backend) GetStateValidator(
-	ctx context.Context,
-	stateID string,
-	validatorID string,
-) (*serverType.ValidatorData, error) {
-	stateDB := h.getNewStateDB(ctx, stateID)
-	index, indexErr := getValidatorIndex(stateDB, validatorID)
-	if indexErr != nil {
-		return nil, indexErr
+// GetBlockRoot returns the root of the block at the given stateID.
+func (b Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) BlockRootAtSlot(
+	slot uint64,
+) (common.Root, error) {
+	st, err := b.StateFromSlot(slot)
+	if err != nil {
+		return common.Root{}, err
 	}
-	validator, validatorErr := stateDB.ValidatorByIndex(index)
-	if validatorErr != nil {
-		return nil, validatorErr
+	latestSlot, err := st.GetSlot()
+	if err != nil {
+		return common.Root{}, err
 	}
-	balance, balanceErr := stateDB.GetBalance(index)
-	if balanceErr != nil {
-		return nil, balanceErr
+	return st.GetBlockRootAtIndex(latestSlot.Unwrap())
+}
+
+// TODO: Implement this.
+func (b Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) BlockRewardsAtSlot(
+	_ uint64,
+) (*types.BlockRewardsData, error) {
+	return &types.BlockRewardsData{
+		ProposerIndex:     1,
+		Total:             1,
+		Attestations:      1,
+		SyncAggregate:     1,
+		ProposerSlashings: 1,
+		AttesterSlashings: 1,
+	}, nil
+}
+
+func (b Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _,
+]) ValidatorByID(
+	slot uint64,
+	id string,
+) (*types.ValidatorData[ValidatorT], error) {
+	// TODO: to adhere to the spec, this shouldn't error if the error
+	// is not found, but i can't think of a way to do that without coupling
+	// db impl to the api impl.
+	st, err := b.StateFromSlot(slot)
+	if err != nil {
+		return nil, err
 	}
-	return &serverType.ValidatorData{
-		Index:     index.Unwrap(),
-		Balance:   balance.Unwrap(),
-		Status:    "active",
+	index, err := utils.ValidatorIndexByID(st, id)
+	if err != nil {
+		return nil, err
+	}
+	validator, err := st.ValidatorByIndex(index)
+	if err != nil {
+		return nil, err
+	}
+	balance, err := st.GetBalance(index)
+	if err != nil {
+		return nil, err
+	}
+	return &types.ValidatorData[ValidatorT]{
+		ValidatorBalanceData: types.ValidatorBalanceData{
+			Index:   index.Unwrap(),
+			Balance: balance.Unwrap(),
+		},
+		Status:    "active", // TODO: fix
 		Validator: validator,
 	}, nil
 }
 
-func (h Backend) GetStateValidatorBalances(
-	ctx context.Context,
-	stateID string,
-	id []string,
-) ([]*serverType.ValidatorBalanceData, error) {
-	stateDB := h.getNewStateDB(ctx, stateID)
-	balances := make([]*serverType.ValidatorBalanceData, 0)
-	for _, indexOrKey := range id {
-		index, indexErr := getValidatorIndex(stateDB, indexOrKey)
-		if indexErr != nil {
-			return nil, indexErr
-		}
-		balance, err := stateDB.GetBalance(index)
+func (b Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _,
+]) ValidatorsByIDs(
+	slot uint64,
+	ids []string,
+	_ []string, // TODO: filter by status
+) ([]*types.ValidatorData[ValidatorT], error) {
+	validatorsData := make([]*types.ValidatorData[ValidatorT], 0)
+	for _, id := range ids {
+		// TODO: we can probably optimize this via a getAllValidators
+		// query and then filtering but blocked by the fact that IDs
+		// can be indices and the hard type only holds its own pubkey.
+		validatorData, err := b.ValidatorByID(slot, id)
 		if err != nil {
 			return nil, err
 		}
-		balances = append(balances, &serverType.ValidatorBalanceData{
+		validatorsData = append(validatorsData, validatorData)
+	}
+	return validatorsData, nil
+}
+
+func (b Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) ValidatorBalancesByIDs(
+	slot uint64,
+	ids []string,
+) ([]*types.ValidatorBalanceData, error) {
+	var index math.U64
+	st, err := b.StateFromSlot(slot)
+	if err != nil {
+		return nil, err
+	}
+	balances := make([]*types.ValidatorBalanceData, 0)
+	for _, id := range ids {
+		index, err = utils.ValidatorIndexByID(st, id)
+		if err != nil {
+			return nil, err
+		}
+		var balance math.U64
+		// TODO: same issue as above, shouldn't error on not found.
+		balance, err = st.GetBalance(index)
+		if err != nil {
+			return nil, err
+		}
+		balances = append(balances, &types.ValidatorBalanceData{
 			Index:   index.Unwrap(),
 			Balance: balance.Unwrap(),
 		})
 	}
 	return balances, nil
-}
-
-func (h Backend) GetBlockRoot(
-	ctx context.Context,
-	_ string,
-) (common.Bytes32, error) {
-	stateDB := h.getNewStateDB(ctx, "stateID")
-	slot, err := stateDB.GetSlot()
-	if err != nil {
-		return common.Bytes32{}, err
-	}
-	block, err := stateDB.GetBlockRootAtIndex(slot.Unwrap())
-	if err != nil {
-		return common.Bytes32{}, err
-	}
-	root, err := block.HashTreeRoot()
-	if err != nil {
-		return common.Bytes32{}, err
-	}
-	return root, nil
 }

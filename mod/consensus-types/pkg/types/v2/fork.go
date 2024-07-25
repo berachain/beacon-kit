@@ -32,11 +32,11 @@ import (
 //nolint:lll
 type Fork struct {
 	// PreviousVersion is the last version before the fork.
-	PreviousVersion common.Version
+	PreviousVersion common.Version `json:"previous_version"`
 	// CurrentVersion is the first version after the fork.
-	CurrentVersion common.Version
+	CurrentVersion common.Version `json:"current_version"`
 	// Epoch is the epoch at which the fork occurred.
-	Epoch math.Epoch
+	Epoch math.Epoch `json:"epoch"`
 }
 
 // New creates a new fork.

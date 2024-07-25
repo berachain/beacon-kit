@@ -91,7 +91,7 @@ func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) VerifySidecars(
 	return sp.verifier.VerifySidecars(
 		sidecars,
 		sp.blockBodyOffsetFn(
-			math.U64(sidecars.Sidecars[0].BeaconBlockHeader.Slot),
+			sidecars.Sidecars[0].BeaconBlockHeader.Slot,
 			sp.chainSpec,
 		),
 	)
@@ -118,9 +118,8 @@ func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) ProcessSidecars(
 
 	// If we have reached this point, we can safely assume that the blobs are
 	// valid and can be persisted, as well as that index 0 is filled.
-	fmt.Printf("Persisting sidecars, slot: %d\n", sidecars.Sidecars[0].BeaconBlockHeader.Slot)
-	err := avs.Persist(
-		math.U64(sidecars.Sidecars[0].BeaconBlockHeader.Slot),
+	return avs.Persist(
+		sidecars.Sidecars[0].BeaconBlockHeader.Slot,
 		sidecars,
 	)
 	if err != nil {

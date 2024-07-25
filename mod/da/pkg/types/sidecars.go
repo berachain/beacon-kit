@@ -13,16 +13,15 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
-
+//
+//nolint:mnd // todo fix.
 package types
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/karalabe/ssz"
 	"github.com/sourcegraph/conc/iter"
@@ -31,7 +30,7 @@ import (
 // BlobSidecars is a slice of blob side cars to be included in the block.
 type BlobSidecars struct {
 	// Sidecars is a slice of blob side cars to be included in the block.
-	Sidecars []*BlobSidecar `ssz-max:"6"`
+	Sidecars []*BlobSidecar
 }
 
 // IsNil checks to see if blobs are nil.
@@ -97,43 +96,26 @@ func (bs *BlobSidecars) DefineSSZ(codec *ssz.Codec) {
 }
 
 // SizeSSZ returns the size of the BlobSidecars object in SSZ encoding.
-func (bs *BlobSidecars) SizeSSZ(isFixed bool) uint32 {
-	if isFixed {
+func (bs *BlobSidecars) SizeSSZ(fixed bool) uint32 {
+	if fixed {
 		return 4
 	}
-	return 4 + uint32(len(bs.Sidecars))*(*BlobSidecar)(nil).SizeSSZ()
+	return 4 + ssz.SizeSliceOfStaticObjects(bs.Sidecars)
 }
 
 // MarshalSSZ marshals the BlobSidecars object to SSZ format.
 func (bs *BlobSidecars) MarshalSSZ() ([]byte, error) {
-	fmt.Printf("Debug: Starting MarshalSSZ for BlobSidecars\n")
-	size := bs.SizeSSZ(false)
-	fmt.Printf("Debug: Calculated size: %d\n", size)
-	buf := make([]byte, size)
-	fmt.Printf("Debug: Created buffer of length: %d\n", len(buf))
-	err := ssz.EncodeToBytes(buf, bs)
-	if err != nil {
-		fmt.Printf("Debug: Error in EncodeToBytes: %v\n", err)
-		return nil, err
-	}
-	fmt.Printf("Debug: Successfully encoded BlobSidecars. Buffer length: %d\n", len(buf))
-	return buf, nil
+	buf := make([]byte, bs.SizeSSZ(false))
+	return bs.MarshalSSZTo(buf)
 }
 
-// UnmarshalSSZ unmarshals the BlobSidecars object from SSZ format.
-func (bs *BlobSidecars) UnmarshalSSZ(buf []byte) error {
-	fmt.Println("CALLING UNMARSHAL SSZ IN BLOB SIDECAR PLURALS", bs, "len(buf)", len(buf))
-	err := ssz.DecodeFromBytes(buf, bs)
-	fmt.Printf("Debug: After UnmarshalSSZ, bs.Len() = %d\n", bs.Len())
-	return err
-}
-
-// MarshalSSZTo marshals the BlobSidecars object to the provided buffer in SSZ format.
+// MarshalSSZTo marshals the BlobSidecars object to the provided buffer in SSZ
+// format.
 func (bs *BlobSidecars) MarshalSSZTo(buf []byte) ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, bs)
 }
 
-// HashTreeRoot returns the hash tree root of the BlobSidecars object.
-func (bs *BlobSidecars) HashTreeRoot() ([32]byte, error) {
-	return ssz.HashSequential(bs), nil
+// UnmarshalSSZ unmarshals the BlobSidecars object from SSZ format.
+func (bs *BlobSidecars) UnmarshalSSZ(buf []byte) error {
+	return ssz.DecodeFromBytes(buf, bs)
 }

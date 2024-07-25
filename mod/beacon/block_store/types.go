@@ -28,7 +28,7 @@ import (
 
 // BeaconBlock is a generic interface for a beacon block.
 type BeaconBlock interface {
-	constraints.SSZMarshallableDynamic
+	constraints.SSZMarshaler
 	// GetSlot returns the slot of the block.
 	GetSlot() math.U64
 }
