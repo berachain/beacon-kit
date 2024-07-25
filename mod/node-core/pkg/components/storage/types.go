@@ -56,7 +56,7 @@ type BlockStore[BeaconBlockT any] interface {
 
 // Deposit is a struct that represents a deposit.
 type Deposit interface {
-	constraints.SSZMarshallableStatic
+	constraints.SSZMarshallable
 	GetIndex() uint64
 }
 

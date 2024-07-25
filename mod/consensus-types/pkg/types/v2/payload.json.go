@@ -10,7 +10,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/holiman/uint256"
 )
 
@@ -30,7 +29,7 @@ func (e ExecutionPayload) MarshalJSON() ([]byte, error) {
 		GasUsed       math.U64                       `json:"gasUsed" gencodec:"required"`
 		Timestamp     math.U64                       `json:"timestamp" gencodec:"required"`
 		ExtraData     bytes.Bytes                    `json:"extraData" gencodec:"required"`
-		BaseFeePerGas hexutil.Big               `json:"baseFeePerGas" gencodec:"required"`
+		BaseFeePerGas *uint256.Int                   `json:"baseFeePerGas" gencodec:"required"`
 		BlockHash     common.Hash                    `json:"blockHash" gencodec:"required"`
 		Transactions  []bytes.Bytes                  `json:"transactions" gencodec:"required"`
 		Withdrawals   []*engineprimitives.Withdrawal `json:"withdrawals"`
@@ -49,11 +48,13 @@ func (e ExecutionPayload) MarshalJSON() ([]byte, error) {
 	enc.GasUsed = e.GasUsed
 	enc.Timestamp = e.Timestamp
 	enc.ExtraData = e.ExtraData
-	enc.BaseFeePerGas = hexutil.Big(*e.BaseFeePerGas.ToBig())
+	enc.BaseFeePerGas = e.BaseFeePerGas
 	enc.BlockHash = e.BlockHash
-	enc.Transactions = make([]bytes.Bytes, len(e.Transactions))
-	for k, v := range e.Transactions {
-		enc.Transactions[k] = v
+	if e.Transactions != nil {
+		enc.Transactions = make([]bytes.Bytes, len(e.Transactions))
+		for k, v := range e.Transactions {
+			enc.Transactions[k] = v
+		}
 	}
 	enc.Withdrawals = e.Withdrawals
 	enc.BlobGasUsed = e.BlobGasUsed
@@ -75,7 +76,7 @@ func (e *ExecutionPayload) UnmarshalJSON(input []byte) error {
 		GasUsed       *math.U64                      `json:"gasUsed" gencodec:"required"`
 		Timestamp     *math.U64                      `json:"timestamp" gencodec:"required"`
 		ExtraData     *bytes.Bytes                   `json:"extraData" gencodec:"required"`
-		BaseFeePerGas *hexutil.Big                  `json:"baseFeePerGas" gencodec:"required"`
+		BaseFeePerGas *uint256.Int                   `json:"baseFeePerGas" gencodec:"required"`
 		BlockHash     *common.Hash                   `json:"blockHash" gencodec:"required"`
 		Transactions  []bytes.Bytes                  `json:"transactions" gencodec:"required"`
 		Withdrawals   []*engineprimitives.Withdrawal `json:"withdrawals"`
@@ -136,7 +137,7 @@ func (e *ExecutionPayload) UnmarshalJSON(input []byte) error {
 	if dec.BaseFeePerGas == nil {
 		return errors.New("missing required field 'baseFeePerGas' for ExecutionPayload")
 	}
-	e.BaseFeePerGas = uint256.MustFromBig(dec.BaseFeePerGas.ToInt())
+	e.BaseFeePerGas = dec.BaseFeePerGas
 	if dec.BlockHash == nil {
 		return errors.New("missing required field 'blockHash' for ExecutionPayload")
 	}

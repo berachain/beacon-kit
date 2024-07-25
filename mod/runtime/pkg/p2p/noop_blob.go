@@ -31,7 +31,7 @@ import (
 // ssz marshalled data as a "reference" to the object it receives.
 type NoopBlobHandler[
 	BlobT interface {
-		constraints.SSZMarshallableDynamic
+		constraints.SSZMarshallable
 		Len() int
 	}, _ encoding.ABCIRequest,
 ] struct {
@@ -40,7 +40,7 @@ type NoopBlobHandler[
 
 func NewNoopBlobHandler[
 	BlobT interface {
-		constraints.SSZMarshallableDynamic
+		constraints.SSZMarshallable
 		Len() int
 	}, ReqT encoding.ABCIRequest,
 ]() NoopBlobHandler[BlobT, ReqT] {

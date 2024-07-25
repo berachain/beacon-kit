@@ -122,10 +122,4 @@ func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) ProcessSidecars(
 		sidecars.Sidecars[0].BeaconBlockHeader.Slot,
 		sidecars,
 	)
-	if err != nil {
-		fmt.Printf("Failed to persist sidecars, error: %v\n", err)
-	} else {
-		fmt.Println("Successfully persisted sidecars")
-	}
-	return err
 }

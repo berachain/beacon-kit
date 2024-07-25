@@ -31,7 +31,7 @@ import (
 // NoopGossipHandlerDyn is a gossip handler that simply returns the
 // ssz marshalled data as a "reference" to the object it receives.
 type NoopGossipHandlerDyn[
-	DataT constraints.SSZMarshallableDynamic, BytesT ~[]byte,
+	DataT constraints.SSZMarshallable, BytesT ~[]byte,
 ] struct{}
 
 // Publish creates a new NoopGossipHandlerDyn.

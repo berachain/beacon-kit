@@ -63,7 +63,7 @@ func NewStore[BeaconBlockT BeaconBlock](
 			sdkcollections.NewPrefix([]byte{uint8(0)}),
 			KeyBlockPrefix,
 			sdkcollections.Uint64Key,
-			encoding.SSZValueCodecDyn[BeaconBlockT]{},
+			encoding.SSZValueCodec[BeaconBlockT]{},
 		),
 		mu:           sync.RWMutex{},
 		earliestSlot: 0,

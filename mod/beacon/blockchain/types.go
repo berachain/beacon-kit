@@ -78,7 +78,7 @@ type BeaconBlockHeader interface {
 
 // BlobSidecars is the interface for blobs sidecars.
 type BlobSidecars interface {
-	constraints.SSZMarshallableDynamic
+	constraints.SSZMarshallable
 	constraints.Nillable
 	// Len returns the length of the blobs sidecars.
 	Len() int

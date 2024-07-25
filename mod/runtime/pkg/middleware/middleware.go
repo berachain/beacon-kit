@@ -41,7 +41,7 @@ type ABCIMiddleware[
 	AvailabilityStoreT any,
 	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BlobSidecarsT interface {
-		constraints.SSZMarshallableDynamic
+		constraints.SSZMarshallable
 		Len() int
 	},
 	DepositT,
@@ -105,7 +105,7 @@ func NewABCIMiddleware[
 	AvailabilityStoreT any,
 	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BlobSidecarsT interface {
-		constraints.SSZMarshallableDynamic
+		constraints.SSZMarshallable
 		Len() int
 	},
 	DepositT,

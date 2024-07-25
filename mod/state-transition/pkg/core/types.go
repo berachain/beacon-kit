@@ -208,7 +208,7 @@ type Validator[
 	// TODO: Deprecate the need for SizeSSZ here.
 	// SizeSSZ returns the size in bytes that the object would take when
 	// marshaled.
-	SizeSSZ() int
+	SizeSSZ() uint32
 	// New creates a new validator with the given parameters.
 	New(
 		pubkey crypto.BLSPubkey,

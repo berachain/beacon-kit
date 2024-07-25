@@ -23,5 +23,5 @@ package block
 import "github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 
 type BeaconBlock interface {
-	constraints.SSZMarshallableDynamic
+	constraints.SSZMarshallable
 }

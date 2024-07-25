@@ -87,10 +87,8 @@ func TestValidateBlockRoots(t *testing.T) {
 	validSidecar := types.BuildBlobSidecar(
 		math.U64(0),
 		&ctypes.BeaconBlockHeader{
-			BeaconBlockHeaderBase: ctypes.BeaconBlockHeaderBase{
-				StateRoot: [32]byte{1},
-			},
-			BodyRoot: [32]byte{2},
+			StateRoot: [32]byte{1},
+			BodyRoot:  [32]byte{2},
 		},
 
 		&eip4844.Blob{},
@@ -123,10 +121,8 @@ func TestValidateBlockRoots(t *testing.T) {
 	differentBlockRootSidecar := types.BuildBlobSidecar(
 		math.U64(0),
 		&ctypes.BeaconBlockHeader{
-			BeaconBlockHeaderBase: ctypes.BeaconBlockHeaderBase{
-				StateRoot: [32]byte{1},
-			},
-			BodyRoot: [32]byte{3},
+			StateRoot: [32]byte{1},
+			BodyRoot:  [32]byte{3},
 		},
 		&eip4844.Blob{},
 		eip4844.KZGCommitment{},

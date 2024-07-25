@@ -21,7 +21,7 @@
 package types
 
 import (
-	typesv2 "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types/v2"
+	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types/v2"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
@@ -43,7 +43,7 @@ type BlobSidecar struct {
 	KzgProof eip4844.KZGProof
 	// BeaconBlockHeader represents the beacon block header for which this blob
 	// is being included.
-	BeaconBlockHeader *typesv2.BeaconBlockHeader
+	BeaconBlockHeader *types.BeaconBlockHeader
 	// InclusionProof is the inclusion proof of the blob in the beacon block
 	// body.
 	InclusionProof [][32]byte
@@ -53,7 +53,7 @@ type BlobSidecar struct {
 // beacon block.
 func BuildBlobSidecar(
 	index math.U64,
-	header *types2.BeaconBlockHeader,
+	header *types.BeaconBlockHeader,
 	blob *eip4844.Blob,
 	commitment eip4844.KZGCommitment,
 	proof eip4844.KZGProof,
@@ -75,24 +75,15 @@ func (b *BlobSidecar) HasValidInclusionProof(
 	kzgOffset uint64,
 ) bool {
 	// Calculate the hash tree root of the KZG commitment.
-	fmt.Printf("Debug: Calculating hash tree root for KZG commitment\n")
 	leaf, err := b.KzgCommitment.HashTreeRoot()
 	if err != nil {
-		fmt.Printf("Debug: Error calculating hash tree root: %v\n", err)
 		return false
 	}
-	fmt.Printf("Debug: Hash tree root calculated: %x\n", leaf)
 
 	gIndex := kzgOffset + b.Index
-	fmt.Printf("Debug: Calculated gIndex: %d (kzgOffset: %d, Index: %d)\n", gIndex, kzgOffset, b.Index)
 
 	// Verify the inclusion proof.
-	fmt.Printf("Debug: Verifying inclusion proof\n")
-	fmt.Printf("Debug: Leaf: %x\n", leaf)
-	fmt.Printf("Debug: Inclusion proof length: %d\n", len(b.InclusionProof))
-	fmt.Printf("Debug: Body root: %x\n", b.BeaconBlockHeader.BodyRoot)
-
-	result := merkle.IsValidMerkleBranch(
+	return merkle.IsValidMerkleBranch(
 		leaf,
 		b.InclusionProof,
 		//#nosec:G701 // safe.
@@ -102,50 +93,6 @@ func (b *BlobSidecar) HasValidInclusionProof(
 		gIndex,
 		b.BeaconBlockHeader.BodyRoot,
 	)
-	fmt.Printf("Debug: Inclusion proof verification result: %v\n", result)
-	return result
-}
-
-// DefineSSZ defines the SSZ encoding for the BlobSidecar object.
-func (b *BlobSidecar) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineUint64(codec, &b.Index)
-	ssz.DefineStaticBytes(codec, &b.Blob)
-	ssz.DefineStaticBytes(codec, &b.KzgCommitment)
-	ssz.DefineStaticBytes(codec, &b.KzgProof)
-	ssz.DefineStaticObject(codec, &b.BeaconBlockHeader)
-	ssz.DefineCheckedArrayOfStaticBytes(codec, &b.InclusionProof, 8)
-}
-
-// SizeSSZ returns the size of the BlobSidecar object in SSZ encoding.
-func (b *BlobSidecar) SizeSSZ() uint32 {
-	return 8 + // Index
-		131072 + // Blob
-		48 + // KzgCommitment
-		48 + // KzgProof
-		112 + // BeaconBlockHeader
-		8*32 // InclusionProof
-}
-
-// MarshalSSZ marshals the BlobSidecar object to SSZ format.
-func (b *BlobSidecar) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, b.SizeSSZ())
-	return buf, ssz.EncodeToBytes(buf, b)
-}
-
-// UnmarshalSSZ unmarshals the BlobSidecar object from SSZ format.
-func (b *BlobSidecar) UnmarshalSSZ(buf []byte) error {
-	fmt.Println("CALLING UNMARSHAL SSZ IN BLOB SIDECAR SINGULAR", b, "len(buf)", len(buf))
-	return ssz.DecodeFromBytes(buf, b)
-}
-
-// MarshalSSZTo marshals the BlobSidecar object to the provided buffer in SSZ format.
-func (b *BlobSidecar) MarshalSSZTo(buf []byte) ([]byte, error) {
-	return buf, ssz.EncodeToBytes(buf, b)
-}
-
-// HashTreeRoot computes the SSZ hash tree root of the BlobSidecar object.
-func (b *BlobSidecar) HashTreeRoot() ([32]byte, error) {
-	return ssz.HashSequential(b), nil
 }
 
 // DefineSSZ defines the SSZ encoding for the BlobSidecar object.
@@ -177,9 +124,6 @@ func (b *BlobSidecar) MarshalSSZ() ([]byte, error) {
 
 // UnmarshalSSZ unmarshals the BlobSidecar object from SSZ format.
 func (b *BlobSidecar) UnmarshalSSZ(buf []byte) error {
-	if b.BeaconBlockHeader == nil {
-		b.BeaconBlockHeader = &typesv2.BeaconBlockHeader{}
-	}
 	return ssz.DecodeFromBytes(buf, b)
 }
 

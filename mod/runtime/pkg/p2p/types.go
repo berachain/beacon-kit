@@ -23,6 +23,6 @@ package p2p
 import "github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 
 type BeaconBlock[SelfT any] interface {
-	constraints.SSZMarshallableDynamic
+	constraints.SSZMarshallable
 	NewFromSSZ([]byte, uint32) (SelfT, error)
 }

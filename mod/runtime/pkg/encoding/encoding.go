@@ -169,7 +169,5 @@ func UnmarshalBlobSidecarsFromABCIRequest[
 		fmt.Printf("Debug: Successfully unmarshalled sidecars\n")
 	}
 
-	fmt.Println("SIDE", sidecars)
-	fmt.Println("SIDE", sidecars.Len())
 	return sidecars, err
 }

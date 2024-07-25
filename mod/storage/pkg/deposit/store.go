@@ -61,7 +61,7 @@ func NewStore[DepositT Deposit](kvsp store.KVStoreService) *KVStore[DepositT] {
 			sdkcollections.NewPrefix([]byte{uint8(0)}),
 			KeyDepositPrefix,
 			sdkcollections.Uint64Key,
-			encoding.SSZValueCodecStatic[DepositT]{},
+			encoding.SSZValueCodec[DepositT]{},
 		),
 	}
 }
