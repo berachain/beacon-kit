@@ -117,8 +117,8 @@ func (d *Deposit) GetPubkey() crypto.BLSPubkey {
 }
 
 // GetIndex returns the index of the deposit in the deposit contract.
-func (d *Deposit) GetIndex() uint64 {
-	return d.Index
+func (d *Deposit) GetIndex() math.U64 {
+	return math.U64(d.Index)
 }
 
 // GetSignature returns the signature of the deposit data.

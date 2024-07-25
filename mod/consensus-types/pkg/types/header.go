@@ -24,6 +24,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
 )
 
@@ -104,15 +105,6 @@ func (b *BeaconBlockHeader) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineStaticBytes(codec, &b.BodyRoot)
 }
 
-// MarshalSSZToBytes marshals the BeaconBlockHeader object to SSZ format.
-func (b *BeaconBlockHeader) MarshalSSZTo(buf []byte) ([]byte, error) {
-	bz, err := b.MarshalSSZ()
-	if err != nil {
-		return nil, err
-	}
-	return append(buf, bz...), nil
-}
-
 // MarshalSSZ marshals the BeaconBlockBody object to SSZ format.
 func (b *BeaconBlockHeader) MarshalSSZ() ([]byte, error) {
 	buf := make([]byte, b.SizeSSZ())
@@ -127,6 +119,50 @@ func (b *BeaconBlockHeader) UnmarshalSSZ(buf []byte) error {
 // HashTreeRoot computes the SSZ hash tree root of the BeaconBlockHeader object.
 func (b *BeaconBlockHeader) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashSequential(b), nil
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
+
+// MarshalSSZToBytes marshals the BeaconBlockHeader object to SSZ format.
+func (b *BeaconBlockHeader) MarshalSSZTo(dst []byte) ([]byte, error) {
+	bz, err := b.MarshalSSZ()
+	if err != nil {
+		return nil, err
+	}
+	dst = append(dst, bz...)
+	return dst, nil
+}
+
+// HashTreeRootWith ssz hashes the BeaconBlockHeader object with a hasher.
+func (b *BeaconBlockHeader) HashTreeRootWith(
+	hh fastssz.HashWalker,
+) error {
+	indx := hh.Index()
+
+	// Field (0) 'Slot'
+	hh.PutUint64(uint64(b.Slot))
+
+	// Field (1) 'ProposerIndex'
+	hh.PutUint64(uint64(b.ProposerIndex))
+
+	// Field (2) 'ParentBlockRoot'
+	hh.PutBytes(b.ParentBlockRoot[:])
+
+	// Field (3) 'StateRoot'
+	hh.PutBytes(b.StateRoot[:])
+
+	// Field (4) 'BodyRoot'
+	hh.PutBytes(b.BodyRoot[:])
+
+	hh.Merkleize(indx)
+	return nil
+}
+
+// GetTree ssz hashes the BeaconBlockHeader object.
+func (b *BeaconBlockHeader) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(b)
 }
 
 /* -------------------------------------------------------------------------- */

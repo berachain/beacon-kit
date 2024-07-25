@@ -197,7 +197,7 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 			ExtraData:     []byte{},
 			BaseFeePerGas: math.Wei{},
 			BlockHash:     gethprimitives.ExecutionHash{},
-			Transactions:  [][]byte{},
+			Transactions:  [][]byte{[]byte{0x01}},
 			Withdrawals:   []*engineprimitives.Withdrawal{},
 			BlobGasUsed:   math.U64(0),
 			ExcessBlobGas: math.U64(0),
@@ -225,6 +225,13 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 	require.Equal(t, payload.GetBlockHash(), header.GetBlockHash())
 	require.Equal(t, payload.GetBlobGasUsed(), header.GetBlobGasUsed())
 	require.Equal(t, payload.GetExcessBlobGas(), header.GetExcessBlobGas())
+
+	// TODO: FIX LATER
+	// htrHeader, err := header.HashTreeRoot()
+	// require.NoError(t, err)
+	// htrPayload, err := payload.HashTreeRoot()
+	// require.NoError(t, err)
+	// require.Equal(t, htrPayload, htrHeader)
 }
 
 //nolint:lll
