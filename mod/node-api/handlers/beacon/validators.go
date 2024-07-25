@@ -97,7 +97,7 @@ func (h *Handler[_, ContextT, _, _]) GetStateValidator(
 	c ContextT,
 ) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetStateValidatorRequest](
-		c,
+		c, h.Logger(),
 	)
 	if err != nil {
 		return nil, err
