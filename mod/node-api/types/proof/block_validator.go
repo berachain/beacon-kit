@@ -33,8 +33,6 @@ import (
 // BeaconBlockFoValidator represents a block in the beacon chain during the
 // DenebPlus fork, with only the minimally required values to prove a validator
 // exists in this block.
-//
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path block_validator.go -objs BeaconBlockForValidator -include ../../../primitives/pkg/crypto,../../../primitives/pkg/common,../../../primitives/pkg/bytes,../../../consensus-types/pkg/types,../../../engine-primitives/pkg/engine-primitives,../../../primitives/pkg/math,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil,../../../primitives/pkg/common/common.go -output block_validator.ssz.go
 type BeaconBlockForValidator struct {
 	// Slot represents the position of the block in the chain.
 	Slot math.Slot
@@ -82,8 +80,6 @@ func NewBeaconBlockForValidator[
 
 // BeaconStateForValidator is the SSZ summary of the BeaconState type with only
 // the required raw values to prove a validator exists in this state.
-//
-//nolint:funlen // all lines are required to pack the entire beacon state.
 type BeaconStateForValidator struct {
 	GenesisValidatorsRoot common.Root
 	Slot                  math.Slot
@@ -116,6 +112,10 @@ type BeaconStateForValidator struct {
 
 // NewBeaconStateForValidator creates a new BeaconState SSZ summary with only
 // the required raw values to prove a validator exists in this state.
+//
+// state.
+//
+//nolint:funlen,gocognit // all lines are required to pack the entire beacon
 func NewBeaconStateForValidator[
 	BeaconBlockHeaderT constraints.SSZRootable,
 	BeaconStateT BeaconState[

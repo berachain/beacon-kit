@@ -27,7 +27,7 @@ import (
 // GetProofForProposer_FastSSZ generates a proof for the proposer validator in
 // the beacon block. It uses the fastssz library to generate the proof.
 //
-//nolint:revive // for explicit naming.
+//nolint:revive,stylecheck // for explicit naming.
 func GetProofForProposer_FastSSZ(
 	beaconBlock *BeaconBlockForValidator,
 ) ([]common.Root, error) {
