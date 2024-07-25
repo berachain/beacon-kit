@@ -66,7 +66,7 @@ func (b BeaconBlockDeneb) GetHeader() *BeaconBlockHeader {
 	return &BeaconBlockHeader{
 		Slot:            math.Slot(b.Slot),
 		ProposerIndex:   math.Slot(b.ProposerIndex),
-		ParentBlockRoot: b.ParentBlockRoot,
+		ParentBlockRoot: b.ParentRoot,
 		StateRoot:       b.StateRoot,
 		BodyRoot:        bodyRoot,
 	}

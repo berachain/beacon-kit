@@ -21,8 +21,8 @@
 package utils
 
 import (
-	"github.com/berachain/beacon-kit/mod/node-api/types"
-	"github.com/berachain/beacon-kit/mod/node-api/types/context"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
+	"github.com/berachain/beacon-kit/mod/node-api/server/context"
 )
 
 // BindAndValidate binds the request to the context and validates it.

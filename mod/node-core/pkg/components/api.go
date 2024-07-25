@@ -73,21 +73,11 @@ func ProvideNodeAPIBackend(in NodeAPIBackendInput) *NodeAPIBackend {
 	)
 }
 
-type NodeAPIHandlersInput struct {
-	depinject.In
+// type NodeAPIHandlersInput struct {
+// 	depinject.In
 
-	Backend *NodeAPIBackend
-}
-
-func ProvideNodeAPIHandlers(
-	in NodeAPIHandlersInput,
-) []handlers.Handlers[NodeAPIContext] {
-	return server.DefaultHandlers[
-		NodeAPIContext,
-		*Fork,
-		*Validator,
-	](in.Backend)
-}
+// 	Backend *NodeAPIBackend
+// }
 
 type NodeAPIServerInput struct {
 	depinject.In
