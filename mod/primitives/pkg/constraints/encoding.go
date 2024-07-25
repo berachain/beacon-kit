@@ -43,17 +43,17 @@ type SSZRootable interface {
 	HashTreeRoot() ([32]byte, error)
 }
 
-// SSZMarshalerUnmarshaler is an interface that combines
+// SSZMarshallable is an interface that combines
 // SSZMarshaler and SSZUnmarshaler.
-type SSZMarshalerUnmarshaler interface {
+type SSZMarshallable interface {
 	SSZMarshaler
 	SSZUnmarshaler
 }
 
-// SSZMarshalerUnmarshalerRootable is an interface that combines
+// SSZMarshallableRootable is an interface that combines
 // SSZMarshaler, SSZUnmarshaler, and SSZRootable.
-type SSZMarshalerUnmarshalerRootable interface {
-	SSZMarshalerUnmarshaler
+type SSZMarshallableRootable interface {
+	SSZMarshallable
 	SSZRootable
 }
 

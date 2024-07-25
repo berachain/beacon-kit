@@ -32,7 +32,7 @@ import (
 
 // BeaconBlock is an interface for accessing the beacon block.
 type BeaconBlock[T any] interface {
-	constraints.SSZMarshalerUnmarshaler
+	constraints.SSZMarshallable
 	constraints.Nillable
 	GetSlot() math.Slot
 	NewFromSSZ([]byte, uint32) (T, error)
@@ -48,7 +48,7 @@ type TelemetrySink interface {
 // state and processing blocks.
 type BlockchainService[
 	BeaconBlockT any,
-	BlobSidecarsT constraints.SSZMarshalerUnmarshaler,
+	BlobSidecarsT constraints.SSZMarshallable,
 	DepositT any,
 	GenesisT Genesis,
 ] interface {

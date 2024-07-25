@@ -143,7 +143,7 @@ func (s *U256L) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
-// -------------------------- SSZMarshalerUnmarshaler --------------------------
+// -------------------------- SSZMarshallable --------------------------
 
 // MarshalSSZTo serializes the U64 into a byte slice.
 func (s U256L) MarshalSSZTo(buf []byte) ([]byte, error) {

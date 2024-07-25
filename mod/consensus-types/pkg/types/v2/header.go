@@ -34,8 +34,8 @@ import (
 const BeaconBlockHeaderSize = 112
 
 var (
-	_ ssz.StaticObject                            = (*BeaconBlockHeader)(nil)
-	_ constraints.SSZMarshalerUnmarshalerRootable = (*BeaconBlockHeader)(nil)
+	_ ssz.StaticObject                    = (*BeaconBlockHeader)(nil)
+	_ constraints.SSZMarshallableRootable = (*BeaconBlockHeader)(nil)
 )
 
 // BeaconBlockHeader represents the base of a beacon block header.

@@ -204,7 +204,7 @@ type Validator[
 	ValidatorT any,
 	WithdrawalCredentialsT ~[32]byte,
 ] interface {
-	constraints.SSZMarshalerUnmarshalerRootable
+	constraints.SSZMarshallableRootable
 	// TODO: Deprecate the need for SizeSSZ here.
 	// SizeSSZ returns the size in bytes that the object would take when
 	// marshaled.

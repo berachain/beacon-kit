@@ -40,7 +40,7 @@ const (
 // Validator is an interface that combines the ssz.Marshaler and
 // ssz.Unmarshaler interfaces.
 type Validator interface {
-	constraints.SSZMarshalerUnmarshaler
+	constraints.SSZMarshallable
 	// GetPubkey returns the public key of the validator.
 	GetPubkey() crypto.BLSPubkey
 	// GetEffectiveBalance returns the effective balance of the validator.

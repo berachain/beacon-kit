@@ -28,7 +28,7 @@ import (
 
 // Validator represents an interface for a validator in the beacon chain.
 type Validator interface {
-	constraints.SSZMarshalerUnmarshaler
+	constraints.SSZMarshallable
 	// GetPubkey returns the BLS public key of the validator.
 	GetPubkey() crypto.BLSPubkey
 	// GetEffectiveBalance returns the effective balance of the validator in
