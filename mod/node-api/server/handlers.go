@@ -31,7 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/node"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof"
 	"github.com/berachain/beacon-kit/mod/node-api/types/context"
-	types "github.com/berachain/beacon-kit/mod/node-api/types/proof"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 )
 

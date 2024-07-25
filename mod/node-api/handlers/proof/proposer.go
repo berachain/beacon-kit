@@ -23,9 +23,9 @@ package proof
 import (
 	"unsafe"
 
+	ptypes "github.com/berachain/beacon-kit/mod/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/mod/node-api/types"
-	ptypes "github.com/berachain/beacon-kit/mod/node-api/types/proof"
 )
 
 // GetBlockProposer returns the block proposer for the given block id along

@@ -25,8 +25,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/mod/node-api/types/context"
-	types "github.com/berachain/beacon-kit/mod/node-api/types/proof"
 )
 
 type Engine[ContextT context.Context, T any] interface {

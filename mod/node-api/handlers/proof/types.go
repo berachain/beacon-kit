@@ -21,7 +21,7 @@
 package proof
 
 import (
-	types "github.com/berachain/beacon-kit/mod/node-api/types/proof"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
