@@ -19,14 +19,16 @@
 # TITLE.
 
 deployment:
-  script_path: "/testing/forge-script/example/NFT.s.sol"
   contract_name: "MyScript"
-  rpc_url: localhost:8545
-  params:
-    gas: 60000
-  # constructor_args:
-  #   gas_limit: 0
-  #   gas_price: 0
-  #   value: 0
-  #   constructor_args: []
-  #   deployer_address:
+  repository: "github.com/nidhi-singh02/solidity-scripting/"
+  script_path: "script/NFT.s.sol"
+  constructor_args:
+    gas_limit: 0
+    gas_price: 0
+    value: 0
+    constructor_args: []
+    deployer_address: "0x0"
+# rpc_url: localhost:8545
+  rpc_url: "https://bartio.rpc.berachain.com/"
+  private_key: "0x0"
+# TO:DO: Support all wallet options

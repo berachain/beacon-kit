@@ -1,4 +1,4 @@
-CONFIG_DIR_PATH = "/app/scripts"
+SOURCE_DIR_PATH = "/app/source"
 IMAGE_FOUNDRY = "ghcr.io/foundry-rs/foundry:latest"
 
 def run(plan, deployment = {}):
@@ -9,24 +9,17 @@ def run(plan, deployment = {}):
 
 # Define the function to run the Forge script for deployment
 def deploy_contracts(plan, deployment):
-    script_path = deployment["script_path"]
-    plan.print("script_path: " + script_path)
-
     contract_name = deployment["contract_name"]
-    plan.print("contract_name: " + contract_name)
-
+    script_path = deployment["script_path"]
+    repository = deployment["repository"]
     rpc_url = deployment["rpc_url"]
-    plan.print("rpc_url: " + rpc_url)
+    private_key = deployment["private_key"]
 
-    # TODO: Pull the file from github using curl
-    # Fetch the content of the file from script_path
-    script_content = plan.upload_files(src = script_path, name = "deployscript", description = "Uploading deployment script")
+    folder = plan.upload_files(src = repository, name = "folder")
 
-    folder = plan.upload_files(src = "github.com/nidhi-singh02/solidity-scripting/", name = "folder")
+    run_command = "cd {} && forge build && forge script {}:{} --broadcast --rpc-url {} --private-key {} --json --skip test > output.json && sleep 20".format(SOURCE_DIR_PATH, script_path, contract_name, rpc_url, private_key)
 
-    plan.print("script_content: " + script_content)
-    gas = str(deployment["params"]["gas"])
-    plan.print("gas: " + gas)
+    plan.print("run_command: " + str(run_command))
 
     # add a service
     service = plan.add_service(
@@ -35,54 +28,95 @@ def deploy_contracts(plan, deployment):
             image = IMAGE_FOUNDRY,
             cmd = [
                 "-c",
-                "sleep infinity",
+                "cd {} && forge build && sleep infinity".format(SOURCE_DIR_PATH),
             ],
+            entrypoint = ["/bin/sh", "-c"],
             files = {
-                CONFIG_DIR_PATH: script_content,
-                "/app/folder": folder,
+                SOURCE_DIR_PATH: folder,
             },
         ),
     )
 
-    # plan.print("service: " + str(service))
-    # plan.print("Service name", service.name)
-    deploy_command = "forge script " + str(CONFIG_DIR_PATH) + " --broadcast --gas-limit " + gas
-    plan.print("deploy_command: " + str(deploy_command))
-
-    # deploy_command = "tail -f /dev/null"
-
-    plan.print("Script content name: " + str(script_content))
-    # run_command = "forge script "+str(CONFIG_DIR_PATH)+"/NFT.s.sol"+":"+contract_name+" --broadcast --gas-limit "+ gas
-    # plan.print("run_command: " + str(run_command))
-
-    # "forge script "+str(CONFIG_DIR_PATH)+"/"+script_content+":"+contract_name+" --broadcast --gas-limit "+ gas
-    run_command = "cd /app/folder && forge build && forge script /app/folder/script/NFT.s.sol" + ":" + contract_name + " --broadcast --gas-limit " + gas + " --rpc-url " + rpc_url + " -vvvv"
-    plan.print("run_command: " + str(run_command))
-
-    plan.run_sh(
+    result = plan.run_sh(
         run = run_command,
         image = IMAGE_FOUNDRY,
         files = {
-            CONFIG_DIR_PATH: script_content,
-            "/app/folder": folder,
+            SOURCE_DIR_PATH: folder,
         },
         description = "Deploying smart contract",
+        wait = "4m",
+        # store = [
+        # StoreSpec(src = "/app/source/", name = "output.json"),
+        # ]
     )
+    plan.print("result: " + str(result))
 
-    # plan.exec(
-    #     service_name = service.name,
-    #     recipe = ExecRecipe(
-    #         command = [run_command],
-    #     ),
-    # )
+#     artifact_name = plan.store_service_files(
+#     service_name = service.name,
+#     src = "/app/source/output.json",
+#     name = "output.json",
+#     description = "storing some files"
+# )
 
-    # result = run_command(deploy_command)
-    # if result.return_code != 0:
-    #     fail("Deployment script failed: " + result.stderr)
+#     plan.print("artifact_name: " + str(artifact_name))
+# How to access files from a service
 
-    # # Extract contract addresses from the output
-    # deployed_contracts = extract_addresses(result.stdout)
-    # return deployed_contracts
+# output_result = plan.run_sh(
+#     run = "cd {} && cat output.json".format(SOURCE_DIR_PATH),
+#     image = IMAGE_FOUNDRY,
+#     files = {
+#         SOURCE_DIR_PATH: folder,
+#         "output.json": "output.json",
+
+#     },
+#     description = "Output of the deployment",
+#     store = [
+#     StoreSpec(src = "/app/source/", name = "output.json"),
+#     ]
+# )
+
+# plan.print("output_result: " + str(output_result))
+# plan.print("output: "+ str(output_result.output))
+
+# shell_command = ["/bin/sh","-c",run_command]
+
+# exec_output = plan.exec(
+#     service_name = service.name,
+#     recipe = ExecRecipe(
+#         command = ["cat", "/app/source/output.json"],
+#     ),
+# )
+
+# plan.print("exec_output: " + str(exec_output))
+
+# exec_output = plan.exec(
+#     service_name = service.name,
+#     recipe = ExecRecipe(
+#         command = shell_command,
+#     ),
+# )
+
+# plan.print("exec_output: " + str(exec_output))
+
+# recipe_result = plan.wait(service_name=service.name,
+#     recipe= ExecRecipe(
+#         command = shell_command,
+#     ),
+#     timeout = "2m",
+#     field = "code",
+#     assertion = "==",
+#     target_value = 200,
+# )
+
+# plan.print(recipe_result["code"])
+
+# plan.print("receipe_result" +str(recipe_result))
+
+# result = run_command(deploy_command)
+
+# # Extract contract addresses from the output
+# deployed_contracts = extract_addresses(result.stdout)
+# return deployed_contracts
 
 # Define the contract interaction function
 # def interact_with_contracts(deployed_contracts, interactions):

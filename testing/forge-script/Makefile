@@ -60,7 +60,7 @@ star-lint-forge-script:
 	find ./testing/forge-script -name "*.star" -exec buildifier -mode=check {} +
 
 # Automatically fixes formatting issues in Starlark (.star) files using buildifier
-star-lint-forge-script:
+star-fix-forge-script:
 	@$(MAKE) buildifier-install
 	@echo "--> Running buildifier to format starlark files..."
 	find ./testing/forge-script -name "*.star" -exec buildifier --mode=fix {} +
