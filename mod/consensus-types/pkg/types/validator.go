@@ -128,10 +128,10 @@ func (v *Validator) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineStaticBytes(codec, &v.WithdrawalCredentials)
 	ssz.DefineUint64(codec, &v.EffectiveBalance)
 	ssz.DefineBool(codec, &v.Slashed)
-	ssz.DefineUint64(codec, (*uint64)(&v.ActivationEligibilityEpoch))
-	ssz.DefineUint64(codec, (*uint64)(&v.ActivationEpoch))
-	ssz.DefineUint64(codec, (*uint64)(&v.ExitEpoch))
-	ssz.DefineUint64(codec, (*uint64)(&v.WithdrawableEpoch))
+	ssz.DefineUint64(codec, &v.ActivationEligibilityEpoch)
+	ssz.DefineUint64(codec, &v.ActivationEpoch)
+	ssz.DefineUint64(codec, &v.ExitEpoch)
+	ssz.DefineUint64(codec, &v.WithdrawableEpoch)
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the Validator object.
