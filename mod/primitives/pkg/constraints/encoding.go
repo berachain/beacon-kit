@@ -20,6 +20,8 @@
 
 package constraints
 
+import "encoding/json"
+
 // SSZMarshaler is an interface for objects that can be
 // marshaled to SSZ format.
 type SSZMarshaler interface {
@@ -58,10 +60,6 @@ type SSZMarshalerUnmarshalerRootable interface {
 // JSONMarshallable is an interface that combines the json.Marshaler and
 // json.Unmarshaler interfaces.
 type JSONMarshallable interface {
-	// MarshalJSON marshals the object into a JSON byte slice and returns it
-	// along with any error.
-	MarshalJSON() ([]byte, error)
-	// UnmarshalJSON unmarshals the object from the provided JSON byte slice
-	// and returns an error if the unmarshaling fails.
-	UnmarshalJSON([]byte) error
+	json.Marshaler
+	json.Unmarshaler
 }
