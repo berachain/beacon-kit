@@ -20,7 +20,8 @@
 
 package log
 
-// Logger is extremely similar to the Cosmos-SDK Logger interface.
+// Logger represents a basic logger that is extremely similar to the Cosmos-SDK
+// Logger interface.
 type Logger[KeyValT any] interface {
 	// Info takes a message and a set of key/value pairs and logs with level
 	// INFO.
@@ -40,15 +41,8 @@ type Logger[KeyValT any] interface {
 	Debug(msg string, keyVals ...KeyValT)
 }
 
-// APILogger is a logger that can be used to log API messages.
-type APILogger[KeyValT any] interface {
-	Logger[KeyValT]
-	// API logs a message with no level.
-	// The key of the tuple must be a string.
-	API(msg string, keyVals ...KeyValT)
-}
-
-// ConfigurableLogger is a logger that can be configured with a config.
+// ConfigurableLogger extends the basic logger with the ability to configure
+// the logger with a config.
 type ConfigurableLogger[
 	ConfigurableLoggerT, KeyValT any, ConfigT any,
 ] interface {
@@ -56,11 +50,20 @@ type ConfigurableLogger[
 	WithConfig(config ConfigT) ConfigurableLoggerT
 }
 
-// AdvancedLogger is extremely similar to the Cosmos-SDK Logger interface,
-// however we introduce a generic to allow for more flexibility in
-// the underlying logger implementation.
-type AdvancedLogger[KeyValT, LoggerT any] interface {
+// ColorLogger extends the basic logger with the ability to configure the
+// logger with key and key value colors.
+type ColorLogger[KeyValT any] interface {
 	Logger[KeyValT]
+	// AddKeyColor sets the log color for a key.
+	AddKeyColor(key any, color string)
+	// AddKeyValColor sets the log color for a key and its value.
+	AddKeyValColor(key any, val any, color string)
+}
+
+// AdvancedLogger extends the color logger with the ability to wrap the logger
+// with additional context and to access the underlying logger implementation.
+type AdvancedLogger[KeyValT, LoggerT any] interface {
+	ColorLogger[KeyValT]
 	// With returns a new wrapped logger with additional context provided by a
 	// set.
 	With(keyVals ...KeyValT) LoggerT

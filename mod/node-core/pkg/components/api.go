@@ -25,7 +25,6 @@ import (
 	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/log/pkg/noop"
 	"github.com/berachain/beacon-kit/mod/node-api/backend"
 	"github.com/berachain/beacon-kit/mod/node-api/engines/echo"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
@@ -36,14 +35,8 @@ import (
 )
 
 // TODO: we could make engine type configurable
-func ProvideNodeAPIEngine(
-	logger log.APILogger[any],
-	config *config.Config,
-) *NodeAPIEngine {
-	if !config.NodeAPI.Logging {
-		logger = noop.NewLogger[sdklog.Logger]()
-	}
-	return echo.NewDefaultEngine(logger)
+func ProvideNodeAPIEngine() *NodeAPIEngine {
+	return echo.NewDefaultEngine()
 }
 
 type NodeAPIBackendInput struct {
@@ -85,20 +78,16 @@ type NodeAPIHandlersInput struct {
 	depinject.In
 	Backend *NodeAPIBackend
 	Config  *config.Config
-	Logger  log.APILogger[any]
 }
 
 func ProvideNodeAPIHandlers(
 	in NodeAPIHandlersInput,
 ) []handlers.Handlers[NodeAPIContext] {
-	if !in.Config.NodeAPI.Logging {
-		in.Logger = noop.NewLogger[sdklog.Logger]()
-	}
 	return server.DefaultHandlers[
 		NodeAPIContext,
 		*Fork,
 		*Validator,
-	](in.Backend, in.Logger)
+	](in.Backend)
 }
 
 type NodeAPIServerInput struct {
@@ -111,6 +100,7 @@ type NodeAPIServerInput struct {
 }
 
 func ProvideNodeAPIServer(in NodeAPIServerInput) *NodeAPIServer {
+	in.Logger.AddKeyValColor("service", "node-api-server", "blue")
 	return server.New[
 		NodeAPIContext,
 		*NodeAPIEngine,

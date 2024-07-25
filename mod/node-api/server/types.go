@@ -21,6 +21,7 @@
 package server
 
 import (
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon"
 	"github.com/berachain/beacon-kit/mod/node-api/types/context"
@@ -28,7 +29,7 @@ import (
 
 type Engine[ContextT context.Context, T any] interface {
 	Run(addr string) error
-	RegisterRoutes(handlers.RouteSet[ContextT])
+	RegisterRoutes(handlers.RouteSet[ContextT], log.Logger[any])
 }
 
 type Backend[ForkT, ValidatorT any] interface {

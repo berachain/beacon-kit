@@ -137,6 +137,17 @@ func (l *Logger[ImplT]) WithConfig(cfg Config) *Logger[ImplT] {
 	return l
 }
 
+// AddKeyColor applies a color to log entries based on their keys.
+func (l *Logger[ImplT]) AddKeyColor(key any, color string) {
+	l.formatter.AddKeyColor(key.(string), color)
+}
+
+// AddKeyValColor applies specific colors to log entries based on their keys and
+// values.
+func (l *Logger[ImplT]) AddKeyValColor(key any, val any, color string) {
+	l.formatter.AddKeyValColor(key.(string), val.(string), color)
+}
+
 // sets the style of the logger.
 func (l *Logger[Impl]) withStyle(style string) {
 	if style == StylePretty {
@@ -167,21 +178,4 @@ func (l *Logger[ImplT]) useJSONWriter() {
 // setWriter sets the writer of the logger.
 func (l *Logger[ImplT]) setWriter(writer log.Writer) {
 	l.logger.Writer = writer
-}
-
-/* -------------------------------------------------------------------------- */
-/*                            No Level Logs                                   */
-/* -------------------------------------------------------------------------- */
-
-// noLevel is the level for arbitrary log messages.
-const noLevel = log.PanicLevel + 1
-
-// API logs a message at level <noLevel>. This will always be logged, regardless
-// of the current log level, with the custom API colors and labels.
-func (l *Logger[ImplT]) API(msg string, keyVals ...any) {
-	// set the no level format to api
-	l.formatter.FormatNoLevelHeader(apiColor, apiLabel)
-	l.msgWithContext(msg, l.logger.WithLevel(noLevel), keyVals...)
-	// reset the no level format back to default
-	l.formatter.FormatNoLevelHeader(defaultColor, defaultLabel)
 }

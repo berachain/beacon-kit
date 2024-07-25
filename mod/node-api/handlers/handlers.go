@@ -31,7 +31,7 @@ type handlerFn[ContextT context.Context] func(c ContextT) (any, error)
 // Handlers is an interface that all handlers must implement.
 type Handlers[ContextT context.Context] interface {
 	// RegisterRoutes is a method that registers the routes for the handler.
-	RegisterRoutes()
+	RegisterRoutes(logger log.Logger[any])
 	RouteSet() RouteSet[ContextT]
 }
 
@@ -39,18 +39,16 @@ type Handlers[ContextT context.Context] interface {
 // and logger from the handler.
 type BaseHandler[ContextT context.Context] struct {
 	routes RouteSet[ContextT]
-	logger log.APILogger[any]
+	logger log.Logger[any]
 }
 
 // NewBaseHandler initializes a new base handler with the given routes and
 // logger.
 func NewBaseHandler[ContextT context.Context](
 	routes RouteSet[ContextT],
-	logger log.APILogger[any],
 ) *BaseHandler[ContextT] {
 	return &BaseHandler[ContextT]{
 		routes: routes,
-		logger: logger,
 	}
 }
 
@@ -60,8 +58,12 @@ func (b *BaseHandler[ContextT]) RouteSet() RouteSet[ContextT] {
 }
 
 // Logger is used to access the logger for the base handler.
-func (b *BaseHandler[ContextT]) Logger() log.APILogger[any] {
+func (b *BaseHandler[ContextT]) Logger() log.Logger[any] {
 	return b.logger
+}
+
+func (b *BaseHandler[ContextT]) SetLogger(logger log.Logger[any]) {
+	b.logger = logger
 }
 
 // AddRoutes adds the given slice of routes to the base handler.

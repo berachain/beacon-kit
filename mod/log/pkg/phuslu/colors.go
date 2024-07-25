@@ -20,19 +20,83 @@
 
 package phuslu
 
+// Color is a string that holds the hex color code for the color.
+type Color string
+
+// Raw returns the raw color code.
+func (c Color) Raw() string {
+	return string(c)
+}
+
+// String returns the human-readable string representation of the color.
+func (c Color) String() string {
+	switch c {
+	case reset:
+		return "reset"
+	case black:
+		return "black"
+	case red:
+		return "red"
+	case green:
+		return "green"
+	case yellow:
+		return "yellow"
+	case blue:
+		return "blue"
+	case magenta:
+		return "magenta"
+	case cyan:
+		return "cyan"
+	case white:
+		return "white"
+	case gray:
+		return "gray"
+	case lightWhite:
+		return "lightWhite"
+	}
+	return "unknown"
+}
+
+// ToColor converts a human-readable string to a Color.
+func ToColor(color string) Color {
+	switch color {
+	case "black":
+		return black
+	case "red":
+		return red
+	case "green":
+		return green
+	case "yellow":
+		return yellow
+	case "blue":
+		return blue
+	case "magenta":
+		return magenta
+	case "cyan":
+		return cyan
+	case "white":
+		return white
+	case "gray":
+		return gray
+	case "lightWhite":
+		return lightWhite
+	}
+	return reset
+}
+
 const (
 	// colours.
-	reset      = "\x1b[0m"
-	black      = "\x1b[30m"
-	red        = "\x1b[31m"
-	green      = "\x1b[32m"
-	yellow     = "\x1b[33m"
-	blue       = "\x1b[34m"
-	magenta    = "\x1b[35m"
-	cyan       = "\x1b[36m"
-	white      = "\x1b[37m"
-	gray       = "\x1b[90m"
-	lightWhite = "\x1b[97m"
+	reset      Color = "\x1b[0m"
+	black      Color = "\x1b[30m"
+	red        Color = "\x1b[31m"
+	green      Color = "\x1b[32m"
+	yellow     Color = "\x1b[33m"
+	blue       Color = "\x1b[34m"
+	magenta    Color = "\x1b[35m"
+	cyan       Color = "\x1b[36m"
+	white      Color = "\x1b[37m"
+	gray       Color = "\x1b[90m"
+	lightWhite Color = "\x1b[97m"
 
 	// log levels.
 	traceColor   = magenta

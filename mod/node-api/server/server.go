@@ -24,6 +24,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/log/pkg/noop"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 	apicontext "github.com/berachain/beacon-kit/mod/node-api/types/context"
 )
@@ -37,7 +38,6 @@ type Server[
 	logger log.Logger[any]
 }
 
-// TODO: custom logger.
 func New[
 	ContextT apicontext.Context,
 	EngineT Engine[ContextT, EngineT],
@@ -47,9 +47,13 @@ func New[
 	logger log.Logger[any],
 	handlers ...handlers.Handlers[ContextT],
 ) *Server[ContextT, EngineT] {
+	apiLogger := logger
+	if !config.Logging {
+		apiLogger = noop.NewLogger[log.Logger[any]]()
+	}
 	for _, handler := range handlers {
-		handler.RegisterRoutes()
-		engine.RegisterRoutes(handler.RouteSet())
+		handler.RegisterRoutes(apiLogger)
+		engine.RegisterRoutes(handler.RouteSet(), apiLogger)
 	}
 	return &Server[ContextT, EngineT]{
 		engine: engine,

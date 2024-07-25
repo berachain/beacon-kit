@@ -23,11 +23,16 @@ package beacon
 import (
 	"net/http"
 
+	"github.com/berachain/beacon-kit/mod/log"
+
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 )
 
 //nolint:funlen // routes are long
-func (h *Handler[ContextT, _, _]) RegisterRoutes() {
+func (h *Handler[ContextT, _, _]) RegisterRoutes(
+	logger log.Logger[any],
+) {
+	h.SetLogger(logger)
 	h.BaseHandler.AddRoutes([]handlers.Route[ContextT]{
 		{
 			Method:  http.MethodGet,

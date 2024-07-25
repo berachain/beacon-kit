@@ -54,10 +54,6 @@ func (n *Logger[KeyValT, ImplT]) Debug(string, ...KeyValT) {
 	// No operation
 }
 
-func (n *Logger[KeyValT, ImplT]) API(string, ...KeyValT) {
-	// No operation
-}
-
 // With returns a new AdvancedLogger with the provided key-value pairs. This
 // method does nothing.
 func (n *Logger[KeyValT, ImplT]) With(...KeyValT) ImplT {
@@ -66,4 +62,19 @@ func (n *Logger[KeyValT, ImplT]) With(...KeyValT) ImplT {
 
 func (n *Logger[KeyValT, ImplT]) Impl() any {
 	return nil
+}
+
+func (n *Logger[KeyValT, ImplT]) AddKeyColor(
+	key any,
+	color string,
+) {
+	// No operation
+}
+
+func (n *Logger[KeyValT, ImplT]) AddKeyValColor(
+	key any,
+	val any,
+	color string,
+) {
+	// No operation
 }
