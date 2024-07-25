@@ -28,6 +28,7 @@ import (
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
@@ -132,7 +133,7 @@ func TestBeaconBlockDenebPlus_GetHeader(t *testing.T) {
 	block := generateBeaconBlockDenebPlus()
 	header := block.GetHeader()
 	require.NotNil(t, header)
-	require.Equal(t, block.Slot, header.Slot)
+	require.Equal(t, math.U64(block.Slot), header.Slot)
 	require.Equal(t, block.ProposerIndex, header.ProposerIndex)
 	require.Equal(t, block.ParentBlockRoot, header.ParentBlockRoot)
 	require.Equal(t, block.StateRoot, header.StateRoot)

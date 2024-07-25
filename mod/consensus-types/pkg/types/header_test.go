@@ -21,6 +21,7 @@
 package types_test
 
 import (
+	"io"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -138,7 +139,7 @@ func TestBeaconBlockHeader_UnmarshalSSZ_ErrSize(t *testing.T) {
 	buf := make([]byte, 100) // Incorrect size
 
 	err := header.UnmarshalSSZ(buf)
-	require.ErrorIs(t, err, ssz.ErrSize)
+	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
 
 func TestBeaconBlockHeaderBase_MarshalSSZUnmarshalSSZ(t *testing.T) {
