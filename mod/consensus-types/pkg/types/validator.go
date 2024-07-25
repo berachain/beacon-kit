@@ -32,8 +32,7 @@ import (
 // ValidatorSize is the size of the Validator struct in bytes.
 const ValidatorSize = 121
 
-// Compile-time check to ensure Validator implements ssz.Marshaler and
-// ssz.Unmarshaler.
+// Compile-time checks for the Validator struct.
 var (
 	_ ssz.StaticObject                    = (*Validator)(nil)
 	_ constraints.SSZMarshallableRootable = (*Validator)(nil)
