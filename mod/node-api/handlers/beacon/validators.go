@@ -52,12 +52,11 @@ func (h *Handler[ContextT, _, _]) GetStateValidators(c ContextT) (any, error) {
 	if len(validators) == 0 {
 		return nil, types.ErrNotFound
 	}
-	response := beacontypes.ValidatorResponse{
+	return beacontypes.ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed
 		Finalized:           false, // stubbed
 		Data:                validators,
-	}
-	return response, nil
+	}, nil
 }
 
 func (h *Handler[ContextT, _, _]) PostStateValidators(c ContextT) (any, error) {

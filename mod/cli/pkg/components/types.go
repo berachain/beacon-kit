@@ -18,31 +18,13 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package node
+package components
 
 import (
-	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/node-api/handlers"
-	"github.com/berachain/beacon-kit/mod/node-api/types"
-	"github.com/berachain/beacon-kit/mod/node-api/types/context"
+	sdklog "cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
 )
 
-type Handler[ContextT context.Context] struct {
-	*handlers.BaseHandler[ContextT]
-}
-
-func NewHandler[ContextT context.Context](
-	logger log.APILogger[any],
-) *Handler[ContextT] {
-	h := &Handler[ContextT]{
-		BaseHandler: handlers.NewBaseHandler[ContextT](
-			handlers.NewRouteSet[ContextT](""),
-			logger,
-		),
-	}
-	return h
-}
-
-func (h *Handler[ContextT]) NotImplemented(_ ContextT) (any, error) {
-	return nil, types.ErrNotImplemented
-}
+type (
+	Logger = phuslu.Logger[sdklog.Logger]
+)

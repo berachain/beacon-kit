@@ -41,7 +41,7 @@ type LoggerInput struct {
 // It reads the log level and format from the server context.
 func ProvideLogger(
 	in LoggerInput,
-) *phuslu.Logger[sdklog.Logger] {
+) *Logger {
 	logger := phuslu.NewLogger[sdklog.Logger](in.Out, in.Cfg.GetLogger())
 	return logger
 }
