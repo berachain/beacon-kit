@@ -151,3 +151,9 @@ func (b *Backend[
 
 	return b.sb.StateFromContext(queryCtx), nil
 }
+
+func (b *Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) GetSlotByRoot(root [32]byte) (uint64, error) {
+	return b.sb.BlockStore().GetSlotByRoot(root)
+}
