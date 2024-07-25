@@ -17,8 +17,7 @@ def deploy_contracts(plan, deployment):
 
     folder = plan.upload_files(src = repository, name = "folder")
 
-    run_command = "cd {} && forge build && forge script {}:{} --broadcast --rpc-url {} --private-key {} --json --skip test > output.json && sleep 20".format(SOURCE_DIR_PATH, script_path, contract_name, rpc_url, private_key)
-
+    run_command = "cd {} && forge build --skip test --silent && forge script {}:{} --broadcast --rpc-url {} --private-key {} --json --silent --skip test".format(SOURCE_DIR_PATH, script_path, contract_name, rpc_url, private_key)
     plan.print("run_command: " + str(run_command))
 
     # add a service
@@ -26,11 +25,11 @@ def deploy_contracts(plan, deployment):
         name = "foundry",
         config = ServiceConfig(
             image = IMAGE_FOUNDRY,
-            cmd = [
-                "-c",
-                "cd {} && forge build && sleep infinity".format(SOURCE_DIR_PATH),
-            ],
-            entrypoint = ["/bin/sh", "-c"],
+            # cmd = [
+            #     "-c",
+            #     "cd {} && forge build".format(SOURCE_DIR_PATH),
+            # ],
+            # entrypoint = ["/bin/sh", "-c"],
             files = {
                 SOURCE_DIR_PATH: folder,
             },
@@ -44,12 +43,14 @@ def deploy_contracts(plan, deployment):
             SOURCE_DIR_PATH: folder,
         },
         description = "Deploying smart contract",
-        wait = "4m",
+        wait = "10m",
         # store = [
         # StoreSpec(src = "/app/source/", name = "output.json"),
         # ]
     )
     plan.print("result: " + str(result))
+
+    return result
 
 #     artifact_name = plan.store_service_files(
 #     service_name = service.name,
