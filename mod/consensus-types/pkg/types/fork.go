@@ -27,6 +27,10 @@ import (
 	"github.com/karalabe/ssz"
 )
 
+// ForkSize is the size of the Fork object in bytes.
+// 4 bytes for PreviousVersion + 4 bytes for CurrentVersion + 8 bytes for Epoch
+const ForkSize = 16
+
 // Fork as defined in the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#fork
 //
@@ -63,7 +67,7 @@ func (f *Fork) New(
 
 // SizeSSZ returns the SSZ encoded size of the Fork object in bytes.
 func (f *Fork) SizeSSZ() uint32 {
-	return 16 // 4 bytes for PreviousVersion + 4 bytes for CurrentVersion + 8 bytes for Epoch
+	return ForkSize
 }
 
 // DefineSSZ defines the SSZ encoding for the Fork object.
@@ -99,8 +103,8 @@ func (f *Fork) HashTreeRoot() ([32]byte, error) {
 /*                                   FastSSZ                                  */
 /* -------------------------------------------------------------------------- */
 
-// HashTreeRootWith ssz hashes the Fork object with a hasher
-func (f *Fork) HashTreeRootWith(hh fastssz.HashWalker) (err error) {
+// HashTreeRootWith ssz hashes the Fork object with a hasher.
+func (f *Fork) HashTreeRootWith(hh fastssz.HashWalker) error {
 	indx := hh.Index()
 
 	// Field (0) 'PreviousVersion'
@@ -113,10 +117,10 @@ func (f *Fork) HashTreeRootWith(hh fastssz.HashWalker) (err error) {
 	hh.PutUint64(uint64(f.Epoch))
 
 	hh.Merkleize(indx)
-	return
+	return nil
 }
 
-// GetTree ssz hashes the Fork object
+// GetTree ssz hashes the Fork object.
 func (f *Fork) GetTree() (*fastssz.Node, error) {
 	return fastssz.ProofTree(f)
 }
