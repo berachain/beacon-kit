@@ -43,7 +43,7 @@ type U8 uint8
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the uint8 in bytes.
-func (U8) SizeSSZ() int {
+func (U8) SizeSSZ() uint32 {
 	return constants.U8Size
 }
 
@@ -54,7 +54,7 @@ func (u U8) MarshalSSZ() ([]byte, error) {
 
 // NewFromSSZ creates a new U8 from SSZ format.
 func (U8) NewFromSSZ(buf []byte) (U8, error) {
-	if len(buf) != constants.U8Size {
+	if uint32(len(buf)) != constants.U8Size {
 		return 0, fmt.Errorf(
 			"invalid buffer length: expected %d, got %d",
 			constants.U8Size,

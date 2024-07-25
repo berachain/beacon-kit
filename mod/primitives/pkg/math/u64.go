@@ -83,7 +83,7 @@ func (u U64) MarshalSSZ() ([]byte, error) {
 
 // UnmarshalSSZ deserializes the U64 from a byte slice.
 func (u *U64) UnmarshalSSZ(buf []byte) error {
-	if len(buf) != constants.U64Size {
+	if uint32(len(buf)) != constants.U64Size {
 		return ErrUnexpectedInputLength(
 			constants.U64Size, len(buf))
 	}
@@ -95,7 +95,7 @@ func (u *U64) UnmarshalSSZ(buf []byte) error {
 }
 
 // SizeSSZ returns the size of the U64 in bytes.
-func (u U64) SizeSSZ() int {
+func (u U64) SizeSSZ() uint32 {
 	return constants.U64Size
 }
 
@@ -123,7 +123,7 @@ func (U64) ChunkCount() uint64 {
 
 // NewFromSSZ creates a new U64 from SSZ format.
 func (U64) NewFromSSZ(buf []byte) (U64, error) {
-	if len(buf) != constants.U64Size {
+	if uint32(len(buf)) != constants.U64Size {
 		return 0, fmt.Errorf(
 			"invalid buffer length: expected %d, got %d",
 			constants.U64Size,

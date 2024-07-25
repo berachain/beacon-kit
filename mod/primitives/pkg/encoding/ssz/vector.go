@@ -57,9 +57,9 @@ func ByteVectorFromBytes(bytes []byte) Vector[Byte] {
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the list in bytes.
-func (v Vector[T]) SizeSSZ() int {
+func (v Vector[T]) SizeSSZ() uint32 {
 	var b T
-	return b.SizeSSZ() * len(v)
+	return b.SizeSSZ() * uint32(len(v))
 }
 
 // isFixed returns true if the VectorBasic is fixed size.

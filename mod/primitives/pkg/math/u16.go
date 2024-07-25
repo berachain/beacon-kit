@@ -44,7 +44,7 @@ type U16 uint16
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the uint16 in bytes.
-func (U16) SizeSSZ() int {
+func (U16) SizeSSZ() uint32 {
 	return constants.U16Size
 }
 
@@ -57,7 +57,7 @@ func (u U16) MarshalSSZ() ([]byte, error) {
 
 // NewFromSSZ creates a new U16 from SSZ format.
 func (U16) NewFromSSZ(buf []byte) (U16, error) {
-	if len(buf) != constants.U16Size {
+	if uint32(len(buf)) != constants.U16Size {
 		return 0, fmt.Errorf(
 			"invalid buffer length: expected %d, got %d",
 			constants.U16Size,

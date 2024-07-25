@@ -45,7 +45,7 @@ type (
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the byte slice in bytes.
-func (Byte) SizeSSZ() int {
+func (Byte) SizeSSZ() uint32 {
 	return constants.ByteSize
 }
 
@@ -56,7 +56,7 @@ func (b Byte) MarshalSSZ() ([]byte, error) {
 
 // NewFromSSZ creates a new Byte from SSZ format.
 func (Byte) NewFromSSZ(buf []byte) (Byte, error) {
-	if len(buf) != constants.ByteSize {
+	if uint32(len(buf)) != constants.ByteSize {
 		return 0, fmt.Errorf(
 			"invalid buffer length: expected %d, got %d",
 			constants.ByteSize,
