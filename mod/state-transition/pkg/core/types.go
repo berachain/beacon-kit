@@ -97,7 +97,7 @@ type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
 	GetProposerIndex() math.ValidatorIndex
 	GetParentBlockRoot() common.Root
 	GetStateRoot() common.Root
-	GetRoot() common.Root
+	GetBodyRoot() common.Root
 	SetStateRoot(common.Root)
 }
 
@@ -205,7 +205,11 @@ type Validator[
 	ValidatorT any,
 	WithdrawalCredentialsT ~[32]byte,
 ] interface {
-	constraints.SSZMarshallable
+	constraints.SSZMarshallableRootable
+	// TODO: Deprecate the need for SizeSSZ here.
+	// SizeSSZ returns the size in bytes that the object would take when
+	// marshaled.
+	SizeSSZ() int
 	// New creates a new validator with the given parameters.
 	New(
 		pubkey crypto.BLSPubkey,

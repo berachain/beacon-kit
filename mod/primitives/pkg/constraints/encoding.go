@@ -20,32 +20,46 @@
 
 package constraints
 
-// SSZMarshallable is an interface that combines the ssz.Marshaler and
-// ssz.Unmarshaler interfaces.
-type SSZMarshallable interface {
-	// MarshalSSZTo marshals the object into the provided byte slice and returns
-	// it along with any error.
-	MarshalSSZTo([]byte) ([]byte, error)
-	// MarshalSSZ marshals the object into a new byte slice and returns it along
-	// with any error.
+import "encoding/json"
+
+// SSZMarshaler is an interface for objects that can be
+// marshaled to SSZ format.
+type SSZMarshaler interface {
+	// MarshalSSZ marshals the object into SSZ format.
 	MarshalSSZ() ([]byte, error)
-	// UnmarshalSSZ unmarshals the object from the provided byte slice and
-	// returns an error if the unmarshaling fails.
+}
+
+// SSZUnmarshaler is an interface for objects that can be
+// unmarshaled from SSZ format.
+type SSZUnmarshaler interface {
+	// UnmarshalSSZ unmarshals the object from SSZ format.
 	UnmarshalSSZ([]byte) error
-	// SizeSSZ returns the size in bytes that the object would take when
-	// marshaled.
-	SizeSSZ() int
-	// HashTreeRoot returns the hash tree root of the object.
+}
+
+// SSZRootable is an interface for objects that can compute
+// their hash tree root.
+type SSZRootable interface {
+	// HashTreeRoot computes the hash tree root of the object.
 	HashTreeRoot() ([32]byte, error)
+}
+
+// SSZMarshallable is an interface that combines
+// SSZMarshaler and SSZUnmarshaler.
+type SSZMarshallable interface {
+	SSZMarshaler
+	SSZUnmarshaler
+}
+
+// SSZMarshallableRootable is an interface that combines
+// SSZMarshaler, SSZUnmarshaler, and SSZRootable.
+type SSZMarshallableRootable interface {
+	SSZMarshallable
+	SSZRootable
 }
 
 // JSONMarshallable is an interface that combines the json.Marshaler and
 // json.Unmarshaler interfaces.
 type JSONMarshallable interface {
-	// MarshalJSON marshals the object into a JSON byte slice and returns it
-	// along with any error.
-	MarshalJSON() ([]byte, error)
-	// UnmarshalJSON unmarshals the object from the provided JSON byte slice and
-	// returns an error if the unmarshaling fails.
-	UnmarshalJSON([]byte) error
+	json.Marshaler
+	json.Unmarshaler
 }

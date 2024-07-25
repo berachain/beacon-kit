@@ -30,7 +30,7 @@ import (
 // request.
 func ExtractBlobsAndBlockFromRequest[
 	BeaconBlockT BeaconBlock[BeaconBlockT],
-	BlobSidecarsT constraints.SSZMarshallable,
+	BlobSidecarsT constraints.SSZUnmarshaler,
 ](
 	req ABCIRequest,
 	beaconBlkIndex uint,
@@ -104,14 +104,15 @@ func UnmarshalBeaconBlockFromABCIRequest[
 // UnmarshalBlobSidecarsFromABCIRequest extracts blob sidecars from an ABCI
 // request.
 func UnmarshalBlobSidecarsFromABCIRequest[
-	T interface{ UnmarshalSSZ([]byte) error },
+	BlobSidecarsT constraints.SSZUnmarshaler,
 ](
 	req ABCIRequest,
 	bzIndex uint,
-) (T, error) {
-	var sidecars T
+) (BlobSidecarsT, error) {
+	var sidecars BlobSidecarsT
 
-	sidecars, ok := reflect.New(reflect.TypeOf(sidecars).Elem()).Interface().(T)
+	sidecars, ok := reflect.New(reflect.TypeOf(sidecars).Elem()).
+		Interface().(BlobSidecarsT)
 	if !ok {
 		return sidecars, ErrInvalidType
 	}

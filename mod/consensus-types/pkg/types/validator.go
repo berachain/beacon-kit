@@ -21,7 +21,6 @@
 package types
 
 import (
-	typesv2 "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types/v2"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -35,7 +34,7 @@ type Validator struct {
 	// Pubkey is the validator's 48-byte BLS public key.
 	Pubkey crypto.BLSPubkey `json:"pubkey"                     ssz-size:"48"`
 	// WithdrawalCredentials are an address that controls the validator.
-	WithdrawalCredentials typesv2.WithdrawalCredentials `json:"withdrawalCredentials"      ssz-size:"32"`
+	WithdrawalCredentials WithdrawalCredentials `json:"withdrawalCredentials"      ssz-size:"32"`
 	// EffectiveBalance is the validator's current effective balance in gwei.
 	EffectiveBalance math.Gwei `json:"effectiveBalance"`
 	// Slashed indicates whether the validator has been slashed.
@@ -60,7 +59,7 @@ type Validator struct {
 //nolint:lll
 func NewValidatorFromDeposit(
 	pubkey crypto.BLSPubkey,
-	withdrawalCredentials typesv2.WithdrawalCredentials,
+	withdrawalCredentials WithdrawalCredentials,
 	amount math.Gwei,
 	effectiveBalanceIncrement math.Gwei,
 	maxEffectiveBalance math.Gwei,
@@ -84,7 +83,7 @@ func NewValidatorFromDeposit(
 // credentials,.
 func (v *Validator) New(
 	pubkey crypto.BLSPubkey,
-	withdrawalCredentials typesv2.WithdrawalCredentials,
+	withdrawalCredentials WithdrawalCredentials,
 	amount math.Gwei,
 	effectiveBalanceIncrement math.Gwei,
 	maxEffectiveBalance math.Gwei,
@@ -183,7 +182,7 @@ func (v Validator) IsPartiallyWithdrawable(
 //
 //nolint:lll
 func (v Validator) HasEth1WithdrawalCredentials() bool {
-	return v.WithdrawalCredentials[0] == typesv2.EthSecp256k1CredentialPrefix
+	return v.WithdrawalCredentials[0] == EthSecp256k1CredentialPrefix
 }
 
 // HasMaxEffectiveBalance determines if the validator has the maximum effective
@@ -205,6 +204,6 @@ func (v Validator) GetWithdrawableEpoch() math.Epoch {
 }
 
 // GetWithdrawalCredentials returns the withdrawal credentials of the validator.
-func (v Validator) GetWithdrawalCredentials() typesv2.WithdrawalCredentials {
+func (v Validator) GetWithdrawalCredentials() WithdrawalCredentials {
 	return v.WithdrawalCredentials
 }

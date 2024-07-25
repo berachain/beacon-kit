@@ -45,7 +45,7 @@ type BlockHeader interface {
 	GetProposerIndex() math.ValidatorIndex
 	GetParentBlockRoot() common.Root
 	GetStateRoot() common.Root
-	GetRoot() common.Root
+	GetBodyRoot() common.Root
 }
 
 type GenesisBackend interface {

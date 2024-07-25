@@ -47,7 +47,7 @@ func (h *Handler[
 		ExecutionOptimistic: false, // stubbed
 		Finalized:           false, // stubbed
 		Data: &beacontypes.BlockHeaderResponse[BeaconBlockHeaderT]{
-			Root:      header.GetRoot(),
+			Root:      header.GetBodyRoot(),
 			Canonical: true,
 			Header: &beacontypes.BlockHeader[BeaconBlockHeaderT]{
 				Message:   header,
@@ -76,7 +76,7 @@ func (h *Handler[
 		ExecutionOptimistic: false, // stubbed
 		Finalized:           false, // stubbed
 		Data: &beacontypes.BlockHeaderResponse[BeaconBlockHeaderT]{
-			Root:      header.GetRoot(),
+			Root:      header.GetBodyRoot(),
 			Canonical: true,
 			Header: &beacontypes.BlockHeader[BeaconBlockHeaderT]{
 				Message:   header,

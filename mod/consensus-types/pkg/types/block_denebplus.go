@@ -22,6 +22,7 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
@@ -63,12 +64,10 @@ func (b BeaconBlockDenebPlus) GetHeader() *BeaconBlockHeader {
 	}
 
 	return &BeaconBlockHeader{
-		BeaconBlockHeaderBase: BeaconBlockHeaderBase{
-			Slot:          b.Slot,
-			ProposerIndex: b.ProposerIndex,
-			ParentRoot:    b.ParentRoot,
-			StateRoot:     b.StateRoot,
-		},
-		BodyRoot: bodyRoot,
+		Slot:            math.Slot(b.Slot),
+		ProposerIndex:   math.Slot(b.ProposerIndex),
+		ParentBlockRoot: b.ParentRoot,
+		StateRoot:       b.StateRoot,
+		BodyRoot:        bodyRoot,
 	}
 }
