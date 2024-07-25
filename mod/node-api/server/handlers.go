@@ -43,9 +43,9 @@ func DefaultHandlers[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
 		ValidatorT,
 	],
-	Eth1DataT constraints.SSZMarshallable,
-	ExecutionPayloadHeaderT constraints.SSZMarshallable,
-	ForkT constraints.SSZMarshallable,
+	Eth1DataT constraints.SSZRootable,
+	ExecutionPayloadHeaderT constraints.SSZRootable,
+	ForkT constraints.SSZRootable,
 	ValidatorT any,
 ](
 	backend Backend[

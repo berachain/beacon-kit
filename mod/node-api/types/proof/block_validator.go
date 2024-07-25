@@ -52,14 +52,14 @@ type BeaconBlockForValidator struct {
 // NewBeaconBlockForValidator creates a new BeaconBlock SSZ summary with only
 // the required raw values to prove a validator exists in this block.
 func NewBeaconBlockForValidator[
-	BeaconBlockHeaderT constraints.SSZMarshallable,
+	BeaconBlockHeaderT constraints.SSZRootable,
 	BeaconStateT BeaconState[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
 		ValidatorT,
 	],
-	Eth1DataT constraints.SSZMarshallable,
-	ExecutionPayloadHeaderT constraints.SSZMarshallable,
-	ForkT constraints.SSZMarshallable,
+	Eth1DataT constraints.SSZRootable,
+	ExecutionPayloadHeaderT constraints.SSZRootable,
+	ForkT constraints.SSZRootable,
 	ValidatorT any,
 ](
 	bbh BeaconBlockHeader[BeaconBlockHeaderT],
@@ -117,14 +117,14 @@ type BeaconStateForValidator struct {
 // NewBeaconStateForValidator creates a new BeaconState SSZ summary with only
 // the required raw values to prove a validator exists in this state.
 func NewBeaconStateForValidator[
-	BeaconBlockHeaderT constraints.SSZMarshallable,
+	BeaconBlockHeaderT constraints.SSZRootable,
 	BeaconStateT BeaconState[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
 		ValidatorT,
 	],
-	Eth1DataT constraints.SSZMarshallable,
-	ExecutionPayloadHeaderT constraints.SSZMarshallable,
-	ForkT constraints.SSZMarshallable,
+	Eth1DataT constraints.SSZRootable,
+	ExecutionPayloadHeaderT constraints.SSZRootable,
+	ForkT constraints.SSZRootable,
 	ValidatorT any,
 ](
 	bs BeaconStateT,

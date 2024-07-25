@@ -29,7 +29,7 @@ import (
 
 // BeaconBlockHeader is the interface for a beacon block header.
 type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
-	constraints.SSZMarshallable
+	constraints.SSZRootable
 	New(
 		slot math.Slot,
 		proposerIndex math.ValidatorIndex,
