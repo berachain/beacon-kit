@@ -29,14 +29,14 @@ import (
 type BeaconBlockHeaderBase struct {
 	// Slot represents the position of the block in the chain.
 	// TODO: Put back to math.Slot after fastssz fixes.
-	Slot uint64
+	Slot uint64 `json:"slot"`
 	// ProposerIndex is the index of the validator who proposed the block.
 	// TODO: Put back to math.ProposerIndex after fastssz fixes.
-	ProposerIndex uint64
-	// ParentBlockRoot is the hash of the parent block
-	ParentBlockRoot common.Root
+	ProposerIndex uint64 `json:"proposer_index"`
+	// ParentRoot is the hash of the parent block
+	ParentRoot common.Root `json:"parent_root"`
 	// StateRoot is the hash of the state at the block.
-	StateRoot common.Root
+	StateRoot common.Root `json:"state_root"`
 }
 
 // GetSlot retrieves the slot of the BeaconBlockBase.
@@ -51,7 +51,7 @@ func (b *BeaconBlockHeaderBase) GetProposerIndex() math.ValidatorIndex {
 
 // GetParentBlockRoot retrieves the parent block root of the BeaconBlockBase.
 func (b *BeaconBlockHeaderBase) GetParentBlockRoot() common.Root {
-	return b.ParentBlockRoot
+	return b.ParentRoot
 }
 
 // GetStateRoot retrieves the state root of the BeaconBlockDeneb.
@@ -64,7 +64,7 @@ type BeaconBlockHeader struct {
 	// BeaconBlockHeaderBase is the base of the block.
 	BeaconBlockHeaderBase
 	// 	// BodyRoot is the root of the block body.
-	BodyRoot common.Root `json:"bodyRoot"`
+	BodyRoot common.Root `json:"body_root"`
 }
 
 // NewBeaconBlockHeader creates a new BeaconBlockHeader.
@@ -77,10 +77,10 @@ func NewBeaconBlockHeader(
 ) *BeaconBlockHeader {
 	return &BeaconBlockHeader{
 		BeaconBlockHeaderBase: BeaconBlockHeaderBase{
-			Slot:            slot.Unwrap(),
-			ProposerIndex:   proposerIndex.Unwrap(),
-			ParentBlockRoot: parentBlockRoot,
-			StateRoot:       stateRoot,
+			Slot:          slot.Unwrap(),
+			ProposerIndex: proposerIndex.Unwrap(),
+			ParentRoot:    parentBlockRoot,
+			StateRoot:     stateRoot,
 		},
 		BodyRoot: bodyRoot,
 	}
@@ -102,4 +102,8 @@ func (b *BeaconBlockHeader) New(
 // SetStateRoot sets the state root of the BeaconBlockHeader.
 func (b *BeaconBlockHeader) SetStateRoot(stateRoot common.Root) {
 	b.StateRoot = stateRoot
+}
+
+func (b *BeaconBlockHeader) GetRoot() common.Root {
+	return b.BodyRoot
 }

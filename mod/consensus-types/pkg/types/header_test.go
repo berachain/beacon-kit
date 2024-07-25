@@ -150,30 +150,30 @@ func TestBeaconBlockHeaderBase_MarshalSSZUnmarshalSSZ(t *testing.T) {
 		{
 			name: "normal case",
 			header: &types.BeaconBlockHeaderBase{
-				Slot:            100,
-				ProposerIndex:   200,
-				ParentBlockRoot: common.Root{},
-				StateRoot:       common.Root{},
+				Slot:          100,
+				ProposerIndex: 200,
+				ParentRoot:    common.Root{},
+				StateRoot:     common.Root{},
 			},
 			valid: true,
 		},
 		{
 			name: "zero values",
 			header: &types.BeaconBlockHeaderBase{
-				Slot:            0,
-				ProposerIndex:   0,
-				ParentBlockRoot: common.Root{},
-				StateRoot:       common.Root{},
+				Slot:          0,
+				ProposerIndex: 0,
+				ParentRoot:    common.Root{},
+				StateRoot:     common.Root{},
 			},
 			valid: true,
 		},
 		{
 			name: "invalid size",
 			header: &types.BeaconBlockHeaderBase{
-				Slot:            100,
-				ProposerIndex:   200,
-				ParentBlockRoot: common.Root{},
-				StateRoot:       common.Root{},
+				Slot:          100,
+				ProposerIndex: 200,
+				ParentRoot:    common.Root{},
+				StateRoot:     common.Root{},
 			},
 			valid: false,
 		},
@@ -208,19 +208,19 @@ func TestBeaconBlockHeaderBase_MarshalSSZToUnmarshalSSZ(t *testing.T) {
 		{
 			name: "normal case",
 			header: &types.BeaconBlockHeaderBase{
-				Slot:            100,
-				ProposerIndex:   200,
-				ParentBlockRoot: common.Root{},
-				StateRoot:       common.Root{},
+				Slot:          100,
+				ProposerIndex: 200,
+				ParentRoot:    common.Root{},
+				StateRoot:     common.Root{},
 			},
 		},
 		{
 			name: "zero values",
 			header: &types.BeaconBlockHeaderBase{
-				Slot:            0,
-				ProposerIndex:   0,
-				ParentBlockRoot: common.Root{},
-				StateRoot:       common.Root{},
+				Slot:          0,
+				ProposerIndex: 0,
+				ParentRoot:    common.Root{},
+				StateRoot:     common.Root{},
 			},
 		},
 	}
@@ -248,19 +248,19 @@ func TestBeaconBlockHeaderBase_HashTreeRoot(t *testing.T) {
 		{
 			name: "HashTreeRoot normal case",
 			header: &types.BeaconBlockHeaderBase{
-				Slot:            100,
-				ProposerIndex:   200,
-				ParentBlockRoot: common.Root{},
-				StateRoot:       common.Root{},
+				Slot:          100,
+				ProposerIndex: 200,
+				ParentRoot:    common.Root{},
+				StateRoot:     common.Root{},
 			},
 		},
 		{
 			name: "HashTreeRoot zero values",
 			header: &types.BeaconBlockHeaderBase{
-				Slot:            0,
-				ProposerIndex:   0,
-				ParentBlockRoot: common.Root{},
-				StateRoot:       common.Root{},
+				Slot:          0,
+				ProposerIndex: 0,
+				ParentRoot:    common.Root{},
+				StateRoot:     common.Root{},
 			},
 		},
 	}
@@ -282,19 +282,19 @@ func TestBeaconBlockHeaderBase_HashTreeRootWith(t *testing.T) {
 		{
 			name: "HashTreeRootWith normal case",
 			header: &types.BeaconBlockHeaderBase{
-				Slot:            100,
-				ProposerIndex:   200,
-				ParentBlockRoot: common.Root{},
-				StateRoot:       common.Root{},
+				Slot:          100,
+				ProposerIndex: 200,
+				ParentRoot:    common.Root{},
+				StateRoot:     common.Root{},
 			},
 		},
 		{
 			name: "HashTreeRootWith zero values",
 			header: &types.BeaconBlockHeaderBase{
-				Slot:            0,
-				ProposerIndex:   0,
-				ParentBlockRoot: common.Root{},
-				StateRoot:       common.Root{},
+				Slot:          0,
+				ProposerIndex: 0,
+				ParentRoot:    common.Root{},
+				StateRoot:     common.Root{},
 			},
 		},
 	}
@@ -317,19 +317,19 @@ func TestBeaconBlockHeaderBase_GetTree(t *testing.T) {
 		{
 			name: "GetTree normal case",
 			header: &types.BeaconBlockHeaderBase{
-				Slot:            100,
-				ProposerIndex:   200,
-				ParentBlockRoot: common.Root{},
-				StateRoot:       common.Root{},
+				Slot:          100,
+				ProposerIndex: 200,
+				ParentRoot:    common.Root{},
+				StateRoot:     common.Root{},
 			},
 		},
 		{
 			name: "GetTree zero values",
 			header: &types.BeaconBlockHeaderBase{
-				Slot:            0,
-				ProposerIndex:   0,
-				ParentBlockRoot: common.Root{},
-				StateRoot:       common.Root{},
+				Slot:          0,
+				ProposerIndex: 0,
+				ParentRoot:    common.Root{},
+				StateRoot:     common.Root{},
 			},
 		},
 	}

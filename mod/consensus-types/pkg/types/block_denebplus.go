@@ -64,10 +64,10 @@ func (b BeaconBlockDenebPlus) GetHeader() *BeaconBlockHeader {
 
 	return &BeaconBlockHeader{
 		BeaconBlockHeaderBase: BeaconBlockHeaderBase{
-			Slot:            b.Slot,
-			ProposerIndex:   b.ProposerIndex,
-			ParentBlockRoot: b.ParentBlockRoot,
-			StateRoot:       b.StateRoot,
+			Slot:          b.Slot,
+			ProposerIndex: b.ProposerIndex,
+			ParentRoot:    b.ParentRoot,
+			StateRoot:     b.StateRoot,
 		},
 		BodyRoot: bodyRoot,
 	}

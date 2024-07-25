@@ -40,7 +40,7 @@ func generateBeaconBlockDenebPlus() *types.BeaconBlockDenebPlus {
 		BeaconBlockHeaderBase: types.BeaconBlockHeaderBase{
 			Slot:          12345,
 			ProposerIndex: 67890,
-			ParentBlockRoot: [32]byte{
+			ParentRoot: [32]byte{
 				1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
 				20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32},
 			StateRoot: [32]byte{
@@ -134,7 +134,7 @@ func TestBeaconBlockDenebPlus_GetHeader(t *testing.T) {
 	require.NotNil(t, header)
 	require.Equal(t, block.Slot, header.Slot)
 	require.Equal(t, block.ProposerIndex, header.ProposerIndex)
-	require.Equal(t, block.ParentBlockRoot, header.ParentBlockRoot)
+	require.Equal(t, block.ParentRoot, header.ParentRoot)
 	require.Equal(t, block.StateRoot, header.StateRoot)
 }
 
@@ -157,10 +157,10 @@ func TestBeaconBlockDenebPlus_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 			name: "Empty BeaconBlockDenebPlus",
 			data: &types.BeaconBlockDenebPlus{
 				BeaconBlockHeaderBase: types.BeaconBlockHeaderBase{
-					Slot:            0,
-					ProposerIndex:   0,
-					ParentBlockRoot: [32]byte{},
-					StateRoot:       [32]byte{},
+					Slot:          0,
+					ProposerIndex: 0,
+					ParentRoot:    [32]byte{},
+					StateRoot:     [32]byte{},
 				},
 				Body: &types.BeaconBlockBodyDenebPlus{
 					BeaconBlockBodyBase: types.BeaconBlockBodyBase{
@@ -182,10 +182,10 @@ func TestBeaconBlockDenebPlus_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 			},
 			expected: &types.BeaconBlockDenebPlus{
 				BeaconBlockHeaderBase: types.BeaconBlockHeaderBase{
-					Slot:            0,
-					ProposerIndex:   0,
-					ParentBlockRoot: [32]byte{},
-					StateRoot:       [32]byte{},
+					Slot:          0,
+					ProposerIndex: 0,
+					ParentRoot:    [32]byte{},
+					StateRoot:     [32]byte{},
 				},
 				Body: &types.BeaconBlockBodyDenebPlus{
 					BeaconBlockBodyBase: types.BeaconBlockBodyBase{

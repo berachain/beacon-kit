@@ -22,7 +22,7 @@ package backend
 
 import (
 	"github.com/berachain/beacon-kit/mod/node-api/backend/utils"
-	types "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon"
+	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -53,13 +53,17 @@ func (b Backend[
 	}
 	// This is required to handle the semantical expectation that
 	// 0 -> latest despite 0 != latest.
-	latestSlot, err := st.GetSlot()
-	if err != nil {
-		return common.Root{}, err
+	if slot == 0 {
+		var latestSlot math.U64
+		latestSlot, err = st.GetSlot()
+		if err != nil {
+			return common.Root{}, err
+		}
+		slot = latestSlot.Unwrap()
 	}
 	// As calculated by the beacon chain. Ideally, this logic
 	// should be abstracted by the beacon chain.
-	index := latestSlot.Unwrap() % b.cs.SlotsPerHistoricalRoot()
+	index := slot % b.cs.SlotsPerHistoricalRoot()
 	return st.StateRootAtIndex(index)
 }
 
@@ -87,11 +91,15 @@ func (b Backend[
 	if err != nil {
 		return common.Root{}, err
 	}
-	latestSlot, err := st.GetSlot()
-	if err != nil {
-		return common.Root{}, err
+	if slot == 0 {
+		var latestSlot math.U64
+		latestSlot, err = st.GetSlot()
+		if err != nil {
+			return common.Root{}, err
+		}
+		slot = latestSlot.Unwrap()
 	}
-	return st.GetBlockRootAtIndex(latestSlot.Unwrap())
+	return st.GetBlockRootAtIndex(slot)
 }
 
 // TODO: Implement this.
@@ -99,8 +107,8 @@ func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) BlockRewardsAtSlot(
 	_ uint64,
-) (*types.BlockRewardsData, error) {
-	return &types.BlockRewardsData{
+) (*beacontypes.BlockRewardsData, error) {
+	return &beacontypes.BlockRewardsData{
 		ProposerIndex:     1,
 		Total:             1,
 		Attestations:      1,
@@ -115,7 +123,7 @@ func (b Backend[
 ]) ValidatorByID(
 	slot uint64,
 	id string,
-) (*types.ValidatorData[ValidatorT], error) {
+) (*beacontypes.ValidatorData[ValidatorT], error) {
 	// TODO: to adhere to the spec, this shouldn't error if the error
 	// is not found, but i can't think of a way to do that without coupling
 	// db impl to the api impl.
@@ -135,8 +143,8 @@ func (b Backend[
 	if err != nil {
 		return nil, err
 	}
-	return &types.ValidatorData[ValidatorT]{
-		ValidatorBalanceData: types.ValidatorBalanceData{
+	return &beacontypes.ValidatorData[ValidatorT]{
+		ValidatorBalanceData: beacontypes.ValidatorBalanceData{
 			Index:   index.Unwrap(),
 			Balance: balance.Unwrap(),
 		},
@@ -151,8 +159,8 @@ func (b Backend[
 	slot uint64,
 	ids []string,
 	_ []string, // TODO: filter by status
-) ([]*types.ValidatorData[ValidatorT], error) {
-	validatorsData := make([]*types.ValidatorData[ValidatorT], 0)
+) ([]*beacontypes.ValidatorData[ValidatorT], error) {
+	validatorsData := make([]*beacontypes.ValidatorData[ValidatorT], 0)
 	for _, id := range ids {
 		// TODO: we can probably optimize this via a getAllValidators
 		// query and then filtering but blocked by the fact that IDs
@@ -171,13 +179,13 @@ func (b Backend[
 ]) ValidatorBalancesByIDs(
 	slot uint64,
 	ids []string,
-) ([]*types.ValidatorBalanceData, error) {
+) ([]*beacontypes.ValidatorBalanceData, error) {
 	var index math.U64
 	st, err := b.StateFromSlot(slot)
 	if err != nil {
 		return nil, err
 	}
-	balances := make([]*types.ValidatorBalanceData, 0)
+	balances := make([]*beacontypes.ValidatorBalanceData, 0)
 	for _, id := range ids {
 		index, err = utils.ValidatorIndexByID(st, id)
 		if err != nil {
@@ -189,10 +197,46 @@ func (b Backend[
 		if err != nil {
 			return nil, err
 		}
-		balances = append(balances, &types.ValidatorBalanceData{
+		balances = append(balances, &beacontypes.ValidatorBalanceData{
 			Index:   index.Unwrap(),
 			Balance: balance.Unwrap(),
 		})
 	}
 	return balances, nil
+}
+
+func (b Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) RandaoAtEpoch(
+	slot, epoch uint64,
+) (common.Bytes32, error) {
+	st, err := b.StateFromSlot(slot)
+	if err != nil {
+		return common.Bytes32{}, err
+	}
+	// Infer the epoch if not provided.
+	if epoch == 0 {
+		var latestSlot math.U64
+		latestSlot, err = st.GetSlot()
+		if err != nil {
+			return common.Bytes32{}, err
+		}
+		latestEpoch := b.cs.SlotToEpoch(latestSlot)
+		epoch = latestEpoch.Unwrap()
+	}
+	index := epoch % b.cs.EpochsPerHistoricalVector()
+	return st.GetRandaoMixAtIndex(index)
+}
+
+func (b Backend[
+	_, _, _, BeaconBlockHeaderT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) BlockHeaderAtSlot(
+	slot uint64,
+) (BeaconBlockHeaderT, error) {
+	var header BeaconBlockHeaderT
+	st, err := b.StateFromSlot(slot)
+	if err != nil {
+		return header, err
+	}
+	return st.GetLatestBlockHeader()
 }

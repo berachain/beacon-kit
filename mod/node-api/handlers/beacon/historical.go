@@ -21,16 +21,17 @@
 package beacon
 
 import (
+	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 )
 
-func (h *Handler[ContextT, _, _]) GetStateRoot(c ContextT) (any, error) {
-	params, err := utils.BindAndValidate[types.StateIDRequest](c)
+func (h *Handler[_, ContextT, _, _]) GetStateRoot(c ContextT) (any, error) {
+	req, err := utils.BindAndValidate[beacontypes.GetStateRootRequest](c)
 	if err != nil {
 		return nil, err
 	}
-	slot, err := utils.SlotFromStateID(params.StateID)
+	slot, err := utils.SlotFromStateID(req.StateID)
 	if err != nil {
 		return nil, err
 	}
@@ -41,21 +42,21 @@ func (h *Handler[ContextT, _, _]) GetStateRoot(c ContextT) (any, error) {
 	if len(stateRoot) == 0 {
 		return nil, types.ErrNotFound
 	}
-	return ValidatorResponse{
+	return beacontypes.ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed
 		Finalized:           false, // stubbed
 		Data: types.Wrap(
-			RootData{Root: stateRoot},
+			beacontypes.RootData{Root: stateRoot},
 		),
 	}, nil
 }
 
-func (h *Handler[ContextT, ForkT, _]) GetStateFork(c ContextT) (any, error) {
-	params, err := utils.BindAndValidate[types.StateIDRequest](c)
+func (h *Handler[_, ContextT, _, _]) GetStateFork(c ContextT) (any, error) {
+	req, err := utils.BindAndValidate[beacontypes.GetStateForkRequest](c)
 	if err != nil {
 		return nil, err
 	}
-	slot, err := utils.SlotFromStateID(params.StateID)
+	slot, err := utils.SlotFromStateID(req.StateID)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +64,7 @@ func (h *Handler[ContextT, ForkT, _]) GetStateFork(c ContextT) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return ValidatorResponse{
+	return beacontypes.ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed
 		Finalized:           false, // stubbed
 		Data:                types.Wrap(fork),
