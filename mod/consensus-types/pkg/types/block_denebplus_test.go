@@ -134,7 +134,7 @@ func TestBeaconBlockDenebPlus_GetHeader(t *testing.T) {
 	header := block.GetHeader()
 	require.NotNil(t, header)
 	require.Equal(t, math.U64(block.Slot), header.Slot)
-	require.Equal(t, block.ProposerIndex, header.ProposerIndex)
+	require.Equal(t, math.U64(block.ProposerIndex), header.ProposerIndex)
 	require.Equal(t, block.ParentBlockRoot, header.ParentBlockRoot)
 	require.Equal(t, block.StateRoot, header.StateRoot)
 }
