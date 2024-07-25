@@ -105,24 +105,19 @@ func (bs *BlobSidecars) SizeSSZ(fixed bool) uint32 {
 
 // MarshalSSZ marshals the BlobSidecars object to SSZ format.
 func (bs *BlobSidecars) MarshalSSZ() ([]byte, error) {
-	size := bs.SizeSSZ(false)
-	buf := make([]byte, size)
-	err := ssz.EncodeToBytes(buf, bs)
-	if err != nil {
-		return nil, err
-	}
-	return buf, nil
-}
-
-// UnmarshalSSZ unmarshals the BlobSidecars object from SSZ format.
-func (bs *BlobSidecars) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, bs)
+	buf := make([]byte, bs.SizeSSZ(false))
+	return bs.MarshalSSZTo(buf)
 }
 
 // MarshalSSZTo marshals the BlobSidecars object to the provided buffer in SSZ
 // format.
 func (bs *BlobSidecars) MarshalSSZTo(buf []byte) ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, bs)
+}
+
+// UnmarshalSSZ unmarshals the BlobSidecars object from SSZ format.
+func (bs *BlobSidecars) UnmarshalSSZ(buf []byte) error {
+	return ssz.DecodeFromBytes(buf, bs)
 }
 
 // HashTreeRoot returns the hash tree root of the BlobSidecars object.
