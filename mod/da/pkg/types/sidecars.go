@@ -13,16 +13,15 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
-
+//
+//nolint:mnd // todo fix.
 package types
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/karalabe/ssz"
 	"github.com/sourcegraph/conc/iter"
@@ -106,29 +105,22 @@ func (bs *BlobSidecars) SizeSSZ(isFixed bool) uint32 {
 
 // MarshalSSZ marshals the BlobSidecars object to SSZ format.
 func (bs *BlobSidecars) MarshalSSZ() ([]byte, error) {
-	fmt.Printf("Debug: Starting MarshalSSZ for BlobSidecars\n")
 	size := bs.SizeSSZ(false)
-	fmt.Printf("Debug: Calculated size: %d\n", size)
 	buf := make([]byte, size)
-	fmt.Printf("Debug: Created buffer of length: %d\n", len(buf))
 	err := ssz.EncodeToBytes(buf, bs)
 	if err != nil {
-		fmt.Printf("Debug: Error in EncodeToBytes: %v\n", err)
 		return nil, err
 	}
-	fmt.Printf("Debug: Successfully encoded BlobSidecars. Buffer length: %d\n", len(buf))
 	return buf, nil
 }
 
 // UnmarshalSSZ unmarshals the BlobSidecars object from SSZ format.
 func (bs *BlobSidecars) UnmarshalSSZ(buf []byte) error {
-	fmt.Println("CALLING UNMARSHAL SSZ IN BLOB SIDECAR PLURALS", bs, "len(buf)", len(buf))
-	err := ssz.DecodeFromBytes(buf, bs)
-	fmt.Printf("Debug: After UnmarshalSSZ, bs.Len() = %d\n", bs.Len())
-	return err
+	return ssz.DecodeFromBytes(buf, bs)
 }
 
-// MarshalSSZTo marshals the BlobSidecars object to the provided buffer in SSZ format.
+// MarshalSSZTo marshals the BlobSidecars object to the provided buffer in SSZ
+// format.
 func (bs *BlobSidecars) MarshalSSZTo(buf []byte) ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, bs)
 }

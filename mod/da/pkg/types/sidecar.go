@@ -133,7 +133,8 @@ func (b *BlobSidecar) UnmarshalSSZ(buf []byte) error {
 	return ssz.DecodeFromBytes(buf, b)
 }
 
-// MarshalSSZTo marshals the BlobSidecar object to the provided buffer in SSZ format.
+// MarshalSSZTo marshals the BlobSidecar object to the provided buffer in SSZ
+// format.
 func (b *BlobSidecar) MarshalSSZTo(buf []byte) ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, b)
 }
