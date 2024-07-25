@@ -23,6 +23,7 @@ package index
 import (
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/collections/indexes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	cmtcrypto "github.com/cometbft/cometbft/crypto"
@@ -39,18 +40,7 @@ const (
 // Validator is an interface that combines the ssz.Marshaler and
 // ssz.Unmarshaler interfaces.
 type Validator interface {
-	// MarshalSSZTo marshals the object into the provided byte slice and returns
-	// it along with any error.
-	MarshalSSZTo([]byte) ([]byte, error)
-	// MarshalSSZ marshals the object into a new byte slice and returns it along
-	// with any error.
-	MarshalSSZ() ([]byte, error)
-	// UnmarshalSSZ unmarshals the object from the provided byte slice and
-	// returns an error if the unmarshaling fails.
-	UnmarshalSSZ([]byte) error
-	// SizeSSZ returns the size in bytes that the object would take when
-	// marshaled.
-	SizeSSZ() int
+	constraints.SSZMarshallable
 	// GetPubkey returns the public key of the validator.
 	GetPubkey() crypto.BLSPubkey
 	// GetEffectiveBalance returns the effective balance of the validator.
