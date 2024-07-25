@@ -59,6 +59,7 @@ func ByteVectorFromBytes(bytes []byte) Vector[Byte] {
 // SizeSSZ returns the size of the list in bytes.
 func (v Vector[T]) SizeSSZ() uint32 {
 	var b T
+	//#nosec: G701 // will never overflow.
 	return b.SizeSSZ() * uint32(len(v))
 }
 

@@ -57,6 +57,7 @@ func (u U16) MarshalSSZ() ([]byte, error) {
 
 // NewFromSSZ creates a new U16 from SSZ format.
 func (U16) NewFromSSZ(buf []byte) (U16, error) {
+	//#nosec: G701 // will never overflow.
 	if uint32(len(buf)) != constants.U16Size {
 		return 0, fmt.Errorf(
 			"invalid buffer length: expected %d, got %d",

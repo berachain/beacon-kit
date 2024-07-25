@@ -58,6 +58,7 @@ func (u *U256) MarshalSSZ() ([]byte, error) {
 
 // NewFromSSZ creates a new U256 from SSZ format.
 func (U256) NewFromSSZ(buf []byte) (*U256, error) {
+	//#nosec: G701 // will never overflow.
 	if uint32(len(buf)) != constants.U256Size {
 		return nil, fmt.Errorf(
 			"invalid buffer length: expected %d, got %d",
