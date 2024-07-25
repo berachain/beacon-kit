@@ -33,7 +33,7 @@ require (
 )
 
 require (
-	cosmossdk.io/x/bank v0.0.0-20240625055312-26913b073414 // indirect
+	cosmossdk.io/x/bank v0.0.0-20240709121431-13b80960d2e8 // indirect
 	cosmossdk.io/x/staking v0.0.0-20240624211517-0b35bcebefbf // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a // indirect
 )
@@ -66,7 +66,7 @@ require (
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/go-kit/kit v0.13.0 // indirect
-	github.com/golang/glog v1.2.1 // indirect
+	github.com/golang/glog v1.2.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/snappy v0.0.5-0.20220116011046-fa5810519dcb // indirect
 	github.com/google/btree v1.1.2 // indirect
@@ -98,22 +98,24 @@ require (
 	gitlab.com/yawning/tuplehash v0.0.0-20230713102510-df83abbf9a02 // indirect
 	go.etcd.io/bbolt v1.4.0-alpha.1 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	google.golang.org/genproto v0.0.0-20240624140628-dc46fd24d27d // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20240624140628-dc46fd24d27d // indirect
+	google.golang.org/genproto v0.0.0-20240709173604-40e1e62336c5 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20240709173604-40e1e62336c5 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
 
 require (
-	cosmossdk.io/core/testing v0.0.0-00010101000000-000000000000 // indirect
-	cosmossdk.io/runtime/v2 v2.0.0-00010101000000-000000000000 // indirect
-	cosmossdk.io/server/v2/appmanager v0.0.0-00010101000000-000000000000 // indirect
-	cosmossdk.io/server/v2/stf v0.0.0-00010101000000-000000000000 // indirect
-	cosmossdk.io/store/v2 v2.0.0-00010101000000-000000000000 // indirect
+	cosmossdk.io/core/testing v0.0.0-20240620161400-a6407f411e80 // indirect
+	cosmossdk.io/runtime/v2 v2.0.0-20240709121431-13b80960d2e8 // indirect
+	cosmossdk.io/server/v2/appmanager v0.0.0-20240624191328-722ac39873e4 // indirect
+	cosmossdk.io/server/v2/stf v0.0.0-20240724150750-0fda53f265de // indirect
+	cosmossdk.io/store/v2 v2.0.0-20240625055312-26913b073414 // indirect
+	cosmossdk.io/x/accounts v0.0.0-20240709121431-13b80960d2e8 // indirect
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240703145037-b5612ab256db // indirect
 	github.com/cosmos/iavl v1.2.0 // indirect
 	github.com/emicklei/dot v1.6.2 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect
+	github.com/minio/highwayhash v1.0.3 // indirect
 	github.com/prysmaticlabs/gohashtree v0.0.4-beta // indirect
 	github.com/tidwall/btree v1.7.0 // indirect
 )
@@ -135,7 +137,7 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
-	github.com/holiman/uint256 v1.2.5-0.20240612125212-75a520988c94 // indirect
+	github.com/holiman/uint256 v1.3.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/oasisprotocol/curve25519-voi v0.0.0-20230904125328-1f23a7beb09a // indirect
@@ -147,13 +149,13 @@ require (
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/supranational/blst v0.3.12 // indirect
 	golang.org/x/crypto v0.25.0 // indirect
-	golang.org/x/exp v0.0.0-20240613232115-7f521ea00fb8 // indirect
+	golang.org/x/exp v0.0.0-20240707233637-46b078467d37 // indirect
 	golang.org/x/net v0.27.0 // indirect
 	golang.org/x/sync v0.7.0
 	golang.org/x/sys v0.22.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240709173604-40e1e62336c5 // indirect
-	google.golang.org/grpc v1.64.1 // indirect
+	google.golang.org/grpc v1.65.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
