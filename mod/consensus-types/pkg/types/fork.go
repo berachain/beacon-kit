@@ -53,6 +53,10 @@ func (f *Fork) New(
 	}
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                     SSZ                                    */
+/* -------------------------------------------------------------------------- */
+
 // SizeSSZ returns the SSZ encoded size of the Fork object in bytes.
 func (f *Fork) SizeSSZ() uint32 {
 	return 16 // 4 bytes for PreviousVersion + 4 bytes for CurrentVersion + 8 bytes for Epoch
@@ -85,6 +89,10 @@ func (f *Fork) UnmarshalSSZ(buf []byte) error {
 func (f *Fork) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashSequential(f), nil
 }
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
 
 // HashTreeRootWith ssz hashes the Fork object with a hasher
 func (f *Fork) HashTreeRootWith(hh fastssz.HashWalker) (err error) {
