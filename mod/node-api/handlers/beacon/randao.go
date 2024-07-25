@@ -18,33 +18,38 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package server
+package beacon
 
 import (
-	"github.com/berachain/beacon-kit/mod/node-api/handlers"
-	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon"
-	"github.com/berachain/beacon-kit/mod/node-api/handlers/builder"
-	"github.com/berachain/beacon-kit/mod/node-api/handlers/config"
-	"github.com/berachain/beacon-kit/mod/node-api/handlers/debug"
-	"github.com/berachain/beacon-kit/mod/node-api/handlers/events"
-	"github.com/berachain/beacon-kit/mod/node-api/handlers/node"
-	"github.com/berachain/beacon-kit/mod/node-api/types/context"
+	"strconv"
+
+	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 )
 
-// DefaultHandlers returns the default handlers for the node API.
-func DefaultHandlers[
-	ContextT context.Context,
-	ForkT any,
-	ValidatorT any,
-](
-	backend Backend[ForkT, ValidatorT],
-) []handlers.Handlers[ContextT] {
-	return []handlers.Handlers[ContextT]{
-		beacon.NewHandler[ContextT](backend),
-		builder.NewHandler[ContextT](),
-		config.NewHandler[ContextT](),
-		debug.NewHandler[ContextT](),
-		events.NewHandler[ContextT](),
-		node.NewHandler[ContextT](),
+func (h *Handler[_, ContextT, _, _]) GetRandao(c ContextT) (any, error) {
+	req, err := utils.BindAndValidate[beacontypes.GetRandaoRequest](c)
+	if err != nil {
+		return nil, err
 	}
+	slot, err := utils.SlotFromStateID(req.StateID)
+	if err != nil {
+		return nil, err
+	}
+	epoch := uint64(0)
+	if req.Epoch != "" {
+		epoch, err = strconv.ParseUint(req.Epoch, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+	}
+	randao, err := h.backend.RandaoAtEpoch(slot, epoch)
+	if err != nil {
+		return nil, err
+	}
+	return beacontypes.ValidatorResponse{
+		ExecutionOptimistic: false, // stubbed
+		Finalized:           false, // stubbed
+		Data:                randao,
+	}, nil
 }

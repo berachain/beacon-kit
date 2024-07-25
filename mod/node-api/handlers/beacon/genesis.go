@@ -21,12 +21,12 @@
 package beacon
 
 import (
+	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
-	"github.com/berachain/beacon-kit/mod/node-api/types"
-	beacontypes "github.com/berachain/beacon-kit/mod/node-api/types/beacon"
 )
 
-func (h *Handler[ContextT, _, _]) GetGenesis(_ ContextT) (any, error) {
+func (h *Handler[_, ContextT, _, _]) GetGenesis(_ ContextT) (any, error) {
 	genesisRoot, err := h.backend.GenesisValidatorsRoot(utils.Genesis)
 	if err != nil {
 		return nil, err
