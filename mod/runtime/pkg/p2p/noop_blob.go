@@ -30,13 +30,19 @@ import (
 // NoopBlobHandler is a gossip handler that simply returns the
 // ssz marshalled data as a "reference" to the object it receives.
 type NoopBlobHandler[
-	BlobT constraints.SSZMarshallableDynamic, _ encoding.ABCIRequest,
+	BlobT interface {
+		constraints.SSZMarshallableDynamic
+		Len() int
+	}, _ encoding.ABCIRequest,
 ] struct {
 	NoopGossipHandler[BlobT, []byte]
 }
 
 func NewNoopBlobHandler[
-	BlobT constraints.SSZMarshallableDynamic, ReqT encoding.ABCIRequest,
+	BlobT interface {
+		constraints.SSZMarshallableDynamic
+		Len() int
+	}, ReqT encoding.ABCIRequest,
 ]() NoopBlobHandler[BlobT, ReqT] {
 	return NoopBlobHandler[BlobT, ReqT]{
 		NoopGossipHandler: NoopGossipHandler[BlobT, []byte]{},

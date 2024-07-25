@@ -21,6 +21,7 @@
 package blob
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
@@ -102,19 +103,30 @@ func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) ProcessSidecars(
 	sidecars *types.BlobSidecars,
 ) error {
 	startTime := time.Now()
-	defer sp.metrics.measureProcessSidecarsDuration(
-		startTime, math.U64(sidecars.Len()),
-	)
+	fmt.Printf("Starting ProcessSidecars, sidecars_length: %d\n", sidecars.Len())
+	defer func() {
+		duration := time.Since(startTime)
+		fmt.Printf("Finished ProcessSidecars, duration: %v\n", duration)
+		sp.metrics.measureProcessSidecarsDuration(startTime, math.U64(sidecars.Len()))
+	}()
 
 	// Abort if there are no blobs to store.
 	if sidecars.Len() == 0 {
+		fmt.Println("No blobs to store, aborting ProcessSidecars")
 		return nil
 	}
 
 	// If we have reached this point, we can safely assume that the blobs are
 	// valid and can be persisted, as well as that index 0 is filled.
-	return avs.Persist(
+	fmt.Printf("Persisting sidecars, slot: %d\n", sidecars.Sidecars[0].BeaconBlockHeader.Slot)
+	err := avs.Persist(
 		math.U64(sidecars.Sidecars[0].BeaconBlockHeader.Slot),
 		sidecars,
 	)
+	if err != nil {
+		fmt.Printf("Failed to persist sidecars, error: %v\n", err)
+	} else {
+		fmt.Println("Successfully persisted sidecars")
+	}
+	return err
 }

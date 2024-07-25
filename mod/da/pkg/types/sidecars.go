@@ -91,7 +91,7 @@ func (bs *BlobSidecars) Len() int {
 }
 
 // DefineSSZ defines the SSZ encoding for the BlobSidecars object.
-func (bs BlobSidecars) DefineSSZ(codec *ssz.Codec) {
+func (bs *BlobSidecars) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineSliceOfStaticObjectsOffset(codec, &bs.Sidecars, 6)
 	ssz.DefineSliceOfStaticObjectsContent(codec, &bs.Sidecars, 6)
 }
@@ -123,8 +123,9 @@ func (bs *BlobSidecars) MarshalSSZ() ([]byte, error) {
 // UnmarshalSSZ unmarshals the BlobSidecars object from SSZ format.
 func (bs *BlobSidecars) UnmarshalSSZ(buf []byte) error {
 	fmt.Println("CALLING UNMARSHAL SSZ IN BLOB SIDECAR PLURALS", bs, "len(buf)", len(buf))
-	bs = &BlobSidecars{}
-	return ssz.DecodeFromBytes(buf, bs)
+	err := ssz.DecodeFromBytes(buf, bs)
+	fmt.Printf("Debug: After UnmarshalSSZ, bs.Len() = %d\n", bs.Len())
+	return err
 }
 
 // MarshalSSZTo marshals the BlobSidecars object to the provided buffer in SSZ format.

@@ -77,15 +77,24 @@ func (b *BlobSidecar) HasValidInclusionProof(
 	kzgOffset uint64,
 ) bool {
 	// Calculate the hash tree root of the KZG commitment.
+	fmt.Printf("Debug: Calculating hash tree root for KZG commitment\n")
 	leaf, err := b.KzgCommitment.HashTreeRoot()
 	if err != nil {
+		fmt.Printf("Debug: Error calculating hash tree root: %v\n", err)
 		return false
 	}
+	fmt.Printf("Debug: Hash tree root calculated: %x\n", leaf)
 
 	gIndex := kzgOffset + b.Index
+	fmt.Printf("Debug: Calculated gIndex: %d (kzgOffset: %d, Index: %d)\n", gIndex, kzgOffset, b.Index)
 
 	// Verify the inclusion proof.
-	return merkle.IsValidMerkleBranch(
+	fmt.Printf("Debug: Verifying inclusion proof\n")
+	fmt.Printf("Debug: Leaf: %x\n", leaf)
+	fmt.Printf("Debug: Inclusion proof length: %d\n", len(b.InclusionProof))
+	fmt.Printf("Debug: Body root: %x\n", b.BeaconBlockHeader.BodyRoot)
+
+	result := merkle.IsValidMerkleBranch(
 		leaf,
 		b.InclusionProof,
 		//#nosec:G701 // safe.
@@ -95,6 +104,8 @@ func (b *BlobSidecar) HasValidInclusionProof(
 		gIndex,
 		b.BeaconBlockHeader.BodyRoot,
 	)
+	fmt.Printf("Debug: Inclusion proof verification result: %v\n", result)
+	return result
 }
 
 // DefineSSZ defines the SSZ encoding for the BlobSidecar object.
