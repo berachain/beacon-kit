@@ -134,14 +134,14 @@ func (a *AttestationData) HashTreeRootWith(hh fastssz.HashWalker) error {
 	return nil
 }
 
-/* -------------------------------------------------------------------------- */
-/*                             Getters and Setters                            */
-/* -------------------------------------------------------------------------- */
-
 // GetTree ssz hashes the AttestationData object.
 func (a *AttestationData) GetTree() (*fastssz.Node, error) {
 	return fastssz.ProofTree(a)
 }
+
+/* -------------------------------------------------------------------------- */
+/*                             Getters and Setters                            */
+/* -------------------------------------------------------------------------- */
 
 // GetSlot returns the slot of the attestation data.
 func (a *AttestationData) GetSlot() math.U64 {
