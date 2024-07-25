@@ -22,6 +22,8 @@ package block
 
 import "github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 
-type BeaconBlock interface {
+type BeaconBlock[T any] interface {
 	constraints.SSZMarshallable
+	NewFromSSZ(bz []byte, version uint32) (T, error)
+	Version() uint32
 }

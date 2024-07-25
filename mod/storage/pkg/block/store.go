@@ -27,10 +27,9 @@ import (
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 )
 
-var _ pruner.Prunable = (*KVStore[BeaconBlock])(nil)
+// var _ pruner.Prunable = (*KVStore[BeaconBlock])(nil)
 
 const KeyBlockPrefix = "block"
 
@@ -45,28 +44,31 @@ func (p *KVStoreProvider) OpenKVStore(context.Context) store.KVStore {
 
 // KVStore is a simple KV store based implementation that stores
 // beacon blocks.
-type KVStore[BeaconBlockT BeaconBlock] struct {
+type KVStore[BeaconBlockT BeaconBlock[BeaconBlockT]] struct {
 	store sdkcollections.Map[uint64, BeaconBlockT]
 	mu    sync.RWMutex
+	cdc   *encoding.SSZInterfaceCodec[BeaconBlockT]
 
 	earliestSlot uint64
 }
 
 // NewStore creates a new block store.
-func NewStore[BeaconBlockT BeaconBlock](
+func NewStore[BeaconBlockT BeaconBlock[BeaconBlockT]](
 	kvsp store.KVStoreService,
 ) *KVStore[BeaconBlockT] {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kvsp)
+	cdc := &encoding.SSZInterfaceCodec[BeaconBlockT]{}
 	return &KVStore[BeaconBlockT]{
 		store: sdkcollections.NewMap(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{uint8(0)}),
 			KeyBlockPrefix,
 			sdkcollections.Uint64Key,
-			encoding.SSZValueCodec[BeaconBlockT]{},
+			cdc,
 		),
 		mu:           sync.RWMutex{},
 		earliestSlot: 0,
+		cdc:          cdc,
 	}
 }
 
@@ -81,6 +83,7 @@ func (kv *KVStore[BeaconBlockT]) Get(slot uint64) (BeaconBlockT, error) {
 func (kv *KVStore[BeaconBlockT]) Set(slot uint64, blk BeaconBlockT) error {
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
+	kv.cdc.SetActiveForkVersion(blk.Version())
 	return kv.store.Set(context.TODO(), slot, blk)
 }
 
