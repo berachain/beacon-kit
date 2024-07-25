@@ -32,7 +32,7 @@ import (
 )
 
 var (
-	_ runtime.AppI[transaction.Tx]  = (*BeaconApp[transaction.Tx])(nil)
+	// _ runtime.AppI[transaction.Tx]  = (*BeaconApp[transaction.Tx])(nil)
 	_ serverv2.AppI[transaction.Tx] = (*BeaconApp[transaction.Tx])(nil)
 )
 

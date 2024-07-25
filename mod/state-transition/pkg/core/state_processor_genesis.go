@@ -54,8 +54,6 @@ func (sp *StateProcessor[
 		math.U64(constants.GenesisEpoch),
 	)
 
-	st.Init()
-
 	if err := st.SetSlot(0); err != nil {
 		return nil, err
 	}

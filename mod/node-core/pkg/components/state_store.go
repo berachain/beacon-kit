@@ -66,7 +66,9 @@ type StateStoreInput struct {
 func ProvideStateStore(
 	in StateStoreInput,
 ) *StateStore {
-	return beaconstore.NewStore(in.BlockStore)
+	store := beaconstore.NewStore(in.BlockStore)
+	store.Init()
+	return store
 }
 
 // ProvideStateManager will initialize a new StateManager with the given

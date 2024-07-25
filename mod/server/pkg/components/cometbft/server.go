@@ -52,7 +52,7 @@ func NewServer[
 	txCodec transaction.Codec[T],
 ) *Server[NodeT, T, ValidatorUpdateT] {
 	return &Server[NodeT, T, ValidatorUpdateT]{
-		CometBFTServer: nil,
+		CometBFTServer: sdkcomet.New[NodeT, T](txCodec, sdkcomet.DefaultServerOptions[T]()),
 		txCodec:        txCodec,
 	}
 }
