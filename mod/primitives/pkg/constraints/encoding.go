@@ -51,8 +51,7 @@ type SSZMarshalerUnmarshaler interface {
 // SSZMarshalerUnmarshalerRootable is an interface that combines
 // SSZMarshaler, SSZUnmarshaler, and SSZRootable.
 type SSZMarshalerUnmarshalerRootable interface {
-	SSZMarshaler
-	SSZUnmarshaler
+	SSZMarshalerUnmarshaler
 	SSZRootable
 }
 
