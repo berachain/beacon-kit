@@ -119,8 +119,3 @@ func (bs *BlobSidecars) MarshalSSZTo(buf []byte) ([]byte, error) {
 func (bs *BlobSidecars) UnmarshalSSZ(buf []byte) error {
 	return ssz.DecodeFromBytes(buf, bs)
 }
-
-// HashTreeRoot returns the hash tree root of the BlobSidecars object.
-func (bs *BlobSidecars) HashTreeRoot() ([32]byte, error) {
-	return ssz.HashSequential(bs), nil
-}
