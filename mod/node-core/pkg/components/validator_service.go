@@ -58,7 +58,6 @@ func ProvideValidatorService(
 		in.Logger.Error("failed to subscribe to slot feed", "err", err)
 		return nil, err
 	}
-	// in.Logger.AddKeyValColor("service", "validator", "magenta")
 	// Build the builder service.
 	return validator.NewService[
 		*AttestationData,

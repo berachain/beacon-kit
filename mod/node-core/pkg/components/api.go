@@ -100,7 +100,7 @@ type NodeAPIServerInput struct {
 }
 
 func ProvideNodeAPIServer(in NodeAPIServerInput) *NodeAPIServer {
-	in.Logger.AddKeyValColor("service", "node-api-server", "blue")
+	in.Logger.AddKeyValColor("service", "node-api-server", log.BrightBackgroundBlue)
 	return server.New[
 		NodeAPIContext,
 		*NodeAPIEngine,

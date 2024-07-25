@@ -90,13 +90,13 @@ func (f *Formatter) Format(
 }
 
 // AddKeyColor adds a key and color to the keyColors map
-func (f *Formatter) AddKeyColor(key string, color string) {
-	f.keyColors[key] = ToColor(color)
+func (f *Formatter) AddKeyColor(key string, color Color) {
+	f.keyColors[key] = color
 }
 
 // AddKeyValColor adds a key and color to the keyValColors map
-func (f *Formatter) AddKeyValColor(key string, val string, color string) {
-	f.keyValColors[key+val] = ToColor(color)
+func (f *Formatter) AddKeyValColor(key string, val string, color Color) {
+	f.keyValColors[key+val] = color
 }
 
 // printWithColor prints the log message with color.

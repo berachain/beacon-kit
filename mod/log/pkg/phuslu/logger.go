@@ -138,13 +138,13 @@ func (l *Logger[ImplT]) WithConfig(cfg Config) *Logger[ImplT] {
 }
 
 // AddKeyColor applies a color to log entries based on their keys.
-func (l *Logger[ImplT]) AddKeyColor(key any, color string) {
+func (l *Logger[ImplT]) AddKeyColor(key any, color Color) {
 	l.formatter.AddKeyColor(key.(string), color)
 }
 
 // AddKeyValColor applies specific colors to log entries based on their keys and
 // values.
-func (l *Logger[ImplT]) AddKeyValColor(key any, val any, color string) {
+func (l *Logger[ImplT]) AddKeyValColor(key any, val any, color Color) {
 	l.formatter.AddKeyValColor(key.(string), val.(string), color)
 }
 

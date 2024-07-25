@@ -55,9 +55,9 @@ type ConfigurableLogger[
 type ColorLogger[KeyValT any] interface {
 	Logger[KeyValT]
 	// AddKeyColor sets the log color for a key.
-	AddKeyColor(key any, color string)
+	AddKeyColor(key any, color Color)
 	// AddKeyValColor sets the log color for a key and its value.
-	AddKeyValColor(key any, val any, color string)
+	AddKeyValColor(key any, val any, color Color)
 }
 
 // AdvancedLogger extends the color logger with the ability to wrap the logger
@@ -72,3 +72,36 @@ type AdvancedLogger[KeyValT, LoggerT any] interface {
 	// Advanced users can type cast the returned value to the actual logger.
 	Impl() any
 }
+
+// Color is a string that holds the hex color code for the color.
+type Color string
+
+// Raw returns the raw color code.
+func (c Color) Raw() string {
+	return string(c)
+}
+
+const (
+	// colours.
+	Reset   Color = "\x1b[0m"
+	Black   Color = "\x1b[30m"
+	Red     Color = "\x1b[31m"
+	Green   Color = "\x1b[32m"
+	Yellow  Color = "\x1b[33m"
+	Blue    Color = "\x1b[34m"
+	Magenta Color = "\x1b[35m"
+	Cyan    Color = "\x1b[36m"
+	White   Color = "\x1b[37m"
+
+	Gray          Color = "\x1b[90m"
+	BrightRed     Color = "\x1b[91m"
+	BrightGreen   Color = "\x1b[92m"
+	BrightYellow  Color = "\x1b[93m"
+	BrightBlue    Color = "\x1b[94m"
+	BrightMagenta Color = "\x1b[95m"
+	BrightCyan    Color = "\x1b[96m"
+	BrightWhite   Color = "\x1b[97m"
+
+	BrightBackgroundWhite Color = "\x1b[107m"
+	BrightBackgroundBlue  Color = "\x1b[104m"
+)

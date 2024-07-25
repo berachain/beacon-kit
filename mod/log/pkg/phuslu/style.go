@@ -20,83 +20,23 @@
 
 package phuslu
 
-// Color is a string that holds the hex color code for the color.
-type Color string
+import "github.com/berachain/beacon-kit/mod/log"
 
-// Raw returns the raw color code.
-func (c Color) Raw() string {
-	return string(c)
-}
-
-// String returns the human-readable string representation of the color.
-func (c Color) String() string {
-	switch c {
-	case reset:
-		return "reset"
-	case black:
-		return "black"
-	case red:
-		return "red"
-	case green:
-		return "green"
-	case yellow:
-		return "yellow"
-	case blue:
-		return "blue"
-	case magenta:
-		return "magenta"
-	case cyan:
-		return "cyan"
-	case white:
-		return "white"
-	case gray:
-		return "gray"
-	case lightWhite:
-		return "lightWhite"
-	}
-	return "unknown"
-}
-
-// ToColor converts a human-readable string to a Color.
-func ToColor(color string) Color {
-	switch color {
-	case "black":
-		return black
-	case "red":
-		return red
-	case "green":
-		return green
-	case "yellow":
-		return yellow
-	case "blue":
-		return blue
-	case "magenta":
-		return magenta
-	case "cyan":
-		return cyan
-	case "white":
-		return white
-	case "gray":
-		return gray
-	case "lightWhite":
-		return lightWhite
-	}
-	return reset
-}
+type Color = log.Color
 
 const (
-	// colours.
-	reset      Color = "\x1b[0m"
-	black      Color = "\x1b[30m"
-	red        Color = "\x1b[31m"
-	green      Color = "\x1b[32m"
-	yellow     Color = "\x1b[33m"
-	blue       Color = "\x1b[34m"
-	magenta    Color = "\x1b[35m"
-	cyan       Color = "\x1b[36m"
-	white      Color = "\x1b[37m"
-	gray       Color = "\x1b[90m"
-	lightWhite Color = "\x1b[97m"
+	reset                 = log.Reset
+	black                 = log.Black
+	red                   = log.Red
+	green                 = log.Green
+	yellow                = log.Yellow
+	blue                  = log.Blue
+	magenta               = log.Magenta
+	cyan                  = log.Cyan
+	white                 = log.White
+	gray                  = log.Gray
+	lightWhite            = log.BrightWhite
+	brightBackgroundWhite = log.BrightBackgroundWhite
 
 	// log levels.
 	traceColor   = magenta
