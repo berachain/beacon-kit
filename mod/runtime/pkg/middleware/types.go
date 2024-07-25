@@ -48,7 +48,7 @@ type TelemetrySink interface {
 // state and processing blocks.
 type BlockchainService[
 	BeaconBlockT any,
-	BlobSidecarsT constraints.SSZMarshallable,
+	BlobSidecarsT constraints.SSZMarshallableDynamic,
 	DepositT any,
 	GenesisT Genesis,
 ] interface {

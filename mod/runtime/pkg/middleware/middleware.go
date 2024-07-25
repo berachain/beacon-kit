@@ -40,7 +40,7 @@ import (
 type ABCIMiddleware[
 	AvailabilityStoreT any,
 	BeaconBlockT BeaconBlock[BeaconBlockT],
-	BlobSidecarsT constraints.SSZMarshallable,
+	BlobSidecarsT constraints.SSZMarshallableDynamic,
 	DepositT,
 	ExecutionPayloadT any,
 	GenesisT Genesis,
@@ -101,7 +101,7 @@ type ABCIMiddleware[
 func NewABCIMiddleware[
 	AvailabilityStoreT any,
 	BeaconBlockT BeaconBlock[BeaconBlockT],
-	BlobSidecarsT constraints.SSZMarshallable,
+	BlobSidecarsT constraints.SSZMarshallableDynamic,
 	DepositT,
 	ExecutionPayloadT any,
 	GenesisT Genesis,

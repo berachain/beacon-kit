@@ -20,9 +20,30 @@
 
 package constraints
 
-// SSZMarshallable is an interface that combines the ssz.Marshaler and
-// ssz.Unmarshaler interfaces.
-type SSZMarshallable interface {
+type SSZMarshaler interface {
+	MarshalSSZ() ([]byte, error)
+}
+
+type SSZUnmarshaler interface {
+	UnmarshalSSZ([]byte) error
+}
+
+type SSZRootable interface {
+	HashTreeRoot() ([32]byte, error)
+}
+
+type SSZMarshalerUnmarshaler interface {
+	SSZMarshaler
+	SSZUnmarshaler
+}
+
+type SSZMarshalerUnmarshalerRootable interface {
+	SSZMarshaler
+	SSZUnmarshaler
+	SSZRootable
+}
+
+type BaseSSZObject interface {
 	// MarshalSSZTo marshals the object into the provided byte slice and returns
 	// it along with any error.
 	MarshalSSZTo([]byte) ([]byte, error)
@@ -32,9 +53,37 @@ type SSZMarshallable interface {
 	// UnmarshalSSZ unmarshals the object from the provided byte slice and
 	// returns an error if the unmarshaling fails.
 	UnmarshalSSZ([]byte) error
+}
+
+// SSZMarshallable is an interface that combines the ssz.Marshaler and
+// ssz.Unmarshaler interfaces.
+type SSZMarshallable interface {
+	BaseSSZObject
 	// SizeSSZ returns the size in bytes that the object would take when
 	// marshaled.
 	SizeSSZ() int
+	// HashTreeRoot returns the hash tree root of the object.
+	HashTreeRoot() ([32]byte, error)
+}
+
+// SSZMarshallable is an interface that combines the ssz.Marshaler and
+// ssz.Unmarshaler interfaces.
+type SSZMarshallableStatic interface {
+	BaseSSZObject
+	// SizeSSZ returns the size in bytes that the object would take when
+	// marshaled.
+	SizeSSZ() uint32
+	// HashTreeRoot returns the hash tree root of the object.
+	HashTreeRoot() ([32]byte, error)
+}
+
+// SSZMarshallable is an interface that combines the ssz.Marshaler and
+// ssz.Unmarshaler interfaces.
+type SSZMarshallableDynamic interface {
+	BaseSSZObject
+	// SizeSSZ returns the size in bytes that the object would take when
+	// marshaled.
+	SizeSSZ(bool) uint32
 	// HashTreeRoot returns the hash tree root of the object.
 	HashTreeRoot() ([32]byte, error)
 }

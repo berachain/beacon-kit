@@ -31,7 +31,7 @@ import (
 // NoopGossipHandler is a gossip handler that simply returns the
 // ssz marshalled data as a "reference" to the object it receives.
 type NoopGossipHandler[
-	DataT constraints.SSZMarshallable, BytesT ~[]byte,
+	DataT constraints.SSZMarshalerUnmarshaler, BytesT ~[]byte,
 ] struct{}
 
 // Publish creates a new NoopGossipHandler.
