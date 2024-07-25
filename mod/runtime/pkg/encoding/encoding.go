@@ -111,7 +111,8 @@ func UnmarshalBlobSidecarsFromABCIRequest[
 ) (BlobSidecarsT, error) {
 	var sidecars BlobSidecarsT
 
-	sidecars, ok := reflect.New(reflect.TypeOf(sidecars).Elem()).Interface().(BlobSidecarsT)
+	sidecars, ok := reflect.New(reflect.TypeOf(sidecars).Elem()).
+		Interface().(BlobSidecarsT)
 	if !ok {
 		return sidecars, ErrInvalidType
 	}
