@@ -97,14 +97,14 @@ func (a *AttestationData) MarshalSSZ() ([]byte, error) {
 	return buf, ssz.EncodeToBytes(buf, a)
 }
 
-/* -------------------------------------------------------------------------- */
-/*                                   FastSSZ                                  */
-/* -------------------------------------------------------------------------- */
-
 // UnmarshalSSZ unmarshals the AttestationData object from SSZ format.
 func (a *AttestationData) UnmarshalSSZ(buf []byte) error {
 	return ssz.DecodeFromBytes(buf, a)
 }
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
 
 // MarshalSSZTo marshals the AttestationData object into a pre-allocated byte
 // slice.
