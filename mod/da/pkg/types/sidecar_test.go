@@ -105,9 +105,7 @@ func TestHasValidInclusionProof(t *testing.T) {
 			name: "Empty inclusion proof",
 			sidecar: types.BuildBlobSidecar(
 				math.U64(0),
-				&ctypes.BeaconBlockHeader{
-					BeaconBlockHeaderBase: ctypes.BeaconBlockHeaderBase{},
-				},
+				&ctypes.BeaconBlockHeader{},
 				&eip4844.Blob{},
 				eip4844.KZGCommitment{},
 				eip4844.KZGProof{},

@@ -99,18 +99,12 @@ func (f *Fork) HashTreeRoot() ([32]byte, error) {
 
 // MarshalSSZTo ssz marshals the Fork object to a target array.
 func (f *Fork) MarshalSSZTo(buf []byte) ([]byte, error) {
-	dst := buf
+	bz, err := f.MarshalSSZ()
+	if err != nil {
+		return nil, err
+	}
 
-	// Field (0) 'PreviousVersion'
-	dst = append(dst, f.PreviousVersion[:]...)
-
-	// Field (1) 'CurrentVersion'
-	dst = append(dst, f.CurrentVersion[:]...)
-
-	// Field (2) 'Epoch'
-	dst = fastssz.MarshalUint64(dst, uint64(f.Epoch))
-
-	return dst, nil
+	return append(buf, bz...), nil
 }
 
 // HashTreeRootWith ssz hashes the Fork object with a hasher.
