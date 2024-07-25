@@ -135,7 +135,9 @@ func (b *BeaconBlockHeader) MarshalSSZTo(buf []byte) ([]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the BeaconBlockHeader object with a hasher
-func (b *BeaconBlockHeader) HashTreeRootWith(hh fastssz.HashWalker) (err error) {
+func (b *BeaconBlockHeader) HashTreeRootWith(
+	hh fastssz.HashWalker,
+) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Slot'
