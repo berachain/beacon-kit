@@ -113,8 +113,6 @@ type BeaconStateForValidator struct {
 // NewBeaconStateForValidator creates a new BeaconState SSZ summary with only
 // the required raw values to prove a validator exists in this state.
 //
-// state.
-//
 //nolint:funlen,gocognit // all lines are required to pack the entire beacon
 func NewBeaconStateForValidator[
 	BeaconBlockHeaderT constraints.SSZRootable,
