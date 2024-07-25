@@ -100,7 +100,7 @@ func (bs *BlobSidecars) SizeSSZ(isFixed bool) uint32 {
 	if isFixed {
 		return 4
 	}
-	return 4 + uint32(len(bs.Sidecars))*(*BlobSidecar)(nil).SizeSSZ()
+	return 4 + ssz.SizeSliceOfStaticObjects(bs.Sidecars)
 }
 
 // MarshalSSZ marshals the BlobSidecars object to SSZ format.
