@@ -77,7 +77,7 @@ func (h *B48) UnmarshalJSON(input []byte) error {
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of its SSZ encoding in bytes.
-func (h B48) SizeSSZ() int {
+func (h B48) SizeSSZ() uint32 {
 	return B48Size
 }
 

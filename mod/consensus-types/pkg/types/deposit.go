@@ -23,9 +23,21 @@ package types
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	fastssz "github.com/ferranbt/fastssz"
+	"github.com/karalabe/ssz"
+)
+
+// DepositSize is the size of the SSZ encoding of a Deposit.
+const DepositSize = 192 // 48 + 32 + 8 + 96 + 8
+
+// Compile-time assertions to ensure Deposit implements necessary interfaces.
+var (
+	_ ssz.StaticObject                    = (*Deposit)(nil)
+	_ constraints.SSZMarshallableRootable = (*Deposit)(nil)
 )
 
 // Deposit into the consensus layer from the deposit contract in the execution
@@ -76,18 +88,6 @@ func (d *Deposit) New(
 	)
 }
 
-// Deposits is a typealias for a list of Deposits.
-type Deposits []*Deposit
-
-// HashTreeRoot returns the hash tree root of the Withdrawals list.
-func (d Deposits) HashTreeRoot() (common.Root, error) {
-	// TODO: read max deposits from the chain spec.
-	merkleizer := merkle.NewMerkleizer[[32]byte, *Deposit]()
-	return merkleizer.MerkleizeListComposite(
-		d, constants.MaxDepositsPerBlock,
-	)
-}
-
 // VerifySignature verifies the deposit data and signature.
 func (d *Deposit) VerifySignature(
 	forkData *ForkData,
@@ -105,6 +105,86 @@ func (d *Deposit) VerifySignature(
 		domainType, signatureVerificationFn,
 	)
 }
+
+/* -------------------------------------------------------------------------- */
+/*                                     SSZ                                    */
+/* -------------------------------------------------------------------------- */
+
+// DefineSSZ defines the SSZ encoding for the Deposit object.
+func (d *Deposit) DefineSSZ(c *ssz.Codec) {
+	ssz.DefineStaticBytes(c, &d.Pubkey)
+	ssz.DefineStaticBytes(c, &d.Credentials)
+	ssz.DefineUint64(c, &d.Amount)
+	ssz.DefineStaticBytes(c, &d.Signature)
+	ssz.DefineUint64(c, &d.Index)
+}
+
+// MarshalSSZ marshals the Deposit object to SSZ format.
+func (d *Deposit) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, d.SizeSSZ())
+	return buf, ssz.EncodeToBytes(buf, d)
+}
+
+// UnmarshalSSZ unmarshals the Deposit object from SSZ format.
+func (d *Deposit) UnmarshalSSZ(buf []byte) error {
+	return ssz.DecodeFromBytes(buf, d)
+}
+
+// SizeSSZ returns the SSZ encoded size of the Deposit object.
+func (d *Deposit) SizeSSZ() uint32 {
+	return DepositSize
+}
+
+// HashTreeRoot computes the Merkleization of the Deposit object.
+func (d *Deposit) HashTreeRoot() ([32]byte, error) {
+	return ssz.HashSequential(d), nil
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
+
+// MarshalSSZTo marshals the Deposit object into a pre-allocated byte slice.
+func (d *Deposit) MarshalSSZTo(dst []byte) ([]byte, error) {
+	bz, err := d.MarshalSSZ()
+	if err != nil {
+		return nil, err
+	}
+	dst = append(dst, bz...)
+	return dst, nil
+}
+
+// HashTreeRootWith ssz hashes the Deposit object with a hasher.
+func (d *Deposit) HashTreeRootWith(hh fastssz.HashWalker) error {
+	indx := hh.Index()
+
+	// Field (0) 'Pubkey'
+	hh.PutBytes(d.Pubkey[:])
+
+	// Field (1) 'Credentials'
+	hh.PutBytes(d.Credentials[:])
+
+	// Field (2) 'Amount'
+	hh.PutUint64(uint64(d.Amount))
+
+	// Field (3) 'Signature'
+	hh.PutBytes(d.Signature[:])
+
+	// Field (4) 'Index'
+	hh.PutUint64(d.Index)
+
+	hh.Merkleize(indx)
+	return nil
+}
+
+// GetTree ssz hashes the Deposit object.
+func (d *Deposit) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(d)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                             Getters and Setters                            */
+/* -------------------------------------------------------------------------- */
 
 // GetAmount returns the deposit amount in gwei.
 func (d *Deposit) GetAmount() math.Gwei {
@@ -129,4 +209,16 @@ func (d *Deposit) GetSignature() crypto.BLSSignature {
 // GetWithdrawalCredentials returns the staking credentials of the deposit.
 func (d *Deposit) GetWithdrawalCredentials() WithdrawalCredentials {
 	return d.Credentials
+}
+
+// Deposits is a typealias for a list of Deposits.
+type Deposits []*Deposit
+
+// HashTreeRoot returns the hash tree root of the Withdrawals list.
+func (d Deposits) HashTreeRoot() (common.Root, error) {
+	// TODO: read max deposits from the chain spec.
+	merkleizer := merkle.NewMerkleizer[[32]byte, *Deposit]()
+	return merkleizer.MerkleizeListComposite(
+		d, constants.MaxDepositsPerBlock,
+	)
 }

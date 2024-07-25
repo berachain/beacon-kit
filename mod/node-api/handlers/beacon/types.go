@@ -37,6 +37,7 @@ type Backend[
 	RandaoBackend
 	ValidatorBackend[ValidatorT]
 	HistoricalBackend[ForkT]
+	GetSlotByRoot(root [32]byte) (uint64, error)
 }
 
 type BlockHeader interface {
