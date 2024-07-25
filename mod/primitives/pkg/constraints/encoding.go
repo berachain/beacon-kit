@@ -20,39 +20,40 @@
 
 package constraints
 
+// SSZMarshaler is an interface for objects that can be
+// marshaled to SSZ format.
 type SSZMarshaler interface {
+	// MarshalSSZ marshals the object into SSZ format.
 	MarshalSSZ() ([]byte, error)
 }
 
+// SSZUnmarshaler is an interface for objects that can be
+// unmarshaled from SSZ format.
 type SSZUnmarshaler interface {
+	// UnmarshalSSZ unmarshals the object from SSZ format.
 	UnmarshalSSZ([]byte) error
 }
 
+// SSZRootable is an interface for objects that can compute
+// their hash tree root.
 type SSZRootable interface {
+	// HashTreeRoot computes the hash tree root of the object.
 	HashTreeRoot() ([32]byte, error)
 }
 
+// SSZMarshalerUnmarshaler is an interface that combines
+// SSZMarshaler and SSZUnmarshaler.
 type SSZMarshalerUnmarshaler interface {
 	SSZMarshaler
 	SSZUnmarshaler
 }
 
+// SSZMarshalerUnmarshalerRootable is an interface that combines
+// SSZMarshaler, SSZUnmarshaler, and SSZRootable.
 type SSZMarshalerUnmarshalerRootable interface {
 	SSZMarshaler
 	SSZUnmarshaler
 	SSZRootable
-}
-
-type BaseSSZObject interface {
-	// MarshalSSZTo marshals the object into the provided byte slice and returns
-	// it along with any error.
-	MarshalSSZTo([]byte) ([]byte, error)
-	// MarshalSSZ marshals the object into a new byte slice and returns it along
-	// with any error.
-	MarshalSSZ() ([]byte, error)
-	// UnmarshalSSZ unmarshals the object from the provided byte slice and
-	// returns an error if the unmarshaling fails.
-	UnmarshalSSZ([]byte) error
 }
 
 // JSONMarshallable is an interface that combines the json.Marshaler and
@@ -61,7 +62,7 @@ type JSONMarshallable interface {
 	// MarshalJSON marshals the object into a JSON byte slice and returns it
 	// along with any error.
 	MarshalJSON() ([]byte, error)
-	// UnmarshalJSON unmarshals the object from the provided JSON byte slice and
-	// returns an error if the unmarshaling fails.
+	// UnmarshalJSON unmarshals the object from the provided JSON byte slice
+	// and returns an error if the unmarshaling fails.
 	UnmarshalJSON([]byte) error
 }
