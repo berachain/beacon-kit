@@ -35,7 +35,7 @@ type BeaconBlockHeader struct {
 func (b *BeaconBlockHeader) SizeSSZ() uint32 {
 	//nolint:mnd // its okay for now.
 	return 112 // Total size: Slot (8) + ProposerIndex (8) +
-	//ParentBlockRoot (32) + StateRoot (32) + BodyRoot (32)
+	// ParentBlockRoot (32) + StateRoot (32) + BodyRoot (32)
 }
 
 // DefineSSZ defines the SSZ encoding for the BeaconBlockHeader object.
