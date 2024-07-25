@@ -52,6 +52,10 @@ type AttestationData struct {
 	BeaconBlockRoot common.Root `json:"beaconBlockRoot"`
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                 Constructor                                */
+/* -------------------------------------------------------------------------- */
+
 // New creates a new AttestationData.
 func (a *AttestationData) New(
 	slot math.U64,
@@ -65,6 +69,10 @@ func (a *AttestationData) New(
 	}
 	return a
 }
+
+/* -------------------------------------------------------------------------- */
+/*                                     SSZ                                    */
+/* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the AttestationData object in SSZ encoding.
 func (*AttestationData) SizeSSZ() uint32 {
@@ -88,6 +96,10 @@ func (a *AttestationData) MarshalSSZ() ([]byte, error) {
 	buf := make([]byte, a.SizeSSZ())
 	return buf, ssz.EncodeToBytes(buf, a)
 }
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
 
 // UnmarshalSSZ unmarshals the AttestationData object from SSZ format.
 func (a *AttestationData) UnmarshalSSZ(buf []byte) error {
@@ -121,6 +133,10 @@ func (a *AttestationData) HashTreeRootWith(hh fastssz.HashWalker) error {
 	hh.Merkleize(indx)
 	return nil
 }
+
+/* -------------------------------------------------------------------------- */
+/*                             Getters and Setters                            */
+/* -------------------------------------------------------------------------- */
 
 // GetTree ssz hashes the AttestationData object.
 func (a *AttestationData) GetTree() (*fastssz.Node, error) {

@@ -53,6 +53,10 @@ type SlashingInfo struct {
 	Index math.U64
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                 Constructor                                */
+/* -------------------------------------------------------------------------- */
+
 // New creates a new slashing info instance.
 func (s *SlashingInfo) New(slot, index math.U64) *SlashingInfo {
 	s = &SlashingInfo{
@@ -62,25 +66,9 @@ func (s *SlashingInfo) New(slot, index math.U64) *SlashingInfo {
 	return s
 }
 
-// GetSlot returns the slot of the slashing info.
-func (s *SlashingInfo) GetSlot() math.Slot {
-	return s.Slot
-}
-
-// GetIndex returns the index of the slashing info.
-func (s *SlashingInfo) GetIndex() math.U64 {
-	return math.U64(s.Index)
-}
-
-// SetSlot sets the slot of the slashing info.
-func (s *SlashingInfo) SetSlot(slot math.Slot) {
-	s.Slot = slot
-}
-
-// SetIndex sets the index of the slashing info.
-func (s *SlashingInfo) SetIndex(index math.U64) {
-	s.Index = index
-}
+/* -------------------------------------------------------------------------- */
+/*                                     SSZ                                    */
+/* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the SlashingInfo object in SSZ encoding.
 func (*SlashingInfo) SizeSSZ() uint32 {
@@ -114,7 +102,7 @@ func (s *SlashingInfo) UnmarshalSSZ(buf []byte) error {
 /* -------------------------------------------------------------------------- */
 
 // MarshalSSZTo ssz marshals the SlashingInfo object into a pre-allocated byte
-// slice
+// slice.
 func (s *SlashingInfo) MarshalSSZTo(dst []byte) ([]byte, error) {
 	bz, err := s.MarshalSSZ()
 	if err != nil {
@@ -124,8 +112,8 @@ func (s *SlashingInfo) MarshalSSZTo(dst []byte) ([]byte, error) {
 	return dst, nil
 }
 
-// HashTreeRootWith ssz hashes the SlashingInfo object with a hasher
-func (s *SlashingInfo) HashTreeRootWith(hh fastssz.HashWalker) (err error) {
+// HashTreeRootWith ssz hashes the SlashingInfo object with a hasher.
+func (s *SlashingInfo) HashTreeRootWith(hh fastssz.HashWalker) error {
 	indx := hh.Index()
 
 	// Field (0) 'Slot'
@@ -135,10 +123,34 @@ func (s *SlashingInfo) HashTreeRootWith(hh fastssz.HashWalker) (err error) {
 	hh.PutUint64(uint64(s.Index))
 
 	hh.Merkleize(indx)
-	return
+	return nil
 }
 
-// GetTree ssz hashes the SlashingInfo object
+// GetTree ssz hashes the SlashingInfo object.
 func (s *SlashingInfo) GetTree() (*fastssz.Node, error) {
 	return fastssz.ProofTree(s)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                             Getters and Setters                            */
+/* -------------------------------------------------------------------------- */
+
+// GetSlot returns the slot of the slashing info.
+func (s *SlashingInfo) GetSlot() math.Slot {
+	return s.Slot
+}
+
+// GetIndex returns the index of the slashing info.
+func (s *SlashingInfo) GetIndex() math.U64 {
+	return s.Index
+}
+
+// SetSlot sets the slot of the slashing info.
+func (s *SlashingInfo) SetSlot(slot math.Slot) {
+	s.Slot = slot
+}
+
+// SetIndex sets the index of the slashing info.
+func (s *SlashingInfo) SetIndex(index math.U64) {
+	s.Index = index
 }
