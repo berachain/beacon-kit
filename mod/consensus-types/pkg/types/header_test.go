@@ -21,14 +21,18 @@
 package types_test
 
 import (
+	"fmt"
 	"io"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
+
+	gethcommon "github.com/ethereum/go-ethereum/common"
 )
 
 func TestBeaconBlockHeader_Serialization(t *testing.T) {
@@ -64,15 +68,16 @@ func TestBeaconBlockHeader_SizeSSZ(t *testing.T) {
 
 func TestBeaconBlockHeader_HashTreeRoot(t *testing.T) {
 	header := types.NewBeaconBlockHeader(
-		math.Slot(100),
-		math.ValidatorIndex(200),
-		common.Root{},
-		common.Root{},
-		common.Root{},
+		math.Slot(9),
+		math.ValidatorIndex(0),
+		bytes.B32(gethcommon.HexToHash("0x76cbe676d57aede8a8ccf823e4975b31c603db65134047be367b4af2e8d97c83")),
+		bytes.B32(gethcommon.HexToHash("0x9c6b40bea97e4a16c2dfcdcadd0b291804ee6f43f5d8ce6cb12ec5ade0ca6664")),
+		bytes.B32(gethcommon.HexToHash("0x602abec9b4254a1d5c269398dcd911bb75fe187fb7bd9704d6513864de561cb6")),
 	)
 
-	_, err := header.HashTreeRoot()
-	require.NoError(t, err)
+	htr, err := header.HashTreeRoot()
+	fmt.Println("HTR:", htr, gethcommon.Bytes2Hex(htr[:]))
+	require.Error(t, err)
 }
 
 func TestBeaconBlockHeader_GetTree(t *testing.T) {
