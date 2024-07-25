@@ -66,7 +66,7 @@ func NewBeaconBlockForValidator[
 	bs BeaconStateT,
 	cs common.ChainSpec,
 ) (*BeaconBlockForValidator, error) {
-	bsv, err := newBeaconStateForValidator(bs, cs)
+	bsv, err := NewBeaconStateForValidator(bs, cs)
 	if err != nil {
 		return nil, err
 	}
@@ -114,9 +114,9 @@ type BeaconStateForValidator struct {
 	TotalSlashing math.Gwei
 }
 
-// newBeaconStateForValidator creates a new BeaconState SSZ summary with only
+// NewBeaconStateForValidator creates a new BeaconState SSZ summary with only
 // the required raw values to prove a validator exists in this state.
-func newBeaconStateForValidator[
+func NewBeaconStateForValidator[
 	BeaconBlockHeaderT constraints.SSZMarshallable,
 	BeaconStateT BeaconState[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
