@@ -36,7 +36,10 @@ import (
 )
 
 // TODO: we could make engine type configurable
-func ProvideNodeAPIEngine(logger log.APILogger[any], config *config.Config) *NodeAPIEngine {
+func ProvideNodeAPIEngine(
+	logger log.APILogger[any],
+	config *config.Config,
+) *NodeAPIEngine {
 	if !config.NodeAPI.Logging {
 		logger = noop.NewLogger[sdklog.Logger]()
 	}
