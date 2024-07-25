@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 	"github.com/berachain/beacon-kit/mod/node-api/types/context"
 	types "github.com/berachain/beacon-kit/mod/node-api/types/proof"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 )
 
 // Handler is the handler for the proof API.
@@ -36,9 +37,9 @@ type Handler[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
 		ValidatorT,
 	],
-	Eth1DataT any,
-	ExecutionPayloadHeaderT any,
-	ForkT any,
+	Eth1DataT constraints.SSZMarshallable,
+	ExecutionPayloadHeaderT constraints.SSZMarshallable,
+	ForkT constraints.SSZMarshallable,
 	ValidatorT any,
 ] struct {
 	backend Backend[
@@ -56,9 +57,9 @@ func NewHandler[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
 		ValidatorT,
 	],
-	Eth1DataT any,
-	ExecutionPayloadHeaderT any,
-	ForkT any,
+	Eth1DataT constraints.SSZMarshallable,
+	ExecutionPayloadHeaderT constraints.SSZMarshallable,
+	ForkT constraints.SSZMarshallable,
 	ValidatorT any,
 ](
 	backend Backend[

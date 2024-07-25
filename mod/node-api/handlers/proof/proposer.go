@@ -21,10 +21,9 @@
 package proof
 
 import (
-	"github.com/berachain/beacon-kit/mod/errors"
+	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
-	"github.com/berachain/beacon-kit/mod/node-api/types"
 	ptypes "github.com/berachain/beacon-kit/mod/node-api/types/proof"
 )
 
@@ -36,12 +35,6 @@ func (h *Handler[
 	params, err := utils.BindAndValidate[ptypes.BlockProposerProofRequest](c)
 	if err != nil {
 		return nil, err
-	}
-
-	if params.BlockID == "error" {
-		return nil, errors.Join(
-			types.ErrNotFound, errors.New("my custom error"),
-		)
 	}
 
 	// Get the slot from the given input of block id.
@@ -62,11 +55,19 @@ func (h *Handler[
 		return nil, err
 	}
 
-	// Get the entire validator registry from the beacon state.
-	validators, err := beaconState.GetValidators()
+	// Get the beacon block struct for the proving the proposer validator
+	// exists within the state in this block.
+	beaconBlockProof, err := ptypes.NewBeaconBlockForValidator(
+		blockHeader, beaconState, h.backend.ChainSpec(),
+	)
 	if err != nil {
 		return nil, err
 	}
+
+	//#nosec:G103 // on purpose.
+	validators := *(*[]ValidatorT)(
+		unsafe.Pointer(&beaconBlockProof.StateRoot.Validators),
+	)
 
 	return ptypes.BlockProposerProofResponse[
 		BeaconBlockHeaderT, ValidatorT,

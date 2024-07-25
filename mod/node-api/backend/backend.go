@@ -133,3 +133,10 @@ func (b *Backend[
 ]) AttachNode(node NodeT) {
 	b.node = node
 }
+
+// ChainSpec returns the chain spec from the backend.
+func (b *Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, NodeT, _, _, _, _, _,
+]) ChainSpec() common.ChainSpec {
+	return b.cs
+}

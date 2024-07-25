@@ -59,6 +59,7 @@ type BeaconBlock[BeaconBlockBodyT, BeaconBlockHeaderT any] interface {
 
 // BeaconBlockHeader is the interface for a beacon block header.
 type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
+	constraints.SSZMarshallable
 	New(
 		slot math.Slot,
 		proposerIndex math.ValidatorIndex,

@@ -22,6 +22,7 @@ package proof
 
 import (
 	types "github.com/berachain/beacon-kit/mod/node-api/types/proof"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
 // Backend is the interface for backend of the proof API.
@@ -38,6 +39,7 @@ type Backend[
 ] interface {
 	BlockBackend[BeaconBlockHeaderT]
 	StateBackend[BeaconStateT]
+	ChainSpec() common.ChainSpec
 }
 
 type BlockBackend[BeaconBlockHeaderT any] interface {

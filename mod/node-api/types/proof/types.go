@@ -22,6 +22,7 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -30,6 +31,7 @@ import (
 
 // BeaconBlockHeader is the interface for a beacon block header.
 type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
+	constraints.SSZMarshallable
 	New(
 		slot math.Slot,
 		proposerIndex math.ValidatorIndex,
@@ -102,4 +104,6 @@ type BeaconState[
 	// GetValidatorsByEffectiveBalance retrieves validators by effective
 	// balance.
 	GetValidatorsByEffectiveBalance() ([]ValidatorT, error)
+	// StateRootAtIndex retrieves the state root at the given index.
+	StateRootAtIndex(index uint64) (common.Root, error)
 }
