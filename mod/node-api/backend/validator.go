@@ -28,18 +28,6 @@ import (
 
 func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _,
-]) AllValidators(
-	slot uint64,
-) ([]ValidatorT, error) {
-	st, err := b.StateFromSlot(slot)
-	if err != nil {
-		return nil, err
-	}
-	return st.GetValidators()
-}
-
-func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _,
 ]) ValidatorByID(
 	slot uint64,
 	id string,
