@@ -24,13 +24,29 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
+// StateFromSlot returns the state at the given slot using query context.
+func (b *Backend[
+	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) StateFromSlot(
+	slot uint64,
+) (BeaconStateT, error) {
+	var state BeaconStateT
+	//#nosec:G701 // not an issue in practice.
+	queryCtx, err := b.node.CreateQueryContext(int64(slot), false)
+	if err != nil {
+		return state, err
+	}
+
+	return b.sb.StateFromContext(queryCtx), nil
+}
+
 // GetStateRoot returns the root of the state at the given stateID.
 func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) StateRootAtSlot(
 	slot uint64,
 ) (common.Root, error) {
-	st, err := b.stateFromSlot(slot)
+	st, err := b.StateFromSlot(slot)
 	if err != nil {
 		return common.Root{}, err
 	}
@@ -53,7 +69,7 @@ func (b Backend[
 	slot uint64,
 ) (ForkT, error) {
 	var fork ForkT
-	st, err := b.stateFromSlot(slot)
+	st, err := b.StateFromSlot(slot)
 	if err != nil {
 		return fork, err
 	}

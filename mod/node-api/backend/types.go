@@ -23,11 +23,9 @@ package backend
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -91,13 +89,6 @@ type BlockStore[BeaconBlockT any] interface {
 type Deposit[DepositT any] interface {
 	constraints.SSZMarshallable
 	GetIndex() uint64
-	New(
-		pubkey crypto.BLSPubkey,
-		credentials types.WithdrawalCredentials,
-		amount math.Gwei,
-		signature crypto.BLSSignature,
-		index uint64,
-	) DepositT
 }
 
 // DepositStore defines the interface for deposit storage.

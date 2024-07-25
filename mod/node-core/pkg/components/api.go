@@ -85,6 +85,9 @@ func ProvideNodeAPIHandlers(
 	return server.DefaultHandlers[
 		NodeAPIContext,
 		*BeaconBlockHeader,
+		*BeaconState,
+		*Eth1Data,
+		*ExecutionPayloadHeader,
 		*Fork,
 		*Validator,
 	](in.Backend)

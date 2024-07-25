@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof"
 	"github.com/berachain/beacon-kit/mod/node-api/types/context"
+	types "github.com/berachain/beacon-kit/mod/node-api/types/proof"
 )
 
 type Engine[ContextT context.Context, T any] interface {
@@ -35,11 +36,20 @@ type Engine[ContextT context.Context, T any] interface {
 
 type Backend[
 	BeaconBlockHeaderT backend.BeaconBlockHeader[BeaconBlockHeaderT],
-	ForkT,
+	BeaconStateT types.BeaconState[
+		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+		ValidatorT,
+	],
+	Eth1DataT any,
+	ExecutionPayloadHeaderT any,
+	ForkT any,
 	ValidatorT any,
 ] interface {
 	BeaconBackend[ForkT, ValidatorT]
-	ProofBackend[BeaconBlockHeaderT, ValidatorT]
+	ProofBackend[
+		BeaconBlockHeaderT, BeaconStateT, Eth1DataT, ExecutionPayloadHeaderT,
+		ForkT, ValidatorT,
+	]
 }
 
 type BeaconBackend[ForkT, ValidatorT any] interface {
@@ -48,7 +58,17 @@ type BeaconBackend[ForkT, ValidatorT any] interface {
 
 type ProofBackend[
 	BeaconBlockHeaderT backend.BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconStateT types.BeaconState[
+		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+		ValidatorT,
+	],
+	Eth1DataT any,
+	ExecutionPayloadHeaderT any,
+	ForkT any,
 	ValidatorT any,
 ] interface {
-	proof.Backend[BeaconBlockHeaderT, ValidatorT]
+	proof.Backend[
+		BeaconBlockHeaderT, BeaconStateT, Eth1DataT, ExecutionPayloadHeaderT,
+		ForkT, ValidatorT,
+	]
 }

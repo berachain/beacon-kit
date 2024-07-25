@@ -133,19 +133,3 @@ func (b *Backend[
 ]) AttachNode(node NodeT) {
 	b.node = node
 }
-
-// stateFromSlot returns the state at the given slot using query context.
-func (b *Backend[
-	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) stateFromSlot(
-	slot uint64,
-) (BeaconStateT, error) {
-	var state BeaconStateT
-	//#nosec:G701 // not an issue in practice.
-	queryCtx, err := b.node.CreateQueryContext(int64(slot), false)
-	if err != nil {
-		return state, err
-	}
-
-	return b.sb.StateFromContext(queryCtx), nil
-}

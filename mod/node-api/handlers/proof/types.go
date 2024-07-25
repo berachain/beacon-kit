@@ -21,41 +21,29 @@
 package proof
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	types "github.com/berachain/beacon-kit/mod/node-api/types/proof"
 )
-
-// BeaconBlockHeader is the interface for a beacon block header.
-type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
-	New(
-		slot math.Slot,
-		proposerIndex math.ValidatorIndex,
-		parentBlockRoot common.Root,
-		stateRoot common.Root,
-		bodyRoot common.Root,
-	) BeaconBlockHeaderT
-	HashTreeRoot() ([32]byte, error)
-	GetSlot() math.Slot
-	GetProposerIndex() math.ValidatorIndex
-	GetParentBlockRoot() common.Root
-	GetStateRoot() common.Root
-	SetStateRoot(common.Root)
-	GetBodyRoot() common.Root
-}
 
 // Backend is the interface for backend of the proof API.
 type Backend[
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconBlockHeaderT types.BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconStateT types.BeaconState[
+		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+		ValidatorT,
+	],
+	Eth1DataT any,
+	ExecutionPayloadHeaderT any,
+	ForkT any,
 	ValidatorT any,
 ] interface {
 	BlockBackend[BeaconBlockHeaderT]
-	ValidatorBackend[ValidatorT]
+	StateBackend[BeaconStateT]
 }
 
 type BlockBackend[BeaconBlockHeaderT any] interface {
 	BlockHeader(slot uint64) (BeaconBlockHeaderT, error)
 }
 
-type ValidatorBackend[ValidatorT any] interface {
-	AllValidators(slot uint64) ([]ValidatorT, error)
+type StateBackend[BeaconStateT any] interface {
+	StateFromSlot(slot uint64) (BeaconStateT, error)
 }

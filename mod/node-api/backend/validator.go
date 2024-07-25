@@ -31,7 +31,7 @@ func (b Backend[
 ]) AllValidators(
 	slot uint64,
 ) ([]ValidatorT, error) {
-	st, err := b.stateFromSlot(slot)
+	st, err := b.StateFromSlot(slot)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func (b Backend[
 	// TODO: to adhere to the spec, this shouldn't error if the error
 	// is not found, but i can't think of a way to do that without coupling
 	// db impl to the api impl.
-	st, err := b.stateFromSlot(slot)
+	st, err := b.StateFromSlot(slot)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +101,7 @@ func (b Backend[
 	ids []string,
 ) ([]*types.ValidatorBalanceData, error) {
 	var index math.U64
-	st, err := b.stateFromSlot(slot)
+	st, err := b.StateFromSlot(slot)
 	if err != nil {
 		return nil, err
 	}

@@ -30,9 +30,9 @@ import (
 
 // GetBlockProposer returns the block proposer for the given block id along
 // with a merkle proof that can be verified against the beacon block root.
-func (
-	h *Handler[ContextT, BeaconBlockHeaderT, ValidatorT],
-) GetBlockProposer(c ContextT) (any, error) {
+func (h *Handler[
+	ContextT, BeaconBlockHeaderT, _, _, _, _, ValidatorT,
+]) GetBlockProposer(c ContextT) (any, error) {
 	params, err := utils.BindAndValidate[ptypes.BlockProposerProofRequest](c)
 	if err != nil {
 		return nil, err
@@ -56,8 +56,14 @@ func (
 		return nil, err
 	}
 
-	// Get the entire validator registry.
-	validators, err := h.backend.AllValidators(slot)
+	// Get the entire beacon state for the desired slot.
+	beaconState, err := h.backend.StateFromSlot(slot)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the entire validator registry from the beacon state.
+	validators, err := beaconState.GetValidators()
 	if err != nil {
 		return nil, err
 	}

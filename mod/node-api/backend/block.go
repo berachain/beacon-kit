@@ -36,7 +36,7 @@ func (b Backend[
 		stateRoot   common.Root
 	)
 
-	st, err := b.stateFromSlot(slot)
+	st, err := b.StateFromSlot(slot)
 	if err != nil {
 		return blockHeader, err
 	}
@@ -63,7 +63,7 @@ func (b Backend[
 ]) BlockRootAtSlot(
 	slot uint64,
 ) (common.Root, error) {
-	st, err := b.stateFromSlot(slot)
+	st, err := b.StateFromSlot(slot)
 	if err != nil {
 		return common.Root{}, err
 	}

@@ -31,16 +31,26 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/node"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof"
 	"github.com/berachain/beacon-kit/mod/node-api/types/context"
+	types "github.com/berachain/beacon-kit/mod/node-api/types/proof"
 )
 
 // DefaultHandlers returns the default handlers for the node API.
 func DefaultHandlers[
 	ContextT context.Context,
 	BeaconBlockHeaderT backend.BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconStateT types.BeaconState[
+		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+		ValidatorT,
+	],
+	Eth1DataT any,
+	ExecutionPayloadHeaderT any,
 	ForkT any,
 	ValidatorT any,
 ](
-	backend Backend[BeaconBlockHeaderT, ForkT, ValidatorT],
+	backend Backend[
+		BeaconBlockHeaderT, BeaconStateT, Eth1DataT, ExecutionPayloadHeaderT,
+		ForkT, ValidatorT,
+	],
 ) []handlers.Handlers[ContextT] {
 	return []handlers.Handlers[ContextT]{
 		beacon.NewHandler[ContextT](backend),
@@ -49,6 +59,6 @@ func DefaultHandlers[
 		debug.NewHandler[ContextT](),
 		events.NewHandler[ContextT](),
 		node.NewHandler[ContextT](),
-		proof.NewHandler[ContextT](backend),
+		proof.NewHandler[ContextT, BeaconBlockHeaderT, BeaconStateT](backend),
 	}
 }

@@ -25,38 +25,69 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 	"github.com/berachain/beacon-kit/mod/node-api/types/context"
+	types "github.com/berachain/beacon-kit/mod/node-api/types/proof"
 )
 
 // Handler is the handler for the proof API.
 type Handler[
 	ContextT context.Context,
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconBlockHeaderT types.BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconStateT types.BeaconState[
+		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+		ValidatorT,
+	],
+	Eth1DataT any,
+	ExecutionPayloadHeaderT any,
+	ForkT any,
 	ValidatorT any,
 ] struct {
-	backend Backend[BeaconBlockHeaderT, ValidatorT]
-	routes  *handlers.RouteSet[ContextT]
+	backend Backend[
+		BeaconBlockHeaderT, BeaconStateT, Eth1DataT, ExecutionPayloadHeaderT,
+		ForkT, ValidatorT,
+	]
+	routes *handlers.RouteSet[ContextT]
 }
 
 // NewHandler creates a new handler for the proof API.
 func NewHandler[
 	ContextT context.Context,
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconBlockHeaderT types.BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconStateT types.BeaconState[
+		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+		ValidatorT,
+	],
+	Eth1DataT any,
+	ExecutionPayloadHeaderT any,
+	ForkT any,
 	ValidatorT any,
 ](
-	backend Backend[BeaconBlockHeaderT, ValidatorT],
-) *Handler[ContextT, BeaconBlockHeaderT, ValidatorT] {
-	h := &Handler[ContextT, BeaconBlockHeaderT, ValidatorT]{
+	backend Backend[
+		BeaconBlockHeaderT, BeaconStateT, Eth1DataT, ExecutionPayloadHeaderT,
+		ForkT, ValidatorT,
+	],
+) *Handler[
+	ContextT, BeaconBlockHeaderT, BeaconStateT, Eth1DataT,
+	ExecutionPayloadHeaderT, ForkT, ValidatorT,
+] {
+	h := &Handler[
+		ContextT, BeaconBlockHeaderT, BeaconStateT, Eth1DataT,
+		ExecutionPayloadHeaderT, ForkT, ValidatorT,
+	]{
 		backend: backend,
 		routes:  handlers.NewRouteSet[ContextT](""),
 	}
 	return h
 }
 
-func (h *Handler[ContextT, _, _]) RouteSet() *handlers.RouteSet[ContextT] {
+func (
+	h *Handler[ContextT, _, _, _, _, _, _],
+) RouteSet() *handlers.RouteSet[ContextT] {
 	return h.routes
 }
 
 // NotImplemented is a placeholder for the proof API.
-func (h *Handler[ContextT, _, _]) NotImplemented(_ ContextT) (any, error) {
+func (
+	h *Handler[ContextT, _, _, _, _, _, _],
+) NotImplemented(_ ContextT) (any, error) {
 	return nil, errors.New("not implemented")
 }
