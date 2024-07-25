@@ -57,7 +57,7 @@ func (u U32) MarshalSSZ() ([]byte, error) {
 
 // NewFromSSZ creates a new U32 from SSZ format.
 func (U32) NewFromSSZ(buf []byte) (U32, error) {
-	//#nosec: G701 // will never overflow.
+	//#nosec: G701 // won't realistically overflow.
 	if uint32(len(buf)) != constants.U32Size {
 		return 0, fmt.Errorf(
 			"invalid buffer length: expected %d, got %d",

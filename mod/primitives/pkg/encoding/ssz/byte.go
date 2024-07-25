@@ -56,7 +56,7 @@ func (b Byte) MarshalSSZ() ([]byte, error) {
 
 // NewFromSSZ creates a new Byte from SSZ format.
 func (Byte) NewFromSSZ(buf []byte) (Byte, error) {
-	//#nosec: G701 // will never overflow.
+	//#nosec: G701 // won't realistically overflow.
 	if uint32(len(buf)) != constants.ByteSize {
 		return 0, fmt.Errorf(
 			"invalid buffer length: expected %d, got %d",

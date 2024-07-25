@@ -47,6 +47,7 @@ func (b Bool) MarshalSSZ() ([]byte, error) {
 
 // NewFromSSZ creates a new Bool from SSZ format.
 func (Bool) NewFromSSZ(buf []byte) (Bool, error) {
+	//#nosec: G701 // won't realistically overflow.
 	if uint32(len(buf)) != constants.BoolSize {
 		return false, fmt.Errorf(
 			"invalid buffer length: expected %d, got %d",
