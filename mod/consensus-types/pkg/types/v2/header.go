@@ -26,6 +26,12 @@ import (
 	"github.com/karalabe/ssz"
 )
 
+// BeaconBlockHeaderSize is the size of the BeaconBlockHeader object in bytes.
+//
+// Total size: Slot (8) + ProposerIndex (8) +
+// ParentBlockRoot (32) + StateRoot (32) + BodyRoot (32)
+const BeaconBlockHeaderSize = 112
+
 // BeaconBlockHeader represents the base of a beacon block header.
 type BeaconBlockHeader struct {
 	// Slot represents the position of the block in the chain.
@@ -76,7 +82,7 @@ func (b *BeaconBlockHeader) New(
 
 // SizeSSZ returns the size of the BeaconBlockHeader object in SSZ encoding.
 func (b *BeaconBlockHeader) SizeSSZ() uint32 {
-	return 112 // Total size: Slot (8) + ProposerIndex (8) + ParentBlockRoot (32) + StateRoot (32) + BodyRoot (32)
+	return BeaconBlockHeaderSize
 }
 
 // DefineSSZ defines the SSZ encoding for the BeaconBlockHeader object.
