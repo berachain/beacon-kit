@@ -27,17 +27,20 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 )
 
+// Engine is an implementation of the API engine interface using Echo.
 type Engine struct {
 	*echo.Echo
 	logger log.Logger[any]
 }
 
+// New initializes a new API engine with the given Echo instance.
 func New(e *echo.Echo) *Engine {
 	return &Engine{
 		Echo: e,
 	}
 }
 
+// NewDefaultEngine returns a new default Echo Engine instance.
 func NewDefaultEngine() *Engine {
 	engine := echo.New()
 	engine.Use(middleware.CORSWithConfig(
@@ -50,10 +53,12 @@ func NewDefaultEngine() *Engine {
 	return New(engine)
 }
 
+// Run starts the Echo engine at the given address.
 func (e *Engine) Run(addr string) error {
 	return e.Echo.Start(addr)
 }
 
+// RegisterRoutes registers the given route set with the Echo engine.
 func (e *Engine) RegisterRoutes(
 	hs handlers.RouteSet[Context],
 	logger log.Logger[any],

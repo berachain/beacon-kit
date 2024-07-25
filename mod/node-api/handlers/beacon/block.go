@@ -26,7 +26,9 @@ import (
 )
 
 func (h *Handler[_, ContextT, _, _]) GetBlockRewards(c ContextT) (any, error) {
-	req, err := utils.BindAndValidate[beacontypes.GetBlockRewardsRequest](c, h.Logger())
+	req, err := utils.BindAndValidate[beacontypes.GetBlockRewardsRequest](
+		c, h.Logger(),
+	)
 	if err != nil {
 		return nil, err
 	}

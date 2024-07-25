@@ -29,6 +29,7 @@ import (
 	apicontext "github.com/berachain/beacon-kit/mod/node-api/server/context"
 )
 
+// Server is the API Server service.
 type Server[
 	ContextT apicontext.Context,
 	EngineT Engine[ContextT, EngineT],
@@ -38,6 +39,9 @@ type Server[
 	logger log.Logger[any]
 }
 
+// New initializes a new API Server with the given config, engine, and logger.
+// It will inject a noop logger into the API handlers and engine if logging is
+// disabled.
 func New[
 	ContextT apicontext.Context,
 	EngineT Engine[ContextT, EngineT],
@@ -62,6 +66,7 @@ func New[
 	}
 }
 
+// Start starts the API Server at the configured address.
 func (s *Server[_, _]) Start(ctx context.Context) error {
 	if !s.config.Enabled {
 		return nil
@@ -85,6 +90,7 @@ func (s *Server[_, _]) start(ctx context.Context) {
 	}
 }
 
+// Name returns the name of the API server service.
 func (s *Server[_, _]) Name() string {
 	return "node-api-server"
 }

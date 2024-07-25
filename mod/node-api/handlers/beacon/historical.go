@@ -27,7 +27,9 @@ import (
 )
 
 func (h *Handler[_, ContextT, _, _]) GetStateRoot(c ContextT) (any, error) {
-	req, err := utils.BindAndValidate[beacontypes.GetStateRootRequest](c, h.Logger())
+	req, err := utils.BindAndValidate[beacontypes.GetStateRootRequest](
+		c, h.Logger(),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +54,9 @@ func (h *Handler[_, ContextT, _, _]) GetStateRoot(c ContextT) (any, error) {
 }
 
 func (h *Handler[_, ContextT, _, _]) GetStateFork(c ContextT) (any, error) {
-	req, err := utils.BindAndValidate[beacontypes.GetStateForkRequest](c, h.Logger())
+	req, err := utils.BindAndValidate[beacontypes.GetStateForkRequest](
+		c, h.Logger(),
+	)
 	if err != nil {
 		return nil, err
 	}
