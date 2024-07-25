@@ -18,31 +18,69 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package internal
+package types
 
 import (
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/karalabe/ssz"
 )
 
+// BeaconBlockHeader represents the base of a beacon block header.
 type BeaconBlockHeader struct {
-	*types.BeaconBlockHeader
+	// Slot represents the position of the block in the chain.
+	Slot math.Slot
+	// ProposerIndex is the index of the validator who proposed the block.
+	ProposerIndex math.ValidatorIndex
+	// ParentBlockRoot is the hash of the parent block
+	ParentBlockRoot common.Root
+	// StateRoot is the hash of the state at the block.
+	StateRoot common.Root
+	// BodyRoot is the root of the block body.
+	BodyRoot common.Root
 }
+
+// NewBeaconBlockHeader creates a new BeaconBlockHeader.
+func NewBeaconBlockHeader(
+	slot math.Slot,
+	proposerIndex math.ValidatorIndex,
+	parentBlockRoot common.Root,
+	stateRoot common.Root,
+	bodyRoot common.Root,
+) *BeaconBlockHeader {
+	return &BeaconBlockHeader{
+		Slot:            slot,
+		ProposerIndex:   proposerIndex,
+		ParentBlockRoot: parentBlockRoot,
+		StateRoot:       stateRoot,
+		BodyRoot:        bodyRoot,
+	}
+}
+
+// New creates a new BeaconBlockHeader.
+func (b *BeaconBlockHeader) New(
+	slot math.Slot,
+	proposerIndex math.ValidatorIndex,
+	parentBlockRoot common.Root,
+	stateRoot common.Root,
+	bodyRoot common.Root,
+) *BeaconBlockHeader {
+	return NewBeaconBlockHeader(
+		slot, proposerIndex, parentBlockRoot, stateRoot, bodyRoot,
+	)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                     SSZ                                    */
+/* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the BeaconBlockHeader object in SSZ encoding.
 func (b *BeaconBlockHeader) SizeSSZ() uint32 {
-	//nolint:mnd // its okay for now.
-	return 112 // Total size: Slot (8) + ProposerIndex (8) +
-	// ParentBlockRoot (32) + StateRoot (32) + BodyRoot (32)
+	return 112 // Total size: Slot (8) + ProposerIndex (8) + ParentBlockRoot (32) + StateRoot (32) + BodyRoot (32)
 }
 
 // DefineSSZ defines the SSZ encoding for the BeaconBlockHeader object.
 func (b *BeaconBlockHeader) DefineSSZ(codec *ssz.Codec) {
-	if b.BeaconBlockHeader == nil {
-		b.BeaconBlockHeader = &types.BeaconBlockHeader{}
-	}
 	ssz.DefineUint64(codec, &b.Slot)
 	ssz.DefineUint64(codec, &b.ProposerIndex)
 	ssz.DefineStaticBytes(codec, &b.ParentBlockRoot)
