@@ -20,10 +20,13 @@
 
 package block
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+)
 
 type BeaconBlock[T any] interface {
 	constraints.SSZMarshallable
 	NewFromSSZ(bz []byte, version uint32) (T, error)
 	Version() uint32
+	HashTreeRoot() ([32]byte, error)
 }

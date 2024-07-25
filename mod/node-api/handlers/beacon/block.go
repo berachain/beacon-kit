@@ -30,7 +30,7 @@ func (h *Handler[_, ContextT, _, _]) GetBlockRewards(c ContextT) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	slot, err := utils.SlotFromBlockID(req.BlockID)
+	slot, err := utils.SlotFromBlockID(req.BlockID, h.backend)
 	if err != nil {
 		return nil, err
 	}
