@@ -44,7 +44,7 @@ func TestWithdrawalSSZ(t *testing.T) {
 	require.NoError(t, err)
 
 	size := withdrawal.SizeSSZ()
-	require.Equal(t, 44, size)
+	require.Equal(t, uint32(44), size)
 
 	tree, errHashTree := withdrawal.HashTreeRoot()
 	require.NoError(t, errHashTree)

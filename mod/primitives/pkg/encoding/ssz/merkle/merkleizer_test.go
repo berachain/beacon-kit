@@ -33,7 +33,7 @@ import (
 type BasicItem uint64
 
 // SizeSSZ returns the size of the U64 in bytes.
-func (u BasicItem) SizeSSZ() int {
+func (u BasicItem) SizeSSZ() uint32 {
 	return 8
 }
 
@@ -58,7 +58,7 @@ type BasicContainer[SpecT any] struct {
 }
 
 // SizeSSZ returns the size of the container in bytes.
-func (c *BasicContainer[SpecT]) SizeSSZ() int {
+func (c *BasicContainer[SpecT]) SizeSSZ() uint32 {
 	return c.Item1.SizeSSZ() + c.Item2.SizeSSZ()
 }
 

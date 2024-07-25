@@ -40,7 +40,7 @@ var (
 )
 
 // ErrUnexpectedInputLength returns an error indicating that the input length.
-func ErrUnexpectedInputLength(expected, actual int) error {
+func ErrUnexpectedInputLength(expected uint32, actual int) error {
 	return errors.Wrapf(
 		ErrUnexpectedInputLengthBase,
 		"expected %d, got %d", expected, actual,

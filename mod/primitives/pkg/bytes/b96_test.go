@@ -78,7 +78,7 @@ func BenchmarkB96_UnmarshalJSON(b *testing.B) {
 
 func TestB96SizeSSZ(t *testing.T) {
 	var b bytes.B96
-	require.Equal(t, bytes.B96Size, b.SizeSSZ(),
+	require.Equal(t, bytes.B96Size, int(b.SizeSSZ()),
 		"SizeSSZ should return the correct size")
 }
 

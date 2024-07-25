@@ -21,6 +21,7 @@
 package types_test
 
 import (
+	"io"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -93,7 +94,7 @@ func TestDeposit_HashTreeRoot(t *testing.T) {
 func TestDeposit_SizeSSZ(t *testing.T) {
 	deposit := generateValidDeposit()
 
-	require.Equal(t, 192, deposit.SizeSSZ())
+	require.Equal(t, uint32(192), deposit.SizeSSZ())
 }
 
 func TestDeposit_HashTreeRootWith(t *testing.T) {
@@ -118,7 +119,7 @@ func TestDeposit_UnmarshalSSZ_ErrSize(t *testing.T) {
 	var unmarshalledDeposit types.Deposit
 	err := unmarshalledDeposit.UnmarshalSSZ(buf)
 
-	require.ErrorIs(t, err, ssz.ErrSize)
+	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
 
 func TestDeposit_VerifySignature(t *testing.T) {
