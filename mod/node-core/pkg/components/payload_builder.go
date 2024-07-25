@@ -23,7 +23,6 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	sdklog "cosmossdk.io/log"
-
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"

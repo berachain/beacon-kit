@@ -66,17 +66,10 @@ func (n *Logger[KeyValT, ImplT]) Impl() any {
 	return nil
 }
 
-func (n *Logger[KeyValT, ImplT]) AddKeyColor(
-	key any,
-	color log.Color,
-) {
+func (n *Logger[KeyValT, ImplT]) AddKeyColor(any, log.Color) {
 	// No operation
 }
 
-func (n *Logger[KeyValT, ImplT]) AddKeyValColor(
-	key any,
-	val any,
-	color log.Color,
-) {
+func (n *Logger[KeyValT, ImplT]) AddKeyValColor(any, any, log.Color) {
 	// No operation
 }

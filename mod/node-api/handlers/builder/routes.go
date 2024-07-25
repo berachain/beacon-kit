@@ -24,7 +24,6 @@ import (
 	"net/http"
 
 	"github.com/berachain/beacon-kit/mod/log"
-
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 )
 

@@ -89,12 +89,12 @@ func (f *Formatter) Format(
 	return out.Write(buffer.Bytes)
 }
 
-// AddKeyColor adds a key and color to the keyColors map
+// AddKeyColor adds a key and color to the keyColors map.
 func (f *Formatter) AddKeyColor(key string, color Color) {
 	f.keyColors[key] = color
 }
 
-// AddKeyValColor adds a key and color to the keyValColors map
+// AddKeyValColor adds a key and color to the keyValColors map.
 func (f *Formatter) AddKeyValColor(key string, val string, color Color) {
 	f.keyValColors[key+val] = color
 }
