@@ -23,9 +23,18 @@ package engineprimitives
 import (
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/karalabe/ssz"
+)
+
+// WithdrawalSize is the size of the Withdrawal in bytes.
+const WithdrawalSize = 44
+
+var (
+	_ ssz.StaticObject                    = (*Withdrawal)(nil)
+	_ constraints.SSZMarshallableRootable = (*Withdrawal)(nil)
 )
 
 // Withdrawal represents a validator withdrawal from the consensus layer.
@@ -61,7 +70,7 @@ func (w *Withdrawal) New(
 
 // SizeSSZ returns the size of the Withdrawal in bytes when SSZ encoded.
 func (*Withdrawal) SizeSSZ() uint32 {
-	return 8 + 8 + 20 + 8
+	return WithdrawalSize
 }
 
 // MarshalSSZ marshals the Withdrawal into SSZ format.
@@ -72,7 +81,7 @@ func (w *Withdrawal) DefineSSZ(c *ssz.Codec) {
 	ssz.DefineUint64(c, &w.Amount)       // Field  (3) -    Amount -  8 bytes
 }
 
-// HashTreeRoot
+// HashTreeRoot.
 func (w *Withdrawal) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashSequential(w), nil
 }
