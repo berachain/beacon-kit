@@ -21,20 +21,25 @@
 package types
 
 import (
+	ssz "github.com/ferranbt/fastssz"
+
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
 // GetProofForProposer_FastSSZ generates a proof for the proposer validator in
-// the beacon block. It uses the fastssz library to generate the proof.
+// the beacon block. The proof is then verified against the beacon block root
+// as a sanity check. Returns the proof along with the beacon block root. It
+// uses the fastssz library to generate the proof.
 //
 //nolint:revive,stylecheck // for explicit naming.
 func GetProofForProposer_FastSSZ(
 	beaconBlock *BeaconBlockForValidator,
-) ([]common.Root, error) {
+) ([]common.Root, common.Root, error) {
 	// Get the proof tree to generate the proof.
 	proofTree, err := beaconBlock.GetTree()
 	if err != nil {
-		return nil, err
+		return nil, common.Root{}, err
 	}
 
 	// Get the generalized index of the proposer validator in the tree.
@@ -43,12 +48,27 @@ func GetProofForProposer_FastSSZ(
 	// Get the proof of the proposer validator in the tree.
 	proof, err := proofTree.Prove(gIndex)
 	if err != nil {
-		return nil, err
+		return nil, common.Root{}, err
 	}
 	validatorProof := make([]common.Root, len(proof.Hashes))
 	for i, hash := range proof.Hashes {
 		validatorProof[i] = common.Root(hash)
 	}
 
-	return validatorProof, nil
+	// Sanity check that the proof verifies against our beacon root.
+	beaconRoot, err := beaconBlock.HashTreeRoot()
+	if err != nil {
+		return nil, common.Root{}, err
+	}
+	beaconRootVerified, err := ssz.VerifyProof(beaconRoot[:], proof)
+	if err != nil {
+		return nil, common.Root{}, err
+	}
+	if !beaconRootVerified {
+		return nil, common.Root{}, errors.Newf(
+			"proof verification failed against beacon root: %x", beaconRoot[:],
+		)
+	}
+
+	return validatorProof, beaconRoot, nil
 }

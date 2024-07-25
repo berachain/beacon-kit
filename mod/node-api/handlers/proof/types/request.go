@@ -19,9 +19,3 @@
 // TITLE.
 
 package types
-
-import "github.com/berachain/beacon-kit/mod/node-api/types"
-
-type BlockProposerProofRequest struct {
-	types.BlockIDRequest
-}

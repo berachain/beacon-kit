@@ -54,7 +54,7 @@ func (h *Handler[
 	}
 
 	// Get the beacon block struct for the proving the proposer validator
-	// exists within the state in this block.
+	// exists within the state in this block, and the beacon block root.
 	beaconBlockForValidatorProof, err := ptypes.NewBeaconBlockForValidator(
 		blockHeader, beaconState, h.backend.ChainSpec(),
 	)
@@ -63,7 +63,7 @@ func (h *Handler[
 	}
 
 	// Generate the proof for the proposer validator.
-	validatorProof, err := ptypes.GetProofForProposer_FastSSZ(
+	validatorProof, beaconBlockRoot, err := ptypes.GetProofForProposer_FastSSZ(
 		beaconBlockForValidatorProof,
 	)
 	if err != nil {
@@ -78,8 +78,9 @@ func (h *Handler[
 	return ptypes.BlockProposerProofResponse[
 		BeaconBlockHeaderT, ValidatorT,
 	]{
-		ValidatorProof:    validatorProof,
 		BeaconBlockHeader: blockHeader,
+		BeaconBlockRoot:   beaconBlockRoot,
 		Validator:         validators[blockHeader.GetProposerIndex()],
+		ValidatorProof:    validatorProof,
 	}, nil
 }

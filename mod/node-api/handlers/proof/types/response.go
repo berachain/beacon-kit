@@ -24,15 +24,22 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
+// BlockProposerProofResponse is the response for the
+// `/proof/blocks/proposer/{block_id}` endpoint.
 type BlockProposerProofResponse[BeaconBlockHeaderT, ValidatorT any] struct {
+	// BeaconBlockHeader is the block header of which the hash tree root is the
+	// beacon block root to verify against.
+	BeaconBlockHeader BeaconBlockHeaderT `json:"beacon_block_header"`
+
+	// BeaconBlockRoot is the beacon block root for this slot.
+	BeaconBlockRoot common.Root `json:"beacon_block_root"`
+
+	// Validator is the Validator struct of the block proposer.
+	Validator ValidatorT `json:"validator"`
+
 	// ValidatorProof can be verified against the beacon block root. Use a
 	// Generalized Index of `z + ValidatorIndex`, where z is the Generalized
 	// Index of the 0 validator in the beacon block. In DenebPlus, z is
 	// 406819302277120.
 	ValidatorProof []common.Root `json:"validator_proof"`
-	// Validator is the Validator struct of the block proposer.
-	Validator ValidatorT `json:"validator"`
-	// BeaconBlockHeader is the block header of which the hash tree root is the
-	// beacon block root to verify against.
-	BeaconBlockHeader BeaconBlockHeaderT `json:"beacon_block_header"`
 }
