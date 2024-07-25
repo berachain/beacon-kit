@@ -126,12 +126,13 @@ func (b *BeaconBlockHeader) HashTreeRoot() ([32]byte, error) {
 /* -------------------------------------------------------------------------- */
 
 // MarshalSSZToBytes marshals the BeaconBlockHeader object to SSZ format.
-func (b *BeaconBlockHeader) MarshalSSZTo(buf []byte) ([]byte, error) {
+func (b *BeaconBlockHeader) MarshalSSZTo(dst []byte) ([]byte, error) {
 	bz, err := b.MarshalSSZ()
 	if err != nil {
 		return nil, err
 	}
-	return append(buf, bz...), nil
+	dst = append(dst, bz...)
+	return dst, nil
 }
 
 // HashTreeRootWith ssz hashes the BeaconBlockHeader object with a hasher.

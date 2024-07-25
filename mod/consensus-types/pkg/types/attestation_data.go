@@ -94,13 +94,15 @@ func (a *AttestationData) UnmarshalSSZ(buf []byte) error {
 	return ssz.DecodeFromBytes(buf, a)
 }
 
-// MarshalSSZTo marshals the AttestationData object into a pre-allocated byte slice.
+// MarshalSSZTo marshals the AttestationData object into a pre-allocated byte
+// slice.
 func (a *AttestationData) MarshalSSZTo(dst []byte) ([]byte, error) {
 	bz, err := a.MarshalSSZ()
 	if err != nil {
 		return nil, err
 	}
-	return append(dst, bz...), err
+	dst = append(dst, bz...)
+	return dst, err
 }
 
 // HashTreeRootWith ssz hashes the AttestationData object with a hasher.
