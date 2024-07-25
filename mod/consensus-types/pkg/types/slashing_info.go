@@ -25,16 +25,35 @@
 
 package types
 
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	fastssz "github.com/ferranbt/fastssz"
+	"github.com/karalabe/ssz"
+)
+
+// SlashingInfoSize is the size of the SlashingInfo object in SSZ encoding.
+const SlashingInfoSize = 16 // 8 bytes for Slot + 8 bytes for Index
+
+// Compile-time assertions to ensure SlashingInfo implements the correct interfaces.
+var (
+	_ ssz.StaticObject                    = (*SlashingInfo)(nil)
+	_ constraints.SSZMarshallableRootable = (*SlashingInfo)(nil)
+)
+
+// Compile-time assertion to ensure SlashingInfoSize matches the SizeSSZ method.
+var _ = [1]struct{}{}[16-SlashingInfoSize]
+
 // SlashingInfo represents a slashing info.
 type SlashingInfo struct {
 	// Slot is the slot number of the slashing info.
-	Slot uint64
+	Slot math.Slot
 	// ValidatorIndex is the validator index of the slashing info.
-	Index uint64
+	Index math.U64
 }
 
 // New creates a new slashing info instance.
-func (s *SlashingInfo) New(slot, index uint64) *SlashingInfo {
+func (s *SlashingInfo) New(slot, index math.U64) *SlashingInfo {
 	s = &SlashingInfo{
 		Slot:  slot,
 		Index: index,
@@ -43,21 +62,81 @@ func (s *SlashingInfo) New(slot, index uint64) *SlashingInfo {
 }
 
 // GetSlot returns the slot of the slashing info.
-func (s *SlashingInfo) GetSlot() uint64 {
+func (s *SlashingInfo) GetSlot() math.Slot {
 	return s.Slot
 }
 
 // GetIndex returns the index of the slashing info.
-func (s *SlashingInfo) GetIndex() uint64 {
-	return s.Index
+func (s *SlashingInfo) GetIndex() math.U64 {
+	return math.U64(s.Index)
 }
 
 // SetSlot sets the slot of the slashing info.
-func (s *SlashingInfo) SetSlot(slot uint64) {
+func (s *SlashingInfo) SetSlot(slot math.Slot) {
 	s.Slot = slot
 }
 
 // SetIndex sets the index of the slashing info.
-func (s *SlashingInfo) SetIndex(index uint64) {
+func (s *SlashingInfo) SetIndex(index math.U64) {
 	s.Index = index
+}
+
+// SizeSSZ returns the size of the SlashingInfo object in SSZ encoding.
+func (*SlashingInfo) SizeSSZ() uint32 {
+	return SlashingInfoSize
+}
+
+// DefineSSZ defines the SSZ encoding for the SlashingInfo object.
+func (s *SlashingInfo) DefineSSZ(codec *ssz.Codec) {
+	ssz.DefineUint64(codec, &s.Slot)
+	ssz.DefineUint64(codec, &s.Index)
+}
+
+// HashTreeRoot computes the SSZ hash tree root of the SlashingInfo object.
+func (s *SlashingInfo) HashTreeRoot() ([32]byte, error) {
+	return ssz.HashSequential(s), nil
+}
+
+// MarshalSSZ marshals the SlashingInfo object to SSZ format.
+func (s *SlashingInfo) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, s.SizeSSZ())
+	return buf, ssz.EncodeToBytes(buf, s)
+}
+
+// UnmarshalSSZ unmarshals the SlashingInfo object from SSZ format.
+func (s *SlashingInfo) UnmarshalSSZ(buf []byte) error {
+	return ssz.DecodeFromBytes(buf, s)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
+
+// MarshalSSZTo ssz marshals the SlashingInfo object into a pre-allocated byte slice
+func (s *SlashingInfo) MarshalSSZTo(dst []byte) ([]byte, error) {
+	bz, err := s.MarshalSSZ()
+	if err != nil {
+		return nil, err
+	}
+	dst = append(dst, bz...)
+	return dst, nil
+}
+
+// HashTreeRootWith ssz hashes the SlashingInfo object with a hasher
+func (s *SlashingInfo) HashTreeRootWith(hh fastssz.HashWalker) (err error) {
+	indx := hh.Index()
+
+	// Field (0) 'Slot'
+	hh.PutUint64(uint64(s.Slot))
+
+	// Field (1) 'Index'
+	hh.PutUint64(uint64(s.Index))
+
+	hh.Merkleize(indx)
+	return
+}
+
+// GetTree ssz hashes the SlashingInfo object
+func (s *SlashingInfo) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(s)
 }
