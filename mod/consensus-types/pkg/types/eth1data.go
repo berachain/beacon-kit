@@ -29,7 +29,7 @@ import (
 	"github.com/karalabe/ssz"
 )
 
-// ForkSize is the size of the Fork object in bytes.
+// Eth1DataSize is the size of the Eth1Data object in bytes.
 // 32 bytes for DepositRoot + 8 bytes for DepositCount + 8 bytes for BlockHash.
 const Eth1DataSize = 72
 
