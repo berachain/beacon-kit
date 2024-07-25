@@ -28,7 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/debug"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/events"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/node"
-	"github.com/berachain/beacon-kit/mod/node-api/types/context"
+	"github.com/berachain/beacon-kit/mod/node-api/server/context"
 )
 
 // DefaultHandlers returns the default handlers for the node API.

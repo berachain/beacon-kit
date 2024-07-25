@@ -21,7 +21,7 @@
 package handlers
 
 import (
-	"github.com/berachain/beacon-kit/mod/node-api/types/context"
+	"github.com/berachain/beacon-kit/mod/node-api/server/context"
 )
 
 type handlerFn[ContextT context.Context] func(c ContextT) (any, error)

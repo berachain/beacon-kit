@@ -20,7 +20,7 @@
 
 package handlers
 
-import "github.com/berachain/beacon-kit/mod/node-api/types/context"
+import "github.com/berachain/beacon-kit/mod/node-api/server/context"
 
 // Route is a route for the node API.
 type Route[ContextT context.Context] struct {

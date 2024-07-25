@@ -23,7 +23,7 @@ package server
 import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon"
-	"github.com/berachain/beacon-kit/mod/node-api/types/context"
+	"github.com/berachain/beacon-kit/mod/node-api/server/context"
 )
 
 type Engine[ContextT context.Context, T any] interface {

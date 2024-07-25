@@ -21,9 +21,8 @@
 package beacon
 
 import (
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
-	"github.com/berachain/beacon-kit/mod/node-api/types"
-	beacontypes "github.com/berachain/beacon-kit/mod/node-api/types/beacon"
 )
 
 func (h *Handler[ContextT, _, _]) GetStateRoot(c ContextT) (any, error) {
@@ -42,11 +41,11 @@ func (h *Handler[ContextT, _, _]) GetStateRoot(c ContextT) (any, error) {
 	if len(stateRoot) == 0 {
 		return nil, types.ErrNotFound
 	}
-	return beacontypes.ValidatorResponse{
+	return ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed
 		Finalized:           false, // stubbed
 		Data: types.Wrap(
-			beacontypes.RootData{Root: stateRoot},
+			RootData{Root: stateRoot},
 		),
 	}, nil
 }
@@ -64,7 +63,7 @@ func (h *Handler[ContextT, ForkT, _]) GetStateFork(c ContextT) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return beacontypes.ValidatorResponse{
+	return ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed
 		Finalized:           false, // stubbed
 		Data:                types.Wrap(fork),

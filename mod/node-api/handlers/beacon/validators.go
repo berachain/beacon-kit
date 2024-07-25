@@ -21,13 +21,12 @@
 package beacon
 
 import (
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
-	"github.com/berachain/beacon-kit/mod/node-api/types"
-	beacontypes "github.com/berachain/beacon-kit/mod/node-api/types/beacon"
 )
 
 func (h *Handler[ContextT, _, _]) GetStateValidators(c ContextT) (any, error) {
-	params, err := utils.BindAndValidate[beacontypes.StateValidatorsGetRequest](
+	params, err := utils.BindAndValidate[StateValidatorsGetRequest](
 		c,
 	)
 	if err != nil {
@@ -52,7 +51,7 @@ func (h *Handler[ContextT, _, _]) GetStateValidators(c ContextT) (any, error) {
 	if len(validators) == 0 {
 		return nil, types.ErrNotFound
 	}
-	return beacontypes.ValidatorResponse{
+	return ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed
 		Finalized:           false, // stubbed
 		Data:                validators,
@@ -60,7 +59,7 @@ func (h *Handler[ContextT, _, _]) GetStateValidators(c ContextT) (any, error) {
 }
 
 func (h *Handler[ContextT, _, _]) PostStateValidators(c ContextT) (any, error) {
-	params, err := utils.BindAndValidate[beacontypes.StateValidatorsPostRequest](
+	params, err := utils.BindAndValidate[StateValidatorsPostRequest](
 		c,
 	)
 	if err != nil {
@@ -82,7 +81,7 @@ func (h *Handler[ContextT, _, _]) PostStateValidators(c ContextT) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return beacontypes.ValidatorResponse{
+	return ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed
 		Finalized:           false, // stubbed
 		Data:                validators,
@@ -92,7 +91,7 @@ func (h *Handler[ContextT, _, _]) PostStateValidators(c ContextT) (any, error) {
 func (h *Handler[ContextT, _, _]) GetStateValidatorBalances(
 	c ContextT,
 ) (any, error) {
-	params, err := utils.BindAndValidate[beacontypes.ValidatorBalancesGetRequest](
+	params, err := utils.BindAndValidate[ValidatorBalancesGetRequest](
 		c,
 	)
 	if err != nil {
@@ -109,7 +108,7 @@ func (h *Handler[ContextT, _, _]) GetStateValidatorBalances(
 	if err != nil {
 		return nil, err
 	}
-	return beacontypes.ValidatorResponse{
+	return ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed
 		Finalized:           false, // stubbed
 		Data:                balances,
@@ -119,7 +118,7 @@ func (h *Handler[ContextT, _, _]) GetStateValidatorBalances(
 func (h *Handler[ContextT, _, _]) PostStateValidatorBalances(
 	c ContextT,
 ) (any, error) {
-	params, err := utils.BindAndValidate[beacontypes.ValidatorBalancesPostRequest](
+	params, err := utils.BindAndValidate[ValidatorBalancesPostRequest](
 		c,
 	)
 	if err != nil {
@@ -136,7 +135,7 @@ func (h *Handler[ContextT, _, _]) PostStateValidatorBalances(
 	if err != nil {
 		return nil, err
 	}
-	return beacontypes.ValidatorResponse{
+	return ValidatorResponse{
 		ExecutionOptimistic: false, // stubbed
 		Finalized:           false, // stubbed
 		Data:                balances,

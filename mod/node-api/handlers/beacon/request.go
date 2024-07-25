@@ -18,9 +18,9 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package beacon
 
-import "github.com/berachain/beacon-kit/mod/node-api/types"
+import "github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 
 type StateValidatorsGetRequest struct {
 	types.StateIDRequest

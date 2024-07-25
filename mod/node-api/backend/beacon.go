@@ -22,7 +22,7 @@ package backend
 
 import (
 	"github.com/berachain/beacon-kit/mod/node-api/backend/utils"
-	types "github.com/berachain/beacon-kit/mod/node-api/types/beacon"
+	types "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
