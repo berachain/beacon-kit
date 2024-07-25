@@ -106,6 +106,7 @@ func (b *BlobSidecar) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineStaticBytes(codec, &b.KzgCommitment)
 	ssz.DefineStaticBytes(codec, &b.KzgProof)
 	ssz.DefineStaticObject(codec, &b.BeaconBlockHeader)
+	//nolint:mnd // depth of 8
 	ssz.DefineCheckedArrayOfStaticBytes(codec, &b.InclusionProof, 8)
 }
 
