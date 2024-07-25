@@ -23,7 +23,7 @@ package types_test
 import (
 	"testing"
 
-	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types/v2"
+	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/stretchr/testify/require"
 )

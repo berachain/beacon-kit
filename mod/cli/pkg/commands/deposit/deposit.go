@@ -22,7 +22,7 @@ package deposit
 
 import (
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/parser"
-	typesv2 "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types/v2"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
@@ -106,14 +106,14 @@ func validateDepositMessage(chainSpec common.ChainSpec) func(
 			return err
 		}
 
-		depositMessage := typesv2.DepositMessage{
+		depositMessage := types.DepositMessage{
 			Pubkey:      pubkey,
 			Credentials: credentials,
 			Amount:      amount,
 		}
 
 		return depositMessage.VerifyCreateValidator(
-			typesv2.NewForkData(currentVersion, genesisValidatorRoot),
+			types.NewForkData(currentVersion, genesisValidatorRoot),
 			signature,
 			chainSpec.DomainTypeDeposit(),
 			signer.BLSSigner{}.VerifySignature,
