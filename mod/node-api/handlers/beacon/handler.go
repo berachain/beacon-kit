@@ -34,8 +34,8 @@ type Handler[
 	ForkT any,
 	ValidatorT any,
 ] struct {
+	*handlers.BaseHandler[ContextT]
 	backend Backend[BeaconBlockHeaderT, ForkT, ValidatorT]
-	routes  handlers.RouteSet[ContextT]
 }
 
 // NewHandler creates a new handler for the beacon API.
@@ -48,14 +48,12 @@ func NewHandler[
 	backend Backend[BeaconBlockHeaderT, ForkT, ValidatorT],
 ) *Handler[BeaconBlockHeaderT, ContextT, ForkT, ValidatorT] {
 	h := &Handler[BeaconBlockHeaderT, ContextT, ForkT, ValidatorT]{
+		BaseHandler: handlers.NewBaseHandler[ContextT](
+			handlers.NewRouteSet[ContextT](""),
+		),
 		backend: backend,
-		routes:  handlers.NewRouteSet[ContextT](""),
 	}
 	return h
-}
-
-func (h *Handler[_, ContextT, _, _]) RouteSet() handlers.RouteSet[ContextT] {
-	return h.routes
 }
 
 // NotImplemented is a placeholder for the beacon API.
