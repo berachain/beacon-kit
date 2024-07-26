@@ -32,9 +32,9 @@ import (
 //nolint:lll
 type ForkData struct {
 	// CurrentVersion is the current version of the fork.
-	CurrentVersion common.Version `ssz-size:"4"`
+	CurrentVersion common.Version
 	// GenesisValidatorsRoot is the root of the genesis validators.
-	GenesisValidatorsRoot common.Root `ssz-size:"32"`
+	GenesisValidatorsRoot common.Root
 }
 
 // NewForkData creates a new ForkData struct.

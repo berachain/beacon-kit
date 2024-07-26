@@ -44,9 +44,6 @@ const (
 	// in the merkle tree built from the block body.
 	KZGMerkleIndexDeneb = 26
 
-	// LogsBloomSize is the size of LogsBloom in bytes.
-	LogsBloomSize = 256
-
 	// ExtraDataSize is the size of ExtraData in bytes.
 	ExtraDataSize = 32
 )
@@ -67,12 +64,14 @@ func (b *BeaconBlockBody) Empty(forkVersion uint32) *BeaconBlockBody {
 			},
 		}}
 	case version.DenebPlus:
-		return &BeaconBlockBody{RawBeaconBlockBody: &BeaconBlockBodyDenebPlus{
-			BeaconBlockBodyBase: BeaconBlockBodyBase{},
-			ExecutionPayload: &ExecutionPayload{
-				ExtraData: make([]byte, ExtraDataSize),
-			},
-		}}
+		panic("unsupported fork version")
+		// return &BeaconBlockBody{RawBeaconBlockBody:
+		// &BeaconBlockBodyDenebPlus{
+		// 	BeaconBlockBodyBase: BeaconBlockBodyBase{},
+		// 	ExecutionPayload: &ExecutionPayload{
+		// 		ExtraData: make([]byte, ExtraDataSize),
+		// 	},
+		// }}
 	default:
 		panic("unsupported fork version")
 	}
@@ -97,13 +96,13 @@ func BlockBodyKZGOffset(
 // shared between all forks.
 type BeaconBlockBodyBase struct {
 	// RandaoReveal is the reveal of the RANDAO.
-	RandaoReveal crypto.BLSSignature `ssz-size:"96"`
+	RandaoReveal crypto.BLSSignature
 	// Eth1Data is the data from the Eth1 chain.
 	Eth1Data *Eth1Data
 	// Graffiti is for a fun message or meme.
-	Graffiti [32]byte `ssz-size:"32"`
+	Graffiti [32]byte
 	// Deposits is the list of deposits included in the body.
-	Deposits []*Deposit `              ssz-max:"16"`
+	Deposits []*Deposit
 }
 
 // GetRandaoReveal returns the RandaoReveal of the Body.

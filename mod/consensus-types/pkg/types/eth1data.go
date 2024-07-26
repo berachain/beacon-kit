@@ -40,11 +40,11 @@ var (
 
 type Eth1Data struct {
 	// DepositRoot is the root of the deposit tree.
-	DepositRoot common.Root `json:"depositRoot"  ssz-size:"32"`
+	DepositRoot common.Root `json:"depositRoot"`
 	// DepositCount is the number of deposits in the deposit tree.
 	DepositCount math.U64 `json:"depositCount"`
 	// BlockHash is the hash of the block corresponding to the Eth1Data.
-	BlockHash gethprimitives.ExecutionHash `json:"blockHash"    ssz-size:"32"`
+	BlockHash gethprimitives.ExecutionHash `json:"blockHash"`
 }
 
 /* -------------------------------------------------------------------------- */

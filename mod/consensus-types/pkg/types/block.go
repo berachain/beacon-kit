@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -27,75 +27,78 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
-// BeaconBlock is the interface for a beacon block.
+// BeaconBlock represents a block in the beacon chain during
+// the Deneb fork.
 type BeaconBlock struct {
-	RawBeaconBlock[*BeaconBlockBody]
+	// Slot represents the position of the block in the chain.
+	Slot math.Slot `json:"slot"`
+	// ProposerIndex is the index of the validator who proposed the block.
+	ProposerIndex math.Slot `json:"proposer_index"`
+	// ParentRoot is the hash of the parent block
+	ParentRoot common.Root `json:"parent_root"`
+	// StateRoot is the hash of the state at the block.
+	StateRoot common.Root `json:"state_root"`
+	// Body is the body of the BeaconBlock, containing the block's
+	// operations.
+	Body *BeaconBlockBodyDeneb `json:"body"`
 }
 
 // Empty creates an empty beacon block.
-func (w *BeaconBlock) Empty(forkVersion uint32) *BeaconBlock {
+func (b *BeaconBlock) Empty(forkVersion uint32) *BeaconBlock {
 	switch forkVersion {
 	case version.Deneb:
-		return &BeaconBlock{
-			RawBeaconBlock: (*BeaconBlockDeneb)(nil),
-		}
+		return &BeaconBlock{}
 	case version.DenebPlus:
-		return &BeaconBlock{
-			RawBeaconBlock: (*BeaconBlockDenebPlus)(nil),
-		}
+		panic("unsupported fork version")
 	default:
 		panic("fork version not supported")
 	}
 }
 
 // NewWithVersion assembles a new beacon block from the given.
-func (w *BeaconBlock) NewWithVersion(
+func (b *BeaconBlock) NewWithVersion(
 	slot math.Slot,
 	proposerIndex math.ValidatorIndex,
 	parentBlockRoot common.Root,
 	forkVersion uint32,
 ) (*BeaconBlock, error) {
 	var (
-		block RawBeaconBlock[*BeaconBlockBody]
-		base  = BeaconBlockHeaderBase{
-			Slot:          slot.Unwrap(),
-			ProposerIndex: proposerIndex.Unwrap(),
-			ParentRoot:    parentBlockRoot,
-			StateRoot:     bytes.B32{},
-		}
+		block *BeaconBlock
 	)
 
 	switch forkVersion {
 	case version.Deneb:
-		block = &BeaconBlockDeneb{
-			BeaconBlockHeaderBase: base,
-			Body:                  &BeaconBlockBodyDeneb{},
+		block = &BeaconBlock{
+			Slot:          slot,
+			ProposerIndex: proposerIndex,
+			ParentRoot:    parentBlockRoot,
+			StateRoot:     bytes.B32{},
+			Body:          &BeaconBlockBodyDeneb{},
 		}
 	case version.DenebPlus:
-		block = &BeaconBlockDenebPlus{
-			BeaconBlockHeaderBase: base,
-			Body:                  &BeaconBlockBodyDenebPlus{},
-		}
+		// block = &BeaconBlockDenebPlus{
+		// 	BeaconBlockHeaderBase: base,
+		// 	Body:                  &BeaconBlockBodyDenebPlus{},
+		// }
 	default:
 		return &BeaconBlock{}, ErrForkVersionNotSupported
 	}
 
-	return &BeaconBlock{
-		RawBeaconBlock: block,
-	}, nil
+	return block, nil
 }
 
 // NewFromSSZ creates a new beacon block from the given SSZ bytes.
-func (w *BeaconBlock) NewFromSSZ(
+func (b *BeaconBlock) NewFromSSZ(
 	bz []byte,
 	forkVersion uint32,
 ) (*BeaconBlock, error) {
 	var block = new(BeaconBlock)
 	switch forkVersion {
 	case version.Deneb:
-		block.RawBeaconBlock = &BeaconBlockDeneb{}
+		block = &BeaconBlock{}
 	case version.DenebPlus:
-		block.RawBeaconBlock = &BeaconBlockDenebPlus{}
+		panic("unsupported fork version")
+		// block.RawBeaconBlock = &BeaconBlockDenebPlus{}
 	default:
 		return block, ErrForkVersionNotSupported
 	}
@@ -107,8 +110,57 @@ func (w *BeaconBlock) NewFromSSZ(
 }
 
 // IsNil checks if the beacon block is nil.
-func (w *BeaconBlock) IsNil() bool {
-	return w == nil ||
-		w.RawBeaconBlock == nil ||
-		w.RawBeaconBlock.IsNil()
+func (b *BeaconBlock) IsNil() bool {
+	return b == nil
+}
+
+// GetSlot retrieves the slot of the BeaconBlockBase.
+func (b *BeaconBlock) GetSlot() math.Slot {
+	return b.Slot
+}
+
+// GetSlot retrieves the slot of the BeaconBlockBase.
+func (b *BeaconBlock) GetProposerIndex() math.ValidatorIndex {
+	return b.ProposerIndex
+}
+
+// GetParentBlockRoot retrieves the parent block root of the BeaconBlockBase.
+func (b *BeaconBlock) GetParentBlockRoot() common.Root {
+	return b.ParentRoot
+}
+
+// GetStateRoot retrieves the state root of the BeaconBlock.
+func (b *BeaconBlock) GetStateRoot() common.Root {
+	return b.StateRoot
+}
+
+// Version identifies the version of the BeaconBlock.
+func (b *BeaconBlock) Version() uint32 {
+	return version.Deneb
+}
+
+// SetStateRoot sets the state root of the BeaconBlock.
+func (b *BeaconBlock) SetStateRoot(root common.Root) {
+	b.StateRoot = root
+}
+
+// GetBody retrieves the body of the BeaconBlock.
+func (b *BeaconBlock) GetBody() *BeaconBlockBody {
+	return &BeaconBlockBody{RawBeaconBlockBody: b.Body}
+}
+
+// GetHeader builds a BeaconBlockHeader from the BeaconBlock.
+func (b *BeaconBlock) GetHeader() *BeaconBlockHeader {
+	bodyRoot, err := b.GetBody().HashTreeRoot()
+	if err != nil {
+		return nil
+	}
+
+	return &BeaconBlockHeader{
+		Slot:            b.Slot,
+		ProposerIndex:   b.ProposerIndex,
+		ParentBlockRoot: b.ParentRoot,
+		StateRoot:       b.StateRoot,
+		BodyRoot:        bodyRoot,
+	}
 }
