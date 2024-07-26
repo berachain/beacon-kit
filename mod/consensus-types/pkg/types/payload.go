@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -35,33 +35,155 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// ExecutionPayload represents an execution payload across
-// all fork versions.
+// ExecutionPayload is the execution payload for Deneb.
+//
+//nolint:lll
 type ExecutionPayload struct {
-	InnerExecutionPayload
-}
-
-// InnerExecutionPayload represents the inner execution payload.
-type InnerExecutionPayload interface {
-	executionPayloadBody
-	GetTransactions() [][]byte
-	GetWithdrawals() []*engineprimitives.Withdrawal
+	// ParentHash is the hash of the parent block.
+	ParentHash gethprimitives.ExecutionHash `json:"parentHash"    gencodec:"required"`
+	// FeeRecipient is the address of the fee recipient.
+	FeeRecipient gethprimitives.ExecutionAddress `json:"feeRecipient"  gencodec:"required"`
+	// StateRoot is the root of the state trie.
+	StateRoot common.Bytes32 `json:"stateRoot"     gencodec:"required"`
+	// ReceiptsRoot is the root of the receipts trie.
+	ReceiptsRoot common.Bytes32 `json:"receiptsRoot"  gencodec:"required"`
+	// LogsBloom is the bloom filter for the logs.
+	LogsBloom bytes.B256 `json:"logsBloom"     gencodec:"required"`
+	// Random is the prevRandao value.
+	Random common.Bytes32 `json:"prevRandao"    gencodec:"required"`
+	// Number is the block number.
+	Number math.U64 `json:"blockNumber"   gencodec:"required"`
+	// GasLimit is the gas limit for the block.
+	GasLimit math.U64 `json:"gasLimit"      gencodec:"required"`
+	// GasUsed is the amount of gas used in the block.
+	GasUsed math.U64 `json:"gasUsed"       gencodec:"required"`
+	// Timestamp is the timestamp of the block.
+	Timestamp math.U64 `json:"timestamp"     gencodec:"required"`
+	// ExtraData is the extra data of the block.
+	ExtraData bytes.Bytes `json:"extraData"     gencodec:"required"`
+	// BaseFeePerGas is the base fee per gas.
+	BaseFeePerGas math.Wei `json:"baseFeePerGas" gencodec:"required"`
+	// BlockHash is the hash of the block.
+	BlockHash gethprimitives.ExecutionHash `json:"blockHash"     gencodec:"required"`
+	// Transactions is the list of transactions in the block.
+	Transactions [][]byte `json:"transactions"  gencodec:"required"`
+	// Withdrawals is the list of withdrawals in the block.
+	Withdrawals []*engineprimitives.Withdrawal `json:"withdrawals"`
+	// BlobGasUsed is the amount of blob gas used in the block.
+	BlobGasUsed math.U64 `json:"blobGasUsed"`
+	// ExcessBlobGas is the amount of excess blob gas in the block.
+	ExcessBlobGas math.U64 `json:"excessBlobGas"`
 }
 
 // Empty returns an empty ExecutionPayload for the given fork version.
-func (e *ExecutionPayload) Empty(forkVersion uint32) *ExecutionPayload {
-	e = new(ExecutionPayload)
-	switch forkVersion {
-	case version.Deneb, version.DenebPlus:
-		e.InnerExecutionPayload = &ExecutableDataDeneb{}
-	default:
-		panic("unknown fork version")
-	}
-	return e
+func (p *ExecutionPayload) Empty(_ uint32) *ExecutionPayload {
+	return &ExecutionPayload{}
+}
+
+// Version returns the version of the ExecutionPayload.
+func (p *ExecutionPayload) Version() uint32 {
+	return version.Deneb
+}
+
+// IsNil checks if the ExecutionPayload is nil.
+func (p *ExecutionPayload) IsNil() bool {
+	return p == nil
+}
+
+// IsBlinded checks if the ExecutionPayload is blinded.
+func (p *ExecutionPayload) IsBlinded() bool {
+	return false
+}
+
+// GetParentHash returns the parent hash of the ExecutionPayload.
+func (p *ExecutionPayload) GetParentHash() gethprimitives.ExecutionHash {
+	return p.ParentHash
+}
+
+// GetFeeRecipient returns the fee recipient address of the ExecutionPayload.
+func (
+	p *ExecutionPayload,
+) GetFeeRecipient() gethprimitives.ExecutionAddress {
+	return p.FeeRecipient
+}
+
+// GetStateRoot returns the state root of the ExecutionPayload.
+func (p *ExecutionPayload) GetStateRoot() common.Bytes32 {
+	return p.StateRoot
+}
+
+// GetReceiptsRoot returns the receipts root of the ExecutionPayload.
+func (p *ExecutionPayload) GetReceiptsRoot() common.Bytes32 {
+	return p.ReceiptsRoot
+}
+
+// GetLogsBloom returns the logs bloom of the ExecutionPayload.
+func (p *ExecutionPayload) GetLogsBloom() []byte {
+	return p.LogsBloom[:]
+}
+
+// GetPrevRandao returns the previous Randao value of the ExecutionPayload.
+func (p *ExecutionPayload) GetPrevRandao() common.Bytes32 {
+	return p.Random
+}
+
+// GetNumber returns the block number of the ExecutionPayload.
+func (p *ExecutionPayload) GetNumber() math.U64 {
+	return p.Number
+}
+
+// GetGasLimit returns the gas limit of the ExecutionPayload.
+func (p *ExecutionPayload) GetGasLimit() math.U64 {
+	return p.GasLimit
+}
+
+// GetGasUsed returns the gas used of the ExecutionPayload.
+func (p *ExecutionPayload) GetGasUsed() math.U64 {
+	return p.GasUsed
+}
+
+// GetTimestamp returns the timestamp of the ExecutionPayload.
+func (p *ExecutionPayload) GetTimestamp() math.U64 {
+	return p.Timestamp
+}
+
+// GetExtraData returns the extra data of the ExecutionPayload.
+func (p *ExecutionPayload) GetExtraData() []byte {
+	return p.ExtraData
+}
+
+// GetBaseFeePerGas returns the base fee per gas of the ExecutionPayload.
+func (p *ExecutionPayload) GetBaseFeePerGas() math.Wei {
+	return p.BaseFeePerGas
+}
+
+// GetBlockHash returns the block hash of the ExecutionPayload.
+func (p *ExecutionPayload) GetBlockHash() gethprimitives.ExecutionHash {
+	return p.BlockHash
+}
+
+// GetTransactions returns the transactions of the ExecutionPayload.
+func (p *ExecutionPayload) GetTransactions() [][]byte {
+	return p.Transactions
+}
+
+// GetWithdrawals returns the withdrawals of the ExecutionPayload.
+func (p *ExecutionPayload) GetWithdrawals() []*engineprimitives.Withdrawal {
+	return p.Withdrawals
+}
+
+// GetBlobGasUsed returns the blob gas used of the ExecutionPayload.
+func (p *ExecutionPayload) GetBlobGasUsed() math.U64 {
+	return p.BlobGasUsed
+}
+
+// GetExcessBlobGas returns the excess blob gas of the ExecutionPayload.
+func (p *ExecutionPayload) GetExcessBlobGas() math.U64 {
+	return p.ExcessBlobGas
 }
 
 // ToHeader converts the ExecutionPayload to an ExecutionPayloadHeader.
-func (e *ExecutionPayload) ToHeader(
+func (p *ExecutionPayload) ToHeader(
 	txsMerkleizer *merkle.Merkleizer[[32]byte, common.Root],
 	maxWithdrawalsPerPayload uint64,
 ) (*ExecutionPayloadHeader, error) {
@@ -74,8 +196,10 @@ func (e *ExecutionPayload) ToHeader(
 
 	g.Go(func() error {
 		var txsRootErr error
+		// TODO: This is live on bArtio with a bug and needs to be hardforked
+		// off of.
 		txsRoot, txsRootErr = engineprimitives.Transactions(
-			e.GetTransactions(),
+			p.GetTransactions(),
 		).HashTreeRootWith(txsMerkleizer)
 		return txsRootErr
 	})
@@ -84,7 +208,7 @@ func (e *ExecutionPayload) ToHeader(
 		var withdrawalsRootErr error
 		wds := ssz.ListFromElements(
 			maxWithdrawalsPerPayload,
-			e.GetWithdrawals()...)
+			p.GetWithdrawals()...)
 		withdrawalsRoot, withdrawalsRootErr = wds.HashTreeRoot()
 		return withdrawalsRootErr
 	})
@@ -94,162 +218,28 @@ func (e *ExecutionPayload) ToHeader(
 		return nil, err
 	}
 
-	switch e.Version() {
+	switch p.Version() {
 	case version.Deneb, version.DenebPlus:
 		return &ExecutionPayloadHeader{
-			InnerExecutionPayloadHeader: &ExecutionPayloadHeaderDeneb{
-				ParentHash:       e.GetParentHash(),
-				FeeRecipient:     e.GetFeeRecipient(),
-				StateRoot:        e.GetStateRoot(),
-				ReceiptsRoot:     e.GetReceiptsRoot(),
-				LogsBloom:        e.GetLogsBloom(),
-				Random:           e.GetPrevRandao(),
-				Number:           e.GetNumber(),
-				GasLimit:         e.GetGasLimit(),
-				GasUsed:          e.GetGasUsed(),
-				Timestamp:        e.GetTimestamp(),
-				ExtraData:        e.GetExtraData(),
-				BaseFeePerGas:    e.GetBaseFeePerGas(),
-				BlockHash:        e.GetBlockHash(),
-				TransactionsRoot: txsRoot,
-				WithdrawalsRoot:  withdrawalsRoot,
-				BlobGasUsed:      e.GetBlobGasUsed(),
-				ExcessBlobGas:    e.GetExcessBlobGas(),
-			},
+			ParentHash:       p.GetParentHash(),
+			FeeRecipient:     p.GetFeeRecipient(),
+			StateRoot:        p.GetStateRoot(),
+			ReceiptsRoot:     p.GetReceiptsRoot(),
+			LogsBloom:        [256]byte(p.GetLogsBloom()),
+			Random:           p.GetPrevRandao(),
+			Number:           p.GetNumber(),
+			GasLimit:         p.GetGasLimit(),
+			GasUsed:          p.GetGasUsed(),
+			Timestamp:        p.GetTimestamp(),
+			ExtraData:        p.GetExtraData(),
+			BaseFeePerGas:    p.GetBaseFeePerGas(),
+			BlockHash:        p.GetBlockHash(),
+			TransactionsRoot: txsRoot,
+			WithdrawalsRoot:  withdrawalsRoot,
+			BlobGasUsed:      p.GetBlobGasUsed(),
+			ExcessBlobGas:    p.GetExcessBlobGas(),
 		}, nil
 	default:
 		return nil, errors.New("unknown fork version")
 	}
-}
-
-// ExecutableDataDeneb is the execution payload for Deneb.
-//
-//nolint:lll
-type ExecutableDataDeneb struct {
-	ParentHash    gethprimitives.ExecutionHash    `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
-	FeeRecipient  gethprimitives.ExecutionAddress `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
-	StateRoot     common.Bytes32                  `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
-	ReceiptsRoot  common.Bytes32                  `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
-	LogsBloom     []byte                          `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
-	Random        common.Bytes32                  `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
-	Number        math.U64                        `json:"blockNumber"                  gencodec:"required"`
-	GasLimit      math.U64                        `json:"gasLimit"                     gencodec:"required"`
-	GasUsed       math.U64                        `json:"gasUsed"                      gencodec:"required"`
-	Timestamp     math.U64                        `json:"timestamp"                    gencodec:"required"`
-	ExtraData     []byte                          `json:"extraData"                    gencodec:"required" ssz-max:"32"`
-	BaseFeePerGas math.Wei                        `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
-	BlockHash     gethprimitives.ExecutionHash    `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
-	Transactions  [][]byte                        `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
-	Withdrawals   []*engineprimitives.Withdrawal  `json:"withdrawals"                                      ssz-max:"16"`
-	BlobGasUsed   math.U64                        `json:"blobGasUsed"`
-	ExcessBlobGas math.U64                        `json:"excessBlobGas"`
-}
-
-// JSON type overrides for ExecutableDataDeneb.
-type executableDataDenebMarshaling struct {
-	ExtraData    bytes.Bytes
-	LogsBloom    bytes.Bytes
-	Transactions []bytes.Bytes
-}
-
-// Version returns the version of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) Version() uint32 {
-	return version.Deneb
-}
-
-// IsNil checks if the ExecutableDataDeneb is nil.
-func (d *ExecutableDataDeneb) IsNil() bool {
-	return d == nil
-}
-
-// IsBlinded checks if the ExecutableDataDeneb is blinded.
-func (d *ExecutableDataDeneb) IsBlinded() bool {
-	return false
-}
-
-// GetParentHash returns the parent hash of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetParentHash() gethprimitives.ExecutionHash {
-	return d.ParentHash
-}
-
-// GetFeeRecipient returns the fee recipient address of the ExecutableDataDeneb.
-func (
-	d *ExecutableDataDeneb,
-) GetFeeRecipient() gethprimitives.ExecutionAddress {
-	return d.FeeRecipient
-}
-
-// GetStateRoot returns the state root of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetStateRoot() common.Bytes32 {
-	return d.StateRoot
-}
-
-// GetReceiptsRoot returns the receipts root of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetReceiptsRoot() common.Bytes32 {
-	return d.ReceiptsRoot
-}
-
-// GetLogsBloom returns the logs bloom of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetLogsBloom() []byte {
-	return d.LogsBloom
-}
-
-// GetPrevRandao returns the previous Randao value of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetPrevRandao() common.Bytes32 {
-	return d.Random
-}
-
-// GetNumber returns the block number of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetNumber() math.U64 {
-	return d.Number
-}
-
-// GetGasLimit returns the gas limit of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetGasLimit() math.U64 {
-	return d.GasLimit
-}
-
-// GetGasUsed returns the gas used of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetGasUsed() math.U64 {
-	return d.GasUsed
-}
-
-// GetTimestamp returns the timestamp of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetTimestamp() math.U64 {
-	return d.Timestamp
-}
-
-// GetExtraData returns the extra data of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetExtraData() []byte {
-	return d.ExtraData
-}
-
-// GetBaseFeePerGas returns the base fee per gas of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetBaseFeePerGas() math.Wei {
-	return d.BaseFeePerGas
-}
-
-// GetBlockHash returns the block hash of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetBlockHash() gethprimitives.ExecutionHash {
-	return d.BlockHash
-}
-
-// GetTransactions returns the transactions of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetTransactions() [][]byte {
-	return d.Transactions
-}
-
-// GetWithdrawals returns the withdrawals of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetWithdrawals() []*engineprimitives.Withdrawal {
-	return d.Withdrawals
-}
-
-// GetBlobGasUsed returns the blob gas used of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetBlobGasUsed() math.U64 {
-	return d.BlobGasUsed
-}
-
-// GetExcessBlobGas returns the excess blob gas of the ExecutableDataDeneb.
-func (d *ExecutableDataDeneb) GetExcessBlobGas() math.U64 {
-	return d.ExcessBlobGas
 }

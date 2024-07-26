@@ -38,19 +38,15 @@ import (
 
 // generateValidBeaconState generates a valid beacon state for the Deneb.
 func generateValidBeaconState() *deneb.BeaconState {
-	var byteArray [256]byte
 	return &deneb.BeaconState{
-		BlockRoots:  []common.Root{},
-		StateRoots:  []common.Root{},
-		Fork:        &types.Fork{},
-		Validators:  []*types.Validator{},
-		Balances:    []uint64{},
-		RandaoMixes: []common.Bytes32{},
-		Slashings:   []uint64{},
-		LatestExecutionPayloadHeader: &types.ExecutionPayloadHeaderDeneb{
-			LogsBloom: byteArray[:],
-			ExtraData: []byte{},
-		},
+		BlockRoots:                   []common.Root{},
+		StateRoots:                   []common.Root{},
+		Fork:                         &types.Fork{},
+		Validators:                   []*types.Validator{},
+		Balances:                     []uint64{},
+		RandaoMixes:                  []common.Bytes32{},
+		Slashings:                    []uint64{},
+		LatestExecutionPayloadHeader: &types.ExecutionPayloadHeader{},
 	}
 }
 
@@ -65,7 +61,7 @@ func TestBeaconStateMarshalUnmarshalSSZ(t *testing.T) {
 	err := newState.UnmarshalSSZ(data)
 	require.NoError(t, err)
 
-	require.Equal(t, state, newState)
+	require.EqualValues(t, state, newState)
 
 	// Check if the state size is greater than 0
 	require.Positive(t, state.SizeSSZ())
@@ -124,8 +120,8 @@ func TestBeaconState_MarshalSSZFields(t *testing.T) {
 	require.NoError(t, err)
 
 	// Test LatestExecutionPayloadHeader field
-	state.LatestExecutionPayloadHeader = &types.ExecutionPayloadHeaderDeneb{
-		LogsBloom: make([]byte, 256), // Initialize LogsBloom with 256 bytes
+	state.LatestExecutionPayloadHeader = &types.ExecutionPayloadHeader{
+		LogsBloom: [256]byte{},
 	}
 	_, err = state.MarshalSSZ()
 	require.NoError(t, err)

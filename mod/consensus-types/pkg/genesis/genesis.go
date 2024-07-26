@@ -125,17 +125,15 @@ func DefaultGenesisDeneb() *Genesis[
 		ForkVersion: version.FromUint32[common.Version](
 			version.Deneb,
 		),
-		Deposits: make([]*types.Deposit, 0),
-		ExecutionPayloadHeader: &types.ExecutionPayloadHeader{
-			InnerExecutionPayloadHeader: defaultHeader,
-		},
+		Deposits:               make([]*types.Deposit, 0),
+		ExecutionPayloadHeader: defaultHeader,
 	}
 }
 
 // DefaultGenesisExecutionPayloadHeaderDeneb returns a default
 // ExecutionPayloadHeaderDeneb.
 func DefaultGenesisExecutionPayloadHeaderDeneb() (
-	*types.ExecutionPayloadHeaderDeneb, error,
+	*types.ExecutionPayloadHeader, error,
 ) {
 	// Get the merkle roots of empty transactions and withdrawals in parallel.
 	var (
@@ -165,7 +163,7 @@ func DefaultGenesisExecutionPayloadHeaderDeneb() (
 		return nil, err
 	}
 
-	return &types.ExecutionPayloadHeaderDeneb{
+	return &types.ExecutionPayloadHeader{
 		ParentHash:   gethprimitives.ZeroHash,
 		FeeRecipient: gethprimitives.ZeroAddress,
 		StateRoot: common.Bytes32(gethprimitives.Hex2BytesFixed(
@@ -176,7 +174,7 @@ func DefaultGenesisExecutionPayloadHeaderDeneb() (
 			"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
 			constants.RootLength,
 		)),
-		LogsBloom: make([]byte, constants.LogsBloomLength),
+		LogsBloom: [256]byte{},
 		Random:    common.Bytes32{},
 		Number:    0,
 		//nolint:mnd // default value.

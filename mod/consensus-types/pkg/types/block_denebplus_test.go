@@ -35,8 +35,6 @@ import (
 )
 
 func generateBeaconBlockDenebPlus() *types.BeaconBlockDenebPlus {
-	var byteArray [256]byte
-	byteSlice := byteArray[:]
 	return &types.BeaconBlockDenebPlus{
 		BeaconBlockHeaderBase: types.BeaconBlockHeaderBase{
 			Slot:          12345,
@@ -78,8 +76,7 @@ func generateBeaconBlockDenebPlus() *types.BeaconBlockDenebPlus {
 				},
 				Deposits: []*types.Deposit{},
 			},
-			ExecutionPayload: &types.ExecutableDataDeneb{
-				LogsBloom:    byteSlice,
+			ExecutionPayload: &types.ExecutionPayload{
 				ExtraData:    make([]byte, 0),
 				Transactions: make([][]byte, 0),
 				Withdrawals:  make([]*engineprimitives.Withdrawal, 0),
@@ -140,8 +137,6 @@ func TestBeaconBlockDenebPlus_GetHeader(t *testing.T) {
 }
 
 func TestBeaconBlockDenebPlus_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
-	var byteArray [256]byte
-	byteSlice := byteArray[:]
 	testCases := []struct {
 		name     string
 		data     *types.BeaconBlockDenebPlus
@@ -170,8 +165,7 @@ func TestBeaconBlockDenebPlus_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 						Graffiti:     [32]byte{},
 						Deposits:     []*types.Deposit{},
 					},
-					ExecutionPayload: &types.ExecutableDataDeneb{
-						LogsBloom:    byteSlice,
+					ExecutionPayload: &types.ExecutionPayload{
 						ExtraData:    make([]byte, 0),
 						Transactions: make([][]byte, 0),
 						Withdrawals:  make([]*engineprimitives.Withdrawal, 0),
@@ -195,8 +189,7 @@ func TestBeaconBlockDenebPlus_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 						Graffiti:     [32]byte{},
 						Deposits:     []*types.Deposit{},
 					},
-					ExecutionPayload: &types.ExecutableDataDeneb{
-						LogsBloom:    byteSlice,
+					ExecutionPayload: &types.ExecutionPayload{
 						ExtraData:    make([]byte, 0),
 						Transactions: make([][]byte, 0),
 						Withdrawals:  make([]*engineprimitives.Withdrawal, 0),

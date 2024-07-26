@@ -35,8 +35,6 @@ import (
 // generateValidBeaconBlockDeneb generates a valid beacon block for the Deneb.
 func generateValidBeaconBlockDeneb() *types.BeaconBlockDeneb {
 	// Initialize your block here
-	var byteArray [256]byte
-	byteSlice := byteArray[:]
 	return &types.BeaconBlockDeneb{
 		BeaconBlockHeaderBase: types.BeaconBlockHeaderBase{
 			Slot:          10,
@@ -45,9 +43,7 @@ func generateValidBeaconBlockDeneb() *types.BeaconBlockDeneb {
 			StateRoot:     bytes.B32{5, 4, 3, 2, 1},
 		},
 		Body: &types.BeaconBlockBodyDeneb{
-			ExecutionPayload: &types.ExecutableDataDeneb{
-				LogsBloom: byteSlice,
-
+			ExecutionPayload: &types.ExecutionPayload{
 				ExtraData:    []byte{},
 				Transactions: [][]byte{},
 				Withdrawals:  []*engineprimitives.Withdrawal{},

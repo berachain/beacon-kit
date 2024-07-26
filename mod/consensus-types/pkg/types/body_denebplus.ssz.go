@@ -39,7 +39,7 @@ func (b *BeaconBlockBodyDenebPlus) MarshalSSZTo(buf []byte) (dst []byte, err err
 	// Offset (4) 'ExecutionPayload'
 	dst = ssz.WriteOffset(dst, offset)
 	if b.ExecutionPayload == nil {
-		b.ExecutionPayload = new(ExecutableDataDeneb)
+		b.ExecutionPayload = new(ExecutionPayload)
 	}
 	offset += b.ExecutionPayload.SizeSSZ()
 
@@ -180,7 +180,7 @@ func (b *BeaconBlockBodyDenebPlus) UnmarshalSSZ(buf []byte) error {
 	{
 		buf = tail[o4:o5]
 		if b.ExecutionPayload == nil {
-			b.ExecutionPayload = new(ExecutableDataDeneb)
+			b.ExecutionPayload = new(ExecutionPayload)
 		}
 		if err = b.ExecutionPayload.UnmarshalSSZ(buf); err != nil {
 			return err
@@ -247,7 +247,7 @@ func (b *BeaconBlockBodyDenebPlus) SizeSSZ() (size int) {
 
 	// Field (4) 'ExecutionPayload'
 	if b.ExecutionPayload == nil {
-		b.ExecutionPayload = new(ExecutableDataDeneb)
+		b.ExecutionPayload = new(ExecutionPayload)
 	}
 	size += b.ExecutionPayload.SizeSSZ()
 
