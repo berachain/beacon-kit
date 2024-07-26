@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -31,11 +31,9 @@ import (
 // the Deneb fork.
 type BeaconBlock struct {
 	// Slot represents the position of the block in the chain.
-	// TODO: Put back to math.Slot after fastssz fixes.
-	Slot uint64 `json:"slot"`
+	Slot math.Slot `json:"slot"`
 	// ProposerIndex is the index of the validator who proposed the block.
-	// TODO: Put back to math.ProposerIndex after fastssz fixes.
-	ProposerIndex uint64 `json:"proposer_index"`
+	ProposerIndex math.Slot `json:"proposer_index"`
 	// ParentRoot is the hash of the parent block
 	ParentRoot common.Root `json:"parent_root"`
 	// StateRoot is the hash of the state at the block.
@@ -46,7 +44,7 @@ type BeaconBlock struct {
 }
 
 // Empty creates an empty beacon block.
-func (w *BeaconBlock) Empty(forkVersion uint32) *BeaconBlock {
+func (b *BeaconBlock) Empty(forkVersion uint32) *BeaconBlock {
 	switch forkVersion {
 	case version.Deneb:
 		return &BeaconBlock{}
@@ -58,7 +56,7 @@ func (w *BeaconBlock) Empty(forkVersion uint32) *BeaconBlock {
 }
 
 // NewWithVersion assembles a new beacon block from the given.
-func (w *BeaconBlock) NewWithVersion(
+func (b *BeaconBlock) NewWithVersion(
 	slot math.Slot,
 	proposerIndex math.ValidatorIndex,
 	parentBlockRoot common.Root,
@@ -71,8 +69,8 @@ func (w *BeaconBlock) NewWithVersion(
 	switch forkVersion {
 	case version.Deneb:
 		block = &BeaconBlock{
-			Slot:          slot.Unwrap(),
-			ProposerIndex: proposerIndex.Unwrap(),
+			Slot:          slot,
+			ProposerIndex: proposerIndex,
 			ParentRoot:    parentBlockRoot,
 			StateRoot:     bytes.B32{},
 			Body:          &BeaconBlockBodyDeneb{},
@@ -90,7 +88,7 @@ func (w *BeaconBlock) NewWithVersion(
 }
 
 // NewFromSSZ creates a new beacon block from the given SSZ bytes.
-func (w *BeaconBlock) NewFromSSZ(
+func (b *BeaconBlock) NewFromSSZ(
 	bz []byte,
 	forkVersion uint32,
 ) (*BeaconBlock, error) {
@@ -112,18 +110,18 @@ func (w *BeaconBlock) NewFromSSZ(
 }
 
 // IsNil checks if the beacon block is nil.
-func (w *BeaconBlock) IsNil() bool {
-	return w == nil
+func (b *BeaconBlock) IsNil() bool {
+	return b == nil
 }
 
 // GetSlot retrieves the slot of the BeaconBlockBase.
 func (b *BeaconBlock) GetSlot() math.Slot {
-	return math.Slot(b.Slot)
+	return b.Slot
 }
 
 // GetSlot retrieves the slot of the BeaconBlockBase.
 func (b *BeaconBlock) GetProposerIndex() math.ValidatorIndex {
-	return math.ValidatorIndex(b.ProposerIndex)
+	return b.ProposerIndex
 }
 
 // GetParentBlockRoot retrieves the parent block root of the BeaconBlockBase.
@@ -152,15 +150,15 @@ func (b *BeaconBlock) GetBody() *BeaconBlockBody {
 }
 
 // GetHeader builds a BeaconBlockHeader from the BeaconBlock.
-func (b BeaconBlock) GetHeader() *BeaconBlockHeader {
+func (b *BeaconBlock) GetHeader() *BeaconBlockHeader {
 	bodyRoot, err := b.GetBody().HashTreeRoot()
 	if err != nil {
 		return nil
 	}
 
 	return &BeaconBlockHeader{
-		Slot:            math.Slot(b.Slot),
-		ProposerIndex:   math.Slot(b.ProposerIndex),
+		Slot:            b.Slot,
+		ProposerIndex:   b.ProposerIndex,
 		ParentBlockRoot: b.ParentRoot,
 		StateRoot:       b.StateRoot,
 		BodyRoot:        bodyRoot,

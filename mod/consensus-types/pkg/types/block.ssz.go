@@ -5,6 +5,7 @@ package types
 
 import (
 	ssz "github.com/ferranbt/fastssz"
+	math "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // MarshalSSZ ssz marshals the BeaconBlock object
@@ -18,10 +19,10 @@ func (b *BeaconBlock) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	offset := int(84)
 
 	// Field (0) 'Slot'
-	dst = ssz.MarshalUint64(dst, b.Slot)
+	dst = ssz.MarshalUint64(dst, uint64(b.Slot))
 
 	// Field (1) 'ProposerIndex'
-	dst = ssz.MarshalUint64(dst, b.ProposerIndex)
+	dst = ssz.MarshalUint64(dst, uint64(b.ProposerIndex))
 
 	// Field (2) 'ParentBlockRoot'
 	dst = append(dst, b.ParentRoot[:]...)
@@ -52,10 +53,10 @@ func (b *BeaconBlock) UnmarshalSSZ(buf []byte) error {
 	var o4 uint64
 
 	// Field (0) 'Slot'
-	b.Slot = ssz.UnmarshallUint64(buf[0:8])
+	b.Slot = math.Slot(ssz.UnmarshallUint64(buf[0:8]))
 
 	// Field (1) 'ProposerIndex'
-	b.ProposerIndex = ssz.UnmarshallUint64(buf[8:16])
+	b.ProposerIndex = math.Slot(ssz.UnmarshallUint64(buf[8:16]))
 
 	// Field (2) 'ParentBlockRoot'
 	copy(b.ParentRoot[:], buf[16:48])
@@ -108,10 +109,10 @@ func (b *BeaconBlock) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Slot'
-	hh.PutUint64(b.Slot)
+	hh.PutUint64(uint64(b.Slot))
 
 	// Field (1) 'ProposerIndex'
-	hh.PutUint64(b.ProposerIndex)
+	hh.PutUint64(uint64(b.ProposerIndex))
 
 	// Field (2) 'ParentBlockRoot'
 	hh.PutBytes(b.ParentRoot[:])

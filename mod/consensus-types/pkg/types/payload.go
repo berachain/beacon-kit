@@ -22,6 +22,7 @@ package types
 
 import (
 	"context"
+	"encoding/json"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -40,9 +41,7 @@ import (
 // ExecutionPayloadStaticSize is the static size of the ExecutionPayload.
 const ExecutionPayloadStaticSize uint32 = 528
 
-// ExecutionPayload is the execution payload for Deneb.
-//
-
+// ExecutionPayload represents the payload of an execution block.
 type ExecutionPayload struct {
 	// ParentHash is the hash of the parent block.
 	ParentHash gethprimitives.ExecutionHash `json:"parentHash"`
@@ -268,6 +267,179 @@ func (p *ExecutionPayload) HashTreeRootWith(hh fastssz.HashWalker) error {
 // GetTree ssz hashes the ExecutionPayload object.
 func (p *ExecutionPayload) GetTree() (*fastssz.Node, error) {
 	return fastssz.ProofTree(p)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                    JSON                                    */
+/* -------------------------------------------------------------------------- */
+
+// MarshalJSON marshals as JSON.
+func (e ExecutionPayload) MarshalJSON() ([]byte, error) {
+	type ExecutionPayload struct {
+		ParentHash    gethprimitives.ExecutionHash    `json:"parentHash"`
+		FeeRecipient  gethprimitives.ExecutionAddress `json:"feeRecipient"`
+		StateRoot     bytes.B32                       `json:"stateRoot"`
+		ReceiptsRoot  bytes.B32                       `json:"receiptsRoot"`
+		LogsBloom     bytes.B256                      `json:"logsBloom"`
+		Random        bytes.B32                       `json:"prevRandao"`
+		Number        math.U64                        `json:"blockNumber"`
+		GasLimit      math.U64                        `json:"gasLimit"`
+		GasUsed       math.U64                        `json:"gasUsed"`
+		Timestamp     math.U64                        `json:"timestamp"`
+		ExtraData     bytes.Bytes                     `json:"extraData"`
+		BaseFeePerGas math.U256L                      `json:"baseFeePerGas"`
+		BlockHash     gethprimitives.ExecutionHash    `json:"blockHash"`
+		Transactions  []bytes.Bytes                   `json:"transactions"`
+		Withdrawals   []*engineprimitives.Withdrawal  `json:"withdrawals"`
+		BlobGasUsed   math.U64                        `json:"blobGasUsed"`
+		ExcessBlobGas math.U64                        `json:"excessBlobGas"`
+	}
+	var enc ExecutionPayload
+	enc.ParentHash = e.ParentHash
+	enc.FeeRecipient = e.FeeRecipient
+	enc.StateRoot = e.StateRoot
+	enc.ReceiptsRoot = e.ReceiptsRoot
+	enc.LogsBloom = e.LogsBloom
+	enc.Random = e.Random
+	enc.Number = e.Number
+	enc.GasLimit = e.GasLimit
+	enc.GasUsed = e.GasUsed
+	enc.Timestamp = e.Timestamp
+	enc.ExtraData = e.ExtraData
+	enc.BaseFeePerGas = e.BaseFeePerGas
+	enc.BlockHash = e.BlockHash
+	enc.Transactions = make([]bytes.Bytes, len(e.Transactions))
+	for k, v := range e.Transactions {
+		enc.Transactions[k] = v
+	}
+	enc.Withdrawals = e.Withdrawals
+	enc.BlobGasUsed = e.BlobGasUsed
+	enc.ExcessBlobGas = e.ExcessBlobGas
+	return json.Marshal(&enc)
+}
+
+// UnmarshalJSON unmarshals from JSON.
+//
+//nolint:funlen // todo fix.
+func (e *ExecutionPayload) UnmarshalJSON(input []byte) error {
+	type ExecutionPayload struct {
+		ParentHash    *gethprimitives.ExecutionHash    `json:"parentHash"`
+		FeeRecipient  *gethprimitives.ExecutionAddress `json:"feeRecipient"`
+		StateRoot     *bytes.B32                       `json:"stateRoot"`
+		ReceiptsRoot  *bytes.B32                       `json:"receiptsRoot"`
+		LogsBloom     *bytes.B256                      `json:"logsBloom"`
+		Random        *bytes.B32                       `json:"prevRandao"`
+		Number        *math.U64                        `json:"blockNumber"`
+		GasLimit      *math.U64                        `json:"gasLimit"`
+		GasUsed       *math.U64                        `json:"gasUsed"`
+		Timestamp     *math.U64                        `json:"timestamp"`
+		ExtraData     *bytes.Bytes                     `json:"extraData"`
+		BaseFeePerGas *math.U256L                      `json:"baseFeePerGas"`
+		BlockHash     *gethprimitives.ExecutionHash    `json:"blockHash"`
+		Transactions  []bytes.Bytes                    `json:"transactions"`
+		Withdrawals   []*engineprimitives.Withdrawal   `json:"withdrawals"`
+		BlobGasUsed   *math.U64                        `json:"blobGasUsed"`
+		ExcessBlobGas *math.U64                        `json:"excessBlobGas"`
+	}
+	var dec ExecutionPayload
+	if err := json.Unmarshal(input, &dec); err != nil {
+		return err
+	}
+	if dec.ParentHash == nil {
+		return errors.New(
+			"missing required field 'parentHash' for ExecutionPayload",
+		)
+	}
+	e.ParentHash = *dec.ParentHash
+	if dec.FeeRecipient == nil {
+		return errors.New(
+			"missing required field 'feeRecipient' for ExecutionPayload",
+		)
+	}
+	e.FeeRecipient = *dec.FeeRecipient
+	if dec.StateRoot == nil {
+		return errors.New(
+			"missing required field 'stateRoot' for ExecutionPayload",
+		)
+	}
+	e.StateRoot = *dec.StateRoot
+	if dec.ReceiptsRoot == nil {
+		return errors.New(
+			"missing required field 'receiptsRoot' for ExecutionPayload",
+		)
+	}
+	e.ReceiptsRoot = *dec.ReceiptsRoot
+	if dec.LogsBloom == nil {
+		return errors.New(
+			"missing required field 'logsBloom' for ExecutionPayload",
+		)
+	}
+	e.LogsBloom = *dec.LogsBloom
+	if dec.Random == nil {
+		return errors.New(
+			"missing required field 'prevRandao' for ExecutionPayload",
+		)
+	}
+	e.Random = *dec.Random
+	if dec.Number == nil {
+		return errors.New(
+			"missing required field 'blockNumber' for ExecutionPayload",
+		)
+	}
+	e.Number = *dec.Number
+	if dec.GasLimit == nil {
+		return errors.New(
+			"missing required field 'gasLimit' for ExecutionPayload",
+		)
+	}
+	e.GasLimit = *dec.GasLimit
+	if dec.GasUsed == nil {
+		return errors.New(
+			"missing required field 'gasUsed' for ExecutionPayload",
+		)
+	}
+	e.GasUsed = *dec.GasUsed
+	if dec.Timestamp == nil {
+		return errors.New(
+			"missing required field 'timestamp' for ExecutionPayload",
+		)
+	}
+	e.Timestamp = *dec.Timestamp
+	if dec.ExtraData == nil {
+		return errors.New(
+			"missing required field 'extraData' for ExecutionPayload",
+		)
+	}
+	e.ExtraData = *dec.ExtraData
+	if dec.BaseFeePerGas == nil {
+		return errors.New(
+			"missing required field 'baseFeePerGas' for ExecutionPayload",
+		)
+	}
+	e.BaseFeePerGas = *dec.BaseFeePerGas
+	if dec.BlockHash == nil {
+		return errors.New(
+			"missing required field 'blockHash' for ExecutionPayload",
+		)
+	}
+	e.BlockHash = *dec.BlockHash
+	if dec.Transactions == nil {
+		dec.Transactions = make([]bytes.Bytes, 0)
+	}
+	e.Transactions = make([][]byte, len(dec.Transactions))
+	for k, v := range dec.Transactions {
+		e.Transactions[k] = v
+	}
+	if dec.Withdrawals != nil {
+		e.Withdrawals = dec.Withdrawals
+	}
+	if dec.BlobGasUsed != nil {
+		e.BlobGasUsed = *dec.BlobGasUsed
+	}
+	if dec.ExcessBlobGas != nil {
+		e.ExcessBlobGas = *dec.ExcessBlobGas
+	}
+	return nil
 }
 
 // Empty returns an empty ExecutionPayload for the given fork version.
