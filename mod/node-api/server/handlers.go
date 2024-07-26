@@ -30,8 +30,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/events"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/node"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof"
-	"github.com/berachain/beacon-kit/mod/node-api/types/context"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof/types"
+	"github.com/berachain/beacon-kit/mod/node-api/types/context"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 )
 

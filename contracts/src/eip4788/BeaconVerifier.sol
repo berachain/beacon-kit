@@ -67,13 +67,11 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     /*                       TEMP HELPERS                         */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-    function getBeaconHeaderHTR(
-        SSZ.BeaconBlockHeader calldata blockHeader
-    )
+    function getBeaconHeaderHTR(SSZ.BeaconBlockHeader calldata blockHeader)
         external
         pure
         returns (bytes32)
-    {   
+    {
         bytes32[] memory nodes = new bytes32[](8);
         nodes[0] = SSZ.toLittleEndian(blockHeader.slot);
         nodes[1] = SSZ.toLittleEndian(blockHeader.proposerIndex);
@@ -109,7 +107,10 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
 
         // Finally check that the validator is a validator of the beacon chain during this time.
         proveValidatorInBlock(
-            expectedBeaconRoot, validatorProof, validator, blockHeader.proposerIndex
+            expectedBeaconRoot,
+            validatorProof,
+            validator,
+            blockHeader.proposerIndex
         );
     }
 

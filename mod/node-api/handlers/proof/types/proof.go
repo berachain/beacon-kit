@@ -21,10 +21,9 @@
 package types
 
 import (
-	ssz "github.com/ferranbt/fastssz"
-
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	ssz "github.com/ferranbt/fastssz"
 )
 
 // GetProofForProposer_FastSSZ generates a proof for the proposer validator in
