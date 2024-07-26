@@ -77,7 +77,7 @@ func (b *BeaconBlock) UnmarshalSSZ(buf []byte) error {
 	{
 		buf = tail[o4:]
 		if b.Body == nil {
-			b.Body = new(BeaconBlockBodyDeneb)
+			b.Body = new(BeaconBlockBody)
 		}
 		if err = b.Body.UnmarshalSSZ(buf); err != nil {
 			return err
@@ -92,9 +92,9 @@ func (b *BeaconBlock) SizeSSZ() (size int) {
 
 	// Field (4) 'Body'
 	if b.Body == nil {
-		b.Body = new(BeaconBlockBodyDeneb)
+		b.Body = new(BeaconBlockBody)
 	}
-	size += b.Body.SizeSSZ()
+	size += int(b.Body.SizeSSZ(false))
 
 	return
 }

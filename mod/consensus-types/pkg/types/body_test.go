@@ -32,21 +32,19 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func generateBeaconBlockBodyDeneb() types.BeaconBlockBodyDeneb {
-	return types.BeaconBlockBodyDeneb{
-		BeaconBlockBodyBase: types.BeaconBlockBodyBase{
-			RandaoReveal: [96]byte{1, 2, 3},
-			Eth1Data:     &types.Eth1Data{},
-			Graffiti:     [32]byte{4, 5, 6},
-			Deposits:     []*types.Deposit{},
-		},
+func generateBeaconBlockBody() types.BeaconBlockBody {
+	return types.BeaconBlockBody{
+		RandaoReveal:       [96]byte{1, 2, 3},
+		Eth1Data:           &types.Eth1Data{},
+		Graffiti:           [32]byte{4, 5, 6},
+		Deposits:           []*types.Deposit{},
 		ExecutionPayload:   &types.ExecutionPayload{},
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
 }
 
 func TestBeaconBlockBodyBase(t *testing.T) {
-	body := types.BeaconBlockBodyBase{
+	body := types.BeaconBlockBody{
 		RandaoReveal: [96]byte{1, 2, 3},
 		Eth1Data:     &types.Eth1Data{},
 		Graffiti:     [32]byte{4, 5, 6},
@@ -59,14 +57,12 @@ func TestBeaconBlockBodyBase(t *testing.T) {
 	require.NotNil(t, body.GetDeposits())
 }
 
-func TestBeaconBlockBodyDeneb(t *testing.T) {
-	body := types.BeaconBlockBodyDeneb{
-		BeaconBlockBodyBase: types.BeaconBlockBodyBase{
-			RandaoReveal: [96]byte{1, 2, 3},
-			Eth1Data:     &types.Eth1Data{},
-			Graffiti:     [32]byte{4, 5, 6},
-			Deposits:     []*types.Deposit{},
-		},
+func TestBeaconBlockBody(t *testing.T) {
+	body := types.BeaconBlockBody{
+		RandaoReveal:       [96]byte{1, 2, 3},
+		Eth1Data:           &types.Eth1Data{},
+		Graffiti:           [32]byte{4, 5, 6},
+		Deposits:           []*types.Deposit{},
 		ExecutionPayload:   &types.ExecutionPayload{},
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
@@ -77,53 +73,51 @@ func TestBeaconBlockBodyDeneb(t *testing.T) {
 	require.Equal(t, types.BodyLengthDeneb, body.Length())
 }
 
-func TestBeaconBlockBodyDeneb_GetTree(t *testing.T) {
-	body := generateBeaconBlockBodyDeneb()
+func TestBeaconBlockBody_GetTree(t *testing.T) {
+	body := generateBeaconBlockBody()
 	tree, err := body.GetTree()
 	require.NoError(t, err)
 	require.NotNil(t, tree)
 }
 
-func TestBeaconBlockBodyDeneb_SetBlobKzgCommitments(t *testing.T) {
-	body := types.BeaconBlockBodyDeneb{}
+func TestBeaconBlockBody_SetBlobKzgCommitments(t *testing.T) {
+	body := types.BeaconBlockBody{}
 	commitments := eip4844.KZGCommitments[gethprimitives.ExecutionHash]{}
 	body.SetBlobKzgCommitments(commitments)
 
 	require.Equal(t, commitments, body.GetBlobKzgCommitments())
 }
 
-func TestBeaconBlockBodyDeneb_SetRandaoReveal(t *testing.T) {
-	body := types.BeaconBlockBodyDeneb{}
+func TestBeaconBlockBody_SetRandaoReveal(t *testing.T) {
+	body := types.BeaconBlockBody{}
 	randaoReveal := crypto.BLSSignature{1, 2, 3}
 	body.SetRandaoReveal(randaoReveal)
 
 	require.Equal(t, randaoReveal, body.GetRandaoReveal())
 }
 
-func TestBeaconBlockBodyDeneb_SetEth1Data(t *testing.T) {
-	body := types.BeaconBlockBodyDeneb{}
+func TestBeaconBlockBody_SetEth1Data(t *testing.T) {
+	body := types.BeaconBlockBody{}
 	eth1Data := &types.Eth1Data{}
 	body.SetEth1Data(eth1Data)
 
 	require.Equal(t, eth1Data, body.GetEth1Data())
 }
 
-func TestBeaconBlockBodyDeneb_SetDeposits(t *testing.T) {
-	body := types.BeaconBlockBodyDeneb{}
+func TestBeaconBlockBody_SetDeposits(t *testing.T) {
+	body := types.BeaconBlockBody{}
 	deposits := []*types.Deposit{}
 	body.SetDeposits(deposits)
 
 	require.Equal(t, deposits, body.GetDeposits())
 }
 
-func TestBeaconBlockBodyDeneb_MarshalSSZ(t *testing.T) {
-	body := types.BeaconBlockBodyDeneb{
-		BeaconBlockBodyBase: types.BeaconBlockBodyBase{
-			RandaoReveal: [96]byte{1, 2, 3},
-			Eth1Data:     &types.Eth1Data{},
-			Graffiti:     [32]byte{4, 5, 6},
-			Deposits:     []*types.Deposit{},
-		},
+func TestBeaconBlockBody_MarshalSSZ(t *testing.T) {
+	body := types.BeaconBlockBody{
+		RandaoReveal:       [96]byte{1, 2, 3},
+		Eth1Data:           &types.Eth1Data{},
+		Graffiti:           [32]byte{4, 5, 6},
+		Deposits:           []*types.Deposit{},
 		ExecutionPayload:   &types.ExecutionPayload{},
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
@@ -132,8 +126,8 @@ func TestBeaconBlockBodyDeneb_MarshalSSZ(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, data)
 }
-func TestBeaconBlockBodyDeneb_GetTopLevelRoots(t *testing.T) {
-	body := generateBeaconBlockBodyDeneb()
+func TestBeaconBlockBody_GetTopLevelRoots(t *testing.T) {
+	body := generateBeaconBlockBody()
 	roots, err := body.GetTopLevelRoots()
 	require.NoError(t, err)
 	require.NotNil(t, roots)
@@ -143,7 +137,4 @@ func TestBeaconBlockBody_Empty(t *testing.T) {
 	blockBody := types.BeaconBlockBody{}
 	body := blockBody.Empty(version.Deneb)
 	require.NotNil(t, body)
-
-	_, ok := body.RawBeaconBlockBody.(*types.BeaconBlockBodyDeneb)
-	require.True(t, ok)
 }
