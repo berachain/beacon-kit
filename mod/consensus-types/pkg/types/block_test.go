@@ -41,7 +41,7 @@ func generateValidBeaconBlock() *types.BeaconBlock {
 		ParentRoot:    bytes.B32{1, 2, 3, 4, 5},
 		StateRoot:     bytes.B32{5, 4, 3, 2, 1},
 
-		Body: &types.BeaconBlockBodyDeneb{
+		Body: &types.BeaconBlockBody{
 			ExecutionPayload: &types.ExecutionPayload{
 				ExtraData: []byte("dummy extra data for testing"),
 				Transactions: [][]byte{
@@ -107,12 +107,6 @@ func TestBeaconBlock(t *testing.T) {
 	newStateRoot := [32]byte{1, 1, 1, 1, 1}
 	block.SetStateRoot(newStateRoot)
 	require.Equal(t, newStateRoot, [32]byte(block.StateRoot))
-
-	// Test the GetBody method
-	require.Equal(
-		t, &types.BeaconBlockBody{RawBeaconBlockBody: block.Body},
-		block.GetBody(),
-	)
 
 	// Test the GetHeader method
 	header := block.GetHeader()

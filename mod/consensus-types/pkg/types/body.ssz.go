@@ -8,13 +8,13 @@ import (
 	ssz "github.com/ferranbt/fastssz"
 )
 
-// MarshalSSZ ssz marshals the BeaconBlockBodyDeneb object
-func (b *BeaconBlockBodyDeneb) MarshalSSZ() ([]byte, error) {
+// MarshalSSZ ssz marshals the BeaconBlockBody object
+func (b *BeaconBlockBody) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(b)
 }
 
-// MarshalSSZTo ssz marshals the BeaconBlockBodyDeneb object to a target array
-func (b *BeaconBlockBodyDeneb) MarshalSSZTo(buf []byte) (dst []byte, err error) {
+// MarshalSSZTo ssz marshals the BeaconBlockBody object to a target array
+func (b *BeaconBlockBody) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 	offset := int(212)
 
@@ -48,7 +48,7 @@ func (b *BeaconBlockBodyDeneb) MarshalSSZTo(buf []byte) (dst []byte, err error) 
 
 	// Field (3) 'Deposits'
 	if size := len(b.Deposits); size > 16 {
-		err = ssz.ErrListTooBigFn("BeaconBlockBodyDeneb.Deposits", size, 16)
+		err = ssz.ErrListTooBigFn("BeaconBlockBody.Deposits", size, 16)
 		return
 	}
 	for ii := 0; ii < len(b.Deposits); ii++ {
@@ -64,7 +64,7 @@ func (b *BeaconBlockBodyDeneb) MarshalSSZTo(buf []byte) (dst []byte, err error) 
 
 	// Field (5) 'BlobKzgCommitments'
 	if size := len(b.BlobKzgCommitments); size > 16 {
-		err = ssz.ErrListTooBigFn("BeaconBlockBodyDeneb.BlobKzgCommitments", size, 16)
+		err = ssz.ErrListTooBigFn("BeaconBlockBody.BlobKzgCommitments", size, 16)
 		return
 	}
 	for ii := 0; ii < len(b.BlobKzgCommitments); ii++ {
@@ -74,8 +74,8 @@ func (b *BeaconBlockBodyDeneb) MarshalSSZTo(buf []byte) (dst []byte, err error) 
 	return
 }
 
-// UnmarshalSSZ ssz unmarshals the BeaconBlockBodyDeneb object
-func (b *BeaconBlockBodyDeneb) UnmarshalSSZ(buf []byte) error {
+// UnmarshalSSZ ssz unmarshals the BeaconBlockBody object
+func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
 	if size < 212 {
@@ -162,8 +162,8 @@ func (b *BeaconBlockBodyDeneb) UnmarshalSSZ(buf []byte) error {
 	return err
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockBodyDeneb object
-func (b *BeaconBlockBodyDeneb) SizeSSZ() (size int) {
+// SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockBody object
+func (b *BeaconBlockBody) SizeSSZ() (size int) {
 	size = 212
 
 	// Field (3) 'Deposits'
@@ -181,13 +181,13 @@ func (b *BeaconBlockBodyDeneb) SizeSSZ() (size int) {
 	return
 }
 
-// HashTreeRoot ssz hashes the BeaconBlockBodyDeneb object
-func (b *BeaconBlockBodyDeneb) HashTreeRoot() ([32]byte, error) {
+// HashTreeRoot ssz hashes the BeaconBlockBody object
+func (b *BeaconBlockBody) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(b)
 }
 
-// HashTreeRootWith ssz hashes the BeaconBlockBodyDeneb object with a hasher
-func (b *BeaconBlockBodyDeneb) HashTreeRootWith(hh ssz.HashWalker) (err error) {
+// HashTreeRootWith ssz hashes the BeaconBlockBody object with a hasher
+func (b *BeaconBlockBody) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'RandaoReveal'
@@ -228,7 +228,7 @@ func (b *BeaconBlockBodyDeneb) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	// Field (5) 'BlobKzgCommitments'
 	{
 		if size := len(b.BlobKzgCommitments); size > 16 {
-			err = ssz.ErrListTooBigFn("BeaconBlockBodyDeneb.BlobKzgCommitments", size, 16)
+			err = ssz.ErrListTooBigFn("BeaconBlockBody.BlobKzgCommitments", size, 16)
 			return
 		}
 		subIndx := hh.Index()
@@ -243,7 +243,7 @@ func (b *BeaconBlockBodyDeneb) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	return
 }
 
-// GetTree ssz hashes the BeaconBlockBodyDeneb object
-func (b *BeaconBlockBodyDeneb) GetTree() (*ssz.Node, error) {
+// GetTree ssz hashes the BeaconBlockBody object
+func (b *BeaconBlockBody) GetTree() (*ssz.Node, error) {
 	return ssz.ProofTree(b)
 }
