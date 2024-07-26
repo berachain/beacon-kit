@@ -161,8 +161,6 @@ func (h *ExecutionPayloadHeader) MarshalSSZ() ([]byte, error) {
 // UnmarshalSSZ unmarshals the ExecutionPayloadHeaderDeneb object from a source
 // array.
 func (h *ExecutionPayloadHeader) UnmarshalSSZ(bz []byte) error {
-	// TODO: THIS IS A HACK TO GET BEACONSTATE TO WORK
-	// h.version = version.Deneb
 	return ssz.DecodeFromBytes(bz, h)
 }
 
