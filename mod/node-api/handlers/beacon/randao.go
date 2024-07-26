@@ -28,7 +28,7 @@ import (
 )
 
 func (h *Handler[_, ContextT, _, _]) GetRandao(c ContextT) (any, error) {
-	req, err := utils.BindAndValidate[beacontypes.GetRandaoRequest](c)
+	req, err := utils.BindAndValidate[beacontypes.GetRandaoRequest](c, h.Logger())
 	if err != nil {
 		return nil, err
 	}

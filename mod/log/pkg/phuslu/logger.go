@@ -112,6 +112,11 @@ func (l Logger[ImplT]) With(keyVals ...any) ImplT {
 	return any(&newLogger).(ImplT)
 }
 
+// Writer returns the io.Writer of the logger.
+func (l *Logger[ImplT]) Writer() io.Writer {
+	return l.out
+}
+
 // msgWithContext logs a message with keyVals and current context.
 func (l *Logger[Impl]) msgWithContext(
 	msg string, e *log.Entry, keyVals ...any,
@@ -120,7 +125,7 @@ func (l *Logger[Impl]) msgWithContext(
 }
 
 /* -------------------------------------------------------------------------- */
-/*                             configuration                                  */
+/*                                   config                                   */
 /* -------------------------------------------------------------------------- */
 
 // Temporary workaround to allow dynamic configuration post-logger creation.
@@ -130,6 +135,17 @@ func (l *Logger[ImplT]) WithConfig(cfg Config) *Logger[ImplT] {
 	l.withStyle(cfg.Style)
 	l.withLogLevel(cfg.LogLevel)
 	return l
+}
+
+// AddKeyColor applies a color to log entries based on their keys.
+func (l *Logger[ImplT]) AddKeyColor(key any, color Color) {
+	l.formatter.AddKeyColor(key.(string), color)
+}
+
+// AddKeyValColor applies specific colors to log entries based on their keys and
+// values.
+func (l *Logger[ImplT]) AddKeyValColor(key any, val any, color Color) {
+	l.formatter.AddKeyValColor(key.(string), val.(string), color)
 }
 
 // sets the style of the logger.

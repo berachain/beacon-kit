@@ -11,30 +11,29 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-var _ = (*executionPayloadHeaderDenebMarshaling)(nil)
 
 // MarshalJSON marshals as JSON.
-func (e ExecutionPayloadHeaderDeneb) MarshalJSON() ([]byte, error) {
-	type ExecutionPayloadHeaderDeneb struct {
-		ParentHash       common.Hash    `json:"parentHash"       ssz-size:"32"  gencodec:"required"`
-		FeeRecipient     common.Address `json:"feeRecipient"     ssz-size:"20"  gencodec:"required"`
-		StateRoot        bytes.B32      `json:"stateRoot"        ssz-size:"32"  gencodec:"required"`
-		ReceiptsRoot     bytes.B32      `json:"receiptsRoot"     ssz-size:"32"  gencodec:"required"`
-		LogsBloom        bytes.Bytes    `json:"logsBloom"        ssz-size:"256" gencodec:"required"`
-		Random           bytes.B32      `json:"prevRandao"       ssz-size:"32"  gencodec:"required"`
-		Number           math.U64       `json:"blockNumber"                     gencodec:"required"`
-		GasLimit         math.U64       `json:"gasLimit"                        gencodec:"required"`
-		GasUsed          math.U64       `json:"gasUsed"                         gencodec:"required"`
-		Timestamp        math.U64       `json:"timestamp"                       gencodec:"required"`
-		ExtraData        bytes.Bytes    `json:"extraData"                       gencodec:"required" ssz-max:"32"`
-		BaseFeePerGas    math.U256L     `json:"baseFeePerGas"    ssz-size:"32"  gencodec:"required"`
-		BlockHash        common.Hash    `json:"blockHash"        ssz-size:"32"  gencodec:"required"`
-		TransactionsRoot bytes.B32      `json:"transactionsRoot" ssz-size:"32"  gencodec:"required"`
-		WithdrawalsRoot  bytes.B32      `json:"withdrawalsRoot"  ssz-size:"32"`
+func (e ExecutionPayloadHeader) MarshalJSON() ([]byte, error) {
+	type ExecutionPayloadHeader struct {
+		ParentHash       common.Hash    `json:"parentHash" gencodec:"required"`
+		FeeRecipient     common.Address `json:"feeRecipient" gencodec:"required"`
+		StateRoot        bytes.B32      `json:"stateRoot" gencodec:"required"`
+		ReceiptsRoot     bytes.B32      `json:"receiptsRoot" gencodec:"required"`
+		LogsBloom        bytes.B256     `json:"logsBloom" gencodec:"required"`
+		Random           bytes.B32      `json:"prevRandao" gencodec:"required"`
+		Number           math.U64       `json:"blockNumber" gencodec:"required"`
+		GasLimit         math.U64       `json:"gasLimit" gencodec:"required"`
+		GasUsed          math.U64       `json:"gasUsed" gencodec:"required"`
+		Timestamp        math.U64       `json:"timestamp" gencodec:"required"`
+		ExtraData        bytes.Bytes    `json:"extraData" gencodec:"required"`
+		BaseFeePerGas    math.U256L     `json:"baseFeePerGas" gencodec:"required"`
+		BlockHash        common.Hash    `json:"blockHash" gencodec:"required"`
+		TransactionsRoot bytes.B32      `json:"transactionsRoot" gencodec:"required"`
+		WithdrawalsRoot  bytes.B32      `json:"withdrawalsRoot"`
 		BlobGasUsed      math.U64       `json:"blobGasUsed"`
 		ExcessBlobGas    math.U64       `json:"excessBlobGas"`
 	}
-	var enc ExecutionPayloadHeaderDeneb
+	var enc ExecutionPayloadHeader
 	enc.ParentHash = e.ParentHash
 	enc.FeeRecipient = e.FeeRecipient
 	enc.StateRoot = e.StateRoot
@@ -56,84 +55,90 @@ func (e ExecutionPayloadHeaderDeneb) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON unmarshals from JSON.
-func (e *ExecutionPayloadHeaderDeneb) UnmarshalJSON(input []byte) error {
-	type ExecutionPayloadHeaderDeneb struct {
-		ParentHash       *common.Hash    `json:"parentHash"       ssz-size:"32"  gencodec:"required"`
-		FeeRecipient     *common.Address `json:"feeRecipient"     ssz-size:"20"  gencodec:"required"`
-		StateRoot        *bytes.B32      `json:"stateRoot"        ssz-size:"32"  gencodec:"required"`
-		ReceiptsRoot     *bytes.B32      `json:"receiptsRoot"     ssz-size:"32"  gencodec:"required"`
-		LogsBloom        *bytes.Bytes    `json:"logsBloom"        ssz-size:"256" gencodec:"required"`
-		Random           *bytes.B32      `json:"prevRandao"       ssz-size:"32"  gencodec:"required"`
-		Number           *math.U64       `json:"blockNumber"                     gencodec:"required"`
-		GasLimit         *math.U64       `json:"gasLimit"                        gencodec:"required"`
-		GasUsed          *math.U64       `json:"gasUsed"                         gencodec:"required"`
-		Timestamp        *math.U64       `json:"timestamp"                       gencodec:"required"`
-		ExtraData        *bytes.Bytes    `json:"extraData"                       gencodec:"required" ssz-max:"32"`
-		BaseFeePerGas    *math.U256L     `json:"baseFeePerGas"    ssz-size:"32"  gencodec:"required"`
-		BlockHash        *common.Hash    `json:"blockHash"        ssz-size:"32"  gencodec:"required"`
-		TransactionsRoot *bytes.B32      `json:"transactionsRoot" ssz-size:"32"  gencodec:"required"`
-		WithdrawalsRoot  *bytes.B32      `json:"withdrawalsRoot"  ssz-size:"32"`
+func (e *ExecutionPayloadHeader) UnmarshalJSON(input []byte) error {
+	type ExecutionPayloadHeader struct {
+		ParentHash       *common.Hash    `json:"parentHash" gencodec:"required"`
+		FeeRecipient     *common.Address `json:"feeRecipient" gencodec:"required"`
+		StateRoot        *bytes.B32      `json:"stateRoot" gencodec:"required"`
+		ReceiptsRoot     *bytes.B32      `json:"receiptsRoot" gencodec:"required"`
+		LogsBloom        *bytes.B256     `json:"logsBloom" gencodec:"required"`
+		Random           *bytes.B32      `json:"prevRandao" gencodec:"required"`
+		Number           *math.U64       `json:"blockNumber" gencodec:"required"`
+		GasLimit         *math.U64       `json:"gasLimit" gencodec:"required"`
+		GasUsed          *math.U64       `json:"gasUsed" gencodec:"required"`
+		Timestamp        *math.U64       `json:"timestamp" gencodec:"required"`
+		ExtraData        *bytes.Bytes    `json:"extraData" gencodec:"required"`
+		BaseFeePerGas    *math.U256L     `json:"baseFeePerGas" gencodec:"required"`
+		BlockHash        *common.Hash    `json:"blockHash" gencodec:"required"`
+		TransactionsRoot *bytes.B32      `json:"transactionsRoot" gencodec:"required"`
+		WithdrawalsRoot  *bytes.B32      `json:"withdrawalsRoot"`
 		BlobGasUsed      *math.U64       `json:"blobGasUsed"`
 		ExcessBlobGas    *math.U64       `json:"excessBlobGas"`
 	}
-	var dec ExecutionPayloadHeaderDeneb
+	var dec ExecutionPayloadHeader
 	if err := json.Unmarshal(input, &dec); err != nil {
 		return err
 	}
 	if dec.ParentHash == nil {
-		return errors.New("missing required field 'parentHash' for ExecutionPayloadHeaderDeneb")
+		return errors.New("missing required field 'parentHash' for ExecutionPayloadHeader")
 	}
 	e.ParentHash = *dec.ParentHash
 	if dec.FeeRecipient == nil {
-		return errors.New("missing required field 'feeRecipient' for ExecutionPayloadHeaderDeneb")
+		return errors.New("missing required field 'feeRecipient' for ExecutionPayloadHeader")
 	}
 	e.FeeRecipient = *dec.FeeRecipient
 	if dec.StateRoot == nil {
-		return errors.New("missing required field 'stateRoot' for ExecutionPayloadHeaderDeneb")
+		return errors.New("missing required field 'stateRoot' for ExecutionPayloadHeader")
 	}
 	e.StateRoot = *dec.StateRoot
 	if dec.ReceiptsRoot == nil {
-		return errors.New("missing required field 'receiptsRoot' for ExecutionPayloadHeaderDeneb")
+		return errors.New("missing required field 'receiptsRoot' for ExecutionPayloadHeader")
 	}
 	e.ReceiptsRoot = *dec.ReceiptsRoot
 	if dec.LogsBloom == nil {
-		return errors.New("missing required field 'logsBloom' for ExecutionPayloadHeaderDeneb")
+		return errors.New("missing required field 'logsBloom' for ExecutionPayloadHeader")
 	}
 	e.LogsBloom = *dec.LogsBloom
 	if dec.Random == nil {
-		return errors.New("missing required field 'prevRandao' for ExecutionPayloadHeaderDeneb")
+		return errors.New("missing required field 'prevRandao' for ExecutionPayloadHeader")
 	}
 	e.Random = *dec.Random
 	if dec.Number == nil {
-		return errors.New("missing required field 'blockNumber' for ExecutionPayloadHeaderDeneb")
+		return errors.New("missing required field 'blockNumber' for ExecutionPayloadHeader")
 	}
 	e.Number = *dec.Number
 	if dec.GasLimit == nil {
-		return errors.New("missing required field 'gasLimit' for ExecutionPayloadHeaderDeneb")
+		return errors.New("missing required field 'gasLimit' for ExecutionPayloadHeader")
 	}
 	e.GasLimit = *dec.GasLimit
 	if dec.GasUsed == nil {
-		return errors.New("missing required field 'gasUsed' for ExecutionPayloadHeaderDeneb")
+		return errors.New("missing required field 'gasUsed' for ExecutionPayloadHeader")
 	}
 	e.GasUsed = *dec.GasUsed
 	if dec.Timestamp == nil {
-		return errors.New("missing required field 'timestamp' for ExecutionPayloadHeaderDeneb")
+		return errors.New("missing required field 'timestamp' for ExecutionPayloadHeader")
 	}
 	e.Timestamp = *dec.Timestamp
 	if dec.ExtraData == nil {
-		return errors.New("missing required field 'extraData' for ExecutionPayloadHeaderDeneb")
+		return errors.New("missing required field 'extraData' for ExecutionPayloadHeader")
 	}
-	e.ExtraData = *dec.ExtraData
+
+	// TODO: This is required for the API to be symmetric? But it's not really clear if
+	// this matters.
+	if len(*dec.ExtraData) != 0 {
+		e.ExtraData = *dec.ExtraData
+	}
+	
 	if dec.BaseFeePerGas == nil {
-		return errors.New("missing required field 'baseFeePerGas' for ExecutionPayloadHeaderDeneb")
+		return errors.New("missing required field 'baseFeePerGas' for ExecutionPayloadHeader")
 	}
 	e.BaseFeePerGas = *dec.BaseFeePerGas
 	if dec.BlockHash == nil {
-		return errors.New("missing required field 'blockHash' for ExecutionPayloadHeaderDeneb")
+		return errors.New("missing required field 'blockHash' for ExecutionPayloadHeader")
 	}
 	e.BlockHash = *dec.BlockHash
 	if dec.TransactionsRoot == nil {
-		return errors.New("missing required field 'transactionsRoot' for ExecutionPayloadHeaderDeneb")
+		return errors.New("missing required field 'transactionsRoot' for ExecutionPayloadHeader")
 	}
 	e.TransactionsRoot = *dec.TransactionsRoot
 	if dec.WithdrawalsRoot != nil {

@@ -22,9 +22,10 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
+	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/config"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -38,7 +39,7 @@ type ValidatorServiceInput struct {
 	Cfg             *config.Config
 	ChainSpec       common.ChainSpec
 	LocalBuilder    *LocalBuilder
-	Logger          log.Logger
+	Logger          log.AdvancedLogger[any, sdklog.Logger]
 	StateProcessor  StateProcessor
 	StorageBackend  *StorageBackend
 	Signer          crypto.BLSSigner
@@ -57,7 +58,6 @@ func ProvideValidatorService(
 		in.Logger.Error("failed to subscribe to slot feed", "err", err)
 		return nil, err
 	}
-
 	// Build the builder service.
 	return validator.NewService[
 		*AttestationData,
