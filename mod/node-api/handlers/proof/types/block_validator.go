@@ -30,7 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// BeaconBlockFoValidator represents a block in the beacon chain during the
+// BeaconBlockForValidator represents a block in the beacon chain during the
 // DenebPlus fork, with only the minimally required values to prove a validator
 // exists in this block.
 type BeaconBlockForValidator struct {
@@ -49,26 +49,10 @@ type BeaconBlockForValidator struct {
 
 // NewBeaconBlockForValidator creates a new BeaconBlock SSZ summary with only
 // the required raw values to prove a validator exists in this block.
-func NewBeaconBlockForValidator[
-	BeaconBlockHeaderT constraints.SSZRootable,
-	BeaconStateT BeaconState[
-		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-		ValidatorT,
-	],
-	Eth1DataT constraints.SSZRootable,
-	ExecutionPayloadHeaderT constraints.SSZRootable,
-	ForkT constraints.SSZRootable,
-	ValidatorT any,
-](
+func NewBeaconBlockForValidator[BeaconBlockHeaderT constraints.SSZRootable](
 	bbh BeaconBlockHeader[BeaconBlockHeaderT],
-	bs BeaconStateT,
-	cs common.ChainSpec,
+	bsv *BeaconStateForValidator,
 ) (*BeaconBlockForValidator, error) {
-	bsv, err := NewBeaconStateForValidator(bs, cs)
-	if err != nil {
-		return nil, err
-	}
-
 	return &BeaconBlockForValidator{
 		Slot:            bbh.GetSlot(),
 		ProposerIndex:   bbh.GetProposerIndex(),

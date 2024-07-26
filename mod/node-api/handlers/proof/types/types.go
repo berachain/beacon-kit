@@ -41,6 +41,7 @@ type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
 	GetProposerIndex() math.ValidatorIndex
 	GetParentBlockRoot() common.Root
 	GetStateRoot() common.Root
+	SetStateRoot(stateRoot common.Root)
 	GetBodyRoot() common.Root
 }
 
