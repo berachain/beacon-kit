@@ -34,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
-	consensust "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	cmtruntime "github.com/berachain/beacon-kit/mod/runtime/pkg/cometbft"
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
@@ -69,38 +68,58 @@ var (
 // AppModule implements an application module for the beacon module.
 // It is a wrapper around the ABCIMiddleware.
 type AppModule[
-	T transaction.Tx, 
-	AttestationDataT any,
-	SlashingInfoT any,
+	T transaction.Tx,
+	AttestationDataT AttestationData[AttestationDataT],
+	BeaconStateT BeaconState,
+	SlashingInfoT SlashingInfo[SlashingInfoT],
 	SlotDataT SlotData[AttestationDataT, SlashingInfoT, SlotDataT],
+	StorageBackendT StorageBackend[BeaconStateT],
 	ValidatorUpdateT any,
 ] struct {
 	abciMiddleware  *components.ABCIMiddleware
 	txCodec         transaction.Codec[T]
 	msgServer       *cmtruntime.MsgServer
 	queryServer     *cmtruntime.QueryServer
-	consensusEngine *cometbft.ConsensusEngine[T, ValidatorUpdateT]
-	StorageBackend *components.StorageBackend
+	consensusEngine *cometbft.ConsensusEngine[
+		T, AttestationDataT, BeaconStateT, SlashingInfoT,
+		SlotDataT, StorageBackendT, ValidatorUpdateT,
+	]
 }
 
 // NewAppModule creates a new AppModule object.
-func NewAppModule[T transaction.Tx, ValidatorUpdateT any](
+func NewAppModule[
+	T transaction.Tx,
+	AttestationDataT AttestationData[AttestationDataT],
+	BeaconStateT BeaconState,
+	SlashingInfoT SlashingInfo[SlashingInfoT],
+	SlotDataT SlotData[AttestationDataT, SlashingInfoT, SlotDataT],
+	StorageBackendT StorageBackend[BeaconStateT],
+	ValidatorUpdateT any,
+](
 	abciMiddleware *components.ABCIMiddleware,
 	txCodec transaction.Codec[T],
 	msgServer *cmtruntime.MsgServer,
 	queryServer *cmtruntime.QueryServer,
-	storageBackend *components.StorageBackend,
-) AppModule[T, ValidatorUpdateT] {
-	return AppModule[T, ValidatorUpdateT]{
+	storageBackend StorageBackendT,
+) AppModule[
+	T, AttestationDataT, BeaconStateT, SlashingInfoT,
+	SlotDataT, StorageBackendT, ValidatorUpdateT,
+] {
+	return AppModule[
+		T, AttestationDataT, BeaconStateT, SlashingInfoT,
+		SlotDataT, StorageBackendT, ValidatorUpdateT,
+	]{
 		abciMiddleware: abciMiddleware,
 		txCodec:        txCodec,
 		msgServer:      msgServer,
 		queryServer:    queryServer,
-		consensusEngine: cometbft.NewConsensusEngine[T, ValidatorUpdateT](
+		consensusEngine: cometbft.NewConsensusEngine[
+			T, AttestationDataT, BeaconStateT, SlashingInfoT,
+			SlotDataT, StorageBackendT, ValidatorUpdateT,
+		](
 			txCodec,
 			abciMiddleware,
 		),
-		StorageBackend: storageBackend,
 	}
 }
 

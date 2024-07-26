@@ -67,7 +67,9 @@ func (s *Server[NodeT, T, ValidatorUpdateT]) Init(
 		return err
 	}
 
-	engine := cometbft.NewConsensusEngine[T, ValidatorUpdateT](
+	engine := cometbft.NewConsensusEngine[
+		T, ValidatorUpdateT,
+	](
 		s.txCodec, middleware,
 	)
 	options := sdkcomet.DefaultServerOptions[T]()

@@ -23,6 +23,7 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/transaction"
 )
 
 // ConsensusEngineInput is the input for the consensus engine.
@@ -37,6 +38,7 @@ func ProvideConsensusEngine(
 	in ConsensusEngineInput,
 ) (*ConsensusEngine, error) {
 	return cometbft.NewConsensusEngine[
+		transaction.BytesTx,
 		*AttestationData,
 		*BeaconState,
 		*SlashingInfo,

@@ -25,12 +25,12 @@ import (
 	"os"
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
-	"cosmossdk.io/core/transaction"
 	clibuilder "github.com/berachain/beacon-kit/mod/cli/pkg/builder"
 	clicomponents "github.com/berachain/beacon-kit/mod/cli/pkg/components"
 	nodebuilder "github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
 	nodecomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	beacon "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/transaction"
 
 	// "github.com/berachain/beacon-kit/mod/node-core/pkg/components/transaction".
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
@@ -42,7 +42,7 @@ import (
 // aliases for hard types
 type (
 	executionPayload = nodecomponents.ExecutionPayload
-	tx               = transaction.Tx
+	tx               = transaction.BytesTx
 	node             = types.Node[tx]
 	validatorUpdate  = appmodulev2.ValidatorUpdate
 )
@@ -67,12 +67,12 @@ func run() error {
 	)
 
 	// Build the server using the server builder.
-	// sb := serverbuilder.New[node, tx, validatorUpdate](
-	// 	serverbuilder.WithDepInjectConfig[node, tx, validatorUpdate](
+	// sb := serverbuilder.New[node, tx, *executionPayload, validatorUpdate](
+	// 	serverbuilder.WithDepInjectConfig[node, tx, *executionPayload, validatorUpdate](
 	// 		nodebuilder.DefaultDepInjectConfig(),
 	// 	),
-	// 	serverbuilder.WithComponents[node, tx, validatorUpdate](
-	// 		servercomponents.ProvideCometServer[node, tx, validatorUpdate],
+	// 	serverbuilder.WithComponents[node, tx, *executionPayload, validatorUpdate](
+	// 		servercomponents.ProvideCometServer[node, tx, *executionPayload, validatorUpdate],
 	// 		nodecomponents.ProvideTxCodec[T],
 	// 	),
 	// )
@@ -80,19 +80,19 @@ func run() error {
 	// Build the root command using the builder
 	cb := clibuilder.New(
 		// Set the Name to the Default.
-		clibuilder.WithName[node, tx, validatorUpdate](
+		clibuilder.WithName[node, tx, *executionPayload, validatorUpdate](
 			nodebuilder.DefaultAppName,
 		),
 		// Set the Description to the Default.
-		clibuilder.WithDescription[node, tx, validatorUpdate](
+		clibuilder.WithDescription[node, tx, *executionPayload, validatorUpdate](
 			nodebuilder.DefaultDescription,
 		),
 		// Set the DepInject Configuration to the Default.
-		clibuilder.WithDepInjectConfig[node, tx, validatorUpdate](
+		clibuilder.WithDepInjectConfig[node, tx, *executionPayload, validatorUpdate](
 			nodebuilder.DefaultDepInjectConfig(),
 		),
 		// Set the Runtime Components to the Default.
-		clibuilder.WithComponents[node, tx, validatorUpdate](
+		clibuilder.WithComponents[node, tx, *executionPayload, validatorUpdate](
 			append(
 				clicomponents.DefaultClientComponents(),
 				// TODO: remove these, and eventually pull cfg and chainspec
@@ -105,15 +105,15 @@ func run() error {
 				servercomponents.ProvideCometServer[node, tx, validatorUpdate],
 			)...,
 		),
-		clibuilder.SupplyModuleDeps[node, tx, validatorUpdate](
+		clibuilder.SupplyModuleDeps[node, tx, *executionPayload, validatorUpdate](
 			beacon.SupplyModuleDependencies(),
 		),
 		// Set the Run Handler to the Default.
-		clibuilder.WithRunHandler[node, tx, validatorUpdate](
+		clibuilder.WithRunHandler[node, tx, *executionPayload, validatorUpdate](
 			server.InterceptConfigsPreRunHandler,
 		),
 		// Set the NodeBuilderFunc to the NodeBuilder Build.
-		clibuilder.WithNodeBuilderFunc[node, tx, validatorUpdate](nb.Build),
+		clibuilder.WithNodeBuilderFunc[node, tx, *executionPayload, validatorUpdate](nb.Build),
 		// Set the Server to the Server.
 		// clibuilder.WithServer[NodeT, T](svr),
 	)

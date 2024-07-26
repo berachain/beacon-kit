@@ -34,17 +34,17 @@ import (
 	"github.com/spf13/cast"
 )
 
-// BlockStoreInput is the input for the dep inject framework.
-type BlockStoreInput struct {
+// BeaconBlockStoreInput is the input for the dep inject framework.
+type BeaconBlockStoreInput struct {
 	depinject.In
 	AppOpts servertypes.AppOptions
 }
 
 // ProvideBlockStore is a function that provides the module to the
 // application.
-func ProvideBlockStore(
-	in BlockStoreInput,
-) (*BlockStore, error) {
+func ProvideBeaconBlockStore(
+	in BeaconBlockStoreInput,
+) (*BeaconBlockStore, error) {
 	name := "blocks"
 	dir := cast.ToString(in.AppOpts.Get(flags.FlagHome)) + "/data"
 	kvp, err := storev2.NewDB(storev2.DBTypePebbleDB, name, dir, nil)
@@ -59,20 +59,20 @@ func ProvideBlockStore(
 	), nil
 }
 
-// BlockPrunerInput is the input for the block pruner.
-type BlockPrunerInput struct {
+// BeaconBlockPrunerInput is the input for the block pruner.
+type BeaconBlockPrunerInput struct {
 	depinject.In
 
 	Config      *config.Config
 	BlockBroker *BlockBroker
-	BlockStore  *BlockStore
+	BlockStore  *BeaconBlockStore
 	Logger      log.Logger
 }
 
-// ProvideBlockPruner provides a block pruner for the depinject framework.
-func ProvideBlockPruner(
-	in BlockPrunerInput,
-) (BlockPruner, error) {
+// ProvideBeaconBlockPruner provides a block pruner for the depinject framework.
+func ProvideBeaconBlockPruner(
+	in BeaconBlockPrunerInput,
+) (BeaconBlockPruner, error) {
 	subCh, err := in.BlockBroker.Subscribe()
 	if err != nil {
 		in.Logger.Error("failed to subscribe to block feed", "err", err)
@@ -82,7 +82,7 @@ func ProvideBlockPruner(
 	return pruner.NewPruner[
 		*BeaconBlock,
 		*BlockEvent,
-		*BlockStore,
+		*BeaconBlockStore,
 	](
 		in.Logger.With("service", manager.BlockPrunerName),
 		in.BlockStore,

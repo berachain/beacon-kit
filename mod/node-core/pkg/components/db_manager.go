@@ -31,7 +31,7 @@ type DBManagerInput struct {
 	depinject.In
 	AvailabilityPruner DAPruner
 	DepositPruner      DepositPruner
-	BlockPruner        BlockPruner
+	BlockPruner        BeaconBlockPruner
 	Logger             log.Logger
 }
 

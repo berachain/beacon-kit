@@ -21,6 +21,8 @@
 package components
 
 import (
+	"context"
+
 	"cosmossdk.io/core/appmodule/v2"
 	broker "github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
@@ -51,6 +53,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/server"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/transaction"
 	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
@@ -66,7 +69,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 type (
@@ -101,9 +103,9 @@ type (
 
 	// BeaconState is a type alias for the BeaconState.
 	BeaconState = statedbv2.StateDB[
-		*BeaconBlockHeader, *BeaconStateMarshallable, *types.Eth1Data,
-		*ExecutionPayloadHeader, *types.Fork, *StateManager,
-		*types.Validator, types.WithdrawalCredentials,
+		*BeaconBlockHeader, *BeaconStateMarshallable, *Eth1Data,
+		*ExecutionPayloadHeader, *Fork, *StateManager,
+		*Validator, WithdrawalCredentials,
 	]
 
 	// BeaconStateMarshallable is a type alias for the BeaconStateMarshallable.
@@ -127,11 +129,11 @@ type (
 	// BlobVerifier is a type alias for the blob verifier.
 	BlobVerifier = dablob.Verifier
 
-	// BlockStoreService is a type alias for the block store service.
-	BlockStoreService = blockstore.Service[*BeaconBlock, *BlockStore]
+	// BeaconBlockStoreService is a type alias for the block store service.
+	BeaconBlockStoreService = blockstore.Service[*BeaconBlock, *BeaconBlockStore]
 
 	// BlockStore is a type alias for the block store.
-	BlockStore = block.KVStore[*BeaconBlock]
+	BeaconBlockStore = block.KVStore[*BeaconBlock]
 
 	// ChainService is a type alias for the chain service.
 	ChainService = blockchain.Service[
@@ -151,6 +153,7 @@ type (
 
 	// ConsensusEngine is a type alias for the consensus engine.
 	ConsensusEngine = cometbft.ConsensusEngine[
+		transaction.BytesTx,
 		*AttestationData,
 		*BeaconState,
 		*SlashingInfo,
@@ -288,20 +291,22 @@ type (
 		*BeaconState,
 		*BeaconStateMarshallable,
 		*BlobSidecars,
-		*BlockStore,
-		sdk.Context,
+		*BeaconBlockStore,
+		context.Context,
 		*Deposit,
 		*DepositStore,
 		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
-		nodetypes.Node,
+		Node,
 		*KVStore,
 		*StorageBackend,
 		*Validator,
 		*Withdrawal,
 		WithdrawalCredentials,
 	]
+
+	Node = nodetypes.Node[transaction.BytesTx]
 
 	// NodeAPIContext is a type alias for the node API context.
 	NodeAPIContext = echo.Context
@@ -349,7 +354,7 @@ type (
 		*BeaconState,
 		*BeaconStateMarshallable,
 		*BlobSidecars,
-		*BlockStore,
+		*BeaconBlockStore,
 		*Deposit,
 		*DepositStore,
 		*Eth1Data,
@@ -450,8 +455,8 @@ type (
 	// DepositPruner is a type alias for the deposit pruner.
 	DepositPruner = pruner.Pruner[*DepositStore]
 
-	// BlockPruner is a type alias for the block pruner.
-	BlockPruner = pruner.Pruner[*BlockStore]
+	// BeaconBlockPruner is a type alias for the block pruner.
+	BeaconBlockPruner = pruner.Pruner[*BeaconBlockStore]
 )
 
 /* -------------------------------------------------------------------------- */

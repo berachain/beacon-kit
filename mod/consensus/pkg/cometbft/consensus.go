@@ -25,7 +25,6 @@ import (
 
 	"cosmossdk.io/core/transaction"
 	"cosmossdk.io/server/v2/cometbft/handlers"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/gogoproto/proto"
@@ -46,7 +45,10 @@ type ConsensusEngine[
 	ValidatorUpdateT any,
 ] struct {
 	Middleware[AttestationDataT, SlashingInfoT, SlotDataT]
-	sb StorageBackendT
+	sb         StorageBackendT
+	valUpdates []*transition.ValidatorUpdate
+	genTxs     []T
+	txCodec    transaction.Codec[T]
 }
 
 // NewConsensusEngine returns a new consensus middleware.
@@ -110,9 +112,16 @@ func (c *ConsensusEngine[T, _, _, _, _, _, _]) Prepare(
 	if !ok {
 		return nil, ErrInvalidRequestType
 	}
-
-	slot := math.Slot(abciReq.Height)
-	blkBz, sidecarsBz, err := c.Middleware.PrepareProposal(ctx, slot)
+	slotData, err := c.convertPrepareProposalToSlotData(
+		ctx,
+		abciReq,
+	)
+	if err != nil {
+		return nil, err
+	}
+	blkBz, sidecarsBz, err := c.Middleware.PrepareProposal(
+		ctx, slotData,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +133,7 @@ func (c *ConsensusEngine[T, _, _, _, _, _, _]) Prepare(
 	if err != nil {
 		return nil, err
 	}
-	if slot <= 1 {
+	if abciReq.Height <= 1 {
 		c.genTxs = []T{blkTx, sidecarsTx}
 		return []T{}, nil
 	}
@@ -163,7 +172,7 @@ func (c *ConsensusEngine[T, _, _, _, _, _, ValidatorUpdateT]) EndBlock(
 	return nil
 }
 
-func (c *ConsensusEngine[T, ValidatorUpdateT]) UpdateValidators() (
+func (c *ConsensusEngine[T, _, _, _, _, _, ValidatorUpdateT]) UpdateValidators() (
 	[]ValidatorUpdateT, error) {
 	return iter.MapErr[
 		*transition.ValidatorUpdate, ValidatorUpdateT,

@@ -34,11 +34,11 @@ type BlockServiceInput struct {
 	Config      *config.Config
 	Logger      log.Logger[any]
 	BlockBroker *BlockBroker
-	BlockStore  *BlockStore
+	BlockStore  *BeaconBlockStore
 }
 
 // ProvideBlockStoreService provides the block service.
-func ProvideBlockStoreService(in BlockServiceInput) *BlockStoreService {
+func ProvideBeaconBlockStoreService(in BlockServiceInput) *BeaconBlockStoreService {
 	return blockstore.NewService(
 		in.Config.BlockStoreService,
 		in.Logger,

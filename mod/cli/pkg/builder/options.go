@@ -32,16 +32,16 @@ import (
 
 // Opt is a type that defines a function that modifies CLIBuilder.
 type Opt[
-	
-	NodeT types.Node[T], T transaction.Tx any,
+	NodeT types.Node[T],
+	T transaction.Tx,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	ValidatorUpdateT any,
 ] func(*CLIBuilder[NodeT, T, ExecutionPayloadT, ValidatorUpdateT])
 
 // WithName sets the name for the CLIBuilder.
 func WithName[
-	
-	NodeT types.Node[T], T transaction.Tx any,
+	NodeT types.Node[T],
+	T transaction.Tx,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	ValidatorUpdateT any,
 ](name string) Opt[NodeT, T, ExecutionPayloadT, ValidatorUpdateT] {
@@ -52,8 +52,9 @@ func WithName[
 
 // WithDescription sets the description for the CLIBuilder.
 func WithDescription[
-	
-	NodeT types.Node[T], T transaction.Tx any,
+
+	NodeT types.Node[T],
+	T transaction.Tx,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	ValidatorUpdateT any,
 ](description string) Opt[NodeT, T, ExecutionPayloadT, ValidatorUpdateT] {
@@ -64,8 +65,8 @@ func WithDescription[
 
 // WithDepInjectConfig sets the depinject config for the CLIBuilder.
 func WithDepInjectConfig[
-	
-	NodeT types.Node[T], T transaction.Tx any,
+	NodeT types.Node[T],
+	T transaction.Tx,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	ValidatorUpdateT any,
 ](
@@ -77,8 +78,8 @@ func WithDepInjectConfig[
 
 // WithComponents sets the components for the CLIBuilder.
 func WithComponents[
-	
-	NodeT types.Node[T], T transaction.Tx any,
+	NodeT types.Node[T],
+	T transaction.Tx,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	ValidatorUpdateT any,
 ](components ...any) Opt[NodeT, T, ExecutionPayloadT, ValidatorUpdateT] {
@@ -90,8 +91,8 @@ func WithComponents[
 // SupplyModuleDeps populates the slice of direct module dependencies to be
 // supplied to depinject.
 func SupplyModuleDeps[
-	
-	NodeT types.Node[T], T transaction.Tx any,
+	NodeT types.Node[T],
+	T transaction.Tx,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	ValidatorUpdateT any,
 ](deps []any) Opt[NodeT, T, ExecutionPayloadT, ValidatorUpdateT] {
@@ -102,7 +103,8 @@ func SupplyModuleDeps[
 
 // WithRunHandler sets the run handler for the CLIBuilder.
 func WithRunHandler[
-	NodeT types.Node[T], T transaction.Tx any,
+	NodeT types.Node[T],
+	T transaction.Tx,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	ValidatorUpdateT any,
 ](
@@ -119,7 +121,8 @@ func WithRunHandler[
 
 // WithNodeBuilderFunc sets the cosmos app creator for the CLIBuilder.
 func WithNodeBuilderFunc[
-	NodeT types.Node[T], T transaction.Tx any,
+	NodeT types.Node[T],
+	T transaction.Tx,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	ValidatorUpdateT any,
 ](
@@ -131,10 +134,15 @@ func WithNodeBuilderFunc[
 }
 
 // WithServer sets the server for the CLIBuilder.
-func WithServer[NodeT types.Node[T], T transaction.Tx, ValidatorUpdateT any](
+func WithServer[
+	NodeT types.Node[T],
+	T transaction.Tx,
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+	ValidatorUpdateT any,
+](
 	server *serverv2.Server[NodeT, T],
-) Opt[NodeT, T, ValidatorUpdateT] {
-	return func(cb *CLIBuilder[NodeT, T, ValidatorUpdateT]) {
+) Opt[NodeT, T, ExecutionPayloadT, ValidatorUpdateT] {
+	return func(cb *CLIBuilder[NodeT, T, ExecutionPayloadT, ValidatorUpdateT]) {
 		cb.server = server
 	}
 }

@@ -94,7 +94,7 @@ func (s *Service[
 	// We have to assemble the block body prior to producing the sidecars
 	// since we need to generate the inclusion proofs.
 	if err = s.buildBlockBody(
-		ctx, st, blk, reveal, envelope, slotData,
+		st, blk, reveal, envelope, slotData,
 	); err != nil {
 		return blk, sidecars, err
 	}

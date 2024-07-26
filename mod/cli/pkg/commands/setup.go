@@ -41,7 +41,11 @@ import (
 )
 
 // Commands sets up the default commands for the root command.
-func Commands[NodeT types.Node[T], T transaction.Tx](
+func Commands[
+	NodeT types.Node[T],
+	T transaction.Tx,
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+](
 	root *Root,
 	mm *runtime.MM[T],
 	appCreator serverv2.AppCreator[NodeT, T],

@@ -29,7 +29,7 @@ import (
 var _ transaction.Tx = (*SSZTx)(nil)
 
 type SSZTx struct {
-	constraints.SSZMarshallable
+	constraints.SSZMarshallableRootable
 }
 
 func NewTxFromSSZ[T transaction.Tx](bz []byte) T {

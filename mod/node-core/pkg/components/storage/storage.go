@@ -126,17 +126,14 @@ func NewBackend[
 // AvailabilityStore returns the availability store struct initialized with a
 // given context.
 func (k Backend[
-	AvailabilityStoreT, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) AvailabilityStore() AvailabilityStoreT {
-	return k.availabilityStore
 	AvailabilityStoreT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) AvailabilityStore() AvailabilityStoreT {
-	return k.as
+	return k.availabilityStore
 }
 
 // StateFromContext returns a new BeaconState initialized with a given context.
 func (k Backend[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) StateFromContext(
 	ctx context.Context,
 ) BeaconStateT {
@@ -146,10 +143,7 @@ func (k Backend[
 
 // DepositStore returns the deposit store struct initialized with a.
 func (k Backend[
-	_, _, _, _, _, _, _, DepositStoreT, _, _, _, _, _, _, _,
-]) DepositStore() DepositStoreT {
-	return k.depositStore
 	_, _, _, _, _, _, _, _, _, DepositStoreT, _, _, _, _, _, _, _,
 ]) DepositStore() DepositStoreT {
-	return k.ds
+	return k.depositStore
 }

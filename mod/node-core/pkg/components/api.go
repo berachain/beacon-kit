@@ -21,6 +21,8 @@
 package components
 
 import (
+	"context"
+
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/config"
@@ -28,9 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/engines/echo"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 	"github.com/berachain/beacon-kit/mod/node-api/server"
-	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // TODO: we could make engine type configurable
@@ -55,13 +55,13 @@ func ProvideNodeAPIBackend(in NodeAPIBackendInput) *NodeAPIBackend {
 		*BeaconStateMarshallable,
 		*BlobSidecars,
 		*BlockStore,
-		sdk.Context,
+		context.Context,
 		*Deposit,
 		*DepositStore,
 		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
-		nodetypes.Node,
+		Node,
 		*KVStore,
 		*StorageBackend,
 		*Validator,
@@ -72,12 +72,6 @@ func ProvideNodeAPIBackend(in NodeAPIBackendInput) *NodeAPIBackend {
 		in.ChainSpec,
 	)
 }
-
-// type NodeAPIHandlersInput struct {
-// 	depinject.In
-
-// 	Backend *NodeAPIBackend
-// }
 
 type NodeAPIServerInput struct {
 	depinject.In

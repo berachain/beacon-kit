@@ -46,7 +46,7 @@ import (
 
 // CLIBuilder is the builder for the commands.Root (root command).
 type CLIBuilder[
-	NodeT types.Node[T], T transaction.Tx any,
+	NodeT types.Node[T], T transaction.Tx,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	ValidatorUpdateT any,
 ] struct {
@@ -71,13 +71,13 @@ type CLIBuilder[
 
 // New returns a new CLIBuilder with the given options.
 func New[
-	NodeT types.Node[T], T transaction.Tx any,
+	NodeT types.Node[T], T transaction.Tx,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	ValidatorUpdateT any,
 ](
-	opts ...Opt[NodeT, T, ValidatorUpdateT],
-) *CLIBuilder[NodeT, T, ValidatorUpdateT] {
-	cb := &CLIBuilder[NodeT, T, ValidatorUpdateT]{
+	opts ...Opt[NodeT, T, ExecutionPayloadT, ValidatorUpdateT],
+) *CLIBuilder[NodeT, T, ExecutionPayloadT, ValidatorUpdateT] {
+	cb := &CLIBuilder[NodeT, T, ExecutionPayloadT, ValidatorUpdateT]{
 		suppliers: []any{
 			os.Stdout, // supply io.Writer for logger
 			viper.GetViper(),
@@ -147,7 +147,9 @@ func (
 
 	// hood for now
 	// get list of custom commands
-	cmdList := cmdlib.Commands[NodeT](
+	cmdList := cmdlib.Commands[
+		NodeT, T, ExecutionPayloadT,
+	](
 		rootCmd,
 		mm,
 		cb.nodeBuilderFunc,

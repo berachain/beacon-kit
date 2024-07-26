@@ -21,6 +21,7 @@
 package cometbft
 
 import (
+	"context"
 	"sort"
 
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
@@ -29,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	v1 "github.com/cometbft/cometbft/api/cometbft/abci/v1"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // convertValidatorUpdate abstracts the conversion of a
@@ -56,13 +56,12 @@ func convertValidatorUpdate[ValidatorUpdateT any](
 // convertPrepareProposalToSlotData converts a prepare proposal request to
 // a slot data.
 func (c *ConsensusEngine[
-	_, _, _, SlotDataT, _, _,
+	_, _, _, _, SlotDataT, _, _,
 ]) convertPrepareProposalToSlotData(
-	ctx sdk.Context,
+	ctx context.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (SlotDataT, error) {
 	var t SlotDataT
-
 	// Get the attestation data from the votes.
 	attestationData, err := c.attestationsFromVotes(
 		ctx,
@@ -94,9 +93,9 @@ func (c *ConsensusEngine[
 
 // attestationsFromVotes returns a list of attestation data from the votes.
 func (c *ConsensusEngine[
-	AttestationDataT, _, _, _, _, _,
+	_, AttestationDataT, _, _, _, _, _,
 ]) attestationsFromVotes(
-	ctx sdk.Context,
+	ctx context.Context,
 	votes []v1.ExtendedVoteInfo,
 	slot math.Slot,
 ) ([]AttestationDataT, error) {
@@ -133,9 +132,9 @@ func (c *ConsensusEngine[
 // slashingInfoFromMisbehaviors returns a list of slashing info from the
 // comet misbehaviors.
 func (c *ConsensusEngine[
-	_, _, SlashingInfoT, _, _, _,
+	_, _, _, SlashingInfoT, _, _, _,
 ]) slashingInfoFromMisbehaviors(
-	ctx sdk.Context,
+	ctx context.Context,
 	misbehaviors []v1.Misbehavior,
 ) ([]SlashingInfoT, error) {
 	var err error

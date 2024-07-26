@@ -23,19 +23,22 @@ package types
 import (
 	"context"
 
+	"cosmossdk.io/core/transaction"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 )
 
 // Node defines the API for the node application.
 // It extends the Application interface from the Cosmos SDK.
-type Node interface {
-	Application
+type Node[T transaction.Tx] interface {
+	Application[T]
 
 	// Start starts the node.
 	Start(ctx context.Context) error
 
 	// RegisterApp sets the node's application.
-	RegisterApp(app Application)
+	RegisterApp(app Application[T])
+	// GetServiceRegistry returns the node's service registry.
+	GetServiceRegistry() *service.Registry
 	// SetServiceRegistry sets the node's service registry.
 	SetServiceRegistry(registry *service.Registry)
 }

@@ -78,7 +78,7 @@ func ProvideModule[T transaction.Tx, ValidatorUpdateT any](
 	in ModuleInput[T],
 ) (ModuleOutput, error) {
 	return ModuleOutput{
-		Module: NewAppModule[T, ValidatorUpdateT](
+		Module: NewAppModule(
 			in.ABCIMiddleware,
 			in.TxCodec,
 			in.MsgServer,

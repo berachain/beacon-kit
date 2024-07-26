@@ -21,6 +21,8 @@
 package app
 
 import (
+	"context"
+
 	coreapp "cosmossdk.io/core/app"
 	"cosmossdk.io/core/transaction"
 	"cosmossdk.io/runtime/v2"
@@ -95,4 +97,9 @@ func (app *BeaconApp[T]) GetStore() any {
 
 func (app *BeaconApp[T]) GetAppManager() appmanager.AppManager[T] {
 	return app.App.GetAppManager()
+}
+
+// TODO: implement
+func (app *BeaconApp[T]) CreateQueryContext(height int64, prove bool) (context.Context, error) {
+	return context.TODO(), nil
 }

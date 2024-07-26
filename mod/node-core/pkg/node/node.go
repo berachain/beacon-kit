@@ -24,7 +24,6 @@ import (
 	"context"
 
 	"cosmossdk.io/core/transaction"
-	serverv2 "cosmossdk.io/server/v2"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/app"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
@@ -52,7 +51,7 @@ func (n *node[T]) Start(ctx context.Context) error {
 }
 
 // SetApplication sets the application.
-func (n *node[T]) RegisterApp(a serverv2.AppI[T]) {
+func (n *node[T]) RegisterApp(a types.Application[T]) {
 	//nolint:errcheck // BeaconApp is our servertypes.Application
 	n.BeaconApp = a.(*app.BeaconApp[T])
 }

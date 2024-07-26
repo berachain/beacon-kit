@@ -21,15 +21,17 @@
 package types
 
 import (
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"context"
+
+	"cosmossdk.io/core/transaction"
+	serverv2 "cosmossdk.io/server/v2"
 )
 
 // Application is the interface that wraps the methods of the cosmos-sdk
 // Application.
 // It also adds a few methods for creating query contexts.
-type Application interface {
-	servertypes.Application
+type Application[T transaction.Tx] interface {
+	serverv2.AppI[T]
 
-	CreateQueryContext(height int64, prove bool) (sdk.Context, error)
+	CreateQueryContext(height int64, prove bool) (context.Context, error)
 }
