@@ -34,6 +34,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
+	fastssz "github.com/ferranbt/fastssz"
+	"github.com/karalabe/ssz"
 )
 
 const (
@@ -62,15 +64,6 @@ func (b *BeaconBlockBody) Empty(forkVersion uint32) *BeaconBlockBody {
 				ExtraData: make([]byte, ExtraDataSize),
 			},
 		}
-	case version.DenebPlus:
-		panic("unsupported fork version")
-		// return &BeaconBlockBody{RawBeaconBlockBody:
-		// &BeaconBlockBodyDenebPlus{
-		// 	BeaconBlockBodyBase: BeaconBlockBodyBase{},
-		// 	ExecutionPayload: &ExecutionPayload{
-		// 		ExtraData: make([]byte, ExtraDataSize),
-		// 	},
-		// }}
 	default:
 		panic("unsupported fork version")
 	}
@@ -106,6 +99,135 @@ type BeaconBlockBody struct {
 	ExecutionPayload *ExecutionPayload
 	// BlobKzgCommitments is the list of KZG commitments for the EIP-4844 blobs.
 	BlobKzgCommitments []eip4844.KZGCommitment
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                     SSZ                                    */
+/* -------------------------------------------------------------------------- */
+
+// SizeSSZ returns the size of the BeaconBlockBody in SSZ.
+func (b *BeaconBlockBody) SizeSSZ(fixed bool) uint32 {
+	var size uint32 = 96 + 72 + 32 + 4 + 4 + 4
+	if fixed {
+		return size
+	}
+
+	size += ssz.SizeSliceOfStaticObjects(b.Deposits)
+	size += ssz.SizeDynamicObject(b.ExecutionPayload)
+	size += ssz.SizeSliceOfStaticBytes(b.BlobKzgCommitments)
+	return size
+}
+
+// DefineSSZ defines the SSZ serialization of the BeaconBlockBody.
+//
+//nolint:mnd // TODO: chainspec.
+func (b *BeaconBlockBody) DefineSSZ(codec *ssz.Codec) {
+	// Define the static data (fields and dynamic offsets)
+	ssz.DefineStaticBytes(codec, &b.RandaoReveal)
+	ssz.DefineStaticObject(codec, &b.Eth1Data)
+	ssz.DefineStaticBytes(codec, &b.Graffiti)
+	ssz.DefineSliceOfStaticObjectsOffset(codec, &b.Deposits, 16)
+	ssz.DefineDynamicObjectOffset(codec, &b.ExecutionPayload)
+	ssz.DefineSliceOfStaticBytesOffset(codec, &b.BlobKzgCommitments, 16)
+
+	// Define the dynamic data (fields)
+	ssz.DefineSliceOfStaticObjectsContent(codec, &b.Deposits, 16)
+	ssz.DefineDynamicObjectContent(codec, &b.ExecutionPayload)
+	ssz.DefineSliceOfStaticBytesContent(codec, &b.BlobKzgCommitments, 16)
+}
+
+// MarshalSSZ serializes the BeaconBlockBody to SSZ-encoded bytes.
+func (b *BeaconBlockBody) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, b.SizeSSZ(false))
+	return buf, ssz.EncodeToBytes(buf, b)
+}
+
+// UnmarshalSSZ deserializes the BeaconBlockBody from SSZ-encoded bytes.
+func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte) error {
+	return ssz.DecodeFromBytes(buf, b)
+}
+
+// HashTreeRoot returns the SSZ hash tree root of the BeaconBlockBody.
+func (b *BeaconBlockBody) HashTreeRoot() ([32]byte, error) {
+	return ssz.HashConcurrent(b), nil
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
+
+// MarshalSSZTo serializes the BeaconBlockBody into a writer.
+func (b *BeaconBlockBody) MarshalSSZTo(dst []byte) ([]byte, error) {
+	bz, err := b.MarshalSSZ()
+	if err != nil {
+		return nil, err
+	}
+	dst = append(dst, bz...)
+	return dst, nil
+}
+
+// HashTreeRootWith ssz hashes the BeaconBlockBody object with a hasher
+func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {
+	indx := hh.Index()
+
+	// Field (0) 'RandaoReveal'
+	hh.PutBytes(b.RandaoReveal[:])
+
+	// Field (1) 'Eth1Data'
+	if b.Eth1Data == nil {
+		b.Eth1Data = new(Eth1Data)
+	}
+	if err := b.Eth1Data.HashTreeRootWith(hh); err != nil {
+		return err
+	}
+
+	// Field (2) 'Graffiti'
+	hh.PutBytes(b.Graffiti[:])
+
+	// Field (3) 'Deposits'
+	{
+		subIndx := hh.Index()
+		num := uint64(len(b.Deposits))
+		if num > 16 {
+			return fastssz.ErrIncorrectListSize
+		}
+		for _, elem := range b.Deposits {
+			if err := elem.HashTreeRootWith(hh); err != nil {
+				return err
+			}
+		}
+		hh.MerkleizeWithMixin(subIndx, num, 16)
+	}
+
+	// Field (4) 'ExecutionPayload'
+	if err := b.ExecutionPayload.HashTreeRootWith(hh); err != nil {
+		return err
+	}
+
+	// Field (5) 'BlobKzgCommitments'
+	{
+		if size := len(b.BlobKzgCommitments); size > 16 {
+			return fastssz.ErrListTooBigFn(
+				"BeaconBlockBody.BlobKzgCommitments",
+				size,
+				16,
+			)
+		}
+		subIndx := hh.Index()
+		for _, i := range b.BlobKzgCommitments {
+			hh.PutBytes(i[:])
+		}
+		numItems := uint64(len(b.BlobKzgCommitments))
+		hh.MerkleizeWithMixin(subIndx, numItems, 16)
+	}
+
+	hh.Merkleize(indx)
+	return nil
+}
+
+// GetTree ssz hashes the BeaconBlockBody object
+func (b *BeaconBlockBody) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(b)
 }
 
 // IsNil checks if the BeaconBlockBody is nil.

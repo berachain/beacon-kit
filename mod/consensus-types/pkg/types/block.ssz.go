@@ -94,7 +94,7 @@ func (b *BeaconBlock) SizeSSZ() (size int) {
 	if b.Body == nil {
 		b.Body = new(BeaconBlockBody)
 	}
-	size += b.Body.SizeSSZ()
+	size += int(b.Body.SizeSSZ(false))
 
 	return
 }
