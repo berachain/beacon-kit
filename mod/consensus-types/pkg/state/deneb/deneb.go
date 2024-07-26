@@ -28,7 +28,7 @@ import (
 	"github.com/karalabe/ssz"
 )
 
-// BeaconState represents the state of the Ethereum 2.0 beacon chain.
+// BeaconState represents the entire state of the beacon chain.
 type BeaconState struct {
 	// Versioning
 	GenesisValidatorsRoot common.Root
@@ -67,7 +67,6 @@ type BeaconState struct {
 
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconState object.
 func (b *BeaconState) SizeSSZ(fixed bool) uint32 {
-
 	var size uint32 = 300
 
 	if fixed {
