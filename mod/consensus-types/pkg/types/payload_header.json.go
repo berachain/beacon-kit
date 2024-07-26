@@ -11,7 +11,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-var _ = (*executionPayloadHeaderMarshaling)(nil)
 
 // MarshalJSON marshals as JSON.
 func (e ExecutionPayloadHeader) MarshalJSON() ([]byte, error) {
@@ -124,7 +123,8 @@ func (e *ExecutionPayloadHeader) UnmarshalJSON(input []byte) error {
 		return errors.New("missing required field 'extraData' for ExecutionPayloadHeader")
 	}
 
-	// TODO wtf?
+	// TODO: This is required for the API to be symmetric? But it's not really clear if
+	// this matters.
 	if len(*dec.ExtraData) != 0 {
 		e.ExtraData = *dec.ExtraData
 	}

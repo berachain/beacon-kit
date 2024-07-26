@@ -35,10 +35,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var (
-	extraDataField = "ExecutionPayloadHeader.ExtraData"
-)
-
 func generateExecutionPayloadHeader() *types.ExecutionPayloadHeader {
 	return &types.ExecutionPayloadHeader{
 		ParentHash:       gethprimitives.ExecutionHash{},
