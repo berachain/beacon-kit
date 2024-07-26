@@ -25,6 +25,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
+	fastssz "github.com/ferranbt/fastssz"
+	"github.com/karalabe/ssz"
 )
 
 // BeaconBlock represents a block in the beacon chain during
@@ -75,11 +77,6 @@ func (b *BeaconBlock) NewWithVersion(
 			StateRoot:     bytes.B32{},
 			Body:          &BeaconBlockBody{},
 		}
-	case version.DenebPlus:
-		// block = &BeaconBlockDenebPlus{
-		// 	BeaconBlockHeaderBase: base,
-		// 	Body:                  &BeaconBlockBodyPlus{},
-		// }
 	default:
 		return &BeaconBlock{}, ErrForkVersionNotSupported
 	}
@@ -98,15 +95,98 @@ func (b *BeaconBlock) NewFromSSZ(
 		block = &BeaconBlock{}
 	case version.DenebPlus:
 		panic("unsupported fork version")
-		// block.RawBeaconBlock = &BeaconBlockDenebPlus{}
 	default:
 		return block, ErrForkVersionNotSupported
 	}
 
-	if err := block.UnmarshalSSZ(bz); err != nil {
-		return block, err
+	return block, block.UnmarshalSSZ(bz)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                     SSZ                                    */
+/* -------------------------------------------------------------------------- */
+
+// SizeSSZ returns the size of the BeaconBlock object in SSZ encoding.
+func (b *BeaconBlock) SizeSSZ(fixed bool) uint32 {
+	var size = uint32(8 + 8 + 32 + 32 + 4)
+	if fixed {
+		return size
 	}
-	return block, nil
+	size += ssz.SizeDynamicObject(b.Body)
+	return size
+}
+
+// DefineSSZ defines the SSZ encoding for the BeaconBlock object.
+func (b *BeaconBlock) DefineSSZ(codec *ssz.Codec) {
+	// Define the static data (fields and dynamic offsets)
+	ssz.DefineUint64(codec, &b.Slot)              // Field  (0) -          Slot -  8 bytes
+	ssz.DefineUint64(codec, &b.ProposerIndex)     // Field  (1) - ProposerIndex -  8 bytes
+	ssz.DefineStaticBytes(codec, &b.ParentRoot)   // Field  (2) -    ParentRoot - 32 bytes
+	ssz.DefineStaticBytes(codec, &b.StateRoot)    // Field  (3) -     StateRoot - 32 bytes
+	ssz.DefineDynamicObjectOffset(codec, &b.Body) // Offset (4) -          Body -  4 bytes
+
+	// Define the dynamic data (fields)
+	ssz.DefineDynamicObjectContent(codec, &b.Body) // Field  (4) -          Body - ? bytes
+}
+
+// MarshalSSZ marshals the BeaconBlock object to SSZ format.
+func (b *BeaconBlock) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, b.SizeSSZ(false))
+	return buf, ssz.EncodeToBytes(buf, b)
+}
+
+// UnmarshalSSZ unmarshals the BeaconBlock object from SSZ format.
+func (b *BeaconBlock) UnmarshalSSZ(buf []byte) error {
+	return ssz.DecodeFromBytes(buf, b)
+}
+
+// HashTreeRoot computes the Merkleization of the BeaconBlock object.
+func (b *BeaconBlock) HashTreeRoot() ([32]byte, error) {
+	return ssz.HashConcurrent(b), nil
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
+
+// MarshalSSZTo marshals the BeaconBlock object to the provided buffer in SSZ format.
+func (b *BeaconBlock) MarshalSSZTo(dst []byte) ([]byte, error) {
+	bz, err := b.MarshalSSZ()
+	if err != nil {
+		return nil, err
+	}
+	dst = append(dst, bz...)
+	return dst, nil
+}
+
+// HashTreeRootWith ssz hashes the BeaconBlock object with a hasher
+func (b *BeaconBlock) HashTreeRootWith(hh fastssz.HashWalker) (err error) {
+	indx := hh.Index()
+
+	// Field (0) 'Slot'
+	hh.PutUint64(uint64(b.Slot))
+
+	// Field (1) 'ProposerIndex'
+	hh.PutUint64(uint64(b.ProposerIndex))
+
+	// Field (2) 'ParentBlockRoot'
+	hh.PutBytes(b.ParentRoot[:])
+
+	// Field (3) 'StateRoot'
+	hh.PutBytes(b.StateRoot[:])
+
+	// Field (4) 'Body'
+	if err = b.Body.HashTreeRootWith(hh); err != nil {
+		return
+	}
+
+	hh.Merkleize(indx)
+	return
+}
+
+// GetTree ssz hashes the BeaconBlock object
+func (b *BeaconBlock) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(b)
 }
 
 // IsNil checks if the beacon block is nil.
