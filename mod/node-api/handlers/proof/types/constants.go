@@ -22,9 +22,14 @@ package types
 
 const (
 	// ZeroValidatorGIndexDenebPlus is the generalized index of the 0 validator
-	// in the
-	// beacon block in the DenebPlus fork.
+	// in the beacon block in the DenebPlus fork.
 	ZeroValidatorGIndexDenebPlus = 406819302277120
+
+	// ZeroValidatorPubkeyGIndexDenebPlus is the generalized index of the 0
+	// validator's pubkey in the beacon block in the DenebPlus fork. To get the
+	// GIndex of the pubkey of validator at index n, the formula is:
+	// `GIndex = ZeroValidatorPubkeyGIndexDenebPlus + (8 * n)`.
+	ZeroValidatorPubkeyGIndexDenebPlus = 3254554418216960
 
 	// MaxBlockRoots is the maximum number of block roots in the beacon block.
 	MaxBlockRoots uint64 = 8192

@@ -26,13 +26,13 @@ import (
 	ssz "github.com/ferranbt/fastssz"
 )
 
-// GetProofForProposer_FastSSZ generates a proof for the proposer validator in
+// ProofForProposer_FastSSZ generates a proof for the proposer validator in
 // the beacon block. The proof is then verified against the beacon block root
 // as a sanity check. Returns the proof along with the beacon block root. It
 // uses the fastssz library to generate the proof.
 //
 //nolint:revive,stylecheck // for explicit naming.
-func GetProofForProposer_FastSSZ(
+func ProofForProposer_FastSSZ(
 	beaconBlock *BeaconBlockForValidator,
 ) ([]common.Root, common.Root, error) {
 	// Get the proof tree to generate the proof.
@@ -70,4 +70,51 @@ func GetProofForProposer_FastSSZ(
 	}
 
 	return validatorProof, beaconRoot, nil
+}
+
+// ProofForProposerPubkey_FastSSZ generates a proof for the proposer
+// pubkey in the beacon block. The proof is then verified against the beacon
+// block root as a sanity check. Returns the proof along with the beacon block
+// root. It uses the fastssz library to generate the proof.
+//
+//nolint:revive,stylecheck // for explicit naming.
+func ProofForProposerPubkey_FastSSZ(
+	beaconBlock *BeaconBlockForValidator,
+) ([]common.Root, common.Root, error) {
+	// Get the proof tree to generate the proof.
+	proofTree, err := beaconBlock.GetTree()
+	if err != nil {
+		return nil, common.Root{}, err
+	}
+
+	// Get the generalized index of the proposer pubkey in the tree.
+	gIndex := ZeroValidatorPubkeyGIndexDenebPlus +
+		int(8*beaconBlock.ProposerIndex)
+
+	// Get the proof of the proposer pubkey in the tree.
+	proof, err := proofTree.Prove(gIndex)
+	if err != nil {
+		return nil, common.Root{}, err
+	}
+	pubkeyProof := make([]common.Root, len(proof.Hashes))
+	for i, hash := range proof.Hashes {
+		pubkeyProof[i] = common.Root(hash)
+	}
+
+	// Sanity check that the proof verifies against our beacon root.
+	beaconRoot, err := beaconBlock.HashTreeRoot()
+	if err != nil {
+		return nil, common.Root{}, err
+	}
+	beaconRootVerified, err := ssz.VerifyProof(beaconRoot[:], proof)
+	if err != nil {
+		return nil, common.Root{}, err
+	}
+	if !beaconRootVerified {
+		return nil, common.Root{}, errors.Newf(
+			"proof verification failed against beacon root: %x", beaconRoot[:],
+		)
+	}
+
+	return pubkeyProof, beaconRoot, nil
 }

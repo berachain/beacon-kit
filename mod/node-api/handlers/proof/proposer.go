@@ -21,8 +21,6 @@
 package proof
 
 import (
-	"unsafe"
-
 	ptypes "github.com/berachain/beacon-kit/mod/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
@@ -55,14 +53,15 @@ func (h *Handler[
 		return nil, err
 	}
 
-	// Get the beacon state struct for the proving the proposer validator
-	// exists within the state.
+	// Get the beacon state struct for the proving the proposer validator pubkey
+	// exists within the state, and the proposer pubkey as well.
 	beaconStateForValidatorProof, err := ptypes.NewBeaconStateForValidator(
 		beaconState, h.backend.ChainSpec(),
 	)
 	if err != nil {
 		return nil, err
 	}
+	proposerPubkey := beaconStateForValidatorProof.Validators[blockHeader.GetProposerIndex()].Pubkey
 
 	// Set the "correct" state root on the block header, which yields the exact
 	// beacon block root that is set on execution clients for EIP-4788.
@@ -75,8 +74,8 @@ func (h *Handler[
 	}
 	blockHeader.SetStateRoot(stateRootCorrection)
 
-	// Now get the beacon block struct for proving the proposer validator exists
-	// within the state in this block.
+	// Now get the beacon block struct for proving the proposer validator pubkey
+	// exists within the state in this block.
 	beaconBlockForValidatorProof, err := ptypes.NewBeaconBlockForValidator(
 		blockHeader, beaconStateForValidatorProof,
 	)
@@ -85,25 +84,27 @@ func (h *Handler[
 	}
 
 	// Generate the proof (along with the "correct" beacon block root to verify
-	// against) for the proposer validator.
-	validatorProof, beaconBlockRoot, err := ptypes.GetProofForProposer_FastSSZ(
+	// against) for the proposer validator pubkey.
+	pubkeyProof, beaconBlockRoot, err := ptypes.ProofForProposerPubkey_FastSSZ(
 		beaconBlockForValidatorProof,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	//#nosec:G103 // on purpose.
-	validators := *(*[]ValidatorT)(
-		unsafe.Pointer(&beaconBlockForValidatorProof.StateRoot.Validators),
-	)
+	// //#nosec:G103 // on purpose.
+	// validators := *(*[]ValidatorT)(
+	// 	unsafe.Pointer(&beaconBlockForValidatorProof.StateRoot.Validators),
+	// )
 
 	return ptypes.BlockProposerProofResponse[
 		BeaconBlockHeaderT, ValidatorT,
 	]{
 		BeaconBlockHeader: blockHeader,
 		BeaconBlockRoot:   beaconBlockRoot,
-		Validator:         validators[blockHeader.GetProposerIndex()],
-		ValidatorProof:    validatorProof,
+		// Validator:         validators[blockHeader.GetProposerIndex()],
+		ValidatorPubkey: proposerPubkey,
+		// ValidatorProof:    validatorProof,
+		ValidatorPubkeyProof: pubkeyProof,
 	}, nil
 }
