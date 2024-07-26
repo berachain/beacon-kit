@@ -97,25 +97,24 @@ func (e *ExecutionPayload) ToHeader(
 	switch e.Version() {
 	case version.Deneb, version.DenebPlus:
 		return &ExecutionPayloadHeader{
-			InnerExecutionPayloadHeader: &ExecutionPayloadHeaderDeneb{
-				ParentHash:       e.GetParentHash(),
-				FeeRecipient:     e.GetFeeRecipient(),
-				StateRoot:        e.GetStateRoot(),
-				ReceiptsRoot:     e.GetReceiptsRoot(),
-				LogsBloom:        e.GetLogsBloom(),
-				Random:           e.GetPrevRandao(),
-				Number:           e.GetNumber(),
-				GasLimit:         e.GetGasLimit(),
-				GasUsed:          e.GetGasUsed(),
-				Timestamp:        e.GetTimestamp(),
-				ExtraData:        e.GetExtraData(),
-				BaseFeePerGas:    e.GetBaseFeePerGas(),
-				BlockHash:        e.GetBlockHash(),
-				TransactionsRoot: txsRoot,
-				WithdrawalsRoot:  withdrawalsRoot,
-				BlobGasUsed:      e.GetBlobGasUsed(),
-				ExcessBlobGas:    e.GetExcessBlobGas(),
-			},
+			version:          e.Version(),
+			ParentHash:       e.GetParentHash(),
+			FeeRecipient:     e.GetFeeRecipient(),
+			StateRoot:        e.GetStateRoot(),
+			ReceiptsRoot:     e.GetReceiptsRoot(),
+			LogsBloom:        [256]byte(e.GetLogsBloom()),
+			Random:           e.GetPrevRandao(),
+			Number:           e.GetNumber(),
+			GasLimit:         e.GetGasLimit(),
+			GasUsed:          e.GetGasUsed(),
+			Timestamp:        e.GetTimestamp(),
+			ExtraData:        e.GetExtraData(),
+			BaseFeePerGas:    e.GetBaseFeePerGas(),
+			BlockHash:        e.GetBlockHash(),
+			TransactionsRoot: txsRoot,
+			WithdrawalsRoot:  withdrawalsRoot,
+			BlobGasUsed:      e.GetBlobGasUsed(),
+			ExcessBlobGas:    e.GetExcessBlobGas(),
 		}, nil
 	default:
 		return nil, errors.New("unknown fork version")

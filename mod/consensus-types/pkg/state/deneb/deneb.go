@@ -41,9 +41,9 @@ type BeaconState struct {
 	StateRoots        []common.Root            `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
 
 	// Eth1
-	Eth1Data                     *types.Eth1Data                    `json:"eth1Data"`
-	Eth1DepositIndex             uint64                             `json:"eth1DepositIndex"`
-	LatestExecutionPayloadHeader *types.ExecutionPayloadHeaderDeneb `json:"latestExecutionPayloadHeader"`
+	Eth1Data                     *types.Eth1Data               `json:"eth1Data"`
+	Eth1DepositIndex             uint64                        `json:"eth1DepositIndex"`
+	LatestExecutionPayloadHeader *types.ExecutionPayloadHeader `json:"latestExecutionPayloadHeader"`
 
 	// Registry
 	Validators []*types.Validator `json:"validators" ssz-max:"1099511627776"`
