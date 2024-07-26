@@ -100,8 +100,8 @@ github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240618214413-d5ec0e66b3dd h1:QH
 github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240618214413-d5ec0e66b3dd/go.mod h1:ft214cxJaqrRPOuAjpYwgA9AOElJnHrDZZEQ0jZPWwQ=
 github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df h1:fLL+7ZZcbVOmE3XE0o+ZGS8zyPLjki7LrZAsXpcG4Sc=
 github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df/go.mod h1:wbSa9W1CDDzR9AptQfYf/16bWqktaIQIZdJsuKWeqC8=
-github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210358-b245289d6dc3 h1:d7Rhga3yDLja5UtC29uIUWj/5ItTC2nNqpW8PyhziOQ=
-github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210358-b245289d6dc3/go.mod h1:ku+3SPOa1x0QAquKlSa0EqHDMaBJlMc91nzyKrH37M4=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157 h1:2NHg24WWdkX7FgaFQsgNp3vbFRMnEIqchI6kKf6hs4I=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157/go.mod h1:uSFWd+x3034sIGnSwxlJjhooh4zPXYX8DVc/r0TMvs4=
 github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240717210058-a144e074f6b2 h1:FHTRsphGUMR521ghLOqOYK1q0K3Y1xQRiA+spYQ6wQY=
 github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240717210058-a144e074f6b2/go.mod h1:qeqdziAxd63Zh1rnUXwDA5m7vNOsx4Rr2d6CJv7ADRw=
 github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6650da31 h1:1bJbJcoksyXfYMiga8YxPnkVKqT1lKwym/8kZnEPz58=

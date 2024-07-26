@@ -25,13 +25,12 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
-
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/ckzg"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/gokzg"
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"

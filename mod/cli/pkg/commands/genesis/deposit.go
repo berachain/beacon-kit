@@ -25,8 +25,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
-
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/context"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/parser"
@@ -37,6 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/cosmos/cosmos-sdk/client"
