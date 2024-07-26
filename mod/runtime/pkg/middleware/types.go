@@ -22,7 +22,6 @@ package middleware
 
 import (
 	"context"
-	"encoding/json"
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
@@ -74,5 +73,5 @@ type BlockchainService[
 
 // Genesis is the interface for the genesis data.
 type Genesis interface {
-	json.Unmarshaler
+	constraints.JSONMarshallable
 }
