@@ -28,38 +28,37 @@ import (
 	"github.com/karalabe/ssz"
 )
 
+// BeaconState represents the state of the Ethereum 2.0 beacon chain.
 type BeaconState struct {
 	// Versioning
-	//
-	//nolint:lll
-	GenesisValidatorsRoot common.Root `json:"genesisValidatorsRoot" ssz-size:"32"`
-	Slot                  math.Slot   `json:"slot"`
-	Fork                  *types.Fork `json:"fork"`
+	GenesisValidatorsRoot common.Root
+	Slot                  math.Slot
+	Fork                  *types.Fork
 
 	// History
-	LatestBlockHeader *types.BeaconBlockHeader `json:"latestBlockHeader"`
-	BlockRoots        []common.Root            `json:"blockRoots" ssz-size:"8192"`
-	StateRoots        []common.Root            `json:"stateRoots" ssz-size:"8192"`
+	LatestBlockHeader *types.BeaconBlockHeader
+	BlockRoots        []common.Root
+	StateRoots        []common.Root
 
 	// Eth1
-	Eth1Data                     *types.Eth1Data               `json:"eth1Data"`
-	Eth1DepositIndex             uint64                        `json:"eth1DepositIndex"`
-	LatestExecutionPayloadHeader *types.ExecutionPayloadHeader `json:"latestExecutionPayloadHeader"`
+	Eth1Data                     *types.Eth1Data
+	Eth1DepositIndex             uint64
+	LatestExecutionPayloadHeader *types.ExecutionPayloadHeader
 
 	// Registry
-	Validators []*types.Validator `ssz-max:"1099511627776"`
-	Balances   []uint64           `ssz-max:"1099511627776"`
+	Validators []*types.Validator
+	Balances   []uint64
 
 	// Randomness
-	RandaoMixes []common.Bytes32 `json:"randaoMixes" ssz-size:"65536"`
+	RandaoMixes []common.Bytes32
 
 	// Withdrawals
-	NextWithdrawalIndex          uint64              `json:"nextWithdrawalIndex"`
-	NextWithdrawalValidatorIndex math.ValidatorIndex `json:"nextWithdrawalValidatorIndex"`
+	NextWithdrawalIndex          uint64
+	NextWithdrawalValidatorIndex math.ValidatorIndex
 
 	// Slashing
-	Slashings     []uint64  `json:"slashings" ssz-size:"8192"`
-	TotalSlashing math.Gwei `json:"totalSlashing"`
+	Slashings     []uint64
+	TotalSlashing math.Gwei
 }
 
 /* -------------------------------------------------------------------------- */
@@ -233,7 +232,11 @@ func (b *BeaconState) HashTreeRootWith(hh fastssz.HashWalker) error {
 
 	// Field (10) 'Balances'
 	if size := len(b.Balances); size > 1099511627776 {
-		return fastssz.ErrListTooBigFn("BeaconState.Balances", size, 1099511627776)
+		return fastssz.ErrListTooBigFn(
+			"BeaconState.Balances",
+			size,
+			1099511627776,
+		)
 	}
 	subIndx = hh.Index()
 	for _, i := range b.Balances {
@@ -241,7 +244,11 @@ func (b *BeaconState) HashTreeRootWith(hh fastssz.HashWalker) error {
 	}
 	hh.FillUpTo32()
 	numItems = uint64(len(b.Balances))
-	hh.MerkleizeWithMixin(subIndx, numItems, fastssz.CalculateLimit(1099511627776, numItems, 8))
+	hh.MerkleizeWithMixin(
+		subIndx,
+		numItems,
+		fastssz.CalculateLimit(1099511627776, numItems, 8),
+	)
 
 	// Field (11) 'RandaoMixes'
 	if size := len(b.RandaoMixes); size > 65536 {
@@ -262,7 +269,11 @@ func (b *BeaconState) HashTreeRootWith(hh fastssz.HashWalker) error {
 
 	// Field (14) 'Slashings'
 	if size := len(b.Slashings); size > 1099511627776 {
-		return fastssz.ErrListTooBigFn("BeaconState.Slashings", size, 1099511627776)
+		return fastssz.ErrListTooBigFn(
+			"BeaconState.Slashings",
+			size,
+			1099511627776,
+		)
 	}
 	subIndx = hh.Index()
 	for _, i := range b.Slashings {
@@ -270,7 +281,11 @@ func (b *BeaconState) HashTreeRootWith(hh fastssz.HashWalker) error {
 	}
 	hh.FillUpTo32()
 	numItems = uint64(len(b.Slashings))
-	hh.MerkleizeWithMixin(subIndx, numItems, fastssz.CalculateLimit(1099511627776, numItems, 8))
+	hh.MerkleizeWithMixin(
+		subIndx,
+		numItems,
+		fastssz.CalculateLimit(1099511627776, numItems, 8),
+	)
 
 	// Field (15) 'TotalSlashing'
 	hh.PutUint64(uint64(b.TotalSlashing))

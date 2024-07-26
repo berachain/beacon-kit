@@ -42,12 +42,40 @@ func generateValidBeaconState() *deneb.BeaconState {
 	return &deneb.BeaconState{
 		GenesisValidatorsRoot: common.Root{0x01, 0x02, 0x03},
 		Slot:                  1234,
-		BlockRoots:            []common.Root{{0x04, 0x05, 0x06}, {0x07, 0x08, 0x09}},
-		StateRoots:            []common.Root{{0x0a, 0x0b, 0x0c}, {0x0d, 0x0e, 0x0f}},
-		Fork:                  &types.Fork{PreviousVersion: [4]byte{0x01, 0x00, 0x00, 0x00}, CurrentVersion: [4]byte{0x02, 0x00, 0x00, 0x00}, Epoch: 5678},
+		BlockRoots: []common.Root{
+			{0x04, 0x05, 0x06},
+			{0x07, 0x08, 0x09},
+		},
+		StateRoots: []common.Root{
+			{0x0a, 0x0b, 0x0c},
+			{0x0d, 0x0e, 0x0f},
+		},
+		Fork: &types.Fork{
+			PreviousVersion: [4]byte{0x01, 0x00, 0x00, 0x00},
+			CurrentVersion:  [4]byte{0x02, 0x00, 0x00, 0x00},
+			Epoch:           5678,
+		},
 		Validators: []*types.Validator{
-			{Pubkey: [48]byte{0x01}, WithdrawalCredentials: [32]byte{0x02}, EffectiveBalance: 32000000000, Slashed: false, ActivationEligibilityEpoch: 1, ActivationEpoch: 2, ExitEpoch: 18446744073709551615, WithdrawableEpoch: 18446744073709551615},
-			{Pubkey: [48]byte{0x03}, WithdrawalCredentials: [32]byte{0x04}, EffectiveBalance: 31000000000, Slashed: true, ActivationEligibilityEpoch: 3, ActivationEpoch: 4, ExitEpoch: 5, WithdrawableEpoch: 6},
+			{
+				Pubkey:                     [48]byte{0x01},
+				WithdrawalCredentials:      [32]byte{0x02},
+				EffectiveBalance:           32000000000,
+				Slashed:                    false,
+				ActivationEligibilityEpoch: 1,
+				ActivationEpoch:            2,
+				ExitEpoch:                  18446744073709551615,
+				WithdrawableEpoch:          18446744073709551615,
+			},
+			{
+				Pubkey:                     [48]byte{0x03},
+				WithdrawalCredentials:      [32]byte{0x04},
+				EffectiveBalance:           31000000000,
+				Slashed:                    true,
+				ActivationEligibilityEpoch: 3,
+				ActivationEpoch:            4,
+				ExitEpoch:                  5,
+				WithdrawableEpoch:          6,
+			},
 		},
 		Balances:                     []uint64{32000000000, 31000000000},
 		RandaoMixes:                  generateRandomBytes32(65536),
@@ -161,5 +189,10 @@ func TestBeaconState_HashTreeRoot(t *testing.T) {
 	concurrentRoot := karalabessz.HashSequential(state)
 
 	// Compare the results
-	require.Equal(t, root, concurrentRoot, "HashTreeRoot and HashSequential should produce the same result")
+	require.Equal(
+		t,
+		root,
+		concurrentRoot,
+		"HashTreeRoot and HashSequential should produce the same result",
+	)
 }
