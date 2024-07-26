@@ -40,6 +40,7 @@ type Backend[
 	BlockBackend[BeaconBlockHeaderT]
 	StateBackend[BeaconStateT]
 	ChainSpec() common.ChainSpec
+	GetSlotByRoot([32]byte) (uint64, error)
 }
 
 type BlockBackend[BeaconBlockHeaderT any] interface {

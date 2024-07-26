@@ -25,7 +25,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof/types"
-	"github.com/berachain/beacon-kit/mod/node-api/types/context"
+	"github.com/berachain/beacon-kit/mod/node-api/server/context"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 )
 
@@ -42,11 +42,11 @@ type Handler[
 	ForkT constraints.SSZRootable,
 	ValidatorT any,
 ] struct {
+	*handlers.BaseHandler[ContextT]
 	backend Backend[
 		BeaconBlockHeaderT, BeaconStateT, Eth1DataT, ExecutionPayloadHeaderT,
 		ForkT, ValidatorT,
 	]
-	routes *handlers.RouteSet[ContextT]
 }
 
 // NewHandler creates a new handler for the proof API.
@@ -74,16 +74,12 @@ func NewHandler[
 		ContextT, BeaconBlockHeaderT, BeaconStateT, Eth1DataT,
 		ExecutionPayloadHeaderT, ForkT, ValidatorT,
 	]{
+		BaseHandler: handlers.NewBaseHandler[ContextT](
+			handlers.NewRouteSet[ContextT](""),
+		),
 		backend: backend,
-		routes:  handlers.NewRouteSet[ContextT](""),
 	}
 	return h
-}
-
-func (
-	h *Handler[ContextT, _, _, _, _, _, _],
-) RouteSet() *handlers.RouteSet[ContextT] {
-	return h.routes
 }
 
 // NotImplemented is a placeholder for the proof API.

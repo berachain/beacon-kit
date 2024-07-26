@@ -22,6 +22,7 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
@@ -30,6 +31,11 @@ import (
 // ForkSize is the size of the Fork object in bytes.
 // 4 bytes for PreviousVersion + 4 bytes for CurrentVersion + 8 bytes for Epoch.
 const ForkSize = 16
+
+var (
+	_ ssz.StaticObject                    = (*Fork)(nil)
+	_ constraints.SSZMarshallableRootable = (*Fork)(nil)
+)
 
 // Fork as defined in the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#fork

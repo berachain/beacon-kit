@@ -21,39 +21,18 @@
 package server
 
 import (
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-api/backend"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
-	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof/types"
-	"github.com/berachain/beacon-kit/mod/node-api/types/context"
+	"github.com/berachain/beacon-kit/mod/node-api/server/context"
 )
 
+// Engine is a generic interface for an API engine.
 type Engine[ContextT context.Context, T any] interface {
 	Run(addr string) error
-	RegisterRoutes(*handlers.RouteSet[ContextT])
-}
-
-type Backend[
-	BeaconBlockHeaderT backend.BeaconBlockHeader[BeaconBlockHeaderT],
-	BeaconStateT types.BeaconState[
-		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-		ValidatorT,
-	],
-	Eth1DataT any,
-	ExecutionPayloadHeaderT any,
-	ForkT any,
-	ValidatorT any,
-] interface {
-	BeaconBackend[ForkT, ValidatorT]
-	ProofBackend[
-		BeaconBlockHeaderT, BeaconStateT, Eth1DataT, ExecutionPayloadHeaderT,
-		ForkT, ValidatorT,
-	]
-}
-
-type BeaconBackend[ForkT, ValidatorT any] interface {
-	beacon.Backend[ForkT, ValidatorT]
+	RegisterRoutes(*handlers.RouteSet[ContextT], log.Logger[any])
 }
 
 type ProofBackend[

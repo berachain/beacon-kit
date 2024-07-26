@@ -32,31 +32,31 @@ func TestVectorSizeSSZ(t *testing.T) {
 	t.Run("uint8 vector", func(t *testing.T) {
 		vector := ssz.Vector[ssz.Byte]{1, 2, 3, 4, 5}
 		require.Len(t, vector, 5)
-		require.Equal(t, 5, vector.SizeSSZ())
+		require.Equal(t, uint32(5), vector.SizeSSZ())
 	})
 
 	t.Run("byte slice vector", func(t *testing.T) {
 		vector := ssz.Vector[math.U8]{1, 2, 3, 4, 5, 6, 7, 8}
 		require.Len(t, vector, 8)
-		require.Equal(t, 8, vector.SizeSSZ())
+		require.Equal(t, uint32(8), vector.SizeSSZ())
 	})
 
 	t.Run("uint64 vector", func(t *testing.T) {
 		vector := ssz.Vector[math.U64]{1, 2, 3, 4, 5}
 		require.Len(t, vector, 5)
-		require.Equal(t, 40, vector.SizeSSZ())
+		require.Equal(t, uint32(40), vector.SizeSSZ())
 	})
 
 	t.Run("bool vector", func(t *testing.T) {
 		vector := ssz.Vector[math.Bool]{true, false, true}
 		require.Len(t, vector, 3)
-		require.Equal(t, 3, vector.SizeSSZ())
+		require.Equal(t, uint32(3), vector.SizeSSZ())
 	})
 
 	t.Run("empty vector", func(t *testing.T) {
 		vector := ssz.Vector[math.U64]{}
 		require.Empty(t, vector)
-		require.Equal(t, 0, vector.SizeSSZ())
+		require.Equal(t, uint32(0), vector.SizeSSZ())
 	})
 }
 

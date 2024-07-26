@@ -42,6 +42,13 @@ import (
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-api/backend"
 	"github.com/berachain/beacon-kit/mod/node-api/engines/echo"
+	beaconapi "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon"
+	builderapi "github.com/berachain/beacon-kit/mod/node-api/handlers/builder"
+	configapi "github.com/berachain/beacon-kit/mod/node-api/handlers/config"
+	debugapi "github.com/berachain/beacon-kit/mod/node-api/handlers/debug"
+	eventsapi "github.com/berachain/beacon-kit/mod/node-api/handlers/events"
+	nodeapi "github.com/berachain/beacon-kit/mod/node-api/handlers/node"
+	proofapi "github.com/berachain/beacon-kit/mod/node-api/handlers/proof"
 	"github.com/berachain/beacon-kit/mod/node-api/server"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
@@ -438,4 +445,36 @@ type (
 
 	// BlockPruner is a type alias for the block pruner.
 	BlockPruner = pruner.Pruner[*BlockStore]
+)
+
+/* -------------------------------------------------------------------------- */
+/*                                API Handlers                                */
+/* -------------------------------------------------------------------------- */
+
+type (
+	// BeaconAPIHandler is a type alias for the beacon handler.
+	BeaconAPIHandler = beaconapi.Handler[
+		*BeaconBlockHeader, NodeAPIContext, *Fork, *Validator,
+	]
+
+	// BuilderAPIHandler is a type alias for the builder handler.
+	BuilderAPIHandler = builderapi.Handler[NodeAPIContext]
+
+	// ConfigAPIHandler is a type alias for the config handler.
+	ConfigAPIHandler = configapi.Handler[NodeAPIContext]
+
+	// DebugAPIHandler is a type alias for the debug handler.
+	DebugAPIHandler = debugapi.Handler[NodeAPIContext]
+
+	// EventsAPIHandler is a type alias for the events handler.
+	EventsAPIHandler = eventsapi.Handler[NodeAPIContext]
+
+	// NodeAPIHandler is a type alias for the node handler.
+	NodeAPIHandler = nodeapi.Handler[NodeAPIContext]
+
+	// ProofAPIHandler is a type alias for the proof handler.
+	ProofAPIHandler = proofapi.Handler[
+		NodeAPIContext, *BeaconBlockHeader, *BeaconState,
+		*Eth1Data, *ExecutionPayloadHeader, *Fork, *Validator,
+	]
 )

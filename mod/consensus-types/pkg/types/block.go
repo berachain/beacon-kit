@@ -58,10 +58,10 @@ func (w *BeaconBlock) NewWithVersion(
 	var (
 		block RawBeaconBlock[*BeaconBlockBody]
 		base  = BeaconBlockHeaderBase{
-			Slot:            slot.Unwrap(),
-			ProposerIndex:   proposerIndex.Unwrap(),
-			ParentBlockRoot: parentBlockRoot,
-			StateRoot:       bytes.B32{},
+			Slot:          slot.Unwrap(),
+			ProposerIndex: proposerIndex.Unwrap(),
+			ParentRoot:    parentBlockRoot,
+			StateRoot:     bytes.B32{},
 		}
 	)
 

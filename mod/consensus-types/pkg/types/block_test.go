@@ -39,10 +39,10 @@ func generateValidBeaconBlockDeneb() *types.BeaconBlockDeneb {
 	byteSlice := byteArray[:]
 	return &types.BeaconBlockDeneb{
 		BeaconBlockHeaderBase: types.BeaconBlockHeaderBase{
-			Slot:            10,
-			ProposerIndex:   5,
-			ParentBlockRoot: bytes.B32{1, 2, 3, 4, 5},
-			StateRoot:       bytes.B32{5, 4, 3, 2, 1},
+			Slot:          10,
+			ProposerIndex: 5,
+			ParentRoot:    bytes.B32{1, 2, 3, 4, 5},
+			StateRoot:     bytes.B32{5, 4, 3, 2, 1},
 		},
 		Body: &types.BeaconBlockBodyDeneb{
 			ExecutionPayload: &types.ExecutableDataDeneb{
@@ -60,9 +60,9 @@ func generateValidBeaconBlockDeneb() *types.BeaconBlockDeneb {
 func TestBeaconBlockForDeneb(t *testing.T) {
 	block := &types.BeaconBlockDeneb{
 		BeaconBlockHeaderBase: types.BeaconBlockHeaderBase{
-			Slot:            10,
-			ProposerIndex:   5,
-			ParentBlockRoot: bytes.B32{1, 2, 3, 4, 5},
+			Slot:          10,
+			ProposerIndex: 5,
+			ParentRoot:    bytes.B32{1, 2, 3, 4, 5},
 		},
 	}
 	require.NotNil(t, block)
@@ -122,7 +122,7 @@ func TestBeaconBlockDeneb(t *testing.T) {
 	require.NotNil(t, header)
 	require.Equal(t, math.U64(block.Slot), header.Slot)
 	require.Equal(t, math.U64(block.ProposerIndex), header.ProposerIndex)
-	require.Equal(t, block.ParentBlockRoot, header.ParentBlockRoot)
+	require.Equal(t, block.ParentRoot, header.ParentBlockRoot)
 	require.Equal(t, block.StateRoot, header.StateRoot)
 }
 

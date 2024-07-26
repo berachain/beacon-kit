@@ -22,7 +22,7 @@ package backend
 
 import (
 	"github.com/berachain/beacon-kit/mod/node-api/backend/utils"
-	types "github.com/berachain/beacon-kit/mod/node-api/types/beacon"
+	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -31,7 +31,7 @@ func (b Backend[
 ]) ValidatorByID(
 	slot uint64,
 	id string,
-) (*types.ValidatorData[ValidatorT], error) {
+) (*beacontypes.ValidatorData[ValidatorT], error) {
 	// TODO: to adhere to the spec, this shouldn't error if the error
 	// is not found, but i can't think of a way to do that without coupling
 	// db impl to the api impl.
@@ -51,8 +51,8 @@ func (b Backend[
 	if err != nil {
 		return nil, err
 	}
-	return &types.ValidatorData[ValidatorT]{
-		ValidatorBalanceData: types.ValidatorBalanceData{
+	return &beacontypes.ValidatorData[ValidatorT]{
+		ValidatorBalanceData: beacontypes.ValidatorBalanceData{
 			Index:   index.Unwrap(),
 			Balance: balance.Unwrap(),
 		},
@@ -67,8 +67,8 @@ func (b Backend[
 	slot uint64,
 	ids []string,
 	_ []string, // TODO: filter by status
-) ([]*types.ValidatorData[ValidatorT], error) {
-	validatorsData := make([]*types.ValidatorData[ValidatorT], 0)
+) ([]*beacontypes.ValidatorData[ValidatorT], error) {
+	validatorsData := make([]*beacontypes.ValidatorData[ValidatorT], 0)
 	for _, id := range ids {
 		// TODO: we can probably optimize this via a getAllValidators
 		// query and then filtering but blocked by the fact that IDs
@@ -87,13 +87,13 @@ func (b Backend[
 ]) ValidatorBalancesByIDs(
 	slot uint64,
 	ids []string,
-) ([]*types.ValidatorBalanceData, error) {
+) ([]*beacontypes.ValidatorBalanceData, error) {
 	var index math.U64
 	st, err := b.StateFromSlot(slot)
 	if err != nil {
 		return nil, err
 	}
-	balances := make([]*types.ValidatorBalanceData, 0)
+	balances := make([]*beacontypes.ValidatorBalanceData, 0)
 	for _, id := range ids {
 		index, err = utils.ValidatorIndexByID(st, id)
 		if err != nil {
@@ -105,7 +105,7 @@ func (b Backend[
 		if err != nil {
 			return nil, err
 		}
-		balances = append(balances, &types.ValidatorBalanceData{
+		balances = append(balances, &beacontypes.ValidatorBalanceData{
 			Index:   index.Unwrap(),
 			Balance: balance.Unwrap(),
 		})

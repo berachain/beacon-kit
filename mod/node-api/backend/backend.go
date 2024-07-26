@@ -140,3 +140,9 @@ func (b *Backend[
 ]) ChainSpec() common.ChainSpec {
 	return b.cs
 }
+
+func (b *Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) GetSlotByRoot(root [32]byte) (uint64, error) {
+	return b.sb.BlockStore().GetSlotByRoot(root)
+}

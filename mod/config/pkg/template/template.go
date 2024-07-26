@@ -101,4 +101,7 @@ enabled = "{{ .BeaconKit.NodeAPI.Enabled }}"
 
 # Address is the address to bind the node API to.
 address = "{{ .BeaconKit.NodeAPI.Address }}"
+
+# Logging determines if the node API logging is enabled.
+logging = "{{ .BeaconKit.NodeAPI.Logging }}"
 `

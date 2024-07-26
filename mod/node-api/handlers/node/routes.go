@@ -23,11 +23,15 @@ package node
 import (
 	"net/http"
 
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 )
 
-func (h *Handler[ContextT]) RegisterRoutes() {
-	h.routes.Routes = []*handlers.Route[ContextT]{
+func (h *Handler[ContextT]) RegisterRoutes(
+	logger log.Logger[any],
+) {
+	h.SetLogger(logger)
+	h.BaseHandler.AddRoutes([]*handlers.Route[ContextT]{
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/node/identity",
@@ -63,5 +67,5 @@ func (h *Handler[ContextT]) RegisterRoutes() {
 			Path:    "/eth/v1/node/health",
 			Handler: h.NotImplemented,
 		},
-	}
+	})
 }

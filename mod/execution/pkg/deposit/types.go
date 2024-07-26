@@ -83,7 +83,7 @@ type Deposit[DepositT, WithdrawalCredentialsT any] interface {
 		uint64,
 	) DepositT
 	// GetIndex returns the index of the deposit.
-	GetIndex() uint64
+	GetIndex() math.U64
 }
 
 // Store defines the interface for managing deposit operations.

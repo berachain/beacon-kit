@@ -47,7 +47,7 @@ func NewU256FromUint64(v uint64) *U256 {
 }
 
 // SizeSSZ returns the size of the U256 in bytes.
-func (U256) SizeSSZ() int {
+func (U256) SizeSSZ() uint32 {
 	return constants.U256Size
 }
 
@@ -58,7 +58,8 @@ func (u *U256) MarshalSSZ() ([]byte, error) {
 
 // NewFromSSZ creates a new U256 from SSZ format.
 func (U256) NewFromSSZ(buf []byte) (*U256, error) {
-	if len(buf) != constants.U256Size {
+	//#nosec: G701 // won't realistically overflow.
+	if uint32(len(buf)) != constants.U256Size {
 		return nil, fmt.Errorf(
 			"invalid buffer length: expected %d, got %d",
 			constants.U256Size,

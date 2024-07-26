@@ -78,7 +78,7 @@ func TestBytes20SizeSSZ(t *testing.T) {
 	tests := []struct {
 		name  string
 		input bytes.B20
-		want  int
+		want  uint32
 	}{
 		{
 			name: "size of B20",
