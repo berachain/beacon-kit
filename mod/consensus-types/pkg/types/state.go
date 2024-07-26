@@ -29,7 +29,7 @@ import (
 type BeaconState struct {
 	// Versioning
 	//
-	//nolint:lll
+	
 	GenesisValidatorsRoot common.Root `json:"genesisValidatorsRoot" ssz-size:"32"`
 	Slot                  math.Slot   `json:"slot"`
 	Fork                  *Fork       `json:"fork"`

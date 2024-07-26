@@ -65,8 +65,9 @@ type BeaconState struct {
 /*                                     SSZ                                    */
 /* -------------------------------------------------------------------------- */
 
-// SizeSSZ returns the ssz encoded size in bytes for the BeaconState object
+// SizeSSZ returns the ssz encoded size in bytes for the BeaconState object.
 func (b *BeaconState) SizeSSZ(fixed bool) uint32 {
+
 	var size uint32 = 300
 
 	if fixed {
@@ -86,6 +87,8 @@ func (b *BeaconState) SizeSSZ(fixed bool) uint32 {
 }
 
 // DefineSSZ defines the SSZ encoding for the BeaconState object.
+//
+//nolint:mnd // todo fix.
 func (b *BeaconState) DefineSSZ(codec *ssz.Codec) {
 	// Versioning
 	ssz.DefineStaticBytes(codec, &b.GenesisValidatorsRoot)
@@ -127,15 +130,18 @@ func (b *BeaconState) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineSliceOfUint64sContent(codec, &b.Slashings, 1099511627776)
 }
 
+// MarshalSSZ marshals the BeaconState into SSZ format.
 func (b *BeaconState) MarshalSSZ() ([]byte, error) {
 	buf := make([]byte, b.SizeSSZ(false))
 	return buf, ssz.EncodeToBytes(buf, b)
 }
 
+// UnmarshalSSZ unmarshals the BeaconState from SSZ format.
 func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 	return ssz.DecodeFromBytes(buf, b)
 }
 
+// HashTreeRoot computes the Merkleization of the BeaconState.
 func (b *BeaconState) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashConcurrent(b), nil
 }
@@ -153,7 +159,9 @@ func (b *BeaconState) MarshalSSZTo(dst []byte) ([]byte, error) {
 	return dst, nil
 }
 
-// HashTreeRootWith ssz hashes the BeaconState object with a hasher
+// HashTreeRootWith ssz hashes the BeaconState object with a hasher.
+//
+//nolint:mnd,funlen // todo fix.
 func (b *BeaconState) HashTreeRootWith(hh fastssz.HashWalker) error {
 	indx := hh.Index()
 
@@ -294,7 +302,7 @@ func (b *BeaconState) HashTreeRootWith(hh fastssz.HashWalker) error {
 	return nil
 }
 
-// GetTree ssz hashes the BeaconState object
+// GetTree ssz hashes the BeaconState object.
 func (b *BeaconState) GetTree() (*fastssz.Node, error) {
 	return fastssz.ProofTree(b)
 }
