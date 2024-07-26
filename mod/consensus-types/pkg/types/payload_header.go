@@ -89,8 +89,8 @@ type executionPayloadHeaderMarshaling struct {
 // SizeSSZ returns either the static size of the object if fixed == true, or
 // the total size otherwise.
 func (h *ExecutionPayloadHeader) SizeSSZ(fixed bool) uint32 {
-	var size = uint32(32 + 20 + 32 +
-		32 + 256 + 32 + 8 + 8 + 8 + 8 + 4 + 32 + 32 + 32 + 32 + 8 + 8)
+	//nolint:mnd // todo fix.
+	var size = uint32(584)
 	if fixed {
 		return size
 	}
