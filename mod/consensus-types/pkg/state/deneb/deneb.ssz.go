@@ -64,9 +64,9 @@ func (b *BeaconState) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	// Offset (8) 'LatestExecutionPayloadHeader'
 	dst = ssz.WriteOffset(dst, offset)
 	if b.LatestExecutionPayloadHeader == nil {
-		b.LatestExecutionPayloadHeader = new(types.ExecutionPayloadHeaderDeneb)
+		b.LatestExecutionPayloadHeader = new(types.ExecutionPayloadHeader)
 	}
-	offset += b.LatestExecutionPayloadHeader.SizeSSZ()
+	offset += int(b.LatestExecutionPayloadHeader.SizeSSZ(false))
 
 	// Offset (9) 'Validators'
 	dst = ssz.WriteOffset(dst, offset)
@@ -278,7 +278,7 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 	{
 		buf = tail[o8:o9]
 		if b.LatestExecutionPayloadHeader == nil {
-			b.LatestExecutionPayloadHeader = new(types.ExecutionPayloadHeaderDeneb)
+			b.LatestExecutionPayloadHeader = new(types.ExecutionPayloadHeader)
 		}
 		if err = b.LatestExecutionPayloadHeader.UnmarshalSSZ(buf); err != nil {
 			return err
@@ -356,9 +356,9 @@ func (b *BeaconState) SizeSSZ() (size int) {
 
 	// Field (8) 'LatestExecutionPayloadHeader'
 	if b.LatestExecutionPayloadHeader == nil {
-		b.LatestExecutionPayloadHeader = new(types.ExecutionPayloadHeaderDeneb)
+		b.LatestExecutionPayloadHeader = new(types.ExecutionPayloadHeader)
 	}
-	size += b.LatestExecutionPayloadHeader.SizeSSZ()
+	size += int(b.LatestExecutionPayloadHeader.SizeSSZ(false))
 
 	// Field (9) 'Validators'
 	size += len(b.Validators) * 121
