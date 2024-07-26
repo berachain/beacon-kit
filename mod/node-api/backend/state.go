@@ -42,6 +42,8 @@ func (b *Backend[
 }
 
 // GetStateRoot returns the root of the state at the given stateID.
+//
+// TODO: fix https://github.com/berachain/beacon-kit/issues/1777.
 func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) StateRootAtSlot(

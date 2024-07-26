@@ -64,17 +64,6 @@ func (h *Handler[
 	//nolint:lll // formatter doesn't support shortening.
 	proposerPubkey := beaconStateForValidator.Validators[blockHeader.GetProposerIndex()].Pubkey
 
-	// Set the "correct" state root on the block header, which yields the exact
-	// beacon block root that is set on execution clients for EIP-4788.
-	//
-	// TODO: Determine why the backend's block header from beacon state has an
-	// incorrect state root (also retreivable from backend via StateRootAtSlot).
-	stateRootCorrection, err := beaconStateForValidator.HashTreeRoot()
-	if err != nil {
-		return nil, err
-	}
-	blockHeader.SetStateRoot(stateRootCorrection)
-
 	// Now get the beacon block struct for proving the proposer validator pubkey
 	// exists within the state in this block.
 	beaconBlockForValidator, err := ptypes.NewBeaconBlockForValidator(

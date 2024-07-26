@@ -53,6 +53,7 @@ type BeaconState[
 	ForkT any,
 	ValidatorT any,
 ] interface {
+	constraints.SSZRootable
 	// GetLatestExecutionPayloadHeader retrieves the latest execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (ExecutionPayloadHeaderT, error)
