@@ -33,7 +33,6 @@ import (
 )
 
 func generateBeaconBlockBodyDeneb() types.BeaconBlockBodyDeneb {
-	var byteArray [256]byte
 	return types.BeaconBlockBodyDeneb{
 		BeaconBlockBodyBase: types.BeaconBlockBodyBase{
 			RandaoReveal: [96]byte{1, 2, 3},
@@ -41,9 +40,7 @@ func generateBeaconBlockBodyDeneb() types.BeaconBlockBodyDeneb {
 			Graffiti:     [32]byte{4, 5, 6},
 			Deposits:     []*types.Deposit{},
 		},
-		ExecutionPayload: &types.ExecutionPayload{
-			LogsBloom: byteArray,
-		},
+		ExecutionPayload:   &types.ExecutionPayload{},
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
 }
@@ -120,7 +117,6 @@ func TestBeaconBlockBodyDeneb_SetDeposits(t *testing.T) {
 }
 
 func TestBeaconBlockBodyDeneb_MarshalSSZ(t *testing.T) {
-	var byteArray [256]byte
 	body := types.BeaconBlockBodyDeneb{
 		BeaconBlockBodyBase: types.BeaconBlockBodyBase{
 			RandaoReveal: [96]byte{1, 2, 3},
@@ -128,9 +124,7 @@ func TestBeaconBlockBodyDeneb_MarshalSSZ(t *testing.T) {
 			Graffiti:     [32]byte{4, 5, 6},
 			Deposits:     []*types.Deposit{},
 		},
-		ExecutionPayload: &types.ExecutionPayload{
-			LogsBloom: byteArray,
-		},
+		ExecutionPayload:   &types.ExecutionPayload{},
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
 	data, err := body.MarshalSSZ()
