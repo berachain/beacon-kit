@@ -34,8 +34,6 @@ import (
 )
 
 // ExecutionPayloadHeader is the execution header payload of Deneb.
-//
-
 type ExecutionPayloadHeader struct {
 	// TODO: Enable once
 	// https://github.com/karalabe/ssz/pull/9/files# is merged.

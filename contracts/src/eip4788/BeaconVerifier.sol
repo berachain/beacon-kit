@@ -44,6 +44,7 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
         onlyOwner
     {
         zeroValidatorPubkeyGIndex = _zeroValidatorPubkeyGIndex;
+        emit ZeroValidatorPubkeyGIndexChanged(_zeroValidatorPubkeyGIndex);
     }
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/

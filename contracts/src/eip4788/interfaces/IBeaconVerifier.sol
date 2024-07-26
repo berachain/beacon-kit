@@ -4,7 +4,11 @@ pragma solidity ^0.8.21;
 import { SSZ } from "../SSZ.sol";
 
 interface IBeaconVerifier {
-    /// @dev Generalized index of the pubkey of the first validator (validator
+    /// @notice Emitted when the zero validator pubkey Generalized Index is 
+    /// changed.
+    event ZeroValidatorPubkeyGIndexChanged(uint256 newZeroValidatorPubkeyGIndex);
+
+    /// @dev Generalized Index of the pubkey of the first validator (validator
     /// index of 0) in the registry of the beacon state in the beacon block.
     function zeroValidatorPubkeyGIndex() external view returns (uint256);
 
