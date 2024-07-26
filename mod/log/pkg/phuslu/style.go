@@ -20,19 +20,23 @@
 
 package phuslu
 
+import "github.com/berachain/beacon-kit/mod/log"
+
+type Color = log.Color
+
 const (
-	// colours.
-	reset      = "\x1b[0m"
-	black      = "\x1b[30m"
-	red        = "\x1b[31m"
-	green      = "\x1b[32m"
-	yellow     = "\x1b[33m"
-	blue       = "\x1b[34m"
-	magenta    = "\x1b[35m"
-	cyan       = "\x1b[36m"
-	white      = "\x1b[37m"
-	gray       = "\x1b[90m"
-	lightWhite = "\x1b[97m"
+	reset                 = log.Reset
+	black                 = log.Black
+	red                   = log.Red
+	green                 = log.Green
+	yellow                = log.Yellow
+	blue                  = log.Blue
+	magenta               = log.Magenta
+	cyan                  = log.Cyan
+	white                 = log.White
+	gray                  = log.Gray
+	lightWhite            = log.BrightWhite
+	brightBackgroundWhite = log.BrightBackgroundWhite
 
 	// log levels.
 	traceColor   = magenta
@@ -43,6 +47,7 @@ const (
 	fatalColor   = red
 	panicColor   = red
 	defaultColor = gray
+	apiColor     = blue
 	traceLabel   = "TRCE"
 	debugLabel   = "DBUG"
 	infoLabel    = "INFO"
@@ -50,7 +55,8 @@ const (
 	errorLabel   = "ERRR"
 	fatalLabel   = "FATAL"
 	panicLabel   = "PANIC"
-	defaultLabel = " ???"
+	defaultLabel = "???"
+	apiLabel     = "API"
 
 	// output styles flags.
 	StylePretty = "pretty"

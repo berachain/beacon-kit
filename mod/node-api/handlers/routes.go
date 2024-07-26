@@ -20,13 +20,31 @@
 
 package handlers
 
-import "github.com/berachain/beacon-kit/mod/node-api/server/context"
+import (
+	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/node-api/server/context"
+)
 
 // Route is a route for the node API.
 type Route[ContextT context.Context] struct {
 	Method  string
 	Path    string
 	Handler handlerFn[ContextT]
+}
+
+// DecorateWithLogs adds logging to the route's handler function as soon as
+// a request is received and when a response is ready.
+func (r *Route[ContextT]) DecorateWithLogs(logger log.Logger[any]) {
+	handler := r.Handler
+	r.Handler = func(ctx ContextT) (any, error) {
+		logger.Info("received request", "method", r.Method, "path", r.Path)
+		res, err := handler(ctx)
+		if err != nil {
+			logger.Error("error handling request", "error", err)
+		}
+		logger.Info("request handled", "response", res)
+		return res, err
+	}
 }
 
 // RouteSet is a set of routes for the node API.

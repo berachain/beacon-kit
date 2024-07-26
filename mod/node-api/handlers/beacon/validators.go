@@ -30,7 +30,7 @@ func (h *Handler[_, ContextT, _, _]) GetStateValidators(
 	c ContextT,
 ) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetStateValidatorsRequest](
-		c,
+		c, h.Logger(),
 	)
 	if err != nil {
 		return nil, err
@@ -65,7 +65,7 @@ func (h *Handler[_, ContextT, _, _]) PostStateValidators(
 	c ContextT,
 ) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.PostStateValidatorsRequest](
-		c,
+		c, h.Logger(),
 	)
 	if err != nil {
 		return nil, err
@@ -97,7 +97,7 @@ func (h *Handler[_, ContextT, _, _]) GetStateValidator(
 	c ContextT,
 ) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetStateValidatorRequest](
-		c,
+		c, h.Logger(),
 	)
 	if err != nil {
 		return nil, err
@@ -120,7 +120,7 @@ func (h *Handler[_, ContextT, _, _]) GetStateValidatorBalances(
 	c ContextT,
 ) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.GetValidatorBalancesRequest](
-		c,
+		c, h.Logger(),
 	)
 	if err != nil {
 		return nil, err
@@ -147,7 +147,7 @@ func (h *Handler[_, ContextT, _, _]) PostStateValidatorBalances(
 	c ContextT,
 ) (any, error) {
 	req, err := utils.BindAndValidate[beacontypes.PostValidatorBalancesRequest](
-		c,
+		c, h.Logger(),
 	)
 	if err != nil {
 		return nil, err
