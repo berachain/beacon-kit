@@ -23,15 +23,19 @@ package proof
 import (
 	"net/http"
 
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 )
 
-func (h *Handler[ContextT, _, _, _, _, _, _]) RegisterRoutes() {
-	h.routes.Routes = []*handlers.Route[ContextT]{
+func (h *Handler[ContextT, _, _, _, _, _, _]) RegisterRoutes(
+	logger log.Logger[any],
+) {
+	h.SetLogger(logger)
+	h.BaseHandler.AddRoutes([]*handlers.Route[ContextT]{
 		{
 			Method:  http.MethodGet,
 			Path:    "eth/v1/proof/blocks/proposer/:block_id",
 			Handler: h.GetBlockProposer,
 		},
-	}
+	})
 }

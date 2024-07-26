@@ -21,31 +21,66 @@
 package beacon
 
 import (
-	types "github.com/berachain/beacon-kit/mod/node-api/types/beacon"
+	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // Backend is the interface for backend of the beacon API.
-type Backend[ForkT, ValidatorT any] interface {
-	BlockBackend
+type Backend[
+	BlockHeaderT BlockHeader,
+	ForkT any,
+	ValidatorT any,
+] interface {
 	GenesisBackend
+	BlockBackend[BlockHeaderT]
+	RandaoBackend
 	StateBackend[ForkT]
 	ValidatorBackend[ValidatorT]
+	HistoricalBackend[ForkT]
+	GetSlotByRoot(root [32]byte) (uint64, error)
 }
 
-type BlockBackend interface {
-	BlockRootAtSlot(
-		slot uint64,
-	) (common.Root, error)
-	BlockRewardsAtSlot(
-		slot uint64,
-	) (*types.BlockRewardsData, error)
+type BlockHeader interface {
+	HashTreeRoot() ([32]byte, error)
+	GetSlot() math.Slot
+	GetProposerIndex() math.ValidatorIndex
+	GetParentBlockRoot() common.Root
+	GetStateRoot() common.Root
+	GetBodyRoot() common.Root
 }
 
 type GenesisBackend interface {
 	GenesisValidatorsRoot(
 		slot uint64,
 	) (common.Root, error)
+}
+
+type HistoricalBackend[ForkT any] interface {
+	StateRootAtSlot(
+		slot uint64,
+	) (common.Root, error)
+	StateForkAtSlot(
+		slot uint64,
+	) (ForkT, error)
+}
+
+type RandaoBackend interface {
+	RandaoAtEpoch(
+		slot, epoch uint64,
+	) (common.Bytes32, error)
+}
+
+type BlockBackend[BeaconBlockHeaderT any] interface {
+	BlockRootAtSlot(
+		slot uint64,
+	) (common.Root, error)
+	BlockRewardsAtSlot(
+		slot uint64,
+	) (*beacontypes.BlockRewardsData, error)
+	BlockHeaderAtSlot(
+		slot uint64,
+	) (BeaconBlockHeaderT, error)
 }
 
 type StateBackend[ForkT any] interface {
@@ -61,14 +96,14 @@ type ValidatorBackend[ValidatorT any] interface {
 	ValidatorByID(
 		slot uint64,
 		id string,
-	) (*types.ValidatorData[ValidatorT], error)
+	) (*beacontypes.ValidatorData[ValidatorT], error)
 	ValidatorsByIDs(
 		slot uint64,
 		ids []string,
 		statuses []string,
-	) ([]*types.ValidatorData[ValidatorT], error)
+	) ([]*beacontypes.ValidatorData[ValidatorT], error)
 	ValidatorBalancesByIDs(
 		slot uint64,
 		ids []string,
-	) ([]*types.ValidatorBalanceData, error)
+	) ([]*beacontypes.ValidatorBalanceData, error)
 }

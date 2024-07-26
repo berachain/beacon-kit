@@ -20,10 +20,13 @@
 
 package deposit
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+)
 
 // Deposit is a struct that represents a deposit.
 type Deposit interface {
 	constraints.SSZMarshallable
-	GetIndex() uint64
+	GetIndex() math.U64
 }

@@ -53,7 +53,7 @@ func TestB48_HashTreeRoot(t *testing.T) {
 
 func TestB48SizeSSZ(t *testing.T) {
 	var b bytes.B48
-	require.Equal(t, bytes.B48Size, b.SizeSSZ(),
+	require.Equal(t, bytes.B48Size, int(b.SizeSSZ()),
 		"SizeSSZ should return the correct size")
 }
 

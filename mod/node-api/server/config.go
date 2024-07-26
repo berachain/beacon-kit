@@ -26,6 +26,8 @@ type Config struct {
 	Enabled bool `mapstructure:"enabled"`
 	// Address is the address to bind the node API server to.
 	Address string `mapstructure:"address"`
+	// Logging is the flag to enable API logging.
+	Logging bool `mapstructure:"logging"`
 }
 
 // DefaultConfig returns the default configuration for the node API server.
@@ -33,5 +35,6 @@ func DefaultConfig() Config {
 	return Config{
 		Enabled: false,
 		Address: "0.0.0.0:8080",
+		Logging: false,
 	}
 }

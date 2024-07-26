@@ -20,6 +20,8 @@
 
 package noop
 
+import "github.com/berachain/beacon-kit/mod/log"
+
 // Logger is a logger that performs no operations. It can be used in
 // environments where logging should be disabled. It implements the Logger
 // interface with no-op methods.
@@ -62,4 +64,12 @@ func (n *Logger[KeyValT, ImplT]) With(...KeyValT) ImplT {
 
 func (n *Logger[KeyValT, ImplT]) Impl() any {
 	return nil
+}
+
+func (n *Logger[KeyValT, ImplT]) AddKeyColor(any, log.Color) {
+	// No operation
+}
+
+func (n *Logger[KeyValT, ImplT]) AddKeyValColor(any, any, log.Color) {
+	// No operation
 }

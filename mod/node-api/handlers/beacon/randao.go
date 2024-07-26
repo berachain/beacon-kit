@@ -18,41 +18,38 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package phuslu
+package beacon
 
-const (
-	// colours.
-	reset      = "\x1b[0m"
-	black      = "\x1b[30m"
-	red        = "\x1b[31m"
-	green      = "\x1b[32m"
-	yellow     = "\x1b[33m"
-	blue       = "\x1b[34m"
-	magenta    = "\x1b[35m"
-	cyan       = "\x1b[36m"
-	white      = "\x1b[37m"
-	gray       = "\x1b[90m"
-	lightWhite = "\x1b[97m"
+import (
+	"strconv"
 
-	// log levels.
-	traceColor   = magenta
-	debugColor   = yellow
-	infoColor    = green
-	warnColor    = yellow
-	errorColor   = red
-	fatalColor   = red
-	panicColor   = red
-	defaultColor = gray
-	traceLabel   = "TRCE"
-	debugLabel   = "DBUG"
-	infoLabel    = "INFO"
-	warnLabel    = "WARN"
-	errorLabel   = "ERRR"
-	fatalLabel   = "FATAL"
-	panicLabel   = "PANIC"
-	defaultLabel = " ???"
-
-	// output styles flags.
-	StylePretty = "pretty"
-	StyleJSON   = "json"
+	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 )
+
+func (h *Handler[_, ContextT, _, _]) GetRandao(c ContextT) (any, error) {
+	req, err := utils.BindAndValidate[beacontypes.GetRandaoRequest](c, h.Logger())
+	if err != nil {
+		return nil, err
+	}
+	slot, err := utils.SlotFromStateID(req.StateID)
+	if err != nil {
+		return nil, err
+	}
+	epoch := uint64(0)
+	if req.Epoch != "" {
+		epoch, err = strconv.ParseUint(req.Epoch, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+	}
+	randao, err := h.backend.RandaoAtEpoch(slot, epoch)
+	if err != nil {
+		return nil, err
+	}
+	return beacontypes.ValidatorResponse{
+		ExecutionOptimistic: false, // stubbed
+		Finalized:           false, // stubbed
+		Data:                randao,
+	}, nil
+}

@@ -67,7 +67,7 @@ func (c *ConsensusEngine[
 		ctx,
 		req.LocalLastCommit.Votes,
 		//#nosec:G701 // safe.
-		uint64(req.Height),
+		math.Slot(req.Height),
 	)
 	if err != nil {
 		return t, err
@@ -97,7 +97,7 @@ func (c *ConsensusEngine[
 ]) attestationsFromVotes(
 	ctx sdk.Context,
 	votes []v1.ExtendedVoteInfo,
-	slot uint64,
+	slot math.Slot,
 ) ([]AttestationDataT, error) {
 	var err error
 	var index math.U64
@@ -116,7 +116,7 @@ func (c *ConsensusEngine[
 		var t AttestationDataT
 		t = t.New(
 			slot,
-			index.Unwrap(),
+			index,
 			root,
 		)
 		attestations[i] = t
@@ -151,8 +151,8 @@ func (c *ConsensusEngine[
 		var t SlashingInfoT
 		t = t.New(
 			//#nosec:G701 // safe.
-			uint64(misbehavior.GetHeight()),
-			index.Unwrap(),
+			math.Slot(misbehavior.GetHeight()),
+			index,
 		)
 		slashingInfo[i] = t
 	}

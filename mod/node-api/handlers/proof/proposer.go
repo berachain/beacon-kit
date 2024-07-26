@@ -24,8 +24,8 @@ import (
 	"unsafe"
 
 	ptypes "github.com/berachain/beacon-kit/mod/node-api/handlers/proof/types"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
-	"github.com/berachain/beacon-kit/mod/node-api/types"
 )
 
 // GetBlockProposer returns the block proposer for the given block id along
@@ -33,14 +33,16 @@ import (
 func (h *Handler[
 	ContextT, BeaconBlockHeaderT, _, _, _, _, ValidatorT,
 ]) GetBlockProposer(c ContextT) (any, error) {
-	params, err := utils.BindAndValidate[types.BlockIDRequest](c)
+	params, err := utils.BindAndValidate[types.BlockIDRequest](
+		c, h.Logger(),
+	)
 	if err != nil {
 		return nil, err
 	}
 
 	// Get the slot from the given input of block id, block header, and beacon
 	// state for the desired slot.
-	slot, err := utils.SlotFromBlockID(params.BlockID)
+	slot, err := utils.SlotFromBlockID(params.BlockID, h.backend)
 	if err != nil {
 		return nil, err
 	}

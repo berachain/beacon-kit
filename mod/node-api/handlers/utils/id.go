@@ -21,6 +21,7 @@
 package utils
 
 import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 )
 
@@ -57,10 +58,18 @@ func SlotFromStateID(stateID string) (uint64, error) {
 	}
 }
 
-// BlockID shares the same semantics as StateID, being able to query blocks by
-// block root instead of states by state root (but this is not supported yet).
-//
-// NOTE: We do NOT support querying by <blockRoot>.
-func SlotFromBlockID(blockID string) (uint64, error) {
-	return SlotFromStateID(blockID)
+// BlockID shares the same semantics as StateID, with the addition of
+// being able to query state by block hash.
+func SlotFromBlockID[StorageBackendT interface {
+	GetSlotByRoot(root [32]byte) (uint64, error)
+}](blockID string, storage StorageBackendT) (uint64, error) {
+	if slot, err := SlotFromStateID(blockID); err == nil {
+		return slot, nil
+	}
+	// We assume that the block ID is a block hash.
+	root, err := hex.String(blockID).ToBytes()
+	if err != nil {
+		return 0, err
+	}
+	return storage.GetSlotByRoot(bytes.ToBytes32(root))
 }

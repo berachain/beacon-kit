@@ -23,7 +23,7 @@ func (b *BeaconBlockHeaderBase) MarshalSSZTo(buf []byte) (dst []byte, err error)
 	dst = ssz.MarshalUint64(dst, b.ProposerIndex)
 
 	// Field (2) 'ParentBlockRoot'
-	dst = append(dst, b.ParentBlockRoot[:]...)
+	dst = append(dst, b.ParentRoot[:]...)
 
 	// Field (3) 'StateRoot'
 	dst = append(dst, b.StateRoot[:]...)
@@ -46,7 +46,7 @@ func (b *BeaconBlockHeaderBase) UnmarshalSSZ(buf []byte) error {
 	b.ProposerIndex = ssz.UnmarshallUint64(buf[8:16])
 
 	// Field (2) 'ParentBlockRoot'
-	copy(b.ParentBlockRoot[:], buf[16:48])
+	copy(b.ParentRoot[:], buf[16:48])
 
 	// Field (3) 'StateRoot'
 	copy(b.StateRoot[:], buf[48:80])
@@ -76,7 +76,7 @@ func (b *BeaconBlockHeaderBase) HashTreeRootWith(hh ssz.HashWalker) (err error) 
 	hh.PutUint64(b.ProposerIndex)
 
 	// Field (2) 'ParentBlockRoot'
-	hh.PutBytes(b.ParentBlockRoot[:])
+	hh.PutBytes(b.ParentRoot[:])
 
 	// Field (3) 'StateRoot'
 	hh.PutBytes(b.StateRoot[:])
@@ -92,30 +92,3 @@ func (b *BeaconBlockHeaderBase) GetTree() (*ssz.Node, error) {
 
 
 
-// HashTreeRootWith ssz hashes the BeaconBlockHeader object with a hasher
-func (b *BeaconBlockHeader) HashTreeRootWith(hh ssz.HashWalker) (err error) {
-	indx := hh.Index()
-
-	// Field (0) 'Slot'
-	hh.PutUint64(uint64(b.Slot))
-
-	// Field (1) 'ProposerIndex'
-	hh.PutUint64(uint64(b.ProposerIndex))
-
-	// Field (2) 'ParentBlockRoot'
-	hh.PutBytes(b.ParentBlockRoot[:])
-
-	// Field (3) 'StateRoot'
-	hh.PutBytes(b.StateRoot[:])
-
-	// Field (4) 'BodyRoot'
-	hh.PutBytes(b.BodyRoot[:])
-
-	hh.Merkleize(indx)
-	return
-}
-
-// GetTree ssz hashes the BeaconBlockHeader object
-func (b *BeaconBlockHeader) GetTree() (*ssz.Node, error) {
-	return ssz.ProofTree(b)
-}

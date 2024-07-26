@@ -23,8 +23,18 @@ package engineprimitives
 import (
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/karalabe/ssz"
+)
+
+// WithdrawalSize is the size of the Withdrawal in bytes.
+const WithdrawalSize = 44
+
+var (
+	_ ssz.StaticObject                    = (*Withdrawal)(nil)
+	_ constraints.SSZMarshallableRootable = (*Withdrawal)(nil)
 )
 
 // Withdrawal represents a validator withdrawal from the consensus layer.
@@ -40,6 +50,10 @@ type Withdrawal struct {
 	Amount math.Gwei `json:"amount"`
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                 Constructor                                */
+/* -------------------------------------------------------------------------- */
+
 func (w *Withdrawal) New(
 	index math.U64,
 	validator math.ValidatorIndex,
@@ -52,6 +66,35 @@ func (w *Withdrawal) New(
 		Address:   address,
 		Amount:    amount,
 	}
+}
+
+// SizeSSZ returns the size of the Withdrawal in bytes when SSZ encoded.
+func (*Withdrawal) SizeSSZ() uint32 {
+	return WithdrawalSize
+}
+
+// MarshalSSZ marshals the Withdrawal into SSZ format.
+func (w *Withdrawal) DefineSSZ(c *ssz.Codec) {
+	ssz.DefineUint64(c, &w.Index)        // Field  (0) -     Index -  8 bytes
+	ssz.DefineUint64(c, &w.Validator)    // Field  (1) - Validator -  8 bytes
+	ssz.DefineStaticBytes(c, &w.Address) // Field  (2) -   Address - 20 bytes
+	ssz.DefineUint64(c, &w.Amount)       // Field  (3) -    Amount -  8 bytes
+}
+
+// HashTreeRoot.
+func (w *Withdrawal) HashTreeRoot() ([32]byte, error) {
+	return ssz.HashSequential(w), nil
+}
+
+// MarshalSSZ marshals the Withdrawal object to SSZ format.
+func (w *Withdrawal) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, w.SizeSSZ())
+	return buf, ssz.EncodeToBytes(buf, w)
+}
+
+// UnmarshalSSZ unmarshals the SSZ encoded data to a Withdrawal object.
+func (w *Withdrawal) UnmarshalSSZ(buf []byte) error {
+	return ssz.DecodeFromBytes(buf, w)
 }
 
 // Equals returns true if the Withdrawal is equal to the other.

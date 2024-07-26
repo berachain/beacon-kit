@@ -25,8 +25,9 @@ import (
 	"os"
 
 	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
+	sdklog "cosmossdk.io/log"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
@@ -42,7 +43,7 @@ type AvailabilityStoreInput struct {
 	depinject.In
 	AppOpts   servertypes.AppOptions
 	ChainSpec common.ChainSpec
-	Logger    log.Logger
+	Logger    log.AdvancedLogger[any, sdklog.Logger]
 }
 
 // ProvideAvailibilityStore provides the availability store.
@@ -74,7 +75,7 @@ type AvailabilityPrunerInput struct {
 	AvailabilityStore *AvailabilityStore
 	BlockBroker       *BlockBroker
 	ChainSpec         common.ChainSpec
-	Logger            log.Logger
+	Logger            log.AdvancedLogger[any, sdklog.Logger]
 }
 
 // ProvideAvailabilityPruner provides a availability pruner for the depinject
