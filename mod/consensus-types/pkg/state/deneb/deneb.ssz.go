@@ -448,19 +448,19 @@ func (b *BeaconState) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 		hh.MerkleizeWithMixin(subIndx, numItems, ssz.CalculateLimit(1099511627776, numItems, 8))
 	}
 
-	// // Field (11) 'RandaoMixes'
-	// {
-	// 	if size := len(b.RandaoMixes); size > 65536 {
-	// 		err = ssz.ErrListTooBigFn("BeaconState.RandaoMixes", size, 65536)
-	// 		return
-	// 	}
-	// 	subIndx := hh.Index()
-	// 	for _, i := range b.RandaoMixes {
-	// 		hh.Append(i[:])
-	// 	}
-	// 	numItems := uint64(len(b.RandaoMixes))
-	// 	hh.MerkleizeWithMixin(subIndx, numItems, 65536)
-	// }
+	// Field (11) 'RandaoMixes'
+	{
+		if size := len(b.RandaoMixes); size > 65536 {
+			err = ssz.ErrListTooBigFn("BeaconState.RandaoMixes", size, 65536)
+			return
+		}
+		subIndx := hh.Index()
+		for _, i := range b.RandaoMixes {
+			hh.Append(i[:])
+		}
+		numItems := uint64(len(b.RandaoMixes))
+		hh.MerkleizeWithMixin(subIndx, numItems, 65536)
+	}
 
 	// Field (12) 'NextWithdrawalIndex'
 	hh.PutUint64(b.NextWithdrawalIndex)

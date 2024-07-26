@@ -103,7 +103,7 @@ func (b *BeaconState) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineSliceOfUint64sOffset(codec, &b.Balances, 1099511627776)
 
 	// Randomness
-	// ssz.DefineSliceOfStaticBytesOffset(codec, &b.RandaoMixes, 65536)
+	ssz.DefineSliceOfStaticBytesOffset(codec, &b.RandaoMixes, 65536)
 
 	// Withdrawals
 	ssz.DefineUint64(codec, &b.NextWithdrawalIndex)
@@ -119,7 +119,7 @@ func (b *BeaconState) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineDynamicObjectContent(codec, &b.LatestExecutionPayloadHeader)
 	ssz.DefineSliceOfStaticObjectsContent(codec, &b.Validators, 1099511627776)
 	ssz.DefineSliceOfUint64sContent(codec, &b.Balances, 1099511627776)
-	// ssz.DefineSliceOfStaticBytesContent(codec, &b.RandaoMixes, 65536)
+	ssz.DefineSliceOfStaticBytesContent(codec, &b.RandaoMixes, 65536)
 	// ssz.DefineSliceOfUint64sContent(codec, &b.Slashings, 1099511627776)
 }
 
