@@ -21,12 +21,12 @@
 package types
 
 const (
-	// ZeroValidatorPubkeyGIndexDenebPlus is the generalized index of the 0
+	// ZeroValidatorPubkeyGIndexDeneb is the generalized index of the 0
 	// validator's pubkey in the beacon block in the Deneb fork. To get the
 	// GIndex of the pubkey of validator at index n, the formula is:
 	// GIndex = ZeroValidatorPubkeyGIndexDenebPlus +
 	//          (ValidatorPubkeyGIndexOffset * n)
-	ZeroValidatorPubkeyGIndexDenebPlus = 3254554418216960
+	ZeroValidatorPubkeyGIndexDeneb = 3254554418216960
 
 	// ValidatorPubkeyGIndexOffset is the offset of a validator pubkey GIndex.
 	ValidatorPubkeyGIndexOffset = 8

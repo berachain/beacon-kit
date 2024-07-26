@@ -10,6 +10,7 @@ interface IBeaconVerifier {
 
     /// @dev Generalized Index of the pubkey of the first validator (validator
     /// index of 0) in the registry of the beacon state in the beacon block.
+    /// @dev In the Deneb beacon chain fork, this should be 3254554418216960.
     function zeroValidatorPubkeyGIndex() external view returns (uint256);
 
     /// @notice Get the parent beacon block root from a block's timestamp.
@@ -27,9 +28,22 @@ interface IBeaconVerifier {
     /// @param timestamp `uint64` timestamp of the block.
     /// @param validatorPubkeyProof `bytes32[]` proof of the validator pubkey.
     /// @param validatorPubkey `ValidatorPubkey` to verify.
-    function proveBlockProposer(
+    function proveBeaconBlockProposer(
         SSZ.BeaconBlockHeader calldata blockHeader,
         uint64 timestamp,
+        bytes32[] calldata validatorPubkeyProof,
+        bytes calldata validatorPubkey
+    )
+        external
+        view;
+
+    /// @notice Verifies the proposer of the latest beacon block.
+    /// @dev Gets the parent beacon block root from `block.timestamp`.
+    /// @param blockHeader `BeaconBlockHeader` to verify.
+    /// @param validatorPubkeyProof `bytes32[]` proof of the validator pubkey.
+    /// @param validatorPubkey `ValidatorPubkey` to verify.
+    function proveLatestBeaconBlockProposer(
+        SSZ.BeaconBlockHeader calldata blockHeader,
         bytes32[] calldata validatorPubkeyProof,
         bytes calldata validatorPubkey
     )

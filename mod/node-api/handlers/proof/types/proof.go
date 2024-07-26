@@ -42,7 +42,7 @@ func ProofForProposerPubkey_FastSSZ(
 	}
 
 	// Get the generalized index of the proposer pubkey in the tree.
-	gIndex := ZeroValidatorPubkeyGIndexDenebPlus +
+	gIndex := ZeroValidatorPubkeyGIndexDeneb +
 		(ValidatorPubkeyGIndexOffset * int(beaconBlock.ProposerIndex))
 
 	// Get the proof of the proposer pubkey in the tree.

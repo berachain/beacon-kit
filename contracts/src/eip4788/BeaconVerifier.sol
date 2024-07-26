@@ -70,8 +70,8 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @inheritdoc IBeaconVerifier
-    /// @dev gas used ~81281
-    function proveBlockProposer(
+    /// @dev gas used ~...
+    function proveBeaconBlockProposer(
         SSZ.BeaconBlockHeader calldata blockHeader,
         uint64 timestamp,
         bytes32[] calldata validatorPubkeyProof,
@@ -80,16 +80,26 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
         public
         view
     {
-        // First verify that the block header is the valid block header for this time.
-        bytes32 expectedBeaconRoot = getParentBlockRoot(timestamp);
-        bytes32 givenBeaconRoot = SSZ.beaconHeaderHashTreeRoot(blockHeader);
-        if (expectedBeaconRoot != givenBeaconRoot) {
-            revert RootNotFound();
-        }
+        proveValidatorPubkeyInBeaconBlock(
+            getParentBlockRoot(timestamp),
+            validatorPubkeyProof,
+            validatorPubkey,
+            blockHeader.proposerIndex
+        );
+    }
 
-        // Then check that the validator is a validator of the beacon chain during this time.
-        proveValidatorPubkeyInBlock(
-            expectedBeaconRoot,
+    /// @inheritdoc IBeaconVerifier
+    /// @dev gas used ~...
+    function proveLatestBeaconBlockProposer(
+        SSZ.BeaconBlockHeader calldata blockHeader,
+        bytes32[] calldata validatorPubkeyProof,
+        bytes calldata validatorPubkey
+    )
+        public
+        view
+    {
+        proveValidatorPubkeyInBeaconBlock(
+            getParentBlockRoot(uint64(block.timestamp)),
             validatorPubkeyProof,
             validatorPubkey,
             blockHeader.proposerIndex
@@ -101,7 +111,7 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     /// @param validatorPubkeyProof `bytes32[]` proof of the validator.
     /// @param validatorPubkey `ValidatorPubkey` to verify.
     /// @param validatorIndex `uint64` index of the validator.
-    function proveValidatorPubkeyInBlock(
+    function proveValidatorPubkeyInBeaconBlock(
         bytes32 beaconBlockRoot,
         bytes32[] calldata validatorPubkeyProof,
         bytes calldata validatorPubkey,
