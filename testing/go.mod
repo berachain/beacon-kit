@@ -21,7 +21,7 @@ require (
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/ethereum/go-ethereum v1.14.6
 	github.com/holiman/uint256 v1.3.0
-	github.com/kurtosis-tech/kurtosis/api/golang v1.0.0
+	github.com/kurtosis-tech/kurtosis/api/golang v1.0.1-0.20240711154906-7562dcb48595
 	github.com/protolambda/zrnt v0.32.2
 	github.com/protolambda/ztyp v0.2.2
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8
