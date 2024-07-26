@@ -39,7 +39,10 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
         return true;
     }
 
-    function setZeroValidatorPubkeyGIndex(uint256 _zeroValidatorPubkeyGIndex) external onlyOwner {
+    function setZeroValidatorPubkeyGIndex(uint256 _zeroValidatorPubkeyGIndex)
+        external
+        onlyOwner
+    {
         zeroValidatorPubkeyGIndex = _zeroValidatorPubkeyGIndex;
     }
 
@@ -78,7 +81,7 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     {
         // First verify that the block header is the valid block header for this time.
         bytes32 expectedBeaconRoot = getParentBlockRoot(timestamp);
-        bytes32 givenBeaconRoot = SSZ.beaconHeaderHashTreeRoot(blockHeader); 
+        bytes32 givenBeaconRoot = SSZ.beaconHeaderHashTreeRoot(blockHeader);
         if (expectedBeaconRoot != givenBeaconRoot) {
             revert RootNotFound();
         }
@@ -111,10 +114,16 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
         }
 
         uint256 gIndex = zeroValidatorPubkeyGIndex + (8 * validatorIndex);
-        bytes32 validatorPubkeyRoot = SSZ.validatorPubkeyHashTreeRoot(validatorPubkey);
+        bytes32 validatorPubkeyRoot =
+            SSZ.validatorPubkeyHashTreeRoot(validatorPubkey);
 
         if (
-            !SSZ.verifyProof(validatorPubkeyProof, beaconBlockRoot, validatorPubkeyRoot, gIndex)
+            !SSZ.verifyProof(
+                validatorPubkeyProof,
+                beaconBlockRoot,
+                validatorPubkeyRoot,
+                gIndex
+            )
         ) {
             revert InvalidProof();
         }

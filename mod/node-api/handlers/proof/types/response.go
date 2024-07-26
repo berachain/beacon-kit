@@ -35,21 +35,12 @@ type BlockProposerProofResponse[BeaconBlockHeaderT, ValidatorT any] struct {
 	// BeaconBlockRoot is the beacon block root for this slot.
 	BeaconBlockRoot common.Root `json:"beacon_block_root"`
 
-	// // Validator is the Validator struct of the block proposer.
-	// Validator ValidatorT `json:"validator"`
-
 	// ValidatorPubkey is the pubkey of the block proposer.
 	ValidatorPubkey crypto.BLSPubkey `json:"validator_pubkey"`
-
-	// // ValidatorProof can be verified against the beacon block root. Use a
-	// // Generalized Index of `z + ValidatorIndex`, where z is the Generalized
-	// // Index of the 0 validator in the beacon block. In DenebPlus, z is
-	// // 406819302277120.
-	// ValidatorProof []common.Root `json:"validator_proof"`
 
 	// ValidatorPubkeyProof can be verified against the beacon block root. Use
 	// a Generalized Index of `z + (8 * ValidatorIndex)`, where z is the
 	// Generalized Index of the 0 validator pubkey in the beacon block. In
-	// DenebPlus, z is 3254554418216960.
+	// the Deneb fork, z is 3254554418216960.
 	ValidatorPubkeyProof []common.Root `json:"validator_pubkey_proof"`
 }

@@ -31,7 +31,7 @@ import (
 )
 
 // BeaconBlockForValidator represents a block in the beacon chain during the
-// DenebPlus fork, with only the minimally required values to prove a validator
+// Deneb fork, with only the minimally required values to prove a validator
 // exists in this block.
 type BeaconBlockForValidator struct {
 	// Slot represents the position of the block in the chain.

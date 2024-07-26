@@ -61,6 +61,7 @@ func (h *Handler[
 	if err != nil {
 		return nil, err
 	}
+	//nolint:lll // formatter doesn't support shortening.
 	proposerPubkey := beaconStateForValidatorProof.Validators[blockHeader.GetProposerIndex()].Pubkey
 
 	// Set the "correct" state root on the block header, which yields the exact
@@ -92,19 +93,12 @@ func (h *Handler[
 		return nil, err
 	}
 
-	// //#nosec:G103 // on purpose.
-	// validators := *(*[]ValidatorT)(
-	// 	unsafe.Pointer(&beaconBlockForValidatorProof.StateRoot.Validators),
-	// )
-
 	return ptypes.BlockProposerProofResponse[
 		BeaconBlockHeaderT, ValidatorT,
 	]{
-		BeaconBlockHeader: blockHeader,
-		BeaconBlockRoot:   beaconBlockRoot,
-		// Validator:         validators[blockHeader.GetProposerIndex()],
-		ValidatorPubkey: proposerPubkey,
-		// ValidatorProof:    validatorProof,
+		BeaconBlockHeader:    blockHeader,
+		BeaconBlockRoot:      beaconBlockRoot,
+		ValidatorPubkey:      proposerPubkey,
 		ValidatorPubkeyProof: pubkeyProof,
 	}, nil
 }

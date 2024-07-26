@@ -69,13 +69,11 @@ library SSZ {
         internal
         view
         returns (bytes32 root)
-    {   
+    {
         require(validatorPubkey.length == 48, "Invalid validator pubkey length");
 
-        bytes32[2] memory nodes = [
-            bytes32(validatorPubkey[0:32]),
-            bytes32(validatorPubkey[32:48])
-        ];
+        bytes32[2] memory nodes =
+            [bytes32(validatorPubkey[0:32]), bytes32(validatorPubkey[32:48])];
 
         /// @solidity memory-safe-assembly
         assembly {
@@ -411,7 +409,11 @@ library SSZ {
         bytes32 root,
         bytes32 leaf,
         uint256 index
-    ) internal view returns (bool) {
+    )
+        internal
+        view
+        returns (bool)
+    {
         return processInclusionProofSha256Eigenlayer(proof, leaf, index) == root;
     }
 
@@ -429,7 +431,11 @@ library SSZ {
         bytes memory proof,
         bytes32 leaf,
         uint256 index
-    ) internal view returns (bytes32) {
+    )
+        internal
+        view
+        returns (bytes32)
+    {
         require(
             proof.length != 0 && proof.length % 32 == 0,
             "Merkle.processInclusionProofSha256: proof length should be a non-zero multiple of 32"
@@ -441,7 +447,16 @@ library SSZ {
                 assembly {
                     mstore(0x00, mload(computedHash))
                     mstore(0x20, mload(add(proof, i)))
-                    if iszero(staticcall(sub(gas(), 2000), SHA256, 0x00, 0x40, computedHash, 0x20)) { revert(0, 0) }
+                    if iszero(
+                        staticcall(
+                            sub(gas(), 2000),
+                            SHA256,
+                            0x00,
+                            0x40,
+                            computedHash,
+                            0x20
+                        )
+                    ) { revert(0, 0) }
                     index := div(index, 2)
                 }
             } else {
@@ -449,7 +464,16 @@ library SSZ {
                 assembly {
                     mstore(0x00, mload(add(proof, i)))
                     mstore(0x20, mload(computedHash))
-                    if iszero(staticcall(sub(gas(), 2000), SHA256, 0x00, 0x40, computedHash, 0x20)) { revert(0, 0) }
+                    if iszero(
+                        staticcall(
+                            sub(gas(), 2000),
+                            SHA256,
+                            0x00,
+                            0x40,
+                            computedHash,
+                            0x20
+                        )
+                    ) { revert(0, 0) }
                     index := div(index, 2)
                 }
             }
