@@ -44,9 +44,6 @@ const (
 	// in the merkle tree built from the block body.
 	KZGMerkleIndexDeneb = 26
 
-	// LogsBloomSize is the size of LogsBloom in bytes.
-	LogsBloomSize = 256
-
 	// ExtraDataSize is the size of ExtraData in bytes.
 	ExtraDataSize = 32
 )

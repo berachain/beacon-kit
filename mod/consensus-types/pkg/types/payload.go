@@ -424,7 +424,9 @@ func (p *ExecutionPayload) UnmarshalJSON(input []byte) error {
 	}
 	p.BlockHash = *dec.BlockHash
 	if dec.Transactions == nil {
-		dec.Transactions = make([]bytes.Bytes, 0)
+		return errors.New(
+			"missing required field 'transactions' for ExecutionPayload",
+		)
 	}
 	p.Transactions = make([][]byte, len(dec.Transactions))
 	for k, v := range dec.Transactions {
