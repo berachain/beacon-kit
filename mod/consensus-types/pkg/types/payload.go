@@ -157,8 +157,8 @@ func (p *ExecutionPayload) HashTreeRoot() ([32]byte, error) {
 /* -------------------------------------------------------------------------- */
 
 // MarshalSSZTo serializes the ExecutionPayload object into a writer.
-func (e *ExecutionPayload) MarshalSSZTo(dst []byte) ([]byte, error) {
-	bz, err := e.MarshalSSZ()
+func (p *ExecutionPayload) MarshalSSZTo(dst []byte) ([]byte, error) {
+	bz, err := p.MarshalSSZ()
 	if err != nil {
 		return nil, err
 	}

@@ -137,6 +137,7 @@ func (h *ExecutionPayloadHeader) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineUint64(codec, &h.GasLimit)
 	ssz.DefineUint64(codec, &h.GasUsed)
 	ssz.DefineUint64(codec, &h.Timestamp)
+	//nolint:mnd // todo fix.
 	ssz.DefineDynamicBytesOffset(codec, (*[]byte)(&h.ExtraData), 32)
 	ssz.DefineStaticBytes(codec, &h.BaseFeePerGas)
 	ssz.DefineStaticBytes(codec, &h.BlockHash)
@@ -146,6 +147,7 @@ func (h *ExecutionPayloadHeader) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineUint64(codec, &h.ExcessBlobGas)
 
 	// Define the dynamic data (fields)
+	//nolint:mnd // todo fix.
 	ssz.DefineDynamicBytesContent(codec, (*[]byte)(&h.ExtraData), 32)
 }
 
