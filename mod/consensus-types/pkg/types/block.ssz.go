@@ -7,13 +7,13 @@ import (
 	ssz "github.com/ferranbt/fastssz"
 )
 
-// MarshalSSZ ssz marshals the BeaconBlockDeneb object
-func (b *BeaconBlockDeneb) MarshalSSZ() ([]byte, error) {
+// MarshalSSZ ssz marshals the BeaconBlock object
+func (b *BeaconBlock) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(b)
 }
 
-// MarshalSSZTo ssz marshals the BeaconBlockDeneb object to a target array
-func (b *BeaconBlockDeneb) MarshalSSZTo(buf []byte) (dst []byte, err error) {
+// MarshalSSZTo ssz marshals the BeaconBlock object to a target array
+func (b *BeaconBlock) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 	offset := int(84)
 
@@ -40,8 +40,8 @@ func (b *BeaconBlockDeneb) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	return
 }
 
-// UnmarshalSSZ ssz unmarshals the BeaconBlockDeneb object
-func (b *BeaconBlockDeneb) UnmarshalSSZ(buf []byte) error {
+// UnmarshalSSZ ssz unmarshals the BeaconBlock object
+func (b *BeaconBlock) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
 	if size < 84 {
@@ -85,8 +85,8 @@ func (b *BeaconBlockDeneb) UnmarshalSSZ(buf []byte) error {
 	return err
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockDeneb object
-func (b *BeaconBlockDeneb) SizeSSZ() (size int) {
+// SizeSSZ returns the ssz encoded size in bytes for the BeaconBlock object
+func (b *BeaconBlock) SizeSSZ() (size int) {
 	size = 84
 
 	// Field (4) 'Body'
@@ -98,13 +98,13 @@ func (b *BeaconBlockDeneb) SizeSSZ() (size int) {
 	return
 }
 
-// HashTreeRoot ssz hashes the BeaconBlockDeneb object
-func (b *BeaconBlockDeneb) HashTreeRoot() ([32]byte, error) {
+// HashTreeRoot ssz hashes the BeaconBlock object
+func (b *BeaconBlock) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(b)
 }
 
-// HashTreeRootWith ssz hashes the BeaconBlockDeneb object with a hasher
-func (b *BeaconBlockDeneb) HashTreeRootWith(hh ssz.HashWalker) (err error) {
+// HashTreeRootWith ssz hashes the BeaconBlock object with a hasher
+func (b *BeaconBlock) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'Slot'
@@ -128,7 +128,7 @@ func (b *BeaconBlockDeneb) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	return
 }
 
-// GetTree ssz hashes the BeaconBlockDeneb object
-func (b *BeaconBlockDeneb) GetTree() (*ssz.Node, error) {
+// GetTree ssz hashes the BeaconBlock object
+func (b *BeaconBlock) GetTree() (*ssz.Node, error) {
 	return ssz.ProofTree(b)
 }

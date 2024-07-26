@@ -27,18 +27,29 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
-// BeaconBlock is the interface for a beacon block.
+// BeaconBlock represents a block in the beacon chain during
+// the Deneb fork.
 type BeaconBlock struct {
-	RawBeaconBlock[*BeaconBlockBody]
+	// Slot represents the position of the block in the chain.
+	// TODO: Put back to math.Slot after fastssz fixes.
+	Slot uint64 `json:"slot"`
+	// ProposerIndex is the index of the validator who proposed the block.
+	// TODO: Put back to math.ProposerIndex after fastssz fixes.
+	ProposerIndex uint64 `json:"proposer_index"`
+	// ParentRoot is the hash of the parent block
+	ParentRoot common.Root `json:"parent_root"`
+	// StateRoot is the hash of the state at the block.
+	StateRoot common.Root `json:"state_root"`
+	// Body is the body of the BeaconBlock, containing the block's
+	// operations.
+	Body *BeaconBlockBodyDeneb
 }
 
 // Empty creates an empty beacon block.
 func (w *BeaconBlock) Empty(forkVersion uint32) *BeaconBlock {
 	switch forkVersion {
 	case version.Deneb:
-		return &BeaconBlock{
-			RawBeaconBlock: (*BeaconBlockDeneb)(nil),
-		}
+		return &BeaconBlock{}
 	case version.DenebPlus:
 		panic("unsupported fork version")
 	default:
@@ -54,20 +65,17 @@ func (w *BeaconBlock) NewWithVersion(
 	forkVersion uint32,
 ) (*BeaconBlock, error) {
 	var (
-		block RawBeaconBlock[*BeaconBlockBody]
-		base  = BeaconBlockHeaderBase{
-			Slot:          slot.Unwrap(),
-			ProposerIndex: proposerIndex.Unwrap(),
-			ParentRoot:    parentBlockRoot,
-			StateRoot:     bytes.B32{},
-		}
+		block *BeaconBlock
 	)
 
 	switch forkVersion {
 	case version.Deneb:
-		block = &BeaconBlockDeneb{
-			BeaconBlockHeaderBase: base,
-			Body:                  &BeaconBlockBodyDeneb{},
+		block = &BeaconBlock{
+			Slot:          slot.Unwrap(),
+			ProposerIndex: proposerIndex.Unwrap(),
+			ParentRoot:    parentBlockRoot,
+			StateRoot:     bytes.B32{},
+			Body:          &BeaconBlockBodyDeneb{},
 		}
 	case version.DenebPlus:
 		// block = &BeaconBlockDenebPlus{
@@ -78,9 +86,7 @@ func (w *BeaconBlock) NewWithVersion(
 		return &BeaconBlock{}, ErrForkVersionNotSupported
 	}
 
-	return &BeaconBlock{
-		RawBeaconBlock: block,
-	}, nil
+	return block, nil
 }
 
 // NewFromSSZ creates a new beacon block from the given SSZ bytes.
@@ -91,7 +97,7 @@ func (w *BeaconBlock) NewFromSSZ(
 	var block = new(BeaconBlock)
 	switch forkVersion {
 	case version.Deneb:
-		block.RawBeaconBlock = &BeaconBlockDeneb{}
+		block = &BeaconBlock{}
 	case version.DenebPlus:
 		panic("unsupported fork version")
 		// block.RawBeaconBlock = &BeaconBlockDenebPlus{}
@@ -107,7 +113,56 @@ func (w *BeaconBlock) NewFromSSZ(
 
 // IsNil checks if the beacon block is nil.
 func (w *BeaconBlock) IsNil() bool {
-	return w == nil ||
-		w.RawBeaconBlock == nil ||
-		w.RawBeaconBlock.IsNil()
+	return w == nil
+}
+
+// GetSlot retrieves the slot of the BeaconBlockBase.
+func (b *BeaconBlock) GetSlot() math.Slot {
+	return math.Slot(b.Slot)
+}
+
+// GetSlot retrieves the slot of the BeaconBlockBase.
+func (b *BeaconBlock) GetProposerIndex() math.ValidatorIndex {
+	return math.ValidatorIndex(b.ProposerIndex)
+}
+
+// GetParentBlockRoot retrieves the parent block root of the BeaconBlockBase.
+func (b *BeaconBlock) GetParentBlockRoot() common.Root {
+	return b.ParentRoot
+}
+
+// GetStateRoot retrieves the state root of the BeaconBlock.
+func (b *BeaconBlock) GetStateRoot() common.Root {
+	return b.StateRoot
+}
+
+// Version identifies the version of the BeaconBlock.
+func (b *BeaconBlock) Version() uint32 {
+	return version.Deneb
+}
+
+// SetStateRoot sets the state root of the BeaconBlock.
+func (b *BeaconBlock) SetStateRoot(root common.Root) {
+	b.StateRoot = root
+}
+
+// GetBody retrieves the body of the BeaconBlock.
+func (b *BeaconBlock) GetBody() *BeaconBlockBody {
+	return &BeaconBlockBody{RawBeaconBlockBody: b.Body}
+}
+
+// GetHeader builds a BeaconBlockHeader from the BeaconBlock.
+func (b BeaconBlock) GetHeader() *BeaconBlockHeader {
+	bodyRoot, err := b.GetBody().HashTreeRoot()
+	if err != nil {
+		return nil
+	}
+
+	return &BeaconBlockHeader{
+		Slot:            math.Slot(b.Slot),
+		ProposerIndex:   math.Slot(b.ProposerIndex),
+		ParentBlockRoot: b.ParentRoot,
+		StateRoot:       b.StateRoot,
+		BodyRoot:        bodyRoot,
+	}
 }

@@ -47,11 +47,9 @@ func (e ExecutionPayload) MarshalJSON() ([]byte, error) {
 	enc.ExtraData = e.ExtraData
 	enc.BaseFeePerGas = e.BaseFeePerGas
 	enc.BlockHash = e.BlockHash
-	if e.Transactions != nil {
-		enc.Transactions = make([]bytes.Bytes, len(e.Transactions))
-		for k, v := range e.Transactions {
-			enc.Transactions[k] = v
-		}
+	enc.Transactions = make([]bytes.Bytes, len(e.Transactions))
+	for k, v := range e.Transactions {
+		enc.Transactions[k] = v
 	}
 	enc.Withdrawals = e.Withdrawals
 	enc.BlobGasUsed = e.BlobGasUsed
@@ -137,7 +135,7 @@ func (e *ExecutionPayload) UnmarshalJSON(input []byte) error {
 	}
 	e.BlockHash = *dec.BlockHash
 	if dec.Transactions == nil {
-		return errors.New("missing required field 'transactions' for ExecutionPayload")
+		dec.Transactions = make([]bytes.Bytes, 0)
 	}
 	e.Transactions = make([][]byte, len(dec.Transactions))
 	for k, v := range dec.Transactions {
