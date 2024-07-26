@@ -76,15 +76,8 @@ type ExecutionPayload struct {
 }
 
 // Empty returns an empty ExecutionPayload for the given fork version.
-func (p *ExecutionPayload) Empty(forkVersion uint32) *ExecutionPayload {
-	p = new(ExecutionPayload)
-	switch forkVersion {
-	case version.Deneb, version.DenebPlus:
-		p = &ExecutionPayload{}
-	default:
-		panic("unknown fork version")
-	}
-	return p
+func (p *ExecutionPayload) Empty(_ uint32) *ExecutionPayload {
+	return &ExecutionPayload{}
 }
 
 // Version returns the version of the ExecutionPayload.
@@ -228,7 +221,6 @@ func (p *ExecutionPayload) ToHeader(
 	switch p.Version() {
 	case version.Deneb, version.DenebPlus:
 		return &ExecutionPayloadHeader{
-			// version:          p.Version(),
 			ParentHash:       p.GetParentHash(),
 			FeeRecipient:     p.GetFeeRecipient(),
 			StateRoot:        p.GetStateRoot(),

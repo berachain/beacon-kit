@@ -77,26 +77,3 @@ type RawBeaconBlock[BeaconBlockBodyT RawBeaconBlockBody] interface {
 	GetBody() BeaconBlockBodyT
 	GetHeader() *BeaconBlockHeader
 }
-
-// executionPayloadBody is the interface for the execution data of a block.
-type executionPayloadBody interface {
-	constraints.SSZMarshallableRootable
-	constraints.JSONMarshallable
-	IsNil() bool
-	Version() uint32
-	GetPrevRandao() common.Bytes32
-	GetBlockHash() gethprimitives.ExecutionHash
-	GetParentHash() gethprimitives.ExecutionHash
-	GetNumber() math.U64
-	GetGasLimit() math.U64
-	GetGasUsed() math.U64
-	GetTimestamp() math.U64
-	GetExtraData() []byte
-	GetBaseFeePerGas() math.Wei
-	GetFeeRecipient() gethprimitives.ExecutionAddress
-	GetStateRoot() common.Bytes32
-	GetReceiptsRoot() common.Bytes32
-	GetLogsBloom() []byte
-	GetBlobGasUsed() math.U64
-	GetExcessBlobGas() math.U64
-}
