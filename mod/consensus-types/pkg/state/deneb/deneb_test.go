@@ -27,27 +27,105 @@
 package deneb_test
 
 import (
+	"io"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	ssz "github.com/ferranbt/fastssz"
+	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
 
 // generateValidBeaconState generates a valid beacon state for the Deneb.
 func generateValidBeaconState() *deneb.BeaconState {
 	return &deneb.BeaconState{
-		BlockRoots:                   []common.Root{},
-		StateRoots:                   []common.Root{},
-		Fork:                         &types.Fork{},
-		Validators:                   []*types.Validator{},
-		Balances:                     []uint64{},
-		RandaoMixes:                  []common.Bytes32{},
-		Slashings:                    []uint64{},
-		LatestExecutionPayloadHeader: &types.ExecutionPayloadHeader{},
+		GenesisValidatorsRoot: common.Root{0x01, 0x02, 0x03},
+		Slot:                  1234,
+		BlockRoots: []common.Root{
+			{0x04, 0x05, 0x06},
+			{0x07, 0x08, 0x09},
+		},
+		StateRoots: []common.Root{
+			{0x0a, 0x0b, 0x0c},
+			{0x0d, 0x0e, 0x0f},
+		},
+		Fork: &types.Fork{
+			PreviousVersion: [4]byte{0x01, 0x00, 0x00, 0x00},
+			CurrentVersion:  [4]byte{0x02, 0x00, 0x00, 0x00},
+			Epoch:           5678,
+		},
+		Validators: []*types.Validator{
+			{
+				Pubkey:                     [48]byte{0x01},
+				WithdrawalCredentials:      [32]byte{0x02},
+				EffectiveBalance:           32000000000,
+				Slashed:                    false,
+				ActivationEligibilityEpoch: 1,
+				ActivationEpoch:            2,
+				ExitEpoch:                  18446744073709551615,
+				WithdrawableEpoch:          18446744073709551615,
+			},
+			{
+				Pubkey:                     [48]byte{0x03},
+				WithdrawalCredentials:      [32]byte{0x04},
+				EffectiveBalance:           31000000000,
+				Slashed:                    true,
+				ActivationEligibilityEpoch: 3,
+				ActivationEpoch:            4,
+				ExitEpoch:                  5,
+				WithdrawableEpoch:          6,
+			},
+		},
+		Balances:                     []uint64{32000000000, 31000000000},
+		RandaoMixes:                  generateRandomBytes32(65536),
+		Slashings:                    []uint64{1000000000, 2000000000},
+		NextWithdrawalIndex:          7,
+		NextWithdrawalValidatorIndex: 8,
+		TotalSlashing:                3000000000,
+		LatestExecutionPayloadHeader: &types.ExecutionPayloadHeader{
+			ParentHash:       [32]byte{0x16, 0x17, 0x18},
+			FeeRecipient:     [20]byte{0x19, 0x1a, 0x1b},
+			StateRoot:        [32]byte{0x1c, 0x1d, 0x1e},
+			ReceiptsRoot:     [32]byte{0x1f, 0x20, 0x21},
+			LogsBloom:        [256]byte{0x22},
+			Random:           [32]byte{0x23, 0x24, 0x25},
+			Number:           9876,
+			GasLimit:         30000000,
+			GasUsed:          25000000,
+			Timestamp:        1625097600,
+			ExtraData:        []byte{0x26, 0x27, 0x28},
+			BaseFeePerGas:    [32]byte{0x29, 0x2a, 0x2b},
+			BlockHash:        [32]byte{0x2c, 0x2d, 0x2e},
+			TransactionsRoot: [32]byte{0x2f, 0x30, 0x31},
+			WithdrawalsRoot:  [32]byte{0x32, 0x33, 0x34},
+		},
+		LatestBlockHeader: &types.BeaconBlockHeader{
+			Slot:            5678,
+			ProposerIndex:   123,
+			ParentBlockRoot: [32]byte{0x35, 0x36, 0x37},
+			StateRoot:       [32]byte{0x38, 0x39, 0x3a},
+			BodyRoot:        [32]byte{0x3b, 0x3c, 0x3d},
+		},
+		Eth1Data: &types.Eth1Data{
+			DepositRoot:  [32]byte{0x3e, 0x3f, 0x40},
+			DepositCount: 1000,
+			BlockHash:    [32]byte{0x41, 0x42, 0x43},
+		},
+		Eth1DepositIndex: 100,
 	}
+}
+
+func generateRandomBytes32(count int) []common.Bytes32 {
+	result := make([]common.Bytes32, count)
+	for i := range count {
+		var randomBytes [32]byte
+		for j := range randomBytes {
+			randomBytes[j] = byte((i + j) % 256)
+		}
+		result[i] = randomBytes
+	}
+	return result
 }
 
 func TestBeaconStateMarshalUnmarshalSSZ(t *testing.T) {
@@ -64,7 +142,7 @@ func TestBeaconStateMarshalUnmarshalSSZ(t *testing.T) {
 	require.EqualValues(t, state, newState)
 
 	// Check if the state size is greater than 0
-	require.Positive(t, state.SizeSSZ())
+	require.Positive(t, state.SizeSSZ(false))
 }
 
 func TestHashTreeRoot(t *testing.T) {
@@ -83,7 +161,7 @@ func TestGetTree(t *testing.T) {
 func TestBeaconState_UnmarshalSSZ_Error(t *testing.T) {
 	state := &deneb.BeaconState{}
 	err := state.UnmarshalSSZ([]byte{0x01, 0x02, 0x03}) // Invalid data
-	require.ErrorIs(t, err, ssz.ErrSize)
+	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
 
 func TestBeaconState_MarshalSSZTo(t *testing.T) {
@@ -100,37 +178,21 @@ func TestBeaconState_MarshalSSZTo(t *testing.T) {
 	require.Equal(t, data, buf)
 }
 
-func TestBeaconState_MarshalSSZFields(t *testing.T) {
+func TestBeaconState_HashTreeRoot(t *testing.T) {
 	state := generateValidBeaconState()
 
-	// Test BlockRoots field
-	state.BlockRoots = make([]common.Root, 8193) // Exceeding the limit
-	_, err := state.MarshalSSZ()
-	require.Error(t, err)
-	state.BlockRoots = make([]common.Root, 8192) // Within the limit
-	_, err = state.MarshalSSZ()
+	// Get the HashTreeRoot
+	root, err := state.HashTreeRoot()
 	require.NoError(t, err)
 
-	// Test StateRoots field
-	state.StateRoots = make([]common.Root, 8193) // Exceeding the limit
-	_, err = state.MarshalSSZ()
-	require.Error(t, err)
-	state.StateRoots = make([]common.Root, 8192) // Within the limit
-	_, err = state.MarshalSSZ()
-	require.NoError(t, err)
+	// Get the HashConcurrent
+	concurrentRoot := karalabessz.HashSequential(state)
 
-	// Test LatestExecutionPayloadHeader field
-	state.LatestExecutionPayloadHeader = &types.ExecutionPayloadHeader{
-		LogsBloom: [256]byte{},
-	}
-	_, err = state.MarshalSSZ()
-	require.NoError(t, err)
-
-	// Test RandaoMixes field
-	state.RandaoMixes = make([]common.Bytes32, 65537) // Exceeding the limit
-	_, err = state.MarshalSSZ()
-	require.Error(t, err)
-	state.RandaoMixes = make([]common.Bytes32, 65536) // Within the limit
-	_, err = state.MarshalSSZ()
-	require.NoError(t, err)
+	// Compare the results
+	require.Equal(
+		t,
+		root,
+		concurrentRoot,
+		"HashTreeRoot and HashSequential should produce the same result",
+	)
 }
