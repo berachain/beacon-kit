@@ -36,7 +36,8 @@ import (
 //
 //nolint:lll
 type ExecutionPayloadHeader struct {
-	// TODO: Enable
+	// TODO: Enable once
+	// https://github.com/karalabe/ssz/pull/9/files# is merged.
 	//
 	// // Metadata
 	// //
