@@ -40,8 +40,7 @@ func generateValidBeaconBlock() *types.BeaconBlock {
 		ProposerIndex: 5,
 		ParentRoot:    bytes.B32{1, 2, 3, 4, 5},
 		StateRoot:     bytes.B32{5, 4, 3, 2, 1},
-
-		Body: &types.BeaconBlockBodyDeneb{
+		Body: &types.BeaconBlockBody{
 			ExecutionPayload: &types.ExecutionPayload{
 				ExtraData: []byte("dummy extra data for testing"),
 				Transactions: [][]byte{
@@ -54,7 +53,15 @@ func generateValidBeaconBlock() *types.BeaconBlock {
 					{Index: 1, Amount: 200},
 				},
 			},
-			BlobKzgCommitments: []eip4844.KZGCommitment{},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: []*types.Deposit{
+				{
+					Index: 1,
+				},
+			},
+			BlobKzgCommitments: []eip4844.KZGCommitment{
+				{1, 2, 3},
+			},
 		},
 	}
 }
@@ -77,8 +84,6 @@ func TestEmptyBeaconBlockInvalidForkVersion(t *testing.T) {
 
 func TestBeaconBlockFromSSZ(t *testing.T) {
 	originalBlock := generateValidBeaconBlock()
-
-	originalBlock.Body.Deposits = []*types.Deposit{}
 
 	sszBlock, err := originalBlock.MarshalSSZ()
 	require.NoError(t, err)
@@ -108,12 +113,6 @@ func TestBeaconBlock(t *testing.T) {
 	block.SetStateRoot(newStateRoot)
 	require.Equal(t, newStateRoot, [32]byte(block.StateRoot))
 
-	// Test the GetBody method
-	require.Equal(
-		t, &types.BeaconBlockBody{RawBeaconBlockBody: block.Body},
-		block.GetBody(),
-	)
-
 	// Test the GetHeader method
 	header := block.GetHeader()
 	require.NotNil(t, header)
@@ -125,7 +124,6 @@ func TestBeaconBlock(t *testing.T) {
 
 func TestBeaconBlock_MarshalUnmarshalSSZ(t *testing.T) {
 	block := *generateValidBeaconBlock()
-	block.Body.Deposits = []*types.Deposit{}
 
 	sszBlock, err := block.MarshalSSZ()
 	require.NoError(t, err)
@@ -134,8 +132,6 @@ func TestBeaconBlock_MarshalUnmarshalSSZ(t *testing.T) {
 	var unmarshalledBlock types.BeaconBlock
 	err = unmarshalledBlock.UnmarshalSSZ(sszBlock)
 	require.NoError(t, err)
-
-	block.Body.Deposits = []*types.Deposit{}
 
 	require.Equal(t, block, unmarshalledBlock)
 }
