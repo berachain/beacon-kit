@@ -38,19 +38,15 @@ import (
 
 // generateValidBeaconState generates a valid beacon state for the Deneb.
 func generateValidBeaconState() *deneb.BeaconState {
-	var byteArray [256]byte
 	return &deneb.BeaconState{
-		BlockRoots:  []common.Root{},
-		StateRoots:  []common.Root{},
-		Fork:        &types.Fork{},
-		Validators:  []*types.Validator{},
-		Balances:    []uint64{},
-		RandaoMixes: []common.Bytes32{},
-		Slashings:   []uint64{},
-		LatestExecutionPayloadHeader: &types.ExecutionPayloadHeader{
-			LogsBloom: byteArray,
-			ExtraData: nil,
-		},
+		BlockRoots:                   []common.Root{},
+		StateRoots:                   []common.Root{},
+		Fork:                         &types.Fork{},
+		Validators:                   []*types.Validator{},
+		Balances:                     []uint64{},
+		RandaoMixes:                  []common.Bytes32{},
+		Slashings:                    []uint64{},
+		LatestExecutionPayloadHeader: &types.ExecutionPayloadHeader{},
 	}
 }
 

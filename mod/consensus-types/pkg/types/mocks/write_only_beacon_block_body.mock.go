@@ -158,48 +158,35 @@ func (_c *WriteOnlyBeaconBlockBody_SetEth1Data_Call) RunAndReturn(run func(*type
 	return _c
 }
 
-// SetExecutionData provides a mock function with given fields: _a0
-func (_m *WriteOnlyBeaconBlockBody) SetExecutionData(_a0 *types.ExecutionPayload) error {
-	ret := _m.Called(_a0)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SetExecutionData")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(*types.ExecutionPayload) error); ok {
-		r0 = rf(_a0)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
+// SetExecutionPayload provides a mock function with given fields: _a0
+func (_m *WriteOnlyBeaconBlockBody) SetExecutionPayload(_a0 *types.ExecutionPayload) {
+	_m.Called(_a0)
 }
 
-// WriteOnlyBeaconBlockBody_SetExecutionData_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetExecutionData'
-type WriteOnlyBeaconBlockBody_SetExecutionData_Call struct {
+// WriteOnlyBeaconBlockBody_SetExecutionPayload_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetExecutionPayload'
+type WriteOnlyBeaconBlockBody_SetExecutionPayload_Call struct {
 	*mock.Call
 }
 
-// SetExecutionData is a helper method to define mock.On call
+// SetExecutionPayload is a helper method to define mock.On call
 //   - _a0 *types.ExecutionPayload
-func (_e *WriteOnlyBeaconBlockBody_Expecter) SetExecutionData(_a0 interface{}) *WriteOnlyBeaconBlockBody_SetExecutionData_Call {
-	return &WriteOnlyBeaconBlockBody_SetExecutionData_Call{Call: _e.mock.On("SetExecutionData", _a0)}
+func (_e *WriteOnlyBeaconBlockBody_Expecter) SetExecutionPayload(_a0 interface{}) *WriteOnlyBeaconBlockBody_SetExecutionPayload_Call {
+	return &WriteOnlyBeaconBlockBody_SetExecutionPayload_Call{Call: _e.mock.On("SetExecutionPayload", _a0)}
 }
 
-func (_c *WriteOnlyBeaconBlockBody_SetExecutionData_Call) Run(run func(_a0 *types.ExecutionPayload)) *WriteOnlyBeaconBlockBody_SetExecutionData_Call {
+func (_c *WriteOnlyBeaconBlockBody_SetExecutionPayload_Call) Run(run func(_a0 *types.ExecutionPayload)) *WriteOnlyBeaconBlockBody_SetExecutionPayload_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(*types.ExecutionPayload))
 	})
 	return _c
 }
 
-func (_c *WriteOnlyBeaconBlockBody_SetExecutionData_Call) Return(_a0 error) *WriteOnlyBeaconBlockBody_SetExecutionData_Call {
-	_c.Call.Return(_a0)
+func (_c *WriteOnlyBeaconBlockBody_SetExecutionPayload_Call) Return() *WriteOnlyBeaconBlockBody_SetExecutionPayload_Call {
+	_c.Call.Return()
 	return _c
 }
 
-func (_c *WriteOnlyBeaconBlockBody_SetExecutionData_Call) RunAndReturn(run func(*types.ExecutionPayload) error) *WriteOnlyBeaconBlockBody_SetExecutionData_Call {
+func (_c *WriteOnlyBeaconBlockBody_SetExecutionPayload_Call) RunAndReturn(run func(*types.ExecutionPayload)) *WriteOnlyBeaconBlockBody_SetExecutionPayload_Call {
 	_c.Call.Return(run)
 	return _c
 }

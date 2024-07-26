@@ -9,13 +9,13 @@ import (
 	ssz "github.com/ferranbt/fastssz"
 )
 
-// MarshalSSZ ssz marshals the ExecutableDataDeneb object
-func (e *ExecutableDataDeneb) MarshalSSZ() ([]byte, error) {
+// MarshalSSZ ssz marshals the ExecutionPayload object
+func (e *ExecutionPayload) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(e)
 }
 
-// MarshalSSZTo ssz marshals the ExecutableDataDeneb object to a target array
-func (e *ExecutableDataDeneb) MarshalSSZTo(buf []byte) (dst []byte, err error) {
+// MarshalSSZTo ssz marshals the ExecutionPayload object to a target array
+func (e *ExecutionPayload) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 	offset := int(528)
 
@@ -33,10 +33,10 @@ func (e *ExecutableDataDeneb) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 	// Field (4) 'LogsBloom'
 	if size := len(e.LogsBloom); size != 256 {
-		err = ssz.ErrBytesLengthFn("ExecutableDataDeneb.LogsBloom", size, 256)
+		err = ssz.ErrBytesLengthFn("ExecutionPayload.LogsBloom", size, 256)
 		return
 	}
-	dst = append(dst, e.LogsBloom...)
+	dst = append(dst, e.LogsBloom[:]...)
 
 	// Field (5) 'Random'
 	dst = append(dst, e.Random[:]...)
@@ -81,14 +81,14 @@ func (e *ExecutableDataDeneb) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 	// Field (10) 'ExtraData'
 	if size := len(e.ExtraData); size > 32 {
-		err = ssz.ErrBytesLengthFn("ExecutableDataDeneb.ExtraData", size, 32)
+		err = ssz.ErrBytesLengthFn("ExecutionPayload.ExtraData", size, 32)
 		return
 	}
 	dst = append(dst, e.ExtraData...)
 
 	// Field (13) 'Transactions'
 	if size := len(e.Transactions); size > 1048576 {
-		err = ssz.ErrListTooBigFn("ExecutableDataDeneb.Transactions", size, 1048576)
+		err = ssz.ErrListTooBigFn("ExecutionPayload.Transactions", size, 1048576)
 		return
 	}
 	{
@@ -100,7 +100,7 @@ func (e *ExecutableDataDeneb) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	}
 	for ii := 0; ii < len(e.Transactions); ii++ {
 		if size := len(e.Transactions[ii]); size > 1073741824 {
-			err = ssz.ErrBytesLengthFn("ExecutableDataDeneb.Transactions[ii]", size, 1073741824)
+			err = ssz.ErrBytesLengthFn("ExecutionPayload.Transactions[ii]", size, 1073741824)
 			return
 		}
 		dst = append(dst, e.Transactions[ii]...)
@@ -108,7 +108,7 @@ func (e *ExecutableDataDeneb) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 
 	// Field (14) 'Withdrawals'
 	if size := len(e.Withdrawals); size > 16 {
-		err = ssz.ErrListTooBigFn("ExecutableDataDeneb.Withdrawals", size, 16)
+		err = ssz.ErrListTooBigFn("ExecutionPayload.Withdrawals", size, 16)
 		return
 	}
 	for ii := 0; ii < len(e.Withdrawals); ii++ {
@@ -120,8 +120,8 @@ func (e *ExecutableDataDeneb) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	return
 }
 
-// UnmarshalSSZ ssz unmarshals the ExecutableDataDeneb object
-func (e *ExecutableDataDeneb) UnmarshalSSZ(buf []byte) error {
+// UnmarshalSSZ ssz unmarshals the ExecutionPayload object
+func (e *ExecutionPayload) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
 	if size < 528 {
@@ -144,10 +144,7 @@ func (e *ExecutableDataDeneb) UnmarshalSSZ(buf []byte) error {
 	copy(e.ReceiptsRoot[:], buf[84:116])
 
 	// Field (4) 'LogsBloom'
-	if cap(e.LogsBloom) == 0 {
-		e.LogsBloom = make([]byte, 0, len(buf[116:372]))
-	}
-	e.LogsBloom = append(e.LogsBloom, buf[116:372]...)
+	copy(e.LogsBloom[:], buf[116:372])
 
 	// Field (5) 'Random'
 	copy(e.Random[:], buf[372:404])
@@ -250,8 +247,8 @@ func (e *ExecutableDataDeneb) UnmarshalSSZ(buf []byte) error {
 	return err
 }
 
-// SizeSSZ returns the ssz encoded size in bytes for the ExecutableDataDeneb object
-func (e *ExecutableDataDeneb) SizeSSZ() (size int) {
+// SizeSSZ returns the ssz encoded size in bytes for the ExecutionPayload object
+func (e *ExecutionPayload) SizeSSZ() (size int) {
 	size = 528
 
 	// Field (10) 'ExtraData'
@@ -269,13 +266,13 @@ func (e *ExecutableDataDeneb) SizeSSZ() (size int) {
 	return
 }
 
-// HashTreeRoot ssz hashes the ExecutableDataDeneb object
-func (e *ExecutableDataDeneb) HashTreeRoot() ([32]byte, error) {
+// HashTreeRoot ssz hashes the ExecutionPayload object
+func (e *ExecutionPayload) HashTreeRoot() ([32]byte, error) {
 	return ssz.HashWithDefaultHasher(e)
 }
 
-// HashTreeRootWith ssz hashes the ExecutableDataDeneb object with a hasher
-func (e *ExecutableDataDeneb) HashTreeRootWith(hh ssz.HashWalker) (err error) {
+// HashTreeRootWith ssz hashes the ExecutionPayload object with a hasher
+func (e *ExecutionPayload) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	indx := hh.Index()
 
 	// Field (0) 'ParentHash'
@@ -291,11 +288,7 @@ func (e *ExecutableDataDeneb) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	hh.PutBytes(e.ReceiptsRoot[:])
 
 	// Field (4) 'LogsBloom'
-	if size := len(e.LogsBloom); size != 256 {
-		err = ssz.ErrBytesLengthFn("ExecutableDataDeneb.LogsBloom", size, 256)
-		return
-	}
-	hh.PutBytes(e.LogsBloom)
+	hh.PutBytes(e.LogsBloom[:])
 
 	// Field (5) 'Random'
 	hh.PutBytes(e.Random[:])
@@ -379,7 +372,7 @@ func (e *ExecutableDataDeneb) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	return
 }
 
-// GetTree ssz hashes the ExecutableDataDeneb object
-func (e *ExecutableDataDeneb) GetTree() (*ssz.Node, error) {
+// GetTree ssz hashes the ExecutionPayload object
+func (e *ExecutionPayload) GetTree() (*ssz.Node, error) {
 	return ssz.ProofTree(e)
 }

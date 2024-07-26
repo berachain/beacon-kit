@@ -78,8 +78,8 @@ type BeaconBlockBody[
 	SetEth1Data(Eth1DataT)
 	// SetDeposits sets the deposits of the beacon block body.
 	SetDeposits([]DepositT)
-	// SetExecutionData sets the execution data of the beacon block body.
-	SetExecutionData(ExecutionPayloadT) error
+	// SetExecutionPayload sets the execution data of the beacon block body.
+	SetExecutionPayload(ExecutionPayloadT)
 	// SetGraffiti sets the graffiti of the beacon block body.
 	SetGraffiti(common.Bytes32)
 	// SetAttestations sets the attestations of the beacon block body.
