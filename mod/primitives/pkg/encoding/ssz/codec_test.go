@@ -25,10 +25,10 @@ type NestedContainer struct {
 }
 
 func (n *NestedContainer) DefineSSZ(c *ssz.Codec) {
-	ssz.DefineFixedVector(c, ssz.ByteVectorFromBytes(n.Bytes32[:]))
-	ssz.DefineBasic(c, math.U64(n.Uint64))
-	ssz.DefineList(c, ssz.ListFromElements(10, n.ListBytes32...))
-	ssz.DefineFixedVector(c, ssz.ByteVectorFromBytes(n.Bytes256[:]))
+	ssz.DefineField(c, ssz.ByteVectorFromBytes(n.Bytes32[:]))
+	ssz.DefineField(c, math.U64(n.Uint64))
+	ssz.DefineField(c, ssz.ListFromElements(10, n.ListBytes32...))
+	ssz.DefineField(c, ssz.ByteVectorFromBytes(n.Bytes256[:]))
 }
 
 func Test_Codec_Encode(t *testing.T) {

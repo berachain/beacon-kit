@@ -21,6 +21,7 @@
 package ssz
 
 import (
+	"io"
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -165,4 +166,8 @@ func (l *List[T]) NewFromSSZ(buf []byte, limit uint64) (*List[T], error) {
 		elements: elements,
 		limit:    limit,
 	}, nil
+}
+
+func (l *List[T]) EncodeSSZ(w io.Writer, buf [32]byte) (int, error) {
+	return Vector[T](l.elements).EncodeSSZ(w, buf)
 }

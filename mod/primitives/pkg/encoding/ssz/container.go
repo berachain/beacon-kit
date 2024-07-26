@@ -21,6 +21,8 @@
 package ssz
 
 import (
+	"io"
+
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkleizer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
@@ -129,4 +131,8 @@ func (c *Container) MarshalSSZ() ([]byte, error) {
 // NewFromSSZ creates a new Container from SSZ format.
 func (c *Container) NewFromSSZ(_ []byte) (*Container, error) {
 	return nil, errors.New("not implemented yet")
+}
+
+func (c *Container) EncodeSSZ(w io.Writer, buf [32]byte) (int, error) {
+	panic("unsupported operation")
 }

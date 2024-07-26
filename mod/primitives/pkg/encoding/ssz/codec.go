@@ -15,7 +15,7 @@ type Codec struct {
 }
 
 type SSZObject interface {
-	DefineSSZ() *Codec
+	DefineSSZ(*Codec)
 }
 
 func SchemaCodec() *Codec {
@@ -39,31 +39,24 @@ type Hasher struct {
 type Treeer struct {
 }
 
-func DefineBasic(c *Codec, t types.MinimalSSZType) {
+func encode[VectorT types.MinimalSSZType](c *Codec, t types.MinimalSSZType) {
+	switch f := t.(type) {
+	case Vector[VectorT]:
+		f.
+	}
+
+}
+
+func DefineField(c *Codec, t types.MinimalSSZType) {
 	switch {
 	case c.encoder != nil:
-		t.EncodeSSZ(c.encoder.outWriter, c.encoder.buf)
+		c.encode(t)
 	case c.schema != nil:
 		RegisterBasic(c.schema, t)
 	case c.hasher != nil:
 	case c.treeer != nil:
 		panic("not implemented")
 	}
-}
-
-func DefineFixedVector[T types.MinimalSSZType](c *Codec, t Vector[T]) {
-}
-
-func DefineVariableVectorOffset[T types.MinimalSSZType](c *Codec, t Vector[T]) {
-}
-
-func DefineVariableVector[T types.MinimalSSZType](c *Codec, t Vector[T]) {
-}
-
-func DefineListOffset[T types.MinimalSSZType](c *Codec, t List[T]) {
-}
-
-func DefineList[T types.MinimalSSZType](c *Codec, t List[T], max uint64) {
 }
 
 // --------------------------------------------------------------------------

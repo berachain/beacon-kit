@@ -148,5 +148,17 @@ func (v Vector[T]) NewFromSSZ(_ []byte) (Vector[T], error) {
 }
 
 func (v Vector[T]) EncodeSSZ(w io.Writer, buf [32]byte) (int, error) {
-
+	var t T
+	if _, ok := any(t).(SSZObject); ok {
+		for _, e := range v {
+			sszObject := any(e).(SSZObject)
+			// return to user space
+			sszObject.DefineSSZ()
+		}
+	} else {
+		for _, e := range v {
+			e.EncodeSSZ(w, buf)
+		}
+	}
+	return 0, nil
 }

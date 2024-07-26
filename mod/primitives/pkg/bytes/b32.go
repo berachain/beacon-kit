@@ -22,6 +22,8 @@
 package bytes
 
 import (
+	"io"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/types"
@@ -99,4 +101,8 @@ func (h B32) Type() schema.SSZType {
 // HashTreeRoot returns the hash tree root of the B32.
 func (h B32) HashTreeRoot() ([32]byte, error) {
 	return h, nil
+}
+
+func (h B32) EncodeSSZ(w io.Writer, _ [32]byte) (int, error) {
+	return w.Write(h[:])
 }
