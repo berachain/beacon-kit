@@ -24,8 +24,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
@@ -75,5 +73,5 @@ type BlockchainService[
 
 // Genesis is the interface for the genesis data.
 type Genesis interface {
-	json.Unmarshaler
+	constraints.JSONMarshallable
 }
