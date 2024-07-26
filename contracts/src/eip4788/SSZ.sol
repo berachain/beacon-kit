@@ -2,8 +2,9 @@
 pragma solidity ^0.8.21;
 
 /// @author [madlabman](https://github.com/madlabman/eip-4788-proof)
+/// @author [Eigenlayer](https://github.com/Layr-Labs/eigenlayer-contracts/blob/dev/src/contracts/libraries/Merkle.sol)
 library SSZ {
-    /// @dev sha256 precompile address.
+    /// @dev SHA256 precompile address.
     uint8 public constant SHA256 = 0x02;
 
     error BranchHasMissingItem();
@@ -137,42 +138,6 @@ library SSZ {
                 }
             }
         }
-    }
-
-    /**
-     * @notice this function returns the merkle root of a tree created from a set of leaves using sha256 as its hash function
-     *  @param leaves the leaves of the merkle tree
-     *  @return The computed Merkle root of the tree.
-     *  @dev A pre-condition to this function is that leaves.length is a power of two.  If not, the function will merkleize the inputs incorrectly.
-     */
-    function merkleizeSha256Eigenlayer(bytes32[] memory leaves)
-        internal
-        pure
-        returns (bytes32)
-    {
-        //there are half as many nodes in the layer above the leaves
-        uint256 numNodesInLayer = leaves.length / 2;
-        //create a layer to store the internal nodes
-        bytes32[] memory layer = new bytes32[](numNodesInLayer);
-        //fill the layer with the pairwise hashes of the leaves
-        for (uint256 i = 0; i < numNodesInLayer; i++) {
-            layer[i] =
-                sha256(abi.encodePacked(leaves[2 * i], leaves[2 * i + 1]));
-        }
-        //the next layer above has half as many nodes
-        numNodesInLayer /= 2;
-        //while we haven't computed the root
-        while (numNodesInLayer != 0) {
-            //overwrite the first numNodesInLayer nodes in layer with the pairwise hashes of their children
-            for (uint256 i = 0; i < numNodesInLayer; i++) {
-                layer[i] =
-                    sha256(abi.encodePacked(layer[2 * i], layer[2 * i + 1]));
-            }
-            //the next layer above has half as many nodes
-            numNodesInLayer /= 2;
-        }
-        //the first node in the layer is the root
-        return layer[0];
     }
 
     function beaconHeaderHashTreeRoot(BeaconBlockHeader memory header)
@@ -333,6 +298,42 @@ library SSZ {
             }
             isValid := eq(leaf, root)
         }
+    }
+
+    /**
+     * @notice this function returns the merkle root of a tree created from a set of leaves using sha256 as its hash function
+     *  @param leaves the leaves of the merkle tree
+     *  @return The computed Merkle root of the tree.
+     *  @dev A pre-condition to this function is that leaves.length is a power of two.  If not, the function will merkleize the inputs incorrectly.
+     */
+    function merkleizeSha256Eigenlayer(bytes32[] memory leaves)
+        internal
+        pure
+        returns (bytes32)
+    {
+        //there are half as many nodes in the layer above the leaves
+        uint256 numNodesInLayer = leaves.length / 2;
+        //create a layer to store the internal nodes
+        bytes32[] memory layer = new bytes32[](numNodesInLayer);
+        //fill the layer with the pairwise hashes of the leaves
+        for (uint256 i = 0; i < numNodesInLayer; i++) {
+            layer[i] =
+                sha256(abi.encodePacked(leaves[2 * i], leaves[2 * i + 1]));
+        }
+        //the next layer above has half as many nodes
+        numNodesInLayer /= 2;
+        //while we haven't computed the root
+        while (numNodesInLayer != 0) {
+            //overwrite the first numNodesInLayer nodes in layer with the pairwise hashes of their children
+            for (uint256 i = 0; i < numNodesInLayer; i++) {
+                layer[i] =
+                    sha256(abi.encodePacked(layer[2 * i], layer[2 * i + 1]));
+            }
+            //the next layer above has half as many nodes
+            numNodesInLayer /= 2;
+        }
+        //the first node in the layer is the root
+        return layer[0];
     }
 
     /**
