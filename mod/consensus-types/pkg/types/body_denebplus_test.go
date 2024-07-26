@@ -75,7 +75,6 @@ func generateBeaconBlockBodyDenebPlus() *types.BeaconBlockBodyDenebPlus {
 }
 
 func TestBeaconBlockBodyDenebPlus_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
-
 	testCases := []struct {
 		name     string
 		data     *types.BeaconBlockBodyDenebPlus
