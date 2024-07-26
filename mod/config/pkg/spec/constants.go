@@ -18,41 +18,12 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package beacon
+package spec
 
-import (
-	"strconv"
+const (
+	// DevnetEth1ChainID is the chain ID for the local devnet.
+	DevnetEth1ChainID uint64 = 80087
 
-	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
-	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
+	// TestnetEth1ChainID is the chain ID for the bArtio testnet.
+	TestnetEth1ChainID uint64 = 80084
 )
-
-func (h *Handler[_, ContextT, _, _]) GetRandao(c ContextT) (any, error) {
-	req, err := utils.BindAndValidate[beacontypes.GetRandaoRequest](
-		c,
-		h.Logger(),
-	)
-	if err != nil {
-		return nil, err
-	}
-	slot, err := utils.SlotFromStateID(req.StateID)
-	if err != nil {
-		return nil, err
-	}
-	epoch := uint64(0)
-	if req.Epoch != "" {
-		epoch, err = strconv.ParseUint(req.Epoch, 10, 64)
-		if err != nil {
-			return nil, err
-		}
-	}
-	randao, err := h.backend.RandaoAtEpoch(slot, epoch)
-	if err != nil {
-		return nil, err
-	}
-	return beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data:                randao,
-	}, nil
-}

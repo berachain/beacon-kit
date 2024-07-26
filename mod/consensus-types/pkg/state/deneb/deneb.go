@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -30,33 +30,32 @@ import (
 type BeaconState struct {
 	// Versioning
 	//
-	//nolint:lll
-	GenesisValidatorsRoot common.Root `json:"genesisValidatorsRoot" ssz-size:"32"`
+	GenesisValidatorsRoot common.Root `json:"genesisValidatorsRoot"`
 	Slot                  math.Slot   `json:"slot"`
 	Fork                  *types.Fork `json:"fork"`
 
 	// History
 	LatestBlockHeader *types.BeaconBlockHeader `json:"latestBlockHeader"`
-	BlockRoots        []common.Root            `json:"blockRoots"        ssz-size:"?,32" ssz-max:"8192"`
-	StateRoots        []common.Root            `json:"stateRoots"        ssz-size:"?,32" ssz-max:"8192"`
+	BlockRoots        []common.Root            `json:"blockRoots"`
+	StateRoots        []common.Root            `json:"stateRoots"`
 
 	// Eth1
-	Eth1Data                     *types.Eth1Data                    `json:"eth1Data"`
-	Eth1DepositIndex             uint64                             `json:"eth1DepositIndex"`
-	LatestExecutionPayloadHeader *types.ExecutionPayloadHeaderDeneb `json:"latestExecutionPayloadHeader"`
+	Eth1Data                     *types.Eth1Data               `json:"eth1Data"`
+	Eth1DepositIndex             uint64                        `json:"eth1DepositIndex"`
+	LatestExecutionPayloadHeader *types.ExecutionPayloadHeader `json:"latestExecutionPayloadHeader"`
 
 	// Registry
-	Validators []*types.Validator `json:"validators" ssz-max:"1099511627776"`
-	Balances   []uint64           `json:"balances"   ssz-max:"1099511627776"`
+	Validators []*types.Validator `json:"validators"`
+	Balances   []uint64           `json:"balances"`
 
 	// Randomness
-	RandaoMixes []common.Bytes32 `json:"randaoMixes" ssz-size:"?,32" ssz-max:"65536"`
+	RandaoMixes []common.Bytes32 `json:"randaoMixes"`
 
 	// Withdrawals
 	NextWithdrawalIndex          uint64              `json:"nextWithdrawalIndex"`
 	NextWithdrawalValidatorIndex math.ValidatorIndex `json:"nextWithdrawalValidatorIndex"`
 
 	// Slashing
-	Slashings     []uint64  `json:"slashings"     ssz-max:"1099511627776"`
+	Slashings     []uint64  `json:"slashings"`
 	TotalSlashing math.Gwei `json:"totalSlashing"`
 }
