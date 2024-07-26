@@ -74,6 +74,8 @@ func (e *ExecutionPayload) ToHeader(
 
 	g.Go(func() error {
 		var txsRootErr error
+		// TODO: This is live on bArtio with a bug and needs to be hardforked
+		// off of.
 		txsRoot, txsRootErr = engineprimitives.Transactions(
 			e.GetTransactions(),
 		).HashTreeRootWith(txsMerkleizer)
