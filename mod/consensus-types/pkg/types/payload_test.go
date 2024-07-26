@@ -53,7 +53,7 @@ func generateExecutionPayload() *types.ExecutionPayload {
 		FeeRecipient:  gethprimitives.ExecutionAddress{},
 		StateRoot:     bytes.B32{},
 		ReceiptsRoot:  bytes.B32{},
-		LogsBloom:     make([]byte, 256),
+		LogsBloom:     bytes.B256{},
 		Random:        bytes.B32{},
 		Number:        math.U64(0),
 		GasLimit:      math.U64(0),
@@ -187,7 +187,7 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 		FeeRecipient:  gethprimitives.ExecutionAddress{},
 		StateRoot:     bytes.B32{},
 		ReceiptsRoot:  bytes.B32{},
-		LogsBloom:     make([]byte, 256),
+		LogsBloom:     bytes.B256{},
 		Random:        bytes.B32{},
 		Number:        math.U64(0),
 		GasLimit:      math.U64(0),
@@ -342,7 +342,7 @@ func TestExecutionPayloadHashTreeRoot(t *testing.T) {
 		FeeRecipient:  gethprimitives.ExecutionAddress{2},
 		StateRoot:     common.Bytes32{3},
 		ReceiptsRoot:  common.Bytes32{4},
-		LogsBloom:     make([]byte, 256),
+		LogsBloom:     bytes.B256{},
 		Random:        common.Bytes32{5},
 		Number:        123,
 		GasLimit:      456,
@@ -366,7 +366,7 @@ func TestExecutionPayloadHashTreeRoot(t *testing.T) {
 		ssz.ByteVectorFromBytes(payload.FeeRecipient[:]),
 		ssz.ByteVectorFromBytes(payload.StateRoot[:]),
 		ssz.ByteVectorFromBytes(payload.ReceiptsRoot[:]),
-		ssz.ByteVectorFromBytes(payload.LogsBloom),
+		ssz.ByteVectorFromBytes(payload.LogsBloom[:]),
 		ssz.ByteVectorFromBytes(payload.Random[:]),
 		payload.Number,
 		payload.GasLimit,
@@ -399,17 +399,6 @@ func TestExecutionPayload_Marshal_Error(t *testing.T) {
 		setup func(payload *types.ExecutionPayload)
 		err   error
 	}{
-		{
-			name: "invalid LogsBloom",
-			setup: func(payload *types.ExecutionPayload) {
-				payload.LogsBloom = nil
-			},
-			err: fastssz.ErrBytesLengthFn(
-				"ExecutionPayload.LogsBloom",
-				0,
-				256,
-			),
-		},
 		{
 			name: "invalid ExtraData",
 			setup: func(payload *types.ExecutionPayload) {
@@ -475,17 +464,6 @@ func TestExecutionPayload_HasTreeRootWith_Error(t *testing.T) {
 		setup func(payload *types.ExecutionPayload)
 		err   error
 	}{
-		{
-			name: "invalid LogsBloom",
-			setup: func(payload *types.ExecutionPayload) {
-				payload.LogsBloom = nil
-			},
-			err: fastssz.ErrBytesLengthFn(
-				"ExecutionPayload.LogsBloom",
-				0,
-				256,
-			),
-		},
 		{
 			name: "invalid ExtraData",
 			setup: func(payload *types.ExecutionPayload) {

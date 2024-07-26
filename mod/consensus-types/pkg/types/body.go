@@ -63,7 +63,6 @@ func (b *BeaconBlockBody) Empty(forkVersion uint32) *BeaconBlockBody {
 		return &BeaconBlockBody{RawBeaconBlockBody: &BeaconBlockBodyDeneb{
 			BeaconBlockBodyBase: BeaconBlockBodyBase{},
 			ExecutionPayload: &ExecutionPayload{
-				LogsBloom: make([]byte, LogsBloomSize),
 				ExtraData: make([]byte, ExtraDataSize),
 			},
 		}}
@@ -71,7 +70,6 @@ func (b *BeaconBlockBody) Empty(forkVersion uint32) *BeaconBlockBody {
 		return &BeaconBlockBody{RawBeaconBlockBody: &BeaconBlockBodyDenebPlus{
 			BeaconBlockBodyBase: BeaconBlockBodyBase{},
 			ExecutionPayload: &ExecutionPayload{
-				LogsBloom: make([]byte, LogsBloomSize),
 				ExtraData: make([]byte, ExtraDataSize),
 			},
 		}}

@@ -88,7 +88,7 @@ func TestExecutionPayloadHashTreeRootZrnt(t *testing.T) {
 			return true
 		}
 
-		payload.LogsBloom = logsBloom[:]
+		payload.LogsBloom = logsBloom
 		typeRoot, err := payload.HashTreeRoot()
 		if err != nil {
 			t.Log("Failed to calculate HashTreeRoot on payload:", err)
@@ -108,7 +108,7 @@ func TestExecutionPayloadHashTreeRootZrnt(t *testing.T) {
 			GasLimit:      zview.Uint64View(payload.GasLimit),
 			GasUsed:       zview.Uint64View(payload.GasUsed),
 			Timestamp:     zcommon.Timestamp(payload.Timestamp),
-			ExtraData:     payload.ExtraData,
+			ExtraData:     []byte(payload.ExtraData),
 			BaseFeePerGas: baseFeePerGas,
 			BlockHash:     ztree.Root(payload.BlockHash),
 			Transactions: *(*zcommon.PayloadTransactions)(
@@ -124,7 +124,7 @@ func TestExecutionPayloadHashTreeRootZrnt(t *testing.T) {
 			ssz.ByteVectorFromBytes(payload.FeeRecipient[:]),
 			ssz.ByteVectorFromBytes(payload.StateRoot[:]),
 			ssz.ByteVectorFromBytes(payload.ReceiptsRoot[:]),
-			ssz.ByteVectorFromBytes(payload.LogsBloom),
+			ssz.ByteVectorFromBytes(payload.LogsBloom[:]),
 			ssz.ByteVectorFromBytes(payload.Random[:]),
 			payload.Number,
 			payload.GasLimit,

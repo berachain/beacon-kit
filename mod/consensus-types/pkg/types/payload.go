@@ -23,8 +23,6 @@ package types
 import (
 	"context"
 
-	"golang.org/x/sync/errgroup"
-
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
@@ -34,29 +32,47 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
+	"golang.org/x/sync/errgroup"
 )
 
 // ExecutionPayload is the execution payload for Deneb.
 //
 //nolint:lll
 type ExecutionPayload struct {
-	ParentHash    gethprimitives.ExecutionHash    `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
-	FeeRecipient  gethprimitives.ExecutionAddress `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
-	StateRoot     common.Bytes32                  `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
-	ReceiptsRoot  common.Bytes32                  `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
-	LogsBloom     []byte                          `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
-	Random        common.Bytes32                  `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
-	Number        math.U64                        `json:"blockNumber"                  gencodec:"required"`
-	GasLimit      math.U64                        `json:"gasLimit"                     gencodec:"required"`
-	GasUsed       math.U64                        `json:"gasUsed"                      gencodec:"required"`
-	Timestamp     math.U64                        `json:"timestamp"                    gencodec:"required"`
-	ExtraData     []byte                          `json:"extraData"                    gencodec:"required" ssz-max:"32"`
-	BaseFeePerGas math.Wei                        `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
-	BlockHash     gethprimitives.ExecutionHash    `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
-	Transactions  [][]byte                        `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
-	Withdrawals   []*engineprimitives.Withdrawal  `json:"withdrawals"                                      ssz-max:"16"`
-	BlobGasUsed   math.U64                        `json:"blobGasUsed"`
-	ExcessBlobGas math.U64                        `json:"excessBlobGas"`
+	// ParentHash is the hash of the parent block.
+	ParentHash gethprimitives.ExecutionHash `json:"parentHash"       gencodec:"required"`
+	// FeeRecipient is the address of the fee recipient.
+	FeeRecipient gethprimitives.ExecutionAddress `json:"feeRecipient"     gencodec:"required"`
+	// StateRoot is the root of the state trie.
+	StateRoot common.Bytes32 `json:"stateRoot"        gencodec:"required"`
+	// ReceiptsRoot is the root of the receipts trie.
+	ReceiptsRoot common.Bytes32 `json:"receiptsRoot"     gencodec:"required"`
+	// LogsBloom is the bloom filter for the logs.
+	LogsBloom bytes.B256 `json:"logsBloom"        gencodec:"required"`
+	// Random is the prevRandao value.
+	Random common.Bytes32 `json:"prevRandao"       gencodec:"required"`
+	// Number is the block number.
+	Number math.U64 `json:"blockNumber"      gencodec:"required"`
+	// GasLimit is the gas limit for the block.
+	GasLimit math.U64 `json:"gasLimit"         gencodec:"required"`
+	// GasUsed is the amount of gas used in the block.
+	GasUsed math.U64 `json:"gasUsed"          gencodec:"required"`
+	// Timestamp is the timestamp of the block.
+	Timestamp math.U64 `json:"timestamp"        gencodec:"required"`
+	// ExtraData is the extra data of the block.
+	ExtraData bytes.Bytes `json:"extraData"        gencodec:"required"`
+	// BaseFeePerGas is the base fee per gas.
+	BaseFeePerGas math.Wei `json:"baseFeePerGas"    gencodec:"required"`
+	// BlockHash is the hash of the block.
+	BlockHash gethprimitives.ExecutionHash `json:"blockHash"        gencodec:"required"`
+	// Transactions is the list of transactions in the block.
+	Transactions [][]byte `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
+	// Withdrawals is the list of withdrawals in the block.
+	Withdrawals []*engineprimitives.Withdrawal `json:"withdrawals"                                      ssz-max:"16"`
+	// BlobGasUsed is the amount of blob gas used in the block.
+	BlobGasUsed math.U64 `json:"blobGasUsed"`
+	// ExcessBlobGas is the amount of excess blob gas in the block.
+	ExcessBlobGas math.U64 `json:"excessBlobGas"`
 }
 
 // Empty returns an empty ExecutionPayload for the given fork version.
@@ -117,7 +133,7 @@ func (d *ExecutionPayload) GetReceiptsRoot() common.Bytes32 {
 
 // GetLogsBloom returns the logs bloom of the ExecutionPayload.
 func (d *ExecutionPayload) GetLogsBloom() []byte {
-	return d.LogsBloom
+	return d.LogsBloom[:]
 }
 
 // GetPrevRandao returns the previous Randao value of the ExecutionPayload.

@@ -34,7 +34,6 @@ import (
 
 func generateBeaconBlockBodyDenebPlus() *types.BeaconBlockBodyDenebPlus {
 	var byteArray [256]byte
-	byteSlice := byteArray[:]
 	return &types.BeaconBlockBodyDenebPlus{
 		BeaconBlockBodyBase: types.BeaconBlockBodyBase{
 			RandaoReveal: [96]byte{
@@ -66,7 +65,7 @@ func generateBeaconBlockBodyDenebPlus() *types.BeaconBlockBodyDenebPlus {
 			Deposits: []*types.Deposit{},
 		},
 		ExecutionPayload: &types.ExecutionPayload{
-			LogsBloom:    byteSlice,
+			LogsBloom:    byteArray,
 			ExtraData:    make([]byte, 0),
 			Transactions: make([][]byte, 0),
 			Withdrawals:  make([]*engineprimitives.Withdrawal, 0),
@@ -79,7 +78,7 @@ func generateBeaconBlockBodyDenebPlus() *types.BeaconBlockBodyDenebPlus {
 
 func TestBeaconBlockBodyDenebPlus_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 	var byteArray [256]byte
-	byteSlice := byteArray[:]
+
 	testCases := []struct {
 		name     string
 		data     *types.BeaconBlockBodyDenebPlus
@@ -102,7 +101,7 @@ func TestBeaconBlockBodyDenebPlus_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 					Deposits:     []*types.Deposit{},
 				},
 				ExecutionPayload: &types.ExecutionPayload{
-					LogsBloom:    byteSlice,
+					LogsBloom:    byteArray,
 					ExtraData:    make([]byte, 0),
 					Transactions: make([][]byte, 0),
 					Withdrawals:  make([]*engineprimitives.Withdrawal, 0),
@@ -119,7 +118,7 @@ func TestBeaconBlockBodyDenebPlus_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 					Deposits:     []*types.Deposit{},
 				},
 				ExecutionPayload: &types.ExecutionPayload{
-					LogsBloom:    byteSlice,
+					LogsBloom:    byteArray,
 					ExtraData:    make([]byte, 0),
 					Transactions: make([][]byte, 0),
 					Withdrawals:  make([]*engineprimitives.Withdrawal, 0),

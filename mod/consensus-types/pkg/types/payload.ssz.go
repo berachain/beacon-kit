@@ -36,7 +36,7 @@ func (e *ExecutionPayload) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 		err = ssz.ErrBytesLengthFn("ExecutionPayload.LogsBloom", size, 256)
 		return
 	}
-	dst = append(dst, e.LogsBloom...)
+	dst = append(dst, e.LogsBloom[:]...)
 
 	// Field (5) 'Random'
 	dst = append(dst, e.Random[:]...)
@@ -144,10 +144,7 @@ func (e *ExecutionPayload) UnmarshalSSZ(buf []byte) error {
 	copy(e.ReceiptsRoot[:], buf[84:116])
 
 	// Field (4) 'LogsBloom'
-	if cap(e.LogsBloom) == 0 {
-		e.LogsBloom = make([]byte, 0, len(buf[116:372]))
-	}
-	e.LogsBloom = append(e.LogsBloom, buf[116:372]...)
+	copy(e.LogsBloom[:], buf[116:372])
 
 	// Field (5) 'Random'
 	copy(e.Random[:], buf[372:404])
@@ -291,11 +288,7 @@ func (e *ExecutionPayload) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	hh.PutBytes(e.ReceiptsRoot[:])
 
 	// Field (4) 'LogsBloom'
-	if size := len(e.LogsBloom); size != 256 {
-		err = ssz.ErrBytesLengthFn("ExecutionPayload.LogsBloom", size, 256)
-		return
-	}
-	hh.PutBytes(e.LogsBloom)
+	hh.PutBytes(e.LogsBloom[:])
 
 	// Field (5) 'Random'
 	hh.PutBytes(e.Random[:])
