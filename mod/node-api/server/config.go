@@ -20,6 +20,10 @@
 
 package server
 
+const (
+	defaultAddress = "0.0.0.0:3500"
+)
+
 // Config is the configuration for the node API server.
 type Config struct {
 	// Enabled is the flag to enable the node API server.
@@ -34,7 +38,7 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		Enabled: false,
-		Address: "0.0.0.0:8080",
+		Address: defaultAddress,
 		Logging: false,
 	}
 }
