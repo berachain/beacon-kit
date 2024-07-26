@@ -65,6 +65,68 @@ library SSZ {
         );
     }
 
+    function validatorPubkeyHashTreeRoot(bytes calldata validatorPubkey)
+        internal
+        view
+        returns (bytes32 root)
+    {   
+        require(validatorPubkey.length == 48, "Invalid validator pubkey length");
+
+        bytes32[2] memory nodes = [
+            bytes32(validatorPubkey[0:32]),
+            bytes32(validatorPubkey[32:48])
+        ];
+
+        /// @solidity memory-safe-assembly
+        assembly {
+            // Count of nodes to hash
+            let count := 2
+
+            // Loop over levels
+            // prettier-ignore
+            for { } 1 { } {
+                // Loop over nodes at the given depth
+
+                // Initialize `offset` to the offset of `proof` elements in memory.
+                let target := nodes
+                let source := nodes
+                let end := add(source, shl(5, count))
+
+                // prettier-ignore
+                for { } 1 { } {
+                    // TODO: Can be replaced with `mcopy` once it's available, see EIP-5656.
+                    // Read next two hashes to hash
+                    mstore(0x00, mload(source))
+                    mstore(0x20, mload(add(source, 0x20)))
+
+                    // Call sha256 precompile
+                    let result :=
+                        staticcall(gas(), SHA256, 0x00, 0x40, 0x00, 0x20)
+
+                    if eq(result, 0) {
+                        // Precompiles returns no data on OutOfGas error.
+                        revert(0, 0)
+                    }
+
+                    // Store the resulting hash at the target location
+                    mstore(target, mload(0x00))
+
+                    // Advance the pointers
+                    target := add(target, 0x20)
+                    source := add(source, 0x40)
+
+                    if iszero(lt(source, end)) { break }
+                }
+
+                count := shr(1, count)
+                if eq(count, 1) {
+                    root := mload(0x00)
+                    break
+                }
+            }
+        }
+    }
+
     function validatorHashTreeRoot(Validator memory validator)
         internal
         view
@@ -180,7 +242,7 @@ library SSZ {
 
                     // Call sha256 precompile
                     let result :=
-                        staticcall(gas(), 0x02, 0x00, 0x40, 0x00, 0x20)
+                        staticcall(gas(), SHA256, 0x00, 0x40, 0x00, 0x20)
 
                     if eq(result, 0) {
                         // Precompiles returns no data on OutOfGas error.
@@ -379,7 +441,7 @@ library SSZ {
                 assembly {
                     mstore(0x00, mload(computedHash))
                     mstore(0x20, mload(add(proof, i)))
-                    if iszero(staticcall(sub(gas(), 2000), 2, 0x00, 0x40, computedHash, 0x20)) { revert(0, 0) }
+                    if iszero(staticcall(sub(gas(), 2000), SHA256, 0x00, 0x40, computedHash, 0x20)) { revert(0, 0) }
                     index := div(index, 2)
                 }
             } else {
@@ -387,7 +449,7 @@ library SSZ {
                 assembly {
                     mstore(0x00, mload(add(proof, i)))
                     mstore(0x20, mload(computedHash))
-                    if iszero(staticcall(sub(gas(), 2000), 2, 0x00, 0x40, computedHash, 0x20)) { revert(0, 0) }
+                    if iszero(staticcall(sub(gas(), 2000), SHA256, 0x00, 0x40, computedHash, 0x20)) { revert(0, 0) }
                     index := div(index, 2)
                 }
             }

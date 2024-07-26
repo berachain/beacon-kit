@@ -18,14 +18,14 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @inheritdoc IBeaconVerifier
-    uint256 public zeroValidatorsGIndex;
+    uint256 public zeroValidatorPubkeyGIndex;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                       ADMIN FUNCTIONS                      */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-    constructor(uint256 _zeroValGIndex) {
-        zeroValidatorsGIndex = _zeroValGIndex;
+    constructor(uint256 _zeroValidatorPubkeyGIndex) {
+        zeroValidatorPubkeyGIndex = _zeroValidatorPubkeyGIndex;
 
         _initializeOwner(msg.sender);
     }
@@ -39,8 +39,8 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
         return true;
     }
 
-    function setZeroValidatorsGIndex(uint256 _zeroValGIndex) external onlyOwner {
-        zeroValidatorsGIndex = _zeroValGIndex;
+    function setZeroValidatorPubkeyGIndex(uint256 _zeroValidatorPubkeyGIndex) external onlyOwner {
+        zeroValidatorPubkeyGIndex = _zeroValidatorPubkeyGIndex;
     }
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -66,13 +66,12 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @inheritdoc IBeaconVerifier
-    /// @dev gas used with Eigenlayer library functions ~600000
-    /// @dev gas used with Madlabman library functions ~85000
+    /// @dev gas used ~81281
     function proveBlockProposer(
         SSZ.BeaconBlockHeader calldata blockHeader,
         uint64 timestamp,
-        bytes32[] calldata validatorProof,
-        SSZ.Validator calldata validator
+        bytes32[] calldata validatorPubkeyProof,
+        bytes calldata validatorPubkey
     )
         public
         view
@@ -85,23 +84,23 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
         }
 
         // Then check that the validator is a validator of the beacon chain during this time.
-        proveValidatorInBlock(
+        proveValidatorPubkeyInBlock(
             expectedBeaconRoot,
-            validatorProof,
-            validator,
+            validatorPubkeyProof,
+            validatorPubkey,
             blockHeader.proposerIndex
         );
     }
 
-    /// @notice Verifies the validator is in the registry of beacon state.
+    /// @notice Verifies the validator pubkey is in the registry of beacon state.
     /// @param beaconBlockRoot `bytes32` root of the beacon block.
-    /// @param validatorProof `bytes32[]` proof of the validator.
-    /// @param validator `Validator` to verify.
+    /// @param validatorPubkeyProof `bytes32[]` proof of the validator.
+    /// @param validatorPubkey `ValidatorPubkey` to verify.
     /// @param validatorIndex `uint64` index of the validator.
-    function proveValidatorInBlock(
+    function proveValidatorPubkeyInBlock(
         bytes32 beaconBlockRoot,
-        bytes32[] calldata validatorProof,
-        SSZ.Validator calldata validator,
+        bytes32[] calldata validatorPubkeyProof,
+        bytes calldata validatorPubkey,
         uint64 validatorIndex
     )
         internal
@@ -111,11 +110,11 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
             revert IndexOutOfRange();
         }
 
-        uint256 gIndex = zeroValidatorsGIndex + validatorIndex;
-        bytes32 validatorRoot = SSZ.validatorHashTreeRoot(validator);
+        uint256 gIndex = zeroValidatorPubkeyGIndex + (8 * validatorIndex);
+        bytes32 validatorPubkeyRoot = SSZ.validatorPubkeyHashTreeRoot(validatorPubkey);
 
         if (
-            !SSZ.verifyProof(validatorProof, beaconBlockRoot, validatorRoot, gIndex)
+            !SSZ.verifyProof(validatorPubkeyProof, beaconBlockRoot, validatorPubkeyRoot, gIndex)
         ) {
             revert InvalidProof();
         }

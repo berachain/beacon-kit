@@ -4,9 +4,9 @@ pragma solidity ^0.8.21;
 import { SSZ } from "../SSZ.sol";
 
 interface IBeaconVerifier {
-    /// @dev Generalized index of the first validator struct root in the
-    /// registry.
-    function zeroValidatorsGIndex() external view returns (uint256);
+    /// @dev Generalized index of the pubkey of the first validator (validator
+    /// index of 0) in the registry of the beacon state in the beacon block.
+    function zeroValidatorPubkeyGIndex() external view returns (uint256);
 
     /// @notice Get the parent beacon block root from a block's timestamp.
     /// @param timestamp `uint64` timestamp of the block.
@@ -21,13 +21,13 @@ interface IBeaconVerifier {
     /// @notice Verifies the proposer of a beacon block.
     /// @param blockHeader `BeaconBlockHeader` to verify.
     /// @param timestamp `uint64` timestamp of the block.
-    /// @param validatorProof `bytes32[]` proof of the validator.
-    /// @param validator `Validator` to verify.
+    /// @param validatorPubkeyProof `bytes32[]` proof of the validator pubkey.
+    /// @param validatorPubkey `ValidatorPubkey` to verify.
     function proveBlockProposer(
         SSZ.BeaconBlockHeader calldata blockHeader,
         uint64 timestamp,
-        bytes32[] calldata validatorProof,
-        SSZ.Validator calldata validator
+        bytes32[] calldata validatorPubkeyProof,
+        bytes calldata validatorPubkey
     )
         external
         view;
