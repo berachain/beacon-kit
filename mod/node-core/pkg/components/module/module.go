@@ -22,7 +22,8 @@ package beacon
 
 import (
 	"context"
-	"encoding/json"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 
 	"cosmossdk.io/core/appmodule/v2"
 	"cosmossdk.io/core/registry"

@@ -20,7 +20,7 @@
 
 package constraints
 
-import "encoding/json"
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 
 // SSZMarshaler is an interface for objects that can be
 // marshaled to SSZ format.

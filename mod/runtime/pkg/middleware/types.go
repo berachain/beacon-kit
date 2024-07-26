@@ -22,8 +22,9 @@ package middleware
 
 import (
 	"context"
-	"encoding/json"
 	"time"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"

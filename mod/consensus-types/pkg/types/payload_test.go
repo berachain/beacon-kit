@@ -21,10 +21,11 @@
 package types_test
 
 import (
-	"encoding/json"
 	"io"
 	"math/big"
 	"testing"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"

@@ -22,8 +22,9 @@
 package bytes_test
 
 import (
-	"encoding/json"
 	"testing"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"

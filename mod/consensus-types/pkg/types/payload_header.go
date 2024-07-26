@@ -21,7 +21,7 @@
 package types
 
 import (
-	"encoding/json"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"

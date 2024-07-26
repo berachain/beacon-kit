@@ -22,8 +22,9 @@ package engineprimitives_test
 
 import (
 	"encoding/binary"
-	"encoding/json"
 	"testing"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives/mocks"
