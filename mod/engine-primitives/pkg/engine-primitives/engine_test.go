@@ -23,10 +23,9 @@ package engineprimitives_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
-
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/stretchr/testify/require"
 )
 
