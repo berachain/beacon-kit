@@ -87,13 +87,6 @@ func (e *ExecutionPayload) Empty(forkVersion uint32) *ExecutionPayload {
 	return e
 }
 
-// JSON type overrides for ExecutionPayload.
-type ExecutionPayloadMarshaling struct {
-	ExtraData    bytes.Bytes
-	LogsBloom    bytes.Bytes
-	Transactions []bytes.Bytes
-}
-
 // Version returns the version of the ExecutionPayload.
 func (d *ExecutionPayload) Version() uint32 {
 	return version.Deneb

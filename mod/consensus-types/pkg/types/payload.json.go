@@ -12,8 +12,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-var _ = (*ExecutionPayloadMarshaling)(nil)
-
 // MarshalJSON marshals as JSON.
 func (e ExecutionPayload) MarshalJSON() ([]byte, error) {
 	type ExecutionPayload struct {
@@ -68,7 +66,7 @@ func (e *ExecutionPayload) UnmarshalJSON(input []byte) error {
 		FeeRecipient  *common.Address                `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
 		StateRoot     *bytes.B32                     `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
 		ReceiptsRoot  *bytes.B32                     `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
-		LogsBloom     *bytes.B256                   `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
+		LogsBloom     *bytes.B256                    `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
 		Random        *bytes.B32                     `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
 		Number        *math.U64                      `json:"blockNumber"                  gencodec:"required"`
 		GasLimit      *math.U64                      `json:"gasLimit"                     gencodec:"required"`
