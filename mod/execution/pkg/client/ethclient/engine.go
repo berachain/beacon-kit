@@ -59,7 +59,7 @@ func (s *Eth1Client[ExecutionPayloadT]) NewPayloadV3(
 	parentBlockRoot *common.Root,
 ) (*engineprimitives.PayloadStatusV1, error) {
 	result := &engineprimitives.PayloadStatusV1{}
-	if err := s.Client.Client().CallContext(
+	if err := s.Client.CallContext(
 		ctx, result, NewPayloadMethodV3, payload, versionedHashes,
 		(*gethprimitives.ExecutionHash)(parentBlockRoot),
 	); err != nil {
@@ -107,7 +107,7 @@ func (s *Eth1Client[ExecutionPayloadT]) forkchoiceUpdated(
 ) (*engineprimitives.ForkchoiceResponseV1, error) {
 	result := &engineprimitives.ForkchoiceResponseV1{}
 
-	if err := s.Client.Client().CallContext(
+	if err := s.Client.CallContext(
 		ctx, result, method, state, attrs,
 	); err != nil {
 		return nil, err
@@ -153,7 +153,7 @@ func (s *Eth1Client[ExecutionPayloadT]) GetPayloadV3(
 		ExecutionPayload: t.Empty(version.Deneb),
 	}
 
-	if err := s.Client.Client().CallContext(
+	if err := s.Client.CallContext(
 		ctx, result, GetPayloadMethodV3, payloadID,
 	); err != nil {
 		return nil, err
@@ -172,7 +172,7 @@ func (s *Eth1Client[ExecutionPayloadT]) ExchangeCapabilities(
 	capabilities []string,
 ) ([]string, error) {
 	result := make([]string, 0)
-	if err := s.Client.Client().CallContext(
+	if err := s.Client.CallContext(
 		ctx, &result, ExchangeCapabilities, &capabilities,
 	); err != nil {
 		return nil, err
@@ -185,7 +185,7 @@ func (s *Eth1Client[ExecutionPayloadT]) GetClientVersionV1(
 	ctx context.Context,
 ) ([]engineprimitives.ClientVersionV1, error) {
 	result := make([]engineprimitives.ClientVersionV1, 0)
-	if err := s.Client.Client().CallContext(
+	if err := s.Client.CallContext(
 		ctx, &result, GetClientVersionV1, nil,
 	); err != nil {
 		return nil, err

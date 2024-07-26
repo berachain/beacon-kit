@@ -174,7 +174,7 @@ func (s *EngineClient[
 	}
 
 	// After the initial dial, check to make sure the chain ID is correct.
-	chainID, err = s.Client.ChainID(ctx)
+	chainID, err = s.Eth1Client.ChainID(ctx)
 	if err != nil {
 		if strings.Contains(err.Error(), "401 Unauthorized") {
 			// We always log this error as it is a critical error.

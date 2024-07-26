@@ -24,7 +24,6 @@ import (
 	"context"
 
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
-	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/ethclient"
 	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/rpc"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 )
@@ -34,14 +33,14 @@ import (
 type Eth1Client[
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 ] struct {
-	*ethclient.Client
+	*rpc.Client
 }
 
 // NewEth1Client creates a new Ethereum 1 client with the provided
 // context and options.
 func NewEth1Client[
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
-](client *ethclient.Client) (*Eth1Client[ExecutionPayloadT], error) {
+](client *rpc.Client) (*Eth1Client[ExecutionPayloadT], error) {
 	c := &Eth1Client[ExecutionPayloadT]{
 		Client: client,
 	}
@@ -52,7 +51,7 @@ func NewEth1Client[
 func NewFromRPCClient[
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 ](rpcClient *rpc.Client) (*Eth1Client[ExecutionPayloadT], error) {
-	return NewEth1Client[ExecutionPayloadT](ethclient.NewClient(rpcClient))
+	return NewEth1Client[ExecutionPayloadT](rpcClient)
 }
 
 // ExecutionBlockByHash fetches an execution engine block by hash by calling
@@ -61,7 +60,7 @@ func (s *Eth1Client[ExecutionPayloadT]) ExecutionBlockByHash(
 	ctx context.Context, hash gethprimitives.ExecutionHash, withTxs bool,
 ) (*gethprimitives.Block, error) {
 	result := &gethprimitives.Block{}
-	err := s.Client.Client().CallContext(
+	err := s.Client.CallContext(
 		ctx, result, BlockByHashMethod, hash, withTxs)
 	return result, err
 }
@@ -72,7 +71,7 @@ func (s *Eth1Client[ExecutionPayloadT]) ExecutionBlockByNumber(
 	ctx context.Context, num rpc.BlockNumber, withTxs bool,
 ) (*gethprimitives.Block, error) {
 	result := &gethprimitives.Block{}
-	err := s.Client.Client().CallContext(
+	err := s.Client.CallContext(
 		ctx, result, BlockByNumberMethod, num, withTxs)
 	return result, err
 }
