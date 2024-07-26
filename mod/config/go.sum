@@ -30,8 +30,8 @@ github.com/berachain/beacon-kit/mod/node-api v0.0.0-20240717210058-a144e074f6b2 
 github.com/berachain/beacon-kit/mod/node-api v0.0.0-20240717210058-a144e074f6b2/go.mod h1:ly/ZhLppBtmd2qi6Um1WZ+zluhWAWNpYyzMtypJ9sDQ=
 github.com/berachain/beacon-kit/mod/payload v0.0.0-20240624003607-df94860f8eeb h1:/aKXt8E60/AMOod4MMhbf+8POaIE1vW43ufnTdAZ3uo=
 github.com/berachain/beacon-kit/mod/payload v0.0.0-20240624003607-df94860f8eeb/go.mod h1:IFOWyTyeFcwsTkJc0Ud9uMLxQ8r4SyZNFiXpDQaJAgc=
-github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240710021622-37e8e3e7e155 h1:vmQElnXj5uPg+eCWrpy55CZeaYCScFFV0X6M4RYW/GM=
-github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240710021622-37e8e3e7e155/go.mod h1:Jeco1800cfads+X8ma4hPeYx9Tizqob9PJefWPhEn+4=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210358-b245289d6dc3 h1:d7Rhga3yDLja5UtC29uIUWj/5ItTC2nNqpW8PyhziOQ=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210358-b245289d6dc3/go.mod h1:ku+3SPOa1x0QAquKlSa0EqHDMaBJlMc91nzyKrH37M4=
 github.com/bits-and-blooms/bitset v1.13.0 h1:bAQ9OPNFYbGHV6Nez0tmNI0RiEu7/hxlYJRUA0wFAVE=
 github.com/bits-and-blooms/bitset v1.13.0/go.mod h1:7hO7Gc7Pp1vODcmWvKMRA9BNmbv6a/7QIWpPxHddWR8=
 github.com/btcsuite/btcd/btcec/v2 v2.3.3 h1:6+iXlDKE8RMtKsvK0gshlXIuPbyWM/h84Ensb7o3sC0=
@@ -130,6 +130,8 @@ github.com/go-playground/universal-translator v0.18.1/go.mod h1:xekY+UJKNuX9WP91
 github.com/go-playground/validator/v10 v10.20.0 h1:K9ISHbSaI0lyB2eWMPJo+kOS/FBExVwjEviJTixqxL8=
 github.com/go-playground/validator/v10 v10.20.0/go.mod h1:dbuPbCMFw/DrkbEynArYaCwl3amGuJotoKCe95atGMM=
 github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0/go.mod h1:fyg7847qk6SyHyPtNmDHnmrv/HOrqktSC+C9fM+CJOE=
+github.com/goccy/go-json v0.10.3 h1:KZ5WoDbxAIgm2HNbYckL0se1fHD6rz5j4ywS6ebzDqA=
+github.com/goccy/go-json v0.10.3/go.mod h1:oq7eo15ShAhp70Anwd5lgX2pLfOS3QCiwU/PULtXL6M=
 github.com/gofrs/flock v0.12.0 h1:xHW8t8GPAiGtqz7KxiSqfOEXwpOaqhpYZrTE2MQBgXY=
 github.com/gofrs/flock v0.12.0/go.mod h1:FirDy1Ing0mI2+kB6wk+vyyAH+e6xiE+EYA0jnzV9jc=
 github.com/gogo/protobuf v1.3.2 h1:Ov1cvc58UF3b5XjBnZv7+opcTcQFZebYjWzi34vdm4Q=

@@ -35,7 +35,7 @@ require (
 	github.com/berachain/beacon-kit/mod/node-api v0.0.0-20240717210058-a144e074f6b2
 	github.com/berachain/beacon-kit/mod/node-api/engines v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240710022448-e56f337d051f
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210358-b245289d6dc3
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240717210058-a144e074f6b2
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6650da31
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240723155519-565f208d5482
@@ -60,6 +60,7 @@ require (
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.22.0 // indirect
+	github.com/goccy/go-json v0.10.3 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/holiman/bloomfilter/v2 v2.0.3 // indirect
 	github.com/karalabe/ssz v0.2.1-0.20240724074312-3d1ff7a6f7c4 // indirect

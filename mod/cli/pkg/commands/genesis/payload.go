@@ -22,8 +22,9 @@ package genesis
 
 import (
 	"context"
-	"encoding/json"
 	"unsafe"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 
 	serverContext "github.com/berachain/beacon-kit/mod/cli/pkg/utils/context"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"

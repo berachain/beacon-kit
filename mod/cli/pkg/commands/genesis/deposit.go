@@ -21,10 +21,11 @@
 package genesis
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/context"
