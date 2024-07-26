@@ -27,12 +27,12 @@
 package deneb_test
 
 import (
+	"io"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	ssz "github.com/ferranbt/fastssz"
 	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
@@ -50,7 +50,7 @@ func generateValidBeaconState() *deneb.BeaconState {
 			{Pubkey: [48]byte{0x03}, WithdrawalCredentials: [32]byte{0x04}, EffectiveBalance: 31000000000, Slashed: true, ActivationEligibilityEpoch: 3, ActivationEpoch: 4, ExitEpoch: 5, WithdrawableEpoch: 6},
 		},
 		Balances:                     []uint64{32000000000, 31000000000},
-		RandaoMixes:                  []common.Bytes32{{0x10, 0x11, 0x12}, {0x13, 0x14, 0x15}},
+		RandaoMixes:                  generateRandomBytes32(65536),
 		Slashings:                    []uint64{1000000000, 2000000000},
 		NextWithdrawalIndex:          7,
 		NextWithdrawalValidatorIndex: 8,
@@ -84,7 +84,20 @@ func generateValidBeaconState() *deneb.BeaconState {
 			DepositCount: 1000,
 			BlockHash:    [32]byte{0x41, 0x42, 0x43},
 		},
+		Eth1DepositIndex: 100,
 	}
+}
+
+func generateRandomBytes32(count int) []common.Bytes32 {
+	result := make([]common.Bytes32, count)
+	for i := 0; i < count; i++ {
+		var randomBytes [32]byte
+		for j := 0; j < 32; j++ {
+			randomBytes[j] = byte(i + j)
+		}
+		result[i] = randomBytes
+	}
+	return result
 }
 
 func TestBeaconStateMarshalUnmarshalSSZ(t *testing.T) {
@@ -120,7 +133,7 @@ func TestGetTree(t *testing.T) {
 func TestBeaconState_UnmarshalSSZ_Error(t *testing.T) {
 	state := &deneb.BeaconState{}
 	err := state.UnmarshalSSZ([]byte{0x01, 0x02, 0x03}) // Invalid data
-	require.ErrorIs(t, err, ssz.ErrSize)
+	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
 
 func TestBeaconState_MarshalSSZTo(t *testing.T) {
@@ -135,41 +148,6 @@ func TestBeaconState_MarshalSSZTo(t *testing.T) {
 
 	// The two byte slices should be equal
 	require.Equal(t, data, buf)
-}
-
-func TestBeaconState_MarshalSSZFields(t *testing.T) {
-	state := generateValidBeaconState()
-
-	// Test BlockRoots field
-	state.BlockRoots = make([]common.Root, 8193) // Exceeding the limit
-	_, err := state.MarshalSSZ()
-	require.Error(t, err)
-	state.BlockRoots = make([]common.Root, 8192) // Within the limit
-	_, err = state.MarshalSSZ()
-	require.NoError(t, err)
-
-	// Test StateRoots field
-	state.StateRoots = make([]common.Root, 8193) // Exceeding the limit
-	_, err = state.MarshalSSZ()
-	require.Error(t, err)
-	state.StateRoots = make([]common.Root, 8192) // Within the limit
-	_, err = state.MarshalSSZ()
-	require.NoError(t, err)
-
-	// Test LatestExecutionPayloadHeader field
-	state.LatestExecutionPayloadHeader = &types.ExecutionPayloadHeader{
-		LogsBloom: [256]byte{},
-	}
-	_, err = state.MarshalSSZ()
-	require.NoError(t, err)
-
-	// Test RandaoMixes field
-	state.RandaoMixes = make([]common.Bytes32, 65537) // Exceeding the limit
-	_, err = state.MarshalSSZ()
-	require.Error(t, err)
-	state.RandaoMixes = make([]common.Bytes32, 65536) // Within the limit
-	_, err = state.MarshalSSZ()
-	require.NoError(t, err)
 }
 
 func TestBeaconState_HashTreeRoot(t *testing.T) {

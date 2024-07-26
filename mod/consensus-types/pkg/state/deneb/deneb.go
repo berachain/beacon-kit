@@ -24,6 +24,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
 )
 
@@ -61,6 +62,10 @@ type BeaconState struct {
 	TotalSlashing math.Gwei `json:"totalSlashing"`
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                     SSZ                                    */
+/* -------------------------------------------------------------------------- */
+
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconState object
 func (b *BeaconState) SizeSSZ(fixed bool) uint32 {
 	var size uint32 = 300
@@ -69,14 +74,14 @@ func (b *BeaconState) SizeSSZ(fixed bool) uint32 {
 		return size
 	}
 
-	// // Dynamic size fields
+	// Dynamic size fields
 	size += ssz.SizeSliceOfStaticBytes(b.BlockRoots)
 	size += ssz.SizeSliceOfStaticBytes(b.StateRoots)
 	size += ssz.SizeDynamicObject(b.LatestExecutionPayloadHeader)
 	size += ssz.SizeSliceOfStaticObjects(b.Validators)
 	size += ssz.SizeSliceOfUint64s(b.Balances)
-	// size += ssz.SizeSliceOfStaticBytes(b.RandaoMixes)
-	// size += ssz.SizeSliceOfUint64s(b.Slashings)
+	size += ssz.SizeSliceOfStaticBytes(b.RandaoMixes)
+	size += ssz.SizeSliceOfUint64s(b.Slashings)
 
 	return size
 }
@@ -110,7 +115,7 @@ func (b *BeaconState) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineUint64(codec, &b.NextWithdrawalValidatorIndex)
 
 	// // Slashing
-	// ssz.DefineSliceOfUint64sOffset(codec, &b.Slashings, 8192)
+	ssz.DefineSliceOfUint64sOffset(codec, &b.Slashings, 1099511627776)
 	ssz.DefineUint64(codec, (*uint64)(&b.TotalSlashing))
 
 	// Dynamic content
@@ -120,10 +125,161 @@ func (b *BeaconState) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineSliceOfStaticObjectsContent(codec, &b.Validators, 1099511627776)
 	ssz.DefineSliceOfUint64sContent(codec, &b.Balances, 1099511627776)
 	ssz.DefineSliceOfStaticBytesContent(codec, &b.RandaoMixes, 65536)
-	// ssz.DefineSliceOfUint64sContent(codec, &b.Slashings, 1099511627776)
+	ssz.DefineSliceOfUint64sContent(codec, &b.Slashings, 1099511627776)
 }
 
 func (b *BeaconState) MarshalSSZ() ([]byte, error) {
 	buf := make([]byte, b.SizeSSZ(false))
 	return buf, ssz.EncodeToBytes(buf, b)
+}
+
+func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
+	return ssz.DecodeFromBytes(buf, b)
+}
+
+func (b *BeaconState) HashTreeRoot() ([32]byte, error) {
+	return ssz.HashConcurrent(b), nil
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
+
+func (b *BeaconState) MarshalSSZTo(dst []byte) ([]byte, error) {
+	bz, err := b.MarshalSSZ()
+	if err != nil {
+		return nil, err
+	}
+	dst = append(dst, bz...)
+	return dst, nil
+}
+
+// HashTreeRootWith ssz hashes the BeaconState object with a hasher
+func (b *BeaconState) HashTreeRootWith(hh fastssz.HashWalker) error {
+	indx := hh.Index()
+
+	// Field (0) 'GenesisValidatorsRoot'
+	hh.PutBytes(b.GenesisValidatorsRoot[:])
+
+	// Field (1) 'Slot'
+	hh.PutUint64(uint64(b.Slot))
+
+	// Field (2) 'Fork'
+	if b.Fork == nil {
+		b.Fork = new(types.Fork)
+	}
+	if err := b.Fork.HashTreeRootWith(hh); err != nil {
+		return err
+	}
+
+	// Field (3) 'LatestBlockHeader'
+	if b.LatestBlockHeader == nil {
+		b.LatestBlockHeader = new(types.BeaconBlockHeader)
+	}
+	if err := b.LatestBlockHeader.HashTreeRootWith(hh); err != nil {
+		return err
+	}
+
+	// Field (4) 'BlockRoots'
+	if size := len(b.BlockRoots); size > 8192 {
+		return fastssz.ErrListTooBigFn("BeaconState.BlockRoots", size, 8192)
+	}
+	subIndx := hh.Index()
+	for _, i := range b.BlockRoots {
+		hh.Append(i[:])
+	}
+	numItems := uint64(len(b.BlockRoots))
+	hh.MerkleizeWithMixin(subIndx, numItems, 8192)
+
+	// Field (5) 'StateRoots'
+	if size := len(b.StateRoots); size > 8192 {
+		return fastssz.ErrListTooBigFn("BeaconState.StateRoots", size, 8192)
+	}
+	subIndx = hh.Index()
+	for _, i := range b.StateRoots {
+		hh.Append(i[:])
+	}
+	numItems = uint64(len(b.StateRoots))
+	hh.MerkleizeWithMixin(subIndx, numItems, 8192)
+
+	// Field (6) 'Eth1Data'
+	if b.Eth1Data == nil {
+		b.Eth1Data = new(types.Eth1Data)
+	}
+	if err := b.Eth1Data.HashTreeRootWith(hh); err != nil {
+		return err
+	}
+
+	// Field (7) 'Eth1DepositIndex'
+	hh.PutUint64(b.Eth1DepositIndex)
+
+	// Field (8) 'LatestExecutionPayloadHeader'
+	if err := b.LatestExecutionPayloadHeader.HashTreeRootWith(hh); err != nil {
+		return err
+	}
+
+	// Field (9) 'Validators'
+	subIndx = hh.Index()
+	num := uint64(len(b.Validators))
+	if num > 1099511627776 {
+		return fastssz.ErrIncorrectListSize
+	}
+	for _, elem := range b.Validators {
+		if err := elem.HashTreeRootWith(hh); err != nil {
+			return err
+		}
+	}
+	hh.MerkleizeWithMixin(subIndx, num, 1099511627776)
+
+	// Field (10) 'Balances'
+	if size := len(b.Balances); size > 1099511627776 {
+		return fastssz.ErrListTooBigFn("BeaconState.Balances", size, 1099511627776)
+	}
+	subIndx = hh.Index()
+	for _, i := range b.Balances {
+		hh.AppendUint64(i)
+	}
+	hh.FillUpTo32()
+	numItems = uint64(len(b.Balances))
+	hh.MerkleizeWithMixin(subIndx, numItems, fastssz.CalculateLimit(1099511627776, numItems, 8))
+
+	// Field (11) 'RandaoMixes'
+	if size := len(b.RandaoMixes); size > 65536 {
+		return fastssz.ErrListTooBigFn("BeaconState.RandaoMixes", size, 65536)
+	}
+	subIndx = hh.Index()
+	for _, i := range b.RandaoMixes {
+		hh.Append(i[:])
+	}
+	numItems = uint64(len(b.RandaoMixes))
+	hh.MerkleizeWithMixin(subIndx, numItems, 65536)
+
+	// Field (12) 'NextWithdrawalIndex'
+	hh.PutUint64(b.NextWithdrawalIndex)
+
+	// Field (13) 'NextWithdrawalValidatorIndex'
+	hh.PutUint64(uint64(b.NextWithdrawalValidatorIndex))
+
+	// Field (14) 'Slashings'
+	if size := len(b.Slashings); size > 1099511627776 {
+		return fastssz.ErrListTooBigFn("BeaconState.Slashings", size, 1099511627776)
+	}
+	subIndx = hh.Index()
+	for _, i := range b.Slashings {
+		hh.AppendUint64(i)
+	}
+	hh.FillUpTo32()
+	numItems = uint64(len(b.Slashings))
+	hh.MerkleizeWithMixin(subIndx, numItems, fastssz.CalculateLimit(1099511627776, numItems, 8))
+
+	// Field (15) 'TotalSlashing'
+	hh.PutUint64(uint64(b.TotalSlashing))
+
+	hh.Merkleize(indx)
+	return nil
+}
+
+// GetTree ssz hashes the BeaconState object
+func (b *BeaconState) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(b)
 }
