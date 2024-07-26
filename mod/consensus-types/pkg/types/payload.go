@@ -24,6 +24,7 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
@@ -553,8 +554,10 @@ func (p *ExecutionPayload) GetExcessBlobGas() math.U64 {
 
 // ToHeader converts the ExecutionPayload to an ExecutionPayloadHeader.
 func (p *ExecutionPayload) ToHeader(
-	txsMerkleizer *merkle.Merkleizer[[32]byte, common.Root],
+	bartioTxsMerkleizer *merkle.Merkleizer[[32]byte, common.Root],
+	properTxsMerkleizer *merkle.Merkleizer[[32]byte, *essz.List[essz.Byte]],
 	maxWithdrawalsPerPayload uint64,
+	eth1ChainID uint64,
 ) (*ExecutionPayloadHeader, error) {
 	// Get the merkle roots of transactions and withdrawals in parallel.
 	var (
@@ -566,10 +569,16 @@ func (p *ExecutionPayload) ToHeader(
 	g.Go(func() error {
 		var txsRootErr error
 		// TODO: This is live on bArtio with a bug and needs to be hardforked
-		// off of.
-		txsRoot, txsRootErr = engineprimitives.Transactions(
-			p.GetTransactions(),
-		).HashTreeRootWith(txsMerkleizer)
+		// off of. This is a temporary solution to avoid breaking changes.
+		if eth1ChainID == spec.TestnetEth1ChainID {
+			txsRoot, txsRootErr = engineprimitives.Transactions(
+				p.GetTransactions(),
+			).HashTreeRootWith(bartioTxsMerkleizer)
+		} else {
+			txsRoot, txsRootErr = engineprimitives.ProperTransactionsFromBytes(
+				p.GetTransactions(),
+			).HashTreeRootWith(properTxsMerkleizer)
+		}
 		return txsRootErr
 	})
 
