@@ -108,6 +108,7 @@ func (b *BeaconBlock) NewFromSSZ(
 
 // SizeSSZ returns the size of the BeaconBlock object in SSZ encoding.
 func (b *BeaconBlock) SizeSSZ(fixed bool) uint32 {
+	//nolint:mnd its okay.
 	var size = uint32(8 + 8 + 32 + 32 + 4)
 	if fixed {
 		return size
@@ -149,7 +150,8 @@ func (b *BeaconBlock) HashTreeRoot() ([32]byte, error) {
 /*                                   FastSSZ                                  */
 /* -------------------------------------------------------------------------- */
 
-// MarshalSSZTo marshals the BeaconBlock object to the provided buffer in SSZ format.
+// MarshalSSZTo marshals the BeaconBlock object to the provided buffer in SSZ
+// format.
 func (b *BeaconBlock) MarshalSSZTo(dst []byte) ([]byte, error) {
 	bz, err := b.MarshalSSZ()
 	if err != nil {
@@ -159,8 +161,8 @@ func (b *BeaconBlock) MarshalSSZTo(dst []byte) ([]byte, error) {
 	return dst, nil
 }
 
-// HashTreeRootWith ssz hashes the BeaconBlock object with a hasher
-func (b *BeaconBlock) HashTreeRootWith(hh fastssz.HashWalker) (err error) {
+// HashTreeRootWith ssz hashes the BeaconBlock object with a hasher.
+func (b *BeaconBlock) HashTreeRootWith(hh fastssz.HashWalker) error {
 	indx := hh.Index()
 
 	// Field (0) 'Slot'
@@ -176,15 +178,15 @@ func (b *BeaconBlock) HashTreeRootWith(hh fastssz.HashWalker) (err error) {
 	hh.PutBytes(b.StateRoot[:])
 
 	// Field (4) 'Body'
-	if err = b.Body.HashTreeRootWith(hh); err != nil {
-		return
+	if err := b.Body.HashTreeRootWith(hh); err != nil {
+		return err
 	}
 
 	hh.Merkleize(indx)
-	return
+	return nil
 }
 
-// GetTree ssz hashes the BeaconBlock object
+// GetTree ssz hashes the BeaconBlock object.
 func (b *BeaconBlock) GetTree() (*fastssz.Node, error) {
 	return fastssz.ProofTree(b)
 }
