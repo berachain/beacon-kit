@@ -45,33 +45,33 @@ const ExecutionPayloadStaticSize uint32 = 528
 //nolint:lll
 type ExecutionPayload struct {
 	// ParentHash is the hash of the parent block.
-	ParentHash gethprimitives.ExecutionHash `json:"parentHash"    gencodec:"required"`
+	ParentHash gethprimitives.ExecutionHash `json:"parentHash"`
 	// FeeRecipient is the address of the fee recipient.
-	FeeRecipient gethprimitives.ExecutionAddress `json:"feeRecipient"  gencodec:"required"`
+	FeeRecipient gethprimitives.ExecutionAddress `json:"feeRecipient"`
 	// StateRoot is the root of the state trie.
-	StateRoot common.Bytes32 `json:"stateRoot"     gencodec:"required"`
+	StateRoot common.Bytes32 `json:"stateRoot"`
 	// ReceiptsRoot is the root of the receipts trie.
-	ReceiptsRoot common.Bytes32 `json:"receiptsRoot"  gencodec:"required"`
+	ReceiptsRoot common.Bytes32 `json:"receiptsRoot"`
 	// LogsBloom is the bloom filter for the logs.
-	LogsBloom bytes.B256 `json:"logsBloom"     gencodec:"required"`
+	LogsBloom bytes.B256 `json:"logsBloom"`
 	// Random is the prevRandao value.
-	Random common.Bytes32 `json:"prevRandao"    gencodec:"required"`
+	Random common.Bytes32 `json:"prevRandao"`
 	// Number is the block number.
-	Number math.U64 `json:"blockNumber"   gencodec:"required"`
+	Number math.U64 `json:"blockNumber"`
 	// GasLimit is the gas limit for the block.
-	GasLimit math.U64 `json:"gasLimit"      gencodec:"required"`
+	GasLimit math.U64 `json:"gasLimit"`
 	// GasUsed is the amount of gas used in the block.
-	GasUsed math.U64 `json:"gasUsed"       gencodec:"required"`
+	GasUsed math.U64 `json:"gasUsed"`
 	// Timestamp is the timestamp of the block.
-	Timestamp math.U64 `json:"timestamp"     gencodec:"required"`
+	Timestamp math.U64 `json:"timestamp"`
 	// ExtraData is the extra data of the block.
-	ExtraData bytes.Bytes `json:"extraData"     gencodec:"required"`
+	ExtraData bytes.Bytes `json:"extraData"`
 	// BaseFeePerGas is the base fee per gas.
-	BaseFeePerGas math.Wei `json:"baseFeePerGas" gencodec:"required"`
+	BaseFeePerGas math.Wei `json:"baseFeePerGas"`
 	// BlockHash is the hash of the block.
-	BlockHash gethprimitives.ExecutionHash `json:"blockHash"     gencodec:"required"`
+	BlockHash gethprimitives.ExecutionHash `json:"blockHash"`
 	// Transactions is the list of transactions in the block.
-	Transactions [][]byte `json:"transactions"  gencodec:"required"`
+	Transactions [][]byte `json:"transactions"`
 	// Withdrawals is the list of withdrawals in the block.
 	Withdrawals []*engineprimitives.Withdrawal `json:"withdrawals"`
 	// BlobGasUsed is the amount of blob gas used in the block.

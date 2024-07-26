@@ -48,33 +48,33 @@ type ExecutionPayloadHeader struct {
 	// Contents
 	//
 	// ParentHash is the hash of the parent block.
-	ParentHash gethprimitives.ExecutionHash `json:"parentHash"       gencodec:"required"`
+	ParentHash gethprimitives.ExecutionHash `json:"parentHash"`
 	// FeeRecipient is the address of the fee recipient.
-	FeeRecipient gethprimitives.ExecutionAddress `json:"feeRecipient"     gencodec:"required"`
+	FeeRecipient gethprimitives.ExecutionAddress `json:"feeRecipient"`
 	// StateRoot is the root of the state trie.
-	StateRoot common.Bytes32 `json:"stateRoot"        gencodec:"required"`
+	StateRoot common.Bytes32 `json:"stateRoot"`
 	// ReceiptsRoot is the root of the receipts trie.
-	ReceiptsRoot common.Bytes32 `json:"receiptsRoot"     gencodec:"required"`
+	ReceiptsRoot common.Bytes32 `json:"receiptsRoot"`
 	// LogsBloom is the bloom filter for the logs.
-	LogsBloom bytes.B256 `json:"logsBloom"        gencodec:"required"`
+	LogsBloom bytes.B256 `json:"logsBloom"`
 	// Random is the prevRandao value.
-	Random common.Bytes32 `json:"prevRandao"       gencodec:"required"`
+	Random common.Bytes32 `json:"prevRandao"`
 	// Number is the block number.
-	Number math.U64 `json:"blockNumber"      gencodec:"required"`
+	Number math.U64 `json:"blockNumber"`
 	// GasLimit is the gas limit for the block.
-	GasLimit math.U64 `json:"gasLimit"         gencodec:"required"`
+	GasLimit math.U64 `json:"gasLimit"`
 	// GasUsed is the amount of gas used in the block.
-	GasUsed math.U64 `json:"gasUsed"          gencodec:"required"`
+	GasUsed math.U64 `json:"gasUsed"`
 	// Timestamp is the timestamp of the block.
-	Timestamp math.U64 `json:"timestamp"        gencodec:"required"`
+	Timestamp math.U64 `json:"timestamp"`
 	// ExtraData is the extra data of the block.
-	ExtraData bytes.Bytes `json:"extraData"        gencodec:"required"`
+	ExtraData bytes.Bytes `json:"extraData"`
 	// BaseFeePerGas is the base fee per gas.
-	BaseFeePerGas math.Wei `json:"baseFeePerGas"    gencodec:"required"`
+	BaseFeePerGas math.Wei `json:"baseFeePerGas"`
 	// BlockHash is the hash of the block.
-	BlockHash gethprimitives.ExecutionHash `json:"blockHash"        gencodec:"required"`
+	BlockHash gethprimitives.ExecutionHash `json:"blockHash"`
 	// TransactionsRoot is the root of the transaction trie.
-	TransactionsRoot common.Root `json:"transactionsRoot" gencodec:"required"`
+	TransactionsRoot common.Root `json:"transactionsRoot"`
 	// WithdrawalsRoot is the root of the withdrawals trie.
 	WithdrawalsRoot common.Root `json:"withdrawalsRoot"`
 	// BlobGasUsed is the amount of blob gas used in the block.
@@ -272,7 +272,7 @@ func (h *ExecutionPayloadHeader) GetTree() (*fastssz.Node, error) {
 /* -------------------------------------------------------------------------- */
 
 // MarshalJSON marshals as JSON.
-func (e ExecutionPayloadHeader) MarshalJSON() ([]byte, error) {
+func (h ExecutionPayloadHeader) MarshalJSON() ([]byte, error) {
 	type ExecutionPayloadHeader struct {
 		ParentHash       gethprimitives.ExecutionHash    `json:"parentHash"`
 		FeeRecipient     gethprimitives.ExecutionAddress `json:"feeRecipient"`
@@ -293,28 +293,28 @@ func (e ExecutionPayloadHeader) MarshalJSON() ([]byte, error) {
 		ExcessBlobGas    math.U64                        `json:"excessBlobGas"`
 	}
 	var enc ExecutionPayloadHeader
-	enc.ParentHash = e.ParentHash
-	enc.FeeRecipient = e.FeeRecipient
-	enc.StateRoot = e.StateRoot
-	enc.ReceiptsRoot = e.ReceiptsRoot
-	enc.LogsBloom = e.LogsBloom
-	enc.Random = e.Random
-	enc.Number = e.Number
-	enc.GasLimit = e.GasLimit
-	enc.GasUsed = e.GasUsed
-	enc.Timestamp = e.Timestamp
-	enc.ExtraData = e.ExtraData
-	enc.BaseFeePerGas = e.BaseFeePerGas
-	enc.BlockHash = e.BlockHash
-	enc.TransactionsRoot = e.TransactionsRoot
-	enc.WithdrawalsRoot = e.WithdrawalsRoot
-	enc.BlobGasUsed = e.BlobGasUsed
-	enc.ExcessBlobGas = e.ExcessBlobGas
+	enc.ParentHash = h.ParentHash
+	enc.FeeRecipient = h.FeeRecipient
+	enc.StateRoot = h.StateRoot
+	enc.ReceiptsRoot = h.ReceiptsRoot
+	enc.LogsBloom = h.LogsBloom
+	enc.Random = h.Random
+	enc.Number = h.Number
+	enc.GasLimit = h.GasLimit
+	enc.GasUsed = h.GasUsed
+	enc.Timestamp = h.Timestamp
+	enc.ExtraData = h.ExtraData
+	enc.BaseFeePerGas = h.BaseFeePerGas
+	enc.BlockHash = h.BlockHash
+	enc.TransactionsRoot = h.TransactionsRoot
+	enc.WithdrawalsRoot = h.WithdrawalsRoot
+	enc.BlobGasUsed = h.BlobGasUsed
+	enc.ExcessBlobGas = h.ExcessBlobGas
 	return json.Marshal(&enc)
 }
 
 // UnmarshalJSON unmarshals from JSON.
-func (e *ExecutionPayloadHeader) UnmarshalJSON(input []byte) error {
+func (h *ExecutionPayloadHeader) UnmarshalJSON(input []byte) error {
 	type ExecutionPayloadHeader struct {
 		ParentHash       *gethprimitives.ExecutionHash    `json:"parentHash"`
 		FeeRecipient     *gethprimitives.ExecutionAddress `json:"feeRecipient"`
@@ -343,61 +343,61 @@ func (e *ExecutionPayloadHeader) UnmarshalJSON(input []byte) error {
 			"missing required field 'parentHash' for ExecutionPayloadHeader",
 		)
 	}
-	e.ParentHash = *dec.ParentHash
+	h.ParentHash = *dec.ParentHash
 	if dec.FeeRecipient == nil {
 		return errors.New(
 			"missing required field 'feeRecipient' for ExecutionPayloadHeader",
 		)
 	}
-	e.FeeRecipient = *dec.FeeRecipient
+	h.FeeRecipient = *dec.FeeRecipient
 	if dec.StateRoot == nil {
 		return errors.New(
 			"missing required field 'stateRoot' for ExecutionPayloadHeader",
 		)
 	}
-	e.StateRoot = *dec.StateRoot
+	h.StateRoot = *dec.StateRoot
 	if dec.ReceiptsRoot == nil {
 		return errors.New(
 			"missing required field 'receiptsRoot' for ExecutionPayloadHeader",
 		)
 	}
-	e.ReceiptsRoot = *dec.ReceiptsRoot
+	h.ReceiptsRoot = *dec.ReceiptsRoot
 	if dec.LogsBloom == nil {
 		return errors.New(
 			"missing required field 'logsBloom' for ExecutionPayloadHeader",
 		)
 	}
-	e.LogsBloom = *dec.LogsBloom
+	h.LogsBloom = *dec.LogsBloom
 	if dec.Random == nil {
 		return errors.New(
 			"missing required field 'prevRandao' for ExecutionPayloadHeader",
 		)
 	}
-	e.Random = *dec.Random
+	h.Random = *dec.Random
 	if dec.Number == nil {
 		return errors.New(
 			"missing required field 'blockNumber' for ExecutionPayloadHeader",
 		)
 	}
-	e.Number = *dec.Number
+	h.Number = *dec.Number
 	if dec.GasLimit == nil {
 		return errors.New(
 			"missing required field 'gasLimit' for ExecutionPayloadHeader",
 		)
 	}
-	e.GasLimit = *dec.GasLimit
+	h.GasLimit = *dec.GasLimit
 	if dec.GasUsed == nil {
 		return errors.New(
 			"missing required field 'gasUsed' for ExecutionPayloadHeader",
 		)
 	}
-	e.GasUsed = *dec.GasUsed
+	h.GasUsed = *dec.GasUsed
 	if dec.Timestamp == nil {
 		return errors.New(
 			"missing required field 'timestamp' for ExecutionPayloadHeader",
 		)
 	}
-	e.Timestamp = *dec.Timestamp
+	h.Timestamp = *dec.Timestamp
 	if dec.ExtraData == nil {
 		return errors.New(
 			"missing required field 'extraData' for ExecutionPayloadHeader",
@@ -408,7 +408,7 @@ func (e *ExecutionPayloadHeader) UnmarshalJSON(input []byte) error {
 	// clear if
 	// this matters.
 	if len(*dec.ExtraData) != 0 {
-		e.ExtraData = *dec.ExtraData
+		h.ExtraData = *dec.ExtraData
 	}
 
 	if dec.BaseFeePerGas == nil {
@@ -416,27 +416,27 @@ func (e *ExecutionPayloadHeader) UnmarshalJSON(input []byte) error {
 			"missing required field 'baseFeePerGas' for ExecutionPayloadHeader",
 		)
 	}
-	e.BaseFeePerGas = *dec.BaseFeePerGas
+	h.BaseFeePerGas = *dec.BaseFeePerGas
 	if dec.BlockHash == nil {
 		return errors.New(
 			"missing required field 'blockHash' for ExecutionPayloadHeader",
 		)
 	}
-	e.BlockHash = *dec.BlockHash
+	h.BlockHash = *dec.BlockHash
 	if dec.TransactionsRoot == nil {
 		return errors.New(
 			"missing required field 'transactionsRoot' for ExecutionPayloadHeader",
 		)
 	}
-	e.TransactionsRoot = *dec.TransactionsRoot
+	h.TransactionsRoot = *dec.TransactionsRoot
 	if dec.WithdrawalsRoot != nil {
-		e.WithdrawalsRoot = *dec.WithdrawalsRoot
+		h.WithdrawalsRoot = *dec.WithdrawalsRoot
 	}
 	if dec.BlobGasUsed != nil {
-		e.BlobGasUsed = *dec.BlobGasUsed
+		h.BlobGasUsed = *dec.BlobGasUsed
 	}
 	if dec.ExcessBlobGas != nil {
-		e.ExcessBlobGas = *dec.ExcessBlobGas
+		h.ExcessBlobGas = *dec.ExcessBlobGas
 	}
 	return nil
 }
