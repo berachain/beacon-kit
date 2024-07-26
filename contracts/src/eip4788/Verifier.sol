@@ -25,14 +25,3 @@ abstract contract Verifier {
         }
     }
 }
-
-// 0x459C653FaAE6E13b59cf8E005F5f709C7b2c2EB4
-contract ExampleVerifier is Verifier {
-    function getParentBeaconBlockRoot(uint64 ts)
-        external
-        view
-        returns (bytes32 root)
-    {
-        return getParentBlockRoot(ts);
-    }
-}

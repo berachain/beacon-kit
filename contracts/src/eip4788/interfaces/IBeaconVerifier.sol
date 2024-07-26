@@ -4,8 +4,6 @@ pragma solidity ^0.8.21;
 import { SSZ } from "../SSZ.sol";
 
 interface IBeaconVerifier {
-    error InvalidProposer();
-
     /// @dev Generalized index of the first validator struct root in the
     /// registry.
     function zeroValidatorsGIndex() external view returns (uint256);

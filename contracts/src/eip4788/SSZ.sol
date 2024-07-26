@@ -5,7 +5,7 @@ pragma solidity ^0.8.21;
 /// @author [Eigenlayer](https://github.com/Layr-Labs/eigenlayer-contracts/blob/dev/src/contracts/libraries/Merkle.sol)
 library SSZ {
     /// @dev SHA256 precompile address.
-    uint8 public constant SHA256 = 0x02;
+    uint8 internal constant SHA256 = 0x02;
 
     error BranchHasMissingItem();
     error BranchHasExtraItem();
