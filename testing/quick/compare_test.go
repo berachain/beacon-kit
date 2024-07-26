@@ -74,8 +74,8 @@ func TestVectorHashTreeRootZTyp(t *testing.T) {
 	}
 }
 
-func TestExecutableDataDenebHashTreeRootZrnt(t *testing.T) {
-	f := func(payload *types.ExecutableDataDeneb, logsBloom [256]byte) bool {
+func TestExecutionPayloadHashTreeRootZrnt(t *testing.T) {
+	f := func(payload *types.ExecutionPayload, logsBloom [256]byte) bool {
 		// skip these cases lest we trigger a
 		// nil-pointer dereference in fastssz
 		if payload == nil ||

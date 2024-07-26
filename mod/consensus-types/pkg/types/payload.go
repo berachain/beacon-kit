@@ -22,6 +22,7 @@ package types
 
 import (
 	"context"
+
 	"golang.org/x/sync/errgroup"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"

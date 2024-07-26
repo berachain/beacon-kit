@@ -194,8 +194,7 @@ func TestBeaconBlockBodyDenebPlus_SetExecutionPayload(t *testing.T) {
 	body := generateBeaconBlockBodyDenebPlus()
 	payload := &types.ExecutionPayload{}
 
-	err := body.SetExecutionPayload(payload)
-	require.NoError(t, err)
+	body.SetExecutionPayload(payload)
 	require.Equal(t, payload, body.ExecutionPayload)
 }
 

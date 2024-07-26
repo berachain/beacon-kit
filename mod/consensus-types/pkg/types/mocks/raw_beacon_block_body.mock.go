@@ -702,21 +702,8 @@ func (_c *RawBeaconBlockBody_SetEth1Data_Call) RunAndReturn(run func(*types.Eth1
 }
 
 // SetExecutionPayload provides a mock function with given fields: _a0
-func (_m *RawBeaconBlockBody) SetExecutionPayload(_a0 *types.ExecutionPayload) error {
-	ret := _m.Called(_a0)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SetExecutionPayload")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(*types.ExecutionPayload) error); ok {
-		r0 = rf(_a0)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
+func (_m *RawBeaconBlockBody) SetExecutionPayload(_a0 *types.ExecutionPayload) {
+	_m.Called(_a0)
 }
 
 // RawBeaconBlockBody_SetExecutionPayload_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetExecutionPayload'
@@ -737,12 +724,12 @@ func (_c *RawBeaconBlockBody_SetExecutionPayload_Call) Run(run func(_a0 *types.E
 	return _c
 }
 
-func (_c *RawBeaconBlockBody_SetExecutionPayload_Call) Return(_a0 error) *RawBeaconBlockBody_SetExecutionPayload_Call {
-	_c.Call.Return(_a0)
+func (_c *RawBeaconBlockBody_SetExecutionPayload_Call) Return() *RawBeaconBlockBody_SetExecutionPayload_Call {
+	_c.Call.Return()
 	return _c
 }
 
-func (_c *RawBeaconBlockBody_SetExecutionPayload_Call) RunAndReturn(run func(*types.ExecutionPayload) error) *RawBeaconBlockBody_SetExecutionPayload_Call {
+func (_c *RawBeaconBlockBody_SetExecutionPayload_Call) RunAndReturn(run func(*types.ExecutionPayload)) *RawBeaconBlockBody_SetExecutionPayload_Call {
 	_c.Call.Return(run)
 	return _c
 }
