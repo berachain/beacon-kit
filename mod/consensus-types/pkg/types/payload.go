@@ -115,14 +115,24 @@ func (p *ExecutionPayload) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineDynamicBytesOffset(codec, (*[]byte)(&p.ExtraData), 32)
 	ssz.DefineStaticBytes(codec, &p.BaseFeePerGas)
 	ssz.DefineStaticBytes(codec, &p.BlockHash)
-	ssz.DefineSliceOfDynamicBytesOffset(codec, &p.Transactions, 1048576, 1073741824)
+	ssz.DefineSliceOfDynamicBytesOffset(
+		codec,
+		&p.Transactions,
+		1048576,
+		1073741824,
+	)
 	ssz.DefineSliceOfStaticObjectsOffset(codec, &p.Withdrawals, 16)
 	ssz.DefineUint64(codec, &p.BlobGasUsed)
 	ssz.DefineUint64(codec, &p.ExcessBlobGas)
 
 	// Define the dynamic data (fields)
 	ssz.DefineDynamicBytesContent(codec, (*[]byte)(&p.ExtraData), 32)
-	ssz.DefineSliceOfDynamicBytesContent(codec, &p.Transactions, 1048576, 1073741824)
+	ssz.DefineSliceOfDynamicBytesContent(
+		codec,
+		&p.Transactions,
+		1048576,
+		1073741824,
+	)
 	ssz.DefineSliceOfStaticObjectsContent(codec, &p.Withdrawals, 16)
 }
 
@@ -156,73 +166,72 @@ func (e *ExecutionPayload) MarshalSSZTo(dst []byte) ([]byte, error) {
 	return dst, nil
 }
 
-// HashTreeRootWith ssz hashes the ExecutionPayload object with a hasher
-func (e *ExecutionPayload) HashTreeRootWith(hh fastssz.HashWalker) (err error) {
+// HashTreeRootWith ssz hashes the ExecutionPayload object with a hasher.
+//
+//nolint:mnd // will be deprecated eventually.
+func (p *ExecutionPayload) HashTreeRootWith(hh fastssz.HashWalker) error {
 	indx := hh.Index()
 
 	// Field (0) 'ParentHash'
-	hh.PutBytes(e.ParentHash[:])
+	hh.PutBytes(p.ParentHash[:])
 
 	// Field (1) 'FeeRecipient'
-	hh.PutBytes(e.FeeRecipient[:])
+	hh.PutBytes(p.FeeRecipient[:])
 
 	// Field (2) 'StateRoot'
-	hh.PutBytes(e.StateRoot[:])
+	hh.PutBytes(p.StateRoot[:])
 
 	// Field (3) 'ReceiptsRoot'
-	hh.PutBytes(e.ReceiptsRoot[:])
+	hh.PutBytes(p.ReceiptsRoot[:])
 
 	// Field (4) 'LogsBloom'
-	hh.PutBytes(e.LogsBloom[:])
+	hh.PutBytes(p.LogsBloom[:])
 
 	// Field (5) 'Random'
-	hh.PutBytes(e.Random[:])
+	hh.PutBytes(p.Random[:])
 
 	// Field (6) 'Number'
-	hh.PutUint64(uint64(e.Number))
+	hh.PutUint64(uint64(p.Number))
 
 	// Field (7) 'GasLimit'
-	hh.PutUint64(uint64(e.GasLimit))
+	hh.PutUint64(uint64(p.GasLimit))
 
 	// Field (8) 'GasUsed'
-	hh.PutUint64(uint64(e.GasUsed))
+	hh.PutUint64(uint64(p.GasUsed))
 
 	// Field (9) 'Timestamp'
-	hh.PutUint64(uint64(e.Timestamp))
+	hh.PutUint64(uint64(p.Timestamp))
 
 	// Field (10) 'ExtraData'
 	{
 		elemIndx := hh.Index()
-		byteLen := uint64(len(e.ExtraData))
+		byteLen := uint64(len(p.ExtraData))
 		if byteLen > 32 {
-			err = fastssz.ErrIncorrectListSize
-			return
+			return fastssz.ErrIncorrectListSize
 		}
-		hh.Append(e.ExtraData)
+		hh.Append(p.ExtraData)
 		hh.MerkleizeWithMixin(elemIndx, byteLen, (32+31)/32)
 	}
 
 	// Field (11) 'BaseFeePerGas'
-	hh.PutBytes(e.BaseFeePerGas[:])
+	hh.PutBytes(p.BaseFeePerGas[:])
 
 	// Field (12) 'BlockHash'
-	hh.PutBytes(e.BlockHash[:])
+	hh.PutBytes(p.BlockHash[:])
 
 	// Field (13) 'Transactions'
 	{
 		subIndx := hh.Index()
-		num := uint64(len(e.Transactions))
+		num := uint64(len(p.Transactions))
 		if num > 1048576 {
-			err = fastssz.ErrIncorrectListSize
-			return
+			return fastssz.ErrIncorrectListSize
 		}
-		for _, elem := range e.Transactions {
+		for _, elem := range p.Transactions {
 			{
 				elemIndx := hh.Index()
 				byteLen := uint64(len(elem))
 				if byteLen > 1073741824 {
-					err = fastssz.ErrIncorrectListSize
-					return
+					return fastssz.ErrIncorrectListSize
 				}
 				hh.AppendBytes32(elem)
 				hh.MerkleizeWithMixin(elemIndx, byteLen, (1073741824+31)/32)
@@ -234,32 +243,31 @@ func (e *ExecutionPayload) HashTreeRootWith(hh fastssz.HashWalker) (err error) {
 	// Field (14) 'Withdrawals'
 	{
 		subIndx := hh.Index()
-		num := uint64(len(e.Withdrawals))
+		num := uint64(len(p.Withdrawals))
 		if num > 16 {
-			err = fastssz.ErrIncorrectListSize
-			return
+			return fastssz.ErrIncorrectListSize
 		}
-		for _, elem := range e.Withdrawals {
-			if err = elem.HashTreeRootWith(hh); err != nil {
-				return
+		for _, elem := range p.Withdrawals {
+			if err := elem.HashTreeRootWith(hh); err != nil {
+				return err
 			}
 		}
 		hh.MerkleizeWithMixin(subIndx, num, 16)
 	}
 
 	// Field (15) 'BlobGasUsed'
-	hh.PutUint64(uint64(e.BlobGasUsed))
+	hh.PutUint64(uint64(p.BlobGasUsed))
 
 	// Field (16) 'ExcessBlobGas'
-	hh.PutUint64(uint64(e.ExcessBlobGas))
+	hh.PutUint64(uint64(p.ExcessBlobGas))
 
 	hh.Merkleize(indx)
-	return
+	return nil
 }
 
-// GetTree ssz hashes the ExecutionPayload object
-func (e *ExecutionPayload) GetTree() (*fastssz.Node, error) {
-	return fastssz.ProofTree(e)
+// GetTree ssz hashes the ExecutionPayload object.
+func (p *ExecutionPayload) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(p)
 }
 
 // Empty returns an empty ExecutionPayload for the given fork version.

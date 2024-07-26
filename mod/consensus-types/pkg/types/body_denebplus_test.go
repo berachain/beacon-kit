@@ -94,8 +94,12 @@ func TestBeaconBlockBodyDenebPlus_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 					Deposits:     []*types.Deposit{},
 				},
 				ExecutionPayload: &types.ExecutionPayload{
-					ExtraData:    []byte("dummy extra data for testing"),
-					Transactions: [][]byte{[]byte("tx1"), []byte("tx2"), []byte("tx3")},
+					ExtraData: []byte("dummy extra data for testing"),
+					Transactions: [][]byte{
+						[]byte("tx1"),
+						[]byte("tx2"),
+						[]byte("tx3"),
+					},
 					Withdrawals: []*engineprimitives.Withdrawal{
 						{Index: 0, Amount: 100},
 						{Index: 1, Amount: 200},
@@ -113,8 +117,12 @@ func TestBeaconBlockBodyDenebPlus_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 					Deposits:     []*types.Deposit{},
 				},
 				ExecutionPayload: &types.ExecutionPayload{
-					ExtraData:    []byte("dummy extra data for testing"),
-					Transactions: [][]byte{[]byte("tx1"), []byte("tx2"), []byte("tx3")},
+					ExtraData: []byte("dummy extra data for testing"),
+					Transactions: [][]byte{
+						[]byte("tx1"),
+						[]byte("tx2"),
+						[]byte("tx3"),
+					},
 					Withdrawals: []*engineprimitives.Withdrawal{
 						{Index: 0, Amount: 100},
 						{Index: 1, Amount: 200},
