@@ -36,20 +36,20 @@ import (
 //nolint:lll
 type ExecutionPayloadHeader struct {
 	version          uint32
-	ParentHash       gethprimitives.ExecutionHash    `json:"parentHash"        gencodec:"required"`
-	FeeRecipient     gethprimitives.ExecutionAddress `json:"feeRecipient"      gencodec:"required"`
-	StateRoot        common.Bytes32                  `json:"stateRoot"         gencodec:"required"`
-	ReceiptsRoot     common.Bytes32                  `json:"receiptsRoot"      gencodec:"required"`
-	LogsBloom        bytes.B256                      `json:"logsBloom"         gencodec:"required"`
-	Random           common.Bytes32                  `json:"prevRandao"        gencodec:"required"`
-	Number           math.U64                        `json:"blockNumber"       gencodec:"required"`
-	GasLimit         math.U64                        `json:"gasLimit"          gencodec:"required"`
-	GasUsed          math.U64                        `json:"gasUsed"           gencodec:"required"`
-	Timestamp        math.U64                        `json:"timestamp"         gencodec:"required"`
-	ExtraData        []byte                          `json:"extraData"         gencodec:"required"`
-	BaseFeePerGas    math.Wei                        `json:"baseFeePerGas"     gencodec:"required"`
-	BlockHash        gethprimitives.ExecutionHash    `json:"blockHash"         gencodec:"required"`
-	TransactionsRoot common.Root                     `json:"transactionsRoot"  gencodec:"required"`
+	ParentHash       gethprimitives.ExecutionHash    `json:"parentHash"       gencodec:"required"`
+	FeeRecipient     gethprimitives.ExecutionAddress `json:"feeRecipient"     gencodec:"required"`
+	StateRoot        common.Bytes32                  `json:"stateRoot"        gencodec:"required"`
+	ReceiptsRoot     common.Bytes32                  `json:"receiptsRoot"     gencodec:"required"`
+	LogsBloom        bytes.B256                      `json:"logsBloom"        gencodec:"required"`
+	Random           common.Bytes32                  `json:"prevRandao"       gencodec:"required"`
+	Number           math.U64                        `json:"blockNumber"      gencodec:"required"`
+	GasLimit         math.U64                        `json:"gasLimit"         gencodec:"required"`
+	GasUsed          math.U64                        `json:"gasUsed"          gencodec:"required"`
+	Timestamp        math.U64                        `json:"timestamp"        gencodec:"required"`
+	ExtraData        []byte                          `json:"extraData"        gencodec:"required"`
+	BaseFeePerGas    math.Wei                        `json:"baseFeePerGas"    gencodec:"required"`
+	BlockHash        gethprimitives.ExecutionHash    `json:"blockHash"        gencodec:"required"`
+	TransactionsRoot common.Root                     `json:"transactionsRoot" gencodec:"required"`
 	WithdrawalsRoot  common.Root                     `json:"withdrawalsRoot"`
 	BlobGasUsed      math.U64                        `json:"blobGasUsed"`
 	ExcessBlobGas    math.U64                        `json:"excessBlobGas"`
@@ -89,7 +89,8 @@ type executionPayloadHeaderMarshaling struct {
 // SizeSSZ returns either the static size of the object if fixed == true, or
 // the total size otherwise.
 func (h *ExecutionPayloadHeader) SizeSSZ(fixed bool) uint32 {
-	var size = uint32(32 + 20 + 32 + 32 + 256 + 32 + 8 + 8 + 8 + 8 + 4 + 32 + 32 + 32 + 32 + 8 + 8)
+	var size = uint32(32 + 20 + 32 +
+		32 + 256 + 32 + 8 + 8 + 8 + 8 + 4 + 32 + 32 + 32 + 32 + 8 + 8)
 	if fixed {
 		return size
 	}
@@ -144,6 +145,7 @@ func (h *ExecutionPayloadHeader) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineDynamicBytesOffset(
 		codec,
 		&h.ExtraData,
+		//nolint:mnd // todo fix.
 		32,
 	) // Offset (10) -        ExtraData -   4 bytes
 	ssz.DefineStaticBytes(
@@ -175,6 +177,7 @@ func (h *ExecutionPayloadHeader) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineDynamicBytesContent(
 		codec,
 		&h.ExtraData,
+		//nolint:mnd // todo fix.
 		32,
 	) // Field  (10) -        ExtraData - ? bytes
 }
@@ -187,7 +190,7 @@ func (h *ExecutionPayloadHeader) MarshalSSZ() ([]byte, error) {
 }
 
 // UnmarshalSSZ unmarshals the ExecutionPayloadHeaderDeneb object from a source
-// array
+// array.
 func (h *ExecutionPayloadHeader) UnmarshalSSZ(bz []byte) error {
 	return ssz.DecodeFromBytes(bz, h)
 }
@@ -202,7 +205,7 @@ func (h *ExecutionPayloadHeader) HashTreeRoot() ([32]byte, error) {
 /* -------------------------------------------------------------------------- */
 
 // MarshalSSZTo ssz marshals the ExecutionPayloadHeaderDeneb object to a target
-// array
+// array.
 func (h *ExecutionPayloadHeader) MarshalSSZTo(dst []byte) ([]byte, error) {
 	bz, err := h.MarshalSSZ()
 	if err != nil {
@@ -289,7 +292,7 @@ func (h *ExecutionPayloadHeader) HashTreeRootWith(hh fastssz.HashWalker) error {
 	return nil
 }
 
-// GetTree ssz hashes the ExecutionPayloadHeaderDeneb object
+// GetTree ssz hashes the ExecutionPayloadHeaderDeneb object.
 func (h *ExecutionPayloadHeader) GetTree() (*fastssz.Node, error) {
 	return fastssz.ProofTree(h)
 }
@@ -355,57 +358,57 @@ func (h *ExecutionPayloadHeader) GetNumber() math.U64 {
 }
 
 // GetGasLimit returns the gas limit of the ExecutionPayloadHeader.
-func (d *ExecutionPayloadHeader) GetGasLimit() math.U64 {
-	return d.GasLimit
+func (h *ExecutionPayloadHeader) GetGasLimit() math.U64 {
+	return h.GasLimit
 }
 
 // GetGasUsed returns the gas used of the ExecutionPayloadHeader.
-func (d *ExecutionPayloadHeader) GetGasUsed() math.U64 {
-	return d.GasUsed
+func (h *ExecutionPayloadHeader) GetGasUsed() math.U64 {
+	return h.GasUsed
 }
 
 // GetTimestamp returns the timestamp of the ExecutionPayloadHeader.
-func (d *ExecutionPayloadHeader) GetTimestamp() math.U64 {
-	return d.Timestamp
+func (h *ExecutionPayloadHeader) GetTimestamp() math.U64 {
+	return h.Timestamp
 }
 
 // GetExtraData returns the extra data of the ExecutionPayloadHeader.
-func (d *ExecutionPayloadHeader) GetExtraData() []byte {
-	return d.ExtraData
+func (h *ExecutionPayloadHeader) GetExtraData() []byte {
+	return h.ExtraData
 }
 
 // GetBaseFeePerGas returns the base fee per gas of the
 // ExecutionPayloadHeader.
-func (d *ExecutionPayloadHeader) GetBaseFeePerGas() math.Wei {
-	return d.BaseFeePerGas
+func (h *ExecutionPayloadHeader) GetBaseFeePerGas() math.Wei {
+	return h.BaseFeePerGas
 }
 
 // GetBlockHash returns the block hash of the ExecutionPayloadHeader.
 func (
-	d *ExecutionPayloadHeader,
+	h *ExecutionPayloadHeader,
 ) GetBlockHash() gethprimitives.ExecutionHash {
-	return d.BlockHash
+	return h.BlockHash
 }
 
 // GetTransactionsRoot returns the transactions root of the
 // ExecutionPayloadHeader.
-func (d *ExecutionPayloadHeader) GetTransactionsRoot() common.Root {
-	return d.TransactionsRoot
+func (h *ExecutionPayloadHeader) GetTransactionsRoot() common.Root {
+	return h.TransactionsRoot
 }
 
 // GetWithdrawalsRoot returns the withdrawals root of the
 // ExecutionPayloadHeader.
-func (d *ExecutionPayloadHeader) GetWithdrawalsRoot() common.Root {
-	return d.WithdrawalsRoot
+func (h *ExecutionPayloadHeader) GetWithdrawalsRoot() common.Root {
+	return h.WithdrawalsRoot
 }
 
 // GetBlobGasUsed returns the blob gas used of the ExecutionPayloadHeader.
-func (d *ExecutionPayloadHeader) GetBlobGasUsed() math.U64 {
-	return d.BlobGasUsed
+func (h *ExecutionPayloadHeader) GetBlobGasUsed() math.U64 {
+	return h.BlobGasUsed
 }
 
 // GetExcessBlobGas returns the excess blob gas of the
 // ExecutionPayloadHeader.
-func (d *ExecutionPayloadHeader) GetExcessBlobGas() math.U64 {
-	return d.ExcessBlobGas
+func (h *ExecutionPayloadHeader) GetExcessBlobGas() math.U64 {
+	return h.ExcessBlobGas
 }

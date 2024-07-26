@@ -36,7 +36,6 @@ import (
 
 var (
 	extraDataField = "ExecutionPayloadHeader.ExtraData"
-	logsBloomField = "ExecutionPayloadHeader.LogsBloom"
 )
 
 func generateExecutionPayloadHeader() *types.ExecutionPayloadHeader {
@@ -413,11 +412,9 @@ func TestExecutionPayloadHeader_NewFromSSZ(t *testing.T) {
 				data, _ := generateExecutionPayloadHeader().MarshalSSZ()
 				return data
 			}(),
-			forkVersion: version.Deneb,
-			expErr:      nil,
-			expectedHeader: func() *types.ExecutionPayloadHeader {
-				return generateExecutionPayloadHeader()
-			}(),
+			forkVersion:    version.Deneb,
+			expErr:         nil,
+			expectedHeader: generateExecutionPayloadHeader(),
 		},
 		{
 			name:           "Invalid SSZ data",
