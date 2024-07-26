@@ -20,22 +20,10 @@
 
 package spec
 
-import (
-	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-)
+const (
+	// DevnetEth1ChainID is the chain ID for the local devnet.
+	DevnetEth1ChainID uint64 = 80087
 
-// DevnetChainSpec is the ChainSpec for the localnet.
-func DevnetChainSpec() chain.Spec[
-	common.DomainType,
-	math.Epoch,
-	gethprimitives.ExecutionAddress,
-	math.Slot,
-	any,
-] {
-	testnetSpec := BaseSpec()
-	testnetSpec.DepositEth1ChainID = DevnetEth1ChainID
-	return chain.NewChainSpec(testnetSpec)
-}
+	// TestnetEth1ChainID is the chain ID for the bArtio testnet.
+	TestnetEth1ChainID uint64 = 80084
+)

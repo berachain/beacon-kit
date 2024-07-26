@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
@@ -77,7 +78,8 @@ type StateProcessor[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	]
 	// txsMerkleizer is the merkleizer used for calculating transaction roots.
-	txsMerkleizer *merkle.Merkleizer[[32]byte, common.Root]
+	bartioTxsMerkleizer *merkle.Merkleizer[[32]byte, common.Root]
+	properTxsMerkleizer *merkle.Merkleizer[[32]byte, *ssz.List[ssz.Byte]]
 }
 
 // NewStateProcessor creates a new state processor.
@@ -133,10 +135,13 @@ func NewStateProcessor[
 		ExecutionPayloadHeaderT, ForkT, ForkDataT, KVStoreT, ValidatorT,
 		WithdrawalT, WithdrawalCredentialsT,
 	]{
-		cs:              cs,
-		executionEngine: executionEngine,
-		signer:          signer,
-		txsMerkleizer:   merkle.NewMerkleizer[[32]byte, common.Root](),
+		cs:                  cs,
+		executionEngine:     executionEngine,
+		signer:              signer,
+		bartioTxsMerkleizer: merkle.NewMerkleizer[[32]byte, common.Root](),
+		properTxsMerkleizer: merkle.NewMerkleizer[
+			[32]byte, *ssz.List[ssz.Byte],
+		](),
 	}
 }
 
