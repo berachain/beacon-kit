@@ -119,14 +119,14 @@ func (b *BeaconBlock) SizeSSZ(fixed bool) uint32 {
 // DefineSSZ defines the SSZ encoding for the BeaconBlock object.
 func (b *BeaconBlock) DefineSSZ(codec *ssz.Codec) {
 	// Define the static data (fields and dynamic offsets)
-	ssz.DefineUint64(codec, &b.Slot)              // Field  (0) -          Slot -  8 bytes
-	ssz.DefineUint64(codec, &b.ProposerIndex)     // Field  (1) - ProposerIndex -  8 bytes
-	ssz.DefineStaticBytes(codec, &b.ParentRoot)   // Field  (2) -    ParentRoot - 32 bytes
-	ssz.DefineStaticBytes(codec, &b.StateRoot)    // Field  (3) -     StateRoot - 32 bytes
-	ssz.DefineDynamicObjectOffset(codec, &b.Body) // Offset (4) -          Body -  4 bytes
+	ssz.DefineUint64(codec, &b.Slot)
+	ssz.DefineUint64(codec, &b.ProposerIndex)
+	ssz.DefineStaticBytes(codec, &b.ParentRoot)
+	ssz.DefineStaticBytes(codec, &b.StateRoot)
+	ssz.DefineDynamicObjectOffset(codec, &b.Body)
 
 	// Define the dynamic data (fields)
-	ssz.DefineDynamicObjectContent(codec, &b.Body) // Field  (4) -          Body - ? bytes
+	ssz.DefineDynamicObjectContent(codec, &b.Body)
 }
 
 // MarshalSSZ marshals the BeaconBlock object to SSZ format.
