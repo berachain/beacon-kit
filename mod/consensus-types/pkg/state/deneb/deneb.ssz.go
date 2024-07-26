@@ -483,8 +483,8 @@ func (b *BeaconState) HashTreeRootWith(hh ssz.HashWalker) (err error) {
 	// 	hh.MerkleizeWithMixin(subIndx, numItems, ssz.CalculateLimit(1099511627776, numItems, 8))
 	// }
 
-	// // Field (15) 'TotalSlashing'
-	// hh.PutUint64(uint64(b.TotalSlashing))
+	// Field (15) 'TotalSlashing'
+	hh.PutUint64(uint64(b.TotalSlashing))
 
 	hh.Merkleize(indx)
 	return

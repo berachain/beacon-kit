@@ -111,7 +111,7 @@ func (b *BeaconState) DefineSSZ(codec *ssz.Codec) {
 
 	// // Slashing
 	// ssz.DefineSliceOfUint64sOffset(codec, &b.Slashings, 8192)
-	// ssz.DefineUint64(codec, (*uint64)(&b.TotalSlashing))
+	ssz.DefineUint64(codec, (*uint64)(&b.TotalSlashing))
 
 	// Dynamic content
 	ssz.DefineSliceOfStaticBytesContent(codec, &b.BlockRoots, 8192)
