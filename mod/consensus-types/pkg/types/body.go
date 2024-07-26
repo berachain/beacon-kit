@@ -166,7 +166,9 @@ func (b *BeaconBlockBody) MarshalSSZTo(dst []byte) ([]byte, error) {
 	return dst, nil
 }
 
-// HashTreeRootWith ssz hashes the BeaconBlockBody object with a hasher
+// HashTreeRootWith ssz hashes the BeaconBlockBody object with a hasher.
+//
+//nolint:mnd // todo fix.
 func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {
 	indx := hh.Index()
 
@@ -225,7 +227,7 @@ func (b *BeaconBlockBody) HashTreeRootWith(hh fastssz.HashWalker) error {
 	return nil
 }
 
-// GetTree ssz hashes the BeaconBlockBody object
+// GetTree ssz hashes the BeaconBlockBody object.
 func (b *BeaconBlockBody) GetTree() (*fastssz.Node, error) {
 	return fastssz.ProofTree(b)
 }
