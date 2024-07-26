@@ -67,12 +67,14 @@ func (b *BeaconBlockBody) Empty(forkVersion uint32) *BeaconBlockBody {
 			},
 		}}
 	case version.DenebPlus:
-		return &BeaconBlockBody{RawBeaconBlockBody: &BeaconBlockBodyDenebPlus{
-			BeaconBlockBodyBase: BeaconBlockBodyBase{},
-			ExecutionPayload: &ExecutionPayload{
-				ExtraData: make([]byte, ExtraDataSize),
-			},
-		}}
+		panic("unsupported fork version")
+		// return &BeaconBlockBody{RawBeaconBlockBody:
+		// &BeaconBlockBodyDenebPlus{
+		// 	BeaconBlockBodyBase: BeaconBlockBodyBase{},
+		// 	ExecutionPayload: &ExecutionPayload{
+		// 		ExtraData: make([]byte, ExtraDataSize),
+		// 	},
+		// }}
 	default:
 		panic("unsupported fork version")
 	}
