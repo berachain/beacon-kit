@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -40,35 +40,35 @@ import (
 //nolint:lll
 type ExecutionPayload struct {
 	// ParentHash is the hash of the parent block.
-	ParentHash gethprimitives.ExecutionHash `json:"parentHash"       gencodec:"required"`
+	ParentHash gethprimitives.ExecutionHash `json:"parentHash"    gencodec:"required"`
 	// FeeRecipient is the address of the fee recipient.
-	FeeRecipient gethprimitives.ExecutionAddress `json:"feeRecipient"     gencodec:"required"`
+	FeeRecipient gethprimitives.ExecutionAddress `json:"feeRecipient"  gencodec:"required"`
 	// StateRoot is the root of the state trie.
-	StateRoot common.Bytes32 `json:"stateRoot"        gencodec:"required"`
+	StateRoot common.Bytes32 `json:"stateRoot"     gencodec:"required"`
 	// ReceiptsRoot is the root of the receipts trie.
-	ReceiptsRoot common.Bytes32 `json:"receiptsRoot"     gencodec:"required"`
+	ReceiptsRoot common.Bytes32 `json:"receiptsRoot"  gencodec:"required"`
 	// LogsBloom is the bloom filter for the logs.
-	LogsBloom bytes.B256 `json:"logsBloom"        gencodec:"required"`
+	LogsBloom bytes.B256 `json:"logsBloom"     gencodec:"required"`
 	// Random is the prevRandao value.
-	Random common.Bytes32 `json:"prevRandao"       gencodec:"required"`
+	Random common.Bytes32 `json:"prevRandao"    gencodec:"required"`
 	// Number is the block number.
-	Number math.U64 `json:"blockNumber"      gencodec:"required"`
+	Number math.U64 `json:"blockNumber"   gencodec:"required"`
 	// GasLimit is the gas limit for the block.
-	GasLimit math.U64 `json:"gasLimit"         gencodec:"required"`
+	GasLimit math.U64 `json:"gasLimit"      gencodec:"required"`
 	// GasUsed is the amount of gas used in the block.
-	GasUsed math.U64 `json:"gasUsed"          gencodec:"required"`
+	GasUsed math.U64 `json:"gasUsed"       gencodec:"required"`
 	// Timestamp is the timestamp of the block.
-	Timestamp math.U64 `json:"timestamp"        gencodec:"required"`
+	Timestamp math.U64 `json:"timestamp"     gencodec:"required"`
 	// ExtraData is the extra data of the block.
-	ExtraData bytes.Bytes `json:"extraData"        gencodec:"required"`
+	ExtraData bytes.Bytes `json:"extraData"     gencodec:"required"`
 	// BaseFeePerGas is the base fee per gas.
-	BaseFeePerGas math.Wei `json:"baseFeePerGas"    gencodec:"required"`
+	BaseFeePerGas math.Wei `json:"baseFeePerGas" gencodec:"required"`
 	// BlockHash is the hash of the block.
-	BlockHash gethprimitives.ExecutionHash `json:"blockHash"        gencodec:"required"`
+	BlockHash gethprimitives.ExecutionHash `json:"blockHash"     gencodec:"required"`
 	// Transactions is the list of transactions in the block.
-	Transactions [][]byte `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
+	Transactions [][]byte `json:"transactions"  gencodec:"required"`
 	// Withdrawals is the list of withdrawals in the block.
-	Withdrawals []*engineprimitives.Withdrawal `json:"withdrawals"                                      ssz-max:"16"`
+	Withdrawals []*engineprimitives.Withdrawal `json:"withdrawals"`
 	// BlobGasUsed is the amount of blob gas used in the block.
 	BlobGasUsed math.U64 `json:"blobGasUsed"`
 	// ExcessBlobGas is the amount of excess blob gas in the block.
@@ -76,121 +76,121 @@ type ExecutionPayload struct {
 }
 
 // Empty returns an empty ExecutionPayload for the given fork version.
-func (e *ExecutionPayload) Empty(forkVersion uint32) *ExecutionPayload {
-	e = new(ExecutionPayload)
+func (p *ExecutionPayload) Empty(forkVersion uint32) *ExecutionPayload {
+	p = new(ExecutionPayload)
 	switch forkVersion {
 	case version.Deneb, version.DenebPlus:
-		e = &ExecutionPayload{}
+		p = &ExecutionPayload{}
 	default:
 		panic("unknown fork version")
 	}
-	return e
+	return p
 }
 
 // Version returns the version of the ExecutionPayload.
-func (d *ExecutionPayload) Version() uint32 {
+func (p *ExecutionPayload) Version() uint32 {
 	return version.Deneb
 }
 
 // IsNil checks if the ExecutionPayload is nil.
-func (d *ExecutionPayload) IsNil() bool {
-	return d == nil
+func (p *ExecutionPayload) IsNil() bool {
+	return p == nil
 }
 
 // IsBlinded checks if the ExecutionPayload is blinded.
-func (d *ExecutionPayload) IsBlinded() bool {
+func (p *ExecutionPayload) IsBlinded() bool {
 	return false
 }
 
 // GetParentHash returns the parent hash of the ExecutionPayload.
-func (d *ExecutionPayload) GetParentHash() gethprimitives.ExecutionHash {
-	return d.ParentHash
+func (p *ExecutionPayload) GetParentHash() gethprimitives.ExecutionHash {
+	return p.ParentHash
 }
 
 // GetFeeRecipient returns the fee recipient address of the ExecutionPayload.
 func (
-	d *ExecutionPayload,
+	p *ExecutionPayload,
 ) GetFeeRecipient() gethprimitives.ExecutionAddress {
-	return d.FeeRecipient
+	return p.FeeRecipient
 }
 
 // GetStateRoot returns the state root of the ExecutionPayload.
-func (d *ExecutionPayload) GetStateRoot() common.Bytes32 {
-	return d.StateRoot
+func (p *ExecutionPayload) GetStateRoot() common.Bytes32 {
+	return p.StateRoot
 }
 
 // GetReceiptsRoot returns the receipts root of the ExecutionPayload.
-func (d *ExecutionPayload) GetReceiptsRoot() common.Bytes32 {
-	return d.ReceiptsRoot
+func (p *ExecutionPayload) GetReceiptsRoot() common.Bytes32 {
+	return p.ReceiptsRoot
 }
 
 // GetLogsBloom returns the logs bloom of the ExecutionPayload.
-func (d *ExecutionPayload) GetLogsBloom() []byte {
-	return d.LogsBloom[:]
+func (p *ExecutionPayload) GetLogsBloom() []byte {
+	return p.LogsBloom[:]
 }
 
 // GetPrevRandao returns the previous Randao value of the ExecutionPayload.
-func (d *ExecutionPayload) GetPrevRandao() common.Bytes32 {
-	return d.Random
+func (p *ExecutionPayload) GetPrevRandao() common.Bytes32 {
+	return p.Random
 }
 
 // GetNumber returns the block number of the ExecutionPayload.
-func (d *ExecutionPayload) GetNumber() math.U64 {
-	return d.Number
+func (p *ExecutionPayload) GetNumber() math.U64 {
+	return p.Number
 }
 
 // GetGasLimit returns the gas limit of the ExecutionPayload.
-func (d *ExecutionPayload) GetGasLimit() math.U64 {
-	return d.GasLimit
+func (p *ExecutionPayload) GetGasLimit() math.U64 {
+	return p.GasLimit
 }
 
 // GetGasUsed returns the gas used of the ExecutionPayload.
-func (d *ExecutionPayload) GetGasUsed() math.U64 {
-	return d.GasUsed
+func (p *ExecutionPayload) GetGasUsed() math.U64 {
+	return p.GasUsed
 }
 
 // GetTimestamp returns the timestamp of the ExecutionPayload.
-func (d *ExecutionPayload) GetTimestamp() math.U64 {
-	return d.Timestamp
+func (p *ExecutionPayload) GetTimestamp() math.U64 {
+	return p.Timestamp
 }
 
 // GetExtraData returns the extra data of the ExecutionPayload.
-func (d *ExecutionPayload) GetExtraData() []byte {
-	return d.ExtraData
+func (p *ExecutionPayload) GetExtraData() []byte {
+	return p.ExtraData
 }
 
 // GetBaseFeePerGas returns the base fee per gas of the ExecutionPayload.
-func (d *ExecutionPayload) GetBaseFeePerGas() math.Wei {
-	return d.BaseFeePerGas
+func (p *ExecutionPayload) GetBaseFeePerGas() math.Wei {
+	return p.BaseFeePerGas
 }
 
 // GetBlockHash returns the block hash of the ExecutionPayload.
-func (d *ExecutionPayload) GetBlockHash() gethprimitives.ExecutionHash {
-	return d.BlockHash
+func (p *ExecutionPayload) GetBlockHash() gethprimitives.ExecutionHash {
+	return p.BlockHash
 }
 
 // GetTransactions returns the transactions of the ExecutionPayload.
-func (d *ExecutionPayload) GetTransactions() [][]byte {
-	return d.Transactions
+func (p *ExecutionPayload) GetTransactions() [][]byte {
+	return p.Transactions
 }
 
 // GetWithdrawals returns the withdrawals of the ExecutionPayload.
-func (d *ExecutionPayload) GetWithdrawals() []*engineprimitives.Withdrawal {
-	return d.Withdrawals
+func (p *ExecutionPayload) GetWithdrawals() []*engineprimitives.Withdrawal {
+	return p.Withdrawals
 }
 
 // GetBlobGasUsed returns the blob gas used of the ExecutionPayload.
-func (d *ExecutionPayload) GetBlobGasUsed() math.U64 {
-	return d.BlobGasUsed
+func (p *ExecutionPayload) GetBlobGasUsed() math.U64 {
+	return p.BlobGasUsed
 }
 
 // GetExcessBlobGas returns the excess blob gas of the ExecutionPayload.
-func (d *ExecutionPayload) GetExcessBlobGas() math.U64 {
-	return d.ExcessBlobGas
+func (p *ExecutionPayload) GetExcessBlobGas() math.U64 {
+	return p.ExcessBlobGas
 }
 
 // ToHeader converts the ExecutionPayload to an ExecutionPayloadHeader.
-func (e *ExecutionPayload) ToHeader(
+func (p *ExecutionPayload) ToHeader(
 	txsMerkleizer *merkle.Merkleizer[[32]byte, common.Root],
 	maxWithdrawalsPerPayload uint64,
 ) (*ExecutionPayloadHeader, error) {
@@ -206,7 +206,7 @@ func (e *ExecutionPayload) ToHeader(
 		// TODO: This is live on bArtio with a bug and needs to be hardforked
 		// off of.
 		txsRoot, txsRootErr = engineprimitives.Transactions(
-			e.GetTransactions(),
+			p.GetTransactions(),
 		).HashTreeRootWith(txsMerkleizer)
 		return txsRootErr
 	})
@@ -215,7 +215,7 @@ func (e *ExecutionPayload) ToHeader(
 		var withdrawalsRootErr error
 		wds := ssz.ListFromElements(
 			maxWithdrawalsPerPayload,
-			e.GetWithdrawals()...)
+			p.GetWithdrawals()...)
 		withdrawalsRoot, withdrawalsRootErr = wds.HashTreeRoot()
 		return withdrawalsRootErr
 	})
@@ -225,27 +225,27 @@ func (e *ExecutionPayload) ToHeader(
 		return nil, err
 	}
 
-	switch e.Version() {
+	switch p.Version() {
 	case version.Deneb, version.DenebPlus:
 		return &ExecutionPayloadHeader{
-			// version:          e.Version(),
-			ParentHash:       e.GetParentHash(),
-			FeeRecipient:     e.GetFeeRecipient(),
-			StateRoot:        e.GetStateRoot(),
-			ReceiptsRoot:     e.GetReceiptsRoot(),
-			LogsBloom:        [256]byte(e.GetLogsBloom()),
-			Random:           e.GetPrevRandao(),
-			Number:           e.GetNumber(),
-			GasLimit:         e.GetGasLimit(),
-			GasUsed:          e.GetGasUsed(),
-			Timestamp:        e.GetTimestamp(),
-			ExtraData:        e.GetExtraData(),
-			BaseFeePerGas:    e.GetBaseFeePerGas(),
-			BlockHash:        e.GetBlockHash(),
+			// version:          p.Version(),
+			ParentHash:       p.GetParentHash(),
+			FeeRecipient:     p.GetFeeRecipient(),
+			StateRoot:        p.GetStateRoot(),
+			ReceiptsRoot:     p.GetReceiptsRoot(),
+			LogsBloom:        [256]byte(p.GetLogsBloom()),
+			Random:           p.GetPrevRandao(),
+			Number:           p.GetNumber(),
+			GasLimit:         p.GetGasLimit(),
+			GasUsed:          p.GetGasUsed(),
+			Timestamp:        p.GetTimestamp(),
+			ExtraData:        p.GetExtraData(),
+			BaseFeePerGas:    p.GetBaseFeePerGas(),
+			BlockHash:        p.GetBlockHash(),
 			TransactionsRoot: txsRoot,
 			WithdrawalsRoot:  withdrawalsRoot,
-			BlobGasUsed:      e.GetBlobGasUsed(),
-			ExcessBlobGas:    e.GetExcessBlobGas(),
+			BlobGasUsed:      p.GetBlobGasUsed(),
+			ExcessBlobGas:    p.GetExcessBlobGas(),
 		}, nil
 	default:
 		return nil, errors.New("unknown fork version")

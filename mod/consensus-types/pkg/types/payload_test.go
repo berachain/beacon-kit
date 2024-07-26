@@ -232,7 +232,6 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 	// require.Equal(t, htrPayload, htrHeader)
 }
 
-//nolint:lll
 func TestExecutionPayload_UnmarshalJSON_Error(t *testing.T) {
 	original := generateExecutionPayload()
 	validJSON, err := original.MarshalJSON()
