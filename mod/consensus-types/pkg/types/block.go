@@ -40,7 +40,7 @@ type BeaconBlock struct {
 	StateRoot common.Root `json:"state_root"`
 	// Body is the body of the BeaconBlock, containing the block's
 	// operations.
-	Body *BeaconBlockBodyDeneb `json:"body"`
+	Body *BeaconBlockBody `json:"body"`
 }
 
 // Empty creates an empty beacon block.
@@ -73,12 +73,12 @@ func (b *BeaconBlock) NewWithVersion(
 			ProposerIndex: proposerIndex,
 			ParentRoot:    parentBlockRoot,
 			StateRoot:     bytes.B32{},
-			Body:          &BeaconBlockBodyDeneb{},
+			Body:          &BeaconBlockBody{},
 		}
 	case version.DenebPlus:
 		// block = &BeaconBlockDenebPlus{
 		// 	BeaconBlockHeaderBase: base,
-		// 	Body:                  &BeaconBlockBodyDenebPlus{},
+		// 	Body:                  &BeaconBlockBodyPlus{},
 		// }
 	default:
 		return &BeaconBlock{}, ErrForkVersionNotSupported
@@ -146,7 +146,7 @@ func (b *BeaconBlock) SetStateRoot(root common.Root) {
 
 // GetBody retrieves the body of the BeaconBlock.
 func (b *BeaconBlock) GetBody() *BeaconBlockBody {
-	return &BeaconBlockBody{RawBeaconBlockBody: b.Body}
+	return b.Body
 }
 
 // GetHeader builds a BeaconBlockHeader from the BeaconBlock.
