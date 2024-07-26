@@ -32,8 +32,28 @@ import (
 // root. It uses the fastssz library to generate the proof.
 //
 //nolint:revive,stylecheck // for explicit naming.
-func ProofForProposerPubkey_FastSSZ(
-	beaconBlock *BeaconBlockForValidator,
+func ProofForProposerPubkey_FastSSZ[
+	BeaconBlockHeaderT any,
+	BeaconStateT BeaconState[
+		BeaconBlockHeaderT,
+		Eth1DataT,
+		ExecutionPayloadHeaderT,
+		ForkT,
+		ValidatorT,
+	],
+	Eth1DataT any,
+	ExecutionPayloadHeaderT any,
+	ForkT any,
+	ValidatorT any,
+](
+	beaconBlock *BeaconBlockForStateProof[
+		BeaconBlockHeaderT,
+		BeaconStateT,
+		Eth1DataT,
+		ExecutionPayloadHeaderT,
+		ForkT,
+		ValidatorT,
+	],
 ) ([]common.Root, common.Root, error) {
 	// Get the proof tree to generate the proof.
 	proofTree, err := beaconBlock.GetTree()

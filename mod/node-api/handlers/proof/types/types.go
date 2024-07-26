@@ -25,7 +25,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	fastssz "github.com/ferranbt/fastssz"
+	"github.com/karalabe/ssz"
 )
+
+// TODO: remove unused functions here.
 
 // BeaconBlockHeader is the interface for a beacon block header.
 type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
@@ -53,7 +57,10 @@ type BeaconState[
 	ForkT any,
 	ValidatorT any,
 ] interface {
+	ssz.DynamicObject
 	constraints.SSZRootable
+	// HashTreeRootWith is kept for FastSSZ compatability.
+	HashTreeRootWith(hh fastssz.HashWalker) error
 	// GetLatestExecutionPayloadHeader retrieves the latest execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (ExecutionPayloadHeaderT, error)

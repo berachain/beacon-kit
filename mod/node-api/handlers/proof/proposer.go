@@ -53,21 +53,18 @@ func (h *Handler[
 		return nil, err
 	}
 
-	// Get the beacon state struct for the proving the proposer validator pubkey
-	// exists within the state, and the proposer pubkey as well.
-	beaconStateForValidator, err := ptypes.NewBeaconStateForValidator(
-		beaconState, h.backend.ChainSpec(),
-	)
-	if err != nil {
-		return nil, err
-	}
-	//nolint:lll // formatter doesn't support shortening.
-	proposerPubkey := beaconStateForValidator.Validators[blockHeader.GetProposerIndex()].Pubkey
+	// // Get the pubkey of the proposer validator.
+	// validators, err := beaconState.GetValidators()
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// //nolint:lll // formatter doesn't support shortening.
+	// proposerPubkey := validators[blockHeader.GetProposerIndex()]
 
 	// Now get the beacon block struct for proving the proposer validator pubkey
 	// exists within the state in this block.
-	beaconBlockForValidator, err := ptypes.NewBeaconBlockForValidator(
-		blockHeader, beaconStateForValidator,
+	beaconBlockForStateProof, err := ptypes.NewBeaconBlockForStateProof(
+		blockHeader, beaconState,
 	)
 	if err != nil {
 		return nil, err
@@ -76,7 +73,7 @@ func (h *Handler[
 	// Generate the proof (along with the "correct" beacon block root to verify
 	// against) for the proposer validator pubkey.
 	pubkeyProof, beaconBlockRoot, err := ptypes.ProofForProposerPubkey_FastSSZ(
-		beaconBlockForValidator,
+		beaconBlockForStateProof,
 	)
 	if err != nil {
 		return nil, err
@@ -85,9 +82,9 @@ func (h *Handler[
 	return ptypes.BlockProposerProofResponse[
 		BeaconBlockHeaderT, ValidatorT,
 	]{
-		BeaconBlockHeader:    blockHeader,
-		BeaconBlockRoot:      beaconBlockRoot,
-		ValidatorPubkey:      proposerPubkey,
+		BeaconBlockHeader: blockHeader,
+		BeaconBlockRoot:   beaconBlockRoot,
+		// ValidatorPubkey:      proposerPubkey,
 		ValidatorPubkeyProof: pubkeyProof,
 	}, nil
 }

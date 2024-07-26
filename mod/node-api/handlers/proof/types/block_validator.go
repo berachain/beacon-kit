@@ -21,228 +21,162 @@
 package types
 
 import (
-	"unsafe"
-
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	fastssz "github.com/ferranbt/fastssz"
+	"github.com/karalabe/ssz"
 )
 
-// BeaconBlockForValidator represents a block in the beacon chain during the
-// Deneb fork, with only the minimally required values to prove a validator
-// exists in this block.
-type BeaconBlockForValidator struct {
-	// Slot represents the position of the block in the chain.
-	Slot math.Slot
-	// ProposerIndex is the index of the validator who proposed the block.
-	ProposerIndex math.ValidatorIndex
-	// ParentBlockRoot is the hash of the parent block.
-	ParentBlockRoot common.Root
-	// StateRoot is the summary of the BeaconState type with only the required
-	// raw values to prove a validator's pubkey.
-	StateRoot *BeaconStateForValidator
-	// BodyRoot is the root of the block body.
-	BodyRoot common.Root
-}
-
-// NewBeaconBlockForValidator creates a new BeaconBlock SSZ summary with only
-// the required raw values to prove a validator exists in this block.
-func NewBeaconBlockForValidator[BeaconBlockHeaderT constraints.SSZRootable](
-	bbh BeaconBlockHeader[BeaconBlockHeaderT],
-	bsv *BeaconStateForValidator,
-) (*BeaconBlockForValidator, error) {
-	return &BeaconBlockForValidator{
-		Slot:            bbh.GetSlot(),
-		ProposerIndex:   bbh.GetProposerIndex(),
-		ParentBlockRoot: bbh.GetParentBlockRoot(),
-		StateRoot:       bsv,
-		BodyRoot:        bbh.GetBodyRoot(),
-	}, nil
-}
-
-// BeaconStateForValidator is the SSZ summary of the BeaconState type with only
-// the required raw values to prove a validator exists in this state.
-type BeaconStateForValidator struct {
-	GenesisValidatorsRoot common.Root
-	Slot                  math.Slot
-	// Fork is the hash tree root of the Fork.
-	Fork common.Root
-	// LatestBlockHeader is the hash tree root of the latest block header.
-	LatestBlockHeader common.Root
-	// BlockRoots is the hash tree root of the block headers buffer.
-	BlockRoots common.Root
-	// StateRoots is the hash tree root of the beacon states buffer.
-	StateRoots common.Root
-	// Eth1Data is the hash tree root of the eth1 data.
-	Eth1Data         common.Root
-	Eth1DepositIndex uint64
-	// LatestExecutionPayloadHeader is the hash tree root of the latest
-	// execution payload header.
-	LatestExecutionPayloadHeader common.Root
-	// Validators is the list of Validators with the field Pubkey to prove.
-	Validators []*types.Validator `ssz-max:"1099511627776"`
-	// Balances is the hash tree root of the validator balances.
-	Balances common.Root
-	// RandaoMixes is the hash tree root of the randao mixes.
-	RandaoMixes                  common.Root
-	NextWithdrawalIndex          uint64
-	NextWithdrawalValidatorIndex math.ValidatorIndex
-	// Slashings is the hash tree root of the slashings.
-	Slashings     common.Root
-	TotalSlashing math.Gwei
-}
-
-// NewBeaconStateForValidator creates a new BeaconState SSZ summary with only
-// the required raw values to prove a validator exists in this state.
-//
-//nolint:funlen,gocognit // all lines are required to pack the entire beacon
-func NewBeaconStateForValidator[
-	BeaconBlockHeaderT constraints.SSZRootable,
+// BeaconBlockForValidator represents a block in the beacon chain with the
+// minimally required values to prove an element in the state exists.
+type BeaconBlockForStateProof[
+	BeaconBlockHeaderT any,
 	BeaconStateT BeaconState[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
 		ValidatorT,
 	],
-	Eth1DataT constraints.SSZRootable,
-	ExecutionPayloadHeaderT constraints.SSZRootable,
-	ForkT constraints.SSZRootable,
+	Eth1DataT any,
+	ExecutionPayloadHeaderT any,
+	ForkT any,
+	ValidatorT any,
+] struct {
+	// Slot represents the position of the block in the chain.
+	Slot math.Slot
+	// ProposerIndex is the index of the validator who proposed the block.
+	ProposerIndex math.ValidatorIndex
+	// ParentRoot is the hash of the parent block.
+	ParentRoot common.Root
+	// State is full BeaconState type to prove elements inside the state.
+	State BeaconStateT
+	// BodyRoot is the root of the block body.
+	BodyRoot common.Root
+}
+
+// NewBeaconBlockForStateProof creates a new BeaconBlock SSZ summary with only
+// the required raw values to prove an element in the beacon state exists in
+// this block.
+func NewBeaconBlockForStateProof[
+	BeaconBlockHeaderT any,
+	BeaconStateT BeaconState[
+		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+		ValidatorT,
+	],
+	Eth1DataT any,
+	ExecutionPayloadHeaderT any,
+	ForkT any,
 	ValidatorT any,
 ](
-	bs BeaconStateT,
-	cs common.ChainSpec,
-) (*BeaconStateForValidator, error) {
-	var (
-		bsv                       = &BeaconStateForValidator{}
-		err                       error
-		slotsPerHistoricalRoot    = cs.SlotsPerHistoricalRoot()
-		epochsPerHistoricalVector = cs.EpochsPerHistoricalVector()
-	)
+	bbh BeaconBlockHeader[BeaconBlockHeaderT],
+	bsv BeaconStateT,
+) (
+	*BeaconBlockForStateProof[
+		BeaconBlockHeaderT,
+		BeaconStateT,
+		Eth1DataT,
+		ExecutionPayloadHeaderT,
+		ForkT,
+		ValidatorT,
+	], error) {
+	return &BeaconBlockForStateProof[
+		BeaconBlockHeaderT,
+		BeaconStateT,
+		Eth1DataT,
+		ExecutionPayloadHeaderT,
+		ForkT,
+		ValidatorT,
+	]{
+		Slot:          bbh.GetSlot(),
+		ProposerIndex: bbh.GetProposerIndex(),
+		ParentRoot:    bbh.GetParentBlockRoot(),
+		State:         bsv,
+		BodyRoot:      bbh.GetBodyRoot(),
+	}, nil
+}
 
-	bsv.GenesisValidatorsRoot, err = bs.GetGenesisValidatorsRoot()
-	if err != nil {
-		return nil, err
-	}
+/* -------------------------------------------------------------------------- */
+/*                                     SSZ                                    */
+/* -------------------------------------------------------------------------- */
 
-	if bsv.Slot, err = bs.GetSlot(); err != nil {
-		return nil, err
+// SizeSSZ returns the size of the BeaconBlockForStateProof object in SSZ 
+// encoding.
+func (b *BeaconBlockForStateProof[_, _, _, _, _, _]) SizeSSZ(fixed bool) uint32 {
+	//nolint:mnd // todo fix.
+	var size = uint32(8 + 8 + 32 + 32 + 4)
+	if fixed {
+		return size
 	}
+	size += ssz.SizeDynamicObject(b.State)
+	return size
+}
 
-	var fork ForkT
-	if fork, err = bs.GetFork(); err != nil {
-		return nil, err
-	}
-	if bsv.Fork, err = fork.HashTreeRoot(); err != nil {
-		return nil, err
-	}
+// DefineSSZ defines the SSZ encoding for the BeaconBlock object.
+func (b *BeaconBlockForStateProof[_, BeaconStateT, _, _, _, _]) DefineSSZ(
+	codec *ssz.Codec,
+) {
+	// Define the static data (fields and dynamic offsets)
+	ssz.DefineUint64(codec, &b.Slot)
+	ssz.DefineUint64(codec, &b.ProposerIndex)
+	ssz.DefineStaticBytes(codec, &b.ParentRoot)
+	ssz.DefineDynamicObjectOffset(codec, &b.State)
+	ssz.DefineStaticBytes(codec, &b.BodyRoot)
+	
 
-	var latestBlockHeader BeaconBlockHeaderT
-	if latestBlockHeader, err = bs.GetLatestBlockHeader(); err != nil {
-		return nil, err
-	}
-	bsv.LatestBlockHeader, err = latestBlockHeader.HashTreeRoot()
-	if err != nil {
-		return nil, err
-	}
+	// Define the dynamic data (fields)
+	ssz.DefineDynamicObjectContent(codec, &b.Body)
+}
 
-	blockRoots := make([]common.Root, slotsPerHistoricalRoot)
-	for i := range slotsPerHistoricalRoot {
-		if blockRoots[i], err = bs.GetBlockRootAtIndex(i); err != nil {
-			return nil, err
-		}
-	}
-	if bsv.BlockRoots, err = ssz.ListFromElements(
-		MaxBlockRoots, blockRoots...,
-	).HashTreeRoot(); err != nil {
-		return nil, err
-	}
+// MarshalSSZ marshals the BeaconBlock object to SSZ format.
+func (b *BeaconBlock) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, b.SizeSSZ(false))
+	return buf, ssz.EncodeToBytes(buf, b)
+}
 
-	stateRoots := make([]common.Root, slotsPerHistoricalRoot)
-	for i := range slotsPerHistoricalRoot {
-		if stateRoots[i], err = bs.StateRootAtIndex(i); err != nil {
-			return nil, err
-		}
-	}
-	if bsv.StateRoots, err = ssz.ListFromElements(
-		MaxStateRoots, stateRoots...,
-	).HashTreeRoot(); err != nil {
-		return nil, err
-	}
+// UnmarshalSSZ unmarshals the BeaconBlock object from SSZ format.
+func (b *BeaconBlock) UnmarshalSSZ(buf []byte) error {
+	return ssz.DecodeFromBytes(buf, b)
+}
 
-	var eth1Data Eth1DataT
-	if eth1Data, err = bs.GetEth1Data(); err != nil {
-		return nil, err
-	}
-	bsv.Eth1Data, err = eth1Data.HashTreeRoot()
-	if err != nil {
-		return nil, err
-	}
+// HashTreeRoot computes the Merkleization of the BeaconBlockForStateProof object.
+func (b *BeaconBlockForStateProof[_, _, _, _, _, _]) HashTreeRoot() (
+	[32]byte, error,
+) {
+	return ssz.HashConcurrent(b), nil
+}
 
-	if bsv.Eth1DepositIndex, err = bs.GetEth1DepositIndex(); err != nil {
-		return nil, err
-	}
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
 
-	var leph ExecutionPayloadHeaderT
-	leph, err = bs.GetLatestExecutionPayloadHeader()
-	if err != nil {
-		return nil, err
-	}
-	if bsv.LatestExecutionPayloadHeader, err = leph.HashTreeRoot(); err != nil {
-		return nil, err
-	}
+// GetTree ssz hashes the BeaconBlockForStateProof object.
+func (b *BeaconBlockForStateProof[_, _, _, _, _, _]) GetTree() (
+	*fastssz.Node, error,
+) {
+	return fastssz.ProofTree(b)
+}
 
-	var validators []ValidatorT
-	if validators, err = bs.GetValidators(); err != nil {
-		return nil, err
-	}
-	//#nosec:G103 // on purpose.
-	bsv.Validators = *(*[]*types.Validator)(unsafe.Pointer(&validators))
+// HashTreeRootWith ssz hashes the BeaconBlockForStateProof object with a hasher.
+func (b *BeaconBlockForStateProof[_, _, _, _, _, _]) HashTreeRootWith(
+	hh fastssz.HashWalker,
+) error {
+	indx := hh.Index()
 
-	var balances []uint64
-	if balances, err = bs.GetBalances(); err != nil {
-		return nil, err
-	}
-	if bsv.Balances, err = ssz.ListFromElements(
-		//#nosec:G103 // on purpose.
-		MaxBalances, *(*[]math.U64)(unsafe.Pointer(&balances))...,
-	).HashTreeRoot(); err != nil {
-		return nil, err
-	}
+	// Field (0) 'Slot'
+	hh.PutUint64(uint64(b.Slot))
 
-	randaoMixes := make([]common.Bytes32, epochsPerHistoricalVector)
-	for i := range epochsPerHistoricalVector {
-		if randaoMixes[i], err = bs.GetRandaoMixAtIndex(i); err != nil {
-			return nil, err
-		}
-	}
-	if bsv.RandaoMixes, err = ssz.ListFromElements(
-		MaxRandaoMixes, randaoMixes...,
-	).HashTreeRoot(); err != nil {
-		return nil, err
+	// Field (1) 'ProposerIndex'
+	hh.PutUint64(uint64(b.ProposerIndex))
+
+	// Field (2) 'ParentRoot'
+	hh.PutBytes(b.ParentRoot[:])
+
+	// Field (3) 'State'
+	if err := b.State.HashTreeRootWith(hh); err != nil {
+		return err
 	}
 
-	if bsv.NextWithdrawalIndex, err = bs.GetNextWithdrawalIndex(); err != nil {
-		return nil, err
-	}
+	// Field (4) 'BodyRoot'
+	hh.PutBytes(b.BodyRoot[:])
 
-	bsv.NextWithdrawalValidatorIndex, err = bs.GetNextWithdrawalValidatorIndex()
-	if err != nil {
-		return nil, err
-	}
-
-	var slashings []uint64
-	if slashings, err = bs.GetSlashings(); err != nil {
-		return nil, err
-	}
-	if bsv.Slashings, err = ssz.ListFromElements(
-		MaxSlashings, *(*[]math.U64)(unsafe.Pointer(&slashings))...,
-	).HashTreeRoot(); err != nil {
-		return nil, err
-	}
-
-	if bsv.TotalSlashing, err = bs.GetTotalSlashing(); err != nil {
-		return nil, err
-	}
-
-	return bsv, nil
+	hh.Merkleize(indx)
+	return nil
 }
