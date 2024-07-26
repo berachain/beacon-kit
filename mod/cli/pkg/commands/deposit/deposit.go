@@ -25,12 +25,15 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 )
 
 // Commands creates a new command for deposit related actions.
-func Commands(chainSpec common.ChainSpec) *cobra.Command {
+func Commands[ExecutionPayloadT constraints.EngineType[ExecutionPayloadT]](
+	chainSpec common.ChainSpec,
+) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "deposit",
 		Short:                      "deposit subcommands",
@@ -41,7 +44,7 @@ func Commands(chainSpec common.ChainSpec) *cobra.Command {
 
 	cmd.AddCommand(
 		NewValidateDeposit(chainSpec),
-		NewCreateValidator(chainSpec),
+		NewCreateValidator[ExecutionPayloadT](chainSpec),
 	)
 
 	return cmd

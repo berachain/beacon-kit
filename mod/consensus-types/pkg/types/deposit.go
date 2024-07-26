@@ -31,8 +31,7 @@ import (
 // Deposit into the consensus layer from the deposit contract in the execution
 // layer.
 //
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./deposit.go -objs Deposit -include ../../../primitives/pkg/common,./withdrawal_credentials.go,../../../primitives/pkg/math,../../../primitives/pkg/bytes,../../../primitives/pkg/crypto,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output deposit.ssz.go
-//nolint:lll // struct tags.
+//nolint:lll
 type Deposit struct {
 	// Public key of the validator specified in the deposit.
 	Pubkey crypto.BLSPubkey `json:"pubkey"      ssz-max:"48"`
@@ -118,8 +117,8 @@ func (d *Deposit) GetPubkey() crypto.BLSPubkey {
 }
 
 // GetIndex returns the index of the deposit in the deposit contract.
-func (d *Deposit) GetIndex() uint64 {
-	return d.Index
+func (d *Deposit) GetIndex() math.U64 {
+	return math.U64(d.Index)
 }
 
 // GetSignature returns the signature of the deposit data.

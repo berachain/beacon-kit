@@ -44,12 +44,14 @@ type WriteOnlyBeaconBlockBody interface {
 	SetBlobKzgCommitments(eip4844.KZGCommitments[gethprimitives.ExecutionHash])
 	SetRandaoReveal(crypto.BLSSignature)
 	SetGraffiti(common.Bytes32)
+	SetAttestations([]*AttestationData)
+	SetSlashingInfo([]*SlashingInfo)
 }
 
 // ReadOnlyBeaconBlockBody is the interface for
 // a read-only beacon block body.
 type ReadOnlyBeaconBlockBody interface {
-	constraints.SSZMarshallable
+	constraints.SSZMarshallableRootable
 	IsNil() bool
 
 	// Execution returns the execution data of the block.
@@ -64,7 +66,7 @@ type ReadOnlyBeaconBlockBody interface {
 
 // RawBeaconBlock is the interface for a beacon block.
 type RawBeaconBlock[BeaconBlockBodyT RawBeaconBlockBody] interface {
-	constraints.SSZMarshallable
+	constraints.SSZMarshallableRootable
 	SetStateRoot(common.Root)
 	GetStateRoot() common.Root
 	IsNil() bool
@@ -78,7 +80,7 @@ type RawBeaconBlock[BeaconBlockBodyT RawBeaconBlockBody] interface {
 
 // executionPayloadBody is the interface for the execution data of a block.
 type executionPayloadBody interface {
-	constraints.SSZMarshallable
+	constraints.SSZMarshallableRootable
 	constraints.JSONMarshallable
 	IsNil() bool
 	Version() uint32

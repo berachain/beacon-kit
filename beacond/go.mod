@@ -16,6 +16,8 @@ replace (
 	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240702142007-7b23e52b0bd8
 	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240724150750-0fda53f265de
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240724150750-0fda53f265de
+	github.com/berachain/beacon-kit/mod/node-api => ../mod/node-api
+	github.com/berachain/beacon-kit/mod/node-api/engines => ../mod/node-api/engines
 	github.com/berachain/beacon-kit/mod/node-core => ../mod/node-core
 	github.com/berachain/beacon-kit/mod/runtime => ../mod/runtime
 	github.com/berachain/beacon-kit/mod/server => ../mod/server
@@ -23,6 +25,7 @@ replace (
 	github.com/berachain/beacon-kit/mod/storage => ../mod/storage
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240718233137-0215366ab780
 	github.com/cosmos/crypto => github.com/cosmos/crypto v0.0.0-20240312084433-de8f9c76030d
+	github.com/karalabe/ssz => github.com/itsdevbear/ssz v0.0.0-20240725155830-5bd985129878
 )
 
 require (
@@ -71,23 +74,25 @@ require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/berachain/beacon-kit/mod/async v0.0.0-20240709190614-86197af4034c // indirect
-	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240709190614-86197af4034c // indirect
+	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240718074353-1a991cfeed63 // indirect
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240709190614-86197af4034c // indirect
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240709190614-86197af4034c // indirect
-	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240710023256-e9246f6a35e1 // indirect
-	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240710022615-726645827bad // indirect
+	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240723155519-565f208d5482 // indirect
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240724161918-96b9bf999de2 // indirect
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240709190614-86197af4034c // indirect
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240710022615-726645827bad // indirect
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240709190614-86197af4034c // indirect
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240709190614-86197af4034c // indirect
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240709190614-86197af4034c // indirect
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240709190614-86197af4034c // indirect
+	github.com/berachain/beacon-kit/mod/node-api v0.0.0-20240717210058-a144e074f6b2 // indirect
+	github.com/berachain/beacon-kit/mod/node-api/engines v0.0.0-00010101000000-000000000000 // indirect
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240709190614-86197af4034c // indirect
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240709190614-86197af4034c // indirect
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240715170542-09362e09d732 // indirect
-	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240709190614-86197af4034c // indirect
-	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240715170542-09362e09d732 // indirect
-	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240709190614-86197af4034c // indirect
+	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240717210058-a144e074f6b2 // indirect
+	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6650da31 // indirect
+	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240725225809-8d87bb3a62c3 // indirect
 	github.com/bgentry/speakeasy v0.2.0 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
@@ -99,9 +104,9 @@ require (
 	github.com/cockroachdb/pebble v1.1.1 // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
-	github.com/cometbft/cometbft v1.0.0-rc1.0.20240705183350-8b262bdd1d36 // indirect
+	github.com/cometbft/cometbft v1.0.0-rc1.0.20240711183925-948692fddcbe // indirect
 	github.com/cometbft/cometbft-db v0.12.0 // indirect
-	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240702102754-c4fa9a6225b0 // indirect
+	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240711183925-948692fddcbe // indirect
 	github.com/consensys/bavard v0.1.13 // indirect
 	github.com/consensys/gnark-crypto v0.12.1 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
@@ -134,17 +139,22 @@ require (
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/ferranbt/fastssz v0.1.4-0.20240629094022-eac385e6ee79 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.4 // indirect
 	github.com/getsentry/sentry-go v0.28.1 // indirect
 	github.com/go-faster/xor v1.0.0 // indirect
 	github.com/go-kit/kit v0.13.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
+	github.com/go-playground/locales v0.14.1 // indirect
+	github.com/go-playground/universal-translator v0.18.1 // indirect
+	github.com/go-playground/validator/v10 v10.22.0 // indirect
 	github.com/godbus/dbus v0.0.0-20190726142602-4481cbc300e2 // indirect
 	github.com/gofrs/flock v0.12.0 // indirect
 	github.com/gofrs/uuid v4.4.0+incompatible // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
+	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/golang/glog v1.2.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
@@ -177,10 +187,14 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/itsdevbear/comet-bls12-381 v0.0.0-20240413212931-2ae2f204cde7 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
+	github.com/karalabe/ssz v0.2.1-0.20240724074312-3d1ff7a6f7c4 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
+	github.com/labstack/echo/v4 v4.12.0 // indirect
+	github.com/labstack/gommon v0.4.2 // indirect
+	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/linxGnu/grocksdb v1.9.2 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
@@ -211,6 +225,7 @@ require (
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.55.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
+	github.com/prysmaticlabs/go-bitfield v0.0.0-20240618144021-706c95b2dd15 // indirect
 	github.com/prysmaticlabs/gohashtree v0.0.4-beta // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
@@ -235,6 +250,8 @@ require (
 	github.com/tidwall/btree v1.7.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.14 // indirect
 	github.com/tklauser/numcpus v0.8.0 // indirect
+	github.com/valyala/bytebufferpool v1.0.0 // indirect
+	github.com/valyala/fasttemplate v1.2.2 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	github.com/zondax/hid v0.9.2 // indirect
 	github.com/zondax/ledger-go v0.14.3 // indirect
@@ -249,9 +266,10 @@ require (
 	golang.org/x/sys v0.22.0 // indirect
 	golang.org/x/term v0.22.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
+	golang.org/x/time v0.5.0 // indirect
 	google.golang.org/genproto v0.0.0-20240709173604-40e1e62336c5 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240709173604-40e1e62336c5 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240709173604-40e1e62336c5 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240711142825-46eb208f015d // indirect
 	google.golang.org/grpc v1.65.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect

@@ -33,11 +33,8 @@ const (
 	// validatorPrivateKey is the flag for the validator private key.
 	valPrivateKey = "validator-private-key"
 
-	// jwtSecretPath is the flag for the path to the JWT secret file.
-	jwtSecretPath = "jwt-secret"
-
-	// engineRPCURL is the flag for the URL for the engine RPC.
-	engineRPCURL = "engine-rpc-url"
+	// rpcURL is the flag for the URL for the execution client RPC.
+	rpcURL = "rpc-url"
 )
 
 const (
@@ -65,12 +62,8 @@ const (
 	// validatorPrivateKey flag.
 	defaultValidatorPrivateKey = ""
 
-	// defaultJWTSecretPath is the default value for the jwtSecret flag.
-	// #nosec G101 // This is a default path
-	defaultJWTSecretPath = "../jwt.hex"
-
-	// defaultEngineRPCURL is the default value for the engineRPCURL flag.
-	defaultEngineRPCURL = "http://localhost:8551"
+	// defaultRPCURL is the default value for the rpcURL flag.
+	defaultRPCURL = "http://localhost:8545"
 )
 
 const (
@@ -91,10 +84,6 @@ const (
 	valPrivateKeyMsg = `validator private key. This is required if the 
 	override-node-key flag is set.`
 
-	// jwtSecretPathMsg is the usage description for the jwtSecretPath flag.
-	// #nosec G101 // This is a descriptor
-	jwtSecretPathMsg = "path to the JWT secret file"
-
-	// engineRPCURLMsg is the usage description for the engineRPCURL flag.
-	engineRPCURLMsg = "URL for the engine RPC"
+	// rpcURLMsg is the usage description for the rpcURL flag.
+	rpcURLMsg = "URL for the execution client RPC"
 )

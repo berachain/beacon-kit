@@ -34,6 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
+	consensust "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	cmtruntime "github.com/berachain/beacon-kit/mod/runtime/pkg/cometbft"
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
@@ -67,12 +68,19 @@ var (
 
 // AppModule implements an application module for the beacon module.
 // It is a wrapper around the ABCIMiddleware.
-type AppModule[T transaction.Tx, ValidatorUpdateT any] struct {
+type AppModule[
+	T transaction.Tx, 
+	AttestationDataT any,
+	SlashingInfoT any,
+	SlotDataT SlotData[AttestationDataT, SlashingInfoT, SlotDataT],
+	ValidatorUpdateT any,
+] struct {
 	abciMiddleware  *components.ABCIMiddleware
 	txCodec         transaction.Codec[T]
 	msgServer       *cmtruntime.MsgServer
 	queryServer     *cmtruntime.QueryServer
 	consensusEngine *cometbft.ConsensusEngine[T, ValidatorUpdateT]
+	StorageBackend *components.StorageBackend
 }
 
 // NewAppModule creates a new AppModule object.
@@ -81,6 +89,7 @@ func NewAppModule[T transaction.Tx, ValidatorUpdateT any](
 	txCodec transaction.Codec[T],
 	msgServer *cmtruntime.MsgServer,
 	queryServer *cmtruntime.QueryServer,
+	storageBackend *components.StorageBackend,
 ) AppModule[T, ValidatorUpdateT] {
 	return AppModule[T, ValidatorUpdateT]{
 		abciMiddleware: abciMiddleware,
@@ -91,6 +100,7 @@ func NewAppModule[T transaction.Tx, ValidatorUpdateT any](
 			txCodec,
 			abciMiddleware,
 		),
+		StorageBackend: storageBackend,
 	}
 }
 

@@ -64,9 +64,9 @@ type StorageBackend[
 	DepositStoreT DepositStore[DepositT],
 ] interface {
 	// AvailabilityStore returns the availability store for the given context.
-	AvailabilityStore(context.Context) AvailabilityStoreT
+	AvailabilityStore() AvailabilityStoreT
 	// DepositStore retrieves the deposit store.
-	DepositStore(context.Context) DepositStoreT
+	DepositStore() DepositStoreT
 	// StateFromContext retrieves the beacon state from the given context.
 	StateFromContext(context.Context) BeaconStateT
 }

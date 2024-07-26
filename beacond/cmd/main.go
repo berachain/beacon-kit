@@ -40,11 +40,12 @@ import (
 )
 
 // aliases for hard types
-// type tx = *transaction.SSZTx
-
-type tx = transaction.Tx
-type node = types.Node[tx]
-type validatorUpdate = appmodulev2.ValidatorUpdate
+type (
+	executionPayload = nodecomponents.ExecutionPayload
+	tx               = transaction.Tx
+	node             = types.Node[tx]
+	validatorUpdate  = appmodulev2.ValidatorUpdate
+)
 
 // run runs the beacon node. it is also the central injection point of generic
 // hard types.

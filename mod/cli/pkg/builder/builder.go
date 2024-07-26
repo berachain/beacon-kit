@@ -32,8 +32,10 @@ import (
 	"cosmossdk.io/server/v2/api/grpc"
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/context"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/server/pkg/components/cometbft"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -44,7 +46,9 @@ import (
 
 // CLIBuilder is the builder for the commands.Root (root command).
 type CLIBuilder[
-	NodeT types.Node[T], T transaction.Tx, ValidatorUpdateT any,
+	NodeT types.Node[T], T transaction.Tx any,
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+	ValidatorUpdateT any,
 ] struct {
 	depInjectCfg depinject.Config
 	name         string
@@ -66,7 +70,11 @@ type CLIBuilder[
 }
 
 // New returns a new CLIBuilder with the given options.
-func New[NodeT types.Node[T], T transaction.Tx, ValidatorUpdateT any](
+func New[
+	NodeT types.Node[T], T transaction.Tx any,
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+	ValidatorUpdateT any,
+](
 	opts ...Opt[NodeT, T, ValidatorUpdateT],
 ) *CLIBuilder[NodeT, T, ValidatorUpdateT] {
 	cb := &CLIBuilder[NodeT, T, ValidatorUpdateT]{
@@ -83,7 +91,7 @@ func New[NodeT types.Node[T], T transaction.Tx, ValidatorUpdateT any](
 
 // Build builds the CLI commands.
 func (
-	cb *CLIBuilder[NodeT, T, ValidatorUpdateT],
+	cb *CLIBuilder[NodeT, T, ExecutionPayloadT, ValidatorUpdateT],
 ) Build() (*cmdlib.Root, error) {
 	// allocate memory to hold the dependencies
 	var (
@@ -99,7 +107,8 @@ func (
 		depinject.Configs(
 			cb.depInjectCfg,
 			depinject.Supply(
-				cb.suppliers...,
+				append(
+					cb.suppliers, &components.StorageBackend{})...,
 			),
 			depinject.Provide(
 				cb.components...,
@@ -170,7 +179,7 @@ func (
 
 // defaultRunHandler returns the default run handler for the CLIBuilder.
 func (
-	cb *CLIBuilder[NodeT, T, ValidatorUpdateT],
+	cb *CLIBuilder[NodeT, T, ExecutionPayloadT, ValidatorUpdateT],
 ) defaultRunHandler(logger log.Logger) func(
 	cmd *cobra.Command,
 ) error {
@@ -188,7 +197,9 @@ func (
 // InterceptConfigsPreRunHandler is identical to
 // InterceptConfigsAndCreateContext except it also sets the server context on
 // the command and the server logger.
-func (cb *CLIBuilder[NodeT, T, ValidatorUpdateT]) InterceptConfigsPreRunHandler(
+func (cb *CLIBuilder[
+	NodeT, T, ExecutionPayloadT, ValidatorUpdateT,
+]) InterceptConfigsPreRunHandler(
 	cmd *cobra.Command, logger log.Logger, customAppConfigTemplate string,
 	customAppConfig interface{}, cmtConfig *cmtcfg.Config,
 ) error {

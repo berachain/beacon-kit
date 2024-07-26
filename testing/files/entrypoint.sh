@@ -80,8 +80,9 @@ fi
 # Start the node (remove the --pruning=nothing flag if historical queries are not needed)
 BEACON_START_CMD="./build/bin/beacond start "$TRACE" \
 --home $HOMEDIR --beacon-kit.engine.jwt-secret-path ${JWT_SECRET_PATH}
---beacon-kit.logger.log-level $LOGLEVEL 
-"
+--beacon-kit.logger.log-level $LOGLEVEL \
+--beacon-kit.block-store-service.enabled --beacon-kit.block-store-service.pruner-enabled \
+--beacon-kit.node-api.enabled"
 
 # Conditionally add the rpc-dial-url flag if RPC_DIAL_URL is not empty
 if [ -n "$RPC_DIAL_URL" ]; then
@@ -91,5 +92,4 @@ if [ -n "$RPC_DIAL_URL" ]; then
 	BEACON_START_CMD="$BEACON_START_CMD --beacon-kit.engine.rpc-dial-url ${RPC_PREFIX}${RPC_DIAL_URL}"
 fi
 
-# run the beacon node
 eval $BEACON_START_CMD

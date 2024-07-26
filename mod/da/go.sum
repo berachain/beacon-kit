@@ -12,10 +12,10 @@ github.com/berachain/beacon-kit/mod/async v0.0.0-20240623030054-639bea05ba49 h1:
 github.com/berachain/beacon-kit/mod/async v0.0.0-20240623030054-639bea05ba49/go.mod h1:ycwqumRG49gb8qg87cc6kVgPeiUDaFMajjLko54Ey+I=
 github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df h1:mnD1LKqDQ0n+OFdDqOuvKaEiUKRJzsO4V0wyyn/gJYg=
 github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df/go.mod h1:bTFB4Rdvm7D/WdwPYkqQ+8T0XOMBv0pzXfp1E46BFX8=
-github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240710022615-726645827bad h1:HkSRpHLIIcjeur/reWPP7g/BWxLD1+hg47f+r+lHOr0=
-github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240710022615-726645827bad/go.mod h1:IEjidX9vnwSJCMcPI8O4stbDaGlmN3/jZX6NFbh7dvQ=
-github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240710022448-e56f337d051f h1:v4ii+e+4fk65yLmA+4kU782VEdcuAnv5xv7ldXlGtIs=
-github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240710022448-e56f337d051f/go.mod h1:VRSCYfECVQDtO65DLD0Bh92W15hBchYC61dyg87hRK8=
+github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240724230723-201979ac649d h1:2KQMnVYqpmzwBIiYuDEvXdCarO5QLu8JgvTvrRTnUqk=
+github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240724230723-201979ac649d/go.mod h1:yMltv/k9Edi62SBq2bbfJJafcQq8L5pAk5npM0dw+Nk=
+github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240710022615-726645827bad h1:cNtVWFUtqG/71tZ8SXqivbO8OOCvcnSRkHiEpsA9M9g=
+github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240710022615-726645827bad/go.mod h1:VRSCYfECVQDtO65DLD0Bh92W15hBchYC61dyg87hRK8=
 github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df h1:6MJllcmMFt6dtvftM5zmdl1WVDpqZkNy3hFXVZtNV0s=
 github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df/go.mod h1:yRD7rmnyaaqgq/6+eIVqvSkFJXuLXpBddUu59HUOrtc=
 github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240705193247-d464364483df h1:74LcTGSWRxCeehY7O4g6XZ2r4PY604n9U2/981iLtFk=
@@ -119,8 +119,11 @@ github.com/gorilla/websocket v1.5.3/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/ad
 github.com/holiman/bloomfilter/v2 v2.0.3 h1:73e0e/V0tCydx14a0SCYS/EWCxgwLZ18CZcZKVu0fao=
 github.com/holiman/bloomfilter/v2 v2.0.3/go.mod h1:zpoh+gs7qcpqrHr3dB55AMiJwo0iURXE7ZOP9L9hSkA=
 github.com/holiman/uint256 v1.3.0 h1:4wdcm/tnd0xXdu7iS3ruNvxkWwrb4aeBQv19ayYn8F4=
+github.com/holiman/uint256 v1.3.0/go.mod h1:EOMSn4q6Nyt9P6efbI3bueV4e1b3dGlUCXeiRV4ng7E=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
 github.com/ianlancetaylor/demangle v0.0.0-20200824232613-28f6c0f3b639/go.mod h1:aSSvb/t6k1mPoxDqO4vJh6VOCGPwU4O0C2/Eqndh1Sc=
+github.com/karalabe/ssz v0.2.1-0.20240724074312-3d1ff7a6f7c4 h1:CvO92iWYv7SS7hWzd1cYaAhGVZmanD/DtUfe0s+kTeg=
+github.com/karalabe/ssz v0.2.1-0.20240724074312-3d1ff7a6f7c4/go.mod h1:SUFJO5R2VkUK3vT80pjfIB/g7eaQgSU2RhbuL8GOJq4=
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/klauspost/compress v1.17.9 h1:6KIumPrER1LHsvBVuDa0r5xaG0Es51mhhB9BQB2qeMA=
@@ -181,6 +184,8 @@ github.com/prometheus/common v0.55.0 h1:KEi6DK7lXW/m7Ig5i47x0vRzuBsHuvJdi5ee6Y3G
 github.com/prometheus/common v0.55.0/go.mod h1:2SECS4xJG1kd8XF9IcM1gMX6510RAEL65zxzNImwdc8=
 github.com/prometheus/procfs v0.15.1 h1:YagwOFzUgYfKKHX6Dr+sHT7km/hxC76UB0learggepc=
 github.com/prometheus/procfs v0.15.1/go.mod h1:fB45yRUv8NstnjriLhBQLuOUt+WW4BsoGhij/e3PBqk=
+github.com/prysmaticlabs/go-bitfield v0.0.0-20240618144021-706c95b2dd15 h1:lC8kiphgdOBTcbTvo8MwkvpKjO0SlAgjv4xIK5FGJ94=
+github.com/prysmaticlabs/go-bitfield v0.0.0-20240618144021-706c95b2dd15/go.mod h1:8svFBIKKu31YriBG/pNizo9N0Jr9i5PQ+dFkxWg3x5k=
 github.com/prysmaticlabs/gohashtree v0.0.4-beta h1:H/EbCuXPeTV3lpKeXGPpEV9gsUpkqOOVnWapUyeWro4=
 github.com/prysmaticlabs/gohashtree v0.0.4-beta/go.mod h1:BFdtALS+Ffhg3lGQIHv9HDWuHS8cTvHZzrHWxwOtGOs=
 github.com/rivo/uniseg v0.2.0/go.mod h1:J6wj4VEh+S6ZtnVlnTBMWIodfgj8LQOQFoIToxlJtxc=
@@ -221,6 +226,7 @@ golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9/go.mod h1:LzIPMQfyMNhhGPh
 golang.org/x/crypto v0.25.0 h1:ypSNr+bnYL2YhwoMt2zPxHFmbAN1KZs/njMG3hxUp30=
 golang.org/x/crypto v0.25.0/go.mod h1:T+wALwcMOSE0kXgUAnPAHqTLW+XHgcELELW8VaDgm/M=
 golang.org/x/exp v0.0.0-20240707233637-46b078467d37 h1:uLDX+AfeFCct3a2C7uIWBKMJIR3CJMhcgfrUAqjRK6w=
+golang.org/x/exp v0.0.0-20240707233637-46b078467d37/go.mod h1:M4RDyNAINzryxdtnbRXRL/OHtkFuWGRjvuhBJpk2IlY=
 golang.org/x/mod v0.2.0/go.mod h1:s0Qsj1ACt9ePp/hMypM3fl4fZqREWJwdYDEqhRiZZUA=
 golang.org/x/mod v0.3.0/go.mod h1:s0Qsj1ACt9ePp/hMypM3fl4fZqREWJwdYDEqhRiZZUA=
 golang.org/x/net v0.0.0-20180906233101-161cd47e91fd/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
@@ -233,6 +239,7 @@ golang.org/x/net v0.0.0-20210428140749-89ef3d95e781/go.mod h1:OJAsFXCWl8Ukc7SiCT
 golang.org/x/net v0.0.0-20220225172249-27dd8689420f/go.mod h1:CfG3xpIq0wQ8r1q4Su4UZFWDARRcnwPjda9FqA0JpMk=
 golang.org/x/net v0.0.0-20220607020251-c690dde0001d/go.mod h1:XRhObCWvk6IyKnWLug+ECip1KBveYUHfp+8e9klMJ9c=
 golang.org/x/net v0.27.0 h1:5K3Njcw06/l2y9vpGCSdcxWOYHOUk3dVNGDXN+FvAys=
+golang.org/x/net v0.27.0/go.mod h1:dDi0PyhWNoiUOrAS8uXv/vnScO4wnHQO4mj9fn/RytE=
 golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.0.0-20190423024810-112230192c58/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=

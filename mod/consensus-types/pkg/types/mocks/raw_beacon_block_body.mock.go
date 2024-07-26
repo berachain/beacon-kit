@@ -569,60 +569,35 @@ func (_c *RawBeaconBlockBody_MarshalSSZ_Call) RunAndReturn(run func() ([]byte, e
 	return _c
 }
 
-// MarshalSSZTo provides a mock function with given fields: _a0
-func (_m *RawBeaconBlockBody) MarshalSSZTo(_a0 []byte) ([]byte, error) {
-	ret := _m.Called(_a0)
-
-	if len(ret) == 0 {
-		panic("no return value specified for MarshalSSZTo")
-	}
-
-	var r0 []byte
-	var r1 error
-	if rf, ok := ret.Get(0).(func([]byte) ([]byte, error)); ok {
-		return rf(_a0)
-	}
-	if rf, ok := ret.Get(0).(func([]byte) []byte); ok {
-		r0 = rf(_a0)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]byte)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func([]byte) error); ok {
-		r1 = rf(_a0)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+// SetAttestations provides a mock function with given fields: _a0
+func (_m *RawBeaconBlockBody) SetAttestations(_a0 []*types.AttestationData) {
+	_m.Called(_a0)
 }
 
-// RawBeaconBlockBody_MarshalSSZTo_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MarshalSSZTo'
-type RawBeaconBlockBody_MarshalSSZTo_Call struct {
+// RawBeaconBlockBody_SetAttestations_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetAttestations'
+type RawBeaconBlockBody_SetAttestations_Call struct {
 	*mock.Call
 }
 
-// MarshalSSZTo is a helper method to define mock.On call
-//   - _a0 []byte
-func (_e *RawBeaconBlockBody_Expecter) MarshalSSZTo(_a0 interface{}) *RawBeaconBlockBody_MarshalSSZTo_Call {
-	return &RawBeaconBlockBody_MarshalSSZTo_Call{Call: _e.mock.On("MarshalSSZTo", _a0)}
+// SetAttestations is a helper method to define mock.On call
+//   - _a0 []*types.AttestationData
+func (_e *RawBeaconBlockBody_Expecter) SetAttestations(_a0 interface{}) *RawBeaconBlockBody_SetAttestations_Call {
+	return &RawBeaconBlockBody_SetAttestations_Call{Call: _e.mock.On("SetAttestations", _a0)}
 }
 
-func (_c *RawBeaconBlockBody_MarshalSSZTo_Call) Run(run func(_a0 []byte)) *RawBeaconBlockBody_MarshalSSZTo_Call {
+func (_c *RawBeaconBlockBody_SetAttestations_Call) Run(run func(_a0 []*types.AttestationData)) *RawBeaconBlockBody_SetAttestations_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].([]byte))
+		run(args[0].([]*types.AttestationData))
 	})
 	return _c
 }
 
-func (_c *RawBeaconBlockBody_MarshalSSZTo_Call) Return(_a0 []byte, _a1 error) *RawBeaconBlockBody_MarshalSSZTo_Call {
-	_c.Call.Return(_a0, _a1)
+func (_c *RawBeaconBlockBody_SetAttestations_Call) Return() *RawBeaconBlockBody_SetAttestations_Call {
+	_c.Call.Return()
 	return _c
 }
 
-func (_c *RawBeaconBlockBody_MarshalSSZTo_Call) RunAndReturn(run func([]byte) ([]byte, error)) *RawBeaconBlockBody_MarshalSSZTo_Call {
+func (_c *RawBeaconBlockBody_SetAttestations_Call) RunAndReturn(run func([]*types.AttestationData)) *RawBeaconBlockBody_SetAttestations_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -838,47 +813,35 @@ func (_c *RawBeaconBlockBody_SetRandaoReveal_Call) RunAndReturn(run func(bytes.B
 	return _c
 }
 
-// SizeSSZ provides a mock function with given fields:
-func (_m *RawBeaconBlockBody) SizeSSZ() int {
-	ret := _m.Called()
-
-	if len(ret) == 0 {
-		panic("no return value specified for SizeSSZ")
-	}
-
-	var r0 int
-	if rf, ok := ret.Get(0).(func() int); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Get(0).(int)
-	}
-
-	return r0
+// SetSlashingInfo provides a mock function with given fields: _a0
+func (_m *RawBeaconBlockBody) SetSlashingInfo(_a0 []*types.SlashingInfo) {
+	_m.Called(_a0)
 }
 
-// RawBeaconBlockBody_SizeSSZ_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SizeSSZ'
-type RawBeaconBlockBody_SizeSSZ_Call struct {
+// RawBeaconBlockBody_SetSlashingInfo_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetSlashingInfo'
+type RawBeaconBlockBody_SetSlashingInfo_Call struct {
 	*mock.Call
 }
 
-// SizeSSZ is a helper method to define mock.On call
-func (_e *RawBeaconBlockBody_Expecter) SizeSSZ() *RawBeaconBlockBody_SizeSSZ_Call {
-	return &RawBeaconBlockBody_SizeSSZ_Call{Call: _e.mock.On("SizeSSZ")}
+// SetSlashingInfo is a helper method to define mock.On call
+//   - _a0 []*types.SlashingInfo
+func (_e *RawBeaconBlockBody_Expecter) SetSlashingInfo(_a0 interface{}) *RawBeaconBlockBody_SetSlashingInfo_Call {
+	return &RawBeaconBlockBody_SetSlashingInfo_Call{Call: _e.mock.On("SetSlashingInfo", _a0)}
 }
 
-func (_c *RawBeaconBlockBody_SizeSSZ_Call) Run(run func()) *RawBeaconBlockBody_SizeSSZ_Call {
+func (_c *RawBeaconBlockBody_SetSlashingInfo_Call) Run(run func(_a0 []*types.SlashingInfo)) *RawBeaconBlockBody_SetSlashingInfo_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run()
+		run(args[0].([]*types.SlashingInfo))
 	})
 	return _c
 }
 
-func (_c *RawBeaconBlockBody_SizeSSZ_Call) Return(_a0 int) *RawBeaconBlockBody_SizeSSZ_Call {
-	_c.Call.Return(_a0)
+func (_c *RawBeaconBlockBody_SetSlashingInfo_Call) Return() *RawBeaconBlockBody_SetSlashingInfo_Call {
+	_c.Call.Return()
 	return _c
 }
 
-func (_c *RawBeaconBlockBody_SizeSSZ_Call) RunAndReturn(run func() int) *RawBeaconBlockBody_SizeSSZ_Call {
+func (_c *RawBeaconBlockBody_SetSlashingInfo_Call) RunAndReturn(run func([]*types.SlashingInfo)) *RawBeaconBlockBody_SetSlashingInfo_Call {
 	_c.Call.Return(run)
 	return _c
 }

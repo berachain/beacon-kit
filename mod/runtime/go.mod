@@ -27,8 +27,8 @@ require (
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240618214413-d5ec0e66b3dd
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240710021622-37e8e3e7e155
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-00010101000000-000000000000
-	github.com/cometbft/cometbft v1.0.0-rc1.0.20240705183350-8b262bdd1d36
-	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240702102754-c4fa9a6225b0
+	github.com/cometbft/cometbft v1.0.0-rc1.0.20240711183925-948692fddcbe
+	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240711183925-948692fddcbe
 	github.com/stretchr/testify v1.9.0
 )
 
@@ -109,13 +109,11 @@ require (
 	cosmossdk.io/server/v2/appmanager v0.0.0-20240624191328-722ac39873e4 // indirect
 	cosmossdk.io/server/v2/stf v0.0.0-20240724150750-0fda53f265de // indirect
 	cosmossdk.io/store/v2 v2.0.0-20240625055312-26913b073414 // indirect
-	cosmossdk.io/x/accounts v0.0.0-20240709121431-13b80960d2e8 // indirect
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240703145037-b5612ab256db // indirect
 	github.com/cosmos/iavl v1.2.0 // indirect
 	github.com/emicklei/dot v1.6.2 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect
-	github.com/minio/highwayhash v1.0.3 // indirect
 	github.com/prysmaticlabs/gohashtree v0.0.4-beta // indirect
 	github.com/tidwall/btree v1.7.0 // indirect
 )

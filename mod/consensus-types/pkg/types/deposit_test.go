@@ -148,5 +148,5 @@ func TestDeposit_Getters(t *testing.T) {
 	require.Equal(t, deposit.Credentials, deposit.GetWithdrawalCredentials())
 	require.Equal(t, deposit.Amount, deposit.GetAmount())
 	require.Equal(t, deposit.Signature, deposit.GetSignature())
-	require.Equal(t, deposit.Index, deposit.GetIndex())
+	require.Equal(t, math.U64(deposit.Index), deposit.GetIndex())
 }

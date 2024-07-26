@@ -28,17 +28,18 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
 // Service is responsible for building beacon blocks.
 type Service[
+	AttestationDataT any,
 	BeaconBlockT BeaconBlock[
-		BeaconBlockT, BeaconBlockBodyT, DepositT, Eth1DataT, ExecutionPayloadT,
+		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, DepositT,
+		Eth1DataT, ExecutionPayloadT, SlashingInfoT,
 	],
 	BeaconBlockBodyT BeaconBlockBody[
-		DepositT, Eth1DataT, ExecutionPayloadT,
+		AttestationDataT, DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
 	],
 	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
 	BlobSidecarsT,
@@ -48,6 +49,8 @@ type Service[
 	ExecutionPayloadT any,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	ForkDataT ForkData[ForkDataT],
+	SlashingInfoT any,
+	SlotDataT SlotData[AttestationDataT, SlashingInfoT],
 ] struct {
 	// cfg is the validator config.
 	cfg *Config
@@ -59,8 +62,8 @@ type Service[
 	signer crypto.BLSSigner
 	// blobFactory is used to create blob sidecars for blocks.
 	blobFactory BlobFactory[
-		BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
-		DepositT, Eth1DataT, ExecutionPayloadT,
+		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
+		DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
 	]
 	// bsb is the beacon state backend.
 	bsb StorageBackend[
@@ -88,16 +91,18 @@ type Service[
 	// sidecarBroker is a publisher for sidecars.
 	sidecarBroker EventPublisher[*asynctypes.Event[BlobSidecarsT]]
 	// newSlotSub is a feed for slots.
-	newSlotSub chan *asynctypes.Event[math.Slot]
+	newSlotSub chan *asynctypes.Event[SlotDataT]
 }
 
 // NewService creates a new validator service.
 func NewService[
+	AttestationDataT any,
 	BeaconBlockT BeaconBlock[
-		BeaconBlockT, BeaconBlockBodyT, DepositT, Eth1DataT, ExecutionPayloadT,
+		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, DepositT,
+		Eth1DataT, ExecutionPayloadT, SlashingInfoT,
 	],
 	BeaconBlockBodyT BeaconBlockBody[
-		DepositT, Eth1DataT, ExecutionPayloadT,
+		AttestationDataT, DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
 	],
 	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
 	BlobSidecarsT,
@@ -107,6 +112,8 @@ func NewService[
 	ExecutionPayloadT any,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	ForkDataT ForkData[ForkDataT],
+	SlashingInfoT any,
+	SlotDataT SlotData[AttestationDataT, SlashingInfoT],
 ](
 	cfg *Config,
 	logger log.Logger[any],
@@ -122,24 +129,24 @@ func NewService[
 	],
 	signer crypto.BLSSigner,
 	blobFactory BlobFactory[
-		BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
-		DepositT, Eth1DataT, ExecutionPayloadT,
+		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
+		DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
 	],
 	localPayloadBuilder PayloadBuilder[BeaconStateT, ExecutionPayloadT],
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT],
 	ts TelemetrySink,
 	blkBroker EventPublisher[*asynctypes.Event[BeaconBlockT]],
 	sidecarBroker EventPublisher[*asynctypes.Event[BlobSidecarsT]],
-	newSlotSub chan *asynctypes.Event[math.Slot],
+	newSlotSub chan *asynctypes.Event[SlotDataT],
 ) *Service[
-	BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
-	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ForkDataT,
+	AttestationDataT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, ForkDataT, SlashingInfoT, SlotDataT,
 ] {
 	return &Service[
-		BeaconBlockT, BeaconBlockBodyT, BeaconStateT, BlobSidecarsT,
-		DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
-		ExecutionPayloadHeaderT, ForkDataT,
+		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+		BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
+		ExecutionPayloadHeaderT, ForkDataT, SlashingInfoT, SlotDataT,
 	]{
 		cfg:                   cfg,
 		logger:                logger,
@@ -159,14 +166,14 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) Name() string {
 	return "validator"
 }
 
 // Start starts the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) Start(
 	ctx context.Context,
 ) error {
@@ -176,7 +183,7 @@ func (s *Service[
 
 // start starts the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) start(
 	ctx context.Context,
 ) {
@@ -194,8 +201,8 @@ func (s *Service[
 
 // handleBlockRequest handles a block request.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _,
-]) handleNewSlot(msg *asynctypes.Event[math.Slot]) {
+	_, _, _, _, _, _, _, _, _, _, _, _, SlotDataT,
+]) handleNewSlot(msg *asynctypes.Event[SlotDataT]) {
 	blk, sidecars, err := s.buildBlockAndSidecars(
 		msg.Context(), msg.Data(),
 	)

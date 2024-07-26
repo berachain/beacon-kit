@@ -36,8 +36,6 @@ import (
 
 // BeaconBlockBodyDenebPlus represents the body of a beacon block in the Deneb
 // chain. This is a temporary struct to be used until mainnet.
-//
-//go:generate go run github.com/ferranbt/fastssz/sszgen --path ./body_denebplus.go -objs BeaconBlockBodyDenebPlus -include ./body.go,../../../primitives/pkg/crypto,./payload.go,../../../primitives/pkg/eip4844,../../../primitives/pkg/bytes,./eth1data.go,../../../primitives/pkg/math,../../../primitives/pkg/common,./deposit.go,../../../engine-primitives/pkg/engine-primitives/withdrawal.go,./withdrawal_credentials.go,./attestation_data.go,./slashing_info.go,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output body_denebplus.ssz.go
 type BeaconBlockBodyDenebPlus struct {
 	BeaconBlockBodyBase
 	// ExecutionPayload is the execution payload of the body.
@@ -91,7 +89,31 @@ func (b *BeaconBlockBodyDenebPlus) SetBlobKzgCommitments(
 	b.BlobKzgCommitments = commitments
 }
 
-// SetEth1Data sets the Eth1Data of the BeaconBlockBodyDeneb.
+// GetAttestations returns the Attestations of the BeaconBlockBodyDenebPlus.
+func (b *BeaconBlockBodyDenebPlus) GetAttestations() []*AttestationData {
+	return b.Attestations
+}
+
+// SetAttestations sets the Attestations of the BeaconBlockBodyDenebPlus.
+func (b *BeaconBlockBodyDenebPlus) SetAttestations(
+	attestations []*AttestationData,
+) {
+	b.Attestations = attestations
+}
+
+// GetSlashingInfo returns the SlashingInfo of the BeaconBlockBodyDenebPlus.
+func (b *BeaconBlockBodyDenebPlus) GetSlashingInfo() []*SlashingInfo {
+	return b.SlashingInfo
+}
+
+// SetSlashingInfo sets the SlashingInfo of the BeaconBlockBodyDenebPlus.
+func (b *BeaconBlockBodyDenebPlus) SetSlashingInfo(
+	slashingInfo []*SlashingInfo,
+) {
+	b.SlashingInfo = slashingInfo
+}
+
+// SetEth1Data sets the Eth1Data of the BeaconBlockBodyDenebPlus.
 func (b *BeaconBlockBodyDenebPlus) SetEth1Data(eth1Data *Eth1Data) {
 	b.Eth1Data = eth1Data
 }

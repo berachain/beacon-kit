@@ -59,7 +59,7 @@ interface IBeaconDepositContract {
      * @notice This will be used to create a new validator or to top up an existing one, increasing stake.
      * @param pubkey is the consensus public key of the validator. If subsequent deposit, its ignored.
      * @param credentials is the staking credentials of the validator. If this is the first deposit it is
-     * validator operator public key, if subsequent deposit it is the depositors public key.
+     * validator operator public key, if subsequent deposit it is the depositor's public key.
      * @param amount is the amount of stake native/ERC20 token to be deposited, in Gwei.
      * @param signature is the signature used only on the first deposit.
      */

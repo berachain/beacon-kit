@@ -232,7 +232,7 @@ func (sp *StateProcessor[
 
 	// We update our state roots and block roots.
 	if err = st.UpdateStateRootAtIndex(
-		uint64(stateSlot)%sp.cs.SlotsPerHistoricalRoot(), prevStateRoot,
+		stateSlot.Unwrap()%sp.cs.SlotsPerHistoricalRoot(), prevStateRoot,
 	); err != nil {
 		return err
 	}
@@ -261,7 +261,7 @@ func (sp *StateProcessor[
 	}
 
 	if err = st.UpdateBlockRootAtIndex(
-		uint64(stateSlot)%sp.cs.SlotsPerHistoricalRoot(), prevBlockRoot,
+		stateSlot.Unwrap()%sp.cs.SlotsPerHistoricalRoot(), prevBlockRoot,
 	); err != nil {
 		return err
 	}

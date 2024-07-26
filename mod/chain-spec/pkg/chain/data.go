@@ -91,6 +91,8 @@ type SpecData[
 
 	// Fork-related values.
 	//
+	// DenebPlus is the epoch at which the Deneb+ fork is activated.
+	DenebPlusForkEpoch EpochT `mapstructure:"deneb-plus-fork-epoch"`
 	// ElectraForkEpoch is the epoch at which the Electra fork is activated.
 	ElectraForkEpoch EpochT `mapstructure:"electra-fork-epoch"`
 

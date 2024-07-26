@@ -25,13 +25,13 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
+	"github.com/karalabe/ssz"
 )
 
 // BlobSidecar as per the Ethereum 2.0 specification:
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/p2p-interface.md?ref=bankless.ghost.io#blobsidecar
 //
-//nolint:lll // link.
-//go:generate go run github.com/ferranbt/fastssz/sszgen -path ./sidecar.go -objs BlobSidecar -include ../../../primitives/pkg/common,../../../primitives/pkg/bytes,../../../consensus-types/pkg/types,../../../primitives/pkg/math,../../../primitives/pkg/eip4844,$GETH_PKG_INCLUDE/common,$GETH_PKG_INCLUDE/common/hexutil -output sidecar.ssz.go
+//nolint:lll
 type BlobSidecar struct {
 	// Index represents the index of the blob in the block.
 	Index uint64
@@ -46,7 +46,7 @@ type BlobSidecar struct {
 	BeaconBlockHeader *types.BeaconBlockHeader
 	// InclusionProof is the inclusion proof of the blob in the beacon block
 	// body.
-	InclusionProof [][32]byte `ssz-size:"8,32"`
+	InclusionProof [][32]byte
 }
 
 // BuildBlobSidecar creates a blob sidecar from the given blobs and
@@ -93,4 +93,47 @@ func (b *BlobSidecar) HasValidInclusionProof(
 		gIndex,
 		b.BeaconBlockHeader.BodyRoot,
 	)
+}
+
+// DefineSSZ defines the SSZ encoding for the BlobSidecar object.
+func (b *BlobSidecar) DefineSSZ(codec *ssz.Codec) {
+	ssz.DefineUint64(codec, &b.Index)
+	ssz.DefineStaticBytes(codec, &b.Blob)
+	ssz.DefineStaticBytes(codec, &b.KzgCommitment)
+	ssz.DefineStaticBytes(codec, &b.KzgProof)
+	ssz.DefineStaticObject(codec, &b.BeaconBlockHeader)
+	//nolint:mnd // depth of 8
+	ssz.DefineCheckedArrayOfStaticBytes(codec, &b.InclusionProof, 8)
+}
+
+// SizeSSZ returns the size of the BlobSidecar object in SSZ encoding.
+func (b *BlobSidecar) SizeSSZ() uint32 {
+	return 8 + // Index
+		131072 + // Blob
+		48 + // KzgCommitment
+		48 + // KzgProof
+		112 + // BeaconBlockHeader
+		8*32 // InclusionProof
+}
+
+// MarshalSSZ marshals the BlobSidecar object to SSZ format.
+func (b *BlobSidecar) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, b.SizeSSZ())
+	return buf, ssz.EncodeToBytes(buf, b)
+}
+
+// UnmarshalSSZ unmarshals the BlobSidecar object from SSZ format.
+func (b *BlobSidecar) UnmarshalSSZ(buf []byte) error {
+	return ssz.DecodeFromBytes(buf, b)
+}
+
+// MarshalSSZTo marshals the BlobSidecar object to the provided buffer in SSZ
+// format.
+func (b *BlobSidecar) MarshalSSZTo(buf []byte) ([]byte, error) {
+	return buf, ssz.EncodeToBytes(buf, b)
+}
+
+// HashTreeRoot computes the SSZ hash tree root of the BlobSidecar object.
+func (b *BlobSidecar) HashTreeRoot() ([32]byte, error) {
+	return ssz.HashSequential(b), nil
 }

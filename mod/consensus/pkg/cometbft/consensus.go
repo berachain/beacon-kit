@@ -32,30 +32,59 @@ import (
 	"github.com/sourcegraph/conc/iter"
 )
 
-// NewConsensusEngine returns a new consensus engine.
+// ConsensusEngine is used to decouple the Comet consensus engine from
+// the Cosmos SDK.
+// Right now, it is very coupled to the sdk base app and we will
+// eventually fully decouple this.
+type ConsensusEngine[
+	T transaction.Tx,
+	AttestationDataT AttestationData[AttestationDataT],
+	BeaconStateT BeaconState,
+	SlashingInfoT SlashingInfo[SlashingInfoT],
+	SlotDataT SlotData[AttestationDataT, SlashingInfoT, SlotDataT],
+	StorageBackendT StorageBackend[BeaconStateT],
+	ValidatorUpdateT any,
+] struct {
+	Middleware[AttestationDataT, SlashingInfoT, SlotDataT]
+	sb StorageBackendT
+}
+
+// NewConsensusEngine returns a new consensus middleware.
 func NewConsensusEngine[
-	T transaction.Tx, ValidatorUpdateT any,
+	T transaction.Tx,
+	AttestationDataT AttestationData[AttestationDataT],
+	BeaconStateT BeaconState,
+	SlashingInfoT SlashingInfo[SlashingInfoT],
+	SlotDataT SlotData[AttestationDataT, SlashingInfoT, SlotDataT],
+	StorageBackendT StorageBackend[BeaconStateT],
+	ValidatorUpdateT any,
 ](
-	txCodec transaction.Codec[T],
-	m Middleware,
-) *ConsensusEngine[T, ValidatorUpdateT] {
-	return &ConsensusEngine[T, ValidatorUpdateT]{
-		txCodec:    txCodec,
+	m Middleware[AttestationDataT, SlashingInfoT, SlotDataT],
+	sb StorageBackendT,
+) *ConsensusEngine[
+	T,
+	AttestationDataT,
+	BeaconStateT,
+	SlashingInfoT,
+	SlotDataT,
+	StorageBackendT,
+	ValidatorUpdateT,
+] {
+	return &ConsensusEngine[
+		T,
+		AttestationDataT,
+		BeaconStateT,
+		SlashingInfoT,
+		SlotDataT,
+		StorageBackendT,
+		ValidatorUpdateT,
+	]{
 		Middleware: m,
+		sb:         sb,
 	}
 }
 
-// Consensus is used to decouple the Comet consensus engine from the Cosmos SDK.
-// Right now, it is very coupled to the sdk base app and we will
-// eventually fully decouple this.
-type ConsensusEngine[T transaction.Tx, ValidatorUpdateT any] struct {
-	Middleware
-	txCodec    transaction.Codec[T]
-	valUpdates transition.ValidatorUpdates
-	genTxs     []T
-}
-
-func (c *ConsensusEngine[T, ValidatorUpdateT]) InitGenesis(
+func (c *ConsensusEngine[_, _, _, _, _, _, ValidatorUpdateT]) InitGenesis(
 	ctx context.Context,
 	bz []byte,
 ) ([]ValidatorUpdateT, error) {
@@ -71,7 +100,7 @@ func (c *ConsensusEngine[T, ValidatorUpdateT]) InitGenesis(
 }
 
 // TODO: Decouple Comet Types
-func (c *ConsensusEngine[T, ValidatorUpdateT]) Prepare(
+func (c *ConsensusEngine[T, _, _, _, _, _, _]) Prepare(
 	ctx context.Context,
 	am handlers.AppManager[T],
 	txs []T,
@@ -103,7 +132,7 @@ func (c *ConsensusEngine[T, ValidatorUpdateT]) Prepare(
 }
 
 // TODO: Decouple Comet Types
-func (c *ConsensusEngine[T, ValidatorUpdateT]) Process(
+func (c *ConsensusEngine[T, _, _, _, _, _, _]) Process(
 	ctx context.Context,
 	_ handlers.AppManager[T],
 	txs []T,
@@ -121,7 +150,7 @@ func (c *ConsensusEngine[T, ValidatorUpdateT]) Process(
 	return c.Middleware.ProcessProposal(ctx, abciReq)
 }
 
-func (c *ConsensusEngine[T, ValidatorUpdateT]) EndBlock(
+func (c *ConsensusEngine[T, _, _, _, _, _, ValidatorUpdateT]) EndBlock(
 	ctx context.Context,
 ) error {
 	updates, err := c.Middleware.EndBlock(ctx)

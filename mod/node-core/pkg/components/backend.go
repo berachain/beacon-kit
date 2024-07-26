@@ -34,6 +34,7 @@ type StorageBackendInput struct {
 	DepositStore      *DepositStore
 	KVStore           *KVStore
 	StateManager      *StateManager
+	BlockStore        *BlockStore
 }
 
 // ProvideStorageBackend is the depinject provider that returns a beacon storage
@@ -43,11 +44,13 @@ func ProvideStorageBackend(
 ) *StorageBackend {
 	return storage.NewBackend[
 		*AvailabilityStore,
+		*BeaconBlock,
 		*BeaconBlockBody,
 		*BeaconBlockHeader,
 		*BeaconState,
 		*BeaconStateMarshallable,
 		*BlobSidecars,
+		*BlockStore,
 		*Deposit,
 		*DepositStore,
 		*Eth1Data,
@@ -62,5 +65,6 @@ func ProvideStorageBackend(
 		in.AvailabilityStore,
 		in.StateManager,
 		in.DepositStore,
+		in.BlockStore,
 	)
 }

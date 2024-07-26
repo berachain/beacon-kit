@@ -79,5 +79,5 @@ type StorageBackend[
 	BlobSidecarsT BlobSidecar,
 ] interface {
 	// AvailabilityStore returns the availability store for the given context.
-	AvailabilityStore(context.Context) AvailabilityStoreT
+	AvailabilityStore() AvailabilityStoreT
 }

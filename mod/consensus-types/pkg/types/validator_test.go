@@ -825,9 +825,10 @@ func TestValidator_GetWithdrawalCredentials(t *testing.T) {
 		{
 			name: "get withdrawal credentials",
 			validator: &types.Validator{
-				WithdrawalCredentials: types.NewCredentialsFromExecutionAddress(
-					gethprimitives.ExecutionAddress{0x01},
-				),
+				WithdrawalCredentials: types.
+					NewCredentialsFromExecutionAddress(
+						gethprimitives.ExecutionAddress{0x01},
+					),
 			},
 			want: types.NewCredentialsFromExecutionAddress(
 				gethprimitives.ExecutionAddress{0x01},

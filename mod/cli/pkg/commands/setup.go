@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/jwt"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -64,7 +65,7 @@ func Commands[NodeT types.Node[T], T transaction.Tx](
 		// `genesis`
 		genesis.Commands(chainSpec),
 		// `deposit`
-		deposit.Commands(chainSpec),
+		deposit.Commands[ExecutionPayloadT](chainSpec),
 		// `jwt`
 		jwt.Commands(),
 		// `keys`

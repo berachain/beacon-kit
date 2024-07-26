@@ -35,6 +35,7 @@ type Backend[
 	AvailabilityStoreT AvailabilityStore[
 		BeaconBlockBodyT, BlobSidecarsT,
 	],
+	BeaconBlockT any,
 	BeaconBlockBodyT types.RawBeaconBlockBody,
 	BeaconBlockHeaderT core.BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT core.BeaconState[
@@ -46,6 +47,7 @@ type Backend[
 		ExecutionPayloadHeaderT, ForkT, ValidatorT,
 	],
 	BlobSidecarsT any,
+	BlockStoreT BlockStore[BeaconBlockT],
 	DepositT Deposit,
 	DepositStoreT DepositStore[DepositT],
 	Eth1DataT,
@@ -63,12 +65,14 @@ type Backend[
 	availabilityStore AvailabilityStoreT
 	stateManager      StateManagerT
 	depositStore      DepositStoreT
+	blockStore        BlockStoreT
 }
 
 func NewBackend[
 	AvailabilityStoreT AvailabilityStore[
 		BeaconBlockBodyT, BlobSidecarsT,
 	],
+	BeaconBlockT any,
 	BeaconBlockBodyT types.RawBeaconBlockBody,
 	BeaconBlockHeaderT core.BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT core.BeaconState[
@@ -80,6 +84,7 @@ func NewBackend[
 		ExecutionPayloadHeaderT, ForkT, ValidatorT,
 	],
 	BlobSidecarsT any,
+	BlockStoreT BlockStore[BeaconBlockT],
 	DepositT Deposit,
 	DepositStoreT DepositStore[DepositT],
 	Eth1DataT,
@@ -97,22 +102,24 @@ func NewBackend[
 	availabilityStore AvailabilityStoreT,
 	stateManager StateManagerT,
 	depositStore DepositStoreT,
+	blockStore BlockStoreT,
 ) *Backend[
-	AvailabilityStoreT, BeaconBlockBodyT, BeaconBlockHeaderT, BeaconStateT,
-	BeaconStateMarshallableT, BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT,
-	ExecutionPayloadHeaderT, ForkT, StateManagerT, ValidatorT,
-	WithdrawalT, WithdrawalCredentialsT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BlockStoreT,
+	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+	StateManagerT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 ] {
 	return &Backend[
-		AvailabilityStoreT, BeaconBlockBodyT, BeaconBlockHeaderT, BeaconStateT,
-		BeaconStateMarshallableT, BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT,
-		ExecutionPayloadHeaderT, ForkT, StateManagerT, ValidatorT,
-		WithdrawalT, WithdrawalCredentialsT,
+		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+		BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BlockStoreT,
+		DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+		StateManagerT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
 	]{
 		chainSpec:         chainSpec,
 		availabilityStore: availabilityStore,
 		stateManager:      stateManager,
 		depositStore:      depositStore,
+		blockStore:        blockStore,
 	}
 }
 
@@ -122,6 +129,9 @@ func (k Backend[
 	AvailabilityStoreT, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) AvailabilityStore() AvailabilityStoreT {
 	return k.availabilityStore
+	AvailabilityStoreT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) AvailabilityStore() AvailabilityStoreT {
+	return k.as
 }
 
 // StateFromContext returns a new BeaconState initialized with a given context.
@@ -139,4 +149,7 @@ func (k Backend[
 	_, _, _, _, _, _, _, DepositStoreT, _, _, _, _, _, _, _,
 ]) DepositStore() DepositStoreT {
 	return k.depositStore
+	_, _, _, _, _, _, _, _, _, DepositStoreT, _, _, _, _, _, _, _,
+]) DepositStore() DepositStoreT {
+	return k.ds
 }

@@ -59,7 +59,7 @@ func (sp *StateProcessor[
 	return sp.processDeposits(st, deposits)
 }
 
-// processDeposits processes the deposits and ensures they match the
+// processDeposits processes the deposits and ensures  they match the
 // local state.
 func (sp *StateProcessor[
 	_, _, _, BeaconStateT, _, DepositT, _, _, _, _, _, _, _, _, _,

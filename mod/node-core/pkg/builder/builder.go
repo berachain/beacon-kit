@@ -83,6 +83,8 @@ func (nb *NodeBuilder[NodeT, T]) Build(
 		abciMiddleware  *components.ABCIMiddleware
 		serviceRegistry *service.Registry
 		stateStore      *components.StateManager
+		consensusEngine *components.ConsensusEngine
+		apiBackend      *components.NodeAPIBackend
 	)
 
 	// build all node components using depinject
@@ -105,12 +107,11 @@ func (nb *NodeBuilder[NodeT, T]) Build(
 		&chainSpec,
 		&abciMiddleware,
 		&serviceRegistry,
+		&consensusEngine,
+		&apiBackend,
 	); err != nil {
 		panic(err)
 	}
-
-	// This is a bit of a meme until server/v2.
-	// consensusEngine := comet.NewConsensus(abciMiddleware)
 
 	// set the application to a new BeaconApp with necessary ABCI handlers
 	// db, traceStore, true, appBuilder,
@@ -128,6 +129,8 @@ func (nb *NodeBuilder[NodeT, T]) Build(
 	stateStore.SetStateStore(app.GetStore().(runtime.Store))
 
 	nb.node.RegisterApp(app)
+	// TODO: so hood
+	apiBackend.AttachNode(nb.node)
 	nb.node.SetServiceRegistry(serviceRegistry)
 
 	// TODO: put this in some post node creation hook/listener.
