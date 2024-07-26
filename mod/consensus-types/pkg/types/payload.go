@@ -28,12 +28,17 @@ import (
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
+	essz "github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
+	fastssz "github.com/ferranbt/fastssz"
+	"github.com/karalabe/ssz"
 	"golang.org/x/sync/errgroup"
 )
+
+// ExecutionPayloadStaticSize is the static size of the ExecutionPayload.
+const ExecutionPayloadStaticSize uint32 = 528
 
 // ExecutionPayload is the execution payload for Deneb.
 //
@@ -73,6 +78,188 @@ type ExecutionPayload struct {
 	BlobGasUsed math.U64 `json:"blobGasUsed"`
 	// ExcessBlobGas is the amount of excess blob gas in the block.
 	ExcessBlobGas math.U64 `json:"excessBlobGas"`
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                     SSZ                                    */
+/* -------------------------------------------------------------------------- */
+
+// SizeSSZ returns either the static size of the object if fixed == true, or
+// the total size otherwise.
+func (p *ExecutionPayload) SizeSSZ(fixed bool) uint32 {
+	var size = ExecutionPayloadStaticSize
+	if fixed {
+		return size
+	}
+	size += ssz.SizeDynamicBytes(p.ExtraData)
+	size += ssz.SizeSliceOfDynamicBytes(p.Transactions)
+	size += ssz.SizeSliceOfStaticObjects(p.Withdrawals)
+	return size
+}
+
+// DefineSSZ defines how an object is encoded/decoded.
+//
+//nolint:mnd // todo fix.
+func (p *ExecutionPayload) DefineSSZ(codec *ssz.Codec) {
+	// Define the static data (fields and dynamic offsets)
+	ssz.DefineStaticBytes(codec, &p.ParentHash)
+	ssz.DefineStaticBytes(codec, &p.FeeRecipient)
+	ssz.DefineStaticBytes(codec, &p.StateRoot)
+	ssz.DefineStaticBytes(codec, &p.ReceiptsRoot)
+	ssz.DefineStaticBytes(codec, &p.LogsBloom)
+	ssz.DefineStaticBytes(codec, &p.Random)
+	ssz.DefineUint64(codec, &p.Number)
+	ssz.DefineUint64(codec, &p.GasLimit)
+	ssz.DefineUint64(codec, &p.GasUsed)
+	ssz.DefineUint64(codec, &p.Timestamp)
+	ssz.DefineDynamicBytesOffset(codec, (*[]byte)(&p.ExtraData), 32)
+	ssz.DefineStaticBytes(codec, &p.BaseFeePerGas)
+	ssz.DefineStaticBytes(codec, &p.BlockHash)
+	ssz.DefineSliceOfDynamicBytesOffset(codec, &p.Transactions, 1048576, 1073741824)
+	ssz.DefineSliceOfStaticObjectsOffset(codec, &p.Withdrawals, 16)
+	ssz.DefineUint64(codec, &p.BlobGasUsed)
+	ssz.DefineUint64(codec, &p.ExcessBlobGas)
+
+	// Define the dynamic data (fields)
+	ssz.DefineDynamicBytesContent(codec, (*[]byte)(&p.ExtraData), 32)
+	ssz.DefineSliceOfDynamicBytesContent(codec, &p.Transactions, 1048576, 1073741824)
+	ssz.DefineSliceOfStaticObjectsContent(codec, &p.Withdrawals, 16)
+}
+
+// MarshalSSZ serializes the ExecutionPayload object into a slice of bytes.
+func (p *ExecutionPayload) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, p.SizeSSZ(false))
+	return buf, ssz.EncodeToBytes(buf, p)
+}
+
+// UnmarshalSSZ unmarshals the ExecutionPayload object from a source array.
+func (p *ExecutionPayload) UnmarshalSSZ(bz []byte) error {
+	return ssz.DecodeFromBytes(bz, p)
+}
+
+// HashTreeRoot returns the hash tree root of the ExecutionPayload.
+func (p *ExecutionPayload) HashTreeRoot() ([32]byte, error) {
+	return ssz.HashConcurrent(p), nil
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
+
+// MarshalSSZTo serializes the ExecutionPayload object into a writer.
+func (e *ExecutionPayload) MarshalSSZTo(dst []byte) ([]byte, error) {
+	bz, err := e.MarshalSSZ()
+	if err != nil {
+		return nil, err
+	}
+	dst = append(dst, bz...)
+	return dst, nil
+}
+
+// HashTreeRootWith ssz hashes the ExecutionPayload object with a hasher
+func (e *ExecutionPayload) HashTreeRootWith(hh fastssz.HashWalker) (err error) {
+	indx := hh.Index()
+
+	// Field (0) 'ParentHash'
+	hh.PutBytes(e.ParentHash[:])
+
+	// Field (1) 'FeeRecipient'
+	hh.PutBytes(e.FeeRecipient[:])
+
+	// Field (2) 'StateRoot'
+	hh.PutBytes(e.StateRoot[:])
+
+	// Field (3) 'ReceiptsRoot'
+	hh.PutBytes(e.ReceiptsRoot[:])
+
+	// Field (4) 'LogsBloom'
+	hh.PutBytes(e.LogsBloom[:])
+
+	// Field (5) 'Random'
+	hh.PutBytes(e.Random[:])
+
+	// Field (6) 'Number'
+	hh.PutUint64(uint64(e.Number))
+
+	// Field (7) 'GasLimit'
+	hh.PutUint64(uint64(e.GasLimit))
+
+	// Field (8) 'GasUsed'
+	hh.PutUint64(uint64(e.GasUsed))
+
+	// Field (9) 'Timestamp'
+	hh.PutUint64(uint64(e.Timestamp))
+
+	// Field (10) 'ExtraData'
+	{
+		elemIndx := hh.Index()
+		byteLen := uint64(len(e.ExtraData))
+		if byteLen > 32 {
+			err = fastssz.ErrIncorrectListSize
+			return
+		}
+		hh.Append(e.ExtraData)
+		hh.MerkleizeWithMixin(elemIndx, byteLen, (32+31)/32)
+	}
+
+	// Field (11) 'BaseFeePerGas'
+	hh.PutBytes(e.BaseFeePerGas[:])
+
+	// Field (12) 'BlockHash'
+	hh.PutBytes(e.BlockHash[:])
+
+	// Field (13) 'Transactions'
+	{
+		subIndx := hh.Index()
+		num := uint64(len(e.Transactions))
+		if num > 1048576 {
+			err = fastssz.ErrIncorrectListSize
+			return
+		}
+		for _, elem := range e.Transactions {
+			{
+				elemIndx := hh.Index()
+				byteLen := uint64(len(elem))
+				if byteLen > 1073741824 {
+					err = fastssz.ErrIncorrectListSize
+					return
+				}
+				hh.AppendBytes32(elem)
+				hh.MerkleizeWithMixin(elemIndx, byteLen, (1073741824+31)/32)
+			}
+		}
+		hh.MerkleizeWithMixin(subIndx, num, 1048576)
+	}
+
+	// Field (14) 'Withdrawals'
+	{
+		subIndx := hh.Index()
+		num := uint64(len(e.Withdrawals))
+		if num > 16 {
+			err = fastssz.ErrIncorrectListSize
+			return
+		}
+		for _, elem := range e.Withdrawals {
+			if err = elem.HashTreeRootWith(hh); err != nil {
+				return
+			}
+		}
+		hh.MerkleizeWithMixin(subIndx, num, 16)
+	}
+
+	// Field (15) 'BlobGasUsed'
+	hh.PutUint64(uint64(e.BlobGasUsed))
+
+	// Field (16) 'ExcessBlobGas'
+	hh.PutUint64(uint64(e.ExcessBlobGas))
+
+	hh.Merkleize(indx)
+	return
+}
+
+// GetTree ssz hashes the ExecutionPayload object
+func (e *ExecutionPayload) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(e)
 }
 
 // Empty returns an empty ExecutionPayload for the given fork version.
@@ -206,7 +393,7 @@ func (p *ExecutionPayload) ToHeader(
 
 	g.Go(func() error {
 		var withdrawalsRootErr error
-		wds := ssz.ListFromElements(
+		wds := essz.ListFromElements(
 			maxWithdrawalsPerPayload,
 			p.GetWithdrawals()...)
 		withdrawalsRoot, withdrawalsRootErr = wds.HashTreeRoot()

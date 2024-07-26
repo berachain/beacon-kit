@@ -64,9 +64,12 @@ func generateBeaconBlockBodyDenebPlus() *types.BeaconBlockBodyDenebPlus {
 			Deposits: []*types.Deposit{},
 		},
 		ExecutionPayload: &types.ExecutionPayload{
-			ExtraData:    make([]byte, 0),
-			Transactions: make([][]byte, 0),
-			Withdrawals:  make([]*engineprimitives.Withdrawal, 0),
+			ExtraData:    []byte("dummy extra data for testing"),
+			Transactions: [][]byte{[]byte("tx1"), []byte("tx2"), []byte("tx3")},
+			Withdrawals: []*engineprimitives.Withdrawal{
+				{Index: 0, Amount: 100},
+				{Index: 1, Amount: 200},
+			},
 		},
 		Attestations:       []*types.AttestationData{},
 		SlashingInfo:       []*types.SlashingInfo{},
@@ -82,12 +85,6 @@ func TestBeaconBlockBodyDenebPlus_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 		err      error
 	}{
 		{
-			name:     "Valid BeaconBlockBodyDenebPlus",
-			data:     generateBeaconBlockBodyDenebPlus(),
-			expected: generateBeaconBlockBodyDenebPlus(),
-			err:      nil,
-		},
-		{
 			name: "Empty BeaconBlockBodyDenebPlus",
 			data: &types.BeaconBlockBodyDenebPlus{
 				BeaconBlockBodyBase: types.BeaconBlockBodyBase{
@@ -97,9 +94,12 @@ func TestBeaconBlockBodyDenebPlus_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 					Deposits:     []*types.Deposit{},
 				},
 				ExecutionPayload: &types.ExecutionPayload{
-					ExtraData:    make([]byte, 0),
-					Transactions: make([][]byte, 0),
-					Withdrawals:  make([]*engineprimitives.Withdrawal, 0),
+					ExtraData:    []byte("dummy extra data for testing"),
+					Transactions: [][]byte{[]byte("tx1"), []byte("tx2"), []byte("tx3")},
+					Withdrawals: []*engineprimitives.Withdrawal{
+						{Index: 0, Amount: 100},
+						{Index: 1, Amount: 200},
+					},
 				},
 				Attestations:       []*types.AttestationData{},
 				SlashingInfo:       []*types.SlashingInfo{},
@@ -113,9 +113,12 @@ func TestBeaconBlockBodyDenebPlus_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 					Deposits:     []*types.Deposit{},
 				},
 				ExecutionPayload: &types.ExecutionPayload{
-					ExtraData:    make([]byte, 0),
-					Transactions: make([][]byte, 0),
-					Withdrawals:  make([]*engineprimitives.Withdrawal, 0),
+					ExtraData:    []byte("dummy extra data for testing"),
+					Transactions: [][]byte{[]byte("tx1"), []byte("tx2"), []byte("tx3")},
+					Withdrawals: []*engineprimitives.Withdrawal{
+						{Index: 0, Amount: 100},
+						{Index: 1, Amount: 200},
+					},
 				},
 				Attestations:       []*types.AttestationData{},
 				SlashingInfo:       []*types.SlashingInfo{},

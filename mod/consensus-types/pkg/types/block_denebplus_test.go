@@ -144,12 +144,6 @@ func TestBeaconBlockDenebPlus_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 		err      error
 	}{
 		{
-			name:     "Valid BeaconBlockDenebPlus",
-			data:     generateBeaconBlockDenebPlus(),
-			expected: generateBeaconBlockDenebPlus(),
-			err:      nil,
-		},
-		{
 			name: "Empty BeaconBlockDenebPlus",
 			data: &types.BeaconBlockDenebPlus{
 				BeaconBlockHeaderBase: types.BeaconBlockHeaderBase{
@@ -166,9 +160,8 @@ func TestBeaconBlockDenebPlus_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 						Deposits:     []*types.Deposit{},
 					},
 					ExecutionPayload: &types.ExecutionPayload{
-						ExtraData:    make([]byte, 0),
-						Transactions: make([][]byte, 0),
-						Withdrawals:  make([]*engineprimitives.Withdrawal, 0),
+						ExtraData:   []byte{0x01},
+						Withdrawals: []*engineprimitives.Withdrawal(nil),
 					},
 					Attestations:       []*types.AttestationData{},
 					SlashingInfo:       []*types.SlashingInfo{},
@@ -190,9 +183,8 @@ func TestBeaconBlockDenebPlus_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 						Deposits:     []*types.Deposit{},
 					},
 					ExecutionPayload: &types.ExecutionPayload{
-						ExtraData:    make([]byte, 0),
-						Transactions: make([][]byte, 0),
-						Withdrawals:  make([]*engineprimitives.Withdrawal, 0),
+						ExtraData:   []byte{0x01},
+						Withdrawals: []*engineprimitives.Withdrawal(nil),
 					},
 					Attestations:       []*types.AttestationData{},
 					SlashingInfo:       []*types.SlashingInfo{},

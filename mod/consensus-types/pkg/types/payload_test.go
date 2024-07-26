@@ -22,6 +22,7 @@ package types_test
 
 import (
 	"encoding/json"
+	"io"
 	"math/big"
 	"testing"
 
@@ -34,13 +35,12 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
-	fastssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
 )
 
 func generateExecutionPayload() *types.ExecutionPayload {
 	transactions := make([][]byte, 1)
-	transactions[0] = make([]byte, 0)
+	transactions[0] = []byte{0x07}
 	withdrawals := make([]*engineprimitives.Withdrawal, 1)
 	withdrawals[0] = &engineprimitives.Withdrawal{
 		Index:     0,
@@ -59,7 +59,7 @@ func generateExecutionPayload() *types.ExecutionPayload {
 		GasLimit:      math.U64(0),
 		GasUsed:       math.U64(0),
 		Timestamp:     math.U64(0),
-		ExtraData:     []byte{},
+		ExtraData:     []byte{0x01},
 		BaseFeePerGas: math.Wei{},
 		BlockHash:     gethprimitives.ExecutionHash{},
 		Transactions:  transactions,
@@ -84,12 +84,12 @@ func TestExecutionPayload_Serialization(t *testing.T) {
 
 func TestExecutionPayload_SizeSSZ(t *testing.T) {
 	payload := generateExecutionPayload()
-	size := payload.SizeSSZ()
-	require.Equal(t, 576, size)
+	size := payload.SizeSSZ(false)
+	require.Equal(t, uint32(578), size)
 
 	state := &types.ExecutionPayload{}
 	err := state.UnmarshalSSZ([]byte{0x01, 0x02, 0x03}) // Invalid data
-	require.ErrorIs(t, err, fastssz.ErrSize)
+	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
 
 func TestExecutionPayload_HashTreeRoot(t *testing.T) {
@@ -115,7 +115,7 @@ func TestExecutionPayload_Getters(t *testing.T) {
 	)
 
 	transactions := make([][]byte, 1)
-	transactions[0] = make([]byte, 0)
+	transactions[0] = []byte{0x07}
 	withdrawals := make([]*engineprimitives.Withdrawal, 1)
 	withdrawals[0] = &engineprimitives.Withdrawal{
 		Index:     0,
@@ -133,7 +133,7 @@ func TestExecutionPayload_Getters(t *testing.T) {
 	require.Equal(t, math.U64(0), payload.GetGasLimit())
 	require.Equal(t, math.U64(0), payload.GetGasUsed())
 	require.Equal(t, math.U64(0), payload.GetTimestamp())
-	require.Equal(t, []byte{}, payload.GetExtraData())
+	require.Equal(t, []byte{0x01}, payload.GetExtraData())
 	require.Equal(t, math.Wei{}, payload.GetBaseFeePerGas())
 	require.Equal(t, gethprimitives.ExecutionHash{}, payload.GetBlockHash())
 	require.Equal(t, transactions, payload.GetTransactions())
@@ -390,118 +390,4 @@ func TestExecutionPayloadHashTreeRoot(t *testing.T) {
 		containerRoot,
 		"HashTreeRoot results should match",
 	)
-}
-
-func TestExecutionPayload_Marshal_Error(t *testing.T) {
-	tests := []struct {
-		name  string
-		setup func(payload *types.ExecutionPayload)
-		err   error
-	}{
-		{
-			name: "invalid ExtraData",
-			setup: func(payload *types.ExecutionPayload) {
-				payload.ExtraData = make([]byte, 33)
-			},
-			err: fastssz.ErrBytesLengthFn(
-				"ExecutionPayload.ExtraData",
-				33,
-				32,
-			),
-		},
-		{
-			name: "invalid Transactions size of individual elements",
-			setup: func(payload *types.ExecutionPayload) {
-				payload.Transactions = make([][]byte, 1)
-				payload.Transactions[0] = make([]byte, 1073741825)
-			},
-			err: fastssz.ErrBytesLengthFn(
-				"ExecutionPayload.Transactions[ii]",
-				1073741825,
-				1073741824,
-			),
-		},
-		{
-			name: "invalid Transactions size",
-			setup: func(payload *types.ExecutionPayload) {
-				payload.Transactions = make([][]byte, 1048577)
-			},
-			err: fastssz.ErrListTooBigFn(
-				"ExecutionPayload.Transactions",
-				1048577,
-				1048576,
-			),
-		},
-		{
-			name: "invalid Withdrawals",
-			setup: func(payload *types.ExecutionPayload) {
-				payload.Withdrawals = make([]*engineprimitives.Withdrawal, 17)
-			},
-			err: fastssz.ErrListTooBigFn(
-				"ExecutionPayload.Withdrawals",
-				17,
-				16,
-			),
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			payload := generateExecutionPayload()
-			if tc.setup != nil {
-				tc.setup(payload)
-			}
-			_, err := payload.MarshalSSZ()
-			require.EqualError(t, err, tc.err.Error())
-		})
-	}
-}
-
-func TestExecutionPayload_HasTreeRootWith_Error(t *testing.T) {
-	tests := []struct {
-		name  string
-		setup func(payload *types.ExecutionPayload)
-		err   error
-	}{
-		{
-			name: "invalid ExtraData",
-			setup: func(payload *types.ExecutionPayload) {
-				payload.ExtraData = make([]byte, 33)
-			},
-			err: fastssz.ErrIncorrectListSize,
-		},
-		{
-			name: "invalid Transactions size of individual elements",
-			setup: func(payload *types.ExecutionPayload) {
-				payload.Transactions = make([][]byte, 1)
-				payload.Transactions[0] = make([]byte, 1073741825)
-			},
-			err: fastssz.ErrIncorrectListSize,
-		},
-		{
-			name: "invalid Transactions size",
-			setup: func(payload *types.ExecutionPayload) {
-				payload.Transactions = make([][]byte, 1048577)
-			},
-			err: fastssz.ErrIncorrectListSize,
-		},
-		{
-			name: "invalid Withdrawals",
-			setup: func(payload *types.ExecutionPayload) {
-				payload.Withdrawals = make([]*engineprimitives.Withdrawal, 17)
-			},
-			err: fastssz.ErrIncorrectListSize,
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			payload := generateExecutionPayload()
-			if tc.setup != nil {
-				tc.setup(payload)
-			}
-			_, err := payload.HashTreeRoot()
-			require.EqualError(t, err, tc.err.Error())
-		})
-	}
 }

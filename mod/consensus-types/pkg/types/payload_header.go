@@ -127,84 +127,26 @@ func (h *ExecutionPayloadHeader) SizeSSZ(fixed bool) uint32 {
 // DefineSSZ defines how an object is encoded/decoded.
 func (h *ExecutionPayloadHeader) DefineSSZ(codec *ssz.Codec) {
 	// Define the static data (fields and dynamic offsets)
-	ssz.DefineStaticBytes(
-		codec,
-		&h.ParentHash,
-	) // Field  ( 0) -       ParentHash -  32 bytes
-	ssz.DefineStaticBytes(
-		codec,
-		&h.FeeRecipient,
-	) // Field  ( 1) -     FeeRecipient -  20 bytes
-	ssz.DefineStaticBytes(
-		codec,
-		&h.StateRoot,
-	) // Field  ( 2) -        StateRoot -  32 bytes
-	ssz.DefineStaticBytes(
-		codec,
-		&h.ReceiptsRoot,
-	) // Field  ( 3) -     ReceiptsRoot -  32 bytes
-	ssz.DefineStaticBytes(
-		codec,
-		&h.LogsBloom,
-	) // Field  ( 4) -        LogsBloom - 256 bytes
-	ssz.DefineStaticBytes(
-		codec,
-		&h.Random,
-	) // Field  ( 5) -       PrevRandao -  32 bytes
-	ssz.DefineUint64(
-		codec,
-		&h.Number,
-	) // Field  ( 6) -      BlockNumber -   8 bytes
-	ssz.DefineUint64(
-		codec,
-		&h.GasLimit,
-	) // Field  ( 7) -         GasLimit -   8 bytes
-	ssz.DefineUint64(
-		codec,
-		&h.GasUsed,
-	) // Field  ( 8) -          GasUsed -   8 bytes
-	ssz.DefineUint64(
-		codec,
-		&h.Timestamp,
-	) // Field  ( 9) -        Timestamp -   8 bytes
-	ssz.DefineDynamicBytesOffset(
-		codec,
-		(*[]byte)(&h.ExtraData),
-		//nolint:mnd // todo fix.
-		32,
-	) // Offset (10) -        ExtraData -   4 bytes
-	ssz.DefineStaticBytes(
-		codec,
-		&h.BaseFeePerGas,
-	) // Field  (11) -    BaseFeePerGas -  32 bytes
-	ssz.DefineStaticBytes(
-		codec,
-		&h.BlockHash,
-	) // Field  (12) -        BlockHash -  32 bytes
-	ssz.DefineStaticBytes(
-		codec,
-		&h.TransactionsRoot,
-	) // Field  (13) - TransactionsRoot -  32 bytes
-	ssz.DefineStaticBytes(
-		codec,
-		&h.WithdrawalsRoot,
-	) // Field  (14) -   WithdrawalRoot -  32 bytes
-	ssz.DefineUint64(
-		codec,
-		&h.BlobGasUsed,
-	) // Field  (15) -      BlobGasUsed -   8 bytes
-	ssz.DefineUint64(
-		codec,
-		&h.ExcessBlobGas,
-	) // Field  (16) -    ExcessBlobGas -   8 bytes
+	ssz.DefineStaticBytes(codec, &h.ParentHash)
+	ssz.DefineStaticBytes(codec, &h.FeeRecipient)
+	ssz.DefineStaticBytes(codec, &h.StateRoot)
+	ssz.DefineStaticBytes(codec, &h.ReceiptsRoot)
+	ssz.DefineStaticBytes(codec, &h.LogsBloom)
+	ssz.DefineStaticBytes(codec, &h.Random)
+	ssz.DefineUint64(codec, &h.Number)
+	ssz.DefineUint64(codec, &h.GasLimit)
+	ssz.DefineUint64(codec, &h.GasUsed)
+	ssz.DefineUint64(codec, &h.Timestamp)
+	ssz.DefineDynamicBytesOffset(codec, (*[]byte)(&h.ExtraData), 32)
+	ssz.DefineStaticBytes(codec, &h.BaseFeePerGas)
+	ssz.DefineStaticBytes(codec, &h.BlockHash)
+	ssz.DefineStaticBytes(codec, &h.TransactionsRoot)
+	ssz.DefineStaticBytes(codec, &h.WithdrawalsRoot)
+	ssz.DefineUint64(codec, &h.BlobGasUsed)
+	ssz.DefineUint64(codec, &h.ExcessBlobGas)
 
 	// Define the dynamic data (fields)
-	ssz.DefineDynamicBytesContent(
-		codec,
-		(*[]byte)(&h.ExtraData),
-		//nolint:mnd // todo fix.
-		32,
-	) // Field  (10) -        ExtraData - ? bytes
+	ssz.DefineDynamicBytesContent(codec, (*[]byte)(&h.ExtraData), 32)
 }
 
 // MarshalSSZ serializes the ExecutionPayloadHeader object into a slice of
