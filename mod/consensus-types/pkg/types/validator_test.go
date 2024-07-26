@@ -21,6 +21,7 @@
 package types_test
 
 import (
+	"io"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -662,7 +663,7 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 				var v types.Validator
 				err := v.UnmarshalSSZ(invalidSizeData)
 				require.Error(t, err, "Test case: %s", tt.name)
-				require.Equal(t, ssz.ErrSize, err,
+				require.Equal(t, io.ErrUnexpectedEOF, err,
 					"Test case: %s", tt.name)
 			} else {
 				// Marshal the validator
@@ -825,9 +826,10 @@ func TestValidator_GetWithdrawalCredentials(t *testing.T) {
 		{
 			name: "get withdrawal credentials",
 			validator: &types.Validator{
-				WithdrawalCredentials: types.NewCredentialsFromExecutionAddress(
-					gethprimitives.ExecutionAddress{0x01},
-				),
+				WithdrawalCredentials: types.
+					NewCredentialsFromExecutionAddress(
+						gethprimitives.ExecutionAddress{0x01},
+					),
 			},
 			want: types.NewCredentialsFromExecutionAddress(
 				gethprimitives.ExecutionAddress{0x01},

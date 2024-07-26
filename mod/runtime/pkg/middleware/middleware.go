@@ -22,6 +22,7 @@ package middleware
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
@@ -30,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	rp2p "github.com/berachain/beacon-kit/mod/runtime/pkg/p2p"
@@ -44,7 +44,8 @@ type ABCIMiddleware[
 	BlobSidecarsT constraints.SSZMarshallable,
 	DepositT,
 	ExecutionPayloadT any,
-	GenesisT Genesis,
+	GenesisT json.Unmarshaler,
+	SlotDataT any,
 ] struct {
 	// chainSpec is the chain specification.
 	chainSpec common.ChainSpec
@@ -82,7 +83,7 @@ type ABCIMiddleware[
 	// sidecarsBroker is a feed for sidecars.
 	sidecarsBroker *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
 	// slotBroker is a feed for slots.
-	slotBroker *broker.Broker[*asynctypes.Event[math.Slot]]
+	slotBroker *broker.Broker[*asynctypes.Event[SlotDataT]]
 
 	// TODO: this is a temporary hack.
 	req *cmtabci.FinalizeBlockRequest
@@ -104,7 +105,8 @@ func NewABCIMiddleware[
 	BlobSidecarsT constraints.SSZMarshallable,
 	DepositT,
 	ExecutionPayloadT any,
-	GenesisT Genesis,
+	GenesisT json.Unmarshaler,
+	SlotDataT any,
 ](
 	chainSpec common.ChainSpec,
 	chainService BlockchainService[
@@ -115,15 +117,15 @@ func NewABCIMiddleware[
 	genesisBroker *broker.Broker[*asynctypes.Event[GenesisT]],
 	blkBroker *broker.Broker[*asynctypes.Event[BeaconBlockT]],
 	sidecarsBroker *broker.Broker[*asynctypes.Event[BlobSidecarsT]],
-	slotBroker *broker.Broker[*asynctypes.Event[math.Slot]],
+	slotBroker *broker.Broker[*asynctypes.Event[SlotDataT]],
 	valUpdateSub chan *asynctypes.Event[transition.ValidatorUpdates],
 ) *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+	AvailabilityStoreT, BeaconBlockT, BlobSidecarsT, DepositT,
+	ExecutionPayloadT, GenesisT, SlotDataT,
 ] {
 	return &ABCIMiddleware[
-		AvailabilityStoreT, BeaconBlockT,
-		BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+		AvailabilityStoreT, BeaconBlockT, BlobSidecarsT, DepositT,
+		ExecutionPayloadT, GenesisT, SlotDataT,
 	]{
 		chainSpec:    chainSpec,
 		chainService: chainService,
@@ -156,15 +158,15 @@ func NewABCIMiddleware[
 
 // Name returns the name of the middleware.
 func (am *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT,
-	BlobSidecarsT, DepositT, ExecutionPayloadT, GenesisT,
+	AvailabilityStoreT, BeaconBlockT, BlobSidecarsT, DepositT,
+	ExecutionPayloadT, GenesisT, SlotDataT,
 ]) Name() string {
 	return "abci-middleware"
 }
 
 // Start the middleware.
 func (am *ABCIMiddleware[
-	_, _, _, _, _, _,
+	_, _, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
 	subBlkCh, err := am.blkBroker.Subscribe()
 	if err != nil {
@@ -182,7 +184,7 @@ func (am *ABCIMiddleware[
 
 // start starts the middleware.
 func (am *ABCIMiddleware[
-	_, BeaconBlockT, BlobSidecarsT, _, _, _,
+	_, BeaconBlockT, BlobSidecarsT, _, _, _, _,
 ]) start(
 	ctx context.Context,
 	blkCh chan *asynctypes.Event[BeaconBlockT],

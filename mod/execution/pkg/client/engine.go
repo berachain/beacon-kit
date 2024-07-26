@@ -159,7 +159,8 @@ func (s *EngineClient[
 		return result, s.handleRPCError(err)
 	case result == nil:
 		return result, engineerrors.ErrNilExecutionPayloadEnvelope
-	case result.GetBlobsBundle() == nil && forkVersion >= version.Deneb:
+	case result.GetBlobsBundle() == nil &&
+		((forkVersion >= version.Deneb) || (forkVersion >= version.DenebPlus)):
 		return result, engineerrors.ErrNilBlobsBundle
 	}
 

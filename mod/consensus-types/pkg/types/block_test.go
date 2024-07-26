@@ -32,38 +32,45 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// generateValidBeaconBlockDeneb generates a valid beacon block for the Deneb.
-func generateValidBeaconBlockDeneb() *types.BeaconBlockDeneb {
+// generateValidBeaconBlock generates a valid beacon block for the Deneb.
+func generateValidBeaconBlock() *types.BeaconBlock {
 	// Initialize your block here
-	var byteArray [256]byte
-	byteSlice := byteArray[:]
-	return &types.BeaconBlockDeneb{
-		BeaconBlockHeaderBase: types.BeaconBlockHeaderBase{
-			Slot:            10,
-			ProposerIndex:   5,
-			ParentBlockRoot: bytes.B32{1, 2, 3, 4, 5},
-			StateRoot:       bytes.B32{5, 4, 3, 2, 1},
-		},
-		Body: &types.BeaconBlockBodyDeneb{
-			ExecutionPayload: &types.ExecutableDataDeneb{
-				LogsBloom: byteSlice,
-
-				ExtraData:    []byte{},
-				Transactions: [][]byte{},
-				Withdrawals:  []*engineprimitives.Withdrawal{},
+	return &types.BeaconBlock{
+		Slot:          10,
+		ProposerIndex: 5,
+		ParentRoot:    bytes.B32{1, 2, 3, 4, 5},
+		StateRoot:     bytes.B32{5, 4, 3, 2, 1},
+		Body: &types.BeaconBlockBody{
+			ExecutionPayload: &types.ExecutionPayload{
+				ExtraData: []byte("dummy extra data for testing"),
+				Transactions: [][]byte{
+					[]byte("tx1"),
+					[]byte("tx2"),
+					[]byte("tx3"),
+				},
+				Withdrawals: []*engineprimitives.Withdrawal{
+					{Index: 0, Amount: 100},
+					{Index: 1, Amount: 200},
+				},
 			},
-			BlobKzgCommitments: []eip4844.KZGCommitment{},
+			Eth1Data: &types.Eth1Data{},
+			Deposits: []*types.Deposit{
+				{
+					Index: 1,
+				},
+			},
+			BlobKzgCommitments: []eip4844.KZGCommitment{
+				{1, 2, 3},
+			},
 		},
 	}
 }
 
 func TestBeaconBlockForDeneb(t *testing.T) {
-	block := &types.BeaconBlockDeneb{
-		BeaconBlockHeaderBase: types.BeaconBlockHeaderBase{
-			Slot:            10,
-			ProposerIndex:   5,
-			ParentBlockRoot: bytes.B32{1, 2, 3, 4, 5},
-		},
+	block := &types.BeaconBlock{
+		Slot:          10,
+		ProposerIndex: 5,
+		ParentRoot:    bytes.B32{1, 2, 3, 4, 5},
 	}
 	require.NotNil(t, block)
 }
@@ -76,9 +83,7 @@ func TestEmptyBeaconBlockInvalidForkVersion(t *testing.T) {
 }
 
 func TestBeaconBlockFromSSZ(t *testing.T) {
-	originalBlock := generateValidBeaconBlockDeneb()
-
-	originalBlock.Body.Deposits = []*types.Deposit{}
+	originalBlock := generateValidBeaconBlock()
 
 	sszBlock, err := originalBlock.MarshalSSZ()
 	require.NoError(t, err)
@@ -88,10 +93,7 @@ func TestBeaconBlockFromSSZ(t *testing.T) {
 	wrappedBlock, err = wrappedBlock.NewFromSSZ(sszBlock, version.Deneb)
 	require.NoError(t, err)
 	require.NotNil(t, wrappedBlock)
-
-	block, ok := wrappedBlock.RawBeaconBlock.(*types.BeaconBlockDeneb)
-	require.True(t, ok)
-	require.Equal(t, originalBlock, block)
+	require.Equal(t, originalBlock, wrappedBlock)
 }
 
 func TestBeaconBlockFromSSZForkVersionNotSupported(t *testing.T) {
@@ -99,8 +101,8 @@ func TestBeaconBlockFromSSZForkVersionNotSupported(t *testing.T) {
 	_, err := wrappedBlock.NewFromSSZ([]byte{}, 1)
 	require.ErrorIs(t, err, types.ErrForkVersionNotSupported)
 }
-func TestBeaconBlockDeneb(t *testing.T) {
-	block := generateValidBeaconBlockDeneb()
+func TestBeaconBlock(t *testing.T) {
+	block := generateValidBeaconBlock()
 
 	require.NotNil(t, block.Body)
 	require.Equal(t, version.Deneb, block.Version())
@@ -111,40 +113,31 @@ func TestBeaconBlockDeneb(t *testing.T) {
 	block.SetStateRoot(newStateRoot)
 	require.Equal(t, newStateRoot, [32]byte(block.StateRoot))
 
-	// Test the GetBody method
-	require.Equal(
-		t, &types.BeaconBlockBody{RawBeaconBlockBody: block.Body},
-		block.GetBody(),
-	)
-
 	// Test the GetHeader method
 	header := block.GetHeader()
 	require.NotNil(t, header)
 	require.Equal(t, block.Slot, header.Slot)
 	require.Equal(t, block.ProposerIndex, header.ProposerIndex)
-	require.Equal(t, block.ParentBlockRoot, header.ParentBlockRoot)
+	require.Equal(t, block.ParentRoot, header.ParentBlockRoot)
 	require.Equal(t, block.StateRoot, header.StateRoot)
 }
 
-func TestBeaconBlockDeneb_MarshalUnmarshalSSZ(t *testing.T) {
-	block := *generateValidBeaconBlockDeneb()
-	block.Body.Deposits = []*types.Deposit{}
+func TestBeaconBlock_MarshalUnmarshalSSZ(t *testing.T) {
+	block := *generateValidBeaconBlock()
 
 	sszBlock, err := block.MarshalSSZ()
 	require.NoError(t, err)
 	require.NotNil(t, sszBlock)
 
-	var unmarshalledBlock types.BeaconBlockDeneb
+	var unmarshalledBlock types.BeaconBlock
 	err = unmarshalledBlock.UnmarshalSSZ(sszBlock)
 	require.NoError(t, err)
-
-	block.Body.Deposits = []*types.Deposit{}
 
 	require.Equal(t, block, unmarshalledBlock)
 }
 
-func TestBeaconBlockDeneb_HashTreeRoot(t *testing.T) {
-	block := generateValidBeaconBlockDeneb()
+func TestBeaconBlock_HashTreeRoot(t *testing.T) {
+	block := generateValidBeaconBlock()
 	hashRoot, err := block.HashTreeRoot()
 	require.NoError(t, err)
 	require.NotNil(t, hashRoot)
@@ -154,22 +147,12 @@ func TestBeaconBlockEmpty(t *testing.T) {
 	block := &types.BeaconBlock{}
 	emptyBlock := block.Empty(version.Deneb)
 	require.NotNil(t, emptyBlock)
-	require.IsType(t, &types.BeaconBlockDeneb{}, emptyBlock.RawBeaconBlock)
+	require.IsType(t, &types.BeaconBlock{}, emptyBlock)
 }
 
 func TestBeaconBlock_IsNil(t *testing.T) {
 	var block *types.BeaconBlock
 	require.True(t, block.IsNil())
-
-	// Test when RawBeaconBlock is nil
-	block = &types.BeaconBlock{}
-	require.True(t, block.IsNil())
-
-	// Test when BeaconBlock and RawBeaconBlock are not nil
-	block = &types.BeaconBlock{
-		RawBeaconBlock: &types.BeaconBlockDeneb{},
-	}
-	require.False(t, block.IsNil())
 }
 
 func TestNewWithVersion(t *testing.T) {
@@ -184,11 +167,11 @@ func TestNewWithVersion(t *testing.T) {
 	require.NotNil(t, block)
 
 	// Check the block's fields
-	require.NotNil(t, block.RawBeaconBlock)
-	require.Equal(t, slot, block.RawBeaconBlock.GetSlot())
-	require.Equal(t, proposerIndex, block.RawBeaconBlock.GetProposerIndex())
-	require.Equal(t, parentBlockRoot, block.RawBeaconBlock.GetParentBlockRoot())
-	require.Equal(t, version.Deneb, block.RawBeaconBlock.Version())
+	require.NotNil(t, block)
+	require.Equal(t, slot, block.GetSlot())
+	require.Equal(t, proposerIndex, block.GetProposerIndex())
+	require.Equal(t, parentBlockRoot, block.GetParentBlockRoot())
+	require.Equal(t, version.Deneb, block.Version())
 }
 
 func TestNewWithVersionInvalidForkVersion(t *testing.T) {
@@ -205,8 +188,8 @@ func TestNewWithVersionInvalidForkVersion(t *testing.T) {
 	require.ErrorIs(t, err, types.ErrForkVersionNotSupported)
 }
 
-func TestBeaconBlockDeneb_GetTree(t *testing.T) {
-	block := generateValidBeaconBlockDeneb()
+func TestBeaconBlock_GetTree(t *testing.T) {
+	block := generateValidBeaconBlock()
 	tree, err := block.GetTree()
 	require.NoError(t, err)
 	require.NotNil(t, tree)

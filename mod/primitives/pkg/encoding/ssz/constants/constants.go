@@ -31,26 +31,26 @@ const (
 	BitsPerByte = 8
 
 	// ByteSize is the size of a single byte.
-	ByteSize = 1
+	ByteSize uint32 = 1
 
 	// BoolSize is the size of a boolean in bytes.
-	BoolSize = 1
+	BoolSize uint32 = 1
 
 	// U8Size is the size of an 8-bit unsigned integer in bytes.
-	U8Size = 1
+	U8Size uint32 = 1
 
 	// U16Size is the size of a 16-bit unsigned integer in bytes.
-	U16Size = 2
+	U16Size uint32 = 2
 
 	// U32Size is the size of a 32-bit unsigned integer in bytes.
-	U32Size = 4
+	U32Size uint32 = 4
 
 	// U64Size is the size of a 64-bit unsigned integer in bytes.
-	U64Size = 8
+	U64Size uint32 = 8
 
 	// U128Size is the size of a 128-bit unsigned integer in bytes.
-	U128Size = 16
+	U128Size uint32 = 16
 
 	// U256Size is the size of a 256-bit unsigned integer in bytes.
-	U256Size = 32
+	U256Size uint32 = 32
 )

@@ -22,11 +22,11 @@ package engineprimitives_test
 
 import (
 	"encoding/binary"
-	"encoding/json"
 	"testing"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives/mocks"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/require"
 )

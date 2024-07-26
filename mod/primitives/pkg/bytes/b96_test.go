@@ -22,10 +22,10 @@
 package bytes_test
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
@@ -78,7 +78,7 @@ func BenchmarkB96_UnmarshalJSON(b *testing.B) {
 
 func TestB96SizeSSZ(t *testing.T) {
 	var b bytes.B96
-	require.Equal(t, bytes.B96Size, b.SizeSSZ(),
+	require.Equal(t, bytes.B96Size, int(b.SizeSSZ()),
 		"SizeSSZ should return the correct size")
 }
 

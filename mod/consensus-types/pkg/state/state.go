@@ -76,7 +76,7 @@ func (st *BeaconStateMarshallable[
 	ValidatorT,
 ], error) {
 	switch forkVersion {
-	case version.Deneb:
+	case version.Deneb, version.DenebPlus:
 		return &BeaconStateMarshallable[
 			BeaconBlockHeaderT,
 			Eth1DataT,
@@ -96,8 +96,7 @@ func (st *BeaconStateMarshallable[
 				StateRoots: stateRoots,
 				LatestExecutionPayloadHeader: reflect.
 					ValueOf(latestExecutionPayloadHeader).
-					Interface().(*types.ExecutionPayloadHeader).
-					InnerExecutionPayloadHeader.(*types.ExecutionPayloadHeaderDeneb),
+					Interface().(*types.ExecutionPayloadHeader),
 				Eth1Data: reflect.ValueOf(eth1Data).
 					Interface().(*types.Eth1Data),
 				Eth1DepositIndex: eth1DepositIndex,
