@@ -41,7 +41,7 @@ func (b *BeaconBlockBodyDeneb) MarshalSSZTo(buf []byte) (dst []byte, err error) 
 	if b.ExecutionPayload == nil {
 		b.ExecutionPayload = new(ExecutionPayload)
 	}
-	offset += b.ExecutionPayload.SizeSSZ()
+	offset += int(b.ExecutionPayload.SizeSSZ(false))
 
 	// Offset (5) 'BlobKzgCommitments'
 	dst = ssz.WriteOffset(dst, offset)
@@ -173,7 +173,7 @@ func (b *BeaconBlockBodyDeneb) SizeSSZ() (size int) {
 	if b.ExecutionPayload == nil {
 		b.ExecutionPayload = new(ExecutionPayload)
 	}
-	size += b.ExecutionPayload.SizeSSZ()
+	size += int(b.ExecutionPayload.SizeSSZ(false))
 
 	// Field (5) 'BlobKzgCommitments'
 	size += len(b.BlobKzgCommitments) * 48

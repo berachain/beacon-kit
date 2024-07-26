@@ -23,6 +23,7 @@ package types
 import (
 	"encoding/json"
 
+	"github.com/berachain/beacon-kit/mod/errors"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -34,7 +35,7 @@ import (
 
 // ExecutionPayloadHeader is the execution header payload of Deneb.
 //
-//nolint:lll
+
 type ExecutionPayloadHeader struct {
 	// TODO: Enable once
 	// https://github.com/karalabe/ssz/pull/9/files# is merged.
@@ -47,33 +48,33 @@ type ExecutionPayloadHeader struct {
 	// Contents
 	//
 	// ParentHash is the hash of the parent block.
-	ParentHash gethprimitives.ExecutionHash `json:"parentHash"       gencodec:"required"`
+	ParentHash gethprimitives.ExecutionHash `json:"parentHash"`
 	// FeeRecipient is the address of the fee recipient.
-	FeeRecipient gethprimitives.ExecutionAddress `json:"feeRecipient"     gencodec:"required"`
+	FeeRecipient gethprimitives.ExecutionAddress `json:"feeRecipient"`
 	// StateRoot is the root of the state trie.
-	StateRoot common.Bytes32 `json:"stateRoot"        gencodec:"required"`
+	StateRoot common.Bytes32 `json:"stateRoot"`
 	// ReceiptsRoot is the root of the receipts trie.
-	ReceiptsRoot common.Bytes32 `json:"receiptsRoot"     gencodec:"required"`
+	ReceiptsRoot common.Bytes32 `json:"receiptsRoot"`
 	// LogsBloom is the bloom filter for the logs.
-	LogsBloom bytes.B256 `json:"logsBloom"        gencodec:"required"`
+	LogsBloom bytes.B256 `json:"logsBloom"`
 	// Random is the prevRandao value.
-	Random common.Bytes32 `json:"prevRandao"       gencodec:"required"`
+	Random common.Bytes32 `json:"prevRandao"`
 	// Number is the block number.
-	Number math.U64 `json:"blockNumber"      gencodec:"required"`
+	Number math.U64 `json:"blockNumber"`
 	// GasLimit is the gas limit for the block.
-	GasLimit math.U64 `json:"gasLimit"         gencodec:"required"`
+	GasLimit math.U64 `json:"gasLimit"`
 	// GasUsed is the amount of gas used in the block.
-	GasUsed math.U64 `json:"gasUsed"          gencodec:"required"`
+	GasUsed math.U64 `json:"gasUsed"`
 	// Timestamp is the timestamp of the block.
-	Timestamp math.U64 `json:"timestamp"        gencodec:"required"`
+	Timestamp math.U64 `json:"timestamp"`
 	// ExtraData is the extra data of the block.
-	ExtraData bytes.Bytes `json:"extraData"        gencodec:"required"`
+	ExtraData bytes.Bytes `json:"extraData"`
 	// BaseFeePerGas is the base fee per gas.
-	BaseFeePerGas math.Wei `json:"baseFeePerGas"    gencodec:"required"`
+	BaseFeePerGas math.Wei `json:"baseFeePerGas"`
 	// BlockHash is the hash of the block.
-	BlockHash gethprimitives.ExecutionHash `json:"blockHash"        gencodec:"required"`
+	BlockHash gethprimitives.ExecutionHash `json:"blockHash"`
 	// TransactionsRoot is the root of the transaction trie.
-	TransactionsRoot common.Root `json:"transactionsRoot" gencodec:"required"`
+	TransactionsRoot common.Root `json:"transactionsRoot"`
 	// WithdrawalsRoot is the root of the withdrawals trie.
 	WithdrawalsRoot common.Root `json:"withdrawalsRoot"`
 	// BlobGasUsed is the amount of blob gas used in the block.
@@ -127,84 +128,28 @@ func (h *ExecutionPayloadHeader) SizeSSZ(fixed bool) uint32 {
 // DefineSSZ defines how an object is encoded/decoded.
 func (h *ExecutionPayloadHeader) DefineSSZ(codec *ssz.Codec) {
 	// Define the static data (fields and dynamic offsets)
-	ssz.DefineStaticBytes(
-		codec,
-		&h.ParentHash,
-	) // Field  ( 0) -       ParentHash -  32 bytes
-	ssz.DefineStaticBytes(
-		codec,
-		&h.FeeRecipient,
-	) // Field  ( 1) -     FeeRecipient -  20 bytes
-	ssz.DefineStaticBytes(
-		codec,
-		&h.StateRoot,
-	) // Field  ( 2) -        StateRoot -  32 bytes
-	ssz.DefineStaticBytes(
-		codec,
-		&h.ReceiptsRoot,
-	) // Field  ( 3) -     ReceiptsRoot -  32 bytes
-	ssz.DefineStaticBytes(
-		codec,
-		&h.LogsBloom,
-	) // Field  ( 4) -        LogsBloom - 256 bytes
-	ssz.DefineStaticBytes(
-		codec,
-		&h.Random,
-	) // Field  ( 5) -       PrevRandao -  32 bytes
-	ssz.DefineUint64(
-		codec,
-		&h.Number,
-	) // Field  ( 6) -      BlockNumber -   8 bytes
-	ssz.DefineUint64(
-		codec,
-		&h.GasLimit,
-	) // Field  ( 7) -         GasLimit -   8 bytes
-	ssz.DefineUint64(
-		codec,
-		&h.GasUsed,
-	) // Field  ( 8) -          GasUsed -   8 bytes
-	ssz.DefineUint64(
-		codec,
-		&h.Timestamp,
-	) // Field  ( 9) -        Timestamp -   8 bytes
-	ssz.DefineDynamicBytesOffset(
-		codec,
-		(*[]byte)(&h.ExtraData),
-		//nolint:mnd // todo fix.
-		32,
-	) // Offset (10) -        ExtraData -   4 bytes
-	ssz.DefineStaticBytes(
-		codec,
-		&h.BaseFeePerGas,
-	) // Field  (11) -    BaseFeePerGas -  32 bytes
-	ssz.DefineStaticBytes(
-		codec,
-		&h.BlockHash,
-	) // Field  (12) -        BlockHash -  32 bytes
-	ssz.DefineStaticBytes(
-		codec,
-		&h.TransactionsRoot,
-	) // Field  (13) - TransactionsRoot -  32 bytes
-	ssz.DefineStaticBytes(
-		codec,
-		&h.WithdrawalsRoot,
-	) // Field  (14) -   WithdrawalRoot -  32 bytes
-	ssz.DefineUint64(
-		codec,
-		&h.BlobGasUsed,
-	) // Field  (15) -      BlobGasUsed -   8 bytes
-	ssz.DefineUint64(
-		codec,
-		&h.ExcessBlobGas,
-	) // Field  (16) -    ExcessBlobGas -   8 bytes
+	ssz.DefineStaticBytes(codec, &h.ParentHash)
+	ssz.DefineStaticBytes(codec, &h.FeeRecipient)
+	ssz.DefineStaticBytes(codec, &h.StateRoot)
+	ssz.DefineStaticBytes(codec, &h.ReceiptsRoot)
+	ssz.DefineStaticBytes(codec, &h.LogsBloom)
+	ssz.DefineStaticBytes(codec, &h.Random)
+	ssz.DefineUint64(codec, &h.Number)
+	ssz.DefineUint64(codec, &h.GasLimit)
+	ssz.DefineUint64(codec, &h.GasUsed)
+	ssz.DefineUint64(codec, &h.Timestamp)
+	//nolint:mnd // todo fix.
+	ssz.DefineDynamicBytesOffset(codec, (*[]byte)(&h.ExtraData), 32)
+	ssz.DefineStaticBytes(codec, &h.BaseFeePerGas)
+	ssz.DefineStaticBytes(codec, &h.BlockHash)
+	ssz.DefineStaticBytes(codec, &h.TransactionsRoot)
+	ssz.DefineStaticBytes(codec, &h.WithdrawalsRoot)
+	ssz.DefineUint64(codec, &h.BlobGasUsed)
+	ssz.DefineUint64(codec, &h.ExcessBlobGas)
 
 	// Define the dynamic data (fields)
-	ssz.DefineDynamicBytesContent(
-		codec,
-		(*[]byte)(&h.ExtraData),
-		//nolint:mnd // todo fix.
-		32,
-	) // Field  (10) -        ExtraData - ? bytes
+	//nolint:mnd // todo fix.
+	ssz.DefineDynamicBytesContent(codec, (*[]byte)(&h.ExtraData), 32)
 }
 
 // MarshalSSZ serializes the ExecutionPayloadHeader object into a slice of
@@ -217,8 +162,6 @@ func (h *ExecutionPayloadHeader) MarshalSSZ() ([]byte, error) {
 // UnmarshalSSZ unmarshals the ExecutionPayloadHeaderDeneb object from a source
 // array.
 func (h *ExecutionPayloadHeader) UnmarshalSSZ(bz []byte) error {
-	// TODO: THIS IS A HACK TO GET BEACONSTATE TO WORK
-	// h.version = version.Deneb
 	return ssz.DecodeFromBytes(bz, h)
 }
 
@@ -322,6 +265,182 @@ func (h *ExecutionPayloadHeader) HashTreeRootWith(hh fastssz.HashWalker) error {
 // GetTree ssz hashes the ExecutionPayloadHeaderDeneb object.
 func (h *ExecutionPayloadHeader) GetTree() (*fastssz.Node, error) {
 	return fastssz.ProofTree(h)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                    JSON                                    */
+/* -------------------------------------------------------------------------- */
+
+// MarshalJSON marshals as JSON.
+func (h ExecutionPayloadHeader) MarshalJSON() ([]byte, error) {
+	type ExecutionPayloadHeader struct {
+		ParentHash       gethprimitives.ExecutionHash    `json:"parentHash"`
+		FeeRecipient     gethprimitives.ExecutionAddress `json:"feeRecipient"`
+		StateRoot        bytes.B32                       `json:"stateRoot"`
+		ReceiptsRoot     bytes.B32                       `json:"receiptsRoot"`
+		LogsBloom        bytes.B256                      `json:"logsBloom"`
+		Random           bytes.B32                       `json:"prevRandao"`
+		Number           math.U64                        `json:"blockNumber"`
+		GasLimit         math.U64                        `json:"gasLimit"`
+		GasUsed          math.U64                        `json:"gasUsed"`
+		Timestamp        math.U64                        `json:"timestamp"`
+		ExtraData        bytes.Bytes                     `json:"extraData"`
+		BaseFeePerGas    math.U256L                      `json:"baseFeePerGas"`
+		BlockHash        common.ExecutionHash            `json:"blockHash"`
+		TransactionsRoot bytes.B32                       `json:"transactionsRoot"`
+		WithdrawalsRoot  bytes.B32                       `json:"withdrawalsRoot"`
+		BlobGasUsed      math.U64                        `json:"blobGasUsed"`
+		ExcessBlobGas    math.U64                        `json:"excessBlobGas"`
+	}
+	var enc ExecutionPayloadHeader
+	enc.ParentHash = h.ParentHash
+	enc.FeeRecipient = h.FeeRecipient
+	enc.StateRoot = h.StateRoot
+	enc.ReceiptsRoot = h.ReceiptsRoot
+	enc.LogsBloom = h.LogsBloom
+	enc.Random = h.Random
+	enc.Number = h.Number
+	enc.GasLimit = h.GasLimit
+	enc.GasUsed = h.GasUsed
+	enc.Timestamp = h.Timestamp
+	enc.ExtraData = h.ExtraData
+	enc.BaseFeePerGas = h.BaseFeePerGas
+	enc.BlockHash = h.BlockHash
+	enc.TransactionsRoot = h.TransactionsRoot
+	enc.WithdrawalsRoot = h.WithdrawalsRoot
+	enc.BlobGasUsed = h.BlobGasUsed
+	enc.ExcessBlobGas = h.ExcessBlobGas
+	return json.Marshal(&enc)
+}
+
+// UnmarshalJSON unmarshals from JSON.
+//
+//nolint:funlen // codegen.
+func (h *ExecutionPayloadHeader) UnmarshalJSON(input []byte) error {
+	type ExecutionPayloadHeader struct {
+		ParentHash       *gethprimitives.ExecutionHash    `json:"parentHash"`
+		FeeRecipient     *gethprimitives.ExecutionAddress `json:"feeRecipient"`
+		StateRoot        *bytes.B32                       `json:"stateRoot"`
+		ReceiptsRoot     *bytes.B32                       `json:"receiptsRoot"`
+		LogsBloom        *bytes.B256                      `json:"logsBloom"`
+		Random           *bytes.B32                       `json:"prevRandao"`
+		Number           *math.U64                        `json:"blockNumber"`
+		GasLimit         *math.U64                        `json:"gasLimit"`
+		GasUsed          *math.U64                        `json:"gasUsed"`
+		Timestamp        *math.U64                        `json:"timestamp"`
+		ExtraData        *bytes.Bytes                     `json:"extraData"`
+		BaseFeePerGas    *math.U256L                      `json:"baseFeePerGas"`
+		BlockHash        *gethprimitives.ExecutionHash    `json:"blockHash"`
+		TransactionsRoot *bytes.B32                       `json:"transactionsRoot"`
+		WithdrawalsRoot  *bytes.B32                       `json:"withdrawalsRoot"`
+		BlobGasUsed      *math.U64                        `json:"blobGasUsed"`
+		ExcessBlobGas    *math.U64                        `json:"excessBlobGas"`
+	}
+	var dec ExecutionPayloadHeader
+	if err := json.Unmarshal(input, &dec); err != nil {
+		return err
+	}
+	if dec.ParentHash == nil {
+		return errors.New(
+			"missing required field 'parentHash' for ExecutionPayloadHeader",
+		)
+	}
+	h.ParentHash = *dec.ParentHash
+	if dec.FeeRecipient == nil {
+		return errors.New(
+			"missing required field 'feeRecipient' for ExecutionPayloadHeader",
+		)
+	}
+	h.FeeRecipient = *dec.FeeRecipient
+	if dec.StateRoot == nil {
+		return errors.New(
+			"missing required field 'stateRoot' for ExecutionPayloadHeader",
+		)
+	}
+	h.StateRoot = *dec.StateRoot
+	if dec.ReceiptsRoot == nil {
+		return errors.New(
+			"missing required field 'receiptsRoot' for ExecutionPayloadHeader",
+		)
+	}
+	h.ReceiptsRoot = *dec.ReceiptsRoot
+	if dec.LogsBloom == nil {
+		return errors.New(
+			"missing required field 'logsBloom' for ExecutionPayloadHeader",
+		)
+	}
+	h.LogsBloom = *dec.LogsBloom
+	if dec.Random == nil {
+		return errors.New(
+			"missing required field 'prevRandao' for ExecutionPayloadHeader",
+		)
+	}
+	h.Random = *dec.Random
+	if dec.Number == nil {
+		return errors.New(
+			"missing required field 'blockNumber' for ExecutionPayloadHeader",
+		)
+	}
+	h.Number = *dec.Number
+	if dec.GasLimit == nil {
+		return errors.New(
+			"missing required field 'gasLimit' for ExecutionPayloadHeader",
+		)
+	}
+	h.GasLimit = *dec.GasLimit
+	if dec.GasUsed == nil {
+		return errors.New(
+			"missing required field 'gasUsed' for ExecutionPayloadHeader",
+		)
+	}
+	h.GasUsed = *dec.GasUsed
+	if dec.Timestamp == nil {
+		return errors.New(
+			"missing required field 'timestamp' for ExecutionPayloadHeader",
+		)
+	}
+	h.Timestamp = *dec.Timestamp
+	if dec.ExtraData == nil {
+		return errors.New(
+			"missing required field 'extraData' for ExecutionPayloadHeader",
+		)
+	}
+
+	// TODO: This is required for the API to be symmetric? But it's not really
+	// clear if
+	// this matters.
+	if len(*dec.ExtraData) != 0 {
+		h.ExtraData = *dec.ExtraData
+	}
+
+	if dec.BaseFeePerGas == nil {
+		return errors.New(
+			"missing required field 'baseFeePerGas' for ExecutionPayloadHeader",
+		)
+	}
+	h.BaseFeePerGas = *dec.BaseFeePerGas
+	if dec.BlockHash == nil {
+		return errors.New(
+			"missing required field 'blockHash' for ExecutionPayloadHeader",
+		)
+	}
+	h.BlockHash = *dec.BlockHash
+	if dec.TransactionsRoot == nil {
+		return errors.New(
+			"missing required field 'transactionsRoot' for ExecutionPayloadHeader",
+		)
+	}
+	h.TransactionsRoot = *dec.TransactionsRoot
+	if dec.WithdrawalsRoot != nil {
+		h.WithdrawalsRoot = *dec.WithdrawalsRoot
+	}
+	if dec.BlobGasUsed != nil {
+		h.BlobGasUsed = *dec.BlobGasUsed
+	}
+	if dec.ExcessBlobGas != nil {
+		h.ExcessBlobGas = *dec.ExcessBlobGas
+	}
+	return nil
 }
 
 /* -------------------------------------------------------------------------- */
