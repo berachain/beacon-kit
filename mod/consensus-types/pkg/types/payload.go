@@ -274,7 +274,7 @@ func (p *ExecutionPayload) GetTree() (*fastssz.Node, error) {
 /* -------------------------------------------------------------------------- */
 
 // MarshalJSON marshals as JSON.
-func (e ExecutionPayload) MarshalJSON() ([]byte, error) {
+func (p *ExecutionPayload) MarshalJSON() ([]byte, error) {
 	type ExecutionPayload struct {
 		ParentHash    gethprimitives.ExecutionHash    `json:"parentHash"`
 		FeeRecipient  gethprimitives.ExecutionAddress `json:"feeRecipient"`
@@ -295,33 +295,33 @@ func (e ExecutionPayload) MarshalJSON() ([]byte, error) {
 		ExcessBlobGas math.U64                        `json:"excessBlobGas"`
 	}
 	var enc ExecutionPayload
-	enc.ParentHash = e.ParentHash
-	enc.FeeRecipient = e.FeeRecipient
-	enc.StateRoot = e.StateRoot
-	enc.ReceiptsRoot = e.ReceiptsRoot
-	enc.LogsBloom = e.LogsBloom
-	enc.Random = e.Random
-	enc.Number = e.Number
-	enc.GasLimit = e.GasLimit
-	enc.GasUsed = e.GasUsed
-	enc.Timestamp = e.Timestamp
-	enc.ExtraData = e.ExtraData
-	enc.BaseFeePerGas = e.BaseFeePerGas
-	enc.BlockHash = e.BlockHash
-	enc.Transactions = make([]bytes.Bytes, len(e.Transactions))
-	for k, v := range e.Transactions {
+	enc.ParentHash = p.ParentHash
+	enc.FeeRecipient = p.FeeRecipient
+	enc.StateRoot = p.StateRoot
+	enc.ReceiptsRoot = p.ReceiptsRoot
+	enc.LogsBloom = p.LogsBloom
+	enc.Random = p.Random
+	enc.Number = p.Number
+	enc.GasLimit = p.GasLimit
+	enc.GasUsed = p.GasUsed
+	enc.Timestamp = p.Timestamp
+	enc.ExtraData = p.ExtraData
+	enc.BaseFeePerGas = p.BaseFeePerGas
+	enc.BlockHash = p.BlockHash
+	enc.Transactions = make([]bytes.Bytes, len(p.Transactions))
+	for k, v := range p.Transactions {
 		enc.Transactions[k] = v
 	}
-	enc.Withdrawals = e.Withdrawals
-	enc.BlobGasUsed = e.BlobGasUsed
-	enc.ExcessBlobGas = e.ExcessBlobGas
+	enc.Withdrawals = p.Withdrawals
+	enc.BlobGasUsed = p.BlobGasUsed
+	enc.ExcessBlobGas = p.ExcessBlobGas
 	return json.Marshal(&enc)
 }
 
 // UnmarshalJSON unmarshals from JSON.
 //
 //nolint:funlen // todo fix.
-func (e *ExecutionPayload) UnmarshalJSON(input []byte) error {
+func (p *ExecutionPayload) UnmarshalJSON(input []byte) error {
 	type ExecutionPayload struct {
 		ParentHash    *gethprimitives.ExecutionHash    `json:"parentHash"`
 		FeeRecipient  *gethprimitives.ExecutionAddress `json:"feeRecipient"`
@@ -350,94 +350,94 @@ func (e *ExecutionPayload) UnmarshalJSON(input []byte) error {
 			"missing required field 'parentHash' for ExecutionPayload",
 		)
 	}
-	e.ParentHash = *dec.ParentHash
+	p.ParentHash = *dec.ParentHash
 	if dec.FeeRecipient == nil {
 		return errors.New(
 			"missing required field 'feeRecipient' for ExecutionPayload",
 		)
 	}
-	e.FeeRecipient = *dec.FeeRecipient
+	p.FeeRecipient = *dec.FeeRecipient
 	if dec.StateRoot == nil {
 		return errors.New(
 			"missing required field 'stateRoot' for ExecutionPayload",
 		)
 	}
-	e.StateRoot = *dec.StateRoot
+	p.StateRoot = *dec.StateRoot
 	if dec.ReceiptsRoot == nil {
 		return errors.New(
 			"missing required field 'receiptsRoot' for ExecutionPayload",
 		)
 	}
-	e.ReceiptsRoot = *dec.ReceiptsRoot
+	p.ReceiptsRoot = *dec.ReceiptsRoot
 	if dec.LogsBloom == nil {
 		return errors.New(
 			"missing required field 'logsBloom' for ExecutionPayload",
 		)
 	}
-	e.LogsBloom = *dec.LogsBloom
+	p.LogsBloom = *dec.LogsBloom
 	if dec.Random == nil {
 		return errors.New(
 			"missing required field 'prevRandao' for ExecutionPayload",
 		)
 	}
-	e.Random = *dec.Random
+	p.Random = *dec.Random
 	if dec.Number == nil {
 		return errors.New(
 			"missing required field 'blockNumber' for ExecutionPayload",
 		)
 	}
-	e.Number = *dec.Number
+	p.Number = *dec.Number
 	if dec.GasLimit == nil {
 		return errors.New(
 			"missing required field 'gasLimit' for ExecutionPayload",
 		)
 	}
-	e.GasLimit = *dec.GasLimit
+	p.GasLimit = *dec.GasLimit
 	if dec.GasUsed == nil {
 		return errors.New(
 			"missing required field 'gasUsed' for ExecutionPayload",
 		)
 	}
-	e.GasUsed = *dec.GasUsed
+	p.GasUsed = *dec.GasUsed
 	if dec.Timestamp == nil {
 		return errors.New(
 			"missing required field 'timestamp' for ExecutionPayload",
 		)
 	}
-	e.Timestamp = *dec.Timestamp
+	p.Timestamp = *dec.Timestamp
 	if dec.ExtraData == nil {
 		return errors.New(
 			"missing required field 'extraData' for ExecutionPayload",
 		)
 	}
-	e.ExtraData = *dec.ExtraData
+	p.ExtraData = *dec.ExtraData
 	if dec.BaseFeePerGas == nil {
 		return errors.New(
 			"missing required field 'baseFeePerGas' for ExecutionPayload",
 		)
 	}
-	e.BaseFeePerGas = *dec.BaseFeePerGas
+	p.BaseFeePerGas = *dec.BaseFeePerGas
 	if dec.BlockHash == nil {
 		return errors.New(
 			"missing required field 'blockHash' for ExecutionPayload",
 		)
 	}
-	e.BlockHash = *dec.BlockHash
+	p.BlockHash = *dec.BlockHash
 	if dec.Transactions == nil {
 		dec.Transactions = make([]bytes.Bytes, 0)
 	}
-	e.Transactions = make([][]byte, len(dec.Transactions))
+	p.Transactions = make([][]byte, len(dec.Transactions))
 	for k, v := range dec.Transactions {
-		e.Transactions[k] = v
+		p.Transactions[k] = v
 	}
 	if dec.Withdrawals != nil {
-		e.Withdrawals = dec.Withdrawals
+		p.Withdrawals = dec.Withdrawals
 	}
 	if dec.BlobGasUsed != nil {
-		e.BlobGasUsed = *dec.BlobGasUsed
+		p.BlobGasUsed = *dec.BlobGasUsed
 	}
 	if dec.ExcessBlobGas != nil {
-		e.ExcessBlobGas = *dec.ExcessBlobGas
+		p.ExcessBlobGas = *dec.ExcessBlobGas
 	}
 	return nil
 }

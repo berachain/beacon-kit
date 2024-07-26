@@ -40,7 +40,7 @@ type BeaconBlock struct {
 	StateRoot common.Root `json:"state_root"`
 	// Body is the body of the BeaconBlock, containing the block's
 	// operations.
-	Body *BeaconBlockBodyDeneb
+	Body *BeaconBlockBodyDeneb `json:"body"`
 }
 
 // Empty creates an empty beacon block.
