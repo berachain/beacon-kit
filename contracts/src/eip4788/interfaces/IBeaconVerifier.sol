@@ -8,7 +8,7 @@ interface IBeaconVerifier {
 
     /// @dev Generalized index of the first validator struct root in the
     /// registry.
-    function validatorsGIndex() external view returns (uint256);
+    function zeroValidatorsGIndex() external view returns (uint256);
 
     /// @notice Get the parent beacon block root from a block's timestamp.
     /// @param timestamp `uint64` timestamp of the block.
