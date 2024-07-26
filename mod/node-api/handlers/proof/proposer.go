@@ -55,21 +55,21 @@ func (h *Handler[
 
 	// Get the beacon state struct for the proving the proposer validator pubkey
 	// exists within the state, and the proposer pubkey as well.
-	beaconStateForValidatorProof, err := ptypes.NewBeaconStateForValidator(
+	beaconStateForValidator, err := ptypes.NewBeaconStateForValidator(
 		beaconState, h.backend.ChainSpec(),
 	)
 	if err != nil {
 		return nil, err
 	}
 	//nolint:lll // formatter doesn't support shortening.
-	proposerPubkey := beaconStateForValidatorProof.Validators[blockHeader.GetProposerIndex()].Pubkey
+	proposerPubkey := beaconStateForValidator.Validators[blockHeader.GetProposerIndex()].Pubkey
 
 	// Set the "correct" state root on the block header, which yields the exact
 	// beacon block root that is set on execution clients for EIP-4788.
 	//
 	// TODO: Determine why the backend's block header from beacon state has an
 	// incorrect state root (also retreivable from backend via StateRootAtSlot).
-	stateRootCorrection, err := beaconStateForValidatorProof.HashTreeRoot()
+	stateRootCorrection, err := beaconStateForValidator.HashTreeRoot()
 	if err != nil {
 		return nil, err
 	}
@@ -77,8 +77,8 @@ func (h *Handler[
 
 	// Now get the beacon block struct for proving the proposer validator pubkey
 	// exists within the state in this block.
-	beaconBlockForValidatorProof, err := ptypes.NewBeaconBlockForValidator(
-		blockHeader, beaconStateForValidatorProof,
+	beaconBlockForValidator, err := ptypes.NewBeaconBlockForValidator(
+		blockHeader, beaconStateForValidator,
 	)
 	if err != nil {
 		return nil, err
@@ -87,7 +87,7 @@ func (h *Handler[
 	// Generate the proof (along with the "correct" beacon block root to verify
 	// against) for the proposer validator pubkey.
 	pubkeyProof, beaconBlockRoot, err := ptypes.ProofForProposerPubkey_FastSSZ(
-		beaconBlockForValidatorProof,
+		beaconBlockForValidator,
 	)
 	if err != nil {
 		return nil, err
