@@ -73,6 +73,7 @@ const (
 	nodeAPIRoot    = beaconKitRoot + "node-api."
 	NodeAPIEnabled = nodeAPIRoot + "enabled"
 	NodeAPIAddress = nodeAPIRoot + "address"
+	NodeAPILogging = nodeAPIRoot + "logging"
 )
 
 // AddBeaconKitFlags implements servertypes.ModuleInitFlags interface.
@@ -156,5 +157,10 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 		NodeAPIAddress,
 		defaultCfg.NodeAPI.Address,
 		"node api address",
+	)
+	startCmd.Flags().Bool(
+		NodeAPILogging,
+		defaultCfg.NodeAPI.Logging,
+		"node api logging",
 	)
 }

@@ -27,18 +27,20 @@ import (
 )
 
 type Handler[ContextT context.Context] struct {
-	routes handlers.RouteSet[ContextT]
+	*handlers.BaseHandler[ContextT]
 }
 
 func NewHandler[ContextT context.Context]() *Handler[ContextT] {
 	h := &Handler[ContextT]{
-		routes: handlers.NewRouteSet[ContextT](""),
+		BaseHandler: handlers.NewBaseHandler[ContextT](
+			handlers.NewRouteSet[ContextT](""),
+		),
 	}
 	return h
 }
 
 func (h *Handler[ContextT]) RouteSet() handlers.RouteSet[ContextT] {
-	return h.routes
+	return h.BaseHandler.RouteSet()
 }
 
 func (h *Handler[ContextT]) NotImplemented(_ ContextT) (any, error) {
