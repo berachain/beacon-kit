@@ -77,8 +77,14 @@ type StateProcessor[
 	executionEngine ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	]
-	// txsMerkleizer is the merkleizer used for calculating transaction roots.
+	// bartioTxsMerkleizer is the merkleizer used for calculating transaction
+	// roots for bArtio.
+	//
+	// TODO: This is live on bArtio with a bug and needs to be hardforked
+	// off of. This is a temporary solution to avoid breaking changes.
 	bartioTxsMerkleizer *merkle.Merkleizer[[32]byte, common.Root]
+	// properTxsMerkleizer is the merkleizer used for calculating transaction
+	// roots.
 	properTxsMerkleizer *merkle.Merkleizer[[32]byte, *ssz.List[ssz.Byte]]
 }
 

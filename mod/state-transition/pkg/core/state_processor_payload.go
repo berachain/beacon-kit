@@ -54,7 +54,10 @@ func (sp *StateProcessor[
 		})
 	}
 
-	// Get the execution payload header.
+	// Get the execution payload header. TODO: This is live on bArtio with a bug
+	// and needs to be hardforked off of. We check for version and convert to
+	// header based on that version as a temporary solution to avoid breaking
+	// changes.
 	g.Go(func() error {
 		var err error
 		header, err = payload.ToHeader(
