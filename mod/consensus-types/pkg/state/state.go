@@ -106,7 +106,7 @@ func (st *BeaconStateMarshallable[
 				RandaoMixes:                  randaoMixes,
 				NextWithdrawalIndex:          nextWithdrawalIndex,
 				NextWithdrawalValidatorIndex: nextWithdrawalValidatorIndex,
-				Slashings:                    []uint64(slashings),
+				Slashings:                    slashings,
 				TotalSlashing:                totalSlashing,
 			},
 		}, nil

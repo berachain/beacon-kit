@@ -160,7 +160,7 @@ func (b *BeaconState) MarshalSSZTo(dst []byte) ([]byte, error) {
 
 // HashTreeRootWith ssz hashes the BeaconState object with a hasher.
 //
-//nolint:mnd,funlen // todo fix.
+//nolint:mnd,funlen,gocognit // todo fix.
 func (b *BeaconState) HashTreeRootWith(hh fastssz.HashWalker) error {
 	indx := hh.Index()
 
