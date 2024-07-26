@@ -91,14 +91,16 @@ func (h *ExecutionPayloadHeader) Empty(
 func (h *ExecutionPayloadHeader) NewFromSSZ(
 	bz []byte, forkVersion uint32,
 ) (*ExecutionPayloadHeader, error) {
-	return h, h.Empty(forkVersion).UnmarshalSSZ(bz)
+	h = h.Empty(forkVersion)
+	return h, h.UnmarshalSSZ(bz)
 }
 
 // NewFromJSON returns a new ExecutionPayloadHeader from the given JSON bytes.
 func (h *ExecutionPayloadHeader) NewFromJSON(
 	bz []byte, forkVersion uint32,
 ) (*ExecutionPayloadHeader, error) {
-	return h, h.Empty(forkVersion).UnmarshalJSON(bz)
+	h = h.Empty(forkVersion)
+	return h, h.UnmarshalJSON(bz)
 }
 
 type executionPayloadHeaderMarshaling struct {
