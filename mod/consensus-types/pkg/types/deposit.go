@@ -42,8 +42,6 @@ var (
 
 // Deposit into the consensus layer from the deposit contract in the execution
 // layer.
-//
-
 type Deposit struct {
 	// Public key of the validator specified in the deposit.
 	Pubkey crypto.BLSPubkey `json:"pubkey"`
