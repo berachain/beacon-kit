@@ -29,14 +29,14 @@ import (
 )
 
 func generateAttestationData() *types.AttestationData {
-	return &types.AttestationData{
-		Slot:  12345,
-		Index: 67890,
-		BeaconBlockRoot: [32]byte{
+	return new(types.AttestationData).New(
+		12345,
+		67890,
+		[32]byte{
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
 			21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
 		},
-	}
+	)
 }
 
 func TestAttestationData_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
@@ -107,4 +107,9 @@ func TestAttestationData_GetTree(t *testing.T) {
 	// Compare the tree root with the expected root
 	actualRoot := tree.Hash()
 	require.Equal(t, string(expectedRoot[:]), string(actualRoot))
+
+	// Check GetSlot, GetIndex, GetBeaconBlockRoot
+	require.Equal(t, data.Slot, data.GetSlot())
+	require.Equal(t, data.Index, data.GetIndex())
+	require.Equal(t, data.BeaconBlockRoot, data.GetBeaconBlockRoot())
 }

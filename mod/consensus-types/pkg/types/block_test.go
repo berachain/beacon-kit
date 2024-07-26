@@ -211,3 +211,46 @@ func TestBeaconBlockDeneb_GetTree(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, tree)
 }
+
+func TestBeaconBlockFromSSZForDenebPlus(t *testing.T) {
+	originalBlock := generateBeaconBlockDenebPlus()
+
+	sszBlock, err := originalBlock.MarshalSSZ()
+	require.NoError(t, err)
+	require.NotNil(t, sszBlock)
+
+	wrappedBlock := &types.BeaconBlock{}
+	wrappedBlock, err = wrappedBlock.NewFromSSZ(sszBlock, version.DenebPlus)
+	require.NoError(t, err)
+	require.NotNil(t, wrappedBlock)
+
+	block, ok := wrappedBlock.RawBeaconBlock.(*types.BeaconBlockDenebPlus)
+	require.True(t, ok)
+	require.Equal(t, originalBlock, block)
+}
+
+func TestBeaconBlockEmptyForDenebPlus(t *testing.T) {
+	block := &types.BeaconBlock{}
+	emptyBlock := block.Empty(version.DenebPlus)
+	require.NotNil(t, emptyBlock)
+	require.IsType(t, &types.BeaconBlockDenebPlus{}, emptyBlock.RawBeaconBlock)
+}
+
+func TestNewWithVersionForDenebPlus(t *testing.T) {
+	slot := math.Slot(20)
+	proposerIndex := math.ValidatorIndex(10)
+	parentBlockRoot := bytes.B32{6, 7, 8, 9, 10}
+
+	block, err := (&types.BeaconBlock{}).NewWithVersion(
+		slot, proposerIndex, parentBlockRoot, version.DenebPlus,
+	)
+	require.NoError(t, err)
+	require.NotNil(t, block)
+
+	// Check the block's fields
+	require.NotNil(t, block.RawBeaconBlock)
+	require.Equal(t, slot, block.RawBeaconBlock.GetSlot())
+	require.Equal(t, proposerIndex, block.RawBeaconBlock.GetProposerIndex())
+	require.Equal(t, parentBlockRoot, block.RawBeaconBlock.GetParentBlockRoot())
+	require.Equal(t, version.DenebPlus, block.RawBeaconBlock.Version())
+}

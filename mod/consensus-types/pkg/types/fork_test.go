@@ -89,3 +89,21 @@ func TestFork_UnmarshalSSZ_ErrSize(t *testing.T) {
 
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
+
+func TestFork_MarshalSSZTo(t *testing.T) {
+	fork := &types.Fork{
+		PreviousVersion: common.Version{1, 2, 3, 4},
+		CurrentVersion:  common.Version{5, 6, 7, 8},
+		Epoch:           math.Epoch(1000),
+	}
+
+	buf := make([]byte, 0)
+	result, err := fork.MarshalSSZTo(buf)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+
+	// Ensure the result is the same as MarshalSSZ
+	expected, err := fork.MarshalSSZ()
+	require.NoError(t, err)
+	require.Equal(t, append(buf, expected...), result)
+}

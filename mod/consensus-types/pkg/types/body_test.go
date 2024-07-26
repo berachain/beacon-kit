@@ -61,6 +61,11 @@ func TestBeaconBlockBodyBase(t *testing.T) {
 	require.NotNil(t, body.GetEth1Data())
 	require.Equal(t, bytes.B32{4, 5, 6}, body.GetGraffiti())
 	require.NotNil(t, body.GetDeposits())
+
+	// Test SetGraffiti
+	newGraffiti := bytes.B32{7, 8, 9}
+	body.SetGraffiti(newGraffiti)
+	require.Equal(t, newGraffiti, body.GetGraffiti())
 }
 
 func TestBeaconBlockBodyDeneb(t *testing.T) {
@@ -162,4 +167,18 @@ func TestBeaconBlockBody_Empty(t *testing.T) {
 
 	_, ok := body.RawBeaconBlockBody.(*types.BeaconBlockBodyDeneb)
 	require.True(t, ok)
+
+	// add check case DenebPlus
+	blockBodyPlus := types.BeaconBlockBody{}
+	bodyPlus := blockBodyPlus.Empty(version.DenebPlus)
+	require.NotNil(t, bodyPlus)
+
+	_, ok = bodyPlus.RawBeaconBlockBody.(*types.BeaconBlockBodyDenebPlus)
+	require.True(t, ok)
+
+	// case unsupported fork version
+	blockBody = types.BeaconBlockBody{}
+	require.Panics(t, func() {
+		blockBody.Empty(9999) // Use an unsupported fork version
+	})
 }

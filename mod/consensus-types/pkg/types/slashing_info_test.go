@@ -25,14 +25,13 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/require"
 )
 
 func generateSlashingInfo() *types.SlashingInfo {
-	return &types.SlashingInfo{
-		Slot:  12345,
-		Index: 67890,
-	}
+	s := &types.SlashingInfo{}
+	return s.New(12345, 67890)
 }
 
 func TestSlashingInfo_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
@@ -101,4 +100,59 @@ func TestSlashingInfo_GetTree(t *testing.T) {
 	// Compare the tree root with the expected root
 	actualRoot := tree.Hash()
 	require.Equal(t, string(expectedRoot[:]), string(actualRoot))
+}
+
+func TestSlashingInfo_MarshalSSZTo(t *testing.T) {
+	testCases := []struct {
+		name     string
+		data     *types.SlashingInfo
+		expected []byte
+		err      error
+	}{
+		{
+			name: "Valid SlashingInfo",
+			data: generateSlashingInfo(),
+			expected: func() []byte {
+				bz, _ := generateSlashingInfo().MarshalSSZ()
+				return bz
+			}(),
+			err: nil,
+		},
+		{
+			name: "Empty SlashingInfo",
+			data: &types.SlashingInfo{
+				Slot:  0,
+				Index: 0,
+			},
+			expected: func() []byte {
+				bz, _ := (&types.SlashingInfo{Slot: 0, Index: 0}).MarshalSSZ()
+				return bz
+			}(),
+			err: nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			dst := make([]byte, 0)
+			result, err := tc.data.MarshalSSZTo(dst)
+			require.Equal(t, tc.err, err)
+			require.Equal(t, tc.expected, result)
+		})
+	}
+}
+
+func TestSlashingInfo_GettersSetters(t *testing.T) {
+	// Create a new SlashingInfo instance
+	si := &types.SlashingInfo{}
+
+	// Test SetSlot and GetSlot
+	expectedSlot := math.Slot(12345)
+	si.SetSlot(expectedSlot)
+	require.Equal(t, expectedSlot, si.GetSlot())
+
+	// Test SetIndex and GetIndex
+	expectedIndex := math.U64(67890)
+	si.SetIndex(expectedIndex)
+	require.Equal(t, expectedIndex, si.GetIndex())
 }

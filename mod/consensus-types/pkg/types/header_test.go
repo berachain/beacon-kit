@@ -132,6 +132,31 @@ func TestBeaconBlockHeader_New(t *testing.T) {
 	require.Equal(t, parentBlockRoot, newHeader.GetParentBlockRoot())
 	require.Equal(t, stateRoot, newHeader.GetStateRoot())
 	require.Equal(t, bodyRoot, newHeader.BodyRoot)
+
+	// Test SetSlot
+	newSlot := math.Slot(101)
+	newHeader.SetSlot(newSlot)
+	require.Equal(t, newSlot, newHeader.GetSlot())
+
+	// Test SetProposerIndex
+	newProposerIndex := math.ValidatorIndex(201)
+	newHeader.SetProposerIndex(newProposerIndex)
+	require.Equal(t, newProposerIndex, newHeader.GetProposerIndex())
+
+	// Test SetParentBlockRoot
+	newParentBlockRoot := common.Root{0x01}
+	newHeader.SetParentBlockRoot(newParentBlockRoot)
+	require.Equal(t, newParentBlockRoot, newHeader.GetParentBlockRoot())
+
+	// Test SetStateRoot
+	newStateRoot := common.Root{0x02}
+	newHeader.SetStateRoot(newStateRoot)
+	require.Equal(t, newStateRoot, newHeader.GetStateRoot())
+
+	// Test SetBodyRoot
+	newBodyRoot := common.Root{0x03}
+	newHeader.SetBodyRoot(newBodyRoot)
+	require.Equal(t, newBodyRoot, newHeader.GetBodyRoot())
 }
 
 func TestBeaconBlockHeader_UnmarshalSSZ_ErrSize(t *testing.T) {
@@ -342,4 +367,24 @@ func TestBeaconBlockHeaderBase_GetTree(t *testing.T) {
 			require.NotNil(t, tree)
 		})
 	}
+}
+
+func TestBeaconBlockHeader_MarshalSSZTo(t *testing.T) {
+	header := types.NewBeaconBlockHeader(
+		math.Slot(100),
+		math.ValidatorIndex(200),
+		common.Root{},
+		common.Root{},
+		common.Root{},
+	)
+
+	buf := make([]byte, 0, header.SizeSSZ())
+	data, err := header.MarshalSSZTo(buf)
+	require.NoError(t, err)
+	require.NotNil(t, data)
+
+	var unmarshalled types.BeaconBlockHeader
+	err = unmarshalled.UnmarshalSSZ(data)
+	require.NoError(t, err)
+	require.Equal(t, header, &unmarshalled)
 }
