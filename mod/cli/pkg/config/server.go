@@ -34,6 +34,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
@@ -57,6 +58,15 @@ func SetupConfigAndContext(
 		return nil, err
 	}
 	serverCtx.Config = cometConfig
+
+	// not really sure why we have to bind this again here
+	if err = bindCommandLineFlags(
+		serverCtx.Viper.GetString(flags.FlagHome),
+		cmd,
+		serverCtx.Viper,
+	); err != nil {
+		return nil, fmt.Errorf("error binding command line flags: %w", err)
+	}
 	return serverCtx, nil
 }
 
@@ -114,6 +124,41 @@ func bindFlags(cmd *cobra.Command, viper *viper.Viper) error {
 		return err
 	}
 	return nil
+}
+
+// bindCommandLineFlags binds the command line flags to the viper instance.
+func bindCommandLineFlags(
+	basename string, cmd *cobra.Command, v *viper.Viper,
+) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("bindFlags failed: %v", r)
+		}
+	}()
+
+	cmd.Flags().VisitAll(func(f *pflag.Flag) {
+		// this should be redundant
+		err = v.BindEnv(f.Name, fmt.Sprintf("%s_%s", basename, strings.ToUpper(
+			strings.ReplaceAll(f.Name, "-", "_"))))
+		if err != nil {
+			panic(err)
+		}
+
+		err = v.BindPFlag(f.Name, f)
+		if err != nil {
+			panic(err)
+		}
+
+		if !f.Changed && v.IsSet(f.Name) {
+			val := v.Get(f.Name)
+			err = cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val))
+			if err != nil {
+				panic(err)
+			}
+		}
+	})
+
+	return err
 }
 
 // handleConfigs writes a new comet config file and app config file, and
