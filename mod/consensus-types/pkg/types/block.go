@@ -108,7 +108,7 @@ func (b *BeaconBlock) NewFromSSZ(
 
 // SizeSSZ returns the size of the BeaconBlock object in SSZ encoding.
 func (b *BeaconBlock) SizeSSZ(fixed bool) uint32 {
-	//nolint:mnd its okay.
+	//nolint:mnd // todo fix.
 	var size = uint32(8 + 8 + 32 + 32 + 4)
 	if fixed {
 		return size
