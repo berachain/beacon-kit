@@ -48,7 +48,7 @@ func NewHandler[
 	backend Backend[BeaconBlockHeaderT, ForkT, ValidatorT],
 ) *Handler[BeaconBlockHeaderT, ContextT, ForkT, ValidatorT] {
 	h := &Handler[BeaconBlockHeaderT, ContextT, ForkT, ValidatorT]{
-		BaseHandler: handlers.NewBaseHandler[ContextT](
+		BaseHandler: handlers.NewBaseHandler(
 			handlers.NewRouteSet[ContextT](""),
 		),
 		backend: backend,

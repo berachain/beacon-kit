@@ -74,7 +74,7 @@ func NewHandler[
 		ContextT, BeaconBlockHeaderT, BeaconStateT, Eth1DataT,
 		ExecutionPayloadHeaderT, ForkT, ValidatorT,
 	]{
-		BaseHandler: handlers.NewBaseHandler[ContextT](
+		BaseHandler: handlers.NewBaseHandler(
 			handlers.NewRouteSet[ContextT](""),
 		),
 		backend: backend,

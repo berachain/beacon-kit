@@ -83,7 +83,7 @@ func ProvideNodeAPIEventsHandler() *EventsAPIHandler {
 	return eventsapi.NewHandler[NodeAPIContext]()
 }
 
-func ProvideNodeAPIHandler() *NodeAPIHandler {
+func ProvideNodeAPINodeHandler() *NodeAPIHandler {
 	return nodeapi.NewHandler[NodeAPIContext]()
 }
 
