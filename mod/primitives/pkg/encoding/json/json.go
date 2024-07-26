@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 //
-//nolint:gochecknoglobals
+//nolint:gochecknoglobals // intentional aliases.
 package json
 
 import (
@@ -30,6 +30,10 @@ import (
 // Marshal is a wrapper for gojson.Marshal, which provides high-performance JSON
 // encoding.
 var Marshal = gojson.Marshal
+
+// MarshalIndent is a wrapper for gojson.MarshalIndent, which provides
+// high-performance JSON encoding with indentation.
+var MarshalIndent = gojson.MarshalIndent
 
 // Unmarshal is a wrapper for gojson.Unmarshal, which provides high-performance
 // JSON decoding.

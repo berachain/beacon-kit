@@ -22,8 +22,9 @@ package genesis
 
 import (
 	"context"
-	"encoding/json"
 	"math/big"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
