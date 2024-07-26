@@ -28,7 +28,6 @@ package types
 import (
 	"unsafe"
 
-	"github.com/berachain/beacon-kit/mod/errors"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
@@ -39,7 +38,7 @@ import (
 type BeaconBlockBodyDeneb struct {
 	BeaconBlockBodyBase
 	// ExecutionPayload is the execution payload of the body.
-	ExecutionPayload *ExecutableDataDeneb
+	ExecutionPayload *ExecutionPayload
 	// BlobKzgCommitments is the list of KZG commitments for the EIP-4844 blobs.
 	BlobKzgCommitments []eip4844.KZGCommitment `ssz-size:"?,48" ssz-max:"16"`
 }
@@ -53,20 +52,14 @@ func (b *BeaconBlockBodyDeneb) IsNil() bool {
 func (
 	b *BeaconBlockBodyDeneb,
 ) GetExecutionPayload() *ExecutionPayload {
-	return &ExecutionPayload{InnerExecutionPayload: b.ExecutionPayload}
+	return b.ExecutionPayload
 }
 
-// SetExecutionData sets the ExecutionData of the BeaconBlockBodyDeneb.
-func (b *BeaconBlockBodyDeneb) SetExecutionData(
+// SetExecutionPayload sets the ExecutionData of the BeaconBlockBodyDeneb.
+func (b *BeaconBlockBodyDeneb) SetExecutionPayload(
 	executionData *ExecutionPayload,
-) error {
-	var ok bool
-	b.ExecutionPayload, ok = executionData.
-		InnerExecutionPayload.(*ExecutableDataDeneb)
-	if !ok {
-		return errors.New("invalid execution data type")
-	}
-	return nil
+) {
+	b.ExecutionPayload = executionData
 }
 
 // GetBlobKzgCommitments returns the BlobKzgCommitments of the Body.

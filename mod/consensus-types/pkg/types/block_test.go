@@ -45,7 +45,7 @@ func generateValidBeaconBlockDeneb() *types.BeaconBlockDeneb {
 			StateRoot:     bytes.B32{5, 4, 3, 2, 1},
 		},
 		Body: &types.BeaconBlockBodyDeneb{
-			ExecutionPayload: &types.ExecutableDataDeneb{
+			ExecutionPayload: &types.ExecutionPayload{
 				LogsBloom: byteSlice,
 
 				ExtraData:    []byte{},

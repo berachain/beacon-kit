@@ -38,7 +38,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func generateExecutableDataDeneb() *types.ExecutableDataDeneb {
+func generateExecutionPayload() *types.ExecutionPayload {
 	transactions := make([][]byte, 1)
 	transactions[0] = make([]byte, 0)
 	withdrawals := make([]*engineprimitives.Withdrawal, 1)
@@ -48,7 +48,7 @@ func generateExecutableDataDeneb() *types.ExecutableDataDeneb {
 		Address:   common.ExecutionAddress{},
 		Amount:    0,
 	}
-	return &types.ExecutableDataDeneb{
+	return &types.ExecutionPayload{
 		ParentHash:    gethprimitives.ExecutionHash{},
 		FeeRecipient:  gethprimitives.ExecutionAddress{},
 		StateRoot:     bytes.B32{},
@@ -68,45 +68,45 @@ func generateExecutableDataDeneb() *types.ExecutableDataDeneb {
 		ExcessBlobGas: math.U64(0),
 	}
 }
-func TestExecutableDataDeneb_Serialization(t *testing.T) {
-	original := generateExecutableDataDeneb()
+func TestExecutionPayload_Serialization(t *testing.T) {
+	original := generateExecutionPayload()
 
 	data, err := original.MarshalSSZ()
 	require.NoError(t, err)
 	require.NotNil(t, data)
 
-	var unmarshalled types.ExecutableDataDeneb
+	var unmarshalled types.ExecutionPayload
 	err = unmarshalled.UnmarshalSSZ(data)
 	require.NoError(t, err)
 
 	require.Equal(t, original, &unmarshalled)
 }
 
-func TestExecutableDataDeneb_SizeSSZ(t *testing.T) {
-	payload := generateExecutableDataDeneb()
+func TestExecutionPayload_SizeSSZ(t *testing.T) {
+	payload := generateExecutionPayload()
 	size := payload.SizeSSZ()
 	require.Equal(t, 576, size)
 
-	state := &types.ExecutableDataDeneb{}
+	state := &types.ExecutionPayload{}
 	err := state.UnmarshalSSZ([]byte{0x01, 0x02, 0x03}) // Invalid data
 	require.ErrorIs(t, err, fastssz.ErrSize)
 }
 
-func TestExecutableDataDeneb_HashTreeRoot(t *testing.T) {
-	payload := generateExecutableDataDeneb()
+func TestExecutionPayload_HashTreeRoot(t *testing.T) {
+	payload := generateExecutionPayload()
 	_, err := payload.HashTreeRoot()
 	require.NoError(t, err)
 }
 
-func TestExecutableDataDeneb_GetTree(t *testing.T) {
-	payload := generateExecutableDataDeneb()
+func TestExecutionPayload_GetTree(t *testing.T) {
+	payload := generateExecutionPayload()
 	tree, err := payload.GetTree()
 	require.NoError(t, err)
 	require.NotNil(t, tree)
 }
 
-func TestExecutableDataDeneb_Getters(t *testing.T) {
-	payload := generateExecutableDataDeneb()
+func TestExecutionPayload_Getters(t *testing.T) {
+	payload := generateExecutionPayload()
 	require.Equal(t, gethprimitives.ExecutionHash{}, payload.GetParentHash())
 	require.Equal(
 		t,
@@ -142,34 +142,34 @@ func TestExecutableDataDeneb_Getters(t *testing.T) {
 	require.Equal(t, math.U64(0), payload.GetExcessBlobGas())
 }
 
-func TestExecutableDataDeneb_MarshalJSON(t *testing.T) {
-	payload := generateExecutableDataDeneb()
+func TestExecutionPayload_MarshalJSON(t *testing.T) {
+	payload := generateExecutionPayload()
 
 	data, err := payload.MarshalJSON()
 	require.NoError(t, err)
 	require.NotNil(t, data)
 
-	var unmarshalled types.ExecutableDataDeneb
+	var unmarshalled types.ExecutionPayload
 	err = unmarshalled.UnmarshalJSON(data)
 	require.NoError(t, err)
 	require.Equal(t, payload, &unmarshalled)
 }
 
-func TestExecutableDataDeneb_IsNil(t *testing.T) {
-	var payload *types.ExecutableDataDeneb
+func TestExecutionPayload_IsNil(t *testing.T) {
+	var payload *types.ExecutionPayload
 	require.True(t, payload.IsNil())
 
-	payload = generateExecutableDataDeneb()
+	payload = generateExecutionPayload()
 	require.False(t, payload.IsNil())
 }
 
-func TestExecutableDataDeneb_IsBlinded(t *testing.T) {
-	payload := generateExecutableDataDeneb()
+func TestExecutionPayload_IsBlinded(t *testing.T) {
+	payload := generateExecutionPayload()
 	require.False(t, payload.IsBlinded())
 }
 
-func TestExecutableDataDeneb_Version(t *testing.T) {
-	payload := generateExecutableDataDeneb()
+func TestExecutionPayload_Version(t *testing.T) {
+	payload := generateExecutionPayload()
 	require.Equal(t, version.Deneb, payload.Version())
 }
 
@@ -182,26 +182,24 @@ func TestExecutionPayload_Empty(t *testing.T) {
 }
 
 func TestExecutionPayload_ToHeader(t *testing.T) {
-	payload := types.ExecutionPayload{
-		InnerExecutionPayload: &types.ExecutableDataDeneb{
-			ParentHash:    gethprimitives.ExecutionHash{},
-			FeeRecipient:  gethprimitives.ExecutionAddress{},
-			StateRoot:     bytes.B32{},
-			ReceiptsRoot:  bytes.B32{},
-			LogsBloom:     make([]byte, 256),
-			Random:        bytes.B32{},
-			Number:        math.U64(0),
-			GasLimit:      math.U64(0),
-			GasUsed:       math.U64(0),
-			Timestamp:     math.U64(0),
-			ExtraData:     []byte{},
-			BaseFeePerGas: math.Wei{},
-			BlockHash:     gethprimitives.ExecutionHash{},
-			Transactions:  [][]byte{[]byte{0x01}},
-			Withdrawals:   []*engineprimitives.Withdrawal{},
-			BlobGasUsed:   math.U64(0),
-			ExcessBlobGas: math.U64(0),
-		},
+	payload := &types.ExecutionPayload{
+		ParentHash:    gethprimitives.ExecutionHash{},
+		FeeRecipient:  gethprimitives.ExecutionAddress{},
+		StateRoot:     bytes.B32{},
+		ReceiptsRoot:  bytes.B32{},
+		LogsBloom:     make([]byte, 256),
+		Random:        bytes.B32{},
+		Number:        math.U64(0),
+		GasLimit:      math.U64(0),
+		GasUsed:       math.U64(0),
+		Timestamp:     math.U64(0),
+		ExtraData:     []byte{},
+		BaseFeePerGas: math.Wei{},
+		BlockHash:     gethprimitives.ExecutionHash{},
+		Transactions:  [][]byte{[]byte{0x01}},
+		Withdrawals:   []*engineprimitives.Withdrawal{},
+		BlobGasUsed:   math.U64(0),
+		ExcessBlobGas: math.U64(0),
 	}
 
 	header, err := payload.ToHeader(
@@ -235,8 +233,8 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 }
 
 //nolint:lll
-func TestExecutableDataDeneb_UnmarshalJSON_Error(t *testing.T) {
-	original := generateExecutableDataDeneb()
+func TestExecutionPayload_UnmarshalJSON_Error(t *testing.T) {
+	original := generateExecutionPayload()
 	validJSON, err := original.MarshalJSON()
 	require.NoError(t, err)
 
@@ -248,78 +246,78 @@ func TestExecutableDataDeneb_UnmarshalJSON_Error(t *testing.T) {
 		{
 			name:          "missing required field 'parentHash'",
 			removeField:   "parentHash",
-			expectedError: "missing required field 'parentHash' for ExecutableDataDeneb",
+			expectedError: "missing required field 'parentHash' for ExecutionPayload",
 		},
 		{
 			name:          "missing required field 'feeRecipient'",
 			removeField:   "feeRecipient",
-			expectedError: "missing required field 'feeRecipient' for ExecutableDataDeneb",
+			expectedError: "missing required field 'feeRecipient' for ExecutionPayload",
 		},
 		{
 			name:          "missing required field 'stateRoot'",
 			removeField:   "stateRoot",
-			expectedError: "missing required field 'stateRoot' for ExecutableDataDeneb",
+			expectedError: "missing required field 'stateRoot' for ExecutionPayload",
 		},
 		{
 			name:          "missing required field 'receiptsRoot'",
 			removeField:   "receiptsRoot",
-			expectedError: "missing required field 'receiptsRoot' for ExecutableDataDeneb",
+			expectedError: "missing required field 'receiptsRoot' for ExecutionPayload",
 		},
 		{
 			name:          "missing required field 'logsBloom'",
 			removeField:   "logsBloom",
-			expectedError: "missing required field 'logsBloom' for ExecutableDataDeneb",
+			expectedError: "missing required field 'logsBloom' for ExecutionPayload",
 		},
 		{
 			name:          "missing required field 'prevRandao'",
 			removeField:   "prevRandao",
-			expectedError: "missing required field 'prevRandao' for ExecutableDataDeneb",
+			expectedError: "missing required field 'prevRandao' for ExecutionPayload",
 		},
 		{
 			name:          "missing required field 'blockNumber'",
 			removeField:   "blockNumber",
-			expectedError: "missing required field 'blockNumber' for ExecutableDataDeneb",
+			expectedError: "missing required field 'blockNumber' for ExecutionPayload",
 		},
 		{
 			name:          "missing required field 'gasLimit'",
 			removeField:   "gasLimit",
-			expectedError: "missing required field 'gasLimit' for ExecutableDataDeneb",
+			expectedError: "missing required field 'gasLimit' for ExecutionPayload",
 		},
 		{
 			name:          "missing required field 'gasUsed'",
 			removeField:   "gasUsed",
-			expectedError: "missing required field 'gasUsed' for ExecutableDataDeneb",
+			expectedError: "missing required field 'gasUsed' for ExecutionPayload",
 		},
 		{
 			name:          "missing required field 'timestamp'",
 			removeField:   "timestamp",
-			expectedError: "missing required field 'timestamp' for ExecutableDataDeneb",
+			expectedError: "missing required field 'timestamp' for ExecutionPayload",
 		},
 		{
 			name:          "missing required field 'extraData'",
 			removeField:   "extraData",
-			expectedError: "missing required field 'extraData' for ExecutableDataDeneb",
+			expectedError: "missing required field 'extraData' for ExecutionPayload",
 		},
 		{
 			name:          "missing required field 'baseFeePerGas'",
 			removeField:   "baseFeePerGas",
-			expectedError: "missing required field 'baseFeePerGas' for ExecutableDataDeneb",
+			expectedError: "missing required field 'baseFeePerGas' for ExecutionPayload",
 		},
 		{
 			name:          "missing required field 'blockHash'",
 			removeField:   "blockHash",
-			expectedError: "missing required field 'blockHash' for ExecutableDataDeneb",
+			expectedError: "missing required field 'blockHash' for ExecutionPayload",
 		},
 		{
 			name:          "missing required field 'transactions'",
 			removeField:   "transactions",
-			expectedError: "missing required field 'transactions' for ExecutableDataDeneb",
+			expectedError: "missing required field 'transactions' for ExecutionPayload",
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			var payload types.ExecutableDataDeneb
+			var payload types.ExecutionPayload
 			var jsonMap map[string]interface{}
 
 			errUnmarshal := json.Unmarshal(validJSON, &jsonMap)
@@ -337,9 +335,9 @@ func TestExecutableDataDeneb_UnmarshalJSON_Error(t *testing.T) {
 	}
 }
 
-func TestExecutableDataDenebHashTreeRoot(t *testing.T) {
-	// Create a sample ExecutableDataDeneb
-	payload := &types.ExecutableDataDeneb{
+func TestExecutionPayloadHashTreeRoot(t *testing.T) {
+	// Create a sample ExecutionPayload
+	payload := &types.ExecutionPayload{
 		ParentHash:    gethprimitives.ExecutionHash{1},
 		FeeRecipient:  gethprimitives.ExecutionAddress{2},
 		StateRoot:     common.Bytes32{3},
@@ -395,64 +393,64 @@ func TestExecutableDataDenebHashTreeRoot(t *testing.T) {
 	)
 }
 
-func TestExecutableDataDeneb_Marshal_Error(t *testing.T) {
+func TestExecutionPayload_Marshal_Error(t *testing.T) {
 	tests := []struct {
 		name  string
-		setup func(payload *types.ExecutableDataDeneb)
+		setup func(payload *types.ExecutionPayload)
 		err   error
 	}{
 		{
 			name: "invalid LogsBloom",
-			setup: func(payload *types.ExecutableDataDeneb) {
+			setup: func(payload *types.ExecutionPayload) {
 				payload.LogsBloom = nil
 			},
 			err: fastssz.ErrBytesLengthFn(
-				"ExecutableDataDeneb.LogsBloom",
+				"ExecutionPayload.LogsBloom",
 				0,
 				256,
 			),
 		},
 		{
 			name: "invalid ExtraData",
-			setup: func(payload *types.ExecutableDataDeneb) {
+			setup: func(payload *types.ExecutionPayload) {
 				payload.ExtraData = make([]byte, 33)
 			},
 			err: fastssz.ErrBytesLengthFn(
-				"ExecutableDataDeneb.ExtraData",
+				"ExecutionPayload.ExtraData",
 				33,
 				32,
 			),
 		},
 		{
 			name: "invalid Transactions size of individual elements",
-			setup: func(payload *types.ExecutableDataDeneb) {
+			setup: func(payload *types.ExecutionPayload) {
 				payload.Transactions = make([][]byte, 1)
 				payload.Transactions[0] = make([]byte, 1073741825)
 			},
 			err: fastssz.ErrBytesLengthFn(
-				"ExecutableDataDeneb.Transactions[ii]",
+				"ExecutionPayload.Transactions[ii]",
 				1073741825,
 				1073741824,
 			),
 		},
 		{
 			name: "invalid Transactions size",
-			setup: func(payload *types.ExecutableDataDeneb) {
+			setup: func(payload *types.ExecutionPayload) {
 				payload.Transactions = make([][]byte, 1048577)
 			},
 			err: fastssz.ErrListTooBigFn(
-				"ExecutableDataDeneb.Transactions",
+				"ExecutionPayload.Transactions",
 				1048577,
 				1048576,
 			),
 		},
 		{
 			name: "invalid Withdrawals",
-			setup: func(payload *types.ExecutableDataDeneb) {
+			setup: func(payload *types.ExecutionPayload) {
 				payload.Withdrawals = make([]*engineprimitives.Withdrawal, 17)
 			},
 			err: fastssz.ErrListTooBigFn(
-				"ExecutableDataDeneb.Withdrawals",
+				"ExecutionPayload.Withdrawals",
 				17,
 				16,
 			),
@@ -461,7 +459,7 @@ func TestExecutableDataDeneb_Marshal_Error(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			payload := generateExecutableDataDeneb()
+			payload := generateExecutionPayload()
 			if tc.setup != nil {
 				tc.setup(payload)
 			}
@@ -471,33 +469,33 @@ func TestExecutableDataDeneb_Marshal_Error(t *testing.T) {
 	}
 }
 
-func TestExecutableDataDeneb_HasTreeRootWith_Error(t *testing.T) {
+func TestExecutionPayload_HasTreeRootWith_Error(t *testing.T) {
 	tests := []struct {
 		name  string
-		setup func(payload *types.ExecutableDataDeneb)
+		setup func(payload *types.ExecutionPayload)
 		err   error
 	}{
 		{
 			name: "invalid LogsBloom",
-			setup: func(payload *types.ExecutableDataDeneb) {
+			setup: func(payload *types.ExecutionPayload) {
 				payload.LogsBloom = nil
 			},
 			err: fastssz.ErrBytesLengthFn(
-				"ExecutableDataDeneb.LogsBloom",
+				"ExecutionPayload.LogsBloom",
 				0,
 				256,
 			),
 		},
 		{
 			name: "invalid ExtraData",
-			setup: func(payload *types.ExecutableDataDeneb) {
+			setup: func(payload *types.ExecutionPayload) {
 				payload.ExtraData = make([]byte, 33)
 			},
 			err: fastssz.ErrIncorrectListSize,
 		},
 		{
 			name: "invalid Transactions size of individual elements",
-			setup: func(payload *types.ExecutableDataDeneb) {
+			setup: func(payload *types.ExecutionPayload) {
 				payload.Transactions = make([][]byte, 1)
 				payload.Transactions[0] = make([]byte, 1073741825)
 			},
@@ -505,14 +503,14 @@ func TestExecutableDataDeneb_HasTreeRootWith_Error(t *testing.T) {
 		},
 		{
 			name: "invalid Transactions size",
-			setup: func(payload *types.ExecutableDataDeneb) {
+			setup: func(payload *types.ExecutionPayload) {
 				payload.Transactions = make([][]byte, 1048577)
 			},
 			err: fastssz.ErrIncorrectListSize,
 		},
 		{
 			name: "invalid Withdrawals",
-			setup: func(payload *types.ExecutableDataDeneb) {
+			setup: func(payload *types.ExecutionPayload) {
 				payload.Withdrawals = make([]*engineprimitives.Withdrawal, 17)
 			},
 			err: fastssz.ErrIncorrectListSize,
@@ -521,7 +519,7 @@ func TestExecutableDataDeneb_HasTreeRootWith_Error(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			payload := generateExecutableDataDeneb()
+			payload := generateExecutionPayload()
 			if tc.setup != nil {
 				tc.setup(payload)
 			}

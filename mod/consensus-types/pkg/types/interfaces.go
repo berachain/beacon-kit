@@ -40,7 +40,7 @@ type RawBeaconBlockBody interface {
 type WriteOnlyBeaconBlockBody interface {
 	SetDeposits([]*Deposit)
 	SetEth1Data(*Eth1Data)
-	SetExecutionData(*ExecutionPayload) error
+	SetExecutionPayload(*ExecutionPayload)
 	SetBlobKzgCommitments(eip4844.KZGCommitments[gethprimitives.ExecutionHash])
 	SetRandaoReveal(crypto.BLSSignature)
 	SetGraffiti(common.Bytes32)

@@ -65,7 +65,7 @@ func generateBeaconBlockBodyDenebPlus() *types.BeaconBlockBodyDenebPlus {
 			},
 			Deposits: []*types.Deposit{},
 		},
-		ExecutionPayload: &types.ExecutableDataDeneb{
+		ExecutionPayload: &types.ExecutionPayload{
 			LogsBloom:    byteSlice,
 			ExtraData:    make([]byte, 0),
 			Transactions: make([][]byte, 0),
@@ -101,7 +101,7 @@ func TestBeaconBlockBodyDenebPlus_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 					Graffiti:     [32]byte{},
 					Deposits:     []*types.Deposit{},
 				},
-				ExecutionPayload: &types.ExecutableDataDeneb{
+				ExecutionPayload: &types.ExecutionPayload{
 					LogsBloom:    byteSlice,
 					ExtraData:    make([]byte, 0),
 					Transactions: make([][]byte, 0),
@@ -118,7 +118,7 @@ func TestBeaconBlockBodyDenebPlus_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 					Graffiti:     [32]byte{},
 					Deposits:     []*types.Deposit{},
 				},
-				ExecutionPayload: &types.ExecutableDataDeneb{
+				ExecutionPayload: &types.ExecutionPayload{
 					LogsBloom:    byteSlice,
 					ExtraData:    make([]byte, 0),
 					Transactions: make([][]byte, 0),
@@ -187,25 +187,16 @@ func TestBeaconBlockBodyDenebPlus_GetExecutionPayload(t *testing.T) {
 	body := generateBeaconBlockBodyDenebPlus()
 	payload := body.GetExecutionPayload()
 	require.NotNil(t, payload)
-	require.Equal(t, body.ExecutionPayload, payload.InnerExecutionPayload)
+	require.Equal(t, body.ExecutionPayload, payload)
 }
 
-func TestBeaconBlockBodyDenebPlus_SetExecutionData(t *testing.T) {
+func TestBeaconBlockBodyDenebPlus_SetExecutionPayload(t *testing.T) {
 	body := generateBeaconBlockBodyDenebPlus()
-	payload := &types.ExecutionPayload{
-		InnerExecutionPayload: &types.ExecutableDataDeneb{},
-	}
+	payload := &types.ExecutionPayload{}
 
-	err := body.SetExecutionData(payload)
+	err := body.SetExecutionPayload(payload)
 	require.NoError(t, err)
-	require.Equal(t, payload.InnerExecutionPayload, body.ExecutionPayload)
-
-	invalidPayload := &types.ExecutionPayload{
-		InnerExecutionPayload: nil,
-	}
-	err = body.SetExecutionData(invalidPayload)
-	require.Error(t, err)
-	require.Equal(t, "invalid execution data type", err.Error())
+	require.Equal(t, payload, body.ExecutionPayload)
 }
 
 func TestBeaconBlockBodyDenebPlus_GetBlobKzgCommitments(t *testing.T) {

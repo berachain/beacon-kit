@@ -331,7 +331,8 @@ func (s *Service[
 		body.SetSlashingInfo(slotData.GetSlashingInfo())
 	}
 
-	return body.SetExecutionData(envelope.GetExecutionPayload())
+	body.SetExecutionPayload(envelope.GetExecutionPayload())
+	return nil
 }
 
 // computeAndSetStateRoot computes the state root of an outgoing block

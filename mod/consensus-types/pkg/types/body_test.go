@@ -42,7 +42,7 @@ func generateBeaconBlockBodyDeneb() types.BeaconBlockBodyDeneb {
 			Graffiti:     [32]byte{4, 5, 6},
 			Deposits:     []*types.Deposit{},
 		},
-		ExecutionPayload: &types.ExecutableDataDeneb{
+		ExecutionPayload: &types.ExecutionPayload{
 			LogsBloom: byteSlice,
 		},
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
@@ -71,7 +71,7 @@ func TestBeaconBlockBodyDeneb(t *testing.T) {
 			Graffiti:     [32]byte{4, 5, 6},
 			Deposits:     []*types.Deposit{},
 		},
-		ExecutionPayload:   &types.ExecutableDataDeneb{},
+		ExecutionPayload:   &types.ExecutionPayload{},
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
 
@@ -86,14 +86,6 @@ func TestBeaconBlockBodyDeneb_GetTree(t *testing.T) {
 	tree, err := body.GetTree()
 	require.NoError(t, err)
 	require.NotNil(t, tree)
-}
-
-func TestBeaconBlockBodyDeneb_SetExecutionData_Error(t *testing.T) {
-	body := types.BeaconBlockBodyDeneb{}
-	executionData := &types.ExecutionPayload{}
-	err := body.SetExecutionData(executionData)
-
-	require.ErrorContains(t, err, "invalid execution data type")
 }
 
 func TestBeaconBlockBodyDeneb_SetBlobKzgCommitments(t *testing.T) {
@@ -138,7 +130,7 @@ func TestBeaconBlockBodyDeneb_MarshalSSZ(t *testing.T) {
 			Graffiti:     [32]byte{4, 5, 6},
 			Deposits:     []*types.Deposit{},
 		},
-		ExecutionPayload: &types.ExecutableDataDeneb{
+		ExecutionPayload: &types.ExecutionPayload{
 			LogsBloom: byteSlice,
 		},
 		BlobKzgCommitments: []eip4844.KZGCommitment{},

@@ -78,7 +78,7 @@ func generateBeaconBlockDenebPlus() *types.BeaconBlockDenebPlus {
 				},
 				Deposits: []*types.Deposit{},
 			},
-			ExecutionPayload: &types.ExecutableDataDeneb{
+			ExecutionPayload: &types.ExecutionPayload{
 				LogsBloom:    byteSlice,
 				ExtraData:    make([]byte, 0),
 				Transactions: make([][]byte, 0),
@@ -170,7 +170,7 @@ func TestBeaconBlockDenebPlus_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 						Graffiti:     [32]byte{},
 						Deposits:     []*types.Deposit{},
 					},
-					ExecutionPayload: &types.ExecutableDataDeneb{
+					ExecutionPayload: &types.ExecutionPayload{
 						LogsBloom:    byteSlice,
 						ExtraData:    make([]byte, 0),
 						Transactions: make([][]byte, 0),
@@ -195,7 +195,7 @@ func TestBeaconBlockDenebPlus_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 						Graffiti:     [32]byte{},
 						Deposits:     []*types.Deposit{},
 					},
-					ExecutionPayload: &types.ExecutableDataDeneb{
+					ExecutionPayload: &types.ExecutionPayload{
 						LogsBloom:    byteSlice,
 						ExtraData:    make([]byte, 0),
 						Transactions: make([][]byte, 0),
