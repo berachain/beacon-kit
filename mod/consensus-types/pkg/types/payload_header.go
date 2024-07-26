@@ -21,6 +21,8 @@
 package types
 
 import (
+	"encoding/json"
+
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -32,13 +34,14 @@ import (
 
 // ExecutionPayloadHeader is the execution header payload of Deneb.
 //
-//go:generate go run github.com/fjl/gencodec -type ExecutionPayloadHeader -out payload_header.json.go -field-override executionPayloadHeaderMarshaling
 //nolint:lll
 type ExecutionPayloadHeader struct {
-	// Metadata
+	// TODO: Enable
 	//
-	// version is the fork version of the execution payload header.
-	version uint32
+	// // Metadata
+	// //
+	// // version is the fork version of the execution payload header.
+	// version uint32
 
 	// Contents
 	//
@@ -63,7 +66,7 @@ type ExecutionPayloadHeader struct {
 	// Timestamp is the timestamp of the block.
 	Timestamp math.U64 `json:"timestamp" gencodec:"required"`
 	// ExtraData is the extra data of the block.
-	ExtraData []byte `json:"extraData" gencodec:"required"`
+	ExtraData bytes.Bytes `json:"extraData" gencodec:"required"`
 	// BaseFeePerGas is the base fee per gas.
 	BaseFeePerGas math.Wei `json:"baseFeePerGas" gencodec:"required"`
 	// BlockHash is the hash of the block.
@@ -82,9 +85,7 @@ type ExecutionPayloadHeader struct {
 func (h *ExecutionPayloadHeader) Empty(
 	forkVersion uint32,
 ) *ExecutionPayloadHeader {
-	return &ExecutionPayloadHeader{
-		version: forkVersion,
-	}
+	return &ExecutionPayloadHeader{}
 }
 
 // NewFromSSZ returns a new ExecutionPayloadHeader from the given SSZ bytes.
@@ -100,7 +101,7 @@ func (h *ExecutionPayloadHeader) NewFromJSON(
 	bz []byte, forkVersion uint32,
 ) (*ExecutionPayloadHeader, error) {
 	h = h.Empty(forkVersion)
-	return h, h.UnmarshalJSON(bz)
+	return h, json.Unmarshal(bz, h)
 }
 
 type executionPayloadHeaderMarshaling struct {
@@ -169,7 +170,7 @@ func (h *ExecutionPayloadHeader) DefineSSZ(codec *ssz.Codec) {
 	) // Field  ( 9) -        Timestamp -   8 bytes
 	ssz.DefineDynamicBytesOffset(
 		codec,
-		&h.ExtraData,
+		(*[]byte)(&h.ExtraData),
 		//nolint:mnd // todo fix.
 		32,
 	) // Offset (10) -        ExtraData -   4 bytes
@@ -201,7 +202,7 @@ func (h *ExecutionPayloadHeader) DefineSSZ(codec *ssz.Codec) {
 	// Define the dynamic data (fields)
 	ssz.DefineDynamicBytesContent(
 		codec,
-		&h.ExtraData,
+		(*[]byte)(&h.ExtraData),
 		//nolint:mnd // todo fix.
 		32,
 	) // Field  (10) -        ExtraData - ? bytes
@@ -217,6 +218,8 @@ func (h *ExecutionPayloadHeader) MarshalSSZ() ([]byte, error) {
 // UnmarshalSSZ unmarshals the ExecutionPayloadHeaderDeneb object from a source
 // array.
 func (h *ExecutionPayloadHeader) UnmarshalSSZ(bz []byte) error {
+	// TODO: THIS IS A HACK TO GET BEACONSTATE TO WORK
+	// h.version = version.Deneb
 	return ssz.DecodeFromBytes(bz, h)
 }
 
@@ -334,11 +337,6 @@ func (h *ExecutionPayloadHeader) Version() uint32 {
 // IsNil checks if the ExecutionPayloadHeader is nil.
 func (h *ExecutionPayloadHeader) IsNil() bool {
 	return h == nil
-}
-
-// IsBlinded checks if the ExecutionPayloadHeader is blinded.
-func (h *ExecutionPayloadHeader) IsBlinded() bool {
-	return false
 }
 
 // GetParentHash returns the parent hash of the ExecutionPayloadHeader.

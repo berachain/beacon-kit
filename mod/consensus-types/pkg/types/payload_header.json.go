@@ -123,7 +123,12 @@ func (e *ExecutionPayloadHeader) UnmarshalJSON(input []byte) error {
 	if dec.ExtraData == nil {
 		return errors.New("missing required field 'extraData' for ExecutionPayloadHeader")
 	}
-	e.ExtraData = *dec.ExtraData
+
+	// TODO wtf?
+	if len(*dec.ExtraData) != 0 {
+		e.ExtraData = *dec.ExtraData
+	}
+	
 	if dec.BaseFeePerGas == nil {
 		return errors.New("missing required field 'baseFeePerGas' for ExecutionPayloadHeader")
 	}

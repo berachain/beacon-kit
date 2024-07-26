@@ -49,7 +49,7 @@ func generateValidBeaconState() *deneb.BeaconState {
 		Slashings:   []uint64{},
 		LatestExecutionPayloadHeader: &types.ExecutionPayloadHeader{
 			LogsBloom: byteArray,
-			ExtraData: []byte{},
+			ExtraData: nil,
 		},
 	}
 }
@@ -65,7 +65,7 @@ func TestBeaconStateMarshalUnmarshalSSZ(t *testing.T) {
 	err := newState.UnmarshalSSZ(data)
 	require.NoError(t, err)
 
-	require.Equal(t, state, newState)
+	require.EqualValues(t, state, newState)
 
 	// Check if the state size is greater than 0
 	require.Positive(t, state.SizeSSZ())

@@ -97,7 +97,7 @@ func (e *ExecutionPayload) ToHeader(
 	switch e.Version() {
 	case version.Deneb, version.DenebPlus:
 		return &ExecutionPayloadHeader{
-			version:          e.Version(),
+			// version:          e.Version(),
 			ParentHash:       e.GetParentHash(),
 			FeeRecipient:     e.GetFeeRecipient(),
 			StateRoot:        e.GetStateRoot(),
