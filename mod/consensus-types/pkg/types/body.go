@@ -97,13 +97,13 @@ func BlockBodyKZGOffset(
 // shared between all forks.
 type BeaconBlockBodyBase struct {
 	// RandaoReveal is the reveal of the RANDAO.
-	RandaoReveal crypto.BLSSignature `ssz-size:"96"`
+	RandaoReveal crypto.BLSSignature
 	// Eth1Data is the data from the Eth1 chain.
 	Eth1Data *Eth1Data
 	// Graffiti is for a fun message or meme.
-	Graffiti [32]byte `ssz-size:"32"`
+	Graffiti [32]byte
 	// Deposits is the list of deposits included in the body.
-	Deposits []*Deposit `              ssz-max:"16"`
+	Deposits []*Deposit
 }
 
 // GetRandaoReveal returns the RandaoReveal of the Body.

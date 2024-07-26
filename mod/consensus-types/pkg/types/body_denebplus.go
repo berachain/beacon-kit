@@ -41,11 +41,11 @@ type BeaconBlockBodyDenebPlus struct {
 	ExecutionPayload *ExecutionPayload
 	// TODO: Put this in BeaconBlockBodyBase for mainnet.
 	// Attestations is the list of attestations included in the body.
-	Attestations []*AttestationData `ssz-max:"256"`
+	Attestations []*AttestationData
 	// SlashingInfo is the list of slashing info included in the body.
-	SlashingInfo []*SlashingInfo `ssz-max:"256"`
+	SlashingInfo []*SlashingInfo
 	// BlobKzgCommitments is the list of KZG commitments for the EIP-4844 blobs.
-	BlobKzgCommitments []eip4844.KZGCommitment `ssz-max:"16"  ssz-size:"?,48"`
+	BlobKzgCommitments []eip4844.KZGCommitment
 }
 
 // IsNil checks if the BeaconBlockBodyDenebPlus is nil.

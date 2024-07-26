@@ -15,21 +15,21 @@ import (
 // MarshalJSON marshals as JSON.
 func (e ExecutionPayload) MarshalJSON() ([]byte, error) {
 	type ExecutionPayload struct {
-		ParentHash    common.Hash                    `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
-		FeeRecipient  common.Address                 `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
-		StateRoot     bytes.B32                      `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
-		ReceiptsRoot  bytes.B32                      `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
-		LogsBloom     bytes.B256                    `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
-		Random        bytes.B32                      `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
-		Number        math.U64                       `json:"blockNumber"                  gencodec:"required"`
-		GasLimit      math.U64                       `json:"gasLimit"                     gencodec:"required"`
-		GasUsed       math.U64                       `json:"gasUsed"                      gencodec:"required"`
-		Timestamp     math.U64                       `json:"timestamp"                    gencodec:"required"`
-		ExtraData     bytes.Bytes                    `json:"extraData"                    gencodec:"required" ssz-max:"32"`
-		BaseFeePerGas math.U256L                     `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
-		BlockHash     common.Hash                    `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
-		Transactions  []bytes.Bytes                  `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
-		Withdrawals   []*engineprimitives.Withdrawal `json:"withdrawals"                                      ssz-max:"16"`
+		ParentHash    common.Hash                    `json:"parentHash"    gencodec:"required"`
+		FeeRecipient  common.Address                 `json:"feeRecipient"  gencodec:"required"`
+		StateRoot     bytes.B32                      `json:"stateRoot"     gencodec:"required"`
+		ReceiptsRoot  bytes.B32                      `json:"receiptsRoot"  gencodec:"required"`
+		LogsBloom     bytes.B256                     `json:"logsBloom"     gencodec:"required"`
+		Random        bytes.B32                      `json:"prevRandao"    gencodec:"required"`
+		Number        math.U64                       `json:"blockNumber"   gencodec:"required"`
+		GasLimit      math.U64                       `json:"gasLimit"      gencodec:"required"`
+		GasUsed       math.U64                       `json:"gasUsed"       gencodec:"required"`
+		Timestamp     math.U64                       `json:"timestamp"     gencodec:"required"`
+		ExtraData     bytes.Bytes                    `json:"extraData"     gencodec:"required"`
+		BaseFeePerGas math.U256L                     `json:"baseFeePerGas" gencodec:"required"`
+		BlockHash     common.Hash                    `json:"blockHash"     gencodec:"required"`
+		Transactions  []bytes.Bytes                  `json:"transactions"  gencodec:"required"`
+		Withdrawals   []*engineprimitives.Withdrawal `json:"withdrawals"`
 		BlobGasUsed   math.U64                       `json:"blobGasUsed"`
 		ExcessBlobGas math.U64                       `json:"excessBlobGas"`
 	}
@@ -62,21 +62,21 @@ func (e ExecutionPayload) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (e *ExecutionPayload) UnmarshalJSON(input []byte) error {
 	type ExecutionPayload struct {
-		ParentHash    *common.Hash                   `json:"parentHash"    ssz-size:"32"  gencodec:"required"`
-		FeeRecipient  *common.Address                `json:"feeRecipient"  ssz-size:"20"  gencodec:"required"`
-		StateRoot     *bytes.B32                     `json:"stateRoot"     ssz-size:"32"  gencodec:"required"`
-		ReceiptsRoot  *bytes.B32                     `json:"receiptsRoot"  ssz-size:"32"  gencodec:"required"`
-		LogsBloom     *bytes.B256                    `json:"logsBloom"     ssz-size:"256" gencodec:"required"`
-		Random        *bytes.B32                     `json:"prevRandao"    ssz-size:"32"  gencodec:"required"`
-		Number        *math.U64                      `json:"blockNumber"                  gencodec:"required"`
-		GasLimit      *math.U64                      `json:"gasLimit"                     gencodec:"required"`
-		GasUsed       *math.U64                      `json:"gasUsed"                      gencodec:"required"`
-		Timestamp     *math.U64                      `json:"timestamp"                    gencodec:"required"`
-		ExtraData     *bytes.Bytes                   `json:"extraData"                    gencodec:"required" ssz-max:"32"`
-		BaseFeePerGas *math.U256L                    `json:"baseFeePerGas" ssz-size:"32"  gencodec:"required"`
-		BlockHash     *common.Hash                   `json:"blockHash"     ssz-size:"32"  gencodec:"required"`
-		Transactions  []bytes.Bytes                  `json:"transactions"  ssz-size:"?,?" gencodec:"required" ssz-max:"1048576,1073741824"`
-		Withdrawals   []*engineprimitives.Withdrawal `json:"withdrawals"                                      ssz-max:"16"`
+		ParentHash    *common.Hash                   `json:"parentHash"    gencodec:"required"`
+		FeeRecipient  *common.Address                `json:"feeRecipient"  gencodec:"required"`
+		StateRoot     *bytes.B32                     `json:"stateRoot"     gencodec:"required"`
+		ReceiptsRoot  *bytes.B32                     `json:"receiptsRoot"  gencodec:"required"`
+		LogsBloom     *bytes.B256                    `json:"logsBloom"     gencodec:"required"`
+		Random        *bytes.B32                     `json:"prevRandao"    gencodec:"required"`
+		Number        *math.U64                      `json:"blockNumber"   gencodec:"required"`
+		GasLimit      *math.U64                      `json:"gasLimit"      gencodec:"required"`
+		GasUsed       *math.U64                      `json:"gasUsed"       gencodec:"required"`
+		Timestamp     *math.U64                      `json:"timestamp"     gencodec:"required"`
+		ExtraData     *bytes.Bytes                   `json:"extraData"     gencodec:"required"`
+		BaseFeePerGas *math.U256L                    `json:"baseFeePerGas" gencodec:"required"`
+		BlockHash     *common.Hash                   `json:"blockHash"     gencodec:"required"`
+		Transactions  []bytes.Bytes                  `json:"transactions"  gencodec:"required"`
+		Withdrawals   []*engineprimitives.Withdrawal `json:"withdrawals"`
 		BlobGasUsed   *math.U64                      `json:"blobGasUsed"`
 		ExcessBlobGas *math.U64                      `json:"excessBlobGas"`
 	}
