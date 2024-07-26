@@ -42,7 +42,7 @@ const ExecutionPayloadStaticSize uint32 = 528
 
 // ExecutionPayload is the execution payload for Deneb.
 //
-//nolint:lll
+
 type ExecutionPayload struct {
 	// ParentHash is the hash of the parent block.
 	ParentHash gethprimitives.ExecutionHash `json:"parentHash"`
