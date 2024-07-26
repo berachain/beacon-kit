@@ -137,7 +137,6 @@ func TestBeaconBlockDenebPlus_GetHeader(t *testing.T) {
 }
 
 func TestBeaconBlockDenebPlus_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
-	var byteArray [256]byte
 	testCases := []struct {
 		name     string
 		data     *types.BeaconBlockDenebPlus
@@ -167,7 +166,6 @@ func TestBeaconBlockDenebPlus_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 						Deposits:     []*types.Deposit{},
 					},
 					ExecutionPayload: &types.ExecutionPayload{
-						LogsBloom:    byteArray,
 						ExtraData:    make([]byte, 0),
 						Transactions: make([][]byte, 0),
 						Withdrawals:  make([]*engineprimitives.Withdrawal, 0),
@@ -192,7 +190,6 @@ func TestBeaconBlockDenebPlus_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 						Deposits:     []*types.Deposit{},
 					},
 					ExecutionPayload: &types.ExecutionPayload{
-						LogsBloom:    byteArray,
 						ExtraData:    make([]byte, 0),
 						Transactions: make([][]byte, 0),
 						Withdrawals:  make([]*engineprimitives.Withdrawal, 0),
