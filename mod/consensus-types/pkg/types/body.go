@@ -60,6 +60,7 @@ func (b *BeaconBlockBody) Empty(forkVersion uint32) *BeaconBlockBody {
 	switch forkVersion {
 	case version.Deneb:
 		return &BeaconBlockBody{
+			Eth1Data: new(Eth1Data),
 			ExecutionPayload: &ExecutionPayload{
 				ExtraData: make([]byte, ExtraDataSize),
 			},
