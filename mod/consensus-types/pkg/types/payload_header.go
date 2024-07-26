@@ -35,24 +35,47 @@ import (
 //go:generate go run github.com/fjl/gencodec -type ExecutionPayloadHeader -out payload_header.json.go -field-override executionPayloadHeaderMarshaling
 //nolint:lll
 type ExecutionPayloadHeader struct {
-	version          uint32
-	ParentHash       gethprimitives.ExecutionHash    `json:"parentHash"       gencodec:"required"`
-	FeeRecipient     gethprimitives.ExecutionAddress `json:"feeRecipient"     gencodec:"required"`
-	StateRoot        common.Bytes32                  `json:"stateRoot"        gencodec:"required"`
-	ReceiptsRoot     common.Bytes32                  `json:"receiptsRoot"     gencodec:"required"`
-	LogsBloom        bytes.B256                      `json:"logsBloom"        gencodec:"required"`
-	Random           common.Bytes32                  `json:"prevRandao"       gencodec:"required"`
-	Number           math.U64                        `json:"blockNumber"      gencodec:"required"`
-	GasLimit         math.U64                        `json:"gasLimit"         gencodec:"required"`
-	GasUsed          math.U64                        `json:"gasUsed"          gencodec:"required"`
-	Timestamp        math.U64                        `json:"timestamp"        gencodec:"required"`
-	ExtraData        []byte                          `json:"extraData"        gencodec:"required"`
-	BaseFeePerGas    math.Wei                        `json:"baseFeePerGas"    gencodec:"required"`
-	BlockHash        gethprimitives.ExecutionHash    `json:"blockHash"        gencodec:"required"`
-	TransactionsRoot common.Root                     `json:"transactionsRoot" gencodec:"required"`
-	WithdrawalsRoot  common.Root                     `json:"withdrawalsRoot"`
-	BlobGasUsed      math.U64                        `json:"blobGasUsed"`
-	ExcessBlobGas    math.U64                        `json:"excessBlobGas"`
+	// Metadata
+	//
+	// version is the fork version of the execution payload header.
+	version uint32
+
+	// Contents
+	//
+	// ParentHash is the hash of the parent block.
+	ParentHash gethprimitives.ExecutionHash `json:"parentHash" gencodec:"required"`
+	// FeeRecipient is the address of the fee recipient.
+	FeeRecipient gethprimitives.ExecutionAddress `json:"feeRecipient" gencodec:"required"`
+	// StateRoot is the root of the state trie.
+	StateRoot common.Bytes32 `json:"stateRoot" gencodec:"required"`
+	// ReceiptsRoot is the root of the receipts trie.
+	ReceiptsRoot common.Bytes32 `json:"receiptsRoot" gencodec:"required"`
+	// LogsBloom is the bloom filter for the logs.
+	LogsBloom bytes.B256 `json:"logsBloom" gencodec:"required"`
+	// Random is the prevRandao value.
+	Random common.Bytes32 `json:"prevRandao" gencodec:"required"`
+	// Number is the block number.
+	Number math.U64 `json:"blockNumber" gencodec:"required"`
+	// GasLimit is the gas limit for the block.
+	GasLimit math.U64 `json:"gasLimit" gencodec:"required"`
+	// GasUsed is the amount of gas used in the block.
+	GasUsed math.U64 `json:"gasUsed" gencodec:"required"`
+	// Timestamp is the timestamp of the block.
+	Timestamp math.U64 `json:"timestamp" gencodec:"required"`
+	// ExtraData is the extra data of the block.
+	ExtraData []byte `json:"extraData" gencodec:"required"`
+	// BaseFeePerGas is the base fee per gas.
+	BaseFeePerGas math.Wei `json:"baseFeePerGas" gencodec:"required"`
+	// BlockHash is the hash of the block.
+	BlockHash gethprimitives.ExecutionHash `json:"blockHash" gencodec:"required"`
+	// TransactionsRoot is the root of the transaction trie.
+	TransactionsRoot common.Root `json:"transactionsRoot" gencodec:"required"`
+	// WithdrawalsRoot is the root of the withdrawals trie.
+	WithdrawalsRoot common.Root `json:"withdrawalsRoot"`
+	// BlobGasUsed is the amount of blob gas used in the block.
+	BlobGasUsed math.U64 `json:"blobGasUsed"`
+	// ExcessBlobGas is the amount of excess blob gas in the block.
+	ExcessBlobGas math.U64 `json:"excessBlobGas"`
 }
 
 // Empty returns an empty ExecutionPayload for the given fork version.
