@@ -113,23 +113,23 @@ func UnmarshalBlobSidecarsFromABCIRequest[
 	req ABCIRequest,
 	bzIndex uint,
 ) (BlobSidecarsT, error) {
+	var sidecars BlobSidecarsT
 	if req == nil {
-		return *new(BlobSidecarsT), ErrNilABCIRequest
+		return sidecars, ErrNilABCIRequest
 	}
 
 	txs := req.GetTxs()
 	if len(txs) == 0 || int(bzIndex) >= len(txs) {
-		return *new(BlobSidecarsT), ErrNoBeaconBlockInRequest
+		return sidecars, ErrNoBeaconBlockInRequest
 	}
 
 	sidecarBz := txs[bzIndex]
 	if sidecarBz == nil {
-		return *new(BlobSidecarsT), ErrNilBeaconBlockInRequest
+		return sidecars, ErrNilBeaconBlockInRequest
 	}
 
 	// TODO: Do some research to figure out how to make this more
 	// elegant.
-	var sidecars BlobSidecarsT
 	sidecars = sidecars.Empty()
 	return sidecars, sidecars.UnmarshalSSZ(sidecarBz)
 }
