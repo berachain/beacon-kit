@@ -127,6 +127,8 @@ func UnmarshalBlobSidecarsFromABCIRequest[
 		return *new(BlobSidecarsT), ErrNilBeaconBlockInRequest
 	}
 
+	// TODO: Do some research to figure out how to make this more
+	// elegant.
 	var sidecars BlobSidecarsT
 	sidecars = sidecars.Empty()
 	return sidecars, sidecars.UnmarshalSSZ(sidecarBz)
