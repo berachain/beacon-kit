@@ -20,18 +20,25 @@
 
 package server
 
+const (
+	defaultAddress = "0.0.0.0:3500"
+)
+
 // Config is the configuration for the node API server.
 type Config struct {
 	// Enabled is the flag to enable the node API server.
 	Enabled bool `mapstructure:"enabled"`
 	// Address is the address to bind the node API server to.
 	Address string `mapstructure:"address"`
+	// Logging is the flag to enable API logging.
+	Logging bool `mapstructure:"logging"`
 }
 
 // DefaultConfig returns the default configuration for the node API server.
 func DefaultConfig() Config {
 	return Config{
 		Enabled: false,
-		Address: "0.0.0.0:8080",
+		Address: defaultAddress,
+		Logging: false,
 	}
 }

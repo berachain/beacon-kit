@@ -46,6 +46,8 @@ type AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT any] interface {
 type BlockStore[BeaconBlockT any] interface {
 	// Get retrieves the block at the given slot.
 	Get(slot uint64) (BeaconBlockT, error)
+	// GetSlotByRoot retrieves the slot by a given root from the store.
+	GetSlotByRoot(root [32]byte) (uint64, error)
 	// Set sets the block at the given slot.
 	Set(slot uint64, block BeaconBlockT) error
 	// Prune prunes the block store of [start, end).
@@ -55,7 +57,7 @@ type BlockStore[BeaconBlockT any] interface {
 // Deposit is a struct that represents a deposit.
 type Deposit interface {
 	constraints.SSZMarshallable
-	GetIndex() uint64
+	GetIndex() math.U64
 }
 
 // DepositStore defines the interface for deposit storage.

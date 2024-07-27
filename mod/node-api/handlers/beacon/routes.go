@@ -23,12 +23,16 @@ package beacon
 import (
 	"net/http"
 
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 )
 
 //nolint:funlen // routes are long
-func (h *Handler[ContextT, _, _]) RegisterRoutes() {
-	h.routes.Routes = []handlers.Route[ContextT]{
+func (h *Handler[_, ContextT, _, _]) RegisterRoutes(
+	logger log.Logger[any],
+) {
+	h.SetLogger(logger)
+	h.BaseHandler.AddRoutes([]handlers.Route[ContextT]{
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/beacon/genesis",
@@ -62,7 +66,7 @@ func (h *Handler[ContextT, _, _]) RegisterRoutes() {
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/beacon/states/:state_id/validators/:validator_id",
-			Handler: h.NotImplemented,
+			Handler: h.GetStateValidator,
 		},
 		{
 			Method:  http.MethodGet,
@@ -87,17 +91,17 @@ func (h *Handler[ContextT, _, _]) RegisterRoutes() {
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/beacon/states/:state_id/randao",
-			Handler: h.NotImplemented,
+			Handler: h.GetRandao,
 		},
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/beacon/headers",
-			Handler: h.NotImplemented,
+			Handler: h.GetBlockHeaders,
 		},
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/beacon/headers/:block_id",
-			Handler: h.NotImplemented,
+			Handler: h.GetBlockHeaderByID,
 		},
 		{
 			Method:  http.MethodPost,
@@ -234,5 +238,5 @@ func (h *Handler[ContextT, _, _]) RegisterRoutes() {
 			Path:    "/eth/v1/beacon/pool/bls_to_execution_changes",
 			Handler: h.NotImplemented,
 		},
-	}
+	})
 }

@@ -110,7 +110,7 @@ func (kv *KVStore[DepositT]) EnqueueDeposits(deposits []DepositT) error {
 
 // setDeposit sets the deposit in the store.
 func (kv *KVStore[DepositT]) setDeposit(deposit DepositT) error {
-	return kv.store.Set(context.TODO(), deposit.GetIndex(), deposit)
+	return kv.store.Set(context.TODO(), uint64(deposit.GetIndex()), deposit)
 }
 
 // Prune removes the [start, end) deposits from the store.

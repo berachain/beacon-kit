@@ -21,13 +21,11 @@
 package genesis
 
 import (
-	"encoding/json"
-
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	typesv2 "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types/v2"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/spf13/afero"
@@ -76,7 +74,7 @@ func GetGenesisValidatorRootCmd(cs common.ChainSpec) *cobra.Command {
 				var val *types.Validator
 				validators[i] = val.New(
 					deposit.Pubkey,
-					typesv2.WithdrawalCredentials(deposit.Credentials),
+					types.WithdrawalCredentials(deposit.Credentials),
 					deposit.Amount,
 					math.Gwei(cs.EffectiveBalanceIncrement()),
 					math.Gwei(cs.MaxEffectiveBalance()),

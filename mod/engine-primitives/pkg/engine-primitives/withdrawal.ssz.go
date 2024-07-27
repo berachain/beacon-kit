@@ -4,14 +4,9 @@
 package engineprimitives
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	ssz "github.com/ferranbt/fastssz"
 )
 
-// MarshalSSZ ssz marshals the Withdrawal object
-func (w *Withdrawal) MarshalSSZ() ([]byte, error) {
-	return ssz.MarshalSSZ(w)
-}
 
 // MarshalSSZTo ssz marshals the Withdrawal object to a target array
 func (w *Withdrawal) MarshalSSZTo(buf []byte) (dst []byte, err error) {
@@ -30,40 +25,6 @@ func (w *Withdrawal) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = ssz.MarshalUint64(dst, uint64(w.Amount))
 
 	return
-}
-
-// UnmarshalSSZ ssz unmarshals the Withdrawal object
-func (w *Withdrawal) UnmarshalSSZ(buf []byte) error {
-	var err error
-	size := uint64(len(buf))
-	if size != 44 {
-		return ssz.ErrSize
-	}
-
-	// Field (0) 'Index'
-	w.Index = math.U64(ssz.UnmarshallUint64(buf[0:8]))
-
-	// Field (1) 'Validator'
-	w.Validator = math.ValidatorIndex(ssz.UnmarshallUint64(buf[8:16]))
-
-	// Field (2) 'Address'
-	copy(w.Address[:], buf[16:36])
-
-	// Field (3) 'Amount'
-	w.Amount = math.Gwei(ssz.UnmarshallUint64(buf[36:44]))
-
-	return err
-}
-
-// SizeSSZ returns the ssz encoded size in bytes for the Withdrawal object
-func (w *Withdrawal) SizeSSZ() (size int) {
-	size = 44
-	return
-}
-
-// HashTreeRoot ssz hashes the Withdrawal object
-func (w *Withdrawal) HashTreeRoot() ([32]byte, error) {
-	return ssz.HashWithDefaultHasher(w)
 }
 
 // HashTreeRootWith ssz hashes the Withdrawal object with a hasher

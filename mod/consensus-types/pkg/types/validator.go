@@ -21,10 +21,21 @@
 package types
 
 import (
-	typesv2 "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types/v2"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	fastssz "github.com/ferranbt/fastssz"
+	"github.com/karalabe/ssz"
+)
+
+// ValidatorSize is the size of the Validator struct in bytes.
+const ValidatorSize = 121
+
+// Compile-time checks for the Validator struct.
+var (
+	_ ssz.StaticObject                    = (*Validator)(nil)
+	_ constraints.SSZMarshallableRootable = (*Validator)(nil)
 )
 
 // Validator as defined in the Ethereum 2.0 Spec
@@ -33,9 +44,9 @@ import (
 //nolint:lll
 type Validator struct {
 	// Pubkey is the validator's 48-byte BLS public key.
-	Pubkey crypto.BLSPubkey `json:"pubkey"                     ssz-size:"48"`
+	Pubkey crypto.BLSPubkey `json:"pubkey"`
 	// WithdrawalCredentials are an address that controls the validator.
-	WithdrawalCredentials typesv2.WithdrawalCredentials `json:"withdrawalCredentials"      ssz-size:"32"`
+	WithdrawalCredentials WithdrawalCredentials `json:"withdrawalCredentials"`
 	// EffectiveBalance is the validator's current effective balance in gwei.
 	EffectiveBalance math.Gwei `json:"effectiveBalance"`
 	// Slashed indicates whether the validator has been slashed.
@@ -51,6 +62,10 @@ type Validator struct {
 	WithdrawableEpoch math.Epoch `json:"withdrawableEpoch"`
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                 Constructor                                */
+/* -------------------------------------------------------------------------- */
+
 // NewValidatorFromDeposit creates a new Validator from the
 // given public key, withdrawal credentials, and amount.
 //
@@ -60,7 +75,7 @@ type Validator struct {
 //nolint:lll
 func NewValidatorFromDeposit(
 	pubkey crypto.BLSPubkey,
-	withdrawalCredentials typesv2.WithdrawalCredentials,
+	withdrawalCredentials WithdrawalCredentials,
 	amount math.Gwei,
 	effectiveBalanceIncrement math.Gwei,
 	maxEffectiveBalance math.Gwei,
@@ -84,7 +99,7 @@ func NewValidatorFromDeposit(
 // credentials,.
 func (v *Validator) New(
 	pubkey crypto.BLSPubkey,
-	withdrawalCredentials typesv2.WithdrawalCredentials,
+	withdrawalCredentials WithdrawalCredentials,
 	amount math.Gwei,
 	effectiveBalanceIncrement math.Gwei,
 	maxEffectiveBalance math.Gwei,
@@ -97,6 +112,99 @@ func (v *Validator) New(
 		maxEffectiveBalance,
 	)
 }
+
+/* -------------------------------------------------------------------------- */
+/*                                     SSZ                                    */
+/* -------------------------------------------------------------------------- */
+
+// SizeSSZ returns the size of the Validator object in SSZ encoding.
+func (*Validator) SizeSSZ() uint32 {
+	return ValidatorSize
+}
+
+// DefineSSZ defines the SSZ encoding for the Validator object.
+func (v *Validator) DefineSSZ(codec *ssz.Codec) {
+	ssz.DefineStaticBytes(codec, &v.Pubkey)
+	ssz.DefineStaticBytes(codec, &v.WithdrawalCredentials)
+	ssz.DefineUint64(codec, &v.EffectiveBalance)
+	ssz.DefineBool(codec, &v.Slashed)
+	ssz.DefineUint64(codec, &v.ActivationEligibilityEpoch)
+	ssz.DefineUint64(codec, &v.ActivationEpoch)
+	ssz.DefineUint64(codec, &v.ExitEpoch)
+	ssz.DefineUint64(codec, &v.WithdrawableEpoch)
+}
+
+// HashTreeRoot computes the SSZ hash tree root of the Validator object.
+func (v *Validator) HashTreeRoot() ([32]byte, error) {
+	return ssz.HashSequential(v), nil
+}
+
+// MarshalSSZ marshals the Validator object to SSZ format.
+func (v *Validator) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, v.SizeSSZ())
+	return buf, ssz.EncodeToBytes(buf, v)
+}
+
+// UnmarshalSSZ unmarshals the Validator object from SSZ format.
+func (v *Validator) UnmarshalSSZ(buf []byte) error {
+	return ssz.DecodeFromBytes(buf, v)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
+
+// MarshalSSZTo marshals the Validator object to SSZ format into the provided
+// buffer.
+func (v *Validator) MarshalSSZTo(dst []byte) ([]byte, error) {
+	bz, err := v.MarshalSSZ()
+	if err != nil {
+		return nil, err
+	}
+	dst = append(dst, bz...)
+	return dst, nil
+}
+
+// HashTreeRootWith ssz hashes the Validator object with a hasher.
+func (v *Validator) HashTreeRootWith(hh fastssz.HashWalker) error {
+	indx := hh.Index()
+
+	// Field (0) 'Pubkey'
+	hh.PutBytes(v.Pubkey[:])
+
+	// Field (1) 'WithdrawalCredentials'
+	hh.PutBytes(v.WithdrawalCredentials[:])
+
+	// Field (2) 'EffectiveBalance'
+	hh.PutUint64(uint64(v.EffectiveBalance))
+
+	// Field (3) 'Slashed'
+	hh.PutBool(v.Slashed)
+
+	// Field (4) 'ActivationEligibilityEpoch'
+	hh.PutUint64(uint64(v.ActivationEligibilityEpoch))
+
+	// Field (5) 'ActivationEpoch'
+	hh.PutUint64(uint64(v.ActivationEpoch))
+
+	// Field (6) 'ExitEpoch'
+	hh.PutUint64(uint64(v.ExitEpoch))
+
+	// Field (7) 'WithdrawableEpoch'
+	hh.PutUint64(uint64(v.WithdrawableEpoch))
+
+	hh.Merkleize(indx)
+	return nil
+}
+
+// GetTree ssz hashes the Validator object.
+func (v *Validator) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(v)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                             Getters and Setters                            */
+/* -------------------------------------------------------------------------- */
 
 // GetPubkey returns the public key of the validator.
 func (v *Validator) GetPubkey() crypto.BLSPubkey {
@@ -183,7 +291,7 @@ func (v Validator) IsPartiallyWithdrawable(
 //
 //nolint:lll
 func (v Validator) HasEth1WithdrawalCredentials() bool {
-	return v.WithdrawalCredentials[0] == typesv2.EthSecp256k1CredentialPrefix
+	return v.WithdrawalCredentials[0] == EthSecp256k1CredentialPrefix
 }
 
 // HasMaxEffectiveBalance determines if the validator has the maximum effective
@@ -205,6 +313,6 @@ func (v Validator) GetWithdrawableEpoch() math.Epoch {
 }
 
 // GetWithdrawalCredentials returns the withdrawal credentials of the validator.
-func (v Validator) GetWithdrawalCredentials() typesv2.WithdrawalCredentials {
+func (v Validator) GetWithdrawalCredentials() WithdrawalCredentials {
 	return v.WithdrawalCredentials
 }

@@ -32,9 +32,9 @@ import (
 // AttestationData is an interface for accessing the attestation data.
 type AttestationData[AttestationDataT any] interface {
 	// GetIndex returns the index of the attestation data.
-	GetIndex() uint64
+	GetIndex() math.U64
 	// New creates a new attestation data instance.
-	New(uint64, uint64, common.Root) AttestationDataT
+	New(math.U64, math.U64, common.Root) AttestationDataT
 }
 
 // BeaconState is an interface for accessing the beacon state.
@@ -67,7 +67,7 @@ type Middleware[
 // SlashingInfo is an interface for accessing the slashing info.
 type SlashingInfo[SlashingInfoT any] interface {
 	// New creates a new slashing info instance.
-	New(uint64, uint64) SlashingInfoT
+	New(math.U64, math.U64) SlashingInfoT
 }
 
 // SlotData is an interface for accessing the slot data.

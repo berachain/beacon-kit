@@ -27,11 +27,20 @@ import (
 )
 
 // Formatter is a custom formatter for log messages.
-type Formatter struct{}
+type Formatter struct {
+	// KeyColors applies specific colors to log entries based on their keys.
+	keyColors map[string]Color
+	// KeyValColors applies specific colors to log entries based on their keys
+	// and values.
+	keyValColors map[string]Color
+}
 
 // NewFormatter creates a new Formatter with default settings.
 func NewFormatter() *Formatter {
-	return &Formatter{}
+	return &Formatter{
+		keyColors:    make(map[string]Color),
+		keyValColors: make(map[string]Color),
+	}
 }
 
 // Format formats the log message.
@@ -50,21 +59,21 @@ func (f *Formatter) Format(
 	var color, label string
 	switch args.Level {
 	case "trace":
-		color, label = traceColor, traceLabel
+		color, label = traceColor.Raw(), traceLabel
 	case "debug":
-		color, label = debugColor, debugLabel
+		color, label = debugColor.Raw(), debugLabel
 	case "info":
-		color, label = infoColor, infoLabel
+		color, label = infoColor.Raw(), infoLabel
 	case "warn":
-		color, label = warnColor, warnLabel
+		color, label = warnColor.Raw(), warnLabel
 	case "error":
-		color, label = errorColor, errorLabel
+		color, label = errorColor.Raw(), errorLabel
 	case "fatal":
-		color, label = fatalColor, fatalLabel
+		color, label = fatalColor.Raw(), fatalLabel
 	case "panic":
-		color, label = panicColor, panicLabel
+		color, label = panicColor.Raw(), panicLabel
 	default:
-		color, label = defaultColor, defaultLabel
+		color, label = defaultColor.Raw(), defaultLabel
 	}
 
 	f.printWithColor(args, buffer, color, label)
@@ -80,6 +89,16 @@ func (f *Formatter) Format(
 	return out.Write(buffer.Bytes)
 }
 
+// AddKeyColor adds a key and color to the keyColors map.
+func (f *Formatter) AddKeyColor(key string, color Color) {
+	f.keyColors[key] = color
+}
+
+// AddKeyValColor adds a key and color to the keyValColors map.
+func (f *Formatter) AddKeyValColor(key string, val string, color Color) {
+	f.keyValColors[key+val] = color
+}
+
 // printWithColor prints the log message with color.
 func (f *Formatter) printWithColor(
 	args *log.FormatterArgs,
@@ -92,8 +111,14 @@ func (f *Formatter) printWithColor(
 	b.Bytes = append(b.Bytes, args.Message...)
 	for _, kv := range args.KeyValues {
 		b.Bytes = append(b.Bytes, ' ')
-		if kv.Key == "error" || kv.Key == "err" {
-			b.Bytes = append(b.Bytes, red...)
+		// apply the key color if configured
+		if kColor, ok := f.keyColors[kv.Key]; ok {
+			b.Bytes = append(b.Bytes, kColor.Raw()...)
+		}
+		// apply the key+value color if configured (kv color takes precedence
+		// over key color)
+		if kvColor, ok := f.keyValColors[kv.Key+kv.Value]; ok {
+			b.Bytes = append(b.Bytes, kvColor.Raw()...)
 		}
 		b.Bytes = append(b.Bytes, kv.Key...)
 		b.Bytes = append(b.Bytes, '=')

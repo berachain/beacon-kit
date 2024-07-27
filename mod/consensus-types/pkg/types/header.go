@@ -22,50 +22,40 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	fastssz "github.com/ferranbt/fastssz"
+	"github.com/karalabe/ssz"
 )
 
-// BeaconBlockHeaderBase represents the base of a beacon block header.
-type BeaconBlockHeaderBase struct {
+// BeaconBlockHeaderSize is the size of the BeaconBlockHeader object in bytes.
+//
+// Total size: Slot (8) + ProposerIndex (8) +
+// ParentBlockRoot (32) + StateRoot (32) + BodyRoot (32).
+const BeaconBlockHeaderSize = 112
+
+var (
+	_ ssz.StaticObject                    = (*BeaconBlockHeader)(nil)
+	_ constraints.SSZMarshallableRootable = (*BeaconBlockHeader)(nil)
+)
+
+// BeaconBlockHeader represents the base of a beacon block header.
+type BeaconBlockHeader struct {
 	// Slot represents the position of the block in the chain.
-	// TODO: Put back to math.Slot after fastssz fixes.
-	Slot uint64
+	Slot math.Slot
 	// ProposerIndex is the index of the validator who proposed the block.
-	// TODO: Put back to math.ProposerIndex after fastssz fixes.
-	ProposerIndex uint64
+	ProposerIndex math.ValidatorIndex
 	// ParentBlockRoot is the hash of the parent block
 	ParentBlockRoot common.Root
 	// StateRoot is the hash of the state at the block.
 	StateRoot common.Root
+	// BodyRoot is the root of the block body.
+	BodyRoot common.Root
 }
 
-// GetSlot retrieves the slot of the BeaconBlockBase.
-func (b *BeaconBlockHeaderBase) GetSlot() math.Slot {
-	return math.Slot(b.Slot)
-}
-
-// GetSlot retrieves the slot of the BeaconBlockBase.
-func (b *BeaconBlockHeaderBase) GetProposerIndex() math.ValidatorIndex {
-	return math.ValidatorIndex(b.ProposerIndex)
-}
-
-// GetParentBlockRoot retrieves the parent block root of the BeaconBlockBase.
-func (b *BeaconBlockHeaderBase) GetParentBlockRoot() common.Root {
-	return b.ParentBlockRoot
-}
-
-// GetStateRoot retrieves the state root of the BeaconBlockDeneb.
-func (b *BeaconBlockHeaderBase) GetStateRoot() common.Root {
-	return b.StateRoot
-}
-
-// BeaconBlockHeader is the header of a beacon block.
-type BeaconBlockHeader struct {
-	// BeaconBlockHeaderBase is the base of the block.
-	BeaconBlockHeaderBase
-	// 	// BodyRoot is the root of the block body.
-	BodyRoot common.Root `json:"bodyRoot"`
-}
+/* -------------------------------------------------------------------------- */
+/*                                 Constructor                                */
+/* -------------------------------------------------------------------------- */
 
 // NewBeaconBlockHeader creates a new BeaconBlockHeader.
 func NewBeaconBlockHeader(
@@ -76,13 +66,11 @@ func NewBeaconBlockHeader(
 	bodyRoot common.Root,
 ) *BeaconBlockHeader {
 	return &BeaconBlockHeader{
-		BeaconBlockHeaderBase: BeaconBlockHeaderBase{
-			Slot:            slot.Unwrap(),
-			ProposerIndex:   proposerIndex.Unwrap(),
-			ParentBlockRoot: parentBlockRoot,
-			StateRoot:       stateRoot,
-		},
-		BodyRoot: bodyRoot,
+		Slot:            slot,
+		ProposerIndex:   proposerIndex,
+		ParentBlockRoot: parentBlockRoot,
+		StateRoot:       stateRoot,
+		BodyRoot:        bodyRoot,
 	}
 }
 
@@ -99,7 +87,136 @@ func (b *BeaconBlockHeader) New(
 	)
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                     SSZ                                    */
+/* -------------------------------------------------------------------------- */
+
+// SizeSSZ returns the size of the BeaconBlockHeader object in SSZ encoding.
+func (b *BeaconBlockHeader) SizeSSZ() uint32 {
+	return BeaconBlockHeaderSize
+}
+
+// DefineSSZ defines the SSZ encoding for the BeaconBlockHeader object.
+func (b *BeaconBlockHeader) DefineSSZ(codec *ssz.Codec) {
+	ssz.DefineUint64(codec, &b.Slot)
+	ssz.DefineUint64(codec, &b.ProposerIndex)
+	ssz.DefineStaticBytes(codec, &b.ParentBlockRoot)
+	ssz.DefineStaticBytes(codec, &b.StateRoot)
+	ssz.DefineStaticBytes(codec, &b.BodyRoot)
+}
+
+// MarshalSSZ marshals the BeaconBlockBody object to SSZ format.
+func (b *BeaconBlockHeader) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, b.SizeSSZ())
+	return buf, ssz.EncodeToBytes(buf, b)
+}
+
+// UnmarshalSSZ unmarshals the BeaconBlockBody object from SSZ format.
+func (b *BeaconBlockHeader) UnmarshalSSZ(buf []byte) error {
+	return ssz.DecodeFromBytes(buf, b)
+}
+
+// HashTreeRoot computes the SSZ hash tree root of the BeaconBlockHeader object.
+func (b *BeaconBlockHeader) HashTreeRoot() ([32]byte, error) {
+	return ssz.HashSequential(b), nil
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
+
+// MarshalSSZToBytes marshals the BeaconBlockHeader object to SSZ format.
+func (b *BeaconBlockHeader) MarshalSSZTo(dst []byte) ([]byte, error) {
+	bz, err := b.MarshalSSZ()
+	if err != nil {
+		return nil, err
+	}
+	dst = append(dst, bz...)
+	return dst, nil
+}
+
+// HashTreeRootWith ssz hashes the BeaconBlockHeader object with a hasher.
+func (b *BeaconBlockHeader) HashTreeRootWith(
+	hh fastssz.HashWalker,
+) error {
+	indx := hh.Index()
+
+	// Field (0) 'Slot'
+	hh.PutUint64(uint64(b.Slot))
+
+	// Field (1) 'ProposerIndex'
+	hh.PutUint64(uint64(b.ProposerIndex))
+
+	// Field (2) 'ParentBlockRoot'
+	hh.PutBytes(b.ParentBlockRoot[:])
+
+	// Field (3) 'StateRoot'
+	hh.PutBytes(b.StateRoot[:])
+
+	// Field (4) 'BodyRoot'
+	hh.PutBytes(b.BodyRoot[:])
+
+	hh.Merkleize(indx)
+	return nil
+}
+
+// GetTree ssz hashes the BeaconBlockHeader object.
+func (b *BeaconBlockHeader) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(b)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                            Getters and Setters                             */
+/* -------------------------------------------------------------------------- */
+
+// GetSlot retrieves the slot of the BeaconBlockHeader.
+func (b *BeaconBlockHeader) GetSlot() math.Slot {
+	return b.Slot
+}
+
+// SetSlot sets the slot of the BeaconBlockHeader.
+func (b *BeaconBlockHeader) SetSlot(slot math.Slot) {
+	b.Slot = slot
+}
+
+// GetProposerIndex retrieves the proposer index of the BeaconBlockHeader.
+func (b *BeaconBlockHeader) GetProposerIndex() math.ValidatorIndex {
+	return b.ProposerIndex
+}
+
+// SetProposerIndex sets the proposer index of the BeaconBlockHeader.
+func (b *BeaconBlockHeader) SetProposerIndex(
+	proposerIndex math.ValidatorIndex,
+) {
+	b.ProposerIndex = proposerIndex
+}
+
+// GetParentBlockRoot retrieves the parent block root of the BeaconBlockHeader.
+func (b *BeaconBlockHeader) GetParentBlockRoot() common.Root {
+	return b.ParentBlockRoot
+}
+
+// SetParentBlockRoot sets the parent block root of the BeaconBlockHeader.
+func (b *BeaconBlockHeader) SetParentBlockRoot(parentBlockRoot common.Root) {
+	b.ParentBlockRoot = parentBlockRoot
+}
+
+// GetStateRoot retrieves the state root of the BeaconBlockHeader.
+func (b *BeaconBlockHeader) GetStateRoot() common.Root {
+	return b.StateRoot
+}
+
 // SetStateRoot sets the state root of the BeaconBlockHeader.
 func (b *BeaconBlockHeader) SetStateRoot(stateRoot common.Root) {
 	b.StateRoot = stateRoot
+}
+
+// GetBodyRoot retrieves the body root of the BeaconBlockHeader.
+func (b *BeaconBlockHeader) GetBodyRoot() common.Root {
+	return b.BodyRoot
+}
+
+// SetBodyRoot sets the body root of the BeaconBlockHeader.
+func (b *BeaconBlockHeader) SetBodyRoot(bodyRoot common.Root) {
+	b.BodyRoot = bodyRoot
 }

@@ -30,7 +30,7 @@ import (
 
 func TestB32SizeSSZ(t *testing.T) {
 	var b bytes.B32
-	require.Equal(t, bytes.B32Size, b.SizeSSZ(),
+	require.Equal(t, bytes.B32Size, int(b.SizeSSZ()),
 		"SizeSSZ should return the correct size")
 }
 

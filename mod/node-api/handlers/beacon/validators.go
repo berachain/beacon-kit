@@ -21,30 +21,32 @@
 package beacon
 
 import (
+	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
-	"github.com/berachain/beacon-kit/mod/node-api/types"
-	beacontypes "github.com/berachain/beacon-kit/mod/node-api/types/beacon"
 )
 
-func (h *Handler[ContextT, _, _]) GetStateValidators(c ContextT) (any, error) {
-	params, err := utils.BindAndValidate[beacontypes.StateValidatorsGetRequest](
-		c,
+func (h *Handler[_, ContextT, _, _]) GetStateValidators(
+	c ContextT,
+) (any, error) {
+	req, err := utils.BindAndValidate[beacontypes.GetStateValidatorsRequest](
+		c, h.Logger(),
 	)
 	if err != nil {
 		return nil, err
 	}
 	// TODO: remove this once status filter is implemented.
-	if len(params.Statuses) > 0 {
+	if len(req.Statuses) > 0 {
 		return nil, types.ErrNotImplemented
 	}
-	slot, err := utils.SlotFromStateID(params.StateID)
+	slot, err := utils.SlotFromStateID(req.StateID)
 	if err != nil {
 		return nil, err
 	}
 	validators, err := h.backend.ValidatorsByIDs(
 		slot,
-		params.IDs,
-		params.Statuses,
+		req.IDs,
+		req.Statuses,
 	)
 	if err != nil {
 		return nil, err
@@ -59,25 +61,27 @@ func (h *Handler[ContextT, _, _]) GetStateValidators(c ContextT) (any, error) {
 	}, nil
 }
 
-func (h *Handler[ContextT, _, _]) PostStateValidators(c ContextT) (any, error) {
-	params, err := utils.BindAndValidate[beacontypes.StateValidatorsPostRequest](
-		c,
+func (h *Handler[_, ContextT, _, _]) PostStateValidators(
+	c ContextT,
+) (any, error) {
+	req, err := utils.BindAndValidate[beacontypes.PostStateValidatorsRequest](
+		c, h.Logger(),
 	)
 	if err != nil {
 		return nil, err
 	}
 	// TODO: remove this once status filter is implemented.
-	if len(params.Statuses) > 0 {
+	if len(req.Statuses) > 0 {
 		return nil, types.ErrNotImplemented
 	}
-	slot, err := utils.SlotFromStateID(params.StateID)
+	slot, err := utils.SlotFromStateID(req.StateID)
 	if err != nil {
 		return nil, err
 	}
 	validators, err := h.backend.ValidatorsByIDs(
 		slot,
-		params.IDs,
-		params.Statuses,
+		req.IDs,
+		req.Statuses,
 	)
 	if err != nil {
 		return nil, err
@@ -89,22 +93,45 @@ func (h *Handler[ContextT, _, _]) PostStateValidators(c ContextT) (any, error) {
 	}, nil
 }
 
-func (h *Handler[ContextT, _, _]) GetStateValidatorBalances(
+func (h *Handler[_, ContextT, _, _]) GetStateValidator(
 	c ContextT,
 ) (any, error) {
-	params, err := utils.BindAndValidate[beacontypes.ValidatorBalancesGetRequest](
-		c,
+	req, err := utils.BindAndValidate[beacontypes.GetStateValidatorRequest](
+		c, h.Logger(),
 	)
 	if err != nil {
 		return nil, err
 	}
-	slot, err := utils.SlotFromStateID(params.StateID)
+	slot, err := utils.SlotFromStateID(req.StateID)
+	if err != nil {
+		return nil, err
+	}
+	validator, err := h.backend.ValidatorByID(
+		slot,
+		req.ValidatorID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return validator, nil
+}
+
+func (h *Handler[_, ContextT, _, _]) GetStateValidatorBalances(
+	c ContextT,
+) (any, error) {
+	req, err := utils.BindAndValidate[beacontypes.GetValidatorBalancesRequest](
+		c, h.Logger(),
+	)
+	if err != nil {
+		return nil, err
+	}
+	slot, err := utils.SlotFromStateID(req.StateID)
 	if err != nil {
 		return nil, err
 	}
 	balances, err := h.backend.ValidatorBalancesByIDs(
 		slot,
-		params.IDs,
+		req.IDs,
 	)
 	if err != nil {
 		return nil, err
@@ -116,22 +143,22 @@ func (h *Handler[ContextT, _, _]) GetStateValidatorBalances(
 	}, nil
 }
 
-func (h *Handler[ContextT, _, _]) PostStateValidatorBalances(
+func (h *Handler[_, ContextT, _, _]) PostStateValidatorBalances(
 	c ContextT,
 ) (any, error) {
-	params, err := utils.BindAndValidate[beacontypes.ValidatorBalancesPostRequest](
-		c,
+	req, err := utils.BindAndValidate[beacontypes.PostValidatorBalancesRequest](
+		c, h.Logger(),
 	)
 	if err != nil {
 		return nil, err
 	}
-	slot, err := utils.SlotFromStateID(params.StateID)
+	slot, err := utils.SlotFromStateID(req.StateID)
 	if err != nil {
 		return nil, err
 	}
 	balances, err := h.backend.ValidatorBalancesByIDs(
 		slot,
-		params.IDs,
+		req.IDs,
 	)
 	if err != nil {
 		return nil, err
