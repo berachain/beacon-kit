@@ -22,6 +22,7 @@ package middleware
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
@@ -43,7 +44,7 @@ type ABCIMiddleware[
 	BlobSidecarsT constraints.SSZMarshallable,
 	DepositT,
 	ExecutionPayloadT any,
-	GenesisT Genesis,
+	GenesisT json.Unmarshaler,
 	SlotDataT any,
 ] struct {
 	// chainSpec is the chain specification.
@@ -104,7 +105,7 @@ func NewABCIMiddleware[
 	BlobSidecarsT constraints.SSZMarshallable,
 	DepositT,
 	ExecutionPayloadT any,
-	GenesisT Genesis,
+	GenesisT json.Unmarshaler,
 	SlotDataT any,
 ](
 	chainSpec common.ChainSpec,

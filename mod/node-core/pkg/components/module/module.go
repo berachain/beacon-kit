@@ -22,7 +22,6 @@ package beacon
 
 import (
 	"context"
-	"encoding/json"
 
 	"cosmossdk.io/core/appmodule/v2"
 	"cosmossdk.io/core/registry"
@@ -31,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
 	consruntimetypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 

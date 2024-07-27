@@ -17,28 +17,29 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
+//
+//nolint:gochecknoglobals // intentional aliases.
+package json
 
-package server
+import (
+	"encoding/json"
 
-const (
-	defaultAddress = "0.0.0.0:3500"
+	gojson "github.com/goccy/go-json"
 )
 
-// Config is the configuration for the node API server.
-type Config struct {
-	// Enabled is the flag to enable the node API server.
-	Enabled bool `mapstructure:"enabled"`
-	// Address is the address to bind the node API server to.
-	Address string `mapstructure:"address"`
-	// Logging is the flag to enable API logging.
-	Logging bool `mapstructure:"logging"`
-}
+// Marshal is a wrapper for gojson.Marshal, which provides high-performance JSON
+// encoding.
+var Marshal = gojson.Marshal
 
-// DefaultConfig returns the default configuration for the node API server.
-func DefaultConfig() Config {
-	return Config{
-		Enabled: false,
-		Address: defaultAddress,
-		Logging: false,
-	}
-}
+// MarshalIndent is a wrapper for gojson.MarshalIndent, which provides
+// high-performance JSON encoding with indentation.
+var MarshalIndent = gojson.MarshalIndent
+
+// Unmarshal is a wrapper for gojson.Unmarshal, which provides high-performance
+// JSON decoding.
+var Unmarshal = gojson.Unmarshal
+
+// RawMessage is an alias for json.RawMessage, represensting a raw encoded JSON
+// value. It implements Marshaler and Unmarshaler and can be used to delay JSON
+// decoding or precompute a JSON encoding.
+type RawMessage = json.RawMessage
