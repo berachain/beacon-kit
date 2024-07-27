@@ -204,7 +204,7 @@ func TestBeaconBlock_MarshalSSZTo(t *testing.T) {
 	require.NotNil(t, result)
 
 	// Ensure the result is not empty and contains the SSZ data
-	require.Greater(t, len(result), 0)
+	require.NotEmpty(t, result)
 
 	// Unmarshal the result back to a BeaconBlock and compare
 	var unmarshalledBlock types.BeaconBlock
