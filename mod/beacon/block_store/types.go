@@ -28,9 +28,15 @@ import (
 
 // BeaconBlock is a generic interface for a beacon block.
 type BeaconBlock interface {
-	constraints.SSZMarshallable
+	constraints.SSZMarshaler
 	// GetSlot returns the slot of the block.
 	GetSlot() math.U64
+}
+
+// BlockStore is a generic interface for a block store.
+type BlockStore[BeaconBlockT BeaconBlock] interface {
+	// Set sets a block at a given index.
+	Set(index uint64, blk BeaconBlockT) error
 }
 
 // Event is an interface for block events.

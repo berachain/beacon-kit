@@ -90,7 +90,7 @@ type SSZType interface {
 // determining the size of the SSZ encoding and computing the hash tree root.
 type MerkleizableSSZObject[RootT ~[32]byte] interface {
 	// SizeSSZ returns the size in bytes of the SSZ-encoded data.
-	SizeSSZ() int
+	SizeSSZ() uint32
 	// HashTreeRoot computes and returns the hash tree root of the data as
 	// RootT and an error if the computation fails.
 	HashTreeRoot() (RootT, error)

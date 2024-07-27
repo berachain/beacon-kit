@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -97,6 +98,7 @@ type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
 	GetProposerIndex() math.ValidatorIndex
 	GetParentBlockRoot() common.Root
 	GetStateRoot() common.Root
+	GetBodyRoot() common.Root
 	SetStateRoot(common.Root)
 }
 
@@ -163,8 +165,10 @@ type ExecutionPayload[
 	GetBlobGasUsed() math.U64
 	GetExcessBlobGas() math.U64
 	ToHeader(
-		txsMerkleizer *merkle.Merkleizer[[32]byte, common.Root],
+		bartioTxsMerkleizer *merkle.Merkleizer[[32]byte, common.Root],
+		properTxsMerkleizer *merkle.Merkleizer[[32]byte, *ssz.List[ssz.Byte]],
 		maxWithdrawalsPerPayload uint64,
+		eth1ChainID uint64,
 	) (ExecutionPayloadHeaderT, error)
 }
 
@@ -204,7 +208,8 @@ type Validator[
 	ValidatorT any,
 	WithdrawalCredentialsT ~[32]byte,
 ] interface {
-	constraints.SSZMarshallable
+	constraints.SSZMarshallableRootable
+	SizeSSZ() uint32
 	// New creates a new validator with the given parameters.
 	New(
 		pubkey crypto.BLSPubkey,

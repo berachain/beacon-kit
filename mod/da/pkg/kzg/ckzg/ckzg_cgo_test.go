@@ -23,9 +23,10 @@
 package ckzg_test
 
 import (
-	"encoding/json"
 	"path/filepath"
 	"testing"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"

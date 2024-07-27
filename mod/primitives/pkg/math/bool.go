@@ -33,7 +33,7 @@ var _ schema.SSZObject[Bool] = (*Bool)(nil)
 type Bool bool
 
 // SizeSSZ returns the size of the bool in bytes.
-func (Bool) SizeSSZ() int {
+func (Bool) SizeSSZ() uint32 {
 	return constants.BoolSize
 }
 
@@ -47,7 +47,8 @@ func (b Bool) MarshalSSZ() ([]byte, error) {
 
 // NewFromSSZ creates a new Bool from SSZ format.
 func (Bool) NewFromSSZ(buf []byte) (Bool, error) {
-	if len(buf) != constants.BoolSize {
+	//#nosec: G701 // won't realistically overflow.
+	if uint32(len(buf)) != constants.BoolSize {
 		return false, fmt.Errorf(
 			"invalid buffer length: expected %d, got %d",
 			constants.BoolSize,

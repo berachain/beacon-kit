@@ -71,7 +71,7 @@ func ByteListFromBytes(bytes []byte, limit uint64) *List[Byte] {
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the list in bytes.
-func (l *List[T]) SizeSSZ() int {
+func (l *List[T]) SizeSSZ() uint32 {
 	// The same for List as for Vector.
 	return Vector[T](l.elements).SizeSSZ()
 }

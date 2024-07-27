@@ -98,7 +98,7 @@ func (m *MockSpec) MaxBlobCommitmentsPerBlock() uint64 {
 
 // func mockBody() da.BeaconBlockBody {
 // 	// Create a real ExecutionPayloadDeneb and BeaconBlockBody
-// 	executionPayload := &engineprimitives.ExecutableDataDeneb{
+// 	executionPayload := &engineprimitives.ExecutionPayload{
 // 		ParentHash:    common.HexToHash("0x01"),
 // 		FeeRecipient:  common.HexToAddress("0x02"),
 // 		StateRoot:     common.HexToHash("0x03"),

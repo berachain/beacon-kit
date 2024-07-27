@@ -21,12 +21,12 @@
 package types_test
 
 import (
+	"io"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -55,7 +55,7 @@ func TestFork_SizeSSZ(t *testing.T) {
 	}
 
 	size := fork.SizeSSZ()
-	require.Equal(t, 16, size)
+	require.Equal(t, uint32(16), size)
 }
 
 func TestFork_HashTreeRoot(t *testing.T) {
@@ -87,5 +87,5 @@ func TestFork_UnmarshalSSZ_ErrSize(t *testing.T) {
 	var unmarshalledFork types.Fork
 	err := unmarshalledFork.UnmarshalSSZ(buf)
 
-	require.ErrorIs(t, err, ssz.ErrSize)
+	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }

@@ -54,18 +54,6 @@ var (
 		"invalid root length",
 	)
 
-	// ErrDepositTransactionFailed is returned when the deposit transaction
-	// fails.
-	ErrDepositTransactionFailed = errors.New(
-		"deposit transaction failed",
-	)
-
-	// ErrPrivateKeyRequired is returned when the broadcast flag is set but a
-	// private key is not provided.
-	ErrPrivateKeyRequired = errors.New(
-		"private key required",
-	)
-
 	// ErrInvalid0xPrefixedHexString is returned when the input string is not
 	// a valid 0x prefixed hex string.
 	ErrInvalid0xPrefixedHexString = errors.New(

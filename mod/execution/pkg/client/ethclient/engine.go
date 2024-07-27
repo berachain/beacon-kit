@@ -42,7 +42,7 @@ func (s *Eth1Client[ExecutionPayloadT]) NewPayload(
 	parentBlockRoot *common.Root,
 ) (*engineprimitives.PayloadStatusV1, error) {
 	switch payload.Version() {
-	case version.Deneb:
+	case version.Deneb, version.DenebPlus:
 		return s.NewPayloadV3(
 			ctx, payload, versionedHashes, parentBlockRoot,
 		)
@@ -81,7 +81,7 @@ func (s *Eth1Client[ExecutionPayloadT]) ForkchoiceUpdated(
 	forkVersion uint32,
 ) (*engineprimitives.ForkchoiceResponseV1, error) {
 	switch forkVersion {
-	case version.Deneb:
+	case version.Deneb, version.DenebPlus:
 		return s.ForkchoiceUpdatedV3(ctx, state, attrs)
 	default:
 		return nil, ErrInvalidVersion
@@ -132,7 +132,7 @@ func (s *Eth1Client[ExecutionPayloadT]) GetPayload(
 	forkVersion uint32,
 ) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
 	switch forkVersion {
-	case version.Deneb:
+	case version.Deneb, version.DenebPlus:
 		return s.GetPayloadV3(ctx, payloadID)
 	default:
 		return nil, ErrInvalidVersion

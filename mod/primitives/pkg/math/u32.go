@@ -44,7 +44,7 @@ type U32 uint32
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the size of the uint32 in bytes.
-func (U32) SizeSSZ() int {
+func (U32) SizeSSZ() uint32 {
 	return constants.U32Size
 }
 
@@ -57,7 +57,8 @@ func (u U32) MarshalSSZ() ([]byte, error) {
 
 // NewFromSSZ creates a new U32 from SSZ format.
 func (U32) NewFromSSZ(buf []byte) (U32, error) {
-	if len(buf) != constants.U32Size {
+	//#nosec: G701 // won't realistically overflow.
+	if uint32(len(buf)) != constants.U32Size {
 		return 0, fmt.Errorf(
 			"invalid buffer length: expected %d, got %d",
 			constants.U32Size,

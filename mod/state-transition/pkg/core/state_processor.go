@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
@@ -76,8 +77,15 @@ type StateProcessor[
 	executionEngine ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	]
-	// txsMerkleizer is the merkleizer used for calculating transaction roots.
-	txsMerkleizer *merkle.Merkleizer[[32]byte, common.Root]
+	// bartioTxsMerkleizer is the merkleizer used for calculating transaction
+	// roots for bArtio.
+	//
+	// TODO: This is live on bArtio with a bug and needs to be hardforked
+	// off of. This is a temporary solution to avoid breaking changes.
+	bartioTxsMerkleizer *merkle.Merkleizer[[32]byte, common.Root]
+	// properTxsMerkleizer is the merkleizer used for calculating transaction
+	// roots.
+	properTxsMerkleizer *merkle.Merkleizer[[32]byte, *ssz.List[ssz.Byte]]
 }
 
 // NewStateProcessor creates a new state processor.
@@ -133,10 +141,13 @@ func NewStateProcessor[
 		ExecutionPayloadHeaderT, ForkT, ForkDataT, KVStoreT, ValidatorT,
 		WithdrawalT, WithdrawalCredentialsT,
 	]{
-		cs:              cs,
-		executionEngine: executionEngine,
-		signer:          signer,
-		txsMerkleizer:   merkle.NewMerkleizer[[32]byte, common.Root](),
+		cs:                  cs,
+		executionEngine:     executionEngine,
+		signer:              signer,
+		bartioTxsMerkleizer: merkle.NewMerkleizer[[32]byte, common.Root](),
+		properTxsMerkleizer: merkle.NewMerkleizer[
+			[32]byte, *ssz.List[ssz.Byte],
+		](),
 	}
 }
 
@@ -232,7 +243,7 @@ func (sp *StateProcessor[
 
 	// We update our state roots and block roots.
 	if err = st.UpdateStateRootAtIndex(
-		uint64(stateSlot)%sp.cs.SlotsPerHistoricalRoot(), prevStateRoot,
+		stateSlot.Unwrap()%sp.cs.SlotsPerHistoricalRoot(), prevStateRoot,
 	); err != nil {
 		return err
 	}
@@ -261,7 +272,7 @@ func (sp *StateProcessor[
 	}
 
 	if err = st.UpdateBlockRootAtIndex(
-		uint64(stateSlot)%sp.cs.SlotsPerHistoricalRoot(), prevBlockRoot,
+		stateSlot.Unwrap()%sp.cs.SlotsPerHistoricalRoot(), prevBlockRoot,
 	); err != nil {
 		return err
 	}
