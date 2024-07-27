@@ -18,7 +18,7 @@ require (
 	github.com/berachain/beacon-kit/mod/node-api v0.0.0-20240717210058-a144e074f6b2
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240624003607-df94860f8eeb
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157
-	github.com/cometbft/cometbft v1.0.0-rc1.0.20240711183925-948692fddcbe
+	github.com/cometbft/cometbft v1.0.0-rc1.0.20240727041726-672aa134407b
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/spf13/viper v1.19.0
 )
@@ -43,7 +43,7 @@ require (
 	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240711183925-948692fddcbe // indirect
 	github.com/consensys/bavard v0.1.13 // indirect
 	github.com/consensys/gnark-crypto v0.12.1 // indirect
-	github.com/cosmos/crypto v0.1.1 // indirect
+	github.com/cosmos/crypto v0.1.2 // indirect
 	github.com/cosmos/gogoproto v1.5.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
 	github.com/crate-crypto/go-ipa v0.0.0-20240223125850-b1e8a79f509c // indirect

@@ -39,7 +39,7 @@ require (
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240717210058-a144e074f6b2
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6650da31
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240723155519-565f208d5482
-	github.com/cometbft/cometbft v1.0.0-rc1.0.20240711183925-948692fddcbe
+	github.com/cometbft/cometbft v1.0.0-rc1.0.20240727041726-672aa134407b
 	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240711183925-948692fddcbe
 	github.com/cosmos/cosmos-db v1.0.2
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
@@ -109,7 +109,7 @@ require (
 	github.com/consensys/bavard v0.1.13 // indirect
 	github.com/consensys/gnark-crypto v0.12.1 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
-	github.com/cosmos/crypto v0.1.1 // indirect
+	github.com/cosmos/crypto v0.1.2 // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
 	github.com/cosmos/gogoproto v1.5.0 // indirect
