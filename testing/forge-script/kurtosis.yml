@@ -21,5 +21,5 @@
 name: github.com/berachain/beacon-kit/testing/forge-script
 description: |-
     This is a package that provides a script to deploy a smart contract.
-    It is intended to be used for testing purposes.
+    It is intended to be used for development/local testing purposes.
 replace: {}
