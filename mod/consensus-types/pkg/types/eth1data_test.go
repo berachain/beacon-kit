@@ -99,3 +99,23 @@ func TestEth1Data_GetDepositCount(t *testing.T) {
 
 	require.Equal(t, uint64(10), count.Unwrap())
 }
+
+func TestEth1DataMarshalSSZTo(t *testing.T) {
+	eth1Data := &types.Eth1Data{
+		DepositRoot:  [32]byte{1, 2, 3},
+		DepositCount: 12345,
+		BlockHash:    [32]byte{4, 5, 6},
+	}
+
+	dst := make([]byte, 0, types.Eth1DataSize)
+	result, err := eth1Data.MarshalSSZTo(dst)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	require.Equal(t, types.Eth1DataSize, len(result))
+
+	// Unmarshal the result to verify correctness
+	var unmarshaledEth1Data types.Eth1Data
+	err = unmarshaledEth1Data.UnmarshalSSZ(result)
+	require.NoError(t, err)
+	require.Equal(t, eth1Data, &unmarshaledEth1Data)
+}

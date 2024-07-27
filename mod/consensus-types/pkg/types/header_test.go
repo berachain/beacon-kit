@@ -165,3 +165,25 @@ func TestBeaconBlockHeader_UnmarshalSSZ_ErrSize(t *testing.T) {
 	err := header.UnmarshalSSZ(buf)
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
+
+func TestBeaconBlockHeader_MarshalSSZTo(t *testing.T) {
+	header := types.NewBeaconBlockHeader(
+		math.Slot(100),
+		math.ValidatorIndex(200),
+		common.Root{1, 2, 3},
+		common.Root{4, 5, 6},
+		common.Root{7, 8, 9},
+	)
+
+	dst := make([]byte, 0, header.SizeSSZ())
+	result, err := header.MarshalSSZTo(dst)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	require.Equal(t, header.SizeSSZ(), uint32(len(result)))
+
+	// Unmarshal the result to verify correctness
+	var unmarshaledHeader types.BeaconBlockHeader
+	err = unmarshaledHeader.UnmarshalSSZ(result)
+	require.NoError(t, err)
+	require.Equal(t, header, &unmarshaledHeader)
+}

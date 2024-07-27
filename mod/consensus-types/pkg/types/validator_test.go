@@ -1002,3 +1002,31 @@ func TestValidator_GetEffectiveBalance(t *testing.T) {
 		})
 	}
 }
+
+func TestValidator_MarshalSSZTo(t *testing.T) {
+	validator := &types.Validator{
+		Pubkey: [48]byte{1, 2, 3},
+		WithdrawalCredentials: types.
+			NewCredentialsFromExecutionAddress(
+				gethprimitives.ExecutionAddress{4, 5, 6},
+			),
+		EffectiveBalance:           32e9,
+		Slashed:                    false,
+		ActivationEligibilityEpoch: math.Epoch(constants.FarFutureEpoch),
+		ActivationEpoch:            math.Epoch(constants.FarFutureEpoch),
+		ExitEpoch:                  math.Epoch(constants.FarFutureEpoch),
+		WithdrawableEpoch:          math.Epoch(constants.FarFutureEpoch),
+	}
+
+	dst := make([]byte, 0, validator.SizeSSZ())
+	result, err := validator.MarshalSSZTo(dst)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	require.Equal(t, validator.SizeSSZ(), uint32(len(result)))
+
+	// Unmarshal the result to verify correctness
+	var unmarshaledValidator types.Validator
+	err = unmarshaledValidator.UnmarshalSSZ(result)
+	require.NoError(t, err)
+	require.Equal(t, validator, &unmarshaledValidator)
+}

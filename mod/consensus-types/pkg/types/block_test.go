@@ -109,9 +109,9 @@ func TestBeaconBlock(t *testing.T) {
 	require.False(t, block.IsNil())
 
 	// Set a new state root and test the SetStateRoot and GetBody methods
-	newStateRoot := [32]byte{1, 1, 1, 1, 1}
+	newStateRoot := bytes.B32{1, 1, 1, 1, 1}
 	block.SetStateRoot(newStateRoot)
-	require.Equal(t, newStateRoot, [32]byte(block.StateRoot))
+	require.Equal(t, newStateRoot, block.GetStateRoot())
 
 	// Test the GetHeader method
 	header := block.GetHeader()
@@ -195,45 +195,20 @@ func TestBeaconBlock_GetTree(t *testing.T) {
 	require.NotNil(t, tree)
 }
 
-func TestBeaconBlockFromSSZForDenebPlus(t *testing.T) {
-	originalBlock := generateBeaconBlockDenebPlus()
+func TestBeaconBlock_MarshalSSZTo(t *testing.T) {
+	block := generateValidBeaconBlock()
 
-	sszBlock, err := originalBlock.MarshalSSZ()
+	dst := make([]byte, 0)
+	result, err := block.MarshalSSZTo(dst)
 	require.NoError(t, err)
-	require.NotNil(t, sszBlock)
+	require.NotNil(t, result)
 
-	wrappedBlock := &types.BeaconBlock{}
-	wrappedBlock, err = wrappedBlock.NewFromSSZ(sszBlock, version.DenebPlus)
+	// Ensure the result is not empty and contains the SSZ data
+	require.Greater(t, len(result), 0)
+
+	// Unmarshal the result back to a BeaconBlock and compare
+	var unmarshalledBlock types.BeaconBlock
+	err = unmarshalledBlock.UnmarshalSSZ(result)
 	require.NoError(t, err)
-	require.NotNil(t, wrappedBlock)
-
-	block, ok := wrappedBlock.RawBeaconBlock.(*types.BeaconBlockDenebPlus)
-	require.True(t, ok)
-	require.Equal(t, originalBlock, block)
-}
-
-func TestBeaconBlockEmptyForDenebPlus(t *testing.T) {
-	block := &types.BeaconBlock{}
-	emptyBlock := block.Empty(version.DenebPlus)
-	require.NotNil(t, emptyBlock)
-	require.IsType(t, &types.BeaconBlockDenebPlus{}, emptyBlock.RawBeaconBlock)
-}
-
-func TestNewWithVersionForDenebPlus(t *testing.T) {
-	slot := math.Slot(20)
-	proposerIndex := math.ValidatorIndex(10)
-	parentBlockRoot := bytes.B32{6, 7, 8, 9, 10}
-
-	block, err := (&types.BeaconBlock{}).NewWithVersion(
-		slot, proposerIndex, parentBlockRoot, version.DenebPlus,
-	)
-	require.NoError(t, err)
-	require.NotNil(t, block)
-
-	// Check the block's fields
-	require.NotNil(t, block.RawBeaconBlock)
-	require.Equal(t, slot, block.RawBeaconBlock.GetSlot())
-	require.Equal(t, proposerIndex, block.RawBeaconBlock.GetProposerIndex())
-	require.Equal(t, parentBlockRoot, block.RawBeaconBlock.GetParentBlockRoot())
-	require.Equal(t, version.DenebPlus, block.RawBeaconBlock.Version())
+	require.Equal(t, block, &unmarshalledBlock)
 }

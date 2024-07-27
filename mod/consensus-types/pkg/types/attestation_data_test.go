@@ -113,3 +113,26 @@ func TestAttestationData_GetTree(t *testing.T) {
 	require.Equal(t, data.Index, data.GetIndex())
 	require.Equal(t, data.BeaconBlockRoot, data.GetBeaconBlockRoot())
 }
+
+func TestAttestationData_MarshalSSZTo(t *testing.T) {
+	attestationData := &types.AttestationData{
+		Slot:  12345,
+		Index: 67890,
+		BeaconBlockRoot: [32]byte{
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+			17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
+		},
+	}
+
+	dst := make([]byte, 0, attestationData.SizeSSZ())
+	result, err := attestationData.MarshalSSZTo(dst)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	require.Equal(t, attestationData.SizeSSZ(), uint32(len(result)))
+
+	// Unmarshal the result to verify correctness
+	var unmarshaledAttestationData types.AttestationData
+	err = unmarshaledAttestationData.UnmarshalSSZ(result)
+	require.NoError(t, err)
+	require.Equal(t, attestationData, &unmarshaledAttestationData)
+}
