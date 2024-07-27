@@ -13,6 +13,7 @@ replace (
 
 	github.com/berachain/beacon-kit/mod/runtime => ../mod/runtime
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240725053043-79fa56d34c79
+	github.com/karalabe/ssz => github.com/itsdevbear/ssz v0.0.0-20240725155830-5bd985129878
 )
 
 require (
