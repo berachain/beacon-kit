@@ -43,7 +43,7 @@ func (c *ABCIMiddleware[
 		ctx,
 		req.LocalLastCommit.Votes,
 		//#nosec:G701 // safe.
-		uint64(req.Height),
+		math.U64(req.Height),
 	)
 	if err != nil {
 		return t, err
@@ -73,7 +73,7 @@ func (c *ABCIMiddleware[
 ]) attestationsFromVotes(
 	ctx context.Context,
 	votes []abci.ExtendedVoteInfo,
-	slot uint64,
+	slot math.U64,
 ) ([]AttestationDataT, error) {
 	var err error
 	var index math.U64
@@ -92,7 +92,7 @@ func (c *ABCIMiddleware[
 		var t AttestationDataT
 		t = t.New(
 			slot,
-			index.Unwrap(),
+			index,
 			root,
 		)
 		attestations[i] = t
@@ -127,8 +127,8 @@ func (c *ABCIMiddleware[
 		var t SlashingInfoT
 		t = t.New(
 			//#nosec:G701 // safe.
-			uint64(misbehavior.GetHeight()),
-			index.Unwrap(),
+			math.U64(misbehavior.GetHeight()),
+			index,
 		)
 		slashingInfo[i] = t
 	}
