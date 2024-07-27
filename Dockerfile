@@ -44,6 +44,7 @@ COPY ./mod/consensus/go.mod ./mod/consensus/go.sum ./mod/consensus/
 COPY ./mod/consensus-types/go.mod ./mod/consensus-types/go.sum ./mod/consensus-types/
 COPY ./mod/config/go.mod ./mod/config/go.sum ./mod/config/
 COPY ./mod/da/go.mod ./mod/da/go.sum ./mod/da/
+COPY ./mod/depinject/go.mod ./mod/depinject/go.sum ./mod/depinject/
 COPY ./mod/engine-primitives/go.mod ./mod/engine-primitives/go.sum ./mod/engine-primitives/
 COPY ./mod/execution/go.mod ./mod/execution/go.sum ./mod/execution/
 COPY ./mod/log/go.mod ./mod/log/go.sum ./mod/log/
@@ -69,6 +70,7 @@ RUN go work init && \
     go work use ./mod/consensus && \
     go work use ./mod/consensus-types && \
     go work use ./mod/da && \
+    go work use ./mod/depinject && \
     go work use ./mod/engine-primitives && \
     go work use ./mod/errors && \
     go work use ./mod/execution && \
