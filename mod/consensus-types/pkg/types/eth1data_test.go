@@ -111,7 +111,7 @@ func TestEth1DataMarshalSSZTo(t *testing.T) {
 	result, err := eth1Data.MarshalSSZTo(dst)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	require.Len(t, types.Eth1DataSize, len(result))
+	require.Len(t, result, types.Eth1DataSize)
 
 	// Unmarshal the result to verify correctness
 	var unmarshaledEth1Data types.Eth1Data
