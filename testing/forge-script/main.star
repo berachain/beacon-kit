@@ -40,10 +40,8 @@ def deploy_contracts(plan, deployment):
         ),
     )
 
-    # plan.store_service_files(service_name = "foundry", src = "/app/contracts/broadcast/", name = "broadcast_artifacts")
-
     # Get the forge script output in a output.json file and grep from it
-    transaction_file="grep {} output.json | awk -F{} {}".format("'Transactions saved to'","': '","'{print $2}'")
+    transaction_file = "grep {} output.json | awk -F{} {}".format("'Transactions saved to'", "': '", "'{print $2}'")
     plan.print("transaction_file", transaction_file)
     transaction_file = plan.exec(
         service_name = foundry_service.name,
