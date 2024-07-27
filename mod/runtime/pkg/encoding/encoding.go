@@ -119,7 +119,7 @@ func UnmarshalBlobSidecarsFromABCIRequest[
 	}
 
 	txs := req.GetTxs()
-	if len(txs) == 0 || int(bzIndex) >= len(txs) {
+	if len(txs) == 0 || bzIndex >= uint(len(txs)) {
 		return sidecars, ErrNoBeaconBlockInRequest
 	}
 
