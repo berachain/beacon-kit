@@ -38,7 +38,7 @@ func TestnetChainSpec() chain.Spec[
 	any,
 ] {
 	testnetSpec := BaseSpec()
-	testnetSpec.DepositEth1ChainID = 80084
+	testnetSpec.DepositEth1ChainID = TestnetEth1ChainID
 	return chain.NewChainSpec(testnetSpec)
 }
 

@@ -22,7 +22,6 @@ package genesis
 
 import (
 	"context"
-	"encoding/json"
 	"math/big"
 
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
@@ -31,6 +30,7 @@ import (
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"

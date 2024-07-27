@@ -17,7 +17,7 @@ require (
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240624033454-8f3451361f44
 	github.com/berachain/beacon-kit/mod/node-api v0.0.0-20240717210058-a144e074f6b2
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240624003607-df94860f8eeb
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240710021622-37e8e3e7e155
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240711183925-948692fddcbe
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/spf13/viper v1.19.0

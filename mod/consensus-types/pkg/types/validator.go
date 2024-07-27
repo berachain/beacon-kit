@@ -44,9 +44,9 @@ var (
 //nolint:lll
 type Validator struct {
 	// Pubkey is the validator's 48-byte BLS public key.
-	Pubkey crypto.BLSPubkey `json:"pubkey"                     ssz-size:"48"`
+	Pubkey crypto.BLSPubkey `json:"pubkey"`
 	// WithdrawalCredentials are an address that controls the validator.
-	WithdrawalCredentials WithdrawalCredentials `json:"withdrawalCredentials"      ssz-size:"32"`
+	WithdrawalCredentials WithdrawalCredentials `json:"withdrawalCredentials"`
 	// EffectiveBalance is the validator's current effective balance in gwei.
 	EffectiveBalance math.Gwei `json:"effectiveBalance"`
 	// Slashed indicates whether the validator has been slashed.

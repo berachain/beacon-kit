@@ -220,39 +220,3 @@ func (b *BeaconBlockHeader) GetBodyRoot() common.Root {
 func (b *BeaconBlockHeader) SetBodyRoot(bodyRoot common.Root) {
 	b.BodyRoot = bodyRoot
 }
-
-// TODO: Deprecate
-//
-// BeaconBlockHeaderBase represents the base of a beacon block header.
-type BeaconBlockHeaderBase struct {
-	// Slot represents the position of the block in the chain.
-	// TODO: Put back to math.Slot after fastssz fixes.
-	Slot uint64 `json:"slot"`
-	// ProposerIndex is the index of the validator who proposed the block.
-	// TODO: Put back to math.ProposerIndex after fastssz fixes.
-	ProposerIndex uint64 `json:"proposer_index"`
-	// ParentRoot is the hash of the parent block
-	ParentRoot common.Root `json:"parent_root"`
-	// StateRoot is the hash of the state at the block.
-	StateRoot common.Root `json:"state_root"`
-}
-
-// GetSlot retrieves the slot of the BeaconBlockBase.
-func (b *BeaconBlockHeaderBase) GetSlot() math.Slot {
-	return math.Slot(b.Slot)
-}
-
-// GetSlot retrieves the slot of the BeaconBlockBase.
-func (b *BeaconBlockHeaderBase) GetProposerIndex() math.ValidatorIndex {
-	return math.ValidatorIndex(b.ProposerIndex)
-}
-
-// GetParentBlockRoot retrieves the parent block root of the BeaconBlockBase.
-func (b *BeaconBlockHeaderBase) GetParentBlockRoot() common.Root {
-	return b.ParentRoot
-}
-
-// GetStateRoot retrieves the state root of the BeaconBlockDeneb.
-func (b *BeaconBlockHeaderBase) GetStateRoot() common.Root {
-	return b.StateRoot
-}

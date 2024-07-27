@@ -13,7 +13,7 @@ require (
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240617161612-ab1257fcf5a1
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610210054-bfdc14c4013c
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240618214413-d5ec0e66b3dd
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240710021622-37e8e3e7e155
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240711183925-948692fddcbe
 	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240711183925-948692fddcbe
 	github.com/stretchr/testify v1.9.0
@@ -21,6 +21,7 @@ require (
 
 require (
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240703145037-b5612ab256db // indirect
+	github.com/goccy/go-json v0.10.3 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
 	github.com/prysmaticlabs/gohashtree v0.0.4-beta // indirect
 )

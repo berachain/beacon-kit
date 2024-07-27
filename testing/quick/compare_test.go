@@ -74,8 +74,8 @@ func TestVectorHashTreeRootZTyp(t *testing.T) {
 	}
 }
 
-func TestExecutableDataDenebHashTreeRootZrnt(t *testing.T) {
-	f := func(payload *types.ExecutableDataDeneb, logsBloom [256]byte) bool {
+func TestExecutionPayloadHashTreeRootZrnt(t *testing.T) {
+	f := func(payload *types.ExecutionPayload, logsBloom [256]byte) bool {
 		// skip these cases lest we trigger a
 		// nil-pointer dereference in fastssz
 		if payload == nil ||
@@ -88,7 +88,7 @@ func TestExecutableDataDenebHashTreeRootZrnt(t *testing.T) {
 			return true
 		}
 
-		payload.LogsBloom = logsBloom[:]
+		payload.LogsBloom = logsBloom
 		typeRoot, err := payload.HashTreeRoot()
 		if err != nil {
 			t.Log("Failed to calculate HashTreeRoot on payload:", err)
@@ -108,7 +108,7 @@ func TestExecutableDataDenebHashTreeRootZrnt(t *testing.T) {
 			GasLimit:      zview.Uint64View(payload.GasLimit),
 			GasUsed:       zview.Uint64View(payload.GasUsed),
 			Timestamp:     zcommon.Timestamp(payload.Timestamp),
-			ExtraData:     payload.ExtraData,
+			ExtraData:     []byte(payload.ExtraData),
 			BaseFeePerGas: baseFeePerGas,
 			BlockHash:     ztree.Root(payload.BlockHash),
 			Transactions: *(*zcommon.PayloadTransactions)(
@@ -124,7 +124,7 @@ func TestExecutableDataDenebHashTreeRootZrnt(t *testing.T) {
 			ssz.ByteVectorFromBytes(payload.FeeRecipient[:]),
 			ssz.ByteVectorFromBytes(payload.StateRoot[:]),
 			ssz.ByteVectorFromBytes(payload.ReceiptsRoot[:]),
-			ssz.ByteVectorFromBytes(payload.LogsBloom),
+			ssz.ByteVectorFromBytes(payload.LogsBloom[:]),
 			ssz.ByteVectorFromBytes(payload.Random[:]),
 			payload.Number,
 			payload.GasLimit,

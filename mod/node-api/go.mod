@@ -5,7 +5,7 @@ go 1.22.5
 require (
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240710022448-e56f337d051f
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6650da31
 	github.com/ethereum/go-ethereum v1.14.6
 	github.com/stretchr/testify v1.9.0
@@ -76,7 +76,6 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	golang.org/x/crypto v0.25.0 // indirect
 	golang.org/x/exp v0.0.0-20240613232115-7f521ea00fb8 // indirect
-	golang.org/x/net v0.27.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/sys v0.22.0 // indirect
 	golang.org/x/text v0.16.0 // indirect

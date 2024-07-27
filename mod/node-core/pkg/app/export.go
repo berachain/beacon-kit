@@ -21,8 +21,7 @@
 package app
 
 import (
-	"encoding/json"
-
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 	cmttypes "github.com/cometbft/cometbft/types"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"

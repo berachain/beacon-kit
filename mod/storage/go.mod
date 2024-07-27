@@ -16,7 +16,7 @@ require (
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240617161612-ab1257fcf5a1
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610210054-bfdc14c4013c
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240710021622-37e8e3e7e155
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240711183925-948692fddcbe
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc

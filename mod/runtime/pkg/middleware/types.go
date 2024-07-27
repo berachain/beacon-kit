@@ -50,7 +50,7 @@ type BlockchainService[
 	BeaconBlockT any,
 	BlobSidecarsT constraints.SSZMarshallable,
 	DepositT any,
-	GenesisT Genesis,
+	GenesisT json.Unmarshaler,
 ] interface {
 	// ProcessGenesisData processes the genesis data and initializes the beacon
 	// state.
@@ -70,9 +70,4 @@ type BlockchainService[
 		ctx context.Context,
 		blk BeaconBlockT,
 	) error
-}
-
-// Genesis is the interface for the genesis data.
-type Genesis interface {
-	json.Unmarshaler
 }

@@ -17,42 +17,29 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
-
-package beacon
+//
+//nolint:gochecknoglobals // intentional aliases.
+package json
 
 import (
-	"strconv"
+	"encoding/json"
 
-	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
-	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
+	gojson "github.com/goccy/go-json"
 )
 
-func (h *Handler[_, ContextT, _, _]) GetRandao(c ContextT) (any, error) {
-	req, err := utils.BindAndValidate[beacontypes.GetRandaoRequest](
-		c,
-		h.Logger(),
-	)
-	if err != nil {
-		return nil, err
-	}
-	slot, err := utils.SlotFromStateID(req.StateID)
-	if err != nil {
-		return nil, err
-	}
-	epoch := uint64(0)
-	if req.Epoch != "" {
-		epoch, err = strconv.ParseUint(req.Epoch, 10, 64)
-		if err != nil {
-			return nil, err
-		}
-	}
-	randao, err := h.backend.RandaoAtEpoch(slot, epoch)
-	if err != nil {
-		return nil, err
-	}
-	return beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data:                randao,
-	}, nil
-}
+// Marshal is a wrapper for gojson.Marshal, which provides high-performance JSON
+// encoding.
+var Marshal = gojson.Marshal
+
+// MarshalIndent is a wrapper for gojson.MarshalIndent, which provides
+// high-performance JSON encoding with indentation.
+var MarshalIndent = gojson.MarshalIndent
+
+// Unmarshal is a wrapper for gojson.Unmarshal, which provides high-performance
+// JSON decoding.
+var Unmarshal = gojson.Unmarshal
+
+// RawMessage is an alias for json.RawMessage, represensting a raw encoded JSON
+// value. It implements Marshaler and Unmarshaler and can be used to delay JSON
+// decoding or precompute a JSON encoding.
+type RawMessage = json.RawMessage
