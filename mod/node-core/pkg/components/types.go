@@ -52,6 +52,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
+	middlewarev2 "github.com/berachain/beacon-kit/mod/runtime/pkg/middleware/v2"
 	statedb "github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/block"
@@ -72,6 +73,20 @@ type (
 		*ExecutionPayload,
 		*Genesis,
 		*SlotData,
+	]
+
+	ABCIMiddlewareV2 = middlewarev2.ABCIMiddleware[
+		*AttestationData,
+		*AvailabilityStore,
+		*BeaconBlock,
+		*BeaconState,
+		*BlobSidecars,
+		*Deposit,
+		*ExecutionPayload,
+		*Genesis,
+		*SlashingInfo,
+		*SlotData,
+		*StorageBackend,
 	]
 
 	// AttestationData is a type alias for the attestation data.

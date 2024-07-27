@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
+	middlewarev2 "github.com/berachain/beacon-kit/mod/runtime/pkg/middleware/v2"
 )
 
 // ABCIMiddlewareInput is the input for the validator middleware provider.
@@ -57,6 +58,56 @@ func ProvideABCIMiddleware(
 	](
 		in.ChainSpec,
 		in.ChainService,
+		in.Logger,
+		in.TelemetrySink,
+		in.GenesisBroker,
+		in.BeaconBlockFeed,
+		in.SidecarsFeed,
+		in.SlotBroker,
+		validatorUpdatesSub,
+	), nil
+}
+
+// ABCIMiddlewareInput is the input for the validator middleware provider.
+type ABCIMiddlewareInputV2 struct {
+	depinject.In
+	BeaconBlockFeed       *BlockBroker
+	ChainService          *ChainService
+	ChainSpec             common.ChainSpec
+	GenesisBroker         *GenesisBroker
+	Logger                log.Logger[any]
+	SidecarsFeed          *SidecarsBroker
+	SlotBroker            *SlotBroker
+	TelemetrySink         *metrics.TelemetrySink
+	ValidatorUpdateBroker *ValidatorUpdateBroker
+	StorageBackend        *StorageBackend
+}
+
+// ProvideABCIMiddleware is a depinject provider for the validator
+// middleware.
+func ProvideABCIMiddlewareV2(
+	in ABCIMiddlewareInputV2,
+) (*ABCIMiddlewareV2, error) {
+	validatorUpdatesSub, err := in.ValidatorUpdateBroker.Subscribe()
+	if err != nil {
+		return nil, err
+	}
+	return middlewarev2.NewABCIMiddleware[
+		*AttestationData,
+		*AvailabilityStore,
+		*BeaconBlock,
+		*BeaconState,
+		*BlobSidecars,
+		*Deposit,
+		*ExecutionPayload,
+		*Genesis,
+		*SlashingInfo,
+		*SlotData,
+		*StorageBackend,
+	](
+		in.ChainSpec,
+		in.ChainService,
+		in.StorageBackend,
 		in.Logger,
 		in.TelemetrySink,
 		in.GenesisBroker,

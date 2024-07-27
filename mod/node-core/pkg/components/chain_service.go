@@ -21,8 +21,8 @@
 package components
 
 import (
-	"cosmossdk.io/core/log"
 	"cosmossdk.io/depinject"
+	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
