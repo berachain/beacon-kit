@@ -30,7 +30,7 @@ import (
 
 func TestConstants(t *testing.T) {
 	require.Equal(
-		t, 3254554418216960, types.ZeroValidatorPubkeyGIndexDenebBlock,
+		t, 3254554418216960, int(types.ZeroValidatorPubkeyGIndexDenebBlock),
 	)
 
 }

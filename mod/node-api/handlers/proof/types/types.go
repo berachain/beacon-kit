@@ -122,4 +122,8 @@ type BeaconState[
 // marshalled or hash tree rooted.
 type BeaconStateMarshallable interface {
 	constraints.SSZMarshallableRootable
+	// HashTreeRootWith is kept for FastSSZ compatability.
+	HashTreeRootWith(hh fastssz.HashWalker) error
+	// GetTree is kept for FastSSZ compatability.
+	GetTree() (*fastssz.Node, error)
 }

@@ -36,21 +36,6 @@ const (
 
 	// ValidatorPubkeyGIndexOffset is the offset of a validator pubkey GIndex.
 	ValidatorPubkeyGIndexOffset = 8
-
-	// MaxBlockRoots is the maximum number of block roots in the beacon block.
-	MaxBlockRoots uint64 = 8192
-
-	// MaxStateRoots is the maximum number of state roots in the beacon state.
-	MaxStateRoots uint64 = 8192
-
-	// MaxBalances is the maximum number of balances in the beacon state.
-	MaxBalances uint64 = 1099511627776
-
-	// MaxRandaoMixes is the maximum number of randao mixes in the beacon state.
-	MaxRandaoMixes uint64 = 65536
-
-	// MaxSlashings is the maximum number of slashings in the beacon state.
-	MaxSlashings uint64 = 1099511627776
 )
 
 var (

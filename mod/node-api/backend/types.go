@@ -45,7 +45,7 @@ type AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT any] interface {
 
 // BeaconBlock is the interface for a beacon block.
 type BeaconBlock[BeaconBlockBodyT, BeaconBlockHeaderT any] interface {
-	constraints.SSZMarshallable
+	constraints.SSZMarshallableRootable
 	SetStateRoot(common.Root)
 	GetStateRoot() common.Root
 	IsNil() bool
@@ -59,7 +59,7 @@ type BeaconBlock[BeaconBlockBodyT, BeaconBlockHeaderT any] interface {
 
 // BeaconBlockHeader is the interface for a beacon block header.
 type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
-	constraints.SSZMarshallable
+	constraints.SSZMarshallableRootable
 	New(
 		slot math.Slot,
 		proposerIndex math.ValidatorIndex,
@@ -67,7 +67,6 @@ type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
 		stateRoot common.Root,
 		bodyRoot common.Root,
 	) BeaconBlockHeaderT
-	HashTreeRoot() ([32]byte, error)
 	GetSlot() math.Slot
 	GetProposerIndex() math.ValidatorIndex
 	GetParentBlockRoot() common.Root
