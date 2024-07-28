@@ -12,6 +12,7 @@ import { Verifier } from "./Verifier.sol";
 /// @author [madlabman](https://github.com/madlabman/eip-4788-proof)
 contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     uint64 internal constant VALIDATOR_REGISTRY_LIMIT = 1 << 40;
+    uint8 internal constant VALIDATOR_PUBKEY_OFFSET = 8;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                          STORAGE                           */
@@ -72,10 +73,10 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     /// @inheritdoc IBeaconVerifier
     /// @dev gas used ~...
     function proveBeaconBlockProposer(
-        SSZ.BeaconBlockHeader calldata blockHeader,
         uint64 timestamp,
         bytes32[] calldata validatorPubkeyProof,
-        bytes calldata validatorPubkey
+        bytes calldata validatorPubkey,
+        uint64 proposerIndex
     )
         public
         view
@@ -84,7 +85,7 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
             getParentBlockRoot(timestamp),
             validatorPubkeyProof,
             validatorPubkey,
-            blockHeader.proposerIndex
+            proposerIndex
         );
     }
 
@@ -106,7 +107,8 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
             revert IndexOutOfRange();
         }
 
-        uint256 gIndex = zeroValidatorPubkeyGIndex + (8 * validatorIndex);
+        uint256 gIndex = zeroValidatorPubkeyGIndex
+            + (VALIDATOR_PUBKEY_OFFSET * validatorIndex);
         bytes32 validatorPubkeyRoot =
             SSZ.validatorPubkeyHashTreeRoot(validatorPubkey);
 
@@ -117,8 +119,6 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
                 validatorPubkeyRoot,
                 gIndex
             )
-        ) {
-            revert InvalidProof();
-        }
+        ) revert InvalidProof();
     }
 }

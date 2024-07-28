@@ -25,16 +25,17 @@ interface IBeaconVerifier {
     /// @notice Get the parent beacon block root at `block.timestamp`.
     function getParentBeaconBlockRoot() external view returns (bytes32);
 
-    /// @notice Verifies the proposer of a beacon block.
-    /// @param blockHeader `BeaconBlockHeader` to verify.
+    /// @notice Verifies the proposer within the beacon block at the given
+    /// timestamp. Reverts if proof invalid.
     /// @param timestamp `uint64` timestamp of the block.
     /// @param validatorPubkeyProof `bytes32[]` proof of the validator pubkey.
     /// @param validatorPubkey `ValidatorPubkey` to verify.
+    /// @param proposerIndex `uint64` validator index of the proposer.
     function proveBeaconBlockProposer(
-        SSZ.BeaconBlockHeader calldata blockHeader,
         uint64 timestamp,
         bytes32[] calldata validatorPubkeyProof,
-        bytes calldata validatorPubkey
+        bytes calldata validatorPubkey,
+        uint64 proposerIndex
     )
         external
         view;
