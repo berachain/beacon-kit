@@ -21,7 +21,9 @@
 package types
 
 import (
+	// "github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	// "github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 )
 
 // ProofForProposerPubkey_FastSSZ generates a proof for the proposer
@@ -46,8 +48,7 @@ func ProofForProposerPubkey_FastSSZ[
 	ForkT any,
 	ValidatorT any,
 ](
-	bbh BeaconBlockHeaderT,
-	bs BeaconStateT,
+	bbh BeaconBlockHeaderT, bs BeaconStateT,
 ) ([]common.Root, common.Root, error) {
 	var (
 		pubkeyProof     []common.Root
@@ -70,9 +71,8 @@ func ProofForProposerPubkey_FastSSZ[
 	}
 
 	// Get the generalized index of the proposer pubkey in the beacon state.
-	valPubkeyOffset := ValidatorPubkeyGIndexOffset * int(bbh.GetProposerIndex())
 	valPubkeyInStateGIndex := ZeroValidatorPubkeyGIndexDenebState +
-		valPubkeyOffset
+		(ValidatorPubkeyGIndexOffset * int(bbh.GetProposerIndex()))
 
 	// Get the proof of the proposer pubkey in the beacon state.
 	valPubkeyInStateProof, err := stateProofTree.Prove(valPubkeyInStateGIndex)
@@ -99,13 +99,11 @@ func ProofForProposerPubkey_FastSSZ[
 	}
 
 	// // Sanity check that the combined proof verifies against our beacon root.
-	// if !merkle.VerifyProof(
-	// 	beaconRoot,
-	// 	pubkeyProof,
-	// 	(ZeroValidatorPubkeyGIndexDenebBlock +
-	// 		(ValidatorPubkeyGIndexOffset * bbh.GetProposerIndex())),
-	// 	pubkeyProof,
-	// ) {
+	// beaconRootVerified, err := merkle.VerifyProof()
+	// if err != nil {
+	// 	return nil, common.Root{}, err
+	// }
+	// if !beaconRootVerified {
 	// 	return nil, common.Root{}, errors.Newf(
 	// 		"proof verification failed against beacon root: %x", beaconRoot[:],
 	// 	)
