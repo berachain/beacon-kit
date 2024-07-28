@@ -39,7 +39,7 @@ type Backend[
 	BeaconBlockBodyT constraints.SSZMarshallable,
 	BeaconBlockHeaderT core.BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT core.BeaconState[
-		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, 
+		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 		ForkT, KVStoreT, ValidatorT, WithdrawalT,
 	],
 	BeaconStateMarshallableT state.BeaconStateMarshallable[
@@ -76,7 +76,7 @@ func NewBackend[
 	BeaconBlockBodyT constraints.SSZMarshallable,
 	BeaconBlockHeaderT core.BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT core.BeaconState[
-		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, 
+		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 		ForkT, KVStoreT, ValidatorT, WithdrawalT,
 	],
 	BeaconStateMarshallableT state.BeaconStateMarshallable[
