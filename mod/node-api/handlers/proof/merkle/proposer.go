@@ -27,21 +27,19 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 )
 
-// ProveProposerInBlock_FastSSZ generates a proof for the proposer pubkey in the
+// ProveProposerInBlock generates a proof for the proposer pubkey in the
 // beacon block. The proof is then verified against the beacon block root as a
 // sanity check. Returns the proof along with the beacon block root. It uses
 // the fastssz library to generate the proof.
-//
-//nolint:revive,stylecheck // for explicit naming.
-func ProveProposerInBlock_FastSSZ[
-	BeaconBlockHeaderT types.BeaconBlockHeader,
-	BeaconStateT types.BeaconState[BeaconStateMarshallableT, ValidatorT],
-	BeaconStateMarshallableT types.BeaconStateMarshallable,
-	ValidatorT any,
-](bbh BeaconBlockHeaderT, bs BeaconStateT) ([]common.Root, common.Root, error) {
+func ProveProposerInBlock[
+	BeaconStateMarshallableT types.BeaconStateMarshallable, ValidatorT any,
+](
+	bbh types.BeaconBlockHeader,
+	bs types.BeaconState[BeaconStateMarshallableT, ValidatorT],
+) ([]common.Root, common.Root, error) {
 	// Get the proof of the proposer pubkey in the beacon state.
 	proposerOffset := ValidatorPubkeyGIndexOffset * int(bbh.GetProposerIndex())
-	valPubkeyInStateProof, leaf, err := ProveProposerPubkeyInState_FastSSZ(
+	valPubkeyInStateProof, leaf, err := ProveProposerPubkeyInState(
 		bs, proposerOffset,
 	)
 	if err != nil {
@@ -49,12 +47,14 @@ func ProveProposerInBlock_FastSSZ[
 	}
 
 	// Then get the proof of the beacon state in the beacon block.
-	stateInBlockProof, err := ProveStateInBlock_FastSSZ(bbh)
+	stateInBlockProof, err := ProveStateInBlock(bbh)
 	if err != nil {
 		return nil, common.Root{}, err
 	}
 
 	// Sanity check that the combined proof verifies against our beacon root.
+	//
+	//nolint:gocritic // ok.
 	combinedProof := append(valPubkeyInStateProof, stateInBlockProof...)
 	beaconRoot, err := verifyProposerInBlock(
 		bbh, proposerOffset, combinedProof, leaf,
@@ -66,13 +66,14 @@ func ProveProposerInBlock_FastSSZ[
 	return combinedProof, beaconRoot, nil
 }
 
-// ProveProposerPubkeyInState_FastSSZ generates a proof for the proposer pubkey
+// ProveProposerPubkeyInState generates a proof for the proposer pubkey
 // in the beacon state. It uses the fastssz library to generate the proof.
-func ProveProposerPubkeyInState_FastSSZ[
-	BeaconStateT types.BeaconState[BeaconStateMarshallableT, ValidatorT],
-	BeaconStateMarshallableT types.BeaconStateMarshallable,
-	ValidatorT any,
-](bs BeaconStateT, proposerOffset int) ([]common.Root, common.Root, error) {
+func ProveProposerPubkeyInState[
+	BeaconStateMarshallableT types.BeaconStateMarshallable, ValidatorT any,
+](
+	bs types.BeaconState[BeaconStateMarshallableT, ValidatorT],
+	proposerOffset int,
+) ([]common.Root, common.Root, error) {
 	bsm, err := bs.GetMarshallable()
 	if err != nil {
 		return nil, common.Root{}, err
@@ -97,16 +98,22 @@ func ProveProposerPubkeyInState_FastSSZ[
 
 // verifyProposerInBlock verifies the proposer pubkey in the beacon block,
 // returning the beacon block root used to verify against.
-func verifyProposerInBlock[BeaconBlockHeaderT types.BeaconBlockHeader](
-	bbh BeaconBlockHeaderT, offset int, proof []common.Root, leaf common.Root,
+//
+// TODO: can be removed.
+func verifyProposerInBlock(
+	bbh types.BeaconBlockHeader,
+	valOffset int,
+	proof []common.Root,
+	leaf common.Root,
 ) (common.Root, error) {
 	beaconRoot, err := bbh.HashTreeRoot()
 	if err != nil {
 		return common.Root{}, err
 	}
 
-	if beaconRootVerified, err := merkle.VerifyProof(
-		merkle.GeneralizedIndex(ZeroValidatorPubkeyGIndexDenebBlock+offset),
+	var beaconRootVerified bool
+	if beaconRootVerified, err = merkle.VerifyProof(
+		merkle.GeneralizedIndex(ZeroValidatorPubkeyGIndexDenebBlock+valOffset),
 		leaf, proof, beaconRoot,
 	); err != nil {
 		return common.Root{}, err

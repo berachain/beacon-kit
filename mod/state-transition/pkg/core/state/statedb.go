@@ -399,8 +399,6 @@ func (s *StateDB[
 }
 
 // HashTreeRoot is the interface for the beacon store.
-//
-//nolint:funlen,gocognit // todo fix somehow
 func (s *StateDB[
 	_, _, _, _, _, _, _, _, _,
 ]) HashTreeRoot() ([32]byte, error) {
