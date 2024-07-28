@@ -21,6 +21,7 @@
 package types
 
 import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -40,10 +41,12 @@ type BeaconBlockHeader interface {
 type BeaconState[
 	BeaconBlockHeaderT, BeaconStateMarshallableT, ValidatorT any,
 ] interface {
-	// GetMarshallable returns the marshallable version of the beacon state.
-	GetMarshallable() (BeaconStateMarshallableT, error)
 	// GetLatestBlockHeader returns the latest block header.
 	GetLatestBlockHeader() (BeaconBlockHeaderT, error)
+	// GetMarshallable returns the marshallable version of the beacon state.
+	GetMarshallable() (BeaconStateMarshallableT, error)
+	// StateRootAtIndex returns the state root at the given index.
+	StateRootAtIndex(index uint64) (common.Root, error)
 	// ValidatorByIndex retrieves the validator at the given index.
 	ValidatorByIndex(index math.ValidatorIndex) (ValidatorT, error)
 }

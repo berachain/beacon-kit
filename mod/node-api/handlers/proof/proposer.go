@@ -22,8 +22,7 @@ package proof
 
 import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof/merkle"
-	ptypes "github.com/berachain/beacon-kit/mod/node-api/handlers/proof/types"
-	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 )
 
@@ -32,7 +31,9 @@ import (
 func (h *Handler[
 	ContextT, BeaconBlockHeaderT, _, _, _,
 ]) GetBlockProposer(c ContextT) (any, error) {
-	params, err := utils.BindAndValidate[types.BlockIDRequest](c, h.Logger())
+	params, err := utils.BindAndValidate[types.BlockProposerRequest](
+		c, h.Logger(),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +71,7 @@ func (h *Handler[
 		return nil, err
 	}
 
-	return ptypes.BlockProposerProofResponse[BeaconBlockHeaderT]{
+	return types.BlockProposerResponse[BeaconBlockHeaderT]{
 		BeaconBlockHeader:    blockHeader,
 		BeaconBlockRoot:      beaconBlockRoot,
 		ValidatorPubkey:      proposerValidator.GetPubkey(),

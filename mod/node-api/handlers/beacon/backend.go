@@ -26,11 +26,7 @@ import (
 )
 
 // Backend is the interface for backend of the beacon API.
-type Backend[
-	BlockHeaderT any,
-	ForkT any,
-	ValidatorT any,
-] interface {
+type Backend[BlockHeaderT, ForkT, ValidatorT any] interface {
 	GenesisBackend
 	BlockBackend[BlockHeaderT]
 	RandaoBackend

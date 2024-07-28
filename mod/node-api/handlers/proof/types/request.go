@@ -20,16 +20,10 @@
 
 package types
 
-import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-)
+import "github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 
-type BeaconBlockHeader interface {
-	HashTreeRoot() ([32]byte, error)
-	GetSlot() math.Slot
-	GetProposerIndex() math.ValidatorIndex
-	GetParentBlockRoot() common.Root
-	GetStateRoot() common.Root
-	GetBodyRoot() common.Root
+// BlockProposerRequest is the request for the
+// `/proof/blocks/proposer/{block_id}` endpoint.
+type BlockProposerRequest struct {
+	types.BlockIDRequest
 }
