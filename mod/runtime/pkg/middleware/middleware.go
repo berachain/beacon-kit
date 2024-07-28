@@ -41,7 +41,10 @@ import (
 type ABCIMiddleware[
 	AvailabilityStoreT any,
 	BeaconBlockT BeaconBlock[BeaconBlockT],
-	BlobSidecarsT constraints.SSZMarshallable,
+	BlobSidecarsT interface {
+		constraints.SSZMarshallable
+		Empty() BlobSidecarsT
+	},
 	DepositT,
 	ExecutionPayloadT any,
 	GenesisT json.Unmarshaler,
@@ -102,7 +105,10 @@ type ABCIMiddleware[
 func NewABCIMiddleware[
 	AvailabilityStoreT any,
 	BeaconBlockT BeaconBlock[BeaconBlockT],
-	BlobSidecarsT constraints.SSZMarshallable,
+	BlobSidecarsT interface {
+		constraints.SSZMarshallable
+		Empty() BlobSidecarsT
+	},
 	DepositT,
 	ExecutionPayloadT any,
 	GenesisT json.Unmarshaler,
