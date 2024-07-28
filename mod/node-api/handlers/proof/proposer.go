@@ -32,9 +32,7 @@ import (
 func (h *Handler[
 	ContextT, BeaconBlockHeaderT, _, _, _,
 ]) GetBlockProposer(c ContextT) (any, error) {
-	params, err := utils.BindAndValidate[types.BlockIDRequest](
-		c, h.Logger(),
-	)
+	params, err := utils.BindAndValidate[types.BlockIDRequest](c, h.Logger())
 	if err != nil {
 		return nil, err
 	}
@@ -56,6 +54,7 @@ func (h *Handler[
 
 	// Generate the proof (along with the "correct" beacon block root to
 	// verify against) for the proposer validator pubkey.
+	h.Logger().Info("Generating block proposer proof", "slot", slot)
 	proof, beaconBlockRoot, err := merkle.ProveProposerInBlock(
 		blockHeader, beaconState,
 	)

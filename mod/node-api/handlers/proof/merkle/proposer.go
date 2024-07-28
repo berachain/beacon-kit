@@ -84,7 +84,7 @@ func ProveProposerPubkeyInState[
 		return nil, common.Root{}, err
 	}
 
-	//#nosec:G701 // max proposer offset is 8 * 2^40
+	//#nosec:G701 // max proposer offset is 8 * (2^40 - 1).
 	gIndex := ZeroValidatorPubkeyGIndexDenebState + int(proposerOffset)
 	valPubkeyInStateProof, err := stateProofTree.Prove(gIndex)
 	if err != nil {
