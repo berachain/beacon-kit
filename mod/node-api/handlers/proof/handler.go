@@ -38,7 +38,7 @@ type Handler[
 ] struct {
 	*handlers.BaseHandler[ContextT]
 	backend Backend[
-		BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT, ValidatorT,
+		BeaconBlockHeaderT, BeaconStateT, ValidatorT,
 	]
 }
 
@@ -50,9 +50,7 @@ func NewHandler[
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
 	ValidatorT types.Validator,
 ](
-	backend Backend[
-		BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT, ValidatorT,
-	],
+	backend Backend[BeaconBlockHeaderT, BeaconStateT, ValidatorT],
 ) *Handler[
 	ContextT, BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT,
 	ValidatorT,

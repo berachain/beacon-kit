@@ -20,17 +20,8 @@
 
 package proof
 
-import (
-	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof/types"
-)
-
 // Backend is the interface for backend of the proof API.
-type Backend[
-	BeaconBlockHeaderT types.BeaconBlockHeader,
-	BeaconStateT types.BeaconState[BeaconStateMarshallableT, ValidatorT],
-	BeaconStateMarshallableT types.BeaconStateMarshallable,
-	ValidatorT any,
-] interface {
+type Backend[BeaconBlockHeaderT, BeaconStateT, ValidatorT any] interface {
 	BlockBackend[BeaconBlockHeaderT]
 	StateBackend[BeaconStateT]
 	GetSlotByRoot([32]byte) (uint64, error)

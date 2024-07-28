@@ -27,13 +27,13 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 )
 
-// ProveProposerPubkey_FastSSZ generates a proof for the proposer pubkey in the
+// ProveProposerInBlock_FastSSZ generates a proof for the proposer pubkey in the
 // beacon block. The proof is then verified against the beacon block root as a
 // sanity check. Returns the proof along with the beacon block root. It uses
 // the fastssz library to generate the proof.
 //
 //nolint:revive,stylecheck // for explicit naming.
-func ProveProposerPubkey_FastSSZ[
+func ProveProposerInBlock_FastSSZ[
 	BeaconBlockHeaderT types.BeaconBlockHeader,
 	BeaconStateT types.BeaconState[BeaconStateMarshallableT, ValidatorT],
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
@@ -95,28 +95,6 @@ func ProveProposerPubkeyInState_FastSSZ[
 	return proof, common.Root(valPubkeyInStateProof.Leaf), nil
 }
 
-// ProveStateInBlock_FastSSZ generates a proof for the beacon state in the
-// beacon block. It uses the fastssz library to generate the proof.
-func ProveStateInBlock_FastSSZ[
-	BeaconBlockHeaderT types.BeaconBlockHeader,
-](bbh BeaconBlockHeaderT) ([]common.Root, error) {
-	blockProofTree, err := bbh.GetTree()
-	if err != nil {
-		return nil, err
-	}
-
-	stateInBlockProof, err := blockProofTree.Prove(StateGIndexDenebBlock)
-	if err != nil {
-		return nil, err
-	}
-
-	proof := make([]common.Root, len(stateInBlockProof.Hashes))
-	for i, hash := range stateInBlockProof.Hashes {
-		proof[i] = common.Root(hash)
-	}
-	return proof, nil
-}
-
 // verifyProposerInBlock verifies the proposer pubkey in the beacon block,
 // returning the beacon block root used to verify against.
 func verifyProposerInBlock[BeaconBlockHeaderT types.BeaconBlockHeader](
@@ -134,7 +112,7 @@ func verifyProposerInBlock[BeaconBlockHeaderT types.BeaconBlockHeader](
 		return common.Root{}, err
 	} else if !beaconRootVerified {
 		return common.Root{}, errors.Newf(
-			"proof verification failed against beacon root: %x", beaconRoot[:],
+			"proof failed to verify against beacon root: 0x%x", beaconRoot[:],
 		)
 	}
 

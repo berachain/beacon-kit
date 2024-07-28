@@ -33,7 +33,6 @@ import (
 type BeaconState[
 	T any,
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-	BeaconStateMarshallableT any,
 	Eth1DataT,
 	ExecutionPayloadHeaderT,
 	ForkT,
@@ -48,7 +47,6 @@ type BeaconState[
 	Copy() T
 	Save()
 	Context() context.Context
-	GetMarshallable() (BeaconStateMarshallableT, error)
 	HashTreeRoot() ([32]byte, error)
 	ReadOnlyBeaconState[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,

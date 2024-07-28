@@ -56,7 +56,7 @@ func (h *Handler[
 
 	// Generate the proof (along with the "correct" beacon block root to
 	// verify against) for the proposer validator pubkey.
-	pubkeyProof, beaconBlockRoot, err := merkle.ProveProposerPubkey_FastSSZ(
+	proof, beaconBlockRoot, err := merkle.ProveProposerInBlock_FastSSZ(
 		blockHeader, beaconState,
 	)
 	if err != nil {
@@ -75,6 +75,6 @@ func (h *Handler[
 		BeaconBlockHeader:    blockHeader,
 		BeaconBlockRoot:      beaconBlockRoot,
 		ValidatorPubkey:      proposerValidator.GetPubkey(),
-		ValidatorPubkeyProof: pubkeyProof,
+		ValidatorPubkeyProof: proof,
 	}, nil
 }

@@ -18,48 +18,31 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package merkle
 
 import (
-	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 )
 
-// StateProcessorInput is the input for the state processor for the depinject
-// framework.
-type StateProcessorInput struct {
-	depinject.In
-	ChainSpec       common.ChainSpec
-	ExecutionEngine *ExecutionEngine
-	Signer          crypto.BLSSigner
-}
+// ProveStateInBlock_FastSSZ generates a proof for the beacon state in the
+// beacon block. It uses the fastssz library to generate the proof.
+func ProveStateInBlock_FastSSZ[
+	BeaconBlockHeaderT types.BeaconBlockHeader,
+](bbh BeaconBlockHeaderT) ([]common.Root, error) {
+	blockProofTree, err := bbh.GetTree()
+	if err != nil {
+		return nil, err
+	}
 
-// ProvideStateProcessor provides the state processor to the depinject
-// framework.
-func ProvideStateProcessor(
-	in StateProcessorInput,
-) StateProcessor {
-	return core.NewStateProcessor[
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*BeaconBlockHeader,
-		*BeaconState,
-		*Context,
-		*Deposit,
-		*Eth1Data,
-		*ExecutionPayload,
-		*ExecutionPayloadHeader,
-		*Fork,
-		*ForkData,
-		*KVStore,
-		*Validator,
-		*Withdrawal,
-		WithdrawalCredentials,
-	](
-		in.ChainSpec,
-		in.ExecutionEngine,
-		in.Signer,
-	)
+	stateInBlockProof, err := blockProofTree.Prove(StateGIndexDenebBlock)
+	if err != nil {
+		return nil, err
+	}
+
+	proof := make([]common.Root, len(stateInBlockProof.Hashes))
+	for i, hash := range stateInBlockProof.Hashes {
+		proof[i] = common.Root(hash)
+	}
+	return proof, nil
 }

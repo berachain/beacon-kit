@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 )
 
 // The AvailabilityStore interface is responsible for validating and storing
@@ -73,6 +74,19 @@ type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
 	GetStateRoot() common.Root
 	SetStateRoot(common.Root)
 	GetBodyRoot() common.Root
+}
+
+// BeaconState is the interface for the beacon state.
+type BeaconState[
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, WithdrawalT any,
+] interface {
+	constraints.SSZRootable
+
+	core.ReadOnlyBeaconState[
+		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		ForkT, ValidatorT, WithdrawalT,
+	]
 }
 
 // BlockStore is the interface for block storage.

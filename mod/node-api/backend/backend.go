@@ -24,8 +24,6 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
-	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 )
 
 // Backend is the db access layer for the beacon node-api.
@@ -38,14 +36,11 @@ type Backend[
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT, BeaconBlockHeaderT],
 	BeaconBlockBodyT any,
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-	BeaconStateT core.BeaconState[
-		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT, Eth1DataT,
-		ExecutionPayloadHeaderT, ForkT, StateStoreT, ValidatorT, WithdrawalT,
+	BeaconStateT BeaconState[
+		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+		ValidatorT, WithdrawalT,
 	],
-	BeaconStateMarshallableT state.BeaconStateMarshallable[
-		BeaconStateMarshallableT, BeaconBlockHeaderT, Eth1DataT,
-		ExecutionPayloadHeaderT, ForkT, ValidatorT,
-	],
+	BeaconStateMarshallableT any,
 	BlobSidecarsT any,
 	BlockStoreT BlockStore[BeaconBlockT],
 	ContextT context.Context,
@@ -55,10 +50,7 @@ type Backend[
 	ExecutionPayloadHeaderT,
 	ForkT any,
 	NodeT Node[ContextT],
-	StateStoreT state.KVStore[
-		StateStoreT, BeaconBlockHeaderT, Eth1DataT,
-		ExecutionPayloadHeaderT, ForkT, ValidatorT,
-	],
+	StateStoreT any,
 	StorageBackendT StorageBackend[
 		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
 	],
@@ -79,14 +71,11 @@ func New[
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT, BeaconBlockHeaderT],
 	BeaconBlockBodyT any,
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-	BeaconStateT core.BeaconState[
-		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT, Eth1DataT,
-		ExecutionPayloadHeaderT, ForkT, StateStoreT, ValidatorT, WithdrawalT,
+	BeaconStateT BeaconState[
+		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+		ValidatorT, WithdrawalT,
 	],
-	BeaconStateMarshallableT state.BeaconStateMarshallable[
-		BeaconStateMarshallableT, BeaconBlockHeaderT, Eth1DataT,
-		ExecutionPayloadHeaderT, ForkT, ValidatorT,
-	],
+	BeaconStateMarshallableT any,
 	BlobSidecarsT any,
 	BlockStoreT BlockStore[BeaconBlockT],
 	ContextT context.Context,
@@ -96,10 +85,7 @@ func New[
 	ExecutionPayloadHeaderT,
 	ForkT any,
 	NodeT Node[ContextT],
-	StateStoreT state.KVStore[
-		StateStoreT, BeaconBlockHeaderT, Eth1DataT,
-		ExecutionPayloadHeaderT, ForkT, ValidatorT,
-	],
+	StateStoreT any,
 	StorageBackendT StorageBackend[
 		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
 	],
