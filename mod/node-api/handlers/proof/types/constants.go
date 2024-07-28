@@ -20,8 +20,6 @@
 
 package types
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
-
 const (
 	// ZeroValidatorPubkeyGIndexDenebState is the generalized index of the 0
 	// validator's pubkey in the beacon state in the Deneb fork. To get the
@@ -34,18 +32,15 @@ const (
 	// the beacon block in the Deneb fork.
 	StateGIndexDenebBlock = 11
 
-	// ValidatorPubkeyGIndexOffset is the offset of a validator pubkey GIndex.
-	ValidatorPubkeyGIndexOffset = 8
-)
-
-var (
 	// ZeroValidatorPubkeyGIndexDenebBlock is the generalized index of the 0
-	// validator's pubkey in the beacon block in the Deneb fork. To get the
-	// GIndex of the pubkey of validator at index n, the formula is:
+	// validator's pubkey in the beacon block in the Deneb fork. This is
+	// calculated by concatenating the (ZeroValidatorPubkeyGIndexDenebState,
+	// StateGIndexDenebBlock) GIndices. To get the GIndex of the pubkey of
+	// validator at index n, the formula is:
 	// GIndex = ZeroValidatorPubkeyGIndexDenebBlock +
 	//          (ValidatorPubkeyGIndexOffset * n)
-	ZeroValidatorPubkeyGIndexDenebBlock = merkle.GeneralizedIndices{
-		StateGIndexDenebBlock,
-		ZeroValidatorPubkeyGIndexDenebState,
-	}.Concat()
+	ZeroValidatorPubkeyGIndexDenebBlock = 3254554418216960
+
+	// ValidatorPubkeyGIndexOffset is the offset of a validator pubkey GIndex.
+	ValidatorPubkeyGIndexOffset = 8
 )

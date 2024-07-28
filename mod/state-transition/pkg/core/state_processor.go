@@ -101,7 +101,7 @@ func NewStateProcessor[
 	],
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT BeaconState[
-		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT, Eth1DataT, 
+		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT, Eth1DataT,
 		ExecutionPayloadHeaderT, ForkT, KVStoreT, ValidatorT, WithdrawalT,
 	],
 	BeaconStateMarshallableT any,

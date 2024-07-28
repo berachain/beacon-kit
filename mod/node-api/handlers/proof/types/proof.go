@@ -21,9 +21,9 @@
 package types
 
 import (
-	// "github.com/berachain/beacon-kit/mod/errors"
+	// "github.com/berachain/beacon-kit/mod/errors".
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	// "github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
+	// "github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle".
 )
 
 // ProofForProposerPubkey_FastSSZ generates a proof for the proposer
@@ -50,6 +50,7 @@ func ProofForProposerPubkey_FastSSZ[
 ](
 	bbh BeaconBlockHeaderT, bs BeaconStateT,
 ) ([]common.Root, common.Root, error) {
+	//nolint:prealloc // ok.
 	var (
 		pubkeyProof     []common.Root
 		beaconRoot, err = bbh.HashTreeRoot()

@@ -33,9 +33,9 @@ import (
 // BeaconBlockHeader is the interface for a beacon block header.
 type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
 	constraints.SSZRootable
-	// HashTreeRootWith is kept for FastSSZ compatability.
+	// HashTreeRootWith is kept for FastSSZ compatibility.
 	HashTreeRootWith(hh fastssz.HashWalker) error
-	// GetTree is kept for FastSSZ compatability.
+	// GetTree is kept for FastSSZ compatibility.
 	GetTree() (*fastssz.Node, error)
 
 	New(
@@ -122,8 +122,8 @@ type BeaconState[
 // marshalled or hash tree rooted.
 type BeaconStateMarshallable interface {
 	constraints.SSZMarshallableRootable
-	// HashTreeRootWith is kept for FastSSZ compatability.
+	// HashTreeRootWith is kept for FastSSZ compatibility.
 	HashTreeRootWith(hh fastssz.HashWalker) error
-	// GetTree is kept for FastSSZ compatability.
+	// GetTree is kept for FastSSZ compatibility.
 	GetTree() (*fastssz.Node, error)
 }

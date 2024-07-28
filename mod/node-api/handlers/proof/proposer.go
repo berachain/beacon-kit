@@ -70,9 +70,11 @@ func (h *Handler[
 	// 	return nil, err
 	// }
 
-	// // Generate the proof (along with the "correct" beacon block root to verify
+	// // Generate the proof (along with the "correct" beacon block root to
+	// verify
 	// // against) for the proposer validator pubkey.
-	// pubkeyProof, beaconBlockRoot, err := ptypes.ProofForProposerPubkey_FastSSZ(
+	// pubkeyProof, beaconBlockRoot, err :=
+	// ptypes.ProofForProposerPubkey_FastSSZ(
 	// 	beaconBlockForStateProof,
 	// )
 	// if err != nil {
