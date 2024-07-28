@@ -2,9 +2,8 @@
 pragma solidity ^0.8.21;
 
 /// @author [madlabman](https://github.com/madlabman/eip-4788-proof)
-/// @author [Eigenlayer](https://github.com/Layr-Labs/eigenlayer-contracts/blob/dev/src/contracts/libraries/Merkle.sol)
 library SSZ {
-    /// @dev SHA256 precompile address.
+    /// @dev sha256 precompile address.
     uint8 internal constant SHA256 = 0x02;
 
     error BranchHasMissingItem();
@@ -63,66 +62,6 @@ library SSZ {
                 )
             )
         );
-    }
-
-    function validatorPubkeyHashTreeRoot(bytes calldata validatorPubkey)
-        internal
-        view
-        returns (bytes32 root)
-    {
-        require(validatorPubkey.length == 48, "Invalid validator pubkey length");
-
-        bytes32[2] memory nodes =
-            [bytes32(validatorPubkey[0:32]), bytes32(validatorPubkey[32:48])];
-
-        /// @solidity memory-safe-assembly
-        assembly {
-            // Count of nodes to hash
-            let count := 2
-
-            // Loop over levels
-            // prettier-ignore
-            for { } 1 { } {
-                // Loop over nodes at the given depth
-
-                // Initialize `offset` to the offset of `proof` elements in memory.
-                let target := nodes
-                let source := nodes
-                let end := add(source, shl(5, count))
-
-                // prettier-ignore
-                for { } 1 { } {
-                    // TODO: Can be replaced with `mcopy` once it's available, see EIP-5656.
-                    // Read next two hashes to hash
-                    mstore(0x00, mload(source))
-                    mstore(0x20, mload(add(source, 0x20)))
-
-                    // Call sha256 precompile
-                    let result :=
-                        staticcall(gas(), SHA256, 0x00, 0x40, 0x00, 0x20)
-
-                    if eq(result, 0) {
-                        // Precompiles returns no data on OutOfGas error.
-                        revert(0, 0)
-                    }
-
-                    // Store the resulting hash at the target location
-                    mstore(target, mload(0x00))
-
-                    // Advance the pointers
-                    target := add(target, 0x20)
-                    source := add(source, 0x40)
-
-                    if iszero(lt(source, end)) { break }
-                }
-
-                count := shr(1, count)
-                if eq(count, 1) {
-                    root := mload(0x00)
-                    break
-                }
-            }
-        }
     }
 
     function validatorHashTreeRoot(Validator memory validator)
@@ -240,7 +179,7 @@ library SSZ {
 
                     // Call sha256 precompile
                     let result :=
-                        staticcall(gas(), SHA256, 0x00, 0x40, 0x00, 0x20)
+                        staticcall(gas(), 0x02, 0x00, 0x40, 0x00, 0x20)
 
                     if eq(result, 0) {
                         // Precompiles returns no data on OutOfGas error.
@@ -358,127 +297,6 @@ library SSZ {
             }
             isValid := eq(leaf, root)
         }
-    }
-
-    /**
-     * @notice this function returns the merkle root of a tree created from a set of leaves using sha256 as its hash function
-     *  @param leaves the leaves of the merkle tree
-     *  @return The computed Merkle root of the tree.
-     *  @dev A pre-condition to this function is that leaves.length is a power of two.  If not, the function will merkleize the inputs incorrectly.
-     */
-    function merkleizeSha256Eigenlayer(bytes32[] memory leaves)
-        internal
-        pure
-        returns (bytes32)
-    {
-        //there are half as many nodes in the layer above the leaves
-        uint256 numNodesInLayer = leaves.length / 2;
-        //create a layer to store the internal nodes
-        bytes32[] memory layer = new bytes32[](numNodesInLayer);
-        //fill the layer with the pairwise hashes of the leaves
-        for (uint256 i = 0; i < numNodesInLayer; i++) {
-            layer[i] =
-                sha256(abi.encodePacked(leaves[2 * i], leaves[2 * i + 1]));
-        }
-        //the next layer above has half as many nodes
-        numNodesInLayer /= 2;
-        //while we haven't computed the root
-        while (numNodesInLayer != 0) {
-            //overwrite the first numNodesInLayer nodes in layer with the pairwise hashes of their children
-            for (uint256 i = 0; i < numNodesInLayer; i++) {
-                layer[i] =
-                    sha256(abi.encodePacked(layer[2 * i], layer[2 * i + 1]));
-            }
-            //the next layer above has half as many nodes
-            numNodesInLayer /= 2;
-        }
-        //the first node in the layer is the root
-        return layer[0];
-    }
-
-    /**
-     * @dev Returns the rebuilt hash obtained by traversing a Merkle tree up
-     * from `leaf` using `proof`. A `proof` is valid if and only if the rebuilt
-     * hash matches the root of the tree. The tree is built assuming `leaf` is
-     * the 0 indexed `index`'th leaf from the bottom left of the tree.
-     *
-     * Note this is for a Merkle tree using the sha256 hash function
-     */
-    function verifyInclusionSha256Eigenlayer(
-        bytes memory proof,
-        bytes32 root,
-        bytes32 leaf,
-        uint256 index
-    )
-        internal
-        view
-        returns (bool)
-    {
-        return processInclusionProofSha256Eigenlayer(proof, leaf, index) == root;
-    }
-
-    /**
-     * @dev Returns the rebuilt hash obtained by traversing a Merkle tree up
-     * from `leaf` using `proof`. A `proof` is valid if and only if the rebuilt
-     * hash matches the root of the tree. The tree is built assuming `leaf` is
-     * the 0 indexed `index`'th leaf from the bottom left of the tree.
-     *
-     * _Available since v4.4._
-     *
-     * Note this is for a Merkle tree using the sha256 hash function
-     */
-    function processInclusionProofSha256Eigenlayer(
-        bytes memory proof,
-        bytes32 leaf,
-        uint256 index
-    )
-        internal
-        view
-        returns (bytes32)
-    {
-        require(
-            proof.length != 0 && proof.length % 32 == 0,
-            "Merkle.processInclusionProofSha256: proof length should be a non-zero multiple of 32"
-        );
-        bytes32[1] memory computedHash = [leaf];
-        for (uint256 i = 32; i <= proof.length; i += 32) {
-            if (index % 2 == 0) {
-                // if ith bit of index is 0, then computedHash is a left sibling
-                assembly {
-                    mstore(0x00, mload(computedHash))
-                    mstore(0x20, mload(add(proof, i)))
-                    if iszero(
-                        staticcall(
-                            sub(gas(), 2000),
-                            SHA256,
-                            0x00,
-                            0x40,
-                            computedHash,
-                            0x20
-                        )
-                    ) { revert(0, 0) }
-                    index := div(index, 2)
-                }
-            } else {
-                // if ith bit of index is 1, then computedHash is a right sibling
-                assembly {
-                    mstore(0x00, mload(add(proof, i)))
-                    mstore(0x20, mload(computedHash))
-                    if iszero(
-                        staticcall(
-                            sub(gas(), 2000),
-                            SHA256,
-                            0x00,
-                            0x40,
-                            computedHash,
-                            0x20
-                        )
-                    ) { revert(0, 0) }
-                    index := div(index, 2)
-                }
-            }
-        }
-        return computedHash[0];
     }
 
     function concatGindices(
