@@ -56,7 +56,7 @@ type Backend[
 	ForkT any,
 	NodeT Node[ContextT],
 	StateStoreT state.KVStore[
-		StateStoreT, BeaconBlockHeaderT, BeaconStateMarshallableT, Eth1DataT,
+		StateStoreT, BeaconBlockHeaderT, Eth1DataT,
 		ExecutionPayloadHeaderT, ForkT, ValidatorT,
 	],
 	StorageBackendT StorageBackend[
@@ -97,7 +97,7 @@ func New[
 	ForkT any,
 	NodeT Node[ContextT],
 	StateStoreT state.KVStore[
-		StateStoreT, BeaconBlockHeaderT, BeaconStateMarshallableT, Eth1DataT,
+		StateStoreT, BeaconBlockHeaderT, Eth1DataT,
 		ExecutionPayloadHeaderT, ForkT, ValidatorT,
 	],
 	StorageBackendT StorageBackend[

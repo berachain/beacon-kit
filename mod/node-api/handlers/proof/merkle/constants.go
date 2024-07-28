@@ -18,7 +18,11 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package merkle
+
+// TODO:
+// ethNumber in block - gIndex 5894
+// ethTimestamp in block - gIndex 5897
 
 const (
 	// ZeroValidatorPubkeyGIndexDenebState is the generalized index of the 0

@@ -46,7 +46,6 @@ type StateDB[
 	KVStoreT KVStore[
 		KVStoreT,
 		BeaconBlockHeaderT,
-		BeaconStateMarshallableT,
 		Eth1DataT,
 		ExecutionPayloadHeaderT,
 		ForkT,
@@ -59,7 +58,6 @@ type StateDB[
 	KVStore[
 		KVStoreT,
 		BeaconBlockHeaderT,
-		BeaconStateMarshallableT,
 		Eth1DataT,
 		ExecutionPayloadHeaderT,
 		ForkT,

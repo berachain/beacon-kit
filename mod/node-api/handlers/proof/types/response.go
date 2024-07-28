@@ -27,7 +27,7 @@ import (
 
 // BlockProposerProofResponse is the response for the
 // `/proof/blocks/proposer/{block_id}` endpoint.
-type BlockProposerProofResponse[BeaconBlockHeaderT, ValidatorT any] struct {
+type BlockProposerProofResponse[BeaconBlockHeaderT any] struct {
 	// BeaconBlockHeader is the block header of which the hash tree root is the
 	// beacon block root to verify against.
 	BeaconBlockHeader BeaconBlockHeaderT `json:"beacon_block_header"`

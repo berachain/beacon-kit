@@ -21,15 +21,16 @@
 package proof
 
 import (
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof/merkle"
 	ptypes "github.com/berachain/beacon-kit/mod/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 )
 
-// GetBlockProposer returns the block proposer for the given block id along
-// with a merkle proof that can be verified against the beacon block root.
+// GetBlockProposer returns the block proposer pubkey for the given block id
+// along with a merkle proof that can be verified against the beacon block root.
 func (h *Handler[
-	ContextT, BeaconBlockHeaderT, _, _, _, _, _, ValidatorT,
+	ContextT, BeaconBlockHeaderT, _, _, _,
 ]) GetBlockProposer(c ContextT) (any, error) {
 	params, err := utils.BindAndValidate[types.BlockIDRequest](
 		c, h.Logger(),
@@ -48,45 +49,32 @@ func (h *Handler[
 	if err != nil {
 		return nil, err
 	}
-	// beaconState, err := h.backend.StateFromSlot(slot)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	beaconState, err := h.backend.StateFromSlot(slot)
+	if err != nil {
+		return nil, err
+	}
 
-	// // Get the pubkey of the proposer validator.
-	// validators, err := beaconState.GetValidators()
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// //nolint:lll // formatter doesn't support shortening.
-	// proposerPubkey := validators[blockHeader.GetProposerIndex()]
+	// Generate the proof (along with the "correct" beacon block root to
+	// verify against) for the proposer validator pubkey.
+	pubkeyProof, beaconBlockRoot, err := merkle.ProveProposerPubkey_FastSSZ(
+		blockHeader, beaconState,
+	)
+	if err != nil {
+		return nil, err
+	}
 
-	// // Now get the beacon block struct for proving the proposer validator
-	// // pubkey exists within the state in this block.
-	// beaconBlockForStateProof, err := ptypes.NewBeaconBlockForStateProof(
-	// 	blockHeader, beaconState,
-	// )
-	// if err != nil {
-	// 	return nil, err
-	// }
+	// Get the pubkey of the proposer validator.
+	proposerValidator, err := beaconState.ValidatorByIndex(
+		blockHeader.GetProposerIndex(),
+	)
+	if err != nil {
+		return nil, err
+	}
 
-	// // Generate the proof (along with the "correct" beacon block root to
-	// verify
-	// // against) for the proposer validator pubkey.
-	// pubkeyProof, beaconBlockRoot, err :=
-	// ptypes.ProofForProposerPubkey_FastSSZ(
-	// 	beaconBlockForStateProof,
-	// )
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	return ptypes.BlockProposerProofResponse[
-		BeaconBlockHeaderT, ValidatorT,
-	]{
-		BeaconBlockHeader: blockHeader,
-		// BeaconBlockRoot:   beaconBlockRoot,
-		// ValidatorPubkey:      proposerPubkey,
-		// ValidatorPubkeyProof: pubkeyProof,
+	return ptypes.BlockProposerProofResponse[BeaconBlockHeaderT]{
+		BeaconBlockHeader:    blockHeader,
+		BeaconBlockRoot:      beaconBlockRoot,
+		ValidatorPubkey:      proposerValidator.GetPubkey(),
+		ValidatorPubkeyProof: pubkeyProof,
 	}, nil
 }

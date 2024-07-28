@@ -21,109 +21,39 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	fastssz "github.com/ferranbt/fastssz"
 )
 
-// TODO: remove unused functions here.
-
 // BeaconBlockHeader is the interface for a beacon block header.
-type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
+type BeaconBlockHeader interface {
 	constraints.SSZRootable
-	// HashTreeRootWith is kept for FastSSZ compatibility.
-	HashTreeRootWith(hh fastssz.HashWalker) error
 	// GetTree is kept for FastSSZ compatibility.
 	GetTree() (*fastssz.Node, error)
-
-	New(
-		slot math.Slot,
-		proposerIndex math.ValidatorIndex,
-		parentBlockRoot common.Root,
-		stateRoot common.Root,
-		bodyRoot common.Root,
-	) BeaconBlockHeaderT
-	GetSlot() math.Slot
+	// GetProposerIndex returns the proposer index.
 	GetProposerIndex() math.ValidatorIndex
-	GetParentBlockRoot() common.Root
-	GetStateRoot() common.Root
-	SetStateRoot(stateRoot common.Root)
-	GetBodyRoot() common.Root
 }
 
 // BeaconState is the interface for a beacon state.
-type BeaconState[
-	BeaconBlockHeaderT any,
-	BeaconStateMarshallableT any,
-	Eth1DataT any,
-	ExecutionPayloadHeaderT any,
-	ForkT any,
-	ValidatorT any,
-] interface {
+type BeaconState[BeaconStateMarshallableT, ValidatorT any] interface {
 	// GetMarshallable returns the marshallable version of the beacon state.
 	GetMarshallable() (BeaconStateMarshallableT, error)
-	// GetLatestExecutionPayloadHeader retrieves the latest execution payload
-	// header.
-	GetLatestExecutionPayloadHeader() (ExecutionPayloadHeaderT, error)
-	// GetEth1DepositIndex retrieves the eth1 deposit index.
-	GetEth1DepositIndex() (uint64, error)
-	// GetBalance retrieves the balance of a validator.
-	GetBalance(idx math.ValidatorIndex) (math.Gwei, error)
-	// GetSlot retrieves the current slot.
-	GetSlot() (math.Slot, error)
-	// GetFork retrieves the fork.
-	GetFork() (ForkT, error)
-	// GetGenesisValidatorsRoot retrieves the genesis validators root.
-	GetGenesisValidatorsRoot() (common.Root, error)
-	// GetLatestBlockHeader retrieves the latest block header.
-	GetLatestBlockHeader() (BeaconBlockHeaderT, error)
-	// GetBlockRootAtIndex retrieves the block root at the given index.
-	GetBlockRootAtIndex(index uint64) (common.Root, error)
-	// GetEth1Data retrieves the eth1 data.
-	GetEth1Data() (Eth1DataT, error)
-	// GetValidators retrieves all validators.
-	GetValidators() ([]ValidatorT, error)
-	// GetBalances retrieves all balances.
-	GetBalances() ([]uint64, error)
-	// GetNextWithdrawalIndex retrieves the next withdrawal index.
-	GetNextWithdrawalIndex() (uint64, error)
-	// GetNextWithdrawalValidatorIndex retrieves the next withdrawal validator
-	// index.
-	GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error)
-	// GetTotalSlashing retrieves the total slashing.
-	GetTotalSlashing() (math.Gwei, error)
-	// GetRandaoMixAtIndex retrieves the randao mix at the given index.
-	GetRandaoMixAtIndex(index uint64) (common.Bytes32, error)
-	// GetSlashings retrieves all slashings.
-	GetSlashings() ([]uint64, error)
-	// GetSlashingAtIndex retrieves the slashing at the given index.
-	GetSlashingAtIndex(index uint64) (math.Gwei, error)
-	// GetTotalValidators retrieves the total validators.
-	GetTotalValidators() (uint64, error)
-	// GetTotalActiveBalances retrieves the total active balances.
-	GetTotalActiveBalances(uint64) (math.Gwei, error)
 	// ValidatorByIndex retrieves the validator at the given index.
 	ValidatorByIndex(index math.ValidatorIndex) (ValidatorT, error)
-	// ValidatorIndexByPubkey retrieves the validator index by the given pubkey.
-	ValidatorIndexByPubkey(pubkey crypto.BLSPubkey) (math.ValidatorIndex, error)
-	ValidatorIndexByCometBFTAddress(
-		cometBFTAddress []byte,
-	) (math.ValidatorIndex, error)
-	// GetValidatorsByEffectiveBalance retrieves validators by effective
-	// balance.
-	GetValidatorsByEffectiveBalance() ([]ValidatorT, error)
-	// StateRootAtIndex retrieves the state root at the given index.
-	StateRootAtIndex(index uint64) (common.Root, error)
 }
 
 // BeaconStateMarshallable is the interface for a beacon state that can be
 // marshalled or hash tree rooted.
 type BeaconStateMarshallable interface {
 	constraints.SSZMarshallableRootable
-	// HashTreeRootWith is kept for FastSSZ compatibility.
-	HashTreeRootWith(hh fastssz.HashWalker) error
 	// GetTree is kept for FastSSZ compatibility.
 	GetTree() (*fastssz.Node, error)
+}
+
+// Validator is the interface for a validator.
+type Validator interface {
+	// GetPubkey returns the public key of the validator.
+	GetPubkey() crypto.BLSPubkey
 }
