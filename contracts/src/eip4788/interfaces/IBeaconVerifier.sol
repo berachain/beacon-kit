@@ -38,17 +38,4 @@ interface IBeaconVerifier {
     )
         external
         view;
-
-    /// @notice Verifies the proposer of the latest beacon block.
-    /// @dev Gets the parent beacon block root from `block.timestamp`.
-    /// @param blockHeader `BeaconBlockHeader` to verify.
-    /// @param validatorPubkeyProof `bytes32[]` proof of the validator pubkey.
-    /// @param validatorPubkey `ValidatorPubkey` to verify.
-    function proveLatestBeaconBlockProposer(
-        SSZ.BeaconBlockHeader calldata blockHeader,
-        bytes32[] calldata validatorPubkeyProof,
-        bytes calldata validatorPubkey
-    )
-        external
-        view;
 }

@@ -88,24 +88,6 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
         );
     }
 
-    /// @inheritdoc IBeaconVerifier
-    /// @dev gas used ~...
-    function proveLatestBeaconBlockProposer(
-        SSZ.BeaconBlockHeader calldata blockHeader,
-        bytes32[] calldata validatorPubkeyProof,
-        bytes calldata validatorPubkey
-    )
-        public
-        view
-    {
-        proveValidatorPubkeyInBeaconBlock(
-            getParentBlockRoot(uint64(block.timestamp)),
-            validatorPubkeyProof,
-            validatorPubkey,
-            blockHeader.proposerIndex
-        );
-    }
-
     /// @notice Verifies the validator pubkey is in the registry of beacon state.
     /// @param beaconBlockRoot `bytes32` root of the beacon block.
     /// @param validatorPubkeyProof `bytes32[]` proof of the validator.
