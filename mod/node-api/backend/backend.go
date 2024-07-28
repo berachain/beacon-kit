@@ -39,8 +39,8 @@ type Backend[
 	BeaconBlockBodyT any,
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT core.BeaconState[
-		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-		ForkT, StateStoreT, ValidatorT, WithdrawalT,
+		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT, Eth1DataT,
+		ExecutionPayloadHeaderT, ForkT, StateStoreT, ValidatorT, WithdrawalT,
 	],
 	BeaconStateMarshallableT state.BeaconStateMarshallable[
 		BeaconStateMarshallableT, BeaconBlockHeaderT, Eth1DataT,
@@ -56,7 +56,7 @@ type Backend[
 	ForkT any,
 	NodeT Node[ContextT],
 	StateStoreT state.KVStore[
-		StateStoreT, BeaconBlockHeaderT, Eth1DataT,
+		StateStoreT, BeaconBlockHeaderT, BeaconStateMarshallableT, Eth1DataT,
 		ExecutionPayloadHeaderT, ForkT, ValidatorT,
 	],
 	StorageBackendT StorageBackend[
@@ -80,8 +80,8 @@ func New[
 	BeaconBlockBodyT any,
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT core.BeaconState[
-		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-		ForkT, StateStoreT, ValidatorT, WithdrawalT,
+		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT, Eth1DataT,
+		ExecutionPayloadHeaderT, ForkT, StateStoreT, ValidatorT, WithdrawalT,
 	],
 	BeaconStateMarshallableT state.BeaconStateMarshallable[
 		BeaconStateMarshallableT, BeaconBlockHeaderT, Eth1DataT,
@@ -97,7 +97,7 @@ func New[
 	ForkT any,
 	NodeT Node[ContextT],
 	StateStoreT state.KVStore[
-		StateStoreT, BeaconBlockHeaderT, Eth1DataT,
+		StateStoreT, BeaconBlockHeaderT, BeaconStateMarshallableT, Eth1DataT,
 		ExecutionPayloadHeaderT, ForkT, ValidatorT,
 	],
 	StorageBackendT StorageBackend[

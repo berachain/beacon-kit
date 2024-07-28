@@ -26,7 +26,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	fastssz "github.com/ferranbt/fastssz"
-	"github.com/karalabe/ssz"
 )
 
 // TODO: remove unused functions here.
@@ -34,6 +33,11 @@ import (
 // BeaconBlockHeader is the interface for a beacon block header.
 type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
 	constraints.SSZRootable
+	// HashTreeRootWith is kept for FastSSZ compatability.
+	HashTreeRootWith(hh fastssz.HashWalker) error
+	// GetTree is kept for FastSSZ compatability.
+	GetTree() (*fastssz.Node, error)
+
 	New(
 		slot math.Slot,
 		proposerIndex math.ValidatorIndex,
@@ -52,15 +56,14 @@ type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
 // BeaconState is the interface for a beacon state.
 type BeaconState[
 	BeaconBlockHeaderT any,
+	BeaconStateMarshallableT any,
 	Eth1DataT any,
 	ExecutionPayloadHeaderT any,
 	ForkT any,
 	ValidatorT any,
 ] interface {
-	ssz.DynamicObject
-	constraints.SSZRootable
-	// HashTreeRootWith is kept for FastSSZ compatability.
-	HashTreeRootWith(hh fastssz.HashWalker) error
+	// GetMarshallable returns the marshallable version of the beacon state.
+	GetMarshallable() (BeaconStateMarshallableT, error)
 	// GetLatestExecutionPayloadHeader retrieves the latest execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (ExecutionPayloadHeaderT, error)
@@ -113,4 +116,10 @@ type BeaconState[
 	GetValidatorsByEffectiveBalance() ([]ValidatorT, error)
 	// StateRootAtIndex retrieves the state root at the given index.
 	StateRootAtIndex(index uint64) (common.Root, error)
+}
+
+// BeaconStateMarshallable is the interface for a beacon state that can be
+// marshalled or hash tree rooted.
+type BeaconStateMarshallable interface {
+	constraints.SSZMarshallableRootable
 }

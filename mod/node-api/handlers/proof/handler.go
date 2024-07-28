@@ -34,9 +34,10 @@ type Handler[
 	ContextT context.Context,
 	BeaconBlockHeaderT types.BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT types.BeaconState[
-		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-		ValidatorT,
+		BeaconBlockHeaderT, BeaconStateMarshallableT, Eth1DataT,
+		ExecutionPayloadHeaderT, ForkT, ValidatorT,
 	],
+	BeaconStateMarshallableT types.BeaconStateMarshallable,
 	Eth1DataT constraints.SSZRootable,
 	ExecutionPayloadHeaderT constraints.SSZRootable,
 	ForkT constraints.SSZRootable,
@@ -44,8 +45,8 @@ type Handler[
 ] struct {
 	*handlers.BaseHandler[ContextT]
 	backend Backend[
-		BeaconBlockHeaderT, BeaconStateT, Eth1DataT, ExecutionPayloadHeaderT,
-		ForkT, ValidatorT,
+		BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT, Eth1DataT,
+		ExecutionPayloadHeaderT, ForkT, ValidatorT,
 	]
 }
 
@@ -54,25 +55,26 @@ func NewHandler[
 	ContextT context.Context,
 	BeaconBlockHeaderT types.BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT types.BeaconState[
-		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-		ValidatorT,
+		BeaconBlockHeaderT, BeaconStateMarshallableT, Eth1DataT,
+		ExecutionPayloadHeaderT, ForkT, ValidatorT,
 	],
+	BeaconStateMarshallableT types.BeaconStateMarshallable,
 	Eth1DataT constraints.SSZRootable,
 	ExecutionPayloadHeaderT constraints.SSZRootable,
 	ForkT constraints.SSZRootable,
 	ValidatorT any,
 ](
 	backend Backend[
-		BeaconBlockHeaderT, BeaconStateT, Eth1DataT, ExecutionPayloadHeaderT,
-		ForkT, ValidatorT,
+		BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT, Eth1DataT,
+		ExecutionPayloadHeaderT, ForkT, ValidatorT,
 	],
 ) *Handler[
-	ContextT, BeaconBlockHeaderT, BeaconStateT, Eth1DataT,
-	ExecutionPayloadHeaderT, ForkT, ValidatorT,
+	ContextT, BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT,
+	Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
 ] {
 	h := &Handler[
-		ContextT, BeaconBlockHeaderT, BeaconStateT, Eth1DataT,
-		ExecutionPayloadHeaderT, ForkT, ValidatorT,
+		ContextT, BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT,
+		Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
 	]{
 		BaseHandler: handlers.NewBaseHandler(
 			handlers.NewRouteSet[ContextT](""),
@@ -84,7 +86,7 @@ func NewHandler[
 
 // NotImplemented is a placeholder for the proof API.
 func (
-	h *Handler[ContextT, _, _, _, _, _, _],
+	h *Handler[ContextT, _, _, _, _, _, _, _],
 ) NotImplemented(_ ContextT) (any, error) {
 	return nil, errors.New("not implemented")
 }

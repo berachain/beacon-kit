@@ -29,9 +29,10 @@ import (
 type Backend[
 	BeaconBlockHeaderT types.BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT types.BeaconState[
-		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-		ValidatorT,
+		BeaconBlockHeaderT, BeaconStateMarshallableT, Eth1DataT,
+		ExecutionPayloadHeaderT, ForkT, ValidatorT,
 	],
+	BeaconStateMarshallableT types.BeaconStateMarshallable,
 	Eth1DataT any,
 	ExecutionPayloadHeaderT any,
 	ForkT any,

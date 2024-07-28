@@ -32,6 +32,7 @@ import (
 type KVStore[
 	T,
 	BeaconBlockHeaderT,
+	BeaconStateMarshallableT,
 	Eth1DataT,
 	ExecutionPayloadHeaderT,
 	ForkT,

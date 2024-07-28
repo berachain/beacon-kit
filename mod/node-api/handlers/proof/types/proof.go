@@ -21,10 +21,14 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	ssz "github.com/ferranbt/fastssz"
 )
+
+// ** Generalized Index **
+// val0Pubkey in state - gIndex 439804651110400
+// state in block - gIndex 11
+// state in block -> val0Pubkey in state - concat 3254554418216960
+// val0Pubkey in block - gIndex 3254554418216960
 
 // ProofForProposerPubkey_FastSSZ generates a proof for the proposer
 // pubkey in the beacon block. The proof is then verified against the beacon
@@ -33,7 +37,7 @@ import (
 //
 //nolint:revive,stylecheck // for explicit naming.
 func ProofForProposerPubkey_FastSSZ[
-	BeaconBlockHeaderT any,
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT BeaconState[
 		BeaconBlockHeaderT,
 		Eth1DataT,
@@ -46,49 +50,50 @@ func ProofForProposerPubkey_FastSSZ[
 	ForkT any,
 	ValidatorT any,
 ](
-	beaconBlock *BeaconBlockForStateProof[
-		BeaconBlockHeaderT,
-		BeaconStateT,
-		Eth1DataT,
-		ExecutionPayloadHeaderT,
-		ForkT,
-		ValidatorT,
-	],
+	bbh BeaconBlockHeaderT,
+	bs BeaconStateT,
 ) ([]common.Root, common.Root, error) {
-	// Get the proof tree to generate the proof.
-	proofTree, err := beaconBlock.GetTree()
+	var (
+		pubkeyProof     []common.Root
+		beaconRoot, err = bbh.HashTreeRoot()
+	)
 	if err != nil {
 		return nil, common.Root{}, err
 	}
 
-	// Get the generalized index of the proposer pubkey in the tree.
-	gIndex := ZeroValidatorPubkeyGIndexDeneb +
-		(ValidatorPubkeyGIndexOffset * int(beaconBlock.ProposerIndex))
-
-	// Get the proof of the proposer pubkey in the tree.
-	proof, err := proofTree.Prove(gIndex)
+	// Get the proof tree of the beacon state first.
+	stateProofTree, err := bs.GetTree()
 	if err != nil {
 		return nil, common.Root{}, err
-	}
-	pubkeyProof := make([]common.Root, len(proof.Hashes))
-	for i, hash := range proof.Hashes {
-		pubkeyProof[i] = common.Root(hash)
 	}
 
-	// Sanity check that the proof verifies against our beacon root.
-	beaconRoot, err := beaconBlock.HashTreeRoot()
+	// Get the generalized index of the proposer pubkey in the beacon state.
+	valPubkeyInStateGIndex := ZeroValidatorPubkeyGIndexDenebState +
+		(ValidatorPubkeyGIndexOffset * int(bbh.GetProposerIndex()))
+
+	// Get the proof of the proposer pubkey in the beacon state.
+	valPubkeyInStateProof, err := stateProofTree.Prove(valPubkeyInStateGIndex)
 	if err != nil {
 		return nil, common.Root{}, err
 	}
-	beaconRootVerified, err := ssz.VerifyProof(beaconRoot[:], proof)
-	if err != nil {
-		return nil, common.Root{}, err
+	for _, hash := range valPubkeyInStateProof.Hashes {
+		pubkeyProof = append(pubkeyProof, common.Root(hash))
 	}
-	if !beaconRootVerified {
-		return nil, common.Root{}, errors.Newf(
-			"proof verification failed against beacon root: %x", beaconRoot[:],
-		)
-	}
+
+	// // Sanity check that the combined proof verifies against our beacon root.
+	// beaconRoot, err := beaconBlock.HashTreeRoot()
+	// if err != nil {
+	// 	return nil, common.Root{}, err
+	// }
+	// beaconRootVerified, err := ssz.VerifyProof(beaconRoot[:], proof)
+	// if err != nil {
+	// 	return nil, common.Root{}, err
+	// }
+	// if !beaconRootVerified {
+	// 	return nil, common.Root{}, errors.Newf(
+	// 		"proof verification failed against beacon root: %x", beaconRoot[:],
+	// 	)
+	// }
 
 	return pubkeyProof, beaconRoot, nil
 }

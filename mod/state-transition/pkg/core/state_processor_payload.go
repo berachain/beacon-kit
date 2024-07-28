@@ -31,7 +31,7 @@ import (
 // processExecutionPayload processes the execution payload and ensures it
 // matches the local state.
 func (sp *StateProcessor[
-	BeaconBlockT, _, _, BeaconStateT, ContextT,
+	BeaconBlockT, _, _, BeaconStateT, _, ContextT,
 	_, _, _, ExecutionPayloadHeaderT, _, _, _, _, _, _,
 ]) processExecutionPayload(
 	ctx ContextT,
@@ -82,7 +82,7 @@ func (sp *StateProcessor[
 // and the execution engine.
 func (sp *StateProcessor[
 	BeaconBlockT, _, _, BeaconStateT,
-	_, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _,
 ]) validateExecutionPayload(
 	ctx context.Context,
 	st BeaconStateT,
