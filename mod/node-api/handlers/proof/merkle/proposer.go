@@ -25,6 +25,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // ProveProposerInBlock generates a proof for the proposer pubkey in the
@@ -38,7 +39,7 @@ func ProveProposerInBlock[
 	bs types.BeaconState[BeaconStateMarshallableT, ValidatorT],
 ) ([]common.Root, common.Root, error) {
 	// Get the proof of the proposer pubkey in the beacon state.
-	proposerOffset := ValidatorPubkeyGIndexOffset * int(bbh.GetProposerIndex())
+	proposerOffset := ValidatorPubkeyGIndexOffset * bbh.GetProposerIndex()
 	valPubkeyInStateProof, leaf, err := ProveProposerPubkeyInState(
 		bs, proposerOffset,
 	)
@@ -72,7 +73,7 @@ func ProveProposerPubkeyInState[
 	BeaconStateMarshallableT types.BeaconStateMarshallable, ValidatorT any,
 ](
 	bs types.BeaconState[BeaconStateMarshallableT, ValidatorT],
-	proposerOffset int,
+	proposerOffset math.U64,
 ) ([]common.Root, common.Root, error) {
 	bsm, err := bs.GetMarshallable()
 	if err != nil {
@@ -83,7 +84,8 @@ func ProveProposerPubkeyInState[
 		return nil, common.Root{}, err
 	}
 
-	gIndex := ZeroValidatorPubkeyGIndexDenebState + proposerOffset
+	//#nosec:G701 // max proposer offset is 8 * 2^40
+	gIndex := ZeroValidatorPubkeyGIndexDenebState + int(proposerOffset)
 	valPubkeyInStateProof, err := stateProofTree.Prove(gIndex)
 	if err != nil {
 		return nil, common.Root{}, err
@@ -102,7 +104,7 @@ func ProveProposerPubkeyInState[
 // TODO: can be removed.
 func verifyProposerInBlock(
 	bbh types.BeaconBlockHeader,
-	valOffset int,
+	valOffset math.U64,
 	proof []common.Root,
 	leaf common.Root,
 ) (common.Root, error) {
