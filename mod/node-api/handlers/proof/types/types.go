@@ -37,9 +37,13 @@ type BeaconBlockHeader interface {
 }
 
 // BeaconState is the interface for a beacon state.
-type BeaconState[BeaconStateMarshallableT, ValidatorT any] interface {
+type BeaconState[
+	BeaconBlockHeaderT, BeaconStateMarshallableT, ValidatorT any,
+] interface {
 	// GetMarshallable returns the marshallable version of the beacon state.
 	GetMarshallable() (BeaconStateMarshallableT, error)
+	// GetLatestBlockHeader returns the latest block header.
+	GetLatestBlockHeader() (BeaconBlockHeaderT, error)
 	// ValidatorByIndex retrieves the validator at the given index.
 	ValidatorByIndex(index math.ValidatorIndex) (ValidatorT, error)
 }

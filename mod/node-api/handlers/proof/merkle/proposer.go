@@ -33,10 +33,14 @@ import (
 // sanity check. Returns the proof along with the beacon block root. It uses
 // the fastssz library to generate the proof.
 func ProveProposerInBlock[
-	BeaconStateMarshallableT types.BeaconStateMarshallable, ValidatorT any,
+	BeaconBlockHeaderT types.BeaconBlockHeader,
+	BeaconStateMarshallableT types.BeaconStateMarshallable,
+	ValidatorT any,
 ](
-	bbh types.BeaconBlockHeader,
-	bs types.BeaconState[BeaconStateMarshallableT, ValidatorT],
+	bbh BeaconBlockHeaderT,
+	bs types.BeaconState[
+		BeaconBlockHeaderT, BeaconStateMarshallableT, ValidatorT,
+	],
 ) ([]common.Root, common.Root, error) {
 	// Get the proof of the proposer pubkey in the beacon state.
 	proposerOffset := ValidatorPubkeyGIndexOffset * bbh.GetProposerIndex()
@@ -70,9 +74,13 @@ func ProveProposerInBlock[
 // ProveProposerPubkeyInState generates a proof for the proposer pubkey
 // in the beacon state. It uses the fastssz library to generate the proof.
 func ProveProposerPubkeyInState[
-	BeaconStateMarshallableT types.BeaconStateMarshallable, ValidatorT any,
+	BeaconBlockHeaderT types.BeaconBlockHeader,
+	BeaconStateMarshallableT types.BeaconStateMarshallable,
+	ValidatorT any,
 ](
-	bs types.BeaconState[BeaconStateMarshallableT, ValidatorT],
+	bs types.BeaconState[
+		BeaconBlockHeaderT, BeaconStateMarshallableT, ValidatorT,
+	],
 	proposerOffset math.U64,
 ) ([]common.Root, common.Root, error) {
 	bsm, err := bs.GetMarshallable()
@@ -101,7 +109,7 @@ func ProveProposerPubkeyInState[
 // verifyProposerInBlock verifies the proposer pubkey in the beacon block,
 // returning the beacon block root used to verify against.
 //
-// TODO: can be removed.
+// TODO: verifying the proof is not absolutely necessary.
 func verifyProposerInBlock(
 	bbh types.BeaconBlockHeader,
 	valOffset math.U64,

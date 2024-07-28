@@ -37,17 +37,17 @@ func (h *Handler[
 		return nil, err
 	}
 
-	// Get the slot from the given input of block id, block header, and beacon
-	// state for the desired slot.
+	// Get the slot from the given input of block id, beacon state, and beacon
+	// block header for the desired slot.
 	slot, err := utils.SlotFromBlockID(params.BlockID, h.backend)
 	if err != nil {
 		return nil, err
 	}
-	blockHeader, err := h.backend.BlockHeaderAtSlot(slot)
+	beaconState, err := h.backend.StateFromSlot(slot)
 	if err != nil {
 		return nil, err
 	}
-	beaconState, err := h.backend.StateFromSlot(slot)
+	blockHeader, err := beaconState.GetLatestBlockHeader()
 	if err != nil {
 		return nil, err
 	}

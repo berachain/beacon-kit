@@ -32,25 +32,27 @@ import (
 type Handler[
 	ContextT context.Context,
 	BeaconBlockHeaderT types.BeaconBlockHeader,
-	BeaconStateT types.BeaconState[BeaconStateMarshallableT, ValidatorT],
+	BeaconStateT types.BeaconState[
+		BeaconBlockHeaderT, BeaconStateMarshallableT, ValidatorT,
+	],
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
 	ValidatorT types.Validator,
 ] struct {
 	*handlers.BaseHandler[ContextT]
-	backend Backend[
-		BeaconBlockHeaderT, BeaconStateT, ValidatorT,
-	]
+	backend Backend[BeaconStateT, ValidatorT]
 }
 
 // NewHandler creates a new handler for the proof API.
 func NewHandler[
 	ContextT context.Context,
 	BeaconBlockHeaderT types.BeaconBlockHeader,
-	BeaconStateT types.BeaconState[BeaconStateMarshallableT, ValidatorT],
+	BeaconStateT types.BeaconState[
+		BeaconBlockHeaderT, BeaconStateMarshallableT, ValidatorT,
+	],
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
 	ValidatorT types.Validator,
 ](
-	backend Backend[BeaconBlockHeaderT, BeaconStateT, ValidatorT],
+	backend Backend[BeaconStateT, ValidatorT],
 ) *Handler[
 	ContextT, BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT,
 	ValidatorT,

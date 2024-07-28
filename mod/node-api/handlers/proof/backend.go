@@ -21,14 +21,9 @@
 package proof
 
 // Backend is the interface for backend of the proof API.
-type Backend[BeaconBlockHeaderT, BeaconStateT, ValidatorT any] interface {
-	BlockBackend[BeaconBlockHeaderT]
+type Backend[BeaconStateT, ValidatorT any] interface {
 	StateBackend[BeaconStateT]
 	GetSlotByRoot([32]byte) (uint64, error)
-}
-
-type BlockBackend[BeaconBlockHeaderT any] interface {
-	BlockHeaderAtSlot(slot uint64) (BeaconBlockHeaderT, error)
 }
 
 type StateBackend[BeaconStateT any] interface {

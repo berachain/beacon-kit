@@ -23,12 +23,11 @@ package beacon
 import (
 	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // Backend is the interface for backend of the beacon API.
 type Backend[
-	BlockHeaderT BlockHeader,
+	BlockHeaderT any,
 	ForkT any,
 	ValidatorT any,
 ] interface {
@@ -39,15 +38,6 @@ type Backend[
 	ValidatorBackend[ValidatorT]
 	HistoricalBackend[ForkT]
 	GetSlotByRoot(root [32]byte) (uint64, error)
-}
-
-type BlockHeader interface {
-	HashTreeRoot() ([32]byte, error)
-	GetSlot() math.Slot
-	GetProposerIndex() math.ValidatorIndex
-	GetParentBlockRoot() common.Root
-	GetStateRoot() common.Root
-	GetBodyRoot() common.Root
 }
 
 type GenesisBackend interface {
