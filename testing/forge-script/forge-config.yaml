@@ -19,7 +19,7 @@
 # TITLE.
 
 deployment:
-  repository: "github.com/nidhi-singh02/solidity-scripting/"    # follow the same format as defined here.
+  repository: "github.com/nidhi-singh02/solidity-scripting/"  # follow the same format as defined here.
   script_path: "script/NFT.s.sol"  # this must be relative to the repository path
   contract_name: "MyScript"
   rpc_url: "https://bartio.rpc.berachain.com/"
