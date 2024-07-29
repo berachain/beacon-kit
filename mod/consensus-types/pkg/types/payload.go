@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	fastssz "github.com/ferranbt/fastssz"
@@ -551,8 +550,6 @@ func (p *ExecutionPayload) GetExcessBlobGas() math.U64 {
 
 // ToHeader converts the ExecutionPayload to an ExecutionPayloadHeader.
 func (p *ExecutionPayload) ToHeader(
-	bartioTxsMerkleizer *merkle.Merkleizer[[32]byte, common.Root],
-	// TODO: re-enable at a later point.
 	_ uint64,
 	eth1ChainID uint64,
 ) (*ExecutionPayloadHeader, error) {
@@ -563,7 +560,7 @@ func (p *ExecutionPayload) ToHeader(
 	if eth1ChainID == spec.TestnetEth1ChainID {
 		txsRoot = engineprimitives.BartioTransactions(
 			p.GetTransactions(),
-		).HashTreeRootWith(bartioTxsMerkleizer)
+		).HashTreeRoot()
 	} else {
 		txsRoot = p.GetTransactions().HashTreeRoot()
 	}
