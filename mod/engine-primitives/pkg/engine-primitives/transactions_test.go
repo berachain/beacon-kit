@@ -97,14 +97,12 @@ var prysmConsistencyTests = []struct {
 		txs: func() [][]byte {
 			var txs [][]byte
 			for range int(constants.MaxTxsPerPayload) {
-				txs = append(txs, []byte{})
+				txs = append(txs, []byte{0x01})
 			}
 			return txs
 		}(),
 		want: [32]byte{
-			13, 66, 254, 206, 203, 58, 48, 133, 78, 218, 48, 231, 120, 90,
-			38, 72, 73, 137, 86, 9, 31, 213, 185, 101, 103, 144, 0, 236,
-			225, 57, 47, 244,
+			168, 19, 62, 29, 232, 106, 28, 81, 99, 73, 236, 102, 94, 160, 44, 191, 122, 176, 38, 39, 139, 100, 136, 5, 48, 242, 34, 31, 60, 104, 191, 171,
 		},
 	},
 }
@@ -123,49 +121,10 @@ func TestProperTransactions(t *testing.T) {
 				if got[i] != tt.want[i] {
 					t.Errorf(
 						"TransactionsRoot() got = %v, want %v, off at byte %d",
-						got, tt.want, i,
+						[32]byte(got), tt.want, i,
 					)
 					return
 				}
-			}
-		})
-	}
-}
-
-func TestBartioTransactionsHashSequential(t *testing.T) {
-	for _, tt := range prysmConsistencyTests {
-		t.Run(tt.name, func(t *testing.T) {
-			bartioTxs := engineprimitives.BartioTransactions(tt.txs)
-
-			// Get the hash using the existing HashTreeRoot method
-			existingHash := [32]byte(bartioTxs.HashTreeRoot())
-
-			// Get the hash using ssz.HashSequential
-			sequentialHash := [32]byte(bartioTxs.HashTreeRoot2())
-
-			// Check if the length of the hash is 32 bytes (256 bits)
-			if len(sequentialHash) != 32 {
-				t.Errorf(
-					"Unexpected hash length: got %d bytes, want 32 bytes",
-					len(sequentialHash),
-				)
-			}
-
-			// Check if the length of existingHash is 32 bytes (256 bits)
-			if len(existingHash) != 32 {
-				t.Errorf(
-					"Unexpected existing hash length: got %d bytes, want 32 bytes",
-					len(existingHash),
-				)
-			}
-
-			// Compare the hashes
-			if sequentialHash != existingHash {
-				t.Errorf(
-					"Hash mismatch: HashTreeRoot() = %x, ssz.HashSequential() = %x",
-					existingHash,
-					sequentialHash,
-				)
 			}
 		})
 	}
