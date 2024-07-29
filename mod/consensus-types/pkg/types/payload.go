@@ -27,8 +27,8 @@ import (
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
-	essz "github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -68,7 +68,7 @@ type ExecutionPayload struct {
 	// BlockHash is the hash of the block.
 	BlockHash gethprimitives.ExecutionHash `json:"blockHash"`
 	// Transactions is the list of transactions in the block.
-	Transactions [][]byte `json:"transactions"`
+	Transactions engineprimitives.Transactions `json:"transactions"`
 	// Withdrawals is the list of withdrawals in the block.
 	Withdrawals []*engineprimitives.Withdrawal `json:"withdrawals"`
 	// BlobGasUsed is the amount of blob gas used in the block.
@@ -114,9 +114,9 @@ func (p *ExecutionPayload) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineStaticBytes(codec, &p.BlockHash)
 	ssz.DefineSliceOfDynamicBytesOffset(
 		codec,
-		&p.Transactions,
-		1048576,
-		1073741824,
+		(*[][]byte)(&p.Transactions),
+		constants.MaxTxsPerPayload,
+		constants.MaxBytesPerTx,
 	)
 	ssz.DefineSliceOfStaticObjectsOffset(codec, &p.Withdrawals, 16)
 	ssz.DefineUint64(codec, &p.BlobGasUsed)
@@ -126,9 +126,9 @@ func (p *ExecutionPayload) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineDynamicBytesContent(codec, (*[]byte)(&p.ExtraData), 32)
 	ssz.DefineSliceOfDynamicBytesContent(
 		codec,
-		&p.Transactions,
-		1048576,
-		1073741824,
+		(*[][]byte)(&p.Transactions),
+		constants.MaxTxsPerPayload,
+		constants.MaxBytesPerTx,
 	)
 	ssz.DefineSliceOfStaticObjectsContent(codec, &p.Withdrawals, 16)
 }
@@ -530,7 +530,7 @@ func (p *ExecutionPayload) GetBlockHash() gethprimitives.ExecutionHash {
 }
 
 // GetTransactions returns the transactions of the ExecutionPayload.
-func (p *ExecutionPayload) GetTransactions() [][]byte {
+func (p *ExecutionPayload) GetTransactions() engineprimitives.Transactions {
 	return p.Transactions
 }
 
@@ -552,29 +552,20 @@ func (p *ExecutionPayload) GetExcessBlobGas() math.U64 {
 // ToHeader converts the ExecutionPayload to an ExecutionPayloadHeader.
 func (p *ExecutionPayload) ToHeader(
 	bartioTxsMerkleizer *merkle.Merkleizer[[32]byte, common.Root],
-	properTxsMerkleizer *merkle.Merkleizer[[32]byte, *essz.List[essz.Byte]],
 	// TODO: re-enable at a later point.
 	_ uint64,
 	eth1ChainID uint64,
 ) (*ExecutionPayloadHeader, error) {
-	var (
-		txsRootErr error
-		txsRoot    common.Root
-	)
+	var txsRoot common.Root
+
 	// TODO: This is live on bArtio with a bug and needs to be hardforked
 	// off of. This is a temporary solution to avoid breaking changes.
 	if eth1ChainID == spec.TestnetEth1ChainID {
-		txsRoot, txsRootErr = engineprimitives.BartioTransactions(
+		txsRoot = engineprimitives.BartioTransactions(
 			p.GetTransactions(),
 		).HashTreeRootWith(bartioTxsMerkleizer)
 	} else {
-		txsRoot, txsRootErr = engineprimitives.ProperTransactionsFromBytes(
-			p.GetTransactions(),
-		).HashTreeRootWith(properTxsMerkleizer)
-	}
-
-	if txsRootErr != nil {
-		return nil, txsRootErr
+		txsRoot = p.GetTransactions().HashTreeRoot()
 	}
 
 	switch p.Version() {
