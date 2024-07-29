@@ -40,6 +40,7 @@ import (
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
+	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
 	"github.com/berachain/beacon-kit/mod/node-api/backend"
 	"github.com/berachain/beacon-kit/mod/node-api/engines/echo"
 	beaconapi "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon"
@@ -65,6 +66,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
+	cmtlog "github.com/cometbft/cometbft/libs/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -285,6 +287,9 @@ type (
 		PayloadID,
 		*Withdrawal,
 	]
+
+	// Logger is a type alias for the logger.
+	Logger = phuslu.Logger[cmtlog.Logger]
 
 	// NodeAPIBackend is a type alias for the node API backend.
 	NodeAPIBackend = backend.Backend[
