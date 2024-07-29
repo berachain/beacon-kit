@@ -18,11 +18,32 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package version
+package components
 
-// TelemetrySink is an interface for sending telemetry data.
-type TelemetrySink interface {
-	// IncrementCounter increments a counter metric identified by the provided
-	// keys.
-	IncrementCounter(key string, args ...string)
+import (
+	"cosmossdk.io/core/appmodule"
+	"github.com/berachain/beacon-kit/mod/depinject"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
+)
+
+// KVStoreInput is the input for the ProvideKVStore function.
+type KVStoreInput struct {
+	depinject.In
+	Environment appmodule.Environment
+}
+
+// ProvideKVStore is the depinject provider that returns a beacon KV store.
+func ProvideKVStore(
+	in KVStoreInput,
+) *KVStore {
+	payloadCodec := &encoding.
+		SSZInterfaceCodec[*ExecutionPayloadHeader]{}
+	return beacondb.New[
+		*BeaconBlockHeader,
+		*Eth1Data,
+		*ExecutionPayloadHeader,
+		*Fork,
+		*Validator,
+	](in.Environment.KVStoreService, payloadCodec)
 }

@@ -1,7 +1,7 @@
-package app
+package types
 
 import "context"
 
-type Application interface {
+type App interface {
 	Start(context.Context) error
 }
