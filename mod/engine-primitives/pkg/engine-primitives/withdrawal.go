@@ -117,7 +117,7 @@ func (w *Withdrawal) MarshalSSZTo(dst []byte) ([]byte, error) {
 }
 
 // HashTreeRootWith ssz hashes the Withdrawal object with a hasher.
-func (w *Withdrawal) HashTreeRootWith(hh fastssz.HashWalker) (err error) {
+func (w *Withdrawal) HashTreeRootWith(hh fastssz.HashWalker) error {
 	indx := hh.Index()
 
 	// Field (0) 'Index'
@@ -133,7 +133,7 @@ func (w *Withdrawal) HashTreeRootWith(hh fastssz.HashWalker) (err error) {
 	hh.PutUint64(uint64(w.Amount))
 
 	hh.Merkleize(indx)
-	return
+	return nil
 }
 
 // GetTree ssz hashes the Withdrawal object.
