@@ -23,7 +23,6 @@ package engineprimitives
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/karalabe/ssz"
 )
 
@@ -43,19 +42,6 @@ func (txs BartioTransactions) HashTreeRoot() common.Root {
 		roots[i] = BartioTx(tx).HashTreeRoot()
 	}
 	return roots.HashTreeRoot()
-}
-
-func (txs BartioTransactions) HashTreeRoot2() common.Root {
-	roots := make(Roots, len(txs))
-	merkleizer := merkle.NewMerkleizer[[32]byte, common.Root]()
-	for i, tx := range txs {
-		var err error
-		roots[i], err = merkleizer.MerkleizeByteSlice(tx)
-		if err != nil {
-			panic(err)
-		}
-	}
-	return ssz.HashConcurrent(roots)
 }
 
 // BartioTx represents a single transaction in the Bartio format.
