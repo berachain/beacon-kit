@@ -12,7 +12,6 @@ import { Verifier } from "./Verifier.sol";
 /// @author [madlabman](https://github.com/madlabman/eip-4788-proof)
 contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     uint64 internal constant VALIDATOR_REGISTRY_LIMIT = 1 << 40;
-    uint8 internal constant VALIDATOR_PUBKEY_LENGTH = 48;
     uint8 internal constant VALIDATOR_PUBKEY_OFFSET = 8;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -72,14 +71,14 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @inheritdoc IBeaconVerifier
-    /// @dev gas used ~...
+    /// @dev gas used ~75812
     function proveBeaconBlockProposer(
         uint64 timestamp,
         bytes32[] calldata validatorPubkeyProof,
         bytes calldata validatorPubkey,
         uint64 proposerIndex
     )
-        public
+        external
         view
     {
         proveValidatorPubkeyInBeaconBlock(
@@ -106,9 +105,6 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     {
         if (validatorIndex >= VALIDATOR_REGISTRY_LIMIT) {
             revert IndexOutOfRange();
-        }
-        if (validatorPubkey.length != VALIDATOR_PUBKEY_LENGTH) {
-            revert InvalidValidatorPubkeyLength();
         }
 
         bytes32 validatorPubkeyRoot =
