@@ -10,7 +10,7 @@ replace (
 	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240623110059-dec2d5583e39
 	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240623110059-dec2d5583e39
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240623110059-dec2d5583e39
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240624014538-75ba469b1881
+	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240729221345-3df18b5c3b34
 	github.com/karalabe/ssz => github.com/itsdevbear/ssz v0.0.0-20240729201410-1a53beff08cb
 )
 
@@ -22,16 +22,17 @@ require (
 )
 
 require (
-	buf.build/gen/go/cometbft/cometbft/protocolbuffers/go v1.34.2-20240312114316-c0d3497e35d6.2 // indirect
+	buf.build/gen/go/cometbft/cometbft/protocolbuffers/go v1.34.2-20240701160653-fedbb9acfd2f.2 // indirect
 	buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.34.2-20240130113600-88ef6483f90f.2 // indirect
 	cosmossdk.io/api v0.7.5 // indirect
 	cosmossdk.io/client/v2 v2.0.0-20240412212305-037cf98f7eea // indirect
 	cosmossdk.io/collections v0.4.0 // indirect
 	cosmossdk.io/core v0.12.1-0.20240623110059-dec2d5583e39 // indirect
-	cosmossdk.io/depinject v1.0.0-alpha.4.0.20240506202947-fbddf0a55044 // indirect
+	cosmossdk.io/depinject v1.0.0 // indirect
 	cosmossdk.io/errors v1.0.1 // indirect
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce // indirect
 	cosmossdk.io/math v1.3.0 // indirect
+	cosmossdk.io/schema v0.1.1 // indirect
 	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc // indirect
 	cosmossdk.io/store/v2 v2.0.0-20240515130459-16437119e0d8 // indirect
 	cosmossdk.io/tools/confix v0.1.1 // indirect
@@ -69,7 +70,7 @@ require (
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240710022902-57d64ab384c7 // indirect
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240710023256-e9246f6a35e1 // indirect
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240705193247-d464364483df // indirect
-	github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816 // indirect
+	github.com/bgentry/speakeasy v0.2.0 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -92,7 +93,7 @@ require (
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
 	github.com/cosmos/gogoproto v1.5.0 // indirect
-	github.com/cosmos/iavl v1.2.0 // indirect
+	github.com/cosmos/iavl v1.2.1-0.20240725141113-7adc688cf179 // indirect
 	github.com/cosmos/ics23/go v0.10.0 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.13.3 // indirect
 	github.com/crate-crypto/go-ipa v0.0.0-20240223125850-b1e8a79f509c // indirect
