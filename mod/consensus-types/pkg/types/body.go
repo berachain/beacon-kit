@@ -26,8 +26,6 @@
 package types
 
 import (
-	"unsafe"
-
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -296,7 +294,7 @@ func (b *BeaconBlockBody) SetSlashingInfo(_ []*SlashingInfo) {
 func (b *BeaconBlockBody) GetTopLevelRoots() ([][32]byte, error) {
 	var (
 		err   error
-		layer = make([]common.Root, BodyLengthDeneb)
+		layer = make([][32]byte, BodyLengthDeneb)
 	)
 
 	layer[0], err = b.GetRandaoReveal().HashTreeRoot()
@@ -310,20 +308,9 @@ func (b *BeaconBlockBody) GetTopLevelRoots() ([][32]byte, error) {
 	}
 
 	layer[2] = b.GetGraffiti()
-
-	layer[3], err = Deposits(b.GetDeposits()).HashTreeRoot()
-	if err != nil {
-		return nil, err
-	}
-
+	layer[3] = Deposits(b.GetDeposits()).HashTreeRoot()
 	layer[4], err = b.GetExecutionPayload().HashTreeRoot()
-	if err != nil {
-		return nil, err
-	}
-
-	// KZG commitments is not needed
-	//#nosec:G103 // Okay to go from common.Root to [32]byte.
-	return *(*[][32]byte)(unsafe.Pointer(&layer)), nil
+	return layer, err
 }
 
 // Length returns the number of fields in the BeaconBlockBody struct.
