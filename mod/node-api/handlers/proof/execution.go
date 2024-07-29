@@ -21,9 +21,12 @@
 package proof
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof/merkle"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 )
 
 // GetBlockExecution returns the block number from the execution payload for the
@@ -59,10 +62,46 @@ func (h *Handler[
 		return nil, err
 	}
 
+	if _, err := h.testBrokenRoots(beaconState, slot); err != nil {
+		return nil, err
+	}
+
 	return types.BlockExecutionResponse[BeaconBlockHeaderT]{
 		BeaconBlockHeader:    blockHeader,
 		BeaconBlockRoot:      beaconBlockRoot,
 		ExecutionNumber:      leph.GetNumber(),
 		ExecutionNumberProof: proof,
 	}, nil
+}
+
+func (h *Handler[
+	ContextT, BeaconBlockHeaderT, BeaconStateT, _, _, _,
+]) testBrokenRoots(bs BeaconStateT, slot uint64) (BeaconBlockHeaderT, error) {
+	blockHeader, err := bs.GetLatestBlockHeader()
+	if err != nil {
+		return blockHeader, err
+	}
+	onBlockStateRoot := blockHeader.GetStateRoot()
+
+	stateRootAtSlot, err := h.backend.StateRootAtSlot(slot)
+	if err != nil {
+		return blockHeader, err
+	}
+
+	blockRootNoMod, err := blockHeader.HashTreeRoot()
+	if err != nil {
+		return blockHeader, err
+	}
+
+	blockRootAtSlot, err := h.backend.BlockRootAtSlot(slot)
+	if err != nil {
+		return blockHeader, err
+	}
+
+	return blockHeader, fmt.Errorf(
+		"state roots -- on block: %s, stateRootAtSlot: %s \n"+
+			"block roots -- raw block HTR: %s, blockRootAtSlot: %s",
+		onBlockStateRoot, stateRootAtSlot,
+		bytes.B32(blockRootNoMod), blockRootAtSlot,
+	)
 }

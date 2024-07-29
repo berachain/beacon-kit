@@ -39,29 +39,11 @@ func (h *Handler[
 		return slot, beaconState, blockHeader, err
 	}
 
-	beaconState, err = h.backend.StateFromSlot(slot)
+	beaconState, slot, err = h.backend.StateFromSlot(slot)
 	if err != nil {
 		return slot, beaconState, blockHeader, err
 	}
 
-	blockHeader, err = h.getBlockHeaderFromState(beaconState)
+	blockHeader, err = beaconState.GetLatestBlockHeader()
 	return slot, beaconState, blockHeader, err
-}
-
-// getBlockHeaderFromState returns the block header from the given state.
-//
-// TODO: remove once issue #1777 is fixed.
-func (h *Handler[
-	_, BeaconBlockHeaderT, BeaconStateT, _, _, _,
-]) getBlockHeaderFromState(bs BeaconStateT) (BeaconBlockHeaderT, error) {
-	blockHeader, err := bs.GetLatestBlockHeader()
-	if err != nil {
-		return blockHeader, err
-	}
-
-	// The state root must be patched onto the latest block header since it is
-	// committed to state with a 0 state root.
-	stateRoot, err := bs.HashTreeRoot()
-	blockHeader.SetStateRoot(stateRoot)
-	return blockHeader, err
 }

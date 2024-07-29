@@ -25,28 +25,45 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// GetStateRoot returns the root of the state at the given stateID.
-//
-// TODO: fix https://github.com/berachain/beacon-kit/issues/1777.
+// StateFromSlot returns the state at the given slot using query context.
+// We process the next slot (if possible) to ensure the state is up to date.
+func (b *Backend[
+	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) StateFromSlot(
+	slot uint64,
+) (BeaconStateT, uint64, error) {
+	var st BeaconStateT
+	//#nosec:G701 // not an issue in practice.
+	queryCtx, err := b.node.CreateQueryContext(int64(slot), false)
+	if err != nil {
+		return st, slot, err
+	}
+	st = b.sb.StateFromContext(queryCtx)
+
+	// For the latest slot (using 0 for query context), we can't process any
+	// further slot.
+	if slot == 0 {
+		var latestSlot math.U64
+		latestSlot, err = st.GetSlot()
+		if err != nil {
+			return st, slot, err
+		}
+		slot = latestSlot.Unwrap()
+	}
+
+	_, err = b.sp.ProcessSlots(st, math.U64(slot+1))
+	return st, slot, err
+}
+
+// GetStateRoot returns the root of the state at the given slot.
 func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) StateRootAtSlot(
 	slot uint64,
 ) (common.Root, error) {
-	st, err := b.StateFromSlot(slot)
+	st, slot, err := b.StateFromSlot(slot)
 	if err != nil {
 		return common.Root{}, err
-	}
-
-	// This is required to handle the semantical expectation that
-	// 0 -> latest despite 0 != latest.
-	if slot == 0 {
-		var latestSlot math.U64
-		latestSlot, err = st.GetSlot()
-		if err != nil {
-			return common.Root{}, err
-		}
-		slot = latestSlot.Unwrap()
 	}
 
 	// As calculated by the beacon chain. Ideally, this logic
@@ -62,7 +79,7 @@ func (b Backend[
 	slot uint64,
 ) (ForkT, error) {
 	var fork ForkT
-	st, err := b.StateFromSlot(slot)
+	st, _, err := b.StateFromSlot(slot)
 	if err != nil {
 		return fork, err
 	}

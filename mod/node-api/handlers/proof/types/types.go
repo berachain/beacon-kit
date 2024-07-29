@@ -35,8 +35,9 @@ type BeaconBlockHeader interface {
 	GetTree() (*fastssz.Node, error)
 	// GetProposerIndex returns the proposer index.
 	GetProposerIndex() math.ValidatorIndex
-	// SetStateRoot sets the state root on the beacon block header.
-	SetStateRoot(common.Root)
+
+	// TEMP
+	GetStateRoot() common.Root
 }
 
 // BeaconState is the interface for a beacon state.

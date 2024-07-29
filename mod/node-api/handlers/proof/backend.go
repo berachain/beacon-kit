@@ -20,12 +20,17 @@
 
 package proof
 
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+
 // Backend is the interface for backend of the proof API.
 type Backend[BeaconStateT, ValidatorT any] interface {
 	StateBackend[BeaconStateT]
 	GetSlotByRoot([32]byte) (uint64, error)
+
+	StateRootAtSlot(slot uint64) (common.Root, error)
+	BlockRootAtSlot(slot uint64) (common.Root, error)
 }
 
 type StateBackend[BeaconStateT any] interface {
-	StateFromSlot(slot uint64) (BeaconStateT, error)
+	StateFromSlot(slot uint64) (BeaconStateT, uint64, error)
 }

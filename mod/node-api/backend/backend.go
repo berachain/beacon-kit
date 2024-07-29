@@ -24,7 +24,6 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // Backend is the db access layer for the beacon node-api.
@@ -136,26 +135,4 @@ func (b *Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) GetSlotByRoot(root [32]byte) (uint64, error) {
 	return b.sb.BlockStore().GetSlotByRoot(root)
-}
-
-// StateFromSlot returns the state at the given slot using query context.
-func (b *Backend[
-	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) StateFromSlot(
-	slot uint64,
-) (BeaconStateT, error) {
-	var st BeaconStateT
-	//#nosec:G701 // not an issue in practice.
-	queryCtx, err := b.node.CreateQueryContext(int64(slot), false)
-	if err != nil {
-		return st, err
-	}
-	st = b.sb.StateFromContext(queryCtx)
-
-	_, err = b.sp.ProcessSlots(st, math.U64(slot+1))
-	if err != nil {
-		return st, err
-	}
-
-	return st, nil
 }
