@@ -70,7 +70,7 @@ func (e *Engine) RegisterRoutes(
 		group.Add(
 			route.Method,
 			route.Path,
-			errorMiddleware(route),
+			responseMiddleware(route),
 		)
 	}
 }

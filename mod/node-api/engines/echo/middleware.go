@@ -35,9 +35,9 @@ type ErrorResponse struct {
 	Message string `json:"message"`
 }
 
-// errorMiddleware is a middleware that converts errors to an HTTP status code
-// and response.
-func errorMiddleware(
+// responseMiddleware is a middleware that converts errors to an HTTP status 
+// code and response.
+func responseMiddleware(
 	handler *handlers.Route[Context],
 ) echo.HandlerFunc {
 	return func(c Context) error {
