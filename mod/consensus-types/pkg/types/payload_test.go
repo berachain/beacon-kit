@@ -202,7 +202,6 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 	}
 
 	header, err := payload.ToHeader(
-		merkle.NewMerkleizer[[32]byte, common.Root](),
 		merkle.NewMerkleizer[[32]byte, *ssz.List[ssz.Byte]](),
 		uint64(16), uint64(80087),
 	)

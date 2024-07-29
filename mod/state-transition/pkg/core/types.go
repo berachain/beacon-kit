@@ -166,7 +166,6 @@ type ExecutionPayload[
 	GetBlobGasUsed() math.U64
 	GetExcessBlobGas() math.U64
 	ToHeader(
-		bartioTxsMerkleizer *merkle.Merkleizer[[32]byte, common.Root],
 		properTxsMerkleizer *merkle.Merkleizer[[32]byte, *ssz.List[ssz.Byte]],
 		maxWithdrawalsPerPayload uint64,
 		eth1ChainID uint64,

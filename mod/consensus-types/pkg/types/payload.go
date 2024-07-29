@@ -551,7 +551,6 @@ func (p *ExecutionPayload) GetExcessBlobGas() math.U64 {
 
 // ToHeader converts the ExecutionPayload to an ExecutionPayloadHeader.
 func (p *ExecutionPayload) ToHeader(
-	bartioTxsMerkleizer *merkle.Merkleizer[[32]byte, common.Root],
 	properTxsMerkleizer *merkle.Merkleizer[[32]byte, *essz.List[essz.Byte]],
 	// TODO: re-enable at a later point.
 	_ uint64,
