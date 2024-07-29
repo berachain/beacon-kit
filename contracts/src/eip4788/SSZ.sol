@@ -6,7 +6,7 @@ library SSZ {
     /// @dev SHA256 precompile address.
     uint8 internal constant SHA256 = 0x02;
     /// @dev Length of the validator pubkey in bytes.
-    uint8 internal constant VALIDATOR_PUBKEY_LENGTH = 0x40;
+    uint8 internal constant VALIDATOR_PUBKEY_LENGTH = 48;
 
     error BranchHasMissingItem();
     error BranchHasExtraItem();

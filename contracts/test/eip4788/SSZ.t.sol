@@ -27,8 +27,7 @@ contract SSZTest is Test {
     }
 
     function test_ValidatorPubkeyRoot() public view {
-        bytes memory pubkey =
-            hex"a1c5a1e39fbe3eb23ce0a32aede615e813a8d4c36d1334bb9b36e4fb11289e0f5cce007e35ec74174de59ffa42c7f833";
+        bytes memory pubkey = hex"a1c5a1e39fbe3eb23ce0a32aede615e813a8d4c36d1334bb9b36e4fb11289e0f5cce007e35ec74174de59ffa42c7f833";
         bytes32 expected =
             0x8d94e5939d9e60417b14cbe52b90124eeb99bee4a0336219fe04d693e64944d9;
         bytes32 actual = SSZ.validatorPubkeyHashTreeRoot(pubkey);
