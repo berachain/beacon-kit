@@ -23,8 +23,8 @@ package engineprimitives
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
+	"github.com/karalabe/ssz"
 )
 
 type BartioTx []byte
@@ -64,14 +64,68 @@ func (txs BartioTransactions) HashTreeRootWith(
 	return merkleizer.MerkleizeListComposite(roots, constants.MaxTxsPerPayload)
 }
 
-type ProperTransactions = ssz.List[*ssz.List[ssz.Byte]]
+// type Transaction []byte
 
-// ProperTransactionsFromBytes creates a Transactions object from a byte slice.
-func ProperTransactionsFromBytes(data [][]byte) *ProperTransactions {
-	txs := make([]*ssz.List[ssz.Byte], len(data))
-	for i, tx := range data {
-		txs[i] = ssz.ByteListFromBytes(tx, constants.MaxBytesPerTx)
+// func (tx Transaction) SizeSSZ() uint32 {
+// 	return uint32(len(tx))
+// }
+
+// func (tx Transaction) DefineSSZ() {
+// 	ssz.DefineArra(tx, constants.MaxBytesPerTx)
+// }
+
+type Transactions [][]byte
+
+// SizeSSZ returns the SSZ encoded size in bytes for the Transactions.
+func (txs Transactions) SizeSSZ(fixed bool) uint32 {
+	if fixed || txs == nil {
+		return 0
 	}
-
-	return ssz.ListFromElements(constants.MaxTxsPerPayload, txs...)
+	return ssz.SizeSliceOfDynamicBytes(txs)
 }
+
+// DefineSSZ defines the SSZ encoding for the Transactions object.
+// TODO: This can accidently decouple from the definition in
+// ExecutionPayload and we should be cognizant of that and/or
+// make a PR to allow for them to be defined in one place.
+func (txs Transactions) DefineSSZ(codec *ssz.Codec) {
+	codec.DefineEncoder(func(*ssz.Encoder) {
+		ssz.DefineSliceOfDynamicBytesContent(
+			codec,
+			(*[][]byte)(&txs),
+			constants.MaxTxsPerPayload,
+			constants.MaxBytesPerTx,
+		)
+	})
+	codec.DefineDecoder(func(*ssz.Decoder) {
+		ssz.DefineSliceOfDynamicBytesContent(
+			codec,
+			(*[][]byte)(&txs),
+			constants.MaxTxsPerPayload,
+			constants.MaxBytesPerTx,
+		)
+	})
+	codec.DefineHasher(func(*ssz.Hasher) {
+		ssz.DefineSliceOfDynamicBytesOffset(
+			codec,
+			(*[][]byte)(&txs),
+			constants.MaxTxsPerPayload,
+			constants.MaxBytesPerTx,
+		)
+	})
+}
+
+// HashTreeRoot returns the hash tree root of the Transactions object.
+func (txs Transactions) HashTreeRoot() common.Root {
+	return ssz.HashConcurrent(txs)
+}
+
+// // ProperTransactionsFromBytes creates a Transactions object from a byte slice.
+// func ProperTransactionsFromBytes(data [][]byte) *ProperTransactions {
+// 	txs := make([]*ssz.List[ssz.Byte], len(data))
+// 	for i, tx := range data {
+// 		txs[i] = ssz.ByteListFromBytes(tx, constants.MaxBytesPerTx)
+// 	}
+
+// 	return ssz.ListFromElements(constants.MaxTxsPerPayload, txs...)
+// }

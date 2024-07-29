@@ -148,7 +148,7 @@ type ExecutionPayload[
 	ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT any,
 ] interface {
 	constraints.EngineType[ExecutionPayloadT]
-	GetTransactions() [][]byte
+	GetTransactions() engineprimitives.Transactions
 	GetParentHash() gethprimitives.ExecutionHash
 	GetBlockHash() gethprimitives.ExecutionHash
 	GetPrevRandao() common.Bytes32

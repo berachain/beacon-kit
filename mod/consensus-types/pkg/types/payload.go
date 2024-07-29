@@ -27,6 +27,7 @@ import (
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	essz "github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
@@ -68,7 +69,7 @@ type ExecutionPayload struct {
 	// BlockHash is the hash of the block.
 	BlockHash gethprimitives.ExecutionHash `json:"blockHash"`
 	// Transactions is the list of transactions in the block.
-	Transactions [][]byte `json:"transactions"`
+	Transactions engineprimitives.Transactions `json:"transactions"`
 	// Withdrawals is the list of withdrawals in the block.
 	Withdrawals []*engineprimitives.Withdrawal `json:"withdrawals"`
 	// BlobGasUsed is the amount of blob gas used in the block.
@@ -114,9 +115,9 @@ func (p *ExecutionPayload) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineStaticBytes(codec, &p.BlockHash)
 	ssz.DefineSliceOfDynamicBytesOffset(
 		codec,
-		&p.Transactions,
-		1048576,
-		1073741824,
+		(*[][]byte)(&p.Transactions),
+		constants.MaxTxsPerPayload,
+		constants.MaxBytesPerTx,
 	)
 	ssz.DefineSliceOfStaticObjectsOffset(codec, &p.Withdrawals, 16)
 	ssz.DefineUint64(codec, &p.BlobGasUsed)
@@ -126,9 +127,9 @@ func (p *ExecutionPayload) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineDynamicBytesContent(codec, (*[]byte)(&p.ExtraData), 32)
 	ssz.DefineSliceOfDynamicBytesContent(
 		codec,
-		&p.Transactions,
-		1048576,
-		1073741824,
+		(*[][]byte)(&p.Transactions),
+		constants.MaxTxsPerPayload,
+		constants.MaxBytesPerTx,
 	)
 	ssz.DefineSliceOfStaticObjectsContent(codec, &p.Withdrawals, 16)
 }
@@ -530,7 +531,7 @@ func (p *ExecutionPayload) GetBlockHash() gethprimitives.ExecutionHash {
 }
 
 // GetTransactions returns the transactions of the ExecutionPayload.
-func (p *ExecutionPayload) GetTransactions() [][]byte {
+func (p *ExecutionPayload) GetTransactions() engineprimitives.Transactions {
 	return p.Transactions
 }
 
@@ -568,9 +569,7 @@ func (p *ExecutionPayload) ToHeader(
 			p.GetTransactions(),
 		).HashTreeRootWith(bartioTxsMerkleizer)
 	} else {
-		txsRoot, txsRootErr = engineprimitives.ProperTransactionsFromBytes(
-			p.GetTransactions(),
-		).HashTreeRootWith(properTxsMerkleizer)
+		txsRoot = p.GetTransactions().HashTreeRoot()
 	}
 
 	if txsRootErr != nil {

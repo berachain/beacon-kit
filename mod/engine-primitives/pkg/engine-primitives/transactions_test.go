@@ -126,16 +126,9 @@ var prysmConsistencyTests = []struct {
 func TestProperTransactions(t *testing.T) {
 	for _, tt := range prysmConsistencyTests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := engineprimitives.ProperTransactionsFromBytes(
+			got := engineprimitives.Transactions(
 				tt.txs,
 			).HashTreeRoot()
-			if (err != nil) != tt.wantErr {
-				t.Errorf(
-					"TransactionsRoot() error = %v, wantErr %v",
-					err, tt.wantErr,
-				)
-				return
-			}
 
 			for i := range got {
 				if got[i] != tt.want[i] {
