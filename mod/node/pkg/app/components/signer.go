@@ -24,7 +24,7 @@ import (
 	"path/filepath"
 
 	"github.com/berachain/beacon-kit/mod/depinject"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
+	"github.com/berachain/beacon-kit/mod/node/pkg/app/components/signer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	clientFlags "github.com/cosmos/cosmos-sdk/client/flags"

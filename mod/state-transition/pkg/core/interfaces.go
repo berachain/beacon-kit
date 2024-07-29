@@ -140,7 +140,6 @@ type WriteOnlyValidators[ValidatorT any] interface {
 		math.ValidatorIndex,
 		ValidatorT,
 	) error
-
 	AddValidator(ValidatorT) error
 	AddValidatorBartio(ValidatorT) error
 }

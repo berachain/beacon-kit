@@ -21,7 +21,6 @@
 package components
 
 import (
-	"cosmossdk.io/log"
 	storev2 "cosmossdk.io/store/v2/db"
 	"github.com/berachain/beacon-kit/mod/depinject"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
@@ -65,7 +64,7 @@ type DepositPrunerInput struct {
 	BlockBroker  *BlockBroker
 	ChainSpec    common.ChainSpec
 	DepositStore *DepositStore
-	Logger       log.Logger
+	Logger       *Logger
 }
 
 // ProvideDepositPruner provides a deposit pruner for the depinject framework.

@@ -21,11 +21,9 @@
 package components
 
 import (
-	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/depinject"
-	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -39,8 +37,8 @@ type ValidatorServiceInput struct {
 	Cfg             *config.Config
 	ChainSpec       common.ChainSpec
 	LocalBuilder    *LocalBuilder
-	Logger          log.AdvancedLogger[any, sdklog.Logger]
-	StateProcessor  StateProcessor
+	Logger          *Logger
+	StateProcessor  *StateProcessor
 	StorageBackend  *StorageBackend
 	Signer          crypto.BLSSigner
 	SidecarsFeed    *SidecarsBroker

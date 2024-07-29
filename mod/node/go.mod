@@ -7,8 +7,13 @@ replace (
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240726151427-2e0884564fdb
 	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240726151427-2e0884564fdb
 	github.com/berachain/beacon-kit/mod/consensus => ../consensus
+	github.com/berachain/beacon-kit/mod/consensus-types => ../consensus-types
 	github.com/berachain/beacon-kit/mod/depinject => ../depinject
+	github.com/berachain/beacon-kit/mod/execution => ../execution
+	github.com/berachain/beacon-kit/mod/log => ../log
 	github.com/berachain/beacon-kit/mod/runtime => ../runtime
+	github.com/berachain/beacon-kit/mod/state-transition => ../state-transition
+	github.com/berachain/beacon-kit/mod/storage => ../storage
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240724150750-0fda53f265de
 )
 

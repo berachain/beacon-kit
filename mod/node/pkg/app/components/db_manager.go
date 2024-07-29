@@ -21,7 +21,6 @@
 package components
 
 import (
-	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/depinject"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 )
@@ -32,7 +31,7 @@ type DBManagerInput struct {
 	AvailabilityPruner DAPruner
 	DepositPruner      DepositPruner
 	BlockPruner        BlockPruner
-	Logger             log.Logger
+	Logger             *Logger
 }
 
 // ProvideDBManager provides a DBManager for the depinject framework.

@@ -22,7 +22,6 @@ package components
 
 import (
 	"github.com/berachain/beacon-kit/mod/config"
-	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
@@ -30,7 +29,7 @@ import (
 // ProvideAttributesFactory provides an AttributesFactory for the client.
 func ProvideAttributesFactory(
 	chainSpec common.ChainSpec,
-	logger log.Logger[any],
+	logger *Logger,
 	cfg *config.Config,
 ) (*AttributesFactory, error) {
 	return attributes.NewAttributesFactory[

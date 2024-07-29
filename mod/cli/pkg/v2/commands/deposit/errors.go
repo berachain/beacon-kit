@@ -18,12 +18,32 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package deposit
 
-import (
-	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
-)
+import "errors"
 
-type (
-	Logger = phuslu.Logger
+var (
+	// ErrValidatorPrivateKeyRequired is returned when the validator private key
+	// is required but not provided.
+	ErrValidatorPrivateKeyRequired = errors.New(
+		"validator private key required",
+	)
+	// ErrDepositTransactionFailed is returned when the deposit transaction
+	// fails.
+	ErrDepositTransactionFailed = errors.New(
+		"deposit transaction failed",
+	)
+	// ErrPrivateKeyRequired is returned when the broadcast flag is set but a
+	// private key is not provided.
+	ErrPrivateKeyRequired = errors.New(
+		"private key required",
+	)
+
+	// ErrDepositReceiptEmpty is returned when the deposit receipt is nil.
+	ErrDepositReceiptEmpty = errors.New(
+		"deposit receipt is nil")
+
+	// ErrPrivateKeyEmpty is returned when the private key is empty.
+	ErrPrivateKeyEmpty = errors.New(
+		"private key is empty")
 )

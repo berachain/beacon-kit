@@ -3,9 +3,10 @@ module github.com/berachain/beacon-kit/testing
 go 1.22.5
 
 replace (
-	// The following are required to build with the latest version of the cosmos-sdk main branch:
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240726151427-2e0884564fdb
 	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240726151427-2e0884564fdb
+	// The following are required to build with the latest version of the cosmos-sdk main branch:
+	cosmossdk.io/log => cosmossdk.io/log v1.3.2-0.20240729192831-b2989459ae91
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240724150750-0fda53f265de
 )
 

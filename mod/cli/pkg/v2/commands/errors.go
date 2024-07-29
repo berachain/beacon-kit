@@ -18,12 +18,13 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package commands
 
-import (
-	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
-)
+import "github.com/berachain/beacon-kit/mod/errors"
 
-type (
-	Logger = phuslu.Logger
+var (
+	// ErrNoClientCtx indicates that the client context was not found.
+	ErrNoClientCtx = errors.New("client context not found")
+	// ErrNoHomeDir indicates that the home directory was not found.
+	ErrNoHomeDir = errors.New("home directory not found")
 )

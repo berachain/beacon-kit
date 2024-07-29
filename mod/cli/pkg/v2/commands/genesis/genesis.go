@@ -18,12 +18,40 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package genesis
 
 import (
-	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/spf13/cobra"
 )
 
-type (
-	Logger = phuslu.Logger
-)
+// Commands builds the genesis-related command. Users may
+// provide application specific commands as a parameter.
+func Commands(
+	cs common.ChainSpec,
+	cmds ...*cobra.Command,
+) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:                        "genesis",
+		Short:                      "Application's genesis-related subcommands",
+		DisableFlagParsing:         false,
+		SuggestionsMinimumDistance: 2, //nolint:mnd // from sdk.
+		RunE:                       client.ValidateCmd,
+	}
+
+	// Adding subcommands for genesis-related operations.
+	cmd.AddCommand(
+		AddGenesisDepositCmd(cs),
+		CollectGenesisDepositsCmd(),
+		AddExecutionPayloadCmd(cs),
+		GetGenesisValidatorRootCmd(cs),
+	)
+
+	// Add additional commands
+	for _, subCmd := range cmds {
+		cmd.AddCommand(subCmd)
+	}
+
+	return cmd
+}

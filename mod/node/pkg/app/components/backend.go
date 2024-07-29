@@ -22,7 +22,7 @@ package components
 
 import (
 	"github.com/berachain/beacon-kit/mod/depinject"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
+	"github.com/berachain/beacon-kit/mod/node/pkg/app/components/storage"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 

@@ -23,10 +23,8 @@ package components
 import (
 	"errors"
 
-	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/depinject"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
-	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -40,7 +38,7 @@ type DepositServiceIn struct {
 	ChainSpec             common.ChainSpec
 	DepositStore          *DepositStore
 	EngineClient          *EngineClient
-	Logger                log.AdvancedLogger[any, sdklog.Logger]
+	Logger                *Logger
 	TelemetrySink         *metrics.TelemetrySink
 }
 

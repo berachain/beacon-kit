@@ -1,5 +1,7 @@
 package app
 
+import "github.com/berachain/beacon-kit/mod/depinject"
+
 type Builder[
 	StorageBackendT any,
 	StateProcessorT any,
@@ -14,9 +16,26 @@ type Builder[
 
 func (b *Builder[
 	StorageBackendT, StateProcessorT,
-]) Build() *App[StorageBackendT, StateProcessorT] {
+]) Build() (*App[StorageBackendT, StateProcessorT], error) {
+	var err error
 	// depinject components into the app.
-	return b.app
+	container := depinject.NewContainer()
+	if err = container.Supply(
+	// supplied deps
+	); err != nil {
+		return nil, err
+	}
+	if err = container.Provide(b.components...); err != nil {
+		return nil, err
+	}
+	if err = container.Inject(b.app); err != nil {
+		return nil, err
+	}
+	return b.app, nil
+}
+
+func (b *Builder[_, _]) WithComponents(components ...any) {
+	b.components = append(b.components, components...)
 }
 
 // For these methods, the paradigm will be to pass a pointer to the eventually

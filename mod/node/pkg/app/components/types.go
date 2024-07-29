@@ -50,15 +50,16 @@ import (
 	eventsapi "github.com/berachain/beacon-kit/mod/node-api/handlers/events"
 	nodeapi "github.com/berachain/beacon-kit/mod/node-api/handlers/node"
 	"github.com/berachain/beacon-kit/mod/node-api/server"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
 	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
+	"github.com/berachain/beacon-kit/mod/node/pkg/app/components/signer"
+	"github.com/berachain/beacon-kit/mod/node/pkg/app/components/storage"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
 	middlewarev2 "github.com/berachain/beacon-kit/mod/runtime/pkg/middleware/v2"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	statedb "github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/block"
@@ -66,7 +67,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
-	cmtlog "github.com/cometbft/cometbft/libs/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -289,7 +289,7 @@ type (
 	]
 
 	// Logger is a type alias for the logger.
-	Logger = phuslu.Logger[cmtlog.Logger]
+	Logger = phuslu.Logger
 
 	// NodeAPIBackend is a type alias for the node API backend.
 	NodeAPIBackend = backend.Backend[
@@ -343,13 +343,22 @@ type (
 	SlashingInfo = types.SlashingInfo
 
 	// StateProcessor is the type alias for the state processor interface.
-	StateProcessor = blockchain.StateProcessor[
+	StateProcessor = core.StateProcessor[
 		*BeaconBlock,
+		*BeaconBlockBody,
+		*BeaconBlockHeader,
 		*BeaconState,
-		*BlobSidecars,
 		*Context,
 		*Deposit,
+		*Eth1Data,
+		*ExecutionPayload,
 		*ExecutionPayloadHeader,
+		*Fork,
+		*ForkData,
+		*KVStore,
+		*Validator,
+		*Withdrawal,
+		WithdrawalCredentials,
 	]
 
 	// StorageBackend is the type alias for the storage backend interface.

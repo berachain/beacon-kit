@@ -21,7 +21,6 @@
 package builder
 
 import (
-	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
@@ -32,7 +31,7 @@ import (
 func SetLoggerConfig(
 	config *config.Config,
 	logger log.ConfigurableLogger[
-		*phuslu.Logger[sdklog.Logger],
+		*phuslu.Logger,
 		any,
 		phuslu.Config,
 	],

@@ -18,12 +18,10 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package types
 
-import (
-	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
-)
+import "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 
-type (
-	Logger = phuslu.Logger
-)
+type ValidatorsMarshaling struct {
+	Validators []*types.Validator `json:"validators" ssz-max:"1099511627776"`
+}

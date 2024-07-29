@@ -21,7 +21,6 @@
 package components
 
 import (
-	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/depinject"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -79,7 +78,7 @@ type NodeAPIServerInput struct {
 
 	Engine   *NodeAPIEngine
 	Config   *config.Config
-	Logger   log.AdvancedLogger[any, sdklog.Logger]
+	Logger   *Logger
 	Handlers []handlers.Handlers[NodeAPIContext]
 }
 

@@ -8,8 +8,8 @@ replace (
 	cosmossdk.io/collections => github.com/berachain/cosmos-sdk/collections v0.0.0-20240725053043-79fa56d34c79
 	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240724150750-0fda53f265de
 	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240726151427-2e0884564fdb
+	cosmossdk.io/log => cosmossdk.io/log v1.3.2-0.20240729192831-b2989459ae91
 
-	cosmossdk.io/log => cosmossdk.io/log v1.3.2-0.20240726151427-2e0884564fdb
 	cosmossdk.io/server/v2 => github.com/berachain/cosmos-sdk/server/v2 v2.0.0-20240725053043-79fa56d34c79
 	cosmossdk.io/server/v2/appmanager => github.com/berachain/cosmos-sdk/server/v2/appmanager v0.0.0-20240725053043-79fa56d34c79
 	cosmossdk.io/server/v2/stf => github.com/berachain/cosmos-sdk/server/v2/stf v0.0.0-20240725053043-79fa56d34c79

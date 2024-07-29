@@ -18,12 +18,27 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package commands
 
 import (
-	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
+	"context"
+
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/server"
+	"github.com/spf13/cobra"
+	"golang.org/x/sync/errgroup"
 )
 
-type (
-	Logger = phuslu.Logger
-)
+// PostSetupFn is a function that is called after the application is created
+// and the cosmos server is started.
+type PostSetupFn[T types.Node] func(
+	app T, svrCtx *server.Context, clientCtx client.Context,
+	ctx context.Context, g *errgroup.Group) error
+
+// runHandler is a function that sets up run handlers for the root command.
+type runHandler func(cmd *cobra.Command) error
+
+// enhancer is a function that applies an enhancement to the underlying
+// cobra.Command.
+type enhancer func(*cobra.Command) error

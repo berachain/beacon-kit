@@ -18,12 +18,10 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package genesis
 
-import (
-	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
-)
-
-type (
-	Logger = phuslu.Logger
+const (
+	depositAmountFlag    = "deposit-amount"
+	defaultDepositAmount = "32000000000" // 32e9
+	depositAmountFlagMsg = "The amount of deposit to be made"
 )
