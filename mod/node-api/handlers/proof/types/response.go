@@ -23,6 +23,7 @@ package types
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // BlockProposerResponse is the response for the
@@ -43,4 +44,22 @@ type BlockProposerResponse[BeaconBlockHeaderT any] struct {
 	// Generalized Index of the 0 validator pubkey in the beacon block. In
 	// the Deneb fork, z is 3254554418216960.
 	ValidatorPubkeyProof []common.Root `json:"validator_pubkey_proof"`
+}
+
+// BlockExecutionResponse is the response for the
+// `/proof/blocks/execution/{block_id}` endpoint.
+type BlockExecutionResponse[BeaconBlockHeaderT any] struct {
+	// BeaconBlockHeader is the block header of which the hash tree root is the
+	// beacon block root to verify against.
+	BeaconBlockHeader BeaconBlockHeaderT `json:"beacon_block_header"`
+
+	// BeaconBlockRoot is the beacon block root for this slot.
+	BeaconBlockRoot common.Root `json:"beacon_block_root"`
+
+	// ExecutionNumber is the block number from the execution payload.
+	ExecutionNumber math.U64 `json:"execution_number"`
+
+	// ExecutionNumberProof can be verified against the beacon block root using
+	// a Generalized Index of 5894 in the Deneb fork.
+	ExecutionNumberProof []common.Root `json:"execution_number_proof"`
 }

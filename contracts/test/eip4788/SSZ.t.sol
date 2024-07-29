@@ -11,6 +11,16 @@ contract SSZTest is Test {
             bytes32(bytes.concat(hex"EFCDAB9078563412", bytes24(0)));
         bytes32 actual = SSZ.toLittleEndian(v);
         assertEq(actual, expected);
+
+        uint64 w = type(uint64).max;
+        expected = bytes32(bytes.concat(hex"FFFFFFFFFFFFFFFF", bytes24(0)));
+        actual = SSZ.toLittleEndian(w);
+        assertEq(actual, expected);
+
+        uint64 z = 123_456_789;
+        expected = bytes32(bytes.concat(hex"15CD5B0700000000", bytes24(0)));
+        actual = SSZ.toLittleEndian(z);
+        assertEq(actual, expected);
     }
 
     function test_log2floor() public pure {

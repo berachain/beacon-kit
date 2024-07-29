@@ -37,5 +37,10 @@ func (
 			Path:    "eth/v1/proof/blocks/proposer/:block_id",
 			Handler: h.GetBlockProposer,
 		},
+		{
+			Method:  http.MethodGet,
+			Path:    "eth/v1/proof/blocks/execution/:block_id",
+			Handler: h.GetBlockExecution,
+		},
 	})
 }
