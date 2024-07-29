@@ -38,7 +38,7 @@ func (tx *BartioTx) DefineSSZ(codec *ssz.Codec) {
 		ssz.DefineDynamicBytesOffset(
 			codec,
 			(*[]byte)(tx),
-			constants.MaxTxsPerPayload,
+			constants.MaxBytesPerTx,
 		)
 	})
 }
@@ -116,7 +116,7 @@ func (txs BartioTransactions) HashTreeRootWith(
 			panic(err)
 		}
 	}
-	// fmt.Println("roots1", roots)
+
 	root, err = merkleizer.MerkleizeListComposite(
 		roots,
 		constants.MaxTxsPerPayload,
