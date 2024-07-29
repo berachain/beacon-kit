@@ -25,7 +25,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
@@ -207,16 +206,4 @@ func (d *Deposit) GetSignature() crypto.BLSSignature {
 // GetWithdrawalCredentials returns the staking credentials of the deposit.
 func (d *Deposit) GetWithdrawalCredentials() WithdrawalCredentials {
 	return d.Credentials
-}
-
-// Deposits is a typealias for a list of Deposits.
-type Deposits []*Deposit
-
-// HashTreeRoot returns the hash tree root of the Withdrawals list.
-func (d Deposits) HashTreeRoot() (common.Root, error) {
-	// TODO: read max deposits from the chain spec.
-	merkleizer := merkle.NewMerkleizer[[32]byte, *Deposit]()
-	return merkleizer.MerkleizeListComposite(
-		d, constants.MaxDepositsPerBlock,
-	)
 }
