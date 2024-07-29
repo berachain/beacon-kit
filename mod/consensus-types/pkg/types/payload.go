@@ -553,7 +553,8 @@ func (p *ExecutionPayload) GetExcessBlobGas() math.U64 {
 func (p *ExecutionPayload) ToHeader(
 	bartioTxsMerkleizer *merkle.Merkleizer[[32]byte, common.Root],
 	properTxsMerkleizer *merkle.Merkleizer[[32]byte, *essz.List[essz.Byte]],
-	maxWithdrawalsPerPayload uint64,
+	// TODO: re-enable at a later point.
+	_ uint64,
 	eth1ChainID uint64,
 ) (*ExecutionPayloadHeader, error) {
 	var (

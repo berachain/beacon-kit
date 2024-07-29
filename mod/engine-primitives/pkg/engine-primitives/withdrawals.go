@@ -30,7 +30,7 @@ var (
 	_ ssz.StaticObject = (*Withdrawals)(nil)
 	// TODO: We eventually should convert the interface, but we can't until
 	// we fully move off of FastSSZ for all types.
-	// _ constraints.SSZRootable = (*Withdrawals)(nil)
+	// _ constraints.SSZRootable = (*Withdrawals)(nil).
 )
 
 // Withdrawals represents a list of withdrawals.

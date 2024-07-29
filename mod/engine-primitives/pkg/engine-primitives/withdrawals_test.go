@@ -35,7 +35,9 @@ func TestWithdrawals(t *testing.T) {
 			{Index: 1, Validator: 2, Address: [20]byte{1, 2, 3}, Amount: 100},
 			{Index: 3, Validator: 4, Address: [20]byte{4, 5, 6}, Amount: 200},
 		}
-		expectedSize := uint32(len(withdrawals)) * engineprimitives.WithdrawalSize
+		expectedSize := uint32(
+			len(withdrawals),
+		) * engineprimitives.WithdrawalSize
 		require.Equal(t, expectedSize, withdrawals.SizeSSZ())
 	})
 
@@ -86,7 +88,8 @@ func TestWithdrawals(t *testing.T) {
 		emptyRoot := emptyWithdrawals.HashTreeRoot()
 		require.NotEmpty(t, emptyRoot)
 
-		// Verify that the root of an empty list is different from a non-empty list
+		// Verify that the root of an empty list is different from a non-empty
+		// list
 		nonEmptyWithdrawals := engineprimitives.Withdrawals{
 			{
 				Index:     math.U64(1),
@@ -98,5 +101,4 @@ func TestWithdrawals(t *testing.T) {
 		nonEmptyRoot := nonEmptyWithdrawals.HashTreeRoot()
 		require.NotEqual(t, emptyRoot, nonEmptyRoot)
 	})
-
 }
