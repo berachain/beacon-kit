@@ -76,14 +76,6 @@ func (kv *KVStore[
 	return kv.validators.Set(kv.ctx, uint64(index), val)
 }
 
-// RemoveValidatorAtIndex removes a validator at a specified index.
-func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
-]) RemoveValidatorAtIndex(idx math.ValidatorIndex) error {
-	return kv.validators.Remove(kv.ctx, uint64(idx))
-}
-
 // ValidatorIndexByPubkey returns the validator address by index.
 func (kv *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
@@ -140,8 +132,13 @@ func (kv *KVStore[
 ]) GetValidators() (
 	[]ValidatorT, error,
 ) {
+	registrySize, err := kv.validatorIndex.Peek(kv.ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	var (
-		vals []ValidatorT
+		vals = make([]ValidatorT, registrySize)
 		val  ValidatorT
 	)
 
@@ -150,13 +147,15 @@ func (kv *KVStore[
 		return nil, err
 	}
 
+	i := 0
 	for iter.Valid() {
 		val, err = iter.Value()
 		if err != nil {
 			return nil, err
 		}
-		vals = append(vals, val)
+		vals[i] = val
 		iter.Next()
+		i++
 	}
 
 	return vals, nil
