@@ -23,5 +23,6 @@ deployment:
   script_path: "script/NFT.s.sol"  # this must be relative to the repository path
   contract_name: "MyScript"
   rpc_url: "https://bartio.rpc.berachain.com/"
-  private_key: "0x0"
-# TODO: Support all wallet options later on
+  wallet:
+    type: "private_key"  # currently only private_key wallet is supported. Do not change the type.
+    value: "0x0"
