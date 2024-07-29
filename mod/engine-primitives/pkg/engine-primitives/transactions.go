@@ -35,10 +35,7 @@ type Transactions [][]byte
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the SSZ encoded size in bytes for the Transactions.
-func (txs Transactions) SizeSSZ(fixed bool) uint32 {
-	if fixed || txs == nil {
-		return 0
-	}
+func (txs Transactions) SizeSSZ(bool) uint32 {
 	return ssz.SizeSliceOfDynamicBytes(txs)
 }
 
