@@ -23,6 +23,7 @@ package engineprimitives
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/karalabe/ssz"
 )
 
@@ -40,14 +41,28 @@ func (txs BartioTransactions) HashTreeRoot() common.Root {
 	roots := make(Roots, len(txs))
 	for i, tx := range txs {
 		roots[i] = BartioTx(tx).HashTreeRoot()
+
 	}
-	return roots.HashTreeRoot()
+	return ssz.HashConcurrent(roots)
+}
+
+func (txs BartioTransactions) HashTreeRoot2() common.Root {
+	roots := make(Roots, len(txs))
+	merkleizer := merkle.NewMerkleizer[[32]byte, common.Root]()
+	for i, tx := range txs {
+		var err error
+		roots[i], err = merkleizer.MerkleizeByteSlice(tx)
+		if err != nil {
+			panic(err)
+		}
+	}
+	return ssz.HashConcurrent(roots)
 }
 
 // BartioTx represents a single transaction in the Bartio format.
 type BartioTx []byte
 
-// SizeSSZ returns the SSZ size of the BartioTx.
+// SizeSSZ returns the SSZ sssize of the BartioTx.
 func (tx BartioTx) SizeSSZ() uint32 {
 	return ssz.SizeDynamicBytes(tx)
 }
@@ -55,10 +70,9 @@ func (tx BartioTx) SizeSSZ() uint32 {
 // DefineSSZ implements the SSZ encoding for BartioTx.
 func (tx BartioTx) DefineSSZ(codec *ssz.Codec) {
 	codec.DefineHasher(func(*ssz.Hasher) {
-		ssz.DefineDynamicBytesOffset(
+		ssz.DefineStaticBytes(
 			codec,
 			(*[]byte)(&tx),
-			constants.MaxBytesPerTx,
 		)
 	})
 }
@@ -97,9 +111,4 @@ func (roots Roots) DefineSSZ(codec *ssz.Codec) {
 			codec, (*[]common.Root)(&roots), constants.MaxTxsPerPayload,
 		)
 	})
-}
-
-// HashTreeRoot returns the Merkle root hash of the Roots.
-func (roots Roots) HashTreeRoot() common.Root {
-	return ssz.HashSequential(roots)
 }

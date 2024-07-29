@@ -69,6 +69,21 @@ var prysmConsistencyTests = []struct {
 		},
 	},
 	{
+		name: "max bytes per tx",
+		txs: func() [][]byte {
+			var tx []byte
+			for i := range constants.MaxBytesPerTx {
+				tx = append(tx, byte(i))
+			}
+			return [][]byte{tx}
+		}(),
+		want: [32]byte{
+			120, 150, 59, 37, 152, 101, 206, 102, 229, 69, 62, 176, 208, 159,
+			230, 109, 150, 65, 134, 25, 69, 61, 13, 45, 150, 78, 139, 155, 241,
+			18, 248, 222,
+		},
+	},
+	{
 		name: "one tx",
 		txs:  [][]byte{{1, 2, 3}},
 		want: [32]byte{
@@ -82,16 +97,12 @@ var prysmConsistencyTests = []struct {
 		txs: func() [][]byte {
 			var txs [][]byte
 			for range int(constants.MaxTxsPerPayload) {
-				txs = append(txs, []byte{
-					0x01,
-				})
+				txs = append(txs, []byte{0x01})
 			}
 			return txs
 		}(),
 		want: [32]byte{
-			168, 19, 62, 29, 232, 106, 28, 81, 99,
-			73, 236, 102, 94, 160, 44, 191, 122, 176,
-			38, 39, 139, 100, 136, 5, 48, 242, 34, 31, 60, 104, 191, 171,
+			168, 19, 62, 29, 232, 106, 28, 81, 99, 73, 236, 102, 94, 160, 44, 191, 122, 176, 38, 39, 139, 100, 136, 5, 48, 242, 34, 31, 60, 104, 191, 171,
 		},
 	},
 }
@@ -114,6 +125,45 @@ func TestProperTransactions(t *testing.T) {
 					)
 					return
 				}
+			}
+		})
+	}
+}
+
+func TestBartioTransactionsHashSequential(t *testing.T) {
+	for _, tt := range prysmConsistencyTests {
+		t.Run(tt.name, func(t *testing.T) {
+			bartioTxs := engineprimitives.BartioTransactions(tt.txs)
+
+			// Get the hash using the existing HashTreeRoot method
+			existingHash := [32]byte(bartioTxs.HashTreeRoot())
+
+			// Get the hash using ssz.HashSequential
+			sequentialHash := [32]byte(bartioTxs.HashTreeRoot2())
+
+			// Check if the length of the hash is 32 bytes (256 bits)
+			if len(sequentialHash) != 32 {
+				t.Errorf(
+					"Unexpected hash length: got %d bytes, want 32 bytes",
+					len(sequentialHash),
+				)
+			}
+
+			// Check if the length of existingHash is 32 bytes (256 bits)
+			if len(existingHash) != 32 {
+				t.Errorf(
+					"Unexpected existing hash length: got %d bytes, want 32 bytes",
+					len(existingHash),
+				)
+			}
+
+			// Compare the hashes
+			if sequentialHash != existingHash {
+				t.Errorf(
+					"Hash mismatch: HashTreeRoot() = %x, ssz.HashSequential() = %x",
+					existingHash,
+					sequentialHash,
+				)
 			}
 		})
 	}
