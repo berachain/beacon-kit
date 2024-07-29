@@ -131,3 +131,42 @@ func TestProperTransactions(t *testing.T) {
 		})
 	}
 }
+
+func TestBartioTransactionsHashSequential(t *testing.T) {
+	for _, tt := range prysmConsistencyTests {
+		t.Run(tt.name, func(t *testing.T) {
+			bartioTxs := engineprimitives.BartioTransactions(tt.txs)
+
+			// Get the hash using the existing HashTreeRoot method
+			existingHash := [32]byte(bartioTxs.HashTreeRoot())
+
+			// Get the hash using ssz.HashSequential
+			sequentialHash := [32]byte(bartioTxs.HashTreeRoot2())
+
+			// Check if the length of the hash is 32 bytes (256 bits)
+			if len(sequentialHash) != 32 {
+				t.Errorf(
+					"Unexpected hash length: got %d bytes, want 32 bytes",
+					len(sequentialHash),
+				)
+			}
+
+			// Check if the length of existingHash is 32 bytes (256 bits)
+			if len(existingHash) != 32 {
+				t.Errorf(
+					"Unexpected existing hash length: got %d bytes, want 32 bytes",
+					len(existingHash),
+				)
+			}
+
+			// Compare the hashes
+			if sequentialHash != existingHash {
+				t.Errorf(
+					"Hash mismatch: HashTreeRoot() = %x, ssz.HashSequential() = %x",
+					existingHash,
+					sequentialHash,
+				)
+			}
+		})
+	}
+}
