@@ -26,6 +26,7 @@ import (
 
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/log/pkg/noop"
 	file "github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/interfaces/mocks"
 	"github.com/spf13/afero"
@@ -378,7 +379,7 @@ func newTestFDB(path string) *file.DB {
 		file.WithRootDirectory(path),
 		file.WithFileExtension("txt"),
 		file.WithDirectoryPermissions(0700),
-		file.WithLogger(log.NewNopLogger()),
+		file.WithLogger(noop.NewLogger[log.Logger]()),
 		file.WithAferoFS(fs),
 	)
 }

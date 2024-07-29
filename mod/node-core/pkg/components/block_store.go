@@ -22,10 +22,10 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
 	storev2 "cosmossdk.io/store/v2/db"
 	blockservice "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/config"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/block"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
@@ -66,7 +66,7 @@ type BlockPrunerInput struct {
 	Config      *config.Config
 	BlockBroker *BlockBroker
 	BlockStore  *BlockStore
-	Logger      log.Logger
+	Logger      log.AdvancedLogger[any]
 }
 
 // ProvideBlockPruner provides a block pruner for the depinject framework.

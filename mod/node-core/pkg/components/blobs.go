@@ -22,12 +22,12 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/da/pkg/da"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -73,7 +73,7 @@ type BlobProcessorIn struct {
 
 	BlobVerifier  *BlobVerifier
 	ChainSpec     common.ChainSpec
-	Logger        log.Logger
+	Logger        log.AdvancedLogger[any]
 	TelemetrySink *metrics.TelemetrySink
 }
 
@@ -99,7 +99,7 @@ type DAServiceIn struct {
 	AvailabilityStore *AvailabilityStore
 	SidecarsBroker    *SidecarsBroker
 	BlobProcessor     *BlobProcessor
-	Logger            log.Logger
+	Logger            log.AdvancedLogger[any]
 }
 
 // ProvideDAService is a function that provides the BlobService to the

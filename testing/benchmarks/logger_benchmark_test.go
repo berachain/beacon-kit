@@ -24,7 +24,7 @@ import (
 	"bytes"
 	"testing"
 
-	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
 	"github.com/cosmos/cosmos-sdk/server"
 )
@@ -203,23 +203,12 @@ func BenchmarkPhusluLoggerJSONWith(b *testing.B) {
 	}
 }
 
-// Benchmark function for cosmos logger With.
-func BenchmarkSDKLoggerWith(b *testing.B) {
-	logger := newSDKLoggerWithLevel(b, "Debug")
-	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
-		newLogger := logger.With("contextKey", "contextValue")
-		newLogger.Info("This is a contextual info message", "key1", "value1",
-			"key2", 2)
-	}
-}
-
 /* -------------------------------------------------------------------------- */
 /*                                   Helpers                                  */
 /* -------------------------------------------------------------------------- */
 
 // setup func to create a new cosmos logger with the given log level.
-func newSDKLoggerWithLevel(b *testing.B, level string) log.Logger {
+func newSDKLoggerWithLevel(b *testing.B, level string) log.Logger[any] {
 	b.Helper()
 	serverCtx := server.NewDefaultContext()
 	serverCtx.Viper.Set("log_level", level)
@@ -231,9 +220,9 @@ func newSDKLoggerWithLevel(b *testing.B, level string) log.Logger {
 }
 
 // setup func to create a new phuslu logger with the given log level.
-func newPhusluLogger() *phuslu.Logger[log.Logger] {
+func newPhusluLogger() *phuslu.Logger {
 	cfg := phuslu.DefaultConfig() // dummy config
-	l := phuslu.NewLogger[log.Logger](
+	l := phuslu.NewLogger(
 		&bytes.Buffer{}, &cfg)
 	return l
 }

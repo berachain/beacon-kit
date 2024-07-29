@@ -25,7 +25,6 @@ import (
 
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/depinject"
-	sdklog "cosmossdk.io/log"
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/context"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -91,7 +90,7 @@ func (cb *CLIBuilder[T, ExecutionPayloadT]) Build() (*cmdlib.Root, error) {
 		mm          *module.Manager
 		clientCtx   client.Context
 		chainSpec   common.ChainSpec
-		logger      log.AdvancedLogger[any, sdklog.Logger]
+		logger      log.AdvancedLogger[any]
 	)
 	// build dependencies for the root command
 	if err := depinject.Inject(
@@ -140,7 +139,7 @@ func (cb *CLIBuilder[T, ExecutionPayloadT]) Build() (*cmdlib.Root, error) {
 
 // defaultRunHandler returns the default run handler for the CLIBuilder.
 func (cb *CLIBuilder[T, ExecutionPayloadT]) defaultRunHandler(
-	logger log.AdvancedLogger[any, sdklog.Logger],
+	logger log.AdvancedLogger[any],
 ) func(cmd *cobra.Command) error {
 	return func(cmd *cobra.Command) error {
 		return cb.InterceptConfigsPreRunHandler(
@@ -158,7 +157,7 @@ func (cb *CLIBuilder[T, ExecutionPayloadT]) defaultRunHandler(
 // the command and the server logger.
 func (cb *CLIBuilder[T, ExecutionPayloadT]) InterceptConfigsPreRunHandler(
 	cmd *cobra.Command,
-	logger log.AdvancedLogger[any, sdklog.Logger],
+	logger log.AdvancedLogger[any],
 	customAppConfigTemplate string,
 	customAppConfig interface{},
 	cmtConfig *cmtcfg.Config,

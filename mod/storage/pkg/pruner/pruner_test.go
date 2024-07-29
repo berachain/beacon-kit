@@ -31,6 +31,7 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/log/pkg/noop"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner/mocks"
@@ -69,7 +70,7 @@ func TestPruner(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			logger := log.NewNopLogger()
+			logger := noop.NewLogger[log.Logger]()
 			ch := make(chan pruner.BlockEvent[pruner.BeaconBlock])
 			mockPrunable := new(mocks.Prunable)
 			mockPrunable.On("Prune", mock.Anything, mock.Anything).

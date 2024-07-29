@@ -62,11 +62,11 @@ type ColorLogger[KeyValT any] interface {
 
 // AdvancedLogger extends the color logger with the ability to wrap the logger
 // with additional context and to access the underlying logger implementation.
-type AdvancedLogger[KeyValT, LoggerT any] interface {
+type AdvancedLogger[KeyValT any] interface {
 	ColorLogger[KeyValT]
 	// With returns a new wrapped logger with additional context provided by a
 	// set.
-	With(keyVals ...KeyValT) LoggerT
+	With(keyVals ...KeyValT) AdvancedLogger[KeyValT]
 	// Impl returns the underlying logger implementation.
 	// It is used to access the full functionalities of the underlying logger.
 	// Advanced users can type cast the returned value to the actual logger.

@@ -23,7 +23,7 @@ package types
 import (
 	"context"
 
-	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
 )
 
@@ -31,14 +31,14 @@ import (
 type ExecutionClient struct {
 	*WrappedServiceContext
 	*JSONRPCConnection
-	logger log.Logger
+	logger log.AdvancedLogger[any]
 }
 
 // NewExecutionClientFromServiceCtx creates a new execution client from a
 // service context.
 func NewExecutionClientFromServiceCtx(
 	serviceCtx *WrappedServiceContext,
-	logger log.Logger,
+	logger log.AdvancedLogger[any],
 ) *ExecutionClient {
 	ec := &ExecutionClient{
 		WrappedServiceContext: serviceCtx,

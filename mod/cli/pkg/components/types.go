@@ -21,10 +21,9 @@
 package components
 
 import (
-	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
 )
 
 type (
-	Logger = phuslu.Logger[sdklog.Logger]
+	Logger = phuslu.Logger
 )

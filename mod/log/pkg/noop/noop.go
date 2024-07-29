@@ -25,51 +25,51 @@ import "github.com/berachain/beacon-kit/mod/log"
 // Logger is a logger that performs no operations. It can be used in
 // environments where logging should be disabled. It implements the Logger
 // interface with no-op methods.
-type Logger[KeyValT any, ImplT any] struct{}
+type Logger[KeyValT any] struct{}
 
 // NewLogger creates a blank no-op AdvancedLogger.
-func NewLogger[ImplT any]() *Logger[any, ImplT] {
-	return &Logger[any, ImplT]{}
+func NewLogger[ImplT any]() *Logger[any] {
+	return &Logger[any]{}
 }
 
 // Info logs an informational message with associated key-value pairs. This
 // method does nothing.
-func (n *Logger[KeyValT, ImplT]) Info(string, ...KeyValT) {
+func (n *Logger[KeyValT]) Info(string, ...KeyValT) {
 	// No operation
 }
 
 // Warn logs a warning message with associated key-value pairs. This method does
 // nothing.
-func (n *Logger[KeyValT, ImplT]) Warn(string, ...KeyValT) {
+func (n *Logger[KeyValT]) Warn(string, ...KeyValT) {
 	// No operation
 }
 
 // Error logs an error message with associated key-value pairs. This method does
 // nothing.
-func (n *Logger[KeyValT, ImplT]) Error(string, ...KeyValT) {
+func (n *Logger[KeyValT]) Error(string, ...KeyValT) {
 	// No operation
 }
 
 // Debug logs a debug message with associated key-value pairs. This method does
 // nothing.
-func (n *Logger[KeyValT, ImplT]) Debug(string, ...KeyValT) {
+func (n *Logger[KeyValT]) Debug(string, ...KeyValT) {
 	// No operation
 }
 
 // With returns a new AdvancedLogger with the provided key-value pairs. This
 // method does nothing.
-func (n *Logger[KeyValT, ImplT]) With(...KeyValT) ImplT {
-	return any(n).(ImplT)
+func (n *Logger[KeyValT]) With(...KeyValT) log.AdvancedLogger[KeyValT] {
+	return n
 }
 
-func (n *Logger[KeyValT, ImplT]) Impl() any {
+func (n *Logger[KeyValT]) Impl() any {
 	return nil
 }
 
-func (n *Logger[KeyValT, ImplT]) AddKeyColor(any, log.Color) {
+func (n *Logger[KeyValT]) AddKeyColor(any, log.Color) {
 	// No operation
 }
 
-func (n *Logger[KeyValT, ImplT]) AddKeyValColor(any, any, log.Color) {
+func (n *Logger[KeyValT]) AddKeyValColor(any, any, log.Color) {
 	// No operation
 }

@@ -31,6 +31,7 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/log/pkg/noop"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner/mocks"
@@ -46,7 +47,7 @@ func TestDBManager_Start(t *testing.T) {
 			return 0, 0
 		}
 
-	logger := log.NewNopLogger()
+	logger := noop.NewLogger[log.Logger]()
 	p1 := pruner.NewPruner[
 		manager.BeaconBlock,
 		manager.BlockEvent[manager.BeaconBlock],

@@ -25,6 +25,7 @@ import (
 
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/log/pkg/noop"
 	file "github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
@@ -130,7 +131,7 @@ func TestDB(t *testing.T) {
 				file.WithRootDirectory("/tmp/testdb"),
 				file.WithFileExtension("txt"),
 				file.WithDirectoryPermissions(0700),
-				file.WithLogger(log.NewNopLogger()),
+				file.WithLogger(noop.NewLogger[log.Logger]()),
 				file.WithAferoFS(fs),
 			)
 
@@ -183,7 +184,7 @@ func TestDB_SetExistingKey_CreateError(t *testing.T) {
 			file.WithRootDirectory("/etc"),
 			file.WithFileExtension("txt"),
 			file.WithDirectoryPermissions(0700),
-			file.WithLogger(log.NewNopLogger()),
+			file.WithLogger(noop.NewLogger[log.Logger]()),
 			file.WithAferoFS(fs),
 		)
 
@@ -237,7 +238,7 @@ func TestDB_SetHas_NotDirError(t *testing.T) {
 				file.WithRootDirectory("/etc/passwd"),
 				file.WithFileExtension("txt"),
 				file.WithDirectoryPermissions(0700),
-				file.WithLogger(log.NewNopLogger()),
+				file.WithLogger(noop.NewLogger[log.Logger]()),
 				file.WithAferoFS(fs),
 			)
 
@@ -278,7 +279,7 @@ func TestDB_Set_MkDirError(t *testing.T) {
 			file.WithRootDirectory("/etc/test"),
 			file.WithFileExtension("txt"),
 			file.WithDirectoryPermissions(0700),
-			file.WithLogger(log.NewNopLogger()),
+			file.WithLogger(noop.NewLogger[log.Logger]()),
 			file.WithAferoFS(fs),
 		)
 

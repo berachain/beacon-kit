@@ -24,7 +24,6 @@ import (
 	"math/big"
 
 	"cosmossdk.io/depinject"
-	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/engine"
@@ -41,7 +40,7 @@ type EngineClientInputs struct {
 	Config    *config.Config
 	// TODO: this feels like a hood way to handle it.
 	JWTSecret     *jwt.Secret `optional:"true"`
-	Logger        log.AdvancedLogger[any, sdklog.Logger]
+	Logger        log.AdvancedLogger[any]
 	TelemetrySink *metrics.TelemetrySink
 }
 
@@ -65,7 +64,7 @@ func ProvideEngineClient(
 type ExecutionEngineInputs struct {
 	depinject.In
 	EngineClient  *EngineClient
-	Logger        log.AdvancedLogger[any, sdklog.Logger]
+	Logger        log.AdvancedLogger[any]
 	StatusBroker  *StatusBroker
 	TelemetrySink *metrics.TelemetrySink
 }

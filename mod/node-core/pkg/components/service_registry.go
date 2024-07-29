@@ -22,7 +22,7 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/services/version"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
@@ -41,7 +41,7 @@ type ServiceRegistryInput struct {
 	DepositService        *DepositService
 	EngineClient          *EngineClient
 	GenesisBroker         *GenesisBroker
-	Logger                log.Logger
+	Logger                log.AdvancedLogger[any]
 	NodeAPIServer         *NodeAPIServer
 	SidecarsBroker        *SidecarsBroker
 	SlotBroker            *SlotBroker
