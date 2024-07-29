@@ -34,13 +34,20 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
+// SetupConfigAndContext returns a server.Context initialized with a viper
+// instance configured with the provided command. If the files expected to
+// contain the comet and app configs are empty, it will be populated with the
+// values from <appConfig> and <cmtConfig>.
+// In either case, the resulting values in these files will be merged with
+// viper.
 func SetupConfigAndContext(
 	cmd *cobra.Command,
-	customAppConfigTemplate string,
-	customAppConfig interface{},
+	appTemplate string,
+	appConfig any,
 	cmtConfig *cmtcfg.Config,
 	logger log.AdvancedLogger[any, sdklog.Logger],
 ) (*server.Context, error) {
@@ -52,10 +59,12 @@ func SetupConfigAndContext(
 
 	// intercept the comet and app config files
 	cometConfig, err := handleConfigs(
-		serverCtx.Viper, customAppConfigTemplate, customAppConfig, cmtConfig)
+		serverCtx.Viper, appTemplate, appConfig, cmtConfig)
 	if err != nil {
 		return nil, err
 	}
+
+	// set the cometbft config
 	serverCtx.Config = cometConfig
 	return serverCtx, nil
 }
@@ -77,7 +86,7 @@ func InitializeServerContext(
 	viper := newPrefixedViper(baseName)
 
 	// bind cobra flags to the viper instance
-	if err = bindFlags(cmd, viper); err != nil {
+	if err = bindFlags(baseName, cmd, viper); err != nil {
 		return nil, fmt.Errorf("error binding flags: %w", err)
 	}
 
@@ -106,14 +115,38 @@ func baseName() (string, error) {
 }
 
 // bindFlags binds the command line flags to the viper instance.
-func bindFlags(cmd *cobra.Command, viper *viper.Viper) error {
-	if err := viper.BindPFlags(cmd.Flags()); err != nil {
-		return err
-	}
-	if err := viper.BindPFlags(cmd.PersistentFlags()); err != nil {
-		return err
-	}
-	return nil
+func bindFlags(
+	basename string, cmd *cobra.Command, v *viper.Viper,
+) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("bindFlags failed: %v", r)
+		}
+	}()
+
+	cmd.Flags().VisitAll(func(f *pflag.Flag) {
+		// this should be redundant
+		err = v.BindEnv(f.Name, fmt.Sprintf("%s_%s", basename, strings.ToUpper(
+			strings.ReplaceAll(f.Name, "-", "_"))))
+		if err != nil {
+			panic(err)
+		}
+
+		err = v.BindPFlag(f.Name, f)
+		if err != nil {
+			panic(err)
+		}
+
+		if !f.Changed && v.IsSet(f.Name) {
+			val := v.Get(f.Name)
+			err = cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val))
+			if err != nil {
+				panic(err)
+			}
+		}
+	})
+
+	return err
 }
 
 // handleConfigs writes a new comet config file and app config file, and
