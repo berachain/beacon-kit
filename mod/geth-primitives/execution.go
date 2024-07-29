@@ -44,6 +44,7 @@ type (
 	Block          = coretypes.Block
 	Body           = coretypes.Body
 	Log            = coretypes.Log
+	LogsBloom      = coretypes.Bloom
 	Header         = coretypes.Header
 	Receipt        = coretypes.Receipt
 	Transaction    = coretypes.Transaction

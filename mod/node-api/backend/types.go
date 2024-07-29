@@ -24,8 +24,10 @@ import (
 	"context"
 
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 )
 
 // The AvailabilityStore interface is responsible for validating and storing
@@ -42,6 +44,37 @@ type AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT any] interface {
 	Persist(math.Slot, BlobSidecarsT) error
 }
 
+// BeaconBlockHeader is the interface for a beacon block header.
+type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
+	constraints.SSZMarshallableRootable
+	New(
+		slot math.Slot,
+		proposerIndex math.ValidatorIndex,
+		parentBlockRoot common.Root,
+		stateRoot common.Root,
+		bodyRoot common.Root,
+	) BeaconBlockHeaderT
+	GetSlot() math.Slot
+	GetProposerIndex() math.ValidatorIndex
+	GetParentBlockRoot() common.Root
+	GetStateRoot() common.Root
+	SetStateRoot(common.Root)
+	GetBodyRoot() common.Root
+}
+
+// BeaconState is the interface for the beacon state.
+type BeaconState[
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, WithdrawalT any,
+] interface {
+	constraints.SSZRootable
+
+	core.ReadOnlyBeaconState[
+		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		ForkT, ValidatorT, WithdrawalT,
+	]
+}
+
 // BlockStore is the interface for block storage.
 type BlockStore[BeaconBlockT any] interface {
 	// Get retrieves the block at the given slot.
@@ -52,12 +85,6 @@ type BlockStore[BeaconBlockT any] interface {
 	Set(slot uint64, block BeaconBlockT) error
 	// Prune prunes the block store of [start, end).
 	Prune(start, end uint64) error
-}
-
-// Deposit is a struct that represents a deposit.
-type Deposit interface {
-	constraints.SSZMarshallable
-	GetIndex() math.U64
 }
 
 // DepositStore defines the interface for deposit storage.

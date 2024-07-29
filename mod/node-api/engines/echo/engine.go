@@ -60,7 +60,7 @@ func (e *Engine) Run(addr string) error {
 
 // RegisterRoutes registers the given route set with the Echo engine.
 func (e *Engine) RegisterRoutes(
-	hs handlers.RouteSet[Context],
+	hs *handlers.RouteSet[Context],
 	logger log.Logger[any],
 ) {
 	e.logger = logger
@@ -70,7 +70,7 @@ func (e *Engine) RegisterRoutes(
 		group.Add(
 			route.Method,
 			route.Path,
-			buildHandler(route),
+			responseMiddleware(route),
 		)
 	}
 }

@@ -21,32 +21,19 @@
 package beacon
 
 import (
-	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // Backend is the interface for backend of the beacon API.
-type Backend[
-	BlockHeaderT BlockHeader,
-	ForkT any,
-	ValidatorT any,
-] interface {
+type Backend[BlockHeaderT, ForkT, ValidatorT any] interface {
 	GenesisBackend
 	BlockBackend[BlockHeaderT]
 	RandaoBackend
+	StateBackend[ForkT]
 	ValidatorBackend[ValidatorT]
 	HistoricalBackend[ForkT]
 	GetSlotByRoot(root [32]byte) (uint64, error)
-}
-
-type BlockHeader interface {
-	HashTreeRoot() ([32]byte, error)
-	GetSlot() math.Slot
-	GetProposerIndex() math.ValidatorIndex
-	GetParentBlockRoot() common.Root
-	GetStateRoot() common.Root
-	GetBodyRoot() common.Root
 }
 
 type GenesisBackend interface {
@@ -76,24 +63,33 @@ type BlockBackend[BeaconBlockHeaderT any] interface {
 	) (common.Root, error)
 	BlockRewardsAtSlot(
 		slot uint64,
-	) (*beacontypes.BlockRewardsData, error)
+	) (*types.BlockRewardsData, error)
 	BlockHeaderAtSlot(
 		slot uint64,
 	) (BeaconBlockHeaderT, error)
+}
+
+type StateBackend[ForkT any] interface {
+	StateRootAtSlot(
+		slot uint64,
+	) (common.Root, error)
+	StateForkAtSlot(
+		slot uint64,
+	) (ForkT, error)
 }
 
 type ValidatorBackend[ValidatorT any] interface {
 	ValidatorByID(
 		slot uint64,
 		id string,
-	) (*beacontypes.ValidatorData[ValidatorT], error)
+	) (*types.ValidatorData[ValidatorT], error)
 	ValidatorsByIDs(
 		slot uint64,
 		ids []string,
 		statuses []string,
-	) ([]*beacontypes.ValidatorData[ValidatorT], error)
+	) ([]*types.ValidatorData[ValidatorT], error)
 	ValidatorBalancesByIDs(
 		slot uint64,
 		ids []string,
-	) ([]*beacontypes.ValidatorBalanceData, error)
+	) ([]*types.ValidatorBalanceData, error)
 }

@@ -21,8 +21,6 @@
 package types
 
 import (
-	"context"
-
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -36,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
-	"golang.org/x/sync/errgroup"
 )
 
 // ExecutionPayloadStaticSize is the static size of the ExecutionPayload.
@@ -488,8 +485,8 @@ func (p *ExecutionPayload) GetReceiptsRoot() common.Bytes32 {
 }
 
 // GetLogsBloom returns the logs bloom of the ExecutionPayload.
-func (p *ExecutionPayload) GetLogsBloom() []byte {
-	return p.LogsBloom[:]
+func (p *ExecutionPayload) GetLogsBloom() bytes.B256 {
+	return p.LogsBloom
 }
 
 // GetPrevRandao returns the previous Randao value of the ExecutionPayload.
@@ -556,44 +553,28 @@ func (p *ExecutionPayload) GetExcessBlobGas() math.U64 {
 func (p *ExecutionPayload) ToHeader(
 	bartioTxsMerkleizer *merkle.Merkleizer[[32]byte, common.Root],
 	properTxsMerkleizer *merkle.Merkleizer[[32]byte, *essz.List[essz.Byte]],
-	maxWithdrawalsPerPayload uint64,
+	// TODO: re-enable at a later point.
+	_ uint64,
 	eth1ChainID uint64,
 ) (*ExecutionPayloadHeader, error) {
-	// Get the merkle roots of transactions and withdrawals in parallel.
 	var (
-		g, _            = errgroup.WithContext(context.Background())
-		txsRoot         common.Root
-		withdrawalsRoot common.Root
+		txsRootErr error
+		txsRoot    common.Root
 	)
+	// TODO: This is live on bArtio with a bug and needs to be hardforked
+	// off of. This is a temporary solution to avoid breaking changes.
+	if eth1ChainID == spec.TestnetEth1ChainID {
+		txsRoot, txsRootErr = engineprimitives.Transactions(
+			p.GetTransactions(),
+		).HashTreeRootWith(bartioTxsMerkleizer)
+	} else {
+		txsRoot, txsRootErr = engineprimitives.ProperTransactionsFromBytes(
+			p.GetTransactions(),
+		).HashTreeRootWith(properTxsMerkleizer)
+	}
 
-	g.Go(func() error {
-		var txsRootErr error
-		// TODO: This is live on bArtio with a bug and needs to be hardforked
-		// off of. This is a temporary solution to avoid breaking changes.
-		if eth1ChainID == spec.TestnetEth1ChainID {
-			txsRoot, txsRootErr = engineprimitives.Transactions(
-				p.GetTransactions(),
-			).HashTreeRootWith(bartioTxsMerkleizer)
-		} else {
-			txsRoot, txsRootErr = engineprimitives.ProperTransactionsFromBytes(
-				p.GetTransactions(),
-			).HashTreeRootWith(properTxsMerkleizer)
-		}
-		return txsRootErr
-	})
-
-	g.Go(func() error {
-		var withdrawalsRootErr error
-		wds := essz.ListFromElements(
-			maxWithdrawalsPerPayload,
-			p.GetWithdrawals()...)
-		withdrawalsRoot, withdrawalsRootErr = wds.HashTreeRoot()
-		return withdrawalsRootErr
-	})
-
-	// Wait for the goroutines to finish.
-	if err := g.Wait(); err != nil {
-		return nil, err
+	if txsRootErr != nil {
+		return nil, txsRootErr
 	}
 
 	switch p.Version() {
@@ -603,7 +584,7 @@ func (p *ExecutionPayload) ToHeader(
 			FeeRecipient:     p.GetFeeRecipient(),
 			StateRoot:        p.GetStateRoot(),
 			ReceiptsRoot:     p.GetReceiptsRoot(),
-			LogsBloom:        [256]byte(p.GetLogsBloom()),
+			LogsBloom:        p.GetLogsBloom(),
 			Random:           p.GetPrevRandao(),
 			Number:           p.GetNumber(),
 			GasLimit:         p.GetGasLimit(),
@@ -613,9 +594,10 @@ func (p *ExecutionPayload) ToHeader(
 			BaseFeePerGas:    p.GetBaseFeePerGas(),
 			BlockHash:        p.GetBlockHash(),
 			TransactionsRoot: txsRoot,
-			WithdrawalsRoot:  withdrawalsRoot,
-			BlobGasUsed:      p.GetBlobGasUsed(),
-			ExcessBlobGas:    p.GetExcessBlobGas(),
+			WithdrawalsRoot: engineprimitives.Withdrawals(p.GetWithdrawals()).
+				HashTreeRoot(),
+			BlobGasUsed:   p.GetBlobGasUsed(),
+			ExcessBlobGas: p.GetExcessBlobGas(),
 		}, nil
 	default:
 		return nil, errors.New("unknown fork version")
