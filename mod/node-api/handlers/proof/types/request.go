@@ -27,3 +27,9 @@ import "github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 type BlockProposerRequest struct {
 	types.BlockIDRequest
 }
+
+// BlockExecutionRequest is the request for the
+// `/proof/blocks/execution/{block_id}` endpoint.
+type BlockExecutionRequest struct {
+	types.BlockIDRequest
+}
