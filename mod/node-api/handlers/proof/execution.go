@@ -26,12 +26,13 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 )
 
-// GetBlockProposer returns the block proposer pubkey for the given block id
-// along with a merkle proof that can be verified against the beacon block root.
+// GetBlockExecution returns the block number from the execution payload for the
+// given block id, along with the proof that can be verified against the beacon
+// block root.
 func (h *Handler[
 	ContextT, BeaconBlockHeaderT, _, _, _, _,
-]) GetBlockProposer(c ContextT) (any, error) {
-	params, err := utils.BindAndValidate[types.BlockProposerRequest](
+]) GetBlockExecution(c ContextT) (any, error) {
+	params, err := utils.BindAndValidate[types.BlockExecutionRequest](
 		c, h.Logger(),
 	)
 	if err != nil {
@@ -43,27 +44,25 @@ func (h *Handler[
 	}
 
 	// Generate the proof (along with the "correct" beacon block root to
-	// verify against) for the proposer validator pubkey.
-	h.Logger().Info("Generating block proposer proof", "slot", slot)
-	proof, beaconBlockRoot, err := merkle.ProveProposerInBlock(
+	// verify against) for the execution payload block number.
+	h.Logger().Info("Generating block execution number proof", "slot", slot)
+	proof, beaconBlockRoot, err := merkle.ProveExecutionNumberInBlock(
 		blockHeader, beaconState,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	// Get the pubkey of the proposer validator.
-	proposerValidator, err := beaconState.ValidatorByIndex(
-		blockHeader.GetProposerIndex(),
-	)
+	// Get the block number from the latest execution payload header.
+	leph, err := beaconState.GetLatestExecutionPayloadHeader()
 	if err != nil {
 		return nil, err
 	}
 
-	return types.BlockProposerResponse[BeaconBlockHeaderT]{
+	return types.BlockExecutionResponse[BeaconBlockHeaderT]{
 		BeaconBlockHeader:    blockHeader,
 		BeaconBlockRoot:      beaconBlockRoot,
-		ValidatorPubkey:      proposerValidator.GetPubkey(),
-		ValidatorPubkeyProof: proof,
+		ExecutionNumber:      leph.GetNumber(),
+		ExecutionNumberProof: proof,
 	}, nil
 }

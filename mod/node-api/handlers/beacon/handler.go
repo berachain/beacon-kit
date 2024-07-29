@@ -21,8 +21,6 @@
 package beacon
 
 import (
-	"errors"
-
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/node-api/server/context"
@@ -55,9 +53,4 @@ func NewHandler[
 		backend: backend,
 	}
 	return h
-}
-
-// NotImplemented is a placeholder for the beacon API.
-func (h *Handler[_, ContextT, _, _]) NotImplemented(_ ContextT) (any, error) {
-	return nil, errors.New("not implemented")
 }

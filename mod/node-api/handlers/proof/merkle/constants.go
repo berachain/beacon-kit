@@ -20,10 +20,6 @@
 
 package merkle
 
-// TODO:
-// ethNumber in block - gIndex 5894
-// ethTimestamp in block - gIndex 5897
-
 const (
 	// ZeroValidatorPubkeyGIndexDenebState is the generalized index of the 0
 	// validator's pubkey in the beacon state in the Deneb fork. To get the
@@ -47,4 +43,12 @@ const (
 
 	// ValidatorPubkeyGIndexOffset is the offset of a validator pubkey GIndex.
 	ValidatorPubkeyGIndexOffset = 8
+
+	// ExecutionPayloadNumberGIndexDenebState is the generalized index of the
+	// execution payload header in the beacon beacon state in the Deneb fork.
+	ExecutionPayloadNumberGIndexDenebState = 774
+
+	// ExecutionPayloadNumberGIndexDenebBlock is the generalized index of the
+	// number in the execution payload in the Deneb fork.
+	ExecutionPayloadNumberGIndexDenebBlock = 5894
 )
