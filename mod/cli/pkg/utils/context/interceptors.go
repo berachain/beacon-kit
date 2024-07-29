@@ -29,7 +29,7 @@ import (
 	"strings"
 	"time"
 
-	sdklog "cosmossdk.io/log"
+	sdklog "cosmossdk.io/core/log"
 	"github.com/berachain/beacon-kit/mod/log"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client/flags"
