@@ -38,10 +38,15 @@ type BartioTransactions [][]byte
 // HashTreeRoot returns the hash tree root of the Transactions list.
 //
 // NOTE: Uses a new merkleizer for each call.
-func (txs BartioTransactions) HashTreeRoot() (common.Root, error) {
-	return txs.HashTreeRootWith(
+func (txs BartioTransactions) HashTreeRoot() common.Root {
+	root, err := txs.HashTreeRootWith(
 		merkle.NewMerkleizer[[32]byte, common.Root](),
 	)
+	if err != nil {
+		panic(err)
+	}
+
+	return root
 }
 
 // HashTreeRootWith returns the hash tree root of the Transactions list
@@ -63,16 +68,6 @@ func (txs BartioTransactions) HashTreeRootWith(
 
 	return merkleizer.MerkleizeListComposite(roots, constants.MaxTxsPerPayload)
 }
-
-// type Transaction []byte
-
-// func (tx Transaction) SizeSSZ() uint32 {
-// 	return uint32(len(tx))
-// }
-
-// func (tx Transaction) DefineSSZ() {
-// 	ssz.DefineArra(tx, constants.MaxBytesPerTx)
-// }
 
 type Transactions [][]byte
 
@@ -119,13 +114,3 @@ func (txs Transactions) DefineSSZ(codec *ssz.Codec) {
 func (txs Transactions) HashTreeRoot() common.Root {
 	return ssz.HashConcurrent(txs)
 }
-
-// // ProperTransactionsFromBytes creates a Transactions object from a byte slice.
-// func ProperTransactionsFromBytes(data [][]byte) *ProperTransactions {
-// 	txs := make([]*ssz.List[ssz.Byte], len(data))
-// 	for i, tx := range data {
-// 		txs[i] = ssz.ByteListFromBytes(tx, constants.MaxBytesPerTx)
-// 	}
-
-// 	return ssz.ListFromElements(constants.MaxTxsPerPayload, txs...)
-// }
