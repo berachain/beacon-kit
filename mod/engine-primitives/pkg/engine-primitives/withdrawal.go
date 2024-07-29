@@ -140,6 +140,10 @@ func (w *Withdrawal) GetTree() (*fastssz.Node, error) {
 	return fastssz.ProofTree(w)
 }
 
+/* -------------------------------------------------------------------------- */
+/*                             Getters and Setters                            */
+/* -------------------------------------------------------------------------- */
+
 // Equals returns true if the Withdrawal is equal to the other.
 func (w *Withdrawal) Equals(other *Withdrawal) bool {
 	return w.Index == other.Index &&
@@ -171,6 +175,10 @@ func (w *Withdrawal) GetAmount() math.Gwei {
 
 // Withdrawals represents a list of withdrawals.
 type Withdrawals []*Withdrawal
+
+/* -------------------------------------------------------------------------- */
+/*                                     SSZ                                    */
+/* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the SSZ encoded size in bytes for the Withdrawals.
 func (w Withdrawals) SizeSSZ() (size uint32) {
