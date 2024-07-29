@@ -18,34 +18,20 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package debug
+package backend
 
-import (
-	"net/http"
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 
-	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/node-api/handlers"
-)
-
-func (h *Handler[ContextT]) RegisterRoutes(
-	logger log.Logger[any],
-) {
-	h.SetLogger(logger)
-	h.BaseHandler.AddRoutes([]*handlers.Route[ContextT]{
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v2/debug/beacon/states/:state_id",
-			Handler: h.NotImplemented,
-		},
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v2/debug/beacon/states/heads",
-			Handler: h.NotImplemented,
-		},
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v1/debug/fork_choice",
-			Handler: h.NotImplemented,
-		},
-	})
+// GetGenesis returns the genesis state of the beacon chain.
+func (b Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) GenesisValidatorsRoot(
+	slot uint64,
+) (common.Root, error) {
+	// needs genesis_time and gensis_fork_version
+	st, err := b.StateFromSlot(slot)
+	if err != nil {
+		return common.Root{}, err
+	}
+	return st.GetGenesisValidatorsRoot()
 }

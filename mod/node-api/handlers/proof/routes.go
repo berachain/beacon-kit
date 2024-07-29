@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package debug
+package proof
 
 import (
 	"net/http"
@@ -27,25 +27,15 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 )
 
-func (h *Handler[ContextT]) RegisterRoutes(
-	logger log.Logger[any],
-) {
+func (
+	h *Handler[ContextT, _, _, _, _, _],
+) RegisterRoutes(logger log.Logger[any]) {
 	h.SetLogger(logger)
 	h.BaseHandler.AddRoutes([]*handlers.Route[ContextT]{
 		{
 			Method:  http.MethodGet,
-			Path:    "/eth/v2/debug/beacon/states/:state_id",
-			Handler: h.NotImplemented,
-		},
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v2/debug/beacon/states/heads",
-			Handler: h.NotImplemented,
-		},
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v1/debug/fork_choice",
-			Handler: h.NotImplemented,
+			Path:    "eth/v1/proof/blocks/proposer/:block_id",
+			Handler: h.GetBlockProposer,
 		},
 	})
 }

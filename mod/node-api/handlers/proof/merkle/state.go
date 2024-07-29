@@ -18,34 +18,29 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package debug
+package merkle
 
 import (
-	"net/http"
-
-	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/node-api/handlers"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
-func (h *Handler[ContextT]) RegisterRoutes(
-	logger log.Logger[any],
-) {
-	h.SetLogger(logger)
-	h.BaseHandler.AddRoutes([]*handlers.Route[ContextT]{
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v2/debug/beacon/states/:state_id",
-			Handler: h.NotImplemented,
-		},
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v2/debug/beacon/states/heads",
-			Handler: h.NotImplemented,
-		},
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v1/debug/fork_choice",
-			Handler: h.NotImplemented,
-		},
-	})
+// ProveStateInBlock generates a proof for the beacon state in the
+// beacon block. It uses the fastssz library to generate the proof.
+func ProveStateInBlock(bbh types.BeaconBlockHeader) ([]common.Root, error) {
+	blockProofTree, err := bbh.GetTree()
+	if err != nil {
+		return nil, err
+	}
+
+	stateInBlockProof, err := blockProofTree.Prove(StateGIndexDenebBlock)
+	if err != nil {
+		return nil, err
+	}
+
+	proof := make([]common.Root, len(stateInBlockProof.Hashes))
+	for i, hash := range stateInBlockProof.Hashes {
+		proof[i] = common.Root(hash)
+	}
+	return proof, nil
 }

@@ -39,10 +39,6 @@ func NewHandler[ContextT context.Context]() *Handler[ContextT] {
 	return h
 }
 
-func (h *Handler[ContextT]) RouteSet() handlers.RouteSet[ContextT] {
-	return h.BaseHandler.RouteSet()
-}
-
 func (h *Handler[ContextT]) NotImplemented(_ ContextT) (any, error) {
 	return nil, types.ErrNotImplemented
 }

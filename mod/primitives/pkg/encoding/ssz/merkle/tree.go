@@ -32,8 +32,8 @@ import (
 //
 //nolint:lll // link.
 
-// CalculateMerkleRoot calculates the Merkle root from the leaf and proof.
-func CalculateMerkleRoot[RootT ~[32]byte](
+// CalculateRoot calculates the Merkle root from the leaf and proof.
+func CalculateRoot[RootT ~[32]byte](
 	index GeneralizedIndex,
 	leaf RootT,
 	proof []RootT,
@@ -53,21 +53,21 @@ func CalculateMerkleRoot[RootT ~[32]byte](
 	return leaf, nil
 }
 
-// VerifyMerkleProof verifies the Merkle proof for the given
+// VerifyProof verifies the Merkle proof for the given
 // leaf, proof, and root.
-func VerifyMerkleProof[RootT ~[32]byte](
+func VerifyProof[RootT ~[32]byte](
 	index GeneralizedIndex,
 	leaf RootT,
 	proof []RootT,
 	root RootT,
 ) (bool, error) {
-	calculated, err := CalculateMerkleRoot(index, leaf, proof)
+	calculated, err := CalculateRoot(index, leaf, proof)
 	return calculated == root, err
 }
 
-// CalculateMultiMerkleRoot calculates the Merkle root for multiple leaves with
+// CalculateMultiRoot calculates the Merkle root for multiple leaves with
 // their corresponding proofs and indices.
-func CalculateMultiMerkleRoot[RootT ~[32]byte](
+func CalculateMultiRoot[RootT ~[32]byte](
 	indices GeneralizedIndices,
 	leaves []RootT,
 	proof []RootT,
@@ -101,11 +101,11 @@ func CalculateMultiMerkleRoot[RootT ~[32]byte](
 	}
 	slices.SortFunc(keys, GeneralizedIndexReverseComparator)
 
-	return hashMerkleRoot(objects, keys), nil
+	return hashRoot(objects, keys), nil
 }
 
-// hashMerkleRoot hashes the objects in the given keys to the root.
-func hashMerkleRoot[RootT ~[32]byte](
+// hashRoot hashes the objects in the given keys to the root.
+func hashRoot[RootT ~[32]byte](
 	objects map[GeneralizedIndex]RootT,
 	keys GeneralizedIndices,
 ) RootT {
@@ -151,15 +151,15 @@ func hashMerkleRoot[RootT ~[32]byte](
 	return objects[1]
 }
 
-// VerifyMerkleMultiproof verifies the Merkle multiproof by comparing the
+// VerifyMultiproof verifies the Merkle multiproof by comparing the
 // calculated root with the provided root.
-func VerifyMerkleMultiproof[RootT ~[32]byte](
+func VerifyMultiproof[RootT ~[32]byte](
 	indices GeneralizedIndices,
 	leaves []RootT,
 	proof []RootT,
 	root RootT,
 ) bool {
-	calculatedRoot, err := CalculateMultiMerkleRoot(indices, leaves, proof)
+	calculatedRoot, err := CalculateMultiRoot(indices, leaves, proof)
 	if err != nil {
 		return false
 	}

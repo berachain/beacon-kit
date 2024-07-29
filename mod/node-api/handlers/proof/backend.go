@@ -18,34 +18,14 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package debug
+package proof
 
-import (
-	"net/http"
+// Backend is the interface for backend of the proof API.
+type Backend[BeaconStateT, ValidatorT any] interface {
+	StateBackend[BeaconStateT]
+	GetSlotByRoot([32]byte) (uint64, error)
+}
 
-	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/node-api/handlers"
-)
-
-func (h *Handler[ContextT]) RegisterRoutes(
-	logger log.Logger[any],
-) {
-	h.SetLogger(logger)
-	h.BaseHandler.AddRoutes([]*handlers.Route[ContextT]{
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v2/debug/beacon/states/:state_id",
-			Handler: h.NotImplemented,
-		},
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v2/debug/beacon/states/heads",
-			Handler: h.NotImplemented,
-		},
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v1/debug/fork_choice",
-			Handler: h.NotImplemented,
-		},
-	})
+type StateBackend[BeaconStateT any] interface {
+	StateFromSlot(slot uint64) (BeaconStateT, error)
 }
