@@ -25,7 +25,6 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/ethereum/go-ethereum/common"
@@ -139,18 +138,6 @@ func TestWithdrawalMethods(t *testing.T) {
 		Address:   [20]byte{1, 2, 3},
 		Amount:    math.Gwei(100),
 	}
-
-	t.Run("IsFixed", func(t *testing.T) {
-		require.True(t, withdrawal.IsFixed())
-	})
-
-	t.Run("Type", func(t *testing.T) {
-		require.True(t, withdrawal.Type().ID().IsContainer())
-	})
-
-	t.Run("ItemLength", func(t *testing.T) {
-		require.Equal(t, uint64(constants.RootLength), withdrawal.ItemLength())
-	})
 
 	t.Run("Getters", func(t *testing.T) {
 		require.Equal(t, math.U64(1), withdrawal.GetIndex())

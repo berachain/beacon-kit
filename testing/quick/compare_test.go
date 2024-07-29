@@ -27,7 +27,6 @@ import (
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
 	zcommon "github.com/protolambda/zrnt/eth2/beacon/common"
 	zdeneb "github.com/protolambda/zrnt/eth2/beacon/deneb"
@@ -119,26 +118,7 @@ func TestExecutionPayloadHashTreeRootZrnt(t *testing.T) {
 		}
 		zRoot := zpayload.HashTreeRoot(spec, hFn)
 
-		container := ssz.ContainerFromElements(
-			ssz.ByteVectorFromBytes(payload.ParentHash[:]),
-			ssz.ByteVectorFromBytes(payload.FeeRecipient[:]),
-			ssz.ByteVectorFromBytes(payload.StateRoot[:]),
-			ssz.ByteVectorFromBytes(payload.ReceiptsRoot[:]),
-			ssz.ByteVectorFromBytes(payload.LogsBloom[:]),
-			ssz.ByteVectorFromBytes(payload.Random[:]),
-			payload.Number,
-			payload.GasLimit,
-			payload.GasUsed,
-			payload.Timestamp,
-			ssz.ByteListFromBytes(payload.ExtraData, 32),
-			payload.BaseFeePerGas.UnwrapU256(),
-			ssz.ByteVectorFromBytes(payload.BlockHash[:]),
-			engineprimitives.ProperTransactionsFromBytes(payload.Transactions),
-			ssz.ListFromElements(16, payload.Withdrawals...),
-			payload.BlobGasUsed,
-			payload.ExcessBlobGas,
-		)
-		containerRoot, err := container.HashTreeRoot()
+		containerRoot, err := payload.HashTreeRoot()
 		if err != nil {
 			t.Log("Failed to calculate HashTreeRoot on container payload:", err)
 			return false
