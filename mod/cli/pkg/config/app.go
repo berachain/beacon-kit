@@ -70,11 +70,9 @@ func writeAppConfig(
 	appTemplate string,
 	appConfig any,
 ) error {
-	var (
-		appTemplatePopulated bool = appTemplate != ""
-		appConfigPopulated   bool = appConfig != nil
-		err                  error
-	)
+	var err error
+	appTemplatePopulated := appTemplate != ""
+	appConfigPopulated := appConfig != nil
 
 	// customAppTemplate == nil ⊕ customConfig == nil
 	if (appTemplatePopulated && !appConfigPopulated) ||
@@ -82,14 +80,14 @@ func writeAppConfig(
 		return errors.New("customAppTemplate and customConfig " +
 			"should be both nil or not nil")
 	}
-	//nolint:nestif // not overly complex
+
 	if appTemplatePopulated {
 		// set the config template
-		if err := config.SetConfigTemplate(appTemplate); err != nil {
+		if err = config.SetConfigTemplate(appTemplate); err != nil {
 			return fmt.Errorf("failed to set config template: %w", err)
 		}
 		// populate appConfig with the values from the viper instance
-		if err := rootViper.Unmarshal(&appConfig); err != nil {
+		if err = rootViper.Unmarshal(&appConfig); err != nil {
 			return fmt.Errorf("failed to unmarshal app config: %w", err)
 		}
 	} else {
@@ -100,7 +98,7 @@ func writeAppConfig(
 		}
 	}
 	// write the appConfig to the file at appConfigFilePath
-	if err := config.WriteConfigFile(appConfigFilePath, appConfig); err != nil {
+	if err = config.WriteConfigFile(appConfigFilePath, appConfig); err != nil {
 		return fmt.Errorf("failed to write %s: %w", appConfigFilePath, err)
 	}
 
