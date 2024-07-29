@@ -187,9 +187,10 @@ func executableDataToExecutionPayloadHeader(
 			),
 			BlockHash:        data.BlockHash,
 			TransactionsRoot: txsRoot,
-			WithdrawalsRoot:  engineprimitives.Withdrawals(withdrawals).HashTreeRoot(),
-			BlobGasUsed:      math.U64(blobGasUsed),
-			ExcessBlobGas:    math.U64(excessBlobGas),
+			WithdrawalsRoot: engineprimitives.Withdrawals(withdrawals).
+				HashTreeRoot(),
+			BlobGasUsed:   math.U64(blobGasUsed),
+			ExcessBlobGas: math.U64(excessBlobGas),
 		}
 	default:
 		return nil, errors.Newf("unsupported fork version %d", forkVersion)

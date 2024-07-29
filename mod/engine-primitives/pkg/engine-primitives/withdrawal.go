@@ -25,6 +25,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
 )
 
@@ -67,6 +68,10 @@ func (w *Withdrawal) New(
 	}
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                     SSZ                                    */
+/* -------------------------------------------------------------------------- */
+
 // SizeSSZ returns the size of the Withdrawal in bytes when SSZ encoded.
 func (*Withdrawal) SizeSSZ() uint32 {
 	return WithdrawalSize
@@ -94,6 +99,45 @@ func (w *Withdrawal) MarshalSSZ() ([]byte, error) {
 // UnmarshalSSZ unmarshals the SSZ encoded data to a Withdrawal object.
 func (w *Withdrawal) UnmarshalSSZ(buf []byte) error {
 	return ssz.DecodeFromBytes(buf, w)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
+
+// MarshalSSZTo ssz marshals the Withdrawal object to a target array
+func (w *Withdrawal) MarshalSSZTo(dst []byte) ([]byte, error) {
+	bz, err := w.MarshalSSZ()
+	if err != nil {
+		return nil, err
+	}
+	dst = append(dst, bz...)
+	return dst, nil
+}
+
+// HashTreeRootWith ssz hashes the Withdrawal object with a hasher
+func (w *Withdrawal) HashTreeRootWith(hh fastssz.HashWalker) (err error) {
+	indx := hh.Index()
+
+	// Field (0) 'Index'
+	hh.PutUint64(uint64(w.Index))
+
+	// Field (1) 'Validator'
+	hh.PutUint64(uint64(w.Validator))
+
+	// Field (2) 'Address'
+	hh.PutBytes(w.Address[:])
+
+	// Field (3) 'Amount'
+	hh.PutUint64(uint64(w.Amount))
+
+	hh.Merkleize(indx)
+	return
+}
+
+// GetTree ssz hashes the Withdrawal object
+func (w *Withdrawal) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(w)
 }
 
 // Equals returns true if the Withdrawal is equal to the other.
