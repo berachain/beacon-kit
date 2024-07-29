@@ -21,9 +21,8 @@
 package handlers
 
 import (
-
-	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-api/server/context"
 )
 
@@ -55,7 +54,7 @@ func NewBaseHandler[ContextT context.Context](
 }
 
 // NotImplemented is a placeholder for the beacon API.
-func (h *BaseHandler[ContextT]) NotImplemented(ContextT) (any, error) {
+func (b *BaseHandler[ContextT]) NotImplemented(ContextT) (any, error) {
 	return nil, errors.New("not implemented")
 }
 
