@@ -21,7 +21,6 @@
 package beacondb
 
 import (
-	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/collections/indexes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -141,39 +140,22 @@ func (kv *KVStore[
 ]) GetValidators() (
 	[]ValidatorT, error,
 ) {
-	valSize, err := kv.validatorIndex.Peek(kv.ctx)
-	if err != nil {
-		return nil, err
-	}
+	var (
+		vals []ValidatorT
+		val  ValidatorT
+	)
 
 	iter, err := kv.validators.Iterate(kv.ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var (
-		vals     = make([]ValidatorT, valSize)
-		emptyVal ValidatorT
-		keyval   sdkcollections.KeyValue[uint64, ValidatorT]
-		index    uint64
-	)
-
 	for iter.Valid() {
-		keyval, err = iter.KeyValue()
+		val, err = iter.Value()
 		if err != nil {
 			return nil, err
 		}
-
-		// Fill in the empty values to maintain the order of registry.
-		for j := index; j < keyval.Key; j++ {
-			vals[j] = emptyVal
-		}
-
-		// Fill in the validator at index key.
-		vals[keyval.Key] = keyval.Value
-
-		// Move on to the next index.
-		index = keyval.Key + 1
+		vals = append(vals, val)
 		iter.Next()
 	}
 
