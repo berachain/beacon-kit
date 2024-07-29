@@ -23,6 +23,7 @@ package engineprimitives
 import (
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	fastssz "github.com/ferranbt/fastssz"
@@ -105,7 +106,7 @@ func (w *Withdrawal) UnmarshalSSZ(buf []byte) error {
 /*                                   FastSSZ                                  */
 /* -------------------------------------------------------------------------- */
 
-// MarshalSSZTo ssz marshals the Withdrawal object to a target array
+// MarshalSSZTo ssz marshals the Withdrawal object to a target array.
 func (w *Withdrawal) MarshalSSZTo(dst []byte) ([]byte, error) {
 	bz, err := w.MarshalSSZ()
 	if err != nil {
@@ -115,7 +116,7 @@ func (w *Withdrawal) MarshalSSZTo(dst []byte) ([]byte, error) {
 	return dst, nil
 }
 
-// HashTreeRootWith ssz hashes the Withdrawal object with a hasher
+// HashTreeRootWith ssz hashes the Withdrawal object with a hasher.
 func (w *Withdrawal) HashTreeRootWith(hh fastssz.HashWalker) (err error) {
 	indx := hh.Index()
 
@@ -135,7 +136,7 @@ func (w *Withdrawal) HashTreeRootWith(hh fastssz.HashWalker) (err error) {
 	return
 }
 
-// GetTree ssz hashes the Withdrawal object
+// GetTree ssz hashes the Withdrawal object.
 func (w *Withdrawal) GetTree() (*fastssz.Node, error) {
 	return fastssz.ProofTree(w)
 }
@@ -181,20 +182,23 @@ type Withdrawals []*Withdrawal
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the SSZ encoded size in bytes for the Withdrawals.
-func (w Withdrawals) SizeSSZ() (size uint32) {
+func (w Withdrawals) SizeSSZ() uint32 {
 	return uint32(len(w)) * WithdrawalSize
 }
 
 // DefineSSZ defines the SSZ encoding for the Withdrawals object.
 func (w Withdrawals) DefineSSZ(codec *ssz.Codec) {
-	codec.DefineEncoder(func(enc *ssz.Encoder) {
-		ssz.DefineSliceOfStaticObjectsContent(codec, (*[]*Withdrawal)(&w), 16)
+	codec.DefineEncoder(func(*ssz.Encoder) {
+		ssz.DefineSliceOfStaticObjectsContent(
+			codec, (*[]*Withdrawal)(&w), constants.MaxWithdrawalsPerPayload)
 	})
-	codec.DefineDecoder(func(dec *ssz.Decoder) {
-		ssz.DefineSliceOfStaticObjectsContent(codec, (*[]*Withdrawal)(&w), 16)
+	codec.DefineDecoder(func(*ssz.Decoder) {
+		ssz.DefineSliceOfStaticObjectsContent(
+			codec, (*[]*Withdrawal)(&w), constants.MaxWithdrawalsPerPayload)
 	})
-	codec.DefineHasher(func(has *ssz.Hasher) {
-		ssz.DefineSliceOfStaticObjectsOffset(codec, (*[]*Withdrawal)(&w), 16)
+	codec.DefineHasher(func(*ssz.Hasher) {
+		ssz.DefineSliceOfStaticObjectsOffset(
+			codec, (*[]*Withdrawal)(&w), constants.MaxWithdrawalsPerPayload)
 	})
 }
 
