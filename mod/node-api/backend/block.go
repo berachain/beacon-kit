@@ -48,7 +48,7 @@ func (b Backend[
 	}
 
 	// The state root must be patched onto the latest block header since it is
-	// committed to state with a 0 state root.
+	// committed to state with a 0 state root. // TODO: investigate why.
 	stateRoot, err = st.HashTreeRoot()
 	if err != nil {
 		return blockHeader, err

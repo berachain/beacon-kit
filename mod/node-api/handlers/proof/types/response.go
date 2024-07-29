@@ -25,8 +25,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 )
 
-// BlockProposerResponse is the response for the 
-`/proof/blocks/proposer/{block_id}` endpoint.
+// BlockProposerResponse is the response for the
+// `/proof/blocks/proposer/{block_id}` endpoint.
 type BlockProposerResponse[BeaconBlockHeaderT any] struct {
 	// BeaconBlockHeader is the block header of which the hash tree root is the
 	// beacon block root to verify against.

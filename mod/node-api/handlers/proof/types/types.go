@@ -35,18 +35,19 @@ type BeaconBlockHeader interface {
 	GetTree() (*fastssz.Node, error)
 	// GetProposerIndex returns the proposer index.
 	GetProposerIndex() math.ValidatorIndex
+	// SetStateRoot sets the state root on the beacon block header.
+	SetStateRoot(common.Root)
 }
 
 // BeaconState is the interface for a beacon state.
 type BeaconState[
 	BeaconBlockHeaderT, BeaconStateMarshallableT, ValidatorT any,
 ] interface {
+	constraints.SSZRootable
 	// GetLatestBlockHeader returns the latest block header.
 	GetLatestBlockHeader() (BeaconBlockHeaderT, error)
 	// GetMarshallable returns the marshallable version of the beacon state.
 	GetMarshallable() (BeaconStateMarshallableT, error)
-	// StateRootAtIndex returns the state root at the given index.
-	StateRootAtIndex(index uint64) (common.Root, error)
 	// ValidatorByIndex retrieves the validator at the given index.
 	ValidatorByIndex(index math.ValidatorIndex) (ValidatorT, error)
 }

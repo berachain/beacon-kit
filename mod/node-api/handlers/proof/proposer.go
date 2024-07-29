@@ -48,7 +48,7 @@ func (h *Handler[
 	if err != nil {
 		return nil, err
 	}
-	blockHeader, err := beaconState.GetLatestBlockHeader()
+	blockHeader, err := h.getBlockHeaderFromState(beaconState)
 	if err != nil {
 		return nil, err
 	}
@@ -77,4 +77,21 @@ func (h *Handler[
 		ValidatorPubkey:      proposerValidator.GetPubkey(),
 		ValidatorPubkeyProof: proof,
 	}, nil
+}
+
+// getBlockHeaderFromState returns the block header from the given state.
+func (h *Handler[
+	ContextT, BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT,
+	ValidatorT,
+]) getBlockHeaderFromState(bs BeaconStateT) (BeaconBlockHeaderT, error) {
+	blockHeader, err := bs.GetLatestBlockHeader()
+	if err != nil {
+		return blockHeader, err
+	}
+
+	// The state root must be patched onto the latest block header since it is
+	// committed to state with a 0 state root. // TODO: investigate why.
+	stateRoot, err := bs.HashTreeRoot()
+	blockHeader.SetStateRoot(stateRoot)
+	return blockHeader, err
 }
