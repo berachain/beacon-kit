@@ -22,8 +22,6 @@ package engineprimitives
 
 import (
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	fastssz "github.com/ferranbt/fastssz"
@@ -172,37 +170,4 @@ func (w *Withdrawal) GetAddress() gethprimitives.ExecutionAddress {
 // GetAmount returns the amount of Gwei to be withdrawn.
 func (w *Withdrawal) GetAmount() math.Gwei {
 	return w.Amount
-}
-
-// Withdrawals represents a list of withdrawals.
-type Withdrawals []*Withdrawal
-
-/* -------------------------------------------------------------------------- */
-/*                                     SSZ                                    */
-/* -------------------------------------------------------------------------- */
-
-// SizeSSZ returns the SSZ encoded size in bytes for the Withdrawals.
-func (w Withdrawals) SizeSSZ() uint32 {
-	return uint32(len(w)) * WithdrawalSize
-}
-
-// DefineSSZ defines the SSZ encoding for the Withdrawals object.
-func (w Withdrawals) DefineSSZ(codec *ssz.Codec) {
-	codec.DefineEncoder(func(*ssz.Encoder) {
-		ssz.DefineSliceOfStaticObjectsContent(
-			codec, (*[]*Withdrawal)(&w), constants.MaxWithdrawalsPerPayload)
-	})
-	codec.DefineDecoder(func(*ssz.Decoder) {
-		ssz.DefineSliceOfStaticObjectsContent(
-			codec, (*[]*Withdrawal)(&w), constants.MaxWithdrawalsPerPayload)
-	})
-	codec.DefineHasher(func(*ssz.Hasher) {
-		ssz.DefineSliceOfStaticObjectsOffset(
-			codec, (*[]*Withdrawal)(&w), constants.MaxWithdrawalsPerPayload)
-	})
-}
-
-// HashTreeRoot returns the hash tree root of the Withdrawals.
-func (w Withdrawals) HashTreeRoot() common.Root {
-	return ssz.HashSequential(w)
 }
