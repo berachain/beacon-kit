@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
-	essz "github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -553,7 +552,6 @@ func (p *ExecutionPayload) GetExcessBlobGas() math.U64 {
 // ToHeader converts the ExecutionPayload to an ExecutionPayloadHeader.
 func (p *ExecutionPayload) ToHeader(
 	bartioTxsMerkleizer *merkle.Merkleizer[[32]byte, common.Root],
-	properTxsMerkleizer *merkle.Merkleizer[[32]byte, *essz.List[essz.Byte]],
 	// TODO: re-enable at a later point.
 	_ uint64,
 	eth1ChainID uint64,
