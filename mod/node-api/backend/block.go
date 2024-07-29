@@ -48,7 +48,7 @@ func (b Backend[
 	}
 
 	// The state root must be patched onto the latest block header since it is
-	// committed to state with a 0 state root. // TODO: investigate why.
+	// committed to state with a 0 state root. // TODO: fix issue #1777.
 	stateRoot, err = st.HashTreeRoot()
 	if err != nil {
 		return blockHeader, err
@@ -59,6 +59,8 @@ func (b Backend[
 }
 
 // GetBlockRoot returns the root of the block at the given stateID.
+//
+// TODO: fix https://github.com/berachain/beacon-kit/issues/1777.
 func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) BlockRootAtSlot(
