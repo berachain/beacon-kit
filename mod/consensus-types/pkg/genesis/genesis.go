@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
-	"github.com/karalabe/ssz"
 )
 
 // Genesis is a struct that contains the genesis information
@@ -162,7 +161,7 @@ func DefaultGenesisExecutionPayloadHeaderDeneb() (
 			"0xcfff92cd918a186029a847b59aca4f83d3941df5946b06bca8de0861fc5d0850",
 		),
 		TransactionsRoot: emptyTxsRoot,
-		WithdrawalsRoot:  ssz.HashSequential(&engineprimitives.Withdrawals{}),
+		WithdrawalsRoot:  engineprimitives.Withdrawals{}.HashTreeRoot(),
 		BlobGasUsed:      0,
 		ExcessBlobGas:    0,
 	}, nil
