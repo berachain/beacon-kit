@@ -27,8 +27,6 @@ import (
 	"github.com/karalabe/ssz"
 )
 
-type BartioTx []byte
-
 // Transactions is a typealias for [][]byte, which is how transactions are
 // received in the execution payload.
 //
@@ -69,6 +67,8 @@ func (txs BartioTransactions) HashTreeRootWith(
 	return root
 }
 
+// ProperTransactions is a type alias for [][]byte, which is how transactions are
+// received in the execution payload.
 type Transactions [][]byte
 
 // SizeSSZ returns the SSZ encoded size in bytes for the Transactions.
