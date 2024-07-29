@@ -48,6 +48,7 @@ import (
 	debugapi "github.com/berachain/beacon-kit/mod/node-api/handlers/debug"
 	eventsapi "github.com/berachain/beacon-kit/mod/node-api/handlers/events"
 	nodeapi "github.com/berachain/beacon-kit/mod/node-api/handlers/node"
+	proofapi "github.com/berachain/beacon-kit/mod/node-api/handlers/proof"
 	"github.com/berachain/beacon-kit/mod/node-api/server"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
@@ -470,4 +471,10 @@ type (
 
 	// NodeAPIHandler is a type alias for the node handler.
 	NodeAPIHandler = nodeapi.Handler[NodeAPIContext]
+
+	// ProofAPIHandler is a type alias for the proof handler.
+	ProofAPIHandler = proofapi.Handler[
+		NodeAPIContext, *BeaconBlockHeader, *BeaconState,
+		*BeaconStateMarshallable, *ExecutionPayloadHeader, *Validator,
+	]
 )
