@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 )
 
@@ -105,6 +106,14 @@ type Node[ContextT any] interface {
 	// CreateQueryContext creates a query context for a given height and proof
 	// flag.
 	CreateQueryContext(height int64, prove bool) (ContextT, error)
+}
+
+type StateProcessor[
+	BeaconStateT any,
+] interface {
+	ProcessSlots(
+		BeaconStateT, math.Slot,
+	) (transition.ValidatorUpdates, error)
 }
 
 // StorageBackend is the interface for the storage backend.

@@ -44,6 +44,7 @@ type NodeAPIBackendInput struct {
 
 	StorageBackend *StorageBackend
 	ChainSpec      common.ChainSpec
+	StateProcessor *StateProcessor
 }
 
 func ProvideNodeAPIBackend(in NodeAPIBackendInput) *NodeAPIBackend {
@@ -71,6 +72,7 @@ func ProvideNodeAPIBackend(in NodeAPIBackendInput) *NodeAPIBackend {
 	](
 		in.StorageBackend,
 		in.ChainSpec,
+		in.StateProcessor,
 	)
 }
 

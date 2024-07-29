@@ -25,22 +25,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// StateFromSlot returns the state at the given slot using query context.
-func (b *Backend[
-	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) StateFromSlot(
-	slot uint64,
-) (BeaconStateT, error) {
-	var state BeaconStateT
-	//#nosec:G701 // not an issue in practice.
-	queryCtx, err := b.node.CreateQueryContext(int64(slot), false)
-	if err != nil {
-		return state, err
-	}
-
-	return b.sb.StateFromContext(queryCtx), nil
-}
-
 // GetStateRoot returns the root of the state at the given stateID.
 //
 // TODO: fix https://github.com/berachain/beacon-kit/issues/1777.
