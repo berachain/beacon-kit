@@ -480,8 +480,8 @@ func (h *ExecutionPayloadHeader) GetReceiptsRoot() common.Bytes32 {
 }
 
 // GetLogsBloom returns the logs bloom of the ExecutionPayloadHeader.
-func (h *ExecutionPayloadHeader) GetLogsBloom() []byte {
-	return h.LogsBloom[:]
+func (h *ExecutionPayloadHeader) GetLogsBloom() bytes.B256 {
+	return h.LogsBloom
 }
 
 // GetPrevRandao returns the previous Randao value of the

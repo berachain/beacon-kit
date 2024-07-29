@@ -126,7 +126,7 @@ func TestExecutionPayload_Getters(t *testing.T) {
 	require.Equal(t, common.ExecutionAddress{}, payload.GetFeeRecipient())
 	require.Equal(t, bytes.B32{}, payload.GetStateRoot())
 	require.Equal(t, bytes.B32{}, payload.GetReceiptsRoot())
-	require.Equal(t, make([]byte, 256), payload.GetLogsBloom())
+	require.Equal(t, bytes.B256{}, payload.GetLogsBloom())
 	require.Equal(t, bytes.B32{}, payload.GetPrevRandao())
 	require.Equal(t, math.U64(0), payload.GetNumber())
 	require.Equal(t, math.U64(0), payload.GetGasLimit())

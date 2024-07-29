@@ -485,8 +485,8 @@ func (p *ExecutionPayload) GetReceiptsRoot() common.Bytes32 {
 }
 
 // GetLogsBloom returns the logs bloom of the ExecutionPayload.
-func (p *ExecutionPayload) GetLogsBloom() []byte {
-	return p.LogsBloom[:]
+func (p *ExecutionPayload) GetLogsBloom() bytes.B256 {
+	return p.LogsBloom
 }
 
 // GetPrevRandao returns the previous Randao value of the ExecutionPayload.
@@ -584,7 +584,7 @@ func (p *ExecutionPayload) ToHeader(
 			FeeRecipient:     p.GetFeeRecipient(),
 			StateRoot:        p.GetStateRoot(),
 			ReceiptsRoot:     p.GetReceiptsRoot(),
-			LogsBloom:        [256]byte(p.GetLogsBloom()),
+			LogsBloom:        p.GetLogsBloom(),
 			Random:           p.GetPrevRandao(),
 			Number:           p.GetNumber(),
 			GasLimit:         p.GetGasLimit(),
