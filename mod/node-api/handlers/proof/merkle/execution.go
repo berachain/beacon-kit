@@ -40,7 +40,7 @@ func ProveExecutionNumberInBlock[
 	bbh BeaconBlockHeaderT,
 	bs types.BeaconState[
 		BeaconBlockHeaderT, BeaconStateMarshallableT, ExecutionPayloadHeaderT,
-		any,
+		ValidatorT,
 	],
 ) ([]common.Root, common.Root, error) {
 	// Get the proof of the execution number in the beacon state.

@@ -46,7 +46,7 @@ func (h *Handler[
 	// Generate the proof (along with the "correct" beacon block root to
 	// verify against) for the execution payload block number.
 	h.Logger().Info("Generating block execution number proof", "slot", slot)
-	proof, beaconBlockRoot, err := merkle.ProveProposerInBlock(
+	proof, beaconBlockRoot, err := merkle.ProveExecutionNumberInBlock(
 		blockHeader, beaconState,
 	)
 	if err != nil {
