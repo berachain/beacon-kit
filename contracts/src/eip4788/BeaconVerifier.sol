@@ -19,13 +19,19 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
 
     /// @inheritdoc IBeaconVerifier
     uint256 public zeroValidatorPubkeyGIndex;
+    /// @inheritdoc IBeaconVerifier
+    uint256 public executionNumberGIndex;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                       ADMIN FUNCTIONS                      */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-    constructor(uint256 _zeroValidatorPubkeyGIndex) {
+    constructor(
+        uint256 _zeroValidatorPubkeyGIndex,
+        uint256 _executionNumberGIndex
+    ) {
         zeroValidatorPubkeyGIndex = _zeroValidatorPubkeyGIndex;
+        executionNumberGIndex = _executionNumberGIndex;
 
         _initializeOwner(msg.sender);
     }
@@ -47,6 +53,14 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
         emit ZeroValidatorPubkeyGIndexChanged(_zeroValidatorPubkeyGIndex);
     }
 
+    function setExecutionNumberGIndex(uint256 _executionNumberGIndex)
+        external
+        onlyOwner
+    {
+        executionNumberGIndex = _executionNumberGIndex;
+        emit ExecutionNumberGIndexChanged(_executionNumberGIndex);
+    }
+
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                     BEACON ROOT VIEWS                      */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
@@ -66,12 +80,12 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     }
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
-    /*                           PROOFS                           */
+    /*                         VERIFIERS                          */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @inheritdoc IBeaconVerifier
     /// @dev gas used ~75381
-    function proveBeaconBlockProposer(
+    function verifyBeaconBlockProposer(
         uint64 timestamp,
         bytes32[] calldata validatorPubkeyProof,
         bytes calldata validatorPubkey,
@@ -87,6 +101,27 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
             proposerIndex
         );
     }
+
+    /// @inheritdoc IBeaconVerifier
+    /// @dev gas used ~41647
+    function verifyExecutionNumber(
+        uint64 timestamp,
+        bytes32[] calldata executionNumberProof,
+        uint64 blockNumber
+    )
+        external
+        view
+    {
+        proveExecutionNumberInBeaconBlock(
+            getParentBlockRoot(uint64(timestamp)),
+            executionNumberProof,
+            blockNumber
+        );
+    }
+
+    /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+    /*                           PROOFS                           */
+    /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @notice Verifies the validator pubkey is in the registry of beacon state.
     /// @param beaconBlockRoot `bytes32` root of the beacon block.
@@ -117,6 +152,30 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
                 beaconBlockRoot,
                 validatorPubkeyRoot,
                 gIndex
+            )
+        ) revert InvalidProof();
+    }
+
+    /// @notice Verifies the execution number in the beacon block.
+    /// @param beaconBlockRoot `bytes32` root of the beacon block.
+    /// @param executionNumberProof `bytes32[]` proof of the execution number.
+    /// @param blockNumber `uint64` execution number of the block.
+    function proveExecutionNumberInBeaconBlock(
+        bytes32 beaconBlockRoot,
+        bytes32[] calldata executionNumberProof,
+        uint64 blockNumber
+    )
+        internal
+        view
+    {
+        bytes32 executionNumberRoot = SSZ.toLittleEndian(uint256(blockNumber));
+
+        if (
+            !SSZ.verifyProof(
+                executionNumberProof,
+                beaconBlockRoot,
+                executionNumberRoot,
+                executionNumberGIndex
             )
         ) revert InvalidProof();
     }

@@ -68,8 +68,6 @@ type BeaconStateMarshallable interface {
 type ExecutionPayloadHeader interface {
 	// GetNumber returns the block number of the ExecutionPayloadHeader.
 	GetNumber() math.U64
-	// GetTimestamp returns the timestamp of the ExecutionPayloadHeader.
-	GetTimestamp() math.U64
 }
 
 // Validator is the interface for a validator.

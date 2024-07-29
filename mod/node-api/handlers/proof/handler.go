@@ -21,8 +21,6 @@
 package proof
 
 import (
-	"errors"
-
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/mod/node-api/server/context"
@@ -71,11 +69,4 @@ func NewHandler[
 		backend: backend,
 	}
 	return h
-}
-
-// NotImplemented is a placeholder for the proof API.
-func (
-	h *Handler[ContextT, _, _, _, _, _],
-) NotImplemented(_ ContextT) (any, error) {
-	return nil, errors.New("not implemented")
 }
