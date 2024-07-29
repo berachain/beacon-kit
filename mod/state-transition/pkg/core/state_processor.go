@@ -26,7 +26,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
@@ -76,12 +75,6 @@ type StateProcessor[
 	executionEngine ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	]
-	// bartioTxsMerkleizer is the merkleizer used for calculating transaction
-	// roots for bArtio.
-	//
-	// TODO: This is live on bArtio with a bug and needs to be hardforked
-	// off of. This is a temporary solution to avoid breaking changes.
-	bartioTxsMerkleizer *merkle.Merkleizer[[32]byte, common.Root]
 }
 
 // NewStateProcessor creates a new state processor.
@@ -137,16 +130,16 @@ func NewStateProcessor[
 		ExecutionPayloadHeaderT, ForkT, ForkDataT, KVStoreT, ValidatorT,
 		WithdrawalT, WithdrawalCredentialsT,
 	]{
-		cs:                  cs,
-		executionEngine:     executionEngine,
-		signer:              signer,
-		bartioTxsMerkleizer: merkle.NewMerkleizer[[32]byte, common.Root](),
+		cs:              cs,
+		executionEngine: executionEngine,
+		signer:          signer,
 	}
 }
 
 // Transition is the main function for processing a state transition.
 func (sp *StateProcessor[
-	BeaconBlockT, _, _, BeaconStateT, ContextT, _, _, _, _, _, _, _, _, _, _,
+	BeaconBlockT, _, _, BeaconStateT, ContextT,
+	_, _, _, _, _, _, _, _, _, _,
 ]) Transition(
 	ctx ContextT,
 	st BeaconStateT,
