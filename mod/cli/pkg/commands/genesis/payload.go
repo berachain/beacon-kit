@@ -165,7 +165,7 @@ func executableDataToExecutionPayloadHeader(
 		}
 
 		txsRoot, err := engineprimitives.
-			BartioTransactionsFromBytes(
+			BartioTransactions(
 				data.Transactions,
 			).HashTreeRoot()
 		if err != nil {
