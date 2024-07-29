@@ -39,34 +39,34 @@ type BartioTransactions [][]byte
 //
 // NOTE: Uses a new merkleizer for each call.
 func (txs BartioTransactions) HashTreeRoot() common.Root {
-	root, err := txs.HashTreeRootWith(
+	return txs.HashTreeRootWith(
 		merkle.NewMerkleizer[[32]byte, common.Root](),
 	)
-	if err != nil {
-		panic(err)
-	}
-
-	return root
 }
 
 // HashTreeRootWith returns the hash tree root of the Transactions list
 // using the given merkle.
 func (txs BartioTransactions) HashTreeRootWith(
 	merkleizer *merkle.Merkleizer[[32]byte, common.Root],
-) (common.Root, error) {
+) common.Root {
 	var (
 		err   error
+		root  common.Root
 		roots = make([]common.Root, len(txs))
 	)
 
 	for i, tx := range txs {
 		roots[i], err = merkleizer.MerkleizeByteSlice(tx)
 		if err != nil {
-			return common.Root{}, err
+			panic(err)
 		}
 	}
 
-	return merkleizer.MerkleizeListComposite(roots, constants.MaxTxsPerPayload)
+	root, err = merkleizer.MerkleizeListComposite(roots, constants.MaxTxsPerPayload)
+	if err != nil {
+		panic(err)
+	}
+	return root
 }
 
 type Transactions [][]byte
