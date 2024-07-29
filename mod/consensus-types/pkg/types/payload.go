@@ -558,22 +558,16 @@ func (p *ExecutionPayload) ToHeader(
 	_ uint64,
 	eth1ChainID uint64,
 ) (*ExecutionPayloadHeader, error) {
-	var (
-		txsRootErr error
-		txsRoot    common.Root
-	)
+	var txsRoot common.Root
+
 	// TODO: This is live on bArtio with a bug and needs to be hardforked
 	// off of. This is a temporary solution to avoid breaking changes.
 	if eth1ChainID == spec.TestnetEth1ChainID {
-		txsRoot, txsRootErr = engineprimitives.BartioTransactions(
+		txsRoot = engineprimitives.BartioTransactions(
 			p.GetTransactions(),
 		).HashTreeRootWith(bartioTxsMerkleizer)
 	} else {
 		txsRoot = p.GetTransactions().HashTreeRoot()
-	}
-
-	if txsRootErr != nil {
-		return nil, txsRootErr
 	}
 
 	switch p.Version() {
