@@ -26,7 +26,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
@@ -83,9 +82,6 @@ type StateProcessor[
 	// TODO: This is live on bArtio with a bug and needs to be hardforked
 	// off of. This is a temporary solution to avoid breaking changes.
 	bartioTxsMerkleizer *merkle.Merkleizer[[32]byte, common.Root]
-	// properTxsMerkleizer is the merkleizer used for calculating transaction
-	// roots.
-	properTxsMerkleizer *merkle.Merkleizer[[32]byte, *ssz.List[ssz.Byte]]
 }
 
 // NewStateProcessor creates a new state processor.
@@ -145,9 +141,6 @@ func NewStateProcessor[
 		executionEngine:     executionEngine,
 		signer:              signer,
 		bartioTxsMerkleizer: merkle.NewMerkleizer[[32]byte, common.Root](),
-		properTxsMerkleizer: merkle.NewMerkleizer[
-			[32]byte, *ssz.List[ssz.Byte],
-		](),
 	}
 }
 

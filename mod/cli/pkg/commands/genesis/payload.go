@@ -164,14 +164,6 @@ func executableDataToExecutionPayloadHeader(
 			excessBlobGas = *data.ExcessBlobGas
 		}
 
-		txsRoot, err := engineprimitives.
-			BartioTransactions(
-				data.Transactions,
-			).HashTreeRoot()
-		if err != nil {
-			return nil, err
-		}
-
 		executionPayloadHeader = &types.ExecutionPayloadHeader{
 			ParentHash:   data.ParentHash,
 			FeeRecipient: data.FeeRecipient,
@@ -187,8 +179,12 @@ func executableDataToExecutionPayloadHeader(
 			BaseFeePerGas: math.MustNewU256LFromBigInt(
 				data.BaseFeePerGas,
 			),
-			BlockHash:        data.BlockHash,
-			TransactionsRoot: txsRoot,
+			BlockHash: data.BlockHash,
+			// TODO: Decouple from broken bArtio.
+			TransactionsRoot: engineprimitives.
+				BartioTransactions(
+					data.Transactions,
+				).HashTreeRoot(),
 			WithdrawalsRoot: engineprimitives.Withdrawals(withdrawals).
 				HashTreeRoot(),
 			BlobGasUsed:   math.U64(blobGasUsed),

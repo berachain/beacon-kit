@@ -30,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -113,7 +112,7 @@ func TestExecutionPayload_Getters(t *testing.T) {
 		payload.GetFeeRecipient(),
 	)
 
-	transactions := make([][]byte, 1)
+	transactions := make(engineprimitives.Transactions, 1)
 	transactions[0] = []byte{0x07}
 	withdrawals := make([]*engineprimitives.Withdrawal, 1)
 	withdrawals[0] = &engineprimitives.Withdrawal{
@@ -203,7 +202,6 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 
 	header, err := payload.ToHeader(
 		merkle.NewMerkleizer[[32]byte, common.Root](),
-		merkle.NewMerkleizer[[32]byte, *ssz.List[ssz.Byte]](),
 		uint64(16), uint64(80087),
 	)
 	require.NoError(t, err)
