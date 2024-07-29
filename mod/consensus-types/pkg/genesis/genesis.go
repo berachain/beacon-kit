@@ -131,7 +131,7 @@ func DefaultGenesisDeneb() *Genesis[
 func DefaultGenesisExecutionPayloadHeaderDeneb() (
 	*types.ExecutionPayloadHeader, error,
 ) {
-	emptyTxsRoot, err := engineprimitives.BartioTransactionsFromBytes(nil).
+	emptyTxsRoot, err := engineprimitives.BartioTransactions(nil).
 		HashTreeRoot()
 	if err != nil {
 		return nil, err

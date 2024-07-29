@@ -61,6 +61,7 @@ func (sp *StateProcessor[
 	g.Go(func() error {
 		var err error
 		header, err = payload.ToHeader(
+			sp.bartioTxsMerkleizer,
 			sp.properTxsMerkleizer,
 			sp.cs.MaxWithdrawalsPerPayload(),
 			sp.cs.DepositEth1ChainID(),
