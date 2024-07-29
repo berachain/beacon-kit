@@ -131,7 +131,8 @@ func AddExecutionPayloadCmd(chainSpec common.ChainSpec) *cobra.Command {
 func executableDataToExecutionPayloadHeader(
 	forkVersion uint32,
 	data *gethprimitives.ExecutableData,
-	maxWithdrawalsPerPayload uint64,
+	// todo: re-enable when codec supports.
+	_ uint64,
 ) (*types.ExecutionPayloadHeader, error) {
 	var executionPayloadHeader *types.ExecutionPayloadHeader
 	switch forkVersion {
