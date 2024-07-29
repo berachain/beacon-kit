@@ -70,8 +70,10 @@ library SSZ {
         return bytes32(v ? 1 << 248 : 0);
     }
 
-    /// @notice Modified version of `verify` from `MerkleProofLib` to support generalized indices and sha256 precompile.
-    /// @dev Returns whether `leaf` exists in the Merkle tree with `root`, given `proof`.
+    /// @notice Modified version of `verify` from `MerkleProofLib` to support 
+    /// generalized indices and sha256 precompile.
+    /// @dev Returns whether `leaf` exists in the Merkle tree with `root`,
+    /// given `proof`.
     function verifyProof(
         bytes32[] calldata proof,
         bytes32 root,
@@ -101,7 +103,8 @@ library SSZ {
                         revert(0x1c, 0x04)
                     }
                     // Store elements to hash contiguously in scratch space.
-                    // Scratch space is 64 bytes (0x00 - 0x3f) and both elements are 32 bytes.
+                    // Scratch space is 64 bytes (0x00 - 0x3f) and both elements
+                    // are 32 bytes.
                     mstore(scratch, leaf)
                     mstore(xor(scratch, 0x20), calldataload(offset))
                     // Call sha256 precompile
@@ -140,7 +143,8 @@ library SSZ {
 
     /// @dev From solady FixedPointMath
     /// @dev Returns the log2 of `x`.
-    /// Equivalent to computing the index of the most significant bit (MSB) of `x`.
+    /// Equivalent to computing the index of the most significant bit (MSB) of 
+    /// `x`.
     function log2(uint256 x) internal pure returns (uint256 r) {
         /// @solidity memory-safe-assembly
         assembly {

@@ -9,7 +9,6 @@ import { SSZ } from "./SSZ.sol";
 import { Verifier } from "./Verifier.sol";
 
 /// @author Berachain Team
-/// @author [madlabman](https://github.com/madlabman/eip-4788-proof)
 contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     uint64 internal constant VALIDATOR_REGISTRY_LIMIT = 1 << 40;
     uint8 internal constant VALIDATOR_PUBKEY_OFFSET = 8;
