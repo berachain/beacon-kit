@@ -20,16 +20,9 @@
 
 package types
 
-import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-)
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 
+// BeaconBlockHeader is the interface for the beacon block header.
 type BeaconBlockHeader interface {
-	HashTreeRoot() ([32]byte, error)
-	GetSlot() math.Slot
-	GetProposerIndex() math.ValidatorIndex
-	GetParentBlockRoot() common.Root
-	GetStateRoot() common.Root
 	GetBodyRoot() common.Root
 }

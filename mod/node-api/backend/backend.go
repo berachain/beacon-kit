@@ -33,7 +33,7 @@ type Backend[
 	AvailabilityStoreT AvailabilityStore[
 		BeaconBlockBodyT, BlobSidecarsT,
 	],
-	BeaconBlockT BeaconBlock[BeaconBlockBodyT, BeaconBlockHeaderT],
+	BeaconBlockT any,
 	BeaconBlockBodyT any,
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT BeaconState[
@@ -44,7 +44,7 @@ type Backend[
 	BlobSidecarsT any,
 	BlockStoreT BlockStore[BeaconBlockT],
 	ContextT context.Context,
-	DepositT Deposit[DepositT],
+	DepositT any,
 	DepositStoreT DepositStore[DepositT],
 	Eth1DataT,
 	ExecutionPayloadHeaderT,
@@ -68,7 +68,7 @@ func New[
 	AvailabilityStoreT AvailabilityStore[
 		BeaconBlockBodyT, BlobSidecarsT,
 	],
-	BeaconBlockT BeaconBlock[BeaconBlockBodyT, BeaconBlockHeaderT],
+	BeaconBlockT any,
 	BeaconBlockBodyT any,
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT BeaconState[
@@ -79,7 +79,7 @@ func New[
 	BlobSidecarsT any,
 	BlockStoreT BlockStore[BeaconBlockT],
 	ContextT context.Context,
-	DepositT Deposit[DepositT],
+	DepositT any,
 	DepositStoreT DepositStore[DepositT],
 	Eth1DataT,
 	ExecutionPayloadHeaderT,
@@ -93,8 +93,7 @@ func New[
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalCredentialsT WithdrawalCredentials,
 ](
-	storageBackend StorageBackendT,
-	cs common.ChainSpec,
+	storageBackend StorageBackendT, cs common.ChainSpec,
 ) *Backend[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BlockStoreT,

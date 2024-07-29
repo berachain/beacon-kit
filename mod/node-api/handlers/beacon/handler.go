@@ -24,13 +24,13 @@ import (
 	"errors"
 
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
-	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/node-api/server/context"
 )
 
 // Handler is the handler for the beacon API.
 type Handler[
-	BeaconBlockHeaderT beacontypes.BeaconBlockHeader,
+	BeaconBlockHeaderT types.BeaconBlockHeader,
 	ContextT context.Context,
 	ForkT any,
 	ValidatorT any,
@@ -41,7 +41,7 @@ type Handler[
 
 // NewHandler creates a new handler for the beacon API.
 func NewHandler[
-	BeaconBlockHeaderT beacontypes.BeaconBlockHeader,
+	BeaconBlockHeaderT types.BeaconBlockHeader,
 	ContextT context.Context,
 	ForkT any,
 	ValidatorT any,

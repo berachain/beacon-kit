@@ -44,20 +44,6 @@ type AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT any] interface {
 	Persist(math.Slot, BlobSidecarsT) error
 }
 
-// BeaconBlock is the interface for a beacon block.
-type BeaconBlock[BeaconBlockBodyT, BeaconBlockHeaderT any] interface {
-	constraints.SSZMarshallableRootable
-	SetStateRoot(common.Root)
-	GetStateRoot() common.Root
-	IsNil() bool
-	Version() uint32
-	GetSlot() math.Slot
-	GetProposerIndex() math.ValidatorIndex
-	GetParentBlockRoot() common.Root
-	GetBody() BeaconBlockBodyT
-	GetHeader() BeaconBlockHeaderT
-}
-
 // BeaconBlockHeader is the interface for a beacon block header.
 type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
 	constraints.SSZMarshallableRootable
@@ -99,12 +85,6 @@ type BlockStore[BeaconBlockT any] interface {
 	Set(slot uint64, block BeaconBlockT) error
 	// Prune prunes the block store of [start, end).
 	Prune(start, end uint64) error
-}
-
-// Deposit is a struct that represents a deposit.
-type Deposit[DepositT any] interface {
-	constraints.SSZMarshallable
-	GetIndex() math.U64
 }
 
 // DepositStore defines the interface for deposit storage.

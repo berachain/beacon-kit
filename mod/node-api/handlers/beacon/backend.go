@@ -21,7 +21,7 @@
 package beacon
 
 import (
-	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
@@ -63,7 +63,7 @@ type BlockBackend[BeaconBlockHeaderT any] interface {
 	) (common.Root, error)
 	BlockRewardsAtSlot(
 		slot uint64,
-	) (*beacontypes.BlockRewardsData, error)
+	) (*types.BlockRewardsData, error)
 	BlockHeaderAtSlot(
 		slot uint64,
 	) (BeaconBlockHeaderT, error)
@@ -82,14 +82,14 @@ type ValidatorBackend[ValidatorT any] interface {
 	ValidatorByID(
 		slot uint64,
 		id string,
-	) (*beacontypes.ValidatorData[ValidatorT], error)
+	) (*types.ValidatorData[ValidatorT], error)
 	ValidatorsByIDs(
 		slot uint64,
 		ids []string,
 		statuses []string,
-	) ([]*beacontypes.ValidatorData[ValidatorT], error)
+	) ([]*types.ValidatorData[ValidatorT], error)
 	ValidatorBalancesByIDs(
 		slot uint64,
 		ids []string,
-	) ([]*beacontypes.ValidatorBalanceData, error)
+	) ([]*types.ValidatorBalanceData, error)
 }
