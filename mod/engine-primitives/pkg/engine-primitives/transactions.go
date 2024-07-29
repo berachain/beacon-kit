@@ -21,24 +21,24 @@
 package engineprimitives
 
 import (
-	"unsafe"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 )
 
+type BartioTx []byte
+
 // Transactions is a typealias for [][]byte, which is how transactions are
 // received in the execution payload.
 //
 // TODO: Remove and deprecate this type once migrated to ProperTransactions.
-type Transactions [][]byte
+type BartioTransactions [][]byte
 
 // HashTreeRoot returns the hash tree root of the Transactions list.
 //
 // NOTE: Uses a new merkleizer for each call.
-func (txs Transactions) HashTreeRoot() (common.Root, error) {
+func (txs BartioTransactions) HashTreeRoot() (common.Root, error) {
 	return txs.HashTreeRootWith(
 		merkle.NewMerkleizer[[32]byte, common.Root](),
 	)
@@ -46,7 +46,7 @@ func (txs Transactions) HashTreeRoot() (common.Root, error) {
 
 // HashTreeRootWith returns the hash tree root of the Transactions list
 // using the given merkle.
-func (txs Transactions) HashTreeRootWith(
+func (txs BartioTransactions) HashTreeRootWith(
 	merkleizer *merkle.Merkleizer[[32]byte, common.Root],
 ) (common.Root, error) {
 	var (
@@ -62,17 +62,6 @@ func (txs Transactions) HashTreeRootWith(
 	}
 
 	return merkleizer.MerkleizeListComposite(roots, constants.MaxTxsPerPayload)
-}
-
-// TODO: Remove and deprecate this type once migrated to ProperTransactions.
-type BartioTransactions = ssz.List[ssz.Vector[ssz.Byte]]
-
-// BartioTransactionsFromBytes creates a Transactions object from a byte slice.
-func BartioTransactionsFromBytes(data [][]byte) *BartioTransactions {
-	return ssz.ListFromElements(
-		constants.MaxTxsPerPayload,
-		//#nosec:G103 // todo fix later.
-		*(*[]ssz.Vector[ssz.Byte])(unsafe.Pointer(&data))...)
 }
 
 type ProperTransactions = ssz.List[*ssz.List[ssz.Byte]]
