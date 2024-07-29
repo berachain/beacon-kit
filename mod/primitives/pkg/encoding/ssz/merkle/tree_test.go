@@ -59,7 +59,7 @@ func TestCalculateMerkleRoot(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := merkle.CalculateMerkleRoot(
+			result, err := merkle.CalculateRoot(
 				tt.index,
 				tt.leaf,
 				tt.proof,
@@ -109,7 +109,7 @@ func TestVerifyMerkleProof(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := merkle.VerifyMerkleProof(
+			result, err := merkle.VerifyProof(
 				tt.index,
 				tt.leaf,
 				tt.proof,
@@ -175,7 +175,7 @@ func TestCalculateMultiMerkleRoot(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := merkle.CalculateMultiMerkleRoot(
+			result, err := merkle.CalculateMultiRoot(
 				tt.indices,
 				tt.leaves,
 				tt.proof,
@@ -248,7 +248,7 @@ func TestVerifyMerkleMultiproof(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := merkle.VerifyMerkleMultiproof(
+			result := merkle.VerifyMultiproof(
 				tt.indices,
 				tt.leaves,
 				tt.proof,
