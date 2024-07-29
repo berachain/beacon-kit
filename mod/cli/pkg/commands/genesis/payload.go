@@ -164,9 +164,10 @@ func executableDataToExecutionPayloadHeader(
 			excessBlobGas = *data.ExcessBlobGas
 		}
 
-		txsRoot, err := engineprimitives.Transactions(
-			data.Transactions,
-		).HashTreeRoot()
+		txsRoot, err := engineprimitives.
+			BartioTransactions(
+				data.Transactions,
+			).HashTreeRoot()
 		if err != nil {
 			return nil, err
 		}

@@ -564,7 +564,7 @@ func (p *ExecutionPayload) ToHeader(
 	// TODO: This is live on bArtio with a bug and needs to be hardforked
 	// off of. This is a temporary solution to avoid breaking changes.
 	if eth1ChainID == spec.TestnetEth1ChainID {
-		txsRoot, txsRootErr = engineprimitives.Transactions(
+		txsRoot, txsRootErr = engineprimitives.BartioTransactions(
 			p.GetTransactions(),
 		).HashTreeRootWith(bartioTxsMerkleizer)
 	} else {
