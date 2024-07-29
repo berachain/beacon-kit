@@ -60,14 +60,18 @@ func (txs BartioTransactions) HashTreeRootWith(
 		}
 	}
 
-	root, err = merkleizer.MerkleizeListComposite(roots, constants.MaxTxsPerPayload)
+	root, err = merkleizer.MerkleizeListComposite(
+		roots,
+		constants.MaxTxsPerPayload,
+	)
 	if err != nil {
 		panic(err)
 	}
 	return root
 }
 
-// ProperTransactions is a type alias for [][]byte, which is how transactions are
+// ProperTransactions is a type alias for [][]byte, which is how transactions
+// are
 // received in the execution payload.
 type Transactions [][]byte
 
@@ -80,7 +84,7 @@ func (txs Transactions) SizeSSZ(fixed bool) uint32 {
 }
 
 // DefineSSZ defines the SSZ encoding for the Transactions object.
-// TODO: This can accidently decouple from the definition in
+// TODO: This can accidentally decouple from the definition in
 // ExecutionPayload and we should be cognizant of that and/or
 // make a PR to allow for them to be defined in one place.
 func (txs Transactions) DefineSSZ(codec *ssz.Codec) {

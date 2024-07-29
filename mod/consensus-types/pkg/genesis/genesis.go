@@ -155,9 +155,10 @@ func DefaultGenesisExecutionPayloadHeaderDeneb() (
 		BlockHash: gethprimitives.HexToHash(
 			"0xcfff92cd918a186029a847b59aca4f83d3941df5946b06bca8de0861fc5d0850",
 		),
-		TransactionsRoot: engineprimitives.BartioTransactions(nil).HashTreeRoot(),
-		WithdrawalsRoot:  engineprimitives.Withdrawals(nil).HashTreeRoot(),
-		BlobGasUsed:      0,
-		ExcessBlobGas:    0,
+		TransactionsRoot: engineprimitives.BartioTransactions(nil).
+			HashTreeRoot(),
+		WithdrawalsRoot: engineprimitives.Withdrawals(nil).HashTreeRoot(),
+		BlobGasUsed:     0,
+		ExcessBlobGas:   0,
 	}, nil
 }
