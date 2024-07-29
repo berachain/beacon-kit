@@ -27,12 +27,69 @@ import (
 	"github.com/karalabe/ssz"
 )
 
+// BartioTransactions is a typealias for [][]byte, which is how transactions are
+// received in the execution payload on the bArtio testnet. This is due to a
+// mistake made during the initial implementation of BeaconKit. This type will
+// be deprecated off of
+// eventually.
+type BartioTransactions [][]byte
+
+// HashTreeRoot returns the hash tree root of the Transactions list.
+//
+// NOTE: Uses a new merkleizer for each call.
+func (txs BartioTransactions) HashTreeRoot() common.Root {
+	roots := make(Roots, len(txs))
+	for i, tx := range txs {
+		roots[i] = BartioTx(tx).HashTreeRoot()
+	}
+	return roots.HashTreeRoot()
+}
+
+func (txs BartioTransactions) HashTreeRoot2() common.Root {
+	roots := make(Roots, len(txs))
+	merkleizer := merkle.NewMerkleizer[[32]byte, common.Root]()
+	for i, tx := range txs {
+		var err error
+		roots[i], err = merkleizer.MerkleizeByteSlice(tx)
+		if err != nil {
+			panic(err)
+		}
+	}
+	return ssz.HashConcurrent(roots)
+}
+
+// BartioTx represents a single transaction in the Bartio format.
+type BartioTx []byte
+
+// SizeSSZ returns the SSZ size of the BartioTx.
+func (tx BartioTx) SizeSSZ() uint32 {
+	return ssz.SizeDynamicBytes(tx)
+}
+
+// DefineSSZ implements the SSZ encoding for BartioTx.
+func (tx BartioTx) DefineSSZ(codec *ssz.Codec) {
+	codec.DefineHasher(func(*ssz.Hasher) {
+		ssz.DefineStaticBytes(
+			codec,
+			(*[]byte)(&tx),
+		)
+	})
+}
+
+// HashTreeRoot returns the Merkle root hash of the BartioTx.
+func (tx BartioTx) HashTreeRoot() common.Root {
+	return ssz.HashConcurrent(tx)
+}
+
+// Roots is a list of common.Roots.
 type Roots []common.Root
 
+// SizeSSZ returns the SSZ size of the Roots object.
 func (roots Roots) SizeSSZ() uint32 {
 	return ssz.SizeSliceOfStaticBytes(roots)
 }
 
+// DefineSSZ defines the SSZ encoding for the Roots object.
 func (roots Roots) DefineSSZ(codec *ssz.Codec) {
 	codec.DefineEncoder(func(*ssz.Encoder) {
 		ssz.DefineSliceOfStaticBytesContent(
@@ -55,38 +112,7 @@ func (roots Roots) DefineSSZ(codec *ssz.Codec) {
 	})
 }
 
-// BartioTransactions is a typealias for [][]byte, which is how transactions are
-// received in the execution payload on the bArtio testnet. This is due to a
-// mistake made during the initial implementation of BeaconKit. This type will
-// be deprecated off of
-// eventually.
-type BartioTransactions [][]byte
-
-// HashTreeRoot returns the hash tree root of the Transactions list.
-//
-// NOTE: Uses a new merkleizer for each call.
-func (txs BartioTransactions) HashTreeRoot() common.Root {
-	roots := make(Roots, len(txs))
-	merkleizer := merkle.NewMerkleizer[[32]byte, common.Root]()
-	for i, tx := range txs {
-		var err error
-		roots[i], err = merkleizer.MerkleizeByteSlice(tx)
-		if err != nil {
-			panic(err)
-		}
-	}
-	return ssz.HashConcurrent(roots)
-}
-
-func (txs BartioTransactions) HashTreeRoot2() common.Root {
-	roots := make(Roots, len(txs))
-	merkleizer := merkle.NewMerkleizer[[32]byte, common.Root]()
-	for i, tx := range txs {
-		var err error
-		roots[i], err = merkleizer.MerkleizeByteSlice(tx)
-		if err != nil {
-			panic(err)
-		}
-	}
-	return ssz.HashConcurrent(roots)
+// HashTreeRoot returns the Merkle root hash of the Roots.
+func (roots Roots) HashTreeRoot() common.Root {
+	return ssz.HashSequential(roots)
 }
