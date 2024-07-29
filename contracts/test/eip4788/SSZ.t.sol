@@ -26,6 +26,13 @@ contract SSZTest is Test {
         assertEq(actual, expected);
     }
 
+    function test_ValidatorPubkeyRoot() public view {
+        bytes memory pubkey = hex"b68a04945cecb9157b40f31ecd5fba35dec6c30a4b3a772234ecb477170c198713bb9400c2142e7b3f88af9abb3362bb";
+        bytes32 expected = hex"f5a5fd42d16a20302798ef6ed309979b43003d2320d9f0e8ea9831a92759fb4b";
+        bytes32 actual = SSZ.validatorPubkeyHashTreeRoot(pubkey);
+        assertEq(actual, expected);
+    }
+
     /// Slot 7172576 withdrawal.at(0)
     function test_withdrawalRoot() public pure {
         SSZ.Withdrawal memory w = SSZ.Withdrawal({

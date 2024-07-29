@@ -65,64 +65,75 @@ library SSZ {
         );
     }
 
-    function validatorPubkeyHashTreeRoot(bytes calldata validatorPubkey)
+    /// @dev Takes the first 48 bytes of the input validatorPubkey.
+    function validatorPubkeyHashTreeRoot(bytes memory validatorPubkey)
         internal
         view
         returns (bytes32 root)
     {
-        require(validatorPubkey.length == 48, "Invalid validator pubkey length");
-
-        bytes32[2] memory nodes =
-            [bytes32(validatorPubkey[0:32]), bytes32(validatorPubkey[32:48])];
-
         /// @solidity memory-safe-assembly
         assembly {
-            // Count of nodes to hash
-            let count := 2
+            // Dynamic data types such as bytes are stored at the specified offset.
+            let offset := mload(validatorPubkey)
+            // Call sha256 precompile with the pubkey pointer
+            let result :=
+                staticcall(gas(), SHA256, add(offset, 32), 0x40, 0x00, 0x20)
+            // Precompile returns no data on OutOfGas error.
+            if eq(result, 0) { revert(0, 0) }
 
-            // Loop over levels
-            // prettier-ignore
-            for { } 1 { } {
-                // Loop over nodes at the given depth
-
-                // Initialize `offset` to the offset of `proof` elements in memory.
-                let target := nodes
-                let source := nodes
-                let end := add(source, shl(5, count))
-
-                // prettier-ignore
-                for { } 1 { } {
-                    // TODO: Can be replaced with `mcopy` once it's available, see EIP-5656.
-                    // Read next two hashes to hash
-                    mstore(0x00, mload(source))
-                    mstore(0x20, mload(add(source, 0x20)))
-
-                    // Call sha256 precompile
-                    let result :=
-                        staticcall(gas(), SHA256, 0x00, 0x40, 0x00, 0x20)
-
-                    if eq(result, 0) {
-                        // Precompiles returns no data on OutOfGas error.
-                        revert(0, 0)
-                    }
-
-                    // Store the resulting hash at the target location
-                    mstore(target, mload(0x00))
-
-                    // Advance the pointers
-                    target := add(target, 0x20)
-                    source := add(source, 0x40)
-
-                    if iszero(lt(source, end)) { break }
-                }
-
-                count := shr(1, count)
-                if eq(count, 1) {
-                    root := mload(0x00)
-                    break
-                }
-            }
+            root := mload(0x00)
         }
+        // bytes32[2] memory nodes =
+        //     [bytes32(validatorPubkey[0:32]), bytes32(validatorPubkey[32:48])];
+
+        // /// @solidity memory-safe-assembly
+        // assembly {
+        //     // Count of nodes to hash
+        //     let count := 2
+
+        //     // Loop over levels
+        //     // prettier-ignore
+        //     for { } 1 { } {
+        //         // Loop over nodes at the given depth
+
+        //         // Initialize `offset` to the offset of `proof` elements in memory.
+        //         let target := nodes
+        //         let source := nodes
+        //         let end := add(source, shl(5, count))
+
+        //         // prettier-ignore
+        //         for { } 1 { } {
+        //             // TODO: Can be replaced with `mcopy` once it's available, see EIP-5656.
+        //             // Read next two hashes to hash
+        //             mstore(0x00, mload(source))
+        //             mstore(0x20, mload(add(source, 0x20)))
+
+        //             // Call sha256 precompile
+        //             let result :=
+        //                 staticcall(gas(), SHA256, 0x00, 0x40, 0x00, 0x20)
+
+        //             if eq(result, 0) {
+        //                 // Precompiles returns no data on OutOfGas error.
+        //                 revert(0, 0)
+        //             }
+
+        //             // Store the resulting hash at the target location
+        //             mstore(target, mload(0x00))
+
+        //             // Advance the pointers
+        //             target := add(target, 0x20)
+        //             source := add(source, 0x40)
+
+        //             if iszero(lt(source, end)) { break }
+        //         }
+
+        //         count := shr(1, count)
+        //         if eq(count, 1) {
+        //             root := mload(0x00)
+        //             break
+        //         }
+        //     }
+        // }
     }
 
     function validatorHashTreeRoot(Validator memory validator)

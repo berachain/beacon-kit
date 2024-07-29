@@ -4,6 +4,9 @@ pragma solidity ^0.8.21;
 import { SSZ } from "../SSZ.sol";
 
 interface IBeaconVerifier {
+    /// @dev Emitted when the validator pubkey length is not 48.
+    error InvalidValidatorPubkeyLength();
+
     /// @notice Emitted when the zero validator pubkey Generalized Index is
     /// changed.
     event ZeroValidatorPubkeyGIndexChanged(
