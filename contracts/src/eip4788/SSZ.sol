@@ -70,7 +70,7 @@ library SSZ {
         return bytes32(v ? 1 << 248 : 0);
     }
 
-    /// @notice Modified version of `verify` from `MerkleProofLib` to support 
+    /// @notice Modified version of `verify` from `MerkleProofLib` to support
     /// generalized indices and sha256 precompile.
     /// @dev Returns whether `leaf` exists in the Merkle tree with `root`,
     /// given `proof`.
@@ -143,7 +143,7 @@ library SSZ {
 
     /// @dev From solady FixedPointMath
     /// @dev Returns the log2 of `x`.
-    /// Equivalent to computing the index of the most significant bit (MSB) of 
+    /// Equivalent to computing the index of the most significant bit (MSB) of
     /// `x`.
     function log2(uint256 x) internal pure returns (uint256 r) {
         /// @solidity memory-safe-assembly

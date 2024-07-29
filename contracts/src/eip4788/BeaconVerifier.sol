@@ -70,7 +70,7 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @inheritdoc IBeaconVerifier
-    /// @dev gas used ~75812
+    /// @dev gas used ~75381
     function proveBeaconBlockProposer(
         uint64 timestamp,
         bytes32[] calldata validatorPubkeyProof,
