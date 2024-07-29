@@ -22,7 +22,6 @@ package debug
 
 import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
-	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/mod/node-api/server/context"
 )
 
@@ -32,13 +31,9 @@ type Handler[ContextT context.Context] struct {
 
 func NewHandler[ContextT context.Context]() *Handler[ContextT] {
 	h := &Handler[ContextT]{
-		BaseHandler: handlers.NewBaseHandler[ContextT](
+		BaseHandler: handlers.NewBaseHandler(
 			handlers.NewRouteSet[ContextT](""),
 		),
 	}
 	return h
-}
-
-func (h *Handler[ContextT]) NotImplemented(_ ContextT) (any, error) {
-	return nil, types.ErrNotImplemented
 }
