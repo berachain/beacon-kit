@@ -89,7 +89,6 @@ require (
 	github.com/cosmos/cosmos-db v1.0.2
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5 // indirect
 	github.com/cosmos/crypto v0.1.2 // indirect
-	github.com/cosmos/crypto v0.1.2 // indirect
 	github.com/cosmos/gogoproto v1.5.0 // indirect
 	github.com/cosmos/ics23/go v0.10.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
