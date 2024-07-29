@@ -116,8 +116,8 @@ github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240710023256-e9246
 github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240710023256-e9246f6a35e1/go.mod h1:sIzib45R7B9Q99yvsYUcj2xJZPBpe3J9JbcBDMZNp7E=
 github.com/berachain/beacon-kit/mod/storage v0.0.0-20240705193247-d464364483df h1:9Ky8czlV8DC1kPmmVLh/70x/lS30q0GIf58OiIp9Sfc=
 github.com/berachain/beacon-kit/mod/storage v0.0.0-20240705193247-d464364483df/go.mod h1:/bJQ4AiExotpVh+I4zfZG2vZXQaqDDE9Ss+bTeJXZWk=
-github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240725053043-79fa56d34c79 h1:XKfzHsugPq79UiBHR47t/x8nayK7wLjGC5ZH8SJyV+c=
-github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240725053043-79fa56d34c79/go.mod h1:Ljf8mLY+hq/zTyeD0h3n5wcfrBBXowWbdBfwsjHJHa8=
+github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240724150750-0fda53f265de h1:cc0s7/e84XSbfpVMdYIyCqSqX2K3ksQcF4p6LEWmUhE=
+github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240724150750-0fda53f265de/go.mod h1:8oImAJH6ZKSmolsMmkOD50IfXHRtgqDeA80A8G8tD2Y=
 github.com/bgentry/speakeasy v0.2.0 h1:tgObeVOf8WAvtuAX6DhJ4xks4CFNwPDZiqzGqIHE51E=
 github.com/bgentry/speakeasy v0.2.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
 github.com/bits-and-blooms/bitset v1.13.0 h1:bAQ9OPNFYbGHV6Nez0tmNI0RiEu7/hxlYJRUA0wFAVE=

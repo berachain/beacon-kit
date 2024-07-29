@@ -5,8 +5,8 @@ buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.34.2-20240130113600-88e
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cosmossdk.io/api v0.7.3-0.20240726151427-2e0884564fdb h1:yb1upCvvtXPotkpQle/3HRUhxBLWr5yiMswyLXVZFvo=
 cosmossdk.io/api v0.7.3-0.20240726151427-2e0884564fdb/go.mod h1:vV3VnJvvK4IWkc1deNEJ1OAL028zw1WPezwKKDAsq60=
-cosmossdk.io/core v0.12.1-0.20240726151427-2e0884564fdb h1:vC9gu00pPA+X0vc4H81Esy7b+vGgmJ1nvUmAorh4NYA=
-cosmossdk.io/core v0.12.1-0.20240726151427-2e0884564fdb/go.mod h1:sLzMwAW9HW+Nm3GltUVHDRSRZbcXLy9+2AYgi2bwt/s=
+cosmossdk.io/core v0.12.1-0.20240724150750-0fda53f265de h1:yEJL37CJRIvvET1xtF3RsKJry20Bargkjk1tWo0xD1o=
+cosmossdk.io/core v0.12.1-0.20240724150750-0fda53f265de/go.mod h1:sLzMwAW9HW+Nm3GltUVHDRSRZbcXLy9+2AYgi2bwt/s=
 cosmossdk.io/core/testing v0.0.0-20240726151427-2e0884564fdb h1:FRGAX0kl6EsRFqAyZA4Z2EIh3hyDHIpEQrC5fybLDas=
 cosmossdk.io/core/testing v0.0.0-20240726151427-2e0884564fdb/go.mod h1:s6VKCgPZqs+CnW+18fNQqKoQtqxZ+U9bjz9BcySgNPs=
 cosmossdk.io/depinject v1.0.0 h1:dQaTu6+O6askNXO06+jyeUAnF2/ssKwrrszP9t5q050=
@@ -63,8 +63,8 @@ github.com/berachain/beacon-kit/mod/log v0.0.0-20240610210054-bfdc14c4013c h1:7f
 github.com/berachain/beacon-kit/mod/log v0.0.0-20240610210054-bfdc14c4013c/go.mod h1:nFybcw/ZhJ6Gu66dna301W2I7u61skm2HfHxQmdR68Q=
 github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157 h1:2NHg24WWdkX7FgaFQsgNp3vbFRMnEIqchI6kKf6hs4I=
 github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157/go.mod h1:uSFWd+x3034sIGnSwxlJjhooh4zPXYX8DVc/r0TMvs4=
-github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240725053043-79fa56d34c79 h1:XKfzHsugPq79UiBHR47t/x8nayK7wLjGC5ZH8SJyV+c=
-github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240725053043-79fa56d34c79/go.mod h1:Ljf8mLY+hq/zTyeD0h3n5wcfrBBXowWbdBfwsjHJHa8=
+github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240724150750-0fda53f265de h1:cc0s7/e84XSbfpVMdYIyCqSqX2K3ksQcF4p6LEWmUhE=
+github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240724150750-0fda53f265de/go.mod h1:8oImAJH6ZKSmolsMmkOD50IfXHRtgqDeA80A8G8tD2Y=
 github.com/berachain/cosmos-sdk/collections v0.0.0-20240725053043-79fa56d34c79 h1:0aFIpbLF5vTbz5p1EGdvQMsLsh0a4ThV+A4jWrG5l6s=
 github.com/berachain/cosmos-sdk/collections v0.0.0-20240725053043-79fa56d34c79/go.mod h1:Or+5eVAo1aiS1DnPK90eQykGc59LGBWtqwBoJcxXTmw=
 github.com/berachain/cosmos-sdk/server/v2/appmanager v0.0.0-20240725053043-79fa56d34c79 h1:V0533CUCR7/A0zdifHcSkuYkxsCzZXfSSu8yrTknbPw=

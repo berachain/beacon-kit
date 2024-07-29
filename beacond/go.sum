@@ -10,8 +10,8 @@ cosmossdk.io/client/v2 v2.0.0-20240412212305-037cf98f7eea h1:R2AHyW57yCDOyG0/nJJ
 cosmossdk.io/client/v2 v2.0.0-20240412212305-037cf98f7eea/go.mod h1:ss8ttONeqslO0lRH/L1okn3jmwcof6cQ+mUSgBe6dyY=
 cosmossdk.io/collections v0.4.0 h1:PFmwj2W8szgpD5nOd8GWH6AbYNi1f2J6akWXJ7P5t9s=
 cosmossdk.io/collections v0.4.0/go.mod h1:oa5lUING2dP+gdDquow+QjlF45eL1t4TJDypgGd+tv0=
-cosmossdk.io/core v0.12.1-0.20240726151427-2e0884564fdb h1:vC9gu00pPA+X0vc4H81Esy7b+vGgmJ1nvUmAorh4NYA=
-cosmossdk.io/core v0.12.1-0.20240726151427-2e0884564fdb/go.mod h1:sLzMwAW9HW+Nm3GltUVHDRSRZbcXLy9+2AYgi2bwt/s=
+cosmossdk.io/core v0.12.1-0.20240724150750-0fda53f265de h1:yEJL37CJRIvvET1xtF3RsKJry20Bargkjk1tWo0xD1o=
+cosmossdk.io/core v0.12.1-0.20240724150750-0fda53f265de/go.mod h1:sLzMwAW9HW+Nm3GltUVHDRSRZbcXLy9+2AYgi2bwt/s=
 cosmossdk.io/core/testing v0.0.0-20240726151427-2e0884564fdb h1:FRGAX0kl6EsRFqAyZA4Z2EIh3hyDHIpEQrC5fybLDas=
 cosmossdk.io/core/testing v0.0.0-20240726151427-2e0884564fdb/go.mod h1:s6VKCgPZqs+CnW+18fNQqKoQtqxZ+U9bjz9BcySgNPs=
 cosmossdk.io/depinject v1.0.0 h1:dQaTu6+O6askNXO06+jyeUAnF2/ssKwrrszP9t5q050=
@@ -120,8 +120,8 @@ github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240710023256-e9246
 github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240710023256-e9246f6a35e1/go.mod h1:sIzib45R7B9Q99yvsYUcj2xJZPBpe3J9JbcBDMZNp7E=
 github.com/berachain/beacon-kit/mod/storage v0.0.0-20240705193247-d464364483df h1:9Ky8czlV8DC1kPmmVLh/70x/lS30q0GIf58OiIp9Sfc=
 github.com/berachain/beacon-kit/mod/storage v0.0.0-20240705193247-d464364483df/go.mod h1:/bJQ4AiExotpVh+I4zfZG2vZXQaqDDE9Ss+bTeJXZWk=
-github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240725053043-79fa56d34c79 h1:XKfzHsugPq79UiBHR47t/x8nayK7wLjGC5ZH8SJyV+c=
-github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240725053043-79fa56d34c79/go.mod h1:Ljf8mLY+hq/zTyeD0h3n5wcfrBBXowWbdBfwsjHJHa8=
+github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240724150750-0fda53f265de h1:cc0s7/e84XSbfpVMdYIyCqSqX2K3ksQcF4p6LEWmUhE=
+github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240724150750-0fda53f265de/go.mod h1:8oImAJH6ZKSmolsMmkOD50IfXHRtgqDeA80A8G8tD2Y=
 github.com/bgentry/speakeasy v0.2.0 h1:tgObeVOf8WAvtuAX6DhJ4xks4CFNwPDZiqzGqIHE51E=
 github.com/bgentry/speakeasy v0.2.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
 github.com/bits-and-blooms/bitset v1.13.0 h1:bAQ9OPNFYbGHV6Nez0tmNI0RiEu7/hxlYJRUA0wFAVE=

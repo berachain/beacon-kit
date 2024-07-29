@@ -6,7 +6,7 @@ replace (
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240726151427-2e0884564fdb
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240726151427-2e0884564fdb
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240725053043-79fa56d34c79
+	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240724150750-0fda53f265de
 )
 
 require (

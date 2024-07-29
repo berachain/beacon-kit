@@ -9,7 +9,7 @@ replace (
 	github.com/berachain/beacon-kit/mod/consensus => ../consensus
 	github.com/berachain/beacon-kit/mod/depinject => ../depinject
 	github.com/berachain/beacon-kit/mod/runtime => ../runtime
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240725053043-79fa56d34c79
+	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240724150750-0fda53f265de
 )
 
 require (

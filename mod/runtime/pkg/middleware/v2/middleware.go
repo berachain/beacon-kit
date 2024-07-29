@@ -41,7 +41,10 @@ type ABCIMiddleware[
 	AvailabilityStoreT any,
 	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BeaconStateT BeaconState,
-	BlobSidecarsT constraints.SSZMarshallable,
+	BlobSidecarsT interface {
+		constraints.SSZMarshallable
+		Empty() BlobSidecarsT
+	},
 	DepositT,
 	ExecutionPayloadT any,
 	GenesisT Genesis,
@@ -105,7 +108,10 @@ func NewABCIMiddleware[
 	AvailabilityStoreT any,
 	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BeaconStateT BeaconState,
-	BlobSidecarsT constraints.SSZMarshallable,
+	BlobSidecarsT interface {
+		constraints.SSZMarshallable
+		Empty() BlobSidecarsT
+	},
 	DepositT,
 	ExecutionPayloadT any,
 	GenesisT Genesis,

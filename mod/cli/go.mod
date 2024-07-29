@@ -8,7 +8,7 @@ replace (
 	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240726151427-2e0884564fdb
 
 	github.com/berachain/beacon-kit/mod/runtime => ../runtime
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240725053043-79fa56d34c79
+	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240724150750-0fda53f265de
 )
 
 require (
