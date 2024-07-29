@@ -1,6 +1,7 @@
 package components
 
 import (
+	"cosmossdk.io/depinject"
 	sdklog "cosmossdk.io/log"
 )
 
@@ -14,6 +15,7 @@ func (l *SDKLogger) With(keyVals ...any) sdklog.Logger {
 }
 
 type SDKLoggerInput struct {
+	depinject.In
 	Logger *Logger
 }
 
