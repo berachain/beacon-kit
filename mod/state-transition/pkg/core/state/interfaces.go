@@ -144,6 +144,4 @@ type KVStore[
 	// GetValidatorsByEffectiveBalance retrieves validators by effective
 	// balance.
 	GetValidatorsByEffectiveBalance() ([]ValidatorT, error)
-	// RemoveValidatorAtIndex removes the validator at the given index.
-	RemoveValidatorAtIndex(idx math.ValidatorIndex) error
 }

@@ -96,7 +96,7 @@ func (m MockExecutionPayload) GetExcessBlobGas() math.U64 {
 func (m MockExecutionPayload) GetWithdrawals() []MockWithdrawal {
 	return []MockWithdrawal{}
 }
-func (m MockExecutionPayload) GetTransactions() [][]byte {
+func (m MockExecutionPayload) GetTransactions() engineprimitives.Transactions {
 	return [][]byte{}
 }
 

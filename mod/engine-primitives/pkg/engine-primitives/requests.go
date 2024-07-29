@@ -54,7 +54,7 @@ type NewPayloadRequest[
 		GetBlobGasUsed() math.U64
 		GetExcessBlobGas() math.U64
 		GetWithdrawals() []WithdrawalT
-		GetTransactions() [][]byte
+		GetTransactions() Transactions
 	},
 	WithdrawalT interface {
 		GetIndex() math.U64
@@ -94,7 +94,7 @@ func BuildNewPayloadRequest[
 		GetBlobGasUsed() math.U64
 		GetExcessBlobGas() math.U64
 		GetWithdrawals() []WithdrawalT
-		GetTransactions() [][]byte
+		GetTransactions() Transactions
 	},
 	WithdrawalT interface {
 		GetIndex() math.U64
