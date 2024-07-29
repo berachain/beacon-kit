@@ -107,7 +107,6 @@ type WriteOnlyBeaconState[
 	UpdateSlashingAtIndex(uint64, math.Gwei) error
 	SetNextWithdrawalIndex(uint64) error
 	SetNextWithdrawalValidatorIndex(math.ValidatorIndex) error
-	RemoveValidatorAtIndex(math.ValidatorIndex) error
 	SetTotalSlashing(math.Gwei) error
 }
 
