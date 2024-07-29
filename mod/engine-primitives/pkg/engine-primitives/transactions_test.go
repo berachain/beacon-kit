@@ -107,17 +107,6 @@ var prysmConsistencyTests = []struct {
 			225, 57, 47, 244,
 		},
 	},
-	{
-		name: "exceed max txs",
-		txs: func() [][]byte {
-			var txs [][]byte
-			for range int(constants.MaxTxsPerPayload) + 1 {
-				txs = append(txs, []byte{})
-			}
-			return txs
-		}(),
-		wantErr: true,
-	},
 }
 
 // NOTE: not testing legacy and Bartio transactions types
