@@ -27,6 +27,7 @@ import (
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
 	zcommon "github.com/protolambda/zrnt/eth2/beacon/common"
 	zdeneb "github.com/protolambda/zrnt/eth2/beacon/deneb"
 	zspec "github.com/protolambda/zrnt/eth2/configs"
@@ -37,6 +38,40 @@ import (
 var c = quick.Config{MaxCount: 10000}
 var hFn = ztree.GetHashFn()
 var spec = zspec.Mainnet
+
+func TestListHashTreeRootZtyp(t *testing.T) {
+	f := func(s []byte, limit uint64) bool {
+		a := ssz.ByteListFromBytes(s, limit)
+
+		root1, err := a.HashTreeRoot()
+		root2 := hFn.ByteListHTR(s, limit)
+		if err != nil {
+			t.Log("Failed to calculate HashTreeRoot on input: ", err)
+			return false
+		}
+		return root1 == [32]byte(root2)
+	}
+	if err := quick.Check(f, &c); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestVectorHashTreeRootZTyp(t *testing.T) {
+	f := func(s []byte) bool {
+		a := ssz.ByteVectorFromBytes(s)
+
+		root1, err := a.HashTreeRoot()
+		root2 := hFn.ByteVectorHTR(s)
+		if err != nil {
+			t.Log("Failed to calculate HashTreeRoot on input: ", err)
+			return false
+		}
+		return root1 == [32]byte(root2)
+	}
+	if err := quick.Check(f, &c); err != nil {
+		t.Error(err)
+	}
+}
 
 func TestExecutionPayloadHashTreeRootZrnt(t *testing.T) {
 	f := func(payload *types.ExecutionPayload, logsBloom [256]byte) bool {

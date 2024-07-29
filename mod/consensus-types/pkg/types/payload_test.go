@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/stretchr/testify/require"
@@ -200,6 +201,7 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 	}
 
 	header, err := payload.ToHeader(
+		merkle.NewMerkleizer[[32]byte, common.Root](),
 		uint64(16), uint64(80087),
 	)
 	require.NoError(t, err)
