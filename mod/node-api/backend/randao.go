@@ -18,34 +18,32 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package debug
+package backend
 
 import (
-	"net/http"
-
-	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/node-api/handlers"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-func (h *Handler[ContextT]) RegisterRoutes(
-	logger log.Logger[any],
-) {
-	h.SetLogger(logger)
-	h.BaseHandler.AddRoutes([]*handlers.Route[ContextT]{
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v2/debug/beacon/states/:state_id",
-			Handler: h.NotImplemented,
-		},
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v2/debug/beacon/states/heads",
-			Handler: h.NotImplemented,
-		},
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v1/debug/fork_choice",
-			Handler: h.NotImplemented,
-		},
-	})
+func (b Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) RandaoAtEpoch(
+	slot, epoch uint64,
+) (common.Bytes32, error) {
+	st, err := b.StateFromSlot(slot)
+	if err != nil {
+		return common.Bytes32{}, err
+	}
+	// Infer the epoch if not provided.
+	if epoch == 0 {
+		var latestSlot math.U64
+		latestSlot, err = st.GetSlot()
+		if err != nil {
+			return common.Bytes32{}, err
+		}
+		latestEpoch := b.cs.SlotToEpoch(latestSlot)
+		epoch = latestEpoch.Unwrap()
+	}
+	index := epoch % b.cs.EpochsPerHistoricalVector()
+	return st.GetRandaoMixAtIndex(index)
 }

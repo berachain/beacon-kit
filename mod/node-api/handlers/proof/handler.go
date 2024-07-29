@@ -18,37 +18,53 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package beacon
+package proof
 
 import (
 	"errors"
 
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
-	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/mod/node-api/server/context"
 )
 
-// Handler is the handler for the beacon API.
+// Handler is the handler for the proof API.
 type Handler[
-	BeaconBlockHeaderT types.BeaconBlockHeader,
 	ContextT context.Context,
-	ForkT any,
-	ValidatorT any,
+	BeaconBlockHeaderT types.BeaconBlockHeader,
+	BeaconStateT types.BeaconState[
+		BeaconBlockHeaderT, BeaconStateMarshallableT, ExecutionPayloadHeaderT,
+		ValidatorT,
+	],
+	BeaconStateMarshallableT types.BeaconStateMarshallable,
+	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
+	ValidatorT types.Validator,
 ] struct {
 	*handlers.BaseHandler[ContextT]
-	backend Backend[BeaconBlockHeaderT, ForkT, ValidatorT]
+	backend Backend[BeaconStateT, ValidatorT]
 }
 
-// NewHandler creates a new handler for the beacon API.
+// NewHandler creates a new handler for the proof API.
 func NewHandler[
-	BeaconBlockHeaderT types.BeaconBlockHeader,
 	ContextT context.Context,
-	ForkT any,
-	ValidatorT any,
+	BeaconBlockHeaderT types.BeaconBlockHeader,
+	BeaconStateT types.BeaconState[
+		BeaconBlockHeaderT, BeaconStateMarshallableT, ExecutionPayloadHeaderT,
+		ValidatorT,
+	],
+	BeaconStateMarshallableT types.BeaconStateMarshallable,
+	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
+	ValidatorT types.Validator,
 ](
-	backend Backend[BeaconBlockHeaderT, ForkT, ValidatorT],
-) *Handler[BeaconBlockHeaderT, ContextT, ForkT, ValidatorT] {
-	h := &Handler[BeaconBlockHeaderT, ContextT, ForkT, ValidatorT]{
+	backend Backend[BeaconStateT, ValidatorT],
+) *Handler[
+	ContextT, BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT,
+	ExecutionPayloadHeaderT, ValidatorT,
+] {
+	h := &Handler[
+		ContextT, BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT,
+		ExecutionPayloadHeaderT, ValidatorT,
+	]{
 		BaseHandler: handlers.NewBaseHandler(
 			handlers.NewRouteSet[ContextT](""),
 		),
@@ -57,7 +73,9 @@ func NewHandler[
 	return h
 }
 
-// NotImplemented is a placeholder for the beacon API.
-func (h *Handler[_, ContextT, _, _]) NotImplemented(_ ContextT) (any, error) {
+// NotImplemented is a placeholder for the proof API.
+func (
+	h *Handler[ContextT, _, _, _, _, _],
+) NotImplemented(_ ContextT) (any, error) {
 	return nil, errors.New("not implemented")
 }
