@@ -475,6 +475,6 @@ type (
 	// ProofAPIHandler is a type alias for the proof handler.
 	ProofAPIHandler = proofapi.Handler[
 		NodeAPIContext, *BeaconBlockHeader, *BeaconState,
-		*BeaconStateMarshallable, *Validator,
+		*BeaconStateMarshallable, *ExecutionPayloadHeader, *Validator,
 	]
 )

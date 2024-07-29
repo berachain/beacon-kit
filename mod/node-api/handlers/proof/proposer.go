@@ -29,7 +29,7 @@ import (
 // GetBlockProposer returns the block proposer pubkey for the given block id
 // along with a merkle proof that can be verified against the beacon block root.
 func (h *Handler[
-	ContextT, BeaconBlockHeaderT, _, _, _,
+	ContextT, BeaconBlockHeaderT, _, _, _, _,
 ]) GetBlockProposer(c ContextT) (any, error) {
 	params, err := utils.BindAndValidate[types.BlockProposerRequest](
 		c, h.Logger(),
@@ -71,18 +71,24 @@ func (h *Handler[
 		return nil, err
 	}
 
+	execPayloadHeader, err := beaconState.GetLatestExecutionPayloadHeader()
+	if err != nil {
+		return nil, err
+	}
+
 	return types.BlockProposerResponse[BeaconBlockHeaderT]{
 		BeaconBlockHeader:    blockHeader,
 		BeaconBlockRoot:      beaconBlockRoot,
 		ValidatorPubkey:      proposerValidator.GetPubkey(),
 		ValidatorPubkeyProof: proof,
+		EthBlockNumber:       execPayloadHeader.GetNumber(),
+		EthTimestamp:         execPayloadHeader.GetTimestamp(),
 	}, nil
 }
 
 // getBlockHeaderFromState returns the block header from the given state.
 func (h *Handler[
-	ContextT, BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT,
-	ValidatorT,
+	_, BeaconBlockHeaderT, BeaconStateT, _, _, _,
 ]) getBlockHeaderFromState(bs BeaconStateT) (BeaconBlockHeaderT, error) {
 	blockHeader, err := bs.GetLatestBlockHeader()
 	if err != nil {

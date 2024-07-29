@@ -23,6 +23,7 @@ package types
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // BlockProposerResponse is the response for the
@@ -44,6 +45,6 @@ type BlockProposerResponse[BeaconBlockHeaderT any] struct {
 	// the Deneb fork, z is 3254554418216960.
 	ValidatorPubkeyProof []common.Root `json:"validator_pubkey_proof"`
 
-	EthBlockNumber uint64 `json:"eth_block_number"`
-	EthTimestamp   uint64 `json:"eth_timestamp"`
+	EthBlockNumber math.U64 `json:"eth_block_number"`
+	EthTimestamp   math.U64 `json:"eth_timestamp"`
 }

@@ -41,9 +41,13 @@ type BeaconBlockHeader interface {
 
 // BeaconState is the interface for a beacon state.
 type BeaconState[
-	BeaconBlockHeaderT, BeaconStateMarshallableT, ValidatorT any,
+	BeaconBlockHeaderT, BeaconStateMarshallableT, ExecutionPayloadHeaderT,
+	ValidatorT any,
 ] interface {
 	constraints.SSZRootable
+	// GetLatestExecutionPayloadHeader returns the latest execution payload
+	// header.
+	GetLatestExecutionPayloadHeader() (ExecutionPayloadHeaderT, error)
 	// GetLatestBlockHeader returns the latest block header.
 	GetLatestBlockHeader() (BeaconBlockHeaderT, error)
 	// GetMarshallable returns the marshallable version of the beacon state.
@@ -58,6 +62,14 @@ type BeaconStateMarshallable interface {
 	constraints.SSZMarshallableRootable
 	// GetTree is kept for FastSSZ compatibility.
 	GetTree() (*fastssz.Node, error)
+}
+
+// ExecutionPayloadHeader is the interface for an execution payload header.
+type ExecutionPayloadHeader interface {
+	// GetNumber returns the block number of the ExecutionPayloadHeader.
+	GetNumber() math.U64
+	// GetTimestamp returns the timestamp of the ExecutionPayloadHeader.
+	GetTimestamp() math.U64
 }
 
 // Validator is the interface for a validator.

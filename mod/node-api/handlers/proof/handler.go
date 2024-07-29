@@ -33,9 +33,11 @@ type Handler[
 	ContextT context.Context,
 	BeaconBlockHeaderT types.BeaconBlockHeader,
 	BeaconStateT types.BeaconState[
-		BeaconBlockHeaderT, BeaconStateMarshallableT, ValidatorT,
+		BeaconBlockHeaderT, BeaconStateMarshallableT, ExecutionPayloadHeaderT,
+		ValidatorT,
 	],
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
+	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
 	ValidatorT types.Validator,
 ] struct {
 	*handlers.BaseHandler[ContextT]
@@ -47,19 +49,21 @@ func NewHandler[
 	ContextT context.Context,
 	BeaconBlockHeaderT types.BeaconBlockHeader,
 	BeaconStateT types.BeaconState[
-		BeaconBlockHeaderT, BeaconStateMarshallableT, ValidatorT,
+		BeaconBlockHeaderT, BeaconStateMarshallableT, ExecutionPayloadHeaderT,
+		ValidatorT,
 	],
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
+	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
 	ValidatorT types.Validator,
 ](
 	backend Backend[BeaconStateT, ValidatorT],
 ) *Handler[
 	ContextT, BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT,
-	ValidatorT,
+	ExecutionPayloadHeaderT, ValidatorT,
 ] {
 	h := &Handler[
 		ContextT, BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT,
-		ValidatorT,
+		ExecutionPayloadHeaderT, ValidatorT,
 	]{
 		BaseHandler: handlers.NewBaseHandler(
 			handlers.NewRouteSet[ContextT](""),
@@ -71,7 +75,7 @@ func NewHandler[
 
 // NotImplemented is a placeholder for the proof API.
 func (
-	h *Handler[ContextT, _, _, _, _],
+	h *Handler[ContextT, _, _, _, _, _],
 ) NotImplemented(_ ContextT) (any, error) {
 	return nil, errors.New("not implemented")
 }

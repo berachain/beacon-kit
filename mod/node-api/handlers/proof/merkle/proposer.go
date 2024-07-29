@@ -35,11 +35,13 @@ import (
 func ProveProposerInBlock[
 	BeaconBlockHeaderT types.BeaconBlockHeader,
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
+	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
 	ValidatorT any,
 ](
 	bbh BeaconBlockHeaderT,
 	bs types.BeaconState[
-		BeaconBlockHeaderT, BeaconStateMarshallableT, ValidatorT,
+		BeaconBlockHeaderT, BeaconStateMarshallableT, ExecutionPayloadHeaderT,
+		ValidatorT,
 	],
 ) ([]common.Root, common.Root, error) {
 	// Get the proof of the proposer pubkey in the beacon state.
@@ -76,10 +78,12 @@ func ProveProposerInBlock[
 func ProveProposerPubkeyInState[
 	BeaconBlockHeaderT types.BeaconBlockHeader,
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
+	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
 	ValidatorT any,
 ](
 	bs types.BeaconState[
-		BeaconBlockHeaderT, BeaconStateMarshallableT, ValidatorT,
+		BeaconBlockHeaderT, BeaconStateMarshallableT, ExecutionPayloadHeaderT,
+		ValidatorT,
 	],
 	proposerOffset math.U64,
 ) ([]common.Root, common.Root, error) {
