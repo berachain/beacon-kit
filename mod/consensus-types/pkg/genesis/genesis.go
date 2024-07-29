@@ -21,20 +21,17 @@
 package genesis
 
 import (
-	"context"
 	"math/big"
 
-	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
-	"golang.org/x/sync/errgroup"
+	"github.com/karalabe/ssz"
 )
 
 // Genesis is a struct that contains the genesis information
@@ -135,31 +132,8 @@ func DefaultGenesisDeneb() *Genesis[
 func DefaultGenesisExecutionPayloadHeaderDeneb() (
 	*types.ExecutionPayloadHeader, error,
 ) {
-	// Get the merkle roots of empty transactions and withdrawals in parallel.
-	var (
-		g, _                 = errgroup.WithContext(context.Background())
-		emptyTxsRoot         common.Root
-		emptyWithdrawalsRoot common.Root
-	)
-
-	g.Go(func() error {
-		var err error
-		emptyTxsRoot, err = engineprimitives.Transactions{}.HashTreeRoot()
-		return err
-	})
-
-	g.Go(func() error {
-		var err error
-		wds := ssz.ListFromElements(
-			spec.DevnetChainSpec().MaxWithdrawalsPerPayload(),
-			[]*engineprimitives.Withdrawal{}...,
-		)
-		emptyWithdrawalsRoot, err = wds.HashTreeRoot()
-		return err
-	})
-
-	// If deriving either of the roots fails, return the error.
-	if err := g.Wait(); err != nil {
+	emptyTxsRoot, err := engineprimitives.Transactions{}.HashTreeRoot()
+	if err != nil {
 		return nil, err
 	}
 
@@ -188,7 +162,7 @@ func DefaultGenesisExecutionPayloadHeaderDeneb() (
 			"0xcfff92cd918a186029a847b59aca4f83d3941df5946b06bca8de0861fc5d0850",
 		),
 		TransactionsRoot: emptyTxsRoot,
-		WithdrawalsRoot:  emptyWithdrawalsRoot,
+		WithdrawalsRoot:  ssz.HashSequential(&engineprimitives.Withdrawals{}),
 		BlobGasUsed:      0,
 		ExcessBlobGas:    0,
 	}, nil

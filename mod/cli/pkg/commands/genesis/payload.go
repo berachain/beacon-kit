@@ -21,7 +21,6 @@
 package genesis
 
 import (
-	"context"
 	"unsafe"
 
 	serverContext "github.com/berachain/beacon-kit/mod/cli/pkg/utils/context"
@@ -33,14 +32,12 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
-	"golang.org/x/sync/errgroup"
 )
 
 func AddExecutionPayloadCmd(chainSpec common.ChainSpec) *cobra.Command {
@@ -166,32 +163,10 @@ func executableDataToExecutionPayloadHeader(
 			excessBlobGas = *data.ExcessBlobGas
 		}
 
-		// Get the merkle roots of transactions and withdrawals in parallel.
-		var (
-			g, _            = errgroup.WithContext(context.Background())
-			txsRoot         common.Root
-			withdrawalsRoot common.Root
-		)
-
-		g.Go(func() error {
-			var txsRootErr error
-			txsRoot, txsRootErr = engineprimitives.Transactions(
-				data.Transactions,
-			).HashTreeRoot()
-			return txsRootErr
-		})
-
-		g.Go(func() error {
-			var withdrawalsRootErr error
-			wds := ssz.ListFromElements(
-				maxWithdrawalsPerPayload, withdrawals...,
-			)
-			withdrawalsRoot, withdrawalsRootErr = wds.HashTreeRoot()
-			return withdrawalsRootErr
-		})
-
-		// If deriving either of the roots fails, return the error.
-		if err := g.Wait(); err != nil {
+		txsRoot, err := engineprimitives.Transactions(
+			data.Transactions,
+		).HashTreeRoot()
+		if err != nil {
 			return nil, err
 		}
 
@@ -212,7 +187,7 @@ func executableDataToExecutionPayloadHeader(
 			),
 			BlockHash:        data.BlockHash,
 			TransactionsRoot: txsRoot,
-			WithdrawalsRoot:  withdrawalsRoot,
+			WithdrawalsRoot:  engineprimitives.Withdrawals(withdrawals).HashTreeRoot(),
 			BlobGasUsed:      math.U64(blobGasUsed),
 			ExcessBlobGas:    math.U64(excessBlobGas),
 		}

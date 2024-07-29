@@ -22,6 +22,7 @@ package engineprimitives
 
 import (
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
@@ -145,4 +146,30 @@ func (*Withdrawal) Type() schema.SSZType {
 // element of the Withdrawal.
 func (*Withdrawal) ItemLength() uint64 {
 	return constants.RootLength
+}
+
+// Withdrawals represents a list of withdrawals.
+type Withdrawals []*Withdrawal
+
+// SizeSSZ returns the SSZ encoded size in bytes for the Withdrawals.
+func (w Withdrawals) SizeSSZ() (size uint32) {
+	return uint32(len(w)) * WithdrawalSize
+}
+
+// DefineSSZ defines the SSZ encoding for the Withdrawals object.
+func (w Withdrawals) DefineSSZ(codec *ssz.Codec) {
+	codec.DefineEncoder(func(enc *ssz.Encoder) {
+		ssz.DefineSliceOfStaticObjectsContent(codec, (*[]*Withdrawal)(&w), 16)
+	})
+	codec.DefineDecoder(func(dec *ssz.Decoder) {
+		ssz.DefineSliceOfStaticObjectsContent(codec, (*[]*Withdrawal)(&w), 16)
+	})
+	codec.DefineHasher(func(has *ssz.Hasher) {
+		ssz.DefineSliceOfStaticObjectsOffset(codec, (*[]*Withdrawal)(&w), 16)
+	})
+}
+
+// HashTreeRoot returns the hash tree root of the Withdrawals.
+func (w Withdrawals) HashTreeRoot() common.Root {
+	return ssz.HashSequential(w)
 }
