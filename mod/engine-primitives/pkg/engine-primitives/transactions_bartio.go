@@ -55,9 +55,10 @@ func (tx BartioTx) SizeSSZ() uint32 {
 // DefineSSZ implements the SSZ encoding for BartioTx.
 func (tx BartioTx) DefineSSZ(codec *ssz.Codec) {
 	codec.DefineHasher(func(*ssz.Hasher) {
-		ssz.DefineStaticBytes(
+		ssz.DefineDynamicBytesOffset(
 			codec,
 			(*[]byte)(&tx),
+			constants.MaxBytesPerTx,
 		)
 	})
 }
