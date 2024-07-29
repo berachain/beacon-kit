@@ -55,10 +55,10 @@ func (roots Roots) DefineSSZ(codec *ssz.Codec) {
 	})
 }
 
-// Transactions is a typealias for [][]byte, which is how transactions are
-// received in the execution payload.
-//
-// TODO: Remove and deprecate this type once migrated to ProperTransactions.
+// BartioTransactions is a typealias for [][]byte, which is how transactions are
+// received in the execution payload on the bArtio testnet. This is due to a mistake made
+// during the initial implementation of BeaconKit. This type will be deprecated off of
+// eventually.
 type BartioTransactions [][]byte
 
 // HashTreeRoot returns the hash tree root of the Transactions list.
