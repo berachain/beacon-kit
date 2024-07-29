@@ -3,10 +3,11 @@ module github.com/berachain/beacon-kit/mod/cli
 go 1.22.5
 
 replace (
-	// The following are required to build with the latest version of the cosmos-sdk main branch:
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240623110059-dec2d5583e39
 	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240729192831-b2989459ae91
 	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240623110059-dec2d5583e39
+	// The following are required to build with the latest version of the cosmos-sdk main branch:
+	cosmossdk.io/log => cosmossdk.io/log v1.3.2-0.20240729192831-b2989459ae91
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240729221345-3df18b5c3b34
 )
 
