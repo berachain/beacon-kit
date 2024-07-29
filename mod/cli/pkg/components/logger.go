@@ -24,17 +24,15 @@ import (
 	"io"
 
 	"cosmossdk.io/depinject"
-	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
 
 type LoggerInput struct {
 	depinject.In
-	AppOpts servertypes.AppOptions
-	Cfg     *config.Config
-	Out     io.Writer
+
+	Cfg    *config.Config
+	Writer io.Writer
 }
 
 // ProvideLogger creates a the default phuslu logger.
@@ -42,7 +40,7 @@ type LoggerInput struct {
 func ProvideLogger(
 	in LoggerInput,
 ) *Logger {
-	logger := phuslu.NewLogger[sdklog.Logger](in.Out, in.Cfg.GetLogger())
+	logger := phuslu.NewLogger(in.Writer, in.Cfg.GetLogger())
 	logger.AddKeyColor("error", "red")
 	logger.AddKeyColor("err", "red")
 	return logger
