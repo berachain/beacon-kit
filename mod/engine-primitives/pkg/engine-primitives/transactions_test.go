@@ -69,6 +69,21 @@ var prysmConsistencyTests = []struct {
 		},
 	},
 	{
+		name: "max bytes per tx",
+		txs: func() [][]byte {
+			var tx []byte
+			for i := range constants.MaxBytesPerTx {
+				tx = append(tx, byte(i))
+			}
+			return [][]byte{tx}
+		}(),
+		want: [32]byte{
+			120, 150, 59, 37, 152, 101, 206, 102, 229, 69, 62, 176, 208, 159,
+			230, 109, 150, 65, 134, 25, 69, 61, 13, 45, 150, 78, 139, 155, 241,
+			18, 248, 222,
+		},
+	},
+	{
 		name: "one tx",
 		txs:  [][]byte{{1, 2, 3}},
 		want: [32]byte{
@@ -82,16 +97,12 @@ var prysmConsistencyTests = []struct {
 		txs: func() [][]byte {
 			var txs [][]byte
 			for range int(constants.MaxTxsPerPayload) {
-				txs = append(txs, []byte{
-					0x01,
-				})
+				txs = append(txs, []byte{0x01})
 			}
 			return txs
 		}(),
 		want: [32]byte{
-			168, 19, 62, 29, 232, 106, 28, 81, 99,
-			73, 236, 102, 94, 160, 44, 191, 122, 176,
-			38, 39, 139, 100, 136, 5, 48, 242, 34, 31, 60, 104, 191, 171,
+			168, 19, 62, 29, 232, 106, 28, 81, 99, 73, 236, 102, 94, 160, 44, 191, 122, 176, 38, 39, 139, 100, 136, 5, 48, 242, 34, 31, 60, 104, 191, 171,
 		},
 	},
 }
