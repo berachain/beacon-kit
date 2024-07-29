@@ -21,8 +21,6 @@
 package encoding
 
 import (
-	"reflect"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 )
 
@@ -30,7 +28,10 @@ import (
 // request.
 func ExtractBlobsAndBlockFromRequest[
 	BeaconBlockT BeaconBlock[BeaconBlockT],
-	BlobSidecarsT constraints.SSZUnmarshaler,
+	BlobSidecarsT interface {
+		constraints.SSZUnmarshaler
+		Empty() BlobSidecarsT
+	},
 ](
 	req ABCIRequest,
 	beaconBlkIndex uint,
@@ -104,41 +105,31 @@ func UnmarshalBeaconBlockFromABCIRequest[
 // UnmarshalBlobSidecarsFromABCIRequest extracts blob sidecars from an ABCI
 // request.
 func UnmarshalBlobSidecarsFromABCIRequest[
-	BlobSidecarsT constraints.SSZUnmarshaler,
+	BlobSidecarsT interface {
+		constraints.SSZUnmarshaler
+		Empty() BlobSidecarsT
+	},
 ](
 	req ABCIRequest,
 	bzIndex uint,
 ) (BlobSidecarsT, error) {
 	var sidecars BlobSidecarsT
-
-	sidecars, ok := reflect.New(reflect.TypeOf(sidecars).Elem()).
-		Interface().(BlobSidecarsT)
-	if !ok {
-		return sidecars, ErrInvalidType
-	}
-
 	if req == nil {
 		return sidecars, ErrNilABCIRequest
 	}
 
 	txs := req.GetTxs()
-	lenTxs := uint(len(txs))
-
-	// Ensure there are transactions in the request and that the request is
-	// valid.
-	if txs == nil || lenTxs == 0 {
+	if len(txs) == 0 || bzIndex >= uint(len(txs)) {
 		return sidecars, ErrNoBeaconBlockInRequest
 	}
-	if bzIndex >= lenTxs {
-		return sidecars, ErrBzIndexOutOfBounds
-	}
 
-	// Extract the blob sidecars from the ABCI request.
 	sidecarBz := txs[bzIndex]
 	if sidecarBz == nil {
 		return sidecars, ErrNilBeaconBlockInRequest
 	}
 
-	err := sidecars.UnmarshalSSZ(sidecarBz)
-	return sidecars, err
+	// TODO: Do some research to figure out how to make this more
+	// elegant.
+	sidecars = sidecars.Empty()
+	return sidecars, sidecars.UnmarshalSSZ(sidecarBz)
 }

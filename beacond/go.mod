@@ -13,7 +13,7 @@ replace (
 
 	github.com/berachain/beacon-kit/mod/runtime => ../mod/runtime
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240725053043-79fa56d34c79
-	github.com/karalabe/ssz => github.com/itsdevbear/ssz v0.0.0-20240725155830-5bd985129878
+	github.com/karalabe/ssz => github.com/itsdevbear/ssz v0.0.0-20240728004237-073849f4ec9a
 )
 
 require (
@@ -82,7 +82,7 @@ require (
 	github.com/cockroachdb/pebble v1.1.1 // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
-	github.com/cometbft/cometbft v1.0.0-rc1.0.20240711183925-948692fddcbe // indirect
+	github.com/cometbft/cometbft v1.0.0-rc1.0.20240727041726-672aa134407b // indirect
 	github.com/cometbft/cometbft-db v0.12.0 // indirect
 	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240711183925-948692fddcbe // indirect
 	github.com/consensys/bavard v0.1.13 // indirect

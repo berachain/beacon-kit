@@ -29,6 +29,7 @@ import (
 	debugapi "github.com/berachain/beacon-kit/mod/node-api/handlers/debug"
 	eventsapi "github.com/berachain/beacon-kit/mod/node-api/handlers/events"
 	nodeapi "github.com/berachain/beacon-kit/mod/node-api/handlers/node"
+	proofapi "github.com/berachain/beacon-kit/mod/node-api/handlers/proof"
 )
 
 type NodeAPIHandlersInput struct {
@@ -40,6 +41,7 @@ type NodeAPIHandlersInput struct {
 	DebugAPIHandler   *DebugAPIHandler
 	EventsAPIHandler  *EventsAPIHandler
 	NodeAPIHandler    *NodeAPIHandler
+	ProofAPIHandler   *ProofAPIHandler
 }
 
 func ProvideNodeAPIHandlers(
@@ -52,6 +54,7 @@ func ProvideNodeAPIHandlers(
 		in.DebugAPIHandler,
 		in.EventsAPIHandler,
 		in.NodeAPIHandler,
+		in.ProofAPIHandler,
 	}
 }
 
@@ -80,6 +83,10 @@ func ProvideNodeAPIEventsHandler() *EventsAPIHandler {
 	return eventsapi.NewHandler[NodeAPIContext]()
 }
 
-func ProvideNodeAPIHandler() *NodeAPIHandler {
+func ProvideNodeAPINodeHandler() *NodeAPIHandler {
 	return nodeapi.NewHandler[NodeAPIContext]()
+}
+
+func ProvideNodeAPIProofHandler(b *NodeAPIBackend) *ProofAPIHandler {
+	return proofapi.NewHandler[NodeAPIContext](b)
 }

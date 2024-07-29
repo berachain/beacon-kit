@@ -22,10 +22,9 @@ package engineprimitives
 
 import (
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
 )
 
@@ -68,6 +67,10 @@ func (w *Withdrawal) New(
 	}
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                     SSZ                                    */
+/* -------------------------------------------------------------------------- */
+
 // SizeSSZ returns the size of the Withdrawal in bytes when SSZ encoded.
 func (*Withdrawal) SizeSSZ() uint32 {
 	return WithdrawalSize
@@ -97,6 +100,49 @@ func (w *Withdrawal) UnmarshalSSZ(buf []byte) error {
 	return ssz.DecodeFromBytes(buf, w)
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                   FastSSZ                                  */
+/* -------------------------------------------------------------------------- */
+
+// MarshalSSZTo ssz marshals the Withdrawal object to a target array.
+func (w *Withdrawal) MarshalSSZTo(dst []byte) ([]byte, error) {
+	bz, err := w.MarshalSSZ()
+	if err != nil {
+		return nil, err
+	}
+	dst = append(dst, bz...)
+	return dst, nil
+}
+
+// HashTreeRootWith ssz hashes the Withdrawal object with a hasher.
+func (w *Withdrawal) HashTreeRootWith(hh fastssz.HashWalker) error {
+	indx := hh.Index()
+
+	// Field (0) 'Index'
+	hh.PutUint64(uint64(w.Index))
+
+	// Field (1) 'Validator'
+	hh.PutUint64(uint64(w.Validator))
+
+	// Field (2) 'Address'
+	hh.PutBytes(w.Address[:])
+
+	// Field (3) 'Amount'
+	hh.PutUint64(uint64(w.Amount))
+
+	hh.Merkleize(indx)
+	return nil
+}
+
+// GetTree ssz hashes the Withdrawal object.
+func (w *Withdrawal) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(w)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                             Getters and Setters                            */
+/* -------------------------------------------------------------------------- */
+
 // Equals returns true if the Withdrawal is equal to the other.
 func (w *Withdrawal) Equals(other *Withdrawal) bool {
 	return w.Index == other.Index &&
@@ -124,25 +170,4 @@ func (w *Withdrawal) GetAddress() gethprimitives.ExecutionAddress {
 // GetAmount returns the amount of Gwei to be withdrawn.
 func (w *Withdrawal) GetAmount() math.Gwei {
 	return w.Amount
-}
-
-// IsFixed returns true if the Withdrawal is fixed size.
-func (*Withdrawal) IsFixed() bool {
-	return true
-}
-
-// Type returns the type of the Withdrawal.
-func (*Withdrawal) Type() schema.SSZType {
-	return schema.DefineContainer(
-		schema.NewField("index", schema.U64()),
-		schema.NewField("validator_index", schema.U64()),
-		schema.NewField("address", schema.B20()),
-		schema.NewField("amount", schema.U64()),
-	)
-}
-
-// ItemLength returns the required bytes to represent the root
-// element of the Withdrawal.
-func (*Withdrawal) ItemLength() uint64 {
-	return constants.RootLength
 }
