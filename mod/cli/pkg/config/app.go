@@ -70,38 +70,38 @@ func writeAppConfig(
 	appTemplate string,
 	appConfig any,
 ) error {
+	var (
+		appTemplatePopulated bool = appTemplate != ""
+		appConfigPopulated   bool = appConfig != nil
+		err                  error
+	)
+
 	// customAppTemplate == nil ⊕ customConfig == nil
-	if (appTemplate != "" && appConfig == nil) ||
-		(appTemplate == "" && appConfig != nil) {
+	if (appTemplatePopulated && !appConfigPopulated) ||
+		(!appTemplatePopulated && appConfigPopulated) {
 		return errors.New("customAppTemplate and customConfig " +
 			"should be both nil or not nil")
 	}
 	//nolint:nestif // not overly complex
-	if appTemplate != "" {
+	if appTemplatePopulated {
 		// set the config template
 		if err := config.SetConfigTemplate(appTemplate); err != nil {
 			return fmt.Errorf("failed to set config template: %w", err)
 		}
 		// populate appConfig with the values from the viper instance
-		err := rootViper.Unmarshal(&appConfig)
-		if err != nil {
+		if err := rootViper.Unmarshal(&appConfig); err != nil {
 			return fmt.Errorf("failed to unmarshal app config: %w", err)
 		}
-		// write the appConfig to the file at appConfigFilePath
-		err = config.WriteConfigFile(appConfigFilePath, appConfig)
-		if err != nil {
-			return fmt.Errorf("failed to write %s: %w", appConfigFilePath, err)
-		}
 	} else {
-		appConf, err := config.ParseConfig(rootViper)
+		// read the appConfig from the file at appConfigFilePath
+		appConfig, err = config.ParseConfig(rootViper)
 		if err != nil {
 			return fmt.Errorf("failed to parse %s: %w", appConfigFilePath, err)
 		}
-
-		err = config.WriteConfigFile(appConfigFilePath, appConf)
-		if err != nil {
-			return fmt.Errorf("failed to write %s: %w", appConfigFilePath, err)
-		}
+	}
+	// write the appConfig to the file at appConfigFilePath
+	if err := config.WriteConfigFile(appConfigFilePath, appConfig); err != nil {
+		return fmt.Errorf("failed to write %s: %w", appConfigFilePath, err)
 	}
 
 	return nil
