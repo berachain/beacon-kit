@@ -52,12 +52,6 @@ func (b *Broker[T]) Name() string {
 	return b.name
 }
 
-
-// SetTimeout sets the timeout for sending a msg to a client.
-func (b *Broker[T]) SetTimeout(timeout time.Duration) {
-	b.timeout = timeout
-}
-
 // Start starts the broker loop.
 func (b *Broker[T]) Start(ctx context.Context) error {
 	go b.start(ctx)
