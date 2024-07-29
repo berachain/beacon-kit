@@ -71,18 +71,11 @@ func (h *Handler[
 		return nil, err
 	}
 
-	execPayloadHeader, err := beaconState.GetLatestExecutionPayloadHeader()
-	if err != nil {
-		return nil, err
-	}
-
 	return types.BlockProposerResponse[BeaconBlockHeaderT]{
 		BeaconBlockHeader:    blockHeader,
 		BeaconBlockRoot:      beaconBlockRoot,
 		ValidatorPubkey:      proposerValidator.GetPubkey(),
 		ValidatorPubkeyProof: proof,
-		EthBlockNumber:       execPayloadHeader.GetNumber(),
-		EthTimestamp:         execPayloadHeader.GetTimestamp(),
 	}, nil
 }
 
