@@ -193,7 +193,7 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 		ExtraData:     []byte{},
 		BaseFeePerGas: &math.U256{},
 		BlockHash:     gethprimitives.ExecutionHash{},
-		Transactions:  [][]byte{{0x01}},
+		Transactions:  [][]byte{[]byte{0x01}},
 		Withdrawals:   []*engineprimitives.Withdrawal{},
 		BlobGasUsed:   math.U64(0),
 		ExcessBlobGas: math.U64(0),
@@ -319,12 +319,12 @@ func TestExecutionPayload_UnmarshalJSON_Error(t *testing.T) {
 			errUnmarshal := json.Unmarshal(validJSON, &jsonMap)
 			require.NoError(t, errUnmarshal)
 
-			// delete(jsonMap, tc.removeField)
+			delete(jsonMap, tc.removeField)
 
 			malformedJSON, errMarshal := json.Marshal(jsonMap)
 			require.NoError(t, errMarshal)
 
-			// err = payload.UnmarshalJSON(malformedJSON)
+			err = payload.UnmarshalJSON(malformedJSON)
 			require.Error(t, err)
 			require.Contains(t, err.Error(), tc.expectedError)
 		})
