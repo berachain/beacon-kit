@@ -28,7 +28,6 @@ type Spec[
 	SlotT ~uint64,
 	CometBFTConfigT any,
 ] interface {
-
 	// Gwei value constants.
 
 	// MinDepositAmount returns the minimum amount of Gwei required for a

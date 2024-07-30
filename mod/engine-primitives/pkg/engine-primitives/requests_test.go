@@ -69,8 +69,8 @@ func (m MockExecutionPayload) GetTimestamp() math.U64 {
 func (m MockExecutionPayload) GetExtraData() []byte {
 	return []byte{}
 }
-func (m MockExecutionPayload) GetBaseFeePerGas() math.Wei {
-	return math.Wei{}
+func (m MockExecutionPayload) GetBaseFeePerGas() *math.U256 {
+	return &math.U256{}
 }
 
 func (

@@ -28,17 +28,20 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/stretchr/testify/require"
 )
 
 func generateBeaconBlockBody() types.BeaconBlockBody {
 	return types.BeaconBlockBody{
-		RandaoReveal:       [96]byte{1, 2, 3},
-		Eth1Data:           &types.Eth1Data{},
-		Graffiti:           [32]byte{4, 5, 6},
-		Deposits:           []*types.Deposit{},
-		ExecutionPayload:   &types.ExecutionPayload{},
+		RandaoReveal: [96]byte{1, 2, 3},
+		Eth1Data:     &types.Eth1Data{},
+		Graffiti:     [32]byte{4, 5, 6},
+		Deposits:     []*types.Deposit{},
+		ExecutionPayload: &types.ExecutionPayload{
+			BaseFeePerGas: math.NewU256(0),
+		},
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
 }

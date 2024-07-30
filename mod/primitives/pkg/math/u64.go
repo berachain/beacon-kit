@@ -28,12 +28,9 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math/pow"
 )
-
-var _ schema.SSZObject[U64] = (*U64)(nil)
 
 //nolint:lll
 type (
@@ -105,21 +102,6 @@ func (u U64) HashTreeRoot() ([32]byte, error) {
 	buf := make([]byte, constants.BytesPerChunk)
 	binary.LittleEndian.PutUint64(buf[:constants.U64Size], uint64(u))
 	return [32]byte(buf), nil
-}
-
-// IsFixed returns true if the bool is fixed size.
-func (U64) IsFixed() bool {
-	return true
-}
-
-// Type returns the type of the U64.
-func (U64) Type() schema.SSZType {
-	return schema.U64()
-}
-
-// ChunkCount returns the number of chunks required to store the uint64.
-func (U64) ChunkCount() uint64 {
-	return 1
 }
 
 // NewFromSSZ creates a new U64 from SSZ format.
@@ -221,8 +203,6 @@ func GweiFromWei(i *big.Int) Gwei {
 }
 
 // ToWei converts a value from Gwei to Wei.
-func (u Gwei) ToWei() *big.Int {
-	gweiAmount := big.NewInt(0).SetUint64(u.Unwrap())
-	intToGwei := big.NewInt(0).SetUint64(GweiPerWei)
-	return gweiAmount.Mul(gweiAmount, intToGwei)
+func (u Gwei) ToWei() *U256 {
+	return (&U256{}).Mul(NewU256(uint64(u)), NewU256(GweiPerWei))
 }

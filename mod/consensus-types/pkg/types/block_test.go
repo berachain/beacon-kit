@@ -52,6 +52,7 @@ func generateValidBeaconBlock() *types.BeaconBlock {
 					{Index: 0, Amount: 100},
 					{Index: 1, Amount: 200},
 				},
+				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{},
 			Deposits: []*types.Deposit{

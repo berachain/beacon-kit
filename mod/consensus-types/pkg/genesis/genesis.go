@@ -151,7 +151,7 @@ func DefaultGenesisExecutionPayloadHeaderDeneb() (
 		Timestamp: 0,
 		ExtraData: make([]byte, constants.ExtraDataLength),
 		//nolint:mnd // default value.
-		BaseFeePerGas: math.MustNewU256LFromBigInt(big.NewInt(3906250)),
+		BaseFeePerGas: math.NewU256FromBigInt(big.NewInt(3906250)),
 		BlockHash: gethprimitives.HexToHash(
 			"0xcfff92cd918a186029a847b59aca4f83d3941df5946b06bca8de0861fc5d0850",
 		),
