@@ -193,9 +193,6 @@ func (b *Backend[
 	// slot.
 	if slot == 0 {
 		slot, err = st.GetSlot()
-		if err != nil {
-			return st, slot, err
-		}
 	}
 	return st, slot, err
 }
