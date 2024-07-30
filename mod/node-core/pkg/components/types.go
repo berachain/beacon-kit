@@ -23,6 +23,7 @@ package components
 import (
 	"cosmossdk.io/core/appmodule/v2"
 	broker "github.com/berachain/beacon-kit/mod/async/pkg/broker"
+	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
@@ -140,6 +141,9 @@ type (
 	// BlockStore is a type alias for the block store.
 	BlockStore = block.KVStore[*BeaconBlock]
 
+	// BrokerRegistry is a type alias for the broker registry.
+	BrokerRegistry = broker.Registry
+
 	// ChainService is a type alias for the chain service.
 	ChainService = blockchain.Service[
 		*AvailabilityStore,
@@ -209,6 +213,9 @@ type (
 
 	// DepositStore is a type alias for the deposit store.
 	DepositStore = depositdb.KVStore[*Deposit]
+
+	// Dispatcher is a type alias for the dispatcher.
+	Dispatcher = dispatcher.Dispatcher
 
 	// Eth1Data is a type alias for the eth1 data.
 	Eth1Data = types.Eth1Data

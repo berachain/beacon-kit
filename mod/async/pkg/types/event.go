@@ -75,6 +75,6 @@ func (e Event[DataT]) Error() error {
 }
 
 // Is returns true if the event has the given type.
-func (e Event[DataT]) Is(eventType EventID) bool {
+func (e *Event[DataT]) Is(eventType EventID) bool {
 	return e.eventType == eventType
 }

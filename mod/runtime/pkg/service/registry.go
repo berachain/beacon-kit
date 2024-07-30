@@ -95,7 +95,7 @@ func (s *Registry) RegisterService(service Basic) error {
 // to a service currently stored in the service registry. This ensures the
 // input argument is set to the right pointer that refers to the originally
 // registered service.
-func (s *Registry) FetchService(service interface{}) error {
+func (s *Registry) FetchService(service Basic) error {
 	serviceType := reflect.TypeOf(service)
 	if serviceType.Kind() != reflect.Ptr ||
 		serviceType.Elem().Kind() != reflect.Ptr {

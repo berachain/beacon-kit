@@ -23,7 +23,11 @@ package broker
 import (
 	"context"
 	"time"
+
+	"github.com/berachain/beacon-kit/mod/async/pkg/types"
 )
+
+var _ types.Broker = &Broker[any]{}
 
 // Broker broadcasts msgs to registered clients.
 type Broker[T any] struct {
