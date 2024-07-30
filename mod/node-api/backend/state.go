@@ -22,47 +22,26 @@ package backend
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// StateFromSlot returns the state at the given slot using query context.
+// StateFromSlotForProof returns the beacon state of the version that was used
+// to calculate the parent beacon block root, which has the empty state root in
+// the latest block header. Hence we do not process the next slot.
 func (b *Backend[
-	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) StateFromSlot(
-	slot uint64,
-) (BeaconStateT, error) {
-	var state BeaconStateT
-	//#nosec:G701 // not an issue in practice.
-	queryCtx, err := b.node.CreateQueryContext(int64(slot), false)
-	if err != nil {
-		return state, err
-	}
-
-	return b.sb.StateFromContext(queryCtx), nil
+	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) StateFromSlotForProof(slot uint64) (BeaconStateT, uint64, error) {
+	return b.stateFromSlotRaw(slot)
 }
 
-// GetStateRoot returns the root of the state at the given stateID.
-//
-// TODO: fix https://github.com/berachain/beacon-kit/issues/1777.
+// GetStateRoot returns the root of the state at the given slot.
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) StateRootAtSlot(
 	slot uint64,
 ) (common.Root, error) {
-	st, err := b.StateFromSlot(slot)
+	st, slot, err := b.stateFromSlot(slot)
 	if err != nil {
 		return common.Root{}, err
-	}
-
-	// This is required to handle the semantical expectation that
-	// 0 -> latest despite 0 != latest.
-	if slot == 0 {
-		var latestSlot math.U64
-		latestSlot, err = st.GetSlot()
-		if err != nil {
-			return common.Root{}, err
-		}
-		slot = latestSlot.Unwrap()
 	}
 
 	// As calculated by the beacon chain. Ideally, this logic
@@ -73,12 +52,12 @@ func (b Backend[
 
 // GetStateFork returns the fork of the state at the given stateID.
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, ForkT, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, ForkT, _, _, _, _, _, _, _,
 ]) StateForkAtSlot(
 	slot uint64,
 ) (ForkT, error) {
 	var fork ForkT
-	st, err := b.StateFromSlot(slot)
+	st, _, err := b.stateFromSlot(slot)
 	if err != nil {
 		return fork, err
 	}

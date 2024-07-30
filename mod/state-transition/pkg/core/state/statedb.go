@@ -117,10 +117,7 @@ func (s *StateDB[
 	WithdrawalT,
 	WithdrawalCredentialsT,
 ] {
-	return s.NewFromDB(
-		s.KVStore.Copy(),
-		s.cs,
-	)
+	return s.NewFromDB(s.KVStore.Copy(), s.cs)
 }
 
 // IncreaseBalance increases the balance of a validator.

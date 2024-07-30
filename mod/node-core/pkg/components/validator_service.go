@@ -40,7 +40,7 @@ type ValidatorServiceInput struct {
 	ChainSpec       common.ChainSpec
 	LocalBuilder    *LocalBuilder
 	Logger          log.AdvancedLogger[any, sdklog.Logger]
-	StateProcessor  StateProcessor
+	StateProcessor  *StateProcessor
 	StorageBackend  *StorageBackend
 	Signer          crypto.BLSSigner
 	SidecarsFeed    *SidecarsBroker

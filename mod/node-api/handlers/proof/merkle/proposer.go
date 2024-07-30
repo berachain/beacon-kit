@@ -40,8 +40,7 @@ func ProveProposerInBlock[
 ](
 	bbh BeaconBlockHeaderT,
 	bs types.BeaconState[
-		BeaconBlockHeaderT, BeaconStateMarshallableT, ExecutionPayloadHeaderT,
-		ValidatorT,
+		BeaconStateMarshallableT, ExecutionPayloadHeaderT, ValidatorT,
 	],
 ) ([]common.Root, common.Root, error) {
 	// Get the proof of the proposer pubkey in the beacon state.
@@ -76,14 +75,12 @@ func ProveProposerInBlock[
 // ProveProposerPubkeyInState generates a proof for the proposer pubkey
 // in the beacon state. It uses the fastssz library to generate the proof.
 func ProveProposerPubkeyInState[
-	BeaconBlockHeaderT types.BeaconBlockHeader,
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
 	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
 	ValidatorT any,
 ](
 	bs types.BeaconState[
-		BeaconBlockHeaderT, BeaconStateMarshallableT, ExecutionPayloadHeaderT,
-		ValidatorT,
+		BeaconStateMarshallableT, ExecutionPayloadHeaderT, ValidatorT,
 	],
 	proposerOffset math.U64,
 ) ([]common.Root, common.Root, error) {

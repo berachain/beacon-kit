@@ -142,9 +142,7 @@ func (k Backend[
 	ctx context.Context,
 ) BeaconStateT {
 	var st BeaconStateT
-	return st.NewFromDB(
-		k.kvs.WithContext(ctx), k.cs,
-	)
+	return st.NewFromDB(k.kvs.WithContext(ctx), k.cs)
 }
 
 // BeaconStore returns the beacon store struct.

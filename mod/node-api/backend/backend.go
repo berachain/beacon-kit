@@ -24,6 +24,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // Backend is the db access layer for the beacon node-api.
@@ -55,12 +56,15 @@ type Backend[
 		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
 	],
 	ValidatorT Validator[WithdrawalCredentialsT],
+	ValidatorsT any,
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalCredentialsT WithdrawalCredentials,
 ] struct {
 	sb   StorageBackendT
 	cs   common.ChainSpec
 	node NodeT
+
+	sp StateProcessor[BeaconStateT]
 }
 
 // New creates and returns a new Backend instance.
@@ -90,44 +94,99 @@ func New[
 		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
 	],
 	ValidatorT Validator[WithdrawalCredentialsT],
+	ValidatorsT any,
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalCredentialsT WithdrawalCredentials,
 ](
-	storageBackend StorageBackendT, cs common.ChainSpec,
+	storageBackend StorageBackendT,
+	cs common.ChainSpec,
+	sp StateProcessor[BeaconStateT],
 ) *Backend[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BlockStoreT,
 	ContextT, DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-	NodeT, StateStoreT, StorageBackendT, ValidatorT, WithdrawalT,
+	NodeT, StateStoreT, StorageBackendT, ValidatorT, ValidatorsT, WithdrawalT,
 	WithdrawalCredentialsT,
 ] {
 	return &Backend[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 		BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BlockStoreT,
 		ContextT, DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-		NodeT, StateStoreT, StorageBackendT, ValidatorT, WithdrawalT,
+		NodeT, StateStoreT, StorageBackendT, ValidatorT, ValidatorsT, WithdrawalT,
 		WithdrawalCredentialsT,
 	]{
 		sb: storageBackend,
 		cs: cs,
+		sp: sp,
 	}
 }
 
 func (b *Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, NodeT, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, NodeT, _, _, _, _, _, _,
 ]) AttachNode(node NodeT) {
 	b.node = node
 }
 
 // ChainSpec returns the chain spec from the backend.
 func (b *Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, NodeT, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, NodeT, _, _, _, _, _, _,
 ]) ChainSpec() common.ChainSpec {
 	return b.cs
 }
 
 func (b *Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) GetSlotByRoot(root [32]byte) (uint64, error) {
 	return b.sb.BlockStore().GetSlotByRoot(root)
+}
+
+// stateFromSlot returns the state at the given slot, after also processing the
+// next slot to ensure the returned beacon state is up to date.
+func (b *Backend[
+	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) stateFromSlot(slot uint64) (BeaconStateT, uint64, error) {
+	var (
+		st  BeaconStateT
+		err error
+	)
+	if st, slot, err = b.stateFromSlotRaw(slot); err != nil {
+		return st, slot, err
+	}
+
+	// Process the slot to update the latest state and block roots.
+	if _, err = b.sp.ProcessSlots(st, math.U64(slot+1)); err != nil {
+		return st, slot, err
+	}
+
+	// We need to set the slot on the state back since ProcessSlot will update
+	// it to slot + 1.
+	err = st.SetSlot(math.Slot(slot))
+	return st, slot, err
+}
+
+// stateFromSlotRaw returns the state at the given slot using query context,
+// resolving an input slot of 0 to the latest slot. It does not process the next
+// slot on the beacon state.
+func (b *Backend[
+	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) stateFromSlotRaw(slot uint64) (BeaconStateT, uint64, error) {
+	var st BeaconStateT
+	//#nosec:G701 // not an issue in practice.
+	queryCtx, err := b.node.CreateQueryContext(int64(slot), false)
+	if err != nil {
+		return st, slot, err
+	}
+	st = b.sb.StateFromContext(queryCtx)
+
+	// If using height 0 for the query context, make sure to return the latest
+	// slot.
+	if slot == 0 {
+		var latestSlot math.U64
+		latestSlot, err = st.GetSlot()
+		if err != nil {
+			return st, slot, err
+		}
+		slot = latestSlot.Unwrap()
+	}
+	return st, slot, err
 }

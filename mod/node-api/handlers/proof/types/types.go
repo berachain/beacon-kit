@@ -21,7 +21,6 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -35,21 +34,16 @@ type BeaconBlockHeader interface {
 	GetTree() (*fastssz.Node, error)
 	// GetProposerIndex returns the proposer index.
 	GetProposerIndex() math.ValidatorIndex
-	// SetStateRoot sets the state root on the beacon block header.
-	SetStateRoot(common.Root)
 }
 
 // BeaconState is the interface for a beacon state.
 type BeaconState[
-	BeaconBlockHeaderT, BeaconStateMarshallableT, ExecutionPayloadHeaderT,
-	ValidatorT any,
+	BeaconStateMarshallableT, ExecutionPayloadHeaderT, ValidatorT any,
 ] interface {
 	constraints.SSZRootable
 	// GetLatestExecutionPayloadHeader returns the latest execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (ExecutionPayloadHeaderT, error)
-	// GetLatestBlockHeader returns the latest block header.
-	GetLatestBlockHeader() (BeaconBlockHeaderT, error)
 	// GetMarshallable returns the marshallable version of the beacon state.
 	GetMarshallable() (BeaconStateMarshallableT, error)
 	// ValidatorByIndex retrieves the validator at the given index.

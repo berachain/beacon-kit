@@ -27,7 +27,7 @@ import (
 )
 
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _, _,
 ]) ValidatorByID(
 	slot uint64,
 	id string,
@@ -35,7 +35,7 @@ func (b Backend[
 	// TODO: to adhere to the spec, this shouldn't error if the error
 	// is not found, but i can't think of a way to do that without coupling
 	// db impl to the api impl.
-	st, err := b.StateFromSlot(slot)
+	st, _, err := b.stateFromSlot(slot)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func (b Backend[
 }
 
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _, _,
 ]) ValidatorsByIDs(
 	slot uint64,
 	ids []string,
@@ -83,13 +83,13 @@ func (b Backend[
 }
 
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) ValidatorBalancesByIDs(
 	slot uint64,
 	ids []string,
 ) ([]*beacontypes.ValidatorBalanceData, error) {
 	var index math.U64
-	st, err := b.StateFromSlot(slot)
+	st, _, err := b.stateFromSlot(slot)
 	if err != nil {
 		return nil, err
 	}

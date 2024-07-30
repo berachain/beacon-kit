@@ -20,7 +20,9 @@
 
 package proof
 
-import "github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
+import (
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
+)
 
 // Get the slot from the given input of block id, beacon state, and beacon
 // block header for the resolved slot.
@@ -36,32 +38,18 @@ func (h *Handler[
 
 	slot, err := utils.SlotFromBlockID(blockID, h.backend)
 	if err != nil {
-		return slot, beaconState, blockHeader, err
+		return 0, beaconState, blockHeader, err
 	}
 
-	beaconState, err = h.backend.StateFromSlot(slot)
+	beaconState, slot, err = h.backend.StateFromSlotForProof(slot)
 	if err != nil {
-		return slot, beaconState, blockHeader, err
+		return 0, beaconState, blockHeader, err
 	}
 
-	blockHeader, err = h.getBlockHeaderFromState(beaconState)
-	return slot, beaconState, blockHeader, err
-}
-
-// getBlockHeaderFromState returns the block header from the given state.
-//
-// TODO: remove once issue #1777 is fixed.
-func (h *Handler[
-	_, BeaconBlockHeaderT, BeaconStateT, _, _, _,
-]) getBlockHeaderFromState(bs BeaconStateT) (BeaconBlockHeaderT, error) {
-	blockHeader, err := bs.GetLatestBlockHeader()
+	blockHeader, err = h.backend.BlockHeaderAtSlot(slot)
 	if err != nil {
-		return blockHeader, err
+		return 0, beaconState, blockHeader, err
 	}
 
-	// The state root must be patched onto the latest block header since it is
-	// committed to state with a 0 state root.
-	stateRoot, err := bs.HashTreeRoot()
-	blockHeader.SetStateRoot(stateRoot)
-	return blockHeader, err
+	return slot, beaconState, blockHeader, nil
 }

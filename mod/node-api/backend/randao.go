@@ -26,22 +26,17 @@ import (
 )
 
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) RandaoAtEpoch(
 	slot, epoch uint64,
 ) (common.Bytes32, error) {
-	st, err := b.StateFromSlot(slot)
+	st, slot, err := b.stateFromSlot(slot)
 	if err != nil {
 		return common.Bytes32{}, err
 	}
 	// Infer the epoch if not provided.
 	if epoch == 0 {
-		var latestSlot math.U64
-		latestSlot, err = st.GetSlot()
-		if err != nil {
-			return common.Bytes32{}, err
-		}
-		latestEpoch := b.cs.SlotToEpoch(latestSlot)
+		latestEpoch := b.cs.SlotToEpoch(math.U64(slot))
 		epoch = latestEpoch.Unwrap()
 	}
 	index := epoch % b.cs.EpochsPerHistoricalVector()
