@@ -1141,6 +1141,52 @@ func (_c *BeaconState_HashTreeRoot_Call[BeaconBlockHeaderT, Eth1DataT, Execution
 	return _c
 }
 
+// SetSlot provides a mock function with given fields: _a0
+func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) SetSlot(_a0 math.U64) error {
+	ret := _m.Called(_a0)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetSlot")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(math.U64) error); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// BeaconState_SetSlot_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetSlot'
+type BeaconState_SetSlot_Call[BeaconBlockHeaderT backend.BeaconBlockHeader[BeaconBlockHeaderT], Eth1DataT interface{}, ExecutionPayloadHeaderT interface{}, ForkT interface{}, ValidatorT interface{}, ValidatorsT interface{}, WithdrawalT interface{}] struct {
+	*mock.Call
+}
+
+// SetSlot is a helper method to define mock.On call
+//   - _a0 math.U64
+func (_e *BeaconState_Expecter[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) SetSlot(_a0 interface{}) *BeaconState_SetSlot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+	return &BeaconState_SetSlot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]{Call: _e.mock.On("SetSlot", _a0)}
+}
+
+func (_c *BeaconState_SetSlot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Run(run func(_a0 math.U64)) *BeaconState_SetSlot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(math.U64))
+	})
+	return _c
+}
+
+func (_c *BeaconState_SetSlot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Return(_a0 error) *BeaconState_SetSlot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *BeaconState_SetSlot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) RunAndReturn(run func(math.U64) error) *BeaconState_SetSlot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+	_c.Call.Return(run)
+	return _c
+}
+
 // StateRootAtIndex provides a mock function with given fields: _a0
 func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) StateRootAtIndex(_a0 uint64) (bytes.B32, error) {
 	ret := _m.Called(_a0)

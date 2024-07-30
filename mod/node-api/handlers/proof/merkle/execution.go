@@ -39,8 +39,7 @@ func ProveExecutionNumberInBlock[
 ](
 	bbh BeaconBlockHeaderT,
 	bs types.BeaconState[
-		BeaconBlockHeaderT, BeaconStateMarshallableT, ExecutionPayloadHeaderT,
-		ValidatorT,
+		BeaconStateMarshallableT, ExecutionPayloadHeaderT, ValidatorT,
 	],
 ) ([]common.Root, common.Root, error) {
 	// Get the proof of the execution number in the beacon state.
@@ -70,14 +69,12 @@ func ProveExecutionNumberInBlock[
 // ProveExecutionNumberInState generates a proof for the block number of the
 // execution payload in the beacon state. It uses the fastssz library.
 func ProveExecutionNumberInState[
-	BeaconBlockHeaderT types.BeaconBlockHeader,
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
 	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
 	ValidatorT any,
 ](
 	bs types.BeaconState[
-		BeaconBlockHeaderT, BeaconStateMarshallableT, ExecutionPayloadHeaderT,
-		ValidatorT,
+		BeaconStateMarshallableT, ExecutionPayloadHeaderT, ValidatorT,
 	],
 ) ([]common.Root, common.Root, error) {
 	bsm, err := bs.GetMarshallable()

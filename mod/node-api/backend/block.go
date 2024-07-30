@@ -23,63 +23,35 @@ package backend
 import (
 	types "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // BlockHeader returns the block header at the given slot.
 func (b Backend[
-	_, _, _, BeaconBlockHeaderT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, BeaconBlockHeaderT,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) BlockHeaderAtSlot(
 	slot uint64,
 ) (BeaconBlockHeaderT, error) {
-	var (
-		blockHeader BeaconBlockHeaderT
-		stateRoot   common.Root
-	)
+	var blockHeader BeaconBlockHeaderT
 
-	st, err := b.StateFromSlot(slot)
+	st, _, err := b.stateFromSlot(slot)
 	if err != nil {
 		return blockHeader, err
 	}
 
 	blockHeader, err = st.GetLatestBlockHeader()
-	if err != nil {
-		return blockHeader, err
-	}
-
-	// The state root must be patched onto the latest block header since it is
-	// committed to state with a 0 state root. // TODO: fix issue #1777.
-	stateRoot, err = st.HashTreeRoot()
-	if err != nil {
-		return blockHeader, err
-	}
-	blockHeader.SetStateRoot(stateRoot)
-
-	return blockHeader, nil
+	return blockHeader, err
 }
 
 // GetBlockRoot returns the root of the block at the given stateID.
-//
-// TODO: fix https://github.com/berachain/beacon-kit/issues/1777.
 func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) BlockRootAtSlot(
 	slot uint64,
 ) (common.Root, error) {
-	st, err := b.StateFromSlot(slot)
+	st, slot, err := b.stateFromSlot(slot)
 	if err != nil {
 		return common.Root{}, err
-	}
-
-	// This is required to handle the semantical expectation that
-	// 0 -> latest despite 0 != latest.
-	if slot == 0 {
-		var latestSlot math.U64
-		latestSlot, err = st.GetSlot()
-		if err != nil {
-			return common.Root{}, err
-		}
-		slot = latestSlot.Unwrap()
 	}
 
 	// As calculated by the beacon chain. Ideally, this logic

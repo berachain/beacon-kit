@@ -29,7 +29,7 @@ func (b Backend[
 	slot uint64,
 ) (common.Root, error) {
 	// needs genesis_time and gensis_fork_version
-	st, err := b.StateFromSlot(slot)
+	st, _, err := b.stateFromSlot(slot)
 	if err != nil {
 		return common.Root{}, err
 	}

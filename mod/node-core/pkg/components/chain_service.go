@@ -44,7 +44,7 @@ type ChainServiceInput struct {
 	LocalBuilder          *LocalBuilder
 	Logger                log.AdvancedLogger[any, sdklog.Logger]
 	Signer                crypto.BLSSigner
-	StateProcessor        StateProcessor
+	StateProcessor        *StateProcessor
 	StorageBackend        *StorageBackend
 	TelemetrySink         *metrics.TelemetrySink
 	ValidatorUpdateBroker *ValidatorUpdateBroker
