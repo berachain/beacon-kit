@@ -71,6 +71,11 @@ func NewDeposit(
 	}
 }
 
+// Empty creates an empty Deposit instance.
+func (*Deposit) Empty() *Deposit {
+	return &Deposit{}
+}
+
 // New creates a new Deposit instance.
 func (d *Deposit) New(
 	pubkey crypto.BLSPubkey,

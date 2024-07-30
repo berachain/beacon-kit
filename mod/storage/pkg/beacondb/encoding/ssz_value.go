@@ -21,20 +21,15 @@
 package encoding
 
 import (
-	"reflect"
-
-	"cosmossdk.io/collections/codec"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/davecgh/go-spew/spew"
 )
 
 // SSZValueCodec provides methods to encode and decode SSZ values.
-type SSZValueCodec[T constraints.SSZMarshallable] struct{}
-
-// Assert that SSZValueCodec implements codec.ValueCodec.
-//
-//nolint:lll // annoying formatter.
-var _ codec.ValueCodec[constraints.SSZMarshallable] = SSZValueCodec[constraints.SSZMarshallable]{}
+type SSZValueCodec[T interface {
+	constraints.SSZMarshallable
+	Empty() T
+}] struct{}
 
 // Encode marshals the provided value into its SSZ encoding.
 func (SSZValueCodec[T]) Encode(value T) ([]byte, error) {
@@ -42,14 +37,10 @@ func (SSZValueCodec[T]) Encode(value T) ([]byte, error) {
 }
 
 // Decode unmarshals the provided bytes into a value of type T.
-func (SSZValueCodec[T]) Decode(b []byte) (T, error) {
+func (SSZValueCodec[T]) Decode(bz []byte) (T, error) {
 	var v T
-	//nolint:errcheck // will error in unmarshal if there is a problem.
-	v = reflect.New(reflect.TypeOf(v).Elem()).Interface().(T)
-	if err := v.UnmarshalSSZ(b); err != nil {
-		return v, err
-	}
-	return v, nil
+	v = (v).Empty()
+	return v, v.UnmarshalSSZ(bz)
 }
 
 // EncodeJSON is not implemented and will panic if called.

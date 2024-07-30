@@ -31,11 +31,12 @@ import (
 )
 
 // BeaconBlock is an interface for accessing the beacon block.
-type BeaconBlock[T any] interface {
+type BeaconBlock[SelfT any] interface {
 	constraints.SSZMarshallable
 	constraints.Nillable
+	constraints.Empty[SelfT]
 	GetSlot() math.Slot
-	NewFromSSZ([]byte, uint32) (T, error)
+	NewFromSSZ([]byte, uint32) (SelfT, error)
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.
