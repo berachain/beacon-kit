@@ -45,5 +45,6 @@ func ProvideKVStore(
 		*ExecutionPayloadHeader,
 		*Fork,
 		*Validator,
+		Validators,
 	](in.Environment.KVStoreService, payloadCodec)
 }
