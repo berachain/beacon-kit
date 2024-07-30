@@ -21,7 +21,6 @@
 package types_test
 
 import (
-	"fmt"
 	"io"
 	"testing"
 
@@ -144,8 +143,6 @@ func TestExecutionPayload_MarshalJSON(t *testing.T) {
 	payload := generateExecutionPayload()
 
 	data, err := payload.MarshalJSON()
-	fmt.Println(string(data))
-	panic("")
 	require.NoError(t, err)
 	require.NotNil(t, data)
 
