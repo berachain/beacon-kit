@@ -186,7 +186,7 @@ func (b *Backend[
 		}
 		b.cache.AddQueryContext(slot, queryCtx)
 	}
-	st = b.sb.StateFromContext(queryCtx)
+	st = b.sb.StateFromContext(queryCtx).Copy()
 
 	// If using height 0 for the query context, make sure to return the latest
 	// slot.
