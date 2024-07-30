@@ -63,7 +63,7 @@ func SlotFromStateID(stateID string) (math.Slot, error) {
 // BlockID shares the same semantics as StateID, with the addition of
 // being able to query state by block hash.
 func SlotFromBlockID[StorageBackendT interface {
-	GetSlotByRoot(root [32]byte) (uint64, error)
+	GetSlotByRoot(root [32]byte) (math.Slot, error)
 }](blockID string, storage StorageBackendT) (math.Slot, error) {
 	if slot, err := SlotFromStateID(blockID); err == nil {
 		return slot, nil
@@ -73,9 +73,5 @@ func SlotFromBlockID[StorageBackendT interface {
 	if err != nil {
 		return 0, err
 	}
-	slot, err := storage.GetSlotByRoot(bytes.ToBytes32(root))
-	if err != nil {
-		return 0, err
-	}
-	return math.Slot(slot), nil
+	return storage.GetSlotByRoot(bytes.ToBytes32(root))
 }

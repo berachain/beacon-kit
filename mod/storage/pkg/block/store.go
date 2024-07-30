@@ -26,6 +26,7 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
 )
 
@@ -105,10 +106,15 @@ func (kv *KVStore[BeaconBlockT]) Set(slot uint64, blk BeaconBlockT) error {
 }
 
 // GetSlotByRoot retrieves the slot by a given root from the store.
-func (kv *KVStore[BeaconBlockT]) GetSlotByRoot(root [32]byte) (uint64, error) {
+func (kv *KVStore[BeaconBlockT]) GetSlotByRoot(root [32]byte) (math.Slot, error) {
 	kv.mu.RLock()
 	defer kv.mu.RUnlock()
-	return kv.roots.Get(context.TODO(), root[:])
+
+	slot, err := kv.roots.Get(context.TODO(), root[:])
+	if err != nil {
+		return 0, err
+	}
+	return math.Slot(slot), nil
 }
 
 // Prune removes the [start, end) blocks from the store.
