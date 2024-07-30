@@ -21,6 +21,7 @@
 package types_test
 
 import (
+	"fmt"
 	"io"
 	"testing"
 
@@ -148,7 +149,9 @@ func TestExecutionPayload_MarshalJSON(t *testing.T) {
 
 	var unmarshalled types.ExecutionPayload
 	err = unmarshalled.UnmarshalJSON(data)
+	fmt.Println(string(data))
 	require.NoError(t, err)
+
 	require.Equal(t, payload, &unmarshalled)
 }
 

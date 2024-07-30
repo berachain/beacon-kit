@@ -52,3 +52,9 @@ type U256Hex uint256.Int
 func (u *U256Hex) MarshalJSON() ([]byte, error) {
 	return []byte(`"` + (*uint256.Int)(u).Hex() + `"`), nil
 }
+
+// UnmarshalJSON implements the json.Unmarshaler interface.
+// It expects the input to be a hexadecimal string.
+func (u *U256Hex) UnmarshalJSON(data []byte) error {
+	return (*uint256.Int)(u).UnmarshalJSON(data)
+}
