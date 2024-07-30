@@ -342,6 +342,7 @@ type (
 		*ForkData,
 		*KVStore,
 		*Validator,
+		Validators,
 		*Withdrawal,
 		WithdrawalCredentials,
 	]

@@ -95,10 +95,7 @@ type BlockStore[BeaconBlockT any] interface {
 // DepositStore defines the interface for deposit storage.
 type DepositStore[DepositT any] interface {
 	// GetDepositsByIndex returns `numView` expected deposits.
-	GetDepositsByIndex(
-		startIndex uint64,
-		numView uint64,
-	) ([]DepositT, error)
+	GetDepositsByIndex(startIndex uint64, numView uint64) ([]DepositT, error)
 	// Prune prunes the deposit store of [start, end)
 	Prune(start, end uint64) error
 	// EnqueueDeposits adds a list of deposits to the deposit store.
@@ -112,12 +109,8 @@ type Node[ContextT any] interface {
 	CreateQueryContext(height int64, prove bool) (ContextT, error)
 }
 
-type StateProcessor[
-	BeaconStateT any,
-] interface {
-	ProcessSlots(
-		BeaconStateT, math.Slot,
-	) (transition.ValidatorUpdates, error)
+type StateProcessor[BeaconStateT any] interface {
+	ProcessSlots(BeaconStateT, math.Slot) (transition.ValidatorUpdates, error)
 }
 
 // StorageBackend is the interface for the storage backend.

@@ -140,8 +140,8 @@ func (b *Backend[
 	return b.sb.BlockStore().GetSlotByRoot(root)
 }
 
-// stateFromSlot returns the state at the given slot using query context. We
-// also process the next slot (if possible) to ensure the state is up to date.
+// stateFromSlot returns the state at the given slot, after also processing the
+// next slot to ensure the returned beacon state is up to date.
 func (b *Backend[
 	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) stateFromSlot(slot uint64) (BeaconStateT, uint64, error) {
