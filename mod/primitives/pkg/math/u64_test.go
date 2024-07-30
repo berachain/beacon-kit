@@ -661,31 +661,33 @@ func TestGwei_ToWei(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    math.Gwei
-		expected *big.Int
+		expected *math.U256
 	}{
 		{
 			name:     "zero gwei",
 			input:    math.Gwei(0),
-			expected: big.NewInt(0),
+			expected: math.NewU256FromBigInt(big.NewInt(0)),
 		},
 		{
 			name:     "one gwei",
 			input:    math.Gwei(1),
-			expected: big.NewInt(math.GweiPerWei),
+			expected: math.NewU256FromBigInt(big.NewInt(math.GweiPerWei)),
 		},
 		{
 			name:  "arbitrary gwei",
 			input: math.Gwei(123456789),
-			expected: new(
-				big.Int,
-			).Mul(big.NewInt(math.GweiPerWei), big.NewInt(123456789)),
+			expected: math.NewU256FromBigInt(new(big.Int).Mul(
+				big.NewInt(math.GweiPerWei),
+				big.NewInt(123456789),
+			)),
 		},
 		{
 			name:  "max uint64 gwei",
 			input: math.Gwei(1<<64 - 1),
-			expected: new(
-				big.Int,
-			).Mul(big.NewInt(math.GweiPerWei), new(big.Int).SetUint64(1<<64-1)),
+			expected: math.NewU256FromBigInt(new(big.Int).Mul(
+				big.NewInt(math.GweiPerWei),
+				new(big.Int).SetUint64(1<<64-1),
+			)),
 		},
 	}
 

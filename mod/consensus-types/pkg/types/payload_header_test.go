@@ -39,10 +39,10 @@ func generateExecutionPayloadHeader() *types.ExecutionPayloadHeader {
 	return &types.ExecutionPayloadHeader{
 		ParentHash:       gethprimitives.ExecutionHash{},
 		FeeRecipient:     gethprimitives.ExecutionAddress{},
-		StateRoot:        bytes.B32{123},
-		ReceiptsRoot:     bytes.B32{123},
-		LogsBloom:        bytes.B256{123},
-		Random:           bytes.B32{123},
+		StateRoot:        bytes.B32{},
+		ReceiptsRoot:     bytes.B32{},
+		LogsBloom:        bytes.B256{},
+		Random:           bytes.B32{},
 		Number:           math.U64(0),
 		GasLimit:         math.U64(0),
 		GasUsed:          math.U64(0),
@@ -77,7 +77,7 @@ func TestExecutionPayloadHeader_Getters(t *testing.T) {
 	require.Equal(t, math.U64(0), header.GetGasUsed())
 	require.Equal(t, math.U64(0), header.GetTimestamp())
 	require.Equal(t, []byte(nil), header.GetExtraData())
-	require.Equal(t, math.NewU256(1), header.GetBaseFeePerGas())
+	require.Equal(t, math.NewU256(0), header.GetBaseFeePerGas())
 	require.Equal(t, gethprimitives.ExecutionHash{}, header.GetBlockHash())
 	require.Equal(t, bytes.B32{}, header.GetTransactionsRoot())
 	require.Equal(t, bytes.B32{}, header.GetWithdrawalsRoot())
