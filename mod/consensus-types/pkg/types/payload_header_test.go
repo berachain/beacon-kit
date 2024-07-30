@@ -21,7 +21,6 @@
 package types_test
 
 import (
-	"fmt"
 	"io"
 	"testing"
 
@@ -120,9 +119,6 @@ func TestExecutionPayloadHeader_Serialization(t *testing.T) {
 	var unmarshalled = new(types.ExecutionPayloadHeader).Empty(version.Deneb)
 	err = unmarshalled.UnmarshalSSZ(data)
 	require.NoError(t, err)
-	fmt.Println("LMFAO wtf", original.BaseFeePerGas)
-	fmt.Println("LMFAO wtf", unmarshalled.BaseFeePerGas)
-	fmt.Println(original.BaseFeePerGas.Eq(unmarshalled.BaseFeePerGas))
 	require.Equal(t, original, unmarshalled)
 }
 
