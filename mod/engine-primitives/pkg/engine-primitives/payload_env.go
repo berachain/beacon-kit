@@ -31,7 +31,7 @@ type BuiltExecutionPayloadEnv[ExecutionPayloadT any] interface {
 	// GetExecutionPayload retrieves the associated execution payload.
 	GetExecutionPayload() ExecutionPayloadT
 	// GetValue returns the Wei value of the block in the execution payload.
-	GetValue() math.Wei
+	GetValue() *math.U256
 	// GetBlobsBundle fetches the associated BlobsBundleV1 if available.
 	GetBlobsBundle() BlobsBundle
 	// ShouldOverrideBuilder indicates if the builder should be overridden.
@@ -57,7 +57,7 @@ type ExecutionPayloadEnvelope[
 	BlobsBundleT BlobsBundle,
 ] struct {
 	ExecutionPayload ExecutionPayloadT `json:"executionPayload"`
-	BlockValue       math.Wei          `json:"blockValue"`
+	BlockValue       *math.U256        `json:"blockValue"`
 	BlobsBundle      BlobsBundleT      `json:"blobsBundle"`
 	Override         bool              `json:"shouldOverrideBuilder"`
 }
@@ -73,7 +73,7 @@ func (e *ExecutionPayloadEnvelope[
 // GetValue returns the value of the ExecutionPayloadEnvelope.
 func (e *ExecutionPayloadEnvelope[
 	ExecutionPayloadT, BlobsBundleT,
-]) GetValue() math.Wei {
+]) GetValue() *math.U256 {
 	return e.BlockValue
 }
 

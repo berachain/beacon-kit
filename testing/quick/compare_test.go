@@ -27,6 +27,7 @@ import (
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	zcommon "github.com/protolambda/zrnt/eth2/beacon/common"
 	zdeneb "github.com/protolambda/zrnt/eth2/beacon/deneb"
 	zspec "github.com/protolambda/zrnt/eth2/configs"
@@ -53,6 +54,7 @@ func TestExecutionPayloadHashTreeRootZrnt(t *testing.T) {
 		}
 
 		payload.LogsBloom = logsBloom
+		payload.BaseFeePerGas = math.NewU256(123)
 		typeRoot, err := payload.HashTreeRoot()
 		if err != nil {
 			t.Log("Failed to calculate HashTreeRoot on payload:", err)
@@ -60,7 +62,7 @@ func TestExecutionPayloadHashTreeRootZrnt(t *testing.T) {
 		}
 
 		baseFeePerGas := zview.Uint256View{}
-		baseFeePerGas.SetBytes32(payload.BaseFeePerGas.Unwrap())
+		baseFeePerGas.SetFromBig(payload.BaseFeePerGas.ToBig())
 		zpayload := zdeneb.ExecutionPayload{
 			ParentHash:    ztree.Root(payload.ParentHash),
 			FeeRecipient:  zcommon.Eth1Address(payload.FeeRecipient),
