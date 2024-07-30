@@ -54,6 +54,11 @@ type Fork struct {
 /*                                 Constructor                                */
 /* -------------------------------------------------------------------------- */
 
+// Empty creates an empty Fork.
+func (f *Fork) Empty() *Fork {
+	return &Fork{}
+}
+
 // New creates a new fork.
 func (f *Fork) New(
 	previousVersion common.Version,

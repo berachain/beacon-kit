@@ -95,6 +95,11 @@ func NewValidatorFromDeposit(
 	}
 }
 
+// Empty creates an empty Validator.
+func (*Validator) Empty() *Validator {
+	return &Validator{}
+}
+
 // New creates a new Validator with the given public key, withdrawal
 // credentials,.
 func (v *Validator) New(
