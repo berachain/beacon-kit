@@ -61,6 +61,9 @@ func DefaultCometConfig() *cmtcfg.Config {
 	cfg.Storage.DiscardABCIResponses = true
 	cfg.Instrumentation.Prometheus = true
 
+	// the SDK is opinionated about this value
+	cfg.RPC.PprofListenAddress = "localhost:6060"
+
 	cfg.P2P.MaxNumInboundPeers = 100
 	cfg.P2P.MaxNumOutboundPeers = 40
 	return cfg

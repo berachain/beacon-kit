@@ -23,10 +23,8 @@ package context
 import (
 	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/log/pkg/noop"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
@@ -41,15 +39,4 @@ func CreateServerContext(
 		Config: cmtcfg.DefaultConfig(),
 		Logger: logger,
 	}
-}
-
-// GetServerContextFromCmd returns a Context from a command or an empty Context
-// if it has not been set.
-func GetServerContextFromCmd(cmd *cobra.Command) *server.Context {
-	if v := cmd.Context().Value(server.ServerContextKey); v != nil {
-		serverCtxPtr, _ := v.(*server.Context)
-		return serverCtxPtr
-	}
-
-	return CreateServerContext(&noop.Logger[any, sdklog.Logger]{}, viper.New())
 }

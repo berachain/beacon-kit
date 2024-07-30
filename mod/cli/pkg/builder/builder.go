@@ -35,7 +35,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/spf13/cobra"
@@ -160,17 +159,16 @@ func (cb *CLIBuilder[T, ExecutionPayloadT]) InterceptConfigsPreRunHandler(
 	customAppConfig interface{},
 	cmtConfig *cmtcfg.Config,
 ) error {
-	serverCtx, err := config.SetupConfigAndContext(
+	viper, err := config.InitializeConfigs(
 		cmd,
 		customAppConfigTemplate,
 		customAppConfig,
 		cmtConfig,
-		logger,
 	)
 	if err != nil {
 		return err
 	}
 
-	// set server context
-	return server.SetCmdServerContext(cmd, serverCtx)
+	// set the cmd context with the viper instance and logger
+	return config.SetCmdContext(cmd, viper, logger)
 }

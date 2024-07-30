@@ -23,7 +23,6 @@ package genesis
 import (
 	"unsafe"
 
-	serverContext "github.com/berachain/beacon-kit/mod/cli/pkg/utils/context"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
@@ -34,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/afero"
@@ -66,8 +66,7 @@ func AddExecutionPayloadCmd(chainSpec common.ChainSpec) *cobra.Command {
 				nil,
 			).ExecutionPayload
 
-			serverCtx := serverContext.GetServerContextFromCmd(cmd)
-			config := serverCtx.Config
+			config := client.GetConfigFromCmd(cmd)
 
 			appGenesis, err := genutiltypes.AppGenesisFromFile(
 				config.GenesisFile(),

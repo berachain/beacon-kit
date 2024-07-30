@@ -23,7 +23,6 @@ package config
 import (
 	"fmt"
 	"os"
-	"time"
 
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/spf13/viper"
@@ -83,19 +82,6 @@ func writeCometConfig(
 
 	if err := cometConfig.ValidateBasic(); err != nil {
 		return fmt.Errorf("error in config file: %w", err)
-	}
-
-	// the SDK is very opinionated about these values, so we override them
-	// if they aren't already set
-	defaultCometCfg := cmtcfg.DefaultConfig()
-	if cometConfig.Consensus.TimeoutCommit ==
-		defaultCometCfg.Consensus.TimeoutCommit {
-		//nolint:mnd // 5 seconds
-		cometConfig.Consensus.TimeoutCommit = 5 * time.Second
-	}
-	if cometConfig.RPC.PprofListenAddress ==
-		defaultCometCfg.RPC.PprofListenAddress {
-		cometConfig.RPC.PprofListenAddress = "localhost:6060"
 	}
 
 	// write the comet config to the specified file path
