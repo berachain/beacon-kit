@@ -26,7 +26,7 @@ import (
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/depinject"
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
-	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/context"
+	"github.com/berachain/beacon-kit/mod/cli/pkg/config"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
@@ -152,9 +152,6 @@ func (cb *CLIBuilder[T, ExecutionPayloadT]) defaultRunHandler(
 	}
 }
 
-// InterceptConfigsPreRunHandler is identical to
-// InterceptConfigsAndCreateContext except it also sets the server context on
-// the command and the server logger.
 func (cb *CLIBuilder[T, ExecutionPayloadT]) InterceptConfigsPreRunHandler(
 	cmd *cobra.Command,
 	logger log.AdvancedLogger[any],
@@ -162,8 +159,13 @@ func (cb *CLIBuilder[T, ExecutionPayloadT]) InterceptConfigsPreRunHandler(
 	customAppConfig interface{},
 	cmtConfig *cmtcfg.Config,
 ) error {
-	serverCtx, err := context.InterceptConfigsAndCreateContext(
-		cmd, customAppConfigTemplate, customAppConfig, cmtConfig, logger)
+	serverCtx, err := config.SetupConfigAndContext(
+		cmd,
+		customAppConfigTemplate,
+		customAppConfig,
+		cmtConfig,
+		logger,
+	)
 	if err != nil {
 		return err
 	}

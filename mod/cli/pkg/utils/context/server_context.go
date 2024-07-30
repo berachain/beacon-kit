@@ -21,10 +21,26 @@
 package context
 
 import (
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/log/pkg/noop"
+	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
+
+// createServerContext initializes a new server.Context with the default comet
+// config, and the provided logger and viper instances.
+func CreateServerContext(
+	logger log.AdvancedLogger[any],
+	viper *viper.Viper,
+) *server.Context {
+	return &server.Context{
+		Viper:  viper,
+		Config: cmtcfg.DefaultConfig(),
+		Logger: logger,
+	}
+}
 
 // GetServerContextFromCmd returns a Context from a command or an empty Context
 // if it has not been set.
@@ -34,7 +50,5 @@ func GetServerContextFromCmd(cmd *cobra.Command) *server.Context {
 		return serverCtxPtr
 	}
 
-	return newDefaultContextWithLogger(
-		&noop.Logger[any]{},
-	)
+	return CreateServerContext(&noop.Logger[any]{}, viper.New())
 }
