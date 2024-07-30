@@ -23,8 +23,11 @@ package cache
 import "time"
 
 const (
+	// defaultQueryContextSize is the default size of the query context cache.
 	defaultQueryContextSize = 20
-	defaultQueryContextTTL  = 0
+	// defaultQueryContextTTL is 0, which means the query context does not have
+	// an expiry.
+	defaultQueryContextTTL = 0
 )
 
 // Config is the configuration for an EngineCache.

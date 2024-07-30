@@ -57,6 +57,8 @@ func (c *QueryCache) GetQueryContext(slot math.Slot) (context.Context, bool) {
 }
 
 // AddQueryContext adds a query context to the cache for the given slot.
+//
+//nolint:revive // ctx is the value in cache.
 func (c *QueryCache) AddQueryContext(slot math.Slot, ctx context.Context) {
 	c.queryCtxCache.Add(slot, ctx)
 }

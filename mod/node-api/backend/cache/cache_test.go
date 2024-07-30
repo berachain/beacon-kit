@@ -37,12 +37,13 @@ func TestQueryCache(t *testing.T) {
 	}
 
 	cacheUnderTest := cache.NewQueryCache(cacheConfig)
-	ctx := context.WithValue(context.Background(), "test", "test")
+	//nolint:revive,staticcheck // ok for test.
+	ctx := context.WithValue(context.Background(), "testK", "testV")
 
 	t.Run("Get from empty cache", func(t *testing.T) {
-		ctx, ok := cacheUnderTest.GetQueryContext(0)
+		emtpyCtx, ok := cacheUnderTest.GetQueryContext(0)
 		require.False(t, ok)
-		require.Nil(t, ctx)
+		require.Nil(t, emtpyCtx)
 	})
 
 	t.Run("Set and Get", func(t *testing.T) {
@@ -51,7 +52,7 @@ func TestQueryCache(t *testing.T) {
 
 		ctx2, ok := cacheUnderTest.GetQueryContext(slot)
 		require.True(t, ok)
-		require.Equal(t, ctx.Value("test"), ctx2.Value("test"))
+		require.Equal(t, ctx.Value("testK"), ctx2.Value("testK"))
 	})
 
 	t.Run("Overwrite existing", func(t *testing.T) {
@@ -60,14 +61,15 @@ func TestQueryCache(t *testing.T) {
 
 		ctx2, ok := cacheUnderTest.GetQueryContext(slot)
 		require.True(t, ok)
-		require.Equal(t, ctx.Value("test"), ctx2.Value("test"))
+		require.Equal(t, ctx.Value("testK"), ctx2.Value("testK"))
 
-		newCtx := context.WithValue(context.Background(), "test", "new_test")
+		//nolint:revive,staticcheck // ok for test.
+		newCtx := context.WithValue(context.Background(), "testK", "testV_new")
 		cacheUnderTest.AddQueryContext(slot, newCtx)
 
 		ctx3, ok := cacheUnderTest.GetQueryContext(slot)
 		require.True(t, ok)
-		require.Equal(t, newCtx.Value("test"), ctx3.Value("test"))
+		require.Equal(t, newCtx.Value("testK"), ctx3.Value("testK"))
 	})
 
 	t.Run("Prune and verify deletion", func(t *testing.T) {
