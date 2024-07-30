@@ -26,10 +26,6 @@ import (
 	"github.com/holiman/uint256"
 )
 
-/* -------------------------------------------------------------------------- */
-/*                                Type Definitions                            */
-/* -------------------------------------------------------------------------- */
-
 // U256 represents a 256-bit unsigned integer that is both SSZ and JSON.
 type U256 = uint256.Int
 
