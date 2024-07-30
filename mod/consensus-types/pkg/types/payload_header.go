@@ -140,7 +140,6 @@ func (h *ExecutionPayloadHeader) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineUint64(codec, &h.Timestamp)
 	//nolint:mnd // todo fix.
 	ssz.DefineDynamicBytesOffset(codec, (*[]byte)(&h.ExtraData), 32)
-	fmt.Println("BET", h.BaseFeePerGas)
 	ssz.DefineUint256(codec, &h.BaseFeePerGas)
 	ssz.DefineStaticBytes(codec, &h.BlockHash)
 	ssz.DefineStaticBytes(codec, &h.TransactionsRoot)

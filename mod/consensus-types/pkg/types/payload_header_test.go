@@ -21,7 +21,6 @@
 package types_test
 
 import (
-	"fmt"
 	"io"
 	"testing"
 
@@ -78,7 +77,7 @@ func TestExecutionPayloadHeader_Getters(t *testing.T) {
 	require.Equal(t, math.U64(0), header.GetGasUsed())
 	require.Equal(t, math.U64(0), header.GetTimestamp())
 	require.Equal(t, []byte(nil), header.GetExtraData())
-	require.Equal(t, math.NewU256(1), header.GetBaseFeePerGas())
+	require.Equal(t, math.NewU256(0), header.GetBaseFeePerGas())
 	require.Equal(t, gethprimitives.ExecutionHash{}, header.GetBlockHash())
 	require.Equal(t, bytes.B32{}, header.GetTransactionsRoot())
 	require.Equal(t, bytes.B32{}, header.GetWithdrawalsRoot())
@@ -120,9 +119,6 @@ func TestExecutionPayloadHeader_Serialization(t *testing.T) {
 	var unmarshalled = new(types.ExecutionPayloadHeader).Empty(version.Deneb)
 	err = unmarshalled.UnmarshalSSZ(data)
 	require.NoError(t, err)
-	fmt.Println("LMFAO wtf", original.BaseFeePerGas)
-	fmt.Println("LMFAO wtf", unmarshalled.BaseFeePerGas)
-	fmt.Println(original.BaseFeePerGas.Eq(unmarshalled.BaseFeePerGas))
 	require.Equal(t, original, unmarshalled)
 }
 
