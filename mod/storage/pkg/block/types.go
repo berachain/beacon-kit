@@ -21,6 +21,7 @@
 package block
 
 import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 )
 
@@ -29,4 +30,5 @@ type BeaconBlock[T any] interface {
 	NewFromSSZ(bz []byte, version uint32) (T, error)
 	Version() uint32
 	HashTreeRoot() ([32]byte, error)
+	GetParentBlockRoot() common.Root
 }

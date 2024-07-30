@@ -246,3 +246,9 @@ func (b *BeaconBlock) GetHeader() *BeaconBlockHeader {
 		BodyRoot:        bodyRoot,
 	}
 }
+
+// GetTimestamp retrieves the timestamp of the BeaconBlock from the
+// ExecutionPayload.
+func (b *BeaconBlock) GetTimestamp() math.U64 {
+	return b.Body.ExecutionPayload.Timestamp
+}

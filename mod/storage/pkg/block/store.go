@@ -22,6 +22,7 @@ package block
 
 import (
 	"context"
+	"errors"
 	"sync"
 
 	sdkcollections "cosmossdk.io/collections"
@@ -124,8 +125,20 @@ func (kv *KVStore[BeaconBlockT]) Prune(start, end uint64) error {
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
 	for i := max(start, kv.earliestSlot); i < end; i++ {
+		nextBlock, err := kv.blocks.Get(context.TODO(), i+1)
+		if !errors.Is(err, sdkcollections.ErrNotFound) {
+			if err != nil {
+				return err
+			}
+
+			root := nextBlock.GetParentBlockRoot()
+			if err = kv.roots.Remove(context.TODO(), root[:]); err != nil {
+				return err
+			}
+		}
+
 		// This only errors if the key passed in cannot be encoded.
-		if err := kv.blocks.Remove(context.TODO(), i); err != nil {
+		if err = kv.blocks.Remove(context.TODO(), i); err != nil {
 			return err
 		}
 	}
