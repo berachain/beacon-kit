@@ -63,7 +63,7 @@ type ExecutionPayload struct {
 	// ExtraData is the extra data of the block.
 	ExtraData bytes.Bytes `json:"extraData"`
 	// BaseFeePerGas is the base fee per gas.
-	BaseFeePerGas math.Wei `json:"baseFeePerGas"`
+	BaseFeePerGas *math.U256 `json:"baseFeePerGas"`
 	// BlockHash is the hash of the block.
 	BlockHash gethprimitives.ExecutionHash `json:"blockHash"`
 	// Transactions is the list of transactions in the block.
@@ -109,7 +109,7 @@ func (p *ExecutionPayload) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineUint64(codec, &p.GasUsed)
 	ssz.DefineUint64(codec, &p.Timestamp)
 	ssz.DefineDynamicBytesOffset(codec, (*[]byte)(&p.ExtraData), 32)
-	ssz.DefineStaticBytes(codec, &p.BaseFeePerGas)
+	ssz.DefineUint256(codec, &p.BaseFeePerGas)
 	ssz.DefineStaticBytes(codec, &p.BlockHash)
 	ssz.DefineSliceOfDynamicBytesOffset(
 		codec,
@@ -210,7 +210,11 @@ func (p *ExecutionPayload) HashTreeRootWith(hh fastssz.HashWalker) error {
 	}
 
 	// Field (11) 'BaseFeePerGas'
-	hh.PutBytes(p.BaseFeePerGas[:])
+	bz, err := p.BaseFeePerGas.MarshalSSZ()
+	if err != nil {
+		return err
+	}
+	hh.PutBytes(bz)
 
 	// Field (12) 'BlockHash'
 	hh.PutBytes(p.BlockHash[:])
@@ -284,7 +288,7 @@ func (p *ExecutionPayload) MarshalJSON() ([]byte, error) {
 		GasUsed       math.U64                        `json:"gasUsed"`
 		Timestamp     math.U64                        `json:"timestamp"`
 		ExtraData     bytes.Bytes                     `json:"extraData"`
-		BaseFeePerGas math.U256L                      `json:"baseFeePerGas"`
+		BaseFeePerGas *math.U256                      `json:"baseFeePerGas"`
 		BlockHash     gethprimitives.ExecutionHash    `json:"blockHash"`
 		Transactions  []bytes.Bytes                   `json:"transactions"`
 		Withdrawals   []*engineprimitives.Withdrawal  `json:"withdrawals"`
@@ -331,7 +335,7 @@ func (p *ExecutionPayload) UnmarshalJSON(input []byte) error {
 		GasUsed       *math.U64                        `json:"gasUsed"`
 		Timestamp     *math.U64                        `json:"timestamp"`
 		ExtraData     *bytes.Bytes                     `json:"extraData"`
-		BaseFeePerGas *math.U256L                      `json:"baseFeePerGas"`
+		BaseFeePerGas *math.U256                       `json:"baseFeePerGas"`
 		BlockHash     *gethprimitives.ExecutionHash    `json:"blockHash"`
 		Transactions  []bytes.Bytes                    `json:"transactions"`
 		Withdrawals   []*engineprimitives.Withdrawal   `json:"withdrawals"`
@@ -413,7 +417,7 @@ func (p *ExecutionPayload) UnmarshalJSON(input []byte) error {
 			"missing required field 'baseFeePerGas' for ExecutionPayload",
 		)
 	}
-	p.BaseFeePerGas = *dec.BaseFeePerGas
+	p.BaseFeePerGas = dec.BaseFeePerGas
 	if dec.BlockHash == nil {
 		return errors.New(
 			"missing required field 'blockHash' for ExecutionPayload",
@@ -519,7 +523,7 @@ func (p *ExecutionPayload) GetExtraData() []byte {
 }
 
 // GetBaseFeePerGas returns the base fee per gas of the ExecutionPayload.
-func (p *ExecutionPayload) GetBaseFeePerGas() math.Wei {
+func (p *ExecutionPayload) GetBaseFeePerGas() *math.U256 {
 	return p.BaseFeePerGas
 }
 

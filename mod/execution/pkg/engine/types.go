@@ -40,7 +40,7 @@ type ExecutionPayload[ExecutionPayloadT, WithdrawalT any] interface {
 	GetGasUsed() math.U64
 	GetTimestamp() math.U64
 	GetExtraData() []byte
-	GetBaseFeePerGas() math.Wei
+	GetBaseFeePerGas() *math.U256
 	GetFeeRecipient() gethprimitives.ExecutionAddress
 	GetStateRoot() common.Bytes32
 	GetReceiptsRoot() common.Bytes32

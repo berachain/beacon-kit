@@ -21,6 +21,7 @@
 package types_test
 
 import (
+	"fmt"
 	"io"
 	"testing"
 
@@ -39,16 +40,16 @@ func generateExecutionPayloadHeader() *types.ExecutionPayloadHeader {
 	return &types.ExecutionPayloadHeader{
 		ParentHash:       gethprimitives.ExecutionHash{},
 		FeeRecipient:     gethprimitives.ExecutionAddress{},
-		StateRoot:        bytes.B32{},
-		ReceiptsRoot:     bytes.B32{},
-		LogsBloom:        bytes.B256{},
-		Random:           bytes.B32{},
+		StateRoot:        bytes.B32{123},
+		ReceiptsRoot:     bytes.B32{123},
+		LogsBloom:        bytes.B256{123},
+		Random:           bytes.B32{123},
 		Number:           math.U64(0),
 		GasLimit:         math.U64(0),
 		GasUsed:          math.U64(0),
 		Timestamp:        math.U64(0),
 		ExtraData:        nil,
-		BaseFeePerGas:    math.Wei{},
+		BaseFeePerGas:    &math.U256{},
 		BlockHash:        gethprimitives.ExecutionHash{},
 		TransactionsRoot: bytes.B32{},
 		WithdrawalsRoot:  bytes.B32{},
@@ -77,7 +78,7 @@ func TestExecutionPayloadHeader_Getters(t *testing.T) {
 	require.Equal(t, math.U64(0), header.GetGasUsed())
 	require.Equal(t, math.U64(0), header.GetTimestamp())
 	require.Equal(t, []byte(nil), header.GetExtraData())
-	require.Equal(t, math.Wei{}, header.GetBaseFeePerGas())
+	require.Equal(t, math.NewU256(1), header.GetBaseFeePerGas())
 	require.Equal(t, gethprimitives.ExecutionHash{}, header.GetBlockHash())
 	require.Equal(t, bytes.B32{}, header.GetTransactionsRoot())
 	require.Equal(t, bytes.B32{}, header.GetWithdrawalsRoot())
@@ -116,11 +117,13 @@ func TestExecutionPayloadHeader_Serialization(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, data)
 
-	var unmarshalled types.ExecutionPayloadHeader
-	err = unmarshalled.Empty(version.Deneb).UnmarshalSSZ(data)
+	var unmarshalled = new(types.ExecutionPayloadHeader).Empty(version.Deneb)
+	err = unmarshalled.UnmarshalSSZ(data)
 	require.NoError(t, err)
-
-	require.Equal(t, original, &unmarshalled)
+	fmt.Println("LMFAO wtf", original.BaseFeePerGas)
+	fmt.Println("LMFAO wtf", unmarshalled.BaseFeePerGas)
+	fmt.Println(original.BaseFeePerGas.Eq(unmarshalled.BaseFeePerGas))
+	require.Equal(t, original, unmarshalled)
 }
 
 func TestExecutionPayloadHeader_MarshalSSZTo(t *testing.T) {
