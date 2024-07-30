@@ -23,6 +23,7 @@ package utils
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 const (
@@ -33,36 +34,37 @@ const (
 )
 
 const (
-	Head uint64 = iota
+	Head math.Slot = iota
 	Genesis
 )
+
+// U64FromString returns a math.U64 from the given string.
+func U64FromString(id string) (math.U64, error) {
+	var u64 math.U64
+	return u64, u64.UnmarshalText([]byte(id))
+}
 
 // SlotFromStateID returns a slot from the state ID.
 //
 // NOTE: Right now, `stateID` only supports querying by "head" (all of "head",
 // "finalized", "justified" are the same), "genesis", and <slot>. We do NOT
 // support querying by <stateRoot>.
-func SlotFromStateID(stateID string) (uint64, error) {
+func SlotFromStateID(stateID string) (math.Slot, error) {
 	switch stateID {
 	case StateIDFinalized, StateIDJustified, StateIDHead:
 		return Head, nil
 	case StateIDGenesis:
 		return Genesis, nil
 	default:
-		slot, err := hex.String(stateID).ToUint64()
-		if err != nil {
-			return 0, err
-		}
-		//#nosec:G701 // not an issue in practice.
-		return slot, nil
+		return U64FromString(stateID)
 	}
 }
 
 // BlockID shares the same semantics as StateID, with the addition of
 // being able to query state by block hash.
 func SlotFromBlockID[StorageBackendT interface {
-	GetSlotByRoot(root [32]byte) (uint64, error)
-}](blockID string, storage StorageBackendT) (uint64, error) {
+	GetSlotByRoot(root [32]byte) (math.Slot, error)
+}](blockID string, storage StorageBackendT) (math.Slot, error) {
 	if slot, err := SlotFromStateID(blockID); err == nil {
 		return slot, nil
 	}

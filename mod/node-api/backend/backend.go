@@ -136,7 +136,7 @@ func (b *Backend[
 
 func (b *Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) GetSlotByRoot(root [32]byte) (uint64, error) {
+]) GetSlotByRoot(root [32]byte) (math.Slot, error) {
 	return b.sb.BlockStore().GetSlotByRoot(root)
 }
 
@@ -144,7 +144,7 @@ func (b *Backend[
 // next slot to ensure the returned beacon state is up to date.
 func (b *Backend[
 	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) stateFromSlot(slot uint64) (BeaconStateT, uint64, error) {
+]) stateFromSlot(slot math.Slot) (BeaconStateT, math.Slot, error) {
 	var (
 		st  BeaconStateT
 		err error
@@ -154,13 +154,13 @@ func (b *Backend[
 	}
 
 	// Process the slot to update the latest state and block roots.
-	if _, err = b.sp.ProcessSlots(st, math.U64(slot+1)); err != nil {
+	if _, err = b.sp.ProcessSlots(st, slot+1); err != nil {
 		return st, slot, err
 	}
 
 	// We need to set the slot on the state back since ProcessSlot will update
 	// it to slot + 1.
-	err = st.SetSlot(math.Slot(slot))
+	err = st.SetSlot(slot)
 	return st, slot, err
 }
 
@@ -169,7 +169,7 @@ func (b *Backend[
 // slot on the beacon state.
 func (b *Backend[
 	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) stateFromSlotRaw(slot uint64) (BeaconStateT, uint64, error) {
+]) stateFromSlotRaw(slot math.Slot) (BeaconStateT, math.Slot, error) {
 	var st BeaconStateT
 	//#nosec:G701 // not an issue in practice.
 	queryCtx, err := b.node.CreateQueryContext(int64(slot), false)
@@ -181,12 +181,10 @@ func (b *Backend[
 	// If using height 0 for the query context, make sure to return the latest
 	// slot.
 	if slot == 0 {
-		var latestSlot math.U64
-		latestSlot, err = st.GetSlot()
+		slot, err = st.GetSlot()
 		if err != nil {
 			return st, slot, err
 		}
-		slot = latestSlot.Unwrap()
 	}
 	return st, slot, err
 }

@@ -22,6 +22,7 @@ package proof
 
 import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // Get the slot from the given input of block id, beacon state, and beacon
@@ -29,7 +30,7 @@ import (
 func (h *Handler[
 	ContextT, BeaconBlockHeaderT, BeaconStateT, _, _, _,
 ]) resolveBlockID(blockID string) (
-	uint64, BeaconStateT, BeaconBlockHeaderT, error,
+	math.Slot, BeaconStateT, BeaconBlockHeaderT, error,
 ) {
 	var (
 		beaconState BeaconStateT

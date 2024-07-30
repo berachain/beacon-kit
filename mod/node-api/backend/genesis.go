@@ -20,14 +20,15 @@
 
 package backend
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+)
 
 // GetGenesis returns the genesis state of the beacon chain.
 func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) GenesisValidatorsRoot(
-	slot uint64,
-) (common.Root, error) {
+]) GenesisValidatorsRoot(slot math.Slot) (common.Root, error) {
 	// needs genesis_time and gensis_fork_version
 	st, _, err := b.stateFromSlot(slot)
 	if err != nil {
