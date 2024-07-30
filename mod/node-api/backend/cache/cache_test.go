@@ -65,6 +65,7 @@ func TestQueryCache(t *testing.T) {
 
 		//nolint:revive,staticcheck // ok for test.
 		newCtx := context.WithValue(context.Background(), "testK", "testV_new")
+		//nolint:contextcheck // ok for test.
 		cacheUnderTest.AddQueryContext(slot, newCtx)
 
 		ctx3, ok := cacheUnderTest.GetQueryContext(slot)
