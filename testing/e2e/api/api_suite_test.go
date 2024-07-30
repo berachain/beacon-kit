@@ -21,36 +21,18 @@
 package api_test
 
 import (
-	"context"
-
-	eth2client "github.com/attestantio/go-eth2-client"
-	"github.com/attestantio/go-eth2-client/http"
 	"github.com/berachain/beacon-kit/testing/e2e/suite"
-	"github.com/rs/zerolog"
 )
 
 // BeaconAPISuite is a suite of beacon node-api tests with full simulation of a
 // beacon-kit network.
 type BeaconAPISuite struct {
 	suite.KurtosisE2ESuite
-
-	beaconClient eth2client.Service
 }
 
-// NewBeaconAPISuite creates a new BeaconAPISuite.
-//
-// TODO: pass in values from the config.
-func NewBeaconAPISuite() *BeaconAPISuite {
-	beaconClient, err := http.New(
-		context.Background(),
-		http.WithAddress("http://localhost:3500"),
-		http.WithLogLevel(zerolog.DebugLevel),
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	return &BeaconAPISuite{
-		beaconClient: beaconClient,
-	}
+// TestBasicStartup tests the basic startup of the beacon-kit network.
+// TODO: convert to test beacon client works.
+func (s *BeaconAPISuite) TestBasicStartup() {
+	err := s.WaitForFinalizedBlockNumber(10)
+	s.Require().NoError(err)
 }
