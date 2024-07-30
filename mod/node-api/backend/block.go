@@ -27,7 +27,8 @@ import (
 
 // BlockHeader returns the block header at the given slot.
 func (b Backend[
-	_, _, _, BeaconBlockHeaderT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, BeaconBlockHeaderT,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) BlockHeaderAtSlot(
 	slot uint64,
 ) (BeaconBlockHeaderT, error) {
@@ -44,7 +45,7 @@ func (b Backend[
 
 // GetBlockRoot returns the root of the block at the given stateID.
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) BlockRootAtSlot(
 	slot uint64,
 ) (common.Root, error) {
@@ -61,7 +62,7 @@ func (b Backend[
 
 // TODO: Implement this.
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) BlockRewardsAtSlot(
 	_ uint64,
 ) (*types.BlockRewardsData, error) {

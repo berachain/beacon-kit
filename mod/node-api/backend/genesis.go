@@ -24,7 +24,7 @@ import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 
 // GetGenesis returns the genesis state of the beacon chain.
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) GenesisValidatorsRoot(
 	slot uint64,
 ) (common.Root, error) {

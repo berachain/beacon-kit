@@ -55,6 +55,7 @@ func ProvideStateProcessor(
 		*ForkData,
 		*KVStore,
 		*Validator,
+		Validators,
 		*Withdrawal,
 		WithdrawalCredentials,
 	](

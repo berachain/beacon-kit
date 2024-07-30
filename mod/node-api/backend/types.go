@@ -65,8 +65,9 @@ type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
 
 // BeaconState is the interface for the beacon state.
 type BeaconState[
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT], Eth1DataT,
-	ExecutionPayloadHeaderT, ForkT, ValidatorT, WithdrawalT any,
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+	ValidatorT, ValidatorsT, WithdrawalT any,
 ] interface {
 	constraints.SSZRootable
 
@@ -75,7 +76,7 @@ type BeaconState[
 
 	core.ReadOnlyBeaconState[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-		ForkT, ValidatorT, WithdrawalT,
+		ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 	]
 }
 

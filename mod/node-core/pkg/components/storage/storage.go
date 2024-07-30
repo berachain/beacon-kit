@@ -40,7 +40,7 @@ type Backend[
 	BeaconBlockHeaderT core.BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT core.BeaconState[
 		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-		ForkT, KVStoreT, ValidatorT, WithdrawalT,
+		ForkT, KVStoreT, ValidatorT, ValidatorsT, WithdrawalT,
 	],
 	BeaconStateMarshallableT state.BeaconStateMarshallable[
 		BeaconStateMarshallableT, BeaconBlockHeaderT, Eth1DataT,
@@ -55,9 +55,10 @@ type Backend[
 	ForkT any,
 	KVStoreT KVStore[
 		KVStoreT, BeaconBlockHeaderT, Eth1DataT,
-		ExecutionPayloadHeaderT, ForkT, ValidatorT,
+		ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT,
 	],
 	ValidatorT Validator[WithdrawalCredentialsT],
+	ValidatorsT ~[]ValidatorT,
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalCredentialsT WithdrawalCredentials,
 ] struct {
@@ -77,7 +78,7 @@ func NewBackend[
 	BeaconBlockHeaderT core.BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT core.BeaconState[
 		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-		ForkT, KVStoreT, ValidatorT, WithdrawalT,
+		ForkT, KVStoreT, ValidatorT, ValidatorsT, WithdrawalT,
 	],
 	BeaconStateMarshallableT state.BeaconStateMarshallable[
 		BeaconStateMarshallableT, BeaconBlockHeaderT, Eth1DataT,
@@ -92,9 +93,10 @@ func NewBackend[
 	ForkT any,
 	KVStoreT KVStore[
 		KVStoreT, BeaconBlockHeaderT, Eth1DataT,
-		ExecutionPayloadHeaderT, ForkT, ValidatorT,
+		ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT,
 	],
 	ValidatorT Validator[WithdrawalCredentialsT],
+	ValidatorsT ~[]ValidatorT,
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalCredentialsT WithdrawalCredentials,
 ](
@@ -107,13 +109,13 @@ func NewBackend[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BlockStoreT,
 	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-	KVStoreT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	KVStoreT, ValidatorT, ValidatorsT, WithdrawalT, WithdrawalCredentialsT,
 ] {
 	return &Backend[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 		BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BlockStoreT,
 		DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-		KVStoreT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+		KVStoreT, ValidatorT, ValidatorsT, WithdrawalT, WithdrawalCredentialsT,
 	]{
 		cs:  cs,
 		as:  as,
@@ -126,7 +128,7 @@ func NewBackend[
 // AvailabilityStore returns the availability store struct initialized with a
 // given context.
 func (k Backend[
-	AvailabilityStoreT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	AvailabilityStoreT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) AvailabilityStore() AvailabilityStoreT {
 	return k.as
 }
@@ -137,7 +139,7 @@ func (k Backend[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BlockStoreT,
 	DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-	KVStoreT, ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	KVStoreT, ValidatorT, ValidatorsT, WithdrawalT, WithdrawalCredentialsT,
 ]) StateFromContext(
 	ctx context.Context,
 ) BeaconStateT {
@@ -147,20 +149,20 @@ func (k Backend[
 
 // BeaconStore returns the beacon store struct.
 func (k Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, KVStoreT, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, KVStoreT, _, _, _, _,
 ]) BeaconStore() KVStoreT {
 	return k.kvs
 }
 
 func (k Backend[
-	_, _, _, _, _, _, _, BlockStoreT, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, BlockStoreT, _, _, _, _, _, _, _, _, _, _,
 ]) BlockStore() BlockStoreT {
 	return k.bs
 }
 
 // DepositStore returns the deposit store struct initialized with a.
 func (k Backend[
-	_, _, _, _, _, _, _, _, _, DepositStoreT, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, DepositStoreT, _, _, _, _, _, _, _, _,
 ]) DepositStore() DepositStoreT {
 	return k.ds
 }
