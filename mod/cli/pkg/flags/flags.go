@@ -73,11 +73,12 @@ const (
 	nodeAPIRoot                 = beaconKitRoot + "node-api."
 	nodeAPIServerRoot           = nodeAPIRoot + "server."
 	nodeAPIBackendRoot          = nodeAPIRoot + "backend."
+	nodeAPICacheRoot            = nodeAPIBackendRoot + "cache."
 	NodeAPIEnabled              = nodeAPIServerRoot + "enabled"
 	NodeAPIAddress              = nodeAPIServerRoot + "address"
 	NodeAPILogging              = nodeAPIServerRoot + "logging"
-	NodeAPICacheSize            = nodeAPIBackendRoot + "cache.size"
-	NodeAPICacheQueryContextTTL = nodeAPIBackendRoot + "cache.query-context-ttl"
+	NodeAPICacheSize            = nodeAPICacheRoot + "size"
+	NodeAPICacheQueryContextTTL = nodeAPICacheRoot + "query-context-ttl"
 )
 
 // AddBeaconKitFlags implements servertypes.ModuleInitFlags interface.

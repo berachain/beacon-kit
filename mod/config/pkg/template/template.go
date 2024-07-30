@@ -105,7 +105,7 @@ address = "{{ .BeaconKit.NodeAPI.Server.Address }}"
 # Logging determines if the node API logging is enabled.
 logging = "{{ .BeaconKit.NodeAPI.Server.Logging }}"
 
-[beacon-kit.node-api.backend]
+[beacon-kit.node-api.backend.cache]
 # Size is the size of the query context cache.
 size = "{{ .BeaconKit.NodeAPI.Backend.Cache.Size }}"
 
