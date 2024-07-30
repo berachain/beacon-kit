@@ -26,10 +26,6 @@ import (
 	"github.com/holiman/uint256"
 )
 
-/* -------------------------------------------------------------------------- */
-/*                                Type Definitions                            */
-/* -------------------------------------------------------------------------- */
-
 // U256 represents a 256-bit unsigned integer that is both SSZ and JSON.
 type U256 = uint256.Int
 
@@ -41,4 +37,20 @@ func NewU256(v uint64) *U256 {
 // NewU256FromBigInt creates a new U256 from a big.Int.
 func NewU256FromBigInt(b *big.Int) *U256 {
 	return uint256.MustFromBig(b)
+}
+
+// U256Hex represents a 256-bit unsigned integer that is marshaled to JSON
+// as a hexadecimal string.
+type U256Hex uint256.Int
+
+// MarshalJSON implements the json.Marshaler interface.
+// It returns the hexadecimal string representation of the U256Hex value.
+func (u *U256Hex) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + (*uint256.Int)(u).Hex() + `"`), nil
+}
+
+// UnmarshalJSON implements the json.Unmarshaler interface.
+// It expects the input to be a hexadecimal string.
+func (u *U256Hex) UnmarshalJSON(data []byte) error {
+	return (*uint256.Int)(u).UnmarshalJSON(data)
 }
