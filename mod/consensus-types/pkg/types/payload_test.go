@@ -57,7 +57,7 @@ func generateExecutionPayload() *types.ExecutionPayload {
 		GasUsed:       math.U64(0),
 		Timestamp:     math.U64(0),
 		ExtraData:     []byte{0x01},
-		BaseFeePerGas: math.Wei{},
+		BaseFeePerGas: &math.U256{},
 		BlockHash:     gethprimitives.ExecutionHash{},
 		Transactions:  transactions,
 		Withdrawals:   withdrawals,
@@ -131,7 +131,7 @@ func TestExecutionPayload_Getters(t *testing.T) {
 	require.Equal(t, math.U64(0), payload.GetGasUsed())
 	require.Equal(t, math.U64(0), payload.GetTimestamp())
 	require.Equal(t, []byte{0x01}, payload.GetExtraData())
-	require.Equal(t, math.Wei{}, payload.GetBaseFeePerGas())
+	require.Equal(t, &math.U256{}, payload.GetBaseFeePerGas())
 	require.Equal(t, gethprimitives.ExecutionHash{}, payload.GetBlockHash())
 	require.Equal(t, transactions, payload.GetTransactions())
 	require.Equal(t, withdrawals, payload.GetWithdrawals())
@@ -191,7 +191,7 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 		GasUsed:       math.U64(0),
 		Timestamp:     math.U64(0),
 		ExtraData:     []byte{},
-		BaseFeePerGas: math.Wei{},
+		BaseFeePerGas: &math.U256{},
 		BlockHash:     gethprimitives.ExecutionHash{},
 		Transactions:  [][]byte{[]byte{0x01}},
 		Withdrawals:   []*engineprimitives.Withdrawal{},

@@ -160,7 +160,7 @@ type ExecutionPayload[
 	GetTimestamp() math.U64
 	GetGasUsed() math.U64
 	GetExtraData() []byte
-	GetBaseFeePerGas() math.U256L
+	GetBaseFeePerGas() *math.U256
 	GetBlobGasUsed() math.U64
 	GetExcessBlobGas() math.U64
 	ToHeader(

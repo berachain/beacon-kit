@@ -165,21 +165,19 @@ func executableDataToExecutionPayloadHeader(
 		}
 
 		executionPayloadHeader = &types.ExecutionPayloadHeader{
-			ParentHash:   data.ParentHash,
-			FeeRecipient: data.FeeRecipient,
-			StateRoot:    common.Bytes32(data.StateRoot),
-			ReceiptsRoot: common.Bytes32(data.ReceiptsRoot),
-			LogsBloom:    [256]byte(data.LogsBloom),
-			Random:       common.Bytes32(data.Random),
-			Number:       math.U64(data.Number),
-			GasLimit:     math.U64(data.GasLimit),
-			GasUsed:      math.U64(data.GasUsed),
-			Timestamp:    math.U64(data.Timestamp),
-			ExtraData:    data.ExtraData,
-			BaseFeePerGas: math.MustNewU256LFromBigInt(
-				data.BaseFeePerGas,
-			),
-			BlockHash: data.BlockHash,
+			ParentHash:    data.ParentHash,
+			FeeRecipient:  data.FeeRecipient,
+			StateRoot:     common.Bytes32(data.StateRoot),
+			ReceiptsRoot:  common.Bytes32(data.ReceiptsRoot),
+			LogsBloom:     [256]byte(data.LogsBloom),
+			Random:        common.Bytes32(data.Random),
+			Number:        math.U64(data.Number),
+			GasLimit:      math.U64(data.GasLimit),
+			GasUsed:       math.U64(data.GasUsed),
+			Timestamp:     math.U64(data.Timestamp),
+			ExtraData:     data.ExtraData,
+			BaseFeePerGas: math.NewU256FromBigInt(data.BaseFeePerGas),
+			BlockHash:     data.BlockHash,
 			// TODO: Decouple from broken bArtio.
 			TransactionsRoot: engineprimitives.
 				BartioTransactions(
