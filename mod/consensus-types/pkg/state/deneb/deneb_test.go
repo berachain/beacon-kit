@@ -33,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
 )
@@ -95,7 +96,7 @@ func generateValidBeaconState() *deneb.BeaconState {
 			GasUsed:          25000000,
 			Timestamp:        1625097600,
 			ExtraData:        []byte{0x26, 0x27, 0x28},
-			BaseFeePerGas:    [32]byte{0x29, 0x2a, 0x2b},
+			BaseFeePerGas:    math.NewU256(3906250),
 			BlockHash:        [32]byte{0x2c, 0x2d, 0x2e},
 			TransactionsRoot: [32]byte{0x2f, 0x30, 0x31},
 			WithdrawalsRoot:  [32]byte{0x32, 0x33, 0x34},
