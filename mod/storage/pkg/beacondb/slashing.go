@@ -28,7 +28,7 @@ import (
 
 func (kv *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) GetSlashings() ([]uint64, error) {
 	var slashings []uint64
 	iter, err := kv.slashings.Iterate(kv.ctx, nil)
@@ -50,7 +50,7 @@ func (kv *KVStore[
 // GetSlashingAtIndex retrieves the slashing amount by index from the store.
 func (kv *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) GetSlashingAtIndex(
 	index uint64,
 ) (math.Gwei, error) {
@@ -66,7 +66,7 @@ func (kv *KVStore[
 // SetSlashingAtIndex sets the slashing amount in the store.
 func (kv *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) SetSlashingAtIndex(
 	index uint64,
 	amount math.Gwei,
@@ -77,7 +77,7 @@ func (kv *KVStore[
 // GetTotalSlashing retrieves the total slashing amount from the store.
 func (kv *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) GetTotalSlashing() (math.Gwei, error) {
 	total, err := kv.totalSlashing.Get(kv.ctx)
 	if errors.Is(err, collections.ErrNotFound) {
@@ -91,7 +91,7 @@ func (kv *KVStore[
 // SetTotalSlashing sets the total slashing amount in the store.
 func (kv *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) SetTotalSlashing(
 	amount math.Gwei,
 ) error {

@@ -16,7 +16,7 @@ require (
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240619234034-fe96d94eafef
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157
-	github.com/cometbft/cometbft v1.0.0-rc1.0.20240727041726-672aa134407b
+	github.com/cometbft/cometbft v1.0.0-rc1.0.20240729121641-d06d2e8229ee
 	github.com/cosmos/cosmos-sdk v0.51.0
 	github.com/ethereum/go-ethereum v1.14.6
 	github.com/holiman/uint256 v1.3.0

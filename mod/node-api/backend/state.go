@@ -27,7 +27,7 @@ import (
 
 // StateFromSlot returns the state at the given slot using query context.
 func (b *Backend[
-	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) StateFromSlot(
 	slot uint64,
 ) (BeaconStateT, error) {
@@ -45,7 +45,7 @@ func (b *Backend[
 //
 // TODO: fix https://github.com/berachain/beacon-kit/issues/1777.
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) StateRootAtSlot(
 	slot uint64,
 ) (common.Root, error) {
@@ -73,7 +73,7 @@ func (b Backend[
 
 // GetStateFork returns the fork of the state at the given stateID.
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, ForkT, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, ForkT, _, _, _, _, _, _, _,
 ]) StateForkAtSlot(
 	slot uint64,
 ) (ForkT, error) {
