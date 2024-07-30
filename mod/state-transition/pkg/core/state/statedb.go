@@ -21,8 +21,6 @@
 package state
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/mod/errors"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -305,8 +303,6 @@ func (s *StateDB[
 	if err != nil {
 		return empty, err
 	}
-
-	fmt.Println("\n\nlatestBlockHeader", latestBlockHeader, "slot", slot, "\n\n")
 
 	blockRoots := make([]common.Root, s.cs.SlotsPerHistoricalRoot())
 	for i := range s.cs.SlotsPerHistoricalRoot() {
