@@ -25,8 +25,6 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/require"
 )
@@ -772,14 +770,6 @@ func TestU64_UnwrapPtr(t *testing.T) {
 				"Test case: %s", tt.name)
 		})
 	}
-}
-
-func TestU64(t *testing.T) {
-	var u math.U64
-	require.Equal(t, constants.U64Size, u.SizeSSZ())
-	require.True(t, u.IsFixed())
-	require.Equal(t, schema.U64(), u.Type())
-	require.Equal(t, uint64(1), u.ChunkCount())
 }
 
 func TestU64_NewFromSSZ(t *testing.T) {
