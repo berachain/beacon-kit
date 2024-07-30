@@ -76,13 +76,6 @@ func TestBeaconBlockForDeneb(t *testing.T) {
 	require.NotNil(t, block)
 }
 
-// Test the case where the fork version is not supported.
-func TestEmptyBeaconBlockInvalidForkVersion(t *testing.T) {
-	require.Panics(t, func() {
-		(&types.BeaconBlock{}).Empty()
-	})
-}
-
 func TestBeaconBlockFromSSZ(t *testing.T) {
 	originalBlock := generateValidBeaconBlock()
 
@@ -146,7 +139,7 @@ func TestBeaconBlock_HashTreeRoot(t *testing.T) {
 
 func TestBeaconBlockEmpty(t *testing.T) {
 	block := &types.BeaconBlock{}
-	emptyBlock := block.Empty(version.Deneb)
+	emptyBlock := block.Empty()
 	require.NotNil(t, emptyBlock)
 	require.IsType(t, &types.BeaconBlock{}, emptyBlock)
 }
