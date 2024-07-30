@@ -49,7 +49,9 @@ type KVStore[DepositT Deposit[DepositT]] struct {
 }
 
 // NewStore creates a new deposit store.
-func NewStore[DepositT Deposit[DepositT]](kvsp store.KVStoreService) *KVStore[DepositT] {
+func NewStore[DepositT Deposit[DepositT]](
+	kvsp store.KVStoreService,
+) *KVStore[DepositT] {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kvsp)
 	return &KVStore[DepositT]{
 		store: sdkcollections.NewMap(
