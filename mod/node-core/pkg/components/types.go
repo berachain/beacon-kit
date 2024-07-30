@@ -107,6 +107,7 @@ type (
 		*Fork,
 		*KVStore,
 		*Validator,
+		Validators,
 		*Withdrawal,
 		WithdrawalCredentials,
 	]
@@ -257,6 +258,7 @@ type (
 		*ExecutionPayloadHeader,
 		*Fork,
 		*Validator,
+		Validators,
 	]
 
 	// LegacyKey type alias to LegacyKey used for LegacySinger construction.
@@ -292,6 +294,7 @@ type (
 		*KVStore,
 		*StorageBackend,
 		*Validator,
+		Validators,
 		*Withdrawal,
 		WithdrawalCredentials,
 	]
@@ -350,12 +353,16 @@ type (
 		*Fork,
 		*KVStore,
 		*Validator,
+		Validators,
 		*Withdrawal,
 		WithdrawalCredentials,
 	]
 
 	// Validator is a type alias for the validator.
 	Validator = types.Validator
+
+	// Validators is a type alias for the validators.
+	Validators = types.Validators
 
 	// ValidatorService is a type alias for the validator service.
 	ValidatorService = validator.Service[

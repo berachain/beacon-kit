@@ -38,7 +38,7 @@ type Backend[
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT BeaconState[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-		ValidatorT, WithdrawalT,
+		ValidatorT, ValidatorsT, WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
 	BlobSidecarsT any,
@@ -55,6 +55,7 @@ type Backend[
 		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
 	],
 	ValidatorT Validator[WithdrawalCredentialsT],
+	ValidatorsT ~[]ValidatorT,
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalCredentialsT WithdrawalCredentials,
 ] struct {
@@ -73,7 +74,7 @@ func New[
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT BeaconState[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-		ValidatorT, WithdrawalT,
+		ValidatorT, ValidatorsT, WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
 	BlobSidecarsT any,
@@ -90,6 +91,7 @@ func New[
 		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
 	],
 	ValidatorT Validator[WithdrawalCredentialsT],
+	ValidatorsT ~[]ValidatorT,
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalCredentialsT WithdrawalCredentials,
 ](
@@ -98,14 +100,14 @@ func New[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BlockStoreT,
 	ContextT, DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-	NodeT, StateStoreT, StorageBackendT, ValidatorT, WithdrawalT,
+	NodeT, StateStoreT, StorageBackendT, ValidatorT, ValidatorsT, WithdrawalT,
 	WithdrawalCredentialsT,
 ] {
 	return &Backend[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 		BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BlockStoreT,
 		ContextT, DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-		NodeT, StateStoreT, StorageBackendT, ValidatorT, WithdrawalT,
+		NodeT, StateStoreT, StorageBackendT, ValidatorT, ValidatorsT, WithdrawalT,
 		WithdrawalCredentialsT,
 	]{
 		sb: storageBackend,
@@ -114,20 +116,20 @@ func New[
 }
 
 func (b *Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, NodeT, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, NodeT, _, _, _, _, _, _,
 ]) AttachNode(node NodeT) {
 	b.node = node
 }
 
 // ChainSpec returns the chain spec from the backend.
 func (b *Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, NodeT, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, NodeT, _, _, _, _, _, _,
 ]) ChainSpec() common.ChainSpec {
 	return b.cs
 }
 
 func (b *Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) GetSlotByRoot(root [32]byte) (uint64, error) {
 	return b.sb.BlockStore().GetSlotByRoot(root)
 }
