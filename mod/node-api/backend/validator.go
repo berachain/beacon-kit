@@ -27,7 +27,7 @@ import (
 )
 
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _, _,
 ]) ValidatorByID(
 	slot uint64,
 	id string,
@@ -62,7 +62,7 @@ func (b Backend[
 }
 
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _, _,
 ]) ValidatorsByIDs(
 	slot uint64,
 	ids []string,
@@ -83,7 +83,7 @@ func (b Backend[
 }
 
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) ValidatorBalancesByIDs(
 	slot uint64,
 	ids []string,

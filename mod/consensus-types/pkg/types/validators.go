@@ -18,32 +18,39 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package core
+package types
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	"github.com/sourcegraph/conc/iter"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/karalabe/ssz"
 )
 
-// processSyncCommitteeUpdates processes the sync committee updates.
-func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _,
-]) processSyncCommitteeUpdates(
-	st BeaconStateT,
-) (transition.ValidatorUpdates, error) {
-	vals, err := st.GetValidatorsByEffectiveBalance()
-	if err != nil {
-		return nil, err
-	}
+const MaxValidators = 1099511627776
 
-	return iter.MapErr(
-		vals,
-		func(val *ValidatorT) (*transition.ValidatorUpdate, error) {
-			v := (*val)
-			return &transition.ValidatorUpdate{
-				Pubkey:           v.GetPubkey(),
-				EffectiveBalance: v.GetEffectiveBalance(),
-			}, nil
-		},
-	)
+type Validators []*Validator
+
+// SizeSSZ returns the SSZ encoded size in bytes for the Validators.
+func (vs Validators) SizeSSZ(bool) uint32 {
+	return ssz.SizeSliceOfStaticObjects(([]*Validator)(vs))
+}
+
+// DefineSSZ defines the SSZ encoding for the Validators object.
+func (vs Validators) DefineSSZ(c *ssz.Codec) {
+	c.DefineDecoder(func(*ssz.Decoder) {
+		ssz.DefineSliceOfStaticObjectsContent(
+			c, (*[]*Validator)(&vs), MaxValidators)
+	})
+	c.DefineEncoder(func(*ssz.Encoder) {
+		ssz.DefineSliceOfStaticObjectsContent(
+			c, (*[]*Validator)(&vs), MaxValidators)
+	})
+	c.DefineHasher(func(*ssz.Hasher) {
+		ssz.DefineSliceOfStaticObjectsOffset(
+			c, (*[]*Validator)(&vs), MaxValidators)
+	})
+}
+
+// HashTreeRoot returns the SSZ hash tree root for the Validators object.
+func (vs Validators) HashTreeRoot() common.Root {
+	return ssz.HashSequential(vs)
 }
