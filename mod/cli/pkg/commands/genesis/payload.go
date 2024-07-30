@@ -21,7 +21,6 @@
 package genesis
 
 import (
-	"context"
 	"unsafe"
 
 	serverContext "github.com/berachain/beacon-kit/mod/cli/pkg/utils/context"
@@ -33,14 +32,12 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
-	"golang.org/x/sync/errgroup"
 )
 
 func AddExecutionPayloadCmd(chainSpec common.ChainSpec) *cobra.Command {
@@ -134,7 +131,8 @@ func AddExecutionPayloadCmd(chainSpec common.ChainSpec) *cobra.Command {
 func executableDataToExecutionPayloadHeader(
 	forkVersion uint32,
 	data *gethprimitives.ExecutableData,
-	maxWithdrawalsPerPayload uint64,
+	// todo: re-enable when codec supports.
+	_ uint64,
 ) (*types.ExecutionPayloadHeader, error) {
 	var executionPayloadHeader *types.ExecutionPayloadHeader
 	switch forkVersion {
@@ -166,35 +164,6 @@ func executableDataToExecutionPayloadHeader(
 			excessBlobGas = *data.ExcessBlobGas
 		}
 
-		// Get the merkle roots of transactions and withdrawals in parallel.
-		var (
-			g, _            = errgroup.WithContext(context.Background())
-			txsRoot         common.Root
-			withdrawalsRoot common.Root
-		)
-
-		g.Go(func() error {
-			var txsRootErr error
-			txsRoot, txsRootErr = engineprimitives.Transactions(
-				data.Transactions,
-			).HashTreeRoot()
-			return txsRootErr
-		})
-
-		g.Go(func() error {
-			var withdrawalsRootErr error
-			wds := ssz.ListFromElements(
-				maxWithdrawalsPerPayload, withdrawals...,
-			)
-			withdrawalsRoot, withdrawalsRootErr = wds.HashTreeRoot()
-			return withdrawalsRootErr
-		})
-
-		// If deriving either of the roots fails, return the error.
-		if err := g.Wait(); err != nil {
-			return nil, err
-		}
-
 		executionPayloadHeader = &types.ExecutionPayloadHeader{
 			ParentHash:   data.ParentHash,
 			FeeRecipient: data.FeeRecipient,
@@ -210,11 +179,16 @@ func executableDataToExecutionPayloadHeader(
 			BaseFeePerGas: math.MustNewU256LFromBigInt(
 				data.BaseFeePerGas,
 			),
-			BlockHash:        data.BlockHash,
-			TransactionsRoot: txsRoot,
-			WithdrawalsRoot:  withdrawalsRoot,
-			BlobGasUsed:      math.U64(blobGasUsed),
-			ExcessBlobGas:    math.U64(excessBlobGas),
+			BlockHash: data.BlockHash,
+			// TODO: Decouple from broken bArtio.
+			TransactionsRoot: engineprimitives.
+				BartioTransactions(
+					data.Transactions,
+				).HashTreeRoot(),
+			WithdrawalsRoot: engineprimitives.Withdrawals(withdrawals).
+				HashTreeRoot(),
+			BlobGasUsed:   math.U64(blobGasUsed),
+			ExcessBlobGas: math.U64(excessBlobGas),
 		}
 	default:
 		return nil, errors.Newf("unsupported fork version %d", forkVersion)

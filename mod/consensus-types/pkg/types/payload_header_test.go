@@ -70,7 +70,7 @@ func TestExecutionPayloadHeader_Getters(t *testing.T) {
 	)
 	require.Equal(t, bytes.B32{}, header.GetStateRoot())
 	require.Equal(t, bytes.B32{}, header.GetReceiptsRoot())
-	require.Equal(t, make([]byte, 256), header.GetLogsBloom())
+	require.Equal(t, bytes.B256{}, header.GetLogsBloom())
 	require.Equal(t, bytes.B32{}, header.GetPrevRandao())
 	require.Equal(t, math.U64(0), header.GetNumber())
 	require.Equal(t, math.U64(0), header.GetGasLimit())

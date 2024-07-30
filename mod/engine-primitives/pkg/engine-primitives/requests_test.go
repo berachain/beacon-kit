@@ -26,6 +26,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives/mocks"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/require"
@@ -83,8 +84,8 @@ func (m MockExecutionPayload) GetStateRoot() common.Bytes32 {
 func (m MockExecutionPayload) GetReceiptsRoot() common.Bytes32 {
 	return common.Bytes32{}
 }
-func (m MockExecutionPayload) GetLogsBloom() []byte {
-	return []byte{}
+func (m MockExecutionPayload) GetLogsBloom() bytes.B256 {
+	return [256]byte{}
 }
 func (m MockExecutionPayload) GetBlobGasUsed() math.U64 {
 	return math.U64(0)
@@ -95,7 +96,7 @@ func (m MockExecutionPayload) GetExcessBlobGas() math.U64 {
 func (m MockExecutionPayload) GetWithdrawals() []MockWithdrawal {
 	return []MockWithdrawal{}
 }
-func (m MockExecutionPayload) GetTransactions() [][]byte {
+func (m MockExecutionPayload) GetTransactions() engineprimitives.Transactions {
 	return [][]byte{}
 }
 

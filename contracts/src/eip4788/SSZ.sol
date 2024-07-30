@@ -3,205 +3,32 @@ pragma solidity ^0.8.21;
 
 /// @author [madlabman](https://github.com/madlabman/eip-4788-proof)
 library SSZ {
-    /// @dev sha256 precompile address.
+    /// @dev SHA256 precompile address.
     uint8 internal constant SHA256 = 0x02;
+    /// @dev Length of the validator pubkey in bytes.
+    uint8 internal constant VALIDATOR_PUBKEY_LENGTH = 48;
 
     error BranchHasMissingItem();
     error BranchHasExtraItem();
+    error InvalidValidatorPubkeyLength();
 
-    /// Withdrawal represents a validator withdrawal from the consensus layer.
-    /// See EIP-4895: Beacon chain push withdrawals as operations.
-    struct Withdrawal {
-        uint64 index;
-        uint64 validatorIndex;
-        address _address;
-        uint64 amount;
-    }
-
-    // As defined in phase0/beacon-chain.md:356
-    struct Validator {
-        bytes pubkey;
-        bytes32 withdrawalCredentials;
-        uint64 effectiveBalance;
-        bool slashed;
-        uint64 activationEligibilityEpoch;
-        uint64 activationEpoch;
-        uint64 exitEpoch;
-        uint64 withdrawableEpoch;
-    }
-
-    // As defined in phase0/beacon-chain.md:436
-    struct BeaconBlockHeader {
-        uint64 slot;
-        uint64 proposerIndex;
-        bytes32 parentRoot;
-        bytes32 stateRoot;
-        bytes32 bodyRoot;
-    }
-
-    /// Inspired by https://github.com/succinctlabs/telepathy-contracts/blob/main/src/libraries/SimpleSerialize.sol#L59
-    function withdrawalHashTreeRoot(Withdrawal memory withdrawal)
-        internal
-        pure
-        returns (bytes32)
-    {
-        return sha256(
-            bytes.concat(
-                sha256(
-                    bytes.concat(
-                        toLittleEndian(withdrawal.index),
-                        toLittleEndian(withdrawal.validatorIndex)
-                    )
-                ),
-                sha256(
-                    bytes.concat(
-                        bytes20(withdrawal._address),
-                        bytes12(0),
-                        toLittleEndian(withdrawal.amount)
-                    )
-                )
-            )
-        );
-    }
-
-    function validatorHashTreeRoot(Validator memory validator)
+    function validatorPubkeyHashTreeRoot(bytes memory pubkey)
         internal
         view
         returns (bytes32 root)
     {
-        bytes32 pubkeyRoot;
+        if (pubkey.length != VALIDATOR_PUBKEY_LENGTH) {
+            revert InvalidValidatorPubkeyLength();
+        }
 
         assembly {
-            // Dynamic data types such as bytes are stored at the specified offset.
-            let offset := mload(validator)
             // Call sha256 precompile with the pubkey pointer
             let result :=
-                staticcall(gas(), SHA256, add(offset, 32), 0x40, 0x00, 0x20)
+                staticcall(gas(), SHA256, add(pubkey, 32), 0x40, 0x00, 0x20)
             // Precompile returns no data on OutOfGas error.
             if eq(result, 0) { revert(0, 0) }
 
-            pubkeyRoot := mload(0x00)
-        }
-
-        bytes32[8] memory nodes = [
-            pubkeyRoot,
-            validator.withdrawalCredentials,
-            toLittleEndian(validator.effectiveBalance),
-            toLittleEndian(validator.slashed),
-            toLittleEndian(validator.activationEligibilityEpoch),
-            toLittleEndian(validator.activationEpoch),
-            toLittleEndian(validator.exitEpoch),
-            toLittleEndian(validator.withdrawableEpoch)
-        ];
-
-        // TODO: Extract to a function accepting a dynamic array of bytes32?
-        /// @solidity memory-safe-assembly
-        assembly {
-            // Count of nodes to hash
-            let count := 8
-
-            // Loop over levels
-            for { } 1 { } {
-                // Loop over nodes at the given depth
-
-                // Initialize `offset` to the offset of `proof` elements in memory.
-                let target := nodes
-                let source := nodes
-                let end := add(source, shl(5, count))
-
-                for { } 1 { } {
-                    // Read the next two hashes to hash
-                    mstore(0x00, mload(source))
-                    mstore(0x20, mload(add(source, 0x20)))
-
-                    // Call sha256 precompile
-                    let result :=
-                        staticcall(gas(), SHA256, 0x00, 0x40, 0x00, 0x20)
-
-                    if eq(result, 0) { revert(0, 0) }
-
-                    // Store the resulting hash at the target location
-                    mstore(target, mload(0x00))
-
-                    // Advance the pointers
-                    target := add(target, 0x20)
-                    source := add(source, 0x40)
-
-                    if iszero(lt(source, end)) { break }
-                }
-
-                count := shr(1, count)
-                if eq(count, 1) {
-                    root := mload(0x00)
-                    break
-                }
-            }
-        }
-    }
-
-    function beaconHeaderHashTreeRoot(BeaconBlockHeader memory header)
-        internal
-        view
-        returns (bytes32 root)
-    {
-        bytes32[8] memory nodes = [
-            toLittleEndian(header.slot),
-            toLittleEndian(header.proposerIndex),
-            header.parentRoot,
-            header.stateRoot,
-            header.bodyRoot,
-            bytes32(0),
-            bytes32(0),
-            bytes32(0)
-        ];
-
-        /// @solidity memory-safe-assembly
-        assembly {
-            // Count of nodes to hash
-            let count := 8
-
-            // Loop over levels
-            // prettier-ignore
-            for { } 1 { } {
-                // Loop over nodes at the given depth
-
-                // Initialize `offset` to the offset of `proof` elements in memory.
-                let target := nodes
-                let source := nodes
-                let end := add(source, shl(5, count))
-
-                // prettier-ignore
-                for { } 1 { } {
-                    // TODO: Can be replaced with `mcopy` once it's available, see EIP-5656.
-                    // Read next two hashes to hash
-                    mstore(0x00, mload(source))
-                    mstore(0x20, mload(add(source, 0x20)))
-
-                    // Call sha256 precompile
-                    let result :=
-                        staticcall(gas(), 0x02, 0x00, 0x40, 0x00, 0x20)
-
-                    if eq(result, 0) {
-                        // Precompiles returns no data on OutOfGas error.
-                        revert(0, 0)
-                    }
-
-                    // Store the resulting hash at the target location
-                    mstore(target, mload(0x00))
-
-                    // Advance the pointers
-                    target := add(target, 0x20)
-                    source := add(source, 0x40)
-
-                    if iszero(lt(source, end)) { break }
-                }
-
-                count := shr(1, count)
-                if eq(count, 1) {
-                    root := mload(0x00)
-                    break
-                }
-            }
+            root := mload(0x00)
         }
     }
 
@@ -243,8 +70,10 @@ library SSZ {
         return bytes32(v ? 1 << 248 : 0);
     }
 
-    /// @notice Modified version of `verify` from `MerkleProofLib` to support generalized indices and sha256 precompile.
-    /// @dev Returns whether `leaf` exists in the Merkle tree with `root`, given `proof`.
+    /// @notice Modified version of `verify` from `MerkleProofLib` to support
+    /// generalized indices and sha256 precompile.
+    /// @dev Returns whether `leaf` exists in the Merkle tree with `root`,
+    /// given `proof`.
     function verifyProof(
         bytes32[] calldata proof,
         bytes32 root,
@@ -274,7 +103,8 @@ library SSZ {
                         revert(0x1c, 0x04)
                     }
                     // Store elements to hash contiguously in scratch space.
-                    // Scratch space is 64 bytes (0x00 - 0x3f) and both elements are 32 bytes.
+                    // Scratch space is 64 bytes (0x00 - 0x3f) and both elements
+                    // are 32 bytes.
                     mstore(scratch, leaf)
                     mstore(xor(scratch, 0x20), calldataload(offset))
                     // Call sha256 precompile
@@ -313,7 +143,8 @@ library SSZ {
 
     /// @dev From solady FixedPointMath
     /// @dev Returns the log2 of `x`.
-    /// Equivalent to computing the index of the most significant bit (MSB) of `x`.
+    /// Equivalent to computing the index of the most significant bit (MSB) of
+    /// `x`.
     function log2(uint256 x) internal pure returns (uint256 r) {
         /// @solidity memory-safe-assembly
         assembly {

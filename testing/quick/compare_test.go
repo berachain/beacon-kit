@@ -27,8 +27,6 @@ import (
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
 	zcommon "github.com/protolambda/zrnt/eth2/beacon/common"
 	zdeneb "github.com/protolambda/zrnt/eth2/beacon/deneb"
 	zspec "github.com/protolambda/zrnt/eth2/configs"
@@ -39,40 +37,6 @@ import (
 var c = quick.Config{MaxCount: 10000}
 var hFn = ztree.GetHashFn()
 var spec = zspec.Mainnet
-
-func TestListHashTreeRootZtyp(t *testing.T) {
-	f := func(s []byte, limit uint64) bool {
-		a := ssz.ByteListFromBytes(s, limit)
-
-		root1, err := a.HashTreeRoot()
-		root2 := hFn.ByteListHTR(s, limit)
-		if err != nil {
-			t.Log("Failed to calculate HashTreeRoot on input: ", err)
-			return false
-		}
-		return root1 == [32]byte(root2)
-	}
-	if err := quick.Check(f, &c); err != nil {
-		t.Error(err)
-	}
-}
-
-func TestVectorHashTreeRootZTyp(t *testing.T) {
-	f := func(s []byte) bool {
-		a := ssz.ByteVectorFromBytes(s)
-
-		root1, err := a.HashTreeRoot()
-		root2 := hFn.ByteVectorHTR(s)
-		if err != nil {
-			t.Log("Failed to calculate HashTreeRoot on input: ", err)
-			return false
-		}
-		return root1 == [32]byte(root2)
-	}
-	if err := quick.Check(f, &c); err != nil {
-		t.Error(err)
-	}
-}
 
 func TestExecutionPayloadHashTreeRootZrnt(t *testing.T) {
 	f := func(payload *types.ExecutionPayload, logsBloom [256]byte) bool {
@@ -119,26 +83,7 @@ func TestExecutionPayloadHashTreeRootZrnt(t *testing.T) {
 		}
 		zRoot := zpayload.HashTreeRoot(spec, hFn)
 
-		container := ssz.ContainerFromElements(
-			ssz.ByteVectorFromBytes(payload.ParentHash[:]),
-			ssz.ByteVectorFromBytes(payload.FeeRecipient[:]),
-			ssz.ByteVectorFromBytes(payload.StateRoot[:]),
-			ssz.ByteVectorFromBytes(payload.ReceiptsRoot[:]),
-			ssz.ByteVectorFromBytes(payload.LogsBloom[:]),
-			ssz.ByteVectorFromBytes(payload.Random[:]),
-			payload.Number,
-			payload.GasLimit,
-			payload.GasUsed,
-			payload.Timestamp,
-			ssz.ByteListFromBytes(payload.ExtraData, 32),
-			payload.BaseFeePerGas.UnwrapU256(),
-			ssz.ByteVectorFromBytes(payload.BlockHash[:]),
-			engineprimitives.ProperTransactionsFromBytes(payload.Transactions),
-			ssz.ListFromElements(16, payload.Withdrawals...),
-			payload.BlobGasUsed,
-			payload.ExcessBlobGas,
-		)
-		containerRoot, err := container.HashTreeRoot()
+		containerRoot, err := payload.HashTreeRoot()
 		if err != nil {
 			t.Log("Failed to calculate HashTreeRoot on container payload:", err)
 			return false

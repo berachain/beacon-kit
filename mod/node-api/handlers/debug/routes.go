@@ -31,7 +31,7 @@ func (h *Handler[ContextT]) RegisterRoutes(
 	logger log.Logger[any],
 ) {
 	h.SetLogger(logger)
-	h.BaseHandler.AddRoutes([]handlers.Route[ContextT]{
+	h.BaseHandler.AddRoutes([]*handlers.Route[ContextT]{
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v2/debug/beacon/states/:state_id",

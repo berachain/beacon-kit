@@ -25,12 +25,11 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -147,7 +146,7 @@ type ExecutionPayload[
 	ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT any,
 ] interface {
 	constraints.EngineType[ExecutionPayloadT]
-	GetTransactions() [][]byte
+	GetTransactions() engineprimitives.Transactions
 	GetParentHash() gethprimitives.ExecutionHash
 	GetBlockHash() gethprimitives.ExecutionHash
 	GetPrevRandao() common.Bytes32
@@ -155,7 +154,7 @@ type ExecutionPayload[
 	GetFeeRecipient() gethprimitives.ExecutionAddress
 	GetStateRoot() common.Bytes32
 	GetReceiptsRoot() common.Root
-	GetLogsBloom() []byte
+	GetLogsBloom() bytes.B256
 	GetNumber() math.U64
 	GetGasLimit() math.U64
 	GetTimestamp() math.U64
@@ -165,8 +164,6 @@ type ExecutionPayload[
 	GetBlobGasUsed() math.U64
 	GetExcessBlobGas() math.U64
 	ToHeader(
-		bartioTxsMerkleizer *merkle.Merkleizer[[32]byte, common.Root],
-		properTxsMerkleizer *merkle.Merkleizer[[32]byte, *ssz.List[ssz.Byte]],
 		maxWithdrawalsPerPayload uint64,
 		eth1ChainID uint64,
 	) (ExecutionPayloadHeaderT, error)

@@ -22,7 +22,6 @@ package node
 
 import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
-	"github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 	"github.com/berachain/beacon-kit/mod/node-api/server/context"
 )
 
@@ -37,8 +36,4 @@ func NewHandler[ContextT context.Context]() *Handler[ContextT] {
 		),
 	}
 	return h
-}
-
-func (h *Handler[ContextT]) NotImplemented(_ ContextT) (any, error) {
-	return nil, types.ErrNotImplemented
 }

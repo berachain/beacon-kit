@@ -32,7 +32,7 @@ func (h *Handler[_, ContextT, _, _]) RegisterRoutes(
 	logger log.Logger[any],
 ) {
 	h.SetLogger(logger)
-	h.BaseHandler.AddRoutes([]handlers.Route[ContextT]{
+	h.BaseHandler.AddRoutes([]*handlers.Route[ContextT]{
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/beacon/genesis",
