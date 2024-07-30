@@ -20,7 +20,11 @@
 
 package proof
 
-import "github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
+import (
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+)
 
 // Get the slot from the given input of block id, beacon state, and beacon
 // block header for the resolved slot.
@@ -36,14 +40,37 @@ func (h *Handler[
 
 	slot, err := utils.SlotFromBlockID(blockID, h.backend)
 	if err != nil {
-		return slot, beaconState, blockHeader, err
+		return 0, beaconState, blockHeader, err
 	}
 
 	beaconState, slot, err = h.backend.StateFromSlot(slot)
 	if err != nil {
-		return slot, beaconState, blockHeader, err
+		return 0, beaconState, blockHeader, err
 	}
 
+	// Get the latest block header from the state itself and not the backend
+	// to avoid querying state from disk (query context) again.
 	blockHeader, err = beaconState.GetLatestBlockHeader()
-	return slot, beaconState, blockHeader, err
+	if err != nil {
+		return 0, beaconState, blockHeader, err
+	}
+
+	// For proofs, we need to patch the latest block header on the beacon state
+	// with the version that was used to calculate the parent beacon block root,
+	// which has the empty state root in the latest block header. Check
+	// EIP-4788 and the spec for more details.
+	blockHeaderForProofInState := blockHeader.New(
+		math.Slot(slot),
+		blockHeader.GetProposerIndex(),
+		blockHeader.GetParentBlockRoot(),
+		common.Root{},
+		blockHeader.GetBodyRoot(),
+	)
+	if err = beaconState.SetLatestBlockHeader(
+		blockHeaderForProofInState,
+	); err != nil {
+		return 0, beaconState, blockHeader, err
+	}
+
+	return slot, beaconState, blockHeader, nil
 }

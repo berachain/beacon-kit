@@ -51,7 +51,14 @@ func (b *Backend[
 		slot = latestSlot.Unwrap()
 	}
 
-	_, err = b.sp.ProcessSlots(st, math.U64(slot+1))
+	// Process the slot to update the latest state and block roots.
+	if _, err = b.sp.ProcessSlots(st, math.U64(slot+1)); err != nil {
+		return st, slot, err
+	}
+
+	// We need to set the slot on the state back since ProcessSlot will update
+	// it to slot + 1.
+	err = st.SetSlot(math.Slot(slot))
 	return st, slot, err
 }
 

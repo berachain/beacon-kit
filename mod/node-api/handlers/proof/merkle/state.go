@@ -27,7 +27,11 @@ import (
 
 // ProveStateInBlock generates a proof for the beacon state in the
 // beacon block. It uses the fastssz library to generate the proof.
-func ProveStateInBlock(bbh types.BeaconBlockHeader) ([]common.Root, error) {
+func ProveStateInBlock[
+	BeaconBlockHeaderT types.BeaconBlockHeader[BeaconBlockHeaderT],
+](
+	bbh BeaconBlockHeaderT,
+) ([]common.Root, error) {
 	blockProofTree, err := bbh.GetTree()
 	if err != nil {
 		return nil, err

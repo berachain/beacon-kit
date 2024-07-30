@@ -46,6 +46,10 @@ func (h *Handler[
 		return nil, err
 	}
 
+	if err = h.testBrokenRoots(beaconState, blockHeader, slot); err != nil {
+		return nil, err
+	}
+
 	// Generate the proof (along with the "correct" beacon block root to
 	// verify against) for the execution payload block number.
 	h.Logger().Info("Generating block execution number proof", "slot", slot)
@@ -62,10 +66,6 @@ func (h *Handler[
 		return nil, err
 	}
 
-	if _, err := h.testBrokenRoots(beaconState, slot); err != nil {
-		return nil, err
-	}
-
 	return types.BlockExecutionResponse[BeaconBlockHeaderT]{
 		BeaconBlockHeader:    blockHeader,
 		BeaconBlockRoot:      beaconBlockRoot,
@@ -76,32 +76,33 @@ func (h *Handler[
 
 func (h *Handler[
 	ContextT, BeaconBlockHeaderT, BeaconStateT, _, _, _,
-]) testBrokenRoots(bs BeaconStateT, slot uint64) (BeaconBlockHeaderT, error) {
-	blockHeader, err := bs.GetLatestBlockHeader()
+]) testBrokenRoots(bs BeaconStateT, bbh BeaconBlockHeaderT, slot uint64) error {
+	htr, err := bs.HashTreeRoot()
 	if err != nil {
-		return blockHeader, err
+		return err
 	}
-	onBlockStateRoot := blockHeader.GetStateRoot()
+
+	onBlockStateRoot := bbh.GetStateRoot()
 
 	stateRootAtSlot, err := h.backend.StateRootAtSlot(slot)
 	if err != nil {
-		return blockHeader, err
+		return err
 	}
 
-	blockRootNoMod, err := blockHeader.HashTreeRoot()
+	blockRootNoMod, err := bbh.HashTreeRoot()
 	if err != nil {
-		return blockHeader, err
+		return err
 	}
 
 	blockRootAtSlot, err := h.backend.BlockRootAtSlot(slot)
 	if err != nil {
-		return blockHeader, err
+		return err
 	}
 
-	return blockHeader, fmt.Errorf(
-		"state roots -- on block: %s, stateRootAtSlot: %s \n"+
+	return fmt.Errorf(
+		"state roots -- on block: %s, bs.HTR(): %s, stateRootAtSlot: %s \n"+
 			"block roots -- raw block HTR: %s, blockRootAtSlot: %s",
-		onBlockStateRoot, stateRootAtSlot,
+		onBlockStateRoot, bytes.B32(htr), stateRootAtSlot,
 		bytes.B32(blockRootNoMod), blockRootAtSlot,
 	)
 }

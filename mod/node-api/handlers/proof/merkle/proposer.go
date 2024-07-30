@@ -33,7 +33,7 @@ import (
 // sanity check. Returns the proof along with the beacon block root. It uses
 // the fastssz library to generate the proof.
 func ProveProposerInBlock[
-	BeaconBlockHeaderT types.BeaconBlockHeader,
+	BeaconBlockHeaderT types.BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
 	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
 	ValidatorT any,
@@ -76,7 +76,7 @@ func ProveProposerInBlock[
 // ProveProposerPubkeyInState generates a proof for the proposer pubkey
 // in the beacon state. It uses the fastssz library to generate the proof.
 func ProveProposerPubkeyInState[
-	BeaconBlockHeaderT types.BeaconBlockHeader,
+	BeaconBlockHeaderT types.BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
 	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
 	ValidatorT any,
@@ -114,8 +114,10 @@ func ProveProposerPubkeyInState[
 // returning the beacon block root used to verify against.
 //
 // TODO: verifying the proof is not absolutely necessary.
-func verifyProposerInBlock(
-	bbh types.BeaconBlockHeader,
+func verifyProposerInBlock[
+	BeaconBlockHeaderT types.BeaconBlockHeader[BeaconBlockHeaderT],
+](
+	bbh BeaconBlockHeaderT,
 	valOffset math.U64,
 	proof []common.Root,
 	leaf common.Root,

@@ -32,7 +32,7 @@ import (
 // the beacon block root as a sanity check. Returns the proof along with the
 // beacon block root. It uses the fastssz library to generate the proof.
 func ProveExecutionNumberInBlock[
-	BeaconBlockHeaderT types.BeaconBlockHeader,
+	BeaconBlockHeaderT types.BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
 	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
 	ValidatorT any,
@@ -70,7 +70,7 @@ func ProveExecutionNumberInBlock[
 // ProveExecutionNumberInState generates a proof for the block number of the
 // execution payload in the beacon state. It uses the fastssz library.
 func ProveExecutionNumberInState[
-	BeaconBlockHeaderT types.BeaconBlockHeader,
+	BeaconBlockHeaderT types.BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
 	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
 	ValidatorT any,
@@ -107,8 +107,10 @@ func ProveExecutionNumberInState[
 // block, returning the beacon block root used to verify against.
 //
 // TODO: verifying the proof is not absolutely necessary.
-func verifyExecutionNumberInBlock(
-	bbh types.BeaconBlockHeader,
+func verifyExecutionNumberInBlock[
+	BeaconBlockHeaderT types.BeaconBlockHeader[BeaconBlockHeaderT],
+](
+	bbh BeaconBlockHeaderT,
 	proof []common.Root,
 	leaf common.Root,
 ) (common.Root, error) {

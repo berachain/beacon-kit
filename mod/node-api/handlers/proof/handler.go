@@ -29,7 +29,7 @@ import (
 // Handler is the handler for the proof API.
 type Handler[
 	ContextT context.Context,
-	BeaconBlockHeaderT types.BeaconBlockHeader,
+	BeaconBlockHeaderT types.BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT types.BeaconState[
 		BeaconBlockHeaderT, BeaconStateMarshallableT, ExecutionPayloadHeaderT,
 		ValidatorT,
@@ -45,7 +45,7 @@ type Handler[
 // NewHandler creates a new handler for the proof API.
 func NewHandler[
 	ContextT context.Context,
-	BeaconBlockHeaderT types.BeaconBlockHeader,
+	BeaconBlockHeaderT types.BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT types.BeaconState[
 		BeaconBlockHeaderT, BeaconStateMarshallableT, ExecutionPayloadHeaderT,
 		ValidatorT,

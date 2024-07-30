@@ -29,10 +29,21 @@ import (
 )
 
 // BeaconBlockHeader is the interface for a beacon block header.
-type BeaconBlockHeader interface {
+type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
 	constraints.SSZRootable
+	New(
+		slot math.Slot,
+		proposerIndex math.ValidatorIndex,
+		parentBlockRoot common.Root,
+		stateRoot common.Root,
+		bodyRoot common.Root,
+	) BeaconBlockHeaderT
 	// GetTree is kept for FastSSZ compatibility.
 	GetTree() (*fastssz.Node, error)
+	// GetBodyRoot returns the body root.
+	GetBodyRoot() common.Root
+	// GetParentBlockRoot returns the parent block root.
+	GetParentBlockRoot() common.Root
 	// GetProposerIndex returns the proposer index.
 	GetProposerIndex() math.ValidatorIndex
 
@@ -53,6 +64,8 @@ type BeaconState[
 	GetLatestBlockHeader() (BeaconBlockHeaderT, error)
 	// GetMarshallable returns the marshallable version of the beacon state.
 	GetMarshallable() (BeaconStateMarshallableT, error)
+	// SetLatestBlockHeader sets the latest block header on the beacon state.
+	SetLatestBlockHeader(BeaconBlockHeaderT) error
 	// ValidatorByIndex retrieves the validator at the given index.
 	ValidatorByIndex(index math.ValidatorIndex) (ValidatorT, error)
 }
