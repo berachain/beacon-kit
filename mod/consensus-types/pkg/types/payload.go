@@ -248,7 +248,7 @@ func (p *ExecutionPayload) HashTreeRootWith(hh fastssz.HashWalker) error {
 			return fastssz.ErrIncorrectListSize
 		}
 		for _, elem := range p.Withdrawals {
-			if err := elem.HashTreeRootWith(hh); err != nil {
+			if err = elem.HashTreeRootWith(hh); err != nil {
 				return err
 			}
 		}
