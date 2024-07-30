@@ -30,7 +30,7 @@ func (b Backend[
 ]) RandaoAtEpoch(
 	slot, epoch uint64,
 ) (common.Bytes32, error) {
-	st, slot, err := b.StateFromSlot(slot)
+	st, slot, err := b.stateFromSlot(slot)
 	if err != nil {
 		return common.Bytes32{}, err
 	}

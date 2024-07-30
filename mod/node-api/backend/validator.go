@@ -35,7 +35,7 @@ func (b Backend[
 	// TODO: to adhere to the spec, this shouldn't error if the error
 	// is not found, but i can't think of a way to do that without coupling
 	// db impl to the api impl.
-	st, _, err := b.StateFromSlot(slot)
+	st, _, err := b.stateFromSlot(slot)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +89,7 @@ func (b Backend[
 	ids []string,
 ) ([]*beacontypes.ValidatorBalanceData, error) {
 	var index math.U64
-	st, _, err := b.StateFromSlot(slot)
+	st, _, err := b.stateFromSlot(slot)
 	if err != nil {
 		return nil, err
 	}

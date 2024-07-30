@@ -21,7 +21,6 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -29,43 +28,24 @@ import (
 )
 
 // BeaconBlockHeader is the interface for a beacon block header.
-type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
+type BeaconBlockHeader interface {
 	constraints.SSZRootable
-	New(
-		slot math.Slot,
-		proposerIndex math.ValidatorIndex,
-		parentBlockRoot common.Root,
-		stateRoot common.Root,
-		bodyRoot common.Root,
-	) BeaconBlockHeaderT
 	// GetTree is kept for FastSSZ compatibility.
 	GetTree() (*fastssz.Node, error)
-	// GetBodyRoot returns the body root.
-	GetBodyRoot() common.Root
-	// GetParentBlockRoot returns the parent block root.
-	GetParentBlockRoot() common.Root
 	// GetProposerIndex returns the proposer index.
 	GetProposerIndex() math.ValidatorIndex
-
-	// TEMP
-	GetStateRoot() common.Root
 }
 
 // BeaconState is the interface for a beacon state.
 type BeaconState[
-	BeaconBlockHeaderT, BeaconStateMarshallableT, ExecutionPayloadHeaderT,
-	ValidatorT any,
+	BeaconStateMarshallableT, ExecutionPayloadHeaderT, ValidatorT any,
 ] interface {
 	constraints.SSZRootable
 	// GetLatestExecutionPayloadHeader returns the latest execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (ExecutionPayloadHeaderT, error)
-	// GetLatestBlockHeader returns the latest block header.
-	GetLatestBlockHeader() (BeaconBlockHeaderT, error)
 	// GetMarshallable returns the marshallable version of the beacon state.
 	GetMarshallable() (BeaconStateMarshallableT, error)
-	// SetLatestBlockHeader sets the latest block header on the beacon state.
-	SetLatestBlockHeader(BeaconBlockHeaderT) error
 	// ValidatorByIndex retrieves the validator at the given index.
 	ValidatorByIndex(index math.ValidatorIndex) (ValidatorT, error)
 }

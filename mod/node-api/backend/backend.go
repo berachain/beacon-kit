@@ -24,6 +24,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // Backend is the db access layer for the beacon node-api.
@@ -135,4 +136,54 @@ func (b *Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) GetSlotByRoot(root [32]byte) (uint64, error) {
 	return b.sb.BlockStore().GetSlotByRoot(root)
+}
+
+// stateFromSlot returns the state at the given slot using query context. We
+// also process the next slot (if possible) to ensure the state is up to date.
+func (b *Backend[
+	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) stateFromSlot(slot uint64) (BeaconStateT, uint64, error) {
+	var (
+		st  BeaconStateT
+		err error
+	)
+	if st, slot, err = b.stateFromSlotRaw(slot); err != nil {
+		return st, slot, err
+	}
+
+	// Process the slot to update the latest state and block roots.
+	if _, err = b.sp.ProcessSlots(st, math.U64(slot+1)); err != nil {
+		return st, slot, err
+	}
+
+	// We need to set the slot on the state back since ProcessSlot will update
+	// it to slot + 1.
+	err = st.SetSlot(math.Slot(slot))
+	return st, slot, err
+}
+
+// stateFromSlotRaw returns the state at the given slot using query context. It
+// does not process the next slot.
+func (b *Backend[
+	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) stateFromSlotRaw(slot uint64) (BeaconStateT, uint64, error) {
+	var st BeaconStateT
+	//#nosec:G701 // not an issue in practice.
+	queryCtx, err := b.node.CreateQueryContext(int64(slot), false)
+	if err != nil {
+		return st, slot, err
+	}
+	st = b.sb.StateFromContext(queryCtx)
+
+	// For the latest slot (using 0 for query context), we can't process any
+	// further slot.
+	if slot == 0 {
+		var latestSlot math.U64
+		latestSlot, err = st.GetSlot()
+		if err != nil {
+			return st, slot, err
+		}
+		slot = latestSlot.Unwrap()
+	}
+	return st, slot, err
 }

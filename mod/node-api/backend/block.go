@@ -33,7 +33,7 @@ func (b Backend[
 ) (BeaconBlockHeaderT, error) {
 	var blockHeader BeaconBlockHeaderT
 
-	st, _, err := b.StateFromSlot(slot)
+	st, _, err := b.stateFromSlot(slot)
 	if err != nil {
 		return blockHeader, err
 	}
@@ -48,7 +48,7 @@ func (b Backend[
 ]) BlockRootAtSlot(
 	slot uint64,
 ) (common.Root, error) {
-	st, slot, err := b.StateFromSlot(slot)
+	st, slot, err := b.stateFromSlot(slot)
 	if err != nil {
 		return common.Root{}, err
 	}

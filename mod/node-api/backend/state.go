@@ -22,44 +22,15 @@ package backend
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// StateFromSlot returns the state at the given slot using query context.
-// We process the next slot (if possible) to ensure the state is up to date.
+// StateFromSlotForProof returns the beacon state of the version that was used
+// to calculate the parent beacon block root, which has the empty state root in
+// the latest block header. Hence we do not process the next slot.
 func (b *Backend[
 	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) StateFromSlot(
-	slot uint64,
-) (BeaconStateT, uint64, error) {
-	var st BeaconStateT
-	//#nosec:G701 // not an issue in practice.
-	queryCtx, err := b.node.CreateQueryContext(int64(slot), false)
-	if err != nil {
-		return st, slot, err
-	}
-	st = b.sb.StateFromContext(queryCtx)
-
-	// For the latest slot (using 0 for query context), we can't process any
-	// further slot.
-	if slot == 0 {
-		var latestSlot math.U64
-		latestSlot, err = st.GetSlot()
-		if err != nil {
-			return st, slot, err
-		}
-		slot = latestSlot.Unwrap()
-	}
-
-	// Process the slot to update the latest state and block roots.
-	if _, err = b.sp.ProcessSlots(st, math.U64(slot+1)); err != nil {
-		return st, slot, err
-	}
-
-	// We need to set the slot on the state back since ProcessSlot will update
-	// it to slot + 1.
-	err = st.SetSlot(math.Slot(slot))
-	return st, slot, err
+]) StateFromSlotForProof(slot uint64) (BeaconStateT, uint64, error) {
+	return b.stateFromSlotRaw(slot)
 }
 
 // GetStateRoot returns the root of the state at the given slot.
@@ -68,7 +39,7 @@ func (b Backend[
 ]) StateRootAtSlot(
 	slot uint64,
 ) (common.Root, error) {
-	st, slot, err := b.StateFromSlot(slot)
+	st, slot, err := b.stateFromSlot(slot)
 	if err != nil {
 		return common.Root{}, err
 	}
@@ -86,7 +57,7 @@ func (b Backend[
 	slot uint64,
 ) (ForkT, error) {
 	var fork ForkT
-	st, _, err := b.StateFromSlot(slot)
+	st, _, err := b.stateFromSlot(slot)
 	if err != nil {
 		return fork, err
 	}
