@@ -162,8 +162,9 @@ func (b *Backend[
 	return st, slot, err
 }
 
-// stateFromSlotRaw returns the state at the given slot using query context. It
-// does not process the next slot.
+// stateFromSlotRaw returns the state at the given slot using query context,
+// resolving an input slot of 0 to the latest slot. It does not process the next
+// slot on the beacon state.
 func (b *Backend[
 	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) stateFromSlotRaw(slot uint64) (BeaconStateT, uint64, error) {
@@ -175,8 +176,8 @@ func (b *Backend[
 	}
 	st = b.sb.StateFromContext(queryCtx)
 
-	// For the latest slot (using 0 for query context), we can't process any
-	// further slot.
+	// If using height 0 for the query context, make sure to return the latest
+	// slot.
 	if slot == 0 {
 		var latestSlot math.U64
 		latestSlot, err = st.GetSlot()
