@@ -68,10 +68,10 @@ func TestExecutionPayloadHeader_Getters(t *testing.T) {
 		gethprimitives.ExecutionAddress{},
 		header.GetFeeRecipient(),
 	)
-	require.Equal(t, bytes.B32{}, header.GetStateRoot())
-	require.Equal(t, bytes.B32{}, header.GetReceiptsRoot())
-	require.Equal(t, bytes.B256{}, header.GetLogsBloom())
-	require.Equal(t, bytes.B32{}, header.GetPrevRandao())
+	require.Equal(t, bytes.B32{123}, header.GetStateRoot())
+	require.Equal(t, bytes.B32{123}, header.GetReceiptsRoot())
+	require.Equal(t, bytes.B256{123}, header.GetLogsBloom())
+	require.Equal(t, bytes.B32{123}, header.GetPrevRandao())
 	require.Equal(t, math.U64(0), header.GetNumber())
 	require.Equal(t, math.U64(0), header.GetGasLimit())
 	require.Equal(t, math.U64(0), header.GetGasUsed())
