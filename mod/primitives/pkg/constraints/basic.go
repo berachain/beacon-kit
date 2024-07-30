@@ -42,6 +42,11 @@ type EmptyWithVersion[SelfT any] interface {
 	Empty(uint32) SelfT
 }
 
+// Empty is a constraint that requires a type to have an Empty method.
+type Empty[SelfT any] interface {
+	Empty() SelfT
+}
+
 // IsNil is a constraint that requires a type to have an IsNil method.
 type Nillable interface {
 	IsNil() bool

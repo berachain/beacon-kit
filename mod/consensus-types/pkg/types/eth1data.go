@@ -51,6 +51,11 @@ type Eth1Data struct {
 /*                                 Constructor                                */
 /* -------------------------------------------------------------------------- */
 
+// Empty creates an empty Eth1Data.
+func (*Eth1Data) Empty() *Eth1Data {
+	return &Eth1Data{}
+}
+
 // New creates a new Eth1Data.
 func (e *Eth1Data) New(
 	depositRoot common.Root,

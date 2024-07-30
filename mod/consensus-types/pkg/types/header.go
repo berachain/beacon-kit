@@ -74,6 +74,11 @@ func NewBeaconBlockHeader(
 	}
 }
 
+// Empty creates an empty BeaconBlockHeader instance.
+func (*BeaconBlockHeader) Empty() *BeaconBlockHeader {
+	return &BeaconBlockHeader{}
+}
+
 // New creates a new BeaconBlockHeader.
 func (b *BeaconBlockHeader) New(
 	slot math.Slot,
