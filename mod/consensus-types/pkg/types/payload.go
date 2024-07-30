@@ -21,8 +21,6 @@
 package types
 
 import (
-	"math/big"
-
 	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -33,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
 )
@@ -251,7 +248,7 @@ func (p *ExecutionPayload) HashTreeRootWith(hh fastssz.HashWalker) error {
 			return fastssz.ErrIncorrectListSize
 		}
 		for _, elem := range p.Withdrawals {
-			if err = elem.HashTreeRootWith(hh); err != nil {
+			if err := elem.HashTreeRootWith(hh); err != nil {
 				return err
 			}
 		}
@@ -291,7 +288,7 @@ func (p *ExecutionPayload) MarshalJSON() ([]byte, error) {
 		GasUsed       math.U64                        `json:"gasUsed"`
 		Timestamp     math.U64                        `json:"timestamp"`
 		ExtraData     bytes.Bytes                     `json:"extraData"`
-		BaseFeePerGas *hexutil.Big                    `json:"baseFeePerGas"`
+		BaseFeePerGas *math.U256Hex                   `json:"baseFeePerGas"`
 		BlockHash     gethprimitives.ExecutionHash    `json:"blockHash"`
 		Transactions  []bytes.Bytes                   `json:"transactions"`
 		Withdrawals   []*engineprimitives.Withdrawal  `json:"withdrawals"`
@@ -310,7 +307,7 @@ func (p *ExecutionPayload) MarshalJSON() ([]byte, error) {
 	enc.GasUsed = p.GasUsed
 	enc.Timestamp = p.Timestamp
 	enc.ExtraData = p.ExtraData
-	enc.BaseFeePerGas = (*hexutil.Big)(p.BaseFeePerGas.ToBig())
+	enc.BaseFeePerGas = (*math.U256Hex)(p.BaseFeePerGas)
 	enc.BlockHash = p.BlockHash
 	enc.Transactions = make([]bytes.Bytes, len(p.Transactions))
 	for k, v := range p.Transactions {
@@ -338,7 +335,7 @@ func (p *ExecutionPayload) UnmarshalJSON(input []byte) error {
 		GasUsed       *math.U64                        `json:"gasUsed"`
 		Timestamp     *math.U64                        `json:"timestamp"`
 		ExtraData     *bytes.Bytes                     `json:"extraData"`
-		BaseFeePerGas *hexutil.Big                     `json:"baseFeePerGas"`
+		BaseFeePerGas *math.U256Hex                    `json:"baseFeePerGas"`
 		BlockHash     *gethprimitives.ExecutionHash    `json:"blockHash"`
 		Transactions  []bytes.Bytes                    `json:"transactions"`
 		Withdrawals   []*engineprimitives.Withdrawal   `json:"withdrawals"`
@@ -420,7 +417,7 @@ func (p *ExecutionPayload) UnmarshalJSON(input []byte) error {
 			"missing required field 'baseFeePerGas' for ExecutionPayload",
 		)
 	}
-	p.BaseFeePerGas = math.NewU256FromBigInt((*big.Int)(dec.BaseFeePerGas))
+	p.BaseFeePerGas = (*math.U256)(dec.BaseFeePerGas)
 	if dec.BlockHash == nil {
 		return errors.New(
 			"missing required field 'blockHash' for ExecutionPayload",

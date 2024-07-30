@@ -42,3 +42,12 @@ func NewU256(v uint64) *U256 {
 func NewU256FromBigInt(b *big.Int) *U256 {
 	return uint256.MustFromBig(b)
 }
+
+// U256Hex represents a 256-bit unsigned integer that is marshaled to JSON as a hexadecimal string.
+type U256Hex uint256.Int
+
+// MarshalJSON implements the json.Marshaler interface.
+// It returns the hexadecimal string representation of the U256Hex value.
+func (u *U256Hex) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + (*uint256.Int)(u).Hex() + `"`), nil
+}
