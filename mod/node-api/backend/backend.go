@@ -23,6 +23,7 @@ package backend
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/node-api/backend/cache"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -60,11 +61,11 @@ type Backend[
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalCredentialsT WithdrawalCredentials,
 ] struct {
-	sb   StorageBackendT
-	cs   common.ChainSpec
-	node NodeT
-
-	sp StateProcessor[BeaconStateT]
+	sb    StorageBackendT
+	cs    common.ChainSpec
+	node  NodeT
+	sp    StateProcessor[BeaconStateT]
+	cache *cache.QueryCache
 }
 
 // New creates and returns a new Backend instance.
@@ -115,9 +116,10 @@ func New[
 		NodeT, StateStoreT, StorageBackendT, ValidatorT, ValidatorsT, WithdrawalT,
 		WithdrawalCredentialsT,
 	]{
-		sb: storageBackend,
-		cs: cs,
-		sp: sp,
+		sb:    storageBackend,
+		cs:    cs,
+		sp:    sp,
+		cache: cache.NewQueryCacheWithDefaultConfig(),
 	}
 }
 
@@ -170,11 +172,19 @@ func (b *Backend[
 func (b *Backend[
 	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) stateFromSlotRaw(slot math.Slot) (BeaconStateT, math.Slot, error) {
-	var st BeaconStateT
-	//#nosec:G701 // not an issue in practice.
-	queryCtx, err := b.node.CreateQueryContext(int64(slot), false)
-	if err != nil {
-		return st, slot, err
+	var (
+		st  BeaconStateT
+		err error
+	)
+
+	queryCtx, ok := b.cache.GetQueryContext(slot)
+	if !ok {
+		//#nosec:G701 // not an issue in practice.
+		queryCtx, err = b.node.CreateQueryContext(int64(slot), false)
+		if err != nil {
+			return st, slot, err
+		}
+		b.cache.AddQueryContext(slot, queryCtx)
 	}
 	st = b.sb.StateFromContext(queryCtx)
 
