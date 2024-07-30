@@ -133,6 +133,8 @@ func (sp *StateProcessor[
 	newMix := make([]byte, constants.RootLength)
 	revealHash := sha256.Hash(reveal[:])
 	// Apparently this library giga fast? Good project? lmeow.
+	// It is safe to ignore this error, since it is guaranteed that
+	// mix[:] and revealHash[:] are both Bytes32.
 	_ = xor.Bytes(
 		newMix, mix[:], revealHash[:],
 	)
