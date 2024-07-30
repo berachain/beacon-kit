@@ -49,7 +49,7 @@ type BlockStore[BeaconBlockT any] interface {
 	// Get retrieves the block at the given slot.
 	Get(slot uint64) (BeaconBlockT, error)
 	// GetSlotByRoot retrieves the slot by a given root from the store.
-	GetSlotByRoot(root [32]byte) (uint64, error)
+	GetSlotByRoot(root [32]byte) (math.Slot, error)
 	// Prune prunes the block store of [start, end).
 	Prune(start, end uint64) error
 	// Set sets the block at the given slot.

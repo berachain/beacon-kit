@@ -23,14 +23,14 @@ package backend
 import (
 	types "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // BlockHeader returns the block header at the given slot.
 func (b Backend[
-	_, _, _, BeaconBlockHeaderT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) BlockHeaderAtSlot(
-	slot uint64,
-) (BeaconBlockHeaderT, error) {
+	_, _, _, BeaconBlockHeaderT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_,
+]) BlockHeaderAtSlot(slot math.Slot) (BeaconBlockHeaderT, error) {
 	var blockHeader BeaconBlockHeaderT
 
 	st, _, err := b.stateFromSlot(slot)
@@ -45,9 +45,7 @@ func (b Backend[
 // GetBlockRoot returns the root of the block at the given stateID.
 func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) BlockRootAtSlot(
-	slot uint64,
-) (common.Root, error) {
+]) BlockRootAtSlot(slot math.Slot) (common.Root, error) {
 	st, slot, err := b.stateFromSlot(slot)
 	if err != nil {
 		return common.Root{}, err
@@ -55,16 +53,13 @@ func (b Backend[
 
 	// As calculated by the beacon chain. Ideally, this logic
 	// should be abstracted by the beacon chain.
-	index := slot % b.cs.SlotsPerHistoricalRoot()
-	return st.GetBlockRootAtIndex(index)
+	return st.GetBlockRootAtIndex(slot.Unwrap() % b.cs.SlotsPerHistoricalRoot())
 }
 
 // TODO: Implement this.
 func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) BlockRewardsAtSlot(
-	_ uint64,
-) (*types.BlockRewardsData, error) {
+]) BlockRewardsAtSlot(math.Slot) (*types.BlockRewardsData, error) {
 	return &types.BlockRewardsData{
 		ProposerIndex:     1,
 		Total:             1,

@@ -27,18 +27,15 @@ import (
 
 func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) RandaoAtEpoch(
-	slot, epoch uint64,
-) (common.Bytes32, error) {
+]) RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error) {
 	st, slot, err := b.stateFromSlot(slot)
 	if err != nil {
 		return common.Bytes32{}, err
 	}
 	// Infer the epoch if not provided.
 	if epoch == 0 {
-		latestEpoch := b.cs.SlotToEpoch(math.U64(slot))
-		epoch = latestEpoch.Unwrap()
+		epoch = b.cs.SlotToEpoch(slot)
 	}
-	index := epoch % b.cs.EpochsPerHistoricalVector()
+	index := epoch.Unwrap() % b.cs.EpochsPerHistoricalVector()
 	return st.GetRandaoMixAtIndex(index)
 }
