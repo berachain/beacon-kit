@@ -24,6 +24,7 @@ import (
 	"errors"
 	"os"
 
+	"github.com/berachain/beacon-kit/mod/config"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	"github.com/berachain/beacon-kit/mod/depinject"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -31,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cast"
 )
 
@@ -39,7 +39,7 @@ import (
 // function for the depinject framework.
 type AvailabilityStoreInput struct {
 	depinject.In
-	AppOpts   servertypes.AppOptions
+	AppOpts   config.AppOptions
 	ChainSpec common.ChainSpec
 	Logger    *Logger
 }

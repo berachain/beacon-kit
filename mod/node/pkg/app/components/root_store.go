@@ -21,20 +21,49 @@
 package components
 
 import (
+	"path/filepath"
+
+	"cosmossdk.io/store/v2"
+	"cosmossdk.io/store/v2/commitment/iavl"
+	"cosmossdk.io/store/v2/db"
+	"cosmossdk.io/store/v2/root"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/depinject"
+	"github.com/spf13/cast"
 )
 
-// ConfigInput is the input for the dependency injection framework.
-type ConfigInput struct {
+type StoreConfigInput struct {
 	depinject.In
+
+	Logger  *SDKLogger
 	AppOpts config.AppOptions
 }
 
-// ProvideConfig is a function that provides the BeaconConfig to the
-// application.
-func ProvideConfig(in ConfigInput) (*config.Config, error) {
-	// AppOpts is not populated when called from CLI
-	// Read the directory
-	return config.ReadConfigFromAppOpts(in.AppOpts)
+func ProvideStoreOptions(in StoreConfigInput) *root.FactoryOptions {
+	homeDir := cast.ToString(in.AppOpts.Get("home"))
+	scRawDb, err := db.NewDB(
+		db.DBTypePebbleDB,
+		"application",
+		filepath.Join(homeDir, "data"),
+		nil,
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	return &root.FactoryOptions{
+		Logger:  in.Logger,
+		RootDir: homeDir,
+		Options: root.Options{
+			SSType:          root.SSTypeSQLite,
+			SCType:          root.SCTypeIavl,
+			SCPruningOption: store.NewPruningOption(store.PruningNothing),
+			IavlConfig:      iavl.DefaultConfig(),
+		},
+		SCRawDB: scRawDb,
+	}
+}
+
+func ProvideRootStore(factoryOpts *root.FactoryOptions) (store.RootStore, error) {
+	return root.CreateRootStore(factoryOpts)
 }

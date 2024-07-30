@@ -26,6 +26,8 @@ cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc h1:R9O9d75e0qZYUsVV0zzi+
 cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc/go.mod h1:amTTatOUV3u1PsKmNb87z6/galCxrRbz9kRdJkL0DyU=
 cosmossdk.io/store/v2 v2.0.0-20240728072805-73a9396a0a2e h1:4B6Pqc2oeBVJVUjf36JaaVoDtuQ2/QCA22NxCe1BK7U=
 cosmossdk.io/store/v2 v2.0.0-20240728072805-73a9396a0a2e/go.mod h1:a+xaPNK+yhak1cVR1P4OyAFLT7M2EZG3RhX2AP15byU=
+cosmossdk.io/store/v2 v2.0.0-20240729225221-c4de9a970633 h1:24Z6QKGYY1lsIiwFttMEyIUa+BwNSQhUYe22Nv8cwLU=
+cosmossdk.io/store/v2 v2.0.0-20240729225221-c4de9a970633/go.mod h1:a+xaPNK+yhak1cVR1P4OyAFLT7M2EZG3RhX2AP15byU=
 cosmossdk.io/x/auth v0.0.0-20240726151427-2e0884564fdb h1:xIvqHZrk5jeHujS8mcN/GgaYrnBTZqEaolBvuT9h8/M=
 cosmossdk.io/x/auth v0.0.0-20240726151427-2e0884564fdb/go.mod h1:5Z58PvNmUm0LdyNVezeXL2tnUeXwpgt6kkGDa1cQFuc=
 cosmossdk.io/x/bank v0.0.0-20240623110059-dec2d5583e39 h1:hjRKgv3aC+x9/y0SG3xZaFAElTq8qBVWgf2sgMQpvcM=
@@ -454,6 +456,8 @@ github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D
 github.com/mattn/go-runewidth v0.0.9/go.mod h1:H031xJmbD/WCDINGzjvQ9THkh0rPKHF+m2gUSrubnMI=
 github.com/mattn/go-runewidth v0.0.15 h1:UNAjwbU9l54TA3KzvqLGxwWjHmMgBUVhBiTjelZgg3U=
 github.com/mattn/go-runewidth v0.0.15/go.mod h1:Jdepj2loyihRzMpdS35Xk/zdY8IAYHsh153qUoGf23w=
+github.com/mattn/go-sqlite3 v1.14.22 h1:2gZY6PC6kBnID23Tichd1K+Z0oS6nE/XwU+Vz/5o4kU=
+github.com/mattn/go-sqlite3 v1.14.22/go.mod h1:Uh1q+B4BYcTPb+yiD3kU8Ct7aC0hY9fxUwlHK0RXw+Y=
 github.com/matttproud/golang_protobuf_extensions v1.0.1/go.mod h1:D8He9yQNgCq6Z5Ld7szi9bcBfOoFv/3dc6xSMkL2PC0=
 github.com/minio/highwayhash v1.0.3 h1:kbnuUMoHYyVl7szWjSxJnxw11k2U709jqFPPmIUyD6Q=
 github.com/minio/highwayhash v1.0.3/go.mod h1:GGYsuwP/fPD6Y9hMiXuapVvlIUEhFhMTh0rxU3ik1LQ=

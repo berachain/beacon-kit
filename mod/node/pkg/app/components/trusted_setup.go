@@ -22,9 +22,9 @@ package components
 
 import (
 	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
+	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/depinject"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/spf13/afero"
 	"github.com/spf13/cast"
@@ -33,7 +33,7 @@ import (
 // TrustedSetupInput is the input for the dep inject framework.
 type TrustedSetupInput struct {
 	depinject.In
-	AppOpts servertypes.AppOptions
+	AppOpts config.AppOptions
 }
 
 // ProvideTrustedSetup provides the module to the application.

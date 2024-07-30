@@ -21,22 +21,40 @@
 package components
 
 import (
-	"cosmossdk.io/core/appmodule"
+	storev2 "cosmossdk.io/store/v2"
 	"github.com/berachain/beacon-kit/mod/depinject"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/v2"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/v2/store"
 )
 
-// KVStoreInput is the input for the ProvideKVStore function.
-type KVStoreInput struct {
-	depinject.In
-	Environment appmodule.Environment
+func ProvideEphemeralStore() *EphemeralStore {
+	return store.NewEphemeralStore()
 }
 
-// ProvideKVStore is the depinject provider that returns a beacon KV store.
-func ProvideKVStore(
-	in KVStoreInput,
-) *KVStore {
+// depinject input for ProvideStateStore
+type StateStoreInput struct {
+	depinject.In
+
+	EphemeralStore *EphemeralStore
+	RootStore      storev2.RootStore
+}
+
+// ProvideStateStore will initialize a new StateStore with a new root store
+// as its localStore
+func ProvideStateStore(
+	in StateStoreInput,
+) *StateStore {
+	store := store.NewStore(in.EphemeralStore, in.RootStore)
+	store.Init()
+	return store
+}
+
+// ProvideStateManager will initialize a new StateManager with the given
+// stateStore
+func ProvideStateManager(
+	stateStore *StateStore,
+) *StateManager {
 	payloadCodec := &encoding.
 		SSZInterfaceCodec[*ExecutionPayloadHeader]{}
 	return beacondb.New[
@@ -45,5 +63,5 @@ func ProvideKVStore(
 		*ExecutionPayloadHeader,
 		*Fork,
 		*Validator,
-	](in.Environment.KVStoreService, payloadCodec)
+	](payloadCodec, stateStore)
 }

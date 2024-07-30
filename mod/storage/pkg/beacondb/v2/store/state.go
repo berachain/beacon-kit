@@ -25,7 +25,6 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	corestore "cosmossdk.io/core/store"
-	"cosmossdk.io/runtime/v2"
 	"cosmossdk.io/store"
 	storev2 "cosmossdk.io/store/v2"
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -42,15 +41,19 @@ const (
 
 // StateStore is a store for the state of the beacon
 type StateStore struct {
-	ctx            *storectx.Context
-	transientState *BlockStore
-	state          runtime.Store
+	ctx             *storectx.Context
+	emphemeralState *EphemeralStore
+	state           storev2.RootStore
 }
 
 // NewStore creates a new state store
-func NewStore(blockStore *BlockStore) *StateStore {
+func NewStore(
+	ephemeralStore *EphemeralStore,
+	state storev2.RootStore,
+) *StateStore {
 	return &StateStore{
-		transientState: blockStore,
+		emphemeralState: ephemeralStore,
+		state:           state,
 	}
 }
 
@@ -70,7 +73,7 @@ func (s *StateStore) QueryState(storeKey, key []byte) ([]byte, error) {
 	}
 
 	// NOT FOUND IN CHANGESET -> QUERY BLOCK STORE
-	value, found = s.transientState.Query(storeKey, key)
+	value, found = s.emphemeralState.Query(storeKey, key)
 	if found {
 		return value, nil
 	}
@@ -96,10 +99,6 @@ func (s *StateStore) QueryState(storeKey, key []byte) ([]byte, error) {
 		}
 	}
 	return nil, collections.ErrNotFound
-}
-
-func (s *StateStore) SetStore(store runtime.Store) {
-	s.state = store
 }
 
 // Iterator returns a combined iterator over the the changeset, the block store,
@@ -128,7 +127,7 @@ func (s *StateStore) Iterator(start, end []byte) (store.Iterator, error) {
 	}
 
 	// get block store iterator
-	blockStoreIter, err := s.transientState.Iterator(start, end)
+	blockStoreIter, err := s.emphemeralState.Iterator(start, end)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +145,7 @@ func (s *StateStore) Save() {
 		return
 	}
 	// commit changes to block store
-	s.transientState.Commit(s.ctx.Changeset.GetChanges())
+	s.emphemeralState.Commit(s.ctx.Changeset.GetChanges())
 }
 
 // Context returns the context of the StateStore
@@ -163,8 +162,7 @@ func (s *StateStore) WithContext(ctx context.Context) *StateStore {
 		storeCtx = storectx.New(ctx)
 	}
 	// initialize a new StateStore with the current block store and chain store
-	storeCopy := NewStore(s.transientState)
-	storeCopy.SetStore(s.state)
+	storeCopy := NewStore(s.emphemeralState, s.state)
 	// set the context to the given context
 	storeCopy.ctx = storeCtx
 	return storeCopy

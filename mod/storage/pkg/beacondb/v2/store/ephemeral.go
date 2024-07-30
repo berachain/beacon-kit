@@ -44,35 +44,35 @@ func (bc *BlockChanges) Extend(changes *store.Changeset) {
 	bc.Changes = append(bc.Changes, changes.Changes...)
 }
 
-// BlockStore is a mem store for the state changes in the current block
+// EphemeralStore is a mem store for the state changes in the current block
 // It should persist over the entire lifecycle of a block, and reset once
 // it has been delivered
-type BlockStore struct {
+type EphemeralStore struct {
 	blockChanges *BlockChanges
 	db           *db.MemDB
 	mu           sync.Mutex
 }
 
-// NewBlockStore creates a new block store.
-// BlockStore is a singleton, so New should only be called once while building.
-func NewBlockStore() *BlockStore {
-	return &BlockStore{
+// NewEphemeralStore creates a new ephemeral store.
+// EphemeralStore is a singleton, so New should only be called once while building.
+func NewEphemeralStore() *EphemeralStore {
+	return &EphemeralStore{
 		blockChanges: NewBlockChanges(),
 		db:           db.NewMemDB(),
 	}
 }
 
 // Add adds a change to the changeset and changes map
-func (bs *BlockStore) Add(storeKey, key, value []byte, remove bool) error {
-	defer bs.mu.Unlock()
-	bs.mu.Lock()
+func (es *EphemeralStore) Add(storeKey, key, value []byte, remove bool) error {
+	defer es.mu.Unlock()
+	es.mu.Lock()
 	// add/remove the change to the map of changes
 	if remove {
-		if err := bs.db.Delete(key); err != nil {
+		if err := es.db.Delete(key); err != nil {
 			return err
 		}
 	} else {
-		if err := bs.db.Set(key, value); err != nil {
+		if err := es.db.Set(key, value); err != nil {
 			return err
 		}
 	}
@@ -81,38 +81,38 @@ func (bs *BlockStore) Add(storeKey, key, value []byte, remove bool) error {
 
 // Query queries the BlockStore for the given key
 // return: value, found
-func (bs *BlockStore) Query(storeKey, key []byte) ([]byte, bool) {
+func (es *EphemeralStore) Query(storeKey, key []byte) ([]byte, bool) {
 	// if not found, memdb returns value as nil
-	if value, err := bs.db.Get(key); err == nil {
+	if value, err := es.db.Get(key); err == nil {
 		return value, value != nil
 	}
 	return nil, false
 }
 
 // Commit adds the changes to the block changes and db
-func (bs *BlockStore) Commit(changes *store.Changeset) {
+func (es *EphemeralStore) Commit(changes *store.Changeset) {
 	// add the changes to the mem store
 	for _, change := range changes.Changes {
 		for _, kvpair := range change.StateChanges {
-			bs.Add(change.Actor, kvpair.Key, kvpair.Value, kvpair.Remove)
+			es.Add(change.Actor, kvpair.Key, kvpair.Value, kvpair.Remove)
 		}
 	}
 	// extend the slice of block changes
-	bs.blockChanges.Extend(changes)
+	es.blockChanges.Extend(changes)
 }
 
-func (bs *BlockStore) GetChanges() *store.Changeset {
-	return bs.blockChanges.Changeset
+func (es *EphemeralStore) GetChanges() *store.Changeset {
+	return es.blockChanges.Changeset
 }
 
 // Flush resets the block changes and db
-func (bs *BlockStore) Flush() {
-	bs.blockChanges = NewBlockChanges()
-	bs.db.Close()
-	bs.db = db.NewMemDB()
+func (es *EphemeralStore) Flush() {
+	es.blockChanges = NewBlockChanges()
+	es.db.Close()
+	es.db = db.NewMemDB()
 }
 
 // Iterator returns an iterator over the block store memdb
-func (bs *BlockStore) Iterator(start, end []byte) (store.Iterator, error) {
-	return bs.db.Iterator(start, end)
+func (es *EphemeralStore) Iterator(start, end []byte) (store.Iterator, error) {
+	return es.db.Iterator(start, end)
 }

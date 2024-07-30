@@ -1,6 +1,10 @@
 package app
 
-import "github.com/berachain/beacon-kit/mod/depinject"
+import (
+	"github.com/berachain/beacon-kit/mod/depinject"
+	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
+)
 
 type Builder[
 	StorageBackendT any,
@@ -12,6 +16,13 @@ type Builder[
 	// These components will be depinjected into the app and added
 	// to the app at runtime.
 	components []any
+}
+
+func NewBuilder[
+	StorageBackendT any,
+	StateProcessorT any,
+]() *Builder[StorageBackendT, StateProcessorT] {
+	return &Builder[StorageBackendT, StateProcessorT]{}
 }
 
 func (b *Builder[
@@ -28,14 +39,41 @@ func (b *Builder[
 	if err = container.Provide(b.components...); err != nil {
 		return nil, err
 	}
-	if err = container.Inject(b.app); err != nil {
+
+	// Resolve dependencies and construct the app.
+	var (
+		logger          log.Logger[any]
+		storageBackend  StorageBackendT
+		stateProcessor  StateProcessorT
+		serviceRegistry service.Registry
+	)
+	if err = container.Inject(
+		&logger,
+		&storageBackend,
+		&stateProcessor,
+		&serviceRegistry,
+	); err != nil {
 		return nil, err
 	}
+	b.app = &App[StorageBackendT, StateProcessorT]{
+		logger:         logger,
+		backend:        storageBackend,
+		stateProcessor: stateProcessor,
+		services:       serviceRegistry,
+	}
+
 	return b.app, nil
 }
 
-func (b *Builder[_, _]) WithComponents(components ...any) {
+// BUILDER OPTIONS
+
+func (b *Builder[
+	StorageBackendT, StateProcessorT,
+]) WithComponents(
+	components ...any,
+) *Builder[StorageBackendT, StateProcessorT] {
 	b.components = append(b.components, components...)
+	return b
 }
 
 // For these methods, the paradigm will be to pass a pointer to the eventually
@@ -44,13 +82,19 @@ func (b *Builder[_, _]) WithComponents(components ...any) {
 // included, think of it as a minimal set of required components.
 
 func (b *Builder[
-	StorageBackendT, _,
-]) WithStorageBackend(storageBackend StorageBackendT) {
+	StorageBackendT, StateProcessorT,
+]) WithStorageBackend(
+	storageBackend StorageBackendT,
+) *Builder[StorageBackendT, StateProcessorT] {
 	b.app.backend = storageBackend
+	return b
 }
 
 func (b *Builder[
-	_, StateProcessorT,
-]) WithStateProcessor(stateProcessor StateProcessorT) {
+	StorageBackendT, StateProcessorT,
+]) WithStateProcessor(
+	stateProcessor StateProcessorT,
+) *Builder[StorageBackendT, StateProcessorT] {
 	b.app.stateProcessor = stateProcessor
+	return b
 }

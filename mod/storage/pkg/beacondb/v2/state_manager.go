@@ -24,7 +24,6 @@ import (
 	"context"
 
 	sdkcollections "cosmossdk.io/collections"
-	"cosmossdk.io/runtime/v2"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
 	indexv2 "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/index/v2"
@@ -275,10 +274,6 @@ func (s *StateManager[
 		s.store.WithContext(ctx),
 	)
 	return cpy
-}
-
-func (s *StateManager[_, _, _, _, _]) SetStateStore(store runtime.Store) {
-	s.store.SetStore(store)
 }
 
 func (s *StateManager[_, _, _, _, _]) stateStore() collections.Store {

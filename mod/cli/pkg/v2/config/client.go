@@ -18,23 +18,14 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package config
 
-import (
-	"github.com/berachain/beacon-kit/mod/config"
-	"github.com/berachain/beacon-kit/mod/depinject"
-)
+import client "github.com/cosmos/cosmos-sdk/client/config"
 
-// ConfigInput is the input for the dependency injection framework.
-type ConfigInput struct {
-	depinject.In
-	AppOpts config.AppOptions
-}
-
-// ProvideConfig is a function that provides the BeaconConfig to the
-// application.
-func ProvideConfig(in ConfigInput) (*config.Config, error) {
-	// AppOpts is not populated when called from CLI
-	// Read the directory
-	return config.ReadConfigFromAppOpts(in.AppOpts)
+// InitClientConfig sets up the default client configuration, allowing for
+// overrides.
+func InitClientConfig() (string, any) {
+	clientConfig := client.DefaultConfig()
+	clientConfig.KeyringBackend = "test"
+	return client.DefaultClientConfigTemplate, clientConfig
 }

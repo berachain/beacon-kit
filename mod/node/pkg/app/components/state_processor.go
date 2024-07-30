@@ -53,7 +53,7 @@ func ProvideStateProcessor(
 		*ExecutionPayloadHeader,
 		*Fork,
 		*ForkData,
-		*KVStore,
+		*StateManager,
 		*Validator,
 		*Withdrawal,
 		WithdrawalCredentials,

@@ -21,6 +21,8 @@
 package app
 
 import (
+	consensusengine "github.com/berachain/beacon-kit/mod/consensus/pkg/engine"
+	executionengine "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 )
@@ -31,10 +33,14 @@ type App[
 ] struct {
 	logger log.Logger[any]
 
-	// Services contained within the service registry
-	// are the services used to push the chain and
-	// related components forward.
-	services service.Registry
+	// The consensus engine client is responsible
+	// for communicating with the consensus engine
+	// for the chain.
+	ConsensusClient consensusengine.Client
+	// The execution engine client is responsible
+	// for communicating with the execution engine
+	// for the chain.
+	ExecutionClient executionengine.Engine
 	// The backend is the central data access layer for
 	// the application.
 	backend StorageBackendT
@@ -42,4 +48,9 @@ type App[
 	// responsible for transitioning the state of the
 	// chain.
 	stateProcessor StateProcessorT
+	// Services contained within the service registry
+	// are defined as pieces of app-specific tooling
+	// that are used to support the core functionality
+	// of the application.
+	services service.Registry
 }

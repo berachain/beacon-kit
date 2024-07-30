@@ -21,7 +21,7 @@
 package commands
 
 import (
-	"github.com/berachain/beacon-kit/mod/cli/pkg/config"
+	"github.com/berachain/beacon-kit/mod/cli/pkg/v2/config"
 	sdkclient "github.com/cosmos/cosmos-sdk/client"
 	sdkconfig "github.com/cosmos/cosmos-sdk/client/config"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
@@ -29,17 +29,19 @@ import (
 )
 
 // Root is a wrapper around cobra.Command.
-type Root struct {
-	cmd *cobra.Command
+type Root[NodeT Node] struct {
+	*cobra.Command
+
+	Node NodeT
 }
 
 // New returns a new root command with the provided configuration.
-func New(
+func New[NodeT Node](
 	name string,
 	description string,
 	runHandler runHandler,
 	clientCtx sdkclient.Context,
-) *Root {
+) *Root[NodeT] {
 	// create the underlying cobra command
 	cmd := &cobra.Command{
 		Use:   name,
@@ -79,19 +81,18 @@ func New(
 			return runHandler(cmd)
 		},
 	}
-	return &Root{
-		cmd: cmd,
+	return &Root[NodeT]{
+		Command: cmd,
 	}
 }
 
 // Run executes the root command.
-func (root *Root) Run(defaultNodeHome string) error {
+func (root *Root[NodeT]) Run(defaultNodeHome string) error {
 	return svrcmd.Execute(
-		root.cmd, "", defaultNodeHome,
+		root.Command, "", defaultNodeHome,
 	)
 }
 
-// Enhance applies the given enhancer to the root command.
-func (root *Root) Enhance(enhance enhancer) error {
-	return enhance(root.cmd)
+func (root *Root[NodeT]) AttachNode(node NodeT) {
+	root.Node = node
 }

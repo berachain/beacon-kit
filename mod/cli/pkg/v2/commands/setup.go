@@ -21,70 +21,59 @@
 package commands
 
 import (
-	confixcmd "cosmossdk.io/tools/confix/cmd"
-	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/client"
-	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/cometbft"
-	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/deposit"
-	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/genesis"
-	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/jwt"
-	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
+	"github.com/berachain/beacon-kit/mod/cli/pkg/v2/commands/deposit"
+	"github.com/berachain/beacon-kit/mod/cli/pkg/v2/commands/genesis"
+	initcli "github.com/berachain/beacon-kit/mod/cli/pkg/v2/commands/init"
+	"github.com/berachain/beacon-kit/mod/cli/pkg/v2/commands/jwt"
+	"github.com/berachain/beacon-kit/mod/cli/pkg/v2/commands/start"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
-	"github.com/cosmos/cosmos-sdk/client/keys"
-	"github.com/cosmos/cosmos-sdk/client/pruning"
-	"github.com/cosmos/cosmos-sdk/client/snapshot"
-	"github.com/cosmos/cosmos-sdk/server"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/version"
-	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 )
 
 // DefaultRootCommandSetup sets up the default commands for the root command.
 func DefaultRootCommandSetup[
-	T types.Node,
+	NodeT Node,
+	ConsensusParamsT ConsensusParams[ConsensusParamsT],
+	GenesisStateT GenesisState[GenesisStateT],
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 ](
-	root *Root,
-	mm *module.Manager,
-	appCreator servertypes.AppCreator[T],
+	root *Root[NodeT],
 	chainSpec common.ChainSpec,
 ) {
-	// Setup the custom start command options.
-	startCmdOptions := server.StartCmdOptions[T]{
-		AddFlags: flags.AddBeaconKitFlags,
-	}
+	// // Setup the custom start command options.
+	// startCmdOptions := server.StartCmdOptions[T]{
+	// 	AddFlags: flags.AddBeaconKitFlags,
+	// }
 
 	// Add all the commands to the root command.
-	root.cmd.AddCommand(
+	root.Command.AddCommand(
 		// `comet`
-		cometbft.Commands(appCreator),
+		// cometbft.Commands(appCreator),
 		// `client`
-		client.Commands(),
+		// client.Commands(),
 		// `config`
-		confixcmd.ConfigCommand(),
+		// confixcmd.ConfigCommand(),
 		// `init`
-		genutilcli.InitCmd(mm),
+		initcli.Command[ConsensusParamsT, GenesisStateT](),
 		// `genesis`
 		genesis.Commands(chainSpec),
 		// `deposit`
 		deposit.Commands[ExecutionPayloadT](chainSpec),
 		// `jwt`
 		jwt.Commands(),
-		// `keys`
-		keys.Commands(),
-		// `prune`
-		pruning.Cmd(appCreator),
-		// `rollback`
-		server.NewRollbackCmd(appCreator),
-		// `snapshots`
-		snapshot.Cmd(appCreator),
+		// // `keys`
+		// keys.Commands(),
+		// // `prune`
+		// pruning.Cmd(appCreator),
+		// // `rollback`
+		// server.NewRollbackCmd(appCreator),
+		// // `snapshots`
+		// snapshot.Cmd(appCreator),
 		// `start`
-		server.StartCmdWithOptions(appCreator, startCmdOptions),
-		// `status`
-		server.StatusCommand(),
-		// `version`
-		version.NewVersionCommand(),
+		start.Command(root.Node),
+		// // `status`
+		// server.StatusCommand(),
+		// // `version`
+		// version.NewVersionCommand(),
 	)
 }

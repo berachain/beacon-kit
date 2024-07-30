@@ -32,7 +32,7 @@ type StorageBackendInput struct {
 	AvailabilityStore *AvailabilityStore
 	ChainSpec         common.ChainSpec
 	DepositStore      *DepositStore
-	KVStore           *KVStore
+	StateManager      *StateManager
 	BlockStore        *BlockStore
 }
 
@@ -55,14 +55,14 @@ func ProvideStorageBackend(
 		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
-		*KVStore,
+		*StateManager,
 		*Validator,
 		*Withdrawal,
 		WithdrawalCredentials,
 	](
 		in.ChainSpec,
 		in.AvailabilityStore,
-		in.KVStore,
+		in.StateManager,
 		in.DepositStore,
 		in.BlockStore,
 	)

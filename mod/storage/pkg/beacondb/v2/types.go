@@ -38,7 +38,7 @@ type Validator interface {
 	UnmarshalSSZ([]byte) error
 	// SizeSSZ returns the size in bytes that the object would take when
 	// marshaled.
-	SizeSSZ() int
+	SizeSSZ() uint32
 	// GetPubkey returns the BLS public key of the validator.
 	GetPubkey() crypto.BLSPubkey
 	// GetEffectiveBalance returns the effective balance of the validator in

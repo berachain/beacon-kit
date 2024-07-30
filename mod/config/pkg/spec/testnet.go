@@ -22,11 +22,10 @@ package spec
 
 import (
 	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
+	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/comet"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	cmttypes "github.com/cometbft/cometbft/types"
 )
 
 // TestnetChainSpec is the ChainSpec for the localnet.
@@ -50,8 +49,7 @@ func BaseSpec() chain.SpecData[
 	math.Slot,
 	any,
 ] {
-	cmtConsensusParams := cmttypes.DefaultConsensusParams()
-	cmtConsensusParams.Validator.PubKeyTypes = []string{crypto.CometBLSType}
+	cmtConsensusParams := cometbft.DefaultConsensusParams()
 
 	return chain.SpecData[
 		common.DomainType,

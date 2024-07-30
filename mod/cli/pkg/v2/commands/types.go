@@ -22,6 +22,7 @@ package commands
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -29,6 +30,20 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 )
+
+type Node interface {
+	Start(context.Context) error
+}
+
+type ConsensusParams[T any] interface {
+	json.Marshaler
+	Default() T
+}
+
+type GenesisState[T any] interface {
+	json.Marshaler
+	Default() T
+}
 
 // PostSetupFn is a function that is called after the application is created
 // and the cosmos server is started.
