@@ -29,8 +29,7 @@ import (
 func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _, _,
 ]) ValidatorByID(
-	slot uint64,
-	id string,
+	slot math.Slot, id string,
 ) (*beacontypes.ValidatorData[ValidatorT], error) {
 	// TODO: to adhere to the spec, this shouldn't error if the error
 	// is not found, but i can't think of a way to do that without coupling
@@ -61,12 +60,11 @@ func (b Backend[
 	}, nil
 }
 
+// TODO: filter by status
 func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, ValidatorT, _, _, _,
 ]) ValidatorsByIDs(
-	slot uint64,
-	ids []string,
-	_ []string, // TODO: filter by status
+	slot math.Slot, ids []string, _ []string,
 ) ([]*beacontypes.ValidatorData[ValidatorT], error) {
 	validatorsData := make([]*beacontypes.ValidatorData[ValidatorT], 0)
 	for _, id := range ids {
@@ -85,8 +83,7 @@ func (b Backend[
 func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) ValidatorBalancesByIDs(
-	slot uint64,
-	ids []string,
+	slot math.Slot, ids []string,
 ) ([]*beacontypes.ValidatorBalanceData, error) {
 	var index math.U64
 	st, _, err := b.stateFromSlot(slot)

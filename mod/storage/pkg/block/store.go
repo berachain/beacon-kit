@@ -77,9 +77,7 @@ func NewStore[BeaconBlockT BeaconBlock[BeaconBlockT]](
 			sdkcollections.BytesKey,
 			sdkcollections.Uint64Value,
 		),
-		mu:           sync.RWMutex{},
-		earliestSlot: 0,
-		cdc:          cdc,
+		cdc: cdc,
 	}
 }
 

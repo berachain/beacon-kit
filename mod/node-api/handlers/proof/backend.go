@@ -20,6 +20,8 @@
 
 package proof
 
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+
 // Backend is the interface for backend of the proof API.
 type Backend[BeaconBlockHeaderT, BeaconStateT, ValidatorT any] interface {
 	BlockBackend[BeaconBlockHeaderT]
@@ -28,9 +30,9 @@ type Backend[BeaconBlockHeaderT, BeaconStateT, ValidatorT any] interface {
 }
 
 type BlockBackend[BeaconBlockHeaderT any] interface {
-	BlockHeaderAtSlot(slot uint64) (BeaconBlockHeaderT, error)
+	BlockHeaderAtSlot(slot math.Slot) (BeaconBlockHeaderT, error)
 }
 
 type StateBackend[BeaconStateT any] interface {
-	StateFromSlotForProof(slot uint64) (BeaconStateT, uint64, error)
+	StateFromSlotForProof(slot math.Slot) (BeaconStateT, math.Slot, error)
 }

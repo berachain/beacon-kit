@@ -22,6 +22,7 @@ package backend
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // StateFromSlotForProof returns the beacon state of the version that was used
@@ -29,16 +30,14 @@ import (
 // the latest block header. Hence we do not process the next slot.
 func (b *Backend[
 	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) StateFromSlotForProof(slot uint64) (BeaconStateT, uint64, error) {
+]) StateFromSlotForProof(slot math.Slot) (BeaconStateT, math.Slot, error) {
 	return b.stateFromSlotRaw(slot)
 }
 
 // GetStateRoot returns the root of the state at the given slot.
 func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) StateRootAtSlot(
-	slot uint64,
-) (common.Root, error) {
+]) StateRootAtSlot(slot math.Slot) (common.Root, error) {
 	st, slot, err := b.stateFromSlot(slot)
 	if err != nil {
 		return common.Root{}, err
@@ -46,16 +45,13 @@ func (b Backend[
 
 	// As calculated by the beacon chain. Ideally, this logic
 	// should be abstracted by the beacon chain.
-	index := slot % b.cs.SlotsPerHistoricalRoot()
-	return st.StateRootAtIndex(index)
+	return st.StateRootAtIndex(slot.Unwrap() % b.cs.SlotsPerHistoricalRoot())
 }
 
 // GetStateFork returns the fork of the state at the given stateID.
 func (b Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, ForkT, _, _, _, _, _, _, _,
-]) StateForkAtSlot(
-	slot uint64,
-) (ForkT, error) {
+]) StateForkAtSlot(slot math.Slot) (ForkT, error) {
 	var fork ForkT
 	st, _, err := b.stateFromSlot(slot)
 	if err != nil {
