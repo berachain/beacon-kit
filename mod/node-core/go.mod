@@ -4,10 +4,10 @@ go 1.22.5
 
 replace (
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240623110059-dec2d5583e39
-	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240729192831-b2989459ae91
-	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240623110059-dec2d5583e39
+	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240729225221-c4de9a970633
+	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240729225221-c4de9a970633
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
-	cosmossdk.io/log => cosmossdk.io/log v1.3.2-0.20240729192831-b2989459ae91
+	cosmossdk.io/log => cosmossdk.io/log v1.3.2-0.20240729225221-c4de9a970633
 	github.com/berachain/beacon-kit/mod/beacon => ../beacon
 	github.com/berachain/beacon-kit/mod/config => ../config
 	github.com/berachain/beacon-kit/mod/node-api => ../node-api

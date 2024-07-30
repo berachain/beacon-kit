@@ -5,9 +5,9 @@ go 1.22.5
 replace (
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240623110059-dec2d5583e39
-	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240729192831-b2989459ae91
-	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240623110059-dec2d5583e39
-	cosmossdk.io/log => cosmossdk.io/log v1.3.2-0.20240729192831-b2989459ae91
+	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240729225221-c4de9a970633
+	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240729225221-c4de9a970633
+	cosmossdk.io/log => cosmossdk.io/log v1.3.2-0.20240729225221-c4de9a970633
 	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240623110059-dec2d5583e39
 	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240623110059-dec2d5583e39
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240623110059-dec2d5583e39
