@@ -99,6 +99,7 @@ func New[
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalCredentialsT WithdrawalCredentials,
 ](
+	cfg Config,
 	storageBackend StorageBackendT,
 	cs common.ChainSpec,
 	sp StateProcessor[BeaconStateT],
@@ -119,7 +120,7 @@ func New[
 		sb:    storageBackend,
 		cs:    cs,
 		sp:    sp,
-		cache: cache.NewQueryCacheWithDefaultConfig(),
+		cache: cache.NewQueryCache(cfg.Cache),
 	}
 }
 

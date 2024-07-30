@@ -38,17 +38,11 @@ type QueryCache struct {
 func NewQueryCache(config Config) *QueryCache {
 	return &QueryCache{
 		queryCtxCache: lru.NewLRU[math.Slot, context.Context](
-			config.QueryContextSize,
+			config.Size,
 			nil,
 			config.QueryContextTTL,
 		),
 	}
-}
-
-// NewQueryCacheWithDefaultConfig creates a new QueryCache with the default
-// configuration.
-func NewQueryCacheWithDefaultConfig() *QueryCache {
-	return NewQueryCache(DefaultConfig())
 }
 
 // GetQueryContext returns the query context for the given slot.

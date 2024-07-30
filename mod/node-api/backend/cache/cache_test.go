@@ -32,8 +32,8 @@ import (
 
 func TestQueryCache(t *testing.T) {
 	cacheConfig := cache.Config{
-		QueryContextSize: 10,
-		QueryContextTTL:  5 * time.Second,
+		Size:            10,
+		QueryContextTTL: 5 * time.Second,
 	}
 
 	cacheUnderTest := cache.NewQueryCache(cacheConfig)
@@ -75,7 +75,7 @@ func TestQueryCache(t *testing.T) {
 
 	t.Run("Prune and verify deletion", func(t *testing.T) {
 		cacheUnderTest.AddQueryContext(math.Slot(1234), ctx)
-		for i := range math.Slot(cacheConfig.QueryContextSize) {
+		for i := range math.Slot(cacheConfig.Size) {
 			cacheUnderTest.AddQueryContext(i, ctx)
 		}
 		_, found := cacheUnderTest.GetQueryContext(math.Slot(1234))

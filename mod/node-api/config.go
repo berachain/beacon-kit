@@ -18,30 +18,21 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package cache
+package nodeapi
 
-import "time"
-
-const (
-	// defaultSize is the default size of the query context cache.
-	defaultSize = 20
-	// defaultQueryContextTTL is 0, which means the query context does not have
-	// an expiry.
-	defaultQueryContextTTL = 0
+import (
+	"github.com/berachain/beacon-kit/mod/node-api/backend"
+	"github.com/berachain/beacon-kit/mod/node-api/server"
 )
 
-// Config is the configuration for an EngineCache.
 type Config struct {
-	// Size is the size of the query context cache.
-	Size int `mapstructure:"size"`
-	// QueryContextTTL is the time-to-live for query contexts in the cache.
-	QueryContextTTL time.Duration `mapstructure:"query-context-ttl"`
+	Backend backend.Config `mapstructure:"backend"`
+	Server  server.Config  `mapstructure:"server"`
 }
 
-// DefaultConfig returns the default configuration for an QueryCache.
 func DefaultConfig() Config {
 	return Config{
-		Size:            defaultSize,
-		QueryContextTTL: defaultQueryContextTTL,
+		Backend: backend.DefaultConfig(),
+		Server:  server.DefaultConfig(),
 	}
 }

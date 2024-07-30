@@ -29,7 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	log "github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
-	"github.com/berachain/beacon-kit/mod/node-api/server"
+	nodeapi "github.com/berachain/beacon-kit/mod/node-api"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
@@ -49,7 +49,7 @@ func DefaultConfig() *Config {
 		PayloadBuilder:    builder.DefaultConfig(),
 		Validator:         validator.DefaultConfig(),
 		BlockStoreService: blockstore.DefaultConfig(),
-		NodeAPI:           server.DefaultConfig(),
+		NodeAPI:           nodeapi.DefaultConfig(),
 	}
 }
 
@@ -68,7 +68,7 @@ type Config struct {
 	// BlockStoreService is the configuration for the block store service.
 	BlockStoreService blockstore.Config `mapstructure:"block-store-service"`
 	// NodeAPI is the configuration for the node API.
-	NodeAPI server.Config `mapstructure:"node-api"`
+	NodeAPI nodeapi.Config `mapstructure:"node-api"`
 }
 
 // GetEngine returns the execution client configuration.

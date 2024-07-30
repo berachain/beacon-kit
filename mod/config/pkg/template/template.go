@@ -95,13 +95,20 @@ pruner-enabled = "{{ .BeaconKit.BlockStoreService.PrunerEnabled }}"
 # AvailabilityWindow is the number of slots to keep in the store.
 availability-window = "{{ .BeaconKit.BlockStoreService.AvailabilityWindow }}"
 
-[beacon-kit.node-api]
+[beacon-kit.node-api.server]
 # Enabled determines if the node API is enabled.
-enabled = "{{ .BeaconKit.NodeAPI.Enabled }}"
+enabled = "{{ .BeaconKit.NodeAPI.Server.Enabled }}"
 
 # Address is the address to bind the node API to.
-address = "{{ .BeaconKit.NodeAPI.Address }}"
+address = "{{ .BeaconKit.NodeAPI.Server.Address }}"
 
 # Logging determines if the node API logging is enabled.
-logging = "{{ .BeaconKit.NodeAPI.Logging }}"
+logging = "{{ .BeaconKit.NodeAPI.Server.Logging }}"
+
+[beacon-kit.node-api.backend]
+# Size is the size of the query context cache.
+size = "{{ .BeaconKit.NodeAPI.Backend.Cache.Size }}"
+
+# QueryContextTTL is the time-to-live for query contexts in the cache.
+query-context-ttl = "{{ .BeaconKit.NodeAPI.Backend.Cache.QueryContextTTL }}"
 `

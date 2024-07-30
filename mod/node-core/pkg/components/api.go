@@ -42,6 +42,7 @@ func ProvideNodeAPIEngine() *NodeAPIEngine {
 type NodeAPIBackendInput struct {
 	depinject.In
 
+	Config         *config.Config
 	StorageBackend *StorageBackend
 	ChainSpec      common.ChainSpec
 	StateProcessor *StateProcessor
@@ -71,6 +72,7 @@ func ProvideNodeAPIBackend(in NodeAPIBackendInput) *NodeAPIBackend {
 		*Withdrawal,
 		WithdrawalCredentials,
 	](
+		in.Config.NodeAPI.Backend,
 		in.StorageBackend,
 		in.ChainSpec,
 		in.StateProcessor,
@@ -93,7 +95,7 @@ func ProvideNodeAPIServer(in NodeAPIServerInput) *NodeAPIServer {
 		NodeAPIContext,
 		*NodeAPIEngine,
 	](
-		in.Config.NodeAPI,
+		in.Config.NodeAPI.Server,
 		in.Engine,
 		in.Logger.With("service", "node-api-server"),
 		in.Handlers...,
