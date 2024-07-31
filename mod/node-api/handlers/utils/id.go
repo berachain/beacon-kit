@@ -78,7 +78,7 @@ func SlotFromBlockID[StorageBackendT interface {
 func SlotFromTimestampID[StorageBackendT interface {
 	GetSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 }](timestampID string, storage StorageBackendT) (math.Slot, error) {
-	if !strings.HasPrefix(timestampID, TimestampIDPrefix) {
+	if !IsTimestampPrefix(timestampID) {
 		return SlotFromStateID(timestampID)
 	}
 
@@ -88,6 +88,12 @@ func SlotFromTimestampID[StorageBackendT interface {
 		return 0, err
 	}
 	return storage.GetSlotByTimestamp(timestamp)
+}
+
+// IsTimestampPrefix checks if the given timestampID is prefixed with the
+// timestamp prefix.
+func IsTimestampPrefix(timestampID string) bool {
+	return strings.HasPrefix(timestampID, TimestampIDPrefix)
 }
 
 // U64FromString returns a math.U64 from the given string. Errors if the given
