@@ -46,15 +46,8 @@ type BeaconBlock struct {
 }
 
 // Empty creates an empty beacon block.
-func (b *BeaconBlock) Empty(forkVersion uint32) *BeaconBlock {
-	switch forkVersion {
-	case version.Deneb:
-		return &BeaconBlock{}
-	case version.DenebPlus:
-		panic("unsupported fork version")
-	default:
-		panic("fork version not supported")
-	}
+func (*BeaconBlock) Empty() *BeaconBlock {
+	return &BeaconBlock{}
 }
 
 // NewWithVersion assembles a new beacon block from the given.

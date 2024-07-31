@@ -18,12 +18,11 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package genesis
+package types
 
 import (
 	"math/big"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -108,7 +107,7 @@ func (g *Genesis[DepositT, ExecutionPayloadHeaderT]) UnmarshalJSON(
 
 // DefaultGenesisDeneb returns a the default genesis.
 func DefaultGenesisDeneb() *Genesis[
-	*types.Deposit, *types.ExecutionPayloadHeader,
+	*Deposit, *ExecutionPayloadHeader,
 ] {
 	defaultHeader, err :=
 		DefaultGenesisExecutionPayloadHeaderDeneb()
@@ -117,11 +116,11 @@ func DefaultGenesisDeneb() *Genesis[
 	}
 
 	// TODO: Uncouple from deneb.
-	return &Genesis[*types.Deposit, *types.ExecutionPayloadHeader]{
+	return &Genesis[*Deposit, *ExecutionPayloadHeader]{
 		ForkVersion: version.FromUint32[common.Version](
 			version.Deneb,
 		),
-		Deposits:               make([]*types.Deposit, 0),
+		Deposits:               make([]*Deposit, 0),
 		ExecutionPayloadHeader: defaultHeader,
 	}
 }
@@ -129,9 +128,9 @@ func DefaultGenesisDeneb() *Genesis[
 // DefaultGenesisExecutionPayloadHeaderDeneb returns a default
 // ExecutionPayloadHeaderDeneb.
 func DefaultGenesisExecutionPayloadHeaderDeneb() (
-	*types.ExecutionPayloadHeader, error,
+	*ExecutionPayloadHeader, error,
 ) {
-	return &types.ExecutionPayloadHeader{
+	return &ExecutionPayloadHeader{
 		ParentHash:   gethprimitives.ZeroHash,
 		FeeRecipient: gethprimitives.ZeroAddress,
 		StateRoot: common.Bytes32(gethprimitives.Hex2BytesFixed(

@@ -111,7 +111,7 @@ func (kv *KVStore[BeaconBlockT]) Set(slot math.Slot, blk BeaconBlockT) error {
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
 
-	if err = kv.roots.Set(ctx, root[:], slot.Unwrap()); err != nil {
+	if err = kv.roots.Set(ctx, root[:], slot); err != nil {
 		return err
 	}
 
@@ -120,7 +120,7 @@ func (kv *KVStore[BeaconBlockT]) Set(slot math.Slot, blk BeaconBlockT) error {
 	}
 
 	kv.cdc.SetActiveForkVersion(blk.Version())
-	return kv.blocks.Set(ctx, slot.Unwrap(), blk)
+	return kv.blocks.Set(ctx, slot, blk)
 }
 
 // GetSlotByRoot retrieves the slot by a given root from the store.
@@ -142,7 +142,7 @@ func (kv *KVStore[BeaconBlockT]) Prune(start, end uint64) error {
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
 	for i := max(start, kv.earliestSlot); i < end; i++ {
-		nextBlock, err := kv.blocks.Get(context.TODO(), i+1)
+		nextBlock, err := kv.blocks.Get(context.TODO(), math.Slot(i+1))
 		if !errors.Is(err, sdkcollections.ErrNotFound) {
 			if err != nil {
 				return err
@@ -155,7 +155,7 @@ func (kv *KVStore[BeaconBlockT]) Prune(start, end uint64) error {
 		}
 
 		// This only errors if the key passed in cannot be encoded.
-		if err = kv.blocks.Remove(context.TODO(), i); err != nil {
+		if err = kv.blocks.Remove(context.TODO(), math.Slot(i)); err != nil {
 			return err
 		}
 	}

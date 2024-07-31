@@ -683,6 +683,13 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 					"Test case: %s",
 					tt.name,
 				)
+
+				var buf []byte
+				buf, err = tt.validator.MarshalSSZTo(buf)
+				require.NoError(t, err)
+
+				// The two byte slices should be equal
+				require.Equal(t, marshaled, buf)
 			}
 		})
 	}

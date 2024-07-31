@@ -27,8 +27,6 @@ import (
 	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
 	consruntimetypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
@@ -113,8 +111,8 @@ type (
 		WithdrawalCredentials,
 	]
 
-	// BeaconStateMarshallable is a type alias for the BeaconStateMarshallable.
-	BeaconStateMarshallable = state.BeaconStateMarshallable[
+	// BeaconStateMarshallable is a type alias for the BeaconState.
+	BeaconStateMarshallable = types.BeaconState[
 		*BeaconBlockHeader,
 		*Eth1Data,
 		*ExecutionPayloadHeader,
@@ -237,8 +235,8 @@ type (
 	// ForkData is a type alias for the fork data.
 	ForkData = types.ForkData
 
-	// Genesis is a type alias for the genesis.
-	Genesis = genesis.Genesis[
+	// Genesis is a type alias for the Genesis type.
+	Genesis = types.Genesis[
 		*Deposit,
 		*ExecutionPayloadHeader,
 	]
