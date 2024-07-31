@@ -36,14 +36,6 @@ import (
 func generateBeaconBlockBody() types.BeaconBlockBody {
 	return types.BeaconBlockBody{
 		RandaoReveal: [96]byte{1, 2, 3},
-		Eth1Data:     &types.Eth1Data{},
-		Graffiti:     [32]byte{4, 5, 6},
-		Deposits:     []*types.Deposit{},
-		ExecutionPayload: &types.ExecutionPayload{
-			BaseFeePerGas: math.NewU256(0),
-		},
-		BlobKzgCommitments: []eip4844.KZGCommitment{},
-		RandaoReveal: [96]byte{1, 2, 3},
 		Eth1Data: &types.Eth1Data{
 			DepositRoot:  [32]byte{7, 8, 9},
 			DepositCount: 12345,
@@ -70,7 +62,7 @@ func generateBeaconBlockBody() types.BeaconBlockBody {
 			GasUsed:       7500000,
 			Timestamp:     1617181920,
 			ExtraData:     []byte{43, 44, 45},
-			BaseFeePerGas: [32]byte{46, 47, 48},
+			BaseFeePerGas: math.NewU256(0),
 			BlockHash:     [32]byte{49, 50, 51},
 			Transactions:  [][]byte{{52, 53, 54}},
 		},
