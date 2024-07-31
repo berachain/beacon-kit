@@ -107,7 +107,7 @@ func (dm *DepositMessage) DefineSSZ(codec *ssz.Codec) {
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the DepositMessage object.
-func (dm *DepositMessage) HashTreeRoot() ([32]byte, error) {
+func (dm *DepositMessage) HashTreeRoot() (common.Root, error) {
 	return ssz.HashSequential(dm), nil
 }
 

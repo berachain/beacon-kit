@@ -23,7 +23,6 @@ package bytes
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/prysmaticlabs/gohashtree"
 )
 
@@ -31,8 +30,6 @@ const (
 	// B48Size represents a 48-byte size.
 	B48Size = 48
 )
-
-var _ schema.MinimalSSZObject = (*B48)(nil)
 
 // B48 represents a 48-byte fixed-size byte array.
 // For SSZ purposes it is serialized a `Vector[Byte, 48]`.
@@ -86,17 +83,7 @@ func (h B48) MarshalSSZ() ([]byte, error) {
 	return h[:], nil
 }
 
-// IsFixed returns true if the length of the B48 is fixed.
-func (h B48) IsFixed() bool {
-	return true
-}
-
-// Type returns the type of the B48.
-func (h B48) Type() schema.SSZType {
-	return schema.B48()
-}
-
-func (h B48) HashTreeRoot() ([32]byte, error) {
+func (h B48) HashTreeRoot() (B32, error) {
 	//nolint:mnd // for a tree height of 1 we need 2 working chunks.
 	result := make([][32]byte, 2)
 	copy(result[0][:], h[:32])

@@ -26,7 +26,6 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
 	"github.com/stretchr/testify/require"
 )
@@ -35,7 +34,7 @@ func TestB96_HashTreeRoot(t *testing.T) {
 	tests := []struct {
 		name  string
 		input bytes.B96
-		want  [32]byte
+		want  bytes.B32
 	}{
 		{
 			name:  "Zero bytes",
@@ -119,15 +118,4 @@ func TestB96MarshalSSZ(t *testing.T) {
 			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
 		})
 	}
-}
-
-func TestB96IsFixed(t *testing.T) {
-	var b bytes.B96
-	require.True(t, b.IsFixed(), "IsFixed should return true for B96")
-}
-
-func TestB96Type(t *testing.T) {
-	var b bytes.B96
-	require.Equal(t, schema.B96(), b.Type(),
-		"Type should return ssz.Vector for B96")
 }

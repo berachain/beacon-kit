@@ -229,7 +229,7 @@ func TestBeaconState_HashTreeRoot(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get the HashConcurrent
-	concurrentRoot := karalabessz.HashSequential(state)
+	concurrentRoot := common.Root(karalabessz.HashSequential(state))
 
 	// Compare the results
 	require.Equal(

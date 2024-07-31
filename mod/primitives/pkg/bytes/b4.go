@@ -18,20 +18,17 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 //
-//nolint:dupl // it's okay to duplicate the code for different types
+
 package bytes
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 )
 
 const (
 	// B4Size represents a 4-byte size.
 	B4Size = 4
 )
-
-var _ schema.MinimalSSZObject = (*B4)(nil)
 
 // B4 represents a 4-byte fixed-size byte array.
 // For SSZ purposes it is serialized a `Vector[Byte, 4]`.
@@ -69,35 +66,4 @@ func (h B4) String() string {
 // UnmarshalJSON implements the json.Unmarshaler interface for B4.
 func (h *B4) UnmarshalJSON(input []byte) error {
 	return unmarshalJSONHelper(h[:], input)
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                SSZMarshaler                                */
-/* -------------------------------------------------------------------------- */
-
-// SizeSSZ returns the size of its SSZ encoding in bytes.
-func (h B4) SizeSSZ() uint32 {
-	return B4Size
-}
-
-// MarshalSSZ implements the SSZ marshaling for B4.
-func (h B4) MarshalSSZ() ([]byte, error) {
-	return h[:], nil
-}
-
-// IsFixed returns true if the length of the B4 is fixed.
-func (h B4) IsFixed() bool {
-	return true
-}
-
-// Type returns the type of the B4.
-func (h B4) Type() schema.SSZType {
-	return schema.B4()
-}
-
-// HashTreeRoot returns the hash tree root of the B4.
-func (h B4) HashTreeRoot() ([32]byte, error) {
-	var result [32]byte
-	copy(result[:], h[:])
-	return result, nil
 }

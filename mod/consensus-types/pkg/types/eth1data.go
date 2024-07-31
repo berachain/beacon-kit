@@ -87,7 +87,7 @@ func (e *Eth1Data) DefineSSZ(codec *ssz.Codec) {
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the Eth1Data object.
-func (e *Eth1Data) HashTreeRoot() ([32]byte, error) {
+func (e *Eth1Data) HashTreeRoot() (common.Root, error) {
 	return ssz.HashSequential(e), nil
 }
 

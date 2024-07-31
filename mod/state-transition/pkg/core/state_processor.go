@@ -336,7 +336,7 @@ func (sp *StateProcessor[
 	} else if blk.GetStateRoot() != stateRoot {
 		return errors.Wrapf(
 			ErrStateRootMismatch, "expected %s, got %s",
-			common.Root(stateRoot), blk.GetStateRoot(),
+			stateRoot, blk.GetStateRoot(),
 		)
 	}
 
