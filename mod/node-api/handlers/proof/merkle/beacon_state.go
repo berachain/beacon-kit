@@ -25,9 +25,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
-// ProveStateInBlock generates a proof for the beacon state in the
+// ProveBeaconStateInBlock generates a proof for the beacon state in the
 // beacon block. It uses the fastssz library to generate the proof.
-func ProveStateInBlock(bbh types.BeaconBlockHeader) ([]common.Root, error) {
+func ProveBeaconStateInBlock(
+	bbh types.BeaconBlockHeader,
+) ([]common.Root, error) {
 	blockProofTree, err := bbh.GetTree()
 	if err != nil {
 		return nil, err

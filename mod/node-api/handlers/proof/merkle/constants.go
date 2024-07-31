@@ -21,16 +21,16 @@
 package merkle
 
 const (
+	// StateGIndexDenebBlock is the generalized index of the beacon state in
+	// the beacon block in the Deneb fork.
+	StateGIndexDenebBlock = 11
+
 	// ZeroValidatorPubkeyGIndexDenebState is the generalized index of the 0
 	// validator's pubkey in the beacon state in the Deneb fork. To get the
 	// GIndex of the pubkey of validator at index n, the formula is:
 	// GIndex = ZeroValidatorPubkeyGIndexDenebState +
 	//          (ValidatorPubkeyGIndexOffset * n)
 	ZeroValidatorPubkeyGIndexDenebState = 439804651110400
-
-	// StateGIndexDenebBlock is the generalized index of the beacon state in
-	// the beacon block in the Deneb fork.
-	StateGIndexDenebBlock = 11
 
 	// ZeroValidatorPubkeyGIndexDenebBlock is the generalized index of the 0
 	// validator's pubkey in the beacon block in the Deneb fork. This is
@@ -44,11 +44,24 @@ const (
 	// ValidatorPubkeyGIndexOffset is the offset of a validator pubkey GIndex.
 	ValidatorPubkeyGIndexOffset = 8
 
-	// ExecutionPayloadNumberGIndexDenebState is the generalized index of the
-	// execution payload header in the beacon beacon state in the Deneb fork.
-	ExecutionPayloadNumberGIndexDenebState = 774
+	// ExecutionNumberGIndexDenebState is the generalized index of the latest
+	// execution payload header in the beacon state in the Deneb fork.
+	ExecutionNumberGIndexDenebState = 774
 
-	// ExecutionPayloadNumberGIndexDenebBlock is the generalized index of the
-	// number in the execution payload in the Deneb fork.
-	ExecutionPayloadNumberGIndexDenebBlock = 5894
+	// ExecutionNumberGIndexDenebBlock is the generalized index of the number
+	// in the latest execution payload header in the beacon block in the Deneb
+	// fork. This is calculated by concatenating the
+	// (ExecutionNumberGIndexDenebState, StateGIndexDenebBlock) GIndices.
+	ExecutionNumberGIndexDenebBlock = 5894
+
+	// ExecutionFeeRecipientGIndexDenebState is the generalized index of the
+	// fee recipient in the latest execution payload header in the beacon state
+	// in the Deneb fork.
+	ExecutionFeeRecipientGIndexDenebState = 769
+
+	// ExecutionFeeRecipientGIndexDenebBlock is the generalized index of the
+	// fee recipient in the latest execution payload header in the beacon block
+	// in the Deneb fork. This is calculated by concatenating the
+	// (ExecutionFeeRecipientGIndexDenebState, StateGIndexDenebBlock) GIndices.
+	ExecutionFeeRecipientGIndexDenebBlock = 5889
 )
