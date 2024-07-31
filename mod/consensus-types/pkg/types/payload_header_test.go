@@ -116,7 +116,7 @@ func TestExecutionPayloadHeader_Serialization(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, data)
 
-	var unmarshalled = new(types.ExecutionPayloadHeader).Empty(version.Deneb)
+	var unmarshalled = new(types.ExecutionPayloadHeader).Empty()
 	err = unmarshalled.UnmarshalSSZ(data)
 	require.NoError(t, err)
 	require.Equal(t, original, unmarshalled)
@@ -247,7 +247,7 @@ func TestExecutionPayloadHeader_GetTree(t *testing.T) {
 
 func TestExecutionPayloadHeader_Empty(t *testing.T) {
 	header := new(types.ExecutionPayloadHeader)
-	emptyHeader := header.Empty(version.Deneb)
+	emptyHeader := header.Empty()
 
 	require.NotNil(t, emptyHeader)
 	require.Equal(t, version.Deneb, emptyHeader.Version())
