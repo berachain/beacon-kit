@@ -35,8 +35,7 @@ type BlobSidecars struct {
 
 // NewBlobSidecars creates a new BlobSidecars object.
 func (bs *BlobSidecars) Empty() *BlobSidecars {
-	bs = &BlobSidecars{}
-	return bs
+	return &BlobSidecars{}
 }
 
 // IsNil checks to see if blobs are nil.

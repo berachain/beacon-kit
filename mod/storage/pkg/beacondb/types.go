@@ -27,7 +27,8 @@ import (
 )
 
 // Validator represents an interface for a validator in the beacon chain.
-type Validator interface {
+type Validator[SelfT any] interface {
+	constraints.Empty[SelfT]
 	constraints.SSZMarshallable
 	// GetPubkey returns the BLS public key of the validator.
 	GetPubkey() crypto.BLSPubkey

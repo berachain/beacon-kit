@@ -26,7 +26,8 @@ import (
 )
 
 // Deposit is a struct that represents a deposit.
-type Deposit interface {
+type Deposit[DepositT any] interface {
 	constraints.SSZMarshallable
+	constraints.Empty[DepositT]
 	GetIndex() math.U64
 }

@@ -77,6 +77,13 @@ func TestExecutionPayload_Serialization(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, original, &unmarshalled)
+
+	var buf []byte
+	buf, err = original.MarshalSSZTo(buf)
+	require.NoError(t, err)
+
+	// The two byte slices should be equal
+	require.Equal(t, data, buf)
 }
 
 func TestExecutionPayload_SizeSSZ(t *testing.T) {
