@@ -26,6 +26,7 @@
 package types
 
 import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	fastssz "github.com/ferranbt/fastssz"
@@ -82,7 +83,7 @@ func (s *SlashingInfo) DefineSSZ(codec *ssz.Codec) {
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the SlashingInfo object.
-func (s *SlashingInfo) HashTreeRoot() ([32]byte, error) {
+func (s *SlashingInfo) HashTreeRoot() (common.Root, error) {
 	return ssz.HashSequential(s), nil
 }
 

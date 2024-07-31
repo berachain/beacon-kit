@@ -87,7 +87,7 @@ func (a *AttestationData) DefineSSZ(codec *ssz.Codec) {
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the AttestationData object.
-func (a *AttestationData) HashTreeRoot() ([32]byte, error) {
+func (a *AttestationData) HashTreeRoot() (common.Root, error) {
 	return ssz.HashSequential(a), nil
 }
 

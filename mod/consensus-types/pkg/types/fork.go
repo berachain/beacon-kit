@@ -100,7 +100,7 @@ func (f *Fork) UnmarshalSSZ(buf []byte) error {
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the Fork object.
-func (f *Fork) HashTreeRoot() ([32]byte, error) {
+func (f *Fork) HashTreeRoot() (common.Root, error) {
 	return ssz.HashSequential(f), nil
 }
 

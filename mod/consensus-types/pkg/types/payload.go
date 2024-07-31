@@ -144,7 +144,7 @@ func (p *ExecutionPayload) UnmarshalSSZ(bz []byte) error {
 }
 
 // HashTreeRoot returns the hash tree root of the ExecutionPayload.
-func (p *ExecutionPayload) HashTreeRoot() ([32]byte, error) {
+func (p *ExecutionPayload) HashTreeRoot() (common.Root, error) {
 	return ssz.HashConcurrent(p), nil
 }
 

@@ -83,7 +83,7 @@ func GetGenesisValidatorRootCmd(cs common.ChainSpec) *cobra.Command {
 
 			var validatorsRoot common.Root
 			validatorsRoot, err = merkle.NewMerkleizer[
-				[32]byte, *types.Validator,
+				common.Root, *types.Validator,
 			]().MerkleizeListComposite(
 				validators, uint64(len(validators)),
 			)

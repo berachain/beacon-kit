@@ -21,6 +21,7 @@
 package compare_test
 
 import (
+	"bytes"
 	"slices"
 	"testing"
 	"testing/quick"
@@ -90,8 +91,9 @@ func TestExecutionPayloadHashTreeRootZrnt(t *testing.T) {
 			t.Log("Failed to calculate HashTreeRoot on container payload:", err)
 			return false
 		}
-		//nolint:gocritic // ok
-		return typeRoot == containerRoot && typeRoot == zRoot
+
+		return bytes.Equal(typeRoot[:], containerRoot[:]) &&
+			bytes.Equal(typeRoot[:], zRoot[:])
 	}
 	if err := quick.Check(f, &c); err != nil {
 		t.Error(err)

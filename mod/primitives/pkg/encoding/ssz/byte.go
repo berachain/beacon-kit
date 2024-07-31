@@ -23,6 +23,7 @@ package ssz
 import (
 	"fmt"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 )
@@ -68,7 +69,7 @@ func (Byte) NewFromSSZ(buf []byte) (Byte, error) {
 }
 
 // HashTreeRoot returns the hash tree root of the byte.
-func (b Byte) HashTreeRoot() ([32]byte, error) {
+func (b Byte) HashTreeRoot() (common.Root, error) {
 	buf := make([]byte, constants.BytesPerChunk)
 	buf[0] = byte(b)
 	return [32]byte(buf), nil

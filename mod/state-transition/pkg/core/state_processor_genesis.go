@@ -114,7 +114,7 @@ func (sp *StateProcessor[
 	var validatorsRoot common.Root
 
 	validatorsRoot, err = merkle.
-		NewMerkleizer[[32]byte, ValidatorT]().MerkleizeListComposite(
+		NewMerkleizer[common.Root, ValidatorT]().MerkleizeListComposite(
 		validators,
 		uint64(len(validators)),
 	)

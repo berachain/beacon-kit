@@ -6,6 +6,7 @@ package types
 import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	ssz "github.com/ferranbt/fastssz"
+	 "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
 // MarshalSSZ ssz marshals the ValidatorsMarshaling object

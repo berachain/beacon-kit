@@ -25,6 +25,7 @@ import (
 	"encoding/binary"
 	"testing"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/stretchr/testify/require"
 )
@@ -45,7 +46,7 @@ func (u BasicItem) MarshalSSZ() ([]byte, error) {
 }
 
 // HashTreeRoot computes the Merkle root of the U64 using SSZ hashing rules.
-func (u BasicItem) HashTreeRoot() ([32]byte, error) {
+func (u BasicItem) HashTreeRoot() (common.Root, error) {
 	// In practice we can use a simpler function.
 	return merkle.
 		NewMerkleizer[[32]byte, BasicItem]().MerkleizeBasic(u)
@@ -65,7 +66,7 @@ func (c *BasicContainer[SpecT]) SizeSSZ() uint32 {
 // HashTreeRoot computes the Merkle root of the container using SSZ hashing
 // rules.
 func (c *BasicContainer[SpecT]) HashTreeRoot() ([32]byte, error) {
-	return merkle.NewMerkleizer[[32]byte, BasicItem]().
+	return merkle.NewMerkleizer[common.Root, BasicItem]().
 		MerkleizeVectorCompositeOrContainer(
 			[]BasicItem{c.Item1, c.Item2},
 		)
