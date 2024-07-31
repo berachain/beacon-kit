@@ -21,13 +21,15 @@
 package types
 
 import (
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // BlockProposerResponse is the response for the
-// `/proof/blocks/proposer/{block_id}` endpoint.
+// `/proof/block_proposer/{block_id}` endpoint.
 type BlockProposerResponse[BeaconBlockHeaderT any] struct {
 	// BeaconBlockHeader is the block header of which the hash tree root is the
 	// beacon block root to verify against.
@@ -46,9 +48,9 @@ type BlockProposerResponse[BeaconBlockHeaderT any] struct {
 	ValidatorPubkeyProof []common.Root `json:"validator_pubkey_proof"`
 }
 
-// BlockExecutionResponse is the response for the
-// `/proof/blocks/execution/{block_id}` endpoint.
-type BlockExecutionResponse[BeaconBlockHeaderT any] struct {
+// ExecutionNumberResponse is the response for the
+// `/proof/execution_number/{block_id}` endpoint.
+type ExecutionNumberResponse[BeaconBlockHeaderT any] struct {
 	// BeaconBlockHeader is the block header of which the hash tree root is the
 	// beacon block root to verify against.
 	BeaconBlockHeader BeaconBlockHeaderT `json:"beacon_block_header"`
@@ -62,4 +64,22 @@ type BlockExecutionResponse[BeaconBlockHeaderT any] struct {
 	// ExecutionNumberProof can be verified against the beacon block root using
 	// a Generalized Index of 5894 in the Deneb fork.
 	ExecutionNumberProof []common.Root `json:"execution_number_proof"`
+}
+
+// ExecutionFeeRecipientResponse is the response for the
+// `/proof/execution_fee_recipient/{block_id}` endpoint.
+type ExecutionFeeRecipientResponse[BeaconBlockHeaderT any] struct {
+	// BeaconBlockHeader is the block header of which the hash tree root is the
+	// beacon block root to verify against.
+	BeaconBlockHeader BeaconBlockHeaderT `json:"beacon_block_header"`
+
+	// BeaconBlockRoot is the beacon block root for this slot.
+	BeaconBlockRoot common.Root `json:"beacon_block_root"`
+
+	// ExecutionFeeRecipient is the fee recipient from the execution payload.
+	ExecutionFeeRecipient gethprimitives.ExecutionAddress `json:"execution_fee_recipient"`
+
+	// ExecutionFeeRecipientProof can be verified against the beacon block root
+	// using a Generalized Index of 5894 in the Deneb fork.
+	ExecutionFeeRecipientProof []common.Root `json:"execution_fee_recipient_proof"`
 }

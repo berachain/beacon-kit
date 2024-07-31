@@ -26,13 +26,13 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 )
 
-// GetBlockExecution returns the block number from the execution payload for the
-// given block id, along with the proof that can be verified against the beacon
-// block root.
+// GetExecutionFeeRecipient returns the fee recipient from the execution
+// payload for the given block id, along with the proof that can be verified
+// against the beacon block root.
 func (h *Handler[
 	ContextT, BeaconBlockHeaderT, _, _, _, _,
-]) GetBlockExecution(c ContextT) (any, error) {
-	params, err := utils.BindAndValidate[types.BlockExecutionRequest](
+]) GetExecutionFeeRecipient(c ContextT) (any, error) {
+	params, err := utils.BindAndValidate[types.ExecutionFeeRecipientRequest](
 		c, h.Logger(),
 	)
 	if err != nil {
@@ -45,7 +45,7 @@ func (h *Handler[
 
 	// Generate the proof (along with the "correct" beacon block root to
 	// verify against) for the execution payload block number.
-	h.Logger().Info("Generating block execution number proof", "slot", slot)
+	h.Logger().Info("Generating execution fee recipient proof", "slot", slot)
 	proof, beaconBlockRoot, err := merkle.ProveExecutionNumberInBlock(
 		blockHeader, beaconState,
 	)
@@ -59,10 +59,10 @@ func (h *Handler[
 		return nil, err
 	}
 
-	return types.BlockExecutionResponse[BeaconBlockHeaderT]{
-		BeaconBlockHeader:    blockHeader,
-		BeaconBlockRoot:      beaconBlockRoot,
-		ExecutionNumber:      leph.GetNumber(),
-		ExecutionNumberProof: proof,
+	return types.ExecutionFeeRecipientResponse[BeaconBlockHeaderT]{
+		BeaconBlockHeader:          blockHeader,
+		BeaconBlockRoot:            beaconBlockRoot,
+		ExecutionFeeRecipient:      leph.GetFeeRecipient(),
+		ExecutionFeeRecipientProof: proof,
 	}, nil
 }

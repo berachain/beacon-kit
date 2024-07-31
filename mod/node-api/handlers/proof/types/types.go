@@ -21,10 +21,13 @@
 package types
 
 import (
+	fastssz "github.com/ferranbt/fastssz"
+
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	fastssz "github.com/ferranbt/fastssz"
 )
 
 // BeaconBlockHeader is the interface for a beacon block header.
@@ -62,6 +65,9 @@ type BeaconStateMarshallable interface {
 type ExecutionPayloadHeader interface {
 	// GetNumber returns the block number of the ExecutionPayloadHeader.
 	GetNumber() math.U64
+	// GetFeeRecipient returns the fee recipient address of the
+	// ExecutionPayloadHeader.
+	GetFeeRecipient() gethprimitives.ExecutionAddress
 }
 
 // Validator is the interface for a validator.
