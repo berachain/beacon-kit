@@ -118,7 +118,11 @@ type (
 		*ExecutionPayloadHeader,
 		*Fork,
 		*Validator,
+		BeaconBlockHeader,
 		Eth1Data,
+		ExecutionPayloadHeader,
+		Fork,
+		Validator,
 	]
 
 	// BlobProcessor is a type alias for the blob processor.
