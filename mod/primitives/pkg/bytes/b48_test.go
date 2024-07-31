@@ -23,8 +23,8 @@ package bytes_test
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/primitigives/pkg/merkle/zero"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
 	"github.com/stretchr/testify/require"
 )
 
