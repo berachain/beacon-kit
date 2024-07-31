@@ -83,8 +83,8 @@ func (h B20) MarshalSSZ() ([]byte, error) {
 }
 
 // HashTreeRoot returns the hash tree root of the B20.
-func (h B20) HashTreeRoot() (B32, error) {
+func (h B20) HashTreeRoot() B32 {
 	var result [32]byte
 	copy(result[:], h[:])
-	return result, nil
+	return result
 }

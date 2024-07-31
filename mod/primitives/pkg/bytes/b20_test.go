@@ -147,8 +147,7 @@ func TestBytes20HashTreeRoot(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.input.HashTreeRoot()
-			require.NoError(t, err, "Test case: %s", tt.name)
+			got := tt.input.HashTreeRoot()
 			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
 		})
 	}
