@@ -103,11 +103,9 @@ func (kv *KVStore[BeaconBlockT]) Get(slot math.Slot) (BeaconBlockT, error) {
 // Set sets the block by a given index in the store and also stores the
 // block root.
 func (kv *KVStore[BeaconBlockT]) Set(slot math.Slot, blk BeaconBlockT) error {
-	root, err := blk.HashTreeRoot()
-	if err != nil {
-		return err
-	}
-	ctx := context.TODO()
+	var (
+		root, err = blk.HashTreeRoot()
+	) 
 
 	kv.mu.Lock()
 	defer kv.mu.Unlock()

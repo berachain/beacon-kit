@@ -745,13 +745,12 @@ func TestValidator_HashTreeRoot(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Test HashTreeRoot
-			root, err := tt.validator.HashTreeRoot()
-			require.NoError(t, err)
+			root := tt.validator.HashTreeRoot()
 			require.NotEqual(t, [32]byte{}, root)
 
 			// Test HashTreeRootWith
 			hh := ssz.NewHasher()
-			err = tt.validator.HashTreeRootWith(hh)
+			err := tt.validator.HashTreeRootWith(hh)
 			require.NoError(t, err)
 
 			// Test GetTree

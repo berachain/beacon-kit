@@ -38,8 +38,29 @@ import (
 )
 
 // generateValidBeaconState generates a valid beacon state for the types.
-func generateValidBeaconState() *types.BeaconState[any, any, any, any, any] {
-	return &types.BeaconState[any, any, any, any, any]{
+func generateValidBeaconState() *types.BeaconState[
+	*types.BeaconBlockHeader,
+	*types.Eth1Data,
+	*types.ExecutionPayloadHeader,
+	*types.Fork,
+	*types.Validator,
+	types.BeaconBlockHeader,
+	types.Eth1Data,
+	types.ExecutionPayloadHeader,
+	types.Fork,
+	types.Validator,
+] {
+	return &types.BeaconState[
+		*types.BeaconBlockHeader,
+		*types.Eth1Data,
+		*types.ExecutionPayloadHeader,
+		*types.Fork,
+		*types.Validator,
+		types.BeaconBlockHeader,
+		types.Eth1Data,
+		types.ExecutionPayloadHeader,
+		types.Fork,
+		types.Validator]{
 		GenesisValidatorsRoot: common.Root{0x01, 0x02, 0x03},
 		Slot:                  1234,
 		BlockRoots: []common.Root{
@@ -118,7 +139,7 @@ func generateValidBeaconState() *types.BeaconState[any, any, any, any, any] {
 
 func generateRandomBytes32(count int) []common.Bytes32 {
 	result := make([]common.Bytes32, count)
-	for i := range count {
+	for i := range result {
 		var randomBytes [32]byte
 		for j := range randomBytes {
 			randomBytes[j] = byte((i + j) % 256)
@@ -135,7 +156,18 @@ func TestBeaconStateMarshalUnmarshalSSZ(t *testing.T) {
 	require.NoError(t, fastSSZMarshalErr)
 	require.NotNil(t, data)
 
-	newState := &types.BeaconState[any, any, any, any, any]{}
+	newState := &types.BeaconState[
+		*types.BeaconBlockHeader,
+		*types.Eth1Data,
+		*types.ExecutionPayloadHeader,
+		*types.Fork,
+		*types.Validator,
+		types.BeaconBlockHeader,
+		types.Eth1Data,
+		types.ExecutionPayloadHeader,
+		types.Fork,
+		types.Validator,
+	]{}
 	err := newState.UnmarshalSSZ(data)
 	require.NoError(t, err)
 
@@ -147,8 +179,9 @@ func TestBeaconStateMarshalUnmarshalSSZ(t *testing.T) {
 
 func TestHashTreeRoot(t *testing.T) {
 	state := generateValidBeaconState()
-	_, err := state.HashTreeRoot()
-	require.NoError(t, err)
+	require.NotPanics(t, func() {
+		state.HashTreeRoot()
+	})
 }
 
 func TestGetTree(t *testing.T) {
@@ -159,7 +192,18 @@ func TestGetTree(t *testing.T) {
 }
 
 func TestBeaconState_UnmarshalSSZ_Error(t *testing.T) {
-	state := &types.BeaconState[any, any, any, any, any]{}
+	state := &types.BeaconState[
+		*types.BeaconBlockHeader,
+		*types.Eth1Data,
+		*types.ExecutionPayloadHeader,
+		*types.Fork,
+		*types.Validator,
+		types.BeaconBlockHeader,
+		types.Eth1Data,
+		types.ExecutionPayloadHeader,
+		types.Fork,
+		types.Validator,
+	]{}
 	err := state.UnmarshalSSZ([]byte{0x01, 0x02, 0x03}) // Invalid data
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
@@ -182,11 +226,10 @@ func TestBeaconState_HashTreeRoot(t *testing.T) {
 	state := generateValidBeaconState()
 
 	// Get the HashTreeRoot
-	root, err := state.HashTreeRoot()
-	require.NoError(t, err)
+	root := state.HashTreeRoot()
 
 	// Get the HashConcurrent
-	concurrentRoot := karalabessz.HashSequential(state)
+	concurrentRoot := common.Root(karalabessz.HashSequential(state))
 
 	// Compare the results
 	require.Equal(

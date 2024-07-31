@@ -102,10 +102,7 @@ func TestSlashingInfo_GetTree(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, tree)
 
-	expectedRoot, err := data.HashTreeRoot()
-	require.NoError(t, err)
-
-	// Compare the tree root with the expected root
+	expectedRoot := data.HashTreeRoot()
 	actualRoot := tree.Hash()
 	require.Equal(t, string(expectedRoot[:]), string(actualRoot))
 }

@@ -49,18 +49,9 @@ func (bs *BlobSidecars) ValidateBlockRoots() error {
 	// We only need to check if there is more than
 	// a single blob in the sidecar.
 	if sc := bs.Sidecars; len(sc) > 1 {
-		firstHtr, err := sc[0].BeaconBlockHeader.HashTreeRoot()
-		if err != nil {
-			return err
-		}
-
-		var nextHtr [32]byte
+		firstHtr := sc[0].BeaconBlockHeader.HashTreeRoot()
 		for i := 1; i < len(sc); i++ {
-			nextHtr, err = sc[i].BeaconBlockHeader.HashTreeRoot()
-			if err != nil {
-				return err
-			}
-			if firstHtr != nextHtr {
+			if firstHtr != sc[i].BeaconBlockHeader.HashTreeRoot() {
 				return ErrSidecarContainsDifferingBlockRoots
 			}
 		}

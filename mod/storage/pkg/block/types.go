@@ -30,7 +30,8 @@ type BeaconBlock[T any] interface {
 	constraints.SSZMarshallable
 	NewFromSSZ(bz []byte, version uint32) (T, error)
 	Version() uint32
-	HashTreeRoot() ([32]byte, error)
+	HashTreeRoot() common.Root
 	GetParentBlockRoot() common.Root
 	GetTimestamp() math.U64
+	
 }
