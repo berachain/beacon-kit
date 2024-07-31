@@ -222,12 +222,7 @@ func (sp *StateProcessor[
 	}
 
 	// Before we make any changes, we calculate the previous state root.
-	prevStateRoot, err := st.HashTreeRoot()
-	if err != nil {
-		return err
-	}
-
-	// We update our state roots and block roots.
+	prevStateRoot := st.HashTreeRoot()
 	if err = st.UpdateStateRootAtIndex(
 		stateSlot.Unwrap()%sp.cs.SlotsPerHistoricalRoot(), prevStateRoot,
 	); err != nil {
@@ -251,19 +246,10 @@ func (sp *StateProcessor[
 	}
 
 	// We update the block root.
-	var prevBlockRoot common.Root
-	prevBlockRoot, err = latestHeader.HashTreeRoot()
-	if err != nil {
-		return err
-	}
-
-	if err = st.UpdateBlockRootAtIndex(
-		stateSlot.Unwrap()%sp.cs.SlotsPerHistoricalRoot(), prevBlockRoot,
-	); err != nil {
-		return err
-	}
-
-	return nil
+	return st.UpdateBlockRootAtIndex(
+		stateSlot.Unwrap()%sp.cs.SlotsPerHistoricalRoot(),
+		latestHeader.HashTreeRoot(),
+	)
 }
 
 // ProcessBlock processes the block, it optionally verifies the
@@ -323,9 +309,8 @@ func (sp *StateProcessor[
 
 	// Ensure the calculated state root matches the state root on
 	// the block.
-	if stateRoot, err := st.HashTreeRoot(); err != nil {
-		return err
-	} else if blk.GetStateRoot() != stateRoot {
+	stateRoot := st.HashTreeRoot()
+	if blk.GetStateRoot() != st.HashTreeRoot() {
 		return errors.Wrapf(
 			ErrStateRootMismatch, "expected %s, got %s",
 			stateRoot, blk.GetStateRoot(),
@@ -364,9 +349,8 @@ func (sp *StateProcessor[
 		slot              math.Slot
 		err               error
 		latestBlockHeader BeaconBlockHeaderT
-		parentBlockRoot   common.Root
-		bodyRoot          common.Root
-		proposer          ValidatorT
+
+		proposer ValidatorT
 	)
 
 	// Ensure the block slot matches the state slot.
@@ -388,9 +372,10 @@ func (sp *StateProcessor[
 			ErrBlockSlotTooLow, "expected: > %d, got: %d",
 			latestBlockHeader.GetSlot(), blk.GetSlot(),
 		)
-	} else if parentBlockRoot, err = latestBlockHeader.HashTreeRoot(); err != nil {
-		return err
-	} else if parentBlockRoot != blk.GetParentBlockRoot() {
+	}
+
+	if parentBlockRoot := latestBlockHeader.
+		HashTreeRoot(); parentBlockRoot != blk.GetParentBlockRoot() {
 		return errors.Wrapf(ErrParentRootMismatch,
 			"expected: %s, got: %s",
 			parentBlockRoot.String(), blk.GetParentBlockRoot().String(),
@@ -409,9 +394,8 @@ func (sp *StateProcessor[
 
 	// Calculate the body root to place on the header.
 	var lbh BeaconBlockHeaderT
-	if bodyRoot, err = blk.GetBody().HashTreeRoot(); err != nil {
-		return err
-	} else if err = st.SetLatestBlockHeader(
+	bodyRoot := blk.GetBody().HashTreeRoot()
+	if err = st.SetLatestBlockHeader(
 		lbh.New(
 			blk.GetSlot(),
 			blk.GetProposerIndex(),

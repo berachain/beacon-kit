@@ -60,8 +60,7 @@ func FuzzTree_IsValidMerkleBranch(f *testing.F) {
 	proof, err := m.MerkleProofWithMixin(0)
 	require.NoError(f, err)
 	require.Len(f, proof, int(depth)+1)
-	root, err := m.HashTreeRoot()
-	require.NoError(f, err)
+	root := m.HashTreeRoot()
 	var proofRaw []byte
 	for _, p := range proof {
 		proofRaw = append(proofRaw, p[:]...)

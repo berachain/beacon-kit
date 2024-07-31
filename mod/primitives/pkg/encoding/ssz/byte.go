@@ -69,10 +69,10 @@ func (Byte) NewFromSSZ(buf []byte) (Byte, error) {
 }
 
 // HashTreeRoot returns the hash tree root of the byte.
-func (b Byte) HashTreeRoot() (common.Root, error) {
+func (b Byte) HashTreeRoot() common.Root {
 	buf := make([]byte, constants.BytesPerChunk)
 	buf[0] = byte(b)
-	return [32]byte(buf), nil
+	return [32]byte(buf)
 }
 
 // IsFixed returns true if the bool is fixed size.

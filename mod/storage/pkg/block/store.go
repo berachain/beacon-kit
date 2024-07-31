@@ -95,11 +95,8 @@ func (kv *KVStore[BeaconBlockT]) Set(slot uint64, blk BeaconBlockT) error {
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
 	kv.cdc.SetActiveForkVersion(blk.Version())
-	root, err := blk.HashTreeRoot()
-	if err != nil {
-		return err
-	}
-	if err = kv.roots.Set(context.TODO(), root[:], slot); err != nil {
+	root := blk.HashTreeRoot()
+	if err := kv.roots.Set(context.TODO(), root[:], slot); err != nil {
 		return err
 	}
 	return kv.blocks.Set(context.TODO(), slot, blk)

@@ -105,7 +105,7 @@ func (m *Merkleizer[RootT, T]) MerkleizeVectorCompositeOrContainer(
 	)
 
 	for i, el := range value {
-		htrs[i], err = el.HashTreeRoot()
+		htrs[i] = el.HashTreeRoot()
 		if err != nil {
 			return RootT{}, err
 		}
@@ -157,7 +157,7 @@ func (m *Merkleizer[RootT, T]) MerkleizeListComposite(
 	)
 
 	for i, el := range value {
-		htrs[i], err = el.HashTreeRoot()
+		htrs[i] = el.HashTreeRoot()
 		if err != nil {
 			return RootT{}, err
 		}

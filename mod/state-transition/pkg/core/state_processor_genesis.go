@@ -76,20 +76,16 @@ func (sp *StateProcessor[
 
 	// TODO: we need to handle common.Version vs
 	// uint32 better.
-	bodyRoot, err := blkBody.Empty(
+	bodyRoot := blkBody.Empty(
 		version.ToUint32(genesisVersion)).HashTreeRoot()
-	if err != nil {
-		return nil, err
-	}
-
-	if err = st.SetLatestBlockHeader(blkHeader.New(
+	if err := st.SetLatestBlockHeader(blkHeader.New(
 		0, 0, common.Root{}, common.Root{}, bodyRoot,
 	)); err != nil {
 		return nil, err
 	}
 
 	for i := range sp.cs.EpochsPerHistoricalVector() {
-		if err = st.UpdateRandaoMixAtIndex(
+		if err := st.UpdateRandaoMixAtIndex(
 			i,
 			common.Bytes32(executionPayloadHeader.GetBlockHash()),
 		); err != nil {
@@ -98,15 +94,13 @@ func (sp *StateProcessor[
 	}
 
 	for _, deposit := range deposits {
-		// TODO: process deposits into eth1 data.
-		if err = sp.processDeposit(st, deposit); err != nil {
+		if err := sp.processDeposit(st, deposit); err != nil {
 			return nil, err
 		}
 	}
 
 	// TODO: process activations.
-	var validators []ValidatorT
-	validators, err = st.GetValidators()
+	validators, err := st.GetValidators()
 	if err != nil {
 		return nil, err
 	}

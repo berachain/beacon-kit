@@ -66,13 +66,9 @@ func (sp *StateProcessor[
 	)
 
 	if !skipVerification {
-		var signingRoot common.Root
-		signingRoot, err = fd.ComputeRandaoSigningRoot(
-			sp.cs.DomainTypeRandao(), epoch)
-		if err != nil {
-			return err
-		}
-
+		signingRoot := fd.ComputeRandaoSigningRoot(
+			sp.cs.DomainTypeRandao(), epoch,
+		)
 		reveal := body.GetRandaoReveal()
 		if err = sp.signer.VerifySignature(
 			proposer.GetPubkey(),

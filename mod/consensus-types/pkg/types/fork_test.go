@@ -72,8 +72,9 @@ func TestFork_HashTreeRoot(t *testing.T) {
 		Epoch:           math.Epoch(1000),
 	}
 
-	_, err := fork.HashTreeRoot()
-	require.NoError(t, err)
+	require.NotPanics(t, func() {
+		_ = fork.HashTreeRoot()
+	})
 }
 
 func TestFork_GetTree(t *testing.T) {

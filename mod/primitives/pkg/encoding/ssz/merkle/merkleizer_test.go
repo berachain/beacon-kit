@@ -46,10 +46,11 @@ func (u BasicItem) MarshalSSZ() ([]byte, error) {
 }
 
 // HashTreeRoot computes the Merkle root of the U64 using SSZ hashing rules.
-func (u BasicItem) HashTreeRoot() (common.Root, error) {
+func (u BasicItem) HashTreeRoot() common.Root {
 	// In practice we can use a simpler function.
-	return merkle.
-		NewMerkleizer[[32]byte, BasicItem]().MerkleizeBasic(u)
+	x, _ := merkle.
+		NewMerkleizer[common.Root, BasicItem]().MerkleizeBasic(u)
+	return x
 }
 
 // BasicContainer represents a container of two basic items.
@@ -100,10 +101,8 @@ func TestBasicContainerMerkleization(t *testing.T) {
 	require.NoError(t, err)
 
 	// Manually compute our own root, using our merkle tree knowledge.
-	htr1, err := container.Item1.HashTreeRoot()
-	require.NoError(t, err)
-	htr2, err := container.Item2.HashTreeRoot()
-	require.NoError(t, err)
+	htr1 := container.Item1.HashTreeRoot()
+	htr2 := container.Item2.HashTreeRoot()
 	expectedRoot := sha256.Sum256(append(htr1[:], htr2[:]...))
 
 	// Should match

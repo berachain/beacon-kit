@@ -398,10 +398,10 @@ func (s *StateDB[
 // HashTreeRoot is the interface for the beacon store.
 func (s *StateDB[
 	_, _, _, _, _, _, _, _, _,
-]) HashTreeRoot() (common.Root, error) {
+]) HashTreeRoot() common.Root {
 	st, err := s.GetMarshallable()
 	if err != nil {
-		return [32]byte{}, err
+		panic(err)
 	}
 	return st.HashTreeRoot()
 }

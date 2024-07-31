@@ -45,8 +45,7 @@ func TestB96_HashTreeRoot(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := tt.input.HashTreeRoot()
-			require.NoError(t, err)
+			result := tt.input.HashTreeRoot()
 			require.Equal(t, tt.want, result)
 		})
 	}
@@ -72,12 +71,6 @@ func BenchmarkB96_UnmarshalJSON(b *testing.B) {
 		err := data.UnmarshalJSON(jsonData)
 		require.NoError(b, err)
 	}
-}
-
-func TestB96SizeSSZ(t *testing.T) {
-	var b bytes.B96
-	require.Equal(t, bytes.B96Size, int(b.SizeSSZ()),
-		"SizeSSZ should return the correct size")
 }
 
 func TestB96MarshalSSZ(t *testing.T) {

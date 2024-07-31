@@ -37,7 +37,9 @@ type B32 [32]byte
 // ToBytes32 is a utility function that transforms a byte slice into a fixed
 // 32-byte array. If the input exceeds 32 bytes, it gets truncated.
 func ToBytes32(input []byte) B32 {
-	return B32(ExtendToSize(input, B32Size))
+	var b B32
+	copy(b[:], input)
+	return b
 }
 
 /* -------------------------------------------------------------------------- */
@@ -72,17 +74,12 @@ func (h *B32) UnmarshalJSON(input []byte) error {
 /*                                SSZMarshaler                                */
 /* -------------------------------------------------------------------------- */
 
-// SizeSSZ returns the size of its SSZ encoding in bytes.
-func (h B32) SizeSSZ() uint32 {
-	return B32Size
-}
-
 // MarshalSSZ implements the SSZ marshaling for B32.
 func (h B32) MarshalSSZ() ([]byte, error) {
 	return h[:], nil
 }
 
 // HashTreeRoot returns the hash tree root of the B32.
-func (h B32) HashTreeRoot() (B32, error) {
-	return h, nil
+func (h B32) HashTreeRoot() B32 {
+	return h
 }
