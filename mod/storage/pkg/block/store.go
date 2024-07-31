@@ -27,6 +27,7 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 )
@@ -57,7 +58,7 @@ type KVStore[BeaconBlockT BeaconBlock[BeaconBlockT]] struct {
 
 	mu           sync.RWMutex
 	cdc          *encoding.SSZInterfaceCodec[BeaconBlockT]
-	earliestSlot uint64
+	earliestSlot math.Slot
 }
 
 // NewStore creates a new block store.
@@ -125,40 +126,44 @@ func (kv *KVStore[BeaconBlockT]) Set(slot math.Slot, blk BeaconBlockT) error {
 
 // GetSlotByRoot retrieves the slot by a given root from the store.
 func (kv *KVStore[BeaconBlockT]) GetSlotByRoot(
-	root [32]byte,
+	root common.Root,
 ) (math.Slot, error) {
 	kv.mu.RLock()
 	defer kv.mu.RUnlock()
 
-	slot, err := kv.roots.Get(context.TODO(), root[:])
-	if err != nil {
-		return 0, err
-	}
-	return math.Slot(slot), nil
+	return kv.roots.Get(context.TODO(), root[:])
 }
 
 // Prune removes the [start, end) blocks from the store.
 func (kv *KVStore[BeaconBlockT]) Prune(start, end uint64) error {
+	var (
+		ctx  = context.TODO()
+		s, e = math.Slot(start), math.Slot(end)
+	)
+
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
-	for i := max(start, kv.earliestSlot); i < end; i++ {
-		nextBlock, err := kv.blocks.Get(context.TODO(), math.Slot(i+1))
+
+	for i := max(s, kv.earliestSlot); i < e; i++ {
+		nextBlock, err := kv.blocks.Get(ctx, i+1)
 		if !errors.Is(err, sdkcollections.ErrNotFound) {
 			if err != nil {
 				return err
 			}
 
+			// Only delete the block root if the next block was found.
 			root := nextBlock.GetParentBlockRoot()
-			if err = kv.roots.Remove(context.TODO(), root[:]); err != nil {
+			if err = kv.roots.Remove(ctx, root[:]); err != nil {
 				return err
 			}
 		}
 
 		// This only errors if the key passed in cannot be encoded.
-		if err = kv.blocks.Remove(context.TODO(), math.Slot(i)); err != nil {
+		if err = kv.blocks.Remove(ctx, i); err != nil {
 			return err
 		}
 	}
-	kv.earliestSlot = end
+
+	kv.earliestSlot = e
 	return nil
 }
