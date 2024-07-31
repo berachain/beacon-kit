@@ -29,6 +29,8 @@ import (
 )
 
 // BeaconState represents the entire state of the beacon chain.
+//
+// TODO: Properly use the generics.
 type BeaconState[
 	BeaconBlockHeaderT,
 	Eth1DataT,
@@ -133,7 +135,7 @@ func (st *BeaconState[
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconState object.
-func (b *BeaconState[_, _, _, _, _]) SizeSSZ(fixed bool) uint32 {
+func (st *BeaconState[_, _, _, _, _]) SizeSSZ(fixed bool) uint32 {
 	var size uint32 = 300
 
 	if fixed {
@@ -141,13 +143,13 @@ func (b *BeaconState[_, _, _, _, _]) SizeSSZ(fixed bool) uint32 {
 	}
 
 	// Dynamic size fields
-	size += ssz.SizeSliceOfStaticBytes(b.BlockRoots)
-	size += ssz.SizeSliceOfStaticBytes(b.StateRoots)
-	size += ssz.SizeDynamicObject(b.LatestExecutionPayloadHeader)
-	size += ssz.SizeSliceOfStaticObjects(b.Validators)
-	size += ssz.SizeSliceOfUint64s(b.Balances)
-	size += ssz.SizeSliceOfStaticBytes(b.RandaoMixes)
-	size += ssz.SizeSliceOfUint64s(b.Slashings)
+	size += ssz.SizeSliceOfStaticBytes(st.BlockRoots)
+	size += ssz.SizeSliceOfStaticBytes(st.StateRoots)
+	size += ssz.SizeDynamicObject(st.LatestExecutionPayloadHeader)
+	size += ssz.SizeSliceOfStaticObjects(st.Validators)
+	size += ssz.SizeSliceOfUint64s(st.Balances)
+	size += ssz.SizeSliceOfStaticBytes(st.RandaoMixes)
+	size += ssz.SizeSliceOfUint64s(st.Slashings)
 
 	return size
 }
@@ -155,69 +157,69 @@ func (b *BeaconState[_, _, _, _, _]) SizeSSZ(fixed bool) uint32 {
 // DefineSSZ defines the SSZ encoding for the BeaconState object.
 //
 //nolint:mnd // todo fix.
-func (b *BeaconState[_, _, _, _, _]) DefineSSZ(codec *ssz.Codec) {
+func (st *BeaconState[_, _, _, _, _]) DefineSSZ(codec *ssz.Codec) {
 	// Versioning
-	ssz.DefineStaticBytes(codec, &b.GenesisValidatorsRoot)
-	ssz.DefineUint64(codec, &b.Slot)
-	ssz.DefineStaticObject(codec, &b.Fork)
+	ssz.DefineStaticBytes(codec, &st.GenesisValidatorsRoot)
+	ssz.DefineUint64(codec, &st.Slot)
+	ssz.DefineStaticObject(codec, &st.Fork)
 
 	// History
-	ssz.DefineStaticObject(codec, &b.LatestBlockHeader)
-	ssz.DefineSliceOfStaticBytesOffset(codec, &b.BlockRoots, 8192)
-	ssz.DefineSliceOfStaticBytesOffset(codec, &b.StateRoots, 8192)
+	ssz.DefineStaticObject(codec, &st.LatestBlockHeader)
+	ssz.DefineSliceOfStaticBytesOffset(codec, &st.BlockRoots, 8192)
+	ssz.DefineSliceOfStaticBytesOffset(codec, &st.StateRoots, 8192)
 
 	// Eth1
-	ssz.DefineStaticObject(codec, &b.Eth1Data)
-	ssz.DefineUint64(codec, &b.Eth1DepositIndex)
-	ssz.DefineDynamicObjectOffset(codec, &b.LatestExecutionPayloadHeader)
+	ssz.DefineStaticObject(codec, &st.Eth1Data)
+	ssz.DefineUint64(codec, &st.Eth1DepositIndex)
+	ssz.DefineDynamicObjectOffset(codec, &st.LatestExecutionPayloadHeader)
 
 	// Registry
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &b.Validators, 1099511627776)
-	ssz.DefineSliceOfUint64sOffset(codec, &b.Balances, 1099511627776)
+	ssz.DefineSliceOfStaticObjectsOffset(codec, &st.Validators, 1099511627776)
+	ssz.DefineSliceOfUint64sOffset(codec, &st.Balances, 1099511627776)
 
 	// Randomness
-	ssz.DefineSliceOfStaticBytesOffset(codec, &b.RandaoMixes, 65536)
+	ssz.DefineSliceOfStaticBytesOffset(codec, &st.RandaoMixes, 65536)
 
 	// Withdrawals
-	ssz.DefineUint64(codec, &b.NextWithdrawalIndex)
-	ssz.DefineUint64(codec, &b.NextWithdrawalValidatorIndex)
+	ssz.DefineUint64(codec, &st.NextWithdrawalIndex)
+	ssz.DefineUint64(codec, &st.NextWithdrawalValidatorIndex)
 
 	// // Slashing
-	ssz.DefineSliceOfUint64sOffset(codec, &b.Slashings, 1099511627776)
-	ssz.DefineUint64(codec, (*uint64)(&b.TotalSlashing))
+	ssz.DefineSliceOfUint64sOffset(codec, &st.Slashings, 1099511627776)
+	ssz.DefineUint64(codec, (*uint64)(&st.TotalSlashing))
 
 	// Dynamic content
-	ssz.DefineSliceOfStaticBytesContent(codec, &b.BlockRoots, 8192)
-	ssz.DefineSliceOfStaticBytesContent(codec, &b.StateRoots, 8192)
-	ssz.DefineDynamicObjectContent(codec, &b.LatestExecutionPayloadHeader)
-	ssz.DefineSliceOfStaticObjectsContent(codec, &b.Validators, 1099511627776)
-	ssz.DefineSliceOfUint64sContent(codec, &b.Balances, 1099511627776)
-	ssz.DefineSliceOfStaticBytesContent(codec, &b.RandaoMixes, 65536)
-	ssz.DefineSliceOfUint64sContent(codec, &b.Slashings, 1099511627776)
+	ssz.DefineSliceOfStaticBytesContent(codec, &st.BlockRoots, 8192)
+	ssz.DefineSliceOfStaticBytesContent(codec, &st.StateRoots, 8192)
+	ssz.DefineDynamicObjectContent(codec, &st.LatestExecutionPayloadHeader)
+	ssz.DefineSliceOfStaticObjectsContent(codec, &st.Validators, 1099511627776)
+	ssz.DefineSliceOfUint64sContent(codec, &st.Balances, 1099511627776)
+	ssz.DefineSliceOfStaticBytesContent(codec, &st.RandaoMixes, 65536)
+	ssz.DefineSliceOfUint64sContent(codec, &st.Slashings, 1099511627776)
 }
 
 // MarshalSSZ marshals the BeaconState into SSZ format.
-func (b *BeaconState[_, _, _, _, _]) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, b.SizeSSZ(false))
-	return buf, ssz.EncodeToBytes(buf, b)
+func (st *BeaconState[_, _, _, _, _]) MarshalSSZ() ([]byte, error) {
+	buf := make([]byte, st.SizeSSZ(false))
+	return buf, ssz.EncodeToBytes(buf, st)
 }
 
 // UnmarshalSSZ unmarshals the BeaconState from SSZ format.
-func (b *BeaconState[_, _, _, _, _]) UnmarshalSSZ(buf []byte) error {
-	return ssz.DecodeFromBytes(buf, b)
+func (st *BeaconState[_, _, _, _, _]) UnmarshalSSZ(buf []byte) error {
+	return ssz.DecodeFromBytes(buf, st)
 }
 
 // HashTreeRoot computes the Merkleization of the BeaconState.
-func (b *BeaconState[_, _, _, _, _]) HashTreeRoot() ([32]byte, error) {
-	return ssz.HashConcurrent(b), nil
+func (st *BeaconState[_, _, _, _, _]) HashTreeRoot() ([32]byte, error) {
+	return ssz.HashConcurrent(st), nil
 }
 
 /* -------------------------------------------------------------------------- */
 /*                                   FastSSZ                                  */
 /* -------------------------------------------------------------------------- */
 
-func (b *BeaconState[_, _, _, _, _]) MarshalSSZTo(dst []byte) ([]byte, error) {
-	bz, err := b.MarshalSSZ()
+func (st *BeaconState[_, _, _, _, _]) MarshalSSZTo(dst []byte) ([]byte, error) {
+	bz, err := st.MarshalSSZ()
 	if err != nil {
 		return nil, err
 	}
@@ -228,76 +230,78 @@ func (b *BeaconState[_, _, _, _, _]) MarshalSSZTo(dst []byte) ([]byte, error) {
 // HashTreeRootWith ssz hashes the BeaconState object with a hasher.
 //
 //nolint:mnd,funlen,gocognit // todo fix.
-func (b *BeaconState[_, _, _, _, _]) HashTreeRootWith(hh fastssz.HashWalker) error {
+func (st *BeaconState[_, _, _, _, _]) HashTreeRootWith(
+	hh fastssz.HashWalker,
+) error {
 	indx := hh.Index()
 
 	// Field (0) 'GenesisValidatorsRoot'
-	hh.PutBytes(b.GenesisValidatorsRoot[:])
+	hh.PutBytes(st.GenesisValidatorsRoot[:])
 
 	// Field (1) 'Slot'
-	hh.PutUint64(uint64(b.Slot))
+	hh.PutUint64(uint64(st.Slot))
 
 	// Field (2) 'Fork'
-	if b.Fork == nil {
-		b.Fork = new(types.Fork)
+	if st.Fork == nil {
+		st.Fork = new(types.Fork)
 	}
-	if err := b.Fork.HashTreeRootWith(hh); err != nil {
+	if err := st.Fork.HashTreeRootWith(hh); err != nil {
 		return err
 	}
 
 	// Field (3) 'LatestBlockHeader'
-	if b.LatestBlockHeader == nil {
-		b.LatestBlockHeader = new(types.BeaconBlockHeader)
+	if st.LatestBlockHeader == nil {
+		st.LatestBlockHeader = new(types.BeaconBlockHeader)
 	}
-	if err := b.LatestBlockHeader.HashTreeRootWith(hh); err != nil {
+	if err := st.LatestBlockHeader.HashTreeRootWith(hh); err != nil {
 		return err
 	}
 
 	// Field (4) 'BlockRoots'
-	if size := len(b.BlockRoots); size > 8192 {
+	if size := len(st.BlockRoots); size > 8192 {
 		return fastssz.ErrListTooBigFn("BeaconState.BlockRoots", size, 8192)
 	}
 	subIndx := hh.Index()
-	for _, i := range b.BlockRoots {
+	for _, i := range st.BlockRoots {
 		hh.Append(i[:])
 	}
-	numItems := uint64(len(b.BlockRoots))
+	numItems := uint64(len(st.BlockRoots))
 	hh.MerkleizeWithMixin(subIndx, numItems, 8192)
 
 	// Field (5) 'StateRoots'
-	if size := len(b.StateRoots); size > 8192 {
+	if size := len(st.StateRoots); size > 8192 {
 		return fastssz.ErrListTooBigFn("BeaconState.StateRoots", size, 8192)
 	}
 	subIndx = hh.Index()
-	for _, i := range b.StateRoots {
+	for _, i := range st.StateRoots {
 		hh.Append(i[:])
 	}
-	numItems = uint64(len(b.StateRoots))
+	numItems = uint64(len(st.StateRoots))
 	hh.MerkleizeWithMixin(subIndx, numItems, 8192)
 
 	// Field (6) 'Eth1Data'
-	if b.Eth1Data == nil {
-		b.Eth1Data = new(types.Eth1Data)
+	if st.Eth1Data == nil {
+		st.Eth1Data = new(types.Eth1Data)
 	}
-	if err := b.Eth1Data.HashTreeRootWith(hh); err != nil {
+	if err := st.Eth1Data.HashTreeRootWith(hh); err != nil {
 		return err
 	}
 
 	// Field (7) 'Eth1DepositIndex'
-	hh.PutUint64(b.Eth1DepositIndex)
+	hh.PutUint64(st.Eth1DepositIndex)
 
 	// Field (8) 'LatestExecutionPayloadHeader'
-	if err := b.LatestExecutionPayloadHeader.HashTreeRootWith(hh); err != nil {
+	if err := st.LatestExecutionPayloadHeader.HashTreeRootWith(hh); err != nil {
 		return err
 	}
 
 	// Field (9) 'Validators'
 	subIndx = hh.Index()
-	num := uint64(len(b.Validators))
+	num := uint64(len(st.Validators))
 	if num > 1099511627776 {
 		return fastssz.ErrIncorrectListSize
 	}
-	for _, elem := range b.Validators {
+	for _, elem := range st.Validators {
 		if err := elem.HashTreeRootWith(hh); err != nil {
 			return err
 		}
@@ -305,7 +309,7 @@ func (b *BeaconState[_, _, _, _, _]) HashTreeRootWith(hh fastssz.HashWalker) err
 	hh.MerkleizeWithMixin(subIndx, num, 1099511627776)
 
 	// Field (10) 'Balances'
-	if size := len(b.Balances); size > 1099511627776 {
+	if size := len(st.Balances); size > 1099511627776 {
 		return fastssz.ErrListTooBigFn(
 			"BeaconState.Balances",
 			size,
@@ -313,11 +317,11 @@ func (b *BeaconState[_, _, _, _, _]) HashTreeRootWith(hh fastssz.HashWalker) err
 		)
 	}
 	subIndx = hh.Index()
-	for _, i := range b.Balances {
+	for _, i := range st.Balances {
 		hh.AppendUint64(i)
 	}
 	hh.FillUpTo32()
-	numItems = uint64(len(b.Balances))
+	numItems = uint64(len(st.Balances))
 	hh.MerkleizeWithMixin(
 		subIndx,
 		numItems,
@@ -325,24 +329,24 @@ func (b *BeaconState[_, _, _, _, _]) HashTreeRootWith(hh fastssz.HashWalker) err
 	)
 
 	// Field (11) 'RandaoMixes'
-	if size := len(b.RandaoMixes); size > 65536 {
+	if size := len(st.RandaoMixes); size > 65536 {
 		return fastssz.ErrListTooBigFn("BeaconState.RandaoMixes", size, 65536)
 	}
 	subIndx = hh.Index()
-	for _, i := range b.RandaoMixes {
+	for _, i := range st.RandaoMixes {
 		hh.Append(i[:])
 	}
-	numItems = uint64(len(b.RandaoMixes))
+	numItems = uint64(len(st.RandaoMixes))
 	hh.MerkleizeWithMixin(subIndx, numItems, 65536)
 
 	// Field (12) 'NextWithdrawalIndex'
-	hh.PutUint64(b.NextWithdrawalIndex)
+	hh.PutUint64(st.NextWithdrawalIndex)
 
 	// Field (13) 'NextWithdrawalValidatorIndex'
-	hh.PutUint64(uint64(b.NextWithdrawalValidatorIndex))
+	hh.PutUint64(uint64(st.NextWithdrawalValidatorIndex))
 
 	// Field (14) 'Slashings'
-	if size := len(b.Slashings); size > 1099511627776 {
+	if size := len(st.Slashings); size > 1099511627776 {
 		return fastssz.ErrListTooBigFn(
 			"BeaconState.Slashings",
 			size,
@@ -350,11 +354,11 @@ func (b *BeaconState[_, _, _, _, _]) HashTreeRootWith(hh fastssz.HashWalker) err
 		)
 	}
 	subIndx = hh.Index()
-	for _, i := range b.Slashings {
+	for _, i := range st.Slashings {
 		hh.AppendUint64(i)
 	}
 	hh.FillUpTo32()
-	numItems = uint64(len(b.Slashings))
+	numItems = uint64(len(st.Slashings))
 	hh.MerkleizeWithMixin(
 		subIndx,
 		numItems,
@@ -362,13 +366,13 @@ func (b *BeaconState[_, _, _, _, _]) HashTreeRootWith(hh fastssz.HashWalker) err
 	)
 
 	// Field (15) 'TotalSlashing'
-	hh.PutUint64(uint64(b.TotalSlashing))
+	hh.PutUint64(uint64(st.TotalSlashing))
 
 	hh.Merkleize(indx)
 	return nil
 }
 
 // GetTree ssz hashes the BeaconState object.
-func (b *BeaconState[_, _, _, _, _]) GetTree() (*fastssz.Node, error) {
-	return fastssz.ProofTree(b)
+func (st *BeaconState[_, _, _, _, _]) GetTree() (*fastssz.Node, error) {
+	return fastssz.ProofTree(st)
 }
