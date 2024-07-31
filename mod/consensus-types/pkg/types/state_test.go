@@ -41,7 +41,9 @@ import (
 func generateValidBeaconState() *types.BeaconState[
 	any, *types.Eth1Data, any, any, any, types.Eth1Data,
 ] {
-	return &types.BeaconState[any, *types.Eth1Data, any, any, any, types.Eth1Data]{
+	return &types.BeaconState[
+		any, *types.Eth1Data, any, any,
+		any, types.Eth1Data]{
 		GenesisValidatorsRoot: common.Root{0x01, 0x02, 0x03},
 		Slot:                  1234,
 		BlockRoots: []common.Root{

@@ -32,9 +32,9 @@ import (
 // TODO: Properly use the generics.
 type BeaconState[
 	BeaconBlockHeaderT any,
-	Eth1DataT interface {
+	Eth1DataPtrT interface {
 		ssz.StaticObject
-		Empty() Eth1DataT
+		Empty() Eth1DataPtrT
 		HashTreeRootWith(fastssz.HashWalker) error
 		*E
 	},
@@ -54,7 +54,7 @@ type BeaconState[
 	StateRoots        []common.Root
 
 	// Eth1
-	Eth1Data                     Eth1DataT
+	Eth1Data                     Eth1DataPtrT
 	Eth1DepositIndex             uint64
 	LatestExecutionPayloadHeader *ExecutionPayloadHeader
 
@@ -77,11 +77,11 @@ type BeaconState[
 // New creates a new BeaconState.
 func (st *BeaconState[
 	BeaconBlockHeaderT,
-	Eth1DataT,
+	Eth1DataPtrT,
 	ExecutionPayloadHeaderT,
 	ForkT,
 	ValidatorT,
-	E,
+	Eth1DataT,
 ]) New(
 	_ uint32,
 	genesisValidatorsRoot common.Root,
@@ -90,7 +90,7 @@ func (st *BeaconState[
 	latestBlockHeader BeaconBlockHeaderT,
 	blockRoots []common.Root,
 	stateRoots []common.Root,
-	eth1Data Eth1DataT,
+	eth1Data Eth1DataPtrT,
 	eth1DepositIndex uint64,
 	latestExecutionPayloadHeader ExecutionPayloadHeaderT,
 	validators []ValidatorT,
@@ -102,19 +102,19 @@ func (st *BeaconState[
 	totalSlashing math.Gwei,
 ) (*BeaconState[
 	BeaconBlockHeaderT,
-	Eth1DataT,
+	Eth1DataPtrT,
 	ExecutionPayloadHeaderT,
 	ForkT,
 	ValidatorT,
-	E,
+	Eth1DataT,
 ], error) {
 	return &BeaconState[
 		BeaconBlockHeaderT,
-		Eth1DataT,
+		Eth1DataPtrT,
 		ExecutionPayloadHeaderT,
 		ForkT,
 		ValidatorT,
-		E,
+		Eth1DataT,
 	]{
 		Slot:                  slot,
 		GenesisValidatorsRoot: genesisValidatorsRoot,
@@ -226,7 +226,9 @@ func (st *BeaconState[_, _, _, _, _, _]) HashTreeRoot() ([32]byte, error) {
 /*                                   FastSSZ                                  */
 /* -------------------------------------------------------------------------- */
 
-func (st *BeaconState[_, _, _, _, _, _]) MarshalSSZTo(dst []byte) ([]byte, error) {
+func (st *BeaconState[_, _, _, _, _, _]) MarshalSSZTo(
+	dst []byte,
+) ([]byte, error) {
 	bz, err := st.MarshalSSZ()
 	if err != nil {
 		return nil, err
