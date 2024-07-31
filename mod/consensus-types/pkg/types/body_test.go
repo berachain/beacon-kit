@@ -28,17 +28,20 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/stretchr/testify/require"
 )
 
 func generateBeaconBlockBody() types.BeaconBlockBody {
 	return types.BeaconBlockBody{
-		RandaoReveal:       [96]byte{1, 2, 3},
-		Eth1Data:           &types.Eth1Data{},
-		Graffiti:           [32]byte{4, 5, 6},
-		Deposits:           []*types.Deposit{},
-		ExecutionPayload:   &types.ExecutionPayload{},
+		RandaoReveal: [96]byte{1, 2, 3},
+		Eth1Data:     &types.Eth1Data{},
+		Graffiti:     [32]byte{4, 5, 6},
+		Deposits:     []*types.Deposit{},
+		ExecutionPayload: &types.ExecutionPayload{
+			BaseFeePerGas: math.NewU256(0),
+		},
 		BlobKzgCommitments: []eip4844.KZGCommitment{},
 	}
 }
@@ -126,10 +129,25 @@ func TestBeaconBlockBody_MarshalSSZ(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, data)
 }
+
+func TestBeaconBlockBody_MarshalSSZTo(t *testing.T) {
+	body := generateBeaconBlockBody()
+
+	data, err := body.MarshalSSZ()
+	require.NoError(t, err)
+	require.NotNil(t, data)
+
+	var buf []byte
+	buf, err = body.MarshalSSZTo(buf)
+	require.NoError(t, err)
+
+	// The two byte slices should be equal
+	require.Equal(t, data, buf)
+}
+
 func TestBeaconBlockBody_GetTopLevelRoots(t *testing.T) {
 	body := generateBeaconBlockBody()
-	roots, err := body.GetTopLevelRoots()
-	require.NoError(t, err)
+	roots := body.GetTopLevelRoots()
 	require.NotNil(t, roots)
 }
 

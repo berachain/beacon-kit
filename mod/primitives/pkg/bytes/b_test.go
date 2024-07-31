@@ -29,6 +29,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/stretchr/testify/require"
 )
 
@@ -73,7 +74,7 @@ func TestFromHex(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := bytes.FromHex(tt.input)
+			got, err := hex.ToBytes(tt.input)
 			if tt.wantErr {
 				require.Error(t, err, "Test case: %s", tt.name)
 			} else {
@@ -122,9 +123,9 @@ func TestMustFromHex(t *testing.T) {
 						)
 					}
 				}()
-				_ = bytes.MustFromHex(test.input)
+				_ = hex.MustToBytes(test.input)
 			} else {
-				result := bytes.MustFromHex(test.input)
+				result := hex.MustToBytes(test.input)
 				require.True(t, stdbytes.Equal(result, test.expected), "Test case %s", test.name)
 			}
 		})
@@ -575,27 +576,26 @@ func TestToBytes32(t *testing.T) {
 
 func TestHashTreeRoot(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    bytes.B32
-		expected [32]byte
+		name  string
+		input bytes.B32
+		want  bytes.B32
 	}{
 		{
-			name:     "Non-empty input",
-			input:    bytes.B32{1, 2, 3},
-			expected: [32]byte{1, 2, 3},
+			name:  "Non-empty input",
+			input: bytes.B32{1, 2, 3},
+			want:  [32]byte{1, 2, 3},
 		},
 		{
-			name:     "Empty input",
-			input:    bytes.B32{},
-			expected: [32]byte{},
+			name:  "Empty input",
+			input: bytes.B32{},
+			want:  [32]byte{},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := tt.input.HashTreeRoot()
-			require.NoError(t, err, "Test case: %s", tt.name)
-			require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
+			result := tt.input.HashTreeRoot()
+			require.Equal(t, tt.want, result, "Test case: %s", tt.name)
 		})
 	}
 }

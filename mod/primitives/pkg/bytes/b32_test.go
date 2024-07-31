@@ -24,15 +24,8 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/stretchr/testify/require"
 )
-
-func TestB32SizeSSZ(t *testing.T) {
-	var b bytes.B32
-	require.Equal(t, bytes.B32Size, int(b.SizeSSZ()),
-		"SizeSSZ should return the correct size")
-}
 
 func TestB32MarshalSSZ(t *testing.T) {
 	tests := []struct {
@@ -60,15 +53,4 @@ func TestB32MarshalSSZ(t *testing.T) {
 			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
 		})
 	}
-}
-
-func TestB32IsFixed(t *testing.T) {
-	var b bytes.B32
-	require.True(t, b.IsFixed(), "IsFixed should return true for B32")
-}
-
-func TestB32Type(t *testing.T) {
-	var b bytes.B32
-	require.Equal(t, schema.B32(), b.Type(),
-		"Type should return schema.B32() for B32")
 }

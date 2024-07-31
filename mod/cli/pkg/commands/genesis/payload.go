@@ -24,7 +24,6 @@ import (
 	"unsafe"
 
 	serverContext "github.com/berachain/beacon-kit/mod/cli/pkg/utils/context"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -84,7 +83,7 @@ func AddExecutionPayloadCmd(chainSpec common.ChainSpec) *cobra.Command {
 				return err
 			}
 
-			genesisInfo := &genesis.Genesis[
+			genesisInfo := &types.Genesis[
 				*types.Deposit, *types.ExecutionPayloadHeader,
 			]{}
 
@@ -165,21 +164,19 @@ func executableDataToExecutionPayloadHeader(
 		}
 
 		executionPayloadHeader = &types.ExecutionPayloadHeader{
-			ParentHash:   data.ParentHash,
-			FeeRecipient: data.FeeRecipient,
-			StateRoot:    common.Bytes32(data.StateRoot),
-			ReceiptsRoot: common.Bytes32(data.ReceiptsRoot),
-			LogsBloom:    [256]byte(data.LogsBloom),
-			Random:       common.Bytes32(data.Random),
-			Number:       math.U64(data.Number),
-			GasLimit:     math.U64(data.GasLimit),
-			GasUsed:      math.U64(data.GasUsed),
-			Timestamp:    math.U64(data.Timestamp),
-			ExtraData:    data.ExtraData,
-			BaseFeePerGas: math.MustNewU256LFromBigInt(
-				data.BaseFeePerGas,
-			),
-			BlockHash: data.BlockHash,
+			ParentHash:    data.ParentHash,
+			FeeRecipient:  data.FeeRecipient,
+			StateRoot:     common.Bytes32(data.StateRoot),
+			ReceiptsRoot:  common.Bytes32(data.ReceiptsRoot),
+			LogsBloom:     [256]byte(data.LogsBloom),
+			Random:        common.Bytes32(data.Random),
+			Number:        math.U64(data.Number),
+			GasLimit:      math.U64(data.GasLimit),
+			GasUsed:       math.U64(data.GasUsed),
+			Timestamp:     math.U64(data.Timestamp),
+			ExtraData:     data.ExtraData,
+			BaseFeePerGas: math.NewU256FromBigInt(data.BaseFeePerGas),
+			BlockHash:     data.BlockHash,
 			// TODO: Decouple from broken bArtio.
 			TransactionsRoot: engineprimitives.
 				BartioTransactions(

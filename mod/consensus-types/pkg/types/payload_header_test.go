@@ -48,7 +48,7 @@ func generateExecutionPayloadHeader() *types.ExecutionPayloadHeader {
 		GasUsed:          math.U64(0),
 		Timestamp:        math.U64(0),
 		ExtraData:        nil,
-		BaseFeePerGas:    math.Wei{},
+		BaseFeePerGas:    &math.U256{},
 		BlockHash:        gethprimitives.ExecutionHash{},
 		TransactionsRoot: bytes.B32{},
 		WithdrawalsRoot:  bytes.B32{},
@@ -77,7 +77,7 @@ func TestExecutionPayloadHeader_Getters(t *testing.T) {
 	require.Equal(t, math.U64(0), header.GetGasUsed())
 	require.Equal(t, math.U64(0), header.GetTimestamp())
 	require.Equal(t, []byte(nil), header.GetExtraData())
-	require.Equal(t, math.Wei{}, header.GetBaseFeePerGas())
+	require.Equal(t, math.NewU256(0), header.GetBaseFeePerGas())
 	require.Equal(t, gethprimitives.ExecutionHash{}, header.GetBlockHash())
 	require.Equal(t, bytes.B32{}, header.GetTransactionsRoot())
 	require.Equal(t, bytes.B32{}, header.GetWithdrawalsRoot())
@@ -116,11 +116,10 @@ func TestExecutionPayloadHeader_Serialization(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, data)
 
-	var unmarshalled types.ExecutionPayloadHeader
-	err = unmarshalled.Empty(version.Deneb).UnmarshalSSZ(data)
+	var unmarshalled = new(types.ExecutionPayloadHeader).Empty()
+	err = unmarshalled.UnmarshalSSZ(data)
 	require.NoError(t, err)
-
-	require.Equal(t, original, &unmarshalled)
+	require.Equal(t, original, unmarshalled)
 }
 
 func TestExecutionPayloadHeader_MarshalSSZTo(t *testing.T) {
@@ -236,8 +235,9 @@ func TestExecutionPayloadHeader_SizeSSZ(t *testing.T) {
 
 func TestExecutionPayloadHeader_HashTreeRoot(t *testing.T) {
 	header := generateExecutionPayloadHeader()
-	_, err := header.HashTreeRoot()
-	require.NoError(t, err)
+	require.NotPanics(t, func() {
+		header.HashTreeRoot()
+	})
 }
 
 func TestExecutionPayloadHeader_GetTree(t *testing.T) {
@@ -248,7 +248,7 @@ func TestExecutionPayloadHeader_GetTree(t *testing.T) {
 
 func TestExecutionPayloadHeader_Empty(t *testing.T) {
 	header := new(types.ExecutionPayloadHeader)
-	emptyHeader := header.Empty(version.Deneb)
+	emptyHeader := header.Empty()
 
 	require.NotNil(t, emptyHeader)
 	require.Equal(t, version.Deneb, emptyHeader.Version())

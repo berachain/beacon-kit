@@ -80,3 +80,27 @@ func DecodeFixedText(input, out []byte) error {
 
 	return nil
 }
+
+// MustFromHex returns the bytes represented by the given hex string.
+// It panics if the input is not a valid hex string.
+func MustToBytes(input string) []byte {
+	bz, err := ToBytes(input)
+	if err != nil {
+		panic(err)
+	}
+	return bz
+}
+
+// FromHex returns the bytes represented by the given hex string.
+// An error is returned if the input is not a valid hex string.
+func ToBytes(input string) ([]byte, error) {
+	s, err := NewStringStrict(input)
+	if err != nil {
+		return nil, err
+	}
+	h, err := s.ToBytes()
+	if err != nil {
+		return nil, err
+	}
+	return h, nil
+}

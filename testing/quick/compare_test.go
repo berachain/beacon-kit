@@ -21,12 +21,14 @@
 package compare_test
 
 import (
+	"bytes"
 	"slices"
 	"testing"
 	"testing/quick"
 	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	zcommon "github.com/protolambda/zrnt/eth2/beacon/common"
 	zdeneb "github.com/protolambda/zrnt/eth2/beacon/deneb"
 	zspec "github.com/protolambda/zrnt/eth2/configs"
@@ -53,14 +55,11 @@ func TestExecutionPayloadHashTreeRootZrnt(t *testing.T) {
 		}
 
 		payload.LogsBloom = logsBloom
-		typeRoot, err := payload.HashTreeRoot()
-		if err != nil {
-			t.Log("Failed to calculate HashTreeRoot on payload:", err)
-			return false
-		}
+		payload.BaseFeePerGas = math.NewU256(123)
+		typeRoot := payload.HashTreeRoot()
 
 		baseFeePerGas := zview.Uint256View{}
-		baseFeePerGas.SetBytes32(payload.BaseFeePerGas.Unwrap())
+		baseFeePerGas.SetFromBig(payload.BaseFeePerGas.ToBig())
 		zpayload := zdeneb.ExecutionPayload{
 			ParentHash:    ztree.Root(payload.ParentHash),
 			FeeRecipient:  zcommon.Eth1Address(payload.FeeRecipient),
@@ -81,15 +80,12 @@ func TestExecutionPayloadHashTreeRootZrnt(t *testing.T) {
 			BlobGasUsed:   zview.Uint64View(payload.BlobGasUsed.Unwrap()),
 			ExcessBlobGas: zview.Uint64View(payload.ExcessBlobGas.Unwrap()),
 		}
-		zRoot := zpayload.HashTreeRoot(spec, hFn)
 
-		containerRoot, err := payload.HashTreeRoot()
-		if err != nil {
-			t.Log("Failed to calculate HashTreeRoot on container payload:", err)
-			return false
-		}
-		//nolint:gocritic // ok
-		return typeRoot == containerRoot && typeRoot == zRoot
+		zRoot := zpayload.HashTreeRoot(spec, hFn)
+		containerRoot := payload.HashTreeRoot()
+
+		return bytes.Equal(typeRoot[:], containerRoot[:]) &&
+			bytes.Equal(typeRoot[:], zRoot[:])
 	}
 	if err := quick.Check(f, &c); err != nil {
 		t.Error(err)

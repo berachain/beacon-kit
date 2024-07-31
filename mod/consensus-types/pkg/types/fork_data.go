@@ -71,8 +71,8 @@ func (fd *ForkData) DefineSSZ(codec *ssz.Codec) {
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the ForkData object.
-func (fd *ForkData) HashTreeRoot() ([32]byte, error) {
-	return ssz.HashSequential(fd), nil
+func (fd *ForkData) HashTreeRoot() common.Root {
+	return ssz.HashSequential(fd)
 }
 
 // MarshalSSZTo marshals the ForkData object to SSZ format into the provided
@@ -98,31 +98,22 @@ func (fd *ForkData) UnmarshalSSZ(buf []byte) error {
 //nolint:lll
 func (fd *ForkData) ComputeDomain(
 	domainType common.DomainType,
-) (common.Domain, error) {
-	forkDataRoot, err := fd.HashTreeRoot()
-	if err != nil {
-		return common.Domain{}, err
-	}
-
+) common.Domain {
+	forkDataRoot := fd.HashTreeRoot()
 	return common.Domain(
 		append(
 			domainType[:],
 			forkDataRoot[:28]...),
-	), nil
+	)
 }
 
 // ComputeRandaoSigningRoot computes the randao signing root.
 func (fd *ForkData) ComputeRandaoSigningRoot(
 	domainType common.DomainType,
 	epoch math.Epoch,
-) (common.Root, error) {
-	signingDomain, err := fd.ComputeDomain(domainType)
-	if err != nil {
-		return common.Root{}, err
-	}
-
+) common.Root {
 	return ComputeSigningRootUInt64(
 		uint64(epoch),
-		signingDomain,
+		fd.ComputeDomain(domainType),
 	)
 }

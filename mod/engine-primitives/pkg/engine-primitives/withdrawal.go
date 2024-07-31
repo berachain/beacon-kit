@@ -22,6 +22,7 @@ package engineprimitives
 
 import (
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	fastssz "github.com/ferranbt/fastssz"
@@ -85,8 +86,8 @@ func (w *Withdrawal) DefineSSZ(c *ssz.Codec) {
 }
 
 // HashTreeRoot.
-func (w *Withdrawal) HashTreeRoot() ([32]byte, error) {
-	return ssz.HashSequential(w), nil
+func (w *Withdrawal) HashTreeRoot() common.Root {
+	return ssz.HashSequential(w)
 }
 
 // MarshalSSZ marshals the Withdrawal object to SSZ format.

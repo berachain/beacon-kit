@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	fastssz "github.com/ferranbt/fastssz"
+	"github.com/holiman/uint256"
 	"github.com/karalabe/ssz"
 )
 
@@ -67,7 +68,7 @@ type ExecutionPayloadHeader struct {
 	// ExtraData is the extra data of the block.
 	ExtraData bytes.Bytes `json:"extraData"`
 	// BaseFeePerGas is the base fee per gas.
-	BaseFeePerGas math.Wei `json:"baseFeePerGas"`
+	BaseFeePerGas *uint256.Int `json:"baseFeePerGas"`
 	// BlockHash is the hash of the block.
 	BlockHash gethprimitives.ExecutionHash `json:"blockHash"`
 	// TransactionsRoot is the root of the transaction trie.
@@ -81,27 +82,23 @@ type ExecutionPayloadHeader struct {
 }
 
 // Empty returns an empty ExecutionPayload for the given fork version.
-func (h *ExecutionPayloadHeader) Empty(
-	forkVersion uint32,
-) *ExecutionPayloadHeader {
-	// TODO: figure out how to use.
-	_ = forkVersion
+func (h *ExecutionPayloadHeader) Empty() *ExecutionPayloadHeader {
 	return &ExecutionPayloadHeader{}
 }
 
 // NewFromSSZ returns a new ExecutionPayloadHeader from the given SSZ bytes.
 func (h *ExecutionPayloadHeader) NewFromSSZ(
-	bz []byte, forkVersion uint32,
+	bz []byte, _ uint32,
 ) (*ExecutionPayloadHeader, error) {
-	h = h.Empty(forkVersion)
+	h = h.Empty()
 	return h, h.UnmarshalSSZ(bz)
 }
 
 // NewFromJSON returns a new ExecutionPayloadHeader from the given JSON bytes.
 func (h *ExecutionPayloadHeader) NewFromJSON(
-	bz []byte, forkVersion uint32,
+	bz []byte, _ uint32,
 ) (*ExecutionPayloadHeader, error) {
-	h = h.Empty(forkVersion)
+	h = h.Empty()
 	return h, json.Unmarshal(bz, h)
 }
 
@@ -137,7 +134,7 @@ func (h *ExecutionPayloadHeader) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineUint64(codec, &h.Timestamp)
 	//nolint:mnd // todo fix.
 	ssz.DefineDynamicBytesOffset(codec, (*[]byte)(&h.ExtraData), 32)
-	ssz.DefineStaticBytes(codec, &h.BaseFeePerGas)
+	ssz.DefineUint256(codec, &h.BaseFeePerGas)
 	ssz.DefineStaticBytes(codec, &h.BlockHash)
 	ssz.DefineStaticBytes(codec, &h.TransactionsRoot)
 	ssz.DefineStaticBytes(codec, &h.WithdrawalsRoot)
@@ -163,8 +160,8 @@ func (h *ExecutionPayloadHeader) UnmarshalSSZ(bz []byte) error {
 }
 
 // HashTreeRootSSZ returns the hash tree root of the ExecutionPayloadHeader.
-func (h *ExecutionPayloadHeader) HashTreeRoot() ([32]byte, error) {
-	return ssz.HashConcurrent(h), nil
+func (h *ExecutionPayloadHeader) HashTreeRoot() common.Root {
+	return ssz.HashConcurrent(h)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -238,7 +235,11 @@ func (h *ExecutionPayloadHeader) HashTreeRootWith(hh fastssz.HashWalker) error {
 	}
 
 	// Field (11) 'BaseFeePerGas'
-	hh.PutBytes(h.BaseFeePerGas[:])
+	bz, err := h.BaseFeePerGas.MarshalSSZ()
+	if err != nil {
+		return err
+	}
+	hh.PutBytes(bz)
 
 	// Field (12) 'BlockHash'
 	hh.PutBytes(h.BlockHash[:])
@@ -282,7 +283,7 @@ func (h ExecutionPayloadHeader) MarshalJSON() ([]byte, error) {
 		GasUsed          math.U64                        `json:"gasUsed"`
 		Timestamp        math.U64                        `json:"timestamp"`
 		ExtraData        bytes.Bytes                     `json:"extraData"`
-		BaseFeePerGas    math.U256L                      `json:"baseFeePerGas"`
+		BaseFeePerGas    *math.U256                      `json:"baseFeePerGas"`
 		BlockHash        common.ExecutionHash            `json:"blockHash"`
 		TransactionsRoot bytes.B32                       `json:"transactionsRoot"`
 		WithdrawalsRoot  bytes.B32                       `json:"withdrawalsRoot"`
@@ -326,7 +327,7 @@ func (h *ExecutionPayloadHeader) UnmarshalJSON(input []byte) error {
 		GasUsed          *math.U64                        `json:"gasUsed"`
 		Timestamp        *math.U64                        `json:"timestamp"`
 		ExtraData        *bytes.Bytes                     `json:"extraData"`
-		BaseFeePerGas    *math.U256L                      `json:"baseFeePerGas"`
+		BaseFeePerGas    *math.U256                       `json:"baseFeePerGas"`
 		BlockHash        *gethprimitives.ExecutionHash    `json:"blockHash"`
 		TransactionsRoot *bytes.B32                       `json:"transactionsRoot"`
 		WithdrawalsRoot  *bytes.B32                       `json:"withdrawalsRoot"`
@@ -415,7 +416,7 @@ func (h *ExecutionPayloadHeader) UnmarshalJSON(input []byte) error {
 			"missing required field 'baseFeePerGas' for ExecutionPayloadHeader",
 		)
 	}
-	h.BaseFeePerGas = *dec.BaseFeePerGas
+	h.BaseFeePerGas = dec.BaseFeePerGas
 	if dec.BlockHash == nil {
 		return errors.New(
 			"missing required field 'blockHash' for ExecutionPayloadHeader",
@@ -517,7 +518,7 @@ func (h *ExecutionPayloadHeader) GetExtraData() []byte {
 
 // GetBaseFeePerGas returns the base fee per gas of the
 // ExecutionPayloadHeader.
-func (h *ExecutionPayloadHeader) GetBaseFeePerGas() math.Wei {
+func (h *ExecutionPayloadHeader) GetBaseFeePerGas() *math.U256 {
 	return h.BaseFeePerGas
 }
 

@@ -46,7 +46,7 @@ type NewPayloadRequest[
 		GetGasUsed() math.U64
 		GetTimestamp() math.U64
 		GetExtraData() []byte
-		GetBaseFeePerGas() math.Wei
+		GetBaseFeePerGas() *math.U256
 		GetFeeRecipient() gethprimitives.ExecutionAddress
 		GetStateRoot() common.Bytes32
 		GetReceiptsRoot() common.Bytes32
@@ -86,7 +86,7 @@ func BuildNewPayloadRequest[
 		GetGasUsed() math.U64
 		GetTimestamp() math.U64
 		GetExtraData() []byte
-		GetBaseFeePerGas() math.Wei
+		GetBaseFeePerGas() *math.U256
 		GetFeeRecipient() gethprimitives.ExecutionAddress
 		GetStateRoot() common.Bytes32
 		GetReceiptsRoot() common.Bytes32
@@ -206,7 +206,7 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAnd
 			GasLimit:         payload.GetGasLimit().Unwrap(),
 			GasUsed:          payload.GetGasUsed().Unwrap(),
 			Time:             payload.GetTimestamp().Unwrap(),
-			BaseFee:          payload.GetBaseFeePerGas().UnwrapBig(),
+			BaseFee:          payload.GetBaseFeePerGas().ToBig(),
 			Extra:            payload.GetExtraData(),
 			MixDigest:        gethprimitives.ExecutionHash(payload.GetPrevRandao()),
 			WithdrawalsHash:  withdrawalsHash,

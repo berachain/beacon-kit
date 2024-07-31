@@ -25,135 +25,9 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/require"
 )
-
-func TestU64_MarshalSSZ(t *testing.T) {
-	tests := []struct {
-		name     string
-		value    math.U64
-		expected []byte
-	}{
-		{
-			name:     "zero",
-			value:    0,
-			expected: []byte{0, 0, 0, 0, 0, 0, 0, 0},
-		},
-		{
-			name:     "max uint64",
-			value:    math.U64(^uint64(0)),
-			expected: []byte{255, 255, 255, 255, 255, 255, 255, 255},
-		},
-		{
-			name:     "arbitrary number",
-			value:    math.U64(123456789),
-			expected: []byte{21, 205, 91, 7, 0, 0, 0, 0},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result, err := tt.value.MarshalSSZ()
-			require.NoError(t, err)
-			require.Equal(t, tt.expected, result)
-		})
-	}
-}
-
-func TestU64_UnmarshalSSZ(t *testing.T) {
-	tests := []struct {
-		name     string
-		data     []byte
-		expected math.U64
-		err      error
-	}{
-		{
-			name:     "valid data",
-			data:     []byte{21, 205, 91, 7, 0, 0, 0, 0},
-			expected: math.U64(123456789),
-		},
-		{
-			name: "invalid data - short buffer",
-			data: []byte{0, 0, 0},
-			err:  math.ErrUnexpectedInputLengthBase,
-		},
-		{
-			name:     "valid data - max uint64",
-			data:     []byte{255, 255, 255, 255, 255, 255, 255, 255},
-			expected: math.U64(^uint64(0)),
-		},
-		{
-			name:     "valid data - zero",
-			data:     []byte{0, 0, 0, 0, 0, 0, 0, 0},
-			expected: math.U64(0),
-		},
-		{
-			name: "invalid data - long buffer",
-			data: []byte{0, 0, 0, 0, 0, 0, 0, 0, 1},
-			err:  math.ErrUnexpectedInputLengthBase,
-		},
-		{
-			name:     "valid data - one",
-			data:     []byte{1, 0, 0, 0, 0, 0, 0, 0},
-			expected: math.U64(1),
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			var u math.U64
-			err := u.UnmarshalSSZ(tt.data)
-			if tt.err != nil {
-				require.ErrorIs(t, err, tt.err)
-			} else {
-				require.NoError(t, err)
-				require.Equal(t, tt.expected, u)
-			}
-		})
-	}
-}
-
-func TestU64_RoundTripSSZ(t *testing.T) {
-	tests := []struct {
-		name     string
-		value    math.U64
-		expected []byte
-	}{
-		{
-			name:     "zero value",
-			value:    math.U64(0),
-			expected: []byte{0, 0, 0, 0, 0, 0, 0, 0},
-		},
-		{
-			name:     "max uint64",
-			value:    math.U64(^uint64(0)),
-			expected: []byte{255, 255, 255, 255, 255, 255, 255, 255},
-		},
-		{
-			name:     "arbitrary number",
-			value:    math.U64(123456789),
-			expected: []byte{21, 205, 91, 7, 0, 0, 0, 0},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Test MarshalSSZ
-			marshaled, err := tt.value.MarshalSSZ()
-			require.NoError(t, err)
-			require.Equal(t, tt.expected, marshaled)
-
-			// Test UnmarshalSSZ
-			var unmarshaled math.U64
-			err = unmarshaled.UnmarshalSSZ(tt.expected)
-			require.NoError(t, err)
-			require.Equal(t, tt.value, unmarshaled)
-		})
-	}
-}
 
 func TestU64_MarshalText(t *testing.T) {
 	tests := []struct {
@@ -452,175 +326,6 @@ func TestU64_PrevPowerOfTwo(t *testing.T) {
 	}
 }
 
-func TestU64_HashTreeRoot(t *testing.T) {
-	tests := []struct {
-		name     string
-		value    math.U64
-		expected [32]byte
-	}{
-		{
-			name:  "zero value",
-			value: math.U64(0),
-			expected: [32]byte{
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-			},
-		},
-		{
-			name:  "max uint64 value",
-			value: math.U64(^uint64(0)),
-			expected: [32]byte{
-				255,
-				255,
-				255,
-				255,
-				255,
-				255,
-				255,
-				255,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-			},
-		},
-		{
-			name:  "arbitrary number",
-			value: math.U64(123456789),
-			expected: [32]byte{
-				21,
-				205,
-				91,
-				7,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-			},
-		},
-		{
-			name:  "one",
-			value: math.U64(1),
-			expected: [32]byte{
-				1,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result, err := tt.value.HashTreeRoot()
-			require.NoError(t, err, "Test case: %s", tt.name)
-			require.Equal(t, tt.expected, result, "Test case: %s", tt.name)
-		})
-	}
-}
-
 func TestGweiFromWei(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -663,31 +368,33 @@ func TestGwei_ToWei(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    math.Gwei
-		expected *big.Int
+		expected *math.U256
 	}{
 		{
 			name:     "zero gwei",
 			input:    math.Gwei(0),
-			expected: big.NewInt(0),
+			expected: math.NewU256FromBigInt(big.NewInt(0)),
 		},
 		{
 			name:     "one gwei",
 			input:    math.Gwei(1),
-			expected: big.NewInt(math.GweiPerWei),
+			expected: math.NewU256FromBigInt(big.NewInt(math.GweiPerWei)),
 		},
 		{
 			name:  "arbitrary gwei",
 			input: math.Gwei(123456789),
-			expected: new(
-				big.Int,
-			).Mul(big.NewInt(math.GweiPerWei), big.NewInt(123456789)),
+			expected: math.NewU256FromBigInt(new(big.Int).Mul(
+				big.NewInt(math.GweiPerWei),
+				big.NewInt(123456789),
+			)),
 		},
 		{
 			name:  "max uint64 gwei",
 			input: math.Gwei(1<<64 - 1),
-			expected: new(
-				big.Int,
-			).Mul(big.NewInt(math.GweiPerWei), new(big.Int).SetUint64(1<<64-1)),
+			expected: math.NewU256FromBigInt(new(big.Int).Mul(
+				big.NewInt(math.GweiPerWei),
+				new(big.Int).SetUint64(1<<64-1),
+			)),
 		},
 	}
 
@@ -771,43 +478,5 @@ func TestU64_UnwrapPtr(t *testing.T) {
 			require.Equal(t, tt.expected, *result,
 				"Test case: %s", tt.name)
 		})
-	}
-}
-
-func TestU64(t *testing.T) {
-	var u math.U64
-	require.Equal(t, constants.U64Size, u.SizeSSZ())
-	require.True(t, u.IsFixed())
-	require.Equal(t, schema.U64(), u.Type())
-	require.Equal(t, uint64(1), u.ChunkCount())
-}
-
-func TestU64_NewFromSSZ(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    []byte
-		expected math.U64
-		err      bool
-	}{
-		{name: "Valid1", input: []byte{1, 0, 0, 0, 0, 0, 0, 0},
-			expected: 1, err: false},
-		{name: "Valid0", input: []byte{0, 0, 0, 0, 0, 0, 0, 0},
-			expected: 0, err: false},
-		{name: "InvalidLength", input: []byte{1, 0, 0, 0, 0, 0, 0},
-			expected: 0,
-			err:      true},
-	}
-
-	var u64 math.U64 = 1
-
-	for _, tt := range tests {
-		result, err := u64.NewFromSSZ(tt.input)
-		if tt.err {
-			require.Error(t, err, "Test name %s", tt.name)
-		} else {
-			require.NoError(t, err, "Test name %s", tt.name)
-			require.Equal(t, tt.expected, result,
-				"Test name %s", tt.name)
-		}
 	}
 }
