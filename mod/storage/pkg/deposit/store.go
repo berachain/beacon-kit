@@ -27,7 +27,7 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 )
 
@@ -58,7 +58,7 @@ func NewStore[DepositT Deposit](kvsp store.KVStoreService) *KVStore[DepositT] {
 	return &KVStore[DepositT]{
 		store: sdkcollections.NewMap(
 			schemaBuilder,
-			sdkcollections.NewPrefix([]byte{uint8(0)}),
+			sdkcollections.NewPrefix([]byte(KeyDepositPrefix)),
 			KeyDepositPrefix,
 			sdkcollections.Uint64Key,
 			encoding.SSZValueCodec[DepositT]{},

@@ -28,14 +28,15 @@ import (
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 )
 
 // var _ pruner.Prunable = (*KVStore[BeaconBlock])(nil)
 
 const (
-	KeyBlockPrefix = "block"
-	KeyRootsPrefix = "roots"
+	KeyBlockPrefix      = "block"
+	KeyRootsPrefix      = "roots"
+	KeyTimestampsPrefix = "timestamps"
 )
 
 type KVStoreProvider struct {
@@ -50,8 +51,9 @@ func (p *KVStoreProvider) OpenKVStore(context.Context) store.KVStore {
 // KVStore is a simple KV store based implementation that stores
 // beacon blocks.
 type KVStore[BeaconBlockT BeaconBlock[BeaconBlockT]] struct {
-	blocks sdkcollections.Map[uint64, BeaconBlockT]
-	roots  sdkcollections.Map[[]byte, uint64]
+	blocks     sdkcollections.Map[uint64, BeaconBlockT]
+	roots      sdkcollections.Map[[]byte, uint64]
+	timestamps sdkcollections.Map[math.U64, math.Slot]
 
 	mu           sync.RWMutex
 	cdc          *encoding.SSZInterfaceCodec[BeaconBlockT]
@@ -67,24 +69,31 @@ func NewStore[BeaconBlockT BeaconBlock[BeaconBlockT]](
 	return &KVStore[BeaconBlockT]{
 		blocks: sdkcollections.NewMap(
 			schemaBuilder,
-			sdkcollections.NewPrefix([]byte{uint8(0)}),
+			sdkcollections.NewPrefix([]byte(KeyBlockPrefix)),
 			KeyBlockPrefix,
 			sdkcollections.Uint64Key,
 			cdc,
 		),
 		roots: sdkcollections.NewMap(
 			schemaBuilder,
-			sdkcollections.NewPrefix([]byte{uint8(1)}),
+			sdkcollections.NewPrefix([]byte(KeyRootsPrefix)),
 			KeyRootsPrefix,
 			sdkcollections.BytesKey,
 			sdkcollections.Uint64Value,
+		),
+		timestamps: sdkcollections.NewMap(
+			schemaBuilder,
+			sdkcollections.NewPrefix([]byte(KeyTimestampsPrefix)),
+			KeyTimestampsPrefix,
+			encoding.U64Key,
+			encoding.U64Value,
 		),
 		cdc: cdc,
 	}
 }
 
 // Get retrieves the block by a given index from the store.
-func (kv *KVStore[BeaconBlockT]) Get(slot uint64) (BeaconBlockT, error) {
+func (kv *KVStore[BeaconBlockT]) Get(slot math.Slot) (BeaconBlockT, error) {
 	kv.mu.RLock()
 	defer kv.mu.RUnlock()
 	return kv.blocks.Get(context.TODO(), slot)
@@ -92,18 +101,26 @@ func (kv *KVStore[BeaconBlockT]) Get(slot uint64) (BeaconBlockT, error) {
 
 // Set sets the block by a given index in the store and also stores the
 // block root.
-func (kv *KVStore[BeaconBlockT]) Set(slot uint64, blk BeaconBlockT) error {
-	kv.mu.Lock()
-	defer kv.mu.Unlock()
-	kv.cdc.SetActiveForkVersion(blk.Version())
+func (kv *KVStore[BeaconBlockT]) Set(slot math.Slot, blk BeaconBlockT) error {
 	root, err := blk.HashTreeRoot()
 	if err != nil {
 		return err
 	}
-	if err = kv.roots.Set(context.TODO(), root[:], slot); err != nil {
+	ctx := context.TODO()
+	
+	kv.mu.Lock()
+	defer kv.mu.Unlock()
+	
+	if err = kv.roots.Set(ctx, root[:], slot.Unwrap()); err != nil {
 		return err
 	}
-	return kv.blocks.Set(context.TODO(), slot, blk)
+	
+	if err = kv.timestamps.Set(ctx, blk.GetTimestamp(), slot); err != nil {
+		return err
+	}
+	
+	kv.cdc.SetActiveForkVersion(blk.Version())
+	return kv.blocks.Set(ctx, slot.Unwrap(), blk)
 }
 
 // GetSlotByRoot retrieves the slot by a given root from the store.

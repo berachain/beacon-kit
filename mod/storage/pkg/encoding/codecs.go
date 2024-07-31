@@ -18,33 +18,24 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package encoding
 
 import (
-	"cosmossdk.io/core/appmodule"
-	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
+	"cosmossdk.io/collections/codec"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// KVStoreInput is the input for the ProvideKVStore function.
-type KVStoreInput struct {
-	depinject.In
-	Environment appmodule.Environment
-}
+// KEYS 
 
-// ProvideKVStore is the depinject provider that returns a beacon KV store.
-func ProvideKVStore(
-	in KVStoreInput,
-) *KVStore {
-	payloadCodec := &encoding.
-		SSZInterfaceCodec[*ExecutionPayloadHeader]{}
-	return beacondb.New[
-		*BeaconBlockHeader,
-		*Eth1Data,
-		*ExecutionPayloadHeader,
-		*Fork,
-		*Validator,
-		Validators,
-	](in.Environment.KVStoreService, payloadCodec)
-}
+var (
+	// U64Key can be used to encode math.U64 keys. Encoding is big endian to 
+	// retain ordering.
+	U64Key = codec.NewUint64Key[math.U64]()
+)
+
+// VALUES 
+
+var (
+	// U64Value implements a ValueCodec for uint64.
+	U64Value = codec.KeyToValueCodec(U64Key)
+)

@@ -23,6 +23,7 @@ package block
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 type BeaconBlock[T any] interface {
@@ -31,4 +32,5 @@ type BeaconBlock[T any] interface {
 	Version() uint32
 	HashTreeRoot() ([32]byte, error)
 	GetParentBlockRoot() common.Root
+	GetTimestamp() math.U64
 }

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.21;
 
+import { SSZ } from "../SSZ.sol";
+
 interface IBeaconVerifier {
     /// @notice Emitted when the zero validator pubkey Generalized Index is
     /// changed.
