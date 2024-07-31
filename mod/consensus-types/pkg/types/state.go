@@ -18,10 +18,9 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package state
+package types
 
 import (
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	fastssz "github.com/ferranbt/fastssz"
@@ -41,20 +40,20 @@ type BeaconState[
 	// Versioning
 	GenesisValidatorsRoot common.Root
 	Slot                  math.Slot
-	Fork                  *types.Fork
+	Fork                  *Fork
 
 	// History
-	LatestBlockHeader *types.BeaconBlockHeader
+	LatestBlockHeader *BeaconBlockHeader
 	BlockRoots        []common.Root
 	StateRoots        []common.Root
 
 	// Eth1
-	Eth1Data                     *types.Eth1Data
+	Eth1Data                     *Eth1Data
 	Eth1DepositIndex             uint64
-	LatestExecutionPayloadHeader *types.ExecutionPayloadHeader
+	LatestExecutionPayloadHeader *ExecutionPayloadHeader
 
 	// Registry
-	Validators []*types.Validator
+	Validators []*Validator
 	Balances   []uint64
 
 	// Randomness
@@ -110,17 +109,17 @@ func (st *BeaconState[
 	]{
 		Slot:                  slot,
 		GenesisValidatorsRoot: genesisValidatorsRoot,
-		Fork:                  any(fork).(*types.Fork),
+		Fork:                  any(fork).(*Fork),
 		LatestBlockHeader: any(
-			latestBlockHeader).(*types.BeaconBlockHeader),
+			latestBlockHeader).(*BeaconBlockHeader),
 		BlockRoots: blockRoots,
 		StateRoots: stateRoots,
 		LatestExecutionPayloadHeader: any(
-			latestExecutionPayloadHeader).(*types.ExecutionPayloadHeader),
-		Eth1Data:         any(eth1Data).(*types.Eth1Data),
+			latestExecutionPayloadHeader).(*ExecutionPayloadHeader),
+		Eth1Data:         any(eth1Data).(*Eth1Data),
 		Eth1DepositIndex: eth1DepositIndex,
 		Validators: any(
-			validators).([]*types.Validator),
+			validators).([]*Validator),
 		Balances:                     balances,
 		RandaoMixes:                  randaoMixes,
 		NextWithdrawalIndex:          nextWithdrawalIndex,
@@ -243,7 +242,7 @@ func (st *BeaconState[_, _, _, _, _]) HashTreeRootWith(
 
 	// Field (2) 'Fork'
 	if st.Fork == nil {
-		st.Fork = new(types.Fork)
+		st.Fork = new(Fork)
 	}
 	if err := st.Fork.HashTreeRootWith(hh); err != nil {
 		return err
@@ -251,7 +250,7 @@ func (st *BeaconState[_, _, _, _, _]) HashTreeRootWith(
 
 	// Field (3) 'LatestBlockHeader'
 	if st.LatestBlockHeader == nil {
-		st.LatestBlockHeader = new(types.BeaconBlockHeader)
+		st.LatestBlockHeader = new(BeaconBlockHeader)
 	}
 	if err := st.LatestBlockHeader.HashTreeRootWith(hh); err != nil {
 		return err
@@ -281,7 +280,7 @@ func (st *BeaconState[_, _, _, _, _]) HashTreeRootWith(
 
 	// Field (6) 'Eth1Data'
 	if st.Eth1Data == nil {
-		st.Eth1Data = new(types.Eth1Data)
+		st.Eth1Data = new(Eth1Data)
 	}
 	if err := st.Eth1Data.HashTreeRootWith(hh); err != nil {
 		return err
