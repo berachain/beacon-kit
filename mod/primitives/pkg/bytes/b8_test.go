@@ -27,27 +27,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestBytes8SizeSSZ(t *testing.T) {
-	tests := []struct {
-		name  string
-		input bytes.B8
-		want  uint32
-	}{
-		{
-			name:  "size of B8",
-			input: bytes.B8{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
-			want:  bytes.B8Size,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := tt.input.SizeSSZ()
-			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
-		})
-	}
-}
-
 func TestBytes8MarshalSSZ(t *testing.T) {
 	tests := []struct {
 		name  string

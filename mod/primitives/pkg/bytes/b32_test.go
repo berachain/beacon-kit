@@ -27,12 +27,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestB32SizeSSZ(t *testing.T) {
-	var b bytes.B32
-	require.Equal(t, bytes.B32Size, int(b.SizeSSZ()),
-		"SizeSSZ should return the correct size")
-}
-
 func TestB32MarshalSSZ(t *testing.T) {
 	tests := []struct {
 		name  string

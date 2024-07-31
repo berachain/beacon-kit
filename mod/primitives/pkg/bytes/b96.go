@@ -73,11 +73,6 @@ func (h *B96) UnmarshalJSON(input []byte) error {
 /*                                SSZMarshaler                                */
 /* -------------------------------------------------------------------------- */
 
-// SizeSSZ returns the size of its SSZ encoding in bytes.
-func (h B96) SizeSSZ() uint32 {
-	return B96Size
-}
-
 // MarshalSSZ implements the SSZ marshaling for B96.
 func (h B96) MarshalSSZ() ([]byte, error) {
 	return h[:], nil
