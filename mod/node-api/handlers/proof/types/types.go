@@ -43,7 +43,6 @@ type BeaconBlockHeader interface {
 type BeaconState[
 	BeaconStateMarshallableT, ExecutionPayloadHeaderT, ValidatorT any,
 ] interface {
-	constraints.SSZRootable
 	// GetLatestExecutionPayloadHeader returns the latest execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (ExecutionPayloadHeaderT, error)
@@ -56,7 +55,6 @@ type BeaconState[
 // BeaconStateMarshallable is the interface for a beacon state that can be
 // marshalled or hash tree rooted.
 type BeaconStateMarshallable interface {
-	constraints.SSZMarshallableRootable
 	// GetTree is kept for FastSSZ compatibility.
 	GetTree() (*fastssz.Node, error)
 }
