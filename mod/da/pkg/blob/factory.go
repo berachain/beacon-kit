@@ -137,9 +137,8 @@ func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildBlockBodyProof(
 ) ([]common.Root, error) {
 	startTime := time.Now()
 	defer f.metrics.measureBuildBlockBodyProofDuration(startTime)
-	membersRoots := body.GetTopLevelRoots()
 	tree, err := merkle.NewTreeWithMaxLeaves[common.Root](
-		membersRoots,
+		body.GetTopLevelRoots(),
 		body.Length()-1,
 	)
 	if err != nil {
