@@ -141,8 +141,8 @@ func (v *Validator) DefineSSZ(codec *ssz.Codec) {
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the Validator object.
-func (v *Validator) HashTreeRoot() (common.Root, error) {
-	return ssz.HashSequential(v), nil
+func (v *Validator) HashTreeRoot() common.Root {
+	return ssz.HashSequential(v)
 }
 
 // MarshalSSZ marshals the Validator object to SSZ format.

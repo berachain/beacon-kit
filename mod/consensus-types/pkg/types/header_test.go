@@ -68,7 +68,7 @@ func TestBeaconBlockHeader_SizeSSZ(t *testing.T) {
 	require.Equal(t, uint32(112), size)
 }
 
-func TestBeaconBlockHeader_HashTreeRoot(t *testing.T) {
+func TestBeaconBlockHeader_HashTreeRoot(_ *testing.T) {
 	header := types.NewBeaconBlockHeader(
 		math.Slot(100),
 		math.ValidatorIndex(200),
@@ -77,8 +77,7 @@ func TestBeaconBlockHeader_HashTreeRoot(t *testing.T) {
 		common.Root{},
 	)
 
-	_, err := header.HashTreeRoot()
-	require.NoError(t, err)
+	_ = header.HashTreeRoot()
 }
 
 func TestBeaconBlockHeader_GetTree(t *testing.T) {

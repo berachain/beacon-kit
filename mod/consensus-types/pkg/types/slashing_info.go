@@ -83,8 +83,8 @@ func (s *SlashingInfo) DefineSSZ(codec *ssz.Codec) {
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the SlashingInfo object.
-func (s *SlashingInfo) HashTreeRoot() (common.Root, error) {
-	return ssz.HashSequential(s), nil
+func (s *SlashingInfo) HashTreeRoot() common.Root {
+	return ssz.HashSequential(s)
 }
 
 // MarshalSSZ marshals the SlashingInfo object to SSZ format.

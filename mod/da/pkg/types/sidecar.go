@@ -47,7 +47,7 @@ type BlobSidecar struct {
 	BeaconBlockHeader *types.BeaconBlockHeader
 	// InclusionProof is the inclusion proof of the blob in the beacon block
 	// body.
-	InclusionProof [][32]byte
+	InclusionProof []common.Root
 }
 
 // BuildBlobSidecar creates a blob sidecar from the given blobs and
@@ -58,7 +58,7 @@ func BuildBlobSidecar(
 	blob *eip4844.Blob,
 	commitment eip4844.KZGCommitment,
 	proof eip4844.KZGProof,
-	inclusionProof [][32]byte,
+	inclusionProof []common.Root,
 ) *BlobSidecar {
 	return &BlobSidecar{
 		Index:             index.Unwrap(),
@@ -75,23 +75,15 @@ func BuildBlobSidecar(
 func (b *BlobSidecar) HasValidInclusionProof(
 	kzgOffset uint64,
 ) bool {
-	// Calculate the hash tree root of the KZG commitment.
-	leaf, err := b.KzgCommitment.HashTreeRoot()
-	if err != nil {
-		return false
-	}
-
-	gIndex := kzgOffset + b.Index
-
 	// Verify the inclusion proof.
 	return merkle.IsValidMerkleBranch(
-		leaf,
+		b.KzgCommitment.HashTreeRoot(),
 		b.InclusionProof,
 		//#nosec:G701 // safe.
 		uint8(
 			len(b.InclusionProof),
 		), // TODO: use KZG_INCLUSION_PROOF_DEPTH calculation.
-		gIndex,
+		kzgOffset+b.Index,
 		b.BeaconBlockHeader.BodyRoot,
 	)
 }
@@ -135,6 +127,6 @@ func (b *BlobSidecar) MarshalSSZTo(buf []byte) ([]byte, error) {
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the BlobSidecar object.
-func (b *BlobSidecar) HashTreeRoot() (common.Root, error) {
-	return ssz.HashSequential(b), nil
+func (b *BlobSidecar) HashTreeRoot() common.Root {
+	return ssz.HashSequential(b)
 }

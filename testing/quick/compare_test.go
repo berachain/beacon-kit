@@ -56,11 +56,7 @@ func TestExecutionPayloadHashTreeRootZrnt(t *testing.T) {
 
 		payload.LogsBloom = logsBloom
 		payload.BaseFeePerGas = math.NewU256(123)
-		typeRoot, err := payload.HashTreeRoot()
-		if err != nil {
-			t.Log("Failed to calculate HashTreeRoot on payload:", err)
-			return false
-		}
+		typeRoot := payload.HashTreeRoot()
 
 		baseFeePerGas := zview.Uint256View{}
 		baseFeePerGas.SetFromBig(payload.BaseFeePerGas.ToBig())
@@ -84,13 +80,9 @@ func TestExecutionPayloadHashTreeRootZrnt(t *testing.T) {
 			BlobGasUsed:   zview.Uint64View(payload.BlobGasUsed.Unwrap()),
 			ExcessBlobGas: zview.Uint64View(payload.ExcessBlobGas.Unwrap()),
 		}
-		zRoot := zpayload.HashTreeRoot(spec, hFn)
 
-		containerRoot, err := payload.HashTreeRoot()
-		if err != nil {
-			t.Log("Failed to calculate HashTreeRoot on container payload:", err)
-			return false
-		}
+		zRoot := zpayload.HashTreeRoot(spec, hFn)
+		containerRoot := payload.HashTreeRoot()
 
 		return bytes.Equal(typeRoot[:], containerRoot[:]) &&
 			bytes.Equal(typeRoot[:], zRoot[:])

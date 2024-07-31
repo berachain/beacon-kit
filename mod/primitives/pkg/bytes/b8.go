@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 //
-
+//nolint:dupl // it's okay.
 package bytes
 
 import (
@@ -72,19 +72,12 @@ func (h *B8) UnmarshalJSON(input []byte) error {
 /*                                SSZMarshaler                                */
 /* -------------------------------------------------------------------------- */
 
-// SizeSSZ returns the size of its SSZ encoding in bytes.
-func (h B8) SizeSSZ() uint32 {
-	return B8Size
-}
-
 // MarshalSSZ implements the SSZ marshaling for B8.
 func (h B8) MarshalSSZ() ([]byte, error) {
 	return h[:], nil
 }
 
 // HashTreeRoot returns the hash tree root of the B8.
-func (h B8) HashTreeRoot() (B32, error) {
-	var result [32]byte
-	copy(result[:], h[:])
-	return result, nil
+func (h B8) HashTreeRoot() B32 {
+	return ToBytes32(h[:])
 }

@@ -44,7 +44,7 @@ type BeaconState interface {
 		cometBFTAddress []byte,
 	) (math.ValidatorIndex, error)
 	// HashTreeRoot returns the hash tree root of the beacon state.
-	HashTreeRoot() (common.Root, error)
+	HashTreeRoot() common.Root
 }
 
 // Middleware is the interface for the CometBFT middleware.
