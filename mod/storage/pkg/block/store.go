@@ -97,6 +97,7 @@ func NewStore[BeaconBlockT BeaconBlock[BeaconBlockT]](
 func (kv *KVStore[BeaconBlockT]) Get(slot math.Slot) (BeaconBlockT, error) {
 	kv.mu.RLock()
 	defer kv.mu.RUnlock()
+
 	return kv.blocks.Get(context.TODO(), slot)
 }
 
@@ -104,17 +105,18 @@ func (kv *KVStore[BeaconBlockT]) Get(slot math.Slot) (BeaconBlockT, error) {
 // block root.
 func (kv *KVStore[BeaconBlockT]) Set(slot math.Slot, blk BeaconBlockT) error {
 	var (
-		root, err = blk.HashTreeRoot()
-	) 
+		ctx  = context.TODO()
+		root = blk.HashTreeRoot()
+	)
 
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
 
-	if err = kv.roots.Set(ctx, root[:], slot); err != nil {
+	if err := kv.roots.Set(ctx, root[:], slot); err != nil {
 		return err
 	}
 
-	if err = kv.timestamps.Set(ctx, blk.GetTimestamp(), slot); err != nil {
+	if err := kv.timestamps.Set(ctx, blk.GetTimestamp(), slot); err != nil {
 		return err
 	}
 
@@ -132,6 +134,16 @@ func (kv *KVStore[BeaconBlockT]) GetSlotByRoot(
 	return kv.roots.Get(context.TODO(), root[:])
 }
 
+// GetSlotByTimestamp retrieves the slot by a given timestamp from the store.
+func (kv *KVStore[BeaconBlockT]) GetSlotByTimestamp(
+	timestamp math.U64,
+) (math.Slot, error) {
+	kv.mu.RLock()
+	defer kv.mu.RUnlock()
+
+	return kv.timestamps.Get(context.TODO(), timestamp)
+}
+
 // Prune removes the [start, end) blocks from the store.
 func (kv *KVStore[BeaconBlockT]) Prune(start, end uint64) error {
 	var (
@@ -143,15 +155,20 @@ func (kv *KVStore[BeaconBlockT]) Prune(start, end uint64) error {
 	defer kv.mu.Unlock()
 
 	for i := max(s, kv.earliestSlot); i < e; i++ {
-		nextBlock, err := kv.blocks.Get(ctx, i+1)
+		block, err := kv.blocks.Get(ctx, i)
 		if !errors.Is(err, sdkcollections.ErrNotFound) {
 			if err != nil {
 				return err
 			}
 
-			// Only delete the block root if the next block was found.
-			root := nextBlock.GetParentBlockRoot()
+			root := block.HashTreeRoot()
 			if err = kv.roots.Remove(ctx, root[:]); err != nil {
+				return err
+			}
+
+			if err = kv.timestamps.Remove(
+				ctx, block.GetTimestamp(),
+			); err != nil {
 				return err
 			}
 		}

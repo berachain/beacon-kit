@@ -31,7 +31,5 @@ type BeaconBlock[T any] interface {
 	NewFromSSZ(bz []byte, version uint32) (T, error)
 	Version() uint32
 	HashTreeRoot() common.Root
-	GetParentBlockRoot() common.Root
 	GetTimestamp() math.U64
-	
 }
