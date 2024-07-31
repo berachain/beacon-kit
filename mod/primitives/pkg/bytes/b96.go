@@ -84,7 +84,7 @@ func (h B96) MarshalSSZ() ([]byte, error) {
 }
 
 // HashTreeRoot returns the hash tree root of the B96.
-func (h B96) HashTreeRoot() (B32, error) {
+func (h B96) HashTreeRoot() B32 {
 	//nolint:mnd // for a tree height of 2 we need 4 working chunks.
 	result := make([][32]byte, 4)
 	copy(result[0][:], h[:32])
@@ -92,5 +92,5 @@ func (h B96) HashTreeRoot() (B32, error) {
 	copy(result[2][:], h[64:96])
 	gohashtree.HashChunks(result, result)
 	gohashtree.HashChunks(result, result)
-	return result[0], nil
+	return result[0]
 }

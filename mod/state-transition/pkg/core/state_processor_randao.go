@@ -66,8 +66,7 @@ func (sp *StateProcessor[
 	)
 
 	if !skipVerification {
-		var signingRoot common.Root
-		signingRoot, err = fd.ComputeRandaoSigningRoot(
+		signingRoot := fd.ComputeRandaoSigningRoot(
 			sp.cs.DomainTypeRandao(), epoch)
 		if err != nil {
 			return err

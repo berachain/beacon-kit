@@ -44,7 +44,7 @@ type SSZUnmarshaler interface {
 // their hash tree root.
 type SSZRootable interface {
 	// HashTreeRoot computes the hash tree root of the object.
-	HashTreeRoot() (common.Root, error)
+	HashTreeRoot() common.Root
 }
 
 // SSZMarshallable is an interface that combines

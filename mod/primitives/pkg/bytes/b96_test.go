@@ -45,8 +45,7 @@ func TestB96_HashTreeRoot(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := tt.input.HashTreeRoot()
-			require.NoError(t, err)
+			result := tt.input.HashTreeRoot()
 			require.Equal(t, tt.want, result)
 		})
 	}

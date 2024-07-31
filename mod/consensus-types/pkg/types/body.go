@@ -147,8 +147,8 @@ func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte) error {
 }
 
 // HashTreeRoot returns the SSZ hash tree root of the BeaconBlockBody.
-func (b *BeaconBlockBody) HashTreeRoot() (common.Root, error) {
-	return ssz.HashConcurrent(b), nil
+func (b *BeaconBlockBody) HashTreeRoot() common.Root {
+	return ssz.HashConcurrent(b)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -291,26 +291,14 @@ func (b *BeaconBlockBody) SetSlashingInfo(_ []*SlashingInfo) {
 }
 
 // GetTopLevelRoots returns the top-level roots of the BeaconBlockBody.
-func (b *BeaconBlockBody) GetTopLevelRoots() ([][32]byte, error) {
-	var (
-		err   error
-		layer = make([][32]byte, BodyLengthDeneb)
-	)
-
-	layer[0], err = b.GetRandaoReveal().HashTreeRoot()
-	if err != nil {
-		return nil, err
+func (b *BeaconBlockBody) GetTopLevelRoots() []common.Root {
+	return []common.Root{
+		b.GetRandaoReveal().HashTreeRoot(),
+		b.Eth1Data.HashTreeRoot(),
+		b.GetGraffiti(),
+		Deposits(b.GetDeposits()).HashTreeRoot(),
+		b.GetExecutionPayload().HashTreeRoot(),
 	}
-
-	layer[1], err = b.Eth1Data.HashTreeRoot()
-	if err != nil {
-		return nil, err
-	}
-
-	layer[2] = b.GetGraffiti()
-	layer[3] = Deposits(b.GetDeposits()).HashTreeRoot()
-	layer[4], err = b.GetExecutionPayload().HashTreeRoot()
-	return layer, err
 }
 
 // Length returns the number of fields in the BeaconBlockBody struct.

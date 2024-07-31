@@ -108,8 +108,7 @@ func TestAttestationData_GetTree(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, tree)
 
-	expectedRoot, err := data.HashTreeRoot()
-	require.NoError(t, err)
+	expectedRoot := data.HashTreeRoot()
 
 	// Compare the tree root with the expected root
 	actualRoot := tree.Hash()

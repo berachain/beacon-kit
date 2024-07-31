@@ -179,8 +179,7 @@ func TestBeaconStateMarshalUnmarshalSSZ(t *testing.T) {
 
 func TestHashTreeRoot(t *testing.T) {
 	state := generateValidBeaconState()
-	_, err := state.HashTreeRoot()
-	require.NoError(t, err)
+	state.HashTreeRoot()
 }
 
 func TestGetTree(t *testing.T) {
@@ -225,8 +224,7 @@ func TestBeaconState_HashTreeRoot(t *testing.T) {
 	state := generateValidBeaconState()
 
 	// Get the HashTreeRoot
-	root, err := state.HashTreeRoot()
-	require.NoError(t, err)
+	root := state.HashTreeRoot()
 
 	// Get the HashConcurrent
 	concurrentRoot := common.Root(karalabessz.HashSequential(state))

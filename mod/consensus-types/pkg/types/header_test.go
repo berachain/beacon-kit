@@ -77,8 +77,7 @@ func TestBeaconBlockHeader_HashTreeRoot(t *testing.T) {
 		common.Root{},
 	)
 
-	_, err := header.HashTreeRoot()
-	require.NoError(t, err)
+	_ = header.HashTreeRoot()
 }
 
 func TestBeaconBlockHeader_GetTree(t *testing.T) {
