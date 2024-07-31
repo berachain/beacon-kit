@@ -20,6 +20,11 @@
 
 package constraints
 
+import (
+	fastssz "github.com/ferranbt/fastssz"
+	"github.com/karalabe/ssz"
+)
+
 // ForkTyped is a constraint that requires a type to have an Empty method.
 type ForkTyped[SelfT any] interface {
 	EmptyWithVersion[SelfT]
@@ -55,4 +60,32 @@ type Nillable interface {
 // Versionable is a constraint that requires a type to have a Version method.
 type Versionable interface {
 	Version() uint32
+}
+
+// SSZField is an interface for types that can be used as SSZ fields.
+// It requires methods for creating an empty instance, computing a hash tree
+// root,
+// and allows pointer access to the underlying type.
+type SSZField[SelfPtrT, SelfT any] interface {
+	// Empty returns a new empty instance of the type.
+	Empty() SelfPtrT
+	// HashTreeRootWith computes the hash tree root of the object using the
+	// provided HashWalker.
+	HashTreeRootWith(fastssz.HashWalker) error
+	// Allows pointer access to the underlying type.
+	*SelfT
+}
+
+// StaticSSZField is an interface for SSZ fields with a static size.
+// It embeds the SSZField interface and the ssz.StaticObject interface.
+type StaticSSZField[SelfPtrT, SelfT any] interface {
+	ssz.StaticObject
+	SSZField[SelfPtrT, SelfT]
+}
+
+// DynamicSSZField is an interface for SSZ fields with a dynamic size.
+// It embeds the SSZField interface and the ssz.DynamicObject interface.
+type DynamicSSZField[SelfPtrT, SelfT any] interface {
+	ssz.DynamicObject
+	SSZField[SelfPtrT, SelfT]
 }
