@@ -29,8 +29,6 @@ import (
 )
 
 // BeaconState represents the entire state of the beacon chain.
-//
-// TODO: Properly use the generics.
 type BeaconState[
 	BeaconBlockHeaderT constraints.
 		StaticSSZField[BeaconBlockHeaderT, B],
