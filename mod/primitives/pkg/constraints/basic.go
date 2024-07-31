@@ -63,12 +63,14 @@ type Versionable interface {
 }
 
 // SSZField is an interface for types that can be used as SSZ fields.
-// It requires methods for creating an empty instance, computing a hash tree root,
+// It requires methods for creating an empty instance, computing a hash tree
+// root,
 // and allows pointer access to the underlying type.
 type SSZField[SelfPtrT, SelfT any] interface {
 	// Empty returns a new empty instance of the type.
 	Empty() SelfPtrT
-	// HashTreeRootWith computes the hash tree root of the object using the provided HashWalker.
+	// HashTreeRootWith computes the hash tree root of the object using the
+	// provided HashWalker.
 	HashTreeRootWith(fastssz.HashWalker) error
 	// Allows pointer access to the underlying type.
 	*SelfT

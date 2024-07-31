@@ -45,7 +45,7 @@ type BeaconState[
 	// Versioning
 	GenesisValidatorsRoot common.Root
 	Slot                  math.Slot
-	Fork                  *Fork
+	Fork                  ForkT
 
 	// History
 	LatestBlockHeader BeaconBlockHeaderT
@@ -117,7 +117,7 @@ func (st *BeaconState[
 	]{
 		Slot:                         slot,
 		GenesisValidatorsRoot:        genesisValidatorsRoot,
-		Fork:                         any(fork).(*Fork),
+		Fork:                         fork,
 		LatestBlockHeader:            latestBlockHeader,
 		BlockRoots:                   blockRoots,
 		StateRoots:                   stateRoots,
@@ -263,7 +263,7 @@ func (st *BeaconState[
 
 	// Field (2) 'Fork'
 	if st.Fork == nil {
-		st.Fork = new(Fork)
+		st.Fork = st.Fork.Empty()
 	}
 	if err := st.Fork.HashTreeRootWith(hh); err != nil {
 		return err
