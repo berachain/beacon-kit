@@ -129,6 +129,22 @@ func TestBeaconBlockBody_MarshalSSZ(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, data)
 }
+
+func TestBeaconBlockBody_MarshalSSZTo(t *testing.T) {
+	body := generateBeaconBlockBody()
+
+	data, err := body.MarshalSSZ()
+	require.NoError(t, err)
+	require.NotNil(t, data)
+
+	var buf []byte
+	buf, err = body.MarshalSSZTo(buf)
+	require.NoError(t, err)
+
+	// The two byte slices should be equal
+	require.Equal(t, data, buf)
+}
+
 func TestBeaconBlockBody_GetTopLevelRoots(t *testing.T) {
 	body := generateBeaconBlockBody()
 	roots, err := body.GetTopLevelRoots()

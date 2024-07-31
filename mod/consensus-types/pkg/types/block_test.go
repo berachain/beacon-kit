@@ -128,6 +128,13 @@ func TestBeaconBlock_MarshalUnmarshalSSZ(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, block, unmarshalledBlock)
+
+	var buf []byte
+	buf, err = block.MarshalSSZTo(buf)
+	require.NoError(t, err)
+
+	// The two byte slices should be equal
+	require.Equal(t, sszBlock, buf)
 }
 
 func TestBeaconBlock_HashTreeRoot(t *testing.T) {
