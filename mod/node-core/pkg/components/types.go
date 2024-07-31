@@ -113,8 +113,8 @@ type (
 		WithdrawalCredentials,
 	]
 
-	// BeaconStateMarshallable is a type alias for the BeaconStateMarshallable.
-	BeaconStateMarshallable = state.BeaconStateMarshallable[
+	// BeaconStateMarshallable is a type alias for the BeaconState.
+	BeaconStateMarshallable = state.BeaconState[
 		*BeaconBlockHeader,
 		*Eth1Data,
 		*ExecutionPayloadHeader,

@@ -24,13 +24,13 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 //
 
-package deneb_test
+package state_test
 
 import (
 	"io"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -38,9 +38,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// generateValidBeaconState generates a valid beacon state for the Deneb.
-func generateValidBeaconState() *deneb.BeaconState {
-	return &deneb.BeaconState{
+// generateValidBeaconState generates a valid beacon state for the state.
+func generateValidBeaconState() *state.BeaconState[any, any, any, any, any] {
+	return &state.BeaconState[any, any, any, any, any]{
 		GenesisValidatorsRoot: common.Root{0x01, 0x02, 0x03},
 		Slot:                  1234,
 		BlockRoots: []common.Root{
@@ -130,20 +130,20 @@ func generateRandomBytes32(count int) []common.Bytes32 {
 }
 
 func TestBeaconStateMarshalUnmarshalSSZ(t *testing.T) {
-	state := generateValidBeaconState()
+	genState := generateValidBeaconState()
 
-	data, fastSSZMarshalErr := state.MarshalSSZ()
+	data, fastSSZMarshalErr := genState.MarshalSSZ()
 	require.NoError(t, fastSSZMarshalErr)
 	require.NotNil(t, data)
 
-	newState := &deneb.BeaconState{}
+	newState := &state.BeaconState[any, any, any, any, any]{}
 	err := newState.UnmarshalSSZ(data)
 	require.NoError(t, err)
 
-	require.EqualValues(t, state, newState)
+	require.EqualValues(t, genState, newState)
 
 	// Check if the state size is greater than 0
-	require.Positive(t, state.SizeSSZ(false))
+	require.Positive(t, genState.SizeSSZ(false))
 }
 
 func TestHashTreeRoot(t *testing.T) {
@@ -160,7 +160,7 @@ func TestGetTree(t *testing.T) {
 }
 
 func TestBeaconState_UnmarshalSSZ_Error(t *testing.T) {
-	state := &deneb.BeaconState{}
+	state := &state.BeaconState[any, any, any, any, any]{}
 	err := state.UnmarshalSSZ([]byte{0x01, 0x02, 0x03}) // Invalid data
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
