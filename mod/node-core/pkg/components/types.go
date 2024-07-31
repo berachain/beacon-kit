@@ -235,7 +235,7 @@ type (
 	// ForkData is a type alias for the fork data.
 	ForkData = types.ForkData
 
-	// Genesis is a type alias for the types.
+	// Genesis is a type alias for the Genesis type.
 	Genesis = types.Genesis[
 		*Deposit,
 		*ExecutionPayloadHeader,
