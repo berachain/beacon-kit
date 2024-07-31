@@ -84,6 +84,9 @@ type BlockStore[BeaconBlockT any] interface {
 	Get(slot math.Slot) (BeaconBlockT, error)
 	// GetSlotByRoot retrieves the slot by a given root from the store.
 	GetSlotByRoot(root common.Root) (math.Slot, error)
+	// GetSlotByTimestamp retrieves the slot by a given timestamp from the
+	// store.
+	GetSlotByTimestamp(timestamp math.U64) (math.Slot, error)
 }
 
 // DepositStore defines the interface for deposit storage.

@@ -21,29 +21,13 @@
 package utils
 
 import (
+	"strings"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
-
-const (
-	StateIDGenesis   = "genesis"
-	StateIDFinalized = "finalized"
-	StateIDJustified = "justified"
-	StateIDHead      = "head"
-)
-
-const (
-	Head math.Slot = iota
-	Genesis
-)
-
-// U64FromString returns a math.U64 from the given string.
-func U64FromString(id string) (math.U64, error) {
-	var u64 math.U64
-	return u64, u64.UnmarshalText([]byte(id))
-}
 
 // SlotFromStateID returns a slot from the state ID.
 //
@@ -61,8 +45,10 @@ func SlotFromStateID(stateID string) (math.Slot, error) {
 	}
 }
 
-// BlockID shares the same semantics as StateID, with the addition of
-// being able to query state by block hash.
+// SlotFromBlockID returns a slot from the block ID.
+//
+// NOTE: `blockID` shares the same semantics as `stateID`, with the modification
+// of being able to query by beacon <blockRoot> instead of <stateRoot>.
 func SlotFromBlockID[StorageBackendT interface {
 	GetSlotByRoot(root common.Root) (math.Slot, error)
 }](blockID string, storage StorageBackendT) (math.Slot, error) {
@@ -76,4 +62,37 @@ func SlotFromBlockID[StorageBackendT interface {
 		return 0, err
 	}
 	return storage.GetSlotByRoot(bytes.ToBytes32(root))
+}
+
+// SlotFromTimestampID returns a slot from the timestamp ID.
+//
+// NOTE: `timestampID` shares the same semantics as `stateID`, with the
+// modification of being able to query by beacon block <timestamp> instead of
+// <stateRoot>.
+//
+// The timestampID must be prefixed by the 't', followed by the Unix timestamp
+// number in hexadecimal notation. For example 't0x66aab3ef' corresponds to
+// the block at Unix timestamp 1722463215. Providing just the string
+// '0x66aab3ef' (without the prefix 't') will query for the beacon block with
+// slot 1722463215.
+func SlotFromTimestampID[StorageBackendT interface {
+	GetSlotByTimestamp(timestamp math.U64) (math.Slot, error)
+}](timestampID string, storage StorageBackendT) (math.Slot, error) {
+	if !strings.HasPrefix(timestampID, TimestampIDPrefix) {
+		return SlotFromStateID(timestampID)
+	}
+
+	// Parse the timestamp from the timestampID.
+	timestamp, err := U64FromString(timestampID[1:])
+	if err != nil {
+		return 0, err
+	}
+	return storage.GetSlotByTimestamp(timestamp)
+}
+
+// U64FromString returns a math.U64 from the given string. Errors if the given
+// string is not in proper hexadecimal notation.
+func U64FromString(id string) (math.U64, error) {
+	var u64 math.U64
+	return u64, u64.UnmarshalText([]byte(id))
 }

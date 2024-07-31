@@ -23,19 +23,19 @@ package types
 import "github.com/berachain/beacon-kit/mod/node-api/handlers/types"
 
 // BlockProposerRequest is the request for the
-// `/proof/block_proposer/{block_id}` endpoint.
+// `/proof/block_proposer/{timestamp_id}` endpoint.
 type BlockProposerRequest struct {
-	types.BlockIDRequest
+	types.TimestampIDRequest
 }
 
 // ExecutionNumberRequest is the request for the
-// `/proof/execution_number/{block_id}` endpoint.
+// `/proof/execution_number/{timestamp_id}` endpoint.
 type ExecutionNumberRequest struct {
-	types.BlockIDRequest
+	types.TimestampIDRequest
 }
 
 // ExecutionFeeRecipientRequest is the request for the
-// `/proof/execution_fee_recipient/{block_id}` endpoint.
+// `/proof/execution_fee_recipient/{timestamp_id}` endpoint.
 type ExecutionFeeRecipientRequest struct {
-	types.BlockIDRequest
+	types.TimestampIDRequest
 }

@@ -23,7 +23,9 @@ package proof
 import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof/types"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/mod/node-api/server/context"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // Handler is the handler for the proof API.
@@ -67,4 +69,34 @@ func NewHandler[
 		backend: backend,
 	}
 	return h
+}
+
+// Get the slot from the given input of timestamp id, beacon state, and beacon
+// block header for the resolved slot.
+func (h *Handler[
+	ContextT, BeaconBlockHeaderT, BeaconStateT, _, _, _,
+]) resolveTimestampID(timestampID string) (
+	math.Slot, BeaconStateT, BeaconBlockHeaderT, error,
+) {
+	var (
+		beaconState BeaconStateT
+		blockHeader BeaconBlockHeaderT
+	)
+
+	slot, err := utils.SlotFromTimestampID(timestampID, h.backend)
+	if err != nil {
+		return 0, beaconState, blockHeader, err
+	}
+
+	beaconState, slot, err = h.backend.StateFromSlotForProof(slot)
+	if err != nil {
+		return 0, beaconState, blockHeader, err
+	}
+
+	blockHeader, err = h.backend.BlockHeaderAtSlot(slot)
+	if err != nil {
+		return 0, beaconState, blockHeader, err
+	}
+
+	return slot, beaconState, blockHeader, nil
 }

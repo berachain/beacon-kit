@@ -18,39 +18,19 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package proof
+package utils
 
-import (
-	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+
+const (
+	StateIDGenesis    = "genesis"
+	StateIDFinalized  = "finalized"
+	StateIDJustified  = "justified"
+	StateIDHead       = "head"
+	TimestampIDPrefix = "t"
 )
 
-// Get the slot from the given input of block id, beacon state, and beacon
-// block header for the resolved slot.
-func (h *Handler[
-	ContextT, BeaconBlockHeaderT, BeaconStateT, _, _, _,
-]) resolveBlockID(blockID string) (
-	math.Slot, BeaconStateT, BeaconBlockHeaderT, error,
-) {
-	var (
-		beaconState BeaconStateT
-		blockHeader BeaconBlockHeaderT
-	)
-
-	slot, err := utils.SlotFromBlockID(blockID, h.backend)
-	if err != nil {
-		return 0, beaconState, blockHeader, err
-	}
-
-	beaconState, slot, err = h.backend.StateFromSlotForProof(slot)
-	if err != nil {
-		return 0, beaconState, blockHeader, err
-	}
-
-	blockHeader, err = h.backend.BlockHeaderAtSlot(slot)
-	if err != nil {
-		return 0, beaconState, blockHeader, err
-	}
-
-	return slot, beaconState, blockHeader, nil
-}
+const (
+	Head math.Slot = iota
+	Genesis
+)
