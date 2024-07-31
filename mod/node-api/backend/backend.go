@@ -23,6 +23,7 @@ package backend
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/node-api/backend/cache"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -38,8 +39,8 @@ type Backend[
 	BeaconBlockBodyT any,
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT BeaconState[
-		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-		ValidatorT, ValidatorsT, WithdrawalT,
+		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
 	BlobSidecarsT any,
@@ -60,11 +61,11 @@ type Backend[
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalCredentialsT WithdrawalCredentials,
 ] struct {
-	sb   StorageBackendT
-	cs   common.ChainSpec
-	node NodeT
-
-	sp StateProcessor[BeaconStateT]
+	sb    StorageBackendT
+	cs    common.ChainSpec
+	node  NodeT
+	sp    StateProcessor[BeaconStateT]
+	cache *cache.QueryCache
 }
 
 // New creates and returns a new Backend instance.
@@ -76,8 +77,8 @@ func New[
 	BeaconBlockBodyT any,
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT BeaconState[
-		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-		ValidatorT, ValidatorsT, WithdrawalT,
+		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
 	BlobSidecarsT any,
@@ -98,6 +99,7 @@ func New[
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalCredentialsT WithdrawalCredentials,
 ](
+	cfg Config,
 	storageBackend StorageBackendT,
 	cs common.ChainSpec,
 	sp StateProcessor[BeaconStateT],
@@ -115,9 +117,10 @@ func New[
 		NodeT, StateStoreT, StorageBackendT, ValidatorT, ValidatorsT, WithdrawalT,
 		WithdrawalCredentialsT,
 	]{
-		sb: storageBackend,
-		cs: cs,
-		sp: sp,
+		sb:    storageBackend,
+		cs:    cs,
+		sp:    sp,
+		cache: cache.NewQueryCache(cfg.Cache),
 	}
 }
 
@@ -170,21 +173,26 @@ func (b *Backend[
 func (b *Backend[
 	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) stateFromSlotRaw(slot math.Slot) (BeaconStateT, math.Slot, error) {
-	var st BeaconStateT
-	//#nosec:G701 // not an issue in practice.
-	queryCtx, err := b.node.CreateQueryContext(int64(slot), false)
-	if err != nil {
-		return st, slot, err
+	var (
+		st  BeaconStateT
+		err error
+	)
+
+	queryCtx, ok := b.cache.GetQueryContext(slot)
+	if !ok {
+		//#nosec:G701 // not an issue in practice.
+		queryCtx, err = b.node.CreateQueryContext(int64(slot), false)
+		if err != nil {
+			return st, slot, err
+		}
+		b.cache.AddQueryContext(slot, queryCtx)
 	}
-	st = b.sb.StateFromContext(queryCtx)
+	st = b.sb.StateFromContext(queryCtx).Copy()
 
 	// If using height 0 for the query context, make sure to return the latest
 	// slot.
 	if slot == 0 {
 		slot, err = st.GetSlot()
-		if err != nil {
-			return st, slot, err
-		}
 	}
 	return st, slot, err
 }

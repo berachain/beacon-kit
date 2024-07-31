@@ -39,10 +39,10 @@ func generateExecutionPayloadHeader() *types.ExecutionPayloadHeader {
 	return &types.ExecutionPayloadHeader{
 		ParentHash:       gethprimitives.ExecutionHash{},
 		FeeRecipient:     gethprimitives.ExecutionAddress{},
-		StateRoot:        bytes.B32{},
-		ReceiptsRoot:     bytes.B32{},
-		LogsBloom:        bytes.B256{},
-		Random:           bytes.B32{},
+		StateRoot:        bytes.B32{123},
+		ReceiptsRoot:     bytes.B32{123},
+		LogsBloom:        bytes.B256{123},
+		Random:           bytes.B32{123},
 		Number:           math.U64(0),
 		GasLimit:         math.U64(0),
 		GasUsed:          math.U64(0),
@@ -68,10 +68,10 @@ func TestExecutionPayloadHeader_Getters(t *testing.T) {
 		gethprimitives.ExecutionAddress{},
 		header.GetFeeRecipient(),
 	)
-	require.Equal(t, bytes.B32{}, header.GetStateRoot())
-	require.Equal(t, bytes.B32{}, header.GetReceiptsRoot())
-	require.Equal(t, bytes.B256{}, header.GetLogsBloom())
-	require.Equal(t, bytes.B32{}, header.GetPrevRandao())
+	require.Equal(t, bytes.B32{123}, header.GetStateRoot())
+	require.Equal(t, bytes.B32{123}, header.GetReceiptsRoot())
+	require.Equal(t, bytes.B256{123}, header.GetLogsBloom())
+	require.Equal(t, bytes.B32{123}, header.GetPrevRandao())
 	require.Equal(t, math.U64(0), header.GetNumber())
 	require.Equal(t, math.U64(0), header.GetGasLimit())
 	require.Equal(t, math.U64(0), header.GetGasUsed())

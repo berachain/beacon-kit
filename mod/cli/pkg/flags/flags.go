@@ -70,10 +70,15 @@ const (
 		"availability-window"
 
 	// Node API Config.
-	nodeAPIRoot    = beaconKitRoot + "node-api."
-	NodeAPIEnabled = nodeAPIRoot + "enabled"
-	NodeAPIAddress = nodeAPIRoot + "address"
-	NodeAPILogging = nodeAPIRoot + "logging"
+	nodeAPIRoot                 = beaconKitRoot + "node-api."
+	nodeAPIServerRoot           = nodeAPIRoot + "server."
+	nodeAPIBackendRoot          = nodeAPIRoot + "backend."
+	nodeAPICacheRoot            = nodeAPIBackendRoot + "cache."
+	NodeAPIEnabled              = nodeAPIServerRoot + "enabled"
+	NodeAPIAddress              = nodeAPIServerRoot + "address"
+	NodeAPILogging              = nodeAPIServerRoot + "logging"
+	NodeAPICacheSize            = nodeAPICacheRoot + "size"
+	NodeAPICacheQueryContextTTL = nodeAPICacheRoot + "query-context-ttl"
 )
 
 // AddBeaconKitFlags implements servertypes.ModuleInitFlags interface.
@@ -150,17 +155,27 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 	)
 	startCmd.Flags().Bool(
 		NodeAPIEnabled,
-		defaultCfg.NodeAPI.Enabled,
+		defaultCfg.NodeAPI.Server.Enabled,
 		"node api enabled",
 	)
 	startCmd.Flags().String(
 		NodeAPIAddress,
-		defaultCfg.NodeAPI.Address,
+		defaultCfg.NodeAPI.Server.Address,
 		"node api address",
 	)
 	startCmd.Flags().Bool(
 		NodeAPILogging,
-		defaultCfg.NodeAPI.Logging,
+		defaultCfg.NodeAPI.Server.Logging,
 		"node api logging",
+	)
+	startCmd.Flags().Int(
+		NodeAPICacheSize,
+		defaultCfg.NodeAPI.Backend.Cache.Size,
+		"node api cache size",
+	)
+	startCmd.Flags().Duration(
+		NodeAPICacheQueryContextTTL,
+		defaultCfg.NodeAPI.Backend.Cache.QueryContextTTL,
+		"node api cache query context time to live",
 	)
 }
