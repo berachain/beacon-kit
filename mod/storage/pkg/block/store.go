@@ -51,8 +51,8 @@ func (p *KVStoreProvider) OpenKVStore(context.Context) store.KVStore {
 // KVStore is a simple KV store based implementation that stores
 // beacon blocks.
 type KVStore[BeaconBlockT BeaconBlock[BeaconBlockT]] struct {
-	blocks     sdkcollections.Map[uint64, BeaconBlockT]
-	roots      sdkcollections.Map[[]byte, uint64]
+	blocks     sdkcollections.Map[math.Slot, BeaconBlockT]
+	roots      sdkcollections.Map[[]byte, math.Slot]
 	timestamps sdkcollections.Map[math.U64, math.Slot]
 
 	mu           sync.RWMutex
@@ -71,7 +71,7 @@ func NewStore[BeaconBlockT BeaconBlock[BeaconBlockT]](
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte(KeyBlockPrefix)),
 			KeyBlockPrefix,
-			sdkcollections.Uint64Key,
+			encoding.U64Key,
 			cdc,
 		),
 		roots: sdkcollections.NewMap(
@@ -79,7 +79,7 @@ func NewStore[BeaconBlockT BeaconBlock[BeaconBlockT]](
 			sdkcollections.NewPrefix([]byte(KeyRootsPrefix)),
 			KeyRootsPrefix,
 			sdkcollections.BytesKey,
-			sdkcollections.Uint64Value,
+			encoding.U64Value,
 		),
 		timestamps: sdkcollections.NewMap(
 			schemaBuilder,
@@ -107,18 +107,18 @@ func (kv *KVStore[BeaconBlockT]) Set(slot math.Slot, blk BeaconBlockT) error {
 		return err
 	}
 	ctx := context.TODO()
-	
+
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
-	
+
 	if err = kv.roots.Set(ctx, root[:], slot.Unwrap()); err != nil {
 		return err
 	}
-	
+
 	if err = kv.timestamps.Set(ctx, blk.GetTimestamp(), slot); err != nil {
 		return err
 	}
-	
+
 	kv.cdc.SetActiveForkVersion(blk.Version())
 	return kv.blocks.Set(ctx, slot.Unwrap(), blk)
 }
