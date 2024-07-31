@@ -28,14 +28,12 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/block"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/spf13/cast"
 )
 
 // BlockStoreInput is the input for the dep inject framework.
 type BlockStoreInput struct {
 	depinject.In
-	AppOpts config.AppOptions
+	AppOpts *AppOptions
 }
 
 // ProvideBlockStore is a function that provides the module to the
@@ -44,7 +42,7 @@ func ProvideBlockStore(
 	in BlockStoreInput,
 ) (*BlockStore, error) {
 	name := "blocks"
-	dir := cast.ToString(in.AppOpts.Get(flags.FlagHome)) + "/data"
+	dir := in.AppOpts.HomeDir + "/data"
 	kvp, err := storev2.NewDB(storev2.DBTypePebbleDB, name, dir, nil)
 	if err != nil {
 		return nil, err

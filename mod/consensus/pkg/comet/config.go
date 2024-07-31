@@ -21,13 +21,28 @@
 package cometbft
 
 import (
+	"time"
+
 	"github.com/cometbft/cometbft/config"
 )
 
 type Config struct {
-	cmtConfig config.Config
+	CometConfig *config.Config `mapstructure:",squash"`
 
-	NodeKeyFile            string
-	PrivValidatorKeyFile   string
-	PrivValidatorStateFile string
+	// Filepaths
+	NodeKeyFile            string `mapstructure:"node_key_file"`
+	PrivValidatorKeyFile   string `mapstructure:"priv_validator_key_file"`
+	PrivValidatorStateFile string `mapstructure:"priv_validator_state_file"`
+}
+
+func DefaultConfig() *Config {
+	// the SDK is very opinionated about these values, so we override them
+	// if they aren't already set
+	//nolint:mnd // 5 seconds
+	cfg := config.DefaultConfig()
+	cfg.Consensus.TimeoutCommit = 5 * time.Second
+	cfg.RPC.PprofListenAddress = "localhost:6060"
+	return &Config{
+		CometConfig: cfg,
+	}
 }

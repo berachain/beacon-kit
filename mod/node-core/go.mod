@@ -9,6 +9,7 @@ replace (
 	cosmossdk.io/log => cosmossdk.io/log v1.3.2-0.20240729192831-b2989459ae91
 	github.com/berachain/beacon-kit/mod/beacon => ../beacon
 	github.com/berachain/beacon-kit/mod/config => ../config
+	github.com/berachain/beacon-kit/mod/consensus => ../consensus
 	github.com/berachain/beacon-kit/mod/node-api => ../node-api
 	github.com/berachain/beacon-kit/mod/node-api/engines => ../node-api/engines
 	github.com/berachain/beacon-kit/mod/runtime => ../runtime
@@ -33,7 +34,7 @@ require (
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/log v0.0.0-20240705193247-d464364483df
+	github.com/berachain/beacon-kit/mod/log v0.0.0-20240726221339-a8bfeebf8ecf
 	github.com/berachain/beacon-kit/mod/node-api v0.0.0-20240717210058-a144e074f6b2
 	github.com/berachain/beacon-kit/mod/node-api/engines v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df
@@ -125,7 +126,6 @@ require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
 	github.com/dgraph-io/badger/v4 v4.2.0 // indirect
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
-	github.com/docker/go-connections v0.5.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/dvsekhvalnov/jose2go v1.7.0 // indirect
 	github.com/emicklei/dot v1.6.2 // indirect
@@ -196,7 +196,6 @@ require (
 	github.com/oasisprotocol/curve25519-voi v0.0.0-20230904125328-1f23a7beb09a // indirect
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
-	github.com/opencontainers/image-spec v1.1.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
 	github.com/petermattis/goid v0.0.0-20240607163614-bb94eb51e7a7 // indirect
 	github.com/pkg/errors v0.9.1 // indirect

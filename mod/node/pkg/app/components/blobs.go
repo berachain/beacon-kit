@@ -21,7 +21,6 @@
 package components
 
 import (
-	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
@@ -31,14 +30,13 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
-	"github.com/spf13/cast"
 )
 
 // BlobProofVerifierInput is the input for the
 // dep inject framework.
 type BlobProofVerifierInput struct {
 	depinject.In
-	AppOpts          config.AppOptions
+	Config           *config.Config
 	JSONTrustedSetup *gokzg4844.JSONTrustedSetup
 }
 
@@ -48,7 +46,7 @@ func ProvideBlobProofVerifier(
 	in BlobProofVerifierInput,
 ) (kzg.BlobProofVerifier, error) {
 	return kzg.NewBlobProofVerifier(
-		cast.ToString(in.AppOpts.Get(flags.KZGImplementation)),
+		in.Config.KZG.Implementation,
 		in.JSONTrustedSetup,
 	)
 }

@@ -17,8 +17,6 @@ cosmossdk.io/log v1.3.2-0.20240729192831-b2989459ae91 h1:pTqrPOUL9uthQHwHH4TqFJM
 cosmossdk.io/log v1.3.2-0.20240729192831-b2989459ae91/go.mod h1:k08v0Pyq+gCP6phvdI6RCGhLf/r425UT6Rk/m+o74rU=
 cosmossdk.io/math v1.3.0 h1:RC+jryuKeytIiictDslBP9i1fhkVm6ZDmZEoNP316zE=
 cosmossdk.io/math v1.3.0/go.mod h1:vnRTxewy+M7BtXBNFybkuhSH4WfedVAAnERHgVFhp3k=
-cosmossdk.io/runtime/v2 v2.0.0-20240726151427-2e0884564fdb h1:Bofwjsdbze17rs2xQ1eE74izg1NLpFeKsCxp1gMGaiE=
-cosmossdk.io/runtime/v2 v2.0.0-20240726151427-2e0884564fdb/go.mod h1:u05qiNMTTvJ9dMRPPd8oV12Pp80UIqbNTfQy4n2Xaxg=
 cosmossdk.io/schema v0.1.1 h1:I0M6pgI7R10nq+/HCQfbO6BsGBZA8sQy+duR1Y3aKcA=
 cosmossdk.io/schema v0.1.1/go.mod h1:RDAhxIeNB4bYqAlF4NBJwRrgtnciMcyyg0DOKnhNZQQ=
 cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc h1:R9O9d75e0qZYUsVV0zzi+D7cNLnX2JrUOQNoIPaF0Bg=
@@ -67,10 +65,6 @@ github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240724150750-0fda53f265de h1:c
 github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240724150750-0fda53f265de/go.mod h1:8oImAJH6ZKSmolsMmkOD50IfXHRtgqDeA80A8G8tD2Y=
 github.com/berachain/cosmos-sdk/collections v0.0.0-20240725053043-79fa56d34c79 h1:0aFIpbLF5vTbz5p1EGdvQMsLsh0a4ThV+A4jWrG5l6s=
 github.com/berachain/cosmos-sdk/collections v0.0.0-20240725053043-79fa56d34c79/go.mod h1:Or+5eVAo1aiS1DnPK90eQykGc59LGBWtqwBoJcxXTmw=
-github.com/berachain/cosmos-sdk/server/v2/appmanager v0.0.0-20240725053043-79fa56d34c79 h1:V0533CUCR7/A0zdifHcSkuYkxsCzZXfSSu8yrTknbPw=
-github.com/berachain/cosmos-sdk/server/v2/appmanager v0.0.0-20240725053043-79fa56d34c79/go.mod h1:Rc5Czh8ZKtrZqh0IqIpwVqj8zGCJPO9fu+qAs7EoKaA=
-github.com/berachain/cosmos-sdk/server/v2/stf v0.0.0-20240725053043-79fa56d34c79 h1:8XBQ9juPoOVHycC/Qiz1g8da6cSkuCCp+f+Cny9j7tQ=
-github.com/berachain/cosmos-sdk/server/v2/stf v0.0.0-20240725053043-79fa56d34c79/go.mod h1:IUbZp79IZ4NCR2eNXA0utcQOS8lz34BvsAWTeCGwGAM=
 github.com/berachain/cosmos-sdk/store/v2 v2.0.0-20240725053043-79fa56d34c79 h1:r1K0ExA614CjB9+gL9pQ7WdXK9DvXT27NGgvOL6bdEA=
 github.com/berachain/cosmos-sdk/store/v2 v2.0.0-20240725053043-79fa56d34c79/go.mod h1:OUuWZOPQvUQdnDUCFPHuefzccgg50dgXyMpdSl/RNtI=
 github.com/bgentry/speakeasy v0.2.0 h1:tgObeVOf8WAvtuAX6DhJ4xks4CFNwPDZiqzGqIHE51E=
@@ -327,8 +321,6 @@ github.com/mattn/go-isatty v0.0.16/go.mod h1:kYGgaQfpe5nmfYZH+SKPsOc2e4SrIfOl2e/
 github.com/mattn/go-isatty v0.0.19/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
-github.com/mattn/go-sqlite3 v1.14.22 h1:2gZY6PC6kBnID23Tichd1K+Z0oS6nE/XwU+Vz/5o4kU=
-github.com/mattn/go-sqlite3 v1.14.22/go.mod h1:Uh1q+B4BYcTPb+yiD3kU8Ct7aC0hY9fxUwlHK0RXw+Y=
 github.com/matttproud/golang_protobuf_extensions v1.0.1/go.mod h1:D8He9yQNgCq6Z5Ld7szi9bcBfOoFv/3dc6xSMkL2PC0=
 github.com/minio/sha256-simd v1.0.1 h1:6kaan5IFmwTNynnKKpDHe6FWHohJOHhCPchzK49dzMM=
 github.com/minio/sha256-simd v1.0.1/go.mod h1:Pz6AKMiUdngCLpeTL/RJY1M9rUuPMYujV5xJjtbRSN8=
@@ -448,7 +440,6 @@ github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/
 github.com/stretchr/testify v1.7.2/go.mod h1:R6va5+xMeoiuVRoj+gSkQ7d3FALtqAAGI1FQKckRals=
 github.com/stretchr/testify v1.8.0/go.mod h1:yNjHg4UonilssWZ8iaSj1OCr/vHnekPRkoO+kdMU+MU=
 github.com/stretchr/testify v1.8.1/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
-github.com/stretchr/testify v1.8.4/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
 github.com/stretchr/testify v1.9.0 h1:HtqpIVDClZ4nwg75+f6Lvsy/wHu+3BoSGCbBAcpTsTg=
 github.com/stretchr/testify v1.9.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
 github.com/subosito/gotenv v1.6.0 h1:9NlTDc1FTs4qu0DDq7AEtTPNw6SVm7uBMsUCUjABIf8=

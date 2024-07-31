@@ -27,24 +27,21 @@ import (
 	"cosmossdk.io/store/v2/commitment/iavl"
 	"cosmossdk.io/store/v2/db"
 	"cosmossdk.io/store/v2/root"
-	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/depinject"
-	"github.com/spf13/cast"
 )
 
 type StoreConfigInput struct {
 	depinject.In
 
 	Logger  *SDKLogger
-	AppOpts config.AppOptions
+	AppOpts *AppOptions
 }
 
 func ProvideStoreOptions(in StoreConfigInput) *root.FactoryOptions {
-	homeDir := cast.ToString(in.AppOpts.Get("home"))
 	scRawDb, err := db.NewDB(
 		db.DBTypePebbleDB,
 		"application",
-		filepath.Join(homeDir, "data"),
+		filepath.Join(in.AppOpts.HomeDir, "data"),
 		nil,
 	)
 	if err != nil {
@@ -53,7 +50,7 @@ func ProvideStoreOptions(in StoreConfigInput) *root.FactoryOptions {
 
 	return &root.FactoryOptions{
 		Logger:  in.Logger,
-		RootDir: homeDir,
+		RootDir: in.AppOpts.HomeDir,
 		Options: root.Options{
 			SSType:          root.SSTypeSQLite,
 			SCType:          root.SCTypeIavl,

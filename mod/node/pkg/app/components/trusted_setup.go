@@ -21,28 +21,24 @@
 package components
 
 import (
-	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/depinject"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/spf13/afero"
-	"github.com/spf13/cast"
 )
 
 // TrustedSetupInput is the input for the dep inject framework.
 type TrustedSetupInput struct {
 	depinject.In
-	AppOpts config.AppOptions
+	Config *config.Config
 }
 
 // ProvideTrustedSetup provides the module to the application.
 func ProvideTrustedSetup(
 	in TrustedSetupInput,
 ) (*gokzg4844.JSONTrustedSetup, error) {
-	return ReadTrustedSetup(
-		cast.ToString(in.AppOpts.Get(flags.KZGTrustedSetupPath)),
-	)
+	return ReadTrustedSetup(in.Config.KZG.TrustedSetupPath)
 }
 
 // ReadTrustedSetup reads the trusted setup from the file system.

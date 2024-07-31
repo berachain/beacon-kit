@@ -48,7 +48,14 @@ type Consensus[
 	// Comet calls to the Node
 	App *Application[NodeT]
 
+	// Config
 	config Config
+}
+
+func (c *Consensus[LoggerT, NodeT]) Init() error {
+	// This function needs to build the validator files
+	// and the config file??? (if that's necessary)
+	return nil
 }
 
 func (c *Consensus[LoggerT, NodeT]) Start(ctx context.Context) error {
@@ -60,13 +67,13 @@ func (c *Consensus[LoggerT, NodeT]) Start(ctx context.Context) error {
 
 	if c.CometBFTNode, err = node.NewNode(
 		ctx,
-		&c.config.cmtConfig,
+		c.config.CometConfig,
 		privval.LoadFilePV(c.config.PrivValidatorKeyFile, c.config.PrivValidatorStateFile),
 		nodeKey,
 		proxy.NewConsensusSyncLocalClientCreator(c.App),
 		nil, // TODO: implement the genesis doc provider
 		cmtcfg.DefaultDBProvider,
-		node.DefaultMetricsProvider(c.config.cmtConfig.Instrumentation),
+		node.DefaultMetricsProvider(c.config.CometConfig.Instrumentation),
 		// cometLoggerFromLogger(c.Logger),
 		cmtlog.NewNopLogger(), // TODO: make adapter for our logger
 	); err != nil {

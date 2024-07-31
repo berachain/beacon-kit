@@ -22,7 +22,6 @@ package app
 
 import (
 	consensusengine "github.com/berachain/beacon-kit/mod/consensus/pkg/engine"
-	executionengine "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 )
@@ -40,7 +39,7 @@ type App[
 	// The execution engine client is responsible
 	// for communicating with the execution engine
 	// for the chain.
-	ExecutionClient executionengine.Engine
+	// ExecutionClient executionengine.Engine
 	// The backend is the central data access layer for
 	// the application.
 	backend StorageBackendT

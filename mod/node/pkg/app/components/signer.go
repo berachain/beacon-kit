@@ -28,14 +28,13 @@ import (
 	"github.com/berachain/beacon-kit/mod/node/pkg/app/components/signer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	clientFlags "github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/spf13/cast"
 )
 
 // BlsSignerInput is the input for the dep inject framework.
 type BlsSignerInput struct {
 	depinject.In
-	AppOpts config.AppOptions
+	AppOpts *AppOptions
+	Config  *config.Config
 	PrivKey LegacyKey `optional:"true"`
 }
 
@@ -43,20 +42,15 @@ type BlsSignerInput struct {
 func ProvideBlsSigner(in BlsSignerInput) (crypto.BLSSigner, error) {
 	if in.PrivKey == [constants.BLSSecretKeyLength]byte{} {
 		// if no private key is provided, use privval signer
-		homeDir := cast.ToString(in.AppOpts.Get(clientFlags.FlagHome))
-		privValKeyFile := cast.ToString(
-			in.AppOpts.Get("priv_validator_key_file"),
-		)
-		privValStateFile := cast.ToString(
-			in.AppOpts.Get("priv_validator_state_file"),
-		)
+		privValKeyFile := in.Config.CometBFT.PrivValidatorKeyFile
+		privValStateFile := in.Config.CometBFT.PrivValidatorStateFile
 		// If privValKeyFile is not an absolute path, join with homeDir
 		if !filepath.IsAbs(privValKeyFile) {
-			privValKeyFile = filepath.Join(homeDir, privValKeyFile)
+			privValKeyFile = filepath.Join(in.AppOpts.HomeDir, privValKeyFile)
 		}
 		// If privValStateFile is not an absolute path, join with homeDir
 		if !filepath.IsAbs(privValStateFile) {
-			privValStateFile = filepath.Join(homeDir, privValStateFile)
+			privValStateFile = filepath.Join(in.AppOpts.HomeDir, privValStateFile)
 		}
 		return signer.NewBLSSigner(privValKeyFile, privValStateFile), nil
 	}

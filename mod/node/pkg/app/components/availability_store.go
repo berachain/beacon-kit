@@ -24,22 +24,19 @@ import (
 	"errors"
 	"os"
 
-	"github.com/berachain/beacon-kit/mod/config"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	"github.com/berachain/beacon-kit/mod/depinject"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/spf13/cast"
 )
 
 // AvailabilityStoreInput is the input for the ProviderAvailabilityStore
 // function for the depinject framework.
 type AvailabilityStoreInput struct {
 	depinject.In
-	AppOpts   config.AppOptions
+	AppOpts   *AppOptions
 	ChainSpec common.ChainSpec
 	Logger    *Logger
 }
@@ -51,11 +48,7 @@ func ProvideAvailibilityStore(
 	return dastore.New[*BeaconBlockBody](
 		filedb.NewRangeDB(
 			filedb.NewDB(
-				filedb.WithRootDirectory(
-					cast.ToString(
-						in.AppOpts.Get(flags.FlagHome),
-					)+"/data/blobs",
-				),
+				filedb.WithRootDirectory(in.AppOpts.HomeDir+"/data/blobs"),
 				filedb.WithFileExtension("ssz"),
 				filedb.WithDirectoryPermissions(os.ModePerm),
 				filedb.WithLogger(in.Logger),

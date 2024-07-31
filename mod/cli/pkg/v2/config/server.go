@@ -29,7 +29,6 @@ import (
 
 	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/v2/flags"
-	"github.com/berachain/beacon-kit/mod/cli/pkg/v2/utils/context"
 	"github.com/berachain/beacon-kit/mod/log"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -50,23 +49,23 @@ func SetupConfigAndContext[ConfigT Config[ConfigT]](
 	appConfig ConfigT,
 	cmtConfig *cmtcfg.Config,
 	logger log.AdvancedLogger[any, sdklog.Logger],
-) (*server.Context, error) {
+) error {
 	// initialize the server context
 	serverCtx, err := InitializeServerContext(cmd, logger)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// intercept the comet and app config files
 	cometConfig, err := handleConfigs[ConfigT](
 		serverCtx.Viper, appTemplate, appConfig, cmtConfig)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// set the cometbft config
 	serverCtx.Config = cometConfig
-	return serverCtx, nil
+	return nil
 }
 
 // InitializeServerContext returns a new server.Context object with the root
@@ -91,7 +90,8 @@ func InitializeServerContext(
 	}
 
 	// create a new server.Context with the logger and viper instance
-	return context.CreateServerContext(logger, viper), nil
+	// return context.CreateServerContext(logger, viper), nil
+	return nil, nil
 }
 
 // newPrefixedViper creates a new viper instance with the given environment

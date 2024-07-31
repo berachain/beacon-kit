@@ -23,23 +23,20 @@ package components
 import (
 	"strings"
 
-	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
-	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/depinject"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 	"github.com/spf13/afero"
-	"github.com/spf13/cast"
 )
 
 // JWTSecretInput is the input for the dep inject framework.
 type JWTSecretInput struct {
 	depinject.In
-	AppOpts config.AppOptions
+	AppOpts *AppOptions
 }
 
 // ProvideJWTSecret is a function that provides the module to the application.
 func ProvideJWTSecret(in JWTSecretInput) (*jwt.Secret, error) {
-	return LoadJWTFromFile(cast.ToString(in.AppOpts.Get(flags.JWTSecretPath)))
+	return LoadJWTFromFile(in.AppOpts.HomeDir + "/config/jwt_secret")
 }
 
 // LoadJWTFromFile reads the JWT secret from a file and returns it.
