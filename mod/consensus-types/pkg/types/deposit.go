@@ -72,7 +72,7 @@ func NewDeposit(
 }
 
 // Empty creates an empty Deposit instance.
-func (*Deposit) Empty() *Deposit {
+func (d *Deposit) Empty() *Deposit {
 	return &Deposit{}
 }
 
