@@ -31,7 +31,7 @@ import (
 
 // ReceiveBlock receives a block and blobs from the
 // network and processes them.
-func (s *Service[
+func (s *Processor[
 	_, BeaconBlockT, _, _, _, _, _, _, _, _, _, _,
 ]) ReceiveBlock(
 	ctx context.Context,
@@ -42,7 +42,7 @@ func (s *Service[
 
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
-func (s *Service[
+func (s *Processor[
 	_, BeaconBlockT, _, _, _, _, _, _, _, _, _, _,
 ]) VerifyIncomingBlock(
 	ctx context.Context,
@@ -109,7 +109,7 @@ func (s *Service[
 }
 
 // verifyStateRoot verifies the state root of an incoming block.
-func (s *Service[
+func (s *Processor[
 	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _, _, _,
 ]) verifyStateRoot(
 	ctx context.Context,
@@ -145,7 +145,7 @@ func (s *Service[
 
 // shouldBuildOptimisticPayloads returns true if optimistic
 // payload builds are enabled.
-func (s *Service[
+func (s *Processor[
 	_, _, _, _, _, _, _, _, _, _, _, _,
 ]) shouldBuildOptimisticPayloads() bool {
 	return s.optimisticPayloadBuilds && s.lb.Enabled()

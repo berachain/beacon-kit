@@ -24,14 +24,12 @@ import (
 	"context"
 	"time"
 
-	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
 // ProcessGenesisData processes the genesis state and initializes the beacon
 // state.
-func (s *Service[
+func (s *Processor[
 	_, _, _, _, _, _, _, _, _, GenesisT, _, _,
 ]) ProcessGenesisData(
 	ctx context.Context,
@@ -47,7 +45,7 @@ func (s *Service[
 
 // ProcessBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
-func (s *Service[
+func (s *Processor[
 	_, BeaconBlockT, _, _, _, _, _, _, _, _, _, _,
 ]) ProcessBeaconBlock(
 	ctx context.Context,
@@ -78,26 +76,13 @@ func (s *Service[
 		return nil, ErrDataNotAvailable
 	}
 
-	// If required, we want to forkchoice at the end of post
-	// block processing.
-	// TODO: this is hood as fuck.
-	// We won't send a fcu if the block is bad, should be addressed
-	// via ticker later.
-	if err = s.blkBroker.Publish(ctx,
-		asynctypes.NewEvent(
-			ctx, events.BeaconBlockFinalized, blk,
-		),
-	); err != nil {
-		return nil, err
-	}
-
 	go s.sendPostBlockFCU(ctx, st, blk)
 
 	return valUpdates.RemoveDuplicates().Sort(), nil
 }
 
 // executeStateTransition runs the stf.
-func (s *Service[
+func (s *Processor[
 	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _, _, _,
 ]) executeStateTransition(
 	ctx context.Context,

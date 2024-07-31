@@ -53,9 +53,10 @@ import (
 	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
+	versionservice "github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	statedb "github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
@@ -143,8 +144,25 @@ type (
 	// BlockStore is a type alias for the block store.
 	BlockStore = block.KVStore[*BeaconBlock]
 
-	// ChainService is a type alias for the chain service.
-	ChainService = blockchain.Service[
+	/* ---------------------------------------------------------------------- */
+	/*                             Chain Service                              */
+	/* ---------------------------------------------------------------------- */
+	ChainService = service.Service[
+		*ChainEventHandler,
+		ChainProcessorI,
+	]
+
+	// TODO: clean this up or rename
+	ChainProcessorI = blockchain.BlockchainProcessor[
+		*BeaconBlock,
+		*BeaconBlockBody,
+		*Deposit,
+		*ExecutionPayload,
+		*ExecutionPayloadHeader,
+		*Genesis,
+	]
+
+	ChainProcessor = blockchain.Processor[
 		*AvailabilityStore,
 		*BeaconBlock,
 		*BeaconBlockBody,
@@ -158,6 +176,19 @@ type (
 		*PayloadAttributes,
 		*Withdrawal,
 	]
+
+	ChainEventHandler = blockchain.EventHandler[
+		*BeaconBlock,
+		*BeaconBlockBody,
+		*Deposit,
+		*ExecutionPayload,
+		*ExecutionPayloadHeader,
+		*Genesis,
+	]
+
+	/* ---------------------------------------------------------------------- */
+	/*                             Consensus Engine                           */
+	/* ---------------------------------------------------------------------- */
 
 	// ConsensusEngine is a type alias for the consensus engine.
 	ConsensusEngine = cometbft.ConsensusEngine[
@@ -179,6 +210,10 @@ type (
 	// Context is a type alias for the transition context.
 	Context = transition.Context
 
+	/* ---------------------------------------------------------------------- */
+	/*                                DA Service                               */
+	/* ---------------------------------------------------------------------- */
+
 	// DAService is a type alias for the DA service.
 	DAService = da.Service[
 		*AvailabilityStore,
@@ -191,14 +226,9 @@ type (
 	// DBManager is a type alias for the database manager.
 	DBManager = manager.DBManager
 
-	// Deposit is a type alias for the deposit.
-	Deposit = types.Deposit
-
-	// DepositContract is a type alias for the deposit contract.
-	DepositContract = deposit.WrappedBeaconDepositContract[
-		*Deposit,
-		WithdrawalCredentials,
-	]
+	/* ---------------------------------------------------------------------- */
+	/*                            Deposit Service                             */
+	/* ---------------------------------------------------------------------- */
 
 	// DepositService is a type alias for the deposit service.
 	DepositService = deposit.Service[
@@ -210,11 +240,24 @@ type (
 		WithdrawalCredentials,
 	]
 
+	// Deposit is a type alias for the deposit.
+	Deposit = types.Deposit
+
+	// DepositContract is a type alias for the deposit contract.
+	DepositContract = deposit.WrappedBeaconDepositContract[
+		*Deposit,
+		WithdrawalCredentials,
+	]
+
 	// DepositStore is a type alias for the deposit store.
 	DepositStore = depositdb.KVStore[*Deposit]
 
 	// Eth1Data is a type alias for the eth1 data.
 	Eth1Data = types.Eth1Data
+
+	/* ---------------------------------------------------------------------- */
+	/*                          Execution Engine                              */
+	/* ---------------------------------------------------------------------- */
 
 	// EngineClient is a type alias for the engine client.
 	EngineClient = engineclient.EngineClient[
@@ -423,7 +466,7 @@ type (
 	SlotEvent = asynctypes.Event[*SlotData]
 
 	// StatusEvent is a type alias for the status event.
-	StatusEvent = asynctypes.Event[*service.StatusEvent]
+	StatusEvent = asynctypes.Event[*versionservice.StatusEvent]
 
 	// ValidatorUpdateEvent is a type alias for the validator update event.
 	ValidatorUpdateEvent = asynctypes.Event[transition.ValidatorUpdates]

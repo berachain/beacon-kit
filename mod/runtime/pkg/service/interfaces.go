@@ -18,25 +18,14 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package blockchain
+package service
 
-type ProcessorI interface {
-}
+import (
+	"context"
+)
 
-type EventHandlerI interface {
-}
-
-type Service struct {
-	Processor    ProcessorI
-	EventHandler EventHandlerI
-}
-
-func NewService(
-	processor ProcessorI,
-	eventHandler EventHandlerI,
-) *Service {
-	return &Service{
-		Processor:    processor,
-		EventHandler: eventHandler,
-	}
+type EventHandler[ProcessorT any] interface {
+	Start(ctx context.Context) error
+	AttachProcessor(ProcessorT)
+	Name() string
 }

@@ -18,25 +18,39 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package blockchain
+package service
 
-type ProcessorI interface {
+import (
+	"context"
+)
+
+// Service is a facade encapsulating blockchain business logic.
+type Service[
+	EventHandlerT EventHandler[ProcessorT],
+	ProcessorT any,
+] struct {
+	eventHandler EventHandlerT
+	processor    ProcessorT
 }
 
-type EventHandlerI interface {
-}
-
-type Service struct {
-	Processor    ProcessorI
-	EventHandler EventHandlerI
-}
-
-func NewService(
-	processor ProcessorI,
-	eventHandler EventHandlerI,
-) *Service {
-	return &Service{
-		Processor:    processor,
-		EventHandler: eventHandler,
+func NewService[
+	EventHandlerT EventHandler[ProcessorT],
+	ProcessorT any,
+](
+	EventHandler EventHandlerT,
+	Processor ProcessorT,
+) *Service[EventHandlerT, ProcessorT] {
+	return &Service[EventHandlerT, ProcessorT]{
+		eventHandler: EventHandler,
+		processor:    Processor,
 	}
+}
+
+func (b *Service[_, _]) Start(ctx context.Context) error {
+	b.eventHandler.AttachProcessor(b.processor)
+	return b.eventHandler.Start(ctx)
+}
+
+func (b *Service[_, _]) Name() string {
+	return b.eventHandler.Name()
 }

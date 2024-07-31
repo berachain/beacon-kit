@@ -28,7 +28,7 @@ import (
 )
 
 // forceStartupHead sends a force head FCU to the execution client.
-func (s *Service[
+func (s *Processor[
 	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _,
 ]) forceStartupHead(
 	ctx context.Context,
@@ -56,7 +56,7 @@ func (s *Service[
 
 // handleRebuildPayloadForRejectedBlock handles the case where the incoming
 // block was rejected and we need to rebuild the payload for the current slot.
-func (s *Service[
+func (s *Processor[
 	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _,
 ]) handleRebuildPayloadForRejectedBlock(
 	ctx context.Context,
@@ -79,7 +79,7 @@ func (s *Service[
 // any required information from our local state. We do this since we have
 // rejected the incoming block and it would be unsafe to use any
 // information from it.
-func (s *Service[
+func (s *Processor[
 	_, _, _, _, BeaconStateT, _, _, _, ExecutionPayloadHeaderT, _, _, _,
 ]) rebuildPayloadForRejectedBlock(
 	ctx context.Context,
@@ -146,7 +146,7 @@ func (s *Service[
 
 // handleOptimisticPayloadBuild handles optimistically
 // building for the next slot.
-func (s *Service[
+func (s *Processor[
 	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _, _, _,
 ]) handleOptimisticPayloadBuild(
 	ctx context.Context,
@@ -163,7 +163,7 @@ func (s *Service[
 }
 
 // optimisticPayloadBuild builds a payload for the next slot.
-func (s *Service[
+func (s *Processor[
 	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _, _, _,
 ]) optimisticPayloadBuild(
 	ctx context.Context,

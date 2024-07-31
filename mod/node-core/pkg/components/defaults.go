@@ -35,6 +35,8 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideBlockStoreService,
 		ProvideBlockPruner,
 		ProvideBlockStore,
+		ProvideChainProcessor,
+		ProvideChainEventHandler,
 		ProvideChainService,
 		ProvideChainSpec,
 		ProvideConfig,

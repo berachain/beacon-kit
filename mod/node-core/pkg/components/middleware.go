@@ -32,7 +32,7 @@ import (
 type ABCIMiddlewareInput struct {
 	depinject.In
 	BeaconBlockFeed       *BlockBroker
-	ChainService          *ChainService
+	ChainService          *ChainProcessor
 	ChainSpec             common.ChainSpec
 	GenesisBroker         *GenesisBroker
 	Logger                log.Logger[any]

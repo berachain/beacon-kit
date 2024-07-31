@@ -29,10 +29,55 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 )
 
-// ChainServiceInput is the input for the chain service provider.
 type ChainServiceInput struct {
+	depinject.In
+	ChainProcessor    ChainProcessorI
+	ChainEventHandler *ChainEventHandler
+}
+
+func ProvideChainService(
+	in ChainServiceInput,
+) *ChainService {
+	return service.NewService[
+		*ChainEventHandler,
+		ChainProcessorI,
+	](
+		in.ChainEventHandler,
+		in.ChainProcessor,
+	)
+}
+
+type ChainEventHandlerInput struct {
+	depinject.In
+	BlockBroker           *BlockBroker
+	ValidatorUpdateBroker *ValidatorUpdateBroker
+	GenesisBroker         *GenesisBroker
+	Logger                log.AdvancedLogger[any, sdklog.Logger]
+}
+
+func ProvideChainEventHandler(
+	in ChainEventHandlerInput,
+) *ChainEventHandler {
+	return blockchain.NewEventHandler[
+		*BeaconBlock,
+		*BeaconBlockBody,
+		*Deposit,
+		*ExecutionPayload,
+		*ExecutionPayloadHeader,
+		*Genesis,
+	](
+		in.BlockBroker,
+		in.GenesisBroker,
+		in.ValidatorUpdateBroker,
+		in.Logger,
+	)
+}
+
+// ChainProcessorInput is the input for the chain service provider.
+type ChainProcessorInput struct {
 	depinject.In
 	BlockBroker           *BlockBroker
 	ChainSpec             common.ChainSpec
@@ -50,11 +95,11 @@ type ChainServiceInput struct {
 	ValidatorUpdateBroker *ValidatorUpdateBroker
 }
 
-// ProvideChainService is a depinject provider for the blockchain service.
-func ProvideChainService(
-	in ChainServiceInput,
-) *ChainService {
-	return blockchain.NewService[
+// ProvideChainProcessor is a depinject provider for the blockchain service.
+func ProvideChainProcessor(
+	in ChainProcessorInput,
+) *ChainProcessor {
+	return blockchain.NewProcessor[
 		*AvailabilityStore,
 		*BeaconBlock,
 		*BeaconBlockBody,
@@ -75,9 +120,6 @@ func ProvideChainService(
 		in.LocalBuilder,
 		in.StateProcessor,
 		in.TelemetrySink,
-		in.GenesisBrocker,
-		in.BlockBroker,
-		in.ValidatorUpdateBroker,
 		// If optimistic is enabled, we want to skip post finalization FCUs.
 		in.Cfg.Validator.EnableOptimisticPayloadBuilds,
 	)
