@@ -21,79 +21,57 @@
 package beacon
 
 import (
-	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // Backend is the interface for backend of the beacon API.
-type Backend[
-	BlockHeaderT BlockHeader,
-	ForkT any,
-	ValidatorT any,
-] interface {
+type Backend[BlockHeaderT, ForkT, ValidatorT any] interface {
 	GenesisBackend
 	BlockBackend[BlockHeaderT]
 	RandaoBackend
+	StateBackend[ForkT]
 	ValidatorBackend[ValidatorT]
 	HistoricalBackend[ForkT]
-	GetSlotByRoot(root [32]byte) (uint64, error)
-}
-
-type BlockHeader interface {
-	HashTreeRoot() ([32]byte, error)
-	GetSlot() math.Slot
-	GetProposerIndex() math.ValidatorIndex
-	GetParentBlockRoot() common.Root
-	GetStateRoot() common.Root
-	GetBodyRoot() common.Root
+	GetSlotByRoot(root [32]byte) (math.Slot, error)
 }
 
 type GenesisBackend interface {
-	GenesisValidatorsRoot(
-		slot uint64,
-	) (common.Root, error)
+	GenesisValidatorsRoot(slot math.Slot) (common.Root, error)
 }
 
 type HistoricalBackend[ForkT any] interface {
-	StateRootAtSlot(
-		slot uint64,
-	) (common.Root, error)
-	StateForkAtSlot(
-		slot uint64,
-	) (ForkT, error)
+	StateRootAtSlot(slot math.Slot) (common.Root, error)
+	StateForkAtSlot(slot math.Slot) (ForkT, error)
 }
 
 type RandaoBackend interface {
-	RandaoAtEpoch(
-		slot, epoch uint64,
-	) (common.Bytes32, error)
+	RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error)
 }
 
 type BlockBackend[BeaconBlockHeaderT any] interface {
-	BlockRootAtSlot(
-		slot uint64,
-	) (common.Root, error)
-	BlockRewardsAtSlot(
-		slot uint64,
-	) (*beacontypes.BlockRewardsData, error)
-	BlockHeaderAtSlot(
-		slot uint64,
-	) (BeaconBlockHeaderT, error)
+	BlockRootAtSlot(slot math.Slot) (common.Root, error)
+	BlockRewardsAtSlot(slot math.Slot) (*types.BlockRewardsData, error)
+	BlockHeaderAtSlot(slot math.Slot) (BeaconBlockHeaderT, error)
+}
+
+type StateBackend[ForkT any] interface {
+	StateRootAtSlot(slot math.Slot) (common.Root, error)
+	StateForkAtSlot(slot math.Slot) (ForkT, error)
 }
 
 type ValidatorBackend[ValidatorT any] interface {
 	ValidatorByID(
-		slot uint64,
-		id string,
-	) (*beacontypes.ValidatorData[ValidatorT], error)
+		slot math.Slot, id string,
+	) (*types.ValidatorData[ValidatorT], error)
 	ValidatorsByIDs(
-		slot uint64,
+		slot math.Slot,
 		ids []string,
 		statuses []string,
-	) ([]*beacontypes.ValidatorData[ValidatorT], error)
+	) ([]*types.ValidatorData[ValidatorT], error)
 	ValidatorBalancesByIDs(
-		slot uint64,
+		slot math.Slot,
 		ids []string,
-	) ([]*beacontypes.ValidatorBalanceData, error)
+	) ([]*types.ValidatorBalanceData, error)
 }

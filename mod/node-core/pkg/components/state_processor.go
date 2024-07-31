@@ -40,7 +40,7 @@ type StateProcessorInput struct {
 // framework.
 func ProvideStateProcessor(
 	in StateProcessorInput,
-) StateProcessor {
+) *StateProcessor {
 	return core.NewStateProcessor[
 		*BeaconBlock,
 		*BeaconBlockBody,
@@ -55,6 +55,7 @@ func ProvideStateProcessor(
 		*ForkData,
 		*KVStore,
 		*Validator,
+		Validators,
 		*Withdrawal,
 		WithdrawalCredentials,
 	](

@@ -33,6 +33,11 @@ type BlobSidecars struct {
 	Sidecars []*BlobSidecar
 }
 
+// NewBlobSidecars creates a new BlobSidecars object.
+func (bs *BlobSidecars) Empty() *BlobSidecars {
+	return &BlobSidecars{}
+}
+
 // IsNil checks to see if blobs are nil.
 func (bs *BlobSidecars) IsNil() bool {
 	return bs == nil || bs.Sidecars == nil

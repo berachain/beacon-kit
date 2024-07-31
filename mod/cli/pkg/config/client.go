@@ -20,12 +20,12 @@
 
 package config
 
-import "github.com/cosmos/cosmos-sdk/client/config"
+import client "github.com/cosmos/cosmos-sdk/client/config"
 
 // InitClientConfig sets up the default client configuration, allowing for
 // overrides.
-func InitClientConfig() (string, interface{}) {
-	clientCfg := config.DefaultConfig()
-	clientCfg.KeyringBackend = "test"
-	return config.DefaultClientConfigTemplate, clientCfg
+func InitClientConfig() (string, any) {
+	clientConfig := client.DefaultConfig()
+	clientConfig.KeyringBackend = "test"
+	return client.DefaultClientConfigTemplate, clientConfig
 }

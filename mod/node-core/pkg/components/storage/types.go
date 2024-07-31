@@ -49,7 +49,7 @@ type BlockStore[BeaconBlockT any] interface {
 	// Get retrieves the block at the given slot.
 	Get(slot uint64) (BeaconBlockT, error)
 	// GetSlotByRoot retrieves the slot by a given root from the store.
-	GetSlotByRoot(root [32]byte) (uint64, error)
+	GetSlotByRoot(root [32]byte) (math.Slot, error)
 	// Prune prunes the block store of [start, end).
 	Prune(start, end uint64) error
 	// Set sets the block at the given slot.
@@ -83,6 +83,7 @@ type KVStore[
 	ExecutionPayloadHeaderT,
 	ForkT,
 	ValidatorT any,
+	ValidatorsT ~[]ValidatorT,
 ] interface {
 	// Context returns the context of the key-value store.
 	Context() context.Context
@@ -138,7 +139,7 @@ type KVStore[
 	// SetEth1Data sets the eth1 data.
 	SetEth1Data(data Eth1DataT) error
 	// GetValidators retrieves all validators.
-	GetValidators() ([]ValidatorT, error)
+	GetValidators() (ValidatorsT, error)
 	// GetBalances retrieves all balances.
 	GetBalances() ([]uint64, error)
 	// GetNextWithdrawalIndex retrieves the next withdrawal index.
@@ -193,8 +194,6 @@ type KVStore[
 	// GetValidatorsByEffectiveBalance retrieves validators by effective
 	// balance.
 	GetValidatorsByEffectiveBalance() ([]ValidatorT, error)
-	// RemoveValidatorAtIndex removes the validator at the given index.
-	RemoveValidatorAtIndex(idx math.ValidatorIndex) error
 }
 
 // Validator represents an interface for a validator with generic withdrawal

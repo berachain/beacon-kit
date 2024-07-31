@@ -52,6 +52,7 @@ func generateValidBeaconBlock() *types.BeaconBlock {
 					{Index: 0, Amount: 100},
 					{Index: 1, Amount: 200},
 				},
+				BaseFeePerGas: math.NewU256(0),
 			},
 			Eth1Data: &types.Eth1Data{},
 			Deposits: []*types.Deposit{
@@ -73,13 +74,6 @@ func TestBeaconBlockForDeneb(t *testing.T) {
 		ParentRoot:    bytes.B32{1, 2, 3, 4, 5},
 	}
 	require.NotNil(t, block)
-}
-
-// Test the case where the fork version is not supported.
-func TestEmptyBeaconBlockInvalidForkVersion(t *testing.T) {
-	require.Panics(t, func() {
-		(&types.BeaconBlock{}).Empty(100)
-	})
 }
 
 func TestBeaconBlockFromSSZ(t *testing.T) {
@@ -145,7 +139,7 @@ func TestBeaconBlock_HashTreeRoot(t *testing.T) {
 
 func TestBeaconBlockEmpty(t *testing.T) {
 	block := &types.BeaconBlock{}
-	emptyBlock := block.Empty(version.Deneb)
+	emptyBlock := block.Empty()
 	require.NotNil(t, emptyBlock)
 	require.IsType(t, &types.BeaconBlock{}, emptyBlock)
 }

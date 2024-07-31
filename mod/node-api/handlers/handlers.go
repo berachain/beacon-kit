@@ -21,6 +21,7 @@
 package handlers
 
 import (
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-api/server/context"
 )
@@ -32,28 +33,33 @@ type handlerFn[ContextT context.Context] func(c ContextT) (any, error)
 type Handlers[ContextT context.Context] interface {
 	// RegisterRoutes is a method that registers the routes for the handler.
 	RegisterRoutes(logger log.Logger[any])
-	RouteSet() RouteSet[ContextT]
+	RouteSet() *RouteSet[ContextT]
 }
 
 // BaseHandler is a base handler for all handlers. It abstracts the route set
 // and logger from the handler.
 type BaseHandler[ContextT context.Context] struct {
-	routes RouteSet[ContextT]
+	routes *RouteSet[ContextT]
 	logger log.Logger[any]
 }
 
 // NewBaseHandler initializes a new base handler with the given routes and
 // logger.
 func NewBaseHandler[ContextT context.Context](
-	routes RouteSet[ContextT],
+	routes *RouteSet[ContextT],
 ) *BaseHandler[ContextT] {
 	return &BaseHandler[ContextT]{
 		routes: routes,
 	}
 }
 
+// NotImplemented is a placeholder for the beacon API.
+func (b *BaseHandler[ContextT]) NotImplemented(ContextT) (any, error) {
+	return nil, errors.New("not implemented")
+}
+
 // RouteSet returns the route set for the base handler.
-func (b *BaseHandler[ContextT]) RouteSet() RouteSet[ContextT] {
+func (b *BaseHandler[ContextT]) RouteSet() *RouteSet[ContextT] {
 	return b.routes
 }
 
@@ -68,7 +74,7 @@ func (b *BaseHandler[ContextT]) SetLogger(logger log.Logger[any]) {
 
 // AddRoutes adds the given slice of routes to the base handler.
 func (b *BaseHandler[ContextT]) AddRoutes(
-	routes []Route[ContextT],
+	routes []*Route[ContextT],
 ) {
 	b.routes.Routes = append(b.routes.Routes, routes...)
 }

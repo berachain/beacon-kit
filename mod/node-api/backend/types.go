@@ -24,8 +24,11 @@ import (
 	"context"
 
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 )
 
 // The AvailabilityStore interface is responsible for validating and storing
@@ -42,31 +45,57 @@ type AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT any] interface {
 	Persist(math.Slot, BlobSidecarsT) error
 }
 
+// BeaconBlockHeader is the interface for a beacon block header.
+type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
+	constraints.SSZMarshallableRootable
+	New(
+		slot math.Slot,
+		proposerIndex math.ValidatorIndex,
+		parentBlockRoot common.Root,
+		stateRoot common.Root,
+		bodyRoot common.Root,
+	) BeaconBlockHeaderT
+	GetSlot() math.Slot
+	GetProposerIndex() math.ValidatorIndex
+	GetParentBlockRoot() common.Root
+	GetStateRoot() common.Root
+	SetStateRoot(common.Root)
+	GetBodyRoot() common.Root
+}
+
+// BeaconState is the interface for the beacon state.
+type BeaconState[
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+	ValidatorT, ValidatorsT, WithdrawalT any,
+] interface {
+	constraints.SSZRootable
+
+	// SetSlot sets the slot on the beacon state.
+	SetSlot(math.Slot) error
+
+	core.ReadOnlyBeaconState[
+		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		ForkT, ValidatorT, ValidatorsT, WithdrawalT,
+	]
+}
+
 // BlockStore is the interface for block storage.
 type BlockStore[BeaconBlockT any] interface {
 	// Get retrieves the block at the given slot.
 	Get(slot uint64) (BeaconBlockT, error)
 	// GetSlotByRoot retrieves the slot by a given root from the store.
-	GetSlotByRoot(root [32]byte) (uint64, error)
+	GetSlotByRoot(root [32]byte) (math.Slot, error)
 	// Set sets the block at the given slot.
 	Set(slot uint64, block BeaconBlockT) error
 	// Prune prunes the block store of [start, end).
 	Prune(start, end uint64) error
 }
 
-// Deposit is a struct that represents a deposit.
-type Deposit interface {
-	constraints.SSZMarshallable
-	GetIndex() math.U64
-}
-
 // DepositStore defines the interface for deposit storage.
 type DepositStore[DepositT any] interface {
 	// GetDepositsByIndex returns `numView` expected deposits.
-	GetDepositsByIndex(
-		startIndex uint64,
-		numView uint64,
-	) ([]DepositT, error)
+	GetDepositsByIndex(startIndex uint64, numView uint64) ([]DepositT, error)
 	// Prune prunes the deposit store of [start, end)
 	Prune(start, end uint64) error
 	// EnqueueDeposits adds a list of deposits to the deposit store.
@@ -78,6 +107,10 @@ type Node[ContextT any] interface {
 	// CreateQueryContext creates a query context for a given height and proof
 	// flag.
 	CreateQueryContext(height int64, prove bool) (ContextT, error)
+}
+
+type StateProcessor[BeaconStateT any] interface {
+	ProcessSlots(BeaconStateT, math.Slot) (transition.ValidatorUpdates, error)
 }
 
 // StorageBackend is the interface for the storage backend.

@@ -50,8 +50,10 @@ type StateDB[
 		ExecutionPayloadHeaderT,
 		ForkT,
 		ValidatorT,
+		ValidatorsT,
 	],
 	ValidatorT Validator[WithdrawalCredentialsT],
+	ValidatorsT ~[]ValidatorT,
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalCredentialsT WithdrawalCredentials,
 ] struct {
@@ -62,6 +64,7 @@ type StateDB[
 		ExecutionPayloadHeaderT,
 		ForkT,
 		ValidatorT,
+		ValidatorsT,
 	]
 	cs common.ChainSpec
 }
@@ -70,7 +73,7 @@ type StateDB[
 func (s *StateDB[
 	BeaconBlockHeaderT, BeaconStateMarshallableT,
 	Eth1DataT, ExecutionPayloadHeaderT, ForkT, KVStoreT,
-	ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	ValidatorT, ValidatorsT, WithdrawalT, WithdrawalCredentialsT,
 ]) NewFromDB(
 	bdb KVStoreT,
 	cs common.ChainSpec,
@@ -82,6 +85,7 @@ func (s *StateDB[
 	ForkT,
 	KVStoreT,
 	ValidatorT,
+	ValidatorsT,
 	WithdrawalT,
 	WithdrawalCredentialsT,
 ] {
@@ -93,6 +97,7 @@ func (s *StateDB[
 		ForkT,
 		KVStoreT,
 		ValidatorT,
+		ValidatorsT,
 		WithdrawalT,
 		WithdrawalCredentialsT,
 	]{
@@ -105,7 +110,7 @@ func (s *StateDB[
 func (s *StateDB[
 	BeaconBlockHeaderT, BeaconStateMarshallableT,
 	Eth1DataT, ExecutionPayloadHeaderT, ForkT, KVStoreT,
-	ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+	ValidatorT, ValidatorsT, WithdrawalT, WithdrawalCredentialsT,
 ]) Copy() *StateDB[
 	BeaconBlockHeaderT,
 	BeaconStateMarshallableT,
@@ -114,18 +119,16 @@ func (s *StateDB[
 	ForkT,
 	KVStoreT,
 	ValidatorT,
+	ValidatorsT,
 	WithdrawalT,
 	WithdrawalCredentialsT,
 ] {
-	return s.NewFromDB(
-		s.KVStore.Copy(),
-		s.cs,
-	)
+	return s.NewFromDB(s.KVStore.Copy(), s.cs)
 }
 
 // IncreaseBalance increases the balance of a validator.
 func (s *StateDB[
-	_, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _,
 ]) IncreaseBalance(
 	idx math.ValidatorIndex,
 	delta math.Gwei,
@@ -139,7 +142,7 @@ func (s *StateDB[
 
 // DecreaseBalance decreases the balance of a validator.
 func (s *StateDB[
-	_, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _,
 ]) DecreaseBalance(
 	idx math.ValidatorIndex,
 	delta math.Gwei,
@@ -153,7 +156,7 @@ func (s *StateDB[
 
 // UpdateSlashingAtIndex sets the slashing amount in the store.
 func (s *StateDB[
-	_, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _,
 ]) UpdateSlashingAtIndex(
 	index uint64,
 	amount math.Gwei,
@@ -186,7 +189,7 @@ func (s *StateDB[
 //
 //nolint:lll
 func (s *StateDB[
-	_, _, _, _, _, _, ValidatorT, WithdrawalT, _,
+	_, _, _, _, _, _, ValidatorT, _, WithdrawalT, _,
 ]) ExpectedWithdrawals() ([]WithdrawalT, error) {
 	var (
 		validator         ValidatorT
@@ -279,37 +282,39 @@ func (s *StateDB[
 	return withdrawals, nil
 }
 
-// HashTreeRoot is the interface for the beacon store.
+// GetMarshallable is the interface for the beacon store.
 //
 //nolint:funlen,gocognit // todo fix somehow
 func (s *StateDB[
-	_, BeaconStateMarshallableT, _, _, _, _, _, _, _,
-]) HashTreeRoot() ([32]byte, error) {
+	_, BeaconStateMarshallableT, _, _, _, _, _, _, _, _,
+]) GetMarshallable() (BeaconStateMarshallableT, error) {
+	var empty BeaconStateMarshallableT
+
 	slot, err := s.GetSlot()
 	if err != nil {
-		return [32]byte{}, err
+		return empty, err
 	}
 
 	fork, err := s.GetFork()
 	if err != nil {
-		return [32]byte{}, err
+		return empty, err
 	}
 
 	genesisValidatorsRoot, err := s.GetGenesisValidatorsRoot()
 	if err != nil {
-		return [32]byte{}, err
+		return empty, err
 	}
 
 	latestBlockHeader, err := s.GetLatestBlockHeader()
 	if err != nil {
-		return [32]byte{}, err
+		return empty, err
 	}
 
 	blockRoots := make([]common.Root, s.cs.SlotsPerHistoricalRoot())
 	for i := range s.cs.SlotsPerHistoricalRoot() {
 		blockRoots[i], err = s.GetBlockRootAtIndex(i)
 		if err != nil {
-			return [32]byte{}, err
+			return empty, err
 		}
 	}
 
@@ -317,65 +322,65 @@ func (s *StateDB[
 	for i := range s.cs.SlotsPerHistoricalRoot() {
 		stateRoots[i], err = s.StateRootAtIndex(i)
 		if err != nil {
-			return [32]byte{}, err
+			return empty, err
 		}
 	}
 
 	latestExecutionPayloadHeader, err := s.GetLatestExecutionPayloadHeader()
 	if err != nil {
-		return [32]byte{}, err
+		return empty, err
 	}
 
 	eth1Data, err := s.GetEth1Data()
 	if err != nil {
-		return [32]byte{}, err
+		return empty, err
 	}
 
 	eth1DepositIndex, err := s.GetEth1DepositIndex()
 	if err != nil {
-		return [32]byte{}, err
+		return empty, err
 	}
 
 	validators, err := s.GetValidators()
 	if err != nil {
-		return [32]byte{}, err
+		return empty, err
 	}
 
 	balances, err := s.GetBalances()
 	if err != nil {
-		return [32]byte{}, err
+		return empty, err
 	}
 
 	randaoMixes := make([]common.Bytes32, s.cs.EpochsPerHistoricalVector())
 	for i := range s.cs.EpochsPerHistoricalVector() {
 		randaoMixes[i], err = s.GetRandaoMixAtIndex(i)
 		if err != nil {
-			return [32]byte{}, err
+			return empty, err
 		}
 	}
 
 	nextWithdrawalIndex, err := s.GetNextWithdrawalIndex()
 	if err != nil {
-		return [32]byte{}, err
+		return empty, err
 	}
 
 	nextWithdrawalValidatorIndex, err := s.GetNextWithdrawalValidatorIndex()
 	if err != nil {
-		return [32]byte{}, err
+		return empty, err
 	}
 
 	slashings, err := s.GetSlashings()
 	if err != nil {
-		return [32]byte{}, err
+		return empty, err
 	}
 
 	totalSlashings, err := s.GetTotalSlashing()
 	if err != nil {
-		return [32]byte{}, err
+		return empty, err
 	}
 
 	// TODO: Properly move BeaconState into full generics.
-	st, err := (*new(BeaconStateMarshallableT)).New(
+	return (*new(BeaconStateMarshallableT)).New(
 		s.cs.ActiveForkVersionForSlot(slot),
 		genesisValidatorsRoot,
 		slot,
@@ -394,6 +399,13 @@ func (s *StateDB[
 		slashings,
 		totalSlashings,
 	)
+}
+
+// HashTreeRoot is the interface for the beacon store.
+func (s *StateDB[
+	_, _, _, _, _, _, _, _, _, _,
+]) HashTreeRoot() ([32]byte, error) {
+	st, err := s.GetMarshallable()
 	if err != nil {
 		return [32]byte{}, err
 	}

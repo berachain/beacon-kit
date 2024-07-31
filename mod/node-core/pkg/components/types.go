@@ -48,6 +48,7 @@ import (
 	debugapi "github.com/berachain/beacon-kit/mod/node-api/handlers/debug"
 	eventsapi "github.com/berachain/beacon-kit/mod/node-api/handlers/events"
 	nodeapi "github.com/berachain/beacon-kit/mod/node-api/handlers/node"
+	proofapi "github.com/berachain/beacon-kit/mod/node-api/handlers/proof"
 	"github.com/berachain/beacon-kit/mod/node-api/server"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
@@ -57,6 +58,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	statedb "github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/block"
@@ -106,6 +108,7 @@ type (
 		*Fork,
 		*KVStore,
 		*Validator,
+		Validators,
 		*Withdrawal,
 		WithdrawalCredentials,
 	]
@@ -256,6 +259,7 @@ type (
 		*ExecutionPayloadHeader,
 		*Fork,
 		*Validator,
+		Validators,
 	]
 
 	// LegacyKey type alias to LegacyKey used for LegacySinger construction.
@@ -291,6 +295,7 @@ type (
 		*KVStore,
 		*StorageBackend,
 		*Validator,
+		Validators,
 		*Withdrawal,
 		WithdrawalCredentials,
 	]
@@ -323,13 +328,23 @@ type (
 	SlashingInfo = types.SlashingInfo
 
 	// StateProcessor is the type alias for the state processor interface.
-	StateProcessor = blockchain.StateProcessor[
+	StateProcessor = core.StateProcessor[
 		*BeaconBlock,
+		*BeaconBlockBody,
+		*BeaconBlockHeader,
 		*BeaconState,
-		*BlobSidecars,
 		*Context,
 		*Deposit,
+		*Eth1Data,
+		*ExecutionPayload,
 		*ExecutionPayloadHeader,
+		*Fork,
+		*ForkData,
+		*KVStore,
+		*Validator,
+		Validators,
+		*Withdrawal,
+		WithdrawalCredentials,
 	]
 
 	// StorageBackend is the type alias for the storage backend interface.
@@ -349,12 +364,16 @@ type (
 		*Fork,
 		*KVStore,
 		*Validator,
+		Validators,
 		*Withdrawal,
 		WithdrawalCredentials,
 	]
 
 	// Validator is a type alias for the validator.
 	Validator = types.Validator
+
+	// Validators is a type alias for the validators.
+	Validators = types.Validators
 
 	// ValidatorService is a type alias for the validator service.
 	ValidatorService = validator.Service[
@@ -470,4 +489,10 @@ type (
 
 	// NodeAPIHandler is a type alias for the node handler.
 	NodeAPIHandler = nodeapi.Handler[NodeAPIContext]
+
+	// ProofAPIHandler is a type alias for the proof handler.
+	ProofAPIHandler = proofapi.Handler[
+		NodeAPIContext, *BeaconBlockHeader, *BeaconState,
+		*BeaconStateMarshallable, *ExecutionPayloadHeader, *Validator,
+	]
 )

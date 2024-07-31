@@ -38,6 +38,7 @@ type BeaconState[
 	ForkT,
 	KVStoreT,
 	ValidatorT,
+	ValidatorsT,
 	WithdrawalT any,
 ] interface {
 	NewFromDB(
@@ -50,7 +51,7 @@ type BeaconState[
 	HashTreeRoot() ([32]byte, error)
 	ReadOnlyBeaconState[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-		ForkT, ValidatorT, WithdrawalT,
+		ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 	]
 	WriteOnlyBeaconState[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
@@ -61,7 +62,8 @@ type BeaconState[
 // ReadOnlyBeaconState is the interface for a read-only beacon state.
 type ReadOnlyBeaconState[
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-	Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, WithdrawalT any,
+	Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+	ValidatorT, ValidatorsT, WithdrawalT any,
 ] interface {
 	ReadOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT]
 	ReadOnlyRandaoMixes
@@ -76,7 +78,7 @@ type ReadOnlyBeaconState[
 	GetBlockRootAtIndex(uint64) (common.Root, error)
 	GetLatestBlockHeader() (BeaconBlockHeaderT, error)
 	GetTotalActiveBalances(uint64) (math.Gwei, error)
-	GetValidators() ([]ValidatorT, error)
+	GetValidators() (ValidatorsT, error)
 	GetSlashingAtIndex(uint64) (math.Gwei, error)
 	GetTotalSlashing() (math.Gwei, error)
 	GetNextWithdrawalIndex() (uint64, error)
@@ -90,7 +92,8 @@ type ReadOnlyBeaconState[
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
 type WriteOnlyBeaconState[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT any,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT any,
 ] interface {
 	WriteOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT]
 	WriteOnlyRandaoMixes
@@ -107,7 +110,6 @@ type WriteOnlyBeaconState[
 	UpdateSlashingAtIndex(uint64, math.Gwei) error
 	SetNextWithdrawalIndex(uint64) error
 	SetNextWithdrawalValidatorIndex(math.ValidatorIndex) error
-	RemoveValidatorAtIndex(math.ValidatorIndex) error
 	SetTotalSlashing(math.Gwei) error
 }
 
