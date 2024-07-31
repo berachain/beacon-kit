@@ -11,28 +11,32 @@ contract SSZTest is Test {
             bytes32(bytes.concat(hex"EFCDAB9078563412", bytes24(0)));
         bytes32 actual = SSZ.toLittleEndian(v);
         assertEq(actual, expected);
+    }
 
+    function test_uint64HashTreeRoot() public pure {
         uint64 w = type(uint64).max;
-        expected = bytes32(bytes.concat(hex"FFFFFFFFFFFFFFFF", bytes24(0)));
-        actual = SSZ.toLittleEndian(w);
+        bytes32 expected =
+            bytes32(bytes.concat(hex"FFFFFFFFFFFFFFFF", bytes24(0)));
+        bytes32 actual = SSZ.uint64HashTreeRoot(w);
         assertEq(actual, expected);
 
         uint64 z = 123_456_789;
         expected = bytes32(bytes.concat(hex"15CD5B0700000000", bytes24(0)));
-        actual = SSZ.toLittleEndian(z);
+        actual = SSZ.uint64HashTreeRoot(z);
         assertEq(actual, expected);
     }
 
-    function test_log2floor() public pure {
-        uint64 v = 31;
-        uint64 expected = 4;
-        uint64 actual = uint64(SSZ.log2(v));
+    function test_addressHashTreeRoot() public pure {
+        address a = address(0x1234567890abCDef000000000000000000000000);
+        bytes32 expected =
+            bytes32(bytes.concat(hex"1234567890ABCDEF", bytes24(0)));
+        bytes32 actual = SSZ.addressHashTreeRoot(a);
         assertEq(actual, expected);
-    }
 
-    function test_concatGIndices() public pure {
-        uint64 expected = 3230;
-        uint64 actual = SSZ.concatGindices(SSZ.concatGindices(12, 25), 30);
+        address b = address(0x0102030405060708090a0B0c0d0e0f1011121314);
+        expected =
+            hex"0102030405060708090a0b0c0d0e0f1011121314000000000000000000000000";
+        actual = SSZ.addressHashTreeRoot(b);
         assertEq(actual, expected);
     }
 

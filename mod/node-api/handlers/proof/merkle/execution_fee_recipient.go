@@ -18,6 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
+//nolint:dupl // each proof is opinionated for unique gIndexes.
 package merkle
 
 import (
@@ -27,11 +28,12 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 )
 
-// ProveExecutionNumberInBlock generates a proof for the block number of the
-// execution payload in the beacon block. The proof is then verified against
-// the beacon block root as a sanity check. Returns the proof along with the
-// beacon block root. It uses the fastssz library to generate the proof.
-func ProveExecutionNumberInBlock[
+// ProveExecutionFeeRecipientInBlock generates a proof for the fee recipient in
+// the latest execution payload header in the beacon block. The proof is then
+// verified against the beacon block root as a sanity check. Returns the proof
+// along with the beacon block root. It uses the fastssz library to generate the
+// proof.
+func ProveExecutionFeeRecipientInBlock[
 	BeaconBlockHeaderT types.BeaconBlockHeader,
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
 	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
@@ -42,14 +44,14 @@ func ProveExecutionNumberInBlock[
 		BeaconStateMarshallableT, ExecutionPayloadHeaderT, ValidatorT,
 	],
 ) ([]common.Root, common.Root, error) {
-	// Get the proof of the execution number in the beacon state.
-	numberInStateProof, leaf, err := ProveExecutionNumberInState(bs)
+	// Get the proof of the execution fee recipient in the beacon state.
+	feeRecipientInStateProof, leaf, err := ProveExecutionFeeRecipientInState(bs)
 	if err != nil {
 		return nil, common.Root{}, err
 	}
 
 	// Then get the proof of the beacon state in the beacon block.
-	stateInBlockProof, err := ProveStateInBlock(bbh)
+	stateInBlockProof, err := ProveBeaconStateInBlock(bbh)
 	if err != nil {
 		return nil, common.Root{}, err
 	}
@@ -57,8 +59,10 @@ func ProveExecutionNumberInBlock[
 	// Sanity check that the combined proof verifies against our beacon root.
 	//
 	//nolint:gocritic // ok.
-	combinedProof := append(numberInStateProof, stateInBlockProof...)
-	beaconRoot, err := verifyExecutionNumberInBlock(bbh, combinedProof, leaf)
+	combinedProof := append(feeRecipientInStateProof, stateInBlockProof...)
+	beaconRoot, err := verifyExecutionFeeRecipientInBlock(
+		bbh, combinedProof, leaf,
+	)
 	if err != nil {
 		return nil, common.Root{}, err
 	}
@@ -66,9 +70,10 @@ func ProveExecutionNumberInBlock[
 	return combinedProof, beaconRoot, nil
 }
 
-// ProveExecutionNumberInState generates a proof for the block number of the
-// execution payload in the beacon state. It uses the fastssz library.
-func ProveExecutionNumberInState[
+// ProveExecutionFeeRecipientInState generates a proof for the execution fee
+// recipient in the beacon state. It uses the fastssz library to generate the
+// proof.
+func ProveExecutionFeeRecipientInState[
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
 	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
 	ValidatorT any,
@@ -86,33 +91,33 @@ func ProveExecutionNumberInState[
 		return nil, common.Root{}, err
 	}
 
-	numberInStateProof, err := stateProofTree.Prove(
-		ExecutionPayloadNumberGIndexDenebState,
+	feeRecipientInStateProof, err := stateProofTree.Prove(
+		ExecutionFeeRecipientGIndexDenebState,
 	)
 	if err != nil {
 		return nil, common.Root{}, err
 	}
 
-	proof := make([]common.Root, len(numberInStateProof.Hashes))
-	for i, hash := range numberInStateProof.Hashes {
+	proof := make([]common.Root, len(feeRecipientInStateProof.Hashes))
+	for i, hash := range feeRecipientInStateProof.Hashes {
 		proof[i] = common.Root(hash)
 	}
-	return proof, common.Root(numberInStateProof.Leaf), nil
+	return proof, common.Root(feeRecipientInStateProof.Leaf), nil
 }
 
-// verifyExecutionNumberInBlock verifies the execution number in the beacon
-// block, returning the beacon block root used to verify against.
+// verifyExecutionFeeRecipientInBlock verifies the execution fee recipient in
+// the
+// beacon block, returning the beacon block root used to verify against.
 //
 // TODO: verifying the proof is not absolutely necessary.
-func verifyExecutionNumberInBlock(
+func verifyExecutionFeeRecipientInBlock(
 	bbh types.BeaconBlockHeader,
 	proof []common.Root,
 	leaf common.Root,
 ) (common.Root, error) {
 	beaconRoot := bbh.HashTreeRoot()
 	if beaconRootVerified, err := merkle.VerifyProof(
-		ExecutionPayloadNumberGIndexDenebBlock,
-		leaf, proof, beaconRoot,
+		ExecutionFeeRecipientGIndexDenebBlock, leaf, proof, beaconRoot,
 	); err != nil {
 		return common.Root{}, err
 	} else if !beaconRootVerified {
