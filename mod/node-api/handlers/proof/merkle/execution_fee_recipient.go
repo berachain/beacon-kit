@@ -104,7 +104,8 @@ func ProveExecutionFeeRecipientInState[
 	return proof, common.Root(feeRecipientInStateProof.Leaf), nil
 }
 
-// verifyExecutionFeeRecipientInBlock verifies the execution fee recipient in the
+// verifyExecutionFeeRecipientInBlock verifies the execution fee recipient in
+// the
 // beacon block, returning the beacon block root used to verify against.
 //
 // TODO: verifying the proof is not absolutely necessary.

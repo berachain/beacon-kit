@@ -22,16 +22,20 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     /// @inheritdoc IBeaconVerifier
     uint256 public executionNumberGIndex;
 
+    uint256 public executionFeeRecipientGIndex;
+
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                       ADMIN FUNCTIONS                      */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     constructor(
         uint256 _zeroValidatorPubkeyGIndex,
-        uint256 _executionNumberGIndex
+        uint256 _executionNumberGIndex,
+        uint256 _executionFeeRecipientGIndex
     ) {
         zeroValidatorPubkeyGIndex = _zeroValidatorPubkeyGIndex;
         executionNumberGIndex = _executionNumberGIndex;
+        executionFeeRecipientGIndex = _executionFeeRecipientGIndex;
 
         _initializeOwner(msg.sender);
     }
@@ -59,6 +63,16 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     {
         executionNumberGIndex = _executionNumberGIndex;
         emit ExecutionNumberGIndexChanged(_executionNumberGIndex);
+    }
+
+    function setExecutionFeeRecipientGIndex(
+        uint256 _executionFeeRecipientGIndex
+    )
+        external
+        onlyOwner
+    {
+        executionFeeRecipientGIndex = _executionFeeRecipientGIndex;
+        emit ExecutionFeeRecipientGIndexChanged(_executionFeeRecipientGIndex);
     }
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -113,9 +127,22 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
         view
     {
         proveExecutionNumberInBeaconBlock(
-            getParentBlockRoot(uint64(timestamp)),
-            executionNumberProof,
-            blockNumber
+            getParentBlockRoot(timestamp), executionNumberProof, blockNumber
+        );
+    }
+
+    /// @inheritdoc IBeaconVerifier
+    /// @dev gas used ~41784
+    function verifyCoinbase(
+        uint64 timestamp,
+        bytes32[] calldata coinbaseProof,
+        address coinbase
+    )
+        external
+        view
+    {
+        proveExecutionFeeRecipientInBeaconBlock(
+            getParentBlockRoot(timestamp), coinbaseProof, coinbase
         );
     }
 
@@ -156,7 +183,8 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
         ) revert InvalidProof();
     }
 
-    /// @notice Verifies the execution number in the beacon block.
+    /// @notice Verifies the block number in the latest execution payload header
+    /// in the beacon state in the beacon block.
     /// @param beaconBlockRoot `bytes32` root of the beacon block.
     /// @param executionNumberProof `bytes32[]` proof of the execution number.
     /// @param blockNumber `uint64` execution number of the block.
@@ -168,7 +196,7 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
         internal
         view
     {
-        bytes32 executionNumberRoot = SSZ.toLittleEndian(uint256(blockNumber));
+        bytes32 executionNumberRoot = SSZ.uint64HashTreeRoot(blockNumber);
 
         if (
             !SSZ.verifyProof(
@@ -176,6 +204,31 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
                 beaconBlockRoot,
                 executionNumberRoot,
                 executionNumberGIndex
+            )
+        ) revert InvalidProof();
+    }
+
+    /// @notice Verifies the coinbase (fee recipient) in the latest execution
+    /// payload header in the beacon state in the beacon block.
+    /// @param beaconBlockRoot `bytes32` root of the beacon block.
+    /// @param coinbaseProof `bytes32[]` proof of the coinbase.
+    /// @param coinbase `address` to verify.
+    function proveExecutionFeeRecipientInBeaconBlock(
+        bytes32 beaconBlockRoot,
+        bytes32[] calldata coinbaseProof,
+        address coinbase
+    )
+        internal
+        view
+    {
+        bytes32 coinbaseRoot = SSZ.addressHashTreeRoot(coinbase);
+
+        if (
+            !SSZ.verifyProof(
+                coinbaseProof,
+                beaconBlockRoot,
+                coinbaseRoot,
+                executionFeeRecipientGIndex
             )
         ) revert InvalidProof();
     }

@@ -22,7 +22,6 @@ package types
 
 import (
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -77,6 +76,8 @@ type ExecutionFeeRecipientResponse[BeaconBlockHeaderT any] struct {
 	BeaconBlockRoot common.Root `json:"beacon_block_root"`
 
 	// ExecutionFeeRecipient is the fee recipient from the execution payload.
+	//
+	//nolint:lll // json tag.
 	ExecutionFeeRecipient gethprimitives.ExecutionAddress `json:"execution_fee_recipient"`
 
 	// ExecutionFeeRecipientProof can be verified against the beacon block root

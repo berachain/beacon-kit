@@ -21,13 +21,11 @@
 package types
 
 import (
-	fastssz "github.com/ferranbt/fastssz"
-
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	fastssz "github.com/ferranbt/fastssz"
 )
 
 // BeaconBlockHeader is the interface for a beacon block header.
