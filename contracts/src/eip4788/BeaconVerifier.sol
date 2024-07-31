@@ -21,7 +21,7 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     uint256 public zeroValidatorPubkeyGIndex;
     /// @inheritdoc IBeaconVerifier
     uint256 public executionNumberGIndex;
-
+    /// @inheritdoc IBeaconVerifier
     uint256 public executionFeeRecipientGIndex;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
