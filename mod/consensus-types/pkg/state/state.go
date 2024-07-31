@@ -21,8 +21,6 @@
 package state
 
 import (
-	"reflect"
-
 	deneb "github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -84,24 +82,21 @@ func (st *BeaconStateMarshallable[
 			ForkT,
 			ValidatorT,
 		]{
-			// TODO: Unhack reflection.
+			// TODO: Unhack casts.
 			BeaconState: &deneb.BeaconState{
 				Slot:                  slot,
 				GenesisValidatorsRoot: genesisValidatorsRoot,
-				Fork: reflect.ValueOf(fork).
-					Interface().(*types.Fork),
-				LatestBlockHeader: reflect.ValueOf(latestBlockHeader).
-					Interface().(*types.BeaconBlockHeader),
+				Fork:                  any(fork).(*types.Fork),
+				LatestBlockHeader: any(
+					latestBlockHeader).(*types.BeaconBlockHeader),
 				BlockRoots: blockRoots,
 				StateRoots: stateRoots,
-				LatestExecutionPayloadHeader: reflect.
-					ValueOf(latestExecutionPayloadHeader).
-					Interface().(*types.ExecutionPayloadHeader),
-				Eth1Data: reflect.ValueOf(eth1Data).
-					Interface().(*types.Eth1Data),
+				LatestExecutionPayloadHeader: any(
+					latestExecutionPayloadHeader).(*types.ExecutionPayloadHeader),
+				Eth1Data:         any(eth1Data).(*types.Eth1Data),
 				Eth1DepositIndex: eth1DepositIndex,
-				Validators: reflect.ValueOf(validators).
-					Interface().([]*types.Validator),
+				Validators: any(
+					validators).([]*types.Validator),
 				Balances:                     balances,
 				RandaoMixes:                  randaoMixes,
 				NextWithdrawalIndex:          nextWithdrawalIndex,
