@@ -295,7 +295,7 @@ func (b *BeaconBlockBody) GetTopLevelRoots() []common.Root {
 	return []common.Root{
 		b.GetRandaoReveal().HashTreeRoot(),
 		b.Eth1Data.HashTreeRoot(),
-		b.GetGraffiti(),
+		b.GetGraffiti().HashTreeRoot(),
 		Deposits(b.GetDeposits()).HashTreeRoot(),
 		b.GetExecutionPayload().HashTreeRoot(),
 	}
