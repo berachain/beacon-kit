@@ -160,7 +160,9 @@ func (st *BeaconState[
 /* -------------------------------------------------------------------------- */
 
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconState object.
-func (st *BeaconState[_, _, _, _, _, _, _, _, _, _]) SizeSSZ(fixed bool) uint32 {
+func (st *BeaconState[_, _, _, _, _, _, _, _, _, _]) SizeSSZ(
+	fixed bool,
+) uint32 {
 	var size uint32 = 300
 
 	if fixed {
@@ -182,7 +184,9 @@ func (st *BeaconState[_, _, _, _, _, _, _, _, _, _]) SizeSSZ(fixed bool) uint32 
 // DefineSSZ defines the SSZ encoding for the BeaconState object.
 //
 //nolint:mnd // todo fix.
-func (st *BeaconState[_, _, _, _, _, _, _, _, _, _]) DefineSSZ(codec *ssz.Codec) {
+func (st *BeaconState[_, _, _, _, _, _, _, _, _, _]) DefineSSZ(
+	codec *ssz.Codec,
+) {
 	// Versioning
 	ssz.DefineStaticBytes(codec, &st.GenesisValidatorsRoot)
 	ssz.DefineUint64(codec, &st.Slot)
@@ -230,7 +234,9 @@ func (st *BeaconState[_, _, _, _, _, _, _, _, _, _]) MarshalSSZ() ([]byte, error
 }
 
 // UnmarshalSSZ unmarshals the BeaconState from SSZ format.
-func (st *BeaconState[_, _, _, _, _, _, _, _, _, _]) UnmarshalSSZ(buf []byte) error {
+func (st *BeaconState[_, _, _, _, _, _, _, _, _, _]) UnmarshalSSZ(
+	buf []byte,
+) error {
 	return ssz.DecodeFromBytes(buf, st)
 }
 
