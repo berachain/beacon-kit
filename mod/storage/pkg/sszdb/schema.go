@@ -69,9 +69,15 @@ func traverseMonolith(
 	case reflect.Struct:
 		var fields []*schema.Field[schema.SSZType]
 		for _, field := range flattenStructFields(typ) {
+			if field.Name == "BlockRoots" {
+				fmt.Println("BlockRoots")
+			}
 			sszType, err := traverseMonolith(field.Type, &field)
 			if err != nil {
 				return nil, err
+			}
+			if sszType == nil {
+				panic("sszType is nil; field: " + field.Name)
 			}
 			fields = append(fields, schema.NewField(field.Name, sszType))
 		}
@@ -81,9 +87,9 @@ func traverseMonolith(
 	}
 }
 
-// getFastSSZTag returns the value of a struct field tag as a uint64.
-// These tags are required by ferranbt/fastssz to generate SSZ serialization code
-// and reused here for similar metadata.
+// getFastSSZTag returns the value of a struct field tag as a uint64.  These
+// tags are required by ferranbt/fastssz to generate SSZ serialization code and
+// reused here for similar metadata.
 func getFastSSZTag(
 	field *reflect.StructField,
 	tag string,

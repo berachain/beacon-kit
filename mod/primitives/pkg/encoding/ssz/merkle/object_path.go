@@ -22,6 +22,7 @@ package merkle
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
@@ -102,6 +103,13 @@ func (p ObjectPath[GeneralizedIndexT, RootT]) GetGeneralizedIndex(
 	}
 
 	return typ, GeneralizedIndexT(gIndex), offset, nil
+}
+
+func (p ObjectPath[GeneralizedIndexT, RootT]) Append(
+	part string,
+) ObjectPath[GeneralizedIndexT, RootT] {
+	s := fmt.Sprintf("%s/%s", p, part)
+	return ObjectPath[GeneralizedIndexT, RootT](s)
 }
 
 // getBaseIndex returns the base index for a given SSZ type.

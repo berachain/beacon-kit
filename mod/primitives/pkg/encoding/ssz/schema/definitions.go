@@ -53,6 +53,8 @@ func (b basic) ElementType(_ string) SSZType { return b }
 // type.
 func (b basic) HashChunkCount() uint64 { return 1 }
 
+func (b basic) Length() uint64 { return 0 }
+
 /* -------------------------------------------------------------------------- */
 /*                                   Vector                                   */
 /* -------------------------------------------------------------------------- */
@@ -193,3 +195,19 @@ func (c container) ElementType(p string) SSZType {
 func (c container) Length() uint64 { return uint64(len(c.Fields)) }
 
 func (c container) HashChunkCount() uint64 { return uint64(len(c.Fields)) }
+
+// TODO: audit
+// Altneratives:
+// 1) Export container as Container
+// 2) Extension interface with FieldNames() []string signature.
+func ContainerFields(typ SSZType) []string {
+	c, ok := typ.(container)
+	if !ok {
+		return nil
+	}
+	fields := make([]string, 0, len(c.FieldIndex))
+	for n := range c.FieldIndex {
+		fields = append(fields, n)
+	}
+	return fields
+}
