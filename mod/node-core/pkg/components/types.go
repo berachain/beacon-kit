@@ -50,6 +50,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/server"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
+	chainservice "github.com/berachain/beacon-kit/mod/node-core/pkg/services/blockchain"
 	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
@@ -146,14 +147,14 @@ type (
 
 	/* ---------------------------------------------------------------------- */
 	/*                             Chain Service                              */
-	/* ---------------------------------------------------------------------- */
+	/* ----------------------------------------------------------------------. */
 	ChainService = service.Service[
 		*ChainEventHandler,
 		ChainProcessorI,
 	]
 
 	// TODO: clean this up or rename
-	ChainProcessorI = blockchain.BlockchainProcessor[
+	ChainProcessorI = chainservice.Processor[
 		*BeaconBlock,
 		*BeaconBlockBody,
 		*Deposit,
@@ -177,7 +178,7 @@ type (
 		*Withdrawal,
 	]
 
-	ChainEventHandler = blockchain.EventHandler[
+	ChainEventHandler = chainservice.EventHandler[
 		*BeaconBlock,
 		*BeaconBlockBody,
 		*Deposit,
@@ -188,7 +189,7 @@ type (
 
 	/* ---------------------------------------------------------------------- */
 	/*                             Consensus Engine                           */
-	/* ---------------------------------------------------------------------- */
+	/* ----------------------------------------------------------------------. */
 
 	// ConsensusEngine is a type alias for the consensus engine.
 	ConsensusEngine = cometbft.ConsensusEngine[
@@ -212,7 +213,7 @@ type (
 
 	/* ---------------------------------------------------------------------- */
 	/*                                DA Service                               */
-	/* ---------------------------------------------------------------------- */
+	/* ----------------------------------------------------------------------. */
 
 	// DAService is a type alias for the DA service.
 	DAService = da.Service[
@@ -228,7 +229,7 @@ type (
 
 	/* ---------------------------------------------------------------------- */
 	/*                            Deposit Service                             */
-	/* ---------------------------------------------------------------------- */
+	/* ----------------------------------------------------------------------. */
 
 	// DepositService is a type alias for the deposit service.
 	DepositService = deposit.Service[
@@ -257,7 +258,7 @@ type (
 
 	/* ---------------------------------------------------------------------- */
 	/*                          Execution Engine                              */
-	/* ---------------------------------------------------------------------- */
+	/* ----------------------------------------------------------------------. */
 
 	// EngineClient is a type alias for the engine client.
 	EngineClient = engineclient.EngineClient[

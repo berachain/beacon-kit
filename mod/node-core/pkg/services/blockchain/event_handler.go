@@ -29,20 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
-type BlockchainProcessor[
-	BeaconBlockT BeaconBlock[BeaconBlockBodyT, ExecutionPayloadT],
-	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
-	DepositT any,
-	ExecutionPayloadT ExecutionPayload,
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
-] interface {
-	ProcessBeaconBlock(ctx context.Context, blk BeaconBlockT) (transition.ValidatorUpdates, error)
-	ProcessGenesisData(ctx context.Context, genesisData GenesisT) (transition.ValidatorUpdates, error)
-	ReceiveBlock(ctx context.Context, blk BeaconBlockT) error
-	VerifyIncomingBlock(ctx context.Context, blk BeaconBlockT) error
-}
-
 // EventHandler is the event handler for the blockchain service.
 type EventHandler[
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT, ExecutionPayloadT],
@@ -56,7 +42,7 @@ type EventHandler[
 	genesisBroker         EventFeed[*asynctypes.Event[GenesisT]]
 	validatorUpdateBroker EventFeed[*asynctypes.Event[transition.ValidatorUpdates]]
 	logger                log.Logger[any]
-	processor             BlockchainProcessor[
+	processor             Processor[
 		BeaconBlockT,
 		BeaconBlockBodyT,
 		DepositT,
@@ -77,6 +63,7 @@ func NewEventHandler[
 ](
 	blockBroker EventFeed[*asynctypes.Event[BeaconBlockT]],
 	genesisBroker EventFeed[*asynctypes.Event[GenesisT]],
+	//nolint:lll // compiler vs linter
 	validatorUpdateBroker EventFeed[*asynctypes.Event[transition.ValidatorUpdates]],
 	logger log.Logger[any],
 ) *EventHandler[
@@ -151,7 +138,7 @@ func (e *EventHandler[
 	ExecutionPayloadT,
 	ExecutionPayloadHeaderT,
 	GenesisT,
-]) AttachProcessor(processor BlockchainProcessor[
+]) AttachProcessor(processor Processor[
 	BeaconBlockT,
 	BeaconBlockBodyT,
 	DepositT,

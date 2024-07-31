@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
+	chainservice "github.com/berachain/beacon-kit/mod/node-core/pkg/services/blockchain"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
@@ -61,7 +62,7 @@ type ChainEventHandlerInput struct {
 func ProvideChainEventHandler(
 	in ChainEventHandlerInput,
 ) *ChainEventHandler {
-	return blockchain.NewEventHandler[
+	return chainservice.NewEventHandler[
 		*BeaconBlock,
 		*BeaconBlockBody,
 		*Deposit,

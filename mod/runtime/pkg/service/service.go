@@ -24,33 +24,46 @@ import (
 	"context"
 )
 
-// Service is a facade encapsulating blockchain business logic.
+// A Service is a self contained partition (domain) of the core business logic.
+//
+// The Service struct is 2-layered facade that contains:
+// - eventHandler: Intercepts events and delegates to the processor
+// - processor: Executes the service's domain business logic
+//
+// Note: In theory, all one really needs to start a "service" is the
+// eventHandler, but the below definition makes it clear from a semantics
+// perspective that a service is composed of both the eventHandler and a
+// processor, while abstracting away the implementation details.
 type Service[
-	EventHandlerT EventHandler[ProcessorT],
-	ProcessorT any,
+	eventHandlerT EventHandler[processorT],
+	processorT any,
 ] struct {
-	eventHandler EventHandlerT
-	processor    ProcessorT
+	eventHandler eventHandlerT
+	processor    processorT
 }
 
+// NewService creates a new services with the given eventHandler and processor.
 func NewService[
-	EventHandlerT EventHandler[ProcessorT],
-	ProcessorT any,
+	eventHandlerT EventHandler[processorT],
+	processorT any,
 ](
-	EventHandler EventHandlerT,
-	Processor ProcessorT,
-) *Service[EventHandlerT, ProcessorT] {
-	return &Service[EventHandlerT, ProcessorT]{
-		eventHandler: EventHandler,
-		processor:    Processor,
+	eventHandler eventHandlerT,
+	processor processorT,
+) *Service[eventHandlerT, processorT] {
+	return &Service[eventHandlerT, processorT]{
+		eventHandler: eventHandler,
+		processor:    processor,
 	}
 }
 
+// Start will attach the processor to the eventHandler and start the
+// eventHandler.
 func (b *Service[_, _]) Start(ctx context.Context) error {
 	b.eventHandler.AttachProcessor(b.processor)
 	return b.eventHandler.Start(ctx)
 }
 
+// Name returns the name of the service from the underlying eventHandler.
 func (b *Service[_, _]) Name() string {
 	return b.eventHandler.Name()
 }

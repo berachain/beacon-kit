@@ -94,14 +94,6 @@ type ExecutionEngine[PayloadAttributesT any] interface {
 	) (*engineprimitives.PayloadID, *gethprimitives.ExecutionHash, error)
 }
 
-// EventFeed is a generic interface for sending events.
-type EventFeed[EventT any] interface {
-	// Publish sends an event and returns an error if any occurred.
-	Publish(ctx context.Context, event EventT) error
-	// Subscribe returns a channel that will receive events.
-	Subscribe() (chan EventT, error)
-}
-
 // ExecutionPayload is the interface for the execution payload.
 type ExecutionPayload interface {
 	ExecutionPayloadHeader
