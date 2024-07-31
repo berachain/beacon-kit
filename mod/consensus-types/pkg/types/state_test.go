@@ -38,8 +38,10 @@ import (
 )
 
 // generateValidBeaconState generates a valid beacon state for the types.
-func generateValidBeaconState() *types.BeaconState[any, any, any, any, any] {
-	return &types.BeaconState[any, any, any, any, any]{
+func generateValidBeaconState() *types.BeaconState[
+	any, *types.Eth1Data, any, any, any, types.Eth1Data,
+] {
+	return &types.BeaconState[any, *types.Eth1Data, any, any, any, types.Eth1Data]{
 		GenesisValidatorsRoot: common.Root{0x01, 0x02, 0x03},
 		Slot:                  1234,
 		BlockRoots: []common.Root{
@@ -135,7 +137,9 @@ func TestBeaconStateMarshalUnmarshalSSZ(t *testing.T) {
 	require.NoError(t, fastSSZMarshalErr)
 	require.NotNil(t, data)
 
-	newState := &types.BeaconState[any, any, any, any, any]{}
+	newState := &types.BeaconState[
+		any, *types.Eth1Data, any, any, any, types.Eth1Data,
+	]{}
 	err := newState.UnmarshalSSZ(data)
 	require.NoError(t, err)
 
@@ -159,7 +163,9 @@ func TestGetTree(t *testing.T) {
 }
 
 func TestBeaconState_UnmarshalSSZ_Error(t *testing.T) {
-	state := &types.BeaconState[any, any, any, any, any]{}
+	state := &types.BeaconState[
+		any, *types.Eth1Data, any, any, any, types.Eth1Data,
+	]{}
 	err := state.UnmarshalSSZ([]byte{0x01, 0x02, 0x03}) // Invalid data
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
