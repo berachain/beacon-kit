@@ -98,7 +98,9 @@ func TestExecutionPayload_SizeSSZ(t *testing.T) {
 
 func TestExecutionPayload_HashTreeRoot(t *testing.T) {
 	payload := generateExecutionPayload()
-	payload.HashTreeRoot()
+	require.NotPanics(t, func() {
+		_ = payload.HashTreeRoot()
+	})
 }
 
 func TestExecutionPayload_GetTree(t *testing.T) {

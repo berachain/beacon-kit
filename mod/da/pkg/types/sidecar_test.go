@@ -166,7 +166,12 @@ func TestHashTreeRoot(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			require.NotPanics(t, func() {
 				result := tt.sidecar.HashTreeRoot()
-				require.Equal(t, tt.expectedResult, result, "HashTreeRoot result should match expected value")
+				require.Equal(
+					t,
+					tt.expectedResult,
+					result,
+					"HashTreeRoot result should match expected value",
+				)
 			}, "HashTreeRoot should not panic")
 		})
 	}

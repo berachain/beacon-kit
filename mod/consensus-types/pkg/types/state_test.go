@@ -179,7 +179,9 @@ func TestBeaconStateMarshalUnmarshalSSZ(t *testing.T) {
 
 func TestHashTreeRoot(t *testing.T) {
 	state := generateValidBeaconState()
-	state.HashTreeRoot()
+	require.NotPanics(t, func() {
+		state.HashTreeRoot()
+	})
 }
 
 func TestGetTree(t *testing.T) {

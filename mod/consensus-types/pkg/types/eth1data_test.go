@@ -78,7 +78,9 @@ func TestEth1Data_HashTreeRoot(t *testing.T) {
 		BlockHash:    gethprimitives.ExecutionHash{},
 	}
 
-	_ = eth1Data.HashTreeRoot()
+	require.NotPanics(t, func() {
+		_ = eth1Data.HashTreeRoot()
+	})
 }
 
 func TestEth1Data_GetTree(t *testing.T) {

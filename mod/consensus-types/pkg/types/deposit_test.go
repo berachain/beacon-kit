@@ -86,7 +86,9 @@ func TestDeposit_MarshalSSZTo(t *testing.T) {
 
 func TestDeposit_HashTreeRoot(t *testing.T) {
 	deposit := generateValidDeposit()
-	_ = deposit.HashTreeRoot()
+	require.NotPanics(t, func() {
+		_ = deposit.HashTreeRoot()
+	})
 }
 
 func TestDeposit_SizeSSZ(t *testing.T) {

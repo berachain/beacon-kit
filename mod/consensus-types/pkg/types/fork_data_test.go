@@ -69,7 +69,9 @@ func TestForkData_HashTreeRoot(t *testing.T) {
 		CurrentVersion:        common.Version{},
 		GenesisValidatorsRoot: common.Root{},
 	}
-	_ = forkData.HashTreeRoot()
+	require.NotPanics(t, func() {
+		_ = forkData.HashTreeRoot()
+	})
 }
 
 func TestForkData_ComputeDomain(t *testing.T) {
@@ -80,7 +82,9 @@ func TestForkData_ComputeDomain(t *testing.T) {
 	domainType := common.DomainType{
 		0x01, 0x00, 0x00, 0x00,
 	}
-	_ = forkData.ComputeDomain(domainType)
+	require.NotPanics(t, func() {
+		_ = forkData.ComputeDomain(domainType)
+	})
 }
 
 func TestForkData_ComputeRandaoSigningRoot(t *testing.T) {
@@ -92,7 +96,9 @@ func TestForkData_ComputeRandaoSigningRoot(t *testing.T) {
 	domainType := common.DomainType{0, 0, 0, 0}
 	epoch := math.Epoch(1)
 
-	_ = fd.ComputeRandaoSigningRoot(domainType, epoch)
+	require.NotPanics(t, func() {
+		fd.ComputeRandaoSigningRoot(domainType, epoch)
+	})
 }
 
 func TestNewForkData(t *testing.T) {
