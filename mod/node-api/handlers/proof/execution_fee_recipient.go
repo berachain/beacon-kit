@@ -26,9 +26,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 )
 
-// GetExecutionFeeRecipient returns the fee recipient from the execution
-// payload for the given block id, along with the proof that can be verified
-// against the beacon block root.
+// GetExecutionFeeRecipient returns the fee recipient from the latest execution
+// payload header for the given block id, along with the proof that can be
+// verified against the beacon block root.
 func (h *Handler[
 	ContextT, BeaconBlockHeaderT, _, _, _, _,
 ]) GetExecutionFeeRecipient(c ContextT) (any, error) {
@@ -44,9 +44,9 @@ func (h *Handler[
 	}
 
 	// Generate the proof (along with the "correct" beacon block root to
-	// verify against) for the execution payload block number.
+	// verify against) for the execution payload fee recipient.
 	h.Logger().Info("Generating execution fee recipient proof", "slot", slot)
-	proof, beaconBlockRoot, err := merkle.ProveExecutionNumberInBlock(
+	proof, beaconBlockRoot, err := merkle.ProveExecutionFeeRecipientInBlock(
 		blockHeader, beaconState,
 	)
 	if err != nil {

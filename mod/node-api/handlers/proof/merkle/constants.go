@@ -44,11 +44,22 @@ const (
 	// ValidatorPubkeyGIndexOffset is the offset of a validator pubkey GIndex.
 	ValidatorPubkeyGIndexOffset = 8
 
-	// ExecutionPayloadNumberGIndexDenebState is the generalized index of the
-	// execution payload header in the beacon beacon state in the Deneb fork.
-	ExecutionPayloadNumberGIndexDenebState = 774
+	// ExecutionNumberGIndexDenebState is the generalized index of the
+	// latest execution payload header in the beacon state in the Deneb fork.
+	ExecutionNumberGIndexDenebState = 774
 
-	// ExecutionPayloadNumberGIndexDenebBlock is the generalized index of the
-	// number in the execution payload in the Deneb fork.
-	ExecutionPayloadNumberGIndexDenebBlock = 5894
+	// ExecutionNumberGIndexDenebBlock is the generalized index of the
+	// number in the latest execution payload header in the beacon block in the
+	// Deneb fork.
+	ExecutionNumberGIndexDenebBlock = 5894
+
+	// ExecutionFeeRecipientGIndexDenebState is the generalized index of the
+	// fee recipient in the latest execution payload header in the beacon state
+	// in the Deneb fork.
+	ExecutionFeeRecipientGIndexDenebState = 769
+
+	// ExecutionFeeRecipientGIndexDenebBlock is the generalized index of the
+	// fee recipient in the latest execution payload header in the beacon block
+	// in the Deneb fork.
+	ExecutionFeeRecipientGIndexDenebBlock = 5889
 )

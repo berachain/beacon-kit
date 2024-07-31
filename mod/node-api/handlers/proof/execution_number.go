@@ -26,9 +26,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 )
 
-// GetExecutionNumber returns the block number from the execution payload
-// for the given block id, along with the proof that can be verified against
-// the beacon block root.
+// GetExecutionNumber returns the block number from the latest execution
+// payload header for the given block id, along with the proof that can be
+// verified against the beacon block root.
 func (h *Handler[
 	ContextT, BeaconBlockHeaderT, _, _, _, _,
 ]) GetExecutionNumber(c ContextT) (any, error) {
