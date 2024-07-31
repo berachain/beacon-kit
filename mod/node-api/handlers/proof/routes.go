@@ -34,13 +34,18 @@ func (
 	h.BaseHandler.AddRoutes([]*handlers.Route[ContextT]{
 		{
 			Method:  http.MethodGet,
-			Path:    "eth/v1/proof/blocks/proposer/:block_id",
+			Path:    "bkit/v1/proof/block_proposer/:block_id",
 			Handler: h.GetBlockProposer,
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "eth/v1/proof/blocks/execution/:block_id",
-			Handler: h.GetBlockExecution,
+			Path:    "bkit/v1/proof/execution_number/:block_id",
+			Handler: h.GetExecutionNumber,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "bkit/v1/proof/execution_fee_recipient/:block_id",
+			Handler: h.GetExecutionFeeRecipient,
 		},
 	})
 }

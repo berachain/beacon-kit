@@ -68,8 +68,6 @@ type BeaconState[
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, WithdrawalT any,
 ] interface {
-	constraints.SSZRootable
-
 	// SetSlot sets the slot on the beacon state.
 	SetSlot(math.Slot) error
 
