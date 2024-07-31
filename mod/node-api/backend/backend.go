@@ -136,7 +136,7 @@ func (b *Backend[
 
 func (b *Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) GetSlotByRoot(root [32]byte) (math.Slot, error) {
+]) GetSlotByRoot(root common.Root) (math.Slot, error) {
 	return b.sb.BlockStore().GetSlotByRoot(root)
 }
 
