@@ -23,15 +23,13 @@ package bytes_test
 
 import (
 	stdbytes "bytes"
-
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
-
 	"fmt"
 	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/stretchr/testify/require"
 )
 

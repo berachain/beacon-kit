@@ -91,7 +91,7 @@ func TestExecutionPayloadHashTreeRootZrnt(t *testing.T) {
 			t.Log("Failed to calculate HashTreeRoot on container payload:", err)
 			return false
 		}
-		//nolint:gocritic // ok
+		
 		return bytes.Equal(typeRoot[:], containerRoot[:]) &&
 			bytes.Equal(typeRoot[:], zRoot[:])
 	}
