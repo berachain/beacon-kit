@@ -110,13 +110,8 @@ func verifyExecutionNumberInBlock(
 	proof []common.Root,
 	leaf common.Root,
 ) (common.Root, error) {
-	beaconRoot, err := bbh.HashTreeRoot()
-	if err != nil {
-		return common.Root{}, err
-	}
-
-	var beaconRootVerified bool
-	if beaconRootVerified, err = merkle.VerifyProof(
+	beaconRoot := bbh.HashTreeRoot()
+	if beaconRootVerified, err := merkle.VerifyProof(
 		ExecutionNumberGIndexDenebBlock, leaf, proof, beaconRoot,
 	); err != nil {
 		return common.Root{}, err

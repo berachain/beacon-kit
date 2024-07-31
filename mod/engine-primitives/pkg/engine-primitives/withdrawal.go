@@ -86,8 +86,8 @@ func (w *Withdrawal) DefineSSZ(c *ssz.Codec) {
 }
 
 // HashTreeRoot.
-func (w *Withdrawal) HashTreeRoot() (common.Root, error) {
-	return ssz.HashSequential(w), nil
+func (w *Withdrawal) HashTreeRoot() common.Root {
+	return ssz.HashSequential(w)
 }
 
 // MarshalSSZ marshals the Withdrawal object to SSZ format.

@@ -73,21 +73,16 @@ func (h *B48) UnmarshalJSON(input []byte) error {
 /*                                SSZMarshaler                                */
 /* -------------------------------------------------------------------------- */
 
-// SizeSSZ returns the size of its SSZ encoding in bytes.
-func (h B48) SizeSSZ() uint32 {
-	return B48Size
-}
-
 // MarshalSSZ implements the SSZ marshaling for B48.
 func (h B48) MarshalSSZ() ([]byte, error) {
 	return h[:], nil
 }
 
-func (h B48) HashTreeRoot() (B32, error) {
+func (h B48) HashTreeRoot() B32 {
 	//nolint:mnd // for a tree height of 1 we need 2 working chunks.
 	result := make([][32]byte, 2)
 	copy(result[0][:], h[:32])
 	copy(result[1][:], h[32:48])
 	gohashtree.HashChunks(result, result)
-	return result[0], nil
+	return result[0]
 }

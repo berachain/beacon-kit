@@ -224,8 +224,8 @@ func (st *BeaconState[
 // HashTreeRoot computes the Merkleization of the BeaconState.
 func (st *BeaconState[
 	_, _, _, _, _, _, _, _, _, _,
-]) HashTreeRoot() (common.Root, error) {
-	return ssz.HashConcurrent(st), nil
+]) HashTreeRoot() common.Root {
+	return ssz.HashConcurrent(st)
 }
 
 /* -------------------------------------------------------------------------- */

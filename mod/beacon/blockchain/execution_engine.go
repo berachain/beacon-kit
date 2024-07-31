@@ -71,16 +71,8 @@ func (s *Service[
 		return
 	}
 
-	prevBlockRoot, err := blk.HashTreeRoot()
-	if err != nil {
-		s.logger.Error(
-			"failed to get block root in non-optimistic payload",
-			"error", err,
-		)
-		return
-	}
-
-	if _, err = s.lb.RequestPayloadAsync(
+	prevBlockRoot := blk.HashTreeRoot()
+	if _, err := s.lb.RequestPayloadAsync(
 		ctx,
 		stCopy,
 		blk.GetSlot()+1,

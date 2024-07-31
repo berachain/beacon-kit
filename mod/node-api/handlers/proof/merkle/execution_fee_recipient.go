@@ -28,7 +28,7 @@ import (
 )
 
 // ProveExecutionFeeRecipientInBlock generates a proof for the fee recipient in
-// the latest execution payload header in the beacon block. The proof is then 
+// the latest execution payload header in the beacon block. The proof is then
 // verified against the beacon block root as a sanity check. Returns the proof
 // along with the beacon block root. It uses the fastssz library to generate the
 // proof.
@@ -113,13 +113,8 @@ func verifyExecutionFeeRecipientInBlock(
 	proof []common.Root,
 	leaf common.Root,
 ) (common.Root, error) {
-	beaconRoot, err := bbh.HashTreeRoot()
-	if err != nil {
-		return common.Root{}, err
-	}
-
-	var beaconRootVerified bool
-	if beaconRootVerified, err = merkle.VerifyProof(
+	beaconRoot := bbh.HashTreeRoot()
+	if beaconRootVerified, err := merkle.VerifyProof(
 		ExecutionFeeRecipientGIndexDenebBlock, leaf, proof, beaconRoot,
 	); err != nil {
 		return common.Root{}, err

@@ -235,8 +235,9 @@ func TestExecutionPayloadHeader_SizeSSZ(t *testing.T) {
 
 func TestExecutionPayloadHeader_HashTreeRoot(t *testing.T) {
 	header := generateExecutionPayloadHeader()
-	_, err := header.HashTreeRoot()
-	require.NoError(t, err)
+	require.NotPanics(t, func() {
+		header.HashTreeRoot()
+	})
 }
 
 func TestExecutionPayloadHeader_GetTree(t *testing.T) {

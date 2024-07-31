@@ -26,6 +26,7 @@ import (
 	ctypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	byteslib "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/require"
@@ -39,7 +40,7 @@ func TestEmptySidecarMarshalling(t *testing.T) {
 		&eip4844.Blob{},
 		eip4844.KZGCommitment{},
 		[48]byte{},
-		[][32]byte{
+		[]common.Root{
 			byteslib.ToBytes32([]byte("1")),
 			byteslib.ToBytes32([]byte("2")),
 			byteslib.ToBytes32([]byte("3")),
@@ -94,7 +95,7 @@ func TestValidateBlockRoots(t *testing.T) {
 		&eip4844.Blob{},
 		[48]byte{},
 		[48]byte{},
-		[][32]byte{
+		[]common.Root{
 			byteslib.ToBytes32([]byte("1")),
 			byteslib.ToBytes32([]byte("2")),
 			byteslib.ToBytes32([]byte("3")),
@@ -127,7 +128,7 @@ func TestValidateBlockRoots(t *testing.T) {
 		&eip4844.Blob{},
 		eip4844.KZGCommitment{},
 		eip4844.KZGProof{},
-		[][32]byte{
+		[]common.Root{
 			byteslib.ToBytes32([]byte("1")),
 			byteslib.ToBytes32([]byte("2")),
 			byteslib.ToBytes32([]byte("3")),

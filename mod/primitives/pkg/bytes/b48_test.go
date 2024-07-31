@@ -43,17 +43,10 @@ func TestB48_HashTreeRoot(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := tt.input.HashTreeRoot()
-			require.NoError(t, err)
+			result := tt.input.HashTreeRoot()
 			require.Equal(t, tt.want, result)
 		})
 	}
-}
-
-func TestB48SizeSSZ(t *testing.T) {
-	var b bytes.B48
-	require.Equal(t, bytes.B48Size, int(b.SizeSSZ()),
-		"SizeSSZ should return the correct size")
 }
 
 func TestB48MarshalSSZ(t *testing.T) {

@@ -139,8 +139,7 @@ func TestBeaconBlock_MarshalUnmarshalSSZ(t *testing.T) {
 
 func TestBeaconBlock_HashTreeRoot(t *testing.T) {
 	block := generateValidBeaconBlock()
-	hashRoot, err := block.HashTreeRoot()
-	require.NoError(t, err)
+	hashRoot := block.HashTreeRoot()
 	require.NotNil(t, hashRoot)
 }
 

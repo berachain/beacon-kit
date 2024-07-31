@@ -45,7 +45,7 @@ func TestSidecarMarshalling(t *testing.T) {
 		&blob,
 		eip4844.KZGCommitment{},
 		eip4844.KZGProof{},
-		[][32]byte{
+		[]common.Root{
 			byteslib.ToBytes32([]byte("1")),
 			byteslib.ToBytes32([]byte("2")),
 			byteslib.ToBytes32([]byte("3")),
@@ -93,7 +93,7 @@ func TestHasValidInclusionProof(t *testing.T) {
 				&eip4844.Blob{},
 				eip4844.KZGCommitment{},
 				eip4844.KZGProof{},
-				[][32]byte{
+				[]common.Root{
 					byteslib.ToBytes32([]byte("4")),
 					byteslib.ToBytes32([]byte("5")),
 					byteslib.ToBytes32([]byte("6")),
@@ -110,7 +110,7 @@ func TestHasValidInclusionProof(t *testing.T) {
 				&eip4844.Blob{},
 				eip4844.KZGCommitment{},
 				eip4844.KZGProof{},
-				[][32]byte{},
+				[]common.Root{},
 			),
 			kzgOffset:      0,
 			expectedResult: false,
@@ -143,7 +143,7 @@ func TestHashTreeRoot(t *testing.T) {
 				&eip4844.Blob{0, 1, 2, 3, 4, 5, 6, 7},
 				eip4844.KZGCommitment{1, 2, 3},
 				eip4844.KZGProof{4, 5, 6},
-				[][32]byte{
+				[]common.Root{
 					byteslib.ToBytes32([]byte("1")),
 					byteslib.ToBytes32([]byte("2")),
 					byteslib.ToBytes32([]byte("3")),
@@ -164,15 +164,15 @@ func TestHashTreeRoot(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := tt.sidecar.HashTreeRoot()
-			if tt.expectError {
-				require.Error(t, err, "Expected an error but got none")
-			} else {
-				require.NoError(t, err,
-					"Did not expect an error but got one")
-				assert.Equal(t, tt.expectedResult, result,
-					"Hash result should match expected value")
-			}
+			require.NotPanics(t, func() {
+				result := tt.sidecar.HashTreeRoot()
+				require.Equal(
+					t,
+					tt.expectedResult,
+					result,
+					"HashTreeRoot result should match expected value",
+				)
+			}, "HashTreeRoot should not panic")
 		})
 	}
 }
