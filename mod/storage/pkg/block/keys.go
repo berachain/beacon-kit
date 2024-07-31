@@ -18,24 +18,16 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package encoding
+package block
 
-import (
-	"cosmossdk.io/collections/codec"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+const (
+	BlockKeyPrefix byte = iota
+	RootsKeyPrefix
+	TimestampsKeyPrefix
 )
 
-// KEYS 
-
-var (
-	// U64Key can be used to encode math.U64 keys. Encoding is big endian to 
-	// retain ordering.
-	U64Key = codec.NewUint64Key[math.U64]()
-)
-
-// VALUES 
-
-var (
-	// U64Value implements a ValueCodec for uint64.
-	U64Value = codec.KeyToValueCodec(U64Key)
+const (
+	BlocksMapName     = "blocks"
+	RootsMapName      = "roots"
+	TimestampsMapName = "timestamps"
 )

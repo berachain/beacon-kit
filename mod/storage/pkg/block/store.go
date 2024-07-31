@@ -32,14 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 )
 
-// var _ pruner.Prunable = (*KVStore[BeaconBlock])(nil)
-
-const (
-	KeyBlockPrefix      = "block"
-	KeyRootsPrefix      = "roots"
-	KeyTimestampsPrefix = "timestamps"
-)
-
 type KVStoreProvider struct {
 	store.KVStoreWithBatch
 }
@@ -70,22 +62,22 @@ func NewStore[BeaconBlockT BeaconBlock[BeaconBlockT]](
 	return &KVStore[BeaconBlockT]{
 		blocks: sdkcollections.NewMap(
 			schemaBuilder,
-			sdkcollections.NewPrefix([]byte(KeyBlockPrefix)),
-			KeyBlockPrefix,
+			sdkcollections.NewPrefix([]byte{BlockKeyPrefix}),
+			BlocksMapName,
 			encoding.U64Key,
 			cdc,
 		),
 		roots: sdkcollections.NewMap(
 			schemaBuilder,
-			sdkcollections.NewPrefix([]byte(KeyRootsPrefix)),
-			KeyRootsPrefix,
+			sdkcollections.NewPrefix([]byte{RootsKeyPrefix}),
+			RootsMapName,
 			sdkcollections.BytesKey,
 			encoding.U64Value,
 		),
 		timestamps: sdkcollections.NewMap(
 			schemaBuilder,
-			sdkcollections.NewPrefix([]byte(KeyTimestampsPrefix)),
-			KeyTimestampsPrefix,
+			sdkcollections.NewPrefix([]byte{TimestampsKeyPrefix}),
+			TimestampsMapName,
 			encoding.U64Key,
 			encoding.U64Value,
 		),
@@ -112,14 +104,17 @@ func (kv *KVStore[BeaconBlockT]) Set(slot math.Slot, blk BeaconBlockT) error {
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
 
+	// Set the block root in the roots map.
 	if err := kv.roots.Set(ctx, root[:], slot); err != nil {
 		return err
 	}
 
+	// Set the block timestamp in the timestamps map.
 	if err := kv.timestamps.Set(ctx, blk.GetTimestamp(), slot); err != nil {
 		return err
 	}
 
+	// Set the block in the blocks map.
 	kv.cdc.SetActiveForkVersion(blk.Version())
 	return kv.blocks.Set(ctx, slot, blk)
 }
@@ -154,18 +149,23 @@ func (kv *KVStore[BeaconBlockT]) Prune(start, end uint64) error {
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
 
+	// We only return early from this loop with an error if the key
+	// passed in cannot be encoded.
 	for i := max(s, kv.earliestSlot); i < e; i++ {
 		block, err := kv.blocks.Get(ctx, i)
 		if !errors.Is(err, sdkcollections.ErrNotFound) {
+			// If block is found and still errors, exit and return.
 			if err != nil {
 				return err
 			}
 
+			// Block is found so remove from roots map.
 			root := block.HashTreeRoot()
 			if err = kv.roots.Remove(ctx, root[:]); err != nil {
 				return err
 			}
 
+			// Block is found so also remove from timestamps map.
 			if err = kv.timestamps.Remove(
 				ctx, block.GetTimestamp(),
 			); err != nil {
@@ -173,7 +173,7 @@ func (kv *KVStore[BeaconBlockT]) Prune(start, end uint64) error {
 			}
 		}
 
-		// This only errors if the key passed in cannot be encoded.
+		// Finally remove the block from the blocks map.
 		if err = kv.blocks.Remove(ctx, i); err != nil {
 			return err
 		}
