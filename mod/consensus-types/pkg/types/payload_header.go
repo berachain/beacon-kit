@@ -83,7 +83,6 @@ type ExecutionPayloadHeader struct {
 
 // Empty returns an empty ExecutionPayload for the given fork version.
 func (h *ExecutionPayloadHeader) Empty() *ExecutionPayloadHeader {
-	// TODO: figure out how to use
 	return &ExecutionPayloadHeader{}
 }
 
