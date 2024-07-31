@@ -22,6 +22,7 @@ package validator
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
@@ -66,6 +67,7 @@ func (s *Service[
 		st,
 		slotData.GetSlot(),
 	); err != nil {
+		fmt.Println("FAILING HERE?")
 		return blk, sidecars, err
 	}
 

@@ -21,6 +21,7 @@
 package blob
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
@@ -137,16 +138,21 @@ func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildBlockBodyProof(
 ) ([]common.Root, error) {
 	startTime := time.Now()
 	defer f.metrics.measureBuildBlockBodyProofDuration(startTime)
-	membersRoots := body.GetTopLevelRoots()
 	tree, err := merkle.NewTreeWithMaxLeaves[common.Root](
-		membersRoots,
+		body.GetTopLevelRoots(),
 		body.Length()-1,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	return tree.MerkleProof(f.kzgPosition)
+	proof, err := tree.MerkleProof(f.kzgPosition)
+	if err != nil {
+		fmt.Printf("Failed to generate Merkle proof: error=%v, kzgPosition=%d\n", err, f.kzgPosition)
+		return nil, err
+	}
+	fmt.Printf("Generated Merkle proof: kzgPosition=%d, proofLength=%d\n", f.kzgPosition, len(proof))
+	return proof, nil
 }
 
 // BuildCommitmentProof builds a commitment proof.
@@ -164,5 +170,12 @@ func (f *SidecarFactory[BeaconBlockT, BeaconBlockBodyT]) BuildCommitmentProof(
 		return nil, err
 	}
 
-	return bodyTree.MerkleProofWithMixin(index.Unwrap())
+	fmt.Printf("Building commitment proof: index=%d\n", index.Unwrap())
+	proof, err := bodyTree.MerkleProofWithMixin(index.Unwrap())
+	if err != nil {
+		fmt.Printf("Failed to build commitment proof: error=%v\n", err)
+		return nil, err
+	}
+	fmt.Printf("Successfully built commitment proof: proofLength=%d\n", len(proof))
+	return proof, nil
 }
