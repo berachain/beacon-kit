@@ -97,7 +97,7 @@ func (h *ExecutionPayloadHeader) NewFromSSZ(
 
 // NewFromJSON returns a new ExecutionPayloadHeader from the given JSON bytes.
 func (h *ExecutionPayloadHeader) NewFromJSON(
-	bz []byte, forkVersion uint32,
+	bz []byte, _ uint32,
 ) (*ExecutionPayloadHeader, error) {
 	h = h.Empty()
 	return h, json.Unmarshal(bz, h)

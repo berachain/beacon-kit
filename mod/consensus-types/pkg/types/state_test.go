@@ -139,7 +139,7 @@ func generateValidBeaconState() *types.BeaconState[
 
 func generateRandomBytes32(count int) []common.Bytes32 {
 	result := make([]common.Bytes32, count)
-	for i := 0; i < count; i++ {
+	for i := range result {
 		var randomBytes [32]byte
 		for j := range randomBytes {
 			randomBytes[j] = byte((i + j) % 256)
