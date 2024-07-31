@@ -70,7 +70,7 @@ func SlotFromBlockID[StorageBackendT interface {
 // modification of being able to query by beacon block <timestamp> instead of
 // <stateRoot>.
 //
-// The timestampID must be prefixed by the 't', followed by the Unix timestamp
+// The <timestamp> must be prefixed by the 't', followed by the Unix timestamp
 // number in hexadecimal notation. For example 't0x66aab3ef' corresponds to
 // the block at Unix timestamp 1722463215. Providing just the string
 // '0x66aab3ef' (without the prefix 't') will query for the beacon block with
