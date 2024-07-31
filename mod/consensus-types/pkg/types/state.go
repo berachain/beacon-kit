@@ -76,7 +76,7 @@ func (st *BeaconState[
 	ForkT,
 	ValidatorT,
 ]) New(
-	forkVersion uint32,
+	_ uint32,
 	genesisValidatorsRoot common.Root,
 	slot math.Slot,
 	fork ForkT,
