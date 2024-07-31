@@ -22,6 +22,7 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
@@ -134,6 +135,6 @@ func (b *BlobSidecar) MarshalSSZTo(buf []byte) ([]byte, error) {
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the BlobSidecar object.
-func (b *BlobSidecar) HashTreeRoot() ([32]byte, error) {
+func (b *BlobSidecar) HashTreeRoot() (common.Root, error) {
 	return ssz.HashSequential(b), nil
 }

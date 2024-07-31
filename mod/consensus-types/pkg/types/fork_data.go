@@ -71,7 +71,7 @@ func (fd *ForkData) DefineSSZ(codec *ssz.Codec) {
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the ForkData object.
-func (fd *ForkData) HashTreeRoot() ([32]byte, error) {
+func (fd *ForkData) HashTreeRoot() (common.Root, error) {
 	return ssz.HashSequential(fd), nil
 }
 

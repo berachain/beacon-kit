@@ -135,7 +135,7 @@ func (b *BeaconBlock) UnmarshalSSZ(buf []byte) error {
 }
 
 // HashTreeRoot computes the Merkleization of the BeaconBlock object.
-func (b *BeaconBlock) HashTreeRoot() ([32]byte, error) {
+func (b *BeaconBlock) HashTreeRoot() (common.Root, error) {
 	return ssz.HashConcurrent(b), nil
 }
 

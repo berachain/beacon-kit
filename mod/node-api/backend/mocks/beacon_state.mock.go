@@ -1085,23 +1085,23 @@ func (_c *BeaconState_GetValidatorsByEffectiveBalance_Call[BeaconBlockHeaderT, E
 }
 
 // HashTreeRoot provides a mock function with given fields:
-func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) HashTreeRoot() ([32]byte, error) {
+func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) HashTreeRoot() (bytes.B32, error) {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
 		panic("no return value specified for HashTreeRoot")
 	}
 
-	var r0 [32]byte
+	var r0 bytes.B32
 	var r1 error
-	if rf, ok := ret.Get(0).(func() ([32]byte, error)); ok {
+	if rf, ok := ret.Get(0).(func() (bytes.B32, error)); ok {
 		return rf()
 	}
-	if rf, ok := ret.Get(0).(func() [32]byte); ok {
+	if rf, ok := ret.Get(0).(func() bytes.B32); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([32]byte)
+			r0 = ret.Get(0).(bytes.B32)
 		}
 	}
 
@@ -1131,12 +1131,12 @@ func (_c *BeaconState_HashTreeRoot_Call[BeaconBlockHeaderT, Eth1DataT, Execution
 	return _c
 }
 
-func (_c *BeaconState_HashTreeRoot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Return(_a0 [32]byte, _a1 error) *BeaconState_HashTreeRoot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+func (_c *BeaconState_HashTreeRoot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Return(_a0 bytes.B32, _a1 error) *BeaconState_HashTreeRoot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *BeaconState_HashTreeRoot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) RunAndReturn(run func() ([32]byte, error)) *BeaconState_HashTreeRoot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+func (_c *BeaconState_HashTreeRoot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) RunAndReturn(run func() (bytes.B32, error)) *BeaconState_HashTreeRoot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	_c.Call.Return(run)
 	return _c
 }

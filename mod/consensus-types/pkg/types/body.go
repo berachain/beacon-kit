@@ -147,7 +147,7 @@ func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte) error {
 }
 
 // HashTreeRoot returns the SSZ hash tree root of the BeaconBlockBody.
-func (b *BeaconBlockBody) HashTreeRoot() ([32]byte, error) {
+func (b *BeaconBlockBody) HashTreeRoot() (common.Root, error) {
 	return ssz.HashConcurrent(b), nil
 }
 

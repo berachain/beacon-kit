@@ -444,8 +444,8 @@ github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
 github.com/itsdevbear/comet-bls12-381 v0.0.0-20240413212931-2ae2f204cde7 h1:BUSaPdT9CP76kpyPwudkYvl4y0Gah4gxNVrETpjGXo0=
 github.com/itsdevbear/comet-bls12-381 v0.0.0-20240413212931-2ae2f204cde7/go.mod h1:6ANZ/zuQlNdrYjIuv2ZyG2bXa3c7Dtl5I5jCMARBjOM=
-github.com/itsdevbear/fastssz v0.0.0-20240731161852-3af4e438cab8 h1:yU5dlLMfRPSNowhPJEn32VG99khSHHx0iT3odJ0lE84=
-github.com/itsdevbear/fastssz v0.0.0-20240731161852-3af4e438cab8/go.mod h1:Ea3+oeoRGGLGm5shYAeDgu6PGUlcvQhE2fILyD9+tGg=
+github.com/itsdevbear/fastssz v0.0.0-20240731164358-a354a31813e6 h1:UZPeAqKS2AXLvFpSgPgZ2Vj3ZNl4iapFTK49wMujFMM=
+github.com/itsdevbear/fastssz v0.0.0-20240731164358-a354a31813e6/go.mod h1:Ea3+oeoRGGLGm5shYAeDgu6PGUlcvQhE2fILyD9+tGg=
 github.com/jackpal/go-nat-pmp v1.0.2 h1:KzKSgb7qkJvOUTqYl9/Hg/me3pWgBmERKrTGD7BdWus=
 github.com/jackpal/go-nat-pmp v1.0.2/go.mod h1:QPH045xvCAeXUZOxsnwmrtiCoxIr9eob+4orBN1SBKc=
 github.com/jhump/protoreflect v1.16.0 h1:54fZg+49widqXYQ0b+usAFHbMkBGR4PpXrsHc8+TBDg=

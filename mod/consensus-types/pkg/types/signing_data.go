@@ -56,7 +56,7 @@ func (s *SigningData) DefineSSZ(codec *ssz.Codec) {
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the SigningData object.
-func (s *SigningData) HashTreeRoot() ([32]byte, error) {
+func (s *SigningData) HashTreeRoot() (common.Root, error) {
 	return ssz.HashSequential(s), nil
 }
 
@@ -82,7 +82,7 @@ func (s *SigningData) UnmarshalSSZ(buf []byte) error {
 //
 //nolint:lll // link.
 func ComputeSigningRoot(
-	sszObject interface{ HashTreeRoot() ([32]byte, error) },
+	sszObject interface{ HashTreeRoot() (common.Root, error) },
 	domain common.Domain,
 ) (common.Root, error) {
 	objectRoot, err := sszObject.HashTreeRoot()

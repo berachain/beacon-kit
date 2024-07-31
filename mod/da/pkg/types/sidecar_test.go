@@ -26,6 +26,7 @@ import (
 	ctypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	byteslib "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/assert"
@@ -129,7 +130,7 @@ func TestHashTreeRoot(t *testing.T) {
 	tests := []struct {
 		name           string
 		sidecar        *types.BlobSidecar
-		expectedResult [32]byte
+		expectedResult common.Root
 		expectError    bool
 	}{
 		{

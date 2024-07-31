@@ -137,7 +137,7 @@ func (d *Deposit) SizeSSZ() uint32 {
 }
 
 // HashTreeRoot computes the Merkleization of the Deposit object.
-func (d *Deposit) HashTreeRoot() ([32]byte, error) {
+func (d *Deposit) HashTreeRoot() (common.Root, error) {
 	return ssz.HashSequential(d), nil
 }
 
