@@ -33,24 +33,16 @@ type ServiceRegistryInput struct {
 	depinject.In
 	DBManager *DBManager
 
-	Logger        log.AdvancedLogger[any, sdklog.Logger]
-	TelemetrySink *metrics.TelemetrySink
-
-	// TODO: Event mediator
-	ABCIService *ABCIMiddleware
-
-	// FR services
-	ChainService      *ChainService
-	ValidatorService  *ValidatorService
-	DAService         *DAService
-	BlockStoreService *BlockStoreService
-	DepositService    *DepositService
-
-	// maybe services
-	EngineClient  *EngineClient
-	NodeAPIServer *NodeAPIServer
-
-	// TODO: fake-services
+	Logger                log.AdvancedLogger[any, sdklog.Logger]
+	TelemetrySink         *metrics.TelemetrySink
+	ABCIService           *ABCIMiddleware
+	ChainService          *ChainService
+	ValidatorService      *ValidatorService
+	DAService             *DAService
+	BlockStoreService     *BlockStoreService
+	DepositService        *DepositService
+	EngineClient          *EngineClient
+	NodeAPIServer         *NodeAPIServer
 	ReportingService      *ReportingService
 	GenesisBroker         *GenesisBroker
 	SidecarsBroker        *SidecarsBroker

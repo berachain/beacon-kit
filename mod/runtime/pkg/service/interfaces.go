@@ -24,10 +24,9 @@ import (
 	"context"
 )
 
-// EventHandler is the top layer of a service that acts as the sole entrypoint
+// Runner is the top layer of a service that acts as the sole entrypoint
 // to access service processing logic.
-// TODO: this could be renamed to "runner" or something more generic.
-type EventHandler[ProcessorT any] interface {
+type Runner[ProcessorT any] interface {
 	Start(ctx context.Context) error
 	AttachProcessor(ProcessorT)
 	Name() string

@@ -24,49 +24,49 @@ import (
 	"context"
 )
 
-// A Beacon-kit Service is a component containing all necessary and sufficient
+// A Service is a component containing all necessary and sufficient
 // logic to operate over a particular business domain.
 //
 // The Service struct is 2-layered facade that contains:
-//   - eventHandler: Intercepts events and delegates to the processor. If this
-//     service doesn't need to handle events, the eventHandler simply acts as a
+//   - runner: Intercepts events and delegates to the processor. If this
+//     service doesn't need to handle events, the runner simply acts as a
 //     runner.
 //   - processor: Executes the service's domain business logic
 //
 // Note: In theory, all one really needs to start a "service" is the
-// eventHandler, but the below definition makes it clear from a semantics
-// perspective that a service is composed of both the eventHandler and a
+// runner, but the below definition makes it clear from a semantics
+// perspective that a service is composed of both the runner and a
 // processor, while abstracting away the implementation details.
 type Service[
-	eventHandlerT EventHandler[processorT],
+	runnerT Runner[processorT],
 	processorT any,
 ] struct {
-	eventHandler eventHandlerT
-	processor    processorT
+	runner    runnerT
+	processor processorT
 }
 
 // NewService creates a new services with the given eventHandler and processor.
 func NewService[
-	eventHandlerT EventHandler[processorT],
+	runnerT Runner[processorT],
 	processorT any,
 ](
-	eventHandler eventHandlerT,
+	runner runnerT,
 	processor processorT,
-) *Service[eventHandlerT, processorT] {
-	return &Service[eventHandlerT, processorT]{
-		eventHandler: eventHandler,
-		processor:    processor,
+) *Service[runnerT, processorT] {
+	return &Service[runnerT, processorT]{
+		runner:    runner,
+		processor: processor,
 	}
 }
 
 // Start will attach the processor to the eventHandler and start the
 // eventHandler.
 func (b *Service[_, _]) Start(ctx context.Context) error {
-	b.eventHandler.AttachProcessor(b.processor)
-	return b.eventHandler.Start(ctx)
+	b.runner.AttachProcessor(b.processor)
+	return b.runner.Start(ctx)
 }
 
 // Name returns the name of the service from the underlying eventHandler.
 func (b *Service[_, _]) Name() string {
-	return b.eventHandler.Name()
+	return b.runner.Name()
 }
