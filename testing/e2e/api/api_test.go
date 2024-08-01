@@ -18,8 +18,8 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-//go:build api
-// +build api
+//go:build e2e
+// +build e2e
 
 package api_test
 
