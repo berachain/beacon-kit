@@ -45,7 +45,7 @@ type Service[
 	processor processorT
 }
 
-// NewService creates a new services with the given eventHandler and processor.
+// NewService creates a new service with the given runner and processor.
 func NewService[
 	runnerT Runner[processorT],
 	processorT any,
@@ -59,14 +59,13 @@ func NewService[
 	}
 }
 
-// Start will attach the processor to the eventHandler and start the
-// eventHandler.
+// Start will attach the processor to the runner and start the runner.
 func (b *Service[_, _]) Start(ctx context.Context) error {
 	b.runner.AttachProcessor(b.processor)
 	return b.runner.Start(ctx)
 }
 
-// Name returns the name of the service from the underlying eventHandler.
+// Name returns the name of the service from the underlying runner.
 func (b *Service[_, _]) Name() string {
 	return b.runner.Name()
 }
