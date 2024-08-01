@@ -18,35 +18,16 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package api_test
+package config
 
-import (
-	"github.com/berachain/beacon-kit/testing/e2e/config"
-	"github.com/berachain/beacon-kit/testing/e2e/suite"
+// Consensus clients
+const (
+	DefaultClient   = "cl-validator-beaconkit-0"
+	AlternateClient = "cl-validator-beaconkit-1"
 )
 
-// BeaconAPISuite is a suite of beacon node-api tests with full simulation of a
-// beacon-kit network.
-type BeaconAPISuite struct {
-	suite.KurtosisE2ESuite
-}
-
-// TestBeaconAPISuite tests that the api test suite is setup correctly with a
-// working beacon node-api client.
-func (s *BeaconAPISuite) TestBeaconAPISuite() {
-	executionBlockNum := uint64(5)
-
-	// Wait for execution block 5.
-	err := s.WaitForFinalizedBlockNumber(executionBlockNum)
-	s.Require().NoError(err)
-
-	// Get the consensus client.
-	client := s.ConsensusClients()[config.DefaultClient]
-	s.Require().NotNil(client)
-
-	// Get the latest beacon block.
-	slot, htr, err := client.GetLatestBeaconBlock(s.Ctx())
-	s.Require().NoError(err)
-	s.Require().GreaterOrEqual(slot, executionBlockNum)
-	s.Require().NotEmpty(htr)
-}
+// Deposits
+const (
+	DepositContractAddress = "0x4242424242424242424242424242424242424242"
+	NumDepositsLoad        = 500
+)

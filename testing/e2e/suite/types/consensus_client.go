@@ -25,15 +25,25 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+
 	rpcclient "github.com/cometbft/cometbft/rpc/client"
 	httpclient "github.com/cometbft/cometbft/rpc/client/http"
+	"github.com/ethpandaops/beacon/pkg/beacon"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
 )
 
 // ConsensusClient represents a consensus client.
 type ConsensusClient struct {
 	*WrappedServiceContext
+
+	// Comet JSON-RPC client
 	rpcclient.Client
+
+	// Beacon node-api client
+	beacon.Node
 }
 
 // NewConsensusClient creates a new consensus client.
@@ -51,18 +61,28 @@ func NewConsensusClient(serviceCtx *WrappedServiceContext) *ConsensusClient {
 
 // Connect connects the consensus client to the consensus client.
 func (cc *ConsensusClient) Connect() error {
-	// Start by trying to get the public port for the JSON-RPC WebSocket
-	port, ok := cc.WrappedServiceContext.GetPublicPorts()["cometbft-rpc"]
+	// Start by trying to get the public port for the comet JSON-RPC.
+	cometPort, ok := cc.WrappedServiceContext.GetPublicPorts()["cometbft-rpc"]
 	if !ok {
-		panic("Couldn't find the public port for the JSON-RPC WebSocket")
+		panic("Couldn't find the public port for the comet JSON-RPC")
 	}
-	clientURL := fmt.Sprintf("http://0.0.0.0:%d", port.GetNumber())
+	clientURL := fmt.Sprintf("http://0.0.0.0:%d", cometPort.GetNumber())
 	client, err := httpclient.New(clientURL)
 	if err != nil {
 		return err
 	}
 	cc.Client = client
-	return nil
+
+	// Then try to get the public port for the node API.
+	nodePort, ok := cc.WrappedServiceContext.GetPublicPorts()["node-api"]
+	if !ok {
+		panic("Couldn't find the public port for the node API")
+	}
+	cc.Node = beacon.NewNode(nil, &beacon.Config{
+		Addr: fmt.Sprintf("http://0.0.0.0:%d", nodePort.GetNumber()),
+		Name: "beacon node",
+	}, "eth", *beacon.DefaultOptions())
+	return cc.Node.Start(context.Background())
 }
 
 // Start starts the consensus client.
@@ -118,4 +138,26 @@ func (cc ConsensusClient) IsActive(ctx context.Context) (bool, error) {
 	}
 
 	return res.ValidatorInfo.VotingPower > 0, nil
+}
+
+// Returns the latest beacon block's slot and hash tree root.
+func (cc ConsensusClient) GetLatestBeaconBlock(
+	ctx context.Context,
+) (math.Slot, common.Root, error) {
+	block, err := cc.Node.FetchBlock(ctx, utils.StateIDHead)
+	if err != nil {
+		return 0, common.Root{}, err
+	}
+
+	slot, err := block.Slot()
+	if err != nil {
+		return 0, common.Root{}, err
+	}
+
+	htr, err := block.Root()
+	if err != nil {
+		return 0, common.Root{}, err
+	}
+
+	return math.Slot(slot), common.Root(htr), nil
 }
