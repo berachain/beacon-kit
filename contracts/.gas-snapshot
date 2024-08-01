@@ -1,3 +1,6 @@
+BeaconVerifierTest:test_verifyBeaconBlockProposer() (gas: 155057)
+BeaconVerifierTest:test_verifyCoinbase() (gas: 49435)
+BeaconVerifierTest:test_verifyExecutionNumber() (gas: 49540)
 DepositContractTest:testFuzz_DepositCount(uint256) (runs: 256, μ: 3248621, ~: 3269529)
 DepositContractTest:testFuzz_DepositNativeNotDivisibleByGwei(uint256) (runs: 256, μ: 56864, ~: 56870)
 DepositContractTest:testFuzz_DepositNativeWrongMinAmount(uint256) (runs: 256, μ: 88553, ~: 88567)

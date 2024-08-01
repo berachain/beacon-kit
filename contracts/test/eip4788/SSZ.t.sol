@@ -2,6 +2,7 @@
 pragma solidity ^0.8.21;
 
 import { Test } from "@forge-std/Test.sol";
+
 import { SSZ } from "@src/eip4788/SSZ.sol";
 
 contract SSZTest is Test {
