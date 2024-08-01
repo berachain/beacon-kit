@@ -82,27 +82,23 @@ type ExecutionPayloadHeader struct {
 }
 
 // Empty returns an empty ExecutionPayload for the given fork version.
-func (h *ExecutionPayloadHeader) Empty(
-	forkVersion uint32,
-) *ExecutionPayloadHeader {
-	// TODO: figure out how to use.
-	_ = forkVersion
+func (h *ExecutionPayloadHeader) Empty() *ExecutionPayloadHeader {
 	return &ExecutionPayloadHeader{}
 }
 
 // NewFromSSZ returns a new ExecutionPayloadHeader from the given SSZ bytes.
 func (h *ExecutionPayloadHeader) NewFromSSZ(
-	bz []byte, forkVersion uint32,
+	bz []byte, _ uint32,
 ) (*ExecutionPayloadHeader, error) {
-	h = h.Empty(forkVersion)
+	h = h.Empty()
 	return h, h.UnmarshalSSZ(bz)
 }
 
 // NewFromJSON returns a new ExecutionPayloadHeader from the given JSON bytes.
 func (h *ExecutionPayloadHeader) NewFromJSON(
-	bz []byte, forkVersion uint32,
+	bz []byte, _ uint32,
 ) (*ExecutionPayloadHeader, error) {
-	h = h.Empty(forkVersion)
+	h = h.Empty()
 	return h, json.Unmarshal(bz, h)
 }
 
@@ -164,8 +160,8 @@ func (h *ExecutionPayloadHeader) UnmarshalSSZ(bz []byte) error {
 }
 
 // HashTreeRootSSZ returns the hash tree root of the ExecutionPayloadHeader.
-func (h *ExecutionPayloadHeader) HashTreeRoot() ([32]byte, error) {
-	return ssz.HashConcurrent(h), nil
+func (h *ExecutionPayloadHeader) HashTreeRoot() common.Root {
+	return ssz.HashConcurrent(h)
 }
 
 /* -------------------------------------------------------------------------- */

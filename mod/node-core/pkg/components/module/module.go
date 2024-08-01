@@ -25,7 +25,6 @@ import (
 
 	"cosmossdk.io/core/appmodule/v2"
 	"cosmossdk.io/core/registry"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
 	consruntimetypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
@@ -88,7 +87,7 @@ func (am AppModule) IsAppModule() {}
 // for the beacon module.
 func (AppModule) DefaultGenesis() json.RawMessage {
 	bz, err := json.Marshal(
-		genesis.DefaultGenesisDeneb(),
+		types.DefaultGenesisDeneb(),
 	)
 	if err != nil {
 		panic(err)
@@ -109,7 +108,7 @@ func (am AppModule) ExportGenesis(
 	_ context.Context,
 ) (json.RawMessage, error) {
 	return json.Marshal(
-		&genesis.Genesis[
+		&types.Genesis[
 			*types.Deposit, *types.ExecutionPayloadHeader,
 		]{},
 	)

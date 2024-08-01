@@ -83,6 +83,13 @@ func TestSlashingInfo_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 				err = unmarshalled.UnmarshalSSZ(data)
 				require.NoError(t, err)
 				require.Equal(t, tc.expected, &unmarshalled)
+
+				var buf []byte
+				buf, err = tc.data.MarshalSSZTo(buf)
+				require.NoError(t, err)
+
+				// The two byte slices should be equal
+				require.Equal(t, data, buf)
 			}
 		})
 	}
@@ -95,10 +102,7 @@ func TestSlashingInfo_GetTree(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, tree)
 
-	expectedRoot, err := data.HashTreeRoot()
-	require.NoError(t, err)
-
-	// Compare the tree root with the expected root
+	expectedRoot := data.HashTreeRoot()
 	actualRoot := tree.Hash()
 	require.Equal(t, string(expectedRoot[:]), string(actualRoot))
 }

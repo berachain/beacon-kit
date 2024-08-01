@@ -48,7 +48,7 @@ type BeaconState[
 	Copy() T
 	Save()
 	Context() context.Context
-	HashTreeRoot() ([32]byte, error)
+	HashTreeRoot() common.Root
 	ReadOnlyBeaconState[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 		ForkT, ValidatorT, ValidatorsT, WithdrawalT,

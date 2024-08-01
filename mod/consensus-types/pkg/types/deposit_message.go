@@ -51,22 +51,13 @@ func CreateAndSignDepositMessage(
 	credentials WithdrawalCredentials,
 	amount math.Gwei,
 ) (*DepositMessage, crypto.BLSSignature, error) {
-	domain, err := forkData.ComputeDomain(domainType)
-	if err != nil {
-		return nil, crypto.BLSSignature{}, err
-	}
-
+	domain := forkData.ComputeDomain(domainType)
 	depositMessage := &DepositMessage{
 		Pubkey:      signer.PublicKey(),
 		Credentials: credentials,
 		Amount:      amount,
 	}
-
-	signingRoot, err := ComputeSigningRoot(depositMessage, domain)
-	if err != nil {
-		return nil, crypto.BLSSignature{}, err
-	}
-
+	signingRoot := ComputeSigningRoot(depositMessage, domain)
 	signature, err := signer.Sign(signingRoot[:])
 	if err != nil {
 		return nil, crypto.BLSSignature{}, err
@@ -107,8 +98,8 @@ func (dm *DepositMessage) DefineSSZ(codec *ssz.Codec) {
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the DepositMessage object.
-func (dm *DepositMessage) HashTreeRoot() ([32]byte, error) {
-	return ssz.HashSequential(dm), nil
+func (dm *DepositMessage) HashTreeRoot() common.Root {
+	return ssz.HashSequential(dm)
 }
 
 // MarshalSSZTo marshals the DepositMessage object to SSZ format into the
@@ -139,17 +130,9 @@ func (dm *DepositMessage) VerifyCreateValidator(
 		pubkey crypto.BLSPubkey, message []byte, signature crypto.BLSSignature,
 	) error,
 ) error {
-	domain, err := forkData.ComputeDomain(domainType)
-	if err != nil {
-		return err
-	}
-
-	signingRoot, err := ComputeSigningRoot(dm, domain)
-	if err != nil {
-		return err
-	}
-
-	if err = signatureVerificationFn(
+	signingRoot := ComputeSigningRoot(
+		dm, forkData.ComputeDomain(domainType))
+	if err := signatureVerificationFn(
 		dm.Pubkey, signingRoot[:], signature,
 	); err != nil {
 		return errors.Join(err, ErrDepositMessage)

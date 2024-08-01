@@ -78,7 +78,7 @@ type BeaconBlockBody[
 	// GetDeposits returns the list of deposits.
 	GetDeposits() []DepositT
 	// HashTreeRoot returns the hash tree root of the block body.
-	HashTreeRoot() ([32]byte, error)
+	HashTreeRoot() common.Root
 	// GetBlobKzgCommitments returns the KZG commitments for the blobs.
 	GetBlobKzgCommitments() eip4844.KZGCommitments[gethprimitives.ExecutionHash]
 }
@@ -92,7 +92,7 @@ type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
 		stateRoot common.Root,
 		bodyRoot common.Root,
 	) BeaconBlockHeaderT
-	HashTreeRoot() ([32]byte, error)
+	HashTreeRoot() common.Root
 	GetSlot() math.Slot
 	GetProposerIndex() math.ValidatorIndex
 	GetParentBlockRoot() common.Root
@@ -196,7 +196,7 @@ type ForkData[ForkDataT any] interface {
 	ComputeRandaoSigningRoot(
 		domainType common.DomainType,
 		epoch math.Epoch,
-	) (common.Root, error)
+	) common.Root
 }
 
 // Validator represents an interface for a validator with generic type

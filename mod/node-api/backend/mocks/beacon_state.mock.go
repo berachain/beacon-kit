@@ -1084,63 +1084,6 @@ func (_c *BeaconState_GetValidatorsByEffectiveBalance_Call[BeaconBlockHeaderT, E
 	return _c
 }
 
-// HashTreeRoot provides a mock function with given fields:
-func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) HashTreeRoot() ([32]byte, error) {
-	ret := _m.Called()
-
-	if len(ret) == 0 {
-		panic("no return value specified for HashTreeRoot")
-	}
-
-	var r0 [32]byte
-	var r1 error
-	if rf, ok := ret.Get(0).(func() ([32]byte, error)); ok {
-		return rf()
-	}
-	if rf, ok := ret.Get(0).(func() [32]byte); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([32]byte)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// BeaconState_HashTreeRoot_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'HashTreeRoot'
-type BeaconState_HashTreeRoot_Call[BeaconBlockHeaderT backend.BeaconBlockHeader[BeaconBlockHeaderT], Eth1DataT interface{}, ExecutionPayloadHeaderT interface{}, ForkT interface{}, ValidatorT interface{}, ValidatorsT interface{}, WithdrawalT interface{}] struct {
-	*mock.Call
-}
-
-// HashTreeRoot is a helper method to define mock.On call
-func (_e *BeaconState_Expecter[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) HashTreeRoot() *BeaconState_HashTreeRoot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
-	return &BeaconState_HashTreeRoot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]{Call: _e.mock.On("HashTreeRoot")}
-}
-
-func (_c *BeaconState_HashTreeRoot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Run(run func()) *BeaconState_HashTreeRoot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *BeaconState_HashTreeRoot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Return(_a0 [32]byte, _a1 error) *BeaconState_HashTreeRoot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *BeaconState_HashTreeRoot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) RunAndReturn(run func() ([32]byte, error)) *BeaconState_HashTreeRoot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
-	_c.Call.Return(run)
-	return _c
-}
-
 // SetSlot provides a mock function with given fields: _a0
 func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) SetSlot(_a0 math.U64) error {
 	ret := _m.Called(_a0)

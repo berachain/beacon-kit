@@ -254,33 +254,23 @@ func (_c *BeaconBlockHeader_GetStateRoot_Call[BeaconBlockHeaderT]) RunAndReturn(
 }
 
 // HashTreeRoot provides a mock function with given fields:
-func (_m *BeaconBlockHeader[BeaconBlockHeaderT]) HashTreeRoot() ([32]byte, error) {
+func (_m *BeaconBlockHeader[BeaconBlockHeaderT]) HashTreeRoot() bytes.B32 {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
 		panic("no return value specified for HashTreeRoot")
 	}
 
-	var r0 [32]byte
-	var r1 error
-	if rf, ok := ret.Get(0).(func() ([32]byte, error)); ok {
-		return rf()
-	}
-	if rf, ok := ret.Get(0).(func() [32]byte); ok {
+	var r0 bytes.B32
+	if rf, ok := ret.Get(0).(func() bytes.B32); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([32]byte)
+			r0 = ret.Get(0).(bytes.B32)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 // BeaconBlockHeader_HashTreeRoot_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'HashTreeRoot'
@@ -300,12 +290,12 @@ func (_c *BeaconBlockHeader_HashTreeRoot_Call[BeaconBlockHeaderT]) Run(run func(
 	return _c
 }
 
-func (_c *BeaconBlockHeader_HashTreeRoot_Call[BeaconBlockHeaderT]) Return(_a0 [32]byte, _a1 error) *BeaconBlockHeader_HashTreeRoot_Call[BeaconBlockHeaderT] {
-	_c.Call.Return(_a0, _a1)
+func (_c *BeaconBlockHeader_HashTreeRoot_Call[BeaconBlockHeaderT]) Return(_a0 bytes.B32) *BeaconBlockHeader_HashTreeRoot_Call[BeaconBlockHeaderT] {
+	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *BeaconBlockHeader_HashTreeRoot_Call[BeaconBlockHeaderT]) RunAndReturn(run func() ([32]byte, error)) *BeaconBlockHeader_HashTreeRoot_Call[BeaconBlockHeaderT] {
+func (_c *BeaconBlockHeader_HashTreeRoot_Call[BeaconBlockHeaderT]) RunAndReturn(run func() bytes.B32) *BeaconBlockHeader_HashTreeRoot_Call[BeaconBlockHeaderT] {
 	_c.Call.Return(run)
 	return _c
 }
