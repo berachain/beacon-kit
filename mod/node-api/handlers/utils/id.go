@@ -27,7 +27,8 @@ import (
 )
 
 // TODO: define unique types for each of the query-able IDs (state & block from
-// spec, execution unique to beacon-kit). For each type 
+// spec, execution unique to beacon-kit). For each type define validation
+// functions and resolvers to slot number.
 
 const (
 	StateIDGenesis   = "genesis"

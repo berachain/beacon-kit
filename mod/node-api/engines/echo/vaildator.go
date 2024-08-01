@@ -31,6 +31,10 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// TODO: these validators need to be un-janked to 1) not use `FieldLevel` for
+// repeated `.Field().String()` calls and 2) strongly type the allowed IDs,
+// putting validation logic on each type.
+
 // CustomValidator is a custom validator for the API.
 type CustomValidator struct {
 	Validator *validator.Validate
