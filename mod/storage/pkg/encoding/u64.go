@@ -18,18 +18,22 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package block
+package encoding
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+	"cosmossdk.io/collections/codec"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-type BeaconBlock[T any] interface {
-	constraints.SSZMarshallable
-	NewFromSSZ(bz []byte, version uint32) (T, error)
-	Version() uint32
-	HashTreeRoot() common.Root
-	GetExecutionNumber() math.U64
-}
+var (
+	// U64Key can be used to encode math.U64 keys. Encoding is big endian to
+	// retain ordering.
+	//
+	//nolint:gochecknoglobals // stateless so can be reused.
+	U64Key = codec.NewUint64Key[math.U64]()
+
+	// U64Value implements a ValueCodec for uint64.
+	//
+	//nolint:gochecknoglobals // stateless so can be reused.
+	U64Value = codec.KeyToValueCodec(U64Key)
+)

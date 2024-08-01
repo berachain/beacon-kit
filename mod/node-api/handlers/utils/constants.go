@@ -18,18 +18,19 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package block
+package utils
 
-import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+
+const (
+	StateIDGenesis    = "genesis"
+	StateIDFinalized  = "finalized"
+	StateIDJustified  = "justified"
+	StateIDHead       = "head"
+	ExecutionIDPrefix = "n"
 )
 
-type BeaconBlock[T any] interface {
-	constraints.SSZMarshallable
-	NewFromSSZ(bz []byte, version uint32) (T, error)
-	Version() uint32
-	HashTreeRoot() common.Root
-	GetExecutionNumber() math.U64
-}
+const (
+	Head math.Slot = iota
+	Genesis
+)
