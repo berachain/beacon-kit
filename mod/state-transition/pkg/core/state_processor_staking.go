@@ -311,7 +311,8 @@ func (sp *StateProcessor[
 // TODO: This is exposed for the PayloadBuilder and probably should be done in a
 // better way.
 func (sp *StateProcessor[
-	_, BeaconBlockBodyT, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, ValidatorsT, WithdrawalT, _,
+	_, BeaconBlockBodyT, _, BeaconStateT, _, _, _, _,
+	_, _, _, _, ValidatorT, ValidatorsT, WithdrawalT, _,
 ]) ExpectedWithdrawals(st BeaconStateT) ([]WithdrawalT, error) {
 	return sp.expectedWithdrawals(st)
 }
@@ -355,13 +356,16 @@ func (sp *StateProcessor[
 		totalValidators, sp.cs.MaxValidatorsPerWithdrawalsSweep(),
 	)
 
+	var (
+		validator  ValidatorT
+		withdrawal WithdrawalT
+		amount     math.Gwei
+	)
+
 	// Iterate through indices to find the next validators to withdraw.
 	for range bound {
-		var (
-			withdrawal WithdrawalT
-			amount     math.Gwei
-		)
-		validator, err := st.ValidatorByIndex(validatorIndex)
+
+		validator, err = st.ValidatorByIndex(validatorIndex)
 		if err != nil {
 			return nil, err
 		}
