@@ -58,7 +58,7 @@ type BeaconStateMarshallable[
 		nextWithdrawalValidatorIndex math.U64,
 		slashings []uint64, totalSlashing math.U64,
 	) (T, error)
-	GetTree() *fastssz.Node
+	GetTree() (*fastssz.Node, error)
 }
 
 // Validator represents an interface for a validator with generic withdrawal

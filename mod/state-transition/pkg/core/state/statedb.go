@@ -244,7 +244,7 @@ func (s *StateDB[
 // HashTreeRoot is the interface for the beacon store.
 func (s *StateDB[
 	_, _, _, _, _, _, _, _, _, _,
-]) GetTree() *fastssz.Node {
+]) GetTree() (*fastssz.Node, error) {
 	st, err := s.GetMarshallable()
 	if err != nil {
 		panic(err)
