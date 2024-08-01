@@ -26,9 +26,9 @@ import (
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/index"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/keys"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

@@ -27,6 +27,7 @@ import (
 	"regexp"
 	"strconv"
 
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )
@@ -61,6 +62,7 @@ func ConstructValidator() *validator.Validate {
 	validators := map[string](func(fl validator.FieldLevel) bool){
 		"state_id":         ValidateStateID,
 		"block_id":         ValidateBlockID,
+		"execution_id":     ValidateExecutionID,
 		"validator_id":     ValidateValidatorID,
 		"validator_status": ValidateValidatorStatus,
 		"epoch":            ValidateUint64,
@@ -94,6 +96,21 @@ func ValidateBlockID(fl validator.FieldLevel) bool {
 		"genesis":   true,
 		"finalized": true,
 	}
+	return validateStateBlockIDs(fl, allowedValues)
+}
+
+func ValidateExecutionID(fl validator.FieldLevel) bool {
+	allowedValues := map[string]bool{
+		utils.StateIDHead:      true,
+		utils.StateIDGenesis:   true,
+		utils.StateIDFinalized: true,
+		utils.StateIDJustified: true,
+	}
+
+	if utils.IsExecutionNumberPrefix(fl.Field().String()) {
+		return true
+	}
+
 	return validateStateBlockIDs(fl, allowedValues)
 }
 
@@ -173,20 +190,10 @@ func validateRegex(fl validator.FieldLevel, hexPattern string) (
 	return matched, nil
 }
 
-func fieldEmpty(fl validator.FieldLevel) bool {
-	if value := fl.Field().String(); value == "" {
-		return false
-	}
-	return true
-}
-
 func validateStateBlockIDs(
 	fl validator.FieldLevel,
 	allowedValues map[string]bool,
 ) bool {
-	if fieldEmpty(fl) {
-		return true
-	}
 	// Check if value is one of the allowed values
 	if validateAllowedStrings(fl, allowedValues) {
 		return true

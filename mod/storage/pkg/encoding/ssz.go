@@ -28,7 +28,7 @@ import (
 // SSZValueCodec provides methods to encode and decode SSZ values.
 type SSZValueCodec[T interface {
 	constraints.SSZMarshallable
-	Empty() T
+	constraints.Empty[T]
 }] struct{}
 
 // Encode marshals the provided value into its SSZ encoding.
@@ -70,8 +70,8 @@ func (SSZValueCodec[T]) ValueType() string {
 // infer the type of an interface.
 type SSZInterfaceCodec[T interface {
 	constraints.SSZMarshallable
+	constraints.Versionable
 	NewFromSSZ([]byte, uint32) (T, error)
-	Version() uint32
 }] struct {
 	latestVersion uint32
 }
