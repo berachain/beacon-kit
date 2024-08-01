@@ -85,6 +85,7 @@ type (
 	// AttributesFactory is a type alias for the attributes factory.
 	AttributesFactory = attributes.Factory[
 		*BeaconState,
+		*StateProcessor,
 		*PayloadAttributes,
 		*Withdrawal,
 	]
