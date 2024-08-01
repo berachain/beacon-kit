@@ -53,7 +53,7 @@ func ProveProposerInBlock[
 	}
 
 	// Then get the proof of the beacon state in the beacon block.
-	stateInBlockProof, err := ProveBeaconStateInBlock(bbh)
+	stateInBlockProof, err := ProveStateInBlock(bbh)
 	if err != nil {
 		return nil, common.Root{}, err
 	}

@@ -25,6 +25,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	fastssz "github.com/ferranbt/fastssz"
 )
 
 // BeaconStateMarshallable represents an interface for a beacon state
@@ -57,6 +58,7 @@ type BeaconStateMarshallable[
 		nextWithdrawalValidatorIndex math.U64,
 		slashings []uint64, totalSlashing math.U64,
 	) (T, error)
+	GetTree() *fastssz.Node
 }
 
 // Validator represents an interface for a validator with generic withdrawal

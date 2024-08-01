@@ -24,6 +24,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	fastssz "github.com/ferranbt/fastssz"
 )
 
 // StateDB is the underlying struct behind the BeaconState interface.
@@ -279,8 +280,6 @@ func (s *StateDB[
 	if err != nil {
 		return empty, err
 	}
-
-	// TODO: Properly move BeaconState into full generics.
 	return (*new(BeaconStateMarshallableT)).New(
 		s.cs.ActiveForkVersionForSlot(slot),
 		genesisValidatorsRoot,
@@ -300,6 +299,17 @@ func (s *StateDB[
 		slashings,
 		totalSlashings,
 	)
+}
+
+// HashTreeRoot is the interface for the beacon store.
+func (s *StateDB[
+	_, _, _, _, _, _, _, _, _, _,
+]) GetTree() *fastssz.Node {
+	st, err := s.GetMarshallable()
+	if err != nil {
+		panic(err)
+	}
+	return st.GetTree()
 }
 
 // HashTreeRoot is the interface for the beacon store.

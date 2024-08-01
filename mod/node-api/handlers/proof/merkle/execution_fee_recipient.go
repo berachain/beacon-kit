@@ -82,11 +82,7 @@ func ProveExecutionFeeRecipientInState[
 		BeaconStateMarshallableT, ExecutionPayloadHeaderT, ValidatorT,
 	],
 ) ([]common.Root, common.Root, error) {
-	bsm, err := bs.GetMarshallable()
-	if err != nil {
-		return nil, common.Root{}, err
-	}
-	stateProofTree, err := bsm.GetTree()
+	stateProofTree, err := bs.GetTree()
 	if err != nil {
 		return nil, common.Root{}, err
 	}
