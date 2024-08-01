@@ -27,14 +27,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 )
 
-// Basic is the minimal interface for a service.
-type Basic interface {
-	// Start spawns any goroutines required by the service.
-	Start(ctx context.Context) error
-	// Name returns the name of the service.
-	Name() string
-}
-
 // Registry provides a useful pattern for managing services.
 // It allows for ease of dependency management and ensures services
 // dependent on others use the same references in memory.
