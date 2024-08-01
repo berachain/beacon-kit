@@ -23,6 +23,7 @@ package types
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
@@ -33,6 +34,11 @@ import (
 	"github.com/ethpandaops/beacon/pkg/beacon"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
 	"github.com/sirupsen/logrus"
+)
+
+const (
+	// connTimeout is the timeout for the connection to the consensus client.
+	connTimeout = 10 * time.Second
 )
 
 // ConsensusClient represents a consensus client.
@@ -80,11 +86,15 @@ func (cc *ConsensusClient) Connect(ctx context.Context) error {
 	}
 	opts := beacon.DefaultOptions()
 	opts.DisablePrometheusMetrics()
+	time.Sleep(connTimeout)
 	cc.Node = beacon.NewNode(logrus.New(), &beacon.Config{
 		Addr: fmt.Sprintf("http://0.0.0.0:%d", nodePort.GetNumber()),
 		Name: "beacon node",
 	}, "eth", *opts)
-	return cc.Node.Start(ctx)
+
+	timeoutCtx, cancel := context.WithTimeout(ctx, connTimeout)
+	defer cancel()
+	return cc.Node.Start(timeoutCtx)
 }
 
 // Start starts the consensus client.
