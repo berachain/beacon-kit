@@ -20,13 +20,13 @@
 
 package config
 
-// Consensus clients
+// Consensus clients.
 const (
 	DefaultClient   = "cl-validator-beaconkit-0"
 	AlternateClient = "cl-validator-beaconkit-1"
 )
 
-// Deposits
+// Deposits.
 const (
 	DepositContractAddress = "0x4242424242424242424242424242424242424242"
 	NumDepositsLoad        = 500

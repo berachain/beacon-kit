@@ -32,8 +32,6 @@ import (
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
-
-
 func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	// Get the consensus client.
 	client := s.ConsensusClients()[config.DefaultClient]

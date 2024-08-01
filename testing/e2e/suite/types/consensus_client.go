@@ -28,7 +28,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-
 	rpcclient "github.com/cometbft/cometbft/rpc/client"
 	httpclient "github.com/cometbft/cometbft/rpc/client/http"
 	"github.com/ethpandaops/beacon/pkg/beacon"
@@ -52,7 +51,7 @@ func NewConsensusClient(serviceCtx *WrappedServiceContext) *ConsensusClient {
 		WrappedServiceContext: serviceCtx,
 	}
 
-	if err := cc.Connect(); err != nil {
+	if err := cc.Connect(context.Background()); err != nil {
 		panic(err)
 	}
 
@@ -60,7 +59,7 @@ func NewConsensusClient(serviceCtx *WrappedServiceContext) *ConsensusClient {
 }
 
 // Connect connects the consensus client to the consensus client.
-func (cc *ConsensusClient) Connect() error {
+func (cc *ConsensusClient) Connect(ctx context.Context) error {
 	// Start by trying to get the public port for the comet JSON-RPC.
 	cometPort, ok := cc.WrappedServiceContext.GetPublicPorts()["cometbft-rpc"]
 	if !ok {
@@ -82,7 +81,7 @@ func (cc *ConsensusClient) Connect() error {
 		Addr: fmt.Sprintf("http://0.0.0.0:%d", nodePort.GetNumber()),
 		Name: "beacon node",
 	}, "eth", *beacon.DefaultOptions())
-	return cc.Node.Start(context.Background())
+	return cc.Node.Start(ctx)
 }
 
 // Start starts the consensus client.
@@ -95,7 +94,7 @@ func (cc ConsensusClient) Start(
 		return nil, err
 	}
 
-	return res, cc.Connect()
+	return res, cc.Connect(ctx)
 }
 
 // Stop stops the consensus client.
