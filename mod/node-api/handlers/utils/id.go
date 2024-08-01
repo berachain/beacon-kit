@@ -26,6 +26,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
+// TODO: define unique types for each of the query-able IDs (state & block from
+// spec, execution unique to beacon-kit). For each type 
+
 const (
 	StateIDGenesis   = "genesis"
 	StateIDFinalized = "finalized"
