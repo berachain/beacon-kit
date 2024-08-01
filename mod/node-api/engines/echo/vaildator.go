@@ -58,7 +58,7 @@ func ConstructValidator() *validator.Validate {
 	validators := map[string](func(fl validator.FieldLevel) bool){
 		"state_id":         ValidateStateID,
 		"block_id":         ValidateBlockID,
-		"timestamp_id":     ValidateTimestampID,
+		"execution_id":     ValidateExecutionID,
 		"validator_id":     ValidateValidatorID,
 		"validator_status": ValidateValidatorStatus,
 		"epoch":            ValidateUint64,
@@ -95,7 +95,7 @@ func ValidateBlockID(fl validator.FieldLevel) bool {
 	return validateStateBlockIDs(fl, allowedValues)
 }
 
-func ValidateTimestampID(fl validator.FieldLevel) bool {
+func ValidateExecutionID(fl validator.FieldLevel) bool {
 	allowedValues := map[string]bool{
 		utils.StateIDHead:      true,
 		utils.StateIDGenesis:   true,
@@ -103,7 +103,7 @@ func ValidateTimestampID(fl validator.FieldLevel) bool {
 		utils.StateIDJustified: true,
 	}
 
-	if utils.IsTimestampPrefix(fl.Field().String()) {
+	if utils.IsExecutionNumberPrefix(fl.Field().String()) {
 		return true
 	}
 

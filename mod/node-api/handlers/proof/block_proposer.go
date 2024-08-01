@@ -37,8 +37,8 @@ func (h *Handler[
 	if err != nil {
 		return nil, err
 	}
-	slot, beaconState, blockHeader, err := h.resolveTimestampID(
-		params.TimestampID,
+	slot, beaconState, blockHeader, err := h.resolveExecutionID(
+		params.ExecutionID,
 	)
 	if err != nil {
 		return nil, err

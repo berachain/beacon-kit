@@ -27,7 +27,7 @@ const (
 	StateIDFinalized  = "finalized"
 	StateIDJustified  = "justified"
 	StateIDHead       = "head"
-	TimestampIDPrefix = "t"
+	ExecutionIDPrefix = "n"
 )
 
 const (

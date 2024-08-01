@@ -64,36 +64,36 @@ func SlotFromBlockID[StorageBackendT interface {
 	return storage.GetSlotByRoot(bytes.ToBytes32(root))
 }
 
-// SlotFromTimestampID returns a slot from the timestamp ID.
+// SlotFromExecutionID returns a slot from the execution number ID.
 //
-// NOTE: `timestampID` shares the same semantics as `stateID`, with the
-// modification of being able to query by beacon block <timestamp> instead of
-// <stateRoot>.
+// NOTE: `executionID` shares the same semantics as `stateID`, with the
+// modification of being able to query by beacon block <executionNumber>
+// instead of <stateRoot>.
 //
-// The <timestamp> must be prefixed by the 't', followed by the Unix timestamp
-// number in hexadecimal notation. For example 't0x66aab3ef' corresponds to
-// the block at Unix timestamp 1722463215. Providing just the string
-// '0x66aab3ef' (without the prefix 't') will query for the beacon block with
+// The <executionNumber> must be prefixed by the 'n', followed by the execution
+// number in hexadecimal notation. For example 'n0x66aab3ef' corresponds to
+// the slot with execution number 1722463215. Providing just the string
+// '0x66aab3ef' (without the prefix 'n') will query for the beacon block with
 // slot 1722463215.
-func SlotFromTimestampID[StorageBackendT interface {
+func SlotFromExecutionID[StorageBackendT interface {
 	GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
-}](timestampID string, storage StorageBackendT) (math.Slot, error) {
-	if !IsTimestampPrefix(timestampID) {
-		return SlotFromStateID(timestampID)
+}](executionID string, storage StorageBackendT) (math.Slot, error) {
+	if !IsExecutionNumberPrefix(executionID) {
+		return SlotFromStateID(executionID)
 	}
 
-	// Parse the timestamp from the timestampID.
-	timestamp, err := U64FromString(timestampID[1:])
+	// Parse the execution number from the executionID.
+	executionNumber, err := U64FromString(executionID[1:])
 	if err != nil {
 		return 0, err
 	}
-	return storage.GetSlotByExecutionNumber(timestamp)
+	return storage.GetSlotByExecutionNumber(executionNumber)
 }
 
-// IsTimestampPrefix checks if the given timestampID is prefixed with the
-// timestamp prefix.
-func IsTimestampPrefix(timestampID string) bool {
-	return strings.HasPrefix(timestampID, TimestampIDPrefix)
+// IsExecutionNumberPrefix checks if the given executionID is prefixed
+// with the execution number prefix.
+func IsExecutionNumberPrefix(executionID string) bool {
+	return strings.HasPrefix(executionID, ExecutionIDPrefix)
 }
 
 // U64FromString returns a math.U64 from the given string. Errors if the given
