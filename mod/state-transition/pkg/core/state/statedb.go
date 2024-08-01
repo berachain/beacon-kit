@@ -220,6 +220,7 @@ func (s *StateDB[
 	if err != nil {
 		return empty, err
 	}
+
 	return (*new(BeaconStateMarshallableT)).New(
 		s.cs.ActiveForkVersionForSlot(slot),
 		genesisValidatorsRoot,
