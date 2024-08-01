@@ -52,6 +52,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
 	chainservice "github.com/berachain/beacon-kit/mod/node-core/pkg/services/blockchain"
 	validatorservice "github.com/berachain/beacon-kit/mod/node-core/pkg/services/validator"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/services/version"
 	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
@@ -272,7 +273,7 @@ type (
 	Context = transition.Context
 
 	/* ---------------------------------------------------------------------- */
-	/*                                DA Service                               */
+	/*                                DA Service                              */
 	/* ----------------------------------------------------------------------. */
 
 	// DAService is a type alias for the DA service.
@@ -368,6 +369,8 @@ type (
 		*Validator,
 		Validators,
 	]
+
+	ReportingService = version.ReportingService
 
 	// LegacyKey type alias to LegacyKey used for LegacySinger construction.
 	LegacyKey = signer.LegacyKey

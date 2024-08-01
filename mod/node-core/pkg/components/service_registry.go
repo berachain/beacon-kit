@@ -22,31 +22,38 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
+	sdklog "cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/services/version"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
-	sdkversion "github.com/cosmos/cosmos-sdk/version"
 )
 
 // ServiceRegistryInput is the input for the service registry provider.
 type ServiceRegistryInput struct {
 	depinject.In
-	ABCIService           *ABCIMiddleware
-	BlockBroker           *BlockBroker
-	BlockStoreService     *BlockStoreService
-	ChainService          *ChainService
-	DBManager             *DBManager
-	DAService             *DAService
-	DepositService        *DepositService
-	EngineClient          *EngineClient
+	DBManager *DBManager
+
+	Logger        log.AdvancedLogger[any, sdklog.Logger]
+	TelemetrySink *metrics.TelemetrySink
+
+	// TODO: Event mediator
+	ABCIService *ABCIMiddleware
+
+	// FR services
+	ChainService      *ChainService
+	ValidatorService  *ValidatorService
+	DAService         *DAService
+	BlockStoreService *BlockStoreService
+	DepositService    *DepositService
+	EngineClient      *EngineClient
+	NodeAPIServer     *NodeAPIServer
+
+	// TODO: non-services
+	ReportingService      *ReportingService
 	GenesisBroker         *GenesisBroker
-	Logger                log.Logger
-	NodeAPIServer         *NodeAPIServer
 	SidecarsBroker        *SidecarsBroker
 	SlotBroker            *SlotBroker
-	TelemetrySink         *metrics.TelemetrySink
-	ValidatorService      *ValidatorService
+	BlockBroker           *BlockBroker
 	ValidatorUpdateBroker *ValidatorUpdateBroker
 }
 
@@ -63,11 +70,7 @@ func ProvideServiceRegistry(
 		service.WithService(in.DepositService),
 		service.WithService(in.ABCIService),
 		service.WithService(in.NodeAPIServer),
-		service.WithService(version.NewReportingService(
-			in.Logger.With("service", "reporting"),
-			in.TelemetrySink,
-			sdkversion.Version,
-		)),
+		service.WithService(in.ReportingService),
 		service.WithService(in.DBManager),
 		service.WithService(in.GenesisBroker),
 		service.WithService(in.BlockBroker),

@@ -46,6 +46,7 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideExecutionEngine,
 		ProvideJWTSecret,
 		ProvideLocalBuilder,
+		ProvideReportingService,
 		ProvideServiceRegistry,
 		ProvideSidecarFactory,
 		ProvideStateProcessor,
