@@ -21,9 +21,7 @@
 package state
 
 import (
-	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	fastssz "github.com/ferranbt/fastssz"
 )
 
@@ -124,64 +122,6 @@ func (s *StateDB[
 	WithdrawalCredentialsT,
 ] {
 	return s.NewFromDB(s.KVStore.Copy(), s.cs)
-}
-
-// IncreaseBalance increases the balance of a validator.
-func (s *StateDB[
-	_, _, _, _, _, _, _, _, _, _,
-]) IncreaseBalance(
-	idx math.ValidatorIndex,
-	delta math.Gwei,
-) error {
-	balance, err := s.GetBalance(idx)
-	if err != nil {
-		return err
-	}
-	return s.SetBalance(idx, balance+delta)
-}
-
-// DecreaseBalance decreases the balance of a validator.
-func (s *StateDB[
-	_, _, _, _, _, _, _, _, _, _,
-]) DecreaseBalance(
-	idx math.ValidatorIndex,
-	delta math.Gwei,
-) error {
-	balance, err := s.GetBalance(idx)
-	if err != nil {
-		return err
-	}
-	return s.SetBalance(idx, balance-min(balance, delta))
-}
-
-// UpdateSlashingAtIndex sets the slashing amount in the store.
-func (s *StateDB[
-	_, _, _, _, _, _, _, _, _, _,
-]) UpdateSlashingAtIndex(
-	index uint64,
-	amount math.Gwei,
-) error {
-	// Update the total slashing amount before overwriting the old amount.
-	total, err := s.GetTotalSlashing()
-	if err != nil {
-		return err
-	}
-
-	oldValue, err := s.GetSlashingAtIndex(index)
-	if err != nil {
-		return err
-	}
-
-	// Defensive check but total - oldValue should never underflow.
-	if oldValue > total {
-		return errors.New("count of total slashing is not up to date")
-	} else if err = s.SetTotalSlashing(
-		total - oldValue + amount,
-	); err != nil {
-		return err
-	}
-
-	return s.SetSlashingAtIndex(index, amount)
 }
 
 // GetMarshallable is the interface for the beacon store.

@@ -44,8 +44,8 @@ type BeaconState[
 	// GetLatestExecutionPayloadHeader returns the latest execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (ExecutionPayloadHeaderT, error)
-	// GetTree is kept for FastSSZ compatibility.
-	GetTree() (*fastssz.Node, error)
+	// GetMarshallable returns the marshallable version of the beacon state.
+	GetMarshallable() (BeaconStateMarshallableT, error)
 	// ValidatorByIndex retrieves the validator at the given index.
 	ValidatorByIndex(index math.ValidatorIndex) (ValidatorT, error)
 }

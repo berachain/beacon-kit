@@ -79,7 +79,11 @@ func ProveExecutionNumberInState[
 		BeaconStateMarshallableT, ExecutionPayloadHeaderT, ValidatorT,
 	],
 ) ([]common.Root, common.Root, error) {
-	stateProofTree, err := bs.GetTree()
+	bsm, err := bs.GetMarshallable()
+	if err != nil {
+		return nil, common.Root{}, err
+	}
+	stateProofTree, err := bsm.GetTree()
 	if err != nil {
 		return nil, common.Root{}, err
 	}
