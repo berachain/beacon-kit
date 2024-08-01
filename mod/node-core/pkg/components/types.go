@@ -70,7 +70,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// compile time assertions to enforce assumptions on types
+// compile time assertions to enforce assumptions on types.
 var (
 	_ ValidatorProcessorI = (*ValidatorProcessor)(nil)
 	_ ChainProcessorI     = (*ChainProcessor)(nil)
@@ -154,7 +154,7 @@ type (
 
 	/* ---------------------------------------------------------------------- */
 	/*                             Chain Service                              */
-	/* ---------------------------------------------------------------------- */
+	/* ----------------------------------------------------------------------. */
 	ChainService = service.Service[
 		*ChainEventHandler,
 		ChainProcessorI,
@@ -196,7 +196,7 @@ type (
 
 	/* ---------------------------------------------------------------------- */
 	/*                             Validator Service                          */
-	/* ---------------------------------------------------------------------- */
+	/* ----------------------------------------------------------------------. */
 
 	// ValidatorService is a type alias for the validator service.
 	ValidatorService = service.Service[
@@ -222,7 +222,7 @@ type (
 	]
 
 	// ValidatorProcessorI is the type alias for the validator service processor
-	// interface used for the service
+	// interface used for the service.
 	ValidatorProcessorI = validatorservice.Processor[
 		*AttestationData,
 		*BeaconBlock,

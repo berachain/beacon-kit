@@ -20,7 +20,6 @@
 
 package components
 
-//nolint:lll // looks better
 func DefaultComponentsWithStandardTypes() []any {
 	defaultComponents := []any{
 		ProvideABCIMiddleware,

@@ -55,10 +55,9 @@ func ProvideValidatorService(
 
 type ValidatorEventHandlerInput struct {
 	depinject.In
-	BeaconBlockFeed     *BlockBroker
-	BlobSidecarFeed     *SidecarsBroker
-	SlotFeed            *SlotBroker
-	ValidatorProcessorI ValidatorProcessorI
+	BeaconBlockFeed *BlockBroker
+	BlobSidecarFeed *SidecarsBroker
+	SlotFeed        *SlotBroker
 }
 
 func ProvideValidatorEventHandler(
@@ -75,7 +74,6 @@ func ProvideValidatorEventHandler(
 		*SlashingInfo,
 		*SlotData,
 	](
-		in.ValidatorProcessorI,
 		in.BeaconBlockFeed,
 		in.BlobSidecarFeed,
 		in.SlotFeed,
