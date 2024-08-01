@@ -23,6 +23,7 @@ package types
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
@@ -81,6 +82,12 @@ func (f *Fork) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineStaticBytes(codec, &f.PreviousVersion)
 	ssz.DefineStaticBytes(codec, &f.CurrentVersion)
 	ssz.DefineUint64(codec, &f.Epoch)
+}
+
+func (f *Fork) DefineSchema(builder *schema.Builder) {
+	schema.DefineStaticBytes(builder, "previous_version", &f.PreviousVersion)
+	schema.DefineStaticBytes(builder, "current_version", &f.CurrentVersion)
+	schema.DefineUint64(builder, "epoch", &f.Epoch)
 }
 
 // MarshalSSZ marshals the Fork object to SSZ format.

@@ -196,6 +196,11 @@ func (c container) Length() uint64 { return uint64(len(c.Fields)) }
 
 func (c container) HashChunkCount() uint64 { return uint64(len(c.Fields)) }
 
+func (c container) DefineField(name string, typ SSZType) {
+	c.Fields = append(c.Fields, typ)
+	c.FieldIndex[name] = uint64(len(c.Fields) - 1)
+}
+
 // TODO: audit
 // Altneratives:
 // 1) Export container as Container

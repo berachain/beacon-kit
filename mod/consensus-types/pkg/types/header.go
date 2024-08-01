@@ -23,6 +23,7 @@ package types
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
@@ -103,6 +104,14 @@ func (b *BeaconBlockHeader) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineStaticBytes(codec, &b.ParentBlockRoot)
 	ssz.DefineStaticBytes(codec, &b.StateRoot)
 	ssz.DefineStaticBytes(codec, &b.BodyRoot)
+}
+
+func (b *BeaconBlockHeader) DefineSchema(builder *schema.Builder) {
+	schema.DefineUint64(builder, "slot", &b.Slot)
+	schema.DefineUint64(builder, "propoer_index", &b.ProposerIndex)
+	schema.DefineStaticBytes(builder, "parent_block_root", &b.ParentBlockRoot)
+	schema.DefineStaticBytes(builder, "state_root", &b.StateRoot)
+	schema.DefineStaticBytes(builder, "body_root", &b.BodyRoot)
 }
 
 // MarshalSSZ marshals the BeaconBlockBody object to SSZ format.

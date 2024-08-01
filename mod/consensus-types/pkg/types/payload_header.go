@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	fastssz "github.com/ferranbt/fastssz"
@@ -148,6 +149,33 @@ func (h *ExecutionPayloadHeader) DefineSSZ(codec *ssz.Codec) {
 	// Define the dynamic data (fields)
 	//nolint:mnd // todo fix.
 	ssz.DefineDynamicBytesContent(codec, (*[]byte)(&h.ExtraData), 32)
+}
+
+func (h *ExecutionPayloadHeader) DefineSchema(builder *schema.Builder) {
+	// Define the static data (fields and dynamic offsets)
+	schema.DefineStaticBytes(builder, "parent_hash", &h.ParentHash)
+	schema.DefineStaticBytes(builder, "fee_recipient", &h.FeeRecipient)
+	schema.DefineStaticBytes(builder, "state_root", &h.StateRoot)
+	schema.DefineStaticBytes(builder, "receipts_root", &h.ReceiptsRoot)
+	schema.DefineStaticBytes(builder, "logs_bloom", &h.LogsBloom)
+	schema.DefineStaticBytes(builder, "random", &h.Random)
+	schema.DefineUint64(builder, "number", &h.Number)
+	schema.DefineUint64(builder, "gas_limit", &h.GasLimit)
+	schema.DefineUint64(builder, "gas_used", &h.GasUsed)
+	schema.DefineUint64(builder, "timestamp", &h.Timestamp)
+	//nolint:mnd // todo fix.
+	schema.DefineDynamicBytesOffset(
+		builder,
+		"extra_data",
+		(*[]byte)(&h.ExtraData),
+		32,
+	)
+	schema.DefineUint256(builder, "base_fee_per_gas", &h.BaseFeePerGas)
+	schema.DefineStaticBytes(builder, "block_hash", &h.BlockHash)
+	schema.DefineStaticBytes(builder, "transactions_root", &h.TransactionsRoot)
+	schema.DefineStaticBytes(builder, "withdrawals_root", &h.WithdrawalsRoot)
+	schema.DefineUint64(builder, "blob_gas_used", &h.BlobGasUsed)
+	schema.DefineUint64(builder, "excess_blob_gas", &h.ExcessBlobGas)
 }
 
 // MarshalSSZ serializes the ExecutionPayloadHeader object into a slice of

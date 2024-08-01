@@ -23,6 +23,7 @@ package deneb
 import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
@@ -127,6 +128,88 @@ func (b *BeaconState) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineSliceOfUint64sContent(codec, &b.Balances, 1099511627776)
 	ssz.DefineSliceOfStaticBytesContent(codec, &b.RandaoMixes, 65536)
 	ssz.DefineSliceOfUint64sContent(codec, &b.Slashings, 1099511627776)
+}
+
+func (b *BeaconState) DefineSchema(builder *schema.Builder) {
+	// Versioning
+	schema.DefineStaticBytes(
+		builder,
+		"genesis_validators_root",
+		&b.GenesisValidatorsRoot,
+	)
+	schema.DefineUint64(builder, "slot", &b.Slot)
+	schema.DefineStaticObject(builder, "fork", &b.Fork)
+
+	// History
+	schema.DefineStaticObject(
+		builder,
+		"latest_block_header",
+		&b.LatestBlockHeader,
+	)
+	schema.DefineSliceOfStaticBytesOffset(
+		builder,
+		"block_roots",
+		&b.BlockRoots,
+		8192,
+	)
+	schema.DefineSliceOfStaticBytesOffset(
+		builder,
+		"state_roots",
+		&b.StateRoots,
+		8192,
+	)
+
+	// Eth1
+	schema.DefineStaticObject(builder, "eth1_data", &b.Eth1Data)
+	schema.DefineUint64(builder, "eth1_deposit_index", &b.Eth1DepositIndex)
+	schema.DefineDynamicObjectOffset(
+		builder,
+		"latest_execution_payload_header",
+		&b.LatestExecutionPayloadHeader,
+	)
+
+	// Registry
+	schema.DefineSliceOfStaticObjectsOffset(
+		builder,
+		"validators",
+		&b.Validators,
+		1099511627776,
+	)
+	schema.DefineSliceOfUint64sOffset(
+		builder,
+		"balances",
+		&b.Balances,
+		1099511627776,
+	)
+
+	// Randomness
+	schema.DefineSliceOfStaticBytesOffset(
+		builder,
+		"randao_mixes",
+		&b.RandaoMixes,
+		65536,
+	)
+
+	// Withdrawals
+	schema.DefineUint64(
+		builder,
+		"next_withdrawal_index",
+		&b.NextWithdrawalIndex,
+	)
+	schema.DefineUint64(
+		builder,
+		"next_withdrawal_validator_index",
+		&b.NextWithdrawalValidatorIndex,
+	)
+
+	// // Slashing
+	schema.DefineSliceOfUint64sOffset(
+		builder,
+		"slashings",
+		&b.Slashings,
+		1099511627776,
+	)
+	schema.DefineUint64(builder, "total_slashing", (*uint64)(&b.TotalSlashing))
 }
 
 // MarshalSSZ marshals the BeaconState into SSZ format.
