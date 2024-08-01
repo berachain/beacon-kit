@@ -248,7 +248,7 @@ func (s *StateDB[
 ]) GetTree() (*fastssz.Node, error) {
 	st, err := s.GetMarshallable()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	return st.GetTree()
 }
