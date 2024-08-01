@@ -13,8 +13,7 @@ contract SSZTest is Test {
         assertEq(actual, expected);
 
         uint64 v = 0x1234567890ABCDEF;
-        expected =  
-            bytes32(bytes.concat(hex"EFCDAB9078563412", bytes24(0)));
+        expected = bytes32(bytes.concat(hex"EFCDAB9078563412", bytes24(0)));
         actual = SSZ.uint64HashTreeRoot(v);
         assertEq(actual, expected);
 
