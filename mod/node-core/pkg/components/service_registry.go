@@ -40,15 +40,17 @@ type ServiceRegistryInput struct {
 	ABCIService *ABCIMiddleware
 
 	// FR services
-	ChainService      *ChainService
-	ValidatorService  *ValidatorService
+	ChainService      *ChainService     // done
+	ValidatorService  *ValidatorService // done
 	DAService         *DAService
 	BlockStoreService *BlockStoreService
 	DepositService    *DepositService
-	EngineClient      *EngineClient
-	NodeAPIServer     *NodeAPIServer
 
-	// TODO: non-services
+	// maybe services
+	EngineClient  *EngineClient
+	NodeAPIServer *NodeAPIServer
+
+	// TODO: fake-services
 	ReportingService      *ReportingService
 	GenesisBroker         *GenesisBroker
 	SidecarsBroker        *SidecarsBroker
