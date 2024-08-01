@@ -24,11 +24,14 @@ import (
 	"context"
 )
 
-// A Service is a self contained partition (domain) of the core business logic.
+// A Beacon-kit Service is a component containing all necessary and sufficient
+// logic to operate over a particular business domain.
 //
 // The Service struct is 2-layered facade that contains:
-// - eventHandler: Intercepts events and delegates to the processor
-// - processor: Executes the service's domain business logic
+//   - eventHandler: Intercepts events and delegates to the processor. If this
+//     service doesn't need to handle events, the eventHandler simply acts as a
+//     runner.
+//   - processor: Executes the service's domain business logic
 //
 // Note: In theory, all one really needs to start a "service" is the
 // eventHandler, but the below definition makes it clear from a semantics
