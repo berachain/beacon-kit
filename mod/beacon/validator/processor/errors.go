@@ -18,26 +18,23 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package validator
+package processor
 
-import "context"
+import "github.com/berachain/beacon-kit/mod/errors"
 
-//nolint:lll // long function signatures
-type Processor[
-	AttestationDataT any,
-	BeaconBlockT BeaconBlock[
-		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, DepositT,
-		Eth1DataT, ExecutionPayloadT, SlashingInfoT,
-	],
-	BeaconBlockBodyT BeaconBlockBody[
-		AttestationDataT, DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
-	],
-	BlobSidecarsT,
-	DepositT any,
-	Eth1DataT Eth1Data[Eth1DataT],
-	ExecutionPayloadT any,
-	SlashingInfoT any,
-	SlotDataT SlotData[AttestationDataT, SlashingInfoT],
-] interface {
-	BuildBlockAndSidecars(ctx context.Context, slotData SlotDataT) (BeaconBlockT, BlobSidecarsT, error)
-}
+var (
+
+	// ErrNilPayload is an error for when there is no payload
+	// in a beacon block.
+	ErrNilPayload = errors.New("nil payload in beacon block")
+
+	// ErrNilBlkBody is an error for when the block body is nil.
+	ErrNilBlkBody = errors.New("nil block body")
+
+	// ErrNilBlobsBundle is an error for when the blobs bundle is nil.
+	ErrNilBlobsBundle = errors.New("nil blobs bundle")
+
+	// ErrNilDepositIndexStart is an error for when the deposit index start is
+	// nil.
+	ErrNilDepositIndexStart = errors.New("nil deposit index start")
+)

@@ -1,23 +1,3 @@
-// SPDX-License-Identifier: BUSL-1.1
-//
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is governed by the Business Source License included
-// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
-//
-// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
-// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
-// VERSIONS OF THE LICENSED WORK.
-//
-// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
-// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
-// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
-//
-// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
-// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
-// TITLE.
-
 package blockchain
 
 import (
@@ -29,8 +9,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
-// EventHandler is the event handler for the blockchain service.
-type EventHandler[
+// Service is the event handler for the blockchain service.
+type Service[
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT, ExecutionPayloadT],
 	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
 	DepositT any,
@@ -52,8 +32,8 @@ type EventHandler[
 	]
 }
 
-// NewEventHandler creates a new event handler for the blockchain service.
-func NewEventHandler[
+// NewService creates a new event handler for the blockchain service.
+func NewService[
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT, ExecutionPayloadT],
 	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
 	DepositT any,
@@ -61,12 +41,20 @@ func NewEventHandler[
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
 ](
+	processor Processor[
+		BeaconBlockT,
+		BeaconBlockBodyT,
+		DepositT,
+		ExecutionPayloadT,
+		ExecutionPayloadHeaderT,
+		GenesisT,
+	],
 	blockBroker EventFeed[*asynctypes.Event[BeaconBlockT]],
 	genesisBroker EventFeed[*asynctypes.Event[GenesisT]],
 	//nolint:lll // compiler vs linter
 	validatorUpdateBroker EventFeed[*asynctypes.Event[transition.ValidatorUpdates]],
 	logger log.Logger[any],
-) *EventHandler[
+) *Service[
 	BeaconBlockT,
 	BeaconBlockBodyT,
 	DepositT,
@@ -74,7 +62,7 @@ func NewEventHandler[
 	ExecutionPayloadHeaderT,
 	GenesisT,
 ] {
-	return &EventHandler[
+	return &Service[
 		BeaconBlockT,
 		BeaconBlockBodyT,
 		DepositT,
@@ -86,11 +74,12 @@ func NewEventHandler[
 		genesisBroker:         genesisBroker,
 		validatorUpdateBroker: validatorUpdateBroker,
 		logger:                logger,
+		processor:             processor,
 	}
 }
 
 // Start starts the event handler.
-func (e *EventHandler[
+func (e *Service[
 	BeaconBlockT, _, _, _, _, GenesisT,
 ]) Start(ctx context.Context) error {
 	subBlkCh, err := e.blockBroker.Subscribe()
@@ -105,7 +94,7 @@ func (e *EventHandler[
 	return nil
 }
 
-func (e *EventHandler[
+func (e *Service[
 	BeaconBlockT, _, _, _, _, GenesisT,
 ]) start(
 	ctx context.Context,
@@ -131,32 +120,14 @@ func (e *EventHandler[
 	}
 }
 
-func (e *EventHandler[
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	DepositT,
-	ExecutionPayloadT,
-	ExecutionPayloadHeaderT,
-	GenesisT,
-]) AttachProcessor(processor Processor[
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	DepositT,
-	ExecutionPayloadT,
-	ExecutionPayloadHeaderT,
-	GenesisT,
-]) {
-	e.processor = processor
-}
-
 // Name returns the name of the event handler.
-func (e *EventHandler[
+func (e *Service[
 	_, _, _, _, _, _,
 ]) Name() string {
 	return "blockchain"
 }
 
-func (e *EventHandler[
+func (e *Service[
 	_, _, _, _, _, GenesisT,
 ]) handleProcessGenesisDataRequest(msg *asynctypes.Event[GenesisT]) {
 	if msg.Error() != nil {
@@ -189,7 +160,7 @@ func (e *EventHandler[
 }
 
 // handleBeaconBlockReceived handles the beacon block received event.
-func (e *EventHandler[
+func (e *Service[
 	BeaconBlockT, _, _, _, _, _,
 ]) handleBeaconBlockReceived(
 	msg *asynctypes.Event[BeaconBlockT],
@@ -215,7 +186,7 @@ func (e *EventHandler[
 }
 
 // handleBeaconBlockFinalization handles the beacon block finalized event.
-func (e *EventHandler[
+func (e *Service[
 	BeaconBlockT, _, _, _, _, _,
 ]) handleBeaconBlockFinalization(
 	msg *asynctypes.Event[BeaconBlockT],

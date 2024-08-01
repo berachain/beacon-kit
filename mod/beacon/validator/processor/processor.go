@@ -18,9 +18,10 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package validator
+package processor
 
 import (
+	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -49,7 +50,7 @@ type Processor[
 	SlotDataT SlotData[AttestationDataT, SlashingInfoT],
 ] struct {
 	// cfg is the validator config.
-	cfg *Config
+	cfg *validator.Config
 	// logger is a logger.
 	logger log.Logger[any]
 	// chainSpec is the chain spec.
@@ -84,8 +85,8 @@ type Processor[
 	metrics *validatorMetrics
 }
 
-// NewProcessor creates a new validator service.
-func NewProcessor[
+// New creates a new validator service.
+func New[
 	AttestationDataT any,
 	BeaconBlockT BeaconBlock[
 		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, DepositT,
@@ -105,7 +106,7 @@ func NewProcessor[
 	SlashingInfoT any,
 	SlotDataT SlotData[AttestationDataT, SlashingInfoT],
 ](
-	cfg *Config,
+	cfg *validator.Config,
 	logger log.Logger[any],
 	chainSpec common.ChainSpec,
 	bsb StorageBackend[

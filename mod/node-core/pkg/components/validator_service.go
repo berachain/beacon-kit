@@ -24,46 +24,26 @@ import (
 	"cosmossdk.io/depinject"
 	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
+	validatorprocessor "github.com/berachain/beacon-kit/mod/beacon/validator/processor"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
-	validatorservice "github.com/berachain/beacon-kit/mod/node-core/pkg/services/validator"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 )
-
-// This file contains all the providers of all validator service components.
 
 type ValidatorServiceInput struct {
 	depinject.In
-	ValidatorProcessorI   ValidatorProcessorI
-	ValidatorEventHandler *ValidatorEventHandler
-}
-
-func ProvideValidatorService(
-	in ValidatorServiceInput,
-) *ValidatorService {
-	return service.NewService[
-		*ValidatorEventHandler,
-		ValidatorProcessorI,
-	](
-		in.ValidatorEventHandler,
-		in.ValidatorProcessorI,
-	)
-}
-
-type ValidatorEventHandlerInput struct {
-	depinject.In
+	Processor       *ValidatorProcessor
 	BeaconBlockFeed *BlockBroker
 	BlobSidecarFeed *SidecarsBroker
 	SlotFeed        *SlotBroker
 }
 
-func ProvideValidatorEventHandler(
-	in ValidatorEventHandlerInput,
-) *ValidatorEventHandler {
-	return validatorservice.NewEventHandler[
+func ProvideValidatorService(
+	in ValidatorServiceInput,
+) *ValidatorService {
+	return validator.NewService[
 		*AttestationData,
 		*BeaconBlock,
 		*BeaconBlockBody,
@@ -74,6 +54,7 @@ func ProvideValidatorEventHandler(
 		*SlashingInfo,
 		*SlotData,
 	](
+		in.Processor,
 		in.BeaconBlockFeed,
 		in.BlobSidecarFeed,
 		in.SlotFeed,
@@ -102,7 +83,7 @@ type ValidatorProcessorInput struct {
 func ProvideValidatorProcessor(
 	in ValidatorProcessorInput,
 ) (*ValidatorProcessor, error) {
-	return validator.NewProcessor[
+	return validatorprocessor.New[
 		*AttestationData,
 		*BeaconBlock,
 		*BeaconBlockBody,
@@ -125,7 +106,7 @@ func ProvideValidatorProcessor(
 		in.Signer,
 		in.SidecarFactory,
 		in.LocalBuilder,
-		[]validator.PayloadBuilder[*BeaconState, *ExecutionPayload]{
+		[]validatorprocessor.PayloadBuilder[*BeaconState, *ExecutionPayload]{
 			in.LocalBuilder,
 		},
 		in.TelemetrySink,
@@ -135,7 +116,6 @@ func ProvideValidatorProcessor(
 func ValidatorServiceComponents() []any {
 	return []any{
 		ProvideValidatorService,
-		ProvideValidatorEventHandler,
 		ProvideValidatorProcessor,
 	}
 }

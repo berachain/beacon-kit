@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package blockchain
+package processor
 
 import (
 	"context"
@@ -32,21 +32,15 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
-// Processor is the interface for the blockchain processor.
-//
-//nolint:lll // long types
-type Processor[
-	BeaconBlockT BeaconBlock[BeaconBlockBodyT, ExecutionPayloadT],
-	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
-	DepositT any,
-	ExecutionPayloadT ExecutionPayload,
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
-] interface {
-	ProcessBeaconBlock(ctx context.Context, blk BeaconBlockT) (transition.ValidatorUpdates, error)
-	ProcessGenesisData(ctx context.Context, genesisData GenesisT) (transition.ValidatorUpdates, error)
-	ReceiveBlock(ctx context.Context, blk BeaconBlockT) error
-	VerifyIncomingBlock(ctx context.Context, blk BeaconBlockT) error
+// AvailabilityStore interface is responsible for validating and storing
+// sidecars for specific blocks, as well as verifying sidecars that have already
+// been stored.
+type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
+	// IsDataAvailable ensures that all blobs referenced in the block are
+	// securely stored before it returns without an error.
+	IsDataAvailable(
+		context.Context, math.Slot, BeaconBlockBodyT,
+	) bool
 }
 
 // BeaconBlock represents a beacon block interface.
@@ -75,12 +69,29 @@ type BeaconBlockBody[ExecutionPayloadT any] interface {
 	GetExecutionPayload() ExecutionPayloadT
 }
 
-// EventFeed is a generic interface for sending events.
-type EventFeed[EventT any] interface {
-	// Publish sends an event and returns an error if any occurred.
-	Publish(ctx context.Context, event EventT) error
-	// Subscribe returns a channel that will receive events.
-	Subscribe() (chan EventT, error)
+// BeaconBlockHeader represents the interface for the beacon block header.
+type BeaconBlockHeader interface {
+	constraints.SSZMarshallableRootable
+	// SetStateRoot sets the state root of the beacon block header.
+	SetStateRoot(common.Root)
+}
+
+// BlobSidecars is the interface for blobs sidecars.
+type BlobSidecars interface {
+	constraints.SSZMarshallable
+	constraints.Nillable
+	// Len returns the length of the blobs sidecars.
+	Len() int
+}
+
+// ExecutionEngine is the interface for the execution engine.
+type ExecutionEngine[PayloadAttributesT any] interface {
+	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
+	// update.
+	NotifyForkchoiceUpdate(
+		ctx context.Context,
+		req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
+	) (*engineprimitives.PayloadID, *gethprimitives.ExecutionHash, error)
 }
 
 // ExecutionPayload is the interface for the execution payload.
@@ -106,42 +117,6 @@ type Genesis[DepositT any, ExecutionPayloadHeaderT any] interface {
 	GetDeposits() []DepositT
 	// GetExecutionPayloadHeader returns the execution payload header.
 	GetExecutionPayloadHeader() ExecutionPayloadHeaderT
-}
-
-// AvailabilityStore interface is responsible for validating and storing
-// sidecars for specific blocks, as well as verifying sidecars that have already
-// been stored.
-type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
-	// IsDataAvailable ensures that all blobs referenced in the block are
-	// securely stored before it returns without an error.
-	IsDataAvailable(
-		context.Context, math.Slot, BeaconBlockBodyT,
-	) bool
-}
-
-// BeaconBlockHeader represents the interface for the beacon block header.
-type BeaconBlockHeader interface {
-	constraints.SSZMarshallableRootable
-	// SetStateRoot sets the state root of the beacon block header.
-	SetStateRoot(common.Root)
-}
-
-// BlobSidecars is the interface for blobs sidecars.
-type BlobSidecars interface {
-	constraints.SSZMarshallable
-	constraints.Nillable
-	// Len returns the length of the blobs sidecars.
-	Len() int
-}
-
-// ExecutionEngine is the interface for the execution engine.
-type ExecutionEngine[PayloadAttributesT any] interface {
-	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
-	// update.
-	NotifyForkchoiceUpdate(
-		ctx context.Context,
-		req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
-	) (*engineprimitives.PayloadID, *gethprimitives.ExecutionHash, error)
 }
 
 // LocalBuilder is the interface for the builder service.

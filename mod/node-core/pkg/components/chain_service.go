@@ -24,45 +24,29 @@ import (
 	"cosmossdk.io/depinject"
 	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
+	"github.com/berachain/beacon-kit/mod/beacon/blockchain/processor"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
-	chainservice "github.com/berachain/beacon-kit/mod/node-core/pkg/services/blockchain"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 )
 
+// ChainServiceInput is the input for the blockchain service provider.
 type ChainServiceInput struct {
 	depinject.In
-	ChainProcessor    ChainProcessorI
-	ChainEventHandler *ChainEventHandler
-}
-
-func ProvideChainService(
-	in ChainServiceInput,
-) *ChainService {
-	return service.NewService[
-		*ChainEventHandler,
-		ChainProcessorI,
-	](
-		in.ChainEventHandler,
-		in.ChainProcessor,
-	)
-}
-
-type ChainEventHandlerInput struct {
-	depinject.In
+	Processor             *ChainProcessor
 	BlockBroker           *BlockBroker
 	ValidatorUpdateBroker *ValidatorUpdateBroker
 	GenesisBroker         *GenesisBroker
 	Logger                log.AdvancedLogger[any, sdklog.Logger]
 }
 
-func ProvideChainEventHandler(
-	in ChainEventHandlerInput,
-) *ChainEventHandler {
-	return chainservice.NewEventHandler[
+// ProvideChainService is a depinject provider for the blockchain service.
+func ProvideChainService(
+	in ChainServiceInput,
+) *ChainService {
+	return blockchain.NewService[
 		*BeaconBlock,
 		*BeaconBlockBody,
 		*Deposit,
@@ -70,6 +54,7 @@ func ProvideChainEventHandler(
 		*ExecutionPayloadHeader,
 		*Genesis,
 	](
+		in.Processor,
 		in.BlockBroker,
 		in.GenesisBroker,
 		in.ValidatorUpdateBroker,
@@ -100,7 +85,7 @@ type ChainProcessorInput struct {
 func ProvideChainProcessor(
 	in ChainProcessorInput,
 ) *ChainProcessor {
-	return blockchain.NewProcessor[
+	return processor.New[
 		*AvailabilityStore,
 		*BeaconBlock,
 		*BeaconBlockBody,
@@ -131,7 +116,6 @@ func ProvideChainProcessor(
 func ChainServiceComponents() []any {
 	return []any{
 		ProvideChainService,
-		ProvideChainEventHandler,
 		ProvideChainProcessor,
 	}
 }

@@ -1,23 +1,3 @@
-// SPDX-License-Identifier: BUSL-1.1
-//
-// Copyright (C) 2024, Berachain Foundation. All rights reserved.
-// Use of this software is governed by the Business Source License included
-// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
-//
-// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
-// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
-// VERSIONS OF THE LICENSED WORK.
-//
-// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
-// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
-// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
-//
-// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
-// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
-// TITLE.
-
 package validator
 
 import (
@@ -28,8 +8,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 )
 
-// EventHandler is responsible for building beacon blocks.
-type EventHandler[
+// Service is the validator service.
+// It is responsible for building blocks and sidecars on new slots.
+type Service[
 	AttestationDataT any,
 	BeaconBlockT BeaconBlock[
 		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, DepositT,
@@ -65,8 +46,8 @@ type EventHandler[
 	slotBroker EventFeed[*asynctypes.Event[SlotDataT]]
 }
 
-// NewEventHandler creates a new validator service.
-func NewEventHandler[
+// NewService creates a new validator service.
+func NewService[
 	AttestationDataT any,
 	BeaconBlockT BeaconBlock[
 		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, DepositT,
@@ -82,19 +63,24 @@ func NewEventHandler[
 	SlashingInfoT any,
 	SlotDataT SlotData[AttestationDataT, SlashingInfoT],
 ](
+	processor Processor[
+		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
+		DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT, SlotDataT,
+	],
 	blkBroker EventPublisher[*asynctypes.Event[BeaconBlockT]],
 	sidecarBroker EventPublisher[*asynctypes.Event[BlobSidecarsT]],
 	slotBroker EventFeed[*asynctypes.Event[SlotDataT]],
-) *EventHandler[
+) *Service[
 	AttestationDataT, BeaconBlockT, BeaconBlockBodyT,
 	BlobSidecarsT, DepositT, Eth1DataT, ExecutionPayloadT,
 	SlashingInfoT, SlotDataT,
 ] {
-	return &EventHandler[
+	return &Service[
 		AttestationDataT, BeaconBlockT, BeaconBlockBodyT,
 		BlobSidecarsT, DepositT, Eth1DataT, ExecutionPayloadT,
 		SlashingInfoT, SlotDataT,
 	]{
+		processor:     processor,
 		blkBroker:     blkBroker,
 		sidecarBroker: sidecarBroker,
 		slotBroker:    slotBroker,
@@ -102,14 +88,14 @@ func NewEventHandler[
 }
 
 // Name returns the name of the service.
-func (s *EventHandler[
+func (s *Service[
 	_, _, _, _, _, _, _, _, _,
 ]) Name() string {
 	return "validator"
 }
 
 // Start starts the service.
-func (s *EventHandler[
+func (s *Service[
 	_, _, _, _, _, _, _, _, _,
 ]) Start(
 	ctx context.Context,
@@ -122,21 +108,8 @@ func (s *EventHandler[
 	return nil
 }
 
-func (s *EventHandler[
-	AttestationDataT, BeaconBlockT, BeaconBlockBodyT,
-	BlobSidecarsT, DepositT, Eth1DataT, ExecutionPayloadT,
-	SlashingInfoT, SlotDataT,
-]) AttachProcessor(
-	processor Processor[
-		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
-		DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT, SlotDataT,
-	],
-) {
-	s.processor = processor
-}
-
 // start starts the service.
-func (s *EventHandler[
+func (s *Service[
 	_, _, _, _, _, _, _, _, SlotDataT,
 ]) start(
 	ctx context.Context,
@@ -155,7 +128,7 @@ func (s *EventHandler[
 }
 
 // handleBlockRequest handles a block request.
-func (s *EventHandler[
+func (s *Service[
 	_, _, _, _, _, _, _, _, SlotDataT,
 ]) handleNewSlot(msg *asynctypes.Event[SlotDataT]) {
 	blk, sidecars, err := s.processor.BuildBlockAndSidecars(

@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package blockchain
+package processor
 
 import (
 	"sync"
@@ -85,8 +85,8 @@ type Processor[
 	forceStartupSyncOnce *sync.Once
 }
 
-// NewProcessor creates a new validator service.
-func NewProcessor[
+// New creates a new validator service.
+func New[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT, ExecutionPayloadT],
 	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],

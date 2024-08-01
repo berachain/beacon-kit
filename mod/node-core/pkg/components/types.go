@@ -26,7 +26,9 @@ import (
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
+	blockchainprocessor "github.com/berachain/beacon-kit/mod/beacon/blockchain/processor"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
+	validatorprocessor "github.com/berachain/beacon-kit/mod/beacon/validator/processor"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
 	consruntimetypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
@@ -50,8 +52,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/server"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
-	chainservice "github.com/berachain/beacon-kit/mod/node-core/pkg/services/blockchain"
-	validatorservice "github.com/berachain/beacon-kit/mod/node-core/pkg/services/validator"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/services/version"
 	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
@@ -59,7 +59,6 @@ import (
 	versionservice "github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	statedb "github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
@@ -69,12 +68,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-)
-
-// compile time assertions to enforce assumptions on types.
-var (
-	_ ValidatorProcessorI = (*ValidatorProcessor)(nil)
-	_ ChainProcessorI     = (*ChainProcessor)(nil)
 )
 
 type (
@@ -157,22 +150,8 @@ type (
 	/* ---------------------------------------------------------------------- */
 	/*                             Chain Service                              */
 	/* ----------------------------------------------------------------------. */
-	ChainService = service.Service[
-		*ChainEventHandler,
-		ChainProcessorI,
-	]
 
-	// TODO: clean this up or rename
-	ChainProcessorI = chainservice.Processor[
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*Deposit,
-		*ExecutionPayload,
-		*ExecutionPayloadHeader,
-		*Genesis,
-	]
-
-	ChainProcessor = blockchain.Processor[
+	ChainProcessor = blockchainprocessor.Processor[
 		*AvailabilityStore,
 		*BeaconBlock,
 		*BeaconBlockBody,
@@ -187,7 +166,7 @@ type (
 		*Withdrawal,
 	]
 
-	ChainEventHandler = chainservice.EventHandler[
+	ChainService = blockchain.Service[
 		*BeaconBlock,
 		*BeaconBlockBody,
 		*Deposit,
@@ -200,14 +179,20 @@ type (
 	/*                             Validator Service                          */
 	/* ----------------------------------------------------------------------. */
 
-	// ValidatorService is a type alias for the validator service.
-	ValidatorService = service.Service[
-		*ValidatorEventHandler,
-		ValidatorProcessorI,
+	ValidatorService = validator.Service[
+		*AttestationData,
+		*BeaconBlock,
+		*BeaconBlockBody,
+		*BlobSidecars,
+		*Deposit,
+		*Eth1Data,
+		*ExecutionPayload,
+		*SlashingInfo,
+		*SlotData,
 	]
 
 	// ValidatorProcessor is a type alias for the validator service.
-	ValidatorProcessor = validator.Processor[
+	ValidatorProcessor = validatorprocessor.Processor[
 		*AttestationData,
 		*BeaconBlock,
 		*BeaconBlockBody,
@@ -219,32 +204,6 @@ type (
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*ForkData,
-		*SlashingInfo,
-		*SlotData,
-	]
-
-	// ValidatorProcessorI is the type alias for the validator service processor
-	// interface used for the service.
-	ValidatorProcessorI = validatorservice.Processor[
-		*AttestationData,
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*BlobSidecars,
-		*Deposit,
-		*Eth1Data,
-		*ExecutionPayload,
-		*SlashingInfo,
-		*SlotData,
-	]
-
-	ValidatorEventHandler = validatorservice.EventHandler[
-		*AttestationData,
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*BlobSidecars,
-		*Deposit,
-		*Eth1Data,
-		*ExecutionPayload,
 		*SlashingInfo,
 		*SlotData,
 	]
