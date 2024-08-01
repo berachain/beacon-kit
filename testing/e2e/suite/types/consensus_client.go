@@ -78,10 +78,12 @@ func (cc *ConsensusClient) Connect(ctx context.Context) error {
 	if !ok {
 		panic("Couldn't find the public port for the node API")
 	}
+	opts := beacon.DefaultOptions()
+	opts.DisablePrometheusMetrics()
 	cc.Node = beacon.NewNode(logrus.New(), &beacon.Config{
 		Addr: fmt.Sprintf("http://0.0.0.0:%d", nodePort.GetNumber()),
 		Name: "beacon node",
-	}, "eth", *beacon.DefaultOptions())
+	}, "eth", *opts)
 	return cc.Node.Start(ctx)
 }
 
