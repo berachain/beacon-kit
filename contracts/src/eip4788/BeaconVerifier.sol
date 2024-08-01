@@ -101,17 +101,17 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     /// @dev gas used ~75381
     function verifyBeaconBlockProposer(
         uint64 timestamp,
-        bytes32[] calldata validatorPubkeyProof,
-        bytes calldata validatorPubkey,
-        uint64 proposerIndex
+        uint64 proposerIndex,
+        bytes calldata proposerPubkey,
+        bytes32[] calldata proposerPubkeyProof
     )
         external
         view
     {
         proveValidatorPubkeyInBeaconBlock(
             getParentBlockRoot(timestamp),
-            validatorPubkeyProof,
-            validatorPubkey,
+            proposerPubkeyProof,
+            proposerPubkey,
             proposerIndex
         );
     }
@@ -120,14 +120,14 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     /// @dev gas used ~41647
     function verifyExecutionNumber(
         uint64 timestamp,
-        bytes32[] calldata executionNumberProof,
-        uint64 blockNumber
+        uint64 executionNumber,
+        bytes32[] calldata executionNumberProof
     )
         external
         view
     {
         proveExecutionNumberInBeaconBlock(
-            getParentBlockRoot(timestamp), executionNumberProof, blockNumber
+            getParentBlockRoot(timestamp), executionNumberProof, executionNumber
         );
     }
 
@@ -135,8 +135,8 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     /// @dev gas used ~41784
     function verifyCoinbase(
         uint64 timestamp,
-        bytes32[] calldata coinbaseProof,
-        address coinbase
+        address coinbase,
+        bytes32[] calldata coinbaseProof
     )
         external
         view
