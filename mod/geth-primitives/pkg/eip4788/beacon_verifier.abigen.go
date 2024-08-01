@@ -31,8 +31,8 @@ var (
 
 // BeaconVerifierMetaData contains all meta data concerning the BeaconVerifier contract.
 var BeaconVerifierMetaData = &bind.MetaData{
-	ABI: "[{\"type\":\"constructor\",\"inputs\":[{\"name\":\"_zeroValidatorPubkeyGIndex\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"_executionNumberGIndex\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"BEACON_ROOTS\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"cancelOwnershipHandover\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"completeOwnershipHandover\",\"inputs\":[{\"name\":\"pendingOwner\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"executionNumberGIndex\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getParentBeaconBlockRoot\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getParentBeaconBlockRootAt\",\"inputs\":[{\"name\":\"timestamp\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"owner\",\"inputs\":[],\"outputs\":[{\"name\":\"result\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"ownershipHandoverExpiresAt\",\"inputs\":[{\"name\":\"pendingOwner\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"result\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"renounceOwnership\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"requestOwnershipHandover\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"setExecutionNumberGIndex\",\"inputs\":[{\"name\":\"_executionNumberGIndex\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"setZeroValidatorPubkeyGIndex\",\"inputs\":[{\"name\":\"_zeroValidatorPubkeyGIndex\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"transferOwnership\",\"inputs\":[{\"name\":\"newOwner\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"verifyBeaconBlockProposer\",\"inputs\":[{\"name\":\"timestamp\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"validatorPubkeyProof\",\"type\":\"bytes32[]\",\"internalType\":\"bytes32[]\"},{\"name\":\"validatorPubkey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"proposerIndex\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"outputs\":[],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"verifyExecutionNumber\",\"inputs\":[{\"name\":\"timestamp\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"executionNumberProof\",\"type\":\"bytes32[]\",\"internalType\":\"bytes32[]\"},{\"name\":\"blockNumber\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"outputs\":[],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"zeroValidatorPubkeyGIndex\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"event\",\"name\":\"ExecutionNumberGIndexChanged\",\"inputs\":[{\"name\":\"newExecutionNumberGIndex\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OwnershipHandoverCanceled\",\"inputs\":[{\"name\":\"pendingOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OwnershipHandoverRequested\",\"inputs\":[{\"name\":\"pendingOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OwnershipTransferred\",\"inputs\":[{\"name\":\"oldOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"newOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"ZeroValidatorPubkeyGIndexChanged\",\"inputs\":[{\"name\":\"newZeroValidatorPubkeyGIndex\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"error\",\"name\":\"AlreadyInitialized\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"IndexOutOfRange\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidProof\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidValidatorPubkeyLength\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"NewOwnerIsZeroAddress\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"NoHandoverRequest\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"RootNotFound\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"Unauthorized\",\"inputs\":[]}]",
-	Bin: "0x6080604052348015600e575f80fd5b50604051610bde380380610bde833981016040819052602b916098565b5f8290556001819055603b336041565b505060b9565b638b78c6d819805415605a57630dc149f05f526004601cfd5b6001600160a01b03909116801560ff1b8117909155805f7f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e08180a350565b5f806040838503121560a8575f80fd5b505080516020909101519092909150565b610b18806100c65f395ff3fe6080604052600436106100ef575f3560e01c80638170577111610087578063f04e283e11610057578063f04e283e14610257578063f2fde38b1461026a578063f769afd11461027d578063fee81cf41461029c575f80fd5b806381705771146101d25780638da5cb5b146101f1578063ae9af3e314610224578063efcff00a14610243575f80fd5b806354d1f13d116100c257806354d1f13d1461015857806356d7e8fd146101605780635e67d452146101ab578063715018a6146101ca575f80fd5b806325692962146100f3578063305ea416146100fd57806335222ff114610125578063491920ab14610139575b5f80fd5b6100fb6102cd565b005b348015610108575f80fd5b5061011260015481565b6040519081526020015b60405180910390f35b348015610130575f80fd5b506101125f5481565b348015610144575f80fd5b506100fb6101533660046108f0565b61031a565b6100fb610338565b34801561016b575f80fd5b50610186720f3df6d732807ef1319fb7b8bb8522d0beac0281565b60405173ffffffffffffffffffffffffffffffffffffffff909116815260200161011c565b3480156101b6575f80fd5b506101126101c53660046109ad565b610371565b6100fb610381565b3480156101dd575f80fd5b506100fb6101ec3660046109cd565b610394565b3480156101fc575f80fd5b507fffffffffffffffffffffffffffffffffffffffffffffffffffffffff7487392754610186565b34801561022f575f80fd5b506100fb61023e3660046109e4565b6103d7565b34801561024e575f80fd5b506101126103f1565b6100fb610265366004610a45565b610400565b6100fb610278366004610a45565b61043d565b348015610288575f80fd5b506100fb6102973660046109cd565b610463565b3480156102a7575f80fd5b506101126102b6366004610a45565b63389a75e1600c9081525f91909152602090205490565b5f6202a30067ffffffffffffffff164201905063389a75e1600c52335f52806020600c2055337fdbf36a107da19e49527a7176a1babf963b4b0ff8cde35ee35d6cd8f1f9ac7e1d5f80a250565b610330610326876104a0565b86868686866104db565b505050505050565b63389a75e1600c52335f525f6020600c2055337ffa7b8eab7da67f412cc9575ed43464468f9bfbae89d1675917346ca6d8fe3c925f80a2565b5f61037b826104a0565b92915050565b6103896105d6565b6103925f61060b565b565b61039c6105d6565b5f8190556040518181527fe2e34d74290e04aa3646f259594633252b8ecbbc3bb59351491198ab661eab21906020015b60405180910390a150565b6103eb6103e3856104a0565b848484610679565b50505050565b5f6103fb426104a0565b905090565b6104086105d6565b63389a75e1600c52805f526020600c20805442111561042e57636f5e88185f526004601cfd5b5f905561043a8161060b565b50565b6104456105d6565b8060601b61045a57637448fbae5f526004601cfd5b61043a8161060b565b61046b6105d6565b60018190556040518181527febb01e1290204d373c7af00fec97d08cfacb9d72df4842842680e74f9ff76264906020016103cc565b5f815f5260205f60205f720f3df6d732807ef1319fb7b8bb8522d0beac025afa806104d257633033b0ff5f526004601cfd5b50505f51919050565b6501000000000067ffffffffffffffff821610610524576040517f1390f2a100000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b5f61056384848080601f0160208091040260200160405190810160405280939291908181526020018383808284375f9201919091525061079f92505050565b90505f610571836008610aa5565b67ffffffffffffffff165f546105879190610acf565b905061059687878a85856107f2565b6105cc576040517f09bde33900000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b5050505050505050565b7fffffffffffffffffffffffffffffffffffffffffffffffffffffffff74873927543314610392576382b429005f526004601cfd5b7fffffffffffffffffffffffffffffffffffffffffffffffffffffffff74873927805473ffffffffffffffffffffffffffffffffffffffff9092169182907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e05f80a3811560ff1b8217905550565b5f7bffffffff000000000000000000000000ffffffff000000000000000066ff000000ff0000600884811c91821667ff000000ff0000009186901b91821617601090811c64ff000000ff90931665ff000000ff0090921691909117901b17602081811c9283167fffffffff000000000000000000000000ffffffff0000000000000000000000009290911b91821617604090811c73ffffffff000000000000000000000000ffffffff90931677ffffffff000000000000000000000000ffffffff0000000090921691909117901b17608081811c91901b179050610762848487846001546107f2565b610798576040517f09bde33900000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b5050505050565b80515f906030146107dc576040517f5f4167e900000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b60205f60406020850160025afa806104d2575f80fd5b5f841561084e578460051b8601865b6001841660051b8460011c94508461082057635849603f5f526004601cfd5b85815281356020918218525f60408160025afa8061083c575f80fd5b505f5194506020018181106108015750505b7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff82011561088357631b6661c35f526004601cfd5b50501492915050565b803567ffffffffffffffff811681146108a3575f80fd5b919050565b5f8083601f8401126108b8575f80fd5b50813567ffffffffffffffff8111156108cf575f80fd5b6020830191508360208260051b85010111156108e9575f80fd5b9250929050565b5f805f805f8060808789031215610905575f80fd5b61090e8761088c565b9550602087013567ffffffffffffffff811115610929575f80fd5b61093589828a016108a8565b909650945050604087013567ffffffffffffffff811115610954575f80fd5b8701601f81018913610964575f80fd5b803567ffffffffffffffff81111561097a575f80fd5b89602082840101111561098b575f80fd5b602091909101935091506109a16060880161088c565b90509295509295509295565b5f602082840312156109bd575f80fd5b6109c68261088c565b9392505050565b5f602082840312156109dd575f80fd5b5035919050565b5f805f80606085870312156109f7575f80fd5b610a008561088c565b9350602085013567ffffffffffffffff811115610a1b575f80fd5b610a27878288016108a8565b9094509250610a3a90506040860161088c565b905092959194509250565b5f60208284031215610a55575f80fd5b813573ffffffffffffffffffffffffffffffffffffffff811681146109c6575f80fd5b7f4e487b71000000000000000000000000000000000000000000000000000000005f52601160045260245ffd5b67ffffffffffffffff8181168382160290811690818114610ac857610ac8610a78565b5092915050565b8082018082111561037b5761037b610a7856fea264697066735822122039550e460ebcb1acfc71b3cb3b60a1ce8cdc0ed5d2f44202f2b24c8df0b48eca64736f6c634300081a0033",
+	ABI: "[{\"type\":\"constructor\",\"inputs\":[{\"name\":\"_zeroValidatorPubkeyGIndex\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"_executionNumberGIndex\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"_executionFeeRecipientGIndex\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"BEACON_ROOTS\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"cancelOwnershipHandover\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"completeOwnershipHandover\",\"inputs\":[{\"name\":\"pendingOwner\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"executionFeeRecipientGIndex\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"executionNumberGIndex\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getParentBeaconBlockRoot\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getParentBeaconBlockRootAt\",\"inputs\":[{\"name\":\"timestamp\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"owner\",\"inputs\":[],\"outputs\":[{\"name\":\"result\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"ownershipHandoverExpiresAt\",\"inputs\":[{\"name\":\"pendingOwner\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"result\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"renounceOwnership\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"requestOwnershipHandover\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"setExecutionFeeRecipientGIndex\",\"inputs\":[{\"name\":\"_executionFeeRecipientGIndex\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"setExecutionNumberGIndex\",\"inputs\":[{\"name\":\"_executionNumberGIndex\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"setZeroValidatorPubkeyGIndex\",\"inputs\":[{\"name\":\"_zeroValidatorPubkeyGIndex\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"transferOwnership\",\"inputs\":[{\"name\":\"newOwner\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"verifyBeaconBlockProposer\",\"inputs\":[{\"name\":\"timestamp\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"proposerIndex\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"proposerPubkey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"proposerPubkeyProof\",\"type\":\"bytes32[]\",\"internalType\":\"bytes32[]\"}],\"outputs\":[],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"verifyCoinbase\",\"inputs\":[{\"name\":\"timestamp\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"coinbase\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"coinbaseProof\",\"type\":\"bytes32[]\",\"internalType\":\"bytes32[]\"}],\"outputs\":[],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"verifyExecutionNumber\",\"inputs\":[{\"name\":\"timestamp\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"executionNumber\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"executionNumberProof\",\"type\":\"bytes32[]\",\"internalType\":\"bytes32[]\"}],\"outputs\":[],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"zeroValidatorPubkeyGIndex\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"event\",\"name\":\"ExecutionFeeRecipientGIndexChanged\",\"inputs\":[{\"name\":\"newExecutionFeeRecipientGIndex\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"ExecutionNumberGIndexChanged\",\"inputs\":[{\"name\":\"newExecutionNumberGIndex\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OwnershipHandoverCanceled\",\"inputs\":[{\"name\":\"pendingOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OwnershipHandoverRequested\",\"inputs\":[{\"name\":\"pendingOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OwnershipTransferred\",\"inputs\":[{\"name\":\"oldOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"newOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"ZeroValidatorPubkeyGIndexChanged\",\"inputs\":[{\"name\":\"newZeroValidatorPubkeyGIndex\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"error\",\"name\":\"AlreadyInitialized\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"IndexOutOfRange\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidProof\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidValidatorPubkeyLength\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"NewOwnerIsZeroAddress\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"NoHandoverRequest\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"RootNotFound\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"Unauthorized\",\"inputs\":[]}]",
+	Bin: "0x6080604052348015600e575f80fd5b50604051610ccc380380610ccc833981016040819052602b91609e565b5f839055600182905560028190556040336047565b50505060c8565b638b78c6d819805415606057630dc149f05f526004601cfd5b6001600160a01b03909116801560ff1b8117909155805f7f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e08180a350565b5f805f6060848603121560af575f80fd5b5050815160208301516040909301519094929350919050565b610bf7806100d55f395ff3fe60806040526004361061013d575f3560e01c80638da5cb5b116100bb578063efcff00a11610071578063f2fde38b11610057578063f2fde38b1461030b578063f769afd11461031e578063fee81cf41461033d575f80fd5b8063efcff00a146102e4578063f04e283e146102f8575f80fd5b8063c0c27230116100a1578063c0c2723014610291578063cbb60852146102b0578063e701fa76146102cf575f80fd5b80638da5cb5b1461023f578063ab15494a14610272575f80fd5b806356d7e8fd11610110578063715018a6116100f6578063715018a6146101f957806378e97954146102015780638170577114610220575f80fd5b806356d7e8fd1461018f5780635e67d452146101da575f80fd5b80632569296214610141578063305ea4161461014b57806335222ff11461017357806354d1f13d14610187575b5f80fd5b61014961036e565b005b348015610156575f80fd5b5061016060015481565b6040519081526020015b60405180910390f35b34801561017e575f80fd5b506101605f5481565b6101496103bb565b34801561019a575f80fd5b506101b5720f3df6d732807ef1319fb7b8bb8522d0beac0281565b60405173ffffffffffffffffffffffffffffffffffffffff909116815260200161016a565b3480156101e5575f80fd5b506101606101f4366004610956565b6103f4565b610149610404565b34801561020c575f80fd5b5061014961021b3660046109e1565b610417565b34801561022b575f80fd5b5061014961023a366004610a3e565b610431565b34801561024a575f80fd5b507fffffffffffffffffffffffffffffffffffffffffffffffffffffffff74873927546101b5565b34801561027d575f80fd5b5061014961028c366004610a55565b610474565b34801561029c575f80fd5b506101496102ab366004610a3e565b610492565b3480156102bb575f80fd5b506101496102ca366004610b14565b6104cf565b3480156102da575f80fd5b5061016060025481565b3480156102ef575f80fd5b506101606104e3565b610149610306366004610b3e565b6104f2565b610149610319366004610b3e565b61052f565b348015610329575f80fd5b50610149610338366004610a3e565b610555565b348015610348575f80fd5b50610160610357366004610b3e565b63389a75e1600c9081525f91909152602090205490565b5f6202a30067ffffffffffffffff164201905063389a75e1600c52335f52806020600c2055337fdbf36a107da19e49527a7176a1babf963b4b0ff8cde35ee35d6cd8f1f9ac7e1d5f80a250565b63389a75e1600c52335f525f6020600c2055337ffa7b8eab7da67f412cc9575ed43464468f9bfbae89d1675917346ca6d8fe3c925f80a2565b5f6103fe82610592565b92915050565b61040c6105cd565b6104155f610602565b565b61042b61042385610592565b838386610670565b50505050565b6104396105cd565b5f8190556040518181527fe2e34d74290e04aa3646f259594633252b8ecbbc3bb59351491198ab661eab21906020015b60405180910390a150565b61048a61048087610592565b838387878a6106e6565b505050505050565b61049a6105cd565b60028190556040518181527f15e42eec45edd1a051ce50f823a5d6482237d402c471639da37b62e85530154890602001610469565b61042b6104db85610592565b8383866107e1565b5f6104ed42610592565b905090565b6104fa6105cd565b63389a75e1600c52805f526020600c20805442111561052057636f5e88185f526004601cfd5b5f905561052c81610602565b50565b6105376105cd565b8060601b61054c57637448fbae5f526004601cfd5b61052c81610602565b61055d6105cd565b60018190556040518181527febb01e1290204d373c7af00fec97d08cfacb9d72df4842842680e74f9ff7626490602001610469565b5f815f5260205f60205f720f3df6d732807ef1319fb7b8bb8522d0beac025afa806105c457633033b0ff5f526004601cfd5b50505f51919050565b7fffffffffffffffffffffffffffffffffffffffffffffffffffffffff74873927543314610415576382b429005f526004601cfd5b7fffffffffffffffffffffffffffffffffffffffffffffffffffffffff74873927805473ffffffffffffffffffffffffffffffffffffffff9092169182907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e05f80a3811560ff1b8217905550565b5f606082901b7fffffffffffffffffffffffffffffffffffffffff0000000000000000000000001690506106a98484878460025461084d565b6106df576040517f09bde33900000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b5050505050565b6501000000000067ffffffffffffffff82161061072f576040517f1390f2a100000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b5f61076e84848080601f0160208091040260200160405190810160405280939291908181526020018383808284375f920191909152506108e792505050565b90505f61077c836008610b84565b67ffffffffffffffff165f546107929190610bae565b90506107a187878a858561084d565b6107d7576040517f09bde33900000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b5050505050505050565b5f65ff000000ff00600883811b91821664ff000000ff9185901c91821617601090811b67ff000000ff0000009390931666ff000000ff00009290921691909117901c17602081811c63ffffffff1691901b67ffffffff00000000161760c01b90506106a9848487846001545b5f84156108a9578460051b8601865b6001841660051b8460011c94508461087b57635849603f5f526004601cfd5b85815281356020918218525f60408160025afa80610897575f80fd5b505f51945060200181811061085c5750505b7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8201156108de57631b6661c35f526004601cfd5b50501492915050565b80515f90603014610924576040517f5f4167e900000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b60205f60406020850160025afa806105c4575f80fd5b803567ffffffffffffffff81168114610951575f80fd5b919050565b5f60208284031215610966575f80fd5b61096f8261093a565b9392505050565b803573ffffffffffffffffffffffffffffffffffffffff81168114610951575f80fd5b5f8083601f8401126109a9575f80fd5b50813567ffffffffffffffff8111156109c0575f80fd5b6020830191508360208260051b85010111156109da575f80fd5b9250929050565b5f805f80606085870312156109f4575f80fd5b6109fd8561093a565b9350610a0b60208601610976565b9250604085013567ffffffffffffffff811115610a26575f80fd5b610a3287828801610999565b95989497509550505050565b5f60208284031215610a4e575f80fd5b5035919050565b5f805f805f8060808789031215610a6a575f80fd5b610a738761093a565b9550610a816020880161093a565b9450604087013567ffffffffffffffff811115610a9c575f80fd5b8701601f81018913610aac575f80fd5b803567ffffffffffffffff811115610ac2575f80fd5b896020828401011115610ad3575f80fd5b60209190910194509250606087013567ffffffffffffffff811115610af6575f80fd5b610b0289828a01610999565b979a9699509497509295939492505050565b5f805f8060608587031215610b27575f80fd5b610b308561093a565b9350610a0b6020860161093a565b5f60208284031215610b4e575f80fd5b61096f82610976565b7f4e487b71000000000000000000000000000000000000000000000000000000005f52601160045260245ffd5b67ffffffffffffffff8181168382160290811690818114610ba757610ba7610b57565b5092915050565b808201808211156103fe576103fe610b5756fea2646970667358221220df10c90f71c34a556f620246dd6a3ffe6d363911421554cee259c441a7cb599364736f6c634300081a0033",
 }
 
 // BeaconVerifierABI is the input ABI used to generate the binding from.
@@ -44,7 +44,7 @@ var BeaconVerifierABI = BeaconVerifierMetaData.ABI
 var BeaconVerifierBin = BeaconVerifierMetaData.Bin
 
 // DeployBeaconVerifier deploys a new Ethereum contract, binding an instance of BeaconVerifier to it.
-func DeployBeaconVerifier(auth *bind.TransactOpts, backend bind.ContractBackend, _zeroValidatorPubkeyGIndex *big.Int, _executionNumberGIndex *big.Int) (common.Address, *types.Transaction, *BeaconVerifier, error) {
+func DeployBeaconVerifier(auth *bind.TransactOpts, backend bind.ContractBackend, _zeroValidatorPubkeyGIndex *big.Int, _executionNumberGIndex *big.Int, _executionFeeRecipientGIndex *big.Int) (common.Address, *types.Transaction, *BeaconVerifier, error) {
 	parsed, err := BeaconVerifierMetaData.GetAbi()
 	if err != nil {
 		return common.Address{}, nil, nil, err
@@ -53,7 +53,7 @@ func DeployBeaconVerifier(auth *bind.TransactOpts, backend bind.ContractBackend,
 		return common.Address{}, nil, nil, errors.New("GetABI returned nil")
 	}
 
-	address, tx, contract, err := bind.DeployContract(auth, *parsed, common.FromHex(BeaconVerifierBin), backend, _zeroValidatorPubkeyGIndex, _executionNumberGIndex)
+	address, tx, contract, err := bind.DeployContract(auth, *parsed, common.FromHex(BeaconVerifierBin), backend, _zeroValidatorPubkeyGIndex, _executionNumberGIndex, _executionFeeRecipientGIndex)
 	if err != nil {
 		return common.Address{}, nil, nil, err
 	}
@@ -233,6 +233,37 @@ func (_BeaconVerifier *BeaconVerifierCallerSession) BEACONROOTS() (common.Addres
 	return _BeaconVerifier.Contract.BEACONROOTS(&_BeaconVerifier.CallOpts)
 }
 
+// ExecutionFeeRecipientGIndex is a free data retrieval call binding the contract method 0xe701fa76.
+//
+// Solidity: function executionFeeRecipientGIndex() view returns(uint256)
+func (_BeaconVerifier *BeaconVerifierCaller) ExecutionFeeRecipientGIndex(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _BeaconVerifier.contract.Call(opts, &out, "executionFeeRecipientGIndex")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// ExecutionFeeRecipientGIndex is a free data retrieval call binding the contract method 0xe701fa76.
+//
+// Solidity: function executionFeeRecipientGIndex() view returns(uint256)
+func (_BeaconVerifier *BeaconVerifierSession) ExecutionFeeRecipientGIndex() (*big.Int, error) {
+	return _BeaconVerifier.Contract.ExecutionFeeRecipientGIndex(&_BeaconVerifier.CallOpts)
+}
+
+// ExecutionFeeRecipientGIndex is a free data retrieval call binding the contract method 0xe701fa76.
+//
+// Solidity: function executionFeeRecipientGIndex() view returns(uint256)
+func (_BeaconVerifier *BeaconVerifierCallerSession) ExecutionFeeRecipientGIndex() (*big.Int, error) {
+	return _BeaconVerifier.Contract.ExecutionFeeRecipientGIndex(&_BeaconVerifier.CallOpts)
+}
+
 // ExecutionNumberGIndex is a free data retrieval call binding the contract method 0x305ea416.
 //
 // Solidity: function executionNumberGIndex() view returns(uint256)
@@ -388,12 +419,12 @@ func (_BeaconVerifier *BeaconVerifierCallerSession) OwnershipHandoverExpiresAt(p
 	return _BeaconVerifier.Contract.OwnershipHandoverExpiresAt(&_BeaconVerifier.CallOpts, pendingOwner)
 }
 
-// VerifyBeaconBlockProposer is a free data retrieval call binding the contract method 0x491920ab.
+// VerifyBeaconBlockProposer is a free data retrieval call binding the contract method 0xab15494a.
 //
-// Solidity: function verifyBeaconBlockProposer(uint64 timestamp, bytes32[] validatorPubkeyProof, bytes validatorPubkey, uint64 proposerIndex) view returns()
-func (_BeaconVerifier *BeaconVerifierCaller) VerifyBeaconBlockProposer(opts *bind.CallOpts, timestamp uint64, validatorPubkeyProof [][32]byte, validatorPubkey []byte, proposerIndex uint64) error {
+// Solidity: function verifyBeaconBlockProposer(uint64 timestamp, uint64 proposerIndex, bytes proposerPubkey, bytes32[] proposerPubkeyProof) view returns()
+func (_BeaconVerifier *BeaconVerifierCaller) VerifyBeaconBlockProposer(opts *bind.CallOpts, timestamp uint64, proposerIndex uint64, proposerPubkey []byte, proposerPubkeyProof [][32]byte) error {
 	var out []interface{}
-	err := _BeaconVerifier.contract.Call(opts, &out, "verifyBeaconBlockProposer", timestamp, validatorPubkeyProof, validatorPubkey, proposerIndex)
+	err := _BeaconVerifier.contract.Call(opts, &out, "verifyBeaconBlockProposer", timestamp, proposerIndex, proposerPubkey, proposerPubkeyProof)
 
 	if err != nil {
 		return err
@@ -403,26 +434,26 @@ func (_BeaconVerifier *BeaconVerifierCaller) VerifyBeaconBlockProposer(opts *bin
 
 }
 
-// VerifyBeaconBlockProposer is a free data retrieval call binding the contract method 0x491920ab.
+// VerifyBeaconBlockProposer is a free data retrieval call binding the contract method 0xab15494a.
 //
-// Solidity: function verifyBeaconBlockProposer(uint64 timestamp, bytes32[] validatorPubkeyProof, bytes validatorPubkey, uint64 proposerIndex) view returns()
-func (_BeaconVerifier *BeaconVerifierSession) VerifyBeaconBlockProposer(timestamp uint64, validatorPubkeyProof [][32]byte, validatorPubkey []byte, proposerIndex uint64) error {
-	return _BeaconVerifier.Contract.VerifyBeaconBlockProposer(&_BeaconVerifier.CallOpts, timestamp, validatorPubkeyProof, validatorPubkey, proposerIndex)
+// Solidity: function verifyBeaconBlockProposer(uint64 timestamp, uint64 proposerIndex, bytes proposerPubkey, bytes32[] proposerPubkeyProof) view returns()
+func (_BeaconVerifier *BeaconVerifierSession) VerifyBeaconBlockProposer(timestamp uint64, proposerIndex uint64, proposerPubkey []byte, proposerPubkeyProof [][32]byte) error {
+	return _BeaconVerifier.Contract.VerifyBeaconBlockProposer(&_BeaconVerifier.CallOpts, timestamp, proposerIndex, proposerPubkey, proposerPubkeyProof)
 }
 
-// VerifyBeaconBlockProposer is a free data retrieval call binding the contract method 0x491920ab.
+// VerifyBeaconBlockProposer is a free data retrieval call binding the contract method 0xab15494a.
 //
-// Solidity: function verifyBeaconBlockProposer(uint64 timestamp, bytes32[] validatorPubkeyProof, bytes validatorPubkey, uint64 proposerIndex) view returns()
-func (_BeaconVerifier *BeaconVerifierCallerSession) VerifyBeaconBlockProposer(timestamp uint64, validatorPubkeyProof [][32]byte, validatorPubkey []byte, proposerIndex uint64) error {
-	return _BeaconVerifier.Contract.VerifyBeaconBlockProposer(&_BeaconVerifier.CallOpts, timestamp, validatorPubkeyProof, validatorPubkey, proposerIndex)
+// Solidity: function verifyBeaconBlockProposer(uint64 timestamp, uint64 proposerIndex, bytes proposerPubkey, bytes32[] proposerPubkeyProof) view returns()
+func (_BeaconVerifier *BeaconVerifierCallerSession) VerifyBeaconBlockProposer(timestamp uint64, proposerIndex uint64, proposerPubkey []byte, proposerPubkeyProof [][32]byte) error {
+	return _BeaconVerifier.Contract.VerifyBeaconBlockProposer(&_BeaconVerifier.CallOpts, timestamp, proposerIndex, proposerPubkey, proposerPubkeyProof)
 }
 
-// VerifyExecutionNumber is a free data retrieval call binding the contract method 0xae9af3e3.
+// VerifyCoinbase is a free data retrieval call binding the contract method 0x78e97954.
 //
-// Solidity: function verifyExecutionNumber(uint64 timestamp, bytes32[] executionNumberProof, uint64 blockNumber) view returns()
-func (_BeaconVerifier *BeaconVerifierCaller) VerifyExecutionNumber(opts *bind.CallOpts, timestamp uint64, executionNumberProof [][32]byte, blockNumber uint64) error {
+// Solidity: function verifyCoinbase(uint64 timestamp, address coinbase, bytes32[] coinbaseProof) view returns()
+func (_BeaconVerifier *BeaconVerifierCaller) VerifyCoinbase(opts *bind.CallOpts, timestamp uint64, coinbase common.Address, coinbaseProof [][32]byte) error {
 	var out []interface{}
-	err := _BeaconVerifier.contract.Call(opts, &out, "verifyExecutionNumber", timestamp, executionNumberProof, blockNumber)
+	err := _BeaconVerifier.contract.Call(opts, &out, "verifyCoinbase", timestamp, coinbase, coinbaseProof)
 
 	if err != nil {
 		return err
@@ -432,18 +463,47 @@ func (_BeaconVerifier *BeaconVerifierCaller) VerifyExecutionNumber(opts *bind.Ca
 
 }
 
-// VerifyExecutionNumber is a free data retrieval call binding the contract method 0xae9af3e3.
+// VerifyCoinbase is a free data retrieval call binding the contract method 0x78e97954.
 //
-// Solidity: function verifyExecutionNumber(uint64 timestamp, bytes32[] executionNumberProof, uint64 blockNumber) view returns()
-func (_BeaconVerifier *BeaconVerifierSession) VerifyExecutionNumber(timestamp uint64, executionNumberProof [][32]byte, blockNumber uint64) error {
-	return _BeaconVerifier.Contract.VerifyExecutionNumber(&_BeaconVerifier.CallOpts, timestamp, executionNumberProof, blockNumber)
+// Solidity: function verifyCoinbase(uint64 timestamp, address coinbase, bytes32[] coinbaseProof) view returns()
+func (_BeaconVerifier *BeaconVerifierSession) VerifyCoinbase(timestamp uint64, coinbase common.Address, coinbaseProof [][32]byte) error {
+	return _BeaconVerifier.Contract.VerifyCoinbase(&_BeaconVerifier.CallOpts, timestamp, coinbase, coinbaseProof)
 }
 
-// VerifyExecutionNumber is a free data retrieval call binding the contract method 0xae9af3e3.
+// VerifyCoinbase is a free data retrieval call binding the contract method 0x78e97954.
 //
-// Solidity: function verifyExecutionNumber(uint64 timestamp, bytes32[] executionNumberProof, uint64 blockNumber) view returns()
-func (_BeaconVerifier *BeaconVerifierCallerSession) VerifyExecutionNumber(timestamp uint64, executionNumberProof [][32]byte, blockNumber uint64) error {
-	return _BeaconVerifier.Contract.VerifyExecutionNumber(&_BeaconVerifier.CallOpts, timestamp, executionNumberProof, blockNumber)
+// Solidity: function verifyCoinbase(uint64 timestamp, address coinbase, bytes32[] coinbaseProof) view returns()
+func (_BeaconVerifier *BeaconVerifierCallerSession) VerifyCoinbase(timestamp uint64, coinbase common.Address, coinbaseProof [][32]byte) error {
+	return _BeaconVerifier.Contract.VerifyCoinbase(&_BeaconVerifier.CallOpts, timestamp, coinbase, coinbaseProof)
+}
+
+// VerifyExecutionNumber is a free data retrieval call binding the contract method 0xcbb60852.
+//
+// Solidity: function verifyExecutionNumber(uint64 timestamp, uint64 executionNumber, bytes32[] executionNumberProof) view returns()
+func (_BeaconVerifier *BeaconVerifierCaller) VerifyExecutionNumber(opts *bind.CallOpts, timestamp uint64, executionNumber uint64, executionNumberProof [][32]byte) error {
+	var out []interface{}
+	err := _BeaconVerifier.contract.Call(opts, &out, "verifyExecutionNumber", timestamp, executionNumber, executionNumberProof)
+
+	if err != nil {
+		return err
+	}
+
+	return err
+
+}
+
+// VerifyExecutionNumber is a free data retrieval call binding the contract method 0xcbb60852.
+//
+// Solidity: function verifyExecutionNumber(uint64 timestamp, uint64 executionNumber, bytes32[] executionNumberProof) view returns()
+func (_BeaconVerifier *BeaconVerifierSession) VerifyExecutionNumber(timestamp uint64, executionNumber uint64, executionNumberProof [][32]byte) error {
+	return _BeaconVerifier.Contract.VerifyExecutionNumber(&_BeaconVerifier.CallOpts, timestamp, executionNumber, executionNumberProof)
+}
+
+// VerifyExecutionNumber is a free data retrieval call binding the contract method 0xcbb60852.
+//
+// Solidity: function verifyExecutionNumber(uint64 timestamp, uint64 executionNumber, bytes32[] executionNumberProof) view returns()
+func (_BeaconVerifier *BeaconVerifierCallerSession) VerifyExecutionNumber(timestamp uint64, executionNumber uint64, executionNumberProof [][32]byte) error {
+	return _BeaconVerifier.Contract.VerifyExecutionNumber(&_BeaconVerifier.CallOpts, timestamp, executionNumber, executionNumberProof)
 }
 
 // ZeroValidatorPubkeyGIndex is a free data retrieval call binding the contract method 0x35222ff1.
@@ -561,6 +621,27 @@ func (_BeaconVerifier *BeaconVerifierTransactorSession) RequestOwnershipHandover
 	return _BeaconVerifier.Contract.RequestOwnershipHandover(&_BeaconVerifier.TransactOpts)
 }
 
+// SetExecutionFeeRecipientGIndex is a paid mutator transaction binding the contract method 0xc0c27230.
+//
+// Solidity: function setExecutionFeeRecipientGIndex(uint256 _executionFeeRecipientGIndex) returns()
+func (_BeaconVerifier *BeaconVerifierTransactor) SetExecutionFeeRecipientGIndex(opts *bind.TransactOpts, _executionFeeRecipientGIndex *big.Int) (*types.Transaction, error) {
+	return _BeaconVerifier.contract.Transact(opts, "setExecutionFeeRecipientGIndex", _executionFeeRecipientGIndex)
+}
+
+// SetExecutionFeeRecipientGIndex is a paid mutator transaction binding the contract method 0xc0c27230.
+//
+// Solidity: function setExecutionFeeRecipientGIndex(uint256 _executionFeeRecipientGIndex) returns()
+func (_BeaconVerifier *BeaconVerifierSession) SetExecutionFeeRecipientGIndex(_executionFeeRecipientGIndex *big.Int) (*types.Transaction, error) {
+	return _BeaconVerifier.Contract.SetExecutionFeeRecipientGIndex(&_BeaconVerifier.TransactOpts, _executionFeeRecipientGIndex)
+}
+
+// SetExecutionFeeRecipientGIndex is a paid mutator transaction binding the contract method 0xc0c27230.
+//
+// Solidity: function setExecutionFeeRecipientGIndex(uint256 _executionFeeRecipientGIndex) returns()
+func (_BeaconVerifier *BeaconVerifierTransactorSession) SetExecutionFeeRecipientGIndex(_executionFeeRecipientGIndex *big.Int) (*types.Transaction, error) {
+	return _BeaconVerifier.Contract.SetExecutionFeeRecipientGIndex(&_BeaconVerifier.TransactOpts, _executionFeeRecipientGIndex)
+}
+
 // SetExecutionNumberGIndex is a paid mutator transaction binding the contract method 0xf769afd1.
 //
 // Solidity: function setExecutionNumberGIndex(uint256 _executionNumberGIndex) returns()
@@ -622,6 +703,140 @@ func (_BeaconVerifier *BeaconVerifierSession) TransferOwnership(newOwner common.
 // Solidity: function transferOwnership(address newOwner) payable returns()
 func (_BeaconVerifier *BeaconVerifierTransactorSession) TransferOwnership(newOwner common.Address) (*types.Transaction, error) {
 	return _BeaconVerifier.Contract.TransferOwnership(&_BeaconVerifier.TransactOpts, newOwner)
+}
+
+// BeaconVerifierExecutionFeeRecipientGIndexChangedIterator is returned from FilterExecutionFeeRecipientGIndexChanged and is used to iterate over the raw logs and unpacked data for ExecutionFeeRecipientGIndexChanged events raised by the BeaconVerifier contract.
+type BeaconVerifierExecutionFeeRecipientGIndexChangedIterator struct {
+	Event *BeaconVerifierExecutionFeeRecipientGIndexChanged // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *BeaconVerifierExecutionFeeRecipientGIndexChangedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(BeaconVerifierExecutionFeeRecipientGIndexChanged)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(BeaconVerifierExecutionFeeRecipientGIndexChanged)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *BeaconVerifierExecutionFeeRecipientGIndexChangedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *BeaconVerifierExecutionFeeRecipientGIndexChangedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// BeaconVerifierExecutionFeeRecipientGIndexChanged represents a ExecutionFeeRecipientGIndexChanged event raised by the BeaconVerifier contract.
+type BeaconVerifierExecutionFeeRecipientGIndexChanged struct {
+	NewExecutionFeeRecipientGIndex *big.Int
+	Raw                            types.Log // Blockchain specific contextual infos
+}
+
+// FilterExecutionFeeRecipientGIndexChanged is a free log retrieval operation binding the contract event 0x15e42eec45edd1a051ce50f823a5d6482237d402c471639da37b62e855301548.
+//
+// Solidity: event ExecutionFeeRecipientGIndexChanged(uint256 newExecutionFeeRecipientGIndex)
+func (_BeaconVerifier *BeaconVerifierFilterer) FilterExecutionFeeRecipientGIndexChanged(opts *bind.FilterOpts) (*BeaconVerifierExecutionFeeRecipientGIndexChangedIterator, error) {
+
+	logs, sub, err := _BeaconVerifier.contract.FilterLogs(opts, "ExecutionFeeRecipientGIndexChanged")
+	if err != nil {
+		return nil, err
+	}
+	return &BeaconVerifierExecutionFeeRecipientGIndexChangedIterator{contract: _BeaconVerifier.contract, event: "ExecutionFeeRecipientGIndexChanged", logs: logs, sub: sub}, nil
+}
+
+// WatchExecutionFeeRecipientGIndexChanged is a free log subscription operation binding the contract event 0x15e42eec45edd1a051ce50f823a5d6482237d402c471639da37b62e855301548.
+//
+// Solidity: event ExecutionFeeRecipientGIndexChanged(uint256 newExecutionFeeRecipientGIndex)
+func (_BeaconVerifier *BeaconVerifierFilterer) WatchExecutionFeeRecipientGIndexChanged(opts *bind.WatchOpts, sink chan<- *BeaconVerifierExecutionFeeRecipientGIndexChanged) (event.Subscription, error) {
+
+	logs, sub, err := _BeaconVerifier.contract.WatchLogs(opts, "ExecutionFeeRecipientGIndexChanged")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(BeaconVerifierExecutionFeeRecipientGIndexChanged)
+				if err := _BeaconVerifier.contract.UnpackLog(event, "ExecutionFeeRecipientGIndexChanged", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseExecutionFeeRecipientGIndexChanged is a log parse operation binding the contract event 0x15e42eec45edd1a051ce50f823a5d6482237d402c471639da37b62e855301548.
+//
+// Solidity: event ExecutionFeeRecipientGIndexChanged(uint256 newExecutionFeeRecipientGIndex)
+func (_BeaconVerifier *BeaconVerifierFilterer) ParseExecutionFeeRecipientGIndexChanged(log types.Log) (*BeaconVerifierExecutionFeeRecipientGIndexChanged, error) {
+	event := new(BeaconVerifierExecutionFeeRecipientGIndexChanged)
+	if err := _BeaconVerifier.contract.UnpackLog(event, "ExecutionFeeRecipientGIndexChanged", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
 }
 
 // BeaconVerifierExecutionNumberGIndexChangedIterator is returned from FilterExecutionNumberGIndexChanged and is used to iterate over the raw logs and unpacked data for ExecutionNumberGIndexChanged events raised by the BeaconVerifier contract.
