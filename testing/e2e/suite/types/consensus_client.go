@@ -38,7 +38,7 @@ import (
 
 const (
 	// connTimeout is the timeout for the connection to the consensus client.
-	connTimeout = 10 * time.Second
+	connTimeout = 15 * time.Second
 )
 
 // ConsensusClient represents a consensus client.
