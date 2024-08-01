@@ -203,10 +203,12 @@ type ForkData[ForkDataT any] interface {
 // ValidatorT.
 type Validator[
 	ValidatorT any,
-	WithdrawalCredentialsT ~[32]byte,
+	WithdrawalCredentialsT interface {
+		~[32]byte
+		ToExecutionAddress() (gethprimitives.ExecutionAddress, error)
+	},
 ] interface {
 	constraints.SSZMarshallableRootable
-	SizeSSZ() uint32
 	// New creates a new validator with the given parameters.
 	New(
 		pubkey crypto.BLSPubkey,
@@ -226,6 +228,14 @@ type Validator[
 	SetEffectiveBalance(math.Gwei)
 	// GetWithdrawableEpoch returns the epoch when the validator can withdraw.
 	GetWithdrawableEpoch() math.Epoch
+	// GetWithdrawalCredentials returns the withdrawal credentials.
+	GetWithdrawalCredentials() WithdrawalCredentialsT
+	// IsFullyWithdrawable returns true if the validator can withdraw the
+	// balance.
+	IsFullyWithdrawable(balance math.Gwei, epoch math.Epoch) bool
+	// IsPartiallyWithdrawable returns true if the validator can withdraw the
+	// balance partially.
+	IsPartiallyWithdrawable(balance math.Gwei, epoch math.Epoch) bool
 }
 
 type Validators interface {
@@ -234,6 +244,12 @@ type Validators interface {
 
 // Withdrawal is the interface for a withdrawal.
 type Withdrawal[WithdrawalT any] interface {
+	New(
+		index math.U64,
+		validatorIndex math.ValidatorIndex,
+		address gethprimitives.ExecutionAddress,
+		amount math.Gwei,
+	) WithdrawalT
 	// Equals returns true if the withdrawal is equal to the other.
 	Equals(WithdrawalT) bool
 	// GetAmount returns the amount of the withdrawal.

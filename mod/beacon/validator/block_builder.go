@@ -243,11 +243,11 @@ func (s *Processor[
 			st,
 			blk.GetSlot(),
 			// TODO: this is hood.
-			max(
+			math.U64(max(
 				//#nosec:G701
 				uint64(time.Now().Unix()+1),
 				uint64((lph.GetTimestamp()+1)),
-			),
+			)),
 			blk.GetParentBlockRoot(),
 			lph.GetBlockHash(),
 			lph.GetParentHash(),
