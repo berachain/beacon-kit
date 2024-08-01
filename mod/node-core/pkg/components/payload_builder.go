@@ -25,7 +25,7 @@ import (
 	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
-	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
+	"github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -34,11 +34,13 @@ import (
 // LocalBuilderInput is an input for the dep inject framework.
 type LocalBuilderInput struct {
 	depinject.In
-	AttributesFactory *AttributesFactory
-	Cfg               *config.Config
-	ChainSpec         common.ChainSpec
-	ExecutionEngine   *ExecutionEngine
-	Logger            log.AdvancedLogger[any, sdklog.Logger]
+	AttributesFactory builder.AttributesFactory[
+		*BeaconState, *PayloadAttributes,
+	]
+	Cfg             *config.Config
+	ChainSpec       common.ChainSpec
+	ExecutionEngine *ExecutionEngine
+	Logger          log.AdvancedLogger[any, sdklog.Logger]
 }
 
 // ProvideLocalBuilder provides a local payload builder for the
@@ -46,7 +48,7 @@ type LocalBuilderInput struct {
 func ProvideLocalBuilder(
 	in LocalBuilderInput,
 ) *LocalBuilder {
-	return payloadbuilder.New[
+	return builder.New[
 		*BeaconState, *ExecutionPayload, *ExecutionPayloadHeader,
 	](
 		&in.Cfg.PayloadBuilder,
