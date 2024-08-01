@@ -32,6 +32,14 @@ library SSZ {
         }
     }
 
+    function uint64HashTreeRoot(uint64 v)
+        internal
+        pure
+        returns (bytes32 root)
+    {
+        return toLittleEndian(uint256(v));
+    }
+
     function addressHashTreeRoot(address v)
         internal
         pure
