@@ -40,7 +40,7 @@ type Backend[
 	BeaconBlockHeaderT core.BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT core.BeaconState[
 		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-		ForkT, KVStoreT, ValidatorT, ValidatorsT, WithdrawalT,
+		ForkT, KVStoreT, ValidatorT, ValidatorsT, WithdrawalT, WithdrawalCredentialsT,
 	],
 	BeaconStateMarshallableT state.BeaconStateMarshallable[
 		BeaconStateMarshallableT, BeaconBlockHeaderT, Eth1DataT,
@@ -57,7 +57,7 @@ type Backend[
 		KVStoreT, BeaconBlockHeaderT, Eth1DataT,
 		ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT,
 	],
-	ValidatorT Validator[WithdrawalCredentialsT],
+	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
 	ValidatorsT ~[]ValidatorT,
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalCredentialsT WithdrawalCredentials,
@@ -78,7 +78,7 @@ func NewBackend[
 	BeaconBlockHeaderT core.BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT core.BeaconState[
 		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-		ForkT, KVStoreT, ValidatorT, ValidatorsT, WithdrawalT,
+		ForkT, KVStoreT, ValidatorT, ValidatorsT, WithdrawalT, WithdrawalCredentialsT,
 	],
 	BeaconStateMarshallableT state.BeaconStateMarshallable[
 		BeaconStateMarshallableT, BeaconBlockHeaderT, Eth1DataT,
@@ -95,7 +95,7 @@ func NewBackend[
 		KVStoreT, BeaconBlockHeaderT, Eth1DataT,
 		ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT,
 	],
-	ValidatorT Validator[WithdrawalCredentialsT],
+	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
 	ValidatorsT ~[]ValidatorT,
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalCredentialsT WithdrawalCredentials,

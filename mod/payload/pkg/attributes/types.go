@@ -34,6 +34,14 @@ type BeaconState[WithdrawalT any] interface {
 	GetRandaoMixAtIndex(index uint64) (common.Root, error)
 }
 
+// StateProcessor is the interface for the state processor.
+type StateProcessor[BeaconStateT any, WithdrawalT any] interface {
+	// ProcessState processes the state.
+	ExpectedWithdrawals(
+		BeaconStateT,
+	) ([]WithdrawalT, error)
+}
+
 // PayloadAttributes is the interface for the payload attributes.
 type PayloadAttributes[SelfT any, WithdrawalT any] interface {
 	engineprimitives.PayloadAttributer

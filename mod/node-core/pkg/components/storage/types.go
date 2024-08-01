@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/karalabe/ssz"
 )
 
 // The AvailabilityStore interface is responsible for validating and storing
@@ -199,7 +200,16 @@ type KVStore[
 // Validator represents an interface for a validator with generic withdrawal
 // credentials. WithdrawalCredentialsT is a type parameter that must implement
 // the WithdrawalCredentials interface.
-type Validator[WithdrawalCredentialsT WithdrawalCredentials] interface {
+type Validator[ValidatorT any, WithdrawalCredentialsT WithdrawalCredentials] interface {
+	ssz.StaticObject
+	constraints.SSZMarshallableRootable
+	New(
+		pubkey crypto.BLSPubkey,
+		withdrawalCredentials WithdrawalCredentialsT,
+		amount math.Gwei,
+		effectiveBalanceIncrement math.Gwei,
+		maxEffectiveBalance math.Gwei,
+	) ValidatorT
 	// GetWithdrawalCredentials returns the withdrawal credentials of the
 	// validator.
 	GetWithdrawalCredentials() WithdrawalCredentialsT
@@ -209,6 +219,17 @@ type Validator[WithdrawalCredentialsT WithdrawalCredentials] interface {
 	// IsPartiallyWithdrawable checks if the validator is partially withdrawable
 	// given two Gwei amounts.
 	IsPartiallyWithdrawable(amount1 math.Gwei, amount2 math.Gwei) bool
+	// GetEffectiveBalance() returns the effective balance of the validator.
+	GetEffectiveBalance() math.Gwei
+	// GetPubkey() returns the public key of the validator.
+	GetPubkey() crypto.BLSPubkey
+	// GetWithdrawableEpoch() returns the epoch when the validator can withdraw.
+	GetWithdrawableEpoch() math.Epoch
+
+	// IsSlashed() returns true if the validator is slashed.
+	IsSlashed() bool
+	// SetEffectiveBalance
+	SetEffectiveBalance(balance math.Gwei)
 }
 
 // Withdrawal represents an interface for a withdrawal.
@@ -223,6 +244,7 @@ type Withdrawal[T any] interface {
 
 // WithdrawalCredentials represents an interface for withdrawal credentials.
 type WithdrawalCredentials interface {
+	~[32]byte
 	// ToExecutionAddress converts the withdrawal credentials to an execution
 	// address.
 	ToExecutionAddress() (gethprimitives.ExecutionAddress, error)

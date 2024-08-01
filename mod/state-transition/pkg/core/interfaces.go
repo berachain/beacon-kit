@@ -23,6 +23,7 @@ package core
 import (
 	"context"
 
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -36,10 +37,14 @@ type BeaconState[
 	Eth1DataT,
 	ExecutionPayloadHeaderT,
 	ForkT,
-	KVStoreT,
-	ValidatorT,
+	KVStoreT any,
+	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
 	ValidatorsT,
 	WithdrawalT any,
+	WithdrawalCredentialsT interface {
+		~[32]byte
+		ToExecutionAddress() (gethprimitives.ExecutionAddress, error)
+	},
 ] interface {
 	NewFromDB(
 		bdb KVStoreT,

@@ -31,6 +31,16 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
+// AttributesFactory is the interface for the attributes factory.
+type AttributesFactory[BeaconStateT, PayloadAttributesT any] interface {
+	BuildPayloadAttributes(
+		BeaconStateT,
+		math.Slot,
+		math.U64,
+		common.Root,
+	) (PayloadAttributesT, error)
+}
+
 // BeaconState defines the interface for accessing various state-related data
 // required for block processing.
 type BeaconState[
@@ -104,4 +114,12 @@ type ExecutionEngine[
 		ctx context.Context,
 		req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
 	) (*PayloadIDT, *gethprimitives.ExecutionHash, error)
+}
+
+// StateProcessor is the interface for the state processor.
+type StateProcessor[BeaconStateT any, WithdrawalT any] interface {
+	// ProcessState processes the state.
+	ExpectedWithdrawals(
+		BeaconStateT,
+	) ([]WithdrawalT, error)
 }

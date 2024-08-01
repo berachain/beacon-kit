@@ -47,6 +47,7 @@ require (
 	github.com/crate-crypto/go-kzg-4844 v1.0.0
 	github.com/hashicorp/go-metrics v0.5.3
 	github.com/itsdevbear/comet-bls12-381 v0.0.0-20240413212931-2ae2f204cde7
+	github.com/karalabe/ssz v0.2.1-0.20240724074312-3d1ff7a6f7c4
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cast v1.6.0
 	google.golang.org/protobuf v1.34.2
@@ -63,7 +64,6 @@ require (
 	github.com/goccy/go-json v0.10.3 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/holiman/bloomfilter/v2 v2.0.3 // indirect
-	github.com/karalabe/ssz v0.2.1-0.20240724074312-3d1ff7a6f7c4 // indirect
 	github.com/labstack/echo/v4 v4.12.0 // indirect
 	github.com/labstack/gommon v0.4.2 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
