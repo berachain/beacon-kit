@@ -97,3 +97,64 @@ func (kv *KVStore[
 ) error {
 	return kv.totalSlashing.Set(kv.ctx, uint64(amount))
 }
+
+// IncreaseBalance increases the balance of a validator.
+func (kv *KVStore[
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
+]) IncreaseBalance(
+	idx math.ValidatorIndex,
+	delta math.Gwei,
+) error {
+	balance, err := kv.GetBalance(idx)
+	if err != nil {
+		return err
+	}
+	return kv.SetBalance(idx, balance+delta)
+}
+
+// DecreaseBalance decreases the balance of a validator.
+func (kv *KVStore[
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
+]) DecreaseBalance(
+	idx math.ValidatorIndex,
+	delta math.Gwei,
+) error {
+	balance, err := kv.GetBalance(idx)
+	if err != nil {
+		return err
+	}
+	return kv.SetBalance(idx, balance-min(balance, delta))
+}
+
+// UpdateSlashingAtIndex sets the slashing amount in the store.
+func (kv *KVStore[
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
+]) UpdateSlashingAtIndex(
+	index uint64,
+	amount math.Gwei,
+) error {
+	// Update the total slashing amount before overwriting the old amount.
+	total, err := kv.GetTotalSlashing()
+	if err != nil {
+		return err
+	}
+
+	oldValue, err := kv.GetSlashingAtIndex(index)
+	if err != nil {
+		return err
+	}
+
+	// Defensive check but total - oldValue should never underflow.
+	if oldValue > total {
+		return errors.New("count of total slashing is not up to date")
+	} else if err = kv.SetTotalSlashing(
+		total - oldValue + amount,
+	); err != nil {
+		return err
+	}
+
+	return kv.SetSlashingAtIndex(index, amount)
+}

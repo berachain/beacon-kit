@@ -145,4 +145,8 @@ type KVStore[
 	// GetValidatorsByEffectiveBalance retrieves validators by effective
 	// balance.
 	GetValidatorsByEffectiveBalance() ([]ValidatorT, error)
+
+	IncreaseBalance(index math.ValidatorIndex, amount math.Gwei) error
+	DecreaseBalance(index math.ValidatorIndex, amount math.Gwei) error
+	UpdateSlashingAtIndex(index uint64, amount math.Gwei) error
 }
