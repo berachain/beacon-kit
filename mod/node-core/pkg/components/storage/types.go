@@ -28,7 +28,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/karalabe/ssz"
 )
 
 // The AvailabilityStore interface is responsible for validating and storing
@@ -203,7 +202,6 @@ type KVStore[
 type Validator[
 	ValidatorT any, WithdrawalCredentialsT WithdrawalCredentials,
 ] interface {
-	ssz.StaticObject
 	constraints.SSZMarshallableRootable
 	New(
 		pubkey crypto.BLSPubkey,

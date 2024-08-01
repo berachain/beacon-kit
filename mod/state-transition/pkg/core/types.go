@@ -209,7 +209,6 @@ type Validator[
 	},
 ] interface {
 	constraints.SSZMarshallableRootable
-	SizeSSZ() uint32
 	// New creates a new validator with the given parameters.
 	New(
 		pubkey crypto.BLSPubkey,
