@@ -364,7 +364,6 @@ func (sp *StateProcessor[
 
 	// Iterate through indices to find the next validators to withdraw.
 	for range bound {
-
 		validator, err = st.ValidatorByIndex(validatorIndex)
 		if err != nil {
 			return nil, err
