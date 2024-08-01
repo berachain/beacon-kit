@@ -76,7 +76,7 @@ func SlotFromBlockID[StorageBackendT interface {
 // '0x66aab3ef' (without the prefix 't') will query for the beacon block with
 // slot 1722463215.
 func SlotFromTimestampID[StorageBackendT interface {
-	GetSlotByTimestamp(timestamp math.U64) (math.Slot, error)
+	GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
 }](timestampID string, storage StorageBackendT) (math.Slot, error) {
 	if !IsTimestampPrefix(timestampID) {
 		return SlotFromStateID(timestampID)
@@ -87,7 +87,7 @@ func SlotFromTimestampID[StorageBackendT interface {
 	if err != nil {
 		return 0, err
 	}
-	return storage.GetSlotByTimestamp(timestamp)
+	return storage.GetSlotByExecutionNumber(timestamp)
 }
 
 // IsTimestampPrefix checks if the given timestampID is prefixed with the

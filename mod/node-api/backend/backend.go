@@ -142,12 +142,12 @@ func (b *Backend[
 	return b.sb.BlockStore().GetSlotByRoot(root)
 }
 
-// GetSlotByTimestamp retrieves the slot by a given timestamp from the block
-// store.
+// GetSlotByExecutionNumber retrieves the slot by a given execution number from
+// the block store.
 func (b *Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) GetSlotByTimestamp(timestamp math.U64) (math.Slot, error) {
-	return b.sb.BlockStore().GetSlotByTimestamp(timestamp)
+]) GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error) {
+	return b.sb.BlockStore().GetSlotByExecutionNumber(executionNumber)
 }
 
 // stateFromSlot returns the state at the given slot, after also processing the

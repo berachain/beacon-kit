@@ -26,6 +26,7 @@ import (
 	storev2 "cosmossdk.io/store/v2/db"
 	blockservice "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/config"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/block"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
@@ -52,11 +53,7 @@ func ProvideBlockStore(
 		return nil, err
 	}
 
-	return block.NewStore[*BeaconBlock](
-		&block.KVStoreProvider{
-			KVStoreWithBatch: kvp,
-		},
-	), nil
+	return block.NewStore[*BeaconBlock](storage.NewKVStoreProvider(kvp)), nil
 }
 
 // BlockPrunerInput is the input for the block pruner.

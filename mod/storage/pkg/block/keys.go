@@ -23,11 +23,11 @@ package block
 const (
 	BlockKeyPrefix byte = iota
 	RootsKeyPrefix
-	TimestampsKeyPrefix
+	ExecutionNumbersKeyPrefix
 )
 
 const (
-	BlocksMapName     = "blocks"
-	RootsMapName      = "roots"
-	TimestampsMapName = "timestamps"
+	BlocksMapName           = "blocks"
+	RootsMapName            = "roots"
+	ExecutionNumbersMapName = "execution_numbers"
 )

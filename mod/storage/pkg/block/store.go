@@ -32,21 +32,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 )
 
-type KVStoreProvider struct {
-	store.KVStoreWithBatch
-}
-
-// OpenKVStore opens a new KV store.
-func (p *KVStoreProvider) OpenKVStore(context.Context) store.KVStore {
-	return p.KVStoreWithBatch
-}
-
-// KVStore is a simple KV store based implementation that stores
-// beacon blocks.
+// KVStore is a simple KV store based implementation that stores beacon blocks.
 type KVStore[BeaconBlockT BeaconBlock[BeaconBlockT]] struct {
-	blocks     sdkcollections.Map[math.Slot, BeaconBlockT]
-	roots      sdkcollections.Map[[]byte, math.Slot]
-	timestamps sdkcollections.Map[math.U64, math.Slot]
+	blocks           sdkcollections.Map[math.Slot, BeaconBlockT]
+	roots            sdkcollections.Map[[]byte, math.Slot]
+	executionNumbers sdkcollections.Map[math.U64, math.Slot]
 
 	mu           sync.RWMutex
 	cdc          *encoding.SSZInterfaceCodec[BeaconBlockT]
@@ -74,10 +64,10 @@ func NewStore[BeaconBlockT BeaconBlock[BeaconBlockT]](
 			sdkcollections.BytesKey,
 			encoding.U64Value,
 		),
-		timestamps: sdkcollections.NewMap(
+		executionNumbers: sdkcollections.NewMap(
 			schemaBuilder,
-			sdkcollections.NewPrefix([]byte{TimestampsKeyPrefix}),
-			TimestampsMapName,
+			sdkcollections.NewPrefix([]byte{ExecutionNumbersKeyPrefix}),
+			ExecutionNumbersMapName,
 			encoding.U64Key,
 			encoding.U64Value,
 		),
@@ -99,18 +89,21 @@ func (kv *KVStore[BeaconBlockT]) Set(slot math.Slot, blk BeaconBlockT) error {
 	var (
 		ctx  = context.TODO()
 		root = blk.HashTreeRoot()
+		err  error
 	)
 
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
 
 	// Set the block root in the roots map.
-	if err := kv.roots.Set(ctx, root[:], slot); err != nil {
+	if err = kv.roots.Set(ctx, root[:], slot); err != nil {
 		return err
 	}
 
-	// Set the block timestamp in the timestamps map.
-	if err := kv.timestamps.Set(ctx, blk.GetTimestamp(), slot); err != nil {
+	// Set the block execution number in the execution numbers map.
+	if err = kv.executionNumbers.Set(
+		ctx, blk.GetExecutionNumber(), slot,
+	); err != nil {
 		return err
 	}
 
@@ -129,14 +122,15 @@ func (kv *KVStore[BeaconBlockT]) GetSlotByRoot(
 	return kv.roots.Get(context.TODO(), root[:])
 }
 
-// GetSlotByTimestamp retrieves the slot by a given timestamp from the store.
-func (kv *KVStore[BeaconBlockT]) GetSlotByTimestamp(
-	timestamp math.U64,
+// GetSlotByExecutionNumber retrieves the slot by a given execution number from
+// the store.
+func (kv *KVStore[BeaconBlockT]) GetSlotByExecutionNumber(
+	executionNumber math.U64,
 ) (math.Slot, error) {
 	kv.mu.RLock()
 	defer kv.mu.RUnlock()
 
-	return kv.timestamps.Get(context.TODO(), timestamp)
+	return kv.executionNumbers.Get(context.TODO(), executionNumber)
 }
 
 // Prune removes the [start, end) blocks from the store.
@@ -165,9 +159,9 @@ func (kv *KVStore[BeaconBlockT]) Prune(start, end uint64) error {
 				return err
 			}
 
-			// Block is found so also remove from timestamps map.
-			if err = kv.timestamps.Remove(
-				ctx, block.GetTimestamp(),
+			// Block is found so also remove from execution numbers map.
+			if err = kv.executionNumbers.Remove(
+				ctx, block.GetExecutionNumber(),
 			); err != nil {
 				return err
 			}

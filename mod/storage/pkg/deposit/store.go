@@ -32,15 +32,6 @@ import (
 
 const KeyDepositPrefix = "deposit"
 
-type KVStoreProvider struct {
-	store.KVStoreWithBatch
-}
-
-// OpenKVStore opens a new KV store.
-func (p *KVStoreProvider) OpenKVStore(context.Context) store.KVStore {
-	return p.KVStoreWithBatch
-}
-
 // KVStore is a simple KV store based implementation that assumes
 // the deposit indexes are tracked outside of the kv store.
 type KVStore[DepositT Deposit[DepositT]] struct {

@@ -28,7 +28,7 @@ import (
 type Backend[BeaconBlockHeaderT, BeaconStateT, ValidatorT any] interface {
 	BlockBackend[BeaconBlockHeaderT]
 	StateBackend[BeaconStateT]
-	GetSlotByTimestamp(timestamp math.U64) (math.Slot, error)
+	GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
 }
 
 type BlockBackend[BeaconBlockHeaderT any] interface {

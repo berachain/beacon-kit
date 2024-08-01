@@ -18,30 +18,27 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package storage
 
 import (
-	"cosmossdk.io/core/appmodule"
-	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
+	"context"
+
+	"cosmossdk.io/core/store"
 )
 
-// KVStoreInput is the input for the ProvideKVStore function.
-type KVStoreInput struct {
-	depinject.In
-	Environment appmodule.Environment
+// KVStoreProvider is a provider for a KV store.
+type KVStoreProvider struct {
+	store.KVStoreWithBatch
 }
 
-// ProvideKVStore is the depinject provider that returns a beacon KV store.
-func ProvideKVStore(in KVStoreInput) *KVStore {
-	payloadCodec := &encoding.SSZInterfaceCodec[*ExecutionPayloadHeader]{}
-	return beacondb.New[
-		*BeaconBlockHeader,
-		*Eth1Data,
-		*ExecutionPayloadHeader,
-		*Fork,
-		*Validator,
-		Validators,
-	](in.Environment.KVStoreService, payloadCodec)
+// NewKVStoreProvider creates a new KV store provider.
+func NewKVStoreProvider(kvsp store.KVStoreWithBatch) *KVStoreProvider {
+	return &KVStoreProvider{
+		KVStoreWithBatch: kvsp,
+	}
+}
+
+// OpenKVStore opens a new KV store.
+func (p *KVStoreProvider) OpenKVStore(context.Context) store.KVStore {
+	return p.KVStoreWithBatch
 }
