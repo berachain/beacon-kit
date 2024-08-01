@@ -234,3 +234,9 @@ func (b *BeaconBlock) GetHeader() *BeaconBlockHeader {
 		BodyRoot:        b.GetBody().HashTreeRoot(),
 	}
 }
+
+// GetExecutionNumber retrieves the execution number of the BeaconBlock from
+// the ExecutionPayload.
+func (b *BeaconBlock) GetExecutionNumber() math.U64 {
+	return b.Body.ExecutionPayload.Number
+}

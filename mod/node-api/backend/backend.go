@@ -121,6 +121,7 @@ func New[
 	}
 }
 
+// AttachNode sets the node on the backend for querying historical heights.
 func (b *Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, NodeT, _, _, _, _, _, _,
 ]) AttachNode(node NodeT) {
@@ -134,10 +135,19 @@ func (b *Backend[
 	return b.cs
 }
 
+// GetSlotByRoot retrieves the slot by a given root from the block store.
 func (b *Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) GetSlotByRoot(root [32]byte) (math.Slot, error) {
+]) GetSlotByRoot(root common.Root) (math.Slot, error) {
 	return b.sb.BlockStore().GetSlotByRoot(root)
+}
+
+// GetSlotByExecutionNumber retrieves the slot by a given execution number from
+// the block store.
+func (b *Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error) {
+	return b.sb.BlockStore().GetSlotByExecutionNumber(executionNumber)
 }
 
 // stateFromSlot returns the state at the given slot, after also processing the
@@ -165,8 +175,8 @@ func (b *Backend[
 }
 
 // stateFromSlotRaw returns the state at the given slot using query context,
-// resolving an input slot of 0 to the latest slot. It does not process the next
-// slot on the beacon state.
+// resolving an input slot of 0 to the latest slot. It does not process the
+// next slot on the beacon state.
 func (b *Backend[
 	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) stateFromSlotRaw(slot math.Slot) (BeaconStateT, math.Slot, error) {

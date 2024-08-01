@@ -42,6 +42,7 @@ func generateValidBeaconBlock() *types.BeaconBlock {
 		StateRoot:     bytes.B32{5, 4, 3, 2, 1},
 		Body: &types.BeaconBlockBody{
 			ExecutionPayload: &types.ExecutionPayload{
+				Number:    10,
 				ExtraData: []byte("dummy extra data for testing"),
 				Transactions: [][]byte{
 					[]byte("tx1"),
@@ -95,10 +96,12 @@ func TestBeaconBlockFromSSZForkVersionNotSupported(t *testing.T) {
 	_, err := wrappedBlock.NewFromSSZ([]byte{}, 1)
 	require.ErrorIs(t, err, types.ErrForkVersionNotSupported)
 }
+
 func TestBeaconBlock(t *testing.T) {
 	block := generateValidBeaconBlock()
 
 	require.NotNil(t, block.Body)
+	require.Equal(t, math.U64(10), block.GetExecutionNumber())
 	require.Equal(t, version.Deneb, block.Version())
 	require.False(t, block.IsNil())
 
