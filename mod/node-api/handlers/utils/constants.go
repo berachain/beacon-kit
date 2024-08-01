@@ -18,30 +18,19 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package utils
 
-import (
-	"cosmossdk.io/core/appmodule"
-	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+
+const (
+	StateIDGenesis    = "genesis"
+	StateIDFinalized  = "finalized"
+	StateIDJustified  = "justified"
+	StateIDHead       = "head"
+	ExecutionIDPrefix = "n"
 )
 
-// KVStoreInput is the input for the ProvideKVStore function.
-type KVStoreInput struct {
-	depinject.In
-	Environment appmodule.Environment
-}
-
-// ProvideKVStore is the depinject provider that returns a beacon KV store.
-func ProvideKVStore(in KVStoreInput) *KVStore {
-	payloadCodec := &encoding.SSZInterfaceCodec[*ExecutionPayloadHeader]{}
-	return beacondb.New[
-		*BeaconBlockHeader,
-		*Eth1Data,
-		*ExecutionPayloadHeader,
-		*Fork,
-		*Validator,
-		Validators,
-	](in.Environment.KVStoreService, payloadCodec)
-}
+const (
+	Head math.Slot = iota
+	Genesis
+)
