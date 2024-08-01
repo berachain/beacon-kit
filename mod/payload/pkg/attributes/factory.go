@@ -78,8 +78,8 @@ func (f *Factory[
 ]) BuildPayloadAttributes(
 	st BeaconStateT,
 	slot math.Slot,
-	timestamp uint64,
-	prevHeadRoot [32]byte,
+	timestamp math.U64,
+	prevHeadRoot common.Root,
 ) (PayloadAttributesT, error) {
 	var (
 		prevRandao [32]byte
@@ -107,7 +107,7 @@ func (f *Factory[
 
 	return attributes.New(
 		f.chainSpec.ActiveForkVersionForEpoch(epoch),
-		timestamp,
+		uint64(timestamp),
 		prevRandao,
 		f.suggestedFeeRecipient,
 		withdrawals,
