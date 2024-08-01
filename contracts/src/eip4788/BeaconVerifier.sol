@@ -187,7 +187,7 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     /// in the beacon state in the beacon block.
     /// @param beaconBlockRoot `bytes32` root of the beacon block.
     /// @param executionNumberProof `bytes32[]` proof of the execution number.
-    /// @param blockNumber `uint64` execution number of the block.
+    /// @param blockNumber `uint64` execution number of the beacon block.
     function proveExecutionNumberInBeaconBlock(
         bytes32 beaconBlockRoot,
         bytes32[] calldata executionNumberProof,
@@ -212,7 +212,7 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     /// payload header in the beacon state in the beacon block.
     /// @param beaconBlockRoot `bytes32` root of the beacon block.
     /// @param coinbaseProof `bytes32[]` proof of the coinbase.
-    /// @param coinbase `address` to verify.
+    /// @param coinbase `address` fee recipient of the beacon block.
     function proveExecutionFeeRecipientInBeaconBlock(
         bytes32 beaconBlockRoot,
         bytes32[] calldata coinbaseProof,

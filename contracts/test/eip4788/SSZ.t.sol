@@ -5,19 +5,17 @@ import { Test } from "@forge-std/Test.sol";
 import { SSZ } from "@src/eip4788/SSZ.sol";
 
 contract SSZTest is Test {
-    function test_toLittleEndian() public pure {
-        uint256 v = 0x1234567890ABCDEF;
-        bytes32 expected =
-            bytes32(bytes.concat(hex"EFCDAB9078563412", bytes24(0)));
-        bytes32 actual = SSZ.toLittleEndian(v);
-        assertEq(actual, expected);
-    }
-
     function test_uint64HashTreeRoot() public pure {
         uint64 w = type(uint64).max;
         bytes32 expected =
             bytes32(bytes.concat(hex"FFFFFFFFFFFFFFFF", bytes24(0)));
         bytes32 actual = SSZ.uint64HashTreeRoot(w);
+        assertEq(actual, expected);
+
+        uint64 v = 0x1234567890ABCDEF;
+        expected =  
+            bytes32(bytes.concat(hex"EFCDAB9078563412", bytes24(0)));
+        actual = SSZ.uint64HashTreeRoot(v);
         assertEq(actual, expected);
 
         uint64 z = 123_456_789;
