@@ -32,6 +32,7 @@ import (
 	httpclient "github.com/cometbft/cometbft/rpc/client/http"
 	"github.com/ethpandaops/beacon/pkg/beacon"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
+	"github.com/sirupsen/logrus"
 )
 
 // ConsensusClient represents a consensus client.
@@ -77,7 +78,7 @@ func (cc *ConsensusClient) Connect(ctx context.Context) error {
 	if !ok {
 		panic("Couldn't find the public port for the node API")
 	}
-	cc.Node = beacon.NewNode(nil, &beacon.Config{
+	cc.Node = beacon.NewNode(logrus.New(), &beacon.Config{
 		Addr: fmt.Sprintf("http://0.0.0.0:%d", nodePort.GetNumber()),
 		Name: "beacon node",
 	}, "eth", *beacon.DefaultOptions())
