@@ -21,7 +21,9 @@
 package components
 
 import (
-	storev2 "cosmossdk.io/store/v2/db"
+	"path/filepath"
+
+	"cosmossdk.io/store/v2/db"
 	blockservice "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/depinject"
@@ -42,8 +44,8 @@ func ProvideBlockStore(
 	in BlockStoreInput,
 ) (*BlockStore, error) {
 	name := "blocks"
-	dir := in.AppOpts.HomeDir + "/data"
-	kvp, err := storev2.NewDB(storev2.DBTypePebbleDB, name, dir, nil)
+	dir := filepath.Join(in.AppOpts.HomeDir, "data")
+	kvp, err := db.NewDB(db.DBTypePebbleDB, name, dir, nil)
 	if err != nil {
 		return nil, err
 	}

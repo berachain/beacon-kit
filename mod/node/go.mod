@@ -4,8 +4,9 @@ go 1.22.5
 
 replace (
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
-	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240726151427-2e0884564fdb
-	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240726151427-2e0884564fdb
+	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240731205446-aee9803a0af6
+	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240731205446-aee9803a0af6
+	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240731202123-43dd23137e9d
 	github.com/berachain/beacon-kit/mod/config => ../config
 	github.com/berachain/beacon-kit/mod/consensus => ../consensus
 	github.com/berachain/beacon-kit/mod/consensus-types => ../consensus-types
@@ -15,7 +16,7 @@ replace (
 	github.com/berachain/beacon-kit/mod/runtime => ../runtime
 	github.com/berachain/beacon-kit/mod/state-transition => ../state-transition
 	github.com/berachain/beacon-kit/mod/storage => ../storage
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240724150750-0fda53f265de
+	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240729221345-3df18b5c3b34
 )
 
 require (
@@ -24,14 +25,13 @@ require (
 	cosmossdk.io/store/v2 v2.0.0-20240729225221-c4de9a970633
 	github.com/berachain/beacon-kit/mod/async v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240728004405-58f868b44614
-	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240728004405-58f868b44614
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240728004405-58f868b44614
 	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240723155519-565f208d5482
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240728004405-58f868b44614
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240728004405-58f868b44614
 	github.com/berachain/beacon-kit/mod/depinject v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240710022615-726645827bad
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240731201523-f427600b4713
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240728004405-58f868b44614
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240722101705-632d23f22727
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240726221339-a8bfeebf8ecf
@@ -40,16 +40,15 @@ require (
 	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240728004405-58f868b44614
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240728004405-58f868b44614
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157
-	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240728004405-58f868b44614
+	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240731201523-f427600b4713
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6650da31
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240728004405-58f868b44614
-	github.com/cometbft/cometbft v1.0.0-rc1.0.20240727041726-672aa134407b
+	github.com/cometbft/cometbft v1.0.0-rc1.0.20240729121641-d06d2e8229ee
 	github.com/cosmos/cosmos-sdk v0.53.0
 	github.com/crate-crypto/go-kzg-4844 v1.0.0
 	github.com/hashicorp/go-metrics v0.5.3
 	github.com/itsdevbear/comet-bls12-381 v0.0.0-20240413212931-2ae2f204cde7
 	github.com/spf13/afero v1.11.0
-	github.com/spf13/cast v1.6.0
 )
 
 require (
@@ -62,7 +61,7 @@ require (
 	cosmossdk.io/errors v1.0.1 // indirect
 	cosmossdk.io/math v1.3.0 // indirect
 	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc // indirect
-	cosmossdk.io/x/auth v0.0.0-20240726151427-2e0884564fdb // indirect
+	cosmossdk.io/x/auth v0.0.0-20240731202123-43dd23137e9d // indirect
 	cosmossdk.io/x/tx v0.13.4-0.20240623110059-dec2d5583e39 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
@@ -200,6 +199,7 @@ require (
 	github.com/sasha-s/go-deadlock v0.3.1 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8 // indirect
+	github.com/spf13/cast v1.6.0 // indirect
 	github.com/spf13/cobra v1.8.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.19.0 // indirect

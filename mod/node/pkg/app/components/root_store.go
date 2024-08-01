@@ -37,7 +37,7 @@ type StoreConfigInput struct {
 	AppOpts *AppOptions
 }
 
-func ProvideStoreOptions(in StoreConfigInput) *root.FactoryOptions {
+func ProvideStoreOptions(in StoreConfigInput) (*root.FactoryOptions, error) {
 	scRawDb, err := db.NewDB(
 		db.DBTypePebbleDB,
 		"application",
@@ -45,7 +45,7 @@ func ProvideStoreOptions(in StoreConfigInput) *root.FactoryOptions {
 		nil,
 	)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	return &root.FactoryOptions{
@@ -55,10 +55,12 @@ func ProvideStoreOptions(in StoreConfigInput) *root.FactoryOptions {
 			SSType:          root.SSTypeSQLite,
 			SCType:          root.SCTypeIavl,
 			SCPruningOption: store.NewPruningOption(store.PruningNothing),
+			SSPruningOption: store.NewPruningOption(store.PruningNothing),
 			IavlConfig:      iavl.DefaultConfig(),
 		},
-		SCRawDB: scRawDb,
-	}
+		StoreKeys: []string{"beacon"},
+		SCRawDB:   scRawDb,
+	}, nil
 }
 
 func ProvideRootStore(factoryOpts *root.FactoryOptions) (store.RootStore, error) {

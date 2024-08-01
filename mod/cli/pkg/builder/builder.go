@@ -24,8 +24,8 @@ import (
 	"os"
 
 	"cosmossdk.io/client/v2/autocli"
-	sdklog "cosmossdk.io/core/log"
 	"cosmossdk.io/depinject"
+	sdklog "cosmossdk.io/log"
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/context"
 	"github.com/berachain/beacon-kit/mod/log"

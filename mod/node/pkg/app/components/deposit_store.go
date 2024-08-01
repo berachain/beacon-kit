@@ -21,7 +21,9 @@
 package components
 
 import (
-	storev2 "cosmossdk.io/store/v2/db"
+	"path/filepath"
+
+	"cosmossdk.io/store/v2/db"
 	"github.com/berachain/beacon-kit/mod/depinject"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -42,8 +44,8 @@ func ProvideDepositStore(
 	in DepositStoreInput,
 ) (*DepositStore, error) {
 	name := "deposits"
-	dir := in.AppOpts.HomeDir + "/data"
-	kvp, err := storev2.NewDB(storev2.DBTypePebbleDB, name, dir, nil)
+	dir := filepath.Join(in.AppOpts.HomeDir, "data")
+	kvp, err := db.NewDB(db.DBTypePebbleDB, name, dir, nil)
 	if err != nil {
 		return nil, err
 	}

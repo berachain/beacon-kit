@@ -24,7 +24,6 @@ import (
 	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/depinject"
-	"github.com/berachain/beacon-kit/mod/log"
 )
 
 // BlockServiceInput is the input for the block service.
@@ -32,7 +31,7 @@ type BlockServiceInput struct {
 	depinject.In
 
 	Config      *config.Config
-	Logger      log.Logger[any]
+	Logger      *Logger
 	BlockBroker *BlockBroker
 	BlockStore  *BlockStore
 }

@@ -25,6 +25,8 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/comet"
 	abci "github.com/cometbft/cometbft/abci/types"
 )
 
@@ -43,17 +45,20 @@ type Application[NodeT engine.Client] struct {
 	node NodeT
 
 	// CometBFT Params
-	lastFinalizedHeight int64
+	lastFinalizedHeight  int64
+	consensusParamsStore *comet.ConsensusParamsStore
 }
 
 func NewApplication[NodeT engine.Client](
 	logger log.Logger[any],
 	node NodeT,
+	chainSpec common.ChainSpec,
 ) *Application[NodeT] {
 	return &Application[NodeT]{
-		BaseApplication: abci.BaseApplication{},
-		logger:          logger,
-		node:            node,
+		BaseApplication:      abci.BaseApplication{},
+		logger:               logger,
+		node:                 node,
+		consensusParamsStore: comet.NewConsensusParamsStore(chainSpec),
 	}
 }
 
@@ -66,7 +71,7 @@ func (app *Application[NodeT]) InitChain(
 		"chain id", req.ChainId,
 		"height", req.InitialHeight,
 	)
-	valUpdates, stateHash, err := app.node.InitChain(ctx, req.AppStateBytes)
+	valUpdates, err := app.node.InitChain(ctx, req.AppStateBytes)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +79,7 @@ func (app *Application[NodeT]) InitChain(
 	return &abci.InitChainResponse{
 		ConsensusParams: req.ConsensusParams, // TODO: do we need to override this??? how can we abstract this???
 		Validators:      convertValidatorUpdates(valUpdates),
-		AppHash:         stateHash,
+		AppHash:         nil,
 	}, nil
 }
 
@@ -112,12 +117,20 @@ func (app *Application[NodeT]) FinalizeBlock(
 	req *abci.FinalizeBlockRequest,
 ) (*abci.FinalizeBlockResponse, error) {
 	app.logger.Info("FinalizeBlock", "req", req)
-	resp, err := app.node.FinalizeBlock(ctx, req)
+	valUpdates, err := app.node.FinalizeBlock(ctx, req)
 	if err != nil {
 		return nil, err
 	}
 	app.lastFinalizedHeight = req.Height
-	return resp, nil
+	params, err := app.consensusParamsStore.Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &abci.FinalizeBlockResponse{
+		ValidatorUpdates:      convertValidatorUpdates(valUpdates),
+		ConsensusParamUpdates: &params,
+		AppHash:               nil,
+	}, nil
 }
 
 func (app *Application[NodeT]) Commit(

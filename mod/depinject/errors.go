@@ -20,8 +20,56 @@
 
 package depinject
 
-import "errors"
+import (
+	"reflect"
+	"runtime"
+
+	"github.com/pkg/errors"
+)
 
 var (
 	ErrTargetMustBePointer = errors.New("target must be a pointer")
 )
+
+func ProvideError(err error, fn any) error {
+	return depinjectError("provide", err, fn)
+}
+
+func InvokeError(err error, fn any) error {
+	return depinjectError("invoke", err, fn)
+}
+
+func depinjectError(source string, err error, fn any) error {
+	// If we still don't have a function, return a more descriptive error
+	if reflect.TypeOf(fn).Kind() != reflect.Func {
+		return errors.Errorf(
+			"Error in %s: fn must be a function, got %T",
+			source,
+			fn,
+		)
+	}
+	funcName := runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name()
+	// Get the return types of the function
+	funcType := reflect.TypeOf(fn)
+	if funcType.NumOut() < 1 {
+		return errors.Wrapf(
+			err,
+			"Error in %s: provider %s must return at least one value",
+			source,
+			funcName,
+		)
+	}
+	returnType := funcType.Out(0).String()
+	return errors.Wrapf(
+		err,
+		"Error in %s:\n\n"+
+			"Can't resolve type %s\n\n"+
+			"from provider %s\n\n"+
+			"in function %T\n\n"+
+			"error from dig:",
+		source,
+		returnType,
+		funcName,
+		fn,
+	)
+}

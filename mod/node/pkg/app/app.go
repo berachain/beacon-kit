@@ -21,6 +21,8 @@
 package app
 
 import (
+	"context"
+
 	consensusengine "github.com/berachain/beacon-kit/mod/consensus/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
@@ -30,12 +32,12 @@ type App[
 	StorageBackendT any,
 	StateProcessorT any,
 ] struct {
-	logger log.Logger[any]
+	Logger log.Logger[any]
 
 	// The consensus engine client is responsible
 	// for communicating with the consensus engine
 	// for the chain.
-	ConsensusClient consensusengine.Client
+	consensusengine.Client
 	// The execution engine client is responsible
 	// for communicating with the execution engine
 	// for the chain.
@@ -52,4 +54,8 @@ type App[
 	// that are used to support the core functionality
 	// of the application.
 	services service.Registry
+}
+
+func (a *App[_, _]) Start(ctx context.Context) error {
+	return a.services.StartAll(ctx)
 }

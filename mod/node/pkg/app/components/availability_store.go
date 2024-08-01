@@ -23,6 +23,7 @@ package components
 import (
 	"errors"
 	"os"
+	"path/filepath"
 
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	"github.com/berachain/beacon-kit/mod/depinject"
@@ -45,10 +46,11 @@ type AvailabilityStoreInput struct {
 func ProvideAvailibilityStore(
 	in AvailabilityStoreInput,
 ) (*AvailabilityStore, error) {
+	dir := filepath.Join(in.AppOpts.HomeDir, "data", "blobs")
 	return dastore.New[*BeaconBlockBody](
 		filedb.NewRangeDB(
 			filedb.NewDB(
-				filedb.WithRootDirectory(in.AppOpts.HomeDir+"/data/blobs"),
+				filedb.WithRootDirectory(dir),
 				filedb.WithFileExtension("ssz"),
 				filedb.WithDirectoryPermissions(os.ModePerm),
 				filedb.WithLogger(in.Logger),

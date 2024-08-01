@@ -37,5 +37,6 @@ type ConfigInput struct {
 func ProvideConfig(in ConfigInput) (*config.Config, error) {
 	// AppOpts is not populated when called from CLI
 	// Read the directory
-	return config.ReadConfigFromAppOpts(in.AppOpts)
+	// return config.ReadConfigFromAppOpts(in.AppOpts)
+	return nil, nil
 }

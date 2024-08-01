@@ -20,31 +20,31 @@
 
 package components
 
-import (
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
-	"github.com/berachain/beacon-kit/mod/depinject"
-)
+// import (
+// 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
+// 	"github.com/berachain/beacon-kit/mod/depinject"
+// )
 
-// ConsensusEngineInput is the input for the consensus engine.
-type ConsensusEngineInput struct {
-	depinject.In
-	ConsensusMiddleware *ABCIMiddleware
-	StorageBackend      *StorageBackend
-}
+// // ConsensusEngineInput is the input for the consensus engine.
+// type ConsensusEngineInput struct {
+// 	depinject.In
+// 	ConsensusMiddleware *ABCIMiddleware
+// 	StorageBackend      *StorageBackend
+// }
 
-// ProvideConsensusEngine is a depinject provider for the consensus engine.
-func ProvideConsensusEngine(
-	in ConsensusEngineInput,
-) (*ConsensusEngine, error) {
-	return cometbft.NewConsensusEngine[
-		*AttestationData,
-		*BeaconState,
-		*SlashingInfo,
-		*SlotData,
-		*StorageBackend,
-		*ValidatorUpdate,
-	](
-		in.ConsensusMiddleware,
-		in.StorageBackend,
-	), nil
-}
+// // ProvideConsensusEngine is a depinject provider for the consensus engine.
+// func ProvideConsensusEngine(
+// 	in ConsensusEngineInput,
+// ) (*ConsensusEngine, error) {
+// 	return cometbft.NewConsensusEngine[
+// 		*AttestationData,
+// 		*BeaconState,
+// 		*SlashingInfo,
+// 		*SlotData,
+// 		*StorageBackend,
+// 		*ValidatorUpdate,
+// 	](
+// 		in.ConsensusMiddleware,
+// 		in.StorageBackend,
+// 	), nil
+// }

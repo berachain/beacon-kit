@@ -43,6 +43,9 @@ func DefaultConfig() *Config {
 	cfg.Consensus.TimeoutCommit = 5 * time.Second
 	cfg.RPC.PprofListenAddress = "localhost:6060"
 	return &Config{
-		CometConfig: cfg,
+		CometConfig:            cfg,
+		NodeKeyFile:            "config/node_key.json",
+		PrivValidatorKeyFile:   "config/priv_validator_key.json",
+		PrivValidatorStateFile: "config/priv_validator_state.json",
 	}
 }

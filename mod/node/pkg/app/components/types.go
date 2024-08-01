@@ -57,7 +57,6 @@ import (
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
 	middlewarev2 "github.com/berachain/beacon-kit/mod/runtime/pkg/middleware/v2"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	statedb "github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
@@ -72,16 +71,16 @@ import (
 )
 
 type (
-	// ABCIMiddleware is a type alias for the ABCIMiddleware.
-	ABCIMiddleware = middleware.ABCIMiddleware[
-		*AvailabilityStore,
-		*BeaconBlock,
-		*BlobSidecars,
-		*Deposit,
-		*ExecutionPayload,
-		*Genesis,
-		*SlotData,
-	]
+	// // ABCIMiddleware is a type alias for the ABCIMiddleware.
+	// ABCIMiddleware = middleware.ABCIMiddleware[
+	// 	*AvailabilityStore,
+	// 	*BeaconBlock,
+	// 	*BlobSidecars,
+	// 	*Deposit,
+	// 	*ExecutionPayload,
+	// 	*Genesis,
+	// 	*SlotData,
+	// ]
 
 	ABCIMiddlewareV2 = middlewarev2.ABCIMiddleware[
 		*AttestationData,

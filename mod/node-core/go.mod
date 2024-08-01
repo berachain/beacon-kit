@@ -3,8 +3,8 @@ module github.com/berachain/beacon-kit/mod/node-core
 go 1.22.5
 
 replace (
-	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240726151427-2e0884564fdb
-	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240726151427-2e0884564fdb
+	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240731205446-aee9803a0af6
+	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240731202123-43dd23137e9d
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
 	cosmossdk.io/log => cosmossdk.io/log v1.3.2-0.20240729192831-b2989459ae91
 	github.com/berachain/beacon-kit/mod/beacon => ../beacon
@@ -14,7 +14,7 @@ replace (
 	github.com/berachain/beacon-kit/mod/node-api/engines => ../node-api/engines
 	github.com/berachain/beacon-kit/mod/runtime => ../runtime
 	github.com/berachain/beacon-kit/mod/storage => ../storage
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240724150750-0fda53f265de
+	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240729221345-3df18b5c3b34
 )
 
 require (
@@ -39,10 +39,10 @@ require (
 	github.com/berachain/beacon-kit/mod/node-api/engines v0.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157
-	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240717210058-a144e074f6b2
+	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240731201523-f427600b4713
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6650da31
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240723155519-565f208d5482
-	github.com/cometbft/cometbft v1.0.0-rc1.0.20240727041726-672aa134407b
+	github.com/cometbft/cometbft v1.0.0-rc1.0.20240729121641-d06d2e8229ee
 	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240711183925-948692fddcbe
 	github.com/cosmos/cosmos-db v1.0.2
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
@@ -86,10 +86,10 @@ require (
 	cosmossdk.io/errors v1.0.1 // indirect
 	cosmossdk.io/math v1.3.0 // indirect
 	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc // indirect
-	cosmossdk.io/x/auth v0.0.0-20240726151427-2e0884564fdb // indirect
-	cosmossdk.io/x/bank v0.0.0-20240726151427-2e0884564fdb // indirect
-	cosmossdk.io/x/consensus v0.0.0-20240726151427-2e0884564fdb // indirect
-	cosmossdk.io/x/staking v0.0.0-20240726151427-2e0884564fdb // indirect
+	cosmossdk.io/x/auth v0.0.0-20240731202123-43dd23137e9d // indirect
+	cosmossdk.io/x/bank v0.0.0-20240731202123-43dd23137e9d // indirect
+	cosmossdk.io/x/consensus v0.0.0-20240731202123-43dd23137e9d // indirect
+	cosmossdk.io/x/staking v0.0.0-20240731202123-43dd23137e9d // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect

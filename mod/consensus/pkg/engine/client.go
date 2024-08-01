@@ -34,7 +34,7 @@ type Client interface {
 	InitChain(
 		ctx context.Context,
 		genesisBz []byte,
-	) (transition.ValidatorUpdates, []byte, error) // Initialize blockchain w validators/other info from CometBFT
+	) (transition.ValidatorUpdates, error) // Initialize blockchain w validators/other info from CometBFT
 
 	// PrepareProposal is called when a proposal is made.
 	// It returns the txs to be executed in the proposal.
@@ -54,7 +54,7 @@ type Client interface {
 	FinalizeBlock(
 		ctx context.Context,
 		req *abci.FinalizeBlockRequest,
-	) (*abci.FinalizeBlockResponse, error)
+	) (transition.ValidatorUpdates, error)
 
 	// TODO: snapshot methods
 }

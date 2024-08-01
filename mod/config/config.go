@@ -46,6 +46,7 @@ func DefaultConfig() *Config {
 		Validator:         validator.DefaultConfig(),
 		BlockStoreService: blockstore.DefaultConfig(),
 		NodeAPI:           server.DefaultConfig(),
+		CometBFT:          *cometbft.DefaultConfig(),
 	}
 }
 

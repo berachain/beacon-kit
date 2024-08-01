@@ -25,6 +25,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	cmtlog "github.com/cometbft/cometbft/libs/log"
 	"github.com/cometbft/cometbft/node"
@@ -37,7 +38,7 @@ import (
 // which serves the responsibilty of receiving and routing ABCI requests to the
 // node, and returning the responses to the consensus engine.
 type Consensus[
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT log.Logger[any],
 	NodeT engine.Client,
 ] struct {
 	Logger LoggerT
@@ -52,6 +53,22 @@ type Consensus[
 	config Config
 }
 
+func NewConsensus[
+	LoggerT log.Logger[any],
+	NodeT engine.Client,
+](
+	cfg Config,
+	logger LoggerT,
+	node NodeT,
+	chainSpec common.ChainSpec,
+) *Consensus[LoggerT, NodeT] {
+	return &Consensus[LoggerT, NodeT]{
+		Logger: logger,
+		config: cfg,
+		App:    NewApplication(logger, node, chainSpec),
+	}
+}
+
 func (c *Consensus[LoggerT, NodeT]) Init() error {
 	// This function needs to build the validator files
 	// and the config file??? (if that's necessary)
@@ -60,7 +77,7 @@ func (c *Consensus[LoggerT, NodeT]) Init() error {
 
 func (c *Consensus[LoggerT, NodeT]) Start(ctx context.Context) error {
 	// Should this generate a key if it doesn't exist?
-	nodeKey, err := p2p.LoadNodeKey(c.config.NodeKeyFile)
+	nodeKey, err := p2p.LoadOrGenNodeKey(c.config.NodeKeyFile)
 	if err != nil {
 		return err
 	}

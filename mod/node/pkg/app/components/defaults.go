@@ -22,7 +22,7 @@ package components
 
 func DefaultComponentsWithStandardTypes() []any {
 	return []any{
-		ProvideABCIMiddleware,
+		ProvideABCIMiddlewareV2,
 		ProvideAttributesFactory,
 		ProvideAvailabilityPruner,
 		ProvideAvailibilityStore,
@@ -37,8 +37,8 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideBlockStore,
 		ProvideChainService,
 		ProvideChainSpec,
-		ProvideConfig,
-		ProvideConsensusEngine,
+		// ProvideConfig,
+		// ProvideConsensusEngine,
 		ProvideDAService,
 		ProvideDBManager,
 		ProvideDepositPruner,
@@ -61,6 +61,7 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideSlotBroker,
 		ProvideStatusBroker,
 		ProvideStorageBackend,
+		ProvideStoreOptions,
 		ProvideTelemetrySink,
 		ProvideTrustedSetup,
 		ProvideValidatorService,

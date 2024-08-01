@@ -45,7 +45,7 @@ func NewContainer() *Container {
 func (c *Container) Provide(constructors ...any) error {
 	for _, constructor := range constructors {
 		if err := c.Container.Provide(constructor); err != nil {
-			return err
+			return ProvideError(err, constructor)
 		}
 	}
 	return nil
@@ -58,7 +58,7 @@ func (c *Container) Supply(values ...any) error {
 	for _, value := range values {
 		valueType := reflect.TypeOf(value)
 		provideFunc := reflect.MakeFunc(
-			reflect.FuncOf([]reflect.Type{}, []reflect.Type{valueType}, false),
+			reflect.FuncOf(nil, []reflect.Type{valueType}, false),
 			func(args []reflect.Value) (results []reflect.Value) {
 				return []reflect.Value{reflect.ValueOf(value)}
 			},
@@ -97,5 +97,12 @@ func (c *Container) Inject(targets ...interface{}) error {
 		}
 	}
 
+	return nil
+}
+
+func (c *Container) Invoke(fn any) error {
+	if err := c.Container.Invoke(fn); err != nil {
+		return InvokeError(err, fn)
+	}
 	return nil
 }
