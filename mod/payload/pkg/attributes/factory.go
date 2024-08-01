@@ -56,8 +56,12 @@ func NewAttributesFactory[
 	chainSpec common.ChainSpec,
 	logger log.Logger[any],
 	suggestedFeeRecipient gethprimitives.ExecutionAddress,
-) *Factory[BeaconStateT, StateProcessorT, PayloadAttributesT, WithdrawalT] {
-	return &Factory[BeaconStateT, StateProcessorT, PayloadAttributesT, WithdrawalT]{
+) *Factory[
+	BeaconStateT, StateProcessorT, PayloadAttributesT, WithdrawalT,
+] {
+	return &Factory[
+		BeaconStateT, StateProcessorT, PayloadAttributesT, WithdrawalT,
+	]{
 		sp:                    sp,
 		chainSpec:             chainSpec,
 		logger:                logger,
