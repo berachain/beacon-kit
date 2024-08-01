@@ -121,7 +121,7 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     function verifyExecutionNumber(
         uint64 timestamp,
         bytes32[] calldata executionNumberProof,
-        uint64 blockNumber
+        uint256 blockNumber
     )
         external
         view
@@ -187,16 +187,16 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     /// in the beacon state in the beacon block.
     /// @param beaconBlockRoot `bytes32` root of the beacon block.
     /// @param executionNumberProof `bytes32[]` proof of the execution number.
-    /// @param blockNumber `uint64` execution number of the block.
+    /// @param blockNumber `uint256` execution number of the beacon block.
     function proveExecutionNumberInBeaconBlock(
         bytes32 beaconBlockRoot,
         bytes32[] calldata executionNumberProof,
-        uint64 blockNumber
+        uint256 blockNumber
     )
         internal
         view
     {
-        bytes32 executionNumberRoot = SSZ.uint64HashTreeRoot(blockNumber);
+        bytes32 executionNumberRoot = SSZ.toLittleEndian(blockNumber);
 
         if (
             !SSZ.verifyProof(

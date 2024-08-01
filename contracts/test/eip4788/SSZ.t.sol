@@ -13,16 +13,16 @@ contract SSZTest is Test {
         assertEq(actual, expected);
     }
 
-    function test_uint64HashTreeRoot() public pure {
-        uint64 w = type(uint64).max;
+    function test_uint256HashTreeRoot() public pure {
+        uint256 w = type(uint64).max;
         bytes32 expected =
             bytes32(bytes.concat(hex"FFFFFFFFFFFFFFFF", bytes24(0)));
-        bytes32 actual = SSZ.uint64HashTreeRoot(w);
+        bytes32 actual = SSZ.toLittleEndian(w);
         assertEq(actual, expected);
 
-        uint64 z = 123_456_789;
+        uint256 z = 123_456_789;
         expected = bytes32(bytes.concat(hex"15CD5B0700000000", bytes24(0)));
-        actual = SSZ.uint64HashTreeRoot(z);
+        actual = SSZ.toLittleEndian(z);
         assertEq(actual, expected);
     }
 

@@ -60,11 +60,12 @@ interface IBeaconVerifier {
     /// given timestamp. Reverts if proof invalid.
     /// @param timestamp `uint64` timestamp of the parent beacon block.
     /// @param executionNumberProof `bytes32[]` proof of the execution number.
-    /// @param blockNumber `uint64` execution number of the parent beacon block.
+    /// @param blockNumber `uint256` execution number of the parent beacon 
+    /// block.
     function verifyExecutionNumber(
         uint64 timestamp,
         bytes32[] calldata executionNumberProof,
-        uint64 blockNumber
+        uint256 blockNumber
     )
         external
         view;
