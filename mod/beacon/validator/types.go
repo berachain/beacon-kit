@@ -203,7 +203,7 @@ type PayloadBuilder[BeaconStateT, ExecutionPayloadT any] interface {
 		ctx context.Context,
 		st BeaconStateT,
 		slot math.Slot,
-		timestamp uint64,
+		timestamp math.U64,
 		parentBlockRoot common.Root,
 		headEth1BlockHash gethprimitives.ExecutionHash,
 		finalEth1BlockHash gethprimitives.ExecutionHash,

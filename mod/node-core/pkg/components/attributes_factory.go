@@ -29,15 +29,18 @@ import (
 
 // ProvideAttributesFactory provides an AttributesFactory for the client.
 func ProvideAttributesFactory(
+	sp *StateProcessor,
 	chainSpec common.ChainSpec,
 	logger log.Logger[any],
 	cfg *config.Config,
 ) (*AttributesFactory, error) {
 	return attributes.NewAttributesFactory[
 		*BeaconState,
+		*StateProcessor,
 		*PayloadAttributes,
 		*Withdrawal,
 	](
+		sp,
 		chainSpec,
 		logger,
 		cfg.PayloadBuilder.SuggestedFeeRecipient,

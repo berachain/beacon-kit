@@ -22,6 +22,7 @@ package core
 
 import (
 	"github.com/berachain/beacon-kit/mod/errors"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -238,7 +239,7 @@ func (sp *StateProcessor[
 	)
 
 	// Get the expected withdrawals.
-	expectedWithdrawals, err := st.ExpectedWithdrawals()
+	expectedWithdrawals, err := sp.expectedWithdrawals(st)
 	if err != nil {
 		return err
 	}
@@ -305,4 +306,112 @@ func (sp *StateProcessor[
 	}
 
 	return st.SetNextWithdrawalValidatorIndex(nextValidatorIndex)
+}
+
+// TODO: This is exposed for the PayloadBuilder and probably should be done in a
+// better way.
+func (sp *StateProcessor[
+	_, BeaconBlockBodyT, _, BeaconStateT, _, _, _, _,
+	_, _, _, _, ValidatorT, ValidatorsT, WithdrawalT, _,
+]) ExpectedWithdrawals(st BeaconStateT) ([]WithdrawalT, error) {
+	return sp.expectedWithdrawals(st)
+}
+
+// ExpectedWithdrawals as defined in the Ethereum 2.0 Specification:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-get_expected_withdrawals
+//
+//nolint:lll
+func (sp *StateProcessor[
+	_, BeaconBlockBodyT, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, ValidatorsT, WithdrawalT, _,
+]) expectedWithdrawals(st BeaconStateT) ([]WithdrawalT, error) {
+	var (
+		balance           math.Gwei
+		withdrawalAddress gethprimitives.ExecutionAddress
+		withdrawals       = make([]WithdrawalT, 0)
+	)
+
+	slot, err := st.GetSlot()
+	if err != nil {
+		return nil, err
+	}
+
+	epoch := math.Epoch(uint64(slot) / sp.cs.SlotsPerEpoch())
+
+	withdrawalIndex, err := st.GetNextWithdrawalIndex()
+	if err != nil {
+		return nil, err
+	}
+
+	validatorIndex, err := st.GetNextWithdrawalValidatorIndex()
+	if err != nil {
+		return nil, err
+	}
+
+	totalValidators, err := st.GetTotalValidators()
+	if err != nil {
+		return nil, err
+	}
+
+	bound := min(
+		totalValidators, sp.cs.MaxValidatorsPerWithdrawalsSweep(),
+	)
+
+	var (
+		validator  ValidatorT
+		withdrawal WithdrawalT
+		amount     math.Gwei
+	)
+
+	// Iterate through indices to find the next validators to withdraw.
+	for range bound {
+		validator, err = st.ValidatorByIndex(validatorIndex)
+		if err != nil {
+			return nil, err
+		}
+
+		balance, err = st.GetBalance(validatorIndex)
+		if err != nil {
+			return nil, err
+		}
+
+		withdrawalAddress, err = validator.
+			GetWithdrawalCredentials().ToExecutionAddress()
+		if err != nil {
+			return nil, err
+		}
+
+		// Set the amount of the withdrawal depending on the balance of the
+		// validator.
+		if validator.IsFullyWithdrawable(balance, epoch) {
+			amount = balance
+		} else if validator.IsPartiallyWithdrawable(
+			balance, math.Gwei(sp.cs.MaxEffectiveBalance()),
+		) {
+			amount = balance - math.Gwei(sp.cs.MaxEffectiveBalance())
+		}
+		withdrawal = withdrawal.New(
+			math.U64(withdrawalIndex),
+			validatorIndex,
+			withdrawalAddress,
+			amount,
+		)
+
+		withdrawals = append(withdrawals, withdrawal)
+
+		// Increment the withdrawal index to process the next withdrawal.
+		withdrawalIndex++
+
+		// Cap the number of withdrawals to the maximum allowed per payload.
+		//#nosec:G701 // won't overflow in practice.
+		if len(withdrawals) == int(sp.cs.MaxWithdrawalsPerPayload()) {
+			break
+		}
+
+		// Increment the validator index to process the next validator.
+		validatorIndex = (validatorIndex + 1) % math.ValidatorIndex(
+			totalValidators,
+		)
+	}
+
+	return withdrawals, nil
 }
