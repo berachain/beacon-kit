@@ -88,10 +88,7 @@ func (p *pruner[_, _, _]) start(ctx context.Context) {
 			if event.Is(events.BeaconBlockFinalized) {
 				start, end := p.pruneRangeFn(event)
 				if err := p.prunable.Prune(start, end); err != nil {
-					p.logger.Error(
-						"‼️ error pruning index ‼️",
-						"error", err,
-					)
+					p.logger.Error("‼️ error pruning index ‼️", "error", err)
 				}
 			}
 		}
