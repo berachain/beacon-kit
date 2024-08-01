@@ -40,8 +40,8 @@ type ServiceRegistryInput struct {
 	ABCIService *ABCIMiddleware
 
 	// FR services
-	ChainService      *ChainService     // done
-	ValidatorService  *ValidatorService // done
+	ChainService      *ChainService
+	ValidatorService  *ValidatorService
 	DAService         *DAService
 	BlockStoreService *BlockStoreService
 	DepositService    *DepositService
