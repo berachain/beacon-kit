@@ -49,8 +49,6 @@ type BeaconState[
 ] interface {
 	// GetRandaoMixAtIndex retrieves the RANDAO mix at a specified index.
 	GetRandaoMixAtIndex(uint64) (common.Bytes32, error)
-	// ExpectedWithdrawals lists the expected withdrawals in the current state.
-	ExpectedWithdrawals() ([]WithdrawalT, error)
 	// GetLatestExecutionPayloadHeader fetches the most recent execution payload
 	// header.
 	GetLatestExecutionPayloadHeader() (

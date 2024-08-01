@@ -74,7 +74,6 @@ type ReadOnlyBeaconState[
 	ReadOnlyRandaoMixes
 	ReadOnlyStateRoots
 	ReadOnlyValidators[ValidatorT]
-	ReadOnlyWithdrawals[WithdrawalT]
 
 	GetBalance(math.ValidatorIndex) (math.Gwei, error)
 	GetSlot() (math.Slot, error)
@@ -180,9 +179,4 @@ type ReadOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT any] interface {
 	GetLatestExecutionPayloadHeader() (
 		ExecutionPayloadHeaderT, error,
 	)
-}
-
-// ReadOnlyWithdrawals only has read access to withdrawal methods.
-type ReadOnlyWithdrawals[WithdrawalT any] interface {
-	ExpectedWithdrawals() ([]WithdrawalT, error)
 }

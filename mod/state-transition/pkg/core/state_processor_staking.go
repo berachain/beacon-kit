@@ -239,7 +239,7 @@ func (sp *StateProcessor[
 	)
 
 	// Get the expected withdrawals.
-	expectedWithdrawals, err := st.ExpectedWithdrawals()
+	expectedWithdrawals, err := sp.expectedWithdrawals(st)
 	if err != nil {
 		return err
 	}
