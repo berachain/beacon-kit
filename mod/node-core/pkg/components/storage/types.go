@@ -200,7 +200,9 @@ type KVStore[
 // Validator represents an interface for a validator with generic withdrawal
 // credentials. WithdrawalCredentialsT is a type parameter that must implement
 // the WithdrawalCredentials interface.
-type Validator[ValidatorT any, WithdrawalCredentialsT WithdrawalCredentials] interface {
+type Validator[
+	ValidatorT any, WithdrawalCredentialsT WithdrawalCredentials,
+] interface {
 	ssz.StaticObject
 	constraints.SSZMarshallableRootable
 	New(
