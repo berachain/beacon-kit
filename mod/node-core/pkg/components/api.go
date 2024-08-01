@@ -99,3 +99,11 @@ func ProvideNodeAPIServer(in NodeAPIServerInput) *NodeAPIServer {
 		in.Handlers...,
 	)
 }
+
+func DefaultNodeAPIComponents() []any {
+	return []any{
+		ProvideNodeAPIServer,
+		ProvideNodeAPIEngine,
+		ProvideNodeAPIBackend,
+	}
+}

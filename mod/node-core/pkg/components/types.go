@@ -51,6 +51,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
 	chainservice "github.com/berachain/beacon-kit/mod/node-core/pkg/services/blockchain"
+	validatorservice "github.com/berachain/beacon-kit/mod/node-core/pkg/services/validator"
 	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
@@ -67,6 +68,12 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+)
+
+// compile time assertions to enforce assumptions on types
+var (
+	_ ValidatorProcessorI = (*ValidatorProcessor)(nil)
+	_ ChainProcessorI     = (*ChainProcessor)(nil)
 )
 
 type (
@@ -147,7 +154,7 @@ type (
 
 	/* ---------------------------------------------------------------------- */
 	/*                             Chain Service                              */
-	/* ----------------------------------------------------------------------. */
+	/* ---------------------------------------------------------------------- */
 	ChainService = service.Service[
 		*ChainEventHandler,
 		ChainProcessorI,
@@ -185,6 +192,59 @@ type (
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*Genesis,
+	]
+
+	/* ---------------------------------------------------------------------- */
+	/*                             Validator Service                          */
+	/* ---------------------------------------------------------------------- */
+
+	// ValidatorService is a type alias for the validator service.
+	ValidatorService = service.Service[
+		*ValidatorEventHandler,
+		ValidatorProcessorI,
+	]
+
+	// ValidatorProcessor is a type alias for the validator service.
+	ValidatorProcessor = validator.Processor[
+		*AttestationData,
+		*BeaconBlock,
+		*BeaconBlockBody,
+		*BeaconState,
+		*BlobSidecars,
+		*Deposit,
+		*DepositStore,
+		*Eth1Data,
+		*ExecutionPayload,
+		*ExecutionPayloadHeader,
+		*ForkData,
+		*SlashingInfo,
+		*SlotData,
+	]
+
+	// ValidatorProcessorI is the type alias for the validator service processor
+	// interface used for the service
+	ValidatorProcessorI = validatorservice.Processor[
+		*AttestationData,
+		*BeaconBlock,
+		*BeaconBlockBody,
+		*BlobSidecars,
+		*Deposit,
+		*Eth1Data,
+		*ExecutionPayload,
+		*SlashingInfo,
+		*SlotData,
+	]
+
+	ValidatorEventHandler = validatorservice.EventHandler[
+		*AttestationData,
+		*BeaconBlock,
+		*BeaconBlockBody,
+		*BlobSidecars,
+		*Deposit,
+		*Eth1Data,
+		*ExecutionPayload,
+		*SlashingInfo,
+		*SlotData,
 	]
 
 	/* ---------------------------------------------------------------------- */
@@ -421,23 +481,6 @@ type (
 
 	// Validators is a type alias for the validators.
 	Validators = types.Validators
-
-	// ValidatorService is a type alias for the validator service.
-	ValidatorService = validator.Service[
-		*AttestationData,
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*BeaconState,
-		*BlobSidecars,
-		*Deposit,
-		*DepositStore,
-		*Eth1Data,
-		*ExecutionPayload,
-		*ExecutionPayloadHeader,
-		*ForkData,
-		*SlashingInfo,
-		*SlotData,
-	]
 
 	// ValidatorUpdate is a type alias for the validator update.
 	ValidatorUpdate = appmodule.ValidatorUpdate

@@ -27,12 +27,63 @@ import (
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
+	validatorservice "github.com/berachain/beacon-kit/mod/node-core/pkg/services/validator"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 )
 
-// ValidatorServiceInput is the input for the validator service provider.
+// This file contains all the providers of all validator service components.
+
 type ValidatorServiceInput struct {
+	depinject.In
+	ValidatorProcessorI   ValidatorProcessorI
+	ValidatorEventHandler *ValidatorEventHandler
+}
+
+func ProvideValidatorService(
+	in ValidatorServiceInput,
+) *ValidatorService {
+	return service.NewService[
+		*ValidatorEventHandler,
+		ValidatorProcessorI,
+	](
+		in.ValidatorEventHandler,
+		in.ValidatorProcessorI,
+	)
+}
+
+type ValidatorEventHandlerInput struct {
+	depinject.In
+	BeaconBlockFeed     *BlockBroker
+	BlobSidecarFeed     *SidecarsBroker
+	SlotFeed            *SlotBroker
+	ValidatorProcessorI ValidatorProcessorI
+}
+
+func ProvideValidatorEventHandler(
+	in ValidatorEventHandlerInput,
+) *ValidatorEventHandler {
+	return validatorservice.NewEventHandler[
+		*AttestationData,
+		*BeaconBlock,
+		*BeaconBlockBody,
+		*BlobSidecars,
+		*Deposit,
+		*Eth1Data,
+		*ExecutionPayload,
+		*SlashingInfo,
+		*SlotData,
+	](
+		in.ValidatorProcessorI,
+		in.BeaconBlockFeed,
+		in.BlobSidecarFeed,
+		in.SlotFeed,
+	)
+}
+
+// ValidatorServiceInput is the input for the validator service provider.
+type ValidatorProcessorInput struct {
 	depinject.In
 	BeaconBlockFeed *BlockBroker
 	BlobProcessor   *BlobProcessor
@@ -50,16 +101,10 @@ type ValidatorServiceInput struct {
 }
 
 // ProvideValidatorService is a depinject provider for the validator service.
-func ProvideValidatorService(
-	in ValidatorServiceInput,
-) (*ValidatorService, error) {
-	slotSubscription, err := in.SlotBroker.Subscribe()
-	if err != nil {
-		in.Logger.Error("failed to subscribe to slot feed", "err", err)
-		return nil, err
-	}
-	// Build the builder service.
-	return validator.NewService[
+func ProvideValidatorProcessor(
+	in ValidatorProcessorInput,
+) (*ValidatorProcessor, error) {
+	return validator.NewProcessor[
 		*AttestationData,
 		*BeaconBlock,
 		*BeaconBlockBody,
@@ -86,8 +131,13 @@ func ProvideValidatorService(
 			in.LocalBuilder,
 		},
 		in.TelemetrySink,
-		in.BeaconBlockFeed,
-		in.SidecarsFeed,
-		slotSubscription,
 	), nil
+}
+
+func ValidatorServiceComponents() []any {
+	return []any{
+		ProvideValidatorService,
+		ProvideValidatorEventHandler,
+		ProvideValidatorProcessor,
+	}
 }

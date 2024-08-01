@@ -125,3 +125,13 @@ func ProvideChainProcessor(
 		in.Cfg.Validator.EnableOptimisticPayloadBuilds,
 	)
 }
+
+// ChainServiceComponents returns a slice of the main components needed to
+// depinject the chain service.
+func ChainServiceComponents() []any {
+	return []any{
+		ProvideChainService,
+		ProvideChainEventHandler,
+		ProvideChainProcessor,
+	}
+}

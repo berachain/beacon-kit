@@ -20,24 +20,20 @@
 
 package components
 
+//nolint:lll // looks better
 func DefaultComponentsWithStandardTypes() []any {
-	return []any{
+	defaultComponents := []any{
 		ProvideABCIMiddleware,
 		ProvideAttributesFactory,
 		ProvideAvailabilityPruner,
 		ProvideAvailibilityStore,
 		ProvideBlsSigner,
-		ProvideBlobFeed,
-		ProvideBlockFeed,
 		ProvideBlobProcessor,
 		ProvideBlobProofVerifier,
 		ProvideBlobVerifier,
 		ProvideBlockStoreService,
 		ProvideBlockPruner,
 		ProvideBlockStore,
-		ProvideChainProcessor,
-		ProvideChainEventHandler,
-		ProvideChainService,
 		ProvideChainSpec,
 		ProvideConfig,
 		ProvideConsensusEngine,
@@ -49,29 +45,19 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideBeaconDepositContract,
 		ProvideEngineClient,
 		ProvideExecutionEngine,
-		ProvideGenesisBroker,
 		ProvideJWTSecret,
 		ProvideLocalBuilder,
-		ProvideNodeAPIBackend,
-		ProvideNodeAPIEngine,
-		ProvideNodeAPIHandlers,
-		ProvideNodeAPIBeaconHandler,
-		ProvideNodeAPIBuilderHandler,
-		ProvideNodeAPIConfigHandler,
-		ProvideNodeAPIDebugHandler,
-		ProvideNodeAPIEventsHandler,
-		ProvideNodeAPINodeHandler,
-		ProvideNodeAPIProofHandler,
-		ProvideNodeAPIServer,
 		ProvideServiceRegistry,
 		ProvideSidecarFactory,
 		ProvideStateProcessor,
-		ProvideSlotBroker,
-		ProvideStatusBroker,
 		ProvideStorageBackend,
 		ProvideTelemetrySink,
 		ProvideTrustedSetup,
-		ProvideValidatorService,
-		ProvideValidatorUpdateBroker,
 	}
+	defaultComponents = append(defaultComponents, DefaultBrokerProviders()...)
+	defaultComponents = append(defaultComponents, ValidatorServiceComponents()...)
+	defaultComponents = append(defaultComponents, ChainServiceComponents()...)
+	defaultComponents = append(defaultComponents, DefaultNodeAPIHandlers()...)
+	defaultComponents = append(defaultComponents, DefaultNodeAPIComponents()...)
+	return defaultComponents
 }

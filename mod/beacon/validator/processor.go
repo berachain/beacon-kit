@@ -21,18 +21,14 @@
 package validator
 
 import (
-	"context"
-
-	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
-// Service is responsible for building beacon blocks.
-type Service[
+// Processor is responsible for building beacon blocks.
+type Processor[
 	AttestationDataT any,
 	BeaconBlockT BeaconBlock[
 		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, DepositT,
@@ -86,16 +82,10 @@ type Service[
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT]
 	// metrics is a metrics collector.
 	metrics *validatorMetrics
-	// blkBroker is a publisher for blocks.
-	blkBroker EventPublisher[*asynctypes.Event[BeaconBlockT]]
-	// sidecarBroker is a publisher for sidecars.
-	sidecarBroker EventPublisher[*asynctypes.Event[BlobSidecarsT]]
-	// newSlotSub is a feed for slots.
-	newSlotSub chan *asynctypes.Event[SlotDataT]
 }
 
-// NewService creates a new validator service.
-func NewService[
+// NewProcessor creates a new validator service.
+func NewProcessor[
 	AttestationDataT any,
 	BeaconBlockT BeaconBlock[
 		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, DepositT,
@@ -135,15 +125,12 @@ func NewService[
 	localPayloadBuilder PayloadBuilder[BeaconStateT, ExecutionPayloadT],
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT],
 	ts TelemetrySink,
-	blkBroker EventPublisher[*asynctypes.Event[BeaconBlockT]],
-	sidecarBroker EventPublisher[*asynctypes.Event[BlobSidecarsT]],
-	newSlotSub chan *asynctypes.Event[SlotDataT],
-) *Service[
+) *Processor[
 	AttestationDataT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
 	ExecutionPayloadHeaderT, ForkDataT, SlashingInfoT, SlotDataT,
 ] {
-	return &Service[
+	return &Processor[
 		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 		BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
 		ExecutionPayloadHeaderT, ForkDataT, SlashingInfoT, SlotDataT,
@@ -158,76 +145,5 @@ func NewService[
 		localPayloadBuilder:   localPayloadBuilder,
 		remotePayloadBuilders: remotePayloadBuilders,
 		metrics:               newValidatorMetrics(ts),
-		blkBroker:             blkBroker,
-		sidecarBroker:         sidecarBroker,
-		newSlotSub:            newSlotSub,
-	}
-}
-
-// Name returns the name of the service.
-func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
-]) Name() string {
-	return "validator"
-}
-
-// Start starts the service.
-func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
-]) Start(
-	ctx context.Context,
-) error {
-	go s.start(ctx)
-	return nil
-}
-
-// start starts the service.
-func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
-]) start(
-	ctx context.Context,
-) {
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case req := <-s.newSlotSub:
-			if req.Type() == events.NewSlot {
-				s.handleNewSlot(req)
-			}
-		}
-	}
-}
-
-// handleBlockRequest handles a block request.
-func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, SlotDataT,
-]) handleNewSlot(msg *asynctypes.Event[SlotDataT]) {
-	blk, sidecars, err := s.buildBlockAndSidecars(
-		msg.Context(), msg.Data(),
-	)
-	if err != nil {
-		s.logger.Error("failed to build block", "err", err)
-	}
-
-	// Publish our built block to the broker.
-	if blkErr := s.blkBroker.Publish(
-		msg.Context(),
-		asynctypes.NewEvent(
-			msg.Context(), events.BeaconBlockBuilt, blk, err,
-		)); blkErr != nil {
-		// Propagate the error from buildBlockAndSidecars
-		s.logger.Error("failed to publish block", "err", err)
-	}
-
-	// Publish our built blobs to the broker.
-	if sidecarsErr := s.sidecarBroker.Publish(
-		msg.Context(),
-		asynctypes.NewEvent(
-			// Propagate the error from buildBlockAndSidecars
-			msg.Context(), events.BlobSidecarsBuilt, sidecars, err,
-		),
-	); sidecarsErr != nil {
-		s.logger.Error("failed to publish sidecars", "err", err)
 	}
 }
