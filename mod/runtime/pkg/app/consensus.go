@@ -22,11 +22,13 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/engine/types"
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -72,11 +74,16 @@ func (h *App[
 		return nil, nil, err
 	}
 
-	stateHash, err := h.sb.StateFromContext(ctx).HashTreeRoot()
+	// stateHash, err := h.sb.StateFromContext(ctx).HashTreeRoot()
+	// if err != nil {
+	// 	return nil, nil, err
+	// }
+	stateHash, err := h.sb.StateFromContext(ctx).WorkingHash()
 	if err != nil {
 		return nil, nil, err
 	}
-	return valUpdates, stateHash[:], nil
+	fmt.Println("WORKING HASH ", hex.FromBytes(stateHash))
+	return valUpdates, stateHash, nil
 }
 
 // waitForGenesisData waits for the genesis data to be processed and returns
@@ -329,11 +336,12 @@ func (h *App[
 	if err != nil {
 		return nil, nil, err
 	}
-	stateHash, err := h.sb.StateFromContext(ctx).HashTreeRoot()
-	if err != nil {
-		return nil, nil, err
-	}
-	return valUpdates, stateHash[:], h.sb.StateFromContext(ctx).Commit()
+	// stateHash, err := h.sb.StateFromContext(ctx).HashTreeRoot()
+	// if err != nil {
+	// 	return nil, nil, err
+	// }
+	appHash, err := h.sb.StateFromContext(ctx).Commit()
+	return valUpdates, appHash, err
 }
 
 // processSidecars publishes the sidecars and waits for a response.

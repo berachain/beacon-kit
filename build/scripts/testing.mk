@@ -57,9 +57,10 @@ start-reth-testnet: ## start an ephemeral `reth` node
 	-p 8545:8545 \
 	-p 8551:8551 \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	--rm -v $(PWD)/testing/networks/80084:/testing/networks/80084 \
 	-v $(PWD)/.tmp:/.tmp \
 	ghcr.io/paradigmxyz/reth node \
-	--chain ${ETH_GENESIS_PATH} \
+	--chain testing/networks/80084/eth-genesis.json \
 	--http \
 	--http.addr "0.0.0.0" \
 	--http.api eth,net \

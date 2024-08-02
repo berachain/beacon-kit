@@ -134,9 +134,16 @@ func (s *StateStore) Iterator(start, end []byte) (store.Iterator, error) {
 	return iterator.New(start, end, stateIter, changeSetIter, blockStoreIter), nil
 }
 
-func (s *StateStore) Commit() error {
-	_, err := s.state.Commit(s.ctx.Changeset.GetChanges())
-	return err
+func (s *StateStore) WorkingHash() ([]byte, error) {
+	if s.ctx.Changeset.Size() > 0 {
+		return s.state.WorkingHash(s.ctx.Changeset.GetChanges())
+	}
+	return s.state.WorkingHash(s.emphemeralState.GetChanges())
+}
+
+func (s *StateStore) Commit() ([]byte, error) {
+	hash, err := s.state.Commit(s.ctx.Changeset.GetChanges())
+	return hash, err
 }
 
 // Save commits the changeset to the BlockStore and resets the changeset

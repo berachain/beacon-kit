@@ -243,7 +243,11 @@ func New[
 	return store
 }
 
-func (s *StateManager[_, _, _, _, _]) Commit() error {
+func (s *StateManager[_, _, _, _, _]) WorkingHash() ([]byte, error) {
+	return s.store.WorkingHash()
+}
+
+func (s *StateManager[_, _, _, _, _]) Commit() ([]byte, error) {
 	return s.store.Commit()
 }
 

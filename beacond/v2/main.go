@@ -15,7 +15,14 @@ import (
 )
 
 const (
-	seeds = "2f8ce8462cddc9ae865ab8ec1f05cc286f07c671@34.152.0.40:26656,3037b09eaa2eed5cd1b1d3d733ab8468bf4910ee@35.203.36.128:26656,add35d414bee9c0be3b10bcf8fbc12a059eb9a3b@35.246.180.53:26656,925221ce669017eb2fd386bc134f13c03c5471d4@34.159.151.132:26656,ae50b817fcb2f35da803aa0190a5e37f4f8bcdb5@34.64.62.166:26656"
+	seeds = "c28827cb96c14c905b127b92065a3fb4cd77d7f6@testnet-seeds.whispernode.com:25456," +
+		"8a0fbd4a06050519b6bce88c03932bd0a57060bd@beacond-testnet.blacknodes.net:26656," +
+		"d9903c2f9902243c88f2758fe2e81e305e737fb3@bera-testnet-seeds.nodeinfra.com:26656," +
+		"9c50cc419880131ea02b6e2b92027cefe17941b9@139.59.151.125:26656," +
+		"cf44af098820f50a1e96d51b7af6861bc961e706@berav2-seeds.staketab.org:5001," +
+		"6b5040a0e1b29a2cca224b64829d8f3d8796a3e3@berachain-testnet-v2-2.seed.l0vd.com:21656"
+		// "4f93da5553f0dfaafb620532901e082255ec3ad3@berachain-testnet-v2-1.seed.l0vd.com:61656," +
+		// "a62eefaa284eaede7460315d2f1d1f92988e01f1@135.125.188.10:26656"
 
 	chainID           = "bartio-beacon-80084"
 	homeDir           = ".tmp/beacond"
