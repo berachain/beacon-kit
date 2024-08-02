@@ -52,6 +52,11 @@ type Eth1Data struct {
 /*                                 Constructor                                */
 /* -------------------------------------------------------------------------- */
 
+// Empty creates an empty Eth1Data.
+func (*Eth1Data) Empty() *Eth1Data {
+	return &Eth1Data{}
+}
+
 // New creates a new Eth1Data.
 func (e *Eth1Data) New(
 	depositRoot common.Root,
@@ -89,8 +94,8 @@ func (e *Eth1Data) DefineSchema(builder *schema.Builder) {
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the Eth1Data object.
-func (e *Eth1Data) HashTreeRoot() ([32]byte, error) {
-	return ssz.HashSequential(e), nil
+func (e *Eth1Data) HashTreeRoot() common.Root {
+	return ssz.HashSequential(e)
 }
 
 // MarshalSSZ marshals the Eth1Data object to SSZ format.

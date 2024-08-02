@@ -18,29 +18,19 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package merkle
+package utils
 
-import (
-	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+
+const (
+	StateIDGenesis    = "genesis"
+	StateIDFinalized  = "finalized"
+	StateIDJustified  = "justified"
+	StateIDHead       = "head"
+	ExecutionIDPrefix = "n"
 )
 
-// ProveStateInBlock generates a proof for the beacon state in the
-// beacon block. It uses the fastssz library to generate the proof.
-func ProveStateInBlock(bbh types.BeaconBlockHeader) ([]common.Root, error) {
-	blockProofTree, err := bbh.GetTree()
-	if err != nil {
-		return nil, err
-	}
-
-	stateInBlockProof, err := blockProofTree.Prove(StateGIndexDenebBlock)
-	if err != nil {
-		return nil, err
-	}
-
-	proof := make([]common.Root, len(stateInBlockProof.Hashes))
-	for i, hash := range stateInBlockProof.Hashes {
-		proof[i] = common.Root(hash)
-	}
-	return proof, nil
-}
+const (
+	Head math.Slot = iota
+	Genesis
+)

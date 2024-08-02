@@ -45,6 +45,13 @@ func TestEth1Data_Serialization(t *testing.T) {
 	err = unmarshalled.UnmarshalSSZ(data)
 	require.NoError(t, err)
 	require.Equal(t, original, &unmarshalled)
+
+	var buf []byte
+	buf, err = original.MarshalSSZTo(buf)
+	require.NoError(t, err)
+
+	// The two byte slices should be equal
+	require.Equal(t, data, buf)
 }
 
 func TestEth1Data_UnmarshalError(t *testing.T) {
@@ -71,8 +78,9 @@ func TestEth1Data_HashTreeRoot(t *testing.T) {
 		BlockHash:    gethprimitives.ExecutionHash{},
 	}
 
-	_, err := eth1Data.HashTreeRoot()
-	require.NoError(t, err)
+	require.NotPanics(t, func() {
+		_ = eth1Data.HashTreeRoot()
+	})
 }
 
 func TestEth1Data_GetTree(t *testing.T) {

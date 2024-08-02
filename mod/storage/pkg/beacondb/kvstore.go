@@ -26,24 +26,33 @@ import (
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/index"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/keys"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // KVStore is a wrapper around an sdk.Context
 // that provides access to all beacon related data.
 type KVStore[
-	BeaconBlockHeaderT constraints.SSZMarshallable,
-	Eth1DataT constraints.SSZMarshallable,
+	BeaconBlockHeaderT interface {
+		constraints.Empty[BeaconBlockHeaderT]
+		constraints.SSZMarshallable
+	},
+	Eth1DataT interface {
+		constraints.Empty[Eth1DataT]
+		constraints.SSZMarshallable
+	},
 	ExecutionPayloadHeaderT interface {
 		constraints.SSZMarshallable
 		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
 		Version() uint32
 	},
-	ForkT constraints.SSZMarshallable,
-	ValidatorT Validator,
+	ForkT interface {
+		constraints.Empty[ForkT]
+		constraints.SSZMarshallable
+	},
+	ValidatorT Validator[ValidatorT],
 	ValidatorsT ~[]ValidatorT,
 ] struct {
 	ctx   context.Context
@@ -104,15 +113,24 @@ type KVStore[
 //
 //nolint:funlen // its not overly complex.
 func New[
-	BeaconBlockHeaderT constraints.SSZMarshallable,
-	Eth1DataT constraints.SSZMarshallable,
+	BeaconBlockHeaderT interface {
+		constraints.Empty[BeaconBlockHeaderT]
+		constraints.SSZMarshallable
+	},
+	Eth1DataT interface {
+		constraints.Empty[Eth1DataT]
+		constraints.SSZMarshallable
+	},
 	ExecutionPayloadHeaderT interface {
 		constraints.SSZMarshallable
 		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
 		Version() uint32
 	},
-	ForkT constraints.SSZMarshallable,
-	ValidatorT Validator,
+	ForkT interface {
+		constraints.Empty[ForkT]
+		constraints.SSZMarshallable
+	},
+	ValidatorT Validator[ValidatorT],
 	ValidatorsT ~[]ValidatorT,
 ](
 	kss store.KVStoreService,

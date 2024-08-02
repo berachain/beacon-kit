@@ -36,7 +36,7 @@ type BeaconBlock interface {
 // BlockStore is a generic interface for a block store.
 type BlockStore[BeaconBlockT BeaconBlock] interface {
 	// Set sets a block at a given index.
-	Set(index uint64, blk BeaconBlockT) error
+	Set(index math.Slot, blk BeaconBlockT) error
 }
 
 // Event is an interface for block events.

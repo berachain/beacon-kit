@@ -18,11 +18,22 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package state
+package encoding
 
-import "github.com/berachain/beacon-kit/mod/errors"
+import (
+	"cosmossdk.io/collections/codec"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+)
 
 var (
-	// ErrUnsupportedVersion indicates a failure to use unsupported version.
-	ErrUnsupportedVersion = errors.New("unsupported version")
+	// U64Key can be used to encode math.U64 keys. Encoding is big endian to
+	// retain ordering.
+	//
+	//nolint:gochecknoglobals // stateless so can be reused.
+	U64Key = codec.NewUint64Key[math.U64]()
+
+	// U64Value implements a ValueCodec for uint64.
+	//
+	//nolint:gochecknoglobals // stateless so can be reused.
+	U64Value = codec.KeyToValueCodec(U64Key)
 )

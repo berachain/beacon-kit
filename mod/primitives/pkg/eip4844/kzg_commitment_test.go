@@ -24,6 +24,7 @@ import (
 	"encoding/hex"
 	"testing"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/stretchr/testify/require"
@@ -82,7 +83,7 @@ func TestKZGCommitmentHashTreeRoot(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    eip4844.KZGCommitment
-		expected [32]byte
+		expected common.Root
 	}{
 		{"Simple input", newTestCommitment("example commitment"),
 			[32]byte{138, 20, 122, 217, 77, 116, 246, 111, 195, 118, 240,
@@ -96,8 +97,7 @@ func TestKZGCommitmentHashTreeRoot(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			hashTreeRoot, err := tt.input.HashTreeRoot()
-			require.NoError(t, err)
+			hashTreeRoot := tt.input.HashTreeRoot()
 			require.Equal(
 				t,
 				tt.expected,
@@ -227,14 +227,12 @@ func TestKZGCommitments_Leafify(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Dynamically compute expected values based on input
-			expected := make([][32]byte, len(tt.input))
+			expected := make([]common.Root, len(tt.input))
 			for i, commitment := range tt.input {
 				expected[i] = commitment.ToHashChunks()[0]
 			}
 
-			commitments := eip4844.KZGCommitments[[32]byte](tt.input)
-			leaves, err := commitments.Leafify()
-			require.NoError(t, err)
+			leaves := eip4844.KZGCommitments[common.Root](tt.input).Leafify()
 			require.Equal(t, expected, leaves,
 				"Leaves do not match expected for test: "+tt.name)
 		})

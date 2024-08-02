@@ -18,6 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
+//nolint:dupl // each proof is opinionated for unique gIndexes.
 package merkle
 
 import (
@@ -25,14 +26,14 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/proof/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// ProveProposerInBlock generates a proof for the proposer pubkey in the
-// beacon block. The proof is then verified against the beacon block root as a
-// sanity check. Returns the proof along with the beacon block root. It uses
-// the fastssz library to generate the proof.
-func ProveProposerInBlock[
+// ProveExecutionFeeRecipientInBlock generates a proof for the fee recipient in
+// the latest execution payload header in the beacon block. The proof is then
+// verified against the beacon block root as a sanity check. Returns the proof
+// along with the beacon block root. It uses the fastssz library to generate the
+// proof.
+func ProveExecutionFeeRecipientInBlock[
 	BeaconBlockHeaderT types.BeaconBlockHeader,
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
 	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
@@ -43,17 +44,14 @@ func ProveProposerInBlock[
 		BeaconStateMarshallableT, ExecutionPayloadHeaderT, ValidatorT,
 	],
 ) ([]common.Root, common.Root, error) {
-	// Get the proof of the proposer pubkey in the beacon state.
-	proposerOffset := ValidatorPubkeyGIndexOffset * bbh.GetProposerIndex()
-	valPubkeyInStateProof, leaf, err := ProveProposerPubkeyInState(
-		bs, proposerOffset,
-	)
+	// Get the proof of the execution fee recipient in the beacon state.
+	feeRecipientInStateProof, leaf, err := ProveExecutionFeeRecipientInState(bs)
 	if err != nil {
 		return nil, common.Root{}, err
 	}
 
 	// Then get the proof of the beacon state in the beacon block.
-	stateInBlockProof, err := ProveStateInBlock(bbh)
+	stateInBlockProof, err := ProveBeaconStateInBlock(bbh)
 	if err != nil {
 		return nil, common.Root{}, err
 	}
@@ -61,9 +59,9 @@ func ProveProposerInBlock[
 	// Sanity check that the combined proof verifies against our beacon root.
 	//
 	//nolint:gocritic // ok.
-	combinedProof := append(valPubkeyInStateProof, stateInBlockProof...)
-	beaconRoot, err := verifyProposerInBlock(
-		bbh, proposerOffset, combinedProof, leaf,
+	combinedProof := append(feeRecipientInStateProof, stateInBlockProof...)
+	beaconRoot, err := verifyExecutionFeeRecipientInBlock(
+		bbh, combinedProof, leaf,
 	)
 	if err != nil {
 		return nil, common.Root{}, err
@@ -72,9 +70,10 @@ func ProveProposerInBlock[
 	return combinedProof, beaconRoot, nil
 }
 
-// ProveProposerPubkeyInState generates a proof for the proposer pubkey
-// in the beacon state. It uses the fastssz library to generate the proof.
-func ProveProposerPubkeyInState[
+// ProveExecutionFeeRecipientInState generates a proof for the execution fee
+// recipient in the beacon state. It uses the fastssz library to generate the
+// proof.
+func ProveExecutionFeeRecipientInState[
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
 	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
 	ValidatorT any,
@@ -82,7 +81,6 @@ func ProveProposerPubkeyInState[
 	bs types.BeaconState[
 		BeaconStateMarshallableT, ExecutionPayloadHeaderT, ValidatorT,
 	],
-	proposerOffset math.U64,
 ) ([]common.Root, common.Root, error) {
 	bsm, err := bs.GetMarshallable()
 	if err != nil {
@@ -93,39 +91,33 @@ func ProveProposerPubkeyInState[
 		return nil, common.Root{}, err
 	}
 
-	//#nosec:G701 // max proposer offset is 8 * (2^40 - 1).
-	gIndex := ZeroValidatorPubkeyGIndexDenebState + int(proposerOffset)
-	valPubkeyInStateProof, err := stateProofTree.Prove(gIndex)
+	feeRecipientInStateProof, err := stateProofTree.Prove(
+		ExecutionFeeRecipientGIndexDenebState,
+	)
 	if err != nil {
 		return nil, common.Root{}, err
 	}
 
-	proof := make([]common.Root, len(valPubkeyInStateProof.Hashes))
-	for i, hash := range valPubkeyInStateProof.Hashes {
+	proof := make([]common.Root, len(feeRecipientInStateProof.Hashes))
+	for i, hash := range feeRecipientInStateProof.Hashes {
 		proof[i] = common.Root(hash)
 	}
-	return proof, common.Root(valPubkeyInStateProof.Leaf), nil
+	return proof, common.Root(feeRecipientInStateProof.Leaf), nil
 }
 
-// verifyProposerInBlock verifies the proposer pubkey in the beacon block,
-// returning the beacon block root used to verify against.
+// verifyExecutionFeeRecipientInBlock verifies the execution fee recipient in
+// the
+// beacon block, returning the beacon block root used to verify against.
 //
 // TODO: verifying the proof is not absolutely necessary.
-func verifyProposerInBlock(
+func verifyExecutionFeeRecipientInBlock(
 	bbh types.BeaconBlockHeader,
-	valOffset math.U64,
 	proof []common.Root,
 	leaf common.Root,
 ) (common.Root, error) {
-	beaconRoot, err := bbh.HashTreeRoot()
-	if err != nil {
-		return common.Root{}, err
-	}
-
-	var beaconRootVerified bool
-	if beaconRootVerified, err = merkle.VerifyProof(
-		merkle.GeneralizedIndex(ZeroValidatorPubkeyGIndexDenebBlock+valOffset),
-		leaf, proof, beaconRoot,
+	beaconRoot := bbh.HashTreeRoot()
+	if beaconRootVerified, err := merkle.VerifyProof(
+		ExecutionFeeRecipientGIndexDenebBlock, leaf, proof, beaconRoot,
 	); err != nil {
 		return common.Root{}, err
 	} else if !beaconRootVerified {

@@ -21,13 +21,10 @@
 package math
 
 import (
-	"encoding/binary"
-	"fmt"
 	"math/big"
 	"strconv"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math/pow"
 )
@@ -60,62 +57,6 @@ type (
 	// https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#custom-types
 	Epoch = U64
 )
-
-// -------------------------- SSZMarshallable --------------------------
-
-// MarshalSSZTo serializes the U64 into a byte slice.
-func (u U64) MarshalSSZTo(buf []byte) ([]byte, error) {
-	binary.LittleEndian.PutUint64(buf, uint64(u))
-	return buf, nil
-}
-
-// MarshalSSZ serializes the U64 into a byte slice.
-func (u U64) MarshalSSZ() ([]byte, error) {
-	buf := make([]byte, constants.U64Size)
-	if _, err := u.MarshalSSZTo(buf); err != nil {
-		return nil, err
-	}
-	return buf, nil
-}
-
-// UnmarshalSSZ deserializes the U64 from a byte slice.
-func (u *U64) UnmarshalSSZ(buf []byte) error {
-	//#nosec: G701 // won't realistically overflow.
-	if uint32(len(buf)) != constants.U64Size {
-		return ErrUnexpectedInputLength(
-			constants.U64Size, len(buf))
-	}
-	if u == nil {
-		u = new(U64)
-	}
-	*u = U64(binary.LittleEndian.Uint64(buf))
-	return nil
-}
-
-// SizeSSZ returns the size of the U64 in bytes.
-func (u U64) SizeSSZ() uint32 {
-	return constants.U64Size
-}
-
-// HashTreeRoot returns the hash tree root of the uint64.
-func (u U64) HashTreeRoot() ([32]byte, error) {
-	buf := make([]byte, constants.BytesPerChunk)
-	binary.LittleEndian.PutUint64(buf[:constants.U64Size], uint64(u))
-	return [32]byte(buf), nil
-}
-
-// NewFromSSZ creates a new U64 from SSZ format.
-func (U64) NewFromSSZ(buf []byte) (U64, error) {
-	//#nosec: G701 // won't realistically overflow.
-	if uint32(len(buf)) != constants.U64Size {
-		return 0, fmt.Errorf(
-			"invalid buffer length: expected %d, got %d",
-			constants.U64Size,
-			len(buf),
-		)
-	}
-	return U64(binary.LittleEndian.Uint64(buf)), nil
-}
 
 // -------------------------- JSONMarshallable -------------------------
 

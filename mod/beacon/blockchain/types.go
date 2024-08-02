@@ -136,7 +136,7 @@ type LocalBuilder[BeaconStateT any] interface {
 		ctx context.Context,
 		st BeaconStateT,
 		slot math.Slot,
-		timestamp uint64,
+		timestamp math.U64,
 		parentBlockRoot common.Root,
 		headEth1BlockHash gethprimitives.ExecutionHash,
 		finalEth1BlockHash gethprimitives.ExecutionHash,
@@ -172,7 +172,7 @@ type ReadOnlyBeaconState[
 	// GetSlot retrieves the current slot of the beacon state.
 	GetSlot() (math.Slot, error)
 	// HashTreeRoot returns the hash tree root of the beacon state.
-	HashTreeRoot() ([32]byte, error)
+	HashTreeRoot() common.Root
 }
 
 // StateProcessor defines the interface for processing various state transitions

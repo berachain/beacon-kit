@@ -188,7 +188,7 @@ func (s *Service[
 		return crypto.BLSSignature{}, err
 	}
 
-	signingRoot, err := forkData.New(
+	signingRoot := forkData.New(
 		version.FromUint32[common.Version](
 			s.chainSpec.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
@@ -196,10 +196,6 @@ func (s *Service[
 		s.chainSpec.DomainTypeRandao(),
 		epoch,
 	)
-
-	if err != nil {
-		return crypto.BLSSignature{}, err
-	}
 	return s.signer.Sign(signingRoot[:])
 }
 
@@ -247,11 +243,11 @@ func (s *Service[
 			st,
 			blk.GetSlot(),
 			// TODO: this is hood.
-			max(
+			math.U64(max(
 				//#nosec:G701
 				uint64(time.Now().Unix()+1),
 				uint64((lph.GetTimestamp()+1)),
-			),
+			)),
 			blk.GetParentBlockRoot(),
 			lph.GetBlockHash(),
 			lph.GetParentHash(),
@@ -383,5 +379,5 @@ func (s *Service[
 		return common.Root{}, err
 	}
 
-	return st.HashTreeRoot()
+	return st.HashTreeRoot(), nil
 }

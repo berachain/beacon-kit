@@ -27,3 +27,7 @@ type StateIDRequest struct {
 type BlockIDRequest struct {
 	BlockID string `param:"block_id" validate:"required,block_id"`
 }
+
+type ExecutionIDRequest struct {
+	ExecutionID string `param:"execution_id" validate:"required,execution_id"`
+}

@@ -19,12 +19,12 @@
 // TITLE.
 
 //nolint:lll // long strings.
-package genesis_test
+package types_test
 
 import (
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -34,7 +34,7 @@ import (
 )
 
 func TestDefaultGenesisDeneb(t *testing.T) {
-	g := genesis.DefaultGenesisDeneb()
+	g := types.DefaultGenesisDeneb()
 	if g.ForkVersion != version.FromUint32[common.Version](version.Deneb) {
 		t.Errorf(
 			"Expected fork version %v, but got %v",
@@ -69,13 +69,13 @@ func TestDefaultGenesisDeneb(t *testing.T) {
 }
 
 func TestDefaultGenesisExecutionPayloadHeaderDeneb(t *testing.T) {
-	header, err := genesis.DefaultGenesisExecutionPayloadHeaderDeneb()
+	header, err := types.DefaultGenesisExecutionPayloadHeaderDeneb()
 	require.NoError(t, err)
 	require.NotNil(t, header)
 }
 
 func TestGenesisGetForkVersion(t *testing.T) {
-	g := genesis.DefaultGenesisDeneb()
+	g := types.DefaultGenesisDeneb()
 	forkVersion := g.GetForkVersion()
 	require.Equal(
 		t,
@@ -85,20 +85,20 @@ func TestGenesisGetForkVersion(t *testing.T) {
 }
 
 func TestGenesisGetDeposits(t *testing.T) {
-	g := genesis.DefaultGenesisDeneb()
+	g := types.DefaultGenesisDeneb()
 	deposits := g.GetDeposits()
 	require.Empty(t, deposits)
 }
 
 func TestGenesisGetExecutionPayloadHeader(t *testing.T) {
-	g := genesis.DefaultGenesisDeneb()
+	g := types.DefaultGenesisDeneb()
 	header := g.GetExecutionPayloadHeader()
 	require.NotNil(t, header)
 }
 
 func TestDefaultGenesisDenebPanics(t *testing.T) {
 	require.NotPanics(t, func() {
-		genesis.DefaultGenesisDeneb()
+		types.DefaultGenesisDeneb()
 	})
 }
 
@@ -209,7 +209,7 @@ func TestGenesisUnmarshalJSON(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			g := genesis.DefaultGenesisDeneb()
+			g := types.DefaultGenesisDeneb()
 			err := g.UnmarshalJSON([]byte(tc.jsonInput))
 			if tc.expectedError {
 				require.Error(t, err, "Expected error but got none")

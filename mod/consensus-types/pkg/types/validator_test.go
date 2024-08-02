@@ -683,6 +683,13 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 					"Test case: %s",
 					tt.name,
 				)
+
+				var buf []byte
+				buf, err = tt.validator.MarshalSSZTo(buf)
+				require.NoError(t, err)
+
+				// The two byte slices should be equal
+				require.Equal(t, marshaled, buf)
 			}
 		})
 	}
@@ -738,13 +745,12 @@ func TestValidator_HashTreeRoot(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Test HashTreeRoot
-			root, err := tt.validator.HashTreeRoot()
-			require.NoError(t, err)
+			root := tt.validator.HashTreeRoot()
 			require.NotEqual(t, [32]byte{}, root)
 
 			// Test HashTreeRootWith
 			hh := ssz.NewHasher()
-			err = tt.validator.HashTreeRootWith(hh)
+			err := tt.validator.HashTreeRootWith(hh)
 			require.NoError(t, err)
 
 			// Test GetTree

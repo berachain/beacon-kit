@@ -103,10 +103,7 @@ func (c *ConsensusEngine[
 	var index math.U64
 	attestations := make([]AttestationDataT, len(votes))
 	st := c.sb.StateFromContext(ctx)
-	root, err := st.HashTreeRoot()
-	if err != nil {
-		return nil, err
-	}
+	root := st.HashTreeRoot()
 	for i, vote := range votes {
 		index, err = st.ValidatorIndexByCometBFTAddress(vote.Validator.Address)
 		if err != nil {

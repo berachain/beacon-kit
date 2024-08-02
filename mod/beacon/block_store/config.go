@@ -21,7 +21,7 @@
 package blockstore
 
 const (
-	DefaultAvailabilityWindow = 1000
+	DefaultAvailabilityWindow = 8192
 )
 
 // Config is the configuration for the block service.

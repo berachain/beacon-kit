@@ -42,6 +42,7 @@ func generateValidBeaconBlock() *types.BeaconBlock {
 		StateRoot:     bytes.B32{5, 4, 3, 2, 1},
 		Body: &types.BeaconBlockBody{
 			ExecutionPayload: &types.ExecutionPayload{
+				Number:    10,
 				ExtraData: []byte("dummy extra data for testing"),
 				Transactions: [][]byte{
 					[]byte("tx1"),
@@ -76,13 +77,6 @@ func TestBeaconBlockForDeneb(t *testing.T) {
 	require.NotNil(t, block)
 }
 
-// Test the case where the fork version is not supported.
-func TestEmptyBeaconBlockInvalidForkVersion(t *testing.T) {
-	require.Panics(t, func() {
-		(&types.BeaconBlock{}).Empty(100)
-	})
-}
-
 func TestBeaconBlockFromSSZ(t *testing.T) {
 	originalBlock := generateValidBeaconBlock()
 
@@ -102,10 +96,12 @@ func TestBeaconBlockFromSSZForkVersionNotSupported(t *testing.T) {
 	_, err := wrappedBlock.NewFromSSZ([]byte{}, 1)
 	require.ErrorIs(t, err, types.ErrForkVersionNotSupported)
 }
+
 func TestBeaconBlock(t *testing.T) {
 	block := generateValidBeaconBlock()
 
 	require.NotNil(t, block.Body)
+	require.Equal(t, math.U64(10), block.GetExecutionNumber())
 	require.Equal(t, version.Deneb, block.Version())
 	require.False(t, block.IsNil())
 
@@ -135,18 +131,24 @@ func TestBeaconBlock_MarshalUnmarshalSSZ(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, block, unmarshalledBlock)
+
+	var buf []byte
+	buf, err = block.MarshalSSZTo(buf)
+	require.NoError(t, err)
+
+	// The two byte slices should be equal
+	require.Equal(t, sszBlock, buf)
 }
 
 func TestBeaconBlock_HashTreeRoot(t *testing.T) {
 	block := generateValidBeaconBlock()
-	hashRoot, err := block.HashTreeRoot()
-	require.NoError(t, err)
+	hashRoot := block.HashTreeRoot()
 	require.NotNil(t, hashRoot)
 }
 
 func TestBeaconBlockEmpty(t *testing.T) {
 	block := &types.BeaconBlock{}
-	emptyBlock := block.Empty(version.Deneb)
+	emptyBlock := block.Empty()
 	require.NotNil(t, emptyBlock)
 	require.IsType(t, &types.BeaconBlock{}, emptyBlock)
 }

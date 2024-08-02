@@ -103,7 +103,7 @@ type BeaconState[ExecutionPayloadHeaderT any] interface {
 	// GetSlot returns the current slot of the beacon state.
 	GetSlot() (math.Slot, error)
 	// HashTreeRoot returns the hash tree root of the beacon state.
-	HashTreeRoot() ([32]byte, error)
+	HashTreeRoot() common.Root
 	// ValidatorIndexByPubkey returns the validator index by public key.
 	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
 	// GetEth1DepositIndex returns the latest deposit index from the beacon
@@ -185,7 +185,7 @@ type ForkData[T any] interface {
 	ComputeRandaoSigningRoot(
 		common.DomainType,
 		math.Epoch,
-	) (common.Root, error)
+	) common.Root
 }
 
 // PayloadBuilder represents a service that is responsible for
@@ -203,7 +203,7 @@ type PayloadBuilder[BeaconStateT, ExecutionPayloadT any] interface {
 		ctx context.Context,
 		st BeaconStateT,
 		slot math.Slot,
-		timestamp uint64,
+		timestamp math.U64,
 		parentBlockRoot common.Root,
 		headEth1BlockHash gethprimitives.ExecutionHash,
 		finalEth1BlockHash gethprimitives.ExecutionHash,

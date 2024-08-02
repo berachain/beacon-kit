@@ -71,6 +71,11 @@ func NewDeposit(
 	}
 }
 
+// Empty creates an empty Deposit instance.
+func (d *Deposit) Empty() *Deposit {
+	return &Deposit{}
+}
+
 // New creates a new Deposit instance.
 func (d *Deposit) New(
 	pubkey crypto.BLSPubkey,
@@ -132,8 +137,8 @@ func (d *Deposit) SizeSSZ() uint32 {
 }
 
 // HashTreeRoot computes the Merkleization of the Deposit object.
-func (d *Deposit) HashTreeRoot() ([32]byte, error) {
-	return ssz.HashSequential(d), nil
+func (d *Deposit) HashTreeRoot() common.Root {
+	return ssz.HashSequential(d)
 }
 
 /* -------------------------------------------------------------------------- */
