@@ -117,6 +117,7 @@ func TestBeaconBlock(t *testing.T) {
 	require.Equal(t, block.ProposerIndex, header.ProposerIndex)
 	require.Equal(t, block.ParentRoot, header.ParentBlockRoot)
 	require.Equal(t, block.StateRoot, header.StateRoot)
+	require.Equal(t, newStateRoot, [32]byte(block.GetStateRoot()))
 }
 
 func TestBeaconBlock_MarshalUnmarshalSSZ(t *testing.T) {
