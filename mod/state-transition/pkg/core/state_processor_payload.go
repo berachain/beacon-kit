@@ -72,7 +72,7 @@ func (sp *StateProcessor[
 	}
 
 	// Set the latest execution payload header.
-	return st.SetLatestExecutionPayloadHeader(blk.GetSlot(), header)
+	return st.SetLatestExecutionPayloadHeader(header)
 }
 
 // validateExecutionPayload validates the execution payload against both local

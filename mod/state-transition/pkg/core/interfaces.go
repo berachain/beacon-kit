@@ -168,7 +168,7 @@ type WriteOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT any] interface {
 	SetEth1Data(Eth1DataT) error
 	SetEth1DepositIndex(uint64) error
 	SetLatestExecutionPayloadHeader(
-		math.Slot, ExecutionPayloadHeaderT,
+		ExecutionPayloadHeaderT,
 	) error
 }
 
