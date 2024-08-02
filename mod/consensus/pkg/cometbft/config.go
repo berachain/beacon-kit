@@ -31,11 +31,10 @@ type Config struct {
 }
 
 func DefaultConfig() *Config {
-	// the SDK is very opinionated about these values, so we override them
-	// if they aren't already set
 	//nolint:mnd // 5 seconds
 	cfg := config.DefaultConfig()
-	cfg.Consensus.TimeoutCommit = 5 * time.Second
+	cfg.Consensus.TimeoutCommit = 500 * time.Millisecond
+	cfg.Consensus.TimeoutPropose = (1 * time.Second) + (250 * time.Millisecond)
 	cfg.RPC.PprofListenAddress = "localhost:6060"
 	return &Config{
 		Config: cfg,

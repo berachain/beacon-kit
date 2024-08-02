@@ -54,7 +54,7 @@ type Consensus[
 	App *Application[ClientT]
 
 	// Config
-	config Config
+	Config Config
 }
 
 func NewConsensus[
@@ -68,7 +68,7 @@ func NewConsensus[
 ) *Consensus[LoggerT, ClientT] {
 	return &Consensus[LoggerT, ClientT]{
 		Logger: logger,
-		config: cfg,
+		Config: cfg,
 		App:    NewApplication(logger, client, chainSpec),
 	}
 }
@@ -83,10 +83,10 @@ func (c *Consensus[LoggerT, ClientT]) Init(homeDir string) (*privval.FilePV, err
 	if err := os.MkdirAll(dataDir, 0755); err != nil {
 		return nil, fmt.Errorf("failed to create data directory: %w", err)
 	}
-	c.config.Config = c.config.SetRoot(homeDir)
+	c.Config.Config = c.Config.SetRoot(homeDir)
 
-	pvKeyFile := c.config.PrivValidatorKeyFile()
-	pvStateFile := c.config.PrivValidatorStateFile()
+	pvKeyFile := c.Config.PrivValidatorKeyFile()
+	pvStateFile := c.Config.PrivValidatorStateFile()
 
 	var pv *privval.FilePV
 	if _, err := os.Stat(pvKeyFile); os.IsNotExist(err) {
@@ -101,26 +101,30 @@ func (c *Consensus[LoggerT, ClientT]) Init(homeDir string) (*privval.FilePV, err
 	} else {
 		pv = privval.LoadFilePV(pvKeyFile, pvStateFile)
 	}
+	_, err := p2p.LoadOrGenNodeKey(c.Config.NodeKeyFile())
+	if err != nil {
+		return nil, err
+	}
 
 	return pv, nil
 }
 
 func (c *Consensus[LoggerT, ClientT]) Start(ctx context.Context) error {
 	// Should this generate a key if it doesn't exist?
-	nodeKey, err := p2p.LoadOrGenNodeKey(c.config.NodeKeyFile())
+	nodeKey, err := p2p.LoadOrGenNodeKey(c.Config.NodeKeyFile())
 	if err != nil {
 		return err
 	}
 
 	if c.CometBFTNode, err = node.NewNode(
 		ctx,
-		c.config.Config,
-		privval.LoadFilePV(c.config.PrivValidatorKeyFile(), c.config.PrivValidatorStateFile()),
+		c.Config.Config,
+		privval.LoadFilePV(c.Config.PrivValidatorKeyFile(), c.Config.PrivValidatorStateFile()),
 		nodeKey,
 		proxy.NewConsensusSyncLocalClientCreator(c.App),
-		node.DefaultGenesisDocProviderFunc(c.config.Config),
+		node.DefaultGenesisDocProviderFunc(c.Config.Config),
 		cmtcfg.DefaultDBProvider,
-		node.DefaultMetricsProvider(c.config.Instrumentation),
+		node.DefaultMetricsProvider(c.Config.Instrumentation),
 		cometLoggerFromLogger(c.Logger),
 	); err != nil {
 		return err

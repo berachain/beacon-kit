@@ -15,17 +15,17 @@ replace (
 )
 
 require (
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240726221339-a8bfeebf8ecf
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157
-	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240731201523-f427600b4713
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240729121641-d06d2e8229ee
+	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240711183925-948692fddcbe
 )
 
 require (
 	github.com/DataDog/zstd v1.5.5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df // indirect
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cockroachdb/errors v1.11.3 // indirect
@@ -35,7 +35,6 @@ require (
 	github.com/cockroachdb/redact v1.1.5 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
 	github.com/cometbft/cometbft-db v0.12.0 // indirect
-	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240711183925-948692fddcbe // indirect
 	github.com/cosmos/crypto v0.1.2 // indirect
 	github.com/cosmos/gogoproto v1.5.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect

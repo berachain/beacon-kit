@@ -2,7 +2,9 @@ package main
 
 import (
 	"encoding/json"
+	"io"
 	"os"
+	"time"
 
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/parser"
 	genesiscmd "github.com/berachain/beacon-kit/mod/cli/pkg/v2/commands/genesis"
@@ -17,6 +19,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
+	cmtjson "github.com/cometbft/cometbft/libs/json"
+	cmttypes "github.com/cometbft/cometbft/types"
 )
 
 func AddExecutionPayloadToGenesis(cmtGenesis *cometbft.Genesis, chainSpec common.ChainSpec, config *cometbft.Config, ethGenesisPath string) error {
@@ -143,4 +147,76 @@ func AddDepositToGenesis(cmtGenesis *cometbft.Genesis, chainSpec common.ChainSpe
 		return err
 	}
 	return cmtGenesis.Export(cfg.CometBFT.GenesisFile())
+}
+
+func ConvertBartioGenesis(cmtConfig *cometbft.Config, bartioGenesisPath string) error {
+	// Replace the file with the Bartio genesis file
+	// Force copy the file at path into configDir
+	sourceFile, err := os.Open(bartioGenesisPath)
+	if err != nil {
+		return errors.Newf("failed to open source file: %w", err)
+	}
+	defer sourceFile.Close()
+
+	destFile, err := os.Create(cmtConfig.GenesisFile())
+	if err != nil {
+		return errors.Newf("failed to create destination file: %w", err)
+	}
+
+	sourceContent, err := io.ReadAll(sourceFile)
+	if err != nil {
+		return errors.Newf("failed to read source file: %w", err)
+	}
+	_, err = destFile.Write(sourceContent)
+	if err != nil {
+		return errors.Newf("failed to copy file: %w", err)
+	}
+	destFile.Close()
+
+	// Read the genesis file
+	genesisBytes, err := os.ReadFile(cmtConfig.GenesisFile())
+	if err != nil {
+		return errors.Newf("failed to read genesis file: %w", err)
+	}
+
+	// Unmarshal into map[string]json.RawMessage
+	var genesisMap map[string]json.RawMessage
+	if err := cmtjson.Unmarshal(genesisBytes, &genesisMap); err != nil {
+		return errors.Newf("failed to unmarshal genesis file: %w", err)
+	}
+
+	var chainID string
+	if err := json.Unmarshal(genesisMap["chain_id"], &chainID); err != nil {
+		return errors.Newf("failed to unmarshal chain ID: %w", err)
+	}
+
+	var genesisState map[string]json.RawMessage
+	if err := json.Unmarshal(genesisMap["app_state"], &genesisState); err != nil {
+		return errors.Newf("failed to unmarshal genesis state: %w", err)
+	}
+
+	var consensus map[string]json.RawMessage
+	if err := json.Unmarshal(genesisMap["consensus"], &consensus); err != nil {
+		return errors.Newf("failed to unmarshal consensus: %w", err)
+	}
+
+	var consensusParams *cmttypes.ConsensusParams
+	if err := cmtjson.Unmarshal(consensus["params"], &consensusParams); err != nil {
+		return errors.Newf("failed to unmarshal consensus params: %w", err)
+	}
+
+	cmtGenesis := cometbft.NewGenesis(
+		chainID,
+		genesisState["beacon"],
+		consensusParams,
+	)
+	t := &time.Time{}
+	if err := t.UnmarshalJSON(genesisMap["genesis_time"]); err != nil {
+		return errors.Newf("failed to unmarshal genesis time: %w", err)
+	}
+	cmtGenesis.GenesisTime = *t
+	if err := cmtGenesis.Export(cmtConfig.GenesisFile()); err != nil {
+		return err
+	}
+	return nil
 }

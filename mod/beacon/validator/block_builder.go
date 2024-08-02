@@ -22,7 +22,6 @@ package validator
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
@@ -31,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -61,12 +59,6 @@ func (s *Service[
 	// is that we get the nice property of lazily propagating the finalized
 	// and safe block hashes to the execution client.
 	st := s.bsb.StateFromContext(ctx)
-
-	stateHash, err := st.HashTreeRoot()
-	if err != nil {
-		return blk, sidecars, err
-	}
-	fmt.Println("STATE HASH IN BLOCK BUILDER", hex.FromBytes(stateHash[:]))
 
 	// Prepare the state such that it is ready to build a block for
 	// the requested slot

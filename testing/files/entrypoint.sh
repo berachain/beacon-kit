@@ -76,6 +76,7 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 fi
 
 export CHAIN_SPEC="devnet"
+# export CHAIN_SPEC="testnet"
 ./build/bin/beacond
 
 

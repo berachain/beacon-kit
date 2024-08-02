@@ -44,6 +44,19 @@ func convertValidatorUpdates(
 	return valUpdates
 }
 
+func execTxResultsFromTxs(
+	txs [][]byte,
+) []*abci.ExecTxResult {
+	execTxResults := make([]*abci.ExecTxResult, len(txs))
+	for i, tx := range txs {
+		execTxResults[i] = &abci.ExecTxResult{
+			Code: abci.CodeTypeOK,
+			Data: tx,
+		}
+	}
+	return execTxResults
+}
+
 func prepareRequestFromABCIRequest(
 	req *abci.PrepareProposalRequest,
 ) *types.PrepareRequest {

@@ -10,11 +10,11 @@ type Genesis struct {
 	*cmttypes.GenesisDoc `mapstructure:",squash"`
 }
 
-func NewGenesis(appState []byte, consensusParams *cmttypes.ConsensusParams) *Genesis {
+func NewGenesis(chainID string, appState []byte, consensusParams *cmttypes.ConsensusParams) *Genesis {
 	return &Genesis{
 		GenesisDoc: &cmttypes.GenesisDoc{
 			GenesisTime:     time.Now(),
-			ChainID:         "test-chain",
+			ChainID:         chainID,
 			InitialHeight:   1,
 			ConsensusParams: consensusParams,
 			AppState:        appState,
