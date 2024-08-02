@@ -38,8 +38,8 @@ type Backend[
 	BeaconBlockBodyT any,
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT BeaconState[
-		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-		ValidatorT, ValidatorsT, WithdrawalT,
+		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
 	BlobSidecarsT any,
@@ -76,8 +76,8 @@ func New[
 	BeaconBlockBodyT any,
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT BeaconState[
-		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-		ValidatorT, ValidatorsT, WithdrawalT,
+		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
 	BlobSidecarsT any,
@@ -186,7 +186,7 @@ func (b *Backend[
 	if err != nil {
 		return st, slot, err
 	}
-	st = b.sb.StateFromContext(queryCtx)
+	st = b.sb.StateFromContext(queryCtx).Copy()
 
 	// If using height 0 for the query context, make sure to return the latest
 	// slot.
