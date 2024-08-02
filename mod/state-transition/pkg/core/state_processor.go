@@ -21,6 +21,8 @@
 package core
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/errors"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -169,7 +171,9 @@ func (sp *StateProcessor[
 
 	// We only want to persist state changes if we successfully
 	// processed the block.
-	st.Save()
+	if ctx.Persist() {
+		st.Save()
+	}
 	return validatorUpdates, nil
 }
 
@@ -391,6 +395,7 @@ func (sp *StateProcessor[
 	if latestBlockHeader, err = st.GetLatestBlockHeader(); err != nil {
 		return err
 	} else if blk.GetSlot() <= latestBlockHeader.GetSlot() {
+		fmt.Println("BLOCK", blk, "HEADER", latestBlockHeader)
 		return errors.Wrapf(
 			ErrBlockSlotTooLow, "expected: > %d, got: %d",
 			latestBlockHeader.GetSlot(), blk.GetSlot(),

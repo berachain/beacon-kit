@@ -64,7 +64,6 @@ func CollectGenesisDepositsCmd() *cobra.Command {
 			var deposits []*types.Deposit
 			if deposits, err = CollectValidatorJSONFiles(
 				filepath.Join(config.RootDir, "config", "premined-deposits"),
-				appGenesis,
 			); err != nil {
 				return errors.Wrap(
 					err,
@@ -111,15 +110,7 @@ func CollectGenesisDepositsCmd() *cobra.Command {
 // and unmarshals them into a list of Deposit objects.
 func CollectValidatorJSONFiles(
 	genTxsDir string,
-	genesis *genutiltypes.AppGenesis,
 ) ([]*types.Deposit, error) {
-	// prepare a map of all balances in genesis state to then validate
-	// against the validators addresses
-	var appState map[string]json.RawMessage
-	if err := json.Unmarshal(genesis.AppState, &appState); err != nil {
-		return nil, err
-	}
-
 	// get the list of files in the genTxsDir
 	fos, err := os.ReadDir(genTxsDir)
 	if err != nil {

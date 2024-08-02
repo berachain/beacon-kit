@@ -95,7 +95,7 @@ func AddExecutionPayloadCmd(chainSpec common.ChainSpec) *cobra.Command {
 			}
 
 			// Inject the execution payload.
-			header, err := executableDataToExecutionPayloadHeader(
+			header, err := ExecutableDataToExecutionPayloadHeader(
 				version.ToUint32(genesisInfo.ForkVersion),
 				payload,
 				chainSpec.MaxWithdrawalsPerPayload(),
@@ -128,7 +128,7 @@ func AddExecutionPayloadCmd(chainSpec common.ChainSpec) *cobra.Command {
 
 // Converts the eth executable data type to the beacon execution payload header
 // interface.
-func executableDataToExecutionPayloadHeader(
+func ExecutableDataToExecutionPayloadHeader(
 	forkVersion uint32,
 	data *gethprimitives.ExecutableData,
 	// todo: re-enable when codec supports.

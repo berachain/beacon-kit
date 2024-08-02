@@ -246,18 +246,18 @@ func (pb *PayloadBuilder[
 		"for_slot", slot.Base10(),
 	)
 
-	// Submit the forkchoice update to the execution client.
-	var attrs PayloadAttributesT
-	_, _, err = pb.ee.NotifyForkchoiceUpdate(
-		ctx, &engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT]{
-			State: &engineprimitives.ForkchoiceStateV1{
-				HeadBlockHash:      lph.GetBlockHash(),
-				SafeBlockHash:      lph.GetParentHash(),
-				FinalizedBlockHash: lph.GetParentHash(),
-			},
-			PayloadAttributes: attrs,
-			ForkVersion:       pb.chainSpec.ActiveForkVersionForSlot(slot),
-		},
-	)
+	// // Submit the forkchoice update to the execution client.
+	// var attrs PayloadAttributesT
+	// _, _, err = pb.ee.NotifyForkchoiceUpdate(
+	// 	ctx, &engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT]{
+	// 		State: &engineprimitives.ForkchoiceStateV1{
+	// 			HeadBlockHash:      lph.GetBlockHash(),
+	// 			SafeBlockHash:      lph.GetParentHash(),
+	// 			FinalizedBlockHash: lph.GetParentHash(),
+	// 		},
+	// 		PayloadAttributes: attrs,
+	// 		ForkVersion:       pb.chainSpec.ActiveForkVersionForSlot(slot),
+	// 	},
+	// )
 	return err
 }

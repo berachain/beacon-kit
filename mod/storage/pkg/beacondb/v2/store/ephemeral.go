@@ -27,20 +27,20 @@ import (
 	db "github.com/cosmos/cosmos-db"
 )
 
-// BlockChanges is an extension of the changeset
-type BlockChanges struct {
+// Changeset is an extension of the changeset
+type Changeset struct {
 	*store.Changeset
 }
 
-// NewBlockChanges creates an empty blockChanges struct
-func NewBlockChanges() *BlockChanges {
-	return &BlockChanges{
+// NewChangeset creates an empty blockChanges struct
+func NewChangeset() *Changeset {
+	return &Changeset{
 		Changeset: store.NewChangeset(),
 	}
 }
 
 // Extend extends the block changes with the given changeset
-func (bc *BlockChanges) Extend(changes *store.Changeset) {
+func (bc *Changeset) Extend(changes *store.Changeset) {
 	bc.Changes = append(bc.Changes, changes.Changes...)
 }
 
@@ -48,17 +48,17 @@ func (bc *BlockChanges) Extend(changes *store.Changeset) {
 // It should persist over the entire lifecycle of a block, and reset once
 // it has been delivered
 type EphemeralStore struct {
-	blockChanges *BlockChanges
-	db           *db.MemDB
-	mu           sync.Mutex
+	changeset *Changeset
+	db        *db.MemDB
+	mu        sync.Mutex
 }
 
 // NewEphemeralStore creates a new ephemeral store.
 // EphemeralStore is a singleton, so New should only be called once while building.
 func NewEphemeralStore() *EphemeralStore {
 	return &EphemeralStore{
-		blockChanges: NewBlockChanges(),
-		db:           db.NewMemDB(),
+		changeset: NewChangeset(),
+		db:        db.NewMemDB(),
 	}
 }
 
@@ -98,16 +98,16 @@ func (es *EphemeralStore) Commit(changes *store.Changeset) {
 		}
 	}
 	// extend the slice of block changes
-	es.blockChanges.Extend(changes)
+	es.changeset.Extend(changes)
 }
 
 func (es *EphemeralStore) GetChanges() *store.Changeset {
-	return es.blockChanges.Changeset
+	return es.changeset.Changeset
 }
 
 // Flush resets the block changes and db
 func (es *EphemeralStore) Flush() {
-	es.blockChanges = NewBlockChanges()
+	es.changeset = NewChangeset()
 	es.db.Close()
 	es.db = db.NewMemDB()
 }

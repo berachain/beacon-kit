@@ -127,6 +127,7 @@ func (s *Service[
 			SkipPayloadVerification: false,
 			SkipValidateResult:      false,
 			SkipValidateRandao:      false,
+			PersistState:            false,
 		},
 		st, blk,
 	); errors.Is(err, engineerrors.ErrAcceptedPayloadStatus) {

@@ -124,6 +124,7 @@ func (s *Service[
 			// the "verification aspect" of this NewPayload call is
 			// actually irrelevant at this point.
 			SkipPayloadVerification: false,
+			PersistState:            true,
 		},
 		st,
 		blk,

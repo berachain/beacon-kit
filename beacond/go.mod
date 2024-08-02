@@ -12,6 +12,7 @@ replace (
 	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240731202123-43dd23137e9d
 	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240731202123-43dd23137e9d
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240731202123-43dd23137e9d
+	github.com/berachain/beacon-kit/mod/cli => ../mod/cli
 	github.com/berachain/beacon-kit/mod/config => ../mod/config
 	github.com/berachain/beacon-kit/mod/consensus => ../mod/consensus
 	github.com/berachain/beacon-kit/mod/consensus-types => ../mod/consensus-types
@@ -34,6 +35,8 @@ require (
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240728004405-58f868b44614
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240728004405-58f868b44614
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240710022615-726645827bad
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240731201523-f427600b4713
+	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240722101705-632d23f22727
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240726221339-a8bfeebf8ecf
 	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240728004405-58f868b44614
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157
@@ -55,10 +58,12 @@ require (
 	cosmossdk.io/errors/v2 v2.0.0-20240731132947-df72853b3ca5 // indirect
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce // indirect
 	cosmossdk.io/math v1.3.0 // indirect
+	cosmossdk.io/schema v0.1.1 // indirect
 	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc // indirect
 	cosmossdk.io/store/v2 v2.0.0-20240729225221-c4de9a970633 // indirect
 	cosmossdk.io/x/auth v0.0.0-20240731202123-43dd23137e9d // indirect
 	cosmossdk.io/x/bank v0.0.0-20240731202123-43dd23137e9d // indirect
+	cosmossdk.io/x/consensus v0.0.0-20240731202123-43dd23137e9d // indirect
 	cosmossdk.io/x/staking v0.0.0-20240731202123-43dd23137e9d // indirect
 	cosmossdk.io/x/tx v0.13.4-0.20240623110059-dec2d5583e39 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
@@ -73,9 +78,7 @@ require (
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240728004405-58f868b44614 // indirect
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df // indirect
 	github.com/berachain/beacon-kit/mod/depinject v0.0.0-00010101000000-000000000000 // indirect
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240731201523-f427600b4713 // indirect
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240728004405-58f868b44614 // indirect
-	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240722101705-632d23f22727 // indirect
 	github.com/berachain/beacon-kit/mod/node-api v0.0.0-20240728004405-58f868b44614 // indirect
 	github.com/berachain/beacon-kit/mod/node-api/engines v0.0.0-20240728004405-58f868b44614 // indirect
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240618214413-d5ec0e66b3dd // indirect
@@ -120,6 +123,7 @@ require (
 	github.com/ethereum/c-kzg-4844 v1.0.2 // indirect
 	github.com/ethereum/go-ethereum v1.14.6 // indirect
 	github.com/ethereum/go-verkle v0.1.1-0.20240306133620-7d920df305f0 // indirect
+	github.com/fatih/color v1.17.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/ferranbt/fastssz v0.1.4-0.20240629094022-eac385e6ee79 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
@@ -153,16 +157,21 @@ require (
 	github.com/gorilla/handlers v1.5.2 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
+	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
 	github.com/gsterjov/go-libsecret v0.0.0-20161001094733-a6f4afe4910c // indirect
+	github.com/hashicorp/go-hclog v1.6.3 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-metrics v0.5.3 // indirect
+	github.com/hashicorp/go-plugin v1.6.1 // indirect
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
+	github.com/hashicorp/yamux v0.1.1 // indirect
 	github.com/hdevalence/ed25519consensus v0.2.0 // indirect
 	github.com/holiman/bloomfilter/v2 v2.0.3 // indirect
 	github.com/holiman/uint256 v1.3.0 // indirect
+	github.com/huandu/skiplist v1.2.0 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/itsdevbear/comet-bls12-381 v0.0.0-20240413212931-2ae2f204cde7 // indirect
@@ -184,11 +193,13 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/minio/highwayhash v1.0.3 // indirect
 	github.com/minio/sha256-simd v1.0.1 // indirect
+	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mmcloughlin/addchain v0.4.0 // indirect
 	github.com/mtibben/percent v0.2.1 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/oasisprotocol/curve25519-voi v0.0.0-20230904125328-1f23a7beb09a // indirect
+	github.com/oklog/run v1.1.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
 	github.com/petermattis/goid v0.0.0-20240607163614-bb94eb51e7a7 // indirect

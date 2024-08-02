@@ -53,30 +53,31 @@ set -e
 # Reinstall daemon
 make build
 
+
+overwrite="N"
+if [ -d $HOMEDIR ]; then
+	printf "\nAn existing folder at '%s' was found. You can choose to delete this folder and start a new local node with new keys from genesis. When declined, the existing local node is started. \n" $HOMEDIR
+	echo "Overwrite the existing configuration and start a new local node? [y/n]"
+	read -r overwrite
+else	
+overwrite="Y"
+fi
+
+# Setup local node if overwrite is set to Yes, otherwise skip setup
+if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
+	rm -rf $HOMEDIR
+	# ./build/bin/beacond init $MONIKER \
+	# 	--chain-id $CHAINID \
+	# 	--home $HOMEDIR \
+	# 	--consensus-key-algo $CONSENSUS_KEY_ALGO
+	# ./build/bin/beacond genesis add-premined-deposit --home $HOMEDIR
+	# ./build/bin/beacond genesis collect-premined-deposits --home $HOMEDIR 
+	# ./build/bin/beacond genesis execution-payload "$ETH_GENESIS" --home $HOMEDIR
+fi
+
+export CHAIN_SPEC="devnet"
 ./build/bin/beacond
 
-# overwrite="N"
-# if [ -d $HOMEDIR ]; then
-# 	printf "\nAn existing folder at '%s' was found. You can choose to delete this folder and start a new local node with new keys from genesis. When declined, the existing local node is started. \n" $HOMEDIR
-# 	echo "Overwrite the existing configuration and start a new local node? [y/n]"
-# 	read -r overwrite
-# else	
-# overwrite="Y"
-# fi
-
-# export CHAIN_SPEC="devnet"
-
-# # Setup local node if overwrite is set to Yes, otherwise skip setup
-# if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
-# 	rm -rf $HOMEDIR
-# 	./build/bin/beacond init $MONIKER \
-# 		--chain-id $CHAINID \
-# 		--home $HOMEDIR \
-# 		--consensus-key-algo $CONSENSUS_KEY_ALGO
-# 	./build/bin/beacond genesis add-premined-deposit --home $HOMEDIR
-# 	./build/bin/beacond genesis collect-premined-deposits --home $HOMEDIR 
-# 	./build/bin/beacond genesis execution-payload "$ETH_GENESIS" --home $HOMEDIR
-# fi
 
 
 # # Start the node (remove the --pruning=nothing flag if historical queries are not needed)

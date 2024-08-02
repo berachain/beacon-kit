@@ -127,14 +127,14 @@ func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
 			//#nosec:G703 // Ignore errors on this line.
 			outputDocument, _ := cmd.Flags().GetString(flags.FlagOutputDocument)
 			if outputDocument == "" {
-				outputDocument, err = makeOutputFilepath(config.RootDir,
+				outputDocument, err = MakeOutputFilepath(config.RootDir,
 					crypto.BLSPubkey(valPubKey.Bytes()).String())
 				if err != nil {
 					return errors.Wrap(err, "failed to create output file path")
 				}
 			}
 
-			if err = writeDepositToFile(outputDocument, &deposit); err != nil {
+			if err = WriteDepositToFile(outputDocument, &deposit); err != nil {
 				return errors.Wrap(err, "failed to write signed gen tx")
 			}
 
@@ -148,7 +148,7 @@ func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
 	return cmd
 }
 
-func makeOutputFilepath(rootDir, pubkey string) (string, error) {
+func MakeOutputFilepath(rootDir, pubkey string) (string, error) {
 	writePath := filepath.Join(rootDir, "config", "premined-deposits")
 	if err := afero.NewOsFs().MkdirAll(writePath, os.ModePerm); err != nil {
 		return "", errors.Newf(
@@ -164,7 +164,7 @@ func makeOutputFilepath(rootDir, pubkey string) (string, error) {
 	), nil
 }
 
-func writeDepositToFile(
+func WriteDepositToFile(
 	outputDocument string,
 	depositMessage *types.Deposit,
 ) error {

@@ -22,6 +22,7 @@ package cometbft
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -41,7 +42,7 @@ import (
 // which serves the responsibilty of receiving and routing ABCI requests to the
 // node, and returning the responses to the consensus engine.
 type Consensus[
-	LoggerT log.Logger[any],
+	LoggerT log.AdvancedLogger[any, LoggerT],
 	ClientT engine.Client,
 ] struct {
 	Logger LoggerT
@@ -57,7 +58,7 @@ type Consensus[
 }
 
 func NewConsensus[
-	LoggerT log.Logger[any],
+	LoggerT log.AdvancedLogger[any, LoggerT],
 	ClientT engine.Client,
 ](
 	cfg Config,
@@ -72,29 +73,36 @@ func NewConsensus[
 	}
 }
 
-func (c *Consensus[LoggerT, ClientT]) Init() error {
-	// join with homedir
-	home := ".tmp/testingd"
-	c.config.NodeKey = filepath.Join(home, c.config.NodeKeyFile())
-	c.config.PrivValidatorKey = filepath.Join(home, c.config.PrivValidatorKeyFile())
-	c.config.PrivValidatorState = filepath.Join(home, c.config.PrivValidatorStateFile())
-	c.config.Genesis = filepath.Join(home, c.config.GenesisFile())
+func (c *Consensus[LoggerT, ClientT]) Init(homeDir string) (*privval.FilePV, error) {
+	// Ensure the config subdirectory exists
+	configDir := filepath.Join(homeDir, "config")
+	if err := os.MkdirAll(configDir, 0755); err != nil {
+		return nil, fmt.Errorf("failed to create config directory: %w", err)
+	}
+	dataDir := filepath.Join(homeDir, "data")
+	if err := os.MkdirAll(dataDir, 0755); err != nil {
+		return nil, fmt.Errorf("failed to create data directory: %w", err)
+	}
+	c.config.Config = c.config.SetRoot(homeDir)
 
 	pvKeyFile := c.config.PrivValidatorKeyFile()
 	pvStateFile := c.config.PrivValidatorStateFile()
 
-	privKey, err := bls12381.GenPrivKey()
-	if err != nil {
-		return err
-	}
+	var pv *privval.FilePV
 	if _, err := os.Stat(pvKeyFile); os.IsNotExist(err) {
-		pv := privval.NewFilePV(privKey, pvKeyFile, pvStateFile)
+		privKey, err := bls12381.GenPrivKey()
+		if err != nil {
+			return nil, err
+		}
+		pv = privval.NewFilePV(privKey, pvKeyFile, pvStateFile)
 		pv.Save()
 	} else if err != nil {
-		return err
+		return nil, err
+	} else {
+		pv = privval.LoadFilePV(pvKeyFile, pvStateFile)
 	}
 
-	return nil
+	return pv, nil
 }
 
 func (c *Consensus[LoggerT, ClientT]) Start(ctx context.Context) error {
@@ -110,20 +118,15 @@ func (c *Consensus[LoggerT, ClientT]) Start(ctx context.Context) error {
 		privval.LoadFilePV(c.config.PrivValidatorKeyFile(), c.config.PrivValidatorStateFile()),
 		nodeKey,
 		proxy.NewConsensusSyncLocalClientCreator(c.App),
-		c.genesisDocProvider(),
+		node.DefaultGenesisDocProviderFunc(c.config.Config),
 		cmtcfg.DefaultDBProvider,
 		node.DefaultMetricsProvider(c.config.Instrumentation),
-		// cometLoggerFromLogger(c.Logger),
-		cmtlog.NewNopLogger(), // TODO: make adapter for our logger
+		cometLoggerFromLogger(c.Logger),
 	); err != nil {
 		return err
 	}
 
 	return c.CometBFTNode.Start()
-}
-
-func (c *Consensus[_, _]) genesisDocProvider() node.GenesisDocProvider {
-	return node.DefaultGenesisDocProviderFunc(c.config.Config)
 }
 
 func (c *Consensus[LoggerT, ClientT]) Stop(context.Context) error {
@@ -134,8 +137,28 @@ func (c *Consensus[LoggerT, ClientT]) Stop(context.Context) error {
 	return nil
 }
 
-// func cometLoggerFromLogger[LoggerT log.AdvancedLogger[any, LoggerT]](
-// 	logger LoggerT,
-// ) cmtlog.Logger {
-// 	return logger
-// }
+type CometLogger[LoggerT log.AdvancedLogger[any, LoggerT]] struct {
+	Logger LoggerT
+}
+
+func cometLoggerFromLogger[LoggerT log.AdvancedLogger[any, LoggerT]](
+	logger LoggerT,
+) cmtlog.Logger {
+	return &CometLogger[LoggerT]{Logger: logger}
+}
+
+func (cl *CometLogger[LoggerT]) Debug(msg string, keyVals ...interface{}) {
+	cl.Logger.Debug(msg, keyVals...)
+}
+
+func (cl *CometLogger[LoggerT]) Info(msg string, keyVals ...interface{}) {
+	cl.Logger.Info(msg, keyVals...)
+}
+
+func (cl *CometLogger[LoggerT]) Error(msg string, keyVals ...interface{}) {
+	cl.Logger.Error(msg, keyVals...)
+}
+
+func (cl *CometLogger[LoggerT]) With(keyVals ...interface{}) cmtlog.Logger {
+	return &CometLogger[LoggerT]{Logger: cl.Logger.With(keyVals...)}
+}

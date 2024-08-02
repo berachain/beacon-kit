@@ -55,6 +55,7 @@ type BeaconState interface {
 	) (math.ValidatorIndex, error)
 	// HashTreeRoot returns the hash tree root of the beacon state.
 	HashTreeRoot() ([32]byte, error)
+	Commit() error
 }
 
 // SlashingInfo is an interface for accessing the slashing info.

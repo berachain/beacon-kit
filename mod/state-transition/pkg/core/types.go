@@ -119,6 +119,8 @@ type Context interface {
 	// GetSkipValidateResult returns whether to validate the result of the state
 	// transition.
 	GetSkipValidateResult() bool
+	// Persist returns whether to persist the state transition to disk.
+	Persist() bool
 }
 
 // Deposit is the interface for a deposit.

@@ -333,7 +333,7 @@ func (h *App[
 	if err != nil {
 		return nil, nil, err
 	}
-	return valUpdates, stateHash[:], nil
+	return valUpdates, stateHash[:], h.sb.StateFromContext(ctx).Commit()
 }
 
 // processSidecars publishes the sidecars and waits for a response.

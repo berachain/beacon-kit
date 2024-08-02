@@ -134,6 +134,11 @@ func (s *StateStore) Iterator(start, end []byte) (store.Iterator, error) {
 	return iterator.New(start, end, stateIter, changeSetIter, blockStoreIter), nil
 }
 
+func (s *StateStore) Commit() error {
+	_, err := s.state.Commit(s.ctx.Changeset.GetChanges())
+	return err
+}
+
 // Save commits the changeset to the BlockStore and resets the changeset
 func (s *StateStore) Save() {
 	// reset the changeset following the commit
@@ -173,6 +178,9 @@ func (s *StateStore) WithContext(ctx context.Context) *StateStore {
 // before any queries to SC)
 func (s *StateStore) Init() {
 	s.ctx = storectx.New(context.Background())
+	// if err := s.state.SetInitialVersion(uint64(1)); err != nil {
+	// 	panic(err)
+	// }
 	// s.AddChange([]byte("beacon"), []byte("4206969666"), []byte("69"))
 	// s.Save()
 }

@@ -243,6 +243,10 @@ func New[
 	return store
 }
 
+func (s *StateManager[_, _, _, _, _]) Commit() error {
+	return s.store.Commit()
+}
+
 // if commit errors should we still reset? maybe just do an
 // explicit call instead of defer to prevent that case
 // TODO: return store hash
