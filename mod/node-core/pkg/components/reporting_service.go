@@ -22,45 +22,23 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/services/version"
+	sdkversion "github.com/cosmos/cosmos-sdk/version"
 )
 
-// ABCIMiddlewareInput is the input for the validator middleware provider.
-type ABCIMiddlewareInput struct {
+type ReportingServiceInput struct {
 	depinject.In
-	BeaconBlockFeed       *BlockBroker
-	ChainSpec             common.ChainSpec
-	GenesisBroker         *GenesisBroker
-	Logger                log.Logger[any]
-	SidecarsFeed          *SidecarsBroker
-	SlotBroker            *SlotBroker
-	TelemetrySink         *metrics.TelemetrySink
-	ValidatorUpdateBroker *ValidatorUpdateBroker
+	Logger        log.AdvancedLogger[any, sdklog.Logger]
+	TelemetrySink *metrics.TelemetrySink
 }
 
-// ProvideABCIMiddleware is a depinject provider for the validator
-// middleware.
-func ProvideABCIMiddleware(
-	in ABCIMiddlewareInput,
-) (*ABCIMiddleware, error) {
-	validatorUpdatesSub, err := in.ValidatorUpdateBroker.Subscribe()
-	if err != nil {
-		return nil, err
-	}
-	return middleware.NewABCIMiddleware[
-		*AvailabilityStore, *BeaconBlock, *BlobSidecars,
-		*Deposit, *ExecutionPayload, *Genesis, *SlotData,
-	](
-		in.ChainSpec,
-		in.Logger,
+func ProvideReportingService(in ReportingServiceInput) *ReportingService {
+	return version.NewReportingService(
+		in.Logger.With("service", "reporting"),
 		in.TelemetrySink,
-		in.GenesisBroker,
-		in.BeaconBlockFeed,
-		in.SidecarsFeed,
-		in.SlotBroker,
-		validatorUpdatesSub,
-	), nil
+		sdkversion.Version,
+	)
 }

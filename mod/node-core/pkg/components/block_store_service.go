@@ -31,10 +31,10 @@ import (
 type BlockServiceInput struct {
 	depinject.In
 
-	Config      *config.Config
-	Logger      log.Logger[any]
 	BlockBroker *BlockBroker
 	BlockStore  *BlockStore
+	Config      *config.Config
+	Logger      log.Logger[any]
 }
 
 // ProvideBlockStoreService provides the block service.
