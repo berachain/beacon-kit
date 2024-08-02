@@ -27,6 +27,7 @@ import (
 	blockservice "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/block"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
@@ -38,7 +39,8 @@ import (
 // BlockStoreInput is the input for the dep inject framework.
 type BlockStoreInput struct {
 	depinject.In
-	AppOpts servertypes.AppOptions
+	ChainSpec common.ChainSpec
+	AppOpts   servertypes.AppOptions
 }
 
 // ProvideBlockStore is a function that provides the module to the
@@ -53,7 +55,9 @@ func ProvideBlockStore(
 		return nil, err
 	}
 
-	return block.NewStore[*BeaconBlock](storage.NewKVStoreProvider(kvp)), nil
+	return block.NewStore[*BeaconBlock](
+		storage.NewKVStoreProvider(kvp), in.ChainSpec,
+	), nil
 }
 
 // BlockPrunerInput is the input for the block pruner.
