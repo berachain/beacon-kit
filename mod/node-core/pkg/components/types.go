@@ -30,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
 	consruntimetypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/da/pkg/da"
@@ -40,7 +39,7 @@ import (
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
-	"github.com/berachain/beacon-kit/mod/node-api/backend"
+	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
 	"github.com/berachain/beacon-kit/mod/node-api/engines/echo"
 	beaconapi "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon"
 	builderapi "github.com/berachain/beacon-kit/mod/node-api/handlers/builder"
@@ -48,40 +47,27 @@ import (
 	debugapi "github.com/berachain/beacon-kit/mod/node-api/handlers/debug"
 	eventsapi "github.com/berachain/beacon-kit/mod/node-api/handlers/events"
 	nodeapi "github.com/berachain/beacon-kit/mod/node-api/handlers/node"
-	proofapi "github.com/berachain/beacon-kit/mod/node-api/handlers/proof"
 	"github.com/berachain/beacon-kit/mod/node-api/server"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
-	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/app/components/signer"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/app/components/storage"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
-	middlewarev2 "github.com/berachain/beacon-kit/mod/runtime/pkg/middleware/v2"
+	middleware "github.com/berachain/beacon-kit/mod/runtime/pkg/app"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	statedb "github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
+	beacondbv2 "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/v2"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/v2/store"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/block"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 type (
-	// ABCIMiddleware is a type alias for the ABCIMiddleware.
-	ABCIMiddleware = middleware.ABCIMiddleware[
-		*AvailabilityStore,
-		*BeaconBlock,
-		*BlobSidecars,
-		*Deposit,
-		*ExecutionPayload,
-		*Genesis,
-		*SlotData,
-	]
-
-	ABCIMiddlewareV2 = middlewarev2.ABCIMiddleware[
+	ABCIMiddlewareV2 = middleware.App[
 		*AttestationData,
 		*AvailabilityStore,
 		*BeaconBlock,
@@ -120,7 +106,7 @@ type (
 		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
-		*KVStore,
+		*StateManager,
 		*Validator,
 		*Withdrawal,
 		WithdrawalCredentials,
@@ -169,23 +155,6 @@ type (
 		*Withdrawal,
 	]
 
-	// ConsensusEngine is a type alias for the consensus engine.
-	ConsensusEngine = cometbft.ConsensusEngine[
-		*AttestationData,
-		*BeaconState,
-		*SlashingInfo,
-		*SlotData,
-		*StorageBackend,
-		*ValidatorUpdate,
-	]
-
-	// ConsensusMiddleware is a type alias for the consensus middleware.
-	ConsensusMiddleware = cometbft.Middleware[
-		*AttestationData,
-		*SlashingInfo,
-		*SlotData,
-	]
-
 	// Context is a type alias for the transition context.
 	Context = transition.Context
 
@@ -222,6 +191,8 @@ type (
 
 	// DepositStore is a type alias for the deposit store.
 	DepositStore = depositdb.KVStore[*Deposit]
+
+	EphemeralStore = store.EphemeralStore
 
 	// Eth1Data is a type alias for the eth1 data.
 	Eth1Data = types.Eth1Data
@@ -265,15 +236,6 @@ type (
 	// IndexDB is a type alias for the range DB.
 	IndexDB = filedb.RangeDB
 
-	// KVStore is a type alias for the KV store.
-	KVStore = beacondb.KVStore[
-		*BeaconBlockHeader,
-		*Eth1Data,
-		*ExecutionPayloadHeader,
-		*Fork,
-		*Validator,
-	]
-
 	// LegacyKey type alias to LegacyKey used for LegacySinger construction.
 	LegacyKey = signer.LegacyKey
 
@@ -287,29 +249,32 @@ type (
 		*Withdrawal,
 	]
 
-	// NodeAPIBackend is a type alias for the node API backend.
-	NodeAPIBackend = backend.Backend[
-		*AvailabilityStore,
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*BeaconBlockHeader,
-		*BeaconState,
-		*BeaconStateMarshallable,
-		*BlobSidecars,
-		*BlockStore,
-		sdk.Context,
-		*Deposit,
-		*DepositStore,
-		*Eth1Data,
-		*ExecutionPayloadHeader,
-		*Fork,
-		nodetypes.Node,
-		*KVStore,
-		*StorageBackend,
-		*Validator,
-		*Withdrawal,
-		WithdrawalCredentials,
-	]
+	// Logger is a type alias for the logger.
+	Logger = phuslu.Logger
+
+	// // NodeAPIBackend is a type alias for the node API backend.
+	// NodeAPIBackend = backend.Backend[
+	// 	*AvailabilityStore,
+	// 	*BeaconBlock,
+	// 	*BeaconBlockBody,
+	// 	*BeaconBlockHeader,
+	// 	*BeaconState,
+	// 	*BeaconStateMarshallable,
+	// 	*BlobSidecars,
+	// 	*BlockStore,
+	// 	sdk.Context,
+	// 	*Deposit,
+	// 	*DepositStore,
+	// 	*Eth1Data,
+	// 	*ExecutionPayloadHeader,
+	// 	*Fork,
+	// 	nodetypes.Node,
+	// 	*StateManager,
+	// 	*StorageBackend,
+	// 	*Validator,
+	// 	*Withdrawal,
+	// 	WithdrawalCredentials,
+	// ]
 
 	// NodeAPIContext is a type alias for the node API context.
 	NodeAPIContext = echo.Context
@@ -338,14 +303,33 @@ type (
 	// SlashingInfo is a type alias for the slashing info.
 	SlashingInfo = types.SlashingInfo
 
+	StateStore = store.StateStore
+
+	StateManager = beacondbv2.StateManager[
+		*BeaconBlockHeader,
+		*Eth1Data,
+		*ExecutionPayloadHeader,
+		*Fork,
+		*Validator,
+	]
+
 	// StateProcessor is the type alias for the state processor interface.
-	StateProcessor = blockchain.StateProcessor[
+	StateProcessor = core.StateProcessor[
 		*BeaconBlock,
+		*BeaconBlockBody,
+		*BeaconBlockHeader,
 		*BeaconState,
-		*BlobSidecars,
 		*Context,
 		*Deposit,
+		*Eth1Data,
+		*ExecutionPayload,
 		*ExecutionPayloadHeader,
+		*Fork,
+		*ForkData,
+		*StateManager,
+		*Validator,
+		*Withdrawal,
+		WithdrawalCredentials,
 	]
 
 	// StorageBackend is the type alias for the storage backend interface.
@@ -363,7 +347,7 @@ type (
 		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
-		*KVStore,
+		*StateManager,
 		*Validator,
 		*Withdrawal,
 		WithdrawalCredentials,
@@ -486,10 +470,4 @@ type (
 
 	// NodeAPIHandler is a type alias for the node handler.
 	NodeAPIHandler = nodeapi.Handler[NodeAPIContext]
-
-	// ProofAPIHandler is a type alias for the proof handler.
-	ProofAPIHandler = proofapi.Handler[
-		NodeAPIContext, *BeaconBlockHeader, *BeaconState,
-		*BeaconStateMarshallable, *ExecutionPayloadHeader, *Validator,
-	]
 )

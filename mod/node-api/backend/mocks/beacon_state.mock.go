@@ -1257,12 +1257,12 @@ func (_c *BeaconState_ValidatorByIndex_Call[BeaconBlockHeaderT, Eth1DataT, Execu
 	return _c
 }
 
-// ValidatorIndexByCometBFTAddress provides a mock function with given fields: cometBFTAddress
-func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, WithdrawalT]) ValidatorIndexByCometBFTAddress(cometBFTAddress []byte) (math.U64, error) {
+// ValidatorIndexByConsensusAddress provides a mock function with given fields: cometBFTAddress
+func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, WithdrawalT]) ValidatorIndexByConsensusAddress(cometBFTAddress []byte) (math.U64, error) {
 	ret := _m.Called(cometBFTAddress)
 
 	if len(ret) == 0 {
-		panic("no return value specified for ValidatorIndexByCometBFTAddress")
+		panic("no return value specified for ValidatorIndexByConsensusAddress")
 	}
 
 	var r0 math.U64
@@ -1285,30 +1285,30 @@ func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, Fo
 	return r0, r1
 }
 
-// BeaconState_ValidatorIndexByCometBFTAddress_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ValidatorIndexByCometBFTAddress'
-type BeaconState_ValidatorIndexByCometBFTAddress_Call[BeaconBlockHeaderT backend.BeaconBlockHeader[BeaconBlockHeaderT], Eth1DataT interface{}, ExecutionPayloadHeaderT interface{}, ForkT interface{}, ValidatorT interface{}, WithdrawalT interface{}] struct {
+// BeaconState_ValidatorIndexByConsensusAddress_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ValidatorIndexByConsensusAddress'
+type BeaconState_ValidatorIndexByConsensusAddress_Call[BeaconBlockHeaderT backend.BeaconBlockHeader[BeaconBlockHeaderT], Eth1DataT interface{}, ExecutionPayloadHeaderT interface{}, ForkT interface{}, ValidatorT interface{}, WithdrawalT interface{}] struct {
 	*mock.Call
 }
 
-// ValidatorIndexByCometBFTAddress is a helper method to define mock.On call
+// ValidatorIndexByConsensusAddress is a helper method to define mock.On call
 //   - cometBFTAddress []byte
-func (_e *BeaconState_Expecter[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, WithdrawalT]) ValidatorIndexByCometBFTAddress(cometBFTAddress interface{}) *BeaconState_ValidatorIndexByCometBFTAddress_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, WithdrawalT] {
-	return &BeaconState_ValidatorIndexByCometBFTAddress_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, WithdrawalT]{Call: _e.mock.On("ValidatorIndexByCometBFTAddress", cometBFTAddress)}
+func (_e *BeaconState_Expecter[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, WithdrawalT]) ValidatorIndexByConsensusAddress(cometBFTAddress interface{}) *BeaconState_ValidatorIndexByConsensusAddress_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, WithdrawalT] {
+	return &BeaconState_ValidatorIndexByConsensusAddress_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, WithdrawalT]{Call: _e.mock.On("ValidatorIndexByConsensusAddress", cometBFTAddress)}
 }
 
-func (_c *BeaconState_ValidatorIndexByCometBFTAddress_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, WithdrawalT]) Run(run func(cometBFTAddress []byte)) *BeaconState_ValidatorIndexByCometBFTAddress_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, WithdrawalT] {
+func (_c *BeaconState_ValidatorIndexByConsensusAddress_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, WithdrawalT]) Run(run func(cometBFTAddress []byte)) *BeaconState_ValidatorIndexByConsensusAddress_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, WithdrawalT] {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].([]byte))
 	})
 	return _c
 }
 
-func (_c *BeaconState_ValidatorIndexByCometBFTAddress_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, WithdrawalT]) Return(_a0 math.U64, _a1 error) *BeaconState_ValidatorIndexByCometBFTAddress_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, WithdrawalT] {
+func (_c *BeaconState_ValidatorIndexByConsensusAddress_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, WithdrawalT]) Return(_a0 math.U64, _a1 error) *BeaconState_ValidatorIndexByConsensusAddress_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, WithdrawalT] {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *BeaconState_ValidatorIndexByCometBFTAddress_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, WithdrawalT]) RunAndReturn(run func([]byte) (math.U64, error)) *BeaconState_ValidatorIndexByCometBFTAddress_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, WithdrawalT] {
+func (_c *BeaconState_ValidatorIndexByConsensusAddress_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, WithdrawalT]) RunAndReturn(run func([]byte) (math.U64, error)) *BeaconState_ValidatorIndexByConsensusAddress_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, WithdrawalT] {
 	_c.Call.Return(run)
 	return _c
 }

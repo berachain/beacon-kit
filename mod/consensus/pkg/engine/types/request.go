@@ -20,4 +20,34 @@
 
 package types
 
-// TODO: fill with the engine request types
+type PrepareRequest struct {
+	Slot                 uint64
+	AttestationAddresses [][]byte
+	SlashingInfo         []Misbehaviours
+}
+
+type ProcessRequest struct {
+	Txs  [][]byte
+	Slot uint64
+}
+
+func (r *ProcessRequest) GetSlot() uint64 {
+	return r.Slot
+}
+
+func (r *ProcessRequest) GetTxs() [][]byte {
+	return r.Txs
+}
+
+type FinalizeRequest struct {
+	Txs  [][]byte
+	Slot uint64
+}
+
+func (r *FinalizeRequest) GetSlot() uint64 {
+	return r.Slot
+}
+
+func (r *FinalizeRequest) GetTxs() [][]byte {
+	return r.Txs
+}

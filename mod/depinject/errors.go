@@ -32,19 +32,11 @@ var (
 )
 
 func ProvideError(err error, fn any) error {
-	return depinjectError("provide", err, fn)
-}
-
-func InvokeError(err error, fn any) error {
-	return depinjectError("invoke", err, fn)
-}
-
-func depinjectError(source string, err error, fn any) error {
 	// If we still don't have a function, return a more descriptive error
 	if reflect.TypeOf(fn).Kind() != reflect.Func {
 		return errors.Errorf(
 			"Error in %s: fn must be a function, got %T",
-			source,
+			"provide",
 			fn,
 		)
 	}
@@ -55,7 +47,7 @@ func depinjectError(source string, err error, fn any) error {
 		return errors.Wrapf(
 			err,
 			"Error in %s: provider %s must return at least one value",
-			source,
+			"provide",
 			funcName,
 		)
 	}
@@ -67,7 +59,7 @@ func depinjectError(source string, err error, fn any) error {
 			"from provider %s\n\n"+
 			"in function %T\n\n"+
 			"error from dig:",
-		source,
+		"provide",
 		returnType,
 		funcName,
 		fn,

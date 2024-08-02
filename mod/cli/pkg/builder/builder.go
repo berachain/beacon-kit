@@ -36,7 +36,6 @@ import (
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -59,7 +58,7 @@ type CLIBuilder[
 	// nodeBuilderFunc is a function that builds the Node,
 	// eventually called by the cosmos-sdk.
 	// TODO: CLI should not know about the AppCreator
-	nodeBuilderFunc servertypes.AppCreator[T]
+	// nodeBuilderFunc servertypes.AppCreator[T]
 	// rootCmdSetup is a function that sets up the root command.
 	rootCmdSetup rootCmdSetup[T]
 }
@@ -127,13 +126,13 @@ func (cb *CLIBuilder[T, ExecutionPayloadT]) Build() (*cmdlib.Root, error) {
 		return nil, err
 	}
 
-	// apply default root command setup
-	cmdlib.DefaultRootCommandSetup[T, ExecutionPayloadT](
-		rootCmd,
-		mm,
-		cb.nodeBuilderFunc,
-		chainSpec,
-	)
+	// // apply default root command setup
+	// cmdlib.DefaultRootCommandSetup[T, ExecutionPayloadT](
+	// 	rootCmd,
+	// 	mm,
+	// 	// cb.nodeBuilderFunc,
+	// 	chainSpec,
+	// )
 
 	return rootCmd, nil
 }

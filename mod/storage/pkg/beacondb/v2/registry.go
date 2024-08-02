@@ -105,14 +105,14 @@ func (s *StateManager[
 	return math.ValidatorIndex(idx), nil
 }
 
-// ValidatorIndexByCometBFTAddress returns the validator address by index.
+// ValidatorIndexByConsensusAddress returns the validator address by index.
 func (s *StateManager[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
-]) ValidatorIndexByCometBFTAddress(
+]) ValidatorIndexByConsensusAddress(
 	cometBFTAddress []byte,
 ) (math.ValidatorIndex, error) {
-	idx, err := s.validators.Indexes.CometBFTAddress.MatchExact(
+	idx, err := s.validators.Indexes.ConsensusAddress.MatchExact(
 		cometBFTAddress,
 	)
 	if err != nil {

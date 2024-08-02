@@ -35,12 +35,11 @@ import (
 	gethprimitivescrypto "github.com/berachain/beacon-kit/mod/geth-primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/rpc"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/app/components"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/app/components/signer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 )
 
@@ -306,7 +305,7 @@ func getBLSSigner(
 
 	return components.ProvideBlsSigner(
 		components.BlsSignerInput{
-			AppOpts: client.GetViperFromCmd(cmd),
+			// AppOpts: client.GetViperFromCmd(cmd),
 			PrivKey: legacyKey,
 		},
 	)

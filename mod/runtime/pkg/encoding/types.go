@@ -21,17 +21,13 @@
 package encoding
 
 import (
-	"time"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 )
 
 // ABCIRequest represents the interface for an ABCI request.
 type ABCIRequest interface {
-	// GetHeight returns the height of the request.
-	GetHeight() int64
-	// GetTime returns the time of the request.
-	GetTime() time.Time
+	// GetSlot returns the slot of the request.
+	GetSlot() uint64
 	// GetTxs returns the transactions included in the request.
 	GetTxs() [][]byte
 }

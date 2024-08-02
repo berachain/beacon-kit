@@ -26,7 +26,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	jwt "github.com/berachain/beacon-kit/mod/cli/pkg/commands/jwt"
+	jwt "github.com/berachain/beacon-kit/mod/cli/pkg/v2/commands/jwt"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )

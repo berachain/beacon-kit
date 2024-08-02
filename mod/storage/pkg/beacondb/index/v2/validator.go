@@ -68,9 +68,9 @@ type ValidatorsIndex[ValidatorT Validator] struct {
 	// EffectiveBalance is a multi-index mapping a validator's effective balance
 	// to their numeric ID.
 	EffectiveBalance *indexes.Multi[uint64, uint64, ValidatorT]
-	// CometBFTAddress is a unique index mapping a validator's Comet BFT address
+	// ConsensusAddress is a unique index mapping a validator's Comet BFT address
 	// to their numeric ID.
-	CometBFTAddress *indexes.Unique[[]byte, uint64, ValidatorT]
+	ConsensusAddress *indexes.Unique[[]byte, uint64, ValidatorT]
 }
 
 // IndexesList returns a list of all indexes associated with the
@@ -81,7 +81,7 @@ func (a ValidatorsIndex[ValidatorT]) IndexesList() []collections.Index[
 	return []collections.Index[uint64, ValidatorT]{
 		a.Pubkey,
 		a.EffectiveBalance,
-		a.CometBFTAddress,
+		a.ConsensusAddress,
 	}
 }
 
@@ -114,7 +114,7 @@ func NewValidatorsIndex[ValidatorT Validator](
 				return uint64(validator.GetEffectiveBalance()), nil
 			},
 		),
-		CometBFTAddress: indexes.NewUnique(
+		ConsensusAddress: indexes.NewUnique(
 			storeKey,
 			[]byte(validatorConsAddrToIndexPrefix),
 			sdkcollections.BytesKey,

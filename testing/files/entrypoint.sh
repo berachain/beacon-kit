@@ -53,44 +53,46 @@ set -e
 # Reinstall daemon
 make build
 
-overwrite="N"
-if [ -d $HOMEDIR ]; then
-	printf "\nAn existing folder at '%s' was found. You can choose to delete this folder and start a new local node with new keys from genesis. When declined, the existing local node is started. \n" $HOMEDIR
-	echo "Overwrite the existing configuration and start a new local node? [y/n]"
-	read -r overwrite
-else	
-overwrite="Y"
-fi
+./build/bin/beacond
 
-export CHAIN_SPEC="devnet"
+# overwrite="N"
+# if [ -d $HOMEDIR ]; then
+# 	printf "\nAn existing folder at '%s' was found. You can choose to delete this folder and start a new local node with new keys from genesis. When declined, the existing local node is started. \n" $HOMEDIR
+# 	echo "Overwrite the existing configuration and start a new local node? [y/n]"
+# 	read -r overwrite
+# else	
+# overwrite="Y"
+# fi
 
-# Setup local node if overwrite is set to Yes, otherwise skip setup
-if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
-	rm -rf $HOMEDIR
-	./build/bin/beacond init $MONIKER \
-		--chain-id $CHAINID \
-		--home $HOMEDIR \
-		--consensus-key-algo $CONSENSUS_KEY_ALGO
-	./build/bin/beacond genesis add-premined-deposit --home $HOMEDIR
-	./build/bin/beacond genesis collect-premined-deposits --home $HOMEDIR 
-	./build/bin/beacond genesis execution-payload "$ETH_GENESIS" --home $HOMEDIR
-fi
+# export CHAIN_SPEC="devnet"
+
+# # Setup local node if overwrite is set to Yes, otherwise skip setup
+# if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
+# 	rm -rf $HOMEDIR
+# 	./build/bin/beacond init $MONIKER \
+# 		--chain-id $CHAINID \
+# 		--home $HOMEDIR \
+# 		--consensus-key-algo $CONSENSUS_KEY_ALGO
+# 	./build/bin/beacond genesis add-premined-deposit --home $HOMEDIR
+# 	./build/bin/beacond genesis collect-premined-deposits --home $HOMEDIR 
+# 	./build/bin/beacond genesis execution-payload "$ETH_GENESIS" --home $HOMEDIR
+# fi
 
 
-# Start the node (remove the --pruning=nothing flag if historical queries are not needed)
-BEACON_START_CMD="./build/bin/beacond start --pruning=nothing "$TRACE" \
---beacon-kit.logger.log-level $LOGLEVEL --api.enabled-unsafe-cors \
---api.enable --api.swagger --minimum-gas-prices=0.0001abgt \
---home $HOMEDIR --beacon-kit.engine.jwt-secret-path ${JWT_SECRET_PATH} \
---beacon-kit.block-store-service.enabled --beacon-kit.block-store-service.pruner-enabled \
---beacon-kit.node-api.enabled --beacon-kit.node-api.logging" 
+# # Start the node (remove the --pruning=nothing flag if historical queries are not needed)
+# BEACON_START_CMD="./build/bin/beacond start --pruning=nothing "$TRACE" \
+# --beacon-kit.logger.log-level $LOGLEVEL --api.enabled-unsafe-cors \
+# --api.enable --api.swagger --minimum-gas-prices=0.0001abgt \
+# --home $HOMEDIR --beacon-kit.engine.jwt-secret-path ${JWT_SECRET_PATH} \
+# --beacon-kit.block-store-service.enabled --beacon-kit.block-store-service.pruner-enabled \
+# --beacon-kit.node-api.enabled --beacon-kit.node-api.logging" 
 
-# Conditionally add the rpc-dial-url flag if RPC_DIAL_URL is not empty
-if [ -n "$RPC_DIAL_URL" ]; then
-	# this will overwrite the default dial url
-	RPC_DIAL_URL=$(resolve_path "$RPC_DIAL_URL")
-	echo "Overwriting the default dial url with $RPC_DIAL_URL"
-	BEACON_START_CMD="$BEACON_START_CMD --beacon-kit.engine.rpc-dial-url ${RPC_PREFIX}${RPC_DIAL_URL}"
-fi
+# # Conditionally add the rpc-dial-url flag if RPC_DIAL_URL is not empty
+# if [ -n "$RPC_DIAL_URL" ]; then
+# 	# this will overwrite the default dial url
+# 	RPC_DIAL_URL=$(resolve_path "$RPC_DIAL_URL")
+# 	echo "Overwriting the default dial url with $RPC_DIAL_URL"
+# 	BEACON_START_CMD="$BEACON_START_CMD --beacon-kit.engine.rpc-dial-url ${RPC_PREFIX}${RPC_DIAL_URL}"
+# fi
 
-eval $BEACON_START_CMD
+# eval $BEACON_START_CMD

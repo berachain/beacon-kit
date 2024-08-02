@@ -21,15 +21,13 @@
 package components
 
 import (
-	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/depinject"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
-	beaconapi "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon"
 	builderapi "github.com/berachain/beacon-kit/mod/node-api/handlers/builder"
 	configapi "github.com/berachain/beacon-kit/mod/node-api/handlers/config"
 	debugapi "github.com/berachain/beacon-kit/mod/node-api/handlers/debug"
 	eventsapi "github.com/berachain/beacon-kit/mod/node-api/handlers/events"
 	nodeapi "github.com/berachain/beacon-kit/mod/node-api/handlers/node"
-	proofapi "github.com/berachain/beacon-kit/mod/node-api/handlers/proof"
 )
 
 type NodeAPIHandlersInput struct {
@@ -41,7 +39,6 @@ type NodeAPIHandlersInput struct {
 	DebugAPIHandler   *DebugAPIHandler
 	EventsAPIHandler  *EventsAPIHandler
 	NodeAPIHandler    *NodeAPIHandler
-	ProofAPIHandler   *ProofAPIHandler
 }
 
 func ProvideNodeAPIHandlers(
@@ -54,18 +51,17 @@ func ProvideNodeAPIHandlers(
 		in.DebugAPIHandler,
 		in.EventsAPIHandler,
 		in.NodeAPIHandler,
-		in.ProofAPIHandler,
 	}
 }
 
-func ProvideNodeAPIBeaconHandler(b *NodeAPIBackend) *BeaconAPIHandler {
-	return beaconapi.NewHandler[
-		*BeaconBlockHeader,
-		NodeAPIContext,
-		*Fork,
-		*Validator,
-	](b)
-}
+// func ProvideNodeAPIBeaconHandler(b *NodeAPIBackend) *BeaconAPIHandler {
+// 	return beaconapi.NewHandler[
+// 		*BeaconBlockHeader,
+// 		NodeAPIContext,
+// 		*Fork,
+// 		*Validator,
+// 	](b)
+// }
 
 func ProvideNodeAPIBuilderHandler() *BuilderAPIHandler {
 	return builderapi.NewHandler[NodeAPIContext]()
@@ -83,10 +79,6 @@ func ProvideNodeAPIEventsHandler() *EventsAPIHandler {
 	return eventsapi.NewHandler[NodeAPIContext]()
 }
 
-func ProvideNodeAPINodeHandler() *NodeAPIHandler {
+func ProvideNodeAPIHandler() *NodeAPIHandler {
 	return nodeapi.NewHandler[NodeAPIContext]()
-}
-
-func ProvideNodeAPIProofHandler(b *NodeAPIBackend) *ProofAPIHandler {
-	return proofapi.NewHandler[NodeAPIContext](b)
 }

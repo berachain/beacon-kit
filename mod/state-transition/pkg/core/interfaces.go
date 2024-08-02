@@ -83,7 +83,7 @@ type ReadOnlyBeaconState[
 	GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error)
 	GetTotalValidators() (uint64, error)
 	GetValidatorsByEffectiveBalance() ([]ValidatorT, error)
-	ValidatorIndexByCometBFTAddress(
+	ValidatorIndexByConsensusAddress(
 		cometBFTAddress []byte,
 	) (math.ValidatorIndex, error)
 }

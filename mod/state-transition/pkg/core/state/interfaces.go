@@ -136,9 +136,9 @@ type KVStore[
 	AddValidator(val ValidatorT) error
 	// AddValidatorBartio adds a validator to the Bartio chain.
 	AddValidatorBartio(val ValidatorT) error
-	// ValidatorIndexByCometBFTAddress retrieves the validator index by the
+	// ValidatorIndexByConsensusAddress retrieves the validator index by the
 	// given comet BFT address.
-	ValidatorIndexByCometBFTAddress(
+	ValidatorIndexByConsensusAddress(
 		cometBFTAddress []byte,
 	) (math.ValidatorIndex, error)
 	// GetValidatorsByEffectiveBalance retrieves validators by effective

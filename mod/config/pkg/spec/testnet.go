@@ -22,7 +22,7 @@ package spec
 
 import (
 	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
-	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/comet"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"

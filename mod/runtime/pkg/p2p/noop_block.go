@@ -66,6 +66,6 @@ func (n NoopBlockGossipHandler[BeaconBlockT, ReqT]) Request(
 	return encoding.UnmarshalBeaconBlockFromABCIRequest[BeaconBlockT](
 		req,
 		0,
-		n.chainSpec.ActiveForkVersionForSlot(math.U64(req.GetHeight())),
+		n.chainSpec.ActiveForkVersionForSlot(math.U64(req.GetSlot())),
 	)
 }

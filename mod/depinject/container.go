@@ -102,7 +102,7 @@ func (c *Container) Inject(targets ...interface{}) error {
 
 func (c *Container) Invoke(fn any) error {
 	if err := c.Container.Invoke(fn); err != nil {
-		return InvokeError(err, fn)
+		return err
 	}
 	return nil
 }

@@ -22,11 +22,9 @@ package builder
 
 import (
 	"cosmossdk.io/depinject"
-	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	cmtcfg "github.com/cometbft/cometbft/config"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cobra"
 )
 
@@ -104,24 +102,24 @@ func WithRunHandler[
 	}
 }
 
-// WithDefaultRootCommandSetup sets the root command setup func to the default.
-func WithDefaultRootCommandSetup[
-	T types.Node,
-	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
-]() Opt[T, ExecutionPayloadT] {
-	return func(cb *CLIBuilder[T, ExecutionPayloadT]) {
-		cb.rootCmdSetup = cmdlib.DefaultRootCommandSetup[T, ExecutionPayloadT]
-	}
-}
+// // WithDefaultRootCommandSetup sets the root command setup func to the default.
+// func WithDefaultRootCommandSetup[
+// 	T types.Node,
+// 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+// ]() Opt[T, ExecutionPayloadT] {
+// 	return func(cb *CLIBuilder[T, ExecutionPayloadT]) {
+// 		cb.rootCmdSetup = cmdlib.DefaultRootCommandSetup[T, ExecutionPayloadT]
+// 	}
+// }
 
-// WithNodeBuilderFunc sets the cosmos app creator for the CLIBuilder.
-func WithNodeBuilderFunc[
-	T types.Node,
-	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
-](
-	nodeBuilderFunc servertypes.AppCreator[T],
-) Opt[T, ExecutionPayloadT] {
-	return func(cb *CLIBuilder[T, ExecutionPayloadT]) {
-		cb.nodeBuilderFunc = nodeBuilderFunc
-	}
-}
+// // WithNodeBuilderFunc sets the cosmos app creator for the CLIBuilder.
+// func WithNodeBuilderFunc[
+// 	T types.Node,
+// 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+// ](
+// 	nodeBuilderFunc servertypes.AppCreator[T],
+// ) Opt[T, ExecutionPayloadT] {
+// 	return func(cb *CLIBuilder[T, ExecutionPayloadT]) {
+// 		cb.nodeBuilderFunc = nodeBuilderFunc
+// 	}
+// }

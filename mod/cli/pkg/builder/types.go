@@ -25,7 +25,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	cmtcfg "github.com/cometbft/cometbft/config"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/spf13/cobra"
 )
@@ -34,7 +33,7 @@ import (
 type rootCmdSetup[T types.Node] func(
 	cmd *cmdlib.Root,
 	mm *module.Manager,
-	appCreator servertypes.AppCreator[T],
+	// appCreator servertypes.AppCreator[T],
 	chainSpec common.ChainSpec,
 )
 

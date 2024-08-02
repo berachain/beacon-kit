@@ -24,7 +24,7 @@ import (
 	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/config/pkg/template"
-	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/comet"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	log "github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
