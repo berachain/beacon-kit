@@ -58,6 +58,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	statedb "github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
+	"github.com/berachain/beacon-kit/mod/state-transition/pkg/processor"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/block"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
@@ -332,7 +333,28 @@ type (
 	SlashingInfo = types.SlashingInfo
 
 	// StateProcessor is the type alias for the state processor interface.
-	StateProcessor = core.StateProcessor[
+	StateProcessor = processor.StateProcessor[
+		*BeaconBlock,
+		*BeaconBlockBody,
+		*BeaconBlockHeader,
+		*BeaconState,
+		*Context,
+		*Deposit,
+		*Eth1Data,
+		*ExecutionPayload,
+		*ExecutionPayloadHeader,
+		*Fork,
+		*ForkData,
+		*KVStore,
+		*Validator,
+		Validators,
+		*Withdrawal,
+		WithdrawalCredentials,
+		*stateProcessor,
+	]
+
+	// StateProcessor is the type alias for the state processor interface.
+	stateProcessor = core.StateProcessor[
 		*BeaconBlock,
 		*BeaconBlockBody,
 		*BeaconBlockHeader,

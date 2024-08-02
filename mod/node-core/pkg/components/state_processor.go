@@ -25,6 +25,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
+	processor "github.com/berachain/beacon-kit/mod/state-transition/pkg/processor"
 )
 
 // StateProcessorInput is the input for the state processor for the depinject
@@ -41,7 +42,7 @@ type StateProcessorInput struct {
 func ProvideStateProcessor(
 	in StateProcessorInput,
 ) *StateProcessor {
-	return core.NewStateProcessor[
+	return processor.NewStateProcessor[
 		*BeaconBlock,
 		*BeaconBlockBody,
 		*BeaconBlockHeader,
@@ -58,9 +59,32 @@ func ProvideStateProcessor(
 		Validators,
 		*Withdrawal,
 		WithdrawalCredentials,
+		*stateProcessor,
 	](
 		in.ChainSpec,
 		in.ExecutionEngine,
 		in.Signer,
+		core.NewStateProcessor[
+			*BeaconBlock,
+			*BeaconBlockBody,
+			*BeaconBlockHeader,
+			*BeaconState,
+			*Context,
+			*Deposit,
+			*Eth1Data,
+			*ExecutionPayload,
+			*ExecutionPayloadHeader,
+			*Fork,
+			*ForkData,
+			*KVStore,
+			*Validator,
+			Validators,
+			*Withdrawal,
+			WithdrawalCredentials,
+		](
+			in.ChainSpec,
+			in.ExecutionEngine,
+			in.Signer,
+		),
 	)
 }

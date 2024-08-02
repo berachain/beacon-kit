@@ -56,3 +56,7 @@ type Nillable interface {
 type Versionable interface {
 	Version() uint32
 }
+
+type Pointer[U any] interface {
+	*U
+}
