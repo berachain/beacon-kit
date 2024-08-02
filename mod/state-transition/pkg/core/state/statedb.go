@@ -22,6 +22,7 @@ package state
 
 import (
 	"github.com/berachain/beacon-kit/mod/errors"
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -175,6 +176,104 @@ func (s *StateDB[
 	}
 
 	return s.SetSlashingAtIndex(index, amount)
+}
+
+// ExpectedWithdrawals as defined in the Ethereum 2.0 Specification:
+// https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#new-get_expected_withdrawals
+//
+//nolint:lll
+func (s *StateDB[
+	_, _, _, _, _, _, ValidatorT, WithdrawalT, _,
+]) ExpectedWithdrawals() ([]WithdrawalT, error) {
+	var (
+		validator         ValidatorT
+		balance           math.Gwei
+		withdrawalAddress gethprimitives.ExecutionAddress
+		withdrawals       = make([]WithdrawalT, 0)
+	)
+
+	slot, err := s.GetSlot()
+	if err != nil {
+		return nil, err
+	}
+
+	epoch := math.Epoch(uint64(slot) / s.cs.SlotsPerEpoch())
+
+	withdrawalIndex, err := s.GetNextWithdrawalIndex()
+	if err != nil {
+		return nil, err
+	}
+
+	validatorIndex, err := s.GetNextWithdrawalValidatorIndex()
+	if err != nil {
+		return nil, err
+	}
+
+	totalValidators, err := s.GetTotalValidators()
+	if err != nil {
+		return nil, err
+	}
+
+	bound := min(
+		totalValidators, s.cs.MaxValidatorsPerWithdrawalsSweep(),
+	)
+
+	// Iterate through indices to find the next validators to withdraw.
+	for range bound {
+		var (
+			withdrawal WithdrawalT
+			amount     math.Gwei
+		)
+		validator, err = s.ValidatorByIndex(validatorIndex)
+		if err != nil {
+			return nil, err
+		}
+
+		balance, err = s.GetBalance(validatorIndex)
+		if err != nil {
+			return nil, err
+		}
+
+		withdrawalAddress, err = validator.
+			GetWithdrawalCredentials().ToExecutionAddress()
+		if err != nil {
+			return nil, err
+		}
+
+		// Set the amount of the withdrawal depending on the balance of the
+		// validator.
+		if validator.IsFullyWithdrawable(balance, epoch) {
+			amount = balance
+		} else if validator.IsPartiallyWithdrawable(
+			balance, math.Gwei(s.cs.MaxEffectiveBalance()),
+		) {
+			amount = balance - math.Gwei(s.cs.MaxEffectiveBalance())
+		}
+		withdrawal = withdrawal.New(
+			math.U64(withdrawalIndex),
+			validatorIndex,
+			withdrawalAddress,
+			amount,
+		)
+
+		withdrawals = append(withdrawals, withdrawal)
+
+		// Increment the withdrawal index to process the next withdrawal.
+		withdrawalIndex++
+
+		// Cap the number of withdrawals to the maximum allowed per payload.
+		//#nosec:G701 // won't overflow in practice.
+		if len(withdrawals) == int(s.cs.MaxWithdrawalsPerPayload()) {
+			break
+		}
+
+		// Increment the validator index to process the next validator.
+		validatorIndex = (validatorIndex + 1) % math.ValidatorIndex(
+			totalValidators,
+		)
+	}
+
+	return withdrawals, nil
 }
 
 // GetMarshallable is the interface for the beacon store.

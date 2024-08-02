@@ -46,7 +46,7 @@ type StateProcessor[
 		BeaconStateT,
 		BeaconBlockHeaderT, Eth1DataT,
 		ExecutionPayloadHeaderT, ForkT, KVStoreT,
-		ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+		ValidatorT, WithdrawalT,
 	],
 	ContextT Context,
 	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
@@ -65,10 +65,7 @@ type StateProcessor[
 	KVStoreT any,
 	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
 	WithdrawalT Withdrawal[WithdrawalT],
-	WithdrawalCredentialsT interface {
-		~[32]byte
-		ToExecutionAddress() (gethprimitives.ExecutionAddress, error)
-	},
+	WithdrawalCredentialsT ~[32]byte,
 ] struct {
 	// cs is the chain specification for the beacon chain.
 	cs common.ChainSpec
@@ -87,15 +84,15 @@ func NewStateProcessor[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	],
 	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT, DepositT,
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
+		BeaconBlockBodyT,
+		DepositT, ExecutionPayloadT,
+		ExecutionPayloadHeaderT,
+		WithdrawalT,
 	],
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT BeaconState[
-		BeaconStateT,
-		BeaconBlockHeaderT, Eth1DataT,
-		ExecutionPayloadHeaderT, ForkT, KVStoreT,
-		ValidatorT, WithdrawalT, WithdrawalCredentialsT,
+		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+		KVStoreT, ValidatorT, WithdrawalT,
 	],
 	ContextT Context,
 	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
@@ -114,10 +111,7 @@ func NewStateProcessor[
 	KVStoreT any,
 	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
 	WithdrawalT Withdrawal[WithdrawalT],
-	WithdrawalCredentialsT interface {
-		~[32]byte
-		ToExecutionAddress() (gethprimitives.ExecutionAddress, error)
-	},
+	WithdrawalCredentialsT ~[32]byte,
 ](
 	cs common.ChainSpec,
 	executionEngine ExecutionEngine[
