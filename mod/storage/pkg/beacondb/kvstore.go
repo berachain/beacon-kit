@@ -25,6 +25,7 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/index"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/keys"
@@ -45,8 +46,8 @@ type KVStore[
 	},
 	ExecutionPayloadHeaderT interface {
 		constraints.SSZMarshallable
+		constraints.Versionable
 		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
-		Version() uint32
 	},
 	ForkT interface {
 		constraints.Empty[ForkT]
@@ -58,6 +59,7 @@ type KVStore[
 	ctx   context.Context
 	write func()
 	// Versioning
+	cs common.ChainSpec
 	// genesisValidatorsRoot is the root of the genesis validators.
 	genesisValidatorsRoot sdkcollections.Item[[]byte]
 	// slot is the current slot.
@@ -76,9 +78,6 @@ type KVStore[
 	eth1Data sdkcollections.Item[Eth1DataT]
 	// eth1DepositIndex is the index of the latest eth1 deposit.
 	eth1DepositIndex sdkcollections.Item[uint64]
-	// latestExecutionPayloadVersion stores the latest execution payload
-	// version.
-	latestExecutionPayloadVersion sdkcollections.Item[uint32]
 	// latestExecutionPayloadCodec is the codec for the latest execution
 	// payload, it allows us to update the codec with the latest version.
 	latestExecutionPayloadCodec *encoding.
@@ -123,8 +122,8 @@ func New[
 	},
 	ExecutionPayloadHeaderT interface {
 		constraints.SSZMarshallable
+		constraints.Versionable
 		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
-		Version() uint32
 	},
 	ForkT interface {
 		constraints.Empty[ForkT]
@@ -135,6 +134,7 @@ func New[
 ](
 	kss store.KVStoreService,
 	payloadCodec *encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT],
+	cs common.ChainSpec,
 ) *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
@@ -144,7 +144,7 @@ func New[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 		ForkT, ValidatorT, ValidatorsT,
 	]{
-		ctx: nil,
+		cs: cs,
 		genesisValidatorsRoot: sdkcollections.NewItem(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.GenesisValidatorsRootPrefix}),
@@ -188,14 +188,6 @@ func New[
 			sdkcollections.NewPrefix([]byte{keys.Eth1DepositIndexPrefix}),
 			keys.Eth1DepositIndexPrefixHumanReadable,
 			sdkcollections.Uint64Value,
-		),
-		latestExecutionPayloadVersion: sdkcollections.NewItem(
-			schemaBuilder,
-			sdkcollections.NewPrefix(
-				[]byte{keys.LatestExecutionPayloadVersionPrefix},
-			),
-			keys.LatestExecutionPayloadVersionPrefixHumanReadable,
-			sdkcollections.Uint32Value,
 		),
 		latestExecutionPayloadCodec: payloadCodec,
 		latestExecutionPayloadHeader: sdkcollections.NewItem(
