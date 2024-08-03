@@ -27,7 +27,7 @@ import (
 )
 
 // AddValidator registers a new validator in the beacon state.
-func (kv *KVStore[
+func (kv *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) AddValidator(val ValidatorT) error {
@@ -46,7 +46,7 @@ func (kv *KVStore[
 }
 
 // AddValidator registers a new validator in the beacon state.
-func (kv *KVStore[
+func (kv *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) AddValidatorBartio(val ValidatorT) error {
@@ -66,7 +66,7 @@ func (kv *KVStore[
 }
 
 // UpdateValidatorAtIndex updates a validator at a specific index.
-func (kv *KVStore[
+func (kv *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) UpdateValidatorAtIndex(
@@ -77,7 +77,7 @@ func (kv *KVStore[
 }
 
 // ValidatorIndexByPubkey returns the validator address by index.
-func (kv *KVStore[
+func (kv *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) ValidatorIndexByPubkey(
@@ -94,7 +94,7 @@ func (kv *KVStore[
 }
 
 // ValidatorIndexByConsensusAddress returns the validator address by index.
-func (kv *KVStore[
+func (kv *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) ValidatorIndexByConsensusAddress(
@@ -111,7 +111,7 @@ func (kv *KVStore[
 }
 
 // ValidatorByIndex returns the validator address by index.
-func (kv *KVStore[
+func (kv *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) ValidatorByIndex(
@@ -126,7 +126,7 @@ func (kv *KVStore[
 }
 
 // GetValidators retrieves all validators from the beacon state.
-func (kv *KVStore[
+func (kv *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetValidators() (
@@ -162,7 +162,7 @@ func (kv *KVStore[
 }
 
 // GetTotalValidators returns the total number of validators.
-func (kv *KVStore[
+func (kv *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetTotalValidators() (uint64, error) {
@@ -175,7 +175,7 @@ func (kv *KVStore[
 
 // GetValidatorsByEffectiveBalance retrieves all validators sorted by
 // effective balance from the beacon state.
-func (kv *KVStore[
+func (kv *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetValidatorsByEffectiveBalance() (
@@ -210,7 +210,7 @@ func (kv *KVStore[
 }
 
 // GetBalance returns the balance of a validator.
-func (kv *KVStore[
+func (kv *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetBalance(
@@ -221,7 +221,7 @@ func (kv *KVStore[
 }
 
 // SetBalance sets the balance of a validator.
-func (kv *KVStore[
+func (kv *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) SetBalance(
@@ -232,7 +232,7 @@ func (kv *KVStore[
 }
 
 // GetBalances returns the balancse of all validator.
-func (kv *KVStore[
+func (kv *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetBalances() ([]uint64, error) {
@@ -257,7 +257,7 @@ func (kv *KVStore[
 // GetTotalActiveBalances returns the total active balances of all validatorkv.
 // TODO: unhood this and probably store this as just a value changed on writekv.
 // TODO: this shouldn't live in KVStore
-func (kv *KVStore[
+func (kv *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetTotalActiveBalances(

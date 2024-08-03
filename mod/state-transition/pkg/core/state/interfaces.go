@@ -28,8 +28,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// KVStore is the interface for the key-value store holding the beacon state.
-type KVStore[
+// BeaconStore is the interface for the key-value store holding the beacon
+// state.
+type BeaconStore[
 	T,
 	BeaconBlockHeaderT,
 	Eth1DataT,
@@ -37,14 +38,13 @@ type KVStore[
 	ForkT,
 	ValidatorT any,
 ] interface {
-	WorkingHash() ([]byte, error)
+	LatestCommitHash() ([]byte, error)
 	Commit() ([]byte, error)
+	WorkingHash() ([]byte, error)
 	// Context returns the context of the key-value store.
 	Context() context.Context
 	// WithContext returns a new key-value store with the given context.
 	WithContext(ctx context.Context) T
-	// Save saves the key-value store.
-	Save()
 	// Copy returns a copy of the key-value store.
 	Copy() T
 	// GetLatestExecutionPayloadHeader retrieves the latest execution payload

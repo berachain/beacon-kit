@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package middleware
+package runtime
 
 import (
 	"context"
@@ -55,8 +55,7 @@ type BeaconState interface {
 	) (math.ValidatorIndex, error)
 	// HashTreeRoot returns the hash tree root of the beacon state.
 	HashTreeRoot() ([32]byte, error)
-	Commit() ([]byte, error)
-	WorkingHash() ([]byte, error)
+	LatestCommitHash() ([]byte, error)
 }
 
 // SlashingInfo is an interface for accessing the slashing info.

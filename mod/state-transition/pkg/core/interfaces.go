@@ -45,8 +45,9 @@ type BeaconState[
 		cs common.ChainSpec,
 	) T
 	Copy() T
-	Save()
 	Context() context.Context
+	Commit() ([]byte, error)
+	WorkingHash() ([]byte, error)
 	HashTreeRoot() ([32]byte, error)
 	ReadOnlyBeaconState[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,

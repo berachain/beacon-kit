@@ -18,17 +18,15 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package middleware
+package runtime
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/engine/types"
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -78,11 +76,11 @@ func (h *App[
 	// if err != nil {
 	// 	return nil, nil, err
 	// }
-	stateHash, err := h.sb.StateFromContext(ctx).WorkingHash()
+
+	stateHash, err := h.sb.StateFromContext(ctx).LatestCommitHash()
 	if err != nil {
 		return nil, nil, err
 	}
-	fmt.Println("WORKING HASH ", hex.FromBytes(stateHash))
 	return valUpdates, stateHash, nil
 }
 
@@ -336,12 +334,17 @@ func (h *App[
 	if err != nil {
 		return nil, nil, err
 	}
+
 	// stateHash, err := h.sb.StateFromContext(ctx).HashTreeRoot()
 	// if err != nil {
 	// 	return nil, nil, err
 	// }
-	appHash, err := h.sb.StateFromContext(ctx).Commit()
-	return valUpdates, appHash, err
+
+	stateHash, err := h.sb.StateFromContext(ctx).LatestCommitHash()
+	if err != nil {
+		return nil, nil, err
+	}
+	return valUpdates, stateHash, err
 }
 
 // processSidecars publishes the sidecars and waits for a response.

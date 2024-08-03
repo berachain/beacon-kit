@@ -18,13 +18,21 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package middleware
+package runtime
 
-const (
-	// BeaconBlockTxIndex represents the index of the beacon block transaction.
-	// It is the first transaction in the tx list.
-	BeaconBlockTxIndex uint = iota
-	// BlobSidecarsTxIndex represents the index of the blob sidecar transaction.
-	// It follows the beacon block transaction in the tx list.
-	BlobSidecarsTxIndex
+import "errors"
+
+var (
+	// ErrUnexpectedEvent is returned when an unexpected event is encountered.
+	ErrUnexpectedEvent = errors.New("unexpected event")
+	// ErrInvalidProcessProposalRequestType is returned when an invalid
+	// process proposal request type is encountered.
+	ErrInvalidProcessProposalRequestType = errors.New(
+		"invalid process proposal request type",
+	)
+	// ErrInvalidFinalizeBlockRequestType is returned when an invalid
+	// finalize block request type is encountered.
+	ErrInvalidFinalizeBlockRequestType = errors.New(
+		"invalid pre block request type",
+	)
 )

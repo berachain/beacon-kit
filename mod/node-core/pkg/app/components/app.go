@@ -24,14 +24,13 @@ import (
 	"github.com/berachain/beacon-kit/mod/depinject"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/app/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	runtime "github.com/berachain/beacon-kit/mod/runtime/pkg/app"
+	runtime "github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 )
 
 // ABCIMiddlewareInput is the input for the validator middleware provider.
 type RuntimeAppInput struct {
 	depinject.In
 	BeaconBlockFeed       *BlockBroker
-	ChainService          *ChainService
 	ChainSpec             common.ChainSpec
 	GenesisBroker         *GenesisBroker
 	Logger                *Logger
@@ -65,7 +64,6 @@ func ProvideRuntimeApp(
 		*StorageBackend,
 	](
 		in.ChainSpec,
-		in.ChainService,
 		in.StorageBackend,
 		in.Logger,
 		in.TelemetrySink,

@@ -222,7 +222,7 @@ func (s *Service[
 	}
 
 	// Process the genesis data.
-	valUpdates, err := s.ProcessGenesisData(msg.Context(), msg.Data())
+	valUpdates, _, err := s.ProcessGenesisData(msg.Context(), msg.Data())
 	if err != nil {
 		s.logger.Error("Failed to process genesis data", "error", err)
 	}

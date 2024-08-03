@@ -367,7 +367,7 @@ func (s *Service[
 ) (common.Root, error) {
 	startTime := time.Now()
 	defer s.metrics.measureStateRootComputationTime(startTime)
-	if _, err := s.stateProcessor.Transition(
+	if _, _, err := s.stateProcessor.Transition(
 		// TODO: We should think about how having optimistic
 		// engine enabled here would affect the proposer when
 		// the payload in their block has come from a remote builder.

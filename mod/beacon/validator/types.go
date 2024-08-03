@@ -236,7 +236,7 @@ type StateProcessor[
 		ctx ContextT,
 		st BeaconStateT,
 		blk BeaconBlockT,
-	) (transition.ValidatorUpdates, error)
+	) (transition.ValidatorUpdates, []byte, error)
 }
 
 // StorageBackend is the interface for the storage backend.

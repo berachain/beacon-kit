@@ -75,8 +75,9 @@ type DepositStore[DepositT any] interface {
 	EnqueueDeposits(deposits []DepositT) error
 }
 
-// KVStore is the interface for the key-value store holding the beacon state.
-type KVStore[
+// BeaconStore is the interface for the key-value store holding the beacon
+// state.
+type BeaconStore[
 	T,
 	BeaconBlockHeaderT,
 	Eth1DataT,
@@ -90,8 +91,6 @@ type KVStore[
 	WithContext(
 		ctx context.Context,
 	) T
-	// Save saves the key-value store.
-	Save()
 	// Copy returns a copy of the key-value store.
 	Copy() T
 	// GetLatestExecutionPayloadHeader retrieves the latest execution payload

@@ -33,5 +33,4 @@ const (
 	BlobSidecarsProcessRequest  = "blob-sidecars-process-request"
 	BlobSidecarsProcessed       = "blob-sidecars-processed"
 	GenesisDataProcessRequest   = "genesis-data-process-request"
-	AppHash                     = "app-hash"
 )

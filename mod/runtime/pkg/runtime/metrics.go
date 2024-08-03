@@ -18,8 +18,41 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package collections
+package runtime
 
-import "errors"
+import (
+	"time"
+)
 
-var ErrNotFound = errors.New("key not found")
+// AppMetrics is a struct that contains metrics for the chain.
+type AppMetrics struct {
+	// sink is the sink for the metrics.
+	sink TelemetrySink
+}
+
+// newAppMetrics creates a new ABCIMiddlewareMetrics.
+func newAppMetrics(
+	sink TelemetrySink,
+) *AppMetrics {
+	return &AppMetrics{
+		sink: sink,
+	}
+}
+
+// measurePrepareProposalDuration measures the time to prepare.
+func (cm *AppMetrics) measurePrepareProposalDuration(
+	start time.Time,
+) {
+	cm.sink.MeasureSince(
+		"beacon_kit.runtime.prepare_proposal_duration", start,
+	)
+}
+
+// measureProcessProposalDuration measures the time to process.
+func (cm *AppMetrics) measureProcessProposalDuration(
+	start time.Time,
+) {
+	cm.sink.MeasureSince(
+		"beacon_kit.runtime.process_proposal_duration", start,
+	)
+}

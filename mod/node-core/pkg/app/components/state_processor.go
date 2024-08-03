@@ -53,7 +53,7 @@ func ProvideStateProcessor(
 		*ExecutionPayloadHeader,
 		*Fork,
 		*ForkData,
-		*StateManager,
+		*BeaconStore,
 		*Validator,
 		*Withdrawal,
 		WithdrawalCredentials,

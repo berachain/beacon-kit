@@ -118,7 +118,7 @@ func (s *Service[
 ) error {
 	startTime := time.Now()
 	defer s.metrics.measureStateRootVerificationTime(startTime)
-	if _, err := s.sp.Transition(
+	if _, _, err := s.sp.Transition(
 		// We run with a non-optimistic engine here to ensure
 		// that the proposer does not try to push through a bad block.
 		&transition.Context{

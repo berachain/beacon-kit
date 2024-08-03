@@ -23,18 +23,22 @@ package beacondb
 import (
 	"context"
 
+	storectx "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/context"
+
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
+	storev2 "cosmossdk.io/store/v2"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/index"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/keys"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// KVStore is a wrapper around an sdk.Context
+const BeaconStoreKey = "beacon"
+
+// Store is a wrapper around an sdk.Context
 // that provides access to all beacon related data.
-type KVStore[
+type Store[
 	BeaconBlockHeaderT constraints.SSZMarshallable,
 	Eth1DataT constraints.SSZMarshallable,
 	ExecutionPayloadHeaderT interface {
@@ -45,8 +49,10 @@ type KVStore[
 	ForkT constraints.SSZMarshallable,
 	ValidatorT Validator,
 ] struct {
-	ctx   context.Context
-	write func()
+	ctx       *storectx.Context
+	rootStore storev2.RootStore
+	storeKey  []byte
+
 	// Versioning
 	// genesisValidatorsRoot is the root of the genesis validators.
 	genesisValidatorsRoot sdkcollections.Item[[]byte]
@@ -113,187 +119,223 @@ func New[
 	ForkT constraints.SSZMarshallable,
 	ValidatorT Validator,
 ](
-	kss store.KVStoreService,
+	rootStore storev2.RootStore,
 	payloadCodec *encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT],
-) *KVStore[
+) *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
 ] {
-	schemaBuilder := sdkcollections.NewSchemaBuilder(kss)
-	return &KVStore[
+	store := &Store[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 		ForkT, ValidatorT,
 	]{
-		ctx: nil,
-		genesisValidatorsRoot: sdkcollections.NewItem(
-			schemaBuilder,
-			sdkcollections.NewPrefix([]byte{keys.GenesisValidatorsRootPrefix}),
-			keys.GenesisValidatorsRootPrefixHumanReadable,
-			sdkcollections.BytesValue,
-		),
-		slot: sdkcollections.NewItem(
-			schemaBuilder,
-			sdkcollections.NewPrefix([]byte{keys.SlotPrefix}),
-			keys.SlotPrefixHumanReadable,
-			sdkcollections.Uint64Value,
-		),
-		fork: sdkcollections.NewItem(
-			schemaBuilder,
-			sdkcollections.NewPrefix([]byte{keys.ForkPrefix}),
-			keys.ForkPrefixHumanReadable,
-			encoding.SSZValueCodec[ForkT]{},
-		),
-		blockRoots: sdkcollections.NewMap(
-			schemaBuilder,
-			sdkcollections.NewPrefix([]byte{keys.BlockRootsPrefix}),
-			keys.BlockRootsPrefixHumanReadable,
-			sdkcollections.Uint64Key,
-			sdkcollections.BytesValue,
-		),
-		stateRoots: sdkcollections.NewMap(
-			schemaBuilder,
-			sdkcollections.NewPrefix([]byte{keys.StateRootsPrefix}),
-			keys.StateRootsPrefixHumanReadable,
-			sdkcollections.Uint64Key,
-			sdkcollections.BytesValue,
-		),
-		eth1Data: sdkcollections.NewItem(
-			schemaBuilder,
-			sdkcollections.NewPrefix([]byte{keys.Eth1DataPrefix}),
-			keys.Eth1DataPrefixHumanReadable,
-			encoding.SSZValueCodec[Eth1DataT]{},
-		),
-		eth1DepositIndex: sdkcollections.NewItem(
-			schemaBuilder,
-			sdkcollections.NewPrefix([]byte{keys.Eth1DepositIndexPrefix}),
-			keys.Eth1DepositIndexPrefixHumanReadable,
-			sdkcollections.Uint64Value,
-		),
-		latestExecutionPayloadVersion: sdkcollections.NewItem(
-			schemaBuilder,
-			sdkcollections.NewPrefix(
-				[]byte{keys.LatestExecutionPayloadVersionPrefix},
-			),
-			keys.LatestExecutionPayloadVersionPrefixHumanReadable,
-			sdkcollections.Uint32Value,
-		),
-		latestExecutionPayloadCodec: payloadCodec,
-		latestExecutionPayloadHeader: sdkcollections.NewItem(
-			schemaBuilder,
-			sdkcollections.NewPrefix(
-				[]byte{keys.LatestExecutionPayloadHeaderPrefix},
-			),
-			keys.LatestExecutionPayloadHeaderPrefixHumanReadable,
-			payloadCodec,
-		),
-		validatorIndex: sdkcollections.NewSequence(
-			schemaBuilder,
-			sdkcollections.NewPrefix([]byte{keys.ValidatorIndexPrefix}),
-			keys.ValidatorIndexPrefixHumanReadable,
-		),
-		validators: sdkcollections.NewIndexedMap(
-			schemaBuilder,
-			sdkcollections.NewPrefix([]byte{keys.ValidatorByIndexPrefix}),
-			keys.ValidatorByIndexPrefixHumanReadable,
-			sdkcollections.Uint64Key,
-			encoding.SSZValueCodec[ValidatorT]{},
-			index.NewValidatorsIndex[ValidatorT](schemaBuilder),
-		),
-		balances: sdkcollections.NewMap(
-			schemaBuilder,
-			sdkcollections.NewPrefix([]byte{keys.BalancesPrefix}),
-			keys.BalancesPrefixHumanReadable,
-			sdkcollections.Uint64Key,
-			sdkcollections.Uint64Value,
-		),
-		randaoMix: sdkcollections.NewMap(
-			schemaBuilder,
-			sdkcollections.NewPrefix([]byte{keys.RandaoMixPrefix}),
-			keys.RandaoMixPrefixHumanReadable,
-			sdkcollections.Uint64Key,
-			sdkcollections.BytesValue,
-		),
-		slashings: sdkcollections.NewMap(
-			schemaBuilder,
-			sdkcollections.NewPrefix([]byte{keys.SlashingsPrefix}),
-			keys.SlashingsPrefixHumanReadable,
-			sdkcollections.Uint64Key,
-			sdkcollections.Uint64Value,
-		),
-		nextWithdrawalIndex: sdkcollections.NewItem(
-			schemaBuilder,
-			sdkcollections.NewPrefix([]byte{keys.NextWithdrawalIndexPrefix}),
-			keys.NextWithdrawalIndexPrefixHumanReadable,
-			sdkcollections.Uint64Value,
-		),
-		nextWithdrawalValidatorIndex: sdkcollections.NewItem(
-			schemaBuilder,
-			sdkcollections.NewPrefix(
-				[]byte{keys.NextWithdrawalValidatorIndexPrefix},
-			),
-			keys.NextWithdrawalValidatorIndexPrefixHumanReadable,
-			sdkcollections.Uint64Value,
-		),
-		totalSlashing: sdkcollections.NewItem(
-			schemaBuilder,
-			sdkcollections.NewPrefix([]byte{keys.TotalSlashingPrefix}),
-			keys.TotalSlashingPrefixHumanReadable,
-			sdkcollections.Uint64Value,
-		),
-		latestBlockHeader: sdkcollections.NewItem(
-			schemaBuilder,
-			sdkcollections.NewPrefix(
-				[]byte{keys.LatestBeaconBlockHeaderPrefix},
-			),
-			keys.LatestBeaconBlockHeaderPrefixHumanReadable,
-			encoding.SSZValueCodec[BeaconBlockHeaderT]{},
-		),
+		storeKey:  []byte(BeaconStoreKey),
+		rootStore: rootStore,
+		ctx:       nil,
 	}
+	schemaBuilder := sdkcollections.NewSchemaBuilderFromAccessor(store.accessor)
+	store.genesisValidatorsRoot = sdkcollections.NewItem(
+		schemaBuilder,
+		sdkcollections.NewPrefix([]byte{keys.GenesisValidatorsRootPrefix}),
+		keys.GenesisValidatorsRootPrefixHumanReadable,
+		sdkcollections.BytesValue,
+	)
+	store.slot = sdkcollections.NewItem(
+		schemaBuilder,
+		sdkcollections.NewPrefix([]byte{keys.SlotPrefix}),
+		keys.SlotPrefixHumanReadable,
+		sdkcollections.Uint64Value,
+	)
+	store.fork = sdkcollections.NewItem(
+		schemaBuilder,
+		sdkcollections.NewPrefix([]byte{keys.ForkPrefix}),
+		keys.ForkPrefixHumanReadable,
+		encoding.SSZValueCodec[ForkT]{},
+	)
+	store.blockRoots = sdkcollections.NewMap(
+		schemaBuilder,
+		sdkcollections.NewPrefix([]byte{keys.BlockRootsPrefix}),
+		keys.BlockRootsPrefixHumanReadable,
+		sdkcollections.Uint64Key,
+		sdkcollections.BytesValue,
+	)
+	store.stateRoots = sdkcollections.NewMap(
+		schemaBuilder,
+		sdkcollections.NewPrefix([]byte{keys.StateRootsPrefix}),
+		keys.StateRootsPrefixHumanReadable,
+		sdkcollections.Uint64Key,
+		sdkcollections.BytesValue,
+	)
+	store.eth1Data = sdkcollections.NewItem(
+		schemaBuilder,
+		sdkcollections.NewPrefix([]byte{keys.Eth1DataPrefix}),
+		keys.Eth1DataPrefixHumanReadable,
+		encoding.SSZValueCodec[Eth1DataT]{},
+	)
+	store.eth1DepositIndex = sdkcollections.NewItem(
+		schemaBuilder,
+		sdkcollections.NewPrefix([]byte{keys.Eth1DepositIndexPrefix}),
+		keys.Eth1DepositIndexPrefixHumanReadable,
+		sdkcollections.Uint64Value,
+	)
+	store.latestExecutionPayloadVersion = sdkcollections.NewItem(
+		schemaBuilder,
+		sdkcollections.NewPrefix(
+			[]byte{keys.LatestExecutionPayloadVersionPrefix},
+		),
+		keys.LatestExecutionPayloadVersionPrefixHumanReadable,
+		sdkcollections.Uint32Value,
+	)
+	store.latestExecutionPayloadCodec = payloadCodec
+	store.latestExecutionPayloadHeader = sdkcollections.NewItem(
+		schemaBuilder,
+		sdkcollections.NewPrefix(
+			[]byte{keys.LatestExecutionPayloadHeaderPrefix},
+		),
+		keys.LatestExecutionPayloadHeaderPrefixHumanReadable,
+		payloadCodec,
+	)
+	store.validatorIndex = sdkcollections.NewSequence(
+		schemaBuilder,
+		sdkcollections.NewPrefix([]byte{keys.ValidatorIndexPrefix}),
+		keys.ValidatorIndexPrefixHumanReadable,
+	)
+	store.validators = sdkcollections.NewIndexedMap(
+		schemaBuilder,
+		sdkcollections.NewPrefix([]byte{keys.ValidatorByIndexPrefix}),
+		keys.ValidatorByIndexPrefixHumanReadable,
+		sdkcollections.Uint64Key,
+		encoding.SSZValueCodec[ValidatorT]{},
+		index.NewValidatorsIndex[ValidatorT](schemaBuilder),
+	)
+	store.balances = sdkcollections.NewMap(
+		schemaBuilder,
+		sdkcollections.NewPrefix([]byte{keys.BalancesPrefix}),
+		keys.BalancesPrefixHumanReadable,
+		sdkcollections.Uint64Key,
+		sdkcollections.Uint64Value,
+	)
+	store.randaoMix = sdkcollections.NewMap(
+		schemaBuilder,
+		sdkcollections.NewPrefix([]byte{keys.RandaoMixPrefix}),
+		keys.RandaoMixPrefixHumanReadable,
+		sdkcollections.Uint64Key,
+		sdkcollections.BytesValue,
+	)
+	store.slashings = sdkcollections.NewMap(
+		schemaBuilder,
+		sdkcollections.NewPrefix([]byte{keys.SlashingsPrefix}),
+		keys.SlashingsPrefixHumanReadable,
+		sdkcollections.Uint64Key,
+		sdkcollections.Uint64Value,
+	)
+	store.nextWithdrawalIndex = sdkcollections.NewItem(
+		schemaBuilder,
+		sdkcollections.NewPrefix([]byte{keys.NextWithdrawalIndexPrefix}),
+		keys.NextWithdrawalIndexPrefixHumanReadable,
+		sdkcollections.Uint64Value,
+	)
+	store.nextWithdrawalValidatorIndex = sdkcollections.NewItem(
+		schemaBuilder,
+		sdkcollections.NewPrefix(
+			[]byte{keys.NextWithdrawalValidatorIndexPrefix},
+		),
+		keys.NextWithdrawalValidatorIndexPrefixHumanReadable,
+		sdkcollections.Uint64Value,
+	)
+	store.totalSlashing = sdkcollections.NewItem(
+		schemaBuilder,
+		sdkcollections.NewPrefix([]byte{keys.TotalSlashingPrefix}),
+		keys.TotalSlashingPrefixHumanReadable,
+		sdkcollections.Uint64Value,
+	)
+	store.latestBlockHeader = sdkcollections.NewItem(
+		schemaBuilder,
+		sdkcollections.NewPrefix(
+			[]byte{keys.LatestBeaconBlockHeaderPrefix},
+		),
+		keys.LatestBeaconBlockHeaderPrefixHumanReadable,
+		encoding.SSZValueCodec[BeaconBlockHeaderT]{},
+	)
+	return store
+}
+
+func (s *Store[_, _, _, _, _]) LatestCommitHash() ([]byte, error) {
+	commitID, err := s.rootStore.LastCommitID()
+	if err != nil {
+		return nil, err
+	}
+
+	return commitID.Hash, nil
+}
+
+func (s *Store[_, _, _, _, _]) Commit() ([]byte, error) {
+	changes, err := s.ctx.WriterMap.GetStateChanges()
+	if err != nil {
+		return nil, err
+	}
+	return s.rootStore.Commit(&store.Changeset{Changes: changes})
+}
+
+func (s *Store[_, _, _, _, _]) WorkingHash() ([]byte, error) {
+	changes, err := s.ctx.WriterMap.GetStateChanges()
+	if err != nil {
+		return nil, err
+	}
+	return s.rootStore.WorkingHash(&store.Changeset{Changes: changes})
 }
 
 // Copy returns a copy of the Store.
-func (kv *KVStore[
+func (s *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
-]) Copy() *KVStore[
+]) Copy() *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ] {
-	// TODO: Decouple the KVStore type from the Cosmos-SDK.
-	cctx, write := sdk.UnwrapSDKContext(kv.ctx).CacheContext()
-	ss := kv.WithContext(cctx)
-	ss.write = write
-	return ss
+	// unnnecessary check?
+	if s.ctx == nil {
+		return nil
+	}
+	cctx, err := s.ctx.CacheCopy(s.rootStore)
+	if err != nil {
+		return nil
+	}
+	return s.WithContext(cctx)
 }
 
 // Context returns the context of the Store.
-func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+func (s *Store[
+	_, _, _, _, _,
 ]) Context() context.Context {
-	return kv.ctx
+	return s.ctx
 }
 
 // WithContext returns a copy of the Store with the given context.
-func (kv *KVStore[
+func (s *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) WithContext(
 	ctx context.Context,
-) *KVStore[
+) *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ] {
-	cpy := *kv
-	cpy.ctx = ctx
+	cpy := *s
+	cpy.ctx = storectx.Wrap(ctx, s.storeKey)
+	if err := cpy.ctx.AttachStore(cpy.rootStore); err != nil {
+		panic(err)
+	}
 	return &cpy
 }
 
-// Save saves the Store.
-func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
-]) Save() {
-	if kv.write != nil {
-		kv.write()
+func (s *Store[_, _, _, _, _]) accessor(rawCtx context.Context) store.KVStore {
+	ctx := storectx.Wrap(rawCtx, s.storeKey)
+	if err := ctx.AttachStore(s.rootStore); err != nil {
+		panic(err)
 	}
+	writer, err := ctx.WriterMap.GetWriter(s.storeKey)
+	if err != nil {
+		panic(err)
+	}
+	return writer
 }

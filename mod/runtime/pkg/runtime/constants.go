@@ -18,31 +18,13 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package beacondb
+package runtime
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-
-// UpdateRandaoMixAtIndex sets the current RANDAO mix in the store.
-func (s *StateManager[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
-]) UpdateRandaoMixAtIndex(
-	index uint64,
-	mix common.Bytes32,
-) error {
-	return s.randaoMix.Set(index, mix[:])
-}
-
-// GetRandaoMixAtIndex retrieves the current RANDAO mix from the store.
-func (s *StateManager[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
-]) GetRandaoMixAtIndex(
-	index uint64,
-) (common.Bytes32, error) {
-	bz, err := s.randaoMix.Get(index)
-	if err != nil {
-		return common.Bytes32{}, err
-	}
-	return common.Bytes32(bz), nil
-}
+const (
+	// BeaconBlockTxIndex represents the index of the beacon block transaction.
+	// It is the first transaction in the tx list.
+	BeaconBlockTxIndex uint = iota
+	// BlobSidecarsTxIndex represents the index of the blob sidecar transaction.
+	// It follows the beacon block transaction in the tx list.
+	BlobSidecarsTxIndex
+)

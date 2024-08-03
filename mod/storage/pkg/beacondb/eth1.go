@@ -22,7 +22,7 @@ package beacondb
 
 // GetLatestExecutionPayloadHeader retrieves the latest execution payload
 // header from the BeaconStore.
-func (kv *KVStore[
+func (kv *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetLatestExecutionPayloadHeader() (
@@ -39,7 +39,7 @@ func (kv *KVStore[
 
 // SetLatestExecutionPayloadHeader sets the latest execution payload header in
 // the BeaconStore.
-func (kv *KVStore[
+func (kv *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) SetLatestExecutionPayloadHeader(
@@ -55,7 +55,7 @@ func (kv *KVStore[
 }
 
 // GetEth1DepositIndex retrieves the eth1 deposit index from the beacon state.
-func (kv *KVStore[
+func (kv *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetEth1DepositIndex() (uint64, error) {
@@ -63,7 +63,7 @@ func (kv *KVStore[
 }
 
 // SetEth1DepositIndex sets the eth1 deposit index in the beacon state.
-func (kv *KVStore[
+func (kv *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) SetEth1DepositIndex(
@@ -73,7 +73,7 @@ func (kv *KVStore[
 }
 
 // GetEth1Data retrieves the eth1 data from the beacon state.
-func (kv *KVStore[
+func (kv *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) GetEth1Data() (Eth1DataT, error) {
@@ -81,7 +81,7 @@ func (kv *KVStore[
 }
 
 // SetEth1Data sets the eth1 data in the beacon state.
-func (kv *KVStore[
+func (kv *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT,
 ]) SetEth1Data(

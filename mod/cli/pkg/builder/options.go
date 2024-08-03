@@ -102,7 +102,8 @@ func WithRunHandler[
 	}
 }
 
-// // WithDefaultRootCommandSetup sets the root command setup func to the default.
+// // WithDefaultRootCommandSetup sets the root command setup func to the
+// default.
 // func WithDefaultRootCommandSetup[
 // 	T types.Node,
 // 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],

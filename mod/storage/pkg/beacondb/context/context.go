@@ -18,52 +18,62 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package collections
+package context
 
 import (
-	"cosmossdk.io/collections/codec"
+	"context"
+
+	"cosmossdk.io/core/store"
+	"cosmossdk.io/server/v2/stf/branch"
+	storev2 "cosmossdk.io/store/v2"
 )
 
-// An Item is an intermediary that holds a certain configuration,
-// and uses that configuration to interact with the underlying store.
-type Item[V any] struct {
-	storeKey      []byte
-	key           []byte
-	valueCodec    codec.ValueCodec[V]
-	storeAccessor StoreAccessor
+type Context struct {
+	context.Context
+
+	actor     []byte
+	WriterMap store.WriterMap
 }
 
-func NewItem[V any](
-	storeKey []byte,
-	key []byte,
-	valueCodec codec.ValueCodec[V],
-	storeAccessor StoreAccessor,
-) Item[V] {
-	return Item[V]{
-		storeKey:      storeKey,
-		key:           key,
-		valueCodec:    valueCodec,
-		storeAccessor: storeAccessor,
+func Wrap(rawCtx context.Context, actor []byte) *Context {
+	if ctx, ok := rawCtx.(*Context); ok {
+		return ctx
+	}
+	return &Context{
+		Context:   rawCtx,
+		WriterMap: nil,
+		actor:     actor,
 	}
 }
 
-// Get retrieves the value from the store, and returns the decoded value.
-func (i *Item[V]) Get() (V, error) {
-	var result V
-	res, err := i.storeAccessor().QueryState(i.storeKey, i.key)
+func (c *Context) CacheCopy(store storev2.RootStore) (*Context, error) {
+	_, state, err := store.StateLatest()
 	if err != nil {
-		return result, err
+		return nil, err
 	}
-
-	return i.valueCodec.Decode(res)
+	writerMap := branch.DefaultNewWriterMap(state)
+	changes, err := c.WriterMap.GetStateChanges()
+	if err != nil {
+		return nil, err
+	}
+	if err = writerMap.ApplyStateChanges(changes); err != nil {
+		return nil, err
+	}
+	return &Context{
+		Context:   c.Context,
+		actor:     c.actor,
+		WriterMap: writerMap,
+	}, nil
 }
 
-// Set sets the value in the store with the encoded key and value.
-func (i *Item[V]) Set(value V) error {
-	encodedValue, err := i.valueCodec.Encode(value)
+func (c *Context) AttachStore(store storev2.RootStore) error {
+	if c.WriterMap != nil {
+		return nil
+	}
+	_, state, err := store.StateLatest()
 	if err != nil {
 		return err
 	}
-	i.storeAccessor().AddChange(i.storeKey, i.key, encodedValue)
+	c.WriterMap = branch.DefaultNewWriterMap(state)
 	return nil
 }

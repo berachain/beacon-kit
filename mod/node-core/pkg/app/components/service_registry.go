@@ -32,17 +32,16 @@ import (
 type ServiceRegistryInput struct {
 	depinject.In
 
-	ABCIService       *RuntimeApp
-	BlockBroker       *BlockBroker
-	BlockStoreService *BlockStoreService
-	ChainService      *ChainService
-	DBManager         *DBManager
-	DAService         *DAService
-	DepositService    *DepositService
-	EngineClient      *EngineClient
-	GenesisBroker     *GenesisBroker
-	Logger            *Logger
-	// NodeAPIServer         *NodeAPIServer
+	ABCIService           *RuntimeApp
+	BlockBroker           *BlockBroker
+	BlockStoreService     *BlockStoreService
+	ChainService          *ChainService
+	DBManager             *DBManager
+	DAService             *DAService
+	DepositService        *DepositService
+	EngineClient          *EngineClient
+	GenesisBroker         *GenesisBroker
+	Logger                *Logger
 	SidecarsBroker        *SidecarsBroker
 	SlotBroker            *SlotBroker
 	TelemetrySink         *metrics.TelemetrySink

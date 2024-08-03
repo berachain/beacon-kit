@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package middleware
+package runtime
 
 import (
 	"context"
@@ -116,9 +116,6 @@ func NewApp[
 	StorageBackendT StorageBackend[BeaconStateT],
 ](
 	chainSpec common.ChainSpec,
-	chainService BlockchainService[
-		BeaconBlockT, BlobSidecarsT, DepositT, GenesisT,
-	],
 	sb StorageBackendT,
 	logger log.Logger[any],
 	telemetrySink TelemetrySink,

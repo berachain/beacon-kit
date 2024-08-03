@@ -28,6 +28,7 @@ import (
 	"cosmossdk.io/store/v2/db"
 	"cosmossdk.io/store/v2/root"
 	"github.com/berachain/beacon-kit/mod/depinject"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 )
 
 type StoreConfigInput struct {
@@ -58,11 +59,13 @@ func ProvideStoreOptions(in StoreConfigInput) (*root.FactoryOptions, error) {
 			SSPruningOption: store.NewPruningOption(store.PruningNothing),
 			IavlConfig:      iavl.DefaultConfig(),
 		},
-		StoreKeys: []string{"beacon"},
+		StoreKeys: []string{beacondb.BeaconStoreKey},
 		SCRawDB:   scRawDb,
 	}, nil
 }
 
-func ProvideRootStore(factoryOpts *root.FactoryOptions) (store.RootStore, error) {
+func ProvideRootStore(
+	factoryOpts *root.FactoryOptions,
+) (store.RootStore, error) {
 	return root.CreateRootStore(factoryOpts)
 }

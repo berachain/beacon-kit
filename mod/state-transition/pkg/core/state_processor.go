@@ -21,8 +21,6 @@
 package core
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/mod/errors"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -153,28 +151,31 @@ func (sp *StateProcessor[
 	ctx ContextT,
 	st BeaconStateT,
 	blk BeaconBlockT,
-) (transition.ValidatorUpdates, error) {
+) (transition.ValidatorUpdates, []byte, error) {
 	if blk.IsNil() {
-		return nil, nil
+		return nil, nil, nil
 	}
 
 	// Process the slots.
 	validatorUpdates, err := sp.ProcessSlots(st, blk.GetSlot())
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Process the block.
 	if err = sp.ProcessBlock(ctx, st, blk); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	// We only want to persist state changes if we successfully
-	// processed the block.
+	var stateHash []byte
 	if ctx.Persist() {
-		st.Save()
+		stateHash, err = st.Commit()
+		if err != nil {
+			return nil, nil, err
+		}
 	}
-	return validatorUpdates, nil
+
+	return validatorUpdates, stateHash, nil
 }
 
 func (sp *StateProcessor[
@@ -237,37 +238,24 @@ func (sp *StateProcessor[
 	if err != nil {
 		return err
 	}
-
 	// We update our state roots and block roots.
 	if err = st.UpdateStateRootAtIndex(
 		stateSlot.Unwrap()%sp.cs.SlotsPerHistoricalRoot(), prevStateRoot,
 	); err != nil {
 		return err
 	}
-
 	// We get the latest block header, this will not have
 	// a state root on it.
 	latestHeader, err := st.GetLatestBlockHeader()
 	if err != nil {
 		return err
 	}
-
-	// We set the "rawHeader" in the StateProcessor, but cannot fill in
-	// the StateRoot until the following block.
-	if (latestHeader.GetStateRoot() == common.Root{}) {
-		latestHeader.SetStateRoot(prevStateRoot)
-		if err = st.SetLatestBlockHeader(latestHeader); err != nil {
-			return err
-		}
-	}
-
 	// We update the block root.
 	var prevBlockRoot common.Root
 	prevBlockRoot, err = latestHeader.HashTreeRoot()
 	if err != nil {
 		return err
 	}
-
 	if err = st.UpdateBlockRootAtIndex(
 		stateSlot.Unwrap()%sp.cs.SlotsPerHistoricalRoot(), prevBlockRoot,
 	); err != nil {
@@ -395,7 +383,6 @@ func (sp *StateProcessor[
 	if latestBlockHeader, err = st.GetLatestBlockHeader(); err != nil {
 		return err
 	} else if blk.GetSlot() <= latestBlockHeader.GetSlot() {
-		fmt.Println("BLOCK", blk, "HEADER", latestBlockHeader)
 		return errors.Wrapf(
 			ErrBlockSlotTooLow, "expected: > %d, got: %d",
 			latestBlockHeader.GetSlot(), blk.GetSlot(),

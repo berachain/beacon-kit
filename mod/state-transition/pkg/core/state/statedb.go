@@ -43,7 +43,7 @@ type StateDB[
 	Eth1DataT,
 	ExecutionPayloadHeaderT,
 	ForkT any,
-	KVStoreT KVStore[
+	KVStoreT BeaconStore[
 		KVStoreT,
 		BeaconBlockHeaderT,
 		Eth1DataT,
@@ -55,7 +55,7 @@ type StateDB[
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalCredentialsT WithdrawalCredentials,
 ] struct {
-	KVStore[
+	BeaconStore[
 		KVStoreT,
 		BeaconBlockHeaderT,
 		Eth1DataT,
@@ -96,8 +96,8 @@ func (s *StateDB[
 		WithdrawalT,
 		WithdrawalCredentialsT,
 	]{
-		KVStore: bdb,
-		cs:      cs,
+		BeaconStore: bdb,
+		cs:          cs,
 	}
 }
 
@@ -118,7 +118,7 @@ func (s *StateDB[
 	WithdrawalCredentialsT,
 ] {
 	return s.NewFromDB(
-		s.KVStore.Copy(),
+		s.BeaconStore.Copy(),
 		s.cs,
 	)
 }

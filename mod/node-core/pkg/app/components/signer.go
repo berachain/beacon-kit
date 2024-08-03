@@ -48,7 +48,8 @@ func ProvideBlsSigner(in BlsSignerInput) (crypto.BLSSigner, error) {
 		// }
 		// // If privValStateFile is not an absolute path, join with homeDir
 		// if !filepath.IsAbs(privValStateFile) {
-		// 	privValStateFile = filepath.Join(in.AppOpts.HomeDir, privValStateFile)
+		// 	privValStateFile = filepath.Join(in.AppOpts.HomeDir,
+		// privValStateFile)
 		// }
 		return signer.NewBLSSigner(privValKeyFile, privValStateFile), nil
 	}

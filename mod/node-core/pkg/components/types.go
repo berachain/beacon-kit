@@ -54,11 +54,10 @@ import (
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	middleware "github.com/berachain/beacon-kit/mod/runtime/pkg/app"
+	middleware "github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	statedb "github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
-	beacondbv2 "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/v2"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/v2/store"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/block"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
@@ -106,7 +105,7 @@ type (
 		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
-		*StateManager,
+		*BeaconStore,
 		*Validator,
 		*Withdrawal,
 		WithdrawalCredentials,
@@ -114,6 +113,14 @@ type (
 
 	// BeaconStateMarshallable is a type alias for the BeaconStateMarshallable.
 	BeaconStateMarshallable = state.BeaconStateMarshallable[
+		*BeaconBlockHeader,
+		*Eth1Data,
+		*ExecutionPayloadHeader,
+		*Fork,
+		*Validator,
+	]
+
+	BeaconStore = beacondb.Store[
 		*BeaconBlockHeader,
 		*Eth1Data,
 		*ExecutionPayloadHeader,
@@ -192,8 +199,6 @@ type (
 	// DepositStore is a type alias for the deposit store.
 	DepositStore = depositdb.KVStore[*Deposit]
 
-	EphemeralStore = store.EphemeralStore
-
 	// Eth1Data is a type alias for the eth1 data.
 	Eth1Data = types.Eth1Data
 
@@ -269,7 +274,7 @@ type (
 	// 	*ExecutionPayloadHeader,
 	// 	*Fork,
 	// 	nodetypes.Node,
-	// 	*StateManager,
+	// 	*BeaconStore,
 	// 	*StorageBackend,
 	// 	*Validator,
 	// 	*Withdrawal,
@@ -303,16 +308,6 @@ type (
 	// SlashingInfo is a type alias for the slashing info.
 	SlashingInfo = types.SlashingInfo
 
-	StateStore = store.StateStore
-
-	StateManager = beacondbv2.StateManager[
-		*BeaconBlockHeader,
-		*Eth1Data,
-		*ExecutionPayloadHeader,
-		*Fork,
-		*Validator,
-	]
-
 	// StateProcessor is the type alias for the state processor interface.
 	StateProcessor = core.StateProcessor[
 		*BeaconBlock,
@@ -326,7 +321,7 @@ type (
 		*ExecutionPayloadHeader,
 		*Fork,
 		*ForkData,
-		*StateManager,
+		*BeaconStore,
 		*Validator,
 		*Withdrawal,
 		WithdrawalCredentials,
@@ -340,6 +335,7 @@ type (
 		*BeaconBlockHeader,
 		*BeaconState,
 		*BeaconStateMarshallable,
+		*BeaconStore,
 		*BlobSidecars,
 		*BlockStore,
 		*Deposit,
@@ -347,7 +343,6 @@ type (
 		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
-		*StateManager,
 		*Validator,
 		*Withdrawal,
 		WithdrawalCredentials,

@@ -73,7 +73,9 @@ func NewConsensus[
 	}
 }
 
-func (c *Consensus[LoggerT, ClientT]) Init(homeDir string) (*privval.FilePV, error) {
+func (c *Consensus[LoggerT, ClientT]) Init(
+	homeDir string,
+) (*privval.FilePV, error) {
 	// Ensure the config subdirectory exists
 	configDir := filepath.Join(homeDir, "config")
 	if err := os.MkdirAll(configDir, 0755); err != nil {

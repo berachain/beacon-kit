@@ -32,7 +32,7 @@ type StorageBackendInput struct {
 	AvailabilityStore *AvailabilityStore
 	ChainSpec         common.ChainSpec
 	DepositStore      *DepositStore
-	StateManager      *StateManager
+	BeaconStore       *BeaconStore
 	BlockStore        *BlockStore
 }
 
@@ -48,6 +48,7 @@ func ProvideStorageBackend(
 		*BeaconBlockHeader,
 		*BeaconState,
 		*BeaconStateMarshallable,
+		*BeaconStore,
 		*BlobSidecars,
 		*BlockStore,
 		*Deposit,
@@ -55,14 +56,13 @@ func ProvideStorageBackend(
 		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
-		*StateManager,
 		*Validator,
 		*Withdrawal,
 		WithdrawalCredentials,
 	](
 		in.ChainSpec,
 		in.AvailabilityStore,
-		in.StateManager,
+		in.BeaconStore,
 		in.DepositStore,
 		in.BlockStore,
 	)

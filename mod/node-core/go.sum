@@ -19,6 +19,8 @@ cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce h1:udTT5vz8tu5WfnHnDJv9Mb2
 cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce/go.mod h1:QFKLI3pmk619LV+uh4DKxVBlNCGQhvTyoVYBaxHaTNM=
 cosmossdk.io/math v1.3.0 h1:RC+jryuKeytIiictDslBP9i1fhkVm6ZDmZEoNP316zE=
 cosmossdk.io/math v1.3.0/go.mod h1:vnRTxewy+M7BtXBNFybkuhSH4WfedVAAnERHgVFhp3k=
+cosmossdk.io/server/v2/stf v0.0.0-20240802204200-bc0731cb49e9 h1:2TOGv+0gGUMKc60mbEuAeyRFRkx67/1VMS6FlaAZGoY=
+cosmossdk.io/server/v2/stf v0.0.0-20240802204200-bc0731cb49e9/go.mod h1:IUbZp79IZ4NCR2eNXA0utcQOS8lz34BvsAWTeCGwGAM=
 cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc h1:R9O9d75e0qZYUsVV0zzi+D7cNLnX2JrUOQNoIPaF0Bg=
 cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc/go.mod h1:amTTatOUV3u1PsKmNb87z6/galCxrRbz9kRdJkL0DyU=
 cosmossdk.io/store/v2 v2.0.0-20240729225221-c4de9a970633 h1:24Z6QKGYY1lsIiwFttMEyIUa+BwNSQhUYe22Nv8cwLU=

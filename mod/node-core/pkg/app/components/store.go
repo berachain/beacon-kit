@@ -23,38 +23,22 @@ package components
 import (
 	storev2 "cosmossdk.io/store/v2"
 	"github.com/berachain/beacon-kit/mod/depinject"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/v2"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/v2/store"
 )
 
-func ProvideEphemeralStore() *EphemeralStore {
-	return store.NewEphemeralStore()
-}
-
 // depinject input for ProvideStateStore
-type StateStoreInput struct {
+type BeaconStoreInput struct {
 	depinject.In
 
-	EphemeralStore *EphemeralStore
-	RootStore      storev2.RootStore
+	RootStore storev2.RootStore
 }
 
-// ProvideStateStore will initialize a new StateStore with a new root store
-// as its localStore
-func ProvideStateStore(
-	in StateStoreInput,
-) *StateStore {
-	store := store.NewStore(in.EphemeralStore, in.RootStore)
-	store.Init()
-	return store
-}
-
-// ProvideStateManager will initialize a new StateManager with the given
+// ProvideBeaconStore will initialize a new StateManager with the given
 // stateStore
-func ProvideStateManager(
-	stateStore *StateStore,
-) *StateManager {
+func ProvideBeaconStore(
+	in BeaconStoreInput,
+) *BeaconStore {
 	payloadCodec := &encoding.
 		SSZInterfaceCodec[*ExecutionPayloadHeader]{}
 	return beacondb.New[
@@ -63,5 +47,5 @@ func ProvideStateManager(
 		*ExecutionPayloadHeader,
 		*Fork,
 		*Validator,
-	](payloadCodec, stateStore)
+	](in.RootStore, payloadCodec)
 }

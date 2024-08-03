@@ -1,3 +1,23 @@
+// SPDX-License-Identifier: BUSL-1.1
+//
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is governed by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
+//
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
+//
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
+//
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
+
 package main
 
 import (
@@ -11,11 +31,10 @@ import (
 	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/app/components/storage"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	runtime "github.com/berachain/beacon-kit/mod/runtime/pkg/app"
+	runtime "github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	statedb "github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
-	beacondbv2 "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/v2"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/v2/store"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/block"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 )
@@ -53,7 +72,7 @@ type (
 		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
-		*StateManager,
+		*BeaconStore,
 		*Validator,
 		*Withdrawal,
 		WithdrawalCredentials,
@@ -61,6 +80,14 @@ type (
 
 	// BeaconStateMarshallable is a type alias for the BeaconStateMarshallable.
 	BeaconStateMarshallable = state.BeaconStateMarshallable[
+		*BeaconBlockHeader,
+		*Eth1Data,
+		*ExecutionPayloadHeader,
+		*Fork,
+		*Validator,
+	]
+
+	BeaconStore = beacondb.Store[
 		*BeaconBlockHeader,
 		*Eth1Data,
 		*ExecutionPayloadHeader,
@@ -105,16 +132,6 @@ type (
 	// Logger is a type alias for the logger.
 	Logger = phuslu.Logger
 
-	StateStore = store.StateStore
-
-	StateManager = beacondbv2.StateManager[
-		*BeaconBlockHeader,
-		*Eth1Data,
-		*ExecutionPayloadHeader,
-		*Fork,
-		*Validator,
-	]
-
 	// SlashingInfo is a type alias for the slashing info.
 	SlashingInfo = types.SlashingInfo
 
@@ -137,7 +154,7 @@ type (
 		*ExecutionPayloadHeader,
 		*Fork,
 		*ForkData,
-		*StateManager,
+		*BeaconStore,
 		*Validator,
 		*Withdrawal,
 		WithdrawalCredentials,
@@ -151,6 +168,7 @@ type (
 		*BeaconBlockHeader,
 		*BeaconState,
 		*BeaconStateMarshallable,
+		*BeaconStore,
 		*BlobSidecars,
 		*BlockStore,
 		*Deposit,
@@ -158,7 +176,6 @@ type (
 		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
-		*StateManager,
 		*Validator,
 		*Withdrawal,
 		WithdrawalCredentials,
