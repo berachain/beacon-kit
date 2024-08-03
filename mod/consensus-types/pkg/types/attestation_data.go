@@ -38,7 +38,7 @@ import (
 const AttestationDataSize = 48
 
 var (
-	_ ssz.StaticObject                    = (*AttestationData)(nil)
+	_ ssz.StaticObject[*ssz.Codec]        = (*AttestationData)(nil)
 	_ constraints.SSZMarshallableRootable = (*AttestationData)(nil)
 )
 

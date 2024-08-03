@@ -34,7 +34,7 @@ import (
 const ForkSize = 16
 
 var (
-	_ ssz.StaticObject                    = (*Fork)(nil)
+	_ ssz.StaticObject[*schema.Codec]     = (*Fork)(nil)
 	_ constraints.SSZMarshallableRootable = (*Fork)(nil)
 )
 
@@ -83,16 +83,10 @@ func (f *Fork) SizeSSZ() uint32 {
 }
 
 // DefineSSZ defines the SSZ encoding for the Fork object.
-func (f *Fork) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineStaticBytes(codec, &f.PreviousVersion)
-	ssz.DefineStaticBytes(codec, &f.CurrentVersion)
-	ssz.DefineUint64(codec, &f.Epoch)
-}
-
-func (f *Fork) DefineSchema(builder *schema.Builder) {
-	schema.DefineStaticBytes(builder, "previous_version", &f.PreviousVersion)
-	schema.DefineStaticBytes(builder, "current_version", &f.CurrentVersion)
-	schema.DefineUint64(builder, "epoch", &f.Epoch)
+func (f *Fork) DefineSSZ(codec *schema.Codec) {
+	schema.DefineStaticBytes(codec, "previous_version", &f.PreviousVersion)
+	schema.DefineStaticBytes(codec, "current_version", &f.CurrentVersion)
+	schema.DefineUint64(codec, "epoch", &f.Epoch)
 }
 
 // MarshalSSZ marshals the Fork object to SSZ format.

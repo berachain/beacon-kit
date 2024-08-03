@@ -36,7 +36,7 @@ import (
 const BeaconBlockHeaderSize = 112
 
 var (
-	_ ssz.StaticObject                    = (*BeaconBlockHeader)(nil)
+	_ ssz.StaticObject[*schema.Codec]     = (*BeaconBlockHeader)(nil)
 	_ constraints.SSZMarshallableRootable = (*BeaconBlockHeader)(nil)
 )
 
@@ -103,20 +103,12 @@ func (b *BeaconBlockHeader) SizeSSZ() uint32 {
 }
 
 // DefineSSZ defines the SSZ encoding for the BeaconBlockHeader object.
-func (b *BeaconBlockHeader) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineUint64(codec, &b.Slot)
-	ssz.DefineUint64(codec, &b.ProposerIndex)
-	ssz.DefineStaticBytes(codec, &b.ParentBlockRoot)
-	ssz.DefineStaticBytes(codec, &b.StateRoot)
-	ssz.DefineStaticBytes(codec, &b.BodyRoot)
-}
-
-func (b *BeaconBlockHeader) DefineSchema(builder *schema.Builder) {
-	schema.DefineUint64(builder, "slot", &b.Slot)
-	schema.DefineUint64(builder, "propoer_index", &b.ProposerIndex)
-	schema.DefineStaticBytes(builder, "parent_block_root", &b.ParentBlockRoot)
-	schema.DefineStaticBytes(builder, "state_root", &b.StateRoot)
-	schema.DefineStaticBytes(builder, "body_root", &b.BodyRoot)
+func (b *BeaconBlockHeader) DefineSSZ(codec *schema.Codec) {
+	schema.DefineUint64(codec, "slot", &b.Slot)
+	schema.DefineUint64(codec, "propoer_index", &b.ProposerIndex)
+	schema.DefineStaticBytes(codec, "parent_block_root", &b.ParentBlockRoot)
+	schema.DefineStaticBytes(codec, "state_root", &b.StateRoot)
+	schema.DefineStaticBytes(codec, "body_root", &b.BodyRoot)
 }
 
 // MarshalSSZ marshals the BeaconBlockBody object to SSZ format.

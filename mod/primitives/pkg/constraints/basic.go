@@ -78,14 +78,14 @@ type SSZField[SelfPtrT, SelfT any] interface {
 
 // StaticSSZField is an interface for SSZ fields with a static size.
 // It embeds the SSZField interface and the ssz.StaticObject interface.
-type StaticSSZField[SelfPtrT, SelfT any] interface {
-	ssz.StaticObject
+type StaticSSZField[SelfPtrT, SelfT any, C ssz.CodecI[C]] interface {
+	ssz.StaticObject[C]
 	SSZField[SelfPtrT, SelfT]
 }
 
 // DynamicSSZField is an interface for SSZ fields with a dynamic size.
 // It embeds the SSZField interface and the ssz.DynamicObject interface.
-type DynamicSSZField[SelfPtrT, SelfT any] interface {
-	ssz.DynamicObject
+type DynamicSSZField[SelfPtrT, SelfT any, C ssz.CodecI[C]] interface {
+	ssz.DynamicObject[C]
 	SSZField[SelfPtrT, SelfT]
 }

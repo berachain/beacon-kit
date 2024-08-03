@@ -121,57 +121,35 @@ func (h *ExecutionPayloadHeader) SizeSSZ(fixed bool) uint32 {
 }
 
 // DefineSSZ defines how an object is encoded/decoded.
-func (h *ExecutionPayloadHeader) DefineSSZ(codec *ssz.Codec) {
+func (h *ExecutionPayloadHeader) DefineSSZ(codec *schema.Codec) {
 	// Define the static data (fields and dynamic offsets)
-	ssz.DefineStaticBytes(codec, &h.ParentHash)
-	ssz.DefineStaticBytes(codec, &h.FeeRecipient)
-	ssz.DefineStaticBytes(codec, &h.StateRoot)
-	ssz.DefineStaticBytes(codec, &h.ReceiptsRoot)
-	ssz.DefineStaticBytes(codec, &h.LogsBloom)
-	ssz.DefineStaticBytes(codec, &h.Random)
-	ssz.DefineUint64(codec, &h.Number)
-	ssz.DefineUint64(codec, &h.GasLimit)
-	ssz.DefineUint64(codec, &h.GasUsed)
-	ssz.DefineUint64(codec, &h.Timestamp)
-	//nolint:mnd // todo fix.
-	ssz.DefineDynamicBytesOffset(codec, (*[]byte)(&h.ExtraData), 32)
-	ssz.DefineUint256(codec, &h.BaseFeePerGas)
-	ssz.DefineStaticBytes(codec, &h.BlockHash)
-	ssz.DefineStaticBytes(codec, &h.TransactionsRoot)
-	ssz.DefineStaticBytes(codec, &h.WithdrawalsRoot)
-	ssz.DefineUint64(codec, &h.BlobGasUsed)
-	ssz.DefineUint64(codec, &h.ExcessBlobGas)
-
-	// Define the dynamic data (fields)
-	//nolint:mnd // todo fix.
-	ssz.DefineDynamicBytesContent(codec, (*[]byte)(&h.ExtraData), 32)
-}
-
-func (h *ExecutionPayloadHeader) DefineSchema(builder *schema.Builder) {
-	// Define the static data (fields and dynamic offsets)
-	schema.DefineStaticBytes(builder, "parent_hash", &h.ParentHash)
-	schema.DefineStaticBytes(builder, "fee_recipient", &h.FeeRecipient)
-	schema.DefineStaticBytes(builder, "state_root", &h.StateRoot)
-	schema.DefineStaticBytes(builder, "receipts_root", &h.ReceiptsRoot)
-	schema.DefineStaticBytes(builder, "logs_bloom", &h.LogsBloom)
-	schema.DefineStaticBytes(builder, "random", &h.Random)
-	schema.DefineUint64(builder, "number", &h.Number)
-	schema.DefineUint64(builder, "gas_limit", &h.GasLimit)
-	schema.DefineUint64(builder, "gas_used", &h.GasUsed)
-	schema.DefineUint64(builder, "timestamp", &h.Timestamp)
+	schema.DefineStaticBytes(codec, "parent_hash", &h.ParentHash)
+	schema.DefineStaticBytes(codec, "fee_recipient", &h.FeeRecipient)
+	schema.DefineStaticBytes(codec, "state_root", &h.StateRoot)
+	schema.DefineStaticBytes(codec, "receipts_root", &h.ReceiptsRoot)
+	schema.DefineStaticBytes(codec, "logs_bloom", &h.LogsBloom)
+	schema.DefineStaticBytes(codec, "random", &h.Random)
+	schema.DefineUint64(codec, "number", &h.Number)
+	schema.DefineUint64(codec, "gas_limit", &h.GasLimit)
+	schema.DefineUint64(codec, "gas_used", &h.GasUsed)
+	schema.DefineUint64(codec, "timestamp", &h.Timestamp)
 	//nolint:mnd // todo fix.
 	schema.DefineDynamicBytesOffset(
-		builder,
+		codec,
 		"extra_data",
 		(*[]byte)(&h.ExtraData),
 		32,
 	)
-	schema.DefineUint256(builder, "base_fee_per_gas", &h.BaseFeePerGas)
-	schema.DefineStaticBytes(builder, "block_hash", &h.BlockHash)
-	schema.DefineStaticBytes(builder, "transactions_root", &h.TransactionsRoot)
-	schema.DefineStaticBytes(builder, "withdrawals_root", &h.WithdrawalsRoot)
-	schema.DefineUint64(builder, "blob_gas_used", &h.BlobGasUsed)
-	schema.DefineUint64(builder, "excess_blob_gas", &h.ExcessBlobGas)
+	schema.DefineUint256(codec, "base_fee_per_gas", &h.BaseFeePerGas)
+	schema.DefineStaticBytes(codec, "block_hash", &h.BlockHash)
+	schema.DefineStaticBytes(codec, "transactions_root", &h.TransactionsRoot)
+	schema.DefineStaticBytes(codec, "withdrawals_root", &h.WithdrawalsRoot)
+	schema.DefineUint64(codec, "blob_gas_used", &h.BlobGasUsed)
+	schema.DefineUint64(codec, "excess_blob_gas", &h.ExcessBlobGas)
+
+	// Define the dynamic data (fields)
+	//nolint:mnd // todo fix.
+	ssz.DefineDynamicBytesContent(codec, (*[]byte)(&h.ExtraData), 32)
 }
 
 // MarshalSSZ serializes the ExecutionPayloadHeader object into a slice of

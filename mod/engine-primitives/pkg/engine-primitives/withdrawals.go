@@ -23,11 +23,12 @@ package engineprimitives
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/karalabe/ssz"
 )
 
 var (
-	_ ssz.StaticObject = (*Withdrawals)(nil)
+	_ ssz.StaticObject[*schema.Codec] = (*Withdrawals)(nil)
 	// TODO: We eventually should convert the interface, but we can't until
 	// we fully move off of FastSSZ for all types.
 	// _ constraints.SSZRootable = (*Withdrawals)(nil).
@@ -47,16 +48,16 @@ func (w Withdrawals) SizeSSZ() uint32 {
 }
 
 // DefineSSZ defines the SSZ encoding for the Withdrawals object.
-func (w Withdrawals) DefineSSZ(codec *ssz.Codec) {
-	codec.DefineEncoder(func(*ssz.Encoder) {
+func (w Withdrawals) DefineSSZ(codec *schema.Codec) {
+	codec.DefineEncoder(func(*ssz.Encoder[*schema.Codec]) {
 		ssz.DefineSliceOfStaticObjectsContent(
 			codec, (*[]*Withdrawal)(&w), constants.MaxWithdrawalsPerPayload)
 	})
-	codec.DefineDecoder(func(*ssz.Decoder) {
+	codec.DefineDecoder(func(*ssz.Decoder[*schema.Codec]) {
 		ssz.DefineSliceOfStaticObjectsContent(
 			codec, (*[]*Withdrawal)(&w), constants.MaxWithdrawalsPerPayload)
 	})
-	codec.DefineHasher(func(*ssz.Hasher) {
+	codec.DefineHasher(func(*ssz.Hasher[*schema.Codec]) {
 		ssz.DefineSliceOfStaticObjectsOffset(
 			codec, (*[]*Withdrawal)(&w), constants.MaxWithdrawalsPerPayload)
 	})

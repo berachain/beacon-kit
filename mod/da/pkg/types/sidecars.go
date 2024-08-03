@@ -23,6 +23,7 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/karalabe/ssz"
 	"github.com/sourcegraph/conc/iter"
 )
@@ -86,7 +87,7 @@ func (bs *BlobSidecars) Len() int {
 }
 
 // DefineSSZ defines the SSZ encoding for the BlobSidecars object.
-func (bs *BlobSidecars) DefineSSZ(codec *ssz.Codec) {
+func (bs *BlobSidecars) DefineSSZ(codec *schema.Codec) {
 	ssz.DefineSliceOfStaticObjectsOffset(codec, &bs.Sidecars, 6)
 	ssz.DefineSliceOfStaticObjectsContent(codec, &bs.Sidecars, 6)
 }

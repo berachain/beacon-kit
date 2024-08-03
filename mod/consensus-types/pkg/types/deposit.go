@@ -24,6 +24,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
@@ -34,7 +35,7 @@ const DepositSize = 192 // 48 + 32 + 8 + 96 + 8
 
 // Compile-time assertions to ensure Deposit implements necessary interfaces.
 var (
-	_ ssz.StaticObject                    = (*Deposit)(nil)
+	_ ssz.StaticObject[*schema.Codec]     = (*Deposit)(nil)
 	_ constraints.SSZMarshallableRootable = (*Deposit)(nil)
 )
 
@@ -112,7 +113,7 @@ func (d *Deposit) VerifySignature(
 /* -------------------------------------------------------------------------- */
 
 // DefineSSZ defines the SSZ encoding for the Deposit object.
-func (d *Deposit) DefineSSZ(c *ssz.Codec) {
+func (d *Deposit) DefineSSZ(c *schema.Codec) {
 	ssz.DefineStaticBytes(c, &d.Pubkey)
 	ssz.DefineStaticBytes(c, &d.Credentials)
 	ssz.DefineUint64(c, &d.Amount)

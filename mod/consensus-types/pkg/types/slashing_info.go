@@ -28,6 +28,7 @@ package types
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
@@ -39,7 +40,7 @@ const SlashingInfoSize = 16 // 8 bytes for Slot + 8 bytes for Index
 // Compile-time assertions to ensure SlashingInfo implements the correct
 // interfaces.
 var (
-	_ ssz.StaticObject                    = (*SlashingInfo)(nil)
+	_ ssz.StaticObject[*schema.Codec]     = (*SlashingInfo)(nil)
 	_ constraints.SSZMarshallableRootable = (*SlashingInfo)(nil)
 )
 
@@ -77,9 +78,9 @@ func (*SlashingInfo) SizeSSZ() uint32 {
 }
 
 // DefineSSZ defines the SSZ encoding for the SlashingInfo object.
-func (s *SlashingInfo) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineUint64(codec, &s.Slot)
-	ssz.DefineUint64(codec, &s.Index)
+func (s *SlashingInfo) DefineSSZ(codec *schema.Codec) {
+	schema.DefineUint64(codec, "slot", &s.Slot)
+	schema.DefineUint64(codec, "index", &s.Index)
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the SlashingInfo object.

@@ -23,6 +23,7 @@ package types
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
@@ -31,16 +32,17 @@ import (
 // BeaconState represents the entire state of the beacon chain.
 type BeaconState[
 	BeaconBlockHeaderT constraints.
-		StaticSSZField[BeaconBlockHeaderT, B],
+		StaticSSZField[BeaconBlockHeaderT, B, C],
 	Eth1DataT constraints.
-		StaticSSZField[Eth1DataT, E],
+		StaticSSZField[Eth1DataT, E, C],
 	ExecutionPayloadHeaderT constraints.
-		DynamicSSZField[ExecutionPayloadHeaderT, P],
+		DynamicSSZField[ExecutionPayloadHeaderT, P, C],
 	ForkT constraints.
-		StaticSSZField[ForkT, F],
+		StaticSSZField[ForkT, F, C],
 	ValidatorT constraints.
-		StaticSSZField[ValidatorT, V],
+		StaticSSZField[ValidatorT, V, C],
 	B, E, P, F, V any,
+	C schema.CodecI[C],
 ] struct {
 	// Versioning
 	GenesisValidatorsRoot common.Root
@@ -80,7 +82,7 @@ func (st *BeaconState[
 	ExecutionPayloadHeaderT,
 	ForkT,
 	ValidatorT,
-	B, E, P, F, V,
+	B, E, P, F, V, C,
 ]) New(
 	_ uint32,
 	genesisValidatorsRoot common.Root,
@@ -105,7 +107,7 @@ func (st *BeaconState[
 	ExecutionPayloadHeaderT,
 	ForkT,
 	ValidatorT,
-	B, E, P, F, V,
+	B, E, P, F, V, C,
 ], error) {
 	return &BeaconState[
 		BeaconBlockHeaderT,
@@ -113,7 +115,7 @@ func (st *BeaconState[
 		ExecutionPayloadHeaderT,
 		ForkT,
 		ValidatorT,
-		B, E, P, F, V,
+		B, E, P, F, V, C,
 	]{
 		Slot:                         slot,
 		GenesisValidatorsRoot:        genesisValidatorsRoot,
@@ -140,7 +142,7 @@ func (st *BeaconState[
 
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconState object.
 func (st *BeaconState[
-	_, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _,
 ]) SizeSSZ(fixed bool) uint32 {
 	var size uint32 = 300
 
@@ -164,37 +166,83 @@ func (st *BeaconState[
 //
 //nolint:mnd // todo fix.
 func (st *BeaconState[
-	_, _, _, _, _, _, _, _, _, _,
-]) DefineSSZ(codec *ssz.Codec) {
+	_, _, _, _, _, _, _, _, _, _, C,
+]) DefineSSZ(codec C) {
 	// Versioning
-	ssz.DefineStaticBytes(codec, &st.GenesisValidatorsRoot)
-	ssz.DefineUint64(codec, &st.Slot)
-	ssz.DefineStaticObject(codec, &st.Fork)
+	schema.DefineStaticBytes(
+		codec,
+		"genesis_validators_root",
+		&st.GenesisValidatorsRoot,
+	)
+	schema.DefineUint64(codec, "slot", &st.Slot)
+	schema.DefineStaticObject(codec, "fork", &st.Fork)
 
 	// History
-	ssz.DefineStaticObject(codec, &st.LatestBlockHeader)
-	ssz.DefineSliceOfStaticBytesOffset(codec, &st.BlockRoots, 8192)
-	ssz.DefineSliceOfStaticBytesOffset(codec, &st.StateRoots, 8192)
+	schema.DefineStaticObject(
+		codec,
+		"latest_block_header",
+		&st.LatestBlockHeader,
+	)
+	schema.DefineSliceOfStaticBytesOffset(
+		codec,
+		"block_roots",
+		&st.BlockRoots,
+		8192,
+	)
+	schema.DefineSliceOfStaticBytesOffset(
+		codec,
+		"state_roots",
+		&st.StateRoots,
+		8192,
+	)
 
 	// Eth1
-	ssz.DefineStaticObject(codec, &st.Eth1Data)
-	ssz.DefineUint64(codec, &st.Eth1DepositIndex)
-	ssz.DefineDynamicObjectOffset(codec, &st.LatestExecutionPayloadHeader)
+	schema.DefineStaticObject(codec, "eth1_data", &st.Eth1Data)
+	schema.DefineUint64(codec, "eth1_deposit_index", &st.Eth1DepositIndex)
+	schema.DefineDynamicObjectOffset(
+		codec,
+		"latest_execution_payload_header",
+		&st.LatestExecutionPayloadHeader,
+	)
 
 	// Registry
-	ssz.DefineSliceOfStaticObjectsOffset(codec, &st.Validators, 1099511627776)
-	ssz.DefineSliceOfUint64sOffset(codec, &st.Balances, 1099511627776)
+	schema.DefineSliceOfStaticObjectsOffset(
+		codec,
+		"validators",
+		&st.Validators,
+		1099511627776,
+	)
+	schema.DefineSliceOfUint64sOffset(
+		codec,
+		"balances",
+		&st.Balances,
+		1099511627776,
+	)
 
 	// Randomness
-	ssz.DefineSliceOfStaticBytesOffset(codec, &st.RandaoMixes, 65536)
+	schema.DefineSliceOfStaticBytesOffset(
+		codec,
+		"randao_mixes",
+		&st.RandaoMixes,
+		65536,
+	)
 
 	// Withdrawals
-	ssz.DefineUint64(codec, &st.NextWithdrawalIndex)
-	ssz.DefineUint64(codec, &st.NextWithdrawalValidatorIndex)
+	schema.DefineUint64(codec, "next_withdrawal_index", &st.NextWithdrawalIndex)
+	schema.DefineUint64(
+		codec,
+		"next_withdrawal_validator_index",
+		&st.NextWithdrawalValidatorIndex,
+	)
 
 	// // Slashing
-	ssz.DefineSliceOfUint64sOffset(codec, &st.Slashings, 1099511627776)
-	ssz.DefineUint64(codec, (*uint64)(&st.TotalSlashing))
+	schema.DefineSliceOfUint64sOffset(
+		codec,
+		"slashings",
+		&st.Slashings,
+		1099511627776,
+	)
+	schema.DefineUint64(codec, "total_slashing", (*uint64)(&st.TotalSlashing))
 
 	// Dynamic content
 	ssz.DefineSliceOfStaticBytesContent(codec, &st.BlockRoots, 8192)
@@ -208,7 +256,7 @@ func (st *BeaconState[
 
 // MarshalSSZ marshals the BeaconState into SSZ format.
 func (st *BeaconState[
-	_, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _,
 ]) MarshalSSZ() ([]byte, error) {
 	buf := make([]byte, st.SizeSSZ(false))
 	return buf, ssz.EncodeToBytes(buf, st)
@@ -216,14 +264,14 @@ func (st *BeaconState[
 
 // UnmarshalSSZ unmarshals the BeaconState from SSZ format.
 func (st *BeaconState[
-	_, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _,
 ]) UnmarshalSSZ(buf []byte) error {
 	return ssz.DecodeFromBytes(buf, st)
 }
 
 // HashTreeRoot computes the Merkleization of the BeaconState.
 func (st *BeaconState[
-	_, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _,
 ]) HashTreeRoot() common.Root {
 	return ssz.HashConcurrent(st)
 }
@@ -233,7 +281,7 @@ func (st *BeaconState[
 /* -------------------------------------------------------------------------- */
 
 func (st *BeaconState[
-	_, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _,
 ]) MarshalSSZTo(
 	dst []byte,
 ) ([]byte, error) {
@@ -249,7 +297,7 @@ func (st *BeaconState[
 //
 //nolint:mnd,funlen,gocognit // todo fix.
 func (st *BeaconState[
-	_, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _,
 ]) HashTreeRootWith(
 	hh fastssz.HashWalker,
 ) error {
@@ -397,7 +445,7 @@ func (st *BeaconState[
 
 // GetTree ssz hashes the BeaconState object.
 func (st *BeaconState[
-	_, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _,
 ]) GetTree() (*fastssz.Node, error) {
 	return fastssz.ProofTree(st)
 }

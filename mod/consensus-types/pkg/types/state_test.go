@@ -32,6 +32,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	karalabessz "github.com/karalabe/ssz"
 	"github.com/stretchr/testify/require"
@@ -49,6 +50,7 @@ func generateValidBeaconState() *types.BeaconState[
 	types.ExecutionPayloadHeader,
 	types.Fork,
 	types.Validator,
+	*schema.Codec,
 ] {
 	return &types.BeaconState[
 		*types.BeaconBlockHeader,
@@ -60,7 +62,9 @@ func generateValidBeaconState() *types.BeaconState[
 		types.Eth1Data,
 		types.ExecutionPayloadHeader,
 		types.Fork,
-		types.Validator]{
+		types.Validator,
+		*schema.Codec,
+	]{
 		GenesisValidatorsRoot: common.Root{0x01, 0x02, 0x03},
 		Slot:                  1234,
 		BlockRoots: []common.Root{
@@ -167,6 +171,7 @@ func TestBeaconStateMarshalUnmarshalSSZ(t *testing.T) {
 		types.ExecutionPayloadHeader,
 		types.Fork,
 		types.Validator,
+		*schema.Codec,
 	]{}
 	err := newState.UnmarshalSSZ(data)
 	require.NoError(t, err)
@@ -203,6 +208,7 @@ func TestBeaconState_UnmarshalSSZ_Error(t *testing.T) {
 		types.ExecutionPayloadHeader,
 		types.Fork,
 		types.Validator,
+		*schema.Codec,
 	]{}
 	err := state.UnmarshalSSZ([]byte{0x01, 0x02, 0x03}) // Invalid data
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)

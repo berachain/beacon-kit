@@ -30,6 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	fastssz "github.com/ferranbt/fastssz"
@@ -120,7 +121,7 @@ func (b *BeaconBlockBody) SizeSSZ(fixed bool) uint32 {
 // DefineSSZ defines the SSZ serialization of the BeaconBlockBody.
 //
 //nolint:mnd // TODO: chainspec.
-func (b *BeaconBlockBody) DefineSSZ(codec *ssz.Codec) {
+func (b *BeaconBlockBody) DefineSSZ(codec *schema.Codec) {
 	// Define the static data (fields and dynamic offsets)
 	ssz.DefineStaticBytes(codec, &b.RandaoReveal)
 	ssz.DefineStaticObject(codec, &b.Eth1Data)

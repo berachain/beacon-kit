@@ -24,6 +24,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 	"github.com/karalabe/ssz"
@@ -89,9 +90,13 @@ func (b *BlobSidecar) HasValidInclusionProof(
 }
 
 // DefineSSZ defines the SSZ encoding for the BlobSidecar object.
-func (b *BlobSidecar) DefineSSZ(codec *ssz.Codec) {
+func (b *BlobSidecar) DefineSSZ(codec *schema.Codec) {
 	ssz.DefineUint64(codec, &b.Index)
-	ssz.DefineStaticBytes(codec, &b.Blob)
+	// BROKEN DNM:
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// ssz lib commonByteLegnths needs ~[131072]byte
+	// ssz.DefineStaticBytes(codec, &b.Blob)
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	ssz.DefineStaticBytes(codec, &b.KzgCommitment)
 	ssz.DefineStaticBytes(codec, &b.KzgProof)
 	ssz.DefineStaticObject(codec, &b.BeaconBlockHeader)

@@ -23,6 +23,7 @@ package types
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	fastssz "github.com/ferranbt/fastssz"
@@ -111,7 +112,7 @@ func (b *BeaconBlock) SizeSSZ(fixed bool) uint32 {
 }
 
 // DefineSSZ defines the SSZ encoding for the BeaconBlock object.
-func (b *BeaconBlock) DefineSSZ(codec *ssz.Codec) {
+func (b *BeaconBlock) DefineSSZ(codec *schema.Codec) {
 	// Define the static data (fields and dynamic offsets)
 	ssz.DefineUint64(codec, &b.Slot)
 	ssz.DefineUint64(codec, &b.ProposerIndex)

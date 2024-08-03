@@ -35,7 +35,7 @@ import (
 const Eth1DataSize = 72
 
 var (
-	_ ssz.StaticObject                    = (*Eth1Data)(nil)
+	_ ssz.StaticObject[*schema.Codec]     = (*Eth1Data)(nil)
 	_ constraints.SSZMarshallableRootable = (*Eth1Data)(nil)
 )
 
@@ -81,16 +81,10 @@ func (*Eth1Data) SizeSSZ() uint32 {
 }
 
 // DefineSSZ defines the SSZ encoding for the Eth1Data object.
-func (e *Eth1Data) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineStaticBytes(codec, &e.DepositRoot)
-	ssz.DefineUint64(codec, &e.DepositCount)
-	ssz.DefineStaticBytes(codec, &e.BlockHash)
-}
-
-func (e *Eth1Data) DefineSchema(builder *schema.Builder) {
-	schema.DefineStaticBytes(builder, "deposit_root", &e.DepositRoot)
-	schema.DefineUint64(builder, "deposit_count", &e.DepositCount)
-	schema.DefineStaticBytes(builder, "block_hash", &e.BlockHash)
+func (e *Eth1Data) DefineSSZ(codec *schema.Codec) {
+	schema.DefineStaticBytes(codec, "deposit_root", &e.DepositRoot)
+	schema.DefineUint64(codec, "deposit_count", &e.DepositCount)
+	schema.DefineStaticBytes(codec, "block_hash", &e.BlockHash)
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the Eth1Data object.

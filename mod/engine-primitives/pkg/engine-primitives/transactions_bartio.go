@@ -54,10 +54,11 @@ func (tx BartioTx) SizeSSZ() uint32 {
 
 // DefineSSZ implements the SSZ encoding for BartioTx.
 func (tx BartioTx) DefineSSZ(codec *ssz.Codec) {
-	codec.DefineHasher(func(*ssz.Hasher) {
-		ssz.DefineStaticBytes(
+	codec.DefineHasher(func(*ssz.Hasher[*ssz.Codec]) {
+		ssz.DefineDynamicBytesOffset(
 			codec,
 			(*[]byte)(&tx),
+			constants.MaxBytesPerTx,
 		)
 	})
 }
@@ -77,21 +78,21 @@ func (roots Roots) SizeSSZ() uint32 {
 
 // DefineSSZ defines the SSZ encoding for the Roots object.
 func (roots Roots) DefineSSZ(codec *ssz.Codec) {
-	codec.DefineEncoder(func(*ssz.Encoder) {
+	codec.DefineEncoder(func(*ssz.Encoder[*ssz.Codec]) {
 		ssz.DefineSliceOfStaticBytesContent(
 			codec,
 			(*[]common.Root)(&roots),
 			constants.MaxTxsPerPayload,
 		)
 	})
-	codec.DefineDecoder(func(*ssz.Decoder) {
+	codec.DefineDecoder(func(*ssz.Decoder[*ssz.Codec]) {
 		ssz.DefineSliceOfStaticBytesContent(
 			codec,
 			(*[]common.Root)(&roots),
 			constants.MaxTxsPerPayload,
 		)
 	})
-	codec.DefineHasher(func(*ssz.Hasher) {
+	codec.DefineHasher(func(*ssz.Hasher[*ssz.Codec]) {
 		ssz.DefineSliceOfStaticBytesOffset(
 			codec, (*[]common.Root)(&roots), constants.MaxTxsPerPayload,
 		)

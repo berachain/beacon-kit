@@ -9,20 +9,18 @@ import (
 )
 
 type commonBytesLengths interface {
-	// fork | address | verkle-stem | hash | pubkey | committee | signature | bloom | blob & tx (nice fuckup dev kek)
-	~[4]byte | ~[20]byte | ~[31]byte | ~[32]byte | ~[48]byte | ~[64]byte | ~[96]byte | ~[256]byte | ~[131072]byte | ~[]byte
+	// fork | address | verkle-stem | hash | pubkey | committee | signature | bloom
+	~[4]byte | ~[20]byte | ~[31]byte | ~[32]byte | ~[48]byte | ~[64]byte | ~[96]byte | ~[256]byte
 }
 
-type newableStaticObject[U any] interface {
-	ssz.StaticObject
+type newableStaticObject[C ssz.CodecI[C], U any] interface {
+	ssz.StaticObject[C]
 	*U
-	DefineSchema(*Builder)
 }
 
-type newableDynamicObject[U any] interface {
-	ssz.DynamicObject
+type newableDynamicObject[C ssz.CodecI[C], U any] interface {
+	ssz.DynamicObject[C]
 	*U
-	DefineSchema(*Builder)
 }
 
 type commonBitsLengths interface {
@@ -41,7 +39,6 @@ type commonBytesArrayLengths[U commonBytesLengths] interface {
 }
 
 type Builder struct {
-	sc    *ssz.Codec
 	stack []container
 }
 
@@ -56,99 +53,112 @@ func (c *Builder) empty() bool {
 	return len(c.stack) == 0
 }
 
-func DefineBool[T ~bool](c *Builder, name string, v *T) {
-	if !c.empty() {
-		c.peek().DefineField(name, Bool())
+func DefineBool[T ~bool](codec *Codec, name string, v *T) {
+	if codec.schema != nil {
+		codec.schema.peek().DefineField(name, Bool())
 		return
 	}
-	ssz.DefineBool(c.sc, v)
+	ssz.DefineBool(codec, v)
 }
 
-func DefineUint8[T ~uint8](c *Builder, n *T) {
+func DefineUint8[T ~uint8, C ssz.CodecI[C]](codec *Builder, n *T) {
 }
 
-func DefineUint16[T ~uint16](c *Builder, n *T) {
+func DefineUint16[T ~uint16, C ssz.CodecI[C]](codec *Builder, n *T) {
 }
 
-func DefineUint32[T ~uint32](c *Builder, n *T) {
+func DefineUint32[T ~uint32, C ssz.CodecI[C]](codec *Builder, n *T) {
 }
 
-func DefineUint64[T ~uint64](c *Builder, name string, n *T) {
-	if !c.empty() {
-		c.peek().DefineField(name, U64())
+func DefineUint64[T ~uint64, C CodecI[C]](codec C, name string, n *T) {
+	if codec.Builder() != nil {
+		codec.Builder().peek().DefineField(name, U64())
 		return
 	}
-	ssz.DefineUint64(c.sc, n)
+	ssz.DefineUint64(codec, n)
 }
 
-func DefineUint256(b *Builder, name string, n **uint256.Int) {
-	if !b.empty() {
-		b.peek().DefineField(name, U256())
+func DefineUint256(codec *Codec, name string, n **uint256.Int) {
+	if codec.schema != nil {
+		codec.schema.peek().DefineField(name, U256())
 		return
 	}
-	ssz.DefineUint256(b.sc, n)
+	ssz.DefineUint256(codec, n)
 }
 
 func DefineUint256BigInt(c *Builder, n **big.Int) {
 }
 
-func DefineStaticBytes[T commonBytesLengths](c *Builder, name string, blob *T) {
+func DefineStaticBytes[T commonBytesLengths, C CodecI[C]](
+	codec C,
+	name string,
+	blob *T,
+) {
+	if codec.Builder() != nil {
+		codec.Builder().
+			peek().
+			DefineField(name, DefineByteVector(uint64(len(*blob))))
+		return
+	}
+	ssz.DefineStaticBytes(codec, blob)
 }
 
 func DefineCheckedStaticBytes(c *Builder, blob *[]byte, size uint64) {
 }
 
 func DefineDynamicBytesOffset(
-	c *Builder,
+	c *Codec,
 	name string,
 	blob *[]byte,
 	maxSize uint64,
 ) {
-	if !c.empty() {
-		c.peek().DefineField(name, DefineByteList(maxSize))
+	if c.schema != nil {
+		c.schema.peek().DefineField(name, DefineByteList(maxSize))
 		return
 	}
-	ssz.DefineDynamicBytesOffset(c.sc, blob, maxSize)
+	ssz.DefineDynamicBytesOffset(c, blob, maxSize)
 }
 
 func DefineDynamicBytesContent(c *Builder, blob *[]byte, maxSize uint64) {
 }
 
-func DefineStaticObject[T newableStaticObject[U], U any](
-	b *Builder,
+func DefineStaticObject[T newableStaticObject[C, U], U any, C CodecI[C]](
+	codec C,
 	name string,
 	obj *T,
 ) {
-	if !b.empty() {
+	if codec.Builder() != nil {
+		b := codec.Builder()
 		nc := container{}
 		b.peek().DefineField(name, nc)
 		b.stack = append(b.stack, nc)
 		o := *obj
-		o.DefineSchema(b)
+		o.DefineSSZ(codec)
 		b.stack = b.stack[:len(b.stack)-1]
 		return
 	}
-	ssz.DefineStaticObject(b.sc, obj)
+	ssz.DefineStaticObject(codec, obj)
 }
 
-func DefineDynamicObjectOffset[T newableDynamicObject[U], U any](
-	b *Builder,
+func DefineDynamicObjectOffset[T newableDynamicObject[C, U], U any, C CodecI[C]](
+	codec C,
 	name string,
 	obj *T,
 ) {
-	if !b.empty() {
+	if codec.Builder() != nil {
+		b := codec.Builder()
 		nc := container{}
 		b.peek().DefineField(name, nc)
 		b.stack = append(b.stack, nc)
 		o := *obj
-		o.DefineSchema(b)
+		o.DefineSSZ(codec)
 		b.stack = b.stack[:len(b.stack)-1]
 		return
 	}
-	ssz.DefineDynamicObjectOffset(b.sc, obj)
+	ssz.DefineDynamicObjectOffset(codec, obj)
 }
 
-func DefineDynamicObjectContent[T newableDynamicObject[U], U any](
+func DefineDynamicObjectContent[T newableDynamicObject[C, U], U any, C CodecI[C]](
 	c *Builder,
 	obj *T,
 ) {
@@ -174,17 +184,17 @@ func DefineSliceOfBitsContent(
 func DefineArrayOfUint64s[T commonUint64sLengths](c *Builder, ns *T) {
 }
 
-func DefineSliceOfUint64sOffset[T ~uint64](
-	b *Builder,
+func DefineSliceOfUint64sOffset[T ~uint64, C CodecI[C]](
+	c C,
 	name string,
 	ns *[]T,
 	maxItems uint64,
 ) {
-	if !b.empty() {
-		b.peek().DefineField(name, DefineList(U64(), maxItems))
+	if c.Builder() != nil {
+		c.Builder().peek().DefineField(name, DefineList(U64(), maxItems))
 		return
 	}
-	ssz.DefineSliceOfUint64sOffset(b.sc, ns, maxItems)
+	ssz.DefineSliceOfUint64sOffset(c, ns, maxItems)
 }
 
 func DefineSliceOfUint64sContent[T ~uint64](
@@ -213,19 +223,19 @@ func DefineCheckedArrayOfStaticBytes[T commonBytesLengths](
 ) {
 }
 
-func DefineSliceOfStaticBytesOffset[T commonBytesLengths](
-	b *Builder,
+func DefineSliceOfStaticBytesOffset[T commonBytesLengths, C CodecI[C]](
+	c C,
 	name string,
 	bytes *[]T,
 	maxItems uint64,
 ) {
-	if !b.empty() {
+	if c.Builder() != nil {
 		var t T
 		bytesVector := DefineByteVector(uint64(len(t)))
-		b.peek().DefineField(name, DefineList(bytesVector, maxItems))
+		c.Builder().peek().DefineField(name, DefineList(bytesVector, maxItems))
 		return
 	}
-	ssz.DefineSliceOfStaticBytesOffset(b.sc, bytes, maxItems)
+	ssz.DefineSliceOfStaticBytesOffset(c, bytes, maxItems)
 }
 
 func DefineSliceOfStaticBytesContent[T commonBytesLengths](
@@ -235,8 +245,9 @@ func DefineSliceOfStaticBytesContent[T commonBytesLengths](
 ) {
 }
 
-func DefineSliceOfDynamicBytesOffset(
-	c *Builder,
+func DefineSliceOfDynamicBytesOffset[C CodecI[C]](
+	codec C,
+	name string,
 	blobs *[][]byte,
 	maxItems uint64,
 	maxSize uint64,
@@ -251,39 +262,48 @@ func DefineSliceOfDynamicBytesContent(
 ) {
 }
 
-func DefineSliceOfStaticObjectsOffset[T newableStaticObject[U], U any](
-	b *Builder,
+func DefineSliceOfStaticObjectsOffset[
+	T newableStaticObject[C, U],
+	U any,
+	C CodecI[C],
+](
+	codec C,
 	name string,
 	objects *[]T,
 	maxItems uint64,
 ) {
-	if !b.empty() {
+	if codec.Builder() != nil {
 		var t T
 		c := container{}
+		b := codec.Builder()
 		b.stack = append(b.stack, c)
-		t.DefineSchema(b)
+		t.DefineSSZ(codec)
 		b.stack = b.stack[:len(b.stack)-1]
 		b.peek().DefineField(name, DefineList(c, maxItems))
 		return
 	}
-	ssz.DefineSliceOfStaticObjectsOffset(b.sc, objects, maxItems)
+	ssz.DefineSliceOfStaticObjectsOffset(codec, objects, maxItems)
 }
 
-func DefineSliceOfStaticObjectsContent[T newableStaticObject[U], U any](
+func DefineSliceOfStaticObjectsContent[
+	T newableStaticObject[C, U],
+	U any,
+	C CodecI[C],
+](
 	c *Builder,
 	objects *[]T,
 	maxItems uint64,
 ) {
 }
 
-func DefineSliceOfDynamicObjectsOffset[T newableDynamicObject[U], U any](
+func DefineSliceOfDynamicObjectsOffset[T newableDynamicObject[C, U], U any, C CodecI[C]](
 	c *Builder,
 	objects *[]T,
 	maxItems uint64,
 ) {
 }
 
-func DefineSliceOfDynamicObjectsContent[T newableDynamicObject[U], U any](
+func DefineSliceOfDynamicObjectsContent[T newableDynamicObject[C, U], U any, C CodecI[C]](
 	c *Builder,
 	objects *[]T,
 	maxItems uint64,

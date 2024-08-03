@@ -23,6 +23,7 @@ package types
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/karalabe/ssz"
 )
 
@@ -39,16 +40,16 @@ func (ds Deposits) SizeSSZ(bool) uint32 {
 }
 
 // DefineSSZ defines the SSZ encoding for the Deposits object.
-func (ds Deposits) DefineSSZ(c *ssz.Codec) {
-	c.DefineDecoder(func(*ssz.Decoder) {
+func (ds Deposits) DefineSSZ(c *schema.Codec) {
+	c.DefineDecoder(func(*ssz.Decoder[*schema.Codec]) {
 		ssz.DefineSliceOfStaticObjectsContent(
 			c, (*[]*Deposit)(&ds), constants.MaxDepositsPerBlock)
 	})
-	c.DefineEncoder(func(*ssz.Encoder) {
+	c.DefineEncoder(func(*ssz.Encoder[*schema.Codec]) {
 		ssz.DefineSliceOfStaticObjectsContent(
 			c, (*[]*Deposit)(&ds), constants.MaxDepositsPerBlock)
 	})
-	c.DefineHasher(func(*ssz.Hasher) {
+	c.DefineHasher(func(*ssz.Hasher[*schema.Codec]) {
 		ssz.DefineSliceOfStaticObjectsOffset(
 			c, (*[]*Deposit)(&ds), constants.MaxDepositsPerBlock)
 	})

@@ -44,7 +44,7 @@ func (txs Transactions) SizeSSZ(bool) uint32 {
 // ExecutionPayload and we should be cognizant of that and/or
 // make a PR to allow for them to be defined in one place.
 func (txs Transactions) DefineSSZ(codec *ssz.Codec) {
-	codec.DefineEncoder(func(*ssz.Encoder) {
+	codec.DefineEncoder(func(*ssz.Encoder[*ssz.Codec]) {
 		ssz.DefineSliceOfDynamicBytesContent(
 			codec,
 			(*[][]byte)(&txs),
@@ -52,7 +52,7 @@ func (txs Transactions) DefineSSZ(codec *ssz.Codec) {
 			constants.MaxBytesPerTx,
 		)
 	})
-	codec.DefineDecoder(func(*ssz.Decoder) {
+	codec.DefineDecoder(func(*ssz.Decoder[*ssz.Codec]) {
 		ssz.DefineSliceOfDynamicBytesContent(
 			codec,
 			(*[][]byte)(&txs),
@@ -60,7 +60,7 @@ func (txs Transactions) DefineSSZ(codec *ssz.Codec) {
 			constants.MaxBytesPerTx,
 		)
 	})
-	codec.DefineHasher(func(*ssz.Hasher) {
+	codec.DefineHasher(func(*ssz.Hasher[*ssz.Codec]) {
 		ssz.DefineSliceOfDynamicBytesOffset(
 			codec,
 			(*[][]byte)(&txs),

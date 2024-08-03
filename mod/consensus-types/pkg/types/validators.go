@@ -22,6 +22,7 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/karalabe/ssz"
 )
 
@@ -35,18 +36,22 @@ func (vs Validators) SizeSSZ(bool) uint32 {
 }
 
 // DefineSSZ defines the SSZ encoding for the Validators object.
-func (vs Validators) DefineSSZ(c *ssz.Codec) {
-	c.DefineDecoder(func(*ssz.Decoder) {
+func (vs Validators) DefineSSZ(c *schema.Codec) {
+	c.DefineDecoder(func(*ssz.Decoder[*schema.Codec]) {
 		ssz.DefineSliceOfStaticObjectsContent(
 			c, (*[]*Validator)(&vs), MaxValidators)
 	})
-	c.DefineEncoder(func(*ssz.Encoder) {
+	c.DefineEncoder(func(*ssz.Encoder[*schema.Codec]) {
 		ssz.DefineSliceOfStaticObjectsContent(
 			c, (*[]*Validator)(&vs), MaxValidators)
 	})
-	c.DefineHasher(func(*ssz.Hasher) {
+	c.DefineHasher(func(*ssz.Hasher[*schema.Codec]) {
 		ssz.DefineSliceOfStaticObjectsOffset(
 			c, (*[]*Validator)(&vs), MaxValidators)
+	})
+	c.DefineSchema(func(*schema.Builder) {
+		schema.DefineSliceOfStaticObjectsOffset(
+			c, "validators", (*[]*Validator)(&vs), MaxValidators)
 	})
 }
 

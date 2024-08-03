@@ -24,6 +24,7 @@ import (
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
@@ -33,7 +34,7 @@ import (
 const WithdrawalSize = 44
 
 var (
-	_ ssz.StaticObject                    = (*Withdrawal)(nil)
+	_ ssz.StaticObject[*schema.Codec]     = (*Withdrawal)(nil)
 	_ constraints.SSZMarshallableRootable = (*Withdrawal)(nil)
 )
 
@@ -78,7 +79,7 @@ func (*Withdrawal) SizeSSZ() uint32 {
 }
 
 // MarshalSSZ marshals the Withdrawal into SSZ format.
-func (w *Withdrawal) DefineSSZ(c *ssz.Codec) {
+func (w *Withdrawal) DefineSSZ(c *schema.Codec) {
 	ssz.DefineUint64(c, &w.Index)        // Field  (0) -     Index -  8 bytes
 	ssz.DefineUint64(c, &w.Validator)    // Field  (1) - Validator -  8 bytes
 	ssz.DefineStaticBytes(c, &w.Address) // Field  (2) -   Address - 20 bytes

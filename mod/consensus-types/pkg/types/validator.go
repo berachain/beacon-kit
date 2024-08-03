@@ -36,7 +36,7 @@ const ValidatorSize = 121
 
 // Compile-time checks for the Validator struct.
 var (
-	_ ssz.StaticObject                    = (*Validator)(nil)
+	_ ssz.StaticObject[*schema.Codec]     = (*Validator)(nil)
 	_ constraints.SSZMarshallableRootable = (*Validator)(nil)
 )
 
@@ -130,34 +130,23 @@ func (*Validator) SizeSSZ() uint32 {
 }
 
 // DefineSSZ defines the SSZ encoding for the Validator object.
-func (v *Validator) DefineSSZ(codec *ssz.Codec) {
-	ssz.DefineStaticBytes(codec, &v.Pubkey)
-	ssz.DefineStaticBytes(codec, &v.WithdrawalCredentials)
-	ssz.DefineUint64(codec, &v.EffectiveBalance)
-	ssz.DefineBool(codec, &v.Slashed)
-	ssz.DefineUint64(codec, &v.ActivationEligibilityEpoch)
-	ssz.DefineUint64(codec, &v.ActivationEpoch)
-	ssz.DefineUint64(codec, &v.ExitEpoch)
-	ssz.DefineUint64(codec, &v.WithdrawableEpoch)
-}
-
-func (v *Validator) DefineSchema(builder *schema.Builder) {
-	schema.DefineStaticBytes(builder, "pubkey", &v.Pubkey)
+func (v *Validator) DefineSSZ(codec *schema.Codec) {
+	schema.DefineStaticBytes(codec, "pubkey", &v.Pubkey)
 	schema.DefineStaticBytes(
-		builder,
+		codec,
 		"withdrawal_credentials",
 		&v.WithdrawalCredentials,
 	)
-	schema.DefineUint64(builder, "effective_balance", &v.EffectiveBalance)
-	schema.DefineBool(builder, "slashed", &v.Slashed)
+	schema.DefineUint64(codec, "effective_balance", &v.EffectiveBalance)
+	schema.DefineBool(codec, "slashed", &v.Slashed)
 	schema.DefineUint64(
-		builder,
+		codec,
 		"activation_eligibility_epoch",
 		&v.ActivationEligibilityEpoch,
 	)
-	schema.DefineUint64(builder, "activation_epoch", &v.ActivationEpoch)
-	schema.DefineUint64(builder, "exit_epoch", &v.ExitEpoch)
-	schema.DefineUint64(builder, "withdrawal_epoch", &v.WithdrawableEpoch)
+	schema.DefineUint64(codec, "activation_epoch", &v.ActivationEpoch)
+	schema.DefineUint64(codec, "exit_epoch", &v.ExitEpoch)
+	schema.DefineUint64(codec, "withdrawal_epoch", &v.WithdrawableEpoch)
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the Validator object.
