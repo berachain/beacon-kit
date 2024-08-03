@@ -31,10 +31,9 @@ import (
 type AttributesFactoryInput struct {
 	depinject.In
 
-	ChainSpec      common.ChainSpec
-	Config         *config.Config
-	Logger         log.Logger[any]
-	StateProcessor *StateProcessor
+	ChainSpec common.ChainSpec
+	Config    *config.Config
+	Logger    log.Logger[any]
 }
 
 // ProvideAttributesFactory provides an AttributesFactory for the client.
@@ -46,7 +45,6 @@ func ProvideAttributesFactory(
 		*PayloadAttributes,
 		*Withdrawal,
 	](
-		in.StateProcessor,
 		in.ChainSpec,
 		in.Logger,
 		in.Config.PayloadBuilder.SuggestedFeeRecipient,
