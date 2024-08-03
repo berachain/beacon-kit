@@ -26,7 +26,7 @@ import (
 )
 
 func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) RandaoAtEpoch(
 	slot, epoch uint64,
 ) (common.Bytes32, error) {

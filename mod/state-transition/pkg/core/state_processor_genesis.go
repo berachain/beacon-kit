@@ -24,6 +24,7 @@ import (
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -34,7 +35,7 @@ import (
 //nolint:gocognit,funlen // todo fix.
 func (sp *StateProcessor[
 	_, BeaconBlockBodyT, BeaconBlockHeaderT, BeaconStateT, _, DepositT,
-	Eth1DataT, _, ExecutionPayloadHeaderT, ForkT, _, _, ValidatorT, _, _, _,
+	Eth1DataT, _, ExecutionPayloadHeaderT, ForkT, _, _, ValidatorT, _, _,
 ]) InitializePreminedBeaconStateFromEth1(
 	st BeaconStateT,
 	deposits []DepositT,
@@ -104,12 +105,24 @@ func (sp *StateProcessor[
 	}
 
 	// TODO: process activations.
-	validators, err := st.GetValidators()
+	var validators []ValidatorT
+	validators, err = st.GetValidators()
 	if err != nil {
 		return nil, err
 	}
 
-	if err = st.SetGenesisValidatorsRoot(validators.HashTreeRoot()); err != nil {
+	var validatorsRoot common.Root
+
+	validatorsRoot, err = merkle.
+		NewMerkleizer[[32]byte, ValidatorT]().MerkleizeListComposite(
+		validators,
+		uint64(len(validators)),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = st.SetGenesisValidatorsRoot(validatorsRoot); err != nil {
 		return nil, err
 	}
 

@@ -36,7 +36,6 @@ type KVStore[
 	ExecutionPayloadHeaderT,
 	ForkT,
 	ValidatorT any,
-	ValidatorsT ~[]ValidatorT,
 ] interface {
 	// Context returns the context of the key-value store.
 	Context() context.Context
@@ -90,7 +89,7 @@ type KVStore[
 	// SetEth1Data sets the eth1 data.
 	SetEth1Data(data Eth1DataT) error
 	// GetValidators retrieves all validators.
-	GetValidators() (ValidatorsT, error)
+	GetValidators() ([]ValidatorT, error)
 	// GetBalances retrieves all balances.
 	GetBalances() ([]uint64, error)
 	// GetNextWithdrawalIndex retrieves the next withdrawal index.

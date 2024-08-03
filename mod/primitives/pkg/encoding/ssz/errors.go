@@ -18,20 +18,9 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package backend
+package ssz
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+import "github.com/berachain/beacon-kit/mod/errors"
 
-// GetGenesis returns the genesis state of the beacon chain.
-func (b Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) GenesisValidatorsRoot(
-	slot uint64,
-) (common.Root, error) {
-	// needs genesis_time and gensis_fork_version
-	st, err := b.StateFromSlot(slot)
-	if err != nil {
-		return common.Root{}, err
-	}
-	return st.GetGenesisValidatorsRoot()
-}
+// ErrUnknownType is returned when an unknown type is encountered.
+var ErrUnknownType = errors.New("unknown type")
