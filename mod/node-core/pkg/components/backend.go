@@ -30,10 +30,10 @@ import (
 type StorageBackendInput struct {
 	depinject.In
 	AvailabilityStore *AvailabilityStore
+	BlockStore        *BlockStore
 	ChainSpec         common.ChainSpec
 	DepositStore      *DepositStore
 	KVStore           *KVStore
-	BlockStore        *BlockStore
 }
 
 // ProvideStorageBackend is the depinject provider that returns a beacon storage

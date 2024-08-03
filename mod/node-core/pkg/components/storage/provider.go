@@ -31,7 +31,6 @@ type KVStoreProvider struct {
 	store.KVStoreWithBatch
 }
 
-// NewKVStoreProvider creates a new KV store provider.
 func NewKVStoreProvider(kvsp store.KVStoreWithBatch) *KVStoreProvider {
 	return &KVStoreProvider{
 		KVStoreWithBatch: kvsp,

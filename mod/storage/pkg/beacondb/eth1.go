@@ -20,6 +20,8 @@
 
 package beacondb
 
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+
 // GetLatestExecutionPayloadHeader retrieves the latest execution payload
 // header from the BeaconStore.
 func (kv *KVStore[
@@ -28,12 +30,6 @@ func (kv *KVStore[
 ]) GetLatestExecutionPayloadHeader() (
 	ExecutionPayloadHeaderT, error,
 ) {
-	forkVersion, err := kv.latestExecutionPayloadVersion.Get(kv.ctx)
-	if err != nil {
-		var t ExecutionPayloadHeaderT
-		return t, err
-	}
-	kv.latestExecutionPayloadCodec.SetActiveForkVersion(forkVersion)
 	return kv.latestExecutionPayloadHeader.Get(kv.ctx)
 }
 
@@ -43,14 +39,11 @@ func (kv *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) SetLatestExecutionPayloadHeader(
-	payloadHeader ExecutionPayloadHeaderT,
+	slot math.Slot, payloadHeader ExecutionPayloadHeaderT,
 ) error {
-	if err := kv.latestExecutionPayloadVersion.Set(
-		kv.ctx, payloadHeader.Version(),
-	); err != nil {
-		return err
-	}
-	kv.latestExecutionPayloadCodec.SetActiveForkVersion(payloadHeader.Version())
+	kv.latestExecutionPayloadCodec.SetActiveForkVersion(
+		kv.cs.ActiveForkVersionForSlot(slot),
+	)
 	return kv.latestExecutionPayloadHeader.Set(kv.ctx, payloadHeader)
 }
 

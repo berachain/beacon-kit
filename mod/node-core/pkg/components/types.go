@@ -50,6 +50,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/server"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/services/version"
 	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
@@ -85,7 +86,6 @@ type (
 	// AttributesFactory is a type alias for the attributes factory.
 	AttributesFactory = attributes.Factory[
 		*BeaconState,
-		*StateProcessor,
 		*PayloadAttributes,
 		*Withdrawal,
 	]
@@ -321,6 +321,9 @@ type (
 
 	// PayloadID is a type alias for the payload ID.
 	PayloadID = engineprimitives.PayloadID
+
+	// ReportingService is a type alias for the reporting service.
+	ReportingService = version.ReportingService
 
 	// SidecarFactory is a type alias for the sidecar factory.
 	SidecarFactory = dablob.SidecarFactory[

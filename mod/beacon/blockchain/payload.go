@@ -123,11 +123,11 @@ func (s *Service[
 		// We are rebuilding for the current slot.
 		stateSlot,
 		// TODO: this is hood as fuck.
-		math.U64(max(
+		max(
 			//#nosec:G701
 			uint64(time.Now().Unix()+1),
 			uint64((lph.GetTimestamp()+1)),
-		)),
+		),
 		// We set the parent root to the previous block root.
 		latestHeader.HashTreeRoot(),
 		// We set the head of our chain to the previous finalized block.
@@ -192,11 +192,11 @@ func (s *Service[
 		ctx, st,
 		slot,
 		// TODO: this is hood as fuck.
-		math.U64(max(
+		max(
 			//#nosec:G701
 			uint64(time.Now().Unix()+int64(s.cs.TargetSecondsPerEth1Block())),
 			uint64((payload.GetTimestamp()+1)),
-		)),
+		),
 		// The previous block root is simply the root of the block we just
 		// processed.
 		blk.HashTreeRoot(),
