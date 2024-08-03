@@ -64,9 +64,9 @@ func ProvideBlockStore(
 type BlockPrunerInput struct {
 	depinject.In
 
-	Config      *config.Config
 	BlockBroker *BlockBroker
 	BlockStore  *BlockStore
+	Config      *config.Config
 	Logger      log.Logger
 }
 
