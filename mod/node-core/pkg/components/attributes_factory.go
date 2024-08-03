@@ -43,7 +43,6 @@ func ProvideAttributesFactory(
 ) (*AttributesFactory, error) {
 	return attributes.NewAttributesFactory[
 		*BeaconState,
-		*StateProcessor,
 		*PayloadAttributes,
 		*Withdrawal,
 	](

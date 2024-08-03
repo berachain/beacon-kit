@@ -46,6 +46,7 @@ func (sp *StateProcessor[
 		blkBody   BeaconBlockBodyT
 		fork      ForkT
 		eth1Data  Eth1DataT
+		slot      math.Slot
 	)
 	fork = fork.New(
 		genesisVersion,
@@ -53,7 +54,7 @@ func (sp *StateProcessor[
 		math.U64(constants.GenesisEpoch),
 	)
 
-	if err := st.SetSlot(0); err != nil {
+	if err := st.SetSlot(slot); err != nil {
 		return nil, err
 	}
 
@@ -67,7 +68,7 @@ func (sp *StateProcessor[
 
 	if err := st.SetEth1Data(eth1Data.New(
 		common.Bytes32(gethprimitives.ZeroHash),
-		0,
+		slot,
 		executionPayloadHeader.GetBlockHash(),
 	)); err != nil {
 		return nil, err
@@ -78,7 +79,7 @@ func (sp *StateProcessor[
 	bodyRoot := blkBody.Empty(
 		version.ToUint32(genesisVersion)).HashTreeRoot()
 	if err := st.SetLatestBlockHeader(blkHeader.New(
-		0, 0, common.Root{}, common.Root{}, bodyRoot,
+		slot, 0, common.Root{}, common.Root{}, bodyRoot,
 	)); err != nil {
 		return nil, err
 	}
@@ -109,7 +110,7 @@ func (sp *StateProcessor[
 	}
 
 	if err = st.SetLatestExecutionPayloadHeader(
-		executionPayloadHeader,
+		slot, executionPayloadHeader,
 	); err != nil {
 		return nil, err
 	}
