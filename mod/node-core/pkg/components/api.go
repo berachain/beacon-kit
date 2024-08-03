@@ -42,9 +42,9 @@ func ProvideNodeAPIEngine() *NodeAPIEngine {
 type NodeAPIBackendInput struct {
 	depinject.In
 
-	StorageBackend *StorageBackend
 	ChainSpec      common.ChainSpec
 	StateProcessor *StateProcessor
+	StorageBackend *StorageBackend
 }
 
 func ProvideNodeAPIBackend(in NodeAPIBackendInput) *NodeAPIBackend {
@@ -82,8 +82,8 @@ type NodeAPIServerInput struct {
 
 	Engine   *NodeAPIEngine
 	Config   *config.Config
-	Logger   log.AdvancedLogger[any, sdklog.Logger]
 	Handlers []handlers.Handlers[NodeAPIContext]
+	Logger   log.AdvancedLogger[any, sdklog.Logger]
 }
 
 func ProvideNodeAPIServer(in NodeAPIServerInput) *NodeAPIServer {
@@ -98,4 +98,12 @@ func ProvideNodeAPIServer(in NodeAPIServerInput) *NodeAPIServer {
 		in.Logger.With("service", "node-api-server"),
 		in.Handlers...,
 	)
+}
+
+func DefaultNodeAPIComponents() []any {
+	return []any{
+		ProvideNodeAPIServer,
+		ProvideNodeAPIEngine,
+		ProvideNodeAPIBackend,
+	}
 }
