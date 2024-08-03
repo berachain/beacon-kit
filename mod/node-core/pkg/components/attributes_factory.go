@@ -38,17 +38,15 @@ type AttributesFactoryInput struct {
 
 // ProvideAttributesFactory provides an AttributesFactory for the client.
 func ProvideAttributesFactory(
-	chainSpec common.ChainSpec,
-	logger log.Logger[any],
-	cfg *config.Config,
+	in AttributesFactoryInput,
 ) (*AttributesFactory, error) {
 	return attributes.NewAttributesFactory[
 		*BeaconState,
 		*PayloadAttributes,
 		*Withdrawal,
 	](
-		chainSpec,
-		logger,
-		cfg.PayloadBuilder.SuggestedFeeRecipient,
+		in.ChainSpec,
+		in.Logger,
+		in.Config.PayloadBuilder.SuggestedFeeRecipient,
 	), nil
 }
