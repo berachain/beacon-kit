@@ -43,18 +43,11 @@ interface IBeaconVerifier {
     /// @notice Verifies the proposer within the beacon block at the given
     /// timestamp. Reverts if proof invalid.
     /// @param timestamp `uint64` timestamp of the parent beacon block.
-<<<<<<< HEAD
-    /// @param validatorPubkeyProof `bytes32[]` proof of the validator pubkey.
-    /// @param validatorPubkey `ValidatorPubkey` to verify.
-    /// @param proposerIndex `uint64` validator index of the proposer of the
-    /// parent beacon block.
-=======
     /// @param proposerIndex `uint64` validator index of the proposer of the
     /// parent beacon block.
     /// @param proposerPubkey `bytes` proposer validator pubkey to verify.
     /// @param proposerPubkeyProof `bytes32[]` proof of the proposer validator
     /// pubkey.
->>>>>>> main
     function verifyBeaconBlockProposer(
         uint64 timestamp,
         uint64 proposerIndex,
@@ -67,14 +60,9 @@ interface IBeaconVerifier {
     /// @notice Verifies the execution number in the parent beacon block at the
     /// given timestamp. Reverts if proof invalid.
     /// @param timestamp `uint64` timestamp of the parent beacon block.
-<<<<<<< HEAD
-    /// @param executionNumberProof `bytes32[]` proof of the execution number.
-    /// @param blockNumber `uint64` execution number of the parent beacon block.
-=======
     /// @param executionNumber `uint64` execution number of the parent beacon
     /// block to verify.
     /// @param executionNumberProof `bytes32[]` proof of the execution number.
->>>>>>> main
     function verifyExecutionNumber(
         uint64 timestamp,
         uint64 executionNumber,
@@ -93,19 +81,6 @@ interface IBeaconVerifier {
         uint64 timestamp,
         address coinbase,
         bytes32[] calldata coinbaseProof
-    )
-        external
-        view;
-
-    /// @notice Verifies the coinbase (fee recipient) in the parent beacon
-    /// block at the given timestamp. Reverts if proof invalid.
-    /// @param timestamp `uint64` timestamp of the parent beacon block.
-    /// @param coinbaseProof `bytes32[]` proof of the coinbase.
-    /// @param coinbase `address` fee recipient of the parent beacon block.
-    function verifyCoinbase(
-        uint64 timestamp,
-        bytes32[] calldata coinbaseProof,
-        address coinbase
     )
         external
         view;

@@ -127,11 +127,7 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
         view
     {
         proveExecutionNumberInBeaconBlock(
-<<<<<<< HEAD
-            getParentBlockRoot(timestamp), executionNumberProof, blockNumber
-=======
             getParentBlockRoot(timestamp), executionNumberProof, executionNumber
->>>>>>> main
         );
     }
 
@@ -139,13 +135,8 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     /// @dev gas used ~41784
     function verifyCoinbase(
         uint64 timestamp,
-<<<<<<< HEAD
-        bytes32[] calldata coinbaseProof,
-        address coinbase
-=======
         address coinbase,
         bytes32[] calldata coinbaseProof
->>>>>>> main
     )
         external
         view
@@ -221,11 +212,7 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     /// payload header in the beacon state in the beacon block.
     /// @param beaconBlockRoot `bytes32` root of the beacon block.
     /// @param coinbaseProof `bytes32[]` proof of the coinbase.
-<<<<<<< HEAD
-    /// @param coinbase `address` to verify.
-=======
     /// @param coinbase `address` fee recipient of the beacon block.
->>>>>>> main
     function proveExecutionFeeRecipientInBeaconBlock(
         bytes32 beaconBlockRoot,
         bytes32[] calldata coinbaseProof,
