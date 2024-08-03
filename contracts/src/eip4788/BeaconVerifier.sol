@@ -101,17 +101,17 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     /// @dev gas used ~75381
     function verifyBeaconBlockProposer(
         uint64 timestamp,
-        bytes32[] calldata validatorPubkeyProof,
-        bytes calldata validatorPubkey,
-        uint64 proposerIndex
+        uint64 proposerIndex,
+        bytes calldata proposerPubkey,
+        bytes32[] calldata proposerPubkeyProof
     )
         external
         view
     {
         proveValidatorPubkeyInBeaconBlock(
             getParentBlockRoot(timestamp),
-            validatorPubkeyProof,
-            validatorPubkey,
+            proposerPubkeyProof,
+            proposerPubkey,
             proposerIndex
         );
     }
@@ -120,14 +120,18 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     /// @dev gas used ~41647
     function verifyExecutionNumber(
         uint64 timestamp,
-        bytes32[] calldata executionNumberProof,
-        uint64 blockNumber
+        uint64 executionNumber,
+        bytes32[] calldata executionNumberProof
     )
         external
         view
     {
         proveExecutionNumberInBeaconBlock(
+<<<<<<< HEAD
             getParentBlockRoot(timestamp), executionNumberProof, blockNumber
+=======
+            getParentBlockRoot(timestamp), executionNumberProof, executionNumber
+>>>>>>> main
         );
     }
 
@@ -135,8 +139,13 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     /// @dev gas used ~41784
     function verifyCoinbase(
         uint64 timestamp,
+<<<<<<< HEAD
         bytes32[] calldata coinbaseProof,
         address coinbase
+=======
+        address coinbase,
+        bytes32[] calldata coinbaseProof
+>>>>>>> main
     )
         external
         view
@@ -187,7 +196,7 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     /// in the beacon state in the beacon block.
     /// @param beaconBlockRoot `bytes32` root of the beacon block.
     /// @param executionNumberProof `bytes32[]` proof of the execution number.
-    /// @param blockNumber `uint64` execution number of the block.
+    /// @param blockNumber `uint64` execution number of the beacon block.
     function proveExecutionNumberInBeaconBlock(
         bytes32 beaconBlockRoot,
         bytes32[] calldata executionNumberProof,
@@ -212,7 +221,11 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     /// payload header in the beacon state in the beacon block.
     /// @param beaconBlockRoot `bytes32` root of the beacon block.
     /// @param coinbaseProof `bytes32[]` proof of the coinbase.
+<<<<<<< HEAD
     /// @param coinbase `address` to verify.
+=======
+    /// @param coinbase `address` fee recipient of the beacon block.
+>>>>>>> main
     function proveExecutionFeeRecipientInBeaconBlock(
         bytes32 beaconBlockRoot,
         bytes32[] calldata coinbaseProof,

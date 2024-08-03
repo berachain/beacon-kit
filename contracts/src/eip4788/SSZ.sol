@@ -32,6 +32,7 @@ library SSZ {
         }
     }
 
+<<<<<<< HEAD
     function uint64HashTreeRoot(uint64 v)
         internal
         pure
@@ -40,12 +41,15 @@ library SSZ {
         return toLittleEndian(uint256(v));
     }
 
+=======
+>>>>>>> main
     function addressHashTreeRoot(address v)
         internal
         pure
         returns (bytes32 root)
     {
         return bytes32(bytes20(v));
+<<<<<<< HEAD
     }
 
     // forgefmt: disable-next-item
@@ -82,6 +86,17 @@ library SSZ {
         return bytes32(v);
     }
 
+=======
+    }
+
+    function uint64HashTreeRoot(uint64 v) internal pure returns (bytes32) {
+        v = ((v & 0xFF00FF00FF00FF00) >> 8) | ((v & 0x00FF00FF00FF00FF) << 8);
+        v = ((v & 0xFFFF0000FFFF0000) >> 16) | ((v & 0x0000FFFF0000FFFF) << 16);
+        v = (v >> 32) | (v << 32);
+        return bytes32(uint256(v) << 192);
+    }
+
+>>>>>>> main
     /// @notice Modified version of `verify` from `MerkleProofLib` to support
     /// generalized indices and sha256 precompile.
     /// @dev Returns whether `leaf` exists in the Merkle tree with `root`,
