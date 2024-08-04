@@ -116,6 +116,11 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
+	// TODO: Fix this bug.
+	// if validators.HashTreeRoot() != validatorsRoot {
+	// 	panic("BING BONG")
+	// }
+
 	if err = st.SetGenesisValidatorsRoot(validatorsRoot); err != nil {
 		return nil, err
 	}
