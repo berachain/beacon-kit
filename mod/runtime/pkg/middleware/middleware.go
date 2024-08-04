@@ -52,10 +52,6 @@ type ABCIMiddleware[
 ] struct {
 	// chainSpec is the chain specification.
 	chainSpec common.ChainSpec
-	// chainService represents the blockchain service.
-	chainService BlockchainService[
-		BeaconBlockT, BlobSidecarsT, DepositT, GenesisT,
-	]
 	// TODO: we will eventually gossip the blobs separately from
 	// CometBFT, but for now, these are no-op gossipers.
 	blobGossiper p2p.PublisherReceiver[
@@ -115,9 +111,6 @@ func NewABCIMiddleware[
 	SlotDataT any,
 ](
 	chainSpec common.ChainSpec,
-	chainService BlockchainService[
-		BeaconBlockT, BlobSidecarsT, DepositT, GenesisT,
-	],
 	logger log.Logger[any],
 	telemetrySink TelemetrySink,
 	genesisBroker *broker.Broker[*asynctypes.Event[GenesisT]],
@@ -133,8 +126,7 @@ func NewABCIMiddleware[
 		AvailabilityStoreT, BeaconBlockT, BlobSidecarsT, DepositT,
 		ExecutionPayloadT, GenesisT, SlotDataT,
 	]{
-		chainSpec:    chainSpec,
-		chainService: chainService,
+		chainSpec: chainSpec,
 		blobGossiper: rp2p.NewNoopBlobHandler[
 			BlobSidecarsT, encoding.ABCIRequest,
 		](),

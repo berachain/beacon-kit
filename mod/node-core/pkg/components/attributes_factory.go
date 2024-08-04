@@ -21,25 +21,32 @@
 package components
 
 import (
+	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
+type AttributesFactoryInput struct {
+	depinject.In
+
+	ChainSpec common.ChainSpec
+	Config    *config.Config
+	Logger    log.Logger[any]
+}
+
 // ProvideAttributesFactory provides an AttributesFactory for the client.
 func ProvideAttributesFactory(
-	chainSpec common.ChainSpec,
-	logger log.Logger[any],
-	cfg *config.Config,
+	in AttributesFactoryInput,
 ) (*AttributesFactory, error) {
 	return attributes.NewAttributesFactory[
 		*BeaconState,
 		*PayloadAttributes,
 		*Withdrawal,
 	](
-		chainSpec,
-		logger,
-		cfg.PayloadBuilder.SuggestedFeeRecipient,
+		in.ChainSpec,
+		in.Logger,
+		in.Config.PayloadBuilder.SuggestedFeeRecipient,
 	), nil
 }
