@@ -30,7 +30,7 @@ import (
 
 // convertPrepareProposalToSlotData converts a prepare proposal request to
 // a slot data.
-func (c *App[
+func (a *App[
 	_, _, _, _, _, _, _, _, _, SlotDataT, _,
 ]) convertPrepareProposalToSlotData(
 	ctx context.Context,
@@ -39,7 +39,7 @@ func (c *App[
 	var t SlotDataT
 
 	// Get the attestation data from the votes.
-	attestationData, err := c.attestationsFromVotes(
+	attestationData, err := a.attestationsFromVotes(
 		ctx,
 		req.AttestationAddresses,
 		//#nosec:G701 // safe.
@@ -50,7 +50,7 @@ func (c *App[
 	}
 
 	// Get the slashing info from the misbehaviors.
-	slashingInfo, err := c.slashingInfoFromMisbehaviors(
+	slashingInfo, err := a.slashingInfoFromMisbehaviors(
 		ctx,
 		req.SlashingInfo,
 	)
@@ -68,7 +68,7 @@ func (c *App[
 }
 
 // attestationsFromVotes returns a list of attestation data from the votes.
-func (c *App[
+func (a *App[
 	AttestationDataT, _, _, _, _, _, _, _, _, _, _,
 ]) attestationsFromVotes(
 	ctx context.Context,
@@ -78,7 +78,7 @@ func (c *App[
 	var err error
 	var index math.U64
 	attestations := make([]AttestationDataT, len(voteAddresses))
-	st := c.sb.StateFromContext(ctx)
+	st := a.sb.StateFromContext(ctx)
 	root := st.HashTreeRoot()
 	for i, voteAddress := range voteAddresses {
 		index, err = st.ValidatorIndexByConsensusAddress(voteAddress)
@@ -104,7 +104,7 @@ func (c *App[
 
 // slashingInfoFromMisbehaviors returns a list of slashing info from the
 // comet misbehaviors.
-func (c *App[
+func (a *App[
 	_, _, _, _, _, _, _, _, SlashingInfoT, _, _,
 ]) slashingInfoFromMisbehaviors(
 	ctx context.Context,
@@ -112,7 +112,7 @@ func (c *App[
 ) ([]SlashingInfoT, error) {
 	var err error
 	var index math.U64
-	st := c.sb.StateFromContext(ctx)
+	st := a.sb.StateFromContext(ctx)
 	slashingInfo := make([]SlashingInfoT, len(misbehaviors))
 	for i, misbehavior := range misbehaviors {
 		index, err = st.ValidatorIndexByConsensusAddress(

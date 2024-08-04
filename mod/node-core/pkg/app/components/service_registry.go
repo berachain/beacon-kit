@@ -30,7 +30,7 @@ import (
 type ServiceRegistryInput struct {
 	depinject.In
 
-	ABCIService           *RuntimeApp
+	RuntimeApp            *RuntimeApp
 	BlockBroker           *BlockBroker
 	BlockStoreService     *BlockStoreService
 	ChainService          *ChainService
@@ -40,7 +40,6 @@ type ServiceRegistryInput struct {
 	EngineClient          *EngineClient
 	GenesisBroker         *GenesisBroker
 	Logger                *Logger
-	NodeAPIServer         *NodeAPIServer
 	ReportingService      *ReportingService
 	SidecarsBroker        *SidecarsBroker
 	SlotBroker            *SlotBroker
@@ -60,8 +59,7 @@ func ProvideServiceRegistry(
 		service.WithService(in.ChainService),
 		service.WithService(in.DAService),
 		service.WithService(in.DepositService),
-		service.WithService(in.ABCIService),
-		service.WithService(in.NodeAPIServer),
+		service.WithService(in.RuntimeApp),
 		service.WithService(in.ReportingService),
 		service.WithService(in.DBManager),
 		service.WithService(in.GenesisBroker),

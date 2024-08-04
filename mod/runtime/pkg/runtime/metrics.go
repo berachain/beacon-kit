@@ -40,19 +40,19 @@ func newAppMetrics(
 }
 
 // measurePrepareProposalDuration measures the time to prepare.
-func (cm *AppMetrics) measurePrepareProposalDuration(
+func (am *AppMetrics) measurePrepareProposalDuration(
 	start time.Time,
 ) {
-	cm.sink.MeasureSince(
+	am.sink.MeasureSince(
 		"beacon_kit.runtime.prepare_proposal_duration", start,
 	)
 }
 
 // measureProcessProposalDuration measures the time to process.
-func (cm *AppMetrics) measureProcessProposalDuration(
+func (am *AppMetrics) measureProcessProposalDuration(
 	start time.Time,
 ) {
-	cm.sink.MeasureSince(
+	am.sink.MeasureSince(
 		"beacon_kit.runtime.process_proposal_duration", start,
 	)
 }

@@ -164,32 +164,32 @@ func NewApp[
 }
 
 // Name returns the name of the middleware.
-func (am *App[
+func (a *App[
 	_, _, _, _, _, _, _, _, _, _, _,
 ]) Name() string {
 	return "abci-middleware"
 }
 
 // Start the middleware.
-func (am *App[
+func (a *App[
 	_, _, _, _, _, _, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
-	subBlkCh, err := am.blkBroker.Subscribe()
+	subBlkCh, err := a.blkBroker.Subscribe()
 	if err != nil {
 		return err
 	}
 
-	subSidecarsCh, err := am.sidecarsBroker.Subscribe()
+	subSidecarsCh, err := a.sidecarsBroker.Subscribe()
 	if err != nil {
 		return err
 	}
 
-	go am.start(ctx, subBlkCh, subSidecarsCh)
+	go a.start(ctx, subBlkCh, subSidecarsCh)
 	return nil
 }
 
 // start starts the middleware.
-func (am *App[
+func (a *App[
 	_, _, BeaconBlockT, _, BlobSidecarsT, _, _, _, _, _, _,
 ]) start(
 	ctx context.Context,
@@ -205,14 +205,14 @@ func (am *App[
 			case events.BeaconBlockBuilt:
 				fallthrough
 			case events.BeaconBlockVerified:
-				am.blkCh <- msg
+				a.blkCh <- msg
 			}
 		case msg := <-sidecarsCh:
 			switch msg.Type() {
 			case events.BlobSidecarsBuilt:
 				fallthrough
 			case events.BlobSidecarsProcessed:
-				am.sidecarsCh <- msg
+				a.sidecarsCh <- msg
 			}
 		}
 	}
