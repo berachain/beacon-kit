@@ -164,6 +164,10 @@ type container struct {
 	FieldIndex map[string]uint64
 }
 
+func newContainer() *container {
+	return &container{FieldIndex: make(map[string]uint64)}
+}
+
 func DefineContainer(fields ...*Field[SSZType]) SSZType {
 	fieldIndex := make(map[string]uint64)
 	types := make([]SSZType, len(fields))
@@ -196,7 +200,7 @@ func (c container) Length() uint64 { return uint64(len(c.Fields)) }
 
 func (c container) HashChunkCount() uint64 { return uint64(len(c.Fields)) }
 
-func (c container) DefineField(name string, typ SSZType) {
+func (c *container) DefineField(name string, typ SSZType) {
 	c.Fields = append(c.Fields, typ)
 	c.FieldIndex[name] = uint64(len(c.Fields) - 1)
 }
@@ -206,7 +210,7 @@ func (c container) DefineField(name string, typ SSZType) {
 // 1) Export container as Container
 // 2) Extension interface with FieldNames() []string signature.
 func ContainerFields(typ SSZType) []string {
-	c, ok := typ.(container)
+	c, ok := typ.(*container)
 	if !ok {
 		return nil
 	}

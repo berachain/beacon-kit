@@ -9,11 +9,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 )
 
-func CreateSchema(obj any) (schema.SSZType, error) {
-	typ := reflect.TypeOf(obj)
-	return traverseMonolith(typ, nil)
-}
-
 func traverseMonolith(
 	typ reflect.Type,
 	field *reflect.StructField,

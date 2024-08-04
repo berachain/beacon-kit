@@ -4,16 +4,28 @@ import (
 	"context"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/sszdb"
 	"github.com/holiman/uint256"
 	"github.com/stretchr/testify/require"
 )
 
 func TestDB_Metadata(t *testing.T) {
-	beacon := &deneb.BeaconState{}
+	beacon := &types.BeaconState[
+		*types.BeaconBlockHeader,
+		*types.Eth1Data,
+		*types.ExecutionPayloadHeader,
+		*types.Fork,
+		*types.Validator,
+		types.BeaconBlockHeader,
+		types.Eth1Data,
+		types.ExecutionPayloadHeader,
+		types.Fork,
+		types.Validator,
+		*schema.Codec,
+	]{}
 	beacon.GenesisValidatorsRoot = [32]byte{7, 7, 7, 7}
 	beacon.Slot = 777
 	beacon.Fork = &types.Fork{
@@ -76,14 +88,7 @@ func TestDB_Metadata(t *testing.T) {
 	err = db.Commit(ctx)
 	require.NoError(t, err)
 
-	beaconDB, err := sszdb.NewBeaconStateDB[
-		*types.BeaconBlockHeader,
-		*types.Eth1Data,
-		*types.ExecutionPayloadHeader,
-	](
-		db,
-		beacon,
-	)
+	beaconDB, err := sszdb.NewSchemaDB(db, beacon)
 	require.NoError(t, err)
 
 	/*
@@ -122,8 +127,10 @@ func TestDB_Metadata(t *testing.T) {
 		}
 	*/
 
-	header, err := beaconDB.GetLatestExecutionPayloadHeader(ctx)
+	headerBz, err := beaconDB.GetLatestExecutionPayloadHeader(ctx)
 	require.NoError(t, err)
+	var header types.ExecutionPayloadHeader
+	require.NoError(t, header.UnmarshalSSZ(headerBz))
 	require.Equal(t,
 		beacon.LatestExecutionPayloadHeader,
 		header,

@@ -162,7 +162,7 @@ func (h *ExecutionPayloadHeader) MarshalSSZ() ([]byte, error) {
 // UnmarshalSSZ unmarshals the ExecutionPayloadHeaderDeneb object from a source
 // array.
 func (h *ExecutionPayloadHeader) UnmarshalSSZ(bz []byte) error {
-	return ssz.DecodeFromBytes(bz, h)
+	return schema.DecodeFromBytes(bz, h)
 }
 
 // HashTreeRootSSZ returns the hash tree root of the ExecutionPayloadHeader.

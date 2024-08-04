@@ -1,6 +1,10 @@
 package schema
 
-import "github.com/karalabe/ssz"
+import (
+	"fmt"
+
+	"github.com/karalabe/ssz"
+)
 
 type Codec struct {
 	enc    *ssz.Encoder[*Codec]
@@ -27,12 +31,12 @@ func (c *Codec) Dec() *ssz.Decoder[*Codec] {
 
 // Enc implements ssz.CodecI.
 func (c *Codec) Enc() *ssz.Encoder[*Codec] {
-	panic("unimplemented")
+	return c.enc
 }
 
 // Has implements ssz.CodecI.
 func (c *Codec) Has() *ssz.Hasher[*Codec] {
-	panic("unimplemented")
+	return c.has
 }
 
 // DefineDecoder implements ssz.CodecI.
@@ -60,4 +64,20 @@ func (c *Codec) DefineSchema(impl func(builder *Builder)) {
 	if c.schema != nil {
 		impl(c.schema)
 	}
+}
+
+func Build(obj interface{ DefineSSZ(codec *Codec) }) (SSZType, error) {
+	builder := new(Builder)
+	builder.stack = append(builder.stack, newContainer())
+	c := &Codec{schema: builder}
+	obj.DefineSSZ(c)
+	if len(builder.stack) != 1 {
+		return nil, fmt.Errorf("unbalanced stack: %d", len(builder.stack))
+	}
+	return builder.stack[0], nil
+}
+
+func DecodeFromBytes(data []byte, obj ssz.Object[*Codec]) error {
+	codec := &Codec{dec: new(ssz.Decoder[*Codec])}
+	return ssz.DecodeFromBytesWithCodec(codec, data, obj)
 }

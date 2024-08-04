@@ -39,10 +39,10 @@ type commonBytesArrayLengths[U commonBytesLengths] interface {
 }
 
 type Builder struct {
-	stack []container
+	stack []*container
 }
 
-func (c *Builder) peek() container {
+func (c *Builder) peek() *container {
 	if len(c.stack) == 0 {
 		panic("stack is empty")
 	}
@@ -129,7 +129,7 @@ func DefineStaticObject[T newableStaticObject[C, U], U any, C CodecI[C]](
 ) {
 	if codec.Builder() != nil {
 		b := codec.Builder()
-		nc := container{}
+		nc := newContainer()
 		b.peek().DefineField(name, nc)
 		b.stack = append(b.stack, nc)
 		o := *obj
@@ -147,7 +147,7 @@ func DefineDynamicObjectOffset[T newableDynamicObject[C, U], U any, C CodecI[C]]
 ) {
 	if codec.Builder() != nil {
 		b := codec.Builder()
-		nc := container{}
+		nc := newContainer()
 		b.peek().DefineField(name, nc)
 		b.stack = append(b.stack, nc)
 		o := *obj
@@ -273,11 +273,11 @@ func DefineSliceOfStaticObjectsOffset[
 	maxItems uint64,
 ) {
 	if codec.Builder() != nil {
-		var t T
-		c := container{}
+		obj := T(new(U))
+		c := newContainer()
 		b := codec.Builder()
 		b.stack = append(b.stack, c)
-		t.DefineSSZ(codec)
+		obj.DefineSSZ(codec)
 		b.stack = b.stack[:len(b.stack)-1]
 		b.peek().DefineField(name, DefineList(c, maxItems))
 		return

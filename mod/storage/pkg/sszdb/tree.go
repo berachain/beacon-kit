@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"unsafe"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	fastssz "github.com/ferranbt/fastssz"
 )
 
@@ -15,8 +16,13 @@ type Node struct {
 	Value  []byte
 }
 
-func NewTreeFromFastSSZ(r fastssz.HashRoot) (*Node, error) {
-	root, err := fastssz.ProofTree(r)
+type treeable interface {
+	GetTree() (*fastssz.Node, error)
+	DefineSSZ(*schema.Codec)
+}
+
+func NewTreeFromFastSSZ(tr treeable) (*Node, error) {
+	root, err := tr.GetTree()
 	if err != nil {
 		return nil, err
 	}

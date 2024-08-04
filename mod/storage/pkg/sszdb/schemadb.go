@@ -5,7 +5,6 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	fastssz "github.com/ferranbt/fastssz"
@@ -21,72 +20,27 @@ func isByteVector(typ schema.SSZType) bool {
 	return typ.ID() == schema.Vector && typ.ElementType("") == schema.U8()
 }
 
-type BeaconStateDB[
-	BeaconBlockHeaderT,
-	Eth1DataT,
-	ExecutionPayloadHeaderT interface {
-		fastssz.HashRoot
-		constraints.SSZMarshallable
-	},
-	// ForkT,
-	// ValidatorT beacondb.Validator,
-	// ValidatorsT ~[]ValidatorT,
-] struct {
+type SchemaDB struct {
 	*Backend
 	schemaRoot schema.SSZType
 }
 
-func NewBeaconStateDB[
-	BeaconBlockHeaderT,
-	Eth1DataT,
-	ExecutionPayloadHeaderT interface {
-		fastssz.HashRoot
-		constraints.SSZMarshallable
-	},
-	// ForkT,
-	// ValidatorT beacondb.Validator,
-	// ValidatorsT ~[]ValidatorT,
-](
+func NewSchemaDB(
 	backend *Backend,
-	monolith fastssz.HashRoot,
-) (*BeaconStateDB[
-	BeaconBlockHeaderT,
-	Eth1DataT,
-	ExecutionPayloadHeaderT,
-
-// ForkT,
-// ValidatorT,
-// ValidatorsT,
-], error) {
-	schemaRoot, err := CreateSchema(monolith)
+	monolith treeable,
+) (*SchemaDB, error) {
+	schemaRoot, err := schema.Build(monolith)
 	if err != nil {
 		return nil, err
 	}
-	db := &BeaconStateDB[
-		BeaconBlockHeaderT,
-		Eth1DataT,
-		ExecutionPayloadHeaderT,
-	// ForkT,
-	// ValidatorT,
-	// ValidatorsT,
-	]{
+	db := &SchemaDB{
 		Backend:    backend,
 		schemaRoot: schemaRoot,
 	}
 	return db, db.bootstrap(monolith)
 }
 
-func (db *BeaconStateDB[
-	BeaconBlockHeaderT,
-	Eth1DataT,
-	ExecutionPayloadHeaderT,
-
-// ForkT,
-// ValidatorT,
-// ValidatorsT,
-]) bootstrap(
-	monolith fastssz.HashRoot,
-) error {
+func (db *SchemaDB) bootstrap(monolith treeable) error {
 	bootstrapped, err := db.Get([]byte(bootstrappedKey))
 	if err != nil {
 		return err
@@ -106,7 +60,7 @@ type offsetBytes struct {
 	idx uint32
 }
 
-func (db *BeaconStateDB[_, _, _ /*_, _, _*/]) getLeafBytes(
+func (db *SchemaDB) getLeafBytes(
 	ctx context.Context,
 	path objectPath,
 ) ([]byte, error) {
@@ -130,7 +84,7 @@ func (db *BeaconStateDB[_, _, _ /*_, _, _*/]) getLeafBytes(
 	return db.getNodeBytes(ctx, gindex, size, offset)
 }
 
-func (db *BeaconStateDB[_, _, _ /*_, _, _*/]) getSSZBytes(
+func (db *SchemaDB) getSSZBytes(
 	ctx context.Context,
 	root objectPath,
 ) (uint32, *offsetBytes, []byte, error) {
@@ -217,19 +171,11 @@ func (db *BeaconStateDB[_, _, _ /*_, _, _*/]) getSSZBytes(
 	return n, nil, sszBytes, nil
 }
 
-func (db *BeaconStateDB[
-	BeaconBlockHeaderT,
-	Eth1DataT,
-	ExecutionPayloadHeaderT,
-
-// ForkT,
-// ValidatorT,
-// ValidatorsT,
-]) SetLatestExecutionPayloadHeader(
+func (db *SchemaDB) SetLatestExecutionPayloadHeader(
 	ctx context.Context,
-	header ExecutionPayloadHeaderT,
+	header treeable,
 ) error {
-	path := objectPath("LatestExecutionPayloadHeader")
+	path := objectPath("latest_execution_payload_header")
 	_, gindex, _, err := path.GetGeneralizedIndex(db.schemaRoot)
 	if err != nil {
 		return err
@@ -242,16 +188,10 @@ func (db *BeaconStateDB[
 	return db.stage(ctx, treeNode, gindex)
 }
 
-func (db *BeaconStateDB[
-	_, _, ExecutionPayloadHeaderT, /*_, _, _,*/
-]) GetLatestExecutionPayloadHeader(
+func (db *SchemaDB) GetLatestExecutionPayloadHeader(
 	ctx context.Context,
-) (ExecutionPayloadHeaderT, error) {
-	var e ExecutionPayloadHeaderT
-	path := objectPath("LatestExecutionPayloadHeader")
+) ([]byte, error) {
+	path := objectPath("latest_execution_payload_header")
 	_, _, bz, err := db.getSSZBytes(ctx, path)
-	if err != nil {
-		return e, err
-	}
-	return e, e.UnmarshalSSZ(bz)
+	return bz, err
 }
