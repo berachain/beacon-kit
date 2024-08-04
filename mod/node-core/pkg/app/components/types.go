@@ -27,8 +27,6 @@ import (
 	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	consruntimetypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
@@ -50,6 +48,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/server"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/app/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/app/components/storage"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/types/services/version"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
@@ -107,17 +106,23 @@ type (
 		*Fork,
 		*BeaconStore,
 		*Validator,
+		Validators,
 		*Withdrawal,
 		WithdrawalCredentials,
 	]
 
 	// BeaconStateMarshallable is a type alias for the BeaconStateMarshallable.
-	BeaconStateMarshallable = state.BeaconStateMarshallable[
+	BeaconStateMarshallable = types.BeaconState[
 		*BeaconBlockHeader,
 		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
 		*Validator,
+		BeaconBlockHeader,
+		Eth1Data,
+		ExecutionPayloadHeader,
+		Fork,
+		Validator,
 	]
 
 	BeaconStore = beacondb.Store[
@@ -126,6 +131,7 @@ type (
 		*ExecutionPayloadHeader,
 		*Fork,
 		*Validator,
+		Validators,
 	]
 
 	// BlobProcessor is a type alias for the blob processor.
@@ -227,7 +233,7 @@ type (
 	ForkData = types.ForkData
 
 	// Genesis is a type alias for the genesis.
-	Genesis = genesis.Genesis[
+	Genesis = types.Genesis[
 		*Deposit,
 		*ExecutionPayloadHeader,
 	]
@@ -275,6 +281,9 @@ type (
 	// PayloadID is a type alias for the payload ID.
 	PayloadID = engineprimitives.PayloadID
 
+	// ReportingService is a type alias for the reporting service.
+	ReportingService = version.ReportingService
+
 	// SidecarFactory is a type alias for the sidecar factory.
 	SidecarFactory = dablob.SidecarFactory[
 		*BeaconBlock,
@@ -299,6 +308,7 @@ type (
 		*ForkData,
 		*BeaconStore,
 		*Validator,
+		Validators,
 		*Withdrawal,
 		WithdrawalCredentials,
 	]
@@ -320,12 +330,15 @@ type (
 		*ExecutionPayloadHeader,
 		*Fork,
 		*Validator,
+		Validators,
 		*Withdrawal,
 		WithdrawalCredentials,
 	]
 
 	// Validator is a type alias for the validator.
 	Validator = types.Validator
+
+	Validators = types.Validators
 
 	// ValidatorService is a type alias for the validator service.
 	ValidatorService = validator.Service[

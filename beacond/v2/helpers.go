@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/parser"
 	genesiscmd "github.com/berachain/beacon-kit/mod/cli/pkg/v2/commands/genesis"
 	"github.com/berachain/beacon-kit/mod/config"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -64,7 +63,7 @@ func AddExecutionPayloadToGenesis(
 		nil,
 	).ExecutionPayload
 
-	genesisInfo := &genesis.Genesis[
+	genesisInfo := &types.Genesis[
 		*types.Deposit, *types.ExecutionPayloadHeader,
 	]{}
 	if err = json.Unmarshal(
@@ -159,7 +158,7 @@ func AddDepositToGenesis(
 		return errors.Wrap(err, "failed to write signed gen tx")
 	}
 
-	genesisInfo := &genesis.Genesis[
+	genesisInfo := &types.Genesis[
 		*types.Deposit, *types.ExecutionPayloadHeader,
 	]{}
 	if err = json.Unmarshal(

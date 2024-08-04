@@ -79,10 +79,7 @@ func (c *App[
 	var index math.U64
 	attestations := make([]AttestationDataT, len(voteAddresses))
 	st := c.sb.StateFromContext(ctx)
-	root, err := st.HashTreeRoot()
-	if err != nil {
-		return nil, err
-	}
+	root := st.HashTreeRoot()
 	for i, voteAddress := range voteAddresses {
 		index, err = st.ValidatorIndexByConsensusAddress(voteAddress)
 		if err != nil {

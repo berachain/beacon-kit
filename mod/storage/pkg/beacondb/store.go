@@ -23,12 +23,11 @@ package beacondb
 import (
 	"context"
 
-	storectx "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/context"
-
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 	storev2 "cosmossdk.io/store/v2"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+	storectx "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/context"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/index"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/keys"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
@@ -38,7 +37,7 @@ const BeaconStoreKey = "beacon"
 
 // Store is a wrapper around an sdk.Context
 // that provides access to all beacon related data.
-type KVStore[
+type Store[
 	BeaconBlockHeaderT interface {
 		constraints.Empty[BeaconBlockHeaderT]
 		constraints.SSZMarshallable

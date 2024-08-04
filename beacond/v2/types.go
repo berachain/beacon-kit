@@ -21,8 +21,6 @@
 package main
 
 import (
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	consruntimetypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
@@ -74,17 +72,23 @@ type (
 		*Fork,
 		*BeaconStore,
 		*Validator,
+		Validators,
 		*Withdrawal,
 		WithdrawalCredentials,
 	]
 
 	// BeaconStateMarshallable is a type alias for the BeaconStateMarshallable.
-	BeaconStateMarshallable = state.BeaconStateMarshallable[
+	BeaconStateMarshallable = types.BeaconState[
 		*BeaconBlockHeader,
 		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
 		*Validator,
+		BeaconBlockHeader,
+		Eth1Data,
+		ExecutionPayloadHeader,
+		Fork,
+		Validator,
 	]
 
 	BeaconStore = beacondb.Store[
@@ -93,6 +97,7 @@ type (
 		*ExecutionPayloadHeader,
 		*Fork,
 		*Validator,
+		Validators,
 	]
 
 	// BlobSidecars is a type alias for the blob sidecars.
@@ -124,7 +129,7 @@ type (
 	ForkData = types.ForkData
 
 	// Genesis is a type alias for the genesis.
-	Genesis = genesis.Genesis[
+	Genesis = types.Genesis[
 		*Deposit,
 		*ExecutionPayloadHeader,
 	]
@@ -156,6 +161,7 @@ type (
 		*ForkData,
 		*BeaconStore,
 		*Validator,
+		Validators,
 		*Withdrawal,
 		WithdrawalCredentials,
 	]
@@ -177,12 +183,16 @@ type (
 		*ExecutionPayloadHeader,
 		*Fork,
 		*Validator,
+		Validators,
 		*Withdrawal,
 		WithdrawalCredentials,
 	]
 
 	// Validator is a type alias for the validator.
 	Validator = types.Validator
+
+	// Validators is a type alias for the validators.
+	Validators = types.Validators
 
 	// Withdrawal is a type alias for the engineprimitives withdrawal.
 	Withdrawal = engineprimitives.Withdrawal

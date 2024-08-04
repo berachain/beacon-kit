@@ -20,39 +20,39 @@
 
 package components
 
-import (
-	"github.com/berachain/beacon-kit/mod/depinject"
-	"github.com/berachain/beacon-kit/mod/node-api/handlers"
-	builderapi "github.com/berachain/beacon-kit/mod/node-api/handlers/builder"
-	configapi "github.com/berachain/beacon-kit/mod/node-api/handlers/config"
-	debugapi "github.com/berachain/beacon-kit/mod/node-api/handlers/debug"
-	eventsapi "github.com/berachain/beacon-kit/mod/node-api/handlers/events"
-	nodeapi "github.com/berachain/beacon-kit/mod/node-api/handlers/node"
-)
+// import (
+// 	"github.com/berachain/beacon-kit/mod/depinject"
+// 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
+// 	builderapi "github.com/berachain/beacon-kit/mod/node-api/handlers/builder"
+// 	configapi "github.com/berachain/beacon-kit/mod/node-api/handlers/config"
+// 	debugapi "github.com/berachain/beacon-kit/mod/node-api/handlers/debug"
+// 	eventsapi "github.com/berachain/beacon-kit/mod/node-api/handlers/events"
+// 	nodeapi "github.com/berachain/beacon-kit/mod/node-api/handlers/node"
+// )
 
-type NodeAPIHandlersInput struct {
-	depinject.In
+// type NodeAPIHandlersInput struct {
+// 	depinject.In
 
-	BeaconAPIHandler  *BeaconAPIHandler
-	BuilderAPIHandler *BuilderAPIHandler
-	ConfigAPIHandler  *ConfigAPIHandler
-	DebugAPIHandler   *DebugAPIHandler
-	EventsAPIHandler  *EventsAPIHandler
-	NodeAPIHandler    *NodeAPIHandler
-}
+// 	BeaconAPIHandler  *BeaconAPIHandler
+// 	BuilderAPIHandler *BuilderAPIHandler
+// 	ConfigAPIHandler  *ConfigAPIHandler
+// 	DebugAPIHandler   *DebugAPIHandler
+// 	EventsAPIHandler  *EventsAPIHandler
+// 	NodeAPIHandler    *NodeAPIHandler
+// }
 
-func ProvideNodeAPIHandlers(
-	in NodeAPIHandlersInput,
-) []handlers.Handlers[NodeAPIContext] {
-	return []handlers.Handlers[NodeAPIContext]{
-		in.BeaconAPIHandler,
-		in.BuilderAPIHandler,
-		in.ConfigAPIHandler,
-		in.DebugAPIHandler,
-		in.EventsAPIHandler,
-		in.NodeAPIHandler,
-	}
-}
+// func ProvideNodeAPIHandlers(
+// 	in NodeAPIHandlersInput,
+// ) []handlers.Handlers[NodeAPIContext] {
+// 	return []handlers.Handlers[NodeAPIContext]{
+// 		in.BeaconAPIHandler,
+// 		in.BuilderAPIHandler,
+// 		in.ConfigAPIHandler,
+// 		in.DebugAPIHandler,
+// 		in.EventsAPIHandler,
+// 		in.NodeAPIHandler,
+// 	}
+// }
 
 // func ProvideNodeAPIBeaconHandler(b *NodeAPIBackend) *BeaconAPIHandler {
 // 	return beaconapi.NewHandler[
@@ -63,39 +63,39 @@ func ProvideNodeAPIHandlers(
 // 	](b)
 // }
 
-func ProvideNodeAPIBuilderHandler() *BuilderAPIHandler {
-	return builderapi.NewHandler[NodeAPIContext]()
-}
+// func ProvideNodeAPIBuilderHandler() *BuilderAPIHandler {
+// 	return builderapi.NewHandler[NodeAPIContext]()
+// }
 
-func ProvideNodeAPIConfigHandler() *ConfigAPIHandler {
-	return configapi.NewHandler[NodeAPIContext]()
-}
+// func ProvideNodeAPIConfigHandler() *ConfigAPIHandler {
+// 	return configapi.NewHandler[NodeAPIContext]()
+// }
 
-func ProvideNodeAPIDebugHandler() *DebugAPIHandler {
-	return debugapi.NewHandler[NodeAPIContext]()
-}
+// func ProvideNodeAPIDebugHandler() *DebugAPIHandler {
+// 	return debugapi.NewHandler[NodeAPIContext]()
+// }
 
-func ProvideNodeAPIEventsHandler() *EventsAPIHandler {
-	return eventsapi.NewHandler[NodeAPIContext]()
-}
+// func ProvideNodeAPIEventsHandler() *EventsAPIHandler {
+// 	return eventsapi.NewHandler[NodeAPIContext]()
+// }
 
-func ProvideNodeAPIHandler() *NodeAPIHandler {
-	return nodeapi.NewHandler[NodeAPIContext]()
-}
+// func ProvideNodeAPIHandler() *NodeAPIHandler {
+// 	return nodeapi.NewHandler[NodeAPIContext]()
+// }
 
-func ProvideNodeAPIProofHandler(b *NodeAPIBackend) *ProofAPIHandler {
-	return proofapi.NewHandler[NodeAPIContext](b)
-}
+// func ProvideNodeAPIProofHandler(b *NodeAPIBackend) *ProofAPIHandler {
+// 	return proofapi.NewHandler[NodeAPIContext](b)
+// }
 
-func DefaultNodeAPIHandlers() []any {
-	return []any{
-		ProvideNodeAPIHandlers,
-		ProvideNodeAPIBeaconHandler,
-		ProvideNodeAPIBuilderHandler,
-		ProvideNodeAPIConfigHandler,
-		ProvideNodeAPIDebugHandler,
-		ProvideNodeAPIEventsHandler,
-		ProvideNodeAPINodeHandler,
-		ProvideNodeAPIProofHandler,
-	}
-}
+// func DefaultNodeAPIHandlers() []any {
+// 	return []any{
+// 		ProvideNodeAPIHandlers,
+// 		ProvideNodeAPIBeaconHandler,
+// 		ProvideNodeAPIBuilderHandler,
+// 		ProvideNodeAPIConfigHandler,
+// 		ProvideNodeAPIDebugHandler,
+// 		ProvideNodeAPIEventsHandler,
+// 		ProvideNodeAPINodeHandler,
+// 		ProvideNodeAPIProofHandler,
+// 	}
+// }

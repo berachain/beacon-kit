@@ -58,8 +58,8 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideTrustedSetup,
 		ProvideValidatorService,
 	}
-	components = append(components, DefaultNodeAPIComponents()...)
-	components = append(components, DefaultNodeAPIHandlers()...)
+	// components = append(components, DefaultNodeAPIComponents()...)
+	// components = append(components, DefaultNodeAPIHandlers()...)
 	components = append(components, DefaultBrokerProviders()...)
 	return components
 }

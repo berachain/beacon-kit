@@ -18,34 +18,27 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package storage
 
 import (
-	"github.com/berachain/beacon-kit/mod/config"
-	"github.com/berachain/beacon-kit/mod/depinject"
-	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"context"
+
+	"cosmossdk.io/core/store"
 )
 
-type AttributesFactoryInput struct {
-	depinject.In
-
-	ChainSpec common.ChainSpec
-	Config    *config.Config
-	Logger    *Logger
+// KVStoreProvider is a provider for a KV store.
+type KVStoreProvider struct {
+	store.KVStoreWithBatch
 }
 
-// ProvideAttributesFactory provides an AttributesFactory for the client.
-func ProvideAttributesFactory(
-	in AttributesFactoryInput,
-) (*AttributesFactory, error) {
-	return attributes.NewAttributesFactory[
-		*BeaconState,
-		*PayloadAttributes,
-		*Withdrawal,
-	](
-		in.ChainSpec,
-		in.Logger,
-		in.Config.PayloadBuilder.SuggestedFeeRecipient,
-	), nil
+// NewKVStoreProvider creates a new KV store provider.
+func NewKVStoreProvider(kvsp store.KVStoreWithBatch) *KVStoreProvider {
+	return &KVStoreProvider{
+		KVStoreWithBatch: kvsp,
+	}
+}
+
+// OpenKVStore opens a new KV store.
+func (p *KVStoreProvider) OpenKVStore(context.Context) store.KVStore {
+	return p.KVStoreWithBatch
 }

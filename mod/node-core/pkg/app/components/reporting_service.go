@@ -21,17 +21,15 @@
 package components
 
 import (
-	"cosmossdk.io/depinject"
-	sdklog "cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/services/version"
+	"github.com/berachain/beacon-kit/mod/depinject"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/app/components/metrics"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/types/services/version"
 	sdkversion "github.com/cosmos/cosmos-sdk/version"
 )
 
 type ReportingServiceInput struct {
 	depinject.In
-	Logger        log.AdvancedLogger[any, sdklog.Logger]
+	Logger        *Logger
 	TelemetrySink *metrics.TelemetrySink
 }
 

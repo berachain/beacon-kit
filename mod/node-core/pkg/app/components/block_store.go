@@ -27,6 +27,7 @@ import (
 	blockservice "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/depinject"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/app/components/storage"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/block"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
@@ -57,6 +58,7 @@ func ProvideBlockStore(
 type BlockPrunerInput struct {
 	depinject.In
 
+	Config      *config.Config
 	BlockBroker *BlockBroker
 	BlockStore  *BlockStore
 	Logger      *Logger

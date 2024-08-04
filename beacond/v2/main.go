@@ -27,7 +27,7 @@ import (
 
 	clicomponents "github.com/berachain/beacon-kit/mod/cli/pkg/components"
 	"github.com/berachain/beacon-kit/mod/config"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/app"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/app/components"
@@ -93,7 +93,7 @@ func run() error {
 		if err != nil {
 			return err
 		}
-		genesisBz, err := json.Marshal(genesis.DefaultGenesisDeneb())
+		genesisBz, err := json.Marshal(types.DefaultGenesisDeneb())
 		if err != nil {
 			return err
 		}
