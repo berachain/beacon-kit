@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 )
 
@@ -65,35 +66,31 @@ type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
 // BeaconState is the interface for the beacon state.
 type BeaconState[
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-	Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, WithdrawalT any,
+	Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+	ValidatorT, ValidatorsT, WithdrawalT any,
 ] interface {
-	constraints.SSZRootable
+	// SetSlot sets the slot on the beacon state.
+	SetSlot(math.Slot) error
 
 	core.ReadOnlyBeaconState[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-		ForkT, ValidatorT, WithdrawalT,
+		ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 	]
 }
 
 // BlockStore is the interface for block storage.
 type BlockStore[BeaconBlockT any] interface {
-	// Get retrieves the block at the given slot.
-	Get(slot uint64) (BeaconBlockT, error)
 	// GetSlotByRoot retrieves the slot by a given root from the store.
-	GetSlotByRoot(root [32]byte) (uint64, error)
-	// Set sets the block at the given slot.
-	Set(slot uint64, block BeaconBlockT) error
-	// Prune prunes the block store of [start, end).
-	Prune(start, end uint64) error
+	GetSlotByRoot(root common.Root) (math.Slot, error)
+	// GetSlotByExecutionNumber retrieves the slot by a given execution number
+	// from the store.
+	GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
 }
 
 // DepositStore defines the interface for deposit storage.
 type DepositStore[DepositT any] interface {
 	// GetDepositsByIndex returns `numView` expected deposits.
-	GetDepositsByIndex(
-		startIndex uint64,
-		numView uint64,
-	) ([]DepositT, error)
+	GetDepositsByIndex(startIndex uint64, numView uint64) ([]DepositT, error)
 	// Prune prunes the deposit store of [start, end)
 	Prune(start, end uint64) error
 	// EnqueueDeposits adds a list of deposits to the deposit store.
@@ -105,6 +102,10 @@ type Node[ContextT any] interface {
 	// CreateQueryContext creates a query context for a given height and proof
 	// flag.
 	CreateQueryContext(height int64, prove bool) (ContextT, error)
+}
+
+type StateProcessor[BeaconStateT any] interface {
+	ProcessSlots(BeaconStateT, math.Slot) (transition.ValidatorUpdates, error)
 }
 
 // StorageBackend is the interface for the storage backend.

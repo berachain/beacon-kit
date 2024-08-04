@@ -24,7 +24,7 @@ import (
 	storev2 "cosmossdk.io/store/v2"
 	"github.com/berachain/beacon-kit/mod/depinject"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 )
 
 // depinject input for ProvideStateStore
@@ -47,5 +47,6 @@ func ProvideBeaconStore(
 		*ExecutionPayloadHeader,
 		*Fork,
 		*Validator,
+		Validators,
 	](in.RootStore, payloadCodec)
 }

@@ -29,25 +29,35 @@ import (
 	"cosmossdk.io/core/store"
 	storev2 "cosmossdk.io/store/v2"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/index"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/keys"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 )
 
 const BeaconStoreKey = "beacon"
 
 // Store is a wrapper around an sdk.Context
 // that provides access to all beacon related data.
-type Store[
-	BeaconBlockHeaderT constraints.SSZMarshallable,
-	Eth1DataT constraints.SSZMarshallable,
+type KVStore[
+	BeaconBlockHeaderT interface {
+		constraints.Empty[BeaconBlockHeaderT]
+		constraints.SSZMarshallable
+	},
+	Eth1DataT interface {
+		constraints.Empty[Eth1DataT]
+		constraints.SSZMarshallable
+	},
 	ExecutionPayloadHeaderT interface {
 		constraints.SSZMarshallable
 		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
 		Version() uint32
 	},
-	ForkT constraints.SSZMarshallable,
-	ValidatorT Validator,
+	ForkT interface {
+		constraints.Empty[ForkT]
+		constraints.SSZMarshallable
+	},
+	ValidatorT Validator[ValidatorT],
+	ValidatorsT ~[]ValidatorT,
 ] struct {
 	ctx       *storectx.Context
 	rootStore storev2.RootStore
@@ -109,24 +119,35 @@ type Store[
 //
 //nolint:funlen // its not overly complex.
 func New[
-	BeaconBlockHeaderT constraints.SSZMarshallable,
-	Eth1DataT constraints.SSZMarshallable,
+	BeaconBlockHeaderT interface {
+		constraints.Empty[BeaconBlockHeaderT]
+		constraints.SSZMarshallable
+	},
+	Eth1DataT interface {
+		constraints.Empty[Eth1DataT]
+		constraints.SSZMarshallable
+	},
 	ExecutionPayloadHeaderT interface {
 		constraints.SSZMarshallable
 		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
 		Version() uint32
 	},
-	ForkT constraints.SSZMarshallable,
-	ValidatorT Validator,
+	ForkT interface {
+		constraints.Empty[ForkT]
+		constraints.SSZMarshallable
+	},
+	ValidatorT Validator[ValidatorT],
+	ValidatorsT ~[]ValidatorT,
 ](
 	rootStore storev2.RootStore,
 	payloadCodec *encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT],
 ) *Store[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
 ] {
 	store := &Store[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-		ForkT, ValidatorT,
+		ForkT, ValidatorT, ValidatorsT,
 	]{
 		storeKey:  []byte(BeaconStoreKey),
 		rootStore: rootStore,
@@ -259,7 +280,7 @@ func New[
 	return store
 }
 
-func (s *Store[_, _, _, _, _]) LatestCommitHash() ([]byte, error) {
+func (s *Store[_, _, _, _, _, _]) LatestCommitHash() ([]byte, error) {
 	commitID, err := s.rootStore.LastCommitID()
 	if err != nil {
 		return nil, err
@@ -268,7 +289,7 @@ func (s *Store[_, _, _, _, _]) LatestCommitHash() ([]byte, error) {
 	return commitID.Hash, nil
 }
 
-func (s *Store[_, _, _, _, _]) Commit() ([]byte, error) {
+func (s *Store[_, _, _, _, _, _]) Commit() ([]byte, error) {
 	changes, err := s.ctx.WriterMap.GetStateChanges()
 	if err != nil {
 		return nil, err
@@ -276,7 +297,7 @@ func (s *Store[_, _, _, _, _]) Commit() ([]byte, error) {
 	return s.rootStore.Commit(&store.Changeset{Changes: changes})
 }
 
-func (s *Store[_, _, _, _, _]) WorkingHash() ([]byte, error) {
+func (s *Store[_, _, _, _, _, _]) WorkingHash() ([]byte, error) {
 	changes, err := s.ctx.WriterMap.GetStateChanges()
 	if err != nil {
 		return nil, err
@@ -287,10 +308,10 @@ func (s *Store[_, _, _, _, _]) WorkingHash() ([]byte, error) {
 // Copy returns a copy of the Store.
 func (s *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) Copy() *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	ForkT, ValidatorT, ValidatorsT,
 ] {
 	// unnnecessary check?
 	if s.ctx == nil {
@@ -305,7 +326,7 @@ func (s *Store[
 
 // Context returns the context of the Store.
 func (s *Store[
-	_, _, _, _, _,
+	_, _, _, _, _, _,
 ]) Context() context.Context {
 	return s.ctx
 }
@@ -313,12 +334,12 @@ func (s *Store[
 // WithContext returns a copy of the Store with the given context.
 func (s *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) WithContext(
 	ctx context.Context,
 ) *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	ForkT, ValidatorT, ValidatorsT,
 ] {
 	cpy := *s
 	cpy.ctx = storectx.Wrap(ctx, s.storeKey)
@@ -328,7 +349,7 @@ func (s *Store[
 	return &cpy
 }
 
-func (s *Store[_, _, _, _, _]) accessor(rawCtx context.Context) store.KVStore {
+func (s *Store[_, _, _, _, _, _]) accessor(rawCtx context.Context) store.KVStore {
 	ctx := storectx.Wrap(rawCtx, s.storeKey)
 	if err := ctx.AttachStore(s.rootStore); err != nil {
 		panic(err)

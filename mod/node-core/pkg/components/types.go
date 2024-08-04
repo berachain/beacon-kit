@@ -27,8 +27,6 @@ import (
 	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	consruntimetypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
@@ -54,7 +52,7 @@ import (
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	middleware "github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/runtime"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	statedb "github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
@@ -66,7 +64,7 @@ import (
 )
 
 type (
-	ABCIMiddlewareV2 = middleware.App[
+	RuntimeApp = runtime.App[
 		*AttestationData,
 		*AvailabilityStore,
 		*BeaconBlock,
@@ -107,17 +105,23 @@ type (
 		*Fork,
 		*BeaconStore,
 		*Validator,
+		Validators,
 		*Withdrawal,
 		WithdrawalCredentials,
 	]
 
-	// BeaconStateMarshallable is a type alias for the BeaconStateMarshallable.
-	BeaconStateMarshallable = state.BeaconStateMarshallable[
+	// BeaconStateMarshallable is a type alias for the BeaconState.
+	BeaconStateMarshallable = types.BeaconState[
 		*BeaconBlockHeader,
 		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
 		*Validator,
+		BeaconBlockHeader,
+		Eth1Data,
+		ExecutionPayloadHeader,
+		Fork,
+		Validator,
 	]
 
 	BeaconStore = beacondb.Store[
@@ -226,8 +230,8 @@ type (
 	// ForkData is a type alias for the fork data.
 	ForkData = types.ForkData
 
-	// Genesis is a type alias for the genesis.
-	Genesis = genesis.Genesis[
+	// Genesis is a type alias for the Genesis type.
+	Genesis = types.Genesis[
 		*Deposit,
 		*ExecutionPayloadHeader,
 	]
@@ -299,6 +303,9 @@ type (
 	// PayloadID is a type alias for the payload ID.
 	PayloadID = engineprimitives.PayloadID
 
+	// ReportingService is a type alias for the reporting service.
+	ReportingService = version.ReportingService
+
 	// SidecarFactory is a type alias for the sidecar factory.
 	SidecarFactory = dablob.SidecarFactory[
 		*BeaconBlock,
@@ -321,8 +328,9 @@ type (
 		*ExecutionPayloadHeader,
 		*Fork,
 		*ForkData,
-		*BeaconStore,
+		*KVStore,
 		*Validator,
+		Validators,
 		*Withdrawal,
 		WithdrawalCredentials,
 	]
@@ -344,12 +352,16 @@ type (
 		*ExecutionPayloadHeader,
 		*Fork,
 		*Validator,
+		Validators,
 		*Withdrawal,
 		WithdrawalCredentials,
 	]
 
 	// Validator is a type alias for the validator.
 	Validator = types.Validator
+
+	// Validators is a type alias for the validators.
+	Validators = types.Validators
 
 	// ValidatorService is a type alias for the validator service.
 	ValidatorService = validator.Service[

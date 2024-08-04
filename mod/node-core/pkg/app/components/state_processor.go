@@ -55,6 +55,7 @@ func ProvideStateProcessor(
 		*ForkData,
 		*BeaconStore,
 		*Validator,
+		Validators,
 		*Withdrawal,
 		WithdrawalCredentials,
 	](

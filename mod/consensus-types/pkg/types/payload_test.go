@@ -30,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/stretchr/testify/require"
@@ -58,7 +57,7 @@ func generateExecutionPayload() *types.ExecutionPayload {
 		GasUsed:       math.U64(0),
 		Timestamp:     math.U64(0),
 		ExtraData:     []byte{0x01},
-		BaseFeePerGas: math.Wei{},
+		BaseFeePerGas: &math.U256{},
 		BlockHash:     gethprimitives.ExecutionHash{},
 		Transactions:  transactions,
 		Withdrawals:   withdrawals,
@@ -78,6 +77,13 @@ func TestExecutionPayload_Serialization(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, original, &unmarshalled)
+
+	var buf []byte
+	buf, err = original.MarshalSSZTo(buf)
+	require.NoError(t, err)
+
+	// The two byte slices should be equal
+	require.Equal(t, data, buf)
 }
 
 func TestExecutionPayload_SizeSSZ(t *testing.T) {
@@ -92,8 +98,9 @@ func TestExecutionPayload_SizeSSZ(t *testing.T) {
 
 func TestExecutionPayload_HashTreeRoot(t *testing.T) {
 	payload := generateExecutionPayload()
-	_, err := payload.HashTreeRoot()
-	require.NoError(t, err)
+	require.NotPanics(t, func() {
+		_ = payload.HashTreeRoot()
+	})
 }
 
 func TestExecutionPayload_GetTree(t *testing.T) {
@@ -132,7 +139,7 @@ func TestExecutionPayload_Getters(t *testing.T) {
 	require.Equal(t, math.U64(0), payload.GetGasUsed())
 	require.Equal(t, math.U64(0), payload.GetTimestamp())
 	require.Equal(t, []byte{0x01}, payload.GetExtraData())
-	require.Equal(t, math.Wei{}, payload.GetBaseFeePerGas())
+	require.Equal(t, &math.U256{}, payload.GetBaseFeePerGas())
 	require.Equal(t, gethprimitives.ExecutionHash{}, payload.GetBlockHash())
 	require.Equal(t, transactions, payload.GetTransactions())
 	require.Equal(t, withdrawals, payload.GetWithdrawals())
@@ -192,7 +199,7 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 		GasUsed:       math.U64(0),
 		Timestamp:     math.U64(0),
 		ExtraData:     []byte{},
-		BaseFeePerGas: math.Wei{},
+		BaseFeePerGas: &math.U256{},
 		BlockHash:     gethprimitives.ExecutionHash{},
 		Transactions:  [][]byte{[]byte{0x01}},
 		Withdrawals:   []*engineprimitives.Withdrawal{},
@@ -201,7 +208,6 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 	}
 
 	header, err := payload.ToHeader(
-		merkle.NewMerkleizer[[32]byte, common.Root](),
 		uint64(16), uint64(80087),
 	)
 	require.NoError(t, err)

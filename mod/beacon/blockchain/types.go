@@ -172,7 +172,7 @@ type ReadOnlyBeaconState[
 	// GetSlot retrieves the current slot of the beacon state.
 	GetSlot() (math.Slot, error)
 	// HashTreeRoot returns the hash tree root of the beacon state.
-	HashTreeRoot() ([32]byte, error)
+	HashTreeRoot() common.Root
 }
 
 // StateProcessor defines the interface for processing various state transitions

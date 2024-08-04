@@ -47,13 +47,9 @@ type AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT any] interface {
 // BlockStore is the interface for block storage.
 type BlockStore[BeaconBlockT any] interface {
 	// Get retrieves the block at the given slot.
-	Get(slot uint64) (BeaconBlockT, error)
+	Get(slot math.Slot) (BeaconBlockT, error)
 	// GetSlotByRoot retrieves the slot by a given root from the store.
-	GetSlotByRoot(root [32]byte) (uint64, error)
-	// Prune prunes the block store of [start, end).
-	Prune(start, end uint64) error
-	// Set sets the block at the given slot.
-	Set(slot uint64, block BeaconBlockT) error
+	GetSlotByRoot(root common.Root) (math.Slot, error)
 }
 
 // Deposit is a struct that represents a deposit.
@@ -84,6 +80,7 @@ type BeaconStore[
 	ExecutionPayloadHeaderT,
 	ForkT,
 	ValidatorT any,
+	ValidatorsT ~[]ValidatorT,
 ] interface {
 	// Context returns the context of the key-value store.
 	Context() context.Context
@@ -137,7 +134,7 @@ type BeaconStore[
 	// SetEth1Data sets the eth1 data.
 	SetEth1Data(data Eth1DataT) error
 	// GetValidators retrieves all validators.
-	GetValidators() ([]ValidatorT, error)
+	GetValidators() (ValidatorsT, error)
 	// GetBalances retrieves all balances.
 	GetBalances() ([]uint64, error)
 	// GetNextWithdrawalIndex retrieves the next withdrawal index.

@@ -20,6 +20,8 @@
 
 package schema
 
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+
 type ID uint8
 
 const (
@@ -93,14 +95,14 @@ type MerkleizableSSZObject[RootT ~[32]byte] interface {
 	SizeSSZ() uint32
 	// HashTreeRoot computes and returns the hash tree root of the data as
 	// RootT and an error if the computation fails.
-	HashTreeRoot() (RootT, error)
+	HashTreeRoot() RootT
 	// MarshalSSZ marshals the data into SSZ format.
 	MarshalSSZ() ([]byte, error)
 }
 
 // MinimalSSZObject is the smallest interface of an SSZable type.
 type MinimalSSZObject interface {
-	MerkleizableSSZObject[[32]byte]
+	MerkleizableSSZObject[common.Root]
 	// MarshalSSZ marshals the type into SSZ format.
 	IsFixed() bool
 	// Type returns the type of the SSZ object.

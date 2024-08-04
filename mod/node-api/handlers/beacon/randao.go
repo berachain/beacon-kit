@@ -21,10 +21,9 @@
 package beacon
 
 import (
-	"strconv"
-
 	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 func (h *Handler[_, ContextT, _, _]) GetRandao(c ContextT) (any, error) {
@@ -39,9 +38,9 @@ func (h *Handler[_, ContextT, _, _]) GetRandao(c ContextT) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	epoch := uint64(0)
+	epoch := math.Epoch(0)
 	if req.Epoch != "" {
-		epoch, err = strconv.ParseUint(req.Epoch, 10, 64)
+		epoch, err = utils.U64FromString(req.Epoch)
 		if err != nil {
 			return nil, err
 		}

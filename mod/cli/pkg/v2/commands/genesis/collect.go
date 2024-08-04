@@ -26,7 +26,6 @@ import (
 	"strings"
 
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/context"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
@@ -71,7 +70,7 @@ func CollectGenesisDepositsCmd() *cobra.Command {
 				)
 			}
 
-			genesisInfo := &genesis.Genesis[
+			genesisInfo := &types.Genesis[
 				*types.Deposit,
 				*types.ExecutionPayloadHeader,
 			]{}

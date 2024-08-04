@@ -17,7 +17,7 @@ require (
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240619234034-fe96d94eafef
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157
-	github.com/cometbft/cometbft v1.0.0-rc1.0.20240727041726-672aa134407b
+	github.com/cometbft/cometbft v1.0.0-rc1.0.20240729121641-d06d2e8229ee
 	github.com/cosmos/cosmos-sdk v0.53.0
 	github.com/ethereum/go-ethereum v1.14.6
 	github.com/holiman/uint256 v1.3.0
@@ -110,7 +110,7 @@ require (
 	github.com/go-yaml/yaml v2.1.0+incompatible // indirect
 	github.com/goccy/go-json v0.10.3 // indirect
 	github.com/godbus/dbus v0.0.0-20190726142602-4481cbc300e2 // indirect
-	github.com/gofrs/flock v0.12.0 // indirect
+	github.com/gofrs/flock v0.12.1 // indirect
 	github.com/gofrs/uuid v4.4.0+incompatible // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect

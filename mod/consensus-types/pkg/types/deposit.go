@@ -22,10 +22,8 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
@@ -71,6 +69,11 @@ func NewDeposit(
 		Signature:   signature,
 		Index:       index,
 	}
+}
+
+// Empty creates an empty Deposit instance.
+func (d *Deposit) Empty() *Deposit {
+	return &Deposit{}
 }
 
 // New creates a new Deposit instance.
@@ -134,8 +137,8 @@ func (d *Deposit) SizeSSZ() uint32 {
 }
 
 // HashTreeRoot computes the Merkleization of the Deposit object.
-func (d *Deposit) HashTreeRoot() ([32]byte, error) {
-	return ssz.HashSequential(d), nil
+func (d *Deposit) HashTreeRoot() common.Root {
+	return ssz.HashSequential(d)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -207,16 +210,4 @@ func (d *Deposit) GetSignature() crypto.BLSSignature {
 // GetWithdrawalCredentials returns the staking credentials of the deposit.
 func (d *Deposit) GetWithdrawalCredentials() WithdrawalCredentials {
 	return d.Credentials
-}
-
-// Deposits is a typealias for a list of Deposits.
-type Deposits []*Deposit
-
-// HashTreeRoot returns the hash tree root of the Withdrawals list.
-func (d Deposits) HashTreeRoot() (common.Root, error) {
-	// TODO: read max deposits from the chain spec.
-	merkleizer := merkle.NewMerkleizer[[32]byte, *Deposit]()
-	return merkleizer.MerkleizeListComposite(
-		d, constants.MaxDepositsPerBlock,
-	)
 }

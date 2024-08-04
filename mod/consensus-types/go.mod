@@ -9,6 +9,7 @@ require (
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157
 	github.com/ferranbt/fastssz v0.1.4-0.20240629094022-eac385e6ee79
+	github.com/holiman/uint256 v1.3.0
 	github.com/karalabe/ssz v0.2.1-0.20240724074312-3d1ff7a6f7c4
 	github.com/stretchr/testify v1.9.0
 
@@ -29,7 +30,7 @@ require (
 	github.com/cockroachdb/pebble v1.1.1 // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
-	github.com/cometbft/cometbft v1.0.0-rc1.0.20240727041726-672aa134407b // indirect
+	github.com/cometbft/cometbft v1.0.0-rc1.0.20240729121641-d06d2e8229ee // indirect
 	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240711183925-948692fddcbe // indirect
 	github.com/consensys/bavard v0.1.13 // indirect
 	github.com/consensys/gnark-crypto v0.12.1 // indirect
@@ -48,14 +49,13 @@ require (
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/goccy/go-json v0.10.3 // indirect
-	github.com/gofrs/flock v0.12.0 // indirect
+	github.com/gofrs/flock v0.12.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v0.0.5-0.20220116011046-fa5810519dcb // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/holiman/bloomfilter/v2 v2.0.3 // indirect
-	github.com/holiman/uint256 v1.3.0 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
 	github.com/kr/pretty v0.3.1 // indirect

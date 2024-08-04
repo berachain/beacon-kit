@@ -21,8 +21,6 @@
 package beacon
 
 import (
-	"strconv"
-
 	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
@@ -37,7 +35,7 @@ func (h *Handler[
 	if err != nil {
 		return nil, err
 	}
-	slot, err := strconv.ParseUint(req.Slot, 10, 64)
+	slot, err := utils.U64FromString(req.Slot)
 	if err != nil {
 		return nil, err
 	}

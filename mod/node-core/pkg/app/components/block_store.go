@@ -50,18 +50,13 @@ func ProvideBlockStore(
 		return nil, err
 	}
 
-	return block.NewStore[*BeaconBlock](
-		&block.KVStoreProvider{
-			KVStoreWithBatch: kvp,
-		},
-	), nil
+	return block.NewStore[*BeaconBlock](storage.NewKVStoreProvider(kvp)), nil
 }
 
 // BlockPrunerInput is the input for the block pruner.
 type BlockPrunerInput struct {
 	depinject.In
 
-	Config      *config.Config
 	BlockBroker *BlockBroker
 	BlockStore  *BlockStore
 	Logger      *Logger

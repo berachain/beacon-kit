@@ -24,6 +24,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // Backend is the db access layer for the beacon node-api.
@@ -38,7 +39,7 @@ type Backend[
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT BeaconState[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-		ValidatorT, WithdrawalT,
+		ValidatorT, ValidatorsT, WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
 	BlobSidecarsT any,
@@ -55,12 +56,15 @@ type Backend[
 		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
 	],
 	ValidatorT Validator[WithdrawalCredentialsT],
+	ValidatorsT ~[]ValidatorT,
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalCredentialsT WithdrawalCredentials,
 ] struct {
 	sb   StorageBackendT
 	cs   common.ChainSpec
 	node NodeT
+
+	sp StateProcessor[BeaconStateT]
 }
 
 // New creates and returns a new Backend instance.
@@ -73,7 +77,7 @@ func New[
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT BeaconState[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-		ValidatorT, WithdrawalT,
+		ValidatorT, ValidatorsT, WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
 	BlobSidecarsT any,
@@ -90,44 +94,107 @@ func New[
 		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
 	],
 	ValidatorT Validator[WithdrawalCredentialsT],
+	ValidatorsT ~[]ValidatorT,
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalCredentialsT WithdrawalCredentials,
 ](
-	storageBackend StorageBackendT, cs common.ChainSpec,
+	storageBackend StorageBackendT,
+	cs common.ChainSpec,
+	sp StateProcessor[BeaconStateT],
 ) *Backend[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BlockStoreT,
 	ContextT, DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-	NodeT, StateStoreT, StorageBackendT, ValidatorT, WithdrawalT,
+	NodeT, StateStoreT, StorageBackendT, ValidatorT, ValidatorsT, WithdrawalT,
 	WithdrawalCredentialsT,
 ] {
 	return &Backend[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 		BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BlockStoreT,
 		ContextT, DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-		NodeT, StateStoreT, StorageBackendT, ValidatorT, WithdrawalT,
+		NodeT, StateStoreT, StorageBackendT, ValidatorT, ValidatorsT, WithdrawalT,
 		WithdrawalCredentialsT,
 	]{
 		sb: storageBackend,
 		cs: cs,
+		sp: sp,
 	}
 }
 
+// AttachNode sets the node on the backend for querying historical heights.
 func (b *Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, NodeT, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, NodeT, _, _, _, _, _, _,
 ]) AttachNode(node NodeT) {
 	b.node = node
 }
 
 // ChainSpec returns the chain spec from the backend.
 func (b *Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, NodeT, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, NodeT, _, _, _, _, _, _,
 ]) ChainSpec() common.ChainSpec {
 	return b.cs
 }
 
+// GetSlotByRoot retrieves the slot by a given root from the block store.
 func (b *Backend[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) GetSlotByRoot(root [32]byte) (uint64, error) {
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) GetSlotByRoot(root common.Root) (math.Slot, error) {
 	return b.sb.BlockStore().GetSlotByRoot(root)
+}
+
+// GetSlotByExecutionNumber retrieves the slot by a given execution number from
+// the block store.
+func (b *Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error) {
+	return b.sb.BlockStore().GetSlotByExecutionNumber(executionNumber)
+}
+
+// stateFromSlot returns the state at the given slot, after also processing the
+// next slot to ensure the returned beacon state is up to date.
+func (b *Backend[
+	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) stateFromSlot(slot math.Slot) (BeaconStateT, math.Slot, error) {
+	var (
+		st  BeaconStateT
+		err error
+	)
+	if st, slot, err = b.stateFromSlotRaw(slot); err != nil {
+		return st, slot, err
+	}
+
+	// Process the slot to update the latest state and block roots.
+	if _, err = b.sp.ProcessSlots(st, slot+1); err != nil {
+		return st, slot, err
+	}
+
+	// We need to set the slot on the state back since ProcessSlot will update
+	// it to slot + 1.
+	err = st.SetSlot(slot)
+	return st, slot, err
+}
+
+// stateFromSlotRaw returns the state at the given slot using query context,
+// resolving an input slot of 0 to the latest slot. It does not process the
+// next slot on the beacon state.
+func (b *Backend[
+	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) stateFromSlotRaw(slot math.Slot) (BeaconStateT, math.Slot, error) {
+	var st BeaconStateT
+	//#nosec:G701 // not an issue in practice.
+	queryCtx, err := b.node.CreateQueryContext(int64(slot), false)
+	if err != nil {
+		return st, slot, err
+	}
+	st = b.sb.StateFromContext(queryCtx)
+
+	// If using height 0 for the query context, make sure to return the latest
+	// slot.
+	if slot == 0 {
+		slot, err = st.GetSlot()
+		if err != nil {
+			return st, slot, err
+		}
+	}
+	return st, slot, err
 }

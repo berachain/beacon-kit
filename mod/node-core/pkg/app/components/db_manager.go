@@ -29,8 +29,8 @@ import (
 type DBManagerInput struct {
 	depinject.In
 	AvailabilityPruner DAPruner
-	DepositPruner      DepositPruner
 	BlockPruner        BlockPruner
+	DepositPruner      DepositPruner
 	Logger             *Logger
 }
 

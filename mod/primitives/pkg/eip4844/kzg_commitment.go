@@ -22,6 +22,7 @@ package eip4844
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 	"github.com/prysmaticlabs/gohashtree"
@@ -53,9 +54,9 @@ func (c KZGCommitment) ToHashChunks() [][32]byte {
 }
 
 // HashTreeRoot returns the hash tree root of the commitment.
-func (c KZGCommitment) HashTreeRoot() ([32]byte, error) {
+func (c KZGCommitment) HashTreeRoot() common.Root {
 	chunks := c.ToHashChunks()
-	return chunks[0], nil
+	return chunks[0]
 }
 
 // UnmarshalJSON parses a commitment in hex syntax.
@@ -88,15 +89,10 @@ func (c KZGCommitments[HashT]) ToVersionedHashes() []HashT {
 
 // Leafify converts the commitments to a slice of leaves. Each leaf is the
 // hash tree root of each commitment.
-func (c KZGCommitments[HashT]) Leafify() ([][32]byte, error) {
-	var (
-		leaves = make([][32]byte, len(c))
-		err    error
-	)
+func (c KZGCommitments[HashT]) Leafify() []common.Root {
+	leaves := make([]common.Root, len(c))
 	for i, commitment := range c {
-		if leaves[i], err = commitment.HashTreeRoot(); err != nil {
-			return nil, err
-		}
+		leaves[i] = commitment.HashTreeRoot()
 	}
-	return leaves, nil
+	return leaves
 }

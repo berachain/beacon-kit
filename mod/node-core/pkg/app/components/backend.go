@@ -30,10 +30,10 @@ import (
 type StorageBackendInput struct {
 	depinject.In
 	AvailabilityStore *AvailabilityStore
+	BlockStore        *BlockStore
 	ChainSpec         common.ChainSpec
 	DepositStore      *DepositStore
 	BeaconStore       *BeaconStore
-	BlockStore        *BlockStore
 }
 
 // ProvideStorageBackend is the depinject provider that returns a beacon storage
@@ -57,6 +57,7 @@ func ProvideStorageBackend(
 		*ExecutionPayloadHeader,
 		*Fork,
 		*Validator,
+		Validators,
 		*Withdrawal,
 		WithdrawalCredentials,
 	](

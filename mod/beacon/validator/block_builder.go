@@ -188,7 +188,7 @@ func (s *Service[
 		return crypto.BLSSignature{}, err
 	}
 
-	signingRoot, err := forkData.New(
+	signingRoot := forkData.New(
 		version.FromUint32[common.Version](
 			s.chainSpec.ActiveForkVersionForEpoch(epoch),
 		), genesisValidatorsRoot,
@@ -196,10 +196,6 @@ func (s *Service[
 		s.chainSpec.DomainTypeRandao(),
 		epoch,
 	)
-
-	if err != nil {
-		return crypto.BLSSignature{}, err
-	}
 	return s.signer.Sign(signingRoot[:])
 }
 
@@ -384,5 +380,5 @@ func (s *Service[
 		return common.Root{}, err
 	}
 
-	return st.HashTreeRoot()
+	return st.HashTreeRoot(), nil
 }

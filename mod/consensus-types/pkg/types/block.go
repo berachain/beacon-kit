@@ -46,15 +46,8 @@ type BeaconBlock struct {
 }
 
 // Empty creates an empty beacon block.
-func (b *BeaconBlock) Empty(forkVersion uint32) *BeaconBlock {
-	switch forkVersion {
-	case version.Deneb:
-		return &BeaconBlock{}
-	case version.DenebPlus:
-		panic("unsupported fork version")
-	default:
-		panic("fork version not supported")
-	}
+func (*BeaconBlock) Empty() *BeaconBlock {
+	return &BeaconBlock{}
 }
 
 // NewWithVersion assembles a new beacon block from the given.
@@ -142,8 +135,8 @@ func (b *BeaconBlock) UnmarshalSSZ(buf []byte) error {
 }
 
 // HashTreeRoot computes the Merkleization of the BeaconBlock object.
-func (b *BeaconBlock) HashTreeRoot() ([32]byte, error) {
-	return ssz.HashConcurrent(b), nil
+func (b *BeaconBlock) HashTreeRoot() common.Root {
+	return ssz.HashConcurrent(b)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -233,16 +226,17 @@ func (b *BeaconBlock) GetBody() *BeaconBlockBody {
 
 // GetHeader builds a BeaconBlockHeader from the BeaconBlock.
 func (b *BeaconBlock) GetHeader() *BeaconBlockHeader {
-	bodyRoot, err := b.GetBody().HashTreeRoot()
-	if err != nil {
-		return nil
-	}
-
 	return &BeaconBlockHeader{
 		Slot:            b.Slot,
 		ProposerIndex:   b.ProposerIndex,
 		ParentBlockRoot: b.ParentRoot,
 		StateRoot:       b.StateRoot,
-		BodyRoot:        bodyRoot,
+		BodyRoot:        b.GetBody().HashTreeRoot(),
 	}
+}
+
+// GetExecutionNumber retrieves the execution number of the BeaconBlock from
+// the ExecutionPayload.
+func (b *BeaconBlock) GetExecutionNumber() math.U64 {
+	return b.Body.ExecutionPayload.Number
 }

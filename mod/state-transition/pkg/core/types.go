@@ -30,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -79,7 +78,7 @@ type BeaconBlockBody[
 	// GetDeposits returns the list of deposits.
 	GetDeposits() []DepositT
 	// HashTreeRoot returns the hash tree root of the block body.
-	HashTreeRoot() ([32]byte, error)
+	HashTreeRoot() common.Root
 	// GetBlobKzgCommitments returns the KZG commitments for the blobs.
 	GetBlobKzgCommitments() eip4844.KZGCommitments[gethprimitives.ExecutionHash]
 }
@@ -93,7 +92,7 @@ type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
 		stateRoot common.Root,
 		bodyRoot common.Root,
 	) BeaconBlockHeaderT
-	HashTreeRoot() ([32]byte, error)
+	HashTreeRoot() common.Root
 	GetSlot() math.Slot
 	GetProposerIndex() math.ValidatorIndex
 	GetParentBlockRoot() common.Root
@@ -163,11 +162,10 @@ type ExecutionPayload[
 	GetTimestamp() math.U64
 	GetGasUsed() math.U64
 	GetExtraData() []byte
-	GetBaseFeePerGas() math.U256L
+	GetBaseFeePerGas() *math.U256
 	GetBlobGasUsed() math.U64
 	GetExcessBlobGas() math.U64
 	ToHeader(
-		bartioTxsMerkleizer *merkle.Merkleizer[[32]byte, common.Root],
 		maxWithdrawalsPerPayload uint64,
 		eth1ChainID uint64,
 	) (ExecutionPayloadHeaderT, error)
@@ -200,7 +198,7 @@ type ForkData[ForkDataT any] interface {
 	ComputeRandaoSigningRoot(
 		domainType common.DomainType,
 		epoch math.Epoch,
-	) (common.Root, error)
+	) common.Root
 }
 
 // Validator represents an interface for a validator with generic type
@@ -230,6 +228,10 @@ type Validator[
 	SetEffectiveBalance(math.Gwei)
 	// GetWithdrawableEpoch returns the epoch when the validator can withdraw.
 	GetWithdrawableEpoch() math.Epoch
+}
+
+type Validators interface {
+	HashTreeRoot() common.Root
 }
 
 // Withdrawal is the interface for a withdrawal.

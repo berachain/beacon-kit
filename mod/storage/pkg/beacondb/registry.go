@@ -29,7 +29,7 @@ import (
 // AddValidator registers a new validator in the beacon state.
 func (kv *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) AddValidator(val ValidatorT) error {
 	// Get the next validator index from the sequence.
 	idx, err := kv.validatorIndex.Next(kv.ctx)
@@ -48,7 +48,7 @@ func (kv *Store[
 // AddValidator registers a new validator in the beacon state.
 func (kv *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) AddValidatorBartio(val ValidatorT) error {
 	// Get the ne
 	idx, err := kv.validatorIndex.Next(kv.ctx)
@@ -68,7 +68,7 @@ func (kv *Store[
 // UpdateValidatorAtIndex updates a validator at a specific index.
 func (kv *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) UpdateValidatorAtIndex(
 	index math.ValidatorIndex,
 	val ValidatorT,
@@ -79,7 +79,7 @@ func (kv *Store[
 // ValidatorIndexByPubkey returns the validator address by index.
 func (kv *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) ValidatorIndexByPubkey(
 	pubkey crypto.BLSPubkey,
 ) (math.ValidatorIndex, error) {
@@ -96,7 +96,7 @@ func (kv *Store[
 // ValidatorIndexByConsensusAddress returns the validator address by index.
 func (kv *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) ValidatorIndexByConsensusAddress(
 	cometBFTAddress []byte,
 ) (math.ValidatorIndex, error) {
@@ -113,7 +113,7 @@ func (kv *Store[
 // ValidatorByIndex returns the validator address by index.
 func (kv *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) ValidatorByIndex(
 	index math.ValidatorIndex,
 ) (ValidatorT, error) {
@@ -128,9 +128,9 @@ func (kv *Store[
 // GetValidators retrieves all validators from the beacon state.
 func (kv *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) GetValidators() (
-	[]ValidatorT, error,
+	ValidatorsT, error,
 ) {
 	registrySize, err := kv.validatorIndex.Peek(kv.ctx)
 	if err != nil {
@@ -164,7 +164,7 @@ func (kv *Store[
 // GetTotalValidators returns the total number of validators.
 func (kv *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) GetTotalValidators() (uint64, error) {
 	validators, err := kv.GetValidators()
 	if err != nil {
@@ -177,7 +177,7 @@ func (kv *Store[
 // effective balance from the beacon state.
 func (kv *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) GetValidatorsByEffectiveBalance() (
 	[]ValidatorT, error,
 ) {
@@ -212,7 +212,7 @@ func (kv *Store[
 // GetBalance returns the balance of a validator.
 func (kv *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) GetBalance(
 	idx math.ValidatorIndex,
 ) (math.Gwei, error) {
@@ -223,7 +223,7 @@ func (kv *Store[
 // SetBalance sets the balance of a validator.
 func (kv *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) SetBalance(
 	idx math.ValidatorIndex,
 	balance math.Gwei,
@@ -234,7 +234,7 @@ func (kv *Store[
 // GetBalances returns the balancse of all validator.
 func (kv *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) GetBalances() ([]uint64, error) {
 	var balances []uint64
 	iter, err := kv.balances.Iterate(kv.ctx, nil)
@@ -259,7 +259,7 @@ func (kv *Store[
 // TODO: this shouldn't live in KVStore
 func (kv *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) GetTotalActiveBalances(
 	slotsPerEpoch uint64,
 ) (math.Gwei, error) {

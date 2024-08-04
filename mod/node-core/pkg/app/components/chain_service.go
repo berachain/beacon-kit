@@ -32,6 +32,7 @@ import (
 // ChainServiceInput is the input for the chain service provider.
 type ChainServiceInput struct {
 	depinject.In
+
 	BlockBroker           *BlockBroker
 	ChainSpec             common.ChainSpec
 	Cfg                   *config.Config

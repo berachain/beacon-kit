@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	fastssz "github.com/ferranbt/fastssz"
@@ -64,7 +63,7 @@ type ExecutionPayload struct {
 	// ExtraData is the extra data of the block.
 	ExtraData bytes.Bytes `json:"extraData"`
 	// BaseFeePerGas is the base fee per gas.
-	BaseFeePerGas math.Wei `json:"baseFeePerGas"`
+	BaseFeePerGas *math.U256 `json:"baseFeePerGas"`
 	// BlockHash is the hash of the block.
 	BlockHash gethprimitives.ExecutionHash `json:"blockHash"`
 	// Transactions is the list of transactions in the block.
@@ -110,7 +109,7 @@ func (p *ExecutionPayload) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineUint64(codec, &p.GasUsed)
 	ssz.DefineUint64(codec, &p.Timestamp)
 	ssz.DefineDynamicBytesOffset(codec, (*[]byte)(&p.ExtraData), 32)
-	ssz.DefineStaticBytes(codec, &p.BaseFeePerGas)
+	ssz.DefineUint256(codec, &p.BaseFeePerGas)
 	ssz.DefineStaticBytes(codec, &p.BlockHash)
 	ssz.DefineSliceOfDynamicBytesOffset(
 		codec,
@@ -145,8 +144,8 @@ func (p *ExecutionPayload) UnmarshalSSZ(bz []byte) error {
 }
 
 // HashTreeRoot returns the hash tree root of the ExecutionPayload.
-func (p *ExecutionPayload) HashTreeRoot() ([32]byte, error) {
-	return ssz.HashConcurrent(p), nil
+func (p *ExecutionPayload) HashTreeRoot() common.Root {
+	return ssz.HashConcurrent(p)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -211,7 +210,11 @@ func (p *ExecutionPayload) HashTreeRootWith(hh fastssz.HashWalker) error {
 	}
 
 	// Field (11) 'BaseFeePerGas'
-	hh.PutBytes(p.BaseFeePerGas[:])
+	bz, err := p.BaseFeePerGas.MarshalSSZ()
+	if err != nil {
+		return err
+	}
+	hh.PutBytes(bz)
 
 	// Field (12) 'BlockHash'
 	hh.PutBytes(p.BlockHash[:])
@@ -245,7 +248,7 @@ func (p *ExecutionPayload) HashTreeRootWith(hh fastssz.HashWalker) error {
 			return fastssz.ErrIncorrectListSize
 		}
 		for _, elem := range p.Withdrawals {
-			if err := elem.HashTreeRootWith(hh); err != nil {
+			if err = elem.HashTreeRootWith(hh); err != nil {
 				return err
 			}
 		}
@@ -285,7 +288,7 @@ func (p *ExecutionPayload) MarshalJSON() ([]byte, error) {
 		GasUsed       math.U64                        `json:"gasUsed"`
 		Timestamp     math.U64                        `json:"timestamp"`
 		ExtraData     bytes.Bytes                     `json:"extraData"`
-		BaseFeePerGas math.U256L                      `json:"baseFeePerGas"`
+		BaseFeePerGas *math.U256Hex                   `json:"baseFeePerGas"`
 		BlockHash     gethprimitives.ExecutionHash    `json:"blockHash"`
 		Transactions  []bytes.Bytes                   `json:"transactions"`
 		Withdrawals   []*engineprimitives.Withdrawal  `json:"withdrawals"`
@@ -304,7 +307,7 @@ func (p *ExecutionPayload) MarshalJSON() ([]byte, error) {
 	enc.GasUsed = p.GasUsed
 	enc.Timestamp = p.Timestamp
 	enc.ExtraData = p.ExtraData
-	enc.BaseFeePerGas = p.BaseFeePerGas
+	enc.BaseFeePerGas = (*math.U256Hex)(p.BaseFeePerGas)
 	enc.BlockHash = p.BlockHash
 	enc.Transactions = make([]bytes.Bytes, len(p.Transactions))
 	for k, v := range p.Transactions {
@@ -332,7 +335,7 @@ func (p *ExecutionPayload) UnmarshalJSON(input []byte) error {
 		GasUsed       *math.U64                        `json:"gasUsed"`
 		Timestamp     *math.U64                        `json:"timestamp"`
 		ExtraData     *bytes.Bytes                     `json:"extraData"`
-		BaseFeePerGas *math.U256L                      `json:"baseFeePerGas"`
+		BaseFeePerGas *math.U256Hex                    `json:"baseFeePerGas"`
 		BlockHash     *gethprimitives.ExecutionHash    `json:"blockHash"`
 		Transactions  []bytes.Bytes                    `json:"transactions"`
 		Withdrawals   []*engineprimitives.Withdrawal   `json:"withdrawals"`
@@ -414,7 +417,7 @@ func (p *ExecutionPayload) UnmarshalJSON(input []byte) error {
 			"missing required field 'baseFeePerGas' for ExecutionPayload",
 		)
 	}
-	p.BaseFeePerGas = *dec.BaseFeePerGas
+	p.BaseFeePerGas = (*math.U256)(dec.BaseFeePerGas)
 	if dec.BlockHash == nil {
 		return errors.New(
 			"missing required field 'blockHash' for ExecutionPayload",
@@ -520,7 +523,7 @@ func (p *ExecutionPayload) GetExtraData() []byte {
 }
 
 // GetBaseFeePerGas returns the base fee per gas of the ExecutionPayload.
-func (p *ExecutionPayload) GetBaseFeePerGas() math.Wei {
+func (p *ExecutionPayload) GetBaseFeePerGas() *math.U256 {
 	return p.BaseFeePerGas
 }
 
@@ -551,8 +554,6 @@ func (p *ExecutionPayload) GetExcessBlobGas() math.U64 {
 
 // ToHeader converts the ExecutionPayload to an ExecutionPayloadHeader.
 func (p *ExecutionPayload) ToHeader(
-	bartioTxsMerkleizer *merkle.Merkleizer[[32]byte, common.Root],
-	// TODO: re-enable at a later point.
 	_ uint64,
 	eth1ChainID uint64,
 ) (*ExecutionPayloadHeader, error) {
@@ -563,7 +564,7 @@ func (p *ExecutionPayload) ToHeader(
 	if eth1ChainID == spec.TestnetEth1ChainID {
 		txsRoot = engineprimitives.BartioTransactions(
 			p.GetTransactions(),
-		).HashTreeRootWith(bartioTxsMerkleizer)
+		).HashTreeRoot()
 	} else {
 		txsRoot = p.GetTransactions().HashTreeRoot()
 	}

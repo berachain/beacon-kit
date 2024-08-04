@@ -26,8 +26,6 @@
 package types
 
 import (
-	"unsafe"
-
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -149,8 +147,8 @@ func (b *BeaconBlockBody) UnmarshalSSZ(buf []byte) error {
 }
 
 // HashTreeRoot returns the SSZ hash tree root of the BeaconBlockBody.
-func (b *BeaconBlockBody) HashTreeRoot() ([32]byte, error) {
-	return ssz.HashConcurrent(b), nil
+func (b *BeaconBlockBody) HashTreeRoot() common.Root {
+	return ssz.HashConcurrent(b)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -293,37 +291,16 @@ func (b *BeaconBlockBody) SetSlashingInfo(_ []*SlashingInfo) {
 }
 
 // GetTopLevelRoots returns the top-level roots of the BeaconBlockBody.
-func (b *BeaconBlockBody) GetTopLevelRoots() ([][32]byte, error) {
-	var (
-		err   error
-		layer = make([]common.Root, BodyLengthDeneb)
-	)
-
-	layer[0], err = b.GetRandaoReveal().HashTreeRoot()
-	if err != nil {
-		return nil, err
+func (b *BeaconBlockBody) GetTopLevelRoots() []common.Root {
+	return []common.Root{
+		b.GetRandaoReveal().HashTreeRoot(),
+		b.Eth1Data.HashTreeRoot(),
+		b.GetGraffiti().HashTreeRoot(),
+		Deposits(b.GetDeposits()).HashTreeRoot(),
+		b.GetExecutionPayload().HashTreeRoot(),
+		// I think this is a bug.
+		common.Root{},
 	}
-
-	layer[1], err = b.Eth1Data.HashTreeRoot()
-	if err != nil {
-		return nil, err
-	}
-
-	layer[2] = b.GetGraffiti()
-
-	layer[3], err = Deposits(b.GetDeposits()).HashTreeRoot()
-	if err != nil {
-		return nil, err
-	}
-
-	layer[4], err = b.GetExecutionPayload().HashTreeRoot()
-	if err != nil {
-		return nil, err
-	}
-
-	// KZG commitments is not needed
-	//#nosec:G103 // Okay to go from common.Root to [32]byte.
-	return *(*[][32]byte)(unsafe.Pointer(&layer)), nil
 }
 
 // Length returns the number of fields in the BeaconBlockBody struct.
