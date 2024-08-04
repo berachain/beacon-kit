@@ -130,7 +130,7 @@ func (kv *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetValidators() (
-	[]ValidatorT, error,
+	ValidatorsT, error,
 ) {
 	registrySize, err := kv.validatorIndex.Peek(kv.ctx)
 	if err != nil {

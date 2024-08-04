@@ -228,6 +228,10 @@ type Validator[
 	GetWithdrawableEpoch() math.Epoch
 }
 
+type Validators interface {
+	HashTreeRoot() common.Root
+}
+
 // Withdrawal is the interface for a withdrawal.
 type Withdrawal[WithdrawalT any] interface {
 	// Equals returns true if the withdrawal is equal to the other.

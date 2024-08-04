@@ -135,7 +135,7 @@ type KVStore[
 	// SetEth1Data sets the eth1 data.
 	SetEth1Data(data Eth1DataT) error
 	// GetValidators retrieves all validators.
-	GetValidators() ([]ValidatorT, error)
+	GetValidators() (ValidatorsT, error)
 	// GetBalances retrieves all balances.
 	GetBalances() ([]uint64, error)
 	// GetNextWithdrawalIndex retrieves the next withdrawal index.

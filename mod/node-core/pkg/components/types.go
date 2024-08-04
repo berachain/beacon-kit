@@ -107,7 +107,7 @@ type (
 		*Fork,
 		*KVStore,
 		*Validator,
-		// Validators,
+		Validators,
 		*Withdrawal,
 		WithdrawalCredentials,
 	]
@@ -349,7 +349,7 @@ type (
 		*ForkData,
 		*KVStore,
 		*Validator,
-		// Validators,
+		Validators,
 		*Withdrawal,
 		WithdrawalCredentials,
 	]
