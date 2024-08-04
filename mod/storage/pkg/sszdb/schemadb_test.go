@@ -3,6 +3,7 @@ package sszdb_test
 import (
 	"bytes"
 	"context"
+	"os"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -12,6 +13,48 @@ import (
 	"github.com/holiman/uint256"
 	"github.com/stretchr/testify/require"
 )
+
+func testBeaconState() (*types.BeaconState[
+	*types.BeaconBlockHeader,
+	*types.Eth1Data,
+	*types.ExecutionPayloadHeader,
+	*types.Fork,
+	*types.Validator,
+	types.BeaconBlockHeader,
+	types.Eth1Data,
+	types.ExecutionPayloadHeader,
+	types.Fork,
+	types.Validator,
+	*schema.Codec,
+], error) {
+	bz, err := os.ReadFile("testdata/beacon_state.ssz")
+	if err != nil {
+		return nil, err
+	}
+	beacon := &types.BeaconState[
+		*types.BeaconBlockHeader,
+		*types.Eth1Data,
+		*types.ExecutionPayloadHeader,
+		*types.Fork,
+		*types.Validator,
+		types.BeaconBlockHeader,
+		types.Eth1Data,
+		types.ExecutionPayloadHeader,
+		types.Fork,
+		types.Validator,
+		*schema.Codec,
+	]{}
+	err = beacon.UnmarshalSSZ(bz)
+	if err != nil {
+		return nil, err
+	}
+	return beacon, nil
+}
+
+func TestTree_Basics(t *testing.T) {
+	_, err := testBeaconState()
+	require.NoError(t, err)
+}
 
 func TestDB_Metadata(t *testing.T) {
 	beacon := &types.BeaconState[
