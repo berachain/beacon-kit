@@ -81,3 +81,8 @@ func DecodeFromBytes(data []byte, obj ssz.Object[*Codec]) error {
 	codec := &Codec{dec: new(ssz.Decoder[*Codec])}
 	return ssz.DecodeFromBytesWithCodec(codec, data, obj)
 }
+
+func EncodeToBytes(buf []byte, obj ssz.Object[*Codec]) error {
+	codec := &Codec{enc: new(ssz.Encoder[*Codec])}
+	return ssz.EncodeToBytesWithCodec(codec, buf, obj)
+}

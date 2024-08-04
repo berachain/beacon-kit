@@ -156,7 +156,7 @@ func (h *ExecutionPayloadHeader) DefineSSZ(codec *schema.Codec) {
 // bytes.
 func (h *ExecutionPayloadHeader) MarshalSSZ() ([]byte, error) {
 	buf := make([]byte, h.SizeSSZ(false))
-	return buf, ssz.EncodeToBytes(buf, h)
+	return buf, schema.EncodeToBytes(buf, h)
 }
 
 // UnmarshalSSZ unmarshals the ExecutionPayloadHeaderDeneb object from a source

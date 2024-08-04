@@ -1,6 +1,7 @@
 package sszdb_test
 
 import (
+	"bytes"
 	"context"
 	"testing"
 
@@ -127,7 +128,10 @@ func TestDB_Metadata(t *testing.T) {
 		}
 	*/
 
+	headerSSZBytes, err := beacon.LatestExecutionPayloadHeader.MarshalSSZ()
+	require.NoError(t, err)
 	headerBz, err := beaconDB.GetLatestExecutionPayloadHeader(ctx)
+	require.True(t, bytes.Equal(headerSSZBytes, headerBz))
 	require.NoError(t, err)
 	var header types.ExecutionPayloadHeader
 	require.NoError(t, header.UnmarshalSSZ(headerBz))
