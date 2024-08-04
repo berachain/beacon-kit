@@ -57,6 +57,7 @@ func ProvideStorageBackend(
 		*Fork,
 		*KVStore,
 		*Validator,
+		Validators,
 		*Withdrawal,
 		WithdrawalCredentials,
 	](

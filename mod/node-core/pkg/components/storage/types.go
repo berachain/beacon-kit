@@ -79,6 +79,7 @@ type KVStore[
 	ExecutionPayloadHeaderT,
 	ForkT,
 	ValidatorT any,
+	ValidatorsT ~[]ValidatorT,
 ] interface {
 	// Context returns the context of the key-value store.
 	Context() context.Context

@@ -38,6 +38,7 @@ type BeaconState[
 	ForkT,
 	KVStoreT,
 	ValidatorT,
+	ValidatorsT,
 	WithdrawalT any,
 ] interface {
 	NewFromDB(

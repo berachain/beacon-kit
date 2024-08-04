@@ -53,7 +53,7 @@ type KVStore[
 		constraints.SSZMarshallable
 	},
 	ValidatorT Validator[ValidatorT],
-	// ValidatorsT ~[]ValidatorT,
+	ValidatorsT ~[]ValidatorT,
 ] struct {
 	ctx   context.Context
 	write func()
@@ -131,17 +131,18 @@ func New[
 		constraints.SSZMarshallable
 	},
 	ValidatorT Validator[ValidatorT],
-	// ValidatorsT ~[]ValidatorT,
+	ValidatorsT ~[]ValidatorT,
 ](
 	kss store.KVStoreService,
 	payloadCodec *encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT],
 ) *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
 ] {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kss)
 	return &KVStore[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-		ForkT, ValidatorT,
+		ForkT, ValidatorT, ValidatorsT,
 	]{
 		ctx: nil,
 		genesisValidatorsRoot: sdkcollections.NewItem(
@@ -273,10 +274,10 @@ func New[
 // Copy returns a copy of the Store.
 func (kv *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) Copy() *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	ForkT, ValidatorT, ValidatorsT,
 ] {
 	// TODO: Decouple the KVStore type from the Cosmos-SDK.
 	cctx, write := sdk.UnwrapSDKContext(kv.ctx).CacheContext()
@@ -288,7 +289,7 @@ func (kv *KVStore[
 // Context returns the context of the Store.
 func (kv *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) Context() context.Context {
 	return kv.ctx
 }
@@ -296,12 +297,12 @@ func (kv *KVStore[
 // WithContext returns a copy of the Store with the given context.
 func (kv *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) WithContext(
 	ctx context.Context,
 ) *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	ForkT, ValidatorT, ValidatorsT,
 ] {
 	cpy := *kv
 	cpy.ctx = ctx
@@ -311,7 +312,7 @@ func (kv *KVStore[
 // Save saves the Store.
 func (kv *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT,
+	ForkT, ValidatorT, ValidatorsT,
 ]) Save() {
 	if kv.write != nil {
 		kv.write()

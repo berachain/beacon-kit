@@ -67,7 +67,7 @@ func ProvideNodeAPIBackend(in NodeAPIBackendInput) *NodeAPIBackend {
 		*KVStore,
 		*StorageBackend,
 		*Validator,
-		any,
+		Validators,
 		*Withdrawal,
 		WithdrawalCredentials,
 	](
