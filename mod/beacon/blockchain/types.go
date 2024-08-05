@@ -48,7 +48,7 @@ type BeaconBlock[
 	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
 	ExecutionPayloadT any,
 ] interface {
-	constraints.SSZMarshallable
+	constraints.SSZMarshallableRootable
 	constraints.Nillable
 	// GetSlot returns the slot of the beacon block.
 	GetSlot() math.Slot
@@ -62,7 +62,7 @@ type BeaconBlock[
 
 // BeaconBlockBody represents the interface for the beacon block body.
 type BeaconBlockBody[ExecutionPayloadT any] interface {
-	constraints.SSZMarshallable
+	constraints.SSZMarshallableRootable
 	constraints.Nillable
 	// GetExecutionPayload returns the execution payload of the beacon block
 	// body.
@@ -71,7 +71,7 @@ type BeaconBlockBody[ExecutionPayloadT any] interface {
 
 // BeaconBlockHeader represents the interface for the beacon block header.
 type BeaconBlockHeader interface {
-	constraints.SSZMarshallable
+	constraints.SSZMarshallableRootable
 	// SetStateRoot sets the state root of the beacon block header.
 	SetStateRoot(common.Root)
 }
@@ -172,7 +172,7 @@ type ReadOnlyBeaconState[
 	// GetSlot retrieves the current slot of the beacon state.
 	GetSlot() (math.Slot, error)
 	// HashTreeRoot returns the hash tree root of the beacon state.
-	HashTreeRoot() ([32]byte, error)
+	HashTreeRoot() common.Root
 }
 
 // StateProcessor defines the interface for processing various state transitions
@@ -215,7 +215,7 @@ type StorageBackend[
 	BlobSidecarsT any,
 ] interface {
 	// AvailabilityStore returns the availability store for the given context.
-	AvailabilityStore(context.Context) AvailabilityStoreT
+	AvailabilityStore() AvailabilityStoreT
 	// StateFromContext retrieves the beacon state from the given context.
 	StateFromContext(context.Context) BeaconStateT
 }

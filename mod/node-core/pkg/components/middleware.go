@@ -32,7 +32,6 @@ import (
 type ABCIMiddlewareInput struct {
 	depinject.In
 	BeaconBlockFeed       *BlockBroker
-	ChainService          *ChainService
 	ChainSpec             common.ChainSpec
 	GenesisBroker         *GenesisBroker
 	Logger                log.Logger[any]
@@ -53,10 +52,9 @@ func ProvideABCIMiddleware(
 	}
 	return middleware.NewABCIMiddleware[
 		*AvailabilityStore, *BeaconBlock, *BlobSidecars,
-		*Deposit, *ExecutionPayload, *Genesis,
+		*Deposit, *ExecutionPayload, *Genesis, *SlotData,
 	](
 		in.ChainSpec,
-		in.ChainService,
 		in.Logger,
 		in.TelemetrySink,
 		in.GenesisBroker,

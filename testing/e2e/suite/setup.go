@@ -47,7 +47,7 @@ func (s *KurtosisE2ESuite) SetupSuite() {
 	s.SetupSuiteWithOptions()
 }
 
-// Option is a function that sets a field on the KurtosisE2ESuite.
+// SetupSuiteWithOptions sets up the test suite with the provided options.
 func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	var (
 		key1, key2, key3 *ecdsa.PrivateKey
@@ -87,7 +87,7 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 
 	// Apply all the provided options, this allows
 	// the test suite to be configured in a flexible manner by
-	// the caller (i.e overriding defaults).
+	// the caller (i.e. overriding defaults).
 	for _, opt := range opts {
 		if err = opt(s); err != nil {
 			s.Require().NoError(err, "Error applying option")
@@ -97,7 +97,7 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 	s.kCtx, err = kurtosis_context.NewKurtosisContextFromLocalEngine()
 	s.Require().NoError(err)
 	s.logger.Info("Destroying any existing enclave...")
-	//#nosec:G703 // its okay if this errors out. It will error out
+	//#nosec:G703 // It's okay if this errors out. It will error out
 	// if there is no enclave to destroy.
 	_ = s.kCtx.DestroyEnclave(s.ctx, "e2e-test-enclave")
 

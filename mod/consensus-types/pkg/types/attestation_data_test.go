@@ -21,10 +21,12 @@
 package types_test
 
 import (
+	"io"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	ssz "github.com/ferranbt/fastssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/require"
 )
 
@@ -70,7 +72,7 @@ func TestAttestationData_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 			name:     "Invalid Buffer Size",
 			data:     generateAttestationData(),
 			expected: nil,
-			err:      ssz.ErrSize,
+			err:      io.ErrUnexpectedEOF,
 		},
 	}
 
@@ -89,6 +91,13 @@ func TestAttestationData_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 				err = unmarshalled.UnmarshalSSZ(data)
 				require.NoError(t, err)
 				require.Equal(t, tc.expected, &unmarshalled)
+
+				var buf []byte
+				buf, err = tc.data.MarshalSSZTo(buf)
+				require.NoError(t, err)
+
+				// The two byte slices should be equal
+				require.Equal(t, data, buf)
 			}
 		})
 	}
@@ -101,10 +110,23 @@ func TestAttestationData_GetTree(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, tree)
 
-	expectedRoot, err := data.HashTreeRoot()
-	require.NoError(t, err)
+	expectedRoot := data.HashTreeRoot()
 
 	// Compare the tree root with the expected root
 	actualRoot := tree.Hash()
 	require.Equal(t, string(expectedRoot[:]), string(actualRoot))
+}
+
+func TestAttestationData_Getters(t *testing.T) {
+	data := generateAttestationData()
+	beaconBlockRoot := bytes.B32{
+		1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+		21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
+	}
+
+	require.NotNil(t, data)
+
+	require.Equal(t, math.U64(12345), data.GetSlot())
+	require.Equal(t, math.U64(67890), data.GetIndex())
+	require.Equal(t, beaconBlockRoot, data.GetBeaconBlockRoot())
 }

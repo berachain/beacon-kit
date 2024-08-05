@@ -44,10 +44,18 @@ type AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT any] interface {
 	Persist(math.Slot, BlobSidecarsT) error
 }
 
+// BlockStore is the interface for block storage.
+type BlockStore[BeaconBlockT any] interface {
+	// Get retrieves the block at the given slot.
+	Get(slot math.Slot) (BeaconBlockT, error)
+	// GetSlotByRoot retrieves the slot by a given root from the store.
+	GetSlotByRoot(root common.Root) (math.Slot, error)
+}
+
 // Deposit is a struct that represents a deposit.
 type Deposit interface {
 	constraints.SSZMarshallable
-	GetIndex() uint64
+	GetIndex() math.U64
 }
 
 // DepositStore defines the interface for deposit storage.
@@ -71,6 +79,7 @@ type KVStore[
 	ExecutionPayloadHeaderT,
 	ForkT,
 	ValidatorT any,
+	ValidatorsT ~[]ValidatorT,
 ] interface {
 	// Context returns the context of the key-value store.
 	Context() context.Context
@@ -126,7 +135,7 @@ type KVStore[
 	// SetEth1Data sets the eth1 data.
 	SetEth1Data(data Eth1DataT) error
 	// GetValidators retrieves all validators.
-	GetValidators() ([]ValidatorT, error)
+	GetValidators() (ValidatorsT, error)
 	// GetBalances retrieves all balances.
 	GetBalances() ([]uint64, error)
 	// GetNextWithdrawalIndex retrieves the next withdrawal index.
@@ -181,8 +190,6 @@ type KVStore[
 	// GetValidatorsByEffectiveBalance retrieves validators by effective
 	// balance.
 	GetValidatorsByEffectiveBalance() ([]ValidatorT, error)
-	// RemoveValidatorAtIndex removes the validator at the given index.
-	RemoveValidatorAtIndex(idx math.ValidatorIndex) error
 }
 
 // Validator represents an interface for a validator with generic withdrawal

@@ -3,10 +3,13 @@ module github.com/berachain/beacon-kit/mod/node-api
 go 1.22.5
 
 require (
-	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240710022615-726645827bad
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240710021622-37e8e3e7e155
-	github.com/go-playground/validator/v10 v10.20.0
-	github.com/labstack/echo/v4 v4.12.0
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df
+	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240705193247-d464364483df
+	github.com/berachain/beacon-kit/mod/log v0.0.0-20240705193247-d464364483df
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157
+	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6650da31
+	github.com/ethereum/go-ethereum v1.14.6
+	github.com/ferranbt/fastssz v0.1.4-0.20240629094022-eac385e6ee79
 	github.com/stretchr/testify v1.9.0
 )
 
@@ -17,8 +20,6 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df // indirect
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240710022615-726645827bad // indirect
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df // indirect
-	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240705193247-d464364483df // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -36,29 +37,20 @@ require (
 	github.com/deckarep/golang-set/v2 v2.6.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
 	github.com/ethereum/c-kzg-4844 v1.0.2 // indirect
-	github.com/ethereum/go-ethereum v1.14.6 // indirect
 	github.com/ethereum/go-verkle v0.1.1-0.20240306133620-7d920df305f0 // indirect
-	github.com/ferranbt/fastssz v0.1.4-0.20240629094022-eac385e6ee79 // indirect
-	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/getsentry/sentry-go v0.28.1 // indirect
+	github.com/go-faster/xor v1.0.0 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
-	github.com/go-playground/locales v0.14.1 // indirect
-	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/gofrs/flock v0.12.0 // indirect
+	github.com/gofrs/flock v0.12.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang/snappy v0.0.5-0.20220116011046-fa5810519dcb // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/holiman/bloomfilter/v2 v2.0.3 // indirect
-	github.com/holiman/uint256 v1.2.5-0.20240612125212-75a520988c94 // indirect
+	github.com/holiman/uint256 v1.3.0 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
-	github.com/labstack/gommon v0.4.2 // indirect
-	github.com/leodido/go-urn v1.4.0 // indirect
-	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/minio/sha256-simd v1.0.1 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
@@ -75,21 +67,18 @@ require (
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
+	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/supranational/blst v0.3.12 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d // indirect
 	github.com/tklauser/go-sysconf v0.3.14 // indirect
 	github.com/tklauser/numcpus v0.8.0 // indirect
-	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasttemplate v1.2.2 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	golang.org/x/crypto v0.25.0 // indirect
 	golang.org/x/exp v0.0.0-20240613232115-7f521ea00fb8 // indirect
-	golang.org/x/net v0.26.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/sys v0.22.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
-	golang.org/x/time v0.5.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

@@ -20,28 +20,148 @@
 
 package merkle
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/math/pow"
+import (
+	"slices"
 
-// New returns a Merkle tree of the given leaves.
-// As defined in the Ethereum 2.0 Spec:
-// https://github.com/ethereum/consensus-specs/blob/dev/ssz/merkle-proofs.md#generalized-merkle-tree-index
+	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
+)
+
+// Inspired by the Ethereum 2.0 spec:
+// https://github.com/ethereum/consensus-specs/blob/dev/ssz/merkle-proofs.md#merkle-multiproofs
 //
 //nolint:lll // link.
-func NewTree[LeafT ~[32]byte](
-	leaves []LeafT,
-	hashFn func([]byte) LeafT,
-) []LeafT {
-	/*
-	   Return an array representing the tree nodes by generalized index:
-	   [0, 1, 2, 3, 4, 5, 6, 7], where each layer is a power of 2. The 0 index is ignored. The 1 index is the root.
-	   The result will be twice the size as the padded bottom layer for the input leaves.
-	*/
-	bottomLength := pow.NextPowerOfTwo(uint64(len(leaves)))
-	//nolint:mnd // 2 is okay.
-	o := make([]LeafT, bottomLength*2)
-	copy(o[bottomLength:], leaves)
-	for i := bottomLength - 1; i > 0; i-- {
-		o[i] = hashFn(append(o[i*2][:], o[i*2+1][:]...))
+
+// CalculateRoot calculates the Merkle root from the leaf and proof.
+func CalculateRoot[RootT ~[32]byte](
+	index GeneralizedIndex,
+	leaf RootT,
+	proof []RootT,
+) (RootT, error) {
+	if len(proof) != index.Length() {
+		return RootT{},
+			errors.Newf("expected proof length %d, received %d", index.Length(),
+				len(proof))
 	}
-	return o
+	for i, h := range proof {
+		if index.IndexBit(i) {
+			leaf = sha256.Hash(append(h[:], leaf[:]...))
+		} else {
+			leaf = sha256.Hash(append(leaf[:], h[:]...))
+		}
+	}
+	return leaf, nil
+}
+
+// VerifyProof verifies the Merkle proof for the given
+// leaf, proof, and root.
+func VerifyProof[RootT ~[32]byte](
+	index GeneralizedIndex,
+	leaf RootT,
+	proof []RootT,
+	root RootT,
+) (bool, error) {
+	calculated, err := CalculateRoot(index, leaf, proof)
+	return calculated == root, err
+}
+
+// CalculateMultiRoot calculates the Merkle root for multiple leaves with
+// their corresponding proofs and indices.
+func CalculateMultiRoot[RootT ~[32]byte](
+	indices GeneralizedIndices,
+	leaves []RootT,
+	proof []RootT,
+) (RootT, error) {
+	if len(leaves) != len(indices) {
+		return RootT{}, errors.Newf(
+			"mismatched leaves and indices length: %d != %d",
+			len(leaves), len(indices),
+		)
+	}
+
+	helperIndices := indices.GetHelperIndices()
+	if len(proof) != len(helperIndices) {
+		return RootT{}, errors.New(
+			"mismatched proof and helper indices length",
+		)
+	}
+
+	objects := make(map[GeneralizedIndex]RootT)
+	for i, index := range indices {
+		objects[index] = leaves[i]
+	}
+	for i, index := range helperIndices {
+		objects[index] = proof[i]
+	}
+
+	// Extract keys into slice to traverse in descending order.
+	keys := make(GeneralizedIndices, 0, len(objects))
+	for k := range objects {
+		keys = append(keys, k)
+	}
+	slices.SortFunc(keys, GeneralizedIndexReverseComparator)
+
+	return hashRoot(objects, keys), nil
+}
+
+// hashRoot hashes the objects in the given keys to the root.
+func hashRoot[RootT ~[32]byte](
+	objects map[GeneralizedIndex]RootT,
+	keys GeneralizedIndices,
+) RootT {
+	var hashFn func([]byte) [32]byte
+	if len(keys) > 5 { //nolint:mnd // 5 as defined by the library.
+		hashFn = sha256.CustomHashFn()
+	} else {
+		hashFn = sha256.Hash
+	}
+
+	var (
+		pos   int
+		left  RootT
+		right RootT
+	)
+	for pos < len(keys) {
+		k := keys[pos]
+		if _, ok := objects[k]; !ok {
+			pos++
+			continue
+		}
+		if _, ok := objects[k.Sibling()]; !ok {
+			pos++
+			continue
+		}
+		parent := k.Parent()
+		if _, ok := objects[parent]; ok {
+			pos++
+			continue
+		}
+
+		if k%2 == 0 {
+			left = objects[k]
+			right = objects[k.Sibling()]
+		} else {
+			left = objects[k.Sibling()]
+			right = objects[k]
+		}
+		objects[parent] = hashFn(append(left[:], right[:]...))
+		keys = append(keys, parent)
+		pos++
+	}
+	return objects[1]
+}
+
+// VerifyMultiproof verifies the Merkle multiproof by comparing the
+// calculated root with the provided root.
+func VerifyMultiproof[RootT ~[32]byte](
+	indices GeneralizedIndices,
+	leaves []RootT,
+	proof []RootT,
+	root RootT,
+) bool {
+	calculatedRoot, err := CalculateMultiRoot(indices, leaves, proof)
+	if err != nil {
+		return false
+	}
+	return calculatedRoot == root
 }

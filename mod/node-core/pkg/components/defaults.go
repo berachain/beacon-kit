@@ -21,40 +21,43 @@
 package components
 
 func DefaultComponentsWithStandardTypes() []any {
-	return []any{
+	components := []any{
 		ProvideABCIMiddleware,
 		ProvideAttributesFactory,
 		ProvideAvailabilityPruner,
 		ProvideAvailibilityStore,
+		ProvideBeaconDepositContract,
+		ProvideBlockPruner,
+		ProvideBlockStore,
+		ProvideBlockStoreService,
 		ProvideBlsSigner,
-		ProvideBlobFeed,
-		ProvideBlockFeed,
 		ProvideBlobProcessor,
 		ProvideBlobProofVerifier,
 		ProvideBlobVerifier,
 		ProvideChainService,
 		ProvideChainSpec,
 		ProvideConfig,
+		ProvideConsensusEngine,
 		ProvideDAService,
 		ProvideDBManager,
 		ProvideDepositPruner,
 		ProvideDepositService,
 		ProvideDepositStore,
-		ProvideBeaconDepositContract,
 		ProvideEngineClient,
 		ProvideExecutionEngine,
-		ProvideGenesisBroker,
 		ProvideJWTSecret,
 		ProvideLocalBuilder,
+		ProvideReportingService,
 		ProvideServiceRegistry,
 		ProvideSidecarFactory,
 		ProvideStateProcessor,
-		ProvideSlotBroker,
-		ProvideStatusBroker,
 		ProvideStorageBackend,
 		ProvideTelemetrySink,
 		ProvideTrustedSetup,
 		ProvideValidatorService,
-		ProvideValidatorUpdateBroker,
 	}
+	components = append(components, DefaultNodeAPIComponents()...)
+	components = append(components, DefaultNodeAPIHandlers()...)
+	components = append(components, DefaultBrokerProviders()...)
+	return components
 }

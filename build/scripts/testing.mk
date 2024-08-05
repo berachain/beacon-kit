@@ -323,12 +323,15 @@ start-ethereumjs:
 	-p 30303:30303 \
 	-p 8545:8545 \
 	-p 8551:8551 \
-	ethpandaops/ethereumjs:stable \
+	ethpandaops/ethereumjs:master \
 	--gethGenesis ../../${ETH_GENESIS_PATH} \
 	--rpcEngine \
 	--jwtSecret ../../$(JWT_PATH) \
 	--rpcEngineAddr 0.0.0.0 \
-	--dataDir .tmp/ethereumjs
+	--dataDir .tmp/ethereumjs \
+	--isSingleNode \
+	--rpc \
+	--rpcAddr 0.0.0.0
 
 SHORT_FUZZ_TIME=10s
 MEDIUM_FUZZ_TIME=30s

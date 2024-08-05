@@ -99,16 +99,9 @@ func (m *Merkleizer[RootT, T]) MerkleizeVectorBasic(
 func (m *Merkleizer[RootT, T]) MerkleizeVectorCompositeOrContainer(
 	value []T,
 ) (RootT, error) {
-	var (
-		err  error
-		htrs = m.bytesBuffer.Get(len(value))
-	)
-
+	htrs := m.bytesBuffer.Get(len(value))
 	for i, el := range value {
-		htrs[i], err = el.HashTreeRoot()
-		if err != nil {
-			return RootT{}, err
-		}
+		htrs[i] = el.HashTreeRoot()
 	}
 	return m.Merkleize(htrs)
 }
@@ -157,10 +150,7 @@ func (m *Merkleizer[RootT, T]) MerkleizeListComposite(
 	)
 
 	for i, el := range value {
-		htrs[i], err = el.HashTreeRoot()
-		if err != nil {
-			return RootT{}, err
-		}
+		htrs[i] = el.HashTreeRoot()
 	}
 
 	root, err := m.Merkleize(

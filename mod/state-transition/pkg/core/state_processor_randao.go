@@ -33,7 +33,7 @@ import (
 // ensures it matches the local state.
 func (sp *StateProcessor[
 	BeaconBlockT, _, _, BeaconStateT,
-	_, _, _, _, _, _, ForkDataT, _, _, _, _,
+	_, _, _, _, _, _, ForkDataT, _, _, _, _, _,
 ]) processRandaoReveal(
 	st BeaconStateT,
 	blk BeaconBlockT,
@@ -66,13 +66,9 @@ func (sp *StateProcessor[
 	)
 
 	if !skipVerification {
-		var signingRoot common.Root
-		signingRoot, err = fd.ComputeRandaoSigningRoot(
-			sp.cs.DomainTypeRandao(), epoch)
-		if err != nil {
-			return err
-		}
-
+		signingRoot := fd.ComputeRandaoSigningRoot(
+			sp.cs.DomainTypeRandao(), epoch,
+		)
 		reveal := body.GetRandaoReveal()
 		if err = sp.signer.VerifySignature(
 			proposer.GetPubkey(),
@@ -90,13 +86,9 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	mix, err := sp.buildRandaoMix(prevMix, body.GetRandaoReveal())
-	if err != nil {
-		return err
-	}
-
 	return st.UpdateRandaoMixAtIndex(
-		uint64(epoch)%sp.cs.EpochsPerHistoricalVector(), mix,
+		uint64(epoch)%sp.cs.EpochsPerHistoricalVector(),
+		sp.buildRandaoMix(prevMix, body.GetRandaoReveal()),
 	)
 }
 
@@ -105,7 +97,7 @@ func (sp *StateProcessor[
 //
 //nolint:lll
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) processRandaoMixesReset(
 	st BeaconStateT,
 ) error {
@@ -129,18 +121,18 @@ func (sp *StateProcessor[
 
 // buildRandaoMix as defined in the Ethereum 2.0 specification.
 func (sp *StateProcessor[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) buildRandaoMix(
 	mix common.Bytes32,
 	reveal crypto.BLSSignature,
-) (common.Bytes32, error) {
+) common.Bytes32 {
 	newMix := make([]byte, constants.RootLength)
 	revealHash := sha256.Hash(reveal[:])
 	// Apparently this library giga fast? Good project? lmeow.
-	if numXor := xor.Bytes(
+	// It is safe to ignore this error, since it is guaranteed that
+	// mix[:] and revealHash[:] are both Bytes32.
+	_ = xor.Bytes(
 		newMix, mix[:], revealHash[:],
-	); numXor != constants.RootLength {
-		return common.Bytes32{}, ErrXorInvalid
-	}
-	return common.Bytes32(newMix), nil
+	)
+	return common.Bytes32(newMix)
 }

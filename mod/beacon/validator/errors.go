@@ -23,25 +23,13 @@ package validator
 import "github.com/berachain/beacon-kit/mod/errors"
 
 var (
-	// ErrForkVersionNotSupported is an error for when the fork
-	// version is not supported.
-	ErrForkVersionNotSupported = errors.New("fork version not supported")
 
 	// ErrNilPayload is an error for when there is no payload
 	// in a beacon block.
 	ErrNilPayload = errors.New("nil payload in beacon block")
 
-	// ErrNilBlk is an error for when the block is nil.
-	ErrNilBlk = errors.New("nil block")
-
 	// ErrNilBlkBody is an error for when the block body is nil.
 	ErrNilBlkBody = errors.New("nil block body")
-
-	// ErrNilWithdrawal is an error for when the deposit is nil.
-	ErrNilWithdrawal = errors.New("nil withdrawal")
-
-	// ErrNilWithdrawals is an error for when the deposits are nil.
-	ErrNilWithdrawals = errors.New("nil withdrawals")
 
 	// ErrNilBlobsBundle is an error for when the blobs bundle is nil.
 	ErrNilBlobsBundle = errors.New("nil blobs bundle")

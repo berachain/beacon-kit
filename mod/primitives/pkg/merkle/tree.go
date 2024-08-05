@@ -25,10 +25,10 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
-	"github.com/prysmaticlabs/gohashtree"
 )
 
 const (
@@ -38,14 +38,12 @@ const (
 
 // Tree[RootT] implements a Merkle tree that has been optimized to
 // handle leaves that are 32 bytes in size.
-//
-// TODO: deprecate in favor of ssz/merkle/tree.go.
 type Tree[RootT ~[32]byte] struct {
 	depth    uint8
 	branches [][]RootT
 	leaves   []RootT
 
-	hasher *RootHasher[[32]byte]
+	hasher Hasher[[32]byte]
 }
 
 // NewTreeFromLeaves constructs a Merkle tree, with the minimum
@@ -109,10 +107,7 @@ func NewTreeFromLeavesWithDepth[RootT ~[32]byte](
 		branches: layers,
 		leaves:   leaves,
 		depth:    depth,
-		hasher: NewRootHasher[[32]byte](
-			NewHasher[[32]byte](sha256.Hash),
-			gohashtree.Hash,
-		),
+		hasher:   NewHasher[[32]byte](sha256.Hash),
 	}, nil
 }
 
@@ -182,17 +177,17 @@ func (m *Tree[RootT]) Root() [32]byte {
 
 // HashTreeRoot returns the Root of the Merkle tree with the
 // number of leaves mixed in.
-func (m *Tree[RootT]) HashTreeRoot() ([32]byte, error) {
+func (m *Tree[RootT]) HashTreeRoot() common.Root {
 	numItems := uint64(len(m.leaves))
 	if len(m.leaves) == 1 &&
 		m.leaves[0] == zero.Hashes[0] {
 		numItems = 0
 	}
-	return m.hasher.MixIn(m.Root(), numItems), nil
+	return m.hasher.MixIn(m.Root(), numItems)
 }
 
 // MerkleProof computes a proof from a tree's branches using a Merkle index.
-func (m *Tree[RootT]) MerkleProof(leafIndex uint64) ([][32]byte, error) {
+func (m *Tree[RootT]) MerkleProof(leafIndex uint64) ([]RootT, error) {
 	numLeaves := uint64(len(m.branches[0]))
 	if leafIndex >= numLeaves {
 		return nil, errors.Newf(
@@ -201,7 +196,7 @@ func (m *Tree[RootT]) MerkleProof(leafIndex uint64) ([][32]byte, error) {
 			leafIndex,
 		)
 	}
-	proof := make([][32]byte, m.depth)
+	proof := make([]RootT, m.depth)
 	for i := range m.depth {
 		subIndex := (leafIndex >> i) ^ 1
 		if subIndex < uint64(len(m.branches[i])) {
@@ -217,7 +212,7 @@ func (m *Tree[RootT]) MerkleProof(leafIndex uint64) ([][32]byte, error) {
 // index.
 func (m *Tree[RootT]) MerkleProofWithMixin(
 	index uint64,
-) ([][32]byte, error) {
+) ([]RootT, error) {
 	proof, err := m.MerkleProof(index)
 	if err != nil {
 		return nil, err

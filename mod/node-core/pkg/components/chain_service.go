@@ -21,10 +21,11 @@
 package components
 
 import (
-	"cosmossdk.io/core/log"
 	"cosmossdk.io/depinject"
+	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/config"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -33,6 +34,7 @@ import (
 // ChainServiceInput is the input for the chain service provider.
 type ChainServiceInput struct {
 	depinject.In
+
 	BlockBroker           *BlockBroker
 	ChainSpec             common.ChainSpec
 	Cfg                   *config.Config
@@ -41,9 +43,9 @@ type ChainServiceInput struct {
 	ExecutionEngine       *ExecutionEngine
 	GenesisBrocker        *GenesisBroker
 	LocalBuilder          *LocalBuilder
-	Logger                log.Logger
+	Logger                log.AdvancedLogger[any, sdklog.Logger]
 	Signer                crypto.BLSSigner
-	StateProcessor        StateProcessor
+	StateProcessor        *StateProcessor
 	StorageBackend        *StorageBackend
 	TelemetrySink         *metrics.TelemetrySink
 	ValidatorUpdateBroker *ValidatorUpdateBroker

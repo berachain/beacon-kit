@@ -23,7 +23,6 @@ package cometbft
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/sourcegraph/conc/iter"
@@ -33,20 +32,51 @@ import (
 // the Cosmos SDK.
 // Right now, it is very coupled to the sdk base app and we will
 // eventually fully decouple this.
-type ConsensusEngine[ValidatorUpdateT any] struct {
-	Middleware
+type ConsensusEngine[
+	AttestationDataT AttestationData[AttestationDataT],
+	BeaconStateT BeaconState,
+	SlashingInfoT SlashingInfo[SlashingInfoT],
+	SlotDataT SlotData[AttestationDataT, SlashingInfoT, SlotDataT],
+	StorageBackendT StorageBackend[BeaconStateT],
+	ValidatorUpdateT any,
+] struct {
+	Middleware[AttestationDataT, SlashingInfoT, SlotDataT]
+	sb StorageBackendT
 }
 
 // NewConsensusEngine returns a new consensus middleware.
-func NewConsensusEngine[ValidatorUpdateT any](
-	m Middleware,
-) *ConsensusEngine[ValidatorUpdateT] {
-	return &ConsensusEngine[ValidatorUpdateT]{
+func NewConsensusEngine[
+	AttestationDataT AttestationData[AttestationDataT],
+	BeaconStateT BeaconState,
+	SlashingInfoT SlashingInfo[SlashingInfoT],
+	SlotDataT SlotData[AttestationDataT, SlashingInfoT, SlotDataT],
+	StorageBackendT StorageBackend[BeaconStateT],
+	ValidatorUpdateT any,
+](
+	m Middleware[AttestationDataT, SlashingInfoT, SlotDataT],
+	sb StorageBackendT,
+) *ConsensusEngine[
+	AttestationDataT,
+	BeaconStateT,
+	SlashingInfoT,
+	SlotDataT,
+	StorageBackendT,
+	ValidatorUpdateT,
+] {
+	return &ConsensusEngine[
+		AttestationDataT,
+		BeaconStateT,
+		SlashingInfoT,
+		SlotDataT,
+		StorageBackendT,
+		ValidatorUpdateT,
+	]{
 		Middleware: m,
+		sb:         sb,
 	}
 }
 
-func (c *ConsensusEngine[ValidatorUpdateT]) InitGenesis(
+func (c *ConsensusEngine[_, _, _, _, _, ValidatorUpdateT]) InitGenesis(
 	ctx context.Context,
 	genesisBz []byte,
 ) ([]ValidatorUpdateT, error) {
@@ -59,12 +89,21 @@ func (c *ConsensusEngine[ValidatorUpdateT]) InitGenesis(
 }
 
 // TODO: Decouple Comet Types
-func (c *ConsensusEngine[ValidatorUpdateT]) PrepareProposal(
+func (c *ConsensusEngine[_, _, _, _, _, _]) PrepareProposal(
 	ctx sdk.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
-	slot := math.Slot(req.Height)
-	blkBz, sidecarsBz, err := c.Middleware.PrepareProposal(ctx, slot) // c.Middleware = ABCIMiddleware
+	slotData, err := c.convertPrepareProposalToSlotData(
+		ctx,
+		req,
+	)
+	if err != nil {
+		return nil, err
+	}
+	blkBz, sidecarsBz, err := c.Middleware.PrepareProposal(
+		ctx,
+		slotData,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +113,7 @@ func (c *ConsensusEngine[ValidatorUpdateT]) PrepareProposal(
 }
 
 // TODO: Decouple Comet Types
-func (c *ConsensusEngine[ValidatorUpdateT]) ProcessProposal(
+func (c *ConsensusEngine[_, _, _, _, _, ValidatorUpdateT]) ProcessProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
@@ -86,14 +125,14 @@ func (c *ConsensusEngine[ValidatorUpdateT]) ProcessProposal(
 }
 
 // TODO: Decouple Comet Types
-func (c *ConsensusEngine[ValidatorUpdateT]) PreBlock(
+func (c *ConsensusEngine[_, _, _, _, _, ValidatorUpdateT]) PreBlock(
 	ctx sdk.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) error {
 	return c.Middleware.PreBlock(ctx, req)
 }
 
-func (c *ConsensusEngine[ValidatorUpdateT]) EndBlock(
+func (c *ConsensusEngine[_, _, _, _, _, ValidatorUpdateT]) EndBlock(
 	ctx context.Context,
 ) ([]ValidatorUpdateT, error) {
 	updates, err := c.Middleware.EndBlock(ctx)

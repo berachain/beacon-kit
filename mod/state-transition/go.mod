@@ -6,7 +6,7 @@ require (
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240710022615-726645827bad
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240618214413-d5ec0e66b3dd
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240630225951-a5075323fa26
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240710022448-e56f337d051f
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-faster/xor v1.0.0
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8
@@ -40,12 +40,12 @@ require (
 	github.com/ferranbt/fastssz v0.1.4-0.20240629094022-eac385e6ee79 // indirect
 	github.com/getsentry/sentry-go v0.28.1 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
-	github.com/gofrs/flock v0.12.0 // indirect
+	github.com/gofrs/flock v0.12.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/snappy v0.0.5-0.20220116011046-fa5810519dcb // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/holiman/bloomfilter/v2 v2.0.3 // indirect
-	github.com/holiman/uint256 v1.2.5-0.20240612125212-75a520988c94 // indirect
+	github.com/holiman/uint256 v1.3.0 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
 	github.com/kr/pretty v0.3.1 // indirect

@@ -31,11 +31,12 @@ import (
 )
 
 // BeaconBlock is an interface for accessing the beacon block.
-type BeaconBlock[T any] interface {
+type BeaconBlock[SelfT any] interface {
 	constraints.SSZMarshallable
 	constraints.Nillable
+	constraints.Empty[SelfT]
 	GetSlot() math.Slot
-	NewFromSSZ([]byte, uint32) (T, error)
+	NewFromSSZ([]byte, uint32) (SelfT, error)
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.
@@ -50,7 +51,7 @@ type BlockchainService[
 	BeaconBlockT any,
 	BlobSidecarsT constraints.SSZMarshallable,
 	DepositT any,
-	GenesisT Genesis,
+	GenesisT json.Unmarshaler,
 ] interface {
 	// ProcessGenesisData processes the genesis data and initializes the beacon
 	// state.
@@ -70,9 +71,4 @@ type BlockchainService[
 		ctx context.Context,
 		blk BeaconBlockT,
 	) error
-}
-
-// Genesis is the interface for the genesis data.
-type Genesis interface {
-	json.Unmarshaler
 }

@@ -24,7 +24,6 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle/zero"
 	"github.com/stretchr/testify/require"
 )
@@ -33,7 +32,7 @@ func TestB48_HashTreeRoot(t *testing.T) {
 	tests := []struct {
 		name  string
 		input bytes.B48
-		want  [32]byte
+		want  bytes.B32
 	}{
 		{
 			name:  "Zero bytes",
@@ -44,17 +43,10 @@ func TestB48_HashTreeRoot(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := tt.input.HashTreeRoot()
-			require.NoError(t, err)
+			result := tt.input.HashTreeRoot()
 			require.Equal(t, tt.want, result)
 		})
 	}
-}
-
-func TestB48SizeSSZ(t *testing.T) {
-	var b bytes.B48
-	require.Equal(t, bytes.B48Size, b.SizeSSZ(),
-		"SizeSSZ should return the correct size")
 }
 
 func TestB48MarshalSSZ(t *testing.T) {
@@ -87,16 +79,4 @@ func TestB48MarshalSSZ(t *testing.T) {
 			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
 		})
 	}
-}
-
-func TestB48IsFixed(t *testing.T) {
-	var b bytes.B48
-	require.True(t, b.IsFixed(),
-		"IsFixed should return true for B48")
-}
-
-func TestB48Type(t *testing.T) {
-	var b bytes.B48
-	require.Equal(t, schema.B48(), b.Type(),
-		"Type should return schema.B48() for B48")
 }

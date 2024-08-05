@@ -21,11 +21,11 @@
 package types_test
 
 import (
+	"io"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
-	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -68,7 +68,7 @@ func TestSigningData_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 			name:     "Invalid Buffer Size",
 			data:     generateSigningData(),
 			expected: nil,
-			err:      ssz.ErrSize,
+			err:      io.ErrUnexpectedEOF,
 		},
 	}
 
@@ -90,19 +90,4 @@ func TestSigningData_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestSigningData_GetTree(t *testing.T) {
-	data := generateSigningData()
-
-	tree, err := data.GetTree()
-	require.NoError(t, err)
-	require.NotNil(t, tree)
-
-	expectedRoot, err := data.HashTreeRoot()
-	require.NoError(t, err)
-
-	// Compare the tree root with the expected root
-	actualRoot := tree.Hash()
-	require.Equal(t, string(expectedRoot[:]), string(actualRoot))
 }

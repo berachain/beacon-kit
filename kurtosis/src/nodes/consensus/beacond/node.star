@@ -1,31 +1,10 @@
 # Contains functionality for initializing and starting the nodes
 
-bash = import_module("../../../lib/bash.star")  # Import helper module
-
-def init_beacond(plan, is_first_validator, cl_service_name):
-    init_sh = get_init_sh
-    bash.exec_on_service(plan, cl_service_name, init_sh)
-    if is_first_validator == True:
-        create_beacond_config_directory(plan, cl_service_name)
-    add_validator(plan, cl_service_name)
-    collect_validator(plan, cl_service_name)
-
-def create_beacond_config_directory(plan, cl_service_name):
-    GENESIS = "{}/config/genesis.json".format("$BEACOND_HOME")
-    TMP_GENESIS = "{}/config/tmp_genesis.json".format("$BEACOND_HOME")
-
-def add_validator(plan, cl_service_name):
-    command = "/usr/bin/beacond genesis add-premined-deposit --home {}".format("$BEACOND_HOME")
-    bash.exec_on_service(plan, cl_service_name, command)
-
-def collect_validator(plan, cl_service_name):
-    command = "/usr/bin/beacond genesis collect-premined-deposits --home {}".format("$BEACOND_HOME")
-    bash.exec_on_service(plan, cl_service_name, command)
-
 def start(persistent_peers, is_seed, validator_index, config_settings, app_settings, kzg_impl):
     mv_genesis = "mv root/.tmp_genesis/genesis.json /root/.beacond/config/genesis.json"
     set_config = 'sed -i "s/^prometheus = false$/prometheus = {}/" {}/config/config.toml'.format("$BEACOND_ENABLE_PROMETHEUS", "$BEACOND_HOME")
-    set_config += '\nsed -i "s/^prometheus_listen_addr = \\":26660\\"$/prometheus_listen_addr = \\"0.0.0.0:26660\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
+    set_config += '\nsed -i "s/^pprof_laddr = \\".*\\"/pprof_laddr = \\"0.0.0.0:6060\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
+    set_config += '\nsed -i "s/:26660/0.0.0.0:26660/" {}/config/config.toml'.format("$BEACOND_HOME")
     set_config += '\nsed -i "s/^flush_throttle_timeout = \\".*\\"$/flush_throttle_timeout = \\"10ms\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
     set_config += '\nsed -i "s/^timeout_propose = \\".*\\"$/timeout_propose = \\"{}\\"/" {}/config/config.toml'.format(config_settings.timeout_propose, "$BEACOND_HOME")
     set_config += '\nsed -i "s/^timeout_propose_delta = \\".*\\"$/timeout_propose_delta = \\"500ms\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
@@ -64,25 +43,6 @@ def start(persistent_peers, is_seed, validator_index, config_settings, app_setti
     --api.enable {} {}".format(kzg_impl, "$BEACOND_ENGINE_DIAL_URL", seed_option, persistent_peers_option)
 
     return "{} && {} && {}".format(mv_genesis, set_config, start_node)
-
-def get_init_sh():
-    genesis_file = "{}/config/genesis.json".format("$BEACOND_HOME")
-
-    # Check if genesis file exists, if not then initialize the beacond
-    command = "if [ ! -f {} ]; then /usr/bin/beacond init --chain-id {} {} --home {} --consensus-key-algo {}; fi".format(genesis_file, "$BEACOND_CHAIN_ID", "$BEACOND_MONIKER", "$BEACOND_HOME", "$BEACOND_CONSENSUS_KEY_ALGO")
-    return command
-
-def get_add_validator_sh():
-    command = "/usr/bin/beacond genesis add-premined-deposit --home {}".format("$BEACOND_HOME")
-    return command
-
-def get_collect_validator_sh():
-    command = "/usr/bin/beacond genesis collect-premined-deposits --home {}".format("$BEACOND_HOME")
-    return command
-
-def get_execution_payload_sh():
-    command = "/usr/bin/beacond genesis execution-payload {} --home {}".format("$ETH_GENESIS", "$BEACOND_HOME")
-    return command
 
 def get_genesis_env_vars(cl_service_name):
     return {

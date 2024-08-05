@@ -21,10 +21,11 @@
 package types_test
 
 import (
+	"io"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	ssz "github.com/ferranbt/fastssz"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/require"
 )
 
@@ -64,7 +65,7 @@ func TestSlashingInfo_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 			name:     "Invalid Buffer Size",
 			data:     generateSlashingInfo(),
 			expected: nil,
-			err:      ssz.ErrSize,
+			err:      io.ErrUnexpectedEOF,
 		},
 	}
 
@@ -83,6 +84,13 @@ func TestSlashingInfo_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 				err = unmarshalled.UnmarshalSSZ(data)
 				require.NoError(t, err)
 				require.Equal(t, tc.expected, &unmarshalled)
+
+				var buf []byte
+				buf, err = tc.data.MarshalSSZTo(buf)
+				require.NoError(t, err)
+
+				// The two byte slices should be equal
+				require.Equal(t, data, buf)
 			}
 		})
 	}
@@ -95,10 +103,25 @@ func TestSlashingInfo_GetTree(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, tree)
 
-	expectedRoot, err := data.HashTreeRoot()
-	require.NoError(t, err)
-
-	// Compare the tree root with the expected root
+	expectedRoot := data.HashTreeRoot()
 	actualRoot := tree.Hash()
 	require.Equal(t, string(expectedRoot[:]), string(actualRoot))
+}
+
+func TestSlashingInfo_SetSlot(t *testing.T) {
+	data := generateSlashingInfo()
+
+	newSlot := math.Slot(67890)
+	data.SetSlot(newSlot)
+
+	require.Equal(t, newSlot, data.GetSlot())
+}
+
+func TestSlashingInfo_SetIndex(t *testing.T) {
+	data := generateSlashingInfo()
+
+	newIndex := math.U64(12345)
+	data.SetIndex(newIndex)
+
+	require.Equal(t, newIndex, data.GetIndex())
 }

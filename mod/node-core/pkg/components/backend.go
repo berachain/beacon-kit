@@ -30,6 +30,7 @@ import (
 type StorageBackendInput struct {
 	depinject.In
 	AvailabilityStore *AvailabilityStore
+	BlockStore        *BlockStore
 	ChainSpec         common.ChainSpec
 	DepositStore      *DepositStore
 	KVStore           *KVStore
@@ -42,11 +43,13 @@ func ProvideStorageBackend(
 ) *StorageBackend {
 	return storage.NewBackend[
 		*AvailabilityStore,
+		*BeaconBlock,
 		*BeaconBlockBody,
 		*BeaconBlockHeader,
 		*BeaconState,
 		*BeaconStateMarshallable,
 		*BlobSidecars,
+		*BlockStore,
 		*Deposit,
 		*DepositStore,
 		*Eth1Data,
@@ -54,6 +57,7 @@ func ProvideStorageBackend(
 		*Fork,
 		*KVStore,
 		*Validator,
+		Validators,
 		*Withdrawal,
 		WithdrawalCredentials,
 	](
@@ -61,5 +65,6 @@ func ProvideStorageBackend(
 		in.AvailabilityStore,
 		in.KVStore,
 		in.DepositStore,
+		in.BlockStore,
 	)
 }

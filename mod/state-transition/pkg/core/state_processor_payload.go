@@ -32,7 +32,7 @@ import (
 // matches the local state.
 func (sp *StateProcessor[
 	BeaconBlockT, _, _, BeaconStateT, ContextT,
-	_, _, _, ExecutionPayloadHeaderT, _, _, _, _, _, _,
+	_, _, _, ExecutionPayloadHeaderT, _, _, _, _, _, _, _,
 ]) processExecutionPayload(
 	ctx ContextT,
 	st BeaconStateT,
@@ -54,11 +54,15 @@ func (sp *StateProcessor[
 		})
 	}
 
-	// Get the execution payload header.
+	// Get the execution payload header. TODO: This is live on bArtio with a bug
+	// and needs to be hardforked off of. We check for version and convert to
+	// header based on that version as a temporary solution to avoid breaking
+	// changes.
 	g.Go(func() error {
 		var err error
 		header, err = payload.ToHeader(
-			sp.txsMerkleizer, sp.cs.MaxWithdrawalsPerPayload(),
+			sp.cs.MaxWithdrawalsPerPayload(),
+			sp.cs.DepositEth1ChainID(),
 		)
 		return err
 	})
@@ -76,7 +80,7 @@ func (sp *StateProcessor[
 // and the execution engine.
 func (sp *StateProcessor[
 	BeaconBlockT, _, _, BeaconStateT,
-	_, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _,
 ]) validateExecutionPayload(
 	ctx context.Context,
 	st BeaconStateT,

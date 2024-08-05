@@ -55,7 +55,7 @@ func NewTreeNode[GIndexT ~uint64, RootT ~[32]byte](
 	}, err
 }
 
-// GeIndex returns the generalized index of the node in the Merkle tree.
+// GIndex returns the generalized index of the node in the Merkle tree.
 func (n Node[GIndexT, RootT]) GIndex() GIndexT {
 	return n.gIndex
 }

@@ -24,30 +24,8 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/stretchr/testify/require"
 )
-
-func TestBytes8SizeSSZ(t *testing.T) {
-	tests := []struct {
-		name  string
-		input bytes.B8
-		want  int
-	}{
-		{
-			name:  "size of B8",
-			input: bytes.B8{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
-			want:  bytes.B8Size,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := tt.input.SizeSSZ()
-			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
-		})
-	}
-}
 
 func TestBytes8MarshalSSZ(t *testing.T) {
 	tests := []struct {
@@ -71,53 +49,11 @@ func TestBytes8MarshalSSZ(t *testing.T) {
 	}
 }
 
-func TestBytes8IsFixed(t *testing.T) {
-	tests := []struct {
-		name  string
-		input bytes.B8
-		want  bool
-	}{
-		{
-			name:  "is fixed",
-			input: bytes.B8{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
-			want:  true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := tt.input.IsFixed()
-			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
-		})
-	}
-}
-
-func TestBytes8Type(t *testing.T) {
-	tests := []struct {
-		name  string
-		input bytes.B8
-		want  schema.SSZType
-	}{
-		{
-			name:  "type of B8",
-			input: bytes.B8{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
-			want:  schema.B8(),
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := tt.input.Type()
-			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
-		})
-	}
-}
-
 func TestBytes8HashTreeRoot(t *testing.T) {
 	tests := []struct {
 		name  string
 		input bytes.B8
-		want  [32]byte
+		want  bytes.B32
 	}{
 		{
 			name:  "hash tree root",
@@ -128,8 +64,7 @@ func TestBytes8HashTreeRoot(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.input.HashTreeRoot()
-			require.NoError(t, err, "Test case: %s", tt.name)
+			got := tt.input.HashTreeRoot()
 			require.Equal(t, tt.want, got, "Test case: %s", tt.name)
 		})
 	}

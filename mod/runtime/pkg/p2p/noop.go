@@ -22,8 +22,6 @@ package p2p
 
 import (
 	"context"
-	"errors"
-	"reflect"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 )
@@ -31,7 +29,10 @@ import (
 // NoopGossipHandler is a gossip handler that simply returns the
 // ssz marshalled data as a "reference" to the object it receives.
 type NoopGossipHandler[
-	DataT constraints.SSZMarshallable, BytesT ~[]byte,
+	DataT interface {
+		constraints.Empty[DataT]
+		constraints.SSZMarshallable
+	}, BytesT ~[]byte,
 ] struct{}
 
 // Publish creates a new NoopGossipHandler.
@@ -49,17 +50,9 @@ func (n NoopGossipHandler[DataT, BytesT]) Request(
 ) (DataT, error) {
 	var (
 		out DataT
-		ok  bool
 	)
 
-	// Alloc memory if DataT is a pointer.
-	if reflect.ValueOf(&out).Elem().Kind() == reflect.Ptr {
-		newInstance := reflect.New(reflect.TypeOf(out).Elem())
-		out, ok = newInstance.Interface().(DataT)
-		if !ok {
-			return out, errors.New("failed to create new instance")
-		}
-	}
-
+	// Use Empty() method to create a new instance of DataT
+	out = out.Empty()
 	return out, out.UnmarshalSSZ(ref)
 }

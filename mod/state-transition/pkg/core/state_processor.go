@@ -26,7 +26,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
@@ -47,7 +46,7 @@ type StateProcessor[
 		BeaconStateT,
 		BeaconBlockHeaderT, Eth1DataT,
 		ExecutionPayloadHeaderT, ForkT, KVStoreT,
-		ValidatorT, WithdrawalT,
+		ValidatorT, ValidatorsT, WithdrawalT,
 	],
 	ContextT Context,
 	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
@@ -65,6 +64,10 @@ type StateProcessor[
 	ForkDataT ForkData[ForkDataT],
 	KVStoreT any,
 	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
+	ValidatorsT interface {
+		~[]ValidatorT
+		HashTreeRoot() common.Root
+	},
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalCredentialsT ~[32]byte,
 ] struct {
@@ -76,8 +79,6 @@ type StateProcessor[
 	executionEngine ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
 	]
-	// txsMerkleizer is the merkleizer used for calculating transaction roots.
-	txsMerkleizer *merkle.Merkleizer[[32]byte, common.Root]
 }
 
 // NewStateProcessor creates a new state processor.
@@ -95,7 +96,7 @@ func NewStateProcessor[
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-		KVStoreT, ValidatorT, WithdrawalT,
+		KVStoreT, ValidatorT, ValidatorsT, WithdrawalT,
 	],
 	ContextT Context,
 	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
@@ -113,6 +114,10 @@ func NewStateProcessor[
 	ForkDataT ForkData[ForkDataT],
 	KVStoreT any,
 	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
+	ValidatorsT interface {
+		~[]ValidatorT
+		HashTreeRoot() common.Root
+	},
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalCredentialsT ~[32]byte,
 ](
@@ -125,24 +130,24 @@ func NewStateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, ContextT, DepositT, Eth1DataT, ExecutionPayloadT,
 	ExecutionPayloadHeaderT, ForkT, ForkDataT, KVStoreT, ValidatorT,
-	WithdrawalT, WithdrawalCredentialsT,
+	ValidatorsT, WithdrawalT, WithdrawalCredentialsT,
 ] {
 	return &StateProcessor[
 		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 		BeaconStateT, ContextT, DepositT, Eth1DataT, ExecutionPayloadT,
 		ExecutionPayloadHeaderT, ForkT, ForkDataT, KVStoreT, ValidatorT,
-		WithdrawalT, WithdrawalCredentialsT,
+		ValidatorsT, WithdrawalT, WithdrawalCredentialsT,
 	]{
 		cs:              cs,
 		executionEngine: executionEngine,
 		signer:          signer,
-		txsMerkleizer:   merkle.NewMerkleizer[[32]byte, common.Root](),
 	}
 }
 
 // Transition is the main function for processing a state transition.
 func (sp *StateProcessor[
-	BeaconBlockT, _, _, BeaconStateT, ContextT, _, _, _, _, _, _, _, _, _, _,
+	BeaconBlockT, _, _, BeaconStateT, ContextT,
+	_, _, _, _, _, _, _, _, _, _, _,
 ]) Transition(
 	ctx ContextT,
 	st BeaconStateT,
@@ -170,7 +175,7 @@ func (sp *StateProcessor[
 }
 
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) ProcessSlots(
 	st BeaconStateT, slot math.U64,
 ) (transition.ValidatorUpdates, error) {
@@ -215,7 +220,7 @@ func (sp *StateProcessor[
 
 // processSlot is run when a slot is missed.
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) processSlot(
 	st BeaconStateT,
 ) error {
@@ -225,14 +230,9 @@ func (sp *StateProcessor[
 	}
 
 	// Before we make any changes, we calculate the previous state root.
-	prevStateRoot, err := st.HashTreeRoot()
-	if err != nil {
-		return err
-	}
-
-	// We update our state roots and block roots.
+	prevStateRoot := st.HashTreeRoot()
 	if err = st.UpdateStateRootAtIndex(
-		uint64(stateSlot)%sp.cs.SlotsPerHistoricalRoot(), prevStateRoot,
+		stateSlot.Unwrap()%sp.cs.SlotsPerHistoricalRoot(), prevStateRoot,
 	); err != nil {
 		return err
 	}
@@ -254,25 +254,16 @@ func (sp *StateProcessor[
 	}
 
 	// We update the block root.
-	var prevBlockRoot common.Root
-	prevBlockRoot, err = latestHeader.HashTreeRoot()
-	if err != nil {
-		return err
-	}
-
-	if err = st.UpdateBlockRootAtIndex(
-		uint64(stateSlot)%sp.cs.SlotsPerHistoricalRoot(), prevBlockRoot,
-	); err != nil {
-		return err
-	}
-
-	return nil
+	return st.UpdateBlockRootAtIndex(
+		stateSlot.Unwrap()%sp.cs.SlotsPerHistoricalRoot(),
+		latestHeader.HashTreeRoot(),
+	)
 }
 
 // ProcessBlock processes the block, it optionally verifies the
 // state root.
 func (sp *StateProcessor[
-	BeaconBlockT, _, _, BeaconStateT, ContextT, _, _, _, _, _, _, _, _, _, _,
+	BeaconBlockT, _, _, BeaconStateT, ContextT, _, _, _, _, _, _, _, _, _, _, _,
 ]) ProcessBlock(
 	ctx ContextT,
 	st BeaconStateT,
@@ -326,12 +317,11 @@ func (sp *StateProcessor[
 
 	// Ensure the calculated state root matches the state root on
 	// the block.
-	if stateRoot, err := st.HashTreeRoot(); err != nil {
-		return err
-	} else if blk.GetStateRoot() != stateRoot {
+	stateRoot := st.HashTreeRoot()
+	if blk.GetStateRoot() != st.HashTreeRoot() {
 		return errors.Wrapf(
 			ErrStateRootMismatch, "expected %s, got %s",
-			common.Root(stateRoot), blk.GetStateRoot(),
+			stateRoot, blk.GetStateRoot(),
 		)
 	}
 
@@ -340,7 +330,7 @@ func (sp *StateProcessor[
 
 // processEpoch processes the epoch and ensures it matches the local state.
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) processEpoch(
 	st BeaconStateT,
 ) (transition.ValidatorUpdates, error) {
@@ -358,7 +348,7 @@ func (sp *StateProcessor[
 // state.
 func (sp *StateProcessor[
 	BeaconBlockT, _, BeaconBlockHeaderT, BeaconStateT,
-	_, _, _, _, _, _, _, _, ValidatorT, _, _,
+	_, _, _, _, _, _, _, _, ValidatorT, _, _, _,
 ]) processBlockHeader(
 	st BeaconStateT,
 	blk BeaconBlockT,
@@ -367,9 +357,8 @@ func (sp *StateProcessor[
 		slot              math.Slot
 		err               error
 		latestBlockHeader BeaconBlockHeaderT
-		parentBlockRoot   common.Root
-		bodyRoot          common.Root
-		proposer          ValidatorT
+
+		proposer ValidatorT
 	)
 
 	// Ensure the block slot matches the state slot.
@@ -391,9 +380,10 @@ func (sp *StateProcessor[
 			ErrBlockSlotTooLow, "expected: > %d, got: %d",
 			latestBlockHeader.GetSlot(), blk.GetSlot(),
 		)
-	} else if parentBlockRoot, err = latestBlockHeader.HashTreeRoot(); err != nil {
-		return err
-	} else if parentBlockRoot != blk.GetParentBlockRoot() {
+	}
+
+	if parentBlockRoot := latestBlockHeader.
+		HashTreeRoot(); parentBlockRoot != blk.GetParentBlockRoot() {
 		return errors.Wrapf(ErrParentRootMismatch,
 			"expected: %s, got: %s",
 			parentBlockRoot.String(), blk.GetParentBlockRoot().String(),
@@ -412,9 +402,8 @@ func (sp *StateProcessor[
 
 	// Calculate the body root to place on the header.
 	var lbh BeaconBlockHeaderT
-	if bodyRoot, err = blk.GetBody().HashTreeRoot(); err != nil {
-		return err
-	} else if err = st.SetLatestBlockHeader(
+	bodyRoot := blk.GetBody().HashTreeRoot()
+	if err = st.SetLatestBlockHeader(
 		lbh.New(
 			blk.GetSlot(),
 			blk.GetProposerIndex(),
@@ -444,7 +433,7 @@ func (sp *StateProcessor[
 //
 //nolint:lll
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) getAttestationDeltas(
 	st BeaconStateT,
 ) ([]math.Gwei, []math.Gwei, error) {
@@ -462,7 +451,7 @@ func (sp *StateProcessor[
 //
 //nolint:lll
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) processRewardsAndPenalties(
 	st BeaconStateT,
 ) error {

@@ -21,12 +21,12 @@
 package types_test
 
 import (
+	"io"
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	ssz "github.com/ferranbt/fastssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -45,12 +45,19 @@ func TestEth1Data_Serialization(t *testing.T) {
 	err = unmarshalled.UnmarshalSSZ(data)
 	require.NoError(t, err)
 	require.Equal(t, original, &unmarshalled)
+
+	var buf []byte
+	buf, err = original.MarshalSSZTo(buf)
+	require.NoError(t, err)
+
+	// The two byte slices should be equal
+	require.Equal(t, data, buf)
 }
 
 func TestEth1Data_UnmarshalError(t *testing.T) {
 	var unmarshalled types.Eth1Data
 	err := unmarshalled.UnmarshalSSZ([]byte{})
-	require.ErrorIs(t, err, ssz.ErrSize)
+	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
 
 func TestEth1Data_SizeSSZ(t *testing.T) {
@@ -61,7 +68,7 @@ func TestEth1Data_SizeSSZ(t *testing.T) {
 	)
 
 	size := eth1Data.SizeSSZ()
-	require.Equal(t, 72, size)
+	require.Equal(t, uint32(72), size)
 }
 
 func TestEth1Data_HashTreeRoot(t *testing.T) {
@@ -71,8 +78,9 @@ func TestEth1Data_HashTreeRoot(t *testing.T) {
 		BlockHash:    gethprimitives.ExecutionHash{},
 	}
 
-	_, err := eth1Data.HashTreeRoot()
-	require.NoError(t, err)
+	require.NotPanics(t, func() {
+		_ = eth1Data.HashTreeRoot()
+	})
 }
 
 func TestEth1Data_GetTree(t *testing.T) {

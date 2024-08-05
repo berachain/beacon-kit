@@ -36,13 +36,15 @@ import (
 
 // BeaconBlock represents a beacon block interface.
 type BeaconBlock[
+	AttestationDataT any,
 	BeaconBlockT any,
 	BeaconBlockBodyT BeaconBlockBody[
-		DepositT, Eth1DataT, ExecutionPayloadT,
+		AttestationDataT, DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
 	],
 	DepositT,
 	Eth1DataT,
-	ExecutionPayloadT any,
+	ExecutionPayloadT,
+	SlashingInfoT any,
 ] interface {
 	constraints.SSZMarshallable
 	// NewWithVersion creates a new beacon block with the given parameters.
@@ -66,7 +68,7 @@ type BeaconBlock[
 
 // BeaconBlockBody represents a beacon block body interface.
 type BeaconBlockBody[
-	DepositT, Eth1DataT, ExecutionPayloadT any,
+	AttestationDataT, DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT any,
 ] interface {
 	constraints.SSZMarshallable
 	constraints.Nillable
@@ -76,10 +78,14 @@ type BeaconBlockBody[
 	SetEth1Data(Eth1DataT)
 	// SetDeposits sets the deposits of the beacon block body.
 	SetDeposits([]DepositT)
-	// SetExecutionData sets the execution data of the beacon block body.
-	SetExecutionData(ExecutionPayloadT) error
+	// SetExecutionPayload sets the execution data of the beacon block body.
+	SetExecutionPayload(ExecutionPayloadT)
 	// SetGraffiti sets the graffiti of the beacon block body.
 	SetGraffiti(common.Bytes32)
+	// SetAttestations sets the attestations of the beacon block body.
+	SetAttestations([]AttestationDataT)
+	// SetSlashingInfo sets the slashing info of the beacon block body.
+	SetSlashingInfo([]SlashingInfoT)
 	// SetBlobKzgCommitments sets the blob KZG commitments of the beacon block
 	// body.
 	SetBlobKzgCommitments(eip4844.KZGCommitments[gethprimitives.ExecutionHash])
@@ -97,7 +103,7 @@ type BeaconState[ExecutionPayloadHeaderT any] interface {
 	// GetSlot returns the current slot of the beacon state.
 	GetSlot() (math.Slot, error)
 	// HashTreeRoot returns the hash tree root of the beacon state.
-	HashTreeRoot() ([32]byte, error)
+	HashTreeRoot() common.Root
 	// ValidatorIndexByPubkey returns the validator index by public key.
 	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
 	// GetEth1DepositIndex returns the latest deposit index from the beacon
@@ -109,16 +115,19 @@ type BeaconState[ExecutionPayloadHeaderT any] interface {
 
 // BlobFactory represents a blob factory interface.
 type BlobFactory[
+	AttestationDataT any,
 	BeaconBlockT BeaconBlock[
-		BeaconBlockT, BeaconBlockBodyT, DepositT, Eth1DataT, ExecutionPayloadT,
+		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, DepositT,
+		Eth1DataT, ExecutionPayloadT, SlashingInfoT,
 	],
 	BeaconBlockBodyT BeaconBlockBody[
-		DepositT, Eth1DataT, ExecutionPayloadT,
+		AttestationDataT, DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
 	],
 	BlobSidecarsT,
 	DepositT,
 	Eth1DataT,
-	ExecutionPayloadT any,
+	ExecutionPayloadT,
+	SlashingInfoT any,
 ] interface {
 	// BuildSidecars builds sidecars for a given block and blobs bundle.
 	BuildSidecars(
@@ -176,7 +185,7 @@ type ForkData[T any] interface {
 	ComputeRandaoSigningRoot(
 		common.DomainType,
 		math.Epoch,
-	) (common.Root, error)
+	) common.Root
 }
 
 // PayloadBuilder represents a service that is responsible for
@@ -199,6 +208,16 @@ type PayloadBuilder[BeaconStateT, ExecutionPayloadT any] interface {
 		headEth1BlockHash gethprimitives.ExecutionHash,
 		finalEth1BlockHash gethprimitives.ExecutionHash,
 	) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
+}
+
+// SlotData represents the slot data interface.
+type SlotData[AttestationDataT, SlashingInfoT any] interface {
+	// GetSlot returns the slot of the incoming slot.
+	GetSlot() math.Slot
+	// GetAttestationData returns the attestation data of the incoming slot.
+	GetAttestationData() []AttestationDataT
+	// GetSlashingInfo returns the slashing info of the incoming slot.
+	GetSlashingInfo() []SlashingInfoT
 }
 
 // StateProcessor defines the interface for processing the state.
@@ -228,7 +247,7 @@ type StorageBackend[
 	ExecutionPayloadHeaderT any,
 ] interface {
 	// DepositStore retrieves the deposit store.
-	DepositStore(context.Context) DepositStoreT
+	DepositStore() DepositStoreT
 	// StateFromContext retrieves the beacon state from the context.
 	StateFromContext(context.Context) BeaconStateT
 }

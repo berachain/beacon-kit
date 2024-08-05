@@ -22,14 +22,14 @@ package beacon
 
 import (
 	"context"
-	"encoding/json"
 
 	"cosmossdk.io/core/appmodule/v2"
 	"cosmossdk.io/core/registry"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
+	consruntimetypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
@@ -50,14 +50,17 @@ var (
 // It is a wrapper around the ABCIMiddleware.
 type AppModule struct {
 	ABCIMiddleware *components.ABCIMiddleware
+	StorageBackend *components.StorageBackend
 }
 
 // NewAppModule creates a new AppModule object.
 func NewAppModule(
 	abciMiddleware *components.ABCIMiddleware,
+	storageBackend *components.StorageBackend,
 ) AppModule {
 	return AppModule{
 		ABCIMiddleware: abciMiddleware,
+		StorageBackend: storageBackend,
 	}
 }
 
@@ -84,7 +87,7 @@ func (am AppModule) IsAppModule() {}
 // for the beacon module.
 func (AppModule) DefaultGenesis() json.RawMessage {
 	bz, err := json.Marshal(
-		genesis.DefaultGenesisDeneb(),
+		types.DefaultGenesisDeneb(),
 	)
 	if err != nil {
 		panic(err)
@@ -105,7 +108,7 @@ func (am AppModule) ExportGenesis(
 	_ context.Context,
 ) (json.RawMessage, error) {
 	return json.Marshal(
-		&genesis.Genesis[
+		&types.Genesis[
 			*types.Deposit, *types.ExecutionPayloadHeader,
 		]{},
 	)
@@ -117,8 +120,19 @@ func (am AppModule) InitGenesis(
 	ctx context.Context,
 	bz json.RawMessage,
 ) ([]appmodule.ValidatorUpdate, error) {
-	return cometbft.NewConsensusEngine[appmodule.ValidatorUpdate](
+	return cometbft.NewConsensusEngine[
+		*types.AttestationData,
+		*components.BeaconState,
+		*types.SlashingInfo,
+		*consruntimetypes.SlotData[
+			*types.AttestationData,
+			*types.SlashingInfo,
+		],
+		components.StorageBackend,
+		appmodule.ValidatorUpdate,
+	](
 		am.ABCIMiddleware,
+		*am.StorageBackend,
 	).InitGenesis(ctx, bz)
 }
 
@@ -126,7 +140,18 @@ func (am AppModule) InitGenesis(
 func (am AppModule) EndBlock(
 	ctx context.Context,
 ) ([]appmodule.ValidatorUpdate, error) {
-	return cometbft.NewConsensusEngine[appmodule.ValidatorUpdate](
+	return cometbft.NewConsensusEngine[
+		*types.AttestationData,
+		*components.BeaconState,
+		*types.SlashingInfo,
+		*consruntimetypes.SlotData[
+			*types.AttestationData,
+			*types.SlashingInfo,
+		],
+		components.StorageBackend,
+		appmodule.ValidatorUpdate,
+	](
 		am.ABCIMiddleware,
+		*am.StorageBackend,
 	).EndBlock(ctx)
 }

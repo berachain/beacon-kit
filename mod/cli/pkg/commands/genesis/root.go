@@ -21,12 +21,11 @@
 package genesis
 
 import (
-	"encoding/json"
-
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/spf13/afero"
@@ -84,7 +83,7 @@ func GetGenesisValidatorRootCmd(cs common.ChainSpec) *cobra.Command {
 
 			var validatorsRoot common.Root
 			validatorsRoot, err = merkle.NewMerkleizer[
-				[32]byte, *types.Validator,
+				common.Root, *types.Validator,
 			]().MerkleizeListComposite(
 				validators, uint64(len(validators)),
 			)

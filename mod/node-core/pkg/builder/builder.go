@@ -24,10 +24,8 @@ import (
 	"context"
 	"io"
 
-	"cosmossdk.io/core/appmodule/v2"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/app"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
@@ -47,7 +45,7 @@ import (
 // node.
 type NodeBuilder[NodeT types.Node] struct {
 	node NodeT
-	// depinjectCfg holds is an extendable config container used by the
+	// depInjectCfg holds is an extendable config container used by the
 	// depinject framework.
 	depInjectCfg depinject.Config
 	// components is a list of components to provide.
@@ -85,6 +83,8 @@ func (nb *NodeBuilder[NodeT]) Build(
 		appBuilder      *runtime.AppBuilder
 		abciMiddleware  *components.ABCIMiddleware
 		serviceRegistry *service.Registry
+		consensusEngine *components.ConsensusEngine
+		apiBackend      *components.NodeAPIBackend
 	)
 
 	// build all node components using depinject
@@ -106,14 +106,11 @@ func (nb *NodeBuilder[NodeT]) Build(
 		&chainSpec,
 		&abciMiddleware,
 		&serviceRegistry,
+		&consensusEngine,
+		&apiBackend,
 	); err != nil {
 		panic(err)
 	}
-
-	// This is a bit of a meme until server/v2.
-	consensusEngine := cometbft.NewConsensusEngine[appmodule.ValidatorUpdate](
-		abciMiddleware,
-	)
 
 	// set the application to a new BeaconApp with necessary ABCI handlers
 	nb.node.RegisterApp(
@@ -128,6 +125,8 @@ func (nb *NodeBuilder[NodeT]) Build(
 			)...,
 		),
 	)
+	// TODO: so hood
+	apiBackend.AttachNode(nb.node)
 	nb.node.SetServiceRegistry(serviceRegistry)
 
 	// TODO: put this in some post node creation hook/listener.

@@ -23,15 +23,12 @@ package bytes
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 )
 
 const (
 	// B20Size represents a 20-byte size.
 	B20Size = 20
 )
-
-var _ schema.MinimalSSZObject = (*B20)(nil)
 
 // B20 represents a 20-byte fixed-size byte array.
 // For SSZ purposes it is serialized a `Vector[Byte, 20]`.
@@ -75,29 +72,12 @@ func (h *B20) UnmarshalJSON(input []byte) error {
 /*                                SSZMarshaler                                */
 /* -------------------------------------------------------------------------- */
 
-// SizeSSZ returns the size of its SSZ encoding in bytes.
-func (h B20) SizeSSZ() int {
-	return B20Size
-}
-
 // MarshalSSZ implements the SSZ marshaling for B20.
 func (h B20) MarshalSSZ() ([]byte, error) {
 	return h[:], nil
 }
 
-// IsFixed returns true if the length of the B20 is fixed.
-func (h B20) IsFixed() bool {
-	return true
-}
-
-// Type returns the type of the B20.
-func (h B20) Type() schema.SSZType {
-	return schema.B20()
-}
-
 // HashTreeRoot returns the hash tree root of the B20.
-func (h B20) HashTreeRoot() ([32]byte, error) {
-	var result [32]byte
-	copy(result[:], h[:])
-	return result, nil
+func (h B20) HashTreeRoot() B32 {
+	return ToBytes32(h[:])
 }

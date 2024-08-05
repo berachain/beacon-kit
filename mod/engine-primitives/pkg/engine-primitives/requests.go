@@ -25,6 +25,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -45,15 +46,15 @@ type NewPayloadRequest[
 		GetGasUsed() math.U64
 		GetTimestamp() math.U64
 		GetExtraData() []byte
-		GetBaseFeePerGas() math.Wei
+		GetBaseFeePerGas() *math.U256
 		GetFeeRecipient() gethprimitives.ExecutionAddress
 		GetStateRoot() common.Bytes32
 		GetReceiptsRoot() common.Bytes32
-		GetLogsBloom() []byte
+		GetLogsBloom() bytes.B256
 		GetBlobGasUsed() math.U64
 		GetExcessBlobGas() math.U64
 		GetWithdrawals() []WithdrawalT
-		GetTransactions() [][]byte
+		GetTransactions() Transactions
 	},
 	WithdrawalT interface {
 		GetIndex() math.U64
@@ -85,15 +86,15 @@ func BuildNewPayloadRequest[
 		GetGasUsed() math.U64
 		GetTimestamp() math.U64
 		GetExtraData() []byte
-		GetBaseFeePerGas() math.Wei
+		GetBaseFeePerGas() *math.U256
 		GetFeeRecipient() gethprimitives.ExecutionAddress
 		GetStateRoot() common.Bytes32
 		GetReceiptsRoot() common.Bytes32
-		GetLogsBloom() []byte
+		GetLogsBloom() bytes.B256
 		GetBlobGasUsed() math.U64
 		GetExcessBlobGas() math.U64
 		GetWithdrawals() []WithdrawalT
-		GetTransactions() [][]byte
+		GetTransactions() Transactions
 	},
 	WithdrawalT interface {
 		GetIndex() math.U64
@@ -199,13 +200,13 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAnd
 			Root:             gethprimitives.ExecutionHash(payload.GetStateRoot()),
 			TxHash:           gethprimitives.DeriveSha(gethprimitives.Transactions(txs), gethprimitives.NewStackTrie(nil)),
 			ReceiptHash:      gethprimitives.ExecutionHash(payload.GetReceiptsRoot()),
-			Bloom:            gethprimitives.BytesToBloom(payload.GetLogsBloom()),
+			Bloom:            gethprimitives.LogsBloom(payload.GetLogsBloom()),
 			Difficulty:       big.NewInt(0),
 			Number:           new(big.Int).SetUint64(payload.GetNumber().Unwrap()),
 			GasLimit:         payload.GetGasLimit().Unwrap(),
 			GasUsed:          payload.GetGasUsed().Unwrap(),
 			Time:             payload.GetTimestamp().Unwrap(),
-			BaseFee:          payload.GetBaseFeePerGas().UnwrapBig(),
+			BaseFee:          payload.GetBaseFeePerGas().ToBig(),
 			Extra:            payload.GetExtraData(),
 			MixDigest:        gethprimitives.ExecutionHash(payload.GetPrevRandao()),
 			WithdrawalsHash:  withdrawalsHash,

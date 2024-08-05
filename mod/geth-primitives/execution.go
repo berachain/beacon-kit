@@ -44,6 +44,7 @@ type (
 	Block          = coretypes.Block
 	Body           = coretypes.Body
 	Log            = coretypes.Log
+	LogsBloom      = coretypes.Bloom
 	Header         = coretypes.Header
 	Receipt        = coretypes.Receipt
 	Transaction    = coretypes.Transaction
@@ -54,16 +55,19 @@ type (
 
 //nolint:gochecknoglobals // alias.
 var (
-	HexToAddress          = common.HexToAddress
-	HexToHash             = common.HexToHash
-	Hex2BytesFixed        = common.Hex2BytesFixed
-	FromHex               = common.FromHex
-	ZeroAddress           = ExecutionAddress{}
-	ZeroHash              = ExecutionHash{}
-	BlockToExecutableData = engine.BlockToExecutableData
-	NewBlockWithHeader    = coretypes.NewBlockWithHeader
-	DeriveSha             = coretypes.DeriveSha
-	EmptyUncleHash        = coretypes.EmptyUncleHash
-	NewStackTrie          = trie.NewStackTrie
-	BytesToBloom          = coretypes.BytesToBloom
+	HexToAddress           = common.HexToAddress
+	HexToHash              = common.HexToHash
+	Hex2BytesFixed         = common.Hex2BytesFixed
+	FromHex                = common.FromHex
+	ZeroAddress            = ExecutionAddress{}
+	ZeroHash               = ExecutionHash{}
+	BlockToExecutableData  = engine.BlockToExecutableData
+	NewBlockWithHeader     = coretypes.NewBlockWithHeader
+	DeriveSha              = coretypes.DeriveSha
+	EmptyUncleHash         = coretypes.EmptyUncleHash
+	NewStackTrie           = trie.NewStackTrie
+	BytesToBloom           = coretypes.BytesToBloom
+	SignTx                 = coretypes.SignTx
+	LatestSignerForChainID = coretypes.LatestSignerForChainID
+	ReceiptStatusFailed    = coretypes.ReceiptStatusFailed
 )
