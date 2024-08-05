@@ -25,9 +25,9 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/stretchr/testify/require"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/stretchr/testify/require"
 )
 
 func generateAttestationData() *types.AttestationData {

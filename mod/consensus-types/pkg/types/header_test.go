@@ -154,7 +154,6 @@ func TestBeaconBlockHeader_SetSlot(t *testing.T) {
 	require.Equal(t, newSlot, header.GetSlot())
 }
 
-
 func TestBeaconBlockHeader_SetProposerIndex(t *testing.T) {
 	header := types.NewBeaconBlockHeader(
 		math.Slot(100),
