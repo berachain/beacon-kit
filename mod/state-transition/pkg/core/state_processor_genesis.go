@@ -24,6 +24,7 @@ import (
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -104,7 +105,23 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	if err = st.SetGenesisValidatorsRoot(validators.HashTreeRoot()); err != nil {
+	var validatorsRoot common.Root
+
+	validatorsRoot, err = merkle.
+		NewMerkleizer[common.Root, ValidatorT]().MerkleizeListComposite(
+		validators,
+		uint64(len(validators)),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: Fix this bug.
+	// if validators.HashTreeRoot() != validatorsRoot {
+	// 	panic("BING BONG")
+	// }
+
+	if err = st.SetGenesisValidatorsRoot(validatorsRoot); err != nil {
 		return nil, err
 	}
 

@@ -24,15 +24,15 @@ import (
 	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
 )
 
-// ProvideBlobFeed provides a blob feed for the depinject framework.
-func ProvideBlobFeed() *SidecarsBroker {
+// ProvideBlobBroker provides a blob feed for the depinject framework.
+func ProvideBlobBroker() *SidecarsBroker {
 	return broker.New[*SidecarEvent](
 		"blob-broker",
 	)
 }
 
-// ProvideBlockFeed provides a block feed for the depinject framework.
-func ProvideBlockFeed() *BlockBroker {
+// ProvideBlockBroker provides a block feed for the depinject framework.
+func ProvideBlockBroker() *BlockBroker {
 	return broker.New[*BlockEvent](
 		"blk-broker",
 	)
@@ -64,4 +64,16 @@ func ProvideValidatorUpdateBroker() *ValidatorUpdateBroker {
 	return broker.New[*ValidatorUpdateEvent](
 		"validator-updates-broker",
 	)
+}
+
+// DefaultBrokerProviders returns a slice of the default broker providers.
+func DefaultBrokerProviders() []interface{} {
+	return []interface{}{
+		ProvideBlobBroker,
+		ProvideBlockBroker,
+		ProvideGenesisBroker,
+		ProvideSlotBroker,
+		ProvideStatusBroker,
+		ProvideValidatorUpdateBroker,
+	}
 }

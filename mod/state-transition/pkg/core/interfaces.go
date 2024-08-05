@@ -23,7 +23,6 @@ package core
 import (
 	"context"
 
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -37,14 +36,10 @@ type BeaconState[
 	Eth1DataT,
 	ExecutionPayloadHeaderT,
 	ForkT,
-	KVStoreT any,
-	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
+	KVStoreT,
+	ValidatorT,
 	ValidatorsT,
 	WithdrawalT any,
-	WithdrawalCredentialsT interface {
-		~[32]byte
-		ToExecutionAddress() (gethprimitives.ExecutionAddress, error)
-	},
 ] interface {
 	NewFromDB(
 		bdb KVStoreT,
@@ -74,6 +69,7 @@ type ReadOnlyBeaconState[
 	ReadOnlyRandaoMixes
 	ReadOnlyStateRoots
 	ReadOnlyValidators[ValidatorT]
+	ReadOnlyWithdrawals[WithdrawalT]
 
 	GetBalance(math.ValidatorIndex) (math.Gwei, error)
 	GetSlot() (math.Slot, error)
@@ -179,4 +175,9 @@ type ReadOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT any] interface {
 	GetLatestExecutionPayloadHeader() (
 		ExecutionPayloadHeaderT, error,
 	)
+}
+
+// ReadOnlyWithdrawals only has read access to withdrawal methods.
+type ReadOnlyWithdrawals[WithdrawalT any] interface {
+	ExpectedWithdrawals() ([]WithdrawalT, error)
 }

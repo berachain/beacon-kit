@@ -136,7 +136,7 @@ type LocalBuilder[BeaconStateT any] interface {
 		ctx context.Context,
 		st BeaconStateT,
 		slot math.Slot,
-		timestamp math.U64,
+		timestamp uint64,
 		parentBlockRoot common.Root,
 		headEth1BlockHash gethprimitives.ExecutionHash,
 		finalEth1BlockHash gethprimitives.ExecutionHash,
