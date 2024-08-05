@@ -9,7 +9,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/cockroachdb/pebble"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	fastssz "github.com/ferranbt/fastssz"
 )
 
 const devDBPath = "./.tmp/sszdb.db"
@@ -80,7 +79,7 @@ func keyBytes(gindex uint64) []byte {
 	return key
 }
 
-func (d *Backend) SaveMonolith(mono fastssz.HashRoot) error {
+func (d *Backend) SaveMonolith(mono treeable) error {
 	treeRoot, err := NewTreeFromFastSSZ(mono)
 	if err != nil {
 		return err

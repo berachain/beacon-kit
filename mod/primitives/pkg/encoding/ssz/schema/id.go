@@ -82,6 +82,8 @@ type SSZType interface {
 	// HashChunkCount returns the number of 32-byte chunks required to represent
 	// the SSZ type in a Merkle tree.
 	HashChunkCount() uint64
+
+	Length() uint64
 }
 
 /* -------------------------------------------------------------------------- */

@@ -21,6 +21,7 @@
 package constraints
 
 import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
 )
@@ -74,6 +75,8 @@ type SSZField[SelfPtrT, SelfT any] interface {
 	HashTreeRootWith(fastssz.HashWalker) error
 	// Allows pointer access to the underlying type.
 	*SelfT
+
+	DefineSchema(*schema.Codec)
 }
 
 // StaticSSZField is an interface for SSZ fields with a static size.

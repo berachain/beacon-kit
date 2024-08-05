@@ -24,6 +24,7 @@ import (
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
@@ -84,6 +85,12 @@ func (e *Eth1Data) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineStaticBytes(codec, &e.DepositRoot)
 	ssz.DefineUint64(codec, &e.DepositCount)
 	ssz.DefineStaticBytes(codec, &e.BlockHash)
+}
+
+func (e *Eth1Data) DefineSchema(codec *schema.Codec) {
+	schema.DefineStaticBytes(codec, "deposit_root", &e.DepositRoot)
+	schema.DefineUint64(codec, "deposit_count", &e.DepositCount)
+	schema.DefineStaticBytes(codec, "block_hash", &e.BlockHash)
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the Eth1Data object.

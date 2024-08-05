@@ -1,10 +1,11 @@
 package sszdb_test
 
 import (
+	"bytes"
 	"context"
+	"os"
 	"testing"
 
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state/deneb"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/sszdb"
@@ -12,8 +13,59 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestDB_Metadata(t *testing.T) {
-	beacon := &deneb.BeaconState{}
+func testBeaconState() (*types.BeaconState[
+	*types.BeaconBlockHeader,
+	*types.Eth1Data,
+	*types.ExecutionPayloadHeader,
+	*types.Fork,
+	*types.Validator,
+	types.BeaconBlockHeader,
+	types.Eth1Data,
+	types.ExecutionPayloadHeader,
+	types.Fork,
+	types.Validator,
+], error) {
+	bz, err := os.ReadFile("testdata/beacon_state.ssz")
+	if err != nil {
+		return nil, err
+	}
+	beacon := &types.BeaconState[
+		*types.BeaconBlockHeader,
+		*types.Eth1Data,
+		*types.ExecutionPayloadHeader,
+		*types.Fork,
+		*types.Validator,
+		types.BeaconBlockHeader,
+		types.Eth1Data,
+		types.ExecutionPayloadHeader,
+		types.Fork,
+		types.Validator,
+	]{}
+	err = beacon.UnmarshalSSZ(bz)
+	if err != nil {
+		return nil, err
+	}
+	return beacon, nil
+}
+
+func TestTree_Basics(t *testing.T) {
+	_, err := testBeaconState()
+	require.NoError(t, err)
+}
+
+func Test_SchemaDB(t *testing.T) {
+	beacon := &types.BeaconState[
+		*types.BeaconBlockHeader,
+		*types.Eth1Data,
+		*types.ExecutionPayloadHeader,
+		*types.Fork,
+		*types.Validator,
+		types.BeaconBlockHeader,
+		types.Eth1Data,
+		types.ExecutionPayloadHeader,
+		types.Fork,
+		types.Validator,
+	]{}
 	beacon.GenesisValidatorsRoot = [32]byte{7, 7, 7, 7}
 	beacon.Slot = 777
 	beacon.Fork = &types.Fork{
@@ -76,14 +128,7 @@ func TestDB_Metadata(t *testing.T) {
 	err = db.Commit(ctx)
 	require.NoError(t, err)
 
-	beaconDB, err := sszdb.NewBeaconStateDB[
-		*types.BeaconBlockHeader,
-		*types.Eth1Data,
-		*types.ExecutionPayloadHeader,
-	](
-		db,
-		beacon,
-	)
+	beaconDB, err := sszdb.NewSchemaDB(db, beacon)
 	require.NoError(t, err)
 
 	/*
@@ -122,8 +167,13 @@ func TestDB_Metadata(t *testing.T) {
 		}
 	*/
 
-	header, err := beaconDB.GetLatestExecutionPayloadHeader(ctx)
+	headerSSZBytes, err := beacon.LatestExecutionPayloadHeader.MarshalSSZ()
 	require.NoError(t, err)
+	headerBz, err := beaconDB.GetLatestExecutionPayloadHeader(ctx)
+	require.True(t, bytes.Equal(headerSSZBytes, headerBz))
+	require.NoError(t, err)
+	var header types.ExecutionPayloadHeader
+	require.NoError(t, header.UnmarshalSSZ(headerBz))
 	require.Equal(t,
 		beacon.LatestExecutionPayloadHeader,
 		header,
