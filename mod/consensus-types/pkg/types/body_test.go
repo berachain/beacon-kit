@@ -56,7 +56,11 @@ func TestBeaconBlockBodyBase(t *testing.T) {
 
 	require.Equal(t, bytes.B96{1, 2, 3}, body.GetRandaoReveal())
 	require.NotNil(t, body.GetEth1Data())
-	require.Equal(t, bytes.B32{4, 5, 6}, body.GetGraffiti())
+
+	newGraffiti := [32]byte{7, 8, 9}
+	body.SetGraffiti(newGraffiti)
+
+	require.Equal(t, newGraffiti, [32]byte(body.GetGraffiti()))
 	require.NotNil(t, body.GetDeposits())
 }
 

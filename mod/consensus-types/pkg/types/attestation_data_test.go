@@ -25,6 +25,8 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/require"
 )
 
@@ -113,4 +115,18 @@ func TestAttestationData_GetTree(t *testing.T) {
 	// Compare the tree root with the expected root
 	actualRoot := tree.Hash()
 	require.Equal(t, string(expectedRoot[:]), string(actualRoot))
+}
+
+func TestAttestationData_Getters(t *testing.T) {
+	data := generateAttestationData()
+	beaconBlockRoot := bytes.B32{
+		1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+		21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
+	}
+
+	require.NotNil(t, data)
+
+	require.Equal(t, math.U64(12345), data.GetSlot())
+	require.Equal(t, math.U64(67890), data.GetIndex())
+	require.Equal(t, beaconBlockRoot, data.GetBeaconBlockRoot())
 }
