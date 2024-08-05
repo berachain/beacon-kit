@@ -4,8 +4,13 @@
 ###                                Kurtosis                                 ###
 ###############################################################################
 
+export IP_ADDRESS := $(shell ifconfig | grep 'inet ' | grep -v '127.0.0.1' | awk '{ print $$2 }' | head -n 1)
+
+get-ip-address: 
+	@echo "IP Address: $(IP_ADDRESS)"
+
 # Starts a Kurtosis enclave containing a local devnet
-start-forge-script: install-kurtosis
+start-forge-script: install-kurtosis get-ip-address
 	kurtosis run ./testing/forge-script --args-file ./testing/forge-script/forge-config.yaml \
 	--enclave forge-devnet
 

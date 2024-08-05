@@ -20,6 +20,8 @@ def deploy_contracts(plan, deployment):
         fail("Wallet type {} not supported.".format(wallet["type"]))
 
     folder = plan.upload_files(src = repository, name = "contracts")
+    rpc_complete_url = "http://{}:{}".format(rpc_url["host_ip"], rpc_url["port"])
+    plan.print("rpc_complete_url", rpc_complete_url)
 
     foundry_service = plan.add_service(
         name = "foundry",
@@ -46,7 +48,7 @@ def deploy_contracts(plan, deployment):
         "cd /app/contracts && forge script {}:{} --broadcast --rpc-url {} {} --json  --skip test > output.json ".format(
             script_path,
             contract_name,
-            rpc_url,
+            rpc_complete_url,
             wallet_command,
         ),
     )
