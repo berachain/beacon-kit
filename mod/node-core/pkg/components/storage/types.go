@@ -98,7 +98,7 @@ type KVStore[
 	)
 	// SetLatestExecutionPayloadHeader sets the latest execution payload header.
 	SetLatestExecutionPayloadHeader(
-		slot math.Slot, payloadHeader ExecutionPayloadHeaderT,
+		payloadHeader ExecutionPayloadHeaderT,
 	) error
 	// GetEth1DepositIndex retrieves the eth1 deposit index.
 	GetEth1DepositIndex() (uint64, error)

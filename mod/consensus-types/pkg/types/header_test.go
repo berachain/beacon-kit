@@ -139,6 +139,65 @@ func TestBeaconBlockHeader_New(t *testing.T) {
 	require.Equal(t, bodyRoot, newHeader.BodyRoot)
 }
 
+func TestBeaconBlockHeader_SetSlot(t *testing.T) {
+	header := types.NewBeaconBlockHeader(
+		math.Slot(100),
+		math.ValidatorIndex(200),
+		common.Root{},
+		common.Root{},
+		common.Root{},
+	)
+
+	newSlot := math.Slot(101)
+	header.SetSlot(newSlot)
+
+	require.Equal(t, newSlot, header.GetSlot())
+}
+
+func TestBeaconBlockHeader_SetProposerIndex(t *testing.T) {
+	header := types.NewBeaconBlockHeader(
+		math.Slot(100),
+		math.ValidatorIndex(200),
+		common.Root{},
+		common.Root{},
+		common.Root{},
+	)
+
+	newProposerIndex := math.ValidatorIndex(201)
+	header.SetProposerIndex(newProposerIndex)
+	require.Equal(t, newProposerIndex, header.GetProposerIndex())
+}
+
+func TestBeaconBlockHeader_SetParentBlockRoot(t *testing.T) {
+	header := types.NewBeaconBlockHeader(
+		math.Slot(100),
+		math.ValidatorIndex(200),
+		common.Root{},
+		common.Root{},
+		common.Root{},
+	)
+
+	newParentBlockRoot := common.Root{}
+	header.SetParentBlockRoot(newParentBlockRoot)
+
+	require.Equal(t, newParentBlockRoot, header.GetParentBlockRoot())
+}
+
+func TestBeaconBlockHeader_SetBodyRoot(t *testing.T) {
+	header := types.NewBeaconBlockHeader(
+		math.Slot(100),
+		math.ValidatorIndex(200),
+		common.Root{},
+		common.Root{},
+		common.Root{},
+	)
+
+	newBodyRoot := common.Root{}
+	header.SetBodyRoot(newBodyRoot)
+
+	require.Equal(t, newBodyRoot, header.GetBodyRoot())
+}
+
 func TestBeaconBlockHeader_UnmarshalSSZ_ErrSize(t *testing.T) {
 	header := &types.BeaconBlockHeader{}
 	buf := make([]byte, 100) // Incorrect size

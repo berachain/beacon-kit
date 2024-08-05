@@ -25,6 +25,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/require"
 )
 
@@ -105,4 +106,22 @@ func TestSlashingInfo_GetTree(t *testing.T) {
 	expectedRoot := data.HashTreeRoot()
 	actualRoot := tree.Hash()
 	require.Equal(t, string(expectedRoot[:]), string(actualRoot))
+}
+
+func TestSlashingInfo_SetSlot(t *testing.T) {
+	data := generateSlashingInfo()
+
+	newSlot := math.Slot(67890)
+	data.SetSlot(newSlot)
+
+	require.Equal(t, newSlot, data.GetSlot())
+}
+
+func TestSlashingInfo_SetIndex(t *testing.T) {
+	data := generateSlashingInfo()
+
+	newIndex := math.U64(12345)
+	data.SetIndex(newIndex)
+
+	require.Equal(t, newIndex, data.GetIndex())
 }

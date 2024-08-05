@@ -38,7 +38,6 @@ type KVStore[BeaconBlockT BeaconBlock[BeaconBlockT]] struct {
 	roots            sdkcollections.Map[[]byte, math.Slot]
 	executionNumbers sdkcollections.Map[math.U64, math.Slot]
 
-	cs           common.ChainSpec
 	mu           sync.RWMutex
 	cdc          *encoding.SSZInterfaceCodec[BeaconBlockT]
 	earliestSlot math.Slot
@@ -46,7 +45,7 @@ type KVStore[BeaconBlockT BeaconBlock[BeaconBlockT]] struct {
 
 // NewStore creates a new block store.
 func NewStore[BeaconBlockT BeaconBlock[BeaconBlockT]](
-	kvsp store.KVStoreService, cs common.ChainSpec,
+	kvsp store.KVStoreService,
 ) *KVStore[BeaconBlockT] {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kvsp)
 	cdc := &encoding.SSZInterfaceCodec[BeaconBlockT]{}
@@ -72,7 +71,6 @@ func NewStore[BeaconBlockT BeaconBlock[BeaconBlockT]](
 			encoding.U64Key,
 			encoding.U64Value,
 		),
-		cs:  cs,
 		cdc: cdc,
 	}
 }
@@ -82,7 +80,6 @@ func (kv *KVStore[BeaconBlockT]) Get(slot math.Slot) (BeaconBlockT, error) {
 	kv.mu.RLock()
 	defer kv.mu.RUnlock()
 
-	kv.cdc.SetActiveForkVersion(kv.cs.ActiveForkVersionForSlot(slot))
 	return kv.blocks.Get(context.TODO(), slot)
 }
 
@@ -111,6 +108,7 @@ func (kv *KVStore[BeaconBlockT]) Set(slot math.Slot, blk BeaconBlockT) error {
 	}
 
 	// Set the block in the blocks map.
+	kv.cdc.SetActiveForkVersion(blk.Version())
 	return kv.blocks.Set(ctx, slot, blk)
 }
 
@@ -148,7 +146,6 @@ func (kv *KVStore[BeaconBlockT]) Prune(start, end uint64) error {
 	// We only return early from this loop with an error if the key
 	// passed in cannot be encoded.
 	for i := max(s, kv.earliestSlot); i < e; i++ {
-		kv.cdc.SetActiveForkVersion(kv.cs.ActiveForkVersionForSlot(i))
 		block, err := kv.blocks.Get(ctx, i)
 		if !errors.Is(err, sdkcollections.ErrNotFound) {
 			// If block is found and still errors, exit and return.
