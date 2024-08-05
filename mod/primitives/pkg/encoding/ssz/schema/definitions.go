@@ -214,9 +214,9 @@ func ContainerFields(typ SSZType) []string {
 	if !ok {
 		return nil
 	}
-	fields := make([]string, 0, len(c.FieldIndex))
-	for n := range c.FieldIndex {
-		fields = append(fields, n)
+	fields := make([]string, len(c.FieldIndex))
+	for n, i := range c.FieldIndex {
+		fields[i] = n
 	}
 	return fields
 }

@@ -58,7 +58,7 @@ func (c *Codec) empty() bool {
 }
 
 func DefineBool[T ~bool](codec *Codec, name string, v *T) {
-	if codec.empty() {
+	if !codec.empty() {
 		codec.peek().DefineField(name, Bool())
 		return
 	}

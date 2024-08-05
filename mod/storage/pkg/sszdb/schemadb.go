@@ -5,8 +5,11 @@ import (
 	"encoding/binary"
 	"fmt"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	fastssz "github.com/ferranbt/fastssz"
 )
 
@@ -72,7 +75,7 @@ func (db *SchemaDB) getLeafBytes(
 
 	// if the path was to a _byte vector_ unmarshal all of its leaves
 	if isByteVector(typ) {
-		typ, gindex, offset, err = path.Append("0").
+		_, gindex, offset, err = path.Append("0").
 			GetGeneralizedIndex(db.schemaRoot)
 		if err != nil {
 			return nil, err
@@ -108,8 +111,7 @@ func (db *SchemaDB) getSSZBytes(
 		sszBytes = append(sszBytes, bz...)
 		n += uint32(typ.ItemLength())
 		return n, nil, sszBytes, nil
-	case schema.Vector:
-	case schema.List:
+	case schema.Vector, schema.List:
 		if isByteVector(typ) {
 			bz, err = db.getLeafBytes(ctx, root)
 			if err != nil {
@@ -171,6 +173,10 @@ func (db *SchemaDB) getSSZBytes(
 	return n, nil, sszBytes, nil
 }
 
+// TODO clean up abstraction lines
+// SchemaDB should handle object paths and bytes
+// BeaconDB should handle types
+
 func (db *SchemaDB) SetLatestExecutionPayloadHeader(
 	ctx context.Context,
 	header treeable,
@@ -188,10 +194,48 @@ func (db *SchemaDB) SetLatestExecutionPayloadHeader(
 	return db.stage(ctx, treeNode, gindex)
 }
 
-func (db *SchemaDB) GetLatestExecutionPayloadHeader(
+func (db *SchemaDB) GetPath(
 	ctx context.Context,
+	path objectPath,
 ) ([]byte, error) {
-	path := objectPath("latest_execution_payload_header")
-	_, _, bz, err := db.getSSZBytes(ctx, path)
+	_, offsetBz, bz, err := db.getSSZBytes(ctx, path)
+	if offsetBz != nil {
+		return offsetBz.bz, err
+	}
 	return bz, err
+}
+
+func (db *SchemaDB) GetSlot(ctx context.Context) (math.U64, error) {
+	path := objectPath("slot")
+	_, _, bz, err := db.getSSZBytes(ctx, path)
+	if err != nil {
+		return 0, err
+	}
+	return math.U64(fastssz.UnmarshallUint64(bz)), nil
+}
+
+func (db *SchemaDB) GetBlockRoots(ctx context.Context) ([]bytes.B32, error) {
+	path := objectPath("block_roots/__len__")
+	typ, gindex, offset, err := path.GetGeneralizedIndex(db.schemaRoot)
+	if err != nil {
+		return nil, err
+	}
+	bz, err := db.getNodeBytes(ctx, gindex, typ.ItemLength(), offset)
+	if err != nil {
+		return nil, err
+	}
+
+	length := fastssz.UnmarshallUint64(bz)
+	sszBytes, err := db.GetPath(ctx, "block_roots")
+	if err != nil {
+		return nil, err
+	}
+	roots := make([]common.Root, length)
+	n := 0
+	for i := range length {
+		roots[i] = common.Root(sszBytes[n : n+32])
+		n += 32
+	}
+
+	return roots, nil
 }

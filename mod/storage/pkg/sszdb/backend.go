@@ -26,7 +26,7 @@ type BackendConfig struct {
 
 func NewBackend(cfg BackendConfig) (*Backend, error) {
 	if cfg.Path == "" {
-		cfg.Path = devDBPath
+		panic("path is required")
 	}
 	db, err := pebble.Open(cfg.Path, &pebble.Options{})
 	if err != nil {
