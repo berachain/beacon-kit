@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package state_transition
+package transition
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"

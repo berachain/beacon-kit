@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package state_transition
+package transition
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -29,6 +29,8 @@ import (
 )
 
 // InitializePreminedBeaconStateFromEth1 initializes the beacon state.
+//
+//nolint:gocognit // its ok
 func (sp *StateProcessor[
 	_, BeaconBlockBodyT, BeaconBlockHeaderT, BeaconStateT, _, DepositT,
 	_, ExecutionPayloadHeaderT, ForkT, _, _, ValidatorT, _, _, _,

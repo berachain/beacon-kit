@@ -31,6 +31,8 @@ import (
 
 // Validator is the custom Validator struct used
 // in Berachain.
+//
+//nolint:lll // long withdrawal credentials
 type Validator struct {
 	// Pubkey is the validator's 48-byte BLS public key.
 	Pubkey crypto.BLSPubkey `json:"pubkey"`
