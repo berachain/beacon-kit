@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package dispatcher
+package server
 
 import (
 	"context"
@@ -28,25 +28,25 @@ import (
 
 // EventServer asyncronously dispatches events to subscribers.
 type EventServer struct {
-	feeds map[types.EventID]publisher
+	feeds map[types.MessageID]publisher
 }
 
 // NewEventServer creates a new event server.
 func NewEventServer() *EventServer {
 	return &EventServer{
-		feeds: make(map[types.EventID]publisher),
+		feeds: make(map[types.MessageID]publisher),
 	}
 }
 
 // Dispatch dispatches the given event to the feed with the given eventID.
-func (es *EventServer) Dispatch(ctx context.Context, event *types.Event[any]) {
-	es.feeds[event.Type()].Publish(ctx, *event)
+func (es *EventServer) Dispatch(ctx context.Context, event *types.Message[any]) {
+	es.feeds[event.ID()].Publish(ctx, *event)
 }
 
 // Subscribe subscribes the given channel to the feed with the given eventID.
 // It will error if the channel type does not match the event type corresponding
 // feed.
-func (es *EventServer) Subscribe(eventID types.EventID, ch chan any) error {
+func (es *EventServer) Subscribe(eventID types.MessageID, ch chan any) error {
 	feed, ok := es.feeds[eventID]
 	if !ok {
 		return ErrFeedNotFound
@@ -64,6 +64,6 @@ func (es *EventServer) Start(ctx context.Context) {
 // RegisterFeed registers the given feed with the given eventID.
 // Any subsequent events with <eventID> dispatched to this EventServer must be
 // consistent with the type expected by <feed>.
-func (es *EventServer) RegisterFeed(eventID types.EventID, feed publisher) {
+func (es *EventServer) RegisterFeed(eventID types.MessageID, feed publisher) {
 	es.feeds[eventID] = feed
 }

@@ -25,14 +25,6 @@ import (
 	"errors"
 )
 
-// MessageHandler is a function that handles a message and returns a response message.
-type MessageHandler[DataT any] func(req Message[DataT]) (resp Message[DataT], err error)
-
-type ResponseHandler[DataT any] func(resp Message[DataT]) any
-
-// MessageID represents the type of a message.
-type MessageID string
-
 // A Message is an asynchronous message meant for a single recipient.
 type Message[DataT any] struct {
 	// ctx is the context associated with the event.
@@ -44,6 +36,16 @@ type Message[DataT any] struct {
 	// err is the error associated with the event.
 	err error
 }
+
+// MessageID represents the type of a message.
+type MessageID string
+
+// EventID is a type alias for a MessageID.
+type EventID = MessageID
+
+// Event acts as a type alias for a Message that is meant to be broadcasted
+// to all subscribers.
+type Event[DataT any] struct{ Message[DataT] }
 
 // NewEvent creates a new Event with the given context and beacon event.
 func NewMessage[
@@ -59,27 +61,38 @@ func NewMessage[
 	}
 }
 
+// NewEvent creates a new Event with the given context and beacon event.
+func NewEvent[
+	DataT any,
+](
+	ctx context.Context, messageType EventID, data DataT, errs ...error,
+) *Event[DataT] {
+	return &Event[DataT]{
+		Message: *NewMessage(ctx, messageType, data, errs...),
+	}
+}
+
 // ID returns the ID of the event.
-func (m Message[DataT]) ID() MessageID {
+func (m *Message[DataT]) ID() MessageID {
 	return m.id
 }
 
 // Context returns the context associated with the event.
-func (m Message[DataT]) Context() context.Context {
+func (m *Message[DataT]) Context() context.Context {
 	return m.ctx
 }
 
 // Data returns the data associated with the event.
-func (m Message[DataT]) Data() DataT {
+func (m *Message[DataT]) Data() DataT {
 	return m.data
 }
 
 // Error returns the error associated with the event.
-func (m Message[DataT]) Error() error {
+func (m *Message[DataT]) Error() error {
 	return m.err
 }
 
 // Is returns true if the event has the given type.
-func (m Message[DataT]) Is(messageType MessageID) bool {
+func (m *Message[DataT]) Is(messageType MessageID) bool {
 	return m.id == messageType
 }

@@ -26,19 +26,22 @@ import (
 	"github.com/berachain/beacon-kit/mod/async/pkg/types"
 )
 
-// Dispatcher faciliates asyncronous communication between components, typically
+// Dispatcher faciliates asynchronous communication between components, typically
 // services. It acts as an API facade to the underlying event and message
 // servers.
 type Dispatcher struct {
-	eventServer *EventServer
-	msgServer   *MessageServer
+	eventServer EventServer
+	msgServer   MessageServer
 }
 
 // NewDispatcher creates a new dispatcher.
-func NewDispatcher() *Dispatcher {
+func NewDispatcher(
+	eventServer EventServer,
+	msgServer MessageServer,
+) *Dispatcher {
 	return &Dispatcher{
-		eventServer: NewEventServer(),
-		msgServer:   NewMessageServer(),
+		eventServer: eventServer,
+		msgServer:   msgServer,
 	}
 }
 
@@ -53,19 +56,19 @@ func (d *Dispatcher) Start(ctx context.Context) error {
 // RegisterEventFeed registers the given event feed with the given eventID.
 // Any subsequent events with <eventID> dispatched to this Dispatcher must be
 // consistent with the type expected by <feed>.
-func (d *Dispatcher) RegisterEventFeed(eventID types.EventID, feed publisher) {
+func (d *Dispatcher) RegisterEventFeed(eventID types.MessageID, feed publisher) {
 	d.eventServer.RegisterFeed(eventID, feed)
 }
 
 // Subscribe subscribes the given channel to the event with the given <eventID>.
 // It will error if the channel type does not match the event type corresponding
 // to the <eventID>.
-func (d *Dispatcher) Subscribe(eventID types.EventID, ch chan any) error {
+func (d *Dispatcher) Subscribe(eventID types.MessageID, ch chan any) error {
 	return d.eventServer.Subscribe(eventID, ch)
 }
 
 // DispatchEvent dispatches the given event to the event server.
-func (d *Dispatcher) DispatchEvent(ctx context.Context, event *types.Event[any]) {
+func (d *Dispatcher) DispatchEvent(ctx context.Context, event *types.Message[any]) {
 	d.eventServer.Dispatch(ctx, event)
 }
 

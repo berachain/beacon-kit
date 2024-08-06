@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package dispatcher
+package server
 
 import (
 	"github.com/berachain/beacon-kit/mod/async/pkg/types"
