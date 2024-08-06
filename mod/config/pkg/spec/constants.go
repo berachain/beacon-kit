@@ -22,7 +22,7 @@ package spec
 
 const (
 	// DevnetEth1ChainID is the chain ID for the local devnet.
-	DevnetEth1ChainID uint64 = 80087
+	DevnetEth1ChainID uint64 = 2012
 
 	// TestnetEth1ChainID is the chain ID for the bArtio testnet.
 	TestnetEth1ChainID uint64 = 80084
