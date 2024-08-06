@@ -68,8 +68,8 @@ github.com/cockroachdb/redact v1.1.5 h1:u1PMllDkdFfPWaNGMyLD1+so+aq3uUItthCFqzwP
 github.com/cockroachdb/redact v1.1.5/go.mod h1:BVNblN9mBWFyMyqK1k3AAiSxhvhfK2oOZZ2lK+dpvRg=
 github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 h1:zuQyyAKVxetITBuuhv3BI9cMrmStnpT18zmgmTxunpo=
 github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06/go.mod h1:7nc4anLGjupUW/PeY5qiNYsdNXj7zopG+eqsS7To5IQ=
-github.com/cometbft/cometbft v1.0.0-rc1.0.20240806094948-2c4293ef36c4 h1:LyYO/PPHwQsnGhTNJzWfCi9xg7EEyuMORRqrQZJQjYc=
-github.com/cometbft/cometbft v1.0.0-rc1.0.20240806094948-2c4293ef36c4/go.mod h1:gYT9oZe8H3xTWgocfjbnOV4v7IjzaEWqM+JJO3Z3R60=
+github.com/cometbft/cometbft v1.0.0-rc1.0.20240805092115-3b2c5d9e1843 h1:jRYqytam1YhSVjGD85QiqXWCFm1daOw/nXlxbhHwlOA=
+github.com/cometbft/cometbft v1.0.0-rc1.0.20240805092115-3b2c5d9e1843/go.mod h1:qg1b/UyQ+USgmacfaJMZpnnA0wDxWFGBbbYYn9grXkM=
 github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4 h1:dEOaTNsJrOTOSysBgAE9pK6zeNASUR6gsFW8s0zcRRU=
 github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4/go.mod h1:NDFKiBBD8HJC6QQLAoUI99YhsiRZtg2+FJWfk6A6m6o=
 github.com/consensys/bavard v0.1.13 h1:oLhMLOFGTLdlda/kma4VOJazblc7IM5y5QPd2A/YjhQ=
@@ -78,6 +78,8 @@ github.com/consensys/gnark-crypto v0.13.0 h1:VPULb/v6bbYELAPTDFINEVaMTTybV5GLxDd
 github.com/consensys/gnark-crypto v0.13.0/go.mod h1:wKqwsieaKPThcFkHe0d0zMsbHEUWFmZcG7KBCse210o=
 github.com/cosmos/cosmos-db v1.0.2 h1:hwMjozuY1OlJs/uh6vddqnk9j7VamLv+0DBlbEXbAKs=
 github.com/cosmos/cosmos-db v1.0.2/go.mod h1:Z8IXcFJ9PqKK6BIsVOB3QXtkKoqUOp1vRvPT39kOXEA=
+github.com/cosmos/crypto v0.1.2 h1:Yn500sPY+9sKVdhiPUSDtt8JOpBGMB515dOmla4zfls=
+github.com/cosmos/crypto v0.1.2/go.mod h1:b6VWz3HczIpBaQPvI7KrbQeF3pXHh0al3T5e0uwMBQw=
 github.com/cosmos/gogoproto v1.5.0 h1:SDVwzEqZDDBoslaeZg+dGE55hdzHfgUA40pEanMh52o=
 github.com/cosmos/gogoproto v1.5.0/go.mod h1:iUM31aofn3ymidYG6bUR5ZFrk+Om8p5s754eMUcyp8I=
 github.com/cpuguy83/go-md2man/v2 v2.0.4 h1:wfIWP927BUkWJb2NmU/kNDYIBTh/ziUX91+lVfRxZq4=

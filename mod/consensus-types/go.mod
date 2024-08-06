@@ -15,7 +15,10 @@ require (
 
 )
 
-require github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4 // indirect
+require (
+	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4 // indirect
+	github.com/cosmos/crypto v0.1.2 // indirect
+)
 
 require (
 	github.com/DataDog/zstd v1.5.6 // indirect
@@ -32,7 +35,7 @@ require (
 	github.com/cockroachdb/pebble v1.1.1 // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
-	github.com/cometbft/cometbft v1.0.0-rc1.0.20240806094948-2c4293ef36c4 // indirect
+	github.com/cometbft/cometbft v1.0.0-rc1.0.20240805092115-3b2c5d9e1843 // indirect
 	// indirect
 	github.com/consensys/bavard v0.1.13 // indirect
 	github.com/consensys/gnark-crypto v0.13.0 // indirect

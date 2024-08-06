@@ -22,10 +22,12 @@ github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b h1:r6VH0faHjZe
 github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b/go.mod h1:Vz9DsVWQQhf3vs21MhPMZpMGSht7O/2vFW2xusFUVOs=
 github.com/cockroachdb/redact v1.1.5 h1:u1PMllDkdFfPWaNGMyLD1+so+aq3uUItthCFqzwPJ30=
 github.com/cockroachdb/redact v1.1.5/go.mod h1:BVNblN9mBWFyMyqK1k3AAiSxhvhfK2oOZZ2lK+dpvRg=
-github.com/cometbft/cometbft v1.0.0-rc1.0.20240806094948-2c4293ef36c4 h1:LyYO/PPHwQsnGhTNJzWfCi9xg7EEyuMORRqrQZJQjYc=
-github.com/cometbft/cometbft v1.0.0-rc1.0.20240806094948-2c4293ef36c4/go.mod h1:gYT9oZe8H3xTWgocfjbnOV4v7IjzaEWqM+JJO3Z3R60=
+github.com/cometbft/cometbft v1.0.0-rc1.0.20240805092115-3b2c5d9e1843 h1:jRYqytam1YhSVjGD85QiqXWCFm1daOw/nXlxbhHwlOA=
+github.com/cometbft/cometbft v1.0.0-rc1.0.20240805092115-3b2c5d9e1843/go.mod h1:qg1b/UyQ+USgmacfaJMZpnnA0wDxWFGBbbYYn9grXkM=
 github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4 h1:dEOaTNsJrOTOSysBgAE9pK6zeNASUR6gsFW8s0zcRRU=
 github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4/go.mod h1:NDFKiBBD8HJC6QQLAoUI99YhsiRZtg2+FJWfk6A6m6o=
+github.com/cosmos/crypto v0.1.2 h1:Yn500sPY+9sKVdhiPUSDtt8JOpBGMB515dOmla4zfls=
+github.com/cosmos/crypto v0.1.2/go.mod h1:b6VWz3HczIpBaQPvI7KrbQeF3pXHh0al3T5e0uwMBQw=
 github.com/cosmos/gogoproto v1.5.0 h1:SDVwzEqZDDBoslaeZg+dGE55hdzHfgUA40pEanMh52o=
 github.com/cosmos/gogoproto v1.5.0/go.mod h1:iUM31aofn3ymidYG6bUR5ZFrk+Om8p5s754eMUcyp8I=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
