@@ -45,10 +45,9 @@ func (vs Validators) DefineSSZ(c *ssz.Codec) {
 			c, (*[]*Validator)(&vs), MaxValidators)
 	})
 
-	// TODO: FIX BARTIO FUCKUP.
 	c.DefineHasher(func(*ssz.Hasher) {
 		ssz.DefineSliceOfStaticObjectsOffset(
-			c, (*[]*Validator)(&vs), uint64(len(vs)))
+			c, (*[]*Validator)(&vs), MaxValidators)
 	})
 }
 
