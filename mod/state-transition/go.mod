@@ -6,7 +6,7 @@ require (
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240710022615-726645827bad
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240618214413-d5ec0e66b3dd
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240630225951-a5075323fa26
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240806160829-cde2d1347e7e
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-faster/xor v1.0.0
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8

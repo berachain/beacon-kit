@@ -8,6 +8,8 @@ github.com/berachain/beacon-kit/mod/node-api v0.0.0-20240806160829-cde2d1347e7e 
 github.com/berachain/beacon-kit/mod/node-api v0.0.0-20240806160829-cde2d1347e7e/go.mod h1:wgOdrP96dMsXDXHItO4tRLuf8IaHP14RY4MbUPFAc4s=
 github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157 h1:2NHg24WWdkX7FgaFQsgNp3vbFRMnEIqchI6kKf6hs4I=
 github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157/go.mod h1:uSFWd+x3034sIGnSwxlJjhooh4zPXYX8DVc/r0TMvs4=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240806160829-cde2d1347e7e h1:JQ+QbZcnecWYooLXWVbWZTbuHas9G68pHIxT/3uVlpI=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240806160829-cde2d1347e7e/go.mod h1:v5JKfVqYEGFMTJIDrOV8m/dutSpw7mlif6wW3v26k68=
 github.com/cockroachdb/errors v1.11.3 h1:5bA+k2Y6r+oz/6Z/RFlNeVCesGARKuC6YymtcDrbC/I=
 github.com/cockroachdb/errors v1.11.3/go.mod h1:m4UIW4CDjx+R5cybPsNrRbreomiFqt8o1h1wUVazSd8=
 github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b h1:r6VH0faHjZeQy818SGhaone5OnYfxFR/+AzdY3sf5aE=

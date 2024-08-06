@@ -12,7 +12,7 @@ require (
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240624033454-8f3451361f44
 	github.com/berachain/beacon-kit/mod/node-api v0.0.0-20240717210058-a144e074f6b2
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240624003607-df94860f8eeb
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240806160829-cde2d1347e7e
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240806094948-2c4293ef36c4
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/spf13/viper v1.19.0
@@ -26,7 +26,7 @@ require (
 	github.com/VictoriaMetrics/fastcache v1.12.2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/berachain/beacon-kit/mod/async v0.0.0-20240624003607-df94860f8eeb // indirect
-	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240710022615-726645827bad // indirect
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240806160829-cde2d1347e7e // indirect
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240710022615-726645827bad // indirect
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240806160829-cde2d1347e7e // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect

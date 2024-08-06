@@ -20,6 +20,8 @@ github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483d
 github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df/go.mod h1:bTFB4Rdvm7D/WdwPYkqQ+8T0XOMBv0pzXfp1E46BFX8=
 github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240710022615-726645827bad h1:HkSRpHLIIcjeur/reWPP7g/BWxLD1+hg47f+r+lHOr0=
 github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240710022615-726645827bad/go.mod h1:IEjidX9vnwSJCMcPI8O4stbDaGlmN3/jZX6NFbh7dvQ=
+github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240806160829-cde2d1347e7e h1:GTeZshNZaH5MnVhSSGj//vxJfv1kM9d6w2CA7O64gJk=
+github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240806160829-cde2d1347e7e/go.mod h1:ZU1bq1BMt6b0kPRAw+A3kP7FlSd5DSQNYePD5qL9zfQ=
 github.com/berachain/beacon-kit/mod/da v0.0.0-20240610210054-bfdc14c4013c h1:WKjF2xYQ3jwTNauJbs34bTzCgf49uHYy7/f+z1DfmyI=
 github.com/berachain/beacon-kit/mod/da v0.0.0-20240610210054-bfdc14c4013c/go.mod h1:4hmlXJkl1cwCnZvEISy4K2x9Z7O3Pgtijz1HS/P/uY8=
 github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240710022615-726645827bad h1:cNtVWFUtqG/71tZ8SXqivbO8OOCvcnSRkHiEpsA9M9g=
@@ -38,6 +40,8 @@ github.com/berachain/beacon-kit/mod/payload v0.0.0-20240624003607-df94860f8eeb h
 github.com/berachain/beacon-kit/mod/payload v0.0.0-20240624003607-df94860f8eeb/go.mod h1:IFOWyTyeFcwsTkJc0Ud9uMLxQ8r4SyZNFiXpDQaJAgc=
 github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157 h1:2NHg24WWdkX7FgaFQsgNp3vbFRMnEIqchI6kKf6hs4I=
 github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157/go.mod h1:uSFWd+x3034sIGnSwxlJjhooh4zPXYX8DVc/r0TMvs4=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240806160829-cde2d1347e7e h1:JQ+QbZcnecWYooLXWVbWZTbuHas9G68pHIxT/3uVlpI=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240806160829-cde2d1347e7e/go.mod h1:v5JKfVqYEGFMTJIDrOV8m/dutSpw7mlif6wW3v26k68=
 github.com/berachain/beacon-kit/mod/storage v0.0.0-20240806160829-cde2d1347e7e h1:eIHdeGNL87GlWxFqAgsuUZpA/EBGvaOWXFMDuXSJgjU=
 github.com/berachain/beacon-kit/mod/storage v0.0.0-20240806160829-cde2d1347e7e/go.mod h1:1Hti34fIHtniBapeikvYF3KyA038+6If8BRkRKqWUy4=
 github.com/bits-and-blooms/bitset v1.13.0 h1:bAQ9OPNFYbGHV6Nez0tmNI0RiEu7/hxlYJRUA0wFAVE=

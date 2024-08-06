@@ -5,12 +5,12 @@ go 1.22.5
 require (
 	github.com/berachain/beacon-kit/mod/async v0.0.0-20240623030054-639bea05ba49
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240724230723-201979ac649d
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240806160829-cde2d1347e7e
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240710022615-726645827bad
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610210054-bfdc14c4013c
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240806160829-cde2d1347e7e
 	github.com/crate-crypto/go-kzg-4844 v1.0.0
 	github.com/ethereum/c-kzg-4844 v1.0.2
 	github.com/karalabe/ssz v0.2.1-0.20240724074312-3d1ff7a6f7c4

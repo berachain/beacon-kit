@@ -1,5 +1,7 @@
 github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157 h1:2NHg24WWdkX7FgaFQsgNp3vbFRMnEIqchI6kKf6hs4I=
 github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157/go.mod h1:uSFWd+x3034sIGnSwxlJjhooh4zPXYX8DVc/r0TMvs4=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240806160829-cde2d1347e7e h1:JQ+QbZcnecWYooLXWVbWZTbuHas9G68pHIxT/3uVlpI=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240806160829-cde2d1347e7e/go.mod h1:v5JKfVqYEGFMTJIDrOV8m/dutSpw7mlif6wW3v26k68=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/kr/pretty v0.2.1/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfnI=

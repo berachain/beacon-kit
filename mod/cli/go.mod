@@ -16,13 +16,13 @@ require (
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce
 	cosmossdk.io/tools/confix v0.1.1
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240724161918-96b9bf999de2
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240806160829-cde2d1347e7e
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240710022615-726645827bad
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240722101705-632d23f22727
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240710023144-cd73de9f7378
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240806160829-cde2d1347e7e
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240806094948-2c4293ef36c4
 	github.com/cosmos/cosmos-sdk v0.53.0
 	github.com/ferranbt/fastssz v0.1.4-0.20240629094022-eac385e6ee79

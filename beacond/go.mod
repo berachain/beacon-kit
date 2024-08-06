@@ -57,7 +57,7 @@ require (
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df // indirect
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240705193247-d464364483df // indirect
 	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240710023256-e9246f6a35e1 // indirect
-	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240710022615-726645827bad // indirect
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240806160829-cde2d1347e7e // indirect
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240705193247-d464364483df // indirect
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240710022615-726645827bad // indirect
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df // indirect
@@ -66,7 +66,7 @@ require (
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240705193247-d464364483df // indirect
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240618214413-d5ec0e66b3dd // indirect
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df // indirect
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157 // indirect
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240806160829-cde2d1347e7e // indirect
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240710022902-57d64ab384c7 // indirect
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240710023256-e9246f6a35e1 // indirect
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240705193247-d464364483df // indirect
