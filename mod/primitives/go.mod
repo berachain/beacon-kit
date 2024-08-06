@@ -15,7 +15,7 @@ require (
 	github.com/minio/sha256-simd v1.0.1
 	github.com/prysmaticlabs/gohashtree v0.0.4-beta
 	github.com/stretchr/testify v1.9.0
-	golang.org/x/sync v0.7.0
+	golang.org/x/sync v0.8.0
 )
 
 require (
