@@ -12,6 +12,7 @@ include contracts/Makefile
 include kurtosis/Makefile
 include build/scripts/help.mk
 include testing/forge-script/Makefile
+include testing/scripts/fullnode.mk
 
 # Specify the default target if none is provided
 .DEFAULT_GOAL := build
