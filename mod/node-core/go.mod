@@ -6,11 +6,6 @@ replace (
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240806152830-8fb47b368cd4
 	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240806152830-8fb47b368cd4
-	github.com/berachain/beacon-kit/mod/beacon => ../beacon
-	github.com/berachain/beacon-kit/mod/config => ../config
-	github.com/berachain/beacon-kit/mod/node-api => ../node-api
-	github.com/berachain/beacon-kit/mod/node-api/engines => ../node-api/engines
-	github.com/berachain/beacon-kit/mod/storage => ../storage
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240806162430-052187ae63ba
 )
 
@@ -32,13 +27,13 @@ require (
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/node-api v0.0.0-20240717210058-a144e074f6b2
-	github.com/berachain/beacon-kit/mod/node-api/engines v0.0.0-00010101000000-000000000000
+	github.com/berachain/beacon-kit/mod/node-api v0.0.0-20240806160829-cde2d1347e7e
+	github.com/berachain/beacon-kit/mod/node-api/engines v0.0.0-20240806160829-cde2d1347e7e
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240717210058-a144e074f6b2
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6650da31
-	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240723155519-565f208d5482
+	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240806160829-cde2d1347e7e
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240806094948-2c4293ef36c4
 	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4
 	github.com/cosmos/cosmos-db v1.0.2

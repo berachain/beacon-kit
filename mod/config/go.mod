@@ -2,11 +2,6 @@ module github.com/berachain/beacon-kit/mod/config
 
 go 1.22.5
 
-replace (
-	github.com/berachain/beacon-kit/mod/beacon => ../beacon
-	github.com/berachain/beacon-kit/mod/storage => ../storage
-)
-
 require (
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240718074353-1a991cfeed63
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df
@@ -24,6 +19,8 @@ require (
 )
 
 require (
+	cosmossdk.io/collections v0.4.0 // indirect
+	cosmossdk.io/core v0.12.1-0.20240623110059-dec2d5583e39 // indirect
 	github.com/DataDog/zstd v1.5.5 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/VictoriaMetrics/fastcache v1.12.2 // indirect
@@ -31,6 +28,7 @@ require (
 	github.com/berachain/beacon-kit/mod/async v0.0.0-20240624003607-df94860f8eeb // indirect
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240710022615-726645827bad // indirect
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240710022615-726645827bad // indirect
+	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240806160829-cde2d1347e7e // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
