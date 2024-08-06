@@ -14,7 +14,6 @@ replace (
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240806162353-1fa473c35c9a
 	github.com/ferranbt/fastssz => github.com/itsdevbear/fastssz v0.0.0-20240731164358-a354a31813e6
 	github.com/karalabe/ssz => github.com/itsdevbear/ssz v0.0.0-20240729201410-1a53beff08cb
-	github.com/supranational/blst => github.com/supranational/blst v0.3.11
 )
 
 require (
