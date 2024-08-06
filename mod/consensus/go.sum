@@ -57,12 +57,12 @@ github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610210054-bfdc14c4013c h1
 github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610210054-bfdc14c4013c/go.mod h1:xgngH5/PYbyW+YDEmRhbBy3V333GXsNWF4DAkjYCmfs=
 github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240806160829-cde2d1347e7e h1:JQ+QbZcnecWYooLXWVbWZTbuHas9G68pHIxT/3uVlpI=
 github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240806160829-cde2d1347e7e/go.mod h1:v5JKfVqYEGFMTJIDrOV8m/dutSpw7mlif6wW3v26k68=
-github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240806162430-052187ae63ba h1:CtkzjUupdhaQeWEbqk8VRb1UDDvdedvdPUWbyRCwUmw=
-github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240806162430-052187ae63ba/go.mod h1:SUigh/LLjORN8Km5AOOdTc5PHGcy/QMIEHElng0mJJk=
+github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240806165653-78391fad650f h1:7+qqTmNuBbrYPag6tKQHC3utz8vX8THgtqvlHV93bWw=
+github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240806165653-78391fad650f/go.mod h1:SUigh/LLjORN8Km5AOOdTc5PHGcy/QMIEHElng0mJJk=
 github.com/bgentry/speakeasy v0.2.0 h1:tgObeVOf8WAvtuAX6DhJ4xks4CFNwPDZiqzGqIHE51E=
 github.com/bgentry/speakeasy v0.2.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
-github.com/btcsuite/btcd/btcec/v2 v2.3.4 h1:3EJjcN70HCu/mwqlUsGK8GcNVyLVxFDlWurTXGPFfiQ=
-github.com/btcsuite/btcd/btcec/v2 v2.3.4/go.mod h1:zYzJ8etWJQIv1Ogk7OzpWjowwOdXY1W/17j2MW85J04=
+github.com/btcsuite/btcd/btcec/v2 v2.3.3 h1:6+iXlDKE8RMtKsvK0gshlXIuPbyWM/h84Ensb7o3sC0=
+github.com/btcsuite/btcd/btcec/v2 v2.3.3/go.mod h1:zYzJ8etWJQIv1Ogk7OzpWjowwOdXY1W/17j2MW85J04=
 github.com/btcsuite/btcd/btcutil v1.1.5 h1:+wER79R5670vs/ZusMTF1yTcRYE5GUsFbdjdisflzM8=
 github.com/btcsuite/btcd/btcutil v1.1.5/go.mod h1:PSZZ4UitpLBWzxGd5VGOrLnmOjtPP/a6HaFo12zMs00=
 github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0 h1:59Kx4K6lzOW5w6nFlA0v5+lk/6sjybR934QNHSJZPTQ=
