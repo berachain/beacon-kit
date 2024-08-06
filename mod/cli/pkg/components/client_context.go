@@ -67,7 +67,7 @@ func ProvideClientContext(
 	// Read the config to overwrite the default values with the values from the
 	// config file
 	customClientTemplate, customClientConfig := config.InitClientConfig()
-	clientCtx, err = sdkconfig.ReadDefaultValuesFromDefaultClientConfig(
+	clientCtx, err = sdkconfig.CreateClientConfig(
 		clientCtx,
 		customClientTemplate,
 		customClientConfig,
