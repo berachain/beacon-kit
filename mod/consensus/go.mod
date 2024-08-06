@@ -4,38 +4,37 @@ go 1.22.5
 
 replace (
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
-	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240623110059-dec2d5583e39
-	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240623110059-dec2d5583e39
-	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240623110059-dec2d5583e39
-	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240623110059-dec2d5583e39
-	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240623110059-dec2d5583e39
-	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240623110059-dec2d5583e39
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240624014538-75ba469b1881
+	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240806152830-8fb47b368cd4
+	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240806152830-8fb47b368cd4
+	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240806152830-8fb47b368cd4
+	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240806152830-8fb47b368cd4
+	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240806152830-8fb47b368cd4
+	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240806152830-8fb47b368cd4
+	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240806162430-052187ae63ba
 )
 
 require (
-	cosmossdk.io/core v0.12.1-0.20240623110059-dec2d5583e39
+	cosmossdk.io/core v0.12.1-0.20240806152830-8fb47b368cd4
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240806094948-2c4293ef36c4
 	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4
-	github.com/cosmos/cosmos-sdk v0.51.0
+	github.com/cosmos/cosmos-sdk v0.53.0
 	github.com/cosmos/gogoproto v1.5.0
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8
 )
 
 require (
-	buf.build/gen/go/cometbft/cometbft/protocolbuffers/go v1.34.2-20240312114316-c0d3497e35d6.2 // indirect
+	buf.build/gen/go/cometbft/cometbft/protocolbuffers/go v1.34.2-20240701160653-fedbb9acfd2f.2 // indirect
 	buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.34.2-20240130113600-88ef6483f90f.2 // indirect
 	cosmossdk.io/api v0.7.5 // indirect
 	cosmossdk.io/collections v0.4.0 // indirect
-	cosmossdk.io/depinject v1.0.0-alpha.4.0.20240506202947-fbddf0a55044 // indirect
+	cosmossdk.io/depinject v1.0.0 // indirect
 	cosmossdk.io/errors v1.0.1 // indirect
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce // indirect
 	cosmossdk.io/math v1.3.0 // indirect
 	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc // indirect
-	cosmossdk.io/x/accounts v0.0.0-20240623110059-dec2d5583e39 // indirect
-	cosmossdk.io/x/auth v0.0.0-20240623110059-dec2d5583e39 // indirect
-	cosmossdk.io/x/consensus v0.0.0-20240623110059-dec2d5583e39 // indirect
+	cosmossdk.io/x/auth v0.0.0-20240806152830-8fb47b368cd4 // indirect
+	cosmossdk.io/x/consensus v0.0.0-20240806152830-8fb47b368cd4 // indirect
 	cosmossdk.io/x/tx v0.13.4-0.20240623110059-dec2d5583e39 // indirect
 	github.com/DataDog/zstd v1.5.5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -53,7 +52,6 @@ require (
 	github.com/cosmos/btcutil v1.0.5 // indirect
 	github.com/cosmos/cosmos-db v1.0.2 // indirect
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5 // indirect
-	github.com/cosmos/crypto v0.1.2 // indirect
 	github.com/cosmos/ics23/go v0.10.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
