@@ -40,6 +40,7 @@ require (
 	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240723155519-565f208d5482 // indirect
 	github.com/berachain/beacon-kit/mod/node-api v0.0.0-20240806160829-cde2d1347e7e // indirect
 	github.com/berachain/beacon-kit/mod/node-api/engines v0.0.0-00010101000000-000000000000 // indirect
+	github.com/bufbuild/protocompile v0.14.0 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a // indirect
 	github.com/ethereum/go-ethereum v1.14.6 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.4 // indirect
