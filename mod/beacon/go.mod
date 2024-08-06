@@ -12,10 +12,7 @@ require (
 	golang.org/x/sync v0.8.0
 )
 
-replace (
-	github.com/berachain/beacon-kit/mod/engine-primitives => ../engine-primitives
-	github.com/berachain/beacon-kit/mod/storage => ../storage
-)
+replace github.com/berachain/beacon-kit/mod/engine-primitives => ../engine-primitives
 
 require (
 	github.com/DataDog/zstd v1.5.5 // indirect
