@@ -25,6 +25,7 @@ github.com/cockroachdb/redact v1.1.5/go.mod h1:BVNblN9mBWFyMyqK1k3AAiSxhvhfK2oOZ
 github.com/cometbft/cometbft v1.0.0-rc1.0.20240806094948-2c4293ef36c4 h1:LyYO/PPHwQsnGhTNJzWfCi9xg7EEyuMORRqrQZJQjYc=
 github.com/cometbft/cometbft v1.0.0-rc1.0.20240806094948-2c4293ef36c4/go.mod h1:gYT9oZe8H3xTWgocfjbnOV4v7IjzaEWqM+JJO3Z3R60=
 github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4 h1:dEOaTNsJrOTOSysBgAE9pK6zeNASUR6gsFW8s0zcRRU=
+github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4/go.mod h1:NDFKiBBD8HJC6QQLAoUI99YhsiRZtg2+FJWfk6A6m6o=
 github.com/cosmos/gogoproto v1.5.0 h1:SDVwzEqZDDBoslaeZg+dGE55hdzHfgUA40pEanMh52o=
 github.com/cosmos/gogoproto v1.5.0/go.mod h1:iUM31aofn3ymidYG6bUR5ZFrk+Om8p5s754eMUcyp8I=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
