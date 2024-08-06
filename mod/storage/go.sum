@@ -100,8 +100,8 @@ github.com/cometbft/cometbft v1.0.0-rc1.0.20240729121641-d06d2e8229ee h1:kKBRLjZ
 github.com/cometbft/cometbft v1.0.0-rc1.0.20240729121641-d06d2e8229ee/go.mod h1:pK6pZxr9In/6POIswpsSge0PUk/VaBH2ivz4f1uVysU=
 github.com/cometbft/cometbft-db v0.12.0 h1:v77/z0VyfSU7k682IzZeZPFZrQAKiQwkqGN0QzAjMi0=
 github.com/cometbft/cometbft-db v0.12.0/go.mod h1:aX2NbCrjNVd2ZajYxt1BsiFf/Z+TQ2MN0VxdicheYuw=
-github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240711183925-948692fddcbe h1:oynRpza+/NiaVKLO/sdM5Zu+U8pem6HCOZ5vl7g/YX8=
-github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240711183925-948692fddcbe/go.mod h1:NDFKiBBD8HJC6QQLAoUI99YhsiRZtg2+FJWfk6A6m6o=
+github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4 h1:dEOaTNsJrOTOSysBgAE9pK6zeNASUR6gsFW8s0zcRRU=
+github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4/go.mod h1:NDFKiBBD8HJC6QQLAoUI99YhsiRZtg2+FJWfk6A6m6o=
 github.com/coreos/go-systemd/v22 v22.5.0/go.mod h1:Y58oyj3AT4RCenI/lSvhwexgC+NSVTIJ3seZv2GcEnc=
 github.com/cosmos/btcutil v1.0.5 h1:t+ZFcX77LpKtDBhjucvnOH8C2l2ioGsBNEQ3jef8xFk=
 github.com/cosmos/btcutil v1.0.5/go.mod h1:IyB7iuqZMJlthe2tkIFL33xPyzbFYP0XVdS8P5lUPis=
