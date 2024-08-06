@@ -18,25 +18,32 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package chainspec
+package transition
 
-import "github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
+	"github.com/sourcegraph/conc/iter"
+)
 
-type BartioChainSpec[
-	DomainTypeT ~[4]byte,
-	EpochT ~uint64,
-	ExecutionAddressT ~[20]byte,
-	SlotT ~uint64,
-	CometBFTConfigT any,
-] struct {
-	// BGTContractAddress
-	BGTContractAddress ExecutionAddressT `mapstructure:"bgt-contract-address"`
-	// SpecData is the underlying data structure for chain-specific parameters.
-	chain.SpecData[
-		DomainTypeT,
-		EpochT,
-		ExecutionAddressT,
-		SlotT,
-		CometBFTConfigT,
-	]
+// processSyncCommitteeUpdates processes the sync committee updates.
+func (sp *StateProcessor[
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, ValidatorT, _, _, _,
+]) processSyncCommitteeUpdates(
+	st BeaconStateT,
+) (transition.ValidatorUpdates, error) {
+	vals, err := st.GetValidatorsByEffectiveBalance()
+	if err != nil {
+		return nil, err
+	}
+
+	return iter.MapErr(
+		vals,
+		func(val *ValidatorT) (*transition.ValidatorUpdate, error) {
+			v := (*val)
+			return &transition.ValidatorUpdate{
+				Pubkey:           v.GetPubkey(),
+				EffectiveBalance: v.GetEffectiveBalance(),
+			}, nil
+		},
+	)
 }
