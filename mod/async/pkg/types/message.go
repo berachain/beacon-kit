@@ -25,56 +25,61 @@ import (
 	"errors"
 )
 
-// EventID represents the type of an event.
-type EventID string
+// MessageHandler is a function that handles a message and returns a response message.
+type MessageHandler[DataT any] func(req Message[DataT]) (resp Message[DataT], err error)
 
-// Event represents a generic event in the beacon chain.
-type Event[DataT any] struct {
+type ResponseHandler[DataT any] func(resp Message[DataT]) any
+
+// MessageID represents the type of a message.
+type MessageID string
+
+// A Message is an asynchronous message meant for a single recipient.
+type Message[DataT any] struct {
 	// ctx is the context associated with the event.
 	ctx context.Context
 	// id is the name of the event.
-	id EventID
+	id MessageID
 	// event is the actual beacon event.
 	data DataT
-	// error is the error associated with the event.
+	// err is the error associated with the event.
 	err error
 }
 
 // NewEvent creates a new Event with the given context and beacon event.
-func NewEvent[
+func NewMessage[
 	DataT any,
 ](
-	ctx context.Context, eventType EventID, data DataT, errs ...error,
-) *Event[DataT] {
-	return &Event[DataT]{
+	ctx context.Context, messageType MessageID, data DataT, errs ...error,
+) *Message[DataT] {
+	return &Message[DataT]{
 		ctx:  ctx,
-		id:   eventType,
+		id:   messageType,
 		data: data,
 		err:  errors.Join(errs...),
 	}
 }
 
-// Type returns the type of the event.
-func (e Event[DataT]) Type() EventID {
-	return e.id
+// ID returns the ID of the event.
+func (m Message[DataT]) ID() MessageID {
+	return m.id
 }
 
 // Context returns the context associated with the event.
-func (e Event[DataT]) Context() context.Context {
-	return e.ctx
+func (m Message[DataT]) Context() context.Context {
+	return m.ctx
 }
 
 // Data returns the data associated with the event.
-func (e Event[DataT]) Data() DataT {
-	return e.data
+func (m Message[DataT]) Data() DataT {
+	return m.data
 }
 
 // Error returns the error associated with the event.
-func (e Event[DataT]) Error() error {
-	return e.err
+func (m Message[DataT]) Error() error {
+	return m.err
 }
 
 // Is returns true if the event has the given type.
-func (e Event[DataT]) Is(eventType EventID) bool {
-	return e.id == eventType
+func (m Message[DataT]) Is(messageType MessageID) bool {
+	return m.id == messageType
 }
