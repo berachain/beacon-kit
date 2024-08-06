@@ -247,6 +247,16 @@ func (sp *StateProcessor[
 	if err != nil {
 		return err
 	}
+
+	// We set the "rawHeader" in the StateProcessor, but cannot fill in
+	// the StateRoot until the following block.
+	if (latestHeader.GetStateRoot() == common.Root{}) {
+		latestHeader.SetStateRoot(prevStateRoot)
+		if err = st.SetLatestBlockHeader(latestHeader); err != nil {
+			return err
+		}
+	}
+
 	// We update the block root.
 	return st.UpdateBlockRootAtIndex(
 		stateSlot.Unwrap()%sp.cs.SlotsPerHistoricalRoot(),
