@@ -216,7 +216,7 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAnd
 		},
 	).WithBody(gethprimitives.Body{
 		Transactions: txs, Uncles: nil, Withdrawals: gethWithdrawals,
-	}); gethprimitives.ExecutionHash(block.Hash()) != gethprimitives.ExecutionHash(payload.GetBlockHash()) {
+	}); block.Hash() != gethprimitives.ExecutionHash(payload.GetBlockHash()) {
 		return errors.Wrapf(ErrPayloadBlockHashMismatch,
 			"%x, got %x",
 			payload.GetBlockHash(), block.Hash(),

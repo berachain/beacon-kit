@@ -41,15 +41,14 @@ var (
 )
 
 // ExecutionHash represents the 32 byte Keccak256 hash of arbitrary data.
+// We use this type to represent hashes of things that come from the execution
+// layer.
 type ExecutionHash [32]byte
 
 // NewExecutionHashFromHex creates a new hash from a hex string.
 func NewExecutionHashFromHex(hex string) ExecutionHash {
 	return ExecutionHash(hexutil.MustDecode(hex))
 }
-
-// Bytes gets the byte representation of the underlying hash.
-func (h ExecutionHash) Bytes() []byte { return h[:] }
 
 // Hex converts a hash to a hex string.
 func (h ExecutionHash) Hex() string { return string(hex.EncodeBytes(h[:])) }
