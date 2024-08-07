@@ -39,15 +39,15 @@ type NewPayloadRequest[
 	ExecutionPayloadT interface {
 		constraints.ForkTyped[ExecutionPayloadT]
 		GetPrevRandao() common.Bytes32
-		GetBlockHash() gethprimitives.ExecutionHash
-		GetParentHash() gethprimitives.ExecutionHash
+		GetBlockHash() common.ExecutionHash
+		GetParentHash() common.ExecutionHash
 		GetNumber() math.U64
 		GetGasLimit() math.U64
 		GetGasUsed() math.U64
 		GetTimestamp() math.U64
 		GetExtraData() []byte
 		GetBaseFeePerGas() *math.U256
-		GetFeeRecipient() gethprimitives.ExecutionAddress
+		GetFeeRecipient() common.ExecutionAddress
 		GetStateRoot() common.Bytes32
 		GetReceiptsRoot() common.Bytes32
 		GetLogsBloom() bytes.B256
@@ -59,14 +59,14 @@ type NewPayloadRequest[
 	WithdrawalT interface {
 		GetIndex() math.U64
 		GetAmount() math.U64
-		GetAddress() gethprimitives.ExecutionAddress
+		GetAddress() common.ExecutionAddress
 		GetValidatorIndex() math.U64
 	},
 ] struct {
 	// ExecutionPayload is the payload to the execution client.
 	ExecutionPayload ExecutionPayloadT
 	// VersionedHashes is the versioned hashes of the execution payload.
-	VersionedHashes []gethprimitives.ExecutionHash
+	VersionedHashes []common.ExecutionHash
 	// ParentBeaconBlockRoot is the root of the parent beacon block.
 	ParentBeaconBlockRoot *common.Root
 	// Optimistic is a flag that indicates if the payload should be
@@ -79,15 +79,15 @@ func BuildNewPayloadRequest[
 	ExecutionPayloadT interface {
 		constraints.ForkTyped[ExecutionPayloadT]
 		GetPrevRandao() common.Bytes32
-		GetBlockHash() gethprimitives.ExecutionHash
-		GetParentHash() gethprimitives.ExecutionHash
+		GetBlockHash() common.ExecutionHash
+		GetParentHash() common.ExecutionHash
 		GetNumber() math.U64
 		GetGasLimit() math.U64
 		GetGasUsed() math.U64
 		GetTimestamp() math.U64
 		GetExtraData() []byte
 		GetBaseFeePerGas() *math.U256
-		GetFeeRecipient() gethprimitives.ExecutionAddress
+		GetFeeRecipient() common.ExecutionAddress
 		GetStateRoot() common.Bytes32
 		GetReceiptsRoot() common.Bytes32
 		GetLogsBloom() bytes.B256
@@ -99,12 +99,12 @@ func BuildNewPayloadRequest[
 	WithdrawalT interface {
 		GetIndex() math.U64
 		GetAmount() math.U64
-		GetAddress() gethprimitives.ExecutionAddress
+		GetAddress() common.ExecutionAddress
 		GetValidatorIndex() math.U64
 	},
 ](
 	executionPayload ExecutionPayloadT,
-	versionedHashes []gethprimitives.ExecutionHash,
+	versionedHashes []common.ExecutionHash,
 	parentBeaconBlockRoot *common.Root,
 	optimistic bool,
 ) *NewPayloadRequest[ExecutionPayloadT, WithdrawalT] {
@@ -126,7 +126,7 @@ func BuildNewPayloadRequest[
 func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAndBlockHashes() error {
 	var (
 		gethWithdrawals []*gethprimitives.Withdrawal
-		withdrawalsHash *gethprimitives.ExecutionHash
+		withdrawalsHash *common.ExecutionHash
 		blobHashes      = make([]gethprimitives.ExecutionHash, 0)
 		payload         = n.ExecutionPayload
 		txs             = make(
@@ -159,7 +159,7 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAnd
 
 	// Validate each blob hash against the corresponding versioned hash.
 	for i, blobHash := range blobHashes {
-		if blobHash != n.VersionedHashes[i] {
+		if common.ExecutionHash(blobHash) != n.VersionedHashes[i] {
 			return errors.Wrapf(
 				ErrInvalidVersionedHash,
 				"index %d: expected %v, got %v",
@@ -180,7 +180,7 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAnd
 			gethWithdrawals[i] = &gethprimitives.Withdrawal{
 				Index:     wd.GetIndex().Unwrap(),
 				Amount:    wd.GetAmount().Unwrap(),
-				Address:   wd.GetAddress(),
+				Address:   gethprimitives.ExecutionAddress(wd.GetAddress()),
 				Validator: wd.GetValidatorIndex().Unwrap(),
 			}
 		}
@@ -188,15 +188,15 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAnd
 			gethprimitives.Withdrawals(gethWithdrawals),
 			gethprimitives.NewStackTrie(nil),
 		)
-		withdrawalsHash = &h
+		withdrawalsHash = (*common.ExecutionHash)(&h)
 	}
 
 	// Verify that the payload is telling the truth about it's block hash.
 	if block := gethprimitives.NewBlockWithHeader(
 		&gethprimitives.Header{
-			ParentHash:       payload.GetParentHash(),
+			ParentHash:       gethprimitives.ExecutionHash(payload.GetParentHash()),
 			UncleHash:        gethprimitives.EmptyUncleHash,
-			Coinbase:         payload.GetFeeRecipient(),
+			Coinbase:         gethprimitives.ExecutionAddress(payload.GetFeeRecipient()),
 			Root:             gethprimitives.ExecutionHash(payload.GetStateRoot()),
 			TxHash:           gethprimitives.DeriveSha(gethprimitives.Transactions(txs), gethprimitives.NewStackTrie(nil)),
 			ReceiptHash:      gethprimitives.ExecutionHash(payload.GetReceiptsRoot()),
@@ -209,14 +209,14 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAnd
 			BaseFee:          payload.GetBaseFeePerGas().ToBig(),
 			Extra:            payload.GetExtraData(),
 			MixDigest:        gethprimitives.ExecutionHash(payload.GetPrevRandao()),
-			WithdrawalsHash:  withdrawalsHash,
+			WithdrawalsHash:  (*gethprimitives.ExecutionHash)(withdrawalsHash),
 			ExcessBlobGas:    payload.GetExcessBlobGas().UnwrapPtr(),
 			BlobGasUsed:      payload.GetBlobGasUsed().UnwrapPtr(),
 			ParentBeaconRoot: (*gethprimitives.ExecutionHash)(n.ParentBeaconBlockRoot),
 		},
 	).WithBody(gethprimitives.Body{
 		Transactions: txs, Uncles: nil, Withdrawals: gethWithdrawals,
-	}); block.Hash() != payload.GetBlockHash() {
+	}); block.Hash() != gethprimitives.ExecutionHash(payload.GetBlockHash()) {
 		return errors.Wrapf(ErrPayloadBlockHashMismatch,
 			"%x, got %x",
 			payload.GetBlockHash(), block.Hash(),

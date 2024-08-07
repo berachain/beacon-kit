@@ -24,7 +24,7 @@ import (
 	"testing"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/stretchr/testify/require"
 )
@@ -55,13 +55,13 @@ func TestWithdrawals(t *testing.T) {
 			{
 				Index:     math.U64(1),
 				Validator: math.ValidatorIndex(2),
-				Address:   gethprimitives.ExecutionAddress{1, 2, 3},
+				Address:   common.ExecutionAddress{1, 2, 3},
 				Amount:    math.Gwei(100),
 			},
 			{
 				Index:     math.U64(3),
 				Validator: math.ValidatorIndex(4),
-				Address:   gethprimitives.ExecutionAddress{4, 5, 6},
+				Address:   common.ExecutionAddress{4, 5, 6},
 				Amount:    math.Gwei(200),
 			},
 		}
@@ -94,7 +94,7 @@ func TestWithdrawals(t *testing.T) {
 			{
 				Index:     math.U64(1),
 				Validator: math.ValidatorIndex(2),
-				Address:   gethprimitives.ExecutionAddress{1, 2, 3},
+				Address:   common.ExecutionAddress{1, 2, 3},
 				Amount:    math.Gwei(100),
 			},
 		}

@@ -66,7 +66,7 @@ func (h B48) String() string {
 
 // UnmarshalJSON implements the json.Unmarshaler interface for B48.
 func (h *B48) UnmarshalJSON(input []byte) error {
-	return unmarshalJSONHelper(h[:], input)
+	return UnmarshalJSONHelper(h[:], input)
 }
 
 /* -------------------------------------------------------------------------- */

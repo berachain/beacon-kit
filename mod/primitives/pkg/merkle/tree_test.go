@@ -25,6 +25,7 @@ import (
 	"testing"
 
 	byteslib "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 	"github.com/stretchr/testify/require"
 )
@@ -110,7 +111,7 @@ func TestMerkleTree_IsValidMerkleBranch(t *testing.T) {
 	require.False(
 		t,
 		merkle.IsValidMerkleBranch(
-			byteslib.ToBytes32([]byte("buzz")),
+			common.Root(byteslib.ToBytes32([]byte("buzz"))),
 			proof,
 			treeDepth,
 			3,
@@ -155,7 +156,7 @@ func TestMerkleTree_VerifyProof(t *testing.T) {
 		t,
 		merkle.VerifyProof(
 			root,
-			byteslib.ToBytes32([]byte("buzz")),
+			common.Root(byteslib.ToBytes32([]byte("buzz"))),
 			3,
 			proof,
 		),

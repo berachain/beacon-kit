@@ -25,7 +25,6 @@ import (
 	"strings"
 	"testing"
 
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 	"github.com/stretchr/testify/require"
@@ -33,8 +32,8 @@ import (
 
 func TestNewFromHex(t *testing.T) {
 	wantValid := jwt.Secret(
-		gethprimitives.FromHex(
-			"1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+		hex.MustToBytes(
+			"0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
 		),
 	)
 	tests := []struct {
@@ -55,7 +54,7 @@ func TestNewFromHex(t *testing.T) {
 
 			hexStr:  "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
 			want:    &(wantValid),
-			wantErr: false,
+			wantErr: true,
 		},
 		{
 			name:    "invalid hex string",
@@ -92,8 +91,8 @@ func TestSecretString(t *testing.T) {
 		{
 			name: "mask secret correctly",
 			secret: jwt.Secret(
-				gethprimitives.FromHex(
-					"1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+				hex.MustToBytes(
+					"0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
 				),
 			),
 			want: "0x123456**********************************************************",
