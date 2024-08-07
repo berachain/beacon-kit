@@ -11,7 +11,7 @@ require (
 	github.com/holiman/uint256 v1.3.1
 	github.com/karalabe/ssz v0.2.1-0.20240724074312-3d1ff7a6f7c4
 	github.com/minio/sha256-simd v1.0.1
-	github.com/prysmaticlabs/gohashtree v0.0.4-beta
+	github.com/prysmaticlabs/gohashtree v0.0.4-beta.0.20240624100937-73632381301b
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/crypto v0.26.0
 	golang.org/x/sync v0.8.0
