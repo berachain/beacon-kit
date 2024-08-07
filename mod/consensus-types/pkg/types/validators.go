@@ -44,6 +44,7 @@ func (vs Validators) DefineSSZ(c *ssz.Codec) {
 		ssz.DefineSliceOfStaticObjectsContent(
 			c, (*[]*Validator)(&vs), MaxValidators)
 	})
+
 	c.DefineHasher(func(*ssz.Hasher) {
 		ssz.DefineSliceOfStaticObjectsOffset(
 			c, (*[]*Validator)(&vs), MaxValidators)

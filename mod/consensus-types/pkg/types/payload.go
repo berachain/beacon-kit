@@ -21,7 +21,6 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
@@ -561,7 +560,8 @@ func (p *ExecutionPayload) ToHeader(
 
 	// TODO: This is live on bArtio with a bug and needs to be hardforked
 	// off of. This is a temporary solution to avoid breaking changes.
-	if eth1ChainID == spec.TestnetEth1ChainID {
+	//nolint:mnd // don't want the circular dep.
+	if eth1ChainID == 80084 {
 		txsRoot = engineprimitives.BartioTransactions(
 			p.GetTransactions(),
 		).HashTreeRoot()
