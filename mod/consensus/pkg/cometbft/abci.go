@@ -23,6 +23,7 @@ package cometbft
 import (
 	"context"
 
+	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -45,6 +46,9 @@ type Application[ClientT engine.Client] struct {
 
 	// Consensus Params
 	ConsensusParamsStore *ConsensusParamsStore
+
+	// Last App Hash
+	lastAppHash []byte
 }
 
 func NewApplication[ClientT engine.Client](
@@ -69,7 +73,7 @@ func (app *Application[ClientT]) InitChain(
 		"chain id", req.ChainId,
 		"height", req.InitialHeight,
 	)
-	valUpdates, appHash, err := app.client.InitChain(ctx, req.AppStateBytes)
+	valUpdates, genesisAppHash, err := app.client.InitChain(ctx, req.AppStateBytes)
 	if err != nil {
 		return nil, err
 	}
@@ -77,6 +81,11 @@ func (app *Application[ClientT]) InitChain(
 	if err != nil {
 		return nil, err
 	}
+	// set genesis data
+	app.lastAppHash = genesisAppHash
+
+	// annoying from sdk.
+	appHash := (&storetypes.CommitInfo{}).CommitID().Hash
 
 	return &abci.InitChainResponse{
 		ConsensusParams: params,
@@ -125,11 +134,14 @@ func (app *Application[ClientT]) FinalizeBlock(
 	valUpdates, appHash, err := app.client.FinalizeBlock(ctx, finalizeReq)
 	if err != nil {
 		return nil, err
+	} else if appHash == nil {
+		appHash = app.lastAppHash
 	}
 	params, err := app.ConsensusParamsStore.Get(finalizeReq.Slot)
 	if err != nil {
 		return nil, err
 	}
+	app.lastAppHash = appHash
 	return &abci.FinalizeBlockResponse{
 		ValidatorUpdates:      convertValidatorUpdates(valUpdates),
 		ConsensusParamUpdates: params,
