@@ -180,6 +180,7 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalsT]) HasValidVersionedAn
 	)
 
 	// Verify that the payload is telling the truth about it's block hash.
+	//#nosec:G103 // its okay.
 	if block := gethprimitives.NewBlockWithHeader(
 		&gethprimitives.Header{
 			ParentHash:       gethprimitives.ExecutionHash(payload.GetParentHash()),
@@ -203,7 +204,6 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalsT]) HasValidVersionedAn
 			ParentBeaconRoot: (*gethprimitives.ExecutionHash)(n.ParentBeaconBlockRoot),
 		},
 	).WithBody(gethprimitives.Body{
-		//#nosec:G103 // its okay.
 		Transactions: txs, Uncles: nil, Withdrawals: *(*gethprimitives.Withdrawals)(unsafe.Pointer(&wds)),
 	}); common.ExecutionHash(block.Hash()) != payload.GetBlockHash() {
 		return errors.Wrapf(ErrPayloadBlockHashMismatch,
