@@ -227,7 +227,6 @@ type (
 		*ExecutionPayload,
 		*PayloadAttributes,
 		PayloadID,
-		*Withdrawal,
 		engineprimitives.Withdrawals,
 	]
 

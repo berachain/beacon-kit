@@ -83,7 +83,7 @@ type StateProcessor[
 	signer crypto.BLSSigner
 	// executionEngine is the engine responsible for executing transactions.
 	executionEngine ExecutionEngine[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	]
 }
 
@@ -134,7 +134,7 @@ func NewStateProcessor[
 ](
 	cs common.ChainSpec,
 	executionEngine ExecutionEngine[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	signer crypto.BLSSigner,
 ) *StateProcessor[

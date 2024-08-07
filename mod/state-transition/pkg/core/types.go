@@ -178,9 +178,7 @@ type ExecutionEngine[
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT],
 	ExecutionPayloadHeaderT any,
-	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalsT interface {
-		~[]WithdrawalT
 		Len() int
 		EncodeIndex(int, *stdbytes.Buffer)
 	},
@@ -189,7 +187,7 @@ type ExecutionEngine[
 	// execution client.
 	VerifyAndNotifyNewPayload(
 		ctx context.Context,
-		req *engineprimitives.NewPayloadRequest[ExecutionPayloadT, WithdrawalT, WithdrawalsT],
+		req *engineprimitives.NewPayloadRequest[ExecutionPayloadT, WithdrawalsT],
 	) error
 }
 

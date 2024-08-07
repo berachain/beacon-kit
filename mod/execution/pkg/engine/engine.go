@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -42,9 +42,7 @@ type Engine[
 	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT, WithdrawalsT],
 	PayloadAttributesT engineprimitives.PayloadAttributer,
 	PayloadIDT ~[8]byte,
-	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalsT interface {
-		~[]WithdrawalT
 		Len() int
 		EncodeIndex(int, *bytes.Buffer)
 	},
@@ -65,9 +63,7 @@ func New[
 	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT, WithdrawalsT],
 	PayloadAttributesT engineprimitives.PayloadAttributer,
 	PayloadIDT ~[8]byte,
-	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalsT interface {
-		~[]WithdrawalT
 		Len() int
 		EncodeIndex(int, *bytes.Buffer)
 	},
@@ -78,11 +74,11 @@ func New[
 	telemtrySink TelemetrySink,
 ) *Engine[
 	ExecutionPayloadT, PayloadAttributesT,
-	PayloadIDT, WithdrawalT, WithdrawalsT,
+	PayloadIDT, WithdrawalsT,
 ] {
 	return &Engine[
 		ExecutionPayloadT, PayloadAttributesT, PayloadIDT,
-		WithdrawalT, WithdrawalsT,
+		WithdrawalsT,
 	]{
 		ec:              ec,
 		logger:          logger,
@@ -92,7 +88,7 @@ func New[
 }
 
 // Start spawns any goroutines required by the service.
-func (ee *Engine[_, _, _, _, _]) Start(
+func (ee *Engine[_, _, _, _]) Start(
 	ctx context.Context,
 ) error {
 	go func() {
@@ -106,7 +102,7 @@ func (ee *Engine[_, _, _, _, _]) Start(
 
 // GetPayload returns the payload and blobs bundle for the given slot.
 func (ee *Engine[
-	ExecutionPayloadT, _, _, _, _,
+	ExecutionPayloadT, _, _, _,
 ]) GetPayload(
 	ctx context.Context,
 	req *engineprimitives.GetPayloadRequest[engineprimitives.PayloadID],
@@ -119,7 +115,7 @@ func (ee *Engine[
 
 // NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
 func (ee *Engine[
-	_, PayloadAttributesT, _, _, _,
+	_, PayloadAttributesT, _, _,
 ]) NotifyForkchoiceUpdate(
 	ctx context.Context,
 	req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
@@ -193,11 +189,11 @@ func (ee *Engine[
 // VerifyAndNotifyNewPayload verifies the new payload and notifies the
 // execution client.
 func (ee *Engine[
-	ExecutionPayloadT, _, _, WithdrawalT, WithdrawalsT,
+	ExecutionPayloadT, _, _, WithdrawalsT,
 ]) VerifyAndNotifyNewPayload(
 	ctx context.Context,
 	req *engineprimitives.NewPayloadRequest[
-		ExecutionPayloadT, WithdrawalT, WithdrawalsT,
+		ExecutionPayloadT, WithdrawalsT,
 	],
 ) error {
 	// Log the new payload attempt.

@@ -58,14 +58,7 @@ type NewPayloadRequest[
 		GetWithdrawals() WithdrawalsT
 		GetTransactions() Transactions
 	},
-	WithdrawalT interface {
-		GetIndex() math.U64
-		GetAmount() math.U64
-		GetAddress() common.ExecutionAddress
-		GetValidatorIndex() math.U64
-	},
 	WithdrawalsT interface {
-		~[]WithdrawalT
 		Len() int
 		EncodeIndex(int, *stdbytes.Buffer)
 	},
@@ -119,8 +112,8 @@ func BuildNewPayloadRequest[
 	versionedHashes []common.ExecutionHash,
 	parentBeaconBlockRoot *common.Root,
 	optimistic bool,
-) *NewPayloadRequest[ExecutionPayloadT, WithdrawalT, WithdrawalsT] {
-	return &NewPayloadRequest[ExecutionPayloadT, WithdrawalT, WithdrawalsT]{
+) *NewPayloadRequest[ExecutionPayloadT, WithdrawalsT] {
+	return &NewPayloadRequest[ExecutionPayloadT, WithdrawalsT]{
 		ExecutionPayload:      executionPayload,
 		VersionedHashes:       versionedHashes,
 		ParentBeaconBlockRoot: parentBeaconBlockRoot,
@@ -135,7 +128,7 @@ func BuildNewPayloadRequest[
 // https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_versioned_hashes
 //
 //nolint:lll
-func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT, WithdrawalsT]) HasValidVersionedAndBlockHashes() error {
+func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalsT]) HasValidVersionedAndBlockHashes() error {
 	var (
 		withdrawalsHash *common.ExecutionHash
 		blobHashes      = make([]gethprimitives.ExecutionHash, 0)
