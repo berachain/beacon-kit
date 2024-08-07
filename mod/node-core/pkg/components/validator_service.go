@@ -23,7 +23,6 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	sdklog "cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -38,7 +37,7 @@ type ValidatorServiceInput struct {
 	BlobProcessor  *BlobProcessor
 	Cfg            *config.Config
 	ChainSpec      common.ChainSpec
-	Dispatcher     *dispatcher.Dispatcher
+	Dispatcher     *Dispatcher
 	LocalBuilder   *LocalBuilder
 	Logger         log.AdvancedLogger[any, sdklog.Logger]
 	StateProcessor *StateProcessor

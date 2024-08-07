@@ -23,7 +23,9 @@ package components
 import (
 	"cosmossdk.io/core/appmodule/v2"
 	broker "github.com/berachain/beacon-kit/mod/async/pkg/broker"
+	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
 	"github.com/berachain/beacon-kit/mod/async/pkg/messaging"
+	asyncserver "github.com/berachain/beacon-kit/mod/async/pkg/server"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
@@ -437,22 +439,25 @@ type (
 )
 
 type (
-	// BlockEvent is a type alias for the block event.
+	// BlockMessage is a type alias for the block message.
 	BlockMessage = asynctypes.Message[*BeaconBlock]
 
-	// GenesisEvent is a type alias for the genesis event.
+	// BlockBundleMessage is a type alias for the block bundle message.
+	BlockBundleMessage = asynctypes.Message[*BeaconBlockBundle]
+
+	// GenesisMessage is a type alias for the genesis message.
 	GenesisMessage = asynctypes.Message[*Genesis]
 
-	// SidecarEvent is a type alias for the sidecar event.
+	// SidecarMessage is a type alias for the sidecar message.
 	SidecarMessage = asynctypes.Message[*BlobSidecars]
 
-	// SlotEvent is a type alias for the slot event.
+	// SlotMessage is a type alias for the slot message.
 	SlotMessage = asynctypes.Message[*SlotData]
 
-	// StatusEvent is a type alias for the status event.
+	// StatusMessage is a type alias for the status message.
 	StatusMessage = asynctypes.Message[*service.StatusEvent]
 
-	// ValidatorUpdateEvent is a type alias for the validator update event.
+	// ValidatorUpdateMessage is a type alias for the validator update message.
 	ValidatorUpdateMessage = asynctypes.Message[transition.ValidatorUpdates]
 )
 
@@ -485,7 +490,43 @@ type (
 /* -------------------------------------------------------------------------- */
 
 type (
-	BeaconBlockFinalizedPublisher = messaging.Publisher[*BeaconBlock]
+	BeaconBlockFinalizedPublisher = messaging.Publisher[*BlockMessage]
+)
+
+/* -------------------------------------------------------------------------- */
+/*                                  Routes                                    */
+/* -------------------------------------------------------------------------- */
+
+type (
+	// BuildBlockAndSidecarsRoute is a type alias for the build block and sidecars route.
+	BuildBlockAndSidecarsRoute = messaging.Route[*SlotMessage, *BlockBundleMessage]
+
+	// VerifyBlockRoute is a type alias for the verify block route.
+	VerifyBlockRoute = messaging.Route[*BlockMessage, *BlockMessage]
+
+	// FinalizeBlockRoute is a type alias for the finalize block route.
+	FinalizeBlockRoute = messaging.Route[*BlockMessage, *ValidatorUpdateMessage]
+
+	// ProcessGenesisDataRoute is a type alias for the process genesis data route.
+	ProcessGenesisDataRoute = messaging.Route[*GenesisMessage, *ValidatorUpdateMessage]
+
+	// ProcessBlobSidecarsRoute is a type alias for the process blob sidecars route.
+	ProcessBlobSidecarsRoute = messaging.Route[*SidecarMessage, *SidecarMessage]
+)
+
+/* -------------------------------------------------------------------------- */
+/*                                   Dispatcher                               */
+/* -------------------------------------------------------------------------- */
+
+type (
+	// Dispatcher is a type alias for the dispatcher.
+	Dispatcher = dispatcher.Dispatcher
+
+	// EventServer is a type alias for the event server.
+	EventServer = asyncserver.EventServer
+
+	// MessageServer is a type alias for the messages server.
+	MessageServer = asyncserver.MessageServer
 )
 
 /* -------------------------------------------------------------------------- */

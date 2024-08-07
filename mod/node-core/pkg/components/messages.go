@@ -29,18 +29,16 @@ import (
 
 type MessageServerInput struct {
 	depinject.In
-	BuildBlockRoute          *messaging.Route[*SlotMessage, *BlockMessage]
-	BuildSidecarsRoute       *messaging.Route[*SlotMessage, *SidecarMessage]
-	VerifyBlockRoute         *messaging.Route[*BlockMessage, *BlockMessage]
-	FinalizeBlockRoute       *messaging.Route[*BlockMessage, *ValidatorUpdateMessage]
-	ProcessGenesisDataRoute  *messaging.Route[*GenesisMessage, *ValidatorUpdateMessage]
-	ProcessBlobSidecarsRoute *messaging.Route[*SidecarMessage, *SidecarMessage]
+	BuildBlockAndSidecarsRoute *BuildBlockAndSidecarsRoute
+	VerifyBlockRoute           *VerifyBlockRoute
+	FinalizeBlockRoute         *FinalizeBlockRoute
+	ProcessGenesisDataRoute    *ProcessGenesisDataRoute
+	ProcessBlobSidecarsRoute   *ProcessBlobSidecarsRoute
 }
 
-func ProvideMessageServer(in MessageServerInput) *server.MessageServer {
+func ProvideMessageServer(in MessageServerInput) *MessageServer {
 	ms := server.NewMessageServer()
-	ms.RegisterRoute(in.BuildBlockRoute.MessageID(), in.BuildBlockRoute)
-	ms.RegisterRoute(in.BuildSidecarsRoute.MessageID(), in.BuildSidecarsRoute)
+	ms.RegisterRoute(in.BuildBlockAndSidecarsRoute.MessageID(), in.BuildBlockAndSidecarsRoute)
 	ms.RegisterRoute(in.VerifyBlockRoute.MessageID(), in.VerifyBlockRoute)
 	ms.RegisterRoute(in.FinalizeBlockRoute.MessageID(), in.FinalizeBlockRoute)
 	ms.RegisterRoute(in.ProcessGenesisDataRoute.MessageID(), in.ProcessGenesisDataRoute)
@@ -49,27 +47,27 @@ func ProvideMessageServer(in MessageServerInput) *server.MessageServer {
 }
 
 // ProvideBuildBlockAndSidecarsRoute provides a route for building a beacon block.
-func ProvideBuildBlockAndSidecarsRoute() *messaging.Route[*SlotMessage, *BlockMessage] {
-	return messaging.NewRoute[*SlotMessage, *BlockMessage](messages.BuildBeaconBlockAndSidecars)
+func ProvideBuildBlockAndSidecarsRoute() *BuildBlockAndSidecarsRoute {
+	return messaging.NewRoute[*SlotMessage, *BlockBundleMessage](messages.BuildBeaconBlockAndSidecars)
 }
 
 // ProvideVerifyBeaconBlockRoute provides a route for verifying a beacon block.
-func ProvideVerifyBeaconBlockRoute() *messaging.Route[*BlockMessage, *BlockMessage] {
+func ProvideVerifyBeaconBlockRoute() *VerifyBlockRoute {
 	return messaging.NewRoute[*BlockMessage, *BlockMessage](messages.VerifyBeaconBlock)
 }
 
 // ProvideFinalizeBeaconBlockRoute provides a route for finalizing a beacon block.
-func ProvideFinalizeBeaconBlockRoute() *messaging.Route[*BlockMessage, *ValidatorUpdateMessage] {
+func ProvideFinalizeBeaconBlockRoute() *FinalizeBlockRoute {
 	return messaging.NewRoute[*BlockMessage, *ValidatorUpdateMessage](messages.FinalizeBeaconBlock)
 }
 
 // ProvideProcessGenesisDataRoute provides a route for processing genesis data.
-func ProvideProcessGenesisDataRoute() *messaging.Route[*GenesisMessage, *ValidatorUpdateMessage] {
+func ProvideProcessGenesisDataRoute() *ProcessGenesisDataRoute {
 	return messaging.NewRoute[*GenesisMessage, *ValidatorUpdateMessage](messages.ProcessGenesisData)
 }
 
 // ProvideProcessBlobSidecarsRoute provides a route for processing blob sidecars.
-func ProvideProcessBlobSidecarsRoute() *messaging.Route[*SidecarMessage, *SidecarMessage] {
+func ProvideProcessBlobSidecarsRoute() *ProcessBlobSidecarsRoute {
 	return messaging.NewRoute[*SidecarMessage, *SidecarMessage](messages.VerifyBlobSidecars)
 }
 
