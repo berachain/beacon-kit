@@ -22,6 +22,8 @@ package beacondb
 
 import (
 	"context"
+	"encoding/hex"
+	"fmt"
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
@@ -293,7 +295,18 @@ func (s *Store[_, _, _, _, _, _]) Commit() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return s.rootStore.Commit(&store.Changeset{Changes: changes})
+	hash, err := s.rootStore.Commit(&store.Changeset{Changes: changes})
+	if err != nil {
+		return nil, err
+	}
+	latestVersion, err := s.rootStore.GetLatestVersion()
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println("COMMIT HASH", hash)
+	fmt.Println("COMMIT HASH IN HEX", hex.EncodeToString(hash))
+	fmt.Println("LATEST VERSION", latestVersion)
+	return hash, nil
 }
 
 func (s *Store[_, _, _, _, _, _]) WorkingHash() ([]byte, error) {

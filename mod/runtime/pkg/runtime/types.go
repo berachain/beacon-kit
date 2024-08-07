@@ -57,6 +57,7 @@ type BeaconState interface {
 	// HashTreeRoot returns the hash tree root of the beacon state.
 	HashTreeRoot() common.Root
 	LatestCommitHash() ([]byte, error)
+	Commit() ([]byte, error)
 }
 
 // SlashingInfo is an interface for accessing the slashing info.
