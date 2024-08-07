@@ -136,9 +136,10 @@ func (a *ExecutionAddress) checksumHex() []byte {
 	sha.Write(buf[2:])
 	hash := sha.Sum(nil)
 	for i := 2; i < len(buf); i++ {
+		//nolnt:mnd // todo fix.
 		hashByte := hash[(i-2)/2]
 		if i%2 == 0 {
-			hashByte = hashByte >> 4
+			hashByte >>= 4
 		} else {
 			hashByte &= 0xf
 		}
@@ -146,5 +147,5 @@ func (a *ExecutionAddress) checksumHex() []byte {
 			buf[i] -= 32
 		}
 	}
-	return buf[:]
+	return buf
 }
