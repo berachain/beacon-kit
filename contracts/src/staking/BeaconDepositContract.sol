@@ -39,6 +39,9 @@ contract BeaconDepositContract is IBeaconDepositContract, Ownable {
         uint256 queuedTimestamp;
     }
 
+    /// @dev A flag to check if the contract has been initialized.
+    bool private initialized = false;
+
     /// @dev depositCount represents the number of deposits that
     /// have been made to the contract.
     uint64 public depositCount;
@@ -57,17 +60,11 @@ contract BeaconDepositContract is IBeaconDepositContract, Ownable {
     /*                            WRITES                          */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-    constructor(address _owner) {
-        _initializeOwner(_owner);
-    }
-
-    function _guardInitializeOwner()
-        internal
-        pure
-        override
-        returns (bool guard)
-    {
-        return true;
+    /// @dev Initializes the owner of the contract.
+    function initializeOwner() external {
+        require(!initialized, "Already initialized");
+        _initializeOwner(0x8a73D1380345942F1cb32541F1b19C40D8e6C94B);
+        initialized = true;
     }
 
     /// @inheritdoc IBeaconDepositContract
@@ -133,12 +130,14 @@ contract BeaconDepositContract is IBeaconDepositContract, Ownable {
         depositAuth[depositor] = number;
     }
 
+    /// @inheritdoc IBeaconDepositContract
     function requestOperatorChange(
         bytes calldata pubkey,
         address newOperator
     )
         external
     {
+        // Only the operator can request a change.
         if (msg.sender != _pubkeyToOperator[pubkey]) {
             revert NotOperator();
         }
@@ -148,7 +147,9 @@ contract BeaconDepositContract is IBeaconDepositContract, Ownable {
         emit OperatorChangeQueued(pubkey, newOperator);
     }
 
+    /// @inheritdoc IBeaconDepositContract
     function cancelOperatorChange(bytes calldata pubkey) external {
+        // Only the operator can cancel the change.
         if (msg.sender != _pubkeyToOperator[pubkey]) {
             revert NotOperator();
         }
@@ -156,10 +157,13 @@ contract BeaconDepositContract is IBeaconDepositContract, Ownable {
         emit OperatorChangeCancelled(pubkey);
     }
 
+    /// @inheritdoc IBeaconDepositContract
     function acceptOperatorChange(bytes calldata pubkey) external {
         QueuedOperator storage qQ = queuedOperator[pubkey];
         (address newOperator, uint256 queuedTimestamp) =
             (qQ.newOperator, qQ.queuedTimestamp);
+
+        // Only the new operator can accept the change.
         if (msg.sender != newOperator) {
             revert NotNewOperator();
         }

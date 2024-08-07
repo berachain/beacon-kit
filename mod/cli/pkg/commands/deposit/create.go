@@ -228,6 +228,7 @@ func broadcastDepositTx[
 	if err != nil {
 		return common.ExecutionHash{}, err
 	}
+	val, _ := big.NewFloat(32e18).Int(nil)
 	depositTx, err := depositContract.Deposit(
 		&bind.TransactOpts{
 			From: gethprimitivescrypto.PubkeyToAddress(privKey.PublicKey),
@@ -240,6 +241,7 @@ func broadcastDepositTx[
 					privKey,
 				)
 			},
+			Value: val,
 			//nolint:mnd // The gas tip cap.
 			GasTipCap: big.NewInt(1000000000),
 			//nolint:mnd // The gas fee cap.
@@ -249,7 +251,6 @@ func broadcastDepositTx[
 		},
 		depositMsg.Pubkey[:],
 		depositMsg.Credentials[:],
-		depositMsg.Amount.Unwrap(),
 		signature[:],
 	)
 	if err != nil {

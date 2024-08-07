@@ -205,7 +205,9 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
                 executionNumberRoot,
                 executionNumberGIndex
             )
-        ) revert InvalidProof();
+        ) {
+            revert InvalidProof();
+        }
     }
 
     /// @notice Verifies the coinbase (fee recipient) in the latest execution
@@ -230,6 +232,8 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
                 coinbaseRoot,
                 executionFeeRecipientGIndex
             )
-        ) revert InvalidProof();
+        ) {
+            revert InvalidProof();
+        }
     }
 }

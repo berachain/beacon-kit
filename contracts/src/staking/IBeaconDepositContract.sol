@@ -9,8 +9,17 @@ interface IBeaconDepositContract {
     /*                        EVENTS                              */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
+    /**
+     * @notice Emitted when an operator address change is cancelled.
+     * @param pubkey The public key of the validator.
+     */
     event OperatorChangeCancelled(bytes pubkey);
 
+    /**
+     * @notice Emitted when an operator address change is queued.
+     * @param pubkey The public key of the validator.
+     * @param newOperator The new operator address.
+     */
     event OperatorChangeQueued(bytes pubkey, address newOperator);
 
     /**
@@ -94,6 +103,33 @@ interface IBeaconDepositContract {
      * @param number the number of deposits to allow.
      */
     function allowDeposit(address depositor, uint64 number) external;
+
+    /**
+     * @notice Request a change of operator address for a given public key.
+     * @dev This will queue the change and require confirmation.
+     * @dev Only the current operator can request a change.
+     * @param pubkey The public key of the validator.
+     * @param newOperator The new operator address.
+     */
+    function requestOperatorChange(
+        bytes calldata pubkey,
+        address newOperator
+    )
+        external;
+
+    /**
+     * @notice Cancel a pending operator address change request.
+     * @dev Only the current operator can cancel a change.
+     * @param pubkey The public key of the validator.
+     */
+    function cancelOperatorChange(bytes calldata pubkey) external;
+
+    /**
+     * @notice Confirm a pending operator address change request.
+     * @dev Only the new operator can confirm the change.
+     * @param pubkey The public key of the validator.
+     */
+    function acceptOperatorChange(bytes calldata pubkey) external;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        WRITES                              */
