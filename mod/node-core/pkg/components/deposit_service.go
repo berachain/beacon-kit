@@ -47,7 +47,7 @@ type DepositServiceIn struct {
 // framework.
 func ProvideDepositService(in DepositServiceIn) (*DepositService, error) {
 	var finalizedBlkCh chan *FinalizedBlockEvent
-	if err := in.Dispatcher.Subscribe(messages.BeaconBlockFinalized, finalizedBlkCh); err != nil {
+	if err := in.Dispatcher.Subscribe(messages.BeaconBlockFinalizedEvent, finalizedBlkCh); err != nil {
 		return nil, err
 	}
 

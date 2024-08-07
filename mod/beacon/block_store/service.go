@@ -73,7 +73,7 @@ func (s *Service[BeaconBlockT, _]) Start(ctx context.Context) error {
 		return nil
 	}
 	var finalizedBlkCh chan *asynctypes.Event[BeaconBlockT]
-	if err := s.dispatcher.Subscribe(messages.BeaconBlockFinalized, finalizedBlkCh); err != nil {
+	if err := s.dispatcher.Subscribe(messages.BeaconBlockFinalizedEvent, finalizedBlkCh); err != nil {
 		s.logger.Error("failed to subscribe to block events", "error", err)
 		return err
 	}

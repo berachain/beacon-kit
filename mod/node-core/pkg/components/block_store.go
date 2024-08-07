@@ -74,7 +74,7 @@ func ProvideBlockPruner(
 	in BlockPrunerInput,
 ) (BlockPruner, error) {
 	var finalizedBlkCh chan *FinalizedBlockEvent
-	if err := in.Dispatcher.Subscribe(messages.BeaconBlockFinalized, finalizedBlkCh); err != nil {
+	if err := in.Dispatcher.Subscribe(messages.BeaconBlockFinalizedEvent, finalizedBlkCh); err != nil {
 		return nil, fmt.Errorf("failed to subscribe to block feed: %w", err)
 	}
 

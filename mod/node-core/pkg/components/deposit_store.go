@@ -71,7 +71,7 @@ func ProvideDepositPruner(
 	in DepositPrunerInput,
 ) (DepositPruner, error) {
 	var finalizedBlkCh chan *FinalizedBlockEvent
-	if err := in.Dispatcher.Subscribe(messages.BeaconBlockFinalized, finalizedBlkCh); err != nil {
+	if err := in.Dispatcher.Subscribe(messages.BeaconBlockFinalizedEvent, finalizedBlkCh); err != nil {
 		in.Logger.Error("failed to subscribe to block feed", "err", err)
 		return nil, err
 	}

@@ -44,7 +44,7 @@ func (s *Service[
 		return
 	}
 
-	if !s.shouldBuildOptimisticPayloads() && s.lb.Enabled() {
+	if !s.shouldBuildOptimisticPayloads() && s.localBuilder.Enabled() {
 		s.sendNextFCUWithAttributes(ctx, st, blk, lph)
 	} else {
 		s.sendNextFCUWithoutAttributes(ctx, blk, lph)
@@ -63,7 +63,7 @@ func (s *Service[
 	lph ExecutionPayloadHeaderT,
 ) {
 	stCopy := st.Copy()
-	if _, err := s.sp.ProcessSlots(stCopy, blk.GetSlot()+1); err != nil {
+	if _, err := s.stateProcessor.ProcessSlots(stCopy, blk.GetSlot()+1); err != nil {
 		s.logger.Error(
 			"failed to process slots in non-optimistic payload",
 			"error", err,
@@ -72,7 +72,7 @@ func (s *Service[
 	}
 
 	prevBlockRoot := blk.HashTreeRoot()
-	if _, err := s.lb.RequestPayloadAsync(
+	if _, err := s.localBuilder.RequestPayloadAsync(
 		ctx,
 		stCopy,
 		blk.GetSlot()+1,
@@ -99,7 +99,7 @@ func (s *Service[
 	blk BeaconBlockT,
 	lph ExecutionPayloadHeaderT,
 ) {
-	if _, _, err := s.ee.NotifyForkchoiceUpdate(
+	if _, _, err := s.executionEngine.NotifyForkchoiceUpdate(
 		ctx,
 		// TODO: Switch to New().
 		engineprimitives.
@@ -109,7 +109,7 @@ func (s *Service[
 				SafeBlockHash:      lph.GetParentHash(),
 				FinalizedBlockHash: lph.GetParentHash(),
 			},
-			s.cs.ActiveForkVersionForSlot(blk.GetSlot()),
+			s.chainSpec.ActiveForkVersionForSlot(blk.GetSlot()),
 		),
 	); err != nil {
 		s.logger.Error(
@@ -128,7 +128,7 @@ func (s *Service[
 ]) calculateNextTimestamp(blk BeaconBlockT) uint64 {
 	//#nosec:G701 // not an issue in practice.
 	return max(
-		uint64(time.Now().Unix()+int64(s.cs.TargetSecondsPerEth1Block())),
+		uint64(time.Now().Unix()+int64(s.chainSpec.TargetSecondsPerEth1Block())),
 		uint64(blk.GetBody().GetExecutionPayload().GetTimestamp()+1),
 	)
 }

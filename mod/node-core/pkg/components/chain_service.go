@@ -35,20 +35,18 @@ import (
 type ChainServiceInput struct {
 	depinject.In
 
-	BlockBroker           *BlockBroker
-	ChainSpec             common.ChainSpec
-	Cfg                   *config.Config
-	DepositService        *DepositService
-	EngineClient          *EngineClient
-	ExecutionEngine       *ExecutionEngine
-	GenesisBrocker        *GenesisBroker
-	LocalBuilder          *LocalBuilder
-	Logger                log.AdvancedLogger[any, sdklog.Logger]
-	Signer                crypto.BLSSigner
-	StateProcessor        *StateProcessor
-	StorageBackend        *StorageBackend
-	TelemetrySink         *metrics.TelemetrySink
-	ValidatorUpdateBroker *ValidatorUpdateBroker
+	ChainSpec       common.ChainSpec
+	Cfg             *config.Config
+	DepositService  *DepositService
+	Dispatcher      *Dispatcher
+	EngineClient    *EngineClient
+	ExecutionEngine *ExecutionEngine
+	LocalBuilder    *LocalBuilder
+	Logger          log.AdvancedLogger[any, sdklog.Logger]
+	Signer          crypto.BLSSigner
+	StateProcessor  *StateProcessor
+	StorageBackend  *StorageBackend
+	TelemetrySink   *metrics.TelemetrySink
 }
 
 // ProvideChainService is a depinject provider for the blockchain service.
@@ -71,13 +69,11 @@ func ProvideChainService(
 		in.StorageBackend,
 		in.Logger.With("service", "blockchain"),
 		in.ChainSpec,
+		in.Dispatcher,
 		in.ExecutionEngine,
 		in.LocalBuilder,
 		in.StateProcessor,
 		in.TelemetrySink,
-		in.GenesisBrocker,
-		in.BlockBroker,
-		in.ValidatorUpdateBroker,
 		// If optimistic is enabled, we want to skip post finalization FCUs.
 		in.Cfg.Validator.EnableOptimisticPayloadBuilds,
 	)
