@@ -50,7 +50,7 @@ require (
 	cosmossdk.io/core/testing v0.0.0-00010101000000-000000000000 // indirect
 	cosmossdk.io/schema v0.1.1 // indirect
 	cosmossdk.io/server/v2/stf v0.0.0-20240802204200-bc0731cb49e9 // indirect
-	cosmossdk.io/x/auth v0.0.0-00010101000000-000000000000 // indirect
+	cosmossdk.io/x/auth v0.0.0-20240731202123-43dd23137e9d // indirect
 	cosmossdk.io/x/bank v0.0.0-20240226161501-23359a0b6d91 // indirect
 	cosmossdk.io/x/consensus v0.0.0-00010101000000-000000000000 // indirect
 	cosmossdk.io/x/gov v0.0.0-20231113122742-912390d5fc4a // indirect

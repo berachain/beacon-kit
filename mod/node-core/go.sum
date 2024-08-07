@@ -27,8 +27,8 @@ cosmossdk.io/store/v2 v2.0.0-20240729225221-c4de9a970633 h1:24Z6QKGYY1lsIiwFttME
 cosmossdk.io/store/v2 v2.0.0-20240729225221-c4de9a970633/go.mod h1:a+xaPNK+yhak1cVR1P4OyAFLT7M2EZG3RhX2AP15byU=
 cosmossdk.io/x/auth v0.0.0-20240731202123-43dd23137e9d h1:qX7f6/bx91ABILS8Thct0RnweMk+VHzDwq8k/RnGoQk=
 cosmossdk.io/x/auth v0.0.0-20240731202123-43dd23137e9d/go.mod h1:5Z58PvNmUm0LdyNVezeXL2tnUeXwpgt6kkGDa1cQFuc=
-cosmossdk.io/x/tx v0.13.4-0.20240623110059-dec2d5583e39 h1:fZvdmYfQdJ+CX5axx3ChtLOCAIXoLzLoFf7hHAI+fws=
-cosmossdk.io/x/tx v0.13.4-0.20240623110059-dec2d5583e39/go.mod h1:iEnMX34NiupZH074wbEtyiozWEGhsk2OSNB3AriYl3A=
+cosmossdk.io/x/tx v0.13.3 h1:Ha4mNaHmxBc6RMun9aKuqul8yHiL78EKJQ8g23Zf73g=
+cosmossdk.io/x/tx v0.13.3/go.mod h1:I8xaHv0rhUdIvIdptKIqzYy27+n2+zBVaxO6fscFhys=
 filippo.io/edwards25519 v1.1.0 h1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=
 filippo.io/edwards25519 v1.1.0/go.mod h1:BxyFTGdWcka3PhytdK4V28tE5sGfRvvvRV7EaN4VDT4=
 github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 h1:/vQbFIOMbk2FiG/kXiLl8BRyzTWDw7gX/Hz7Dd5eDMs=
