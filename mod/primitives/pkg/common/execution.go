@@ -59,6 +59,11 @@ func (h ExecutionHash) String() string {
 	return h.Hex()
 }
 
+// MarshalText returns the hex representation of h.
+func (h ExecutionHash) MarshalText() ([]byte, error) {
+	return hex.EncodeBytes(h[:]), nil
+}
+
 // UnmarshalText parses a hash in hex syntax.
 func (h *ExecutionHash) UnmarshalText(input []byte) error {
 	return hex.DecodeFixedText(input, h[:])
@@ -72,9 +77,4 @@ func (h ExecutionHash) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON parses a hash in hex syntax.
 func (h *ExecutionHash) UnmarshalJSON(input []byte) error {
 	return hex.DecodeFixedJSON(input, h[:])
-}
-
-// MarshalText returns the hex representation of h.
-func (h ExecutionHash) MarshalText() ([]byte, error) {
-	return hex.EncodeBytes(h[:]), nil
 }
