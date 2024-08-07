@@ -130,10 +130,9 @@ func BuildNewPayloadRequest[
 //nolint:lll
 func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalsT]) HasValidVersionedAndBlockHashes() error {
 	var (
-		withdrawalsHash *common.ExecutionHash
-		blobHashes      = make([]gethprimitives.ExecutionHash, 0)
-		payload         = n.ExecutionPayload
-		txs             = make(
+		blobHashes = make([]gethprimitives.ExecutionHash, 0)
+		payload    = n.ExecutionPayload
+		txs        = make(
 			[]*gethprimitives.Transaction,
 			len(payload.GetTransactions()),
 		)
@@ -175,11 +174,10 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalsT]) HasValidVersionedAn
 	}
 
 	wds := payload.GetWithdrawals()
-	h := gethprimitives.DeriveSha(
+	withdrawalsHash := gethprimitives.DeriveSha(
 		wds,
 		gethprimitives.NewStackTrie(nil),
 	)
-	withdrawalsHash = (*common.ExecutionHash)(&h)
 
 	// Verify that the payload is telling the truth about it's block hash.
 	if block := gethprimitives.NewBlockWithHeader(
@@ -199,7 +197,7 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalsT]) HasValidVersionedAn
 			BaseFee:          payload.GetBaseFeePerGas().ToBig(),
 			Extra:            payload.GetExtraData(),
 			MixDigest:        gethprimitives.ExecutionHash(payload.GetPrevRandao()),
-			WithdrawalsHash:  (*gethprimitives.ExecutionHash)(withdrawalsHash),
+			WithdrawalsHash:  (*gethprimitives.ExecutionHash)(&withdrawalsHash),
 			ExcessBlobGas:    payload.GetExcessBlobGas().UnwrapPtr(),
 			BlobGasUsed:      payload.GetBlobGasUsed().UnwrapPtr(),
 			ParentBeaconRoot: (*gethprimitives.ExecutionHash)(n.ParentBeaconBlockRoot),
