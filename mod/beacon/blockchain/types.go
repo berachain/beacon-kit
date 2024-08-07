@@ -180,7 +180,6 @@ type ReadOnlyBeaconState[
 type StateProcessor[
 	BeaconBlockT,
 	BeaconStateT,
-	BlobSidecarsT,
 	ContextT,
 	DepositT,
 	ExecutionPayloadHeaderT any,

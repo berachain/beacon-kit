@@ -74,7 +74,6 @@ type Service[
 	sp StateProcessor[
 		BeaconBlockT,
 		BeaconStateT,
-		BlobSidecarsT,
 		*transition.Context,
 		DepositT,
 		ExecutionPayloadHeaderT,
@@ -129,7 +128,6 @@ func NewService[
 	sp StateProcessor[
 		BeaconBlockT,
 		BeaconStateT,
-		BlobSidecarsT,
 		*transition.Context,
 		DepositT,
 		ExecutionPayloadHeaderT,
