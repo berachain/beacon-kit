@@ -25,7 +25,7 @@ import (
 	"time"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
@@ -85,7 +85,7 @@ func (s *Service[
 	// via ticker later.
 	if err = s.blkBroker.Publish(ctx,
 		asynctypes.NewEvent(
-			ctx, events.BeaconBlockFinalized, blk,
+			ctx, messages.BeaconBlockFinalized, blk,
 		),
 	); err != nil {
 		return nil, err

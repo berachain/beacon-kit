@@ -25,7 +25,7 @@ import (
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
 )
 
 type Service[
@@ -104,9 +104,9 @@ func (s *Service[_, _, BlobSidecarsT, _, _]) start(
 			return
 		case msg := <-sidecarsCh:
 			switch msg.ID() {
-			case events.BlobSidecarsProcessRequest:
+			case messages.BlobSidecarsProcessRequest:
 				s.handleBlobSidecarsProcessRequest(msg)
-			case events.BlobSidecarsReceived:
+			case messages.BlobSidecarsReceived:
 				s.handleBlobSidecarsReceived(msg)
 			}
 		}
@@ -131,7 +131,7 @@ func (s *Service[_, _, BlobSidecarsT, _, _]) handleBlobSidecarsProcessRequest(
 	if err = s.sidecarsBroker.Publish(
 		msg.Context(),
 		asynctypes.NewEvent(
-			msg.Context(), events.BlobSidecarsProcessed, msg.Data(), err,
+			msg.Context(), messages.BlobSidecarsProcessed, msg.Data(), err,
 		)); err != nil {
 		s.logger.Error(
 			"Failed to publish blob sidecars processed event",
@@ -158,7 +158,7 @@ func (s *Service[_, _, BlobSidecarsT, _, _]) handleBlobSidecarsReceived(
 	if err = s.sidecarsBroker.Publish(
 		msg.Context(),
 		asynctypes.NewEvent(
-			msg.Context(), events.BlobSidecarsProcessed, msg.Data(), err,
+			msg.Context(), messages.BlobSidecarsProcessed, msg.Data(), err,
 		)); err != nil {
 		s.logger.Error(
 			"Failed to publish blob sidecars processed event",

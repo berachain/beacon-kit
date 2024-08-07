@@ -52,16 +52,22 @@ func (d *Dispatcher) Start(ctx context.Context) error {
 }
 
 // DispatchEvent dispatches the given event to the event server.
+// It will error if the <event> type is inconsistent with the publisher
+// registered for the given eventID.
 func (d *Dispatcher) DispatchEvent(ctx context.Context, event types.MessageI) error {
 	return d.eventServer.Publish(ctx, event)
 }
 
 // DispatchRequest dispatches the given request to the message server.
+// It will error if the <req> and <resp> types are inconsistent with the
+// route registered for the given messageID.
 func (d *Dispatcher) DispatchRequest(req types.MessageI, resp types.MessageI) error {
 	return d.msgServer.Request(req, resp)
 }
 
 // DispatchResponse dispatches the given response to the message server.
+// It will error if the <resp> type is inconsistent with the route registered
+// for the given messageID.
 func (d *Dispatcher) DispatchResponse(resp types.MessageI) error {
 	return d.msgServer.Respond(resp)
 }

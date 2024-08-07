@@ -44,7 +44,7 @@ func ProvideABCIMiddleware(
 	in ABCIMiddlewareInput,
 ) (*ABCIMiddleware, error) {
 	return middleware.NewABCIMiddleware[
-		*AvailabilityStore, *BeaconBlock, *BlobSidecars,
+		*AvailabilityStore, *BeaconBlock, *BeaconBlockBundle, *BlobSidecars,
 		*Deposit, *ExecutionPayload, *Genesis, *SlotData,
 	](
 		in.ChainSpec,

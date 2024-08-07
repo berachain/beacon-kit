@@ -28,7 +28,7 @@ import (
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
@@ -200,13 +200,13 @@ func (s *Service[
 			return
 		case msg := <-subBlkCh:
 			switch msg.ID() {
-			case events.BeaconBlockReceived:
+			case messages.BeaconBlockReceived:
 				s.handleBeaconBlockReceived(msg)
-			case events.BeaconBlockFinalizedRequest:
+			case messages.BeaconBlockFinalizedRequest:
 				s.handleBeaconBlockFinalization(msg)
 			}
 		case msg := <-subGenCh:
-			if msg.ID() == events.GenesisDataProcessRequest {
+			if msg.ID() == messages.GenesisDataProcessRequest {
 				s.handleProcessGenesisDataRequest(msg)
 			}
 		}
@@ -232,7 +232,7 @@ func (s *Service[
 		msg.Context(),
 		asynctypes.NewEvent(
 			msg.Context(),
-			events.ValidatorSetUpdated,
+			messages.ValidatorSetUpdated,
 			valUpdates,
 			err,
 		),
@@ -261,7 +261,7 @@ func (s *Service[
 		msg.Context(),
 		asynctypes.NewEvent(
 			msg.Context(),
-			events.BeaconBlockVerified,
+			messages.BeaconBlockVerified,
 			msg.Data(),
 			s.VerifyIncomingBlock(msg.Context(), msg.Data()),
 		),
@@ -292,7 +292,7 @@ func (s *Service[
 		msg.Context(),
 		asynctypes.NewEvent(
 			msg.Context(),
-			events.ValidatorSetUpdated,
+			messages.ValidatorSetUpdated,
 			valUpdates,
 			err,
 		)); err != nil {

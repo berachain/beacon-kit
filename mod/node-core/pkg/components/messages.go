@@ -24,7 +24,7 @@ import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/async/pkg/messaging"
 	"github.com/berachain/beacon-kit/mod/async/pkg/server"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
 )
 
 type MessageServerInput struct {
@@ -48,34 +48,29 @@ func ProvideMessageServer(in MessageServerInput) *server.MessageServer {
 	return ms
 }
 
-// ProvideBuildBlockRoute provides a route for building a beacon block.
-func ProvideBuildBlockRoute() *messaging.Route[*SlotMessage, *BlockMessage] {
-	return messaging.NewRoute[*SlotMessage, *BlockMessage](events.BuildBeaconBlock)
-}
-
-// ProvideBuildSidecarsRoute provides a route for building sidecars.
-func ProvideBuildSidecarsRoute() *messaging.Route[*SlotMessage, *SidecarMessage] {
-	return messaging.NewRoute[*SlotMessage, *SidecarMessage](events.BuildBlobSidecars)
+// ProvideBuildBlockAndSidecarsRoute provides a route for building a beacon block.
+func ProvideBuildBlockAndSidecarsRoute() *messaging.Route[*SlotMessage, *BlockMessage] {
+	return messaging.NewRoute[*SlotMessage, *BlockMessage](messages.BuildBeaconBlockAndSidecars)
 }
 
 // ProvideVerifyBeaconBlockRoute provides a route for verifying a beacon block.
 func ProvideVerifyBeaconBlockRoute() *messaging.Route[*BlockMessage, *BlockMessage] {
-	return messaging.NewRoute[*BlockMessage, *BlockMessage](events.VerifyBeaconBlock)
+	return messaging.NewRoute[*BlockMessage, *BlockMessage](messages.VerifyBeaconBlock)
 }
 
 // ProvideFinalizeBeaconBlockRoute provides a route for finalizing a beacon block.
 func ProvideFinalizeBeaconBlockRoute() *messaging.Route[*BlockMessage, *ValidatorUpdateMessage] {
-	return messaging.NewRoute[*BlockMessage, *ValidatorUpdateMessage](events.FinalizeBeaconBlock)
+	return messaging.NewRoute[*BlockMessage, *ValidatorUpdateMessage](messages.FinalizeBeaconBlock)
 }
 
 // ProvideProcessGenesisDataRoute provides a route for processing genesis data.
 func ProvideProcessGenesisDataRoute() *messaging.Route[*GenesisMessage, *ValidatorUpdateMessage] {
-	return messaging.NewRoute[*GenesisMessage, *ValidatorUpdateMessage](events.ProcessGenesisData)
+	return messaging.NewRoute[*GenesisMessage, *ValidatorUpdateMessage](messages.ProcessGenesisData)
 }
 
 // ProvideProcessBlobSidecarsRoute provides a route for processing blob sidecars.
 func ProvideProcessBlobSidecarsRoute() *messaging.Route[*SidecarMessage, *SidecarMessage] {
-	return messaging.NewRoute[*SidecarMessage, *SidecarMessage](events.VerifyBlobSidecars)
+	return messaging.NewRoute[*SidecarMessage, *SidecarMessage](messages.VerifyBlobSidecars)
 }
 
 // MessageServerComponents returns all the depinject providers for the message
@@ -83,8 +78,7 @@ func ProvideProcessBlobSidecarsRoute() *messaging.Route[*SidecarMessage, *Sideca
 func MessageServerComponents() []any {
 	return []any{
 		ProvideMessageServer,
-		ProvideBuildBlockRoute,
-		ProvideBuildSidecarsRoute,
+		ProvideBuildBlockAndSidecarsRoute,
 		ProvideVerifyBeaconBlockRoute,
 		ProvideFinalizeBeaconBlockRoute,
 		ProvideProcessGenesisDataRoute,

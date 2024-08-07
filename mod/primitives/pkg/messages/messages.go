@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package events
+package messages
 
 // TODO: delete
 const (
@@ -37,12 +37,11 @@ const (
 
 // messages
 const (
-	BuildBeaconBlock    = "build-beacon-block"
-	BuildBlobSidecars   = "build-blob-sidecars"
-	VerifyBeaconBlock   = "verify-beacon-block"
-	FinalizeBeaconBlock = "finalize-beacon-block"
-	ProcessGenesisData  = "process-genesis-data"
-	VerifyBlobSidecars  = "process-blob-sidecars"
+	BuildBeaconBlockAndSidecars = "build-beacon-block"
+	VerifyBeaconBlock           = "verify-beacon-block"
+	FinalizeBeaconBlock         = "finalize-beacon-block"
+	ProcessGenesisData          = "process-genesis-data"
+	VerifyBlobSidecars          = "process-blob-sidecars"
 )
 
 // events

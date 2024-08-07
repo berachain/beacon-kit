@@ -56,6 +56,7 @@ func ProvideValidatorService(
 	return validator.NewService[
 		*AttestationData,
 		*BeaconBlock,
+		*BeaconBlockBundle,
 		*BeaconBlockBody,
 		*BeaconState,
 		*BlobSidecars,

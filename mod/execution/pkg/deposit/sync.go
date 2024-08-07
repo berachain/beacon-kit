@@ -24,8 +24,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
 )
 
 // defaultRetryInterval processes a deposit event.
@@ -40,7 +40,7 @@ func (s *Service[
 		case <-ctx.Done():
 			return
 		case msg := <-s.feed:
-			if msg.Is(events.BeaconBlockFinalized) {
+			if msg.Is(messages.BeaconBlockFinalized) {
 				blockNum := msg.Data().
 					GetBody().GetExecutionPayload().GetNumber()
 				s.fetchAndStoreDeposits(ctx, blockNum-s.eth1FollowDistance)

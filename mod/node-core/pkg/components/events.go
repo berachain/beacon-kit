@@ -24,7 +24,7 @@ import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/async/pkg/messaging"
 	"github.com/berachain/beacon-kit/mod/async/pkg/server"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
 )
 
 // EventServerInput is the input for the event server.
@@ -46,7 +46,7 @@ func ProvideEventServer(in EventServerInput) *server.EventServer {
 // ProvideBeaconBlockFinalizedPublisher provides a publisher for beacon block
 // finalized events.
 func ProvideBeaconBlockFinalizedPublisher() *messaging.Publisher[*BlockMessage] {
-	return messaging.NewPublisher[*BlockMessage](events.BeaconBlockFinalized)
+	return messaging.NewPublisher[*BlockMessage](messages.BeaconBlockFinalized)
 }
 
 // EventServerComponents returns all the depinject providers for the event

@@ -38,6 +38,7 @@ import (
 type ABCIMiddleware[
 	AvailabilityStoreT any,
 	BeaconBlockT BeaconBlock[BeaconBlockT],
+	BeaconBlockBundleT BeaconBlockBundle[BeaconBlockT, BlobSidecarsT],
 	BlobSidecarsT interface {
 		constraints.SSZMarshallable
 		Empty() BlobSidecarsT
@@ -79,6 +80,7 @@ type ABCIMiddleware[
 func NewABCIMiddleware[
 	AvailabilityStoreT any,
 	BeaconBlockT BeaconBlock[BeaconBlockT],
+	BeaconBlockBundleT BeaconBlockBundle[BeaconBlockT, BlobSidecarsT],
 	BlobSidecarsT interface {
 		constraints.SSZMarshallable
 		Empty() BlobSidecarsT
@@ -93,11 +95,11 @@ func NewABCIMiddleware[
 	telemetrySink TelemetrySink,
 	dispatcher *dispatcher.Dispatcher,
 ) *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BlobSidecarsT, DepositT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBundleT, BlobSidecarsT, DepositT,
 	ExecutionPayloadT, GenesisT, SlotDataT,
 ] {
 	return &ABCIMiddleware[
-		AvailabilityStoreT, BeaconBlockT, BlobSidecarsT, DepositT,
+		AvailabilityStoreT, BeaconBlockT, BeaconBlockBundleT, BlobSidecarsT, DepositT,
 		ExecutionPayloadT, GenesisT, SlotDataT,
 	]{
 		chainSpec: chainSpec,
@@ -118,7 +120,7 @@ func NewABCIMiddleware[
 
 // Name returns the name of the middleware.
 func (am *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BlobSidecarsT, DepositT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBundleT, BlobSidecarsT, DepositT,
 	ExecutionPayloadT, GenesisT, SlotDataT,
 ]) Name() string {
 	return "abci-middleware"
@@ -126,7 +128,7 @@ func (am *ABCIMiddleware[
 
 // Start the middleware.
 func (am *ABCIMiddleware[
-	_, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
 	return nil
 }

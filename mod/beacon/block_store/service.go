@@ -25,7 +25,7 @@ import (
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
 )
 
 // NewService creates a new block service.
@@ -89,7 +89,7 @@ func (s *Service[BeaconBlockT, _]) listenAndStore(
 		case <-ctx.Done():
 			return
 		case msg := <-subBlkCh:
-			if msg.Is(events.BeaconBlockFinalized) {
+			if msg.Is(messages.BeaconBlockFinalized) {
 				slot := msg.Data().GetSlot()
 				if err := s.store.Set(slot, msg.Data()); err != nil {
 					s.logger.Error(

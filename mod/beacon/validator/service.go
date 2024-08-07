@@ -28,7 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
@@ -38,6 +38,9 @@ type Service[
 	BeaconBlockT BeaconBlock[
 		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, DepositT,
 		Eth1DataT, ExecutionPayloadT, SlashingInfoT,
+	],
+	BlockDataT BeaconBlockBundle[
+		BeaconBlockT, BlobSidecarsT,
 	],
 	BeaconBlockBodyT BeaconBlockBody[
 		AttestationDataT, DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
@@ -104,6 +107,9 @@ func NewService[
 		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, DepositT,
 		Eth1DataT, ExecutionPayloadT, SlashingInfoT,
 	],
+	BeaconBlockBundleT BeaconBlockBundle[
+		BeaconBlockT, BlobSidecarsT,
+	],
 	BeaconBlockBodyT BeaconBlockBody[
 		AttestationDataT, DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
 	],
@@ -140,12 +146,12 @@ func NewService[
 	ts TelemetrySink,
 	dispatcher *dispatcher.Dispatcher,
 ) *Service[
-	AttestationDataT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	AttestationDataT, BeaconBlockT, BeaconBlockBundleT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
 	ExecutionPayloadHeaderT, ForkDataT, SlashingInfoT, SlotDataT,
 ] {
 	return &Service[
-		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+		AttestationDataT, BeaconBlockT, BeaconBlockBundleT, BeaconBlockBodyT, BeaconStateT,
 		BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
 		ExecutionPayloadHeaderT, ForkDataT, SlashingInfoT, SlotDataT,
 	]{
@@ -165,95 +171,64 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) Name() string {
 	return "validator"
 }
 
-// Start starts the service.
+// Start starts the service registers this service with the
+// BuildBeaconBlockAndSidecars route and begins listening for requests.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, SlotDataT,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, SlotDataT,
 ]) Start(
 	ctx context.Context,
 ) error {
 	// register a receiver channel for build block requests
-	buildBlockRequests := make(chan *asynctypes.Event[SlotDataT])
-	s.dispatcher.RegisterMsgReceiver(events.BuildBeaconBlock, buildBlockRequests)
-
-	// register a receiver channel for build sidecar requests
-	buildSidecarRequests := make(chan *asynctypes.Event[SlotDataT])
-	s.dispatcher.RegisterMsgReceiver(events.BuildBlobSidecars, buildSidecarRequests)
+	buildBlockRequests := make(chan *asynctypes.Message[SlotDataT])
+	s.dispatcher.RegisterMsgReceiver(messages.BuildBeaconBlockAndSidecars, buildBlockRequests)
 
 	// start the service
-	go s.start(ctx, buildBlockRequests, buildSidecarRequests)
+	go s.start(ctx, buildBlockRequests)
 	return nil
 }
 
 // start starts the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, SlotDataT,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, SlotDataT,
 ]) start(
 	ctx context.Context,
-	buildBlockRequests chan *asynctypes.Event[SlotDataT],
-	buildSidecarRequests chan *asynctypes.Event[SlotDataT],
+	buildBlockBundleRequests chan *asynctypes.Message[SlotDataT],
 ) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case req := <-buildBlockRequests:
-			s.buildBlock(req)
-		case req := <-buildSidecarRequests:
-			s.buildSidecar(req)
+		case req := <-buildBlockBundleRequests:
+			s.handleBuildBlockBundleRequest(req)
 		}
 	}
 }
 
+// handleBuildBlockBundleRequest builds a block and sidecars for the requested
+// slot data and dispatches a response containing the built block and sidecars.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, SlotDataT,
-]) buildBlock(req *asynctypes.Event[SlotDataT]) {
+	_, _, BeaconBlockBundleT, _, _, _, _, _, _, _, _, _, _, SlotDataT,
+]) handleBuildBlockBundleRequest(req *asynctypes.Message[SlotDataT]) {
+	// build the block and sidecars for the requested slot data
 	blk, sidecars, err := s.buildBlockAndSidecars(
 		req.Context(), req.Data(),
 	)
 	if err != nil {
 		s.logger.Error("failed to build block", "err", err)
 	}
+
+	// bundle the block and sidecars and dispatch the response
+	var blkData BeaconBlockBundleT
+	blkData.SetBeaconBlock(blk)
+	blkData.SetSidecars(sidecars)
 	s.dispatcher.DispatchResponse(asynctypes.NewMessage(
 		req.Context(),
-		events.BuildBeaconBlock,
-		blk,
+		messages.BuildBeaconBlockAndSidecars,
+		blkData,
 	))
-}
-
-// handleBlockRequest handles a block request.
-func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, SlotDataT,
-]) handleNewSlot(msg *asynctypes.Event[SlotDataT]) {
-	blk, sidecars, err := s.buildBlockAndSidecars(
-		msg.Context(), msg.Data(),
-	)
-	if err != nil {
-		s.logger.Error("failed to build block", "err", err)
-	}
-
-	// Publish our built block to the broker.
-	if blkErr := s.blkBroker.Publish(
-		msg.Context(),
-		asynctypes.NewEvent(
-			msg.Context(), events.BeaconBlockBuilt, blk, err,
-		)); blkErr != nil {
-		// Propagate the error from buildBlockAndSidecars
-		s.logger.Error("failed to publish block", "err", err)
-	}
-
-	// Publish our built blobs to the broker.
-	if sidecarsErr := s.sidecarBroker.Publish(
-		msg.Context(),
-		asynctypes.NewEvent(
-			// Propagate the error from buildBlockAndSidecars
-			msg.Context(), events.BlobSidecarsBuilt, sidecars, err,
-		),
-	); sidecarsErr != nil {
-		s.logger.Error("failed to publish sidecars", "err", err)
-	}
 }

@@ -30,7 +30,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
 )
 
 // Compile-time check to ensure pruner implements the Pruner interface.
@@ -85,7 +85,7 @@ func (p *pruner[_, _, _]) start(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case event := <-p.feed:
-			if event.Is(events.BeaconBlockFinalized) {
+			if event.Is(messages.BeaconBlockFinalized) {
 				start, end := p.pruneRangeFn(event)
 				if err := p.prunable.Prune(start, end); err != nil {
 					p.logger.Error("‼️ error pruning index ‼️", "error", err)
