@@ -30,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/parser"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -99,7 +98,7 @@ func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
 				blsSigner,
 				// TODO: configurable.
 				types.NewCredentialsFromExecutionAddress(
-					gethprimitives.ExecutionAddress{},
+					common.ExecutionAddress{},
 				),
 				depositAmount,
 			)

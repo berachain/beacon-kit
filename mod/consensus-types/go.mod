@@ -5,7 +5,6 @@ go 1.22.5
 require (
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240806160829-cde2d1347e7e
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1347e7e
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240806160829-cde2d1347e7e
 	github.com/ferranbt/fastssz v0.1.4-0.20240629094022-eac385e6ee79
 	github.com/holiman/uint256 v1.3.1
@@ -13,6 +12,8 @@ require (
 	github.com/stretchr/testify v1.9.0
 
 )
+
+require github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1347e7e // indirect
 
 require (
 	github.com/DataDog/zstd v1.5.6 // indirect
@@ -65,7 +66,7 @@ require (
 	github.com/prometheus/common v0.55.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/prysmaticlabs/go-bitfield v0.0.0-20240618144021-706c95b2dd15 // indirect
-	github.com/prysmaticlabs/gohashtree v0.0.4-beta // indirect
+	github.com/prysmaticlabs/gohashtree v0.0.4-beta.0.20240624100937-73632381301b // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect

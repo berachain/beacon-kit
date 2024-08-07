@@ -8,7 +8,6 @@ require (
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240806160829-cde2d1347e7e
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240806160829-cde2d1347e7e
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1347e7e
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240624033454-8f3451361f44
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240806160829-cde2d1347e7e
 	github.com/crate-crypto/go-kzg-4844 v1.1.0
@@ -21,6 +20,7 @@ require (
 )
 
 require (
+	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1347e7e // indirect
 	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4 // indirect
 	github.com/cosmos/crypto v0.1.2 // indirect
 )
@@ -84,7 +84,7 @@ require (
 	github.com/prometheus/common v0.55.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/prysmaticlabs/go-bitfield v0.0.0-20240618144021-706c95b2dd15 // indirect
-	github.com/prysmaticlabs/gohashtree v0.0.4-beta // indirect
+	github.com/prysmaticlabs/gohashtree v0.0.4-beta.0.20240624100937-73632381301b // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/sasha-s/go-deadlock v0.3.1 // indirect

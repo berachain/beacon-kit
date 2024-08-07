@@ -23,14 +23,14 @@ package client
 import (
 	"time"
 
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
 type PayloadAttributes interface {
 	// IsNil returns true if the payload attributes are nil.
 	IsNil() bool
 	// GetSuggestedFeeRecipient returns the suggested fee recipient.
-	GetSuggestedFeeRecipient() gethprimitives.ExecutionAddress
+	GetSuggestedFeeRecipient() common.ExecutionAddress
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.

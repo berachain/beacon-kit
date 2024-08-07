@@ -24,9 +24,10 @@ import (
 	"math/big"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	byteslib "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -131,16 +132,18 @@ func DefaultGenesisExecutionPayloadHeaderDeneb() (
 	*ExecutionPayloadHeader, error,
 ) {
 	return &ExecutionPayloadHeader{
-		ParentHash:   gethprimitives.ZeroHash,
-		FeeRecipient: gethprimitives.ZeroAddress,
-		StateRoot: common.Bytes32(gethprimitives.Hex2BytesFixed(
-			"0x12965ab9cbe2d2203f61d23636eb7e998f167cb79d02e452f532535641e35bcc",
-			constants.RootLength,
-		)),
-		ReceiptsRoot: common.Bytes32(gethprimitives.Hex2BytesFixed(
-			"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
-			constants.RootLength,
-		)),
+		ParentHash:   common.ExecutionHash{},
+		FeeRecipient: common.ExecutionAddress{},
+		StateRoot: byteslib.ToBytes32(
+			hex.MustToBytes(
+				"0x12965ab9cbe2d2203f61d23636eb7e998f167cb79d02e452f532535641e35bcc",
+			),
+		),
+		ReceiptsRoot: byteslib.ToBytes32(
+			hex.MustToBytes(
+				"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
+			),
+		),
 		LogsBloom: [256]byte{},
 		Random:    common.Bytes32{},
 		Number:    0,
@@ -151,7 +154,7 @@ func DefaultGenesisExecutionPayloadHeaderDeneb() (
 		ExtraData: make([]byte, constants.ExtraDataLength),
 		//nolint:mnd // default value.
 		BaseFeePerGas: math.NewU256FromBigInt(big.NewInt(3906250)),
-		BlockHash: gethprimitives.HexToHash(
+		BlockHash: common.NewExecutionHashFromHex(
 			"0xcfff92cd918a186029a847b59aca4f83d3941df5946b06bca8de0861fc5d0850",
 		),
 		TransactionsRoot: engineprimitives.BartioTransactions(nil).

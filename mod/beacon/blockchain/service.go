@@ -25,7 +25,6 @@ import (
 	"sync"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
@@ -48,7 +47,7 @@ type Service[
 	PayloadAttributesT interface {
 		IsNil() bool
 		Version() uint32
-		GetSuggestedFeeRecipient() gethprimitives.ExecutionAddress
+		GetSuggestedFeeRecipient() common.ExecutionAddress
 	},
 	WithdrawalT any,
 ] struct {
@@ -108,7 +107,7 @@ func NewService[
 	PayloadAttributesT interface {
 		IsNil() bool
 		Version() uint32
-		GetSuggestedFeeRecipient() gethprimitives.ExecutionAddress
+		GetSuggestedFeeRecipient() common.ExecutionAddress
 	},
 	WithdrawalT any,
 ](

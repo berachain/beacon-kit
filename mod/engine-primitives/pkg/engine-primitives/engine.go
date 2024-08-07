@@ -24,8 +24,8 @@ package engineprimitives
 import (
 	"fmt"
 
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
 // ClientVersionV1 contains information which identifies a client
@@ -74,15 +74,15 @@ type ForkchoiceResponseV1 struct {
 type ForkchoiceStateV1 struct {
 	// HeadBlockHash is the desired block hash of the head of the canonical
 	// chain.
-	HeadBlockHash gethprimitives.ExecutionHash `json:"headBlockHash"`
+	HeadBlockHash common.ExecutionHash `json:"headBlockHash"`
 	// SafeBlockHash is  the "safe" block hash of the canonical chain under
 	// certain
 	// synchrony and honesty assumptions. This value MUST be either equal to
 	// or an ancestor of `HeadBlockHash`.
-	SafeBlockHash gethprimitives.ExecutionHash `json:"safeBlockHash"`
+	SafeBlockHash common.ExecutionHash `json:"safeBlockHash"`
 	// FinalizedBlockHash is the desired block hash of the most recent finalized
 	// block
-	FinalizedBlockHash gethprimitives.ExecutionHash `json:"finalizedBlockHash"`
+	FinalizedBlockHash common.ExecutionHash `json:"finalizedBlockHash"`
 }
 
 // PayloadStatusV1 represents the status of a payload as per the EngineAPI
@@ -95,7 +95,7 @@ type PayloadStatusV1 struct {
 	Status string `json:"status"`
 	// LatestValidHash is the hash of the most recent valid block
 	// in the branch defined by payload and its ancestors
-	LatestValidHash *gethprimitives.ExecutionHash `json:"latestValidHash"`
+	LatestValidHash *common.ExecutionHash `json:"latestValidHash"`
 	// ValidationError is a message providing additional details on
 	// the validation error if the payload is classified as
 	// INVALID or INVALID_BLOCK_HASH
