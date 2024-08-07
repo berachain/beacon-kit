@@ -77,9 +77,13 @@ func New[
 	statusPublisher *broker.Broker[*asynctypes.Event[*service.StatusEvent]],
 	telemtrySink TelemetrySink,
 ) *Engine[
-	ExecutionPayloadT, PayloadAttributesT, PayloadIDT, WithdrawalT, WithdrawalsT,
+	ExecutionPayloadT, PayloadAttributesT,
+	PayloadIDT, WithdrawalT, WithdrawalsT,
 ] {
-	return &Engine[ExecutionPayloadT, PayloadAttributesT, PayloadIDT, WithdrawalT, WithdrawalsT]{
+	return &Engine[
+		ExecutionPayloadT, PayloadAttributesT, PayloadIDT,
+		WithdrawalT, WithdrawalsT,
+	]{
 		ec:              ec,
 		logger:          logger,
 		metrics:         newEngineMetrics(telemtrySink, logger),
