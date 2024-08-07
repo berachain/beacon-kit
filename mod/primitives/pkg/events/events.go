@@ -42,7 +42,7 @@ const (
 	VerifyBeaconBlock   = "verify-beacon-block"
 	FinalizeBeaconBlock = "finalize-beacon-block"
 	ProcessGenesisData  = "process-genesis-data"
-	ProcessBlobSidecars = "process-blob-sidecars"
+	VerifyBlobSidecars  = "process-blob-sidecars"
 )
 
 // events

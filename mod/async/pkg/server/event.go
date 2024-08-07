@@ -39,8 +39,8 @@ func NewEventServer() *EventServer {
 }
 
 // Dispatch dispatches the given event to the feed with the given eventID.
-func (es *EventServer) Publish(ctx context.Context, event *types.Message[any]) error {
-	return es.publishers[event.ID()].Publish(ctx, *event)
+func (es *EventServer) Publish(ctx context.Context, event types.MessageI) error {
+	return es.publishers[event.ID()].Publish(ctx, event)
 }
 
 // Subscribe subscribes the given channel to the feed with the given eventID.

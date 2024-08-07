@@ -33,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/gogoproto/proto"
-	"golang.org/x/sync/errgroup"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -48,7 +47,7 @@ func (h *ABCIMiddleware[
 	bz []byte,
 ) (transition.ValidatorUpdates, error) {
 	var (
-		valUpdates transition.ValidatorUpdates
+		valUpdateResp asynctypes.Message[transition.ValidatorUpdates]
 	)
 	data := new(GenesisT)
 	if err := json.Unmarshal(bz, data); err != nil {
@@ -58,13 +57,13 @@ func (h *ABCIMiddleware[
 	err := h.dispatcher.DispatchRequest(
 		asynctypes.NewMessage(
 			ctx, events.GenesisDataProcessRequest, *data,
-		), &valUpdates,
+		), &valUpdateResp,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	return valUpdates, nil
+	return valUpdateResp.Data(), valUpdateResp.Error()
 }
 
 /* -------------------------------------------------------------------------- */
@@ -73,75 +72,73 @@ func (h *ABCIMiddleware[
 
 // prepareProposal is the internal handler for preparing proposals.
 func (h *ABCIMiddleware[
-	_, _, _, _, _, _, SlotDataT,
+	_, BeaconBlockT, BlobSidecarsT, _, _, _, SlotDataT,
 ]) PrepareProposal(
 	ctx context.Context,
 	slotData SlotDataT,
 ) ([]byte, []byte, error) {
 	var (
-		g                           errgroup.Group
 		startTime                   = time.Now()
 		beaconBlockErr, sidecarsErr error
 		beaconBlockBz, sidecarsBz   []byte
+		beaconBlockResp             asynctypes.Message[BeaconBlockT]
+		sidecarsResp                asynctypes.Message[BlobSidecarsT]
 	)
 	defer h.metrics.measurePrepareProposalDuration(startTime)
 
-	// Send a request to the validator service to give us a beacon block
-	// and blob sidecards to pass to ABCI.
-	if err := h.slotBroker.Publish(ctx, asynctypes.NewEvent(
-		ctx, events.NewSlot, slotData,
-	)); err != nil {
-		return nil, nil, err
+	// request a built beacon block for the given slot
+	h.dispatcher.DispatchRequest(
+		asynctypes.NewMessage(
+			ctx, events.BuildBeaconBlock, slotData,
+		), &beaconBlockResp,
+	)
+
+	// handle the beacon block response
+	beaconBlockBz, beaconBlockErr = h.handleBeaconBlockResponse(ctx, beaconBlockResp)
+	if beaconBlockErr != nil {
+		return nil, nil, beaconBlockErr
 	}
 
-	// Wait for the beacon block to be built.
-	g.Go(func() error {
-		beaconBlockBz, beaconBlockErr = h.waitforBeaconBlk(ctx)
-		return beaconBlockErr
-	})
+	// request the built blob sidecars
+	h.dispatcher.DispatchRequest(
+		asynctypes.NewMessage(
+			ctx, events.BuildBlobSidecars, slotData,
+		), &sidecarsResp,
+	)
 
-	// Wait for the sidecars to be built.
-	g.Go(func() error {
-		sidecarsBz, sidecarsErr = h.waitForSidecars(ctx)
-		return sidecarsErr
-	})
+	// handle the sidecars response
+	sidecarsBz, sidecarsErr = h.handleSidecarResponse(ctx, sidecarsResp)
+	if sidecarsErr != nil {
+		return nil, nil, sidecarsErr
+	}
 
-	// Wait for both processes to complete and then
-	// return the appropriate response.
-	return beaconBlockBz, sidecarsBz, g.Wait()
+	return beaconBlockBz, sidecarsBz, nil
 }
 
-// waitForSidecars waits for the sidecars to be built and returns them.
+// handleSidecarResponse publishes the sidecars to the gossiper.
 func (h *ABCIMiddleware[
-	_, _, _, _, _, _, _,
-]) waitForSidecars(ctx context.Context) ([]byte, error) {
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	case msg := <-h.sidecarsCh:
-		if msg.Error() != nil {
-			return nil, msg.Error()
-		}
-		return h.blobGossiper.Publish(ctx, msg.Data())
+	_, _, BlobSidecarsT, _, _, _, _,
+]) handleSidecarResponse(
+	ctx context.Context,
+	sidecarsResp asynctypes.Message[BlobSidecarsT],
+) ([]byte, error) {
+	if sidecarsResp.Error() != nil {
+		return nil, sidecarsResp.Error()
 	}
+	return h.blobGossiper.Publish(ctx, sidecarsResp.Data())
 }
 
-// waitforBeaconBlk waits for the beacon block to be built and returns it.
+// handleBeaconBlockResponse publishes the beacon block to the gossiper.
 func (h *ABCIMiddleware[
-	_, _, _, _, _, _, _,
-]) waitforBeaconBlk(ctx context.Context) ([]byte, error) {
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	case beaconBlock := <-h.blkCh:
-		if beaconBlock.Error() != nil {
-			return nil, beaconBlock.Error()
-		}
-		return h.beaconBlockGossiper.Publish(
-			ctx,
-			beaconBlock.Data(),
-		)
+	_, BeaconBlockT, _, _, _, _, _,
+]) handleBeaconBlockResponse(
+	ctx context.Context,
+	beaconBlockResp asynctypes.Message[BeaconBlockT],
+) ([]byte, error) {
+	if beaconBlockResp.Error() != nil {
+		return nil, beaconBlockResp.Error()
 	}
+	return h.beaconBlockGossiper.Publish(ctx, beaconBlockResp.Data())
 }
 
 /* -------------------------------------------------------------------------- */
@@ -157,11 +154,12 @@ func (h *ABCIMiddleware[
 	req proto.Message,
 ) (proto.Message, error) {
 	var (
-		blk       BeaconBlockT
-		sidecars  BlobSidecarsT
-		err       error
-		g, _      = errgroup.WithContext(ctx)
-		startTime = time.Now()
+		blk             BeaconBlockT
+		sidecars        BlobSidecarsT
+		err             error
+		startTime       = time.Now()
+		beaconBlockResp asynctypes.Message[BeaconBlockT]
+		sidecarsResp    asynctypes.Message[BlobSidecarsT]
 	)
 	abciReq, ok := req.(*cmtabci.ProcessProposalRequest)
 	if !ok {
@@ -175,95 +173,41 @@ func (h *ABCIMiddleware[
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
 
-	// Begin processing the beacon block.
-	g.Go(func() error {
-		return h.verifyBeaconBlock(ctx, blk)
-	})
+	// verify the beacon block
+	h.dispatcher.DispatchRequest(
+		asynctypes.NewMessage(
+			ctx, events.VerifyBeaconBlock, blk,
+		), &beaconBlockResp,
+	)
+
+	if beaconBlockResp.Error() != nil {
+		return h.createProcessProposalResponse(beaconBlockResp.Error())
+	}
 
 	// Request the blob sidecars.
 	if sidecars, err = h.blobGossiper.Request(ctx, abciReq); err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
 
-	// Begin processing the blob sidecars.
-	g.Go(func() error {
-		return h.verifyBlobSidecars(ctx, sidecars)
-	})
+	// verify the blob sidecars
+	h.dispatcher.DispatchRequest(
+		asynctypes.NewMessage(
+			ctx, events.VerifyBlobSidecars, sidecars,
+		), &sidecarsResp,
+	)
 
-	// Wait for both processes to complete and then
-	// return the appropriate response.s
-	return h.createProcessProposalResponse(g.Wait())
-}
-
-// verifyBeaconBlock handles the processing of the beacon block.
-// It requests the block, publishes a received event, and waits for
-// verification.
-func (h *ABCIMiddleware[
-	_, BeaconBlockT, BlobSidecarsT, _, _, _, _,
-]) verifyBeaconBlock(
-	ctx context.Context,
-	blk BeaconBlockT,
-) error {
-	// Publish the received event.
-	if err := h.blkBroker.Publish(
-		ctx,
-		asynctypes.NewEvent(ctx, events.BeaconBlockReceived, blk, nil),
-	); err != nil {
-		return err
+	if sidecarsResp.Error() != nil {
+		return h.createProcessProposalResponse(sidecarsResp.Error())
 	}
 
-	// Wait for a response.
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case msg := <-h.blkCh:
-		if msg.ID() != events.BeaconBlockVerified {
-			return errors.Wrapf(
-				ErrUnexpectedEvent, "unexpected event type: %s", msg.ID(),
-			)
-		}
-		return msg.Error()
-	}
-}
-
-// processBlobSidecars handles the processing of blob sidecars.
-// It requests the sidecars, publishes a received event, and waits for
-// processing.
-func (h *ABCIMiddleware[
-	_, BeaconBlockT, BlobSidecarsT, _, _, _, _,
-]) verifyBlobSidecars(
-	ctx context.Context,
-	sidecars BlobSidecarsT,
-) error {
-	// Publish the received event.
-	if err := h.sidecarsBroker.Publish(
-		ctx,
-		asynctypes.NewEvent(ctx, events.BlobSidecarsReceived, sidecars),
-	); err != nil {
-		return err
-	}
-
-	// Wait for a response.
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case msg := <-h.sidecarsCh:
-		if msg.ID() != events.BlobSidecarsProcessed {
-			return errors.Wrapf(
-				ErrUnexpectedEvent, "unexpected event type: %s", msg.ID(),
-			)
-		}
-		return msg.Error()
-	}
+	return h.createProcessProposalResponse(nil)
 }
 
 // createResponse generates the appropriate ProcessProposalResponse based on the
 // error.
 func (*ABCIMiddleware[
 	_, BeaconBlockT, _, BlobSidecarsT, _, _, _,
-]) createProcessProposalResponse(
-	err error,
-) (proto.Message, error) {
+]) createProcessProposalResponse(err error) (proto.Message, error) {
 	status := cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
 	if !errors.IsFatal(err) {
 		status = cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
@@ -299,6 +243,10 @@ func (h *ABCIMiddleware[
 ]) EndBlock(
 	ctx context.Context,
 ) (transition.ValidatorUpdates, error) {
+	var (
+		sidecarsResp   asynctypes.Message[BlobSidecarsT]
+		valUpdatesResp asynctypes.Message[transition.ValidatorUpdates]
+	)
 	blk, blobs, err := encoding.
 		ExtractBlobsAndBlockFromRequest[BeaconBlockT, BlobSidecarsT](
 		h.req,
@@ -313,68 +261,21 @@ func (h *ABCIMiddleware[
 		return nil, nil
 	}
 
-	// Send the sidecars to the sidecars feed and wait for a response
-	if err = h.processSidecars(ctx, blobs); err != nil {
-		return nil, err
-	}
-
-	// Process the beacon block and return the validator updates.
-	return h.processBeaconBlock(
-		ctx, blk,
+	// verify the blob sidecars
+	h.dispatcher.DispatchRequest(
+		asynctypes.NewMessage(
+			ctx, events.VerifyBlobSidecars, blobs,
+		), &sidecarsResp,
 	)
-}
-
-// processSidecars publishes the sidecars and waits for a response.
-func (h *ABCIMiddleware[
-	_, _, BlobSidecarsT, _, _, _, _,
-]) processSidecars(ctx context.Context, blobs BlobSidecarsT) error {
-	// Publish the sidecars.
-	if err := h.sidecarsBroker.Publish(ctx, asynctypes.NewEvent(
-		ctx, events.BlobSidecarsProcessRequest, blobs,
-	)); err != nil {
-		return err
+	if sidecarsResp.Error() != nil {
+		return nil, sidecarsResp.Error()
 	}
 
-	// Wait for the sidecars to be processed.
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case msg := <-h.sidecarsCh:
-		if msg.ID() != events.BlobSidecarsProcessed {
-			return errors.Wrapf(
-				ErrUnexpectedEvent,
-				"unexpected event type: %s", msg.ID(),
-			)
-		}
-		return msg.Error()
-	}
-}
+	h.dispatcher.DispatchRequest(
+		asynctypes.NewMessage(
+			ctx, events.FinalizeBeaconBlock, blk,
+		), &valUpdatesResp,
+	)
 
-// processBeaconBlock processes the beacon block and returns validator updates.
-func (h *ABCIMiddleware[
-	_, BeaconBlockT, _, _, _, _, _,
-]) processBeaconBlock(
-	ctx context.Context, blk BeaconBlockT,
-) (transition.ValidatorUpdates, error) {
-	// Publish the verified block event.
-	if err := h.blkBroker.Publish(
-		ctx, asynctypes.NewEvent(
-			ctx, events.BeaconBlockFinalizedRequest, blk,
-		)); err != nil {
-		return nil, err
-	}
-
-	// Wait for the block to be processed.
-	select {
-	case msg := <-h.valUpdateSub:
-		if msg.ID() != events.ValidatorSetUpdated {
-			return nil, errors.Wrapf(
-				ErrUnexpectedEvent,
-				"unexpected event type: %s", msg.ID(),
-			)
-		}
-		return msg.Data(), msg.Error()
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	}
+	return valUpdatesResp.Data(), valUpdatesResp.Error()
 }

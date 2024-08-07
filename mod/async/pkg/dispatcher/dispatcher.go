@@ -51,6 +51,21 @@ func (d *Dispatcher) Start(ctx context.Context) error {
 	return nil
 }
 
+// DispatchEvent dispatches the given event to the event server.
+func (d *Dispatcher) DispatchEvent(ctx context.Context, event types.MessageI) error {
+	return d.eventServer.Publish(ctx, event)
+}
+
+// DispatchRequest dispatches the given request to the message server.
+func (d *Dispatcher) DispatchRequest(req types.MessageI, resp types.MessageI) error {
+	return d.msgServer.Request(req, resp)
+}
+
+// DispatchResponse dispatches the given response to the message server.
+func (d *Dispatcher) DispatchResponse(resp types.MessageI) error {
+	return d.msgServer.Respond(resp)
+}
+
 // ============================== Events ===================================
 
 // RegisterPublisher registers the given publisher with the given eventID.
@@ -67,27 +82,12 @@ func (d *Dispatcher) Subscribe(eventID types.MessageID, ch chan any) error {
 	return d.eventServer.Subscribe(eventID, ch)
 }
 
-// DispatchEvent dispatches the given event to the event server.
-func (d *Dispatcher) DispatchEvent(ctx context.Context, event *types.Message[any]) error {
-	return d.eventServer.Publish(ctx, event)
-}
-
 // ================================ Messages ================================
 
 // RegisterMsgRecipient registers the given channel to the message with the
 // given <messageID>.
-func (d *Dispatcher) RegisterMsgRecipient(messageID types.MessageID, ch chan any) error {
-	return d.msgServer.RegisterRecipient(messageID, ch)
-}
-
-// DispatchRequest dispatches the given request to the message server.
-func (d *Dispatcher) DispatchRequest(req types.Message[any], resp any) error {
-	return d.msgServer.Request(req, resp)
-}
-
-// DispatchResponse dispatches the given response to the message server.
-func (d *Dispatcher) DispatchResponse(resp types.Message[any]) error {
-	return d.msgServer.Respond(resp)
+func (d *Dispatcher) RegisterMsgReceiver(messageID types.MessageID, ch chan any) error {
+	return d.msgServer.RegisterReceiver(messageID, ch)
 }
 
 // RegisterRoute registers the given route with the given messageID.

@@ -75,5 +75,5 @@ func ProvideProcessGenesisDataRoute() *messaging.Route[*GenesisMessage, *Validat
 
 // ProvideProcessBlobSidecarsRoute provides a route for processing blob sidecars.
 func ProvideProcessBlobSidecarsRoute() *messaging.Route[*SidecarMessage, *SidecarMessage] {
-	return messaging.NewRoute[*SidecarMessage, *SidecarMessage](events.ProcessBlobSidecars)
+	return messaging.NewRoute[*SidecarMessage, *SidecarMessage](events.VerifyBlobSidecars)
 }

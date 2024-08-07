@@ -25,6 +25,13 @@ import (
 	"errors"
 )
 
+type MessageI interface {
+	ID() MessageID
+	Context() context.Context
+	Error() error
+	Is(MessageID) bool
+}
+
 // A Message is an asynchronous message meant for a single recipient.
 type Message[DataT any] struct {
 	// ctx is the context associated with the event.

@@ -37,7 +37,7 @@ type Publisher interface {
 // messageRoute is the interface that supports basic message route operations.
 type MessageRoute interface {
 	// RegisterRecipient sets the recipient for the route.
-	RegisterRecipient(ch chan any) error
+	RegisterReceiver(ch chan any) error
 	// SendRequest sends a request to the recipient.
 	SendRequest(msg any) error
 	// SendResponse sends a response to the recipient.

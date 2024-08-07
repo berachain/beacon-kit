@@ -54,8 +54,8 @@ func (r *Route[ReqT, RespT]) MessageID() types.MessageID {
 	return r.messageID
 }
 
-// SetRecipient sets the recipient for the route.
-func (r *Route[ReqT, RespT]) RegisterRecipient(ch chan any) error {
+// RegisterReceiver sets the recipient for the route.
+func (r *Route[ReqT, RespT]) RegisterReceiver(ch chan any) error {
 	if r.recipient != nil {
 		return ErrRouteAlreadySet
 	}
