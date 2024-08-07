@@ -25,7 +25,6 @@ import (
 	"regexp"
 	"strings"
 
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 )
 
@@ -50,7 +49,10 @@ func NewFromHex(hexStr string) (*Secret, error) {
 	}
 
 	// Convert the hex string to a byte array.
-	bz := gethprimitives.FromHex(hexStr)
+	bz, err := hex.ToBytes(hexStr)
+	if err != nil {
+		return nil, err
+	}
 	if bz == nil || len(bz) != EthereumJWTLength {
 		return nil, ErrLengthMismatch
 	}

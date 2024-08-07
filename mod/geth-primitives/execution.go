@@ -55,9 +55,6 @@ type (
 var (
 	HexToAddress           = common.HexToAddress
 	HexToHash              = common.HexToHash
-	FromHex                = common.FromHex
-	ZeroAddress            = ExecutionAddress{}
-	ZeroHash               = ExecutionHash{}
 	BlockToExecutableData  = engine.BlockToExecutableData
 	NewBlockWithHeader     = coretypes.NewBlockWithHeader
 	DeriveSha              = coretypes.DeriveSha
