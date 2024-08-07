@@ -25,12 +25,7 @@ import (
 	"encoding/json"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-)
-
-type (
-	ExecutionAddress = common.Address
+	"golang.org/x/crypto/sha3"
 )
 
 var (
@@ -38,7 +33,16 @@ var (
 	_ encoding.TextUnmarshaler = (*ExecutionHash)(nil)
 	_ json.Marshaler           = (*ExecutionHash)(nil)
 	_ json.Unmarshaler         = (*ExecutionHash)(nil)
+
+	_ encoding.TextMarshaler   = (*ExecutionAddress)(nil)
+	_ encoding.TextUnmarshaler = (*ExecutionAddress)(nil)
+	_ json.Marshaler           = (*ExecutionAddress)(nil)
+	_ json.Unmarshaler         = (*ExecutionAddress)(nil)
 )
+
+/* -------------------------------------------------------------------------- */
+/*                                ExecutionHash                               */
+/* -------------------------------------------------------------------------- */
 
 // ExecutionHash represents the 32 byte Keccak256 hash of arbitrary data.
 // We use this type to represent hashes of things that come from the execution
@@ -46,8 +50,8 @@ var (
 type ExecutionHash [32]byte
 
 // NewExecutionHashFromHex creates a new hash from a hex string.
-func NewExecutionHashFromHex(hex string) ExecutionHash {
-	return ExecutionHash(hexutil.MustDecode(hex))
+func NewExecutionHashFromHex(input string) ExecutionHash {
+	return ExecutionHash(hex.MustToBytes(input))
 }
 
 // Hex converts a hash to a hex string.
@@ -77,4 +81,70 @@ func (h ExecutionHash) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON parses a hash in hex syntax.
 func (h *ExecutionHash) UnmarshalJSON(input []byte) error {
 	return hex.DecodeFixedJSON(input, h[:])
+}
+
+/* -------------------------------------------------------------------------- */
+/*                              ExecutionAddress                              */
+/* -------------------------------------------------------------------------- */
+
+// ExecutionAddress represents a 20-byte Ethereum address.
+// We use this type to represent addresses that come from the execution layer.
+// It is EIP-55 checksummed and compliant.
+type ExecutionAddress [20]byte
+
+// NewExecutionAddressFromHex creates a new address from a hex string.
+func NewExecutionAddressFromHex(input string) ExecutionAddress {
+	return ExecutionAddress(hex.MustToBytes(input))
+}
+
+// Hex converts an address to a hex string.
+func (a ExecutionAddress) Hex() string { return string(a.checksumHex()) }
+
+// String implements the stringer interface and is used also by the logger when
+// doing full logging into a file.
+func (a ExecutionAddress) String() string {
+	return a.Hex()
+}
+
+// MarshalText returns the hex representation of a.
+func (a ExecutionAddress) MarshalText() ([]byte, error) {
+	return []byte(a.Hex()), nil
+}
+
+// UnmarshalText parses an address in hex syntax.
+func (a *ExecutionAddress) UnmarshalText(input []byte) error {
+	*a = NewExecutionAddressFromHex(string(input))
+	return nil
+}
+
+// MarshalJSON returns the JSON representation of a.
+func (a ExecutionAddress) MarshalJSON() ([]byte, error) {
+	return json.Marshal(a.Hex())
+}
+
+// UnmarshalJSON parses an address in hex syntax.
+func (a *ExecutionAddress) UnmarshalJSON(input []byte) error {
+	return a.UnmarshalText(input[1 : len(input)-1])
+}
+
+// checksumHex returns the checksummed hex representation of a.
+func (a *ExecutionAddress) checksumHex() []byte {
+	buf := hex.EncodeBytes(a[:])
+
+	// compute checksum
+	sha := sha3.NewLegacyKeccak256()
+	sha.Write(buf[2:])
+	hash := sha.Sum(nil)
+	for i := 2; i < len(buf); i++ {
+		hashByte := hash[(i-2)/2]
+		if i%2 == 0 {
+			hashByte = hashByte >> 4
+		} else {
+			hashByte &= 0xf
+		}
+		if buf[i] > '9' && hashByte > 7 {
+			buf[i] -= 32
+		}
+	}
+	return buf[:]
 }

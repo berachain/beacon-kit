@@ -132,7 +132,7 @@ func DefaultGenesisExecutionPayloadHeaderDeneb() (
 ) {
 	return &ExecutionPayloadHeader{
 		ParentHash:   common.ExecutionHash{},
-		FeeRecipient: gethprimitives.ZeroAddress,
+		FeeRecipient: common.ExecutionAddress{},
 		StateRoot: common.Bytes32(gethprimitives.Hex2BytesFixed(
 			"0x12965ab9cbe2d2203f61d23636eb7e998f167cb79d02e452f532535641e35bcc",
 			constants.RootLength,

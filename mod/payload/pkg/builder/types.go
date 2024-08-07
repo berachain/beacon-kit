@@ -24,7 +24,6 @@ import (
 	"context"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -59,7 +58,7 @@ type ExecutionPayload[T constraints.ForkTyped[T]] interface {
 	// GetBlockHash returns the block hash.
 	GetBlockHash() common.ExecutionHash
 	// GetFeeRecipient returns the fee recipient.
-	GetFeeRecipient() gethprimitives.ExecutionAddress
+	GetFeeRecipient() common.ExecutionAddress
 	// GetParentHash returns the parent hash.
 	GetParentHash() common.ExecutionHash
 }
@@ -83,7 +82,7 @@ type PayloadAttributes[
 		uint32,
 		uint64,
 		common.Bytes32,
-		gethprimitives.ExecutionAddress,
+		common.ExecutionAddress,
 		[]WithdrawalT,
 		common.Root,
 	) (SelfT, error)

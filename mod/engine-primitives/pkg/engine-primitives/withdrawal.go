@@ -21,7 +21,6 @@
 package engineprimitives
 
 import (
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -45,7 +44,7 @@ type Withdrawal struct {
 	Validator math.ValidatorIndex `json:"validatorIndex"`
 	// Address is the execution address where the withdrawal will be sent.
 	// It has a fixed size of 20 bytes.
-	Address gethprimitives.ExecutionAddress `json:"address"`
+	Address common.ExecutionAddress `json:"address"`
 	// Amount is the amount of Gwei to be withdrawn.
 	Amount math.Gwei `json:"amount"`
 }
@@ -57,7 +56,7 @@ type Withdrawal struct {
 func (w *Withdrawal) New(
 	index math.U64,
 	validator math.ValidatorIndex,
-	address gethprimitives.ExecutionAddress,
+	address common.ExecutionAddress,
 	amount math.Gwei,
 ) *Withdrawal {
 	return &Withdrawal{
@@ -164,7 +163,7 @@ func (w *Withdrawal) GetValidatorIndex() math.ValidatorIndex {
 }
 
 // GetAddress returns the execution address where the withdrawal will be sent.
-func (w *Withdrawal) GetAddress() gethprimitives.ExecutionAddress {
+func (w *Withdrawal) GetAddress() common.ExecutionAddress {
 	return w.Address
 }
 

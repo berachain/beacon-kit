@@ -26,7 +26,6 @@
 package types
 
 import (
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
@@ -40,7 +39,7 @@ type WithdrawalCredentials common.Bytes32
 // NewCredentialsFromExecutionAddress creates a new WithdrawalCredentials from
 // an.
 func NewCredentialsFromExecutionAddress(
-	address gethprimitives.ExecutionAddress,
+	address common.ExecutionAddress,
 ) WithdrawalCredentials {
 	credentials := WithdrawalCredentials{}
 	credentials[0] = 0x01
@@ -50,13 +49,13 @@ func NewCredentialsFromExecutionAddress(
 
 // ToExecutionAddress converts the WithdrawalCredentials to an ExecutionAddress.
 func (wc WithdrawalCredentials) ToExecutionAddress() (
-	gethprimitives.ExecutionAddress,
+	common.ExecutionAddress,
 	error,
 ) {
 	if wc[0] != EthSecp256k1CredentialPrefix {
-		return gethprimitives.ZeroAddress, ErrInvalidWithdrawalCredentials
+		return common.ExecutionAddress{}, ErrInvalidWithdrawalCredentials
 	}
-	return gethprimitives.ExecutionAddress(wc[12:]), nil
+	return common.ExecutionAddress(wc[12:]), nil
 }
 
 // UnmarshalJSON implements the json.Unmarshaler interface for Bytes32.

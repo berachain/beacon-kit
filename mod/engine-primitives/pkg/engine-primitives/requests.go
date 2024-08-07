@@ -47,7 +47,7 @@ type NewPayloadRequest[
 		GetTimestamp() math.U64
 		GetExtraData() []byte
 		GetBaseFeePerGas() *math.U256
-		GetFeeRecipient() gethprimitives.ExecutionAddress
+		GetFeeRecipient() common.ExecutionAddress
 		GetStateRoot() common.Bytes32
 		GetReceiptsRoot() common.Bytes32
 		GetLogsBloom() bytes.B256
@@ -59,7 +59,7 @@ type NewPayloadRequest[
 	WithdrawalT interface {
 		GetIndex() math.U64
 		GetAmount() math.U64
-		GetAddress() gethprimitives.ExecutionAddress
+		GetAddress() common.ExecutionAddress
 		GetValidatorIndex() math.U64
 	},
 ] struct {
@@ -87,7 +87,7 @@ func BuildNewPayloadRequest[
 		GetTimestamp() math.U64
 		GetExtraData() []byte
 		GetBaseFeePerGas() *math.U256
-		GetFeeRecipient() gethprimitives.ExecutionAddress
+		GetFeeRecipient() common.ExecutionAddress
 		GetStateRoot() common.Bytes32
 		GetReceiptsRoot() common.Bytes32
 		GetLogsBloom() bytes.B256
@@ -99,7 +99,7 @@ func BuildNewPayloadRequest[
 	WithdrawalT interface {
 		GetIndex() math.U64
 		GetAmount() math.U64
-		GetAddress() gethprimitives.ExecutionAddress
+		GetAddress() common.ExecutionAddress
 		GetValidatorIndex() math.U64
 	},
 ](
@@ -180,7 +180,7 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAnd
 			gethWithdrawals[i] = &gethprimitives.Withdrawal{
 				Index:     wd.GetIndex().Unwrap(),
 				Amount:    wd.GetAmount().Unwrap(),
-				Address:   wd.GetAddress(),
+				Address:   gethprimitives.ExecutionAddress(wd.GetAddress()),
 				Validator: wd.GetValidatorIndex().Unwrap(),
 			}
 		}
@@ -196,7 +196,7 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAnd
 		&gethprimitives.Header{
 			ParentHash:       gethprimitives.ExecutionHash(payload.GetParentHash()),
 			UncleHash:        gethprimitives.EmptyUncleHash,
-			Coinbase:         payload.GetFeeRecipient(),
+			Coinbase:         gethprimitives.ExecutionAddress(payload.GetFeeRecipient()),
 			Root:             gethprimitives.ExecutionHash(payload.GetStateRoot()),
 			TxHash:           gethprimitives.DeriveSha(gethprimitives.Transactions(txs), gethprimitives.NewStackTrie(nil)),
 			ReceiptHash:      gethprimitives.ExecutionHash(payload.GetReceiptsRoot()),
