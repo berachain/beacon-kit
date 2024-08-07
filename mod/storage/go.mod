@@ -19,10 +19,10 @@ replace (
 
 require (
 	cosmossdk.io/collections v0.4.0
-	cosmossdk.io/core v0.12.1-0.20240623110059-dec2d5583e39
-	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce
+	cosmossdk.io/core v0.12.1-0.20240726151427-2e0884564fdb
+	cosmossdk.io/log v1.4.0
 	cosmossdk.io/server/v2/stf v0.0.0-20240802204200-bc0731cb49e9
-	cosmossdk.io/store/v2 v2.0.0-00010101000000-000000000000
+	cosmossdk.io/store/v2 v2.0.0-20240729225221-c4de9a970633
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240617161612-ab1257fcf5a1
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610210054-bfdc14c4013c
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157
@@ -47,7 +47,7 @@ require (
 	github.com/cockroachdb/redact v1.1.5 // indirect
 	github.com/cosmos/gogoproto v1.5.0 // indirect
 	github.com/cosmos/ics23/go v0.10.0 // indirect
-	github.com/ethereum/go-ethereum v1.14.6 // indirect
+	github.com/ethereum/go-ethereum v1.14.7 // indirect
 	github.com/getsentry/sentry-go v0.28.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
@@ -55,7 +55,7 @@ require (
 	github.com/hashicorp/go-metrics v0.5.3 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
-	github.com/holiman/uint256 v1.3.0 // indirect
+	github.com/holiman/uint256 v1.3.1 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
@@ -65,12 +65,12 @@ require (
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/rs/zerolog v1.33.0 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
-	golang.org/x/crypto v0.25.0 // indirect
-	golang.org/x/exp v0.0.0-20240613232115-7f521ea00fb8 // indirect
-	golang.org/x/net v0.27.0 // indirect
-	golang.org/x/sys v0.22.0 // indirect
-	golang.org/x/text v0.16.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240711142825-46eb208f015d // indirect
+	golang.org/x/crypto v0.26.0 // indirect
+	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
+	golang.org/x/net v0.28.0 // indirect
+	golang.org/x/sys v0.23.0 // indirect
+	golang.org/x/text v0.17.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240805194559-2c9e96a0b5d4 // indirect
 	google.golang.org/grpc v1.65.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
