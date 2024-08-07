@@ -46,6 +46,10 @@ type Application[ClientT engine.Client] struct {
 
 	// Consensus Params
 	ConsensusParamsStore *ConsensusParamsStore
+
+	// Genesis Data
+	genesisAppHash []byte
+	initialHeight  int64
 }
 
 func NewApplication[ClientT engine.Client](
@@ -70,7 +74,7 @@ func (app *Application[ClientT]) InitChain(
 		"chain id", req.ChainId,
 		"height", req.InitialHeight,
 	)
-	valUpdates, _, err := app.client.InitChain(ctx, req.AppStateBytes)
+	valUpdates, appHash, err := app.client.InitChain(ctx, req.AppStateBytes)
 	if err != nil {
 		return nil, err
 	}
@@ -78,9 +82,11 @@ func (app *Application[ClientT]) InitChain(
 	if err != nil {
 		return nil, err
 	}
+	app.genesisAppHash = appHash
+	app.initialHeight = req.InitialHeight
 
 	// annoying from sdk.
-	appHash := (&storetypes.CommitInfo{}).CommitID().Hash
+	appHash = (&storetypes.CommitInfo{}).CommitID().Hash
 
 	return &abci.InitChainResponse{
 		ConsensusParams: params,
@@ -125,6 +131,11 @@ func (app *Application[ClientT]) FinalizeBlock(
 	req *abci.FinalizeBlockRequest,
 ) (*abci.FinalizeBlockResponse, error) {
 	app.logger.Info("Starting FinalizeBlock")
+	if req.Height == app.initialHeight {
+		return &abci.FinalizeBlockResponse{
+			AppHash: app.genesisAppHash,
+		}, nil
+	}
 	finalizeReq := finalizeRequestFromABCIRequest(req)
 	valUpdates, appHash, err := app.client.FinalizeBlock(ctx, finalizeReq)
 	if err != nil {

@@ -322,11 +322,6 @@ func (a *App[
 	if err != nil {
 		// If we don't have a block, we can't do anything.
 		//nolint:nilerr // by design.
-
-		// stateHash, err := a.sb.StateFromContext(ctx).LatestCommitHash()
-		// if err != nil {
-		// 	return nil, nil, err
-		// }
 		stateHash, err := a.sb.StateFromContext(ctx).Commit()
 		if err != nil {
 			return nil, nil, err
