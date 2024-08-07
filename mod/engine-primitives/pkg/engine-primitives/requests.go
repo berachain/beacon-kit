@@ -23,6 +23,7 @@ package engineprimitives
 import (
 	stdbytes "bytes"
 	"math/big"
+	"unsafe"
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
@@ -136,7 +137,6 @@ func BuildNewPayloadRequest[
 //nolint:lll
 func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT, WithdrawalsT]) HasValidVersionedAndBlockHashes() error {
 	var (
-		gethWithdrawals []*gethprimitives.Withdrawal
 		withdrawalsHash *common.ExecutionHash
 		blobHashes      = make([]gethprimitives.ExecutionHash, 0)
 		payload         = n.ExecutionPayload
@@ -181,8 +181,9 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT, WithdrawalsT]) HasVal
 		}
 	}
 
+	wds := payload.GetWithdrawals()
 	h := gethprimitives.DeriveSha(
-		payload.GetWithdrawals(),
+		wds,
 		gethprimitives.NewStackTrie(nil),
 	)
 	withdrawalsHash = (*common.ExecutionHash)(&h)
@@ -211,7 +212,7 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT, WithdrawalsT]) HasVal
 			ParentBeaconRoot: (*gethprimitives.ExecutionHash)(n.ParentBeaconBlockRoot),
 		},
 	).WithBody(gethprimitives.Body{
-		Transactions: txs, Uncles: nil, Withdrawals: gethWithdrawals,
+		Transactions: txs, Uncles: nil, Withdrawals: *(*gethprimitives.Withdrawals)(unsafe.Pointer(&wds)),
 	}); block.Hash() != gethprimitives.ExecutionHash(payload.GetBlockHash()) {
 		return errors.Wrapf(ErrPayloadBlockHashMismatch,
 			"%x, got %x",
