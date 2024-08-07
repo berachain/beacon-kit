@@ -22,122 +22,149 @@ package cometbft
 
 import (
 	"context"
+	"fmt"
+	"os"
+	"path/filepath"
 
-	cmtabci "github.com/cometbft/cometbft/abci/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/sourcegraph/conc/iter"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/engine"
+	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	cmtcfg "github.com/cometbft/cometbft/config"
+	bls12381 "github.com/cometbft/cometbft/crypto/bls12381"
+	cmtlog "github.com/cometbft/cometbft/libs/log"
+	"github.com/cometbft/cometbft/node"
+	"github.com/cometbft/cometbft/p2p"
+	"github.com/cometbft/cometbft/privval"
+	"github.com/cometbft/cometbft/proxy"
 )
 
-// ConsensusEngine is used to decouple the Comet consensus engine from
-// the Cosmos SDK.
-// Right now, it is very coupled to the sdk base app and we will
-// eventually fully decouple this.
-type ConsensusEngine[
-	AttestationDataT AttestationData[AttestationDataT],
-	BeaconStateT BeaconState,
-	SlashingInfoT SlashingInfo[SlashingInfoT],
-	SlotDataT SlotData[AttestationDataT, SlashingInfoT, SlotDataT],
-	StorageBackendT StorageBackend[BeaconStateT],
-	ValidatorUpdateT any,
+// Consensus is a wrapper around the CometBFT node and client-side application
+// which serves the responsibilty of receiving and routing ABCI requests to the
+// node, and returning the responses to the consensus engine.
+type Consensus[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+	ClientT engine.Client,
 ] struct {
-	Middleware[AttestationDataT, SlashingInfoT, SlotDataT]
-	sb StorageBackendT
+	Logger LoggerT
+
+	// CometBFT node
+	CometBFTNode *node.Node
+	// Client-side application to route
+	// Comet calls to the Node
+	App *Application[ClientT]
+
+	// Config
+	Config Config
 }
 
-// NewConsensusEngine returns a new consensus middleware.
-func NewConsensusEngine[
-	AttestationDataT AttestationData[AttestationDataT],
-	BeaconStateT BeaconState,
-	SlashingInfoT SlashingInfo[SlashingInfoT],
-	SlotDataT SlotData[AttestationDataT, SlashingInfoT, SlotDataT],
-	StorageBackendT StorageBackend[BeaconStateT],
-	ValidatorUpdateT any,
+func NewConsensus[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+	ClientT engine.Client,
 ](
-	m Middleware[AttestationDataT, SlashingInfoT, SlotDataT],
-	sb StorageBackendT,
-) *ConsensusEngine[
-	AttestationDataT,
-	BeaconStateT,
-	SlashingInfoT,
-	SlotDataT,
-	StorageBackendT,
-	ValidatorUpdateT,
-] {
-	return &ConsensusEngine[
-		AttestationDataT,
-		BeaconStateT,
-		SlashingInfoT,
-		SlotDataT,
-		StorageBackendT,
-		ValidatorUpdateT,
-	]{
-		Middleware: m,
-		sb:         sb,
+	cfg Config,
+	logger LoggerT,
+	client ClientT,
+	chainSpec common.ChainSpec,
+) *Consensus[LoggerT, ClientT] {
+	return &Consensus[LoggerT, ClientT]{
+		Logger: logger,
+		Config: cfg,
+		App:    NewApplication(logger, client, chainSpec),
 	}
 }
 
-func (c *ConsensusEngine[_, _, _, _, _, ValidatorUpdateT]) InitGenesis(
-	ctx context.Context,
-	genesisBz []byte,
-) ([]ValidatorUpdateT, error) {
-	updates, err := c.Middleware.InitGenesis(ctx, genesisBz)
+func (c *Consensus[LoggerT, ClientT]) Init(
+	homeDir string,
+) (*privval.FilePV, error) {
+	// Ensure the config subdirectory exists
+	configDir := filepath.Join(homeDir, "config")
+	if err := os.MkdirAll(configDir, 0755); err != nil {
+		return nil, fmt.Errorf("failed to create config directory: %w", err)
+	}
+	dataDir := filepath.Join(homeDir, "data")
+	if err := os.MkdirAll(dataDir, 0755); err != nil {
+		return nil, fmt.Errorf("failed to create data directory: %w", err)
+	}
+	c.Config.Config = c.Config.SetRoot(homeDir)
+
+	pvKeyFile := c.Config.PrivValidatorKeyFile()
+	pvStateFile := c.Config.PrivValidatorStateFile()
+
+	var pv *privval.FilePV
+	if _, err := os.Stat(pvKeyFile); os.IsNotExist(err) {
+		privKey, err := bls12381.GenPrivKey()
+		if err != nil {
+			return nil, err
+		}
+		pv = privval.NewFilePV(privKey, pvKeyFile, pvStateFile)
+		pv.Save()
+	} else if err != nil {
+		return nil, err
+	} else {
+		pv = privval.LoadFilePV(pvKeyFile, pvStateFile)
+	}
+	_, err := p2p.LoadOrGenNodeKey(c.Config.NodeKeyFile())
 	if err != nil {
 		return nil, err
 	}
-	// Convert updates into the Cosmos SDK format.
-	return iter.MapErr(updates, convertValidatorUpdate[ValidatorUpdateT])
+
+	return pv, nil
 }
 
-// TODO: Decouple Comet Types
-func (c *ConsensusEngine[_, _, _, _, _, _]) PrepareProposal(
-	ctx sdk.Context,
-	req *cmtabci.PrepareProposalRequest,
-) (*cmtabci.PrepareProposalResponse, error) {
-	slotData, err := c.convertPrepareProposalToSlotData(
+func (c *Consensus[LoggerT, ClientT]) Start(ctx context.Context) error {
+	// Should this generate a key if it doesn't exist?
+	nodeKey, err := p2p.LoadOrGenNodeKey(c.Config.NodeKeyFile())
+	if err != nil {
+		return err
+	}
+
+	if c.CometBFTNode, err = node.NewNode(
 		ctx,
-		req,
-	)
-	if err != nil {
-		return nil, err
+		c.Config.Config,
+		privval.LoadFilePV(c.Config.PrivValidatorKeyFile(), c.Config.PrivValidatorStateFile()),
+		nodeKey,
+		proxy.NewConsensusSyncLocalClientCreator(c.App),
+		node.DefaultGenesisDocProviderFunc(c.Config.Config),
+		cmtcfg.DefaultDBProvider,
+		node.DefaultMetricsProvider(c.Config.Instrumentation),
+		cometLoggerFromLogger(c.Logger),
+	); err != nil {
+		return err
 	}
-	blkBz, sidecarsBz, err := c.Middleware.PrepareProposal(
-		ctx,
-		slotData,
-	)
-	if err != nil {
-		return nil, err
-	}
-	return &cmtabci.PrepareProposalResponse{
-		Txs: [][]byte{blkBz, sidecarsBz},
-	}, nil
+
+	return c.CometBFTNode.Start()
 }
 
-// TODO: Decouple Comet Types
-func (c *ConsensusEngine[_, _, _, _, _, ValidatorUpdateT]) ProcessProposal(
-	ctx sdk.Context,
-	req *cmtabci.ProcessProposalRequest,
-) (*cmtabci.ProcessProposalResponse, error) {
-	resp, err := c.Middleware.ProcessProposal(ctx, req)
-	if err != nil {
-		return nil, err
+func (c *Consensus[LoggerT, ClientT]) Stop(context.Context) error {
+	if c.CometBFTNode != nil && c.CometBFTNode.IsRunning() {
+		return c.CometBFTNode.Stop()
 	}
-	return resp.(*cmtabci.ProcessProposalResponse), nil
+
+	return nil
 }
 
-// TODO: Decouple Comet Types
-func (c *ConsensusEngine[_, _, _, _, _, ValidatorUpdateT]) PreBlock(
-	ctx sdk.Context,
-	req *cmtabci.FinalizeBlockRequest,
-) error {
-	return c.Middleware.PreBlock(ctx, req)
+type CometLogger[LoggerT log.AdvancedLogger[any, LoggerT]] struct {
+	Logger LoggerT
 }
 
-func (c *ConsensusEngine[_, _, _, _, _, ValidatorUpdateT]) EndBlock(
-	ctx context.Context,
-) ([]ValidatorUpdateT, error) {
-	updates, err := c.Middleware.EndBlock(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return iter.MapErr(updates, convertValidatorUpdate[ValidatorUpdateT])
+func cometLoggerFromLogger[LoggerT log.AdvancedLogger[any, LoggerT]](
+	logger LoggerT,
+) cmtlog.Logger {
+	return &CometLogger[LoggerT]{Logger: logger}
+}
+
+func (cl *CometLogger[LoggerT]) Debug(msg string, keyVals ...interface{}) {
+	cl.Logger.Debug(msg, keyVals...)
+}
+
+func (cl *CometLogger[LoggerT]) Info(msg string, keyVals ...interface{}) {
+	cl.Logger.Info(msg, keyVals...)
+}
+
+func (cl *CometLogger[LoggerT]) Error(msg string, keyVals ...interface{}) {
+	cl.Logger.Error(msg, keyVals...)
+}
+
+func (cl *CometLogger[LoggerT]) With(keyVals ...interface{}) cmtlog.Logger {
+	return &CometLogger[LoggerT]{Logger: cl.Logger.With(keyVals...)}
 }

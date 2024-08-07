@@ -36,7 +36,7 @@ func (s *Service[
 ]) ProcessGenesisData(
 	ctx context.Context,
 	genesisData GenesisT,
-) (transition.ValidatorUpdates, error) {
+) (transition.ValidatorUpdates, []byte, error) {
 	return s.sp.InitializePreminedBeaconStateFromEth1(
 		s.sb.StateFromContext(ctx),
 		genesisData.GetDeposits(),
@@ -64,7 +64,7 @@ func (s *Service[
 	// which is completely fine. This means we were syncing from a
 	// bad peer, and we would likely AppHash anyways.
 	st := s.sb.StateFromContext(ctx)
-	valUpdates, err := s.executeStateTransition(ctx, st, blk)
+	valUpdates, _, err := s.executeStateTransition(ctx, st, blk)
 	if err != nil {
 		return nil, err
 	}
@@ -103,10 +103,10 @@ func (s *Service[
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
-) (transition.ValidatorUpdates, error) {
+) (transition.ValidatorUpdates, []byte, error) {
 	startTime := time.Now()
 	defer s.metrics.measureStateTransitionDuration(startTime)
-	valUpdates, err := s.sp.Transition(
+	valUpdates, stateHash, err := s.sp.Transition(
 		&transition.Context{
 			Context:          ctx,
 			OptimisticEngine: true,
@@ -124,9 +124,10 @@ func (s *Service[
 			// the "verification aspect" of this NewPayload call is
 			// actually irrelevant at this point.
 			SkipPayloadVerification: false,
+			PersistState:            true,
 		},
 		st,
 		blk,
 	)
-	return valUpdates, err
+	return valUpdates, stateHash, err
 }

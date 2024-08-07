@@ -1249,7 +1249,7 @@ func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, Fo
 	ret := _m.Called(cometBFTAddress)
 
 	if len(ret) == 0 {
-		panic("no return value specified for ValidatorIndexByCometBFTAddress")
+		panic("no return value specified for ValidatorIndexByConsensusAddress")
 	}
 
 	var r0 math.U64
@@ -1277,7 +1277,7 @@ type BeaconState_ValidatorIndexByCometBFTAddress_Call[BeaconBlockHeaderT backend
 	*mock.Call
 }
 
-// ValidatorIndexByCometBFTAddress is a helper method to define mock.On call
+// ValidatorIndexByConsensusAddress is a helper method to define mock.On call
 //   - cometBFTAddress []byte
 func (_e *BeaconState_Expecter[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) ValidatorIndexByCometBFTAddress(cometBFTAddress interface{}) *BeaconState_ValidatorIndexByCometBFTAddress_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	return &BeaconState_ValidatorIndexByCometBFTAddress_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]{Call: _e.mock.On("ValidatorIndexByCometBFTAddress", cometBFTAddress)}

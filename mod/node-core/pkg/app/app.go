@@ -21,48 +21,41 @@
 package app
 
 import (
-	"io"
+	"context"
 
-	bkcomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
-	dbm "github.com/cosmos/cosmos-db"
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/runtime"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/cosmos/cosmos-sdk/types/mempool"
+	consensusengine "github.com/berachain/beacon-kit/mod/consensus/pkg/engine"
+	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 )
 
-var (
-	_ runtime.AppI            = (*BeaconApp)(nil)
-	_ servertypes.Application = (*BeaconApp)(nil)
-)
+type App[
+	StorageBackendT any,
+	StateProcessorT any,
+] struct {
+	Logger log.Logger[any]
 
-// BeaconApp extends an ABCI application, but with most of its parameters
-// exported. They are exported for convenience in creating helper
-// functions, as object capabilities aren't needed for testing.
-type BeaconApp struct {
-	*runtime.App
+	// The consensus engine client is responsible
+	// for communicating with the consensus engine
+	// for the chain.
+	consensusengine.Client
+	// The execution engine client is responsible
+	// for communicating with the execution engine
+	// for the chain.
+	// ExecutionClient executionengine.Engine
+	// The backend is the central data access layer for
+	// the application.
+	backend StorageBackendT
+	// The state processor is the component that is
+	// responsible for transitioning the state of the
+	// chain.
+	stateProcessor StateProcessorT
+	// Services contained within the service registry
+	// are defined as pieces of app-specific tooling
+	// that are used to support the core functionality
+	// of the application.
+	services *service.Registry
 }
 
-// NewBeaconKitApp returns a reference to an initialized BeaconApp.
-func NewBeaconKitApp(
-	db dbm.DB,
-	traceStore io.Writer,
-	loadLatest bool,
-	appBuilder *runtime.AppBuilder,
-	baseAppOptions ...func(*baseapp.BaseApp),
-) *BeaconApp {
-	app := &BeaconApp{}
-
-	// Build the runtime.App using the app builder.
-	app.App = appBuilder.Build(db, traceStore, append(
-		baseAppOptions, baseapp.SetMempool(mempool.NoOpMempool{}),
-	)...)
-	app.SetTxDecoder(bkcomponents.NoOpTxConfig{}.TxDecoder())
-
-	// Load the app.
-	if err := app.Load(loadLatest); err != nil {
-		panic(err)
-	}
-
-	return app
+func (a *App[_, _]) Start(ctx context.Context) error {
+	return a.services.StartAll(ctx)
 }

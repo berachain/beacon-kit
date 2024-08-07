@@ -9,7 +9,7 @@ OUT_DIR ?= $(CURDIR)/build/bin
 BINDIR ?= $(GOPATH)/build/bin
 TESTAPP_DIR = beacond
 TESTAPP_FILES_DIR = testing/files
-TESTAPP_CMD_DIR = $(TESTAPP_DIR)/cmd
+TESTAPP_CMD_DIR = $(TESTAPP_DIR)/v2
 PROJECT_NAME = $(shell git remote get-url origin | xargs basename -s .git)
 
 # process build tags

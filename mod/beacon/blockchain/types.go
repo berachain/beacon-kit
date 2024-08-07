@@ -193,7 +193,7 @@ type StateProcessor[
 		[]DepositT,
 		ExecutionPayloadHeaderT,
 		common.Version,
-	) (transition.ValidatorUpdates, error)
+	) (transition.ValidatorUpdates, []byte, error)
 	// ProcessSlots processes the state transition for a range of slots.
 	ProcessSlots(
 		BeaconStateT, math.Slot,
@@ -203,7 +203,7 @@ type StateProcessor[
 		ContextT,
 		BeaconStateT,
 		BeaconBlockT,
-	) (transition.ValidatorUpdates, error)
+	) (transition.ValidatorUpdates, []byte, error)
 }
 
 // StorageBackend defines an interface for accessing various storage components

@@ -139,6 +139,7 @@ func (s *EngineClient[
 				"dial_url", s.cfg.RPCDialURL,
 			)
 			if err := s.initializeConnection(ctx); err != nil {
+				s.logger.Error("failed to initialize connection", "err", err)
 				continue
 			}
 			return nil

@@ -2,6 +2,8 @@ module github.com/berachain/beacon-kit/mod/consensus-types
 
 go 1.22.5
 
+replace github.com/berachain/beacon-kit/mod/primitives => ../primitives
+
 require (
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240806160829-cde2d1347e7e
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df

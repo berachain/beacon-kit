@@ -46,8 +46,9 @@ type BeaconState[
 		cs common.ChainSpec,
 	) T
 	Copy() T
-	Save()
 	Context() context.Context
+	Commit() ([]byte, error)
+	WorkingHash() ([]byte, error)
 	HashTreeRoot() common.Root
 	ReadOnlyBeaconState[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
@@ -85,7 +86,7 @@ type ReadOnlyBeaconState[
 	GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error)
 	GetTotalValidators() (uint64, error)
 	GetValidatorsByEffectiveBalance() ([]ValidatorT, error)
-	ValidatorIndexByCometBFTAddress(
+	ValidatorIndexByConsensusAddress(
 		cometBFTAddress []byte,
 	) (math.ValidatorIndex, error)
 }
@@ -143,7 +144,6 @@ type WriteOnlyValidators[ValidatorT any] interface {
 		math.ValidatorIndex,
 		ValidatorT,
 	) error
-
 	AddValidator(ValidatorT) error
 	AddValidatorBartio(ValidatorT) error
 }

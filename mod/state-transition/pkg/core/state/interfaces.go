@@ -28,8 +28,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// KVStore is the interface for the key-value store holding the beacon state.
-type KVStore[
+// BeaconStore is the interface for the key-value store holding the beacon
+// state.
+type BeaconStore[
 	T,
 	BeaconBlockHeaderT,
 	Eth1DataT,
@@ -38,12 +39,13 @@ type KVStore[
 	ValidatorT any,
 	ValidatorsT ~[]ValidatorT,
 ] interface {
+	LatestCommitHash() ([]byte, error)
+	Commit() ([]byte, error)
+	WorkingHash() ([]byte, error)
 	// Context returns the context of the key-value store.
 	Context() context.Context
 	// WithContext returns a new key-value store with the given context.
 	WithContext(ctx context.Context) T
-	// Save saves the key-value store.
-	Save()
 	// Copy returns a copy of the key-value store.
 	Copy() T
 	// GetLatestExecutionPayloadHeader retrieves the latest execution payload
@@ -137,9 +139,9 @@ type KVStore[
 	AddValidator(val ValidatorT) error
 	// AddValidatorBartio adds a validator to the Bartio chain.
 	AddValidatorBartio(val ValidatorT) error
-	// ValidatorIndexByCometBFTAddress retrieves the validator index by the
+	// ValidatorIndexByConsensusAddress retrieves the validator index by the
 	// given comet BFT address.
-	ValidatorIndexByCometBFTAddress(
+	ValidatorIndexByConsensusAddress(
 		cometBFTAddress []byte,
 	) (math.ValidatorIndex, error)
 	// GetValidatorsByEffectiveBalance retrieves validators by effective

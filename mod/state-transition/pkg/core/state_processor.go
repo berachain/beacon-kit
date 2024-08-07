@@ -152,26 +152,31 @@ func (sp *StateProcessor[
 	ctx ContextT,
 	st BeaconStateT,
 	blk BeaconBlockT,
-) (transition.ValidatorUpdates, error) {
+) (transition.ValidatorUpdates, []byte, error) {
 	if blk.IsNil() {
-		return nil, nil
+		return nil, nil, nil
 	}
 
 	// Process the slots.
 	validatorUpdates, err := sp.ProcessSlots(st, blk.GetSlot())
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Process the block.
 	if err = sp.ProcessBlock(ctx, st, blk); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	// We only want to persist state changes if we successfully
-	// processed the block.
-	st.Save()
-	return validatorUpdates, nil
+	var stateHash []byte
+	if ctx.Persist() {
+		stateHash, err = st.Commit()
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
+	return validatorUpdates, stateHash, nil
 }
 
 func (sp *StateProcessor[
@@ -236,7 +241,6 @@ func (sp *StateProcessor[
 	); err != nil {
 		return err
 	}
-
 	// We get the latest block header, this will not have
 	// a state root on it.
 	latestHeader, err := st.GetLatestBlockHeader()

@@ -38,6 +38,8 @@ type Context struct {
 	// SkipValidateResult indicates whether to validate the result of
 	// the state transition.
 	SkipValidateResult bool
+	// Persist indicates whether to persist the state changes.
+	PersistState bool
 }
 
 // GetOptimisticEngine returns whether to optimistically assume the execution
@@ -68,4 +70,8 @@ func (c *Context) GetSkipValidateResult() bool {
 // Unwrap returns the underlying standard context.
 func (c *Context) Unwrap() context.Context {
 	return c.Context
+}
+
+func (c *Context) Persist() bool {
+	return c.PersistState
 }

@@ -47,7 +47,7 @@ func (sp *StateProcessor[
 	deposits []DepositT,
 	executionPayloadHeader ExecutionPayloadHeaderT,
 	genesisVersion common.Version,
-) (transition.ValidatorUpdates, error) {
+) (transition.ValidatorUpdates, []byte, error) {
 	var (
 		blkHeader BeaconBlockHeaderT
 		blkBody   BeaconBlockBodyT
@@ -61,15 +61,15 @@ func (sp *StateProcessor[
 	)
 
 	if err := st.SetSlot(0); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	if err := st.SetFork(fork); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	if err := st.SetEth1DepositIndex(0); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	if err := st.SetEth1Data(eth1Data.New(
@@ -77,7 +77,7 @@ func (sp *StateProcessor[
 		0,
 		executionPayloadHeader.GetBlockHash(),
 	)); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// TODO: we need to handle common.Version vs
@@ -87,7 +87,7 @@ func (sp *StateProcessor[
 	if err := st.SetLatestBlockHeader(blkHeader.New(
 		0, 0, common.Root{}, common.Root{}, bodyRoot,
 	)); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	for i := range sp.cs.EpochsPerHistoricalVector() {
@@ -95,69 +95,74 @@ func (sp *StateProcessor[
 			i,
 			common.Bytes32(executionPayloadHeader.GetBlockHash()),
 		); err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
 	for _, deposit := range deposits {
 		if err := sp.processDeposit(st, deposit); err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
 	// TODO: process activations.
 	validators, err := st.GetValidators()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Handle special case bartio genesis.
 	if sp.cs.DepositEth1ChainID() == bArtioChainID {
 		if err = st.SetGenesisValidatorsRoot(
 			common.Root(hex.MustToBytes(bArtioValRoot))); err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	} else if err = st.
 		SetGenesisValidatorsRoot(validators.HashTreeRoot()); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	if err = st.SetLatestExecutionPayloadHeader(
 		executionPayloadHeader,
 	); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Setup a bunch of 0s to prime the DB.
 	for i := range sp.cs.HistoricalRootsLimit() {
 		//#nosec:G701 // won't overflow in practice.
 		if err = st.UpdateBlockRootAtIndex(i, common.Root{}); err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		if err = st.UpdateStateRootAtIndex(i, common.Root{}); err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
 	if err = st.SetNextWithdrawalIndex(0); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	if err = st.SetNextWithdrawalValidatorIndex(
 		0,
 	); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	if err = st.SetTotalSlashing(0); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	var updates transition.ValidatorUpdates
 	updates, err = sp.processSyncCommitteeUpdates(st)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	st.Save()
-	return updates, nil
+
+	stateHash, err := st.Commit()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return updates, stateHash, nil
 }

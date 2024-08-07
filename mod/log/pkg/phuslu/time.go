@@ -40,7 +40,7 @@ const (
 )
 
 // withTimeFormat sets the time format for the logger.
-func (l *Logger[ImplT]) withTimeFormat(formatStr string) {
+func (l *Logger) withTimeFormat(formatStr string) {
 	l.logger.TimeFormat = parseFormat(formatStr)
 }
 

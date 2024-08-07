@@ -3,23 +3,24 @@ module github.com/berachain/beacon-kit/testing
 go 1.22.5
 
 replace (
+	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240731205446-aee9803a0af6
+	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240731202123-43dd23137e9d
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
-	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240806152830-8fb47b368cd4
-	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240806152830-8fb47b368cd4
-	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240806162353-1fa473c35c9a
+	cosmossdk.io/log => cosmossdk.io/log v1.3.2-0.20240729192831-b2989459ae91
+	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240729221345-3df18b5c3b34
 )
 
 require (
 	cosmossdk.io/log v1.3.2-0.20240806152830-8fb47b368cd4
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240806160829-cde2d1347e7e
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1347e7e
+	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240624033454-8f3451361f44
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240806160829-cde2d1347e7e
-	github.com/cometbft/cometbft v1.0.0-rc1.0.20240805092115-3b2c5d9e1843
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157
+	github.com/cometbft/cometbft v1.0.0-rc1.0.20240729121641-d06d2e8229ee
 	github.com/cosmos/cosmos-sdk v0.53.0
-	github.com/ethereum/go-ethereum v1.14.7
-	github.com/holiman/uint256 v1.3.1
+	github.com/ethereum/go-ethereum v1.14.6
+	github.com/holiman/uint256 v1.3.0
 	github.com/kurtosis-tech/kurtosis/api/golang v1.0.0
 	github.com/protolambda/zrnt v0.32.2
 	github.com/protolambda/ztyp v0.2.2
@@ -27,23 +28,26 @@ require (
 	github.com/stretchr/testify v1.9.0
 )
 
-require github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4 // indirect
+require (
+	github.com/berachain/beacon-kit/mod/config v0.0.0-20240705193247-d464364483df // indirect
+	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4 // indirect
+)
 
 require (
 	buf.build/gen/go/cometbft/cometbft/protocolbuffers/go v1.34.2-20240701160653-fedbb9acfd2f.2 // indirect
 	buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.34.2-20240130113600-88ef6483f90f.2 // indirect
 	cosmossdk.io/api v0.7.5 // indirect
 	cosmossdk.io/collections v0.4.0 // indirect
-	cosmossdk.io/core v0.12.1-0.20240806152830-8fb47b368cd4 // indirect
+	cosmossdk.io/core v0.12.1-0.20240726151427-2e0884564fdb // indirect
 	cosmossdk.io/depinject v1.0.0 // indirect
 	cosmossdk.io/errors v1.0.1 // indirect
 	cosmossdk.io/math v1.3.0 // indirect
 	cosmossdk.io/schema v0.1.1 // indirect
 	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc // indirect
-	cosmossdk.io/x/auth v0.0.0-20240806152830-8fb47b368cd4 // indirect
-	cosmossdk.io/x/bank v0.0.0-20240806152830-8fb47b368cd4 // indirect
-	cosmossdk.io/x/consensus v0.0.0-20240806152830-8fb47b368cd4 // indirect
-	cosmossdk.io/x/staking v0.0.0-20240806152830-8fb47b368cd4 // indirect
+	cosmossdk.io/x/auth v0.0.0-20240731202123-43dd23137e9d // indirect
+	cosmossdk.io/x/bank v0.0.0-20240731202123-43dd23137e9d // indirect
+	cosmossdk.io/x/consensus v0.0.0-20240731202123-43dd23137e9d // indirect
+	cosmossdk.io/x/staking v0.0.0-20240731202123-43dd23137e9d // indirect
 	cosmossdk.io/x/tx v0.13.4-0.20240623110059-dec2d5583e39 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
@@ -56,8 +60,7 @@ require (
 	github.com/adrg/xdg v0.4.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df // indirect
-	github.com/berachain/beacon-kit/mod/config v0.0.0-20240705193247-d464364483df // indirect
-	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240806160829-cde2d1347e7e // indirect
+	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240710022615-726645827bad // indirect
 	github.com/bgentry/speakeasy v0.2.0 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
