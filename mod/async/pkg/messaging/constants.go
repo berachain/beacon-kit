@@ -23,9 +23,9 @@ package messaging
 import "time"
 
 const (
-	// defaultPublisherTimeout specifies the default timeout when the broker
+	// defaultPublisherTimeout specifies the default timeout when the publisher
 	// tries to send a message to a client, a message is published to the
-	// broker, or a client subscribes or unsubscribes.
+	// publisher, or a client subscribes or unsubscribes.
 	defaultPublisherTimeout = time.Second
 
 	// defaultRouterTimeout specifies the default timeout when the router

@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 )
 
-// ErrTimeout is the error returned when a broker operation timed out.
+// ErrTimeout is the error returned when a dispatch operation timed out.
 var (
 	ErrTimeout = errors.New("timeout")
 

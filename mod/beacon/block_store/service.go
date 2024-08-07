@@ -37,7 +37,6 @@ func NewService[
 	config Config,
 	logger log.Logger[any],
 	dispatcher *dispatcher.Dispatcher,
-	// blkBroker EventFeed[*asynctypes.Event[BeaconBlockT]],
 	store BlockStoreT,
 ) *Service[BeaconBlockT, BlockStoreT] {
 	return &Service[BeaconBlockT, BlockStoreT]{

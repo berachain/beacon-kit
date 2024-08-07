@@ -92,12 +92,6 @@ type Service[
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT]
 	// metrics is a metrics collector.
 	metrics *validatorMetrics
-	// // blkBroker is a publisher for blocks.
-	// blkBroker EventPublisher[*asynctypes.Event[BeaconBlockT]]
-	// // sidecarBroker is a publisher for sidecars.
-	// sidecarBroker EventPublisher[*asynctypes.Event[BlobSidecarsT]]
-	// // newSlotSub is a feed for slots.
-	// newSlotSub chan *asynctypes.Event[SlotDataT]
 }
 
 // NewService creates a new validator service.
