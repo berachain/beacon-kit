@@ -205,7 +205,7 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalsT]) HasValidVersionedAn
 	).WithBody(gethprimitives.Body{
 		//#nosec:G103 // its okay.
 		Transactions: txs, Uncles: nil, Withdrawals: *(*gethprimitives.Withdrawals)(unsafe.Pointer(&wds)),
-	}); block.Hash() != gethprimitives.ExecutionHash(payload.GetBlockHash()) {
+	}); common.ExecutionHash(block.Hash()) != payload.GetBlockHash() {
 		return errors.Wrapf(ErrPayloadBlockHashMismatch,
 			"%x, got %x",
 			payload.GetBlockHash(), block.Hash(),
