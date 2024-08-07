@@ -203,6 +203,7 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalsT]) HasValidVersionedAn
 			ParentBeaconRoot: (*gethprimitives.ExecutionHash)(n.ParentBeaconBlockRoot),
 		},
 	).WithBody(gethprimitives.Body{
+		//#nosec:G103 // its okay.
 		Transactions: txs, Uncles: nil, Withdrawals: *(*gethprimitives.Withdrawals)(unsafe.Pointer(&wds)),
 	}); block.Hash() != gethprimitives.ExecutionHash(payload.GetBlockHash()) {
 		return errors.Wrapf(ErrPayloadBlockHashMismatch,
