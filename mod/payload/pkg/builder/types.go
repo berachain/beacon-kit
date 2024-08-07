@@ -57,19 +57,19 @@ type BeaconState[
 type ExecutionPayload[T constraints.ForkTyped[T]] interface {
 	constraints.ForkTyped[T]
 	// GetBlockHash returns the block hash.
-	GetBlockHash() gethprimitives.ExecutionHash
+	GetBlockHash() common.ExecutionHash
 	// GetFeeRecipient returns the fee recipient.
 	GetFeeRecipient() gethprimitives.ExecutionAddress
 	// GetParentHash returns the parent hash.
-	GetParentHash() gethprimitives.ExecutionHash
+	GetParentHash() common.ExecutionHash
 }
 
 // ExecutionPayloadHeader is the interface for the execution payload header.
 type ExecutionPayloadHeader interface {
 	// GetBlockHash returns the block hash.
-	GetBlockHash() gethprimitives.ExecutionHash
+	GetBlockHash() common.ExecutionHash
 	// GetParentHash returns the parent hash.
-	GetParentHash() gethprimitives.ExecutionHash
+	GetParentHash() common.ExecutionHash
 }
 
 // PayloadAttributes is the interface for the payload attributes.
@@ -103,5 +103,5 @@ type ExecutionEngine[
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
 		req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
-	) (*PayloadIDT, *gethprimitives.ExecutionHash, error)
+	) (*PayloadIDT, *common.ExecutionHash, error)
 }

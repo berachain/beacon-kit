@@ -26,7 +26,6 @@
 package types
 
 import (
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
@@ -253,14 +252,14 @@ func (b *BeaconBlockBody) SetExecutionPayload(
 // GetBlobKzgCommitments returns the BlobKzgCommitments of the Body.
 func (
 	b *BeaconBlockBody,
-) GetBlobKzgCommitments() eip4844.KZGCommitments[gethprimitives.ExecutionHash] {
+) GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash] {
 	return b.BlobKzgCommitments
 }
 
 // SetBlobKzgCommitments sets the BlobKzgCommitments of the
 // BeaconBlockBody.
 func (b *BeaconBlockBody) SetBlobKzgCommitments(
-	commitments eip4844.KZGCommitments[gethprimitives.ExecutionHash],
+	commitments eip4844.KZGCommitments[common.ExecutionHash],
 ) {
 	b.BlobKzgCommitments = commitments
 }

@@ -26,7 +26,6 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
@@ -63,10 +62,10 @@ func TestExecutionPayloadHeader_Getters(t *testing.T) {
 
 	require.NotNil(t, header)
 
-	require.Equal(t, gethprimitives.ExecutionHash{}, header.GetParentHash())
+	require.Equal(t, common.ExecutionHash{}, header.GetParentHash())
 	require.Equal(
 		t,
-		gethprimitives.ExecutionAddress{},
+		common.ExecutionAddress{},
 		header.GetFeeRecipient(),
 	)
 	require.Equal(t, bytes.B32{}, header.GetStateRoot())
@@ -79,7 +78,7 @@ func TestExecutionPayloadHeader_Getters(t *testing.T) {
 	require.Equal(t, math.U64(0), header.GetTimestamp())
 	require.Equal(t, []byte(nil), header.GetExtraData())
 	require.Equal(t, math.NewU256(0), header.GetBaseFeePerGas())
-	require.Equal(t, gethprimitives.ExecutionHash{}, header.GetBlockHash())
+	require.Equal(t, common.ExecutionHash{}, header.GetBlockHash())
 	require.Equal(t, bytes.B32{}, header.GetTransactionsRoot())
 	require.Equal(t, bytes.B32{}, header.GetWithdrawalsRoot())
 	require.Equal(t, math.U64(0), header.GetBlobGasUsed())

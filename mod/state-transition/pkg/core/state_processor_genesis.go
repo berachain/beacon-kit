@@ -75,7 +75,7 @@ func (sp *StateProcessor[
 	if err := st.SetEth1Data(eth1Data.New(
 		common.Bytes32(gethprimitives.ZeroHash),
 		0,
-		executionPayloadHeader.GetBlockHash(),
+		common.ExecutionHash(executionPayloadHeader.GetBlockHash()),
 	)); err != nil {
 		return nil, err
 	}

@@ -23,7 +23,6 @@ package types
 import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
@@ -465,14 +464,14 @@ func (p *ExecutionPayload) IsBlinded() bool {
 }
 
 // GetParentHash returns the parent hash of the ExecutionPayload.
-func (p *ExecutionPayload) GetParentHash() gethprimitives.ExecutionHash {
-	return gethprimitives.ExecutionHash(p.ParentHash)
+func (p *ExecutionPayload) GetParentHash() common.ExecutionHash {
+	return common.ExecutionHash(p.ParentHash)
 }
 
 // GetFeeRecipient returns the fee recipient address of the ExecutionPayload.
 func (
 	p *ExecutionPayload,
-) GetFeeRecipient() gethprimitives.ExecutionAddress {
+) GetFeeRecipient() common.ExecutionAddress {
 	return p.FeeRecipient
 }
 
@@ -527,8 +526,8 @@ func (p *ExecutionPayload) GetBaseFeePerGas() *math.U256 {
 }
 
 // GetBlockHash returns the block hash of the ExecutionPayload.
-func (p *ExecutionPayload) GetBlockHash() gethprimitives.ExecutionHash {
-	return gethprimitives.ExecutionHash(p.BlockHash)
+func (p *ExecutionPayload) GetBlockHash() common.ExecutionHash {
+	return p.BlockHash
 }
 
 // GetTransactions returns the transactions of the ExecutionPayload.

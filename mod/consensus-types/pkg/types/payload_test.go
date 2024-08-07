@@ -26,7 +26,6 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
@@ -112,10 +111,10 @@ func TestExecutionPayload_GetTree(t *testing.T) {
 
 func TestExecutionPayload_Getters(t *testing.T) {
 	payload := generateExecutionPayload()
-	require.Equal(t, gethprimitives.ExecutionHash{}, payload.GetParentHash())
+	require.Equal(t, common.ExecutionHash{}, payload.GetParentHash())
 	require.Equal(
 		t,
-		gethprimitives.ExecutionAddress{},
+		common.ExecutionAddress{},
 		payload.GetFeeRecipient(),
 	)
 
@@ -140,7 +139,7 @@ func TestExecutionPayload_Getters(t *testing.T) {
 	require.Equal(t, math.U64(0), payload.GetTimestamp())
 	require.Equal(t, []byte{0x01}, payload.GetExtraData())
 	require.Equal(t, &math.U256{}, payload.GetBaseFeePerGas())
-	require.Equal(t, gethprimitives.ExecutionHash{}, payload.GetBlockHash())
+	require.Equal(t, common.ExecutionHash{}, payload.GetBlockHash())
 	require.Equal(t, transactions, payload.GetTransactions())
 	require.Equal(t, withdrawals, payload.GetWithdrawals())
 	require.Equal(t, math.U64(0), payload.GetBlobGasUsed())

@@ -33,8 +33,8 @@ import (
 type ExecutionPayload[ExecutionPayloadT, WithdrawalT any] interface {
 	constraints.EngineType[ExecutionPayloadT]
 	GetPrevRandao() common.Bytes32
-	GetBlockHash() gethprimitives.ExecutionHash
-	GetParentHash() gethprimitives.ExecutionHash
+	GetBlockHash() common.ExecutionHash
+	GetParentHash() common.ExecutionHash
 	GetNumber() math.U64
 	GetGasLimit() math.U64
 	GetGasUsed() math.U64

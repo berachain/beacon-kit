@@ -24,8 +24,8 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -89,7 +89,7 @@ func TestBeaconBlockBody_GetTree(t *testing.T) {
 
 func TestBeaconBlockBody_SetBlobKzgCommitments(t *testing.T) {
 	body := types.BeaconBlockBody{}
-	commitments := eip4844.KZGCommitments[gethprimitives.ExecutionHash]{}
+	commitments := eip4844.KZGCommitments[common.ExecutionHash]{}
 	body.SetBlobKzgCommitments(commitments)
 
 	require.Equal(t, commitments, body.GetBlobKzgCommitments())

@@ -39,8 +39,8 @@ type NewPayloadRequest[
 	ExecutionPayloadT interface {
 		constraints.ForkTyped[ExecutionPayloadT]
 		GetPrevRandao() common.Bytes32
-		GetBlockHash() gethprimitives.ExecutionHash
-		GetParentHash() gethprimitives.ExecutionHash
+		GetBlockHash() common.ExecutionHash
+		GetParentHash() common.ExecutionHash
 		GetNumber() math.U64
 		GetGasLimit() math.U64
 		GetGasUsed() math.U64
@@ -66,7 +66,7 @@ type NewPayloadRequest[
 	// ExecutionPayload is the payload to the execution client.
 	ExecutionPayload ExecutionPayloadT
 	// VersionedHashes is the versioned hashes of the execution payload.
-	VersionedHashes []gethprimitives.ExecutionHash
+	VersionedHashes []common.ExecutionHash
 	// ParentBeaconBlockRoot is the root of the parent beacon block.
 	ParentBeaconBlockRoot *common.Root
 	// Optimistic is a flag that indicates if the payload should be
@@ -79,8 +79,8 @@ func BuildNewPayloadRequest[
 	ExecutionPayloadT interface {
 		constraints.ForkTyped[ExecutionPayloadT]
 		GetPrevRandao() common.Bytes32
-		GetBlockHash() gethprimitives.ExecutionHash
-		GetParentHash() gethprimitives.ExecutionHash
+		GetBlockHash() common.ExecutionHash
+		GetParentHash() common.ExecutionHash
 		GetNumber() math.U64
 		GetGasLimit() math.U64
 		GetGasUsed() math.U64
@@ -104,7 +104,7 @@ func BuildNewPayloadRequest[
 	},
 ](
 	executionPayload ExecutionPayloadT,
-	versionedHashes []gethprimitives.ExecutionHash,
+	versionedHashes []common.ExecutionHash,
 	parentBeaconBlockRoot *common.Root,
 	optimistic bool,
 ) *NewPayloadRequest[ExecutionPayloadT, WithdrawalT] {
@@ -126,7 +126,7 @@ func BuildNewPayloadRequest[
 func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAndBlockHashes() error {
 	var (
 		gethWithdrawals []*gethprimitives.Withdrawal
-		withdrawalsHash *gethprimitives.ExecutionHash
+		withdrawalsHash *common.ExecutionHash
 		blobHashes      = make([]gethprimitives.ExecutionHash, 0)
 		payload         = n.ExecutionPayload
 		txs             = make(
@@ -159,7 +159,7 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAnd
 
 	// Validate each blob hash against the corresponding versioned hash.
 	for i, blobHash := range blobHashes {
-		if blobHash != n.VersionedHashes[i] {
+		if common.ExecutionHash(blobHash) != n.VersionedHashes[i] {
 			return errors.Wrapf(
 				ErrInvalidVersionedHash,
 				"index %d: expected %v, got %v",
@@ -188,13 +188,13 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAnd
 			gethprimitives.Withdrawals(gethWithdrawals),
 			gethprimitives.NewStackTrie(nil),
 		)
-		withdrawalsHash = &h
+		withdrawalsHash = (*common.ExecutionHash)(&h)
 	}
 
 	// Verify that the payload is telling the truth about it's block hash.
 	if block := gethprimitives.NewBlockWithHeader(
 		&gethprimitives.Header{
-			ParentHash:       payload.GetParentHash(),
+			ParentHash:       gethprimitives.ExecutionHash(payload.GetParentHash()),
 			UncleHash:        gethprimitives.EmptyUncleHash,
 			Coinbase:         payload.GetFeeRecipient(),
 			Root:             gethprimitives.ExecutionHash(payload.GetStateRoot()),
@@ -209,14 +209,14 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAnd
 			BaseFee:          payload.GetBaseFeePerGas().ToBig(),
 			Extra:            payload.GetExtraData(),
 			MixDigest:        gethprimitives.ExecutionHash(payload.GetPrevRandao()),
-			WithdrawalsHash:  withdrawalsHash,
+			WithdrawalsHash:  (*gethprimitives.ExecutionHash)(withdrawalsHash),
 			ExcessBlobGas:    payload.GetExcessBlobGas().UnwrapPtr(),
 			BlobGasUsed:      payload.GetBlobGasUsed().UnwrapPtr(),
 			ParentBeaconRoot: (*gethprimitives.ExecutionHash)(n.ParentBeaconBlockRoot),
 		},
 	).WithBody(gethprimitives.Body{
 		Transactions: txs, Uncles: nil, Withdrawals: gethWithdrawals,
-	}); block.Hash() != payload.GetBlockHash() {
+	}); gethprimitives.ExecutionHash(block.Hash()) != gethprimitives.ExecutionHash(payload.GetBlockHash()) {
 		return errors.Wrapf(ErrPayloadBlockHashMismatch,
 			"%x, got %x",
 			payload.GetBlockHash(), block.Hash(),

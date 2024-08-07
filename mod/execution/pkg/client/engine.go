@@ -43,9 +43,9 @@ func (s *EngineClient[
 ]) NewPayload(
 	ctx context.Context,
 	payload ExecutionPayloadT,
-	versionedHashes []gethprimitives.ExecutionHash,
+	versionedHashes []common.ExecutionHash,
 	parentBeaconBlockRoot *common.Root,
-) (*gethprimitives.ExecutionHash, error) {
+) (*common.ExecutionHash, error) {
 	var (
 		startTime    = time.Now()
 		cctx, cancel = s.createContextWithTimeout(ctx)
@@ -91,7 +91,7 @@ func (s *EngineClient[
 	state *engineprimitives.ForkchoiceStateV1,
 	attrs PayloadAttributesT,
 	forkVersion uint32,
-) (*engineprimitives.PayloadID, *gethprimitives.ExecutionHash, error) {
+) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
 	var (
 		startTime    = time.Now()
 		cctx, cancel = s.createContextWithTimeout(ctx)

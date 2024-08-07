@@ -22,7 +22,6 @@ package types
 
 import (
 	"github.com/berachain/beacon-kit/mod/errors"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
@@ -272,23 +271,23 @@ func (h *ExecutionPayloadHeader) GetTree() (*fastssz.Node, error) {
 // MarshalJSON marshals as JSON.
 func (h ExecutionPayloadHeader) MarshalJSON() ([]byte, error) {
 	type ExecutionPayloadHeader struct {
-		ParentHash       common.ExecutionHash            `json:"parentHash"`
-		FeeRecipient     gethprimitives.ExecutionAddress `json:"feeRecipient"`
-		StateRoot        bytes.B32                       `json:"stateRoot"`
-		ReceiptsRoot     bytes.B32                       `json:"receiptsRoot"`
-		LogsBloom        bytes.B256                      `json:"logsBloom"`
-		Random           bytes.B32                       `json:"prevRandao"`
-		Number           math.U64                        `json:"blockNumber"`
-		GasLimit         math.U64                        `json:"gasLimit"`
-		GasUsed          math.U64                        `json:"gasUsed"`
-		Timestamp        math.U64                        `json:"timestamp"`
-		ExtraData        bytes.Bytes                     `json:"extraData"`
-		BaseFeePerGas    *math.U256                      `json:"baseFeePerGas"`
-		BlockHash        common.ExecutionHash            `json:"blockHash"`
-		TransactionsRoot bytes.B32                       `json:"transactionsRoot"`
-		WithdrawalsRoot  bytes.B32                       `json:"withdrawalsRoot"`
-		BlobGasUsed      math.U64                        `json:"blobGasUsed"`
-		ExcessBlobGas    math.U64                        `json:"excessBlobGas"`
+		ParentHash       common.ExecutionHash    `json:"parentHash"`
+		FeeRecipient     common.ExecutionAddress `json:"feeRecipient"`
+		StateRoot        bytes.B32               `json:"stateRoot"`
+		ReceiptsRoot     bytes.B32               `json:"receiptsRoot"`
+		LogsBloom        bytes.B256              `json:"logsBloom"`
+		Random           bytes.B32               `json:"prevRandao"`
+		Number           math.U64                `json:"blockNumber"`
+		GasLimit         math.U64                `json:"gasLimit"`
+		GasUsed          math.U64                `json:"gasUsed"`
+		Timestamp        math.U64                `json:"timestamp"`
+		ExtraData        bytes.Bytes             `json:"extraData"`
+		BaseFeePerGas    *math.U256              `json:"baseFeePerGas"`
+		BlockHash        common.ExecutionHash    `json:"blockHash"`
+		TransactionsRoot bytes.B32               `json:"transactionsRoot"`
+		WithdrawalsRoot  bytes.B32               `json:"withdrawalsRoot"`
+		BlobGasUsed      math.U64                `json:"blobGasUsed"`
+		ExcessBlobGas    math.U64                `json:"excessBlobGas"`
 	}
 	var enc ExecutionPayloadHeader
 	enc.ParentHash = h.ParentHash
@@ -458,15 +457,15 @@ func (h *ExecutionPayloadHeader) IsNil() bool {
 // GetParentHash returns the parent hash of the ExecutionPayloadHeader.
 func (
 	h *ExecutionPayloadHeader,
-) GetParentHash() gethprimitives.ExecutionHash {
-	return gethprimitives.ExecutionHash(h.ParentHash)
+) GetParentHash() common.ExecutionHash {
+	return common.ExecutionHash(h.ParentHash)
 }
 
 // GetFeeRecipient returns the fee recipient address of the
 // ExecutionPayloadHeader.
 //
 //nolint:lll // long variable names.
-func (h *ExecutionPayloadHeader) GetFeeRecipient() gethprimitives.ExecutionAddress {
+func (h *ExecutionPayloadHeader) GetFeeRecipient() common.ExecutionAddress {
 	return h.FeeRecipient
 }
 
@@ -525,8 +524,8 @@ func (h *ExecutionPayloadHeader) GetBaseFeePerGas() *math.U256 {
 // GetBlockHash returns the block hash of the ExecutionPayloadHeader.
 func (
 	h *ExecutionPayloadHeader,
-) GetBlockHash() gethprimitives.ExecutionHash {
-	return gethprimitives.ExecutionHash(h.BlockHash)
+) GetBlockHash() common.ExecutionHash {
+	return common.ExecutionHash(h.BlockHash)
 }
 
 // GetTransactionsRoot returns the transactions root of the

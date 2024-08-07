@@ -80,7 +80,7 @@ type BeaconBlockBody[
 	// HashTreeRoot returns the hash tree root of the block body.
 	HashTreeRoot() common.Root
 	// GetBlobKzgCommitments returns the KZG commitments for the blobs.
-	GetBlobKzgCommitments() eip4844.KZGCommitments[gethprimitives.ExecutionHash]
+	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 }
 
 // BeaconBlockHeader is the interface for a beacon block header.
@@ -147,8 +147,8 @@ type ExecutionPayload[
 ] interface {
 	constraints.EngineType[ExecutionPayloadT]
 	GetTransactions() engineprimitives.Transactions
-	GetParentHash() gethprimitives.ExecutionHash
-	GetBlockHash() gethprimitives.ExecutionHash
+	GetParentHash() common.ExecutionHash
+	GetBlockHash() common.ExecutionHash
 	GetPrevRandao() common.Bytes32
 	GetWithdrawals() []WithdrawalT
 	GetFeeRecipient() gethprimitives.ExecutionAddress
@@ -170,7 +170,7 @@ type ExecutionPayload[
 }
 
 type ExecutionPayloadHeader interface {
-	GetBlockHash() gethprimitives.ExecutionHash
+	GetBlockHash() common.ExecutionHash
 }
 
 // ExecutionEngine is the interface for the execution engine.

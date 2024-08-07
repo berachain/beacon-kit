@@ -21,50 +21,61 @@
 package common
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"encoding"
+	"encoding/json"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-// TODO: These eventually need to be moved, but fastssz is getting
-// mad when I try to use the ones in geth-primitives....
 type (
 	ExecutionAddress = common.Address
-	ExecutionHash    = Hash
 )
 
-// Hash represents the 32 byte Keccak256 hash of arbitrary data.
-type Hash bytes.B32
+var (
+	_ encoding.TextMarshaler   = (*ExecutionHash)(nil)
+	_ encoding.TextUnmarshaler = (*ExecutionHash)(nil)
+	_ json.Marshaler           = (*ExecutionHash)(nil)
+	_ json.Unmarshaler         = (*ExecutionHash)(nil)
+)
+
+// ExecutionHash represents the 32 byte Keccak256 hash of arbitrary data.
+type ExecutionHash [32]byte
 
 // NewExecutionHashFromHex creates a new hash from a hex string.
-func NewExecutionHashFromHex(hex string) Hash {
-	return Hash(hexutil.MustDecode(hex))
+func NewExecutionHashFromHex(hex string) ExecutionHash {
+	return ExecutionHash(hexutil.MustDecode(hex))
 }
 
 // Bytes gets the byte representation of the underlying hash.
-func (h Hash) Bytes() []byte { return h[:] }
+func (h ExecutionHash) Bytes() []byte { return h[:] }
 
 // Hex converts a hash to a hex string.
-func (h Hash) Hex() string { return string(hex.EncodeBytes(h[:])) }
+func (h ExecutionHash) Hex() string { return string(hex.EncodeBytes(h[:])) }
 
 // String implements the stringer interface and is used also by the logger when
 // doing full logging into a file.
-func (h Hash) String() string {
+func (h ExecutionHash) String() string {
 	return h.Hex()
 }
 
 // UnmarshalText parses a hash in hex syntax.
-func (h *Hash) UnmarshalText(input []byte) error {
+func (h *ExecutionHash) UnmarshalText(input []byte) error {
 	return hex.DecodeFixedText(input, h[:])
 }
 
+// MarshalJSON returns the JSON representation of h.
+func (h ExecutionHash) MarshalJSON() ([]byte, error) {
+	return json.Marshal(h.Hex())
+}
+
 // UnmarshalJSON parses a hash in hex syntax.
-func (h *Hash) UnmarshalJSON(input []byte) error {
+func (h *ExecutionHash) UnmarshalJSON(input []byte) error {
 	return hex.DecodeFixedJSON(input, h[:])
 }
 
 // MarshalText returns the hex representation of h.
-func (h Hash) MarshalText() ([]byte, error) {
-	return hexutil.Bytes(h[:]).MarshalText()
+func (h ExecutionHash) MarshalText() ([]byte, error) {
+	return hex.EncodeBytes(h[:]), nil
 }
