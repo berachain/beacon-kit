@@ -79,8 +79,8 @@ func TestExecutionPayloadHeader_Getters(t *testing.T) {
 	require.Equal(t, []byte(nil), header.GetExtraData())
 	require.Equal(t, math.NewU256(0), header.GetBaseFeePerGas())
 	require.Equal(t, common.ExecutionHash{}, header.GetBlockHash())
-	require.Equal(t, bytes.B32{}, header.GetTransactionsRoot())
-	require.Equal(t, bytes.B32{}, header.GetWithdrawalsRoot())
+	require.Equal(t, common.Root{}, header.GetTransactionsRoot())
+	require.Equal(t, common.Root{}, header.GetWithdrawalsRoot())
 	require.Equal(t, math.U64(0), header.GetBlobGasUsed())
 	require.Equal(t, math.U64(0), header.GetExcessBlobGas())
 }
