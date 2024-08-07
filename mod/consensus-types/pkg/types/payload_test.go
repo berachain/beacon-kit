@@ -46,8 +46,8 @@ func generateExecutionPayload() *types.ExecutionPayload {
 		Amount:    0,
 	}
 	return &types.ExecutionPayload{
-		ParentHash:    gethprimitives.ExecutionHash{},
-		FeeRecipient:  gethprimitives.ExecutionAddress{},
+		ParentHash:    common.ExecutionHash{},
+		FeeRecipient:  common.ExecutionAddress{},
 		StateRoot:     bytes.B32{},
 		ReceiptsRoot:  bytes.B32{},
 		LogsBloom:     bytes.B256{},
@@ -58,7 +58,7 @@ func generateExecutionPayload() *types.ExecutionPayload {
 		Timestamp:     math.U64(0),
 		ExtraData:     []byte{0x01},
 		BaseFeePerGas: &math.U256{},
-		BlockHash:     gethprimitives.ExecutionHash{},
+		BlockHash:     common.ExecutionHash{},
 		Transactions:  transactions,
 		Withdrawals:   withdrawals,
 		BlobGasUsed:   math.U64(0),
@@ -188,8 +188,8 @@ func TestExecutionPayload_Empty(t *testing.T) {
 
 func TestExecutionPayload_ToHeader(t *testing.T) {
 	payload := &types.ExecutionPayload{
-		ParentHash:    gethprimitives.ExecutionHash{},
-		FeeRecipient:  gethprimitives.ExecutionAddress{},
+		ParentHash:    common.ExecutionHash{},
+		FeeRecipient:  common.ExecutionAddress{},
 		StateRoot:     bytes.B32{},
 		ReceiptsRoot:  bytes.B32{},
 		LogsBloom:     bytes.B256{},
@@ -200,7 +200,7 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 		Timestamp:     math.U64(0),
 		ExtraData:     []byte{},
 		BaseFeePerGas: &math.U256{},
-		BlockHash:     gethprimitives.ExecutionHash{},
+		BlockHash:     common.ExecutionHash{},
 		Transactions:  [][]byte{[]byte{0x01}},
 		Withdrawals:   []*engineprimitives.Withdrawal{},
 		BlobGasUsed:   math.U64(0),

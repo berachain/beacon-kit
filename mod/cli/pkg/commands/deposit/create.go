@@ -275,7 +275,7 @@ func broadcastDepositTx[
 			)
 	}
 
-	return depositReceipt.TxHash, nil
+	return common.ExecutionHash(depositReceipt.TxHash), nil
 }
 
 // getBLSSigner returns a BLS signer based on the override commands key flag.

@@ -131,7 +131,7 @@ func DefaultGenesisExecutionPayloadHeaderDeneb() (
 	*ExecutionPayloadHeader, error,
 ) {
 	return &ExecutionPayloadHeader{
-		ParentHash:   gethprimitives.ZeroHash,
+		ParentHash:   common.Hash{},
 		FeeRecipient: gethprimitives.ZeroAddress,
 		StateRoot: common.Bytes32(gethprimitives.Hex2BytesFixed(
 			"0x12965ab9cbe2d2203f61d23636eb7e998f167cb79d02e452f532535641e35bcc",
@@ -151,7 +151,7 @@ func DefaultGenesisExecutionPayloadHeaderDeneb() (
 		ExtraData: make([]byte, constants.ExtraDataLength),
 		//nolint:mnd // default value.
 		BaseFeePerGas: math.NewU256FromBigInt(big.NewInt(3906250)),
-		BlockHash: gethprimitives.HexToHash(
+		BlockHash: common.NewExecutionHashFromHex(
 			"0xcfff92cd918a186029a847b59aca4f83d3941df5946b06bca8de0861fc5d0850",
 		),
 		TransactionsRoot: engineprimitives.BartioTransactions(nil).

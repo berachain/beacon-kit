@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -37,8 +38,8 @@ import (
 
 func generateExecutionPayloadHeader() *types.ExecutionPayloadHeader {
 	return &types.ExecutionPayloadHeader{
-		ParentHash:       gethprimitives.ExecutionHash{},
-		FeeRecipient:     gethprimitives.ExecutionAddress{},
+		ParentHash:       common.ExecutionHash{},
+		FeeRecipient:     common.ExecutionAddress{},
 		StateRoot:        bytes.B32{},
 		ReceiptsRoot:     bytes.B32{},
 		LogsBloom:        bytes.B256{},
@@ -49,7 +50,7 @@ func generateExecutionPayloadHeader() *types.ExecutionPayloadHeader {
 		Timestamp:        math.U64(0),
 		ExtraData:        nil,
 		BaseFeePerGas:    &math.U256{},
-		BlockHash:        gethprimitives.ExecutionHash{},
+		BlockHash:        common.ExecutionHash{},
 		TransactionsRoot: bytes.B32{},
 		WithdrawalsRoot:  bytes.B32{},
 		BlobGasUsed:      math.U64(0),

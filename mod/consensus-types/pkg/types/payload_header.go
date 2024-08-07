@@ -46,9 +46,9 @@ type ExecutionPayloadHeader struct {
 	// Contents
 	//
 	// ParentHash is the hash of the parent block.
-	ParentHash gethprimitives.ExecutionHash `json:"parentHash"`
+	ParentHash common.ExecutionHash `json:"parentHash"`
 	// FeeRecipient is the address of the fee recipient.
-	FeeRecipient gethprimitives.ExecutionAddress `json:"feeRecipient"`
+	FeeRecipient common.ExecutionAddress `json:"feeRecipient"`
 	// StateRoot is the root of the state trie.
 	StateRoot common.Bytes32 `json:"stateRoot"`
 	// ReceiptsRoot is the root of the receipts trie.
@@ -70,7 +70,7 @@ type ExecutionPayloadHeader struct {
 	// BaseFeePerGas is the base fee per gas.
 	BaseFeePerGas *uint256.Int `json:"baseFeePerGas"`
 	// BlockHash is the hash of the block.
-	BlockHash gethprimitives.ExecutionHash `json:"blockHash"`
+	BlockHash common.ExecutionHash `json:"blockHash"`
 	// TransactionsRoot is the root of the transaction trie.
 	TransactionsRoot common.Root `json:"transactionsRoot"`
 	// WithdrawalsRoot is the root of the withdrawals trie.
@@ -272,7 +272,7 @@ func (h *ExecutionPayloadHeader) GetTree() (*fastssz.Node, error) {
 // MarshalJSON marshals as JSON.
 func (h ExecutionPayloadHeader) MarshalJSON() ([]byte, error) {
 	type ExecutionPayloadHeader struct {
-		ParentHash       gethprimitives.ExecutionHash    `json:"parentHash"`
+		ParentHash       common.ExecutionHash            `json:"parentHash"`
 		FeeRecipient     gethprimitives.ExecutionAddress `json:"feeRecipient"`
 		StateRoot        bytes.B32                       `json:"stateRoot"`
 		ReceiptsRoot     bytes.B32                       `json:"receiptsRoot"`
@@ -316,23 +316,23 @@ func (h ExecutionPayloadHeader) MarshalJSON() ([]byte, error) {
 //nolint:funlen // codegen.
 func (h *ExecutionPayloadHeader) UnmarshalJSON(input []byte) error {
 	type ExecutionPayloadHeader struct {
-		ParentHash       *gethprimitives.ExecutionHash    `json:"parentHash"`
-		FeeRecipient     *gethprimitives.ExecutionAddress `json:"feeRecipient"`
-		StateRoot        *bytes.B32                       `json:"stateRoot"`
-		ReceiptsRoot     *bytes.B32                       `json:"receiptsRoot"`
-		LogsBloom        *bytes.B256                      `json:"logsBloom"`
-		Random           *bytes.B32                       `json:"prevRandao"`
-		Number           *math.U64                        `json:"blockNumber"`
-		GasLimit         *math.U64                        `json:"gasLimit"`
-		GasUsed          *math.U64                        `json:"gasUsed"`
-		Timestamp        *math.U64                        `json:"timestamp"`
-		ExtraData        *bytes.Bytes                     `json:"extraData"`
-		BaseFeePerGas    *math.U256                       `json:"baseFeePerGas"`
-		BlockHash        *gethprimitives.ExecutionHash    `json:"blockHash"`
-		TransactionsRoot *bytes.B32                       `json:"transactionsRoot"`
-		WithdrawalsRoot  *bytes.B32                       `json:"withdrawalsRoot"`
-		BlobGasUsed      *math.U64                        `json:"blobGasUsed"`
-		ExcessBlobGas    *math.U64                        `json:"excessBlobGas"`
+		ParentHash       *common.ExecutionHash    `json:"parentHash"`
+		FeeRecipient     *common.ExecutionAddress `json:"feeRecipient"`
+		StateRoot        *bytes.B32               `json:"stateRoot"`
+		ReceiptsRoot     *bytes.B32               `json:"receiptsRoot"`
+		LogsBloom        *bytes.B256              `json:"logsBloom"`
+		Random           *bytes.B32               `json:"prevRandao"`
+		Number           *math.U64                `json:"blockNumber"`
+		GasLimit         *math.U64                `json:"gasLimit"`
+		GasUsed          *math.U64                `json:"gasUsed"`
+		Timestamp        *math.U64                `json:"timestamp"`
+		ExtraData        *bytes.Bytes             `json:"extraData"`
+		BaseFeePerGas    *math.U256               `json:"baseFeePerGas"`
+		BlockHash        *common.ExecutionHash    `json:"blockHash"`
+		TransactionsRoot *bytes.B32               `json:"transactionsRoot"`
+		WithdrawalsRoot  *bytes.B32               `json:"withdrawalsRoot"`
+		BlobGasUsed      *math.U64                `json:"blobGasUsed"`
+		ExcessBlobGas    *math.U64                `json:"excessBlobGas"`
 	}
 	var dec ExecutionPayloadHeader
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -459,7 +459,7 @@ func (h *ExecutionPayloadHeader) IsNil() bool {
 func (
 	h *ExecutionPayloadHeader,
 ) GetParentHash() gethprimitives.ExecutionHash {
-	return h.ParentHash
+	return gethprimitives.ExecutionHash(h.ParentHash)
 }
 
 // GetFeeRecipient returns the fee recipient address of the
@@ -526,7 +526,7 @@ func (h *ExecutionPayloadHeader) GetBaseFeePerGas() *math.U256 {
 func (
 	h *ExecutionPayloadHeader,
 ) GetBlockHash() gethprimitives.ExecutionHash {
-	return h.BlockHash
+	return gethprimitives.ExecutionHash(h.BlockHash)
 }
 
 // GetTransactionsRoot returns the transactions root of the
