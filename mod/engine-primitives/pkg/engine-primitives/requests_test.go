@@ -33,7 +33,22 @@ import (
 
 type MockExecutionPayload struct {
 }
-type MockWithdrawal struct{}
+
+func (m MockExecutionPayload) GetBlobGasUsed() math.U64 {
+	return math.U64(0)
+}
+
+func (m MockExecutionPayload) GetExcessBlobGas() math.U64 {
+	return math.U64(0)
+}
+
+func (m MockExecutionPayload) GetWithdrawals() engineprimitives.Withdrawals {
+	return engineprimitives.Withdrawals{}
+}
+
+func (m MockExecutionPayload) GetTransactions() engineprimitives.Transactions {
+	return engineprimitives.Transactions{}
+}
 
 func (m MockExecutionPayload) Empty(uint32) MockExecutionPayload {
 	return m
@@ -85,31 +100,6 @@ func (m MockExecutionPayload) GetReceiptsRoot() common.Bytes32 {
 }
 func (m MockExecutionPayload) GetLogsBloom() bytes.B256 {
 	return [256]byte{}
-}
-func (m MockExecutionPayload) GetBlobGasUsed() math.U64 {
-	return math.U64(0)
-}
-func (m MockExecutionPayload) GetExcessBlobGas() math.U64 {
-	return math.U64(0)
-}
-func (m MockExecutionPayload) GetWithdrawals() []MockWithdrawal {
-	return []MockWithdrawal{}
-}
-func (m MockExecutionPayload) GetTransactions() engineprimitives.Transactions {
-	return [][]byte{}
-}
-
-func (m MockWithdrawal) GetIndex() math.U64 {
-	return math.U64(0)
-}
-func (m MockWithdrawal) GetAmount() math.U64 {
-	return math.U64(0)
-}
-func (m MockWithdrawal) GetAddress() common.ExecutionAddress {
-	return common.ExecutionAddress{}
-}
-func (m MockWithdrawal) GetValidatorIndex() math.U64 {
-	return math.U64(0)
 }
 
 func TestBuildNewPayloadRequest(t *testing.T) {
