@@ -5,7 +5,6 @@ go 1.22.5
 require (
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240806160829-cde2d1347e7e
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1347e7e
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240806160829-cde2d1347e7e
 	github.com/ferranbt/fastssz v0.1.4-0.20240629094022-eac385e6ee79
 	github.com/holiman/uint256 v1.3.1
@@ -13,6 +12,8 @@ require (
 	github.com/stretchr/testify v1.9.0
 
 )
+
+require github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1347e7e // indirect
 
 require (
 	github.com/DataDog/zstd v1.5.6 // indirect
