@@ -96,7 +96,7 @@ func TestEth1HeaderCache(t *testing.T) {
 	})
 
 	t.Run("Prune and verify deletion", func(t *testing.T) {
-		for i := uint64(0); i < 20; i++ {
+		for i := range uint64(20) {
 			h := &gethprimitives.Header{
 				Number: new(big.Int).SetUint64(i),
 			}
