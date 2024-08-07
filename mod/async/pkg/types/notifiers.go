@@ -18,17 +18,30 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package server
+package types
 
-import (
-	"github.com/berachain/beacon-kit/mod/async/pkg/types"
-	"github.com/berachain/beacon-kit/mod/errors"
-)
+import "context"
 
-var (
-	ErrFeedNotFound           = errors.New("feed not found")
-	ErrRouteNotFound          = errors.New("route not found")
-	ErrRouteAlreadyRegistered = func(messageID types.MessageID) error {
-		return errors.Newf("route already registered for messageID: %s", messageID)
-	}
-)
+// publisher is the interface that supports basic event feed operations.
+type Publisher interface {
+	// Start starts the event feed.
+	Start(ctx context.Context)
+	// Publish publishes the given event to the event feed.
+	Publish(ctx context.Context, event any) error
+	// Subscribe subscribes the given channel to the event feed.
+	Subscribe(ch any) error
+	// Unsubscribe unsubscribes the given channel from the event feed.
+	Unsubscribe(ch any) error
+}
+
+// messageRoute is the interface that supports basic message route operations.
+type MessageRoute interface {
+	// RegisterRecipient sets the recipient for the route.
+	RegisterRecipient(ch chan any) error
+	// SendRequest sends a request to the recipient.
+	SendRequest(msg any) error
+	// SendResponse sends a response to the recipient.
+	SendResponse(msg any) error
+	// AwaitResponse awaits a response from the route.
+	AwaitResponse(emptyResp any) error
+}

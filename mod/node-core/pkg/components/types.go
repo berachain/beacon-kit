@@ -23,6 +23,7 @@ package components
 import (
 	"cosmossdk.io/core/appmodule/v2"
 	broker "github.com/berachain/beacon-kit/mod/async/pkg/broker"
+	"github.com/berachain/beacon-kit/mod/async/pkg/messaging"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
@@ -433,6 +434,26 @@ type (
 	ValidatorUpdateEvent = asynctypes.Event[transition.ValidatorUpdates]
 )
 
+type (
+	// BlockEvent is a type alias for the block event.
+	BlockMessage = asynctypes.Message[*BeaconBlock]
+
+	// GenesisEvent is a type alias for the genesis event.
+	GenesisMessage = asynctypes.Message[*Genesis]
+
+	// SidecarEvent is a type alias for the sidecar event.
+	SidecarMessage = asynctypes.Message[*BlobSidecars]
+
+	// SlotEvent is a type alias for the slot event.
+	SlotMessage = asynctypes.Message[*SlotData]
+
+	// StatusEvent is a type alias for the status event.
+	StatusMessage = asynctypes.Message[*service.StatusEvent]
+
+	// ValidatorUpdateEvent is a type alias for the validator update event.
+	ValidatorUpdateMessage = asynctypes.Message[transition.ValidatorUpdates]
+)
+
 /* -------------------------------------------------------------------------- */
 /*                                   Brokers                                  */
 /* -------------------------------------------------------------------------- */
@@ -455,6 +476,14 @@ type (
 
 	// ValidatorUpdateBroker is a type alias for the validator update feed.
 	ValidatorUpdateBroker = broker.Broker[*ValidatorUpdateEvent]
+)
+
+/* -------------------------------------------------------------------------- */
+/*                                   Publishers                               */
+/* -------------------------------------------------------------------------- */
+
+type (
+	BeaconBlockFinalizedPublisher = messaging.Publisher[*BeaconBlock]
 )
 
 /* -------------------------------------------------------------------------- */

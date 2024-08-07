@@ -39,7 +39,6 @@ type Route[ReqT any, RespT any] struct {
 
 // NewRoute creates a new route.
 func NewRoute[ReqT any, RespT any](
-	recipient chan ReqT,
 	messageID types.MessageID,
 ) *Route[ReqT, RespT] {
 	return &Route[ReqT, RespT]{
@@ -48,6 +47,11 @@ func NewRoute[ReqT any, RespT any](
 		timeout:    defaultRouterTimeout,
 		mu:         sync.Mutex{},
 	}
+}
+
+// MessageID returns the message ID that the route is responsible for.
+func (r *Route[ReqT, RespT]) MessageID() types.MessageID {
+	return r.messageID
 }
 
 // SetRecipient sets the recipient for the route.

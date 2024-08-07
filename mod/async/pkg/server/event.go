@@ -28,26 +28,26 @@ import (
 
 // EventServer asyncronously dispatches events to subscribers.
 type EventServer struct {
-	feeds map[types.MessageID]publisher
+	publishers map[types.MessageID]types.Publisher
 }
 
 // NewEventServer creates a new event server.
 func NewEventServer() *EventServer {
 	return &EventServer{
-		feeds: make(map[types.MessageID]publisher),
+		publishers: make(map[types.MessageID]types.Publisher),
 	}
 }
 
 // Dispatch dispatches the given event to the feed with the given eventID.
-func (es *EventServer) Dispatch(ctx context.Context, event *types.Message[any]) {
-	es.feeds[event.ID()].Publish(ctx, *event)
+func (es *EventServer) Publish(ctx context.Context, event *types.Message[any]) error {
+	return es.publishers[event.ID()].Publish(ctx, *event)
 }
 
 // Subscribe subscribes the given channel to the feed with the given eventID.
 // It will error if the channel type does not match the event type corresponding
 // feed.
 func (es *EventServer) Subscribe(eventID types.MessageID, ch chan any) error {
-	feed, ok := es.feeds[eventID]
+	feed, ok := es.publishers[eventID]
 	if !ok {
 		return ErrFeedNotFound
 	}
@@ -56,14 +56,14 @@ func (es *EventServer) Subscribe(eventID types.MessageID, ch chan any) error {
 
 // Start starts the event server.
 func (es *EventServer) Start(ctx context.Context) {
-	for _, feed := range es.feeds {
+	for _, feed := range es.publishers {
 		go feed.Start(ctx)
 	}
 }
 
-// RegisterFeed registers the given feed with the given eventID.
+// RegisterPublisher registers the given publisher with the given eventID.
 // Any subsequent events with <eventID> dispatched to this EventServer must be
-// consistent with the type expected by <feed>.
-func (es *EventServer) RegisterFeed(eventID types.MessageID, feed publisher) {
-	es.feeds[eventID] = feed
+// consistent with the type expected by <publisher>.
+func (es *EventServer) RegisterPublisher(eventID types.MessageID, publisher types.Publisher) {
+	es.publishers[eventID] = publisher
 }

@@ -18,30 +18,24 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package server
+package components
 
-import "context"
+import (
+	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
+	"github.com/berachain/beacon-kit/mod/async/pkg/server"
+)
 
-// publisher is the interface that supports basic event feed operations.
-type publisher interface {
-	// Start starts the event feed.
-	Start(ctx context.Context)
-	// Publish publishes the given event to the event feed.
-	Publish(ctx context.Context, event any)
-	// Subscribe subscribes the given channel to the event feed.
-	Subscribe(ch any) error
-	// Unsubscribe unsubscribes the given channel from the event feed.
-	Unsubscribe(ch any) error
+// DispatcherInput is the input for the Dispatcher.
+type DispatcherInput struct {
+	depinject.In
+	EventServer   *server.EventServer
+	MessageServer *server.MessageServer
 }
 
-// messageRoute is the interface that supports basic message route operations.
-type messageRoute interface {
-	// RegisterRecipient sets the recipient for the route.
-	RegisterRecipient(ch chan any) error
-	// SendRequest sends a request to the recipient.
-	SendRequest(msg any) error
-	// SendResponse sends a response to the recipient.
-	SendResponse(msg any) error
-	// AwaitResponse awaits a response from the route.
-	AwaitResponse(emptyResp any) error
+// ProvideDispatcher provides a new Dispatcher.
+func ProvideDispatcher(
+	in DispatcherInput,
+) *dispatcher.Dispatcher {
+	return dispatcher.NewDispatcher(in.EventServer, in.MessageServer)
 }

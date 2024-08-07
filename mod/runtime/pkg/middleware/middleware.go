@@ -25,12 +25,12 @@ import (
 	"encoding/json"
 
 	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
+	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/p2p"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	rp2p "github.com/berachain/beacon-kit/mod/runtime/pkg/p2p"
@@ -68,6 +68,7 @@ type ABCIMiddleware[
 		encoding.ABCIRequest,
 		BeaconBlockT,
 	]
+	dispatcher *dispatcher.Dispatcher
 	// metrics is the metrics emitter.
 	metrics *ABCIMiddlewareMetrics
 	// logger is the logger for the middleware.
@@ -113,11 +114,7 @@ func NewABCIMiddleware[
 	chainSpec common.ChainSpec,
 	logger log.Logger[any],
 	telemetrySink TelemetrySink,
-	genesisBroker *broker.Broker[*asynctypes.Event[GenesisT]],
-	blkBroker *broker.Broker[*asynctypes.Event[BeaconBlockT]],
-	sidecarsBroker *broker.Broker[*asynctypes.Event[BlobSidecarsT]],
-	slotBroker *broker.Broker[*asynctypes.Event[SlotDataT]],
-	valUpdateSub chan *asynctypes.Event[transition.ValidatorUpdates],
+	dispatcher *dispatcher.Dispatcher,
 ) *ABCIMiddleware[
 	AvailabilityStoreT, BeaconBlockT, BlobSidecarsT, DepositT,
 	ExecutionPayloadT, GenesisT, SlotDataT,
@@ -136,12 +133,6 @@ func NewABCIMiddleware[
 		](
 			chainSpec,
 		),
-		logger:         logger,
-		metrics:        newABCIMiddlewareMetrics(telemetrySink),
-		genesisBroker:  genesisBroker,
-		blkBroker:      blkBroker,
-		sidecarsBroker: sidecarsBroker,
-		slotBroker:     slotBroker,
 		blkCh: make(
 			chan *asynctypes.Event[BeaconBlockT],
 			1,
@@ -150,7 +141,9 @@ func NewABCIMiddleware[
 			chan *asynctypes.Event[BlobSidecarsT],
 			1,
 		),
-		valUpdateSub: valUpdateSub,
+		logger:     logger,
+		metrics:    newABCIMiddlewareMetrics(telemetrySink),
+		dispatcher: dispatcher,
 	}
 }
 
@@ -166,46 +159,47 @@ func (am *ABCIMiddleware[
 func (am *ABCIMiddleware[
 	_, _, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
-	subBlkCh, err := am.blkBroker.Subscribe()
-	if err != nil {
-		return err
-	}
 
-	subSidecarsCh, err := am.sidecarsBroker.Subscribe()
-	if err != nil {
-		return err
-	}
+	// err := am.dispatcher.Subscribe(events.BeaconBlockBuilt, am.blkCh)
+	// if err != nil {
+	// 	return err
+	// }
 
-	go am.start(ctx, subBlkCh, subSidecarsCh)
+	// subSidecarsCh, err := am.sidecarsBroker.Subscribe()
+	// if err != nil {
+	// 	return err
+	// }
+
+	// go am.start(ctx, subBlkCh, subSidecarsCh)
 	return nil
 }
 
-// start starts the middleware.
-func (am *ABCIMiddleware[
-	_, BeaconBlockT, BlobSidecarsT, _, _, _, _,
-]) start(
-	ctx context.Context,
-	blkCh chan *asynctypes.Event[BeaconBlockT],
-	sidecarsCh chan *asynctypes.Event[BlobSidecarsT],
-) {
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case msg := <-blkCh:
-			switch msg.Type() {
-			case events.BeaconBlockBuilt:
-				fallthrough
-			case events.BeaconBlockVerified:
-				am.blkCh <- msg
-			}
-		case msg := <-sidecarsCh:
-			switch msg.Type() {
-			case events.BlobSidecarsBuilt:
-				fallthrough
-			case events.BlobSidecarsProcessed:
-				am.sidecarsCh <- msg
-			}
-		}
-	}
-}
+// // start starts the middleware.
+// func (am *ABCIMiddleware[
+// 	_, BeaconBlockT, BlobSidecarsT, _, _, _, _,
+// ]) start(
+// 	ctx context.Context,
+// 	blkCh chan *asynctypes.Event[BeaconBlockT],
+// 	sidecarsCh chan *asynctypes.Event[BlobSidecarsT],
+// ) {
+// 	for {
+// 		select {
+// 		case <-ctx.Done():
+// 			return
+// 		case msg := <-blkCh:
+// 			switch msg.ID() {
+// 			case events.BeaconBlockBuilt:
+// 				fallthrough
+// 			case events.BeaconBlockVerified:
+// 				am.blkCh <- msg
+// 			}
+// 		case msg := <-sidecarsCh:
+// 			switch msg.ID() {
+// 			case events.BlobSidecarsBuilt:
+// 				fallthrough
+// 			case events.BlobSidecarsProcessed:
+// 				am.sidecarsCh <- msg
+// 			}
+// 		}
+// 	}
+// }

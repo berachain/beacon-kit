@@ -48,51 +48,23 @@ func (h *ABCIMiddleware[
 	bz []byte,
 ) (transition.ValidatorUpdates, error) {
 	var (
-		g          errgroup.Group
 		valUpdates transition.ValidatorUpdates
-		genesisErr error
 	)
 	data := new(GenesisT)
 	if err := json.Unmarshal(bz, data); err != nil {
 		return nil, err
 	}
-	// Send a request to the chain service to process the genesis data.
-	if err := h.genesisBroker.Publish(ctx, asynctypes.NewEvent(
-		ctx, events.GenesisDataProcessRequest, *data,
-	)); err != nil {
+
+	err := h.dispatcher.DispatchRequest(
+		asynctypes.NewMessage(
+			ctx, events.GenesisDataProcessRequest, *data,
+		), &valUpdates,
+	)
+	if err != nil {
 		return nil, err
 	}
 
-	// Wait for the genesis data to be processed.
-	g.Go(func() error {
-		valUpdates, genesisErr = h.waitForGenesisData(ctx)
-		return genesisErr
-	})
-
-	if err := g.Wait(); err != nil {
-		return nil, err
-	}
 	return valUpdates, nil
-}
-
-// waitForGenesisData waits for the genesis data to be processed and returns
-// the validator updates.
-func (h *ABCIMiddleware[
-	_, _, _, _, _, GenesisT, _,
-]) waitForGenesisData(ctx context.Context) (
-	transition.ValidatorUpdates, error) {
-	select {
-	case msg := <-h.valUpdateSub:
-		if msg.Type() != events.ValidatorSetUpdated {
-			return nil, errors.Wrapf(
-				ErrUnexpectedEvent,
-				"unexpected event type: %s", msg.Type(),
-			)
-		}
-		return msg.Data(), msg.Error()
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	}
 }
 
 /* -------------------------------------------------------------------------- */
@@ -245,9 +217,9 @@ func (h *ABCIMiddleware[
 	case <-ctx.Done():
 		return ctx.Err()
 	case msg := <-h.blkCh:
-		if msg.Type() != events.BeaconBlockVerified {
+		if msg.ID() != events.BeaconBlockVerified {
 			return errors.Wrapf(
-				ErrUnexpectedEvent, "unexpected event type: %s", msg.Type(),
+				ErrUnexpectedEvent, "unexpected event type: %s", msg.ID(),
 			)
 		}
 		return msg.Error()
@@ -276,9 +248,9 @@ func (h *ABCIMiddleware[
 	case <-ctx.Done():
 		return ctx.Err()
 	case msg := <-h.sidecarsCh:
-		if msg.Type() != events.BlobSidecarsProcessed {
+		if msg.ID() != events.BlobSidecarsProcessed {
 			return errors.Wrapf(
-				ErrUnexpectedEvent, "unexpected event type: %s", msg.Type(),
+				ErrUnexpectedEvent, "unexpected event type: %s", msg.ID(),
 			)
 		}
 		return msg.Error()
@@ -368,10 +340,10 @@ func (h *ABCIMiddleware[
 	case <-ctx.Done():
 		return ctx.Err()
 	case msg := <-h.sidecarsCh:
-		if msg.Type() != events.BlobSidecarsProcessed {
+		if msg.ID() != events.BlobSidecarsProcessed {
 			return errors.Wrapf(
 				ErrUnexpectedEvent,
-				"unexpected event type: %s", msg.Type(),
+				"unexpected event type: %s", msg.ID(),
 			)
 		}
 		return msg.Error()
@@ -395,10 +367,10 @@ func (h *ABCIMiddleware[
 	// Wait for the block to be processed.
 	select {
 	case msg := <-h.valUpdateSub:
-		if msg.Type() != events.ValidatorSetUpdated {
+		if msg.ID() != events.ValidatorSetUpdated {
 			return nil, errors.Wrapf(
 				ErrUnexpectedEvent,
-				"unexpected event type: %s", msg.Type(),
+				"unexpected event type: %s", msg.ID(),
 			)
 		}
 		return msg.Data(), msg.Error()

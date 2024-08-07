@@ -53,11 +53,11 @@ func (d *Dispatcher) Start(ctx context.Context) error {
 
 // ============================== Events ===================================
 
-// RegisterEventFeed registers the given event feed with the given eventID.
+// RegisterPublisher registers the given publisher with the given eventID.
 // Any subsequent events with <eventID> dispatched to this Dispatcher must be
-// consistent with the type expected by <feed>.
-func (d *Dispatcher) RegisterEventFeed(eventID types.MessageID, feed publisher) {
-	d.eventServer.RegisterFeed(eventID, feed)
+// consistent with the type expected by <publisher>.
+func (d *Dispatcher) RegisterPublisher(eventID types.MessageID, publisher types.Publisher) {
+	d.eventServer.RegisterPublisher(eventID, publisher)
 }
 
 // Subscribe subscribes the given channel to the event with the given <eventID>.
@@ -68,8 +68,8 @@ func (d *Dispatcher) Subscribe(eventID types.MessageID, ch chan any) error {
 }
 
 // DispatchEvent dispatches the given event to the event server.
-func (d *Dispatcher) DispatchEvent(ctx context.Context, event *types.Message[any]) {
-	d.eventServer.Dispatch(ctx, event)
+func (d *Dispatcher) DispatchEvent(ctx context.Context, event *types.Message[any]) error {
+	return d.eventServer.Publish(ctx, event)
 }
 
 // ================================ Messages ================================
@@ -93,6 +93,6 @@ func (d *Dispatcher) DispatchResponse(resp types.Message[any]) error {
 // RegisterRoute registers the given route with the given messageID.
 // Any subsequent messages with <messageID> sent to this Dispatcher must be
 // consistent with the type expected by <route>.
-func (d *Dispatcher) RegisterMessageRoute(messageID types.MessageID, route messageRoute) {
+func (d *Dispatcher) RegisterRoute(messageID types.MessageID, route types.MessageRoute) {
 	d.msgServer.RegisterRoute(messageID, route)
 }

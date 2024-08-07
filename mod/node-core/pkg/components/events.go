@@ -22,34 +22,29 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
-	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
+	"github.com/berachain/beacon-kit/mod/async/pkg/messaging"
+	"github.com/berachain/beacon-kit/mod/async/pkg/server"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 )
 
-// ABCIMiddlewareInput is the input for the validator middleware provider.
-type ABCIMiddlewareInput struct {
+// EventServerInput is the input for the event server.
+type EventServerInput struct {
 	depinject.In
-	ChainSpec     common.ChainSpec
-	Logger        log.Logger[any]
-	TelemetrySink *metrics.TelemetrySink
-	Dispatcher    *dispatcher.Dispatcher
+	BeaconBlockFinalizedPublisher *messaging.Publisher[*BlockMessage]
 }
 
-// ProvideABCIMiddleware is a depinject provider for the validator
-// middleware.
-func ProvideABCIMiddleware(
-	in ABCIMiddlewareInput,
-) (*ABCIMiddleware, error) {
-	return middleware.NewABCIMiddleware[
-		*AvailabilityStore, *BeaconBlock, *BlobSidecars,
-		*Deposit, *ExecutionPayload, *Genesis, *SlotData,
-	](
-		in.ChainSpec,
-		in.Logger,
-		in.TelemetrySink,
-		in.Dispatcher,
-	), nil
+// ProvideEventServer provides an event server.
+func ProvideEventServer(in EventServerInput) *server.EventServer {
+	es := server.NewEventServer()
+	es.RegisterPublisher(
+		in.BeaconBlockFinalizedPublisher.EventID(),
+		in.BeaconBlockFinalizedPublisher,
+	)
+	return es
+}
+
+// ProvideBeaconBlockFinalizedPublisher provides a publisher for beacon block
+// finalized events.
+func ProvideBeaconBlockFinalizedPublisher() *messaging.Publisher[*BlockMessage] {
+	return messaging.NewPublisher[*BlockMessage](events.BeaconBlockFinalized)
 }

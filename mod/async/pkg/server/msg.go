@@ -25,12 +25,12 @@ import (
 )
 
 type MessageServer struct {
-	routes map[types.MessageID]messageRoute
+	routes map[types.MessageID]types.MessageRoute
 }
 
 func NewMessageServer() *MessageServer {
 	return &MessageServer{
-		routes: make(map[types.MessageID]messageRoute),
+		routes: make(map[types.MessageID]types.MessageRoute),
 	}
 }
 
@@ -60,8 +60,12 @@ func (ms *MessageServer) Respond(resp types.Message[any]) error {
 // RegisterRoute registers the route with the given messageID.
 // Any subsequent messages with <messageID> sent to this MessageServer must be
 // consistent with the type expected by <route>.
-func (ms *MessageServer) RegisterRoute(messageID types.MessageID, route messageRoute) {
+func (ms *MessageServer) RegisterRoute(messageID types.MessageID, route types.MessageRoute) error {
+	if ms.routes[messageID] != nil {
+		return ErrRouteAlreadyRegistered(messageID)
+	}
 	ms.routes[messageID] = route
+	return nil
 }
 
 // SetRecipient sets the recipient for the route with the given messageID.

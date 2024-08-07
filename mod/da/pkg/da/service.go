@@ -103,7 +103,7 @@ func (s *Service[_, _, BlobSidecarsT, _, _]) start(
 		case <-ctx.Done():
 			return
 		case msg := <-sidecarsCh:
-			switch msg.Type() {
+			switch msg.ID() {
 			case events.BlobSidecarsProcessRequest:
 				s.handleBlobSidecarsProcessRequest(msg)
 			case events.BlobSidecarsReceived:

@@ -192,7 +192,7 @@ func (s *Service[
 		case <-ctx.Done():
 			return
 		case req := <-s.newSlotSub:
-			if req.Type() == events.NewSlot {
+			if req.ID() == events.NewSlot {
 				s.handleNewSlot(req)
 			}
 		}

@@ -199,14 +199,14 @@ func (s *Service[
 		case <-ctx.Done():
 			return
 		case msg := <-subBlkCh:
-			switch msg.Type() {
+			switch msg.ID() {
 			case events.BeaconBlockReceived:
 				s.handleBeaconBlockReceived(msg)
 			case events.BeaconBlockFinalizedRequest:
 				s.handleBeaconBlockFinalization(msg)
 			}
 		case msg := <-subGenCh:
-			if msg.Type() == events.GenesisDataProcessRequest {
+			if msg.ID() == events.GenesisDataProcessRequest {
 				s.handleProcessGenesisDataRequest(msg)
 			}
 		}

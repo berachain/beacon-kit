@@ -24,10 +24,14 @@ import (
 	"context"
 	"sync"
 	"time"
+
+	"github.com/berachain/beacon-kit/mod/async/pkg/types"
 )
 
-// Publisher broadcasts msgs to registered clients.
+// Publisher is responsible for broadcasting all events corresponding to the
+// <eventID> to all registered client channels.
 type Publisher[T any] struct {
+	eventID types.EventID
 	// clients is a map of subscribed clients.
 	clients map[chan T]struct{}
 	// msgs is the channel for publishing new messages.
@@ -39,8 +43,9 @@ type Publisher[T any] struct {
 }
 
 // NewPublisher creates a new b.
-func NewPublisher[T any](name string) *Publisher[T] {
+func NewPublisher[T any](eventID string) *Publisher[T] {
 	return &Publisher[T]{
+		eventID: types.EventID(eventID),
 		clients: make(map[chan T]struct{}),
 		msgs:    make(chan T, defaultBufferSize),
 		timeout: defaultPublisherTimeout,
@@ -48,28 +53,32 @@ func NewPublisher[T any](name string) *Publisher[T] {
 	}
 }
 
-// Start starts the broker loop.
-func (b *Publisher[T]) Start(ctx context.Context) {
-	go b.start(ctx)
+func (p *Publisher[T]) EventID() types.EventID {
+	return p.eventID
 }
 
-// start starts the broker loop.
-func (b *Publisher[T]) start(ctx context.Context) {
+// Start starts the publisher loop.
+func (p *Publisher[T]) Start(ctx context.Context) {
+	go p.start(ctx)
+}
+
+// start starts the publisher loop.
+func (p *Publisher[T]) start(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			// close all leftover clients and break the broker loop
-			for client := range b.clients {
-				b.Unsubscribe(client)
+			// close all leftover clients and break the publisher loop
+			for client := range p.clients {
+				p.Unsubscribe(client)
 			}
 			return
-		case msg := <-b.msgs:
+		case msg := <-p.msgs:
 			// broadcast published msg to all clients
-			for client := range b.clients {
+			for client := range p.clients {
 				// send msg to client (or discard msg after timeout)
 				select {
 				case client <- msg:
-				case <-time.After(b.timeout):
+				case <-time.After(p.timeout):
 				}
 			}
 		}
@@ -78,13 +87,13 @@ func (b *Publisher[T]) start(ctx context.Context) {
 
 // Publish publishes a msg to the b.
 // Returns ErrTimeout on timeout.
-func (b *Publisher[T]) Publish(ctx context.Context, msg any) error {
+func (p *Publisher[T]) Publish(ctx context.Context, msg any) error {
 	typedMsg, err := ensureType[T](msg)
 	if err != nil {
 		return err
 	}
 	select {
-	case b.msgs <- typedMsg:
+	case p.msgs <- typedMsg:
 		return nil
 	case <-ctx.Done():
 		return ctx.Err()
@@ -94,27 +103,27 @@ func (b *Publisher[T]) Publish(ctx context.Context, msg any) error {
 // Subscribe registers the provided channel to the publisher,
 // Returns ErrTimeout on timeout.
 // TODO: see if its possible to accept a channel instead of any
-func (b *Publisher[T]) Subscribe(ch any) error {
+func (p *Publisher[T]) Subscribe(ch any) error {
 	client, err := ensureType[chan T](ch)
 	if err != nil {
 		return err
 	}
-	b.mu.Lock()
-	defer b.mu.Unlock()
-	b.clients[client] = struct{}{}
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.clients[client] = struct{}{}
 	return nil
 }
 
 // Unsubscribe removes a client from the publisher.
 // Returns an error if the provided channel is not of type chan T.
-func (f *Publisher[T]) Unsubscribe(ch any) error {
+func (p *Publisher[T]) Unsubscribe(ch any) error {
 	client, err := ensureType[chan T](ch)
 	if err != nil {
 		return err
 	}
-	f.mu.Lock()
-	defer f.mu.Unlock()
-	delete(f.clients, client)
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	delete(p.clients, client)
 	close(client)
 	return nil
 }
