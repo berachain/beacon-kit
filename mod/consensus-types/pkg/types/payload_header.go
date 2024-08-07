@@ -458,7 +458,7 @@ func (h *ExecutionPayloadHeader) IsNil() bool {
 func (
 	h *ExecutionPayloadHeader,
 ) GetParentHash() common.ExecutionHash {
-	return common.ExecutionHash(h.ParentHash)
+	return h.ParentHash
 }
 
 // GetFeeRecipient returns the fee recipient address of the
@@ -525,7 +525,7 @@ func (h *ExecutionPayloadHeader) GetBaseFeePerGas() *math.U256 {
 func (
 	h *ExecutionPayloadHeader,
 ) GetBlockHash() common.ExecutionHash {
-	return common.ExecutionHash(h.BlockHash)
+	return h.BlockHash
 }
 
 // GetTransactionsRoot returns the transactions root of the

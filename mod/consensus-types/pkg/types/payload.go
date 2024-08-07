@@ -465,7 +465,7 @@ func (p *ExecutionPayload) IsBlinded() bool {
 
 // GetParentHash returns the parent hash of the ExecutionPayload.
 func (p *ExecutionPayload) GetParentHash() common.ExecutionHash {
-	return common.ExecutionHash(p.ParentHash)
+	return p.ParentHash
 }
 
 // GetFeeRecipient returns the fee recipient address of the ExecutionPayload.
