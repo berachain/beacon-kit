@@ -38,7 +38,7 @@ type PayloadAttributer interface {
 
 // PayloadAttributes is the attributes of a block payload.
 //
-//nolint:lll // struct tags.
+
 type PayloadAttributes[
 	WithdrawalT any,
 ] struct {
