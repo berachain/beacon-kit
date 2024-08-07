@@ -25,14 +25,13 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/karalabe/ssz"
 )
 
 var (
-	_ ssz.StaticObject = (*Withdrawals)(nil)
-	// TODO: We eventually should convert the interface, but we can't until
-	// we fully move off of FastSSZ for all types.
-	// _ constraints.SSZRootable = (*Withdrawals)(nil).
+	_ ssz.StaticObject        = (*Withdrawals)(nil)
+	_ constraints.SSZRootable = (*Withdrawals)(nil)
 )
 
 // Withdrawals represents a list of withdrawals.
