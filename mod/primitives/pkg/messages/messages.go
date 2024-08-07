@@ -22,17 +22,17 @@ package messages
 
 // TODO: delete
 const (
-	NewSlot                     = "new-slot"
-	BeaconBlockBuilt            = "beacon-block-built"
-	BeaconBlockReceived         = "beacon-block-received"
-	BeaconBlockVerified         = "beacon-block-verified"
-	BeaconBlockFinalizedRequest = "beacon-block-finalized-request"
-	ValidatorSetUpdated         = "validator-set-updated"
-	BlobSidecarsBuilt           = "blob-sidecars-built"
-	BlobSidecarsReceived        = "blob-sidecars-received"
-	BlobSidecarsProcessRequest  = "blob-sidecars-process-request"
-	BlobSidecarsProcessed       = "blob-sidecars-processed"
-	GenesisDataProcessRequest   = "genesis-data-process-request"
+// NewSlot                     = "new-slot"
+// BeaconBlockBuilt            = "beacon-block-built"
+// BeaconBlockReceived         = "beacon-block-received"
+// BeaconBlockVerified         = "beacon-block-verified"
+// BeaconBlockFinalizedRequest = "beacon-block-finalized-request"
+// ValidatorSetUpdated         = "validator-set-updated"
+// BlobSidecarsBuilt           = "blob-sidecars-built"
+// BlobSidecarsReceived        = "blob-sidecars-received"
+// BlobSidecarsProcessRequest  = "blob-sidecars-process-request"
+// BlobSidecarsProcessed       = "blob-sidecars-processed"
+// GenesisDataProcessRequest   = "genesis-data-process-request"
 )
 
 // messages
@@ -41,7 +41,9 @@ const (
 	VerifyBeaconBlock           = "verify-beacon-block"
 	FinalizeBeaconBlock         = "finalize-beacon-block"
 	ProcessGenesisData          = "process-genesis-data"
-	VerifyBlobSidecars          = "process-blob-sidecars"
+	VerifySidecars              = "verify-sidecars"
+	ProcessSidecars             = "process-sidecars"
+	ReceiveSidecars             = "receive-sidecars"
 )
 
 // events

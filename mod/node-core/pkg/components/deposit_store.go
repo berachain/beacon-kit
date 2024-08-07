@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
 	depositstore "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
@@ -59,9 +60,9 @@ func ProvideDepositStore(
 // DepositPrunerInput is the input for the deposit pruner.
 type DepositPrunerInput struct {
 	depinject.In
-	BlockBroker  *BlockBroker
 	ChainSpec    common.ChainSpec
 	DepositStore *DepositStore
+	Dispatcher   *Dispatcher
 	Logger       log.Logger
 }
 
@@ -69,8 +70,8 @@ type DepositPrunerInput struct {
 func ProvideDepositPruner(
 	in DepositPrunerInput,
 ) (DepositPruner, error) {
-	subCh, err := in.BlockBroker.Subscribe()
-	if err != nil {
+	var finalizedBlkCh chan *FinalizedBlockEvent
+	if err := in.Dispatcher.Subscribe(messages.BeaconBlockFinalized, finalizedBlkCh); err != nil {
 		in.Logger.Error("failed to subscribe to block feed", "err", err)
 		return nil, err
 	}
@@ -83,7 +84,7 @@ func ProvideDepositPruner(
 		in.Logger.With("service", manager.DepositPrunerName),
 		in.DepositStore,
 		manager.DepositPrunerName,
-		subCh,
+		finalizedBlkCh,
 		deposit.BuildPruneRangeFn[
 			*BeaconBlockBody,
 			*BeaconBlock,

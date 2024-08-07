@@ -24,51 +24,66 @@ import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/async/pkg/messaging"
 	"github.com/berachain/beacon-kit/mod/async/pkg/server"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
 )
 
 type MessageServerInput struct {
 	depinject.In
-	BuildBlockAndSidecarsRoute *BuildBlockAndSidecarsRoute
-	VerifyBlockRoute           *VerifyBlockRoute
-	FinalizeBlockRoute         *FinalizeBlockRoute
-	ProcessGenesisDataRoute    *ProcessGenesisDataRoute
-	ProcessBlobSidecarsRoute   *ProcessBlobSidecarsRoute
+	Routes []asynctypes.MessageRoute
 }
 
-func ProvideMessageServer(in MessageServerInput) *MessageServer {
+// ProvideMessageServer provides a message server.
+func ProvideMessageServer(in MessageServerInput) *server.MessageServer {
 	ms := server.NewMessageServer()
-	ms.RegisterRoute(in.BuildBlockAndSidecarsRoute.MessageID(), in.BuildBlockAndSidecarsRoute)
-	ms.RegisterRoute(in.VerifyBlockRoute.MessageID(), in.VerifyBlockRoute)
-	ms.RegisterRoute(in.FinalizeBlockRoute.MessageID(), in.FinalizeBlockRoute)
-	ms.RegisterRoute(in.ProcessGenesisDataRoute.MessageID(), in.ProcessGenesisDataRoute)
-	ms.RegisterRoute(in.ProcessBlobSidecarsRoute.MessageID(), in.ProcessBlobSidecarsRoute)
+	for _, route := range in.Routes {
+		ms.RegisterRoute(route.MessageID(), route)
+	}
 	return ms
 }
 
-// ProvideBuildBlockAndSidecarsRoute provides a route for building a beacon block.
-func ProvideBuildBlockAndSidecarsRoute() *BuildBlockAndSidecarsRoute {
-	return messaging.NewRoute[*SlotMessage, *BlockBundleMessage](messages.BuildBeaconBlockAndSidecars)
+// RouteFactory creates a new route for the given message ID.
+func RouteFactory(mID string) asynctypes.MessageRoute {
+	switch mID {
+	case messages.BuildBeaconBlockAndSidecars:
+		return messaging.NewRoute[
+			*SlotMessage, *BlockBundleMessage,
+		](messages.BuildBeaconBlockAndSidecars)
+	case messages.VerifyBeaconBlock:
+		return messaging.NewRoute[
+			*BlockMessage, *BlockMessage,
+		](messages.VerifyBeaconBlock)
+	case messages.FinalizeBeaconBlock:
+		return messaging.NewRoute[
+			*BlockMessage, *ValidatorUpdateMessage,
+		](messages.FinalizeBeaconBlock)
+	case messages.ProcessGenesisData:
+		return messaging.NewRoute[
+			*GenesisMessage, *ValidatorUpdateMessage,
+		](messages.ProcessGenesisData)
+	case messages.VerifySidecars:
+		return messaging.NewRoute[
+			*SidecarMessage, *SidecarMessage,
+		](messages.VerifySidecars)
+	case messages.ProcessSidecars:
+		return messaging.NewRoute[
+			*SidecarMessage, *SidecarMessage,
+		](messages.ProcessSidecars)
+	default:
+		return nil
+	}
 }
 
-// ProvideVerifyBeaconBlockRoute provides a route for verifying a beacon block.
-func ProvideVerifyBeaconBlockRoute() *VerifyBlockRoute {
-	return messaging.NewRoute[*BlockMessage, *BlockMessage](messages.VerifyBeaconBlock)
-}
-
-// ProvideFinalizeBeaconBlockRoute provides a route for finalizing a beacon block.
-func ProvideFinalizeBeaconBlockRoute() *FinalizeBlockRoute {
-	return messaging.NewRoute[*BlockMessage, *ValidatorUpdateMessage](messages.FinalizeBeaconBlock)
-}
-
-// ProvideProcessGenesisDataRoute provides a route for processing genesis data.
-func ProvideProcessGenesisDataRoute() *ProcessGenesisDataRoute {
-	return messaging.NewRoute[*GenesisMessage, *ValidatorUpdateMessage](messages.ProcessGenesisData)
-}
-
-// ProvideProcessBlobSidecarsRoute provides a route for processing blob sidecars.
-func ProvideProcessBlobSidecarsRoute() *ProcessBlobSidecarsRoute {
-	return messaging.NewRoute[*SidecarMessage, *SidecarMessage](messages.VerifyBlobSidecars)
+// ProvideMessageRoutes provides all the message routes.
+func ProvideMessageRoutes() []asynctypes.MessageRoute {
+	return []asynctypes.MessageRoute{
+		RouteFactory(messages.BuildBeaconBlockAndSidecars),
+		RouteFactory(messages.VerifyBeaconBlock),
+		RouteFactory(messages.FinalizeBeaconBlock),
+		RouteFactory(messages.ProcessGenesisData),
+		RouteFactory(messages.VerifySidecars),
+		RouteFactory(messages.ProcessSidecars),
+	}
 }
 
 // MessageServerComponents returns all the depinject providers for the message
@@ -76,10 +91,6 @@ func ProvideProcessBlobSidecarsRoute() *ProcessBlobSidecarsRoute {
 func MessageServerComponents() []any {
 	return []any{
 		ProvideMessageServer,
-		ProvideBuildBlockAndSidecarsRoute,
-		ProvideVerifyBeaconBlockRoute,
-		ProvideFinalizeBeaconBlockRoute,
-		ProvideProcessGenesisDataRoute,
-		ProvideProcessBlobSidecarsRoute,
+		ProvideMessageRoutes,
 	}
 }

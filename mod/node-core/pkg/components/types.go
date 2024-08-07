@@ -22,7 +22,6 @@ package components
 
 import (
 	"cosmossdk.io/core/appmodule/v2"
-	broker "github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
 	"github.com/berachain/beacon-kit/mod/async/pkg/messaging"
 	asyncserver "github.com/berachain/beacon-kit/mod/async/pkg/server"
@@ -468,23 +467,23 @@ type (
 /* -------------------------------------------------------------------------- */
 
 type (
-	// GenesisBroker is a type alias for the genesis feed.
-	GenesisBroker = broker.Broker[*GenesisEvent]
+// // GenesisBroker is a type alias for the genesis feed.
+// GenesisBroker = broker.Broker[*GenesisEvent]
 
-	// SidecarsBroker is a type alias for the blob feed.
-	SidecarsBroker = broker.Broker[*SidecarEvent]
+// // SidecarsBroker is a type alias for the blob feed.
+// SidecarsBroker = broker.Broker[*SidecarEvent]
 
-	// BlockBroker is a type alias for the block feed.
-	BlockBroker = broker.Broker[*FinalizedBlockEvent]
+// // BlockBroker is a type alias for the block feed.
+// BlockBroker = broker.Broker[*FinalizedBlockEvent]
 
-	// SlotBroker is a type alias for the slot feed.
-	SlotBroker = broker.Broker[*SlotEvent]
+// // SlotBroker is a type alias for the slot feed.
+// SlotBroker = broker.Broker[*SlotEvent]
 
-	// StatusBroker is a type alias for the status feed.
-	StatusBroker = broker.Broker[*StatusEvent]
+// // StatusBroker is a type alias for the status feed.
+// StatusBroker = broker.Broker[*StatusEvent]
 
-	// ValidatorUpdateBroker is a type alias for the validator update feed.
-	ValidatorUpdateBroker = broker.Broker[*ValidatorUpdateEvent]
+// // ValidatorUpdateBroker is a type alias for the validator update feed.
+// ValidatorUpdateBroker = broker.Broker[*ValidatorUpdateEvent]
 )
 
 /* -------------------------------------------------------------------------- */
@@ -512,8 +511,11 @@ type (
 	// ProcessGenesisDataRoute is a type alias for the process genesis data route.
 	ProcessGenesisDataRoute = messaging.Route[*GenesisMessage, *ValidatorUpdateMessage]
 
-	// ProcessBlobSidecarsRoute is a type alias for the process blob sidecars route.
-	ProcessBlobSidecarsRoute = messaging.Route[*SidecarMessage, *SidecarMessage]
+	// ProcessSidecarsRoute is a type alias for the process blob sidecars route.
+	ProcessSidecarsRoute = messaging.Route[*SidecarMessage, *SidecarMessage]
+
+	// VerifySidecarsRoute is a type alias for the verify sidecars route.
+	VerifySidecarsRoute = messaging.Route[*SidecarMessage, *SidecarMessage]
 )
 
 /* -------------------------------------------------------------------------- */

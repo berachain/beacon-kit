@@ -23,6 +23,7 @@ package blockstore
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
@@ -35,14 +36,15 @@ func NewService[
 ](
 	config Config,
 	logger log.Logger[any],
-	blkBroker EventFeed[*asynctypes.Event[BeaconBlockT]],
+	dispatcher *dispatcher.Dispatcher,
+	// blkBroker EventFeed[*asynctypes.Event[BeaconBlockT]],
 	store BlockStoreT,
 ) *Service[BeaconBlockT, BlockStoreT] {
 	return &Service[BeaconBlockT, BlockStoreT]{
-		config:    config,
-		logger:    logger,
-		blkBroker: blkBroker,
-		store:     store,
+		config:     config,
+		logger:     logger,
+		dispatcher: dispatcher,
+		store:      store,
 	}
 }
 
@@ -54,9 +56,9 @@ type Service[
 	// config is the configuration for the block service.
 	config Config
 	// logger is used for logging information and errors.
-	logger    log.Logger[any]
-	blkBroker EventFeed[*asynctypes.Event[BeaconBlockT]]
-	store     BlockStoreT
+	logger     log.Logger[any]
+	dispatcher *dispatcher.Dispatcher
+	store      BlockStoreT
 }
 
 // Name returns the name of the service.
@@ -65,17 +67,17 @@ func (s *Service[_, _]) Name() string {
 }
 
 // Start starts the block service.
-func (s *Service[_, _]) Start(ctx context.Context) error {
+func (s *Service[BeaconBlockT, _]) Start(ctx context.Context) error {
 	if !s.config.Enabled {
 		s.logger.Warn("block service is disabled, skipping storing blocks")
 		return nil
 	}
-	subBlkCh, err := s.blkBroker.Subscribe()
-	if err != nil {
+	var finalizedBlkCh chan *asynctypes.Event[BeaconBlockT]
+	if err := s.dispatcher.Subscribe(messages.BeaconBlockFinalized, finalizedBlkCh); err != nil {
 		s.logger.Error("failed to subscribe to block events", "error", err)
 		return err
 	}
-	go s.listenAndStore(ctx, subBlkCh)
+	go s.listenAndStore(ctx, finalizedBlkCh)
 	return nil
 }
 
@@ -89,13 +91,11 @@ func (s *Service[BeaconBlockT, _]) listenAndStore(
 		case <-ctx.Done():
 			return
 		case msg := <-subBlkCh:
-			if msg.Is(messages.BeaconBlockFinalized) {
-				slot := msg.Data().GetSlot()
-				if err := s.store.Set(slot, msg.Data()); err != nil {
-					s.logger.Error(
-						"failed to store block", "slot", slot, "error", err,
-					)
-				}
+			slot := msg.Data().GetSlot()
+			if err := s.store.Set(slot, msg.Data()); err != nil {
+				s.logger.Error(
+					"failed to store block", "slot", slot, "error", err,
+				)
 			}
 		}
 	}

@@ -56,7 +56,7 @@ func (h *ABCIMiddleware[
 
 	err := h.dispatcher.DispatchRequest(
 		asynctypes.NewMessage(
-			ctx, messages.GenesisDataProcessRequest, *data,
+			ctx, messages.ProcessGenesisData, *data,
 		), &valUpdateResp,
 	)
 	if err != nil {
@@ -170,7 +170,7 @@ func (h *ABCIMiddleware[
 	// verify the blob sidecars
 	h.dispatcher.DispatchRequest(
 		asynctypes.NewMessage(
-			ctx, messages.VerifyBlobSidecars, sidecars,
+			ctx, messages.VerifySidecars, sidecars,
 		), &sidecarsResp,
 	)
 
@@ -242,7 +242,7 @@ func (h *ABCIMiddleware[
 	// verify the blob sidecars
 	h.dispatcher.DispatchRequest(
 		asynctypes.NewMessage(
-			ctx, messages.VerifyBlobSidecars, blobs,
+			ctx, messages.ProcessSidecars, blobs,
 		), &sidecarsResp,
 	)
 	if sidecarsResp.Error() != nil {

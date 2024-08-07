@@ -46,8 +46,8 @@ type Service[
 	dc Contract[DepositT]
 	// ds is the deposit store that stores deposits.
 	ds Store[DepositT]
-	// feed is the block feed that provides block events.
-	feed chan BlockEventT
+	// finalizedBlockCh is the channel that provides finalized block events.
+	finalizedBlockCh chan BlockEventT
 	// metrics is the metrics for the deposit service.
 	metrics *metrics
 	// failedBlocks is a map of blocks that failed to be processed to be
@@ -83,7 +83,7 @@ func NewService[
 		ExecutionPayloadT,
 		WithdrawalCredentialsT,
 	]{
-		feed:               feed,
+		finalizedBlockCh:   feed,
 		logger:             logger,
 		eth1FollowDistance: eth1FollowDistance,
 		metrics:            newMetrics(telemetrySink),

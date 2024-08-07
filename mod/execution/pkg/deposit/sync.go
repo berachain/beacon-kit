@@ -25,7 +25,6 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
 )
 
 // defaultRetryInterval processes a deposit event.
@@ -39,12 +38,10 @@ func (s *Service[
 		select {
 		case <-ctx.Done():
 			return
-		case msg := <-s.feed:
-			if msg.Is(messages.BeaconBlockFinalized) {
-				blockNum := msg.Data().
-					GetBody().GetExecutionPayload().GetNumber()
-				s.fetchAndStoreDeposits(ctx, blockNum-s.eth1FollowDistance)
-			}
+		case msg := <-s.finalizedBlockCh:
+			blockNum := msg.Data().
+				GetBody().GetExecutionPayload().GetNumber()
+			s.fetchAndStoreDeposits(ctx, blockNum-s.eth1FollowDistance)
 		}
 	}
 }

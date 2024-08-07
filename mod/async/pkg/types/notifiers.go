@@ -44,4 +44,6 @@ type MessageRoute interface {
 	SendResponse(msg any) error
 	// AwaitResponse awaits a response from the route.
 	AwaitResponse(emptyResp any) error
+	// MessageID returns the message ID that the route is responsible for.
+	MessageID() MessageID
 }

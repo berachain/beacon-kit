@@ -21,8 +21,6 @@
 package da
 
 import (
-	"context"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -60,14 +58,6 @@ type BlobSidecar interface {
 	Len() int
 	// IsNil checks if the sidecar is nil.
 	IsNil() bool
-}
-
-// EventPublisher represents the event publisher interface.
-type EventPublisherSubscriber[T any] interface {
-	// PublishEvent publishes an event.
-	Publish(context.Context, T) error
-	// Subscribe subscribes to the event system.
-	Subscribe() (chan T, error)
 }
 
 // StorageBackend defines an interface for accessing various storage components
