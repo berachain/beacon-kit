@@ -28,7 +28,6 @@ import (
 	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
@@ -104,8 +103,7 @@ func (s *EngineClient[
 		attrs.GetSuggestedFeeRecipient() == (common.ExecutionAddress{}) {
 		s.logger.Warn(
 			"Suggested fee recipient is not configured 🔆",
-			"fee-recipent", gethprimitives.DisplayBytes(
-				gethprimitives.ZeroAddress[:]).TerminalString(),
+			"fee-recipent", attrs.GetSuggestedFeeRecipient(),
 		)
 	}
 
