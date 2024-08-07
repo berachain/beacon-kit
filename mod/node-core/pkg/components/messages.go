@@ -77,3 +77,17 @@ func ProvideProcessGenesisDataRoute() *messaging.Route[*GenesisMessage, *Validat
 func ProvideProcessBlobSidecarsRoute() *messaging.Route[*SidecarMessage, *SidecarMessage] {
 	return messaging.NewRoute[*SidecarMessage, *SidecarMessage](events.VerifyBlobSidecars)
 }
+
+// MessageServerComponents returns all the depinject providers for the message
+// server.
+func MessageServerComponents() []any {
+	return []any{
+		ProvideMessageServer,
+		ProvideBuildBlockRoute,
+		ProvideBuildSidecarsRoute,
+		ProvideVerifyBeaconBlockRoute,
+		ProvideFinalizeBeaconBlockRoute,
+		ProvideProcessGenesisDataRoute,
+		ProvideProcessBlobSidecarsRoute,
+	}
+}

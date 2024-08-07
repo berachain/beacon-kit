@@ -71,7 +71,7 @@ func (ms *MessageServer) RegisterRoute(messageID types.MessageID, route types.Me
 // SetRecipient sets the recipient for the route with the given messageID.
 // Errors if the route with the given messageID is not found or the route
 // already has a registered recipient.
-func (ms *MessageServer) RegisterReceiver(messageID types.MessageID, ch chan any) error {
+func (ms *MessageServer) RegisterReceiver(messageID types.MessageID, ch any) error {
 	route, ok := ms.routes[messageID]
 	if !ok {
 		return ErrRouteNotFound

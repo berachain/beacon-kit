@@ -46,7 +46,7 @@ func (es *EventServer) Publish(ctx context.Context, event types.MessageI) error 
 // Subscribe subscribes the given channel to the feed with the given eventID.
 // It will error if the channel type does not match the event type corresponding
 // feed.
-func (es *EventServer) Subscribe(eventID types.MessageID, ch chan any) error {
+func (es *EventServer) Subscribe(eventID types.MessageID, ch any) error {
 	feed, ok := es.publishers[eventID]
 	if !ok {
 		return ErrFeedNotFound

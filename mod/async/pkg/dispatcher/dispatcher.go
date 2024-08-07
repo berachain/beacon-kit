@@ -78,7 +78,7 @@ func (d *Dispatcher) RegisterPublisher(eventID types.MessageID, publisher types.
 // Subscribe subscribes the given channel to the event with the given <eventID>.
 // It will error if the channel type does not match the event type corresponding
 // to the <eventID>.
-func (d *Dispatcher) Subscribe(eventID types.MessageID, ch chan any) error {
+func (d *Dispatcher) Subscribe(eventID types.MessageID, ch any) error {
 	return d.eventServer.Subscribe(eventID, ch)
 }
 
@@ -86,7 +86,7 @@ func (d *Dispatcher) Subscribe(eventID types.MessageID, ch chan any) error {
 
 // RegisterMsgRecipient registers the given channel to the message with the
 // given <messageID>.
-func (d *Dispatcher) RegisterMsgReceiver(messageID types.MessageID, ch chan any) error {
+func (d *Dispatcher) RegisterMsgReceiver(messageID types.MessageID, ch any) error {
 	return d.msgServer.RegisterReceiver(messageID, ch)
 }
 

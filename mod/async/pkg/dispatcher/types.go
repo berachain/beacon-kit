@@ -27,15 +27,15 @@ import (
 )
 
 type MessageServer interface {
-	RegisterReceiver(mID types.MessageID, ch chan any) error
-	Request(req any, resp any) error
-	Respond(resp any) error
+	RegisterReceiver(mID types.MessageID, ch any) error
+	Request(req types.MessageI, resp types.MessageI) error
+	Respond(resp types.MessageI) error
 	RegisterRoute(mID types.MessageID, route types.MessageRoute) error
 }
 
 type EventServer interface {
 	Start(ctx context.Context)
 	RegisterPublisher(mID types.MessageID, publisher types.Publisher)
-	Subscribe(mID types.MessageID, ch chan any) error
+	Subscribe(mID types.MessageID, ch any) error
 	Publish(ctx context.Context, event types.MessageI) error
 }

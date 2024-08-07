@@ -23,6 +23,7 @@ package validator
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -69,6 +70,8 @@ type Service[
 	bsb StorageBackend[
 		BeaconStateT, DepositT, DepositStoreT, ExecutionPayloadHeaderT,
 	]
+	// dispatcher is the dispatcher.
+	dispatcher *dispatcher.Dispatcher
 	// stateProcessor is responsible for processing the state.
 	stateProcessor StateProcessor[
 		BeaconBlockT,
@@ -86,12 +89,12 @@ type Service[
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT]
 	// metrics is a metrics collector.
 	metrics *validatorMetrics
-	// blkBroker is a publisher for blocks.
-	blkBroker EventPublisher[*asynctypes.Event[BeaconBlockT]]
-	// sidecarBroker is a publisher for sidecars.
-	sidecarBroker EventPublisher[*asynctypes.Event[BlobSidecarsT]]
-	// newSlotSub is a feed for slots.
-	newSlotSub chan *asynctypes.Event[SlotDataT]
+	// // blkBroker is a publisher for blocks.
+	// blkBroker EventPublisher[*asynctypes.Event[BeaconBlockT]]
+	// // sidecarBroker is a publisher for sidecars.
+	// sidecarBroker EventPublisher[*asynctypes.Event[BlobSidecarsT]]
+	// // newSlotSub is a feed for slots.
+	// newSlotSub chan *asynctypes.Event[SlotDataT]
 }
 
 // NewService creates a new validator service.
@@ -135,9 +138,7 @@ func NewService[
 	localPayloadBuilder PayloadBuilder[BeaconStateT, ExecutionPayloadT],
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT],
 	ts TelemetrySink,
-	blkBroker EventPublisher[*asynctypes.Event[BeaconBlockT]],
-	sidecarBroker EventPublisher[*asynctypes.Event[BlobSidecarsT]],
-	newSlotSub chan *asynctypes.Event[SlotDataT],
+	dispatcher *dispatcher.Dispatcher,
 ) *Service[
 	AttestationDataT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
 	BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
@@ -158,9 +159,7 @@ func NewService[
 		localPayloadBuilder:   localPayloadBuilder,
 		remotePayloadBuilders: remotePayloadBuilders,
 		metrics:               newValidatorMetrics(ts),
-		blkBroker:             blkBroker,
-		sidecarBroker:         sidecarBroker,
-		newSlotSub:            newSlotSub,
+		dispatcher:            dispatcher,
 	}
 }
 
@@ -173,30 +172,57 @@ func (s *Service[
 
 // Start starts the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, SlotDataT,
 ]) Start(
 	ctx context.Context,
 ) error {
-	go s.start(ctx)
+	// register a receiver channel for build block requests
+	buildBlockRequests := make(chan *asynctypes.Event[SlotDataT])
+	s.dispatcher.RegisterMsgReceiver(events.BuildBeaconBlock, buildBlockRequests)
+
+	// register a receiver channel for build sidecar requests
+	buildSidecarRequests := make(chan *asynctypes.Event[SlotDataT])
+	s.dispatcher.RegisterMsgReceiver(events.BuildBlobSidecars, buildSidecarRequests)
+
+	// start the service
+	go s.start(ctx, buildBlockRequests, buildSidecarRequests)
 	return nil
 }
 
 // start starts the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, SlotDataT,
 ]) start(
 	ctx context.Context,
+	buildBlockRequests chan *asynctypes.Event[SlotDataT],
+	buildSidecarRequests chan *asynctypes.Event[SlotDataT],
 ) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case req := <-s.newSlotSub:
-			if req.ID() == events.NewSlot {
-				s.handleNewSlot(req)
-			}
+		case req := <-buildBlockRequests:
+			s.buildBlock(req)
+		case req := <-buildSidecarRequests:
+			s.buildSidecar(req)
 		}
 	}
+}
+
+func (s *Service[
+	_, _, _, _, _, _, _, _, _, _, _, _, SlotDataT,
+]) buildBlock(req *asynctypes.Event[SlotDataT]) {
+	blk, sidecars, err := s.buildBlockAndSidecars(
+		req.Context(), req.Data(),
+	)
+	if err != nil {
+		s.logger.Error("failed to build block", "err", err)
+	}
+	s.dispatcher.DispatchResponse(asynctypes.NewMessage(
+		req.Context(),
+		events.BuildBeaconBlock,
+		blk,
+	))
 }
 
 // handleBlockRequest handles a block request.
