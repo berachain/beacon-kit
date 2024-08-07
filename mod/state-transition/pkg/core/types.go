@@ -152,7 +152,7 @@ type ExecutionPayload[
 	GetWithdrawals() []WithdrawalT
 	GetFeeRecipient() common.ExecutionAddress
 	GetStateRoot() common.Bytes32
-	GetReceiptsRoot() common.Root
+	GetReceiptsRoot() common.Bytes32
 	GetLogsBloom() bytes.B256
 	GetNumber() math.U64
 	GetGasLimit() math.U64

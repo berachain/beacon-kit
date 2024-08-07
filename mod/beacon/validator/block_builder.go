@@ -305,7 +305,7 @@ func (s *Service[
 	var eth1Data Eth1DataT
 	// TODO: assemble real eth1data.
 	body.SetEth1Data(eth1Data.New(
-		common.Bytes32{},
+		common.Root{},
 		0,
 		common.ExecutionHash{},
 	))

@@ -284,8 +284,8 @@ func (h ExecutionPayloadHeader) MarshalJSON() ([]byte, error) {
 		ExtraData        bytes.Bytes             `json:"extraData"`
 		BaseFeePerGas    *math.U256              `json:"baseFeePerGas"`
 		BlockHash        common.ExecutionHash    `json:"blockHash"`
-		TransactionsRoot bytes.B32               `json:"transactionsRoot"`
-		WithdrawalsRoot  bytes.B32               `json:"withdrawalsRoot"`
+		TransactionsRoot common.Root             `json:"transactionsRoot"`
+		WithdrawalsRoot  common.Root             `json:"withdrawalsRoot"`
 		BlobGasUsed      math.U64                `json:"blobGasUsed"`
 		ExcessBlobGas    math.U64                `json:"excessBlobGas"`
 	}
@@ -328,8 +328,8 @@ func (h *ExecutionPayloadHeader) UnmarshalJSON(input []byte) error {
 		ExtraData        *bytes.Bytes             `json:"extraData"`
 		BaseFeePerGas    *math.U256               `json:"baseFeePerGas"`
 		BlockHash        *common.ExecutionHash    `json:"blockHash"`
-		TransactionsRoot *bytes.B32               `json:"transactionsRoot"`
-		WithdrawalsRoot  *bytes.B32               `json:"withdrawalsRoot"`
+		TransactionsRoot *common.Root             `json:"transactionsRoot"`
+		WithdrawalsRoot  *common.Root             `json:"withdrawalsRoot"`
 		BlobGasUsed      *math.U64                `json:"blobGasUsed"`
 		ExcessBlobGas    *math.U64                `json:"excessBlobGas"`
 	}

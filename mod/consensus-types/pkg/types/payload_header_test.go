@@ -50,8 +50,8 @@ func generateExecutionPayloadHeader() *types.ExecutionPayloadHeader {
 		ExtraData:        nil,
 		BaseFeePerGas:    &math.U256{},
 		BlockHash:        common.ExecutionHash{},
-		TransactionsRoot: bytes.B32{},
-		WithdrawalsRoot:  bytes.B32{},
+		TransactionsRoot: common.Root{},
+		WithdrawalsRoot:  common.Root{},
 		BlobGasUsed:      math.U64(0),
 		ExcessBlobGas:    math.U64(0),
 	}

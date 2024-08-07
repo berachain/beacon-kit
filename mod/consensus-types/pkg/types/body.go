@@ -292,9 +292,9 @@ func (b *BeaconBlockBody) SetSlashingInfo(_ []*SlashingInfo) {
 // GetTopLevelRoots returns the top-level roots of the BeaconBlockBody.
 func (b *BeaconBlockBody) GetTopLevelRoots() []common.Root {
 	return []common.Root{
-		b.GetRandaoReveal().HashTreeRoot(),
+		common.Root(b.GetRandaoReveal().HashTreeRoot()),
 		b.Eth1Data.HashTreeRoot(),
-		b.GetGraffiti().HashTreeRoot(),
+		common.Root(b.GetGraffiti().HashTreeRoot()),
 		Deposits(b.GetDeposits()).HashTreeRoot(),
 		b.GetExecutionPayload().HashTreeRoot(),
 		// I think this is a bug.

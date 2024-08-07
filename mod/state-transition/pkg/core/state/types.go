@@ -40,12 +40,12 @@ type BeaconStateMarshallable[
 	// New returns a new instance of the BeaconStateMarshallable.
 	New(
 		forkVersion uint32,
-		genesisValidatorsRoot common.Bytes32,
+		genesisValidatorsRoot common.Root,
 		slot math.U64,
 		fork ForkT,
 		latestBlockHeader BeaconBlockHeaderT,
-		blockRoots []common.Bytes32,
-		stateRoots []common.Bytes32,
+		blockRoots []common.Root,
+		stateRoots []common.Root,
 		eth1Data Eth1DataT,
 		eth1DepositIndex uint64,
 		latestExecutionPayloadHeader ExecutionPayloadHeaderT,

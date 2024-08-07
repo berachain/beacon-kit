@@ -30,7 +30,7 @@ type BeaconState[WithdrawalT any] interface {
 	// ExpectedWithdrawals returns the expected withdrawals.
 	ExpectedWithdrawals() ([]WithdrawalT, error)
 	// GetRandaoMixAtIndex returns the randao mix at the given index.
-	GetRandaoMixAtIndex(index uint64) (common.Root, error)
+	GetRandaoMixAtIndex(index uint64) (common.Bytes32, error)
 }
 
 // PayloadAttributes is the interface for the payload attributes.
