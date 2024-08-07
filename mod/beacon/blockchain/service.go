@@ -34,14 +34,13 @@ import (
 
 // Service is the blockchain service.
 type Service[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT],
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT, ExecutionPayloadT],
 	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
 	BeaconBlockHeaderT BeaconBlockHeader,
 	BeaconStateT ReadOnlyBeaconState[
 		BeaconStateT, BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 	],
-	BlobSidecarsT BlobSidecars,
 	DepositT any,
 	ExecutionPayloadT ExecutionPayload,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
@@ -59,7 +58,6 @@ type Service[
 		AvailabilityStoreT,
 		BeaconBlockBodyT,
 		BeaconStateT,
-		BlobSidecarsT,
 	]
 	// logger is used for logging messages in the service.
 	logger log.Logger[any]
@@ -95,7 +93,7 @@ type Service[
 
 // NewService creates a new validator service.
 func NewService[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT],
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT, ExecutionPayloadT],
 	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
 	BeaconBlockHeaderT BeaconBlockHeader,
@@ -103,7 +101,6 @@ func NewService[
 		BeaconStateT, BeaconBlockHeaderT,
 		ExecutionPayloadHeaderT,
 	],
-	BlobSidecarsT BlobSidecars,
 	DepositT any,
 	ExecutionPayloadT ExecutionPayload,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
@@ -119,7 +116,6 @@ func NewService[
 		AvailabilityStoreT,
 		BeaconBlockBodyT,
 		BeaconStateT,
-		BlobSidecarsT,
 	],
 	logger log.Logger[any],
 	cs common.ChainSpec,
@@ -140,13 +136,13 @@ func NewService[
 	optimisticPayloadBuilds bool,
 ) *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	BeaconStateT, BlobSidecarsT, DepositT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, GenesisT, PayloadAttributesT, WithdrawalT,
+	BeaconStateT, DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+	GenesisT, PayloadAttributesT, WithdrawalT,
 ] {
 	return &Service[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-		BeaconStateT, BlobSidecarsT, DepositT, ExecutionPayloadT,
-		ExecutionPayloadHeaderT, GenesisT, PayloadAttributesT, WithdrawalT,
+		BeaconStateT, DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+		GenesisT, PayloadAttributesT, WithdrawalT,
 	]{
 		sb:                      sb,
 		logger:                  logger,
@@ -165,13 +161,13 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _,
 ]) Name() string {
 	return "blockchain"
 }
 
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
 	subBlkCh, err := s.blkBroker.Subscribe()
 	if err != nil {
@@ -186,7 +182,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, BeaconBlockT, _, _, _, _, _, _, _, GenesisT, _, _,
+	_, BeaconBlockT, _, _, _, _, _, _, GenesisT, _, _,
 ]) start(
 	ctx context.Context,
 	subBlkCh chan *asynctypes.Event[BeaconBlockT],
@@ -212,7 +208,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, GenesisT, _, _,
+	_, _, _, _, _, _, _, _, GenesisT, _, _,
 ]) handleProcessGenesisDataRequest(msg *asynctypes.Event[GenesisT]) {
 	if msg.Error() != nil {
 		s.logger.Error("Error processing genesis data", "error", msg.Error())
@@ -244,7 +240,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, BeaconBlockT, _, _, _, _, _, _, _, _, _, _,
+	_, BeaconBlockT, _, _, _, _, _, _, _, _, _,
 ]) handleBeaconBlockReceived(
 	msg *asynctypes.Event[BeaconBlockT],
 ) {
@@ -269,7 +265,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, BeaconBlockT, _, _, _, _, _, _, _, _, _, _,
+	_, BeaconBlockT, _, _, _, _, _, _, _, _, _,
 ]) handleBeaconBlockFinalization(
 	msg *asynctypes.Event[BeaconBlockT],
 ) {
