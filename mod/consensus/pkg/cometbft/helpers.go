@@ -48,10 +48,15 @@ func execTxResultsFromTxs(
 	txs [][]byte,
 ) []*abci.ExecTxResult {
 	execTxResults := make([]*abci.ExecTxResult, len(txs))
-	for i, tx := range txs {
+	for i := range txs {
+		// Legacy TX results from Cosmos-SDK.
 		execTxResults[i] = &abci.ExecTxResult{
-			Code: abci.CodeTypeOK,
-			Data: tx,
+			Code:      2,
+			Codespace: "sdk",
+			Log:       "skip decoding: tx parse error",
+			GasWanted: 0,
+			GasUsed:   0,
+			Data:      nil,
 		}
 	}
 	return execTxResults

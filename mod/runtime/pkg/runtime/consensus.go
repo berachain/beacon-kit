@@ -22,13 +22,11 @@ package runtime
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/engine/types"
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -74,16 +72,10 @@ func (a *App[
 		return nil, nil, err
 	}
 
-	// stateHash, err := a.sb.StateFromContext(ctx).HashTreeRoot()
-	// if err != nil {
-	// 	return nil, nil, err
-	// }
-
 	stateHash, err := a.sb.StateFromContext(ctx).LatestCommitHash()
 	if err != nil {
 		return nil, nil, err
 	}
-	fmt.Println("STATE HASH FROM APP GENESIS", hex.FromBytes(stateHash))
 	return valUpdates, stateHash, nil
 }
 
@@ -341,8 +333,6 @@ func (a *App[
 	if err != nil {
 		return nil, nil, err
 	}
-
-	// fmt.Println("STATE HASH FROM APP FINALIZE", a.sb.StateFromContext(ctx).HashTreeRoot())
 
 	stateHash, err := a.sb.StateFromContext(ctx).LatestCommitHash()
 	if err != nil {
