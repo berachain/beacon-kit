@@ -77,8 +77,9 @@ func (w Withdrawals) HashTreeRoot() common.Root {
 // Len returns the length of s.
 func (s Withdrawals) Len() int { return len(s) }
 
-// EncodeIndex encodes the i'th withdrawal to w. Note that this does not check for errors
-// because we assume that *Withdrawal will only ever contain valid withdrawals that were either
+// EncodeIndex encodes the i'th withdrawal to w. Note that this does not check
+// for errors because we assume that *Withdrawal will only ever contain valid
+// withdrawals that were either
 // constructed by decoding or via public API in this package.
 func (s Withdrawals) EncodeIndex(i int, w *bytes.Buffer) {
 	rlp.Encode(w, s[i])
