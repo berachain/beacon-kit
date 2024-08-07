@@ -22,7 +22,6 @@ package engine
 
 import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
@@ -33,15 +32,15 @@ import (
 type ExecutionPayload[ExecutionPayloadT, WithdrawalT any] interface {
 	constraints.EngineType[ExecutionPayloadT]
 	GetPrevRandao() common.Bytes32
-	GetBlockHash() gethprimitives.ExecutionHash
-	GetParentHash() gethprimitives.ExecutionHash
+	GetBlockHash() common.ExecutionHash
+	GetParentHash() common.ExecutionHash
 	GetNumber() math.U64
 	GetGasLimit() math.U64
 	GetGasUsed() math.U64
 	GetTimestamp() math.U64
 	GetExtraData() []byte
 	GetBaseFeePerGas() *math.U256
-	GetFeeRecipient() gethprimitives.ExecutionAddress
+	GetFeeRecipient() common.ExecutionAddress
 	GetStateRoot() common.Bytes32
 	GetReceiptsRoot() common.Bytes32
 	GetLogsBloom() bytes.B256
@@ -67,5 +66,5 @@ type Withdrawal[WithdrawalT any] interface {
 	// GetValidatorIndex returns the index of the validator.
 	GetValidatorIndex() math.ValidatorIndex
 	// GetAddress returns the address of the withdrawal.
-	GetAddress() gethprimitives.ExecutionAddress
+	GetAddress() common.ExecutionAddress
 }

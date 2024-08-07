@@ -22,7 +22,6 @@ package core
 
 import (
 	"github.com/berachain/beacon-kit/mod/errors"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -51,7 +50,7 @@ type StateProcessor[
 	ContextT Context,
 	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
 	Eth1DataT interface {
-		New(common.Root, math.U64, gethprimitives.ExecutionHash) Eth1DataT
+		New(common.Root, math.U64, common.ExecutionHash) Eth1DataT
 		GetDepositCount() math.U64
 	},
 	ExecutionPayloadT ExecutionPayload[
@@ -101,7 +100,7 @@ func NewStateProcessor[
 	ContextT Context,
 	DepositT Deposit[ForkDataT, WithdrawalCredentialsT],
 	Eth1DataT interface {
-		New(common.Root, math.U64, gethprimitives.ExecutionHash) Eth1DataT
+		New(common.Root, math.U64, common.ExecutionHash) Eth1DataT
 		GetDepositCount() math.U64
 	},
 	ExecutionPayloadT ExecutionPayload[

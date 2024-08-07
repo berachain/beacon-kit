@@ -26,8 +26,8 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -37,8 +37,8 @@ import (
 
 func generateExecutionPayloadHeader() *types.ExecutionPayloadHeader {
 	return &types.ExecutionPayloadHeader{
-		ParentHash:       gethprimitives.ExecutionHash{},
-		FeeRecipient:     gethprimitives.ExecutionAddress{},
+		ParentHash:       common.ExecutionHash{},
+		FeeRecipient:     common.ExecutionAddress{},
 		StateRoot:        bytes.B32{},
 		ReceiptsRoot:     bytes.B32{},
 		LogsBloom:        bytes.B256{},
@@ -49,9 +49,9 @@ func generateExecutionPayloadHeader() *types.ExecutionPayloadHeader {
 		Timestamp:        math.U64(0),
 		ExtraData:        nil,
 		BaseFeePerGas:    &math.U256{},
-		BlockHash:        gethprimitives.ExecutionHash{},
-		TransactionsRoot: bytes.B32{},
-		WithdrawalsRoot:  bytes.B32{},
+		BlockHash:        common.ExecutionHash{},
+		TransactionsRoot: common.Root{},
+		WithdrawalsRoot:  common.Root{},
 		BlobGasUsed:      math.U64(0),
 		ExcessBlobGas:    math.U64(0),
 	}
@@ -62,10 +62,10 @@ func TestExecutionPayloadHeader_Getters(t *testing.T) {
 
 	require.NotNil(t, header)
 
-	require.Equal(t, gethprimitives.ExecutionHash{}, header.GetParentHash())
+	require.Equal(t, common.ExecutionHash{}, header.GetParentHash())
 	require.Equal(
 		t,
-		gethprimitives.ExecutionAddress{},
+		common.ExecutionAddress{},
 		header.GetFeeRecipient(),
 	)
 	require.Equal(t, bytes.B32{}, header.GetStateRoot())
@@ -78,9 +78,9 @@ func TestExecutionPayloadHeader_Getters(t *testing.T) {
 	require.Equal(t, math.U64(0), header.GetTimestamp())
 	require.Equal(t, []byte(nil), header.GetExtraData())
 	require.Equal(t, math.NewU256(0), header.GetBaseFeePerGas())
-	require.Equal(t, gethprimitives.ExecutionHash{}, header.GetBlockHash())
-	require.Equal(t, bytes.B32{}, header.GetTransactionsRoot())
-	require.Equal(t, bytes.B32{}, header.GetWithdrawalsRoot())
+	require.Equal(t, common.ExecutionHash{}, header.GetBlockHash())
+	require.Equal(t, common.Root{}, header.GetTransactionsRoot())
+	require.Equal(t, common.Root{}, header.GetWithdrawalsRoot())
 	require.Equal(t, math.U64(0), header.GetBlobGasUsed())
 	require.Equal(t, math.U64(0), header.GetExcessBlobGas())
 }

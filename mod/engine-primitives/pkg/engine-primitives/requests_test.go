@@ -25,7 +25,6 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives/mocks"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -48,11 +47,11 @@ func (m MockExecutionPayload) Version() uint32 {
 func (m MockExecutionPayload) GetPrevRandao() common.Bytes32 {
 	return common.Bytes32{}
 }
-func (m MockExecutionPayload) GetBlockHash() gethprimitives.ExecutionHash {
-	return gethprimitives.ExecutionHash{}
+func (m MockExecutionPayload) GetBlockHash() common.ExecutionHash {
+	return common.ExecutionHash{}
 }
-func (m MockExecutionPayload) GetParentHash() gethprimitives.ExecutionHash {
-	return gethprimitives.ExecutionHash{}
+func (m MockExecutionPayload) GetParentHash() common.ExecutionHash {
+	return common.ExecutionHash{}
 }
 func (m MockExecutionPayload) GetNumber() math.U64 {
 	return math.U64(0)
@@ -75,8 +74,8 @@ func (m MockExecutionPayload) GetBaseFeePerGas() *math.U256 {
 
 func (
 	m MockExecutionPayload,
-) GetFeeRecipient() gethprimitives.ExecutionAddress {
-	return gethprimitives.ExecutionAddress{}
+) GetFeeRecipient() common.ExecutionAddress {
+	return common.ExecutionAddress{}
 }
 func (m MockExecutionPayload) GetStateRoot() common.Bytes32 {
 	return common.Bytes32{}
@@ -106,8 +105,8 @@ func (m MockWithdrawal) GetIndex() math.U64 {
 func (m MockWithdrawal) GetAmount() math.U64 {
 	return math.U64(0)
 }
-func (m MockWithdrawal) GetAddress() gethprimitives.ExecutionAddress {
-	return gethprimitives.ExecutionAddress{}
+func (m MockWithdrawal) GetAddress() common.ExecutionAddress {
+	return common.ExecutionAddress{}
 }
 func (m MockWithdrawal) GetValidatorIndex() math.U64 {
 	return math.U64(0)
@@ -115,7 +114,7 @@ func (m MockWithdrawal) GetValidatorIndex() math.U64 {
 
 func TestBuildNewPayloadRequest(t *testing.T) {
 	executionPayload := MockExecutionPayload{}
-	var versionedHashes []gethprimitives.ExecutionHash
+	var versionedHashes []common.ExecutionHash
 	parentBeaconBlockRoot := common.Root{}
 	optimistic := false
 
@@ -163,7 +162,7 @@ func TestBuildGetPayloadRequest(t *testing.T) {
 
 func TestHasValidVersionedAndBlockHashesPayloadError(t *testing.T) {
 	executionPayload := MockExecutionPayload{}
-	versionedHashes := []gethprimitives.ExecutionHash{}
+	versionedHashes := []common.ExecutionHash{}
 	parentBeaconBlockRoot := common.Root{}
 	optimistic := false
 
@@ -180,8 +179,8 @@ func TestHasValidVersionedAndBlockHashesPayloadError(t *testing.T) {
 
 func TestHasValidVersionedAndBlockHashesMismatchedHashes(t *testing.T) {
 	executionPayload := MockExecutionPayload{}
-	versionedHashes := []gethprimitives.ExecutionHash{
-		gethprimitives.ExecutionHash{},
+	versionedHashes := []common.ExecutionHash{
+		common.ExecutionHash{},
 	}
 	parentBeaconBlockRoot := common.Root{}
 	optimistic := false

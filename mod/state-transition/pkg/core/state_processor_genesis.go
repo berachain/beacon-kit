@@ -21,7 +21,6 @@
 package core
 
 import (
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
@@ -73,7 +72,7 @@ func (sp *StateProcessor[
 	}
 
 	if err := st.SetEth1Data(eth1Data.New(
-		common.Bytes32(gethprimitives.ZeroHash),
+		common.Root{},
 		0,
 		executionPayloadHeader.GetBlockHash(),
 	)); err != nil {

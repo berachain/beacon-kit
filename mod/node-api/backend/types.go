@@ -23,7 +23,6 @@ package backend
 import (
 	"context"
 
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -138,7 +137,7 @@ type Withdrawal[T any] interface {
 	New(
 		index math.U64,
 		validator math.ValidatorIndex,
-		address gethprimitives.ExecutionAddress,
+		address common.ExecutionAddress,
 		amount math.Gwei,
 	) T
 }
@@ -147,5 +146,5 @@ type Withdrawal[T any] interface {
 type WithdrawalCredentials interface {
 	// ToExecutionAddress converts the withdrawal credentials to an execution
 	// address.
-	ToExecutionAddress() (gethprimitives.ExecutionAddress, error)
+	ToExecutionAddress() (common.ExecutionAddress, error)
 }

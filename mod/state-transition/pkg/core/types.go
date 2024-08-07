@@ -24,7 +24,6 @@ import (
 	"context"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
@@ -80,7 +79,7 @@ type BeaconBlockBody[
 	// HashTreeRoot returns the hash tree root of the block body.
 	HashTreeRoot() common.Root
 	// GetBlobKzgCommitments returns the KZG commitments for the blobs.
-	GetBlobKzgCommitments() eip4844.KZGCommitments[gethprimitives.ExecutionHash]
+	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 }
 
 // BeaconBlockHeader is the interface for a beacon block header.
@@ -147,13 +146,13 @@ type ExecutionPayload[
 ] interface {
 	constraints.EngineType[ExecutionPayloadT]
 	GetTransactions() engineprimitives.Transactions
-	GetParentHash() gethprimitives.ExecutionHash
-	GetBlockHash() gethprimitives.ExecutionHash
+	GetParentHash() common.ExecutionHash
+	GetBlockHash() common.ExecutionHash
 	GetPrevRandao() common.Bytes32
 	GetWithdrawals() []WithdrawalT
-	GetFeeRecipient() gethprimitives.ExecutionAddress
+	GetFeeRecipient() common.ExecutionAddress
 	GetStateRoot() common.Bytes32
-	GetReceiptsRoot() common.Root
+	GetReceiptsRoot() common.Bytes32
 	GetLogsBloom() bytes.B256
 	GetNumber() math.U64
 	GetGasLimit() math.U64
@@ -170,7 +169,7 @@ type ExecutionPayload[
 }
 
 type ExecutionPayloadHeader interface {
-	GetBlockHash() gethprimitives.ExecutionHash
+	GetBlockHash() common.ExecutionHash
 }
 
 // ExecutionEngine is the interface for the execution engine.
@@ -243,5 +242,5 @@ type Withdrawal[WithdrawalT any] interface {
 	// GetValidatorIndex returns the index of the validator.
 	GetValidatorIndex() math.ValidatorIndex
 	// GetAddress returns the address of the withdrawal.
-	GetAddress() gethprimitives.ExecutionAddress
+	GetAddress() common.ExecutionAddress
 }

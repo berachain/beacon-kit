@@ -25,7 +25,6 @@ import (
 	"time"
 
 	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -49,7 +48,7 @@ type BeaconBlock[BeaconBlockBodyT any] interface {
 }
 
 type BeaconBlockBody interface {
-	GetBlobKzgCommitments() eip4844.KZGCommitments[gethprimitives.ExecutionHash]
+	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 	GetTopLevelRoots() []common.Root
 	Length() uint64
 }

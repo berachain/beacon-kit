@@ -25,7 +25,6 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -51,10 +50,10 @@ func TestDefaultGenesisDeneb(t *testing.T) {
 	// add assertions for ExecutionPayloadHeader
 	require.NotNil(t, g.ExecutionPayloadHeader,
 		"Expected ExecutionPayloadHeader to be non-nil")
-	require.Equal(t, gethprimitives.ZeroHash,
+	require.Equal(t, common.ExecutionHash{},
 		g.ExecutionPayloadHeader.GetParentHash(),
 		"Unexpected ParentHash")
-	require.Equal(t, gethprimitives.ZeroAddress,
+	require.Equal(t, common.ExecutionAddress{},
 		g.ExecutionPayloadHeader.GetFeeRecipient(),
 		"Unexpected FeeRecipient")
 	require.Equal(t, math.U64(30000000),

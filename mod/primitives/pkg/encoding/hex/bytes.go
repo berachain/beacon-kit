@@ -26,11 +26,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 )
 
-func EncodeBytes[B ~[]byte](b B) ([]byte, error) {
+func EncodeBytes[B ~[]byte](b B) []byte {
 	result := make([]byte, len(b)*2+prefixLen)
 	copy(result, prefix)
 	hex.Encode(result[prefixLen:], b)
-	return result, nil
+	return result
 }
 
 func UnmarshalByteText(input []byte) ([]byte, error) {
