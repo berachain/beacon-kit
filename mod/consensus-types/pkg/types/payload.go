@@ -536,7 +536,7 @@ func (p *ExecutionPayload) GetTransactions() engineprimitives.Transactions {
 }
 
 // GetWithdrawals returns the withdrawals of the ExecutionPayload.
-func (p *ExecutionPayload) GetWithdrawals() []*engineprimitives.Withdrawal {
+func (p *ExecutionPayload) GetWithdrawals() engineprimitives.Withdrawals {
 	return p.Withdrawals
 }
 

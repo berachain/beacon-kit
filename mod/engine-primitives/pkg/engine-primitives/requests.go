@@ -21,6 +21,7 @@
 package engineprimitives
 
 import (
+	stdbytes "bytes"
 	"math/big"
 
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -53,7 +54,7 @@ type NewPayloadRequest[
 		GetLogsBloom() bytes.B256
 		GetBlobGasUsed() math.U64
 		GetExcessBlobGas() math.U64
-		GetWithdrawals() []WithdrawalT
+		GetWithdrawals() WithdrawalsT
 		GetTransactions() Transactions
 	},
 	WithdrawalT interface {
@@ -61,6 +62,11 @@ type NewPayloadRequest[
 		GetAmount() math.U64
 		GetAddress() common.ExecutionAddress
 		GetValidatorIndex() math.U64
+	},
+	WithdrawalsT interface {
+		~[]WithdrawalT
+		Len() int
+		EncodeIndex(int, *stdbytes.Buffer)
 	},
 ] struct {
 	// ExecutionPayload is the payload to the execution client.
@@ -93,7 +99,7 @@ func BuildNewPayloadRequest[
 		GetLogsBloom() bytes.B256
 		GetBlobGasUsed() math.U64
 		GetExcessBlobGas() math.U64
-		GetWithdrawals() []WithdrawalT
+		GetWithdrawals() WithdrawalsT
 		GetTransactions() Transactions
 	},
 	WithdrawalT interface {
@@ -102,13 +108,18 @@ func BuildNewPayloadRequest[
 		GetAddress() common.ExecutionAddress
 		GetValidatorIndex() math.U64
 	},
+	WithdrawalsT interface {
+		~[]WithdrawalT
+		Len() int
+		EncodeIndex(int, *stdbytes.Buffer)
+	},
 ](
 	executionPayload ExecutionPayloadT,
 	versionedHashes []common.ExecutionHash,
 	parentBeaconBlockRoot *common.Root,
 	optimistic bool,
-) *NewPayloadRequest[ExecutionPayloadT, WithdrawalT] {
-	return &NewPayloadRequest[ExecutionPayloadT, WithdrawalT]{
+) *NewPayloadRequest[ExecutionPayloadT, WithdrawalT, WithdrawalsT] {
+	return &NewPayloadRequest[ExecutionPayloadT, WithdrawalT, WithdrawalsT]{
 		ExecutionPayload:      executionPayload,
 		VersionedHashes:       versionedHashes,
 		ParentBeaconBlockRoot: parentBeaconBlockRoot,
@@ -123,7 +134,7 @@ func BuildNewPayloadRequest[
 // https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/deneb/beacon-chain.md#is_valid_versioned_hashes
 //
 //nolint:lll
-func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAndBlockHashes() error {
+func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT, WithdrawalsT]) HasValidVersionedAndBlockHashes() error {
 	var (
 		gethWithdrawals []*gethprimitives.Withdrawal
 		withdrawalsHash *common.ExecutionHash
@@ -170,26 +181,11 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalT]) HasValidVersionedAnd
 		}
 	}
 
-	// Construct the withdrawals and withdrawals hash.
-	if payload.GetWithdrawals() != nil {
-		gethWithdrawals = make(
-			[]*gethprimitives.Withdrawal,
-			len(payload.GetWithdrawals()),
-		)
-		for i, wd := range payload.GetWithdrawals() {
-			gethWithdrawals[i] = &gethprimitives.Withdrawal{
-				Index:     wd.GetIndex().Unwrap(),
-				Amount:    wd.GetAmount().Unwrap(),
-				Address:   gethprimitives.ExecutionAddress(wd.GetAddress()),
-				Validator: wd.GetValidatorIndex().Unwrap(),
-			}
-		}
-		h := gethprimitives.DeriveSha(
-			gethprimitives.Withdrawals(gethWithdrawals),
-			gethprimitives.NewStackTrie(nil),
-		)
-		withdrawalsHash = (*common.ExecutionHash)(&h)
-	}
+	h := gethprimitives.DeriveSha(
+		payload.GetWithdrawals(),
+		gethprimitives.NewStackTrie(nil),
+	)
+	withdrawalsHash = (*common.ExecutionHash)(&h)
 
 	// Verify that the payload is telling the truth about it's block hash.
 	if block := gethprimitives.NewBlockWithHeader(

@@ -21,9 +21,12 @@
 package engineprimitives
 
 import (
+	"io"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/ethereum/go-ethereum/rlp"
 	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
 )
@@ -137,6 +140,22 @@ func (w *Withdrawal) HashTreeRootWith(hh fastssz.HashWalker) error {
 // GetTree ssz hashes the Withdrawal object.
 func (w *Withdrawal) GetTree() (*fastssz.Node, error) {
 	return fastssz.ProofTree(w)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                     RLP                                    */
+/* -------------------------------------------------------------------------- */
+
+// SetIndex sets the unique identifier for the withdrawal.
+func (obj *Withdrawal) EncodeRLP(_w io.Writer) error {
+	w := rlp.NewEncoderBuffer(_w)
+	_tmp0 := w.List()
+	w.WriteUint64(uint64(obj.Index))
+	w.WriteUint64(uint64(obj.Validator))
+	w.WriteBytes(obj.Address[:])
+	w.WriteUint64(uint64(obj.Amount))
+	w.ListEnd(_tmp0)
+	return w.Flush()
 }
 
 /* -------------------------------------------------------------------------- */

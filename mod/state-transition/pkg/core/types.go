@@ -21,6 +21,7 @@
 package core
 
 import (
+	stdbytes "bytes"
 	"context"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
@@ -64,10 +65,10 @@ type BeaconBlockBody[
 	BeaconBlockBodyT any,
 	DepositT any,
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	WithdrawalT any,
+	WithdrawalsT any,
 ] interface {
 	constraints.EmptyWithVersion[BeaconBlockBodyT]
 	// GetRandaoReveal returns the RANDAO reveal signature.
@@ -142,14 +143,14 @@ type Deposit[
 }
 
 type ExecutionPayload[
-	ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT any,
+	ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT any,
 ] interface {
 	constraints.EngineType[ExecutionPayloadT]
 	GetTransactions() engineprimitives.Transactions
 	GetParentHash() common.ExecutionHash
 	GetBlockHash() common.ExecutionHash
 	GetPrevRandao() common.Bytes32
-	GetWithdrawals() []WithdrawalT
+	GetWithdrawals() WithdrawalsT
 	GetFeeRecipient() common.ExecutionAddress
 	GetStateRoot() common.Bytes32
 	GetReceiptsRoot() common.Bytes32
@@ -175,15 +176,20 @@ type ExecutionPayloadHeader interface {
 // ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine[
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT],
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT],
 	ExecutionPayloadHeaderT any,
 	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalsT interface {
+		~[]WithdrawalT
+		Len() int
+		EncodeIndex(int, *stdbytes.Buffer)
+	},
 ] interface {
 	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
 	// execution client.
 	VerifyAndNotifyNewPayload(
 		ctx context.Context,
-		req *engineprimitives.NewPayloadRequest[ExecutionPayloadT, WithdrawalT],
+		req *engineprimitives.NewPayloadRequest[ExecutionPayloadT, WithdrawalT, WithdrawalsT],
 	) error
 }
 

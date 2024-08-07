@@ -29,7 +29,7 @@ import (
 )
 
 // ExecutionPayload represents the payload of an execution block.
-type ExecutionPayload[ExecutionPayloadT, WithdrawalT any] interface {
+type ExecutionPayload[ExecutionPayloadT, WithdrawalsT any] interface {
 	constraints.EngineType[ExecutionPayloadT]
 	GetPrevRandao() common.Bytes32
 	GetBlockHash() common.ExecutionHash
@@ -46,7 +46,7 @@ type ExecutionPayload[ExecutionPayloadT, WithdrawalT any] interface {
 	GetLogsBloom() bytes.B256
 	GetBlobGasUsed() math.U64
 	GetExcessBlobGas() math.U64
-	GetWithdrawals() []WithdrawalT
+	GetWithdrawals() WithdrawalsT
 	GetTransactions() engineprimitives.Transactions
 }
 
