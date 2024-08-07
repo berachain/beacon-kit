@@ -25,7 +25,6 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
-	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/karalabe/ssz"
 )
 
@@ -75,12 +74,12 @@ func (w Withdrawals) HashTreeRoot() common.Root {
 /* -------------------------------------------------------------------------- */
 
 // Len returns the length of s.
-func (s Withdrawals) Len() int { return len(s) }
+func (w Withdrawals) Len() int { return len(w) }
 
 // EncodeIndex encodes the i'th withdrawal to w. Note that this does not check
 // for errors because we assume that *Withdrawal will only ever contain valid
 // withdrawals that were either
 // constructed by decoding or via public API in this package.
-func (s Withdrawals) EncodeIndex(i int, w *bytes.Buffer) {
-	rlp.Encode(w, s[i])
+func (w Withdrawals) EncodeIndex(i int, _w *bytes.Buffer) {
+	w[i].EncodeRLP(_w)
 }
