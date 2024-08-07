@@ -322,7 +322,11 @@ func (a *App[
 	if err != nil {
 		// If we don't have a block, we can't do anything.
 		//nolint:nilerr // by design.
-		return nil, nil, nil
+		stateHash, err := a.sb.StateFromContext(ctx).LatestCommitHash()
+		if err != nil {
+			return nil, nil, err
+		}
+		return nil, stateHash, nil
 	}
 
 	// Send the sidecars to the sidecars feed and wait for a response
@@ -338,10 +342,7 @@ func (a *App[
 		return nil, nil, err
 	}
 
-	// stateHash, err := a.sb.StateFromContext(ctx).HashTreeRoot()
-	// if err != nil {
-	// 	return nil, nil, err
-	// }
+	// fmt.Println("STATE HASH FROM APP FINALIZE", a.sb.StateFromContext(ctx).HashTreeRoot())
 
 	stateHash, err := a.sb.StateFromContext(ctx).LatestCommitHash()
 	if err != nil {
