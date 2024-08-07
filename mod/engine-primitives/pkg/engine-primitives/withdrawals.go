@@ -80,7 +80,6 @@ func (w Withdrawals) Len() int { return len(w) }
 // withdrawals that were either
 // constructed by decoding or via public API in this package.
 func (w Withdrawals) EncodeIndex(i int, _w *bytes.Buffer) {
-	// // #nosec:G703 // its okay.
+	// #nosec:G703 // its okay.
 	_ = w[i].EncodeRLP(_w)
-	// rlp.Encode(_w, w[i])
 }
