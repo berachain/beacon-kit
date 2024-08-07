@@ -6,6 +6,8 @@ import (
 	backend "github.com/berachain/beacon-kit/mod/node-api/backend"
 	bytes "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 
+	common "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+
 	math "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 
 	mock "github.com/stretchr/testify/mock"
@@ -138,23 +140,23 @@ func (_c *BeaconState_GetBalance_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPa
 }
 
 // GetBlockRootAtIndex provides a mock function with given fields: _a0
-func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) GetBlockRootAtIndex(_a0 uint64) (bytes.B32, error) {
+func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) GetBlockRootAtIndex(_a0 uint64) (common.Root, error) {
 	ret := _m.Called(_a0)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetBlockRootAtIndex")
 	}
 
-	var r0 bytes.B32
+	var r0 common.Root
 	var r1 error
-	if rf, ok := ret.Get(0).(func(uint64) (bytes.B32, error)); ok {
+	if rf, ok := ret.Get(0).(func(uint64) (common.Root, error)); ok {
 		return rf(_a0)
 	}
-	if rf, ok := ret.Get(0).(func(uint64) bytes.B32); ok {
+	if rf, ok := ret.Get(0).(func(uint64) common.Root); ok {
 		r0 = rf(_a0)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(bytes.B32)
+			r0 = ret.Get(0).(common.Root)
 		}
 	}
 
@@ -185,12 +187,12 @@ func (_c *BeaconState_GetBlockRootAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, Ex
 	return _c
 }
 
-func (_c *BeaconState_GetBlockRootAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Return(_a0 bytes.B32, _a1 error) *BeaconState_GetBlockRootAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+func (_c *BeaconState_GetBlockRootAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Return(_a0 common.Root, _a1 error) *BeaconState_GetBlockRootAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *BeaconState_GetBlockRootAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) RunAndReturn(run func(uint64) (bytes.B32, error)) *BeaconState_GetBlockRootAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+func (_c *BeaconState_GetBlockRootAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) RunAndReturn(run func(uint64) (common.Root, error)) *BeaconState_GetBlockRootAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	_c.Call.Return(run)
 	return _c
 }
@@ -361,23 +363,23 @@ func (_c *BeaconState_GetFork_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPaylo
 }
 
 // GetGenesisValidatorsRoot provides a mock function with given fields:
-func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) GetGenesisValidatorsRoot() (bytes.B32, error) {
+func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) GetGenesisValidatorsRoot() (common.Root, error) {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetGenesisValidatorsRoot")
 	}
 
-	var r0 bytes.B32
+	var r0 common.Root
 	var r1 error
-	if rf, ok := ret.Get(0).(func() (bytes.B32, error)); ok {
+	if rf, ok := ret.Get(0).(func() (common.Root, error)); ok {
 		return rf()
 	}
-	if rf, ok := ret.Get(0).(func() bytes.B32); ok {
+	if rf, ok := ret.Get(0).(func() common.Root); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(bytes.B32)
+			r0 = ret.Get(0).(common.Root)
 		}
 	}
 
@@ -407,12 +409,12 @@ func (_c *BeaconState_GetGenesisValidatorsRoot_Call[BeaconBlockHeaderT, Eth1Data
 	return _c
 }
 
-func (_c *BeaconState_GetGenesisValidatorsRoot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Return(_a0 bytes.B32, _a1 error) *BeaconState_GetGenesisValidatorsRoot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+func (_c *BeaconState_GetGenesisValidatorsRoot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Return(_a0 common.Root, _a1 error) *BeaconState_GetGenesisValidatorsRoot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *BeaconState_GetGenesisValidatorsRoot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) RunAndReturn(run func() (bytes.B32, error)) *BeaconState_GetGenesisValidatorsRoot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+func (_c *BeaconState_GetGenesisValidatorsRoot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) RunAndReturn(run func() (common.Root, error)) *BeaconState_GetGenesisValidatorsRoot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1131,23 +1133,23 @@ func (_c *BeaconState_SetSlot_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPaylo
 }
 
 // StateRootAtIndex provides a mock function with given fields: _a0
-func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) StateRootAtIndex(_a0 uint64) (bytes.B32, error) {
+func (_m *BeaconState[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) StateRootAtIndex(_a0 uint64) (common.Root, error) {
 	ret := _m.Called(_a0)
 
 	if len(ret) == 0 {
 		panic("no return value specified for StateRootAtIndex")
 	}
 
-	var r0 bytes.B32
+	var r0 common.Root
 	var r1 error
-	if rf, ok := ret.Get(0).(func(uint64) (bytes.B32, error)); ok {
+	if rf, ok := ret.Get(0).(func(uint64) (common.Root, error)); ok {
 		return rf(_a0)
 	}
-	if rf, ok := ret.Get(0).(func(uint64) bytes.B32); ok {
+	if rf, ok := ret.Get(0).(func(uint64) common.Root); ok {
 		r0 = rf(_a0)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(bytes.B32)
+			r0 = ret.Get(0).(common.Root)
 		}
 	}
 
@@ -1178,12 +1180,12 @@ func (_c *BeaconState_StateRootAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, Execu
 	return _c
 }
 
-func (_c *BeaconState_StateRootAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Return(_a0 bytes.B32, _a1 error) *BeaconState_StateRootAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+func (_c *BeaconState_StateRootAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) Return(_a0 common.Root, _a1 error) *BeaconState_StateRootAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *BeaconState_StateRootAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) RunAndReturn(run func(uint64) (bytes.B32, error)) *BeaconState_StateRootAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
+func (_c *BeaconState_StateRootAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT]) RunAndReturn(run func(uint64) (common.Root, error)) *BeaconState_StateRootAtIndex_Call[BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT, ValidatorT, ValidatorsT, WithdrawalT] {
 	_c.Call.Return(run)
 	return _c
 }
