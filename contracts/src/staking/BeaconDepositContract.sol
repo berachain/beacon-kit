@@ -29,6 +29,8 @@ contract BeaconDepositContract is IBeaconDepositContract, Ownable {
     /// @dev The length of the credentials, 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
     uint8 private constant CREDENTIALS_LENGTH = 32;
 
+    uint256 private constant TWO_DAYS = 172800; // 2 days
+
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                           STORAGE                          */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
@@ -167,8 +169,8 @@ contract BeaconDepositContract is IBeaconDepositContract, Ownable {
         if (msg.sender != newOperator) {
             revert NotNewOperator();
         }
-        // 2 days to accept the change.
-        if (queuedTimestamp + 2 days > block.timestamp) {
+        // 2 days buffer to accept the change.
+        if (queuedTimestamp + TWO_DAYS > block.timestamp) {
             revert NotEnoughTimePassed();
         }
         address oldOperator = _pubkeyToOperator[pubkey];
