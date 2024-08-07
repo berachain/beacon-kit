@@ -48,9 +48,12 @@ start-geth-full-node: ## start an ephemeral `geth` node with docker
 # config=/config/geth.toml 
 # --snapshot=false 
 
-## Testing:
+# Pre-requsites:
+# Place the snapshot in the `./.tmp/beacond/data` directory
+# Use the genesis.json file in .tmp/beacond/config/ from testing/networks/80084/genesis.json
+# Add seednodes from testing/networks/80084/cl-seeds.txt to .tmp/beacond/config/config.toml
 start-beaconkit: ## start an ephemeral `beacond` node
-	@JWT_SECRET_PATH=$(JWT_PATH) RPC_DIAL_URL=http://localhost:8551/ CHAINID=80084 LOGLEVEL=info CHAIN_SPEC=testnet ETH_GENESIS=./testing/networks/80084/eth-genesis.json testing/scripts/entrypoint.sh
+	@JWT_SECRET_PATH=$(JWT_PATH) CHAINID=80084 CHAIN_SPEC=testnet testing/scripts/entrypoint.sh
 # defaultDialURL= "http://localhost:8551"
 
 .PHONY: start-geth-full-node start-beaconkit
