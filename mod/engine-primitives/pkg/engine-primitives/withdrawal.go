@@ -147,13 +147,13 @@ func (w *Withdrawal) GetTree() (*fastssz.Node, error) {
 /* -------------------------------------------------------------------------- */
 
 // SetIndex sets the unique identifier for the withdrawal.
-func (w *Withdrawal) EncodeRLP(_w io.Writer) error {
+func (w Withdrawal) EncodeRLP(_w io.Writer) error {
 	a := fastrlp.DefaultArenaPool.Get()
 	defer fastrlp.DefaultArenaPool.Put(a)
 	v := a.NewArray()
 	v.Set(a.NewUint(uint64(w.Index)))
 	v.Set(a.NewUint(uint64(w.Validator)))
-	v.Set(a.NewBytes(w.Address[:]))
+	v.Set(a.NewCopyBytes(w.Address[:]))
 	v.Set(a.NewUint(uint64(w.Amount)))
 	_, err := _w.Write(v.MarshalTo(nil))
 	return err
