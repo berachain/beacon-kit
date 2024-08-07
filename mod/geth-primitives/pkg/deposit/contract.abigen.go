@@ -31,7 +31,7 @@ var (
 
 // BeaconDepositContractMetaData contains all meta data concerning the BeaconDepositContract contract.
 var BeaconDepositContractMetaData = &bind.MetaData{
-	ABI: "[{\"type\":\"function\",\"name\":\"allowDeposit\",\"inputs\":[{\"name\":\"depositor\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"number\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"cancelOwnershipHandover\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"completeOwnershipHandover\",\"inputs\":[{\"name\":\"pendingOwner\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"deposit\",\"inputs\":[{\"name\":\"pubkey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"credentials\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"signature\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"depositCount\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"initializeOwner\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"owner\",\"inputs\":[],\"outputs\":[{\"name\":\"result\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"ownershipHandoverExpiresAt\",\"inputs\":[{\"name\":\"pendingOwner\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"result\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"renounceOwnership\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"requestOwnershipHandover\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"transferOwnership\",\"inputs\":[{\"name\":\"newOwner\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"event\",\"name\":\"Deposit\",\"inputs\":[{\"name\":\"pubkey\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"credentials\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"},{\"name\":\"signature\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"index\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OwnershipHandoverCanceled\",\"inputs\":[{\"name\":\"pendingOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OwnershipHandoverRequested\",\"inputs\":[{\"name\":\"pendingOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OwnershipTransferred\",\"inputs\":[{\"name\":\"oldOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"newOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"error\",\"name\":\"AlreadyInitialized\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"DepositNotMultipleOfGwei\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"DepositValueTooHigh\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InsufficientDeposit\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidCredentialsLength\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidPubKeyLength\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidSignatureLength\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"NewOwnerIsZeroAddress\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"NoHandoverRequest\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"Unauthorized\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"UnauthorizedDeposit\",\"inputs\":[]}]",
+	ABI: "[{\"type\":\"constructor\",\"inputs\":[{\"name\":\"_owner\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"acceptOperatorChange\",\"inputs\":[{\"name\":\"pubkey\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"allowDeposit\",\"inputs\":[{\"name\":\"depositor\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"number\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"cancelOperatorChange\",\"inputs\":[{\"name\":\"pubkey\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"cancelOwnershipHandover\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"completeOwnershipHandover\",\"inputs\":[{\"name\":\"pendingOwner\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"deposit\",\"inputs\":[{\"name\":\"pubkey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"credentials\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"signature\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"depositAuth\",\"inputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"depositCount\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getOperator\",\"inputs\":[{\"name\":\"pubkey\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"owner\",\"inputs\":[],\"outputs\":[{\"name\":\"result\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"ownershipHandoverExpiresAt\",\"inputs\":[{\"name\":\"pendingOwner\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"result\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"renounceOwnership\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"requestOperatorChange\",\"inputs\":[{\"name\":\"pubkey\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"newOperator\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"requestOwnershipHandover\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"transferOwnership\",\"inputs\":[{\"name\":\"newOwner\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"event\",\"name\":\"Deposit\",\"inputs\":[{\"name\":\"pubkey\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"credentials\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"amount\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"},{\"name\":\"signature\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"index\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OperatorChangeCancelled\",\"inputs\":[{\"name\":\"pubkey\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OperatorChangeQueued\",\"inputs\":[{\"name\":\"pubkey\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"newOperator\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OperatorSet\",\"inputs\":[{\"name\":\"pubkey\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"},{\"name\":\"newOperator\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"},{\"name\":\"oldOperator\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OwnershipHandoverCanceled\",\"inputs\":[{\"name\":\"pendingOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OwnershipHandoverRequested\",\"inputs\":[{\"name\":\"pendingOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OwnershipTransferred\",\"inputs\":[{\"name\":\"oldOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"newOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"error\",\"name\":\"AlreadyInitialized\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"DepositNotMultipleOfGwei\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"DepositValueTooHigh\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InsufficientDeposit\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidCredentialsLength\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidPubKeyLength\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidSignatureLength\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"NewOwnerIsZeroAddress\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"NoHandoverRequest\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"NotEnoughTimePassed\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"NotNewOperator\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"NotOperator\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"Unauthorized\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"UnauthorizedDeposit\",\"inputs\":[]}]",
 }
 
 // BeaconDepositContractABI is the input ABI used to generate the binding from.
@@ -180,6 +180,37 @@ func (_BeaconDepositContract *BeaconDepositContractTransactorRaw) Transact(opts 
 	return _BeaconDepositContract.Contract.contract.Transact(opts, method, params...)
 }
 
+// DepositAuth is a free data retrieval call binding the contract method 0x3198a6b8.
+//
+// Solidity: function depositAuth(address ) view returns(uint64)
+func (_BeaconDepositContract *BeaconDepositContractCaller) DepositAuth(opts *bind.CallOpts, arg0 common.Address) (uint64, error) {
+	var out []interface{}
+	err := _BeaconDepositContract.contract.Call(opts, &out, "depositAuth", arg0)
+
+	if err != nil {
+		return *new(uint64), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(uint64)).(*uint64)
+
+	return out0, err
+
+}
+
+// DepositAuth is a free data retrieval call binding the contract method 0x3198a6b8.
+//
+// Solidity: function depositAuth(address ) view returns(uint64)
+func (_BeaconDepositContract *BeaconDepositContractSession) DepositAuth(arg0 common.Address) (uint64, error) {
+	return _BeaconDepositContract.Contract.DepositAuth(&_BeaconDepositContract.CallOpts, arg0)
+}
+
+// DepositAuth is a free data retrieval call binding the contract method 0x3198a6b8.
+//
+// Solidity: function depositAuth(address ) view returns(uint64)
+func (_BeaconDepositContract *BeaconDepositContractCallerSession) DepositAuth(arg0 common.Address) (uint64, error) {
+	return _BeaconDepositContract.Contract.DepositAuth(&_BeaconDepositContract.CallOpts, arg0)
+}
+
 // DepositCount is a free data retrieval call binding the contract method 0x2dfdf0b5.
 //
 // Solidity: function depositCount() view returns(uint64)
@@ -209,6 +240,37 @@ func (_BeaconDepositContract *BeaconDepositContractSession) DepositCount() (uint
 // Solidity: function depositCount() view returns(uint64)
 func (_BeaconDepositContract *BeaconDepositContractCallerSession) DepositCount() (uint64, error) {
 	return _BeaconDepositContract.Contract.DepositCount(&_BeaconDepositContract.CallOpts)
+}
+
+// GetOperator is a free data retrieval call binding the contract method 0x9eaffa96.
+//
+// Solidity: function getOperator(bytes pubkey) view returns(address)
+func (_BeaconDepositContract *BeaconDepositContractCaller) GetOperator(opts *bind.CallOpts, pubkey []byte) (common.Address, error) {
+	var out []interface{}
+	err := _BeaconDepositContract.contract.Call(opts, &out, "getOperator", pubkey)
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
+}
+
+// GetOperator is a free data retrieval call binding the contract method 0x9eaffa96.
+//
+// Solidity: function getOperator(bytes pubkey) view returns(address)
+func (_BeaconDepositContract *BeaconDepositContractSession) GetOperator(pubkey []byte) (common.Address, error) {
+	return _BeaconDepositContract.Contract.GetOperator(&_BeaconDepositContract.CallOpts, pubkey)
+}
+
+// GetOperator is a free data retrieval call binding the contract method 0x9eaffa96.
+//
+// Solidity: function getOperator(bytes pubkey) view returns(address)
+func (_BeaconDepositContract *BeaconDepositContractCallerSession) GetOperator(pubkey []byte) (common.Address, error) {
+	return _BeaconDepositContract.Contract.GetOperator(&_BeaconDepositContract.CallOpts, pubkey)
 }
 
 // Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
@@ -273,6 +335,27 @@ func (_BeaconDepositContract *BeaconDepositContractCallerSession) OwnershipHando
 	return _BeaconDepositContract.Contract.OwnershipHandoverExpiresAt(&_BeaconDepositContract.CallOpts, pendingOwner)
 }
 
+// AcceptOperatorChange is a paid mutator transaction binding the contract method 0xc53925d9.
+//
+// Solidity: function acceptOperatorChange(bytes pubkey) returns()
+func (_BeaconDepositContract *BeaconDepositContractTransactor) AcceptOperatorChange(opts *bind.TransactOpts, pubkey []byte) (*types.Transaction, error) {
+	return _BeaconDepositContract.contract.Transact(opts, "acceptOperatorChange", pubkey)
+}
+
+// AcceptOperatorChange is a paid mutator transaction binding the contract method 0xc53925d9.
+//
+// Solidity: function acceptOperatorChange(bytes pubkey) returns()
+func (_BeaconDepositContract *BeaconDepositContractSession) AcceptOperatorChange(pubkey []byte) (*types.Transaction, error) {
+	return _BeaconDepositContract.Contract.AcceptOperatorChange(&_BeaconDepositContract.TransactOpts, pubkey)
+}
+
+// AcceptOperatorChange is a paid mutator transaction binding the contract method 0xc53925d9.
+//
+// Solidity: function acceptOperatorChange(bytes pubkey) returns()
+func (_BeaconDepositContract *BeaconDepositContractTransactorSession) AcceptOperatorChange(pubkey []byte) (*types.Transaction, error) {
+	return _BeaconDepositContract.Contract.AcceptOperatorChange(&_BeaconDepositContract.TransactOpts, pubkey)
+}
+
 // AllowDeposit is a paid mutator transaction binding the contract method 0x5a7517ad.
 //
 // Solidity: function allowDeposit(address depositor, uint64 number) returns()
@@ -292,6 +375,27 @@ func (_BeaconDepositContract *BeaconDepositContractSession) AllowDeposit(deposit
 // Solidity: function allowDeposit(address depositor, uint64 number) returns()
 func (_BeaconDepositContract *BeaconDepositContractTransactorSession) AllowDeposit(depositor common.Address, number uint64) (*types.Transaction, error) {
 	return _BeaconDepositContract.Contract.AllowDeposit(&_BeaconDepositContract.TransactOpts, depositor, number)
+}
+
+// CancelOperatorChange is a paid mutator transaction binding the contract method 0x577212fe.
+//
+// Solidity: function cancelOperatorChange(bytes pubkey) returns()
+func (_BeaconDepositContract *BeaconDepositContractTransactor) CancelOperatorChange(opts *bind.TransactOpts, pubkey []byte) (*types.Transaction, error) {
+	return _BeaconDepositContract.contract.Transact(opts, "cancelOperatorChange", pubkey)
+}
+
+// CancelOperatorChange is a paid mutator transaction binding the contract method 0x577212fe.
+//
+// Solidity: function cancelOperatorChange(bytes pubkey) returns()
+func (_BeaconDepositContract *BeaconDepositContractSession) CancelOperatorChange(pubkey []byte) (*types.Transaction, error) {
+	return _BeaconDepositContract.Contract.CancelOperatorChange(&_BeaconDepositContract.TransactOpts, pubkey)
+}
+
+// CancelOperatorChange is a paid mutator transaction binding the contract method 0x577212fe.
+//
+// Solidity: function cancelOperatorChange(bytes pubkey) returns()
+func (_BeaconDepositContract *BeaconDepositContractTransactorSession) CancelOperatorChange(pubkey []byte) (*types.Transaction, error) {
+	return _BeaconDepositContract.Contract.CancelOperatorChange(&_BeaconDepositContract.TransactOpts, pubkey)
 }
 
 // CancelOwnershipHandover is a paid mutator transaction binding the contract method 0x54d1f13d.
@@ -336,46 +440,25 @@ func (_BeaconDepositContract *BeaconDepositContractTransactorSession) CompleteOw
 	return _BeaconDepositContract.Contract.CompleteOwnershipHandover(&_BeaconDepositContract.TransactOpts, pendingOwner)
 }
 
-// Deposit is a paid mutator transaction binding the contract method 0x5b70fa29.
+// Deposit is a paid mutator transaction binding the contract method 0xc47e300d.
 //
-// Solidity: function deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature) payable returns()
-func (_BeaconDepositContract *BeaconDepositContractTransactor) Deposit(opts *bind.TransactOpts, pubkey []byte, credentials []byte, amount uint64, signature []byte) (*types.Transaction, error) {
-	return _BeaconDepositContract.contract.Transact(opts, "deposit", pubkey, credentials, amount, signature)
+// Solidity: function deposit(bytes pubkey, bytes credentials, bytes signature) payable returns()
+func (_BeaconDepositContract *BeaconDepositContractTransactor) Deposit(opts *bind.TransactOpts, pubkey []byte, credentials []byte, signature []byte) (*types.Transaction, error) {
+	return _BeaconDepositContract.contract.Transact(opts, "deposit", pubkey, credentials, signature)
 }
 
-// Deposit is a paid mutator transaction binding the contract method 0x5b70fa29.
+// Deposit is a paid mutator transaction binding the contract method 0xc47e300d.
 //
-// Solidity: function deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature) payable returns()
-func (_BeaconDepositContract *BeaconDepositContractSession) Deposit(pubkey []byte, credentials []byte, amount uint64, signature []byte) (*types.Transaction, error) {
-	return _BeaconDepositContract.Contract.Deposit(&_BeaconDepositContract.TransactOpts, pubkey, credentials, amount, signature)
+// Solidity: function deposit(bytes pubkey, bytes credentials, bytes signature) payable returns()
+func (_BeaconDepositContract *BeaconDepositContractSession) Deposit(pubkey []byte, credentials []byte, signature []byte) (*types.Transaction, error) {
+	return _BeaconDepositContract.Contract.Deposit(&_BeaconDepositContract.TransactOpts, pubkey, credentials, signature)
 }
 
-// Deposit is a paid mutator transaction binding the contract method 0x5b70fa29.
+// Deposit is a paid mutator transaction binding the contract method 0xc47e300d.
 //
-// Solidity: function deposit(bytes pubkey, bytes credentials, uint64 amount, bytes signature) payable returns()
-func (_BeaconDepositContract *BeaconDepositContractTransactorSession) Deposit(pubkey []byte, credentials []byte, amount uint64, signature []byte) (*types.Transaction, error) {
-	return _BeaconDepositContract.Contract.Deposit(&_BeaconDepositContract.TransactOpts, pubkey, credentials, amount, signature)
-}
-
-// InitializeOwner is a paid mutator transaction binding the contract method 0x5f53837f.
-//
-// Solidity: function initializeOwner() returns()
-func (_BeaconDepositContract *BeaconDepositContractTransactor) InitializeOwner(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _BeaconDepositContract.contract.Transact(opts, "initializeOwner")
-}
-
-// InitializeOwner is a paid mutator transaction binding the contract method 0x5f53837f.
-//
-// Solidity: function initializeOwner() returns()
-func (_BeaconDepositContract *BeaconDepositContractSession) InitializeOwner() (*types.Transaction, error) {
-	return _BeaconDepositContract.Contract.InitializeOwner(&_BeaconDepositContract.TransactOpts)
-}
-
-// InitializeOwner is a paid mutator transaction binding the contract method 0x5f53837f.
-//
-// Solidity: function initializeOwner() returns()
-func (_BeaconDepositContract *BeaconDepositContractTransactorSession) InitializeOwner() (*types.Transaction, error) {
-	return _BeaconDepositContract.Contract.InitializeOwner(&_BeaconDepositContract.TransactOpts)
+// Solidity: function deposit(bytes pubkey, bytes credentials, bytes signature) payable returns()
+func (_BeaconDepositContract *BeaconDepositContractTransactorSession) Deposit(pubkey []byte, credentials []byte, signature []byte) (*types.Transaction, error) {
+	return _BeaconDepositContract.Contract.Deposit(&_BeaconDepositContract.TransactOpts, pubkey, credentials, signature)
 }
 
 // RenounceOwnership is a paid mutator transaction binding the contract method 0x715018a6.
@@ -397,6 +480,27 @@ func (_BeaconDepositContract *BeaconDepositContractSession) RenounceOwnership() 
 // Solidity: function renounceOwnership() payable returns()
 func (_BeaconDepositContract *BeaconDepositContractTransactorSession) RenounceOwnership() (*types.Transaction, error) {
 	return _BeaconDepositContract.Contract.RenounceOwnership(&_BeaconDepositContract.TransactOpts)
+}
+
+// RequestOperatorChange is a paid mutator transaction binding the contract method 0xfea7ab77.
+//
+// Solidity: function requestOperatorChange(bytes pubkey, address newOperator) returns()
+func (_BeaconDepositContract *BeaconDepositContractTransactor) RequestOperatorChange(opts *bind.TransactOpts, pubkey []byte, newOperator common.Address) (*types.Transaction, error) {
+	return _BeaconDepositContract.contract.Transact(opts, "requestOperatorChange", pubkey, newOperator)
+}
+
+// RequestOperatorChange is a paid mutator transaction binding the contract method 0xfea7ab77.
+//
+// Solidity: function requestOperatorChange(bytes pubkey, address newOperator) returns()
+func (_BeaconDepositContract *BeaconDepositContractSession) RequestOperatorChange(pubkey []byte, newOperator common.Address) (*types.Transaction, error) {
+	return _BeaconDepositContract.Contract.RequestOperatorChange(&_BeaconDepositContract.TransactOpts, pubkey, newOperator)
+}
+
+// RequestOperatorChange is a paid mutator transaction binding the contract method 0xfea7ab77.
+//
+// Solidity: function requestOperatorChange(bytes pubkey, address newOperator) returns()
+func (_BeaconDepositContract *BeaconDepositContractTransactorSession) RequestOperatorChange(pubkey []byte, newOperator common.Address) (*types.Transaction, error) {
+	return _BeaconDepositContract.Contract.RequestOperatorChange(&_BeaconDepositContract.TransactOpts, pubkey, newOperator)
 }
 
 // RequestOwnershipHandover is a paid mutator transaction binding the contract method 0x25692962.
@@ -573,6 +677,411 @@ func (_BeaconDepositContract *BeaconDepositContractFilterer) WatchDeposit(opts *
 func (_BeaconDepositContract *BeaconDepositContractFilterer) ParseDeposit(log types.Log) (*BeaconDepositContractDeposit, error) {
 	event := new(BeaconDepositContractDeposit)
 	if err := _BeaconDepositContract.contract.UnpackLog(event, "Deposit", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// BeaconDepositContractOperatorChangeCancelledIterator is returned from FilterOperatorChangeCancelled and is used to iterate over the raw logs and unpacked data for OperatorChangeCancelled events raised by the BeaconDepositContract contract.
+type BeaconDepositContractOperatorChangeCancelledIterator struct {
+	Event *BeaconDepositContractOperatorChangeCancelled // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *BeaconDepositContractOperatorChangeCancelledIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(BeaconDepositContractOperatorChangeCancelled)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(BeaconDepositContractOperatorChangeCancelled)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *BeaconDepositContractOperatorChangeCancelledIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *BeaconDepositContractOperatorChangeCancelledIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// BeaconDepositContractOperatorChangeCancelled represents a OperatorChangeCancelled event raised by the BeaconDepositContract contract.
+type BeaconDepositContractOperatorChangeCancelled struct {
+	Pubkey []byte
+	Raw    types.Log // Blockchain specific contextual infos
+}
+
+// FilterOperatorChangeCancelled is a free log retrieval operation binding the contract event 0x1c0a7e1bd09da292425c039309671a03de56b89a0858598aab6df6ce84b006db.
+//
+// Solidity: event OperatorChangeCancelled(bytes pubkey)
+func (_BeaconDepositContract *BeaconDepositContractFilterer) FilterOperatorChangeCancelled(opts *bind.FilterOpts) (*BeaconDepositContractOperatorChangeCancelledIterator, error) {
+
+	logs, sub, err := _BeaconDepositContract.contract.FilterLogs(opts, "OperatorChangeCancelled")
+	if err != nil {
+		return nil, err
+	}
+	return &BeaconDepositContractOperatorChangeCancelledIterator{contract: _BeaconDepositContract.contract, event: "OperatorChangeCancelled", logs: logs, sub: sub}, nil
+}
+
+// WatchOperatorChangeCancelled is a free log subscription operation binding the contract event 0x1c0a7e1bd09da292425c039309671a03de56b89a0858598aab6df6ce84b006db.
+//
+// Solidity: event OperatorChangeCancelled(bytes pubkey)
+func (_BeaconDepositContract *BeaconDepositContractFilterer) WatchOperatorChangeCancelled(opts *bind.WatchOpts, sink chan<- *BeaconDepositContractOperatorChangeCancelled) (event.Subscription, error) {
+
+	logs, sub, err := _BeaconDepositContract.contract.WatchLogs(opts, "OperatorChangeCancelled")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(BeaconDepositContractOperatorChangeCancelled)
+				if err := _BeaconDepositContract.contract.UnpackLog(event, "OperatorChangeCancelled", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseOperatorChangeCancelled is a log parse operation binding the contract event 0x1c0a7e1bd09da292425c039309671a03de56b89a0858598aab6df6ce84b006db.
+//
+// Solidity: event OperatorChangeCancelled(bytes pubkey)
+func (_BeaconDepositContract *BeaconDepositContractFilterer) ParseOperatorChangeCancelled(log types.Log) (*BeaconDepositContractOperatorChangeCancelled, error) {
+	event := new(BeaconDepositContractOperatorChangeCancelled)
+	if err := _BeaconDepositContract.contract.UnpackLog(event, "OperatorChangeCancelled", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// BeaconDepositContractOperatorChangeQueuedIterator is returned from FilterOperatorChangeQueued and is used to iterate over the raw logs and unpacked data for OperatorChangeQueued events raised by the BeaconDepositContract contract.
+type BeaconDepositContractOperatorChangeQueuedIterator struct {
+	Event *BeaconDepositContractOperatorChangeQueued // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *BeaconDepositContractOperatorChangeQueuedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(BeaconDepositContractOperatorChangeQueued)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(BeaconDepositContractOperatorChangeQueued)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *BeaconDepositContractOperatorChangeQueuedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *BeaconDepositContractOperatorChangeQueuedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// BeaconDepositContractOperatorChangeQueued represents a OperatorChangeQueued event raised by the BeaconDepositContract contract.
+type BeaconDepositContractOperatorChangeQueued struct {
+	Pubkey      []byte
+	NewOperator common.Address
+	Raw         types.Log // Blockchain specific contextual infos
+}
+
+// FilterOperatorChangeQueued is a free log retrieval operation binding the contract event 0xa4fa9c3fedace33d385473c300c5ef79d3d358aca6b61e7714f574711881a06f.
+//
+// Solidity: event OperatorChangeQueued(bytes pubkey, address newOperator)
+func (_BeaconDepositContract *BeaconDepositContractFilterer) FilterOperatorChangeQueued(opts *bind.FilterOpts) (*BeaconDepositContractOperatorChangeQueuedIterator, error) {
+
+	logs, sub, err := _BeaconDepositContract.contract.FilterLogs(opts, "OperatorChangeQueued")
+	if err != nil {
+		return nil, err
+	}
+	return &BeaconDepositContractOperatorChangeQueuedIterator{contract: _BeaconDepositContract.contract, event: "OperatorChangeQueued", logs: logs, sub: sub}, nil
+}
+
+// WatchOperatorChangeQueued is a free log subscription operation binding the contract event 0xa4fa9c3fedace33d385473c300c5ef79d3d358aca6b61e7714f574711881a06f.
+//
+// Solidity: event OperatorChangeQueued(bytes pubkey, address newOperator)
+func (_BeaconDepositContract *BeaconDepositContractFilterer) WatchOperatorChangeQueued(opts *bind.WatchOpts, sink chan<- *BeaconDepositContractOperatorChangeQueued) (event.Subscription, error) {
+
+	logs, sub, err := _BeaconDepositContract.contract.WatchLogs(opts, "OperatorChangeQueued")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(BeaconDepositContractOperatorChangeQueued)
+				if err := _BeaconDepositContract.contract.UnpackLog(event, "OperatorChangeQueued", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseOperatorChangeQueued is a log parse operation binding the contract event 0xa4fa9c3fedace33d385473c300c5ef79d3d358aca6b61e7714f574711881a06f.
+//
+// Solidity: event OperatorChangeQueued(bytes pubkey, address newOperator)
+func (_BeaconDepositContract *BeaconDepositContractFilterer) ParseOperatorChangeQueued(log types.Log) (*BeaconDepositContractOperatorChangeQueued, error) {
+	event := new(BeaconDepositContractOperatorChangeQueued)
+	if err := _BeaconDepositContract.contract.UnpackLog(event, "OperatorChangeQueued", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// BeaconDepositContractOperatorSetIterator is returned from FilterOperatorSet and is used to iterate over the raw logs and unpacked data for OperatorSet events raised by the BeaconDepositContract contract.
+type BeaconDepositContractOperatorSetIterator struct {
+	Event *BeaconDepositContractOperatorSet // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *BeaconDepositContractOperatorSetIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(BeaconDepositContractOperatorSet)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(BeaconDepositContractOperatorSet)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *BeaconDepositContractOperatorSetIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *BeaconDepositContractOperatorSetIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// BeaconDepositContractOperatorSet represents a OperatorSet event raised by the BeaconDepositContract contract.
+type BeaconDepositContractOperatorSet struct {
+	Pubkey      []byte
+	NewOperator common.Address
+	OldOperator common.Address
+	Raw         types.Log // Blockchain specific contextual infos
+}
+
+// FilterOperatorSet is a free log retrieval operation binding the contract event 0x4203f1f21f386d6089680e7ca5f5888948c65526af25bc7eb81c9f12250fc78e.
+//
+// Solidity: event OperatorSet(bytes pubkey, address newOperator, address oldOperator)
+func (_BeaconDepositContract *BeaconDepositContractFilterer) FilterOperatorSet(opts *bind.FilterOpts) (*BeaconDepositContractOperatorSetIterator, error) {
+
+	logs, sub, err := _BeaconDepositContract.contract.FilterLogs(opts, "OperatorSet")
+	if err != nil {
+		return nil, err
+	}
+	return &BeaconDepositContractOperatorSetIterator{contract: _BeaconDepositContract.contract, event: "OperatorSet", logs: logs, sub: sub}, nil
+}
+
+// WatchOperatorSet is a free log subscription operation binding the contract event 0x4203f1f21f386d6089680e7ca5f5888948c65526af25bc7eb81c9f12250fc78e.
+//
+// Solidity: event OperatorSet(bytes pubkey, address newOperator, address oldOperator)
+func (_BeaconDepositContract *BeaconDepositContractFilterer) WatchOperatorSet(opts *bind.WatchOpts, sink chan<- *BeaconDepositContractOperatorSet) (event.Subscription, error) {
+
+	logs, sub, err := _BeaconDepositContract.contract.WatchLogs(opts, "OperatorSet")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(BeaconDepositContractOperatorSet)
+				if err := _BeaconDepositContract.contract.UnpackLog(event, "OperatorSet", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseOperatorSet is a log parse operation binding the contract event 0x4203f1f21f386d6089680e7ca5f5888948c65526af25bc7eb81c9f12250fc78e.
+//
+// Solidity: event OperatorSet(bytes pubkey, address newOperator, address oldOperator)
+func (_BeaconDepositContract *BeaconDepositContractFilterer) ParseOperatorSet(log types.Log) (*BeaconDepositContractOperatorSet, error) {
+	event := new(BeaconDepositContractOperatorSet)
+	if err := _BeaconDepositContract.contract.UnpackLog(event, "OperatorSet", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
