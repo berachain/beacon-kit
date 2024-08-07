@@ -585,10 +585,9 @@ func (p *ExecutionPayload) ToHeader(
 			BaseFeePerGas:    p.GetBaseFeePerGas(),
 			BlockHash:        p.BlockHash,
 			TransactionsRoot: txsRoot,
-			WithdrawalsRoot: engineprimitives.Withdrawals(p.GetWithdrawals()).
-				HashTreeRoot(),
-			BlobGasUsed:   p.GetBlobGasUsed(),
-			ExcessBlobGas: p.GetExcessBlobGas(),
+			WithdrawalsRoot:  p.GetWithdrawals().HashTreeRoot(),
+			BlobGasUsed:      p.GetBlobGasUsed(),
+			ExcessBlobGas:    p.GetExcessBlobGas(),
 		}, nil
 	default:
 		return nil, errors.New("unknown fork version")
