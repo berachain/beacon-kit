@@ -42,7 +42,7 @@ type BlockStore[BeaconBlockT BeaconBlock] interface {
 // Event is an interface for block events.
 type Event[BeaconBlockT BeaconBlock] interface {
 	// Type returns the type of the event.
-	Type() asynctypes.EventID
+	ID() asynctypes.EventID
 	// Is returns true if the event is of the given type.
 	Is(asynctypes.EventID) bool
 	// Data returns the data of the event.

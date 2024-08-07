@@ -28,6 +28,7 @@ import (
 	blockservice "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/block"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
@@ -70,24 +71,20 @@ type BlockPrunerInput struct {
 func ProvideBlockPruner(
 	in BlockPrunerInput,
 ) (BlockPruner, error) {
-	subCh, err := in.BlockBroker.Subscribe()
-	if err != nil {
-		in.Logger.Error("failed to subscribe to block feed", "err", err)
-		return nil, err
-	}
-
+	var finalizedBlkCh chan *FinalizedBlockEvent
+	in.Dispatcher.Subscribe(messages.BeaconBlockFinalized, finalizedBlkCh)
 	return pruner.NewPruner[
 		*BeaconBlock,
-		*BlockEvent,
+		*FinalizedBlockEvent,
 		*BlockStore,
 	](
 		in.Logger.With("service", manager.BlockPrunerName),
 		in.BlockStore,
 		manager.BlockPrunerName,
-		subCh,
+		finalizedBlkCh,
 		blockservice.BuildPruneRangeFn[
 			*BeaconBlock,
-			*BlockEvent,
+			*FinalizedBlockEvent,
 		](in.Config.BlockStoreService),
 	), nil
 }

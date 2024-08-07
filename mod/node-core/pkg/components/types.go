@@ -209,7 +209,7 @@ type (
 	DepositService = deposit.Service[
 		*BeaconBlock,
 		*BeaconBlockBody,
-		*BlockEvent,
+		*FinalizedBlockEvent,
 		*Deposit,
 		*ExecutionPayload,
 		WithdrawalCredentials,
@@ -419,8 +419,10 @@ type (
 /* -------------------------------------------------------------------------- */
 
 type (
-	// BlockEvent is a type alias for the block event.
-	BlockEvent = asynctypes.Event[*BeaconBlock]
+	// FinalizedBlockEvent is a type alias for the block event.
+	FinalizedBlockEvent = asynctypes.Event[*BeaconBlock]
+
+	// TODO: delete all of these when done
 
 	// GenesisEvent is a type alias for the genesis event.
 	GenesisEvent = asynctypes.Event[*Genesis]
@@ -473,7 +475,7 @@ type (
 	SidecarsBroker = broker.Broker[*SidecarEvent]
 
 	// BlockBroker is a type alias for the block feed.
-	BlockBroker = broker.Broker[*BlockEvent]
+	BlockBroker = broker.Broker[*FinalizedBlockEvent]
 
 	// SlotBroker is a type alias for the slot feed.
 	SlotBroker = broker.Broker[*SlotEvent]

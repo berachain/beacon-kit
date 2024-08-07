@@ -45,11 +45,11 @@ type pruner[
 	BlockEventT BlockEvent[BeaconBlockT],
 	PrunableT Prunable,
 ] struct {
-	prunable     Prunable
-	logger       log.Logger[any]
-	name         string
-	feed         chan BlockEventT
-	pruneRangeFn func(BlockEventT) (uint64, uint64)
+	prunable         Prunable
+	logger           log.Logger[any]
+	name             string
+	finalizedBlockCh chan BlockEventT
+	pruneRangeFn     func(BlockEventT) (uint64, uint64)
 }
 
 // NewPruner creates a new Pruner.
@@ -61,30 +61,32 @@ func NewPruner[
 	logger log.Logger[any],
 	prunable Prunable,
 	name string,
-	feed chan BlockEventT,
+	finalizedBlockCh chan BlockEventT,
 	pruneRangeFn func(BlockEventT) (uint64, uint64),
 ) Pruner[PrunableT] {
 	return &pruner[BeaconBlockT, BlockEventT, PrunableT]{
-		logger:       logger,
-		prunable:     prunable,
-		name:         name,
-		feed:         feed,
-		pruneRangeFn: pruneRangeFn,
+		logger:           logger,
+		prunable:         prunable,
+		name:             name,
+		finalizedBlockCh: finalizedBlockCh,
+		pruneRangeFn:     pruneRangeFn,
 	}
 }
 
 // Start starts the Pruner by listening for new indexes to prune.
-func (p *pruner[_, _, _]) Start(ctx context.Context) {
+func (p *pruner[_, BlockEventT, _]) Start(ctx context.Context) {
 	go p.start(ctx)
 }
 
 // start listens for new indexes to prune.
-func (p *pruner[_, _, _]) start(ctx context.Context) {
+func (p *pruner[_, BlockEventT, _]) start(
+	ctx context.Context,
+) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case event := <-p.feed:
+		case event := <-p.finalizedBlockCh:
 			if event.Is(messages.BeaconBlockFinalized) {
 				start, end := p.pruneRangeFn(event)
 				if err := p.prunable.Prune(start, end); err != nil {

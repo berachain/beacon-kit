@@ -33,7 +33,7 @@ func ProvideBlobBroker() *SidecarsBroker {
 
 // ProvideBlockBroker provides a block feed for the depinject framework.
 func ProvideBlockBroker() *BlockBroker {
-	return broker.New[*BlockEvent](
+	return broker.New[*FinalizedBlockEvent](
 		"blk-broker",
 	)
 }

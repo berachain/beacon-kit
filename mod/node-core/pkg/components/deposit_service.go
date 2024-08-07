@@ -21,8 +21,6 @@
 package components
 
 import (
-	"errors"
-
 	"cosmossdk.io/depinject"
 	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
@@ -30,15 +28,16 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
 )
 
 // DepositServiceIn is the input for the deposit service.
 type DepositServiceIn struct {
 	depinject.In
 	BeaconDepositContract *DepositContract
-	BlockBroker           *BlockBroker
 	ChainSpec             common.ChainSpec
 	DepositStore          *DepositStore
+	Dispatcher            *Dispatcher
 	EngineClient          *EngineClient
 	Logger                log.AdvancedLogger[any, sdklog.Logger]
 	TelemetrySink         *metrics.TelemetrySink
@@ -47,17 +46,16 @@ type DepositServiceIn struct {
 // ProvideDepositService provides the deposit service to the depinject
 // framework.
 func ProvideDepositService(in DepositServiceIn) (*DepositService, error) {
-	blkSub, err := in.BlockBroker.Subscribe()
-	if err != nil {
-		in.Logger.Error("failed to subscribe to block feed", "err", err)
-		return nil, errors.New("failed to subscribe to block feed")
+	var finalizedBlkCh chan *FinalizedBlockEvent
+	if err := in.Dispatcher.Subscribe(messages.BeaconBlockFinalized, finalizedBlkCh); err != nil {
+		return nil, err
 	}
 
 	// Build the deposit service.
 	return deposit.NewService[
 		*BeaconBlockBody,
 		*BeaconBlock,
-		*BlockEvent,
+		*FinalizedBlockEvent,
 		*DepositStore,
 		*ExecutionPayload,
 	](
@@ -66,6 +64,6 @@ func ProvideDepositService(in DepositServiceIn) (*DepositService, error) {
 		in.TelemetrySink,
 		in.DepositStore,
 		in.BeaconDepositContract,
-		blkSub,
+		finalizedBlkCh,
 	), nil
 }
