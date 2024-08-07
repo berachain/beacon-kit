@@ -76,7 +76,7 @@ type ExecutionFeeRecipientResponse[BeaconBlockHeaderT any] struct {
 
 	// ExecutionFeeRecipient is the fee recipient from the execution payload.
 	//
-	//nolint:lll // json tag.
+	
 	ExecutionFeeRecipient common.ExecutionAddress `json:"execution_fee_recipient"`
 
 	// ExecutionFeeRecipientProof can be verified against the beacon block root

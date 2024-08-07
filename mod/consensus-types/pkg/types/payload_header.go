@@ -464,7 +464,7 @@ func (
 // GetFeeRecipient returns the fee recipient address of the
 // ExecutionPayloadHeader.
 //
-//nolint:lll // long variable names.
+
 func (h *ExecutionPayloadHeader) GetFeeRecipient() common.ExecutionAddress {
 	return h.FeeRecipient
 }
