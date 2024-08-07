@@ -30,23 +30,19 @@ import (
 // ServiceRegistryInput is the input for the service registry provider.
 type ServiceRegistryInput struct {
 	depinject.In
-	ABCIService           *ABCIMiddleware
-	BlockBroker           *BlockBroker
-	BlockStoreService     *BlockStoreService
-	ChainService          *ChainService
-	DAService             *DAService
-	DBManager             *DBManager
-	DepositService        *DepositService
-	EngineClient          *EngineClient
-	GenesisBroker         *GenesisBroker
-	Logger                log.Logger
-	NodeAPIServer         *NodeAPIServer
-	ReportingService      *ReportingService
-	SidecarsBroker        *SidecarsBroker
-	SlotBroker            *SlotBroker
-	TelemetrySink         *metrics.TelemetrySink
-	ValidatorService      *ValidatorService
-	ValidatorUpdateBroker *ValidatorUpdateBroker
+	ABCIService       *ABCIMiddleware
+	BlockStoreService *BlockStoreService
+	ChainService      *ChainService
+	DAService         *DAService
+	DBManager         *DBManager
+	DepositService    *DepositService
+	EngineClient      *EngineClient
+	Logger            log.Logger
+	NodeAPIServer     *NodeAPIServer
+	ReportingService  *ReportingService
+	TelemetrySink     *metrics.TelemetrySink
+	ValidatorService  *ValidatorService
+	Dispatcher        *Dispatcher
 }
 
 // ProvideServiceRegistry is the depinject provider for the service registry.
@@ -54,6 +50,7 @@ func ProvideServiceRegistry(
 	in ServiceRegistryInput,
 ) *service.Registry {
 	return service.NewRegistry(
+		in.Dispatcher,
 		service.WithLogger(in.Logger),
 		service.WithService(in.ValidatorService),
 		service.WithService(in.BlockStoreService),
@@ -64,11 +61,6 @@ func ProvideServiceRegistry(
 		service.WithService(in.NodeAPIServer),
 		service.WithService(in.ReportingService),
 		service.WithService(in.DBManager),
-		service.WithService(in.GenesisBroker),
-		service.WithService(in.BlockBroker),
-		service.WithService(in.SlotBroker),
-		service.WithService(in.SidecarsBroker),
-		service.WithService(in.ValidatorUpdateBroker),
 		service.WithService(in.EngineClient),
 	)
 }

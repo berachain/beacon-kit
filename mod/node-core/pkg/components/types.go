@@ -188,7 +188,6 @@ type (
 		*AvailabilityStore,
 		*BeaconBlockBody,
 		*BlobSidecars,
-		*SidecarsBroker,
 		*ExecutionPayload,
 	]
 

@@ -35,10 +35,16 @@ type Basic interface {
 	Name() string
 }
 
+type Dispatcher interface {
+	Start(ctx context.Context) error
+}
+
 // Registry provides a useful pattern for managing services.
 // It allows for ease of dependency management and ensures services
 // dependent on others use the same references in memory.
 type Registry struct {
+	// dispatcher is the dispatcher for the Registry.
+	dispatcher Dispatcher
 	// logger is the logger for the Registry.
 	logger log.Logger[any]
 	// services is a map of service type -> service instance.
@@ -48,9 +54,12 @@ type Registry struct {
 }
 
 // NewRegistry starts a registry instance for convenience.
-func NewRegistry(opts ...RegistryOption) *Registry {
+func NewRegistry(
+	dispatcher Dispatcher,
+	opts ...RegistryOption) *Registry {
 	r := &Registry{
-		services: make(map[string]Basic),
+		services:   make(map[string]Basic),
+		dispatcher: dispatcher,
 	}
 
 	for _, opt := range opts {
@@ -63,6 +72,12 @@ func NewRegistry(opts ...RegistryOption) *Registry {
 
 // StartAll initialized each service in order of registration.
 func (s *Registry) StartAll(ctx context.Context) error {
+	// start the dispatcher
+	if err := s.dispatcher.Start(ctx); err != nil {
+		return err
+	}
+
+	// start all services
 	s.logger.Info("Starting services", "num", len(s.serviceTypes))
 	for _, typeName := range s.serviceTypes {
 		s.logger.Info("Starting service", "type", typeName)
