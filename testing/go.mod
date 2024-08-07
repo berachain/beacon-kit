@@ -9,7 +9,7 @@ replace (
 	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240731202123-43dd23137e9d
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
 	cosmossdk.io/log => cosmossdk.io/log v1.3.2-0.20240729192831-b2989459ae91
-	cosmossdk.io/store => github.com/berachain/cosmos-sdk/store v0.1.0-alpha.1.0.20240806165653-78391fad650f
+	cosmossdk.io/store => cosmossdk.io/store v1.0.0-rc.0.0.20240806211350-feb0e077a953
 	cosmossdk.io/store/v2 => cosmossdk.io/store/v2 v2.0.0-20240731205446-aee9803a0af6
 	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240731202123-43dd23137e9d
 	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240731202123-43dd23137e9d
