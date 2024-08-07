@@ -463,30 +463,6 @@ type (
 )
 
 /* -------------------------------------------------------------------------- */
-/*                                   Brokers                                  */
-/* -------------------------------------------------------------------------- */
-
-type (
-// // GenesisBroker is a type alias for the genesis feed.
-// GenesisBroker = broker.Broker[*GenesisEvent]
-
-// // SidecarsBroker is a type alias for the blob feed.
-// SidecarsBroker = broker.Broker[*SidecarEvent]
-
-// // BlockBroker is a type alias for the block feed.
-// BlockBroker = broker.Broker[*FinalizedBlockEvent]
-
-// // SlotBroker is a type alias for the slot feed.
-// SlotBroker = broker.Broker[*SlotEvent]
-
-// // StatusBroker is a type alias for the status feed.
-// StatusBroker = broker.Broker[*StatusEvent]
-
-// // ValidatorUpdateBroker is a type alias for the validator update feed.
-// ValidatorUpdateBroker = broker.Broker[*ValidatorUpdateEvent]
-)
-
-/* -------------------------------------------------------------------------- */
 /*                                   Publishers                               */
 /* -------------------------------------------------------------------------- */
 
