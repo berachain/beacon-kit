@@ -4,21 +4,14 @@ go 1.22.5
 
 replace (
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240731205446-aee9803a0af6
-	// The following are required to build with the latest version of the cosmos-sdk main branch:
-	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240731205446-aee9803a0af6
 	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240731202123-43dd23137e9d
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
 	cosmossdk.io/log => cosmossdk.io/log v1.3.2-0.20240729192831-b2989459ae91
-	cosmossdk.io/store => github.com/berachain/cosmos-sdk/store v0.1.0-alpha.1.0.20240806165653-78391fad650f
-	cosmossdk.io/store/v2 => cosmossdk.io/store/v2 v2.0.0-20240731205446-aee9803a0af6
-	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240731202123-43dd23137e9d
-	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240731202123-43dd23137e9d
-	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240731202123-43dd23137e9d
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240729221345-3df18b5c3b34
 )
 
 require (
-	cosmossdk.io/log v1.4.0
+	cosmossdk.io/log v1.3.2-0.20240806152830-8fb47b368cd4
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240806160829-cde2d1347e7e
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240705193247-d464364483df
@@ -26,8 +19,8 @@ require (
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240729121641-d06d2e8229ee
 	github.com/cosmos/cosmos-sdk v0.53.0
-	github.com/ethereum/go-ethereum v1.14.7
-	github.com/holiman/uint256 v1.3.1
+	github.com/ethereum/go-ethereum v1.14.6
+	github.com/holiman/uint256 v1.3.0
 	github.com/kurtosis-tech/kurtosis/api/golang v1.0.0
 	github.com/protolambda/zrnt v0.32.2
 	github.com/protolambda/ztyp v0.2.2
@@ -36,12 +29,7 @@ require (
 )
 
 require (
-	cosmossdk.io/x/auth v0.0.0-00010101000000-000000000000 // indirect
-	cosmossdk.io/x/bank v0.0.0-20240226161501-23359a0b6d91 // indirect
-	cosmossdk.io/x/consensus v0.0.0-00010101000000-000000000000 // indirect
-	cosmossdk.io/x/staking v0.0.0-00010101000000-000000000000 // indirect
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240705193247-d464364483df // indirect
-	github.com/cespare/cp v1.1.1 // indirect
 	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4 // indirect
 )
 
@@ -56,6 +44,10 @@ require (
 	cosmossdk.io/math v1.3.0 // indirect
 	cosmossdk.io/schema v0.1.1 // indirect
 	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc // indirect
+	cosmossdk.io/x/auth v0.0.0-20240731202123-43dd23137e9d // indirect
+	cosmossdk.io/x/bank v0.0.0-20240731202123-43dd23137e9d // indirect
+	cosmossdk.io/x/consensus v0.0.0-20240731202123-43dd23137e9d // indirect
+	cosmossdk.io/x/staking v0.0.0-20240731202123-43dd23137e9d // indirect
 	cosmossdk.io/x/tx v0.13.4-0.20240623110059-dec2d5583e39 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
@@ -91,7 +83,7 @@ require (
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
 	github.com/cosmos/gogoproto v1.5.0 // indirect
-	github.com/cosmos/iavl v1.3.0 // indirect
+	github.com/cosmos/iavl v1.2.1-0.20240725141113-7adc688cf179 // indirect
 	github.com/cosmos/ics23/go v0.10.0 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.13.3 // indirect
 	github.com/crate-crypto/go-ipa v0.0.0-20240724233137-53bbb0ceb27a // indirect
@@ -210,7 +202,7 @@ require (
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
-	github.com/spf13/cast v1.7.0 // indirect
+	github.com/spf13/cast v1.6.0 // indirect
 	github.com/spf13/cobra v1.8.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.19.0 // indirect
@@ -232,14 +224,14 @@ require (
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/crypto v0.26.0 // indirect
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
-	golang.org/x/net v0.28.0 // indirect
+	golang.org/x/net v0.27.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/sys v0.23.0 // indirect
 	golang.org/x/term v0.23.0 // indirect
 	golang.org/x/text v0.17.0 // indirect
 	google.golang.org/genproto v0.0.0-20240617180043-68d350f18fd4 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240617180043-68d350f18fd4 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240805194559-2c9e96a0b5d4 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240711142825-46eb208f015d // indirect
 	google.golang.org/grpc v1.65.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect

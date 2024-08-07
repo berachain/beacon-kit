@@ -22,8 +22,6 @@ require (
 	golang.org/x/sync v0.8.0
 )
 
-require golang.org/x/net v0.28.0 // indirect
-
 require (
 	github.com/DataDog/zstd v1.5.6 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
