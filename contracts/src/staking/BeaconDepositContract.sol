@@ -29,7 +29,7 @@ contract BeaconDepositContract is IBeaconDepositContract, Ownable {
     /// @dev The length of the credentials, 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
     uint8 private constant CREDENTIALS_LENGTH = 32;
 
-    uint256 private constant TWO_DAYS = 172800; // 2 days
+    uint256 private constant TWO_DAYS = 172_800; // 2 days
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                           STORAGE                          */
