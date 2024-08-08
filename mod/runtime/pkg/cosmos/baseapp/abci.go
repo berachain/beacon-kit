@@ -25,7 +25,6 @@ import (
 	"errors"
 	"fmt"
 	"sort"
-	"strings"
 
 	corecomet "cosmossdk.io/core/comet"
 	coreheader "cosmossdk.io/core/header"
@@ -660,20 +659,6 @@ func (app *BaseApp) workingHash() []byte {
 	return commitHash
 }
 
-// SplitABCIQueryPath splits a string path using the delimiter '/'.
-//
-// e.g. "this/is/funny" becomes []string{"this", "is", "funny"}.
-func SplitABCIQueryPath(requestPath string) (path []string) {
-	path = strings.Split(requestPath, "/")
-
-	// first element is empty string
-	if len(path) > 0 && path[0] == "" {
-		path = path[1:]
-	}
-
-	return path
-}
-
 // getContextForProposal returns the correct Context for PrepareProposal and
 // ProcessProposal. We use finalizeBlockState on the first block to be able to
 // access any state changes made in InitChain.
@@ -694,27 +679,12 @@ func (app *BaseApp) getContextForProposal(
 	return ctx
 }
 
-func checkNegativeHeight(height int64) error {
-	if height < 0 {
-		return errorsmod.Wrap(
-			sdkerrors.ErrInvalidRequest,
-			"cannot query with height < 0; please provide a valid height",
-		)
-	}
-
-	return nil
-}
-
 // CreateQueryContext creates a new sdk.Context for a query, taking as args
 // the block height and whether the query needs a proof or not.
 func (app *BaseApp) CreateQueryContext(
 	height int64,
 	prove bool,
 ) (sdk.Context, error) {
-	if err := checkNegativeHeight(height); err != nil {
-		return sdk.Context{}, err
-	}
-
 	// use custom query multi-store if provided
 	qms := app.qms
 	if qms == nil {
