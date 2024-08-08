@@ -379,20 +379,7 @@ func (app *BaseApp) setState(mode execMode, h cmtproto.Header) {
 func (app *BaseApp) GetConsensusParams(
 	ctx context.Context,
 ) cmtproto.ConsensusParams {
-	if app.paramStore == nil {
-		return cmtproto.ConsensusParams{}
-	}
-
-	cp, err := app.paramStore.Get(ctx)
-	if err != nil {
-		// This could happen while migrating from v0.45/v0.46 to v0.50, we
-		// should allow it to happen so during preblock the upgrade plan can be
-		// executed
-		// and the consensus params set for the first time in the new format.
-		app.logger.Error("failed to get consensus params", "err", err)
-		return cmtproto.ConsensusParams{}
-	}
-
+	cp, _ := app.paramStore.Get(ctx)
 	return cp
 }
 

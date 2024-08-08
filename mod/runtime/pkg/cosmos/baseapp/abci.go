@@ -306,9 +306,7 @@ func (app *BaseApp) PrepareProposal(
 			}),
 	)
 
-	app.prepareProposalState.SetContext(app.prepareProposalState.Context().
-		WithConsensusParams(app.GetConsensusParams(app.prepareProposalState.Context())),
-	)
+	app.prepareProposalState.SetContext(app.prepareProposalState.Context())
 
 	defer func() {
 		if err := recover(); err != nil {
@@ -501,7 +499,6 @@ func (app *BaseApp) internalFinalizeBlock(
 			Hash:    req.Hash,
 			AppHash: app.LastCommitID().Hash,
 		}).
-		WithConsensusParams(app.GetConsensusParams(app.finalizeBlockState.Context())).
 		WithVoteInfos(req.DecidedLastCommit.Votes).
 		WithExecMode(sdk.ExecModeFinalize).
 		WithCometInfo(corecomet.Info{
@@ -575,7 +572,6 @@ func (app *BaseApp) internalFinalizeBlock(
 	}
 
 	cp := app.GetConsensusParams(app.finalizeBlockState.Context())
-
 	return &abci.FinalizeBlockResponse{
 		TxResults:             txResults,
 		ValidatorUpdates:      endBlock.ValidatorUpdates,
@@ -598,8 +594,7 @@ func (app *BaseApp) internalFinalizeBlock(
 func (app *BaseApp) FinalizeBlock(
 	req *abci.FinalizeBlockRequest,
 ) (res *abci.FinalizeBlockResponse, err error) {
-	// if no OE is running, just run the block (this is either a block replay or
-	// a OE that got aborted)
+
 	res, err = app.internalFinalizeBlock(context.Background(), req)
 	if res != nil {
 		res.AppHash = app.workingHash()
