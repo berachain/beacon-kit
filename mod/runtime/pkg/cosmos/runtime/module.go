@@ -29,7 +29,6 @@ import (
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/core/genesis"
-	"cosmossdk.io/core/legacy"
 	"cosmossdk.io/core/store"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
@@ -104,7 +103,6 @@ func init() {
 			// registered from the app
 			// i.e. in the call to depinject.Inject(...)
 			codec.ProvideInterfaceRegistry,
-			codec.ProvideLegacyAmino,
 			codec.ProvideProtoCodec,
 			codec.ProvideAddressCodec,
 			ProvideKVStoreKey,
@@ -138,13 +136,11 @@ func ProvideApp(
 type AppInputs struct {
 	depinject.In
 
-	Logger            log.Logger
-	Config            *runtimev1alpha1.Module
-	AppBuilder        *AppBuilder
-	ModuleManager     *module.Manager
-	BaseAppOptions    []BaseAppOption
-	InterfaceRegistry codectypes.InterfaceRegistry
-	LegacyAmino       legacy.Amino
+	Logger         log.Logger
+	Config         *runtimev1alpha1.Module
+	AppBuilder     *AppBuilder
+	ModuleManager  *module.Manager
+	BaseAppOptions []BaseAppOption
 }
 
 func SetupAppBuilder(inputs AppInputs) {
@@ -153,8 +149,6 @@ func SetupAppBuilder(inputs AppInputs) {
 	app.config = inputs.Config
 	app.logger = inputs.Logger
 	app.ModuleManager = inputs.ModuleManager
-	app.ModuleManager.RegisterInterfaces(inputs.InterfaceRegistry)
-	app.ModuleManager.RegisterLegacyAminoCodec(inputs.LegacyAmino)
 }
 
 func registerStoreKey(wrapper *AppBuilder, key storetypes.StoreKey) {
