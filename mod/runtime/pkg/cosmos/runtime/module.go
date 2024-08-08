@@ -67,10 +67,7 @@ func init() {
 			codec.ProvideProtoCodec,
 			codec.ProvideAddressCodec,
 			ProvideKVStoreKey,
-			ProvideTransientStoreKey,
-			ProvideMemoryStoreKey,
 			ProvideEnvironment,
-			ProvideTransientStoreService,
 			ProvideModuleManager,
 		),
 		appconfig.Invoke(SetupAppBuilder),
@@ -122,38 +119,6 @@ func ProvideKVStoreKey(
 	return storeKey
 }
 
-func ProvideTransientStoreKey(
-	config *runtimev1alpha1.Module,
-	key depinject.ModuleKey,
-	app *AppBuilder,
-) *storetypes.TransientStoreKey {
-	if slices.Contains(config.GetSkipStoreKeys(), key.Name()) {
-		return nil
-	}
-
-	storeKey := storetypes.NewTransientStoreKey(
-		fmt.Sprintf("transient:%s", key.Name()),
-	)
-	registerStoreKey(app, storeKey)
-	return storeKey
-}
-
-func ProvideMemoryStoreKey(
-	config *runtimev1alpha1.Module,
-	key depinject.ModuleKey,
-	app *AppBuilder,
-) *storetypes.MemoryStoreKey {
-	if slices.Contains(config.GetSkipStoreKeys(), key.Name()) {
-		return nil
-	}
-
-	storeKey := storetypes.NewMemoryStoreKey(
-		fmt.Sprintf("memory:%s", key.Name()),
-	)
-	registerStoreKey(app, storeKey)
-	return storeKey
-}
-
 func ProvideModuleManager(
 	modules map[string]appmodule.AppModule,
 ) *module.Manager {
@@ -165,10 +130,9 @@ func ProvideEnvironment(
 	config *runtimev1alpha1.Module,
 	key depinject.ModuleKey,
 	app *AppBuilder,
-) (store.KVStoreService, store.MemoryStoreService, appmodule.Environment) {
+) (store.KVStoreService, appmodule.Environment) {
 	var (
-		kvService    store.KVStoreService     = failingStoreService{}
-		memKvService store.MemoryStoreService = failingStoreService{}
+		kvService store.KVStoreService = failingStoreService{}
 	)
 
 	// skips modules that have no store
@@ -176,11 +140,9 @@ func ProvideEnvironment(
 		storeKey := ProvideKVStoreKey(config, key, app)
 		kvService = kvStoreService{key: storeKey}
 
-		memStoreKey := ProvideMemoryStoreKey(config, key, app)
-		memKvService = memStoreService{key: memStoreKey}
 	}
 
-	return kvService, memKvService, appmodule.Environment{
+	return kvService, appmodule.Environment{
 		Logger: logger.With(
 			log.ModuleKey,
 			fmt.Sprintf("x/%s", key.Name()),
@@ -188,17 +150,4 @@ func ProvideEnvironment(
 		KVStoreService: kvService,
 	}
 
-}
-
-func ProvideTransientStoreService(
-	config *runtimev1alpha1.Module,
-	key depinject.ModuleKey,
-	app *AppBuilder,
-) store.TransientStoreService {
-	storeKey := ProvideTransientStoreKey(config, key, app)
-	if storeKey == nil {
-		return failingStoreService{}
-	}
-
-	return transientStoreService{key: storeKey}
 }

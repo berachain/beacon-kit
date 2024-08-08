@@ -47,10 +47,6 @@ func (a *AppBuilder) Build(
 	_ io.Writer,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *App {
-	for _, option := range a.app.baseAppOptions {
-		baseAppOptions = append(baseAppOptions, option)
-	}
-
 	bApp := baseapp.NewBaseApp(
 		a.app.config.GetAppName(),
 		a.app.logger,
