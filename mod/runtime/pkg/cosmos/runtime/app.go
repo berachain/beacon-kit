@@ -26,7 +26,6 @@ import (
 	"slices"
 
 	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
-	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	authtx "cosmossdk.io/x/auth/tx"
@@ -35,7 +34,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	nodeservice "github.com/cosmos/cosmos-sdk/client/grpc/node"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
@@ -58,13 +56,12 @@ import (
 type App struct {
 	*baseapp.BaseApp
 
-	ModuleManager     *module.Manager
-	configurator      module.Configurator //nolint:staticcheck // SA1019: Configurator is deprecated but still used in runtime v1.
-	config            *runtimev1alpha1.Module
-	storeKeys         []storetypes.StoreKey
-	interfaceRegistry codectypes.InterfaceRegistry
-	baseAppOptions    []BaseAppOption
-	logger            log.Logger
+	ModuleManager  *module.Manager
+	configurator   module.Configurator //nolint:staticcheck // SA1019: Configurator is deprecated but still used in runtime v1.
+	config         *runtimev1alpha1.Module
+	storeKeys      []storetypes.StoreKey
+	baseAppOptions []BaseAppOption
+	logger         log.Logger
 	// initChainer is the init chainer function defined by the app config.
 	// this is only required if the chain wants to add special InitChainer
 	// logic.
@@ -79,11 +76,6 @@ func (a *App) RegisterModules(modules ...module.AppModule) error {
 		name := appModule.Name()
 		if _, ok := a.ModuleManager.Modules[name]; ok {
 			return fmt.Errorf("AppModule named %q already exists", name)
-		}
-
-		a.ModuleManager.Modules[name] = appModule
-		if mod, ok := appModule.(appmodule.HasRegisterInterfaces); ok {
-			mod.RegisterInterfaces(a.interfaceRegistry)
 		}
 	}
 
@@ -230,7 +222,7 @@ func (a *App) RegisterTendermintService(clientCtx client.Context) {
 	cmtservice.RegisterTendermintService(
 		clientCtx,
 		NoopServer{},
-		a.interfaceRegistry,
+		nil,
 		cmtApp.Query,
 	)
 }

@@ -933,7 +933,8 @@ func (app *BaseApp) NewContextLegacy(
 	header cmtproto.Header,
 ) sdk.Context {
 	if isCheckTx {
-		return sdk.NewContext(app.checkState.ms, true, app.logger).WithBlockHeader(header)
+		return sdk.NewContext(app.checkState.ms, true, app.logger).
+			WithBlockHeader(header)
 	}
 
 	return sdk.NewContext(app.finalizeBlockState.ms, false, app.logger).

@@ -22,7 +22,6 @@ package runtime
 
 import (
 	"fmt"
-	"os"
 	"slices"
 
 	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
@@ -41,10 +40,6 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/std"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/types/msgservice"
-	"github.com/cosmos/gogoproto/proto"
-	"google.golang.org/protobuf/reflect/protodesc"
-	"google.golang.org/protobuf/reflect/protoregistry"
 )
 
 // appModule defines runtime as an AppModule.
@@ -129,29 +124,15 @@ func ProvideApp(
 ) (
 	*AppBuilder,
 	appmodule.AppModule,
-	protodesc.Resolver,
-	protoregistry.MessageTypeResolver,
 	error,
 ) {
-	protoFiles := proto.HybridResolver
-	protoTypes := protoregistry.GlobalTypes
-
-	// At startup, check that all proto annotations are correct.
-	if err := msgservice.ValidateProtoAnnotations(protoFiles); err != nil {
-		// Once we switch to using protoreflect-based ante handlers, we might
-		// want to panic here instead of logging a warning.
-		_, _ = fmt.Fprintln(os.Stderr, err.Error())
-	}
 
 	std.RegisterInterfaces(interfaceRegistry)
 
-	app := &App{
-		storeKeys:         nil,
-		interfaceRegistry: interfaceRegistry,
-	}
+	app := &App{}
 	appBuilder := &AppBuilder{app}
 
-	return appBuilder, appModule{app}, protoFiles, protoTypes, nil
+	return appBuilder, appModule{app}, nil
 }
 
 type AppInputs struct {
