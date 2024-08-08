@@ -634,17 +634,6 @@ func (app *BaseApp) getContextForTx(mode execMode, txBytes []byte) sdk.Context {
 	return ctx
 }
 
-// cacheTxContext returns a new context based off of the provided context with
-// a branched multi-store.
-func (app *BaseApp) cacheTxContext(
-	ctx sdk.Context,
-	txBytes []byte,
-) (sdk.Context, storetypes.CacheMultiStore) {
-	ms := ctx.MultiStore()
-	msCache := ms.CacheMultiStore()
-	return ctx.WithMultiStore(msCache), msCache
-}
-
 func (app *BaseApp) preBlock(
 	req *abci.FinalizeBlockRequest,
 ) ([]abci.Event, error) {
@@ -780,7 +769,6 @@ func (app *BaseApp) runTx(
 	// meter, so we initialize upfront.
 
 	ctx := app.getContextForTx(mode, txBytes)
-	ms := ctx.MultiStore()
 
 	tx, err := app.txDecoder(txBytes)
 	if err != nil {
@@ -801,55 +789,6 @@ func (app *BaseApp) runTx(
 	// 		return sdk.GasInfo{}, nil, nil, err
 	// 	}
 	// }
-
-	if app.anteHandler != nil {
-		var (
-			anteCtx sdk.Context
-			msCache storetypes.CacheMultiStore
-		)
-
-		// Branch context before AnteHandler call in case it aborts.
-		// This is required for both CheckTx and DeliverTx.
-		// Ref: https://github.com/cosmos/cosmos-sdk/issues/2772
-		//
-		// NOTE: Alternatively, we could require that AnteHandler ensures that
-		// writes do not happen if aborted/failed.  This may have some
-		// performance benefits, but it'll be more difficult to get right.
-		anteCtx, msCache = app.cacheTxContext(ctx, txBytes)
-		anteCtx = anteCtx.WithEventManager(sdk.NewEventManager())
-		if mode == execModeSimulate {
-			anteCtx = anteCtx.WithExecMode(sdk.ExecMode(execModeSimulate))
-		}
-		newCtx, err := app.anteHandler(anteCtx, tx, mode == execModeSimulate)
-
-		if !newCtx.IsZero() {
-			// At this point, newCtx.MultiStore() is a store branch, or
-			// something else
-			// replaced by the AnteHandler. We want the original multistore.
-			//
-			// Also, in the case of the tx aborting, we need to track gas
-			// consumed via the instantiated gas meter in the AnteHandler, so we
-			// update the context
-			// prior to returning.
-			ctx = newCtx.WithMultiStore(ms)
-		}
-
-		events := ctx.EventManager().Events()
-
-		if err != nil {
-			if mode == execModeReCheck {
-				// if the ante handler fails on recheck, we want to remove the
-				// tx from the mempool
-				if mempoolErr := app.mempool.Remove(tx); mempoolErr != nil {
-					return gInfo, nil, anteEvents, errors.Join(err, mempoolErr)
-				}
-			}
-			return gInfo, nil, nil, err
-		}
-
-		msCache.Write()
-		anteEvents = events.ToABCIEvents()
-	}
 
 	if mode == execModeCheck {
 		err = app.mempool.Insert(ctx, tx)
