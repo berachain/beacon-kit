@@ -23,7 +23,7 @@ package node
 // Syncing is a placeholder so that beacon API clients don't break.
 //
 // TODO: Implement with real data.
-func (h *Handler[ContextT]) Syncing(ctx ContextT) (any, error) {
+func (h *Handler[ContextT]) Syncing(ContextT) (any, error) {
 	type SyncingResponse struct {
 		Data struct {
 			HeadSlot     string `json:"head_slot"`
@@ -47,7 +47,7 @@ func (h *Handler[ContextT]) Syncing(ctx ContextT) (any, error) {
 // Version is a placeholder so that beacon API clients don't break.
 //
 // TODO: Implement with real data.
-func (h *Handler[ContextT]) Version(ctx ContextT) (any, error) {
+func (h *Handler[ContextT]) Version(ContextT) (any, error) {
 	type VersionResponse struct {
 		Data struct {
 			Version string `json:"version"`
