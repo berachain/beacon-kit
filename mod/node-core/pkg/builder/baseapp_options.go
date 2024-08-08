@@ -104,7 +104,7 @@ func DefaultBaseappOptions(
 		if err != nil {
 			panic(err)
 		}
-		//#nosec:G703 // bet.
+		//#nosec:307 // bet.
 		defer reader.Close()
 
 		chainID, err = genutiltypes.ParseChainIDFromGenesis(reader)
