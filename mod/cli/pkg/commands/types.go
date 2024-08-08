@@ -38,7 +38,3 @@ type PostSetupFn[T types.Node] func(
 
 // runHandler is a function that sets up run handlers for the root command.
 type runHandler func(cmd *cobra.Command) error
-
-// enhancer is a function that applies an enhancement to the underlying
-// cobra.Command.
-type enhancer func(*cobra.Command) error
