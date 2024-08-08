@@ -23,12 +23,14 @@ package runtime
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 
 	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/baseapp"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
+	dbm "github.com/cosmos/cosmos-db"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -58,6 +60,27 @@ type App struct {
 	// this is only required if the chain wants to add special InitChainer
 	// logic.
 	initChainer sdk.InitChainer
+}
+
+// NewBeaconKitApp returns a reference to an initialized BeaconApp.
+func NewBeaconKitApp(
+	db dbm.DB,
+	traceStore io.Writer,
+	loadLatest bool,
+	appBuilder *AppBuilder,
+	baseAppOptions ...func(*baseapp.BaseApp),
+) *App {
+	app := &App{}
+
+	// Build the runtime.App using the app builder.
+	app = appBuilder.Build(db, traceStore, baseAppOptions...)
+
+	// Load the app.
+	if err := app.Load(loadLatest); err != nil {
+		panic(err)
+	}
+
+	return app
 }
 
 // RegisterModules registers the provided modules with the module manager and
