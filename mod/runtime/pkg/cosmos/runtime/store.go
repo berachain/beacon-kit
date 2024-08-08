@@ -42,36 +42,6 @@ func (k kvStoreService) OpenKVStore(ctx context.Context) store.KVStore {
 	return newKVStore(sdk.UnwrapSDKContext(ctx).KVStore(k.key))
 }
 
-type memStoreService struct {
-	key *storetypes.MemoryStoreKey
-}
-
-func NewMemStoreService(
-	storeKey *storetypes.MemoryStoreKey,
-) store.MemoryStoreService {
-	return &memStoreService{key: storeKey}
-}
-
-func (m memStoreService) OpenMemoryStore(ctx context.Context) store.KVStore {
-	return newKVStore(sdk.UnwrapSDKContext(ctx).KVStore(m.key))
-}
-
-func NewTransientStoreService(
-	storeKey *storetypes.TransientStoreKey,
-) store.TransientStoreService {
-	return &transientStoreService{key: storeKey}
-}
-
-type transientStoreService struct {
-	key *storetypes.TransientStoreKey
-}
-
-func (t transientStoreService) OpenTransientStore(
-	ctx context.Context,
-) store.KVStore {
-	return newKVStore(sdk.UnwrapSDKContext(ctx).KVStore(t.key))
-}
-
 type failingStoreService struct{}
 
 func (failingStoreService) OpenKVStore(ctx context.Context) store.KVStore {
