@@ -23,7 +23,6 @@ package builder
 import (
 	"os"
 
-	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/depinject"
 	sdklog "cosmossdk.io/log"
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
@@ -87,11 +86,10 @@ func New[
 func (cb *CLIBuilder[T, ExecutionPayloadT]) Build() (*cmdlib.Root, error) {
 	// allocate memory to hold the dependencies
 	var (
-		autoCliOpts autocli.AppOptions
-		mm          *module.Manager
-		clientCtx   client.Context
-		chainSpec   common.ChainSpec
-		logger      log.AdvancedLogger[any, sdklog.Logger]
+		mm        *module.Manager
+		clientCtx client.Context
+		chainSpec common.ChainSpec
+		logger    log.AdvancedLogger[any, sdklog.Logger]
 	)
 	// build dependencies for the root command
 	if err := depinject.Inject(
@@ -109,7 +107,6 @@ func (cb *CLIBuilder[T, ExecutionPayloadT]) Build() (*cmdlib.Root, error) {
 		&logger,
 		&clientCtx,
 		&chainSpec,
-		&autoCliOpts,
 	); err != nil {
 		return nil, err
 	}
@@ -121,11 +118,6 @@ func (cb *CLIBuilder[T, ExecutionPayloadT]) Build() (*cmdlib.Root, error) {
 		cb.defaultRunHandler(logger),
 		clientCtx,
 	)
-
-	// enhance the root command with the autoCliOpts
-	if err := rootCmd.Enhance(autoCliOpts.EnhanceRootCommand); err != nil {
-		return nil, err
-	}
 
 	// apply default root command setup
 	cmdlib.DefaultRootCommandSetup[T, ExecutionPayloadT](

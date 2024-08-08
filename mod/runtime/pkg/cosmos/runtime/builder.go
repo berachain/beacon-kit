@@ -18,27 +18,36 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package runtime
 
 import (
-	clientv2keyring "cosmossdk.io/client/v2/autocli/keyring"
-	"cosmossdk.io/core/address"
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	"io"
+
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/baseapp"
+	dbm "github.com/cosmos/cosmos-db"
+	"github.com/cosmos/cosmos-sdk/version"
 )
 
-// ProvideKeyring provides a keyring for the client.
-func ProvideKeyring(
-	clientCtx client.Context,
-	_ address.Codec,
-) (clientv2keyring.Keyring, error) {
-	kb, err := client.NewKeyringFromBackend(
-		clientCtx,
-		clientCtx.Keyring.Backend(),
-	)
-	if err != nil {
-		return nil, err
-	}
+// AppBuilder is a type that is injected into a container by the runtime module
+// (as *AppBuilder) which can be used to create an app which is compatible with
+// the existing app.go initialization conventions.
+type AppBuilder struct {
+	app *App
+}
 
-	return keyring.NewAutoCLIKeyring(kb)
+// Build builds an *App instance.
+func (a *AppBuilder) Build(
+	db dbm.DB,
+	_ io.Writer,
+	baseAppOptions ...func(*baseapp.BaseApp),
+) *App {
+	bApp := baseapp.NewBaseApp(
+		a.app.config.GetAppName(),
+		a.app.logger,
+		db,
+		baseAppOptions...)
+	bApp.SetVersion(version.Version)
+	bApp.MountStores(a.app.storeKeys...)
+	a.app.BaseApp = bApp
+	return a.app
 }
