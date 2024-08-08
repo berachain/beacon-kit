@@ -193,16 +193,3 @@ func (a *App) LoadHeight(height int64) error {
 func (a *App) DefaultGenesis() map[string]json.RawMessage {
 	return a.ModuleManager.DefaultGenesis()
 }
-
-// GetStoreKeys returns all the stored store keys.
-func (a *App) GetStoreKeys() []storetypes.StoreKey {
-	return a.storeKeys
-}
-
-// SetInitChainer sets the init chainer function
-// It wraps `BaseApp.SetInitChainer` to allow setting a custom init chainer from
-// an app.
-func (a *App) SetInitChainer(initChainer sdk.InitChainer) {
-	a.initChainer = initChainer
-	a.BaseApp.SetInitChainer(initChainer)
-}
