@@ -51,11 +51,10 @@ var _ servertypes.Application = &App{}
 type App struct {
 	*baseapp.BaseApp
 
-	ModuleManager  *module.Manager
-	config         *runtimev1alpha1.Module
-	storeKeys      []storetypes.StoreKey
-	baseAppOptions []BaseAppOption
-	logger         log.Logger
+	ModuleManager *module.Manager
+	config        *runtimev1alpha1.Module
+	storeKeys     []storetypes.StoreKey
+	logger        log.Logger
 	// initChainer is the init chainer function defined by the app config.
 	// this is only required if the chain wants to add special InitChainer
 	// logic.
