@@ -21,8 +21,6 @@
 package runtime
 
 import (
-	"context"
-
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/core/log"
 	"cosmossdk.io/core/store"
@@ -35,12 +33,11 @@ import (
 func NewEnvironment(
 	kvService store.KVStoreService,
 	logger log.Logger,
-	opts ...EnvOption,
+	opts ...func(*appmodule.Environment),
 ) appmodule.Environment {
 	env := appmodule.Environment{
-		Logger:          logger,
-		KVStoreService:  kvService,
-		MemStoreService: failingMemStore{},
+		Logger:         logger,
+		KVStoreService: kvService,
 	}
 
 	for _, opt := range opts {
@@ -48,24 +45,4 @@ func NewEnvironment(
 	}
 
 	return env
-}
-
-type EnvOption func(*appmodule.Environment)
-
-func EnvWithMemStoreService(
-	memStoreService store.MemoryStoreService,
-) EnvOption {
-	return func(env *appmodule.Environment) {
-		env.MemStoreService = memStoreService
-	}
-}
-
-// failingMemStore is a memstore that panics when accessed
-// this is to ensure all fields are set by in environment.
-type failingMemStore struct {
-	store.MemoryStoreService
-}
-
-func (failingMemStore) OpenMemoryStore(context.Context) store.KVStore {
-	panic("memory store not set")
 }

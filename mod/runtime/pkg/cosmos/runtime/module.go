@@ -30,7 +30,6 @@ import (
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
 	"cosmossdk.io/core/app"
 	"cosmossdk.io/core/appmodule"
-	"cosmossdk.io/core/comet"
 	"cosmossdk.io/core/genesis"
 	"cosmossdk.io/core/legacy"
 	"cosmossdk.io/core/store"
@@ -122,7 +121,6 @@ func init() {
 			ProvideTransientStoreService,
 			ProvideModuleManager,
 			ProvideAppVersionModifier,
-			ProvideCometService,
 		),
 		appconfig.Invoke(SetupAppBuilder),
 	)
@@ -295,7 +293,6 @@ func ProvideEnvironment(
 	return kvService, memKvService, NewEnvironment(
 		kvService,
 		logger.With(log.ModuleKey, fmt.Sprintf("x/%s", key.Name())),
-		EnvWithMemStoreService(memKvService),
 	)
 }
 
@@ -314,8 +311,4 @@ func ProvideTransientStoreService(
 
 func ProvideAppVersionModifier(app *AppBuilder) app.VersionModifier {
 	return app.app
-}
-
-func ProvideCometService() comet.Service {
-	return NewContextAwareCometInfoService()
 }
