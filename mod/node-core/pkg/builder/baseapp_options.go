@@ -118,10 +118,6 @@ func DefaultBaseappOptions(
 
 	return []func(*baseapp.BaseApp){
 		baseapp.SetPruning(pruningOpts),
-		baseapp.SetHaltHeight(
-			cast.ToUint64(appOpts.Get(server.FlagHaltHeight)),
-		),
-		baseapp.SetHaltTime(cast.ToUint64(appOpts.Get(server.FlagHaltTime))),
 		baseapp.SetMinRetainBlocks(
 			cast.ToUint64(appOpts.Get(server.FlagMinRetainBlocks)),
 		),
