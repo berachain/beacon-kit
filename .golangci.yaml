@@ -361,3 +361,5 @@ issues:
         - noctx
         - wrapcheck
         - gochecknoglobals
+  exclude-dirs:
+    - mod/runtime/pkg/cosmos

@@ -1,3 +1,23 @@
+// SPDX-License-Identifier: BUSL-1.1
+//
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is governed by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
+//
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
+//
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
+//
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
+
 package baseapp
 
 import (
@@ -6,12 +26,10 @@ import (
 	"fmt"
 	"io"
 
-	dbm "github.com/cosmos/cosmos-db"
-
 	"cosmossdk.io/store/metrics"
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	storetypes "cosmossdk.io/store/types"
-
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -21,12 +39,13 @@ import (
 // File for storing in-package BaseApp optional functions,
 // for options that need access to non-exported fields of the BaseApp
 
-// SetPruning sets a pruning option on the multistore associated with the app
+// SetPruning sets a pruning option on the multistore associated with the app.
 func SetPruning(opts pruningtypes.PruningOptions) func(*BaseApp) {
 	return func(bapp *BaseApp) { bapp.cms.SetPruning(opts) }
 }
 
-// SetHaltHeight returns a BaseApp option function that sets the halt block height.
+// SetHaltHeight returns a BaseApp option function that sets the halt block
+// height.
 func SetHaltHeight(blockHeight uint64) func(*BaseApp) {
 	return func(bapp *BaseApp) { bapp.setHaltHeight(blockHeight) }
 }
@@ -43,19 +62,23 @@ func SetMinRetainBlocks(minRetainBlocks uint64) func(*BaseApp) {
 	return func(bapp *BaseApp) { bapp.setMinRetainBlocks(minRetainBlocks) }
 }
 
-// SetIAVLCacheSize provides a BaseApp option function that sets the size of IAVL cache.
+// SetIAVLCacheSize provides a BaseApp option function that sets the size of
+// IAVL cache.
 func SetIAVLCacheSize(size int) func(*BaseApp) {
 	return func(bapp *BaseApp) { bapp.cms.SetIAVLCacheSize(size) }
 }
 
-// SetIAVLDisableFastNode enables(false)/disables(true) fast node usage from the IAVL store.
+// SetIAVLDisableFastNode enables(false)/disables(true) fast node usage from the
+// IAVL store.
 func SetIAVLDisableFastNode(disable bool) func(*BaseApp) {
 	return func(bapp *BaseApp) { bapp.cms.SetIAVLDisableFastNode(disable) }
 }
 
 // SetInterBlockCache provides a BaseApp option function that sets the
 // inter-block cache.
-func SetInterBlockCache(cache storetypes.MultiStorePersistentCache) func(*BaseApp) {
+func SetInterBlockCache(
+	cache storetypes.MultiStorePersistentCache,
+) func(*BaseApp) {
 	return func(app *BaseApp) { app.setInterBlockCache(cache) }
 }
 
@@ -74,7 +97,8 @@ func SetStoreLoader(loader StoreLoader) func(*BaseApp) {
 	return func(app *BaseApp) { app.SetStoreLoader(loader) }
 }
 
-// SetIncludeNestedMsgsGas sets the message types for which gas costs for its nested messages are calculated when simulating.
+// SetIncludeNestedMsgsGas sets the message types for which gas costs for its
+// nested messages are calculated when simulating.
 func SetIncludeNestedMsgsGas(msgs []sdk.Msg) func(*BaseApp) {
 	return func(app *BaseApp) {
 		app.includeNestedMsgsGas = make(map[string]struct{})
@@ -185,7 +209,9 @@ func (app *BaseApp) SetEndBlocker(endBlocker sdk.EndBlocker) {
 	app.endBlocker = endBlocker
 }
 
-func (app *BaseApp) SetPrepareCheckStater(prepareCheckStater sdk.PrepareCheckStater) {
+func (app *BaseApp) SetPrepareCheckStater(
+	prepareCheckStater sdk.PrepareCheckStater,
+) {
 	if app.sealed {
 		panic("SetPrepareCheckStater() on sealed BaseApp")
 	}
@@ -241,7 +267,8 @@ func (app *BaseApp) SetFauxMerkleMode() {
 	app.fauxMerkleMode = true
 }
 
-// SetNotSigverifyTx during simulation testing, transaction signature verification needs to be ignored.
+// SetNotSigverifyTx during simulation testing, transaction signature
+// verification needs to be ignored.
 func (app *BaseApp) SetNotSigverifyTx() {
 	app.sigverifyTx = false
 }
@@ -267,24 +294,28 @@ func (app *BaseApp) SetInterfaceRegistry(registry types.InterfaceRegistry) {
 	app.cdc = codec.NewProtoCodec(registry)
 }
 
-// SetTxDecoder sets the TxDecoder if it wasn't provided in the BaseApp constructor.
+// SetTxDecoder sets the TxDecoder if it wasn't provided in the BaseApp
+// constructor.
 func (app *BaseApp) SetTxDecoder(txDecoder sdk.TxDecoder) {
 	app.txDecoder = txDecoder
 }
 
-// SetTxEncoder sets the TxEncoder if it wasn't provided in the BaseApp constructor.
+// SetTxEncoder sets the TxEncoder if it wasn't provided in the BaseApp
+// constructor.
 func (app *BaseApp) SetTxEncoder(txEncoder sdk.TxEncoder) {
 	app.txEncoder = txEncoder
 }
 
-// SetQueryMultiStore set a alternative MultiStore implementation to support grpc query service.
+// SetQueryMultiStore set a alternative MultiStore implementation to support
+// grpc query service.
 //
 // Ref: https://github.com/cosmos/cosmos-sdk/issues/13317
 func (app *BaseApp) SetQueryMultiStore(ms storetypes.MultiStore) {
 	app.qms = ms
 }
 
-// SetMempool sets the mempool for the BaseApp and is required for the app to start up.
+// SetMempool sets the mempool for the BaseApp and is required for the app to
+// start up.
 func (app *BaseApp) SetMempool(mempool mempool.Mempool) {
 	if app.sealed {
 		panic("SetMempool() on sealed BaseApp")
@@ -317,7 +348,9 @@ func (app *BaseApp) SetExtendVoteHandler(handler sdk.ExtendVoteHandler) {
 	app.extendVote = handler
 }
 
-func (app *BaseApp) SetVerifyVoteExtensionHandler(handler sdk.VerifyVoteExtensionHandler) {
+func (app *BaseApp) SetVerifyVoteExtensionHandler(
+	handler sdk.VerifyVoteExtensionHandler,
+) {
 	if app.sealed {
 		panic("SetVerifyVoteExtensionHandler() on sealed BaseApp")
 	}

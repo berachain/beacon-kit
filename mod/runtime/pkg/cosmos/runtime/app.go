@@ -1,3 +1,23 @@
+// SPDX-License-Identifier: BUSL-1.1
+//
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is governed by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
+//
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
+//
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
+//
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
+
 package runtime
 
 import (
@@ -5,17 +25,14 @@ import (
 	"fmt"
 	"slices"
 
-	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
-	"google.golang.org/grpc"
-
 	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/core/legacy"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	authtx "cosmossdk.io/x/auth/tx"
-
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/baseapp"
+	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	nodeservice "github.com/cosmos/cosmos-sdk/client/grpc/node"
@@ -27,10 +44,12 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"google.golang.org/grpc"
 )
 
 // App is a wrapper around BaseApp and ModuleManager that can be used in hybrid
-// app.go/app config scenarios or directly as a servertypes.Application instance.
+// app.go/app config scenarios or directly as a servertypes.Application
+// instance.
 // To get an instance of *App, *AppBuilder must be requested as a dependency
 // in a container which declares the runtime module and the AppBuilder.Build()
 // method must be called.
@@ -42,7 +61,7 @@ type App struct {
 	*baseapp.BaseApp
 
 	ModuleManager     *module.Manager
-	configurator      module.Configurator // nolint:staticcheck // SA1019: Configurator is deprecated but still used in runtime v1.
+	configurator      module.Configurator //nolint:staticcheck // SA1019: Configurator is deprecated but still used in runtime v1.
 	config            *runtimev1alpha1.Module
 	storeKeys         []storetypes.StoreKey
 	interfaceRegistry codectypes.InterfaceRegistry
@@ -51,7 +70,8 @@ type App struct {
 	baseAppOptions    []BaseAppOption
 	logger            log.Logger
 	// initChainer is the init chainer function defined by the app config.
-	// this is only required if the chain wants to add special InitChainer logic.
+	// this is only required if the chain wants to add special InitChainer
+	// logic.
 	initChainer sdk.InitChainer
 }
 
@@ -74,13 +94,6 @@ func (a *App) RegisterModules(modules ...module.AppModule) error {
 			mod.RegisterLegacyAminoCodec(a.amino)
 		}
 
-		if mod, ok := appModule.(module.HasServices); ok {
-			mod.RegisterServices(a.configurator)
-		} else if module, ok := appModule.(appmodule.HasServices); ok {
-			if err := module.RegisterServices(a.configurator); err != nil {
-				return err
-			}
-		}
 	}
 
 	return nil
@@ -99,48 +112,49 @@ func (a *App) RegisterStores(keys ...storetypes.StoreKey) error {
 
 // Load finishes all initialization operations and loads the app.
 func (a *App) Load(loadLatest bool) error {
-	if len(a.config.InitGenesis) != 0 {
-		a.ModuleManager.SetOrderInitGenesis(a.config.InitGenesis...)
+	if len(a.config.GetInitGenesis()) != 0 {
+		a.ModuleManager.SetOrderInitGenesis(a.config.GetInitGenesis()...)
 		if a.initChainer == nil {
 			a.SetInitChainer(a.InitChainer)
 		}
 	}
 
-	if len(a.config.ExportGenesis) != 0 {
-		a.ModuleManager.SetOrderExportGenesis(a.config.ExportGenesis...)
-	} else if len(a.config.InitGenesis) != 0 {
-		a.ModuleManager.SetOrderExportGenesis(a.config.InitGenesis...)
+	if len(a.config.GetExportGenesis()) != 0 {
+		a.ModuleManager.SetOrderExportGenesis(a.config.GetExportGenesis()...)
+	} else if len(a.config.GetInitGenesis()) != 0 {
+		a.ModuleManager.SetOrderExportGenesis(a.config.GetInitGenesis()...)
 	}
 
-	if len(a.config.PreBlockers) != 0 {
-		a.ModuleManager.SetOrderPreBlockers(a.config.PreBlockers...)
+	if len(a.config.GetPreBlockers()) != 0 {
+		a.ModuleManager.SetOrderPreBlockers(a.config.GetPreBlockers()...)
 		if a.BaseApp.PreBlocker() == nil {
 			a.SetPreBlocker(a.PreBlocker)
 		}
 	}
 
-	if len(a.config.BeginBlockers) != 0 {
-		a.ModuleManager.SetOrderBeginBlockers(a.config.BeginBlockers...)
+	if len(a.config.GetBeginBlockers()) != 0 {
+		a.ModuleManager.SetOrderBeginBlockers(a.config.GetBeginBlockers()...)
 		a.SetBeginBlocker(a.BeginBlocker)
 	}
 
-	if len(a.config.EndBlockers) != 0 {
-		a.ModuleManager.SetOrderEndBlockers(a.config.EndBlockers...)
+	if len(a.config.GetEndBlockers()) != 0 {
+		a.ModuleManager.SetOrderEndBlockers(a.config.GetEndBlockers()...)
 		a.SetEndBlocker(a.EndBlocker)
 	}
 
-	if len(a.config.Precommiters) != 0 {
-		a.ModuleManager.SetOrderPrecommiters(a.config.Precommiters...)
+	if len(a.config.GetPrecommiters()) != 0 {
+		a.ModuleManager.SetOrderPrecommiters(a.config.GetPrecommiters()...)
 		a.SetPrecommiter(a.Precommiter)
 	}
 
-	if len(a.config.PrepareCheckStaters) != 0 {
-		a.ModuleManager.SetOrderPrepareCheckStaters(a.config.PrepareCheckStaters...)
+	if len(a.config.GetPrepareCheckStaters()) != 0 {
+		a.ModuleManager.SetOrderPrepareCheckStaters(
+			a.config.GetPrepareCheckStaters()...)
 		a.SetPrepareCheckStater(a.PrepareCheckStater)
 	}
 
-	if len(a.config.OrderMigrations) != 0 {
-		a.ModuleManager.SetOrderMigrations(a.config.OrderMigrations...)
+	if len(a.config.GetOrderMigrations()) != 0 {
+		a.ModuleManager.SetOrderMigrations(a.config.GetOrderMigrations()...)
 	}
 
 	if loadLatest {
@@ -152,22 +166,22 @@ func (a *App) Load(loadLatest bool) error {
 	return nil
 }
 
-// PreBlocker application updates every pre block
+// PreBlocker application updates every pre block.
 func (a *App) PreBlocker(ctx sdk.Context, _ *abci.FinalizeBlockRequest) error {
 	return a.ModuleManager.PreBlock(ctx)
 }
 
-// BeginBlocker application updates every begin block
+// BeginBlocker application updates every begin block.
 func (a *App) BeginBlocker(ctx sdk.Context) (sdk.BeginBlock, error) {
 	return a.ModuleManager.BeginBlock(ctx)
 }
 
-// EndBlocker application updates every end block
+// EndBlocker application updates every end block.
 func (a *App) EndBlocker(ctx sdk.Context) (sdk.EndBlock, error) {
 	return a.ModuleManager.EndBlock(ctx)
 }
 
-// Precommiter application updates every commit
+// Precommiter application updates every commit.
 func (a *App) Precommiter(ctx sdk.Context) {
 	err := a.ModuleManager.Precommit(ctx)
 	if err != nil {
@@ -175,7 +189,7 @@ func (a *App) Precommiter(ctx sdk.Context) {
 	}
 }
 
-// PrepareCheckStater application updates every commit
+// PrepareCheckStater application updates every commit.
 func (a *App) PrepareCheckStater(ctx sdk.Context) {
 	err := a.ModuleManager.PrepareCheckState(ctx)
 	if err != nil {
@@ -184,7 +198,10 @@ func (a *App) PrepareCheckStater(ctx sdk.Context) {
 }
 
 // InitChainer initializes the chain.
-func (a *App) InitChainer(ctx sdk.Context, req *abci.InitChainRequest) (*abci.InitChainResponse, error) {
+func (a *App) InitChainer(
+	ctx sdk.Context,
+	req *abci.InitChainRequest,
+) (*abci.InitChainResponse, error) {
 	var genesisState map[string]json.RawMessage
 	if err := json.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		return nil, err
@@ -206,13 +223,17 @@ func (a *App) RegisterAPIRoutes(apiSvr *api.Server, _ config.APIConfig) {
 	nodeservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// Register grpc-gateway routes for all modules.
-	a.ModuleManager.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
+	a.ModuleManager.RegisterGRPCGatewayRoutes(
+		clientCtx,
+		apiSvr.GRPCGatewayRouter,
+	)
 }
 
 // RegisterTxService implements the Application.RegisterTxService method.
 func (a *App) RegisterTxService(clientCtx client.Context) {}
 
-// RegisterTendermintService implements the Application.RegisterTendermintService method.
+// RegisterTendermintService implements the
+// Application.RegisterTendermintService method.
 func (a *App) RegisterTendermintService(clientCtx client.Context) {
 	cmtApp := server.NewCometABCIWrapper(a)
 	cmtservice.RegisterTendermintService(
@@ -228,14 +249,18 @@ type NoopServer struct{}
 func (NoopServer) RegisterService(sd *grpc.ServiceDesc, ss interface{}) {}
 
 // RegisterNodeService registers the node gRPC service on the app gRPC router.
-func (a *App) RegisterNodeService(clientCtx client.Context, cfg config.Config) {}
+func (a *App) RegisterNodeService(
+	clientCtx client.Context,
+	cfg config.Config,
+) {
+}
 
 // Configurator returns the app's configurator.
-func (a *App) Configurator() module.Configurator { // nolint:staticcheck // SA1019: Configurator is deprecated but still used in runtime v1.
+func (a *App) Configurator() module.Configurator { //nolint:staticcheck // SA1019: Configurator is deprecated but still used in runtime v1.
 	return a.configurator
 }
 
-// LoadHeight loads a particular height
+// LoadHeight loads a particular height.
 func (a *App) LoadHeight(height int64) error {
 	return a.LoadVersion(height)
 }
@@ -251,7 +276,8 @@ func (a *App) GetStoreKeys() []storetypes.StoreKey {
 }
 
 // SetInitChainer sets the init chainer function
-// It wraps `BaseApp.SetInitChainer` to allow setting a custom init chainer from an app.
+// It wraps `BaseApp.SetInitChainer` to allow setting a custom init chainer from
+// an app.
 func (a *App) SetInitChainer(initChainer sdk.InitChainer) {
 	a.initChainer = initChainer
 	a.BaseApp.SetInitChainer(initChainer)
@@ -261,7 +287,10 @@ func (a *App) SetInitChainer(initChainer sdk.InitChainer) {
 //
 // NOTE: This should only be used in testing.
 func (a *App) UnsafeFindStoreKey(storeKey string) storetypes.StoreKey {
-	i := slices.IndexFunc(a.storeKeys, func(s storetypes.StoreKey) bool { return s.Name() == storeKey })
+	i := slices.IndexFunc(
+		a.storeKeys,
+		func(s storetypes.StoreKey) bool { return s.Name() == storeKey },
+	)
 	if i == -1 {
 		return nil
 	}

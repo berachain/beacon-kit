@@ -1,13 +1,29 @@
+// SPDX-License-Identifier: BUSL-1.1
+//
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is governed by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
+//
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
+//
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
+//
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
+
 package runtime
 
 import (
 	"fmt"
 	"os"
 	"slices"
-
-	"github.com/cosmos/gogoproto/proto"
-	"google.golang.org/protobuf/reflect/protodesc"
-	"google.golang.org/protobuf/reflect/protoregistry"
 
 	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
@@ -22,16 +38,18 @@ import (
 	"cosmossdk.io/depinject/appconfig"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
-
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/std"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
+	"github.com/cosmos/gogoproto/proto"
+	"google.golang.org/protobuf/reflect/protodesc"
+	"google.golang.org/protobuf/reflect/protoregistry"
 )
 
-// appModule defines runtime as an AppModule
+// appModule defines runtime as an AppModule.
 type appModule struct {
 	app *App
 }
@@ -39,7 +57,9 @@ type appModule struct {
 func (m appModule) IsOnePerModuleType() {}
 func (m appModule) IsAppModule()        {}
 
-func (m appModule) RegisterServices(configurator module.Configurator) { // nolint:staticcheck // SA1019: Configurator is deprecated but still used in runtime v1.
+func (m appModule) RegisterServices(
+	configurator module.Configurator,
+) { // nolint:staticcheck // SA1019: Configurator is deprecated but still used in runtime v1.
 
 }
 
@@ -79,14 +99,16 @@ var (
 // BaseApp options into the depinject. It should be used carefully.
 type BaseAppOption func(*baseapp.BaseApp)
 
-// IsManyPerContainerType indicates that this is a depinject.ManyPerContainerType.
+// IsManyPerContainerType indicates that this is a
+// depinject.ManyPerContainerType.
 func (b BaseAppOption) IsManyPerContainerType() {}
 
 func init() {
 	appconfig.RegisterModule(&runtimev1alpha1.Module{},
 		appconfig.Provide(
 			ProvideApp,
-			// to decouple runtime from sdk/codec ProvideInterfaceReistry can be registered from the app
+			// to decouple runtime from sdk/codec ProvideInterfaceReistry can be
+			// registered from the app
 			// i.e. in the call to depinject.Inject(...)
 			codec.ProvideInterfaceRegistry,
 			codec.ProvideLegacyAmino,
@@ -167,9 +189,12 @@ func registerStoreKey(wrapper *AppBuilder, key storetypes.StoreKey) {
 	wrapper.app.storeKeys = append(wrapper.app.storeKeys, key)
 }
 
-func storeKeyOverride(config *runtimev1alpha1.Module, moduleName string) *runtimev1alpha1.StoreKeyConfig {
-	for _, cfg := range config.OverrideStoreKeys {
-		if cfg.ModuleName == moduleName {
+func storeKeyOverride(
+	config *runtimev1alpha1.Module,
+	moduleName string,
+) *runtimev1alpha1.StoreKeyConfig {
+	for _, cfg := range config.GetOverrideStoreKeys() {
+		if cfg.GetModuleName() == moduleName {
 			return cfg
 		}
 	}
@@ -181,7 +206,7 @@ func ProvideKVStoreKey(
 	key depinject.ModuleKey,
 	app *AppBuilder,
 ) *storetypes.KVStoreKey {
-	if slices.Contains(config.SkipStoreKeys, key.Name()) {
+	if slices.Contains(config.GetSkipStoreKeys(), key.Name()) {
 		return nil
 	}
 
@@ -189,7 +214,7 @@ func ProvideKVStoreKey(
 
 	var storeKeyName string
 	if override != nil {
-		storeKeyName = override.KvStoreKey
+		storeKeyName = override.GetKvStoreKey()
 	} else {
 		storeKeyName = key.Name()
 	}
@@ -204,11 +229,13 @@ func ProvideTransientStoreKey(
 	key depinject.ModuleKey,
 	app *AppBuilder,
 ) *storetypes.TransientStoreKey {
-	if slices.Contains(config.SkipStoreKeys, key.Name()) {
+	if slices.Contains(config.GetSkipStoreKeys(), key.Name()) {
 		return nil
 	}
 
-	storeKey := storetypes.NewTransientStoreKey(fmt.Sprintf("transient:%s", key.Name()))
+	storeKey := storetypes.NewTransientStoreKey(
+		fmt.Sprintf("transient:%s", key.Name()),
+	)
 	registerStoreKey(app, storeKey)
 	return storeKey
 }
@@ -218,16 +245,20 @@ func ProvideMemoryStoreKey(
 	key depinject.ModuleKey,
 	app *AppBuilder,
 ) *storetypes.MemoryStoreKey {
-	if slices.Contains(config.SkipStoreKeys, key.Name()) {
+	if slices.Contains(config.GetSkipStoreKeys(), key.Name()) {
 		return nil
 	}
 
-	storeKey := storetypes.NewMemoryStoreKey(fmt.Sprintf("memory:%s", key.Name()))
+	storeKey := storetypes.NewMemoryStoreKey(
+		fmt.Sprintf("memory:%s", key.Name()),
+	)
 	registerStoreKey(app, storeKey)
 	return storeKey
 }
 
-func ProvideModuleManager(modules map[string]appmodule.AppModule) *module.Manager {
+func ProvideModuleManager(
+	modules map[string]appmodule.AppModule,
+) *module.Manager {
 	return module.NewManagerFromMap(modules)
 }
 
@@ -253,7 +284,7 @@ func ProvideEnvironment(
 	)
 
 	// skips modules that have no store
-	if !slices.Contains(config.SkipStoreKeys, key.Name()) {
+	if !slices.Contains(config.GetSkipStoreKeys(), key.Name()) {
 		storeKey := ProvideKVStoreKey(config, key, app)
 		kvService = kvStoreService{key: storeKey}
 
