@@ -12,8 +12,6 @@ import (
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 	"github.com/cosmos/gogoproto/proto"
-	"google.golang.org/grpc/codes"
-	grpcstatus "google.golang.org/grpc/status"
 
 	corecomet "cosmossdk.io/core/comet"
 	coreheader "cosmossdk.io/core/header"
@@ -22,7 +20,6 @@ import (
 	snapshottypes "cosmossdk.io/store/snapshots/types"
 	storetypes "cosmossdk.io/store/types"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -954,107 +951,6 @@ func (app *BaseApp) workingHash() []byte {
 	return commitHash
 }
 
-func handleQueryApp(app *BaseApp, path []string, req *abci.QueryRequest) *abci.QueryResponse {
-	if len(path) >= 2 {
-		switch path[1] {
-		case "simulate":
-			txBytes := req.Data
-
-			gInfo, res, err := app.Simulate(txBytes)
-			if err != nil {
-				return queryResult(errorsmod.Wrap(err, "failed to simulate tx"), app.trace)
-			}
-
-			simRes := &sdk.SimulationResponse{
-				GasInfo: gInfo,
-				Result:  res,
-			}
-
-			bz, err := codec.ProtoMarshalJSON(simRes, app.interfaceRegistry)
-			if err != nil {
-				return queryResult(errorsmod.Wrap(err, "failed to JSON encode simulation response"), app.trace)
-			}
-
-			return &abci.QueryResponse{
-				Codespace: sdkerrors.RootCodespace,
-				Height:    req.Height,
-				Value:     bz,
-			}
-
-		case "version":
-			return &abci.QueryResponse{
-				Codespace: sdkerrors.RootCodespace,
-				Height:    req.Height,
-				Value:     []byte(app.version),
-			}
-
-		default:
-			return queryResult(errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "unknown query: %s", path), app.trace)
-		}
-	}
-
-	return queryResult(
-		errorsmod.Wrap(
-			sdkerrors.ErrUnknownRequest,
-			"expected second parameter to be either 'simulate' or 'version', neither was present",
-		), app.trace)
-}
-
-func handleQueryStore(app *BaseApp, path []string, req abci.QueryRequest) *abci.QueryResponse {
-	// "/store" prefix for store queries
-	queryable, ok := app.cms.(storetypes.Queryable)
-	if !ok {
-		return queryResult(errorsmod.Wrap(sdkerrors.ErrUnknownRequest, "multi-store does not support queries"), app.trace)
-	}
-
-	req.Path = "/" + strings.Join(path[1:], "/")
-
-	if req.Height <= 1 && req.Prove {
-		return queryResult(
-			errorsmod.Wrap(
-				sdkerrors.ErrInvalidRequest,
-				"cannot query with proof when height <= 1; please provide a valid height",
-			), app.trace)
-	}
-
-	sdkReq := storetypes.RequestQuery(req)
-	resp, err := queryable.Query(&sdkReq)
-	if err != nil {
-		return queryResult(err, app.trace)
-	}
-	resp.Height = req.Height
-
-	abciResp := abci.QueryResponse(*resp)
-
-	return &abciResp
-}
-
-func handleQueryP2P(app *BaseApp, path []string) *abci.QueryResponse {
-	// "/p2p" prefix for p2p queries
-	if len(path) < 4 {
-		return queryResult(errorsmod.Wrap(sdkerrors.ErrUnknownRequest, "path should be p2p filter <addr|id> <parameter>"), app.trace)
-	}
-
-	var resp *abci.QueryResponse
-
-	cmd, typ, arg := path[1], path[2], path[3]
-	switch cmd {
-	case "filter":
-		switch typ {
-		case "addr":
-			resp = app.FilterPeerByAddrPort(arg)
-
-		case "id":
-			resp = app.FilterPeerByID(arg)
-		}
-
-	default:
-		resp = queryResult(errorsmod.Wrap(sdkerrors.ErrUnknownRequest, "expected second parameter to be 'filter'"), app.trace)
-	}
-
-	return resp
-}
-
 // SplitABCIQueryPath splits a string path using the delimiter '/'.
 //
 // e.g. "this/is/funny" becomes []string{"this", "is", "funny"}
@@ -1100,46 +996,6 @@ func (app *BaseApp) getContextForProposal(ctx sdk.Context, height int64) sdk.Con
 	}
 
 	return ctx
-}
-
-func (app *BaseApp) handleQueryGRPC(handler GRPCQueryHandler, req *abci.QueryRequest) *abci.QueryResponse {
-	ctx, err := app.CreateQueryContext(req.Height, req.Prove)
-	if err != nil {
-		return queryResult(err, app.trace)
-	}
-
-	resp, err := handler(ctx, req)
-	if err != nil {
-		resp = queryResult(gRPCErrorToSDKError(err), app.trace)
-		resp.Height = req.Height
-		return resp
-	}
-
-	return resp
-}
-
-func gRPCErrorToSDKError(err error) error {
-	status, ok := grpcstatus.FromError(err)
-	if !ok {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
-	}
-
-	switch status.Code() {
-	case codes.NotFound:
-		return errorsmod.Wrap(sdkerrors.ErrKeyNotFound, err.Error())
-
-	case codes.InvalidArgument:
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
-
-	case codes.FailedPrecondition:
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
-
-	case codes.Unauthenticated:
-		return errorsmod.Wrap(sdkerrors.ErrUnauthorized, err.Error())
-
-	default:
-		return errorsmod.Wrap(sdkerrors.ErrUnknownRequest, err.Error())
-	}
 }
 
 func checkNegativeHeight(height int64) error {

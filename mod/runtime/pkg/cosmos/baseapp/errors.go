@@ -33,14 +33,3 @@ func responseExecTxResultWithEvents(err error, gw, gu uint64, events []abci.Even
 		Events:    events,
 	}
 }
-
-// queryResult returns a ResponseQuery from an error. It will try to parse ABCI
-// info from the error.
-func queryResult(err error, debug bool) *abci.QueryResponse {
-	space, code, log := errorsmod.ABCIInfo(err, debug)
-	return &abci.QueryResponse{
-		Codespace: space,
-		Code:      code,
-		Log:       log,
-	}
-}
