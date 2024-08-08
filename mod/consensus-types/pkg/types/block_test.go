@@ -25,7 +25,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -38,10 +38,11 @@ func generateValidBeaconBlock() *types.BeaconBlock {
 	return &types.BeaconBlock{
 		Slot:          10,
 		ProposerIndex: 5,
-		ParentRoot:    bytes.B32{1, 2, 3, 4, 5},
-		StateRoot:     bytes.B32{5, 4, 3, 2, 1},
+		ParentRoot:    common.Root{1, 2, 3, 4, 5},
+		StateRoot:     common.Root{5, 4, 3, 2, 1},
 		Body: &types.BeaconBlockBody{
 			ExecutionPayload: &types.ExecutionPayload{
+				Number:    10,
 				ExtraData: []byte("dummy extra data for testing"),
 				Transactions: [][]byte{
 					[]byte("tx1"),
@@ -71,7 +72,7 @@ func TestBeaconBlockForDeneb(t *testing.T) {
 	block := &types.BeaconBlock{
 		Slot:          10,
 		ProposerIndex: 5,
-		ParentRoot:    bytes.B32{1, 2, 3, 4, 5},
+		ParentRoot:    common.Root{1, 2, 3, 4, 5},
 	}
 	require.NotNil(t, block)
 }
@@ -95,10 +96,12 @@ func TestBeaconBlockFromSSZForkVersionNotSupported(t *testing.T) {
 	_, err := wrappedBlock.NewFromSSZ([]byte{}, 1)
 	require.ErrorIs(t, err, types.ErrForkVersionNotSupported)
 }
+
 func TestBeaconBlock(t *testing.T) {
 	block := generateValidBeaconBlock()
 
 	require.NotNil(t, block.Body)
+	require.Equal(t, math.U64(10), block.GetExecutionNumber())
 	require.Equal(t, version.Deneb, block.Version())
 	require.False(t, block.IsNil())
 
@@ -114,6 +117,7 @@ func TestBeaconBlock(t *testing.T) {
 	require.Equal(t, block.ProposerIndex, header.ProposerIndex)
 	require.Equal(t, block.ParentRoot, header.ParentBlockRoot)
 	require.Equal(t, block.StateRoot, header.StateRoot)
+	require.Equal(t, newStateRoot, [32]byte(block.GetStateRoot()))
 }
 
 func TestBeaconBlock_MarshalUnmarshalSSZ(t *testing.T) {
@@ -158,7 +162,7 @@ func TestBeaconBlock_IsNil(t *testing.T) {
 func TestNewWithVersion(t *testing.T) {
 	slot := math.Slot(10)
 	proposerIndex := math.ValidatorIndex(5)
-	parentBlockRoot := bytes.B32{1, 2, 3, 4, 5}
+	parentBlockRoot := common.Root{1, 2, 3, 4, 5}
 
 	block, err := (&types.BeaconBlock{}).NewWithVersion(
 		slot, proposerIndex, parentBlockRoot, version.Deneb,
@@ -177,7 +181,7 @@ func TestNewWithVersion(t *testing.T) {
 func TestNewWithVersionInvalidForkVersion(t *testing.T) {
 	slot := math.Slot(10)
 	proposerIndex := math.ValidatorIndex(5)
-	parentBlockRoot := bytes.B32{1, 2, 3, 4, 5}
+	parentBlockRoot := common.Root{1, 2, 3, 4, 5}
 
 	_, err := (&types.BeaconBlock{}).NewWithVersion(
 		slot,

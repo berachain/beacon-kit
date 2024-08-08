@@ -22,22 +22,15 @@ package attributes
 
 import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
 // BeaconState is an interface for accessing the beacon state.
 type BeaconState[WithdrawalT any] interface {
+	// ExpectedWithdrawals returns the expected withdrawals.
+	ExpectedWithdrawals() ([]WithdrawalT, error)
 	// GetRandaoMixAtIndex returns the randao mix at the given index.
-	GetRandaoMixAtIndex(index uint64) (common.Root, error)
-}
-
-// StateProcessor is the interface for the state processor.
-type StateProcessor[BeaconStateT any, WithdrawalT any] interface {
-	// ProcessState processes the state.
-	ExpectedWithdrawals(
-		BeaconStateT,
-	) ([]WithdrawalT, error)
+	GetRandaoMixAtIndex(index uint64) (common.Bytes32, error)
 }
 
 // PayloadAttributes is the interface for the payload attributes.
@@ -48,7 +41,7 @@ type PayloadAttributes[SelfT any, WithdrawalT any] interface {
 		uint32,
 		uint64,
 		common.Bytes32,
-		gethprimitives.ExecutionAddress,
+		common.ExecutionAddress,
 		[]WithdrawalT,
 		common.Root,
 	) (SelfT, error)

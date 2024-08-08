@@ -13,7 +13,7 @@
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
 // TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -21,6 +21,7 @@
 package engine
 
 import (
+	"bytes"
 	"context"
 
 	broker "github.com/berachain/beacon-kit/mod/async/pkg/broker"
@@ -29,8 +30,8 @@ import (
 	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	jsonrpc "github.com/berachain/beacon-kit/mod/primitives/pkg/net/json-rpc"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 )
@@ -38,12 +39,13 @@ import (
 // Engine is Beacon-Kit's implementation of the `ExecutionEngine`
 // from the Ethereum 2.0 Specification.
 type Engine[
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, WithdrawalT,
-	],
+	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT, WithdrawalsT],
 	PayloadAttributesT engineprimitives.PayloadAttributer,
 	PayloadIDT ~[8]byte,
-	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalsT interface {
+		Len() int
+		EncodeIndex(int, *bytes.Buffer)
+	},
 ] struct {
 	// ec is the engine client that the engine will use to
 	// interact with the execution layer.
@@ -58,21 +60,26 @@ type Engine[
 
 // New creates a new Engine.
 func New[
-	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, WithdrawalT,
-	],
+	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT, WithdrawalsT],
 	PayloadAttributesT engineprimitives.PayloadAttributer,
 	PayloadIDT ~[8]byte,
-	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalsT interface {
+		Len() int
+		EncodeIndex(int, *bytes.Buffer)
+	},
 ](
 	ec *client.EngineClient[ExecutionPayloadT, PayloadAttributesT],
 	logger log.Logger[any],
 	statusPublisher *broker.Broker[*asynctypes.Event[*service.StatusEvent]],
 	telemtrySink TelemetrySink,
 ) *Engine[
-	ExecutionPayloadT, PayloadAttributesT, PayloadIDT, WithdrawalT,
+	ExecutionPayloadT, PayloadAttributesT,
+	PayloadIDT, WithdrawalsT,
 ] {
-	return &Engine[ExecutionPayloadT, PayloadAttributesT, PayloadIDT, WithdrawalT]{
+	return &Engine[
+		ExecutionPayloadT, PayloadAttributesT, PayloadIDT,
+		WithdrawalsT,
+	]{
 		ec:              ec,
 		logger:          logger,
 		metrics:         newEngineMetrics(telemtrySink, logger),
@@ -112,7 +119,7 @@ func (ee *Engine[
 ]) NotifyForkchoiceUpdate(
 	ctx context.Context,
 	req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
-) (*engineprimitives.PayloadID, *gethprimitives.ExecutionHash, error) {
+) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
 	// Log the forkchoice update attempt.
 	hasPayloadAttributes := !req.PayloadAttributes.IsNil()
 	ee.metrics.markNotifyForkchoiceUpdateCalled(hasPayloadAttributes)
@@ -182,11 +189,11 @@ func (ee *Engine[
 // VerifyAndNotifyNewPayload verifies the new payload and notifies the
 // execution client.
 func (ee *Engine[
-	ExecutionPayloadT, _, _, WithdrawalT,
+	ExecutionPayloadT, _, _, WithdrawalsT,
 ]) VerifyAndNotifyNewPayload(
 	ctx context.Context,
 	req *engineprimitives.NewPayloadRequest[
-		ExecutionPayloadT, WithdrawalT,
+		ExecutionPayloadT, WithdrawalsT,
 	],
 ) error {
 	// Log the new payload attempt.
@@ -251,7 +258,7 @@ func (ee *Engine[
 	case jsonrpc.IsPreDefinedError(err):
 		// Protect against possible nil value.
 		if lastValidHash == nil {
-			lastValidHash = &gethprimitives.ExecutionHash{}
+			lastValidHash = &common.ExecutionHash{}
 		}
 
 		ee.metrics.markNewPayloadJSONRPCError(

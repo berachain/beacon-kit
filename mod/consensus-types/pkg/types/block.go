@@ -21,7 +21,6 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -67,7 +66,7 @@ func (b *BeaconBlock) NewWithVersion(
 			Slot:          slot,
 			ProposerIndex: proposerIndex,
 			ParentRoot:    parentBlockRoot,
-			StateRoot:     bytes.B32{},
+			StateRoot:     common.Root{},
 			Body:          &BeaconBlockBody{},
 		}
 	default:
@@ -233,4 +232,10 @@ func (b *BeaconBlock) GetHeader() *BeaconBlockHeader {
 		StateRoot:       b.StateRoot,
 		BodyRoot:        b.GetBody().HashTreeRoot(),
 	}
+}
+
+// GetExecutionNumber retrieves the execution number of the BeaconBlock from
+// the ExecutionPayload.
+func (b *BeaconBlock) GetExecutionNumber() math.U64 {
+	return b.Body.ExecutionPayload.Number
 }

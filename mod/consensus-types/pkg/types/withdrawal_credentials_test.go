@@ -24,12 +24,12 @@ import (
 	"testing"
 
 	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/stretchr/testify/require"
 )
 
 func TestNewCredentialsFromExecutionAddress(t *testing.T) {
-	address := gethprimitives.ExecutionAddress{0xde, 0xad, 0xbe, 0xef}
+	address := common.ExecutionAddress{0xde, 0xad, 0xbe, 0xef}
 	expectedCredentials := types.WithdrawalCredentials{}
 	expectedCredentials[0] = 0x01 // EthSecp256k1CredentialPrefix
 	copy(expectedCredentials[12:], address[:])
@@ -51,7 +51,7 @@ func TestNewCredentialsFromExecutionAddress(t *testing.T) {
 	require.Equal(
 		t,
 		address,
-		gethprimitives.ExecutionAddress(expectedCredentials[12:]),
+		common.ExecutionAddress(expectedCredentials[12:]),
 		"Expected address to be set correctly",
 	)
 	credentials := types.
@@ -65,7 +65,7 @@ func TestNewCredentialsFromExecutionAddress(t *testing.T) {
 }
 
 func TestToExecutionAddress(t *testing.T) {
-	expectedAddress := gethprimitives.ExecutionAddress{0xde, 0xad, 0xbe, 0xef}
+	expectedAddress := common.ExecutionAddress{0xde, 0xad, 0xbe, 0xef}
 	credentials := types.WithdrawalCredentials{}
 	for i := range credentials {
 		// First byte should be 0x01

@@ -26,7 +26,6 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -243,11 +242,11 @@ func (s *Service[
 			st,
 			blk.GetSlot(),
 			// TODO: this is hood.
-			math.U64(max(
+			max(
 				//#nosec:G701
 				uint64(time.Now().Unix()+1),
 				uint64((lph.GetTimestamp()+1)),
-			)),
+			),
 			blk.GetParentBlockRoot(),
 			lph.GetBlockHash(),
 			lph.GetParentHash(),
@@ -306,9 +305,9 @@ func (s *Service[
 	var eth1Data Eth1DataT
 	// TODO: assemble real eth1data.
 	body.SetEth1Data(eth1Data.New(
-		common.Bytes32{},
+		common.Root{},
 		0,
-		gethprimitives.ZeroHash,
+		common.ExecutionHash{},
 	))
 
 	// Set the graffiti on the block body.

@@ -24,8 +24,8 @@ import (
 	"strconv"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
 // engineMetrics is a struct that contains metrics for the engine.
@@ -49,8 +49,8 @@ func newEngineMetrics(
 
 // markNewPayloadCalled increments the counter for new payload calls.
 func (em *engineMetrics) markNewPayloadCalled(
-	payloadHash gethprimitives.ExecutionHash,
-	parentHash gethprimitives.ExecutionHash,
+	payloadHash common.ExecutionHash,
+	parentHash common.ExecutionHash,
 	isOptimistic bool,
 ) {
 	em.sink.IncrementCounter(
@@ -63,8 +63,8 @@ func (em *engineMetrics) markNewPayloadCalled(
 
 // markNewPayloadValid increments the counter for valid payloads.
 func (em *engineMetrics) markNewPayloadValid(
-	payloadHash gethprimitives.ExecutionHash,
-	parentHash gethprimitives.ExecutionHash,
+	payloadHash common.ExecutionHash,
+	parentHash common.ExecutionHash,
 	isOptimistic bool,
 ) {
 	em.logger.Info(
@@ -83,8 +83,8 @@ func (em *engineMetrics) markNewPayloadValid(
 // markNewPayloadAcceptedSyncingPayloadStatus increments
 // the counter for accepted syncing payload status.
 func (em *engineMetrics) markNewPayloadAcceptedSyncingPayloadStatus(
-	payloadHash gethprimitives.ExecutionHash,
-	parentHash gethprimitives.ExecutionHash,
+	payloadHash common.ExecutionHash,
+	parentHash common.ExecutionHash,
 	isOptimistic bool,
 ) {
 	em.errorLoggerFn(isOptimistic)(
@@ -104,7 +104,7 @@ func (em *engineMetrics) markNewPayloadAcceptedSyncingPayloadStatus(
 // markNewPayloadInvalidPayloadStatus increments the counter
 // for invalid payload status.
 func (em *engineMetrics) markNewPayloadInvalidPayloadStatus(
-	payloadHash gethprimitives.ExecutionHash,
+	payloadHash common.ExecutionHash,
 	isOptimistic bool,
 ) {
 	em.errorLoggerFn(isOptimistic)(
@@ -122,8 +122,8 @@ func (em *engineMetrics) markNewPayloadInvalidPayloadStatus(
 
 // markNewPayloadJSONRPCError increments the counter for JSON-RPC errors.
 func (em *engineMetrics) markNewPayloadJSONRPCError(
-	payloadHash gethprimitives.ExecutionHash,
-	lastValidHash gethprimitives.ExecutionHash,
+	payloadHash common.ExecutionHash,
+	lastValidHash common.ExecutionHash,
 	isOptimistic bool,
 	err error,
 ) {
@@ -145,7 +145,7 @@ func (em *engineMetrics) markNewPayloadJSONRPCError(
 
 // markNewPayloadUndefinedError increments the counter for undefined errors.
 func (em *engineMetrics) markNewPayloadUndefinedError(
-	payloadHash gethprimitives.ExecutionHash,
+	payloadHash common.ExecutionHash,
 	isOptimistic bool,
 	err error,
 ) {

@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	common "github.com/ethereum/go-ethereum/common"
+	common "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -22,19 +22,19 @@ func (_m *PayloadAttributer) EXPECT() *PayloadAttributer_Expecter {
 }
 
 // GetSuggestedFeeRecipient provides a mock function with given fields:
-func (_m *PayloadAttributer) GetSuggestedFeeRecipient() common.Address {
+func (_m *PayloadAttributer) GetSuggestedFeeRecipient() common.ExecutionAddress {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetSuggestedFeeRecipient")
 	}
 
-	var r0 common.Address
-	if rf, ok := ret.Get(0).(func() common.Address); ok {
+	var r0 common.ExecutionAddress
+	if rf, ok := ret.Get(0).(func() common.ExecutionAddress); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(common.Address)
+			r0 = ret.Get(0).(common.ExecutionAddress)
 		}
 	}
 
@@ -58,12 +58,12 @@ func (_c *PayloadAttributer_GetSuggestedFeeRecipient_Call) Run(run func()) *Payl
 	return _c
 }
 
-func (_c *PayloadAttributer_GetSuggestedFeeRecipient_Call) Return(_a0 common.Address) *PayloadAttributer_GetSuggestedFeeRecipient_Call {
+func (_c *PayloadAttributer_GetSuggestedFeeRecipient_Call) Return(_a0 common.ExecutionAddress) *PayloadAttributer_GetSuggestedFeeRecipient_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *PayloadAttributer_GetSuggestedFeeRecipient_Call) RunAndReturn(run func() common.Address) *PayloadAttributer_GetSuggestedFeeRecipient_Call {
+func (_c *PayloadAttributer_GetSuggestedFeeRecipient_Call) RunAndReturn(run func() common.ExecutionAddress) *PayloadAttributer_GetSuggestedFeeRecipient_Call {
 	_c.Call.Return(run)
 	return _c
 }

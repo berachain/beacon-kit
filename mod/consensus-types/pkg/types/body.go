@@ -26,7 +26,6 @@
 package types
 
 import (
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
@@ -253,14 +252,14 @@ func (b *BeaconBlockBody) SetExecutionPayload(
 // GetBlobKzgCommitments returns the BlobKzgCommitments of the Body.
 func (
 	b *BeaconBlockBody,
-) GetBlobKzgCommitments() eip4844.KZGCommitments[gethprimitives.ExecutionHash] {
+) GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash] {
 	return b.BlobKzgCommitments
 }
 
 // SetBlobKzgCommitments sets the BlobKzgCommitments of the
 // BeaconBlockBody.
 func (b *BeaconBlockBody) SetBlobKzgCommitments(
-	commitments eip4844.KZGCommitments[gethprimitives.ExecutionHash],
+	commitments eip4844.KZGCommitments[common.ExecutionHash],
 ) {
 	b.BlobKzgCommitments = commitments
 }
@@ -293,9 +292,9 @@ func (b *BeaconBlockBody) SetSlashingInfo(_ []*SlashingInfo) {
 // GetTopLevelRoots returns the top-level roots of the BeaconBlockBody.
 func (b *BeaconBlockBody) GetTopLevelRoots() []common.Root {
 	return []common.Root{
-		b.GetRandaoReveal().HashTreeRoot(),
+		common.Root(b.GetRandaoReveal().HashTreeRoot()),
 		b.Eth1Data.HashTreeRoot(),
-		b.GetGraffiti().HashTreeRoot(),
+		common.Root(b.GetGraffiti().HashTreeRoot()),
 		Deposits(b.GetDeposits()).HashTreeRoot(),
 		b.GetExecutionPayload().HashTreeRoot(),
 		// I think this is a bug.

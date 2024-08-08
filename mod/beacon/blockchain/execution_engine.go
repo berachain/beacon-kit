@@ -25,12 +25,11 @@ import (
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // sendPostBlockFCU sends a forkchoice update to the execution client.
 func (s *Service[
-	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _, _, _,
+	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _, _,
 ]) sendPostBlockFCU(
 	ctx context.Context,
 	st BeaconStateT,
@@ -56,7 +55,7 @@ func (s *Service[
 // client with attributes.
 func (s *Service[
 	_, BeaconBlockT, _, _, BeaconStateT,
-	_, _, _, ExecutionPayloadHeaderT, _, _, _,
+	_, _, ExecutionPayloadHeaderT, _, _, _,
 ]) sendNextFCUWithAttributes(
 	ctx context.Context,
 	st BeaconStateT,
@@ -93,7 +92,7 @@ func (s *Service[
 // sendNextFCUWithoutAttributes sends a forkchoice update to the
 // execution client without attributes.
 func (s *Service[
-	_, BeaconBlockT, _, _, _, _, _, _,
+	_, BeaconBlockT, _, _, _, _, _,
 	ExecutionPayloadHeaderT, _, PayloadAttributesT, _,
 ]) sendNextFCUWithoutAttributes(
 	ctx context.Context,
@@ -125,11 +124,11 @@ func (s *Service[
 //
 // TODO: This is hood and needs to be improved.
 func (s *Service[
-	_, BeaconBlockT, _, _, _, _, _, _, _, _, _, _,
-]) calculateNextTimestamp(blk BeaconBlockT) math.U64 {
+	_, BeaconBlockT, _, _, _, _, _, _, _, _, _,
+]) calculateNextTimestamp(blk BeaconBlockT) uint64 {
 	//#nosec:G701 // not an issue in practice.
-	return math.U64(max(
+	return max(
 		uint64(time.Now().Unix()+int64(s.cs.TargetSecondsPerEth1Block())),
 		uint64(blk.GetBody().GetExecutionPayload().GetTimestamp()+1),
-	))
+	)
 }

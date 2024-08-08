@@ -21,14 +21,13 @@
 package types
 
 import (
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // BlockProposerResponse is the response for the
-// `/proof/block_proposer/{block_id}` endpoint.
+// `/proof/block_proposer/{execution_id}` endpoint.
 type BlockProposerResponse[BeaconBlockHeaderT any] struct {
 	// BeaconBlockHeader is the block header of which the hash tree root is the
 	// beacon block root to verify against.
@@ -48,7 +47,7 @@ type BlockProposerResponse[BeaconBlockHeaderT any] struct {
 }
 
 // ExecutionNumberResponse is the response for the
-// `/proof/execution_number/{block_id}` endpoint.
+// `/proof/execution_number/{execution_id}` endpoint.
 type ExecutionNumberResponse[BeaconBlockHeaderT any] struct {
 	// BeaconBlockHeader is the block header of which the hash tree root is the
 	// beacon block root to verify against.
@@ -66,7 +65,7 @@ type ExecutionNumberResponse[BeaconBlockHeaderT any] struct {
 }
 
 // ExecutionFeeRecipientResponse is the response for the
-// `/proof/execution_fee_recipient/{block_id}` endpoint.
+// `/proof/execution_fee_recipient/{execution_id}` endpoint.
 type ExecutionFeeRecipientResponse[BeaconBlockHeaderT any] struct {
 	// BeaconBlockHeader is the block header of which the hash tree root is the
 	// beacon block root to verify against.
@@ -77,8 +76,8 @@ type ExecutionFeeRecipientResponse[BeaconBlockHeaderT any] struct {
 
 	// ExecutionFeeRecipient is the fee recipient from the execution payload.
 	//
-	//nolint:lll // json tag.
-	ExecutionFeeRecipient gethprimitives.ExecutionAddress `json:"execution_fee_recipient"`
+
+	ExecutionFeeRecipient common.ExecutionAddress `json:"execution_fee_recipient"`
 
 	// ExecutionFeeRecipientProof can be verified against the beacon block root
 	// using a Generalized Index of 5894 in the Deneb fork.

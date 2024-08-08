@@ -94,7 +94,8 @@ func (db *RangeDB) DeleteRange(from, to uint64) error {
 		return errors.New("rangedb: delete range not supported for this db")
 	}
 	for ; from < to; from++ {
-		if err := f.fs.RemoveAll(fmt.Sprintf("%d/", from)); err != nil {
+		path := strconv.FormatUint(from, 10) + "/"
+		if err := f.fs.RemoveAll(path); err != nil {
 			return err
 		}
 	}

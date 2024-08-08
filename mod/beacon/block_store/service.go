@@ -91,8 +91,10 @@ func (s *Service[BeaconBlockT, _]) listenAndStore(
 		case msg := <-subBlkCh:
 			if msg.Is(events.BeaconBlockFinalized) {
 				slot := msg.Data().GetSlot()
-				if err := s.store.Set(slot.Unwrap(), msg.Data()); err != nil {
-					s.logger.Error("failed to store block", "error", err)
+				if err := s.store.Set(slot, msg.Data()); err != nil {
+					s.logger.Error(
+						"failed to store block", "slot", slot, "error", err,
+					)
 				}
 			}
 		}

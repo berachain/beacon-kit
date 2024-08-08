@@ -3,7 +3,7 @@ module github.com/berachain/beacon-kit/mod/chain-spec
 go 1.22.5
 
 require (
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240726210727-594bfb4e7157
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240806160829-cde2d1347e7e
 	github.com/stretchr/testify v1.9.0
 )
 
