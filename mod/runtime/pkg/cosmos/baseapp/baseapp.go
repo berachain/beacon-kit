@@ -525,24 +525,6 @@ func (app *BaseApp) runTx(
 		)
 }
 
-// PrepareProposalVerifyTx performs transaction verification when a proposer is
-// creating a block proposal during PrepareProposal. Any state committed to the
-// PrepareProposal state internally will be discarded. <nil, err> will be
-// returned if the transaction cannot be encoded. <bz, nil> will be returned if
-// the transaction is valid, otherwise <bz, err> will be returned.
-func (app *BaseApp) PrepareProposalVerifyTx(tx sdk.Tx) ([]byte, error) {
-	return nil, nil
-}
-
-// ProcessProposalVerifyTx performs transaction verification when receiving a
-// block proposal during ProcessProposal. Any state committed to the
-// ProcessProposal state internally will be discarded. <nil, err> will be
-// returned if the transaction cannot be decoded. <Tx, nil> will be returned if
-// the transaction is valid, otherwise <Tx, err> will be returned.
-func (app *BaseApp) ProcessProposalVerifyTx(txBz []byte) (sdk.Tx, error) {
-	return nil, errors.New("skip decoding")
-}
-
 // Close is called in start cmd to gracefully cleanup resources.
 func (app *BaseApp) Close() error {
 	var errs []error
