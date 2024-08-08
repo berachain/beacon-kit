@@ -603,21 +603,6 @@ func (app *BaseApp) internalFinalizeBlock(
 func (app *BaseApp) FinalizeBlock(
 	req *abci.FinalizeBlockRequest,
 ) (res *abci.FinalizeBlockResponse, err error) {
-	defer func() {
-		// call the streaming service hooks with the FinalizeBlock messages
-		for _, streamingListener := range app.streamingManager.ABCIListeners {
-			if err := streamingListener.ListenFinalizeBlock(app.finalizeBlockState.Context(), *req, *res); err != nil {
-				app.logger.Error(
-					"ListenFinalizeBlock listening hook failed",
-					"height",
-					req.Height,
-					"err",
-					err,
-				)
-			}
-		}
-	}()
-
 	// if no OE is running, just run the block (this is either a block replay or
 	// a OE that got aborted)
 	res, err = app.internalFinalizeBlock(context.Background(), req)
@@ -675,25 +660,6 @@ func (app *BaseApp) Commit() (*abci.CommitResponse, error) {
 
 	resp := &abci.CommitResponse{
 		RetainHeight: retainHeight,
-	}
-
-	abciListeners := app.streamingManager.ABCIListeners
-	if len(abciListeners) > 0 {
-		ctx := app.finalizeBlockState.Context()
-		blockHeight := ctx.BlockHeight()
-		changeSet := app.cms.PopStateCache()
-
-		for _, abciListener := range abciListeners {
-			if err := abciListener.ListenCommit(ctx, *resp, changeSet); err != nil {
-				app.logger.Error(
-					"Commit listening hook failed",
-					"height",
-					blockHeight,
-					"err",
-					err,
-				)
-			}
-		}
 	}
 
 	// Reset the CheckTx state to the latest committed.

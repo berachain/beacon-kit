@@ -159,10 +159,6 @@ type BaseApp struct {
 	// application's version string
 	version string
 
-	// streamingManager for managing instances and configuration of ABCIListener
-	// services
-	streamingManager storetypes.StreamingManager
-
 	chainID string
 
 	// includeNestedMsgsGas holds a set of message types for which gas costs for
@@ -401,7 +397,6 @@ func (app *BaseApp) setState(mode execMode, h cmtproto.Header) {
 	baseState := &state{
 		ms: ms,
 		ctx: sdk.NewContext(ms, false, app.logger).
-			WithStreamingManager(app.streamingManager).
 			WithBlockHeader(h).
 			WithHeaderInfo(headerInfo),
 	}
