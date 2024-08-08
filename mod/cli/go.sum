@@ -6,8 +6,6 @@ cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMT
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cosmossdk.io/api v0.7.3-0.20240806152830-8fb47b368cd4 h1:GWHIYxkZnQZ2/BVzBV0Qu2xyPRcysPI3kHToCGmRmh0=
 cosmossdk.io/api v0.7.3-0.20240806152830-8fb47b368cd4/go.mod h1:vV3VnJvvK4IWkc1deNEJ1OAL028zw1WPezwKKDAsq60=
-cosmossdk.io/client/v2 v2.0.0-20240412212305-037cf98f7eea h1:R2AHyW57yCDOyG0/nJJF2ta3JJhi5muR6vgr2+peYFU=
-cosmossdk.io/client/v2 v2.0.0-20240412212305-037cf98f7eea/go.mod h1:ss8ttONeqslO0lRH/L1okn3jmwcof6cQ+mUSgBe6dyY=
 cosmossdk.io/collections v0.4.0 h1:PFmwj2W8szgpD5nOd8GWH6AbYNi1f2J6akWXJ7P5t9s=
 cosmossdk.io/collections v0.4.0/go.mod h1:oa5lUING2dP+gdDquow+QjlF45eL1t4TJDypgGd+tv0=
 cosmossdk.io/core v0.12.1-0.20240806152830-8fb47b368cd4 h1:YtoU1Rrq8fbvOmLlkS/8bnHTyzjCCS0PE8jvOi0Rwj8=

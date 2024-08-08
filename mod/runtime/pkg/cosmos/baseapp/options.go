@@ -27,7 +27,6 @@ import (
 
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	storetypes "cosmossdk.io/store/types"
-	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -104,10 +103,6 @@ func (app *BaseApp) SetAppVersion(ctx context.Context, v uint64) error {
 		return err
 	}
 	return nil
-}
-
-func (app *BaseApp) SetDB(db dbm.DB) {
-	app.db = db
 }
 
 func (app *BaseApp) SetInitChainer(initChainer sdk.InitChainer) {

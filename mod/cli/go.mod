@@ -11,7 +11,6 @@ replace (
 )
 
 require (
-	cosmossdk.io/client/v2 v2.0.0-20240412212305-037cf98f7eea
 	cosmossdk.io/depinject v1.0.0
 	cosmossdk.io/log v1.4.0
 	cosmossdk.io/tools/confix v0.1.1
