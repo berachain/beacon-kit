@@ -40,16 +40,6 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 )
 
-// Supported ABCI Query prefixes and paths.
-const (
-	QueryPathApp    = "app"
-	QueryPathCustom = "custom"
-	QueryPathP2P    = "p2p"
-	QueryPathStore  = "store"
-
-	QueryPathBroadcastTx = "/cosmos.tx.v1beta1.Service/BroadcastTx"
-)
-
 func (app *BaseApp) InitChain(
 	req *abci.InitChainRequest,
 ) (*abci.InitChainResponse, error) {
