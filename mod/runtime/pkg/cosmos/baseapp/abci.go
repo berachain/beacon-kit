@@ -26,7 +26,6 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-	"time"
 
 	corecomet "cosmossdk.io/core/comet"
 	coreheader "cosmossdk.io/core/header"
@@ -470,10 +469,6 @@ func (app *BaseApp) internalFinalizeBlock(
 	ctx context.Context,
 	req *abci.FinalizeBlockRequest,
 ) (*abci.FinalizeBlockResponse, error) {
-	if err := app.checkHalt(req.Height, req.Time); err != nil {
-		return nil, err
-	}
-
 	if err := app.validateFinalizeBlockHeight(req); err != nil {
 		return nil, err
 	}
@@ -611,29 +606,6 @@ func (app *BaseApp) FinalizeBlock(
 	}
 
 	return res, err
-}
-
-// checkHalt checks if height or time exceeds halt-height or halt-time
-// respectively.
-func (app *BaseApp) checkHalt(height int64, time time.Time) error {
-	var halt bool
-	switch {
-	case app.haltHeight > 0 && uint64(height) > app.haltHeight:
-		halt = true
-
-	case app.haltTime > 0 && time.Unix() > int64(app.haltTime):
-		halt = true
-	}
-
-	if halt {
-		return fmt.Errorf(
-			"halt per configuration height %d time %d",
-			app.haltHeight,
-			app.haltTime,
-		)
-	}
-
-	return nil
 }
 
 // Commit implements the ABCI interface. It will commit all state that exists in
