@@ -75,8 +75,6 @@ type BaseApp struct {
 	cms         storetypes.CommitMultiStore // Main (uncached) state
 	qms         storetypes.MultiStore       // Optional alternative multistore for querying only.
 	storeLoader StoreLoader                 // function to handle store loading, may be overridden with SetStoreLoader()
-	txDecoder   sdk.TxDecoder               // unmarshal []byte into sdk.Tx
-	txEncoder   sdk.TxEncoder               // marshal sdk.Tx into []byte
 
 	initChainer        sdk.InitChainer            // ABCI InitChain handler
 	preBlocker         sdk.PreBlocker             // logic to run before BeginBlocker
@@ -153,7 +151,6 @@ func NewBaseApp(
 	name string,
 	logger log.Logger,
 	db dbm.DB,
-	txDecoder sdk.TxDecoder,
 	options ...func(*BaseApp),
 ) *BaseApp {
 	app := &BaseApp{
@@ -166,7 +163,6 @@ func NewBaseApp(
 			storemetrics.NewNoOpMetrics(),
 		), // by default we use a no-op metric gather in store
 		storeLoader: DefaultStoreLoader,
-		txDecoder:   txDecoder,
 	}
 
 	for _, option := range options {
@@ -519,22 +515,14 @@ func (app *BaseApp) endBlock(_ context.Context) (sdk.EndBlock, error) {
 // and execute successfully. An error is returned otherwise.
 func (app *BaseApp) runTx(
 	_ execMode,
-	txBytes []byte,
+	_ []byte,
 ) (gInfo sdk.GasInfo, result *sdk.Result, err error) {
-	// NOTE: GasWanted should be returned by the AnteHandler. GasUsed is
-	// determined by the GasMeter. We need access to the context to get the gas
-	// meter, so we initialize upfront.
-	_, err = app.txDecoder(txBytes)
-	if err != nil {
-		return sdk.GasInfo{
-				GasUsed:   0,
-				GasWanted: 0,
-			}, nil, sdkerrors.ErrTxDecode.Wrap(
-				err.Error(),
-			)
-	}
-
-	return gInfo, result, err
+	return sdk.GasInfo{
+			GasUsed:   0,
+			GasWanted: 0,
+		}, nil, sdkerrors.ErrTxDecode.Wrap(
+			errors.New("skip decoding").Error(),
+		)
 }
 
 // PrepareProposalVerifyTx performs transaction verification when a proposer is
@@ -543,17 +531,7 @@ func (app *BaseApp) runTx(
 // returned if the transaction cannot be encoded. <bz, nil> will be returned if
 // the transaction is valid, otherwise <bz, err> will be returned.
 func (app *BaseApp) PrepareProposalVerifyTx(tx sdk.Tx) ([]byte, error) {
-	bz, err := app.txEncoder(tx)
-	if err != nil {
-		return nil, err
-	}
-
-	_, _, err = app.runTx(execModePrepareProposal, bz)
-	if err != nil {
-		return nil, err
-	}
-
-	return bz, nil
+	return nil, nil
 }
 
 // ProcessProposalVerifyTx performs transaction verification when receiving a
@@ -562,25 +540,7 @@ func (app *BaseApp) PrepareProposalVerifyTx(tx sdk.Tx) ([]byte, error) {
 // returned if the transaction cannot be decoded. <Tx, nil> will be returned if
 // the transaction is valid, otherwise <Tx, err> will be returned.
 func (app *BaseApp) ProcessProposalVerifyTx(txBz []byte) (sdk.Tx, error) {
-	tx, err := app.txDecoder(txBz)
-	if err != nil {
-		return nil, err
-	}
-
-	_, _, err = app.runTx(execModeProcessProposal, txBz)
-	if err != nil {
-		return nil, err
-	}
-
-	return tx, nil
-}
-
-func (app *BaseApp) TxDecode(txBytes []byte) (sdk.Tx, error) {
-	return app.txDecoder(txBytes)
-}
-
-func (app *BaseApp) TxEncode(tx sdk.Tx) ([]byte, error) {
-	return app.txEncoder(tx)
+	return nil, errors.New("skip decoding")
 }
 
 // Close is called in start cmd to gracefully cleanup resources.

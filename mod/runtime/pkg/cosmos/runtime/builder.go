@@ -55,7 +55,6 @@ func (a *AppBuilder) Build(
 		a.app.config.GetAppName(),
 		a.app.logger,
 		db,
-		nil,
 		baseAppOptions...)
 	bApp.SetVersion(version.Version)
 	bApp.MountStores(a.app.storeKeys...)

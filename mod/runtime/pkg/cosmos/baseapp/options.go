@@ -154,18 +154,6 @@ func (app *BaseApp) SetStoreLoader(loader StoreLoader) {
 	app.storeLoader = loader
 }
 
-// SetTxDecoder sets the TxDecoder if it wasn't provided in the BaseApp
-// constructor.
-func (app *BaseApp) SetTxDecoder(txDecoder sdk.TxDecoder) {
-	app.txDecoder = txDecoder
-}
-
-// SetTxEncoder sets the TxEncoder if it wasn't provided in the BaseApp
-// constructor.
-func (app *BaseApp) SetTxEncoder(txEncoder sdk.TxEncoder) {
-	app.txEncoder = txEncoder
-}
-
 // SetProcessProposal sets the process proposal function for the BaseApp.
 func (app *BaseApp) SetProcessProposal(handler sdk.ProcessProposalHandler) {
 	app.processProposal = handler
