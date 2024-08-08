@@ -40,10 +40,7 @@ func (m appModule) IsOnePerModuleType() {}
 func (m appModule) IsAppModule()        {}
 
 func (m appModule) RegisterServices(configurator module.Configurator) { // nolint:staticcheck // SA1019: Configurator is deprecated but still used in runtime v1.
-	err := m.app.registerRuntimeServices(configurator)
-	if err != nil {
-		panic(err)
-	}
+
 }
 
 func (m appModule) AutoCLIOptions() *autocliv1.ModuleOptions {
@@ -136,18 +133,16 @@ func ProvideApp(
 	std.RegisterLegacyAminoCodec(amino)
 
 	msgServiceRouter := baseapp.NewMsgServiceRouter()
-	grpcQueryRouter := baseapp.NewGRPCQueryRouter()
 	app := &App{
 		storeKeys:         nil,
 		interfaceRegistry: interfaceRegistry,
 		cdc:               protoCodec,
 		amino:             amino,
 		msgServiceRouter:  msgServiceRouter,
-		grpcQueryRouter:   grpcQueryRouter,
 	}
 	appBuilder := &AppBuilder{app}
 
-	return appBuilder, msgServiceRouter, grpcQueryRouter, appModule{app}, protoFiles, protoTypes, nil
+	return appBuilder, msgServiceRouter, nil, appModule{app}, protoFiles, protoTypes, nil
 }
 
 type AppInputs struct {

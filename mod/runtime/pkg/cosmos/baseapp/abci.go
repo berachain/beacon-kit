@@ -23,7 +23,6 @@ import (
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -161,54 +160,6 @@ func (app *BaseApp) Info(_ *abci.InfoRequest) (*abci.InfoResponse, error) {
 // Query implements the ABCI interface. It delegates to CommitMultiStore if it
 // implements Queryable.
 func (app *BaseApp) Query(_ context.Context, req *abci.QueryRequest) (resp *abci.QueryResponse, err error) {
-	// add panic recovery for all queries
-	//
-	// Ref: https://github.com/cosmos/cosmos-sdk/pull/8039
-	defer func() {
-		if r := recover(); r != nil {
-			resp = queryResult(errorsmod.Wrapf(sdkerrors.ErrPanic, "%v", r), app.trace)
-		}
-	}()
-
-	// when a client did not provide a query height, manually inject the latest
-	if req.Height == 0 {
-		req.Height = app.LastBlockHeight()
-	}
-
-	telemetry.IncrCounter(1, "query", "count")
-	telemetry.IncrCounter(1, "query", req.Path)
-	defer telemetry.MeasureSince(telemetry.Now(), req.Path)
-
-	if req.Path == QueryPathBroadcastTx {
-		return queryResult(errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "can't route a broadcast tx message"), app.trace), nil
-	}
-
-	// handle gRPC routes first rather than calling splitPath because '/' characters
-	// are used as part of gRPC paths
-	if grpcHandler := app.grpcQueryRouter.Route(req.Path); grpcHandler != nil {
-		return app.handleQueryGRPC(grpcHandler, req), nil
-	}
-
-	path := SplitABCIQueryPath(req.Path)
-	if len(path) == 0 {
-		return queryResult(errorsmod.Wrap(sdkerrors.ErrUnknownRequest, "no query path provided"), app.trace), nil
-	}
-
-	switch path[0] {
-	case QueryPathApp:
-		// "/app" prefix for special application queries
-		resp = handleQueryApp(app, path, req)
-
-	case QueryPathStore:
-		resp = handleQueryStore(app, path, *req)
-
-	case QueryPathP2P:
-		resp = handleQueryP2P(app, path)
-
-	default:
-		resp = queryResult(errorsmod.Wrap(sdkerrors.ErrUnknownRequest, "unknown query path"), app.trace)
-	}
-
 	return resp, nil
 }
 

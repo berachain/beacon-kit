@@ -289,7 +289,6 @@ func (app *BaseApp) SetSnapshot(snapshotStore *snapshots.Store, opts snapshottyp
 // SetInterfaceRegistry sets the InterfaceRegistry.
 func (app *BaseApp) SetInterfaceRegistry(registry types.InterfaceRegistry) {
 	app.interfaceRegistry = registry
-	app.grpcQueryRouter.SetInterfaceRegistry(registry)
 	app.msgServiceRouter.SetInterfaceRegistry(registry)
 	app.cdc = codec.NewProtoCodec(registry)
 }
@@ -369,9 +368,4 @@ func (app *BaseApp) SetStreamingManager(manager storetypes.StreamingManager) {
 // SetMsgServiceRouter sets the MsgServiceRouter of a BaseApp.
 func (app *BaseApp) SetMsgServiceRouter(msgServiceRouter *MsgServiceRouter) {
 	app.msgServiceRouter = msgServiceRouter
-}
-
-// SetGRPCQueryRouter sets the GRPCQueryRouter of the BaseApp.
-func (app *BaseApp) SetGRPCQueryRouter(grpcQueryRouter *GRPCQueryRouter) {
-	app.grpcQueryRouter = grpcQueryRouter
 }
