@@ -179,9 +179,6 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	// We only want to persist state changes if we successfully
-	// processed the block.
-	st.Save()
 	return validatorUpdates, nil
 }
 

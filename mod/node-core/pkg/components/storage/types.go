@@ -86,8 +86,6 @@ type KVStore[
 	WithContext(
 		ctx context.Context,
 	) T
-	// Save saves the key-value store.
-	Save()
 	// Copy returns a copy of the key-value store.
 	Copy() T
 	// GetLatestExecutionPayloadHeader retrieves the latest execution payload
