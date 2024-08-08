@@ -21,11 +21,14 @@
 package engineprimitives
 
 import (
+	"io"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
+	fastrlp "github.com/umbracle/fastrlp"
 )
 
 // WithdrawalSize is the size of the Withdrawal in bytes.
@@ -137,6 +140,23 @@ func (w *Withdrawal) HashTreeRootWith(hh fastssz.HashWalker) error {
 // GetTree ssz hashes the Withdrawal object.
 func (w *Withdrawal) GetTree() (*fastssz.Node, error) {
 	return fastssz.ProofTree(w)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                     RLP                                    */
+/* -------------------------------------------------------------------------- */
+
+// SetIndex sets the unique identifier for the withdrawal.
+func (w Withdrawal) EncodeRLP(_w io.Writer) error {
+	a := fastrlp.DefaultArenaPool.Get()
+	defer fastrlp.DefaultArenaPool.Put(a)
+	v := a.NewArray()
+	v.Set(a.NewUint(uint64(w.Index)))
+	v.Set(a.NewUint(uint64(w.Validator)))
+	v.Set(a.NewCopyBytes(w.Address[:]))
+	v.Set(a.NewUint(uint64(w.Amount)))
+	_, err := _w.Write(v.MarshalTo(nil))
+	return err
 }
 
 /* -------------------------------------------------------------------------- */

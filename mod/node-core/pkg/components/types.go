@@ -227,7 +227,7 @@ type (
 		*ExecutionPayload,
 		*PayloadAttributes,
 		PayloadID,
-		*Withdrawal,
+		engineprimitives.Withdrawals,
 	]
 
 	// ExecutionPayload type aliases.
@@ -350,6 +350,7 @@ type (
 		*Validator,
 		Validators,
 		*Withdrawal,
+		engineprimitives.Withdrawals,
 		WithdrawalCredentials,
 	]
 
