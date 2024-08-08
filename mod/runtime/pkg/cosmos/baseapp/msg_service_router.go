@@ -14,7 +14,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/baseapp/protocompat"
-	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -36,7 +35,6 @@ type MsgServiceRouter struct {
 	routes            map[string]MsgServiceHandler
 	hybridHandlers    map[string]func(ctx context.Context, req, resp protoiface.MessageV1) error
 	responseByMsgName map[string]string
-	circuitBreaker    CircuitBreaker
 }
 
 var _ gogogrpc.Server = &MsgServiceRouter{}
@@ -47,12 +45,7 @@ func NewMsgServiceRouter() *MsgServiceRouter {
 		routes:            map[string]MsgServiceHandler{},
 		hybridHandlers:    map[string]func(ctx context.Context, req, resp protoiface.MessageV1) error{},
 		responseByMsgName: map[string]string{},
-		circuitBreaker:    nil,
 	}
-}
-
-func (msr *MsgServiceRouter) SetCircuit(cb CircuitBreaker) {
-	msr.circuitBreaker = cb
 }
 
 // MsgServiceHandler defines a function type which handles Msg service message.
@@ -107,31 +100,9 @@ func (msr *MsgServiceRouter) registerHybridHandler(sd *grpc.ServiceDesc, method 
 	if err != nil {
 		return err
 	}
-	cdc := codec.NewProtoCodec(msr.interfaceRegistry)
-	hybridHandler, err := protocompat.MakeHybridHandler(cdc, sd, method, handler)
-	if err != nil {
-		return err
-	}
+
 	// map input name to output name
 	msr.responseByMsgName[string(inputName)] = string(outputName)
-	// if circuit breaker is not nil, then we decorate the hybrid handler with the circuit breaker
-	if msr.circuitBreaker == nil {
-		msr.hybridHandlers[string(inputName)] = hybridHandler
-		return nil
-	}
-	// decorate the hybrid handler with the circuit breaker
-	circuitBreakerHybridHandler := func(ctx context.Context, req, resp protoiface.MessageV1) error {
-		messageName := codectypes.MsgTypeURL(req)
-		allowed, err := msr.circuitBreaker.IsAllowed(ctx, messageName)
-		if err != nil {
-			return err
-		}
-		if !allowed {
-			return fmt.Errorf("circuit breaker disallows execution of message %s", messageName)
-		}
-		return hybridHandler(ctx, req, resp)
-	}
-	msr.hybridHandlers[string(inputName)] = circuitBreakerHybridHandler
 	return nil
 }
 
@@ -201,18 +172,6 @@ func (msr *MsgServiceRouter) registerMsgServiceHandler(sd *grpc.ServiceDesc, met
 		if m, ok := msg.(sdk.HasValidateBasic); ok {
 			if err := m.ValidateBasic(); err != nil {
 				return nil, err
-			}
-		}
-
-		if msr.circuitBreaker != nil {
-			msgURL := sdk.MsgTypeURL(msg)
-			isAllowed, err := msr.circuitBreaker.IsAllowed(ctx, msgURL)
-			if err != nil {
-				return nil, err
-			}
-
-			if !isAllowed {
-				return nil, fmt.Errorf("circuit breaker disables execution of this message: %s", msgURL)
 			}
 		}
 
