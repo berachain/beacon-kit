@@ -5,7 +5,6 @@ bash = import_module("../../../lib/bash.star")
 
 COMETBFT_RPC_PORT_NUM = 26657
 COMETBFT_P2P_PORT_NUM = 26656
-COMETBFT_GRPC_PORT_NUM = 9090
 COMETBFT_REST_PORT_NUM = 1317
 COMETBFT_PPROF_PORT_NUM = 6060
 METRICS_PORT_NUM = 26660
@@ -24,7 +23,6 @@ METRICS_PATH = "/metrics"
 USED_PORTS = {
     COMETBFT_RPC_PORT_ID: shared_utils.new_port_spec(COMETBFT_RPC_PORT_NUM, shared_utils.TCP_PROTOCOL),
     COMETBFT_P2P_PORT_ID: shared_utils.new_port_spec(COMETBFT_P2P_PORT_NUM, shared_utils.TCP_PROTOCOL),
-    COMETBFT_GRPC_PORT_ID: shared_utils.new_port_spec(COMETBFT_GRPC_PORT_NUM, shared_utils.TCP_PROTOCOL),
     COMETBFT_REST_PORT_ID: shared_utils.new_port_spec(COMETBFT_REST_PORT_NUM, shared_utils.TCP_PROTOCOL),
     COMETBFT_PPROF_PORT_ID: shared_utils.new_port_spec(COMETBFT_PPROF_PORT_NUM, shared_utils.TCP_PROTOCOL),
     # ENGINE_RPC_PORT_ID: shared_utils.new_port_spec(ENGINE_RPC_PORT_NUM, shared_utils.TCP_PROTOCOL),
