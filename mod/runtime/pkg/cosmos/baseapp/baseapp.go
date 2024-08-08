@@ -36,7 +36,6 @@ import (
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 	dbm "github.com/cosmos/cosmos-db"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -73,16 +72,15 @@ var _ servertypes.ABCI = (*BaseApp)(nil)
 // BaseApp reflects the ABCI application implementation.
 type BaseApp struct {
 	// initialized on creation
-	mu                sync.Mutex // mu protects the fields below.
-	logger            log.Logger
-	name              string                      // application name from abci.BlockInfo
-	db                dbm.DB                      // common DB backend
-	cms               storetypes.CommitMultiStore // Main (uncached) state
-	qms               storetypes.MultiStore       // Optional alternative multistore for querying only.
-	storeLoader       StoreLoader                 // function to handle store loading, may be overridden with SetStoreLoader()
-	interfaceRegistry codectypes.InterfaceRegistry
-	txDecoder         sdk.TxDecoder // unmarshal []byte into sdk.Tx
-	txEncoder         sdk.TxEncoder // marshal sdk.Tx into []byte
+	mu          sync.Mutex // mu protects the fields below.
+	logger      log.Logger
+	name        string                      // application name from abci.BlockInfo
+	db          dbm.DB                      // common DB backend
+	cms         storetypes.CommitMultiStore // Main (uncached) state
+	qms         storetypes.MultiStore       // Optional alternative multistore for querying only.
+	storeLoader StoreLoader                 // function to handle store loading, may be overridden with SetStoreLoader()
+	txDecoder   sdk.TxDecoder               // unmarshal []byte into sdk.Tx
+	txEncoder   sdk.TxEncoder               // marshal sdk.Tx into []byte
 
 	mempool     mempool.Mempool // application side mempool
 	anteHandler sdk.AnteHandler // ante handler for fee and auth
