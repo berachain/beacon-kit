@@ -180,10 +180,11 @@ func ProvideEnvironment(
 		memKvService = memStoreService{key: memStoreKey}
 	}
 
-	return kvService, memKvService, NewEnvironment(
-		kvService,
-		logger.With(log.ModuleKey, fmt.Sprintf("x/%s", key.Name())),
-	)
+	return kvService, memKvService, appmodule.Environment{
+		Logger:         logger.With(log.ModuleKey, fmt.Sprintf("x/%s", key.Name())),
+		KVStoreService: kvService,
+	}
+
 }
 
 func ProvideTransientStoreService(
