@@ -24,56 +24,73 @@ import (
 	"context"
 
 	"cosmossdk.io/core/store"
-	"cosmossdk.io/server/v2/stf/branch"
 	storev2 "cosmossdk.io/store/v2"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/context/cache"
 )
 
 type Context struct {
 	context.Context
 
-	actor     []byte
-	WriterMap store.WriterMap
+	actor  []byte
+	Writer store.Writer
 }
 
-func Wrap(rawCtx context.Context, actor []byte) *Context {
-	if ctx, ok := rawCtx.(*Context); ok {
-		return ctx
-	}
-	return &Context{
-		Context:   rawCtx,
-		WriterMap: nil,
-		actor:     actor,
-	}
-}
-
-func (c *Context) CacheCopy(store storev2.RootStore) (*Context, error) {
-	_, state, err := store.StateLatest()
+func Wrap(rawCtx context.Context, actor []byte, store storev2.RootStore) (*Context, error) {
+	writer, err := latestWriterFromStore(store, actor)
 	if err != nil {
 		return nil, err
 	}
-	writerMap := branch.DefaultNewWriterMap(state)
-	changes, err := c.WriterMap.GetStateChanges()
-	if err != nil {
-		return nil, err
-	}
-	if err = writerMap.ApplyStateChanges(changes); err != nil {
-		return nil, err
-	}
 	return &Context{
-		Context:   c.Context,
-		actor:     c.actor,
-		WriterMap: writerMap,
+		Context: rawCtx,
+		Writer:  writer,
+		actor:   actor,
 	}, nil
 }
 
-func (c *Context) AttachStore(store storev2.RootStore) error {
-	if c.WriterMap != nil {
-		return nil
+func (c *Context) CacheCopy(s storev2.RootStore) (*Context, error) {
+	writer, err := latestWriterFromStore(s, c.actor)
+	if err != nil {
+		return nil, err
 	}
+
+	changes, err := c.Writer.ChangeSets()
+	if err != nil {
+		return nil, err
+	}
+	if err := writer.ApplyChangeSets(changes); err != nil {
+		return nil, err
+	}
+	return &Context{
+		Context: c.Context,
+		actor:   c.actor,
+		Writer:  writer,
+	}, nil
+}
+
+func (c *Context) StateChanges() ([]store.StateChanges, error) {
+	changes, err := c.Writer.ChangeSets()
+	if err != nil {
+		return nil, err
+	}
+	return []store.StateChanges{
+		{
+			Actor:        c.actor,
+			StateChanges: changes,
+		},
+	}, nil
+}
+
+func latestWriterFromStore(
+	store storev2.RootStore,
+	actor []byte,
+) (store.Writer, error) {
 	_, state, err := store.StateLatest()
 	if err != nil {
-		return err
+		return nil, err
 	}
-	c.WriterMap = branch.DefaultNewWriterMap(state)
-	return nil
+	reader, err := state.GetReader(actor)
+	if err != nil {
+		return nil, err
+	}
+	return cache.NewStore(reader), nil
 }

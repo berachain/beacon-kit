@@ -21,7 +21,6 @@ require (
 	cosmossdk.io/collections v0.4.0
 	cosmossdk.io/core v0.12.1-0.20240623110059-dec2d5583e39
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce
-	cosmossdk.io/server/v2/stf v0.0.0-20240802204200-bc0731cb49e9
 	cosmossdk.io/store/v2 v2.0.0-00010101000000-000000000000
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240617161612-ab1257fcf5a1
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610210054-bfdc14c4013c
@@ -30,6 +29,7 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/spf13/afero v1.11.0
 	github.com/stretchr/testify v1.9.0
+	github.com/tidwall/btree v1.7.0
 )
 
 require (
@@ -37,7 +37,6 @@ require (
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240703145037-b5612ab256db // indirect
 	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
 	github.com/prysmaticlabs/gohashtree v0.0.4-beta // indirect
-	github.com/tidwall/btree v1.7.0 // indirect
 )
 
 require (

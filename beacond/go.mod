@@ -63,7 +63,6 @@ require (
 	cosmossdk.io/log v1.3.2-0.20240530141513-465410c75bce // indirect
 	cosmossdk.io/math v1.3.0 // indirect
 	cosmossdk.io/schema v0.1.1 // indirect
-	cosmossdk.io/server/v2/stf v0.0.0-20240802204200-bc0731cb49e9 // indirect
 	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc // indirect
 	cosmossdk.io/store/v2 v2.0.0-20240729225221-c4de9a970633 // indirect
 	cosmossdk.io/x/auth v0.0.0-20240731202123-43dd23137e9d // indirect

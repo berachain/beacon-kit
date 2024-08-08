@@ -22,13 +22,11 @@ package beacondb
 
 import (
 	"context"
-	"fmt"
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 	storev2 "cosmossdk.io/store/v2"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	storectx "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/context"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/index"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/keys"
@@ -63,6 +61,8 @@ type Store[
 	ctx       *storectx.Context
 	rootStore storev2.RootStore
 	storeKey  []byte
+
+	payloadCodec *encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT]
 
 	// Versioning
 	// genesisValidatorsRoot is the root of the genesis validators.
@@ -150,9 +150,10 @@ func New[
 		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 		ForkT, ValidatorT, ValidatorsT,
 	]{
-		storeKey:  []byte(BeaconStoreKey),
-		rootStore: rootStore,
-		ctx:       nil,
+		storeKey:     []byte(BeaconStoreKey),
+		rootStore:    rootStore,
+		ctx:          nil,
+		payloadCodec: payloadCodec,
 	}
 	schemaBuilder := sdkcollections.NewSchemaBuilderFromAccessor(store.accessor)
 	store.genesisValidatorsRoot = sdkcollections.NewItem(
@@ -291,25 +292,16 @@ func (s *Store[_, _, _, _, _, _]) LatestCommitHash() ([]byte, error) {
 }
 
 func (s *Store[_, _, _, _, _, _]) Commit() ([]byte, error) {
-	changes, err := s.ctx.WriterMap.GetStateChanges()
+	changes, err := s.ctx.StateChanges()
 	if err != nil {
 		return nil, err
 	}
-	hash, err := s.LatestCommitHash()
-	if err != nil {
-		return nil, err
-	}
-	fmt.Println("BEFORE COMMIT HASH", hash, hex.FromBytes(hash))
-	hash, err = s.rootStore.Commit(&store.Changeset{Changes: changes})
-	if err != nil {
-		return nil, err
-	}
-	fmt.Println("AFTER COMMIT HASH", hash, hex.FromBytes(hash))
-	return hash, nil
+
+	return s.rootStore.Commit(&store.Changeset{Changes: changes})
 }
 
 func (s *Store[_, _, _, _, _, _]) WorkingHash() ([]byte, error) {
-	changes, err := s.ctx.WriterMap.GetStateChanges()
+	changes, err := s.ctx.StateChanges()
 	if err != nil {
 		return nil, err
 	}
@@ -352,22 +344,18 @@ func (s *Store[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ] {
-	cpy := *s
-	cpy.ctx = storectx.Wrap(ctx, s.storeKey)
-	if err := cpy.ctx.AttachStore(cpy.rootStore); err != nil {
-		panic(err)
-	}
-	return &cpy
-}
-
-func (s *Store[_, _, _, _, _, _]) accessor(rawCtx context.Context) store.KVStore {
-	ctx := storectx.Wrap(rawCtx, s.storeKey)
-	if err := ctx.AttachStore(s.rootStore); err != nil {
-		panic(err)
-	}
-	writer, err := ctx.WriterMap.GetWriter(s.storeKey)
+	var err error
+	cpy := New[
+		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		ForkT, ValidatorT, ValidatorsT,
+	](s.rootStore, s.payloadCodec)
+	cpy.ctx, err = storectx.Wrap(ctx, s.storeKey, s.rootStore)
 	if err != nil {
 		panic(err)
 	}
-	return writer
+	return cpy
+}
+
+func (s *Store[_, _, _, _, _, _]) accessor(_ context.Context) store.KVStore {
+	return s.ctx.Writer
 }
