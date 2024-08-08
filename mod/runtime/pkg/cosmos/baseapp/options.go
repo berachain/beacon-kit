@@ -259,14 +259,6 @@ func (app *BaseApp) SetIDPeerFilter(pf sdk.PeerFilter) {
 	app.idPeerFilter = pf
 }
 
-func (app *BaseApp) SetFauxMerkleMode() {
-	if app.sealed {
-		panic("SetFauxMerkleMode() on sealed BaseApp")
-	}
-
-	app.fauxMerkleMode = true
-}
-
 // SetNotSigverifyTx during simulation testing, transaction signature
 // verification needs to be ignored.
 func (app *BaseApp) SetNotSigverifyTx() {

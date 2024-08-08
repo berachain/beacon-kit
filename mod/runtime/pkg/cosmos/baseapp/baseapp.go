@@ -29,14 +29,12 @@ import (
 	"sync"
 
 	"cosmossdk.io/core/header"
-	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
 	"cosmossdk.io/store"
 	storemetrics "cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
-	"github.com/cometbft/cometbft/crypto/tmhash"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -104,7 +102,6 @@ type BaseApp struct {
 
 	addrPeerFilter sdk.PeerFilter // filter peers by address and port
 	idPeerFilter   sdk.PeerFilter // filter peers by node ID
-	fauxMerkleMode bool           // if true, IAVL MountStores uses MountStoresDB for simulation speed.
 	sigverifyTx    bool           // in the simulation test, since the account does not have a private key, we have to ignore the tx sigverify.
 
 	// volatile states:
@@ -217,11 +214,10 @@ func NewBaseApp(
 			logger,
 			storemetrics.NewNoOpMetrics(),
 		), // by default we use a no-op metric gather in store
-		storeLoader:    DefaultStoreLoader,
-		txDecoder:      txDecoder,
-		fauxMerkleMode: false,
-		sigverifyTx:    true,
-		queryGasLimit:  math.MaxUint64,
+		storeLoader:   DefaultStoreLoader,
+		txDecoder:     txDecoder,
+		sigverifyTx:   true,
+		queryGasLimit: math.MaxUint64,
 	}
 
 	for _, option := range options {
@@ -284,14 +280,7 @@ func (app *BaseApp) MountStores(keys ...storetypes.StoreKey) {
 	for _, key := range keys {
 		switch key.(type) {
 		case *storetypes.KVStoreKey:
-			if !app.fauxMerkleMode {
-				app.MountStore(key, storetypes.StoreTypeIAVL)
-			} else {
-				// StoreTypeDB doesn't do anything upon commit, and it doesn't
-				// retain history, but it's useful for faster simulation.
-				app.MountStore(key, storetypes.StoreTypeDB)
-			}
-
+			app.MountStore(key, storetypes.StoreTypeIAVL)
 		case *storetypes.TransientStoreKey:
 			app.MountStore(key, storetypes.StoreTypeTransient)
 
@@ -308,13 +297,7 @@ func (app *BaseApp) MountStores(keys ...storetypes.StoreKey) {
 // BaseApp multistore.
 func (app *BaseApp) MountKVStores(keys map[string]*storetypes.KVStoreKey) {
 	for _, key := range keys {
-		if !app.fauxMerkleMode {
-			app.MountStore(key, storetypes.StoreTypeIAVL)
-		} else {
-			// StoreTypeDB doesn't do anything upon commit, and it doesn't
-			// retain history, but it's useful for faster simulation.
-			app.MountStore(key, storetypes.StoreTypeDB)
-		}
+		app.MountStore(key, storetypes.StoreTypeIAVL)
 	}
 }
 
@@ -658,18 +641,7 @@ func (app *BaseApp) cacheTxContext(
 	txBytes []byte,
 ) (sdk.Context, storetypes.CacheMultiStore) {
 	ms := ctx.MultiStore()
-	// TODO: https://github.com/cosmos/cosmos-sdk/issues/2824
 	msCache := ms.CacheMultiStore()
-	if msCache.TracingEnabled() {
-		msCache = msCache.SetTracingContext(
-			storetypes.TraceContext(
-				map[string]interface{}{
-					"txHash": fmt.Sprintf("%X", tmhash.Sum(txBytes)),
-				},
-			),
-		).(storetypes.CacheMultiStore)
-	}
-
 	return ctx.WithMultiStore(msCache), msCache
 }
 
@@ -810,40 +782,6 @@ func (app *BaseApp) runTx(
 	ctx := app.getContextForTx(mode, txBytes)
 	ms := ctx.MultiStore()
 
-	// only run the tx if there is block gas remaining
-	if mode == execModeFinalize && ctx.BlockGasMeter().IsOutOfGas() {
-		return gInfo, nil, nil, errorsmod.Wrap(
-			sdkerrors.ErrOutOfGas,
-			"no block gas left to run tx",
-		)
-	}
-
-	blockGasConsumed := false
-
-	// consumeBlockGas makes sure block gas is consumed at most once. It must
-	// happen after tx processing, and must be executed even if tx processing
-	// fails. Hence, it's execution is deferred.
-	consumeBlockGas := func() {
-		if !blockGasConsumed {
-			blockGasConsumed = true
-			ctx.BlockGasMeter().ConsumeGas(
-				ctx.GasMeter().GasConsumedToLimit(), "block gas meter",
-			)
-		}
-	}
-
-	// If BlockGasMeter() panics it will be caught by the above recover and will
-	// return an error - in any case BlockGasMeter will consume gas past the
-	// limit.
-	//
-	// NOTE: consumeBlockGas must exist in a separate defer function from the
-	// general deferred recovery function to recover from consumeBlockGas as
-	// it'll
-	// be executed first (deferred statements are executed as stack).
-	if mode == execModeFinalize {
-		defer consumeBlockGas()
-	}
-
 	tx, err := app.txDecoder(txBytes)
 	if err != nil {
 		return sdk.GasInfo{
@@ -923,76 +861,6 @@ func (app *BaseApp) runTx(
 		if err != nil && !errors.Is(err, mempool.ErrTxNotFound) {
 			return gInfo, nil, anteEvents,
 				fmt.Errorf("failed to remove tx from mempool: %w", err)
-		}
-	}
-
-	// Create a new Context based off of the existing Context with a MultiStore
-	// branch
-	// in case message processing fails. At this point, the MultiStore
-	// is a branch of a branch.
-	runMsgCtx, msCache := app.cacheTxContext(ctx, txBytes)
-
-	// // Attempt to execute all messages and only update state if all messages
-	// pass // and we're in DeliverTx. Note, runMsgs will never return a
-	// reference to a // Result if any single message fails or does not have a
-	// registered Handler.
-	// reflectMsgs, err := tx.GetReflectMessages()
-	// if err == nil {
-	// 	result, err = app.runMsgs(runMsgCtx, msgs, reflectMsgs, mode)
-	// }
-
-	if mode == execModeSimulate {
-		// for _, msg := range msgs {
-		// 	nestedErr := app.simulateNestedMessages(ctx, msg)
-		// 	if nestedErr != nil {
-		// 		return gInfo, nil, anteEvents, nestedErr
-		// 	}
-		// }
-	}
-
-	// Run optional postHandlers (should run regardless of the execution
-	// result).
-	//
-	// Note: If the postHandler fails, we also revert the runMsgs state.
-	if app.postHandler != nil {
-		// The runMsgCtx context currently contains events emitted by the ante
-		// handler.
-		// We clear this to correctly order events without duplicates.
-		// Note that the state is still preserved.
-		postCtx := runMsgCtx.WithEventManager(sdk.NewEventManager())
-
-		newCtx, errPostHandler := app.postHandler(
-			postCtx,
-			tx,
-			mode == execModeSimulate,
-			err == nil,
-		)
-		if errPostHandler != nil {
-			return gInfo, nil, anteEvents, errors.Join(err, errPostHandler)
-		}
-
-		// we don't want runTx to panic if runMsgs has failed earlier
-		if result == nil {
-			result = &sdk.Result{}
-		}
-		result.Events = append(
-			result.Events,
-			newCtx.EventManager().ABCIEvents()...)
-	}
-
-	if err == nil {
-		if mode == execModeFinalize {
-			// When block gas exceeds, it'll panic and won't commit the cached
-			// store.
-			consumeBlockGas()
-
-			msCache.Write()
-		}
-
-		if len(anteEvents) > 0 &&
-			(mode == execModeFinalize || mode == execModeSimulate) {
-			// append the events in the order of occurrence
-			result.Events = append(anteEvents, result.Events...)
 		}
 	}
 
