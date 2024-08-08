@@ -112,8 +112,6 @@ func ProvideApp(
 	protoCodec *codec.ProtoCodec,
 ) (
 	*AppBuilder,
-	*baseapp.MsgServiceRouter,
-	*baseapp.GRPCQueryRouter,
 	appmodule.AppModule,
 	protodesc.Resolver,
 	protoregistry.MessageTypeResolver,
@@ -132,17 +130,15 @@ func ProvideApp(
 	std.RegisterInterfaces(interfaceRegistry)
 	std.RegisterLegacyAminoCodec(amino)
 
-	msgServiceRouter := baseapp.NewMsgServiceRouter()
 	app := &App{
 		storeKeys:         nil,
 		interfaceRegistry: interfaceRegistry,
 		cdc:               protoCodec,
 		amino:             amino,
-		msgServiceRouter:  msgServiceRouter,
 	}
 	appBuilder := &AppBuilder{app}
 
-	return appBuilder, msgServiceRouter, nil, appModule{app}, protoFiles, protoTypes, nil
+	return appBuilder, appModule{app}, protoFiles, protoTypes, nil
 }
 
 type AppInputs struct {
@@ -250,8 +246,6 @@ func ProvideEnvironment(
 	config *runtimev1alpha1.Module,
 	key depinject.ModuleKey,
 	app *AppBuilder,
-	msgServiceRouter *baseapp.MsgServiceRouter,
-	queryServiceRouter *baseapp.GRPCQueryRouter,
 ) (store.KVStoreService, store.MemoryStoreService, appmodule.Environment) {
 	var (
 		kvService    store.KVStoreService     = failingStoreService{}
@@ -270,8 +264,6 @@ func ProvideEnvironment(
 	return kvService, memKvService, NewEnvironment(
 		kvService,
 		logger.With(log.ModuleKey, fmt.Sprintf("x/%s", key.Name())),
-		EnvWithMsgRouterService(msgServiceRouter),
-		EnvWithQueryRouterService(queryServiceRouter),
 		EnvWithMemStoreService(memKvService),
 	)
 }

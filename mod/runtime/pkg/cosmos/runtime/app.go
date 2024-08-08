@@ -49,7 +49,6 @@ type App struct {
 	cdc               codec.Codec
 	amino             legacy.Amino
 	baseAppOptions    []BaseAppOption
-	msgServiceRouter  *baseapp.MsgServiceRouter
 	logger            log.Logger
 	// initChainer is the init chainer function defined by the app config.
 	// this is only required if the chain wants to add special InitChainer logic.

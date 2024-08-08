@@ -30,14 +30,13 @@ func (a *AppBuilder) Build(db dbm.DB, traceStore io.Writer, baseAppOptions ...fu
 	}
 
 	bApp := baseapp.NewBaseApp(a.app.config.AppName, a.app.logger, db, nil, baseAppOptions...)
-	bApp.SetMsgServiceRouter(a.app.msgServiceRouter)
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetVersion(version.Version)
 	bApp.SetInterfaceRegistry(a.app.interfaceRegistry)
 	bApp.MountStores(a.app.storeKeys...)
 
 	a.app.BaseApp = bApp
-	a.app.configurator = module.NewConfigurator(a.app.cdc, a.app.MsgServiceRouter(), nil)
+	a.app.configurator = module.NewConfigurator(a.app.cdc, nil, nil)
 
 	if err := a.app.ModuleManager.RegisterServices(a.app.configurator); err != nil {
 		panic(err)

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"math"
 	"sort"
-	"strconv"
 	"sync"
 
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
@@ -69,7 +68,6 @@ type BaseApp struct {
 	cms               storetypes.CommitMultiStore // Main (uncached) state
 	qms               storetypes.MultiStore       // Optional alternative multistore for querying only.
 	storeLoader       StoreLoader                 // function to handle store loading, may be overridden with SetStoreLoader()
-	msgServiceRouter  *MsgServiceRouter           // router for redirecting Msg service messages
 	interfaceRegistry codectypes.InterfaceRegistry
 	txDecoder         sdk.TxDecoder // unmarshal []byte into sdk.Tx
 	txEncoder         sdk.TxEncoder // marshal sdk.Tx into []byte
@@ -193,16 +191,15 @@ func NewBaseApp(
 	name string, logger log.Logger, db dbm.DB, txDecoder sdk.TxDecoder, options ...func(*BaseApp),
 ) *BaseApp {
 	app := &BaseApp{
-		logger:           logger.With(log.ModuleKey, "baseapp"),
-		name:             name,
-		db:               db,
-		cms:              store.NewCommitMultiStore(db, logger, storemetrics.NewNoOpMetrics()), // by default we use a no-op metric gather in store
-		storeLoader:      DefaultStoreLoader,
-		msgServiceRouter: NewMsgServiceRouter(),
-		txDecoder:        txDecoder,
-		fauxMerkleMode:   false,
-		sigverifyTx:      true,
-		queryGasLimit:    math.MaxUint64,
+		logger:         logger.With(log.ModuleKey, "baseapp"),
+		name:           name,
+		db:             db,
+		cms:            store.NewCommitMultiStore(db, logger, storemetrics.NewNoOpMetrics()), // by default we use a no-op metric gather in store
+		storeLoader:    DefaultStoreLoader,
+		txDecoder:      txDecoder,
+		fauxMerkleMode: false,
+		sigverifyTx:    true,
+		queryGasLimit:  math.MaxUint64,
 	}
 
 	for _, option := range options {
@@ -276,9 +273,6 @@ func (app *BaseApp) Logger() log.Logger {
 func (app *BaseApp) Trace() bool {
 	return app.trace
 }
-
-// MsgServiceRouter returns the MsgServiceRouter of a BaseApp.
-func (app *BaseApp) MsgServiceRouter() *MsgServiceRouter { return app.msgServiceRouter }
 
 // MountStores mounts all IAVL or DB stores to the provided keys in the BaseApp
 // multistore.
@@ -578,28 +572,6 @@ func (app *BaseApp) validateFinalizeBlockHeight(req *abci.FinalizeBlockRequest) 
 	return nil
 }
 
-// validateBasicTxMsgs executes basic validator calls for messages firstly by invoking
-// .ValidateBasic if possible, then checking if the message has a known handler.
-func validateBasicTxMsgs(router *MsgServiceRouter, msgs []sdk.Msg) error {
-	if len(msgs) == 0 {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "must contain at least one message")
-	}
-
-	for _, msg := range msgs {
-		if m, ok := msg.(sdk.HasValidateBasic); ok {
-			if err := m.ValidateBasic(); err != nil {
-				return err
-			}
-		}
-
-		if router != nil && router.Handler(msg) == nil {
-			return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "no message handler found for %T", msg)
-		}
-	}
-
-	return nil
-}
-
 func (app *BaseApp) getState(mode execMode) *state {
 	switch mode {
 	case execModeFinalize:
@@ -833,14 +805,14 @@ func (app *BaseApp) runTx(mode execMode, txBytes []byte) (gInfo sdk.GasInfo, res
 		return sdk.GasInfo{GasUsed: 0, GasWanted: 0}, nil, nil, sdkerrors.ErrTxDecode.Wrap(err.Error())
 	}
 
-	msgs := tx.GetMsgs()
-	// run validate basic if mode != recheck.
-	// as validate basic is stateless, it is guaranteed to pass recheck, given that its passed checkTx.
-	if mode != execModeReCheck {
-		if err := validateBasicTxMsgs(app.msgServiceRouter, msgs); err != nil {
-			return sdk.GasInfo{}, nil, nil, err
-		}
-	}
+	// msgs := tx.GetMsgs()
+	// // run validate basic if mode != recheck.
+	// // as validate basic is stateless, it is guaranteed to pass recheck, given that its passed checkTx.
+	// if mode != execModeReCheck {
+	// 	if err := validateBasicTxMsgs(app.msgServiceRouter, msgs); err != nil {
+	// 		return sdk.GasInfo{}, nil, nil, err
+	// 	}
+	// }
 
 	if app.anteHandler != nil {
 		var (
@@ -906,21 +878,21 @@ func (app *BaseApp) runTx(mode execMode, txBytes []byte) (gInfo sdk.GasInfo, res
 	// is a branch of a branch.
 	runMsgCtx, msCache := app.cacheTxContext(ctx, txBytes)
 
-	// Attempt to execute all messages and only update state if all messages pass
-	// and we're in DeliverTx. Note, runMsgs will never return a reference to a
-	// Result if any single message fails or does not have a registered Handler.
-	reflectMsgs, err := tx.GetReflectMessages()
-	if err == nil {
-		result, err = app.runMsgs(runMsgCtx, msgs, reflectMsgs, mode)
-	}
+	// // Attempt to execute all messages and only update state if all messages pass
+	// // and we're in DeliverTx. Note, runMsgs will never return a reference to a
+	// // Result if any single message fails or does not have a registered Handler.
+	// reflectMsgs, err := tx.GetReflectMessages()
+	// if err == nil {
+	// 	result, err = app.runMsgs(runMsgCtx, msgs, reflectMsgs, mode)
+	// }
 
 	if mode == execModeSimulate {
-		for _, msg := range msgs {
-			nestedErr := app.simulateNestedMessages(ctx, msg)
-			if nestedErr != nil {
-				return gInfo, nil, anteEvents, nestedErr
-			}
-		}
+		// for _, msg := range msgs {
+		// 	nestedErr := app.simulateNestedMessages(ctx, msg)
+		// 	if nestedErr != nil {
+		// 		return gInfo, nil, anteEvents, nestedErr
+		// 	}
+		// }
 	}
 
 	// Run optional postHandlers (should run regardless of the execution result).
@@ -959,117 +931,6 @@ func (app *BaseApp) runTx(mode execMode, txBytes []byte) (gInfo sdk.GasInfo, res
 	}
 
 	return gInfo, result, anteEvents, err
-}
-
-// runMsgs iterates through a list of messages and executes them with the provided
-// Context and execution mode. Messages will only be executed during simulation
-// and DeliverTx. An error is returned if any single message fails or if a
-// Handler does not exist for a given message route. Otherwise, a reference to a
-// Result is returned. The caller must not commit state if an error is returned.
-func (app *BaseApp) runMsgs(ctx sdk.Context, msgs []sdk.Msg, reflectMsgs []protoreflect.Message, mode execMode) (*sdk.Result, error) {
-	events := sdk.EmptyEvents()
-	msgResponses := make([]*codectypes.Any, 0, len(msgs))
-
-	// NOTE: GasWanted is determined by the AnteHandler and GasUsed by the GasMeter.
-	for i, msg := range msgs {
-		if mode != execModeFinalize && mode != execModeSimulate {
-			break
-		}
-
-		handler := app.msgServiceRouter.Handler(msg)
-		if handler == nil {
-			return nil, errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "no message handler found for %T", msg)
-		}
-
-		// ADR 031 request type routing
-		msgResult, err := handler(ctx, msg)
-		if err != nil {
-			return nil, errorsmod.Wrapf(err, "failed to execute message; message index: %d", i)
-		}
-
-		// create message events
-		msgEvents, err := createEvents(app.cdc, msgResult.GetEvents(), msg, reflectMsgs[i])
-		if err != nil {
-			return nil, errorsmod.Wrapf(err, "failed to create message events; message index: %d", i)
-		}
-
-		// append message events and data
-		//
-		// Note: Each message result's data must be length-prefixed in order to
-		// separate each result.
-		for j, event := range msgEvents {
-			// append message index to all events
-			msgEvents[j] = event.AppendAttributes(sdk.NewAttribute("msg_index", strconv.Itoa(i)))
-		}
-
-		events = events.AppendEvents(msgEvents)
-
-		// Each individual sdk.Result that went through the MsgServiceRouter
-		// (which should represent 99% of the Msgs now, since everyone should
-		// be using protobuf Msgs) has exactly one Msg response.
-		// We take that Msg response, and aggregate it into an array.
-		if len(msgResult.MsgResponses) > 0 {
-			msgResponse := msgResult.MsgResponses[0]
-			if msgResponse == nil {
-				return nil, sdkerrors.ErrLogic.Wrapf("got nil Msg response at index %d for msg %s", i, sdk.MsgTypeURL(msg))
-			}
-			msgResponses = append(msgResponses, msgResponse)
-		}
-	}
-
-	data, err := makeABCIData(msgResponses)
-	if err != nil {
-		return nil, errorsmod.Wrap(err, "failed to marshal tx data")
-	}
-
-	return &sdk.Result{
-		Data:         data,
-		Events:       events.ToABCIEvents(),
-		MsgResponses: msgResponses,
-	}, nil
-}
-
-// simulateNestedMessages simulates a message nested messages.
-func (app *BaseApp) simulateNestedMessages(ctx sdk.Context, msg sdk.Msg) error {
-	nestedMsgs, ok := msg.(HasNestedMsgs)
-	if !ok {
-		return nil
-	}
-
-	msgs, err := nestedMsgs.GetMsgs()
-	if err != nil {
-		return err
-	}
-
-	if err := validateBasicTxMsgs(app.msgServiceRouter, msgs); err != nil {
-		return err
-	}
-
-	for _, msg := range msgs {
-		err = app.simulateNestedMessages(ctx, msg)
-		if err != nil {
-			return err
-		}
-	}
-
-	protoMessages := make([]protoreflect.Message, len(msgs))
-	for i, msg := range msgs {
-		_, protoMsg, err := app.cdc.GetMsgSigners(msg)
-		if err != nil {
-			return err
-		}
-		protoMessages[i] = protoMsg
-	}
-
-	initialGas := ctx.GasMeter().GasConsumed()
-	_, err = app.runMsgs(ctx, msgs, protoMessages, execModeSimulate)
-	if err == nil {
-		if _, includeGas := app.includeNestedMsgsGas[sdk.MsgTypeURL(msg)]; !includeGas {
-			consumedGas := ctx.GasMeter().GasConsumed() - initialGas
-			ctx.GasMeter().RefundGas(consumedGas, "simulation of nested messages")
-		}
-	}
-	return err
 }
 
 // makeABCIData generates the Data field to be sent to ABCI Check/DeliverTx.

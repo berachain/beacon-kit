@@ -289,7 +289,6 @@ func (app *BaseApp) SetSnapshot(snapshotStore *snapshots.Store, opts snapshottyp
 // SetInterfaceRegistry sets the InterfaceRegistry.
 func (app *BaseApp) SetInterfaceRegistry(registry types.InterfaceRegistry) {
 	app.interfaceRegistry = registry
-	app.msgServiceRouter.SetInterfaceRegistry(registry)
 	app.cdc = codec.NewProtoCodec(registry)
 }
 
@@ -363,9 +362,4 @@ func (app *BaseApp) SetStoreMetrics(gatherer metrics.StoreMetrics) {
 // SetStreamingManager sets the streaming manager for the BaseApp.
 func (app *BaseApp) SetStreamingManager(manager storetypes.StreamingManager) {
 	app.streamingManager = manager
-}
-
-// SetMsgServiceRouter sets the MsgServiceRouter of a BaseApp.
-func (app *BaseApp) SetMsgServiceRouter(msgServiceRouter *MsgServiceRouter) {
-	app.msgServiceRouter = msgServiceRouter
 }
