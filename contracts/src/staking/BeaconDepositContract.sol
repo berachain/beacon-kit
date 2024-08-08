@@ -41,9 +41,6 @@ contract BeaconDepositContract is IBeaconDepositContract, Ownable {
         uint256 queuedTimestamp;
     }
 
-    /// @dev A flag to check if the contract has been initialized.
-    bool private initialized = false;
-
     /// @dev depositCount represents the number of deposits that
     /// have been made to the contract.
     uint64 public depositCount;
@@ -62,12 +59,9 @@ contract BeaconDepositContract is IBeaconDepositContract, Ownable {
     /*                            WRITES                          */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-    /// @dev Initializes the owner of the contract.
-    function initializeOwner(address _governance) external {
-        require(!initialized, "Already initialized");
-        _initializeOwner(_governance);
-        initialized = true;
-    }
+    /// @dev Initializes the owner of the contract as the governance address.
+    /// @dev On local devnets, the _governance is set to 0x20f33CE90A13a4b5E7697E3544c3083B8F8A51D4.
+    constructor(address _governance) { _initializeOwner(_governance); }
 
     /// @dev Guard to prevent double initialization of owner.
     function _guardInitializeOwner()

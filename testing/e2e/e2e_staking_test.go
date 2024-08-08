@@ -84,25 +84,24 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	)
 	s.Require().NoError(err)
 
-	tx, err := dc.InitializeOwner(&bind.TransactOpts{
-		From:   genesisAccount.Address(),
-		Signer: genesisAccount.SignerFunc(chainID),
-	}, genesisAccount.Address())
-	s.Require().NoError(err)
+	// tx, err := dc.InitializeOwner(&bind.TransactOpts{
+	// 	From:   genesisAccount.Address(),
+	// 	Signer: genesisAccount.SignerFunc(chainID),
+	// }, genesisAccount.Address())
+	// s.Require().NoError(err)
+	// // Wait for the transaction to be mined.
+	// receipt, err := bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
+	// s.Require().NoError(err)
+	// s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
 
-	// Wait for the transaction to be mined.
-	receipt, err := bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
-	s.Require().NoError(err)
-	s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
-
-	tx, err = dc.AllowDeposit(&bind.TransactOpts{
+	tx, err := dc.AllowDeposit(&bind.TransactOpts{
 		From:   genesisAccount.Address(),
 		Signer: genesisAccount.SignerFunc(chainID),
 	}, sender.Address(), NumDepositsLoad)
 	s.Require().NoError(err)
 
 	// Wait for the transaction to be mined.
-	receipt, err = bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
+	receipt, err := bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
 	s.Require().NoError(err)
 	s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
 
