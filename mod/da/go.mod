@@ -13,7 +13,7 @@ require (
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240806160829-cde2d1347e7e
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240806160829-cde2d1347e7e
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240806211103-d1105603bfc0
-	github.com/berachain/beacon-kit/mod/log v0.0.0-20240624033454-8f3451361f44
+	github.com/berachain/beacon-kit/mod/log v0.0.0-20240807213340-5779c7a563cd
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240806160829-cde2d1347e7e
 	github.com/crate-crypto/go-kzg-4844 v1.1.0
 	github.com/ethereum/c-kzg-4844 v1.0.3

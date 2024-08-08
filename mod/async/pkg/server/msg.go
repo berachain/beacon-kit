@@ -21,8 +21,6 @@
 package server
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 )
@@ -46,8 +44,9 @@ func (ms *MessageServer) Request(req types.MessageI, resp types.MessageI) error 
 	if !ok {
 		return ErrRouteNotFound
 	}
-	route.SendRequest(req)
-	fmt.Println("Sent request to route", req.ID())
+	if err := route.SendRequest(req); err != nil {
+		return err
+	}
 	return route.AwaitResponse(resp)
 }
 
@@ -58,8 +57,8 @@ func (ms *MessageServer) Respond(resp types.MessageI) error {
 	if !ok {
 		return ErrRouteNotFound
 	}
-	route.SendResponse(resp)
-	return nil
+	ms.logger.Error("Responding to message", "resp", resp)
+	return route.SendResponse(resp)
 }
 
 // RegisterRoute registers the route with the given messageID.

@@ -159,13 +159,13 @@ func (s *Service[
 func (s *Service[
 	_, BeaconBlockT, _, _, _, _, _, _, GenesisT, _, _,
 ]) Start(ctx context.Context) error {
-	var finalizeBeaconBlockRequests chan *asynctypes.Message[BeaconBlockT]
+	finalizeBeaconBlockRequests := make(chan *asynctypes.Message[BeaconBlockT])
 	s.dispatcher.RegisterMsgReceiver(messages.FinalizeBeaconBlock, finalizeBeaconBlockRequests)
 
-	var verifyBeaconBlockRequests chan *asynctypes.Message[BeaconBlockT]
+	verifyBeaconBlockRequests := make(chan *asynctypes.Message[BeaconBlockT])
 	s.dispatcher.RegisterMsgReceiver(messages.VerifyBeaconBlock, verifyBeaconBlockRequests)
 
-	var processGenDataRequests chan *asynctypes.Message[GenesisT]
+	processGenDataRequests := make(chan *asynctypes.Message[GenesisT])
 	s.dispatcher.RegisterMsgReceiver(messages.ProcessGenesisData, processGenDataRequests)
 
 	go s.start(ctx, finalizeBeaconBlockRequests, verifyBeaconBlockRequests, processGenDataRequests)
@@ -215,14 +215,16 @@ func (s *Service[
 	}
 
 	// dispatch a response containing the validator updates
-	s.dispatcher.DispatchResponse(
+	if err := s.dispatcher.DispatchResponse(
 		asynctypes.NewMessage(
 			msg.Context(),
 			messages.ProcessGenesisData,
 			valUpdates,
 			nil,
 		),
-	)
+	); err != nil {
+		s.logger.Error("Failed to dispatch response in handleProcessGenesisDataRequest", "error", err)
+	}
 }
 
 func (s *Service[

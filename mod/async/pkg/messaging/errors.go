@@ -22,15 +22,27 @@ package messaging
 
 import (
 	"reflect"
+	"time"
 
+	"github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 )
 
 // ErrTimeout is the error returned when a dispatch operation timed out.
 var (
-	ErrTimeout = errors.New("timeout")
+	ErrTimeout = func(messageID types.MessageID, timeout time.Duration) error {
+		return errors.Newf("message %s timed out after %s", messageID, timeout)
+	}
 
 	ErrRouteAlreadySet = errors.New("route already set")
+
+	ErrRegisteringNilChannel = func(messageID types.MessageID) error {
+		return errors.Newf("cannot register nil channel for route: %s", messageID)
+	}
+
+	ErrReceiverNotListening = func(messageID types.MessageID) error {
+		return errors.Newf("receiver may be registered but not listening for route: %s", messageID)
+	}
 
 	errIncompatibleAssigneeType = func(assigner interface{}, assignee interface{}) error {
 		assignerType := reflect.TypeOf(assigner)

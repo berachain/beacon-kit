@@ -58,6 +58,8 @@ func (r *Route[ReqT, RespT]) MessageID() types.MessageID {
 func (r *Route[ReqT, RespT]) RegisterReceiver(ch any) error {
 	if r.recipient != nil {
 		return ErrRouteAlreadySet
+	} else if ch == nil {
+		return ErrRegisteringNilChannel(r.messageID)
 	}
 	typedCh, err := ensureType[chan ReqT](ch)
 	if err != nil {
@@ -73,8 +75,12 @@ func (r *Route[ReqT, RespT]) SendRequest(msg any) error {
 	if err != nil {
 		return err
 	}
-	r.recipient <- typedMsg
-	return nil
+	select {
+	case r.recipient <- typedMsg:
+		return nil
+	default:
+		return ErrReceiverNotListening(r.messageID)
+	}
 }
 
 // SendResponse sends a response to the response channel.
@@ -94,6 +100,6 @@ func (r *Route[ReqT, RespT]) AwaitResponse(emptyResp any) error {
 	case msg := <-r.responseCh:
 		return assignToResponse[RespT](msg, emptyResp)
 	case <-time.After(r.timeout):
-		return ErrTimeout
+		return ErrTimeout(r.messageID, r.timeout)
 	}
 }

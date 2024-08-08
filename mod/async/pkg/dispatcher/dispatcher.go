@@ -84,6 +84,7 @@ func (d *Dispatcher) DispatchResponse(resp types.MessageI) error {
 // Any subsequent events with <eventID> dispatched to this Dispatcher must be
 // consistent with the type expected by <publisher>.
 func (d *Dispatcher) RegisterPublisher(eventID types.MessageID, publisher types.Publisher) {
+	d.logger.Info("Publisher registered", "eventID", eventID)
 	d.eventServer.RegisterPublisher(eventID, publisher)
 }
 
@@ -99,6 +100,7 @@ func (d *Dispatcher) Subscribe(eventID types.MessageID, ch any) error {
 // RegisterMsgRecipient registers the given channel to the message with the
 // given <messageID>.
 func (d *Dispatcher) RegisterMsgReceiver(messageID types.MessageID, ch any) error {
+	d.logger.Info("Message receiver registered", "messageID", messageID)
 	return d.msgServer.RegisterReceiver(messageID, ch)
 }
 
@@ -106,5 +108,6 @@ func (d *Dispatcher) RegisterMsgReceiver(messageID types.MessageID, ch any) erro
 // Any subsequent messages with <messageID> sent to this Dispatcher must be
 // consistent with the type expected by <route>.
 func (d *Dispatcher) RegisterRoute(messageID types.MessageID, route types.MessageRoute) {
+	d.logger.Info("Route registered", "messageID", messageID)
 	d.msgServer.RegisterRoute(messageID, route)
 }
