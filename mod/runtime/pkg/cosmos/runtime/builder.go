@@ -60,7 +60,6 @@ func (a *AppBuilder) Build(
 		baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetVersion(version.Version)
-	bApp.SetInterfaceRegistry(a.app.interfaceRegistry)
 	bApp.MountStores(a.app.storeKeys...)
 
 	a.app.BaseApp = bApp

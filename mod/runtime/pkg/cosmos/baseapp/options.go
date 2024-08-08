@@ -30,8 +30,6 @@ import (
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	storetypes "cosmossdk.io/store/types"
 	dbm "github.com/cosmos/cosmos-db"
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/mempool"
 )
@@ -278,12 +276,6 @@ func (app *BaseApp) SetStoreLoader(loader StoreLoader) {
 	}
 
 	app.storeLoader = loader
-}
-
-// SetInterfaceRegistry sets the InterfaceRegistry.
-func (app *BaseApp) SetInterfaceRegistry(registry types.InterfaceRegistry) {
-	app.interfaceRegistry = registry
-	app.cdc = codec.NewProtoCodec(registry)
 }
 
 // SetTxDecoder sets the TxDecoder if it wasn't provided in the BaseApp

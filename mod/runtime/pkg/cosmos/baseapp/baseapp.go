@@ -36,7 +36,6 @@ import (
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 	dbm "github.com/cosmos/cosmos-db"
-	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
@@ -188,8 +187,6 @@ type BaseApp struct {
 
 	chainID string
 
-	cdc codec.Codec
-
 	// includeNestedMsgsGas holds a set of message types for which gas costs for
 	// its nested messages are calculated.
 	includeNestedMsgsGas map[string]struct{}
@@ -234,11 +231,6 @@ func NewBaseApp(
 	if app.includeNestedMsgsGas == nil {
 		app.includeNestedMsgsGas = make(map[string]struct{})
 	}
-
-	// Initialize with an empty interface registry to avoid nil pointer
-	// dereference. Unless SetInterfaceRegistry is called with an interface
-	// registry with proper address codecs baseapp will panic.
-	app.cdc = codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
 
 	return app
 }
