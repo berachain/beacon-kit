@@ -63,7 +63,7 @@ func (a *AppBuilder) Build(
 	bApp.MountStores(a.app.storeKeys...)
 
 	a.app.BaseApp = bApp
-	a.app.configurator = module.NewConfigurator(a.app.cdc, nil, nil)
+	a.app.configurator = module.NewConfigurator(nil, nil, nil)
 
 	if err := a.app.ModuleManager.RegisterServices(a.app.configurator); err != nil {
 		panic(err)

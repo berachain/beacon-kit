@@ -27,7 +27,6 @@ import (
 
 	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
 	"cosmossdk.io/core/appmodule"
-	"cosmossdk.io/core/legacy"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	authtx "cosmossdk.io/x/auth/tx"
@@ -36,7 +35,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	nodeservice "github.com/cosmos/cosmos-sdk/client/grpc/node"
-	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/api"
@@ -65,8 +63,6 @@ type App struct {
 	config            *runtimev1alpha1.Module
 	storeKeys         []storetypes.StoreKey
 	interfaceRegistry codectypes.InterfaceRegistry
-	cdc               codec.Codec
-	amino             legacy.Amino
 	baseAppOptions    []BaseAppOption
 	logger            log.Logger
 	// initChainer is the init chainer function defined by the app config.
@@ -88,10 +84,6 @@ func (a *App) RegisterModules(modules ...module.AppModule) error {
 		a.ModuleManager.Modules[name] = appModule
 		if mod, ok := appModule.(appmodule.HasRegisterInterfaces); ok {
 			mod.RegisterInterfaces(a.interfaceRegistry)
-		}
-
-		if mod, ok := appModule.(module.HasAminoCodec); ok {
-			mod.RegisterLegacyAminoCodec(a.amino)
 		}
 	}
 

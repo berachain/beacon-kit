@@ -28,7 +28,6 @@ import (
 	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
-	"cosmossdk.io/core/app"
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/core/genesis"
 	"cosmossdk.io/core/legacy"
@@ -120,7 +119,6 @@ func init() {
 			ProvideEnvironment,
 			ProvideTransientStoreService,
 			ProvideModuleManager,
-			ProvideAppVersionModifier,
 		),
 		appconfig.Invoke(SetupAppBuilder),
 	)
@@ -128,8 +126,6 @@ func init() {
 
 func ProvideApp(
 	interfaceRegistry codectypes.InterfaceRegistry,
-	amino legacy.Amino,
-	protoCodec *codec.ProtoCodec,
 ) (
 	*AppBuilder,
 	appmodule.AppModule,
@@ -148,13 +144,10 @@ func ProvideApp(
 	}
 
 	std.RegisterInterfaces(interfaceRegistry)
-	std.RegisterLegacyAminoCodec(amino)
 
 	app := &App{
 		storeKeys:         nil,
 		interfaceRegistry: interfaceRegistry,
-		cdc:               protoCodec,
-		amino:             amino,
 	}
 	appBuilder := &AppBuilder{app}
 
@@ -307,8 +300,4 @@ func ProvideTransientStoreService(
 	}
 
 	return transientStoreService{key: storeKey}
-}
-
-func ProvideAppVersionModifier(app *AppBuilder) app.VersionModifier {
-	return app.app
 }
