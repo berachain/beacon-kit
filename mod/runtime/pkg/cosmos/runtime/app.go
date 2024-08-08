@@ -93,7 +93,6 @@ func (a *App) RegisterModules(modules ...module.AppModule) error {
 		if mod, ok := appModule.(module.HasAminoCodec); ok {
 			mod.RegisterLegacyAminoCodec(a.amino)
 		}
-
 	}
 
 	return nil

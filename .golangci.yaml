@@ -361,5 +361,6 @@ issues:
         - noctx
         - wrapcheck
         - gochecknoglobals
-  exclude-dirs:
-    - mod/runtime/pkg/cosmos
+  exclude-files:
+    - "pkg/cosmos/runtime/.*\\.go"
+    - "pkg/cosmos/baseapp/.*\\.go"

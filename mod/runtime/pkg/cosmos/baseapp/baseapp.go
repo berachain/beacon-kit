@@ -45,7 +45,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/mempool"
-	"github.com/cosmos/gogoproto/proto"
 	"golang.org/x/exp/maps"
 )
 
@@ -998,11 +997,6 @@ func (app *BaseApp) runTx(
 	}
 
 	return gInfo, result, anteEvents, err
-}
-
-// makeABCIData generates the Data field to be sent to ABCI Check/DeliverTx.
-func makeABCIData(msgResponses []*codectypes.Any) ([]byte, error) {
-	return proto.Marshal(&sdk.TxMsgData{MsgResponses: msgResponses})
 }
 
 // PrepareProposalVerifyTx performs transaction verification when a proposer is
