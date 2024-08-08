@@ -34,14 +34,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	nodeservice "github.com/cosmos/cosmos-sdk/client/grpc/node"
-	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"google.golang.org/grpc"
 )
+
+var _ servertypes.Application = &App{}
 
 // App is a wrapper around BaseApp and ModuleManager that can be used in hybrid
 // app.go/app config scenarios or directly as a servertypes.Application
@@ -212,30 +212,14 @@ func (a *App) RegisterAPIRoutes(apiSvr *api.Server, _ config.APIConfig) {
 }
 
 // RegisterTxService implements the Application.RegisterTxService method.
-func (a *App) RegisterTxService(clientCtx client.Context) {}
+func (a *App) RegisterTxService(client.Context) {}
 
 // RegisterTendermintService implements the
 // Application.RegisterTendermintService method.
-func (a *App) RegisterTendermintService(clientCtx client.Context) {
-	cmtApp := server.NewCometABCIWrapper(a)
-	cmtservice.RegisterTendermintService(
-		clientCtx,
-		NoopServer{},
-		nil,
-		cmtApp.Query,
-	)
-}
-
-type NoopServer struct{}
-
-func (NoopServer) RegisterService(sd *grpc.ServiceDesc, ss interface{}) {}
+func (a *App) RegisterTendermintService(client.Context) {}
 
 // RegisterNodeService registers the node gRPC service on the app gRPC router.
-func (a *App) RegisterNodeService(
-	clientCtx client.Context,
-	cfg config.Config,
-) {
-}
+func (a *App) RegisterNodeService(_ client.Context, _ config.Config) {}
 
 // LoadHeight loads a particular height.
 func (a *App) LoadHeight(height int64) error {
@@ -274,5 +258,3 @@ func (a *App) UnsafeFindStoreKey(storeKey string) storetypes.StoreKey {
 
 	return a.storeKeys[i]
 }
-
-var _ servertypes.Application = &App{}
