@@ -30,7 +30,6 @@ import (
 )
 
 var (
-	_ runtime.AppI            = (*BeaconApp)(nil)
 	_ servertypes.Application = (*BeaconApp)(nil)
 )
 

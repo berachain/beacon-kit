@@ -28,7 +28,6 @@ import (
 	"cosmossdk.io/depinject/appconfig"
 	beacon "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module"
 	beaconv1alpha1 "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module/api/module/v1alpha1"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
 	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 )
 
@@ -40,7 +39,7 @@ func DefaultDepInjectConfig() depinject.Config {
 		appconfig.Compose(&appv1alpha1.Config{
 			Modules: []*appv1alpha1.ModuleConfig{
 				{
-					Name: runtime.ModuleName,
+					Name: "runtime",
 					Config: appconfig.WrapAny(&runtimev1alpha1.Module{
 						AppName:       DefaultAppName,
 						PreBlockers:   []string{},

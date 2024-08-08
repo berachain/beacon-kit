@@ -181,7 +181,10 @@ func ProvideEnvironment(
 	}
 
 	return kvService, memKvService, appmodule.Environment{
-		Logger:         logger.With(log.ModuleKey, fmt.Sprintf("x/%s", key.Name())),
+		Logger: logger.With(
+			log.ModuleKey,
+			fmt.Sprintf("x/%s", key.Name()),
+		),
 		KVStoreService: kvService,
 	}
 
