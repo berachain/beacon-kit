@@ -153,10 +153,6 @@ type BaseApp struct {
 	version string
 
 	chainID string
-
-	// includeNestedMsgsGas holds a set of message types for which gas costs for
-	// its nested messages are calculated.
-	includeNestedMsgsGas map[string]struct{}
 }
 
 // NewBaseApp returns a reference to an initialized BaseApp. It accepts a
@@ -189,9 +185,6 @@ func NewBaseApp(
 
 	if app.interBlockCache != nil {
 		app.cms.SetInterBlockCache(app.interBlockCache)
-	}
-	if app.includeNestedMsgsGas == nil {
-		app.includeNestedMsgsGas = make(map[string]struct{})
 	}
 
 	return app
