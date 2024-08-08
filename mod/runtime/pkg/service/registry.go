@@ -73,6 +73,7 @@ func NewRegistry(
 // StartAll initialized each service in order of registration.
 func (s *Registry) StartAll(ctx context.Context) error {
 	// start the dispatcher
+	s.logger.Info("Starting dispatcher")
 	if err := s.dispatcher.Start(ctx); err != nil {
 		return err
 	}

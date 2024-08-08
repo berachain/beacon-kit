@@ -21,6 +21,8 @@
 package server
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/async/pkg/types"
 )
 
@@ -43,6 +45,7 @@ func (ms *MessageServer) Request(req types.MessageI, resp types.MessageI) error 
 		return ErrRouteNotFound
 	}
 	route.SendRequest(req)
+	fmt.Println("Sent request to route", req.ID())
 	return route.AwaitResponse(resp)
 }
 

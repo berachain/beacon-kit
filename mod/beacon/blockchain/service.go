@@ -168,7 +168,7 @@ func (s *Service[
 	var processGenDataRequests chan *asynctypes.Message[GenesisT]
 	s.dispatcher.RegisterMsgReceiver(messages.ProcessGenesisData, processGenDataRequests)
 
-	s.start(ctx, finalizeBeaconBlockRequests, verifyBeaconBlockRequests, processGenDataRequests)
+	go s.start(ctx, finalizeBeaconBlockRequests, verifyBeaconBlockRequests, processGenDataRequests)
 	return nil
 }
 

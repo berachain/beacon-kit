@@ -414,31 +414,16 @@ type (
 )
 
 /* -------------------------------------------------------------------------- */
-/*                                   Events                                   */
+/*                                   Messages                                 */
 /* -------------------------------------------------------------------------- */
 
+// events
 type (
 	// FinalizedBlockEvent is a type alias for the block event.
 	FinalizedBlockEvent = asynctypes.Event[*BeaconBlock]
-
-	// TODO: delete all of these when done
-
-	// GenesisEvent is a type alias for the genesis event.
-	GenesisEvent = asynctypes.Event[*Genesis]
-
-	// SidecarEvent is a type alias for the sidecar event.
-	SidecarEvent = asynctypes.Event[*BlobSidecars]
-
-	// SlotEvent is a type alias for the slot event.
-	SlotEvent = asynctypes.Event[*SlotData]
-
-	// StatusEvent is a type alias for the status event.
-	StatusEvent = asynctypes.Event[*service.StatusEvent]
-
-	// ValidatorUpdateEvent is a type alias for the validator update event.
-	ValidatorUpdateEvent = asynctypes.Event[transition.ValidatorUpdates]
 )
 
+// messages
 type (
 	// BlockMessage is a type alias for the block message.
 	BlockMessage = asynctypes.Message[*BeaconBlock]
@@ -459,7 +444,7 @@ type (
 	StatusMessage = asynctypes.Message[*service.StatusEvent]
 
 	// ValidatorUpdateMessage is a type alias for the validator update message.
-	ValidatorUpdateMessage = asynctypes.Message[transition.ValidatorUpdates]
+	ValidatorUpdateMessage = asynctypes.Message[*transition.ValidatorUpdates]
 )
 
 /* -------------------------------------------------------------------------- */
@@ -467,7 +452,7 @@ type (
 /* -------------------------------------------------------------------------- */
 
 type (
-	BeaconBlockFinalizedPublisher = messaging.Publisher[*BlockMessage]
+	BeaconBlockFinalizedPublisher = messaging.Publisher[*FinalizedBlockEvent]
 )
 
 /* -------------------------------------------------------------------------- */

@@ -51,18 +51,22 @@ func (h *ABCIMiddleware[
 	)
 	data := new(GenesisT)
 	if err := json.Unmarshal(bz, data); err != nil {
+		h.logger.Error("Failed to unmarshal genesis data", "error", err)
 		return nil, err
 	}
 
+	h.logger.Info("Dispatching ProcessGenesisData request")
 	err := h.dispatcher.DispatchRequest(
 		asynctypes.NewMessage(
 			ctx, messages.ProcessGenesisData, *data,
 		), &valUpdateResp,
 	)
 	if err != nil {
+		h.logger.Error("Failed to dispatch ProcessGenesisData request", "error", err)
 		return nil, err
 	}
 
+	h.logger.Info("Genesis initialization completed", "validator_updates", valUpdateResp.Data())
 	return valUpdateResp.Data(), valUpdateResp.Error()
 }
 

@@ -46,7 +46,7 @@ func ProvideEventServer(in EventServerInput) *EventServer {
 // ProvideBeaconBlockFinalizedPublisher provides a publisher for beacon block
 // finalized events.
 func ProvideBeaconBlockFinalizedPublisher() *BeaconBlockFinalizedPublisher {
-	return messaging.NewPublisher[*BlockMessage](messages.BeaconBlockFinalizedEvent)
+	return messaging.NewPublisher[*FinalizedBlockEvent](messages.BeaconBlockFinalizedEvent)
 }
 
 // EventServerComponents returns all the depinject providers for the event
