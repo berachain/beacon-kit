@@ -33,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/pruning"
-	"github.com/cosmos/cosmos-sdk/client/snapshot"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -78,8 +77,6 @@ func DefaultRootCommandSetup[
 		pruning.Cmd(appCreator),
 		// `rollback`
 		server.NewRollbackCmd(appCreator),
-		// `snapshots`
-		snapshot.Cmd(appCreator),
 		// `start`
 		server.StartCmdWithOptions(appCreator, startCmdOptions),
 		// `status`

@@ -10,8 +10,6 @@ import (
 
 	"cosmossdk.io/store/metrics"
 	pruningtypes "cosmossdk.io/store/pruning/types"
-	"cosmossdk.io/store/snapshots"
-	snapshottypes "cosmossdk.io/store/snapshots/types"
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -64,11 +62,6 @@ func SetIAVLDisableFastNode(disable bool) func(*BaseApp) {
 // inter-block cache.
 func SetInterBlockCache(cache storetypes.MultiStorePersistentCache) func(*BaseApp) {
 	return func(app *BaseApp) { app.setInterBlockCache(cache) }
-}
-
-// SetSnapshot sets the snapshot store.
-func SetSnapshot(snapshotStore *snapshots.Store, opts snapshottypes.SnapshotOptions) func(*BaseApp) {
-	return func(app *BaseApp) { app.SetSnapshot(snapshotStore, opts) }
 }
 
 // SetMempool sets the mempool on BaseApp.
@@ -271,19 +264,6 @@ func (app *BaseApp) SetStoreLoader(loader StoreLoader) {
 	}
 
 	app.storeLoader = loader
-}
-
-// SetSnapshot sets the snapshot store and options.
-func (app *BaseApp) SetSnapshot(snapshotStore *snapshots.Store, opts snapshottypes.SnapshotOptions) {
-	if app.sealed {
-		panic("SetSnapshot() on sealed BaseApp")
-	}
-	if snapshotStore == nil {
-		app.snapshotManager = nil
-		return
-	}
-	app.cms.SetSnapshotInterval(opts.Interval)
-	app.snapshotManager = snapshots.NewManager(snapshotStore, opts, app.cms, nil, app.logger)
 }
 
 // SetInterfaceRegistry sets the InterfaceRegistry.

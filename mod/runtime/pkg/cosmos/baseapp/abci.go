@@ -17,7 +17,6 @@ import (
 	coreheader "cosmossdk.io/core/header"
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/store/rootmulti"
-	snapshottypes "cosmossdk.io/store/snapshots/types"
 	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -152,143 +151,6 @@ func (app *BaseApp) Info(_ *abci.InfoRequest) (*abci.InfoResponse, error) {
 		LastBlockHeight:  lastCommitID.Version,
 		LastBlockAppHash: lastCommitID.Hash,
 	}, nil
-}
-
-// Query implements the ABCI interface. It delegates to CommitMultiStore if it
-// implements Queryable.
-func (app *BaseApp) Query(_ context.Context, req *abci.QueryRequest) (resp *abci.QueryResponse, err error) {
-	return resp, nil
-}
-
-// ListSnapshots implements the ABCI interface. It delegates to app.snapshotManager if set.
-func (app *BaseApp) ListSnapshots(req *abci.ListSnapshotsRequest) (*abci.ListSnapshotsResponse, error) {
-	resp := &abci.ListSnapshotsResponse{Snapshots: []*abci.Snapshot{}}
-	if app.snapshotManager == nil {
-		return resp, nil
-	}
-
-	snapshots, err := app.snapshotManager.List()
-	if err != nil {
-		app.logger.Error("failed to list snapshots", "err", err)
-		return nil, err
-	}
-
-	for _, snapshot := range snapshots {
-		abciSnapshot, err := snapshot.ToABCI()
-		if err != nil {
-			app.logger.Error("failed to convert ABCI snapshots", "err", err)
-			return nil, err
-		}
-
-		resp.Snapshots = append(resp.Snapshots, &abciSnapshot)
-	}
-
-	return resp, nil
-}
-
-// LoadSnapshotChunk implements the ABCI interface. It delegates to app.snapshotManager if set.
-func (app *BaseApp) LoadSnapshotChunk(req *abci.LoadSnapshotChunkRequest) (*abci.LoadSnapshotChunkResponse, error) {
-	if app.snapshotManager == nil {
-		return &abci.LoadSnapshotChunkResponse{}, nil
-	}
-
-	chunk, err := app.snapshotManager.LoadChunk(req.Height, req.Format, req.Chunk)
-	if err != nil {
-		app.logger.Error(
-			"failed to load snapshot chunk",
-			"height", req.Height,
-			"format", req.Format,
-			"chunk", req.Chunk,
-			"err", err,
-		)
-		return nil, err
-	}
-
-	return &abci.LoadSnapshotChunkResponse{Chunk: chunk}, nil
-}
-
-// OfferSnapshot implements the ABCI interface. It delegates to app.snapshotManager if set.
-func (app *BaseApp) OfferSnapshot(req *abci.OfferSnapshotRequest) (*abci.OfferSnapshotResponse, error) {
-	if app.snapshotManager == nil {
-		app.logger.Error("snapshot manager not configured")
-		return &abci.OfferSnapshotResponse{Result: abci.OFFER_SNAPSHOT_RESULT_ABORT}, nil
-	}
-
-	if req.Snapshot == nil {
-		app.logger.Error("received nil snapshot")
-		return &abci.OfferSnapshotResponse{Result: abci.OFFER_SNAPSHOT_RESULT_REJECT}, nil
-	}
-
-	snapshot, err := snapshottypes.SnapshotFromABCI(req.Snapshot)
-	if err != nil {
-		app.logger.Error("failed to decode snapshot metadata", "err", err)
-		return &abci.OfferSnapshotResponse{Result: abci.OFFER_SNAPSHOT_RESULT_REJECT}, nil
-	}
-
-	err = app.snapshotManager.Restore(snapshot)
-	switch {
-	case err == nil:
-		return &abci.OfferSnapshotResponse{Result: abci.OFFER_SNAPSHOT_RESULT_ACCEPT}, nil
-
-	case errors.Is(err, snapshottypes.ErrUnknownFormat):
-		return &abci.OfferSnapshotResponse{Result: abci.OFFER_SNAPSHOT_RESULT_REJECT_FORMAT}, nil
-
-	case errors.Is(err, snapshottypes.ErrInvalidMetadata):
-		app.logger.Error(
-			"rejecting invalid snapshot",
-			"height", req.Snapshot.Height,
-			"format", req.Snapshot.Format,
-			"err", err,
-		)
-		return &abci.OfferSnapshotResponse{Result: abci.OFFER_SNAPSHOT_RESULT_REJECT}, nil
-
-	default:
-		// CometBFT errors are defined here: https://github.com/cometbft/cometbft/blob/main/statesync/syncer.go
-		// It may happen that in case of a CometBFT error, such as a timeout (which occurs after two minutes),
-		// the process is aborted. This is done intentionally because deleting the database programmatically
-		// can lead to more complicated situations.
-		app.logger.Error(
-			"failed to restore snapshot",
-			"height", req.Snapshot.Height,
-			"format", req.Snapshot.Format,
-			"err", err,
-		)
-
-		// We currently don't support resetting the IAVL stores and retrying a
-		// different snapshot, so we ask CometBFT to abort all snapshot restoration.
-		return &abci.OfferSnapshotResponse{Result: abci.OFFER_SNAPSHOT_RESULT_ABORT}, nil
-	}
-}
-
-// ApplySnapshotChunk implements the ABCI interface. It delegates to app.snapshotManager if set.
-func (app *BaseApp) ApplySnapshotChunk(req *abci.ApplySnapshotChunkRequest) (*abci.ApplySnapshotChunkResponse, error) {
-	if app.snapshotManager == nil {
-		app.logger.Error("snapshot manager not configured")
-		return &abci.ApplySnapshotChunkResponse{Result: abci.APPLY_SNAPSHOT_CHUNK_RESULT_ABORT}, nil
-	}
-
-	_, err := app.snapshotManager.RestoreChunk(req.Chunk)
-	switch {
-	case err == nil:
-		return &abci.ApplySnapshotChunkResponse{Result: abci.APPLY_SNAPSHOT_CHUNK_RESULT_ACCEPT}, nil
-
-	case errors.Is(err, snapshottypes.ErrChunkHashMismatch):
-		app.logger.Error(
-			"chunk checksum mismatch; rejecting sender and requesting refetch",
-			"chunk", req.Index,
-			"sender", req.Sender,
-			"err", err,
-		)
-		return &abci.ApplySnapshotChunkResponse{
-			Result:        abci.APPLY_SNAPSHOT_CHUNK_RESULT_RETRY,
-			RefetchChunks: []uint32{req.Index},
-			RejectSenders: []string{req.Sender},
-		}, nil
-
-	default:
-		app.logger.Error("failed to restore snapshot", "err", err)
-		return &abci.ApplySnapshotChunkResponse{Result: abci.APPLY_SNAPSHOT_CHUNK_RESULT_ABORT}, nil
-	}
 }
 
 // CheckTx implements the ABCI interface and executes a tx in CheckTx mode. In
@@ -892,9 +754,6 @@ func (app *BaseApp) Commit() (*abci.CommitResponse, error) {
 		app.prepareCheckStater(app.checkState.Context())
 	}
 
-	// The SnapshotIfApplicable method will create the snapshot by starting the goroutine
-	app.snapshotManager.SnapshotIfApplicable(header.Height)
-
 	return resp, nil
 }
 
@@ -1099,13 +958,6 @@ func (app *BaseApp) GetBlockRetentionHeight(commitHeight int64) int64 {
 	cp := app.GetConsensusParams(app.finalizeBlockState.Context())
 	if cp.Evidence != nil && cp.Evidence.MaxAgeNumBlocks > 0 {
 		retentionHeight = commitHeight - cp.Evidence.MaxAgeNumBlocks
-	}
-
-	if app.snapshotManager != nil {
-		snapshotRetentionHeights := app.snapshotManager.GetSnapshotBlockRetentionHeights()
-		if snapshotRetentionHeights > 0 {
-			retentionHeight = minNonZero(retentionHeight, commitHeight-snapshotRetentionHeights)
-		}
 	}
 
 	v := commitHeight - int64(app.minRetainBlocks)

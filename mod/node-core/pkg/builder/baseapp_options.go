@@ -26,7 +26,6 @@ import (
 	"path/filepath"
 
 	"cosmossdk.io/store"
-	snapshottypes "cosmossdk.io/store/snapshots/types"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/comet"
@@ -109,16 +108,6 @@ func DefaultBaseappOptions(appOpts servertypes.AppOptions) []func(*baseapp.BaseA
 		}
 	}
 
-	snapshotStore, err := server.GetSnapshotStore(appOpts)
-	if err != nil {
-		panic(err)
-	}
-
-	snapshotOptions := snapshottypes.NewSnapshotOptions(
-		cast.ToUint64(appOpts.Get(server.FlagStateSyncSnapshotInterval)),
-		cast.ToUint32(appOpts.Get(server.FlagStateSyncSnapshotKeepRecent)),
-	)
-
 	defaultMempool := baseapp.SetMempool(mempool.NoOpMempool{})
 	if maxTxs := cast.ToInt(appOpts.Get(server.FlagMempoolMaxTxs)); maxTxs >= 0 {
 		defaultMempool = baseapp.SetMempool(
@@ -135,7 +124,6 @@ func DefaultBaseappOptions(appOpts servertypes.AppOptions) []func(*baseapp.BaseA
 		baseapp.SetMinRetainBlocks(cast.ToUint64(appOpts.Get(server.FlagMinRetainBlocks))),
 		baseapp.SetInterBlockCache(cache),
 		baseapp.SetTrace(cast.ToBool(appOpts.Get(server.FlagTrace))),
-		baseapp.SetSnapshot(snapshotStore, snapshotOptions),
 		baseapp.SetIAVLCacheSize(cast.ToInt(appOpts.Get(server.FlagIAVLCacheSize))),
 		baseapp.SetIAVLDisableFastNode(cast.ToBool(appOpts.Get(server.FlagDisableIAVLFastNode))),
 		defaultMempool,

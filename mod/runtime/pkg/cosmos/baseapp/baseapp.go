@@ -21,7 +21,6 @@ import (
 	"cosmossdk.io/log"
 	"cosmossdk.io/store"
 	storemetrics "cosmossdk.io/store/metrics"
-	"cosmossdk.io/store/snapshots"
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -90,9 +89,6 @@ type BaseApp struct {
 	idPeerFilter   sdk.PeerFilter // filter peers by node ID
 	fauxMerkleMode bool           // if true, IAVL MountStores uses MountStoresDB for simulation speed.
 	sigverifyTx    bool           // in the simulation test, since the account does not have a private key, we have to ignore the tx sigverify.
-
-	// manages snapshots, i.e. dumps of app state at certain intervals
-	snapshotManager *snapshots.Manager
 
 	// volatile states:
 	//
@@ -354,12 +350,6 @@ func DefaultStoreLoader(ms storetypes.CommitMultiStore) error {
 // UNSAFE: must not be used during the abci life cycle.
 func (app *BaseApp) CommitMultiStore() storetypes.CommitMultiStore {
 	return app.cms
-}
-
-// SnapshotManager returns the snapshot manager.
-// application use this to register extra extension snapshotters.
-func (app *BaseApp) SnapshotManager() *snapshots.Manager {
-	return app.snapshotManager
 }
 
 // LoadVersion loads the BaseApp application version. It will panic if called
@@ -1013,18 +1003,6 @@ func (app *BaseApp) Close() error {
 	if app.db != nil {
 		app.logger.Info("Closing application.db")
 		if err := app.db.Close(); err != nil {
-			errs = append(errs, err)
-		}
-	}
-
-	// Close app.snapshotManager
-	// - opened when app chains use cosmos-sdk/server/util.go/DefaultBaseappOptions (boilerplate)
-	// - which calls cosmos-sdk/server/util.go/GetSnapshotStore
-	// - which is passed to baseapp/options.go/SetSnapshot
-	// - to set app.snapshotManager = snapshots.NewManager
-	if app.snapshotManager != nil {
-		app.logger.Info("Closing snapshots/metadata.db")
-		if err := app.snapshotManager.Close(); err != nil {
 			errs = append(errs, err)
 		}
 	}
