@@ -422,25 +422,3 @@ func populateTestDB(rdb *file.RangeDB, from, to uint64) error {
 	}
 	return nil
 }
-
-func BenchmarkRangeDB_DeleteRange(b *testing.B) {
-	rdb := file.NewRangeDB(newTestFDB("/tmp/testdb-benchmark"))
-
-	// Populate the database with some data
-	if err := populateTestDB(rdb, 1, 1000); err != nil {
-		b.Fatalf("Failed to populate test DB: %v", err)
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		// Populate the database with some data before each deletion
-		if err := populateTestDB(rdb, 1, 1000); err != nil {
-			b.Fatalf("Failed to populate test DB: %v", err)
-		}
-
-		// Benchmark the DeleteRange function
-		if err := rdb.DeleteRange(1, 100); err != nil {
-			b.Fatalf("DeleteRange() error = %v", err)
-		}
-	}
-}
