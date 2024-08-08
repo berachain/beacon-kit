@@ -24,7 +24,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"sort"
 
 	"cosmossdk.io/core/header"
 	errorsmod "cosmossdk.io/errors"
@@ -38,7 +37,6 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"golang.org/x/exp/maps"
 )
 
 type (
@@ -220,29 +218,6 @@ func (app *BaseApp) MountStores(keys ...storetypes.StoreKey) {
 func (app *BaseApp) MountKVStores(keys map[string]*storetypes.KVStoreKey) {
 	for _, key := range keys {
 		app.MountStore(key, storetypes.StoreTypeIAVL)
-	}
-}
-
-// MountTransientStores mounts all transient stores to the provided keys in
-// the BaseApp multistore.
-func (app *BaseApp) MountTransientStores(
-	keys map[string]*storetypes.TransientStoreKey,
-) {
-	for _, key := range keys {
-		app.MountStore(key, storetypes.StoreTypeTransient)
-	}
-}
-
-// MountMemoryStores mounts all in-memory KVStores with the BaseApp's internal
-// commit multi-store.
-func (app *BaseApp) MountMemoryStores(
-	keys map[string]*storetypes.MemoryStoreKey,
-) {
-	skeys := maps.Keys(keys)
-	sort.Strings(skeys)
-	for _, key := range skeys {
-		memKey := keys[key]
-		app.MountStore(memKey, storetypes.StoreTypeMemory)
 	}
 }
 
