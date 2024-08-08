@@ -72,7 +72,7 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	
 	if [ "$CHAIN_SPEC" == "testnet" ]; then
 		cp -f testing/networks/80084/*.toml testing/networks/80084/genesis.json ${HOMEDIR}/config
-	elif [ "$CHAIN_SPEC" == "devnet" ]; then
+	else
 		./build/bin/beacond genesis add-premined-deposit --home $HOMEDIR
 		./build/bin/beacond genesis collect-premined-deposits --home $HOMEDIR 
 		./build/bin/beacond genesis execution-payload "$ETH_GENESIS" --home $HOMEDIR
