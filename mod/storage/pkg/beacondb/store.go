@@ -357,5 +357,5 @@ func (s *Store[
 }
 
 func (s *Store[_, _, _, _, _, _]) accessor(_ context.Context) store.KVStore {
-	return s.ctx.Writer
+	return s.ctx.Cache
 }

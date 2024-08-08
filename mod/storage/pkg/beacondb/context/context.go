@@ -31,8 +31,8 @@ import (
 type Context struct {
 	context.Context
 
-	actor  []byte
-	Writer store.Writer
+	actor []byte
+	Cache store.Writer
 }
 
 func Wrap(
@@ -46,7 +46,7 @@ func Wrap(
 	}
 	return &Context{
 		Context: rawCtx,
-		Writer:  writer,
+		Cache:   writer,
 		actor:   actor,
 	}, nil
 }
@@ -57,7 +57,7 @@ func (c *Context) CacheCopy(s storev2.RootStore) (*Context, error) {
 		return nil, err
 	}
 
-	changes, err := c.Writer.ChangeSets()
+	changes, err := c.Cache.ChangeSets()
 	if err != nil {
 		return nil, err
 	}
@@ -67,12 +67,12 @@ func (c *Context) CacheCopy(s storev2.RootStore) (*Context, error) {
 	return &Context{
 		Context: c.Context,
 		actor:   c.actor,
-		Writer:  writer,
+		Cache:   writer,
 	}, nil
 }
 
 func (c *Context) StateChanges() ([]store.StateChanges, error) {
-	changes, err := c.Writer.ChangeSets()
+	changes, err := c.Cache.ChangeSets()
 	if err != nil {
 		return nil, err
 	}
