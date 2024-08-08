@@ -23,16 +23,13 @@ package app
 import (
 	"io"
 
-	bkcomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/baseapp"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
 	dbm "github.com/cosmos/cosmos-db"
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/runtime"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/cosmos/cosmos-sdk/types/mempool"
 )
 
 var (
-	_ runtime.AppI            = (*BeaconApp)(nil)
 	_ servertypes.Application = (*BeaconApp)(nil)
 )
 
@@ -54,10 +51,7 @@ func NewBeaconKitApp(
 	app := &BeaconApp{}
 
 	// Build the runtime.App using the app builder.
-	app.App = appBuilder.Build(db, traceStore, append(
-		baseAppOptions, baseapp.SetMempool(mempool.NoOpMempool{}),
-	)...)
-	app.SetTxDecoder(bkcomponents.NoOpTxConfig{}.TxDecoder())
+	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
 	// Load the app.
 	if err := app.Load(loadLatest); err != nil {

@@ -31,10 +31,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	dbm "github.com/cosmos/cosmos-db"
-	"github.com/cosmos/cosmos-sdk/runtime"
-	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
 
@@ -117,7 +116,7 @@ func (nb *NodeBuilder[NodeT]) Build(
 		app.NewBeaconKitApp(
 			db, traceStore, true, appBuilder,
 			append(
-				server.DefaultBaseappOptions(appOpts),
+				DefaultBaseappOptions(appOpts),
 				WithCometParamStore(chainSpec),
 				WithPrepareProposal(consensusEngine.PrepareProposal),
 				WithProcessProposal(consensusEngine.ProcessProposal),

@@ -18,27 +18,20 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package baseapp
 
 import (
-	clientv2keyring "cosmossdk.io/client/v2/autocli/keyring"
-	"cosmossdk.io/core/address"
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	"context"
+
+	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 )
 
-// ProvideKeyring provides a keyring for the client.
-func ProvideKeyring(
-	clientCtx client.Context,
-	_ address.Codec,
-) (clientv2keyring.Keyring, error) {
-	kb, err := client.NewKeyringFromBackend(
-		clientCtx,
-		clientCtx.Keyring.Backend(),
-	)
-	if err != nil {
-		return nil, err
-	}
+const InitialAppVersion uint64 = 0
 
-	return keyring.NewAutoCLIKeyring(kb)
+// ParamStore defines the interface the parameter store used by the BaseApp must
+// fulfill.
+type ParamStore interface {
+	Get(ctx context.Context) (cmtproto.ConsensusParams, error)
+	Has(ctx context.Context) (bool, error)
+	Set(ctx context.Context, cp cmtproto.ConsensusParams) error
 }

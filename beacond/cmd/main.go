@@ -77,7 +77,6 @@ func run() error {
 				clicomponents.DefaultClientComponents(),
 				// TODO: remove these, and eventually pull cfg and chainspec
 				// from built node
-				nodecomponents.ProvideNoopTxConfig,
 				nodecomponents.ProvideConfig,
 				nodecomponents.ProvideChainSpec,
 			),

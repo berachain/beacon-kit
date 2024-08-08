@@ -89,8 +89,3 @@ func (root *Root) Run(defaultNodeHome string) error {
 		root.cmd, "", defaultNodeHome,
 	)
 }
-
-// Enhance applies the given enhancer to the root command.
-func (root *Root) Enhance(enhance enhancer) error {
-	return enhance(root.cmd)
-}
