@@ -29,7 +29,7 @@ import (
 
 // forceStartupHead sends a force head FCU to the execution client.
 func (s *Service[
-	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _,
+	_, _, _, _, BeaconStateT, _, _, _, _, _, _,
 ]) forceStartupHead(
 	ctx context.Context,
 	st BeaconStateT,
@@ -57,7 +57,7 @@ func (s *Service[
 // handleRebuildPayloadForRejectedBlock handles the case where the incoming
 // block was rejected and we need to rebuild the payload for the current slot.
 func (s *Service[
-	_, _, _, _, BeaconStateT, _, _, _, _, _, _, _,
+	_, _, _, _, BeaconStateT, _, _, _, _, _, _,
 ]) handleRebuildPayloadForRejectedBlock(
 	ctx context.Context,
 	st BeaconStateT,
@@ -80,7 +80,7 @@ func (s *Service[
 // rejected the incoming block and it would be unsafe to use any
 // information from it.
 func (s *Service[
-	_, _, _, _, BeaconStateT, _, _, _, ExecutionPayloadHeaderT, _, _, _,
+	_, _, _, _, BeaconStateT, _, _, ExecutionPayloadHeaderT, _, _, _,
 ]) rebuildPayloadForRejectedBlock(
 	ctx context.Context,
 	st BeaconStateT,
@@ -123,11 +123,11 @@ func (s *Service[
 		// We are rebuilding for the current slot.
 		stateSlot,
 		// TODO: this is hood as fuck.
-		math.U64(max(
+		max(
 			//#nosec:G701
 			uint64(time.Now().Unix()+1),
 			uint64((lph.GetTimestamp()+1)),
-		)),
+		),
 		// We set the parent root to the previous block root.
 		latestHeader.HashTreeRoot(),
 		// We set the head of our chain to the previous finalized block.
@@ -147,7 +147,7 @@ func (s *Service[
 // handleOptimisticPayloadBuild handles optimistically
 // building for the next slot.
 func (s *Service[
-	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _, _, _,
+	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _, _,
 ]) handleOptimisticPayloadBuild(
 	ctx context.Context,
 	st BeaconStateT,
@@ -164,7 +164,7 @@ func (s *Service[
 
 // optimisticPayloadBuild builds a payload for the next slot.
 func (s *Service[
-	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _, _, _,
+	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _, _,
 ]) optimisticPayloadBuild(
 	ctx context.Context,
 	st BeaconStateT,
@@ -192,11 +192,11 @@ func (s *Service[
 		ctx, st,
 		slot,
 		// TODO: this is hood as fuck.
-		math.U64(max(
+		max(
 			//#nosec:G701
 			uint64(time.Now().Unix()+int64(s.cs.TargetSecondsPerEth1Block())),
 			uint64((payload.GetTimestamp()+1)),
-		)),
+		),
 		// The previous block root is simply the root of the block we just
 		// processed.
 		blk.HashTreeRoot(),

@@ -18,40 +18,27 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package components
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/karalabe/ssz"
+	"cosmossdk.io/depinject"
+	sdklog "cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/services/version"
+	sdkversion "github.com/cosmos/cosmos-sdk/version"
 )
 
-const MaxValidators = 1099511627776
-
-type Validators []*Validator
-
-// SizeSSZ returns the SSZ encoded size in bytes for the Validators.
-func (vs Validators) SizeSSZ(bool) uint32 {
-	return ssz.SizeSliceOfStaticObjects(([]*Validator)(vs))
+type ReportingServiceInput struct {
+	depinject.In
+	Logger        log.AdvancedLogger[any, sdklog.Logger]
+	TelemetrySink *metrics.TelemetrySink
 }
 
-// DefineSSZ defines the SSZ encoding for the Validators object.
-func (vs Validators) DefineSSZ(c *ssz.Codec) {
-	c.DefineDecoder(func(*ssz.Decoder) {
-		ssz.DefineSliceOfStaticObjectsContent(
-			c, (*[]*Validator)(&vs), MaxValidators)
-	})
-	c.DefineEncoder(func(*ssz.Encoder) {
-		ssz.DefineSliceOfStaticObjectsContent(
-			c, (*[]*Validator)(&vs), MaxValidators)
-	})
-
-	c.DefineHasher(func(*ssz.Hasher) {
-		ssz.DefineSliceOfStaticObjectsOffset(
-			c, (*[]*Validator)(&vs), MaxValidators)
-	})
-}
-
-// HashTreeRoot returns the SSZ hash tree root for the Validators object.
-func (vs Validators) HashTreeRoot() common.Root {
-	return ssz.HashSequential(vs)
+func ProvideReportingService(in ReportingServiceInput) *ReportingService {
+	return version.NewReportingService(
+		in.Logger.With("service", "reporting"),
+		in.TelemetrySink,
+		sdkversion.Version,
+	)
 }

@@ -23,9 +23,7 @@ package utils
 import (
 	"strings"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -61,11 +59,11 @@ func SlotFromBlockID[StorageBackendT interface {
 	}
 
 	// We assume that the block ID is a block hash.
-	root, err := hex.String(blockID).ToBytes()
+	root, err := common.NewRootFromHex(blockID)
 	if err != nil {
 		return 0, err
 	}
-	return storage.GetSlotByRoot(bytes.ToBytes32(root))
+	return storage.GetSlotByRoot(root)
 }
 
 // SlotFromExecutionID returns a slot from the execution number ID.

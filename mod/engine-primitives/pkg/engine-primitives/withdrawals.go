@@ -21,16 +21,17 @@
 package engineprimitives
 
 import (
+	"bytes"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/karalabe/ssz"
 )
 
 var (
-	_ ssz.StaticObject = (*Withdrawals)(nil)
-	// TODO: We eventually should convert the interface, but we can't until
-	// we fully move off of FastSSZ for all types.
-	// _ constraints.SSZRootable = (*Withdrawals)(nil).
+	_ ssz.StaticObject        = (*Withdrawals)(nil)
+	_ constraints.SSZRootable = (*Withdrawals)(nil)
 )
 
 // Withdrawals represents a list of withdrawals.
@@ -65,4 +66,20 @@ func (w Withdrawals) DefineSSZ(codec *ssz.Codec) {
 // HashTreeRoot returns the hash tree root of the Withdrawals.
 func (w Withdrawals) HashTreeRoot() common.Root {
 	return ssz.HashSequential(w)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                     RLP                                    */
+/* -------------------------------------------------------------------------- */
+
+// Len returns the length of s.
+func (w Withdrawals) Len() int { return len(w) }
+
+// EncodeIndex encodes the i'th withdrawal to w. Note that this does not check
+// for errors because we assume that *Withdrawal will only ever contain valid
+// withdrawals that were either
+// constructed by decoding or via public API in this package.
+func (w Withdrawals) EncodeIndex(i int, _w *bytes.Buffer) {
+	// #nosec:G703 // its okay.
+	_ = w[i].EncodeRLP(_w)
 }

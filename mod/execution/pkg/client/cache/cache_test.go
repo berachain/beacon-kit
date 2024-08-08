@@ -12,8 +12,9 @@
 // LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
 // LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
 //
-// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
-// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// TO THE EXTENT PERMITTED BY APPLICABLE PURPOSE LAW, THE LICENSED WORK IS
+// PROVIDED ON
+// AN "AS IS" BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
@@ -27,6 +28,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/cache"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/stretchr/testify/require"
 )
 
@@ -49,7 +51,7 @@ func TestEth1HeaderCache(t *testing.T) {
 		h := &gethprimitives.Header{
 			Number: new(big.Int).SetUint64(number),
 		}
-		hash := h.Hash()
+		hash := common.ExecutionHash(h.Hash())
 		cacheUnderTest.AddHeader(h)
 
 		h2, ok := cacheUnderTest.HeaderByNumber(number)
@@ -68,14 +70,14 @@ func TestEth1HeaderCache(t *testing.T) {
 		require.NotNil(t, h1)
 		require.Equal(t, gethprimitives.HexToHash("0x0"), h1.ParentHash)
 
-		oldHash := h1.Hash()
+		oldHash := common.ExecutionHash(h1.Hash())
 
 		parentHash := gethprimitives.HexToHash("0x1234")
 		newHeader := &gethprimitives.Header{
 			Number:     new(big.Int).SetUint64(number),
 			ParentHash: parentHash,
 		}
-		newHash := newHeader.Hash()
+		newHash := common.ExecutionHash(newHeader.Hash())
 		cacheUnderTest.AddHeader(newHeader)
 
 		h2, ok := cacheUnderTest.HeaderByNumber(number)

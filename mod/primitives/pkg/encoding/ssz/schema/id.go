@@ -95,7 +95,7 @@ type MerkleizableSSZObject[RootT ~[32]byte] interface {
 	SizeSSZ() uint32
 	// HashTreeRoot computes and returns the hash tree root of the data as
 	// RootT and an error if the computation fails.
-	HashTreeRoot() (RootT, error)
+	HashTreeRoot() RootT
 	// MarshalSSZ marshals the data into SSZ format.
 	MarshalSSZ() ([]byte, error)
 }

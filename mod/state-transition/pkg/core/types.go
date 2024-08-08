@@ -21,10 +21,10 @@
 package core
 
 import (
+	stdbytes "bytes"
 	"context"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
@@ -65,10 +65,10 @@ type BeaconBlockBody[
 	BeaconBlockBodyT any,
 	DepositT any,
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
-	WithdrawalT any,
+	WithdrawalsT any,
 ] interface {
 	constraints.EmptyWithVersion[BeaconBlockBodyT]
 	// GetRandaoReveal returns the RANDAO reveal signature.
@@ -80,7 +80,7 @@ type BeaconBlockBody[
 	// HashTreeRoot returns the hash tree root of the block body.
 	HashTreeRoot() common.Root
 	// GetBlobKzgCommitments returns the KZG commitments for the blobs.
-	GetBlobKzgCommitments() eip4844.KZGCommitments[gethprimitives.ExecutionHash]
+	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 }
 
 // BeaconBlockHeader is the interface for a beacon block header.
@@ -143,17 +143,17 @@ type Deposit[
 }
 
 type ExecutionPayload[
-	ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT any,
+	ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT any,
 ] interface {
 	constraints.EngineType[ExecutionPayloadT]
 	GetTransactions() engineprimitives.Transactions
-	GetParentHash() gethprimitives.ExecutionHash
-	GetBlockHash() gethprimitives.ExecutionHash
+	GetParentHash() common.ExecutionHash
+	GetBlockHash() common.ExecutionHash
 	GetPrevRandao() common.Bytes32
-	GetWithdrawals() []WithdrawalT
-	GetFeeRecipient() gethprimitives.ExecutionAddress
+	GetWithdrawals() WithdrawalsT
+	GetFeeRecipient() common.ExecutionAddress
 	GetStateRoot() common.Bytes32
-	GetReceiptsRoot() common.Root
+	GetReceiptsRoot() common.Bytes32
 	GetLogsBloom() bytes.B256
 	GetNumber() math.U64
 	GetGasLimit() math.U64
@@ -170,21 +170,24 @@ type ExecutionPayload[
 }
 
 type ExecutionPayloadHeader interface {
-	GetBlockHash() gethprimitives.ExecutionHash
+	GetBlockHash() common.ExecutionHash
 }
 
 // ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine[
 	ExecutionPayloadT ExecutionPayload[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT],
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT],
 	ExecutionPayloadHeaderT any,
-	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalsT interface {
+		Len() int
+		EncodeIndex(int, *stdbytes.Buffer)
+	},
 ] interface {
 	// VerifyAndNotifyNewPayload verifies the new payload and notifies the
 	// execution client.
 	VerifyAndNotifyNewPayload(
 		ctx context.Context,
-		req *engineprimitives.NewPayloadRequest[ExecutionPayloadT, WithdrawalT],
+		req *engineprimitives.NewPayloadRequest[ExecutionPayloadT, WithdrawalsT],
 	) error
 }
 
@@ -203,12 +206,10 @@ type ForkData[ForkDataT any] interface {
 // ValidatorT.
 type Validator[
 	ValidatorT any,
-	WithdrawalCredentialsT interface {
-		~[32]byte
-		ToExecutionAddress() (gethprimitives.ExecutionAddress, error)
-	},
+	WithdrawalCredentialsT ~[32]byte,
 ] interface {
 	constraints.SSZMarshallableRootable
+	SizeSSZ() uint32
 	// New creates a new validator with the given parameters.
 	New(
 		pubkey crypto.BLSPubkey,
@@ -228,14 +229,6 @@ type Validator[
 	SetEffectiveBalance(math.Gwei)
 	// GetWithdrawableEpoch returns the epoch when the validator can withdraw.
 	GetWithdrawableEpoch() math.Epoch
-	// GetWithdrawalCredentials returns the withdrawal credentials.
-	GetWithdrawalCredentials() WithdrawalCredentialsT
-	// IsFullyWithdrawable returns true if the validator can withdraw the
-	// balance.
-	IsFullyWithdrawable(balance math.Gwei, epoch math.Epoch) bool
-	// IsPartiallyWithdrawable returns true if the validator can withdraw the
-	// balance partially.
-	IsPartiallyWithdrawable(balance math.Gwei, epoch math.Epoch) bool
 }
 
 type Validators interface {
@@ -244,12 +237,6 @@ type Validators interface {
 
 // Withdrawal is the interface for a withdrawal.
 type Withdrawal[WithdrawalT any] interface {
-	New(
-		index math.U64,
-		validatorIndex math.ValidatorIndex,
-		address gethprimitives.ExecutionAddress,
-		amount math.Gwei,
-	) WithdrawalT
 	// Equals returns true if the withdrawal is equal to the other.
 	Equals(WithdrawalT) bool
 	// GetAmount returns the amount of the withdrawal.
@@ -259,5 +246,5 @@ type Withdrawal[WithdrawalT any] interface {
 	// GetValidatorIndex returns the index of the validator.
 	GetValidatorIndex() math.ValidatorIndex
 	// GetAddress returns the address of the withdrawal.
-	GetAddress() gethprimitives.ExecutionAddress
+	GetAddress() common.ExecutionAddress
 }

@@ -21,7 +21,6 @@
 package attributes
 
 import (
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -30,39 +29,29 @@ import (
 // Factory is a factory for creating payload attributes.
 type Factory[
 	BeaconStateT BeaconState[WithdrawalT],
-	StateProcessorT StateProcessor[BeaconStateT, WithdrawalT],
 	PayloadAttributesT PayloadAttributes[PayloadAttributesT, WithdrawalT],
 	WithdrawalT any,
 ] struct {
-	// sp is the state processor for the attributes factory.
-	sp StateProcessorT
 	// chainSpec is the chain spec for the attributes factory.
 	chainSpec common.ChainSpec
 	// logger is the logger for the attributes factory.
 	logger log.Logger[any]
 	// suggestedFeeRecipient is the suggested fee recipient sent to
 	// the execution client for the payload build.
-	suggestedFeeRecipient gethprimitives.ExecutionAddress
+	suggestedFeeRecipient common.ExecutionAddress
 }
 
 // NewAttributesFactory creates a new instance of AttributesFactory.
 func NewAttributesFactory[
 	BeaconStateT BeaconState[WithdrawalT],
-	StateProcessorT StateProcessor[BeaconStateT, WithdrawalT],
 	PayloadAttributesT PayloadAttributes[PayloadAttributesT, WithdrawalT],
 	WithdrawalT any,
 ](
-	sp StateProcessorT,
 	chainSpec common.ChainSpec,
 	logger log.Logger[any],
-	suggestedFeeRecipient gethprimitives.ExecutionAddress,
-) *Factory[
-	BeaconStateT, StateProcessorT, PayloadAttributesT, WithdrawalT,
-] {
-	return &Factory[
-		BeaconStateT, StateProcessorT, PayloadAttributesT, WithdrawalT,
-	]{
-		sp:                    sp,
+	suggestedFeeRecipient common.ExecutionAddress,
+) *Factory[BeaconStateT, PayloadAttributesT, WithdrawalT] {
+	return &Factory[BeaconStateT, PayloadAttributesT, WithdrawalT]{
 		chainSpec:             chainSpec,
 		logger:                logger,
 		suggestedFeeRecipient: suggestedFeeRecipient,
@@ -72,14 +61,13 @@ func NewAttributesFactory[
 // CreateAttributes creates a new instance of PayloadAttributes.
 func (f *Factory[
 	BeaconStateT,
-	StateProcessorT,
 	PayloadAttributesT,
 	WithdrawalT,
 ]) BuildPayloadAttributes(
 	st BeaconStateT,
 	slot math.Slot,
-	timestamp math.U64,
-	prevHeadRoot common.Root,
+	timestamp uint64,
+	prevHeadRoot [32]byte,
 ) (PayloadAttributesT, error) {
 	var (
 		prevRandao [32]byte
@@ -88,7 +76,7 @@ func (f *Factory[
 	)
 
 	// Get the expected withdrawals to include in this payload.
-	withdrawals, err := f.sp.ExpectedWithdrawals(st)
+	withdrawals, err := st.ExpectedWithdrawals()
 	if err != nil {
 		f.logger.Error(
 			"Could not get expected withdrawals to get payload attribute",
@@ -107,7 +95,7 @@ func (f *Factory[
 
 	return attributes.New(
 		f.chainSpec.ActiveForkVersionForEpoch(epoch),
-		uint64(timestamp),
+		timestamp,
 		prevRandao,
 		f.suggestedFeeRecipient,
 		withdrawals,
