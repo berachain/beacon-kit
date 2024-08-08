@@ -62,8 +62,6 @@ else
 overwrite="Y"
 fi
 
-export CHAIN_SPEC="testnet"
-
 # Setup local node if overwrite is set to Yes, otherwise skip setup
 if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	rm -rf $HOMEDIR
@@ -71,13 +69,15 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 		--chain-id $CHAINID \
 		--home $HOMEDIR \
 		--consensus-key-algo $CONSENSUS_KEY_ALGO
-	# ./build/bin/beacond genesis add-premined-deposit --home $HOMEDIR
-	# ./build/bin/beacond genesis collect-premined-deposits --home $HOMEDIR 
-	# ./build/bin/beacond genesis execution-payload "$ETH_GENESIS" --home $HOMEDIR
+	
+	if [ "$CHAIN_SPEC" == "testnet" ]; then
+		cp -f testing/networks/80084/*.toml testing/networks/80084/genesis.json ${HOMEDIR}/config
+	elif [ "$CHAIN_SPEC" == "devnet" ]; then
+		./build/bin/beacond genesis add-premined-deposit --home $HOMEDIR
+		./build/bin/beacond genesis collect-premined-deposits --home $HOMEDIR 
+		./build/bin/beacond genesis execution-payload "$ETH_GENESIS" --home $HOMEDIR
+	fi
 fi
-
-cp -f testing/networks/80084/*.toml testing/networks/80084/genesis.json .tmp/beacond/config
-
 
 # Start the node (remove the --pruning=nothing flag if historical queries are not needed)
 BEACON_START_CMD="./build/bin/beacond start --pruning=nothing "$TRACE" \
