@@ -71,11 +71,6 @@ func SetChainID(chainID string) func(*BaseApp) {
 	return func(app *BaseApp) { app.chainID = chainID }
 }
 
-// SetStoreLoader allows customization of the rootMultiStore initialization.
-func SetStoreLoader(loader StoreLoader) func(*BaseApp) {
-	return func(app *BaseApp) { app.SetStoreLoader(loader) }
-}
-
 func (app *BaseApp) SetName(name string) {
 	app.name = name
 }
@@ -115,16 +110,8 @@ func (app *BaseApp) SetDB(db dbm.DB) {
 	app.db = db
 }
 
-func (app *BaseApp) SetCMS(cms storetypes.CommitMultiStore) {
-	app.cms = cms
-}
-
 func (app *BaseApp) SetInitChainer(initChainer sdk.InitChainer) {
 	app.initChainer = initChainer
-}
-
-func (app *BaseApp) PreBlocker() sdk.PreBlocker {
-	return app.preBlocker
 }
 
 func (app *BaseApp) SetPreBlocker(preBlocker sdk.PreBlocker) {
@@ -137,11 +124,6 @@ func (app *BaseApp) SetBeginBlocker(beginBlocker sdk.BeginBlocker) {
 
 func (app *BaseApp) SetEndBlocker(endBlocker sdk.EndBlocker) {
 	app.endBlocker = endBlocker
-}
-
-// SetStoreLoader allows us to customize the rootMultiStore initialization.
-func (app *BaseApp) SetStoreLoader(loader StoreLoader) {
-	app.storeLoader = loader
 }
 
 // SetProcessProposal sets the process proposal function for the BaseApp.
