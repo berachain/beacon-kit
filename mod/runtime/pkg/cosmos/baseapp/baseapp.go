@@ -164,11 +164,6 @@ type BaseApp struct {
 	// application's version string
 	version string
 
-	// indexEvents defines the set of events in the form
-	// {eventType}.{attributeKey}, which informs CometBFT what to index. If
-	// empty, all events will be indexed.
-	indexEvents map[string]struct{}
-
 	// streamingManager for managing instances and configuration of ABCIListener
 	// services
 	streamingManager storetypes.StreamingManager
@@ -581,48 +576,28 @@ func (app *BaseApp) getContextForTx(mode execMode, txBytes []byte) sdk.Context {
 
 func (app *BaseApp) preBlock(
 	req *abci.FinalizeBlockRequest,
-) ([]abci.Event, error) {
-	var events []abci.Event
+) error {
 	if app.preBlocker != nil {
 		ctx := app.finalizeBlockState.Context()
 		if err := app.preBlocker(ctx, req); err != nil {
-			return nil, err
+			return err
 		}
 		// ConsensusParams can change in preblocker, so we need to
 		// write the consensus parameters in store to context
 		ctx = ctx.WithConsensusParams(app.GetConsensusParams(ctx))
 		app.finalizeBlockState.SetContext(ctx)
-		events = ctx.EventManager().ABCIEvents()
 	}
-	return events, nil
+	return nil
 }
 
 func (app *BaseApp) beginBlock(
 	_ *abci.FinalizeBlockRequest,
 ) (sdk.BeginBlock, error) {
-	var (
-		resp sdk.BeginBlock
-		err  error
-	)
-
 	if app.beginBlocker != nil {
-		resp, err = app.beginBlocker(app.finalizeBlockState.Context())
-		if err != nil {
-			return resp, err
-		}
-
-		// append BeginBlock attributes to all events in the BeginBlock response
-		for i, event := range resp.Events {
-			resp.Events[i].Attributes = append(
-				event.Attributes,
-				abci.EventAttribute{Key: "mode", Value: "BeginBlock"},
-			)
-		}
-
-		resp.Events = sdk.MarkEventsToIndex(resp.Events, app.indexEvents)
+		return app.beginBlocker(app.finalizeBlockState.Context())
 	}
 
-	return resp, nil
+	return sdk.BeginBlock{}, nil
 }
 
 func (app *BaseApp) deliverTx(tx []byte) *abci.ExecTxResult {
@@ -638,14 +613,13 @@ func (app *BaseApp) deliverTx(tx []byte) *abci.ExecTxResult {
 		telemetry.SetGauge(float32(gInfo.GasWanted), "tx", "gas", "wanted")
 	}()
 
-	gInfo, result, anteEvents, err := app.runTx(execModeFinalize, tx)
+	gInfo, result, err := app.runTx(execModeFinalize, tx)
 	if err != nil {
 		resultStr = "failed"
-		resp = responseExecTxResultWithEvents(
+		resp = responseExecTxResult(
 			err,
 			gInfo.GasWanted,
 			gInfo.GasUsed,
-			sdk.MarkEventsToIndex(anteEvents, app.indexEvents),
 			false,
 		)
 		return resp
@@ -656,7 +630,6 @@ func (app *BaseApp) deliverTx(tx []byte) *abci.ExecTxResult {
 		GasUsed:   int64(gInfo.GasUsed),
 		Log:       result.Log,
 		Data:      result.Data,
-		Events:    sdk.MarkEventsToIndex(result.Events, app.indexEvents),
 	}
 
 	return resp
@@ -665,27 +638,11 @@ func (app *BaseApp) deliverTx(tx []byte) *abci.ExecTxResult {
 // endBlock is an application-defined function that is called after transactions
 // have been processed in FinalizeBlock.
 func (app *BaseApp) endBlock(_ context.Context) (sdk.EndBlock, error) {
-	var endblock sdk.EndBlock
-
 	if app.endBlocker != nil {
-		eb, err := app.endBlocker(app.finalizeBlockState.Context())
-		if err != nil {
-			return endblock, err
-		}
-
-		// append EndBlock attributes to all events in the EndBlock response
-		for i, event := range eb.Events {
-			eb.Events[i].Attributes = append(
-				event.Attributes,
-				abci.EventAttribute{Key: "mode", Value: "EndBlock"},
-			)
-		}
-
-		eb.Events = sdk.MarkEventsToIndex(eb.Events, app.indexEvents)
-		endblock = eb
+		return app.endBlocker(app.finalizeBlockState.Context())
 	}
 
-	return endblock, nil
+	return sdk.EndBlock{}, nil
 }
 
 type HasNestedMsgs interface {
@@ -704,7 +661,7 @@ type HasNestedMsgs interface {
 func (app *BaseApp) runTx(
 	mode execMode,
 	txBytes []byte,
-) (gInfo sdk.GasInfo, result *sdk.Result, anteEvents []abci.Event, err error) {
+) (gInfo sdk.GasInfo, result *sdk.Result, err error) {
 	// NOTE: GasWanted should be returned by the AnteHandler. GasUsed is
 	// determined by the GasMeter. We need access to the context to get the gas
 	// meter, so we initialize upfront.
@@ -716,7 +673,7 @@ func (app *BaseApp) runTx(
 		return sdk.GasInfo{
 				GasUsed:   0,
 				GasWanted: 0,
-			}, nil, nil, sdkerrors.ErrTxDecode.Wrap(
+			}, nil, sdkerrors.ErrTxDecode.Wrap(
 				err.Error(),
 			)
 	}
@@ -734,17 +691,17 @@ func (app *BaseApp) runTx(
 	if mode == execModeCheck {
 		err = app.mempool.Insert(ctx, tx)
 		if err != nil {
-			return gInfo, nil, anteEvents, err
+			return gInfo, nil, err
 		}
 	} else if mode == execModeFinalize {
 		err = app.mempool.Remove(tx)
 		if err != nil && !errors.Is(err, mempool.ErrTxNotFound) {
-			return gInfo, nil, anteEvents,
+			return gInfo, nil,
 				fmt.Errorf("failed to remove tx from mempool: %w", err)
 		}
 	}
 
-	return gInfo, result, anteEvents, err
+	return gInfo, result, err
 }
 
 // PrepareProposalVerifyTx performs transaction verification when a proposer is
@@ -758,7 +715,7 @@ func (app *BaseApp) PrepareProposalVerifyTx(tx sdk.Tx) ([]byte, error) {
 		return nil, err
 	}
 
-	_, _, _, err = app.runTx(execModePrepareProposal, bz)
+	_, _, err = app.runTx(execModePrepareProposal, bz)
 	if err != nil {
 		return nil, err
 	}
@@ -777,7 +734,7 @@ func (app *BaseApp) ProcessProposalVerifyTx(txBz []byte) (sdk.Tx, error) {
 		return nil, err
 	}
 
-	_, _, _, err = app.runTx(execModeProcessProposal, txBz)
+	_, _, err = app.runTx(execModeProcessProposal, txBz)
 	if err != nil {
 		return nil, err
 	}

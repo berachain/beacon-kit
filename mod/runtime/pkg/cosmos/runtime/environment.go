@@ -38,16 +38,9 @@ func NewEnvironment(
 	opts ...EnvOption,
 ) appmodule.Environment {
 	env := appmodule.Environment{
-		Logger:             logger,
-		EventService:       nil,
-		HeaderService:      nil,
-		BranchService:      nil,
-		GasService:         nil,
-		TransactionService: nil,
-		KVStoreService:     kvService,
-		MsgRouterService:   nil,
-		QueryRouterService: nil,
-		MemStoreService:    failingMemStore{},
+		Logger:          logger,
+		KVStoreService:  kvService,
+		MemStoreService: failingMemStore{},
 	}
 
 	for _, opt := range opts {

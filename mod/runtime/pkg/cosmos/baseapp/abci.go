@@ -226,15 +226,9 @@ func (app *BaseApp) CheckTx(
 		return nil, fmt.Errorf("unknown RequestCheckTx type: %s", req.Type)
 	}
 
-	gInfo, result, anteEvents, err := app.runTx(mode, req.Tx)
+	gInfo, result, err := app.runTx(mode, req.Tx)
 	if err != nil {
-		return responseCheckTxWithEvents(
-			err,
-			gInfo.GasWanted,
-			gInfo.GasUsed,
-			anteEvents,
-			false,
-		), nil
+		return nil, err
 	}
 
 	return &abci.CheckTxResponse{
@@ -244,9 +238,8 @@ func (app *BaseApp) CheckTx(
 		GasUsed: int64(
 			gInfo.GasUsed,
 		), // TODO: Should type accept unsigned ints?
-		Log:    result.Log,
-		Data:   result.Data,
-		Events: sdk.MarkEventsToIndex(result.Events, app.indexEvents),
+		Log:  result.Log,
+		Data: result.Data,
 	}, nil
 }
 
@@ -477,8 +470,6 @@ func (app *BaseApp) internalFinalizeBlock(
 	ctx context.Context,
 	req *abci.FinalizeBlockRequest,
 ) (*abci.FinalizeBlockResponse, error) {
-	var events []abci.Event
-
 	if err := app.checkHalt(req.Height, req.Time); err != nil {
 		return nil, err
 	}
@@ -534,14 +525,11 @@ func (app *BaseApp) internalFinalizeBlock(
 			WithHeaderHash(req.Hash))
 	}
 
-	preblockEvents, err := app.preBlock(req)
-	if err != nil {
+	if err := app.preBlock(req); err != nil {
 		return nil, err
 	}
-	events = append(events, preblockEvents...)
 
-	beginBlock, err := app.beginBlock(req)
-	if err != nil {
+	if _, err := app.beginBlock(req); err != nil {
 		return nil, err
 	}
 
@@ -553,8 +541,6 @@ func (app *BaseApp) internalFinalizeBlock(
 	default:
 		// continue
 	}
-
-	events = append(events, beginBlock.Events...)
 
 	app.finalizeBlockState.SetContext(
 		app.finalizeBlockState.Context(),
@@ -593,11 +579,9 @@ func (app *BaseApp) internalFinalizeBlock(
 		// continue
 	}
 
-	events = append(events, endBlock.Events...)
 	cp := app.GetConsensusParams(app.finalizeBlockState.Context())
 
 	return &abci.FinalizeBlockResponse{
-		Events:                events,
 		TxResults:             txResults,
 		ValidatorUpdates:      endBlock.ValidatorUpdates,
 		ConsensusParamUpdates: &cp,
@@ -973,7 +957,7 @@ func toVoteInfo(votes []abci.ExtendedVoteInfo) []abci.VoteInfo {
 
 // Simulate executes a tx in simulate mode to get result and gas info.
 func (app *BaseApp) Simulate(txBytes []byte) (sdk.GasInfo, *sdk.Result, error) {
-	gasInfo, result, _, err := app.runTx(execModeSimulate, txBytes)
+	gasInfo, result, err := app.runTx(execModeSimulate, txBytes)
 	return gasInfo, result, err
 }
 
