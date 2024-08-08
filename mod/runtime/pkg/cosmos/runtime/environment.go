@@ -22,7 +22,7 @@ func NewEnvironment(
 		HeaderService:      HeaderService{},
 		BranchService:      BranchService{},
 		GasService:         nil,
-		TransactionService: TransactionService{},
+		TransactionService: nil,
 		KVStoreService:     kvService,
 		MsgRouterService:   nil,
 		QueryRouterService: nil,
