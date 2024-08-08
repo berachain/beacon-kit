@@ -28,7 +28,6 @@ import (
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
 	"cosmossdk.io/core/appmodule"
-	"cosmossdk.io/core/genesis"
 	"cosmossdk.io/core/store"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
@@ -99,7 +98,6 @@ func init() {
 			ProvideKVStoreKey,
 			ProvideTransientStoreKey,
 			ProvideMemoryStoreKey,
-			ProvideGenesisTxHandler,
 			ProvideEnvironment,
 			ProvideTransientStoreService,
 			ProvideModuleManager,
@@ -139,18 +137,6 @@ func registerStoreKey(wrapper *AppBuilder, key storetypes.StoreKey) {
 	wrapper.app.storeKeys = append(wrapper.app.storeKeys, key)
 }
 
-func storeKeyOverride(
-	config *runtimev1alpha1.Module,
-	moduleName string,
-) *runtimev1alpha1.StoreKeyConfig {
-	for _, cfg := range config.GetOverrideStoreKeys() {
-		if cfg.GetModuleName() == moduleName {
-			return cfg
-		}
-	}
-	return nil
-}
-
 func ProvideKVStoreKey(
 	config *runtimev1alpha1.Module,
 	key depinject.ModuleKey,
@@ -160,16 +146,7 @@ func ProvideKVStoreKey(
 		return nil
 	}
 
-	override := storeKeyOverride(config, key.Name())
-
-	var storeKeyName string
-	if override != nil {
-		storeKeyName = override.GetKvStoreKey()
-	} else {
-		storeKeyName = key.Name()
-	}
-
-	storeKey := storetypes.NewKVStoreKey(storeKeyName)
+	storeKey := storetypes.NewKVStoreKey(key.Name())
 	registerStoreKey(app, storeKey)
 	return storeKey
 }
@@ -210,16 +187,6 @@ func ProvideModuleManager(
 	modules map[string]appmodule.AppModule,
 ) *module.Manager {
 	return module.NewManagerFromMap(modules)
-}
-
-func ProvideGenesisTxHandler(appBuilder *AppBuilder) genesis.TxHandler {
-	return NoopGenTxHandler{}
-}
-
-type NoopGenTxHandler struct{}
-
-func (NoopGenTxHandler) ExecuteGenesisTx([]byte) error {
-	return nil
 }
 
 func ProvideEnvironment(
