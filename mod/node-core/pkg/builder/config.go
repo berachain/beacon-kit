@@ -38,7 +38,7 @@ func DefaultDepInjectConfig() depinject.Config {
 				{
 					Name: "runtime",
 					Config: appconfig.WrapAny(&runtimev1alpha1.Module{
-						AppName:       DefaultAppName,
+						AppName:       "BeaconKit",
 						PreBlockers:   []string{},
 						BeginBlockers: []string{},
 						EndBlockers:   []string{beacon.ModuleName},
