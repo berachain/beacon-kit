@@ -225,22 +225,6 @@ func (app *BaseApp) SetPrecommiter(precommiter sdk.Precommiter) {
 	app.precommiter = precommiter
 }
 
-func (app *BaseApp) SetAnteHandler(ah sdk.AnteHandler) {
-	if app.sealed {
-		panic("SetAnteHandler() on sealed BaseApp")
-	}
-
-	app.anteHandler = ah
-}
-
-func (app *BaseApp) SetPostHandler(ph sdk.PostHandler) {
-	if app.sealed {
-		panic("SetPostHandler() on sealed BaseApp")
-	}
-
-	app.postHandler = ph
-}
-
 // SetNotSigverifyTx during simulation testing, transaction signature
 // verification needs to be ignored.
 func (app *BaseApp) SetNotSigverifyTx() {

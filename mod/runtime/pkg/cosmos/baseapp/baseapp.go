@@ -81,9 +81,7 @@ type BaseApp struct {
 	txDecoder   sdk.TxDecoder               // unmarshal []byte into sdk.Tx
 	txEncoder   sdk.TxEncoder               // marshal sdk.Tx into []byte
 
-	mempool     mempool.Mempool // application side mempool
-	anteHandler sdk.AnteHandler // ante handler for fee and auth
-	postHandler sdk.PostHandler // post handler, optional
+	mempool mempool.Mempool // application side mempool
 
 	initChainer        sdk.InitChainer                // ABCI InitChain handler
 	preBlocker         sdk.PreBlocker                 // logic to run before BeginBlocker
@@ -357,11 +355,6 @@ func (app *BaseApp) LastBlockHeight() int64 {
 // ChainID returns the chainID of the app.
 func (app *BaseApp) ChainID() string {
 	return app.chainID
-}
-
-// AnteHandler returns the AnteHandler of the app.
-func (app *BaseApp) AnteHandler() sdk.AnteHandler {
-	return app.anteHandler
 }
 
 // Mempool returns the Mempool of the app.
