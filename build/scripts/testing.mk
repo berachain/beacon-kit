@@ -67,8 +67,7 @@ start-reth-testnet: ## start an ephemeral `reth` node
 	--authrpc.addr "0.0.0.0" \
 	--authrpc.jwtsecret $(JWT_PATH) \
 	--datadir ${ETH_DATA_DIR} \
-	--ipcpath ${IPC_PATH} \
-	--bootnodes "enode://0401e494dbd0c84c5c0f72adac5985d2f2525e08b68d448958aae218f5ac8198a80d1498e0ebec2ce38b1b18d6750f6e61a56b4614c5a6c6cf0981c39aed47dc@34.159.32.127:30303,enode://9b6c1eb143c9e3af0c7283262a9a38fe8bf844114b1f304673c2ac1c23e6bccfdaa8f4e9cb8c460bded495933fd92eeff30e6ab2e0538b56e249beea2c512906@35.234.88.149:30303,enode://e9675164b5e17b9d9edf0cc2bd79e6b6f487200c74d1331c220abb5b8ee80c2eefbf18213989585e9d0960683e819542e11d4eefb5f2b4019e1e49f9fd8fff18@berav2-bootnode.staketab.org:30303,enode://16e21c20f670d9e88570b8d3c580c7ef54f3515bffab864f1f3047c4125c3e7d98e782b990165808363a1b54ddca51c9dafaca9d6cd7ecca93e2e809ba522cae@berachain-testnet-v2.enode.l0vd.com:30304"
+	--ipcpath ${IPC_PATH}
 
 start-reth-host: ## start a local ephemeral `reth` node on host machine
 	rm -rf ${ETH_DATA_DIR}

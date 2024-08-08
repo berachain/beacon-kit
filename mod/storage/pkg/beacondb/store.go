@@ -22,11 +22,13 @@ package beacondb
 
 import (
 	"context"
+	"fmt"
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 	storev2 "cosmossdk.io/store/v2"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	storectx "github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/context"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/index"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/keys"
@@ -293,8 +295,17 @@ func (s *Store[_, _, _, _, _, _]) Commit() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	return s.rootStore.Commit(&store.Changeset{Changes: changes})
+	hash, err := s.LatestCommitHash()
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println("BEFORE COMMIT HASH", hash, hex.FromBytes(hash))
+	hash, err = s.rootStore.Commit(&store.Changeset{Changes: changes})
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println("AFTER COMMIT HASH", hash, hex.FromBytes(hash))
+	return hash, nil
 }
 
 func (s *Store[_, _, _, _, _, _]) WorkingHash() ([]byte, error) {

@@ -21,6 +21,9 @@
 package core
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/berachain/beacon-kit/mod/errors"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -184,6 +187,10 @@ func (sp *StateProcessor[
 ]) ProcessSlots(
 	st BeaconStateT, slot math.U64,
 ) (transition.ValidatorUpdates, error) {
+	start := time.Now()
+	defer func() {
+		fmt.Println("TIME ELAPSED IN PROCESS SLOTS", time.Since(start))
+	}()
 	var (
 		validatorUpdates      transition.ValidatorUpdates
 		epochValidatorUpdates transition.ValidatorUpdates
@@ -193,6 +200,8 @@ func (sp *StateProcessor[
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println("CALLING PROCESS SLOTS STARTING FROM SLOT", stateSlot, "TO SLOT", slot)
 
 	// Iterate until we are "caught up".
 	for ; stateSlot < slot; stateSlot++ {
@@ -219,6 +228,8 @@ func (sp *StateProcessor[
 			return nil, err
 		}
 	}
+
+	fmt.Println("TIME ELAPSED IN FULLY COMPLETED PROCESS SLOTS", time.Since(start))
 
 	return validatorUpdates, nil
 }
@@ -273,6 +284,10 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) error {
+	start := time.Now()
+	defer func() {
+		fmt.Println("TIME ELAPSED IN PROCESS BLOCK", time.Since(start))
+	}()
 	// process the freshly created header.
 	if err := sp.processBlockHeader(st, blk); err != nil {
 		return err

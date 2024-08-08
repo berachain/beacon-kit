@@ -22,6 +22,7 @@ package runtime
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
@@ -334,6 +335,7 @@ func (a *App[
 		return nil, nil, err
 	}
 
+	fmt.Println("HASH TREE ROOT IN FINALIZE", a.sb.StateFromContext(ctx).HashTreeRoot())
 	stateHash, err := a.sb.StateFromContext(ctx).LatestCommitHash()
 	if err != nil {
 		return nil, nil, err
