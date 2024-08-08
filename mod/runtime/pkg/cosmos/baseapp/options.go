@@ -43,11 +43,6 @@ func SetMinRetainBlocks(minRetainBlocks uint64) func(*BaseApp) {
 	return func(bapp *BaseApp) { bapp.setMinRetainBlocks(minRetainBlocks) }
 }
 
-// SetTrace will turn on or off trace flag
-func SetTrace(trace bool) func(*BaseApp) {
-	return func(app *BaseApp) { app.setTrace(trace) }
-}
-
 // SetIAVLCacheSize provides a BaseApp option function that sets the size of IAVL cache.
 func SetIAVLCacheSize(size int) func(*BaseApp) {
 	return func(bapp *BaseApp) { bapp.cms.SetIAVLCacheSize(size) }

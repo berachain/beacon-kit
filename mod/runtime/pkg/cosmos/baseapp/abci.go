@@ -175,7 +175,7 @@ func (app *BaseApp) CheckTx(req *abci.CheckTxRequest) (*abci.CheckTxResponse, er
 
 	gInfo, result, anteEvents, err := app.runTx(mode, req.Tx)
 	if err != nil {
-		return responseCheckTxWithEvents(err, gInfo.GasWanted, gInfo.GasUsed, anteEvents, app.trace), nil
+		return responseCheckTxWithEvents(err, gInfo.GasWanted, gInfo.GasUsed, anteEvents, false), nil
 	}
 
 	return &abci.CheckTxResponse{

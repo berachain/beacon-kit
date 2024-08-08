@@ -156,9 +156,6 @@ type BaseApp struct {
 	// application's version string
 	version string
 
-	// trace set will return full stack traces for errors in ABCI Log field
-	trace bool
-
 	// indexEvents defines the set of events in the form {eventType}.{attributeKey},
 	// which informs CometBFT what to index. If empty, all events will be indexed.
 	indexEvents map[string]struct{}
@@ -243,11 +240,6 @@ func (app *BaseApp) Version() string {
 // Logger returns the logger of the BaseApp.
 func (app *BaseApp) Logger() log.Logger {
 	return app.logger
-}
-
-// Trace returns the boolean value for logging error stack traces.
-func (app *BaseApp) Trace() bool {
-	return app.trace
 }
 
 // MountStores mounts all IAVL or DB stores to the provided keys in the BaseApp
@@ -411,10 +403,6 @@ func (app *BaseApp) setMinRetainBlocks(minRetainBlocks uint64) {
 
 func (app *BaseApp) setInterBlockCache(cache storetypes.MultiStorePersistentCache) {
 	app.interBlockCache = cache
-}
-
-func (app *BaseApp) setTrace(trace bool) {
-	app.trace = trace
 }
 
 // Seal seals a BaseApp. It prohibits any further modifications to a BaseApp.
@@ -680,7 +668,7 @@ func (app *BaseApp) deliverTx(tx []byte) *abci.ExecTxResult {
 			gInfo.GasWanted,
 			gInfo.GasUsed,
 			sdk.MarkEventsToIndex(anteEvents, app.indexEvents),
-			app.trace,
+			false,
 		)
 		return resp
 	}
