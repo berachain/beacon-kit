@@ -2,8 +2,6 @@ module github.com/berachain/beacon-kit/mod/beacon
 
 go 1.22.5
 
-replace github.com/berachain/beacon-kit/mod/engine-primitives => ../engine-primitives
-
 require (
 	github.com/berachain/beacon-kit/mod/async v0.0.0-20240618214413-d5ec0e66b3dd
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240610210054-bfdc14c4013c
