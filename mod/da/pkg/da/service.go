@@ -137,7 +137,7 @@ func (s *Service[_, _, BlobSidecarsT, _]) handleBlobSidecarsProcessRequest(
 	}
 
 	// dispatch a response to acknowledge the request.
-	s.dispatcher.DispatchResponse(
+	s.dispatcher.Respond(
 		asynctypes.NewMessage(
 			msg.Context(),
 			messages.ProcessSidecars,
@@ -163,7 +163,7 @@ func (s *Service[_, _, BlobSidecarsT, _]) handleSidecarsVerifyRequest(
 	}
 
 	// dispatch a response to acknowledge the request.
-	s.dispatcher.DispatchResponse(
+	s.dispatcher.Respond(
 		asynctypes.NewMessage(
 			msg.Context(),
 			messages.VerifySidecars,

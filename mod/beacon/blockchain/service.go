@@ -215,7 +215,7 @@ func (s *Service[
 	}
 
 	// dispatch a response containing the validator updates
-	if err := s.dispatcher.DispatchResponse(
+	if err := s.dispatcher.Respond(
 		asynctypes.NewMessage(
 			msg.Context(),
 			messages.ProcessGenesisData,
@@ -239,7 +239,7 @@ func (s *Service[
 	}
 
 	// dispatch a response with the error result from VerifyIncomingBlock
-	s.dispatcher.DispatchResponse(
+	s.dispatcher.Respond(
 		asynctypes.NewMessage(
 			msg.Context(),
 			messages.VerifyBeaconBlock,
@@ -267,7 +267,7 @@ func (s *Service[
 	}
 
 	// dispatch a response with the validator updates
-	s.dispatcher.DispatchResponse(
+	s.dispatcher.Respond(
 		asynctypes.NewMessage(
 			msg.Context(),
 			messages.FinalizeBeaconBlock,

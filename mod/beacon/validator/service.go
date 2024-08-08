@@ -220,7 +220,7 @@ func (s *Service[
 	var blkData BeaconBlockBundleT
 	blkData.SetBeaconBlock(blk)
 	blkData.SetSidecars(sidecars)
-	s.dispatcher.DispatchResponse(asynctypes.NewMessage(
+	s.dispatcher.Respond(asynctypes.NewMessage(
 		req.Context(),
 		messages.BuildBeaconBlockAndSidecars,
 		blkData,

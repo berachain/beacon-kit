@@ -54,7 +54,7 @@ func (h *ABCIMiddleware[
 		h.logger.Error("Failed to unmarshal genesis data", "error", err)
 		return nil, err
 	}
-	err := h.dispatcher.DispatchRequest(
+	err := h.dispatcher.Request(
 		asynctypes.NewMessage(
 			ctx, messages.ProcessGenesisData, *data,
 		), &valUpdateResp,
@@ -85,7 +85,7 @@ func (h *ABCIMiddleware[
 	defer h.metrics.measurePrepareProposalDuration(startTime)
 
 	// request a built beacon block for the given slot
-	h.dispatcher.DispatchRequest(
+	h.dispatcher.Request(
 		asynctypes.NewMessage(
 			ctx, messages.BuildBeaconBlockAndSidecars, slotData,
 		), &beaconBlkBundleResp,
@@ -153,7 +153,7 @@ func (h *ABCIMiddleware[
 	}
 
 	// verify the beacon block
-	h.dispatcher.DispatchRequest(
+	h.dispatcher.Request(
 		asynctypes.NewMessage(
 			ctx, messages.VerifyBeaconBlock, blk,
 		), &beaconBlockResp,
@@ -169,7 +169,7 @@ func (h *ABCIMiddleware[
 	}
 
 	// verify the blob sidecars
-	h.dispatcher.DispatchRequest(
+	h.dispatcher.Request(
 		asynctypes.NewMessage(
 			ctx, messages.VerifySidecars, sidecars,
 		), &sidecarsResp,
@@ -241,7 +241,7 @@ func (h *ABCIMiddleware[
 	}
 
 	// verify the blob sidecars
-	h.dispatcher.DispatchRequest(
+	h.dispatcher.Request(
 		asynctypes.NewMessage(
 			ctx, messages.ProcessSidecars, blobs,
 		), &sidecarsResp,
@@ -250,7 +250,7 @@ func (h *ABCIMiddleware[
 		return nil, sidecarsResp.Error()
 	}
 
-	h.dispatcher.DispatchRequest(
+	h.dispatcher.Request(
 		asynctypes.NewMessage(
 			ctx, messages.FinalizeBeaconBlock, blk,
 		), &valUpdatesResp,

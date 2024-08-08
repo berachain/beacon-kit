@@ -57,24 +57,24 @@ func (d *Dispatcher) Start(ctx context.Context) error {
 	return nil
 }
 
-// DispatchEvent dispatches the given event to the event server.
+// Publish dispatches the given event to the event server.
 // It will error if the <event> type is inconsistent with the publisher
 // registered for the given eventID.
-func (d *Dispatcher) DispatchEvent(event types.MessageI) error {
+func (d *Dispatcher) Publish(event types.MessageI) error {
 	return d.eventServer.Publish(event)
 }
 
-// DispatchRequest dispatches the given request to the message server.
+// Request dispatches the given request to the message server.
 // It will error if the <req> and <resp> types are inconsistent with the
 // route registered for the given messageID.
-func (d *Dispatcher) DispatchRequest(req types.MessageI, resp any) error {
+func (d *Dispatcher) Request(req types.MessageI, resp any) error {
 	return d.msgServer.Request(req, resp)
 }
 
-// DispatchResponse dispatches the given response to the message server.
+// Respond dispatches the given response to the message server.
 // It will error if the <resp> type is inconsistent with the route registered
 // for the given messageID.
-func (d *Dispatcher) DispatchResponse(resp types.MessageI) error {
+func (d *Dispatcher) Respond(resp types.MessageI) error {
 	return d.msgServer.Respond(resp)
 }
 
