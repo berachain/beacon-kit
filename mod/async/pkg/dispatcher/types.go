@@ -29,7 +29,7 @@ import (
 
 type MessageServer interface {
 	RegisterReceiver(mID types.MessageID, ch any) error
-	Request(req types.MessageI, resp types.MessageI) error
+	Request(req types.MessageI, resp any) error
 	Respond(resp types.MessageI) error
 	RegisterRoute(mID types.MessageID, route types.MessageRoute) error
 	SetLogger(logger log.Logger[any])

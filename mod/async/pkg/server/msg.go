@@ -38,7 +38,7 @@ func NewMessageServer() *MessageServer {
 
 // Request sends a message to the server and awaits for a response.
 // The response is written to the provided response pointer.
-func (ms *MessageServer) Request(req types.MessageI, resp types.MessageI) error {
+func (ms *MessageServer) Request(req types.MessageI, resp any) error {
 	// send message to request channel and await a response in the response channel
 	route, ok := ms.routes[req.ID()]
 	if !ok {
@@ -57,7 +57,6 @@ func (ms *MessageServer) Respond(resp types.MessageI) error {
 	if !ok {
 		return ErrRouteNotFound
 	}
-	ms.logger.Error("Responding to message", "resp", resp)
 	return route.SendResponse(resp)
 }
 

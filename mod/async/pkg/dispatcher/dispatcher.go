@@ -67,7 +67,7 @@ func (d *Dispatcher) DispatchEvent(ctx context.Context, event types.MessageI) er
 // DispatchRequest dispatches the given request to the message server.
 // It will error if the <req> and <resp> types are inconsistent with the
 // route registered for the given messageID.
-func (d *Dispatcher) DispatchRequest(req types.MessageI, resp types.MessageI) error {
+func (d *Dispatcher) DispatchRequest(req types.MessageI, resp any) error {
 	return d.msgServer.Request(req, resp)
 }
 

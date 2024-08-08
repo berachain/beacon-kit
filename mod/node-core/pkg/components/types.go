@@ -444,7 +444,7 @@ type (
 	StatusMessage = asynctypes.Message[*service.StatusEvent]
 
 	// ValidatorUpdateMessage is a type alias for the validator update message.
-	ValidatorUpdateMessage = asynctypes.Message[*transition.ValidatorUpdates]
+	ValidatorUpdateMessage = asynctypes.Message[transition.ValidatorUpdates]
 )
 
 /* -------------------------------------------------------------------------- */

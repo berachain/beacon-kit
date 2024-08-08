@@ -20,32 +20,24 @@
 
 package messaging
 
-import (
-	"fmt"
-)
-
 // ensureType ensures that the provided entity is of type T.
 // It returns a typed entity or an error if the type is not correct.
 func ensureType[T any](e any) (T, error) {
 	typedE, ok := e.(T)
 	if !ok {
-		return *new(T), fmt.Errorf("provided message is not of type %T", *new(T))
+		return *new(T), errIncompatibleAssignee(*new(T), e)
 	}
 	return typedE, nil
 }
 
 // assignToResponse assigns the received response to the assignee.
-func assignToResponse[RespT any](receivedResponse RespT, emptyAssignee any) error {
-	// ensure that the assignee is a pointer to the response type
-	assigneePtr, ok := emptyAssignee.(**RespT)
+func assignToResponse[RespT any](source RespT, dest any) error {
+	// ensure that the dest is a pointer to the response type
+	assigneePtr, ok := dest.(*RespT)
 	if !ok {
-		return errIncompatibleAssigneeType(receivedResponse, emptyAssignee)
-	}
-	// ensure that the assignee pointer is not nil
-	if assigneePtr == nil {
-		return errIncompatibleAssignee(receivedResponse, emptyAssignee)
+		return errIncompatibleAssignee(new(RespT), dest)
 	}
 	// assign the received response to the assignee
-	*assigneePtr = &receivedResponse
+	*assigneePtr = source
 	return nil
 }

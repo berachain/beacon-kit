@@ -21,7 +21,6 @@
 package messaging
 
 import (
-	"reflect"
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/async/pkg/types"
@@ -42,16 +41,6 @@ var (
 
 	ErrReceiverNotListening = func(messageID types.MessageID) error {
 		return errors.Newf("receiver may be registered but not listening for route: %s", messageID)
-	}
-
-	errIncompatibleAssigneeType = func(assigner interface{}, assignee interface{}) error {
-		assignerType := reflect.TypeOf(assigner)
-		assigneeType := reflect.TypeOf(assignee)
-		return errors.Newf(
-			"incompatible assignee, expected: %T, received: %T",
-			assignerType,
-			assigneeType,
-		)
 	}
 
 	errIncompatibleAssignee = func(assigner interface{}, assignee interface{}) error {

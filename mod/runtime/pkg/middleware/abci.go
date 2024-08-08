@@ -47,7 +47,7 @@ func (h *ABCIMiddleware[
 	bz []byte,
 ) (transition.ValidatorUpdates, error) {
 	var (
-		valUpdateResp asynctypes.Message[transition.ValidatorUpdates]
+		valUpdateResp *asynctypes.Message[transition.ValidatorUpdates]
 	)
 	data := new(GenesisT)
 	if err := json.Unmarshal(bz, data); err != nil {
