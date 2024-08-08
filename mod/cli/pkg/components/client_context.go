@@ -42,9 +42,7 @@ func init() {
 }
 
 // ProvideClientContext returns a new client context with the given options.
-func ProvideClientContext(
-	txConfig client.TxConfig,
-) (client.Context, error) {
+func ProvideClientContext() (client.Context, error) {
 	var err error
 	clientCtx := client.Context{}.
 		WithInput(os.Stdin).
@@ -62,8 +60,6 @@ func ProvideClientContext(
 	if err != nil {
 		return clientCtx, err
 	}
-
-	clientCtx = clientCtx.WithTxConfig(txConfig)
 
 	return clientCtx, nil
 }
