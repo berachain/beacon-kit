@@ -99,6 +99,7 @@ func DefaultBaseappOptions(
 	var reader *os.File
 	if chainID == "" {
 		// fallback to genesis chain-id
+		//#nosec:G304 // bet.
 		reader, err = os.Open(filepath.Join(homeDir, "config", "genesis.json"))
 		if err != nil {
 			panic(err)

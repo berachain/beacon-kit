@@ -379,6 +379,7 @@ func (app *BaseApp) setState(mode execMode, h cmtproto.Header) {
 func (app *BaseApp) GetConsensusParams(
 	ctx context.Context,
 ) cmtproto.ConsensusParams {
+	//#nosec:G703 // bet.
 	cp, _ := app.paramStore.Get(ctx)
 	return cp
 }
@@ -468,16 +469,20 @@ func (app *BaseApp) deliverTx(tx []byte) *abci.ExecTxResult {
 			Codespace: space,
 			Code:      code,
 			Log:       log,
+			//#nosec:G701 // bet.
 			GasWanted: int64(gInfo.GasWanted),
-			GasUsed:   int64(gInfo.GasUsed),
+			//#nosec:G701 // bet.
+			GasUsed: int64(gInfo.GasUsed),
 		}
 	}
 
 	return &abci.ExecTxResult{
+		//#nosec:G701 // bet.
 		GasWanted: int64(gInfo.GasWanted),
-		GasUsed:   int64(gInfo.GasUsed),
-		Log:       result.Log,
-		Data:      result.Data,
+		//#nosec:G701 // bet.
+		GasUsed: int64(gInfo.GasUsed),
+		Log:     result.Log,
+		Data:    result.Data,
 	}
 }
 

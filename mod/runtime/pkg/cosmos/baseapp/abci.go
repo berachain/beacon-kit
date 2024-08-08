@@ -234,6 +234,7 @@ func (app *BaseApp) CheckTx(
 		GasWanted: int64(
 			gInfo.GasWanted,
 		), // TODO: Should type accept unsigned ints?
+		//#nosec:G701 // bet.
 		GasUsed: int64(
 			gInfo.GasUsed,
 		), // TODO: Should type accept unsigned ints?
@@ -859,6 +860,7 @@ func (app *BaseApp) GetBlockRetentionHeight(commitHeight int64) int64 {
 		retentionHeight = commitHeight - cp.Evidence.MaxAgeNumBlocks
 	}
 
+	//#nosec:G701 // bet.
 	v := commitHeight - int64(app.minRetainBlocks)
 	retentionHeight = minNonZero(retentionHeight, v)
 
