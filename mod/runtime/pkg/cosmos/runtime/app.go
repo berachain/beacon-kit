@@ -28,14 +28,8 @@ import (
 	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
-	authtx "cosmossdk.io/x/auth/tx"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/baseapp"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
-	nodeservice "github.com/cosmos/cosmos-sdk/client/grpc/node"
-	"github.com/cosmos/cosmos-sdk/server/api"
-	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -190,36 +184,6 @@ func (a *App) InitChainer(
 	}
 	return a.ModuleManager.InitGenesis(ctx, genesisState)
 }
-
-// RegisterAPIRoutes registers all application module routes with the provided
-// API server.
-func (a *App) RegisterAPIRoutes(apiSvr *api.Server, _ config.APIConfig) {
-	clientCtx := apiSvr.ClientCtx
-	// Register new tx routes from grpc-gateway.
-	authtx.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
-
-	// Register new CometBFT queries routes from grpc-gateway.
-	cmtservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
-
-	// Register node gRPC service for grpc-gateway.
-	nodeservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
-
-	// Register grpc-gateway routes for all modules.
-	a.ModuleManager.RegisterGRPCGatewayRoutes(
-		clientCtx,
-		apiSvr.GRPCGatewayRouter,
-	)
-}
-
-// RegisterTxService implements the Application.RegisterTxService method.
-func (a *App) RegisterTxService(client.Context) {}
-
-// RegisterTendermintService implements the
-// Application.RegisterTendermintService method.
-func (a *App) RegisterTendermintService(client.Context) {}
-
-// RegisterNodeService registers the node gRPC service on the app gRPC router.
-func (a *App) RegisterNodeService(_ client.Context, _ config.Config) {}
 
 // LoadHeight loads a particular height.
 func (a *App) LoadHeight(height int64) error {

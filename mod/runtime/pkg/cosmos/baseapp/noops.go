@@ -25,6 +25,9 @@ import (
 
 	"cosmossdk.io/store/snapshots"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/server/api"
+	"github.com/cosmos/cosmos-sdk/server/config"
 	gogogrpc "github.com/cosmos/gogoproto/grpc"
 )
 
@@ -100,3 +103,17 @@ func (app *BaseApp) VerifyVoteExtension(
 ) (*abci.VerifyVoteExtensionResponse, error) {
 	return &abci.VerifyVoteExtensionResponse{}, nil
 }
+
+// RegisterAPIRoutes registers all application module routes with the provided
+// API server.
+func (a *BaseApp) RegisterAPIRoutes(apiSvr *api.Server, _ config.APIConfig) {}
+
+// RegisterTxService implements the Application.RegisterTxService method.
+func (a *BaseApp) RegisterTxService(client.Context) {}
+
+// RegisterTendermintService implements the
+// Application.RegisterTendermintService method.
+func (a *BaseApp) RegisterTendermintService(client.Context) {}
+
+// RegisterNodeService registers the node gRPC service on the app gRPC router.
+func (a *BaseApp) RegisterNodeService(_ client.Context, _ config.Config) {}
