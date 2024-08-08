@@ -25,7 +25,6 @@ import (
 	"errors"
 	"fmt"
 	"sort"
-	"sync"
 
 	"cosmossdk.io/core/header"
 	errorsmod "cosmossdk.io/errors"
@@ -70,7 +69,6 @@ var _ servertypes.ABCI = (*BaseApp)(nil)
 // BaseApp reflects the ABCI application implementation.
 type BaseApp struct {
 	// initialized on creation
-	mu          sync.Mutex // mu protects the fields below.
 	logger      log.Logger
 	name        string                      // application name from abci.BlockInfo
 	db          dbm.DB                      // common DB backend
@@ -80,16 +78,14 @@ type BaseApp struct {
 	txDecoder   sdk.TxDecoder               // unmarshal []byte into sdk.Tx
 	txEncoder   sdk.TxEncoder               // marshal sdk.Tx into []byte
 
-	initChainer        sdk.InitChainer                // ABCI InitChain handler
-	preBlocker         sdk.PreBlocker                 // logic to run before BeginBlocker
-	beginBlocker       sdk.BeginBlocker               // (legacy ABCI) BeginBlock handler
-	endBlocker         sdk.EndBlocker                 // (legacy ABCI) EndBlock handler
-	processProposal    sdk.ProcessProposalHandler     // ABCI ProcessProposal handler
-	prepareProposal    sdk.PrepareProposalHandler     // ABCI PrepareProposal handler
-	extendVote         sdk.ExtendVoteHandler          // ABCI ExtendVote handler
-	verifyVoteExt      sdk.VerifyVoteExtensionHandler // ABCI VerifyVoteExtension handler
-	prepareCheckStater sdk.PrepareCheckStater         // logic to run during commit using the checkState
-	precommiter        sdk.Precommiter                // logic to run during commit using the deliverState
+	initChainer        sdk.InitChainer            // ABCI InitChain handler
+	preBlocker         sdk.PreBlocker             // logic to run before BeginBlocker
+	beginBlocker       sdk.BeginBlocker           // (legacy ABCI) BeginBlock handler
+	endBlocker         sdk.EndBlocker             // (legacy ABCI) EndBlock handler
+	processProposal    sdk.ProcessProposalHandler // ABCI ProcessProposal handler
+	prepareProposal    sdk.PrepareProposalHandler // ABCI PrepareProposal handler
+	prepareCheckStater sdk.PrepareCheckStater     // logic to run during commit using the checkState
+	precommiter        sdk.Precommiter            // logic to run during commit using the deliverState
 
 	sigverifyTx bool // in the simulation test, since the account does not have a private key, we have to ignore the tx sigverify.
 
@@ -480,50 +476,6 @@ func (app *BaseApp) validateFinalizeBlockHeight(
 	return nil
 }
 
-func (app *BaseApp) getState(mode execMode) *state {
-	switch mode {
-	case execModeFinalize:
-		return app.finalizeBlockState
-
-	case execModePrepareProposal:
-		return app.prepareProposalState
-
-	case execModeProcessProposal:
-		return app.processProposalState
-
-	default:
-		return app.checkState
-	}
-}
-
-// retrieve the context for the tx w/ txBytes and other memoized values.
-func (app *BaseApp) getContextForTx(mode execMode, txBytes []byte) sdk.Context {
-	app.mu.Lock()
-	defer app.mu.Unlock()
-
-	modeState := app.getState(mode)
-	if modeState == nil {
-		panic(fmt.Sprintf("state is nil for mode %v", mode))
-	}
-	ctx := modeState.Context().
-		WithTxBytes(txBytes)
-
-	ctx = ctx.WithIsSigverifyTx(app.sigverifyTx)
-
-	ctx = ctx.WithConsensusParams(app.GetConsensusParams(ctx))
-
-	if mode == execModeReCheck {
-		ctx = ctx.WithIsReCheckTx(true)
-	}
-
-	if mode == execModeSimulate {
-		ctx, _ = ctx.CacheContext()
-		ctx = ctx.WithExecMode(sdk.ExecMode(execModeSimulate))
-	}
-
-	return ctx
-}
-
 func (app *BaseApp) preBlock(
 	req *abci.FinalizeBlockRequest,
 ) error {
@@ -591,7 +543,7 @@ func (app *BaseApp) endBlock(_ context.Context) (sdk.EndBlock, error) {
 // returned if the tx does not run out of gas and if all the messages are valid
 // and execute successfully. An error is returned otherwise.
 func (app *BaseApp) runTx(
-	mode execMode,
+	_ execMode,
 	txBytes []byte,
 ) (gInfo sdk.GasInfo, result *sdk.Result, err error) {
 	// NOTE: GasWanted should be returned by the AnteHandler. GasUsed is
