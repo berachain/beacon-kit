@@ -487,12 +487,6 @@ func (app *BaseApp) internalFinalizeBlock(
 		return nil, err
 	}
 
-	if app.cms.TracingEnabled() {
-		app.cms.SetTracingContext(storetypes.TraceContext(
-			map[string]any{"blockHeight": req.Height},
-		))
-	}
-
 	header := cmtproto.Header{
 		ChainID:            app.chainID,
 		Height:             req.Height,
@@ -584,10 +578,6 @@ func (app *BaseApp) internalFinalizeBlock(
 		}
 
 		txResults = append(txResults, response)
-	}
-
-	if app.finalizeBlockState.ms.TracingEnabled() {
-		app.finalizeBlockState.ms = app.finalizeBlockState.ms.SetTracingContext(nil).(storetypes.CacheMultiStore)
 	}
 
 	endBlock, err := app.endBlock(app.finalizeBlockState.Context())
