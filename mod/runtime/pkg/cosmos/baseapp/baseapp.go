@@ -28,6 +28,7 @@ import (
 	"sync"
 
 	"cosmossdk.io/core/header"
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
 	"cosmossdk.io/store"
 	storemetrics "cosmossdk.io/store/metrics"
@@ -36,7 +37,6 @@ import (
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 	dbm "github.com/cosmos/cosmos-db"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/mempool"
@@ -594,38 +594,24 @@ func (app *BaseApp) beginBlock(
 }
 
 func (app *BaseApp) deliverTx(tx []byte) *abci.ExecTxResult {
-	gInfo := sdk.GasInfo{}
-	resultStr := "successful"
-
-	var resp *abci.ExecTxResult
-
-	defer func() {
-		telemetry.IncrCounter(1, "tx", "count")
-		telemetry.IncrCounter(1, "tx", resultStr)
-		telemetry.SetGauge(float32(gInfo.GasUsed), "tx", "gas", "used")
-		telemetry.SetGauge(float32(gInfo.GasWanted), "tx", "gas", "wanted")
-	}()
-
 	gInfo, result, err := app.runTx(execModeFinalize, tx)
 	if err != nil {
-		resultStr = "failed"
-		resp = responseExecTxResult(
-			err,
-			gInfo.GasWanted,
-			gInfo.GasUsed,
-			false,
-		)
-		return resp
+		space, code, log := errorsmod.ABCIInfo(err, false)
+		return &abci.ExecTxResult{
+			Codespace: space,
+			Code:      code,
+			Log:       log,
+			GasWanted: int64(gInfo.GasWanted),
+			GasUsed:   int64(gInfo.GasUsed),
+		}
 	}
 
-	resp = &abci.ExecTxResult{
+	return &abci.ExecTxResult{
 		GasWanted: int64(gInfo.GasWanted),
 		GasUsed:   int64(gInfo.GasUsed),
 		Log:       result.Log,
 		Data:      result.Data,
 	}
-
-	return resp
 }
 
 // endBlock is an application-defined function that is called after transactions
