@@ -96,9 +96,7 @@ type BaseApp struct {
 	prepareCheckStater sdk.PrepareCheckStater         // logic to run during commit using the checkState
 	precommiter        sdk.Precommiter                // logic to run during commit using the deliverState
 
-	addrPeerFilter sdk.PeerFilter // filter peers by address and port
-	idPeerFilter   sdk.PeerFilter // filter peers by node ID
-	sigverifyTx    bool           // in the simulation test, since the account does not have a private key, we have to ignore the tx sigverify.
+	sigverifyTx bool // in the simulation test, since the account does not have a private key, we have to ignore the tx sigverify.
 
 	// volatile states:
 	//

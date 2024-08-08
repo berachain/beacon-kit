@@ -776,24 +776,6 @@ func SplitABCIQueryPath(requestPath string) (path []string) {
 	return path
 }
 
-// FilterPeerByAddrPort filters peers by address/port.
-func (app *BaseApp) FilterPeerByAddrPort(info string) *abci.QueryResponse {
-	if app.addrPeerFilter != nil {
-		return app.addrPeerFilter(info)
-	}
-
-	return &abci.QueryResponse{}
-}
-
-// FilterPeerByID filters peers by node ID.
-func (app *BaseApp) FilterPeerByID(info string) *abci.QueryResponse {
-	if app.idPeerFilter != nil {
-		return app.idPeerFilter(info)
-	}
-
-	return &abci.QueryResponse{}
-}
-
 // getContextForProposal returns the correct Context for PrepareProposal and
 // ProcessProposal. We use finalizeBlockState on the first block to be able to
 // access any state changes made in InitChain.

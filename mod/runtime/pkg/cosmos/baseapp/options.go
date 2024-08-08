@@ -241,22 +241,6 @@ func (app *BaseApp) SetPostHandler(ph sdk.PostHandler) {
 	app.postHandler = ph
 }
 
-func (app *BaseApp) SetAddrPeerFilter(pf sdk.PeerFilter) {
-	if app.sealed {
-		panic("SetAddrPeerFilter() on sealed BaseApp")
-	}
-
-	app.addrPeerFilter = pf
-}
-
-func (app *BaseApp) SetIDPeerFilter(pf sdk.PeerFilter) {
-	if app.sealed {
-		panic("SetIDPeerFilter() on sealed BaseApp")
-	}
-
-	app.idPeerFilter = pf
-}
-
 // SetNotSigverifyTx during simulation testing, transaction signature
 // verification needs to be ignored.
 func (app *BaseApp) SetNotSigverifyTx() {
