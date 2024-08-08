@@ -35,7 +35,11 @@ type Context struct {
 	Writer store.Writer
 }
 
-func Wrap(rawCtx context.Context, actor []byte, store storev2.RootStore) (*Context, error) {
+func Wrap(
+	rawCtx context.Context,
+	actor []byte,
+	store storev2.RootStore,
+) (*Context, error) {
 	writer, err := latestWriterFromStore(store, actor)
 	if err != nil {
 		return nil, err

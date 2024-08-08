@@ -1,8 +1,27 @@
+// SPDX-License-Identifier: BUSL-1.1
+//
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is governed by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
+//
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
+//
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
+//
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
+
 package cache
 
 import (
 	"bytes"
-	"errors"
 
 	"github.com/tidwall/btree"
 
@@ -10,25 +29,26 @@ import (
 )
 
 const (
-	// The approximate number of items and children per B-tree node. Tuned with benchmarks.
+	// The approximate number of items and children per B-tree node. Tuned with
+	// benchmarks.
 	// copied from memdb.
 	bTreeDegree = 32
 )
 
-var errKeyEmpty = errors.New("key cannot be empty")
-
-// cache implements the sorted cache for cachekv store,
+// tree implements the sorted tree for cachekv store,
 // we don't use MemDB here because cachekv is used extensively in sdk core path,
-// we need it to be as fast as possible, while `MemDB` is mainly used as a mocking db in unit tests.
+// we need it to be as fast as possible, while `MemDB` is mainly used as a
+// mocking db in unit tests.
 //
-// We choose tidwall/btree over google/btree here because it provides API to implement step iterator directly.
-type cache struct {
+// We choose tidwall/btree over google/btree here because it provides API to
+// implement step iterator directly.
+type tree struct {
 	tree *btree.BTreeG[item]
 }
 
-// newCache creates a wrapper around `btree.BTreeG`.
-func newCache() *cache {
-	return &cache{
+// newTree returns a new tree.
+func newTree() *tree {
+	return &tree{
 		tree: btree.NewBTreeGOptions(byKeys, btree.Options{
 			Degree:  bTreeDegree,
 			NoLocks: true,
@@ -36,47 +56,44 @@ func newCache() *cache {
 	}
 }
 
-func (bt *cache) size() int {
+func (bt *tree) size() int {
 	return bt.tree.Len()
 }
 
-// batchSet adds a batch of key-value pairs to the cache's tree.
-func (bt *cache) batchSet(items []item) {
-	for _, item := range items {
-		bt.tree.Set(item)
-	}
-}
-
 // set adds a new key-value pair to the change set's tree.
-func (bt *cache) set(key, value []byte) {
+func (bt *tree) set(key, value []byte) {
 	bt.tree.Set(newItem(key, value))
 }
 
-// get retrieves the value associated with the given key from the changeSet's tree.
-func (bt *cache) get(key []byte) (value []byte, found bool) {
+// get retrieves the value associated with the given key from the changeSet's
+// tree.
+func (bt *tree) get(key []byte) (value []byte, found bool) {
 	it, found := bt.tree.Get(item{key: key})
 	return it.value, found
 }
 
 // delete removes the value associated with the given key from the change set.
 // If the key does not exist in the change set, this method does nothing.
-func (bt *cache) delete(key []byte) {
+func (bt *tree) delete(key []byte) {
 	bt.set(key, nil)
 }
 
 // Iterator returns a new iterator over the key-value pairs in the changeSet
-// that have keys greater than or equal to the start key and less than the end key.
-func (bt *cache) Iterator(start, end []byte) (store.Iterator, error) {
+// that have keys greater than or equal to the start key and less than the end
+// key.
+func (bt *tree) Iterator(start, end []byte) (store.Iterator, error) {
 	if (start != nil && len(start) == 0) || (end != nil && len(end) == 0) {
 		return nil, errKeyEmpty
 	}
 	return newMemIterator(start, end, bt.tree, true), nil
 }
 
-// ReverseIterator returns a new iterator that iterates over the key-value pairs in reverse order
+// ReverseIterator returns a new iterator that iterates over the key-value pairs
+// in reverse order
 // within the specified range [start, end) in the changeSet's tree.
-// If start or end is an empty byte slice, it returns an error indicating that the key is empty.
-func (bt *cache) ReverseIterator(start, end []byte) (store.Iterator, error) {
+// If start or end is an empty byte slice, it returns an error indicating that
+// the key is empty.
+func (bt *tree) ReverseIterator(start, end []byte) (store.Iterator, error) {
 	if (start != nil && len(start) == 0) || (end != nil && len(end) == 0) {
 		return nil, errKeyEmpty
 	}
@@ -111,19 +128,26 @@ type memIterator struct {
 	valid     bool
 }
 
-// newMemIterator creates a new memory iterator for a given range of keys in a B-tree.
-// The iterator starts at the specified start key and ends at the specified end key.
+// newMemIterator creates a new memory iterator for a given range of keys in a
+// B-tree. The iterator starts at the specified start key and ends at the
+// specified end key.
 // The `tree` parameter is the B-tree to iterate over.
 // The `ascending` parameter determines the direction of iteration.
 // If `ascending` is true, the iterator will iterate in ascending order.
 // If `ascending` is false, the iterator will iterate in descending order.
-// The returned iterator is positioned at the first key that is greater than or equal to the start key.
-// If the start key is nil, the iterator is positioned at the first key in the B-tree.
-// If the end key is nil, the iterator is positioned at the last key in the B-tree.
+// The returned iterator is positioned at the first key that is greater than or
+// equal to the start key. If the start key is nil, the iterator is positioned
+// at the first key in the B-tree. If the end key is nil, the iterator is
+// positioned at the last key in the B-tree.
 // The iterator is inclusive of the start key and exclusive of the end key.
-// The `valid` field of the iterator indicates whether the iterator is positioned at a valid key.
-// The `start` and `end` fields of the iterator store the start and end keys respectively.
-func newMemIterator(start, end []byte, tree *btree.BTreeG[item], ascending bool) *memIterator {
+// The `valid` field of the iterator indicates whether the iterator is
+// positioned at a valid key. The `start` and `end` fields of the iterator store
+// the start and end keys respectively.
+func newMemIterator(
+	start, end []byte,
+	tree *btree.BTreeG[item],
+	ascending bool,
+) *memIterator {
 	iter := tree.Iter()
 	var valid bool
 	if ascending {
@@ -190,7 +214,8 @@ func (mi *memIterator) Valid() bool {
 
 // Next advances the iterator to the next key-value pair.
 // If the iterator is in ascending order, it moves to the next key-value pair.
-// If the iterator is in descending order, it moves to the previous key-value pair.
+// If the iterator is in descending order, it moves to the previous key-value
+// pair.
 // It also checks if the new key-value pair is within the specified range.
 func (mi *memIterator) Next() {
 	mi.assertValid()
@@ -206,10 +231,12 @@ func (mi *memIterator) Next() {
 	}
 }
 
-// keyInRange checks if the given key is within the range defined by the iterator.
-// If the iterator is in ascending order and the end key is not nil, it returns false
+// keyInRange checks if the given key is within the range defined by the
+// iterator. If the iterator is in ascending order and the end key is not nil,
+// it returns false
 // if the key is greater than or equal to the end key.
-// If the iterator is in descending order and the start key is not nil, it returns false
+// If the iterator is in descending order and the start key is not nil, it
+// returns false
 // if the key is less than the start key.
 // Otherwise, it returns true.
 func (mi *memIterator) keyInRange(key []byte) bool {

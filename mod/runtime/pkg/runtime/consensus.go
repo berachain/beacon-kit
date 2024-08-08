@@ -335,7 +335,10 @@ func (a *App[
 		return nil, nil, err
 	}
 
-	fmt.Println("HASH TREE ROOT IN FINALIZE", a.sb.StateFromContext(ctx).HashTreeRoot())
+	fmt.Println(
+		"HASH TREE ROOT IN FINALIZE",
+		a.sb.StateFromContext(ctx).HashTreeRoot(),
+	)
 	stateHash, err := a.sb.StateFromContext(ctx).LatestCommitHash()
 	if err != nil {
 		return nil, nil, err

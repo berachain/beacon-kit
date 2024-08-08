@@ -201,7 +201,12 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	fmt.Println("CALLING PROCESS SLOTS STARTING FROM SLOT", stateSlot, "TO SLOT", slot)
+	fmt.Println(
+		"CALLING PROCESS SLOTS STARTING FROM SLOT",
+		stateSlot,
+		"TO SLOT",
+		slot,
+	)
 
 	// Iterate until we are "caught up".
 	for ; stateSlot < slot; stateSlot++ {
@@ -229,7 +234,10 @@ func (sp *StateProcessor[
 		}
 	}
 
-	fmt.Println("TIME ELAPSED IN FULLY COMPLETED PROCESS SLOTS", time.Since(start))
+	fmt.Println(
+		"TIME ELAPSED IN FULLY COMPLETED PROCESS SLOTS",
+		time.Since(start),
+	)
 
 	return validatorUpdates, nil
 }

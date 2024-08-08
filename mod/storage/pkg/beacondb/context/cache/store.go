@@ -1,9 +1,27 @@
+// SPDX-License-Identifier: BUSL-1.1
+//
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is governed by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
+//
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
+//
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
+//
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
+
 package cache
 
 import (
 	"errors"
-	"fmt"
-	"time"
 
 	"cosmossdk.io/core/store"
 )
@@ -12,12 +30,9 @@ var _ store.Writer = (*Store[store.Reader])(nil)
 
 // Store wraps an in-memory cache around an underlying types.KVStore.
 type Store[T store.Reader] struct {
-	cache     *cache // always ascending sorted
-	changeSet *cache
+	cache     *tree // always ascending sorted
+	changeSet *tree
 	parent    T
-
-	cacheHits   uint64
-	cacheMisses uint64
 
 	iteratorRangeCache *iteratorRangeCache[T]
 }
@@ -25,11 +40,9 @@ type Store[T store.Reader] struct {
 // NewStore creates a new Store object
 func NewStore[T store.Reader](parent T) *Store[T] {
 	s := &Store[T]{
-		cache:       newCache(),
-		changeSet:   newCache(),
-		parent:      parent,
-		cacheHits:   0,
-		cacheMisses: 0,
+		cache:     newTree(),
+		changeSet: newTree(),
+		parent:    parent,
 	}
 	s.iteratorRangeCache = newIteratorRangeCache(parent, s.cache)
 	return s
@@ -39,10 +52,8 @@ func NewStore[T store.Reader](parent T) *Store[T] {
 func (s *Store[T]) Get(key []byte) (value []byte, err error) {
 	value, found := s.cache.get(key)
 	if found {
-		s.cacheHits += 1
 		return
 	}
-	s.cacheMisses += 1
 	value, err = s.parent.Get(key)
 	if err != nil {
 		return nil, err
@@ -93,12 +104,10 @@ func (s *Store[T]) ReverseIterator(start, end []byte) (store.Iterator, error) {
 	return s.iterator(start, end, false)
 }
 
-var (
-	ParentDuration time.Duration
-	CacheDuration  time.Duration
-)
-
-func (s *Store[T]) iterator(start, end []byte, ascending bool) (store.Iterator, error) {
+func (s *Store[T]) iterator(
+	start, end []byte,
+	ascending bool,
+) (store.Iterator, error) {
 	// If the range has not been synced yet, sync it.
 	if !s.iteratorRangeCache.Seen(start, end) {
 		if err := s.iteratorRangeCache.SyncForRange(start, end); err != nil {
@@ -148,7 +157,5 @@ func (s *Store[T]) ChangeSets() (cs []store.KVPair, err error) {
 		}
 		i++
 	}
-	fmt.Println("CACHE HITS IN CHANGESET", s.cacheHits)
-	fmt.Println("CACHE MISSES IN CHANGESET", s.cacheMisses)
 	return cs, nil
 }
