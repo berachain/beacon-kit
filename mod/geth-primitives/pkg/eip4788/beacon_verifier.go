@@ -18,22 +18,6 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package node
+package eip4788
 
-import (
-	"github.com/berachain/beacon-kit/mod/node-api/handlers"
-	"github.com/berachain/beacon-kit/mod/node-api/server/context"
-)
-
-type Handler[ContextT context.Context] struct {
-	*handlers.BaseHandler[ContextT]
-}
-
-func NewHandler[ContextT context.Context]() *Handler[ContextT] {
-	h := &Handler[ContextT]{
-		BaseHandler: handlers.NewBaseHandler(
-			handlers.NewRouteSet[ContextT](""),
-		),
-	}
-	return h
-}
+//go:generate go run github.com/ethereum/go-ethereum/cmd/abigen --abi=../../../../contracts/out/BeaconVerifier.sol/BeaconVerifier.abi.json --bin=../../../../contracts/out/BeaconVerifier.sol/BeaconVerifier.bin --pkg=eip4788 --type=BeaconVerifier --out=beacon_verifier.abigen.go

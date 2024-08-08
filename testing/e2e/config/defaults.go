@@ -18,22 +18,16 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package node
+package config
 
-import (
-	"github.com/berachain/beacon-kit/mod/node-api/handlers"
-	"github.com/berachain/beacon-kit/mod/node-api/server/context"
+// Consensus clients.
+const (
+	DefaultClient   = "cl-validator-beaconkit-0"
+	AlternateClient = "cl-validator-beaconkit-1"
 )
 
-type Handler[ContextT context.Context] struct {
-	*handlers.BaseHandler[ContextT]
-}
-
-func NewHandler[ContextT context.Context]() *Handler[ContextT] {
-	h := &Handler[ContextT]{
-		BaseHandler: handlers.NewBaseHandler(
-			handlers.NewRouteSet[ContextT](""),
-		),
-	}
-	return h
-}
+// Deposits.
+const (
+	DepositContractAddress = "0x4242424242424242424242424242424242424242"
+	NumDepositsLoad        = 500
+)

@@ -18,22 +18,16 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package node
+package client
 
 import (
-	"github.com/berachain/beacon-kit/mod/node-api/handlers"
-	"github.com/berachain/beacon-kit/mod/node-api/server/context"
+	"github.com/ethpandaops/beacon/pkg/beacon"
 )
 
-type Handler[ContextT context.Context] struct {
-	*handlers.BaseHandler[ContextT]
-}
+// BeaconKitNode is a wrapper around the beacon.Node interface to add
+// additional methods specific to a beacon-kit node's API.
+type BeaconKitNode interface {
+	beacon.Node
 
-func NewHandler[ContextT context.Context]() *Handler[ContextT] {
-	h := &Handler[ContextT]{
-		BaseHandler: handlers.NewBaseHandler(
-			handlers.NewRouteSet[ContextT](""),
-		),
-	}
-	return h
+	// Other beacon-kit node-api methods here...
 }

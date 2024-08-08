@@ -18,22 +18,18 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package node
+//go:build e2e
+// +build e2e
+
+package api_test
 
 import (
-	"github.com/berachain/beacon-kit/mod/node-api/handlers"
-	"github.com/berachain/beacon-kit/mod/node-api/server/context"
+	"testing"
+
+	"github.com/berachain/beacon-kit/testing/e2e/suite"
 )
 
-type Handler[ContextT context.Context] struct {
-	*handlers.BaseHandler[ContextT]
-}
-
-func NewHandler[ContextT context.Context]() *Handler[ContextT] {
-	h := &Handler[ContextT]{
-		BaseHandler: handlers.NewBaseHandler(
-			handlers.NewRouteSet[ContextT](""),
-		),
-	}
-	return h
+// TestBeaconAPISuite runs the test suite.
+func TestBeaconAPISuite(t *testing.T) {
+	suite.Run(t, NewBeaconAPISuite())
 }

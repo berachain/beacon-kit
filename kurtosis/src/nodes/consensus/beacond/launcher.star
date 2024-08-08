@@ -10,6 +10,7 @@ COMETBFT_REST_PORT_NUM = 1317
 COMETBFT_PPROF_PORT_NUM = 6060
 METRICS_PORT_NUM = 26660
 ENGINE_RPC_PORT_NUM = 8551
+NODE_API_PORT_NUM = 3500
 
 # Port IDs
 COMETBFT_RPC_PORT_ID = "cometbft-rpc"
@@ -20,6 +21,7 @@ COMETBFT_PPROF_PORT_ID = "cometbft-pprof"
 ENGINE_RPC_PORT_ID = "engine-rpc"
 METRICS_PORT_ID = "metrics"
 METRICS_PATH = "/metrics"
+NODE_API_PORT_ID = "node-api"
 
 USED_PORTS = {
     COMETBFT_RPC_PORT_ID: shared_utils.new_port_spec(COMETBFT_RPC_PORT_NUM, shared_utils.TCP_PROTOCOL),
@@ -29,6 +31,7 @@ USED_PORTS = {
     COMETBFT_PPROF_PORT_ID: shared_utils.new_port_spec(COMETBFT_PPROF_PORT_NUM, shared_utils.TCP_PROTOCOL),
     # ENGINE_RPC_PORT_ID: shared_utils.new_port_spec(ENGINE_RPC_PORT_NUM, shared_utils.TCP_PROTOCOL),
     METRICS_PORT_ID: shared_utils.new_port_spec(METRICS_PORT_NUM, shared_utils.TCP_PROTOCOL, wait = None),
+    NODE_API_PORT_ID: shared_utils.new_port_spec(NODE_API_PORT_NUM, shared_utils.TCP_PROTOCOL),
 }
 
 def get_config(node_struct, engine_dial_url, entrypoint = [], cmd = [], persistent_peers = "", expose_ports = True, jwt_file = None, kzg_trusted_setup_file = None):

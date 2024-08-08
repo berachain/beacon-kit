@@ -18,22 +18,19 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package node
+package client
 
 import (
-	"github.com/berachain/beacon-kit/mod/node-api/handlers"
-	"github.com/berachain/beacon-kit/mod/node-api/server/context"
+	"github.com/ethpandaops/beacon/pkg/beacon"
+	"github.com/sirupsen/logrus"
 )
 
-type Handler[ContextT context.Context] struct {
-	*handlers.BaseHandler[ContextT]
-}
-
-func NewHandler[ContextT context.Context]() *Handler[ContextT] {
-	h := &Handler[ContextT]{
-		BaseHandler: handlers.NewBaseHandler(
-			handlers.NewRouteSet[ContextT](""),
-		),
-	}
-	return h
+// NewNode creates a new BeaconKitNode instance.
+func NewNode(
+	log logrus.FieldLogger,
+	config *beacon.Config,
+	namespace string,
+	options beacon.Options,
+) BeaconKitNode {
+	return beacon.NewNode(log, config, namespace, options)
 }

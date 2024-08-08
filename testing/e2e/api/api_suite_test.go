@@ -18,22 +18,35 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package node
+package api_test
 
 import (
-	"github.com/berachain/beacon-kit/mod/node-api/handlers"
-	"github.com/berachain/beacon-kit/mod/node-api/server/context"
+	"github.com/berachain/beacon-kit/testing/e2e/config"
+	"github.com/berachain/beacon-kit/testing/e2e/suite"
 )
 
-type Handler[ContextT context.Context] struct {
-	*handlers.BaseHandler[ContextT]
+// BeaconAPISuite is a suite of beacon node-api tests with full simulation of a
+// beacon-kit network.
+type BeaconAPISuite struct {
+	suite.KurtosisE2ESuite
 }
 
-func NewHandler[ContextT context.Context]() *Handler[ContextT] {
-	h := &Handler[ContextT]{
-		BaseHandler: handlers.NewBaseHandler(
-			handlers.NewRouteSet[ContextT](""),
-		),
-	}
-	return h
+// TestBeaconAPISuite tests that the api test suite is setup correctly with a
+// working beacon node-api client.
+func (s *BeaconAPISuite) TestBeaconAPISuite() {
+	executionBlockNum := uint64(5)
+
+	// Wait for execution block 5.
+	err := s.WaitForFinalizedBlockNumber(executionBlockNum)
+	s.Require().NoError(err)
+
+	// Get the consensus client.
+	client := s.ConsensusClients()[config.DefaultClient]
+	s.Require().NotNil(client)
+
+	// Get the latest beacon block.
+	slot, htr, err := client.GetLatestBeaconBlock(s.Ctx())
+	s.Require().NoError(err)
+	s.Require().GreaterOrEqual(slot, executionBlockNum)
+	s.Require().NotEmpty(htr)
 }
