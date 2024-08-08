@@ -24,7 +24,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"cosmossdk.io/core/address"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	sdkconfig "github.com/cosmos/cosmos-sdk/client/config"
@@ -49,18 +48,12 @@ func ProvideClientContext(
 	appCodec codec.Codec,
 	interfaceRegistry codectypes.InterfaceRegistry,
 	txConfig client.TxConfig,
-	addressCodec address.Codec,
-	validatorAddressCodec address.ValidatorAddressCodec,
-	consensusAddressCodec address.ConsensusAddressCodec,
 ) (client.Context, error) {
 	var err error
 	clientCtx := client.Context{}.
 		WithCodec(appCodec).
 		WithInterfaceRegistry(interfaceRegistry).
 		WithInput(os.Stdin).
-		WithAddressCodec(addressCodec).
-		WithValidatorAddressCodec(validatorAddressCodec).
-		WithConsensusAddressCodec(consensusAddressCodec).
 		WithHomeDir(DefaultNodeHome).
 		WithViper("") // uses by default the binary name as prefix
 
