@@ -241,7 +241,13 @@ func ProvideModuleManager(modules map[string]appmodule.AppModule) *module.Manage
 }
 
 func ProvideGenesisTxHandler(appBuilder *AppBuilder) genesis.TxHandler {
-	return appBuilder.app
+	return NoopGenTxHandler{}
+}
+
+type NoopGenTxHandler struct{}
+
+func (NoopGenTxHandler) ExecuteGenesisTx([]byte) error {
+	return nil
 }
 
 func ProvideEnvironment(

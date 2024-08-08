@@ -130,7 +130,6 @@ func DefaultBaseappOptions(appOpts servertypes.AppOptions) []func(*baseapp.BaseA
 
 	return []func(*baseapp.BaseApp){
 		baseapp.SetPruning(pruningOpts),
-		baseapp.SetMinGasPrices(cast.ToString(appOpts.Get(server.FlagMinGasPrices))),
 		baseapp.SetHaltHeight(cast.ToUint64(appOpts.Get(server.FlagHaltHeight))),
 		baseapp.SetHaltTime(cast.ToUint64(appOpts.Get(server.FlagHaltTime))),
 		baseapp.SetMinRetainBlocks(cast.ToUint64(appOpts.Get(server.FlagMinRetainBlocks))),
@@ -142,6 +141,5 @@ func DefaultBaseappOptions(appOpts servertypes.AppOptions) []func(*baseapp.BaseA
 		baseapp.SetIAVLDisableFastNode(cast.ToBool(appOpts.Get(server.FlagDisableIAVLFastNode))),
 		defaultMempool,
 		baseapp.SetChainID(chainID),
-		baseapp.SetQueryGasLimit(cast.ToUint64(appOpts.Get(server.FlagQueryGasLimit))),
 	}
 }

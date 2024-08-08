@@ -1362,3 +1362,9 @@ func toVoteInfo(votes []abci.ExtendedVoteInfo) []abci.VoteInfo {
 
 	return legacyVotes
 }
+
+// Simulate executes a tx in simulate mode to get result and gas info.
+func (app *BaseApp) Simulate(txBytes []byte) (sdk.GasInfo, *sdk.Result, error) {
+	gasInfo, result, _, err := app.runTx(execModeSimulate, txBytes)
+	return gasInfo, result, err
+}
