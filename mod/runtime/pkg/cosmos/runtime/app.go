@@ -116,17 +116,6 @@ func (a *App) Load(loadLatest bool) error {
 		a.SetEndBlocker(a.EndBlocker)
 	}
 
-	if len(a.config.GetPrecommiters()) != 0 {
-		a.ModuleManager.SetOrderPrecommiters(a.config.GetPrecommiters()...)
-		a.SetPrecommiter(a.Precommiter)
-	}
-
-	if len(a.config.GetPrepareCheckStaters()) != 0 {
-		a.ModuleManager.SetOrderPrepareCheckStaters(
-			a.config.GetPrepareCheckStaters()...)
-		a.SetPrepareCheckStater(a.PrepareCheckStater)
-	}
-
 	if len(a.config.GetOrderMigrations()) != 0 {
 		a.ModuleManager.SetOrderMigrations(a.config.GetOrderMigrations()...)
 	}

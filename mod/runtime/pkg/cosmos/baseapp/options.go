@@ -139,16 +139,6 @@ func (app *BaseApp) SetEndBlocker(endBlocker sdk.EndBlocker) {
 	app.endBlocker = endBlocker
 }
 
-func (app *BaseApp) SetPrepareCheckStater(
-	prepareCheckStater sdk.PrepareCheckStater,
-) {
-	app.prepareCheckStater = prepareCheckStater
-}
-
-func (app *BaseApp) SetPrecommiter(precommiter sdk.Precommiter) {
-	app.precommiter = precommiter
-}
-
 // SetStoreLoader allows us to customize the rootMultiStore initialization.
 func (app *BaseApp) SetStoreLoader(loader StoreLoader) {
 	app.storeLoader = loader

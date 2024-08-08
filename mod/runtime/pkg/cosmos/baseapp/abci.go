@@ -530,10 +530,6 @@ func (app *BaseApp) Commit() (*abci.CommitResponse, error) {
 	header := app.finalizeBlockState.Context().BlockHeader()
 	retainHeight := app.GetBlockRetentionHeight(header.Height)
 
-	if app.precommiter != nil {
-		app.precommiter(app.finalizeBlockState.Context())
-	}
-
 	rms, ok := app.cms.(*rootmulti.Store)
 	if ok {
 		rms.SetCommitHeader(header)
@@ -552,10 +548,6 @@ func (app *BaseApp) Commit() (*abci.CommitResponse, error) {
 	app.setState(execModeCheck, header)
 
 	app.finalizeBlockState = nil
-
-	if app.prepareCheckStater != nil {
-		app.prepareCheckStater(app.checkState.Context())
-	}
 
 	return resp, nil
 }
