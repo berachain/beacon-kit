@@ -61,7 +61,9 @@ contract BeaconDepositContract is IBeaconDepositContract, Ownable {
 
     /// @dev Initializes the owner of the contract as the governance address.
     /// @dev On local devnets, the _governance is set to 0x20f33CE90A13a4b5E7697E3544c3083B8F8A51D4.
-    constructor(address _governance) { _initializeOwner(_governance); }
+    constructor(address _governance) {
+        _initializeOwner(_governance);
+    }
 
     /// @dev Guard to prevent double initialization of owner.
     function _guardInitializeOwner()
