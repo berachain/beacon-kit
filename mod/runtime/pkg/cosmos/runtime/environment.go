@@ -25,10 +25,10 @@ func NewEnvironment(
 ) appmodule.Environment {
 	env := appmodule.Environment{
 		Logger:             logger,
-		EventService:       EventService{},
+		EventService:       nil,
 		HeaderService:      HeaderService{},
 		BranchService:      BranchService{},
-		GasService:         GasService{},
+		GasService:         nil,
 		TransactionService: TransactionService{},
 		KVStoreService:     kvService,
 		MsgRouterService:   NewMsgRouterService(failingMsgRouter{}),
