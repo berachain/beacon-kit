@@ -70,9 +70,12 @@ type DepositPrunerInput struct {
 func ProvideDepositPruner(
 	in DepositPrunerInput,
 ) (DepositPruner, error) {
-	var finalizedBlkCh chan *FinalizedBlockEvent
-	if err := in.Dispatcher.Subscribe(messages.BeaconBlockFinalizedEvent, finalizedBlkCh); err != nil {
-		in.Logger.Error("failed to subscribe to block feed", "err", err)
+	var finalizedBlkCh = make(chan *FinalizedBlockEvent)
+	if err := in.Dispatcher.Subscribe(
+		messages.BeaconBlockFinalizedEvent, finalizedBlkCh,
+	); err != nil {
+		in.Logger.Error("failed to subscribe to event", "event",
+			messages.BeaconBlockFinalizedEvent, "err", err)
 		return nil, err
 	}
 

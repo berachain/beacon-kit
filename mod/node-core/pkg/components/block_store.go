@@ -21,8 +21,6 @@
 package components
 
 import (
-	"fmt"
-
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	storev2 "cosmossdk.io/store/v2/db"
@@ -73,9 +71,13 @@ type BlockPrunerInput struct {
 func ProvideBlockPruner(
 	in BlockPrunerInput,
 ) (BlockPruner, error) {
-	var finalizedBlkCh chan *FinalizedBlockEvent
-	if err := in.Dispatcher.Subscribe(messages.BeaconBlockFinalizedEvent, finalizedBlkCh); err != nil {
-		return nil, fmt.Errorf("failed to subscribe to block feed: %w", err)
+	var finalizedBlkCh = make(chan *FinalizedBlockEvent)
+	if err := in.Dispatcher.Subscribe(
+		messages.BeaconBlockFinalizedEvent, finalizedBlkCh,
+	); err != nil {
+		in.Logger.Error("failed to subscribe to event", "event",
+			messages.BeaconBlockFinalizedEvent, "err", err)
+		return nil, err
 	}
 
 	return pruner.NewPruner[

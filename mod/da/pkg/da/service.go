@@ -86,14 +86,22 @@ func (s *Service[_, _, _, _]) Name() string {
 // VerifySidecars messages, and begins listening for these requests.
 func (s *Service[_, _, BlobSidecarsT, _]) Start(ctx context.Context) error {
 	// register as recipient of ProcessSidecars messages.
-	var sidecarsProcessRequests chan *asynctypes.Message[BlobSidecarsT]
-	s.dispatcher.RegisterMsgReceiver(messages.ProcessSidecars, &sidecarsProcessRequests)
+	sidecarsProcessRequests := make(chan *asynctypes.Message[BlobSidecarsT])
+	if err := s.dispatcher.RegisterMsgReceiver(
+		messages.ProcessSidecars, sidecarsProcessRequests,
+	); err != nil {
+		return err
+	}
 
 	// register as recipient of VerifySidecars messages.
-	var sidecarVerifyRequests chan *asynctypes.Message[BlobSidecarsT]
-	s.dispatcher.RegisterMsgReceiver(messages.VerifySidecars, &sidecarVerifyRequests)
+	sidecarVerifyRequests := make(chan *asynctypes.Message[BlobSidecarsT])
+	if err := s.dispatcher.RegisterMsgReceiver(
+		messages.VerifySidecars, sidecarVerifyRequests,
+	); err != nil {
+		return err
+	}
 
-	// begin listening loop to handle process and verify requests.
+	// start a goroutine to listen for requests and handle accordingly
 	go s.start(ctx, sidecarsProcessRequests, sidecarVerifyRequests)
 	return nil
 }

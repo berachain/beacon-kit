@@ -156,22 +156,40 @@ func (s *Service[
 	return "blockchain"
 }
 
+// Start sets up the service to listen for FinalizeBeaconBlock,
+// VerifyBeaconBlock, and ProcessGenesisData requests, and handles them
+// accordingly.
 func (s *Service[
 	_, BeaconBlockT, _, _, _, _, _, _, GenesisT, _, _,
 ]) Start(ctx context.Context) error {
-	finalizeBeaconBlockRequests := make(chan *asynctypes.Message[BeaconBlockT])
-	s.dispatcher.RegisterMsgReceiver(messages.FinalizeBeaconBlock, finalizeBeaconBlockRequests)
+	// register a channel as the receiver for FinalizeBeaconBlock:
+	finalizeBlkReqs := make(chan *asynctypes.Message[BeaconBlockT])
+	if err := s.dispatcher.RegisterMsgReceiver(
+		messages.FinalizeBeaconBlock, finalizeBlkReqs,
+	); err != nil {
+		return err
+	}
+	// register a channel as the receiver for VerifyBeaconBlock:
+	verifyBlkReqs := make(chan *asynctypes.Message[BeaconBlockT])
+	if err := s.dispatcher.RegisterMsgReceiver(
+		messages.VerifyBeaconBlock, verifyBlkReqs,
+	); err != nil {
+		return err
+	}
+	// register a channel as the receiver for ProcessGenesisData:
+	processGenReqs := make(chan *asynctypes.Message[GenesisT])
+	if err := s.dispatcher.RegisterMsgReceiver(
+		messages.ProcessGenesisData, processGenReqs,
+	); err != nil {
+		return err
+	}
 
-	verifyBeaconBlockRequests := make(chan *asynctypes.Message[BeaconBlockT])
-	s.dispatcher.RegisterMsgReceiver(messages.VerifyBeaconBlock, verifyBeaconBlockRequests)
-
-	processGenDataRequests := make(chan *asynctypes.Message[GenesisT])
-	s.dispatcher.RegisterMsgReceiver(messages.ProcessGenesisData, processGenDataRequests)
-
-	go s.start(ctx, finalizeBeaconBlockRequests, verifyBeaconBlockRequests, processGenDataRequests)
+	// start a goroutine to listen for requests and handle accordingly
+	go s.start(ctx, finalizeBlkReqs, verifyBlkReqs, processGenReqs)
 	return nil
 }
 
+// start starts the service.
 func (s *Service[
 	_, BeaconBlockT, _, _, _, _, _, _, GenesisT, _, _,
 ]) start(
@@ -223,7 +241,10 @@ func (s *Service[
 			nil,
 		),
 	); err != nil {
-		s.logger.Error("Failed to dispatch response in handleProcessGenesisDataRequest", "error", err)
+		s.logger.Error(
+			"Failed to dispatch response in process genesis data",
+			"error", err,
+		)
 	}
 }
 

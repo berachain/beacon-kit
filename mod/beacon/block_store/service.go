@@ -71,7 +71,9 @@ func (s *Service[BeaconBlockT, _]) Start(ctx context.Context) error {
 		s.logger.Warn("block service is disabled, skipping storing blocks")
 		return nil
 	}
-	var finalizedBlkCh chan *asynctypes.Event[BeaconBlockT]
+
+	// subscribe a channel to the finalized block events.
+	var finalizedBlkCh = make(chan *asynctypes.Event[BeaconBlockT])
 	if err := s.dispatcher.Subscribe(messages.BeaconBlockFinalizedEvent, finalizedBlkCh); err != nil {
 		s.logger.Error("failed to subscribe to block events", "error", err)
 		return err

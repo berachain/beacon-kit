@@ -178,11 +178,15 @@ func (s *Service[
 	ctx context.Context,
 ) error {
 	// register a receiver channel for build block requests
-	buildBlockRequests := make(chan *asynctypes.Message[SlotDataT])
-	s.dispatcher.RegisterMsgReceiver(messages.BuildBeaconBlockAndSidecars, buildBlockRequests)
+	buildBlkReqs := make(chan *asynctypes.Message[SlotDataT])
+	if err := s.dispatcher.RegisterMsgReceiver(
+		messages.BuildBeaconBlockAndSidecars, buildBlkReqs,
+	); err != nil {
+		return err
+	}
 
-	// start the service
-	go s.start(ctx, buildBlockRequests)
+	// start a goroutine to listen for requests and handle accordingly
+	go s.start(ctx, buildBlkReqs)
 	return nil
 }
 

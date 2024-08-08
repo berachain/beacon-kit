@@ -54,6 +54,8 @@ func (h *ABCIMiddleware[
 		h.logger.Error("Failed to unmarshal genesis data", "error", err)
 		return nil, err
 	}
+
+	// request for validator updates
 	err := h.dispatcher.Request(
 		asynctypes.NewMessage(
 			ctx, messages.ProcessGenesisData, *data,
@@ -80,7 +82,7 @@ func (h *ABCIMiddleware[
 ) ([]byte, []byte, error) {
 	var (
 		startTime           = time.Now()
-		beaconBlkBundleResp asynctypes.Message[BeaconBlockBundleT]
+		beaconBlkBundleResp *asynctypes.Message[BeaconBlockBundleT]
 	)
 	defer h.metrics.measurePrepareProposalDuration(startTime)
 
@@ -101,7 +103,7 @@ func (h *ABCIMiddleware[
 	_, BeaconBlockT, BeaconBlockBundleT, BlobSidecarsT, _, _, _, _,
 ]) handleBeaconBlockBundleResponse(
 	ctx context.Context,
-	bbbResp asynctypes.Message[BeaconBlockBundleT],
+	bbbResp *asynctypes.Message[BeaconBlockBundleT],
 ) ([]byte, []byte, error) {
 	// handle response errors
 	if bbbResp.Error() != nil {
@@ -137,8 +139,8 @@ func (h *ABCIMiddleware[
 		sidecars        BlobSidecarsT
 		err             error
 		startTime       = time.Now()
-		beaconBlockResp asynctypes.Message[BeaconBlockT]
-		sidecarsResp    asynctypes.Message[BlobSidecarsT]
+		beaconBlockResp *asynctypes.Message[BeaconBlockT]
+		sidecarsResp    *asynctypes.Message[BlobSidecarsT]
 	)
 	abciReq, ok := req.(*cmtabci.ProcessProposalRequest)
 	if !ok {
@@ -223,8 +225,8 @@ func (h *ABCIMiddleware[
 	ctx context.Context,
 ) (transition.ValidatorUpdates, error) {
 	var (
-		sidecarsResp   asynctypes.Message[BlobSidecarsT]
-		valUpdatesResp asynctypes.Message[transition.ValidatorUpdates]
+		sidecarsResp   *asynctypes.Message[BlobSidecarsT]
+		valUpdatesResp *asynctypes.Message[transition.ValidatorUpdates]
 	)
 	blk, blobs, err := encoding.
 		ExtractBlobsAndBlockFromRequest[BeaconBlockT, BlobSidecarsT](

@@ -90,9 +90,12 @@ func ProvideAvailabilityPruner(
 		return nil, errors.New("availability store does not have a range db")
 	}
 
-	var finalizedBlkCh chan *FinalizedBlockEvent
-	if err := in.Dispatcher.Subscribe(messages.BeaconBlockFinalizedEvent, finalizedBlkCh); err != nil {
-		in.Logger.Error("failed to subscribe to block feed", "err", err)
+	var finalizedBlkCh = make(chan *FinalizedBlockEvent)
+	if err := in.Dispatcher.Subscribe(
+		messages.BeaconBlockFinalizedEvent, finalizedBlkCh,
+	); err != nil {
+		in.Logger.Error("failed to subscribe to event", "event",
+			messages.BeaconBlockFinalizedEvent, "err", err)
 		return nil, err
 	}
 
