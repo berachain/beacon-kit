@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"math"
 
 	dbm "github.com/cosmos/cosmos-db"
 
@@ -28,25 +27,6 @@ import (
 // SetPruning sets a pruning option on the multistore associated with the app
 func SetPruning(opts pruningtypes.PruningOptions) func(*BaseApp) {
 	return func(bapp *BaseApp) { bapp.cms.SetPruning(opts) }
-}
-
-// SetMinGasPrices returns an option that sets the minimum gas prices on the app.
-func SetMinGasPrices(gasPricesStr string) func(*BaseApp) {
-	gasPrices, err := sdk.ParseDecCoins(gasPricesStr)
-	if err != nil {
-		panic(fmt.Sprintf("invalid minimum gas prices: %v", err))
-	}
-
-	return func(bapp *BaseApp) { bapp.setMinGasPrices(gasPrices) }
-}
-
-// SetQueryGasLimit returns an option that sets a gas limit for queries.
-func SetQueryGasLimit(queryGasLimit uint64) func(*BaseApp) {
-	if queryGasLimit == 0 {
-		queryGasLimit = math.MaxUint64
-	}
-
-	return func(bapp *BaseApp) { bapp.queryGasLimit = queryGasLimit }
 }
 
 // SetHaltHeight returns a BaseApp option function that sets the halt block height.
