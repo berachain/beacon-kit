@@ -280,9 +280,6 @@ func (app *BaseApp) Trace() bool {
 // MsgServiceRouter returns the MsgServiceRouter of a BaseApp.
 func (app *BaseApp) MsgServiceRouter() *MsgServiceRouter { return app.msgServiceRouter }
 
-// GRPCQueryRouter returns the GRPCQueryRouter of a BaseApp.
-func (app *BaseApp) GRPCQueryRouter() *GRPCQueryRouter { return nil }
-
 // MountStores mounts all IAVL or DB stores to the provided keys in the BaseApp
 // multistore.
 func (app *BaseApp) MountStores(keys ...storetypes.StoreKey) {

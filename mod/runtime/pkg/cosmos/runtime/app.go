@@ -6,6 +6,7 @@ import (
 	"slices"
 
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
+	"google.golang.org/grpc"
 
 	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
 	"cosmossdk.io/core/appmodule"
@@ -210,25 +211,25 @@ func (a *App) RegisterAPIRoutes(apiSvr *api.Server, _ config.APIConfig) {
 }
 
 // RegisterTxService implements the Application.RegisterTxService method.
-func (a *App) RegisterTxService(clientCtx client.Context) {
-	authtx.RegisterTxService(a.GRPCQueryRouter(), clientCtx, a.Simulate, a.interfaceRegistry)
-}
+func (a *App) RegisterTxService(clientCtx client.Context) {}
 
 // RegisterTendermintService implements the Application.RegisterTendermintService method.
 func (a *App) RegisterTendermintService(clientCtx client.Context) {
 	cmtApp := server.NewCometABCIWrapper(a)
 	cmtservice.RegisterTendermintService(
 		clientCtx,
-		a.GRPCQueryRouter(),
+		NoopServer{},
 		a.interfaceRegistry,
 		cmtApp.Query,
 	)
 }
 
+type NoopServer struct{}
+
+func (NoopServer) RegisterService(sd *grpc.ServiceDesc, ss interface{}) {}
+
 // RegisterNodeService registers the node gRPC service on the app gRPC router.
-func (a *App) RegisterNodeService(clientCtx client.Context, cfg config.Config) {
-	nodeservice.RegisterNodeService(clientCtx, a.GRPCQueryRouter(), cfg)
-}
+func (a *App) RegisterNodeService(clientCtx client.Context, cfg config.Config) {}
 
 // Configurator returns the app's configurator.
 func (a *App) Configurator() module.Configurator { // nolint:staticcheck // SA1019: Configurator is deprecated but still used in runtime v1.
