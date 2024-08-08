@@ -22,8 +22,8 @@ github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240806160829-cde2d1
 github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240806160829-cde2d1347e7e/go.mod h1:ZU1bq1BMt6b0kPRAw+A3kP7FlSd5DSQNYePD5qL9zfQ=
 github.com/berachain/beacon-kit/mod/da v0.0.0-20240610210054-bfdc14c4013c h1:WKjF2xYQ3jwTNauJbs34bTzCgf49uHYy7/f+z1DfmyI=
 github.com/berachain/beacon-kit/mod/da v0.0.0-20240610210054-bfdc14c4013c/go.mod h1:4hmlXJkl1cwCnZvEISy4K2x9Z7O3Pgtijz1HS/P/uY8=
-github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240806160829-cde2d1347e7e h1:b8OmtWGjhaZENqiE3P1bjegLY6rOYqsROKRaSTjcHt8=
-github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240806160829-cde2d1347e7e/go.mod h1:GO3AOOJLKmCuU9UcyChO8zVd3gprJd57Vl4jcVB6oLY=
+github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240808194557-e72e74f58197 h1:wVWkiiERY/7kaXvE/VNPPUtYp/l8ky6QSuKM3ThVMXU=
+github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240808194557-e72e74f58197/go.mod h1:LiOiqrJhhLH/GPo0XE5fel3EYyi7X6dwBOyTqZakTeQ=
 github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df h1:6MJllcmMFt6dtvftM5zmdl1WVDpqZkNy3hFXVZtNV0s=
 github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df/go.mod h1:yRD7rmnyaaqgq/6+eIVqvSkFJXuLXpBddUu59HUOrtc=
 github.com/berachain/beacon-kit/mod/execution v0.0.0-20240624003607-df94860f8eeb h1:0YujSn8n7xcdIoL+CTyZKNKlFzr5RZZGNMVASDRYBQ4=
@@ -36,8 +36,8 @@ github.com/berachain/beacon-kit/mod/node-api v0.0.0-20240806160829-cde2d1347e7e 
 github.com/berachain/beacon-kit/mod/node-api v0.0.0-20240806160829-cde2d1347e7e/go.mod h1:wgOdrP96dMsXDXHItO4tRLuf8IaHP14RY4MbUPFAc4s=
 github.com/berachain/beacon-kit/mod/payload v0.0.0-20240624003607-df94860f8eeb h1:/aKXt8E60/AMOod4MMhbf+8POaIE1vW43ufnTdAZ3uo=
 github.com/berachain/beacon-kit/mod/payload v0.0.0-20240624003607-df94860f8eeb/go.mod h1:IFOWyTyeFcwsTkJc0Ud9uMLxQ8r4SyZNFiXpDQaJAgc=
-github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240806160829-cde2d1347e7e h1:JQ+QbZcnecWYooLXWVbWZTbuHas9G68pHIxT/3uVlpI=
-github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240806160829-cde2d1347e7e/go.mod h1:v5JKfVqYEGFMTJIDrOV8m/dutSpw7mlif6wW3v26k68=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240808194557-e72e74f58197 h1:hk8N7Q1CCKMW/05pRu5rbfRnbTUou5TjULaeeRtbU+E=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240808194557-e72e74f58197/go.mod h1:7kNnd9rhYjyZJHuXs/ku5drL9EMM64ekJVR181fGmbM=
 github.com/berachain/beacon-kit/mod/storage v0.0.0-20240806160829-cde2d1347e7e h1:eIHdeGNL87GlWxFqAgsuUZpA/EBGvaOWXFMDuXSJgjU=
 github.com/berachain/beacon-kit/mod/storage v0.0.0-20240806160829-cde2d1347e7e/go.mod h1:1Hti34fIHtniBapeikvYF3KyA038+6If8BRkRKqWUy4=
 github.com/bits-and-blooms/bitset v1.13.0 h1:bAQ9OPNFYbGHV6Nez0tmNI0RiEu7/hxlYJRUA0wFAVE=
@@ -160,6 +160,8 @@ github.com/google/go-cmp v0.4.0/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/
 github.com/google/go-cmp v0.5.5/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
 github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
 github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
+github.com/google/gofuzz v1.2.0 h1:xRy4A+RhZaiKjJ1bPfwQ8sedCA+YS2YcCHW6ec7JMi0=
+github.com/google/gofuzz v1.2.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/M65Eg=
 github.com/google/pprof v0.0.0-20210407192527-94a9f03dee38/go.mod h1:kpwsk12EmLew5upagYY7GY0pfYCcupk39gWOCRROcvE=
 github.com/google/subcommands v1.2.0/go.mod h1:ZjhPrFU+Olkh9WazFPsl27BQ4UPiG37m3yTrtFlrHVk=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
@@ -325,6 +327,8 @@ github.com/tklauser/numcpus v0.8.0 h1:Mx4Wwe/FjZLeQsK/6kt2EOepwwSl7SmJrK5bV/dXYg
 github.com/tklauser/numcpus v0.8.0/go.mod h1:ZJZlAY+dmR4eut8epnzf0u/VwodKmryxR8txiloSqBE=
 github.com/tyler-smith/go-bip39 v1.1.0 h1:5eUemwrMargf3BSLRRCalXT93Ns6pQJIjYQN2nyfOP8=
 github.com/tyler-smith/go-bip39 v1.1.0/go.mod h1:gUYDtqQw1JS3ZJ8UWVcGTGqqr6YIN3CWg+kkNaLt55U=
+github.com/umbracle/fastrlp v0.1.0 h1:V0W3f6ZKWqbu1KggdhnRWOi+t7+PfL3VyAffJqayI5s=
+github.com/umbracle/fastrlp v0.1.0/go.mod h1:5RHgqiFjd4vLJESMWagP/E7su+5Gzk0iqqmrotR8WdA=
 github.com/urfave/cli/v2 v2.27.2 h1:6e0H+AkS+zDckwPCUrZkKX38mRaau4nL2uipkJpbkcI=
 github.com/urfave/cli/v2 v2.27.2/go.mod h1:g0+79LmHHATl7DAcHO99smiR/T7uGLw84w8Y42x+4eM=
 github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1 h1:gEOO8jv9F4OT7lGCjxCBTO/36wtF6j2nSip77qHd4x4=

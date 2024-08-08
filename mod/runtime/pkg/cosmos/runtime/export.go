@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package app
+package runtime
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
@@ -30,7 +30,7 @@ import (
 // ExportAppStateAndValidators exports the state of the application for a
 // genesis
 // file.
-func (app *BeaconApp) ExportAppStateAndValidators(
+func (app *App) ExportAppStateAndValidators(
 	forZeroHeight bool,
 	_, modulesToExport []string,
 ) (servertypes.ExportedApp, error) {

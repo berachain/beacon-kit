@@ -16,12 +16,12 @@ require (
 	cosmossdk.io/tools/confix v0.1.1
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240806160829-cde2d1347e7e
-	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240806160829-cde2d1347e7e
+	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240808194557-e72e74f58197
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1347e7e
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240806160829-cde2d1347e7e
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240806160829-cde2d1347e7e
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240808194557-e72e74f58197
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240806094948-2c4293ef36c4
 	github.com/cosmos/cosmos-sdk v0.53.0
 	github.com/ferranbt/fastssz v0.1.4-0.20240629094022-eac385e6ee79
@@ -49,6 +49,7 @@ require (
 	github.com/go-playground/validator/v10 v10.22.0 // indirect
 	github.com/goccy/go-json v0.10.3 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
+	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/karalabe/ssz v0.2.1-0.20240724074312-3d1ff7a6f7c4 // indirect
 	github.com/labstack/echo/v4 v4.12.0 // indirect
 	github.com/labstack/gommon v0.4.2 // indirect
@@ -57,6 +58,7 @@ require (
 	github.com/phuslu/log v1.0.108-0.20240705160716-a8f8c12ae6c6 // indirect
 	github.com/prysmaticlabs/go-bitfield v0.0.0-20240618144021-706c95b2dd15 // indirect
 	github.com/rs/zerolog v1.33.0 // indirect
+	github.com/umbracle/fastrlp v0.1.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	golang.org/x/time v0.5.0 // indirect

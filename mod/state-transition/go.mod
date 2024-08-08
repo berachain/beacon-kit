@@ -3,9 +3,9 @@ module github.com/berachain/beacon-kit/mod/state-transition
 go 1.22.5
 
 require (
-	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240806160829-cde2d1347e7e
+	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240808194557-e72e74f58197
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240618214413-d5ec0e66b3dd
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240806160829-cde2d1347e7e
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240808194557-e72e74f58197
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/go-faster/xor v1.0.0
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8
@@ -43,6 +43,7 @@ require (
 	github.com/gofrs/flock v0.12.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/snappy v0.0.5-0.20220116011046-fa5810519dcb // indirect
+	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/holiman/bloomfilter/v2 v2.0.3 // indirect
 	github.com/holiman/uint256 v1.3.1 // indirect
@@ -71,6 +72,7 @@ require (
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d // indirect
 	github.com/tklauser/go-sysconf v0.3.14 // indirect
 	github.com/tklauser/numcpus v0.8.0 // indirect
+	github.com/umbracle/fastrlp v0.1.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	golang.org/x/crypto v0.26.0 // indirect
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect

@@ -26,7 +26,6 @@ import (
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/app"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
@@ -113,7 +112,7 @@ func (nb *NodeBuilder[NodeT]) Build(
 
 	// set the application to a new BeaconApp with necessary ABCI handlers
 	nb.node.RegisterApp(
-		app.NewBeaconKitApp(
+		runtime.NewBeaconKitApp(
 			db, traceStore, true, appBuilder,
 			append(
 				DefaultBaseappOptions(appOpts),
