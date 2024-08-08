@@ -126,13 +126,6 @@ type BaseApp struct {
 	// initialHeight is the initial height at which we start the BaseApp
 	initialHeight int64
 
-	// block height at which to halt the chain and gracefully shutdown
-	haltHeight uint64
-
-	// minimum block time (in Unix seconds) at which to halt the chain and
-	// gracefully shutdown
-	haltTime uint64
-
 	// minRetainBlocks defines the minimum block height offset from the current
 	// block being committed, such that all blocks past this offset are pruned
 	// from CometBFT. It is used as part of the process of determining the
@@ -333,14 +326,6 @@ func (app *BaseApp) Init() error {
 	app.setState(execModeCheck, cmtproto.Header{ChainID: app.chainID})
 
 	return app.cms.GetPruning().Validate()
-}
-
-func (app *BaseApp) setHaltHeight(haltHeight uint64) {
-	app.haltHeight = haltHeight
-}
-
-func (app *BaseApp) setHaltTime(haltTime uint64) {
-	app.haltTime = haltTime
 }
 
 func (app *BaseApp) setMinRetainBlocks(minRetainBlocks uint64) {

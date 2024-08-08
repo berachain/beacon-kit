@@ -39,17 +39,6 @@ func SetPruning(opts pruningtypes.PruningOptions) func(*BaseApp) {
 	return func(bapp *BaseApp) { bapp.cms.SetPruning(opts) }
 }
 
-// SetHaltHeight returns a BaseApp option function that sets the halt block
-// height.
-func SetHaltHeight(blockHeight uint64) func(*BaseApp) {
-	return func(bapp *BaseApp) { bapp.setHaltHeight(blockHeight) }
-}
-
-// SetHaltTime returns a BaseApp option function that sets the halt block time.
-func SetHaltTime(haltTime uint64) func(*BaseApp) {
-	return func(bapp *BaseApp) { bapp.setHaltTime(haltTime) }
-}
-
 // SetMinRetainBlocks returns a BaseApp option function that sets the minimum
 // block retention height value when determining which heights to prune during
 // ABCI Commit.
