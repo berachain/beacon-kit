@@ -14,7 +14,6 @@ import (
 	snapshottypes "cosmossdk.io/store/snapshots/types"
 	storetypes "cosmossdk.io/store/types"
 
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/baseapp/oe"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -51,11 +50,6 @@ func SetTrace(trace bool) func(*BaseApp) {
 	return func(app *BaseApp) { app.setTrace(trace) }
 }
 
-// SetIndexEvents provides a BaseApp option function that sets the events to index.
-func SetIndexEvents(ie []string) func(*BaseApp) {
-	return func(app *BaseApp) { app.setIndexEvents(ie) }
-}
-
 // SetIAVLCacheSize provides a BaseApp option function that sets the size of IAVL cache.
 func SetIAVLCacheSize(size int) func(*BaseApp) {
 	return func(bapp *BaseApp) { bapp.cms.SetIAVLCacheSize(size) }
@@ -90,13 +84,6 @@ func SetChainID(chainID string) func(*BaseApp) {
 // SetStoreLoader allows customization of the rootMultiStore initialization.
 func SetStoreLoader(loader StoreLoader) func(*BaseApp) {
 	return func(app *BaseApp) { app.SetStoreLoader(loader) }
-}
-
-// SetOptimisticExecution enables optimistic execution.
-func SetOptimisticExecution(opts ...func(*oe.OptimisticExecution)) func(*BaseApp) {
-	return func(app *BaseApp) {
-		app.optimisticExec = oe.NewOptimisticExecution(app.logger, app.internalFinalizeBlock, opts...)
-	}
 }
 
 // SetIncludeNestedMsgsGas sets the message types for which gas costs for its nested messages are calculated when simulating.

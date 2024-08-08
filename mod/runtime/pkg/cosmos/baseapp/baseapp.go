@@ -462,14 +462,6 @@ func (app *BaseApp) setTrace(trace bool) {
 	app.trace = trace
 }
 
-func (app *BaseApp) setIndexEvents(ie []string) {
-	app.indexEvents = make(map[string]struct{}, len(ie))
-
-	for _, e := range ie {
-		app.indexEvents[e] = struct{}{}
-	}
-}
-
 // Seal seals a BaseApp. It prohibits any further modifications to a BaseApp.
 func (app *BaseApp) Seal() { app.sealed = true }
 
@@ -1192,9 +1184,4 @@ func (app *BaseApp) Close() error {
 	}
 
 	return errors.Join(errs...)
-}
-
-// GetBaseApp returns the pointer to itself.
-func (app *BaseApp) GetBaseApp() *BaseApp {
-	return app
 }
