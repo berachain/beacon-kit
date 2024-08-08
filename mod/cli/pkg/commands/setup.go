@@ -22,7 +22,6 @@ package commands
 
 import (
 	confixcmd "cosmossdk.io/tools/confix/cmd"
-	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/client"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/cometbft"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/deposit"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/genesis"
@@ -59,8 +58,7 @@ func DefaultRootCommandSetup[
 	root.cmd.AddCommand(
 		// `comet`
 		cometbft.Commands(appCreator),
-		// `client`
-		client.Commands(),
+
 		// `config`
 		confixcmd.ConfigCommand(),
 		// `init`

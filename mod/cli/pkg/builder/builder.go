@@ -122,11 +122,6 @@ func (cb *CLIBuilder[T, ExecutionPayloadT]) Build() (*cmdlib.Root, error) {
 		clientCtx,
 	)
 
-	// enhance the root command with the autoCliOpts
-	if err := rootCmd.Enhance(autoCliOpts.EnhanceRootCommand); err != nil {
-		return nil, err
-	}
-
 	// apply default root command setup
 	cmdlib.DefaultRootCommandSetup[T, ExecutionPayloadT](
 		rootCmd,
