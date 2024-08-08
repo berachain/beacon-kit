@@ -2,7 +2,10 @@ module github.com/berachain/beacon-kit/mod/async
 
 go 1.22.5
 
-require github.com/berachain/beacon-kit/mod/errors v0.0.0-20240806211103-d1105603bfc0
+require (
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240806211103-d1105603bfc0
+	github.com/berachain/beacon-kit/mod/log v0.0.0-20240807213340-5779c7a563cd
+)
 
 require (
 	github.com/cockroachdb/errors v1.11.3 // indirect

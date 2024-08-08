@@ -22,7 +22,9 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
+	"github.com/berachain/beacon-kit/mod/log"
 )
 
 // DispatcherInput is the input for the Dispatcher.
@@ -30,11 +32,16 @@ type DispatcherInput struct {
 	depinject.In
 	EventServer   *EventServer
 	MessageServer *MessageServer
+	Logger        log.AdvancedLogger[any, sdklog.Logger]
 }
 
 // ProvideDispatcher provides a new Dispatcher.
 func ProvideDispatcher(
 	in DispatcherInput,
 ) *Dispatcher {
-	return dispatcher.NewDispatcher(in.EventServer, in.MessageServer)
+	return dispatcher.NewDispatcher(
+		in.EventServer,
+		in.MessageServer,
+		in.Logger.With("service", "dispatcher"),
+	)
 }

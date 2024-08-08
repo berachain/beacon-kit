@@ -24,6 +24,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/log"
 )
 
 type MessageServer interface {
@@ -31,6 +32,7 @@ type MessageServer interface {
 	Request(req types.MessageI, resp types.MessageI) error
 	Respond(resp types.MessageI) error
 	RegisterRoute(mID types.MessageID, route types.MessageRoute) error
+	SetLogger(logger log.Logger[any])
 }
 
 type EventServer interface {
@@ -38,4 +40,5 @@ type EventServer interface {
 	RegisterPublisher(mID types.MessageID, publisher types.Publisher)
 	Subscribe(mID types.MessageID, ch any) error
 	Publish(ctx context.Context, event types.MessageI) error
+	SetLogger(logger log.Logger[any])
 }

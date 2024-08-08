@@ -24,6 +24,7 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/log"
 )
 
 // Dispatcher faciliates asynchronous communication between components, typically
@@ -32,16 +33,21 @@ import (
 type Dispatcher struct {
 	eventServer EventServer
 	msgServer   MessageServer
+	logger      log.Logger[any]
 }
 
 // NewDispatcher creates a new dispatcher.
 func NewDispatcher(
 	eventServer EventServer,
 	msgServer MessageServer,
+	logger log.Logger[any],
 ) *Dispatcher {
+	eventServer.SetLogger(logger)
+	msgServer.SetLogger(logger)
 	return &Dispatcher{
 		eventServer: eventServer,
 		msgServer:   msgServer,
+		logger:      logger,
 	}
 }
 

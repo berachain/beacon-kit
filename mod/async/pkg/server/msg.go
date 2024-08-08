@@ -24,10 +24,12 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/log"
 )
 
 type MessageServer struct {
 	routes map[types.MessageID]types.MessageRoute
+	logger log.Logger[any]
 }
 
 func NewMessageServer() *MessageServer {
@@ -80,4 +82,8 @@ func (ms *MessageServer) RegisterReceiver(messageID types.MessageID, ch any) err
 		return ErrRouteNotFound
 	}
 	return route.RegisterReceiver(ch)
+}
+
+func (ms *MessageServer) SetLogger(logger log.Logger[any]) {
+	ms.logger = logger
 }

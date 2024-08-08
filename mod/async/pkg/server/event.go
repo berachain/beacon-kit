@@ -24,11 +24,13 @@ import (
 	"context"
 
 	"github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/log"
 )
 
 // EventServer asyncronously dispatches events to subscribers.
 type EventServer struct {
 	publishers map[types.MessageID]types.Publisher
+	logger     log.Logger[any]
 }
 
 // NewEventServer creates a new event server.
@@ -66,4 +68,8 @@ func (es *EventServer) Start(ctx context.Context) {
 // consistent with the type expected by <publisher>.
 func (es *EventServer) RegisterPublisher(eventID types.MessageID, publisher types.Publisher) {
 	es.publishers[eventID] = publisher
+}
+
+func (es *EventServer) SetLogger(logger log.Logger[any]) {
+	es.logger = logger
 }
