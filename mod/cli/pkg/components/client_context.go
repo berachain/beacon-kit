@@ -27,7 +27,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/cli/pkg/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	sdkconfig "github.com/cosmos/cosmos-sdk/client/config"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 )
 
 //nolint:gochecknoglobals // todo:fix from sdk.
@@ -44,12 +43,10 @@ func init() {
 
 // ProvideClientContext returns a new client context with the given options.
 func ProvideClientContext(
-	interfaceRegistry codectypes.InterfaceRegistry,
 	txConfig client.TxConfig,
 ) (client.Context, error) {
 	var err error
 	clientCtx := client.Context{}.
-		WithInterfaceRegistry(interfaceRegistry).
 		WithInput(os.Stdin).
 		WithHomeDir(DefaultNodeHome).
 		WithViper("") // uses by default the binary name as prefix

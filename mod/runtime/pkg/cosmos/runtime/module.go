@@ -60,10 +60,6 @@ func init() {
 	appconfig.RegisterModule(&runtimev1alpha1.Module{},
 		appconfig.Provide(
 			ProvideApp,
-			// to decouple runtime from sdk/codec ProvideInterfaceReistry can be
-			// registered from the app
-			// i.e. in the call to depinject.Inject(...)
-			codec.ProvideInterfaceRegistry,
 			codec.ProvideAddressCodec,
 			ProvideKVStoreKey,
 			ProvideEnvironment,
