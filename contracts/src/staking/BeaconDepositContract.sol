@@ -70,7 +70,12 @@ contract BeaconDepositContract is IBeaconDepositContract, Ownable {
     }
 
     /// @dev Guard to prevent double initialization of owner.
-    function _guardInitializeOwner() internal pure override returns (bool guard) {
+    function _guardInitializeOwner()
+        internal
+        pure
+        override
+        returns (bool guard)
+    {
         return true;
     }
 
