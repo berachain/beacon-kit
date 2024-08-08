@@ -1363,8 +1363,20 @@ func toVoteInfo(votes []abci.ExtendedVoteInfo) []abci.VoteInfo {
 	return legacyVotes
 }
 
+// LEgacy Helpers
+
 // Simulate executes a tx in simulate mode to get result and gas info.
 func (app *BaseApp) Simulate(txBytes []byte) (sdk.GasInfo, *sdk.Result, error) {
 	gasInfo, result, _, err := app.runTx(execModeSimulate, txBytes)
 	return gasInfo, result, err
+}
+
+// NewContextLegacy returns a new sdk.Context with the provided header
+func (app *BaseApp) NewContextLegacy(isCheckTx bool, header cmtproto.Header) sdk.Context {
+	if isCheckTx {
+		return sdk.NewContext(app.checkState.ms, true, app.logger).
+			WithMinGasPrices(app.minGasPrices).WithBlockHeader(header)
+	}
+
+	return sdk.NewContext(app.finalizeBlockState.ms, false, app.logger).WithBlockHeader(header)
 }
