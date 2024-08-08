@@ -73,7 +73,6 @@ type BaseApp struct {
 	name        string                      // application name from abci.BlockInfo
 	db          dbm.DB                      // common DB backend
 	cms         storetypes.CommitMultiStore // Main (uncached) state
-	qms         storetypes.MultiStore       // Optional alternative multistore for querying only.
 	storeLoader StoreLoader                 // function to handle store loading, may be overridden with SetStoreLoader()
 
 	initChainer        sdk.InitChainer            // ABCI InitChain handler
