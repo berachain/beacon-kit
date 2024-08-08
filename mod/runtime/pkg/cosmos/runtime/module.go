@@ -36,8 +36,6 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/std"
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
@@ -117,16 +115,11 @@ func init() {
 	)
 }
 
-func ProvideApp(
-	interfaceRegistry codectypes.InterfaceRegistry,
-) (
+func ProvideApp() (
 	*AppBuilder,
 	appmodule.AppModule,
 	error,
 ) {
-
-	std.RegisterInterfaces(interfaceRegistry)
-
 	app := &App{}
 	appBuilder := &AppBuilder{app}
 

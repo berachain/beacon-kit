@@ -132,9 +132,6 @@ type BaseApp struct {
 	// initialHeight is the initial height at which we start the BaseApp
 	initialHeight int64
 
-	// flag for sealing options and parameters to a BaseApp
-	sealed bool
-
 	// block height at which to halt the chain and gracefully shutdown
 	haltHeight uint64
 
@@ -341,20 +338,13 @@ func (app *BaseApp) ChainID() string {
 // the earlier provided settings. Returns an error if validation fails.
 // nil otherwise. Panics if the app is already sealed.
 func (app *BaseApp) Init() error {
-	if app.sealed {
-		panic("cannot call initFromMainStore: baseapp already sealed")
-	}
-
 	if app.cms == nil {
 		return errors.New("commit multi-store must not be nil")
 	}
 
-	emptyHeader := cmtproto.Header{ChainID: app.chainID}
-
 	// needed for the export command which inits from store but never calls
 	// initchain
-	app.setState(execModeCheck, emptyHeader)
-	app.Seal()
+	app.setState(execModeCheck, cmtproto.Header{ChainID: app.chainID})
 
 	return app.cms.GetPruning().Validate()
 }
@@ -376,12 +366,6 @@ func (app *BaseApp) setInterBlockCache(
 ) {
 	app.interBlockCache = cache
 }
-
-// Seal seals a BaseApp. It prohibits any further modifications to a BaseApp.
-func (app *BaseApp) Seal() { app.sealed = true }
-
-// IsSealed returns true if the BaseApp is sealed and false otherwise.
-func (app *BaseApp) IsSealed() bool { return app.sealed }
 
 // setState sets the BaseApp's state for the corresponding mode with a branched
 // multi-store (i.e. a CacheMultiStore) and a new Context with the same

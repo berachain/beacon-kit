@@ -26,7 +26,6 @@ import (
 	"fmt"
 	"io"
 
-	"cosmossdk.io/store/metrics"
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	storetypes "cosmossdk.io/store/types"
 	dbm "github.com/cosmos/cosmos-db"
@@ -90,27 +89,16 @@ func SetStoreLoader(loader StoreLoader) func(*BaseApp) {
 }
 
 func (app *BaseApp) SetName(name string) {
-	if app.sealed {
-		panic("SetName() on sealed BaseApp")
-	}
-
 	app.name = name
 }
 
 // SetParamStore sets a parameter store on the BaseApp.
 func (app *BaseApp) SetParamStore(ps ParamStore) {
-	if app.sealed {
-		panic("SetParamStore() on sealed BaseApp")
-	}
-
 	app.paramStore = ps
 }
 
 // SetVersion sets the application's version string.
 func (app *BaseApp) SetVersion(v string) {
-	if app.sealed {
-		panic("SetVersion() on sealed BaseApp")
-	}
 	app.version = v
 }
 
@@ -136,26 +124,14 @@ func (app *BaseApp) SetAppVersion(ctx context.Context, v uint64) error {
 }
 
 func (app *BaseApp) SetDB(db dbm.DB) {
-	if app.sealed {
-		panic("SetDB() on sealed BaseApp")
-	}
-
 	app.db = db
 }
 
 func (app *BaseApp) SetCMS(cms storetypes.CommitMultiStore) {
-	if app.sealed {
-		panic("SetEndBlocker() on sealed BaseApp")
-	}
-
 	app.cms = cms
 }
 
 func (app *BaseApp) SetInitChainer(initChainer sdk.InitChainer) {
-	if app.sealed {
-		panic("SetInitChainer() on sealed BaseApp")
-	}
-
 	app.initChainer = initChainer
 }
 
@@ -164,44 +140,24 @@ func (app *BaseApp) PreBlocker() sdk.PreBlocker {
 }
 
 func (app *BaseApp) SetPreBlocker(preBlocker sdk.PreBlocker) {
-	if app.sealed {
-		panic("SetPreBlocker() on sealed BaseApp")
-	}
-
 	app.preBlocker = preBlocker
 }
 
 func (app *BaseApp) SetBeginBlocker(beginBlocker sdk.BeginBlocker) {
-	if app.sealed {
-		panic("SetBeginBlocker() on sealed BaseApp")
-	}
-
 	app.beginBlocker = beginBlocker
 }
 
 func (app *BaseApp) SetEndBlocker(endBlocker sdk.EndBlocker) {
-	if app.sealed {
-		panic("SetEndBlocker() on sealed BaseApp")
-	}
-
 	app.endBlocker = endBlocker
 }
 
 func (app *BaseApp) SetPrepareCheckStater(
 	prepareCheckStater sdk.PrepareCheckStater,
 ) {
-	if app.sealed {
-		panic("SetPrepareCheckStater() on sealed BaseApp")
-	}
-
 	app.prepareCheckStater = prepareCheckStater
 }
 
 func (app *BaseApp) SetPrecommiter(precommiter sdk.Precommiter) {
-	if app.sealed {
-		panic("SetPrecommiter() on sealed BaseApp")
-	}
-
 	app.precommiter = precommiter
 }
 
@@ -219,10 +175,6 @@ func (app *BaseApp) SetCommitMultiStoreTracer(w io.Writer) {
 
 // SetStoreLoader allows us to customize the rootMultiStore initialization.
 func (app *BaseApp) SetStoreLoader(loader StoreLoader) {
-	if app.sealed {
-		panic("SetStoreLoader() on sealed BaseApp")
-	}
-
 	app.storeLoader = loader
 }
 
@@ -248,44 +200,10 @@ func (app *BaseApp) SetQueryMultiStore(ms storetypes.MultiStore) {
 
 // SetProcessProposal sets the process proposal function for the BaseApp.
 func (app *BaseApp) SetProcessProposal(handler sdk.ProcessProposalHandler) {
-	if app.sealed {
-		panic("SetProcessProposal() on sealed BaseApp")
-	}
 	app.processProposal = handler
 }
 
 // SetPrepareProposal sets the prepare proposal function for the BaseApp.
 func (app *BaseApp) SetPrepareProposal(handler sdk.PrepareProposalHandler) {
-	if app.sealed {
-		panic("SetPrepareProposal() on sealed BaseApp")
-	}
-
 	app.prepareProposal = handler
-}
-
-func (app *BaseApp) SetExtendVoteHandler(handler sdk.ExtendVoteHandler) {
-	if app.sealed {
-		panic("SetExtendVoteHandler() on sealed BaseApp")
-	}
-
-	app.extendVote = handler
-}
-
-func (app *BaseApp) SetVerifyVoteExtensionHandler(
-	handler sdk.VerifyVoteExtensionHandler,
-) {
-	if app.sealed {
-		panic("SetVerifyVoteExtensionHandler() on sealed BaseApp")
-	}
-
-	app.verifyVoteExt = handler
-}
-
-// SetStoreMetrics sets the prepare proposal function for the BaseApp.
-func (app *BaseApp) SetStoreMetrics(gatherer metrics.StoreMetrics) {
-	if app.sealed {
-		panic("SetStoreMetrics() on sealed BaseApp")
-	}
-
-	app.cms.SetMetrics(gatherer)
 }
