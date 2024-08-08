@@ -22,7 +22,6 @@ package block
 
 import (
 	"context"
-	"errors"
 	"sync"
 
 	sdkcollections "cosmossdk.io/collections"
@@ -32,46 +31,38 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 )
 
+const StoreName = "blocks"
+
 // KVStore is a simple KV store based implementation that stores beacon blocks.
 type KVStore[BeaconBlockT BeaconBlock[BeaconBlockT]] struct {
-	blocks           sdkcollections.Map[math.Slot, BeaconBlockT]
-	roots            sdkcollections.Map[[]byte, math.Slot]
-	executionNumbers sdkcollections.Map[math.U64, math.Slot]
+	blocks *sdkcollections.IndexedMap[
+		math.Slot, BeaconBlockT, indexes[BeaconBlockT],
+	]
 
 	mu           sync.RWMutex
-	cdc          *encoding.SSZInterfaceCodec[BeaconBlockT]
+	cs           common.ChainSpec
+	blockCodec   *encoding.SSZInterfaceCodec[BeaconBlockT]
 	earliestSlot math.Slot
 }
 
 // NewStore creates a new block store.
 func NewStore[BeaconBlockT BeaconBlock[BeaconBlockT]](
 	kvsp store.KVStoreService,
+	cs common.ChainSpec,
 ) *KVStore[BeaconBlockT] {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kvsp)
-	cdc := &encoding.SSZInterfaceCodec[BeaconBlockT]{}
+	blockCodec := &encoding.SSZInterfaceCodec[BeaconBlockT]{}
 	return &KVStore[BeaconBlockT]{
-		blocks: sdkcollections.NewMap(
+		blocks: sdkcollections.NewIndexedMap(
 			schemaBuilder,
-			sdkcollections.NewPrefix([]byte{BlockKeyPrefix}),
-			BlocksMapName,
+			sdkcollections.NewPrefix(StoreName),
+			StoreName,
 			encoding.U64Key,
-			cdc,
+			blockCodec,
+			newIndexes[BeaconBlockT](schemaBuilder),
 		),
-		roots: sdkcollections.NewMap(
-			schemaBuilder,
-			sdkcollections.NewPrefix([]byte{RootsKeyPrefix}),
-			RootsMapName,
-			sdkcollections.BytesKey,
-			encoding.U64Value,
-		),
-		executionNumbers: sdkcollections.NewMap(
-			schemaBuilder,
-			sdkcollections.NewPrefix([]byte{ExecutionNumbersKeyPrefix}),
-			ExecutionNumbersMapName,
-			encoding.U64Key,
-			encoding.U64Value,
-		),
-		cdc: cdc,
+		blockCodec: blockCodec,
+		cs:         cs,
 	}
 }
 
@@ -80,36 +71,17 @@ func (kv *KVStore[BeaconBlockT]) Get(slot math.Slot) (BeaconBlockT, error) {
 	kv.mu.RLock()
 	defer kv.mu.RUnlock()
 
+	kv.blockCodec.SetActiveForkVersion(kv.cs.ActiveForkVersionForSlot(slot))
 	return kv.blocks.Get(context.TODO(), slot)
 }
 
 // Set sets the block by a given index in the store and also stores the
 // block root.
 func (kv *KVStore[BeaconBlockT]) Set(slot math.Slot, blk BeaconBlockT) error {
-	var (
-		ctx  = context.TODO()
-		root = blk.HashTreeRoot()
-		err  error
-	)
-
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
 
-	// Set the block root in the roots map.
-	if err = kv.roots.Set(ctx, root[:], slot); err != nil {
-		return err
-	}
-
-	// Set the block execution number in the execution numbers map.
-	if err = kv.executionNumbers.Set(
-		ctx, blk.GetExecutionNumber(), slot,
-	); err != nil {
-		return err
-	}
-
-	// Set the block in the blocks map.
-	kv.cdc.SetActiveForkVersion(blk.Version())
-	return kv.blocks.Set(ctx, slot, blk)
+	return kv.blocks.Set(context.TODO(), slot, blk)
 }
 
 // GetSlotByRoot retrieves the slot by a given root from the store.
@@ -119,7 +91,10 @@ func (kv *KVStore[BeaconBlockT]) GetSlotByRoot(
 	kv.mu.RLock()
 	defer kv.mu.RUnlock()
 
-	return kv.roots.Get(context.TODO(), root[:])
+	return kv.blocks.Indexes.BlockRoots.MatchExact(
+		context.TODO(),
+		root[:],
+	)
 }
 
 // GetSlotByExecutionNumber retrieves the slot by a given execution number from
@@ -130,49 +105,27 @@ func (kv *KVStore[BeaconBlockT]) GetSlotByExecutionNumber(
 	kv.mu.RLock()
 	defer kv.mu.RUnlock()
 
-	return kv.executionNumbers.Get(context.TODO(), executionNumber)
+	return kv.blocks.Indexes.ExecutionNumbers.MatchExact(
+		context.TODO(),
+		executionNumber,
+	)
 }
 
 // Prune removes the [start, end) blocks from the store.
 func (kv *KVStore[BeaconBlockT]) Prune(start, end uint64) error {
-	var (
-		ctx  = context.TODO()
-		s, e = math.Slot(start), math.Slot(end)
-	)
-
+	s, e := math.Slot(start), math.Slot(end)
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
 
 	// We only return early from this loop with an error if the key
 	// passed in cannot be encoded.
 	for i := max(s, kv.earliestSlot); i < e; i++ {
-		block, err := kv.blocks.Get(ctx, i)
-		if !errors.Is(err, sdkcollections.ErrNotFound) {
-			// If block is found and still errors, exit and return.
-			if err != nil {
-				return err
-			}
-
-			// Block is found so remove from roots map.
-			root := block.HashTreeRoot()
-			if err = kv.roots.Remove(ctx, root[:]); err != nil {
-				return err
-			}
-
-			// Block is found so also remove from execution numbers map.
-			if err = kv.executionNumbers.Remove(
-				ctx, block.GetExecutionNumber(),
-			); err != nil {
-				return err
-			}
-		}
-
-		// Finally remove the block from the blocks map.
-		if err = kv.blocks.Remove(ctx, i); err != nil {
+		if err := kv.blocks.Remove(context.TODO(), i); err != nil {
 			return err
 		}
 	}
 
+	// If we successfully pruned, update the earliest slot.
 	kv.earliestSlot = e
 	return nil
 }
