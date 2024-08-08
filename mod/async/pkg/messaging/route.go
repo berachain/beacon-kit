@@ -70,8 +70,8 @@ func (r *Route[ReqT, RespT]) RegisterReceiver(ch any) error {
 }
 
 // SendRequest sends a request to the recipient.
-func (r *Route[ReqT, RespT]) SendRequest(msg any) error {
-	typedMsg, err := ensureType[ReqT](msg)
+func (r *Route[ReqT, RespT]) SendRequest(req types.MessageI) error {
+	typedMsg, err := ensureType[ReqT](req)
 	if err != nil {
 		return err
 	}
@@ -84,8 +84,8 @@ func (r *Route[ReqT, RespT]) SendRequest(msg any) error {
 }
 
 // SendResponse sends a response to the response channel.
-func (r *Route[ReqT, RespT]) SendResponse(msg any) error {
-	typedMsg, err := ensureType[RespT](msg)
+func (r *Route[ReqT, RespT]) SendResponse(resp types.MessageI) error {
+	typedMsg, err := ensureType[RespT](resp)
 	if err != nil {
 		return err
 	}
@@ -95,10 +95,10 @@ func (r *Route[ReqT, RespT]) SendResponse(msg any) error {
 
 // AwaitResponse listens for a response and returns it if it is available
 // before the timeout. Otherwise, it returns ErrTimeout.
-func (r *Route[ReqT, RespT]) AwaitResponse(emptyResp any) error {
+func (r *Route[ReqT, RespT]) AwaitResponse(respPtr any) error {
 	select {
-	case msg := <-r.responseCh:
-		return assignToResponse[RespT](msg, emptyResp)
+	case resp := <-r.responseCh:
+		return assign(resp, respPtr)
 	case <-time.After(r.timeout):
 		return ErrTimeout(r.messageID, r.timeout)
 	}

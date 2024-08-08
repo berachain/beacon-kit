@@ -84,7 +84,7 @@ func (s *Service[
 	// We won't send a fcu if the block is bad, should be addressed
 	// via ticker later.
 	s.dispatcher.DispatchEvent(
-		ctx, asynctypes.NewEvent(
+		asynctypes.NewEvent(
 			ctx, messages.BeaconBlockFinalizedEvent, blk,
 		),
 	)

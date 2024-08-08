@@ -87,11 +87,12 @@ func (p *Publisher[T]) start(ctx context.Context) {
 
 // Publish publishes a msg to the b.
 // Returns ErrTimeout on timeout.
-func (p *Publisher[T]) Publish(ctx context.Context, msg any) error {
+func (p *Publisher[T]) Publish(msg types.MessageI) error {
 	typedMsg, err := ensureType[T](msg)
 	if err != nil {
 		return err
 	}
+	ctx := msg.Context()
 	select {
 	case p.msgs <- typedMsg:
 		return nil

@@ -27,7 +27,7 @@ type Publisher interface {
 	// Start starts the event feed.
 	Start(ctx context.Context)
 	// Publish publishes the given event to the event feed.
-	Publish(ctx context.Context, event any) error
+	Publish(event MessageI) error
 	// Subscribe subscribes the given channel to the event feed.
 	Subscribe(ch any) error
 	// Unsubscribe unsubscribes the given channel from the event feed.
@@ -39,9 +39,9 @@ type MessageRoute interface {
 	// RegisterRecipient sets the recipient for the route.
 	RegisterReceiver(ch any) error
 	// SendRequest sends a request to the recipient.
-	SendRequest(msg any) error
+	SendRequest(msg MessageI) error
 	// SendResponse sends a response to the recipient.
-	SendResponse(msg any) error
+	SendResponse(msg MessageI) error
 	// AwaitResponse awaits a response from the route.
 	AwaitResponse(emptyResp any) error
 	// MessageID returns the message ID that the route is responsible for.

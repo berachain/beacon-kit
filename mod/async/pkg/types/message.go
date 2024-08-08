@@ -28,8 +28,6 @@ import (
 type MessageI interface {
 	ID() MessageID
 	Context() context.Context
-	Error() error
-	Is(MessageID) bool
 }
 
 // A Message is an asynchronous message meant for a single recipient.

@@ -60,8 +60,8 @@ func (d *Dispatcher) Start(ctx context.Context) error {
 // DispatchEvent dispatches the given event to the event server.
 // It will error if the <event> type is inconsistent with the publisher
 // registered for the given eventID.
-func (d *Dispatcher) DispatchEvent(ctx context.Context, event types.MessageI) error {
-	return d.eventServer.Publish(ctx, event)
+func (d *Dispatcher) DispatchEvent(event types.MessageI) error {
+	return d.eventServer.Publish(event)
 }
 
 // DispatchRequest dispatches the given request to the message server.
