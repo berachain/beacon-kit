@@ -164,9 +164,6 @@ type BaseApp struct {
 	// application's version string
 	version string
 
-	// recovery handler for app.runTx method
-	runTxRecoveryMiddleware recoveryMiddleware
-
 	// trace set will return full stack traces for errors in ABCI Log field
 	trace bool
 
@@ -238,7 +235,6 @@ func NewBaseApp(
 	if app.includeNestedMsgsGas == nil {
 		app.includeNestedMsgsGas = make(map[string]struct{})
 	}
-	app.runTxRecoveryMiddleware = newDefaultRecoveryMiddleware()
 
 	// Initialize with an empty interface registry to avoid nil pointer dereference.
 	// Unless SetInterfaceRegistry is called with an interface registry with proper address codecs baseapp will panic.
@@ -547,13 +543,6 @@ func (app *BaseApp) StoreConsensusParams(ctx context.Context, cp cmtproto.Consen
 	return app.paramStore.Set(ctx, cp)
 }
 
-// AddRunTxRecoveryHandler adds custom app.runTx method panic handlers.
-func (app *BaseApp) AddRunTxRecoveryHandler(handlers ...RecoveryHandler) {
-	for _, h := range handlers {
-		app.runTxRecoveryMiddleware = newRecoveryMiddleware(h, app.runTxRecoveryMiddleware)
-	}
-}
-
 // GetMaximumBlockGas gets the maximum gas from the consensus params. It panics
 // if maximum block gas is less than negative one and returns zero if negative
 // one.
@@ -823,7 +812,6 @@ func (app *BaseApp) runTx(mode execMode, txBytes []byte) (gInfo sdk.GasInfo, res
 	// NOTE: GasWanted should be returned by the AnteHandler. GasUsed is
 	// determined by the GasMeter. We need access to the context to get the gas
 	// meter, so we initialize upfront.
-	var gasWanted uint64
 
 	ctx := app.getContextForTx(mode, txBytes)
 	ms := ctx.MultiStore()
@@ -832,16 +820,6 @@ func (app *BaseApp) runTx(mode execMode, txBytes []byte) (gInfo sdk.GasInfo, res
 	if mode == execModeFinalize && ctx.BlockGasMeter().IsOutOfGas() {
 		return gInfo, nil, nil, errorsmod.Wrap(sdkerrors.ErrOutOfGas, "no block gas left to run tx")
 	}
-
-	defer func() {
-		if r := recover(); r != nil {
-			recoveryMW := newOutOfGasRecoveryMiddleware(gasWanted, ctx, app.runTxRecoveryMiddleware)
-			err, result = processRecovery(r, recoveryMW), nil
-			ctx.Logger().Error("panic recovered in runTx", "err", err)
-		}
-
-		gInfo = sdk.GasInfo{GasWanted: gasWanted, GasUsed: ctx.GasMeter().GasConsumed()}
-	}()
 
 	blockGasConsumed := false
 
@@ -912,9 +890,6 @@ func (app *BaseApp) runTx(mode execMode, txBytes []byte) (gInfo sdk.GasInfo, res
 		}
 
 		events := ctx.EventManager().Events()
-
-		// GasMeter expected to be set in AnteHandler
-		gasWanted = ctx.GasMeter().Limit()
 
 		if err != nil {
 			if mode == execModeReCheck {
