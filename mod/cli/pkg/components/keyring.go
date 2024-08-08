@@ -22,7 +22,6 @@ package components
 
 import (
 	clientv2keyring "cosmossdk.io/client/v2/autocli/keyring"
-	"cosmossdk.io/core/address"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 )
@@ -30,7 +29,6 @@ import (
 // ProvideKeyring provides a keyring for the client.
 func ProvideKeyring(
 	clientCtx client.Context,
-	_ address.Codec,
 ) (clientv2keyring.Keyring, error) {
 	kb, err := client.NewKeyringFromBackend(
 		clientCtx,

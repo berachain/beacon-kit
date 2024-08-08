@@ -25,7 +25,6 @@ import (
 	"slices"
 
 	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
-	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/core/store"
 	"cosmossdk.io/depinject"
@@ -44,10 +43,6 @@ type appModule struct {
 
 func (m appModule) IsOnePerModuleType() {}
 func (m appModule) IsAppModule()        {}
-
-func (m appModule) AutoCLIOptions() *autocliv1.ModuleOptions {
-	return &autocliv1.ModuleOptions{}
-}
 
 var (
 	_ appmodule.AppModule = appModule{}
