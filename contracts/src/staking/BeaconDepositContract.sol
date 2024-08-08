@@ -63,9 +63,9 @@ contract BeaconDepositContract is IBeaconDepositContract, Ownable {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @dev Initializes the owner of the contract.
-    function initializeOwner() external {
+    function initializeOwner(address _governance) external {
         require(!initialized, "Already initialized");
-        _initializeOwner(0x8a73D1380345942F1cb32541F1b19C40D8e6C94B);
+        _initializeOwner(_governance);
         initialized = true;
     }
 

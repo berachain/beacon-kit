@@ -87,7 +87,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	tx, err := dc.InitializeOwner(&bind.TransactOpts{
 		From:   genesisAccount.Address(),
 		Signer: genesisAccount.SignerFunc(chainID),
-	})
+	}, genesisAccount.Address())
 	s.Require().NoError(err)
 
 	// Wait for the transaction to be mined.
