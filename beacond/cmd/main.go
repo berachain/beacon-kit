@@ -61,11 +61,11 @@ func run() error {
 	cb := clibuilder.New(
 		// Set the Name to the Default.
 		clibuilder.WithName[node, *executionPayload](
-			nodebuilder.DefaultAppName,
+			"BeaconKit",
 		),
 		// Set the Description to the Default.
 		clibuilder.WithDescription[node, *executionPayload](
-			nodebuilder.DefaultDescription,
+			"A basic beacon node, usable most standard networks.",
 		),
 		// Set the DepInject Configuration to the Default.
 		clibuilder.WithDepInjectConfig[node, *executionPayload](

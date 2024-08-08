@@ -90,8 +90,8 @@ github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240806160829-cde2d1
 github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240806160829-cde2d1347e7e/go.mod h1:ZU1bq1BMt6b0kPRAw+A3kP7FlSd5DSQNYePD5qL9zfQ=
 github.com/berachain/beacon-kit/mod/da v0.0.0-20240705193247-d464364483df h1:yZtRZBkhDJ2xMlMLx5DdUFtrtH9iWyPNl4HSW2uJyb8=
 github.com/berachain/beacon-kit/mod/da v0.0.0-20240705193247-d464364483df/go.mod h1:iGTR+iYsqpj79WLX1RUVbV7hDs0rQtr+Iqa/VkAF4x8=
-github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240806160829-cde2d1347e7e h1:b8OmtWGjhaZENqiE3P1bjegLY6rOYqsROKRaSTjcHt8=
-github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240806160829-cde2d1347e7e/go.mod h1:GO3AOOJLKmCuU9UcyChO8zVd3gprJd57Vl4jcVB6oLY=
+github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240808194557-e72e74f58197 h1:wVWkiiERY/7kaXvE/VNPPUtYp/l8ky6QSuKM3ThVMXU=
+github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240808194557-e72e74f58197/go.mod h1:LiOiqrJhhLH/GPo0XE5fel3EYyi7X6dwBOyTqZakTeQ=
 github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df h1:6MJllcmMFt6dtvftM5zmdl1WVDpqZkNy3hFXVZtNV0s=
 github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df/go.mod h1:yRD7rmnyaaqgq/6+eIVqvSkFJXuLXpBddUu59HUOrtc=
 github.com/berachain/beacon-kit/mod/execution v0.0.0-20240705193247-d464364483df h1:H6BHipSq4spa06PGLp8osdJ8LTwz7POQa015RruWJfw=
@@ -108,8 +108,8 @@ github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240618214413-d5ec0e66b3dd h1:QH
 github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240618214413-d5ec0e66b3dd/go.mod h1:ft214cxJaqrRPOuAjpYwgA9AOElJnHrDZZEQ0jZPWwQ=
 github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df h1:fLL+7ZZcbVOmE3XE0o+ZGS8zyPLjki7LrZAsXpcG4Sc=
 github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df/go.mod h1:wbSa9W1CDDzR9AptQfYf/16bWqktaIQIZdJsuKWeqC8=
-github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240806160829-cde2d1347e7e h1:JQ+QbZcnecWYooLXWVbWZTbuHas9G68pHIxT/3uVlpI=
-github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240806160829-cde2d1347e7e/go.mod h1:v5JKfVqYEGFMTJIDrOV8m/dutSpw7mlif6wW3v26k68=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240808194557-e72e74f58197 h1:hk8N7Q1CCKMW/05pRu5rbfRnbTUou5TjULaeeRtbU+E=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240808194557-e72e74f58197/go.mod h1:7kNnd9rhYjyZJHuXs/ku5drL9EMM64ekJVR181fGmbM=
 github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240806160829-cde2d1347e7e h1:poP9ooPm9zZIWgaNOHphNWz1mGnNPKvzOuh9e1jA/EM=
 github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240806160829-cde2d1347e7e/go.mod h1:2SpsgO8YGfj7mFToN5rRRknOJko2ULCL573O9Oyf8Uc=
 github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6650da31 h1:1bJbJcoksyXfYMiga8YxPnkVKqT1lKwym/8kZnEPz58=
@@ -680,6 +680,8 @@ github.com/tklauser/numcpus v0.8.0/go.mod h1:ZJZlAY+dmR4eut8epnzf0u/VwodKmryxR8t
 github.com/tv42/httpunix v0.0.0-20150427012821-b75d8614f926/go.mod h1:9ESjWnEqriFuLhtthL60Sar/7RFoluCcXsuvEwTV5KM=
 github.com/tyler-smith/go-bip39 v1.1.0 h1:5eUemwrMargf3BSLRRCalXT93Ns6pQJIjYQN2nyfOP8=
 github.com/tyler-smith/go-bip39 v1.1.0/go.mod h1:gUYDtqQw1JS3ZJ8UWVcGTGqqr6YIN3CWg+kkNaLt55U=
+github.com/umbracle/fastrlp v0.1.0 h1:V0W3f6ZKWqbu1KggdhnRWOi+t7+PfL3VyAffJqayI5s=
+github.com/umbracle/fastrlp v0.1.0/go.mod h1:5RHgqiFjd4vLJESMWagP/E7su+5Gzk0iqqmrotR8WdA=
 github.com/urfave/cli/v2 v2.27.2 h1:6e0H+AkS+zDckwPCUrZkKX38mRaau4nL2uipkJpbkcI=
 github.com/urfave/cli/v2 v2.27.2/go.mod h1:g0+79LmHHATl7DAcHO99smiR/T7uGLw84w8Y42x+4eM=
 github.com/valyala/bytebufferpool v1.0.0 h1:GqA5TC/0021Y/b9FG4Oi9Mr3q7XYx6KllzawFIhcdPw=

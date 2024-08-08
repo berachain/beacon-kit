@@ -31,7 +31,6 @@ import (
 	"cosmossdk.io/depinject/appconfig"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
@@ -47,14 +46,6 @@ func (m appModule) IsAppModule()        {}
 var (
 	_ appmodule.AppModule = appModule{}
 )
-
-// BaseAppOption is a depinject.AutoGroupType which can be used to pass
-// BaseApp options into the depinject. It should be used carefully.
-type BaseAppOption func(*baseapp.BaseApp)
-
-// IsManyPerContainerType indicates that this is a
-// depinject.ManyPerContainerType.
-func (b BaseAppOption) IsManyPerContainerType() {}
 
 func init() {
 	appconfig.RegisterModule(&runtimev1alpha1.Module{},
@@ -81,16 +72,14 @@ func ProvideApp() (
 type AppInputs struct {
 	depinject.In
 
-	Logger         log.Logger
-	Config         *runtimev1alpha1.Module
-	AppBuilder     *AppBuilder
-	ModuleManager  *module.Manager
-	BaseAppOptions []BaseAppOption
+	Logger        log.Logger
+	Config        *runtimev1alpha1.Module
+	AppBuilder    *AppBuilder
+	ModuleManager *module.Manager
 }
 
 func SetupAppBuilder(inputs AppInputs) {
 	app := inputs.AppBuilder.app
-	app.baseAppOptions = inputs.BaseAppOptions
 	app.config = inputs.Config
 	app.logger = inputs.Logger
 	app.ModuleManager = inputs.ModuleManager

@@ -22,7 +22,11 @@ require (
 	go.uber.org/automaxprocs v1.5.3
 )
 
-require github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4 // indirect
+require (
+	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4 // indirect
+	github.com/google/gofuzz v1.2.0 // indirect
+	github.com/umbracle/fastrlp v0.1.0 // indirect
+)
 
 require (
 	buf.build/gen/go/cometbft/cometbft/protocolbuffers/go v1.34.2-20240701160653-fedbb9acfd2f.2 // indirect
@@ -61,7 +65,7 @@ require (
 	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240723155519-565f208d5482 // indirect
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240806160829-cde2d1347e7e // indirect
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240705193247-d464364483df // indirect
-	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240806160829-cde2d1347e7e // indirect
+	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240808194557-e72e74f58197 // indirect
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df // indirect
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240705193247-d464364483df // indirect
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1347e7e // indirect
@@ -70,7 +74,7 @@ require (
 	github.com/berachain/beacon-kit/mod/node-api/engines v0.0.0-20240806160829-cde2d1347e7e // indirect
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240618214413-d5ec0e66b3dd // indirect
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df // indirect
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240806160829-cde2d1347e7e // indirect
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240808194557-e72e74f58197 // indirect
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240806160829-cde2d1347e7e // indirect
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6650da31 // indirect
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240806160829-cde2d1347e7e // indirect

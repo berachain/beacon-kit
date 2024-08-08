@@ -22,19 +22,18 @@ require (
 	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240723155519-565f208d5482
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240806160829-cde2d1347e7e
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240806160829-cde2d1347e7e
+	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240808194557-e72e74f58197
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/node-api v0.0.0-20240806160829-cde2d1347e7e
 	github.com/berachain/beacon-kit/mod/node-api/engines v0.0.0-20240806160829-cde2d1347e7e
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240806160829-cde2d1347e7e
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240808194557-e72e74f58197
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240806160829-cde2d1347e7e
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6650da31
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240806160829-cde2d1347e7e
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240806094948-2c4293ef36c4
-	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4
 	github.com/cosmos/cosmos-db v1.0.2
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
 	github.com/cosmos/cosmos-sdk v0.53.0
@@ -54,6 +53,7 @@ require (
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1347e7e // indirect
 	github.com/bufbuild/protocompile v0.14.0 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a // indirect
+	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4 // indirect
 	github.com/docker/go-connections v0.5.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.4 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
@@ -61,6 +61,7 @@ require (
 	github.com/go-playground/validator/v10 v10.22.0 // indirect
 	github.com/goccy/go-json v0.10.3 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
+	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/holiman/bloomfilter/v2 v2.0.3 // indirect
 	github.com/jhump/protoreflect v1.16.0 // indirect
 	github.com/karalabe/ssz v0.2.1-0.20240724074312-3d1ff7a6f7c4 // indirect
@@ -71,6 +72,7 @@ require (
 	github.com/opencontainers/image-spec v1.1.0 // indirect
 	github.com/phuslu/log v1.0.108-0.20240705160716-a8f8c12ae6c6 // indirect
 	github.com/prysmaticlabs/go-bitfield v0.0.0-20240618144021-706c95b2dd15 // indirect
+	github.com/umbracle/fastrlp v0.1.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	golang.org/x/time v0.5.0 // indirect
