@@ -120,7 +120,7 @@ func TestExecutionPayload_Getters(t *testing.T) {
 
 	transactions := make(engineprimitives.Transactions, 1)
 	transactions[0] = []byte{0x07}
-	withdrawals := make([]*engineprimitives.Withdrawal, 1)
+	withdrawals := make(engineprimitives.Withdrawals, 1)
 	withdrawals[0] = &engineprimitives.Withdrawal{
 		Index:     0,
 		Validator: 0,

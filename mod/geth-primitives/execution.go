@@ -47,7 +47,6 @@ type (
 	Receipt        = coretypes.Receipt
 	Transaction    = coretypes.Transaction
 	Transactions   = coretypes.Transactions
-	Withdrawal     = coretypes.Withdrawal
 	Withdrawals    = coretypes.Withdrawals
 )
 
