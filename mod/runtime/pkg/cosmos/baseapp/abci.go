@@ -449,8 +449,6 @@ func (app *BaseApp) ProcessProposal(req *abci.ProcessProposalRequest) (resp *abc
 	// processed the first block, as we want to avoid overwriting the finalizeState
 	// after state changes during InitChain.
 	if req.Height > app.initialHeight {
-		// abort any running OE
-		app.optimisticExec.Abort()
 		app.setState(execModeFinalize, header)
 	}
 
@@ -494,19 +492,6 @@ func (app *BaseApp) ProcessProposal(req *abci.ProcessProposalRequest) (resp *abc
 	if err != nil {
 		app.logger.Error("failed to process proposal", "height", req.Height, "time", req.Time, "hash", fmt.Sprintf("%X", req.Hash), "err", err)
 		return &abci.ProcessProposalResponse{Status: abci.PROCESS_PROPOSAL_STATUS_REJECT}, nil
-	}
-
-	// Only execute optimistic execution if the proposal is accepted, OE is
-	// enabled and the block height is greater than the initial height. During
-	// the first block we'll be carrying state from InitChain, so it would be
-	// impossible for us to easily revert.
-	// After the first block has been processed, the next blocks will get executed
-	// optimistically, so that when the ABCI client calls `FinalizeBlock` the app
-	// can have a response ready.
-	if resp.Status == abci.PROCESS_PROPOSAL_STATUS_ACCEPT &&
-		app.optimisticExec.Enabled() &&
-		req.Height > app.initialHeight {
-		app.optimisticExec.Execute(req)
 	}
 
 	return resp, nil
@@ -828,26 +813,6 @@ func (app *BaseApp) FinalizeBlock(req *abci.FinalizeBlockRequest) (res *abci.Fin
 			}
 		}
 	}()
-
-	if app.optimisticExec.Initialized() {
-		// check if the hash we got is the same as the one we are executing
-		aborted := app.optimisticExec.AbortIfNeeded(req.Hash)
-		// Wait for the OE to finish, regardless of whether it was aborted or not
-		res, err = app.optimisticExec.WaitResult()
-
-		// only return if we are not aborting
-		if !aborted {
-			if res != nil {
-				res.AppHash = app.workingHash()
-			}
-
-			return res, err
-		}
-
-		// if it was aborted, we need to reset the state
-		app.finalizeBlockState = nil
-		app.optimisticExec.Reset()
-	}
 
 	// if no OE is running, just run the block (this is either a block replay or a OE that got aborted)
 	res, err = app.internalFinalizeBlock(context.Background(), req)

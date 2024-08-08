@@ -24,7 +24,6 @@ import (
 	"cosmossdk.io/store/snapshots"
 	storetypes "cosmossdk.io/store/types"
 
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/baseapp/oe"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -174,11 +173,6 @@ type BaseApp struct {
 	chainID string
 
 	cdc codec.Codec
-
-	// optimisticExec contains the context required for Optimistic Execution,
-	// including the goroutine handling.This is experimental and must be enabled
-	// by developers.
-	optimisticExec *oe.OptimisticExecution
 
 	// includeNestedMsgsGas holds a set of message types for which gas costs for its nested messages are calculated.
 	includeNestedMsgsGas map[string]struct{}
