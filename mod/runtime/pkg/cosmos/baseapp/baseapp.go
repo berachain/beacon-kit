@@ -236,16 +236,6 @@ func (app *BaseApp) AppVersion(ctx context.Context) (uint64, error) {
 	return cp.Version.App, nil
 }
 
-// Version returns the application's version string.
-func (app *BaseApp) Version() string {
-	return app.version
-}
-
-// Logger returns the logger of the BaseApp.
-func (app *BaseApp) Logger() log.Logger {
-	return app.logger
-}
-
 // MountStores mounts all IAVL or DB stores to the provided keys in the BaseApp
 // multistore.
 func (app *BaseApp) MountStores(keys ...storetypes.StoreKey) {
@@ -622,10 +612,6 @@ func (app *BaseApp) endBlock(_ context.Context) (sdk.EndBlock, error) {
 	}
 
 	return sdk.EndBlock{}, nil
-}
-
-type HasNestedMsgs interface {
-	GetMsgs() ([]sdk.Msg, error)
 }
 
 // runTx processes a transaction within a given execution mode, encoded

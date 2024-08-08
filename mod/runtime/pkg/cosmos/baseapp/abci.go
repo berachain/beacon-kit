@@ -802,7 +802,7 @@ func (app *BaseApp) CreateQueryContext(
 		return sdk.Context{}, errorsmod.Wrapf(
 			sdkerrors.ErrInvalidHeight,
 			"%s is not ready; please wait for first block",
-			app.Name(),
+			app.name,
 		)
 	}
 
