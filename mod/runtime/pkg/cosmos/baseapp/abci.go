@@ -139,8 +139,7 @@ func (app *BaseApp) InitChain(
 
 	// add block gas meter for any genesis transactions (allow infinite gas)
 	app.finalizeBlockState.SetContext(
-		app.finalizeBlockState.Context().
-			WithBlockGasMeter(storetypes.NewInfiniteGasMeter()),
+		app.finalizeBlockState.Context(),
 	)
 
 	res, err := app.initChainer(app.finalizeBlockState.Context(), req)
@@ -316,8 +315,7 @@ func (app *BaseApp) PrepareProposal(
 	)
 
 	app.prepareProposalState.SetContext(app.prepareProposalState.Context().
-		WithConsensusParams(app.GetConsensusParams(app.prepareProposalState.Context())).
-		WithBlockGasMeter(app.getBlockGasMeter(app.prepareProposalState.Context())),
+		WithConsensusParams(app.GetConsensusParams(app.prepareProposalState.Context())),
 	)
 
 	defer func() {
@@ -431,8 +429,7 @@ func (app *BaseApp) ProcessProposal(
 	)
 
 	app.processProposalState.SetContext(app.processProposalState.Context().
-		WithConsensusParams(app.GetConsensusParams(app.processProposalState.Context())).
-		WithBlockGasMeter(app.getBlockGasMeter(app.processProposalState.Context())),
+		WithConsensusParams(app.GetConsensusParams(app.processProposalState.Context())),
 	)
 
 	defer func() {
@@ -534,16 +531,12 @@ func (app *BaseApp) internalFinalizeBlock(
 			LastCommit:      sdk.ToSDKCommitInfo(req.DecidedLastCommit),
 		}))
 
-	// GasMeter must be set after we get a context with updated consensus
-	// params.
-	gasMeter := app.getBlockGasMeter(app.finalizeBlockState.Context())
 	app.finalizeBlockState.SetContext(
-		app.finalizeBlockState.Context().WithBlockGasMeter(gasMeter),
+		app.finalizeBlockState.Context(),
 	)
 
 	if app.checkState != nil {
 		app.checkState.SetContext(app.checkState.Context().
-			WithBlockGasMeter(gasMeter).
 			WithHeaderHash(req.Hash))
 	}
 
@@ -569,10 +562,8 @@ func (app *BaseApp) internalFinalizeBlock(
 
 	events = append(events, beginBlock.Events...)
 
-	// Reset the gas meter so that the AnteHandlers aren't required to
-	gasMeter = app.getBlockGasMeter(app.finalizeBlockState.Context())
 	app.finalizeBlockState.SetContext(
-		app.finalizeBlockState.Context().WithBlockGasMeter(gasMeter),
+		app.finalizeBlockState.Context(),
 	)
 
 	// Iterate over all raw transactions in the proposal and attempt to execute
@@ -894,8 +885,6 @@ func (app *BaseApp) CreateQueryContext(
 
 	// branch the commit multi-store for safety
 	ctx := sdk.NewContext(cacheMS, true, app.logger).
-		WithMinGasPrices(app.minGasPrices).
-		WithGasMeter(storetypes.NewGasMeter(app.queryGasLimit)).
 		WithHeaderInfo(coreheader.Info{
 			ChainID: app.chainID,
 			Height:  height,
@@ -1022,8 +1011,7 @@ func (app *BaseApp) NewContextLegacy(
 	header cmtproto.Header,
 ) sdk.Context {
 	if isCheckTx {
-		return sdk.NewContext(app.checkState.ms, true, app.logger).
-			WithMinGasPrices(app.minGasPrices).WithBlockHeader(header)
+		return sdk.NewContext(app.checkState.ms, true, app.logger).WithBlockHeader(header)
 	}
 
 	return sdk.NewContext(app.finalizeBlockState.ms, false, app.logger).

@@ -24,7 +24,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math"
 	"sort"
 	"sync"
 
@@ -137,13 +136,6 @@ type BaseApp struct {
 	// application parameter store.
 	paramStore ParamStore
 
-	// queryGasLimit defines the maximum gas for queries; unbounded if 0.
-	queryGasLimit uint64
-
-	// The minimum gas prices a validator is willing to accept for processing a
-	// transaction. This is mainly used for DoS and spam prevention.
-	minGasPrices sdk.DecCoins
-
 	// initialHeight is the initial height at which we start the BaseApp
 	initialHeight int64
 
@@ -209,10 +201,9 @@ func NewBaseApp(
 			logger,
 			storemetrics.NewNoOpMetrics(),
 		), // by default we use a no-op metric gather in store
-		storeLoader:   DefaultStoreLoader,
-		txDecoder:     txDecoder,
-		sigverifyTx:   true,
-		queryGasLimit: math.MaxUint64,
+		storeLoader: DefaultStoreLoader,
+		txDecoder:   txDecoder,
+		sigverifyTx: true,
 	}
 
 	for _, option := range options {
@@ -454,9 +445,7 @@ func (app *BaseApp) setState(mode execMode, h cmtproto.Header) {
 	switch mode {
 	case execModeCheck:
 		baseState.SetContext(
-			baseState.Context().
-				WithIsCheckTx(true).
-				WithMinGasPrices(app.minGasPrices),
+			baseState.Context().WithIsCheckTx(true),
 		)
 		app.checkState = baseState
 
@@ -512,29 +501,6 @@ func (app *BaseApp) StoreConsensusParams(
 	return app.paramStore.Set(ctx, cp)
 }
 
-// GetMaximumBlockGas gets the maximum gas from the consensus params. It panics
-// if maximum block gas is less than negative one and returns zero if negative
-// one.
-func (app *BaseApp) GetMaximumBlockGas(ctx sdk.Context) uint64 {
-	cp := app.GetConsensusParams(ctx)
-	if cp.Block == nil {
-		return 0
-	}
-
-	maxGas := cp.Block.MaxGas
-
-	switch {
-	case maxGas < -1:
-		panic(fmt.Sprintf("invalid maximum block gas: %d", maxGas))
-
-	case maxGas == -1:
-		return 0
-
-	default:
-		return uint64(maxGas)
-	}
-}
-
 func (app *BaseApp) validateFinalizeBlockHeight(
 	req *abci.FinalizeBlockRequest,
 ) error {
@@ -587,14 +553,6 @@ func (app *BaseApp) getState(mode execMode) *state {
 	}
 }
 
-func (app *BaseApp) getBlockGasMeter(ctx sdk.Context) storetypes.GasMeter {
-	if maxGas := app.GetMaximumBlockGas(ctx); maxGas > 0 {
-		return storetypes.NewGasMeter(maxGas)
-	}
-
-	return storetypes.NewInfiniteGasMeter()
-}
-
 // retrieve the context for the tx w/ txBytes and other memoized values.
 func (app *BaseApp) getContextForTx(mode execMode, txBytes []byte) sdk.Context {
 	app.mu.Lock()
@@ -605,8 +563,7 @@ func (app *BaseApp) getContextForTx(mode execMode, txBytes []byte) sdk.Context {
 		panic(fmt.Sprintf("state is nil for mode %v", mode))
 	}
 	ctx := modeState.Context().
-		WithTxBytes(txBytes).
-		WithGasMeter(storetypes.NewInfiniteGasMeter())
+		WithTxBytes(txBytes)
 
 	ctx = ctx.WithIsSigverifyTx(app.sigverifyTx)
 
@@ -636,10 +593,6 @@ func (app *BaseApp) preBlock(
 		// ConsensusParams can change in preblocker, so we need to
 		// write the consensus parameters in store to context
 		ctx = ctx.WithConsensusParams(app.GetConsensusParams(ctx))
-		// GasMeter must be set after we get a context with updated consensus
-		// params.
-		gasMeter := app.getBlockGasMeter(ctx)
-		ctx = ctx.WithBlockGasMeter(gasMeter)
 		app.finalizeBlockState.SetContext(ctx)
 		events = ctx.EventManager().ABCIEvents()
 	}
