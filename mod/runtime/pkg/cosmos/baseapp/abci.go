@@ -460,9 +460,7 @@ func (app *BaseApp) internalFinalizeBlock(
 	// NOTE: Not all raw transactions may adhere to the sdk.Tx interface, e.g.
 	// vote extensions, so skip those.
 	txResults := make([]*abci.ExecTxResult, 0, len(req.Txs))
-	for _, rawTx := range req.Txs {
-		response := app.deliverTx(rawTx)
-
+	for range req.Txs {
 		// check after every tx if we should abort
 		select {
 		case <-ctx.Done():
@@ -471,7 +469,13 @@ func (app *BaseApp) internalFinalizeBlock(
 			// continue
 		}
 
-		txResults = append(txResults, response)
+		txResults = append(txResults, &abci.ExecTxResult{
+			Codespace: "sdk",
+			Code:      2,
+			Log:       "skip decoding",
+			GasWanted: 0,
+			GasUsed:   0,
+		})
 	}
 
 	endBlock, err := app.endBlock(app.finalizeBlockState.Context())

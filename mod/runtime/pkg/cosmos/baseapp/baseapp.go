@@ -26,7 +26,6 @@ import (
 	"fmt"
 
 	"cosmossdk.io/core/header"
-	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
 	"cosmossdk.io/store"
 	storemetrics "cosmossdk.io/store/metrics"
@@ -36,7 +35,6 @@ import (
 	dbm "github.com/cosmos/cosmos-db"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 type (
@@ -433,31 +431,6 @@ func (app *BaseApp) beginBlock(
 	return sdk.BeginBlock{}, nil
 }
 
-func (app *BaseApp) deliverTx(tx []byte) *abci.ExecTxResult {
-	gInfo, result, err := app.runTx(execModeFinalize, tx)
-	if err != nil {
-		space, code, log := errorsmod.ABCIInfo(err, false)
-		return &abci.ExecTxResult{
-			Codespace: space,
-			Code:      code,
-			Log:       log,
-			//#nosec:G701 // bet.
-			GasWanted: int64(gInfo.GasWanted),
-			//#nosec:G701 // bet.
-			GasUsed: int64(gInfo.GasUsed),
-		}
-	}
-
-	return &abci.ExecTxResult{
-		//#nosec:G701 // bet.
-		GasWanted: int64(gInfo.GasWanted),
-		//#nosec:G701 // bet.
-		GasUsed: int64(gInfo.GasUsed),
-		Log:     result.Log,
-		Data:    result.Data,
-	}
-}
-
 // endBlock is an application-defined function that is called after transactions
 // have been processed in FinalizeBlock.
 func (app *BaseApp) endBlock(_ context.Context) (sdk.EndBlock, error) {
@@ -466,27 +439,6 @@ func (app *BaseApp) endBlock(_ context.Context) (sdk.EndBlock, error) {
 	}
 
 	return sdk.EndBlock{}, nil
-}
-
-// runTx processes a transaction within a given execution mode, encoded
-// transaction bytes, and the decoded transaction itself. All state transitions
-// occur through
-// a cached Context depending on the mode provided. State only gets persisted
-// if all messages get executed successfully and the execution mode is
-// DeliverTx.
-// Note, gas execution info is always returned. A reference to a Result is
-// returned if the tx does not run out of gas and if all the messages are valid
-// and execute successfully. An error is returned otherwise.
-func (app *BaseApp) runTx(
-	_ execMode,
-	_ []byte,
-) (gInfo sdk.GasInfo, result *sdk.Result, err error) {
-	return sdk.GasInfo{
-			GasUsed:   0,
-			GasWanted: 0,
-		}, nil, sdkerrors.ErrTxDecode.Wrap(
-			errors.New("skip decoding").Error(),
-		)
 }
 
 // Close is called in start cmd to gracefully cleanup resources.
