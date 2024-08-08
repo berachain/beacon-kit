@@ -7,9 +7,10 @@ def run(plan, deployment = {}):
 
 # Define the function to run the Forge script for deployment
 def deploy_contracts(plan, deployment):
-    contract_name = deployment["contract_name"]
-    script_path = deployment["script_path"]
     repository = deployment["repository"]
+    contracts_path = deployment["contracts_path"]
+    script_path = deployment["script_path"]
+    contract_name = deployment["contract_name"]
     rpc_url = deployment["rpc_url"]
     wallet = deployment["wallet"]
 
@@ -32,10 +33,15 @@ def deploy_contracts(plan, deployment):
         ),
     )
 
+    if contracts_path:
+        contract_path = "{}/{}".format(SOURCE_DIR_PATH, contracts_path)
+    else:
+        contract_path = SOURCE_DIR_PATH
+
     result = plan.exec(
         service_name = foundry_service.name,
         recipe = ExecRecipe(
-            command = ["/bin/sh", "-c", "cd /app/contracts && forge build"],
+            command = ["/bin/sh", "-c", "cd {} && forge build".format(contract_path)],
         ),
     )
     plan.verify(result["code"], "==", 0)
@@ -43,7 +49,8 @@ def deploy_contracts(plan, deployment):
     script_output = exec_on_service(
         plan,
         foundry_service.name,
-        "cd /app/contracts && forge script {}:{} --broadcast --rpc-url {} {} --json  --skip test > output.json ".format(
+        "cd {} && forge script {}:{} --broadcast --rpc-url {} {} --json  --skip test > output.json ".format(
+            contract_path,
             script_path,
             contract_name,
             rpc_url,
@@ -55,7 +62,7 @@ def deploy_contracts(plan, deployment):
     transaction_file = "grep 'Transactions saved to' output.json | awk -F': ' '{print $2}'"
     plan.print("transaction_file", transaction_file)
 
-    transaction_file_details = exec_on_service(plan, foundry_service.name, "cd /app/contracts && {}".format(transaction_file))
+    transaction_file_details = exec_on_service(plan, foundry_service.name, "cd {} && {}".format(contract_path, transaction_file))
 
     if not transaction_file_details["output"]:
         fail("Transaction file not found.")
