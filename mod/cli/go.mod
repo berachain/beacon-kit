@@ -14,7 +14,7 @@ require (
 	cosmossdk.io/client/v2 v2.0.0-20240412212305-037cf98f7eea
 	cosmossdk.io/core v0.12.1-0.20240806152830-8fb47b368cd4
 	cosmossdk.io/depinject v1.0.0
-	cosmossdk.io/log v1.3.2-0.20240806152830-8fb47b368cd4
+	cosmossdk.io/log v1.4.0
 	cosmossdk.io/tools/confix v0.1.1
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240806160829-cde2d1347e7e

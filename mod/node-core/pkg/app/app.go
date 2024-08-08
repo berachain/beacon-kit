@@ -24,9 +24,9 @@ import (
 	"io"
 
 	bkcomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/baseapp"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
 	dbm "github.com/cosmos/cosmos-db"
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/runtime"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/types/mempool"
 )

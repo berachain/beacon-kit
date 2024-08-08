@@ -11,7 +11,7 @@ replace (
 require (
 	cosmossdk.io/collections v0.4.0
 	cosmossdk.io/core v0.12.1-0.20240806152830-8fb47b368cd4
-	cosmossdk.io/log v1.3.2-0.20240806152830-8fb47b368cd4
+	cosmossdk.io/log v1.4.0
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240617161612-ab1257fcf5a1
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610210054-bfdc14c4013c
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240806160829-cde2d1347e7e

@@ -10,7 +10,7 @@ replace (
 )
 
 require (
-	cosmossdk.io/log v1.3.2-0.20240806152830-8fb47b368cd4
+	cosmossdk.io/log v1.4.0
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240806160829-cde2d1347e7e
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1347e7e
