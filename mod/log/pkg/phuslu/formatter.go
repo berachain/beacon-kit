@@ -105,20 +105,22 @@ func (f *Formatter) printWithColor(
 	b *byteBuffer,
 	color, label string,
 ) {
+	var (
+		ok      bool
+		kvColor Color
+		kColor  Color
+	)
 	f.formatHeader(args, b, color, label)
 
 	b.Bytes = append(b.Bytes, ' ')
 	b.Bytes = append(b.Bytes, args.Message...)
 	for _, kv := range args.KeyValues {
 		b.Bytes = append(b.Bytes, ' ')
-		// apply the key color if configured
-		if kColor, ok := f.keyColors[kv.Key]; ok {
-			b.Bytes = append(b.Bytes, kColor.Raw()...)
-		}
-		// apply the key+value color if configured (kv color takes precedence
-		// over key color)
-		if kvColor, ok := f.keyValColors[kv.Key+kv.Value]; ok {
+		// apply the key+value color if configured, otherwise apply key color
+		if kvColor, ok = f.keyValColors[kv.Key+kv.Value]; ok {
 			b.Bytes = append(b.Bytes, kvColor.Raw()...)
+		} else if kColor, ok = f.keyColors[kv.Key]; ok {
+			b.Bytes = append(b.Bytes, kColor.Raw()...)
 		}
 		b.Bytes = append(b.Bytes, kv.Key...)
 		b.Bytes = append(b.Bytes, '=')

@@ -265,7 +265,7 @@ laddr = "tcp://0.0.0.0:26656"
 external_address = ""
 
 # Comma separated list of seed nodes to connect to
-seeds = ""
+seeds = "c28827cb96c14c905b127b92065a3fb4cd77d7f6@testnet-seeds.whispernode.com:25456,8a0fbd4a06050519b6bce88c03932bd0a57060bd@beacond-testnet.blacknodes.net:26656,d9903c2f9902243c88f2758fe2e81e305e737fb3@bera-testnet-seeds.nodeinfra.com:26656,9c50cc419880131ea02b6e2b92027cefe17941b9@139.59.151.125:26656,cf44af098820f50a1e96d51b7af6861bc961e706@berav2-seeds.staketab.org:5001,6b5040a0e1b29a2cca224b64829d8f3d8796a3e3@berachain-testnet-v2-2.seed.l0vd.com:21656,4f93da5553f0dfaafb620532901e082255ec3ad3@berachain-testnet-v2-1.seed.l0vd.com:61656"
 
 # Comma separated list of nodes to keep persistent connections to
 persistent_peers = ""
