@@ -135,6 +135,10 @@ func (app *BaseApp) InitChain(
 		return nil, err
 	}
 
+	if res == nil {
+		return nil, errors.New("application init chain handler returned a nil response")
+	}
+
 	if len(req.Validators) > 0 {
 		if len(req.Validators) != len(res.Validators) {
 			return nil, fmt.Errorf(
@@ -567,6 +571,9 @@ func (app *BaseApp) workingHash() []byte {
 	// MultiStore. The write to the FinalizeBlock state writes all state
 	// transitions to the root
 	// MultiStore (app.cms) so when Commit() is called it persists those values.
+	if app.finalizeBlockState == nil {
+		panic("workingHash() called before FinalizeBlock()")
+	}
 	app.finalizeBlockState.ms.Write()
 
 	// Get the hash of all writes in order to return the apphash to the comet in
