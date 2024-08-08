@@ -26,7 +26,6 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/baseapp"
 	dbm "github.com/cosmos/cosmos-db"
-	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
 )
 
@@ -45,7 +44,7 @@ func (a *AppBuilder) DefaultGenesis() map[string]json.RawMessage {
 // Build builds an *App instance.
 func (a *AppBuilder) Build(
 	db dbm.DB,
-	traceStore io.Writer,
+	_ io.Writer,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *App {
 	for _, option := range a.app.baseAppOptions {
@@ -58,16 +57,8 @@ func (a *AppBuilder) Build(
 		db,
 		nil,
 		baseAppOptions...)
-	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetVersion(version.Version)
 	bApp.MountStores(a.app.storeKeys...)
-
 	a.app.BaseApp = bApp
-	a.app.configurator = module.NewConfigurator(nil, nil, nil)
-
-	if err := a.app.ModuleManager.RegisterServices(a.app.configurator); err != nil {
-		panic(err)
-	}
-
 	return a.app
 }

@@ -24,7 +24,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	storetypes "cosmossdk.io/store/types"
@@ -161,12 +160,6 @@ func (app *BaseApp) SetPrecommiter(precommiter sdk.Precommiter) {
 	app.precommiter = precommiter
 }
 
-// SetCommitMultiStoreTracer sets the store tracer on the BaseApp's underlying
-// CommitMultiStore.
-func (app *BaseApp) SetCommitMultiStoreTracer(w io.Writer) {
-	app.cms.SetTracer(w)
-}
-
 // SetStoreLoader allows us to customize the rootMultiStore initialization.
 func (app *BaseApp) SetStoreLoader(loader StoreLoader) {
 	app.storeLoader = loader
@@ -182,14 +175,6 @@ func (app *BaseApp) SetTxDecoder(txDecoder sdk.TxDecoder) {
 // constructor.
 func (app *BaseApp) SetTxEncoder(txEncoder sdk.TxEncoder) {
 	app.txEncoder = txEncoder
-}
-
-// SetQueryMultiStore set a alternative MultiStore implementation to support
-// grpc query service.
-//
-// Ref: https://github.com/cosmos/cosmos-sdk/issues/13317
-func (app *BaseApp) SetQueryMultiStore(ms storetypes.MultiStore) {
-	app.qms = ms
 }
 
 // SetProcessProposal sets the process proposal function for the BaseApp.
