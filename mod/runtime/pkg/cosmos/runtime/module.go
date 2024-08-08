@@ -64,7 +64,6 @@ func init() {
 			// registered from the app
 			// i.e. in the call to depinject.Inject(...)
 			codec.ProvideInterfaceRegistry,
-			codec.ProvideProtoCodec,
 			codec.ProvideAddressCodec,
 			ProvideKVStoreKey,
 			ProvideEnvironment,

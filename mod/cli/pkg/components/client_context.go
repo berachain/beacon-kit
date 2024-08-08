@@ -27,7 +27,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/cli/pkg/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	sdkconfig "github.com/cosmos/cosmos-sdk/client/config"
-	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 )
 
@@ -45,13 +44,11 @@ func init() {
 
 // ProvideClientContext returns a new client context with the given options.
 func ProvideClientContext(
-	appCodec codec.Codec,
 	interfaceRegistry codectypes.InterfaceRegistry,
 	txConfig client.TxConfig,
 ) (client.Context, error) {
 	var err error
 	clientCtx := client.Context{}.
-		WithCodec(appCodec).
 		WithInterfaceRegistry(interfaceRegistry).
 		WithInput(os.Stdin).
 		WithHomeDir(DefaultNodeHome).
