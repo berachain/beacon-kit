@@ -117,3 +117,17 @@ func (a *BaseApp) RegisterTendermintService(client.Context) {}
 
 // RegisterNodeService registers the node gRPC service on the app gRPC router.
 func (a *BaseApp) RegisterNodeService(_ client.Context, _ config.Config) {}
+
+// CheckTx implements the ABCI interface and executes a tx in CheckTx mode. In
+// CheckTx mode, messages are not executed. This means messages are only
+// validated
+// and only the AnteHandler is executed. State is persisted to the BaseApp's
+// internal CheckTx state if the AnteHandler passes. Otherwise, the
+// ResponseCheckTx
+// will contain relevant error information. Regardless of tx execution outcome,
+// the ResponseCheckTx will contain relevant gas execution context.
+func (app *BaseApp) CheckTx(
+	req *abci.CheckTxRequest,
+) (*abci.CheckTxResponse, error) {
+	return &abci.CheckTxResponse{}, nil
+}

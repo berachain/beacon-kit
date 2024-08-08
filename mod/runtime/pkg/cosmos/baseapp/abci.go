@@ -190,49 +190,6 @@ func (app *BaseApp) Info(_ *abci.InfoRequest) (*abci.InfoResponse, error) {
 	}, nil
 }
 
-// CheckTx implements the ABCI interface and executes a tx in CheckTx mode. In
-// CheckTx mode, messages are not executed. This means messages are only
-// validated
-// and only the AnteHandler is executed. State is persisted to the BaseApp's
-// internal CheckTx state if the AnteHandler passes. Otherwise, the
-// ResponseCheckTx
-// will contain relevant error information. Regardless of tx execution outcome,
-// the ResponseCheckTx will contain relevant gas execution context.
-func (app *BaseApp) CheckTx(
-	req *abci.CheckTxRequest,
-) (*abci.CheckTxResponse, error) {
-	var mode execMode
-
-	switch {
-	case req.Type == abci.CHECK_TX_TYPE_CHECK:
-		mode = execModeCheck
-
-	case req.Type == abci.CHECK_TX_TYPE_RECHECK:
-		mode = execModeReCheck
-
-	default:
-		return nil, fmt.Errorf("unknown RequestCheckTx type: %s", req.Type)
-	}
-
-	gInfo, result, err := app.runTx(mode, req.Tx)
-	if err != nil {
-		return nil, err
-	}
-
-	return &abci.CheckTxResponse{
-		//#nosec:G701 // bet.
-		GasWanted: int64(
-			gInfo.GasWanted,
-		), // TODO: Should type accept unsigned ints?
-		//#nosec:G701 // bet.
-		GasUsed: int64(
-			gInfo.GasUsed,
-		), // TODO: Should type accept unsigned ints?
-		Log:  result.Log,
-		Data: result.Data,
-	}, nil
-}
-
 // PrepareProposal implements the PrepareProposal ABCI method and returns a
 // ResponsePrepareProposal object to the client. The PrepareProposal method is
 // responsible for allowing the block proposer to perform application-dependent
@@ -298,19 +255,6 @@ func (app *BaseApp) PrepareProposal(
 	)
 
 	app.prepareProposalState.SetContext(app.prepareProposalState.Context())
-
-	defer func() {
-		if err := recover(); err != nil {
-			app.logger.Error(
-				"panic recovered in PrepareProposal",
-				"height", req.Height,
-				"time", req.Time,
-				"panic", err,
-			)
-
-			resp = &abci.PrepareProposalResponse{Txs: req.Txs}
-		}
-	}()
 
 	resp, err = app.prepareProposal(app.prepareProposalState.Context(), req)
 	if err != nil {
@@ -408,25 +352,6 @@ func (app *BaseApp) ProcessProposal(
 				Time:    req.Time,
 			}),
 	)
-
-	app.processProposalState.SetContext(app.processProposalState.Context().
-		WithConsensusParams(app.GetConsensusParams(app.processProposalState.Context())),
-	)
-
-	defer func() {
-		if err := recover(); err != nil {
-			app.logger.Error(
-				"panic recovered in ProcessProposal",
-				"height", req.Height,
-				"time", req.Time,
-				"hash", fmt.Sprintf("%X", req.Hash),
-				"panic", err,
-			)
-			resp = &abci.ProcessProposalResponse{
-				Status: abci.PROCESS_PROPOSAL_STATUS_REJECT,
-			}
-		}
-	}()
 
 	resp, err = app.processProposal(app.processProposalState.Context(), req)
 	if err != nil {
