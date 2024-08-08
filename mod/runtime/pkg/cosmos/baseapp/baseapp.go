@@ -87,8 +87,6 @@ type BaseApp struct {
 	prepareCheckStater sdk.PrepareCheckStater     // logic to run during commit using the checkState
 	precommiter        sdk.Precommiter            // logic to run during commit using the deliverState
 
-	sigverifyTx bool // in the simulation test, since the account does not have a private key, we have to ignore the tx sigverify.
-
 	// volatile states:
 	//
 	// - checkState is set on InitChain and reset on Commit
@@ -176,7 +174,6 @@ func NewBaseApp(
 		), // by default we use a no-op metric gather in store
 		storeLoader: DefaultStoreLoader,
 		txDecoder:   txDecoder,
-		sigverifyTx: true,
 	}
 
 	for _, option := range options {

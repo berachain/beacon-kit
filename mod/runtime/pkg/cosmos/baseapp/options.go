@@ -161,12 +161,6 @@ func (app *BaseApp) SetPrecommiter(precommiter sdk.Precommiter) {
 	app.precommiter = precommiter
 }
 
-// SetNotSigverifyTx during simulation testing, transaction signature
-// verification needs to be ignored.
-func (app *BaseApp) SetNotSigverifyTx() {
-	app.sigverifyTx = false
-}
-
 // SetCommitMultiStoreTracer sets the store tracer on the BaseApp's underlying
 // CommitMultiStore.
 func (app *BaseApp) SetCommitMultiStoreTracer(w io.Writer) {
