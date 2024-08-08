@@ -39,7 +39,6 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/types/mempool"
 	"golang.org/x/exp/maps"
 )
 
@@ -80,8 +79,6 @@ type BaseApp struct {
 	storeLoader StoreLoader                 // function to handle store loading, may be overridden with SetStoreLoader()
 	txDecoder   sdk.TxDecoder               // unmarshal []byte into sdk.Tx
 	txEncoder   sdk.TxEncoder               // marshal sdk.Tx into []byte
-
-	mempool mempool.Mempool // application side mempool
 
 	initChainer        sdk.InitChainer                // ABCI InitChain handler
 	preBlocker         sdk.PreBlocker                 // logic to run before BeginBlocker
@@ -199,10 +196,6 @@ func NewBaseApp(
 
 	for _, option := range options {
 		option(app)
-	}
-
-	if app.mempool == nil {
-		app.SetMempool(mempool.NoOpMempool{})
 	}
 
 	if app.interBlockCache != nil {
@@ -345,11 +338,6 @@ func (app *BaseApp) LastBlockHeight() int64 {
 // ChainID returns the chainID of the app.
 func (app *BaseApp) ChainID() string {
 	return app.chainID
-}
-
-// Mempool returns the Mempool of the app.
-func (app *BaseApp) Mempool() mempool.Mempool {
-	return app.mempool
 }
 
 // Init initializes the app. It seals the app, preventing any
@@ -630,10 +618,7 @@ func (app *BaseApp) runTx(
 	// NOTE: GasWanted should be returned by the AnteHandler. GasUsed is
 	// determined by the GasMeter. We need access to the context to get the gas
 	// meter, so we initialize upfront.
-
-	ctx := app.getContextForTx(mode, txBytes)
-
-	tx, err := app.txDecoder(txBytes)
+	_, err = app.txDecoder(txBytes)
 	if err != nil {
 		return sdk.GasInfo{
 				GasUsed:   0,
@@ -641,29 +626,6 @@ func (app *BaseApp) runTx(
 			}, nil, sdkerrors.ErrTxDecode.Wrap(
 				err.Error(),
 			)
-	}
-
-	// msgs := tx.GetMsgs()
-	// // run validate basic if mode != recheck.
-	// // as validate basic is stateless, it is guaranteed to pass recheck,
-	// given that its passed checkTx.
-	// if mode != execModeReCheck {
-	// 	if err := validateBasicTxMsgs(app.msgServiceRouter, msgs); err != nil {
-	// 		return sdk.GasInfo{}, nil, nil, err
-	// 	}
-	// }
-
-	if mode == execModeCheck {
-		err = app.mempool.Insert(ctx, tx)
-		if err != nil {
-			return gInfo, nil, err
-		}
-	} else if mode == execModeFinalize {
-		err = app.mempool.Remove(tx)
-		if err != nil && !errors.Is(err, mempool.ErrTxNotFound) {
-			return gInfo, nil,
-				fmt.Errorf("failed to remove tx from mempool: %w", err)
-		}
 	}
 
 	return gInfo, result, err

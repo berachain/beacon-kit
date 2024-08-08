@@ -31,7 +31,6 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/mempool"
 )
 
 // File for storing in-package BaseApp optional functions,
@@ -78,11 +77,6 @@ func SetInterBlockCache(
 	cache storetypes.MultiStorePersistentCache,
 ) func(*BaseApp) {
 	return func(app *BaseApp) { app.setInterBlockCache(cache) }
-}
-
-// SetMempool sets the mempool on BaseApp.
-func SetMempool(mempool mempool.Mempool) func(*BaseApp) {
-	return func(app *BaseApp) { app.SetMempool(mempool) }
 }
 
 // SetChainID sets the chain ID in BaseApp.
@@ -250,15 +244,6 @@ func (app *BaseApp) SetTxEncoder(txEncoder sdk.TxEncoder) {
 // Ref: https://github.com/cosmos/cosmos-sdk/issues/13317
 func (app *BaseApp) SetQueryMultiStore(ms storetypes.MultiStore) {
 	app.qms = ms
-}
-
-// SetMempool sets the mempool for the BaseApp and is required for the app to
-// start up.
-func (app *BaseApp) SetMempool(mempool mempool.Mempool) {
-	if app.sealed {
-		panic("SetMempool() on sealed BaseApp")
-	}
-	app.mempool = mempool
 }
 
 // SetProcessProposal sets the process proposal function for the BaseApp.

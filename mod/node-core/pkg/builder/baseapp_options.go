@@ -34,7 +34,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/mempool"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/cast"
 )
@@ -134,7 +133,6 @@ func DefaultBaseappOptions(
 			// default to true
 			true,
 		),
-		baseapp.SetMempool(mempool.NoOpMempool{}),
 		baseapp.SetChainID(chainID),
 	}
 }
