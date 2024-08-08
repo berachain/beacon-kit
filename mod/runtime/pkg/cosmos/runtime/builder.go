@@ -21,7 +21,6 @@
 package runtime
 
 import (
-	"encoding/json"
 	"io"
 
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/baseapp"
@@ -34,11 +33,6 @@ import (
 // the existing app.go initialization conventions.
 type AppBuilder struct {
 	app *App
-}
-
-// DefaultGenesis returns a default genesis from the registered modules.
-func (a *AppBuilder) DefaultGenesis() map[string]json.RawMessage {
-	return a.app.DefaultGenesis()
 }
 
 // Build builds an *App instance.

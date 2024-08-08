@@ -220,6 +220,7 @@ func (app *BaseApp) CheckTx(
 	}
 
 	return &abci.CheckTxResponse{
+		//#nosec:G701 // bet.
 		GasWanted: int64(
 			gInfo.GasWanted,
 		), // TODO: Should type accept unsigned ints?

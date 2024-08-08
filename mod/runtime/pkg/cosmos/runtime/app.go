@@ -79,7 +79,6 @@ func (a *App) RegisterModules(modules ...module.AppModule) error {
 // which is necessary for modules that not registered using the app config.
 // To be used in combination of RegisterModules.
 func (a *App) RegisterStores(keys ...storetypes.StoreKey) error {
-	a.storeKeys = append(a.storeKeys, keys...)
 	a.MountStores(keys...)
 
 	return nil
@@ -187,9 +186,4 @@ func (a *App) InitChainer(
 // LoadHeight loads a particular height.
 func (a *App) LoadHeight(height int64) error {
 	return a.LoadVersion(height)
-}
-
-// DefaultGenesis returns a default genesis from the registered AppModule's.
-func (a *App) DefaultGenesis() map[string]json.RawMessage {
-	return a.ModuleManager.DefaultGenesis()
 }
