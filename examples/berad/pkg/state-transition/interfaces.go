@@ -18,11 +18,12 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package core
+package transition
 
 import (
 	"context"
 
+	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -33,27 +34,31 @@ import (
 type BeaconState[
 	T any,
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-	Eth1DataT,
 	ExecutionPayloadHeaderT,
 	ForkT,
-	KVStoreT,
-	ValidatorT,
+	KVStoreT any,
+	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
 	ValidatorsT,
 	WithdrawalT any,
+	WithdrawalCredentialsT interface {
+		~[32]byte
+		ToExecutionAddress() (gethprimitives.ExecutionAddress, error)
+	},
 ] interface {
 	NewFromDB(
 		bdb KVStoreT,
 		cs common.ChainSpec,
 	) T
 	Copy() T
+	Save()
 	Context() context.Context
 	HashTreeRoot() common.Root
 	ReadOnlyBeaconState[
-		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 		ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 	]
 	WriteOnlyBeaconState[
-		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 		ForkT, ValidatorT,
 	]
 }
@@ -61,28 +66,30 @@ type BeaconState[
 // ReadOnlyBeaconState is the interface for a read-only beacon state.
 type ReadOnlyBeaconState[
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-	Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+	ExecutionPayloadHeaderT, ForkT,
 	ValidatorT, ValidatorsT, WithdrawalT any,
 ] interface {
-	ReadOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT]
 	ReadOnlyRandaoMixes
 	ReadOnlyStateRoots
 	ReadOnlyValidators[ValidatorT]
-	ReadOnlyWithdrawals[WithdrawalT]
 
 	GetBalance(math.ValidatorIndex) (math.Gwei, error)
-	GetSlot() (math.Slot, error)
+	GetBlockRootAtIndex(uint64) (common.Root, error)
+	GetEth1DepositIndex() (uint64, error)
 	GetFork() (ForkT, error)
 	GetGenesisValidatorsRoot() (common.Root, error)
-	GetBlockRootAtIndex(uint64) (common.Root, error)
 	GetLatestBlockHeader() (BeaconBlockHeaderT, error)
-	GetTotalActiveBalances(uint64) (math.Gwei, error)
-	GetValidators() (ValidatorsT, error)
-	GetSlashingAtIndex(uint64) (math.Gwei, error)
-	GetTotalSlashing() (math.Gwei, error)
+	GetLatestExecutionPayloadHeader() (
+		ExecutionPayloadHeaderT, error,
+	)
 	GetNextWithdrawalIndex() (uint64, error)
 	GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error)
+	GetSlot() (math.Slot, error)
+	GetSlashingAtIndex(uint64) (math.Gwei, error)
+	GetTotalActiveBalances(uint64) (math.Gwei, error)
+	GetTotalSlashing() (math.Gwei, error)
 	GetTotalValidators() (uint64, error)
+	GetValidators() (ValidatorsT, error)
 	GetValidatorsByEffectiveBalance() ([]ValidatorT, error)
 	ValidatorIndexByCometBFTAddress(
 		cometBFTAddress []byte,
@@ -91,25 +98,28 @@ type ReadOnlyBeaconState[
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
 type WriteOnlyBeaconState[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT any,
 ] interface {
-	WriteOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT]
 	WriteOnlyRandaoMixes
 	WriteOnlyStateRoots
 	WriteOnlyValidators[ValidatorT]
 
-	SetGenesisValidatorsRoot(root common.Root) error
-	SetFork(ForkT) error
-	SetSlot(math.Slot) error
-	UpdateBlockRootAtIndex(uint64, common.Root) error
-	SetLatestBlockHeader(BeaconBlockHeaderT) error
-	IncreaseBalance(math.ValidatorIndex, math.Gwei) error
 	DecreaseBalance(math.ValidatorIndex, math.Gwei) error
-	UpdateSlashingAtIndex(uint64, math.Gwei) error
+	IncreaseBalance(math.ValidatorIndex, math.Gwei) error
+	SetEth1DepositIndex(uint64) error
+	SetFork(ForkT) error
+	SetGenesisValidatorsRoot(root common.Root) error
+	SetLatestBlockHeader(BeaconBlockHeaderT) error
+	SetLatestExecutionPayloadHeader(
+		ExecutionPayloadHeaderT,
+	) error
 	SetNextWithdrawalIndex(uint64) error
 	SetNextWithdrawalValidatorIndex(math.ValidatorIndex) error
+	SetSlot(math.Slot) error
 	SetTotalSlashing(math.Gwei) error
+	UpdateBlockRootAtIndex(uint64, common.Root) error
+	UpdateSlashingAtIndex(uint64, math.Gwei) error
 }
 
 // WriteOnlyStateRoots defines a struct which only has write access to state
@@ -156,27 +166,4 @@ type ReadOnlyValidators[ValidatorT any] interface {
 	ValidatorByIndex(
 		math.ValidatorIndex,
 	) (ValidatorT, error)
-}
-
-// WriteOnlyEth1Data has write access to eth1 data.
-type WriteOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT any] interface {
-	SetEth1Data(Eth1DataT) error
-	SetEth1DepositIndex(uint64) error
-	SetLatestExecutionPayloadHeader(
-		ExecutionPayloadHeaderT,
-	) error
-}
-
-// ReadOnlyEth1Data has read access to eth1 data.
-type ReadOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT any] interface {
-	GetEth1Data() (Eth1DataT, error)
-	GetEth1DepositIndex() (uint64, error)
-	GetLatestExecutionPayloadHeader() (
-		ExecutionPayloadHeaderT, error,
-	)
-}
-
-// ReadOnlyWithdrawals only has read access to withdrawal methods.
-type ReadOnlyWithdrawals[WithdrawalT any] interface {
-	ExpectedWithdrawals() ([]WithdrawalT, error)
 }

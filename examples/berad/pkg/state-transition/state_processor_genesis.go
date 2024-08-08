@@ -18,29 +18,22 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package core
+package transition
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
 
-//nolint:lll // temporary.
-const (
-	bArtioValRoot = "0x9147586693b6e8faa837715c0f3071c2000045b54233901c2e7871b15872bc43"
-	bArtioChainID = 80084
-)
-
 // InitializePreminedBeaconStateFromEth1 initializes the beacon state.
 //
-//nolint:gocognit,funlen // todo fix.
+//nolint:gocognit // its ok
 func (sp *StateProcessor[
 	_, BeaconBlockBodyT, BeaconBlockHeaderT, BeaconStateT, _, DepositT,
-	Eth1DataT, _, ExecutionPayloadHeaderT, ForkT, _, _, ValidatorT, _, _, _, _,
+	_, ExecutionPayloadHeaderT, ForkT, _, _, ValidatorT, _, _, _, _,
 ]) InitializePreminedBeaconStateFromEth1(
 	st BeaconStateT,
 	deposits []DepositT,
@@ -51,7 +44,6 @@ func (sp *StateProcessor[
 		blkHeader BeaconBlockHeaderT
 		blkBody   BeaconBlockBodyT
 		fork      ForkT
-		eth1Data  Eth1DataT
 	)
 	fork = fork.New(
 		genesisVersion,
@@ -68,14 +60,6 @@ func (sp *StateProcessor[
 	}
 
 	if err := st.SetEth1DepositIndex(0); err != nil {
-		return nil, err
-	}
-
-	if err := st.SetEth1Data(eth1Data.New(
-		common.Root{},
-		0,
-		executionPayloadHeader.GetBlockHash(),
-	)); err != nil {
 		return nil, err
 	}
 
@@ -110,14 +94,7 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	// Handle special case bartio genesis.
-	if sp.cs.DepositEth1ChainID() == bArtioChainID {
-		if err = st.SetGenesisValidatorsRoot(
-			common.Root(hex.MustToBytes(bArtioValRoot))); err != nil {
-			return nil, err
-		}
-	} else if err = st.
-		SetGenesisValidatorsRoot(validators.HashTreeRoot()); err != nil {
+	if err = st.SetGenesisValidatorsRoot(validators.HashTreeRoot()); err != nil {
 		return nil, err
 	}
 
@@ -157,5 +134,6 @@ func (sp *StateProcessor[
 	if err != nil {
 		return nil, err
 	}
+	st.Save()
 	return updates, nil
 }
