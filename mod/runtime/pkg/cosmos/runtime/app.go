@@ -23,7 +23,6 @@ package runtime
 import (
 	"encoding/json"
 	"fmt"
-	"slices"
 
 	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
 	"cosmossdk.io/log"
@@ -206,19 +205,4 @@ func (a *App) GetStoreKeys() []storetypes.StoreKey {
 func (a *App) SetInitChainer(initChainer sdk.InitChainer) {
 	a.initChainer = initChainer
 	a.BaseApp.SetInitChainer(initChainer)
-}
-
-// UnsafeFindStoreKey fetches a registered StoreKey from the App in linear time.
-//
-// NOTE: This should only be used in testing.
-func (a *App) UnsafeFindStoreKey(storeKey string) storetypes.StoreKey {
-	i := slices.IndexFunc(
-		a.storeKeys,
-		func(s storetypes.StoreKey) bool { return s.Name() == storeKey },
-	)
-	if i == -1 {
-		return nil
-	}
-
-	return a.storeKeys[i]
 }

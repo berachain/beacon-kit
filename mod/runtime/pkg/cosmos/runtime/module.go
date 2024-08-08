@@ -47,12 +47,6 @@ type appModule struct {
 func (m appModule) IsOnePerModuleType() {}
 func (m appModule) IsAppModule()        {}
 
-func (m appModule) RegisterServices(
-	configurator module.Configurator,
-) { // nolint:staticcheck // SA1019: Configurator is deprecated but still used in runtime v1.
-
-}
-
 func (m appModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 	return &autocliv1.ModuleOptions{
 		Query: &autocliv1.ServiceCommandDescriptor{
@@ -82,7 +76,6 @@ func (m appModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 
 var (
 	_ appmodule.AppModule = appModule{}
-	_ module.HasServices  = appModule{}
 )
 
 // BaseAppOption is a depinject.AutoGroupType which can be used to pass
@@ -121,9 +114,7 @@ func ProvideApp() (
 	error,
 ) {
 	app := &App{}
-	appBuilder := &AppBuilder{app}
-
-	return appBuilder, appModule{app}, nil
+	return &AppBuilder{app}, appModule{app}, nil
 }
 
 type AppInputs struct {
