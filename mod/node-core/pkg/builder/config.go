@@ -23,18 +23,15 @@ package builder
 import (
 	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
 	appv1alpha1 "cosmossdk.io/api/cosmos/app/v1alpha1"
-	"cosmossdk.io/core/address"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
 	beacon "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module"
 	beaconv1alpha1 "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module/api/module/v1alpha1"
-	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 )
 
 // DefaultDepInjectConfig returns the default configuration for the dependency
 // injection framework.
 func DefaultDepInjectConfig() depinject.Config {
-	addrCdc := addresscodec.NewBech32Codec("bera")
 	return depinject.Configs(
 		appconfig.Compose(&appv1alpha1.Config{
 			Modules: []*appv1alpha1.ModuleConfig{
@@ -54,10 +51,5 @@ func DefaultDepInjectConfig() depinject.Config {
 				},
 			},
 		}),
-		depinject.Supply(
-			func() address.Codec { return addrCdc },
-			func() address.ValidatorAddressCodec { return addrCdc },
-			func() address.ConsensusAddressCodec { return addrCdc },
-		),
 	)
 }
