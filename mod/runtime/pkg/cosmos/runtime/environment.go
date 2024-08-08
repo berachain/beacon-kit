@@ -19,8 +19,8 @@ func NewEnvironment(
 	env := appmodule.Environment{
 		Logger:             logger,
 		EventService:       nil,
-		HeaderService:      HeaderService{},
-		BranchService:      BranchService{},
+		HeaderService:      nil,
+		BranchService:      nil,
 		GasService:         nil,
 		TransactionService: nil,
 		KVStoreService:     kvService,
