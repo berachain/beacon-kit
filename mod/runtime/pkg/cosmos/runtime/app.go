@@ -96,9 +96,7 @@ func (a *App) Load(loadLatest bool) error {
 		}
 	}
 
-	if len(a.config.GetEndBlockers()) != 0 {
-		a.SetEndBlocker(a.EndBlocker)
-	}
+	a.SetEndBlocker(a.EndBlocker)
 
 	if loadLatest {
 		if err := a.LoadLatestVersion(); err != nil {
