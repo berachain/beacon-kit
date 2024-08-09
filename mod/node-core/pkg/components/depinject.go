@@ -25,7 +25,6 @@ import (
 
 	"cosmossdk.io/core/store"
 	storetypes "cosmossdk.io/store/types"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -37,14 +36,6 @@ func ProvideKVStoreKey() **storetypes.KVStoreKey {
 func ProvideKVStoreService(storeKey **storetypes.KVStoreKey) store.KVStoreService {
 	// skips modules that have no store
 	return kvStoreService{key: *storeKey}
-}
-
-func ProvideApp(middleware runtime.Middleware) (
-	*runtime.AppBuilder,
-	error,
-) {
-	app := &runtime.App{Middleware: middleware}
-	return &runtime.AppBuilder{App: app}, nil
 }
 
 func NewKVStoreService(storeKey *storetypes.KVStoreKey) store.KVStoreService {
