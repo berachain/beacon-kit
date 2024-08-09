@@ -141,6 +141,9 @@ func (kv *KVStore[BeaconBlockT]) catchupBlockData(
 	if kv.prevBlockSlot == 0 {
 		return nil
 	}
+	kv.blockCodec.SetActiveForkVersion(
+		kv.cs.ActiveForkVersionForSlot(math.Slot(kv.prevBlockSlot)),
+	)
 	prevBlock, err := kv.blocks.Get(context.TODO(), kv.prevBlockSlot)
 	if err != nil {
 		return err
