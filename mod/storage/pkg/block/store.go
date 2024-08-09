@@ -23,9 +23,7 @@ package block
 import (
 	"context"
 	"errors"
-	"fmt"
 	"sync"
-	"time"
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
@@ -66,7 +64,7 @@ func NewStore[BeaconBlockT BeaconBlock[BeaconBlockT]](
 		),
 		blockCodec:   blockCodec,
 		cs:           cs,
-		earliestSlot: 0,
+		earliestSlot: 1,
 	}
 }
 
@@ -75,7 +73,6 @@ func (kv *KVStore[BeaconBlockT]) Get(slot math.Slot) (BeaconBlockT, error) {
 	kv.mu.RLock()
 	defer kv.mu.RUnlock()
 
-	fmt.Println("FORK VERSION", kv.cs.ActiveForkVersionForSlot(slot))
 	kv.blockCodec.SetActiveForkVersion(kv.cs.ActiveForkVersionForSlot(slot))
 	return kv.blocks.Get(context.TODO(), slot.Unwrap())
 }
@@ -83,12 +80,6 @@ func (kv *KVStore[BeaconBlockT]) Get(slot math.Slot) (BeaconBlockT, error) {
 // Set sets the block by a given index in the store and also stores the
 // block root.
 func (kv *KVStore[BeaconBlockT]) Set(slot math.Slot, blk BeaconBlockT) error {
-	startTime := time.Now()
-	defer func() {
-		duration := time.Since(startTime)
-		fmt.Printf("Set function took %s\n", duration)
-	}()
-
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
 
@@ -133,27 +124,27 @@ func (kv *KVStore[BeaconBlockT]) GetSlotByExecutionNumber(
 // Prune removes the [start, end) blocks from the store.
 func (kv *KVStore[BeaconBlockT]) Prune(start, end uint64) error {
 	var ctx = context.TODO()
-	startTime := time.Now()
-	defer func() {
-		duration := time.Since(startTime)
-		fmt.Printf("Prune function took %s\n", duration)
-	}()
-
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
 
 	// We only return early from this loop with an error if the key
 	// passed in cannot be encoded.
 	s := max(start, kv.earliestSlot)
-	fmt.Println("PRUNING RANGE", s, end)
 	for i := s; i < end; i++ {
-		kv.blockCodec.SetActiveForkVersion(kv.cs.ActiveForkVersionForSlot(math.Slot(i)))
+		kv.blockCodec.SetActiveForkVersion(
+			kv.cs.ActiveForkVersionForSlot(math.Slot(i)),
+		)
 		if err := kv.blocks.Remove(ctx, i); err != nil {
 			if errors.Is(err, sdkcollections.ErrNotFound) {
+				// Either the slot was missed or we never stored
+				// the block to begin with, either way it's ok.
 				continue
 			}
 			return err
 		}
+		// Update earliest slot as we go, an error will still
+		// have committed any removes up to that point.
+		kv.earliestSlot = i
 	}
 
 	// If we successfully pruned, update the earliest slot.

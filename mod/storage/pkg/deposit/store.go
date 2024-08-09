@@ -104,11 +104,12 @@ func (kv *KVStore[DepositT]) setDeposit(deposit DepositT) error {
 
 // Prune removes the [start, end) deposits from the store.
 func (kv *KVStore[DepositT]) Prune(start, end uint64) error {
+	var ctx = context.TODO()
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
 	for i := range end {
 		// This only errors if the key passed in cannot be encoded.
-		if err := kv.store.Remove(context.TODO(), start+i); err != nil {
+		if err := kv.store.Remove(ctx, start+i); err != nil {
 			return err
 		}
 	}
