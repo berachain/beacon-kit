@@ -50,10 +50,7 @@ type (
 )
 
 const (
-	execModeCheck               execMode = iota // Check a transaction
-	execModeReCheck                             // Recheck a (pending) transaction after a commit
-	execModeSimulate                            // Simulate a transaction
-	execModePrepareProposal                     // Prepare a block proposal
+	execModePrepareProposal     execMode = iota // Prepare a block proposal
 	execModeProcessProposal                     // Process a block proposal
 	execModeVoteExtension                       // Extend or verify a pre-commit vote
 	execModeVerifyVoteExtension                 // Verify a vote extension
@@ -167,18 +164,8 @@ func (app *BaseApp) Name() string {
 
 // AppVersion returns the application's protocol version.
 func (app *BaseApp) AppVersion(ctx context.Context) (uint64, error) {
-	if app.paramStore == nil {
-		return 0, errors.New("app.paramStore is nil")
-	}
-
 	cp, err := app.paramStore.Get(ctx)
-	if err != nil {
-		return 0, fmt.Errorf("failed to get consensus params: %w", err)
-	}
-	if cp.Version == nil {
-		return 0, nil
-	}
-	return cp.Version.App, nil
+	return cp.Version.App, err
 }
 
 // MountStores mounts all IAVL or DB stores to the provided keys in the BaseApp
@@ -274,13 +261,9 @@ func (app *BaseApp) ChainID() string {
 // the earlier provided settings. Returns an error if validation fails.
 // nil otherwise. Panics if the app is already sealed.
 func (app *BaseApp) Init() error {
-	if app.cms == nil {
-		return errors.New("commit multi-store must not be nil")
-	}
-
 	// needed for the export command which inits from store but never calls
 	// initchain
-	app.setState(execModeCheck, cmtproto.Header{ChainID: app.chainID})
+	app.setState(execModeFinalize, cmtproto.Header{ChainID: app.chainID})
 
 	return app.cms.GetPruning().Validate()
 }

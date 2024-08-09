@@ -80,7 +80,6 @@ func (app *BaseApp) InitChain(
 
 	// initialize states with a correct header
 	app.setState(execModeFinalize, initHeader)
-	app.setState(execModeCheck, initHeader)
 
 	// Store the consensus params in the BaseApp's param store. Note, this must
 	// be done after the finalizeBlockState and context have been set as it's
@@ -537,12 +536,6 @@ func (app *BaseApp) Commit() (*abci.CommitResponse, error) {
 	resp := &abci.CommitResponse{
 		RetainHeight: retainHeight,
 	}
-
-	// Reset the CheckTx state to the latest committed.
-	//
-	// NOTE: This is safe because CometBFT holds a lock on the mempool for
-	// Commit. Use the header from this latest block.
-	app.setState(execModeCheck, header)
 
 	app.finalizeBlockState = nil
 
