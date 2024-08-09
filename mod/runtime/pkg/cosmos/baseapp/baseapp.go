@@ -42,11 +42,9 @@ type (
 )
 
 const (
-	execModePrepareProposal     execMode = iota // Prepare a block proposal
-	execModeProcessProposal                     // Process a block proposal
-	execModeVoteExtension                       // Extend or verify a pre-commit vote
-	execModeVerifyVoteExtension                 // Verify a vote extension
-	execModeFinalize                            // Finalize a block proposal
+	execModePrepareProposal execMode = iota // Prepare a block proposal
+	execModeProcessProposal                 // Process a block proposal
+	execModeFinalize                        // Finalize a block proposal
 )
 
 var _ servertypes.ABCI = (*BaseApp)(nil)
