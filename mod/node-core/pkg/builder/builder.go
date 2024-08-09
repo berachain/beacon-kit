@@ -26,6 +26,7 @@ import (
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
@@ -75,11 +76,11 @@ func (nb *NodeBuilder[NodeT]) Build(
 	// variables to hold the components needed to set up BeaconApp
 	var (
 		chainSpec       common.ChainSpec
-		appBuilder      *runtime.AppBuilder
 		abciMiddleware  *components.ABCIMiddleware
 		serviceRegistry *service.Registry
 		consensusEngine *components.ConsensusEngine
 		apiBackend      *components.NodeAPIBackend
+		storeKey        **storetypes.KVStoreKey
 	)
 
 	// build all node components using depinject
@@ -96,7 +97,7 @@ func (nb *NodeBuilder[NodeT]) Build(
 				SetLoggerConfig,
 			),
 		),
-		&appBuilder,
+		&storeKey,
 		&chainSpec,
 		&abciMiddleware,
 		&serviceRegistry,
@@ -109,7 +110,7 @@ func (nb *NodeBuilder[NodeT]) Build(
 	// set the application to a new BeaconApp with necessary ABCI handlers
 	nb.node.RegisterApp(
 		runtime.NewBeaconKitApp(
-			logger, db, traceStore, true, appBuilder, abciMiddleware,
+			*storeKey, logger, db, traceStore, true, abciMiddleware,
 			append(
 				DefaultBaseappOptions(appOpts),
 				WithCometParamStore(chainSpec),

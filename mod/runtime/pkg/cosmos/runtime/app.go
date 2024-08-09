@@ -36,6 +36,7 @@ import (
 	dbm "github.com/cosmos/cosmos-db"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/sourcegraph/conc/iter"
 )
@@ -58,11 +59,11 @@ type App struct {
 
 // NewBeaconKitApp returns a reference to an initialized BeaconApp.
 func NewBeaconKitApp(
+	storeKey *storetypes.KVStoreKey,
 	logger log.Logger,
 	db dbm.DB,
 	traceStore io.Writer,
 	loadLatest bool,
-	appBuilder *AppBuilder,
 	middleware Middleware,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *App {
@@ -70,8 +71,17 @@ func NewBeaconKitApp(
 		Middleware: middleware,
 	}
 
-	// Build the runtime.App using the app builder.
-	app = appBuilder.Build(db, traceStore, logger, baseAppOptions...)
+	bApp := baseapp.NewBaseApp(
+		"BeaconKit",
+		logger,
+		db,
+		baseAppOptions...)
+	bApp.SetVersion(version.Version)
+	bApp.MountStore(storeKey, storetypes.StoreTypeIAVL)
+	app.BaseApp = bApp
+
+	// // Build the runtime.App using the app builder.
+	// app = appBuilder.Build(db, traceStore, logger, baseAppOptions...)
 
 	// Load the app.
 	if err := app.Load(loadLatest); err != nil {

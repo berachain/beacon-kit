@@ -29,19 +29,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func ProvideKVStoreKey(
-	app *runtime.AppBuilder,
-) *storetypes.KVStoreKey {
+func ProvideKVStoreKey() **storetypes.KVStoreKey {
 	storeKey := storetypes.NewKVStoreKey("beacon")
-	app.App.StoreKeys = append(app.App.StoreKeys, storeKey)
-	return storeKey
+	return &storeKey
 }
 
-func ProvideKVStoreService(
-	app *runtime.AppBuilder,
-) store.KVStoreService {
+func ProvideKVStoreService(storeKey **storetypes.KVStoreKey) store.KVStoreService {
 	// skips modules that have no store
-	return kvStoreService{key: ProvideKVStoreKey(app)}
+	return kvStoreService{key: *storeKey}
 }
 
 func ProvideApp(middleware runtime.Middleware) (

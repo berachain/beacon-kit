@@ -59,7 +59,7 @@ func DefaultComponentsWithStandardTypes() []any {
 		// TODO Hacks
 		ProvideKVStoreService,
 		ProvideKVStoreKey,
-		ProvideApp,
+		// ProvideApp,
 	}
 	components = append(components, DefaultNodeAPIComponents()...)
 	components = append(components, DefaultNodeAPIHandlers()...)
