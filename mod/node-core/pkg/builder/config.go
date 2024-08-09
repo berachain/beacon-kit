@@ -25,8 +25,6 @@ import (
 	appv1alpha1 "cosmossdk.io/api/cosmos/app/v1alpha1"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
-	_ "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module"
-	beaconv1alpha1 "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module/api/module/v1alpha1"
 )
 
 // DefaultDepInjectConfig returns the default configuration for the dependency
@@ -38,10 +36,6 @@ func DefaultDepInjectConfig() depinject.Config {
 				{
 					Name:   "runtime",
 					Config: appconfig.WrapAny(&runtimev1alpha1.Module{}),
-				},
-				{
-					Name:   "beacon",
-					Config: appconfig.WrapAny(&beaconv1alpha1.Module{}),
 				},
 			},
 		}),
