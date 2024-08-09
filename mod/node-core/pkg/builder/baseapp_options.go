@@ -69,15 +69,6 @@ func WithProcessProposal(
 	}
 }
 
-// WithPreBlocker sets the pre-blocker to the baseapp.
-func WithPreBlocker(
-	preBlocker sdk.PreBlocker,
-) func(bApp *baseapp.BaseApp) {
-	return func(bApp *baseapp.BaseApp) {
-		bApp.SetPreBlocker(preBlocker)
-	}
-}
-
 // DefaultBaseappOptions returns the default baseapp options provided by the
 // Cosmos SDK.
 func DefaultBaseappOptions(
