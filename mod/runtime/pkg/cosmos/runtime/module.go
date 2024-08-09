@@ -33,18 +33,6 @@ import (
 	storetypes "cosmossdk.io/store/types"
 )
 
-// appModule defines runtime as an AppModule.
-type appModule struct {
-	app *App
-}
-
-func (m appModule) IsOnePerModuleType() {}
-func (m appModule) IsAppModule()        {}
-
-var (
-	_ appmodule.AppModule = appModule{}
-)
-
 func init() {
 	appconfig.RegisterModule(&runtimev1alpha1.Module{},
 		appconfig.Provide(
@@ -58,11 +46,10 @@ func init() {
 
 func ProvideApp(middleware Middleware) (
 	*AppBuilder,
-	appmodule.AppModule,
 	error,
 ) {
 	app := &App{Middleware: middleware}
-	return &AppBuilder{app: app}, appModule{app}, nil
+	return &AppBuilder{app: app}, nil
 }
 
 type AppInputs struct {
