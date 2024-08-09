@@ -54,7 +54,7 @@ type App struct {
 }
 
 // NewBeaconKitApp returns a reference to an initialized BeaconApp.
-func a(
+func NewBeaconKitApp(
 	storeKey *storetypes.KVStoreKey,
 	logger log.Logger,
 	db dbm.DB,
@@ -74,27 +74,17 @@ func a(
 
 	app.SetVersion(version.Version)
 	app.MountStore(storeKey, storetypes.StoreTypeIAVL)
+	app.SetInitChainer(app.InitChainer)
+	app.SetFinalizeBlocker(app.FinalizeBlocker)
 
 	// Load the app.
-	if err := app.Load(loadLatest); err != nil {
-		panic(err)
-	}
-
-	return app
-}
-
-// Load finishes all initialization operations and loads the app.
-func (a *App) Load(loadLatest bool) error {
-	a.SetInitChainer(a.InitChainer)
-	a.SetFinalizeBlocker(a.FinalizeBlocker)
-
 	if loadLatest {
-		if err := a.LoadLatestVersion(); err != nil {
-			return err
+		if err := app.LoadLatestVersion(); err != nil {
+			panic(err)
 		}
 	}
 
-	return nil
+	return app
 }
 
 // FinalizeBlocker application updates every end block.
