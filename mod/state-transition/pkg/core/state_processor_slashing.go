@@ -39,7 +39,7 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	index := (uint64(sp.cs.SlotToEpoch(slot)) + 1) % sp.cs.EpochsPerSlashingsVector()
+	index := (sp.cs.SlotToEpoch(slot).Unwrap() + 1) % sp.cs.EpochsPerSlashingsVector()
 	return st.UpdateSlashingAtIndex(index, 0)
 }
 
@@ -92,8 +92,8 @@ func (sp *StateProcessor[
 	}
 
 	adjustedTotalSlashingBalance := min(
-		uint64(totalSlashings)*sp.cs.ProportionalSlashingMultiplier(),
-		uint64(totalBalance),
+		totalSlashings.Unwrap()*sp.cs.ProportionalSlashingMultiplier(),
+		totalBalance.Unwrap(),
 	)
 
 	vals, err := st.GetValidators()
@@ -108,16 +108,16 @@ func (sp *StateProcessor[
 	}
 
 	//nolint:mnd // this is in the spec
-	slashableEpoch := (uint64(sp.cs.SlotToEpoch(slot)) + sp.cs.EpochsPerSlashingsVector()) / 2
+	slashableEpoch := (sp.cs.SlotToEpoch(slot).Unwrap() + sp.cs.EpochsPerSlashingsVector()) / 2
 
 	// Iterate through the validators and slash if needed.
 	for _, val := range vals {
 		if val.IsSlashed() &&
-			(slashableEpoch == uint64(val.GetWithdrawableEpoch())) {
+			(slashableEpoch == val.GetWithdrawableEpoch().Unwrap()) {
 			if err = sp.processSlash(
 				st, val,
 				adjustedTotalSlashingBalance,
-				uint64(totalBalance),
+				totalBalance.Unwrap(),
 			); err != nil {
 				return err
 			}
@@ -139,7 +139,7 @@ func (sp *StateProcessor[
 ) error {
 	// Calculate the penalty.
 	increment := sp.cs.EffectiveBalanceIncrement()
-	balDivIncrement := uint64(val.GetEffectiveBalance()) / increment
+	balDivIncrement := val.GetEffectiveBalance().Unwrap() / increment
 	penaltyNumerator := balDivIncrement * adjustedTotalSlashingBalance
 	penalty := penaltyNumerator / totalBalance * increment
 

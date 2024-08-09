@@ -49,7 +49,7 @@ func (sp *StateProcessor[
 	}
 	depositCount := min(
 		sp.cs.MaxDepositsPerBlock(),
-		uint64(eth1Data.GetDepositCount())-index,
+		eth1Data.GetDepositCount().Unwrap()-index,
 	)
 	_ = depositCount
 	// TODO: Update eth1data count and check this.

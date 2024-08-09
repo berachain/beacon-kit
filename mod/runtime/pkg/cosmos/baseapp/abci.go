@@ -136,7 +136,9 @@ func (app *BaseApp) InitChain(
 	}
 
 	if res == nil {
-		return nil, errors.New("application init chain handler returned a nil response")
+		return nil, errors.New(
+			"application init chain handler returned a nil response",
+		)
 	}
 
 	if len(req.Validators) > 0 {
