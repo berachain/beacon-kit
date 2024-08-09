@@ -56,7 +56,6 @@ type AppInputs struct {
 	depinject.In
 
 	Logger     log.Logger
-	Config     *runtimev1alpha1.Module
 	AppBuilder *AppBuilder
 }
 

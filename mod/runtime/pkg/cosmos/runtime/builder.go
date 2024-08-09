@@ -43,7 +43,7 @@ func (a *AppBuilder) Build(
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *App {
 	bApp := baseapp.NewBaseApp(
-		a.app.config.GetAppName(),
+		"BeaconKit",
 		a.app.logger,
 		db,
 		baseAppOptions...)
