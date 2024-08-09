@@ -26,11 +26,8 @@ import (
 	"cosmossdk.io/core/appmodule/v2"
 	"cosmossdk.io/core/registry"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
-	consruntimetypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
-	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
 const (
@@ -41,8 +38,7 @@ const (
 )
 
 var (
-	_ appmodule.AppModule   = AppModule{}
-	_ module.HasABCIGenesis = AppModule{}
+	_ appmodule.AppModule = AppModule{}
 )
 
 // AppModule implements an application module for the beacon module.
@@ -111,26 +107,4 @@ func (am AppModule) ExportGenesis(
 			*types.Deposit, *types.ExecutionPayloadHeader,
 		]{},
 	)
-}
-
-// InitGenesis initializes the beacon module's state from a provided genesis
-// state.
-func (am AppModule) InitGenesis(
-	ctx context.Context,
-	bz json.RawMessage,
-) ([]appmodule.ValidatorUpdate, error) {
-	return cometbft.NewConsensusEngine[
-		*types.AttestationData,
-		*components.BeaconState,
-		*types.SlashingInfo,
-		*consruntimetypes.SlotData[
-			*types.AttestationData,
-			*types.SlashingInfo,
-		],
-		components.StorageBackend,
-		appmodule.ValidatorUpdate,
-	](
-		am.ABCIMiddleware,
-		*am.StorageBackend,
-	).InitGenesis(ctx, bz)
 }
