@@ -23,6 +23,7 @@ package block
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 
 	sdkcollections "cosmossdk.io/collections"
@@ -141,6 +142,7 @@ func (kv *KVStore[BeaconBlockT]) catchupBlockData(
 	if kv.prevBlockSlot == 0 {
 		return nil
 	}
+	fmt.Printf("BLOCK %d STATE ROOT IN CATCHUP %v\n", kv.prevBlockSlot, prevStateRoot)
 	kv.blockCodec.SetActiveForkVersion(
 		kv.cs.ActiveForkVersionForSlot(math.Slot(kv.prevBlockSlot)),
 	)
@@ -148,6 +150,8 @@ func (kv *KVStore[BeaconBlockT]) catchupBlockData(
 	if err != nil {
 		return err
 	}
+	fmt.Println("STATE ROOT ON PREV BLOCK BEFORE", prevBlock.GetStateRoot())
 	prevBlock.SetStateRoot(prevStateRoot)
+	fmt.Println("STATE ROOT ON PREV BLOCK AFTER", prevBlock.GetStateRoot())
 	return kv.blocks.Set(context.TODO(), kv.prevBlockSlot, prevBlock)
 }
