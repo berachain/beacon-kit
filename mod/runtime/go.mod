@@ -20,6 +20,7 @@ require (
 	cosmossdk.io/errors v1.0.1
 	cosmossdk.io/log v1.4.0
 	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc
+	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240809163303-a4ebb22fd018
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240617161612-ab1257fcf5a1
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610210054-bfdc14c4013c
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240618214413-d5ec0e66b3dd
@@ -38,7 +39,6 @@ require (
 	cosmossdk.io/math v1.3.0 // indirect
 	cosmossdk.io/x/auth v0.0.0-20240806152830-8fb47b368cd4 // indirect
 	cosmossdk.io/x/bank v0.0.0-20240806152830-8fb47b368cd4 // indirect
-	cosmossdk.io/x/consensus v0.0.0-20240806152830-8fb47b368cd4 // indirect
 	cosmossdk.io/x/staking v0.0.0-20240806152830-8fb47b368cd4 // indirect
 	cosmossdk.io/x/tx v0.13.4-0.20240623110059-dec2d5583e39 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
@@ -50,7 +50,6 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240703145037-b5612ab256db // indirect
 	github.com/bgentry/speakeasy v0.2.0 // indirect
-	github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a // indirect
 	github.com/cockroachdb/pebble v1.1.1 // indirect
@@ -89,7 +88,6 @@ require (
 	github.com/gsterjov/go-libsecret v0.0.0-20161001094733-a6f4afe4910c // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-metrics v0.5.3 // indirect
-	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hdevalence/ed25519consensus v0.2.0 // indirect
@@ -106,7 +104,6 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mtibben/percent v0.2.1 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/onsi/gomega v1.33.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
 	github.com/prometheus/client_golang v1.19.1 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect

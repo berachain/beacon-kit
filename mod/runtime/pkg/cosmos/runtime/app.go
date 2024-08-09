@@ -22,12 +22,15 @@ package runtime
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 
 	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/baseapp"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	dbm "github.com/cosmos/cosmos-db"
@@ -52,6 +55,7 @@ type App struct {
 	*baseapp.BaseApp
 
 	ModuleManager *module.Manager
+	Middleware    Middleware
 	config        *runtimev1alpha1.Module
 	storeKeys     []storetypes.StoreKey
 	logger        log.Logger
@@ -67,6 +71,7 @@ func NewBeaconKitApp(
 	traceStore io.Writer,
 	loadLatest bool,
 	appBuilder *AppBuilder,
+	middleware Middleware,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *App {
 	app := &App{}
@@ -121,16 +126,6 @@ func (a *App) Load(loadLatest bool) error {
 		a.ModuleManager.SetOrderExportGenesis(a.config.GetInitGenesis()...)
 	}
 
-	if len(a.config.GetPreBlockers()) != 0 {
-		a.ModuleManager.SetOrderPreBlockers(a.config.GetPreBlockers()...)
-		a.SetPreBlocker(a.PreBlocker)
-	}
-
-	if len(a.config.GetBeginBlockers()) != 0 {
-		a.ModuleManager.SetOrderBeginBlockers(a.config.GetBeginBlockers()...)
-		a.SetBeginBlocker(a.BeginBlocker)
-	}
-
 	if len(a.config.GetEndBlockers()) != 0 {
 		a.ModuleManager.SetOrderEndBlockers(a.config.GetEndBlockers()...)
 		a.SetEndBlocker(a.EndBlocker)
@@ -150,13 +145,13 @@ func (a *App) Load(loadLatest bool) error {
 }
 
 // PreBlocker application updates every pre block.
-func (a *App) PreBlocker(ctx sdk.Context, _ *abci.FinalizeBlockRequest) error {
-	return a.ModuleManager.PreBlock(ctx)
+func (a *App) PreBlocker(ctx sdk.Context, req *abci.FinalizeBlockRequest) error {
+	return a.Middleware.PreBlock(ctx, req)
 }
 
 // BeginBlocker application updates every begin block.
 func (a *App) BeginBlocker(ctx sdk.Context) (sdk.BeginBlock, error) {
-	return a.ModuleManager.BeginBlock(ctx)
+	return sdk.BeginBlock{}, nil
 }
 
 // EndBlocker application updates every end block.
@@ -164,20 +159,34 @@ func (a *App) EndBlocker(ctx sdk.Context) (sdk.EndBlock, error) {
 	return a.ModuleManager.EndBlock(ctx)
 }
 
-// Precommiter application updates every commit.
-func (a *App) Precommiter(ctx sdk.Context) {
-	err := a.ModuleManager.Precommit(ctx)
-	if err != nil {
-		panic(err)
+// convertValidatorUpdate abstracts the conversion of a
+// transition.ValidatorUpdate to an appmodulev2.ValidatorUpdate.
+// TODO: this is so hood, bktypes -> sdktypes -> generic is crazy
+// maybe make this some kind of codec/func that can be passed in?
+func convertValidatorUpdate[ValidatorUpdateT any](
+	u **transition.ValidatorUpdate,
+) (ValidatorUpdateT, error) {
+	var valUpdate ValidatorUpdateT
+	update := *u
+	if update == nil {
+		return valUpdate, errors.New("undefined validator update")
 	}
+	return any(abci.ValidatorUpdate{
+		PubKeyBytes: update.Pubkey[:],
+		PubKeyType:  crypto.CometBLSType,
+		//#nosec:G701 // this is safe.
+		Power: int64(update.EffectiveBalance.Unwrap()),
+	}).(ValidatorUpdateT), nil
+}
+
+// Precommiter application updates every commit.
+func (a *App) Precommiter(sdk.Context) {
+	return
 }
 
 // PrepareCheckStater application updates every commit.
-func (a *App) PrepareCheckStater(ctx sdk.Context) {
-	err := a.ModuleManager.PrepareCheckState(ctx)
-	if err != nil {
-		panic(err)
-	}
+func (a *App) PrepareCheckStater(sdk.Context) {
+	return
 }
 
 // InitChainer initializes the chain.
