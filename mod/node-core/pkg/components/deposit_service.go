@@ -46,15 +46,6 @@ type DepositServiceIn struct {
 // ProvideDepositService provides the deposit service to the depinject
 // framework.
 func ProvideDepositService(in DepositServiceIn) (*DepositService, error) {
-	var finalizedBlkCh = make(chan *FinalizedBlockEvent)
-	if err := in.Dispatcher.Subscribe(
-		messages.BeaconBlockFinalizedEvent, finalizedBlkCh,
-	); err != nil {
-		in.Logger.Error("failed to subscribe to event", "event",
-			messages.BeaconBlockFinalizedEvent, "err", err)
-		return nil, err
-	}
-
 	// Build the deposit service.
 	return deposit.NewService[
 		*BeaconBlockBody,
@@ -68,6 +59,7 @@ func ProvideDepositService(in DepositServiceIn) (*DepositService, error) {
 		in.TelemetrySink,
 		in.DepositStore,
 		in.BeaconDepositContract,
-		finalizedBlkCh,
+		messages.BeaconBlockFinalizedEvent,
+		in.Dispatcher,
 	), nil
 }

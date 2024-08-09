@@ -23,6 +23,8 @@ package deposit
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -46,8 +48,12 @@ type Service[
 	dc Contract[DepositT]
 	// ds is the deposit store that stores deposits.
 	ds Store[DepositT]
-	// finalizedBlockCh is the channel that provides finalized block events.
-	finalizedBlockCh chan BlockEventT
+	// dispatcher is the dispatcher for the service.
+	dispatcher *dispatcher.Dispatcher
+	// finalizedBlockEventID is the event ID for the finalized block event.
+	finalizedBlockEventID asynctypes.EventID
+	// finalizedBlockEvents is the channel that provides finalized block events.
+	finalizedBlockEvents chan BlockEventT
 	// metrics is the metrics for the deposit service.
 	metrics *metrics
 	// failedBlocks is a map of blocks that failed to be processed to be
@@ -73,7 +79,8 @@ func NewService[
 	telemetrySink TelemetrySink,
 	ds Store[DepositT],
 	dc Contract[DepositT],
-	feed chan BlockEventT,
+	finalizedBlockEventID asynctypes.EventID,
+	dispatcher *dispatcher.Dispatcher,
 ) *Service[
 	BeaconBlockT, BeaconBlockBodyT, BlockEventT, DepositT,
 	ExecutionPayloadT, WithdrawalCredentialsT,
@@ -83,13 +90,15 @@ func NewService[
 		ExecutionPayloadT,
 		WithdrawalCredentialsT,
 	]{
-		finalizedBlockCh:   feed,
-		logger:             logger,
-		eth1FollowDistance: eth1FollowDistance,
-		metrics:            newMetrics(telemetrySink),
-		dc:                 dc,
-		ds:                 ds,
-		failedBlocks:       make(map[math.Slot]struct{}),
+		dc:                    dc,
+		dispatcher:            dispatcher,
+		ds:                    ds,
+		eth1FollowDistance:    eth1FollowDistance,
+		failedBlocks:          make(map[math.Slot]struct{}),
+		finalizedBlockEventID: finalizedBlockEventID,
+		finalizedBlockEvents:  make(chan BlockEventT),
+		logger:                logger,
+		metrics:               newMetrics(telemetrySink),
 	}
 }
 
@@ -97,6 +106,13 @@ func NewService[
 func (s *Service[
 	_, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
+	if err := s.dispatcher.Subscribe(
+		s.finalizedBlockEventID, s.finalizedBlockEvents,
+	); err != nil {
+		s.logger.Error("failed to subscribe to event", "event",
+			s.finalizedBlockEventID, "err", err)
+		return err
+	}
 	go s.depositFetcher(ctx)
 	go s.depositCatchupFetcher(ctx)
 	return nil

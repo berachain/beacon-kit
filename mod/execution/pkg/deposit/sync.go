@@ -38,7 +38,7 @@ func (s *Service[
 		select {
 		case <-ctx.Done():
 			return
-		case msg := <-s.finalizedBlockCh:
+		case msg := <-s.finalizedBlockEvents:
 			blockNum := msg.Data().
 				GetBody().GetExecutionPayload().GetNumber()
 			s.fetchAndStoreDeposits(ctx, blockNum-s.eth1FollowDistance)

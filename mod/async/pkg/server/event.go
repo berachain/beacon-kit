@@ -51,7 +51,7 @@ func (es *EventServer) Publish(event types.MessageI) error {
 func (es *EventServer) Subscribe(eventID types.MessageID, ch any) error {
 	publisher, ok := es.publishers[eventID]
 	if !ok {
-		return ErrPublisherNotFound
+		return ErrPublisherNotFound(eventID)
 	}
 	return publisher.Subscribe(ch)
 }
