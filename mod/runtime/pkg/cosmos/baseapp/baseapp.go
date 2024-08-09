@@ -402,9 +402,9 @@ func (app *BaseApp) beginBlock(
 	return sdk.BeginBlock{}, nil
 }
 
-// endBlock is an application-defined function that is called after transactions
+// finalizeBlock is an application-defined function that is called after transactions
 // have been processed in FinalizeBlock.
-func (app *BaseApp) endBlock(_ context.Context, req *abci.FinalizeBlockRequest) (transition.ValidatorUpdates, error) {
+func (app *BaseApp) finalizeBlock(_ context.Context, req *abci.FinalizeBlockRequest) (transition.ValidatorUpdates, error) {
 	if app.endBlocker != nil {
 		return app.endBlocker(app.finalizeBlockState.Context(), req)
 	}

@@ -27,7 +27,7 @@ type Middleware interface {
 		req proto.Message,
 	) (proto.Message, error)
 
-	EndBlock(
+	FinalizeBlock(
 		ctx context.Context, req proto.Message,
 	) (transition.ValidatorUpdates, error)
 }

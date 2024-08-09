@@ -481,17 +481,17 @@ func (app *BaseApp) internalFinalizeBlock(
 		})
 	}
 
-	endBlock, err := app.endBlock(app.finalizeBlockState.Context(), req)
+	finalizeBlock, err := app.finalizeBlock(app.finalizeBlockState.Context(), req)
 	if err != nil {
 		return nil, err
 	}
 
-	valUpdates, err := iter.MapErr(endBlock, convertValidatorUpdate[abci.ValidatorUpdate])
+	valUpdates, err := iter.MapErr(finalizeBlock, convertValidatorUpdate[abci.ValidatorUpdate])
 	if err != nil {
 		return nil, err
 	}
 
-	// check after endBlock if we should abort, to avoid propagating the result
+	// check after finalizeBlock if we should abort, to avoid propagating the result
 	select {
 	case <-ctx.Done():
 		return nil, ctx.Err()

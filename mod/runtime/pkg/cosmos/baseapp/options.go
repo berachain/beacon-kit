@@ -115,7 +115,7 @@ func (app *BaseApp) SetBeginBlocker(beginBlocker sdk.BeginBlocker) {
 	app.beginBlocker = beginBlocker
 }
 
-func (app *BaseApp) SetEndBlocker(
+func (app *BaseApp) SetFinalizeBlocker(
 	endBlocker func(context.Context, proto.Message) (transition.ValidatorUpdates, error)) {
 	app.endBlocker = endBlocker
 }

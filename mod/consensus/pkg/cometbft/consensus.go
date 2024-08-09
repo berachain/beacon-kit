@@ -124,10 +124,10 @@ func (c *ConsensusEngine[_, _, _, _, _, ValidatorUpdateT]) ProcessProposal(
 	return resp.(*cmtabci.ProcessProposalResponse), nil
 }
 
-func (c *ConsensusEngine[_, _, _, _, _, ValidatorUpdateT]) EndBlock(
+func (c *ConsensusEngine[_, _, _, _, _, ValidatorUpdateT]) FinalizeBlock(
 	ctx context.Context, req *cmtabci.FinalizeBlockRequest,
 ) ([]ValidatorUpdateT, error) {
-	updates, err := c.Middleware.EndBlock(ctx, req)
+	updates, err := c.Middleware.FinalizeBlock(ctx, req)
 	if err != nil {
 		return nil, err
 	}

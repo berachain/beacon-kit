@@ -307,7 +307,7 @@ func (*ABCIMiddleware[
 // EndBlock returns the validator set updates from the beacon state.
 func (h *ABCIMiddleware[
 	_, BeaconBlockT, BlobSidecarsT, _, _, _, _,
-]) EndBlock(
+]) FinalizeBlock(
 	ctx context.Context, req proto.Message,
 ) (transition.ValidatorUpdates, error) {
 	abciReq, ok := req.(*cmtabci.FinalizeBlockRequest)

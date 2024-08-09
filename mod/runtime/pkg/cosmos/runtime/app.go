@@ -97,7 +97,7 @@ func (a *App) Load(loadLatest bool) error {
 		}
 	}
 
-	a.SetEndBlocker(a.EndBlocker)
+	a.SetFinalizeBlocker(a.FinalizeBlocker)
 
 	if loadLatest {
 		if err := a.LoadLatestVersion(); err != nil {
@@ -108,9 +108,9 @@ func (a *App) Load(loadLatest bool) error {
 	return nil
 }
 
-// EndBlocker application updates every end block.
-func (a *App) EndBlocker(ctx context.Context, req proto.Message) (transition.ValidatorUpdates, error) {
-	return a.Middleware.EndBlock(ctx, req)
+// FinalizeBlocker application updates every end block.
+func (a *App) FinalizeBlocker(ctx context.Context, req proto.Message) (transition.ValidatorUpdates, error) {
+	return a.Middleware.FinalizeBlock(ctx, req)
 }
 
 // InitChainer initializes the chain.

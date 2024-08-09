@@ -60,7 +60,7 @@ type Middleware[
 	ProcessProposal(
 		ctx context.Context, req proto.Message,
 	) (proto.Message, error)
-	EndBlock(ctx context.Context, req proto.Message) (transition.ValidatorUpdates, error)
+	FinalizeBlock(ctx context.Context, req proto.Message) (transition.ValidatorUpdates, error)
 }
 
 // SlashingInfo is an interface for accessing the slashing info.
