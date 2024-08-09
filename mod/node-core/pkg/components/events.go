@@ -30,17 +30,11 @@ import (
 // EventServerInput is the input for the event server.
 type EventServerInput struct {
 	depinject.In
-	BeaconBlockFinalizedPublisher *BeaconBlockFinalizedPublisher
 }
 
 // ProvideEventServer provides an event server.
 func ProvideEventServer(in EventServerInput) *EventServer {
-	es := server.NewEventServer()
-	es.RegisterPublisher(
-		in.BeaconBlockFinalizedPublisher.EventID(),
-		in.BeaconBlockFinalizedPublisher,
-	)
-	return es
+	return server.NewEventServer()
 }
 
 // ProvideBeaconBlockFinalizedPublisher provides a publisher for beacon block
@@ -49,13 +43,4 @@ func ProvideBeaconBlockFinalizedPublisher() *BeaconBlockFinalizedPublisher {
 	return messaging.NewPublisher[*FinalizedBlockEvent](
 		messages.BeaconBlockFinalizedEvent,
 	)
-}
-
-// EventServerComponents returns all the depinject providers for the event
-// server.
-func EventServerComponents() []any {
-	return []any{
-		ProvideEventServer,
-		ProvideBeaconBlockFinalizedPublisher,
-	}
 }

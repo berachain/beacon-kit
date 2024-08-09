@@ -37,8 +37,8 @@ type MessageServer interface {
 
 type EventServer interface {
 	Start(ctx context.Context)
-	RegisterPublisher(mID types.MessageID, publisher types.Publisher)
-	Subscribe(mID types.MessageID, ch any) error
+	RegisterPublisher(mID types.EventID, publisher types.Publisher)
+	Subscribe(mID types.EventID, ch any) error
 	Publish(event types.MessageI) error
 	SetLogger(logger log.Logger[any])
 }

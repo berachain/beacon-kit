@@ -30,20 +30,11 @@ import (
 
 type MessageServerInput struct {
 	depinject.In
-	Routes []asynctypes.MessageRoute
 }
 
 // ProvideMessageServer provides a message server.
-func ProvideMessageServer(in MessageServerInput) (
-	*server.MessageServer, error,
-) {
-	ms := server.NewMessageServer()
-	for _, route := range in.Routes {
-		if err := ms.RegisterRoute(route.MessageID(), route); err != nil {
-			return nil, err
-		}
-	}
-	return ms, nil
+func ProvideMessageServer(in MessageServerInput) *server.MessageServer {
+	return server.NewMessageServer()
 }
 
 // ProvideMessageRoutes provides all the message routes.
@@ -87,14 +78,5 @@ func RouteFactory(mID string) asynctypes.MessageRoute {
 		](messages.ProcessSidecars)
 	default:
 		return nil
-	}
-}
-
-// MessageServerComponents returns all the depinject providers for the message
-// server.
-func MessageServerComponents() []any {
-	return []any{
-		ProvideMessageServer,
-		ProvideMessageRoutes,
 	}
 }

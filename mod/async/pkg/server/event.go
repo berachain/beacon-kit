@@ -72,6 +72,7 @@ func (es *EventServer) RegisterPublisher(
 	es.publishers[eventID] = publisher
 }
 
+// SetLogger sets the logger for the event server.
 func (es *EventServer) SetLogger(logger log.Logger[any]) {
 	es.logger = logger
 }

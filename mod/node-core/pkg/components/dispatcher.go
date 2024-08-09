@@ -24,24 +24,48 @@ import (
 	"cosmossdk.io/depinject"
 	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 )
 
 // DispatcherInput is the input for the Dispatcher.
 type DispatcherInput struct {
 	depinject.In
-	EventServer   *EventServer
-	MessageServer *MessageServer
-	Logger        log.AdvancedLogger[any, sdklog.Logger]
+	EventServer                   *EventServer
+	MessageServer                 *MessageServer
+	Logger                        log.AdvancedLogger[any, sdklog.Logger]
+	BeaconBlockFinalizedPublisher *BeaconBlockFinalizedPublisher
+	Routes                        []asynctypes.MessageRoute
 }
 
 // ProvideDispatcher provides a new Dispatcher.
 func ProvideDispatcher(
 	in DispatcherInput,
-) *Dispatcher {
-	return dispatcher.NewDispatcher(
+) (*Dispatcher, error) {
+	d := dispatcher.NewDispatcher(
 		in.EventServer,
 		in.MessageServer,
 		in.Logger.With("service", "dispatcher"),
 	)
+	d.RegisterPublisher(
+		in.BeaconBlockFinalizedPublisher.EventID(),
+		in.BeaconBlockFinalizedPublisher,
+	)
+	for _, route := range in.Routes {
+		if err := d.RegisterRoute(route.MessageID(), route); err != nil {
+			return nil, err
+		}
+	}
+
+	return d, nil
+}
+
+func DefaultDispatcherComponents() []any {
+	return []any{
+		ProvideDispatcher,
+		ProvideMessageRoutes,
+		ProvideBeaconBlockFinalizedPublisher,
+		ProvideMessageServer,
+		ProvideEventServer,
+	}
 }

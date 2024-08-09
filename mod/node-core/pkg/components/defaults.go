@@ -43,7 +43,6 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideDepositPruner,
 		ProvideDepositService,
 		ProvideDepositStore,
-		ProvideDispatcher,
 		ProvideEngineClient,
 		ProvideExecutionEngine,
 		ProvideJWTSecret,
@@ -59,7 +58,6 @@ func DefaultComponentsWithStandardTypes() []any {
 	}
 	components = append(components, DefaultNodeAPIComponents()...)
 	components = append(components, DefaultNodeAPIHandlers()...)
-	components = append(components, EventServerComponents()...)
-	components = append(components, MessageServerComponents()...)
+	components = append(components, DefaultDispatcherComponents()...)
 	return components
 }
