@@ -80,7 +80,6 @@ func (app *BaseApp) InitChain(
 
 	// initialize states with a correct header
 	app.setState(execModeFinalize, initHeader)
-	app.setState(execModeCheck, initHeader)
 
 	// Store the consensus params in the BaseApp's param store. Note, this must
 	// be done after the finalizeBlockState and context have been set as it's
@@ -103,14 +102,6 @@ func (app *BaseApp) InitChain(
 		// However, after Commit is called
 		// the height needs to reflect the true block height.
 		initHeader.Height = req.InitialHeight
-		app.checkState.SetContext(
-			app.checkState.Context().WithBlockHeader(initHeader).
-				WithHeaderInfo(coreheader.Info{
-					ChainID: req.ChainId,
-					Height:  req.InitialHeight,
-					Time:    req.Time,
-				}),
-		)
 		app.finalizeBlockState.SetContext(
 			app.finalizeBlockState.Context().WithBlockHeader(initHeader).
 				WithHeaderInfo(coreheader.Info{
@@ -434,11 +425,6 @@ func (app *BaseApp) internalFinalizeBlock(
 		app.finalizeBlockState.Context(),
 	)
 
-	if app.checkState != nil {
-		app.checkState.SetContext(app.checkState.Context().
-			WithHeaderHash(req.Hash))
-	}
-
 	if err := app.preBlock(req); err != nil {
 		return nil, err
 	}
@@ -551,12 +537,6 @@ func (app *BaseApp) Commit() (*abci.CommitResponse, error) {
 		RetainHeight: retainHeight,
 	}
 
-	// Reset the CheckTx state to the latest committed.
-	//
-	// NOTE: This is safe because CometBFT holds a lock on the mempool for
-	// Commit. Use the header from this latest block.
-	app.setState(execModeCheck, header)
-
 	app.finalizeBlockState = nil
 
 	return resp, nil
@@ -666,7 +646,7 @@ func (app *BaseApp) CreateQueryContext(
 			ChainID: app.chainID,
 			Height:  height,
 		}).
-		WithBlockHeader(app.checkState.Context().BlockHeader()).
+		WithBlockHeader(app.finalizeBlockState.Context().BlockHeader()).
 		WithBlockHeight(height)
 
 	if height != lastBlockHeight {
@@ -782,11 +762,6 @@ func (app *BaseApp) NewContextLegacy(
 	isCheckTx bool,
 	header cmtproto.Header,
 ) sdk.Context {
-	if isCheckTx {
-		return sdk.NewContext(app.checkState.ms, true, app.logger).
-			WithBlockHeader(header)
-	}
-
 	return sdk.NewContext(app.finalizeBlockState.ms, false, app.logger).
 		WithBlockHeader(header)
 }

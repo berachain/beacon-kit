@@ -39,25 +39,12 @@ import (
 
 type (
 	execMode uint8
-
-	// StoreLoader defines a customizable function to control how we load the
-	// CommitMultiStore from disk. This is useful for state migration, when
-	// loading a datastore written with an older version of the software. In
-	// particular, if a module changed the substore key name (or removed a
-	// substore)
-	// between two versions of the software.
-	StoreLoader func(ms storetypes.CommitMultiStore) error
 )
 
 const (
-	execModeCheck               execMode = iota // Check a transaction
-	execModeReCheck                             // Recheck a (pending) transaction after a commit
-	execModeSimulate                            // Simulate a transaction
-	execModePrepareProposal                     // Prepare a block proposal
-	execModeProcessProposal                     // Process a block proposal
-	execModeVoteExtension                       // Extend or verify a pre-commit vote
-	execModeVerifyVoteExtension                 // Verify a vote extension
-	execModeFinalize                            // Finalize a block proposal
+	execModePrepareProposal execMode = iota // Prepare a block proposal
+	execModeProcessProposal                 // Process a block proposal
+	execModeFinalize                        // Finalize a block proposal
 )
 
 var _ servertypes.ABCI = (*BaseApp)(nil)
@@ -65,11 +52,10 @@ var _ servertypes.ABCI = (*BaseApp)(nil)
 // BaseApp reflects the ABCI application implementation.
 type BaseApp struct {
 	// initialized on creation
-	logger      log.Logger
-	name        string                      // application name from abci.BlockInfo
-	db          dbm.DB                      // common DB backend
-	cms         storetypes.CommitMultiStore // Main (uncached) state
-	storeLoader StoreLoader                 // function to handle store loading, may be overridden with SetStoreLoader()
+	logger log.Logger
+	name   string                      // application name from abci.BlockInfo
+	db     dbm.DB                      // common DB backend
+	cms    storetypes.CommitMultiStore // Main (uncached) state
 
 	initChainer     sdk.InitChainer            // ABCI InitChain handler
 	preBlocker      sdk.PreBlocker             // logic to run before BeginBlocker
@@ -79,14 +65,6 @@ type BaseApp struct {
 	prepareProposal sdk.PrepareProposalHandler // ABCI PrepareProposal handler
 
 	// volatile states:
-	//
-	// - checkState is set on InitChain and reset on Commit
-	// - finalizeBlockState is set on InitChain and FinalizeBlock and set to nil
-	// on Commit.
-	//
-	// - checkState: Used for CheckTx, which is set based on the previous
-	// block's
-	// state. This state is never committed.
 	//
 	// - prepareProposalState: Used for PrepareProposal, which is set based on
 	// the previous block's state. This state is never committed. In case of
@@ -100,7 +78,6 @@ type BaseApp struct {
 	//
 	// - finalizeBlockState: Used for FinalizeBlock, which is set based on the
 	// previous block's state. This state is committed.
-	checkState           *state
 	prepareProposalState *state
 	processProposalState *state
 	finalizeBlockState   *state
@@ -155,7 +132,6 @@ func NewBaseApp(
 			logger,
 			storemetrics.NewNoOpMetrics(),
 		), // by default we use a no-op metric gather in store
-		storeLoader: DefaultStoreLoader,
 	}
 
 	for _, option := range options {
@@ -176,18 +152,8 @@ func (app *BaseApp) Name() string {
 
 // AppVersion returns the application's protocol version.
 func (app *BaseApp) AppVersion(ctx context.Context) (uint64, error) {
-	if app.paramStore == nil {
-		return 0, errors.New("app.paramStore is nil")
-	}
-
 	cp, err := app.paramStore.Get(ctx)
-	if err != nil {
-		return 0, fmt.Errorf("failed to get consensus params: %w", err)
-	}
-	if cp.Version == nil {
-		return 0, nil
-	}
-	return cp.Version.App, nil
+	return cp.Version.App, err
 }
 
 // MountStores mounts all IAVL or DB stores to the provided keys in the BaseApp
@@ -229,17 +195,11 @@ func (app *BaseApp) MountStore(
 // LoadLatestVersion loads the latest application version. It will panic if
 // called more than once on a running BaseApp.
 func (app *BaseApp) LoadLatestVersion() error {
-	err := app.storeLoader(app.cms)
-	if err != nil {
+	if err := app.cms.LoadLatestVersion(); err != nil {
 		return fmt.Errorf("failed to load latest version: %w", err)
 	}
 
 	return app.Init()
-}
-
-// DefaultStoreLoader will be used by default and loads the latest version.
-func DefaultStoreLoader(ms storetypes.CommitMultiStore) error {
-	return ms.LoadLatestVersion()
 }
 
 // CommitMultiStore returns the root multi-store.
@@ -283,13 +243,9 @@ func (app *BaseApp) ChainID() string {
 // the earlier provided settings. Returns an error if validation fails.
 // nil otherwise. Panics if the app is already sealed.
 func (app *BaseApp) Init() error {
-	if app.cms == nil {
-		return errors.New("commit multi-store must not be nil")
-	}
-
 	// needed for the export command which inits from store but never calls
 	// initchain
-	app.setState(execModeCheck, cmtproto.Header{ChainID: app.chainID})
+	app.setState(execModeFinalize, cmtproto.Header{ChainID: app.chainID})
 
 	return app.cms.GetPruning().Validate()
 }
@@ -323,12 +279,6 @@ func (app *BaseApp) setState(mode execMode, h cmtproto.Header) {
 	}
 
 	switch mode {
-	case execModeCheck:
-		baseState.SetContext(
-			baseState.Context().WithIsCheckTx(true),
-		)
-		app.checkState = baseState
-
 	case execModePrepareProposal:
 		app.prepareProposalState = baseState
 
