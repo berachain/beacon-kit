@@ -25,7 +25,6 @@ import (
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -35,7 +34,7 @@ import (
 // AvailabilityStore interface is responsible for validating and storing
 // sidecars for specific blocks, as well as verifying sidecars that have already
 // been stored.
-type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
+type AvailabilityStore[BeaconBlockBodyT any] interface {
 	// IsDataAvailable ensures that all blobs referenced in the block are
 	// securely stored before it returns without an error.
 	IsDataAvailable(
@@ -91,7 +90,7 @@ type ExecutionEngine[PayloadAttributesT any] interface {
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
 		req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
-	) (*engineprimitives.PayloadID, *gethprimitives.ExecutionHash, error)
+	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
 }
 
 // EventFeed is a generic interface for sending events.
@@ -112,9 +111,9 @@ type ExecutionPayloadHeader interface {
 	// GetTimestamp returns the timestamp.
 	GetTimestamp() math.U64
 	// GetBlockHash returns the block hash.
-	GetBlockHash() gethprimitives.ExecutionHash
+	GetBlockHash() common.ExecutionHash
 	// GetParentHash returns the parent hash.
-	GetParentHash() gethprimitives.ExecutionHash
+	GetParentHash() common.ExecutionHash
 }
 
 // Genesis is the interface for the genesis.
@@ -138,8 +137,8 @@ type LocalBuilder[BeaconStateT any] interface {
 		slot math.Slot,
 		timestamp uint64,
 		parentBlockRoot common.Root,
-		headEth1BlockHash gethprimitives.ExecutionHash,
-		finalEth1BlockHash gethprimitives.ExecutionHash,
+		headEth1BlockHash common.ExecutionHash,
+		finalEth1BlockHash common.ExecutionHash,
 	) (*engineprimitives.PayloadID, error)
 	// SendForceHeadFCU sends a force head FCU request.
 	SendForceHeadFCU(
@@ -180,7 +179,6 @@ type ReadOnlyBeaconState[
 type StateProcessor[
 	BeaconBlockT,
 	BeaconStateT,
-	BlobSidecarsT,
 	ContextT,
 	DepositT,
 	ExecutionPayloadHeaderT any,
@@ -209,10 +207,9 @@ type StateProcessor[
 // StorageBackend defines an interface for accessing various storage components
 // required by the beacon node.
 type StorageBackend[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT],
 	BeaconBlockBodyT,
-	BeaconStateT,
-	BlobSidecarsT any,
+	BeaconStateT any,
 ] interface {
 	// AvailabilityStore returns the availability store for the given context.
 	AvailabilityStore() AvailabilityStoreT

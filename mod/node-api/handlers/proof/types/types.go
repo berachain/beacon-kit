@@ -21,7 +21,7 @@
 package types
 
 import (
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -63,7 +63,7 @@ type ExecutionPayloadHeader interface {
 	GetNumber() math.U64
 	// GetFeeRecipient returns the fee recipient address of the
 	// ExecutionPayloadHeader.
-	GetFeeRecipient() gethprimitives.ExecutionAddress
+	GetFeeRecipient() common.ExecutionAddress
 }
 
 // Validator is the interface for a validator.

@@ -22,7 +22,6 @@ package state
 
 import (
 	"github.com/berachain/beacon-kit/mod/errors"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -194,7 +193,7 @@ func (s *StateDB[
 	var (
 		validator         ValidatorT
 		balance           math.Gwei
-		withdrawalAddress gethprimitives.ExecutionAddress
+		withdrawalAddress common.ExecutionAddress
 		withdrawals       = make([]WithdrawalT, 0)
 	)
 

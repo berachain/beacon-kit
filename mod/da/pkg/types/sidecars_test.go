@@ -41,14 +41,14 @@ func TestEmptySidecarMarshalling(t *testing.T) {
 		eip4844.KZGCommitment{},
 		[48]byte{},
 		[]common.Root{
-			byteslib.ToBytes32([]byte("1")),
-			byteslib.ToBytes32([]byte("2")),
-			byteslib.ToBytes32([]byte("3")),
-			byteslib.ToBytes32([]byte("4")),
-			byteslib.ToBytes32([]byte("5")),
-			byteslib.ToBytes32([]byte("6")),
-			byteslib.ToBytes32([]byte("7")),
-			byteslib.ToBytes32([]byte("8")),
+			common.Root(byteslib.ToBytes32([]byte("1"))),
+			common.Root(byteslib.ToBytes32([]byte("2"))),
+			common.Root(byteslib.ToBytes32([]byte("3"))),
+			common.Root(byteslib.ToBytes32([]byte("4"))),
+			common.Root(byteslib.ToBytes32([]byte("5"))),
+			common.Root(byteslib.ToBytes32([]byte("6"))),
+			common.Root(byteslib.ToBytes32([]byte("7"))),
+			common.Root(byteslib.ToBytes32([]byte("8"))),
 		},
 	)
 
@@ -96,14 +96,14 @@ func TestValidateBlockRoots(t *testing.T) {
 		[48]byte{},
 		[48]byte{},
 		[]common.Root{
-			byteslib.ToBytes32([]byte("1")),
-			byteslib.ToBytes32([]byte("2")),
-			byteslib.ToBytes32([]byte("3")),
-			byteslib.ToBytes32([]byte("4")),
-			byteslib.ToBytes32([]byte("5")),
-			byteslib.ToBytes32([]byte("6")),
-			byteslib.ToBytes32([]byte("7")),
-			byteslib.ToBytes32([]byte("8")),
+			common.Root(byteslib.ToBytes32([]byte("1"))),
+			common.Root(byteslib.ToBytes32([]byte("2"))),
+			common.Root(byteslib.ToBytes32([]byte("3"))),
+			common.Root(byteslib.ToBytes32([]byte("4"))),
+			common.Root(byteslib.ToBytes32([]byte("5"))),
+			common.Root(byteslib.ToBytes32([]byte("6"))),
+			common.Root(byteslib.ToBytes32([]byte("7"))),
+			common.Root(byteslib.ToBytes32([]byte("8"))),
 		},
 	)
 
@@ -129,17 +129,16 @@ func TestValidateBlockRoots(t *testing.T) {
 		eip4844.KZGCommitment{},
 		eip4844.KZGProof{},
 		[]common.Root{
-			byteslib.ToBytes32([]byte("1")),
-			byteslib.ToBytes32([]byte("2")),
-			byteslib.ToBytes32([]byte("3")),
-			byteslib.ToBytes32([]byte("4")),
-			byteslib.ToBytes32([]byte("5")),
-			byteslib.ToBytes32([]byte("6")),
-			byteslib.ToBytes32([]byte("7")),
-			byteslib.ToBytes32([]byte("8")),
+			common.Root(byteslib.ToBytes32([]byte("1"))),
+			common.Root(byteslib.ToBytes32([]byte("2"))),
+			common.Root(byteslib.ToBytes32([]byte("3"))),
+			common.Root(byteslib.ToBytes32([]byte("4"))),
+			common.Root(byteslib.ToBytes32([]byte("5"))),
+			common.Root(byteslib.ToBytes32([]byte("6"))),
+			common.Root(byteslib.ToBytes32([]byte("7"))),
+			common.Root(byteslib.ToBytes32([]byte("8"))),
 		},
 	)
-
 	// Validate the sidecar with invalid roots
 	sidecarsInvalid := types.BlobSidecars{
 		Sidecars: []*types.BlobSidecar{

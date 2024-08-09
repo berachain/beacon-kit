@@ -25,7 +25,6 @@ import (
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -41,8 +40,8 @@ func (pb *PayloadBuilder[
 	slot math.Slot,
 	timestamp uint64,
 	parentBlockRoot common.Root,
-	headEth1BlockHash gethprimitives.ExecutionHash,
-	finalEth1BlockHash gethprimitives.ExecutionHash,
+	headEth1BlockHash common.ExecutionHash,
+	finalEth1BlockHash common.ExecutionHash,
 ) (*PayloadIDT, error) {
 	if !pb.Enabled() {
 		return nil, ErrPayloadBuilderDisabled
@@ -102,8 +101,8 @@ func (pb *PayloadBuilder[
 	slot math.Slot,
 	timestamp uint64,
 	parentBlockRoot common.Root,
-	parentEth1Hash gethprimitives.ExecutionHash,
-	finalBlockHash gethprimitives.ExecutionHash,
+	parentEth1Hash common.ExecutionHash,
+	finalBlockHash common.ExecutionHash,
 ) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
 	if !pb.Enabled() {
 		return nil, ErrPayloadBuilderDisabled

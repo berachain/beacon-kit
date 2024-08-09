@@ -24,7 +24,6 @@ import (
 	"context"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -38,7 +37,7 @@ import (
 func (s *Eth1Client[ExecutionPayloadT]) NewPayload(
 	ctx context.Context,
 	payload ExecutionPayloadT,
-	versionedHashes []gethprimitives.ExecutionHash,
+	versionedHashes []common.ExecutionHash,
 	parentBlockRoot *common.Root,
 ) (*engineprimitives.PayloadStatusV1, error) {
 	switch payload.Version() {
@@ -55,13 +54,13 @@ func (s *Eth1Client[ExecutionPayloadT]) NewPayload(
 func (s *Eth1Client[ExecutionPayloadT]) NewPayloadV3(
 	ctx context.Context,
 	payload ExecutionPayloadT,
-	versionedHashes []gethprimitives.ExecutionHash,
+	versionedHashes []common.ExecutionHash,
 	parentBlockRoot *common.Root,
 ) (*engineprimitives.PayloadStatusV1, error) {
 	result := &engineprimitives.PayloadStatusV1{}
 	if err := s.Client.Client().CallContext(
 		ctx, result, NewPayloadMethodV3, payload, versionedHashes,
-		(*gethprimitives.ExecutionHash)(parentBlockRoot),
+		(*common.ExecutionHash)(parentBlockRoot),
 	); err != nil {
 		return nil, err
 	}

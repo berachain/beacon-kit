@@ -36,9 +36,7 @@ type (
 	ExecutionAddress = common.Address
 	// ExecutionHash represents a hash on the execution layer which is
 	// currently a Keccak256 hash.
-	ExecutionHash = common.Hash
-	// DisplayBytes is an alias for common.PrettyBytes.
-	DisplayBytes   = common.PrettyBytes
+	ExecutionHash  = common.Hash
 	ExecutableData = engine.ExecutableData
 	Genesis        = core.Genesis
 	Block          = coretypes.Block
@@ -49,7 +47,6 @@ type (
 	Receipt        = coretypes.Receipt
 	Transaction    = coretypes.Transaction
 	Transactions   = coretypes.Transactions
-	Withdrawal     = coretypes.Withdrawal
 	Withdrawals    = coretypes.Withdrawals
 )
 
@@ -57,16 +54,11 @@ type (
 var (
 	HexToAddress           = common.HexToAddress
 	HexToHash              = common.HexToHash
-	Hex2BytesFixed         = common.Hex2BytesFixed
-	FromHex                = common.FromHex
-	ZeroAddress            = ExecutionAddress{}
-	ZeroHash               = ExecutionHash{}
 	BlockToExecutableData  = engine.BlockToExecutableData
 	NewBlockWithHeader     = coretypes.NewBlockWithHeader
 	DeriveSha              = coretypes.DeriveSha
 	EmptyUncleHash         = coretypes.EmptyUncleHash
 	NewStackTrie           = trie.NewStackTrie
-	BytesToBloom           = coretypes.BytesToBloom
 	SignTx                 = coretypes.SignTx
 	LatestSignerForChainID = coretypes.LatestSignerForChainID
 	ReceiptStatusFailed    = coretypes.ReceiptStatusFailed
