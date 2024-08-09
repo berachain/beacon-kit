@@ -90,13 +90,7 @@ func NewBeaconKitApp(
 
 // Load finishes all initialization operations and loads the app.
 func (a *App) Load(loadLatest bool) error {
-	if len(a.config.GetInitGenesis()) != 0 {
-		a.ModuleManager.SetOrderInitGenesis(a.config.GetInitGenesis()...)
-		if a.initChainer == nil {
-			a.SetInitChainer(a.InitChainer)
-		}
-	}
-
+	a.SetInitChainer(a.InitChainer)
 	a.SetFinalizeBlocker(a.FinalizeBlocker)
 
 	if loadLatest {
