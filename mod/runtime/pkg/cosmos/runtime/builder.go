@@ -23,6 +23,8 @@ package runtime
 import (
 	"io"
 
+	"cosmossdk.io/log"
+
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/baseapp"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -40,11 +42,12 @@ type AppBuilder struct {
 func (a *AppBuilder) Build(
 	db dbm.DB,
 	_ io.Writer,
+	logger log.Logger,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *App {
 	bApp := baseapp.NewBaseApp(
 		"BeaconKit",
-		a.App.Logger,
+		logger,
 		db,
 		baseAppOptions...)
 	bApp.SetVersion(version.Version)

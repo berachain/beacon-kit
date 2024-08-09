@@ -50,7 +50,6 @@ type App struct {
 
 	Middleware Middleware
 	StoreKeys  []storetypes.StoreKey
-	Logger     log.Logger
 	// initChainer is the init chainer function defined by the app config.
 	// this is only required if the chain wants to add special InitChainer
 	// logic.
@@ -59,6 +58,7 @@ type App struct {
 
 // NewBeaconKitApp returns a reference to an initialized BeaconApp.
 func NewBeaconKitApp(
+	logger log.Logger,
 	db dbm.DB,
 	traceStore io.Writer,
 	loadLatest bool,
@@ -71,7 +71,7 @@ func NewBeaconKitApp(
 	}
 
 	// Build the runtime.App using the app builder.
-	app = appBuilder.Build(db, traceStore, baseAppOptions...)
+	app = appBuilder.Build(db, traceStore, logger, baseAppOptions...)
 
 	// Load the app.
 	if err := app.Load(loadLatest); err != nil {

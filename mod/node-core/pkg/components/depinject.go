@@ -24,7 +24,6 @@ import (
 	"context"
 
 	"cosmossdk.io/core/store"
-	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -50,7 +49,6 @@ func ProvideApp(middleware runtime.Middleware) (
 	error,
 ) {
 	app := &runtime.App{Middleware: middleware}
-	app.Logger = log.NewNopLogger()
 	return &runtime.AppBuilder{App: app}, nil
 }
 
