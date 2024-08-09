@@ -21,8 +21,6 @@
 package beacon
 
 import (
-	"cosmossdk.io/core/appmodule"
-	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	modulev1alpha1 "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module/api/module/v1alpha1"
@@ -35,29 +33,6 @@ func init() {
 	appconfig.RegisterModule(&modulev1alpha1.Module{},
 		appconfig.Provide(
 			components.ProvideKVStore,
-			ProvideModule,
 		),
 	)
-}
-
-// ModuleInput is the input for the dep inject framework.
-type ModuleInput struct {
-	depinject.In
-}
-
-// ModuleOutput is the output for the dep inject framework.
-type ModuleOutput struct {
-	depinject.Out
-	Module appmodule.AppModule
-}
-
-// ProvideModule is a function that provides the module to the application.
-func ProvideModule(in ModuleInput) (ModuleOutput, error) {
-	return ModuleOutput{}, nil
-}
-
-func SupplyModuleDependencies() []any {
-	return []any{
-		&components.ABCIMiddleware{},
-	}
 }

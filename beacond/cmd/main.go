@@ -27,8 +27,8 @@ import (
 	clibuilder "github.com/berachain/beacon-kit/mod/cli/pkg/builder"
 	clicomponents "github.com/berachain/beacon-kit/mod/cli/pkg/components"
 	nodebuilder "github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	nodecomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
-	beacon "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/cosmos/cosmos-sdk/server"
 	"go.uber.org/automaxprocs/maxprocs"
@@ -82,7 +82,7 @@ func run() error {
 			),
 		),
 		clibuilder.SupplyModuleDeps[node, *executionPayload](
-			beacon.SupplyModuleDependencies(),
+			[]any{&components.ABCIMiddleware{}},
 		),
 		// Set the Run Handler to the Default.
 		clibuilder.WithRunHandler[node, *executionPayload](
