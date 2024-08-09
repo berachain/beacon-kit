@@ -39,7 +39,6 @@ func ProvideKVStoreKey(
 }
 
 func ProvideKVStoreService(
-	logger log.Logger,
 	app *runtime.AppBuilder,
 ) store.KVStoreService {
 	// skips modules that have no store
