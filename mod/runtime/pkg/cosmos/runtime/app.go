@@ -172,14 +172,6 @@ func (a *App) Precommiter(ctx sdk.Context) {
 	}
 }
 
-// PrepareCheckStater application updates every commit.
-func (a *App) PrepareCheckStater(ctx sdk.Context) {
-	err := a.ModuleManager.PrepareCheckState(ctx)
-	if err != nil {
-		panic(err)
-	}
-}
-
 // InitChainer initializes the chain.
 func (a *App) InitChainer(
 	ctx sdk.Context,
