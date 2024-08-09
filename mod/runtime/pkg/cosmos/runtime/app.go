@@ -21,15 +21,14 @@
 package runtime
 
 import (
+	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 
 	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/baseapp"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
@@ -74,7 +73,9 @@ func NewBeaconKitApp(
 	middleware Middleware,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *App {
-	app := &App{}
+	app := &App{
+		Middleware: middleware,
+	}
 
 	// Build the runtime.App using the app builder.
 	app = appBuilder.Build(db, traceStore, baseAppOptions...)
@@ -149,44 +150,10 @@ func (a *App) PreBlocker(ctx sdk.Context, req *abci.FinalizeBlockRequest) error 
 	return a.Middleware.PreBlock(ctx, req)
 }
 
-// BeginBlocker application updates every begin block.
-func (a *App) BeginBlocker(ctx sdk.Context) (sdk.BeginBlock, error) {
-	return sdk.BeginBlock{}, nil
-}
-
 // EndBlocker application updates every end block.
-func (a *App) EndBlocker(ctx sdk.Context) (sdk.EndBlock, error) {
-	return a.ModuleManager.EndBlock(ctx)
-}
-
-// convertValidatorUpdate abstracts the conversion of a
-// transition.ValidatorUpdate to an appmodulev2.ValidatorUpdate.
-// TODO: this is so hood, bktypes -> sdktypes -> generic is crazy
-// maybe make this some kind of codec/func that can be passed in?
-func convertValidatorUpdate[ValidatorUpdateT any](
-	u **transition.ValidatorUpdate,
-) (ValidatorUpdateT, error) {
-	var valUpdate ValidatorUpdateT
-	update := *u
-	if update == nil {
-		return valUpdate, errors.New("undefined validator update")
-	}
-	return any(abci.ValidatorUpdate{
-		PubKeyBytes: update.Pubkey[:],
-		PubKeyType:  crypto.CometBLSType,
-		//#nosec:G701 // this is safe.
-		Power: int64(update.EffectiveBalance.Unwrap()),
-	}).(ValidatorUpdateT), nil
-}
-
-// Precommiter application updates every commit.
-func (a *App) Precommiter(sdk.Context) {
-	return
-}
-
-// PrepareCheckStater application updates every commit.
-func (a *App) PrepareCheckStater(sdk.Context) {
-	return
+func (a *App) EndBlocker(ctx context.Context,
+) (transition.ValidatorUpdates, error) {
+	return a.Middleware.EndBlock(ctx)
 }
 
 // InitChainer initializes the chain.

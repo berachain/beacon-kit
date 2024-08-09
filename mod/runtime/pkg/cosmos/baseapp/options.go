@@ -27,6 +27,7 @@ import (
 
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	storetypes "cosmossdk.io/store/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -117,7 +118,7 @@ func (app *BaseApp) SetBeginBlocker(beginBlocker sdk.BeginBlocker) {
 	app.beginBlocker = beginBlocker
 }
 
-func (app *BaseApp) SetEndBlocker(endBlocker sdk.EndBlocker) {
+func (app *BaseApp) SetEndBlocker(endBlocker func(ctx context.Context) (transition.ValidatorUpdates, error)) {
 	app.endBlocker = endBlocker
 }
 

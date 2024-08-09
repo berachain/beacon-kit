@@ -60,13 +60,13 @@ func init() {
 	)
 }
 
-func ProvideApp() (
+func ProvideApp(middleware Middleware) (
 	*AppBuilder,
 	appmodule.AppModule,
 	error,
 ) {
-	app := &App{}
-	return &AppBuilder{app}, appModule{app}, nil
+	app := &App{Middleware: middleware}
+	return &AppBuilder{app: app}, appModule{app}, nil
 }
 
 type AppInputs struct {

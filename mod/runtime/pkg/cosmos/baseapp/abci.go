@@ -37,6 +37,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/gogoproto/proto"
+	"github.com/sourcegraph/conc/iter"
 )
 
 func (app *BaseApp) InitChain(
@@ -489,6 +490,11 @@ func (app *BaseApp) internalFinalizeBlock(
 		return nil, err
 	}
 
+	valUpdates, err := iter.MapErr(endBlock, convertValidatorUpdate[abci.ValidatorUpdate])
+	if err != nil {
+		return nil, err
+	}
+
 	// check after endBlock if we should abort, to avoid propagating the result
 	select {
 	case <-ctx.Done():
@@ -500,7 +506,7 @@ func (app *BaseApp) internalFinalizeBlock(
 	cp := app.GetConsensusParams(app.finalizeBlockState.Context())
 	return &abci.FinalizeBlockResponse{
 		TxResults:             txResults,
-		ValidatorUpdates:      endBlock.ValidatorUpdates,
+		ValidatorUpdates:      valUpdates,
 		ConsensusParamUpdates: &cp,
 	}, nil
 }
