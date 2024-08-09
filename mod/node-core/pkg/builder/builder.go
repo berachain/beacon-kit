@@ -98,7 +98,7 @@ func (nb *NodeBuilder[NodeT]) Build(
 				SetLoggerConfig,
 			),
 		),
-		&storeKey,
+		&storeKeyDblPtr,
 		&chainSpec,
 		&abciMiddleware,
 		&serviceRegistry,
