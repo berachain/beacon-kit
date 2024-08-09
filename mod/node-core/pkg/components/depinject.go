@@ -2,9 +2,7 @@ package components
 
 import (
 	"context"
-	"fmt"
 
-	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/core/store"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
@@ -20,22 +18,16 @@ func ProvideKVStoreKey(
 	return storeKey
 }
 
-func ProvideEnvironment(
+func ProvideKVStoreService(
 	logger log.Logger,
 	app *runtime.AppBuilder,
-) (store.KVStoreService, appmodule.Environment) {
+) store.KVStoreService {
 
 	// skips modules that have no store
 	storeKey := ProvideKVStoreKey(app)
 	kvService := kvStoreService{key: storeKey}
 
-	return kvService, appmodule.Environment{
-		Logger: logger.With(
-			log.ModuleKey,
-			fmt.Sprintf("x/%s", "beacon"),
-		),
-		KVStoreService: kvService,
-	}
+	return kvService
 
 }
 

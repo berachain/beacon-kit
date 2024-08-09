@@ -57,7 +57,7 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideTrustedSetup,
 		ProvideValidatorService,
 		// TODO Hacks
-		ProvideEnvironment,
+		ProvideKVStoreService,
 		ProvideKVStoreKey,
 	}
 	components = append(components, DefaultNodeAPIComponents()...)
