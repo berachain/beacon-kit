@@ -117,3 +117,7 @@ func (d *Dispatcher) RegisterRoute(
 	d.logger.Info("Route registered", "messageID", messageID)
 	return d.msgServer.RegisterRoute(messageID, route)
 }
+
+func (d *Dispatcher) Name() string {
+	return "dispatcher"
+}

@@ -49,8 +49,8 @@ func ProvideServiceRegistry(
 	in ServiceRegistryInput,
 ) *service.Registry {
 	return service.NewRegistry(
-		in.Dispatcher,
 		service.WithLogger(in.Logger),
+		service.WithService(in.Dispatcher),
 		service.WithService(in.ValidatorService),
 		service.WithService(in.BlockStoreService),
 		service.WithService(in.ChainService),
