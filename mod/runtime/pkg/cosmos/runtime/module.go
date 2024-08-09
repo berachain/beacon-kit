@@ -31,7 +31,6 @@ import (
 	"cosmossdk.io/depinject/appconfig"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
-	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
@@ -51,7 +50,6 @@ func init() {
 	appconfig.RegisterModule(&runtimev1alpha1.Module{},
 		appconfig.Provide(
 			ProvideApp,
-			codec.ProvideAddressCodec,
 			ProvideKVStoreKey,
 			ProvideEnvironment,
 			ProvideModuleManager,
