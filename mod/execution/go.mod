@@ -2,12 +2,14 @@ module github.com/berachain/beacon-kit/mod/execution
 
 go 1.22.5
 
+replace github.com/berachain/beacon-kit/mod/async => ../async
+
 require (
 	github.com/berachain/beacon-kit/mod/async v0.0.0-20240624204855-d8809d5c8588
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240808194557-e72e74f58197
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240618214413-d5ec0e66b3dd
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240806211103-d1105603bfc0
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1347e7e
-	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/log v0.0.0-20240807213340-5779c7a563cd
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240808194557-e72e74f58197
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/hashicorp/golang-lru/v2 v2.0.7
