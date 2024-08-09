@@ -66,7 +66,6 @@ type BaseApp struct {
 	cms    storetypes.CommitMultiStore // Main (uncached) state
 
 	initChainer     sdk.InitChainer                                                           // ABCI InitChain handler
-	beginBlocker    sdk.BeginBlocker                                                          // (legacy ABCI) BeginBlock handler
 	finalizeBlocker func(context.Context, proto.Message) (transition.ValidatorUpdates, error) // (legacy ABCI) EndBlock handler
 	processProposal sdk.ProcessProposalHandler                                                // ABCI ProcessProposal handler
 	prepareProposal sdk.PrepareProposalHandler                                                // ABCI PrepareProposal handler
@@ -390,16 +389,6 @@ func (app *BaseApp) validateFinalizeBlockHeight(
 	}
 
 	return nil
-}
-
-func (app *BaseApp) beginBlock(
-	_ *abci.FinalizeBlockRequest,
-) (sdk.BeginBlock, error) {
-	if app.beginBlocker != nil {
-		return app.beginBlocker(app.finalizeBlockState.Context())
-	}
-
-	return sdk.BeginBlock{}, nil
 }
 
 // finalizeBlock is an application-defined function that is called after transactions

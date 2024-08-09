@@ -440,10 +440,6 @@ func (app *BaseApp) internalFinalizeBlock(
 			WithHeaderHash(req.Hash))
 	}
 
-	if _, err := app.beginBlock(req); err != nil {
-		return nil, err
-	}
-
 	// First check for an abort signal after beginBlock, as it's the first place
 	// we spend any significant amount of time.
 	select {
