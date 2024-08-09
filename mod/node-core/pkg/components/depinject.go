@@ -33,7 +33,9 @@ func ProvideKVStoreKey() **storetypes.KVStoreKey {
 	return &storeKey
 }
 
-func ProvideKVStoreService(storeKey **storetypes.KVStoreKey) store.KVStoreService {
+func ProvideKVStoreService(
+	storeKey **storetypes.KVStoreKey,
+) store.KVStoreService {
 	// skips modules that have no store
 	return kvStoreService{key: *storeKey}
 }

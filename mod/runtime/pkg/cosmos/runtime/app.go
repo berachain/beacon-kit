@@ -50,7 +50,6 @@ type App struct {
 	*baseapp.BaseApp
 
 	Middleware Middleware
-	StoreKeys  []storetypes.StoreKey
 	// initChainer is the init chainer function defined by the app config.
 	// this is only required if the chain wants to add special InitChainer
 	// logic.
