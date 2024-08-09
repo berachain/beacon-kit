@@ -22,7 +22,9 @@ package components
 
 import (
 	"cosmossdk.io/core/appmodule/v2"
-	broker "github.com/berachain/beacon-kit/mod/async/pkg/broker"
+	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
+	"github.com/berachain/beacon-kit/mod/async/pkg/messaging"
+	asyncserver "github.com/berachain/beacon-kit/mod/async/pkg/server"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
@@ -73,6 +75,7 @@ type (
 	ABCIMiddleware = middleware.ABCIMiddleware[
 		*AvailabilityStore,
 		*BeaconBlock,
+		*BeaconBlockBundle,
 		*BlobSidecars,
 		*Deposit,
 		*ExecutionPayload,
@@ -95,6 +98,10 @@ type (
 
 	// BeaconBlock type aliases.
 	BeaconBlock       = types.BeaconBlock
+	BeaconBlockBundle = datypes.BlockBundle[
+		*BeaconBlock,
+		*BlobSidecars,
+	]
 	BeaconBlockBody   = types.BeaconBlockBody
 	BeaconBlockHeader = types.BeaconBlockHeader
 
@@ -184,7 +191,6 @@ type (
 		*AvailabilityStore,
 		*BeaconBlockBody,
 		*BlobSidecars,
-		*SidecarsBroker,
 		*ExecutionPayload,
 	]
 
@@ -204,7 +210,7 @@ type (
 	DepositService = deposit.Service[
 		*BeaconBlock,
 		*BeaconBlockBody,
-		*BlockEvent,
+		*FinalizedBlockEvent,
 		*Deposit,
 		*ExecutionPayload,
 		WithdrawalCredentials,
@@ -386,6 +392,7 @@ type (
 	ValidatorService = validator.Service[
 		*AttestationData,
 		*BeaconBlock,
+		*BeaconBlockBundle,
 		*BeaconBlockBody,
 		*BeaconState,
 		*BlobSidecars,
@@ -410,51 +417,89 @@ type (
 )
 
 /* -------------------------------------------------------------------------- */
-/*                                   Events                                   */
+/*                                   Messages                                 */
 /* -------------------------------------------------------------------------- */
 
+// events.
 type (
-	// BlockEvent is a type alias for the block event.
-	BlockEvent = asynctypes.Event[*BeaconBlock]
+	// FinalizedBlockEvent is a type alias for the block event.
+	FinalizedBlockEvent = asynctypes.Event[*BeaconBlock]
+)
 
-	// GenesisEvent is a type alias for the genesis event.
-	GenesisEvent = asynctypes.Event[*Genesis]
+// messages.
+type (
+	// BlockMessage is a type alias for the block message.
+	BlockMessage = asynctypes.Message[*BeaconBlock]
 
-	// SidecarEvent is a type alias for the sidecar event.
-	SidecarEvent = asynctypes.Event[*BlobSidecars]
+	// BlockBundleMessage is a type alias for the block bundle message.
+	BlockBundleMessage = asynctypes.Message[*BeaconBlockBundle]
 
-	// SlotEvent is a type alias for the slot event.
-	SlotEvent = asynctypes.Event[*SlotData]
+	// GenesisMessage is a type alias for the genesis message.
+	GenesisMessage = asynctypes.Message[*Genesis]
 
-	// StatusEvent is a type alias for the status event.
-	StatusEvent = asynctypes.Event[*service.StatusEvent]
+	// SidecarMessage is a type alias for the sidecar message.
+	SidecarMessage = asynctypes.Message[*BlobSidecars]
 
-	// ValidatorUpdateEvent is a type alias for the validator update event.
-	ValidatorUpdateEvent = asynctypes.Event[transition.ValidatorUpdates]
+	// SlotMessage is a type alias for the slot message.
+	SlotMessage = asynctypes.Message[*SlotData]
+
+	// StatusMessage is a type alias for the status message.
+	StatusMessage = asynctypes.Message[*service.StatusEvent]
+
+	// ValidatorUpdateMessage is a type alias for the validator update message.
+	ValidatorUpdateMessage = asynctypes.Message[transition.ValidatorUpdates]
 )
 
 /* -------------------------------------------------------------------------- */
-/*                                   Brokers                                  */
+/*                                   Publishers                               */
 /* -------------------------------------------------------------------------- */
 
 type (
-	// GenesisBroker is a type alias for the genesis feed.
-	GenesisBroker = broker.Broker[*GenesisEvent]
+	BeaconBlockFinalizedPublisher = messaging.Publisher[*FinalizedBlockEvent]
+)
 
-	// SidecarsBroker is a type alias for the blob feed.
-	SidecarsBroker = broker.Broker[*SidecarEvent]
+/* -------------------------------------------------------------------------- */
+/*                                  Routes                                    */
+/* -------------------------------------------------------------------------- */
 
-	// BlockBroker is a type alias for the block feed.
-	BlockBroker = broker.Broker[*BlockEvent]
+type (
+	// BuildBlockAndSidecarsRoute is a type alias for the build block and
+	// sidecars route.
+	BuildBlockAndSidecarsRoute = messaging.Route[
+		*SlotMessage, *BlockBundleMessage,
+	]
 
-	// SlotBroker is a type alias for the slot feed.
-	SlotBroker = broker.Broker[*SlotEvent]
+	// VerifyBlockRoute is a type alias for the verify block route.
+	VerifyBlockRoute = messaging.Route[*BlockMessage, *BlockMessage]
 
-	// StatusBroker is a type alias for the status feed.
-	StatusBroker = broker.Broker[*StatusEvent]
+	// FinalizeBlockRoute is a type alias for the finalize block route.
+	FinalizeBlockRoute = messaging.Route[*BlockMessage, *ValidatorUpdateMessage]
 
-	// ValidatorUpdateBroker is a type alias for the validator update feed.
-	ValidatorUpdateBroker = broker.Broker[*ValidatorUpdateEvent]
+	// ProcessGenesisDataRoute is a type alias for the process genesis data route.
+	ProcessGenesisDataRoute = messaging.Route[
+		*GenesisMessage, *ValidatorUpdateMessage,
+	]
+
+	// ProcessSidecarsRoute is a type alias for the process blob sidecars route.
+	ProcessSidecarsRoute = messaging.Route[*SidecarMessage, *SidecarMessage]
+
+	// VerifySidecarsRoute is a type alias for the verify sidecars route.
+	VerifySidecarsRoute = messaging.Route[*SidecarMessage, *SidecarMessage]
+)
+
+/* -------------------------------------------------------------------------- */
+/*                                   Dispatcher                               */
+/* -------------------------------------------------------------------------- */
+
+type (
+	// Dispatcher is a type alias for the dispatcher.
+	Dispatcher = dispatcher.Dispatcher
+
+	// EventServer is a type alias for the event server.
+	EventServer = asyncserver.EventServer
+
+	// MessageServer is a type alias for the messages server.
+	MessageServer = asyncserver.MessageServer
 )
 
 /* -------------------------------------------------------------------------- */

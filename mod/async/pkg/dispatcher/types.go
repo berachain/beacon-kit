@@ -18,37 +18,27 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package dispatcher
 
 import (
-	"cosmossdk.io/depinject"
+	"context"
+
+	"github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
 )
 
-// ABCIMiddlewareInput is the input for the validator middleware provider.
-type ABCIMiddlewareInput struct {
-	depinject.In
-	ChainSpec     common.ChainSpec
-	Logger        log.Logger[any]
-	TelemetrySink *metrics.TelemetrySink
-	Dispatcher    *Dispatcher
+type MessageServer interface {
+	RegisterReceiver(mID types.MessageID, ch any) error
+	Request(req types.MessageI, resp any) error
+	Respond(resp types.MessageI) error
+	RegisterRoute(mID types.MessageID, route types.MessageRoute) error
+	SetLogger(logger log.Logger[any])
 }
 
-// ProvideABCIMiddleware is a depinject provider for the validator
-// middleware.
-func ProvideABCIMiddleware(
-	in ABCIMiddlewareInput,
-) (*ABCIMiddleware, error) {
-	return middleware.NewABCIMiddleware[
-		*AvailabilityStore, *BeaconBlock, *BeaconBlockBundle, *BlobSidecars,
-		*Deposit, *ExecutionPayload, *Genesis, *SlotData,
-	](
-		in.ChainSpec,
-		in.Logger,
-		in.TelemetrySink,
-		in.Dispatcher,
-	), nil
+type EventServer interface {
+	Start(ctx context.Context)
+	RegisterPublisher(mID types.EventID, publisher types.Publisher)
+	Subscribe(mID types.EventID, ch any) error
+	Publish(event types.MessageI) error
+	SetLogger(logger log.Logger[any])
 }

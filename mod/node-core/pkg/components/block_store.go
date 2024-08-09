@@ -24,9 +24,11 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	storev2 "cosmossdk.io/store/v2/db"
+	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
 	blockservice "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/block"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
@@ -59,35 +61,37 @@ func ProvideBlockStore(
 // BlockPrunerInput is the input for the block pruner.
 type BlockPrunerInput struct {
 	depinject.In
-
-	BlockBroker *BlockBroker
-	BlockStore  *BlockStore
-	Config      *config.Config
-	Logger      log.Logger
+	BlockStore *BlockStore
+	Config     *config.Config
+	Dispatcher *dispatcher.Dispatcher
+	Logger     log.Logger
 }
 
 // ProvideBlockPruner provides a block pruner for the depinject framework.
 func ProvideBlockPruner(
 	in BlockPrunerInput,
 ) (BlockPruner, error) {
-	subCh, err := in.BlockBroker.Subscribe()
-	if err != nil {
-		in.Logger.Error("failed to subscribe to block feed", "err", err)
+	var finalizedBlkCh = make(chan *FinalizedBlockEvent)
+	if err := in.Dispatcher.Subscribe(
+		messages.BeaconBlockFinalizedEvent, finalizedBlkCh,
+	); err != nil {
+		in.Logger.Error("failed to subscribe to event", "event",
+			messages.BeaconBlockFinalizedEvent, "err", err)
 		return nil, err
 	}
 
 	return pruner.NewPruner[
 		*BeaconBlock,
-		*BlockEvent,
+		*FinalizedBlockEvent,
 		*BlockStore,
 	](
 		in.Logger.With("service", manager.BlockPrunerName),
 		in.BlockStore,
 		manager.BlockPrunerName,
-		subCh,
+		finalizedBlkCh,
 		blockservice.BuildPruneRangeFn[
 			*BeaconBlock,
-			*BlockEvent,
+			*FinalizedBlockEvent,
 		](in.Config.BlockStoreService),
 	), nil
 }

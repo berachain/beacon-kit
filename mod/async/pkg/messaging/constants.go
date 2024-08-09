@@ -18,37 +18,22 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package messaging
 
-import (
-	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
+import "time"
+
+// TODO: make timeout configurable thorugh config/context
+const (
+	// defaultPublisherTimeout specifies the default timeout when the publisher
+	// tries to send a message to a client, a message is published to the
+	// publisher, or a client subscribes or unsubscribes.
+	defaultPublisherTimeout = time.Second
+
+	// defaultRouterTimeout specifies the default timeout when the router
+	// tries to send a message to a client, a message is published to the
+	// router, or a client subscribes or unsubscribes.
+	defaultRouterTimeout = 2 * time.Second
+
+	// defaultBufferSize specifies the default size of the message buffer.
+	defaultBufferSize = 10
 )
-
-// ABCIMiddlewareInput is the input for the validator middleware provider.
-type ABCIMiddlewareInput struct {
-	depinject.In
-	ChainSpec     common.ChainSpec
-	Logger        log.Logger[any]
-	TelemetrySink *metrics.TelemetrySink
-	Dispatcher    *Dispatcher
-}
-
-// ProvideABCIMiddleware is a depinject provider for the validator
-// middleware.
-func ProvideABCIMiddleware(
-	in ABCIMiddlewareInput,
-) (*ABCIMiddleware, error) {
-	return middleware.NewABCIMiddleware[
-		*AvailabilityStore, *BeaconBlock, *BeaconBlockBundle, *BlobSidecars,
-		*Deposit, *ExecutionPayload, *Genesis, *SlotData,
-	](
-		in.ChainSpec,
-		in.Logger,
-		in.TelemetrySink,
-		in.Dispatcher,
-	), nil
-}

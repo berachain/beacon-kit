@@ -18,37 +18,21 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package server
 
 import (
-	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
+	"github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/errors"
 )
 
-// ABCIMiddlewareInput is the input for the validator middleware provider.
-type ABCIMiddlewareInput struct {
-	depinject.In
-	ChainSpec     common.ChainSpec
-	Logger        log.Logger[any]
-	TelemetrySink *metrics.TelemetrySink
-	Dispatcher    *Dispatcher
-}
-
-// ProvideABCIMiddleware is a depinject provider for the validator
-// middleware.
-func ProvideABCIMiddleware(
-	in ABCIMiddlewareInput,
-) (*ABCIMiddleware, error) {
-	return middleware.NewABCIMiddleware[
-		*AvailabilityStore, *BeaconBlock, *BeaconBlockBundle, *BlobSidecars,
-		*Deposit, *ExecutionPayload, *Genesis, *SlotData,
-	](
-		in.ChainSpec,
-		in.Logger,
-		in.TelemetrySink,
-		in.Dispatcher,
-	), nil
-}
+//nolint:gochecknoglobals // errors
+var (
+	ErrPublisherNotFound = func(eventID types.EventID) error {
+		return errors.Newf("publisher not found for eventID: %s", eventID)
+	}
+	ErrRouteNotFound          = errors.New("route not found")
+	ErrRouteAlreadyRegistered = func(messageID types.MessageID) error {
+		return errors.Newf("route already registered for messageID: %s",
+			messageID)
+	}
+)

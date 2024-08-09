@@ -18,11 +18,23 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package broker
+package components
 
 import (
-	"errors"
+	"github.com/berachain/beacon-kit/mod/async/pkg/messaging"
+	"github.com/berachain/beacon-kit/mod/async/pkg/server"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
 )
 
-// ErrTimeout is the error returned when a broker operation timed out.
-var ErrTimeout = errors.New("timeout")
+// ProvideEventServer provides an event server.
+func ProvideEventServer() *EventServer {
+	return server.NewEventServer()
+}
+
+// ProvideBeaconBlockFinalizedPublisher provides a publisher for beacon block
+// finalized events.
+func ProvideBeaconBlockFinalizedPublisher() *BeaconBlockFinalizedPublisher {
+	return messaging.NewPublisher[*FinalizedBlockEvent](
+		messages.BeaconBlockFinalizedEvent,
+	)
+}

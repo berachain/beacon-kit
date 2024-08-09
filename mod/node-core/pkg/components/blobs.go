@@ -97,8 +97,8 @@ type DAServiceIn struct {
 	depinject.In
 
 	AvailabilityStore *AvailabilityStore
-	SidecarsBroker    *SidecarsBroker
 	BlobProcessor     *BlobProcessor
+	Dispatcher        *Dispatcher
 	Logger            log.Logger
 }
 
@@ -109,12 +109,11 @@ func ProvideDAService(in DAServiceIn) *DAService {
 		*AvailabilityStore,
 		*BeaconBlockBody,
 		*BlobSidecars,
-		*SidecarsBroker,
 		*ExecutionPayload,
 	](
 		in.AvailabilityStore,
 		in.BlobProcessor,
-		in.SidecarsBroker,
+		in.Dispatcher,
 		in.Logger.With("service", "da"),
 	)
 }

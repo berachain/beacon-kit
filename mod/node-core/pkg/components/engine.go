@@ -67,7 +67,6 @@ type ExecutionEngineInputs struct {
 	depinject.In
 	EngineClient  *EngineClient
 	Logger        log.AdvancedLogger[any, sdklog.Logger]
-	StatusBroker  *StatusBroker
 	TelemetrySink *metrics.TelemetrySink
 }
 
@@ -84,7 +83,6 @@ func ProvideExecutionEngine(
 	](
 		in.EngineClient,
 		in.Logger.With("service", "execution-engine"),
-		in.StatusBroker,
 		in.TelemetrySink,
 	)
 }

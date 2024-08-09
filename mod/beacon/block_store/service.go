@@ -23,9 +23,10 @@ package blockstore
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
 )
 
 // NewService creates a new block service.
@@ -35,14 +36,16 @@ func NewService[
 ](
 	config Config,
 	logger log.Logger[any],
-	blkBroker EventFeed[*asynctypes.Event[BeaconBlockT]],
+	dispatcher *dispatcher.Dispatcher,
 	store BlockStoreT,
 ) *Service[BeaconBlockT, BlockStoreT] {
 	return &Service[BeaconBlockT, BlockStoreT]{
-		config:    config,
-		logger:    logger,
-		blkBroker: blkBroker,
-		store:     store,
+		config:     config,
+		logger:     logger,
+		dispatcher: dispatcher,
+		store:      store,
+		// finalizedBlkEvents is a channel for receiving finalized block events.
+		finalizedBlkEvents: make(chan *asynctypes.Event[BeaconBlockT]),
 	}
 }
 
@@ -54,9 +57,13 @@ type Service[
 	// config is the configuration for the block service.
 	config Config
 	// logger is used for logging information and errors.
-	logger    log.Logger[any]
-	blkBroker EventFeed[*asynctypes.Event[BeaconBlockT]]
-	store     BlockStoreT
+	logger log.Logger[any]
+	// dispatcher is the dispatcher for the service.
+	dispatcher *dispatcher.Dispatcher
+	// store is the block store for the service.
+	store BlockStoreT
+	// finalizedBlkEvents is a channel for receiving finalized block events.
+	finalizedBlkEvents chan *asynctypes.Event[BeaconBlockT]
 }
 
 // Name returns the name of the service.
@@ -65,37 +72,37 @@ func (s *Service[_, _]) Name() string {
 }
 
 // Start starts the block service.
-func (s *Service[_, _]) Start(ctx context.Context) error {
+func (s *Service[BeaconBlockT, _]) Start(ctx context.Context) error {
 	if !s.config.Enabled {
 		s.logger.Warn("block service is disabled, skipping storing blocks")
 		return nil
 	}
-	subBlkCh, err := s.blkBroker.Subscribe()
-	if err != nil {
+
+	// subscribe a channel to the finalized block events.
+	if err := s.dispatcher.Subscribe(
+		messages.BeaconBlockFinalizedEvent, s.finalizedBlkEvents,
+	); err != nil {
 		s.logger.Error("failed to subscribe to block events", "error", err)
 		return err
 	}
-	go s.listenAndStore(ctx, subBlkCh)
+	go s.listenAndStore(ctx)
 	return nil
 }
 
 // listenAndStore listens for blocks and stores them in the KVStore.
 func (s *Service[BeaconBlockT, _]) listenAndStore(
 	ctx context.Context,
-	subBlkCh <-chan *asynctypes.Event[BeaconBlockT],
 ) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case msg := <-subBlkCh:
-			if msg.Is(events.BeaconBlockFinalized) {
-				slot := msg.Data().GetSlot()
-				if err := s.store.Set(slot, msg.Data()); err != nil {
-					s.logger.Error(
-						"failed to store block", "slot", slot, "error", err,
-					)
-				}
+		case msg := <-s.finalizedBlkEvents:
+			slot := msg.Data().GetSlot()
+			if err := s.store.Set(slot, msg.Data()); err != nil {
+				s.logger.Error(
+					"failed to store block", "slot", slot, "error", err,
+				)
 			}
 		}
 	}

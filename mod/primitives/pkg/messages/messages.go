@@ -18,37 +18,20 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package messages
 
-import (
-	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
+// messages.
+const (
+	BuildBeaconBlockAndSidecars = "build-beacon-block-and-sidecars"
+	VerifyBeaconBlock           = "verify-beacon-block"
+	FinalizeBeaconBlock         = "finalize-beacon-block"
+	ProcessGenesisData          = "process-genesis-data"
+	VerifySidecars              = "verify-sidecars"
+	ProcessSidecars             = "process-sidecars"
+	ReceiveSidecars             = "receive-sidecars"
 )
 
-// ABCIMiddlewareInput is the input for the validator middleware provider.
-type ABCIMiddlewareInput struct {
-	depinject.In
-	ChainSpec     common.ChainSpec
-	Logger        log.Logger[any]
-	TelemetrySink *metrics.TelemetrySink
-	Dispatcher    *Dispatcher
-}
-
-// ProvideABCIMiddleware is a depinject provider for the validator
-// middleware.
-func ProvideABCIMiddleware(
-	in ABCIMiddlewareInput,
-) (*ABCIMiddleware, error) {
-	return middleware.NewABCIMiddleware[
-		*AvailabilityStore, *BeaconBlock, *BeaconBlockBundle, *BlobSidecars,
-		*Deposit, *ExecutionPayload, *Genesis, *SlotData,
-	](
-		in.ChainSpec,
-		in.Logger,
-		in.TelemetrySink,
-		in.Dispatcher,
-	), nil
-}
+// events.
+const (
+	BeaconBlockFinalizedEvent = "beacon-block-finalized"
+)

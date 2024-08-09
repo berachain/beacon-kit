@@ -34,34 +34,28 @@ import (
 // ValidatorServiceInput is the input for the validator service provider.
 type ValidatorServiceInput struct {
 	depinject.In
-	BeaconBlockFeed *BlockBroker
-	BlobProcessor   *BlobProcessor
-	Cfg             *config.Config
-	ChainSpec       common.ChainSpec
-	LocalBuilder    *LocalBuilder
-	Logger          log.AdvancedLogger[any, sdklog.Logger]
-	StateProcessor  *StateProcessor
-	StorageBackend  *StorageBackend
-	Signer          crypto.BLSSigner
-	SidecarsFeed    *SidecarsBroker
-	SidecarFactory  *SidecarFactory
-	SlotBroker      *SlotBroker
-	TelemetrySink   *metrics.TelemetrySink
+	BlobProcessor  *BlobProcessor
+	Cfg            *config.Config
+	ChainSpec      common.ChainSpec
+	Dispatcher     *Dispatcher
+	LocalBuilder   *LocalBuilder
+	Logger         log.AdvancedLogger[any, sdklog.Logger]
+	StateProcessor *StateProcessor
+	StorageBackend *StorageBackend
+	Signer         crypto.BLSSigner
+	SidecarFactory *SidecarFactory
+	TelemetrySink  *metrics.TelemetrySink
 }
 
 // ProvideValidatorService is a depinject provider for the validator service.
 func ProvideValidatorService(
 	in ValidatorServiceInput,
 ) (*ValidatorService, error) {
-	slotSubscription, err := in.SlotBroker.Subscribe()
-	if err != nil {
-		in.Logger.Error("failed to subscribe to slot feed", "err", err)
-		return nil, err
-	}
 	// Build the builder service.
 	return validator.NewService[
 		*AttestationData,
 		*BeaconBlock,
+		*BeaconBlockBundle,
 		*BeaconBlockBody,
 		*BeaconState,
 		*BlobSidecars,
@@ -86,8 +80,6 @@ func ProvideValidatorService(
 			in.LocalBuilder,
 		},
 		in.TelemetrySink,
-		in.BeaconBlockFeed,
-		in.SidecarsFeed,
-		slotSubscription,
+		in.Dispatcher,
 	), nil
 }

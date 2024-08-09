@@ -24,7 +24,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -39,12 +38,10 @@ func (s *Service[
 		select {
 		case <-ctx.Done():
 			return
-		case msg := <-s.feed:
-			if msg.Is(events.BeaconBlockFinalized) {
-				blockNum := msg.Data().
-					GetBody().GetExecutionPayload().GetNumber()
-				s.fetchAndStoreDeposits(ctx, blockNum-s.eth1FollowDistance)
-			}
+		case msg := <-s.finalizedBlockEvents:
+			blockNum := msg.Data().
+				GetBody().GetExecutionPayload().GetNumber()
+			s.fetchAndStoreDeposits(ctx, blockNum-s.eth1FollowDistance)
 		}
 	}
 }

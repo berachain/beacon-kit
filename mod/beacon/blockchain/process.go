@@ -25,7 +25,7 @@ import (
 	"time"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
@@ -37,7 +37,7 @@ func (s *Service[
 	ctx context.Context,
 	genesisData GenesisT,
 ) (transition.ValidatorUpdates, error) {
-	return s.sp.InitializePreminedBeaconStateFromEth1(
+	return s.stateProcessor.InitializePreminedBeaconStateFromEth1(
 		s.sb.StateFromContext(ctx),
 		genesisData.GetDeposits(),
 		genesisData.GetExecutionPayloadHeader(),
@@ -83,9 +83,9 @@ func (s *Service[
 	// TODO: this is hood as fuck.
 	// We won't send a fcu if the block is bad, should be addressed
 	// via ticker later.
-	if err = s.blkBroker.Publish(ctx,
+	if err = s.dispatcher.PublishEvent(
 		asynctypes.NewEvent(
-			ctx, events.BeaconBlockFinalized, blk,
+			ctx, messages.BeaconBlockFinalizedEvent, blk,
 		),
 	); err != nil {
 		return nil, err
@@ -106,7 +106,7 @@ func (s *Service[
 ) (transition.ValidatorUpdates, error) {
 	startTime := time.Now()
 	defer s.metrics.measureStateTransitionDuration(startTime)
-	valUpdates, err := s.sp.Transition(
+	valUpdates, err := s.stateProcessor.Transition(
 		&transition.Context{
 			Context:          ctx,
 			OptimisticEngine: true,

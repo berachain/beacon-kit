@@ -30,23 +30,18 @@ import (
 // ServiceRegistryInput is the input for the service registry provider.
 type ServiceRegistryInput struct {
 	depinject.In
-	ABCIService           *ABCIMiddleware
-	BlockBroker           *BlockBroker
-	BlockStoreService     *BlockStoreService
-	ChainService          *ChainService
-	DAService             *DAService
-	DBManager             *DBManager
-	DepositService        *DepositService
-	EngineClient          *EngineClient
-	GenesisBroker         *GenesisBroker
-	Logger                log.Logger
-	NodeAPIServer         *NodeAPIServer
-	ReportingService      *ReportingService
-	SidecarsBroker        *SidecarsBroker
-	SlotBroker            *SlotBroker
-	TelemetrySink         *metrics.TelemetrySink
-	ValidatorService      *ValidatorService
-	ValidatorUpdateBroker *ValidatorUpdateBroker
+	BlockStoreService *BlockStoreService
+	ChainService      *ChainService
+	DAService         *DAService
+	DBManager         *DBManager
+	DepositService    *DepositService
+	EngineClient      *EngineClient
+	Logger            log.Logger
+	NodeAPIServer     *NodeAPIServer
+	ReportingService  *ReportingService
+	TelemetrySink     *metrics.TelemetrySink
+	ValidatorService  *ValidatorService
+	Dispatcher        *Dispatcher
 }
 
 // ProvideServiceRegistry is the depinject provider for the service registry.
@@ -55,20 +50,15 @@ func ProvideServiceRegistry(
 ) *service.Registry {
 	return service.NewRegistry(
 		service.WithLogger(in.Logger),
+		service.WithService(in.Dispatcher),
 		service.WithService(in.ValidatorService),
 		service.WithService(in.BlockStoreService),
 		service.WithService(in.ChainService),
 		service.WithService(in.DAService),
 		service.WithService(in.DepositService),
-		service.WithService(in.ABCIService),
 		service.WithService(in.NodeAPIServer),
 		service.WithService(in.ReportingService),
 		service.WithService(in.DBManager),
-		service.WithService(in.GenesisBroker),
-		service.WithService(in.BlockBroker),
-		service.WithService(in.SlotBroker),
-		service.WithService(in.SidecarsBroker),
-		service.WithService(in.ValidatorUpdateBroker),
 		service.WithService(in.EngineClient),
 	)
 }

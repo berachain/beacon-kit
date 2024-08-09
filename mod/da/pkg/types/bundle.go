@@ -18,15 +18,27 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package broker
+package types
 
-import "time"
+type BlockBundle[BeaconBlockT any, BlobSidecarsT any] struct {
+	Block    BeaconBlockT
+	Sidecars BlobSidecarsT
+}
 
-const (
-	// defaultTimeout specifies the default timeout when the broker
-	// tries to send a message to a client, a message is published to the
-	// broker, or a client subscribes or unsubscribes.
-	defaultTimeout = time.Second
-	// defaultBufferSize specifies the default size of the message buffer.
-	defaultBufferSize = 10
-)
+func (bb *BlockBundle[BeaconBlockT, BlobSidecarsT]) New(
+	block BeaconBlockT,
+	sidecars BlobSidecarsT,
+) *BlockBundle[BeaconBlockT, BlobSidecarsT] {
+	return &BlockBundle[BeaconBlockT, BlobSidecarsT]{
+		Block:    block,
+		Sidecars: sidecars,
+	}
+}
+
+func (bb *BlockBundle[BeaconBlockT, _]) GetBeaconBlock() BeaconBlockT {
+	return bb.Block
+}
+
+func (bb *BlockBundle[_, BlobSidecarsT]) GetSidecars() BlobSidecarsT {
+	return bb.Sidecars
+}

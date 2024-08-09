@@ -29,6 +29,7 @@ import (
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
@@ -73,8 +74,8 @@ func ProvideAvailibilityStore(
 type AvailabilityPrunerInput struct {
 	depinject.In
 	AvailabilityStore *AvailabilityStore
-	BlockBroker       *BlockBroker
 	ChainSpec         common.ChainSpec
+	Dispatcher        *Dispatcher
 	Logger            log.AdvancedLogger[any, sdklog.Logger]
 }
 
@@ -89,25 +90,28 @@ func ProvideAvailabilityPruner(
 		return nil, errors.New("availability store does not have a range db")
 	}
 
-	subCh, err := in.BlockBroker.Subscribe()
-	if err != nil {
-		in.Logger.Error("failed to subscribe to block feed", "err", err)
+	var finalizedBlkCh = make(chan *FinalizedBlockEvent)
+	if err := in.Dispatcher.Subscribe(
+		messages.BeaconBlockFinalizedEvent, finalizedBlkCh,
+	); err != nil {
+		in.Logger.Error("failed to subscribe to event", "event",
+			messages.BeaconBlockFinalizedEvent, "err", err)
 		return nil, err
 	}
 
 	// build the availability pruner if IndexDB is available.
 	return pruner.NewPruner[
 		*BeaconBlock,
-		*BlockEvent,
+		*FinalizedBlockEvent,
 		*IndexDB,
 	](
 		in.Logger.With("service", manager.AvailabilityPrunerName),
 		rangeDB,
 		manager.AvailabilityPrunerName,
-		subCh,
+		finalizedBlkCh,
 		dastore.BuildPruneRangeFn[
 			*BeaconBlock,
-			*BlockEvent,
+			*FinalizedBlockEvent,
 		](in.ChainSpec),
 	), nil
 }

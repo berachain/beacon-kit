@@ -18,37 +18,44 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package messaging
 
 import (
-	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
+	"time"
+
+	"github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/errors"
 )
 
-// ABCIMiddlewareInput is the input for the validator middleware provider.
-type ABCIMiddlewareInput struct {
-	depinject.In
-	ChainSpec     common.ChainSpec
-	Logger        log.Logger[any]
-	TelemetrySink *metrics.TelemetrySink
-	Dispatcher    *Dispatcher
-}
+// errTimeout is the error returned when a dispatch operation timed out.
+//
+//nolint:gochecknoglobals // errors
+var (
+	errTimeout = func(messageID types.MessageID, timeout time.Duration) error {
+		return errors.Newf("message %s timed out after %s", messageID, timeout)
+	}
 
-// ProvideABCIMiddleware is a depinject provider for the validator
-// middleware.
-func ProvideABCIMiddleware(
-	in ABCIMiddlewareInput,
-) (*ABCIMiddleware, error) {
-	return middleware.NewABCIMiddleware[
-		*AvailabilityStore, *BeaconBlock, *BeaconBlockBundle, *BlobSidecars,
-		*Deposit, *ExecutionPayload, *Genesis, *SlotData,
-	](
-		in.ChainSpec,
-		in.Logger,
-		in.TelemetrySink,
-		in.Dispatcher,
-	), nil
-}
+	errRouteAlreadySet = errors.New("route already set")
+
+	errRegisteringNilChannel = func(messageID types.MessageID) error {
+		return errors.Newf("cannot register nil channel for route: %s",
+			messageID)
+	}
+
+	errReceiverNotReady = func(messageID types.MessageID) error {
+		return errors.Newf(
+			"receiver channel is full, closed, or not listening. Route: %s",
+			messageID,
+		)
+	}
+
+	errIncompatibleAssignee = func(
+		assigner interface{}, assignee interface{},
+	) error {
+		return errors.Newf(
+			"incompatible assignee, expected: %T, received: %T",
+			assigner,
+			assignee,
+		)
+	}
+)

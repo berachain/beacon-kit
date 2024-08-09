@@ -18,19 +18,28 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package events
+package messaging
 
-const (
-	NewSlot                     = "new-slot"
-	BeaconBlockBuilt            = "beacon-block-built"
-	BeaconBlockReceived         = "beacon-block-received"
-	BeaconBlockVerified         = "beacon-block-verified"
-	BeaconBlockFinalizedRequest = "beacon-block-finalized-request"
-	BeaconBlockFinalized        = "beacon-block-finalized"
-	ValidatorSetUpdated         = "validator-set-updated"
-	BlobSidecarsBuilt           = "blob-sidecars-built"
-	BlobSidecarsReceived        = "blob-sidecars-received"
-	BlobSidecarsProcessRequest  = "blob-sidecars-process-request"
-	BlobSidecarsProcessed       = "blob-sidecars-processed"
-	GenesisDataProcessRequest   = "genesis-data-process-request"
-)
+// ensureType ensures that the provided entity is of type T.
+// It returns a typed entity or an error if the type is not correct.
+func ensureType[T any](e any) (T, error) {
+	typedE, ok := e.(T)
+	if !ok {
+		return *new(T), errIncompatibleAssignee(*new(T), e)
+	}
+	return typedE, nil
+}
+
+// assign assigns the source value to the dest
+// by pointing destPtr to the source value.
+// contract: destPtr -> *T
+func assign[T any](source T, destPtr any) error {
+	// ensure that the destPtr is a pointer to the response type
+	typedDestPtr, ok := destPtr.(*T)
+	if !ok {
+		return errIncompatibleAssignee(new(T), destPtr)
+	}
+	// assign the underlying value of destPtr to the source value
+	*typedDestPtr = source
+	return nil
+}
