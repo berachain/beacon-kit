@@ -40,11 +40,12 @@ func NewService[
 	store BlockStoreT,
 ) *Service[BeaconBlockT, BlockStoreT] {
 	return &Service[BeaconBlockT, BlockStoreT]{
-		config:          config,
-		logger:          logger,
-		dispatcher:      dispatcher,
-		store:           store,
-		finalizeBlkReqs: make(chan *asynctypes.Message[BeaconBlockT]),
+		config:     config,
+		logger:     logger,
+		dispatcher: dispatcher,
+		store:      store,
+		// finalizedBlkEvents is a channel for receiving finalized block events.
+		finalizedBlkEvents: make(chan *asynctypes.Event[BeaconBlockT]),
 	}
 }
 
@@ -56,10 +57,13 @@ type Service[
 	// config is the configuration for the block service.
 	config Config
 	// logger is used for logging information and errors.
-	logger          log.Logger[any]
-	dispatcher      *dispatcher.Dispatcher
-	store           BlockStoreT
-	finalizeBlkReqs chan *asynctypes.Message[BeaconBlockT]
+	logger log.Logger[any]
+	// dispatcher is the dispatcher for the service.
+	dispatcher *dispatcher.Dispatcher
+	// store is the block store for the service.
+	store BlockStoreT
+	// finalizedBlkEvents is a channel for receiving finalized block events.
+	finalizedBlkEvents chan *asynctypes.Event[BeaconBlockT]
 }
 
 // Name returns the name of the service.
@@ -76,7 +80,7 @@ func (s *Service[BeaconBlockT, _]) Start(ctx context.Context) error {
 
 	// subscribe a channel to the finalized block events.
 	if err := s.dispatcher.Subscribe(
-		messages.BeaconBlockFinalizedEvent, s.finalizeBlkReqs,
+		messages.BeaconBlockFinalizedEvent, s.finalizedBlkEvents,
 	); err != nil {
 		s.logger.Error("failed to subscribe to block events", "error", err)
 		return err
@@ -93,7 +97,7 @@ func (s *Service[BeaconBlockT, _]) listenAndStore(
 		select {
 		case <-ctx.Done():
 			return
-		case msg := <-s.finalizeBlkReqs:
+		case msg := <-s.finalizedBlkEvents:
 			slot := msg.Data().GetSlot()
 			if err := s.store.Set(slot, msg.Data()); err != nil {
 				s.logger.Error(

@@ -86,9 +86,13 @@ type Service[
 	// forceStartupSyncOnce is used to force a sync of the startup head.
 	forceStartupSyncOnce *sync.Once
 
+	// finalizeBlkReqs is a channel for receiving finalize beacon block
+	// requests.
 	finalizeBlkReqs chan *asynctypes.Message[BeaconBlockT]
-	verifyBlkReqs   chan *asynctypes.Message[BeaconBlockT]
-	processGenReqs  chan *asynctypes.Message[GenesisT]
+	// verifyBlkReqs is a channel for receiving verify beacon block requests.
+	verifyBlkReqs chan *asynctypes.Message[BeaconBlockT]
+	// processGenReqs is a channel for receiving process genesis data requests.
+	processGenReqs chan *asynctypes.Message[GenesisT]
 }
 
 // NewService creates a new validator service.

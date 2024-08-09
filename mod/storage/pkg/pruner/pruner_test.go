@@ -130,6 +130,8 @@ func TestPruner(t *testing.T) {
 }
 
 // setupDispatcher sets up a dispatcher with an event server and message server.
+//
+//nolint:lll //annoying linter
 func setupDispatcher(logger log.Logger) *dispatcher.Dispatcher {
 	finBlkPublisher := messaging.NewPublisher[*pruner.BlockEvent[pruner.BeaconBlock]](
 		messages.BeaconBlockFinalizedEvent,
