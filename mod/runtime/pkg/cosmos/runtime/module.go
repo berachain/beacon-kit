@@ -31,7 +31,6 @@ import (
 	"cosmossdk.io/depinject/appconfig"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
 // appModule defines runtime as an AppModule.
@@ -52,7 +51,6 @@ func init() {
 			ProvideApp,
 			ProvideKVStoreKey,
 			ProvideEnvironment,
-			ProvideModuleManager,
 		),
 		appconfig.Invoke(SetupAppBuilder),
 	)
@@ -97,12 +95,6 @@ func ProvideKVStoreKey(
 	storeKey := storetypes.NewKVStoreKey(key.Name())
 	registerStoreKey(app, storeKey)
 	return storeKey
-}
-
-func ProvideModuleManager(
-	modules map[string]appmodule.AppModule,
-) *module.Manager {
-	return module.NewManagerFromMap(modules)
 }
 
 func ProvideEnvironment(

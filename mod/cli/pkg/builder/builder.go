@@ -32,11 +32,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -86,7 +86,6 @@ func New[
 func (cb *CLIBuilder[T, ExecutionPayloadT]) Build() (*cmdlib.Root, error) {
 	// allocate memory to hold the dependencies
 	var (
-		mm        *module.Manager
 		clientCtx client.Context
 		chainSpec common.ChainSpec
 		logger    log.AdvancedLogger[any, sdklog.Logger]
@@ -97,13 +96,12 @@ func (cb *CLIBuilder[T, ExecutionPayloadT]) Build() (*cmdlib.Root, error) {
 			cb.depInjectCfg,
 			depinject.Supply(
 				append(
-					cb.suppliers, &components.StorageBackend{})...,
+					cb.suppliers, []any{&runtime.App{}, &components.StorageBackend{}})...,
 			),
 			depinject.Provide(
 				cb.components...,
 			),
 		),
-		&mm,
 		&logger,
 		&clientCtx,
 		&chainSpec,
@@ -122,7 +120,7 @@ func (cb *CLIBuilder[T, ExecutionPayloadT]) Build() (*cmdlib.Root, error) {
 	// apply default root command setup
 	cmdlib.DefaultRootCommandSetup[T, ExecutionPayloadT](
 		rootCmd,
-		mm,
+		&runtime.App{},
 		cb.nodeBuilderFunc,
 		chainSpec,
 	)
