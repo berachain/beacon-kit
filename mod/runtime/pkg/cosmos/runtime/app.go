@@ -23,41 +23,35 @@ package runtime
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 
 	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/baseapp"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	dbm "github.com/cosmos/cosmos-db"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/gogoproto/proto"
+	"github.com/sourcegraph/conc/iter"
 )
 
 var _ servertypes.Application = &App{}
 
-// App is a wrapper around BaseApp and ModuleManager that can be used in hybrid
-// app.go/app config scenarios or directly as a servertypes.Application
-// instance.
-// To get an instance of *App, *AppBuilder must be requested as a dependency
-// in a container which declares the runtime module and the AppBuilder.Build()
-// method must be called.
-//
 // App can be used to create a hybrid app.go setup where some configuration is
 // done declaratively with an app config and the rest of it is done the old way.
 // See simapp/app.go for an example of this setup.
 type App struct {
 	*baseapp.BaseApp
 
-	ModuleManager *module.Manager
-	Middleware    Middleware
-	config        *runtimev1alpha1.Module
-	storeKeys     []storetypes.StoreKey
-	logger        log.Logger
+	Middleware Middleware
+	config     *runtimev1alpha1.Module
+	storeKeys  []storetypes.StoreKey
+	logger     log.Logger
 	// initChainer is the init chainer function defined by the app config.
 	// this is only required if the chain wants to add special InitChainer
 	// logic.
@@ -103,7 +97,10 @@ func (a *App) Load(loadLatest bool) error {
 }
 
 // FinalizeBlocker application updates every end block.
-func (a *App) FinalizeBlocker(ctx context.Context, req proto.Message) (transition.ValidatorUpdates, error) {
+func (a *App) FinalizeBlocker(
+	ctx context.Context,
+	req proto.Message,
+) (transition.ValidatorUpdates, error) {
 	return a.Middleware.FinalizeBlock(ctx, req)
 }
 
@@ -116,10 +113,46 @@ func (a *App) InitChainer(
 	if err := json.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		return nil, err
 	}
-	return a.ModuleManager.InitGenesis(ctx, genesisState)
+	valUpdates, err := a.Middleware.InitGenesis(ctx, []byte(genesisState["beacon"]))
+	if err != nil {
+		return nil, err
+	}
+
+	convertedValUpdates, err := iter.MapErr(
+		valUpdates,
+		convertValidatorUpdate[abci.ValidatorUpdate],
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &abci.InitChainResponse{
+		Validators: convertedValUpdates,
+	}, nil
+
 }
 
 // LoadHeight loads a particular height.
 func (a *App) LoadHeight(height int64) error {
 	return a.LoadVersion(height)
+}
+
+// convertValidatorUpdate abstracts the conversion of a
+// transition.ValidatorUpdate to an appmodulev2.ValidatorUpdate.
+// TODO: this is so hood, bktypes -> sdktypes -> generic is crazy
+// maybe make this some kind of codec/func that can be passed in?
+func convertValidatorUpdate[ValidatorUpdateT any](
+	u **transition.ValidatorUpdate,
+) (ValidatorUpdateT, error) {
+	var valUpdate ValidatorUpdateT
+	update := *u
+	if update == nil {
+		return valUpdate, errors.New("undefined validator update")
+	}
+	return any(abci.ValidatorUpdate{
+		PubKeyBytes: update.Pubkey[:],
+		PubKeyType:  crypto.CometBLSType,
+		//#nosec:G701 // this is safe.
+		Power: int64(update.EffectiveBalance.Unwrap()),
+	}).(ValidatorUpdateT), nil
 }

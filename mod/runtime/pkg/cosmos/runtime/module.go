@@ -82,7 +82,7 @@ func SetupAppBuilder(inputs AppInputs) {
 	app := inputs.AppBuilder.app
 	app.config = inputs.Config
 	app.logger = inputs.Logger
-	app.ModuleManager = inputs.ModuleManager
+	// app.ModuleManager = inputs.ModuleManager
 }
 
 func registerStoreKey(wrapper *AppBuilder, key storetypes.StoreKey) {
