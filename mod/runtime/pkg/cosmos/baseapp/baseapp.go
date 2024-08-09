@@ -65,11 +65,10 @@ var _ servertypes.ABCI = (*BaseApp)(nil)
 // BaseApp reflects the ABCI application implementation.
 type BaseApp struct {
 	// initialized on creation
-	logger      log.Logger
-	name        string                      // application name from abci.BlockInfo
-	db          dbm.DB                      // common DB backend
-	cms         storetypes.CommitMultiStore // Main (uncached) state
-	storeLoader StoreLoader                 // function to handle store loading, may be overridden with SetStoreLoader()
+	logger log.Logger
+	name   string                      // application name from abci.BlockInfo
+	db     dbm.DB                      // common DB backend
+	cms    storetypes.CommitMultiStore // Main (uncached) state
 
 	initChainer     sdk.InitChainer            // ABCI InitChain handler
 	preBlocker      sdk.PreBlocker             // logic to run before BeginBlocker
@@ -155,7 +154,6 @@ func NewBaseApp(
 			logger,
 			storemetrics.NewNoOpMetrics(),
 		), // by default we use a no-op metric gather in store
-		storeLoader: DefaultStoreLoader,
 	}
 
 	for _, option := range options {
@@ -229,17 +227,12 @@ func (app *BaseApp) MountStore(
 // LoadLatestVersion loads the latest application version. It will panic if
 // called more than once on a running BaseApp.
 func (app *BaseApp) LoadLatestVersion() error {
-	err := app.storeLoader(app.cms)
+	err := app.cms.LoadLatestVersion()
 	if err != nil {
 		return fmt.Errorf("failed to load latest version: %w", err)
 	}
 
 	return app.Init()
-}
-
-// DefaultStoreLoader will be used by default and loads the latest version.
-func DefaultStoreLoader(ms storetypes.CommitMultiStore) error {
-	return ms.LoadLatestVersion()
 }
 
 // CommitMultiStore returns the root multi-store.
