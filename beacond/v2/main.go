@@ -119,7 +119,8 @@ func run() error {
 	}
 
 	appBuilder.WithComponents(
-		components.DefaultComponentsWithStandardTypes()...)
+		components.DefaultComponentsWithStandardTypes[*components.A]()...,
+	)
 	appBuilder.WithStateProcessor(stateProcessor)
 	appBuilder.WithStorageBackend(storageBackend)
 	appBuilder.WithConsensusClient(consensusClient)

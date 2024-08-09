@@ -20,7 +20,9 @@
 
 package components
 
-func DefaultComponentsWithStandardTypes() []any {
+func DefaultComponentsWithStandardTypes[
+	AT AI,
+]() []any {
 	components := []any{
 		ProvideAttributesFactory,
 		ProvideAvailabilityPruner,
@@ -57,9 +59,26 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideTelemetrySink,
 		ProvideTrustedSetup,
 		ProvideValidatorService,
+		// POC
+		ProvideA,
+		ProvideB[AT],
 	}
 	// components = append(components, DefaultNodeAPIComponents()...)
 	// components = append(components, DefaultNodeAPIHandlers()...)
 	components = append(components, DefaultBrokerProviders()...)
 	return components
 }
+
+// POC with generics
+
+type A struct{}
+
+func (a *A) Hello() {}
+
+type AI interface{ Hello() }
+
+type B struct{ A AI }
+
+func ProvideA() *A { return &A{} }
+
+func ProvideB[AT AI](a AT) *B { return &B{A: a} }
