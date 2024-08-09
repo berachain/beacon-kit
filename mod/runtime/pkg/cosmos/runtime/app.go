@@ -26,9 +26,9 @@ import (
 	"errors"
 	"io"
 
-	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/baseapp"
@@ -49,9 +49,8 @@ type App struct {
 	*baseapp.BaseApp
 
 	Middleware Middleware
-	config     *runtimev1alpha1.Module
-	storeKeys  []storetypes.StoreKey
-	logger     log.Logger
+	StoreKeys  []storetypes.StoreKey
+	Logger     log.Logger
 	// initChainer is the init chainer function defined by the app config.
 	// this is only required if the chain wants to add special InitChainer
 	// logic.
@@ -138,6 +137,29 @@ func (a *App) InitChainer(
 // LoadHeight loads a particular height.
 func (a *App) LoadHeight(height int64) error {
 	return a.LoadVersion(height)
+}
+
+// DefaultGenesis returns the default genesis state for the application.
+func (app *App) DefaultGenesis() map[string]json.RawMessage {
+	// Implement the default genesis state for the application.
+	// This should return a map of module names to their respective default
+	// genesis states.
+	gen := make(map[string]json.RawMessage)
+	s := types.DefaultGenesisDeneb()
+	var err error
+	gen["beacon"], err = json.Marshal(s)
+	if err != nil {
+		panic(err)
+	}
+	return gen
+}
+
+// ValidateGenesis validates the provided genesis state.
+func (app *App) ValidateGenesis(genesisData map[string]json.RawMessage) error {
+	// Implement the validation logic for the provided genesis state.
+	// This should validate the genesis state for each module in the
+	// application.
+	return nil
 }
 
 // convertValidatorUpdate abstracts the conversion of a

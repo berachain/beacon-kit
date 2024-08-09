@@ -32,7 +32,7 @@ import (
 // (as *AppBuilder) which can be used to create an app which is compatible with
 // the existing app.go initialization conventions.
 type AppBuilder struct {
-	app        *App
+	App        *App
 	Middleware Middleware
 }
 
@@ -43,12 +43,12 @@ func (a *AppBuilder) Build(
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *App {
 	bApp := baseapp.NewBaseApp(
-		a.app.config.GetAppName(),
-		a.app.logger,
+		"BeaconKit",
+		a.App.Logger,
 		db,
 		baseAppOptions...)
 	bApp.SetVersion(version.Version)
-	bApp.MountStores(a.app.storeKeys...)
-	a.app.BaseApp = bApp
-	return a.app
+	bApp.MountStores(a.App.StoreKeys...)
+	a.App.BaseApp = bApp
+	return a.App
 }
