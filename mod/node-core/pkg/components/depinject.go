@@ -24,34 +24,20 @@ import (
 	"context"
 
 	"cosmossdk.io/core/store"
-	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func ProvideKVStoreKey(
-	app *runtime.AppBuilder,
-) *storetypes.KVStoreKey {
+func ProvideKVStoreKey() **storetypes.KVStoreKey {
 	storeKey := storetypes.NewKVStoreKey("beacon")
-	app.App.StoreKeys = append(app.App.StoreKeys, storeKey)
-	return storeKey
+	return &storeKey
 }
 
 func ProvideKVStoreService(
-	app *runtime.AppBuilder,
+	storeKey **storetypes.KVStoreKey,
 ) store.KVStoreService {
 	// skips modules that have no store
-	return kvStoreService{key: ProvideKVStoreKey(app)}
-}
-
-func ProvideApp(middleware runtime.Middleware) (
-	*runtime.AppBuilder,
-	error,
-) {
-	app := &runtime.App{Middleware: middleware}
-	app.Logger = log.NewNopLogger()
-	return &runtime.AppBuilder{App: app}, nil
+	return kvStoreService{key: *storeKey}
 }
 
 func NewKVStoreService(storeKey *storetypes.KVStoreKey) store.KVStoreService {
