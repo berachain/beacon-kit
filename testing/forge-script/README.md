@@ -20,7 +20,7 @@
 
 - **Contract directory does not use git submodules**
 
-    If the contract directory does not use git submodules, then provide the path until contracts in `repository` and leave `contracts_path` as an empty string.
+    If the contract directory does not use git submodules, provide the path up to the contracts in `repository` and leave `contracts_path` as an empty string.
 
 - **Contract directory use git submodules**
 
@@ -36,7 +36,7 @@ If there's a contract present locally, the only two options supported by kurtosi
 - Use github URL.
 
     Edge scenario: 
-    This would not be supported if the contracts are part of this repository - beacon-kit, in that case, fork the repoistory into your user profile and use that as a repository.
+    This would not be supported if the contracts are part of this repository - beacon-kit, in that case, fork the repository into your user profile and use that as a repository.
 
     I know this is a kind of workaround, until Kurtosis supports local URLs, we don't really have a choice.
 
