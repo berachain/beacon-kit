@@ -21,7 +21,6 @@
 package messaging
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
@@ -76,22 +75,22 @@ func (r *Route[ReqT, RespT]) SendRequest(req types.MessageI) error {
 	if err != nil {
 		return err
 	}
+
 	select {
 	case r.recipient <- typedMsg:
 		return nil
 	default:
-		return ErrReceiverNotListening(r.messageID)
+		// Channel is full or closed
+		return ErrReceiverNotReady(r.messageID)
 	}
 }
 
 // SendResponse sends a response to the response channel.
 func (r *Route[ReqT, RespT]) SendResponse(resp types.MessageI) error {
-	fmt.Println("SENDING RESPONSE", resp)
 	typedMsg, err := ensureType[RespT](resp)
 	if err != nil {
 		return err
 	}
-	fmt.Println("GOOD TYPE", typedMsg)
 	r.responseCh <- typedMsg
 	return nil
 }
@@ -99,13 +98,10 @@ func (r *Route[ReqT, RespT]) SendResponse(resp types.MessageI) error {
 // AwaitResponse listens for a response and returns it if it is available
 // before the timeout. Otherwise, it returns ErrTimeout.
 func (r *Route[ReqT, RespT]) AwaitResponse(respPtr any) error {
-	fmt.Println("awaiting RESPONSESESESE")
 	select {
 	case resp := <-r.responseCh:
-		fmt.Println("GOT RESPONSESESESE")
 		return assign(resp, respPtr)
 	case <-time.After(r.timeout):
-		fmt.Println("TIMED OUT GREENENENENENENENENNENENENENENENENENEN")
 		return ErrTimeout(r.messageID, r.timeout)
 	}
 }

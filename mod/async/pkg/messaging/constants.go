@@ -22,6 +22,7 @@ package messaging
 
 import "time"
 
+// TODO: make timeout configurable thorugh config/context
 const (
 	// defaultPublisherTimeout specifies the default timeout when the publisher
 	// tries to send a message to a client, a message is published to the
@@ -31,7 +32,7 @@ const (
 	// defaultRouterTimeout specifies the default timeout when the router
 	// tries to send a message to a client, a message is published to the
 	// router, or a client subscribes or unsubscribes.
-	defaultRouterTimeout = time.Second
+	defaultRouterTimeout = 2 * time.Second
 
 	// defaultBufferSize specifies the default size of the message buffer.
 	defaultBufferSize = 10

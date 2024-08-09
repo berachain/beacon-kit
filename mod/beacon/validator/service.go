@@ -223,10 +223,11 @@ func (s *Service[
 	// bundle the block and sidecars and dispatch the response
 	// blkData := *new(BeaconBlockBundleT)
 	var blkData BeaconBlockBundleT
+	blkData = blkData.New(blk, sidecars)
 	if err := s.dispatcher.Respond(asynctypes.NewMessage(
 		req.Context(),
 		messages.BuildBeaconBlockAndSidecars,
-		blkData.New(blk, sidecars),
+		blkData,
 	)); err != nil {
 		s.logger.Error("failed to respond", "err", err)
 	}

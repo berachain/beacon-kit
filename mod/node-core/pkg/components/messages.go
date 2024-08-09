@@ -42,6 +42,18 @@ func ProvideMessageServer(in MessageServerInput) *server.MessageServer {
 	return ms
 }
 
+// ProvideMessageRoutes provides all the message routes.
+func ProvideMessageRoutes() []asynctypes.MessageRoute {
+	return []asynctypes.MessageRoute{
+		RouteFactory(messages.BuildBeaconBlockAndSidecars),
+		RouteFactory(messages.VerifyBeaconBlock),
+		RouteFactory(messages.FinalizeBeaconBlock),
+		RouteFactory(messages.ProcessGenesisData),
+		RouteFactory(messages.VerifySidecars),
+		RouteFactory(messages.ProcessSidecars),
+	}
+}
+
 // RouteFactory creates a new route for the given message ID.
 func RouteFactory(mID string) asynctypes.MessageRoute {
 	switch mID {
@@ -71,18 +83,6 @@ func RouteFactory(mID string) asynctypes.MessageRoute {
 		](messages.ProcessSidecars)
 	default:
 		return nil
-	}
-}
-
-// ProvideMessageRoutes provides all the message routes.
-func ProvideMessageRoutes() []asynctypes.MessageRoute {
-	return []asynctypes.MessageRoute{
-		RouteFactory(messages.BuildBeaconBlockAndSidecars),
-		RouteFactory(messages.VerifyBeaconBlock),
-		RouteFactory(messages.FinalizeBeaconBlock),
-		RouteFactory(messages.ProcessGenesisData),
-		RouteFactory(messages.VerifySidecars),
-		RouteFactory(messages.ProcessSidecars),
 	}
 }
 

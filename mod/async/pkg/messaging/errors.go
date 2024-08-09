@@ -28,6 +28,8 @@ import (
 )
 
 // ErrTimeout is the error returned when a dispatch operation timed out.
+//
+//nolint:lll // long errors
 var (
 	ErrTimeout = func(messageID types.MessageID, timeout time.Duration) error {
 		return errors.Newf("message %s timed out after %s", messageID, timeout)
@@ -39,8 +41,11 @@ var (
 		return errors.Newf("cannot register nil channel for route: %s", messageID)
 	}
 
-	ErrReceiverNotListening = func(messageID types.MessageID) error {
-		return errors.Newf("receiver may be registered but not listening for route: %s", messageID)
+	ErrReceiverNotReady = func(messageID types.MessageID) error {
+		return errors.Newf(
+			"receiver channel is either full, closed, or not listening. Route: %s",
+			messageID,
+		)
 	}
 
 	errIncompatibleAssignee = func(assigner interface{}, assignee interface{}) error {
