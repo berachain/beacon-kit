@@ -62,7 +62,6 @@ type AppInputs struct {
 
 func SetupAppBuilder(inputs AppInputs) {
 	app := inputs.AppBuilder.app
-	app.config = inputs.Config
 	app.logger = inputs.Logger
 }
 

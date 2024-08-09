@@ -26,7 +26,6 @@ import (
 	"errors"
 	"io"
 
-	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -50,7 +49,6 @@ type App struct {
 	*baseapp.BaseApp
 
 	Middleware Middleware
-	config     *runtimev1alpha1.Module
 	storeKeys  []storetypes.StoreKey
 	logger     log.Logger
 	// initChainer is the init chainer function defined by the app config.
