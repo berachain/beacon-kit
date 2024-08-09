@@ -22,7 +22,6 @@ package runtime
 
 import (
 	"fmt"
-	"slices"
 
 	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
 	"cosmossdk.io/core/appmodule"
@@ -69,11 +68,10 @@ func registerStoreKey(wrapper *AppBuilder, key storetypes.StoreKey) {
 }
 
 func ProvideKVStoreKey(
-	config *runtimev1alpha1.Module,
 	key depinject.ModuleKey,
 	app *AppBuilder,
 ) *storetypes.KVStoreKey {
-	if slices.Contains(config.GetSkipStoreKeys(), key.Name()) {
+	if key.Name() != "beacon" {
 		return nil
 	}
 
@@ -84,7 +82,6 @@ func ProvideKVStoreKey(
 
 func ProvideEnvironment(
 	logger log.Logger,
-	config *runtimev1alpha1.Module,
 	key depinject.ModuleKey,
 	app *AppBuilder,
 ) (store.KVStoreService, appmodule.Environment) {
@@ -93,10 +90,9 @@ func ProvideEnvironment(
 	)
 
 	// skips modules that have no store
-	if !slices.Contains(config.GetSkipStoreKeys(), key.Name()) {
-		storeKey := ProvideKVStoreKey(config, key, app)
+	if key.Name() == "beacon" {
+		storeKey := ProvideKVStoreKey(key, app)
 		kvService = kvStoreService{key: storeKey}
-
 	}
 
 	return kvService, appmodule.Environment{
