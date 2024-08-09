@@ -21,7 +21,6 @@
 package runtime
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 	cmttypes "github.com/cometbft/cometbft/types"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -48,26 +47,26 @@ func (app *App) ExportAppStateAndValidators(
 		panic("not supported, just look at the genesis file u goofy")
 	}
 
-	genState, err := app.ModuleManager.ExportGenesisForModules(
-		ctx,
-		modulesToExport,
-	)
-	if err != nil {
-		return servertypes.ExportedApp{}, err
-	}
+	// genState, err := app.ModuleManager.ExportGenesisForModules(
+	// 	ctx,
+	// 	modulesToExport,
+	// )
+	// if err != nil {
+	// 	return servertypes.ExportedApp{}, err
+	// }
 
-	appState, err := json.MarshalIndent(genState, "", "  ")
-	if err != nil {
-		return servertypes.ExportedApp{}, err
-	}
+	// appState, err := json.MarshalIndent(genState, "", "  ")
+	// if err != nil {
+	// 	return servertypes.ExportedApp{}, err
+	// }
 
 	// TODO: Pull these in from the BeaconKeeper, should be easy.
 	validators := []cmttypes.GenesisValidator(nil)
 
 	return servertypes.ExportedApp{
-		AppState:        appState,
+		AppState:        nil,
 		Validators:      validators,
 		Height:          height,
 		ConsensusParams: app.BaseApp.GetConsensusParams(ctx),
-	}, err
+	}, nil
 }

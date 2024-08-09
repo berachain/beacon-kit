@@ -31,7 +31,6 @@ import (
 	"cosmossdk.io/depinject/appconfig"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
-	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
@@ -51,7 +50,6 @@ func init() {
 	appconfig.RegisterModule(&runtimev1alpha1.Module{},
 		appconfig.Provide(
 			ProvideApp,
-			codec.ProvideAddressCodec,
 			ProvideKVStoreKey,
 			ProvideEnvironment,
 			ProvideModuleManager,
@@ -60,29 +58,27 @@ func init() {
 	)
 }
 
-func ProvideApp() (
+func ProvideApp(middleware Middleware) (
 	*AppBuilder,
 	appmodule.AppModule,
 	error,
 ) {
-	app := &App{}
-	return &AppBuilder{app}, appModule{app}, nil
+	app := &App{Middleware: middleware}
+	return &AppBuilder{app: app}, appModule{app}, nil
 }
 
 type AppInputs struct {
 	depinject.In
 
-	Logger        log.Logger
-	Config        *runtimev1alpha1.Module
-	AppBuilder    *AppBuilder
-	ModuleManager *module.Manager
+	Logger     log.Logger
+	Config     *runtimev1alpha1.Module
+	AppBuilder *AppBuilder
 }
 
 func SetupAppBuilder(inputs AppInputs) {
 	app := inputs.AppBuilder.app
 	app.config = inputs.Config
 	app.logger = inputs.Logger
-	app.ModuleManager = inputs.ModuleManager
 }
 
 func registerStoreKey(wrapper *AppBuilder, key storetypes.StoreKey) {

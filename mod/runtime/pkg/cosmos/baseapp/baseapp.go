@@ -30,11 +30,14 @@ import (
 	"cosmossdk.io/store"
 	storemetrics "cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 	dbm "github.com/cosmos/cosmos-db"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/gogoproto/proto"
 )
 
 type (
@@ -62,12 +65,10 @@ type BaseApp struct {
 	db     dbm.DB                      // common DB backend
 	cms    storetypes.CommitMultiStore // Main (uncached) state
 
-	initChainer     sdk.InitChainer            // ABCI InitChain handler
-	preBlocker      sdk.PreBlocker             // logic to run before BeginBlocker
-	beginBlocker    sdk.BeginBlocker           // (legacy ABCI) BeginBlock handler
-	endBlocker      sdk.EndBlocker             // (legacy ABCI) EndBlock handler
-	processProposal sdk.ProcessProposalHandler // ABCI ProcessProposal handler
-	prepareProposal sdk.PrepareProposalHandler // ABCI PrepareProposal handler
+	initChainer     sdk.InitChainer                                                           // ABCI InitChain handler
+	finalizeBlocker func(context.Context, proto.Message) (transition.ValidatorUpdates, error) // (legacy ABCI) EndBlock handler
+	processProposal sdk.ProcessProposalHandler                                                // ABCI ProcessProposal handler
+	prepareProposal sdk.PrepareProposalHandler                                                // ABCI PrepareProposal handler
 
 	// volatile states:
 	//
@@ -390,42 +391,6 @@ func (app *BaseApp) validateFinalizeBlockHeight(
 	return nil
 }
 
-func (app *BaseApp) preBlock(
-	req *abci.FinalizeBlockRequest,
-) error {
-	if app.preBlocker != nil {
-		ctx := app.finalizeBlockState.Context()
-		if err := app.preBlocker(ctx, req); err != nil {
-			return err
-		}
-		// ConsensusParams can change in preblocker, so we need to
-		// write the consensus parameters in store to context
-		ctx = ctx.WithConsensusParams(app.GetConsensusParams(ctx))
-		app.finalizeBlockState.SetContext(ctx)
-	}
-	return nil
-}
-
-func (app *BaseApp) beginBlock(
-	_ *abci.FinalizeBlockRequest,
-) (sdk.BeginBlock, error) {
-	if app.beginBlocker != nil {
-		return app.beginBlocker(app.finalizeBlockState.Context())
-	}
-
-	return sdk.BeginBlock{}, nil
-}
-
-// endBlock is an application-defined function that is called after transactions
-// have been processed in FinalizeBlock.
-func (app *BaseApp) endBlock(_ context.Context) (sdk.EndBlock, error) {
-	if app.endBlocker != nil {
-		return app.endBlocker(app.finalizeBlockState.Context())
-	}
-
-	return sdk.EndBlock{}, nil
-}
-
 // Close is called in start cmd to gracefully cleanup resources.
 func (app *BaseApp) Close() error {
 	var errs []error
@@ -439,4 +404,24 @@ func (app *BaseApp) Close() error {
 	}
 
 	return errors.Join(errs...)
+}
+
+// convertValidatorUpdate abstracts the conversion of a
+// transition.ValidatorUpdate to an appmodulev2.ValidatorUpdate.
+// TODO: this is so hood, bktypes -> sdktypes -> generic is crazy
+// maybe make this some kind of codec/func that can be passed in?
+func convertValidatorUpdate[ValidatorUpdateT any](
+	u **transition.ValidatorUpdate,
+) (ValidatorUpdateT, error) {
+	var valUpdate ValidatorUpdateT
+	update := *u
+	if update == nil {
+		return valUpdate, errors.New("undefined validator update")
+	}
+	return any(abci.ValidatorUpdate{
+		PubKeyBytes: update.Pubkey[:],
+		PubKeyType:  crypto.CometBLSType,
+		//#nosec:G701 // this is safe.
+		Power: int64(update.EffectiveBalance.Unwrap()),
+	}).(ValidatorUpdateT), nil
 }

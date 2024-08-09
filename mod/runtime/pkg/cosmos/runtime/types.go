@@ -18,13 +18,36 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-syntax = "proto3";
+package runtime
 
-package beacon.module.v1alpha1;
+import (
+	"context"
 
-import "cosmos/app/v1alpha1/module.proto";
+	ctypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
+	"github.com/cosmos/gogoproto/proto"
+)
 
-// Module is the config object of the evm module.
-message Module {
-  option (cosmos.app.v1alpha1.module) = {go_import: "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module"};
+type Middleware interface {
+	InitGenesis(
+		ctx context.Context,
+		bz []byte,
+	) (transition.ValidatorUpdates, error)
+
+	PrepareProposal(
+		ctx context.Context,
+		slotData *types.SlotData[
+			*ctypes.AttestationData,
+			*ctypes.SlashingInfo],
+	) ([]byte, []byte, error)
+
+	ProcessProposal(
+		ctx context.Context,
+		req proto.Message,
+	) (proto.Message, error)
+
+	FinalizeBlock(
+		ctx context.Context, req proto.Message,
+	) (transition.ValidatorUpdates, error)
 }

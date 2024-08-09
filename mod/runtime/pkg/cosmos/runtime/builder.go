@@ -32,7 +32,8 @@ import (
 // (as *AppBuilder) which can be used to create an app which is compatible with
 // the existing app.go initialization conventions.
 type AppBuilder struct {
-	app *App
+	app        *App
+	Middleware Middleware
 }
 
 // Build builds an *App instance.

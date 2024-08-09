@@ -34,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	rp2p "github.com/berachain/beacon-kit/mod/runtime/pkg/p2p"
-	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
 // ABCIMiddleware is a middleware between ABCI and the validator logic.
@@ -83,9 +82,6 @@ type ABCIMiddleware[
 	sidecarsBroker *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
 	// slotBroker is a feed for slots.
 	slotBroker *broker.Broker[*asynctypes.Event[SlotDataT]]
-
-	// TODO: this is a temporary hack.
-	req *cmtabci.FinalizeBlockRequest
 
 	// Channels
 	// blkCh is used to communicate the beacon block to the EndBlock method.
