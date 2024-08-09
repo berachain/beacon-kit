@@ -44,17 +44,14 @@ var (
 // AppModule implements an application module for the beacon module.
 // It is a wrapper around the ABCIMiddleware.
 type AppModule struct {
-	ABCIMiddleware *components.ABCIMiddleware
 	StorageBackend *components.StorageBackend
 }
 
 // NewAppModule creates a new AppModule object.
 func NewAppModule(
-	abciMiddleware *components.ABCIMiddleware,
 	storageBackend *components.StorageBackend,
 ) AppModule {
 	return AppModule{
-		ABCIMiddleware: abciMiddleware,
 		StorageBackend: storageBackend,
 	}
 }

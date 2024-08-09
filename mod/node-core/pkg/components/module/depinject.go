@@ -43,7 +43,6 @@ func init() {
 // ModuleInput is the input for the dep inject framework.
 type ModuleInput struct {
 	depinject.In
-	ABCIMiddleware *components.ABCIMiddleware
 	StorageBackend *components.StorageBackend
 }
 
@@ -57,7 +56,6 @@ type ModuleOutput struct {
 func ProvideModule(in ModuleInput) (ModuleOutput, error) {
 	return ModuleOutput{
 		Module: NewAppModule(
-			in.ABCIMiddleware,
 			in.StorageBackend,
 		),
 	}, nil
