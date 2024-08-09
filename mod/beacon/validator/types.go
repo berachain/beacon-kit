@@ -67,13 +67,13 @@ type BeaconBlock[
 
 // BeaconBlockBundle represents a block data interface.
 type BeaconBlockBundle[
+	T any,
 	BeaconBlockT any,
 	BlobSidecarsT any,
 ] interface {
+	New(BeaconBlockT, BlobSidecarsT) T
 	GetBeaconBlock() BeaconBlockT
 	GetSidecars() BlobSidecarsT
-	SetBeaconBlock(BeaconBlockT)
-	SetSidecars(BlobSidecarsT)
 }
 
 // BeaconBlockBody represents a beacon block body interface.

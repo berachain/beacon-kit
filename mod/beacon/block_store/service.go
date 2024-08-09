@@ -85,13 +85,13 @@ func (s *Service[BeaconBlockT, _]) Start(ctx context.Context) error {
 // listenAndStore listens for blocks and stores them in the KVStore.
 func (s *Service[BeaconBlockT, _]) listenAndStore(
 	ctx context.Context,
-	subBlkCh <-chan *asynctypes.Event[BeaconBlockT],
+	finalizeBlockCh <-chan *asynctypes.Event[BeaconBlockT],
 ) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case msg := <-subBlkCh:
+		case msg := <-finalizeBlockCh:
 			slot := msg.Data().GetSlot()
 			if err := s.store.Set(slot, msg.Data()); err != nil {
 				s.logger.Error(

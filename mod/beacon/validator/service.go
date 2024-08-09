@@ -39,8 +39,8 @@ type Service[
 		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, DepositT,
 		Eth1DataT, ExecutionPayloadT, SlashingInfoT,
 	],
-	BlockDataT BeaconBlockBundle[
-		BeaconBlockT, BlobSidecarsT,
+	BeaconBlockBundleT BeaconBlockBundle[
+		BeaconBlockBundleT, BeaconBlockT, BlobSidecarsT,
 	],
 	BeaconBlockBodyT BeaconBlockBody[
 		AttestationDataT, DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
@@ -102,7 +102,7 @@ func NewService[
 		Eth1DataT, ExecutionPayloadT, SlashingInfoT,
 	],
 	BeaconBlockBundleT BeaconBlockBundle[
-		BeaconBlockT, BlobSidecarsT,
+		BeaconBlockBundleT, BeaconBlockT, BlobSidecarsT,
 	],
 	BeaconBlockBodyT BeaconBlockBody[
 		AttestationDataT, DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
@@ -178,15 +178,15 @@ func (s *Service[
 	ctx context.Context,
 ) error {
 	// register a receiver channel for build block requests
-	buildBlkReqs := make(chan *asynctypes.Message[SlotDataT])
+	buildBlkBundleReqs := make(chan *asynctypes.Message[SlotDataT])
 	if err := s.dispatcher.RegisterMsgReceiver(
-		messages.BuildBeaconBlockAndSidecars, buildBlkReqs,
+		messages.BuildBeaconBlockAndSidecars, buildBlkBundleReqs,
 	); err != nil {
 		return err
 	}
 
 	// start a goroutine to listen for requests and handle accordingly
-	go s.start(ctx, buildBlkReqs)
+	go s.start(ctx, buildBlkBundleReqs)
 	return nil
 }
 
@@ -195,13 +195,13 @@ func (s *Service[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, SlotDataT,
 ]) start(
 	ctx context.Context,
-	buildBlockBundleRequests chan *asynctypes.Message[SlotDataT],
+	buildBlkBundleReqs chan *asynctypes.Message[SlotDataT],
 ) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case req := <-buildBlockBundleRequests:
+		case req := <-buildBlkBundleReqs:
 			s.handleBuildBlockBundleRequest(req)
 		}
 	}
@@ -221,12 +221,13 @@ func (s *Service[
 	}
 
 	// bundle the block and sidecars and dispatch the response
+	// blkData := *new(BeaconBlockBundleT)
 	var blkData BeaconBlockBundleT
-	blkData.SetBeaconBlock(blk)
-	blkData.SetSidecars(sidecars)
-	s.dispatcher.Respond(asynctypes.NewMessage(
+	if err := s.dispatcher.Respond(asynctypes.NewMessage(
 		req.Context(),
 		messages.BuildBeaconBlockAndSidecars,
-		blkData,
-	))
+		blkData.New(blk, sidecars),
+	)); err != nil {
+		s.logger.Error("failed to respond", "err", err)
+	}
 }

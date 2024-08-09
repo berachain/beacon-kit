@@ -22,7 +22,7 @@ package messages
 
 // messages
 const (
-	BuildBeaconBlockAndSidecars = "build-beacon-block"
+	BuildBeaconBlockAndSidecars = "build-beacon-block-and-sidecars"
 	VerifyBeaconBlock           = "verify-beacon-block"
 	FinalizeBeaconBlock         = "finalize-beacon-block"
 	ProcessGenesisData          = "process-genesis-data"

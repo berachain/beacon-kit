@@ -98,7 +98,10 @@ type (
 
 	// BeaconBlock type aliases.
 	BeaconBlock       = types.BeaconBlock
-	BeaconBlockBundle = datypes.BlockBundle
+	BeaconBlockBundle = datypes.BlockBundle[
+		*BeaconBlock,
+		*BlobSidecars,
+	]
 	BeaconBlockBody   = types.BeaconBlockBody
 	BeaconBlockHeader = types.BeaconBlockHeader
 

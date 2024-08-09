@@ -87,11 +87,13 @@ func (h *ABCIMiddleware[
 	defer h.metrics.measurePrepareProposalDuration(startTime)
 
 	// request a built beacon block for the given slot
-	h.dispatcher.Request(
+	if err := h.dispatcher.Request(
 		asynctypes.NewMessage(
 			ctx, messages.BuildBeaconBlockAndSidecars, slotData,
 		), &beaconBlkBundleResp,
-	)
+	); err != nil {
+		return nil, nil, err
+	}
 
 	// gossip the built beacon block and blob sidecars
 	return h.handleBeaconBlockBundleResponse(ctx, beaconBlkBundleResp)

@@ -20,25 +20,25 @@
 
 package types
 
-import "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-
-type BlockBundle struct {
-	Block    *types.BeaconBlock
-	Sidecars *BlobSidecars
+type BlockBundle[BeaconBlockT any, BlobSidecarsT any] struct {
+	Block    BeaconBlockT
+	Sidecars BlobSidecarsT
 }
 
-func (bb *BlockBundle) GetBeaconBlock() *types.BeaconBlock {
+func (bb *BlockBundle[BeaconBlockT, BlobSidecarsT]) New(
+	block BeaconBlockT,
+	sidecars BlobSidecarsT,
+) *BlockBundle[BeaconBlockT, BlobSidecarsT] {
+	return &BlockBundle[BeaconBlockT, BlobSidecarsT]{
+		Block:    block,
+		Sidecars: sidecars,
+	}
+}
+
+func (bb *BlockBundle[BeaconBlockT, _]) GetBeaconBlock() BeaconBlockT {
 	return bb.Block
 }
 
-func (bb *BlockBundle) GetSidecars() *BlobSidecars {
+func (bb *BlockBundle[_, BlobSidecarsT]) GetSidecars() BlobSidecarsT {
 	return bb.Sidecars
-}
-
-func (bb *BlockBundle) SetBeaconBlock(block *types.BeaconBlock) {
-	bb.Block = block
-}
-
-func (bb *BlockBundle) SetSidecars(sidecars *BlobSidecars) {
-	bb.Sidecars = sidecars
 }
