@@ -22,8 +22,6 @@ package blockstore
 
 import (
 	"context"
-	"fmt"
-	"time"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -103,8 +101,6 @@ func (s *Service[BeaconBlockT, _]) listenAndStore(
 			return
 		case msg := <-subBlkCh:
 			if msg.Is(events.BeaconBlockFinalized) {
-				fmt.Println("RECEIVED FINALIZED EVENT")
-				startTime := time.Now()
 				// Wait for the corresponding state root event
 				root, err := s.waitForStateRoot(ctx)
 				if err != nil {
@@ -113,14 +109,12 @@ func (s *Service[BeaconBlockT, _]) listenAndStore(
 						"error", err,
 					)
 				}
-				fmt.Println("RECEIVED STATE ROOT AFTER", time.Since(startTime))
 				slot := msg.Data().GetSlot()
 				if err := s.store.Set(slot, root, msg.Data()); err != nil {
 					s.logger.Error(
 						"failed to store block", "slot", slot, "error", err,
 					)
 				}
-				fmt.Println("COMPLETED MESSAGE HANDLE IN", time.Since(startTime))
 			}
 		}
 	}
@@ -134,7 +128,7 @@ func (s *Service[_, _]) waitForStateRoot(
 		case <-ctx.Done():
 			return common.Root{}, nil
 		case msg := <-s.stateRootChannel:
-			if !msg.Is(events.StateRootPublished) {
+			if !msg.Is(events.PrevStateRootPublished) {
 				return common.Root{}, errInvalidStateRootEvent
 			}
 			return msg.Data(), msg.Error()
