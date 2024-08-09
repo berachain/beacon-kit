@@ -58,7 +58,7 @@ type App struct {
 }
 
 // NewBeaconKitApp returns a reference to an initialized BeaconApp.
-func NewBeaconKitApp(
+func a(
 	storeKey *storetypes.KVStoreKey,
 	logger log.Logger,
 	db dbm.DB,
@@ -68,20 +68,16 @@ func NewBeaconKitApp(
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *App {
 	app := &App{
+		BaseApp: baseapp.NewBaseApp(
+			"BeaconKit",
+			logger,
+			db,
+			baseAppOptions...),
 		Middleware: middleware,
 	}
 
-	bApp := baseapp.NewBaseApp(
-		"BeaconKit",
-		logger,
-		db,
-		baseAppOptions...)
-	bApp.SetVersion(version.Version)
-	bApp.MountStore(storeKey, storetypes.StoreTypeIAVL)
-	app.BaseApp = bApp
-
-	// // Build the runtime.App using the app builder.
-	// app = appBuilder.Build(db, traceStore, logger, baseAppOptions...)
+	app.SetVersion(version.Version)
+	app.MountStore(storeKey, storetypes.StoreTypeIAVL)
 
 	// Load the app.
 	if err := app.Load(loadLatest); err != nil {
