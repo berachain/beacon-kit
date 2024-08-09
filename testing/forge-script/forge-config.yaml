@@ -18,15 +18,12 @@
 # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 # TITLE.
 
+# Please refer to the README.md file for more information on how to fill this file.
 deployment:
-  # repository: "github.com/nidhi-singh02/solidity-scripting/"  # follow the same format as defined here.
-  # script_path: "script/NFT.s.sol"  # this must be relative to the repository path
-  # contract_name: "MyScript"  # this is the name of the contract to deploy
-  # contracts_path: ""
   repository: "github.com/nidhi-singh02/beacon-kit"  # give repo name if there are submodules, else give the folder till contracts
-  contracts_path: "contracts" # give the path till contracts, if the repository is the contract folder itself, then leave it empty
+  contracts_path: "contracts"  # give the path till contracts, if the repository is the contract folder itself, then leave it empty
   script_path: "script/DeployAndCallERC20.s.sol"  # this must be relative to the repository path + contracts_path(if applicable)
-  contract_name: "DeployAndCallERC20"  # this is the name of the contract to deploy  
+  contract_name: "DeployAndCallERC20"
   rpc_url: "http://HOST_IP_ADDRESS:8547"  # If you spin up local devnet via kurtosis, then public port is 8547
   wallet:
     type: "private_key"  # currently only private_key wallet is supported. Do not change the type.
