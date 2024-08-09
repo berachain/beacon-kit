@@ -26,7 +26,6 @@ import (
 	"cosmossdk.io/core/appmodule/v2"
 	"cosmossdk.io/core/registry"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 )
 
@@ -43,18 +42,7 @@ var (
 
 // AppModule implements an application module for the beacon module.
 // It is a wrapper around the ABCIMiddleware.
-type AppModule struct {
-	StorageBackend *components.StorageBackend
-}
-
-// NewAppModule creates a new AppModule object.
-func NewAppModule(
-	storageBackend *components.StorageBackend,
-) AppModule {
-	return AppModule{
-		StorageBackend: storageBackend,
-	}
-}
+type AppModule struct{}
 
 // Name is the name of this module.
 func (am AppModule) Name() string {
