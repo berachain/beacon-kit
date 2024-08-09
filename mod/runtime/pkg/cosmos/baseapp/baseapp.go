@@ -39,14 +39,6 @@ import (
 
 type (
 	execMode uint8
-
-	// StoreLoader defines a customizable function to control how we load the
-	// CommitMultiStore from disk. This is useful for state migration, when
-	// loading a datastore written with an older version of the software. In
-	// particular, if a module changed the substore key name (or removed a
-	// substore)
-	// between two versions of the software.
-	StoreLoader func(ms storetypes.CommitMultiStore) error
 )
 
 const (
@@ -62,11 +54,10 @@ var _ servertypes.ABCI = (*BaseApp)(nil)
 // BaseApp reflects the ABCI application implementation.
 type BaseApp struct {
 	// initialized on creation
-	logger      log.Logger
-	name        string                      // application name from abci.BlockInfo
-	db          dbm.DB                      // common DB backend
-	cms         storetypes.CommitMultiStore // Main (uncached) state
-	storeLoader StoreLoader                 // function to handle store loading, may be overridden with SetStoreLoader()
+	logger log.Logger
+	name   string                      // application name from abci.BlockInfo
+	db     dbm.DB                      // common DB backend
+	cms    storetypes.CommitMultiStore // Main (uncached) state
 
 	initChainer     sdk.InitChainer            // ABCI InitChain handler
 	preBlocker      sdk.PreBlocker             // logic to run before BeginBlocker
@@ -143,7 +134,6 @@ func NewBaseApp(
 			logger,
 			storemetrics.NewNoOpMetrics(),
 		), // by default we use a no-op metric gather in store
-		storeLoader: DefaultStoreLoader,
 	}
 
 	for _, option := range options {
@@ -207,17 +197,11 @@ func (app *BaseApp) MountStore(
 // LoadLatestVersion loads the latest application version. It will panic if
 // called more than once on a running BaseApp.
 func (app *BaseApp) LoadLatestVersion() error {
-	err := app.storeLoader(app.cms)
-	if err != nil {
+	if err := app.cms.LoadLatestVersion(); err != nil {
 		return fmt.Errorf("failed to load latest version: %w", err)
 	}
 
 	return app.Init()
-}
-
-// DefaultStoreLoader will be used by default and loads the latest version.
-func DefaultStoreLoader(ms storetypes.CommitMultiStore) error {
-	return ms.LoadLatestVersion()
 }
 
 // CommitMultiStore returns the root multi-store.
