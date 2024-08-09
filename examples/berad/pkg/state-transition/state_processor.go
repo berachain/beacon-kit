@@ -23,6 +23,7 @@ package transition
 import (
 	"bytes"
 
+	chainspec "github.com/berachain/beacon-kit/examples/berad/pkg/chain-spec"
 	"github.com/berachain/beacon-kit/mod/errors"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -78,7 +79,7 @@ type StateProcessor[
 	},
 ] struct {
 	// cs is the chain specification for the beacon chain.
-	cs common.ChainSpec
+	cs chainspec.BeraChainSpec
 	// signer is the BLS signer used for cryptographic operations.
 	signer crypto.BLSSigner
 	// executionEngine is the engine responsible for executing transactions.
@@ -130,7 +131,7 @@ func NewStateProcessor[
 		ToExecutionAddress() (gethprimitives.ExecutionAddress, error)
 	},
 ](
-	cs common.ChainSpec,
+	cs chainspec.BeraChainSpec,
 	executionEngine ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
@@ -206,7 +207,8 @@ func (sp *StateProcessor[
 		}
 
 		// Process the Epoch Boundary.
-		if uint64(stateSlot+1)%sp.cs.SlotsPerEpoch() == 0 {
+		boundary := (stateSlot.Unwrap() + 1) == 0
+		if boundary {
 			if epochValidatorUpdates, err =
 				sp.processEpoch(st); err != nil {
 				return nil, err
@@ -460,7 +462,7 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	if sp.cs.SlotToEpoch(slot) == math.U64(constants.GenesisEpoch) {
+	if sp.cs.SlotToEpoch(slot.Unwrap()) == constants.GenesisEpoch {
 		return nil
 	}
 

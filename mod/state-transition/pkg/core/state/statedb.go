@@ -202,7 +202,7 @@ func (s *StateDB[
 		return nil, err
 	}
 
-	epoch := math.Epoch(uint64(slot) / s.cs.SlotsPerEpoch())
+	epoch := math.Epoch(slot.Unwrap() / s.cs.SlotsPerEpoch())
 
 	withdrawalIndex, err := s.GetNextWithdrawalIndex()
 	if err != nil {
