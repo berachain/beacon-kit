@@ -164,14 +164,6 @@ func (a *App) EndBlocker(ctx sdk.Context) (sdk.EndBlock, error) {
 	return a.ModuleManager.EndBlock(ctx)
 }
 
-// Precommiter application updates every commit.
-func (a *App) Precommiter(ctx sdk.Context) {
-	err := a.ModuleManager.Precommit(ctx)
-	if err != nil {
-		panic(err)
-	}
-}
-
 // InitChainer initializes the chain.
 func (a *App) InitChainer(
 	ctx sdk.Context,
