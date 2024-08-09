@@ -37,6 +37,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/gogoproto/proto"
+	"github.com/sourcegraph/conc/iter"
 )
 
 func (app *BaseApp) InitChain(
@@ -439,14 +440,6 @@ func (app *BaseApp) internalFinalizeBlock(
 			WithHeaderHash(req.Hash))
 	}
 
-	if err := app.preBlock(req); err != nil {
-		return nil, err
-	}
-
-	if _, err := app.beginBlock(req); err != nil {
-		return nil, err
-	}
-
 	// First check for an abort signal after beginBlock, as it's the first place
 	// we spend any significant amount of time.
 	select {
@@ -484,12 +477,24 @@ func (app *BaseApp) internalFinalizeBlock(
 		})
 	}
 
-	endBlock, err := app.endBlock(app.finalizeBlockState.Context())
+	finalizeBlock, err := app.finalizeBlocker(
+		app.finalizeBlockState.Context(),
+		req,
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	// check after endBlock if we should abort, to avoid propagating the result
+	valUpdates, err := iter.MapErr(
+		finalizeBlock,
+		convertValidatorUpdate[abci.ValidatorUpdate],
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// check after finalizeBlock if we should abort, to avoid propagating the
+	// result
 	select {
 	case <-ctx.Done():
 		return nil, ctx.Err()
@@ -500,17 +505,13 @@ func (app *BaseApp) internalFinalizeBlock(
 	cp := app.GetConsensusParams(app.finalizeBlockState.Context())
 	return &abci.FinalizeBlockResponse{
 		TxResults:             txResults,
-		ValidatorUpdates:      endBlock.ValidatorUpdates,
+		ValidatorUpdates:      valUpdates,
 		ConsensusParamUpdates: &cp,
 	}, nil
 }
 
 // FinalizeBlock will execute the block proposal provided by
-// RequestFinalizeBlock. Specifically, it will execute an application's
-// BeginBlock (if defined), followed
-// by the transactions in the proposal, finally followed by the application's
-// EndBlock (if defined).
-//
+// RequestFinalizeBlock.
 // For each raw transaction, i.e. a byte slice, BaseApp will only execute it if
 // it adheres to the sdk.Tx interface. Otherwise, the raw transaction will be
 // skipped. This is to support compatibility with proposers injecting vote

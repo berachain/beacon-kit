@@ -208,28 +208,11 @@ func (*ABCIMiddleware[
 /*                                FinalizeBlock                               */
 /* -------------------------------------------------------------------------- */
 
-// PreBlock is called by the base app before the block is finalized. It
-// is responsible for aggregating oracle data from each validator and writing
-// the oracle data to the store.
-func (h *ABCIMiddleware[
-	_, _, _, _, _, _, _, _,
-]) PreBlock(
-	_ context.Context, req proto.Message,
-) error {
-	abciReq, ok := req.(*cmtabci.FinalizeBlockRequest)
-	if !ok {
-		return ErrInvalidFinalizeBlockRequestType
-	}
-	h.req = abciReq
-
-	return nil
-}
-
 // EndBlock returns the validator set updates from the beacon state.
 func (h *ABCIMiddleware[
 	_, BeaconBlockT, _, BlobSidecarsT, _, _, _, _,
-]) EndBlock(
-	ctx context.Context,
+]) FinalizeBlock(
+	ctx context.Context, req proto.Message,
 ) (transition.ValidatorUpdates, error) {
 	var (
 		sidecarsResp   *asynctypes.Message[BlobSidecarsT]
@@ -238,13 +221,17 @@ func (h *ABCIMiddleware[
 		blobs          BlobSidecarsT
 		err            error
 	)
+	abciReq, ok := req.(*cmtabci.FinalizeBlockRequest)
+	if !ok {
+		return nil, ErrInvalidFinalizeBlockRequestType
+	}
 	blk, blobs, err = encoding.
 		ExtractBlobsAndBlockFromRequest[BeaconBlockT, BlobSidecarsT](
-		h.req,
+		abciReq,
 		BeaconBlockTxIndex,
 		BlobSidecarsTxIndex,
 		h.chainSpec.ActiveForkVersionForSlot(
-			math.Slot(h.req.Height),
+			math.Slot(abciReq.Height),
 		))
 	if err != nil {
 		// If we don't have a block, we can't do anything.

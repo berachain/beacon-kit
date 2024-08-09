@@ -30,7 +30,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	rp2p "github.com/berachain/beacon-kit/mod/runtime/pkg/p2p"
-	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
 // ABCIMiddleware is a middleware between ABCI and the validator logic.
@@ -70,9 +69,6 @@ type ABCIMiddleware[
 	metrics *ABCIMiddlewareMetrics
 	// logger is the logger for the middleware.
 	logger log.Logger[any]
-
-	// TODO: this is a temporary hack.
-	req *cmtabci.FinalizeBlockRequest
 }
 
 // NewABCIMiddleware creates a new instance of the Handler struct.
