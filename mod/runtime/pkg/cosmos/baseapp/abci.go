@@ -477,7 +477,7 @@ func (app *BaseApp) internalFinalizeBlock(
 		})
 	}
 
-	finalizeBlock, err := app.finalizeBlock(app.finalizeBlockState.Context(), req)
+	finalizeBlock, err := app.finalizeBlocker(app.finalizeBlockState.Context(), req)
 	if err != nil {
 		return nil, err
 	}

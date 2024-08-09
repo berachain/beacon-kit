@@ -391,16 +391,6 @@ func (app *BaseApp) validateFinalizeBlockHeight(
 	return nil
 }
 
-// finalizeBlock is an application-defined function that is called after transactions
-// have been processed in FinalizeBlock.
-func (app *BaseApp) finalizeBlock(_ context.Context, req *abci.FinalizeBlockRequest) (transition.ValidatorUpdates, error) {
-	if app.finalizeBlocker != nil {
-		return app.finalizeBlocker(app.finalizeBlockState.Context(), req)
-	}
-
-	return nil, nil
-}
-
 // Close is called in start cmd to gracefully cleanup resources.
 func (app *BaseApp) Close() error {
 	var errs []error
