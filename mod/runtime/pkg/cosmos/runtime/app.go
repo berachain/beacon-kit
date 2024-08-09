@@ -113,7 +113,10 @@ func (a *App) InitChainer(
 	if err := json.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		return nil, err
 	}
-	valUpdates, err := a.Middleware.InitGenesis(ctx, []byte(genesisState["beacon"]))
+	valUpdates, err := a.Middleware.InitGenesis(
+		ctx,
+		[]byte(genesisState["beacon"]),
+	)
 	if err != nil {
 		return nil, err
 	}
