@@ -22,18 +22,12 @@ package runtime
 
 import (
 	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
-	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
 	"cosmossdk.io/log"
 )
 
 func init() {
-	appconfig.RegisterModule(&runtimev1alpha1.Module{},
-		appconfig.Provide(
-			ProvideApp,
-		),
-		appconfig.Invoke(SetupAppBuilder),
-	)
+	appconfig.RegisterModule(&runtimev1alpha1.Module{}) // appconfig.Provide(
 }
 
 func ProvideApp(middleware Middleware) (
@@ -41,17 +35,6 @@ func ProvideApp(middleware Middleware) (
 	error,
 ) {
 	app := &App{Middleware: middleware}
+	app.logger = log.NewNopLogger()
 	return &AppBuilder{App: app}, nil
-}
-
-type AppInputs struct {
-	depinject.In
-
-	Logger     log.Logger
-	AppBuilder *AppBuilder
-}
-
-func SetupAppBuilder(inputs AppInputs) {
-	app := inputs.AppBuilder.App
-	app.logger = inputs.Logger
 }
