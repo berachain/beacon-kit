@@ -52,6 +52,8 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideSidecarFactory,
 		ProvideStateProcessor,
 		ProvideKVStore,
+		ProvideEnvironment,
+		ProvideKVStoreKey,
 		ProvideStorageBackend,
 		ProvideTelemetrySink,
 		ProvideTrustedSetup,

@@ -21,23 +21,16 @@
 package runtime
 
 import (
-	"fmt"
-
 	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
-	"cosmossdk.io/core/appmodule"
-	"cosmossdk.io/core/store"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
 	"cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
 )
 
 func init() {
 	appconfig.RegisterModule(&runtimev1alpha1.Module{},
 		appconfig.Provide(
 			ProvideApp,
-			ProvideKVStoreKey,
-			ProvideEnvironment,
 		),
 		appconfig.Invoke(SetupAppBuilder),
 	)
@@ -48,7 +41,7 @@ func ProvideApp(middleware Middleware) (
 	error,
 ) {
 	app := &App{Middleware: middleware}
-	return &AppBuilder{app: app}, nil
+	return &AppBuilder{App: app}, nil
 }
 
 type AppInputs struct {
@@ -59,36 +52,6 @@ type AppInputs struct {
 }
 
 func SetupAppBuilder(inputs AppInputs) {
-	app := inputs.AppBuilder.app
+	app := inputs.AppBuilder.App
 	app.logger = inputs.Logger
-}
-
-func ProvideKVStoreKey(
-	app *AppBuilder,
-) *storetypes.KVStoreKey {
-	storeKey := storetypes.NewKVStoreKey("beacon")
-	app.app.storeKeys = append(app.app.storeKeys, storeKey)
-	return storeKey
-}
-
-func ProvideEnvironment(
-	logger log.Logger,
-	app *AppBuilder,
-) (store.KVStoreService, appmodule.Environment) {
-	var (
-		kvService store.KVStoreService = failingStoreService{}
-	)
-
-	// skips modules that have no store
-	storeKey := ProvideKVStoreKey(app)
-	kvService = kvStoreService{key: storeKey}
-
-	return kvService, appmodule.Environment{
-		Logger: logger.With(
-			log.ModuleKey,
-			fmt.Sprintf("x/%s", "beacon"),
-		),
-		KVStoreService: kvService,
-	}
-
 }
