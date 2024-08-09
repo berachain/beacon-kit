@@ -71,15 +71,6 @@ type BlockPrunerInput struct {
 func ProvideBlockPruner(
 	in BlockPrunerInput,
 ) (BlockPruner, error) {
-	var finalizedBlkCh = make(chan *FinalizedBlockEvent)
-	if err := in.Dispatcher.Subscribe(
-		messages.BeaconBlockFinalizedEvent, finalizedBlkCh,
-	); err != nil {
-		in.Logger.Error("failed to subscribe to event", "event",
-			messages.BeaconBlockFinalizedEvent, "err", err)
-		return nil, err
-	}
-
 	return pruner.NewPruner[
 		*BeaconBlock,
 		*FinalizedBlockEvent,
@@ -88,7 +79,8 @@ func ProvideBlockPruner(
 		in.Logger.With("service", manager.BlockPrunerName),
 		in.BlockStore,
 		manager.BlockPrunerName,
-		finalizedBlkCh,
+		messages.BeaconBlockFinalizedEvent,
+		in.Dispatcher,
 		blockservice.BuildPruneRangeFn[
 			*BeaconBlock,
 			*FinalizedBlockEvent,

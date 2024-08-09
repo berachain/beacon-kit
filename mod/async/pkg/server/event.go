@@ -45,9 +45,9 @@ func (es *EventServer) Publish(event types.MessageI) error {
 	return es.publishers[event.ID()].Publish(event)
 }
 
-// Subscribe subscribes the given channel to the publisher with the given eventID.
-// It will error if the channel type does not match the event type corresponding
-// publisher.
+// Subscribe subscribes the given channel to the publisher with the given
+// eventID. It will error if the channel type does not match the event type
+// corresponding to the publisher.
 func (es *EventServer) Subscribe(eventID types.MessageID, ch any) error {
 	publisher, ok := es.publishers[eventID]
 	if !ok {

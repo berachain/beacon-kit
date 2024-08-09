@@ -57,7 +57,7 @@ func (h *ABCIMiddleware[
 	}
 
 	// request for validator updates
-	if err = h.dispatcher.Request(
+	if err = h.dispatcher.SendRequest(
 		asynctypes.NewMessage(
 			ctx, messages.ProcessGenesisData, *data,
 		), &valUpdateResp,
@@ -86,7 +86,7 @@ func (h *ABCIMiddleware[
 	defer h.metrics.measurePrepareProposalDuration(startTime)
 
 	// request a built beacon block for the given slot
-	if err := h.dispatcher.Request(
+	if err := h.dispatcher.SendRequest(
 		asynctypes.NewMessage(
 			ctx, messages.BuildBeaconBlockAndSidecars, slotData,
 		), &beaconBlkBundleResp,
@@ -158,7 +158,7 @@ func (h *ABCIMiddleware[
 	}
 
 	// verify the beacon block
-	if err = h.dispatcher.Request(
+	if err = h.dispatcher.SendRequest(
 		asynctypes.NewMessage(
 			ctx, messages.VerifyBeaconBlock, blk,
 		), &beaconBlockResp,
@@ -176,7 +176,7 @@ func (h *ABCIMiddleware[
 	}
 
 	// verify the blob sidecars
-	if err = h.dispatcher.Request(
+	if err = h.dispatcher.SendRequest(
 		asynctypes.NewMessage(
 			ctx, messages.VerifySidecars, sidecars,
 		), &sidecarsResp,
@@ -253,7 +253,7 @@ func (h *ABCIMiddleware[
 	}
 
 	// process the blob sidecars.
-	if err = h.dispatcher.Request(
+	if err = h.dispatcher.SendRequest(
 		asynctypes.NewMessage(
 			ctx, messages.ProcessSidecars, blobs,
 		), &sidecarsResp,
@@ -262,7 +262,7 @@ func (h *ABCIMiddleware[
 	}
 
 	// finalize the beacon block.
-	if err = h.dispatcher.Request(
+	if err = h.dispatcher.SendRequest(
 		asynctypes.NewMessage(
 			ctx, messages.FinalizeBeaconBlock, blk,
 		), &valUpdatesResp,

@@ -56,6 +56,7 @@ type Service[
 	SlashingInfoT any,
 	SlotDataT SlotData[AttestationDataT, SlashingInfoT],
 ] struct {
+	buildBlkBundleReqs chan *asynctypes.Message[SlotDataT]
 	// cfg is the validator config.
 	cfg *Config
 	// logger is a logger.
@@ -153,6 +154,7 @@ func NewService[
 	]{
 		cfg:                   cfg,
 		logger:                logger,
+		buildBlkBundleReqs:    make(chan *asynctypes.Message[SlotDataT]),
 		bsb:                   bsb,
 		chainSpec:             chainSpec,
 		signer:                signer,
@@ -179,16 +181,15 @@ func (s *Service[
 ]) Start(
 	ctx context.Context,
 ) error {
-	// register a receiver channel for build block requests
-	buildBlkBundleReqs := make(chan *asynctypes.Message[SlotDataT])
+	// register the receiver channel for build block requests
 	if err := s.dispatcher.RegisterMsgReceiver(
-		messages.BuildBeaconBlockAndSidecars, buildBlkBundleReqs,
+		messages.BuildBeaconBlockAndSidecars, s.buildBlkBundleReqs,
 	); err != nil {
 		return err
 	}
 
 	// start a goroutine to listen for requests and handle accordingly
-	go s.start(ctx, buildBlkBundleReqs)
+	go s.start(ctx)
 	return nil
 }
 
@@ -197,13 +198,12 @@ func (s *Service[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, SlotDataT,
 ]) start(
 	ctx context.Context,
-	buildBlkBundleReqs chan *asynctypes.Message[SlotDataT],
 ) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case req := <-buildBlkBundleReqs:
+		case req := <-s.buildBlkBundleReqs:
 			s.handleBuildBlockBundleRequest(req)
 		}
 	}
@@ -232,7 +232,7 @@ func (s *Service[
 	// bundle the block and sidecars and dispatch the response
 	// blkData := *new(BeaconBlockBundleT)
 	blkData = blkData.New(blk, sidecars)
-	if err = s.dispatcher.Respond(asynctypes.NewMessage(
+	if err = s.dispatcher.SendResponse(asynctypes.NewMessage(
 		req.Context(),
 		messages.BuildBeaconBlockAndSidecars,
 		blkData,

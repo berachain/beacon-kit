@@ -41,8 +41,10 @@ type Service[
 		AvailabilityStoreT, BeaconBlockBodyT,
 		BlobSidecarsT, ExecutionPayloadT,
 	]
-	dispatcher *dispatcher.Dispatcher
-	logger     log.Logger[any]
+	dispatcher             *dispatcher.Dispatcher
+	logger                 log.Logger[any]
+	processSidecarRequests chan *asynctypes.Message[BlobSidecarsT]
+	verifySidecarRequests  chan *asynctypes.Message[BlobSidecarsT]
 }
 
 // NewService returns a new DA service.
@@ -70,10 +72,12 @@ func NewService[
 		AvailabilityStoreT, BeaconBlockBodyT,
 		BlobSidecarsT, ExecutionPayloadT,
 	]{
-		avs:        avs,
-		bp:         bp,
-		dispatcher: dispatcher,
-		logger:     logger,
+		avs:                    avs,
+		bp:                     bp,
+		dispatcher:             dispatcher,
+		logger:                 logger,
+		processSidecarRequests: make(chan *asynctypes.Message[BlobSidecarsT]),
+		verifySidecarRequests:  make(chan *asynctypes.Message[BlobSidecarsT]),
 	}
 }
 
@@ -87,23 +91,21 @@ func (s *Service[_, _, _, _]) Name() string {
 func (s *Service[_, _, BlobSidecarsT, _]) Start(ctx context.Context) error {
 	var err error
 	// register as recipient of ProcessSidecars messages.
-	sidecarsProcessRequests := make(chan *asynctypes.Message[BlobSidecarsT])
 	if err = s.dispatcher.RegisterMsgReceiver(
-		messages.ProcessSidecars, sidecarsProcessRequests,
+		messages.ProcessSidecars, s.processSidecarRequests,
 	); err != nil {
 		return err
 	}
 
 	// register as recipient of VerifySidecars messages.
-	sidecarVerifyRequests := make(chan *asynctypes.Message[BlobSidecarsT])
 	if err = s.dispatcher.RegisterMsgReceiver(
-		messages.VerifySidecars, sidecarVerifyRequests,
+		messages.VerifySidecars, s.verifySidecarRequests,
 	); err != nil {
 		return err
 	}
 
 	// start a goroutine to listen for requests and handle accordingly
-	go s.start(ctx, sidecarsProcessRequests, sidecarVerifyRequests)
+	go s.start(ctx)
 	return nil
 }
 
@@ -111,16 +113,14 @@ func (s *Service[_, _, BlobSidecarsT, _]) Start(ctx context.Context) error {
 // handles them accordingly.
 func (s *Service[_, _, BlobSidecarsT, _]) start(
 	ctx context.Context,
-	sidecarsProcessRequests chan *asynctypes.Message[BlobSidecarsT],
-	sidecarVerifyRequests chan *asynctypes.Message[BlobSidecarsT],
 ) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case msg := <-sidecarsProcessRequests:
+		case msg := <-s.processSidecarRequests:
 			s.handleBlobSidecarsProcessRequest(msg)
-		case msg := <-sidecarVerifyRequests:
+		case msg := <-s.verifySidecarRequests:
 			s.handleSidecarsVerifyRequest(msg)
 		}
 	}
@@ -147,7 +147,7 @@ func (s *Service[_, _, BlobSidecarsT, _]) handleBlobSidecarsProcessRequest(
 	}
 
 	// dispatch a response to acknowledge the request.
-	if err = s.dispatcher.Respond(
+	if err = s.dispatcher.SendResponse(
 		asynctypes.NewMessage(
 			msg.Context(),
 			messages.ProcessSidecars,
@@ -176,7 +176,7 @@ func (s *Service[_, _, BlobSidecarsT, _]) handleSidecarsVerifyRequest(
 	}
 
 	// dispatch a response to acknowledge the request.
-	if err = s.dispatcher.Respond(
+	if err = s.dispatcher.SendResponse(
 		asynctypes.NewMessage(
 			msg.Context(),
 			messages.VerifySidecars,

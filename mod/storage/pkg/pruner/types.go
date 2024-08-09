@@ -39,6 +39,7 @@ type BeaconBlock interface {
 
 // BlockEvent is an interface for block events.
 type BlockEvent[BeaconBlockT BeaconBlock] interface {
+	ID() asynctypes.EventID
 	Is(asynctypes.EventID) bool
 	Data() BeaconBlockT
 }

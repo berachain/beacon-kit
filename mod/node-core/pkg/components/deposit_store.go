@@ -70,15 +70,6 @@ type DepositPrunerInput struct {
 func ProvideDepositPruner(
 	in DepositPrunerInput,
 ) (DepositPruner, error) {
-	var finalizedBlkCh = make(chan *FinalizedBlockEvent)
-	if err := in.Dispatcher.Subscribe(
-		messages.BeaconBlockFinalizedEvent, finalizedBlkCh,
-	); err != nil {
-		in.Logger.Error("failed to subscribe to event", "event",
-			messages.BeaconBlockFinalizedEvent, "err", err)
-		return nil, err
-	}
-
 	return pruner.NewPruner[
 		*BeaconBlock,
 		*FinalizedBlockEvent,
@@ -87,7 +78,8 @@ func ProvideDepositPruner(
 		in.Logger.With("service", manager.DepositPrunerName),
 		in.DepositStore,
 		manager.DepositPrunerName,
-		finalizedBlkCh,
+		messages.BeaconBlockFinalizedEvent,
+		in.Dispatcher,
 		deposit.BuildPruneRangeFn[
 			*BeaconBlockBody,
 			*BeaconBlock,

@@ -31,6 +31,9 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
+	"github.com/berachain/beacon-kit/mod/async/pkg/server"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner/mocks"
@@ -39,24 +42,26 @@ import (
 
 func TestDBManager_Start(t *testing.T) {
 	mockPrunable := new(mocks.Prunable)
+	logger := log.NewNopLogger()
 
-	ch := make(chan manager.BlockEvent[manager.BeaconBlock], 1)
+	dispatcher := setupDispatcher(logger)
 	pruneParamsFn :=
 		func(_ manager.BlockEvent[manager.BeaconBlock]) (uint64, uint64) {
 			return 0, 0
 		}
 
-	logger := log.NewNopLogger()
 	p1 := pruner.NewPruner[
 		manager.BeaconBlock,
 		manager.BlockEvent[manager.BeaconBlock],
 		*mocks.Prunable,
-	](logger, mockPrunable, "pruner1", ch, pruneParamsFn)
+	](logger, mockPrunable, "pruner1", messages.BeaconBlockFinalizedEvent,
+		dispatcher, pruneParamsFn)
 	p2 := pruner.NewPruner[
 		manager.BeaconBlock,
 		manager.BlockEvent[manager.BeaconBlock],
 		*mocks.Prunable,
-	](logger, mockPrunable, "pruner2", ch, pruneParamsFn)
+	](logger, mockPrunable, "pruner2", messages.BeaconBlockFinalizedEvent,
+		dispatcher, pruneParamsFn)
 
 	m, err := manager.NewDBManager(logger, p1, p2)
 	require.NoError(t, err)
@@ -68,4 +73,18 @@ func TestDBManager_Start(t *testing.T) {
 	require.NoError(t, err)
 	time.Sleep(100 * time.Millisecond)
 	mockPrunable.AssertNotCalled(t, "PruneFromInclusive")
+}
+
+// setupDispatcher sets up a dispatcher with an event server and message server.
+func setupDispatcher(logger log.Logger) *dispatcher.Dispatcher {
+	ch := make(chan manager.BlockEvent[manager.BeaconBlock], 1)
+	es := server.NewEventServer()
+	es.Subscribe(messages.BeaconBlockFinalizedEvent, ch)
+	ms := server.NewMessageServer()
+	dispatcher := dispatcher.NewDispatcher(
+		es,
+		ms,
+		logger,
+	)
+	return dispatcher
 }
