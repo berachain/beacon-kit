@@ -35,6 +35,7 @@ import (
 	dbm "github.com/cosmos/cosmos-db"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
 type (
@@ -64,6 +65,8 @@ var _ servertypes.ABCI = (*BaseApp)(nil)
 
 // BaseApp reflects the ABCI application implementation.
 type BaseApp struct {
+	ModuleManager *module.Manager
+
 	// initialized on creation
 	logger      log.Logger
 	name        string                      // application name from abci.BlockInfo
