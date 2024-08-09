@@ -22,6 +22,7 @@ package blockchain
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
@@ -90,6 +91,25 @@ func (s *Service[
 	); err != nil {
 		return nil, err
 	}
+
+	// Publish the state root of block n-1.
+	prevStateRoot, err := st.StateRootAtIndex(
+		(blk.GetSlot().Unwrap() - 1) % s.cs.SlotsPerHistoricalRoot(),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println("ABOUT TO PUBLISH STATE ROOT")
+	startTime := time.Now()
+	if err = s.stateRootBroker.Publish(ctx,
+		asynctypes.NewEvent(
+			ctx, events.StateRootPublished, prevStateRoot,
+		),
+	); err != nil {
+		return nil, err
+	}
+	fmt.Println("PUBLISHIGN TOOK", time.Since(startTime))
 
 	go s.sendPostBlockFCU(ctx, st, blk)
 

@@ -39,6 +39,7 @@ type KVStore[BeaconBlockT BeaconBlock[BeaconBlockT]] struct {
 	blocks *sdkcollections.IndexedMap[
 		uint64, BeaconBlockT, indexes[BeaconBlockT],
 	]
+	prevBlockSlot uint64
 
 	mu           sync.RWMutex
 	cs           common.ChainSpec
@@ -62,9 +63,10 @@ func NewStore[BeaconBlockT BeaconBlock[BeaconBlockT]](
 			blockCodec,
 			newIndexes[BeaconBlockT](schemaBuilder),
 		),
-		blockCodec:   blockCodec,
-		cs:           cs,
-		earliestSlot: 1,
+		blockCodec:    blockCodec,
+		cs:            cs,
+		earliestSlot:  1,
+		prevBlockSlot: 0,
 	}
 }
 
@@ -79,46 +81,22 @@ func (kv *KVStore[BeaconBlockT]) Get(slot math.Slot) (BeaconBlockT, error) {
 
 // Set sets the block by a given index in the store and also stores the
 // block root.
-func (kv *KVStore[BeaconBlockT]) Set(slot math.Slot, blk BeaconBlockT) error {
+func (kv *KVStore[BeaconBlockT]) Set(
+	slot math.Slot,
+	prevStateRoot common.Root,
+	blk BeaconBlockT,
+) error {
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
 
-	return kv.blocks.Set(context.TODO(), slot.Unwrap(), blk)
-}
-
-// GetSlotByRoot retrieves the slot by a given root from the store.
-func (kv *KVStore[BeaconBlockT]) GetSlotByRoot(
-	root common.Root,
-) (math.Slot, error) {
-	kv.mu.RLock()
-	defer kv.mu.RUnlock()
-
-	slot, err := kv.blocks.Indexes.BlockRoots.MatchExact(
-		context.TODO(),
-		root[:],
-	)
-	if err != nil {
-		return 0, err
+	if err := kv.catchupBlockData(prevStateRoot); err != nil {
+		return err
 	}
-	return math.Slot(slot), nil
-}
-
-// GetSlotByExecutionNumber retrieves the slot by a given execution number from
-// the store.
-func (kv *KVStore[BeaconBlockT]) GetSlotByExecutionNumber(
-	executionNumber math.U64,
-) (math.Slot, error) {
-	kv.mu.RLock()
-	defer kv.mu.RUnlock()
-
-	slot, err := kv.blocks.Indexes.ExecutionNumbers.MatchExact(
-		context.TODO(),
-		executionNumber.Unwrap(),
-	)
-	if err != nil {
-		return 0, err
+	if err := kv.blocks.Set(context.TODO(), slot.Unwrap(), blk); err != nil {
+		return err
 	}
-	return math.Slot(slot), nil
+	kv.prevBlockSlot = slot.Unwrap()
+	return nil
 }
 
 // Prune removes the [start, end) blocks from the store.
@@ -150,4 +128,22 @@ func (kv *KVStore[BeaconBlockT]) Prune(start, end uint64) error {
 	// If we successfully pruned, update the earliest slot.
 	kv.earliestSlot = end
 	return nil
+}
+
+// catchupBlockData updates the block data for the previous block slot.
+//
+// This is used to catch up the block data for the previous block slot after
+// the block is complete and 'correct'.
+func (kv *KVStore[BeaconBlockT]) catchupBlockData(
+	prevStateRoot common.Root,
+) error {
+	if kv.prevBlockSlot == 0 {
+		return nil
+	}
+	prevBlock, err := kv.blocks.Get(context.TODO(), kv.prevBlockSlot)
+	if err != nil {
+		return err
+	}
+	prevBlock.SetStateRoot(prevStateRoot)
+	return kv.blocks.Set(context.TODO(), kv.prevBlockSlot, prevBlock)
 }

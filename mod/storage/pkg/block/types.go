@@ -32,4 +32,7 @@ type BeaconBlock[T any] interface {
 	Version() uint32
 	HashTreeRoot() common.Root
 	GetExecutionNumber() math.U64
+	SetStateRoot(root common.Root)
+	GetParentRoot() common.Root
+	GetStateRoot() common.Root
 }

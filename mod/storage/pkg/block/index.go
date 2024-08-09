@@ -31,7 +31,12 @@ const (
 )
 
 type indexes[BeaconBlockT BeaconBlock[BeaconBlockT]] struct {
+	// Note: since blocks are incomplete (missing state root) by the
+	// time we store it in the block store, the block root for the
+	// latest slot will be empty.
+	// We set the value
 	BlockRoots       *sdkindexes.Unique[[]byte, uint64, BeaconBlockT]
+	StateRoots       *sdkindexes.Unique[[]byte, uint64, BeaconBlockT]
 	ExecutionNumbers *sdkindexes.Unique[uint64, uint64, BeaconBlockT]
 }
 
@@ -42,6 +47,7 @@ func (i indexes[BeaconBlockT]) IndexesList() []sdkcollections.Index[
 ] {
 	return []sdkcollections.Index[uint64, BeaconBlockT]{
 		i.BlockRoots,
+		i.StateRoots,
 		i.ExecutionNumbers,
 	}
 }
@@ -58,6 +64,17 @@ func newIndexes[BeaconBlockT BeaconBlock[BeaconBlockT]](
 			sdkcollections.Uint64Key,
 			func(_ uint64, blk BeaconBlockT) ([]byte, error) {
 				root := blk.HashTreeRoot()
+				return root[:], nil
+			},
+		),
+		StateRoots: sdkindexes.NewUnique(
+			sb,
+			sdkcollections.NewPrefix(blockRootsIndexName),
+			blockRootsIndexName,
+			sdkcollections.BytesKey,
+			sdkcollections.Uint64Key,
+			func(_ uint64, blk BeaconBlockT) ([]byte, error) {
+				root := blk.GetStateRoot()
 				return root[:], nil
 			},
 		),

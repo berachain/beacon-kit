@@ -52,6 +52,13 @@ func ProvideSlotBroker() *SlotBroker {
 	)
 }
 
+// ProvideStateRootBroker provides a state root feed for the depinject framework.
+func ProvideStateRootBroker() *StateRootBroker {
+	return broker.New[*StateRootEvent](
+		"state-root-broker",
+	)
+}
+
 // ProvideStatusBroker provides a status feed.
 func ProvideStatusBroker() *StatusBroker {
 	return broker.New[*StatusEvent](
@@ -73,6 +80,7 @@ func DefaultBrokerProviders() []interface{} {
 		ProvideBlockBroker,
 		ProvideGenesisBroker,
 		ProvideSlotBroker,
+		ProvideStateRootBroker,
 		ProvideStatusBroker,
 		ProvideValidatorUpdateBroker,
 	}

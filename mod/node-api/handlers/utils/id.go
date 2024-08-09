@@ -30,17 +30,20 @@ import (
 // SlotFromStateID returns a slot from the state ID.
 //
 // NOTE: Right now, `stateID` only supports querying by "head" (all of "head",
-// "finalized", "justified" are the same), "genesis", and <slot>. We do NOT
-// support querying by <stateRoot>.
-func SlotFromStateID(stateID string) (math.Slot, error) {
-	switch stateID {
-	case StateIDFinalized, StateIDJustified, StateIDHead:
-		return Head, nil
-	case StateIDGenesis:
-		return Genesis, nil
-	default:
-		return U64FromString(stateID)
+// "finalized", "justified" are the same), "genesis", and <slot>.
+func SlotFromStateID[StorageBackendT interface {
+	GetSlotByStateRoot(root common.Root) (math.Slot, error)
+}](stateID string, storage StorageBackendT) (math.Slot, error) {
+	if slot, err := slotFromID(stateID); err == nil {
+		return slot, nil
 	}
+
+	// We assume that the state ID is a state hash.
+	root, err := common.NewRootFromHex(stateID)
+	if err != nil {
+		return 0, err
+	}
+	return storage.GetSlotByStateRoot(root)
 }
 
 // SlotFromBlockID returns a slot from the block ID.
@@ -48,9 +51,9 @@ func SlotFromStateID(stateID string) (math.Slot, error) {
 // NOTE: `blockID` shares the same semantics as `stateID`, with the modification
 // of being able to query by beacon <blockRoot> instead of <stateRoot>.
 func SlotFromBlockID[StorageBackendT interface {
-	GetSlotByRoot(root common.Root) (math.Slot, error)
+	GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 }](blockID string, storage StorageBackendT) (math.Slot, error) {
-	if slot, err := SlotFromStateID(blockID); err == nil {
+	if slot, err := slotFromID(blockID); err == nil {
 		return slot, nil
 	}
 
@@ -59,7 +62,7 @@ func SlotFromBlockID[StorageBackendT interface {
 	if err != nil {
 		return 0, err
 	}
-	return storage.GetSlotByRoot(root)
+	return storage.GetSlotByBlockRoot(root)
 }
 
 // SlotFromExecutionID returns a slot from the execution number ID.
@@ -77,7 +80,7 @@ func SlotFromExecutionID[StorageBackendT interface {
 	GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
 }](executionID string, storage StorageBackendT) (math.Slot, error) {
 	if !IsExecutionNumberPrefix(executionID) {
-		return SlotFromStateID(executionID)
+		return slotFromID(executionID)
 	}
 
 	// Parse the execution number from the executionID.
@@ -99,4 +102,15 @@ func IsExecutionNumberPrefix(executionID string) bool {
 func U64FromString(id string) (math.U64, error) {
 	var u64 math.U64
 	return u64, u64.UnmarshalText([]byte(id))
+}
+
+func slotFromID(id string) (math.Slot, error) {
+	switch id {
+	case StateIDFinalized, StateIDJustified, StateIDHead:
+		return Head, nil
+	case StateIDGenesis:
+		return Genesis, nil
+	default:
+		return U64FromString(id)
+	}
 }

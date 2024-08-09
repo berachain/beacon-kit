@@ -27,6 +27,7 @@ const (
 	BeaconBlockVerified         = "beacon-block-verified"
 	BeaconBlockFinalizedRequest = "beacon-block-finalized-request"
 	BeaconBlockFinalized        = "beacon-block-finalized"
+	StateRootPublished          = "state-root-published"
 	ValidatorSetUpdated         = "validator-set-updated"
 	BlobSidecarsBuilt           = "blob-sidecars-built"
 	BlobSidecarsReceived        = "blob-sidecars-received"

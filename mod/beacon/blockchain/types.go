@@ -73,6 +73,7 @@ type BeaconBlockHeader interface {
 	constraints.SSZMarshallableRootable
 	// SetStateRoot sets the state root of the beacon block header.
 	SetStateRoot(common.Root)
+	GetStateRoot() common.Root
 }
 
 // BlobSidecars is the interface for blobs sidecars.
@@ -168,6 +169,7 @@ type ReadOnlyBeaconState[
 		ExecutionPayloadHeaderT,
 		error,
 	)
+	StateRootAtIndex(uint64) (common.Root, error)
 	// GetSlot retrieves the current slot of the beacon state.
 	GetSlot() (math.Slot, error)
 	// HashTreeRoot returns the hash tree root of the beacon state.

@@ -31,10 +31,11 @@ import (
 type BlockServiceInput struct {
 	depinject.In
 
-	BlockBroker *BlockBroker
-	BlockStore  *BlockStore
-	Config      *config.Config
-	Logger      log.Logger[any]
+	BlockBroker     *BlockBroker
+	BlockStore      *BlockStore
+	Config          *config.Config
+	Logger          log.Logger[any]
+	StateRootBroker *StateRootBroker
 }
 
 // ProvideBlockStoreService provides the block service.
@@ -43,6 +44,7 @@ func ProvideBlockStoreService(in BlockServiceInput) *BlockStoreService {
 		in.Config.BlockStoreService,
 		in.Logger,
 		in.BlockBroker,
+		in.StateRootBroker,
 		in.BlockStore,
 	)
 }
