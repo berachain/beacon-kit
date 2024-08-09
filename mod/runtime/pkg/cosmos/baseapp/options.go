@@ -116,8 +116,8 @@ func (app *BaseApp) SetBeginBlocker(beginBlocker sdk.BeginBlocker) {
 }
 
 func (app *BaseApp) SetFinalizeBlocker(
-	endBlocker func(context.Context, proto.Message) (transition.ValidatorUpdates, error)) {
-	app.endBlocker = endBlocker
+	finalizeBlocker func(context.Context, proto.Message) (transition.ValidatorUpdates, error)) {
+	app.finalizeBlocker = finalizeBlocker
 }
 
 // SetProcessProposal sets the process proposal function for the BaseApp.

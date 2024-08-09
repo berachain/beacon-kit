@@ -67,7 +67,7 @@ type BaseApp struct {
 
 	initChainer     sdk.InitChainer                                                           // ABCI InitChain handler
 	beginBlocker    sdk.BeginBlocker                                                          // (legacy ABCI) BeginBlock handler
-	endBlocker      func(context.Context, proto.Message) (transition.ValidatorUpdates, error) // (legacy ABCI) EndBlock handler
+	finalizeBlocker func(context.Context, proto.Message) (transition.ValidatorUpdates, error) // (legacy ABCI) EndBlock handler
 	processProposal sdk.ProcessProposalHandler                                                // ABCI ProcessProposal handler
 	prepareProposal sdk.PrepareProposalHandler                                                // ABCI PrepareProposal handler
 
@@ -405,8 +405,8 @@ func (app *BaseApp) beginBlock(
 // finalizeBlock is an application-defined function that is called after transactions
 // have been processed in FinalizeBlock.
 func (app *BaseApp) finalizeBlock(_ context.Context, req *abci.FinalizeBlockRequest) (transition.ValidatorUpdates, error) {
-	if app.endBlocker != nil {
-		return app.endBlocker(app.finalizeBlockState.Context(), req)
+	if app.finalizeBlocker != nil {
+		return app.finalizeBlocker(app.finalizeBlockState.Context(), req)
 	}
 
 	return nil, nil
