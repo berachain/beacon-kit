@@ -23,15 +23,14 @@ require (
 	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc
 	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240809163303-a4ebb22fd018
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240809163303-a4ebb22fd018
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240806211103-d1105603bfc0
+	github.com/berachain/beacon-kit/mod/log v0.0.0-20240807213340-5779c7a563cd
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240618214413-d5ec0e66b3dd
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240808194557-e72e74f58197
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240806094948-2c4293ef36c4
 	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4
 	github.com/cosmos/cosmos-db v1.0.2
 	github.com/cosmos/cosmos-sdk v0.53.0
-	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8
 	github.com/stretchr/testify v1.9.0
 )
