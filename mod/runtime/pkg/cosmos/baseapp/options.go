@@ -112,8 +112,7 @@ func (app *BaseApp) SetInitChainer(initChainer sdk.InitChainer) {
 }
 
 func (app *BaseApp) SetFinalizeBlocker(
-	finalizeBlocker func(context.Context, proto.Message) (transition.ValidatorUpdates, error),
-) {
+	finalizeBlocker func(context.Context, proto.Message) (transition.ValidatorUpdates, error)) {
 	app.finalizeBlocker = finalizeBlocker
 }
 

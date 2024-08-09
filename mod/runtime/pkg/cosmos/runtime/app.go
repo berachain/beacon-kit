@@ -103,10 +103,7 @@ func (a *App) Load(loadLatest bool) error {
 }
 
 // FinalizeBlocker application updates every end block.
-func (a *App) FinalizeBlocker(
-	ctx context.Context,
-	req proto.Message,
-) (transition.ValidatorUpdates, error) {
+func (a *App) FinalizeBlocker(ctx context.Context, req proto.Message) (transition.ValidatorUpdates, error) {
 	return a.Middleware.FinalizeBlock(ctx, req)
 }
 
