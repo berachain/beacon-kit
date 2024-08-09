@@ -42,11 +42,11 @@ func BuildPruneRangeFn[
 		}
 		index := deposits[len(deposits)-1].GetIndex()
 
-		end := min(index, math.U64(cs.MaxDepositsPerBlock()))
+		end := min(index.Unwrap(), cs.MaxDepositsPerBlock())
 		if index < math.U64(cs.MaxDepositsPerBlock()) {
-			return 0, end.Unwrap()
+			return 0, end
 		}
 
-		return uint64(index - math.U64(cs.MaxDepositsPerBlock())), end.Unwrap()
+		return index.Unwrap() - cs.MaxDepositsPerBlock(), end
 	}
 }

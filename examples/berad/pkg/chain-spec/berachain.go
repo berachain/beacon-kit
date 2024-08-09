@@ -22,21 +22,15 @@ package chainspec
 
 import "github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
 
-type BartioChainSpec[
-	DomainTypeT ~[4]byte,
-	EpochT ~uint64,
-	ExecutionAddressT ~[20]byte,
-	SlotT ~uint64,
-	CometBFTConfigT any,
-] struct {
-	// BGTContractAddress
-	BGTContractAddress ExecutionAddressT `mapstructure:"bgt-contract-address"`
+type BeraChainSpec struct {
 	// SpecData is the underlying data structure for chain-specific parameters.
-	chain.SpecData[
-		DomainTypeT,
-		EpochT,
-		ExecutionAddressT,
-		SlotT,
-		CometBFTConfigT,
+	chain.Spec[
+		[4]byte,
+		uint64,
+		[20]byte,
+		uint64,
+		any,
 	]
+	// BGTContractAddress
+	BGTContractAddress [20]byte `mapstructure:"bgt-contract-address"`
 }

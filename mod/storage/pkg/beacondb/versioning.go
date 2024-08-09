@@ -65,5 +65,5 @@ func (kv *KVStore[
 ]) SetSlot(
 	slot math.Slot,
 ) error {
-	return kv.slot.Set(kv.ctx, uint64(slot))
+	return kv.slot.Set(kv.ctx, slot.Unwrap())
 }
