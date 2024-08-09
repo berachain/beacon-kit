@@ -23,7 +23,6 @@ package runtime
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 
 	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
@@ -86,30 +85,6 @@ func NewBeaconKitApp(
 	}
 
 	return app
-}
-
-// RegisterModules registers the provided modules with the module manager and
-// the basic module manager. This is the primary hook for integrating with
-// modules which are not registered using the app config.
-func (a *App) RegisterModules(modules ...module.AppModule) error {
-	for _, appModule := range modules {
-		name := appModule.Name()
-		if _, ok := a.ModuleManager.Modules[name]; ok {
-			return fmt.Errorf("AppModule named %q already exists", name)
-		}
-	}
-
-	return nil
-}
-
-// RegisterStores registers the provided store keys.
-// This method should only be used for registering extra stores
-// which is necessary for modules that not registered using the app config.
-// To be used in combination of RegisterModules.
-func (a *App) RegisterStores(keys ...storetypes.StoreKey) error {
-	a.MountStores(keys...)
-
-	return nil
 }
 
 // Load finishes all initialization operations and loads the app.
