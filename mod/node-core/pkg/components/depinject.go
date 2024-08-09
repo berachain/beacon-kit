@@ -22,13 +22,8 @@ func ProvideKVStoreService(
 	logger log.Logger,
 	app *runtime.AppBuilder,
 ) store.KVStoreService {
-
 	// skips modules that have no store
-	storeKey := ProvideKVStoreKey(app)
-	kvService := kvStoreService{key: storeKey}
-
-	return kvService
-
+	return kvStoreService{key: ProvideKVStoreKey(app)}
 }
 
 func NewKVStoreService(storeKey *storetypes.KVStoreKey) store.KVStoreService {
