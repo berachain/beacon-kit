@@ -88,7 +88,7 @@ func (f *Factory[
 
 	// Get the previous randao mix.
 	if prevRandao, err = st.GetRandaoMixAtIndex(
-		uint64(epoch) % f.chainSpec.EpochsPerHistoricalVector(),
+		epoch.Unwrap() % f.chainSpec.EpochsPerHistoricalVector(),
 	); err != nil {
 		return attributes, err
 	}

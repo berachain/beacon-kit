@@ -18,32 +18,4 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package deposit
-
-import (
-	"strconv"
-
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-)
-
-// metrics is a struct that contains metrics for the deposit service.
-type metrics struct {
-	// sink is the telemetry sink.
-	sink TelemetrySink
-}
-
-// newMetrics creates a new instance of the metrics struct.
-func newMetrics(sink TelemetrySink) *metrics {
-	return &metrics{
-		sink: sink,
-	}
-}
-
-// markFailedToGetBlockLogs increments the counter for failed to get block logs.
-func (m *metrics) markFailedToGetBlockLogs(blockNum math.U64) {
-	m.sink.IncrementCounter(
-		"beacon_kit.execution.deposit.failed_to_get_block_logs",
-		"block_num",
-		strconv.FormatUint(blockNum.Unwrap(), 10),
-	)
-}
+package main

@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package core
+package transition
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -29,7 +29,7 @@ import (
 //
 //nolint:lll
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) processSlashingsReset(
 	st BeaconStateT,
 ) error {
@@ -39,7 +39,7 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	index := (sp.cs.SlotToEpoch(slot).Unwrap() + 1) % sp.cs.EpochsPerSlashingsVector()
+	index := (sp.cs.SlotToEpoch(slot.Unwrap()) + 1) % sp.cs.EpochsPerSlashingsVector()
 	return st.UpdateSlashingAtIndex(index, 0)
 }
 
@@ -48,7 +48,7 @@ func (sp *StateProcessor[
 //
 //nolint:lll,unused // will be used later
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) processProposerSlashing(
 	_ BeaconStateT,
 	// ps ProposerSlashing,
@@ -61,7 +61,7 @@ func (sp *StateProcessor[
 //
 //nolint:lll,unused // will be used later
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) processAttesterSlashing(
 	_ BeaconStateT,
 	// as AttesterSlashing,
@@ -77,7 +77,7 @@ func (sp *StateProcessor[
 //
 //nolint:lll,unused // will be used later
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) processSlashings(
 	st BeaconStateT,
 ) error {
@@ -108,7 +108,7 @@ func (sp *StateProcessor[
 	}
 
 	//nolint:mnd // this is in the spec
-	slashableEpoch := (sp.cs.SlotToEpoch(slot).Unwrap() + sp.cs.EpochsPerSlashingsVector()) / 2
+	slashableEpoch := (sp.cs.SlotToEpoch(slot.Unwrap()) + sp.cs.EpochsPerSlashingsVector()) / 2
 
 	// Iterate through the validators and slash if needed.
 	for _, val := range vals {
@@ -130,7 +130,7 @@ func (sp *StateProcessor[
 //
 //nolint:unused // will be used later
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
 ]) processSlash(
 	st BeaconStateT,
 	val ValidatorT,

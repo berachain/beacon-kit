@@ -18,13 +18,14 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package core
+package transition
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto/sha256"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/go-faster/xor"
 )
@@ -33,7 +34,7 @@ import (
 // ensures it matches the local state.
 func (sp *StateProcessor[
 	BeaconBlockT, _, _, BeaconStateT,
-	_, _, _, _, _, _, ForkDataT, _, _, _, _, _, _,
+	_, _, _, _, _, ForkDataT, _, _, _, _, _, _,
 ]) processRandaoReveal(
 	st BeaconStateT,
 	blk BeaconBlockT,
@@ -55,7 +56,7 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	epoch := sp.cs.SlotToEpoch(slot)
+	epoch := sp.cs.SlotToEpoch(slot.Unwrap())
 	body := blk.GetBody()
 
 	var fd ForkDataT
@@ -67,7 +68,7 @@ func (sp *StateProcessor[
 
 	if !skipVerification {
 		signingRoot := fd.ComputeRandaoSigningRoot(
-			sp.cs.DomainTypeRandao(), epoch,
+			sp.cs.DomainTypeRandao(), math.U64(epoch),
 		)
 		reveal := body.GetRandaoReveal()
 		if err = sp.signer.VerifySignature(
@@ -80,14 +81,14 @@ func (sp *StateProcessor[
 	}
 
 	prevMix, err := st.GetRandaoMixAtIndex(
-		epoch.Unwrap() % sp.cs.EpochsPerHistoricalVector(),
+		epoch % sp.cs.EpochsPerHistoricalVector(),
 	)
 	if err != nil {
 		return err
 	}
 
 	return st.UpdateRandaoMixAtIndex(
-		epoch.Unwrap()%sp.cs.EpochsPerHistoricalVector(),
+		epoch%sp.cs.EpochsPerHistoricalVector(),
 		sp.buildRandaoMix(prevMix, body.GetRandaoReveal()),
 	)
 }
@@ -97,7 +98,7 @@ func (sp *StateProcessor[
 //
 //nolint:lll
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) processRandaoMixesReset(
 	st BeaconStateT,
 ) error {
@@ -106,22 +107,22 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	epoch := sp.cs.SlotToEpoch(slot)
+	epoch := sp.cs.SlotToEpoch(slot.Unwrap())
 	mix, err := st.GetRandaoMixAtIndex(
-		epoch.Unwrap() % sp.cs.EpochsPerHistoricalVector(),
+		epoch % sp.cs.EpochsPerHistoricalVector(),
 	)
 	if err != nil {
 		return err
 	}
 	return st.UpdateRandaoMixAtIndex(
-		(epoch.Unwrap()+1)%sp.cs.EpochsPerHistoricalVector(),
+		(epoch+1)%sp.cs.EpochsPerHistoricalVector(),
 		mix,
 	)
 }
 
 // buildRandaoMix as defined in the Ethereum 2.0 specification.
 func (sp *StateProcessor[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) buildRandaoMix(
 	mix common.Bytes32,
 	reveal crypto.BLSSignature,
