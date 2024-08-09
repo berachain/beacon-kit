@@ -80,7 +80,8 @@ func (nb *NodeBuilder[NodeT]) Build(
 		serviceRegistry *service.Registry
 		consensusEngine *components.ConsensusEngine
 		apiBackend      *components.NodeAPIBackend
-		storeKey        **storetypes.KVStoreKey
+		storeKey        = new(storetypes.KVStoreKey)
+		storeKeyDblPtr  = &storeKey
 	)
 
 	// build all node components using depinject
@@ -110,7 +111,7 @@ func (nb *NodeBuilder[NodeT]) Build(
 	// set the application to a new BeaconApp with necessary ABCI handlers
 	nb.node.RegisterApp(
 		runtime.NewBeaconKitApp(
-			*storeKey, logger, db, traceStore, true, abciMiddleware,
+			*storeKeyDblPtr, logger, db, traceStore, true, abciMiddleware,
 			append(
 				DefaultBaseappOptions(appOpts),
 				WithCometParamStore(chainSpec),
