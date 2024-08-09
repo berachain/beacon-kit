@@ -142,7 +142,8 @@ func (a *App) LoadHeight(height int64) error {
 // DefaultGenesis returns the default genesis state for the application.
 func (app *App) DefaultGenesis() map[string]json.RawMessage {
 	// Implement the default genesis state for the application.
-	// This should return a map of module names to their respective default genesis states.
+	// This should return a map of module names to their respective default
+	// genesis states.
 	gen := make(map[string]json.RawMessage)
 	s := types.DefaultGenesisDeneb()
 	var err error
@@ -156,7 +157,8 @@ func (app *App) DefaultGenesis() map[string]json.RawMessage {
 // ValidateGenesis validates the provided genesis state.
 func (app *App) ValidateGenesis(genesisData map[string]json.RawMessage) error {
 	// Implement the validation logic for the provided genesis state.
-	// This should validate the genesis state for each module in the application.
+	// This should validate the genesis state for each module in the
+	// application.
 	return nil
 }
 

@@ -91,6 +91,7 @@ func (cb *CLIBuilder[T, ExecutionPayloadT]) Build() (*cmdlib.Root, error) {
 		logger    log.AdvancedLogger[any, sdklog.Logger]
 	)
 	// build dependencies for the root command
+	//nolint:asasalint // todo fix.
 	if err := depinject.Inject(
 		depinject.Configs(
 			cb.depInjectCfg,
