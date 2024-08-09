@@ -63,10 +63,6 @@ func run() error {
 		clibuilder.WithDescription[node, *executionPayload](
 			"A basic beacon node, usable most standard networks.",
 		),
-		// Set the DepInject Configuration to the Default.
-		clibuilder.WithDepInjectConfig[node, *executionPayload](
-			nodebuilder.DefaultDepInjectConfig(),
-		),
 		// Set the Runtime Components to the Default.
 		clibuilder.WithComponents[node, *executionPayload](
 			append(

@@ -11,7 +11,6 @@ replace (
 )
 
 require (
-	cosmossdk.io/api v0.7.5
 	cosmossdk.io/core v0.12.1-0.20240806152830-8fb47b368cd4
 	cosmossdk.io/depinject v1.0.0
 	cosmossdk.io/log v1.4.0
@@ -44,6 +43,7 @@ require (
 )
 
 require (
+	cosmossdk.io/api v0.7.5 // indirect
 	cosmossdk.io/schema v0.1.1 // indirect
 	cosmossdk.io/x/tx v0.13.4-0.20240623110059-dec2d5583e39 // indirect
 	github.com/VictoriaMetrics/fastcache v1.12.2 // indirect
