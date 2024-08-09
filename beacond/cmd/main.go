@@ -27,7 +27,6 @@ import (
 	clibuilder "github.com/berachain/beacon-kit/mod/cli/pkg/builder"
 	clicomponents "github.com/berachain/beacon-kit/mod/cli/pkg/components"
 	nodebuilder "github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	nodecomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -82,7 +81,7 @@ func run() error {
 			),
 		),
 		clibuilder.SupplyModuleDeps[node, *executionPayload](
-			[]any{&components.ABCIMiddleware{}},
+			[]any{&nodecomponents.ABCIMiddleware{}},
 		),
 		// Set the Run Handler to the Default.
 		clibuilder.WithRunHandler[node, *executionPayload](
