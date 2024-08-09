@@ -25,11 +25,13 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 )
 
+// MessageServer is a server for sending and receiving messages.
 type MessageServer struct {
 	routes map[types.MessageID]types.MessageRoute
 	logger log.Logger[any]
 }
 
+// NewMessageServer creates a new message server.
 func NewMessageServer() *MessageServer {
 	return &MessageServer{
 		routes: make(map[types.MessageID]types.MessageRoute),
@@ -86,6 +88,7 @@ func (ms *MessageServer) RegisterReceiver(
 	return route.RegisterReceiver(ch)
 }
 
+// SetLogger sets the logger for the message server.
 func (ms *MessageServer) SetLogger(logger log.Logger[any]) {
 	ms.logger = logger
 }

@@ -25,6 +25,8 @@ import (
 	"errors"
 )
 
+// MessageI defines the minimal interface that the dispatcher expects from a
+// message.
 type MessageI interface {
 	ID() MessageID
 	Context() context.Context

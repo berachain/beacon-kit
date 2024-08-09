@@ -27,7 +27,7 @@ import (
 
 //nolint:gochecknoglobals // errors
 var (
-	ErrFeedNotFound           = errors.New("feed not found")
+	ErrPublisherNotFound      = errors.New("feed not found")
 	ErrRouteNotFound          = errors.New("route not found")
 	ErrRouteAlreadyRegistered = func(messageID types.MessageID) error {
 		return errors.Newf("route already registered for messageID: %s",

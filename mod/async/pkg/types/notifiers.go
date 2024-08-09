@@ -22,15 +22,15 @@ package types
 
 import "context"
 
-// publisher is the interface that supports basic event feed operations.
+// publisher is the interface that supports basic event publisher operations.
 type Publisher interface {
-	// Start starts the event feed.
+	// Start starts the event publisher.
 	Start(ctx context.Context)
-	// Publish publishes the given event to the event feed.
+	// Publish publishes the given event to the event publisher.
 	Publish(event MessageI) error
-	// Subscribe subscribes the given channel to the event feed.
+	// Subscribe subscribes the given channel to the event publisher.
 	Subscribe(ch any) error
-	// Unsubscribe unsubscribes the given channel from the event feed.
+	// Unsubscribe unsubscribes the given channel from the event publisher.
 	Unsubscribe(ch any) error
 }
 

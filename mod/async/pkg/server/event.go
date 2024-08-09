@@ -40,26 +40,26 @@ func NewEventServer() *EventServer {
 	}
 }
 
-// Dispatch dispatches the given event to the feed with the given eventID.
+// Dispatch dispatches the given event to the publisher with the given eventID.
 func (es *EventServer) Publish(event types.MessageI) error {
 	return es.publishers[event.ID()].Publish(event)
 }
 
-// Subscribe subscribes the given channel to the feed with the given eventID.
+// Subscribe subscribes the given channel to the publisher with the given eventID.
 // It will error if the channel type does not match the event type corresponding
-// feed.
+// publisher.
 func (es *EventServer) Subscribe(eventID types.MessageID, ch any) error {
-	feed, ok := es.publishers[eventID]
+	publisher, ok := es.publishers[eventID]
 	if !ok {
-		return ErrFeedNotFound
+		return ErrPublisherNotFound
 	}
-	return feed.Subscribe(ch)
+	return publisher.Subscribe(ch)
 }
 
 // Start starts the event server.
 func (es *EventServer) Start(ctx context.Context) {
-	for _, feed := range es.publishers {
-		go feed.Start(ctx)
+	for _, publisher := range es.publishers {
+		go publisher.Start(ctx)
 	}
 }
 
