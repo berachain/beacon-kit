@@ -30,11 +30,11 @@ import (
 // Route represents a communication route to a single recipient.
 // Invariant: there is exactly no more than one route for each messageID.
 type Route[ReqT any, RespT any] struct {
-	messageID  types.MessageID
-	recipient  chan ReqT
-	responseCh chan RespT
-	timeout    time.Duration
-	mu         sync.Mutex
+	messageID   types.MessageID
+	recipientCh chan ReqT
+	responseCh  chan RespT
+	timeout     time.Duration
+	mu          sync.Mutex
 }
 
 // NewRoute creates a new route.
@@ -56,7 +56,7 @@ func (r *Route[ReqT, RespT]) MessageID() types.MessageID {
 
 // RegisterReceiver sets the recipient for the route.
 func (r *Route[ReqT, RespT]) RegisterReceiver(ch any) error {
-	if r.recipient != nil {
+	if r.recipientCh != nil {
 		return errRouteAlreadySet
 	} else if ch == nil {
 		return errRegisteringNilChannel(r.messageID)
@@ -65,7 +65,7 @@ func (r *Route[ReqT, RespT]) RegisterReceiver(ch any) error {
 	if err != nil {
 		return err
 	}
-	r.recipient = typedCh
+	r.recipientCh = typedCh
 	return nil
 }
 
@@ -77,7 +77,7 @@ func (r *Route[ReqT, RespT]) SendRequest(req types.MessageI) error {
 	}
 
 	select {
-	case r.recipient <- typedMsg:
+	case r.recipientCh <- typedMsg:
 		return nil
 	default:
 		// Channel is full or closed

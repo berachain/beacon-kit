@@ -166,8 +166,7 @@ func (s *Service[_, _, BlobSidecarsT, _]) handleSidecarsVerifyRequest(
 ) {
 	var err error
 	// verify the sidecars.
-	err = s.verifySidecars(msg.Data())
-	if err != nil {
+	if err = s.verifySidecars(msg.Data()); err != nil {
 		s.logger.Error(
 			"Failed to receive blob sidecars",
 			"error",
