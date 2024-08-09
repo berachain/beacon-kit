@@ -48,6 +48,7 @@ type Application[ClientT engine.Client] struct {
 	ConsensusParamsStore *ConsensusParamsStore
 
 	// Genesis Data
+	genTxs         [][]byte
 	genesisAppHash []byte
 	initialHeight  int64
 }
@@ -105,6 +106,9 @@ func (app *Application[ClientT]) PrepareProposal(
 	if err != nil {
 		return nil, err
 	}
+	if req.Height == app.initialHeight {
+		app.genTxs = txs
+	}
 	return &abci.PrepareProposalResponse{
 		Txs: txs,
 	}, nil
@@ -116,6 +120,11 @@ func (app *Application[ClientT]) ProcessProposal(
 ) (*abci.ProcessProposalResponse, error) {
 	app.logger.Info("Starting ProcessProposal")
 	var err error
+	if req.Height == app.initialHeight {
+		return &abci.ProcessProposalResponse{
+			Status: abci.PROCESS_PROPOSAL_STATUS_ACCEPT,
+		}, err
+	}
 	processReq := processRequestFromABCIRequest(req)
 	status := abci.PROCESS_PROPOSAL_STATUS_ACCEPT
 	if err = app.client.ProcessProposal(ctx, processReq); err != nil {
@@ -133,7 +142,8 @@ func (app *Application[ClientT]) FinalizeBlock(
 	app.logger.Info("Starting FinalizeBlock")
 	if req.Height == app.initialHeight {
 		return &abci.FinalizeBlockResponse{
-			AppHash: app.genesisAppHash,
+			TxResults: execTxResultsFromTxs(app.genTxs),
+			AppHash:   app.genesisAppHash,
 		}, nil
 	}
 	finalizeReq := finalizeRequestFromABCIRequest(req)

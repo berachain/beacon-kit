@@ -234,11 +234,6 @@ func (sp *StateProcessor[
 		}
 	}
 
-	fmt.Println(
-		"TIME ELAPSED IN FULLY COMPLETED PROCESS SLOTS",
-		time.Since(start),
-	)
-
 	return validatorUpdates, nil
 }
 

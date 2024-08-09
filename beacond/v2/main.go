@@ -24,7 +24,6 @@ import (
 	"context"
 	"encoding/json"
 	"os"
-	"time"
 
 	clicomponents "github.com/berachain/beacon-kit/mod/cli/pkg/components"
 	"github.com/berachain/beacon-kit/mod/config"
@@ -58,12 +57,6 @@ func run() error {
 	ctx := context.Background()
 	cfg := config.DefaultConfig()
 	cfg.Engine.JWTSecretPath = jwtSecretPath
-	cfg.CometBFT.Consensus.TimeoutPropose = 10 * time.Second
-	cfg.CometBFT.Consensus.TimeoutCommit = 10 * time.Second
-	cfg.CometBFT.Consensus.TimeoutPrecommit = 10 * time.Second
-	cfg.CometBFT.Consensus.TimeoutPrevote = 10 * time.Second
-	cfg.CometBFT.Consensus.TimeoutPrevoteDelta = 10 * time.Second
-	cfg.CometBFT.Consensus.TimeoutPrecommitDelta = 10 * time.Second
 
 	appOpts := &components.AppOptions{
 		HomeDir: homeDir,
