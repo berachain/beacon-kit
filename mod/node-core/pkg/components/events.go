@@ -21,19 +21,13 @@
 package components
 
 import (
-	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/async/pkg/messaging"
 	"github.com/berachain/beacon-kit/mod/async/pkg/server"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
 )
 
-// EventServerInput is the input for the event server.
-type EventServerInput struct {
-	depinject.In
-}
-
 // ProvideEventServer provides an event server.
-func ProvideEventServer(in EventServerInput) *EventServer {
+func ProvideEventServer() *EventServer {
 	return server.NewEventServer()
 }
 

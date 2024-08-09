@@ -21,19 +21,14 @@
 package components
 
 import (
-	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/async/pkg/messaging"
 	"github.com/berachain/beacon-kit/mod/async/pkg/server"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
 )
 
-type MessageServerInput struct {
-	depinject.In
-}
-
 // ProvideMessageServer provides a message server.
-func ProvideMessageServer(in MessageServerInput) *server.MessageServer {
+func ProvideMessageServer() *server.MessageServer {
 	return server.NewMessageServer()
 }
 
