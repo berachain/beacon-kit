@@ -35,6 +35,7 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/gogoproto/proto"
 )
 
 var _ servertypes.Application = &App{}
@@ -107,15 +108,9 @@ func (a *App) Load(loadLatest bool) error {
 	return nil
 }
 
-// PreBlocker application updates every pre block.
-func (a *App) PreBlocker(ctx sdk.Context, req *abci.FinalizeBlockRequest) error {
-	return a.Middleware.PreBlock(ctx, req)
-}
-
 // EndBlocker application updates every end block.
-func (a *App) EndBlocker(ctx context.Context,
-) (transition.ValidatorUpdates, error) {
-	return a.Middleware.EndBlock(ctx)
+func (a *App) EndBlocker(ctx context.Context, req proto.Message) (transition.ValidatorUpdates, error) {
+	return a.Middleware.EndBlock(ctx, req)
 }
 
 // InitChainer initializes the chain.

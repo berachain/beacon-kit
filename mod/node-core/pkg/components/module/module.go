@@ -41,9 +41,8 @@ const (
 )
 
 var (
-	_ appmodule.AppModule    = AppModule{}
-	_ module.HasABCIGenesis  = AppModule{}
-	_ module.HasABCIEndBlock = AppModule{}
+	_ appmodule.AppModule   = AppModule{}
+	_ module.HasABCIGenesis = AppModule{}
 )
 
 // AppModule implements an application module for the beacon module.
@@ -134,24 +133,4 @@ func (am AppModule) InitGenesis(
 		am.ABCIMiddleware,
 		*am.StorageBackend,
 	).InitGenesis(ctx, bz)
-}
-
-// EndBlock returns the validator set updates from the beacon state.
-func (am AppModule) EndBlock(
-	ctx context.Context,
-) ([]appmodule.ValidatorUpdate, error) {
-	return cometbft.NewConsensusEngine[
-		*types.AttestationData,
-		*components.BeaconState,
-		*types.SlashingInfo,
-		*consruntimetypes.SlotData[
-			*types.AttestationData,
-			*types.SlashingInfo,
-		],
-		components.StorageBackend,
-		appmodule.ValidatorUpdate,
-	](
-		am.ABCIMiddleware,
-		*am.StorageBackend,
-	).EndBlock(ctx)
 }

@@ -124,18 +124,10 @@ func (c *ConsensusEngine[_, _, _, _, _, ValidatorUpdateT]) ProcessProposal(
 	return resp.(*cmtabci.ProcessProposalResponse), nil
 }
 
-// TODO: Decouple Comet Types
-func (c *ConsensusEngine[_, _, _, _, _, ValidatorUpdateT]) PreBlock(
-	ctx sdk.Context,
-	req *cmtabci.FinalizeBlockRequest,
-) error {
-	return c.Middleware.PreBlock(ctx, req)
-}
-
 func (c *ConsensusEngine[_, _, _, _, _, ValidatorUpdateT]) EndBlock(
-	ctx context.Context,
+	ctx context.Context, req *cmtabci.FinalizeBlockRequest,
 ) ([]ValidatorUpdateT, error) {
-	updates, err := c.Middleware.EndBlock(ctx)
+	updates, err := c.Middleware.EndBlock(ctx, req)
 	if err != nil {
 		return nil, err
 	}

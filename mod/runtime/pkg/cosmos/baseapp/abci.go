@@ -440,10 +440,6 @@ func (app *BaseApp) internalFinalizeBlock(
 			WithHeaderHash(req.Hash))
 	}
 
-	if err := app.preBlock(req); err != nil {
-		return nil, err
-	}
-
 	if _, err := app.beginBlock(req); err != nil {
 		return nil, err
 	}
@@ -485,7 +481,7 @@ func (app *BaseApp) internalFinalizeBlock(
 		})
 	}
 
-	endBlock, err := app.endBlock(app.finalizeBlockState.Context())
+	endBlock, err := app.endBlock(app.finalizeBlockState.Context(), req)
 	if err != nil {
 		return nil, err
 	}

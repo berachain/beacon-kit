@@ -37,6 +37,7 @@ import (
 	dbm "github.com/cosmos/cosmos-db"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/gogoproto/proto"
 )
 
 type (
@@ -64,12 +65,11 @@ type BaseApp struct {
 	db     dbm.DB                      // common DB backend
 	cms    storetypes.CommitMultiStore // Main (uncached) state
 
-	initChainer     sdk.InitChainer                                                // ABCI InitChain handler
-	preBlocker      sdk.PreBlocker                                                 // logic to run before BeginBlocker
-	beginBlocker    sdk.BeginBlocker                                               // (legacy ABCI) BeginBlock handler
-	endBlocker      func(ctx context.Context) (transition.ValidatorUpdates, error) // (legacy ABCI) EndBlock handler
-	processProposal sdk.ProcessProposalHandler                                     // ABCI ProcessProposal handler
-	prepareProposal sdk.PrepareProposalHandler                                     // ABCI PrepareProposal handler
+	initChainer     sdk.InitChainer                                                           // ABCI InitChain handler
+	beginBlocker    sdk.BeginBlocker                                                          // (legacy ABCI) BeginBlock handler
+	endBlocker      func(context.Context, proto.Message) (transition.ValidatorUpdates, error) // (legacy ABCI) EndBlock handler
+	processProposal sdk.ProcessProposalHandler                                                // ABCI ProcessProposal handler
+	prepareProposal sdk.PrepareProposalHandler                                                // ABCI PrepareProposal handler
 
 	// volatile states:
 	//
@@ -392,22 +392,6 @@ func (app *BaseApp) validateFinalizeBlockHeight(
 	return nil
 }
 
-func (app *BaseApp) preBlock(
-	req *abci.FinalizeBlockRequest,
-) error {
-	if app.preBlocker != nil {
-		ctx := app.finalizeBlockState.Context()
-		if err := app.preBlocker(ctx, req); err != nil {
-			return err
-		}
-		// ConsensusParams can change in preblocker, so we need to
-		// write the consensus parameters in store to context
-		ctx = ctx.WithConsensusParams(app.GetConsensusParams(ctx))
-		app.finalizeBlockState.SetContext(ctx)
-	}
-	return nil
-}
-
 func (app *BaseApp) beginBlock(
 	_ *abci.FinalizeBlockRequest,
 ) (sdk.BeginBlock, error) {
@@ -420,9 +404,9 @@ func (app *BaseApp) beginBlock(
 
 // endBlock is an application-defined function that is called after transactions
 // have been processed in FinalizeBlock.
-func (app *BaseApp) endBlock(_ context.Context) (transition.ValidatorUpdates, error) {
+func (app *BaseApp) endBlock(_ context.Context, req *abci.FinalizeBlockRequest) (transition.ValidatorUpdates, error) {
 	if app.endBlocker != nil {
-		return app.endBlocker(app.finalizeBlockState.Context())
+		return app.endBlocker(app.finalizeBlockState.Context(), req)
 	}
 
 	return nil, nil

@@ -119,7 +119,6 @@ func (nb *NodeBuilder[NodeT]) Build(
 				WithCometParamStore(chainSpec),
 				WithPrepareProposal(consensusEngine.PrepareProposal),
 				WithProcessProposal(consensusEngine.ProcessProposal),
-				WithPreBlocker(consensusEngine.PreBlock),
 			)...,
 		),
 	)
