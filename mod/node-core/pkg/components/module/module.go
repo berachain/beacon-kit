@@ -20,76 +20,7 @@
 
 package beacon
 
-import (
-	"context"
-
-	"cosmossdk.io/core/appmodule/v2"
-	"cosmossdk.io/core/registry"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
-)
-
 const (
-	// ConsensusVersion defines the current x/beacon module consensus version.
-	ConsensusVersion = 1
 	// ModuleName is the module name constant used in many places.
 	ModuleName = "beacon"
 )
-
-var (
-	_ appmodule.AppModule = AppModule{}
-)
-
-// AppModule implements an application module for the beacon module.
-// It is a wrapper around the ABCIMiddleware.
-type AppModule struct{}
-
-// Name is the name of this module.
-func (am AppModule) Name() string {
-	return ModuleName
-}
-
-// ConsensusVersion implements AppModule/ConsensusVersion.
-func (AppModule) ConsensusVersion() uint64 {
-	return ConsensusVersion
-}
-
-// RegisterInterfaces registers the module's interface types.
-func (am AppModule) RegisterInterfaces(registry.InterfaceRegistrar) {}
-
-// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
-func (am AppModule) IsOnePerModuleType() {}
-
-// IsAppModule implements the appmodule.AppModule interface.
-func (am AppModule) IsAppModule() {}
-
-// DefaultGenesis returns default genesis state as raw bytes
-// for the beacon module.
-func (AppModule) DefaultGenesis() json.RawMessage {
-	bz, err := json.Marshal(
-		types.DefaultGenesisDeneb(),
-	)
-	if err != nil {
-		panic(err)
-	}
-	return bz
-}
-
-// ValidateGenesis performs genesis state validation for the beacon module.
-func (AppModule) ValidateGenesis(
-	_ json.RawMessage,
-) error {
-	return nil
-}
-
-// ExportGenesis returns the exported genesis state as raw bytes for the
-// beacon module.
-func (am AppModule) ExportGenesis(
-	_ context.Context,
-) (json.RawMessage, error) {
-	return json.Marshal(
-		&types.Genesis[
-			*types.Deposit, *types.ExecutionPayloadHeader,
-		]{},
-	)
-}
