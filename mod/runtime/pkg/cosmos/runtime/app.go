@@ -150,10 +150,25 @@ func (a *App) PreBlocker(ctx sdk.Context, req *abci.FinalizeBlockRequest) error 
 	return a.Middleware.PreBlock(ctx, req)
 }
 
+// BeginBlocker application updates every begin block.
+func (a *App) BeginBlocker(ctx sdk.Context) (sdk.BeginBlock, error) {
+	return sdk.BeginBlock{}, nil
+}
+
 // EndBlocker application updates every end block.
 func (a *App) EndBlocker(ctx context.Context,
 ) (transition.ValidatorUpdates, error) {
 	return a.Middleware.EndBlock(ctx)
+}
+
+// Precommiter application updates every commit.
+func (a *App) Precommiter(sdk.Context) {
+	return
+}
+
+// PrepareCheckStater application updates every commit.
+func (a *App) PrepareCheckStater(sdk.Context) {
+	return
 }
 
 // InitChainer initializes the chain.
