@@ -63,26 +63,16 @@ func SetupAppBuilder(inputs AppInputs) {
 	app.logger = inputs.Logger
 }
 
-func registerStoreKey(wrapper *AppBuilder, key storetypes.StoreKey) {
-	wrapper.app.storeKeys = append(wrapper.app.storeKeys, key)
-}
-
 func ProvideKVStoreKey(
-	key depinject.ModuleKey,
 	app *AppBuilder,
 ) *storetypes.KVStoreKey {
-	if key.Name() != "beacon" {
-		return nil
-	}
-
-	storeKey := storetypes.NewKVStoreKey(key.Name())
-	registerStoreKey(app, storeKey)
+	storeKey := storetypes.NewKVStoreKey("beacon")
+	app.app.storeKeys = append(app.app.storeKeys, storeKey)
 	return storeKey
 }
 
 func ProvideEnvironment(
 	logger log.Logger,
-	key depinject.ModuleKey,
 	app *AppBuilder,
 ) (store.KVStoreService, appmodule.Environment) {
 	var (
@@ -90,15 +80,13 @@ func ProvideEnvironment(
 	)
 
 	// skips modules that have no store
-	if key.Name() == "beacon" {
-		storeKey := ProvideKVStoreKey(key, app)
-		kvService = kvStoreService{key: storeKey}
-	}
+	storeKey := ProvideKVStoreKey(app)
+	kvService = kvStoreService{key: storeKey}
 
 	return kvService, appmodule.Environment{
 		Logger: logger.With(
 			log.ModuleKey,
-			fmt.Sprintf("x/%s", key.Name()),
+			fmt.Sprintf("x/%s", "beacon"),
 		),
 		KVStoreService: kvService,
 	}
