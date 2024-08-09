@@ -62,7 +62,7 @@ func (kv *KVStore[
 	}
 
 	// Push onto the balances list.
-	return kv.balances.Set(kv.ctx, idx, uint64(val.GetEffectiveBalance()))
+	return kv.balances.Set(kv.ctx, idx, val.GetEffectiveBalance().Unwrap())
 }
 
 // UpdateValidatorAtIndex updates a validator at a specific index.
@@ -73,7 +73,7 @@ func (kv *KVStore[
 	index math.ValidatorIndex,
 	val ValidatorT,
 ) error {
-	return kv.validators.Set(kv.ctx, uint64(index), val)
+	return kv.validators.Set(kv.ctx, index.Unwrap(), val)
 }
 
 // ValidatorIndexByPubkey returns the validator address by index.
@@ -117,7 +117,7 @@ func (kv *KVStore[
 ]) ValidatorByIndex(
 	index math.ValidatorIndex,
 ) (ValidatorT, error) {
-	val, err := kv.validators.Get(kv.ctx, uint64(index))
+	val, err := kv.validators.Get(kv.ctx, index.Unwrap())
 	if err != nil {
 		var t ValidatorT
 		return t, err
@@ -216,7 +216,7 @@ func (kv *KVStore[
 ]) GetBalance(
 	idx math.ValidatorIndex,
 ) (math.Gwei, error) {
-	balance, err := kv.balances.Get(kv.ctx, uint64(idx))
+	balance, err := kv.balances.Get(kv.ctx, idx.Unwrap())
 	return math.Gwei(balance), err
 }
 
@@ -228,7 +228,7 @@ func (kv *KVStore[
 	idx math.ValidatorIndex,
 	balance math.Gwei,
 ) error {
-	return kv.balances.Set(kv.ctx, uint64(idx), uint64(balance))
+	return kv.balances.Set(kv.ctx, idx.Unwrap(), balance.Unwrap())
 }
 
 // GetBalances returns the balancse of all validator.

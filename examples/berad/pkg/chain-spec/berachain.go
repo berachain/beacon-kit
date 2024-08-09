@@ -18,32 +18,19 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package deposit
+package chainspec
 
-import (
-	"strconv"
+import "github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-)
-
-// metrics is a struct that contains metrics for the deposit service.
-type metrics struct {
-	// sink is the telemetry sink.
-	sink TelemetrySink
-}
-
-// newMetrics creates a new instance of the metrics struct.
-func newMetrics(sink TelemetrySink) *metrics {
-	return &metrics{
-		sink: sink,
-	}
-}
-
-// markFailedToGetBlockLogs increments the counter for failed to get block logs.
-func (m *metrics) markFailedToGetBlockLogs(blockNum math.U64) {
-	m.sink.IncrementCounter(
-		"beacon_kit.execution.deposit.failed_to_get_block_logs",
-		"block_num",
-		strconv.FormatUint(blockNum.Unwrap(), 10),
-	)
+type BeraChainSpec struct {
+	// SpecData is the underlying data structure for chain-specific parameters.
+	chain.Spec[
+		[4]byte,
+		uint64,
+		[20]byte,
+		uint64,
+		any,
+	]
+	// BGTContractAddress
+	BGTContractAddress [20]byte `mapstructure:"bgt-contract-address"`
 }
