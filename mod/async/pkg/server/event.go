@@ -66,7 +66,9 @@ func (es *EventServer) Start(ctx context.Context) {
 // RegisterPublisher registers the given publisher with the given eventID.
 // Any subsequent events with <eventID> dispatched to this EventServer must be
 // consistent with the type expected by <publisher>.
-func (es *EventServer) RegisterPublisher(eventID types.MessageID, publisher types.Publisher) {
+func (es *EventServer) RegisterPublisher(
+	eventID types.MessageID, publisher types.Publisher,
+) {
 	es.publishers[eventID] = publisher
 }
 

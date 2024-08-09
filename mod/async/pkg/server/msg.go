@@ -39,7 +39,7 @@ func NewMessageServer() *MessageServer {
 // Request sends a message to the server and awaits for a response.
 // The response is written to the provided response pointer.
 func (ms *MessageServer) Request(req types.MessageI, respPtr any) error {
-	// send message to request channel and await a response in the response channel
+	// send request and await response
 	route, ok := ms.routes[req.ID()]
 	if !ok {
 		return ErrRouteNotFound
@@ -63,7 +63,9 @@ func (ms *MessageServer) Respond(resp types.MessageI) error {
 // RegisterRoute registers the route with the given messageID.
 // Any subsequent messages with <messageID> sent to this MessageServer must be
 // consistent with the type expected by <route>.
-func (ms *MessageServer) RegisterRoute(messageID types.MessageID, route types.MessageRoute) error {
+func (ms *MessageServer) RegisterRoute(
+	messageID types.MessageID, route types.MessageRoute,
+) error {
 	if ms.routes[messageID] != nil {
 		return ErrRouteAlreadyRegistered(messageID)
 	}
@@ -74,7 +76,9 @@ func (ms *MessageServer) RegisterRoute(messageID types.MessageID, route types.Me
 // SetRecipient sets the recipient for the route with the given messageID.
 // Errors if the route with the given messageID is not found or the route
 // already has a registered recipient.
-func (ms *MessageServer) RegisterReceiver(messageID types.MessageID, ch any) error {
+func (ms *MessageServer) RegisterReceiver(
+	messageID types.MessageID, ch any,
+) error {
 	route, ok := ms.routes[messageID]
 	if !ok {
 		return ErrRouteNotFound

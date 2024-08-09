@@ -30,7 +30,6 @@ import (
 // ServiceRegistryInput is the input for the service registry provider.
 type ServiceRegistryInput struct {
 	depinject.In
-	ABCIService       *ABCIMiddleware
 	BlockStoreService *BlockStoreService
 	ChainService      *ChainService
 	DAService         *DAService
@@ -57,7 +56,6 @@ func ProvideServiceRegistry(
 		service.WithService(in.ChainService),
 		service.WithService(in.DAService),
 		service.WithService(in.DepositService),
-		service.WithService(in.ABCIService),
 		service.WithService(in.NodeAPIServer),
 		service.WithService(in.ReportingService),
 		service.WithService(in.DBManager),

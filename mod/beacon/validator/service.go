@@ -140,14 +140,16 @@ func NewService[
 	ts TelemetrySink,
 	dispatcher *dispatcher.Dispatcher,
 ) *Service[
-	AttestationDataT, BeaconBlockT, BeaconBlockBundleT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ForkDataT, SlashingInfoT, SlotDataT,
+	AttestationDataT, BeaconBlockT, BeaconBlockBundleT, BeaconBlockBodyT,
+	BeaconStateT, BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT,
+	ExecutionPayloadT, ExecutionPayloadHeaderT, ForkDataT, SlashingInfoT,
+	SlotDataT,
 ] {
 	return &Service[
-		AttestationDataT, BeaconBlockT, BeaconBlockBundleT, BeaconBlockBodyT, BeaconStateT,
-		BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
-		ExecutionPayloadHeaderT, ForkDataT, SlashingInfoT, SlotDataT,
+		AttestationDataT, BeaconBlockT, BeaconBlockBundleT, BeaconBlockBodyT,
+		BeaconStateT, BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT, ForkDataT, SlashingInfoT,
+		SlotDataT,
 	]{
 		cfg:                   cfg,
 		logger:                logger,
@@ -210,10 +212,17 @@ func (s *Service[
 // handleBuildBlockBundleRequest builds a block and sidecars for the requested
 // slot data and dispatches a response containing the built block and sidecars.
 func (s *Service[
-	_, _, BeaconBlockBundleT, _, _, _, _, _, _, _, _, _, _, SlotDataT,
+	_, BeaconBlockT, BeaconBlockBundleT, _, _, BlobSidecarsT, _, _, _, _, _, _,
+	_, SlotDataT,
 ]) handleBuildBlockBundleRequest(req *asynctypes.Message[SlotDataT]) {
+	var (
+		blk      BeaconBlockT
+		sidecars BlobSidecarsT
+		blkData  BeaconBlockBundleT
+		err      error
+	)
 	// build the block and sidecars for the requested slot data
-	blk, sidecars, err := s.buildBlockAndSidecars(
+	blk, sidecars, err = s.buildBlockAndSidecars(
 		req.Context(), req.Data(),
 	)
 	if err != nil {
@@ -222,9 +231,8 @@ func (s *Service[
 
 	// bundle the block and sidecars and dispatch the response
 	// blkData := *new(BeaconBlockBundleT)
-	var blkData BeaconBlockBundleT
 	blkData = blkData.New(blk, sidecars)
-	if err := s.dispatcher.Respond(asynctypes.NewMessage(
+	if err = s.dispatcher.Respond(asynctypes.NewMessage(
 		req.Context(),
 		messages.BuildBeaconBlockAndSidecars,
 		blkData,

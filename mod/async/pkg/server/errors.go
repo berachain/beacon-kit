@@ -25,10 +25,12 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 )
 
+//nolint:gochecknoglobals // errors
 var (
 	ErrFeedNotFound           = errors.New("feed not found")
 	ErrRouteNotFound          = errors.New("route not found")
 	ErrRouteAlreadyRegistered = func(messageID types.MessageID) error {
-		return errors.Newf("route already registered for messageID: %s", messageID)
+		return errors.Newf("route already registered for messageID: %s",
+			messageID)
 	}
 )

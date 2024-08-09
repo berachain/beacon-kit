@@ -69,7 +69,9 @@ func (p *Publisher[T]) start(ctx context.Context) {
 		case <-ctx.Done():
 			// close all leftover clients and break the publisher loop
 			for client := range p.clients {
-				p.Unsubscribe(client)
+				if err := p.Unsubscribe(client); err != nil {
+					panic(err)
+				}
 			}
 			return
 		case msg := <-p.msgs:

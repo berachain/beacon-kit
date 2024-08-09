@@ -39,7 +39,8 @@ type BeaconBlock[SelfT any] interface {
 	NewFromSSZ([]byte, uint32) (SelfT, error)
 }
 
-// BeaconBlockBundle
+// BeaconBlockBundle is a bundle of a beacon block and its corresponding blob
+// sidecars.
 type BeaconBlockBundle[BeaconBlockT any, BlobSidecarsT any] interface {
 	GetBeaconBlock() BeaconBlockT
 	GetSidecars() BlobSidecarsT

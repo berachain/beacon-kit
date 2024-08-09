@@ -34,12 +34,16 @@ type MessageServerInput struct {
 }
 
 // ProvideMessageServer provides a message server.
-func ProvideMessageServer(in MessageServerInput) *server.MessageServer {
+func ProvideMessageServer(in MessageServerInput) (
+	*server.MessageServer, error,
+) {
 	ms := server.NewMessageServer()
 	for _, route := range in.Routes {
-		ms.RegisterRoute(route.MessageID(), route)
+		if err := ms.RegisterRoute(route.MessageID(), route); err != nil {
+			return nil, err
+		}
 	}
-	return ms
+	return ms, nil
 }
 
 // ProvideMessageRoutes provides all the message routes.

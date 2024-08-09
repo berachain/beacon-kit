@@ -111,7 +111,9 @@ func (h *ABCIMiddleware[
 		return nil, nil, bbbResp.Error()
 	}
 	// gossip beacon block
-	bbBz, bbErr := h.beaconBlockGossiper.Publish(ctx, bbbResp.Data().GetBeaconBlock())
+	bbBz, bbErr := h.beaconBlockGossiper.Publish(
+		ctx, bbbResp.Data().GetBeaconBlock(),
+	)
 	if bbErr != nil {
 		return nil, nil, bbErr
 	}
@@ -156,11 +158,13 @@ func (h *ABCIMiddleware[
 	}
 
 	// verify the beacon block
-	h.dispatcher.Request(
+	if err = h.dispatcher.Request(
 		asynctypes.NewMessage(
 			ctx, messages.VerifyBeaconBlock, blk,
 		), &beaconBlockResp,
-	)
+	); err != nil {
+		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
+	}
 
 	if beaconBlockResp.Error() != nil {
 		return h.createProcessProposalResponse(beaconBlockResp.Error())
@@ -172,11 +176,13 @@ func (h *ABCIMiddleware[
 	}
 
 	// verify the blob sidecars
-	h.dispatcher.Request(
+	if err = h.dispatcher.Request(
 		asynctypes.NewMessage(
 			ctx, messages.VerifySidecars, sidecars,
 		), &sidecarsResp,
-	)
+	); err != nil {
+		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
+	}
 
 	if sidecarsResp.Error() != nil {
 		return h.createProcessProposalResponse(sidecarsResp.Error())
@@ -228,8 +234,11 @@ func (h *ABCIMiddleware[
 	var (
 		sidecarsResp   *asynctypes.Message[BlobSidecarsT]
 		valUpdatesResp *asynctypes.Message[transition.ValidatorUpdates]
+		blk            BeaconBlockT
+		blobs          BlobSidecarsT
+		err            error
 	)
-	blk, blobs, err := encoding.
+	blk, blobs, err = encoding.
 		ExtractBlobsAndBlockFromRequest[BeaconBlockT, BlobSidecarsT](
 		h.req,
 		BeaconBlockTxIndex,
@@ -243,21 +252,23 @@ func (h *ABCIMiddleware[
 		return nil, nil
 	}
 
-	// verify the blob sidecars
-	h.dispatcher.Request(
+	// process the blob sidecars.
+	if err = h.dispatcher.Request(
 		asynctypes.NewMessage(
 			ctx, messages.ProcessSidecars, blobs,
 		), &sidecarsResp,
-	)
-	if sidecarsResp.Error() != nil {
+	); err != nil {
 		return nil, sidecarsResp.Error()
 	}
 
-	h.dispatcher.Request(
+	// finalize the beacon block.
+	if err = h.dispatcher.Request(
 		asynctypes.NewMessage(
 			ctx, messages.FinalizeBeaconBlock, blk,
 		), &valUpdatesResp,
-	)
+	); err != nil {
+		return nil, valUpdatesResp.Error()
+	}
 
 	return valUpdatesResp.Data(), valUpdatesResp.Error()
 }

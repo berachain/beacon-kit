@@ -21,7 +21,6 @@
 package middleware
 
 import (
-	"context"
 	"encoding/json"
 
 	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
@@ -124,11 +123,4 @@ func (am *ABCIMiddleware[
 	ExecutionPayloadT, GenesisT, SlotDataT,
 ]) Name() string {
 	return "abci-middleware"
-}
-
-// Start the middleware.
-func (am *ABCIMiddleware[
-	_, _, _, _, _, _, _, _,
-]) Start(ctx context.Context) error {
-	return nil
 }

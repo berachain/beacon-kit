@@ -53,6 +53,8 @@ func (s *Service[
 
 // sendNextFCUWithAttributes sends a forkchoice update to the execution
 // client with attributes.
+//
+//nolint:lll // it's fine
 func (s *Service[
 	_, BeaconBlockT, _, _, BeaconStateT,
 	_, _, ExecutionPayloadHeaderT, _, _, _,
@@ -83,8 +85,7 @@ func (s *Service[
 	); err != nil {
 		s.logger.Error(
 			"failed to send forkchoice update with attributes in non-optimistic payload",
-			"error",
-			err,
+			"error", err,
 		)
 	}
 }

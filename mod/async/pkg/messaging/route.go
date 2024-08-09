@@ -57,9 +57,9 @@ func (r *Route[ReqT, RespT]) MessageID() types.MessageID {
 // RegisterReceiver sets the recipient for the route.
 func (r *Route[ReqT, RespT]) RegisterReceiver(ch any) error {
 	if r.recipient != nil {
-		return ErrRouteAlreadySet
+		return errRouteAlreadySet
 	} else if ch == nil {
-		return ErrRegisteringNilChannel(r.messageID)
+		return errRegisteringNilChannel(r.messageID)
 	}
 	typedCh, err := ensureType[chan ReqT](ch)
 	if err != nil {
@@ -81,7 +81,7 @@ func (r *Route[ReqT, RespT]) SendRequest(req types.MessageI) error {
 		return nil
 	default:
 		// Channel is full or closed
-		return ErrReceiverNotReady(r.messageID)
+		return errReceiverNotReady(r.messageID)
 	}
 }
 
@@ -102,6 +102,6 @@ func (r *Route[ReqT, RespT]) AwaitResponse(respPtr any) error {
 	case resp := <-r.responseCh:
 		return assign(resp, respPtr)
 	case <-time.After(r.timeout):
-		return ErrTimeout(r.messageID, r.timeout)
+		return errTimeout(r.messageID, r.timeout)
 	}
 }

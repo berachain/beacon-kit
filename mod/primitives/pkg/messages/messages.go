@@ -20,7 +20,7 @@
 
 package messages
 
-// messages
+// messages.
 const (
 	BuildBeaconBlockAndSidecars = "build-beacon-block-and-sidecars"
 	VerifyBeaconBlock           = "verify-beacon-block"
@@ -31,7 +31,7 @@ const (
 	ReceiveSidecars             = "receive-sidecars"
 )
 
-// events
+// events.
 const (
 	BeaconBlockFinalizedEvent = "beacon-block-finalized"
 )

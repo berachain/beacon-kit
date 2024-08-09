@@ -27,9 +27,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 )
 
-// Dispatcher faciliates asynchronous communication between components, typically
-// services. It acts as an API facade to the underlying event and message
-// servers.
+// Dispatcher faciliates asynchronous communication between components,
+// typically services. It acts as an API facade to the underlying event and
+// message servers.
 type Dispatcher struct {
 	eventServer EventServer
 	msgServer   MessageServer
@@ -83,7 +83,9 @@ func (d *Dispatcher) Respond(resp types.MessageI) error {
 // RegisterPublisher registers the given publisher with the given eventID.
 // Any subsequent events with <eventID> dispatched to this Dispatcher must be
 // consistent with the type expected by <publisher>.
-func (d *Dispatcher) RegisterPublisher(eventID types.MessageID, publisher types.Publisher) {
+func (d *Dispatcher) RegisterPublisher(
+	eventID types.MessageID, publisher types.Publisher,
+) {
 	d.logger.Info("Publisher registered", "eventID", eventID)
 	d.eventServer.RegisterPublisher(eventID, publisher)
 }
@@ -99,7 +101,9 @@ func (d *Dispatcher) Subscribe(eventID types.MessageID, ch any) error {
 
 // RegisterMsgRecipient registers the given channel to the message with the
 // given <messageID>.
-func (d *Dispatcher) RegisterMsgReceiver(messageID types.MessageID, ch any) error {
+func (d *Dispatcher) RegisterMsgReceiver(
+	messageID types.MessageID, ch any,
+) error {
 	d.logger.Info("Message receiver registered", "messageID", messageID)
 	return d.msgServer.RegisterReceiver(messageID, ch)
 }
@@ -107,7 +111,9 @@ func (d *Dispatcher) RegisterMsgReceiver(messageID types.MessageID, ch any) erro
 // RegisterRoute registers the given route with the given messageID.
 // Any subsequent messages with <messageID> sent to this Dispatcher must be
 // consistent with the type expected by <route>.
-func (d *Dispatcher) RegisterRoute(messageID types.MessageID, route types.MessageRoute) {
+func (d *Dispatcher) RegisterRoute(
+	messageID types.MessageID, route types.MessageRoute,
+) error {
 	d.logger.Info("Route registered", "messageID", messageID)
-	d.msgServer.RegisterRoute(messageID, route)
+	return d.msgServer.RegisterRoute(messageID, route)
 }

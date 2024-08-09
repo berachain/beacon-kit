@@ -33,7 +33,7 @@ type Service[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	BeaconBlockBodyT any,
 	BlobSidecarsT BlobSidecar,
-	//nolint:lll // formatter.
+
 	ExecutionPayloadT any,
 ] struct {
 	avs AvailabilityStoreT
@@ -52,7 +52,7 @@ func NewService[
 	],
 	BeaconBlockBodyT any,
 	BlobSidecarsT BlobSidecar,
-	//nolint:lll // formatter.
+
 	ExecutionPayloadT any,
 ](
 	avs AvailabilityStoreT,
@@ -85,9 +85,10 @@ func (s *Service[_, _, _, _]) Name() string {
 // Start registers this service as the recipient of ProcessSidecars and
 // VerifySidecars messages, and begins listening for these requests.
 func (s *Service[_, _, BlobSidecarsT, _]) Start(ctx context.Context) error {
+	var err error
 	// register as recipient of ProcessSidecars messages.
 	sidecarsProcessRequests := make(chan *asynctypes.Message[BlobSidecarsT])
-	if err := s.dispatcher.RegisterMsgReceiver(
+	if err = s.dispatcher.RegisterMsgReceiver(
 		messages.ProcessSidecars, sidecarsProcessRequests,
 	); err != nil {
 		return err
@@ -95,7 +96,7 @@ func (s *Service[_, _, BlobSidecarsT, _]) Start(ctx context.Context) error {
 
 	// register as recipient of VerifySidecars messages.
 	sidecarVerifyRequests := make(chan *asynctypes.Message[BlobSidecarsT])
-	if err := s.dispatcher.RegisterMsgReceiver(
+	if err = s.dispatcher.RegisterMsgReceiver(
 		messages.VerifySidecars, sidecarVerifyRequests,
 	); err != nil {
 		return err
@@ -135,7 +136,8 @@ func (s *Service[_, _, BlobSidecarsT, _]) start(
 func (s *Service[_, _, BlobSidecarsT, _]) handleBlobSidecarsProcessRequest(
 	msg *asynctypes.Message[BlobSidecarsT],
 ) {
-	err := s.processSidecars(msg.Context(), msg.Data())
+	var err error
+	err = s.processSidecars(msg.Context(), msg.Data())
 	if err != nil {
 		s.logger.Error(
 			"Failed to process blob sidecars",
@@ -145,14 +147,16 @@ func (s *Service[_, _, BlobSidecarsT, _]) handleBlobSidecarsProcessRequest(
 	}
 
 	// dispatch a response to acknowledge the request.
-	s.dispatcher.Respond(
+	if err = s.dispatcher.Respond(
 		asynctypes.NewMessage(
 			msg.Context(),
 			messages.ProcessSidecars,
 			msg.Data(),
 			nil,
 		),
-	)
+	); err != nil {
+		s.logger.Error("failed to respond", "err", err)
+	}
 }
 
 // handleSidecarsVerifyRequest handles the SidecarsVerifyRequest event.
@@ -160,8 +164,9 @@ func (s *Service[_, _, BlobSidecarsT, _]) handleBlobSidecarsProcessRequest(
 func (s *Service[_, _, BlobSidecarsT, _]) handleSidecarsVerifyRequest(
 	msg *asynctypes.Message[BlobSidecarsT],
 ) {
+	var err error
 	// verify the sidecars.
-	err := s.verifySidecars(msg.Data())
+	err = s.verifySidecars(msg.Data())
 	if err != nil {
 		s.logger.Error(
 			"Failed to receive blob sidecars",
@@ -171,14 +176,16 @@ func (s *Service[_, _, BlobSidecarsT, _]) handleSidecarsVerifyRequest(
 	}
 
 	// dispatch a response to acknowledge the request.
-	s.dispatcher.Respond(
+	if err = s.dispatcher.Respond(
 		asynctypes.NewMessage(
 			msg.Context(),
 			messages.VerifySidecars,
 			msg.Data(),
 			nil,
 		),
-	)
+	); err != nil {
+		s.logger.Error("failed to respond", "err", err)
+	}
 }
 
 /* -------------------------------------------------------------------------- */

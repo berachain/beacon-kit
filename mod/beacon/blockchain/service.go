@@ -65,7 +65,8 @@ type Service[
 	chainSpec common.ChainSpec
 	// dispatcher is the dispatcher for the service.
 	dispatcher *dispatcher.Dispatcher
-	// executionEngine is the execution engine responsible for processing execution payloads.
+	// executionEngine is the execution engine responsible for processing
+	// execution payloads.
 	executionEngine ExecutionEngine[PayloadAttributesT]
 	// localBuilder is a local builder for constructing new beacon states.
 	localBuilder LocalBuilder[BeaconStateT]
@@ -221,19 +222,23 @@ func (s *Service[
 func (s *Service[
 	_, _, _, _, _, _, _, _, GenesisT, _, _,
 ]) handleProcessGenesisDataRequest(msg *asynctypes.Message[GenesisT]) {
+	var (
+		valUpdates transition.ValidatorUpdates
+		err        error
+	)
 	if msg.Error() != nil {
 		s.logger.Error("Error processing genesis data", "error", msg.Error())
 		return
 	}
 
 	// Process the genesis data.
-	valUpdates, err := s.ProcessGenesisData(msg.Context(), msg.Data())
+	valUpdates, err = s.ProcessGenesisData(msg.Context(), msg.Data())
 	if err != nil {
 		s.logger.Error("Failed to process genesis data", "error", err)
 	}
 
 	// dispatch a response containing the validator updates
-	if err := s.dispatcher.Respond(
+	if err = s.dispatcher.Respond(
 		asynctypes.NewMessage(
 			msg.Context(),
 			messages.ProcessGenesisData,
@@ -260,14 +265,19 @@ func (s *Service[
 	}
 
 	// dispatch a response with the error result from VerifyIncomingBlock
-	s.dispatcher.Respond(
+	if err := s.dispatcher.Respond(
 		asynctypes.NewMessage(
 			msg.Context(),
 			messages.VerifyBeaconBlock,
 			msg.Data(),
 			s.VerifyIncomingBlock(msg.Context(), msg.Data()),
 		),
-	)
+	); err != nil {
+		s.logger.Error(
+			"Failed to dispatch response in verify beacon block",
+			"error", err,
+		)
+	}
 }
 
 func (s *Service[
@@ -275,6 +285,10 @@ func (s *Service[
 ]) handleFinalizeBeaconBlockRequest(
 	msg *asynctypes.Message[BeaconBlockT],
 ) {
+	var (
+		valUpdates transition.ValidatorUpdates
+		err        error
+	)
 	// If there's an error in the event, log it and return
 	if msg.Error() != nil {
 		s.logger.Error("Error verifying beacon block", "error", msg.Error())
@@ -282,18 +296,23 @@ func (s *Service[
 	}
 
 	// process the verified block and get the validator updates
-	valUpdates, err := s.ProcessBeaconBlock(msg.Context(), msg.Data())
+	valUpdates, err = s.ProcessBeaconBlock(msg.Context(), msg.Data())
 	if err != nil {
 		s.logger.Error("Failed to process verified beacon block", "error", err)
 	}
 
 	// dispatch a response with the validator updates
-	s.dispatcher.Respond(
+	if err = s.dispatcher.Respond(
 		asynctypes.NewMessage(
 			msg.Context(),
 			messages.FinalizeBeaconBlock,
 			valUpdates,
 			err,
 		),
-	)
+	); err != nil {
+		s.logger.Error(
+			"Failed to dispatch response in finalize beacon block",
+			"error", err,
+		)
+	}
 }
