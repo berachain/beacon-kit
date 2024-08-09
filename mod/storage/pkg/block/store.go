@@ -22,7 +22,10 @@ package block
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"sync"
+	"time"
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
@@ -36,13 +39,13 @@ const StoreName = "blocks"
 // KVStore is a simple KV store based implementation that stores beacon blocks.
 type KVStore[BeaconBlockT BeaconBlock[BeaconBlockT]] struct {
 	blocks *sdkcollections.IndexedMap[
-		math.Slot, BeaconBlockT, indexes[BeaconBlockT],
+		uint64, BeaconBlockT, indexes[BeaconBlockT],
 	]
 
 	mu           sync.RWMutex
 	cs           common.ChainSpec
 	blockCodec   *encoding.SSZInterfaceCodec[BeaconBlockT]
-	earliestSlot math.Slot
+	earliestSlot uint64
 }
 
 // NewStore creates a new block store.
@@ -57,12 +60,13 @@ func NewStore[BeaconBlockT BeaconBlock[BeaconBlockT]](
 			schemaBuilder,
 			sdkcollections.NewPrefix(StoreName),
 			StoreName,
-			encoding.U64Key,
+			sdkcollections.Uint64Key,
 			blockCodec,
 			newIndexes[BeaconBlockT](schemaBuilder),
 		),
-		blockCodec: blockCodec,
-		cs:         cs,
+		blockCodec:   blockCodec,
+		cs:           cs,
+		earliestSlot: 0,
 	}
 }
 
@@ -71,17 +75,24 @@ func (kv *KVStore[BeaconBlockT]) Get(slot math.Slot) (BeaconBlockT, error) {
 	kv.mu.RLock()
 	defer kv.mu.RUnlock()
 
+	fmt.Println("FORK VERSION", kv.cs.ActiveForkVersionForSlot(slot))
 	kv.blockCodec.SetActiveForkVersion(kv.cs.ActiveForkVersionForSlot(slot))
-	return kv.blocks.Get(context.TODO(), slot)
+	return kv.blocks.Get(context.TODO(), slot.Unwrap())
 }
 
 // Set sets the block by a given index in the store and also stores the
 // block root.
 func (kv *KVStore[BeaconBlockT]) Set(slot math.Slot, blk BeaconBlockT) error {
+	startTime := time.Now()
+	defer func() {
+		duration := time.Since(startTime)
+		fmt.Printf("Set function took %s\n", duration)
+	}()
+
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
 
-	return kv.blocks.Set(context.TODO(), slot, blk)
+	return kv.blocks.Set(context.TODO(), slot.Unwrap(), blk)
 }
 
 // GetSlotByRoot retrieves the slot by a given root from the store.
@@ -91,10 +102,14 @@ func (kv *KVStore[BeaconBlockT]) GetSlotByRoot(
 	kv.mu.RLock()
 	defer kv.mu.RUnlock()
 
-	return kv.blocks.Indexes.BlockRoots.MatchExact(
+	slot, err := kv.blocks.Indexes.BlockRoots.MatchExact(
 		context.TODO(),
 		root[:],
 	)
+	if err != nil {
+		return 0, err
+	}
+	return math.Slot(slot), nil
 }
 
 // GetSlotByExecutionNumber retrieves the slot by a given execution number from
@@ -105,27 +120,43 @@ func (kv *KVStore[BeaconBlockT]) GetSlotByExecutionNumber(
 	kv.mu.RLock()
 	defer kv.mu.RUnlock()
 
-	return kv.blocks.Indexes.ExecutionNumbers.MatchExact(
+	slot, err := kv.blocks.Indexes.ExecutionNumbers.MatchExact(
 		context.TODO(),
-		executionNumber,
+		executionNumber.Unwrap(),
 	)
+	if err != nil {
+		return 0, err
+	}
+	return math.Slot(slot), nil
 }
 
 // Prune removes the [start, end) blocks from the store.
 func (kv *KVStore[BeaconBlockT]) Prune(start, end uint64) error {
-	s, e := math.Slot(start), math.Slot(end)
+	var ctx = context.TODO()
+	startTime := time.Now()
+	defer func() {
+		duration := time.Since(startTime)
+		fmt.Printf("Prune function took %s\n", duration)
+	}()
+
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
 
 	// We only return early from this loop with an error if the key
 	// passed in cannot be encoded.
-	for i := max(s, kv.earliestSlot); i < e; i++ {
-		if err := kv.blocks.Remove(context.TODO(), i); err != nil {
+	s := max(start, kv.earliestSlot)
+	fmt.Println("PRUNING RANGE", s, end)
+	for i := s; i < end; i++ {
+		kv.blockCodec.SetActiveForkVersion(kv.cs.ActiveForkVersionForSlot(math.Slot(i)))
+		if err := kv.blocks.Remove(ctx, i); err != nil {
+			if errors.Is(err, sdkcollections.ErrNotFound) {
+				continue
+			}
 			return err
 		}
 	}
 
 	// If we successfully pruned, update the earliest slot.
-	kv.earliestSlot = e
+	kv.earliestSlot = end
 	return nil
 }

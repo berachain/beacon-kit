@@ -22,6 +22,7 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
@@ -113,6 +114,9 @@ func (h *ABCIMiddleware[
 		beaconBlockBz, sidecarsBz   []byte
 	)
 	defer h.metrics.measurePrepareProposalDuration(startTime)
+	defer func() {
+		fmt.Println("PrepareProposal took", time.Since(startTime))
+	}()
 
 	// Send a request to the validator service to give us a beacon block
 	// and blob sidecards to pass to ABCI.
@@ -196,6 +200,9 @@ func (h *ABCIMiddleware[
 		return nil, ErrInvalidProcessProposalRequestType
 	}
 
+	defer func() {
+		fmt.Println("ProcessProposal took", time.Since(startTime))
+	}()
 	defer h.metrics.measureProcessProposalDuration(startTime)
 
 	// Request the beacon block.
@@ -327,6 +334,10 @@ func (h *ABCIMiddleware[
 ]) EndBlock(
 	ctx context.Context,
 ) (transition.ValidatorUpdates, error) {
+	startTime := time.Now()
+	defer func() {
+		fmt.Println("EndBlock took", time.Since(startTime))
+	}()
 	blk, blobs, err := encoding.
 		ExtractBlobsAndBlockFromRequest[BeaconBlockT, BlobSidecarsT](
 		h.req,

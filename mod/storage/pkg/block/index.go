@@ -23,8 +23,6 @@ package block
 import (
 	sdkcollections "cosmossdk.io/collections"
 	sdkindexes "cosmossdk.io/collections/indexes"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 )
 
 const (
@@ -33,16 +31,16 @@ const (
 )
 
 type indexes[BeaconBlockT BeaconBlock[BeaconBlockT]] struct {
-	BlockRoots       *sdkindexes.Unique[[]byte, math.Slot, BeaconBlockT]
-	ExecutionNumbers *sdkindexes.Unique[math.U64, math.Slot, BeaconBlockT]
+	BlockRoots       *sdkindexes.Unique[[]byte, uint64, BeaconBlockT]
+	ExecutionNumbers *sdkindexes.Unique[uint64, uint64, BeaconBlockT]
 }
 
 // IndexesList returns a list of all indexes associated with the
 // validatorsIndex.
 func (i indexes[BeaconBlockT]) IndexesList() []sdkcollections.Index[
-	math.Slot, BeaconBlockT,
+	uint64, BeaconBlockT,
 ] {
-	return []sdkcollections.Index[math.Slot, BeaconBlockT]{
+	return []sdkcollections.Index[uint64, BeaconBlockT]{
 		i.BlockRoots,
 		i.ExecutionNumbers,
 	}
@@ -57,8 +55,8 @@ func newIndexes[BeaconBlockT BeaconBlock[BeaconBlockT]](
 			sdkcollections.NewPrefix(blockRootsIndexName),
 			blockRootsIndexName,
 			sdkcollections.BytesKey,
-			encoding.U64Key,
-			func(_ math.Slot, blk BeaconBlockT) ([]byte, error) {
+			sdkcollections.Uint64Key,
+			func(_ uint64, blk BeaconBlockT) ([]byte, error) {
 				root := blk.HashTreeRoot()
 				return root[:], nil
 			},
@@ -67,10 +65,10 @@ func newIndexes[BeaconBlockT BeaconBlock[BeaconBlockT]](
 			sb,
 			sdkcollections.NewPrefix(executionNumbersIndexName),
 			executionNumbersIndexName,
-			encoding.U64Key,
-			encoding.U64Key,
-			func(_ math.Slot, blk BeaconBlockT) (math.U64, error) {
-				return blk.GetExecutionNumber(), nil
+			sdkcollections.Uint64Key,
+			sdkcollections.Uint64Key,
+			func(_ uint64, blk BeaconBlockT) (uint64, error) {
+				return blk.GetExecutionNumber().Unwrap(), nil
 			},
 		),
 	}
