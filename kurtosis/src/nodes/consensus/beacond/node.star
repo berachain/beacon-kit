@@ -38,8 +38,7 @@ def start(persistent_peers, is_seed, validator_index, config_settings, app_setti
     --beacon-kit.kzg.trusted-setup-path=/root/kzg/kzg-trusted-setup.json \
     --beacon-kit.kzg.implementation={} \
     --beacon-kit.engine.rpc-dial-url {} \
-    --rpc.laddr tcp://0.0.0.0:26657 \
-    --grpc.address 0.0.0.0:9090 --api.address tcp://0.0.0.0:1317 \
+    --rpc.laddr tcp://0.0.0.0:26657 --api.address tcp://0.0.0.0:1317 \
     --beacon-kit.block-store-service.enabled \
     --beacon-kit.node-api.enabled --beacon-kit.node-api.logging \
     --pruning=nothing \

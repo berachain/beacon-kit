@@ -18,27 +18,19 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package chainspec
 
-import (
-	clientv2keyring "cosmossdk.io/client/v2/autocli/keyring"
-	"cosmossdk.io/core/address"
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-)
+import "github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
 
-// ProvideKeyring provides a keyring for the client.
-func ProvideKeyring(
-	clientCtx client.Context,
-	_ address.Codec,
-) (clientv2keyring.Keyring, error) {
-	kb, err := client.NewKeyringFromBackend(
-		clientCtx,
-		clientCtx.Keyring.Backend(),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return keyring.NewAutoCLIKeyring(kb)
+type BeraChainSpec struct {
+	// SpecData is the underlying data structure for chain-specific parameters.
+	chain.Spec[
+		[4]byte,
+		uint64,
+		[20]byte,
+		uint64,
+		any,
+	]
+	// BGTContractAddress
+	BGTContractAddress [20]byte `mapstructure:"bgt-contract-address"`
 }

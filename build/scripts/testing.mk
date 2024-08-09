@@ -10,6 +10,7 @@
 #    beacond     #
 #################
 
+DEVNET_CHAIN_SPEC = devnet
 JWT_PATH = ${TESTAPP_FILES_DIR}/jwt.hex
 ETH_GENESIS_PATH = ${TESTAPP_FILES_DIR}/eth-genesis.json
 NETHER_ETH_GENESIS_PATH = ${TESTAPP_FILES_DIR}/eth-nether-genesis.json
@@ -20,9 +21,24 @@ HTTP_URL = localhost:8551
 IPC_PREFIX = ipc://
 HTTP_PREFIX = http://
 
+#################
+#    bartio     #
+#################
+
+TESTNET_CHAIN_SPEC = testnet
+BARTIO_NETWORK_FILES_DIR = ${TESTAPP_FILES_DIR}/../networks/80084
+BARTIO_ETH_GENESIS_PATH = ${BARTIO_NETWORK_FILES_DIR}/eth-genesis.json
+
 ## Testing:
 start: ## start an ephemeral `beacond` node
-	@JWT_SECRET_PATH=$(JWT_PATH) ${TESTAPP_FILES_DIR}/entrypoint.sh
+	@JWT_SECRET_PATH=$(JWT_PATH) \
+	CHAIN_SPEC=$(DEVNET_CHAIN_SPEC) \
+	${TESTAPP_FILES_DIR}/entrypoint.sh
+
+start-bartio:
+	@JWT_SECRET_PATH=$(JWT_PATH) \
+	CHAIN_SPEC=$(TESTNET_CHAIN_SPEC) \
+	${TESTAPP_FILES_DIR}/entrypoint.sh
 
 # start-ipc is currently only supported while running eth client the host machine
 # Only works with geth-host rn
@@ -42,6 +58,25 @@ start-reth: ## start an ephemeral `reth` node
 	-v $(PWD)/.tmp:/.tmp \
 	ghcr.io/paradigmxyz/reth node \
 	--chain ${ETH_GENESIS_PATH} \
+	--http \
+	--http.addr "0.0.0.0" \
+	--http.api eth,net \
+	--authrpc.addr "0.0.0.0" \
+	--authrpc.jwtsecret $(JWT_PATH) \
+	--datadir ${ETH_DATA_DIR} \
+	--ipcpath ${IPC_PATH}
+
+start-reth-bartio:
+	@rm -rf ${ETH_DATA_DIR}
+	@docker run \
+	-p 30303:30303 \
+	-p 8545:8545 \
+	-p 8551:8551 \
+	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	--rm -v $(PWD)/${BARTIO_NETWORK_FILES_DIR}:/${BARTIO_NETWORK_FILES_DIR} \
+	-v $(PWD)/.tmp:/.tmp \
+	ghcr.io/paradigmxyz/reth node \
+	--chain ${BARTIO_ETH_GENESIS_PATH} \
 	--http \
 	--http.addr "0.0.0.0" \
 	--http.api eth,net \

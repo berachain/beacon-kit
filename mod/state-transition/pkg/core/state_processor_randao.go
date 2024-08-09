@@ -80,14 +80,14 @@ func (sp *StateProcessor[
 	}
 
 	prevMix, err := st.GetRandaoMixAtIndex(
-		uint64(epoch) % sp.cs.EpochsPerHistoricalVector(),
+		epoch.Unwrap() % sp.cs.EpochsPerHistoricalVector(),
 	)
 	if err != nil {
 		return err
 	}
 
 	return st.UpdateRandaoMixAtIndex(
-		uint64(epoch)%sp.cs.EpochsPerHistoricalVector(),
+		epoch.Unwrap()%sp.cs.EpochsPerHistoricalVector(),
 		sp.buildRandaoMix(prevMix, body.GetRandaoReveal()),
 	)
 }
@@ -108,13 +108,13 @@ func (sp *StateProcessor[
 
 	epoch := sp.cs.SlotToEpoch(slot)
 	mix, err := st.GetRandaoMixAtIndex(
-		uint64(epoch) % sp.cs.EpochsPerHistoricalVector(),
+		epoch.Unwrap() % sp.cs.EpochsPerHistoricalVector(),
 	)
 	if err != nil {
 		return err
 	}
 	return st.UpdateRandaoMixAtIndex(
-		uint64(epoch+1)%sp.cs.EpochsPerHistoricalVector(),
+		(epoch.Unwrap()+1)%sp.cs.EpochsPerHistoricalVector(),
 		mix,
 	)
 }

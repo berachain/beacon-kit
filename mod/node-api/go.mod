@@ -5,7 +5,7 @@ go 1.22.5
 require (
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240806160829-cde2d1347e7e
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240808194557-e72e74f58197
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6650da31
 	github.com/ethpandaops/beacon v0.39.0
 	github.com/ferranbt/fastssz v0.1.4-0.20240629094022-eac385e6ee79
@@ -20,7 +20,7 @@ require (
 	github.com/attestantio/go-eth2-client v0.21.9 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df // indirect
-	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240806160829-cde2d1347e7e // indirect
+	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240808194557-e72e74f58197 // indirect
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1347e7e // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
@@ -56,6 +56,7 @@ require (
 	github.com/gofrs/flock v0.12.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/snappy v0.0.5-0.20220116011046-fa5810519dcb // indirect
+	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/holiman/bloomfilter/v2 v2.0.3 // indirect
 	github.com/holiman/uint256 v1.3.1 // indirect
@@ -95,6 +96,7 @@ require (
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d // indirect
 	github.com/tklauser/go-sysconf v0.3.14 // indirect
 	github.com/tklauser/numcpus v0.8.0 // indirect
+	github.com/umbracle/fastrlp v0.1.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.opentelemetry.io/otel v1.27.0 // indirect
 	go.opentelemetry.io/otel/metric v1.27.0 // indirect
