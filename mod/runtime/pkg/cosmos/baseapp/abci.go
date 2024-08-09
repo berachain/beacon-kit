@@ -504,11 +504,7 @@ func (app *BaseApp) internalFinalizeBlock(
 }
 
 // FinalizeBlock will execute the block proposal provided by
-// RequestFinalizeBlock. Specifically, it will execute an application's
-// BeginBlock (if defined), followed
-// by the transactions in the proposal, finally followed by the application's
-// EndBlock (if defined).
-//
+// RequestFinalizeBlock.
 // For each raw transaction, i.e. a byte slice, BaseApp will only execute it if
 // it adheres to the sdk.Tx interface. Otherwise, the raw transaction will be
 // skipped. This is to support compatibility with proposers injecting vote
