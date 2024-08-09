@@ -21,7 +21,6 @@
 package builder
 
 import (
-	"cosmossdk.io/depinject"
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
@@ -53,17 +52,6 @@ func WithDescription[
 ](description string) Opt[T, ExecutionPayloadT] {
 	return func(cb *CLIBuilder[T, ExecutionPayloadT]) {
 		cb.description = description
-	}
-}
-
-// WithDepInjectConfig sets the depinject config for the CLIBuilder.
-func WithDepInjectConfig[
-	T types.Node,
-	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
-](
-	cfg depinject.Config) Opt[T, ExecutionPayloadT] {
-	return func(cb *CLIBuilder[T, ExecutionPayloadT]) {
-		cb.depInjectCfg = cfg
 	}
 }
 

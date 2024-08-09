@@ -46,9 +46,8 @@ type CLIBuilder[
 	T types.Node,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 ] struct {
-	depInjectCfg depinject.Config
-	name         string
-	description  string
+	name        string
+	description string
 	// components is a list of component providers for depinject.
 	components []any
 	// suppliers is a list of suppliers for depinject.
@@ -94,7 +93,6 @@ func (cb *CLIBuilder[T, ExecutionPayloadT]) Build() (*cmdlib.Root, error) {
 	//nolint:asasalint // todo fix.
 	if err := depinject.Inject(
 		depinject.Configs(
-			cb.depInjectCfg,
 			depinject.Supply(
 				append(
 					cb.suppliers, []any{&runtime.App{}, &components.StorageBackend{}})...,
