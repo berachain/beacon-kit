@@ -27,7 +27,6 @@ import (
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/testing/e2e/suite"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
@@ -85,25 +84,14 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 	)
 	s.Require().NoError(err)
 
-	tx, err := dc.InitializeOwner(&bind.TransactOpts{
-		From:   genesisAccount.Address(),
-		Signer: genesisAccount.SignerFunc(chainID),
-	})
-	s.Require().NoError(err)
-
-	// Wait for the transaction to be mined.
-	receipt, err := bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
-	s.Require().NoError(err)
-	s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
-
-	tx, err = dc.AllowDeposit(&bind.TransactOpts{
+	tx, err := dc.AllowDeposit(&bind.TransactOpts{
 		From:   genesisAccount.Address(),
 		Signer: genesisAccount.SignerFunc(chainID),
 	}, sender.Address(), NumDepositsLoad)
 	s.Require().NoError(err)
 
 	// Wait for the transaction to be mined.
-	receipt, err = bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
+	receipt, err := bind.WaitMined(s.Ctx(), s.JSONRPCBalancer(), tx)
 	s.Require().NoError(err)
 	s.Require().Equal(coretypes.ReceiptStatusSuccessful, receipt.Status)
 
@@ -220,5 +208,5 @@ func (s *BeaconKitE2ESuite) generateNewDepositTx(
 		Signer:   signer,
 		Nonce:    nonce,
 		GasLimit: 600000,
-	}, pubkey, credentials[:], 32*suite.OneGwei, signature[:])
+	}, pubkey, credentials[:], signature[:])
 }

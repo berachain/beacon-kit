@@ -10,6 +10,27 @@ interface IBeaconDepositContract {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /**
+     * @notice Emitted when an operator address change is cancelled.
+     * @param pubkey The public key of the validator.
+     */
+    event OperatorChangeCancelled(bytes pubkey);
+
+    /**
+     * @notice Emitted when an operator address change is queued.
+     * @param pubkey The public key of the validator.
+     * @param newOperator The new operator address.
+     */
+    event OperatorChangeQueued(bytes pubkey, address newOperator);
+
+    /**
+     * @notice Emitted when an operator is set for a given public key.
+     * @param pubkey The public key of the validator.
+     * @param newOperator The new operator address.
+     * @param oldOperator The old operator address.
+     */
+    event OperatorSet(bytes pubkey, address newOperator, address oldOperator);
+
+    /**
      * @dev Emitted when a deposit is made, which could mean a new validator or a top up of an existing one.
      * @param pubkey the public key of the validator who is being deposited for if not a new validator.
      * @param credentials the public key of the operator if new validator or the depositor if top up.
@@ -50,6 +71,12 @@ interface IBeaconDepositContract {
     /// @dev Error thrown when the deposit is not authorized.
     error UnauthorizedDeposit();
 
+    error NotOperator();
+
+    error NotNewOperator();
+
+    error NotEnoughTimePassed();
+
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        WRITES                              */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
@@ -60,13 +87,11 @@ interface IBeaconDepositContract {
      * @param pubkey is the consensus public key of the validator. If subsequent deposit, its ignored.
      * @param credentials is the staking credentials of the validator. If this is the first deposit it is
      * validator operator public key, if subsequent deposit it is the depositor's public key.
-     * @param amount is the amount of stake native/ERC20 token to be deposited, in Gwei.
      * @param signature is the signature used only on the first deposit.
      */
     function deposit(
         bytes calldata pubkey,
         bytes calldata credentials,
-        uint64 amount,
         bytes calldata signature
     )
         external
@@ -78,4 +103,46 @@ interface IBeaconDepositContract {
      * @param number the number of deposits to allow.
      */
     function allowDeposit(address depositor, uint64 number) external;
+
+    /**
+     * @notice Request a change of operator address for a given public key.
+     * @dev This will queue the change and require confirmation.
+     * @dev Only the current operator can request a change.
+     * @param pubkey The public key of the validator.
+     * @param newOperator The new operator address.
+     */
+    function requestOperatorChange(
+        bytes calldata pubkey,
+        address newOperator
+    )
+        external;
+
+    /**
+     * @notice Cancel a pending operator address change request.
+     * @dev Only the current operator can cancel a change.
+     * @param pubkey The public key of the validator.
+     */
+    function cancelOperatorChange(bytes calldata pubkey) external;
+
+    /**
+     * @notice Confirm a pending operator address change request.
+     * @dev Only the new operator can confirm the change.
+     * @param pubkey The public key of the validator.
+     */
+    function acceptOperatorChange(bytes calldata pubkey) external;
+
+    /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+    /*                        WRITES                              */
+    /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+    /**
+     * @notice Get the operator address for a given public key.
+     * @dev This is guaranteed to return a non-zero address if validator exists.
+     * @param pubkey the public key to get the operator for.
+     * @return the operator address.
+     */
+    function getOperator(bytes calldata pubkey)
+        external
+        view
+        returns (address);
 }

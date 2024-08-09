@@ -2,8 +2,7 @@
 pragma solidity ^0.8.25;
 
 import { SoladyTest } from "@solady/test/utils/SoladyTest.sol";
-import { IBeaconDepositContract } from
-    "../src/staking/IBeaconDepositContract.sol";
+import { IBeaconDepositContract } from "@src/staking/IBeaconDepositContract.sol";
 import { SoladyTest } from "@solady/test/utils/SoladyTest.sol";
 import { BeaconDepositContract } from "@src/staking/BeaconDepositContract.sol";
 
@@ -26,14 +25,15 @@ contract DepositContractTest is SoladyTest {
 
     bytes32 internal constant STAKING_ASSET_SLOT = bytes32(0);
 
+    address internal gov = 0x8a73D1380345942F1cb32541F1b19C40D8e6C94B;
+
     /// @dev the deposit contract.
     BeaconDepositContract internal depositContract;
 
     function setUp() public virtual {
         // Set the STAKE_ASSET to the NATIVE token.
-        depositContract = new BeaconDepositContract();
-        depositContract.initializeOwner();
-        vm.prank(0x8a73D1380345942F1cb32541F1b19C40D8e6C94B);
+        depositContract = new BeaconDepositContract(gov);
+        vm.prank(gov);
         depositContract.allowDeposit(depositor, 100);
     }
 
@@ -42,10 +42,7 @@ contract DepositContractTest is SoladyTest {
         vm.expectRevert(IBeaconDepositContract.InvalidPubKeyLength.selector);
         vm.prank(depositor);
         depositContract.deposit(
-            bytes("wrong_public_key"),
-            STAKING_CREDENTIALS,
-            32e9,
-            _create96Byte()
+            bytes("wrong_public_key"), STAKING_CREDENTIALS, _create96Byte()
         );
     }
 
@@ -53,10 +50,7 @@ contract DepositContractTest is SoladyTest {
         vm.expectRevert(IBeaconDepositContract.InvalidPubKeyLength.selector);
         vm.prank(depositor);
         depositContract.deposit(
-            bytes("wrong_public_key"),
-            STAKING_CREDENTIALS,
-            32e9,
-            _create96Byte()
+            bytes("wrong_public_key"), STAKING_CREDENTIALS, _create96Byte()
         );
     }
 
@@ -69,9 +63,7 @@ contract DepositContractTest is SoladyTest {
             IBeaconDepositContract.InvalidCredentialsLength.selector
         );
         vm.prank(depositor);
-        depositContract.deposit(
-            _create48Byte(), credentials, 32e9, _create96Byte()
-        );
+        depositContract.deposit(_create48Byte(), credentials, _create96Byte());
     }
 
     function test_DepositWrongCredentials() public {
@@ -80,67 +72,32 @@ contract DepositContractTest is SoladyTest {
         );
         vm.prank(depositor);
         depositContract.deposit(
-            VALIDATOR_PUBKEY, bytes("wrong_credentials"), 32e9, _create96Byte()
+            VALIDATOR_PUBKEY, bytes("wrong_credentials"), _create96Byte()
         );
     }
 
-    function testFuzz_DepositWrongAmount(uint256 amount) public {
-        amount = _bound(amount, 1, 32e9 - 1);
-        vm.deal(depositor, amount);
-        vm.prank(depositor);
-        vm.expectRevert(IBeaconDepositContract.InsufficientDeposit.selector);
-        depositContract.deposit(
-            VALIDATOR_PUBKEY,
-            STAKING_CREDENTIALS,
-            uint64(amount),
-            _create96Byte()
-        );
-    }
-
-    function test_DepositWrongAmount() public {
-        vm.expectRevert(IBeaconDepositContract.InsufficientDeposit.selector);
-        vm.prank(depositor);
-        depositContract.deposit(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32e9 - 1, _create96Byte()
-        );
-    }
-
-    function test_Deposit() public {
-        vm.deal(depositor, 32 ether);
-        vm.prank(depositor);
-        vm.expectEmit(true, true, true, true);
-        emit IBeaconDepositContract.Deposit(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32e9, _create96Byte(), 0
-        );
-        depositContract.deposit{ value: 32 ether }(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32e9, _create96Byte()
-        );
-    }
-
-    function testFuzz_DepositNativeWrongMinAmount(uint256 amountInEther)
-        public
-    {
+    function testFuzz_DepositWrongMinAmount(uint256 amountInEther) public {
         amountInEther = _bound(amountInEther, 1, 31);
         uint256 amountInGwei = amountInEther * 1 gwei;
         vm.deal(depositor, amountInGwei);
         vm.prank(depositor);
         vm.expectRevert(IBeaconDepositContract.InsufficientDeposit.selector);
         depositContract.deposit{ value: amountInGwei }(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
+            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte()
         );
     }
 
-    function test_DepositNativeWrongMinAmount() public {
+    function test_DepositWrongMinAmount() public {
         uint256 amount = 31 gwei;
         vm.deal(depositor, amount);
         vm.prank(depositor);
         vm.expectRevert(IBeaconDepositContract.InsufficientDeposit.selector);
         depositContract.deposit{ value: amount }(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
+            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte()
         );
     }
 
-    function testFuzz_DepositNativeNotDivisibleByGwei(uint256 amount) public {
+    function testFuzz_DepositNotDivisibleByGwei(uint256 amount) public {
         amount = _bound(amount, 31e9 + 1, uint256(type(uint64).max));
         vm.assume(amount % 1e9 != 0);
         vm.deal(depositor, amount);
@@ -150,11 +107,11 @@ contract DepositContractTest is SoladyTest {
             IBeaconDepositContract.DepositNotMultipleOfGwei.selector
         );
         depositContract.deposit{ value: amount }(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
+            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte()
         );
     }
 
-    function test_DepositNativeNotDivisibleByGwei() public {
+    function test_DepositNotDivisibleByGwei() public {
         uint256 amount = 32e9 + 1;
         vm.deal(depositor, amount);
         vm.expectRevert(
@@ -162,7 +119,7 @@ contract DepositContractTest is SoladyTest {
         );
         vm.prank(depositor);
         depositContract.deposit{ value: amount }(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
+            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte()
         );
 
         amount = 32e9 - 1;
@@ -172,11 +129,11 @@ contract DepositContractTest is SoladyTest {
         );
         vm.prank(depositor);
         depositContract.deposit{ value: amount }(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
+            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte()
         );
     }
 
-    function test_DepositNative() public {
+    function test_Deposit() public {
         vm.deal(depositor, 32 ether);
         vm.prank(depositor);
         vm.expectEmit(true, true, true, true);
@@ -184,7 +141,7 @@ contract DepositContractTest is SoladyTest {
             VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 32 gwei, _create96Byte(), 0
         );
         depositContract.deposit{ value: 32 ether }(
-            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
+            VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte()
         );
     }
 
@@ -203,7 +160,7 @@ contract DepositContractTest is SoladyTest {
                 depositCount
             );
             depositContract.deposit{ value: 32 ether }(
-                VALIDATOR_PUBKEY, STAKING_CREDENTIALS, 0, _create96Byte()
+                VALIDATOR_PUBKEY, STAKING_CREDENTIALS, _create96Byte()
             );
             ++depositCount;
         }

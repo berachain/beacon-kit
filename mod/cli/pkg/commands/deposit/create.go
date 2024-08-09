@@ -240,6 +240,7 @@ func broadcastDepositTx[
 					privKey,
 				)
 			},
+			Value: depositMsg.Amount.ToWei().ToBig(),
 			//nolint:mnd // The gas tip cap.
 			GasTipCap: big.NewInt(1000000000),
 			//nolint:mnd // The gas fee cap.
@@ -249,7 +250,6 @@ func broadcastDepositTx[
 		},
 		depositMsg.Pubkey[:],
 		depositMsg.Credentials[:],
-		depositMsg.Amount.Unwrap(),
 		signature[:],
 	)
 	if err != nil {

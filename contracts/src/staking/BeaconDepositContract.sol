@@ -29,36 +29,56 @@ contract BeaconDepositContract is IBeaconDepositContract, Ownable {
     /// @dev The length of the credentials, 1 byte prefix + 11 bytes padding + 20 bytes address = 32 bytes.
     uint8 private constant CREDENTIALS_LENGTH = 32;
 
+    uint256 private constant TWO_DAYS = 172_800; // 2 days in seconds.
+
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                           STORAGE                          */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-    /// @dev A flag to check if the contract has been initialized.
-    bool private initialized = false;
+    /// @dev QueuedOperator is a struct that represents an operator address change request.
+    struct QueuedOperator {
+        address newOperator;
+        uint256 queuedTimestamp;
+    }
 
     /// @dev depositCount represents the number of deposits that
     /// have been made to the contract.
     uint64 public depositCount;
 
+    /// @dev queuedOperator is a mapping of public keys to operator change requests.
+    mapping(bytes => QueuedOperator) private queuedOperator;
+
+    /// @dev _pubkeyToOperator is a mapping of public keys to operators.
+    /// @dev It is used in `POL` to control validator operation like setting cutting board, commission, etc.
+    mapping(bytes => address) private _pubkeyToOperator;
+
     /// @dev depositAuth is a mapping of number of deposits an authorized address can make.
-    mapping(address => uint64) private depositAuth;
+    mapping(address => uint64) public depositAuth;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                            WRITES                          */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-    /// @dev Initializes the owner of the contract.
-    function initializeOwner() external {
-        require(!initialized, "Already initialized");
-        _initializeOwner(0x8a73D1380345942F1cb32541F1b19C40D8e6C94B);
-        initialized = true;
+    /// @dev Initializes the owner of the contract as the governance address.
+    /// @dev On local devnets, the _governance is set to 0x20f33CE90A13a4b5E7697E3544c3083B8F8A51D4.
+    constructor(address _governance) {
+        _initializeOwner(_governance);
+    }
+
+    /// @dev Guard to prevent double initialization of owner.
+    function _guardInitializeOwner()
+        internal
+        pure
+        override
+        returns (bool guard)
+    {
+        return true;
     }
 
     /// @inheritdoc IBeaconDepositContract
     function deposit(
         bytes calldata pubkey,
         bytes calldata credentials,
-        uint64 amount,
         bytes calldata signature
     )
         external
@@ -80,7 +100,13 @@ contract BeaconDepositContract is IBeaconDepositContract, Ownable {
             revert InvalidSignatureLength();
         }
 
-        uint64 amountInGwei = _deposit(amount);
+        // Update the pubkey to operator mapping if first deposit.
+        if (_pubkeyToOperator[pubkey] == address(0)) {
+            _pubkeyToOperator[pubkey] = msg.sender;
+            emit OperatorSet(pubkey, msg.sender, address(0));
+        }
+
+        uint64 amountInGwei = _deposit();
 
         if (amountInGwei < MIN_DEPOSIT_AMOUNT_IN_GWEI) {
             revert InsufficientDeposit();
@@ -104,11 +130,80 @@ contract BeaconDepositContract is IBeaconDepositContract, Ownable {
         external
         onlyOwner
     {
+        // If the number is non-zero, set it to zero to avoid front-running by depositors to make more deposits.
+        if (depositAuth[depositor] != 0) {
+            depositAuth[depositor] = 0;
+            return;
+        }
         depositAuth[depositor] = number;
     }
 
+    /// @inheritdoc IBeaconDepositContract
+    function requestOperatorChange(
+        bytes calldata pubkey,
+        address newOperator
+    )
+        external
+    {
+        // Only the operator can request a change.
+        if (msg.sender != _pubkeyToOperator[pubkey]) {
+            revert NotOperator();
+        }
+        QueuedOperator storage qQ = queuedOperator[pubkey];
+        qQ.newOperator = newOperator;
+        qQ.queuedTimestamp = block.timestamp;
+        emit OperatorChangeQueued(pubkey, newOperator);
+    }
+
+    /// @inheritdoc IBeaconDepositContract
+    function cancelOperatorChange(bytes calldata pubkey) external {
+        // Only the operator can cancel the change.
+        if (msg.sender != _pubkeyToOperator[pubkey]) {
+            revert NotOperator();
+        }
+        delete queuedOperator[pubkey];
+        emit OperatorChangeCancelled(pubkey);
+    }
+
+    /// @inheritdoc IBeaconDepositContract
+    function acceptOperatorChange(bytes calldata pubkey) external {
+        QueuedOperator storage qQ = queuedOperator[pubkey];
+        (address newOperator, uint256 queuedTimestamp) =
+            (qQ.newOperator, qQ.queuedTimestamp);
+
+        // Only the new operator can accept the change.
+        if (msg.sender != newOperator) {
+            revert NotNewOperator();
+        }
+        // 2 days buffer to accept the change.
+        if (queuedTimestamp + TWO_DAYS > block.timestamp) {
+            revert NotEnoughTimePassed();
+        }
+        address oldOperator = _pubkeyToOperator[pubkey];
+        _pubkeyToOperator[pubkey] = newOperator;
+        delete queuedOperator[pubkey];
+        emit OperatorSet(pubkey, newOperator, oldOperator);
+    }
+
+    /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+    /*                            READS                           */
+    /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+    /// @inheritdoc IBeaconDepositContract
+    function getOperator(bytes calldata pubkey)
+        external
+        view
+        returns (address)
+    {
+        return _pubkeyToOperator[pubkey];
+    }
+
+    /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+    /*                           INTERNAL                         */
+    /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
     /// @dev Validates the deposit amount and sends the native asset to the zero address.
-    function _deposit(uint64) internal virtual returns (uint64) {
+    function _deposit() internal virtual returns (uint64) {
         if (msg.value % 1 gwei != 0) {
             revert DepositNotMultipleOfGwei();
         }
