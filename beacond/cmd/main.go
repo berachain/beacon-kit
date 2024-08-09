@@ -47,9 +47,6 @@ func run() error {
 
 	// Build the node using the node-core.
 	nb := nodebuilder.New(
-		// Set the DepInject Configuration to the Default.
-		nodebuilder.WithDepInjectConfig[node](
-			nodebuilder.DefaultDepInjectConfig()),
 		// Set the Runtime Components to the Default.
 		nodebuilder.WithComponents[node](
 			nodecomponents.DefaultComponentsWithStandardTypes(),
