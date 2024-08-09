@@ -43,9 +43,6 @@ import (
 // node.
 type NodeBuilder[NodeT types.Node] struct {
 	node NodeT
-	// depInjectCfg holds is an extendable config container used by the
-	// depinject framework.
-	depInjectCfg depinject.Config
 	// components is a list of components to provide.
 	components []any
 }
@@ -88,7 +85,6 @@ func (nb *NodeBuilder[NodeT]) Build(
 	// build all node components using depinject
 	if err := depinject.Inject(
 		depinject.Configs(
-			nb.depInjectCfg,
 			depinject.Provide(
 				nb.components...,
 			),

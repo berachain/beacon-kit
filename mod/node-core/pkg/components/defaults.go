@@ -51,10 +51,15 @@ func DefaultComponentsWithStandardTypes() []any {
 		ProvideServiceRegistry,
 		ProvideSidecarFactory,
 		ProvideStateProcessor,
+		ProvideKVStore,
 		ProvideStorageBackend,
 		ProvideTelemetrySink,
 		ProvideTrustedSetup,
 		ProvideValidatorService,
+		// TODO Hacks
+		ProvideKVStoreService,
+		ProvideKVStoreKey,
+		ProvideApp,
 	}
 	components = append(components, DefaultNodeAPIComponents()...)
 	components = append(components, DefaultNodeAPIHandlers()...)
