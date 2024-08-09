@@ -31,12 +31,7 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
-	"github.com/berachain/beacon-kit/mod/async/pkg/messaging"
-	"github.com/berachain/beacon-kit/mod/async/pkg/server"
-	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner/mocks"
 	"github.com/stretchr/testify/mock"
@@ -75,7 +70,7 @@ func TestPruner(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			logger := log.NewNopLogger()
-			dispatcher := setupDispatcher(logger)
+			ch := make(chan pruner.BlockEvent[pruner.BeaconBlock])
 			mockPrunable := new(mocks.Prunable)
 			mockPrunable.On("Prune", mock.Anything, mock.Anything).
 				Return(nil)
@@ -85,8 +80,7 @@ func TestPruner(t *testing.T) {
 				pruner.BeaconBlock,
 				pruner.BlockEvent[pruner.BeaconBlock],
 				pruner.Prunable,
-			](logger, mockPrunable, "TestPruner",
-				messages.BeaconBlockFinalizedEvent, dispatcher, pruneRangeFn)
+			](logger, mockPrunable, "TestPruner", ch, pruneRangeFn)
 
 			ctx, cancel := context.WithCancel(context.Background())
 			// need to ensure goroutine is stopped
@@ -98,12 +92,10 @@ func TestPruner(t *testing.T) {
 			for _, index := range tt.pruneIndexes {
 				block := mocks.BeaconBlock{}
 				block.On("GetSlot").Return(math.U64(index))
-				event := asynctypes.NewEvent[pruner.BeaconBlock](
-					context.Background(),
-					messages.BeaconBlockFinalizedEvent,
-					&block,
-				)
-				dispatcher.PublishEvent(event)
+				event := mocks.BlockEvent[pruner.BeaconBlock]{}
+				event.On("Data").Return(&block)
+				event.On("Is", mock.Anything).Return(true)
+				ch <- &event
 			}
 
 			// some time for the goroutine to process the requests
@@ -127,31 +119,4 @@ func TestPruner(t *testing.T) {
 			}
 		})
 	}
-}
-
-// setupDispatcher sets up a dispatcher with an event server and message server.
-//
-//nolint:lll //annoying linter
-func setupDispatcher(logger log.Logger) *dispatcher.Dispatcher {
-	finBlkPublisher := messaging.NewPublisher[*pruner.BlockEvent[pruner.BeaconBlock]](
-		messages.BeaconBlockFinalizedEvent,
-	)
-	es := server.NewEventServer()
-	ms := server.NewMessageServer()
-	d := dispatcher.NewDispatcher(
-		es,
-		ms,
-		logger,
-	)
-
-	d.RegisterPublisher(
-		finBlkPublisher.EventID(),
-		finBlkPublisher,
-	)
-
-	// Subscribe to the event after creating the dispatcher
-	ch := make(chan pruner.BlockEvent[pruner.BeaconBlock])
-	d.Subscribe(messages.BeaconBlockFinalizedEvent, ch)
-
-	return d
 }

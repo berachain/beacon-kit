@@ -66,51 +66,6 @@ func (_c *BlockEvent_Data_Call[BeaconBlockT]) RunAndReturn(run func() BeaconBloc
 	return _c
 }
 
-// ID provides a mock function with given fields:
-func (_m *BlockEvent[BeaconBlockT]) ID() types.MessageID {
-	ret := _m.Called()
-
-	if len(ret) == 0 {
-		panic("no return value specified for ID")
-	}
-
-	var r0 types.MessageID
-	if rf, ok := ret.Get(0).(func() types.MessageID); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Get(0).(types.MessageID)
-	}
-
-	return r0
-}
-
-// BlockEvent_ID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ID'
-type BlockEvent_ID_Call[BeaconBlockT pruner.BeaconBlock] struct {
-	*mock.Call
-}
-
-// ID is a helper method to define mock.On call
-func (_e *BlockEvent_Expecter[BeaconBlockT]) ID() *BlockEvent_ID_Call[BeaconBlockT] {
-	return &BlockEvent_ID_Call[BeaconBlockT]{Call: _e.mock.On("ID")}
-}
-
-func (_c *BlockEvent_ID_Call[BeaconBlockT]) Run(run func()) *BlockEvent_ID_Call[BeaconBlockT] {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *BlockEvent_ID_Call[BeaconBlockT]) Return(_a0 types.MessageID) *BlockEvent_ID_Call[BeaconBlockT] {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *BlockEvent_ID_Call[BeaconBlockT]) RunAndReturn(run func() types.MessageID) *BlockEvent_ID_Call[BeaconBlockT] {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Is provides a mock function with given fields: _a0
 func (_m *BlockEvent[BeaconBlockT]) Is(_a0 types.MessageID) bool {
 	ret := _m.Called(_a0)

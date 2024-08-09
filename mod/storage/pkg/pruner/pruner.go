@@ -29,8 +29,6 @@ package pruner
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
-	"github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 )
 
@@ -46,13 +44,11 @@ type pruner[
 	BlockEventT BlockEvent[BeaconBlockT],
 	PrunableT Prunable,
 ] struct {
-	prunable              Prunable
-	logger                log.Logger[any]
-	name                  string
-	finalizedBlkEvents    chan BlockEventT
-	finalizedBlockEventID types.EventID
-	dispatcher            *dispatcher.Dispatcher
-	pruneRangeFn          func(BlockEventT) (uint64, uint64)
+	prunable         Prunable
+	logger           log.Logger[any]
+	name             string
+	finalizedBlockCh chan BlockEventT
+	pruneRangeFn     func(BlockEventT) (uint64, uint64)
 }
 
 // NewPruner creates a new Pruner.
@@ -64,30 +60,20 @@ func NewPruner[
 	logger log.Logger[any],
 	prunable Prunable,
 	name string,
-	finalizedBlockEventID types.EventID,
-	dispatcher *dispatcher.Dispatcher,
+	finalizedBlockCh chan BlockEventT,
 	pruneRangeFn func(BlockEventT) (uint64, uint64),
 ) Pruner[PrunableT] {
 	return &pruner[BeaconBlockT, BlockEventT, PrunableT]{
-		logger:                logger,
-		prunable:              prunable,
-		name:                  name,
-		finalizedBlkEvents:    make(chan BlockEventT),
-		finalizedBlockEventID: finalizedBlockEventID,
-		dispatcher:            dispatcher,
-		pruneRangeFn:          pruneRangeFn,
+		logger:           logger,
+		prunable:         prunable,
+		name:             name,
+		finalizedBlockCh: finalizedBlockCh,
+		pruneRangeFn:     pruneRangeFn,
 	}
 }
 
 // Start starts the Pruner by listening for new indexes to prune.
 func (p *pruner[_, BlockEventT, _]) Start(ctx context.Context) {
-	if err := p.dispatcher.Subscribe(
-		p.finalizedBlockEventID, p.finalizedBlkEvents,
-	); err != nil {
-		p.logger.Error("failed to subscribe to event", "event",
-			p.finalizedBlockEventID, "err", err)
-		return
-	}
 	go p.start(ctx)
 }
 
@@ -99,7 +85,7 @@ func (p *pruner[_, BlockEventT, _]) start(
 		select {
 		case <-ctx.Done():
 			return
-		case event := <-p.finalizedBlkEvents:
+		case event := <-p.finalizedBlockCh:
 			start, end := p.pruneRangeFn(event)
 			if err := p.prunable.Prune(start, end); err != nil {
 				p.logger.Error("‼️ error pruning index ‼️", "error", err)
