@@ -113,13 +113,12 @@ func (nb *NodeBuilder[NodeT]) Build(
 	// set the application to a new BeaconApp with necessary ABCI handlers
 	nb.node.RegisterApp(
 		runtime.NewBeaconKitApp(
-			db, traceStore, true, appBuilder,
+			db, traceStore, true, appBuilder, abciMiddleware,
 			append(
 				DefaultBaseappOptions(appOpts),
 				WithCometParamStore(chainSpec),
 				WithPrepareProposal(consensusEngine.PrepareProposal),
 				WithProcessProposal(consensusEngine.ProcessProposal),
-				WithPreBlocker(consensusEngine.PreBlock),
 			)...,
 		),
 	)
