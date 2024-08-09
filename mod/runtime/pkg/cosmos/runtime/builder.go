@@ -44,7 +44,7 @@ func (a *AppBuilder) Build(
 ) *App {
 	bApp := baseapp.NewBaseApp(
 		"BeaconKit",
-		a.App.logger,
+		a.App.Logger,
 		db,
 		baseAppOptions...)
 	bApp.SetVersion(version.Version)

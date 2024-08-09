@@ -21,7 +21,6 @@
 package builder
 
 import (
-	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
 	appv1alpha1 "cosmossdk.io/api/cosmos/app/v1alpha1"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/depinject/appconfig"
@@ -31,13 +30,6 @@ import (
 // injection framework.
 func DefaultDepInjectConfig() depinject.Config {
 	return depinject.Configs(
-		appconfig.Compose(&appv1alpha1.Config{
-			Modules: []*appv1alpha1.ModuleConfig{
-				{
-					Name:   "runtime",
-					Config: appconfig.WrapAny(&runtimev1alpha1.Module{}),
-				},
-			},
-		}),
+		appconfig.Compose(&appv1alpha1.Config{}),
 	)
 }

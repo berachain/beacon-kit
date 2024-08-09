@@ -26,6 +26,15 @@ func ProvideKVStoreService(
 	return kvStoreService{key: ProvideKVStoreKey(app)}
 }
 
+func ProvideApp(middleware runtime.Middleware) (
+	*runtime.AppBuilder,
+	error,
+) {
+	app := &runtime.App{Middleware: middleware}
+	app.Logger = log.NewNopLogger()
+	return &runtime.AppBuilder{App: app}, nil
+}
+
 func NewKVStoreService(storeKey *storetypes.KVStoreKey) store.KVStoreService {
 	return &kvStoreService{key: storeKey}
 }

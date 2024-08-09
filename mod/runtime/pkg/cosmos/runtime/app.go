@@ -50,7 +50,7 @@ type App struct {
 
 	Middleware Middleware
 	StoreKeys  []storetypes.StoreKey
-	logger     log.Logger
+	Logger     log.Logger
 	// initChainer is the init chainer function defined by the app config.
 	// this is only required if the chain wants to add special InitChainer
 	// logic.

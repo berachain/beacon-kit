@@ -20,8 +20,6 @@
 
 package components
 
-import "github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
-
 func DefaultComponentsWithStandardTypes() []any {
 	components := []any{
 		ProvideABCIMiddleware,
@@ -61,7 +59,7 @@ func DefaultComponentsWithStandardTypes() []any {
 		// TODO Hacks
 		ProvideKVStoreService,
 		ProvideKVStoreKey,
-		runtime.ProvideApp,
+		ProvideApp,
 	}
 	components = append(components, DefaultNodeAPIComponents()...)
 	components = append(components, DefaultNodeAPIHandlers()...)
