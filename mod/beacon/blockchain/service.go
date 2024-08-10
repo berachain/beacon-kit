@@ -80,7 +80,8 @@ type Service[
 	// genesisBroker is the event feed for genesis data.
 	genesisBroker EventFeed[*asynctypes.Event[GenesisT]]
 	// blkBroker is the event feed for new blocks.
-	blkBroker EventFeed[*asynctypes.Event[BeaconBlockT]]
+	blkBroker       EventFeed[*asynctypes.Event[BeaconBlockT]]
+	stateRootBroker EventFeed[*asynctypes.Event[common.Root]]
 	// validatorUpdateBroker is the event feed for validator updates.
 	validatorUpdateBroker EventFeed[*asynctypes.Event[transition.ValidatorUpdates]]
 	// optimisticPayloadBuilds is a flag used when the optimistic payload
