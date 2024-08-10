@@ -35,4 +35,5 @@ type BeaconBlock[T any] interface {
 	SetStateRoot(root common.Root)
 	GetParentRoot() common.Root
 	GetStateRoot() common.Root
+	GetSlot() math.U64
 }
