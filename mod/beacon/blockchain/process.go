@@ -22,7 +22,6 @@ package blockchain
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
@@ -92,7 +91,6 @@ func (s *Service[
 		return nil, err
 	}
 
-	fmt.Printf("BLOCK %d STATE ROOT IN FINALIZE %v\n", blk.GetSlot(), blk.GetStateRoot())
 	go s.sendPostBlockFCU(ctx, st, blk)
 
 	return valUpdates.RemoveDuplicates().Sort(), nil
