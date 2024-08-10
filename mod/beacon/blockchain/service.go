@@ -131,6 +131,8 @@ func NewService[
 	ts TelemetrySink,
 	genesisBroker EventFeed[*asynctypes.Event[GenesisT]],
 	blkBroker EventFeed[*asynctypes.Event[BeaconBlockT]],
+	// stateRootBroker is the event feed for new state roots.
+	stateRootBroker EventFeed[*asynctypes.Event[common.Root]],
 	//nolint:lll // annoying formatter.
 	validatorUpdateBroker EventFeed[*asynctypes.Event[transition.ValidatorUpdates]],
 	optimisticPayloadBuilds bool,
@@ -153,6 +155,7 @@ func NewService[
 		metrics:                 newChainMetrics(ts),
 		genesisBroker:           genesisBroker,
 		blkBroker:               blkBroker,
+		stateRootBroker:         stateRootBroker,
 		validatorUpdateBroker:   validatorUpdateBroker,
 		optimisticPayloadBuilds: optimisticPayloadBuilds,
 		forceStartupSyncOnce:    new(sync.Once),

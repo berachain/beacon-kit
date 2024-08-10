@@ -54,6 +54,7 @@ import (
 	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
@@ -429,6 +430,9 @@ type (
 	// SlotEvent is a type alias for the slot event.
 	SlotEvent = asynctypes.Event[*SlotData]
 
+	// StateRootEvent is a type alias for the state root event.
+	StateRootEvent = asynctypes.Event[common.Root]
+
 	// StatusEvent is a type alias for the status event.
 	StatusEvent = asynctypes.Event[*service.StatusEvent]
 
@@ -452,6 +456,9 @@ type (
 
 	// SlotBroker is a type alias for the slot feed.
 	SlotBroker = broker.Broker[*SlotEvent]
+
+	// StateRootBroker is a type alias for the state root feed.
+	StateRootBroker = broker.Broker[*StateRootEvent]
 
 	// StatusBroker is a type alias for the status feed.
 	StatusBroker = broker.Broker[*StatusEvent]

@@ -25,6 +25,7 @@ import (
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 )
 
@@ -36,13 +37,15 @@ func NewService[
 	config Config,
 	logger log.Logger[any],
 	blkBroker EventFeed[*asynctypes.Event[BeaconBlockT]],
+	stateRootBroker EventFeed[*asynctypes.Event[common.Root]],
 	store BlockStoreT,
 ) *Service[BeaconBlockT, BlockStoreT] {
 	return &Service[BeaconBlockT, BlockStoreT]{
-		config:    config,
-		logger:    logger,
-		blkBroker: blkBroker,
-		store:     store,
+		config:          config,
+		logger:          logger,
+		blkBroker:       blkBroker,
+		stateRootBroker: stateRootBroker,
+		store:           store,
 	}
 }
 
@@ -54,10 +57,12 @@ type Service[
 	// config is the configuration for the block service.
 	config Config
 	// logger is used for logging information and errors.
-	logger    log.Logger[any]
-	blkBroker EventFeed[*asynctypes.Event[BeaconBlockT]]
+	logger          log.Logger[any]
+	blkBroker       EventFeed[*asynctypes.Event[BeaconBlockT]]
+	stateRootBroker EventFeed[*asynctypes.Event[common.Root]]
 
-	store BlockStoreT
+	stateRootChannel <-chan *asynctypes.Event[common.Root]
+	store            BlockStoreT
 }
 
 // Name returns the name of the service.
@@ -76,6 +81,11 @@ func (s *Service[_, _]) Start(ctx context.Context) error {
 		s.logger.Error("failed to subscribe to block events", "error", err)
 		return err
 	}
+	s.stateRootChannel, err = s.stateRootBroker.Subscribe()
+	if err != nil {
+		s.logger.Error("failed to subscribe to state root events", "error", err)
+		return err
+	}
 	go s.listenAndStore(ctx, subBlkCh)
 	return nil
 }
@@ -91,14 +101,37 @@ func (s *Service[BeaconBlockT, _]) listenAndStore(
 			return
 		case msg := <-subBlkCh:
 			if msg.Is(events.BeaconBlockFinalized) {
-				if err := s.store.Set(msg.Data()); err != nil {
+				// Wait for the corresponding state root event
+				root, err := s.waitForStateRoot(ctx)
+				if err != nil {
 					s.logger.Error(
-						"failed to store block",
-						"slot", msg.Data().GetSlot(),
+						"failed to wait for state root",
 						"error", err,
 					)
 				}
+				slot := msg.Data().GetSlot()
+				if err = s.store.Set(slot, root, msg.Data()); err != nil {
+					s.logger.Error(
+						"failed to store block", "slot", slot, "error", err,
+					)
+				}
 			}
+		}
+	}
+}
+
+func (s *Service[_, _]) waitForStateRoot(
+	ctx context.Context,
+) (common.Root, error) {
+	for {
+		select {
+		case <-ctx.Done():
+			return common.Root{}, nil
+		case msg := <-s.stateRootChannel:
+			if !msg.Is(events.PrevStateRootPublished) {
+				return common.Root{}, errInvalidStateRootEvent
+			}
+			return msg.Data(), msg.Error()
 		}
 	}
 }

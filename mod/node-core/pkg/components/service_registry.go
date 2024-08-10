@@ -44,6 +44,7 @@ type ServiceRegistryInput struct {
 	ReportingService      *ReportingService
 	SidecarsBroker        *SidecarsBroker
 	SlotBroker            *SlotBroker
+	StateRootBroker       *StateRootBroker
 	TelemetrySink         *metrics.TelemetrySink
 	ValidatorService      *ValidatorService
 	ValidatorUpdateBroker *ValidatorUpdateBroker
@@ -67,6 +68,7 @@ func ProvideServiceRegistry(
 		service.WithService(in.GenesisBroker),
 		service.WithService(in.BlockBroker),
 		service.WithService(in.SlotBroker),
+		service.WithService(in.StateRootBroker),
 		service.WithService(in.SidecarsBroker),
 		service.WithService(in.ValidatorUpdateBroker),
 		service.WithService(in.EngineClient),

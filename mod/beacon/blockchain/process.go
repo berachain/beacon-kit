@@ -92,7 +92,24 @@ func (s *Service[
 		return nil, err
 	}
 
+	// Publish the state root of block n-1.
+	prevStateRoot, err := st.StateRootAtIndex(
+		(blk.GetSlot().Unwrap() - 1) % s.cs.SlotsPerHistoricalRoot(),
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	fmt.Printf("BLOCK %d STATE ROOT IN FINALIZE %v\n", blk.GetSlot(), blk.GetStateRoot())
+
+	if err = s.stateRootBroker.Publish(ctx,
+		asynctypes.NewEvent(
+			ctx, events.PrevStateRootPublished, prevStateRoot,
+		),
+	); err != nil {
+		return nil, err
+	}
+
 	go s.sendPostBlockFCU(ctx, st, blk)
 
 	return valUpdates.RemoveDuplicates().Sort(), nil

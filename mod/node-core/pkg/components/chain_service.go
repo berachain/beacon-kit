@@ -46,6 +46,7 @@ type ChainServiceInput struct {
 	Logger                log.AdvancedLogger[any, sdklog.Logger]
 	Signer                crypto.BLSSigner
 	StateProcessor        *StateProcessor
+	StateRootBroker       *StateRootBroker
 	StorageBackend        *StorageBackend
 	TelemetrySink         *metrics.TelemetrySink
 	ValidatorUpdateBroker *ValidatorUpdateBroker
@@ -77,6 +78,7 @@ func ProvideChainService(
 		in.TelemetrySink,
 		in.GenesisBrocker,
 		in.BlockBroker,
+		in.StateRootBroker,
 		in.ValidatorUpdateBroker,
 		// If optimistic is enabled, we want to skip post finalization FCUs.
 		in.Cfg.Validator.EnableOptimisticPayloadBuilds,
