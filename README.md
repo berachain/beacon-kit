@@ -9,7 +9,7 @@
   </a>
 </div>
 <h2 >
-  A modular framework for building EVM consensus clients ⛵️✨
+  A Modular Framework for Building EVM Consensus Clients ⛵️✨
 </h2>
 
 _The project is still heavily under construction, see the [disclaimer below](#status)._
@@ -24,8 +24,8 @@ _The project is still heavily under construction, see the [disclaimer below](#st
 
 ## What is BeaconKit?
 
-BeaconKit is a modular framework for building EVM based consensus clients.
-The framework offers the most user-friendly way to build and operate an EVM blockchain, while ensuring a functionally identical execution environment to that of the Ethereum Mainnet.
+BeaconKit is a modular framework for building EVM-based consensus clients.
+The framework offers the most user-friendly way to build and operate an EVM blockchain while ensuring a functionally identical execution environment to that of the Ethereum Mainnet.
 
 ## Supported Execution Clients
 
@@ -74,4 +74,4 @@ Please refer to the [Kurtosis README](https://github.com/berachain/beacon-kit/bl
 
 ## Status
 
-This project is work in progress and subject to frequent changes as we are still working on wiring up the final system. Audits on BeaconKit are still ongoing, and in progress at the moment. We don't recommend using BeaconKit in a production environment yet.
+This project is a work in progress and subject to frequent changes as we are still working on wiring up the final system. Audits on BeaconKit are still ongoing, and in progress at the moment. We don't recommend using BeaconKit in a production environment yet.
