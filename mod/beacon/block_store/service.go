@@ -110,7 +110,7 @@ func (s *Service[BeaconBlockT, _]) listenAndStore(
 					)
 				}
 				slot := msg.Data().GetSlot()
-				if err := s.store.Set(slot, root, msg.Data()); err != nil {
+				if err = s.store.Set(slot, root, msg.Data()); err != nil {
 					s.logger.Error(
 						"failed to store block", "slot", slot, "error", err,
 					)
