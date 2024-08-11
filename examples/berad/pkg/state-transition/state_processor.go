@@ -320,7 +320,7 @@ func (sp *StateProcessor[
 	// Ensure the calculated state root matches the state root on
 	// the block.
 	stateRoot := st.HashTreeRoot()
-	if blk.GetStateRoot() != st.HashTreeRoot() {
+	if blk.GetStateRoot() != stateRoot {
 		return errors.Wrapf(
 			ErrStateRootMismatch, "expected %s, got %s",
 			stateRoot, blk.GetStateRoot(),
