@@ -21,7 +21,6 @@
 package attributes
 
 import (
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -39,7 +38,7 @@ type Factory[
 	logger log.Logger[any]
 	// suggestedFeeRecipient is the suggested fee recipient sent to
 	// the execution client for the payload build.
-	suggestedFeeRecipient gethprimitives.ExecutionAddress
+	suggestedFeeRecipient common.ExecutionAddress
 }
 
 // NewAttributesFactory creates a new instance of AttributesFactory.
@@ -50,7 +49,7 @@ func NewAttributesFactory[
 ](
 	chainSpec common.ChainSpec,
 	logger log.Logger[any],
-	suggestedFeeRecipient gethprimitives.ExecutionAddress,
+	suggestedFeeRecipient common.ExecutionAddress,
 ) *Factory[BeaconStateT, PayloadAttributesT, WithdrawalT] {
 	return &Factory[BeaconStateT, PayloadAttributesT, WithdrawalT]{
 		chainSpec:             chainSpec,
@@ -89,7 +88,7 @@ func (f *Factory[
 
 	// Get the previous randao mix.
 	if prevRandao, err = st.GetRandaoMixAtIndex(
-		uint64(epoch) % f.chainSpec.EpochsPerHistoricalVector(),
+		epoch.Unwrap() % f.chainSpec.EpochsPerHistoricalVector(),
 	); err != nil {
 		return attributes, err
 	}

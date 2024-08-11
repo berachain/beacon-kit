@@ -71,7 +71,7 @@ func (kv *KVStore[
 	index uint64,
 	amount math.Gwei,
 ) error {
-	return kv.slashings.Set(kv.ctx, index, uint64(amount))
+	return kv.slashings.Set(kv.ctx, index, amount.Unwrap())
 }
 
 // GetTotalSlashing retrieves the total slashing amount from the store.
@@ -95,5 +95,5 @@ func (kv *KVStore[
 ]) SetTotalSlashing(
 	amount math.Gwei,
 ) error {
-	return kv.totalSlashing.Set(kv.ctx, uint64(amount))
+	return kv.totalSlashing.Set(kv.ctx, amount.Unwrap())
 }

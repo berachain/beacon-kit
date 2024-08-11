@@ -139,7 +139,9 @@ func (s *EngineClient[
 				"dial_url", s.cfg.RPCDialURL,
 			)
 			if err := s.initializeConnection(ctx); err != nil {
-				s.logger.Error(err.Error())
+				if errors.Is(err, ErrMismatchedEth1ChainID) {
+					s.logger.Error(err.Error())
+				}
 				continue
 			}
 			return nil

@@ -26,7 +26,6 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -142,7 +141,7 @@ func (s *Service[
 	var blk BeaconBlockT
 	// Create a new block.
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
-		uint64(requestedSlot-1) % s.chainSpec.SlotsPerHistoricalRoot(),
+		(requestedSlot.Unwrap() - 1) % s.chainSpec.SlotsPerHistoricalRoot(),
 	)
 
 	if err != nil {
@@ -306,9 +305,9 @@ func (s *Service[
 	var eth1Data Eth1DataT
 	// TODO: assemble real eth1data.
 	body.SetEth1Data(eth1Data.New(
-		common.Bytes32{},
+		common.Root{},
 		0,
-		gethprimitives.ZeroHash,
+		common.ExecutionHash{},
 	))
 
 	// Set the graffiti on the block body.

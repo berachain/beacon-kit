@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/bind"
 	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -45,14 +46,14 @@ func NewWrappedBeaconDepositContract[
 	DepositT Deposit[DepositT, WithdrawalCredentialsT],
 	WithdrawalCredentialsT ~[32]byte,
 ](
-	address gethprimitives.ExecutionAddress,
+	address common.ExecutionAddress,
 	client bind.ContractBackend,
 ) (*WrappedBeaconDepositContract[
 	DepositT,
 	WithdrawalCredentialsT,
 ], error) {
 	contract, err := deposit.NewBeaconDepositContract(
-		address, client,
+		gethprimitives.ExecutionAddress(address), client,
 	)
 
 	if err != nil {
@@ -80,7 +81,7 @@ func (dc *WrappedBeaconDepositContract[
 	logs, err := dc.FilterDeposit(
 		&bind.FilterOpts{
 			Context: ctx,
-			Start:   uint64(blkNum),
+			Start:   blkNum.Unwrap(),
 			End:     (*uint64)(&blkNum),
 		},
 	)

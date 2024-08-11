@@ -24,12 +24,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"cosmossdk.io/core/address"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	sdkconfig "github.com/cosmos/cosmos-sdk/client/config"
-	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 )
 
 //nolint:gochecknoglobals // todo:fix from sdk.
@@ -45,29 +42,17 @@ func init() {
 }
 
 // ProvideClientContext returns a new client context with the given options.
-func ProvideClientContext(
-	appCodec codec.Codec,
-	interfaceRegistry codectypes.InterfaceRegistry,
-	txConfig client.TxConfig,
-	addressCodec address.Codec,
-	validatorAddressCodec address.ValidatorAddressCodec,
-	consensusAddressCodec address.ConsensusAddressCodec,
-) (client.Context, error) {
+func ProvideClientContext() (client.Context, error) {
 	var err error
 	clientCtx := client.Context{}.
-		WithCodec(appCodec).
-		WithInterfaceRegistry(interfaceRegistry).
 		WithInput(os.Stdin).
-		WithAddressCodec(addressCodec).
-		WithValidatorAddressCodec(validatorAddressCodec).
-		WithConsensusAddressCodec(consensusAddressCodec).
 		WithHomeDir(DefaultNodeHome).
 		WithViper("") // uses by default the binary name as prefix
 
 	// Read the config to overwrite the default values with the values from the
 	// config file
 	customClientTemplate, customClientConfig := config.InitClientConfig()
-	clientCtx, err = sdkconfig.ReadDefaultValuesFromDefaultClientConfig(
+	clientCtx, err = sdkconfig.CreateClientConfig(
 		clientCtx,
 		customClientTemplate,
 		customClientConfig,
@@ -75,8 +60,6 @@ func ProvideClientContext(
 	if err != nil {
 		return clientCtx, err
 	}
-
-	clientCtx = clientCtx.WithTxConfig(txConfig)
 
 	return clientCtx, nil
 }

@@ -58,5 +58,5 @@ func (kv *KVStore[
 ]) SetNextWithdrawalValidatorIndex(
 	index math.ValidatorIndex,
 ) error {
-	return kv.nextWithdrawalValidatorIndex.Set(kv.ctx, uint64(index))
+	return kv.nextWithdrawalValidatorIndex.Set(kv.ctx, index.Unwrap())
 }

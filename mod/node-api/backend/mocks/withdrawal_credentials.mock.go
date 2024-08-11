@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	common "github.com/ethereum/go-ethereum/common"
+	common "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -21,23 +21,23 @@ func (_m *WithdrawalCredentials) EXPECT() *WithdrawalCredentials_Expecter {
 }
 
 // ToExecutionAddress provides a mock function with given fields:
-func (_m *WithdrawalCredentials) ToExecutionAddress() (common.Address, error) {
+func (_m *WithdrawalCredentials) ToExecutionAddress() (common.ExecutionAddress, error) {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
 		panic("no return value specified for ToExecutionAddress")
 	}
 
-	var r0 common.Address
+	var r0 common.ExecutionAddress
 	var r1 error
-	if rf, ok := ret.Get(0).(func() (common.Address, error)); ok {
+	if rf, ok := ret.Get(0).(func() (common.ExecutionAddress, error)); ok {
 		return rf()
 	}
-	if rf, ok := ret.Get(0).(func() common.Address); ok {
+	if rf, ok := ret.Get(0).(func() common.ExecutionAddress); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(common.Address)
+			r0 = ret.Get(0).(common.ExecutionAddress)
 		}
 	}
 
@@ -67,12 +67,12 @@ func (_c *WithdrawalCredentials_ToExecutionAddress_Call) Run(run func()) *Withdr
 	return _c
 }
 
-func (_c *WithdrawalCredentials_ToExecutionAddress_Call) Return(_a0 common.Address, _a1 error) *WithdrawalCredentials_ToExecutionAddress_Call {
+func (_c *WithdrawalCredentials_ToExecutionAddress_Call) Return(_a0 common.ExecutionAddress, _a1 error) *WithdrawalCredentials_ToExecutionAddress_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *WithdrawalCredentials_ToExecutionAddress_Call) RunAndReturn(run func() (common.Address, error)) *WithdrawalCredentials_ToExecutionAddress_Call {
+func (_c *WithdrawalCredentials_ToExecutionAddress_Call) RunAndReturn(run func() (common.ExecutionAddress, error)) *WithdrawalCredentials_ToExecutionAddress_Call {
 	_c.Call.Return(run)
 	return _c
 }

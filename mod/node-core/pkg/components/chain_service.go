@@ -61,7 +61,6 @@ func ProvideChainService(
 		*BeaconBlockBody,
 		*BeaconBlockHeader,
 		*BeaconState,
-		*BlobSidecars,
 		*Deposit,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,

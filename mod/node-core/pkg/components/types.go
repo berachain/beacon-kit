@@ -151,7 +151,6 @@ type (
 		*BeaconBlockBody,
 		*BeaconBlockHeader,
 		*BeaconState,
-		*BlobSidecars,
 		*Deposit,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
@@ -228,7 +227,7 @@ type (
 		*ExecutionPayload,
 		*PayloadAttributes,
 		PayloadID,
-		*Withdrawal,
+		engineprimitives.Withdrawals,
 	]
 
 	// ExecutionPayload type aliases.
@@ -351,6 +350,7 @@ type (
 		*Validator,
 		Validators,
 		*Withdrawal,
+		engineprimitives.Withdrawals,
 		WithdrawalCredentials,
 	]
 

@@ -10,6 +10,7 @@
 #    beacond     #
 #################
 
+DEVNET_CHAIN_SPEC = devnet
 JWT_PATH = ${TESTAPP_FILES_DIR}/jwt.hex
 ETH_GENESIS_PATH = ${TESTAPP_FILES_DIR}/eth-genesis.json
 NETHER_ETH_GENESIS_PATH = ${TESTAPP_FILES_DIR}/eth-nether-genesis.json
@@ -22,9 +23,24 @@ HTTP_PREFIX = http://
 INTERNAL_IP := $(shell hostname -I | awk '{print $$1}')
 BOOT_NODES = "enode://c32896cefb5006afc1a4400c5a87c17687740a0c64ed4273ee57fb2b53de889ad5807ac30b1dd09ce77ac128df17214626e69a1985bbad95ffec9bdcf3e8d5ec@10.0.2.106:30303,enode://61105d68f4dd9afb774b3bc7f6575730b7a3a0f0e5d6045d97ff5aa098cdcff31bafe80eb0c45f403d0cfe1b0c401538aa172ba6553390ad1770e7ed024c2932@10.0.13.254:30303,enode://d28d096fffb33467149a53ff133f1c3b9635f7333757010e41744cef77724e08b386938cf77f7a3fc6240142ce06f3694c7980f1e36a3d0d5628a01d9d884d97@10.0.1.173:30303,enode://724999756780c9ca03551d6c5ba0c92a115fbcca880557cdcd43f3ee4886fea1f458df4bca416d306e9ab9b9c7fc1238f617dad7818dfbb9493c7bfcc81f5011@10.0.15.167:30303"
 
+#################
+#    bartio     #
+#################
+
+TESTNET_CHAIN_SPEC = testnet
+BARTIO_NETWORK_FILES_DIR = ${TESTAPP_FILES_DIR}/../networks/80084
+BARTIO_ETH_GENESIS_PATH = ${BARTIO_NETWORK_FILES_DIR}/eth-genesis.json
+
 ## Testing:
 start: ## start an ephemeral `beacond` node
-	@JWT_SECRET_PATH=$(JWT_PATH) ${TESTAPP_FILES_DIR}/entrypoint.sh
+	@JWT_SECRET_PATH=$(JWT_PATH) \
+	CHAIN_SPEC=$(DEVNET_CHAIN_SPEC) \
+	${TESTAPP_FILES_DIR}/entrypoint.sh
+
+start-bartio:
+	@JWT_SECRET_PATH=$(JWT_PATH) \
+	CHAIN_SPEC=$(TESTNET_CHAIN_SPEC) \
+	${TESTAPP_FILES_DIR}/entrypoint.sh
 
 start-validator-locally: ## start an ephemeral `beacond` node
 	JWT_SECRET_PATH=$(JWT_PATH) ${TESTAPP_FILES_DIR}/entrypoint.sh 1 validator locally
@@ -59,6 +75,25 @@ start-reth: ## start an ephemeral `reth` node
 	-v $(PWD)/.tmp:/.tmp \
 	ghcr.io/paradigmxyz/reth node \
 	--chain ${ETH_GENESIS_PATH} \
+	--http \
+	--http.addr "0.0.0.0" \
+	--http.api eth,net \
+	--authrpc.addr "0.0.0.0" \
+	--authrpc.jwtsecret $(JWT_PATH) \
+	--datadir ${ETH_DATA_DIR} \
+	--ipcpath ${IPC_PATH}
+
+start-reth-bartio:
+	@rm -rf ${ETH_DATA_DIR}
+	@docker run \
+	-p 30303:30303 \
+	-p 8545:8545 \
+	-p 8551:8551 \
+	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	--rm -v $(PWD)/${BARTIO_NETWORK_FILES_DIR}:/${BARTIO_NETWORK_FILES_DIR} \
+	-v $(PWD)/.tmp:/.tmp \
+	ghcr.io/paradigmxyz/reth node \
+	--chain ${BARTIO_ETH_GENESIS_PATH} \
 	--http \
 	--http.addr "0.0.0.0" \
 	--http.api eth,net \

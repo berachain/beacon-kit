@@ -113,7 +113,7 @@ func (fd *ForkData) ComputeRandaoSigningRoot(
 	epoch math.Epoch,
 ) common.Root {
 	return ComputeSigningRootUInt64(
-		uint64(epoch),
+		epoch.Unwrap(),
 		fd.ComputeDomain(domainType),
 	)
 }

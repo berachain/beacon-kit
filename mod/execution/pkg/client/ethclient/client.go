@@ -26,6 +26,7 @@ import (
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/ethclient"
 	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/rpc"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 )
 
@@ -58,7 +59,7 @@ func NewFromRPCClient[
 // ExecutionBlockByHash fetches an execution engine block by hash by calling
 // eth_blockByHash via JSON-RPC.
 func (s *Eth1Client[ExecutionPayloadT]) ExecutionBlockByHash(
-	ctx context.Context, hash gethprimitives.ExecutionHash, withTxs bool,
+	ctx context.Context, hash common.ExecutionHash, withTxs bool,
 ) (*gethprimitives.Block, error) {
 	result := &gethprimitives.Block{}
 	err := s.Client.Client().CallContext(

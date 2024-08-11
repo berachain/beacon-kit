@@ -28,7 +28,7 @@ import (
 // ------------------------------ Helpers ------------------------------
 
 // Helper function to unmarshal JSON for various byte types.
-func unmarshalJSONHelper(target []byte, input []byte) error {
+func UnmarshalJSONHelper(target []byte, input []byte) error {
 	bz := Bytes{}
 	if err := bz.UnmarshalJSON(input); err != nil {
 		return err

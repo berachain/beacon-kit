@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	bytes "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	common "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	math "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 
 	mock "github.com/stretchr/testify/mock"
@@ -79,7 +79,7 @@ func (_c *BlockStore_GetSlotByExecutionNumber_Call[BeaconBlockT]) RunAndReturn(r
 }
 
 // GetSlotByRoot provides a mock function with given fields: root
-func (_m *BlockStore[BeaconBlockT]) GetSlotByRoot(root bytes.B32) (math.U64, error) {
+func (_m *BlockStore[BeaconBlockT]) GetSlotByRoot(root common.Root) (math.U64, error) {
 	ret := _m.Called(root)
 
 	if len(ret) == 0 {
@@ -88,16 +88,16 @@ func (_m *BlockStore[BeaconBlockT]) GetSlotByRoot(root bytes.B32) (math.U64, err
 
 	var r0 math.U64
 	var r1 error
-	if rf, ok := ret.Get(0).(func(bytes.B32) (math.U64, error)); ok {
+	if rf, ok := ret.Get(0).(func(common.Root) (math.U64, error)); ok {
 		return rf(root)
 	}
-	if rf, ok := ret.Get(0).(func(bytes.B32) math.U64); ok {
+	if rf, ok := ret.Get(0).(func(common.Root) math.U64); ok {
 		r0 = rf(root)
 	} else {
 		r0 = ret.Get(0).(math.U64)
 	}
 
-	if rf, ok := ret.Get(1).(func(bytes.B32) error); ok {
+	if rf, ok := ret.Get(1).(func(common.Root) error); ok {
 		r1 = rf(root)
 	} else {
 		r1 = ret.Error(1)
@@ -112,14 +112,14 @@ type BlockStore_GetSlotByRoot_Call[BeaconBlockT interface{}] struct {
 }
 
 // GetSlotByRoot is a helper method to define mock.On call
-//   - root bytes.B32
+//   - root common.Root
 func (_e *BlockStore_Expecter[BeaconBlockT]) GetSlotByRoot(root interface{}) *BlockStore_GetSlotByRoot_Call[BeaconBlockT] {
 	return &BlockStore_GetSlotByRoot_Call[BeaconBlockT]{Call: _e.mock.On("GetSlotByRoot", root)}
 }
 
-func (_c *BlockStore_GetSlotByRoot_Call[BeaconBlockT]) Run(run func(root bytes.B32)) *BlockStore_GetSlotByRoot_Call[BeaconBlockT] {
+func (_c *BlockStore_GetSlotByRoot_Call[BeaconBlockT]) Run(run func(root common.Root)) *BlockStore_GetSlotByRoot_Call[BeaconBlockT] {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(bytes.B32))
+		run(args[0].(common.Root))
 	})
 	return _c
 }
@@ -129,7 +129,7 @@ func (_c *BlockStore_GetSlotByRoot_Call[BeaconBlockT]) Return(_a0 math.U64, _a1 
 	return _c
 }
 
-func (_c *BlockStore_GetSlotByRoot_Call[BeaconBlockT]) RunAndReturn(run func(bytes.B32) (math.U64, error)) *BlockStore_GetSlotByRoot_Call[BeaconBlockT] {
+func (_c *BlockStore_GetSlotByRoot_Call[BeaconBlockT]) RunAndReturn(run func(common.Root) (math.U64, error)) *BlockStore_GetSlotByRoot_Call[BeaconBlockT] {
 	_c.Call.Return(run)
 	return _c
 }
