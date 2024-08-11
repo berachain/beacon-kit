@@ -24,14 +24,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/berachain/beacon-kit/mod/errors"
-	// "github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
-	// "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-
-	beaconapi "github.com/attestantio/go-eth2-client/api/v1"
+	beaconapi "github.com/attestantio/go-eth2-client/api"
+	apiv1 "github.com/attestantio/go-eth2-client/api/v1"
 	beaconhttp "github.com/attestantio/go-eth2-client/http"
-
+	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	rpcclient "github.com/cometbft/cometbft/rpc/client"
 	httpclient "github.com/cometbft/cometbft/rpc/client/http"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
@@ -90,13 +87,16 @@ func (cc *ConsensusClient) Connect(ctx context.Context) error {
 		beaconhttp.WithAddress(
 			fmt.Sprintf("http://0.0.0.0:%d", nodePort.GetNumber()),
 		),
-		beaconhttp.WithLogLevel(zerolog.WarnLevel),
+		beaconhttp.WithLogLevel(zerolog.DebugLevel),
 	)
 	if err != nil {
 		cancel()
 		return err
 	}
-	cc.Service = service.(*beaconhttp.Service)
+	cc.Service, ok = service.(*beaconhttp.Service)
+	if !ok {
+		panic("failed to cast beacon node-api service to beaconhttp.Service")
+	}
 	cc.cancelFunc = cancel
 
 	return nil
@@ -161,13 +161,15 @@ func (cc ConsensusClient) IsActive(ctx context.Context) (bool, error) {
 // Returns the current beacon validators from beacon node-api.
 func (cc ConsensusClient) GetBeaconValidators(
 	ctx context.Context,
-) (map[math.ValidatorIndex]*beaconapi.Validator, error) {
-	res, err := cc.Service.Validators(ctx, nil)
+) (map[math.ValidatorIndex]*apiv1.Validator, error) {
+	res, err := cc.Service.Validators(ctx, &beaconapi.ValidatorsOpts{
+		State: "head",
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	validators := make(map[math.ValidatorIndex]*beaconapi.Validator)
+	validators := make(map[math.ValidatorIndex]*apiv1.Validator)
 	for idx, validator := range res.Data {
 		validators[math.ValidatorIndex(idx)] = validator
 	}
