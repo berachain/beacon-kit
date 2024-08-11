@@ -76,6 +76,9 @@ func (app *BaseApp) InitChain(
 		}
 	}
 
+	app.setState(execModeFinalize)
+	app.setState(execModeCheck)
+
 	defer func() {
 		// InitChain represents the state of the application BEFORE the first
 		// block, i.e. the genesis block. This means that when processing the
