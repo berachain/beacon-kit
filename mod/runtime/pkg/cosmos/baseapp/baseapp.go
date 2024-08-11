@@ -259,7 +259,7 @@ func (app *BaseApp) Init() error {
 
 	// needed for the export command which inits from store but never calls
 	// initchain
-	app.setState(execModeCheck, cmtproto.Header{ChainID: app.chainID})
+	app.setState(execModeCheck)
 
 	return app.cms.GetPruning().Validate()
 }
@@ -277,7 +277,7 @@ func (app *BaseApp) setInterBlockCache(
 // setState sets the BaseApp's state for the corresponding mode with a branched
 // multi-store (i.e. a CacheMultiStore) and a new Context with the same
 // multi-store branch, and provided header.
-func (app *BaseApp) setState(mode execMode, h cmtproto.Header) {
+func (app *BaseApp) setState(mode execMode) {
 	ms := app.cms.CacheMultiStore()
 	baseState := &state{
 		ms:  ms,
