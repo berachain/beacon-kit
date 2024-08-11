@@ -22,7 +22,6 @@ package blockchain
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
@@ -99,8 +98,6 @@ func (s *Service[
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Printf("BLOCK %d STATE ROOT IN FINALIZE %v\n", blk.GetSlot(), blk.GetStateRoot())
 
 	if err = s.stateRootBroker.Publish(ctx,
 		asynctypes.NewEvent(
