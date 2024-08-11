@@ -23,6 +23,12 @@
 
 package e2e_test
 
+import (
+	"testing"
+
+	"github.com/berachain/beacon-kit/testing/e2e/suite"
+)
+
 // TestBeaconKitE2ESuite runs the test suite.
 func TestBeaconKitE2ESuite(t *testing.T) {
 	suite.Run(t, new(BeaconKitE2ESuite))
