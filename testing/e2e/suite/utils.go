@@ -18,12 +18,37 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-//go:build e2e
-// +build e2e
+package suite
 
-package e2e_test
+import (
+	"path/filepath"
+	"runtime"
 
-// TestBeaconKitE2ESuite runs the test suite.
-func TestBeaconKitE2ESuite(t *testing.T) {
-	suite.Run(t, new(BeaconKitE2ESuite))
+	"github.com/berachain/beacon-kit/mod/errors"
+)
+
+// GetRelativePathToKurtosis returns the relative path to the kurtosis folder
+// at the project root.
+func GetRelativePathToKurtosis() (string, error) {
+	// Get the current file path
+	_, currentFile, _, ok := runtime.Caller(0)
+	if !ok {
+		return "", errors.New("failed to get current file path")
+	}
+
+	// Get the directory of the current file
+	currentDir := filepath.Dir(currentFile)
+
+	// Define the target directory (kurtosis folder at project root)
+	targetDir := filepath.Join(
+		filepath.Dir(filepath.Dir(filepath.Dir(currentDir))), "kurtosis",
+	)
+
+	// Calculate the relative path
+	relPath, err := filepath.Rel(currentDir, targetDir)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to calculate relative path")
+	}
+
+	return relPath, nil
 }

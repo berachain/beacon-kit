@@ -112,9 +112,13 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 		"num_full_nodes",
 		len(s.cfg.NetworkConfiguration.FullNodes.Nodes),
 	)
+
+	packageRootPath, err := GetRelativePathToKurtosis()
+	s.Require().NoError(err, "Error getting relative path to kurtosis")
+
 	result, err := s.enclave.RunStarlarkPackageBlocking(
 		s.ctx,
-		"../../kurtosis",
+		packageRootPath,
 		starlark_run_config.NewRunStarlarkConfig(
 			starlark_run_config.WithSerializedParams(
 				string(s.cfg.MustMarshalJSON()),
