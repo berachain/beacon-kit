@@ -68,14 +68,6 @@ type BaseApp struct {
 
 	// volatile states:
 	//
-	// - checkState is set on InitChain and reset on Commit
-	// - finalizeBlockState is set on InitChain and FinalizeBlock and set to nil
-	// on Commit.
-	//
-	// - checkState: Used for CheckTx, which is set based on the previous
-	// block's
-	// state. This state is never committed.
-	//
 	// - prepareProposalState: Used for PrepareProposal, which is set based on
 	// the previous block's state. This state is never committed. In case of
 	// multiple consensus rounds, the state is always reset to the previous
@@ -88,7 +80,6 @@ type BaseApp struct {
 	//
 	// - finalizeBlockState: Used for FinalizeBlock, which is set based on the
 	// previous block's state. This state is committed.
-	checkState           *state
 	prepareProposalState *state
 	processProposalState *state
 	finalizeBlockState   *state
