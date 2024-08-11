@@ -15,7 +15,7 @@ require (
 	cosmossdk.io/log v1.4.0
 	cosmossdk.io/tools/confix v0.1.1
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240806160829-cde2d1347e7e
+	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240809163303-a4ebb22fd018
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240808194557-e72e74f58197
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1347e7e
@@ -36,7 +36,7 @@ require (
 	cosmossdk.io/core v0.12.1-0.20240806152830-8fb47b368cd4 // indirect
 	cosmossdk.io/schema v0.1.1 // indirect
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df // indirect
-	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240723155519-565f208d5482 // indirect
+	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240809163303-a4ebb22fd018 // indirect
 	github.com/berachain/beacon-kit/mod/node-api v0.0.0-20240806160829-cde2d1347e7e // indirect
 	github.com/berachain/beacon-kit/mod/node-api/engines v0.0.0-00010101000000-000000000000 // indirect
 	github.com/bufbuild/protocompile v0.14.0 // indirect
@@ -94,7 +94,7 @@ require (
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240618214413-d5ec0e66b3dd // indirect
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df // indirect
-	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240806160829-cde2d1347e7e // indirect
+	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240809183101-6c82a501d3be
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6650da31 // indirect
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240806160829-cde2d1347e7e // indirect
 	github.com/bgentry/speakeasy v0.2.0 // indirect

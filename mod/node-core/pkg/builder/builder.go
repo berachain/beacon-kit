@@ -26,6 +26,7 @@ import (
 
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
@@ -43,9 +44,6 @@ import (
 // node.
 type NodeBuilder[NodeT types.Node] struct {
 	node NodeT
-	// depInjectCfg holds is an extendable config container used by the
-	// depinject framework.
-	depInjectCfg depinject.Config
 	// components is a list of components to provide.
 	components []any
 }
@@ -78,17 +76,17 @@ func (nb *NodeBuilder[NodeT]) Build(
 	// variables to hold the components needed to set up BeaconApp
 	var (
 		chainSpec       common.ChainSpec
-		appBuilder      *runtime.AppBuilder
 		abciMiddleware  *components.ABCIMiddleware
 		serviceRegistry *service.Registry
 		consensusEngine *components.ConsensusEngine
 		apiBackend      *components.NodeAPIBackend
+		storeKey        = new(storetypes.KVStoreKey)
+		storeKeyDblPtr  = &storeKey
 	)
 
 	// build all node components using depinject
 	if err := depinject.Inject(
 		depinject.Configs(
-			nb.depInjectCfg,
 			depinject.Provide(
 				nb.components...,
 			),
@@ -100,7 +98,7 @@ func (nb *NodeBuilder[NodeT]) Build(
 				SetLoggerConfig,
 			),
 		),
-		&appBuilder,
+		&storeKeyDblPtr,
 		&chainSpec,
 		&abciMiddleware,
 		&serviceRegistry,
@@ -113,7 +111,7 @@ func (nb *NodeBuilder[NodeT]) Build(
 	// set the application to a new BeaconApp with necessary ABCI handlers
 	nb.node.RegisterApp(
 		runtime.NewBeaconKitApp(
-			db, traceStore, true, appBuilder, abciMiddleware,
+			*storeKeyDblPtr, logger, db, traceStore, true, abciMiddleware,
 			append(
 				DefaultBaseappOptions(appOpts),
 				WithCometParamStore(chainSpec),

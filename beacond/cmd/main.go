@@ -28,7 +28,6 @@ import (
 	clicomponents "github.com/berachain/beacon-kit/mod/cli/pkg/components"
 	nodebuilder "github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
 	nodecomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
-	beacon "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/cosmos/cosmos-sdk/server"
 	"go.uber.org/automaxprocs/maxprocs"
@@ -48,9 +47,6 @@ func run() error {
 
 	// Build the node using the node-core.
 	nb := nodebuilder.New(
-		// Set the DepInject Configuration to the Default.
-		nodebuilder.WithDepInjectConfig[node](
-			nodebuilder.DefaultDepInjectConfig()),
 		// Set the Runtime Components to the Default.
 		nodebuilder.WithComponents[node](
 			nodecomponents.DefaultComponentsWithStandardTypes(),
@@ -67,10 +63,6 @@ func run() error {
 		clibuilder.WithDescription[node, *executionPayload](
 			"A basic beacon node, usable most standard networks.",
 		),
-		// Set the DepInject Configuration to the Default.
-		clibuilder.WithDepInjectConfig[node, *executionPayload](
-			nodebuilder.DefaultDepInjectConfig(),
-		),
 		// Set the Runtime Components to the Default.
 		clibuilder.WithComponents[node, *executionPayload](
 			append(
@@ -82,7 +74,7 @@ func run() error {
 			),
 		),
 		clibuilder.SupplyModuleDeps[node, *executionPayload](
-			beacon.SupplyModuleDependencies(),
+			[]any{&nodecomponents.ABCIMiddleware{}},
 		),
 		// Set the Run Handler to the Default.
 		clibuilder.WithRunHandler[node, *executionPayload](
