@@ -306,7 +306,7 @@ func (sp *StateProcessor[
 		return err
 	}
 
-	// process the deposits and ensure they match the local state.
+	// process the operations of whats on the block body.
 	if err := sp.processOperations(st, blk); err != nil {
 		return err
 	}
@@ -320,7 +320,7 @@ func (sp *StateProcessor[
 	// Ensure the calculated state root matches the state root on
 	// the block.
 	stateRoot := st.HashTreeRoot()
-	if blk.GetStateRoot() != st.HashTreeRoot() {
+	if blk.GetStateRoot() != stateRoot {
 		return errors.Wrapf(
 			ErrStateRootMismatch, "expected %s, got %s",
 			stateRoot, blk.GetStateRoot(),
@@ -428,6 +428,19 @@ func (sp *StateProcessor[
 		)
 	}
 	return nil
+}
+
+// processOperations processes the operations and ensures they match the
+// local state.
+func (sp *StateProcessor[
+	BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _,
+]) processOperations(
+	st BeaconStateT,
+	blk BeaconBlockT,
+) error {
+	// TODO: process attestations as well
+	deposits := blk.GetBody().GetDeposits()
+	return sp.processDeposits(st, deposits)
 }
 
 // getAttestationDeltas as defined in the Ethereum 2.0 specification.

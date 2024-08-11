@@ -45,12 +45,7 @@ import (
 // See simapp/app.go for an example of this setup.
 type App struct {
 	*baseapp.BaseApp
-
 	Middleware Middleware
-	// initChainer is the init chainer function defined by the app config.
-	// this is only required if the chain wants to add special InitChainer
-	// logic.
-	initChainer sdk.InitChainer
 }
 
 // NewBeaconKitApp returns a reference to an initialized BeaconApp.
