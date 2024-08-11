@@ -56,4 +56,26 @@ start-beaconkit: ## start an ephemeral `beacond` node
 	@JWT_SECRET_PATH=$(JWT_PATH) CHAINID=80084 CHAIN_SPEC=testnet testing/scripts/entrypoint.sh
 # defaultDialURL= "http://localhost:8551"
 
-.PHONY: start-geth-full-node start-beaconkit
+
+RPC_URL = "http://localhost:8551"
+RPC_DIAL_URL=$(resolve_path "$RPC_DIAL_URL")
+
+start-beacon-docker:
+	docker run \
+	--rm -v $(PWD)/${TESTAPP_FILES_DIR_full}:/${TESTAPP_FILES_DIR_full} \
+	-v $(PWD)/.tmp:/.tmp \
+	-e CHAIN_SPEC=testnet \
+	beaconkit:nids \
+	start \
+	--home /.tmp \
+	--pruning=nothing \
+	--beacon-kit.engine.jwt-secret-path ${JWT_PATH} \
+	--beacon-kit.node-api.enabled \
+	--beacon-kit.node-api.logging \
+	--beacon-kit.node-api.address \
+	--beacon-kit.block-store-service.enabled \
+	--beacon-kit.block-store-service.pruner-enabled \
+	--beacon-kit.logger.log-level debug \
+	--beacon-kit.engine.rpc-dial-url="http://localhost:8551"
+
+.PHONY: start-geth-full-node start-beaconkit start-beacon-docker
