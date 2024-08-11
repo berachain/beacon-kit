@@ -2,9 +2,8 @@
 
 ## What is Kurtosis
 
-[Kurtosis](https://www.kurtosis.com/) is a platform for running distributed
-systems on Docker / Kubernetes. It provides a simple, powerful framework for
-spinning up and tearing down distributed systems programmatically.
+[Kurtosis](https://www.kurtosis.com/) is a distributed application development platform.
+Its goal is to make building a distributed application as easy as developing a single-server app.
 
 ## How to Use
 
