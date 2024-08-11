@@ -25,7 +25,6 @@ import (
 	"errors"
 	"fmt"
 
-	"cosmossdk.io/core/header"
 	"cosmossdk.io/log"
 	"cosmossdk.io/store"
 	storemetrics "cosmossdk.io/store/metrics"
@@ -167,10 +166,6 @@ func (app *BaseApp) Name() string {
 
 // AppVersion returns the application's protocol version.
 func (app *BaseApp) AppVersion(ctx context.Context) (uint64, error) {
-	if app.paramStore == nil {
-		return 0, errors.New("app.paramStore is nil")
-	}
-
 	cp, err := app.paramStore.Get(ctx)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get consensus params: %w", err)
@@ -253,11 +248,6 @@ func (app *BaseApp) LastBlockHeight() int64 {
 	return app.cms.LastCommitID().Version
 }
 
-// ChainID returns the chainID of the app.
-func (app *BaseApp) ChainID() string {
-	return app.chainID
-}
-
 // Init initializes the app. It seals the app, preventing any
 // further modifications. In addition, it validates the app against
 // the earlier provided settings. Returns an error if validation fails.
@@ -289,17 +279,9 @@ func (app *BaseApp) setInterBlockCache(
 // multi-store branch, and provided header.
 func (app *BaseApp) setState(mode execMode, h cmtproto.Header) {
 	ms := app.cms.CacheMultiStore()
-	headerInfo := header.Info{
-		Height:  h.Height,
-		Time:    h.Time,
-		ChainID: h.ChainID,
-		AppHash: h.AppHash,
-	}
 	baseState := &state{
-		ms: ms,
-		ctx: sdk.NewContext(ms, false, app.logger).
-			WithBlockHeader(h).
-			WithHeaderInfo(headerInfo),
+		ms:  ms,
+		ctx: sdk.NewContext(ms, false, app.logger),
 	}
 
 	switch mode {
@@ -332,21 +314,6 @@ func (app *BaseApp) GetConsensusParams(
 	//#nosec:G703 // bet.
 	cp, _ := app.paramStore.Get(ctx)
 	return cp
-}
-
-// StoreConsensusParams sets the consensus parameters to the BaseApp's param
-// store.
-func (app *BaseApp) StoreConsensusParams(
-	ctx context.Context,
-	cp cmtproto.ConsensusParams,
-) error {
-	if app.paramStore == nil {
-		return errors.New(
-			"cannot store consensus params with no params store set",
-		)
-	}
-
-	return app.paramStore.Set(ctx, cp)
 }
 
 func (app *BaseApp) validateFinalizeBlockHeight(

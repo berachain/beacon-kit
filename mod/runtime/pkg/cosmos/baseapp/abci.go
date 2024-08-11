@@ -83,20 +83,6 @@ func (app *BaseApp) InitChain(
 	app.setState(execModeFinalize, initHeader)
 	app.setState(execModeCheck, initHeader)
 
-	// Store the consensus params in the BaseApp's param store. Note, this must
-	// be done after the finalizeBlockState and context have been set as it's
-	// persisted
-	// to state.
-	if req.ConsensusParams != nil {
-		err := app.StoreConsensusParams(
-			app.finalizeBlockState.Context(),
-			*req.ConsensusParams,
-		)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	defer func() {
 		// InitChain represents the state of the application BEFORE the first
 		// block, i.e. the genesis block. This means that when processing the
