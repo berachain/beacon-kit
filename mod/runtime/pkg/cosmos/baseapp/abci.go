@@ -77,7 +77,6 @@ func (app *BaseApp) InitChain(
 	}
 
 	app.setState(execModeFinalize)
-	app.setState(execModeCheck)
 
 	defer func() {
 		// InitChain represents the state of the application BEFORE the first
@@ -86,9 +85,6 @@ func (app *BaseApp) InitChain(
 		// However, after Commit is called
 		// the height needs to reflect the true block height.
 		initHeader.Height = req.InitialHeight
-		app.checkState.SetContext(
-			app.checkState.Context().WithBlockHeader(initHeader),
-		)
 		app.finalizeBlockState.SetContext(
 			app.finalizeBlockState.Context().WithBlockHeader(initHeader),
 		)
@@ -351,11 +347,6 @@ func (app *BaseApp) internalFinalizeBlock(
 		app.finalizeBlockState.Context(),
 	)
 
-	if app.checkState != nil {
-		app.checkState.SetContext(app.checkState.Context().
-			WithHeaderHash(req.Hash))
-	}
-
 	// First check for an abort signal after beginBlock, as it's the first place
 	// we spend any significant amount of time.
 	select {
@@ -468,12 +459,6 @@ func (app *BaseApp) Commit() (*abci.CommitResponse, error) {
 		RetainHeight: retainHeight,
 	}
 
-	// Reset the CheckTx state to the latest committed.
-	//
-	// NOTE: This is safe because CometBFT holds a lock on the mempool for
-	// Commit. Use the header from this latest block.
-	app.setState(execModeCheck)
-
 	app.finalizeBlockState = nil
 
 	return resp, nil
@@ -571,12 +556,7 @@ func (app *BaseApp) CreateQueryContext(
 			)
 	}
 
-	// branch the commit multi-store for safety
-	ctx := sdk.NewContext(cacheMS, true, app.logger).
-		WithBlockHeader(app.checkState.Context().BlockHeader()).
-		WithBlockHeight(height)
-
-	return ctx, nil
+	return sdk.NewContext(cacheMS, true, app.logger), nil
 }
 
 // GetBlockRetentionHeight returns the height for which all blocks below this
@@ -674,14 +654,8 @@ func toVoteInfo(votes []abci.ExtendedVoteInfo) []abci.VoteInfo {
 
 // NewContextLegacy returns a new sdk.Context with the provided header.
 func (app *BaseApp) NewContextLegacy(
-	isCheckTx bool,
-	header cmtproto.Header,
+	_ bool,
+	_ cmtproto.Header,
 ) sdk.Context {
-	if isCheckTx {
-		return sdk.NewContext(app.checkState.ms, true, app.logger).
-			WithBlockHeader(header)
-	}
-
-	return sdk.NewContext(app.finalizeBlockState.ms, false, app.logger).
-		WithBlockHeader(header)
+	return sdk.NewContext(app.finalizeBlockState.ms, false, app.logger)
 }

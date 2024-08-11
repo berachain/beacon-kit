@@ -44,10 +44,7 @@ type (
 )
 
 const (
-	execModeCheck               execMode = iota // Check a transaction
-	execModeReCheck                             // Recheck a (pending) transaction after a commit
-	execModeSimulate                            // Simulate a transaction
-	execModePrepareProposal                     // Prepare a block proposal
+	execModePrepareProposal     execMode = iota // Check a transaction
 	execModeProcessProposal                     // Process a block proposal
 	execModeVoteExtension                       // Extend or verify a pre-commit vote
 	execModeVerifyVoteExtension                 // Verify a vote extension
@@ -71,14 +68,6 @@ type BaseApp struct {
 
 	// volatile states:
 	//
-	// - checkState is set on InitChain and reset on Commit
-	// - finalizeBlockState is set on InitChain and FinalizeBlock and set to nil
-	// on Commit.
-	//
-	// - checkState: Used for CheckTx, which is set based on the previous
-	// block's
-	// state. This state is never committed.
-	//
 	// - prepareProposalState: Used for PrepareProposal, which is set based on
 	// the previous block's state. This state is never committed. In case of
 	// multiple consensus rounds, the state is always reset to the previous
@@ -91,7 +80,6 @@ type BaseApp struct {
 	//
 	// - finalizeBlockState: Used for FinalizeBlock, which is set based on the
 	// previous block's state. This state is committed.
-	checkState           *state
 	prepareProposalState *state
 	processProposalState *state
 	finalizeBlockState   *state
@@ -257,10 +245,6 @@ func (app *BaseApp) Init() error {
 		return errors.New("commit multi-store must not be nil")
 	}
 
-	// needed for the export command which inits from store but never calls
-	// initchain
-	app.setState(execModeCheck)
-
 	return app.cms.GetPruning().Validate()
 }
 
@@ -285,12 +269,6 @@ func (app *BaseApp) setState(mode execMode) {
 	}
 
 	switch mode {
-	case execModeCheck:
-		baseState.SetContext(
-			baseState.Context().WithIsCheckTx(true),
-		)
-		app.checkState = baseState
-
 	case execModePrepareProposal:
 		app.prepareProposalState = baseState
 
