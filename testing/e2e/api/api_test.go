@@ -31,5 +31,5 @@ import (
 
 // TestBeaconAPISuite runs the test suite.
 func TestBeaconAPISuite(t *testing.T) {
-	suite.Run(t, NewBeaconAPISuite())
+	suite.Run(t, new(BeaconAPISuite))
 }
