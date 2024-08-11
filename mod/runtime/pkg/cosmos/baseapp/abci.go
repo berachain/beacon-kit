@@ -77,7 +77,6 @@ func (app *BaseApp) InitChain(
 	}
 
 	app.setState(execModeFinalize)
-	app.setState(execModeCheck)
 
 	defer func() {
 		// InitChain represents the state of the application BEFORE the first
@@ -468,12 +467,6 @@ func (app *BaseApp) Commit() (*abci.CommitResponse, error) {
 		RetainHeight: retainHeight,
 	}
 
-	// Reset the CheckTx state to the latest committed.
-	//
-	// NOTE: This is safe because CometBFT holds a lock on the mempool for
-	// Commit. Use the header from this latest block.
-	app.setState(execModeCheck)
-
 	app.finalizeBlockState = nil
 
 	return resp, nil
@@ -674,14 +667,8 @@ func toVoteInfo(votes []abci.ExtendedVoteInfo) []abci.VoteInfo {
 
 // NewContextLegacy returns a new sdk.Context with the provided header.
 func (app *BaseApp) NewContextLegacy(
-	isCheckTx bool,
-	header cmtproto.Header,
+	_ bool,
+	_ cmtproto.Header,
 ) sdk.Context {
-	if isCheckTx {
-		return sdk.NewContext(app.checkState.ms, true, app.logger).
-			WithBlockHeader(header)
-	}
-
-	return sdk.NewContext(app.finalizeBlockState.ms, false, app.logger).
-		WithBlockHeader(header)
+	return sdk.NewContext(app.finalizeBlockState.ms, false, app.logger)
 }

@@ -44,10 +44,7 @@ type (
 )
 
 const (
-	execModeCheck               execMode = iota // Check a transaction
-	execModeReCheck                             // Recheck a (pending) transaction after a commit
-	execModeSimulate                            // Simulate a transaction
-	execModePrepareProposal                     // Prepare a block proposal
+	execModePrepareProposal     execMode = iota // Check a transaction
 	execModeProcessProposal                     // Process a block proposal
 	execModeVoteExtension                       // Extend or verify a pre-commit vote
 	execModeVerifyVoteExtension                 // Verify a vote extension
@@ -257,10 +254,6 @@ func (app *BaseApp) Init() error {
 		return errors.New("commit multi-store must not be nil")
 	}
 
-	// needed for the export command which inits from store but never calls
-	// initchain
-	app.setState(execModeCheck)
-
 	return app.cms.GetPruning().Validate()
 }
 
@@ -285,12 +278,6 @@ func (app *BaseApp) setState(mode execMode) {
 	}
 
 	switch mode {
-	case execModeCheck:
-		baseState.SetContext(
-			baseState.Context().WithIsCheckTx(true),
-		)
-		app.checkState = baseState
-
 	case execModePrepareProposal:
 		app.prepareProposalState = baseState
 
