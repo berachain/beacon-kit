@@ -20,32 +20,26 @@
 
 package config
 
-import (
-	"net/http"
+// Spec is a placeholder so that beacon API clients don't break.
+//
+// TODO: Implement with real data.
+func (h *Handler[ContextT]) Spec(ContextT) (any, error) {
+	type SpecResponse struct {
+		Data map[string]string `json:"data"`
+	}
 
-	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/node-api/handlers"
-)
+	response := SpecResponse{
+		Data: map[string]string{
+			"DEPOSIT_NETWORK_ID":                 "80087",
+			"DOMAIN_AGGREGATE_AND_PROOF":         "0x06000000",
+			"INACTIVITY_PENALTY_QUOTIENT":        "67108864",
+			"INACTIVITY_PENALTY_QUOTIENT_ALTAIR": "50331648",
+			"SLOTS_PER_EPOCH":                    "8192",
+			"SECONDS_PER_SLOT":                   "2",
+		},
+	}
+	response.Data["DEPOSIT_CONTRACT_ADDRESS"] =
+		"0x4242424242424242424242424242424242424242"
 
-func (h *Handler[ContextT]) RegisterRoutes(
-	logger log.Logger[any],
-) {
-	h.SetLogger(logger)
-	h.BaseHandler.AddRoutes([]*handlers.Route[ContextT]{
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v1/config/fork_schedule",
-			Handler: h.NotImplemented,
-		},
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v1/config/spec",
-			Handler: h.Spec,
-		},
-		{
-			Method:  http.MethodGet,
-			Path:    "/eth/v1/config/deposit_contract",
-			Handler: h.NotImplemented,
-		},
-	})
+	return response, nil
 }

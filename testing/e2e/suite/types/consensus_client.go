@@ -23,22 +23,19 @@ package types
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	// "github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
+	// "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+
+	beaconapi "github.com/attestantio/go-eth2-client/api/v1"
+	beaconhttp "github.com/attestantio/go-eth2-client/http"
+
 	rpcclient "github.com/cometbft/cometbft/rpc/client"
 	httpclient "github.com/cometbft/cometbft/rpc/client/http"
-	"github.com/ethpandaops/beacon/pkg/beacon"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
-	"github.com/sirupsen/logrus"
-)
-
-const (
-	// connTimeout is the timeout for the connection to the consensus client.
-	connTimeout = 15 * time.Second
+	"github.com/rs/zerolog"
 )
 
 // ConsensusClient represents a consensus client.
@@ -49,7 +46,10 @@ type ConsensusClient struct {
 	rpcclient.Client
 
 	// Beacon node-api client
-	beacon.Node
+	*beaconhttp.Service
+
+	// Cancel function for the context
+	cancelFunc context.CancelFunc
 }
 
 // NewConsensusClient creates a new consensus client.
@@ -84,17 +84,22 @@ func (cc *ConsensusClient) Connect(ctx context.Context) error {
 	if !ok {
 		panic("Couldn't find the public port for the node API")
 	}
-	opts := beacon.DefaultOptions()
-	opts.DisablePrometheusMetrics()
-	time.Sleep(connTimeout)
-	cc.Node = beacon.NewNode(logrus.New(), &beacon.Config{
-		Addr: fmt.Sprintf("http://0.0.0.0:%d", nodePort.GetNumber()),
-		Name: "beacon node",
-	}, "eth", *opts)
+	cancelCtx, cancel := context.WithCancel(ctx)
+	service, err := beaconhttp.New(
+		cancelCtx,
+		beaconhttp.WithAddress(
+			fmt.Sprintf("http://0.0.0.0:%d", nodePort.GetNumber()),
+		),
+		beaconhttp.WithLogLevel(zerolog.WarnLevel),
+	)
+	if err != nil {
+		cancel()
+		return err
+	}
+	cc.Service = service.(*beaconhttp.Service)
+	cc.cancelFunc = cancel
 
-	timeoutCtx, cancel := context.WithTimeout(ctx, connTimeout)
-	defer cancel()
-	return cc.Node.Start(timeoutCtx)
+	return nil
 }
 
 // Start starts the consensus client.
@@ -114,6 +119,7 @@ func (cc ConsensusClient) Start(
 func (cc ConsensusClient) Stop(
 	ctx context.Context,
 ) (*enclaves.StarlarkRunResult, error) {
+	cc.cancelFunc()
 	return cc.WrappedServiceContext.Stop(ctx)
 }
 
@@ -152,24 +158,18 @@ func (cc ConsensusClient) IsActive(ctx context.Context) (bool, error) {
 	return res.ValidatorInfo.VotingPower > 0, nil
 }
 
-// Returns the latest beacon block's slot and hash tree root.
-func (cc ConsensusClient) GetLatestBeaconBlock(
+// Returns the current beacon validators from beacon node-api.
+func (cc ConsensusClient) GetBeaconValidators(
 	ctx context.Context,
-) (math.Slot, common.Root, error) {
-	block, err := cc.Node.FetchBlock(ctx, utils.StateIDHead)
+) (map[math.ValidatorIndex]*beaconapi.Validator, error) {
+	res, err := cc.Service.Validators(ctx, nil)
 	if err != nil {
-		return 0, common.Root{}, err
+		return nil, err
 	}
 
-	slot, err := block.Slot()
-	if err != nil {
-		return 0, common.Root{}, err
+	validators := make(map[math.ValidatorIndex]*beaconapi.Validator)
+	for idx, validator := range res.Data {
+		validators[math.ValidatorIndex(idx)] = validator
 	}
-
-	htr, err := block.Root()
-	if err != nil {
-		return 0, common.Root{}, err
-	}
-
-	return math.Slot(slot), common.Root(htr), nil
+	return validators, nil
 }

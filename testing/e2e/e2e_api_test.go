@@ -37,9 +37,8 @@ func (s *BeaconKitE2ESuite) TestBeaconAPIStartup() {
 	client := s.ConsensusClients()[config.DefaultClient]
 	s.Require().NotNil(client)
 
-	// Get the latest beacon block.
-	slot, htr, err := client.GetLatestBeaconBlock(s.Ctx())
+	// Get the beacon validators.
+	validators, err := client.GetBeaconValidators(s.Ctx())
 	s.Require().NoError(err)
-	s.Require().GreaterOrEqual(slot, executionBlockNum)
-	s.Require().NotEmpty(htr)
+	s.Require().NotEmpty(validators)
 }
