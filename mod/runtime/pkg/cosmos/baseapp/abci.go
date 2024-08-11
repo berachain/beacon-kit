@@ -26,10 +26,9 @@ import (
 	"fmt"
 	"sort"
 
-	corecomet "cosmossdk.io/core/comet"
-	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/store/rootmulti"
 	storetypes "cosmossdk.io/store/types"
+	errorsmod "github.com/berachain/beacon-kit/mod/errors"
 	abcitypes "github.com/cometbft/cometbft/abci/types"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
@@ -212,13 +211,7 @@ func (app *BaseApp) PrepareProposal(
 			// commit
 			WithBlockHeight(req.Height).
 			WithProposer(req.ProposerAddress).
-			WithExecMode(sdk.ExecModePrepareProposal).
-			WithCometInfo(corecomet.Info{
-				Evidence:        sdk.ToSDKEvidence(req.Misbehavior),
-				ValidatorsHash:  req.NextValidatorsHash,
-				ProposerAddress: req.ProposerAddress,
-				LastCommit:      sdk.ToSDKExtendedCommitInfo(req.LocalLastCommit),
-			}),
+			WithExecMode(sdk.ExecModePrepareProposal),
 	)
 
 	app.prepareProposalState.SetContext(app.prepareProposalState.Context())
@@ -295,13 +288,6 @@ func (app *BaseApp) ProcessProposal(
 			WithBlockHeight(req.Height).
 			WithHeaderHash(req.Hash).
 			WithProposer(req.ProposerAddress).
-			WithCometInfo(corecomet.Info{
-				ProposerAddress: req.ProposerAddress,
-				ValidatorsHash:  req.NextValidatorsHash,
-				Evidence:        sdk.ToSDKEvidence(req.Misbehavior),
-				LastCommit:      sdk.ToSDKCommitInfo(req.ProposedLastCommit),
-			},
-			).
 			WithExecMode(sdk.ExecModeProcessProposal),
 	)
 
@@ -361,13 +347,7 @@ func (app *BaseApp) internalFinalizeBlock(
 		WithBlockHeader(header).
 		WithHeaderHash(req.Hash).
 		WithVoteInfos(req.DecidedLastCommit.Votes).
-		WithExecMode(sdk.ExecModeFinalize).
-		WithCometInfo(corecomet.Info{
-			Evidence:        sdk.ToSDKEvidence(req.Misbehavior),
-			ValidatorsHash:  req.NextValidatorsHash,
-			ProposerAddress: req.ProposerAddress,
-			LastCommit:      sdk.ToSDKCommitInfo(req.DecidedLastCommit),
-		}))
+		WithExecMode(sdk.ExecModeFinalize))
 
 	app.finalizeBlockState.SetContext(
 		app.finalizeBlockState.Context(),
