@@ -27,7 +27,6 @@ import (
 	"sort"
 
 	"cosmossdk.io/store/rootmulti"
-	storetypes "cosmossdk.io/store/types"
 	errorsmod "github.com/berachain/beacon-kit/mod/errors"
 	abcitypes "github.com/cometbft/cometbft/abci/types"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
@@ -531,8 +530,7 @@ func (app *BaseApp) CreateQueryContext(
 	prove bool,
 ) (sdk.Context, error) {
 	// use custom query multi-store if provided
-	qms := app.cms.(storetypes.MultiStore)
-	lastBlockHeight := qms.LatestVersion()
+	lastBlockHeight := app.cms.LatestVersion()
 	if lastBlockHeight == 0 {
 		return sdk.Context{}, errorsmod.Wrapf(
 			sdkerrors.ErrInvalidHeight,
@@ -562,7 +560,7 @@ func (app *BaseApp) CreateQueryContext(
 			)
 	}
 
-	cacheMS, err := qms.CacheMultiStoreWithVersion(height)
+	cacheMS, err := app.cms.CacheMultiStoreWithVersion(height)
 	if err != nil {
 		return sdk.Context{},
 			errorsmod.Wrapf(
