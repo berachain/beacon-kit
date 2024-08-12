@@ -21,6 +21,8 @@
 package e2e_test
 
 import (
+	"fmt"
+
 	beaconapi "github.com/attestantio/go-eth2-client/api"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
@@ -38,13 +40,14 @@ func (s *BeaconKitE2ESuite) TestBeaconAPIStartup() {
 	s.Require().NotNil(client)
 
 	// Ensure the state root is not nil.
-	stateRoot, err := client.BeaconStateRoot(
+	stateRootResp, err := client.BeaconStateRoot(
 		s.Ctx(),
 		&beaconapi.BeaconStateRootOpts{
 			State: utils.StateIDHead,
 		},
 	)
 	s.Require().NoError(err)
-	s.Require().NotEmpty(stateRoot)
-	s.Require().False(stateRoot.Data.IsZero())
+	s.Require().NotEmpty(stateRootResp)
+	fmt.Println("stateRootResp data", *stateRootResp.Data)
+	s.Require().False(stateRootResp.Data.IsZero())
 }
