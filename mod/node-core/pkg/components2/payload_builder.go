@@ -32,13 +32,25 @@ import (
 )
 
 // LocalBuilderInput is an input for the dep inject framework.
-type LocalBuilderInput struct {
+type LocalBuilderInput[
+	BeaconStateT,
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+	],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
+	PayloadAttributesT any,
+	PayloadIDT ~[8]byte,
+	WithdrawalsT Withdrawals,
+] struct {
 	depinject.In
-	AttributesFactory *AttributesFactory
+	AttributesFactory *AttributesFactory[BeaconStateT, PayloadAttributesT]
 	Cfg               *config.Config
 	ChainSpec         common.ChainSpec
-	ExecutionEngine   *ExecutionEngine
-	Logger            log.AdvancedLogger[any, sdklog.Logger]
+	ExecutionEngine   *ExecutionEngine[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, PayloadAttributesT,
+		PayloadIDT, WithdrawalsT,
+	]
+	Logger log.AdvancedLogger[any, sdklog.Logger]
 }
 
 // ProvideLocalBuilder provides a local payload builder for the
