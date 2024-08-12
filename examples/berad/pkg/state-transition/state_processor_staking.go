@@ -22,9 +22,9 @@ package transition
 
 import (
 	"github.com/berachain/beacon-kit/mod/errors"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"github.com/davecgh/go-spew/spew"
 )
@@ -266,6 +266,17 @@ func (sp *StateProcessor[
 	return st.SetNextWithdrawalValidatorIndex(nextValidatorIndex)
 }
 
+// processForcedWithdrawals is a helper function to process forced withdrawals.
+func (sp *StateProcessor[
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _,
+]) processForcedWithdrawals(
+	_ BeaconStateT,
+	_ transition.ValidatorUpdates,
+) error {
+	// TODO: Implement this function.
+	return nil
+}
+
 // TODO: This is exposed for the PayloadBuilder and probably should be done in a
 // better way.
 func (sp *StateProcessor[
@@ -284,7 +295,7 @@ func (sp *StateProcessor[
 ]) expectedWithdrawals(st BeaconStateT) ([]WithdrawalT, error) {
 	var (
 		balance           math.Gwei
-		withdrawalAddress gethprimitives.ExecutionAddress
+		withdrawalAddress common.ExecutionAddress
 		withdrawals       = make([]WithdrawalT, 0)
 	)
 

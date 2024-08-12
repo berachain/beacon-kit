@@ -18,54 +18,18 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package client
+package rpc
 
-import (
-	"context"
-	"net/http"
-	"time"
-)
-
-// jwtRefreshLoop refreshes the JWT token for the execution client.
-func (s *EngineClient[
-	_, _,
-]) jwtRefreshLoop(
-	ctx context.Context,
-) {
-	s.logger.Info("Starting JWT refresh loop 🔄")
-	ticker := time.NewTicker(s.cfg.RPCJWTRefreshInterval)
-	for {
-		select {
-		case <-ctx.Done():
-			ticker.Stop()
-			return
-		case <-ticker.C:
-			if err := s.dialExecutionRPCClient(ctx); err != nil {
-				s.logger.Error(
-					"Failed to refresh engine auth token",
-					"err",
-					err,
-				)
-			}
-		}
-	}
-}
-
-// buildJWTHeader builds an http.Header that has the JWT token
+// updateHeader builds an http.Header that has the JWT token
 // attached for authorization.
-func (s *EngineClient[
-	_, _,
-]) buildJWTHeader() (http.Header, error) {
-	header := make(http.Header)
-
+func (rpc *Client) updateHeader() error {
 	// Build the JWT token.
-	token, err := buildSignedJWT(s.jwtSecret)
+	token, err := rpc.jwtSecret.BuildSignedToken()
 	if err != nil {
-		s.logger.Error("Failed to build JWT token", "err", err)
-		return header, err
+		return err
 	}
 
 	// Add the JWT token to the headers.
-	header.Set("Authorization", "Bearer "+token)
-	return header, nil
+	rpc.header.Set("Authorization", "Bearer "+token)
+	return nil
 }

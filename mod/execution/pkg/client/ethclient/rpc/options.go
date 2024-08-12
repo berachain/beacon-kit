@@ -18,16 +18,24 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package block
+package rpc
 
-const (
-	BlockKeyPrefix byte = iota
-	RootsKeyPrefix
-	ExecutionNumbersKeyPrefix
+import (
+	"time"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 )
 
-const (
-	BlocksMapName           = "blocks"
-	RootsMapName            = "roots"
-	ExecutionNumbersMapName = "execution_numbers"
-)
+// WithJWTSecret sets the JWT secret for the RPC client.
+func WithJWTSecret(secret *jwt.Secret) func(rpc *Client) {
+	return func(rpc *Client) {
+		rpc.jwtSecret = secret
+	}
+}
+
+// WithJWTRefreshInterval sets the JWT refresh interval for the RPC client.
+func WithJWTRefreshInterval(interval time.Duration) func(rpc *Client) {
+	return func(rpc *Client) {
+		rpc.jwtRefreshInterval = interval
+	}
+}

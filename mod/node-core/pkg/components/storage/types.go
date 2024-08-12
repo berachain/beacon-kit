@@ -47,8 +47,10 @@ type AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT any] interface {
 type BlockStore[BeaconBlockT any] interface {
 	// Get retrieves the block at the given slot.
 	Get(slot math.Slot) (BeaconBlockT, error)
-	// GetSlotByRoot retrieves the slot by a given root from the store.
-	GetSlotByRoot(root common.Root) (math.Slot, error)
+	// GetSlotByBlockRoot retrieves the slot by a given root from the store.
+	GetSlotByBlockRoot(root common.Root) (math.Slot, error)
+	// GetSlotByStateRoot retrieves the slot by a given root from the store.
+	GetSlotByStateRoot(root common.Root) (math.Slot, error)
 }
 
 // Deposit is a struct that represents a deposit.

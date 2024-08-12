@@ -66,7 +66,7 @@ func (s *Service[
 
 	s.logger.Info(
 		"Received incoming beacon block",
-		"state_root", blk.GetStateRoot(),
+		"state_root", blk.GetStateRoot(), "slot", blk.GetSlot(),
 	)
 
 	// We purposefully make a copy of the BeaconState in orer

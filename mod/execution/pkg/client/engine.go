@@ -27,7 +27,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
+	ethclient "github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
@@ -53,7 +53,7 @@ func (s *EngineClient[
 	defer cancel()
 
 	// Call the appropriate RPC method based on the payload version.
-	result, err := s.Eth1Client.NewPayload(
+	result, err := s.Client.NewPayload(
 		cctx, payload, versionedHashes, parentBeaconBlockRoot,
 	)
 	if err != nil {
@@ -107,7 +107,7 @@ func (s *EngineClient[
 		)
 	}
 
-	result, err := s.Eth1Client.ForkchoiceUpdated(
+	result, err := s.Client.ForkchoiceUpdated(
 		cctx, state, attrs, forkVersion,
 	)
 
@@ -148,7 +148,7 @@ func (s *EngineClient[
 	defer cancel()
 
 	// Call and check for errors.
-	result, err := s.Eth1Client.GetPayload(cctx, payloadID, forkVersion)
+	result, err := s.Client.GetPayload(cctx, payloadID, forkVersion)
 	switch {
 	case err != nil:
 		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
@@ -172,7 +172,7 @@ func (s *EngineClient[
 ]) ExchangeCapabilities(
 	ctx context.Context,
 ) ([]string, error) {
-	result, err := s.Eth1Client.ExchangeCapabilities(
+	result, err := s.Client.ExchangeCapabilities(
 		ctx, ethclient.BeaconKitSupportedCapabilities(),
 	)
 	if err != nil {

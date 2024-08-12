@@ -23,9 +23,10 @@ package bind
 import "github.com/ethereum/go-ethereum/accounts/abi/bind"
 
 type (
-	ContractBackend = bind.ContractBackend
-	FilterOpts      = bind.FilterOpts
-	TransactOpts    = bind.TransactOpts
+	ContractBackend  = bind.ContractBackend
+	ContractFilterer = bind.ContractFilterer
+	FilterOpts       = bind.FilterOpts
+	TransactOpts     = bind.TransactOpts
 )
 
 //nolint:gochecknoglobals //used an alias.

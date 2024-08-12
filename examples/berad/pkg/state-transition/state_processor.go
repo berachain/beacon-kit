@@ -25,7 +25,6 @@ import (
 
 	chainspec "github.com/berachain/beacon-kit/examples/berad/pkg/chain-spec"
 	"github.com/berachain/beacon-kit/mod/errors"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -75,7 +74,7 @@ type StateProcessor[
 	},
 	WithdrawalCredentialsT interface {
 		~[32]byte
-		ToExecutionAddress() (gethprimitives.ExecutionAddress, error)
+		ToExecutionAddress() (common.ExecutionAddress, error)
 	},
 ] struct {
 	// cs is the chain specification for the beacon chain.
@@ -128,7 +127,7 @@ func NewStateProcessor[
 	},
 	WithdrawalCredentialsT interface {
 		~[32]byte
-		ToExecutionAddress() (gethprimitives.ExecutionAddress, error)
+		ToExecutionAddress() (common.ExecutionAddress, error)
 	},
 ](
 	cs chainspec.BeraChainSpec,
@@ -343,7 +342,14 @@ func (sp *StateProcessor[
 	} else if err = sp.processRandaoMixesReset(st); err != nil {
 		return nil, err
 	}
-	return sp.processSyncCommitteeUpdates(st)
+	valUpdates, err := sp.processSyncCommitteeUpdates(st)
+	if err != nil {
+		return nil, err
+	}
+	if err = sp.processForcedWithdrawals(st, valUpdates); err != nil {
+		return nil, err
+	}
+	return valUpdates, nil
 }
 
 // processBlockHeader processes the header and ensures it matches the local
