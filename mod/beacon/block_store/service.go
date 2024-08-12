@@ -23,7 +23,6 @@ package blockstore
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
@@ -36,7 +35,7 @@ func NewService[
 ](
 	config Config,
 	logger log.Logger[any],
-	dispatcher *dispatcher.Dispatcher,
+	dispatcher asynctypes.EventDispatcher,
 	store BlockStoreT,
 ) *Service[BeaconBlockT, BlockStoreT] {
 	return &Service[BeaconBlockT, BlockStoreT]{
@@ -59,7 +58,7 @@ type Service[
 	// logger is used for logging information and errors.
 	logger log.Logger[any]
 	// dispatcher is the dispatcher for the service.
-	dispatcher *dispatcher.Dispatcher
+	dispatcher asynctypes.EventDispatcher
 	// store is the block store for the service.
 	store BlockStoreT
 	// finalizedBlkEvents is a channel for receiving finalized block events.

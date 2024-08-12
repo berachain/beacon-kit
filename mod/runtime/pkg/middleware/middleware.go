@@ -23,7 +23,7 @@ package middleware
 import (
 	"encoding/json"
 
-	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/p2p"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -64,7 +64,7 @@ type ABCIMiddleware[
 		encoding.ABCIRequest,
 		BeaconBlockT,
 	]
-	dispatcher *dispatcher.Dispatcher
+	dispatcher asynctypes.Dispatcher
 	// metrics is the metrics emitter.
 	metrics *ABCIMiddlewareMetrics
 	// logger is the logger for the middleware.
@@ -88,7 +88,7 @@ func NewABCIMiddleware[
 	chainSpec common.ChainSpec,
 	logger log.Logger[any],
 	telemetrySink TelemetrySink,
-	dispatcher *dispatcher.Dispatcher,
+	dispatcher asynctypes.Dispatcher,
 ) *ABCIMiddleware[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBundleT, BlobSidecarsT, DepositT,
 	ExecutionPayloadT, GenesisT, SlotDataT,

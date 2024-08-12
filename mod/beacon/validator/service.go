@@ -23,7 +23,6 @@ package validator
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -75,7 +74,7 @@ type Service[
 		BeaconStateT, DepositT, DepositStoreT, ExecutionPayloadHeaderT,
 	]
 	// dispatcher is the dispatcher.
-	dispatcher *dispatcher.Dispatcher
+	dispatcher asynctypes.MessageDispatcher
 	// stateProcessor is responsible for processing the state.
 	stateProcessor StateProcessor[
 		BeaconBlockT,
@@ -139,7 +138,7 @@ func NewService[
 	localPayloadBuilder PayloadBuilder[BeaconStateT, ExecutionPayloadT],
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT],
 	ts TelemetrySink,
-	dispatcher *dispatcher.Dispatcher,
+	dispatcher asynctypes.MessageDispatcher,
 ) *Service[
 	AttestationDataT, BeaconBlockT, BeaconBlockBundleT, BeaconBlockBodyT,
 	BeaconStateT, BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT,

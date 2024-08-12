@@ -24,7 +24,6 @@ import (
 	"context"
 	"sync"
 
-	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -64,7 +63,7 @@ type Service[
 	// chainSpec holds the chain specifications.
 	chainSpec common.ChainSpec
 	// dispatcher is the dispatcher for the service.
-	dispatcher *dispatcher.Dispatcher
+	dispatcher asynctypes.Dispatcher
 	// executionEngine is the execution engine responsible for processing
 	// execution payloads.
 	executionEngine ExecutionEngine[PayloadAttributesT]
@@ -123,7 +122,7 @@ func NewService[
 	],
 	logger log.Logger[any],
 	chainSpec common.ChainSpec,
-	dispatcher *dispatcher.Dispatcher,
+	dispatcher asynctypes.Dispatcher,
 	executionEngine ExecutionEngine[PayloadAttributesT],
 	localBuilder LocalBuilder[BeaconStateT],
 	stateProcessor StateProcessor[

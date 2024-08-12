@@ -23,7 +23,6 @@ package deposit
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -49,7 +48,7 @@ type Service[
 	// ds is the deposit store that stores deposits.
 	ds Store[DepositT]
 	// dispatcher is the dispatcher for the service.
-	dispatcher *dispatcher.Dispatcher
+	dispatcher asynctypes.EventDispatcher
 	// finalizedBlockEventID is the event ID for the finalized block event.
 	finalizedBlockEventID asynctypes.EventID
 	// finalizedBlockEvents is the channel that provides finalized block events.
@@ -80,7 +79,7 @@ func NewService[
 	ds Store[DepositT],
 	dc Contract[DepositT],
 	finalizedBlockEventID asynctypes.EventID,
-	dispatcher *dispatcher.Dispatcher,
+	dispatcher asynctypes.EventDispatcher,
 ) *Service[
 	BeaconBlockT, BeaconBlockBodyT, BlockEventT, DepositT,
 	ExecutionPayloadT, WithdrawalCredentialsT,

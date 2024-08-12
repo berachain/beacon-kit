@@ -23,7 +23,6 @@ package da
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
@@ -41,7 +40,7 @@ type Service[
 		AvailabilityStoreT, BeaconBlockBodyT,
 		BlobSidecarsT, ExecutionPayloadT,
 	]
-	dispatcher             *dispatcher.Dispatcher
+	dispatcher             asynctypes.MessageDispatcher
 	logger                 log.Logger[any]
 	processSidecarRequests chan asynctypes.Message[BlobSidecarsT]
 	verifySidecarRequests  chan asynctypes.Message[BlobSidecarsT]
@@ -62,7 +61,7 @@ func NewService[
 		AvailabilityStoreT, BeaconBlockBodyT,
 		BlobSidecarsT, ExecutionPayloadT,
 	],
-	dispatcher *dispatcher.Dispatcher,
+	dispatcher asynctypes.MessageDispatcher,
 	logger log.Logger[any],
 ) *Service[
 	AvailabilityStoreT, BeaconBlockBodyT,
