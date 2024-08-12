@@ -32,7 +32,7 @@ import (
 // convertPrepareProposalToSlotData converts a prepare proposal request to
 // a slot data.
 func (c *ConsensusEngine[
-	_, _, _, SlotDataT, _, _,
+	_, _, _, _, SlotDataT, _, _,
 ]) convertPrepareProposalToSlotData(
 	ctx sdk.Context,
 	req *cmtabci.PrepareProposalRequest,
@@ -70,7 +70,7 @@ func (c *ConsensusEngine[
 
 // attestationsFromVotes returns a list of attestation data from the votes.
 func (c *ConsensusEngine[
-	AttestationDataT, _, _, _, _, _,
+	AttestationDataT, _, _, _, _, _, _,
 ]) attestationsFromVotes(
 	ctx sdk.Context,
 	votes []v1.ExtendedVoteInfo,
@@ -106,7 +106,7 @@ func (c *ConsensusEngine[
 // slashingInfoFromMisbehaviors returns a list of slashing info from the
 // comet misbehaviors.
 func (c *ConsensusEngine[
-	_, _, SlashingInfoT, _, _, _,
+	_, _, _, SlashingInfoT, _, _, _,
 ]) slashingInfoFromMisbehaviors(
 	ctx sdk.Context,
 	misbehaviors []v1.Misbehavior,

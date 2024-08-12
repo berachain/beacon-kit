@@ -19,7 +19,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	v1 "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"google.golang.org/protobuf/proto"
+	"github.com/cosmos/gogoproto/proto"
 )
 
 type (
@@ -504,9 +504,9 @@ type (
 
 	// Middleware is the interface for the CometBFT middleware.
 	Middleware[
-		AttestationDataT,
+		AttestationDataT any,
 		SlashingInfoT any,
-		SlotDataT SlotData[AttestationDataT, SlashingInfoT, SlotDataT],
+		SlotDataT any,
 	] interface {
 		InitGenesis(
 			ctx context.Context, bz []byte,

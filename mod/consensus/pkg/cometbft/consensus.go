@@ -32,12 +32,13 @@ import (
 type ConsensusEngine[
 	AttestationDataT AttestationData[AttestationDataT],
 	BeaconStateT BeaconState,
+	MiddlewareT Middleware[AttestationDataT, SlashingInfoT, SlotDataT],
 	SlashingInfoT SlashingInfo[SlashingInfoT],
 	SlotDataT SlotData[AttestationDataT, SlashingInfoT, SlotDataT],
 	StorageBackendT StorageBackend[BeaconStateT],
 	ValidatorUpdateT any,
 ] struct {
-	Middleware[AttestationDataT, SlashingInfoT, SlotDataT]
+	m  MiddlewareT
 	sb StorageBackendT
 }
 
@@ -45,36 +46,34 @@ type ConsensusEngine[
 func NewConsensusEngine[
 	AttestationDataT AttestationData[AttestationDataT],
 	BeaconStateT BeaconState,
+	MiddlewareT Middleware[AttestationDataT, SlashingInfoT, SlotDataT],
 	SlashingInfoT SlashingInfo[SlashingInfoT],
 	SlotDataT SlotData[AttestationDataT, SlashingInfoT, SlotDataT],
 	StorageBackendT StorageBackend[BeaconStateT],
 	ValidatorUpdateT any,
 ](
-	m Middleware[AttestationDataT, SlashingInfoT, SlotDataT],
+	m MiddlewareT,
 	sb StorageBackendT,
 ) *ConsensusEngine[
-	AttestationDataT,
-	BeaconStateT,
-	SlashingInfoT,
-	SlotDataT,
-	StorageBackendT,
-	ValidatorUpdateT,
+	AttestationDataT, BeaconStateT, MiddlewareT,
+	SlashingInfoT, SlotDataT, StorageBackendT, ValidatorUpdateT,
 ] {
 	return &ConsensusEngine[
 		AttestationDataT,
 		BeaconStateT,
+		MiddlewareT,
 		SlashingInfoT,
 		SlotDataT,
 		StorageBackendT,
 		ValidatorUpdateT,
 	]{
-		Middleware: m,
-		sb:         sb,
+		m:  m,
+		sb: sb,
 	}
 }
 
 // TODO: Decouple Comet Types
-func (c *ConsensusEngine[_, _, _, _, _, _]) PrepareProposal(
+func (c *ConsensusEngine[_, _, _, _, _, _, _]) PrepareProposal(
 	ctx sdk.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
@@ -85,7 +84,7 @@ func (c *ConsensusEngine[_, _, _, _, _, _]) PrepareProposal(
 	if err != nil {
 		return nil, err
 	}
-	blkBz, sidecarsBz, err := c.Middleware.PrepareProposal(
+	blkBz, sidecarsBz, err := c.m.PrepareProposal(
 		ctx,
 		slotData,
 	)
@@ -98,11 +97,11 @@ func (c *ConsensusEngine[_, _, _, _, _, _]) PrepareProposal(
 }
 
 // TODO: Decouple Comet Types
-func (c *ConsensusEngine[_, _, _, _, _, ValidatorUpdateT]) ProcessProposal(
+func (c *ConsensusEngine[_, _, _, _, _, _, ValidatorUpdateT]) ProcessProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
-	resp, err := c.Middleware.ProcessProposal(ctx, req)
+	resp, err := c.m.ProcessProposal(ctx, req)
 	if err != nil {
 		return nil, err
 	}
