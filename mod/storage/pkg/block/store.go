@@ -110,7 +110,8 @@ func (kv *KVStore[BeaconBlockT]) Prune(start, end uint64) error {
 			if !errors.Is(err, sdkcollections.ErrNotFound) {
 				// 2. The slot was found but (en/de)coding failed. In this
 				//    case, we choose not to retry removal and instead
-				//    continue.
+				//    continue. This means this slot may never be pruned, but
+				//    ensures that we always get to pruning subsequent slots.
 				kv.logger.Error(
 					"‼️ failed to prune block",
 					"slot", kv.nextToPrune, "err", err,
