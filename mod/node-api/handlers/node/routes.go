@@ -60,7 +60,7 @@ func (h *Handler[ContextT]) RegisterRoutes(
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/node/syncing",
-			Handler: h.NotImplemented,
+			Handler: h.Syncing,
 		},
 		{
 			Method:  http.MethodGet,
