@@ -53,6 +53,11 @@ type BeaconBlockBody interface {
 	Length() uint64
 }
 
+type BlobSidecars[BlobSidecarT any] interface {
+	Len() int64
+	Get(index int) *types.BlobSidecar
+}
+
 // ChainSpec represents a chain spec.
 type ChainSpec interface {
 	MaxBlobCommitmentsPerBlock() uint64

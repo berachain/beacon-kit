@@ -36,6 +36,7 @@ type Processor[
 		BeaconBlockBodyT, *types.BlobSidecars,
 	],
 	BeaconBlockBodyT any,
+	BlobSidecarsT BlobSidecars,
 ] struct {
 	// logger is used to log information and errors.
 	logger log.Logger[any]
@@ -56,14 +57,15 @@ func NewProcessor[
 		BeaconBlockBodyT, *types.BlobSidecars,
 	],
 	BeaconBlockBodyT any,
+	BlobSidecarsT BlobSidecars,
 ](
 	logger log.Logger[any],
 	chainSpec common.ChainSpec,
 	verifier *Verifier,
 	blockBodyOffsetFn func(math.Slot, common.ChainSpec) uint64,
 	telemetrySink TelemetrySink,
-) *Processor[AvailabilityStoreT, BeaconBlockBodyT] {
-	return &Processor[AvailabilityStoreT, BeaconBlockBodyT]{
+) *Processor[AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT] {
+	return &Processor[AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT]{
 		logger:            logger,
 		chainSpec:         chainSpec,
 		verifier:          verifier,
@@ -73,7 +75,7 @@ func NewProcessor[
 }
 
 // VerifySidecars verifies the blobs and ensures they match the local state.
-func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) VerifySidecars(
+func (sp *Processor[_, _, _]) VerifySidecars(
 	sidecars *types.BlobSidecars,
 ) error {
 	startTime := time.Now()
@@ -97,9 +99,9 @@ func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) VerifySidecars(
 }
 
 // slot :=  processes the blobs and ensures they match the local state.
-func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) ProcessSidecars(
+func (sp *Processor[AvailabilityStoreT, _, BlobSidecarsT]) ProcessSidecars(
 	avs AvailabilityStoreT,
-	sidecars *types.BlobSidecars,
+	sidecars BlobSidecarsT,
 ) error {
 	startTime := time.Now()
 	defer sp.metrics.measureProcessSidecarsDuration(
@@ -114,7 +116,7 @@ func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) ProcessSidecars(
 	// If we have reached this point, we can safely assume that the blobs are
 	// valid and can be persisted, as well as that index 0 is filled.
 	return avs.Persist(
-		sidecars.Sidecars[0].BeaconBlockHeader.Slot,
+		sidecars.Get(0).BeaconBlockHeader.Slot,
 		sidecars,
 	)
 }
