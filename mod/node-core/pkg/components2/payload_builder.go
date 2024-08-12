@@ -41,7 +41,7 @@ type LocalBuilderInput[
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	LoggerT log.AdvancedLogger[any, LoggerT],
 	PayloadAttributesT any,
 	PayloadIDT ~[8]byte,
@@ -72,7 +72,7 @@ func ProvideLocalBuilder[
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	ForkT any,
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[any, LoggerT],

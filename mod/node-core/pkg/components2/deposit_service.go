@@ -71,7 +71,7 @@ func ProvideDepositService[
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	ForkDataT any,
 	LoggerT log.AdvancedLogger[any, LoggerT],
 	SlashingInfoT any,

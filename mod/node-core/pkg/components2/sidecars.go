@@ -40,12 +40,11 @@ func ProvideSidecarFactory[
 		BeaconBlockT,
 		AttestationDataT,
 		BeaconBlockBodyT,
+		BeaconBlockHeaderT,
 		DepositT,
 		Eth1DataT,
 		ExecutionPayloadT,
-		ExecutionPayloadHeaderT,
 		SlashingInfoT,
-		WithdrawalsT,
 	],
 	BeaconBlockBodyT BeaconBlockBody[
 		BeaconBlockBodyT,
@@ -53,9 +52,7 @@ func ProvideSidecarFactory[
 		DepositT,
 		Eth1DataT,
 		ExecutionPayloadT,
-		ExecutionPayloadHeaderT,
 		SlashingInfoT,
-		WithdrawalsT,
 	],
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	DepositT any,
@@ -63,17 +60,14 @@ func ProvideSidecarFactory[
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	SlashingInfoT any,
 	WithdrawalsT any,
 ](in SidecarFactoryInput) *dablob.SidecarFactory[
-	BeaconBlockT,
-	BeaconBlockBodyT,
-	BeaconBlockHeaderT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 ] {
 	return dablob.NewSidecarFactory[
-		*BeaconBlock,
-		*BeaconBlockBody,
+		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	](
 		in.ChainSpec,
 		types.KZGPositionDeneb,

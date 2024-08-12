@@ -107,6 +107,8 @@ type (
 		constraints.Nillable
 		constraints.EmptyWithVersion[T]
 		constraints.SSZMarshallableRootable
+		Length() uint64
+		GetTopLevelRoots() []common.Root
 		// GetRandaoReveal returns the RANDAO reveal signature.
 		GetRandaoReveal() crypto.BLSSignature
 		// GetExecutionPayload returns the execution payload.
@@ -136,6 +138,7 @@ type (
 
 	// BeaconBlockHeader is the interface for a beacon block header.
 	BeaconBlockHeader[T any] interface {
+		constraints.Empty[T]
 		constraints.SSZMarshallableRootable
 		New(
 			slot math.Slot,
@@ -352,6 +355,7 @@ type (
 	}
 
 	Eth1Data[T any] interface {
+		constraints.Empty[T]
 		constraints.SSZMarshallableRootable
 		// New creates a new eth1 data with the given parameters.
 		New(
@@ -374,7 +378,7 @@ type (
 		ExecutionPayloadT ExecutionPayload[
 			ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 		],
-		ExecutionPayloadHeaderT ExecutionPayloadHeader,
+		ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 		PayloadAttributesT any,
 		PayloadIDT ~[8]byte,
 		WithdrawalsT Withdrawals,
@@ -426,7 +430,10 @@ type (
 	}
 
 	// ExecutionPayloadHeader is the interface for the execution payload header.
-	ExecutionPayloadHeader interface {
+	ExecutionPayloadHeader[T any] interface {
+		constraints.SSZMarshallable
+		constraints.Versionable
+		NewFromSSZ([]byte, uint32) (T, error)
 		// GetNumber returns the block number of the ExecutionPayloadHeader.
 		GetNumber() math.U64
 		// GetFeeRecipient returns the fee recipient address of the
@@ -438,6 +445,11 @@ type (
 		GetBlockHash() common.ExecutionHash
 		// GetParentHash returns the parent hash.
 		GetParentHash() common.ExecutionHash
+	}
+
+	Fork[T any] interface {
+		constraints.Empty[T]
+		constraints.SSZMarshallable
 	}
 
 	// ForkData is the interface for the fork data.
@@ -609,6 +621,7 @@ type (
 		ValidatorT any,
 		WithdrawalCredentialsT ~[32]byte,
 	] interface {
+		constraints.Empty[ValidatorT]
 		constraints.SSZMarshallableRootable
 		SizeSSZ() uint32
 		// New creates a new validator with the given parameters.
@@ -621,6 +634,8 @@ type (
 		) ValidatorT
 		// IsSlashed returns true if the validator is slashed.
 		IsSlashed() bool
+		// IsActive checks if the validator is active at the given epoch.
+		IsActive(epoch math.Epoch) bool
 		// GetPubkey returns the public key of the validator.
 		GetPubkey() crypto.BLSPubkey
 		// GetEffectiveBalance returns the effective balance of the validator in
