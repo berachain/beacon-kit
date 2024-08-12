@@ -25,7 +25,6 @@ import (
 	"errors"
 	"fmt"
 
-	"cosmossdk.io/core/header"
 	"cosmossdk.io/log"
 	"cosmossdk.io/store"
 	storemetrics "cosmossdk.io/store/metrics"
@@ -45,10 +44,7 @@ type (
 )
 
 const (
-	execModeCheck               execMode = iota // Check a transaction
-	execModeReCheck                             // Recheck a (pending) transaction after a commit
-	execModeSimulate                            // Simulate a transaction
-	execModePrepareProposal                     // Prepare a block proposal
+	execModePrepareProposal     execMode = iota // Check a transaction
 	execModeProcessProposal                     // Process a block proposal
 	execModeVoteExtension                       // Extend or verify a pre-commit vote
 	execModeVerifyVoteExtension                 // Verify a vote extension
@@ -72,14 +68,6 @@ type BaseApp struct {
 
 	// volatile states:
 	//
-	// - checkState is set on InitChain and reset on Commit
-	// - finalizeBlockState is set on InitChain and FinalizeBlock and set to nil
-	// on Commit.
-	//
-	// - checkState: Used for CheckTx, which is set based on the previous
-	// block's
-	// state. This state is never committed.
-	//
 	// - prepareProposalState: Used for PrepareProposal, which is set based on
 	// the previous block's state. This state is never committed. In case of
 	// multiple consensus rounds, the state is always reset to the previous
@@ -92,7 +80,6 @@ type BaseApp struct {
 	//
 	// - finalizeBlockState: Used for FinalizeBlock, which is set based on the
 	// previous block's state. This state is committed.
-	checkState           *state
 	prepareProposalState *state
 	processProposalState *state
 	finalizeBlockState   *state
@@ -167,10 +154,6 @@ func (app *BaseApp) Name() string {
 
 // AppVersion returns the application's protocol version.
 func (app *BaseApp) AppVersion(ctx context.Context) (uint64, error) {
-	if app.paramStore == nil {
-		return 0, errors.New("app.paramStore is nil")
-	}
-
 	cp, err := app.paramStore.Get(ctx)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get consensus params: %w", err)
@@ -253,11 +236,6 @@ func (app *BaseApp) LastBlockHeight() int64 {
 	return app.cms.LastCommitID().Version
 }
 
-// ChainID returns the chainID of the app.
-func (app *BaseApp) ChainID() string {
-	return app.chainID
-}
-
 // Init initializes the app. It seals the app, preventing any
 // further modifications. In addition, it validates the app against
 // the earlier provided settings. Returns an error if validation fails.
@@ -266,10 +244,6 @@ func (app *BaseApp) Init() error {
 	if app.cms == nil {
 		return errors.New("commit multi-store must not be nil")
 	}
-
-	// needed for the export command which inits from store but never calls
-	// initchain
-	app.setState(execModeCheck, cmtproto.Header{ChainID: app.chainID})
 
 	return app.cms.GetPruning().Validate()
 }
@@ -287,28 +261,14 @@ func (app *BaseApp) setInterBlockCache(
 // setState sets the BaseApp's state for the corresponding mode with a branched
 // multi-store (i.e. a CacheMultiStore) and a new Context with the same
 // multi-store branch, and provided header.
-func (app *BaseApp) setState(mode execMode, h cmtproto.Header) {
+func (app *BaseApp) setState(mode execMode) {
 	ms := app.cms.CacheMultiStore()
-	headerInfo := header.Info{
-		Height:  h.Height,
-		Time:    h.Time,
-		ChainID: h.ChainID,
-		AppHash: h.AppHash,
-	}
 	baseState := &state{
-		ms: ms,
-		ctx: sdk.NewContext(ms, false, app.logger).
-			WithBlockHeader(h).
-			WithHeaderInfo(headerInfo),
+		ms:  ms,
+		ctx: sdk.NewContext(ms, false, app.logger),
 	}
 
 	switch mode {
-	case execModeCheck:
-		baseState.SetContext(
-			baseState.Context().WithIsCheckTx(true),
-		)
-		app.checkState = baseState
-
 	case execModePrepareProposal:
 		app.prepareProposalState = baseState
 
@@ -332,21 +292,6 @@ func (app *BaseApp) GetConsensusParams(
 	//#nosec:G703 // bet.
 	cp, _ := app.paramStore.Get(ctx)
 	return cp
-}
-
-// StoreConsensusParams sets the consensus parameters to the BaseApp's param
-// store.
-func (app *BaseApp) StoreConsensusParams(
-	ctx context.Context,
-	cp cmtproto.ConsensusParams,
-) error {
-	if app.paramStore == nil {
-		return errors.New(
-			"cannot store consensus params with no params store set",
-		)
-	}
-
-	return app.paramStore.Set(ctx, cp)
 }
 
 func (app *BaseApp) validateFinalizeBlockHeight(

@@ -49,7 +49,9 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
         return true;
     }
 
-    function setZeroValidatorPubkeyGIndex(uint256 _zeroValidatorPubkeyGIndex)
+    function setZeroValidatorPubkeyGIndex(
+        uint256 _zeroValidatorPubkeyGIndex
+    )
         external
         onlyOwner
     {
@@ -57,7 +59,9 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
         emit ZeroValidatorPubkeyGIndexChanged(_zeroValidatorPubkeyGIndex);
     }
 
-    function setExecutionNumberGIndex(uint256 _executionNumberGIndex)
+    function setExecutionNumberGIndex(
+        uint256 _executionNumberGIndex
+    )
         external
         onlyOwner
     {
@@ -80,7 +84,9 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @inheritdoc IBeaconVerifier
-    function getParentBeaconBlockRootAt(uint64 timestamp)
+    function getParentBeaconBlockRootAt(
+        uint64 timestamp
+    )
         external
         view
         returns (bytes32)
