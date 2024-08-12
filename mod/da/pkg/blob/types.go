@@ -53,6 +53,28 @@ type BeaconBlockBody interface {
 	Length() uint64
 }
 
+type BeaconBlockHeader interface {
+	GetSlot() math.Slot
+}
+
+type Sidecar[BeaconBlockHeaderT BeaconBlockHeader] interface {
+	GetBeaconBlockHeader() BeaconBlockHeaderT
+	GetBlob() eip4844.Blob
+	GetKzgProof() eip4844.KZGProof
+	GetKzgCommitment() eip4844.KZGCommitment
+}
+
+type Sidecars[
+	SidecarT Sidecar[BeaconBlockHeaderT],
+	BeaconBlockHeaderT BeaconBlockHeader,
+] interface {
+	Len() int
+	Get(index int) SidecarT
+	GetSidecars() []SidecarT
+	ValidateBlockRoots() error
+	VerifyInclusionProofs(kzgOffset uint64) error
+}
+
 // ChainSpec represents a chain spec.
 type ChainSpec interface {
 	MaxBlobCommitmentsPerBlock() uint64
