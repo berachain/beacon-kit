@@ -23,7 +23,6 @@ package blob
 import (
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -33,17 +32,21 @@ import (
 // of blob sidecars.
 type Processor[
 	AvailabilityStoreT AvailabilityStore[
-		BeaconBlockBodyT, *types.BlobSidecars,
+		BeaconBlockBodyT, BlobSidecarsT,
 	],
 	BeaconBlockBodyT any,
-	BlobSidecarsT BlobSidecars,
+	BeaconBlockHeaderT BeaconBlockHeader,
+	BlobSidecarT Sidecar[BeaconBlockHeaderT],
+	BlobSidecarsT Sidecars[BlobSidecarT, BeaconBlockHeaderT],
 ] struct {
 	// logger is used to log information and errors.
 	logger log.Logger[any]
 	// chainSpec defines the specifications of the blockchain.
 	chainSpec common.ChainSpec
 	// verifier is responsible for verifying the blobs.
-	verifier *Verifier
+	verifier *Verifier[
+		BeaconBlockHeaderT, BlobSidecarT, BlobSidecarsT,
+	]
 	// blockBodyOffsetFn is a function that calculates the block body offset
 	// based on the slot and chain specifications.
 	blockBodyOffsetFn func(math.Slot, common.ChainSpec) uint64
@@ -54,18 +57,28 @@ type Processor[
 // NewProcessor creates a new blob processor.
 func NewProcessor[
 	AvailabilityStoreT AvailabilityStore[
-		BeaconBlockBodyT, *types.BlobSidecars,
+		BeaconBlockBodyT, BlobSidecarsT,
 	],
 	BeaconBlockBodyT any,
-	BlobSidecarsT BlobSidecars,
+	BeaconBlockHeaderT BeaconBlockHeader,
+	BlobSidecarT Sidecar[BeaconBlockHeaderT],
+	BlobSidecarsT Sidecars[BlobSidecarT, BeaconBlockHeaderT],
 ](
 	logger log.Logger[any],
 	chainSpec common.ChainSpec,
-	verifier *Verifier,
+	verifier *Verifier[
+		BeaconBlockHeaderT, BlobSidecarT, BlobSidecarsT,
+	],
 	blockBodyOffsetFn func(math.Slot, common.ChainSpec) uint64,
 	telemetrySink TelemetrySink,
-) *Processor[AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT] {
-	return &Processor[AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT]{
+) *Processor[
+	AvailabilityStoreT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BlobSidecarT, BlobSidecarsT,
+] {
+	return &Processor[
+		AvailabilityStoreT, BeaconBlockBodyT, BeaconBlockHeaderT,
+		BlobSidecarT, BlobSidecarsT,
+	]{
 		logger:            logger,
 		chainSpec:         chainSpec,
 		verifier:          verifier,
@@ -75,8 +88,8 @@ func NewProcessor[
 }
 
 // VerifySidecars verifies the blobs and ensures they match the local state.
-func (sp *Processor[_, _, _]) VerifySidecars(
-	sidecars *types.BlobSidecars,
+func (sp *Processor[AvailabilityStoreT, _, _, _, BlobSidecarsT]) VerifySidecars(
+	sidecars BlobSidecarsT,
 ) error {
 	startTime := time.Now()
 	defer sp.metrics.measureVerifySidecarsDuration(
@@ -92,14 +105,16 @@ func (sp *Processor[_, _, _]) VerifySidecars(
 	return sp.verifier.VerifySidecars(
 		sidecars,
 		sp.blockBodyOffsetFn(
-			sidecars.Sidecars[0].BeaconBlockHeader.Slot,
+			sidecars.Get(0).GetBeaconBlockHeader().GetSlot(),
 			sp.chainSpec,
 		),
 	)
 }
 
 // slot :=  processes the blobs and ensures they match the local state.
-func (sp *Processor[AvailabilityStoreT, _, BlobSidecarsT]) ProcessSidecars(
+func (sp *Processor[
+	AvailabilityStoreT, _, _, _, BlobSidecarsT,
+]) ProcessSidecars(
 	avs AvailabilityStoreT,
 	sidecars BlobSidecarsT,
 ) error {
@@ -116,7 +131,7 @@ func (sp *Processor[AvailabilityStoreT, _, BlobSidecarsT]) ProcessSidecars(
 	// If we have reached this point, we can safely assume that the blobs are
 	// valid and can be persisted, as well as that index 0 is filled.
 	return avs.Persist(
-		sidecars.Get(0).BeaconBlockHeader.Slot,
+		sidecars.Get(0).GetBeaconBlockHeader().GetSlot(),
 		sidecars,
 	)
 }
