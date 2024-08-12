@@ -66,6 +66,7 @@ func (s *EngineClient[
 	}
 
 	// Add the JWT token to the headers.
+	header.Set("Content-Type", "application/json")
 	header.Set("Authorization", "Bearer "+token)
 	return header, nil
 }

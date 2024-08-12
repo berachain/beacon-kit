@@ -148,7 +148,7 @@ func (s *EngineClient[
 	defer cancel()
 
 	// Call and check for errors.
-	result, err := s.Eth1Client.GetPayload(cctx, payloadID, forkVersion)
+	result, err := s.EthRPC.GetPayload(cctx, payloadID, forkVersion)
 	switch {
 	case err != nil:
 		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {

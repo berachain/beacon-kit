@@ -30,6 +30,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/cache"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
+	ethclient2 "github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient2"
+	ethclient2rpc "github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient2/rpc"
 	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/rpc"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
@@ -44,6 +46,7 @@ type EngineClient[
 	// Eth1Client is a struct that holds the Ethereum 1 client and
 	// its configuration.
 	*ethclient.Eth1Client[ExecutionPayloadT]
+	*ethclient2.EthRPC[ExecutionPayloadT]
 	// cfg is the supplied configuration for the engine client.
 	cfg *Config
 	// logger is the logger for the engine client.
@@ -77,10 +80,17 @@ func New[
 	ExecutionPayloadT, PayloadAttributesT,
 ] {
 	return &EngineClient[ExecutionPayloadT, PayloadAttributesT]{
-		cfg:          cfg,
-		logger:       logger,
-		jwtSecret:    jwtSecret,
-		Eth1Client:   new(ethclient.Eth1Client[ExecutionPayloadT]),
+		cfg:        cfg,
+		logger:     logger,
+		jwtSecret:  jwtSecret,
+		Eth1Client: new(ethclient.Eth1Client[ExecutionPayloadT]),
+		EthRPC: ethclient2.New[ExecutionPayloadT](
+			cfg.RPCDialURL.String(),
+			[]func(rpc *ethclient2rpc.Client){
+				func(rpc *ethclient2rpc.Client) {
+					rpc.JwtSecret = jwtSecret
+				},
+			}...),
 		capabilities: make(map[string]struct{}),
 		engineCache:  cache.NewEngineCacheWithDefaultConfig(),
 		eth1ChainID:  eth1ChainID,
@@ -101,6 +111,8 @@ func (s *EngineClient[
 ]) Start(
 	ctx context.Context,
 ) error {
+	go s.EthRPC.Start(ctx)
+
 	if s.cfg.RPCDialURL.IsHTTP() || s.cfg.RPCDialURL.IsHTTPS() {
 		// If we are dialing with HTTP(S), start the JWT refresh loop.
 		defer func() {
@@ -121,7 +133,7 @@ func (s *EngineClient[
 	)
 
 	// If the connection connection succeeds, we can skip the
-	// connection initialization loop.
+	// connection initializaation loop.
 	if err := s.initializeConnection(ctx); err == nil {
 		return nil
 	}
@@ -167,7 +179,7 @@ func (s *EngineClient[
 
 	defer func() {
 		if err != nil {
-			s.Client.Close()
+			s.EthRPC.Close()
 		}
 	}()
 
@@ -177,7 +189,7 @@ func (s *EngineClient[
 	}
 
 	// After the initial dial, check to make sure the chain ID is correct.
-	chainID, err = s.Client.ChainID(ctx)
+	chainID, err = s.Eth1Client.ChainID(ctx)
 	if err != nil {
 		if strings.Contains(err.Error(), "401 Unauthorized") {
 			// We always log this error as it is a critical error.

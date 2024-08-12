@@ -49,7 +49,7 @@ func (s *EngineClient[
 		return header, nil
 	}
 
-	header, err := s.Client.HeaderByNumber(ctx, number)
+	header, err := s.Eth1Client.HeaderByNumber(ctx, number)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +72,7 @@ func (s *EngineClient[
 	if ok {
 		return header, nil
 	}
-	header, err := s.Client.HeaderByHash(
+	header, err := s.Eth1Client.HeaderByHash(
 		ctx,
 		gethprimitives.ExecutionHash(hash),
 	)

@@ -1,4 +1,4 @@
-package ethclient
+package ethclient2
 
 import (
 	"encoding/json"
@@ -20,11 +20,4 @@ type ethResponse struct {
 	JSONRPC string          `json:"jsonrpc"`
 	Result  json.RawMessage `json:"result"`
 	Error   *EthError       `json:"error"`
-}
-
-type ethRequest struct {
-	ID      int           `json:"id"`
-	JSONRPC string        `json:"jsonrpc"`
-	Method  string        `json:"method"`
-	Params  []interface{} `json:"params"`
 }
