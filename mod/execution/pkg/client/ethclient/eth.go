@@ -56,8 +56,7 @@ func (ec *Client[ExecutionPayloadT]) FilterLogs(
 	if err != nil {
 		return nil, err
 	}
-	err = ec.Call(ctx, &result, "eth_getLogs", arg)
-	return result, err
+	return result, ec.Call(ctx, &result, "eth_getLogs", arg)
 }
 
 // SubscribeFilterLogs(ctx context.Context, q FilterQuery, ch chan<- types.Log)
