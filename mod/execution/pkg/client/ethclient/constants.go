@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package ethclient2
+package ethclient
 
 // BeaconKitSupportedCapabilities returns the full list of capabilities
 // of the beacon kit client.

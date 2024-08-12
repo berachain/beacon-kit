@@ -27,7 +27,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/errors"
-	ethclient2 "github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient2"
+	ethclient "github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
@@ -173,7 +173,7 @@ func (s *EngineClient[
 	ctx context.Context,
 ) ([]string, error) {
 	result, err := s.EthRPC.ExchangeCapabilities(
-		ctx, ethclient2.BeaconKitSupportedCapabilities(),
+		ctx, ethclient.BeaconKitSupportedCapabilities(),
 	)
 	if err != nil {
 		return nil, err
@@ -186,7 +186,7 @@ func (s *EngineClient[
 	}
 
 	// Log the capabilities that the execution client does not have.
-	for _, capability := range ethclient2.BeaconKitSupportedCapabilities() {
+	for _, capability := range ethclient.BeaconKitSupportedCapabilities() {
 		if _, exists := s.capabilities[capability]; !exists {
 			s.logger.Warn(
 				"Your execution client may require an update 🚸",

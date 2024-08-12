@@ -18,19 +18,33 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package ethclient2
+package ethclient
 
-import "github.com/berachain/beacon-kit/mod/errors"
-
-var (
-	// ErrNilResponse is an error that is returned when the response is nil.
-	ErrNilResponse = errors.New("nil response")
-
-	// ErrNotImplemented is an error that is returned when a method is not
-	// implemented.
-	ErrNotImplemented = errors.New("not implemented")
-
-	// ErrInvalidVersion is an error that is returned when the version is
-	// invalid.
-	ErrInvalidVersion = errors.New("invalid version")
+import (
+	"github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient/rpc"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 )
+
+// EthRPC - Ethereum rpc client
+type EthRPC[ExecutionPayloadT interface {
+	constraints.JSONMarshallable
+	Empty(uint32) ExecutionPayloadT
+	Version() uint32
+}] struct {
+	*rpc.Client
+}
+
+// New create new rpc client with given url
+func New[
+	ExecutionPayloadT interface {
+		constraints.JSONMarshallable
+		Empty(uint32) ExecutionPayloadT
+		Version() uint32
+	},
+](client *rpc.Client) *EthRPC[ExecutionPayloadT] {
+	rpc := &EthRPC[ExecutionPayloadT]{
+		Client: client,
+	}
+
+	return rpc
+}

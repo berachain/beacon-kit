@@ -28,8 +28,8 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/cache"
-	ethclient2 "github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient2"
-	ethclient2rpc "github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient2/rpc"
+	ethclient "github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
+	ethclientrpc "github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient/rpc"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
@@ -40,7 +40,7 @@ type EngineClient[
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	PayloadAttributesT PayloadAttributes,
 ] struct {
-	*ethclient2.EthRPC[ExecutionPayloadT]
+	*ethclient.EthRPC[ExecutionPayloadT]
 	// cfg is the supplied configuration for the engine client.
 	cfg *Config
 	// logger is the logger for the engine client.
@@ -74,10 +74,10 @@ func New[
 	return &EngineClient[ExecutionPayloadT, PayloadAttributesT]{
 		cfg:    cfg,
 		logger: logger,
-		EthRPC: ethclient2.New[ExecutionPayloadT](
-			ethclient2rpc.NewClient(
+		EthRPC: ethclient.New[ExecutionPayloadT](
+			ethclientrpc.NewClient(
 				cfg.RPCDialURL.String(),
-				ethclient2rpc.WithJWTSecret(jwtSecret)),
+				ethclientrpc.WithJWTSecret(jwtSecret)),
 		),
 		capabilities: make(map[string]struct{}),
 		engineCache:  cache.NewEngineCacheWithDefaultConfig(),

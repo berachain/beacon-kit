@@ -210,6 +210,7 @@ func broadcastDepositTx[
 	rpcClient, err := rpc.DialContext(
 		cmd.Context(), rpcURL,
 	)
+
 	if err != nil {
 		return common.ExecutionHash{}, err
 	}
