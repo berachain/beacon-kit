@@ -8,6 +8,8 @@ import (
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
@@ -705,7 +707,8 @@ type (
 		IsPartiallyWithdrawable(amount1 math.Gwei, amount2 math.Gwei) bool
 	}
 
-	Validators interface {
+	Validators[ValidatorT any] interface {
+		~[]ValidatorT
 		HashTreeRoot() common.Root
 	}
 
@@ -1029,6 +1032,16 @@ type (
 /* -------------------------------------------------------------------------- */
 
 type (
+	NodeAPIContext interface {
+		context.Context
+		Bind(any) error
+		Validate(any) error
+	}
+	// Engine is a generic interface for an API engine.
+	NodeAPIEngine[ContextT NodeAPIContext] interface {
+		Run(addr string) error
+		RegisterRoutes(*handlers.RouteSet[ContextT], log.Logger[any])
+	}
 	NodeAPIBackend[
 		BeaconStateT any,
 		BeaconBlockHeaderT any,
