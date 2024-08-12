@@ -214,13 +214,14 @@ func broadcastDepositTx[
 	if err != nil {
 		return common.ExecutionHash{}, err
 	}
+	ethClient := ethclient.NewClient(
+		rpcClient,
+	)
 
 	// Send the deposit to the deposit contract through abi bindings.
 	depositContract, err := deposit.NewBeaconDepositContract(
 		gethprimitives.ExecutionAddress(chainSpec.DepositContractAddress()),
-		ethclient.NewClient(
-			rpcClient,
-		),
+		ethClient,
 	)
 	if err != nil {
 		return common.ExecutionHash{}, err
