@@ -149,10 +149,7 @@ type (
 	]
 
 	// BlockStoreService is a type alias for the block store service.
-	BlockStoreService = blockstore.Service[
-		*BeaconBlock,
-		*BlockStore,
-	]
+	BlockStoreService = blockstore.Service[*BeaconBlock, *BlockStore]
 
 	// BlockStore is a type alias for the block store.
 	BlockStore = block.KVStore[*BeaconBlock]
