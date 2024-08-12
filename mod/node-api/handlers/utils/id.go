@@ -21,7 +21,7 @@
 package utils
 
 import (
-	"encoding/json"
+	"strconv"
 	"strings"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -101,9 +101,7 @@ func IsExecutionNumberPrefix(executionID string) bool {
 // U64FromString returns a math.U64 from the given string. Errors if the given
 // string is not in proper decimal notation.
 func U64FromString(id string) (math.U64, error) {
-	var u64 uint64
-
-	err := json.Unmarshal([]byte(id), &u64)
+	u64, err := strconv.ParseUint(id, 10, 64)
 	if err != nil {
 		return 0, err
 	}
