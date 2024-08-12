@@ -309,6 +309,7 @@ type (
 		ForkDataT any,
 		WithdrawalCredentialsT ~[32]byte,
 	] interface {
+		constraints.Empty[T]
 		constraints.SSZMarshallableRootable
 		// New creates a new deposit.
 		New(
