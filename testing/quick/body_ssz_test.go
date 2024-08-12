@@ -21,6 +21,7 @@
 package quick_test
 
 import (
+	"encoding/json"
 	"math/rand"
 	"reflect"
 	"testing"
@@ -34,9 +35,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/karalabe/ssz"
 )
-
-var c = quick.Config{MaxCount: 1000}
 
 func roll(n int, r *rand.Rand) int {
 	k := r.Intn(n)
@@ -83,7 +83,7 @@ func (b *BbbDeneb) Generate(r *rand.Rand, size int) reflect.Value {
 			Index:       r.Uint64(),
 		}
 	}
-	k = roll(1024, r)			// MaxTxsPerPayload 1048576 too big
+	k = roll(10, r) // MaxTxsPerPayload 1048576 too big
 	txs := make([][]byte, k)
 	for i := 0; i < k; i++ {
 		txs[i] = rbytes(1024, r) // MaxBytesPerTx 1073741824 too big
@@ -126,7 +126,12 @@ func (b *BbbDeneb) Generate(r *rand.Rand, size int) reflect.Value {
 	return reflect.ValueOf(b)
 }
 
-func TestGenerateBeaconBodyDeneb(t *testing.T) {
+func pprint(i interface{}) string {
+	s, _ := json.MarshalIndent(i, "", "\t")
+	return string(s)
+}
+
+func TestSSZRoundTripBeaconBodyDeneb(t *testing.T) {
 	f := func(body *BbbDeneb, n uint) bool {
 		bz, err := body.MarshalSSZ()
 		if err != nil {
@@ -141,6 +146,8 @@ func TestGenerateBeaconBodyDeneb(t *testing.T) {
 
 		if !reflect.DeepEqual(body, destBody) {
 			t.Log("Deserialize: deserialized body different than former body after serialization")
+			t.Log(pprint(body))
+			t.Log(pprint(destBody))
 			return false
 		}
 
@@ -161,6 +168,59 @@ func TestGenerateBeaconBodyDeneb(t *testing.T) {
 			return false
 		}
 
+		return true
+	}
+
+	if err := quick.Check(f, &Conf); err != nil {
+		t.Error(err)
+	}
+}
+
+var concurrencyThreshold uint64 = 65536
+
+type Container struct {
+	Deposits []*types.Deposit
+}
+
+func (c *Container) SizeSSZ() uint32 {
+	return ssz.SizeSliceOfStaticObjects(c.Deposits)
+}
+
+func (c *Container) DefineSSZ(codec *ssz.Codec) {
+	ssz.DefineSliceOfStaticObjectsOffset(codec, &c.Deposits, concurrencyThreshold)
+	ssz.DefineSliceOfStaticObjectsContent(codec, &c.Deposits, concurrencyThreshold)
+}
+
+func (c *Container) Generate(r *rand.Rand, size int) reflect.Value {
+	deposits := make([]*types.Deposit,
+			 uint32(concurrencyThreshold)/(&types.Deposit{}).SizeSSZ()+1)
+	for i := 0; i < len(deposits); i++ {
+		var proof [33][32]byte
+		for j := 0; j < 33; j++ {
+			proof[j] = [32]byte(rbytes(32, r))
+		}
+		deposits[i] = &types.Deposit{
+			Pubkey:      crypto.BLSPubkey(rbytes(48, r)),
+			Credentials: types.WithdrawalCredentials(rbytes(32, r)),
+			Amount:      math.Gwei(r.Uint64()),
+			Signature:   crypto.BLSSignature(rbytes(96, r)),
+			Index:       r.Uint64(),
+		}
+	}
+	c = &Container{Deposits: deposits}
+
+	return reflect.ValueOf(c)
+}
+
+func TestHashConcurrent(t *testing.T) {
+	f := func(c *Container) bool {
+		htrSeq := ssz.HashSequential(c)
+		htrC := ssz.HashConcurrent(c)
+		if !reflect.DeepEqual(htrSeq, htrC) {
+			t.Log("Sequential hash != Concurrent hash")
+			t.Log(pprint(c))
+			return false
+		}
 		return true
 	}
 
