@@ -55,7 +55,7 @@ func (h *Handler[ContextT]) RegisterRoutes(
 		{
 			Method:  http.MethodGet,
 			Path:    "/eth/v1/node/version",
-			Handler: h.Version,
+			Handler: h.NotImplemented,
 		},
 		{
 			Method:  http.MethodGet,
