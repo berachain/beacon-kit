@@ -113,7 +113,10 @@ func TestArgsFromSidecars(t *testing.T) {
 		},
 	}
 
-	args := kzg.ArgsFromSidecars(scs)
+	args := kzg.ArgsFromSidecars[
+		*types.BlobSidecar,
+		*types.BlobSidecars,
+	](scs)
 
 	require.Len(t, args.Blobs, 1)
 	require.Len(t, args.Proofs, 1)
