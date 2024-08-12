@@ -29,7 +29,7 @@ import (
 )
 
 // engineMetrics is a struct that contains metrics for the engine.
-type engineMetrics struct {
+type engineMetrics[PayloadIDT any] struct {
 	// TelemetrySink is the sink for the metrics.
 	sink TelemetrySink
 	// logger is the logger for the engineMetrics.
@@ -37,18 +37,18 @@ type engineMetrics struct {
 }
 
 // newEngineMetrics creates a new engineMetrics.
-func newEngineMetrics(
+func newEngineMetrics[PayloadIDT any](
 	sink TelemetrySink,
 	logger log.Logger[any],
-) *engineMetrics {
-	return &engineMetrics{
+) *engineMetrics[PayloadIDT] {
+	return &engineMetrics[PayloadIDT]{
 		sink:   sink,
 		logger: logger,
 	}
 }
 
 // markNewPayloadCalled increments the counter for new payload calls.
-func (em *engineMetrics) markNewPayloadCalled(
+func (em *engineMetrics[_]) markNewPayloadCalled(
 	payloadHash common.ExecutionHash,
 	parentHash common.ExecutionHash,
 	isOptimistic bool,
@@ -62,7 +62,7 @@ func (em *engineMetrics) markNewPayloadCalled(
 }
 
 // markNewPayloadValid increments the counter for valid payloads.
-func (em *engineMetrics) markNewPayloadValid(
+func (em *engineMetrics[_]) markNewPayloadValid(
 	payloadHash common.ExecutionHash,
 	parentHash common.ExecutionHash,
 	isOptimistic bool,
@@ -82,7 +82,7 @@ func (em *engineMetrics) markNewPayloadValid(
 
 // markNewPayloadAcceptedSyncingPayloadStatus increments
 // the counter for accepted syncing payload status.
-func (em *engineMetrics) markNewPayloadAcceptedSyncingPayloadStatus(
+func (em *engineMetrics[_]) markNewPayloadAcceptedSyncingPayloadStatus(
 	payloadHash common.ExecutionHash,
 	parentHash common.ExecutionHash,
 	isOptimistic bool,
@@ -103,7 +103,7 @@ func (em *engineMetrics) markNewPayloadAcceptedSyncingPayloadStatus(
 
 // markNewPayloadInvalidPayloadStatus increments the counter
 // for invalid payload status.
-func (em *engineMetrics) markNewPayloadInvalidPayloadStatus(
+func (em *engineMetrics[_]) markNewPayloadInvalidPayloadStatus(
 	payloadHash common.ExecutionHash,
 	isOptimistic bool,
 ) {
@@ -121,7 +121,7 @@ func (em *engineMetrics) markNewPayloadInvalidPayloadStatus(
 }
 
 // markNewPayloadJSONRPCError increments the counter for JSON-RPC errors.
-func (em *engineMetrics) markNewPayloadJSONRPCError(
+func (em *engineMetrics[_]) markNewPayloadJSONRPCError(
 	payloadHash common.ExecutionHash,
 	lastValidHash common.ExecutionHash,
 	isOptimistic bool,
@@ -144,7 +144,7 @@ func (em *engineMetrics) markNewPayloadJSONRPCError(
 }
 
 // markNewPayloadUndefinedError increments the counter for undefined errors.
-func (em *engineMetrics) markNewPayloadUndefinedError(
+func (em *engineMetrics[_]) markNewPayloadUndefinedError(
 	payloadHash common.ExecutionHash,
 	isOptimistic bool,
 	err error,
@@ -166,7 +166,7 @@ func (em *engineMetrics) markNewPayloadUndefinedError(
 
 // markNotifyForkchoiceUpdateCalled increments the counter for
 // notify forkchoice update calls.
-func (em *engineMetrics) markNotifyForkchoiceUpdateCalled(
+func (em *engineMetrics[_]) markNotifyForkchoiceUpdateCalled(
 	hasPayloadAttributes bool,
 ) {
 	em.sink.IncrementCounter(
@@ -177,10 +177,10 @@ func (em *engineMetrics) markNotifyForkchoiceUpdateCalled(
 
 // markForkchoiceUpdateValid increments the counter for valid forkchoice
 // updates.
-func (em *engineMetrics) markForkchoiceUpdateValid(
+func (em *engineMetrics[PayloadIDT]) markForkchoiceUpdateValid(
 	state *engineprimitives.ForkchoiceStateV1,
 	hasPayloadAttributes bool,
-	payloadID *engineprimitives.PayloadID,
+	payloadID PayloadIDT,
 ) {
 	args := []any{
 		"head_block_hash", state.HeadBlockHash,
@@ -200,7 +200,7 @@ func (em *engineMetrics) markForkchoiceUpdateValid(
 
 // markForkchoiceUpdateAcceptedSyncing increments
 // the counter for accepted syncing forkchoice updates.
-func (em *engineMetrics) markForkchoiceUpdateAcceptedSyncing(
+func (em *engineMetrics[_]) markForkchoiceUpdateAcceptedSyncing(
 	state *engineprimitives.ForkchoiceStateV1,
 	err error,
 ) {
@@ -225,7 +225,7 @@ func (em *engineMetrics) markForkchoiceUpdateAcceptedSyncing(
 
 // markForkchoiceUpdateInvalid increments the counter
 // for invalid forkchoice updates.
-func (em *engineMetrics) markForkchoiceUpdateInvalid(
+func (em *engineMetrics[_]) markForkchoiceUpdateInvalid(
 	state *engineprimitives.ForkchoiceStateV1,
 	err error,
 ) {
@@ -246,7 +246,7 @@ func (em *engineMetrics) markForkchoiceUpdateInvalid(
 
 // markForkchoiceUpdateJSONRPCError increments the counter for JSON-RPC errors
 // during forkchoice updates.
-func (em *engineMetrics) markForkchoiceUpdateJSONRPCError(err error) {
+func (em *engineMetrics[_]) markForkchoiceUpdateJSONRPCError(err error) {
 	em.logger.Error(
 		"Received json-rpc error during forkchoice update call",
 		"error", err,
@@ -260,7 +260,7 @@ func (em *engineMetrics) markForkchoiceUpdateJSONRPCError(err error) {
 
 // markForkchoiceUpdateUndefinedError increments the counter for undefined
 // errors during forkchoice updates.
-func (em *engineMetrics) markForkchoiceUpdateUndefinedError(err error) {
+func (em *engineMetrics[_]) markForkchoiceUpdateUndefinedError(err error) {
 	em.logger.Error(
 		"Received undefined execution engine error during forkchoice update call",
 		"error",
@@ -274,7 +274,7 @@ func (em *engineMetrics) markForkchoiceUpdateUndefinedError(err error) {
 }
 
 // errorLoggerFn returns a logger fn based on the optimistic flag.
-func (em *engineMetrics) errorLoggerFn(
+func (em *engineMetrics[_]) errorLoggerFn(
 	isOptimistic bool,
 ) func(msg string, keyVals ...any) {
 	if isOptimistic {

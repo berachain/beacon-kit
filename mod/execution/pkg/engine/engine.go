@@ -29,7 +29,6 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	jsonrpc "github.com/berachain/beacon-kit/mod/primitives/pkg/net/json-rpc"
@@ -39,6 +38,9 @@ import (
 // Engine is Beacon-Kit's implementation of the `ExecutionEngine`
 // from the Ethereum 2.0 Specification.
 type Engine[
+	EngineClientT EngineClient[
+		ExecutionPayloadT, PayloadAttributesT, PayloadIDT,
+	],
 	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT, WithdrawalsT],
 	PayloadAttributesT engineprimitives.PayloadAttributer,
 	PayloadIDT ~[8]byte,
@@ -49,17 +51,20 @@ type Engine[
 ] struct {
 	// ec is the engine client that the engine will use to
 	// interact with the execution layer.
-	ec *client.EngineClient[ExecutionPayloadT, PayloadAttributesT]
+	ec EngineClientT
 	// logger is the logger for the engine.
 	logger log.Logger[any]
 	// metrics is the metrics for the engine.
-	metrics *engineMetrics
+	metrics *engineMetrics[PayloadIDT]
 	// statusPublisher is the status publishder for the engine.
 	statusPublisher *broker.Broker[*asynctypes.Event[*service.StatusEvent]]
 }
 
 // New creates a new Engine.
 func New[
+	EngineClientT EngineClient[
+		ExecutionPayloadT, PayloadAttributesT, PayloadIDT,
+	],
 	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT, WithdrawalsT],
 	PayloadAttributesT engineprimitives.PayloadAttributer,
 	PayloadIDT ~[8]byte,
@@ -68,27 +73,27 @@ func New[
 		EncodeIndex(int, *bytes.Buffer)
 	},
 ](
-	ec *client.EngineClient[ExecutionPayloadT, PayloadAttributesT],
+	ec EngineClientT,
 	logger log.Logger[any],
 	statusPublisher *broker.Broker[*asynctypes.Event[*service.StatusEvent]],
 	telemtrySink TelemetrySink,
 ) *Engine[
-	ExecutionPayloadT, PayloadAttributesT,
+	EngineClientT, ExecutionPayloadT, PayloadAttributesT,
 	PayloadIDT, WithdrawalsT,
 ] {
 	return &Engine[
-		ExecutionPayloadT, PayloadAttributesT, PayloadIDT,
-		WithdrawalsT,
+		EngineClientT, ExecutionPayloadT, PayloadAttributesT,
+		PayloadIDT, WithdrawalsT,
 	]{
 		ec:              ec,
 		logger:          logger,
-		metrics:         newEngineMetrics(telemtrySink, logger),
+		metrics:         newEngineMetrics[PayloadIDT](telemtrySink, logger),
 		statusPublisher: statusPublisher,
 	}
 }
 
 // Start spawns any goroutines required by the service.
-func (ee *Engine[_, _, _, _]) Start(
+func (ee *Engine[_, _, _, _, _]) Start(
 	ctx context.Context,
 ) error {
 	go func() {
@@ -102,7 +107,7 @@ func (ee *Engine[_, _, _, _]) Start(
 
 // GetPayload returns the payload and blobs bundle for the given slot.
 func (ee *Engine[
-	ExecutionPayloadT, _, _, _,
+	_, ExecutionPayloadT, _, _, _,
 ]) GetPayload(
 	ctx context.Context,
 	req *engineprimitives.GetPayloadRequest[engineprimitives.PayloadID],
@@ -115,11 +120,11 @@ func (ee *Engine[
 
 // NotifyForkchoiceUpdate notifies the execution client of a forkchoice update.
 func (ee *Engine[
-	_, PayloadAttributesT, _, _,
+	_, _, PayloadAttributesT, PayloadIDT, _,
 ]) NotifyForkchoiceUpdate(
 	ctx context.Context,
 	req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
-) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
+) (PayloadIDT, *common.ExecutionHash, error) {
 	// Log the forkchoice update attempt.
 	hasPayloadAttributes := !req.PayloadAttributes.IsNil()
 	ee.metrics.markNotifyForkchoiceUpdateCalled(hasPayloadAttributes)
@@ -159,12 +164,12 @@ func (ee *Engine[
 	// JSON-RPC errors are predefined and should be handled as such.
 	case jsonrpc.IsPreDefinedError(err):
 		ee.metrics.markForkchoiceUpdateJSONRPCError(err)
-		return nil, nil, errors.Join(err, engineerrors.ErrPreDefinedJSONRPC)
+		return payloadID, nil, errors.Join(err, engineerrors.ErrPreDefinedJSONRPC)
 
 	// All other errors are handled as undefined errors.
 	case err != nil:
 		ee.metrics.markForkchoiceUpdateUndefinedError(err)
-		return nil, nil, err
+		return payloadID, nil, err
 	default:
 		ee.metrics.markForkchoiceUpdateValid(
 			req.State, hasPayloadAttributes, payloadID,
@@ -173,7 +178,8 @@ func (ee *Engine[
 
 	// If we reached here, and we have a nil payload ID, we should log a
 	// warning.
-	if payloadID == nil && hasPayloadAttributes {
+	if any(payloadID).(*engineprimitives.PayloadID) == nil &&
+		hasPayloadAttributes {
 		ee.logger.Warn(
 			"Received nil payload ID on VALID engine response",
 			"head_eth1_hash", req.State.HeadBlockHash,
@@ -189,7 +195,7 @@ func (ee *Engine[
 // VerifyAndNotifyNewPayload verifies the new payload and notifies the
 // execution client.
 func (ee *Engine[
-	ExecutionPayloadT, _, _, WithdrawalsT,
+	_, ExecutionPayloadT, _, _, WithdrawalsT,
 ]) VerifyAndNotifyNewPayload(
 	ctx context.Context,
 	req *engineprimitives.NewPayloadRequest[

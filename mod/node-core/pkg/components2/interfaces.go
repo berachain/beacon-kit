@@ -380,6 +380,31 @@ type (
 		) T
 	}
 
+	EngineClient[
+		ExecutionPayloadT any,
+		PayloadAttributesT any,
+		PayloadIDT ~[8]byte,
+	] interface {
+		Start(ctx context.Context) error
+		GetPayload(
+			ctx context.Context,
+			payloadID engineprimitives.PayloadID,
+			forkVersion uint32,
+		) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
+		NewPayload(
+			ctx context.Context,
+			payload ExecutionPayloadT,
+			versionedHashes []common.ExecutionHash,
+			parentBeaconBlockRoot *common.Root,
+		) (*common.ExecutionHash, error)
+		ForkchoiceUpdated(
+			ctx context.Context,
+			state *engineprimitives.ForkchoiceStateV1,
+			attrs PayloadAttributesT,
+			forkVersion uint32,
+		) (PayloadIDT, *common.ExecutionHash, error)
+	}
+
 	Event[DataT any] interface {
 		Type() asynctypes.EventID
 		Is(eventType asynctypes.EventID) bool

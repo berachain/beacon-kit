@@ -21,12 +21,39 @@
 package engine
 
 import (
+	"context"
+
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
+
+type EngineClient[
+	ExecutionPayloadT any,
+	PayloadAttributesT any,
+	PayloadIDT ~[8]byte,
+] interface {
+	Start(ctx context.Context) error
+	GetPayload(
+		ctx context.Context,
+		payloadID engineprimitives.PayloadID,
+		forkVersion uint32,
+	) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
+	NewPayload(
+		ctx context.Context,
+		payload ExecutionPayloadT,
+		versionedHashes []common.ExecutionHash,
+		parentBeaconBlockRoot *common.Root,
+	) (*common.ExecutionHash, error)
+	ForkchoiceUpdated(
+		ctx context.Context,
+		state *engineprimitives.ForkchoiceStateV1,
+		attrs PayloadAttributesT,
+		forkVersion uint32,
+	) (PayloadIDT, *common.ExecutionHash, error)
+}
 
 // ExecutionPayload represents the payload of an execution block.
 type ExecutionPayload[ExecutionPayloadT, WithdrawalsT any] interface {

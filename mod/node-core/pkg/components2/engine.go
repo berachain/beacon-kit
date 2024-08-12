@@ -24,35 +24,47 @@ import (
 	"math/big"
 
 	"cosmossdk.io/depinject"
-	sdklog "cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/config"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 )
 
 // EngineClientInputs is the input for the EngineClient.
-type EngineClientInputs struct {
+type EngineClientInputs[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+] struct {
 	depinject.In
 	ChainSpec common.ChainSpec
 	Config    *config.Config
 	// TODO: this feels like a hood way to handle it.
 	JWTSecret     *jwt.Secret `optional:"true"`
-	Logger        log.AdvancedLogger[any, sdklog.Logger]
+	Logger        LoggerT
 	TelemetrySink *metrics.TelemetrySink
 }
 
 // ProvideEngineClient creates a new EngineClient.
-func ProvideEngineClient(
-	in EngineClientInputs,
-) *EngineClient {
+func ProvideEngineClient[
+	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+	PayloadAttributesT PayloadAttributes[ExecutionPayloadT, WithdrawalT],
+	LoggerT log.AdvancedLogger[any, LoggerT],
+	WithdrawalT any,
+](
+	in EngineClientInputs[LoggerT],
+) *client.EngineClient[
+	ExecutionPayloadT,
+	PayloadAttributesT,
+] {
 	return client.New[
-		*ExecutionPayload,
-		*PayloadAttributes,
+		ExecutionPayloadT,
+		PayloadAttributesT,
 	](
 		in.Config.GetEngine(),
 		in.Logger.With("service", "engine.client"),
@@ -63,24 +75,59 @@ func ProvideEngineClient(
 }
 
 // EngineClientInputs is the input for the EngineClient.
-type ExecutionEngineInputs struct {
+type ExecutionEngineInputs[
+	EngineClientT EngineClient[
+		ExecutionPayloadT,
+		PayloadAttributesT,
+		PayloadIDT,
+	],
+	ExecutionPayloadT any,
+	LoggerT log.AdvancedLogger[any, LoggerT],
+	PayloadAttributesT any,
+	PayloadIDT ~[8]byte,
+] struct {
 	depinject.In
-	EngineClient  *EngineClient
-	Logger        log.AdvancedLogger[any, sdklog.Logger]
-	StatusBroker  *StatusBroker
+	EngineClient  EngineClientT
+	Logger        LoggerT
+	StatusBroker  *broker.Broker[*asynctypes.Event[*service.StatusEvent]]
 	TelemetrySink *metrics.TelemetrySink
 }
 
 // ProvideExecutionEngine provides the execution engine to the depinject
 // framework.
-func ProvideExecutionEngine(
-	in ExecutionEngineInputs,
-) *ExecutionEngine {
+func ProvideExecutionEngine[
+	EngineClientT EngineClient[
+		ExecutionPayloadT,
+		PayloadAttributesT,
+		PayloadIDT,
+	],
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+	],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	LoggerT log.AdvancedLogger[any, LoggerT],
+	PayloadAttributesT PayloadAttributes[ExecutionPayloadT, WithdrawalT],
+	PayloadIDT ~[8]byte,
+	WithdrawalT any,
+	WithdrawalsT Withdrawals,
+](
+	in ExecutionEngineInputs[
+		EngineClientT, ExecutionPayloadT, LoggerT,
+		PayloadAttributesT, PayloadIDT,
+	],
+) *engine.Engine[
+	EngineClientT,
+	ExecutionPayloadT,
+	PayloadAttributesT,
+	PayloadIDT,
+	WithdrawalsT,
+] {
 	return engine.New[
-		*ExecutionPayload,
-		*PayloadAttributes,
-		PayloadID,
-		engineprimitives.Withdrawals,
+		EngineClientT,
+		ExecutionPayloadT,
+		PayloadAttributesT,
+		PayloadIDT,
+		WithdrawalsT,
 	](
 		in.EngineClient,
 		in.Logger.With("service", "execution-engine"),
