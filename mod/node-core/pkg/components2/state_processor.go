@@ -30,11 +30,22 @@ import (
 
 // StateProcessorInput is the input for the state processor for the depinject
 // framework.
-type StateProcessorInput struct {
+type StateProcessorInput[
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+	],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
+	PayloadAttributesT any,
+	PayloadIDT ~[8]byte,
+	WithdrawalsT Withdrawals,
+] struct {
 	depinject.In
 	ChainSpec       common.ChainSpec
-	ExecutionEngine *ExecutionEngine
-	Signer          crypto.BLSSigner
+	ExecutionEngine *ExecutionEngine[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, PayloadAttributesT,
+		PayloadIDT, WithdrawalsT,
+	]
+	Signer crypto.BLSSigner
 }
 
 // ProvideStateProcessor provides the state processor to the depinject
