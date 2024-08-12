@@ -64,11 +64,11 @@ func (ec *Client[ExecutionPayloadT]) FilterLogs(
 // (Subscription, error)
 
 func (ec *Client[ExecutionPayloadT]) SubscribeFilterLogs(
-	ctx context.Context,
-	q ethereum.FilterQuery,
-	ch chan<- types.Log,
+	context.Context,
+	ethereum.FilterQuery,
+	chan<- types.Log,
 ) (ethereum.Subscription, error) {
-	return nil, nil
+	return nil, errors.New("not implemented")
 }
 
 func toFilterArg(q ethereum.FilterQuery) (interface{}, error) {

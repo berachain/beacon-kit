@@ -50,7 +50,7 @@ type Client struct {
 	header http.Header
 }
 
-// New create new rpc client with given url
+// New create new rpc client with given url.
 func NewClient(url string, options ...func(rpc *Client)) *Client {
 	rpc := &Client{
 		url:    url,
@@ -73,28 +73,30 @@ func NewClient(url string, options ...func(rpc *Client)) *Client {
 	return rpc
 }
 
-// Start starts the rpc client
+// Start starts the rpc client.
 func (rpc *Client) Start(ctx context.Context) {
 	ticker := time.NewTicker(rpc.jwtRefreshInterval)
-	rpc.updateHeader()
+	if err := rpc.updateHeader(); err != nil {
+		panic(err)
+	}
 	for {
 		select {
 		case <-ctx.Done():
 			ticker.Stop()
 			return
 		case <-ticker.C:
-			rpc.updateHeader()
+			_ = rpc.updateHeader()
 		}
 	}
 }
 
-// Close closes the RPC client
+// Close closes the RPC client.
 func (rpc *Client) Close() error {
 	rpc.client.CloseIdleConnections()
 	return nil
 }
 
-// Call calls the given method with the given parameters
+// Call calls the given method with the given parameters.
 func (rpc *Client) Call(
 	ctx context.Context, target any, method string, params ...any,
 ) error {
@@ -110,12 +112,13 @@ func (rpc *Client) Call(
 	return json.Unmarshal(result, target)
 }
 
-// Call returns raw response of method call
+// Call returns raw response of method call.
 func (rpc *Client) CallRaw(
 	ctx context.Context, method string, params ...any,
 ) (json.RawMessage, error) {
 	// Pull a request from the pool, we know that it already has the correct
 	// JSONRPC version and ID set.
+	//nolint:errcheck // this is safe.
 	request := rpc.reqPool.Get().(*Request)
 	defer rpc.reqPool.Put(request)
 
@@ -130,7 +133,7 @@ func (rpc *Client) CallRaw(
 
 	req, err := http.NewRequestWithContext(
 		ctx,
-		"POST",
+		http.MethodPost,
 		rpc.url,
 		bytes.NewBuffer(body),
 	)
@@ -153,7 +156,7 @@ func (rpc *Client) CallRaw(
 	}
 
 	resp := new(Response)
-	if err := json.Unmarshal(data, resp); err != nil {
+	if err = json.Unmarshal(data, resp); err != nil {
 		return nil, err
 	}
 
