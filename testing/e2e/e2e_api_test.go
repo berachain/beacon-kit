@@ -29,10 +29,8 @@ import (
 // TestBeaconAPISuite tests that the api test suite is setup correctly with a
 // working beacon node-api client.
 func (s *BeaconKitE2ESuite) TestBeaconAPIStartup() {
-	executionBlockNum := uint64(5)
-
 	// Wait for execution block 5.
-	err := s.WaitForFinalizedBlockNumber(executionBlockNum)
+	err := s.WaitForFinalizedBlockNumber(5)
 	s.Require().NoError(err)
 
 	// Get the consensus client.
@@ -48,4 +46,5 @@ func (s *BeaconKitE2ESuite) TestBeaconAPIStartup() {
 	)
 	s.Require().NoError(err)
 	s.Require().NotEmpty(stateRoot)
+	s.Require().False(stateRoot.Data.IsZero())
 }

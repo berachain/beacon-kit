@@ -26,7 +26,6 @@ import (
 
 	beaconhttp "github.com/attestantio/go-eth2-client/http"
 	"github.com/berachain/beacon-kit/mod/errors"
-	bclient "github.com/berachain/beacon-kit/mod/node-api/client"
 	rpcclient "github.com/cometbft/cometbft/rpc/client"
 	httpclient "github.com/cometbft/cometbft/rpc/client/http"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
@@ -41,7 +40,7 @@ type ConsensusClient struct {
 	rpcclient.Client
 
 	// Beacon node-api client
-	bclient.BeaconKitNode
+	BeaconKitNode
 
 	// Cancel function for the context
 	cancelFunc context.CancelFunc
@@ -80,7 +79,7 @@ func (cc *ConsensusClient) Connect(ctx context.Context) error {
 		panic("Couldn't find the public port for the node API")
 	}
 	cancelCtx, cancel := context.WithCancel(ctx)
-	cc.BeaconKitNode, err = bclient.New(
+	cc.BeaconKitNode, err = NewBeaconKitClient(
 		cancelCtx,
 		beaconhttp.WithAddress(
 			fmt.Sprintf("http://0.0.0.0:%d", nodePort.GetNumber()),

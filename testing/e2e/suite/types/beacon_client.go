@@ -18,16 +18,21 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package client
+package types
 
 import (
+	"context"
+
 	client "github.com/attestantio/go-eth2-client"
+	beaconhttp "github.com/attestantio/go-eth2-client/http"
+	"github.com/berachain/beacon-kit/mod/errors"
 )
 
 // BeaconKitNode is a wrapper around the client.Service interface to add
 // additional methods specific to a beacon-kit node's API.
 type BeaconKitNode interface {
 	client.Service
+
 	client.FarFutureEpochProvider
 	client.SignedBeaconBlockProvider
 	client.BlobSidecarsProvider
@@ -77,4 +82,26 @@ type BeaconKitNode interface {
 	client.NodeClientProvider
 
 	// Other beacon-kit node-api methods here...
+}
+
+// NewBeaconKitClient creates a new BeaconKitNode client instance with a given
+// cancel context.
+func NewBeaconKitClient(
+	cancelCtx context.Context,
+	params ...beaconhttp.Parameter,
+) (BeaconKitNode, error) {
+	service, err := beaconhttp.New(
+		cancelCtx,
+		params...,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	client, ok := service.(BeaconKitNode)
+	if !ok {
+		return nil, errors.New("failed to cast service to BeaconKitNode")
+	}
+
+	return client, nil
 }
