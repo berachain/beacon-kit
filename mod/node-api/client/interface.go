@@ -29,7 +29,6 @@ import (
 type BeaconKitNode interface {
 	client.Service
 	client.FarFutureEpochProvider
-	client.ValidatorIDProvider
 	client.SignedBeaconBlockProvider
 	client.BlobSidecarsProvider
 	client.BeaconCommitteesProvider
