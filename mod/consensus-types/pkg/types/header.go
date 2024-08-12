@@ -122,8 +122,8 @@ func (b *BeaconBlockHeader) UnmarshalSSZ(buf []byte) error {
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the BeaconBlockHeader object.
-func (b *BeaconBlockHeader) HashTreeRoot() ([32]byte, error) {
-	return ssz.HashSequential(b), nil
+func (b *BeaconBlockHeader) HashTreeRoot() common.Root {
+	return ssz.HashSequential(b)
 }
 
 /* -------------------------------------------------------------------------- */

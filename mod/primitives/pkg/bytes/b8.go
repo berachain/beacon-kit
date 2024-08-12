@@ -18,20 +18,17 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 //
-//nolint:dupl // it's okay to duplicate the code for different types
+//nolint:dupl // it's okay.
 package bytes
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 )
 
 const (
 	// B8Size represents an 8-byte size.
 	B8Size = 8
 )
-
-var _ schema.MinimalSSZObject = (*B8)(nil)
 
 // B8 represents an 8-byte fixed-size byte array.
 // For SSZ purposes it is serialized a `Vector[Byte, 8]`.
@@ -68,36 +65,19 @@ func (h B8) String() string {
 
 // UnmarshalJSON implements the json.Unmarshaler interface for B8.
 func (h *B8) UnmarshalJSON(input []byte) error {
-	return unmarshalJSONHelper(h[:], input)
+	return UnmarshalJSONHelper(h[:], input)
 }
 
 /* -------------------------------------------------------------------------- */
 /*                                SSZMarshaler                                */
 /* -------------------------------------------------------------------------- */
 
-// SizeSSZ returns the size of its SSZ encoding in bytes.
-func (h B8) SizeSSZ() uint32 {
-	return B8Size
-}
-
 // MarshalSSZ implements the SSZ marshaling for B8.
 func (h B8) MarshalSSZ() ([]byte, error) {
 	return h[:], nil
 }
 
-// IsFixed returns true if the length of the B8 is fixed.
-func (h B8) IsFixed() bool {
-	return true
-}
-
-// Type returns the type of the B8.
-func (h B8) Type() schema.SSZType {
-	return schema.B8()
-}
-
 // HashTreeRoot returns the hash tree root of the B8.
-func (h B8) HashTreeRoot() ([32]byte, error) {
-	var result [32]byte
-	copy(result[:], h[:])
-	return result, nil
+func (h B8) HashTreeRoot() B32 {
+	return ToBytes32(h[:])
 }

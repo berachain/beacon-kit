@@ -25,7 +25,6 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/stretchr/testify/require"
 )
@@ -34,7 +33,7 @@ func TestEth1Data_Serialization(t *testing.T) {
 	original := &types.Eth1Data{
 		DepositRoot:  common.Root{},
 		DepositCount: 10,
-		BlockHash:    gethprimitives.ExecutionHash{},
+		BlockHash:    common.ExecutionHash{},
 	}
 
 	data, err := original.MarshalSSZ()
@@ -45,6 +44,13 @@ func TestEth1Data_Serialization(t *testing.T) {
 	err = unmarshalled.UnmarshalSSZ(data)
 	require.NoError(t, err)
 	require.Equal(t, original, &unmarshalled)
+
+	var buf []byte
+	buf, err = original.MarshalSSZTo(buf)
+	require.NoError(t, err)
+
+	// The two byte slices should be equal
+	require.Equal(t, data, buf)
 }
 
 func TestEth1Data_UnmarshalError(t *testing.T) {
@@ -57,7 +63,7 @@ func TestEth1Data_SizeSSZ(t *testing.T) {
 	eth1Data := (&types.Eth1Data{}).New(
 		common.Root{},
 		10,
-		gethprimitives.ExecutionHash{},
+		common.ExecutionHash{},
 	)
 
 	size := eth1Data.SizeSSZ()
@@ -68,18 +74,19 @@ func TestEth1Data_HashTreeRoot(t *testing.T) {
 	eth1Data := &types.Eth1Data{
 		DepositRoot:  common.Root{},
 		DepositCount: 10,
-		BlockHash:    gethprimitives.ExecutionHash{},
+		BlockHash:    common.ExecutionHash{},
 	}
 
-	_, err := eth1Data.HashTreeRoot()
-	require.NoError(t, err)
+	require.NotPanics(t, func() {
+		_ = eth1Data.HashTreeRoot()
+	})
 }
 
 func TestEth1Data_GetTree(t *testing.T) {
 	eth1Data := &types.Eth1Data{
 		DepositRoot:  common.Root{},
 		DepositCount: 10,
-		BlockHash:    gethprimitives.ExecutionHash{},
+		BlockHash:    common.ExecutionHash{},
 	}
 
 	tree, err := eth1Data.GetTree()
@@ -92,7 +99,7 @@ func TestEth1Data_GetDepositCount(t *testing.T) {
 	eth1Data := &types.Eth1Data{
 		DepositRoot:  common.Root{},
 		DepositCount: 10,
-		BlockHash:    gethprimitives.ExecutionHash{},
+		BlockHash:    common.ExecutionHash{},
 	}
 
 	count := eth1Data.GetDepositCount()

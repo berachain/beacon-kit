@@ -23,15 +23,12 @@ package bytes
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 )
 
 const (
 	// B32Size represents a 32-byte size.
 	B32Size = 32
 )
-
-var _ schema.MinimalSSZObject = (*B32)(nil)
 
 // B32 represents a 32-byte fixed-size byte array.
 // For SSZ purposes it is serialized a `Vector[Byte, 32]`.
@@ -40,7 +37,9 @@ type B32 [32]byte
 // ToBytes32 is a utility function that transforms a byte slice into a fixed
 // 32-byte array. If the input exceeds 32 bytes, it gets truncated.
 func ToBytes32(input []byte) B32 {
-	return B32(ExtendToSize(input, B32Size))
+	var b B32
+	copy(b[:], input)
+	return b
 }
 
 /* -------------------------------------------------------------------------- */
@@ -68,34 +67,19 @@ func (h B32) String() string {
 
 // UnmarshalJSON implements the json.Unmarshaler interface for B32.
 func (h *B32) UnmarshalJSON(input []byte) error {
-	return unmarshalJSONHelper(h[:], input)
+	return UnmarshalJSONHelper(h[:], input)
 }
 
 /* -------------------------------------------------------------------------- */
 /*                                SSZMarshaler                                */
 /* -------------------------------------------------------------------------- */
 
-// SizeSSZ returns the size of its SSZ encoding in bytes.
-func (h B32) SizeSSZ() uint32 {
-	return B32Size
-}
-
 // MarshalSSZ implements the SSZ marshaling for B32.
 func (h B32) MarshalSSZ() ([]byte, error) {
 	return h[:], nil
 }
 
-// IsFixed returns true if the length of the B32 is fixed.
-func (h B32) IsFixed() bool {
-	return true
-}
-
-// Type returns the type of the B32.
-func (h B32) Type() schema.SSZType {
-	return schema.B32()
-}
-
 // HashTreeRoot returns the hash tree root of the B32.
-func (h B32) HashTreeRoot() ([32]byte, error) {
-	return h, nil
+func (h B32) HashTreeRoot() B32 {
+	return h
 }

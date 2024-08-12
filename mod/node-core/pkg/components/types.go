@@ -27,8 +27,6 @@ import (
 	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/genesis"
-	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/state"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
 	consruntimetypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
@@ -52,6 +50,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/server"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/services/version"
 	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
@@ -113,13 +112,18 @@ type (
 		WithdrawalCredentials,
 	]
 
-	// BeaconStateMarshallable is a type alias for the BeaconStateMarshallable.
-	BeaconStateMarshallable = state.BeaconStateMarshallable[
+	// BeaconStateMarshallable is a type alias for the BeaconState.
+	BeaconStateMarshallable = types.BeaconState[
 		*BeaconBlockHeader,
 		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
 		*Validator,
+		BeaconBlockHeader,
+		Eth1Data,
+		ExecutionPayloadHeader,
+		Fork,
+		Validator,
 	]
 
 	// BlobProcessor is a type alias for the blob processor.
@@ -147,7 +151,6 @@ type (
 		*BeaconBlockBody,
 		*BeaconBlockHeader,
 		*BeaconState,
-		*BlobSidecars,
 		*Deposit,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
@@ -224,7 +227,7 @@ type (
 		*ExecutionPayload,
 		*PayloadAttributes,
 		PayloadID,
-		*Withdrawal,
+		engineprimitives.Withdrawals,
 	]
 
 	// ExecutionPayload type aliases.
@@ -237,8 +240,8 @@ type (
 	// ForkData is a type alias for the fork data.
 	ForkData = types.ForkData
 
-	// Genesis is a type alias for the genesis.
-	Genesis = genesis.Genesis[
+	// Genesis is a type alias for the Genesis type.
+	Genesis = types.Genesis[
 		*Deposit,
 		*ExecutionPayloadHeader,
 	]
@@ -318,6 +321,9 @@ type (
 	// PayloadID is a type alias for the payload ID.
 	PayloadID = engineprimitives.PayloadID
 
+	// ReportingService is a type alias for the reporting service.
+	ReportingService = version.ReportingService
+
 	// SidecarFactory is a type alias for the sidecar factory.
 	SidecarFactory = dablob.SidecarFactory[
 		*BeaconBlock,
@@ -344,6 +350,7 @@ type (
 		*Validator,
 		Validators,
 		*Withdrawal,
+		engineprimitives.Withdrawals,
 		WithdrawalCredentials,
 	]
 

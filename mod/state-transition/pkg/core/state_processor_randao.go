@@ -33,7 +33,7 @@ import (
 // ensures it matches the local state.
 func (sp *StateProcessor[
 	BeaconBlockT, _, _, BeaconStateT,
-	_, _, _, _, _, _, ForkDataT, _, _, _, _, _,
+	_, _, _, _, _, _, ForkDataT, _, _, _, _, _, _,
 ]) processRandaoReveal(
 	st BeaconStateT,
 	blk BeaconBlockT,
@@ -66,13 +66,9 @@ func (sp *StateProcessor[
 	)
 
 	if !skipVerification {
-		var signingRoot common.Root
-		signingRoot, err = fd.ComputeRandaoSigningRoot(
-			sp.cs.DomainTypeRandao(), epoch)
-		if err != nil {
-			return err
-		}
-
+		signingRoot := fd.ComputeRandaoSigningRoot(
+			sp.cs.DomainTypeRandao(), epoch,
+		)
 		reveal := body.GetRandaoReveal()
 		if err = sp.signer.VerifySignature(
 			proposer.GetPubkey(),
@@ -84,14 +80,14 @@ func (sp *StateProcessor[
 	}
 
 	prevMix, err := st.GetRandaoMixAtIndex(
-		uint64(epoch) % sp.cs.EpochsPerHistoricalVector(),
+		epoch.Unwrap() % sp.cs.EpochsPerHistoricalVector(),
 	)
 	if err != nil {
 		return err
 	}
 
 	return st.UpdateRandaoMixAtIndex(
-		uint64(epoch)%sp.cs.EpochsPerHistoricalVector(),
+		epoch.Unwrap()%sp.cs.EpochsPerHistoricalVector(),
 		sp.buildRandaoMix(prevMix, body.GetRandaoReveal()),
 	)
 }
@@ -101,7 +97,7 @@ func (sp *StateProcessor[
 //
 //nolint:lll
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) processRandaoMixesReset(
 	st BeaconStateT,
 ) error {
@@ -112,20 +108,20 @@ func (sp *StateProcessor[
 
 	epoch := sp.cs.SlotToEpoch(slot)
 	mix, err := st.GetRandaoMixAtIndex(
-		uint64(epoch) % sp.cs.EpochsPerHistoricalVector(),
+		epoch.Unwrap() % sp.cs.EpochsPerHistoricalVector(),
 	)
 	if err != nil {
 		return err
 	}
 	return st.UpdateRandaoMixAtIndex(
-		uint64(epoch+1)%sp.cs.EpochsPerHistoricalVector(),
+		(epoch.Unwrap()+1)%sp.cs.EpochsPerHistoricalVector(),
 		mix,
 	)
 }
 
 // buildRandaoMix as defined in the Ethereum 2.0 specification.
 func (sp *StateProcessor[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) buildRandaoMix(
 	mix common.Bytes32,
 	reveal crypto.BLSSignature,

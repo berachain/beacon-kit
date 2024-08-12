@@ -25,7 +25,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -48,7 +48,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 			pubkey: [48]byte{0x01},
 			withdrawalCredentials: types.
 				NewCredentialsFromExecutionAddress(
-					gethprimitives.ExecutionAddress{0x01},
+					common.ExecutionAddress{0x01},
 				),
 			amount:                    32e9,
 			effectiveBalanceIncrement: 1e9,
@@ -57,7 +57,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 				Pubkey: [48]byte{0x01},
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						gethprimitives.ExecutionAddress{0x01},
+						common.ExecutionAddress{0x01},
 					),
 				EffectiveBalance: 32e9,
 				Slashed:          false,
@@ -80,7 +80,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 			pubkey: [48]byte{0x02},
 			withdrawalCredentials: types.
 				NewCredentialsFromExecutionAddress(
-					gethprimitives.ExecutionAddress{0x02},
+					common.ExecutionAddress{0x02},
 				),
 			amount:                    40e9,
 			effectiveBalanceIncrement: 1e9,
@@ -89,7 +89,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 				Pubkey: [48]byte{0x02},
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						gethprimitives.ExecutionAddress{0x02},
+						common.ExecutionAddress{0x02},
 					),
 				EffectiveBalance: 32e9,
 				Slashed:          false,
@@ -112,7 +112,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 			pubkey: [48]byte{0x03},
 			withdrawalCredentials: types.
 				NewCredentialsFromExecutionAddress(
-					gethprimitives.ExecutionAddress{0x03},
+					common.ExecutionAddress{0x03},
 				),
 			amount:                    32.5e9,
 			effectiveBalanceIncrement: 1e9,
@@ -121,7 +121,7 @@ func TestNewValidatorFromDeposit(t *testing.T) {
 				Pubkey: [48]byte{0x03},
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						gethprimitives.ExecutionAddress{0x03},
+						common.ExecutionAddress{0x03},
 					),
 				EffectiveBalance: 32e9,
 				Slashed:          false,
@@ -363,7 +363,7 @@ func TestValidator_IsFullyWithdrawable(t *testing.T) {
 			validator: &types.Validator{
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						gethprimitives.ExecutionAddress{0x01},
+						common.ExecutionAddress{0x01},
 					),
 				WithdrawableEpoch: 5,
 			},
@@ -387,7 +387,7 @@ func TestValidator_IsFullyWithdrawable(t *testing.T) {
 			validator: &types.Validator{
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						gethprimitives.ExecutionAddress{0x01},
+						common.ExecutionAddress{0x01},
 					),
 				WithdrawableEpoch: 5,
 			},
@@ -400,7 +400,7 @@ func TestValidator_IsFullyWithdrawable(t *testing.T) {
 			validator: &types.Validator{
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						gethprimitives.ExecutionAddress{0x01},
+						common.ExecutionAddress{0x01},
 					),
 				WithdrawableEpoch: 5,
 			},
@@ -432,7 +432,7 @@ func TestValidator_IsPartiallyWithdrawable(t *testing.T) {
 			validator: &types.Validator{
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						gethprimitives.ExecutionAddress{0x01},
+						common.ExecutionAddress{0x01},
 					),
 				EffectiveBalance: maxEffectiveBalance,
 			},
@@ -455,7 +455,7 @@ func TestValidator_IsPartiallyWithdrawable(t *testing.T) {
 			validator: &types.Validator{
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						gethprimitives.ExecutionAddress{0x01},
+						common.ExecutionAddress{0x01},
 					),
 				EffectiveBalance: maxEffectiveBalance - 1,
 			},
@@ -467,7 +467,7 @@ func TestValidator_IsPartiallyWithdrawable(t *testing.T) {
 			validator: &types.Validator{
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						gethprimitives.ExecutionAddress{0x01},
+						common.ExecutionAddress{0x01},
 					),
 				EffectiveBalance: maxEffectiveBalance,
 			},
@@ -499,7 +499,7 @@ func TestValidator_HasEth1WithdrawalCredentials(t *testing.T) {
 			validator: &types.Validator{
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						gethprimitives.ExecutionAddress{0x01},
+						common.ExecutionAddress{0x01},
 					),
 			},
 			want: true,
@@ -570,7 +570,7 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 				Pubkey: [48]byte{0x01},
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						gethprimitives.ExecutionAddress{0x01},
+						common.ExecutionAddress{0x01},
 					),
 				EffectiveBalance: 32e9,
 				Slashed:          false,
@@ -595,7 +595,7 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 				Pubkey: [48]byte{0x02},
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						gethprimitives.ExecutionAddress{0x02},
+						common.ExecutionAddress{0x02},
 					),
 				EffectiveBalance:           32e9,
 				Slashed:                    true,
@@ -612,7 +612,7 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 				Pubkey: [48]byte{0x03},
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						gethprimitives.ExecutionAddress{0x03},
+						common.ExecutionAddress{0x03},
 					),
 				EffectiveBalance: 0,
 				Slashed:          false,
@@ -637,7 +637,7 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 				Pubkey: [48]byte{0x04},
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						gethprimitives.ExecutionAddress{0x04},
+						common.ExecutionAddress{0x04},
 					),
 				EffectiveBalance:           16e9,
 				Slashed:                    false,
@@ -683,6 +683,13 @@ func TestValidator_MarshalUnmarshalSSZ(t *testing.T) {
 					"Test case: %s",
 					tt.name,
 				)
+
+				var buf []byte
+				buf, err = tt.validator.MarshalSSZTo(buf)
+				require.NoError(t, err)
+
+				// The two byte slices should be equal
+				require.Equal(t, marshaled, buf)
 			}
 		})
 	}
@@ -699,7 +706,7 @@ func TestValidator_HashTreeRoot(t *testing.T) {
 				Pubkey: [48]byte{0x01},
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						gethprimitives.ExecutionAddress{0x01},
+						common.ExecutionAddress{0x01},
 					),
 				EffectiveBalance: 32e9,
 				Slashed:          false,
@@ -723,7 +730,7 @@ func TestValidator_HashTreeRoot(t *testing.T) {
 				Pubkey: [48]byte{0x02},
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						gethprimitives.ExecutionAddress{0x02},
+						common.ExecutionAddress{0x02},
 					),
 				EffectiveBalance:           32e9,
 				Slashed:                    true,
@@ -738,13 +745,12 @@ func TestValidator_HashTreeRoot(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Test HashTreeRoot
-			root, err := tt.validator.HashTreeRoot()
-			require.NoError(t, err)
+			root := tt.validator.HashTreeRoot()
 			require.NotEqual(t, [32]byte{}, root)
 
 			// Test HashTreeRootWith
 			hh := ssz.NewHasher()
-			err = tt.validator.HashTreeRootWith(hh)
+			err := tt.validator.HashTreeRootWith(hh)
 			require.NoError(t, err)
 
 			// Test GetTree
@@ -828,11 +834,11 @@ func TestValidator_GetWithdrawalCredentials(t *testing.T) {
 			validator: &types.Validator{
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						gethprimitives.ExecutionAddress{0x01},
+						common.ExecutionAddress{0x01},
 					),
 			},
 			want: types.NewCredentialsFromExecutionAddress(
-				gethprimitives.ExecutionAddress{0x01},
+				common.ExecutionAddress{0x01},
 			),
 		},
 		{
@@ -895,7 +901,7 @@ func TestValidator_New(t *testing.T) {
 			pubkey: [48]byte{0x01},
 			withdrawalCredentials: types.
 				NewCredentialsFromExecutionAddress(
-					gethprimitives.ExecutionAddress{0x01},
+					common.ExecutionAddress{0x01},
 				),
 			amount:                    32e9,
 			effectiveBalanceIncrement: 1e9,
@@ -904,7 +910,7 @@ func TestValidator_New(t *testing.T) {
 				Pubkey: [48]byte{0x01},
 				WithdrawalCredentials: types.
 					NewCredentialsFromExecutionAddress(
-						gethprimitives.ExecutionAddress{0x01},
+						common.ExecutionAddress{0x01},
 					),
 				EffectiveBalance: 32e9,
 				Slashed:          false,

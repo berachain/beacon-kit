@@ -90,3 +90,16 @@ func ProvideNodeAPINodeHandler() *NodeAPIHandler {
 func ProvideNodeAPIProofHandler(b *NodeAPIBackend) *ProofAPIHandler {
 	return proofapi.NewHandler[NodeAPIContext](b)
 }
+
+func DefaultNodeAPIHandlers() []any {
+	return []any{
+		ProvideNodeAPIHandlers,
+		ProvideNodeAPIBeaconHandler,
+		ProvideNodeAPIBuilderHandler,
+		ProvideNodeAPIConfigHandler,
+		ProvideNodeAPIDebugHandler,
+		ProvideNodeAPIEventsHandler,
+		ProvideNodeAPINodeHandler,
+		ProvideNodeAPIProofHandler,
+	}
+}

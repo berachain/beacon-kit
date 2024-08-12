@@ -29,7 +29,7 @@ import (
 
 // sendPostBlockFCU sends a forkchoice update to the execution client.
 func (s *Service[
-	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _, _, _,
+	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _, _,
 ]) sendPostBlockFCU(
 	ctx context.Context,
 	st BeaconStateT,
@@ -55,7 +55,7 @@ func (s *Service[
 // client with attributes.
 func (s *Service[
 	_, BeaconBlockT, _, _, BeaconStateT,
-	_, _, _, ExecutionPayloadHeaderT, _, _, _,
+	_, _, ExecutionPayloadHeaderT, _, _, _,
 ]) sendNextFCUWithAttributes(
 	ctx context.Context,
 	st BeaconStateT,
@@ -71,16 +71,8 @@ func (s *Service[
 		return
 	}
 
-	prevBlockRoot, err := blk.HashTreeRoot()
-	if err != nil {
-		s.logger.Error(
-			"failed to get block root in non-optimistic payload",
-			"error", err,
-		)
-		return
-	}
-
-	if _, err = s.lb.RequestPayloadAsync(
+	prevBlockRoot := blk.HashTreeRoot()
+	if _, err := s.lb.RequestPayloadAsync(
 		ctx,
 		stCopy,
 		blk.GetSlot()+1,
@@ -100,7 +92,7 @@ func (s *Service[
 // sendNextFCUWithoutAttributes sends a forkchoice update to the
 // execution client without attributes.
 func (s *Service[
-	_, BeaconBlockT, _, _, _, _, _, _,
+	_, BeaconBlockT, _, _, _, _, _,
 	ExecutionPayloadHeaderT, _, PayloadAttributesT, _,
 ]) sendNextFCUWithoutAttributes(
 	ctx context.Context,
@@ -132,7 +124,7 @@ func (s *Service[
 //
 // TODO: This is hood and needs to be improved.
 func (s *Service[
-	_, BeaconBlockT, _, _, _, _, _, _, _, _, _, _,
+	_, BeaconBlockT, _, _, _, _, _, _, _, _, _,
 ]) calculateNextTimestamp(blk BeaconBlockT) uint64 {
 	//#nosec:G701 // not an issue in practice.
 	return max(

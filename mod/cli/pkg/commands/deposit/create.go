@@ -222,7 +222,7 @@ func broadcastDepositTx[
 
 	// Send the deposit to the deposit contract through abi bindings.
 	depositContract, err := deposit.NewBeaconDepositContract(
-		chainSpec.DepositContractAddress(),
+		gethprimitives.ExecutionAddress(chainSpec.DepositContractAddress()),
 		ethClient,
 	)
 	if err != nil {
@@ -232,7 +232,7 @@ func broadcastDepositTx[
 		&bind.TransactOpts{
 			From: gethprimitivescrypto.PubkeyToAddress(privKey.PublicKey),
 			Signer: func(
-				_ common.ExecutionAddress, tx *gethprimitives.Transaction,
+				_ gethprimitives.ExecutionAddress, tx *gethprimitives.Transaction,
 			) (*gethprimitives.Transaction, error) {
 				return gethprimitives.SignTx(
 					tx,
@@ -275,7 +275,7 @@ func broadcastDepositTx[
 			)
 	}
 
-	return depositReceipt.TxHash, nil
+	return common.ExecutionHash(depositReceipt.TxHash), nil
 }
 
 // getBLSSigner returns a BLS signer based on the override commands key flag.

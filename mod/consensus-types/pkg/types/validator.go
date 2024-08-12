@@ -21,6 +21,7 @@
 package types
 
 import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -140,8 +141,8 @@ func (v *Validator) DefineSSZ(codec *ssz.Codec) {
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the Validator object.
-func (v *Validator) HashTreeRoot() ([32]byte, error) {
-	return ssz.HashSequential(v), nil
+func (v *Validator) HashTreeRoot() common.Root {
+	return ssz.HashSequential(v)
 }
 
 // MarshalSSZ marshals the Validator object to SSZ format.

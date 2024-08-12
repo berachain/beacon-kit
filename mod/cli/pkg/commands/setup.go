@@ -22,7 +22,6 @@ package commands
 
 import (
 	confixcmd "cosmossdk.io/tools/confix/cmd"
-	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/client"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/cometbft"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/deposit"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/genesis"
@@ -31,12 +30,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/pruning"
-	"github.com/cosmos/cosmos-sdk/client/snapshot"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 )
@@ -47,7 +45,7 @@ func DefaultRootCommandSetup[
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 ](
 	root *Root,
-	mm *module.Manager,
+	mm *runtime.App,
 	appCreator servertypes.AppCreator[T],
 	chainSpec common.ChainSpec,
 ) {
@@ -60,8 +58,7 @@ func DefaultRootCommandSetup[
 	root.cmd.AddCommand(
 		// `comet`
 		cometbft.Commands(appCreator),
-		// `client`
-		client.Commands(),
+
 		// `config`
 		confixcmd.ConfigCommand(),
 		// `init`
@@ -78,8 +75,6 @@ func DefaultRootCommandSetup[
 		pruning.Cmd(appCreator),
 		// `rollback`
 		server.NewRollbackCmd(appCreator),
-		// `snapshots`
-		snapshot.Cmd(appCreator),
 		// `start`
 		server.StartCmdWithOptions(appCreator, startCmdOptions),
 		// `status`

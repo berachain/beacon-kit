@@ -26,7 +26,6 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
@@ -46,8 +45,8 @@ func generateExecutionPayload() *types.ExecutionPayload {
 		Amount:    0,
 	}
 	return &types.ExecutionPayload{
-		ParentHash:    gethprimitives.ExecutionHash{},
-		FeeRecipient:  gethprimitives.ExecutionAddress{},
+		ParentHash:    common.ExecutionHash{},
+		FeeRecipient:  common.ExecutionAddress{},
 		StateRoot:     bytes.B32{},
 		ReceiptsRoot:  bytes.B32{},
 		LogsBloom:     bytes.B256{},
@@ -58,7 +57,7 @@ func generateExecutionPayload() *types.ExecutionPayload {
 		Timestamp:     math.U64(0),
 		ExtraData:     []byte{0x01},
 		BaseFeePerGas: &math.U256{},
-		BlockHash:     gethprimitives.ExecutionHash{},
+		BlockHash:     common.ExecutionHash{},
 		Transactions:  transactions,
 		Withdrawals:   withdrawals,
 		BlobGasUsed:   math.U64(0),
@@ -77,6 +76,13 @@ func TestExecutionPayload_Serialization(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, original, &unmarshalled)
+
+	var buf []byte
+	buf, err = original.MarshalSSZTo(buf)
+	require.NoError(t, err)
+
+	// The two byte slices should be equal
+	require.Equal(t, data, buf)
 }
 
 func TestExecutionPayload_SizeSSZ(t *testing.T) {
@@ -91,8 +97,9 @@ func TestExecutionPayload_SizeSSZ(t *testing.T) {
 
 func TestExecutionPayload_HashTreeRoot(t *testing.T) {
 	payload := generateExecutionPayload()
-	_, err := payload.HashTreeRoot()
-	require.NoError(t, err)
+	require.NotPanics(t, func() {
+		_ = payload.HashTreeRoot()
+	})
 }
 
 func TestExecutionPayload_GetTree(t *testing.T) {
@@ -104,16 +111,16 @@ func TestExecutionPayload_GetTree(t *testing.T) {
 
 func TestExecutionPayload_Getters(t *testing.T) {
 	payload := generateExecutionPayload()
-	require.Equal(t, gethprimitives.ExecutionHash{}, payload.GetParentHash())
+	require.Equal(t, common.ExecutionHash{}, payload.GetParentHash())
 	require.Equal(
 		t,
-		gethprimitives.ExecutionAddress{},
+		common.ExecutionAddress{},
 		payload.GetFeeRecipient(),
 	)
 
 	transactions := make(engineprimitives.Transactions, 1)
 	transactions[0] = []byte{0x07}
-	withdrawals := make([]*engineprimitives.Withdrawal, 1)
+	withdrawals := make(engineprimitives.Withdrawals, 1)
 	withdrawals[0] = &engineprimitives.Withdrawal{
 		Index:     0,
 		Validator: 0,
@@ -132,7 +139,7 @@ func TestExecutionPayload_Getters(t *testing.T) {
 	require.Equal(t, math.U64(0), payload.GetTimestamp())
 	require.Equal(t, []byte{0x01}, payload.GetExtraData())
 	require.Equal(t, &math.U256{}, payload.GetBaseFeePerGas())
-	require.Equal(t, gethprimitives.ExecutionHash{}, payload.GetBlockHash())
+	require.Equal(t, common.ExecutionHash{}, payload.GetBlockHash())
 	require.Equal(t, transactions, payload.GetTransactions())
 	require.Equal(t, withdrawals, payload.GetWithdrawals())
 	require.Equal(t, math.U64(0), payload.GetBlobGasUsed())
@@ -180,8 +187,8 @@ func TestExecutionPayload_Empty(t *testing.T) {
 
 func TestExecutionPayload_ToHeader(t *testing.T) {
 	payload := &types.ExecutionPayload{
-		ParentHash:    gethprimitives.ExecutionHash{},
-		FeeRecipient:  gethprimitives.ExecutionAddress{},
+		ParentHash:    common.ExecutionHash{},
+		FeeRecipient:  common.ExecutionAddress{},
 		StateRoot:     bytes.B32{},
 		ReceiptsRoot:  bytes.B32{},
 		LogsBloom:     bytes.B256{},
@@ -192,7 +199,7 @@ func TestExecutionPayload_ToHeader(t *testing.T) {
 		Timestamp:     math.U64(0),
 		ExtraData:     []byte{},
 		BaseFeePerGas: &math.U256{},
-		BlockHash:     gethprimitives.ExecutionHash{},
+		BlockHash:     common.ExecutionHash{},
 		Transactions:  [][]byte{[]byte{0x01}},
 		Withdrawals:   []*engineprimitives.Withdrawal{},
 		BlobGasUsed:   math.U64(0),

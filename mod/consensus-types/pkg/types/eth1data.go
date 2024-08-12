@@ -21,7 +21,6 @@
 package types
 
 import (
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -44,7 +43,7 @@ type Eth1Data struct {
 	// DepositCount is the number of deposits in the deposit tree.
 	DepositCount math.U64 `json:"depositCount"`
 	// BlockHash is the hash of the block corresponding to the Eth1Data.
-	BlockHash gethprimitives.ExecutionHash `json:"blockHash"`
+	BlockHash common.ExecutionHash `json:"blockHash"`
 }
 
 /* -------------------------------------------------------------------------- */
@@ -60,7 +59,7 @@ func (*Eth1Data) Empty() *Eth1Data {
 func (e *Eth1Data) New(
 	depositRoot common.Root,
 	depositCount math.U64,
-	blockHash gethprimitives.ExecutionHash,
+	blockHash common.ExecutionHash,
 ) *Eth1Data {
 	e = &Eth1Data{
 		DepositRoot:  depositRoot,
@@ -87,8 +86,8 @@ func (e *Eth1Data) DefineSSZ(codec *ssz.Codec) {
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the Eth1Data object.
-func (e *Eth1Data) HashTreeRoot() ([32]byte, error) {
-	return ssz.HashSequential(e), nil
+func (e *Eth1Data) HashTreeRoot() common.Root {
+	return ssz.HashSequential(e)
 }
 
 // MarshalSSZ marshals the Eth1Data object to SSZ format.

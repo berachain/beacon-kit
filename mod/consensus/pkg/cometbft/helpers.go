@@ -23,34 +23,11 @@ package cometbft
 import (
 	"sort"
 
-	appmodulev2 "cosmossdk.io/core/appmodule/v2"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	v1 "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
-
-// convertValidatorUpdate abstracts the conversion of a
-// transition.ValidatorUpdate to an appmodulev2.ValidatorUpdate.
-// TODO: this is so hood, bktypes -> sdktypes -> generic is crazy
-// maybe make this some kind of codec/func that can be passed in?
-func convertValidatorUpdate[ValidatorUpdateT any](
-	u **transition.ValidatorUpdate,
-) (ValidatorUpdateT, error) {
-	var valUpdate ValidatorUpdateT
-	update := *u
-	if update == nil {
-		return valUpdate, ErrUndefinedValidatorUpdate
-	}
-	return any(appmodulev2.ValidatorUpdate{
-		PubKey:     update.Pubkey[:],
-		PubKeyType: crypto.CometBLSType,
-		//#nosec:G701 // this is safe.
-		Power: int64(update.EffectiveBalance.Unwrap()),
-	}).(ValidatorUpdateT), nil
-}
 
 // convertPrepareProposalToSlotData converts a prepare proposal request to
 // a slot data.
@@ -103,10 +80,7 @@ func (c *ConsensusEngine[
 	var index math.U64
 	attestations := make([]AttestationDataT, len(votes))
 	st := c.sb.StateFromContext(ctx)
-	root, err := st.HashTreeRoot()
-	if err != nil {
-		return nil, err
-	}
+	root := st.HashTreeRoot()
 	for i, vote := range votes {
 		index, err = st.ValidatorIndexByCometBFTAddress(vote.Validator.Address)
 		if err != nil {

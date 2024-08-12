@@ -21,12 +21,18 @@
 package core
 
 import (
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
+)
+
+//nolint:lll // temporary.
+const (
+	bArtioValRoot = "0x9147586693b6e8faa837715c0f3071c2000045b54233901c2e7871b15872bc43"
+	bArtioChainID = 80084
 )
 
 // InitializePreminedBeaconStateFromEth1 initializes the beacon state.
@@ -34,7 +40,7 @@ import (
 //nolint:gocognit,funlen // todo fix.
 func (sp *StateProcessor[
 	_, BeaconBlockBodyT, BeaconBlockHeaderT, BeaconStateT, _, DepositT,
-	Eth1DataT, _, ExecutionPayloadHeaderT, ForkT, _, _, ValidatorT, _, _, _,
+	Eth1DataT, _, ExecutionPayloadHeaderT, ForkT, _, _, ValidatorT, _, _, _, _,
 ]) InitializePreminedBeaconStateFromEth1(
 	st BeaconStateT,
 	deposits []DepositT,
@@ -66,7 +72,7 @@ func (sp *StateProcessor[
 	}
 
 	if err := st.SetEth1Data(eth1Data.New(
-		common.Bytes32(gethprimitives.ZeroHash),
+		common.Root{},
 		0,
 		executionPayloadHeader.GetBlockHash(),
 	)); err != nil {
@@ -75,20 +81,16 @@ func (sp *StateProcessor[
 
 	// TODO: we need to handle common.Version vs
 	// uint32 better.
-	bodyRoot, err := blkBody.Empty(
+	bodyRoot := blkBody.Empty(
 		version.ToUint32(genesisVersion)).HashTreeRoot()
-	if err != nil {
-		return nil, err
-	}
-
-	if err = st.SetLatestBlockHeader(blkHeader.New(
+	if err := st.SetLatestBlockHeader(blkHeader.New(
 		0, 0, common.Root{}, common.Root{}, bodyRoot,
 	)); err != nil {
 		return nil, err
 	}
 
 	for i := range sp.cs.EpochsPerHistoricalVector() {
-		if err = st.UpdateRandaoMixAtIndex(
+		if err := st.UpdateRandaoMixAtIndex(
 			i,
 			common.Bytes32(executionPayloadHeader.GetBlockHash()),
 		); err != nil {
@@ -97,8 +99,7 @@ func (sp *StateProcessor[
 	}
 
 	for _, deposit := range deposits {
-		// TODO: process deposits into eth1 data.
-		if err = sp.processDeposit(st, deposit); err != nil {
+		if err := sp.processDeposit(st, deposit); err != nil {
 			return nil, err
 		}
 	}
@@ -109,7 +110,14 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	if err = st.SetGenesisValidatorsRoot(validators.HashTreeRoot()); err != nil {
+	// Handle special case bartio genesis.
+	if sp.cs.DepositEth1ChainID() == bArtioChainID {
+		if err = st.SetGenesisValidatorsRoot(
+			common.Root(hex.MustToBytes(bArtioValRoot))); err != nil {
+			return nil, err
+		}
+	} else if err = st.
+		SetGenesisValidatorsRoot(validators.HashTreeRoot()); err != nil {
 		return nil, err
 	}
 
@@ -149,6 +157,5 @@ func (sp *StateProcessor[
 	if err != nil {
 		return nil, err
 	}
-	st.Save()
 	return updates, nil
 }

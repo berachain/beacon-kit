@@ -21,7 +21,6 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -67,7 +66,7 @@ func (b *BeaconBlock) NewWithVersion(
 			Slot:          slot,
 			ProposerIndex: proposerIndex,
 			ParentRoot:    parentBlockRoot,
-			StateRoot:     bytes.B32{},
+			StateRoot:     common.Root{},
 			Body:          &BeaconBlockBody{},
 		}
 	default:
@@ -135,8 +134,8 @@ func (b *BeaconBlock) UnmarshalSSZ(buf []byte) error {
 }
 
 // HashTreeRoot computes the Merkleization of the BeaconBlock object.
-func (b *BeaconBlock) HashTreeRoot() ([32]byte, error) {
-	return ssz.HashConcurrent(b), nil
+func (b *BeaconBlock) HashTreeRoot() common.Root {
+	return ssz.HashConcurrent(b)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -226,16 +225,17 @@ func (b *BeaconBlock) GetBody() *BeaconBlockBody {
 
 // GetHeader builds a BeaconBlockHeader from the BeaconBlock.
 func (b *BeaconBlock) GetHeader() *BeaconBlockHeader {
-	bodyRoot, err := b.GetBody().HashTreeRoot()
-	if err != nil {
-		return nil
-	}
-
 	return &BeaconBlockHeader{
 		Slot:            b.Slot,
 		ProposerIndex:   b.ProposerIndex,
 		ParentBlockRoot: b.ParentRoot,
 		StateRoot:       b.StateRoot,
-		BodyRoot:        bodyRoot,
+		BodyRoot:        b.GetBody().HashTreeRoot(),
 	}
+}
+
+// GetExecutionNumber retrieves the execution number of the BeaconBlock from
+// the ExecutionPayload.
+func (b *BeaconBlock) GetExecutionNumber() math.U64 {
+	return b.Body.ExecutionPayload.Number
 }

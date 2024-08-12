@@ -25,7 +25,6 @@ import (
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -88,7 +87,7 @@ type BeaconBlockBody[
 	SetSlashingInfo([]SlashingInfoT)
 	// SetBlobKzgCommitments sets the blob KZG commitments of the beacon block
 	// body.
-	SetBlobKzgCommitments(eip4844.KZGCommitments[gethprimitives.ExecutionHash])
+	SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
 }
 
 // BeaconState represents a beacon state interface.
@@ -103,7 +102,7 @@ type BeaconState[ExecutionPayloadHeaderT any] interface {
 	// GetSlot returns the current slot of the beacon state.
 	GetSlot() (math.Slot, error)
 	// HashTreeRoot returns the hash tree root of the beacon state.
-	HashTreeRoot() ([32]byte, error)
+	HashTreeRoot() common.Root
 	// ValidatorIndexByPubkey returns the validator index by public key.
 	ValidatorIndexByPubkey(crypto.BLSPubkey) (math.ValidatorIndex, error)
 	// GetEth1DepositIndex returns the latest deposit index from the beacon
@@ -151,7 +150,7 @@ type Eth1Data[T any] interface {
 	New(
 		depositRoot common.Root,
 		depositCount math.U64,
-		blockHash gethprimitives.ExecutionHash,
+		blockHash common.ExecutionHash,
 	) T
 }
 
@@ -160,9 +159,9 @@ type ExecutionPayloadHeader interface {
 	// GetTimestamp returns the timestamp of the execution payload header.
 	GetTimestamp() math.U64
 	// GetBlockHash returns the block hash of the execution payload header.
-	GetBlockHash() gethprimitives.ExecutionHash
+	GetBlockHash() common.ExecutionHash
 	// GetParentHash returns the parent hash of the execution payload header.
-	GetParentHash() gethprimitives.ExecutionHash
+	GetParentHash() common.ExecutionHash
 }
 
 // EventSubscription represents the event subscription interface.
@@ -185,7 +184,7 @@ type ForkData[T any] interface {
 	ComputeRandaoSigningRoot(
 		common.DomainType,
 		math.Epoch,
-	) (common.Root, error)
+	) common.Root
 }
 
 // PayloadBuilder represents a service that is responsible for
@@ -205,8 +204,8 @@ type PayloadBuilder[BeaconStateT, ExecutionPayloadT any] interface {
 		slot math.Slot,
 		timestamp uint64,
 		parentBlockRoot common.Root,
-		headEth1BlockHash gethprimitives.ExecutionHash,
-		finalEth1BlockHash gethprimitives.ExecutionHash,
+		headEth1BlockHash common.ExecutionHash,
+		finalEth1BlockHash common.ExecutionHash,
 	) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
 }
 

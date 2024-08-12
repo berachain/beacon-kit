@@ -24,8 +24,8 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -56,7 +56,11 @@ func TestBeaconBlockBodyBase(t *testing.T) {
 
 	require.Equal(t, bytes.B96{1, 2, 3}, body.GetRandaoReveal())
 	require.NotNil(t, body.GetEth1Data())
-	require.Equal(t, bytes.B32{4, 5, 6}, body.GetGraffiti())
+
+	newGraffiti := [32]byte{7, 8, 9}
+	body.SetGraffiti(newGraffiti)
+
+	require.Equal(t, newGraffiti, [32]byte(body.GetGraffiti()))
 	require.NotNil(t, body.GetDeposits())
 }
 
@@ -85,7 +89,7 @@ func TestBeaconBlockBody_GetTree(t *testing.T) {
 
 func TestBeaconBlockBody_SetBlobKzgCommitments(t *testing.T) {
 	body := types.BeaconBlockBody{}
-	commitments := eip4844.KZGCommitments[gethprimitives.ExecutionHash]{}
+	commitments := eip4844.KZGCommitments[common.ExecutionHash]{}
 	body.SetBlobKzgCommitments(commitments)
 
 	require.Equal(t, commitments, body.GetBlobKzgCommitments())
@@ -129,10 +133,25 @@ func TestBeaconBlockBody_MarshalSSZ(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, data)
 }
+
+func TestBeaconBlockBody_MarshalSSZTo(t *testing.T) {
+	body := generateBeaconBlockBody()
+
+	data, err := body.MarshalSSZ()
+	require.NoError(t, err)
+	require.NotNil(t, data)
+
+	var buf []byte
+	buf, err = body.MarshalSSZTo(buf)
+	require.NoError(t, err)
+
+	// The two byte slices should be equal
+	require.Equal(t, data, buf)
+}
+
 func TestBeaconBlockBody_GetTopLevelRoots(t *testing.T) {
 	body := generateBeaconBlockBody()
-	roots, err := body.GetTopLevelRoots()
-	require.NoError(t, err)
+	roots := body.GetTopLevelRoots()
 	require.NotNil(t, roots)
 }
 

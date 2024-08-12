@@ -22,7 +22,6 @@ package spec
 
 import (
 	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -33,7 +32,7 @@ import (
 func TestnetChainSpec() chain.Spec[
 	common.DomainType,
 	math.Epoch,
-	gethprimitives.ExecutionAddress,
+	common.ExecutionAddress,
 	math.Slot,
 	any,
 ] {
@@ -46,7 +45,7 @@ func TestnetChainSpec() chain.Spec[
 func BaseSpec() chain.SpecData[
 	common.DomainType,
 	math.Epoch,
-	gethprimitives.ExecutionAddress,
+	common.ExecutionAddress,
 	math.Slot,
 	any,
 ] {
@@ -56,7 +55,7 @@ func BaseSpec() chain.SpecData[
 	return chain.SpecData[
 		common.DomainType,
 		math.Epoch,
-		gethprimitives.ExecutionAddress,
+		common.ExecutionAddress,
 		math.Slot,
 		any,
 	]{
@@ -95,7 +94,7 @@ func BaseSpec() chain.SpecData[
 			0x00, 0x00, 0x00, 0x01,
 		},
 		// Eth1-related values.
-		DepositContractAddress: gethprimitives.HexToAddress(
+		DepositContractAddress: common.NewExecutionAddressFromHex(
 			"0x4242424242424242424242424242424242424242",
 		),
 		DepositEth1ChainID:        uint64(80084),

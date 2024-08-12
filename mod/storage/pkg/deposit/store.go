@@ -27,19 +27,10 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb/encoding"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 )
 
 const KeyDepositPrefix = "deposit"
-
-type KVStoreProvider struct {
-	store.KVStoreWithBatch
-}
-
-// OpenKVStore opens a new KV store.
-func (p *KVStoreProvider) OpenKVStore(context.Context) store.KVStore {
-	return p.KVStoreWithBatch
-}
 
 // KVStore is a simple KV store based implementation that assumes
 // the deposit indexes are tracked outside of the kv store.
@@ -56,7 +47,7 @@ func NewStore[DepositT Deposit[DepositT]](
 	return &KVStore[DepositT]{
 		store: sdkcollections.NewMap(
 			schemaBuilder,
-			sdkcollections.NewPrefix([]byte{uint8(0)}),
+			sdkcollections.NewPrefix([]byte(KeyDepositPrefix)),
 			KeyDepositPrefix,
 			sdkcollections.Uint64Key,
 			encoding.SSZValueCodec[DepositT]{},
@@ -108,7 +99,7 @@ func (kv *KVStore[DepositT]) EnqueueDeposits(deposits []DepositT) error {
 
 // setDeposit sets the deposit in the store.
 func (kv *KVStore[DepositT]) setDeposit(deposit DepositT) error {
-	return kv.store.Set(context.TODO(), uint64(deposit.GetIndex()), deposit)
+	return kv.store.Set(context.TODO(), deposit.GetIndex().Unwrap(), deposit)
 }
 
 // Prune removes the [start, end) deposits from the store.

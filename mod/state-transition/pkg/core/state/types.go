@@ -21,7 +21,6 @@
 package state
 
 import (
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -41,12 +40,12 @@ type BeaconStateMarshallable[
 	// New returns a new instance of the BeaconStateMarshallable.
 	New(
 		forkVersion uint32,
-		genesisValidatorsRoot common.Bytes32,
+		genesisValidatorsRoot common.Root,
 		slot math.U64,
 		fork ForkT,
 		latestBlockHeader BeaconBlockHeaderT,
-		blockRoots []common.Bytes32,
-		stateRoots []common.Bytes32,
+		blockRoots []common.Root,
+		stateRoots []common.Root,
 		eth1Data Eth1DataT,
 		eth1DepositIndex uint64,
 		latestExecutionPayloadHeader ExecutionPayloadHeaderT,
@@ -79,7 +78,7 @@ type Withdrawal[T any] interface {
 	New(
 		index math.U64,
 		validator math.ValidatorIndex,
-		address gethprimitives.ExecutionAddress,
+		address common.ExecutionAddress,
 		amount math.Gwei,
 	) T
 }
@@ -88,5 +87,5 @@ type Withdrawal[T any] interface {
 type WithdrawalCredentials interface {
 	// ToExecutionAddress converts the withdrawal credentials to an execution
 	// address.
-	ToExecutionAddress() (gethprimitives.ExecutionAddress, error)
+	ToExecutionAddress() (common.ExecutionAddress, error)
 }

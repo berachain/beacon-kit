@@ -34,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	rp2p "github.com/berachain/beacon-kit/mod/runtime/pkg/p2p"
-	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
 // ABCIMiddleware is a middleware between ABCI and the validator logic.
@@ -52,10 +51,6 @@ type ABCIMiddleware[
 ] struct {
 	// chainSpec is the chain specification.
 	chainSpec common.ChainSpec
-	// chainService represents the blockchain service.
-	chainService BlockchainService[
-		BeaconBlockT, BlobSidecarsT, DepositT, GenesisT,
-	]
 	// TODO: we will eventually gossip the blobs separately from
 	// CometBFT, but for now, these are no-op gossipers.
 	blobGossiper p2p.PublisherReceiver[
@@ -88,9 +83,6 @@ type ABCIMiddleware[
 	// slotBroker is a feed for slots.
 	slotBroker *broker.Broker[*asynctypes.Event[SlotDataT]]
 
-	// TODO: this is a temporary hack.
-	req *cmtabci.FinalizeBlockRequest
-
 	// Channels
 	// blkCh is used to communicate the beacon block to the EndBlock method.
 	blkCh chan *asynctypes.Event[BeaconBlockT]
@@ -115,9 +107,6 @@ func NewABCIMiddleware[
 	SlotDataT any,
 ](
 	chainSpec common.ChainSpec,
-	chainService BlockchainService[
-		BeaconBlockT, BlobSidecarsT, DepositT, GenesisT,
-	],
 	logger log.Logger[any],
 	telemetrySink TelemetrySink,
 	genesisBroker *broker.Broker[*asynctypes.Event[GenesisT]],
@@ -133,8 +122,7 @@ func NewABCIMiddleware[
 		AvailabilityStoreT, BeaconBlockT, BlobSidecarsT, DepositT,
 		ExecutionPayloadT, GenesisT, SlotDataT,
 	]{
-		chainSpec:    chainSpec,
-		chainService: chainService,
+		chainSpec: chainSpec,
 		blobGossiper: rp2p.NewNoopBlobHandler[
 			BlobSidecarsT, encoding.ABCIRequest,
 		](),

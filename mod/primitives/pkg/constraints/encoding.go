@@ -20,7 +20,11 @@
 
 package constraints
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+)
 
 // SSZMarshaler is an interface for objects that can be
 // marshaled to SSZ format.
@@ -40,7 +44,7 @@ type SSZUnmarshaler interface {
 // their hash tree root.
 type SSZRootable interface {
 	// HashTreeRoot computes the hash tree root of the object.
-	HashTreeRoot() ([32]byte, error)
+	HashTreeRoot() common.Root
 }
 
 // SSZMarshallable is an interface that combines

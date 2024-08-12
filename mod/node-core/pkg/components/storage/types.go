@@ -23,7 +23,6 @@ package storage
 import (
 	"context"
 
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -47,13 +46,9 @@ type AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT any] interface {
 // BlockStore is the interface for block storage.
 type BlockStore[BeaconBlockT any] interface {
 	// Get retrieves the block at the given slot.
-	Get(slot uint64) (BeaconBlockT, error)
+	Get(slot math.Slot) (BeaconBlockT, error)
 	// GetSlotByRoot retrieves the slot by a given root from the store.
-	GetSlotByRoot(root [32]byte) (math.Slot, error)
-	// Prune prunes the block store of [start, end).
-	Prune(start, end uint64) error
-	// Set sets the block at the given slot.
-	Set(slot uint64, block BeaconBlockT) error
+	GetSlotByRoot(root common.Root) (math.Slot, error)
 }
 
 // Deposit is a struct that represents a deposit.
@@ -91,8 +86,6 @@ type KVStore[
 	WithContext(
 		ctx context.Context,
 	) T
-	// Save saves the key-value store.
-	Save()
 	// Copy returns a copy of the key-value store.
 	Copy() T
 	// GetLatestExecutionPayloadHeader retrieves the latest execution payload
@@ -216,7 +209,7 @@ type Withdrawal[T any] interface {
 	New(
 		index math.U64,
 		validator math.ValidatorIndex,
-		address gethprimitives.ExecutionAddress,
+		address common.ExecutionAddress,
 		amount math.Gwei,
 	) T
 }
@@ -225,5 +218,5 @@ type Withdrawal[T any] interface {
 type WithdrawalCredentials interface {
 	// ToExecutionAddress converts the withdrawal credentials to an execution
 	// address.
-	ToExecutionAddress() (gethprimitives.ExecutionAddress, error)
+	ToExecutionAddress() (common.ExecutionAddress, error)
 }

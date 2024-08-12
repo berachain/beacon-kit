@@ -25,6 +25,7 @@ import (
 	"testing"
 
 	byteslib "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/merkle"
 	"github.com/stretchr/testify/require"
 )
@@ -91,8 +92,7 @@ func TestMerkleTree_IsValidMerkleBranch(t *testing.T) {
 		int(treeDepth)+1,
 	)
 
-	root, err := m.HashTreeRoot()
-	require.NoError(t, err)
+	root := m.HashTreeRoot()
 	require.True(t, merkle.VerifyProof(
 		root, items[0], 0, proof,
 	), "First Merkle proof did not verify")
@@ -111,7 +111,7 @@ func TestMerkleTree_IsValidMerkleBranch(t *testing.T) {
 	require.False(
 		t,
 		merkle.IsValidMerkleBranch(
-			byteslib.ToBytes32([]byte("buzz")),
+			common.Root(byteslib.ToBytes32([]byte("buzz"))),
 			proof,
 			treeDepth,
 			3,
@@ -145,8 +145,7 @@ func TestMerkleTree_VerifyProof(t *testing.T) {
 		proof,
 		int(treeDepth)+1,
 	)
-	root, err := m.HashTreeRoot()
-	require.NoError(t, err)
+	root := m.HashTreeRoot()
 	if ok := merkle.VerifyProof(root, items[0], 0, proof); !ok {
 		t.Error("First Merkle proof did not verify")
 	}
@@ -157,7 +156,7 @@ func TestMerkleTree_VerifyProof(t *testing.T) {
 		t,
 		merkle.VerifyProof(
 			root,
-			byteslib.ToBytes32([]byte("buzz")),
+			common.Root(byteslib.ToBytes32([]byte("buzz"))),
 			3,
 			proof,
 		),
@@ -200,8 +199,7 @@ func TestMerkleTree_VerifyProof_TrieUpdated(t *testing.T) {
 	require.NoError(t, err)
 	proof, err := m.MerkleProofWithMixin(0)
 	require.NoError(t, err)
-	root, err := m.HashTreeRoot()
-	require.NoError(t, err)
+	root := m.HashTreeRoot()
 	require.True(
 		t,
 		merkle.VerifyProof(
@@ -216,8 +214,7 @@ func TestMerkleTree_VerifyProof_TrieUpdated(t *testing.T) {
 	require.NoError(t, m.Insert(byteslib.ToBytes32([]byte{5}), 3))
 	proof, err = m.MerkleProofWithMixin(3)
 	require.NoError(t, err)
-	root, err = m.HashTreeRoot()
-	require.NoError(t, err)
+	root = m.HashTreeRoot()
 	require.True(t, merkle.VerifyProof(
 		root, [32]byte{5}, 3, proof,
 	), "Second Merkle proof did not verify")
@@ -316,12 +313,10 @@ func BenchmarkIsValidMerkleBranch(b *testing.B) {
 	proof, err := m.MerkleProofWithMixin(2)
 	require.NoError(b, err)
 
-	root, err := m.HashTreeRoot()
-	require.NoError(b, err)
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		ok := merkle.IsValidMerkleBranch(
-			items[2], proof, treeDepth+1, 2, root,
+			items[2], proof, treeDepth+1, 2, m.HashTreeRoot(),
 		)
 		require.True(b, ok, "Merkle proof did not verify")
 	}

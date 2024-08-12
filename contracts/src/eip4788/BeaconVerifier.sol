@@ -21,6 +21,8 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     uint256 public zeroValidatorPubkeyGIndex;
     /// @inheritdoc IBeaconVerifier
     uint256 public executionNumberGIndex;
+    /// @inheritdoc IBeaconVerifier
+    uint256 public executionFeeRecipientGIndex;
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                       ADMIN FUNCTIONS                      */
@@ -28,10 +30,12 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
 
     constructor(
         uint256 _zeroValidatorPubkeyGIndex,
-        uint256 _executionNumberGIndex
+        uint256 _executionNumberGIndex,
+        uint256 _executionFeeRecipientGIndex
     ) {
         zeroValidatorPubkeyGIndex = _zeroValidatorPubkeyGIndex;
         executionNumberGIndex = _executionNumberGIndex;
+        executionFeeRecipientGIndex = _executionFeeRecipientGIndex;
 
         _initializeOwner(msg.sender);
     }
@@ -45,7 +49,9 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
         return true;
     }
 
-    function setZeroValidatorPubkeyGIndex(uint256 _zeroValidatorPubkeyGIndex)
+    function setZeroValidatorPubkeyGIndex(
+        uint256 _zeroValidatorPubkeyGIndex
+    )
         external
         onlyOwner
     {
@@ -53,7 +59,9 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
         emit ZeroValidatorPubkeyGIndexChanged(_zeroValidatorPubkeyGIndex);
     }
 
-    function setExecutionNumberGIndex(uint256 _executionNumberGIndex)
+    function setExecutionNumberGIndex(
+        uint256 _executionNumberGIndex
+    )
         external
         onlyOwner
     {
@@ -61,12 +69,24 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
         emit ExecutionNumberGIndexChanged(_executionNumberGIndex);
     }
 
+    function setExecutionFeeRecipientGIndex(
+        uint256 _executionFeeRecipientGIndex
+    )
+        external
+        onlyOwner
+    {
+        executionFeeRecipientGIndex = _executionFeeRecipientGIndex;
+        emit ExecutionFeeRecipientGIndexChanged(_executionFeeRecipientGIndex);
+    }
+
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                     BEACON ROOT VIEWS                      */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @inheritdoc IBeaconVerifier
-    function getParentBeaconBlockRootAt(uint64 timestamp)
+    function getParentBeaconBlockRootAt(
+        uint64 timestamp
+    )
         external
         view
         returns (bytes32)
@@ -87,17 +107,17 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     /// @dev gas used ~75381
     function verifyBeaconBlockProposer(
         uint64 timestamp,
-        bytes32[] calldata validatorPubkeyProof,
-        bytes calldata validatorPubkey,
-        uint64 proposerIndex
+        uint64 proposerIndex,
+        bytes calldata proposerPubkey,
+        bytes32[] calldata proposerPubkeyProof
     )
         external
         view
     {
         proveValidatorPubkeyInBeaconBlock(
             getParentBlockRoot(timestamp),
-            validatorPubkeyProof,
-            validatorPubkey,
+            proposerPubkeyProof,
+            proposerPubkey,
             proposerIndex
         );
     }
@@ -106,16 +126,29 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
     /// @dev gas used ~41647
     function verifyExecutionNumber(
         uint64 timestamp,
-        bytes32[] calldata executionNumberProof,
-        uint64 blockNumber
+        uint64 executionNumber,
+        bytes32[] calldata executionNumberProof
     )
         external
         view
     {
         proveExecutionNumberInBeaconBlock(
-            getParentBlockRoot(uint64(timestamp)),
-            executionNumberProof,
-            blockNumber
+            getParentBlockRoot(timestamp), executionNumberProof, executionNumber
+        );
+    }
+
+    /// @inheritdoc IBeaconVerifier
+    /// @dev gas used ~41784
+    function verifyCoinbase(
+        uint64 timestamp,
+        address coinbase,
+        bytes32[] calldata coinbaseProof
+    )
+        external
+        view
+    {
+        proveExecutionFeeRecipientInBeaconBlock(
+            getParentBlockRoot(timestamp), coinbaseProof, coinbase
         );
     }
 
@@ -156,10 +189,11 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
         ) revert InvalidProof();
     }
 
-    /// @notice Verifies the execution number in the beacon block.
+    /// @notice Verifies the block number in the latest execution payload header
+    /// in the beacon state in the beacon block.
     /// @param beaconBlockRoot `bytes32` root of the beacon block.
     /// @param executionNumberProof `bytes32[]` proof of the execution number.
-    /// @param blockNumber `uint64` execution number of the block.
+    /// @param blockNumber `uint64` execution number of the beacon block.
     function proveExecutionNumberInBeaconBlock(
         bytes32 beaconBlockRoot,
         bytes32[] calldata executionNumberProof,
@@ -168,7 +202,7 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
         internal
         view
     {
-        bytes32 executionNumberRoot = SSZ.toLittleEndian(uint256(blockNumber));
+        bytes32 executionNumberRoot = SSZ.uint64HashTreeRoot(blockNumber);
 
         if (
             !SSZ.verifyProof(
@@ -176,6 +210,31 @@ contract BeaconVerifier is Verifier, Ownable, IBeaconVerifier {
                 beaconBlockRoot,
                 executionNumberRoot,
                 executionNumberGIndex
+            )
+        ) revert InvalidProof();
+    }
+
+    /// @notice Verifies the coinbase (fee recipient) in the latest execution
+    /// payload header in the beacon state in the beacon block.
+    /// @param beaconBlockRoot `bytes32` root of the beacon block.
+    /// @param coinbaseProof `bytes32[]` proof of the coinbase.
+    /// @param coinbase `address` fee recipient of the beacon block.
+    function proveExecutionFeeRecipientInBeaconBlock(
+        bytes32 beaconBlockRoot,
+        bytes32[] calldata coinbaseProof,
+        address coinbase
+    )
+        internal
+        view
+    {
+        bytes32 coinbaseRoot = SSZ.addressHashTreeRoot(coinbase);
+
+        if (
+            !SSZ.verifyProof(
+                coinbaseProof,
+                beaconBlockRoot,
+                coinbaseRoot,
+                executionFeeRecipientGIndex
             )
         ) revert InvalidProof();
     }

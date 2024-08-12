@@ -32,7 +32,7 @@ import (
 // matches the local state.
 func (sp *StateProcessor[
 	BeaconBlockT, _, _, BeaconStateT, ContextT,
-	_, _, _, ExecutionPayloadHeaderT, _, _, _, _, _, _, _,
+	_, _, _, ExecutionPayloadHeaderT, _, _, _, _, _, _, _, _,
 ]) processExecutionPayload(
 	ctx ContextT,
 	st BeaconStateT,
@@ -80,7 +80,7 @@ func (sp *StateProcessor[
 // and the execution engine.
 func (sp *StateProcessor[
 	BeaconBlockT, _, _, BeaconStateT,
-	_, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) validateExecutionPayload(
 	ctx context.Context,
 	st BeaconStateT,
@@ -131,7 +131,7 @@ func (sp *StateProcessor[
 	// When we are verifying a payload we expect that it was produced by
 	// the proposer for the slot that it is for.
 	expectedMix, err := st.GetRandaoMixAtIndex(
-		uint64(sp.cs.SlotToEpoch(slot)) % sp.cs.EpochsPerHistoricalVector())
+		sp.cs.SlotToEpoch(slot).Unwrap() % sp.cs.EpochsPerHistoricalVector())
 	if err != nil {
 		return err
 	}

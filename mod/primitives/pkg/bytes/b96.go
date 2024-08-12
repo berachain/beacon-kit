@@ -23,7 +23,6 @@ package bytes
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/prysmaticlabs/gohashtree"
 )
 
@@ -31,8 +30,6 @@ const (
 	// B96Size represents a 96-byte size.
 	B96Size = 96
 )
-
-var _ schema.MinimalSSZObject = (*B96)(nil)
 
 // B96 represents a 96-byte fixed-size byte array.
 // For SSZ purposes it is serialized a `Vector[Byte, 96]`.
@@ -69,35 +66,20 @@ func (h *B96) String() string {
 
 // UnmarshalJSON implements the json.Unmarshaler interface for B96.
 func (h *B96) UnmarshalJSON(input []byte) error {
-	return unmarshalJSONHelper(h[:], input)
+	return UnmarshalJSONHelper(h[:], input)
 }
 
 /* -------------------------------------------------------------------------- */
 /*                                SSZMarshaler                                */
 /* -------------------------------------------------------------------------- */
 
-// SizeSSZ returns the size of its SSZ encoding in bytes.
-func (h B96) SizeSSZ() uint32 {
-	return B96Size
-}
-
 // MarshalSSZ implements the SSZ marshaling for B96.
 func (h B96) MarshalSSZ() ([]byte, error) {
 	return h[:], nil
 }
 
-// IsFixed returns true if the length of the B96 is fixed.
-func (h B96) IsFixed() bool {
-	return true
-}
-
-// Type returns the SSZ type of B96.
-func (h B96) Type() schema.SSZType {
-	return schema.B96()
-}
-
 // HashTreeRoot returns the hash tree root of the B96.
-func (h B96) HashTreeRoot() ([32]byte, error) {
+func (h B96) HashTreeRoot() B32 {
 	//nolint:mnd // for a tree height of 2 we need 4 working chunks.
 	result := make([][32]byte, 4)
 	copy(result[0][:], h[:32])
@@ -105,5 +87,5 @@ func (h B96) HashTreeRoot() ([32]byte, error) {
 	copy(result[2][:], h[64:96])
 	gohashtree.HashChunks(result, result)
 	gohashtree.HashChunks(result, result)
-	return result[0], nil
+	return result[0]
 }

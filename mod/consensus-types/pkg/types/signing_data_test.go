@@ -26,12 +26,13 @@ import (
 
 	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/stretchr/testify/require"
 )
 
 func generateSigningData() *types.SigningData {
 	return &types.SigningData{
-		ObjectRoot: bytes.B32{
+		ObjectRoot: common.Root{
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
 			21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32},
 		Domain: bytes.B32{
@@ -55,11 +56,11 @@ func TestSigningData_MarshalSSZ_UnmarshalSSZ(t *testing.T) {
 		{
 			name: "Empty SigningData",
 			data: &types.SigningData{
-				ObjectRoot: bytes.B32{},
+				ObjectRoot: common.Root{},
 				Domain:     bytes.B32{},
 			},
 			expected: &types.SigningData{
-				ObjectRoot: bytes.B32{},
+				ObjectRoot: common.Root{},
 				Domain:     bytes.B32{},
 			},
 			err: nil,
