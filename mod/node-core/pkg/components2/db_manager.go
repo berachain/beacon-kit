@@ -22,7 +22,6 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
@@ -36,7 +35,7 @@ type DBManagerInput[
 	BlockPrunerT pruner.Pruner[BlockStoreT],
 	DepositStoreT pruner.Prunable,
 	DepositPrunerT pruner.Pruner[DepositStoreT],
-	LoggerT log.AdvancedLogger[any, sdklog.Logger],
+	LoggerT log.AdvancedLogger[any, LoggerT],
 ] struct {
 	depinject.In
 	AvailabilityPruner AvailabilityPrunerT
@@ -53,7 +52,7 @@ func ProvideDBManager[
 	BlockPrunerT pruner.Pruner[BlockStoreT],
 	DepositStoreT pruner.Prunable,
 	DepositPrunerT pruner.Pruner[DepositStoreT],
-	LoggerT log.AdvancedLogger[any, sdklog.Logger],
+	LoggerT log.AdvancedLogger[any, LoggerT],
 ](
 	in DBManagerInput[
 		AvailabilityStoreT, AvailabilityPrunerT, BlockStoreT,

@@ -25,7 +25,6 @@ import (
 	"os"
 
 	"cosmossdk.io/depinject"
-	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
@@ -42,7 +41,7 @@ import (
 // AvailabilityStoreInput is the input for the ProviderAvailabilityStore
 // function for the depinject framework.
 type AvailabilityStoreInput[
-	LoggerT log.AdvancedLogger[any, sdklog.Logger],
+	LoggerT log.AdvancedLogger[any, LoggerT],
 ] struct {
 	depinject.In
 	AppOpts   servertypes.AppOptions
@@ -64,7 +63,7 @@ func ProvideAvailibilityStore[
 	DepositT any,
 	Eth1DataT any,
 	ExecutionPayloadT any,
-	LoggerT log.AdvancedLogger[any, sdklog.Logger],
+	LoggerT log.AdvancedLogger[any, LoggerT],
 	SlashingInfoT any,
 ](
 	in AvailabilityStoreInput[LoggerT],
@@ -92,7 +91,7 @@ func ProvideAvailibilityStore[
 type AvailabilityPrunerInput[
 	AvailabilityStoreT any,
 	BeaconBlockT any,
-	LoggerT log.AdvancedLogger[any, sdklog.Logger],
+	LoggerT log.AdvancedLogger[any, LoggerT],
 ] struct {
 	depinject.In
 	AvailabilityStore AvailabilityStoreT
@@ -130,7 +129,7 @@ func ProvideAvailabilityPruner[
 	ExecutionPayloadT any,
 	ExecutionPayloadHeaderT any,
 	IndexDBT IndexDB,
-	LoggerT log.AdvancedLogger[any, sdklog.Logger],
+	LoggerT log.AdvancedLogger[any, LoggerT],
 	SlashingInfoT any,
 	WithdrawalsT any,
 ](

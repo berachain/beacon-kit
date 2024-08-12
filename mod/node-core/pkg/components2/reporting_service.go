@@ -22,7 +22,6 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/services/version"
@@ -30,7 +29,7 @@ import (
 )
 
 type ReportingServiceInput[
-	LoggerT log.AdvancedLogger[any, sdklog.Logger],
+	LoggerT log.AdvancedLogger[any, LoggerT],
 ] struct {
 	depinject.In
 	Logger        LoggerT
@@ -38,7 +37,7 @@ type ReportingServiceInput[
 }
 
 func ProvideReportingService[
-	LoggerT log.AdvancedLogger[any, sdklog.Logger],
+	LoggerT log.AdvancedLogger[any, LoggerT],
 ](in ReportingServiceInput[LoggerT]) *version.ReportingService {
 	return version.NewReportingService(
 		in.Logger.With("service", "reporting"),

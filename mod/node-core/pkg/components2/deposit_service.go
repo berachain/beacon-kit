@@ -24,7 +24,6 @@ import (
 	"errors"
 
 	"cosmossdk.io/depinject"
-	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -40,7 +39,7 @@ type DepositServiceIn[
 	DepositT Deposit[DepositT, ForkDataT, WithdrawalCredentialsT],
 	DepositStoreT DepositStore[DepositT],
 	ForkDataT any,
-	LoggerT log.AdvancedLogger[any, sdklog.Logger],
+	LoggerT log.AdvancedLogger[any, LoggerT],
 	WithdrawalCredentialsT WithdrawalCredentials,
 ] struct {
 	depinject.In
@@ -74,7 +73,7 @@ func ProvideDepositService[
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	ForkDataT any,
-	LoggerT log.AdvancedLogger[any, sdklog.Logger],
+	LoggerT log.AdvancedLogger[any, LoggerT],
 	SlashingInfoT any,
 	WithdrawalsT any,
 	WithdrawalCredentialsT WithdrawalCredentials,

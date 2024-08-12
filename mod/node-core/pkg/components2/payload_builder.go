@@ -22,7 +22,6 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
@@ -33,48 +32,95 @@ import (
 
 // LocalBuilderInput is an input for the dep inject framework.
 type LocalBuilderInput[
-	BeaconStateT,
+	AttributesFactoryT AttributesFactory[BeaconStateT, PayloadAttributesT],
+	BeaconStateT any,
+	ExecutionEngineT ExecutionEngine[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, PayloadAttributesT,
+		PayloadIDT, WithdrawalsT,
+	],
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
+	LoggerT log.AdvancedLogger[any, LoggerT],
 	PayloadAttributesT any,
 	PayloadIDT ~[8]byte,
 	WithdrawalsT Withdrawals,
 ] struct {
 	depinject.In
-	AttributesFactory *AttributesFactory[BeaconStateT, PayloadAttributesT]
+	AttributesFactory AttributesFactoryT
 	Cfg               *config.Config
 	ChainSpec         common.ChainSpec
-	ExecutionEngine   *ExecutionEngine[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, PayloadAttributesT,
-		PayloadIDT, WithdrawalsT,
-	]
-	Logger log.AdvancedLogger[any, sdklog.Logger]
+	ExecutionEngine   ExecutionEngineT
+	Logger            LoggerT
 }
 
 // ProvideLocalBuilder provides a local payload builder for the
 // depinject framework.
-func ProvideLocalBuilder(
-	in LocalBuilderInput,
-) *LocalBuilder {
+func ProvideLocalBuilder[
+	AttributesFactoryT AttributesFactory[BeaconStateT, PayloadAttributesT],
+	BeaconStateT BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		ForkT, KVStoreT, ValidatorT, ValidatorsT, WithdrawalsT,
+	],
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	Eth1DataT any,
+	ExecutionEngineT ExecutionEngine[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, PayloadAttributesT,
+		PayloadIDT, WithdrawalsT,
+	],
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+	],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
+	ForkT any,
+	KVStoreT any,
+	LoggerT log.AdvancedLogger[any, LoggerT],
+	PayloadAttributesT PayloadAttributes[PayloadAttributesT, WithdrawalsT],
+	PayloadIDT ~[8]byte,
+	ValidatorT any,
+	ValidatorsT any,
+	WithdrawalsT Withdrawals,
+](
+	in LocalBuilderInput[
+		AttributesFactoryT,
+		BeaconStateT,
+		ExecutionEngineT,
+		ExecutionPayloadT,
+		ExecutionPayloadHeaderT,
+		LoggerT,
+		PayloadAttributesT,
+		PayloadIDT,
+		WithdrawalsT,
+	],
+) *payloadbuilder.PayloadBuilder[
+	AttributesFactoryT,
+	BeaconStateT,
+	ExecutionEngineT,
+	ExecutionPayloadT,
+	ExecutionPayloadHeaderT,
+	LoggerT,
+	PayloadAttributesT,
+	PayloadIDT,
+	WithdrawalsT,
+] {
 	return payloadbuilder.New[
-		*AttributesFactory,
-		*BeaconState,
-		*ExecutionEngine,
-		*ExecutionPayload,
-		*ExecutionPayloadHeader,
-		log.Logger[any],
-		*PayloadAttributes,
-		PayloadID,
-		*Withdrawal,
+		AttributesFactoryT,
+		BeaconStateT,
+		ExecutionEngineT,
+		ExecutionPayloadT,
+		ExecutionPayloadHeaderT,
+		LoggerT,
+		PayloadAttributesT,
+		PayloadIDT,
+		WithdrawalsT,
 	](
 		&in.Cfg.PayloadBuilder,
 		in.ChainSpec,
 		in.Logger.With("service", "payload-builder"),
 		in.ExecutionEngine,
 		cache.NewPayloadIDCache[
-			PayloadID,
+			PayloadIDT,
 			[32]byte, math.Slot,
 		](),
 		in.AttributesFactory,
