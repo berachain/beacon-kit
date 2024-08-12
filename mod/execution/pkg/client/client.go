@@ -71,7 +71,7 @@ func New[
 	return &EngineClient[ExecutionPayloadT, PayloadAttributesT]{
 		cfg:    cfg,
 		logger: logger,
-		ethclient: ethclient.New[ExecutionPayloadT](
+		Client: ethclient.New[ExecutionPayloadT](
 			ethclientrpc.NewClient(
 				cfg.RPCDialURL.String(),
 				ethclientrpc.WithJWTSecret(jwtSecret),
@@ -98,7 +98,8 @@ func (s *EngineClient[
 ]) Start(
 	ctx context.Context,
 ) error {
-	go s.ethclient.Start(ctx)
+	// Start the Clien.
+	go s.Client.Start(ctx)
 
 	s.logger.Info(
 		"Initializing connection to the execution client...",
@@ -107,7 +108,7 @@ func (s *EngineClient[
 
 	// If the connection connection succeeds, we can skip the
 	// connection initializaation loop.
-	if err := s.initializeConnection(ctx); err == nil {
+	if err := s.verifyChainIDAndConnection(ctx); err == nil {
 		return nil
 	}
 
@@ -123,7 +124,7 @@ func (s *EngineClient[
 				"Waiting for execution client to start... 🍺🕔",
 				"dial_url", s.cfg.RPCDialURL,
 			)
-			if err := s.initializeConnection(ctx); err != nil {
+			if err := s.verifyChainIDAndConnection(ctx); err != nil {
 				if errors.Is(err, ErrMismatchedEth1ChainID) {
 					s.logger.Error(err.Error())
 				}
@@ -138,11 +139,11 @@ func (s *EngineClient[
 /*                                   Helpers                                  */
 /* -------------------------------------------------------------------------- */
 
-// setupConnection dials the execution client and
+// verifyChainID dials the execution client and
 // ensures the chain ID is correct.
 func (s *EngineClient[
 	_, _,
-]) initializeConnection(
+]) verifyChainIDAndConnection(
 	ctx context.Context,
 ) error {
 	var (
@@ -152,12 +153,12 @@ func (s *EngineClient[
 
 	defer func() {
 		if err != nil {
-			s.ethclient.Close()
+			s.Client.Close()
 		}
 	}()
 
 	// After the initial dial, check to make sure the chain ID is correct.
-	chainID, err = s.ethclient.ChainID(ctx)
+	chainID, err = s.Client.ChainID(ctx)
 	if err != nil {
 		if strings.Contains(err.Error(), "401 Unauthorized") {
 			// We always log this error as it is a critical error.
