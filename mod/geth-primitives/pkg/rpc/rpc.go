@@ -25,5 +25,3 @@ import "github.com/ethereum/go-ethereum/rpc"
 type (
 	BlockNumber = rpc.BlockNumber
 )
-
-var DialContext = rpc.DialContext
