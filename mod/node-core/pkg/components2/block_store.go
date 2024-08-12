@@ -50,8 +50,8 @@ func ProvideBlockStore[
 	BeaconBlockT BeaconBlock[
 		BeaconBlockT,
 		AttestationDataT,
-		DepositT,
 		BeaconBlockBodyT,
+		DepositT,
 		Eth1DataT,
 		ExecutionPayloadT,
 		ExecutionPayloadHeaderT,
@@ -111,8 +111,8 @@ func ProvideBlockPruner[
 	BeaconBlockT BeaconBlock[
 		BeaconBlockT,
 		AttestationDataT,
-		DepositT,
 		BeaconBlockBodyT,
+		DepositT,
 		Eth1DataT,
 		ExecutionPayloadT,
 		ExecutionPayloadHeaderT,

@@ -85,8 +85,8 @@ func ProvideDepositPruner(
 		manager.DepositPrunerName,
 		subCh,
 		deposit.BuildPruneRangeFn[
-			*BeaconBlockBody,
 			*BeaconBlock,
+			*BeaconBlockBody,
 			*BlockEvent,
 			*Deposit,
 			*ExecutionPayload,

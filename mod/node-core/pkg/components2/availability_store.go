@@ -117,8 +117,8 @@ func ProvideAvailabilityPruner[
 	BeaconBlockT BeaconBlock[
 		BeaconBlockT,
 		AttestationDataT,
-		DepositT,
 		BeaconBlockBodyT,
+		DepositT,
 		Eth1DataT,
 		ExecutionPayloadT,
 		ExecutionPayloadHeaderT,

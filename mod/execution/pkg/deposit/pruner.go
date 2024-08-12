@@ -26,11 +26,9 @@ import (
 )
 
 func BuildPruneRangeFn[
-	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
 	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
-	BlockEventT BlockEvent[
-		DepositT, BeaconBlockBodyT, BeaconBlockT, ExecutionPayloadT,
-	],
+	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
+	BlockEventT BlockEvent[BeaconBlockT],
 	DepositT Deposit[DepositT, WithdrawalCredentialsT],
 	ExecutionPayloadT ExecutionPayload,
 	WithdrawalCredentialsT any,

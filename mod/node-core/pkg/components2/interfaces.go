@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"time"
 
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
@@ -62,12 +63,12 @@ type (
 	BeaconBlock[
 		T any,
 		AttestationDataT any,
-		DepositT any,
 		BeaconBlockBodyT BeaconBlockBody[
 			BeaconBlockBodyT, AttestationDataT, DepositT,
 			Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 			SlashingInfoT, WithdrawalsT,
 		],
+		DepositT any,
 		Eth1DataT any,
 		ExecutionPayloadT ExecutionPayload[
 			ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
@@ -353,6 +354,14 @@ type (
 			depositCount math.U64,
 			blockHash common.ExecutionHash,
 		) T
+	}
+
+	Event[DataT any] interface {
+		Type() asynctypes.EventID
+		Is(eventType asynctypes.EventID) bool
+		Context() context.Context
+		Data() DataT
+		Error() error
 	}
 
 	// ExecutionEngine is the interface for the execution engine.

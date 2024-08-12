@@ -48,10 +48,7 @@ type BeaconBlock[
 
 // BlockEvent is an interface for block events.
 type BlockEvent[
-	DepositT any,
-	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
-	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
-	ExecutionPayloadT ExecutionPayload,
+	BeaconBlockT any,
 ] interface {
 	Type() asynctypes.EventID
 	Is(asynctypes.EventID) bool

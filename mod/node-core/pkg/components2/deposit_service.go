@@ -25,6 +25,7 @@ import (
 
 	"cosmossdk.io/depinject"
 	sdklog "cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
@@ -33,19 +34,58 @@ import (
 )
 
 // DepositServiceIn is the input for the deposit service.
-type DepositServiceIn struct {
+type DepositServiceIn[
+	BeaconBlockT any,
+	BeaconBlockEventT Event[BeaconBlockT],
+	DepositT Deposit[DepositT, ForkDataT, WithdrawalCredentialsT],
+	DepositStoreT DepositStore[DepositT],
+	ForkDataT any,
+	LoggerT log.AdvancedLogger[any, sdklog.Logger],
+	WithdrawalCredentialsT WithdrawalCredentials,
+] struct {
 	depinject.In
-	BeaconDepositContract *DepositContract
-	BlockBroker           *BlockBroker
+	BeaconDepositContract deposit.Contract[DepositT]
+	BlockBroker           *broker.Broker[BeaconBlockEventT]
 	ChainSpec             common.ChainSpec
-	DepositStore          *DepositStore
-	Logger                log.AdvancedLogger[any, sdklog.Logger]
+	DepositStore          DepositStoreT
+	Logger                LoggerT
 	TelemetrySink         *metrics.TelemetrySink
 }
 
 // ProvideDepositService provides the deposit service to the depinject
 // framework.
-func ProvideDepositService(in DepositServiceIn) (*DepositService, error) {
+func ProvideDepositService[
+	AttestationDataT any,
+	BeaconBlockT BeaconBlock[
+		BeaconBlockT, AttestationDataT, BeaconBlockBodyT, DepositT,
+		Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+		SlashingInfoT, WithdrawalsT,
+	],
+	BeaconBlockBodyT BeaconBlockBody[
+		BeaconBlockBodyT, AttestationDataT, DepositT,
+		Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+		SlashingInfoT, WithdrawalsT,
+	],
+	BeaconBlockEventT Event[BeaconBlockT],
+	DepositT Deposit[DepositT, ForkDataT, WithdrawalCredentialsT],
+	DepositStoreT DepositStore[DepositT],
+	Eth1DataT any,
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+	],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
+	ForkDataT any,
+	LoggerT log.AdvancedLogger[any, sdklog.Logger],
+	SlashingInfoT any,
+	WithdrawalsT any,
+	WithdrawalCredentialsT WithdrawalCredentials,
+](in DepositServiceIn[
+	BeaconBlockT, BeaconBlockEventT, DepositT, DepositStoreT,
+	ForkDataT, LoggerT, WithdrawalCredentialsT,
+]) (*deposit.Service[
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockEventT,
+	DepositT, ExecutionPayloadT, WithdrawalCredentialsT,
+], error) {
 	blkSub, err := in.BlockBroker.Subscribe()
 	if err != nil {
 		in.Logger.Error("failed to subscribe to block feed", "err", err)
@@ -54,11 +94,8 @@ func ProvideDepositService(in DepositServiceIn) (*DepositService, error) {
 
 	// Build the deposit service.
 	return deposit.NewService[
-		*BeaconBlockBody,
-		*BeaconBlock,
-		*BlockEvent,
-		*DepositStore,
-		*ExecutionPayload,
+		BeaconBlockT, BeaconBlockBodyT, BeaconBlockEventT,
+		DepositT, DepositStoreT, ExecutionPayloadT, WithdrawalCredentialsT,
 	](
 		in.Logger.With("service", "deposit"),
 		math.U64(in.ChainSpec.Eth1FollowDistance()),

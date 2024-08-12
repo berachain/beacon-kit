@@ -31,9 +31,7 @@ import (
 type Service[
 	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
 	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
-	BlockEventT BlockEvent[
-		DepositT, BeaconBlockBodyT, BeaconBlockT, ExecutionPayloadT,
-	],
+	BlockEventT BlockEvent[BeaconBlockT],
 	DepositT Deposit[DepositT, WithdrawalCredentialsT],
 	ExecutionPayloadT ExecutionPayload,
 	WithdrawalCredentialsT any,
@@ -57,21 +55,18 @@ type Service[
 
 // NewService creates a new instance of the Service struct.
 func NewService[
-	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
 	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
-	BlockEventT BlockEvent[
-		DepositT, BeaconBlockBodyT,
-		BeaconBlockT, ExecutionPayloadT,
-	],
+	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
+	BlockEventT BlockEvent[BeaconBlockT],
+	DepositT Deposit[DepositT, WithdrawalCredentialsT],
 	DepositStoreT Store[DepositT],
 	ExecutionPayloadT ExecutionPayload,
 	WithdrawalCredentialsT any,
-	DepositT Deposit[DepositT, WithdrawalCredentialsT],
 ](
 	logger log.Logger[any],
 	eth1FollowDistance math.U64,
 	telemetrySink TelemetrySink,
-	ds Store[DepositT],
+	ds DepositStoreT,
 	dc Contract[DepositT],
 	feed chan BlockEventT,
 ) *Service[
