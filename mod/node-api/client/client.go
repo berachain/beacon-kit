@@ -23,9 +23,8 @@ package client
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/errors"
-
 	beaconhttp "github.com/attestantio/go-eth2-client/http"
+	"github.com/berachain/beacon-kit/mod/errors"
 )
 
 // New creates a new BeaconKitNode client instance with a given cancel context.
