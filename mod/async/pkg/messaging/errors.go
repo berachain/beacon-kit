@@ -31,18 +31,24 @@ import (
 //
 //nolint:gochecknoglobals // errors
 var (
+	// errTimeout is the error returned when a dispatch operation timed out.
 	errTimeout = func(messageID types.MessageID, timeout time.Duration) error {
 		return errors.Newf("message %s reached the max timeout of %s",
 			messageID, timeout)
 	}
 
+	// errRouteAlreadySet is the error returned when the route is already set.
 	errRouteAlreadySet = errors.New("route already set")
 
+	// errRegisteringNilChannel is the error returned when the channel to
+	// register is nil.
 	errRegisteringNilChannel = func(messageID types.MessageID) error {
 		return errors.Newf("cannot register nil channel for route: %s",
 			messageID)
 	}
 
+	// errReceiverNotReady is the error returned when the receiver channel is
+	// full, closed, or not listening.
 	errReceiverNotReady = func(messageID types.MessageID) error {
 		return errors.Newf(
 			"receiver channel is full, closed, or not listening. Route: %s",
@@ -50,6 +56,8 @@ var (
 		)
 	}
 
+	// errIncompatibleAssignee is the error returned when the assignee is not
+	// compatible with the assigner.
 	errIncompatibleAssignee = func(
 		assigner interface{}, assignee interface{},
 	) error {

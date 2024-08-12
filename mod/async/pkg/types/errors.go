@@ -23,5 +23,5 @@ package types
 import "errors"
 
 var (
-	ErrTimeout = errors.New("future timed out")
+	errTimeout = errors.New("future timed out")
 )

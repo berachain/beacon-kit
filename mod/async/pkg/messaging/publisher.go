@@ -42,7 +42,8 @@ type Publisher[T any] struct {
 	mu sync.Mutex
 }
 
-// NewPublisher creates a new b.
+// NewPublisher creates a new publisher publishing events of type T for the
+// provided eventID.
 func NewPublisher[T any](eventID string) *Publisher[T] {
 	return &Publisher[T]{
 		eventID: types.EventID(eventID),
@@ -53,6 +54,7 @@ func NewPublisher[T any](eventID string) *Publisher[T] {
 	}
 }
 
+// EventID returns the event ID that the publisher is responsible for.
 func (p *Publisher[T]) EventID() types.EventID {
 	return p.eventID
 }
@@ -68,26 +70,16 @@ func (p *Publisher[T]) start(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			// close all leftover clients and break the publisher loop
-			for client := range p.clients {
-				if err := p.Unsubscribe(client); err != nil {
-					panic(err)
-				}
-			}
+			p.shutdown()
 			return
 		case msg := <-p.msgs:
 			// broadcast published msg to all clients
-			for client := range p.clients {
-				// send msg to client (or discard msg after timeout)
-				select {
-				case client <- msg:
-				case <-time.After(p.timeout):
-				}
-			}
+			p.broadcast(msg)
 		}
 	}
 }
 
-// Publish publishes a msg to the b.
+// Publish publishes a msg to all subscribers.
 // Returns ErrTimeout on timeout.
 func (p *Publisher[T]) Publish(msg types.BaseMessage) error {
 	typedMsg, err := ensureType[T](msg)
@@ -129,4 +121,24 @@ func (p *Publisher[T]) Unsubscribe(ch any) error {
 	delete(p.clients, client)
 	close(client)
 	return nil
+}
+
+// broadcast broadcasts a msg to all clients.
+func (p *Publisher[T]) broadcast(msg T) {
+	for client := range p.clients {
+		// send msg to client (or discard msg after timeout)
+		select {
+		case client <- msg:
+		case <-time.After(p.timeout):
+		}
+	}
+}
+
+// shutdown closes all leftover clients
+func (p *Publisher[T]) shutdown() {
+	for client := range p.clients {
+		if err := p.Unsubscribe(client); err != nil {
+			panic(err)
+		}
+	}
 }

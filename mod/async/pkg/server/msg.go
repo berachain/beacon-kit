@@ -44,7 +44,7 @@ func (ms *MessageServer) Request(req types.BaseMessage, future any) error {
 	// send request and await response
 	route, ok := ms.routes[req.ID()]
 	if !ok {
-		return ErrRouteNotFound
+		return errRouteNotFound
 	}
 	if err := route.SendRequest(req, future); err != nil {
 		return err
@@ -57,7 +57,7 @@ func (ms *MessageServer) Request(req types.BaseMessage, future any) error {
 func (ms *MessageServer) Respond(resp types.BaseMessage) error {
 	route, ok := ms.routes[resp.ID()]
 	if !ok {
-		return ErrRouteNotFound
+		return errRouteNotFound
 	}
 	return route.SendResponse(resp)
 }
@@ -69,7 +69,7 @@ func (ms *MessageServer) RegisterRoute(
 	messageID types.MessageID, route types.MessageRoute,
 ) error {
 	if ms.routes[messageID] != nil {
-		return ErrRouteAlreadyRegistered(messageID)
+		return errRouteAlreadyRegistered(messageID)
 	}
 	ms.routes[messageID] = route
 	return nil
@@ -83,7 +83,7 @@ func (ms *MessageServer) RegisterReceiver(
 ) error {
 	route, ok := ms.routes[messageID]
 	if !ok {
-		return ErrRouteNotFound
+		return errRouteNotFound
 	}
 	return route.RegisterReceiver(ch)
 }

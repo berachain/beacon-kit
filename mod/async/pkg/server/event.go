@@ -44,7 +44,7 @@ func NewEventServer() *EventServer {
 func (es *EventServer) Publish(event types.BaseMessage) error {
 	publisher, ok := es.publishers[event.ID()]
 	if !ok {
-		return ErrPublisherNotFound(event.ID())
+		return errPublisherNotFound(event.ID())
 	}
 	return publisher.Publish(event)
 }
@@ -55,7 +55,7 @@ func (es *EventServer) Publish(event types.BaseMessage) error {
 func (es *EventServer) Subscribe(eventID types.MessageID, ch any) error {
 	publisher, ok := es.publishers[eventID]
 	if !ok {
-		return ErrPublisherNotFound(eventID)
+		return errPublisherNotFound(eventID)
 	}
 	return publisher.Subscribe(ch)
 }
@@ -74,7 +74,7 @@ func (es *EventServer) RegisterPublisher(
 	eventID types.MessageID, publisher types.Publisher,
 ) error {
 	if _, ok := es.publishers[eventID]; ok {
-		return ErrPublisherAlreadyExists(eventID)
+		return errPublisherAlreadyExists(eventID)
 	}
 	es.publishers[eventID] = publisher
 	return nil

@@ -78,7 +78,7 @@ func (f *Future[T]) ResolveWithTimeout(timeout time.Duration) (T, error) {
 		return f.result, f.err
 	case <-time.After(timeout):
 		var zero T
-		return zero, ErrTimeout
+		return zero, errTimeout
 	}
 }
 

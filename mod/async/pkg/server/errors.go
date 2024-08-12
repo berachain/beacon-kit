@@ -27,15 +27,15 @@ import (
 
 //nolint:gochecknoglobals // errors
 var (
-	ErrPublisherNotFound = func(eventID types.EventID) error {
+	errPublisherNotFound = func(eventID types.EventID) error {
 		return errors.Newf("publisher not found for eventID: %s", eventID)
 	}
-	ErrRouteNotFound          = errors.New("route not found")
-	ErrRouteAlreadyRegistered = func(messageID types.MessageID) error {
+	errRouteNotFound          = errors.New("route not found")
+	errRouteAlreadyRegistered = func(messageID types.MessageID) error {
 		return errors.Newf("route already registered for messageID: %s",
 			messageID)
 	}
-	ErrPublisherAlreadyExists = func(eventID types.EventID) error {
+	errPublisherAlreadyExists = func(eventID types.EventID) error {
 		return errors.Newf("publisher already exists for eventID: %s", eventID)
 	}
 )
