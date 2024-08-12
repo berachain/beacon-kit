@@ -41,7 +41,7 @@ func NewEventServer() *EventServer {
 }
 
 // Dispatch dispatches the given event to the publisher with the given eventID.
-func (es *EventServer) Publish(event types.MessageI) error {
+func (es *EventServer) Publish(event types.BaseMessage) error {
 	publisher, ok := es.publishers[event.ID()]
 	if !ok {
 		return ErrPublisherNotFound(event.ID())

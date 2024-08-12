@@ -29,8 +29,8 @@ import (
 
 type MessageServer interface {
 	RegisterReceiver(mID types.MessageID, ch any) error
-	Request(req types.MessageI, resp any) error
-	Respond(resp types.MessageI) error
+	Request(req types.BaseMessage, future any) error
+	Respond(resp types.BaseMessage) error
 	RegisterRoute(mID types.MessageID, route types.MessageRoute) error
 	SetLogger(logger log.Logger[any])
 }
@@ -39,6 +39,6 @@ type EventServer interface {
 	Start(ctx context.Context)
 	RegisterPublisher(mID types.EventID, publisher types.Publisher)
 	Subscribe(mID types.EventID, ch any) error
-	Publish(event types.MessageI) error
+	Publish(event types.BaseMessage) error
 	SetLogger(logger log.Logger[any])
 }

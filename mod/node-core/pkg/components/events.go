@@ -23,6 +23,7 @@ package components
 import (
 	"github.com/berachain/beacon-kit/mod/async/pkg/messaging"
 	"github.com/berachain/beacon-kit/mod/async/pkg/server"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
 )
 
@@ -31,10 +32,12 @@ func ProvideEventServer() *EventServer {
 	return server.NewEventServer()
 }
 
-// ProvideBeaconBlockFinalizedPublisher provides a publisher for beacon block
+// ProvidePublishers provides a publisher for beacon block
 // finalized events.
-func ProvideBeaconBlockFinalizedPublisher() *BeaconBlockFinalizedPublisher {
-	return messaging.NewPublisher[*FinalizedBlockEvent](
-		messages.BeaconBlockFinalizedEvent,
-	)
+func ProvidePublishers() []asynctypes.Publisher {
+	return []asynctypes.Publisher{
+		messaging.NewPublisher[*FinalizedBlockEvent](
+			messages.BeaconBlockFinalizedEvent,
+		),
+	}
 }

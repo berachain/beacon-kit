@@ -43,8 +43,8 @@ type Service[
 	]
 	dispatcher             *dispatcher.Dispatcher
 	logger                 log.Logger[any]
-	processSidecarRequests chan *asynctypes.Message[BlobSidecarsT]
-	verifySidecarRequests  chan *asynctypes.Message[BlobSidecarsT]
+	processSidecarRequests chan asynctypes.Message[BlobSidecarsT]
+	verifySidecarRequests  chan asynctypes.Message[BlobSidecarsT]
 }
 
 // NewService returns a new DA service.
@@ -76,8 +76,8 @@ func NewService[
 		bp:                     bp,
 		dispatcher:             dispatcher,
 		logger:                 logger,
-		processSidecarRequests: make(chan *asynctypes.Message[BlobSidecarsT]),
-		verifySidecarRequests:  make(chan *asynctypes.Message[BlobSidecarsT]),
+		processSidecarRequests: make(chan asynctypes.Message[BlobSidecarsT]),
+		verifySidecarRequests:  make(chan asynctypes.Message[BlobSidecarsT]),
 	}
 }
 
@@ -134,7 +134,7 @@ func (s *Service[_, _, BlobSidecarsT, _]) start(
 // event.
 // It processes the sidecars and publishes a BlobSidecarsProcessed event.
 func (s *Service[_, _, BlobSidecarsT, _]) handleBlobSidecarsProcessRequest(
-	msg *asynctypes.Message[BlobSidecarsT],
+	msg asynctypes.Message[BlobSidecarsT],
 ) {
 	var err error
 	err = s.processSidecars(msg.Context(), msg.Data())
@@ -162,7 +162,7 @@ func (s *Service[_, _, BlobSidecarsT, _]) handleBlobSidecarsProcessRequest(
 // handleSidecarsVerifyRequest handles the SidecarsVerifyRequest event.
 // It verifies the sidecars and publishes a SidecarsVerified event.
 func (s *Service[_, _, BlobSidecarsT, _]) handleSidecarsVerifyRequest(
-	msg *asynctypes.Message[BlobSidecarsT],
+	msg asynctypes.Message[BlobSidecarsT],
 ) {
 	var err error
 	// verify the sidecars.

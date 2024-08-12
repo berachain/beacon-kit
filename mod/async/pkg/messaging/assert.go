@@ -29,17 +29,3 @@ func ensureType[T any](e any) (T, error) {
 	}
 	return typedE, nil
 }
-
-// assign assigns the source value to the dest
-// by pointing destPtr to the source value.
-// contract: destPtr -> *T
-func assign[T any](source T, destPtr any) error {
-	// ensure that the destPtr is a pointer to the response type
-	typedDestPtr, ok := destPtr.(*T)
-	if !ok {
-		return errIncompatibleAssignee(new(T), destPtr)
-	}
-	// assign the underlying value of destPtr to the source value
-	*typedDestPtr = source
-	return nil
-}

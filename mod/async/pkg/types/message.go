@@ -25,15 +25,58 @@ import (
 	"errors"
 )
 
-// MessageI defines the minimal interface that the dispatcher expects from a
+// MessageID represents the type of a message.
+type MessageID string
+
+// EventID is a type alias for a MessageID.
+type EventID = MessageID
+
+// BaseMessage defines the minimal interface that the dispatcher expects from a
 // message.
-type MessageI interface {
+type BaseMessage interface {
 	ID() MessageID
 	Context() context.Context
 }
 
-// A Message is an asynchronous message meant for a single recipient.
-type Message[DataT any] struct {
+// DataMessage defines the interface that the underlying route expects from a
+// message with data.
+type Message[DataT any] interface {
+	BaseMessage
+	Data() DataT
+	Error() error
+}
+
+// NewEvent creates a new Event with the given context and beacon event.
+func NewMessage[
+	DataT any,
+](
+	ctx context.Context, messageType MessageID, data DataT, errs ...error,
+) *message[DataT] {
+	return &message[DataT]{
+		ctx:  ctx,
+		id:   messageType,
+		data: data,
+		err:  errors.Join(errs...),
+	}
+}
+
+// Event acts as a type alias for a Message that is meant to be broadcasted
+// to all subscribers.
+type Event[DataT any] struct{ message[DataT] }
+
+// NewEvent creates a new Event with the given context and beacon event.
+func NewEvent[
+	DataT any,
+](
+	ctx context.Context, messageType EventID, data DataT, errs ...error,
+) *Event[DataT] {
+	return &Event[DataT]{
+		message: *NewMessage(ctx, messageType, data, errs...),
+	}
+}
+
+// A Message is a hard type implementation of the Message and Event interfaces.
+type message[DataT any] struct {
 	// ctx is the context associated with the event.
 	ctx context.Context
 	// id is the name of the event.
@@ -44,62 +87,27 @@ type Message[DataT any] struct {
 	err error
 }
 
-// MessageID represents the type of a message.
-type MessageID string
-
-// EventID is a type alias for a MessageID.
-type EventID = MessageID
-
-// Event acts as a type alias for a Message that is meant to be broadcasted
-// to all subscribers.
-type Event[DataT any] struct{ Message[DataT] }
-
-// NewEvent creates a new Event with the given context and beacon event.
-func NewMessage[
-	DataT any,
-](
-	ctx context.Context, messageType MessageID, data DataT, errs ...error,
-) *Message[DataT] {
-	return &Message[DataT]{
-		ctx:  ctx,
-		id:   messageType,
-		data: data,
-		err:  errors.Join(errs...),
-	}
-}
-
-// NewEvent creates a new Event with the given context and beacon event.
-func NewEvent[
-	DataT any,
-](
-	ctx context.Context, messageType EventID, data DataT, errs ...error,
-) *Event[DataT] {
-	return &Event[DataT]{
-		Message: *NewMessage(ctx, messageType, data, errs...),
-	}
-}
-
 // ID returns the ID of the event.
-func (m *Message[DataT]) ID() MessageID {
+func (m *message[DataT]) ID() MessageID {
 	return m.id
 }
 
 // Context returns the context associated with the event.
-func (m *Message[DataT]) Context() context.Context {
+func (m *message[DataT]) Context() context.Context {
 	return m.ctx
 }
 
 // Data returns the data associated with the event.
-func (m *Message[DataT]) Data() DataT {
+func (m *message[DataT]) Data() DataT {
 	return m.data
 }
 
 // Error returns the error associated with the event.
-func (m *Message[DataT]) Error() error {
+func (m *message[DataT]) Error() error {
 	return m.err
 }
 
 // Is returns true if the event has the given type.
-func (m *Message[DataT]) Is(messageType MessageID) bool {
+func (m *message[DataT]) Is(messageType MessageID) bool {
 	return m.id == messageType
 }

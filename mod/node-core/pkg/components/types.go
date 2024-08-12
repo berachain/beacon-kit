@@ -420,19 +420,16 @@ type (
 /*                                   Messages                                 */
 /* -------------------------------------------------------------------------- */
 
-// events.
+// Events.
 type (
 	// FinalizedBlockEvent is a type alias for the block event.
 	FinalizedBlockEvent = asynctypes.Event[*BeaconBlock]
 )
 
-// messages.
+// Messages.
 type (
 	// BlockMessage is a type alias for the block message.
 	BlockMessage = asynctypes.Message[*BeaconBlock]
-
-	// BlockBundleMessage is a type alias for the block bundle message.
-	BlockBundleMessage = asynctypes.Message[*BeaconBlockBundle]
 
 	// GenesisMessage is a type alias for the genesis message.
 	GenesisMessage = asynctypes.Message[*Genesis]
@@ -445,9 +442,20 @@ type (
 
 	// StatusMessage is a type alias for the status message.
 	StatusMessage = asynctypes.Message[*service.StatusEvent]
+)
 
-	// ValidatorUpdateMessage is a type alias for the validator update message.
-	ValidatorUpdateMessage = asynctypes.Message[transition.ValidatorUpdates]
+// Futures.
+type (
+	// BlockFuture is a type alias for a future containing a BeaconBlock.
+	BlockFuture = asynctypes.Future[*BeaconBlock]
+	// BlockBundleFuture is a type alias for a future containing a
+	// BeaconBlockBundle.
+	BlockBundleFuture = asynctypes.Future[*BeaconBlockBundle]
+	// SidecarFuture is a type alias for a future containing the BlobSidecars.
+	SidecarFuture = asynctypes.Future[*BlobSidecars]
+	// ValidatorUpdateFuture is a type alias for a future containing the
+	// ValidatorUpdates.
+	ValidatorUpdateFuture = asynctypes.Future[transition.ValidatorUpdates]
 )
 
 /* -------------------------------------------------------------------------- */
@@ -456,35 +464,6 @@ type (
 
 type (
 	BeaconBlockFinalizedPublisher = messaging.Publisher[*FinalizedBlockEvent]
-)
-
-/* -------------------------------------------------------------------------- */
-/*                                  Routes                                    */
-/* -------------------------------------------------------------------------- */
-
-type (
-	// BuildBlockAndSidecarsRoute is a type alias for the build block and
-	// sidecars route.
-	BuildBlockAndSidecarsRoute = messaging.Route[
-		*SlotMessage, *BlockBundleMessage,
-	]
-
-	// VerifyBlockRoute is a type alias for the verify block route.
-	VerifyBlockRoute = messaging.Route[*BlockMessage, *BlockMessage]
-
-	// FinalizeBlockRoute is a type alias for the finalize block route.
-	FinalizeBlockRoute = messaging.Route[*BlockMessage, *ValidatorUpdateMessage]
-
-	// ProcessGenesisDataRoute is a type alias for the process genesis data route.
-	ProcessGenesisDataRoute = messaging.Route[
-		*GenesisMessage, *ValidatorUpdateMessage,
-	]
-
-	// ProcessSidecarsRoute is a type alias for the process blob sidecars route.
-	ProcessSidecarsRoute = messaging.Route[*SidecarMessage, *SidecarMessage]
-
-	// VerifySidecarsRoute is a type alias for the verify sidecars route.
-	VerifySidecarsRoute = messaging.Route[*SidecarMessage, *SidecarMessage]
 )
 
 /* -------------------------------------------------------------------------- */

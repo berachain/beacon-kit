@@ -56,7 +56,7 @@ type Service[
 	SlashingInfoT any,
 	SlotDataT SlotData[AttestationDataT, SlashingInfoT],
 ] struct {
-	buildBlkBundleReqs chan *asynctypes.Message[SlotDataT]
+	buildBlkBundleReqs chan asynctypes.Message[SlotDataT]
 	// cfg is the validator config.
 	cfg *Config
 	// logger is a logger.
@@ -154,7 +154,7 @@ func NewService[
 	]{
 		cfg:                   cfg,
 		logger:                logger,
-		buildBlkBundleReqs:    make(chan *asynctypes.Message[SlotDataT]),
+		buildBlkBundleReqs:    make(chan asynctypes.Message[SlotDataT]),
 		bsb:                   bsb,
 		chainSpec:             chainSpec,
 		signer:                signer,
@@ -214,7 +214,7 @@ func (s *Service[
 func (s *Service[
 	_, BeaconBlockT, BeaconBlockBundleT, _, _, BlobSidecarsT, _, _, _, _, _, _,
 	_, SlotDataT,
-]) handleBuildBlockBundleRequest(req *asynctypes.Message[SlotDataT]) {
+]) handleBuildBlockBundleRequest(req asynctypes.Message[SlotDataT]) {
 	var (
 		blk      BeaconBlockT
 		sidecars BlobSidecarsT
@@ -232,11 +232,12 @@ func (s *Service[
 	// bundle the block and sidecars and dispatch the response
 	// blkData := *new(BeaconBlockBundleT)
 	blkData = blkData.New(blk, sidecars)
-	if err = s.dispatcher.SendResponse(asynctypes.NewMessage(
-		req.Context(),
-		messages.BuildBeaconBlockAndSidecars,
-		blkData,
-	)); err != nil {
+	if err = s.dispatcher.SendResponse(
+		asynctypes.NewMessage(
+			req.Context(),
+			messages.BuildBeaconBlockAndSidecars,
+			blkData,
+		)); err != nil {
 		s.logger.Error("failed to respond", "err", err)
 	}
 }

@@ -60,34 +60,36 @@ func (d *Dispatcher) Start(ctx context.Context) error {
 // PublishEvent dispatches the given event to the event server.
 // It will error if the <event> type is inconsistent with the publisher
 // registered for the given eventID.
-func (d *Dispatcher) PublishEvent(event types.MessageI) error {
+func (d *Dispatcher) PublishEvent(event types.BaseMessage) error {
 	return d.eventServer.Publish(event)
 }
 
 // SendRequest dispatches the given request to the message server.
 // It will error if the <req> and <resp> types are inconsistent with the
 // route registered for the given messageID.
-func (d *Dispatcher) SendRequest(req types.MessageI, resp any) error {
-	return d.msgServer.Request(req, resp)
+func (d *Dispatcher) SendRequest(req types.BaseMessage, future any) error {
+	return d.msgServer.Request(req, future)
 }
 
 // SendResponse dispatches the given response to the message server.
 // It will error if the <resp> type is inconsistent with the route registered
 // for the given messageID.
-func (d *Dispatcher) SendResponse(resp types.MessageI) error {
+func (d *Dispatcher) SendResponse(resp types.BaseMessage) error {
 	return d.msgServer.Respond(resp)
 }
 
 // ============================== Events ===================================
 
-// RegisterPublisher registers the given publisher with the given eventID.
+// RegisterPublishers registers the given publisher with the given eventID.
 // Any subsequent events with <eventID> dispatched to this Dispatcher must be
 // consistent with the type expected by <publisher>.
-func (d *Dispatcher) RegisterPublisher(
-	eventID types.MessageID, publisher types.Publisher,
+func (d *Dispatcher) RegisterPublishers(
+	publishers ...types.Publisher,
 ) {
-	d.logger.Info("Publisher registered", "eventID", eventID)
-	d.eventServer.RegisterPublisher(eventID, publisher)
+	for _, publisher := range publishers {
+		d.logger.Info("Publisher registered", "eventID", publisher.EventID())
+		d.eventServer.RegisterPublisher(publisher.EventID(), publisher)
+	}
 }
 
 // Subscribe subscribes the given channel to the event with the given <eventID>.
@@ -108,14 +110,17 @@ func (d *Dispatcher) RegisterMsgReceiver(
 	return d.msgServer.RegisterReceiver(messageID, ch)
 }
 
-// RegisterRoute registers the given route with the given messageID.
+// RegisterRoutes registers the given route with the given messageID.
 // Any subsequent messages with <messageID> sent to this Dispatcher must be
 // consistent with the type expected by <route>.
-func (d *Dispatcher) RegisterRoute(
-	messageID types.MessageID, route types.MessageRoute,
+func (d *Dispatcher) RegisterRoutes(
+	routes ...types.MessageRoute,
 ) error {
-	d.logger.Info("Route registered", "messageID", messageID)
-	return d.msgServer.RegisterRoute(messageID, route)
+	for _, route := range routes {
+		d.logger.Info("Route registered", "messageID", route.MessageID())
+		d.msgServer.RegisterRoute(route.MessageID(), route)
+	}
+	return nil
 }
 
 func (d *Dispatcher) Name() string {

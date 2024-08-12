@@ -31,8 +31,8 @@ import (
 // Invariant: there is exactly no more than one route for each messageID.
 type Route[ReqT any, RespT any] struct {
 	messageID   types.MessageID
-	recipientCh chan ReqT
-	responseCh  chan RespT
+	recipientCh chan types.Message[ReqT]
+	responseCh  chan types.Message[RespT]
 	timeout     time.Duration
 	mu          sync.Mutex
 }
@@ -43,7 +43,7 @@ func NewRoute[ReqT any, RespT any](
 ) *Route[ReqT, RespT] {
 	return &Route[ReqT, RespT]{
 		messageID:  messageID,
-		responseCh: make(chan RespT),
+		responseCh: make(chan types.Message[RespT]),
 		timeout:    defaultRouterTimeout,
 		mu:         sync.Mutex{},
 	}
@@ -61,7 +61,7 @@ func (r *Route[ReqT, RespT]) RegisterReceiver(ch any) error {
 	} else if ch == nil {
 		return errRegisteringNilChannel(r.messageID)
 	}
-	typedCh, err := ensureType[chan ReqT](ch)
+	typedCh, err := ensureType[chan types.Message[ReqT]](ch)
 	if err != nil {
 		return err
 	}
@@ -69,25 +69,23 @@ func (r *Route[ReqT, RespT]) RegisterReceiver(ch any) error {
 	return nil
 }
 
-// SendRequest sends a request to the recipient.
-func (r *Route[ReqT, RespT]) SendRequest(req types.MessageI) error {
-	typedMsg, err := ensureType[ReqT](req)
+// SendRequestAsync accepts a future and sends a request to the recipient
+// channel. Once the response is available, it will be written to the future.
+func (r *Route[ReqT, RespT]) SendRequest(
+	req types.BaseMessage, future any,
+) error {
+	r.sendRequest(req)
+	typedFuture, err := ensureType[types.FutureI[RespT]](future)
 	if err != nil {
 		return err
 	}
-
-	select {
-	case r.recipientCh <- typedMsg:
-		return nil
-	default:
-		// Channel is full or closed
-		return errReceiverNotReady(r.messageID)
-	}
+	go r.populateFuture(typedFuture)
+	return nil
 }
 
 // SendResponse sends a response to the response channel.
-func (r *Route[ReqT, RespT]) SendResponse(resp types.MessageI) error {
-	typedMsg, err := ensureType[RespT](resp)
+func (r *Route[ReqT, RespT]) SendResponse(resp types.BaseMessage) error {
+	typedMsg, err := ensureType[types.Message[RespT]](resp)
 	if err != nil {
 		return err
 	}
@@ -95,13 +93,29 @@ func (r *Route[ReqT, RespT]) SendResponse(resp types.MessageI) error {
 	return nil
 }
 
-// AwaitResponse listens for a response and returns it if it is available
-// before the timeout. Otherwise, it returns ErrTimeout.
-func (r *Route[ReqT, RespT]) AwaitResponse(respPtr any) error {
+// populateFuture sends a done signal to the future when the response is
+// available.
+func (r *Route[ReqT, RespT]) populateFuture(future types.FutureI[RespT]) {
 	select {
 	case resp := <-r.responseCh:
-		return assign(resp, respPtr)
+		future.SetResult(resp.Data(), resp.Error())
 	case <-time.After(r.timeout):
-		return errTimeout(r.messageID, r.timeout)
+		errTimeout(r.messageID, r.timeout)
+	}
+}
+
+// SendRequest sends a request to the recipient.
+func (r *Route[ReqT, RespT]) sendRequest(req types.BaseMessage) error {
+	typedReq, err := ensureType[types.Message[ReqT]](req)
+	if err != nil {
+		return err
+	}
+
+	select {
+	case r.recipientCh <- typedReq:
+		return nil
+	default:
+		// Channel is full or closed
+		return errReceiverNotReady(r.messageID)
 	}
 }

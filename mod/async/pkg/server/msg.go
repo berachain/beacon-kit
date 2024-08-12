@@ -40,21 +40,21 @@ func NewMessageServer() *MessageServer {
 
 // Request sends a message to the server and awaits for a response.
 // The response is written to the provided response pointer.
-func (ms *MessageServer) Request(req types.MessageI, respPtr any) error {
+func (ms *MessageServer) Request(req types.BaseMessage, future any) error {
 	// send request and await response
 	route, ok := ms.routes[req.ID()]
 	if !ok {
 		return ErrRouteNotFound
 	}
-	if err := route.SendRequest(req); err != nil {
+	if err := route.SendRequest(req, future); err != nil {
 		return err
 	}
-	return route.AwaitResponse(respPtr)
+	return nil
 }
 
 // Respond sends a response to the route that corresponds to the response's
 // messageID.
-func (ms *MessageServer) Respond(resp types.MessageI) error {
+func (ms *MessageServer) Respond(resp types.BaseMessage) error {
 	route, ok := ms.routes[resp.ID()]
 	if !ok {
 		return ErrRouteNotFound

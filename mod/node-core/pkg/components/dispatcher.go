@@ -31,11 +31,11 @@ import (
 // DispatcherInput is the input for the Dispatcher.
 type DispatcherInput struct {
 	depinject.In
-	EventServer                   *EventServer
-	MessageServer                 *MessageServer
-	Logger                        log.AdvancedLogger[any, sdklog.Logger]
-	BeaconBlockFinalizedPublisher *BeaconBlockFinalizedPublisher
-	Routes                        []asynctypes.MessageRoute
+	EventServer   *EventServer
+	MessageServer *MessageServer
+	Logger        log.AdvancedLogger[any, sdklog.Logger]
+	Publishers    []asynctypes.Publisher
+	Routes        []asynctypes.MessageRoute
 }
 
 // ProvideDispatcher provides a new Dispatcher.
@@ -47,16 +47,8 @@ func ProvideDispatcher(
 		in.MessageServer,
 		in.Logger.With("service", "dispatcher"),
 	)
-	d.RegisterPublisher(
-		in.BeaconBlockFinalizedPublisher.EventID(),
-		in.BeaconBlockFinalizedPublisher,
-	)
-	for _, route := range in.Routes {
-		if err := d.RegisterRoute(route.MessageID(), route); err != nil {
-			return nil, err
-		}
-	}
-
+	d.RegisterPublishers(in.Publishers...)
+	d.RegisterRoutes(in.Routes...)
 	return d, nil
 }
 
@@ -64,7 +56,7 @@ func DefaultDispatcherComponents() []any {
 	return []any{
 		ProvideDispatcher,
 		ProvideMessageRoutes,
-		ProvideBeaconBlockFinalizedPublisher,
+		ProvidePublishers,
 		ProvideMessageServer,
 		ProvideEventServer,
 	}

@@ -25,6 +25,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/async/pkg/server"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
 // ProvideMessageServer provides a message server.
@@ -35,43 +36,23 @@ func ProvideMessageServer() *server.MessageServer {
 // ProvideMessageRoutes provides all the message routes.
 func ProvideMessageRoutes() []asynctypes.MessageRoute {
 	return []asynctypes.MessageRoute{
-		RouteFactory(messages.BuildBeaconBlockAndSidecars),
-		RouteFactory(messages.VerifyBeaconBlock),
-		RouteFactory(messages.FinalizeBeaconBlock),
-		RouteFactory(messages.ProcessGenesisData),
-		RouteFactory(messages.VerifySidecars),
-		RouteFactory(messages.ProcessSidecars),
-	}
-}
-
-// RouteFactory creates a new route for the given message ID.
-func RouteFactory(mID string) asynctypes.MessageRoute {
-	switch mID {
-	case messages.BuildBeaconBlockAndSidecars:
-		return messaging.NewRoute[
-			*SlotMessage, *BlockBundleMessage,
-		](messages.BuildBeaconBlockAndSidecars)
-	case messages.VerifyBeaconBlock:
-		return messaging.NewRoute[
-			*BlockMessage, *BlockMessage,
-		](messages.VerifyBeaconBlock)
-	case messages.FinalizeBeaconBlock:
-		return messaging.NewRoute[
-			*BlockMessage, *ValidatorUpdateMessage,
-		](messages.FinalizeBeaconBlock)
-	case messages.ProcessGenesisData:
-		return messaging.NewRoute[
-			*GenesisMessage, *ValidatorUpdateMessage,
-		](messages.ProcessGenesisData)
-	case messages.VerifySidecars:
-		return messaging.NewRoute[
-			*SidecarMessage, *SidecarMessage,
-		](messages.VerifySidecars)
-	case messages.ProcessSidecars:
-		return messaging.NewRoute[
-			*SidecarMessage, *SidecarMessage,
-		](messages.ProcessSidecars)
-	default:
-		return nil
+		messaging.NewRoute[*SlotData, *BeaconBlockBundle](
+			messages.BuildBeaconBlockAndSidecars,
+		),
+		messaging.NewRoute[*BeaconBlock, *BeaconBlock](
+			messages.VerifyBeaconBlock,
+		),
+		messaging.NewRoute[*BeaconBlock, transition.ValidatorUpdates](
+			messages.FinalizeBeaconBlock,
+		),
+		messaging.NewRoute[*Genesis, transition.ValidatorUpdates](
+			messages.ProcessGenesisData,
+		),
+		messaging.NewRoute[*BlobSidecars, *BlobSidecars](
+			messages.VerifySidecars,
+		),
+		messaging.NewRoute[*BlobSidecars, *BlobSidecars](
+			messages.ProcessSidecars,
+		),
 	}
 }

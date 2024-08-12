@@ -88,11 +88,11 @@ type Service[
 
 	// finalizeBlkReqs is a channel for receiving finalize beacon block
 	// requests.
-	finalizeBlkReqs chan *asynctypes.Message[BeaconBlockT]
+	finalizeBlkReqs chan asynctypes.Message[BeaconBlockT]
 	// verifyBlkReqs is a channel for receiving verify beacon block requests.
-	verifyBlkReqs chan *asynctypes.Message[BeaconBlockT]
+	verifyBlkReqs chan asynctypes.Message[BeaconBlockT]
 	// processGenReqs is a channel for receiving process genesis data requests.
-	processGenReqs chan *asynctypes.Message[GenesisT]
+	processGenReqs chan asynctypes.Message[GenesisT]
 }
 
 // NewService creates a new validator service.
@@ -155,9 +155,9 @@ func NewService[
 		metrics:                 newChainMetrics(ts),
 		optimisticPayloadBuilds: optimisticPayloadBuilds,
 		forceStartupSyncOnce:    new(sync.Once),
-		finalizeBlkReqs:         make(chan *asynctypes.Message[BeaconBlockT]),
-		verifyBlkReqs:           make(chan *asynctypes.Message[BeaconBlockT]),
-		processGenReqs:          make(chan *asynctypes.Message[GenesisT]),
+		finalizeBlkReqs:         make(chan asynctypes.Message[BeaconBlockT]),
+		verifyBlkReqs:           make(chan asynctypes.Message[BeaconBlockT]),
+		processGenReqs:          make(chan asynctypes.Message[GenesisT]),
 	}
 }
 
@@ -224,7 +224,7 @@ func (s *Service[
 // dispatches a response.
 func (s *Service[
 	_, _, _, _, _, _, _, _, GenesisT, _, _,
-]) handleProcessGenesisDataRequest(msg *asynctypes.Message[GenesisT]) {
+]) handleProcessGenesisDataRequest(msg asynctypes.Message[GenesisT]) {
 	var (
 		valUpdates transition.ValidatorUpdates
 		err        error
@@ -259,7 +259,7 @@ func (s *Service[
 func (s *Service[
 	_, BeaconBlockT, _, _, _, _, _, _, _, _, _,
 ]) handleVerifyBeaconBlockRequest(
-	msg *asynctypes.Message[BeaconBlockT],
+	msg asynctypes.Message[BeaconBlockT],
 ) {
 	// If the block is nil, exit early.
 	if msg.Error() != nil {
@@ -286,7 +286,7 @@ func (s *Service[
 func (s *Service[
 	_, BeaconBlockT, _, _, _, _, _, _, _, _, _,
 ]) handleFinalizeBeaconBlockRequest(
-	msg *asynctypes.Message[BeaconBlockT],
+	msg asynctypes.Message[BeaconBlockT],
 ) {
 	var (
 		valUpdates transition.ValidatorUpdates
