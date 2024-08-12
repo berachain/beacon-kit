@@ -135,11 +135,18 @@ func (b *Backend[
 	return b.cs
 }
 
-// GetSlotByRoot retrieves the slot by a given root from the block store.
+// GetSlotByBlockRoot retrieves the slot by a block root from the block store.
 func (b *Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-]) GetSlotByRoot(root common.Root) (math.Slot, error) {
-	return b.sb.BlockStore().GetSlotByRoot(root)
+]) GetSlotByBlockRoot(root common.Root) (math.Slot, error) {
+	return b.sb.BlockStore().GetSlotByBlockRoot(root)
+}
+
+// GetSlotByStateRoot retrieves the slot by a state root from the block store.
+func (b *Backend[
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+]) GetSlotByStateRoot(root common.Root) (math.Slot, error) {
+	return b.sb.BlockStore().GetSlotByStateRoot(root)
 }
 
 // GetSlotByExecutionNumber retrieves the slot by a given execution number from

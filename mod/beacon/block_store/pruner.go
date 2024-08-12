@@ -31,8 +31,8 @@ func BuildPruneRangeFn[
 	return func(event BlockEventT) (uint64, uint64) {
 		blk := event.Data()
 		if blk.GetSlot().Unwrap() < cfg.AvailabilityWindow {
-			return 0, 0
+			return 1, 1
 		}
-		return 0, blk.GetSlot().Unwrap() - cfg.AvailabilityWindow
+		return 1, blk.GetSlot().Unwrap() - cfg.AvailabilityWindow
 	}
 }

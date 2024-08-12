@@ -34,7 +34,10 @@ type Backend[BlockHeaderT, ForkT, ValidatorT any] interface {
 	StateBackend[ForkT]
 	ValidatorBackend[ValidatorT]
 	HistoricalBackend[ForkT]
-	GetSlotByRoot(root common.Root) (math.Slot, error)
+	// GetSlotByBlockRoot retrieves the slot by a given root from the store.
+	GetSlotByBlockRoot(root common.Root) (math.Slot, error)
+	// GetSlotByStateRoot retrieves the slot by a given root from the store.
+	GetSlotByStateRoot(root common.Root) (math.Slot, error)
 }
 
 type GenesisBackend interface {

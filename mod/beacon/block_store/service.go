@@ -99,7 +99,7 @@ func (s *Service[BeaconBlockT, _]) listenAndStore(
 			return
 		case msg := <-s.finalizedBlkEvents:
 			slot := msg.Data().GetSlot()
-			if err := s.store.Set(slot, msg.Data()); err != nil {
+			if err := s.store.Set(msg.Data()); err != nil {
 				s.logger.Error(
 					"failed to store block", "slot", slot, "error", err,
 				)
