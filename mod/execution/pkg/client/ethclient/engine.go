@@ -59,8 +59,7 @@ func (s *Client[ExecutionPayloadT]) NewPayloadV3(
 ) (*engineprimitives.PayloadStatusV1, error) {
 	result := &engineprimitives.PayloadStatusV1{}
 	if err := s.Call(
-		ctx, result, NewPayloadMethodV3, payload, versionedHashes,
-		(*common.ExecutionHash)(parentBlockRoot),
+		ctx, result, NewPayloadMethodV3, payload, versionedHashes, parentBlockRoot,
 	); err != nil {
 		return nil, err
 	}

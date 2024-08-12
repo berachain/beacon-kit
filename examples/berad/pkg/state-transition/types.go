@@ -25,7 +25,6 @@ import (
 	"context"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
@@ -209,7 +208,7 @@ type Validator[
 	ValidatorT any,
 	WithdrawalCredentialsT interface {
 		~[32]byte
-		ToExecutionAddress() (gethprimitives.ExecutionAddress, error)
+		ToExecutionAddress() (common.ExecutionAddress, error)
 	},
 ] interface {
 	constraints.SSZMarshallableRootable
@@ -251,7 +250,7 @@ type Withdrawal[WithdrawalT any] interface {
 	New(
 		index math.U64,
 		validatorIndex math.ValidatorIndex,
-		address gethprimitives.ExecutionAddress,
+		address common.ExecutionAddress,
 		amount math.Gwei,
 	) WithdrawalT
 	// Equals returns true if the withdrawal is equal to the other.

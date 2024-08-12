@@ -22,7 +22,6 @@ package transition
 
 import (
 	"github.com/berachain/beacon-kit/mod/errors"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
@@ -296,7 +295,7 @@ func (sp *StateProcessor[
 ]) expectedWithdrawals(st BeaconStateT) ([]WithdrawalT, error) {
 	var (
 		balance           math.Gwei
-		withdrawalAddress gethprimitives.ExecutionAddress
+		withdrawalAddress common.ExecutionAddress
 		withdrawals       = make([]WithdrawalT, 0)
 	)
 
