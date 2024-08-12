@@ -31,6 +31,7 @@ import (
 	ethclientrpc "github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient/rpc"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 )
 
@@ -39,8 +40,7 @@ type EngineClient[
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	PayloadAttributesT PayloadAttributes,
 ] struct {
-	// ethclient is the execution client.
-	ethclient *ethclient.Client[ExecutionPayloadT]
+	*ethclient.Client[ExecutionPayloadT]
 	// cfg is the supplied configuration for the engine client.
 	cfg *Config
 	// logger is the logger for the engine client.
@@ -147,7 +147,7 @@ func (s *EngineClient[
 ) error {
 	var (
 		err     error
-		chainID *big.Int
+		chainID math.U64
 	)
 
 	defer func() {
@@ -166,12 +166,12 @@ func (s *EngineClient[
 		return err
 	}
 
-	if chainID.Uint64() != s.eth1ChainID.Uint64() {
+	if chainID.Unwrap() != s.eth1ChainID.Uint64() {
 		err = errors.Wrapf(
 			ErrMismatchedEth1ChainID,
 			"wanted chain ID %d, got %d",
 			s.eth1ChainID,
-			chainID.Uint64(),
+			chainID,
 		)
 		return err
 	}
@@ -182,7 +182,7 @@ func (s *EngineClient[
 		"dial_url",
 		s.cfg.RPCDialURL.String(),
 		"chain_id",
-		chainID.Uint64(),
+		chainID.Unwrap(),
 		"required_chain_id",
 		s.eth1ChainID,
 	)

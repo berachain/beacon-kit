@@ -27,6 +27,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/rpc"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -35,12 +36,12 @@ import (
 // ChainID retrieves the current chain ID.
 func (ec *Client[ExecutionPayloadT]) ChainID(
 	ctx context.Context,
-) (*big.Int, error) {
-	var result hexutil.Big
+) (math.U64, error) {
+	var result math.U64
 	if err := ec.Call(ctx, &result, "eth_chainId"); err != nil {
-		return nil, err
+		return 0, err
 	}
-	return (*big.Int)(&result), nil
+	return result, nil
 }
 
 // TODO: Figure out how to unhood all this.
