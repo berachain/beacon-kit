@@ -29,7 +29,6 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -94,15 +93,15 @@ func (b *BbbDeneb) Generate(r *rand.Rand, size int) reflect.Value {
 		withdrawals[i] = &engineprimitives.Withdrawal{
 			math.U64(r.Uint64()),
 			math.U64(r.Uint64()),
-			gethprimitives.ExecutionAddress(rbytes(20, r)),
+			common.ExecutionAddress(rbytes(20, r)),
 			math.U64(r.Uint64()),
 		}
 	}
 	b.ExecutionPayload = &types.ExecutionPayload{
-		ParentHash:    gethprimitives.ExecutionHash(rbytes(32, r)),
-		FeeRecipient:  gethprimitives.ExecutionAddress(rbytes(20, r)),
-		StateRoot:     common.Root(rbytes(32, r)),
-		ReceiptsRoot:  common.Root(rbytes(32, r)),
+		ParentHash:    common.ExecutionHash(rbytes(32, r)),
+		FeeRecipient:  common.ExecutionAddress(rbytes(20, r)),
+		StateRoot:     bytes.B32(rbytes(32, r)),
+		ReceiptsRoot:  bytes.B32(rbytes(32, r)),
 		LogsBloom:     bytes.B256(rbytes(256, r)),
 		Random:        common.Bytes32(rbytes(32, r)),
 		Number:        math.U64(r.Uint64()),
@@ -111,7 +110,7 @@ func (b *BbbDeneb) Generate(r *rand.Rand, size int) reflect.Value {
 		Timestamp:     math.U64(r.Uint64()),
 		ExtraData:     bytes.Bytes(rbytes(32, r)),
 		BaseFeePerGas: math.NewU256(r.Uint64()),
-		BlockHash:     gethprimitives.ExecutionHash(rbytes(32, r)),
+		BlockHash:     common.ExecutionHash(rbytes(32, r)),
 		Transactions:  txs,
 		Withdrawals:   withdrawals,
 		BlobGasUsed:   math.U64(r.Uint64()),
@@ -151,8 +150,8 @@ func TestSSZRoundTripBeaconBodyDeneb(t *testing.T) {
 			return false
 		}
 
-		htr, _ := body.HashTreeRoot()
-		destHtr, _ := destBody.HashTreeRoot()
+		htr := body.HashTreeRoot()
+		destHtr := destBody.HashTreeRoot()
 		if !reflect.DeepEqual(htr, destHtr) {
 			t.Log("Hash tree root differs after serialization-deserialization round trip")
 		}
