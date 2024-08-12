@@ -64,7 +64,11 @@ type BlobVerifierInput struct {
 // ProvideBlobVerifier is a function that provides the BlobVerifier to the
 // depinject framework.
 func ProvideBlobVerifier(in BlobVerifierInput) *BlobVerifier {
-	return dablob.NewVerifier(in.BlobProofVerifier, in.TelemetrySink)
+	return dablob.NewVerifier[
+		*BeaconBlockHeader,
+		*BlobSidecar,
+		*BlobSidecars,
+	](in.BlobProofVerifier, in.TelemetrySink)
 }
 
 // BlobProcessorIn is the input for the BlobProcessor.
