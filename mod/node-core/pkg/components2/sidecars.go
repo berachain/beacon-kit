@@ -34,7 +34,43 @@ type SidecarFactoryInput struct {
 	TelemetrySink *metrics.TelemetrySink
 }
 
-func ProvideSidecarFactory(in SidecarFactoryInput) *SidecarFactory {
+func ProvideSidecarFactory[
+	AttestationDataT any,
+	BeaconBlockT BeaconBlock[
+		BeaconBlockT,
+		AttestationDataT,
+		BeaconBlockBodyT,
+		DepositT,
+		Eth1DataT,
+		ExecutionPayloadT,
+		ExecutionPayloadHeaderT,
+		SlashingInfoT,
+		WithdrawalsT,
+	],
+	BeaconBlockBodyT BeaconBlockBody[
+		BeaconBlockBodyT,
+		AttestationDataT,
+		DepositT,
+		Eth1DataT,
+		ExecutionPayloadT,
+		ExecutionPayloadHeaderT,
+		SlashingInfoT,
+		WithdrawalsT,
+	],
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	DepositT any,
+	Eth1DataT any,
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+	],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader,
+	SlashingInfoT any,
+	WithdrawalsT any,
+](in SidecarFactoryInput) *dablob.SidecarFactory[
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconBlockHeaderT,
+] {
 	return dablob.NewSidecarFactory[
 		*BeaconBlock,
 		*BeaconBlockBody,

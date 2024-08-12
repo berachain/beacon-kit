@@ -24,7 +24,6 @@ import (
 	"context"
 	"time"
 
-	types "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -42,9 +41,12 @@ type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
 	Persist(math.Slot, BlobSidecarsT) error
 }
 
-type BeaconBlock[BeaconBlockBodyT any] interface {
+type BeaconBlock[
+	BeaconBlockBodyT any,
+	BeaconBlockHeaderT BeaconBlockHeader,
+] interface {
 	GetBody() BeaconBlockBodyT
-	GetHeader() *types.BeaconBlockHeader
+	GetHeader() BeaconBlockHeaderT
 }
 
 type BeaconBlockBody interface {

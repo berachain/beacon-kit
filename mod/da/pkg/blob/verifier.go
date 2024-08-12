@@ -37,7 +37,7 @@ type Verifier[
 	BlobSidecarsT Sidecars[BlobSidecarT, BeaconBlockHeaderT],
 ] struct {
 	// proofVerifier is used to verify the KZG proofs of the blobs.
-	proofVerifier BlobProofVerifierT
+	proofVerifier kzg.BlobProofVerifier
 	// metrics collects and reports metrics related to the verification process.
 	metrics *verifierMetrics
 }

@@ -65,17 +65,13 @@ type (
 		AttestationDataT any,
 		BeaconBlockBodyT BeaconBlockBody[
 			BeaconBlockBodyT, AttestationDataT, DepositT,
-			Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-			SlashingInfoT, WithdrawalsT,
+			Eth1DataT, ExecutionPayloadT, SlashingInfoT,
 		],
+		BeaconBlockHeaderT any,
 		DepositT any,
 		Eth1DataT any,
-		ExecutionPayloadT ExecutionPayload[
-			ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
-		],
-		ExecutionPayloadHeaderT ExecutionPayloadHeader,
+		ExecutionPayloadT any,
 		SlashingInfoT any,
-		WithdrawalsT any,
 	] interface {
 		constraints.Nillable
 		constraints.Empty[T]
@@ -89,6 +85,8 @@ type (
 		GetSlot() math.Slot
 		// GetBody returns the body of the block.
 		GetBody() BeaconBlockBodyT
+		// GetHeader returns the header of the block.
+		GetHeader() BeaconBlockHeaderT
 		// GetParentBlockRoot returns the root of the parent block.
 		GetParentBlockRoot() common.Root
 		// GetStateRoot returns the state root of the block.
@@ -103,12 +101,8 @@ type (
 		AttestationDataT any,
 		DepositT any,
 		Eth1DataT any,
-		ExecutionPayloadT ExecutionPayload[
-			ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
-		],
-		ExecutionPayloadHeaderT ExecutionPayloadHeader,
+		ExecutionPayloadT any,
 		SlashingInfoT any,
-		WithdrawalsT any,
 	] interface {
 		constraints.Nillable
 		constraints.EmptyWithVersion[T]

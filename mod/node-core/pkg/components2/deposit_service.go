@@ -57,15 +57,14 @@ type DepositServiceIn[
 func ProvideDepositService[
 	AttestationDataT any,
 	BeaconBlockT BeaconBlock[
-		BeaconBlockT, AttestationDataT, BeaconBlockBodyT, DepositT,
-		Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-		SlashingInfoT, WithdrawalsT,
+		BeaconBlockT, AttestationDataT, BeaconBlockBodyT, BeaconBlockHeaderT,
+		DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
 	],
 	BeaconBlockBodyT BeaconBlockBody[
 		BeaconBlockBodyT, AttestationDataT, DepositT,
-		Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-		SlashingInfoT, WithdrawalsT,
+		Eth1DataT, ExecutionPayloadT, SlashingInfoT,
 	],
+	BeaconBlockHeaderT any,
 	BeaconBlockEventT Event[BeaconBlockT],
 	DepositT Deposit[DepositT, ForkDataT, WithdrawalCredentialsT],
 	DepositStoreT DepositStore[DepositT],
