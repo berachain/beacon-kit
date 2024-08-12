@@ -18,27 +18,8 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package cache
+package rpc
 
-import "time"
+import "errors"
 
-const (
-	defaultHeaderSize = 20
-	defaultHeaderTTL  = 10 * time.Minute
-)
-
-// Config is the configuration for an EngineCache.
-type Config struct {
-	// HeaderSize is the size of the header cache.
-	HeaderSize int `mapstructure:"header-size"`
-	// HeaderTTL is the time-to-live for headers in the cache.
-	HeaderTTL time.Duration `mapstructure:"header-ttl"`
-}
-
-// DefaultConfig returns the default configuration for an EngineCache.
-func DefaultConfig() Config {
-	return Config{
-		HeaderSize: defaultHeaderSize,
-		HeaderTTL:  defaultHeaderTTL,
-	}
-}
+var ErrNilResponse = errors.New("nil response")

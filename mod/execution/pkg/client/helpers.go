@@ -26,10 +26,7 @@ import (
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
-	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
-	gjwt "github.com/golang-jwt/jwt/v5"
 )
 
 // createContextWithTimeout creates a context with a timeout and returns it
@@ -66,16 +63,4 @@ func processPayloadStatusResult(
 	default:
 		return nil, engineerrors.ErrUnknownPayloadStatus
 	}
-}
-
-// buildSignedJWT builds a signed JWT from the provided JWT secret.
-func buildSignedJWT(s *jwt.Secret) (string, error) {
-	token := gjwt.NewWithClaims(gjwt.SigningMethodHS256, gjwt.MapClaims{
-		"iat": &gjwt.NumericDate{Time: time.Now()},
-	})
-	str, err := token.SignedString(s[:])
-	if err != nil {
-		return "", errors.Newf("failed to create JWT token: %w", err)
-	}
-	return str, nil
 }

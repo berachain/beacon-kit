@@ -18,14 +18,33 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package crypto
+package ethclient
 
 import (
-	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient/rpc"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 )
 
-//nolint:gochecknoglobals // alias.
-var (
-	HexToECDSA      = crypto.HexToECDSA
-	PubkeyToAddress = crypto.PubkeyToAddress
-)
+// Client - Ethereum rpc client.
+type Client[ExecutionPayloadT interface {
+	constraints.JSONMarshallable
+	Empty(uint32) ExecutionPayloadT
+	Version() uint32
+}] struct {
+	*rpc.Client
+}
+
+// New create new rpc client with given url.
+func New[
+	ExecutionPayloadT interface {
+		constraints.JSONMarshallable
+		Empty(uint32) ExecutionPayloadT
+		Version() uint32
+	},
+](client *rpc.Client) *Client[ExecutionPayloadT] {
+	rpc := &Client[ExecutionPayloadT]{
+		Client: client,
+	}
+
+	return rpc
+}

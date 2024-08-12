@@ -20,8 +20,16 @@
 
 package rpc
 
-import "github.com/ethereum/go-ethereum/rpc"
+// updateHeader builds an http.Header that has the JWT token
+// attached for authorization.
+func (rpc *Client) updateHeader() error {
+	// Build the JWT token.
+	token, err := rpc.jwtSecret.BuildSignedToken()
+	if err != nil {
+		return err
+	}
 
-type (
-	BlockNumber = rpc.BlockNumber
-)
+	// Add the JWT token to the headers.
+	rpc.header.Set("Authorization", "Bearer "+token)
+	return nil
+}

@@ -18,54 +18,24 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package client
+package rpc
 
 import (
-	"context"
-	"net/http"
 	"time"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 )
 
-// jwtRefreshLoop refreshes the JWT token for the execution client.
-func (s *EngineClient[
-	_, _,
-]) jwtRefreshLoop(
-	ctx context.Context,
-) {
-	s.logger.Info("Starting JWT refresh loop 🔄")
-	ticker := time.NewTicker(s.cfg.RPCJWTRefreshInterval)
-	for {
-		select {
-		case <-ctx.Done():
-			ticker.Stop()
-			return
-		case <-ticker.C:
-			if err := s.dialExecutionRPCClient(ctx); err != nil {
-				s.logger.Error(
-					"Failed to refresh engine auth token",
-					"err",
-					err,
-				)
-			}
-		}
+// WithJWTSecret sets the JWT secret for the RPC client.
+func WithJWTSecret(secret *jwt.Secret) func(rpc *Client) {
+	return func(rpc *Client) {
+		rpc.jwtSecret = secret
 	}
 }
 
-// buildJWTHeader builds an http.Header that has the JWT token
-// attached for authorization.
-func (s *EngineClient[
-	_, _,
-]) buildJWTHeader() (http.Header, error) {
-	header := make(http.Header)
-
-	// Build the JWT token.
-	token, err := buildSignedJWT(s.jwtSecret)
-	if err != nil {
-		s.logger.Error("Failed to build JWT token", "err", err)
-		return header, err
+// WithJWTRefreshInterval sets the JWT refresh interval for the RPC client.
+func WithJWTRefreshInterval(interval time.Duration) func(rpc *Client) {
+	return func(rpc *Client) {
+		rpc.jwtRefreshInterval = interval
 	}
-
-	// Add the JWT token to the headers.
-	header.Set("Authorization", "Bearer "+token)
-	return header, nil
 }
