@@ -23,16 +23,13 @@ package client
 import (
 	"context"
 	"math/big"
-	"net/http"
 	"strings"
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client/cache"
-	"github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
 	ethclient2 "github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient2"
 	ethclient2rpc "github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient2/rpc"
-	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/rpc"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
@@ -43,16 +40,11 @@ type EngineClient[
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	PayloadAttributesT PayloadAttributes,
 ] struct {
-	// Eth1Client is a struct that holds the Ethereum 1 client and
-	// its configuration.
-	*ethclient.Eth1Client[ExecutionPayloadT]
 	*ethclient2.EthRPC[ExecutionPayloadT]
 	// cfg is the supplied configuration for the engine client.
 	cfg *Config
 	// logger is the logger for the engine client.
 	logger log.Logger[any]
-	// jwtSecret is the JWT secret for the execution client.
-	jwtSecret *jwt.Secret
 	// eth1ChainID is the chain ID of the execution client.
 	eth1ChainID *big.Int
 	// clientMetrics is the metrics for the engine client.
@@ -80,10 +72,8 @@ func New[
 	ExecutionPayloadT, PayloadAttributesT,
 ] {
 	return &EngineClient[ExecutionPayloadT, PayloadAttributesT]{
-		cfg:        cfg,
-		logger:     logger,
-		jwtSecret:  jwtSecret,
-		Eth1Client: new(ethclient.Eth1Client[ExecutionPayloadT]),
+		cfg:    cfg,
+		logger: logger,
 		EthRPC: ethclient2.New[ExecutionPayloadT](
 			ethclient2rpc.NewClient(
 				cfg.RPCDialURL.String(),
@@ -110,20 +100,6 @@ func (s *EngineClient[
 	ctx context.Context,
 ) error {
 	go s.EthRPC.Start(ctx)
-
-	if s.cfg.RPCDialURL.IsHTTP() || s.cfg.RPCDialURL.IsHTTPS() {
-		// If we are dialing with HTTP(S), start the JWT refresh loop.
-		defer func() {
-			if s.jwtSecret == nil {
-				s.logger.Warn(
-					"JWT secret not provided for http(s) connection" +
-						" - please verify your configuration settings",
-				)
-				return
-			}
-			go s.jwtRefreshLoop(ctx)
-		}()
-	}
 
 	s.logger.Info(
 		"Initializing connection to the execution client...",
@@ -181,13 +157,8 @@ func (s *EngineClient[
 		}
 	}()
 
-	// Dial the execution client.
-	if err = s.dialExecutionRPCClient(ctx); err != nil {
-		return err
-	}
-
 	// After the initial dial, check to make sure the chain ID is correct.
-	chainID, err = s.Eth1Client.ChainID(ctx)
+	chainID, err = s.EthRPC.ChainID(ctx)
 	if err != nil {
 		if strings.Contains(err.Error(), "401 Unauthorized") {
 			// We always log this error as it is a critical error.
@@ -223,59 +194,4 @@ func (s *EngineClient[
 		return err
 	}
 	return nil
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                   Dialing                                  */
-/* -------------------------------------------------------------------------- */
-
-// dialExecutionRPCClient dials the execution client's RPC endpoint.
-func (s *EngineClient[
-	ExecutionPayloadT, _,
-]) dialExecutionRPCClient(
-	ctx context.Context,
-) error {
-	var (
-		client *rpc.Client
-		err    error
-	)
-
-	// Dial the execution client based on the URL scheme.
-	switch {
-	case s.cfg.RPCDialURL.IsHTTP(), s.cfg.RPCDialURL.IsHTTPS():
-		// Build an http.Header with the JWT token attached.
-		if s.jwtSecret != nil {
-			var header http.Header
-			if header, err = s.buildJWTHeader(); err != nil {
-				return err
-			}
-			if client, err = rpc.DialOptions(
-				ctx, s.cfg.RPCDialURL.String(), rpc.WithHeaders(header),
-			); err != nil {
-				return err
-			}
-		} else {
-			if client, err = rpc.DialContext(
-				ctx, s.cfg.RPCDialURL.String()); err != nil {
-				return err
-			}
-		}
-	case s.cfg.RPCDialURL.IsIPC():
-		if client, err = rpc.DialIPC(
-			ctx, s.cfg.RPCDialURL.Path); err != nil {
-			s.logger.Error("failed to dial IPC", "err", err)
-			return err
-		}
-	default:
-		return errors.Newf(
-			"no known transport for URL scheme %q",
-			s.cfg.RPCDialURL.Scheme,
-		)
-	}
-
-	// Refresh the execution client with the new client.
-	s.Eth1Client, err = ethclient.NewFromRPCClient[ExecutionPayloadT](
-		client,
-	)
-	return err
 }

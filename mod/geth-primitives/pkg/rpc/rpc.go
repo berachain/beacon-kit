@@ -24,14 +24,6 @@ import "github.com/ethereum/go-ethereum/rpc"
 
 type (
 	BlockNumber = rpc.BlockNumber
-	Client      = rpc.Client
-	DataError   = rpc.DataError
 )
 
-//nolint:gochecknoglobals // its okay.
-var (
-	DialOptions = rpc.DialOptions
-	DialContext = rpc.DialContext
-	DialIPC     = rpc.DialIPC
-	WithHeaders = rpc.WithHeaders
-)
+var DialContext = rpc.DialContext

@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/parser"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/bind"
 	gethprimitivescrypto "github.com/berachain/beacon-kit/mod/geth-primitives/pkg/crypto"
@@ -41,6 +40,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/spf13/cobra"
 )
 
@@ -213,7 +213,7 @@ func broadcastDepositTx[
 	if err != nil {
 		return common.ExecutionHash{}, err
 	}
-	ethClient, err := ethclient.NewFromRPCClient[ExecutionPayloadT](
+	ethClient := ethclient.NewClient(
 		rpcClient,
 	)
 	if err != nil {
