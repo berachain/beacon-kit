@@ -145,9 +145,10 @@ func (rpc *Client) CallRaw(
 	response, err := rpc.client.Do(req)
 	if response != nil {
 		defer response.Body.Close()
-	}
-	if err != nil {
+	} else if err != nil {
 		return nil, err
+	} else if response == nil {
+		return nil, ErrNilResponse
 	}
 
 	data, err := io.ReadAll(response.Body)
@@ -160,9 +161,6 @@ func (rpc *Client) CallRaw(
 		return nil, err
 	}
 
-	if resp == nil {
-		return nil, ErrNilResponse
-	}
 	if resp.Error != nil {
 		return nil, *resp.Error
 	}
