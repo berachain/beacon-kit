@@ -34,28 +34,99 @@ import (
 
 // ValidatorServiceInput is the input for the validator service provider.
 type ValidatorServiceInput[
+	AvailabilityStoreT any,
 	BeaconBlockT any,
+	BeaconStateT any,
+	BlobSidecarsT any,
+	BlobFactoryT BlobFactory[BeaconBlockT, BlobSidecarsT],
+	BlockStoreT any,
+	ContextT any,
+	DepositT any,
+	DepositStoreT any,
+	ExecutionPayloadT any,
+	SlotDataT any,
+	StateProcessorT StateProcessor[
+		BeaconBlockT, BeaconStateT, ContextT,
+		DepositT, ExecutionPayloadT,
+	],
+	StorageBackendT StorageBackend[
+		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
+	],
+	LocalBuilderT LocalBuilder[BeaconStateT, ExecutionPayloadT],
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ] struct {
 	depinject.In
 	BeaconBlockFeed *broker.Broker[*asynctypes.Event[BeaconBlockT]]
 	Cfg             *config.Config
 	ChainSpec       common.ChainSpec
-	LocalBuilder    *LocalBuilder
+	LocalBuilder    LocalBuilderT
 	Logger          LoggerT
-	StateProcessor  *StateProcessor
-	StorageBackend  *StorageBackend
+	StateProcessor  StateProcessorT
+	StorageBackend  StorageBackendT
 	Signer          crypto.BLSSigner
 	SidecarsFeed    *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
-	SidecarFactory  *SidecarFactory
+	SidecarFactory  BlobFactoryT
 	SlotBroker      *broker.Broker[*asynctypes.Event[SlotDataT]]
 	TelemetrySink   *metrics.TelemetrySink
 }
 
 // ProvideValidatorService is a depinject provider for the validator service.
-func ProvideValidatorService(
-	in ValidatorServiceInput,
-) (*ValidatorService, error) {
+func ProvideValidatorService[
+	AttestationDataT any,
+	AvailabilityStoreT any,
+	BeaconBlockT BeaconBlock[
+		BeaconBlockT, AttestationDataT, BeaconBlockBodyT, BeaconBlockHeaderT,
+		DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
+	],
+	BeaconBlockBodyT BeaconBlockBody[
+		BeaconBlockBodyT, AttestationDataT, DepositT,
+		Eth1DataT, ExecutionPayloadT, SlashingInfoT,
+	],
+	BeaconBlockHeaderT any,
+	BeaconStateT BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		ForkT, KVStoreT, ValidatorT, ValidatorsT, WithdrawalT,
+	],
+	BlobSidecarsT any,
+	BlobFactoryT BlobFactory[BeaconBlockT, BlobSidecarsT],
+	BlockStoreT any,
+	ContextT Context[ContextT],
+	DepositT any,
+	DepositStoreT DepositStore[DepositT],
+	Eth1DataT Eth1Data[Eth1DataT],
+	ExecutionPayloadT any,
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	ForkT any,
+	ForkDataT ForkData[ForkDataT],
+	KVStoreT any,
+	LoggerT log.AdvancedLogger[any, LoggerT],
+	PayloadBuilderT LocalBuilder[BeaconStateT, ExecutionPayloadT],
+	SlashingInfoT any,
+	SlotDataT SlotData[AttestationDataT, SlashingInfoT, SlotDataT],
+	StateProcessorT StateProcessor[
+		BeaconBlockT, BeaconStateT, ContextT,
+		DepositT, ExecutionPayloadT,
+	],
+	StorageBackendT StorageBackend[
+		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
+	],
+	ValidatorT any,
+	ValidatorsT any,
+	WithdrawalT any,
+](
+	in ValidatorServiceInput[
+		AvailabilityStoreT, BeaconBlockT, BeaconStateT, BlobSidecarsT,
+		BlobFactoryT, BlockStoreT, ContextT, DepositT, DepositStoreT,
+		ExecutionPayloadT, SlotDataT, StateProcessorT, StorageBackendT,
+		PayloadBuilderT, LoggerT,
+	],
+) (*validator.Service[
+	AttestationDataT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+	BlobFactoryT, BlobSidecarsT, ContextT, DepositT, DepositStoreT,
+	Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT, ForkDataT,
+	LoggerT, PayloadBuilderT, SlashingInfoT, SlotDataT, StateProcessorT,
+	StorageBackendT,
+], error) {
 	slotSubscription, err := in.SlotBroker.Subscribe()
 	if err != nil {
 		in.Logger.Error("failed to subscribe to slot feed", "err", err)
@@ -63,25 +134,11 @@ func ProvideValidatorService(
 	}
 	// Build the builder service.
 	return validator.NewService[
-		*AttestationData,
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*BeaconState,
-		*SidecarFactory,
-		*BlobSidecars,
-		*Context,
-		*Deposit,
-		*DepositStore,
-		*Eth1Data,
-		*ExecutionPayload,
-		*ExecutionPayloadHeader,
-		*ForkData,
-		log.Logger[any],
-		*LocalBuilder,
-		*SlashingInfo,
-		*SlotData,
-		*StateProcessor,
-		*StorageBackend,
+		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
+		BlobFactoryT, BlobSidecarsT, ContextT, DepositT, DepositStoreT,
+		Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT, ForkDataT,
+		LoggerT, PayloadBuilderT, SlashingInfoT, SlotDataT, StateProcessorT,
+		StorageBackendT,
 	](
 		&in.Cfg.Validator,
 		in.Logger.With("service", "validator"),

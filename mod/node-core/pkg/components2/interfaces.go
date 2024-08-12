@@ -76,6 +76,15 @@ type (
 		constraints.SSZMarshallableRootable
 
 		NewFromSSZ([]byte, uint32) (T, error)
+		// NewWithVersion creates a new beacon block with the given parameters.
+		NewWithVersion(
+			slot math.Slot,
+			proposerIndex math.ValidatorIndex,
+			parentBlockRoot common.Root,
+			forkVersion uint32,
+		) (T, error)
+		// SetStateRoot sets the state root of the beacon block.
+		SetStateRoot(common.Root)
 		// GetProposerIndex returns the index of the proposer.
 		GetProposerIndex() math.ValidatorIndex
 		// GetSlot returns the slot number of the block.
@@ -184,12 +193,19 @@ type (
 		) (T, error)
 	}
 
+	BlobFactory[BeaconBlockT any, BlobSidecarsT any] interface {
+		// BuildSidecars builds sidecars for a given block and blobs bundle.
+		BuildSidecars(
+			blk BeaconBlockT,
+			blobs engineprimitives.BlobsBundle,
+		) (BlobSidecarsT, error)
+	}
+
 	// BlobProcessor is the interface for the blobs processor.
 	BlobProcessor[
 		AvailabilityStoreT any,
 		BeaconBlockBodyT any,
 		BlobSidecarsT any,
-		ExecutionPayloadT any,
 	] interface {
 		// ProcessSidecars processes the blobs and ensures they match the local
 		// state.
@@ -226,9 +242,8 @@ type (
 	// state and processing blocks.
 	BlockchainService[
 		BeaconBlockT any,
-		BlobSidecarsT constraints.SSZMarshallable,
 		DepositT any,
-		GenesisT json.Unmarshaler,
+		GenesisT any,
 	] interface {
 		// ProcessGenesisData processes the genesis data and initializes the beacon
 		// state.
@@ -312,7 +327,7 @@ type (
 	Deposit[
 		T any,
 		ForkDataT any,
-		WithdrawalCredentialsT ~[32]byte,
+		WithdrawalCredentialsT any,
 	] interface {
 		constraints.Empty[T]
 		constraints.SSZMarshallableRootable
@@ -480,7 +495,10 @@ type (
 	}
 
 	// LocalBuilder is the interface for the builder service.
-	LocalBuilder[BeaconStateT any] interface {
+	LocalBuilder[
+		BeaconStateT any,
+		ExecutionPayloadT any,
+	] interface {
 		// Enabled returns true if the local builder is enabled.
 		Enabled() bool
 		// RequestPayloadAsync requests a new payload for the given slot.
@@ -499,6 +517,23 @@ type (
 			st BeaconStateT,
 			slot math.Slot,
 		) error
+		// RetrievePayload retrieves the payload for the given slot.
+		RetrievePayload(
+			ctx context.Context,
+			slot math.Slot,
+			parentBlockRoot common.Root,
+		) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
+		// RequestPayloadSync requests a payload for the given slot and
+		// blocks until the payload is delivered.
+		RequestPayloadSync(
+			ctx context.Context,
+			st BeaconStateT,
+			slot math.Slot,
+			timestamp uint64,
+			parentBlockRoot common.Root,
+			headEth1BlockHash common.ExecutionHash,
+			finalEth1BlockHash common.ExecutionHash,
+		) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
 	}
 
 	// Middleware is the interface for the CometBFT middleware.
@@ -544,6 +579,12 @@ type (
 	SlotData[AttestationDataT, SlashingInfoT, SlotDataT any] interface {
 		// New creates a new slot data instance.
 		New(math.Slot, []AttestationDataT, []SlashingInfoT) SlotDataT
+		// GetSlot returns the slot of the incoming slot.
+		GetSlot() math.Slot
+		// GetAttestationData returns the attestation data of the incoming slot.
+		GetAttestationData() []AttestationDataT
+		// GetSlashingInfo returns the slashing info of the incoming slot.
+		GetSlashingInfo() []SlashingInfoT
 	}
 
 	// StateProcessor defines the interface for processing the state.
@@ -578,28 +619,10 @@ type (
 	// StorageBackend defines an interface for accessing various storage
 	// components required by the beacon node.
 	StorageBackend[
-		AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
-		BeaconBlockT any,
-		BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-		BeaconBlockBodyT any,
-		BeaconStateT BeaconState[
-			BeaconStateT, BeaconBlockHeaderT, Eth1DataT,
-			ExecutionPayloadHeaderT, ForkT, KVStoreT,
-			ValidatorT, ValidatorsT, WithdrawalT,
-		],
-		BlobSidecarsT any,
-		BlockStoreT BlockStore[BeaconBlockT],
-		DepositT Deposit[DepositT, ForkDataT, WithdrawlCredentialsT],
-		DepositStoreT DepositStore[DepositT],
-		Eth1DataT,
-		ExecutionPayloadHeaderT,
-		ForkT,
-		ForkDataT,
-		KVStoreT,
-		ValidatorT,
-		ValidatorsT,
-		WithdrawalT any,
-		WithdrawlCredentialsT ~[32]byte,
+		AvailabilityStoreT any,
+		BeaconStateT any,
+		BlockStoreT any,
+		DepositStoreT any,
 	] interface {
 		AvailabilityStore() AvailabilityStoreT
 		BlockStore() BlockStoreT
@@ -618,7 +641,7 @@ type (
 	// ValidatorT.
 	Validator[
 		ValidatorT any,
-		WithdrawalCredentialsT ~[32]byte,
+		WithdrawalCredentialsT any,
 	] interface {
 		constraints.Empty[ValidatorT]
 		constraints.SSZMarshallableRootable
@@ -702,7 +725,7 @@ type (
 	// is a combination of the read-only and write-only beacon state types.
 	BeaconState[
 		T any,
-		BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+		BeaconBlockHeaderT any,
 		Eth1DataT,
 		ExecutionPayloadHeaderT,
 		ForkT,
@@ -732,7 +755,7 @@ type (
 	// BeaconStore is the interface for the beacon store.
 	BeaconStore[
 		T any,
-		BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+		BeaconBlockHeaderT any,
 		Eth1DataT any,
 		ExecutionPayloadHeaderT any,
 		ForkT any,
@@ -851,8 +874,7 @@ type (
 
 	// ReadOnlyBeaconState is the interface for a read-only beacon state.
 	ReadOnlyBeaconState[
-		BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-		Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
 		ValidatorT, ValidatorsT, WithdrawalT any,
 	] interface {
 		ReadOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT]

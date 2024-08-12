@@ -136,8 +136,7 @@ type DAServiceIn[
 	],
 	BeaconBlockBodyT any,
 	BlobProcessorT BlobProcessor[
-		AvailabilityStoreT, BeaconBlockBodyT,
-		BlobSidecarsT, ExecutionPayloadT,
+		AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT,
 	],
 	BlobSidecarsT any,
 	ExecutionPayloadT any,
@@ -159,8 +158,7 @@ func ProvideDAService[
 	],
 	BeaconBlockBodyT any,
 	BlobProcessorT BlobProcessor[
-		AvailabilityStoreT, BeaconBlockBodyT,
-		BlobSidecarsT, ExecutionPayloadT,
+		AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT,
 	],
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarT, BlobSidecarsT],
