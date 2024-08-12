@@ -24,6 +24,8 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	storev2 "cosmossdk.io/store/v2/db"
+	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	blockservice "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
@@ -92,12 +94,13 @@ func ProvideBlockStore[
 
 // BlockPrunerInput is the input for the block pruner.
 type BlockPrunerInput[
+	BeaconBlockT any,
 	BlockStoreT any,
 	LoggerT log.Logger,
 ] struct {
 	depinject.In
 
-	BlockBroker *BlockBroker
+	BlockBroker *broker.Broker[*asynctypes.Event[BeaconBlockT]]
 	BlockStore  BlockStoreT
 	Config      *config.Config
 	Logger      LoggerT
@@ -117,7 +120,16 @@ func ProvideBlockPruner[
 		WithdrawalsT,
 	],
 	AttestationDataT any,
-	BeaconBlockBodyT any,
+	BeaconBlockBodyT BeaconBlockBody[
+		BeaconBlockBodyT,
+		AttestationDataT,
+		DepositT,
+		Eth1DataT,
+		ExecutionPayloadT,
+		ExecutionPayloadHeaderT,
+		SlashingInfoT,
+		WithdrawalsT,
+	],
 	BlockStoreT BlockStore[BeaconBlockT],
 	DepositT any,
 	Eth1DataT any,
@@ -131,7 +143,11 @@ func ProvideBlockPruner[
 	WithdrawalsT any,
 	LoggerT log.Logger,
 ](
-	in BlockPrunerInput[BlockStoreT, LoggerT],
+	in BlockPrunerInput[
+		BeaconBlockT,
+		BlockStoreT,
+		LoggerT,
+	],
 ) (pruner.Pruner[BlockStoreT], error) {
 	subCh, err := in.BlockBroker.Subscribe()
 	if err != nil {
@@ -141,7 +157,7 @@ func ProvideBlockPruner[
 
 	return pruner.NewPruner[
 		BeaconBlockT,
-		*BlockEvent,
+		*asynctypes.Event[BeaconBlockT],
 		BlockStoreT,
 	](
 		in.Logger.With("service", manager.BlockPrunerName),
@@ -150,7 +166,7 @@ func ProvideBlockPruner[
 		subCh,
 		blockservice.BuildPruneRangeFn[
 			BeaconBlockT,
-			*BlockEvent,
+			*asynctypes.Event[BeaconBlockT],
 		](in.Config.BlockStoreService),
 	), nil
 }
