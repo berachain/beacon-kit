@@ -40,6 +40,7 @@ func (sp *StateProcessor[
 
 	// Process the first sp.cs.MaxCommitteeSize validators.
 	for i, val := range vals {
+		//#nosec G701 // If this overflows, your valset is too big anyways.
 		if i < int(sp.cs.MaxCommitteeSize) {
 			validatorUpdates[i] = &transition.ValidatorUpdate{
 				Pubkey:           val.GetPubkey(),
