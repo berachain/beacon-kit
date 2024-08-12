@@ -27,7 +27,6 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/execution/pkg/client/cache"
 	ethclient "github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
 	ethclientrpc "github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient/rpc"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -51,9 +50,6 @@ type EngineClient[
 	metrics *clientMetrics
 	// capabilities is a map of capabilities that the execution client has.
 	capabilities map[string]struct{}
-	// engineCache is an all-in-one cache for data
-	// that are retrieved by the EngineClient.
-	engineCache *cache.EngineCache
 }
 
 // New creates a new engine client EngineClient.
@@ -80,7 +76,6 @@ func New[
 				ethclientrpc.WithJWTSecret(jwtSecret)),
 		),
 		capabilities: make(map[string]struct{}),
-		engineCache:  cache.NewEngineCacheWithDefaultConfig(),
 		eth1ChainID:  eth1ChainID,
 		metrics:      newClientMetrics(telemetrySink, logger),
 	}
