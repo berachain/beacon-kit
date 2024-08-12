@@ -31,6 +31,8 @@ type BeraChainSpec struct {
 		uint64,
 		any,
 	]
-	// BGTContractAddress
+	// BGTContractAddress is the address of the BGT contract.
 	BGTContractAddress [20]byte `mapstructure:"bgt-contract-address"`
+	// MaxCommitteeSize is the maximum size of the committee.
+	MaxCommitteeSize uint64 `mapstructure:"max-committee-size"`
 }
