@@ -18,25 +18,36 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package chainspec
+package runtime
 
-import "github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
+import (
+	"context"
 
-type BartioChainSpec[
-	DomainTypeT ~[4]byte,
-	EpochT ~uint64,
-	ExecutionAddressT ~[20]byte,
-	SlotT ~uint64,
-	CometBFTConfigT any,
-] struct {
-	// BGTContractAddress
-	BGTContractAddress ExecutionAddressT `mapstructure:"bgt-contract-address"`
-	// SpecData is the underlying data structure for chain-specific parameters.
-	chain.SpecData[
-		DomainTypeT,
-		EpochT,
-		ExecutionAddressT,
-		SlotT,
-		CometBFTConfigT,
-	]
+	ctypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
+	"github.com/cosmos/gogoproto/proto"
+)
+
+type Middleware interface {
+	InitGenesis(
+		ctx context.Context,
+		bz []byte,
+	) (transition.ValidatorUpdates, error)
+
+	PrepareProposal(
+		ctx context.Context,
+		slotData *types.SlotData[
+			*ctypes.AttestationData,
+			*ctypes.SlashingInfo],
+	) ([]byte, []byte, error)
+
+	ProcessProposal(
+		ctx context.Context,
+		req proto.Message,
+	) (proto.Message, error)
+
+	FinalizeBlock(
+		ctx context.Context, req proto.Message,
+	) (transition.ValidatorUpdates, error)
 }

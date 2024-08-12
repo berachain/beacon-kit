@@ -21,11 +21,8 @@
 package cometbft
 
 import (
-	"context"
-
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/sourcegraph/conc/iter"
 )
 
 // ConsensusEngine is used to decouple the Comet consensus engine from
@@ -76,18 +73,6 @@ func NewConsensusEngine[
 	}
 }
 
-func (c *ConsensusEngine[_, _, _, _, _, ValidatorUpdateT]) InitGenesis(
-	ctx context.Context,
-	genesisBz []byte,
-) ([]ValidatorUpdateT, error) {
-	updates, err := c.Middleware.InitGenesis(ctx, genesisBz)
-	if err != nil {
-		return nil, err
-	}
-	// Convert updates into the Cosmos SDK format.
-	return iter.MapErr(updates, convertValidatorUpdate[ValidatorUpdateT])
-}
-
 // TODO: Decouple Comet Types
 func (c *ConsensusEngine[_, _, _, _, _, _]) PrepareProposal(
 	ctx sdk.Context,
@@ -122,22 +107,4 @@ func (c *ConsensusEngine[_, _, _, _, _, ValidatorUpdateT]) ProcessProposal(
 		return nil, err
 	}
 	return resp.(*cmtabci.ProcessProposalResponse), nil
-}
-
-// TODO: Decouple Comet Types
-func (c *ConsensusEngine[_, _, _, _, _, ValidatorUpdateT]) PreBlock(
-	ctx sdk.Context,
-	req *cmtabci.FinalizeBlockRequest,
-) error {
-	return c.Middleware.PreBlock(ctx, req)
-}
-
-func (c *ConsensusEngine[_, _, _, _, _, ValidatorUpdateT]) EndBlock(
-	ctx context.Context,
-) ([]ValidatorUpdateT, error) {
-	updates, err := c.Middleware.EndBlock(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return iter.MapErr(updates, convertValidatorUpdate[ValidatorUpdateT])
 }

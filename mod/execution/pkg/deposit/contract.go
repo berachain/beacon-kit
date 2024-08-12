@@ -81,7 +81,7 @@ func (dc *WrappedBeaconDepositContract[
 	logs, err := dc.FilterDeposit(
 		&bind.FilterOpts{
 			Context: ctx,
-			Start:   uint64(blkNum),
+			Start:   blkNum.Unwrap(),
 			End:     (*uint64)(&blkNum),
 		},
 	)

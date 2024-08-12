@@ -29,37 +29,6 @@ import (
 	"github.com/davecgh/go-spew/spew"
 )
 
-// processOperations processes the operations and ensures they match the
-// local state.
-func (sp *StateProcessor[
-	BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _,
-]) processOperations(
-	st BeaconStateT,
-	blk BeaconBlockT,
-) error {
-	// Verify that outstanding deposits are processed up to the maximum number
-	// of deposits.
-	deposits := blk.GetBody().GetDeposits()
-	// index, err := st.GetEth1DepositIndex()
-	// if err != nil {
-	// 	return err
-	// }
-	// eth1Data, err := st.GetEth1Data()
-	// if err != nil {
-	// 	return err
-	// }
-	// depositCount := min(
-	// 	sp.cs.MaxDepositsPerBlock(),
-	// 	uint64(eth1Data.GetDepositCount())-index,
-	// )
-	// _ = depositCount
-	// TODO: Update eth1data count and check this.
-	// if uint64(len(deposits)) != depositCount {
-	// 	return errors.New("deposit count mismatch")
-	// }
-	return sp.processDeposits(st, deposits)
-}
-
 // processDeposits processes the deposits and ensures  they match the
 // local state.
 func (sp *StateProcessor[
@@ -84,17 +53,6 @@ func (sp *StateProcessor[
 	st BeaconStateT,
 	dep DepositT,
 ) error {
-	// TODO: fill this in properly
-	// if !sp.isValidMerkleBranch(
-	// 	leaf,
-	// 	dep.Credentials,
-	// 	32 + 1,
-	// 	dep.Index,
-	// 	st.root,
-	// ) {
-	// 	return errors.New("invalid merkle branch")
-	// }
-
 	depositIndex, err := st.GetEth1DepositIndex()
 	if err != nil {
 		return err
@@ -145,7 +103,7 @@ func (sp *StateProcessor[
 ) error {
 	var (
 		genesisValidatorsRoot common.Root
-		epoch                 math.Epoch
+		epoch                 uint64
 		err                   error
 	)
 
@@ -167,7 +125,7 @@ func (sp *StateProcessor[
 	}
 
 	// Get the current epoch.
-	epoch = sp.cs.SlotToEpoch(slot)
+	epoch = sp.cs.SlotToEpoch(slot.Unwrap())
 
 	// Verify that the message was signed correctly.
 	var d ForkDataT

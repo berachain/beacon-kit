@@ -205,7 +205,8 @@ func (sp *StateProcessor[
 		}
 
 		// Process the Epoch Boundary.
-		if uint64(stateSlot+1)%sp.cs.SlotsPerEpoch() == 0 {
+		boundary := (stateSlot.Unwrap()+1)%sp.cs.SlotsPerEpoch() == 0
+		if boundary {
 			if epochValidatorUpdates, err =
 				sp.processEpoch(st); err != nil {
 				return nil, err
@@ -326,7 +327,7 @@ func (sp *StateProcessor[
 	// Ensure the calculated state root matches the state root on
 	// the block.
 	stateRoot := st.HashTreeRoot()
-	if blk.GetStateRoot() != st.HashTreeRoot() {
+	if blk.GetStateRoot() != stateRoot {
 		return errors.Wrapf(
 			ErrStateRootMismatch, "expected %s, got %s",
 			stateRoot, blk.GetStateRoot(),

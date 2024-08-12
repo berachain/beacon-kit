@@ -131,7 +131,7 @@ func (sp *StateProcessor[
 	// When we are verifying a payload we expect that it was produced by
 	// the proposer for the slot that it is for.
 	expectedMix, err := st.GetRandaoMixAtIndex(
-		uint64(sp.cs.SlotToEpoch(slot)) % sp.cs.EpochsPerHistoricalVector())
+		sp.cs.SlotToEpoch(slot.Unwrap()) % sp.cs.EpochsPerHistoricalVector())
 	if err != nil {
 		return err
 	}

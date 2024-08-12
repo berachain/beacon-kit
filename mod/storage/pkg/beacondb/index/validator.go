@@ -97,7 +97,7 @@ func NewValidatorsIndex[ValidatorT Validator](
 			sdkcollections.Uint64Key,
 			sdkcollections.Uint64Key,
 			func(_ uint64, validator ValidatorT) (uint64, error) {
-				return uint64(validator.GetEffectiveBalance()), nil
+				return validator.GetEffectiveBalance().Unwrap(), nil
 			},
 		),
 		CometBFTAddress: indexes.NewUnique(

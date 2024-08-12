@@ -18,13 +18,19 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-syntax = "proto3";
+package chainspec
 
-package beacon.module.v1alpha1;
+import "github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
 
-import "cosmos/app/v1alpha1/module.proto";
-
-// Module is the config object of the evm module.
-message Module {
-  option (cosmos.app.v1alpha1.module) = {go_import: "github.com/berachain/beacon-kit/mod/node-core/pkg/components/module"};
+type BeraChainSpec struct {
+	// SpecData is the underlying data structure for chain-specific parameters.
+	chain.Spec[
+		[4]byte,
+		uint64,
+		[20]byte,
+		uint64,
+		any,
+	]
+	// BGTContractAddress
+	BGTContractAddress [20]byte `mapstructure:"bgt-contract-address"`
 }

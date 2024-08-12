@@ -18,17 +18,27 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package runtime
+package components
 
 import (
 	"context"
-	"io"
 
 	"cosmossdk.io/core/store"
 	storetypes "cosmossdk.io/store/types"
-	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
+
+func ProvideKVStoreKey() **storetypes.KVStoreKey {
+	storeKey := storetypes.NewKVStoreKey("beacon")
+	return &storeKey
+}
+
+func ProvideKVStoreService(
+	storeKey **storetypes.KVStoreKey,
+) store.KVStoreService {
+	// skips modules that have no store
+	return kvStoreService{key: *storeKey}
+}
 
 func NewKVStoreService(storeKey *storetypes.KVStoreKey) store.KVStoreService {
 	return &kvStoreService{key: storeKey}
@@ -40,28 +50,6 @@ type kvStoreService struct {
 
 func (k kvStoreService) OpenKVStore(ctx context.Context) store.KVStore {
 	return newKVStore(sdk.UnwrapSDKContext(ctx).KVStore(k.key))
-}
-
-type failingStoreService struct{}
-
-func (failingStoreService) OpenKVStore(ctx context.Context) store.KVStore {
-	panic(
-		"kv store service not available for this module: verify runtime `skip_store_keys` app config if not expected",
-	)
-}
-
-func (failingStoreService) OpenMemoryStore(ctx context.Context) store.KVStore {
-	panic(
-		"memory kv store service not available for this module: verify runtime `skip_store_keys` app config if not expected",
-	)
-}
-
-func (failingStoreService) OpenTransientStore(
-	ctx context.Context,
-) store.KVStore {
-	panic(
-		"transient kv store service not available for this module: verify runtime `skip_store_keys` app config if not expected",
-	)
 }
 
 // CoreKVStore is a wrapper of Core/Store kvstore interface
@@ -120,76 +108,4 @@ func (store coreKVStore) ReverseIterator(
 	start, end []byte,
 ) (store.Iterator, error) {
 	return store.kvStore.ReverseIterator(start, end), nil
-}
-
-// Adapter.
-var _ storetypes.KVStore = kvStoreAdapter{}
-
-type kvStoreAdapter struct {
-	store store.KVStore
-}
-
-func (kvStoreAdapter) CacheWrap() storetypes.CacheWrap {
-	panic("unimplemented")
-}
-
-func (kvStoreAdapter) CacheWrapWithTrace(
-	w io.Writer,
-	tc storetypes.TraceContext,
-) storetypes.CacheWrap {
-	panic("unimplemented")
-}
-
-func (kvStoreAdapter) GetStoreType() storetypes.StoreType {
-	panic("unimplemented")
-}
-
-func (s kvStoreAdapter) Delete(key []byte) {
-	err := s.store.Delete(key)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func (s kvStoreAdapter) Get(key []byte) []byte {
-	bz, err := s.store.Get(key)
-	if err != nil {
-		panic(err)
-	}
-	return bz
-}
-
-func (s kvStoreAdapter) Has(key []byte) bool {
-	has, err := s.store.Has(key)
-	if err != nil {
-		panic(err)
-	}
-	return has
-}
-
-func (s kvStoreAdapter) Set(key, value []byte) {
-	err := s.store.Set(key, value)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func (s kvStoreAdapter) Iterator(start, end []byte) dbm.Iterator {
-	it, err := s.store.Iterator(start, end)
-	if err != nil {
-		panic(err)
-	}
-	return it
-}
-
-func (s kvStoreAdapter) ReverseIterator(start, end []byte) dbm.Iterator {
-	it, err := s.store.ReverseIterator(start, end)
-	if err != nil {
-		panic(err)
-	}
-	return it
-}
-
-func KVStoreAdapter(store store.KVStore) storetypes.KVStore {
-	return &kvStoreAdapter{store}
 }

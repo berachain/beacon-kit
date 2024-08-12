@@ -141,7 +141,7 @@ func (s *Service[
 	var blk BeaconBlockT
 	// Create a new block.
 	parentBlockRoot, err := st.GetBlockRootAtIndex(
-		uint64(requestedSlot-1) % s.chainSpec.SlotsPerHistoricalRoot(),
+		(requestedSlot.Unwrap() - 1) % s.chainSpec.SlotsPerHistoricalRoot(),
 	)
 
 	if err != nil {

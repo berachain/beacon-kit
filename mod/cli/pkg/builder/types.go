@@ -24,16 +24,16 @@ import (
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/spf13/cobra"
 )
 
 // rootCmdSetup is a function that sets up the root command.
 type rootCmdSetup[T types.Node] func(
 	cmd *cmdlib.Root,
-	mm *module.Manager,
+	mm *runtime.App,
 	appCreator servertypes.AppCreator[T],
 	chainSpec common.ChainSpec,
 )

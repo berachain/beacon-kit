@@ -25,35 +25,26 @@ import (
 	"errors"
 	"fmt"
 
-	"cosmossdk.io/core/header"
 	"cosmossdk.io/log"
 	"cosmossdk.io/store"
 	storemetrics "cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 	dbm "github.com/cosmos/cosmos-db"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/gogoproto/proto"
 )
 
 type (
 	execMode uint8
-
-	// StoreLoader defines a customizable function to control how we load the
-	// CommitMultiStore from disk. This is useful for state migration, when
-	// loading a datastore written with an older version of the software. In
-	// particular, if a module changed the substore key name (or removed a
-	// substore)
-	// between two versions of the software.
-	StoreLoader func(ms storetypes.CommitMultiStore) error
 )
 
 const (
-	execModeCheck               execMode = iota // Check a transaction
-	execModeReCheck                             // Recheck a (pending) transaction after a commit
-	execModeSimulate                            // Simulate a transaction
-	execModePrepareProposal                     // Prepare a block proposal
+	execModePrepareProposal     execMode = iota // Check a transaction
 	execModeProcessProposal                     // Process a block proposal
 	execModeVoteExtension                       // Extend or verify a pre-commit vote
 	execModeVerifyVoteExtension                 // Verify a vote extension
@@ -65,28 +56,17 @@ var _ servertypes.ABCI = (*BaseApp)(nil)
 // BaseApp reflects the ABCI application implementation.
 type BaseApp struct {
 	// initialized on creation
-	logger      log.Logger
-	name        string                      // application name from abci.BlockInfo
-	db          dbm.DB                      // common DB backend
-	cms         storetypes.CommitMultiStore // Main (uncached) state
-	storeLoader StoreLoader                 // function to handle store loading, may be overridden with SetStoreLoader()
+	logger log.Logger
+	name   string                      // application name from abci.BlockInfo
+	db     dbm.DB                      // common DB backend
+	cms    storetypes.CommitMultiStore // Main (uncached) state
 
-	initChainer     sdk.InitChainer            // ABCI InitChain handler
-	preBlocker      sdk.PreBlocker             // logic to run before BeginBlocker
-	beginBlocker    sdk.BeginBlocker           // (legacy ABCI) BeginBlock handler
-	endBlocker      sdk.EndBlocker             // (legacy ABCI) EndBlock handler
-	processProposal sdk.ProcessProposalHandler // ABCI ProcessProposal handler
-	prepareProposal sdk.PrepareProposalHandler // ABCI PrepareProposal handler
+	initChainer     sdk.InitChainer                                                           // ABCI InitChain handler
+	finalizeBlocker func(context.Context, proto.Message) (transition.ValidatorUpdates, error) // (legacy ABCI) EndBlock handler
+	processProposal sdk.ProcessProposalHandler                                                // ABCI ProcessProposal handler
+	prepareProposal sdk.PrepareProposalHandler                                                // ABCI PrepareProposal handler
 
 	// volatile states:
-	//
-	// - checkState is set on InitChain and reset on Commit
-	// - finalizeBlockState is set on InitChain and FinalizeBlock and set to nil
-	// on Commit.
-	//
-	// - checkState: Used for CheckTx, which is set based on the previous
-	// block's
-	// state. This state is never committed.
 	//
 	// - prepareProposalState: Used for PrepareProposal, which is set based on
 	// the previous block's state. This state is never committed. In case of
@@ -100,7 +80,6 @@ type BaseApp struct {
 	//
 	// - finalizeBlockState: Used for FinalizeBlock, which is set based on the
 	// previous block's state. This state is committed.
-	checkState           *state
 	prepareProposalState *state
 	processProposalState *state
 	finalizeBlockState   *state
@@ -155,7 +134,6 @@ func NewBaseApp(
 			logger,
 			storemetrics.NewNoOpMetrics(),
 		), // by default we use a no-op metric gather in store
-		storeLoader: DefaultStoreLoader,
 	}
 
 	for _, option := range options {
@@ -176,10 +154,6 @@ func (app *BaseApp) Name() string {
 
 // AppVersion returns the application's protocol version.
 func (app *BaseApp) AppVersion(ctx context.Context) (uint64, error) {
-	if app.paramStore == nil {
-		return 0, errors.New("app.paramStore is nil")
-	}
-
 	cp, err := app.paramStore.Get(ctx)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get consensus params: %w", err)
@@ -197,12 +171,6 @@ func (app *BaseApp) MountStores(keys ...storetypes.StoreKey) {
 		switch key.(type) {
 		case *storetypes.KVStoreKey:
 			app.MountStore(key, storetypes.StoreTypeIAVL)
-		case *storetypes.TransientStoreKey:
-			app.MountStore(key, storetypes.StoreTypeTransient)
-
-		case *storetypes.MemoryStoreKey:
-			app.MountStore(key, storetypes.StoreTypeMemory)
-
 		default:
 			panic(fmt.Sprintf("Unrecognized store key type :%T", key))
 		}
@@ -229,17 +197,12 @@ func (app *BaseApp) MountStore(
 // LoadLatestVersion loads the latest application version. It will panic if
 // called more than once on a running BaseApp.
 func (app *BaseApp) LoadLatestVersion() error {
-	err := app.storeLoader(app.cms)
+	err := app.cms.LoadLatestVersion()
 	if err != nil {
 		return fmt.Errorf("failed to load latest version: %w", err)
 	}
 
 	return app.Init()
-}
-
-// DefaultStoreLoader will be used by default and loads the latest version.
-func DefaultStoreLoader(ms storetypes.CommitMultiStore) error {
-	return ms.LoadLatestVersion()
 }
 
 // CommitMultiStore returns the root multi-store.
@@ -273,11 +236,6 @@ func (app *BaseApp) LastBlockHeight() int64 {
 	return app.cms.LastCommitID().Version
 }
 
-// ChainID returns the chainID of the app.
-func (app *BaseApp) ChainID() string {
-	return app.chainID
-}
-
 // Init initializes the app. It seals the app, preventing any
 // further modifications. In addition, it validates the app against
 // the earlier provided settings. Returns an error if validation fails.
@@ -286,10 +244,6 @@ func (app *BaseApp) Init() error {
 	if app.cms == nil {
 		return errors.New("commit multi-store must not be nil")
 	}
-
-	// needed for the export command which inits from store but never calls
-	// initchain
-	app.setState(execModeCheck, cmtproto.Header{ChainID: app.chainID})
 
 	return app.cms.GetPruning().Validate()
 }
@@ -307,28 +261,14 @@ func (app *BaseApp) setInterBlockCache(
 // setState sets the BaseApp's state for the corresponding mode with a branched
 // multi-store (i.e. a CacheMultiStore) and a new Context with the same
 // multi-store branch, and provided header.
-func (app *BaseApp) setState(mode execMode, h cmtproto.Header) {
+func (app *BaseApp) setState(mode execMode) {
 	ms := app.cms.CacheMultiStore()
-	headerInfo := header.Info{
-		Height:  h.Height,
-		Time:    h.Time,
-		ChainID: h.ChainID,
-		AppHash: h.AppHash,
-	}
 	baseState := &state{
-		ms: ms,
-		ctx: sdk.NewContext(ms, false, app.logger).
-			WithBlockHeader(h).
-			WithHeaderInfo(headerInfo),
+		ms:  ms,
+		ctx: sdk.NewContext(ms, false, app.logger),
 	}
 
 	switch mode {
-	case execModeCheck:
-		baseState.SetContext(
-			baseState.Context().WithIsCheckTx(true),
-		)
-		app.checkState = baseState
-
 	case execModePrepareProposal:
 		app.prepareProposalState = baseState
 
@@ -352,21 +292,6 @@ func (app *BaseApp) GetConsensusParams(
 	//#nosec:G703 // bet.
 	cp, _ := app.paramStore.Get(ctx)
 	return cp
-}
-
-// StoreConsensusParams sets the consensus parameters to the BaseApp's param
-// store.
-func (app *BaseApp) StoreConsensusParams(
-	ctx context.Context,
-	cp cmtproto.ConsensusParams,
-) error {
-	if app.paramStore == nil {
-		return errors.New(
-			"cannot store consensus params with no params store set",
-		)
-	}
-
-	return app.paramStore.Set(ctx, cp)
 }
 
 func (app *BaseApp) validateFinalizeBlockHeight(
@@ -405,42 +330,6 @@ func (app *BaseApp) validateFinalizeBlockHeight(
 	return nil
 }
 
-func (app *BaseApp) preBlock(
-	req *abci.FinalizeBlockRequest,
-) error {
-	if app.preBlocker != nil {
-		ctx := app.finalizeBlockState.Context()
-		if err := app.preBlocker(ctx, req); err != nil {
-			return err
-		}
-		// ConsensusParams can change in preblocker, so we need to
-		// write the consensus parameters in store to context
-		ctx = ctx.WithConsensusParams(app.GetConsensusParams(ctx))
-		app.finalizeBlockState.SetContext(ctx)
-	}
-	return nil
-}
-
-func (app *BaseApp) beginBlock(
-	_ *abci.FinalizeBlockRequest,
-) (sdk.BeginBlock, error) {
-	if app.beginBlocker != nil {
-		return app.beginBlocker(app.finalizeBlockState.Context())
-	}
-
-	return sdk.BeginBlock{}, nil
-}
-
-// endBlock is an application-defined function that is called after transactions
-// have been processed in FinalizeBlock.
-func (app *BaseApp) endBlock(_ context.Context) (sdk.EndBlock, error) {
-	if app.endBlocker != nil {
-		return app.endBlocker(app.finalizeBlockState.Context())
-	}
-
-	return sdk.EndBlock{}, nil
-}
-
 // Close is called in start cmd to gracefully cleanup resources.
 func (app *BaseApp) Close() error {
 	var errs []error
@@ -454,4 +343,24 @@ func (app *BaseApp) Close() error {
 	}
 
 	return errors.Join(errs...)
+}
+
+// convertValidatorUpdate abstracts the conversion of a
+// transition.ValidatorUpdate to an appmodulev2.ValidatorUpdate.
+// TODO: this is so hood, bktypes -> sdktypes -> generic is crazy
+// maybe make this some kind of codec/func that can be passed in?
+func convertValidatorUpdate[ValidatorUpdateT any](
+	u **transition.ValidatorUpdate,
+) (ValidatorUpdateT, error) {
+	var valUpdate ValidatorUpdateT
+	update := *u
+	if update == nil {
+		return valUpdate, errors.New("undefined validator update")
+	}
+	return any(abci.ValidatorUpdate{
+		PubKeyBytes: update.Pubkey[:],
+		PubKeyType:  crypto.CometBLSType,
+		//#nosec:G701 // this is safe.
+		Power: int64(update.EffectiveBalance.Unwrap()),
+	}).(ValidatorUpdateT), nil
 }
