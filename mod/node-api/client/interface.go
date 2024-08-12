@@ -21,13 +21,61 @@
 package client
 
 import (
-	"github.com/ethpandaops/beacon/pkg/beacon"
+	client "github.com/attestantio/go-eth2-client"
 )
 
-// BeaconKitNode is a wrapper around the beacon.Node interface to add
+// BeaconKitNode is a wrapper around the client.Service interface to add
 // additional methods specific to a beacon-kit node's API.
 type BeaconKitNode interface {
-	beacon.Node
+	client.Service
+	client.FarFutureEpochProvider
+	client.ValidatorIDProvider
+	client.SignedBeaconBlockProvider
+	client.BlobSidecarsProvider
+	client.BeaconCommitteesProvider
+	client.SyncCommitteesProvider
+	client.AggregateAttestationProvider
+	client.AggregateAttestationsSubmitter
+	client.AttestationDataProvider
+	client.AttestationPoolProvider
+	client.AttestationsSubmitter
+	client.AttesterSlashingSubmitter
+	client.AttesterDutiesProvider
+	client.SyncCommitteeDutiesProvider
+	client.SyncCommitteeMessagesSubmitter
+	client.SyncCommitteeSubscriptionsSubmitter
+	client.SyncCommitteeContributionProvider
+	client.SyncCommitteeContributionsSubmitter
+	client.BLSToExecutionChangesSubmitter
+	client.BeaconBlockHeadersProvider
+	client.ProposalProvider
+	client.ProposalSlashingSubmitter
+	client.BeaconBlockRootProvider
+	client.ProposalSubmitter
+	client.BeaconCommitteeSubscriptionsSubmitter
+	client.BeaconStateProvider
+	client.BeaconStateRandaoProvider
+	client.BeaconStateRootProvider
+	client.BlindedProposalSubmitter
+	client.ValidatorRegistrationsSubmitter
+	client.EventsProvider
+	client.FinalityProvider
+	client.ForkChoiceProvider
+	client.ForkProvider
+	client.ForkScheduleProvider
+	client.GenesisProvider
+	client.NodePeersProvider
+	client.NodeSyncingProvider
+	client.NodeVersionProvider
+	client.ProposalPreparationsSubmitter
+	client.ProposerDutiesProvider
+	client.SpecProvider
+	client.ValidatorBalancesProvider
+	client.ValidatorsProvider
+	client.VoluntaryExitSubmitter
+	client.VoluntaryExitPoolProvider
+	client.DomainProvider
+	client.NodeClientProvider
 
 	// Other beacon-kit node-api methods here...
 }

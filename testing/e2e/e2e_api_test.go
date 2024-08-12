@@ -21,10 +21,9 @@
 package e2e_test
 
 import (
+	beaconapi "github.com/attestantio/go-eth2-client/api"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
-
-	beaconapi "github.com/attestantio/go-eth2-client/api"
 )
 
 // TestBeaconAPISuite tests that the api test suite is setup correctly with a

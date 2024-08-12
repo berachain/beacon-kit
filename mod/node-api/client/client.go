@@ -21,16 +21,30 @@
 package client
 
 import (
-	"github.com/ethpandaops/beacon/pkg/beacon"
-	"github.com/sirupsen/logrus"
+	"context"
+
+	"github.com/berachain/beacon-kit/mod/errors"
+
+	beaconhttp "github.com/attestantio/go-eth2-client/http"
 )
 
-// NewNode creates a new BeaconKitNode instance.
-func NewNode(
-	log logrus.FieldLogger,
-	config *beacon.Config,
-	namespace string,
-	options beacon.Options,
-) BeaconKitNode {
-	return beacon.NewNode(log, config, namespace, options)
+// New creates a new BeaconKitNode client instance with a given cancel context.
+func New(
+	cancelCtx context.Context,
+	params ...beaconhttp.Parameter,
+) (BeaconKitNode, error) {
+	service, err := beaconhttp.New(
+		cancelCtx,
+		params...,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	client, ok := service.(BeaconKitNode)
+	if !ok {
+		return nil, errors.New("failed to cast service to BeaconKitNode")
+	}
+
+	return client, nil
 }

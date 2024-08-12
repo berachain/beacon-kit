@@ -24,9 +24,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/berachain/beacon-kit/mod/errors"
-
 	beaconhttp "github.com/attestantio/go-eth2-client/http"
+	"github.com/berachain/beacon-kit/mod/errors"
+	bclient "github.com/berachain/beacon-kit/mod/node-api/client"
 	rpcclient "github.com/cometbft/cometbft/rpc/client"
 	httpclient "github.com/cometbft/cometbft/rpc/client/http"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
@@ -41,7 +41,7 @@ type ConsensusClient struct {
 	rpcclient.Client
 
 	// Beacon node-api client
-	*beaconhttp.Service
+	bclient.BeaconKitNode
 
 	// Cancel function for the context
 	cancelFunc context.CancelFunc
@@ -80,7 +80,7 @@ func (cc *ConsensusClient) Connect(ctx context.Context) error {
 		panic("Couldn't find the public port for the node API")
 	}
 	cancelCtx, cancel := context.WithCancel(ctx)
-	service, err := beaconhttp.New(
+	cc.BeaconKitNode, err = bclient.New(
 		cancelCtx,
 		beaconhttp.WithAddress(
 			fmt.Sprintf("http://0.0.0.0:%d", nodePort.GetNumber()),
@@ -90,10 +90,6 @@ func (cc *ConsensusClient) Connect(ctx context.Context) error {
 	if err != nil {
 		cancel()
 		return err
-	}
-	cc.Service, ok = service.(*beaconhttp.Service)
-	if !ok {
-		panic("failed to cast beacon node-api service to beaconhttp.Service")
 	}
 	cc.cancelFunc = cancel
 
@@ -156,5 +152,5 @@ func (cc ConsensusClient) IsActive(ctx context.Context) (bool, error) {
 	return res.ValidatorInfo.VotingPower > 0, nil
 }
 
-// TODO: Add helpers for the beacon node-api client (converting from 
+// TODO: Add helpers for the beacon node-api client (converting from
 // go-eth2-client types to beacon-kit consensus types).
