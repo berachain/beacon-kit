@@ -22,38 +22,75 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
 )
 
 // ABCIMiddlewareInput is the input for the validator middleware provider.
-type ABCIMiddlewareInput struct {
+type ABCIMiddlewareInput[
+	BeaconBlockT any,
+	BlobSidecarsT any,
+	DepositT any,
+	ExecutionPayloadT any,
+	GenesisT any,
+	LoggerT log.Logger[any],
+	SlotDataT any,
+] struct {
 	depinject.In
 
-	BeaconBlockFeed       *BlockBroker
+	BeaconBlockFeed       *broker.Broker[*asynctypes.Event[BeaconBlockT]]
 	ChainSpec             common.ChainSpec
-	GenesisBroker         *GenesisBroker
-	Logger                log.Logger[any]
-	SidecarsFeed          *SidecarsBroker
-	SlotBroker            *SlotBroker
+	GenesisBroker         *broker.Broker[*asynctypes.Event[GenesisT]]
+	Logger                LoggerT
+	SidecarsFeed          *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
+	SlotBroker            *broker.Broker[*asynctypes.Event[SlotDataT]]
 	TelemetrySink         *metrics.TelemetrySink
-	ValidatorUpdateBroker *ValidatorUpdateBroker
+	ValidatorUpdateBroker *broker.Broker[*asynctypes.Event[transition.ValidatorUpdates]]
 }
 
 // ProvideABCIMiddleware is a depinject provider for the validator
 // middleware.
-func ProvideABCIMiddleware(
-	in ABCIMiddlewareInput,
-) (*ABCIMiddleware, error) {
+func ProvideABCIMiddleware[
+	AttestationDataT any,
+	AvailabilityStoreT any,
+	BeaconBlockT BeaconBlock[
+		BeaconBlockT, AttestationDataT, BeaconBlockBodyT,
+		BeaconBlockHeaderT, DepositT, Eth1DataT,
+		ExecutionPayloadT, SlashingInfoT,
+	],
+	BeaconBlockBodyT any,
+	BeaconBlockHeaderT any,
+	BlobSidecarT any,
+	BlobSidecarsT BlobSidecars[BlobSidecarT, BlobSidecarsT],
+	DepositT any,
+	Eth1DataT any,
+	ExecutionPayloadT any,
+	ExecutionPayloadHeaderT any,
+	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
+	LoggerT log.Logger[any],
+	SlashingInfoT any,
+	SlotDataT any,
+](
+	in ABCIMiddlewareInput[
+		BeaconBlockT, BlobSidecarsT, DepositT,
+		ExecutionPayloadT, GenesisT, LoggerT, SlotDataT,
+	],
+) (*middleware.ABCIMiddleware[
+	AvailabilityStoreT, BeaconBlockT, BlobSidecarsT, DepositT,
+	ExecutionPayloadT, GenesisT, SlotDataT,
+], error) {
 	validatorUpdatesSub, err := in.ValidatorUpdateBroker.Subscribe()
 	if err != nil {
 		return nil, err
 	}
 	return middleware.NewABCIMiddleware[
-		*AvailabilityStore, *BeaconBlock, *BlobSidecars,
-		*Deposit, *ExecutionPayload, *Genesis, *SlotData,
+		AvailabilityStoreT, BeaconBlockT, BlobSidecarsT,
+		DepositT, ExecutionPayloadT, GenesisT, SlotDataT,
 	](
 		in.ChainSpec,
 		in.Logger,

@@ -71,7 +71,7 @@ func ProvideBlobVerifier[
 	BlobProofVerifierT kzg.BlobProofVerifier,
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BlobSidecarT BlobSidecar[BeaconBlockHeaderT],
-	BlobSidecarsT BlobSidecars[BlobSidecarT],
+	BlobSidecarsT BlobSidecars[BlobSidecarT, BlobSidecarsT],
 ](in BlobVerifierInput[BlobProofVerifierT]) *dablob.Verifier[
 	BeaconBlockHeaderT, BlobSidecarT, BlobSidecarsT,
 ] {
@@ -85,7 +85,7 @@ type BlobProcessorIn[
 	BlobProofVerifierT kzg.BlobProofVerifier,
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BlobSidecarT BlobSidecar[BeaconBlockHeaderT],
-	BlobSidecarsT BlobSidecars[BlobSidecarT],
+	BlobSidecarsT BlobSidecars[BlobSidecarT, BlobSidecarsT],
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ] struct {
 	depinject.In
@@ -108,7 +108,7 @@ func ProvideBlobProcessor[
 	BeaconBlockBodyT any,
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BlobSidecarT BlobSidecar[BeaconBlockHeaderT],
-	BlobSidecarsT BlobSidecars[BlobSidecarT],
+	BlobSidecarsT BlobSidecars[BlobSidecarT, BlobSidecarsT],
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ](in BlobProcessorIn[
 	BlobProofVerifierT, BeaconBlockHeaderT, BlobSidecarT,
@@ -163,7 +163,7 @@ func ProvideDAService[
 		BlobSidecarsT, ExecutionPayloadT,
 	],
 	BlobSidecarT any,
-	BlobSidecarsT BlobSidecars[BlobSidecarT],
+	BlobSidecarsT BlobSidecars[BlobSidecarT, BlobSidecarsT],
 	ExecutionPayloadT any,
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ](in DAServiceIn[

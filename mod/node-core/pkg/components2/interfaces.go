@@ -63,10 +63,7 @@ type (
 	BeaconBlock[
 		T any,
 		AttestationDataT any,
-		BeaconBlockBodyT BeaconBlockBody[
-			BeaconBlockBodyT, AttestationDataT, DepositT,
-			Eth1DataT, ExecutionPayloadT, SlashingInfoT,
-		],
+		BeaconBlockBodyT any,
 		BeaconBlockHeaderT any,
 		DepositT any,
 		Eth1DataT any,
@@ -214,9 +211,10 @@ type (
 	}
 
 	// BlobSidecars is the interface for blobs sidecars.
-	BlobSidecars[BlobSidecarT any] interface {
-		constraints.SSZMarshallable
+	BlobSidecars[BlobSidecarT, BlobSidecarsT any] interface {
 		constraints.Nillable
+		constraints.SSZMarshallable
+		constraints.Empty[BlobSidecarsT]
 		Len() int
 		Get(index int) BlobSidecarT
 		GetSidecars() []BlobSidecarT
@@ -465,6 +463,7 @@ type (
 
 	// Genesis is the interface for the genesis.
 	Genesis[DepositT any, ExecutionPayloadHeaderT any] interface {
+		json.Unmarshaler
 		// GetForkVersion returns the fork version.
 		GetForkVersion() common.Version
 		// GetDeposits returns the deposits.
