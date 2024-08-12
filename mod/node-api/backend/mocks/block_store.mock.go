@@ -22,6 +22,62 @@ func (_m *BlockStore[BeaconBlockT]) EXPECT() *BlockStore_Expecter[BeaconBlockT] 
 	return &BlockStore_Expecter[BeaconBlockT]{mock: &_m.Mock}
 }
 
+// GetSlotByBlockRoot provides a mock function with given fields: root
+func (_m *BlockStore[BeaconBlockT]) GetSlotByBlockRoot(root common.Root) (math.U64, error) {
+	ret := _m.Called(root)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSlotByBlockRoot")
+	}
+
+	var r0 math.U64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(common.Root) (math.U64, error)); ok {
+		return rf(root)
+	}
+	if rf, ok := ret.Get(0).(func(common.Root) math.U64); ok {
+		r0 = rf(root)
+	} else {
+		r0 = ret.Get(0).(math.U64)
+	}
+
+	if rf, ok := ret.Get(1).(func(common.Root) error); ok {
+		r1 = rf(root)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// BlockStore_GetSlotByBlockRoot_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSlotByBlockRoot'
+type BlockStore_GetSlotByBlockRoot_Call[BeaconBlockT interface{}] struct {
+	*mock.Call
+}
+
+// GetSlotByBlockRoot is a helper method to define mock.On call
+//   - root common.Root
+func (_e *BlockStore_Expecter[BeaconBlockT]) GetSlotByBlockRoot(root interface{}) *BlockStore_GetSlotByBlockRoot_Call[BeaconBlockT] {
+	return &BlockStore_GetSlotByBlockRoot_Call[BeaconBlockT]{Call: _e.mock.On("GetSlotByBlockRoot", root)}
+}
+
+func (_c *BlockStore_GetSlotByBlockRoot_Call[BeaconBlockT]) Run(run func(root common.Root)) *BlockStore_GetSlotByBlockRoot_Call[BeaconBlockT] {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(common.Root))
+	})
+	return _c
+}
+
+func (_c *BlockStore_GetSlotByBlockRoot_Call[BeaconBlockT]) Return(_a0 math.U64, _a1 error) *BlockStore_GetSlotByBlockRoot_Call[BeaconBlockT] {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *BlockStore_GetSlotByBlockRoot_Call[BeaconBlockT]) RunAndReturn(run func(common.Root) (math.U64, error)) *BlockStore_GetSlotByBlockRoot_Call[BeaconBlockT] {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetSlotByExecutionNumber provides a mock function with given fields: executionNumber
 func (_m *BlockStore[BeaconBlockT]) GetSlotByExecutionNumber(executionNumber math.U64) (math.U64, error) {
 	ret := _m.Called(executionNumber)
@@ -78,12 +134,12 @@ func (_c *BlockStore_GetSlotByExecutionNumber_Call[BeaconBlockT]) RunAndReturn(r
 	return _c
 }
 
-// GetSlotByRoot provides a mock function with given fields: root
-func (_m *BlockStore[BeaconBlockT]) GetSlotByRoot(root common.Root) (math.U64, error) {
+// GetSlotByStateRoot provides a mock function with given fields: root
+func (_m *BlockStore[BeaconBlockT]) GetSlotByStateRoot(root common.Root) (math.U64, error) {
 	ret := _m.Called(root)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetSlotByRoot")
+		panic("no return value specified for GetSlotByStateRoot")
 	}
 
 	var r0 math.U64
@@ -106,30 +162,30 @@ func (_m *BlockStore[BeaconBlockT]) GetSlotByRoot(root common.Root) (math.U64, e
 	return r0, r1
 }
 
-// BlockStore_GetSlotByRoot_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSlotByRoot'
-type BlockStore_GetSlotByRoot_Call[BeaconBlockT interface{}] struct {
+// BlockStore_GetSlotByStateRoot_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSlotByStateRoot'
+type BlockStore_GetSlotByStateRoot_Call[BeaconBlockT interface{}] struct {
 	*mock.Call
 }
 
-// GetSlotByRoot is a helper method to define mock.On call
+// GetSlotByStateRoot is a helper method to define mock.On call
 //   - root common.Root
-func (_e *BlockStore_Expecter[BeaconBlockT]) GetSlotByRoot(root interface{}) *BlockStore_GetSlotByRoot_Call[BeaconBlockT] {
-	return &BlockStore_GetSlotByRoot_Call[BeaconBlockT]{Call: _e.mock.On("GetSlotByRoot", root)}
+func (_e *BlockStore_Expecter[BeaconBlockT]) GetSlotByStateRoot(root interface{}) *BlockStore_GetSlotByStateRoot_Call[BeaconBlockT] {
+	return &BlockStore_GetSlotByStateRoot_Call[BeaconBlockT]{Call: _e.mock.On("GetSlotByStateRoot", root)}
 }
 
-func (_c *BlockStore_GetSlotByRoot_Call[BeaconBlockT]) Run(run func(root common.Root)) *BlockStore_GetSlotByRoot_Call[BeaconBlockT] {
+func (_c *BlockStore_GetSlotByStateRoot_Call[BeaconBlockT]) Run(run func(root common.Root)) *BlockStore_GetSlotByStateRoot_Call[BeaconBlockT] {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(common.Root))
 	})
 	return _c
 }
 
-func (_c *BlockStore_GetSlotByRoot_Call[BeaconBlockT]) Return(_a0 math.U64, _a1 error) *BlockStore_GetSlotByRoot_Call[BeaconBlockT] {
+func (_c *BlockStore_GetSlotByStateRoot_Call[BeaconBlockT]) Return(_a0 math.U64, _a1 error) *BlockStore_GetSlotByStateRoot_Call[BeaconBlockT] {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *BlockStore_GetSlotByRoot_Call[BeaconBlockT]) RunAndReturn(run func(common.Root) (math.U64, error)) *BlockStore_GetSlotByRoot_Call[BeaconBlockT] {
+func (_c *BlockStore_GetSlotByStateRoot_Call[BeaconBlockT]) RunAndReturn(run func(common.Root) (math.U64, error)) *BlockStore_GetSlotByStateRoot_Call[BeaconBlockT] {
 	_c.Call.Return(run)
 	return _c
 }

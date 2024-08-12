@@ -56,7 +56,8 @@ type Service[
 	// logger is used for logging information and errors.
 	logger    log.Logger[any]
 	blkBroker EventFeed[*asynctypes.Event[BeaconBlockT]]
-	store     BlockStoreT
+
+	store BlockStoreT
 }
 
 // Name returns the name of the service.
@@ -91,7 +92,7 @@ func (s *Service[BeaconBlockT, _]) listenAndStore(
 		case msg := <-subBlkCh:
 			if msg.Is(events.BeaconBlockFinalized) {
 				slot := msg.Data().GetSlot()
-				if err := s.store.Set(slot, msg.Data()); err != nil {
+				if err := s.store.Set(msg.Data()); err != nil {
 					s.logger.Error(
 						"failed to store block", "slot", slot, "error", err,
 					)

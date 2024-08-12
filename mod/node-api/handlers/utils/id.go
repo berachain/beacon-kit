@@ -21,6 +21,7 @@
 package utils
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -34,17 +35,20 @@ import (
 // SlotFromStateID returns a slot from the state ID.
 //
 // NOTE: Right now, `stateID` only supports querying by "head" (all of "head",
-// "finalized", "justified" are the same), "genesis", and <slot>. We do NOT
-// support querying by <stateRoot>.
-func SlotFromStateID(stateID string) (math.Slot, error) {
-	switch stateID {
-	case StateIDFinalized, StateIDJustified, StateIDHead:
-		return Head, nil
-	case StateIDGenesis:
-		return Genesis, nil
-	default:
-		return U64FromString(stateID)
+// "finalized", "justified" are the same), "genesis", and <slot>.
+func SlotFromStateID[StorageBackendT interface {
+	GetSlotByStateRoot(root common.Root) (math.Slot, error)
+}](stateID string, storage StorageBackendT) (math.Slot, error) {
+	if slot, err := slotFromStateID(stateID); err == nil {
+		return slot, nil
 	}
+
+	// We assume that the state ID is a state hash.
+	root, err := common.NewRootFromHex(stateID)
+	if err != nil {
+		return 0, err
+	}
+	return storage.GetSlotByStateRoot(root)
 }
 
 // SlotFromBlockID returns a slot from the block ID.
@@ -52,9 +56,9 @@ func SlotFromStateID(stateID string) (math.Slot, error) {
 // NOTE: `blockID` shares the same semantics as `stateID`, with the modification
 // of being able to query by beacon <blockRoot> instead of <stateRoot>.
 func SlotFromBlockID[StorageBackendT interface {
-	GetSlotByRoot(root common.Root) (math.Slot, error)
+	GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 }](blockID string, storage StorageBackendT) (math.Slot, error) {
-	if slot, err := SlotFromStateID(blockID); err == nil {
+	if slot, err := slotFromStateID(blockID); err == nil {
 		return slot, nil
 	}
 
@@ -63,7 +67,7 @@ func SlotFromBlockID[StorageBackendT interface {
 	if err != nil {
 		return 0, err
 	}
-	return storage.GetSlotByRoot(root)
+	return storage.GetSlotByBlockRoot(root)
 }
 
 // SlotFromExecutionID returns a slot from the execution number ID.
@@ -73,15 +77,15 @@ func SlotFromBlockID[StorageBackendT interface {
 // instead of <stateRoot>.
 //
 // The <executionNumber> must be prefixed by the 'n', followed by the execution
-// number in hexadecimal notation. For example 'n0x66aab3ef' corresponds to
+// number in decimal notation. For example 'n1722463215' corresponds to
 // the slot with execution number 1722463215. Providing just the string
-// '0x66aab3ef' (without the prefix 'n') will query for the beacon block with
+// '1722463215' (without the prefix 'n') will query for the beacon block with
 // slot 1722463215.
 func SlotFromExecutionID[StorageBackendT interface {
 	GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
 }](executionID string, storage StorageBackendT) (math.Slot, error) {
 	if !IsExecutionNumberPrefix(executionID) {
-		return SlotFromStateID(executionID)
+		return slotFromStateID(executionID)
 	}
 
 	// Parse the execution number from the executionID.
@@ -99,8 +103,24 @@ func IsExecutionNumberPrefix(executionID string) bool {
 }
 
 // U64FromString returns a math.U64 from the given string. Errors if the given
-// string is not in proper hexadecimal notation.
+// string is not in proper decimal notation.
 func U64FromString(id string) (math.U64, error) {
-	var u64 math.U64
-	return u64, u64.UnmarshalText([]byte(id))
+	u64, err := strconv.ParseUint(id, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return math.U64(u64), nil
+}
+
+// slotFromStateID returns a slot number from the given state ID.
+func slotFromStateID(id string) (math.Slot, error) {
+	switch id {
+	case StateIDFinalized, StateIDJustified, StateIDHead:
+		return Head, nil
+	case StateIDGenesis:
+		return Genesis, nil
+	default:
+		return U64FromString(id)
+	}
 }
