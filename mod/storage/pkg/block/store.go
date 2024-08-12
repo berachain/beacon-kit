@@ -81,17 +81,11 @@ func (kv *KVStore[BeaconBlockT]) Get(slot math.Slot) (BeaconBlockT, error) {
 
 // Set sets the block by a given index in the store and also stores the
 // block root.
-func (kv *KVStore[BeaconBlockT]) Set(
-	slot math.Slot,
-	prevStateRoot common.Root,
-	blk BeaconBlockT,
-) error {
+func (kv *KVStore[BeaconBlockT]) Set(blk BeaconBlockT) error {
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
 
-	if err := kv.catchupBlockData(prevStateRoot); err != nil {
-		return err
-	}
+	slot := blk.GetSlot()
 	kv.blockCodec.SetActiveForkVersion(kv.cs.ActiveForkVersionForSlot(slot))
 	if err := kv.blocks.Set(context.TODO(), slot.Unwrap(), blk); err != nil {
 		return err
@@ -129,32 +123,4 @@ func (kv *KVStore[BeaconBlockT]) Prune(start, end uint64) error {
 	// If we successfully pruned, update the earliest slot.
 	kv.earliestSlot = end
 	return nil
-}
-
-// catchupBlockData updates the block data for the previous block slot.
-//
-// This is used to catch up the block data for the previous block slot after
-// the block is complete and 'correct'.
-func (kv *KVStore[BeaconBlockT]) catchupBlockData(
-	prevStateRoot common.Root,
-) error {
-	if kv.prevBlockSlot == 0 {
-		return nil
-	}
-
-	// Pull the previous block from the store to update.
-	kv.blockCodec.SetActiveForkVersion(
-		kv.cs.ActiveForkVersionForSlot(math.Slot(kv.prevBlockSlot)),
-	)
-	prevBlock, err := kv.blocks.Get(context.TODO(), kv.prevBlockSlot)
-	if err != nil {
-		return err
-	}
-
-	// Set the state root of the previous block.
-	prevBlock.SetStateRoot(prevStateRoot)
-
-	// Then re-set it in the store, causing an update to the related
-	// indexes.
-	return kv.blocks.Set(context.TODO(), kv.prevBlockSlot, prevBlock)
 }

@@ -80,8 +80,7 @@ type Service[
 	// genesisBroker is the event feed for genesis data.
 	genesisBroker EventFeed[*asynctypes.Event[GenesisT]]
 	// blkBroker is the event feed for new blocks.
-	blkBroker       EventFeed[*asynctypes.Event[BeaconBlockT]]
-	stateRootBroker EventFeed[*asynctypes.Event[common.Root]]
+	blkBroker EventFeed[*asynctypes.Event[BeaconBlockT]]
 	// validatorUpdateBroker is the event feed for validator updates.
 	validatorUpdateBroker EventFeed[*asynctypes.Event[transition.ValidatorUpdates]]
 	// optimisticPayloadBuilds is a flag used when the optimistic payload
@@ -131,8 +130,6 @@ func NewService[
 	ts TelemetrySink,
 	genesisBroker EventFeed[*asynctypes.Event[GenesisT]],
 	blkBroker EventFeed[*asynctypes.Event[BeaconBlockT]],
-	// stateRootBroker is the event feed for new state roots.
-	stateRootBroker EventFeed[*asynctypes.Event[common.Root]],
 	//nolint:lll // annoying formatter.
 	validatorUpdateBroker EventFeed[*asynctypes.Event[transition.ValidatorUpdates]],
 	optimisticPayloadBuilds bool,
@@ -155,7 +152,6 @@ func NewService[
 		metrics:                 newChainMetrics(ts),
 		genesisBroker:           genesisBroker,
 		blkBroker:               blkBroker,
-		stateRootBroker:         stateRootBroker,
 		validatorUpdateBroker:   validatorUpdateBroker,
 		optimisticPayloadBuilds: optimisticPayloadBuilds,
 		forceStartupSyncOnce:    new(sync.Once),
