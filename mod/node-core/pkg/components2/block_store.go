@@ -22,13 +22,15 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
+
 	storev2 "cosmossdk.io/store/v2/db"
 	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	blockservice "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/config"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/block"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
@@ -38,9 +40,11 @@ import (
 )
 
 // BlockStoreInput is the input for the dep inject framework.
-type BlockStoreInput struct {
+type BlockStoreInput[LoggerT log.Logger[any]] struct {
 	depinject.In
-	AppOpts servertypes.AppOptions
+	AppOpts   servertypes.AppOptions
+	ChainSpec common.ChainSpec
+	Logger    LoggerT
 }
 
 // ProvideBlockStore is a function that provides the module to the
@@ -63,9 +67,10 @@ func ProvideBlockStore[
 	DepositT any,
 	Eth1DataT any,
 	ExecutionPayloadT any,
+	LoggerT log.Logger[any],
 	SlashingInfoT any,
 ](
-	in BlockStoreInput,
+	in BlockStoreInput[LoggerT],
 ) (*block.KVStore[BeaconBlockT], error) {
 	name := "blocks"
 	dir := cast.ToString(in.AppOpts.Get(flags.FlagHome)) + "/data"
@@ -74,14 +79,18 @@ func ProvideBlockStore[
 		return nil, err
 	}
 
-	return block.NewStore[BeaconBlockT](storage.NewKVStoreProvider(kvp)), nil
+	return block.NewStore[BeaconBlockT](
+		storage.NewKVStoreProvider(kvp),
+		in.ChainSpec,
+		in.Logger,
+	), nil
 }
 
 // BlockPrunerInput is the input for the block pruner.
 type BlockPrunerInput[
 	BeaconBlockT any,
 	BlockStoreT any,
-	LoggerT log.Logger,
+	LoggerT log.AdvancedLogger[any, LoggerT],
 ] struct {
 	depinject.In
 
@@ -110,7 +119,7 @@ func ProvideBlockPruner[
 	DepositT any,
 	Eth1DataT any,
 	ExecutionPayloadT any,
-	LoggerT log.Logger,
+	LoggerT log.AdvancedLogger[any, LoggerT],
 	SlashingInfoT any,
 ](
 	in BlockPrunerInput[
