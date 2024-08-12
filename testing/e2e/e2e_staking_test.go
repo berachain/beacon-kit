@@ -24,12 +24,12 @@ import (
 	"math/big"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
 	"github.com/berachain/beacon-kit/testing/e2e/suite"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	gethcommon "github.com/ethereum/go-ethereum/common"
 	coretypes "github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -73,7 +73,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 
 	// Bind the deposit contract.
 	dc, err := deposit.NewBeaconDepositContract(
-		gethprimitives.HexToAddress(config.DepositContractAddress),
+		gethcommon.HexToAddress(config.DepositContractAddress),
 		s.JSONRPCBalancer(),
 	)
 	s.Require().NoError(err)
@@ -187,7 +187,7 @@ func (s *BeaconKitE2ESuite) TestDepositRobustness() {
 
 func (s *BeaconKitE2ESuite) generateNewDepositTx(
 	dc *deposit.BeaconDepositContract,
-	sender gethprimitives.ExecutionAddress,
+	sender gethcommon.Address,
 	signer bind.SignerFn,
 	nonce *big.Int,
 ) (*coretypes.Transaction, error) {

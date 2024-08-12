@@ -12,7 +12,6 @@ require (
 	github.com/ferranbt/fastssz v0.1.4-0.20240629094022-eac385e6ee79
 	github.com/go-faster/xor v1.0.0
 	github.com/karalabe/ssz v0.2.1-0.20240724074312-3d1ff7a6f7c4
-	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8
 	golang.org/x/sync v0.8.0
 )
 
