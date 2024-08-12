@@ -22,7 +22,6 @@ package transition
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	"github.com/sourcegraph/conc/iter"
 )
 
 // processSyncCommitteeUpdates processes the sync committee updates.
@@ -36,14 +35,25 @@ func (sp *StateProcessor[
 		return nil, err
 	}
 
-	return iter.MapErr(
-		vals,
-		func(val *ValidatorT) (*transition.ValidatorUpdate, error) {
-			v := (*val)
-			return &transition.ValidatorUpdate{
-				Pubkey:           v.GetPubkey(),
-				EffectiveBalance: v.GetEffectiveBalance(),
-			}, nil
-		},
-	)
+	// Initialize the validator updates slice.
+	validatorUpdates := make(transition.ValidatorUpdates, len(vals))
+
+	// Process the first sp.cs.MaxCommitteeSize validators.
+	for i, val := range vals {
+		//#nosec G701 // If this overflows, your valset is too big anyways.
+		if i < int(sp.cs.MaxCommitteeSize) {
+			validatorUpdates[i] = &transition.ValidatorUpdate{
+				Pubkey:           val.GetPubkey(),
+				EffectiveBalance: val.GetEffectiveBalance(),
+			}
+		} else {
+			// For extra validators, set the effective balance to 0.
+			validatorUpdates[i] = &transition.ValidatorUpdate{
+				Pubkey:           val.GetPubkey(),
+				EffectiveBalance: 0,
+			}
+		}
+	}
+
+	return validatorUpdates, nil
 }
