@@ -52,14 +52,11 @@ type (
 
 //nolint:gochecknoglobals // alias.
 var (
-	HexToAddress           = common.HexToAddress
-	HexToHash              = common.HexToHash
-	BlockToExecutableData  = engine.BlockToExecutableData
-	NewBlockWithHeader     = coretypes.NewBlockWithHeader
-	DeriveSha              = coretypes.DeriveSha
-	EmptyUncleHash         = coretypes.EmptyUncleHash
-	NewStackTrie           = trie.NewStackTrie
-	SignTx                 = coretypes.SignTx
-	LatestSignerForChainID = coretypes.LatestSignerForChainID
-	ReceiptStatusFailed    = coretypes.ReceiptStatusFailed
+	HexToAddress          = common.HexToAddress
+	HexToHash             = common.HexToHash
+	BlockToExecutableData = engine.BlockToExecutableData
+	NewBlockWithHeader    = coretypes.NewBlockWithHeader
+	DeriveSha             = coretypes.DeriveSha
+	EmptyUncleHash        = coretypes.EmptyUncleHash
+	NewStackTrie          = trie.NewStackTrie
 )
