@@ -52,8 +52,6 @@ type (
 
 //nolint:gochecknoglobals // alias.
 var (
-	HexToAddress          = common.HexToAddress
-	HexToHash             = common.HexToHash
 	BlockToExecutableData = engine.BlockToExecutableData
 	NewBlockWithHeader    = coretypes.NewBlockWithHeader
 	DeriveSha             = coretypes.DeriveSha
