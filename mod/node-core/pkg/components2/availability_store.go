@@ -26,6 +26,8 @@ import (
 
 	"cosmossdk.io/depinject"
 	sdklog "cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -97,11 +99,12 @@ func ProvideAvailibilityStore[
 // function for the depinject framework.
 type AvailabilityPrunerInput[
 	AvailabilityStoreT any,
+	BeaconBlockT any,
 	LoggerT log.AdvancedLogger[any, sdklog.Logger],
 ] struct {
 	depinject.In
 	AvailabilityStore AvailabilityStoreT
-	BlockBroker       *BlockBroker
+	BlockBroker       *broker.Broker[*asynctypes.Event[BeaconBlockT]]
 	ChainSpec         common.ChainSpec
 	Logger            LoggerT
 }
@@ -146,7 +149,7 @@ func ProvideAvailabilityPruner[
 	WithdrawalsT any,
 ](
 	in AvailabilityPrunerInput[
-		AvailabilityStoreT, LoggerT,
+		AvailabilityStoreT, BeaconBlockT, LoggerT,
 	],
 ) (pruner.Pruner[IndexDBT], error) {
 	avs, ok := any(in.AvailabilityStore).(*dastore.Store[BeaconBlockBodyT])
@@ -170,7 +173,7 @@ func ProvideAvailabilityPruner[
 	// build the availability pruner if IndexDB is available.
 	return pruner.NewPruner[
 		BeaconBlockT,
-		*BlockEvent,
+		*asynctypes.Event[BeaconBlockT],
 		IndexDBT,
 	](
 		in.Logger.With("service", manager.AvailabilityPrunerName),
@@ -179,7 +182,7 @@ func ProvideAvailabilityPruner[
 		subCh,
 		dastore.BuildPruneRangeFn[
 			BeaconBlockT,
-			*BlockEvent,
+			*asynctypes.Event[BeaconBlockT],
 		](in.ChainSpec),
 	), nil
 }
