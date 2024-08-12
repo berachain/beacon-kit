@@ -29,13 +29,17 @@ import (
 	sdkversion "github.com/cosmos/cosmos-sdk/version"
 )
 
-type ReportingServiceInput struct {
+type ReportingServiceInput[
+	LoggerT log.AdvancedLogger[any, sdklog.Logger],
+] struct {
 	depinject.In
-	Logger        log.AdvancedLogger[any, sdklog.Logger]
+	Logger        LoggerT
 	TelemetrySink *metrics.TelemetrySink
 }
 
-func ProvideReportingService(in ReportingServiceInput) *ReportingService {
+func ProvideReportingService[
+	LoggerT log.AdvancedLogger[any, sdklog.Logger],
+](in ReportingServiceInput[LoggerT]) *version.ReportingService {
 	return version.NewReportingService(
 		in.Logger.With("service", "reporting"),
 		in.TelemetrySink,
