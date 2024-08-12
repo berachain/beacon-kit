@@ -44,6 +44,7 @@ type Message[DataT any] interface {
 	BaseMessage
 	Data() DataT
 	Error() error
+	Is(messageType MessageID) bool
 }
 
 // NewEvent creates a new Event with the given context and beacon event.
@@ -51,7 +52,7 @@ func NewMessage[
 	DataT any,
 ](
 	ctx context.Context, messageType MessageID, data DataT, errs ...error,
-) *message[DataT] {
+) Message[DataT] {
 	return &message[DataT]{
 		ctx:  ctx,
 		id:   messageType,
@@ -62,7 +63,7 @@ func NewMessage[
 
 // Event acts as a type alias for a Message that is meant to be broadcasted
 // to all subscribers.
-type Event[DataT any] struct{ message[DataT] }
+type Event[DataT any] struct{ Message[DataT] }
 
 // NewEvent creates a new Event with the given context and beacon event.
 func NewEvent[
@@ -71,7 +72,7 @@ func NewEvent[
 	ctx context.Context, messageType EventID, data DataT, errs ...error,
 ) *Event[DataT] {
 	return &Event[DataT]{
-		message: *NewMessage(ctx, messageType, data, errs...),
+		Message: NewMessage(ctx, messageType, data, errs...),
 	}
 }
 

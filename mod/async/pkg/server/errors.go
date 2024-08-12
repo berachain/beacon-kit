@@ -35,4 +35,7 @@ var (
 		return errors.Newf("route already registered for messageID: %s",
 			messageID)
 	}
+	ErrPublisherAlreadyExists = func(eventID types.EventID) error {
+		return errors.Newf("publisher already exists for eventID: %s", eventID)
+	}
 )

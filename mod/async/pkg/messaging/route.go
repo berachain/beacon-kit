@@ -30,11 +30,17 @@ import (
 // Route represents a communication route to a single recipient.
 // Invariant: there is exactly no more than one route for each messageID.
 type Route[ReqT any, RespT any] struct {
-	messageID   types.MessageID
+	// messageID is the ID of the message that the route is responsible for.
+	messageID types.MessageID
+	// recipientCh is the channel to send requests to.
 	recipientCh chan types.Message[ReqT]
-	responseCh  chan types.Message[RespT]
-	timeout     time.Duration
-	mu          sync.Mutex
+	// responseCh is the channel to send responses to.
+	responseCh chan types.Message[RespT]
+	// maxTimeout is the maximum duration to wait for a response
+	// before considering the request timed out and pruning the thread.
+	maxTimeout time.Duration
+	// mu is the mutex to synchronize access to the route.
+	mu sync.Mutex
 }
 
 // NewRoute creates a new route.
@@ -44,7 +50,7 @@ func NewRoute[ReqT any, RespT any](
 	return &Route[ReqT, RespT]{
 		messageID:  messageID,
 		responseCh: make(chan types.Message[RespT]),
-		timeout:    defaultRouterTimeout,
+		maxTimeout: defaultMaxTimeout,
 		mu:         sync.Mutex{},
 	}
 }
@@ -74,7 +80,9 @@ func (r *Route[ReqT, RespT]) RegisterReceiver(ch any) error {
 func (r *Route[ReqT, RespT]) SendRequest(
 	req types.BaseMessage, future any,
 ) error {
-	r.sendRequest(req)
+	if err := r.sendRequest(req); err != nil {
+		return err
+	}
 	typedFuture, err := ensureType[types.FutureI[RespT]](future)
 	if err != nil {
 		return err
@@ -99,8 +107,9 @@ func (r *Route[ReqT, RespT]) populateFuture(future types.FutureI[RespT]) {
 	select {
 	case resp := <-r.responseCh:
 		future.SetResult(resp.Data(), resp.Error())
-	case <-time.After(r.timeout):
-		errTimeout(r.messageID, r.timeout)
+	case <-time.After(r.maxTimeout):
+		future.SetResult(*new(RespT), errTimeout(r.messageID, r.maxTimeout))
+		return
 	}
 }
 

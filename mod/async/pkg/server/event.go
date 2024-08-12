@@ -72,8 +72,12 @@ func (es *EventServer) Start(ctx context.Context) {
 // consistent with the type expected by <publisher>.
 func (es *EventServer) RegisterPublisher(
 	eventID types.MessageID, publisher types.Publisher,
-) {
+) error {
+	if _, ok := es.publishers[eventID]; ok {
+		return ErrPublisherAlreadyExists(eventID)
+	}
 	es.publishers[eventID] = publisher
+	return nil
 }
 
 // SetLogger sets the logger for the event server.

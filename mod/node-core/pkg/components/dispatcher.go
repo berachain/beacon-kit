@@ -47,8 +47,12 @@ func ProvideDispatcher(
 		in.MessageServer,
 		in.Logger.With("service", "dispatcher"),
 	)
-	d.RegisterPublishers(in.Publishers...)
-	d.RegisterRoutes(in.Routes...)
+	if err := d.RegisterPublishers(in.Publishers...); err != nil {
+		return nil, err
+	}
+	if err := d.RegisterRoutes(in.Routes...); err != nil {
+		return nil, err
+	}
 	return d, nil
 }
 

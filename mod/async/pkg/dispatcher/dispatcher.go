@@ -85,11 +85,16 @@ func (d *Dispatcher) SendResponse(resp types.BaseMessage) error {
 // consistent with the type expected by <publisher>.
 func (d *Dispatcher) RegisterPublishers(
 	publishers ...types.Publisher,
-) {
+) error {
+	var err error
 	for _, publisher := range publishers {
 		d.logger.Info("Publisher registered", "eventID", publisher.EventID())
-		d.eventServer.RegisterPublisher(publisher.EventID(), publisher)
+		err = d.eventServer.RegisterPublisher(publisher.EventID(), publisher)
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 // Subscribe subscribes the given channel to the event with the given <eventID>.
@@ -116,9 +121,13 @@ func (d *Dispatcher) RegisterMsgReceiver(
 func (d *Dispatcher) RegisterRoutes(
 	routes ...types.MessageRoute,
 ) error {
+	var err error
 	for _, route := range routes {
 		d.logger.Info("Route registered", "messageID", route.MessageID())
-		d.msgServer.RegisterRoute(route.MessageID(), route)
+		err = d.msgServer.RegisterRoute(route.MessageID(), route)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

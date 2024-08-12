@@ -32,7 +32,8 @@ import (
 //nolint:gochecknoglobals // errors
 var (
 	errTimeout = func(messageID types.MessageID, timeout time.Duration) error {
-		return errors.Newf("message %s timed out after %s", messageID, timeout)
+		return errors.Newf("message %s reached the max timeout of %s",
+			messageID, timeout)
 	}
 
 	errRouteAlreadySet = errors.New("route already set")

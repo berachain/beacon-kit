@@ -22,6 +22,8 @@ package types
 
 import "context"
 
+// TODO: add dispatcher interface once its stable
+
 // publisher is the interface that supports basic event publisher operations.
 type Publisher interface {
 	// Start starts the event publisher.
