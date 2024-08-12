@@ -34,7 +34,7 @@ import (
 func SlotFromStateID[StorageBackendT interface {
 	GetSlotByStateRoot(root common.Root) (math.Slot, error)
 }](stateID string, storage StorageBackendT) (math.Slot, error) {
-	if slot, err := slotFromID(stateID); err == nil {
+	if slot, err := slotFromStateID(stateID); err == nil {
 		return slot, nil
 	}
 
@@ -53,7 +53,7 @@ func SlotFromStateID[StorageBackendT interface {
 func SlotFromBlockID[StorageBackendT interface {
 	GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 }](blockID string, storage StorageBackendT) (math.Slot, error) {
-	if slot, err := slotFromID(blockID); err == nil {
+	if slot, err := slotFromStateID(blockID); err == nil {
 		return slot, nil
 	}
 
@@ -72,15 +72,15 @@ func SlotFromBlockID[StorageBackendT interface {
 // instead of <stateRoot>.
 //
 // The <executionNumber> must be prefixed by the 'n', followed by the execution
-// number in hexadecimal notation. For example 'n0x66aab3ef' corresponds to
+// number in decimal notation. For example 'n1722463215' corresponds to
 // the slot with execution number 1722463215. Providing just the string
-// '0x66aab3ef' (without the prefix 'n') will query for the beacon block with
+// '1722463215' (without the prefix 'n') will query for the beacon block with
 // slot 1722463215.
 func SlotFromExecutionID[StorageBackendT interface {
 	GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
 }](executionID string, storage StorageBackendT) (math.Slot, error) {
 	if !IsExecutionNumberPrefix(executionID) {
-		return slotFromID(executionID)
+		return slotFromStateID(executionID)
 	}
 
 	// Parse the execution number from the executionID.
@@ -98,13 +98,14 @@ func IsExecutionNumberPrefix(executionID string) bool {
 }
 
 // U64FromString returns a math.U64 from the given string. Errors if the given
-// string is not in proper hexadecimal notation.
+// string is not in proper decimal notation.
 func U64FromString(id string) (math.U64, error) {
 	var u64 math.U64
 	return u64, u64.UnmarshalText([]byte(id))
 }
 
-func slotFromID(id string) (math.Slot, error) {
+// slotFromStateID returns a slot number from the given state ID.
+func slotFromStateID(id string) (math.Slot, error) {
 	switch id {
 	case StateIDFinalized, StateIDJustified, StateIDHead:
 		return Head, nil
