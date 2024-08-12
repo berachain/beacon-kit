@@ -305,10 +305,19 @@ type (
 
 	// Deposit is the interface for a deposit.
 	Deposit[
+		T any,
 		ForkDataT any,
-		WithdrawlCredentialsT ~[32]byte,
+		WithdrawalCredentialsT ~[32]byte,
 	] interface {
 		constraints.SSZMarshallableRootable
+		// New creates a new deposit.
+		New(
+			crypto.BLSPubkey,
+			WithdrawalCredentialsT,
+			math.U64,
+			crypto.BLSSignature,
+			uint64,
+		) T
 		// GetIndex returns the index of the deposit.
 		GetIndex() math.U64
 		// GetAmount returns the amount of the deposit.
@@ -316,7 +325,7 @@ type (
 		// GetPubkey returns the public key of the validator.
 		GetPubkey() crypto.BLSPubkey
 		// GetWithdrawalCredentials returns the withdrawal credentials.
-		GetWithdrawalCredentials() WithdrawlCredentialsT
+		GetWithdrawalCredentials() WithdrawalCredentialsT
 		// VerifySignature verifies the deposit and creates a validator.
 		VerifySignature(
 			forkData ForkDataT,
