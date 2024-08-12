@@ -66,10 +66,7 @@ type Sidecar[BeaconBlockHeaderT BeaconBlockHeader] interface {
 	GetKzgCommitment() eip4844.KZGCommitment
 }
 
-type Sidecars[
-	SidecarT Sidecar[BeaconBlockHeaderT],
-	BeaconBlockHeaderT BeaconBlockHeader,
-] interface {
+type Sidecars[SidecarT any] interface {
 	Len() int
 	Get(index int) SidecarT
 	GetSidecars() []SidecarT

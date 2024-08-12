@@ -39,7 +39,7 @@ type AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
 type BlobProcessor[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	BeaconBlockBodyT any,
-	BlobSidecarsT BlobSidecar,
+	BlobSidecarsT BlobSidecars,
 	ExecutionPayloadT any,
 ] interface {
 	// ProcessSidecars processes the blobs and ensures they match the local
@@ -54,8 +54,8 @@ type BlobProcessor[
 	) error
 }
 
-// BlobSidecar is the interface for the blob sidecar.
-type BlobSidecar interface {
+// BlobSidecars is the interface for the blob sidecar.
+type BlobSidecars interface {
 	// Len returns the length of the sidecar.
 	Len() int
 	// IsNil checks if the sidecar is nil.
@@ -76,7 +76,7 @@ type StorageBackend[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	BeaconBlockBodyT,
 	BeaconStateT,
-	BlobSidecarsT BlobSidecar,
+	BlobSidecarsT BlobSidecars,
 ] interface {
 	// AvailabilityStore returns the availability store for the given context.
 	AvailabilityStore() AvailabilityStoreT

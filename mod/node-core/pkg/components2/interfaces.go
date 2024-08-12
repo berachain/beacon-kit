@@ -186,9 +186,9 @@ type (
 
 	// BlobProcessor is the interface for the blobs processor.
 	BlobProcessor[
-		AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+		AvailabilityStoreT any,
 		BeaconBlockBodyT any,
-		BlobSidecarsT BlobSidecars,
+		BlobSidecarsT any,
 		ExecutionPayloadT any,
 	] interface {
 		// ProcessSidecars processes the blobs and ensures they match the local
@@ -203,12 +203,22 @@ type (
 		) error
 	}
 
+	BlobSidecar[BeaconBlockHeaderT any] interface {
+		GetBeaconBlockHeader() BeaconBlockHeaderT
+		GetBlob() eip4844.Blob
+		GetKzgProof() eip4844.KZGProof
+		GetKzgCommitment() eip4844.KZGCommitment
+	}
+
 	// BlobSidecars is the interface for blobs sidecars.
-	BlobSidecars interface {
+	BlobSidecars[BlobSidecarT any] interface {
 		constraints.SSZMarshallable
 		constraints.Nillable
-		// Len returns the length of the blobs sidecars.
 		Len() int
+		Get(index int) BlobSidecarT
+		GetSidecars() []BlobSidecarT
+		ValidateBlockRoots() error
+		VerifyInclusionProofs(kzgOffset uint64) error
 	}
 
 	// BlockchainService defines the interface for interacting with the blockchain
