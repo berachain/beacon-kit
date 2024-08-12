@@ -18,26 +18,13 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package ethclient2
+package rpc
 
-import (
-	"encoding/json"
-	"fmt"
-)
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
 
-// EthError - ethereum error
-type EthError struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
-}
-
-func (err EthError) Error() string {
-	return fmt.Sprintf("Error %d (%s)", err.Code, err.Message)
-}
-
-type ethResponse struct {
-	ID      int             `json:"id"`
-	JSONRPC string          `json:"jsonrpc"`
-	Result  json.RawMessage `json:"result"`
-	Error   *EthError       `json:"error"`
+// WithJWTSecret sets the JWT secret for the RPC client.
+func WithJWTSecret(secret *jwt.Secret) func(rpc *Client) {
+	return func(rpc *Client) {
+		rpc.jwtSecret = secret
+	}
 }

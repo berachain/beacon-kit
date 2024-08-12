@@ -59,7 +59,7 @@ func (s *EngineClient[
 	header := make(http.Header)
 
 	// Build the JWT token.
-	token, err := buildSignedJWT(s.jwtSecret)
+	token, err := s.jwtSecret.BuildSignedToken()
 	if err != nil {
 		s.logger.Error("Failed to build JWT token", "err", err)
 		return header, err

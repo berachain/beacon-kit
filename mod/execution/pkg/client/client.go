@@ -85,12 +85,10 @@ func New[
 		jwtSecret:  jwtSecret,
 		Eth1Client: new(ethclient.Eth1Client[ExecutionPayloadT]),
 		EthRPC: ethclient2.New[ExecutionPayloadT](
-			cfg.RPCDialURL.String(),
-			[]func(rpc *ethclient2rpc.Client){
-				func(rpc *ethclient2rpc.Client) {
-					rpc.JwtSecret = jwtSecret
-				},
-			}...),
+			ethclient2rpc.NewClient(
+				cfg.RPCDialURL.String(),
+				ethclient2rpc.WithJWTSecret(jwtSecret)),
+		),
 		capabilities: make(map[string]struct{}),
 		engineCache:  cache.NewEngineCacheWithDefaultConfig(),
 		eth1ChainID:  eth1ChainID,

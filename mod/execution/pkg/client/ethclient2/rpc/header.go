@@ -18,26 +18,18 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package ethclient2
+package rpc
 
-import (
-	"encoding/json"
-	"fmt"
-)
+// updateHeader builds an http.Header that has the JWT token
+// attached for authorization.
+func (rpc *Client) updateHeader() error {
+	// Build the JWT token.
+	token, err := rpc.jwtSecret.BuildSignedToken()
+	if err != nil {
+		return err
+	}
 
-// EthError - ethereum error
-type EthError struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
-}
-
-func (err EthError) Error() string {
-	return fmt.Sprintf("Error %d (%s)", err.Code, err.Message)
-}
-
-type ethResponse struct {
-	ID      int             `json:"id"`
-	JSONRPC string          `json:"jsonrpc"`
-	Result  json.RawMessage `json:"result"`
-	Error   *EthError       `json:"error"`
+	// Add the JWT token to the headers.
+	rpc.header.Set("Authorization", "Bearer "+token)
+	return nil
 }

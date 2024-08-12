@@ -1,3 +1,23 @@
+// SPDX-License-Identifier: BUSL-1.1
+//
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is governed by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
+//
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
+//
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
+//
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
+
 package rpc
 
 import (
@@ -12,13 +32,19 @@ import (
 	json "github.com/goccy/go-json"
 )
 
-// EthRPC - Ethereum rpc client
+// Client is an Ethereum RPC client that provides a
+// convenient way to interact with an Ethereum node.
 type Client struct {
-	url       string
-	client    *http.Client
-	reqPool   *sync.Pool
-	JwtSecret *jwt.Secret
-	header    http.Header
+	// url is the URL of the RPC endpoint.
+	url string
+	// client is the HTTP client used to make RPC calls.
+	client *http.Client
+	// reqPool is a sync.Pool for reusing RPC request objects.
+	reqPool *sync.Pool
+	// jwtSecret is the JWT secret used for authentication.
+	jwtSecret *jwt.Secret
+	// header is the HTTP header used for RPC requests.
+	header http.Header
 }
 
 // New create new rpc client with given url
@@ -27,17 +53,15 @@ func NewClient(url string, options ...func(rpc *Client)) *Client {
 		url:    url,
 		client: http.DefaultClient,
 		reqPool: &sync.Pool{
-			New: func() interface{} {
+			New: func() any {
 				return &Request{
 					ID:      1,
 					JSONRPC: "2.0",
 				}
 			},
 		},
-		header: make(http.Header),
+		header: http.Header{"Content-Type": {"application/json"}},
 	}
-
-	rpc.header.Set("Content-Type", "application/json")
 
 	for _, option := range options {
 		option(rpc)
@@ -67,23 +91,9 @@ func (rpc *Client) Close() error {
 	return nil
 }
 
-// updateHeader builds an http.Header that has the JWT token
-// attached for authorization.
-func (rpc *Client) updateHeader() error {
-	// Build the JWT token.
-	token, err := rpc.JwtSecret.BuildSignedToken()
-	if err != nil {
-		return err
-	}
-
-	// Add the JWT token to the headers.
-	rpc.header.Set("Authorization", "Bearer "+token)
-	return nil
-}
-
 // Call calls the given method with the given parameters
 func (rpc *Client) Call(
-	ctx context.Context, target interface{}, method string, params ...interface{},
+	ctx context.Context, target any, method string, params ...any,
 ) error {
 	result, err := rpc.CallRaw(ctx, method, params...)
 	if err != nil {
@@ -99,7 +109,7 @@ func (rpc *Client) Call(
 
 // Call returns raw response of method call
 func (rpc *Client) CallRaw(
-	ctx context.Context, method string, params ...interface{},
+	ctx context.Context, method string, params ...any,
 ) (json.RawMessage, error) {
 	// Pull a request from the pool, we know that it already has the correct
 	// JSONRPC version and ID set.
@@ -115,7 +125,12 @@ func (rpc *Client) CallRaw(
 		return nil, err
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", rpc.url, bytes.NewBuffer(body))
+	req, err := http.NewRequestWithContext(
+		ctx,
+		"POST",
+		rpc.url,
+		bytes.NewBuffer(body),
+	)
 	if err != nil {
 		return nil, err
 	}
