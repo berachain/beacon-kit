@@ -58,7 +58,7 @@ type BbbDeneb struct {
 	types.BeaconBlockBody
 }
 
-func (b *BbbDeneb) Generate(r *rand.Rand, size int) reflect.Value {
+func (b *BbbDeneb) Generate(r *rand.Rand, _ int) reflect.Value {
 	b = &BbbDeneb{}
 	b.RandaoReveal = crypto.BLSSignature(rbytes(96, r))
 	b.Eth1Data = &types.Eth1Data{
@@ -69,11 +69,7 @@ func (b *BbbDeneb) Generate(r *rand.Rand, size int) reflect.Value {
 	b.Graffiti = [32]byte(rbytes(32, r))
 	k := roll(16, r)
 	b.Deposits = make([]*types.Deposit, k)
-	for i := 0; i < k; i++ {
-		var proof [33][32]byte
-		for j := 0; j < 33; j++ {
-			proof[j] = [32]byte(rbytes(32, r))
-		}
+	for i := range k {
 		b.Deposits[i] = &types.Deposit{
 			Pubkey:      crypto.BLSPubkey(rbytes(48, r)),
 			Credentials: types.WithdrawalCredentials(rbytes(32, r)),
@@ -84,17 +80,17 @@ func (b *BbbDeneb) Generate(r *rand.Rand, size int) reflect.Value {
 	}
 	k = roll(10, r) // MaxTxsPerPayload 1048576 too big
 	txs := make([][]byte, k)
-	for i := 0; i < k; i++ {
+	for i := range k {
 		txs[i] = rbytes(1024, r) // MaxBytesPerTx 1073741824 too big
 	}
 	k = roll(16, r)
 	withdrawals := make([]*engineprimitives.Withdrawal, k)
-	for i := 0; i < k; i++ {
+	for i := range k {
 		withdrawals[i] = &engineprimitives.Withdrawal{
-			math.U64(r.Uint64()),
-			math.U64(r.Uint64()),
-			common.ExecutionAddress(rbytes(20, r)),
-			math.U64(r.Uint64()),
+			Index:     math.U64(r.Uint64()),
+			Validator: math.U64(r.Uint64()),
+			Address:   common.ExecutionAddress(rbytes(20, r)),
+			Amount:    math.U64(r.Uint64()),
 		}
 	}
 	b.ExecutionPayload = &types.ExecutionPayload{
@@ -118,7 +114,7 @@ func (b *BbbDeneb) Generate(r *rand.Rand, size int) reflect.Value {
 	}
 	k = roll(16, r) // 4096 in Deneb
 	b.BlobKzgCommitments = make([]eip4844.KZGCommitment, k)
-	for i := 0; i < k; i++ {
+	for i := range k {
 		b.BlobKzgCommitments[i] = eip4844.KZGCommitment(rbytes(48, r))
 	}
 
@@ -131,7 +127,7 @@ func pprint(i interface{}) string {
 }
 
 func TestSSZRoundTripBeaconBodyDeneb(t *testing.T) {
-	f := func(body *BbbDeneb, n uint) bool {
+	f := func(body *BbbDeneb) bool {
 		bz, err := body.MarshalSSZ()
 		if err != nil {
 			t.Log("Serialize: could not serialize body --", err)
@@ -144,7 +140,7 @@ func TestSSZRoundTripBeaconBodyDeneb(t *testing.T) {
 		}
 
 		if !reflect.DeepEqual(body, destBody) {
-			t.Log("Deserialize: deserialized body different than former body after serialization")
+			t.Log("Deserialized body different than former body after serialization")
 			t.Log(pprint(body))
 			t.Log(pprint(destBody))
 			return false
@@ -153,17 +149,18 @@ func TestSSZRoundTripBeaconBodyDeneb(t *testing.T) {
 		htr := body.HashTreeRoot()
 		destHtr := destBody.HashTreeRoot()
 		if !reflect.DeepEqual(htr, destHtr) {
-			t.Log("Hash tree root differs after serialization-deserialization round trip")
+			t.Log("HTR differs after serialization-deserialization round trip")
 		}
 
 		destBz, err := destBody.MarshalSSZ()
 		if err != nil {
-			t.Log("Serialize: could not serialize back the body after deserialization --", err)
+			t.Log("Could not serialize back the body after deserialization --", err)
 			return false
 		}
 
-		if !reflect.DeepEqual(bz, destBz) {
-			t.Log("Serialize: serialized body different after a serialization-deserialization-serialization trip")
+		if reflect.DeepEqual(bz, destBz) {
+			t.Log("Serialized body different after a",
+				"serialization-deserialization-serialization trip")
 			return false
 		}
 
@@ -190,14 +187,10 @@ func (c *Container) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineSliceOfStaticObjectsContent(codec, &c.Deposits, concurrencyThreshold)
 }
 
-func (c *Container) Generate(r *rand.Rand, size int) reflect.Value {
+func (c *Container) Generate(r *rand.Rand, _ int) reflect.Value {
 	deposits := make([]*types.Deposit,
-			 uint32(concurrencyThreshold)/(&types.Deposit{}).SizeSSZ()+1)
-	for i := 0; i < len(deposits); i++ {
-		var proof [33][32]byte
-		for j := 0; j < 33; j++ {
-			proof[j] = [32]byte(rbytes(32, r))
-		}
+		uint32(concurrencyThreshold)/(&types.Deposit{}).SizeSSZ()+1)
+	for i := range len(deposits) {
 		deposits[i] = &types.Deposit{
 			Pubkey:      crypto.BLSPubkey(rbytes(48, r)),
 			Credentials: types.WithdrawalCredentials(rbytes(32, r)),
