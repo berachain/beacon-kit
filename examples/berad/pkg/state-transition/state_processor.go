@@ -343,7 +343,14 @@ func (sp *StateProcessor[
 	} else if err = sp.processRandaoMixesReset(st); err != nil {
 		return nil, err
 	}
-	return sp.processSyncCommitteeUpdates(st)
+	valUpdates, err := sp.processSyncCommitteeUpdates(st)
+	if err != nil {
+		return nil, err
+	}
+	if err = sp.processForcedWithdrawals(st, valUpdates); err != nil {
+		return nil, err
+	}
+	return valUpdates, nil
 }
 
 // processBlockHeader processes the header and ensures it matches the local
