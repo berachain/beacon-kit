@@ -22,7 +22,41 @@ package types
 
 import "context"
 
-// TODO: add dispatcher interface once its stable
+// Dispatcher is the full API for a dispatcher that facilitates the publishing
+// of async events and the sending and receiving of async messages.
+type Dispatcher interface {
+	EventDispatcher
+	MessageDispatcher
+	// Start starts the dispatcher.
+	Start(ctx context.Context) error
+	// RegisterPublishers registers publishers to the dispatcher.
+	RegisterPublishers(publishers ...Publisher) error
+	// RegisterRoutes registers message routes to the dispatcher.
+	RegisterRoutes(routes ...MessageRoute) error
+	// Name returns the name of the dispatcher.
+	Name() string
+}
+
+// EventDispatcher is the API for a dispatcher that facilitates the publishing
+// of async events.
+type EventDispatcher interface {
+	// PublishEvent publishes an event to the dispatcher.
+	PublishEvent(event BaseMessage) error
+	// Subscribe subscribes to an event.
+	Subscribe(eventID EventID, ch any) error
+}
+
+// MessageDispatcher is the API for a dispatcher that facilitates the sending
+// and receiving of async messages.
+type MessageDispatcher interface {
+	// SendRequest sends a request to the dispatcher.
+	SendRequest(req BaseMessage, future any) error
+	// SendResponse sends a response to the dispatcher.
+	SendResponse(resp BaseMessage) error
+	// RegisterMsgReceiver registers the given channel as the message receiver
+	// for the given message ID.
+	RegisterMsgReceiver(messageID MessageID, ch any) error
+}
 
 // publisher is the interface that supports basic event publisher operations.
 type Publisher interface {

@@ -30,6 +30,11 @@ import (
 // Dispatcher faciliates asynchronous communication between components,
 // typically services. It acts as an API facade to the underlying event and
 // message servers.
+// DispatcherI defines the interface for a dispatcher that facilitates asynchronous communication.
+
+// Ensure Dispatcher implements DispatcherI
+var _ types.Dispatcher = (*Dispatcher)(nil)
+
 type Dispatcher struct {
 	eventServer EventServer
 	msgServer   MessageServer
