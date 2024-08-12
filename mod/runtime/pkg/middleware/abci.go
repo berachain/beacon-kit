@@ -184,10 +184,6 @@ func (h *ABCIMiddleware[
 	ctx context.Context,
 	req proto.Message,
 ) (proto.Message, error) {
-	abciReq, ok := req.(*cmtabci.ProcessProposalRequest)
-	if !ok {
-		return nil, ErrInvalidProcessProposalRequestType
-	}
 	var (
 		blk       BeaconBlockT
 		sidecars  BlobSidecarsT
@@ -195,6 +191,11 @@ func (h *ABCIMiddleware[
 		g, _      = errgroup.WithContext(ctx)
 		startTime = time.Now()
 	)
+	abciReq, ok := req.(*cmtabci.ProcessProposalRequest)
+	if !ok {
+		return nil, ErrInvalidProcessProposalRequestType
+	}
+
 	defer h.metrics.measureProcessProposalDuration(startTime)
 
 	// Request the beacon block.
