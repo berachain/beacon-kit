@@ -85,7 +85,10 @@ func (rpc *Client) Start(ctx context.Context) {
 			ticker.Stop()
 			return
 		case <-ticker.C:
-			_ = rpc.updateHeader()
+			if err := rpc.updateHeader(); err != nil {
+				// TODO: log or something.
+				continue
+			}
 		}
 	}
 }

@@ -107,7 +107,7 @@ func (s *EngineClient[
 	)
 
 	// If the connection connection succeeds, we can skip the
-	// connection initializaation loop.
+	// connection initialization loop.
 	if err := s.verifyChainIDAndConnection(ctx); err == nil {
 		return nil
 	}
@@ -153,7 +153,7 @@ func (s *EngineClient[
 
 	defer func() {
 		if err != nil {
-			s.Client.Close()
+			err = s.Client.Close()
 		}
 	}()
 
