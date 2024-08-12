@@ -134,7 +134,7 @@ func (p *Publisher[T]) broadcast(msg T) {
 	}
 }
 
-// shutdown closes all leftover clients
+// shutdown closes all leftover clients.
 func (p *Publisher[T]) shutdown() {
 	for client := range p.clients {
 		if err := p.Unsubscribe(client); err != nil {
