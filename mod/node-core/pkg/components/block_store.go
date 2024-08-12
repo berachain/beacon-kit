@@ -22,10 +22,11 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
+	sdklog "cosmossdk.io/log"
 	storev2 "cosmossdk.io/store/v2/db"
 	blockservice "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/config"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/block"
@@ -39,8 +40,10 @@ import (
 // BlockStoreInput is the input for the dep inject framework.
 type BlockStoreInput struct {
 	depinject.In
+
 	AppOpts   servertypes.AppOptions
 	ChainSpec common.ChainSpec
+	Logger    log.AdvancedLogger[any, sdklog.Logger]
 }
 
 // ProvideBlockStore is a function that provides the module to the
@@ -57,6 +60,7 @@ func ProvideBlockStore(
 	return block.NewStore[*BeaconBlock](
 		storage.NewKVStoreProvider(kvp),
 		in.ChainSpec,
+		in.Logger.With("service", manager.BlockStoreName),
 	), nil
 }
 
@@ -67,7 +71,7 @@ type BlockPrunerInput struct {
 	BlockBroker *BlockBroker
 	BlockStore  *BlockStore
 	Config      *config.Config
-	Logger      log.Logger
+	Logger      log.AdvancedLogger[any, sdklog.Logger]
 }
 
 // ProvideBlockPruner provides a block pruner for the depinject framework.

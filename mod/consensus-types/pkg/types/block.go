@@ -239,8 +239,3 @@ func (b *BeaconBlock) GetHeader() *BeaconBlockHeader {
 func (b *BeaconBlock) GetExecutionNumber() math.U64 {
 	return b.Body.ExecutionPayload.Number
 }
-
-// GetParentRoot retrieves the parent root of the BeaconBlock.
-func (b *BeaconBlock) GetParentRoot() common.Root {
-	return b.ParentRoot
-}

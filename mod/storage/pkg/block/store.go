@@ -22,11 +22,12 @@ package block
 
 import (
 	"context"
-	"errors"
 	"sync"
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
+
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
@@ -37,20 +38,21 @@ const StoreName = "blocks"
 // KVStore is a simple KV store based implementation that stores beacon blocks.
 type KVStore[BeaconBlockT BeaconBlock[BeaconBlockT]] struct {
 	blocks *sdkcollections.IndexedMap[
-		uint64, BeaconBlockT, indexes[BeaconBlockT],
+		math.Slot, BeaconBlockT, indexes[BeaconBlockT],
 	]
-	prevBlockSlot uint64
+	nextToPrune math.Slot
 
-	mu           sync.RWMutex
-	cs           common.ChainSpec
-	blockCodec   *encoding.SSZInterfaceCodec[BeaconBlockT]
-	earliestSlot uint64
+	mu         sync.RWMutex
+	cs         common.ChainSpec
+	blockCodec *encoding.SSZInterfaceCodec[BeaconBlockT]
+	logger     log.Logger[any]
 }
 
 // NewStore creates a new block store.
 func NewStore[BeaconBlockT BeaconBlock[BeaconBlockT]](
 	kvsp store.KVStoreService,
 	cs common.ChainSpec,
+	logger log.Logger[any],
 ) *KVStore[BeaconBlockT] {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kvsp)
 	blockCodec := &encoding.SSZInterfaceCodec[BeaconBlockT]{}
@@ -59,14 +61,13 @@ func NewStore[BeaconBlockT BeaconBlock[BeaconBlockT]](
 			schemaBuilder,
 			sdkcollections.NewPrefix(StoreName),
 			StoreName,
-			sdkcollections.Uint64Key,
+			encoding.U64Key,
 			blockCodec,
 			newIndexes[BeaconBlockT](schemaBuilder),
 		),
-		blockCodec:    blockCodec,
-		cs:            cs,
-		earliestSlot:  1,
-		prevBlockSlot: 0,
+		blockCodec: blockCodec,
+		cs:         cs,
+		logger:     logger,
 	}
 }
 
@@ -76,7 +77,7 @@ func (kv *KVStore[BeaconBlockT]) Get(slot math.Slot) (BeaconBlockT, error) {
 	defer kv.mu.RUnlock()
 
 	kv.blockCodec.SetActiveForkVersion(kv.cs.ActiveForkVersionForSlot(slot))
-	return kv.blocks.Get(context.TODO(), slot.Unwrap())
+	return kv.blocks.Get(context.TODO(), slot)
 }
 
 // Set sets the block by a given index in the store and also stores the
@@ -87,40 +88,32 @@ func (kv *KVStore[BeaconBlockT]) Set(blk BeaconBlockT) error {
 
 	slot := blk.GetSlot()
 	kv.blockCodec.SetActiveForkVersion(kv.cs.ActiveForkVersionForSlot(slot))
-	if err := kv.blocks.Set(context.TODO(), slot.Unwrap(), blk); err != nil {
-		return err
-	}
-	kv.prevBlockSlot = slot.Unwrap()
-	return nil
+	return kv.blocks.Set(context.TODO(), slot, blk)
 }
 
 // Prune removes the [start, end) blocks from the store.
 func (kv *KVStore[BeaconBlockT]) Prune(start, end uint64) error {
-	var ctx = context.TODO()
+	ctx := context.TODO()
+
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
 
-	// We only return early from this loop with an error if the key
-	// passed in cannot be encoded.
-	s := max(start, kv.earliestSlot)
-	for i := s; i < end; i++ {
+	s := max(math.Slot(start), kv.nextToPrune)
+	for kv.nextToPrune = s; kv.nextToPrune < math.Slot(end); kv.nextToPrune++ {
 		kv.blockCodec.SetActiveForkVersion(
-			kv.cs.ActiveForkVersionForSlot(math.Slot(i)),
+			kv.cs.ActiveForkVersionForSlot(kv.nextToPrune),
 		)
-		if err := kv.blocks.Remove(ctx, i); err != nil {
-			if errors.Is(err, sdkcollections.ErrNotFound) {
-				// Either the slot was missed or we never stored
-				// the block to begin with, either way it's ok.
-				continue
-			}
-			return err
+		if err := kv.blocks.Remove(ctx, kv.nextToPrune); err != nil {
+			// This can error for 2 reasons:
+			// 1. The slot was not found -- either the slot was missed or we
+			//    never stored the block to begin with, either way it's ok.
+			// 2. The slot was found but (en/de)coding failed. In this case,
+			//    we choose not to retry removal and instead continue.
+			kv.logger.Error(
+				"‼️ failed to prune block", "slot", kv.nextToPrune, "err", err,
+			)
 		}
-		// Update earliest slot as we go, an error will still
-		// have committed any removes up to that point.
-		kv.earliestSlot = i
 	}
 
-	// If we successfully pruned, update the earliest slot.
-	kv.earliestSlot = end
 	return nil
 }

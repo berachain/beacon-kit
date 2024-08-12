@@ -34,6 +34,5 @@ type BeaconBlock[T any] interface {
 	HashTreeRoot() common.Root
 	GetExecutionNumber() math.U64
 	SetStateRoot(root common.Root)
-	GetParentRoot() common.Root
 	GetStateRoot() common.Root
 }

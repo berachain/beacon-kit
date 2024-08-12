@@ -23,28 +23,32 @@ package block
 import (
 	sdkcollections "cosmossdk.io/collections"
 	sdkindexes "cosmossdk.io/collections/indexes"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 )
 
 const (
 	blockRootsIndexName       = "block_roots"
 	executionNumbersIndexName = "execution_numbers"
+	stateRootsIndexName       = "state_roots"
 )
 
 type indexes[BeaconBlockT BeaconBlock[BeaconBlockT]] struct {
-	BlockRoots       *sdkindexes.Unique[[]byte, uint64, BeaconBlockT]
-	StateRoots       *sdkindexes.Unique[[]byte, uint64, BeaconBlockT]
-	ExecutionNumbers *sdkindexes.Unique[uint64, uint64, BeaconBlockT]
+	BlockRoots       *sdkindexes.Unique[[]byte, math.Slot, BeaconBlockT]
+	ExecutionNumbers *sdkindexes.Unique[math.U64, math.Slot, BeaconBlockT]
+	StateRoots       *sdkindexes.Unique[[]byte, math.Slot, BeaconBlockT]
 }
 
 // IndexesList returns a list of all indexes associated with the
 // validatorsIndex.
 func (i indexes[BeaconBlockT]) IndexesList() []sdkcollections.Index[
-	uint64, BeaconBlockT,
+	math.Slot, BeaconBlockT,
 ] {
-	return []sdkcollections.Index[uint64, BeaconBlockT]{
+	return []sdkcollections.Index[math.Slot, BeaconBlockT]{
 		i.BlockRoots,
-		i.StateRoots,
 		i.ExecutionNumbers,
+		i.StateRoots,
 	}
 }
 
@@ -57,20 +61,9 @@ func newIndexes[BeaconBlockT BeaconBlock[BeaconBlockT]](
 			sdkcollections.NewPrefix(blockRootsIndexName),
 			blockRootsIndexName,
 			sdkcollections.BytesKey,
-			sdkcollections.Uint64Key,
-			func(_ uint64, blk BeaconBlockT) ([]byte, error) {
+			encoding.U64Key,
+			func(_ math.Slot, blk BeaconBlockT) ([]byte, error) {
 				root := blk.HashTreeRoot()
-				return root[:], nil
-			},
-		),
-		StateRoots: sdkindexes.NewUnique(
-			sb,
-			sdkcollections.NewPrefix(blockRootsIndexName),
-			blockRootsIndexName,
-			sdkcollections.BytesKey,
-			sdkcollections.Uint64Key,
-			func(_ uint64, blk BeaconBlockT) ([]byte, error) {
-				root := blk.GetStateRoot()
 				return root[:], nil
 			},
 		),
@@ -78,10 +71,21 @@ func newIndexes[BeaconBlockT BeaconBlock[BeaconBlockT]](
 			sb,
 			sdkcollections.NewPrefix(executionNumbersIndexName),
 			executionNumbersIndexName,
-			sdkcollections.Uint64Key,
-			sdkcollections.Uint64Key,
-			func(_ uint64, blk BeaconBlockT) (uint64, error) {
-				return blk.GetExecutionNumber().Unwrap(), nil
+			encoding.U64Key,
+			encoding.U64Key,
+			func(_ math.Slot, blk BeaconBlockT) (math.U64, error) {
+				return blk.GetExecutionNumber(), nil
+			},
+		),
+		StateRoots: sdkindexes.NewUnique(
+			sb,
+			sdkcollections.NewPrefix(stateRootsIndexName),
+			stateRootsIndexName,
+			sdkcollections.BytesKey,
+			encoding.U64Key,
+			func(_ math.Slot, blk BeaconBlockT) ([]byte, error) {
+				root := blk.GetStateRoot()
+				return root[:], nil
 			},
 		),
 	}

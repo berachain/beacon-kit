@@ -33,4 +33,6 @@ const (
 	AvailabilityPrunerName = "availability-store-pruner"
 	// BlockPrunerName is the name of the block store pruner.
 	BlockPrunerName = "block-store-pruner"
+	// BlockStoreName is the name of the block store.
+	BlockStoreName = "block-store"
 )
