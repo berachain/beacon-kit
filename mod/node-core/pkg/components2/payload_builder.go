@@ -94,15 +94,9 @@ func ProvideLocalBuilder[
 		WithdrawalsT,
 	],
 ) *payloadbuilder.PayloadBuilder[
-	AttributesFactoryT,
-	BeaconStateT,
-	ExecutionEngineT,
-	ExecutionPayloadT,
-	ExecutionPayloadHeaderT,
-	LoggerT,
-	PayloadAttributesT,
-	PayloadIDT,
-	WithdrawalsT,
+	AttributesFactoryT, BeaconStateT, ExecutionEngineT,
+	ExecutionPayloadT, ExecutionPayloadHeaderT, LoggerT,
+	PayloadAttributesT, PayloadIDT, WithdrawalsT,
 ] {
 	return payloadbuilder.New[
 		AttributesFactoryT,

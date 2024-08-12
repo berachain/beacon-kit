@@ -31,6 +31,7 @@ import (
 // ABCIMiddlewareInput is the input for the validator middleware provider.
 type ABCIMiddlewareInput struct {
 	depinject.In
+
 	BeaconBlockFeed       *BlockBroker
 	ChainSpec             common.ChainSpec
 	GenesisBroker         *GenesisBroker
