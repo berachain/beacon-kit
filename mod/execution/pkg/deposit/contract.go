@@ -37,8 +37,8 @@ type WrappedBeaconDepositContract[
 	DepositT Deposit[DepositT, WithdrawalCredentialsT],
 	WithdrawalCredentialsT ~[32]byte,
 ] struct {
-	// BeaconDepositContract is a pointer to the codegen ABI binding.
-	deposit.BeaconDepositContract
+	// BeaconDepositContractFilterer is a pointer to the codegen ABI binding.
+	deposit.BeaconDepositContractFilterer
 }
 
 // NewWrappedBeaconDepositContract creates a new BeaconDepositContract.
@@ -47,12 +47,12 @@ func NewWrappedBeaconDepositContract[
 	WithdrawalCredentialsT ~[32]byte,
 ](
 	address common.ExecutionAddress,
-	client bind.ContractBackend,
+	client bind.ContractFilterer,
 ) (*WrappedBeaconDepositContract[
 	DepositT,
 	WithdrawalCredentialsT,
 ], error) {
-	contract, err := deposit.NewBeaconDepositContract(
+	contract, err := deposit.NewBeaconDepositContractFilterer(
 		gethprimitives.ExecutionAddress(address), client,
 	)
 
@@ -66,7 +66,7 @@ func NewWrappedBeaconDepositContract[
 		DepositT,
 		WithdrawalCredentialsT,
 	]{
-		BeaconDepositContract: *contract,
+		BeaconDepositContractFilterer: *contract,
 	}, nil
 }
 
