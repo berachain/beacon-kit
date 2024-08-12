@@ -21,6 +21,7 @@
 package utils
 
 import (
+	"encoding/json"
 	"strings"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -100,8 +101,14 @@ func IsExecutionNumberPrefix(executionID string) bool {
 // U64FromString returns a math.U64 from the given string. Errors if the given
 // string is not in proper decimal notation.
 func U64FromString(id string) (math.U64, error) {
-	var u64 math.U64
-	return u64, u64.UnmarshalText([]byte(id))
+	var u64 uint64
+
+	err := json.Unmarshal([]byte(id), &u64)
+	if err != nil {
+		return 0, err
+	}
+
+	return math.U64(u64), nil
 }
 
 // slotFromStateID returns a slot number from the given state ID.
