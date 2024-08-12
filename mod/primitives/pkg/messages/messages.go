@@ -28,7 +28,6 @@ const (
 	ProcessGenesisData          = "process-genesis-data"
 	VerifySidecars              = "verify-sidecars"
 	ProcessSidecars             = "process-sidecars"
-	ReceiveSidecars             = "receive-sidecars"
 )
 
 // events.

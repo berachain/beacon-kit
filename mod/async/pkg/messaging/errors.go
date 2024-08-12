@@ -56,6 +56,11 @@ var (
 		)
 	}
 
+	errSendingNilResponse = func(messageID types.MessageID) error {
+		return errors.Newf("cannot send nil response for route: %s",
+			messageID)
+	}
+
 	// errIncompatibleAssignee is the error returned when the assignee is not
 	// compatible with the assigner.
 	errIncompatibleAssignee = func(

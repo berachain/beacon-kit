@@ -97,6 +97,9 @@ func (r *Route[ReqT, RespT]) SendResponse(resp types.BaseMessage) error {
 	if err != nil {
 		return err
 	}
+	if typedMsg == nil {
+		return errSendingNilResponse(r.messageID)
+	}
 	r.responseCh <- typedMsg
 	return nil
 }
