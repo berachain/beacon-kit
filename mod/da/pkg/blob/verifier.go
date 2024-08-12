@@ -32,19 +32,23 @@ import (
 
 // Verifier is responsible for verifying blobs, including their
 // inclusion and KZG proofs.
-type Verifier struct {
+type Verifier[
+	BlobProofVerifierT kzg.BlobProofVerifier,
+] struct {
 	// proofVerifier is used to verify the KZG proofs of the blobs.
-	proofVerifier kzg.BlobProofVerifier
+	proofVerifier BlobProofVerifierT
 	// metrics collects and reports metrics related to the verification process.
 	metrics *verifierMetrics
 }
 
 // NewVerifier creates a new Verifier with the given proof verifier.
-func NewVerifier(
-	proofVerifier kzg.BlobProofVerifier,
+func NewVerifier[
+	BlobProofVerifierT kzg.BlobProofVerifier,
+](
+	proofVerifier BlobProofVerifierT,
 	telemetrySink TelemetrySink,
-) *Verifier {
-	return &Verifier{
+) *Verifier[BlobProofVerifierT] {
+	return &Verifier[BlobProofVerifierT]{
 		proofVerifier: proofVerifier,
 		metrics:       newVerifierMetrics(telemetrySink),
 	}
@@ -52,7 +56,7 @@ func NewVerifier(
 
 // VerifySidecars verifies the blobs for both inclusion as well
 // as the KZG proofs.
-func (bv *Verifier) VerifySidecars(
+func (bv *Verifier[BlobProofVerifierT]) VerifySidecars(
 	sidecars *types.BlobSidecars, kzgOffset uint64,
 ) error {
 	var (
@@ -87,7 +91,7 @@ func (bv *Verifier) VerifySidecars(
 	return g.Wait()
 }
 
-func (bv *Verifier) VerifyInclusionProofs(
+func (bv *Verifier[BlobProofVerifierT]) VerifyInclusionProofs(
 	scs *types.BlobSidecars,
 	kzgOffset uint64,
 ) error {
@@ -99,7 +103,7 @@ func (bv *Verifier) VerifyInclusionProofs(
 }
 
 // VerifyKZGProofs verifies the sidecars.
-func (bv *Verifier) VerifyKZGProofs(
+func (bv *Verifier[BlobProofVerifierT]) VerifyKZGProofs(
 	scs *types.BlobSidecars,
 ) error {
 	start := time.Now()

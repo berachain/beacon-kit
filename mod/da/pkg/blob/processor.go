@@ -23,6 +23,7 @@ package blob
 import (
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	"github.com/berachain/beacon-kit/mod/da/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -36,13 +37,14 @@ type Processor[
 		BeaconBlockBodyT, *types.BlobSidecars,
 	],
 	BeaconBlockBodyT any,
+	BlobProofVerifierT kzg.BlobProofVerifier,
 ] struct {
 	// logger is used to log information and errors.
 	logger log.Logger[any]
 	// chainSpec defines the specifications of the blockchain.
 	chainSpec common.ChainSpec
 	// verifier is responsible for verifying the blobs.
-	verifier *Verifier
+	verifier *Verifier[BlobProofVerifierT]
 	// blockBodyOffsetFn is a function that calculates the block body offset
 	// based on the slot and chain specifications.
 	blockBodyOffsetFn func(math.Slot, common.ChainSpec) uint64
@@ -56,14 +58,15 @@ func NewProcessor[
 		BeaconBlockBodyT, *types.BlobSidecars,
 	],
 	BeaconBlockBodyT any,
+	BlobProofVerifierT kzg.BlobProofVerifier,
 ](
 	logger log.Logger[any],
 	chainSpec common.ChainSpec,
-	verifier *Verifier,
+	verifier *Verifier[BlobProofVerifierT],
 	blockBodyOffsetFn func(math.Slot, common.ChainSpec) uint64,
 	telemetrySink TelemetrySink,
-) *Processor[AvailabilityStoreT, BeaconBlockBodyT] {
-	return &Processor[AvailabilityStoreT, BeaconBlockBodyT]{
+) *Processor[AvailabilityStoreT, BeaconBlockBodyT, BlobProofVerifierT] {
+	return &Processor[AvailabilityStoreT, BeaconBlockBodyT, BlobProofVerifierT]{
 		logger:            logger,
 		chainSpec:         chainSpec,
 		verifier:          verifier,
@@ -73,7 +76,7 @@ func NewProcessor[
 }
 
 // VerifySidecars verifies the blobs and ensures they match the local state.
-func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) VerifySidecars(
+func (sp *Processor[_, _, _]) VerifySidecars(
 	sidecars *types.BlobSidecars,
 ) error {
 	startTime := time.Now()
@@ -97,7 +100,7 @@ func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) VerifySidecars(
 }
 
 // slot :=  processes the blobs and ensures they match the local state.
-func (sp *Processor[AvailabilityStoreT, BeaconBlockBodyT]) ProcessSidecars(
+func (sp *Processor[AvailabilityStoreT, _, _]) ProcessSidecars(
 	avs AvailabilityStoreT,
 	sidecars *types.BlobSidecars,
 ) error {
