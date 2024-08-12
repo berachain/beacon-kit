@@ -39,12 +39,13 @@ type Handler[
 
 // NewHandler creates a new handler for the beacon API.
 func NewHandler[
+	BackendT Backend[BeaconBlockHeaderT, ForkT, ValidatorT],
 	BeaconBlockHeaderT types.BeaconBlockHeader,
 	ContextT context.Context,
 	ForkT any,
 	ValidatorT any,
 ](
-	backend Backend[BeaconBlockHeaderT, ForkT, ValidatorT],
+	backend BackendT,
 ) *Handler[BeaconBlockHeaderT, ContextT, ForkT, ValidatorT] {
 	h := &Handler[BeaconBlockHeaderT, ContextT, ForkT, ValidatorT]{
 		BaseHandler: handlers.NewBaseHandler(

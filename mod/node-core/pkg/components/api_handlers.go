@@ -20,86 +20,163 @@
 
 package components
 
-// import (
-// 	"cosmossdk.io/depinject"
-// 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
-// 	beaconapi "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon"
-// 	builderapi "github.com/berachain/beacon-kit/mod/node-api/handlers/builder"
-// 	configapi "github.com/berachain/beacon-kit/mod/node-api/handlers/config"
-// 	debugapi "github.com/berachain/beacon-kit/mod/node-api/handlers/debug"
-// 	eventsapi "github.com/berachain/beacon-kit/mod/node-api/handlers/events"
-// 	nodeapi "github.com/berachain/beacon-kit/mod/node-api/handlers/node"
-// 	proofapi "github.com/berachain/beacon-kit/mod/node-api/handlers/proof"
-// )
+import (
+	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers"
+	beaconapi "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon"
+	builderapi "github.com/berachain/beacon-kit/mod/node-api/handlers/builder"
+	configapi "github.com/berachain/beacon-kit/mod/node-api/handlers/config"
+	debugapi "github.com/berachain/beacon-kit/mod/node-api/handlers/debug"
+	eventsapi "github.com/berachain/beacon-kit/mod/node-api/handlers/events"
+	nodeapi "github.com/berachain/beacon-kit/mod/node-api/handlers/node"
+	proofapi "github.com/berachain/beacon-kit/mod/node-api/handlers/proof"
+)
 
-// type NodeAPIHandlersInput struct {
-// 	depinject.In
+type NodeAPIHandlersInput[
+	BeaconAPIHandlerT handlers.Handlers[ContextT],
+	BuilderAPIHandlerT handlers.Handlers[ContextT],
+	ConfigAPIHandlerT handlers.Handlers[ContextT],
+	ContextT NodeAPIContext,
+	DebugAPIHandlerT handlers.Handlers[ContextT],
+	EventsAPIHandlerT handlers.Handlers[ContextT],
+	NodeAPIHandlerT handlers.Handlers[ContextT],
+	ProofAPIHandlerT handlers.Handlers[ContextT],
+] struct {
+	depinject.In
 
-// 	BeaconAPIHandler  *BeaconAPIHandler
-// 	BuilderAPIHandler *BuilderAPIHandler
-// 	ConfigAPIHandler  *ConfigAPIHandler
-// 	DebugAPIHandler   *DebugAPIHandler
-// 	EventsAPIHandler  *EventsAPIHandler
-// 	NodeAPIHandler    *NodeAPIHandler
-// 	ProofAPIHandler   *ProofAPIHandler
-// }
+	BeaconAPIHandler  BeaconAPIHandlerT
+	BuilderAPIHandler BuilderAPIHandlerT
+	ConfigAPIHandler  ConfigAPIHandlerT
+	DebugAPIHandler   DebugAPIHandlerT
+	EventsAPIHandler  EventsAPIHandlerT
+	NodeAPIHandler    NodeAPIHandlerT
+	ProofAPIHandler   ProofAPIHandlerT
+}
 
-// func ProvideNodeAPIHandlers(
-// 	in NodeAPIHandlersInput,
-// ) []handlers.Handlers[NodeAPIContext] {
-// 	return []handlers.Handlers[NodeAPIContext]{
-// 		in.BeaconAPIHandler,
-// 		in.BuilderAPIHandler,
-// 		in.ConfigAPIHandler,
-// 		in.DebugAPIHandler,
-// 		in.EventsAPIHandler,
-// 		in.NodeAPIHandler,
-// 		in.ProofAPIHandler,
-// 	}
-// }
+func ProvideNodeAPIHandlers[
+	BeaconAPIHandlerT handlers.Handlers[ContextT],
+	BuilderAPIHandlerT handlers.Handlers[ContextT],
+	ConfigAPIHandlerT handlers.Handlers[ContextT],
+	ContextT NodeAPIContext,
+	DebugAPIHandlerT handlers.Handlers[ContextT],
+	EventsAPIHandlerT handlers.Handlers[ContextT],
+	NodeAPIHandlerT handlers.Handlers[ContextT],
+	ProofAPIHandlerT handlers.Handlers[ContextT],
+](
+	in NodeAPIHandlersInput[
+		BeaconAPIHandlerT, BuilderAPIHandlerT, ConfigAPIHandlerT,
+		ContextT, DebugAPIHandlerT, EventsAPIHandlerT, NodeAPIHandlerT,
+		ProofAPIHandlerT,
+	],
+) []handlers.Handlers[ContextT] {
+	return []handlers.Handlers[ContextT]{
+		in.BeaconAPIHandler,
+		in.BuilderAPIHandler,
+		in.ConfigAPIHandler,
+		in.DebugAPIHandler,
+		in.EventsAPIHandler,
+		in.NodeAPIHandler,
+		in.ProofAPIHandler,
+	}
+}
 
-// func ProvideNodeAPIBeaconHandler(b *NodeAPIBackend) *BeaconAPIHandler {
-// 	return beaconapi.NewHandler[
-// 		*BeaconBlockHeader,
-// 		NodeAPIContext,
-// 		*Fork,
-// 		*Validator,
-// 	](b)
-// }
+func ProvideNodeAPIBeaconHandler[
+	BeaconBackendT NodeAPIBeaconBackend[
+		BeaconStateT, BeaconBlockHeaderT, ForkT, ValidatorT,
+	],
+	BeaconStateT any,
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	ContextT NodeAPIContext,
+	ForkT any,
+	ValidatorT any,
+](b BeaconBackendT) *beaconapi.Handler[
+	BeaconBlockHeaderT,
+	ContextT,
+	ForkT,
+	ValidatorT,
+] {
+	return beaconapi.NewHandler[
+		BeaconBackendT,
+		BeaconBlockHeaderT,
+		ContextT,
+		ForkT,
+		ValidatorT,
+	](b)
+}
 
-// func ProvideNodeAPIBuilderHandler() *BuilderAPIHandler {
-// 	return builderapi.NewHandler[NodeAPIContext]()
-// }
+func ProvideNodeAPIBuilderHandler[
+	ContextT NodeAPIContext,
+]() *builderapi.Handler[ContextT] {
+	return builderapi.NewHandler[ContextT]()
+}
 
-// func ProvideNodeAPIConfigHandler() *ConfigAPIHandler {
-// 	return configapi.NewHandler[NodeAPIContext]()
-// }
+func ProvideNodeAPIConfigHandler[
+	ContextT NodeAPIContext,
+]() *configapi.Handler[ContextT] {
+	return configapi.NewHandler[ContextT]()
+}
 
-// func ProvideNodeAPIDebugHandler() *DebugAPIHandler {
-// 	return debugapi.NewHandler[NodeAPIContext]()
-// }
+func ProvideNodeAPIDebugHandler[
+	ContextT NodeAPIContext,
+]() *debugapi.Handler[ContextT] {
+	return debugapi.NewHandler[ContextT]()
+}
 
-// func ProvideNodeAPIEventsHandler() *EventsAPIHandler {
-// 	return eventsapi.NewHandler[NodeAPIContext]()
-// }
+func ProvideNodeAPIEventsHandler[
+	ContextT NodeAPIContext,
+]() *eventsapi.Handler[ContextT] {
+	return eventsapi.NewHandler[ContextT]()
+}
 
-// func ProvideNodeAPINodeHandler() *NodeAPIHandler {
-// 	return nodeapi.NewHandler[NodeAPIContext]()
-// }
+func ProvideNodeAPINodeHandler[
+	ContextT NodeAPIContext,
+]() *nodeapi.Handler[ContextT] {
+	return nodeapi.NewHandler[ContextT]()
+}
 
-// func ProvideNodeAPIProofHandler(b *NodeAPIBackend) *ProofAPIHandler {
-// 	return proofapi.NewHandler[NodeAPIContext](b)
-// }
+func ProvideNodeAPIProofHandler[
+	ContextT NodeAPIContext,
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconStateT BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		ForkT, KVStoreT, ValidatorT, ValidatorsT, WithdrawalT,
+	],
+	BeaconStateMarshallableT any,
+	Eth1DataT any,
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	ForkT any,
+	KVStoreT any,
+	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
+	ValidatorsT Validators[ValidatorT],
+	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalCredentialsT WithdrawalCredentials,
+]() *proofapi.Handler[
+	ContextT,
+	BeaconBlockHeaderT,
+	BeaconStateT,
+	BeaconStateMarshallableT,
+	ExecutionPayloadHeaderT,
+	ValidatorT,
+] {
+	return proofapi.NewHandler[
+		ContextT,
+		BeaconBlockHeaderT,
+		BeaconStateT,
+		BeaconStateMarshallableT,
+		ExecutionPayloadHeaderT,
+		ValidatorT,
+	]()
+}
 
-// func DefaultNodeAPIHandlers() []any {
-// 	return []any{
-// 		ProvideNodeAPIHandlers,
-// 		ProvideNodeAPIBeaconHandler,
-// 		ProvideNodeAPIBuilderHandler,
-// 		ProvideNodeAPIConfigHandler,
-// 		ProvideNodeAPIDebugHandler,
-// 		ProvideNodeAPIEventsHandler,
-// 		ProvideNodeAPINodeHandler,
-// 		ProvideNodeAPIProofHandler,
-// 	}
-// }
+func DefaultNodeAPIHandlers[ContextT NodeAPIContext]() []any {
+	return []any{
+		ProvideNodeAPIHandlers,
+		ProvideNodeAPIBeaconHandler,
+		ProvideNodeAPIBuilderHandler,
+		ProvideNodeAPIConfigHandler,
+		ProvideNodeAPIDebugHandler,
+		ProvideNodeAPIEventsHandler,
+		ProvideNodeAPINodeHandler,
+		ProvideNodeAPIProofHandler,
+	}
+}

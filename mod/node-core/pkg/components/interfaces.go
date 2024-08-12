@@ -22,6 +22,7 @@ import (
 	v1 "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
+	fastssz "github.com/ferranbt/fastssz"
 )
 
 type (
@@ -161,6 +162,7 @@ type (
 		GetStateRoot() common.Root
 		SetStateRoot(common.Root)
 		GetBodyRoot() common.Root
+		GetTree() (*fastssz.Node, error)
 	}
 
 	// BeaconStateMarshallable represents an interface for a beacon state
@@ -1072,7 +1074,10 @@ type (
 		StateBackend[BeaconStateT, ForkT]
 		ValidatorBackend[ValidatorT]
 		HistoricalBackend[ForkT]
-		GetSlotByRoot(root common.Root) (math.Slot, error)
+		// GetSlotByBlockRoot retrieves the slot by a given root from the store.
+		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
+		// GetSlotByStateRoot retrieves the slot by a given root from the store.
+		GetSlotByStateRoot(root common.Root) (math.Slot, error)
 	}
 
 	// NodeAPIProofBackend is the interface for backend of the proof API.
