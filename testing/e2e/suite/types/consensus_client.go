@@ -24,11 +24,9 @@ import (
 	"context"
 	"fmt"
 
-	beaconapi "github.com/attestantio/go-eth2-client/api"
-	apiv1 "github.com/attestantio/go-eth2-client/api/v1"
-	beaconhttp "github.com/attestantio/go-eth2-client/http"
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+
+	beaconhttp "github.com/attestantio/go-eth2-client/http"
 	rpcclient "github.com/cometbft/cometbft/rpc/client"
 	httpclient "github.com/cometbft/cometbft/rpc/client/http"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
@@ -158,20 +156,5 @@ func (cc ConsensusClient) IsActive(ctx context.Context) (bool, error) {
 	return res.ValidatorInfo.VotingPower > 0, nil
 }
 
-// Returns the current beacon validators from beacon node-api.
-func (cc ConsensusClient) GetBeaconValidators(
-	ctx context.Context,
-) (map[math.ValidatorIndex]*apiv1.Validator, error) {
-	res, err := cc.Service.Validators(ctx, &beaconapi.ValidatorsOpts{
-		State: "head",
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	validators := make(map[math.ValidatorIndex]*apiv1.Validator)
-	for idx, validator := range res.Data {
-		validators[math.ValidatorIndex(idx)] = validator
-	}
-	return validators, nil
-}
+// TODO: Add helpers for the beacon node-api client (converting from 
+// go-eth2-client types to beacon-kit consensus types).

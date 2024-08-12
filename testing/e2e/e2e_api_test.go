@@ -21,7 +21,10 @@
 package e2e_test
 
 import (
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
 	"github.com/berachain/beacon-kit/testing/e2e/config"
+
+	beaconapi "github.com/attestantio/go-eth2-client/api"
 )
 
 // TestBeaconAPISuite tests that the api test suite is setup correctly with a
@@ -37,8 +40,13 @@ func (s *BeaconKitE2ESuite) TestBeaconAPIStartup() {
 	client := s.ConsensusClients()[config.DefaultClient]
 	s.Require().NotNil(client)
 
-	// Get the beacon validators.
-	validators, err := client.GetBeaconValidators(s.Ctx())
+	// Ensure the state root is not nil.
+	stateRoot, err := client.BeaconStateRoot(
+		s.Ctx(),
+		&beaconapi.BeaconStateRootOpts{
+			State: utils.StateIDHead,
+		},
+	)
 	s.Require().NoError(err)
-	s.Require().NotEmpty(validators)
+	s.Require().NotEmpty(stateRoot)
 }
