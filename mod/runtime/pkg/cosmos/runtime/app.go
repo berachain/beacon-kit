@@ -34,65 +34,52 @@ import (
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/baseapp"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	dbm "github.com/cosmos/cosmos-db"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/sourcegraph/conc/iter"
 )
-
-var _ servertypes.Application = &App{}
 
 // App can be used to create a hybrid app.go setup where some configuration is
 // done declaratively with an app config and the rest of it is done the old way.
 // See simapp/app.go for an example of this setup.
 type App struct {
 	*baseapp.BaseApp
-
 	Middleware Middleware
-	StoreKeys  []storetypes.StoreKey
-	Logger     log.Logger
-	// initChainer is the init chainer function defined by the app config.
-	// this is only required if the chain wants to add special InitChainer
-	// logic.
-	initChainer sdk.InitChainer
 }
 
 // NewBeaconKitApp returns a reference to an initialized BeaconApp.
 func NewBeaconKitApp(
+	storeKey *storetypes.KVStoreKey,
+	logger log.Logger,
 	db dbm.DB,
 	traceStore io.Writer,
 	loadLatest bool,
-	appBuilder *AppBuilder,
 	middleware Middleware,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *App {
 	app := &App{
+		BaseApp: baseapp.NewBaseApp(
+			"BeaconKit",
+			logger,
+			db,
+			baseAppOptions...),
 		Middleware: middleware,
 	}
 
-	// Build the runtime.App using the app builder.
-	app = appBuilder.Build(db, traceStore, baseAppOptions...)
+	app.SetVersion(version.Version)
+	app.MountStore(storeKey, storetypes.StoreTypeIAVL)
+	app.SetInitChainer(app.InitChainer)
+	app.SetFinalizeBlocker(app.FinalizeBlocker)
 
 	// Load the app.
-	if err := app.Load(loadLatest); err != nil {
-		panic(err)
-	}
-
-	return app
-}
-
-// Load finishes all initialization operations and loads the app.
-func (a *App) Load(loadLatest bool) error {
-	a.SetInitChainer(a.InitChainer)
-	a.SetFinalizeBlocker(a.FinalizeBlocker)
-
 	if loadLatest {
-		if err := a.LoadLatestVersion(); err != nil {
-			return err
+		if err := app.LoadLatestVersion(); err != nil {
+			panic(err)
 		}
 	}
 
-	return nil
+	return app
 }
 
 // FinalizeBlocker application updates every end block.

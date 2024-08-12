@@ -23,7 +23,6 @@ package client
 import (
 	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/rpc"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/http"
 	jsonrpc "github.com/berachain/beacon-kit/mod/primitives/pkg/net/json-rpc"
 )
@@ -119,16 +118,17 @@ func (s *EngineClient[
 		return engineerrors.ErrRequestTooLarge
 	case -32000:
 		s.metrics.incrementInternalServerErrorCounter()
-		// Only -32000 status codes are data errors in the RPC specification.
-		var errWithData rpc.DataError
-		errWithData, ok = err.(rpc.DataError) //nolint:errorlint // from prysm.
-		if !ok {
-			return errors.Wrapf(
-				errors.Join(jsonrpc.ErrServer, err),
-				"got an unexpected data error in JSON-RPC response",
-			)
-		}
-		return errors.Wrapf(jsonrpc.ErrServer, "%v", errWithData.Error())
+		// // Only -32000 status codes are data errors in the RPC specification.
+		// var errWithData rpc.DataError
+		// errWithData, ok = err.(rpc.DataError) //nolint:errorlint // from
+		// prysm.
+		// if !ok {
+		// 	return errors.Wrapf(
+		// 		errors.Join(jsonrpc.ErrServer, err),
+		// 		"got an unexpected data error in JSON-RPC response",
+		// 	)
+		// }
+		return errors.Wrapf(jsonrpc.ErrServer, "%v", e.Error())
 	default:
 		return err
 	}

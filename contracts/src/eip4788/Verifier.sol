@@ -10,7 +10,9 @@ abstract contract Verifier {
     error InvalidProof();
     error RootNotFound();
 
-    function getParentBlockRoot(uint64 ts)
+    function getParentBlockRoot(
+        uint64 ts
+    )
         internal
         view
         returns (bytes32 root)

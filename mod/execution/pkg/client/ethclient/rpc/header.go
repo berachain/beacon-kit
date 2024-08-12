@@ -18,37 +18,18 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package runtime
+package rpc
 
-import (
-	"io"
+// updateHeader builds an http.Header that has the JWT token
+// attached for authorization.
+func (rpc *Client) updateHeader() error {
+	// Build the JWT token.
+	token, err := rpc.jwtSecret.BuildSignedToken()
+	if err != nil {
+		return err
+	}
 
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/baseapp"
-	dbm "github.com/cosmos/cosmos-db"
-	"github.com/cosmos/cosmos-sdk/version"
-)
-
-// AppBuilder is a type that is injected into a container by the runtime module
-// (as *AppBuilder) which can be used to create an app which is compatible with
-// the existing app.go initialization conventions.
-type AppBuilder struct {
-	App        *App
-	Middleware Middleware
-}
-
-// Build builds an *App instance.
-func (a *AppBuilder) Build(
-	db dbm.DB,
-	_ io.Writer,
-	baseAppOptions ...func(*baseapp.BaseApp),
-) *App {
-	bApp := baseapp.NewBaseApp(
-		"BeaconKit",
-		a.App.Logger,
-		db,
-		baseAppOptions...)
-	bApp.SetVersion(version.Version)
-	bApp.MountStores(a.App.StoreKeys...)
-	a.App.BaseApp = bApp
-	return a.App
+	// Add the JWT token to the headers.
+	rpc.header.Set("Authorization", "Bearer "+token)
+	return nil
 }

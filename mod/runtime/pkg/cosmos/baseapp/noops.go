@@ -32,11 +32,11 @@ import (
 )
 
 // RegisterGRPCServer registers gRPC services directly with the gRPC server.
-func (app *BaseApp) RegisterGRPCServer(_ gogogrpc.Server) {}
+func (BaseApp) RegisterGRPCServer(_ gogogrpc.Server) {}
 
 // Query implements the ABCI interface. It delegates to CommitMultiStore if it
 // implements Queryable.
-func (app *BaseApp) Query(
+func (BaseApp) Query(
 	_ context.Context,
 	_ *abci.QueryRequest,
 ) (*abci.QueryResponse, error) {
@@ -45,7 +45,7 @@ func (app *BaseApp) Query(
 
 // ListSnapshots implements the ABCI interface. It delegates to
 // app.snapshotManager if set.
-func (app *BaseApp) ListSnapshots(
+func (BaseApp) ListSnapshots(
 	_ *abci.ListSnapshotsRequest,
 ) (*abci.ListSnapshotsResponse, error) {
 	return &abci.ListSnapshotsResponse{}, nil
@@ -53,7 +53,7 @@ func (app *BaseApp) ListSnapshots(
 
 // LoadSnapshotChunk implements the ABCI interface. It delegates to
 // app.snapshotManager if set.
-func (app *BaseApp) LoadSnapshotChunk(
+func (BaseApp) LoadSnapshotChunk(
 	_ *abci.LoadSnapshotChunkRequest,
 ) (*abci.LoadSnapshotChunkResponse, error) {
 	return &abci.LoadSnapshotChunkResponse{}, nil
@@ -61,7 +61,7 @@ func (app *BaseApp) LoadSnapshotChunk(
 
 // OfferSnapshot implements the ABCI interface. It delegates to
 // app.snapshotManager if set.
-func (app *BaseApp) OfferSnapshot(
+func (BaseApp) OfferSnapshot(
 	_ *abci.OfferSnapshotRequest,
 ) (*abci.OfferSnapshotResponse, error) {
 	return &abci.OfferSnapshotResponse{}, nil
@@ -69,18 +69,18 @@ func (app *BaseApp) OfferSnapshot(
 
 // ApplySnapshotChunk implements the ABCI interface. It delegates to
 // app.snapshotManager if set.
-func (app *BaseApp) ApplySnapshotChunk(
+func (BaseApp) ApplySnapshotChunk(
 	_ *abci.ApplySnapshotChunkRequest,
 ) (*abci.ApplySnapshotChunkResponse, error) {
 	return &abci.ApplySnapshotChunkResponse{}, nil
 }
 
 // SnapshotManager returns the snapshot manager.
-func (app *BaseApp) SnapshotManager() *snapshots.Manager {
+func (BaseApp) SnapshotManager() *snapshots.Manager {
 	return &snapshots.Manager{}
 }
 
-func (app *BaseApp) ExtendVote(
+func (BaseApp) ExtendVote(
 	_ context.Context,
 	_ *abci.ExtendVoteRequest,
 ) (*abci.ExtendVoteResponse, error) {
@@ -98,7 +98,7 @@ func (app *BaseApp) ExtendVote(
 // We highly recommend a size validation due to performance degradation,
 // see more here
 // https://docs.cometbft.com/v1.0/references/qa/cometbft-qa-38#vote-extensions-testbed
-func (app *BaseApp) VerifyVoteExtension(
+func (BaseApp) VerifyVoteExtension(
 	*abci.VerifyVoteExtensionRequest,
 ) (*abci.VerifyVoteExtensionResponse, error) {
 	return &abci.VerifyVoteExtensionResponse{}, nil
@@ -106,17 +106,17 @@ func (app *BaseApp) VerifyVoteExtension(
 
 // RegisterAPIRoutes registers all application module routes with the provided
 // API server.
-func (a *BaseApp) RegisterAPIRoutes(apiSvr *api.Server, _ config.APIConfig) {}
+func (BaseApp) RegisterAPIRoutes(apiSvr *api.Server, _ config.APIConfig) {}
 
 // RegisterTxService implements the Application.RegisterTxService method.
-func (a *BaseApp) RegisterTxService(client.Context) {}
+func (BaseApp) RegisterTxService(client.Context) {}
 
 // RegisterTendermintService implements the
 // Application.RegisterTendermintService method.
-func (a *BaseApp) RegisterTendermintService(client.Context) {}
+func (BaseApp) RegisterTendermintService(client.Context) {}
 
 // RegisterNodeService registers the node gRPC service on the app gRPC router.
-func (a *BaseApp) RegisterNodeService(_ client.Context, _ config.Config) {}
+func (BaseApp) RegisterNodeService(_ client.Context, _ config.Config) {}
 
 // CheckTx implements the ABCI interface and executes a tx in CheckTx mode. In
 // CheckTx mode, messages are not executed. This means messages are only
@@ -126,8 +126,8 @@ func (a *BaseApp) RegisterNodeService(_ client.Context, _ config.Config) {}
 // ResponseCheckTx
 // will contain relevant error information. Regardless of tx execution outcome,
 // the ResponseCheckTx will contain relevant gas execution context.
-func (app *BaseApp) CheckTx(
-	req *abci.CheckTxRequest,
+func (*BaseApp) CheckTx(
+	*abci.CheckTxRequest,
 ) (*abci.CheckTxResponse, error) {
 	return &abci.CheckTxResponse{}, nil
 }
