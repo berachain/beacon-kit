@@ -39,7 +39,7 @@ func (h *Handler[_, ContextT, _, _]) GetStateValidators(
 	if len(req.Statuses) > 0 {
 		return nil, types.ErrNotImplemented
 	}
-	slot, err := utils.SlotFromStateID(req.StateID)
+	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func (h *Handler[_, ContextT, _, _]) PostStateValidators(
 	if len(req.Statuses) > 0 {
 		return nil, types.ErrNotImplemented
 	}
-	slot, err := utils.SlotFromStateID(req.StateID)
+	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +102,7 @@ func (h *Handler[_, ContextT, _, _]) GetStateValidator(
 	if err != nil {
 		return nil, err
 	}
-	slot, err := utils.SlotFromStateID(req.StateID)
+	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func (h *Handler[_, ContextT, _, _]) GetStateValidatorBalances(
 	if err != nil {
 		return nil, err
 	}
-	slot, err := utils.SlotFromStateID(req.StateID)
+	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
 	if err != nil {
 		return nil, err
 	}
@@ -152,7 +152,7 @@ func (h *Handler[_, ContextT, _, _]) PostStateValidatorBalances(
 	if err != nil {
 		return nil, err
 	}
-	slot, err := utils.SlotFromStateID(req.StateID)
+	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
 	if err != nil {
 		return nil, err
 	}
