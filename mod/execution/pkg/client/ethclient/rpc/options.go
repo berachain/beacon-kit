@@ -20,11 +20,22 @@
 
 package rpc
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
+import (
+	"time"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
+)
 
 // WithJWTSecret sets the JWT secret for the RPC client.
 func WithJWTSecret(secret *jwt.Secret) func(rpc *Client) {
 	return func(rpc *Client) {
 		rpc.jwtSecret = secret
+	}
+}
+
+// WithJWTRefreshInterval sets the JWT refresh interval for the RPC client.
+func WithJWTRefreshInterval(interval time.Duration) func(rpc *Client) {
+	return func(rpc *Client) {
+		rpc.jwtRefreshInterval = interval
 	}
 }

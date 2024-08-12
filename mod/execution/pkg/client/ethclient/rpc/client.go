@@ -43,6 +43,8 @@ type Client struct {
 	reqPool *sync.Pool
 	// jwtSecret is the JWT secret used for authentication.
 	jwtSecret *jwt.Secret
+	// jwtRefershInterval is the interval at which the JWT token should be refreshed.
+	jwtRefreshInterval time.Duration
 	// header is the HTTP header used for RPC requests.
 	header http.Header
 }
@@ -72,7 +74,7 @@ func NewClient(url string, options ...func(rpc *Client)) *Client {
 
 // Start starts the rpc client
 func (rpc *Client) Start(ctx context.Context) {
-	ticker := time.NewTicker(5 * time.Second)
+	ticker := time.NewTicker(rpc.jwtRefreshInterval)
 	rpc.updateHeader()
 	for {
 		select {

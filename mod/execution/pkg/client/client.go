@@ -74,8 +74,11 @@ func New[
 		ethclient: ethclient.New[ExecutionPayloadT](
 			ethclientrpc.NewClient(
 				cfg.RPCDialURL.String(),
-				ethclientrpc.WithJWTSecret(jwtSecret)),
-		),
+				ethclientrpc.WithJWTSecret(jwtSecret),
+				ethclientrpc.WithJWTRefreshInterval(
+					cfg.RPCJWTRefreshInterval,
+				),
+			)),
 		capabilities: make(map[string]struct{}),
 		eth1ChainID:  eth1ChainID,
 		metrics:      newClientMetrics(telemetrySink, logger),
