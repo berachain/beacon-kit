@@ -53,7 +53,7 @@ func (s *EngineClient[
 	defer cancel()
 
 	// Call the appropriate RPC method based on the payload version.
-	result, err := s.EthRPC.NewPayload(
+	result, err := s.ethclient.NewPayload(
 		cctx, payload, versionedHashes, parentBeaconBlockRoot,
 	)
 	if err != nil {
@@ -107,7 +107,7 @@ func (s *EngineClient[
 		)
 	}
 
-	result, err := s.EthRPC.ForkchoiceUpdated(
+	result, err := s.ethclient.ForkchoiceUpdated(
 		cctx, state, attrs, forkVersion,
 	)
 
@@ -148,7 +148,7 @@ func (s *EngineClient[
 	defer cancel()
 
 	// Call and check for errors.
-	result, err := s.EthRPC.GetPayload(cctx, payloadID, forkVersion)
+	result, err := s.ethclient.GetPayload(cctx, payloadID, forkVersion)
 	switch {
 	case err != nil:
 		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
@@ -172,7 +172,7 @@ func (s *EngineClient[
 ]) ExchangeCapabilities(
 	ctx context.Context,
 ) ([]string, error) {
-	result, err := s.EthRPC.ExchangeCapabilities(
+	result, err := s.ethclient.ExchangeCapabilities(
 		ctx, ethclient.BeaconKitSupportedCapabilities(),
 	)
 	if err != nil {

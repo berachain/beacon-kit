@@ -25,8 +25,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 )
 
-// EthRPC - Ethereum rpc client
-type EthRPC[ExecutionPayloadT interface {
+// Client - Ethereum rpc client
+type Client[ExecutionPayloadT interface {
 	constraints.JSONMarshallable
 	Empty(uint32) ExecutionPayloadT
 	Version() uint32
@@ -41,8 +41,8 @@ func New[
 		Empty(uint32) ExecutionPayloadT
 		Version() uint32
 	},
-](client *rpc.Client) *EthRPC[ExecutionPayloadT] {
-	rpc := &EthRPC[ExecutionPayloadT]{
+](client *rpc.Client) *Client[ExecutionPayloadT] {
+	rpc := &Client[ExecutionPayloadT]{
 		Client: client,
 	}
 

@@ -39,7 +39,8 @@ type EngineClient[
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 	PayloadAttributesT PayloadAttributes,
 ] struct {
-	*ethclient.EthRPC[ExecutionPayloadT]
+	// ethclient is the execution client.
+	ethclient *ethclient.Client[ExecutionPayloadT]
 	// cfg is the supplied configuration for the engine client.
 	cfg *Config
 	// logger is the logger for the engine client.
@@ -70,7 +71,7 @@ func New[
 	return &EngineClient[ExecutionPayloadT, PayloadAttributesT]{
 		cfg:    cfg,
 		logger: logger,
-		EthRPC: ethclient.New[ExecutionPayloadT](
+		ethclient: ethclient.New[ExecutionPayloadT](
 			ethclientrpc.NewClient(
 				cfg.RPCDialURL.String(),
 				ethclientrpc.WithJWTSecret(jwtSecret)),
@@ -94,7 +95,7 @@ func (s *EngineClient[
 ]) Start(
 	ctx context.Context,
 ) error {
-	go s.EthRPC.Start(ctx)
+	go s.ethclient.Start(ctx)
 
 	s.logger.Info(
 		"Initializing connection to the execution client...",
@@ -148,12 +149,12 @@ func (s *EngineClient[
 
 	defer func() {
 		if err != nil {
-			s.EthRPC.Close()
+			s.ethclient.Close()
 		}
 	}()
 
 	// After the initial dial, check to make sure the chain ID is correct.
-	chainID, err = s.EthRPC.ChainID(ctx)
+	chainID, err = s.ethclient.ChainID(ctx)
 	if err != nil {
 		if strings.Contains(err.Error(), "401 Unauthorized") {
 			// We always log this error as it is a critical error.

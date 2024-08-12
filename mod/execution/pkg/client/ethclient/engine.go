@@ -34,7 +34,7 @@ import (
 /* -------------------------------------------------------------------------- */
 
 // NewPayload calls the engine_newPayloadV3 method via JSON-RPC.
-func (s *EthRPC[ExecutionPayloadT]) NewPayload(
+func (s *Client[ExecutionPayloadT]) NewPayload(
 	ctx context.Context,
 	payload ExecutionPayloadT,
 	versionedHashes []common.ExecutionHash,
@@ -51,7 +51,7 @@ func (s *EthRPC[ExecutionPayloadT]) NewPayload(
 }
 
 // NewPayloadV3 is used to call the underlying JSON-RPC method for newPayload.
-func (s *EthRPC[ExecutionPayloadT]) NewPayloadV3(
+func (s *Client[ExecutionPayloadT]) NewPayloadV3(
 	ctx context.Context,
 	payload ExecutionPayloadT,
 	versionedHashes []common.ExecutionHash,
@@ -73,7 +73,7 @@ func (s *EthRPC[ExecutionPayloadT]) NewPayloadV3(
 
 // ForkchoiceUpdated is a helper function to call the appropriate version of
 // the.
-func (s *EthRPC[ExecutionPayloadT]) ForkchoiceUpdated(
+func (s *Client[ExecutionPayloadT]) ForkchoiceUpdated(
 	ctx context.Context,
 	state *engineprimitives.ForkchoiceStateV1,
 	attrs any,
@@ -88,7 +88,7 @@ func (s *EthRPC[ExecutionPayloadT]) ForkchoiceUpdated(
 }
 
 // ForkchoiceUpdatedV3 calls the engine_forkchoiceUpdatedV3 method via JSON-RPC.
-func (s *EthRPC[ExecutionPayloadT]) ForkchoiceUpdatedV3(
+func (s *Client[ExecutionPayloadT]) ForkchoiceUpdatedV3(
 	ctx context.Context,
 	state *engineprimitives.ForkchoiceStateV1,
 	attrs any,
@@ -98,7 +98,7 @@ func (s *EthRPC[ExecutionPayloadT]) ForkchoiceUpdatedV3(
 
 // forkchoiceUpdateCall is a helper function to call to any version
 // of the forkchoiceUpdates method.
-func (s *EthRPC[ExecutionPayloadT]) forkchoiceUpdated(
+func (s *Client[ExecutionPayloadT]) forkchoiceUpdated(
 	ctx context.Context,
 	method string,
 	state *engineprimitives.ForkchoiceStateV1,
@@ -125,7 +125,7 @@ func (s *EthRPC[ExecutionPayloadT]) forkchoiceUpdated(
 
 // GetPayload is a helper function to call the appropriate version of the
 // engine_getPayload method.
-func (s *EthRPC[ExecutionPayloadT]) GetPayload(
+func (s *Client[ExecutionPayloadT]) GetPayload(
 	ctx context.Context,
 	payloadID engineprimitives.PayloadID,
 	forkVersion uint32,
@@ -139,7 +139,7 @@ func (s *EthRPC[ExecutionPayloadT]) GetPayload(
 }
 
 // GetPayloadV3 calls the engine_getPayloadV3 method via JSON-RPC.
-func (s *EthRPC[ExecutionPayloadT]) GetPayloadV3(
+func (s *Client[ExecutionPayloadT]) GetPayloadV3(
 	ctx context.Context, payloadID engineprimitives.PayloadID,
 ) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
 	var t ExecutionPayloadT
@@ -166,7 +166,7 @@ func (s *EthRPC[ExecutionPayloadT]) GetPayloadV3(
 
 // ExchangeCapabilities calls the engine_exchangeCapabilities method via
 // JSON-RPC.
-func (s *EthRPC[ExecutionPayloadT]) ExchangeCapabilities(
+func (s *Client[ExecutionPayloadT]) ExchangeCapabilities(
 	ctx context.Context,
 	capabilities []string,
 ) ([]string, error) {
@@ -180,7 +180,7 @@ func (s *EthRPC[ExecutionPayloadT]) ExchangeCapabilities(
 }
 
 // GetClientVersionV1 calls the engine_getClientVersionV1 method via JSON-RPC.
-func (s *EthRPC[ExecutionPayloadT]) GetClientVersionV1(
+func (s *Client[ExecutionPayloadT]) GetClientVersionV1(
 	ctx context.Context,
 ) ([]engineprimitives.ClientVersionV1, error) {
 	result := make([]engineprimitives.ClientVersionV1, 0)

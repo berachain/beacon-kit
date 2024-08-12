@@ -33,7 +33,7 @@ import (
 )
 
 // ChainID retrieves the current chain ID.
-func (ec *EthRPC[ExecutionPayloadT]) ChainID(
+func (ec *Client[ExecutionPayloadT]) ChainID(
 	ctx context.Context,
 ) (*big.Int, error) {
 	var result hexutil.Big
@@ -46,7 +46,7 @@ func (ec *EthRPC[ExecutionPayloadT]) ChainID(
 // TODO: Figure out how to unhood all this.
 
 // FilterLogs executes a filter query.
-func (ec *EthRPC[ExecutionPayloadT]) FilterLogs(
+func (ec *Client[ExecutionPayloadT]) FilterLogs(
 	ctx context.Context,
 	q ethereum.FilterQuery,
 ) ([]types.Log, error) {
@@ -62,7 +62,7 @@ func (ec *EthRPC[ExecutionPayloadT]) FilterLogs(
 // SubscribeFilterLogs(ctx context.Context, q FilterQuery, ch chan<- types.Log)
 // (Subscription, error)
 
-func (ec *EthRPC[ExecutionPayloadT]) SubscribeFilterLogs(
+func (ec *Client[ExecutionPayloadT]) SubscribeFilterLogs(
 	ctx context.Context,
 	q ethereum.FilterQuery,
 	ch chan<- types.Log,
