@@ -28,22 +28,50 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
-type AttributesFactoryInput struct {
+type AttributesFactoryInput[
+	LoggerT log.Logger[any],
+] struct {
 	depinject.In
 
 	ChainSpec common.ChainSpec
 	Config    *config.Config
-	Logger    log.Logger[any]
+	Logger    LoggerT
 }
 
 // ProvideAttributesFactory provides an AttributesFactory for the client.
-func ProvideAttributesFactory(
-	in AttributesFactoryInput,
-) (*AttributesFactory, error) {
+func ProvideAttributesFactory[
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconStateT BeaconState[
+		BeaconStateT,
+		BeaconBlockHeaderT,
+		Eth1DataT,
+		ExecutionPayloadHeaderT,
+		ForkT,
+		KVStoreT,
+		ValidatorT,
+		ValidatorsT,
+		WithdrawalT,
+	],
+	Eth1DataT any,
+	ExecutionPayloadHeaderT any,
+	ForkT any,
+	KVStoreT any,
+	LoggerT log.Logger[any],
+	PayloadAttributesT PayloadAttributes[PayloadAttributesT, WithdrawalT],
+	ValidatorT any,
+	ValidatorsT any,
+	WithdrawalT any,
+](
+	in AttributesFactoryInput[LoggerT],
+) (*attributes.Factory[
+	BeaconStateT,
+	PayloadAttributesT,
+	WithdrawalT,
+], error) {
 	return attributes.NewAttributesFactory[
-		*BeaconState,
-		*PayloadAttributes,
-		*Withdrawal,
+		BeaconStateT,
+		PayloadAttributesT,
+		WithdrawalT,
 	](
 		in.ChainSpec,
 		in.Logger,

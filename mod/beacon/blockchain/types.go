@@ -100,13 +100,13 @@ type Context[T any] interface {
 }
 
 // ExecutionEngine is the interface for the execution engine.
-type ExecutionEngine[PayloadAttributesT any] interface {
+type ExecutionEngine[PayloadAttributesT any, PayloadIDT any] interface {
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
 	// update.
 	NotifyForkchoiceUpdate(
 		ctx context.Context,
 		req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
-	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
+	) (*PayloadIDT, *common.ExecutionHash, error)
 }
 
 // EventFeed is a generic interface for sending events.

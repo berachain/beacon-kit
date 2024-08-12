@@ -22,8 +22,10 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	sdklog "cosmossdk.io/log"
+
 	storev2 "cosmossdk.io/store/v2/db"
+	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	blockservice "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -38,46 +40,94 @@ import (
 )
 
 // BlockStoreInput is the input for the dep inject framework.
-type BlockStoreInput struct {
+type BlockStoreInput[LoggerT log.Logger[any]] struct {
 	depinject.In
-
 	AppOpts   servertypes.AppOptions
 	ChainSpec common.ChainSpec
-	Logger    log.AdvancedLogger[any, sdklog.Logger]
+	Logger    LoggerT
 }
 
 // ProvideBlockStore is a function that provides the module to the
 // application.
-func ProvideBlockStore(
-	in BlockStoreInput,
-) (*BlockStore, error) {
+func ProvideBlockStore[
+	AttestationDataT any,
+	BeaconBlockT BeaconBlock[
+		BeaconBlockT,
+		AttestationDataT,
+		BeaconBlockBodyT,
+		BeaconBlockHeaderT,
+		DepositT,
+		Eth1DataT,
+		ExecutionPayloadT,
+		SlashingInfoT,
+	],
+	BeaconBlockBodyT any,
+	BeaconBlockHeaderT any,
+	BlockStoreT BlockStore[BeaconBlockT],
+	DepositT any,
+	Eth1DataT any,
+	ExecutionPayloadT any,
+	LoggerT log.Logger[any],
+	SlashingInfoT any,
+](
+	in BlockStoreInput[LoggerT],
+) (*block.KVStore[BeaconBlockT], error) {
+	name := "blocks"
 	dir := cast.ToString(in.AppOpts.Get(flags.FlagHome)) + "/data"
-	kvp, err := storev2.NewDB(storev2.DBTypePebbleDB, block.StoreName, dir, nil)
+	kvp, err := storev2.NewDB(storev2.DBTypePebbleDB, name, dir, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	return block.NewStore[*BeaconBlock](
+	return block.NewStore[BeaconBlockT](
 		storage.NewKVStoreProvider(kvp),
 		in.ChainSpec,
-		in.Logger.With("service", manager.BlockStoreName),
+		in.Logger,
 	), nil
 }
 
 // BlockPrunerInput is the input for the block pruner.
-type BlockPrunerInput struct {
+type BlockPrunerInput[
+	BeaconBlockT any,
+	BlockStoreT any,
+	LoggerT log.AdvancedLogger[any, LoggerT],
+] struct {
 	depinject.In
 
-	BlockBroker *BlockBroker
-	BlockStore  *BlockStore
+	BlockBroker *broker.Broker[*asynctypes.Event[BeaconBlockT]]
+	BlockStore  BlockStoreT
 	Config      *config.Config
-	Logger      log.AdvancedLogger[any, sdklog.Logger]
+	Logger      LoggerT
 }
 
 // ProvideBlockPruner provides a block pruner for the depinject framework.
-func ProvideBlockPruner(
-	in BlockPrunerInput,
-) (BlockPruner, error) {
+func ProvideBlockPruner[
+	AttestationDataT any,
+	BeaconBlockT BeaconBlock[
+		BeaconBlockT,
+		AttestationDataT,
+		BeaconBlockBodyT,
+		BeaconBlockHeaderT,
+		DepositT,
+		Eth1DataT,
+		ExecutionPayloadT,
+		SlashingInfoT,
+	],
+	BeaconBlockBodyT any,
+	BeaconBlockHeaderT any,
+	BlockStoreT BlockStore[BeaconBlockT],
+	DepositT any,
+	Eth1DataT any,
+	ExecutionPayloadT any,
+	LoggerT log.AdvancedLogger[any, LoggerT],
+	SlashingInfoT any,
+](
+	in BlockPrunerInput[
+		BeaconBlockT,
+		BlockStoreT,
+		LoggerT,
+	],
+) (pruner.Pruner[BlockStoreT], error) {
 	subCh, err := in.BlockBroker.Subscribe()
 	if err != nil {
 		in.Logger.Error("failed to subscribe to block feed", "err", err)
@@ -85,17 +135,17 @@ func ProvideBlockPruner(
 	}
 
 	return pruner.NewPruner[
-		*BeaconBlock,
-		*BlockEvent,
-		*BlockStore,
+		BeaconBlockT,
+		*asynctypes.Event[BeaconBlockT],
+		BlockStoreT,
 	](
 		in.Logger.With("service", manager.BlockPrunerName),
 		in.BlockStore,
 		manager.BlockPrunerName,
 		subCh,
 		blockservice.BuildPruneRangeFn[
-			*BeaconBlock,
-			*BlockEvent,
+			BeaconBlockT,
+			*asynctypes.Event[BeaconBlockT],
 		](in.Config.BlockStoreService),
 	), nil
 }

@@ -52,7 +52,7 @@ type EngineClient[
 		state *engineprimitives.ForkchoiceStateV1,
 		attrs PayloadAttributesT,
 		forkVersion uint32,
-	) (PayloadIDT, *common.ExecutionHash, error)
+	) (*PayloadIDT, *common.ExecutionHash, error)
 }
 
 // ExecutionPayload represents the payload of an execution block.

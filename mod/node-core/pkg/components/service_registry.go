@@ -22,36 +22,76 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
+
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 )
 
 // ServiceRegistryInput is the input for the service registry provider.
-type ServiceRegistryInput struct {
+type ServiceRegistryInput[
+	ABCIMiddlewareT service.Basic,
+	BlockBrokerT service.Basic,
+	BlockStoreServiceT service.Basic,
+	ChainServiceT service.Basic,
+	DAServiceT service.Basic,
+	DBManagerT service.Basic,
+	DepositServiceT service.Basic,
+	EngineClientT service.Basic,
+	GenesisBrokerT service.Basic,
+	LoggerT log.Logger[any],
+	NodeAPIServerT service.Basic,
+	ReportingServiceT service.Basic,
+	SidecarsBrokerT service.Basic,
+	SlotBrokerT service.Basic,
+	ValidatorServiceT service.Basic,
+	ValidatorUpdateBrokerT service.Basic,
+] struct {
 	depinject.In
-	ABCIService           *ABCIMiddleware
-	BlockBroker           *BlockBroker
-	BlockStoreService     *BlockStoreService
-	ChainService          *ChainService
-	DAService             *DAService
-	DBManager             *DBManager
-	DepositService        *DepositService
-	EngineClient          *EngineClient
-	GenesisBroker         *GenesisBroker
-	Logger                log.Logger
-	NodeAPIServer         *NodeAPIServer
-	ReportingService      *ReportingService
-	SidecarsBroker        *SidecarsBroker
-	SlotBroker            *SlotBroker
+	ABCIService           ABCIMiddlewareT
+	BlockBroker           BlockBrokerT
+	BlockStoreService     BlockStoreServiceT
+	ChainService          ChainServiceT
+	DAService             DAServiceT
+	DBManager             DBManagerT
+	DepositService        DepositServiceT
+	EngineClient          EngineClientT
+	GenesisBroker         GenesisBrokerT
+	Logger                LoggerT
+	NodeAPIServer         NodeAPIServerT
+	ReportingService      ReportingServiceT
+	SidecarsBroker        SidecarsBrokerT
+	SlotBroker            SlotBrokerT
 	TelemetrySink         *metrics.TelemetrySink
-	ValidatorService      *ValidatorService
-	ValidatorUpdateBroker *ValidatorUpdateBroker
+	ValidatorService      ValidatorServiceT
+	ValidatorUpdateBroker ValidatorUpdateBrokerT
 }
 
 // ProvideServiceRegistry is the depinject provider for the service registry.
-func ProvideServiceRegistry(
-	in ServiceRegistryInput,
+func ProvideServiceRegistry[
+	ABCIMiddlewareT service.Basic,
+	BlockBrokerT service.Basic,
+	BlockStoreServiceT service.Basic,
+	ChainServiceT service.Basic,
+	DAServiceT service.Basic,
+	DBManagerT service.Basic,
+	DepositServiceT service.Basic,
+	EngineClientT service.Basic,
+	GenesisBrokerT service.Basic,
+	LoggerT log.Logger[any],
+	NodeAPIServerT service.Basic,
+	ReportingServiceT service.Basic,
+	SidecarsBrokerT service.Basic,
+	SlotBrokerT service.Basic,
+	ValidatorServiceT service.Basic,
+	ValidatorUpdateBrokerT service.Basic,
+](
+	in ServiceRegistryInput[
+		ABCIMiddlewareT, BlockBrokerT, BlockStoreServiceT, ChainServiceT,
+		DAServiceT, DBManagerT, DepositServiceT, EngineClientT, GenesisBrokerT,
+		LoggerT, NodeAPIServerT, ReportingServiceT, SidecarsBrokerT,
+		SlotBrokerT, ValidatorServiceT, ValidatorUpdateBrokerT,
+	],
 ) *service.Registry {
 	return service.NewRegistry(
 		service.WithLogger(in.Logger),

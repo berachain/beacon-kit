@@ -30,17 +30,45 @@ import (
 
 // StateProcessorInput is the input for the state processor for the depinject
 // framework.
-type StateProcessorInput struct {
+type StateProcessorInput[
+	ExecutionEngineT ExecutionEngine[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, PayloadAttributesT,
+		PayloadIDT, WithdrawalsT,
+	],
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+	],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	PayloadAttributesT any,
+	PayloadIDT ~[8]byte,
+	WithdrawalsT Withdrawals,
+] struct {
 	depinject.In
 	ChainSpec       common.ChainSpec
-	ExecutionEngine *ExecutionEngine
+	ExecutionEngine ExecutionEngineT
 	Signer          crypto.BLSSigner
 }
 
 // ProvideStateProcessor provides the state processor to the depinject
 // framework.
-func ProvideStateProcessor(
-	in StateProcessorInput,
+func ProvideStateProcessor[
+
+	ExecutionEngineT ExecutionEngine[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, PayloadAttributesT,
+		PayloadIDT, WithdrawalsT,
+	],
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+	],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	PayloadAttributesT any,
+	PayloadIDT ~[8]byte,
+	WithdrawalsT Withdrawals,
+](
+	in StateProcessorInput[
+		ExecutionEngineT, ExecutionPayloadT, ExecutionPayloadHeaderT,
+		PayloadAttributesT, PayloadIDT, WithdrawalsT,
+	],
 ) *StateProcessor {
 	return core.NewStateProcessor[
 		*BeaconBlock,

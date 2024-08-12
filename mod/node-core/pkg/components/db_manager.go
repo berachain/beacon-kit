@@ -22,23 +22,43 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 )
 
 // DBManagerInput is the input for the dep inject framework.
-type DBManagerInput struct {
+type DBManagerInput[
+	AvailabilityStoreT pruner.Prunable,
+	AvailabilityPrunerT pruner.Pruner[AvailabilityStoreT],
+	BlockStoreT pruner.Prunable,
+	BlockPrunerT pruner.Pruner[BlockStoreT],
+	DepositStoreT pruner.Prunable,
+	DepositPrunerT pruner.Pruner[DepositStoreT],
+	LoggerT log.AdvancedLogger[any, LoggerT],
+] struct {
 	depinject.In
-	AvailabilityPruner DAPruner
-	BlockPruner        BlockPruner
-	DepositPruner      DepositPruner
-	Logger             log.Logger
+	AvailabilityPruner AvailabilityPrunerT
+	BlockPruner        BlockPrunerT
+	DepositPruner      DepositPrunerT
+	Logger             LoggerT
 }
 
 // ProvideDBManager provides a DBManager for the depinject framework.
-func ProvideDBManager(
-	in DBManagerInput,
-) (*DBManager, error) {
+func ProvideDBManager[
+	AvailabilityStoreT pruner.Prunable,
+	AvailabilityPrunerT pruner.Pruner[AvailabilityStoreT],
+	BlockStoreT pruner.Prunable,
+	BlockPrunerT pruner.Pruner[BlockStoreT],
+	DepositStoreT pruner.Prunable,
+	DepositPrunerT pruner.Pruner[DepositStoreT],
+	LoggerT log.AdvancedLogger[any, LoggerT],
+](
+	in DBManagerInput[
+		AvailabilityStoreT, AvailabilityPrunerT, BlockStoreT,
+		BlockPrunerT, DepositStoreT, DepositPrunerT, LoggerT,
+	],
+) (*manager.DBManager, error) {
 	return manager.NewDBManager(
 		in.Logger.With("service", "db-manager"),
 		in.DepositPruner,

@@ -24,9 +24,11 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	storev2 "cosmossdk.io/store/v2/db"
+	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	depositstore "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
@@ -43,9 +45,13 @@ type DepositStoreInput struct {
 
 // ProvideDepositStore is a function that provides the module to the
 // application.
-func ProvideDepositStore(
+func ProvideDepositStore[
+	DepositT Deposit[DepositT, ForkDataT, WithdrawalCredentialsT],
+	ForkDataT any,
+	WithdrawalCredentialsT WithdrawalCredentials,
+](
 	in DepositStoreInput,
-) (*DepositStore, error) {
+) (*depositstore.KVStore[DepositT], error) {
 	name := "deposits"
 	dir := cast.ToString(in.AppOpts.Get(flags.FlagHome)) + "/data"
 	kvp, err := storev2.NewDB(storev2.DBTypePebbleDB, name, dir, nil)
@@ -53,22 +59,48 @@ func ProvideDepositStore(
 		return nil, err
 	}
 
-	return depositstore.NewStore[*Deposit](storage.NewKVStoreProvider(kvp)), nil
+	return depositstore.NewStore[DepositT](storage.NewKVStoreProvider(kvp)), nil
 }
 
 // DepositPrunerInput is the input for the deposit pruner.
-type DepositPrunerInput struct {
+type DepositPrunerInput[
+	BeaconBlockT any,
+	BeaconBlockEventT Event[BeaconBlockT],
+	DepositT any,
+	DepositStoreT DepositStore[DepositT],
+] struct {
 	depinject.In
-	BlockBroker  *BlockBroker
+	BlockBroker  *broker.Broker[BeaconBlockEventT]
 	ChainSpec    common.ChainSpec
-	DepositStore *DepositStore
+	DepositStore DepositStoreT
 	Logger       log.Logger
 }
 
 // ProvideDepositPruner provides a deposit pruner for the depinject framework.
-func ProvideDepositPruner(
-	in DepositPrunerInput,
-) (DepositPruner, error) {
+func ProvideDepositPruner[
+	BeaconBlockT interface {
+		GetSlot() math.U64
+		GetBody() BeaconBlockBodyT
+	},
+	BeaconBlockBodyT interface {
+		GetDeposits() []DepositT
+		GetExecutionPayload() ExecutionPayloadT
+	},
+	BeaconBlockEventT Event[BeaconBlockT],
+	DepositT Deposit[DepositT, ForkDataT, WithdrawalCredentialsT],
+	DepositStoreT DepositStore[DepositT],
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT,
+		ExecutionPayloadHeaderT,
+		WithdrawalsT,
+	],
+	ExecutionPayloadHeaderT any,
+	ForkDataT any,
+	WithdrawalsT any,
+	WithdrawalCredentialsT WithdrawalCredentials,
+](
+	in DepositPrunerInput[BeaconBlockT, BeaconBlockEventT, DepositT, DepositStoreT],
+) (pruner.Pruner[DepositStoreT], error) {
 	subCh, err := in.BlockBroker.Subscribe()
 	if err != nil {
 		in.Logger.Error("failed to subscribe to block feed", "err", err)
@@ -76,21 +108,21 @@ func ProvideDepositPruner(
 	}
 
 	return pruner.NewPruner[
-		*BeaconBlock,
-		*BlockEvent,
-		*DepositStore,
+		BeaconBlockT,
+		BeaconBlockEventT,
+		DepositStoreT,
 	](
 		in.Logger.With("service", manager.DepositPrunerName),
 		in.DepositStore,
 		manager.DepositPrunerName,
 		subCh,
 		deposit.BuildPruneRangeFn[
-			*BeaconBlock,
-			*BeaconBlockBody,
-			*BlockEvent,
-			*Deposit,
-			*ExecutionPayload,
-			WithdrawalCredentials,
+			BeaconBlockT,
+			BeaconBlockBodyT,
+			BeaconBlockEventT,
+			DepositT,
+			ExecutionPayloadT,
+			WithdrawalCredentialsT,
 		](in.ChainSpec),
 	), nil
 }

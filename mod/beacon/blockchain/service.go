@@ -43,7 +43,7 @@ type Service[
 	],
 	ContextT Context[ContextT],
 	DepositT any,
-	ExecutionEngineT ExecutionEngine[PayloadAttributesT],
+	ExecutionEngineT ExecutionEngine[PayloadAttributesT, PayloadIDT],
 	ExecutionPayloadT ExecutionPayload,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
@@ -54,6 +54,7 @@ type Service[
 		GetSuggestedFeeRecipient() common.ExecutionAddress
 	},
 	PayloadBuilderT LocalBuilder[BeaconStateT],
+	PayloadIDT any,
 	StateProcessorT StateProcessor[
 		BeaconBlockT,
 		BeaconStateT,
@@ -109,7 +110,7 @@ func NewService[
 	],
 	ContextT Context[ContextT],
 	DepositT any,
-	ExecutionEngineT ExecutionEngine[PayloadAttributesT],
+	ExecutionEngineT ExecutionEngine[PayloadAttributesT, PayloadIDT],
 	ExecutionPayloadT ExecutionPayload,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
@@ -120,6 +121,7 @@ func NewService[
 		GetSuggestedFeeRecipient() common.ExecutionAddress
 	},
 	PayloadBuilderT LocalBuilder[BeaconStateT],
+	PayloadIDT any,
 	StateProcessorT StateProcessor[
 		BeaconBlockT,
 		BeaconStateT,
@@ -150,13 +152,13 @@ func NewService[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, ContextT, DepositT, ExecutionEngineT, ExecutionPayloadT,
 	ExecutionPayloadHeaderT, GenesisT, LoggerT, PayloadAttributesT,
-	PayloadBuilderT, StateProcessorT, StorageBackendT, WithdrawalT,
+	PayloadBuilderT, PayloadIDT, StateProcessorT, StorageBackendT, WithdrawalT,
 ] {
 	return &Service[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 		BeaconStateT, ContextT, DepositT, ExecutionEngineT, ExecutionPayloadT,
 		ExecutionPayloadHeaderT, GenesisT, LoggerT, PayloadAttributesT,
-		PayloadBuilderT, StateProcessorT, StorageBackendT, WithdrawalT,
+		PayloadBuilderT, PayloadIDT, StateProcessorT, StorageBackendT, WithdrawalT,
 	]{
 		sb:                      sb,
 		logger:                  logger,
@@ -175,13 +177,13 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) Name() string {
 	return "blockchain"
 }
 
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
 	subBlkCh, err := s.blkBroker.Subscribe()
 	if err != nil {
@@ -196,7 +198,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, BeaconBlockT, _, _, _, _, _, _, _, _, GenesisT, _, _, _, _, _, _,
+	_, BeaconBlockT, _, _, _, _, _, _, _, _, GenesisT, _, _, _, _, _, _, _,
 ]) start(
 	ctx context.Context,
 	subBlkCh chan *asynctypes.Event[BeaconBlockT],
@@ -222,7 +224,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, GenesisT, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, GenesisT, _, _, _, _, _, _, _,
 ]) handleProcessGenesisDataRequest(msg *asynctypes.Event[GenesisT]) {
 	if msg.Error() != nil {
 		s.logger.Error("Error processing genesis data", "error", msg.Error())
@@ -254,7 +256,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, BeaconBlockT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, BeaconBlockT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) handleBeaconBlockReceived(
 	msg *asynctypes.Event[BeaconBlockT],
 ) {
@@ -279,7 +281,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, BeaconBlockT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, BeaconBlockT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) handleBeaconBlockFinalization(
 	msg *asynctypes.Event[BeaconBlockT],
 ) {

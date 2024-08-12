@@ -402,7 +402,7 @@ type (
 			state *engineprimitives.ForkchoiceStateV1,
 			attrs PayloadAttributesT,
 			forkVersion uint32,
-		) (PayloadIDT, *common.ExecutionHash, error)
+		) (*PayloadIDT, *common.ExecutionHash, error)
 	}
 
 	Event[DataT any] interface {

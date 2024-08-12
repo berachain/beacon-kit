@@ -24,42 +24,98 @@ import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 )
 
 // StorageBackendInput is the input for the ProvideStorageBackend function.
-type StorageBackendInput struct {
+type StorageBackendInput[
+	AvailabilityStoreT any,
+	BlockStoreT any,
+	DepositStoreT any,
+	KVStoreT any,
+] struct {
 	depinject.In
-	AvailabilityStore *AvailabilityStore
-	BlockStore        *BlockStore
+	AvailabilityStore AvailabilityStoreT
+	BlockStore        BlockStoreT
 	ChainSpec         common.ChainSpec
-	DepositStore      *DepositStore
-	KVStore           *KVStore
+	DepositStore      DepositStoreT
+	KVStore           KVStoreT
 }
 
 // ProvideStorageBackend is the depinject provider that returns a beacon storage
 // backend.
-func ProvideStorageBackend(
-	in StorageBackendInput,
-) *StorageBackend {
+func ProvideStorageBackend[
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	BeaconBlockT any,
+	BeaconBlockBodyT constraints.SSZMarshallable,
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconStateT BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		ForkT, KVStoreT, ValidatorT, ValidatorsT, WithdrawalT,
+	],
+	BeaconStateMarshallableT BeaconStateMarshallable[
+		BeaconStateMarshallableT, BeaconBlockHeaderT, Eth1DataT,
+		ExecutionPayloadHeaderT, ForkT, ValidatorT,
+	],
+	BlobSidecarsT any,
+	BlockStoreT BlockStore[BeaconBlockT],
+	DepositT Deposit[DepositT, ForkDataT, WithdrawalCredentialsT],
+	DepositStoreT DepositStore[DepositT],
+	Eth1DataT any,
+	ExecutionPayloadHeaderT any,
+	ForkT any,
+	ForkDataT any,
+	KVStoreT BeaconStore[
+		KVStoreT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		ForkT, ValidatorT, ValidatorsT, WithdrawalT,
+	],
+	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
+	ValidatorsT ~[]ValidatorT,
+	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalCredentialsT WithdrawalCredentials,
+](
+	in StorageBackendInput[
+		AvailabilityStoreT, BlockStoreT, DepositStoreT, KVStoreT,
+	],
+) *storage.Backend[
+	AvailabilityStoreT,
+	BeaconBlockT,
+	BeaconBlockBodyT,
+	BeaconBlockHeaderT,
+	BeaconStateT,
+	BeaconStateMarshallableT,
+	BlobSidecarsT,
+	BlockStoreT,
+	DepositT,
+	DepositStoreT,
+	Eth1DataT,
+	ExecutionPayloadHeaderT,
+	ForkT,
+	KVStoreT,
+	ValidatorT,
+	ValidatorsT,
+	WithdrawalT,
+	WithdrawalCredentialsT,
+] {
 	return storage.NewBackend[
-		*AvailabilityStore,
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*BeaconBlockHeader,
-		*BeaconState,
-		*BeaconStateMarshallable,
-		*BlobSidecars,
-		*BlockStore,
-		*Deposit,
-		*DepositStore,
-		*Eth1Data,
-		*ExecutionPayloadHeader,
-		*Fork,
-		*KVStore,
-		*Validator,
-		Validators,
-		*Withdrawal,
-		WithdrawalCredentials,
+		AvailabilityStoreT,
+		BeaconBlockT,
+		BeaconBlockBodyT,
+		BeaconBlockHeaderT,
+		BeaconStateT,
+		BeaconStateMarshallableT,
+		BlobSidecarsT,
+		BlockStoreT,
+		DepositT,
+		DepositStoreT,
+		Eth1DataT,
+		ExecutionPayloadHeaderT,
+		ForkT,
+		KVStoreT,
+		ValidatorT,
+		ValidatorsT,
+		WithdrawalT,
+		WithdrawalCredentialsT,
 	](
 		in.ChainSpec,
 		in.AvailabilityStore,

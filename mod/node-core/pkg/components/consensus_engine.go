@@ -21,28 +21,65 @@
 package components
 
 import (
+	"context"
+
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // ConsensusEngineInput is the input for the consensus engine.
-type ConsensusEngineInput struct {
+type ConsensusEngineInput[
+	AttestationDataT any,
+	BeaconStateT any,
+	MiddlewareT Middleware[AttestationDataT, SlashingInfoT, SlotDataT],
+	SlashingInfoT any,
+	SlotDataT any,
+	StorageBackendT interface {
+		StateFromContext(context.Context) BeaconStateT
+	},
+] struct {
 	depinject.In
-	ConsensusMiddleware *ABCIMiddleware
-	StorageBackend      *StorageBackend
+	ConsensusMiddleware MiddlewareT
+	StorageBackend      StorageBackendT
 }
 
 // ProvideConsensusEngine is a depinject provider for the consensus engine.
-func ProvideConsensusEngine(
-	in ConsensusEngineInput,
-) (*ConsensusEngine, error) {
+func ProvideConsensusEngine[
+	AttestationDataT AttestationData[AttestationDataT],
+	BeaconStateT interface {
+		// GetValidatorIndexByCometBFTAddress returns the validator index by the
+		ValidatorIndexByCometBFTAddress(
+			cometBFTAddress []byte,
+		) (math.ValidatorIndex, error)
+		// HashTreeRoot returns the hash tree root of the beacon state.
+		HashTreeRoot() common.Root
+	},
+	MiddlewareT Middleware[AttestationDataT, SlashingInfoT, SlotDataT],
+	SlashingInfoT SlashingInfo[SlashingInfoT],
+	SlotDataT SlotData[AttestationDataT, SlashingInfoT, SlotDataT],
+	StorageBackendT interface {
+		StateFromContext(context.Context) BeaconStateT
+	},
+	ValidatorUpdateT any,
+](
+	in ConsensusEngineInput[
+		AttestationDataT, BeaconStateT, MiddlewareT,
+		SlashingInfoT, SlotDataT, StorageBackendT,
+	],
+) (*cometbft.ConsensusEngine[
+	AttestationDataT, BeaconStateT, MiddlewareT,
+	SlashingInfoT, SlotDataT, StorageBackendT, ValidatorUpdateT,
+], error) {
 	return cometbft.NewConsensusEngine[
-		*AttestationData,
-		*BeaconState,
-		*SlashingInfo,
-		*SlotData,
-		*StorageBackend,
-		*ValidatorUpdate,
+		AttestationDataT,
+		BeaconStateT,
+		MiddlewareT,
+		SlashingInfoT,
+		SlotDataT,
+		StorageBackendT,
+		ValidatorUpdateT,
 	](
 		in.ConsensusMiddleware,
 		in.StorageBackend,

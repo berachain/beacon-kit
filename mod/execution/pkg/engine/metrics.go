@@ -180,7 +180,7 @@ func (em *engineMetrics[_]) markNotifyForkchoiceUpdateCalled(
 func (em *engineMetrics[PayloadIDT]) markForkchoiceUpdateValid(
 	state *engineprimitives.ForkchoiceStateV1,
 	hasPayloadAttributes bool,
-	payloadID PayloadIDT,
+	payloadID *PayloadIDT,
 ) {
 	args := []any{
 		"head_block_hash", state.HeadBlockHash,
