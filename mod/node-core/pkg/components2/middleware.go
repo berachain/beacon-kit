@@ -22,49 +22,45 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	sdklog "cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
-	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
-	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
 )
 
-// LocalBuilderInput is an input for the dep inject framework.
-type LocalBuilderInput struct {
+// ABCIMiddlewareInput is the input for the validator middleware provider.
+type ABCIMiddlewareInput struct {
 	depinject.In
-	AttributesFactory *AttributesFactory
-	Cfg               *config.Config
-	ChainSpec         common.ChainSpec
-	ExecutionEngine   *ExecutionEngine
-	Logger            log.AdvancedLogger[any, sdklog.Logger]
+	BeaconBlockFeed       *BlockBroker
+	ChainSpec             common.ChainSpec
+	GenesisBroker         *GenesisBroker
+	Logger                log.Logger[any]
+	SidecarsFeed          *SidecarsBroker
+	SlotBroker            *SlotBroker
+	TelemetrySink         *metrics.TelemetrySink
+	ValidatorUpdateBroker *ValidatorUpdateBroker
 }
 
-// ProvideLocalBuilder provides a local payload builder for the
-// depinject framework.
-func ProvideLocalBuilder(
-	in LocalBuilderInput,
-) *LocalBuilder {
-	return payloadbuilder.New[
-		*AttributesFactory,
-		*BeaconState,
-		*ExecutionEngine,
-		*ExecutionPayload,
-		*ExecutionPayloadHeader,
-		log.Logger[any],
-		*PayloadAttributes,
-		PayloadID,
-		*Withdrawal,
+// ProvideABCIMiddleware is a depinject provider for the validator
+// middleware.
+func ProvideABCIMiddleware(
+	in ABCIMiddlewareInput,
+) (*ABCIMiddleware, error) {
+	validatorUpdatesSub, err := in.ValidatorUpdateBroker.Subscribe()
+	if err != nil {
+		return nil, err
+	}
+	return middleware.NewABCIMiddleware[
+		*AvailabilityStore, *BeaconBlock, *BlobSidecars,
+		*Deposit, *ExecutionPayload, *Genesis, *SlotData,
 	](
-		&in.Cfg.PayloadBuilder,
 		in.ChainSpec,
-		in.Logger.With("service", "payload-builder"),
-		in.ExecutionEngine,
-		cache.NewPayloadIDCache[
-			PayloadID,
-			[32]byte, math.Slot,
-		](),
-		in.AttributesFactory,
-	)
+		in.Logger,
+		in.TelemetrySink,
+		in.GenesisBroker,
+		in.BeaconBlockFeed,
+		in.SidecarsFeed,
+		in.SlotBroker,
+		validatorUpdatesSub,
+	), nil
 }

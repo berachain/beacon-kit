@@ -18,33 +18,29 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package store
+package components
 
 import (
+	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// BeaconBlock is an interface for beacon blocks.
-type BeaconBlock interface {
-	GetSlot() math.U64
+type SidecarFactoryInput struct {
+	depinject.In
+	ChainSpec     common.ChainSpec
+	TelemetrySink *metrics.TelemetrySink
 }
 
-// BlockEvent is an interface for block events.
-type BlockEvent[BeaconBlockT BeaconBlock] interface {
-	Data() BeaconBlockT
-}
-
-// IndexDB is a database that allows prefixing by index.
-type IndexDB interface {
-	Has(index uint64, key []byte) (bool, error)
-	Set(index uint64, key []byte, value []byte) error
-	Prune(start uint64, end uint64) error
-}
-
-// BeaconBlockBody is the body of a beacon block.
-type BeaconBlockBody interface {
-	// GetBlobKzgCommitments returns the KZG commitments for the blob.
-	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
+func ProvideSidecarFactory(in SidecarFactoryInput) *SidecarFactory {
+	return dablob.NewSidecarFactory[
+		*BeaconBlock,
+		*BeaconBlockBody,
+	](
+		in.ChainSpec,
+		types.KZGPositionDeneb,
+		in.TelemetrySink,
+	)
 }

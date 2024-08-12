@@ -18,33 +18,33 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package store
+package components
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
 )
 
-// BeaconBlock is an interface for beacon blocks.
-type BeaconBlock interface {
-	GetSlot() math.U64
+// ConsensusEngineInput is the input for the consensus engine.
+type ConsensusEngineInput struct {
+	depinject.In
+	ConsensusMiddleware *ABCIMiddleware
+	StorageBackend      *StorageBackend
 }
 
-// BlockEvent is an interface for block events.
-type BlockEvent[BeaconBlockT BeaconBlock] interface {
-	Data() BeaconBlockT
-}
-
-// IndexDB is a database that allows prefixing by index.
-type IndexDB interface {
-	Has(index uint64, key []byte) (bool, error)
-	Set(index uint64, key []byte, value []byte) error
-	Prune(start uint64, end uint64) error
-}
-
-// BeaconBlockBody is the body of a beacon block.
-type BeaconBlockBody interface {
-	// GetBlobKzgCommitments returns the KZG commitments for the blob.
-	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
+// ProvideConsensusEngine is a depinject provider for the consensus engine.
+func ProvideConsensusEngine(
+	in ConsensusEngineInput,
+) (*ConsensusEngine, error) {
+	return cometbft.NewConsensusEngine[
+		*AttestationData,
+		*BeaconState,
+		*SlashingInfo,
+		*SlotData,
+		*StorageBackend,
+		*ValidatorUpdate,
+	](
+		in.ConsensusMiddleware,
+		in.StorageBackend,
+	), nil
 }

@@ -39,6 +39,7 @@ require (
 	github.com/itsdevbear/comet-bls12-381 v0.0.0-20240413212931-2ae2f204cde7
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cast v1.6.0
+	google.golang.org/protobuf v1.34.2
 )
 
 require (
@@ -74,7 +75,6 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	golang.org/x/time v0.5.0 // indirect
-	google.golang.org/protobuf v1.34.2 // indirect
 )
 
 require (

@@ -32,7 +32,7 @@ import (
 // ProcessGenesisData processes the genesis state and initializes the beacon
 // state.
 func (s *Service[
-	_, _, _, _, _, _, _, _, GenesisT, _, _,
+	_, _, _, _, _, _, _, _, _, _, GenesisT, _, _, _, _, _, _,
 ]) ProcessGenesisData(
 	ctx context.Context,
 	genesisData GenesisT,
@@ -48,7 +48,7 @@ func (s *Service[
 // ProcessBeaconBlock receives an incoming beacon block, it first validates
 // and then processes the block.
 func (s *Service[
-	_, BeaconBlockT, _, _, _, _, _, _, _, _, _,
+	_, BeaconBlockT, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) ProcessBeaconBlock(
 	ctx context.Context,
 	blk BeaconBlockT,
@@ -98,33 +98,31 @@ func (s *Service[
 
 // executeStateTransition runs the stf.
 func (s *Service[
-	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _, _,
+	_, BeaconBlockT, _, _, BeaconStateT,
+	ContextT, _, _, _, _, _, _, _, _, _, _, _,
 ]) executeStateTransition(
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) (transition.ValidatorUpdates, error) {
+	var context ContextT
 	startTime := time.Now()
 	defer s.metrics.measureStateTransitionDuration(startTime)
 	valUpdates, err := s.sp.Transition(
-		&transition.Context{
-			Context:          ctx,
-			OptimisticEngine: true,
-			// When we are NOT synced to the tip, process proposal
-			// does NOT get called and thus we must ensure that
-			// NewPayload is called to get the execution
-			// client the payload.
-			//
-			// When we are synced to the tip, we can skip the
-			// NewPayload call since we already gave our execution client
-			// the payload in process proposal.
-			//
-			// In both cases the payload was already accepted by a majority
-			// of validators in their process proposal call and thus
-			// the "verification aspect" of this NewPayload call is
-			// actually irrelevant at this point.
-			SkipPayloadVerification: false,
-		},
+		// When we are NOT synced to the tip, process proposal
+		// does NOT get called and thus we must ensure that
+		// NewPayload is called to get the execution
+		// client the payload.
+		//
+		// When we are synced to the tip, we can skip the
+		// NewPayload call since we already gave our execution client
+		// the payload in process proposal.
+		//
+		// In both cases the payload was already accepted by a majority
+		// of validators in their process proposal call and thus
+		// the "verification aspect" of this NewPayload call is
+		// actually irrelevant at this point.
+		context.Wrap(ctx).OptimisticEngine(),
 		st,
 		blk,
 	)

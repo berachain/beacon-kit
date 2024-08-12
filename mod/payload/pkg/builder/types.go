@@ -30,6 +30,19 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
+// AttributesFactory is the interface for the attributes factory.
+type AttributesFactory[
+	BeaconStateT any,
+	PayloadAttributesT any,
+] interface {
+	BuildPayloadAttributes(
+		st BeaconStateT,
+		slot math.Slot,
+		timestamp uint64,
+		prevHeadRoot [32]byte,
+	) (PayloadAttributesT, error)
+}
+
 // BeaconState defines the interface for accessing various state-related data
 // required for block processing.
 type BeaconState[

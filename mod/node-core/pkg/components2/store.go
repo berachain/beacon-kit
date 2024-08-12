@@ -18,33 +18,30 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package store
+package components
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"cosmossdk.io/core/store"
+	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 )
 
-// BeaconBlock is an interface for beacon blocks.
-type BeaconBlock interface {
-	GetSlot() math.U64
+// KVStoreInput is the input for the ProvideKVStore function.
+type KVStoreInput struct {
+	depinject.In
+	KVStoreService store.KVStoreService
 }
 
-// BlockEvent is an interface for block events.
-type BlockEvent[BeaconBlockT BeaconBlock] interface {
-	Data() BeaconBlockT
-}
-
-// IndexDB is a database that allows prefixing by index.
-type IndexDB interface {
-	Has(index uint64, key []byte) (bool, error)
-	Set(index uint64, key []byte, value []byte) error
-	Prune(start uint64, end uint64) error
-}
-
-// BeaconBlockBody is the body of a beacon block.
-type BeaconBlockBody interface {
-	// GetBlobKzgCommitments returns the KZG commitments for the blob.
-	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
+// ProvideKVStore is the depinject provider that returns a beacon KV store.
+func ProvideKVStore(in KVStoreInput) *KVStore {
+	payloadCodec := &encoding.SSZInterfaceCodec[*ExecutionPayloadHeader]{}
+	return beacondb.New[
+		*BeaconBlockHeader,
+		*Eth1Data,
+		*ExecutionPayloadHeader,
+		*Fork,
+		*Validator,
+		Validators,
+	](in.KVStoreService, payloadCodec)
 }

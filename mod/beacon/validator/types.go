@@ -135,6 +135,20 @@ type BlobFactory[
 	) (BlobSidecarsT, error)
 }
 
+// Context is the interface for the transition context.
+type Context[T any] interface {
+	// Wrap returns a new context with the given context.
+	Wrap(context.Context) T
+	// OptimisticEngine sets the optimistic engine flag to true.
+	OptimisticEngine() T
+	// SkipPayloadVerification sets the skip payload verification flag to true.
+	SkipPayloadVerification() T
+	// SkipValidateRandao sets the skip validate randao flag to true.
+	SkipValidateRandao() T
+	// SkipValidateResult sets the skip validate result flag to true.
+	SkipValidateResult() T
+}
+
 // DepositStore defines the interface for deposit storage.
 type DepositStore[DepositT any] interface {
 	// GetDepositsByIndex returns `numView` expected deposits.

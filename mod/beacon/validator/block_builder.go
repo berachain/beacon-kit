@@ -30,15 +30,14 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 	"golang.org/x/sync/errgroup"
 )
 
 // buildBlockAndSidecars builds a new beacon block.
 func (s *Service[
-	AttestationDataT, BeaconBlockT, _, _,
-	BlobSidecarsT, _, _, _, _, _, _, SlashingInfoT, SlotDataT,
+	_, BeaconBlockT, _, _, _, BlobSidecarsT, _, _,
+	_, _, _, _, _, _, _, _, SlotDataT, _, _,
 ]) buildBlockAndSidecars(
 	ctx context.Context,
 	slotData SlotDataT,
@@ -134,7 +133,8 @@ func (s *Service[
 
 // getEmptyBeaconBlockForSlot creates a new empty block.
 func (s *Service[
-	_, BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
+	_, BeaconBlockT, _, BeaconStateT, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _,
 ]) getEmptyBeaconBlockForSlot(
 	st BeaconStateT, requestedSlot math.Slot,
 ) (BeaconBlockT, error) {
@@ -172,7 +172,8 @@ func (s *Service[
 
 // buildRandaoReveal builds a randao reveal for the given slot.
 func (s *Service[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, ForkDataT, _, _,
+	_, _, _, BeaconStateT, _, _, _, _,
+	_, _, _, _, ForkDataT, _, _, _, _, _, _,
 ]) buildRandaoReveal(
 	st BeaconStateT,
 	slot math.Slot,
@@ -200,8 +201,8 @@ func (s *Service[
 
 // retrieveExecutionPayload retrieves the execution payload for the block.
 func (s *Service[
-	_, BeaconBlockT, _, BeaconStateT, _, _, _, _,
-	ExecutionPayloadT, ExecutionPayloadHeaderT, _, _, _,
+	_, BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _,
+	ExecutionPayloadT, ExecutionPayloadHeaderT, _, _, _, _, _, _, _,
 ]) retrieveExecutionPayload(
 	ctx context.Context, st BeaconStateT, blk BeaconBlockT,
 ) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error) {
@@ -257,8 +258,8 @@ func (s *Service[
 
 // BuildBlockBody assembles the block body with necessary components.
 func (s *Service[
-	AttestationDataT, BeaconBlockT, _, BeaconStateT, _,
-	_, _, Eth1DataT, ExecutionPayloadT, _, _, SlashingInfoT, SlotDataT,
+	_, BeaconBlockT, _, BeaconStateT, _, BlobSidecarsT, _, _,
+	_, Eth1DataT, ExecutionPayloadT, _, _, _, _, _, SlotDataT, _, _,
 ]) buildBlockBody(
 	_ context.Context,
 	st BeaconStateT,
@@ -333,7 +334,8 @@ func (s *Service[
 // computeAndSetStateRoot computes the state root of an outgoing block
 // and sets it in the block.
 func (s *Service[
-	_, BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
+	_, BeaconBlockT, _, BeaconStateT, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _,
 ]) computeAndSetStateRoot(
 	ctx context.Context,
 	st BeaconStateT,
@@ -354,25 +356,25 @@ func (s *Service[
 
 // computeStateRoot computes the state root of an outgoing block.
 func (s *Service[
-	_, BeaconBlockT, _, BeaconStateT, _, _, _, _, _, _, _, _, _,
+	_, BeaconBlockT, _, BeaconStateT, _, _, ContextT, _,
+	_, _, _, _, _, _, _, _, _, _, _,
 ]) computeStateRoot(
 	ctx context.Context,
 	st BeaconStateT,
 	blk BeaconBlockT,
 ) (common.Root, error) {
+	var context ContextT
 	startTime := time.Now()
 	defer s.metrics.measureStateRootComputationTime(startTime)
 	if _, err := s.stateProcessor.Transition(
 		// TODO: We should think about how having optimistic
 		// engine enabled here would affect the proposer when
 		// the payload in their block has come from a remote builder.
-		&transition.Context{
-			Context:                 ctx,
-			OptimisticEngine:        true,
-			SkipPayloadVerification: true,
-			SkipValidateResult:      true,
-			SkipValidateRandao:      true,
-		},
+		context.Wrap(ctx).
+			OptimisticEngine().
+			SkipPayloadVerification().
+			SkipValidateResult().
+			SkipValidateRandao(),
 		st, blk,
 	); err != nil {
 		return common.Root{}, err

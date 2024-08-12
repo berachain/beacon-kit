@@ -18,33 +18,24 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package store
+package components
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/config"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
 
-// BeaconBlock is an interface for beacon blocks.
-type BeaconBlock interface {
-	GetSlot() math.U64
+// ConfigInput is the input for the dependency injection framework.
+type ConfigInput struct {
+	depinject.In
+	AppOpts servertypes.AppOptions
 }
 
-// BlockEvent is an interface for block events.
-type BlockEvent[BeaconBlockT BeaconBlock] interface {
-	Data() BeaconBlockT
-}
-
-// IndexDB is a database that allows prefixing by index.
-type IndexDB interface {
-	Has(index uint64, key []byte) (bool, error)
-	Set(index uint64, key []byte, value []byte) error
-	Prune(start uint64, end uint64) error
-}
-
-// BeaconBlockBody is the body of a beacon block.
-type BeaconBlockBody interface {
-	// GetBlobKzgCommitments returns the KZG commitments for the blob.
-	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
+// ProvideConfig is a function that provides the BeaconConfig to the
+// application.
+func ProvideConfig(in ConfigInput) (*config.Config, error) {
+	// AppOpts is not populated when called from CLI
+	// Read the directory
+	return config.ReadConfigFromAppOpts(in.AppOpts)
 }

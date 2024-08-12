@@ -28,7 +28,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
 // Service is responsible for building beacon blocks.
@@ -42,48 +41,51 @@ type Service[
 		AttestationDataT, DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
 	],
 	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
-	BlobSidecarsT,
+	BlobFactoryT BlobFactory[
+		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
+		DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
+	],
+	BlobSidecarsT any,
+	ContextT Context[ContextT],
 	DepositT any,
 	DepositStoreT DepositStore[DepositT],
 	Eth1DataT Eth1Data[Eth1DataT],
 	ExecutionPayloadT any,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	ForkDataT ForkData[ForkDataT],
+	LoggerT log.Logger[any],
+	PayloadBuilderT PayloadBuilder[BeaconStateT, ExecutionPayloadT],
 	SlashingInfoT any,
 	SlotDataT SlotData[AttestationDataT, SlashingInfoT],
+	StateProcessorT StateProcessor[
+		BeaconBlockT,
+		BeaconStateT,
+		ContextT,
+		ExecutionPayloadHeaderT,
+	],
+	StorageBackendT StorageBackend[
+		BeaconStateT, DepositT, DepositStoreT, ExecutionPayloadHeaderT,
+	],
 ] struct {
 	// cfg is the validator config.
 	cfg *Config
 	// logger is a logger.
-	logger log.Logger[any]
+	logger LoggerT
 	// chainSpec is the chain spec.
 	chainSpec common.ChainSpec
 	// signer is used to retrieve the public key of this node.
 	signer crypto.BLSSigner
 	// blobFactory is used to create blob sidecars for blocks.
-	blobFactory BlobFactory[
-		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
-		DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
-	]
+	blobFactory BlobFactoryT
 	// bsb is the beacon state backend.
-	bsb StorageBackend[
-		BeaconStateT, DepositT, DepositStoreT, ExecutionPayloadHeaderT,
-	]
+	bsb StorageBackendT
 	// stateProcessor is responsible for processing the state.
-	stateProcessor StateProcessor[
-		BeaconBlockT,
-		BeaconStateT,
-		*transition.Context,
-		ExecutionPayloadHeaderT,
-	]
+	stateProcessor StateProcessorT
 	// localPayloadBuilder represents the local block builder, this builder
 	// is connected to this nodes execution client via the EngineAPI.
 	// Building blocks are done by submitting forkchoice updates through.
 	// The local Builder.
-	localPayloadBuilder PayloadBuilder[BeaconStateT, ExecutionPayloadT]
-	// remotePayloadBuilders represents a list of remote block builders, these
-	// builders are connected to other execution clients via the EngineAPI.
-	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT]
+	localPayloadBuilder PayloadBuilderT
 	// metrics is a metrics collector.
 	metrics *validatorMetrics
 	// blkBroker is a publisher for blocks.
@@ -105,75 +107,83 @@ func NewService[
 		AttestationDataT, DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
 	],
 	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
-	BlobSidecarsT,
+	BlobFactoryT BlobFactory[
+		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
+		DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
+	],
+	BlobSidecarsT any,
+	ContextT Context[ContextT],
 	DepositT any,
 	DepositStoreT DepositStore[DepositT],
 	Eth1DataT Eth1Data[Eth1DataT],
 	ExecutionPayloadT any,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	ForkDataT ForkData[ForkDataT],
+	LoggerT log.Logger[any],
+	PayloadBuilderT PayloadBuilder[BeaconStateT, ExecutionPayloadT],
 	SlashingInfoT any,
 	SlotDataT SlotData[AttestationDataT, SlashingInfoT],
-](
-	cfg *Config,
-	logger log.Logger[any],
-	chainSpec common.ChainSpec,
-	bsb StorageBackend[
-		BeaconStateT, DepositT, DepositStoreT, ExecutionPayloadHeaderT,
-	],
-	stateProcessor StateProcessor[
+	StateProcessorT StateProcessor[
 		BeaconBlockT,
 		BeaconStateT,
-		*transition.Context,
+		ContextT,
 		ExecutionPayloadHeaderT,
 	],
-	signer crypto.BLSSigner,
-	blobFactory BlobFactory[
-		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
-		DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
+	StorageBackendT StorageBackend[
+		BeaconStateT, DepositT, DepositStoreT, ExecutionPayloadHeaderT,
 	],
-	localPayloadBuilder PayloadBuilder[BeaconStateT, ExecutionPayloadT],
-	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT],
+](
+	cfg *Config,
+	logger LoggerT,
+	chainSpec common.ChainSpec,
+	bsb StorageBackendT,
+	stateProcessor StateProcessorT,
+	signer crypto.BLSSigner,
+	blobFactory BlobFactoryT,
+	localPayloadBuilder PayloadBuilderT,
 	ts TelemetrySink,
 	blkBroker EventPublisher[*asynctypes.Event[BeaconBlockT]],
 	sidecarBroker EventPublisher[*asynctypes.Event[BlobSidecarsT]],
 	newSlotSub chan *asynctypes.Event[SlotDataT],
 ) *Service[
 	AttestationDataT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-	BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
-	ExecutionPayloadHeaderT, ForkDataT, SlashingInfoT, SlotDataT,
+	BlobFactoryT, BlobSidecarsT, ContextT, DepositT, DepositStoreT,
+	Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT, ForkDataT,
+	LoggerT, PayloadBuilderT, SlashingInfoT, SlotDataT, StateProcessorT,
+	StorageBackendT,
 ] {
 	return &Service[
 		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,
-		BlobSidecarsT, DepositT, DepositStoreT, Eth1DataT, ExecutionPayloadT,
-		ExecutionPayloadHeaderT, ForkDataT, SlashingInfoT, SlotDataT,
+		BlobFactoryT, BlobSidecarsT, ContextT, DepositT, DepositStoreT,
+		Eth1DataT, ExecutionPayloadT, ExecutionPayloadHeaderT, ForkDataT,
+		LoggerT, PayloadBuilderT, SlashingInfoT, SlotDataT, StateProcessorT,
+		StorageBackendT,
 	]{
-		cfg:                   cfg,
-		logger:                logger,
-		bsb:                   bsb,
-		chainSpec:             chainSpec,
-		signer:                signer,
-		stateProcessor:        stateProcessor,
-		blobFactory:           blobFactory,
-		localPayloadBuilder:   localPayloadBuilder,
-		remotePayloadBuilders: remotePayloadBuilders,
-		metrics:               newValidatorMetrics(ts),
-		blkBroker:             blkBroker,
-		sidecarBroker:         sidecarBroker,
-		newSlotSub:            newSlotSub,
+		cfg:                 cfg,
+		logger:              logger,
+		bsb:                 bsb,
+		chainSpec:           chainSpec,
+		signer:              signer,
+		stateProcessor:      stateProcessor,
+		blobFactory:         blobFactory,
+		localPayloadBuilder: localPayloadBuilder,
+		metrics:             newValidatorMetrics(ts),
+		blkBroker:           blkBroker,
+		sidecarBroker:       sidecarBroker,
+		newSlotSub:          newSlotSub,
 	}
 }
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) Name() string {
 	return "validator"
 }
 
 // Start starts the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) Start(
 	ctx context.Context,
 ) error {
@@ -183,7 +193,7 @@ func (s *Service[
 
 // start starts the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) start(
 	ctx context.Context,
 ) {
@@ -201,7 +211,7 @@ func (s *Service[
 
 // handleBlockRequest handles a block request.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, SlotDataT,
+	_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, SlotDataT, _, _,
 ]) handleNewSlot(msg *asynctypes.Event[SlotDataT]) {
 	blk, sidecars, err := s.buildBlockAndSidecars(
 		msg.Context(), msg.Data(),

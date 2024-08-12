@@ -31,10 +31,10 @@ import (
 
 // AttestationData is an interface for accessing the attestation data.
 type AttestationData[AttestationDataT any] interface {
-	// GetIndex returns the index of the attestation data.
-	GetIndex() math.U64
 	// New creates a new attestation data instance.
 	New(math.U64, math.U64, common.Root) AttestationDataT
+	// GetIndex returns the index of the attestation data.
+	GetIndex() math.U64
 }
 
 // BeaconState is an interface for accessing the beacon state.

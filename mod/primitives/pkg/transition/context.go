@@ -28,41 +28,70 @@ type Context struct {
 	// OptimisticEngine indicates whether to optimistically assume
 	// the execution client has the correct state certain errors
 	// are returned by the execution engine.
-	OptimisticEngine bool
+	optimisticEngine bool
 	// SkipPayloadVerification indicates whether to skip calling NewPayload
 	// on the execution client. This can be done when the node is not
 	// syncing, and the payload is already known to the execution client.
-	SkipPayloadVerification bool
+	skipPayloadVerification bool
 	// SkipValidateRandao indicates whether to skip validating the Randao mix.
-	SkipValidateRandao bool
+	skipValidateRandao bool
 	// SkipValidateResult indicates whether to validate the result of
 	// the state transition.
-	SkipValidateResult bool
+	skipValidateResult bool
+}
+
+func (c *Context) Wrap(ctx context.Context) *Context {
+	c.Context = ctx
+	return c
+}
+
+// OptimisticEngine sets the optimistic engine flag to true.
+func (c *Context) OptimisticEngine() *Context {
+	c.optimisticEngine = true
+	return c
+}
+
+// SkipPayloadVerification sets the skip payload verification flag to true.
+func (c *Context) SkipPayloadVerification() *Context {
+	c.skipPayloadVerification = true
+	return c
+}
+
+// SkipValidateRandao sets the skip validate randao flag to true.
+func (c *Context) SkipValidateRandao() *Context {
+	c.skipValidateRandao = true
+	return c
+}
+
+// SkipValidateResult sets the skip validate result flag to true.
+func (c *Context) SkipValidateResult() *Context {
+	c.skipValidateResult = true
+	return c
 }
 
 // GetOptimisticEngine returns whether to optimistically assume the execution
 // client has the correct state when certain errors are returned by the
 // execution engine.
 func (c *Context) GetOptimisticEngine() bool {
-	return c.OptimisticEngine
+	return c.optimisticEngine
 }
 
 // GetSkipPayloadVerification returns whether to skip calling NewPayload on the
 // execution client. This can be done when the node is not syncing, and the
 // payload is already known to the execution client.
 func (c *Context) GetSkipPayloadVerification() bool {
-	return c.SkipPayloadVerification
+	return c.skipPayloadVerification
 }
 
 // GetSkipValidateRandao returns whether to skip validating the Randao mix.
 func (c *Context) GetSkipValidateRandao() bool {
-	return c.SkipValidateRandao
+	return c.skipValidateRandao
 }
 
 // GetSkipValidateResult returns whether to validate the result of the state
 // transition.
 func (c *Context) GetSkipValidateResult() bool {
-	return c.SkipValidateResult
+	return c.skipValidateResult
 }
 
 // Unwrap returns the underlying standard context.

@@ -83,6 +83,20 @@ type BlobSidecars interface {
 	Len() int
 }
 
+// Context is the interface for the transition context.
+type Context[T any] interface {
+	// Wrap returns a new context with the given context.
+	Wrap(context.Context) T
+	// OptimisticEngine sets the optimistic engine flag to true.
+	OptimisticEngine() T
+	// SkipPayloadVerification sets the skip payload verification flag to true.
+	SkipPayloadVerification() T
+	// SkipValidateRandao sets the skip validate randao flag to true.
+	SkipValidateRandao() T
+	// SkipValidateResult sets the skip validate result flag to true.
+	SkipValidateResult() T
+}
+
 // ExecutionEngine is the interface for the execution engine.
 type ExecutionEngine[PayloadAttributesT any] interface {
 	// NotifyForkchoiceUpdate notifies the execution client of a forkchoice

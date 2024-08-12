@@ -18,33 +18,29 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package store
+package components
 
 import (
+	"os"
+
+	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// BeaconBlock is an interface for beacon blocks.
-type BeaconBlock interface {
-	GetSlot() math.U64
-}
+const (
+	ChainSpecTypeEnvVar = "CHAIN_SPEC"
+	DevnetChainSpecType = "devnet"
+)
 
-// BlockEvent is an interface for block events.
-type BlockEvent[BeaconBlockT BeaconBlock] interface {
-	Data() BeaconBlockT
-}
+// ProvideChainSpec provides the chain spec based on the environment variable.
+func ProvideChainSpec() common.ChainSpec {
+	// TODO: This is hood as fuck needs to be improved
+	// but for now we ball to get CI unblocked.
+	specType := os.Getenv(ChainSpecTypeEnvVar)
+	chainSpec := spec.TestnetChainSpec()
+	if specType == DevnetChainSpecType {
+		chainSpec = spec.DevnetChainSpec()
+	}
 
-// IndexDB is a database that allows prefixing by index.
-type IndexDB interface {
-	Has(index uint64, key []byte) (bool, error)
-	Set(index uint64, key []byte, value []byte) error
-	Prune(start uint64, end uint64) error
-}
-
-// BeaconBlockBody is the body of a beacon block.
-type BeaconBlockBody interface {
-	// GetBlobKzgCommitments returns the KZG commitments for the blob.
-	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
+	return chainSpec
 }

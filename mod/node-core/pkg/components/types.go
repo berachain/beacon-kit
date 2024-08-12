@@ -38,6 +38,7 @@ import (
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-api/backend"
 	"github.com/berachain/beacon-kit/mod/node-api/engines/echo"
 	beaconapi "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon"
@@ -151,11 +152,17 @@ type (
 		*BeaconBlockBody,
 		*BeaconBlockHeader,
 		*BeaconState,
+		*Context,
 		*Deposit,
+		*ExecutionEngine,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*Genesis,
+		log.Logger[any],
 		*PayloadAttributes,
+		*LocalBuilder,
+		*StateProcessor,
+		*StorageBackend,
 		*Withdrawal,
 	]
 
@@ -183,6 +190,7 @@ type (
 	DAService = da.Service[
 		*AvailabilityStore,
 		*BeaconBlockBody,
+		*BlobProcessor,
 		*BlobSidecars,
 		*SidecarsBroker,
 		*ExecutionPayload,
@@ -270,9 +278,12 @@ type (
 
 	// LocalBuilder is a type alias for the local builder.
 	LocalBuilder = payloadbuilder.PayloadBuilder[
+		*AttributesFactory,
 		*BeaconState,
+		*ExecutionEngine,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
+		log.Logger[any],
 		*PayloadAttributes,
 		PayloadID,
 		*Withdrawal,
@@ -342,6 +353,7 @@ type (
 		*Context,
 		*Deposit,
 		*Eth1Data,
+		*ExecutionEngine,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*Fork,
@@ -388,15 +400,21 @@ type (
 		*BeaconBlock,
 		*BeaconBlockBody,
 		*BeaconState,
+		*SidecarFactory,
 		*BlobSidecars,
+		*Context,
 		*Deposit,
 		*DepositStore,
 		*Eth1Data,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*ForkData,
+		log.Logger[any],
+		*LocalBuilder,
 		*SlashingInfo,
 		*SlotData,
+		*StateProcessor,
+		*StorageBackend,
 	]
 
 	// ValidatorUpdate is a type alias for the validator update.

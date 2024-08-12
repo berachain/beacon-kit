@@ -18,33 +18,31 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package store
+package components
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"cosmossdk.io/depinject"
+	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 )
 
-// BeaconBlock is an interface for beacon blocks.
-type BeaconBlock interface {
-	GetSlot() math.U64
+// DBManagerInput is the input for the dep inject framework.
+type DBManagerInput struct {
+	depinject.In
+	AvailabilityPruner DAPruner
+	BlockPruner        BlockPruner
+	DepositPruner      DepositPruner
+	Logger             log.Logger
 }
 
-// BlockEvent is an interface for block events.
-type BlockEvent[BeaconBlockT BeaconBlock] interface {
-	Data() BeaconBlockT
-}
-
-// IndexDB is a database that allows prefixing by index.
-type IndexDB interface {
-	Has(index uint64, key []byte) (bool, error)
-	Set(index uint64, key []byte, value []byte) error
-	Prune(start uint64, end uint64) error
-}
-
-// BeaconBlockBody is the body of a beacon block.
-type BeaconBlockBody interface {
-	// GetBlobKzgCommitments returns the KZG commitments for the blob.
-	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
+// ProvideDBManager provides a DBManager for the depinject framework.
+func ProvideDBManager(
+	in DBManagerInput,
+) (*DBManager, error) {
+	return manager.NewDBManager(
+		in.Logger.With("service", "db-manager"),
+		in.DepositPruner,
+		in.AvailabilityPruner,
+		in.BlockPruner,
+	)
 }

@@ -22,49 +22,59 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
-	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
-	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
+	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// LocalBuilderInput is an input for the dep inject framework.
-type LocalBuilderInput struct {
+type AttributesFactoryInput[
+	LoggerT log.Logger[any],
+] struct {
 	depinject.In
-	AttributesFactory *AttributesFactory
-	Cfg               *config.Config
-	ChainSpec         common.ChainSpec
-	ExecutionEngine   *ExecutionEngine
-	Logger            log.AdvancedLogger[any, sdklog.Logger]
+
+	ChainSpec common.ChainSpec
+	Config    *config.Config
+	Logger    LoggerT
 }
 
-// ProvideLocalBuilder provides a local payload builder for the
-// depinject framework.
-func ProvideLocalBuilder(
-	in LocalBuilderInput,
-) *LocalBuilder {
-	return payloadbuilder.New[
-		*AttributesFactory,
-		*BeaconState,
-		*ExecutionEngine,
-		*ExecutionPayload,
-		*ExecutionPayloadHeader,
-		log.Logger[any],
-		*PayloadAttributes,
-		PayloadID,
-		*Withdrawal,
+// ProvideAttributesFactory provides an AttributesFactory for the client.
+func ProvideAttributesFactory[
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconStateT BeaconState[
+		BeaconStateT,
+		BeaconBlockHeaderT,
+		Eth1DataT,
+		ExecutionPayloadHeaderT,
+		ForkT,
+		KVStoreT,
+		ValidatorT,
+		ValidatorsT,
+		WithdrawalT,
+	],
+	Eth1DataT any,
+	ExecutionPayloadHeaderT any,
+	ForkT any,
+	KVStoreT any,
+	LoggerT log.Logger[any],
+	PayloadAttributesT PayloadAttributes[PayloadAttributesT, WithdrawalT],
+	ValidatorT any,
+	ValidatorsT any,
+	WithdrawalT any,
+](
+	in AttributesFactoryInput[LoggerT],
+) (*attributes.Factory[
+	BeaconStateT,
+	PayloadAttributesT,
+	WithdrawalT,
+], error) {
+	return attributes.NewAttributesFactory[
+		BeaconStateT,
+		PayloadAttributesT,
+		WithdrawalT,
 	](
-		&in.Cfg.PayloadBuilder,
 		in.ChainSpec,
-		in.Logger.With("service", "payload-builder"),
-		in.ExecutionEngine,
-		cache.NewPayloadIDCache[
-			PayloadID,
-			[32]byte, math.Slot,
-		](),
-		in.AttributesFactory,
-	)
+		in.Logger,
+		in.Config.PayloadBuilder.SuggestedFeeRecipient,
+	), nil
 }

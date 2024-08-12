@@ -21,13 +21,10 @@
 package middleware
 
 import (
-	"context"
-	"encoding/json"
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
 // BeaconBlock is an interface for accessing the beacon block.
@@ -43,32 +40,4 @@ type BeaconBlock[SelfT any] interface {
 type TelemetrySink interface {
 	// MeasureSince measures the time since the given time.
 	MeasureSince(key string, start time.Time, args ...string)
-}
-
-// BlockchainService defines the interface for interacting with the blockchain
-// state and processing blocks.
-type BlockchainService[
-	BeaconBlockT any,
-	BlobSidecarsT constraints.SSZMarshallable,
-	DepositT any,
-	GenesisT json.Unmarshaler,
-] interface {
-	// ProcessGenesisData processes the genesis data and initializes the beacon
-	// state.
-	ProcessGenesisData(
-		context.Context,
-		GenesisT,
-	) (transition.ValidatorUpdates, error)
-	// ProcessBeaconBlock processes the given beacon block and associated
-	// blobs sidecars.
-	ProcessBeaconBlock(
-		context.Context,
-		BeaconBlockT,
-	) (transition.ValidatorUpdates, error)
-	// ReceiveBlock receives a beacon block and
-	// associated blobs sidecars for processing.
-	ReceiveBlock(
-		ctx context.Context,
-		blk BeaconBlockT,
-	) error
 }

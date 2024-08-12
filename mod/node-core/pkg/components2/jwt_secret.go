@@ -18,33 +18,36 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package store
+package components
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"strings"
+
+	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/spf13/afero"
+	"github.com/spf13/cast"
 )
 
-// BeaconBlock is an interface for beacon blocks.
-type BeaconBlock interface {
-	GetSlot() math.U64
+// JWTSecretInput is the input for the dep inject framework.
+type JWTSecretInput struct {
+	depinject.In
+	AppOpts servertypes.AppOptions
 }
 
-// BlockEvent is an interface for block events.
-type BlockEvent[BeaconBlockT BeaconBlock] interface {
-	Data() BeaconBlockT
+// ProvideJWTSecret is a function that provides the module to the application.
+func ProvideJWTSecret(in JWTSecretInput) (*jwt.Secret, error) {
+	return LoadJWTFromFile(cast.ToString(in.AppOpts.Get(flags.JWTSecretPath)))
 }
 
-// IndexDB is a database that allows prefixing by index.
-type IndexDB interface {
-	Has(index uint64, key []byte) (bool, error)
-	Set(index uint64, key []byte, value []byte) error
-	Prune(start uint64, end uint64) error
-}
-
-// BeaconBlockBody is the body of a beacon block.
-type BeaconBlockBody interface {
-	// GetBlobKzgCommitments returns the KZG commitments for the blob.
-	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
+// LoadJWTFromFile reads the JWT secret from a file and returns it.
+func LoadJWTFromFile(filepath string) (*jwt.Secret, error) {
+	data, err := afero.ReadFile(afero.NewOsFs(), filepath)
+	if err != nil {
+		// Return an error if the file cannot be read.
+		return nil, err
+	}
+	return jwt.NewFromHex(strings.TrimSpace(string(data)))
 }

@@ -18,33 +18,31 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package store
+package components
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"cosmossdk.io/depinject"
+	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
+	"github.com/berachain/beacon-kit/mod/config"
+	"github.com/berachain/beacon-kit/mod/log"
 )
 
-// BeaconBlock is an interface for beacon blocks.
-type BeaconBlock interface {
-	GetSlot() math.U64
+// BlockServiceInput is the input for the block service.
+type BlockServiceInput struct {
+	depinject.In
+
+	BlockBroker *BlockBroker
+	BlockStore  *BlockStore
+	Config      *config.Config
+	Logger      log.Logger[any]
 }
 
-// BlockEvent is an interface for block events.
-type BlockEvent[BeaconBlockT BeaconBlock] interface {
-	Data() BeaconBlockT
-}
-
-// IndexDB is a database that allows prefixing by index.
-type IndexDB interface {
-	Has(index uint64, key []byte) (bool, error)
-	Set(index uint64, key []byte, value []byte) error
-	Prune(start uint64, end uint64) error
-}
-
-// BeaconBlockBody is the body of a beacon block.
-type BeaconBlockBody interface {
-	// GetBlobKzgCommitments returns the KZG commitments for the blob.
-	GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
+// ProvideBlockStoreService provides the block service.
+func ProvideBlockStoreService(in BlockServiceInput) *BlockStoreService {
+	return blockstore.NewService(
+		in.Config.BlockStoreService,
+		in.Logger,
+		in.BlockBroker,
+		in.BlockStore,
+	)
 }
