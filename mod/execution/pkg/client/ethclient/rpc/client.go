@@ -160,6 +160,9 @@ func (rpc *Client) CallRaw(
 		return nil, err
 	}
 
+	if resp == nil {
+		return nil, ErrNilResponse
+	}
 	if resp.Error != nil {
 		return nil, *resp.Error
 	}
