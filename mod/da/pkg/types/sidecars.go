@@ -38,6 +38,18 @@ func (bs *BlobSidecars) Empty() *BlobSidecars {
 	return &BlobSidecars{}
 }
 
+func (bs *BlobSidecars) Len() int {
+	return len(bs.Sidecars)
+}
+
+func (bs *BlobSidecars) GetSidecars() []*BlobSidecar {
+	return bs.Sidecars
+}
+
+func (bs *BlobSidecars) Get(index int) *BlobSidecar {
+	return bs.Sidecars[index]
+}
+
 // IsNil checks to see if blobs are nil.
 func (bs *BlobSidecars) IsNil() bool {
 	return bs == nil || bs.Sidecars == nil
@@ -78,11 +90,6 @@ func (bs *BlobSidecars) VerifyInclusionProofs(
 			return nil
 		},
 	)...)
-}
-
-// Len returns the number of sidecars in the sidecar.
-func (bs *BlobSidecars) Len() int {
-	return len(bs.Sidecars)
 }
 
 // DefineSSZ defines the SSZ encoding for the BlobSidecars object.
