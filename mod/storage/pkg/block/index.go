@@ -23,7 +23,6 @@ package block
 import (
 	sdkcollections "cosmossdk.io/collections"
 	sdkindexes "cosmossdk.io/collections/indexes"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 )
