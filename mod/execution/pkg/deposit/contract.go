@@ -44,10 +44,11 @@ type WrappedBeaconDepositContract[
 // NewWrappedBeaconDepositContract creates a new BeaconDepositContract.
 func NewWrappedBeaconDepositContract[
 	DepositT Deposit[DepositT, WithdrawalCredentialsT],
+	EngineClientT bind.ContractFilterer,
 	WithdrawalCredentialsT ~[32]byte,
 ](
 	address common.ExecutionAddress,
-	client bind.ContractFilterer,
+	client EngineClientT,
 ) (*WrappedBeaconDepositContract[
 	DepositT,
 	WithdrawalCredentialsT,
