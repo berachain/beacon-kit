@@ -22,58 +22,79 @@ package components
 
 import (
 	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
 // ProvideBlobBroker provides a blob feed for the depinject framework.
-func ProvideBlobBroker() *SidecarsBroker {
-	return broker.New[*SidecarEvent](
+func ProvideBlobBroker[
+	SidecarT any,
+]() *broker.Broker[*asynctypes.Event[SidecarT]] {
+	return broker.New[*asynctypes.Event[SidecarT]](
 		"blob-broker",
 	)
 }
 
 // ProvideBlockBroker provides a block feed for the depinject framework.
-func ProvideBlockBroker() *BlockBroker {
-	return broker.New[*BlockEvent](
+func ProvideBlockBroker[
+	BeaconBlockT any,
+]() *broker.Broker[*asynctypes.Event[BeaconBlockT]] {
+	return broker.New[*asynctypes.Event[BeaconBlockT]](
 		"blk-broker",
 	)
 }
 
 // ProvideGenesisBroker provides a genesis feed for the depinject framework.
-func ProvideGenesisBroker() *GenesisBroker {
-	return broker.New[*GenesisEvent](
+func ProvideGenesisBroker[
+	GenesisT any,
+]() *broker.Broker[*asynctypes.Event[GenesisT]] {
+	return broker.New[*asynctypes.Event[GenesisT]](
 		"genesis-broker",
 	)
 }
 
 // ProvideSlotBroker provides a slot feed for the depinject framework.
-func ProvideSlotBroker() *SlotBroker {
-	return broker.New[*SlotEvent](
+func ProvideSlotBroker[
+	SlotDataT any,
+]() *broker.Broker[*asynctypes.Event[SlotDataT]] {
+	return broker.New[*asynctypes.Event[SlotDataT]](
 		"slot-broker",
 	)
 }
 
 // ProvideStatusBroker provides a status feed.
-func ProvideStatusBroker() *StatusBroker {
-	return broker.New[*StatusEvent](
+func ProvideStatusBroker[
+	StatusEventT any,
+]() *broker.Broker[*asynctypes.Event[StatusEventT]] {
+	return broker.New[*asynctypes.Event[StatusEventT]](
 		"status-broker",
 	)
 }
 
 // ProvideValidatorUpdateBroker provides a validator updates feed.
-func ProvideValidatorUpdateBroker() *ValidatorUpdateBroker {
-	return broker.New[*ValidatorUpdateEvent](
+func ProvideValidatorUpdateBroker[
+	ValidatorUpdatesT transition.ValidatorUpdates,
+]() *broker.Broker[*asynctypes.Event[ValidatorUpdatesT]] {
+	return broker.New[*asynctypes.Event[ValidatorUpdatesT]](
 		"validator-updates-broker",
 	)
 }
 
 // DefaultBrokerProviders returns a slice of the default broker providers.
-func DefaultBrokerProviders() []interface{} {
+func DefaultBrokerProviders[
+	SidecarT any,
+	BeaconBlockT any,
+	GenesisT any,
+	SlotDataT any,
+	StatusEventT any,
+	ValidatorUpdatesT transition.ValidatorUpdates,
+]() []interface{} {
 	return []interface{}{
-		ProvideBlobBroker,
-		ProvideBlockBroker,
-		ProvideGenesisBroker,
-		ProvideSlotBroker,
-		ProvideStatusBroker,
-		ProvideValidatorUpdateBroker,
+		ProvideBlobBroker[SidecarT],
+		ProvideBlockBroker[BeaconBlockT],
+		ProvideGenesisBroker[GenesisT],
+		ProvideSlotBroker[SlotDataT],
+		ProvideStatusBroker[StatusEventT],
+		ProvideValidatorUpdateBroker[ValidatorUpdatesT],
 	}
 }
