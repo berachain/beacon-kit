@@ -53,7 +53,7 @@ func (s *EngineClient[
 	defer cancel()
 
 	// Call the appropriate RPC method based on the payload version.
-	result, err := s.Eth1Client.NewPayload(
+	result, err := s.EthRPC.NewPayload(
 		cctx, payload, versionedHashes, parentBeaconBlockRoot,
 	)
 	if err != nil {
@@ -107,7 +107,7 @@ func (s *EngineClient[
 		)
 	}
 
-	result, err := s.Eth1Client.ForkchoiceUpdated(
+	result, err := s.EthRPC.ForkchoiceUpdated(
 		cctx, state, attrs, forkVersion,
 	)
 
@@ -172,7 +172,7 @@ func (s *EngineClient[
 ]) ExchangeCapabilities(
 	ctx context.Context,
 ) ([]string, error) {
-	result, err := s.Eth1Client.ExchangeCapabilities(
+	result, err := s.EthRPC.ExchangeCapabilities(
 		ctx, ethclient.BeaconKitSupportedCapabilities(),
 	)
 	if err != nil {

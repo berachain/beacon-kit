@@ -9,6 +9,7 @@ import (
 type EthRPC[ExecutionPayloadT interface {
 	constraints.JSONMarshallable
 	Empty(uint32) ExecutionPayloadT
+	Version() uint32
 }] struct {
 	*rpc.Client
 }
@@ -18,6 +19,7 @@ func New[
 	ExecutionPayloadT interface {
 		constraints.JSONMarshallable
 		Empty(uint32) ExecutionPayloadT
+		Version() uint32
 	},
 ](url string, options ...func(rpc *rpc.Client)) *EthRPC[ExecutionPayloadT] {
 	rpc := &EthRPC[ExecutionPayloadT]{
