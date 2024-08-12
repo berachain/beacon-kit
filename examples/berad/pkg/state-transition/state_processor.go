@@ -25,7 +25,6 @@ import (
 
 	chainspec "github.com/berachain/beacon-kit/examples/berad/pkg/chain-spec"
 	"github.com/berachain/beacon-kit/mod/errors"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -75,7 +74,7 @@ type StateProcessor[
 	},
 	WithdrawalCredentialsT interface {
 		~[32]byte
-		ToExecutionAddress() (gethprimitives.ExecutionAddress, error)
+		ToExecutionAddress() (common.ExecutionAddress, error)
 	},
 ] struct {
 	// cs is the chain specification for the beacon chain.
@@ -128,7 +127,7 @@ func NewStateProcessor[
 	},
 	WithdrawalCredentialsT interface {
 		~[32]byte
-		ToExecutionAddress() (gethprimitives.ExecutionAddress, error)
+		ToExecutionAddress() (common.ExecutionAddress, error)
 	},
 ](
 	cs chainspec.BeraChainSpec,
