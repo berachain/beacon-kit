@@ -125,3 +125,11 @@ func DefaultBaseappOptions(
 		baseapp.SetChainID(chainID),
 	}
 }
+
+func WithStreamingManager(
+	streamingManager storetypes.StreamingManager,
+) func(bApp *baseapp.BaseApp) {
+	return func(bApp *baseapp.BaseApp) {
+		//bApp.SetStreamingManager(streamingManager)
+	}
+}

@@ -309,6 +309,35 @@ func (st *BeaconState[
 	return ssz.HashConcurrent(st)
 }
 
+func (st *BeaconState[
+	BeaconBlockHeaderT,
+	Eth1DataT,
+	ExecutionPayloadHeaderT,
+	ForkT,
+	ValidatorT,
+	B, E, P, F, V,
+]) Empty() *BeaconState[
+	BeaconBlockHeaderT,
+	Eth1DataT,
+	ExecutionPayloadHeaderT,
+	ForkT,
+	ValidatorT,
+	B, E, P, F, V] {
+	return &BeaconState[
+		BeaconBlockHeaderT,
+		Eth1DataT,
+		ExecutionPayloadHeaderT,
+		ForkT,
+		ValidatorT,
+		B, E, P, F, V]{
+		Fork:                         st.Fork.Empty(),
+		LatestBlockHeader:            st.LatestBlockHeader.Empty(),
+		Eth1Data:                     st.Eth1Data.Empty(),
+		LatestExecutionPayloadHeader: st.LatestExecutionPayloadHeader.Empty(),
+		Validators:                   []ValidatorT{},
+	}
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                   FastSSZ                                  */
 /* -------------------------------------------------------------------------- */

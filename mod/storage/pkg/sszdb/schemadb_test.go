@@ -274,3 +274,12 @@ func Test_SchemaDB(t *testing.T) {
 		executionPayloadHeader,
 	)
 }
+
+// func Test_EmptyDB(t *testing.T) {
+// 	dir := t.TempDir() + "/sszdb.db"
+// 	db, err := sszdb.NewBackend(sszdb.BackendConfig{Path: dir})
+// 	require.NoError(t, err)
+// 	emptyState := (&components.BeaconStateMarshallable{}).Empty()
+// 	_, err = sszdb.NewSchemaDB(db, emptyState)
+// 	require.NoError(t, err)
+// }

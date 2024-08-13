@@ -75,13 +75,14 @@ func (nb *NodeBuilder[NodeT]) Build(
 
 	// variables to hold the components needed to set up BeaconApp
 	var (
-		chainSpec       common.ChainSpec
-		abciMiddleware  *components.ABCIMiddleware
-		serviceRegistry *service.Registry
-		consensusEngine *components.ConsensusEngine
-		apiBackend      *components.NodeAPIBackend
-		storeKey        = new(storetypes.KVStoreKey)
-		storeKeyDblPtr  = &storeKey
+		chainSpec        common.ChainSpec
+		abciMiddleware   *components.ABCIMiddleware
+		serviceRegistry  *service.Registry
+		consensusEngine  *components.ConsensusEngine
+		apiBackend       *components.NodeAPIBackend
+		storeKey         = new(storetypes.KVStoreKey)
+		storeKeyDblPtr   = &storeKey
+		streamingManager storetypes.StreamingManager
 	)
 
 	// build all node components using depinject
@@ -104,6 +105,7 @@ func (nb *NodeBuilder[NodeT]) Build(
 		&serviceRegistry,
 		&consensusEngine,
 		&apiBackend,
+		&streamingManager,
 	); err != nil {
 		panic(err)
 	}
@@ -117,6 +119,7 @@ func (nb *NodeBuilder[NodeT]) Build(
 				WithCometParamStore(chainSpec),
 				WithPrepareProposal(consensusEngine.PrepareProposal),
 				WithProcessProposal(consensusEngine.ProcessProposal),
+				WithStreamingManager(streamingManager),
 			)...,
 		),
 	)

@@ -5,7 +5,6 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
@@ -214,7 +213,7 @@ func (db *SchemaDB) GetSlot(ctx context.Context) (math.U64, error) {
 	return math.U64(fastssz.UnmarshallUint64(bz)), nil
 }
 
-func (db *SchemaDB) GetBlockRoots(ctx context.Context) ([]bytes.B32, error) {
+func (db *SchemaDB) GetBlockRoots(ctx context.Context) ([]common.Root, error) {
 	path := objectPath("block_roots/__len__")
 	typ, gindex, offset, err := path.GetGeneralizedIndex(db.schemaRoot)
 	if err != nil {
