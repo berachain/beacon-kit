@@ -123,6 +123,33 @@ start-geth: ## start an ephemeral `geth` node with docker
 	--datadir ${ETH_DATA_DIR} \
 	--ipcpath ${IPC_PATH}
 
+start-geth-bartio:
+	rm -rf ${ETH_DATA_DIR}
+	docker run \
+	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	--rm -v $(PWD)/${BARTIO_NETWORK_FILES_DIR}:/${BARTIO_NETWORK_FILES_DIR} \
+	-v $(PWD)/.tmp:/.tmp \
+	ethereum/client-go init \
+	--datadir ${ETH_DATA_DIR} \
+	${BARTIO_ETH_GENESIS_PATH}
+
+	docker run \
+	-p 30303:30303 \
+	-p 8545:8545 \
+	-p 8551:8551 \
+	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	--rm -v $(PWD)/${BARTIO_NETWORK_FILES_DIR}:/${BARTIO_NETWORK_FILES_DIR} \
+	-v $(PWD)/.tmp:/.tmp \
+	ethereum/client-go \
+	--http \
+	--http.addr 0.0.0.0 \
+	--http.api eth,net \
+	--authrpc.addr 0.0.0.0 \
+	--authrpc.jwtsecret $(JWT_PATH) \
+	--authrpc.vhosts "*" \
+	--datadir ${ETH_DATA_DIR} \
+	--ipcpath ${IPC_PATH}
+
 start-geth-host: ## start a local ephemeral `geth` node on host machine
 	rm -rf ${ETH_DATA_DIR}
 	geth init --datadir ${ETH_DATA_DIR} ${ETH_GENESIS_PATH}
