@@ -2,6 +2,7 @@
 # Start a full node with `geth` and `beaconkit`      #
 ######################################################
 TESTAPP_FILES_DIR_full = testing/networks/80084
+TESTAPP_FILES_DIR = testing/files
 JWT_PATH = ${TESTAPP_FILES_DIR_full}/jwt.hex
 ETH_GENESIS_PATH = ${TESTAPP_FILES_DIR_full}/eth-genesis.json
 ETH_DATA_DIR = .tmp/eth-home
@@ -57,17 +58,29 @@ start-beaconkit: ## start an ephemeral `beacond` node
 # defaultDialURL= "http://localhost:8551"
 
 
-RPC_URL = "http://localhost:8551"
-RPC_DIAL_URL=$(resolve_path "$RPC_DIAL_URL")
+RPC_URL = "http://192.168.0.122:8551"
 
-start-beacon-docker:
+IMAGE_NAME ?= beacond
+IMAGE_TAG ?= kurtosis-local
+IMAGE_EXISTS := $(shell docker image ls -q $(IMAGE_NAME):$(IMAGE_TAG))
+
+check-docker:
+ifdef IMAGE_EXISTS
+	@echo "Image $(IMAGE_NAME):$(IMAGE_TAG) already exists."
+else
+	@echo "Image $(IMAGE_NAME):$(IMAGE_TAG) does not exist. Building image..."
+	make build-docker
+endif
+
+start-beacon-docker: check-docker
 	docker run \
+	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR_full}:/${TESTAPP_FILES_DIR_full} \
 	-v $(PWD)/.tmp:/.tmp \
 	-e CHAIN_SPEC=testnet \
-	beaconkit:nids \
+	${IMAGE_NAME}:${VERSION} \
 	start \
-	--home /.tmp \
+	--home "./.tmp/beacond" \
 	--pruning=nothing \
 	--beacon-kit.engine.jwt-secret-path ${JWT_PATH} \
 	--beacon-kit.node-api.enabled \
@@ -75,7 +88,7 @@ start-beacon-docker:
 	--beacon-kit.node-api.address \
 	--beacon-kit.block-store-service.enabled \
 	--beacon-kit.block-store-service.pruner-enabled \
-	--beacon-kit.logger.log-level debug \
-	--beacon-kit.engine.rpc-dial-url="http://localhost:8551"
+	--beacon-kit.logger.log-level info \
+	--beacon-kit.engine.rpc-dial-url=${RPC_URL}
 
 .PHONY: start-geth-full-node start-beaconkit start-beacon-docker
