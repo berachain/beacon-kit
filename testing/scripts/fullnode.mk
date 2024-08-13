@@ -53,18 +53,18 @@ start-geth-full-node: ## start an ephemeral `geth` node with docker
 # Place the snapshot in the `./.tmp/beacond/data` directory
 # Use the genesis.json file in .tmp/beacond/config/ from testing/networks/80084/genesis.json
 # Add seednodes from testing/networks/80084/cl-seeds.txt to .tmp/beacond/config/config.toml
-start-beaconkit: ## start an ephemeral `beacond` node
-	@JWT_SECRET_PATH=$(JWT_PATH) CHAINID=80084 CHAIN_SPEC=testnet testing/scripts/entrypoint.sh
-# defaultDialURL= "http://localhost:8551"
 
+#######################################################
+# Start `beacond` using docker image				  #
+#######################################################
 
-RPC_URL = "http://192.168.0.122:8551"
-
+RPC_URL = "http://192.168.0.122:8551" # Change this to the IP address of the machine running the geth node
 IMAGE_NAME ?= beacond
 IMAGE_TAG ?= kurtosis-local
+
 IMAGE_EXISTS := $(shell docker image ls -q $(IMAGE_NAME):$(IMAGE_TAG))
 
-check-docker:
+build-docker-image:
 ifdef IMAGE_EXISTS
 	@echo "Image $(IMAGE_NAME):$(IMAGE_TAG) already exists."
 else
@@ -72,7 +72,7 @@ else
 	make build-docker
 endif
 
-start-beacon-docker: check-docker
+start-beacon-docker: build-docker-image
 	docker run \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR_full}:/${TESTAPP_FILES_DIR_full} \
@@ -91,4 +91,4 @@ start-beacon-docker: check-docker
 	--beacon-kit.logger.log-level info \
 	--beacon-kit.engine.rpc-dial-url=${RPC_URL}
 
-.PHONY: start-geth-full-node start-beaconkit start-beacon-docker
+.PHONY: start-geth-full-node start-beaconkit start-beacon-docker build-docker-image
