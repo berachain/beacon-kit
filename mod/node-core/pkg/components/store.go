@@ -21,7 +21,7 @@
 package components
 
 import (
-	"cosmossdk.io/core/appmodule"
+	"cosmossdk.io/core/store"
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
@@ -30,7 +30,7 @@ import (
 // KVStoreInput is the input for the ProvideKVStore function.
 type KVStoreInput struct {
 	depinject.In
-	Environment appmodule.Environment
+	KVStoreService store.KVStoreService
 }
 
 // ProvideKVStore is the depinject provider that returns a beacon KV store.
@@ -43,5 +43,5 @@ func ProvideKVStore(in KVStoreInput) *KVStore {
 		*Fork,
 		*Validator,
 		Validators,
-	](in.Environment.KVStoreService, payloadCodec)
+	](in.KVStoreService, payloadCodec)
 }

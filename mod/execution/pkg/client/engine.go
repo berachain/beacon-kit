@@ -27,8 +27,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineerrors "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/errors"
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	ethclient "github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
 )
@@ -43,9 +42,9 @@ func (s *EngineClient[
 ]) NewPayload(
 	ctx context.Context,
 	payload ExecutionPayloadT,
-	versionedHashes []gethprimitives.ExecutionHash,
+	versionedHashes []common.ExecutionHash,
 	parentBeaconBlockRoot *common.Root,
-) (*gethprimitives.ExecutionHash, error) {
+) (*common.ExecutionHash, error) {
 	var (
 		startTime    = time.Now()
 		cctx, cancel = s.createContextWithTimeout(ctx)
@@ -54,7 +53,7 @@ func (s *EngineClient[
 	defer cancel()
 
 	// Call the appropriate RPC method based on the payload version.
-	result, err := s.Eth1Client.NewPayload(
+	result, err := s.Client.NewPayload(
 		cctx, payload, versionedHashes, parentBeaconBlockRoot,
 	)
 	if err != nil {
@@ -91,7 +90,7 @@ func (s *EngineClient[
 	state *engineprimitives.ForkchoiceStateV1,
 	attrs PayloadAttributesT,
 	forkVersion uint32,
-) (*engineprimitives.PayloadID, *gethprimitives.ExecutionHash, error) {
+) (*engineprimitives.PayloadID, *common.ExecutionHash, error) {
 	var (
 		startTime    = time.Now()
 		cctx, cancel = s.createContextWithTimeout(ctx)
@@ -101,15 +100,14 @@ func (s *EngineClient[
 
 	// If the suggested fee recipient is not set, log a warning.
 	if !attrs.IsNil() &&
-		attrs.GetSuggestedFeeRecipient() == (gethprimitives.ZeroAddress) {
+		attrs.GetSuggestedFeeRecipient() == (common.ExecutionAddress{}) {
 		s.logger.Warn(
 			"Suggested fee recipient is not configured 🔆",
-			"fee-recipent", gethprimitives.DisplayBytes(
-				gethprimitives.ZeroAddress[:]).TerminalString(),
+			"fee-recipent", attrs.GetSuggestedFeeRecipient(),
 		)
 	}
 
-	result, err := s.Eth1Client.ForkchoiceUpdated(
+	result, err := s.Client.ForkchoiceUpdated(
 		cctx, state, attrs, forkVersion,
 	)
 
@@ -150,7 +148,7 @@ func (s *EngineClient[
 	defer cancel()
 
 	// Call and check for errors.
-	result, err := s.Eth1Client.GetPayload(cctx, payloadID, forkVersion)
+	result, err := s.Client.GetPayload(cctx, payloadID, forkVersion)
 	switch {
 	case err != nil:
 		if errors.Is(err, engineerrors.ErrEngineAPITimeout) {
@@ -174,7 +172,7 @@ func (s *EngineClient[
 ]) ExchangeCapabilities(
 	ctx context.Context,
 ) ([]string, error) {
-	result, err := s.Eth1Client.ExchangeCapabilities(
+	result, err := s.Client.ExchangeCapabilities(
 		ctx, ethclient.BeaconKitSupportedCapabilities(),
 	)
 	if err != nil {

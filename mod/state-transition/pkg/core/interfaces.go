@@ -46,7 +46,6 @@ type BeaconState[
 		cs common.ChainSpec,
 	) T
 	Copy() T
-	Save()
 	Context() context.Context
 	HashTreeRoot() common.Root
 	ReadOnlyBeaconState[

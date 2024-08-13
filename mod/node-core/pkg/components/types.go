@@ -130,13 +130,23 @@ type (
 	BlobProcessor = dablob.Processor[
 		*AvailabilityStore,
 		*BeaconBlockBody,
+		*BeaconBlockHeader,
+		*BlobSidecar,
+		*BlobSidecars,
 	]
+
+	// BlobSidecar is a type alias for the blob sidecar.
+	BlobSidecar = datypes.BlobSidecar
 
 	// BlobSidecars is a type alias for the blob sidecars.
 	BlobSidecars = datypes.BlobSidecars
 
 	// BlobVerifier is a type alias for the blob verifier.
-	BlobVerifier = dablob.Verifier
+	BlobVerifier = dablob.Verifier[
+		*BeaconBlockHeader,
+		*BlobSidecar,
+		*BlobSidecars,
+	]
 
 	// BlockStoreService is a type alias for the block store service.
 	BlockStoreService = blockstore.Service[*BeaconBlock, *BlockStore]
@@ -151,7 +161,6 @@ type (
 		*BeaconBlockBody,
 		*BeaconBlockHeader,
 		*BeaconState,
-		*BlobSidecars,
 		*Deposit,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
@@ -228,7 +237,7 @@ type (
 		*ExecutionPayload,
 		*PayloadAttributes,
 		PayloadID,
-		*Withdrawal,
+		engineprimitives.Withdrawals,
 	]
 
 	// ExecutionPayload type aliases.
@@ -351,6 +360,7 @@ type (
 		*Validator,
 		Validators,
 		*Withdrawal,
+		engineprimitives.Withdrawals,
 		WithdrawalCredentials,
 	]
 

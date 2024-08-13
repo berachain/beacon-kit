@@ -24,6 +24,17 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 )
 
+type BlobSidecar interface {
+	GetBlob() eip4844.Blob
+	GetKzgProof() eip4844.KZGProof
+	GetKzgCommitment() eip4844.KZGCommitment
+}
+
+type BlobSidecars[BlobSidecarT BlobSidecar] interface {
+	Len() int
+	GetSidecars() []BlobSidecarT
+}
+
 // BlobProofArgs represents the arguments for a blob proof.
 type BlobProofArgs struct {
 	// Blob is the blob.

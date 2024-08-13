@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/bind"
 	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -36,8 +37,8 @@ type WrappedBeaconDepositContract[
 	DepositT Deposit[DepositT, WithdrawalCredentialsT],
 	WithdrawalCredentialsT ~[32]byte,
 ] struct {
-	// BeaconDepositContract is a pointer to the codegen ABI binding.
-	deposit.BeaconDepositContract
+	// BeaconDepositContractFilterer is a pointer to the codegen ABI binding.
+	deposit.BeaconDepositContractFilterer
 }
 
 // NewWrappedBeaconDepositContract creates a new BeaconDepositContract.
@@ -45,14 +46,14 @@ func NewWrappedBeaconDepositContract[
 	DepositT Deposit[DepositT, WithdrawalCredentialsT],
 	WithdrawalCredentialsT ~[32]byte,
 ](
-	address gethprimitives.ExecutionAddress,
-	client bind.ContractBackend,
+	address common.ExecutionAddress,
+	client bind.ContractFilterer,
 ) (*WrappedBeaconDepositContract[
 	DepositT,
 	WithdrawalCredentialsT,
 ], error) {
-	contract, err := deposit.NewBeaconDepositContract(
-		address, client,
+	contract, err := deposit.NewBeaconDepositContractFilterer(
+		gethprimitives.ExecutionAddress(address), client,
 	)
 
 	if err != nil {
@@ -65,7 +66,7 @@ func NewWrappedBeaconDepositContract[
 		DepositT,
 		WithdrawalCredentialsT,
 	]{
-		BeaconDepositContract: *contract,
+		BeaconDepositContractFilterer: *contract,
 	}, nil
 }
 
@@ -80,7 +81,7 @@ func (dc *WrappedBeaconDepositContract[
 	logs, err := dc.FilterDeposit(
 		&bind.FilterOpts{
 			Context: ctx,
-			Start:   uint64(blkNum),
+			Start:   blkNum.Unwrap(),
 			End:     (*uint64)(&blkNum),
 		},
 	)

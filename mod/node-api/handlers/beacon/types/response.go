@@ -48,9 +48,9 @@ type BlockHeader[BlockHeaderT any] struct {
 }
 
 type GenesisData struct {
-	GenesisTime           string         `json:"genesis_time"`
-	GenesisValidatorsRoot common.Bytes32 `json:"genesis_validators_root"`
-	GenesisForkVersion    string         `json:"genesis_fork_version"`
+	GenesisTime           string      `json:"genesis_time"`
+	GenesisValidatorsRoot common.Root `json:"genesis_validators_root"`
+	GenesisForkVersion    string      `json:"genesis_fork_version"`
 }
 
 type RootData struct {

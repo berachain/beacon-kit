@@ -24,9 +24,11 @@ import (
 	"crypto/rand"
 	"regexp"
 	"strings"
+	"time"
 
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
+	gjwt "github.com/golang-jwt/jwt/v5"
 )
 
 // HexRegexp is a regular expression to match hexadecimal characters.
@@ -50,7 +52,10 @@ func NewFromHex(hexStr string) (*Secret, error) {
 	}
 
 	// Convert the hex string to a byte array.
-	bz := gethprimitives.FromHex(hexStr)
+	bz, err := hex.ToBytes(hexStr)
+	if err != nil {
+		return nil, err
+	}
 	if bz == nil || len(bz) != EthereumJWTLength {
 		return nil, ErrLengthMismatch
 	}
@@ -68,6 +73,18 @@ func NewRandom() (*Secret, error) {
 		return nil, err
 	}
 	return NewFromHex(hex.FromBytes(secret).Unwrap())
+}
+
+// BuildSignedToken creates a signed JWT token from the secret.
+func (s *Secret) BuildSignedToken() (string, error) {
+	token := gjwt.NewWithClaims(gjwt.SigningMethodHS256, gjwt.MapClaims{
+		"iat": &gjwt.NumericDate{Time: time.Now()},
+	})
+	str, err := token.SignedString(s[:])
+	if err != nil {
+		return "", errors.Wrapf(ErrCreateJWT, "%w", err)
+	}
+	return str, nil
 }
 
 // String returns the JWT secret as a string with the first 8 characters

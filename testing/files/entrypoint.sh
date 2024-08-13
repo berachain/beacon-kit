@@ -62,8 +62,6 @@ else
 overwrite="Y"
 fi
 
-export CHAIN_SPEC="devnet"
-
 # Setup local node if overwrite is set to Yes, otherwise skip setup
 if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	rm -rf $HOMEDIR
@@ -71,11 +69,15 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 		--chain-id $CHAINID \
 		--home $HOMEDIR \
 		--consensus-key-algo $CONSENSUS_KEY_ALGO
-	./build/bin/beacond genesis add-premined-deposit --home $HOMEDIR
-	./build/bin/beacond genesis collect-premined-deposits --home $HOMEDIR 
-	./build/bin/beacond genesis execution-payload "$ETH_GENESIS" --home $HOMEDIR
+	
+	if [ "$CHAIN_SPEC" == "testnet" ]; then
+		cp -f testing/networks/80084/*.toml testing/networks/80084/genesis.json ${HOMEDIR}/config
+	else
+		./build/bin/beacond genesis add-premined-deposit --home $HOMEDIR
+		./build/bin/beacond genesis collect-premined-deposits --home $HOMEDIR 
+		./build/bin/beacond genesis execution-payload "$ETH_GENESIS" --home $HOMEDIR
+	fi
 fi
-
 
 # Start the node (remove the --pruning=nothing flag if historical queries are not needed)
 BEACON_START_CMD="./build/bin/beacond start --pruning=nothing "$TRACE" \
@@ -83,7 +85,7 @@ BEACON_START_CMD="./build/bin/beacond start --pruning=nothing "$TRACE" \
 --api.enable --api.swagger --minimum-gas-prices=0.0001abgt \
 --home $HOMEDIR --beacon-kit.engine.jwt-secret-path ${JWT_SECRET_PATH} \
 --beacon-kit.block-store-service.enabled --beacon-kit.block-store-service.pruner-enabled \
---beacon-kit.node-api.enabled --beacon-kit.node-api.logging" 
+--beacon-kit.node-api.enabled --beacon-kit.node-api.logging"
 
 # Conditionally add the rpc-dial-url flag if RPC_DIAL_URL is not empty
 if [ -n "$RPC_DIAL_URL" ]; then

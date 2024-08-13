@@ -55,8 +55,7 @@ type KVStore[
 	ValidatorT Validator[ValidatorT],
 	ValidatorsT ~[]ValidatorT,
 ] struct {
-	ctx   context.Context
-	write func()
+	ctx context.Context
 	// Versioning
 	// genesisValidatorsRoot is the root of the genesis validators.
 	genesisValidatorsRoot sdkcollections.Item[[]byte]
@@ -280,9 +279,8 @@ func (kv *KVStore[
 	ForkT, ValidatorT, ValidatorsT,
 ] {
 	// TODO: Decouple the KVStore type from the Cosmos-SDK.
-	cctx, write := sdk.UnwrapSDKContext(kv.ctx).CacheContext()
+	cctx, _ := sdk.UnwrapSDKContext(kv.ctx).CacheContext()
 	ss := kv.WithContext(cctx)
-	ss.write = write
 	return ss
 }
 
@@ -307,14 +305,4 @@ func (kv *KVStore[
 	cpy := *kv
 	cpy.ctx = ctx
 	return &cpy
-}
-
-// Save saves the Store.
-func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
-]) Save() {
-	if kv.write != nil {
-		kv.write()
-	}
 }

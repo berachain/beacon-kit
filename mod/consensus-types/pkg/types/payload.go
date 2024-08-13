@@ -21,10 +21,8 @@
 package types
 
 import (
-	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
@@ -41,9 +39,9 @@ const ExecutionPayloadStaticSize uint32 = 528
 // ExecutionPayload represents the payload of an execution block.
 type ExecutionPayload struct {
 	// ParentHash is the hash of the parent block.
-	ParentHash gethprimitives.ExecutionHash `json:"parentHash"`
+	ParentHash common.ExecutionHash `json:"parentHash"`
 	// FeeRecipient is the address of the fee recipient.
-	FeeRecipient gethprimitives.ExecutionAddress `json:"feeRecipient"`
+	FeeRecipient common.ExecutionAddress `json:"feeRecipient"`
 	// StateRoot is the root of the state trie.
 	StateRoot common.Bytes32 `json:"stateRoot"`
 	// ReceiptsRoot is the root of the receipts trie.
@@ -65,7 +63,7 @@ type ExecutionPayload struct {
 	// BaseFeePerGas is the base fee per gas.
 	BaseFeePerGas *math.U256 `json:"baseFeePerGas"`
 	// BlockHash is the hash of the block.
-	BlockHash gethprimitives.ExecutionHash `json:"blockHash"`
+	BlockHash common.ExecutionHash `json:"blockHash"`
 	// Transactions is the list of transactions in the block.
 	Transactions engineprimitives.Transactions `json:"transactions"`
 	// Withdrawals is the list of withdrawals in the block.
@@ -277,23 +275,23 @@ func (p *ExecutionPayload) GetTree() (*fastssz.Node, error) {
 // MarshalJSON marshals as JSON.
 func (p *ExecutionPayload) MarshalJSON() ([]byte, error) {
 	type ExecutionPayload struct {
-		ParentHash    gethprimitives.ExecutionHash    `json:"parentHash"`
-		FeeRecipient  gethprimitives.ExecutionAddress `json:"feeRecipient"`
-		StateRoot     bytes.B32                       `json:"stateRoot"`
-		ReceiptsRoot  bytes.B32                       `json:"receiptsRoot"`
-		LogsBloom     bytes.B256                      `json:"logsBloom"`
-		Random        bytes.B32                       `json:"prevRandao"`
-		Number        math.U64                        `json:"blockNumber"`
-		GasLimit      math.U64                        `json:"gasLimit"`
-		GasUsed       math.U64                        `json:"gasUsed"`
-		Timestamp     math.U64                        `json:"timestamp"`
-		ExtraData     bytes.Bytes                     `json:"extraData"`
-		BaseFeePerGas *math.U256Hex                   `json:"baseFeePerGas"`
-		BlockHash     gethprimitives.ExecutionHash    `json:"blockHash"`
-		Transactions  []bytes.Bytes                   `json:"transactions"`
-		Withdrawals   []*engineprimitives.Withdrawal  `json:"withdrawals"`
-		BlobGasUsed   math.U64                        `json:"blobGasUsed"`
-		ExcessBlobGas math.U64                        `json:"excessBlobGas"`
+		ParentHash    common.ExecutionHash           `json:"parentHash"`
+		FeeRecipient  common.ExecutionAddress        `json:"feeRecipient"`
+		StateRoot     bytes.B32                      `json:"stateRoot"`
+		ReceiptsRoot  bytes.B32                      `json:"receiptsRoot"`
+		LogsBloom     bytes.B256                     `json:"logsBloom"`
+		Random        bytes.B32                      `json:"prevRandao"`
+		Number        math.U64                       `json:"blockNumber"`
+		GasLimit      math.U64                       `json:"gasLimit"`
+		GasUsed       math.U64                       `json:"gasUsed"`
+		Timestamp     math.U64                       `json:"timestamp"`
+		ExtraData     bytes.Bytes                    `json:"extraData"`
+		BaseFeePerGas *math.U256Hex                  `json:"baseFeePerGas"`
+		BlockHash     common.ExecutionHash           `json:"blockHash"`
+		Transactions  []bytes.Bytes                  `json:"transactions"`
+		Withdrawals   []*engineprimitives.Withdrawal `json:"withdrawals"`
+		BlobGasUsed   math.U64                       `json:"blobGasUsed"`
+		ExcessBlobGas math.U64                       `json:"excessBlobGas"`
 	}
 	var enc ExecutionPayload
 	enc.ParentHash = p.ParentHash
@@ -324,23 +322,23 @@ func (p *ExecutionPayload) MarshalJSON() ([]byte, error) {
 //nolint:funlen // todo fix.
 func (p *ExecutionPayload) UnmarshalJSON(input []byte) error {
 	type ExecutionPayload struct {
-		ParentHash    *gethprimitives.ExecutionHash    `json:"parentHash"`
-		FeeRecipient  *gethprimitives.ExecutionAddress `json:"feeRecipient"`
-		StateRoot     *bytes.B32                       `json:"stateRoot"`
-		ReceiptsRoot  *bytes.B32                       `json:"receiptsRoot"`
-		LogsBloom     *bytes.B256                      `json:"logsBloom"`
-		Random        *bytes.B32                       `json:"prevRandao"`
-		Number        *math.U64                        `json:"blockNumber"`
-		GasLimit      *math.U64                        `json:"gasLimit"`
-		GasUsed       *math.U64                        `json:"gasUsed"`
-		Timestamp     *math.U64                        `json:"timestamp"`
-		ExtraData     *bytes.Bytes                     `json:"extraData"`
-		BaseFeePerGas *math.U256Hex                    `json:"baseFeePerGas"`
-		BlockHash     *gethprimitives.ExecutionHash    `json:"blockHash"`
-		Transactions  []bytes.Bytes                    `json:"transactions"`
-		Withdrawals   []*engineprimitives.Withdrawal   `json:"withdrawals"`
-		BlobGasUsed   *math.U64                        `json:"blobGasUsed"`
-		ExcessBlobGas *math.U64                        `json:"excessBlobGas"`
+		ParentHash    *common.ExecutionHash          `json:"parentHash"`
+		FeeRecipient  *common.ExecutionAddress       `json:"feeRecipient"`
+		StateRoot     *bytes.B32                     `json:"stateRoot"`
+		ReceiptsRoot  *bytes.B32                     `json:"receiptsRoot"`
+		LogsBloom     *bytes.B256                    `json:"logsBloom"`
+		Random        *bytes.B32                     `json:"prevRandao"`
+		Number        *math.U64                      `json:"blockNumber"`
+		GasLimit      *math.U64                      `json:"gasLimit"`
+		GasUsed       *math.U64                      `json:"gasUsed"`
+		Timestamp     *math.U64                      `json:"timestamp"`
+		ExtraData     *bytes.Bytes                   `json:"extraData"`
+		BaseFeePerGas *math.U256Hex                  `json:"baseFeePerGas"`
+		BlockHash     *common.ExecutionHash          `json:"blockHash"`
+		Transactions  []bytes.Bytes                  `json:"transactions"`
+		Withdrawals   []*engineprimitives.Withdrawal `json:"withdrawals"`
+		BlobGasUsed   *math.U64                      `json:"blobGasUsed"`
+		ExcessBlobGas *math.U64                      `json:"excessBlobGas"`
 	}
 	var dec ExecutionPayload
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -466,14 +464,14 @@ func (p *ExecutionPayload) IsBlinded() bool {
 }
 
 // GetParentHash returns the parent hash of the ExecutionPayload.
-func (p *ExecutionPayload) GetParentHash() gethprimitives.ExecutionHash {
+func (p *ExecutionPayload) GetParentHash() common.ExecutionHash {
 	return p.ParentHash
 }
 
 // GetFeeRecipient returns the fee recipient address of the ExecutionPayload.
 func (
 	p *ExecutionPayload,
-) GetFeeRecipient() gethprimitives.ExecutionAddress {
+) GetFeeRecipient() common.ExecutionAddress {
 	return p.FeeRecipient
 }
 
@@ -528,7 +526,7 @@ func (p *ExecutionPayload) GetBaseFeePerGas() *math.U256 {
 }
 
 // GetBlockHash returns the block hash of the ExecutionPayload.
-func (p *ExecutionPayload) GetBlockHash() gethprimitives.ExecutionHash {
+func (p *ExecutionPayload) GetBlockHash() common.ExecutionHash {
 	return p.BlockHash
 }
 
@@ -538,7 +536,7 @@ func (p *ExecutionPayload) GetTransactions() engineprimitives.Transactions {
 }
 
 // GetWithdrawals returns the withdrawals of the ExecutionPayload.
-func (p *ExecutionPayload) GetWithdrawals() []*engineprimitives.Withdrawal {
+func (p *ExecutionPayload) GetWithdrawals() engineprimitives.Withdrawals {
 	return p.Withdrawals
 }
 
@@ -561,7 +559,8 @@ func (p *ExecutionPayload) ToHeader(
 
 	// TODO: This is live on bArtio with a bug and needs to be hardforked
 	// off of. This is a temporary solution to avoid breaking changes.
-	if eth1ChainID == spec.TestnetEth1ChainID {
+	//nolint:mnd // don't want the circular dep.
+	if eth1ChainID == 80084 {
 		txsRoot = engineprimitives.BartioTransactions(
 			p.GetTransactions(),
 		).HashTreeRoot()
@@ -572,7 +571,7 @@ func (p *ExecutionPayload) ToHeader(
 	switch p.Version() {
 	case version.Deneb, version.DenebPlus:
 		return &ExecutionPayloadHeader{
-			ParentHash:       p.GetParentHash(),
+			ParentHash:       p.ParentHash,
 			FeeRecipient:     p.GetFeeRecipient(),
 			StateRoot:        p.GetStateRoot(),
 			ReceiptsRoot:     p.GetReceiptsRoot(),
@@ -584,12 +583,11 @@ func (p *ExecutionPayload) ToHeader(
 			Timestamp:        p.GetTimestamp(),
 			ExtraData:        p.GetExtraData(),
 			BaseFeePerGas:    p.GetBaseFeePerGas(),
-			BlockHash:        p.GetBlockHash(),
+			BlockHash:        p.BlockHash,
 			TransactionsRoot: txsRoot,
-			WithdrawalsRoot: engineprimitives.Withdrawals(p.GetWithdrawals()).
-				HashTreeRoot(),
-			BlobGasUsed:   p.GetBlobGasUsed(),
-			ExcessBlobGas: p.GetExcessBlobGas(),
+			WithdrawalsRoot:  p.GetWithdrawals().HashTreeRoot(),
+			BlobGasUsed:      p.GetBlobGasUsed(),
+			ExcessBlobGas:    p.GetExcessBlobGas(),
 		}, nil
 	default:
 		return nil, errors.New("unknown fork version")

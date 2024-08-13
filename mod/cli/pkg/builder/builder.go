@@ -23,7 +23,6 @@ package builder
 import (
 	"os"
 
-	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/depinject"
 	sdklog "cosmossdk.io/log"
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
@@ -33,11 +32,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -47,9 +46,8 @@ type CLIBuilder[
 	T types.Node,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 ] struct {
-	depInjectCfg depinject.Config
-	name         string
-	description  string
+	name        string
+	description string
 	// components is a list of component providers for depinject.
 	components []any
 	// suppliers is a list of suppliers for depinject.
@@ -87,29 +85,25 @@ func New[
 func (cb *CLIBuilder[T, ExecutionPayloadT]) Build() (*cmdlib.Root, error) {
 	// allocate memory to hold the dependencies
 	var (
-		autoCliOpts autocli.AppOptions
-		mm          *module.Manager
-		clientCtx   client.Context
-		chainSpec   common.ChainSpec
-		logger      log.AdvancedLogger[any, sdklog.Logger]
+		clientCtx client.Context
+		chainSpec common.ChainSpec
+		logger    log.AdvancedLogger[any, sdklog.Logger]
 	)
 	// build dependencies for the root command
+	//nolint:asasalint // todo fix.
 	if err := depinject.Inject(
 		depinject.Configs(
-			cb.depInjectCfg,
 			depinject.Supply(
 				append(
-					cb.suppliers, &components.StorageBackend{})...,
+					cb.suppliers, []any{&runtime.App{}, &components.StorageBackend{}})...,
 			),
 			depinject.Provide(
 				cb.components...,
 			),
 		),
-		&mm,
 		&logger,
 		&clientCtx,
 		&chainSpec,
-		&autoCliOpts,
 	); err != nil {
 		return nil, err
 	}
@@ -122,15 +116,10 @@ func (cb *CLIBuilder[T, ExecutionPayloadT]) Build() (*cmdlib.Root, error) {
 		clientCtx,
 	)
 
-	// enhance the root command with the autoCliOpts
-	if err := rootCmd.Enhance(autoCliOpts.EnhanceRootCommand); err != nil {
-		return nil, err
-	}
-
 	// apply default root command setup
 	cmdlib.DefaultRootCommandSetup[T, ExecutionPayloadT](
 		rootCmd,
-		mm,
+		&runtime.App{},
 		cb.nodeBuilderFunc,
 		chainSpec,
 	)

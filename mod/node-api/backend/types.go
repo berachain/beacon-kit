@@ -23,7 +23,6 @@ package backend
 import (
 	"context"
 
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -80,10 +79,11 @@ type BeaconState[
 
 // BlockStore is the interface for block storage.
 type BlockStore[BeaconBlockT any] interface {
-	// GetSlotByRoot retrieves the slot by a given root from the store.
-	GetSlotByRoot(root common.Root) (math.Slot, error)
-	// GetSlotByExecutionNumber retrieves the slot by a given execution number
-	// from the store.
+	// GetSlotByBlockRoot retrieves the slot by a given block root.
+	GetSlotByBlockRoot(root common.Root) (math.Slot, error)
+	// GetSlotByStateRoot retrieves the slot by a given state root.
+	GetSlotByStateRoot(root common.Root) (math.Slot, error)
+	// GetSlotByExecutionNumber retrieves the slot by a given execution number.
 	GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
 }
 
@@ -138,7 +138,7 @@ type Withdrawal[T any] interface {
 	New(
 		index math.U64,
 		validator math.ValidatorIndex,
-		address gethprimitives.ExecutionAddress,
+		address common.ExecutionAddress,
 		amount math.Gwei,
 	) T
 }
@@ -147,5 +147,5 @@ type Withdrawal[T any] interface {
 type WithdrawalCredentials interface {
 	// ToExecutionAddress converts the withdrawal credentials to an execution
 	// address.
-	ToExecutionAddress() (gethprimitives.ExecutionAddress, error)
+	ToExecutionAddress() (common.ExecutionAddress, error)
 }
