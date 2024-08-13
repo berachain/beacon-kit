@@ -1,4 +1,4 @@
-package sszdb_test
+package storage_test
 
 import (
 	"bytes"
@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/sszdb"
 	"github.com/emicklei/dot"
@@ -74,6 +75,7 @@ func testBeaconState(t *testing.T) (*types.BeaconState[
 		return nil, err
 	}
 	roundtrip, err := beacon.MarshalSSZ()
+	require.NoError(t, err)
 	require.True(t, bytes.Equal(bz, roundtrip))
 	return beacon, nil
 }
@@ -275,11 +277,11 @@ func Test_SchemaDB(t *testing.T) {
 	)
 }
 
-// func Test_EmptyDB(t *testing.T) {
-// 	dir := t.TempDir() + "/sszdb.db"
-// 	db, err := sszdb.NewBackend(sszdb.BackendConfig{Path: dir})
-// 	require.NoError(t, err)
-// 	emptyState := (&components.BeaconStateMarshallable{}).Empty()
-// 	_, err = sszdb.NewSchemaDB(db, emptyState)
-// 	require.NoError(t, err)
-// }
+func Test_EmptyDB(t *testing.T) {
+	dir := t.TempDir() + "/sszdb.db"
+	db, err := sszdb.NewBackend(sszdb.BackendConfig{Path: dir})
+	require.NoError(t, err)
+	emptyState := (&components.BeaconStateMarshallable{}).Empty()
+	_, err = sszdb.NewSchemaDB(db, emptyState)
+	require.NoError(t, err)
+}
