@@ -82,6 +82,12 @@ def deploy_contracts(plan, deployment):
         ),
     )
 
+    exec_on_service(
+        plan,
+        foundry_service.name,
+        "cat {}/output.json ".format(contract_path),
+    )
+
     # Get the forge script output in a output.json file and grep from it
     transaction_file = "grep 'Transactions saved to' output.json | awk -F': ' '{print $2}'"
     plan.print("transaction_file", transaction_file)
