@@ -46,10 +46,7 @@ func (ms *MessageServer) Request(req types.BaseMessage, future any) error {
 	if !ok {
 		return errRouteNotFound
 	}
-	if err := route.SendRequest(req, future); err != nil {
-		return err
-	}
-	return nil
+	return route.SendRequest(req, future)
 }
 
 // Respond sends a response to the route that corresponds to the response's
