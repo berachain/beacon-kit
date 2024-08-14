@@ -454,6 +454,11 @@ func (app *BaseApp) Commit() (*abci.CommitResponse, error) {
 	}
 
 	app.cms.Commit()
+	if app.commitHook != nil {
+		if err := app.commitHook(app.finalizeBlockState.Context()); err != nil {
+			return nil, err
+		}
+	}
 
 	resp := &abci.CommitResponse{
 		RetainHeight: retainHeight,
