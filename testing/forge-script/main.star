@@ -38,10 +38,24 @@ def deploy_contracts(plan, deployment):
     else:
         contract_path = SOURCE_DIR_PATH
 
+    plan.exec(
+        service_name = foundry_service.name,
+        recipe = ExecRecipe(
+            command = ["/bin/sh", "-c", "apk update && apk add --no-cache nodejs npm"],
+        ),
+    )
+
+    plan.exec(
+        service_name = foundry_service.name,
+        recipe = ExecRecipe(
+            command = ["/bin/sh", "-c", "npm install -g bun"],
+        ),
+    )
+
     result = plan.exec(
         service_name = foundry_service.name,
         recipe = ExecRecipe(
-            command = ["/bin/sh", "-c", "cd {} && forge build".format(contract_path)],
+            command = ["/bin/sh", "-c", "cd {} && bun install && forge build".format(contract_path)],
         ),
     )
     plan.verify(result["code"], "==", 0)
