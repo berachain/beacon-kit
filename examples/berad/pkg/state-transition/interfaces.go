@@ -109,7 +109,7 @@ type WriteOnlyBeaconState[
 
 	DecreaseBalance(math.ValidatorIndex, math.Gwei) error
 	IncreaseBalance(math.ValidatorIndex, math.Gwei) error
-	SetBalance(math.ValidatorIndex, math.Gwei) error
+	SetWithdrawalValidator(math.ValidatorIndex) error
 	SetEth1DepositIndex(uint64) error
 	SetFork(ForkT) error
 	SetGenesisValidatorsRoot(root common.Root) error

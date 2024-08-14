@@ -43,6 +43,7 @@ const (
 	GenesisValidatorsRootPrefix
 	NextWithdrawalIndexPrefix
 	NextWithdrawalValidatorIndexPrefix
+	WithdrawalValidatorsPrefix
 	ForkPrefix
 )
 
@@ -70,5 +71,6 @@ const (
 	GenesisValidatorsRootPrefixHumanReadable            = "GenesisValidatorsRootPrefix"
 	NextWithdrawalIndexPrefixHumanReadable              = "NextWithdrawalIndexPrefix"
 	NextWithdrawalValidatorIndexPrefixHumanReadable     = "NextWithdrawalValidatorIndexPrefix"
+	WithdrawalValidatorsPrefixHumanReadable             = "WithdrawalValidatorsPrefix"
 	ForkPrefixHumanReadable                             = "ForkPrefix"
 )

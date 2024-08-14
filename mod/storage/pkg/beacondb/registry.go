@@ -285,3 +285,36 @@ func (kv *KVStore[
 		},
 	)
 }
+
+func (kv *KVStore[
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
+]) SetWithdrawalValidator(
+	idx math.ValidatorIndex,
+) error {
+	val, err := kv.ValidatorByIndex(idx)
+	if err != nil {
+		return err
+	}
+
+	// Set the withdrawal validator.
+	kv.withdrawalValidators.Set(kv.ctx, idx.Unwrap(), val)
+
+	// Get the next withdrawal index.
+	withdrawalIdx, err := kv.nextWithdrawalIndex.Get(kv.ctx)
+	if err != nil {
+		return err
+	}
+
+	// Increment the withdrawal index.
+	if err = kv.nextWithdrawalIndex.Set(kv.ctx, withdrawalIdx+1); err != nil {
+		return err
+	}
+
+	// Set the validator's balance to 0.
+	val.SetEffectiveBalance(0)
+	if err = kv.validators.Set(kv.ctx, idx.Unwrap(), val); err != nil {
+		return err
+	}
+	return kv.SetBalance(idx, 0)
+}

@@ -281,7 +281,7 @@ func (sp *StateProcessor[
 		}
 
 		// Set the validator's effective balance to 0.
-		if err = st.SetBalance(idx, 0); err != nil {
+		if err = st.SetWithdrawalValidator(idx); err != nil {
 			return err
 		}
 	}

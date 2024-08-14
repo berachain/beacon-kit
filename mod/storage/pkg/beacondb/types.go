@@ -37,4 +37,6 @@ type Validator[SelfT any] interface {
 	GetEffectiveBalance() math.Gwei
 	// IsActive checks if the validator is active at the given epoch.
 	IsActive(epoch math.Epoch) bool
+	// SetEffectiveBalance sets the effective balance of the validator.
+	SetEffectiveBalance(math.Gwei)
 }
