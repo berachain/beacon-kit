@@ -32,7 +32,6 @@ import (
 	_ "github.com/bazelbuild/buildtools/buildifier"
 	_ "github.com/bufbuild/buf/cmd/buf"
 	_ "github.com/cosmos/gosec/v2/cmd/gosec"
-	_ "github.com/ethereum/go-ethereum/cmd/abigen"
 	_ "github.com/ferranbt/fastssz/sszgen"
 	_ "github.com/fjl/gencodec"
 	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
