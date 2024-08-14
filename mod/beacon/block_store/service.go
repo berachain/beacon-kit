@@ -44,7 +44,7 @@ func NewService[
 		dispatcher: dispatcher,
 		store:      store,
 		// finalizedBlkEvents is a channel for receiving finalized block events.
-		finalizedBlkEvents: make(chan *asynctypes.Event[BeaconBlockT]),
+		finalizedBlkEvents: make(chan asynctypes.Event[BeaconBlockT]),
 	}
 }
 
@@ -62,7 +62,7 @@ type Service[
 	// store is the block store for the service.
 	store BlockStoreT
 	// finalizedBlkEvents is a channel for receiving finalized block events.
-	finalizedBlkEvents chan *asynctypes.Event[BeaconBlockT]
+	finalizedBlkEvents chan asynctypes.Event[BeaconBlockT]
 }
 
 // Name returns the name of the service.

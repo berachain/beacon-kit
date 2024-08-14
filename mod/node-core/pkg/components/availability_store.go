@@ -90,7 +90,7 @@ func ProvideAvailabilityPruner(
 		return nil, errors.New("availability store does not have a range db")
 	}
 
-	var finalizedBlkCh = make(chan *FinalizedBlockEvent)
+	var finalizedBlkCh = make(chan FinalizedBlockEvent)
 	if err := in.Dispatcher.Subscribe(
 		messages.BeaconBlockFinalizedEvent, finalizedBlkCh,
 	); err != nil {
@@ -102,7 +102,7 @@ func ProvideAvailabilityPruner(
 	// build the availability pruner if IndexDB is available.
 	return pruner.NewPruner[
 		*BeaconBlock,
-		*FinalizedBlockEvent,
+		FinalizedBlockEvent,
 		*IndexDB,
 	](
 		in.Logger.With("service", manager.AvailabilityPrunerName),
@@ -111,7 +111,7 @@ func ProvideAvailabilityPruner(
 		finalizedBlkCh,
 		dastore.BuildPruneRangeFn[
 			*BeaconBlock,
-			*FinalizedBlockEvent,
+			FinalizedBlockEvent,
 		](in.ChainSpec),
 	), nil
 }

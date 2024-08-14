@@ -52,6 +52,8 @@ func (es *EventServer) Publish(event types.BaseMessage) error {
 // Subscribe subscribes the given channel to the publisher with the given
 // eventID. It will error if the channel type does not match the event type
 // corresponding to the publisher.
+// Contract: the channel must be a Subscription[T], where T is the expected
+// type of the event data.
 func (es *EventServer) Subscribe(eventID types.MessageID, ch any) error {
 	publisher, ok := es.publishers[eventID]
 	if !ok {

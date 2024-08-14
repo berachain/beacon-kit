@@ -46,24 +46,29 @@ func (h *ABCIMiddleware[
 	ctx context.Context,
 	bz []byte,
 ) (transition.ValidatorUpdates, error) {
-	var err error
+	var (
+		err      error
+		gdpEvent asynctypes.Event[transition.ValidatorUpdates]
+	)
 	data := new(GenesisT)
 	if err = json.Unmarshal(bz, data); err != nil {
 		h.logger.Error("Failed to unmarshal genesis data", "error", err)
 		return nil, err
 	}
 
+	// TODO: implement service
 	// request for validator updates
-	valUpdates := asynctypes.NewFuture[transition.ValidatorUpdates]()
-	if err = h.dispatcher.SendRequest(
-		asynctypes.NewMessage(
-			ctx, messages.ProcessGenesisData, *data,
-		), valUpdates,
+	if err = h.dispatcher.PublishEvent(
+		asynctypes.NewEvent(ctx, messages.GenesisDataReceived, *data),
 	); err != nil {
 		return nil, err
 	}
 
-	return valUpdates.Resolve()
+	gdpEvent, err = h.subGenDataProcessed.Await(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return gdpEvent.Data(), gdpEvent.Error()
 }
 
 /* -------------------------------------------------------------------------- */
@@ -77,47 +82,65 @@ func (h *ABCIMiddleware[
 	ctx context.Context,
 	slotData SlotDataT,
 ) ([]byte, []byte, error) {
-	var err error
-	startTime := time.Now()
+	var (
+		err          error
+		builtBBEvent asynctypes.Event[BeaconBlockT]
+		builtSCEvent asynctypes.Event[BlobSidecarsT]
+		startTime    = time.Now()
+	)
 	defer h.metrics.measurePrepareProposalDuration(startTime)
 
-	// request a built beacon block for the given slot
-	beaconBlkBundleFuture := asynctypes.NewFuture[BeaconBlockBundleT]()
-	if err = h.dispatcher.SendRequest(
-		asynctypes.NewMessage(
-			ctx, messages.BuildBeaconBlockAndSidecars, slotData,
-		), beaconBlkBundleFuture,
+	// TODO: implement service
+	if err = h.dispatcher.PublishEvent(
+		asynctypes.NewEvent(
+			ctx, messages.NewSlot, slotData,
+		),
 	); err != nil {
 		return nil, nil, err
 	}
 
-	// resolve the beacon block bundle from the future
-	beaconBlkBundle, err := beaconBlkBundleFuture.Resolve()
+	// wait for built beacon block
+	builtBBEvent, err = h.subBuiltBeaconBlock.Await(ctx)
 	if err != nil {
+		return nil, nil, err
+	}
+	if err = builtBBEvent.Error(); err != nil {
+		return nil, nil, err
+	}
+
+	// wait for built sidecars
+	builtSCEvent, err = h.subBuiltSidecars.Await(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	if err = builtSCEvent.Error(); err != nil {
 		return nil, nil, err
 	}
 
 	// gossip the built beacon block and blob sidecars
-	return h.handleBeaconBlockBundleResponse(ctx, beaconBlkBundle)
+	return h.handleBuiltBeaconBlockAndSidecars(
+		ctx, builtBBEvent.Data(), builtSCEvent.Data(),
+	)
 }
 
 // handleBeaconBlockBundleResponse gossips the built beacon block and blob
 // sidecars to the network.
 func (h *ABCIMiddleware[
-	_, BeaconBlockT, BeaconBlockBundleT, BlobSidecarsT, _, _, _, _,
-]) handleBeaconBlockBundleResponse(
+	_, BeaconBlockT, _, BlobSidecarsT, _, _, _, _,
+]) handleBuiltBeaconBlockAndSidecars(
 	ctx context.Context,
-	bbb BeaconBlockBundleT,
+	bb BeaconBlockT,
+	sc BlobSidecarsT,
 ) ([]byte, []byte, error) {
 	// gossip beacon block
 	bbBz, bbErr := h.beaconBlockGossiper.Publish(
-		ctx, bbb.GetBeaconBlock(),
+		ctx, bb,
 	)
 	if bbErr != nil {
 		return nil, nil, bbErr
 	}
 	// gossip blob sidecars
-	scBz, scErr := h.blobGossiper.Publish(ctx, bbb.GetSidecars())
+	scBz, scErr := h.blobGossiper.Publish(ctx, sc)
 	if scErr != nil {
 		return nil, nil, scErr
 	}
@@ -137,10 +160,10 @@ func (h *ABCIMiddleware[
 	req proto.Message,
 ) (proto.Message, error) {
 	var (
-		blk       BeaconBlockT
-		sidecars  BlobSidecarsT
 		err       error
 		startTime = time.Now()
+		blk       BeaconBlockT
+		sidecars  BlobSidecarsT
 	)
 	abciReq, ok := req.(*cmtabci.ProcessProposalRequest)
 	if !ok {
@@ -154,12 +177,10 @@ func (h *ABCIMiddleware[
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
 
-	// verify the beacon block
-	beaconBlockFuture := asynctypes.NewFuture[BeaconBlockT]()
-	if err = h.dispatcher.SendRequest(
-		asynctypes.NewMessage(
-			ctx, messages.VerifyBeaconBlock, blk,
-		), beaconBlockFuture,
+	// TODO: implement service
+	// notify that the beacon block has been received.
+	if err = h.dispatcher.PublishEvent(
+		asynctypes.NewEvent(ctx, messages.BeaconBlockReceived, blk),
 	); err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
@@ -169,27 +190,22 @@ func (h *ABCIMiddleware[
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
 
-	// verify the blob sidecars
-	sidecarsFuture := asynctypes.NewFuture[BlobSidecarsT]()
-	if err = h.dispatcher.SendRequest(
-		asynctypes.NewMessage(
-			ctx, messages.VerifySidecars, sidecars,
-		), sidecarsFuture,
+	// notify that the sidecars have been received.
+	if err = h.dispatcher.PublishEvent(
+		asynctypes.NewEvent(ctx, messages.SidecarsReceived, sidecars),
 	); err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
 
-	// error if the beacon block or sidecars are invalid
-	_, err = beaconBlockFuture.Resolve()
+	// err if the built beacon block or sidecars failed verification.
+	_, err = h.subBBVerified.Await(ctx)
 	if err != nil {
 		return h.createProcessProposalResponse(err)
 	}
-
-	_, err = sidecarsFuture.Resolve()
+	_, err = h.subSCVerified.Await(ctx)
 	if err != nil {
 		return h.createProcessProposalResponse(err)
 	}
-
 	return h.createProcessProposalResponse(nil)
 }
 
@@ -217,9 +233,10 @@ func (h *ABCIMiddleware[
 	ctx context.Context, req proto.Message,
 ) (transition.ValidatorUpdates, error) {
 	var (
-		blk   BeaconBlockT
-		blobs BlobSidecarsT
-		err   error
+		err                  error
+		blk                  BeaconBlockT
+		blobs                BlobSidecarsT
+		finalValUpdatesEvent asynctypes.Event[transition.ValidatorUpdates]
 	)
 	abciReq, ok := req.(*cmtabci.FinalizeBlockRequest)
 	if !ok {
@@ -239,25 +256,22 @@ func (h *ABCIMiddleware[
 		return nil, nil
 	}
 
-	// process the sidecars.
-	sidecarsFuture := asynctypes.NewFuture[BlobSidecarsT]()
-	if err = h.dispatcher.SendRequest(
-		asynctypes.NewMessage(
-			ctx, messages.ProcessSidecars, blobs,
-		), sidecarsFuture,
+	if err = h.dispatcher.PublishEvent(
+		asynctypes.NewEvent(ctx, messages.FinalBeaconBlockReceived, blk),
 	); err != nil {
 		return nil, err
 	}
 
-	// finalize the beacon block.
-	valUpdatesFuture := asynctypes.NewFuture[transition.ValidatorUpdates]()
-	if err = h.dispatcher.SendRequest(
-		asynctypes.NewMessage(
-			ctx, messages.FinalizeBeaconBlock, blk,
-		), valUpdatesFuture,
+	if err = h.dispatcher.PublishEvent(
+		asynctypes.NewEvent(ctx, messages.FinalBlobSidecarsReceived, blobs),
 	); err != nil {
 		return nil, err
 	}
 
-	return valUpdatesFuture.Resolve()
+	finalValUpdatesEvent, err = h.subFinalValidatorUpdates.Await(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return finalValUpdatesEvent.Data(), finalValUpdatesEvent.Error()
 }

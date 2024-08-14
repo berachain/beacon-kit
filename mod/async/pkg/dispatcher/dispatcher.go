@@ -104,6 +104,8 @@ func (d *Dispatcher) RegisterPublishers(
 // Subscribe subscribes the given channel to the event with the given <eventID>.
 // It will error if the channel type does not match the event type corresponding
 // to the <eventID>.
+// Contract: the channel must be a Subscription[T], where T is the expected
+// type of the event data.
 func (d *Dispatcher) Subscribe(eventID types.MessageID, ch any) error {
 	return d.eventServer.Subscribe(eventID, ch)
 }

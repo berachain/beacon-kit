@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/p2p"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	rp2p "github.com/berachain/beacon-kit/mod/runtime/pkg/p2p"
 )
@@ -69,6 +70,14 @@ type ABCIMiddleware[
 	metrics *ABCIMiddlewareMetrics
 	// logger is the logger for the middleware.
 	logger log.Logger[any]
+
+	// subscriptions
+	subGenDataProcessed      asynctypes.Subscription[transition.ValidatorUpdates]
+	subBuiltBeaconBlock      asynctypes.Subscription[BeaconBlockT]
+	subBuiltSidecars         asynctypes.Subscription[BlobSidecarsT]
+	subBBVerified            asynctypes.Subscription[BeaconBlockT]
+	subSCVerified            asynctypes.Subscription[BlobSidecarsT]
+	subFinalValidatorUpdates asynctypes.Subscription[transition.ValidatorUpdates]
 }
 
 // NewABCIMiddleware creates a new instance of the Handler struct.
@@ -111,6 +120,13 @@ func NewABCIMiddleware[
 		metrics:    newABCIMiddlewareMetrics(telemetrySink),
 		dispatcher: dispatcher,
 	}
+}
+
+func (am *ABCIMiddleware[
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBundleT, BlobSidecarsT, DepositT,
+	ExecutionPayloadT, GenesisT, SlotDataT,
+]) Start() asynctypes.Subscription[transition.ValidatorUpdates] {
+	return am.subFinalValidatorUpdates
 }
 
 // Name returns the name of the middleware.

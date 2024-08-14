@@ -70,7 +70,7 @@ type DepositPrunerInput struct {
 func ProvideDepositPruner(
 	in DepositPrunerInput,
 ) (DepositPruner, error) {
-	var finalizedBlkCh = make(chan *FinalizedBlockEvent)
+	var finalizedBlkCh = make(chan FinalizedBlockEvent)
 	if err := in.Dispatcher.Subscribe(
 		messages.BeaconBlockFinalizedEvent, finalizedBlkCh,
 	); err != nil {
@@ -81,7 +81,7 @@ func ProvideDepositPruner(
 
 	return pruner.NewPruner[
 		*BeaconBlock,
-		*FinalizedBlockEvent,
+		FinalizedBlockEvent,
 		*DepositStore,
 	](
 		in.Logger.With("service", manager.DepositPrunerName),
@@ -91,7 +91,7 @@ func ProvideDepositPruner(
 		deposit.BuildPruneRangeFn[
 			*BeaconBlockBody,
 			*BeaconBlock,
-			*FinalizedBlockEvent,
+			FinalizedBlockEvent,
 			*Deposit,
 			*ExecutionPayload,
 			WithdrawalCredentials,

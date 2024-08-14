@@ -30,10 +30,10 @@ import (
 
 // Publisher is responsible for broadcasting all events corresponding to the
 // <eventID> to all registered client channels.
-type Publisher[T any] struct {
+type Publisher[T types.Event[T]] struct {
 	eventID types.EventID
-	// clients is a map of subscribed clients.
-	clients map[chan T]struct{}
+	// subscriptions is a map of subscribed subscriptions.
+	subscriptions map[types.Subscription[T]]struct{}
 	// msgs is the channel for publishing new messages.
 	msgs chan T
 	// timeout is the timeout for sending a msg to a client.
@@ -44,13 +44,13 @@ type Publisher[T any] struct {
 
 // NewPublisher creates a new publisher publishing events of type T for the
 // provided eventID.
-func NewPublisher[T any](eventID string) *Publisher[T] {
+func NewPublisher[T types.Event[T]](eventID string) *Publisher[T] {
 	return &Publisher[T]{
-		eventID: types.EventID(eventID),
-		clients: make(map[chan T]struct{}),
-		msgs:    make(chan T, defaultBufferSize),
-		timeout: defaultPublisherTimeout,
-		mu:      sync.Mutex{},
+		eventID:       types.EventID(eventID),
+		subscriptions: make(map[types.Subscription[T]]struct{}),
+		msgs:          make(chan T, defaultBufferSize),
+		timeout:       defaultPublisherTimeout,
+		mu:            sync.Mutex{},
 	}
 }
 
@@ -97,35 +97,36 @@ func (p *Publisher[T]) Publish(msg types.BaseMessage) error {
 
 // Subscribe registers the provided channel to the publisher,
 // Returns ErrTimeout on timeout.
-// TODO: see if its possible to accept a channel instead of any
+// Contract: the channel must be a Subscription[T], where T is the expected
+// type of the event data.
 func (p *Publisher[T]) Subscribe(ch any) error {
-	client, err := ensureType[chan T](ch)
+	client, err := ensureType[types.Subscription[T]](ch)
 	if err != nil {
 		return err
 	}
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	p.clients[client] = struct{}{}
+	p.subscriptions[client] = struct{}{}
 	return nil
 }
 
 // Unsubscribe removes a client from the publisher.
 // Returns an error if the provided channel is not of type chan T.
 func (p *Publisher[T]) Unsubscribe(ch any) error {
-	client, err := ensureType[chan T](ch)
+	client, err := ensureType[types.Subscription[T]](ch)
 	if err != nil {
 		return err
 	}
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	delete(p.clients, client)
+	delete(p.subscriptions, client)
 	close(client)
 	return nil
 }
 
 // broadcast broadcasts a msg to all clients.
 func (p *Publisher[T]) broadcast(msg T) {
-	for client := range p.clients {
+	for client := range p.subscriptions {
 		// send msg to client (or discard msg after timeout)
 		select {
 		case client <- msg:
@@ -136,7 +137,7 @@ func (p *Publisher[T]) broadcast(msg T) {
 
 // shutdown closes all leftover clients.
 func (p *Publisher[T]) shutdown() {
-	for client := range p.clients {
+	for client := range p.subscriptions {
 		if err := p.Unsubscribe(client); err != nil {
 			panic(err)
 		}

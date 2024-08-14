@@ -29,8 +29,3 @@ const (
 	VerifySidecars              = "verify-sidecars"
 	ProcessSidecars             = "process-sidecars"
 )
-
-// events.
-const (
-	BeaconBlockFinalizedEvent = "beacon-block-finalized"
-)

@@ -50,7 +50,7 @@ func ProvideDepositService(in DepositServiceIn) (*DepositService, error) {
 	return deposit.NewService[
 		*BeaconBlockBody,
 		*BeaconBlock,
-		*FinalizedBlockEvent,
+		FinalizedBlockEvent,
 		*DepositStore,
 		*ExecutionPayload,
 	](

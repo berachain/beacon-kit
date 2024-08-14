@@ -42,7 +42,10 @@ type Dispatcher interface {
 type EventDispatcher interface {
 	// PublishEvent publishes an event to the dispatcher.
 	PublishEvent(event BaseMessage) error
-	// Subscribe subscribes to an event.
+	// Subscribe subscribes the given channel to all events with the given event
+	// ID.
+	// Contract: the channel must be a Subscription[T], where T is the expected
+	// type of the event data.
 	Subscribe(eventID EventID, ch any) error
 }
 

@@ -79,7 +79,7 @@ type BlockPrunerInput struct {
 func ProvideBlockPruner(
 	in BlockPrunerInput,
 ) (BlockPruner, error) {
-	var finalizedBlkCh = make(chan *FinalizedBlockEvent)
+	var finalizedBlkCh = make(chan FinalizedBlockEvent)
 	if err := in.Dispatcher.Subscribe(
 		messages.BeaconBlockFinalizedEvent, finalizedBlkCh,
 	); err != nil {
@@ -90,7 +90,7 @@ func ProvideBlockPruner(
 
 	return pruner.NewPruner[
 		*BeaconBlock,
-		*FinalizedBlockEvent,
+		FinalizedBlockEvent,
 		*BlockStore,
 	](
 		in.Logger.With("service", manager.BlockPrunerName),
@@ -99,7 +99,7 @@ func ProvideBlockPruner(
 		finalizedBlkCh,
 		blockservice.BuildPruneRangeFn[
 			*BeaconBlock,
-			*FinalizedBlockEvent,
+			FinalizedBlockEvent,
 		](in.Config.BlockStoreService),
 	), nil
 }
