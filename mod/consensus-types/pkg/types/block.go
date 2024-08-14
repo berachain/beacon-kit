@@ -24,6 +24,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
+	"github.com/davecgh/go-spew/spew"
 	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
 )
@@ -46,7 +47,12 @@ type BeaconBlock struct {
 
 // Empty creates an empty beacon block.
 func (*BeaconBlock) Empty() *BeaconBlock {
-	return &BeaconBlock{}
+	return &BeaconBlock{
+		Body: &BeaconBlockBody{
+			Eth1Data:         &Eth1Data{},
+			ExecutionPayload: &ExecutionPayload{},
+		},
+	}
 }
 
 // NewWithVersion assembles a new beacon block from the given.
@@ -56,21 +62,16 @@ func (b *BeaconBlock) NewWithVersion(
 	parentBlockRoot common.Root,
 	forkVersion uint32,
 ) (*BeaconBlock, error) {
-	var (
-		block *BeaconBlock
-	)
+	var block *BeaconBlock
 
 	switch forkVersion {
 	case version.Deneb:
-		block = &BeaconBlock{
-			Slot:          slot,
-			ProposerIndex: proposerIndex,
-			ParentRoot:    parentBlockRoot,
-			StateRoot:     common.Root{},
-			Body:          &BeaconBlockBody{},
-		}
+		block = new(BeaconBlock).Empty()
+		block.Slot = slot
+		block.ProposerIndex = proposerIndex
+		block.ParentRoot = parentBlockRoot
 	default:
-		return &BeaconBlock{}, ErrForkVersionNotSupported
+		return block, ErrForkVersionNotSupported
 	}
 
 	return block, nil
@@ -81,10 +82,10 @@ func (b *BeaconBlock) NewFromSSZ(
 	bz []byte,
 	forkVersion uint32,
 ) (*BeaconBlock, error) {
-	var block = new(BeaconBlock)
+	var block *BeaconBlock
 	switch forkVersion {
 	case version.Deneb:
-		block = &BeaconBlock{}
+		block = new(BeaconBlock).Empty()
 	case version.DenebPlus:
 		panic("unsupported fork version")
 	default:
@@ -111,6 +112,9 @@ func (b *BeaconBlock) SizeSSZ(fixed bool) uint32 {
 
 // DefineSSZ defines the SSZ encoding for the BeaconBlock object.
 func (b *BeaconBlock) DefineSSZ(codec *ssz.Codec) {
+	spew.Dump(b)
+	spew.Dump(codec)
+
 	// Define the static data (fields and dynamic offsets)
 	ssz.DefineUint64(codec, &b.Slot)
 	ssz.DefineUint64(codec, &b.ProposerIndex)
