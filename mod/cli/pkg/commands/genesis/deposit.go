@@ -25,7 +25,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/context"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/parser"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -42,7 +41,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 // AddGenesisDepositCmd - returns the cobra command to
@@ -71,7 +69,11 @@ func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
 			)
 
 			// Get the BLS signer.
-			blsSigner, err := getBLSSigner(client.GetViperFromCmd(cmd))
+			blsSigner, err := components.ProvideBlsSigner(
+				components.BlsSignerInput{
+					AppOpts: client.GetViperFromCmd(cmd),
+				},
+			)
 			if err != nil {
 				return err
 			}
@@ -187,24 +189,4 @@ func writeDepositToFile(
 	_, err = fmt.Fprintf(outputFile, "%s\n", bz)
 
 	return err
-}
-
-// getBLSSigner returns a BLS signer based on the override node key flag.
-func getBLSSigner(v *viper.Viper) (crypto.BLSSigner, error) {
-	var blsSigner crypto.BLSSigner
-	if err := depinject.Inject(
-		depinject.Configs(
-			depinject.Supply(
-				v,
-			),
-			depinject.Provide(
-				,
-			),
-		),
-		&blsSigner,
-	); err != nil {
-		return nil, err
-	}
-
-	return blsSigner, nil
 }
