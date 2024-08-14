@@ -35,29 +35,29 @@ import (
 type Log struct {
 	// Consensus fields:
 	// address of the contract that generated the event
-	Address common.ExecutionAddress `json:"address" gencodec:"required"`
+	Address common.ExecutionAddress `json:"address"`
 	// list of topics provided by the contract.
-	Topics []common.ExecutionHash `json:"topics"  gencodec:"required"`
+	Topics []common.ExecutionHash `json:"topics"`
 	// supplied by the contract, usually ABI-encoded
-	Data []byte `json:"data"    gencodec:"required"`
+	Data []byte `json:"data"`
 
 	// Derived fields. These fields are filled in by the node
 	// but not secured by consensus.
 	// block in which the transaction was included
-	BlockNumber uint64 `json:"blockNumber"      rlp:"-"`
+	BlockNumber uint64 `json:"blockNumber"`
 	// hash of the transaction
-	TxHash common.ExecutionHash `json:"transactionHash"  rlp:"-" gencodec:"required"`
+	TxHash common.ExecutionHash `json:"transactionHash"`
 	// index of the transaction in the block
-	TxIndex uint `json:"transactionIndex" rlp:"-"`
+	TxIndex uint `json:"transactionIndex"`
 	// hash of the block in which the transaction was included
-	BlockHash common.ExecutionHash `json:"blockHash"        rlp:"-"`
+	BlockHash common.ExecutionHash `json:"blockHash"`
 	// index of the log in the block
-	Index uint `json:"logIndex"         rlp:"-"`
+	Index uint `json:"logIndex"`
 
 	// The Removed field is true if this log was reverted due to a chain
 	// reorganisation. You must pay attention to this field if you receive logs
 	// through a filter query.
-	Removed bool `json:"removed" rlp:"-"`
+	Removed bool `json:"removed"`
 }
 
 // MarshalJSON marshals as JSON.
