@@ -22,23 +22,28 @@ package deposit
 
 import (
 	"context"
-	"errors"
 
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
-	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/bind"
-	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/deposit"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
+
+// Client is an interface for the client.
+type Client interface {
+	GetLogsAtBlockNumber(
+		ctx context.Context,
+		number math.U64,
+		address common.ExecutionAddress,
+	) ([]engineprimitives.Log, error)
+}
 
 // WrappedBeaconDepositContract is a struct that holds a pointer to an ABI.
 type WrappedBeaconDepositContract[
 	DepositT Deposit[DepositT, WithdrawalCredentialsT],
 	WithdrawalCredentialsT ~[32]byte,
 ] struct {
-	// BeaconDepositContractFilterer is a pointer to the codegen ABI binding.
-	deposit.BeaconDepositContractFilterer
+	client  Client
+	address common.ExecutionAddress
 }
 
 // NewWrappedBeaconDepositContract creates a new BeaconDepositContract.
@@ -47,26 +52,18 @@ func NewWrappedBeaconDepositContract[
 	WithdrawalCredentialsT ~[32]byte,
 ](
 	address common.ExecutionAddress,
-	client bind.ContractFilterer,
+	client Client,
 ) (*WrappedBeaconDepositContract[
 	DepositT,
 	WithdrawalCredentialsT,
 ], error) {
-	contract, err := deposit.NewBeaconDepositContractFilterer(
-		gethprimitives.ExecutionAddress(address), client,
-	)
-
-	if err != nil {
-		return nil, err
-	} else if contract == nil {
-		return nil, errors.New("contract must not be nil")
-	}
 
 	return &WrappedBeaconDepositContract[
 		DepositT,
 		WithdrawalCredentialsT,
 	]{
-		BeaconDepositContractFilterer: *contract,
+		client:  client,
+		address: address,
 	}, nil
 }
 
@@ -78,28 +75,23 @@ func (dc *WrappedBeaconDepositContract[
 	ctx context.Context,
 	blkNum math.U64,
 ) ([]DepositT, error) {
-	logs, err := dc.FilterDeposit(
-		&bind.FilterOpts{
-			Context: ctx,
-			Start:   blkNum.Unwrap(),
-			End:     (*uint64)(&blkNum),
-		},
+	logs, err := dc.client.GetLogsAtBlockNumber(
+		ctx,
+		blkNum,
+		dc.address,
 	)
 	if err != nil {
 		return nil, err
 	}
 
+	var d DepositT
 	deposits := make([]DepositT, 0)
-	for logs.Next() {
-		var d DepositT
-		deposits = append(deposits, d.New(
-			bytes.ToBytes48(logs.Event.Pubkey),
-			WithdrawalCredentialsT(
-				bytes.ToBytes32(logs.Event.Credentials)),
-			math.U64(logs.Event.Amount),
-			bytes.ToBytes96(logs.Event.Signature),
-			logs.Event.Index,
-		))
+	for _, log := range logs {
+		d = d.Empty()
+		if err := d.UnmarshalLog(log); err != nil {
+			return nil, err
+		}
+		deposits = append(deposits)
 	}
 
 	return deposits, nil

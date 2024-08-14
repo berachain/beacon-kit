@@ -21,6 +21,10 @@
 package types
 
 import (
+	"encoding/binary"
+
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -181,6 +185,24 @@ func (d *Deposit) HashTreeRootWith(hh fastssz.HashWalker) error {
 // GetTree ssz hashes the Deposit object.
 func (d *Deposit) GetTree() (*fastssz.Node, error) {
 	return fastssz.ProofTree(d)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   EthLog                                   */
+/* -------------------------------------------------------------------------- */
+
+// UnmarshalLog unmarshals the Deposit object from an Ethereum log.
+//
+//nolint:mnd // todo fix later.
+func (d *Deposit) UnmarshalLog(log engineprimitives.Log) error {
+	idx := binary.BigEndian.Uint64(log.Data[152:160])
+	d.Index = idx
+	d.Pubkey = bytes.B48(log.Data[208:256])
+	amount := binary.BigEndian.Uint64(log.Data[280:288])
+	d.Amount = math.U64(amount)
+	d.Credentials = WithdrawalCredentials(bytes.B32(log.Data[288:320]))
+	d.Signature = bytes.B96(log.Data[352:448])
+	return nil
 }
 
 /* -------------------------------------------------------------------------- */

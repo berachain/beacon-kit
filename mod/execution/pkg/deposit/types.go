@@ -24,7 +24,7 @@ import (
 	"context"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -75,15 +75,17 @@ type Contract[DepositT any] interface {
 // Deposit is an interface for deposits.
 type Deposit[DepositT, WithdrawalCredentialsT any] interface {
 	// New creates a new deposit.
-	New(
-		crypto.BLSPubkey,
-		WithdrawalCredentialsT,
-		math.U64,
-		crypto.BLSSignature,
-		uint64,
-	) DepositT
+	// New(
+	// 	crypto.BLSPubkey,
+	// 	WithdrawalCredentialsT,
+	// 	math.U64,
+	// 	crypto.BLSSignature,
+	// 	uint64,
+	// ) DepositT
+	Empty() DepositT
 	// GetIndex returns the index of the deposit.
 	GetIndex() math.U64
+	UnmarshalLog(engineprimitives.Log) error
 }
 
 // Store defines the interface for managing deposit operations.

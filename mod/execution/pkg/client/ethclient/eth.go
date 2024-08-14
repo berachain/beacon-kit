@@ -22,15 +22,10 @@ package ethclient
 
 import (
 	"context"
-	"fmt"
-	"math/big"
 
-	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/rpc"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core/types"
 )
 
 // ChainID retrieves the current chain ID.
@@ -44,66 +39,18 @@ func (ec *Client[ExecutionPayloadT]) ChainID(
 	return result, nil
 }
 
-// TODO: Figure out how to unhood all this.
-
-// FilterLogs executes a filter query.
-func (ec *Client[ExecutionPayloadT]) FilterLogs(
+// GetLogsByBlockHash retrieves logs for a block hash.
+func (ec *Client[ExecutionPayloadT]) GetLogsAtBlockNumber(
 	ctx context.Context,
-	q ethereum.FilterQuery,
-) ([]types.Log, error) {
-	var result []types.Log
-	arg, err := toFilterArg(q)
-	if err != nil {
-		return nil, err
-	}
-	return result, ec.Call(ctx, &result, "eth_getLogs", arg)
-}
-
-// SubscribeFilterLogs(ctx context.Context, q FilterQuery, ch chan<- types.Log)
-// (Subscription, error)
-
-func (ec *Client[ExecutionPayloadT]) SubscribeFilterLogs(
-	context.Context,
-	ethereum.FilterQuery,
-	chan<- types.Log,
-) (ethereum.Subscription, error) {
-	return nil, errors.New("not implemented")
-}
-
-func toFilterArg(q ethereum.FilterQuery) (interface{}, error) {
-	arg := map[string]interface{}{
-		"address": q.Addresses,
-		"topics":  q.Topics,
-	}
-	if q.BlockHash != nil {
-		arg["blockHash"] = *q.BlockHash
-		if q.FromBlock != nil || q.ToBlock != nil {
-			return nil, errors.New(
-				"cannot specify both BlockHash and FromBlock/ToBlock",
-			)
-		}
-	} else {
-		if q.FromBlock == nil {
-			arg["fromBlock"] = "0x0"
-		} else {
-			arg["fromBlock"] = toBlockNumArg(q.FromBlock)
-		}
-		arg["toBlock"] = toBlockNumArg(q.ToBlock)
-	}
-	return arg, nil
-}
-
-func toBlockNumArg(number *big.Int) string {
-	if number == nil {
-		return "latest"
-	}
-	if number.Sign() >= 0 {
-		return hexutil.EncodeBig(number)
-	}
-	// It's negative.
-	if number.IsInt64() {
-		return rpc.BlockNumber(number.Int64()).String()
-	}
-	// It's negative and large, which is invalid.
-	return fmt.Sprintf("<invalid %d>", number)
+	number math.U64,
+	address common.ExecutionAddress,
+) ([]engineprimitives.Log, error) {
+	var result []engineprimitives.Log
+	return result,
+		ec.Call(ctx,
+			&result, "eth_getLogs", map[string]interface{}{
+				"fromBlock": number.Hex(),
+				"toBlock":   number.Hex(),
+				"address":   address,
+			})
 }

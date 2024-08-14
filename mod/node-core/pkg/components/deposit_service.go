@@ -60,6 +60,7 @@ func ProvideDepositService(in DepositServiceIn) (*DepositService, error) {
 		*BlockEvent,
 		*DepositStore,
 		*ExecutionPayload,
+		WithdrawalCredentials,
 	](
 		in.Logger.With("service", "deposit"),
 		math.U64(in.ChainSpec.Eth1FollowDistance()),
