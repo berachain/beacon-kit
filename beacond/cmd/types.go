@@ -56,7 +56,6 @@ import (
 	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
@@ -172,22 +171,18 @@ type (
 		*BeaconBlockHeader,
 		*BeaconState,
 		*Context,
-		*any,
+		*Deposit,
 		*ExecutionEngine,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
 		*Genesis,
 		*Logger,
-		*interface {
-			IsNil() bool
-			Version() uint32
-			GetSuggestedFeeRecipient() common.ExecutionAddress
-		},
+		*PayloadAttributes,
 		*LocalBuilder,
-		*any,
+		PayloadID,
 		*StateProcessor,
 		*StorageBackend,
-		*any,
+		*Withdrawal,
 	]
 
 	// ConsensusEngine is a type alias for the consensus engine.
@@ -215,8 +210,8 @@ type (
 	DAService = da.Service[
 		*AvailabilityStore,
 		*BeaconBlockBody,
+		*BlobProcessor,
 		*BlobSidecars,
-		*SidecarsBroker,
 		*ExecutionPayload,
 	]
 
@@ -258,7 +253,7 @@ type (
 
 	// EngineClient is a type alias for the engine client.
 	ExecutionEngine = execution.Engine[
-		*EthClient,
+		*EngineClient,
 		*ExecutionPayload,
 		*PayloadAttributes,
 		PayloadID,

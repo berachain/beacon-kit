@@ -198,7 +198,7 @@ func getBLSSigner(v *viper.Viper) (crypto.BLSSigner, error) {
 				v,
 			),
 			depinject.Provide(
-				components.ProvideBlsSigner,
+				,
 			),
 		),
 		&blsSigner,

@@ -26,11 +26,13 @@ import (
 )
 
 // Client - Ethereum rpc client.
-type Client[ExecutionPayloadT interface {
-	constraints.JSONMarshallable
-	Empty(uint32) ExecutionPayloadT
-	Version() uint32
-}] struct {
+type Client[
+	ExecutionPayloadT interface {
+		constraints.JSONMarshallable
+		Empty(uint32) ExecutionPayloadT
+		Version() uint32
+	},
+] struct {
 	*rpc.Client
 }
 
