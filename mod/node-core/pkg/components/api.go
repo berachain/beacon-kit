@@ -47,10 +47,10 @@ type NodeAPIBackendInput[
 	ContextT any,
 	DepositT any,
 	DepositStoreT any,
-	ExecutionPayloadT any,
+	ExecutionPayloadHeaderT any,
 	StateProcessorT StateProcessor[
 		BeaconBlockT, BeaconStateT, ContextT,
-		DepositT, ExecutionPayloadT,
+		DepositT, ExecutionPayloadHeaderT,
 	],
 	StorageBackendT StorageBackend[
 		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
@@ -86,7 +86,7 @@ func ProvideNodeAPIBackend[
 	NodeT nodetypes.Node,
 	StateProcessorT StateProcessor[
 		BeaconBlockT, BeaconStateT, TransitionContextT,
-		DepositT, ExecutionPayloadT,
+		DepositT, ExecutionPayloadHeaderT,
 	],
 	StorageBackendT StorageBackend[
 		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
@@ -98,8 +98,8 @@ func ProvideNodeAPIBackend[
 	WithdrawalCredentialsT WithdrawalCredentials,
 ](in NodeAPIBackendInput[
 	AvailabilityStoreT, BeaconBlockT, BeaconStateT, BlobSidecarsT,
-	BlockStoreT, TransitionContextT, DepositT, DepositStoreT, ExecutionPayloadT,
-	StateProcessorT, StorageBackendT,
+	BlockStoreT, TransitionContextT, DepositT, DepositStoreT,
+	ExecutionPayloadHeaderT, StateProcessorT, StorageBackendT,
 ]) *backend.Backend[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
 	BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT,
@@ -193,7 +193,7 @@ func DefaultNodeAPIComponents[
 	NodeT nodetypes.Node,
 	StateProcessorT StateProcessor[
 		BeaconBlockT, BeaconStateT, TransitionContextT,
-		DepositT, ExecutionPayloadT,
+		DepositT, ExecutionPayloadHeaderT,
 	],
 	StorageBackendT StorageBackend[
 		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,

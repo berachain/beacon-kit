@@ -19,6 +19,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	v1 "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
@@ -250,6 +251,7 @@ type (
 		DepositT any,
 		GenesisT any,
 	] interface {
+		service.Basic
 		// ProcessGenesisData processes the genesis data and initializes the beacon
 		// state.
 		ProcessGenesisData(
@@ -391,7 +393,7 @@ type (
 		PayloadAttributesT any,
 		PayloadIDT ~[8]byte,
 	] interface {
-		Start(ctx context.Context) error
+		service.Basic
 		GetPayload(
 			ctx context.Context,
 			payloadID engineprimitives.PayloadID,
@@ -577,6 +579,7 @@ type (
 		SlashingInfoT any,
 		SlotDataT any,
 	] interface {
+		service.Basic
 		InitGenesis(
 			ctx context.Context, bz []byte,
 		) (transition.ValidatorUpdates, error)

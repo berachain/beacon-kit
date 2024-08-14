@@ -121,7 +121,7 @@ func ProvideChainService[
 	KVStoreT any,
 	LocalBuilderT LocalBuilder[BeaconStateT, ExecutionPayloadT],
 	LoggerT log.AdvancedLogger[any, LoggerT],
-	PayloadAttributesT PayloadAttributes[ExecutionPayloadHeaderT, WithdrawalT],
+	PayloadAttributesT PayloadAttributes[PayloadAttributesT, WithdrawalT],
 	PayloadIDT ~[8]byte,
 	SlashingInfoT any,
 	SlotDataT any,

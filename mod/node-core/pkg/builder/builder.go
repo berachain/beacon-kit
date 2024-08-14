@@ -27,6 +27,7 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
+	consensustypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
@@ -75,8 +76,12 @@ func (nb *NodeBuilder[NodeT]) Build(
 
 	// variables to hold the components needed to set up BeaconApp
 	var (
-		chainSpec       common.ChainSpec
-		abciMiddleware  *components.ABCIMiddleware
+		chainSpec      common.ChainSpec
+		abciMiddleware *components.Middleware[
+			consensustypes.AttestationData,
+			consensustypes.SlashingInfo,
+			consensustypes.SlotData,
+		]
 		serviceRegistry *service.Registry
 		consensusEngine *components.ConsensusEngine
 		apiBackend      *components.NodeAPIBackend

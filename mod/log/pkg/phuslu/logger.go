@@ -27,7 +27,7 @@ import (
 )
 
 // Logger is a wrapper around phuslogger.
-type Logger[ImplT any] struct {
+type Logger struct {
 	// logger is the underlying logger implementation.
 	logger *log.Logger
 	// context is a map of key-value pairs that are added to every log entry.
@@ -39,11 +39,11 @@ type Logger[ImplT any] struct {
 }
 
 // NewLogger initializes a new wrapped phuslogger with the provided config.
-func NewLogger[ImplT any](
+func NewLogger(
 	out io.Writer,
 	cfg *Config,
-) *Logger[ImplT] {
-	logger := &Logger[ImplT]{
+) *Logger {
+	logger := &Logger{
 		logger:    &log.Logger{},
 		context:   make(log.Fields),
 		out:       out,
@@ -54,7 +54,7 @@ func NewLogger[ImplT any](
 }
 
 // Info logs a message at level Info.
-func (l *Logger[ImplT]) Info(msg string, keyVals ...any) {
+func (l *Logger) Info(msg string, keyVals ...any) {
 	if l.logger.Level > log.InfoLevel {
 		return
 	}
@@ -62,7 +62,7 @@ func (l *Logger[ImplT]) Info(msg string, keyVals ...any) {
 }
 
 // Warn logs a message at level Warn.
-func (l *Logger[ImplT]) Warn(msg string, keyVals ...any) {
+func (l *Logger) Warn(msg string, keyVals ...any) {
 	if l.logger.Level > log.WarnLevel {
 		return
 	}
@@ -70,7 +70,7 @@ func (l *Logger[ImplT]) Warn(msg string, keyVals ...any) {
 }
 
 // Error logs a message at level Error.
-func (l *Logger[ImplT]) Error(msg string, keyVals ...any) {
+func (l *Logger) Error(msg string, keyVals ...any) {
 	if l.logger.Level > log.ErrorLevel {
 		return
 	}
@@ -78,7 +78,7 @@ func (l *Logger[ImplT]) Error(msg string, keyVals ...any) {
 }
 
 // Debug logs a message at level Debug.
-func (l *Logger[ImplT]) Debug(msg string, keyVals ...any) {
+func (l *Logger) Debug(msg string, keyVals ...any) {
 	if l.logger.Level > log.DebugLevel {
 		return
 	}
@@ -86,12 +86,12 @@ func (l *Logger[ImplT]) Debug(msg string, keyVals ...any) {
 }
 
 // Impl returns the underlying logger implementation.
-func (l *Logger[ImplT]) Impl() any {
+func (l *Logger) Impl() any {
 	return l.logger
 }
 
 // With returns a new wrapped logger with additional context provided by a set.
-func (l Logger[ImplT]) With(keyVals ...any) ImplT {
+func (l Logger) With(keyVals ...any) *Logger {
 	newLogger := l
 
 	// Perform a deep copy of the map with preallocated size.
@@ -109,16 +109,16 @@ func (l Logger[ImplT]) With(keyVals ...any) ImplT {
 		newLogger.context[key] = keyVals[i+1]
 	}
 
-	return any(&newLogger).(ImplT)
+	return &newLogger
 }
 
 // Writer returns the io.Writer of the logger.
-func (l *Logger[ImplT]) Writer() io.Writer {
+func (l *Logger) Writer() io.Writer {
 	return l.out
 }
 
 // msgWithContext logs a message with keyVals and current context.
-func (l *Logger[Impl]) msgWithContext(
+func (l *Logger) msgWithContext(
 	msg string, e *log.Entry, keyVals ...any,
 ) {
 	e.Fields(l.context).KeysAndValues(keyVals...).Msg(msg)
@@ -130,7 +130,7 @@ func (l *Logger[Impl]) msgWithContext(
 
 // Temporary workaround to allow dynamic configuration post-logger creation.
 // This is necessary due to dependencies on runtime-populated configurations.
-func (l *Logger[ImplT]) WithConfig(cfg Config) *Logger[ImplT] {
+func (l *Logger) WithConfig(cfg Config) *Logger {
 	l.withTimeFormat(cfg.TimeFormat)
 	l.withStyle(cfg.Style)
 	l.withLogLevel(cfg.LogLevel)
@@ -138,18 +138,18 @@ func (l *Logger[ImplT]) WithConfig(cfg Config) *Logger[ImplT] {
 }
 
 // AddKeyColor applies a color to log entries based on their keys.
-func (l *Logger[ImplT]) AddKeyColor(key any, color Color) {
+func (l *Logger) AddKeyColor(key any, color Color) {
 	l.formatter.AddKeyColor(key.(string), color)
 }
 
 // AddKeyValColor applies specific colors to log entries based on their keys and
 // values.
-func (l *Logger[ImplT]) AddKeyValColor(key any, val any, color Color) {
+func (l *Logger) AddKeyValColor(key any, val any, color Color) {
 	l.formatter.AddKeyValColor(key.(string), val.(string), color)
 }
 
 // sets the style of the logger.
-func (l *Logger[Impl]) withStyle(style string) {
+func (l *Logger) withStyle(style string) {
 	if style == StylePretty {
 		l.useConsoleWriter()
 	} else if style == StyleJSON {
@@ -158,12 +158,12 @@ func (l *Logger[Impl]) withStyle(style string) {
 }
 
 // SetLevel sets the log level of the logger.
-func (l *Logger[ImplT]) withLogLevel(level string) {
+func (l *Logger) withLogLevel(level string) {
 	l.logger.Level = log.ParseLevel(level)
 }
 
 // useConsoleWriter sets the logger to use a console writer.
-func (l *Logger[ImplT]) useConsoleWriter() {
+func (l *Logger) useConsoleWriter() {
 	l.setWriter(&log.ConsoleWriter{
 		Writer:    l.out,
 		Formatter: l.formatter.Format,
@@ -171,11 +171,11 @@ func (l *Logger[ImplT]) useConsoleWriter() {
 }
 
 // useJSONWriter sets the logger to use a IOWriter wrapper.
-func (l *Logger[ImplT]) useJSONWriter() {
+func (l *Logger) useJSONWriter() {
 	l.setWriter(log.IOWriter{Writer: l.out})
 }
 
 // setWriter sets the writer of the logger.
-func (l *Logger[ImplT]) setWriter(writer log.Writer) {
+func (l *Logger) setWriter(writer log.Writer) {
 	l.logger.Writer = writer
 }

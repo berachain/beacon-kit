@@ -44,10 +44,11 @@ type ValidatorServiceInput[
 	DepositT any,
 	DepositStoreT any,
 	ExecutionPayloadT any,
+	ExecutionPayloadHeaderT any,
 	SlotDataT any,
 	StateProcessorT StateProcessor[
 		BeaconBlockT, BeaconStateT, ContextT,
-		DepositT, ExecutionPayloadT,
+		DepositT, ExecutionPayloadHeaderT,
 	],
 	StorageBackendT StorageBackend[
 		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
@@ -107,7 +108,7 @@ func ProvideValidatorService[
 	SlotDataT SlotData[AttestationDataT, SlashingInfoT, SlotDataT],
 	StateProcessorT StateProcessor[
 		BeaconBlockT, BeaconStateT, ContextT,
-		DepositT, ExecutionPayloadT,
+		DepositT, ExecutionPayloadHeaderT,
 	],
 	StorageBackendT StorageBackend[
 		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
@@ -119,8 +120,8 @@ func ProvideValidatorService[
 	in ValidatorServiceInput[
 		AvailabilityStoreT, BeaconBlockT, BeaconStateT, BlobSidecarsT,
 		BlobFactoryT, BlockStoreT, ContextT, DepositT, DepositStoreT,
-		ExecutionPayloadT, SlotDataT, StateProcessorT, StorageBackendT,
-		PayloadBuilderT, LoggerT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT, SlotDataT,
+		StateProcessorT, StorageBackendT, PayloadBuilderT, LoggerT,
 	],
 ) (*validator.Service[
 	AttestationDataT, BeaconBlockT, BeaconBlockBodyT, BeaconStateT,

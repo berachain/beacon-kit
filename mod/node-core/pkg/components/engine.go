@@ -53,7 +53,7 @@ type EngineClientInputs[
 // ProvideEngineClient creates a new EngineClient.
 func ProvideEngineClient[
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
-	PayloadAttributesT PayloadAttributes[ExecutionPayloadT, WithdrawalT],
+	PayloadAttributesT PayloadAttributes[PayloadAttributesT, WithdrawalT],
 	LoggerT log.AdvancedLogger[any, LoggerT],
 	WithdrawalT any,
 ](
@@ -106,7 +106,7 @@ func ProvideExecutionEngine[
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	LoggerT log.AdvancedLogger[any, LoggerT],
-	PayloadAttributesT PayloadAttributes[ExecutionPayloadT, WithdrawalT],
+	PayloadAttributesT PayloadAttributes[PayloadAttributesT, WithdrawalT],
 	PayloadIDT ~[8]byte,
 	WithdrawalT any,
 	WithdrawalsT Withdrawals[WithdrawalT],

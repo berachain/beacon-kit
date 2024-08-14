@@ -23,7 +23,6 @@ package components
 import (
 	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
 // ProvideBlobBroker provides a blob feed for the depinject framework.
@@ -73,7 +72,7 @@ func ProvideStatusBroker[
 
 // ProvideValidatorUpdateBroker provides a validator updates feed.
 func ProvideValidatorUpdateBroker[
-	ValidatorUpdatesT transition.ValidatorUpdates,
+	ValidatorUpdatesT any,
 ]() *broker.Broker[*asynctypes.Event[ValidatorUpdatesT]] {
 	return broker.New[*asynctypes.Event[ValidatorUpdatesT]](
 		"validator-updates-broker",
@@ -87,7 +86,7 @@ func DefaultBrokerProviders[
 	GenesisT any,
 	SlotDataT any,
 	StatusEventT any,
-	ValidatorUpdatesT transition.ValidatorUpdates,
+	ValidatorUpdatesT any,
 ]() []interface{} {
 	return []interface{}{
 		ProvideBlobBroker[SidecarT],
