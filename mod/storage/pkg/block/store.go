@@ -26,6 +26,7 @@ import (
 
 	sdkcollections "cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -106,11 +107,16 @@ func (kv *KVStore[BeaconBlockT]) Prune(start, end uint64) error {
 			// This can error for 2 reasons:
 			// 1. The slot was not found -- either the slot was missed or we
 			//    never stored the block to begin with, either way it's ok.
-			// 2. The slot was found but (en/de)coding failed. In this case,
-			//    we choose not to retry removal and instead continue.
-			kv.logger.Error(
-				"‼️ failed to prune block", "slot", kv.nextToPrune, "err", err,
-			)
+			if !errors.Is(err, sdkcollections.ErrNotFound) {
+				// 2. The slot was found but (en/de)coding failed. In this
+				//    case, we choose not to retry removal and instead
+				//    continue. This means this slot may never be pruned, but
+				//    ensures that we always get to pruning subsequent slots.
+				kv.logger.Error(
+					"‼️ failed to prune block",
+					"slot", kv.nextToPrune, "err", err,
+				)
+			}
 		}
 	}
 
