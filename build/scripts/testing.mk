@@ -62,25 +62,25 @@ else
 endif 
 
 start-bartio-docker: build-beacond-image
-	docker run \
-	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
-	--rm -v $(PWD)/${BARTIO_NETWORK_FILES_DIR}:/${BARTIO_NETWORK_FILES_DIR} \
+	docker run --rm \
+	-v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
+	-v $(PWD)/${BARTIO_NETWORK_FILES_DIR}:/${BARTIO_NETWORK_FILES_DIR} \
 	-v $(PWD)/.tmp:/.tmp \
 	-e CHAIN_SPEC=testnet \
 	${IMAGE_NAME}:${VERSION} \
 	start \
 	--home "./.tmp/beacond" \
 	--pruning=nothing \
+	--api.enable \
+	--api.enabled-unsafe-cors \
 	--beacon-kit.engine.jwt-secret-path ${JWT_PATH} \
+	--beacon-kit.engine.rpc-dial-url=${RPC_URL} \
 	--beacon-kit.node-api.enabled \
 	--beacon-kit.node-api.logging \
 	--beacon-kit.node-api.address \
 	--beacon-kit.block-store-service.enabled \
-	--api.enable \
-	--api.enabled-unsafe-cors \
 	--beacon-kit.block-store-service.pruner-enabled \
-	--beacon-kit.logger.log-level info \
-	--beacon-kit.engine.rpc-dial-url=${RPC_URL}
+	--beacon-kit.logger.log-level info
 
 #######################################################
 # start-ipc is currently only supported while running eth client the host machine
