@@ -48,6 +48,7 @@ type KVStore[
 		constraints.SSZMarshallable
 		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
 		Version() uint32
+		sszdb.Treeable
 	},
 	ForkT interface {
 		constraints.Empty[ForkT]
@@ -127,6 +128,7 @@ func New[
 		constraints.SSZMarshallable
 		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
 		Version() uint32
+		sszdb.Treeable
 	},
 	ForkT interface {
 		constraints.Empty[ForkT]

@@ -96,3 +96,4 @@ if [ -n "$RPC_DIAL_URL" ]; then
 fi
 
 eval $BEACON_START_CMD
+#echo $BEACON_START_CMD

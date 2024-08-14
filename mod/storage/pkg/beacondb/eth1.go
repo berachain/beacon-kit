@@ -20,6 +20,12 @@
 
 package beacondb
 
+import (
+	"bytes"
+	"crypto/sha256"
+	"fmt"
+)
+
 // GetLatestExecutionPayloadHeader retrieves the latest execution payload
 // header from the BeaconStore.
 func (kv *KVStore[
@@ -34,7 +40,33 @@ func (kv *KVStore[
 		return t, err
 	}
 	kv.latestExecutionPayloadCodec.SetActiveForkVersion(forkVersion)
-	return kv.latestExecutionPayloadHeader.Get(kv.ctx)
+
+	header, err := kv.latestExecutionPayloadHeader.Get(kv.ctx)
+	if err != nil {
+		return header, err
+	}
+	headerSSZ, err := kv.sszDB.GetPath(
+		kv.ctx,
+		"latest_execution_payload_header",
+	)
+	if err != nil {
+		return header, err
+	}
+
+	headerBytes, err := header.MarshalSSZ()
+	if err != nil {
+		return header, err
+	}
+	if !bytes.Equal(headerBytes, headerSSZ) {
+		h := sha256.Sum256(headerBytes)
+		h2 := sha256.Sum256(headerSSZ)
+		return header, fmt.Errorf(
+			"latest execution payload header SSZ does not match DB; headerSSZ=%x, header=%x",
+			h2,
+			h,
+		)
+	}
+	return header, nil
 }
 
 // SetLatestExecutionPayloadHeader sets the latest execution payload header in
@@ -51,6 +83,10 @@ func (kv *KVStore[
 		return err
 	}
 	kv.latestExecutionPayloadCodec.SetActiveForkVersion(payloadHeader.Version())
+	err := kv.sszDB.SetLatestExecutionPayloadHeader(kv.ctx, payloadHeader)
+	if err != nil {
+		return err
+	}
 	return kv.latestExecutionPayloadHeader.Set(kv.ctx, payloadHeader)
 }
 

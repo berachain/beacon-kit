@@ -16,12 +16,12 @@ type Node struct {
 	Value  []byte
 }
 
-type treeable interface {
+type Treeable interface {
 	GetTree() (*fastssz.Node, error)
 	DefineSchema(*schema.Codec)
 }
 
-func NewTreeFromFastSSZ(tr treeable) (*Node, error) {
+func NewTreeFromFastSSZ(tr Treeable) (*Node, error) {
 	root, err := tr.GetTree()
 	if err != nil {
 		return nil, err

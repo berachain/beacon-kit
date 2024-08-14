@@ -79,7 +79,7 @@ func keyBytes(gindex uint64) []byte {
 	return key
 }
 
-func (d *Backend) SaveMonolith(mono treeable) error {
+func (d *Backend) SaveMonolith(mono Treeable) error {
 	treeRoot, err := NewTreeFromFastSSZ(mono)
 	if err != nil {
 		return err

@@ -29,7 +29,7 @@ type SchemaDB struct {
 
 func NewSchemaDB(
 	backend *Backend,
-	monolith treeable,
+	monolith Treeable,
 ) (*SchemaDB, error) {
 	schemaRoot, err := schema.Build(monolith)
 	if err != nil {
@@ -42,7 +42,7 @@ func NewSchemaDB(
 	return db, db.bootstrap(monolith)
 }
 
-func (db *SchemaDB) bootstrap(monolith treeable) error {
+func (db *SchemaDB) bootstrap(monolith Treeable) error {
 	bootstrapped, err := db.Get([]byte(bootstrappedKey))
 	if err != nil {
 		return err
@@ -178,7 +178,7 @@ func (db *SchemaDB) getSSZBytes(
 
 func (db *SchemaDB) SetLatestExecutionPayloadHeader(
 	ctx context.Context,
-	header treeable,
+	header Treeable,
 ) error {
 	path := objectPath("latest_execution_payload_header")
 	_, gindex, _, err := path.GetGeneralizedIndex(db.schemaRoot)

@@ -132,6 +132,14 @@ func (app *BaseApp) InitChain(
 		}
 	}
 
+	// TODO: this is required to ensure that the initial version is set
+	// on the SSZ DB. it should be removed.
+	if app.commitHook != nil {
+		if err = app.commitHook(app.finalizeBlockState.Context()); err != nil {
+			return nil, err
+		}
+	}
+
 	// NOTE: We don't commit, but FinalizeBlock for block InitialHeight starts
 	// from
 	// this FinalizeBlockState.
