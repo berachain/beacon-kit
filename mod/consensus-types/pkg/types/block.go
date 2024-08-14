@@ -21,10 +21,11 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
-	"github.com/davecgh/go-spew/spew"
 	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
 )
@@ -112,9 +113,6 @@ func (b *BeaconBlock) SizeSSZ(fixed bool) uint32 {
 
 // DefineSSZ defines the SSZ encoding for the BeaconBlock object.
 func (b *BeaconBlock) DefineSSZ(codec *ssz.Codec) {
-	spew.Dump(b)
-	spew.Dump(codec)
-
 	// Define the static data (fields and dynamic offsets)
 	ssz.DefineUint64(codec, &b.Slot)
 	ssz.DefineUint64(codec, &b.ProposerIndex)
@@ -134,6 +132,7 @@ func (b *BeaconBlock) MarshalSSZ() ([]byte, error) {
 
 // UnmarshalSSZ unmarshals the BeaconBlock object from SSZ format.
 func (b *BeaconBlock) UnmarshalSSZ(buf []byte) error {
+	fmt.Println("buf", buf)
 	return ssz.DecodeFromBytes(buf, b)
 }
 

@@ -22,6 +22,7 @@ package block
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	sdkcollections "cosmossdk.io/collections"
@@ -103,6 +104,13 @@ func (kv *KVStore[BeaconBlockT]) Prune(start, end uint64) error {
 		kv.blockCodec.SetActiveForkVersion(
 			kv.cs.ActiveForkVersionForSlot(kv.nextToPrune),
 		)
+
+		blk, err := kv.blocks.Get(ctx, kv.nextToPrune)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("blk", blk)
+
 		if err := kv.blocks.Remove(ctx, kv.nextToPrune); err != nil {
 			// This can error for 2 reasons:
 			// 1. The slot was not found -- either the slot was missed or we
