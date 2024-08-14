@@ -52,7 +52,8 @@ type BlockNumber int64
 // - the block number
 // Returned errors:
 // - an invalid block number error when the given argument isn't a known strings
-// - an out of range error when the given block number is either too little or too large
+// - an out of range error when the given block number is either too little or
+// too large.
 func (bn *BlockNumber) UnmarshalJSON(data []byte) error {
 	input := strings.TrimSpace(string(data))
 
@@ -79,7 +80,9 @@ func (bn *BlockNumber) UnmarshalJSON(data []byte) error {
 	}
 
 	result := new(math.U64)
-	result.UnmarshalJSON([]byte(input))
+	if err := result.UnmarshalJSON([]byte(input)); err != nil {
+		return err
+	}
 	if *result > math.U64(uint64(stdmath.MaxInt64)) {
 		return errors.New("block number larger than int64")
 	}
@@ -90,7 +93,7 @@ func (bn *BlockNumber) UnmarshalJSON(data []byte) error {
 
 // MarshalText implements encoding.TextMarshaler. It marshals:
 // - "safe", "finalized", "latest", "earliest" or "pending" as strings
-// - other numbers as hex
+// - other numbers as hex.
 func (bn BlockNumber) MarshalText() ([]byte, error) {
 	return []byte(bn.String()), nil
 }
