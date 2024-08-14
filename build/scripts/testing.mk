@@ -41,7 +41,7 @@ start-bartio:
 	${TESTAPP_FILES_DIR}/entrypoint.sh
 
 #######################################################
-# Start `beacond` using docker image				  #
+# Start `beacond` using docker image connected to bArtio				  #
 #######################################################
 # TODO: For restoring snapshot, pre-requsites:
 # Place the snapshot in the `./.tmp/beacond/data` directory.
@@ -53,7 +53,7 @@ VERSION = kurtosis-local
 
 IMAGE_EXISTS := $(shell docker image ls -q $(IMAGE_NAME):$(VERSION))
 
-build-docker-image:
+build-beacond-image:
 ifdef IMAGE_EXISTS
 	@echo "Image $(IMAGE_NAME):$(VERSION) already exists."
 else
@@ -61,7 +61,7 @@ else
 	make build-docker VERSION=kurtosis-local
 endif 
 
-start-beacon-docker: build-docker-image
+start-bartio-docker: build-beacond-image
 	docker run \
 	--rm -v $(PWD)/${TESTAPP_FILES_DIR}:/${TESTAPP_FILES_DIR} \
 	--rm -v $(PWD)/${BARTIO_NETWORK_FILES_DIR}:/${BARTIO_NETWORK_FILES_DIR} \
