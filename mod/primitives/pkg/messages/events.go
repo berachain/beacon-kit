@@ -17,9 +17,11 @@ const (
 	// proposal processing events
 	BeaconBlockReceived = "beacon-block-received"
 	SidecarsReceived    = "sidecars-received"
+	BeaconBlockVerified = "beacon-block-verified"
+	SidecarsVerified    = "sidecars-verified"
 	// finalize block events
 	FinalBeaconBlockReceived       = "final-beacon-block-received"
 	FinalBlobSidecarsReceived      = "final-blob-sidecars-received"
 	FinalValidatorUpdatesProcessed = "final-validator-updates"
-	FinalSidecarsProcessed         = "final-sidecars-processed"
+	// FinalSidecarsProcessed         = "final-sidecars-processed"
 )

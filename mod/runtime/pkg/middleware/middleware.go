@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/p2p"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	rp2p "github.com/berachain/beacon-kit/mod/runtime/pkg/p2p"
@@ -71,13 +72,12 @@ type ABCIMiddleware[
 	// logger is the logger for the middleware.
 	logger log.Logger[any]
 
-	// subscriptions
-	subGenDataProcessed      asynctypes.Subscription[transition.ValidatorUpdates]
-	subBuiltBeaconBlock      asynctypes.Subscription[BeaconBlockT]
-	subBuiltSidecars         asynctypes.Subscription[BlobSidecarsT]
-	subBBVerified            asynctypes.Subscription[BeaconBlockT]
-	subSCVerified            asynctypes.Subscription[BlobSidecarsT]
-	subFinalValidatorUpdates asynctypes.Subscription[transition.ValidatorUpdates]
+	subGenDataProcessed      asynctypes.Subscription[asynctypes.Event[transition.ValidatorUpdates]]
+	subBuiltBeaconBlock      asynctypes.Subscription[asynctypes.Event[BeaconBlockT]]
+	subBuiltSidecars         asynctypes.Subscription[asynctypes.Event[BlobSidecarsT]]
+	subBBVerified            asynctypes.Subscription[asynctypes.Event[BeaconBlockT]]
+	subSCVerified            asynctypes.Subscription[asynctypes.Event[BlobSidecarsT]]
+	subFinalValidatorUpdates asynctypes.Subscription[asynctypes.Event[transition.ValidatorUpdates]]
 }
 
 // NewABCIMiddleware creates a new instance of the Handler struct.
@@ -116,17 +116,53 @@ func NewABCIMiddleware[
 		](
 			chainSpec,
 		),
-		logger:     logger,
-		metrics:    newABCIMiddlewareMetrics(telemetrySink),
-		dispatcher: dispatcher,
+		logger:                   logger,
+		metrics:                  newABCIMiddlewareMetrics(telemetrySink),
+		dispatcher:               dispatcher,
+		subGenDataProcessed:      asynctypes.NewSubscription[asynctypes.Event[transition.ValidatorUpdates]](),
+		subBuiltBeaconBlock:      asynctypes.NewSubscription[asynctypes.Event[BeaconBlockT]](),
+		subBuiltSidecars:         asynctypes.NewSubscription[asynctypes.Event[BlobSidecarsT]](),
+		subBBVerified:            asynctypes.NewSubscription[asynctypes.Event[BeaconBlockT]](),
+		subSCVerified:            asynctypes.NewSubscription[asynctypes.Event[BlobSidecarsT]](),
+		subFinalValidatorUpdates: asynctypes.NewSubscription[asynctypes.Event[transition.ValidatorUpdates]](),
 	}
 }
 
 func (am *ABCIMiddleware[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBundleT, BlobSidecarsT, DepositT,
 	ExecutionPayloadT, GenesisT, SlotDataT,
-]) Start() asynctypes.Subscription[transition.ValidatorUpdates] {
-	return am.subFinalValidatorUpdates
+]) Start() error {
+	if err := am.dispatcher.Subscribe(
+		messages.GenesisDataProcessed, am.subGenDataProcessed,
+	); err != nil {
+		return err
+	}
+	if err := am.dispatcher.Subscribe(
+		messages.BuiltBeaconBlock, am.subBuiltBeaconBlock,
+	); err != nil {
+		return err
+	}
+	if err := am.dispatcher.Subscribe(
+		messages.BuiltSidecars, am.subBuiltSidecars,
+	); err != nil {
+		return err
+	}
+	if err := am.dispatcher.Subscribe(
+		messages.BeaconBlockVerified, am.subBBVerified,
+	); err != nil {
+		return err
+	}
+	if err := am.dispatcher.Subscribe(
+		messages.SidecarsVerified, am.subSCVerified,
+	); err != nil {
+		return err
+	}
+	if err := am.dispatcher.Subscribe(
+		messages.FinalValidatorUpdatesProcessed, am.subFinalValidatorUpdates,
+	); err != nil {
+		return err
+	}
+	return nil
 }
 
 // Name returns the name of the middleware.
