@@ -57,7 +57,6 @@ func NewWrappedBeaconDepositContract[
 	DepositT,
 	WithdrawalCredentialsT,
 ], error) {
-
 	return &WrappedBeaconDepositContract[
 		DepositT,
 		WithdrawalCredentialsT,
