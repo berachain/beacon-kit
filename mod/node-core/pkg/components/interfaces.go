@@ -574,11 +574,7 @@ type (
 	}
 
 	// Middleware is the interface for the CometBFT middleware.
-	Middleware[
-		AttestationDataT any,
-		SlashingInfoT any,
-		SlotDataT any,
-	] interface {
+	Middleware[SlotDataT any] interface {
 		service.Basic
 		InitGenesis(
 			ctx context.Context, bz []byte,
@@ -614,9 +610,9 @@ type (
 	}
 
 	// SlotData is an interface for accessing the slot data.
-	SlotData[AttestationDataT, SlashingInfoT, SlotDataT any] interface {
+	SlotData[T, AttestationDataT, SlashingInfoT any] interface {
 		// New creates a new slot data instance.
-		New(math.Slot, []AttestationDataT, []SlashingInfoT) SlotDataT
+		New(math.Slot, []AttestationDataT, []SlashingInfoT) T
 		// GetSlot returns the slot of the incoming slot.
 		GetSlot() math.Slot
 		// GetAttestationData returns the attestation data of the incoming slot.

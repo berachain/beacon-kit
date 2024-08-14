@@ -28,6 +28,7 @@ import (
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	consensustypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	consruntimetypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
@@ -77,16 +78,17 @@ func (nb *NodeBuilder[NodeT]) Build(
 	// variables to hold the components needed to set up BeaconApp
 	var (
 		chainSpec      common.ChainSpec
-		abciMiddleware *components.Middleware[
-			consensustypes.AttestationData,
-			consensustypes.SlashingInfo,
-			consensustypes.SlotData,
-		]
+		abciMiddleware components.Middleware[*consruntimetypes.SlotData[
+			*consensustypes.AttestationData,
+			*consensustypes.SlashingInfo,
+		]]
 		serviceRegistry *service.Registry
-		consensusEngine *components.ConsensusEngine
-		apiBackend      *components.NodeAPIBackend
-		storeKey        = new(storetypes.KVStoreKey)
-		storeKeyDblPtr  = &storeKey
+		consensusEngine components.ConsensusEngine
+		// apiBackend      *backend.Backend[
+		// 	dastore.
+		// ]
+		storeKey       = new(storetypes.KVStoreKey)
+		storeKeyDblPtr = &storeKey
 	)
 
 	// build all node components using depinject
@@ -108,7 +110,7 @@ func (nb *NodeBuilder[NodeT]) Build(
 		&abciMiddleware,
 		&serviceRegistry,
 		&consensusEngine,
-		&apiBackend,
+		// &apiBackend,
 	); err != nil {
 		panic(err)
 	}
@@ -126,7 +128,7 @@ func (nb *NodeBuilder[NodeT]) Build(
 		),
 	)
 	// TODO: so hood
-	apiBackend.AttachNode(nb.node)
+	// apiBackend.AttachNode(nb.node)
 	nb.node.SetServiceRegistry(serviceRegistry)
 
 	// TODO: put this in some post node creation hook/listener.

@@ -27,8 +27,10 @@ import (
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/genesis"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/jwt"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
 	"github.com/cosmos/cosmos-sdk/client/keys"
@@ -43,6 +45,8 @@ import (
 func DefaultRootCommandSetup[
 	T types.Node,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+	LegacyKeyT ~[constants.BLSSecretKeyLength]byte,
+	LoggerT log.AdvancedLogger[any, LoggerT],
 ](
 	root *Root,
 	mm *runtime.App,
@@ -64,7 +68,7 @@ func DefaultRootCommandSetup[
 		// `init`
 		genutilcli.InitCmd(mm),
 		// `genesis`
-		genesis.Commands(chainSpec),
+		genesis.Commands[LegacyKeyT, LoggerT](chainSpec),
 		// `deposit`
 		deposit.Commands[ExecutionPayloadT](chainSpec),
 		// `jwt`

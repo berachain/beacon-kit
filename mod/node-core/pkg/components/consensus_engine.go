@@ -31,10 +31,8 @@ import (
 
 // ConsensusEngineInput is the input for the consensus engine.
 type ConsensusEngineInput[
-	AttestationDataT any,
 	BeaconStateT any,
-	MiddlewareT Middleware[AttestationDataT, SlashingInfoT, SlotDataT],
-	SlashingInfoT any,
+	MiddlewareT Middleware[SlotDataT],
 	SlotDataT any,
 	StorageBackendT interface {
 		StateFromContext(context.Context) BeaconStateT
@@ -56,17 +54,16 @@ func ProvideConsensusEngine[
 		// HashTreeRoot returns the hash tree root of the beacon state.
 		HashTreeRoot() common.Root
 	},
-	MiddlewareT Middleware[AttestationDataT, SlashingInfoT, SlotDataT],
+	MiddlewareT Middleware[SlotDataT],
 	SlashingInfoT SlashingInfo[SlashingInfoT],
-	SlotDataT SlotData[AttestationDataT, SlashingInfoT, SlotDataT],
+	SlotDataT SlotData[SlotDataT, AttestationDataT, SlashingInfoT],
 	StorageBackendT interface {
 		StateFromContext(context.Context) BeaconStateT
 	},
 	ValidatorUpdateT any,
 ](
 	in ConsensusEngineInput[
-		AttestationDataT, BeaconStateT, MiddlewareT,
-		SlashingInfoT, SlotDataT, StorageBackendT,
+		BeaconStateT, MiddlewareT, SlotDataT, StorageBackendT,
 	],
 ) (*cometbft.ConsensusEngine[
 	AttestationDataT, BeaconStateT, MiddlewareT,

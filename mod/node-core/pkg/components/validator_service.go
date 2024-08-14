@@ -105,7 +105,7 @@ func ProvideValidatorService[
 	LoggerT log.AdvancedLogger[any, LoggerT],
 	PayloadBuilderT LocalBuilder[BeaconStateT, ExecutionPayloadT],
 	SlashingInfoT any,
-	SlotDataT SlotData[AttestationDataT, SlashingInfoT, SlotDataT],
+	SlotDataT SlotData[SlotDataT, AttestationDataT, SlashingInfoT],
 	StateProcessorT StateProcessor[
 		BeaconBlockT, BeaconStateT, ContextT,
 		DepositT, ExecutionPayloadHeaderT,

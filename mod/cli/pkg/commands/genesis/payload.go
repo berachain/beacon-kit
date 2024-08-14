@@ -28,6 +28,7 @@ import (
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
 	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
@@ -39,7 +40,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func AddExecutionPayloadCmd(chainSpec common.ChainSpec) *cobra.Command {
+func AddExecutionPayloadCmd[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+](chainSpec common.ChainSpec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "execution-payload [eth/genesis/file.json]",
 		Short: "adds the eth1 genesis execution payload to the genesis file",
@@ -65,7 +68,7 @@ func AddExecutionPayloadCmd(chainSpec common.ChainSpec) *cobra.Command {
 				nil,
 			).ExecutionPayload
 
-			serverCtx := serverContext.GetServerContextFromCmd(cmd)
+			serverCtx := serverContext.GetServerContextFromCmd[LoggerT](cmd)
 			config := serverCtx.Config
 
 			appGenesis, err := genutiltypes.AppGenesisFromFile(

@@ -21,14 +21,19 @@
 package genesis
 
 import (
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 )
 
 // Commands builds the genesis-related command. Users may
 // provide application specific commands as a parameter.
-func Commands(
+func Commands[
+	LegacyKeyT ~[constants.BLSSecretKeyLength]byte,
+	LoggerT log.AdvancedLogger[any, LoggerT],
+](
 	cs common.ChainSpec,
 	cmds ...*cobra.Command,
 ) *cobra.Command {
@@ -42,9 +47,9 @@ func Commands(
 
 	// Adding subcommands for genesis-related operations.
 	cmd.AddCommand(
-		AddGenesisDepositCmd(cs),
-		CollectGenesisDepositsCmd(),
-		AddExecutionPayloadCmd(cs),
+		AddGenesisDepositCmd[LegacyKeyT, LoggerT](cs),
+		CollectGenesisDepositsCmd[LoggerT](),
+		AddExecutionPayloadCmd[LoggerT](cs),
 		GetGenesisValidatorRootCmd(cs),
 	)
 

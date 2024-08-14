@@ -29,9 +29,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/parser"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -45,12 +47,15 @@ import (
 
 // AddGenesisDepositCmd - returns the cobra command to
 // add a premined deposit to the genesis file.
-func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
+func AddGenesisDepositCmd[
+	LegacyKeyT ~[constants.BLSSecretKeyLength]byte,
+	LoggerT log.AdvancedLogger[any, LoggerT],
+](cs common.ChainSpec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add-premined-deposit",
 		Short: "adds a validator to the genesis file",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			serverCtx := context.GetServerContextFromCmd(cmd)
+			serverCtx := context.GetServerContextFromCmd[LoggerT](cmd)
 			config := serverCtx.Config
 
 			_, valPubKey, err := genutil.InitializeNodeValidatorFiles(
@@ -70,7 +75,7 @@ func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
 
 			// Get the BLS signer.
 			blsSigner, err := components.ProvideBlsSigner(
-				components.BlsSignerInput[signer.LegacyKey]{
+				components.BlsSignerInput[LegacyKeyT]{
 					AppOpts: client.GetViperFromCmd(cmd),
 				},
 			)

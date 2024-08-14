@@ -90,12 +90,12 @@ func DefaultComponents[
 	LegacyKeyT ~[32]byte,
 	LocalBuilderT LocalBuilder[BeaconStateT, ExecutionPayloadT],
 	LoggerT log.AdvancedLogger[any, LoggerT],
-	MiddlewareT Middleware[AttestationDataT, SlashingInfoT, SlotDataT],
+	MiddlewareT Middleware[SlotDataT],
 	NodeT nodetypes.Node,
 	PayloadAttributesT PayloadAttributes[PayloadAttributesT, WithdrawalT],
 	PayloadIDT ~[8]byte,
 	SlashingInfoT SlashingInfo[SlashingInfoT],
-	SlotDataT SlotData[AttestationDataT, SlashingInfoT, SlotDataT],
+	SlotDataT SlotData[SlotDataT, AttestationDataT, SlashingInfoT],
 	StateProcessorT StateProcessor[
 		BeaconBlockT, BeaconStateT, ContextT,
 		DepositT, ExecutionPayloadHeaderT,
@@ -298,31 +298,28 @@ func DefaultComponents[
 		ProvideKVStoreService,
 		ProvideKVStoreKey,
 	}
-	components = append(components, DefaultNodeAPIComponents[
-		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-		BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BlockStoreT,
-		NodeAPIContextT, DepositT, DepositStoreT, NodeAPIEngineT, Eth1DataT,
-		ExecutionPayloadT, ExecutionPayloadHeaderT, ForkT, KVStoreT, LoggerT,
-		NodeT, StateProcessorT, StorageBackendT, ContextT, ValidatorT,
-		ValidatorsT, WithdrawalT, WithdrawalCredentialsT,
-	]()...)
 
-	components = append(components, DefaultNodeAPIHandlers[
-		BeaconAPIHandlerT, BuilderAPIHandlerT, ConfigAPIHandlerT,
-		DebugAPIHandlerT, EventsAPIHandlerT, NodeAPIHandlerT, ProofAPIHandlerT,
-		NodeAPIContextT, BeaconBackendT, BeaconBlockHeaderT, BeaconStateT,
-		BeaconStateMarshallableT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-		KVStoreT, NodeAPIProofBackendT, ValidatorT, ValidatorsT, WithdrawalT,
-		WithdrawalCredentialsT,
-	]()...)
+	// components = append(components, DefaultNodeAPIComponents[
+	// 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	// 	BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BlockStoreT,
+	// 	NodeAPIContextT, DepositT, DepositStoreT, NodeAPIEngineT, Eth1DataT,
+	// 	ExecutionPayloadT, ExecutionPayloadHeaderT, ForkT, KVStoreT, LoggerT,
+	// 	NodeT, StateProcessorT, StorageBackendT, ContextT, ValidatorT,
+	// 	ValidatorsT, WithdrawalT, WithdrawalCredentialsT,
+	// ]()...)
+
+	// components = append(components, DefaultNodeAPIHandlers[
+	// 	BeaconAPIHandlerT, BuilderAPIHandlerT, ConfigAPIHandlerT,
+	// 	DebugAPIHandlerT, EventsAPIHandlerT, NodeAPIHandlerT, ProofAPIHandlerT,
+	// 	NodeAPIContextT, BeaconBackendT, BeaconBlockHeaderT, BeaconStateT,
+	// 	BeaconStateMarshallableT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+	// 	KVStoreT, NodeAPIProofBackendT, ValidatorT, ValidatorsT, WithdrawalT,
+	// 	WithdrawalCredentialsT,
+	// ]()...)
 
 	components = append(components, DefaultBrokerProviders[
-		BlobSidecarT,
-		BeaconBlockT,
-		GenesisT,
-		SlotDataT,
-		StatusEventT,
-		ValidatorUpdatesT,
+		BlobSidecarT, BeaconBlockT, GenesisT,
+		SlotDataT, StatusEventT, ValidatorUpdatesT,
 	]()...)
 	return components
 }

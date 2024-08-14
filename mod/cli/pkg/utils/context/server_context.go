@@ -32,8 +32,10 @@ import (
 
 // createServerContext initializes a new server.Context with the default comet
 // config, and the provided logger and viper instances.
-func CreateServerContext(
-	logger log.AdvancedLogger[any, sdklog.Logger],
+func CreateServerContext[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+](
+	logger LoggerT,
 	viper *viper.Viper,
 ) *server.Context {
 	return &server.Context{
@@ -45,11 +47,15 @@ func CreateServerContext(
 
 // GetServerContextFromCmd returns a Context from a command or an empty Context
 // if it has not been set.
-func GetServerContextFromCmd(cmd *cobra.Command) *server.Context {
+func GetServerContextFromCmd[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+](
+	cmd *cobra.Command,
+) *server.Context {
 	if v := cmd.Context().Value(server.ServerContextKey); v != nil {
 		serverCtxPtr, _ := v.(*server.Context)
 		return serverCtxPtr
 	}
 
-	return CreateServerContext(&noop.Logger[any, sdklog.Logger]{}, viper.New())
+	return CreateServerContext(&noop.Logger[any, LoggerT]{}, viper.New())
 }

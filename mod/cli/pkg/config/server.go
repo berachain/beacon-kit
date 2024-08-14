@@ -27,7 +27,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/context"
 	"github.com/berachain/beacon-kit/mod/log"
 	cmtcfg "github.com/cometbft/cometbft/config"
@@ -44,12 +43,14 @@ import (
 // values from <appConfig> and <cmtConfig>.
 // In either case, the resulting values in these files will be merged with
 // viper.
-func SetupConfigAndContext(
+func SetupConfigAndContext[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+](
 	cmd *cobra.Command,
 	appTemplate string,
 	appConfig any,
 	cmtConfig *cmtcfg.Config,
-	logger log.AdvancedLogger[any, sdklog.Logger],
+	logger LoggerT,
 ) (*server.Context, error) {
 	// initialize the server context
 	serverCtx, err := InitializeServerContext(cmd, logger)
@@ -73,9 +74,11 @@ func SetupConfigAndContext(
 // viper instance. The comet config and app config are merged into the viper
 // instance. If the app config is empty, the viper instance is populated with
 // the app config values.
-func InitializeServerContext(
+func InitializeServerContext[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+](
 	cmd *cobra.Command,
-	logger log.AdvancedLogger[any, sdklog.Logger],
+	logger LoggerT,
 ) (*server.Context, error) {
 	// Get the executable name and configure the viper instance so that
 	// environmental variables are checked based off that name.

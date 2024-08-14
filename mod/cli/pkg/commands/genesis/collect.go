@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/context"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
@@ -37,12 +38,14 @@ import (
 
 // CollectGenesisDepositsCmd - return the cobra command to
 // collect genesis transactions.
-func CollectGenesisDepositsCmd() *cobra.Command {
+func CollectGenesisDepositsCmd[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+]() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "collect-premined-deposits",
 		Short: "adds a validator to the genesis file",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			serverCtx := context.GetServerContextFromCmd(cmd)
+			serverCtx := context.GetServerContextFromCmd[LoggerT](cmd)
 			config := serverCtx.Config
 
 			appGenesis, err := genutiltypes.AppGenesisFromFile(
