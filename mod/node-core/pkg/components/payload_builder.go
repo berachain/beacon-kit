@@ -59,11 +59,13 @@ type LocalBuilderInput[
 // depinject framework.
 func ProvideLocalBuilder[
 	AttributesFactoryT AttributesFactory[BeaconStateT, PayloadAttributesT],
-	BeaconStateT BeaconState[
-		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-		ForkT, KVStoreT, ValidatorT, ValidatorsT, WithdrawalsT,
-	],
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconStateT BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
+		Eth1DataT, ExecutionPayloadHeaderT, ForkT, KVStoreT,
+		ValidatorT, ValidatorsT, WithdrawalT,
+	],
+	BeaconStateMarshallableT any,
 	Eth1DataT any,
 	ExecutionEngineT ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, PayloadAttributesT,
@@ -76,10 +78,11 @@ func ProvideLocalBuilder[
 	ForkT any,
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[any, LoggerT],
-	PayloadAttributesT PayloadAttributes[PayloadAttributesT, WithdrawalsT],
+	PayloadAttributesT PayloadAttributes[PayloadAttributesT, WithdrawalT],
 	PayloadIDT ~[8]byte,
 	ValidatorT any,
 	ValidatorsT any,
+	WithdrawalT any,
 	WithdrawalsT Withdrawals,
 ](
 	in LocalBuilderInput[
@@ -96,7 +99,7 @@ func ProvideLocalBuilder[
 ) *payloadbuilder.PayloadBuilder[
 	AttributesFactoryT, BeaconStateT, ExecutionEngineT,
 	ExecutionPayloadT, ExecutionPayloadHeaderT, LoggerT,
-	PayloadAttributesT, PayloadIDT, WithdrawalsT,
+	PayloadAttributesT, PayloadIDT, WithdrawalT,
 ] {
 	return payloadbuilder.New[
 		AttributesFactoryT,
@@ -107,7 +110,7 @@ func ProvideLocalBuilder[
 		LoggerT,
 		PayloadAttributesT,
 		PayloadIDT,
-		WithdrawalsT,
+		WithdrawalT,
 	](
 		&in.Cfg.PayloadBuilder,
 		in.ChainSpec,

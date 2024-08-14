@@ -84,9 +84,11 @@ func ProvideValidatorService[
 	],
 	BeaconBlockHeaderT any,
 	BeaconStateT BeaconState[
-		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-		ForkT, KVStoreT, ValidatorT, ValidatorsT, WithdrawalT,
+		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
+		Eth1DataT, ExecutionPayloadHeaderT, ForkT, KVStoreT,
+		ValidatorT, ValidatorsT, WithdrawalT,
 	],
+	BeaconStateMarshallableT any,
 	BlobSidecarsT any,
 	BlobFactoryT BlobFactory[BeaconBlockT, BlobSidecarsT],
 	BlockStoreT any,

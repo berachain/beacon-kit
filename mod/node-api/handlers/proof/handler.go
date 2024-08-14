@@ -35,7 +35,7 @@ type Handler[
 	BeaconStateT types.BeaconState[
 		BeaconStateMarshallableT, ExecutionPayloadHeaderT, ValidatorT,
 	],
-	BeaconStateMarshallableT any,
+	BeaconStateMarshallableT types.BeaconStateMarshallable,
 	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
 	ValidatorT types.Validator,
 ] struct {
@@ -51,7 +51,7 @@ func NewHandler[
 	BeaconStateT types.BeaconState[
 		BeaconStateMarshallableT, ExecutionPayloadHeaderT, ValidatorT,
 	],
-	BeaconStateMarshallableT any,
+	BeaconStateMarshallableT types.BeaconStateMarshallable,
 	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
 	ValidatorT types.Validator,
 ](

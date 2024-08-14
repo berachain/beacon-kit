@@ -50,8 +50,9 @@ func ProvideStorageBackend[
 	BeaconBlockBodyT constraints.SSZMarshallable,
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT BeaconState[
-		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-		ForkT, KVStoreT, ValidatorT, ValidatorsT, WithdrawalT,
+		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
+		Eth1DataT, ExecutionPayloadHeaderT, ForkT, KVStoreT,
+		ValidatorT, ValidatorsT, WithdrawalT,
 	],
 	BeaconStateMarshallableT BeaconStateMarshallable[
 		BeaconStateMarshallableT, BeaconBlockHeaderT, Eth1DataT,

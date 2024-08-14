@@ -176,6 +176,7 @@ type (
 		ValidatorT any,
 	] interface {
 		constraints.SSZMarshallableRootable
+		GetTree() (*fastssz.Node, error)
 		// New returns a new instance of the BeaconStateMarshallable.
 		New(
 			forkVersion uint32,
@@ -758,6 +759,7 @@ type (
 	BeaconState[
 		T any,
 		BeaconBlockHeaderT any,
+		BeaconStateMarshallableT any,
 		Eth1DataT,
 		ExecutionPayloadHeaderT,
 		ForkT,
@@ -773,6 +775,7 @@ type (
 		Copy() T
 		Context() context.Context
 		HashTreeRoot() common.Root
+		GetMarshallable() (BeaconStateMarshallableT, error)
 
 		ReadOnlyBeaconState[
 			BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
@@ -1053,7 +1056,8 @@ type (
 	] interface {
 		AttachNode(node nodetypes.Node)
 		ChainSpec() common.ChainSpec
-		GetSlotByRoot(root common.Root) (math.Slot, error)
+		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
+		GetSlotByStateRoot(root common.Root) (math.Slot, error)
 		GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
 
 		NodeAPIBeaconBackend[

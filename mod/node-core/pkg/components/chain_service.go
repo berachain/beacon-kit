@@ -95,9 +95,11 @@ func ProvideChainService[
 	],
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT BeaconState[
-		BeaconStateT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
-		ForkT, KVStoreT, ValidatorT, ValidatorsT, WithdrawalsT,
+		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
+		Eth1DataT, ExecutionPayloadHeaderT, ForkT, KVStoreT,
+		ValidatorT, ValidatorsT, WithdrawalT,
 	],
+	BeaconStateMarshallableT any,
 	BlobSidecarsT any,
 	BlobFactoryT BlobFactory[BeaconBlockT, BlobSidecarsT],
 	BlockStoreT any,

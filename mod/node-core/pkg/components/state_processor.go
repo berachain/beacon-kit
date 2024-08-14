@@ -52,7 +52,6 @@ type StateProcessorInput[
 // ProvideStateProcessor provides the state processor to the depinject
 // framework.
 func ProvideStateProcessor[
-
 	ExecutionEngineT ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, PayloadAttributesT,
 		PayloadIDT, WithdrawalsT,
