@@ -93,6 +93,9 @@ type ReadOnlyBeaconState[
 	ValidatorIndexByCometBFTAddress(
 		cometBFTAddress []byte,
 	) (math.ValidatorIndex, error)
+	ValidatorIndexByPubkey(
+		crypto.BLSPubkey,
+	) (math.ValidatorIndex, error)
 }
 
 // WriteOnlyBeaconState is the interface for a write-only beacon state.
@@ -106,6 +109,7 @@ type WriteOnlyBeaconState[
 
 	DecreaseBalance(math.ValidatorIndex, math.Gwei) error
 	IncreaseBalance(math.ValidatorIndex, math.Gwei) error
+	SetBalance(math.ValidatorIndex, math.Gwei) error
 	SetEth1DepositIndex(uint64) error
 	SetFork(ForkT) error
 	SetGenesisValidatorsRoot(root common.Root) error

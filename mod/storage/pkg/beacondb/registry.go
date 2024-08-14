@@ -50,7 +50,7 @@ func (kv *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) AddValidatorBartio(val ValidatorT) error {
-	// Get the ne
+	// Get the next validator index from the sequence.
 	idx, err := kv.validatorIndex.Next(kv.ctx)
 	if err != nil {
 		return err

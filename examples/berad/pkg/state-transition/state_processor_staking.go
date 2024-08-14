@@ -270,10 +270,21 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) processForcedWithdrawals(
-	_ BeaconStateT,
-	_ transition.ValidatorUpdates,
+	st BeaconStateT,
+	valUpdates transition.ValidatorUpdates,
 ) error {
-	// TODO: Implement this function.
+	// Process the forced withdrawals.
+	for _, valUpdate := range valUpdates {
+		idx, err := st.ValidatorIndexByPubkey(valUpdate.Pubkey)
+		if err != nil {
+			return err
+		}
+
+		// Set the validator's effective balance to 0.
+		if err = st.SetBalance(idx, 0); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
