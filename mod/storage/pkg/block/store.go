@@ -107,9 +107,12 @@ func (kv *KVStore[BeaconBlockT]) Prune(start, end uint64) error {
 
 		blk, err := kv.blocks.Get(ctx, kv.nextToPrune)
 		if err != nil {
-			panic(err)
+			if !errors.Is(err, sdkcollections.ErrNotFound) {
+				panic(err)
+			}
+		} else {
+			fmt.Println("blk", blk)
 		}
-		fmt.Println("blk", blk)
 
 		if err := kv.blocks.Remove(ctx, kv.nextToPrune); err != nil {
 			// This can error for 2 reasons:
