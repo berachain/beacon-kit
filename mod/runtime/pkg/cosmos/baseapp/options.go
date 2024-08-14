@@ -72,6 +72,10 @@ func SetChainID(chainID string) func(*BaseApp) {
 	return func(app *BaseApp) { app.chainID = chainID }
 }
 
+func SetCommitHook(commitHook func(context.Context) error) func(*BaseApp) {
+	return func(app *BaseApp) { app.commitHook = commitHook }
+}
+
 func (app *BaseApp) SetName(name string) {
 	app.name = name
 }
@@ -125,4 +129,8 @@ func (app *BaseApp) SetProcessProposal(handler sdk.ProcessProposalHandler) {
 // SetPrepareProposal sets the prepare proposal function for the BaseApp.
 func (app *BaseApp) SetPrepareProposal(handler sdk.PrepareProposalHandler) {
 	app.prepareProposal = handler
+}
+
+func (app *BaseApp) SetCommitHook(hook func(context.Context) error) {
+	app.commitHook = hook
 }

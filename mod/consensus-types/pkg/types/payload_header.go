@@ -83,7 +83,9 @@ type ExecutionPayloadHeader struct {
 
 // Empty returns an empty ExecutionPayload for the given fork version.
 func (h *ExecutionPayloadHeader) Empty() *ExecutionPayloadHeader {
-	return &ExecutionPayloadHeader{}
+	return &ExecutionPayloadHeader{
+		BaseFeePerGas: new(uint256.Int),
+	}
 }
 
 // NewFromSSZ returns a new ExecutionPayloadHeader from the given SSZ bytes.

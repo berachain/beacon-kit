@@ -21,6 +21,7 @@
 package builder
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -30,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/comet"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/baseapp"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/sszdb"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -126,10 +128,10 @@ func DefaultBaseappOptions(
 	}
 }
 
-func WithStreamingManager(
-	streamingManager storetypes.StreamingManager,
-) func(bApp *baseapp.BaseApp) {
+func WithConsnensusBackend(backend *sszdb.Backend) func(bApp *baseapp.BaseApp) {
 	return func(bApp *baseapp.BaseApp) {
-		//bApp.SetStreamingManager(streamingManager)
+		bApp.SetCommitHook(func(ctx context.Context) error {
+			return backend.Commit(ctx)
+		})
 	}
 }

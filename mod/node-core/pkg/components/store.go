@@ -21,15 +21,11 @@
 package components
 
 import (
-	"context"
-
 	"cosmossdk.io/core/store"
 	"cosmossdk.io/depinject"
-	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/sszdb"
-	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cast"
@@ -60,38 +56,15 @@ func ProvideKVStore(in KVStoreInput) (*KVStore, error) {
 	](in.KVStoreService, payloadCodec, sszDB), nil
 }
 
-var _ storetypes.ABCIListener = &CommitListener{}
-
-type CommitListener struct {
-	*sszdb.Backend
-}
-
-func (c *CommitListener) ListenFinalizeBlock(
-	context.Context,
-	cmtabci.FinalizeBlockRequest,
-	cmtabci.FinalizeBlockResponse,
-) error {
-	return nil
-}
-
-func (c *CommitListener) ListenCommit(
-	ctx context.Context, _ cmtabci.CommitResponse, _ []*storetypes.StoreKVPair,
-) error {
-	return c.Commit(ctx)
-}
-
 func ProvideSSZBackend(
 	options servertypes.AppOptions,
-) (*sszdb.Backend, storetypes.StreamingManager, error) {
-	streamingManager := storetypes.StreamingManager{StopNodeOnErr: true}
+) (*sszdb.Backend, error) {
 	cfg := sszdb.BackendConfig{
 		Path: cast.ToString(options.Get(flags.FlagHome)) + "/data/sszdb.db",
 	}
 	backend, err := sszdb.NewBackend(cfg)
 	if err != nil {
-		return nil, streamingManager, err
+		return nil, err
 	}
-	listener := &CommitListener{Backend: backend}
-	streamingManager.ABCIListeners = []storetypes.ABCIListener{listener}
-	return backend, streamingManager, nil
+	return backend, nil
 }

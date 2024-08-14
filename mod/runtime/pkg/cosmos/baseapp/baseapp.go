@@ -84,6 +84,8 @@ type BaseApp struct {
 	processProposalState *state
 	finalizeBlockState   *state
 
+	commitHook func(context.Context) error
+
 	// An inter-block write-through cache provided to the context during the
 	// ABCI
 	// FinalizeBlock call.

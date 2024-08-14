@@ -33,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/sszdb"
 	dbm "github.com/cosmos/cosmos-db"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
@@ -82,7 +83,7 @@ func (nb *NodeBuilder[NodeT]) Build(
 		apiBackend       *components.NodeAPIBackend
 		storeKey         = new(storetypes.KVStoreKey)
 		storeKeyDblPtr   = &storeKey
-		streamingManager storetypes.StreamingManager
+		consensusBackend *sszdb.Backend
 	)
 
 	// build all node components using depinject
@@ -105,7 +106,7 @@ func (nb *NodeBuilder[NodeT]) Build(
 		&serviceRegistry,
 		&consensusEngine,
 		&apiBackend,
-		&streamingManager,
+		&consensusBackend,
 	); err != nil {
 		panic(err)
 	}
@@ -119,7 +120,7 @@ func (nb *NodeBuilder[NodeT]) Build(
 				WithCometParamStore(chainSpec),
 				WithPrepareProposal(consensusEngine.PrepareProposal),
 				WithProcessProposal(consensusEngine.ProcessProposal),
-				WithStreamingManager(streamingManager),
+				WithConsnensusBackend(consensusBackend),
 			)...,
 		),
 	)
