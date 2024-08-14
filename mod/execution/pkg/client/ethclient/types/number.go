@@ -10,6 +10,14 @@ import (
 )
 
 const (
+	SafeBlockNumbeStr      = "safe"
+	FinalizedBlockNumStr   = "finalized"
+	LatestBlockNumStr      = "latest"
+	PendingBlockNumStr     = "pending"
+	EarliestBlockNumberStr = "earliest"
+)
+
+const (
 	SafeBlockNumber      = BlockNumber(-4)
 	FinalizedBlockNumber = BlockNumber(-3)
 	LatestBlockNumber    = BlockNumber(-2)
@@ -32,19 +40,19 @@ func (bn *BlockNumber) UnmarshalJSON(data []byte) error {
 	}
 
 	switch input {
-	case "earliest":
+	case EarliestBlockNumberStr:
 		*bn = EarliestBlockNumber
 		return nil
-	case "latest":
+	case LatestBlockNumStr:
 		*bn = LatestBlockNumber
 		return nil
-	case "pending":
+	case PendingBlockNumStr:
 		*bn = PendingBlockNumber
 		return nil
-	case "finalized":
+	case FinalizedBlockNumStr:
 		*bn = FinalizedBlockNumber
 		return nil
-	case "safe":
+	case SafeBlockNumbeStr:
 		*bn = SafeBlockNumber
 		return nil
 	}
@@ -60,11 +68,6 @@ func (bn *BlockNumber) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// Int64 returns the block number as int64.
-func (bn BlockNumber) Int64() int64 {
-	return (int64)(bn)
-}
-
 // MarshalText implements encoding.TextMarshaler. It marshals:
 // - "safe", "finalized", "latest", "earliest" or "pending" as strings
 // - other numbers as hex
@@ -75,15 +78,15 @@ func (bn BlockNumber) MarshalText() ([]byte, error) {
 func (bn BlockNumber) String() string {
 	switch bn {
 	case EarliestBlockNumber:
-		return "earliest"
+		return EarliestBlockNumberStr
 	case LatestBlockNumber:
-		return "latest"
+		return LatestBlockNumStr
 	case PendingBlockNumber:
-		return "pending"
+		return PendingBlockNumStr
 	case FinalizedBlockNumber:
-		return "finalized"
+		return FinalizedBlockNumStr
 	case SafeBlockNumber:
-		return "safe"
+		return SafeBlockNumbeStr
 	default:
 		if bn < 0 {
 			return fmt.Sprintf("<invalid %d>", bn)
