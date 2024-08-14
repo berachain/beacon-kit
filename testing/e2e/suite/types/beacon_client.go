@@ -28,9 +28,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 )
 
-// BeaconKitNode is a wrapper around the client.Service interface to add
+// BeaconKitNodeClient is a wrapper around the client.Service interface to add
 // additional methods specific to a beacon-kit node's API.
-type BeaconKitNode interface {
+type BeaconKitNodeClient interface {
 	client.Service
 
 	client.FarFutureEpochProvider
@@ -84,12 +84,12 @@ type BeaconKitNode interface {
 	// Other beacon-kit node-api methods here...
 }
 
-// NewBeaconKitClient creates a new BeaconKitNode client instance with a given
-// cancel context.
-func NewBeaconKitClient(
+// NewBeaconKitNodeClient creates a new beacon-kit node-api client instance
+// with the given cancel context.
+func NewBeaconKitNodeClient(
 	cancelCtx context.Context,
 	params ...beaconhttp.Parameter,
-) (BeaconKitNode, error) {
+) (BeaconKitNodeClient, error) {
 	service, err := beaconhttp.New(
 		cancelCtx,
 		params...,
@@ -98,9 +98,9 @@ func NewBeaconKitClient(
 		return nil, err
 	}
 
-	client, ok := service.(BeaconKitNode)
+	client, ok := service.(BeaconKitNodeClient)
 	if !ok {
-		return nil, errors.New("failed to cast service to BeaconKitNode")
+		return nil, errors.New("failed to cast service to BeaconKitNodeClient")
 	}
 
 	return client, nil
