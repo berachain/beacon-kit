@@ -91,7 +91,7 @@ func (dc *WrappedBeaconDepositContract[
 		if err := d.UnmarshalLog(log); err != nil {
 			return nil, err
 		}
-		deposits = append(deposits)
+		deposits = append(deposits, d)
 	}
 
 	return deposits, nil
