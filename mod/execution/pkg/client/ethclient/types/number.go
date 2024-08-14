@@ -29,31 +29,35 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
+// BlockNumber represents a block number.
 const (
-	SafeBlockNumberStr      = "safe"
+	// SafeBlockNumberStr is the string representation of SafeBlockNumber.
+	SafeBlockNumberStr = "safe"
+	// FinalizedBlockNumberStr is the string representation of FinalizedBlockNumber.
 	FinalizedBlockNumberStr = "finalized"
-	LatestBlockNumberStr    = "latest"
-	PendingBlockNumberStr   = "pending"
-	EarliestBlockNumberStr  = "earliest"
+	// LatestBlockNumberStr is the string representation of LatestBlockNumber.
+	LatestBlockNumberStr = "latest"
+	// PendingBlockNumberStr is the string representation of PendingBlockNumber.
+	PendingBlockNumberStr = "pending"
+	// EarliestBlockNumberStr is the string representation of EarliestBlockNumber.
+	EarliestBlockNumberStr = "earliest"
+
+	// SafeBlockNumber represents a safe block to use for certain operations.
+	SafeBlockNumber BlockNumber = -4
+	// FinalizedBlockNumber represents the finalized block.
+	FinalizedBlockNumber BlockNumber = -3
+	// LatestBlockNumber represents the latest block in the chain.
+	LatestBlockNumber BlockNumber = -2
+	// PendingBlockNumber represents the pending block.
+	PendingBlockNumber BlockNumber = -1
+	// EarliestBlockNumber represents the earliest block in the chain.
+	EarliestBlockNumber BlockNumber = 0
 )
 
-const (
-	SafeBlockNumber      = BlockNumber(-4)
-	FinalizedBlockNumber = BlockNumber(-3)
-	LatestBlockNumber    = BlockNumber(-2)
-	PendingBlockNumber   = BlockNumber(-1)
-	EarliestBlockNumber  = BlockNumber(0)
-)
-
+// BlockNumber represents a block number.
 type BlockNumber int64
 
-// UnmarshalJSON parses the given JSON fragment into a BlockNumber. It supports:
-// - "safe", "finalized", "latest", "earliest" or "pending" as string arguments
-// - the block number
-// Returned errors:
-// - an invalid block number error when the given argument isn't a known strings
-// - an out of range error when the given block number is either too little or
-// too large.
+// UnmarshalJSON parses the given JSON fragment into a BlockNumber
 func (bn *BlockNumber) UnmarshalJSON(data []byte) error {
 	input := strings.TrimSpace(string(data))
 
@@ -91,13 +95,12 @@ func (bn *BlockNumber) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// MarshalText implements encoding.TextMarshaler. It marshals:
-// - "safe", "finalized", "latest", "earliest" or "pending" as strings
-// - other numbers as hex.
+// MarshalText implements encoding.TextMarshaler.
 func (bn BlockNumber) MarshalText() ([]byte, error) {
 	return []byte(bn.String()), nil
 }
 
+// String returns the string representation of the BlockNumber.
 func (bn BlockNumber) String() string {
 	switch bn {
 	case EarliestBlockNumber:
