@@ -15,6 +15,7 @@ def deploy_contracts(plan, deployment):
     rpc_url = deployment["rpc_url"]
     wallet = deployment["wallet"]
     dependency = deployment["dependency"]
+    dependency_status = dependency["status"]
 
     # TODO: Support other wallet options such as mnemonics, keystore, hardware wallets.
     if wallet["type"] == "private_key":
@@ -24,11 +25,6 @@ def deploy_contracts(plan, deployment):
 
     folder = plan.upload_files(src = repository, name = "contracts")
 
-    dependency_status = dependency["status"]
-    if dependency_status:
-        dependency_path = dependency["path"]
-        plan.upload_files(src = dependency_path, name = "dependency")
-
     foundry_service = plan.add_service(
         name = "foundry",
         config = ServiceConfig(
@@ -36,7 +32,6 @@ def deploy_contracts(plan, deployment):
             entrypoint = ENTRYPOINT,
             files = {
                 SOURCE_DIR_PATH: "contracts",
-                DEPENDENCY_DIR_PATH: "dependency",
             },
         ),
     )
@@ -48,6 +43,17 @@ def deploy_contracts(plan, deployment):
 
     # Check if dependency status is set to true
     if dependency_status:
+        plan.print("Dependency status is true", dependency_status)
+        dependency_path = dependency["path"]
+        plan.upload_files(src = dependency_path, name = "dependency")
+
+        artifact_name = plan.store_service_files(
+            service_name = foundry_service.name,
+            # The path on the service's container that will be copied into a files artifact.
+            src = "{}/{}".format(DEPENDENCY_DIR_PATH, dependency_path),
+            name = "dependency",
+        )
+
         # Run shell script
         plan.exec(
             service_name = foundry_service.name,
