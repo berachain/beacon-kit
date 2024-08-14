@@ -98,6 +98,7 @@ func (l *Log) UnmarshalJSON(input []byte) error {
 		BlockHash   *common.ExecutionHash    `json:"blockHash"`
 		Index       *math.U64                `json:"logIndex"`
 		Removed     *bool                    `json:"removed"`
+	}
 	var dec Log
 	if err := json.Unmarshal(input, &dec); err != nil {
 		return err
