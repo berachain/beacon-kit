@@ -3,9 +3,10 @@ package types
 import (
 	"errors"
 	"fmt"
-	"math"
+	stdmath "math"
 	"strings"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -61,9 +62,10 @@ func (bn *BlockNumber) UnmarshalJSON(data []byte) error {
 	if err != nil {
 		return err
 	}
-	if blckNum > math.MaxInt64 {
+	if blckNum > stdmath.MaxInt64 {
 		return errors.New("block number larger than int64")
 	}
+	//#nosec:G701 // handled by the guard above.
 	*bn = BlockNumber(blckNum)
 	return nil
 }
@@ -91,6 +93,6 @@ func (bn BlockNumber) String() string {
 		if bn < 0 {
 			return fmt.Sprintf("<invalid %d>", bn)
 		}
-		return hexutil.Uint64(bn).String()
+		return math.U64(bn).Hex()
 	}
 }
