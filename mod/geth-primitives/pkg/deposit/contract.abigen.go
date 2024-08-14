@@ -38,28 +38,10 @@ var BeaconDepositContractMetaData = &bind.MetaData{
 // Deprecated: Use BeaconDepositContractMetaData.ABI instead.
 var BeaconDepositContractABI = BeaconDepositContractMetaData.ABI
 
-// BeaconDepositContract is an auto generated Go binding around an Ethereum contract.
-type BeaconDepositContract struct {
-	BeaconDepositContractFilterer   // Log filterer for contract events
-}
-
 // BeaconDepositContractFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
 type BeaconDepositContractFilterer struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
-
-
-// BeaconDepositContractCallerSession is an auto generated read-only Go binding around an 
-
-// NewBeaconDepositContract creates a new instance of BeaconDepositContract, bound to a specific deployed contract.
-func NewBeaconDepositContract(address common.Address, backend bind.ContractBackend) (*BeaconDepositContract, error) {
-	contract, err := bindBeaconDepositContract(address, backend, backend, backend)
-	if err != nil {
-		return nil, err
-	}
-	return &BeaconDepositContract{BeaconDepositContractFilterer: BeaconDepositContractFilterer{contract: contract}}, nil
-}
-
 
 // NewBeaconDepositContractFilterer creates a new log filterer instance of BeaconDepositContract, bound to a specific deployed contract.
 func NewBeaconDepositContractFilterer(address common.Address, filterer bind.ContractFilterer) (*BeaconDepositContractFilterer, error) {
