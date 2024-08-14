@@ -45,7 +45,7 @@ type ChainServiceInput[
 	DepositStoreT any,
 	ExecutionEngineT ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, PayloadAttributesT,
-		PayloadIDT, WithdrawalsT,
+		PayloadIDT, WithdrawalT, WithdrawalsT,
 	],
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
@@ -64,7 +64,8 @@ type ChainServiceInput[
 	],
 	LocalBuilderT LocalBuilder[BeaconStateT, ExecutionPayloadT],
 	LoggerT log.AdvancedLogger[any, LoggerT],
-	WithdrawalsT Withdrawals,
+	WithdrawalT any,
+	WithdrawalsT Withdrawals[WithdrawalT],
 ] struct {
 	depinject.In
 
@@ -109,7 +110,7 @@ func ProvideChainService[
 	Eth1DataT any,
 	ExecutionEngineT ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, PayloadAttributesT,
-		PayloadIDT, WithdrawalsT,
+		PayloadIDT, WithdrawalT, WithdrawalsT,
 	],
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
@@ -134,14 +135,14 @@ func ProvideChainService[
 	ValidatorT any,
 	ValidatorsT any,
 	WithdrawalT any,
-	WithdrawalsT Withdrawals,
+	WithdrawalsT Withdrawals[WithdrawalT],
 ](
 	in ChainServiceInput[
 		AvailabilityStoreT, BeaconBlockT, BeaconStateT, BlobSidecarsT,
 		BlobFactoryT, BlockStoreT, ContextT, DepositT, DepositStoreT,
 		ExecutionEngineT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-		GenesisT, PayloadAttributesT, PayloadIDT, SlotDataT,
-		StateProcessorT, StorageBackendT, LocalBuilderT, LoggerT, WithdrawalsT,
+		GenesisT, PayloadAttributesT, PayloadIDT, SlotDataT, StateProcessorT,
+		StorageBackendT, LocalBuilderT, LoggerT, WithdrawalT, WithdrawalsT,
 	],
 ) *blockchain.Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,

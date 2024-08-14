@@ -36,7 +36,7 @@ type LocalBuilderInput[
 	BeaconStateT any,
 	ExecutionEngineT ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, PayloadAttributesT,
-		PayloadIDT, WithdrawalsT,
+		PayloadIDT, WithdrawalT, WithdrawalsT,
 	],
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
@@ -45,7 +45,8 @@ type LocalBuilderInput[
 	LoggerT log.AdvancedLogger[any, LoggerT],
 	PayloadAttributesT any,
 	PayloadIDT ~[8]byte,
-	WithdrawalsT Withdrawals,
+	WithdrawalT any,
+	WithdrawalsT Withdrawals[WithdrawalT],
 ] struct {
 	depinject.In
 	AttributesFactory AttributesFactoryT
@@ -69,7 +70,7 @@ func ProvideLocalBuilder[
 	Eth1DataT any,
 	ExecutionEngineT ExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, PayloadAttributesT,
-		PayloadIDT, WithdrawalsT,
+		PayloadIDT, WithdrawalT, WithdrawalsT,
 	],
 	ExecutionPayloadT ExecutionPayload[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
@@ -83,18 +84,12 @@ func ProvideLocalBuilder[
 	ValidatorT any,
 	ValidatorsT any,
 	WithdrawalT any,
-	WithdrawalsT Withdrawals,
+	WithdrawalsT Withdrawals[WithdrawalT],
 ](
 	in LocalBuilderInput[
-		AttributesFactoryT,
-		BeaconStateT,
-		ExecutionEngineT,
-		ExecutionPayloadT,
-		ExecutionPayloadHeaderT,
-		LoggerT,
-		PayloadAttributesT,
-		PayloadIDT,
-		WithdrawalsT,
+		AttributesFactoryT, BeaconStateT, ExecutionEngineT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT, LoggerT,
+		PayloadAttributesT, PayloadIDT, WithdrawalT, WithdrawalsT,
 	],
 ) *payloadbuilder.PayloadBuilder[
 	AttributesFactoryT, BeaconStateT, ExecutionEngineT,

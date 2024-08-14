@@ -383,6 +383,7 @@ type (
 			depositCount math.U64,
 			blockHash common.ExecutionHash,
 		) T
+		GetDepositCount() math.U64
 	}
 
 	EngineClient[
@@ -426,7 +427,8 @@ type (
 		ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 		PayloadAttributesT any,
 		PayloadIDT ~[8]byte,
-		WithdrawalsT Withdrawals,
+		WithdrawalT any,
+		WithdrawalsT Withdrawals[WithdrawalT],
 	] interface {
 		// GetPayload returns the payload and blobs bundle for the given slot.
 		GetPayload(
@@ -495,6 +497,7 @@ type (
 	Fork[T any] interface {
 		constraints.Empty[T]
 		constraints.SSZMarshallable
+		New(common.Version, common.Version, math.Epoch) T
 	}
 
 	// ForkData is the interface for the fork data.
@@ -735,7 +738,8 @@ type (
 		GetAddress() common.ExecutionAddress
 	}
 
-	Withdrawals interface {
+	Withdrawals[WithdrawalT any] interface {
+		~[]WithdrawalT
 		Len() int
 		EncodeIndex(int, *stdbytes.Buffer)
 	}

@@ -109,7 +109,7 @@ func ProvideExecutionEngine[
 	PayloadAttributesT PayloadAttributes[ExecutionPayloadT, WithdrawalT],
 	PayloadIDT ~[8]byte,
 	WithdrawalT any,
-	WithdrawalsT Withdrawals,
+	WithdrawalsT Withdrawals[WithdrawalT],
 ](
 	in ExecutionEngineInputs[
 		EngineClientT, ExecutionPayloadT, LoggerT,
