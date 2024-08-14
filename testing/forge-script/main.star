@@ -1,6 +1,7 @@
 SOURCE_DIR_PATH = "/app/contracts"
 IMAGE_FOUNDRY = "ghcr.io/foundry-rs/foundry:latest"
 ENTRYPOINT = ["/bin/sh"]
+DEPENDENCY_DIR_PATH = "/app/dependency"
 
 def run(plan, deployment = {}):
     deploy_contracts(plan, deployment)
@@ -13,6 +14,7 @@ def deploy_contracts(plan, deployment):
     contract_name = deployment["contract_name"]
     rpc_url = deployment["rpc_url"]
     wallet = deployment["wallet"]
+    dependency = deployment["dependency"]
 
     # TODO: Support other wallet options such as mnemonics, keystore, hardware wallets.
     if wallet["type"] == "private_key":
@@ -22,6 +24,11 @@ def deploy_contracts(plan, deployment):
 
     folder = plan.upload_files(src = repository, name = "contracts")
 
+    dependency_status = dependency["status"]
+    if dependency_status:
+        dependency_path = dependency["path"]
+        plan.upload_files(src = dependency_path, name = "dependency")
+
     foundry_service = plan.add_service(
         name = "foundry",
         config = ServiceConfig(
@@ -29,6 +36,7 @@ def deploy_contracts(plan, deployment):
             entrypoint = ENTRYPOINT,
             files = {
                 SOURCE_DIR_PATH: "contracts",
+                DEPENDENCY_DIR_PATH: "dependency",
             },
         ),
     )
@@ -38,24 +46,20 @@ def deploy_contracts(plan, deployment):
     else:
         contract_path = SOURCE_DIR_PATH
 
-    plan.exec(
-        service_name = foundry_service.name,
-        recipe = ExecRecipe(
-            command = ["/bin/sh", "-c", "apk update && apk add --no-cache nodejs npm"],
-        ),
-    )
-
-    plan.exec(
-        service_name = foundry_service.name,
-        recipe = ExecRecipe(
-            command = ["/bin/sh", "-c", "npm install -g bun"],
-        ),
-    )
+    # Check if dependency status is set to true
+    if dependency_status:
+        # Run shell script
+        plan.exec(
+            service_name = foundry_service.name,
+            recipe = ExecRecipe(
+                command = ["/bin/sh", "-c", "sh {}".format(DEPENDENCY_DIR_PATH + "/" + dependency_path)],
+            ),
+        )
 
     result = plan.exec(
         service_name = foundry_service.name,
         recipe = ExecRecipe(
-            command = ["/bin/sh", "-c", "cd {} && bun install && forge build".format(contract_path)],
+            command = ["/bin/sh", "-c", "cd {} && forge build".format(contract_path)],
         ),
     )
     plan.verify(result["code"], "==", 0)
