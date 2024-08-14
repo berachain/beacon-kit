@@ -70,7 +70,7 @@ func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
 
 			// Get the BLS signer.
 			blsSigner, err := components.ProvideBlsSigner(
-				components.BlsSignerInput{
+				components.BlsSignerInput[signer.LegacyKey]{
 					AppOpts: client.GetViperFromCmd(cmd),
 				},
 			)

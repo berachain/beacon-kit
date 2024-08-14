@@ -33,14 +33,16 @@ import (
 )
 
 // BlsSignerInput is the input for the dep inject framework.
-type BlsSignerInput[LegacyKeyT ~[32]byte] struct {
+type BlsSignerInput[LegacyKeyT ~[constants.BLSSecretKeyLength]byte] struct {
 	depinject.In
 	AppOpts servertypes.AppOptions
 	PrivKey LegacyKeyT `optional:"true"`
 }
 
 // ProvideBlsSigner is a function that provides the module to the application.
-func ProvideBlsSigner[LegacyKeyT ~[32]byte](in BlsSignerInput[LegacyKeyT]) (crypto.BLSSigner, error) {
+func ProvideBlsSigner[LegacyKeyT ~[constants.BLSSecretKeyLength]byte](
+	in BlsSignerInput[LegacyKeyT],
+) (crypto.BLSSigner, error) {
 	if in.PrivKey == [constants.BLSSecretKeyLength]byte{} {
 		// if no private key is provided, use privval signer
 		homeDir := cast.ToString(in.AppOpts.Get(clientFlags.FlagHome))
