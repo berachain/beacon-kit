@@ -30,11 +30,11 @@ import (
 )
 
 const (
-	SafeBlockNumbeStr      = "safe"
-	FinalizedBlockNumStr   = "finalized"
-	LatestBlockNumStr      = "latest"
-	PendingBlockNumStr     = "pending"
-	EarliestBlockNumberStr = "earliest"
+	SafeBlockNumberStr      = "safe"
+	FinalizedBlockNumberStr = "finalized"
+	LatestBlockNumberStr    = "latest"
+	PendingBlockNumberStr   = "pending"
+	EarliestBlockNumberStr  = "earliest"
 )
 
 const (
@@ -65,16 +65,16 @@ func (bn *BlockNumber) UnmarshalJSON(data []byte) error {
 	case EarliestBlockNumberStr:
 		*bn = EarliestBlockNumber
 		return nil
-	case LatestBlockNumStr:
+	case LatestBlockNumberStr:
 		*bn = LatestBlockNumber
 		return nil
-	case PendingBlockNumStr:
+	case PendingBlockNumberStr:
 		*bn = PendingBlockNumber
 		return nil
-	case FinalizedBlockNumStr:
+	case FinalizedBlockNumberStr:
 		*bn = FinalizedBlockNumber
 		return nil
-	case SafeBlockNumbeStr:
+	case SafeBlockNumberStr:
 		*bn = SafeBlockNumber
 		return nil
 	}
@@ -103,13 +103,13 @@ func (bn BlockNumber) String() string {
 	case EarliestBlockNumber:
 		return EarliestBlockNumberStr
 	case LatestBlockNumber:
-		return LatestBlockNumStr
+		return LatestBlockNumberStr
 	case PendingBlockNumber:
-		return PendingBlockNumStr
+		return PendingBlockNumberStr
 	case FinalizedBlockNumber:
-		return FinalizedBlockNumStr
+		return FinalizedBlockNumberStr
 	case SafeBlockNumber:
-		return SafeBlockNumbeStr
+		return SafeBlockNumberStr
 	default:
 		if bn < 0 {
 			return fmt.Sprintf("<invalid %d>", bn)
