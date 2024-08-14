@@ -63,15 +63,15 @@ type Log struct {
 // MarshalJSON marshals as JSON.
 func (l Log) MarshalJSON() ([]byte, error) {
 	type Log struct {
-		Address     common.ExecutionAddress `json:"address"          gencodec:"required"`
-		Topics      []common.ExecutionHash  `json:"topics"           gencodec:"required"`
-		Data        bytes.Bytes             `json:"data"             gencodec:"required"`
-		BlockNumber math.U64                `json:"blockNumber"                          rlp:"-"`
-		TxHash      common.ExecutionHash    `json:"transactionHash"  gencodec:"required" rlp:"-"`
-		TxIndex     math.U64                `json:"transactionIndex"                     rlp:"-"`
-		BlockHash   common.ExecutionHash    `json:"blockHash"                            rlp:"-"`
-		Index       math.U64                `json:"logIndex"                             rlp:"-"`
-		Removed     bool                    `json:"removed"                              rlp:"-"`
+		Address     common.ExecutionAddress `json:"address"`
+		Topics      []common.ExecutionHash  `json:"topics"`
+		Data        bytes.Bytes             `json:"data"`
+		BlockNumber math.U64                `json:"blockNumber"`
+		TxHash      common.ExecutionHash    `json:"transactionHash"`
+		TxIndex     math.U64                `json:"transactionIndex"`
+		BlockHash   common.ExecutionHash    `json:"blockHash"`
+		Index       math.U64                `json:"logIndex"`
+		Removed     bool                    `json:"removed"`
 	}
 	var enc Log
 	enc.Address = l.Address
@@ -89,16 +89,15 @@ func (l Log) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (l *Log) UnmarshalJSON(input []byte) error {
 	type Log struct {
-		Address     *common.ExecutionAddress `json:"address"          gencodec:"required"`
-		Topics      []common.ExecutionHash   `json:"topics"           gencodec:"required"`
-		Data        *bytes.Bytes             `json:"data"             gencodec:"required"`
-		BlockNumber *math.U64                `json:"blockNumber"                          rlp:"-"`
-		TxHash      *common.ExecutionHash    `json:"transactionHash"  gencodec:"required" rlp:"-"`
-		TxIndex     *math.U64                `json:"transactionIndex"                     rlp:"-"`
-		BlockHash   *common.ExecutionHash    `json:"blockHash"                            rlp:"-"`
-		Index       *math.U64                `json:"logIndex"                             rlp:"-"`
-		Removed     *bool                    `json:"removed"                              rlp:"-"`
-	}
+		Address     *common.ExecutionAddress `json:"address"`
+		Topics      []common.ExecutionHash   `json:"topics"`
+		Data        *bytes.Bytes             `json:"data"`
+		BlockNumber *math.U64                `json:"blockNumber"`
+		TxHash      *common.ExecutionHash    `json:"transactionHash"`
+		TxIndex     *math.U64                `json:"transactionIndex"`
+		BlockHash   *common.ExecutionHash    `json:"blockHash"`
+		Index       *math.U64                `json:"logIndex"`
+		Removed     *bool                    `json:"removed"`
 	var dec Log
 	if err := json.Unmarshal(input, &dec); err != nil {
 		return err
