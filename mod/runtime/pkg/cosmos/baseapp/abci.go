@@ -601,24 +601,6 @@ func (app *BaseApp) GetBlockRetentionHeight(commitHeight int64) int64 {
 	return retentionHeight
 }
 
-// toVoteInfo converts the new ExtendedVoteInfo to VoteInfo.
-func toVoteInfo(votes []abci.ExtendedVoteInfo) []abci.VoteInfo {
-	legacyVotes := make([]abci.VoteInfo, len(votes))
-	for i, vote := range votes {
-		legacyVotes[i] = abci.VoteInfo{
-			Validator: abci.Validator{
-				Address: vote.Validator.Address,
-				Power:   vote.Validator.Power,
-			},
-			BlockIdFlag: vote.BlockIdFlag,
-		}
-	}
-
-	return legacyVotes
-}
-
-// LEgacy Helpers
-
 // NewContextLegacy returns a new sdk.Context with the provided header.
 func (app *BaseApp) NewContextLegacy(
 	_ bool,
