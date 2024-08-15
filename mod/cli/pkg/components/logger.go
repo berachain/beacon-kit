@@ -24,7 +24,6 @@ import (
 	"io"
 
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
 )
@@ -32,7 +31,6 @@ import (
 type LoggerInput struct {
 	depinject.In
 
-	Cfg *config.Config
 	Out io.Writer
 }
 
@@ -41,7 +39,7 @@ type LoggerInput struct {
 func ProvideLogger(
 	in LoggerInput,
 ) *phuslu.Logger {
-	logger := phuslu.NewLogger(in.Out, in.Cfg.GetLogger())
+	logger := phuslu.NewLogger(in.Out, nil)
 	logger.AddKeyColor("error", log.Red)
 	logger.AddKeyColor("err", log.Red)
 	return logger

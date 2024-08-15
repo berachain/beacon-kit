@@ -318,6 +318,12 @@ type (
 	// Logger is a type alias for the logger.
 	Logger = phuslu.Logger
 
+	// LoggerConfig is a type alias for the logger config.
+	LoggerConfig = phuslu.Config
+
+	// Node is a type alias for the node.
+	Node = nodetypes.Node
+
 	// NodeAPIBackend is a type alias for the node API backend.
 	NodeAPIBackend = backend.Backend[
 		*AvailabilityStore,

@@ -224,7 +224,7 @@ func DefaultComponents[
 		ProvideDepositPruner[
 			BeaconBlockT, BeaconBlockBodyT, BeaconBlockEventT, DepositT,
 			DepositStoreT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-			ForkDataT, WithdrawalsT, WithdrawalCredentialsT,
+			ForkDataT, LoggerT, WithdrawalsT, WithdrawalCredentialsT,
 		],
 		ProvideDepositService[
 			AttestationDataT, BeaconBlockT, BeaconBlockBodyT,

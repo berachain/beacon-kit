@@ -27,23 +27,21 @@ import (
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/config"
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 // CLIBuilder is the builder for the commands.Root (root command).
 type CLIBuilder[
 	T types.Node,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
-	LegacyKeyT ~[constants.BLSSecretKeyLength]byte,
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ] struct {
 	name        string
@@ -66,15 +64,13 @@ type CLIBuilder[
 func New[
 	T types.Node,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
-	LegacyKeyT ~[constants.BLSSecretKeyLength]byte,
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ](
-	opts ...Opt[T, ExecutionPayloadT, LegacyKeyT, LoggerT],
-) *CLIBuilder[T, ExecutionPayloadT, LegacyKeyT, LoggerT] {
-	cb := &CLIBuilder[T, ExecutionPayloadT, LegacyKeyT, LoggerT]{
+	opts ...Opt[T, ExecutionPayloadT, LoggerT],
+) *CLIBuilder[T, ExecutionPayloadT, LoggerT] {
+	cb := &CLIBuilder[T, ExecutionPayloadT, LoggerT]{
 		suppliers: []any{
 			os.Stdout, // supply io.Writer for logger
-			viper.GetViper(),
 		},
 	}
 	for _, opt := range opts {
@@ -85,7 +81,7 @@ func New[
 
 // Build builds the CLI commands.
 func (cb *CLIBuilder[
-	T, ExecutionPayloadT, LegacyKeyT, LoggerT,
+	T, ExecutionPayloadT, LoggerT,
 ]) Build() (*cmdlib.Root, error) {
 	// allocate memory to hold the dependencies
 	var (
@@ -94,10 +90,9 @@ func (cb *CLIBuilder[
 		logger    LoggerT
 	)
 	// build dependencies for the root command
-	//nolint:asasalint // todo fix.
 	if err := depinject.Inject(
 		depinject.Configs(
-			depinject.Supply(cb.suppliers),
+			depinject.Supply(cb.suppliers...),
 			depinject.Provide(
 				cb.components...,
 			),
@@ -119,7 +114,7 @@ func (cb *CLIBuilder[
 
 	// apply default root command setup
 	cmdlib.DefaultRootCommandSetup[
-		T, ExecutionPayloadT, LegacyKeyT, LoggerT,
+		T, ExecutionPayloadT, signer.LegacyKey, LoggerT, // BAD
 	](
 		rootCmd,
 		&runtime.App{},
@@ -131,7 +126,7 @@ func (cb *CLIBuilder[
 }
 
 // defaultRunHandler returns the default run handler for the CLIBuilder.
-func (cb *CLIBuilder[_, _, _, LoggerT]) defaultRunHandler(
+func (cb *CLIBuilder[_, _, LoggerT]) defaultRunHandler(
 	logger LoggerT,
 ) func(cmd *cobra.Command) error {
 	return func(cmd *cobra.Command) error {
@@ -145,14 +140,14 @@ func (cb *CLIBuilder[_, _, _, LoggerT]) defaultRunHandler(
 	}
 }
 
-func (cb *CLIBuilder[_, _, _, LoggerT]) InterceptConfigsPreRunHandler(
+func (cb *CLIBuilder[_, _, LoggerT]) InterceptConfigsPreRunHandler(
 	cmd *cobra.Command,
 	logger LoggerT,
 	customAppConfigTemplate string,
 	customAppConfig interface{},
 	cmtConfig *cmtcfg.Config,
 ) error {
-	return config.SetupCommand(
+	return config.SetupCommand[LoggerT](
 		cmd,
 		customAppConfigTemplate,
 		customAppConfig,

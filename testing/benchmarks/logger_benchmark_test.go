@@ -233,22 +233,23 @@ func newSDKLoggerWithLevel(b *testing.B, level string) log.Logger {
 // setup func to create a new phuslu logger with the given log level.
 func newPhusluLogger() *phuslu.Logger {
 	cfg := phuslu.DefaultConfig() // dummy config
-	l := phuslu.NewLogger(&bytes.Buffer{}, &cfg)
+	l := phuslu.NewLogger(
+		&bytes.Buffer{}, &cfg)
 	return l
 }
 
 // setup func to create a phuslu logger config with pretty style.
-func configWithPretty(level string) phuslu.Config {
+func configWithPretty(level string) *phuslu.Config {
 	cfg := phuslu.DefaultConfig()
 	cfg.LogLevel = level
 	cfg.Style = phuslu.StylePretty
-	return cfg
+	return &cfg
 }
 
 // setup func to create a phuslu logger config with JSON style.
-func configWithJSON(level string) phuslu.Config {
+func configWithJSON(level string) *phuslu.Config {
 	cfg := phuslu.DefaultConfig()
 	cfg.LogLevel = level
 	cfg.Style = phuslu.StyleJSON
-	return cfg
+	return &cfg
 }

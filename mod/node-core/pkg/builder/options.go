@@ -21,15 +21,33 @@
 package builder
 
 import (
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 )
 
 // Opt is a type that defines a function that modifies NodeBuilder.
-type Opt[NodeT types.Node] func(*NodeBuilder[NodeT])
+type Opt[
+	NodeT types.Node,
+	LoggerT interface {
+		log.AdvancedLogger[any, LoggerT]
+		log.Configurable[LoggerT, LoggerConfigT]
+	},
+	LoggerConfigT any,
+] func(*NodeBuilder[NodeT, LoggerT, LoggerConfigT])
 
 // WithComponents is a function that sets the components for the NodeBuilder.
-func WithComponents[NodeT types.Node](components []any) Opt[NodeT] {
-	return func(nb *NodeBuilder[NodeT]) {
+func WithComponents[
+	NodeT types.Node,
+	LoggerT interface {
+		log.AdvancedLogger[any, LoggerT]
+		log.Configurable[LoggerT, LoggerConfigT]
+	},
+	LoggerConfigT any,
+](components []any) Opt[NodeT, LoggerT, LoggerConfigT] {
+	// return func(nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) {
+	// 	nb.components = append(nb.components, components...)
+	// }
+	return func(nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) {
 		nb.components = components
 	}
 }

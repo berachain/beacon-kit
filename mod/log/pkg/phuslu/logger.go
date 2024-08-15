@@ -49,7 +49,7 @@ func NewLogger(
 		out:       out,
 		formatter: NewFormatter(),
 	}
-	logger.WithConfig(*cfg)
+	logger.WithConfig(cfg)
 	return logger
 }
 
@@ -130,7 +130,12 @@ func (l *Logger) msgWithContext(
 
 // Temporary workaround to allow dynamic configuration post-logger creation.
 // This is necessary due to dependencies on runtime-populated configurations.
-func (l *Logger) WithConfig(cfg Config) *Logger {
+func (l *Logger) WithConfig(cfg *Config) *Logger {
+	// Use default config if nil.
+	if cfg == nil {
+		c := DefaultConfig()
+		cfg = &c
+	}
 	l.withTimeFormat(cfg.TimeFormat)
 	l.withStyle(cfg.Style)
 	l.withLogLevel(cfg.LogLevel)

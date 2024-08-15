@@ -29,7 +29,7 @@ import (
 	"strings"
 
 	corectx "cosmossdk.io/core/context"
-	sdklog "cosmossdk.io/log"
+	sdklog "github.com/berachain/beacon-kit/mod/cli/pkg/components/log"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	cmtcfg "github.com/cometbft/cometbft/config"
@@ -72,7 +72,7 @@ func SetupCommand[
 		server.NewContext(
 			client.GetViperFromCmd(cmd),
 			client.GetConfigFromCmd(cmd),
-			any(logger).(sdklog.Logger), // bad, but necessary to declutter cosmos
+			sdklog.WrapSDKLogger(logger),
 		),
 	)
 }
