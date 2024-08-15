@@ -1,8 +1,0 @@
-{
-    "plugins": [
-        {
-            "type": "add",
-            "pluginName": "fleet.go.ai"
-        }
-    ]
-}
