@@ -18,30 +18,15 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package service
+package merkle
 
-import "github.com/berachain/beacon-kit/mod/errors"
+import "errors"
 
-var (
-	// errServiceAlreadyExists defines an error for when a service already
-	// exists.
-	errServiceAlreadyExists = errors.Wrapf(
-		errors.New("service already exists"),
-		"%v",
-	)
+// ErrUnexpectedProofLength is returned when the proof length is unexpected.
+var ErrUnexpectedProofLength = errors.New("unexpected proof length")
 
-	// errInputIsNotPointer defines an error for when the input must
-	// be of pointer type.
-	errInputIsNotPointer = errors.Wrapf(
-		errors.New(
-			"input must be of pointer type, received value type instead",
-		),
-		"%T",
-	)
-
-	// errUnknownService defines is returned when an unknown service is seen.
-	errUnknownService = errors.Wrapf(
-		errors.New("unknown service"),
-		"%T",
-	)
+// ErrMismatchLeavesIndicesLength is returned when the leaves and indices
+// length mismatch.
+var ErrMismatchLeavesIndicesLength = errors.New(
+	"mismatched leaves and indices length",
 )

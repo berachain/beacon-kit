@@ -66,4 +66,12 @@ var (
 	// ErrStateRootMismatch is returned when the state root in a block header
 	// does not match the expected value.
 	ErrStateRootMismatch = errors.New("state root mismatch")
+
+	// ErrExceedMaximumWithdrawals is returned when the number of withdrawals
+	// in a block exceeds the maximum allowed.
+	ErrExceedMaximumWithdrawals = errors.New("exceeds maximum withdrawals")
+
+	// ErrNumWithdrawalsMismatch is returned when the number of withdrawals
+	// in a block does not match the expected value.
+	ErrNumWithdrawalsMismatch = errors.New("number of withdrawals mismatch")
 )
