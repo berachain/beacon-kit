@@ -89,8 +89,8 @@ func (cb *CLIBuilder[T, ExecutionPayloadT]) Build() (*cmdlib.Root, error) {
 		chainSpec common.ChainSpec
 		logger    log.AdvancedLogger[any, sdklog.Logger]
 	)
+
 	// build dependencies for the root command
-	//nolint:asasalint // todo fix.
 	if err := depinject.Inject(
 		depinject.Configs(
 			depinject.Supply(
