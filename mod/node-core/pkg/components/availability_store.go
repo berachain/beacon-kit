@@ -25,7 +25,6 @@ import (
 	"os"
 
 	"cosmossdk.io/depinject"
-	sdklog "cosmossdk.io/log"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -39,16 +38,20 @@ import (
 
 // AvailabilityStoreInput is the input for the ProviderAvailabilityStore
 // function for the depinject framework.
-type AvailabilityStoreInput struct {
+type AvailabilityStoreInput[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+] struct {
 	depinject.In
 	AppOpts   servertypes.AppOptions
 	ChainSpec common.ChainSpec
-	Logger    log.AdvancedLogger[any, sdklog.Logger]
+	Logger    LoggerT
 }
 
 // ProvideAvailibilityStore provides the availability store.
-func ProvideAvailibilityStore(
-	in AvailabilityStoreInput,
+func ProvideAvailibilityStore[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+](
+	in AvailabilityStoreInput[LoggerT],
 ) (*AvailabilityStore, error) {
 	return dastore.New[*BeaconBlockBody](
 		filedb.NewRangeDB(
@@ -70,18 +73,22 @@ func ProvideAvailibilityStore(
 
 // AvailabilityPrunerInput is the input for the ProviderAvailabilityPruner
 // function for the depinject framework.
-type AvailabilityPrunerInput struct {
+type AvailabilityPrunerInput[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+] struct {
 	depinject.In
 	AvailabilityStore *AvailabilityStore
 	BlockBroker       *BlockBroker
 	ChainSpec         common.ChainSpec
-	Logger            log.AdvancedLogger[any, sdklog.Logger]
+	Logger            LoggerT
 }
 
 // ProvideAvailabilityPruner provides a availability pruner for the depinject
 // framework.
-func ProvideAvailabilityPruner(
-	in AvailabilityPrunerInput,
+func ProvideAvailabilityPruner[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+](
+	in AvailabilityPrunerInput[LoggerT],
 ) (DAPruner, error) {
 	rangeDB, ok := in.AvailabilityStore.IndexDB.(*IndexDB)
 	if !ok {

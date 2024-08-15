@@ -205,7 +205,8 @@ func (sp *StateProcessor[
 
 	// Ensure the withdrawals have the same length
 	if numWithdrawals != len(payloadWithdrawals) {
-		return errors.Newf(
+		return errors.Wrapf(
+			ErrNumWithdrawalsMismatch,
 			"withdrawals do not match expected length %d, got %d",
 			len(expectedWithdrawals), len(payloadWithdrawals),
 		)
@@ -215,7 +216,8 @@ func (sp *StateProcessor[
 	for i, wd := range expectedWithdrawals {
 		// Ensure the withdrawals match the local state.
 		if !wd.Equals(payloadWithdrawals[i]) {
-			return errors.Newf(
+			return errors.Wrapf(
+				ErrNumWithdrawalsMismatch,
 				"withdrawals do not match expected %s, got %s",
 				spew.Sdump(wd), spew.Sdump(payloadWithdrawals[i]),
 			)

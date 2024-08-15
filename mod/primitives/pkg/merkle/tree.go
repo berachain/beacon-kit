@@ -190,8 +190,9 @@ func (m *Tree[RootT]) HashTreeRoot() common.Root {
 func (m *Tree[RootT]) MerkleProof(leafIndex uint64) ([]RootT, error) {
 	numLeaves := uint64(len(m.branches[0]))
 	if leafIndex >= numLeaves {
-		return nil, errors.Newf(
-			"merkle index out of range in tree, max range: %d, received: %d",
+		return nil, errors.Wrapf(
+			errors.New("merkle index out of range in tree"),
+			"max range: %d, received: %d",
 			numLeaves,
 			leafIndex,
 		)
