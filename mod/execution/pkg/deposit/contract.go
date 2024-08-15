@@ -78,9 +78,9 @@ func (dc *WrappedBeaconDepositContract[
 		return nil, err
 	}
 
-	var d DepositT
 	deposits := make([]DepositT, 0)
 	for _, log := range logs {
+		var d DepositT
 		d = d.Empty()
 		if err = d.UnmarshalLog(log); err != nil {
 			return nil, err
