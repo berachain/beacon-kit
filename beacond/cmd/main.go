@@ -28,14 +28,9 @@ import (
 	clicomponents "github.com/berachain/beacon-kit/mod/cli/pkg/components"
 	nodebuilder "github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
 	nodecomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
 	"github.com/cosmos/cosmos-sdk/server"
 	"go.uber.org/automaxprocs/maxprocs"
-)
-
-type (
-	node             = types.Node
-	executionPayload = nodecomponents.ExecutionPayload
 )
 
 // run runs the beacon node.
@@ -48,23 +43,23 @@ func run() error {
 	// Build the node using the node-core.
 	nb := nodebuilder.New(
 		// Set the Runtime Components to the Default.
-		nodebuilder.WithComponents[node](
-			nodecomponents.DefaultComponentsWithStandardTypes(),
+		nodebuilder.WithComponents[Node, *Logger, *LoggerConfig](
+			nodecomponents.DefaultComponents(),
 		),
 	)
 
 	// Build the root command using the builder
 	cb := clibuilder.New(
 		// Set the Name to the Default.
-		clibuilder.WithName[node, *executionPayload](
+		clibuilder.WithName[Node, *ExecutionPayload, *Logger](
 			"BeaconKit",
 		),
 		// Set the Description to the Default.
-		clibuilder.WithDescription[node, *executionPayload](
+		clibuilder.WithDescription[Node, *ExecutionPayload, *Logger](
 			"A basic beacon node, usable most standard networks.",
 		),
 		// Set the Runtime Components to the Default.
-		clibuilder.WithComponents[node, *executionPayload](
+		clibuilder.WithComponents[Node, *ExecutionPayload, *Logger](
 			append(
 				clicomponents.DefaultClientComponents(),
 				// TODO: remove these, and eventually pull cfg and chainspec
@@ -73,15 +68,21 @@ func run() error {
 				nodecomponents.ProvideChainSpec,
 			),
 		),
-		clibuilder.SupplyModuleDeps[node, *executionPayload](
-			[]any{&nodecomponents.ABCIMiddleware{}},
+		clibuilder.SupplyModuleDeps[Node, *ExecutionPayload, *Logger](
+			[]any{
+				&nodecomponents.ABCIMiddleware{},
+				&runtime.App{},
+				&nodecomponents.StorageBackend{},
+			},
 		),
 		// Set the Run Handler to the Default.
-		clibuilder.WithRunHandler[node, *executionPayload](
+		clibuilder.WithRunHandler[Node, *ExecutionPayload, *Logger](
 			server.InterceptConfigsPreRunHandler,
 		),
 		// Set the NodeBuilderFunc to the NodeBuilder Build.
-		clibuilder.WithNodeBuilderFunc[node, *executionPayload](nb.Build),
+		clibuilder.WithNodeBuilderFunc[
+			Node, *ExecutionPayload, *Logger,
+		](nb.Build),
 	)
 
 	cmd, err := cb.Build()
