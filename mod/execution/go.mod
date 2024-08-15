@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit/mod/execution
 
-go 1.23.0
+go 1.22.6
 
 require (
 	github.com/berachain/beacon-kit/mod/async v0.0.0-20240624204855-d8809d5c8588

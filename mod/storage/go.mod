@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit/mod/storage
 
-go 1.23.0
+go 1.22.6
 
 replace (
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240806152830-8fb47b368cd4

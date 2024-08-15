@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit/mod/runtime
 
-go 1.23.0
+go 1.22.6
 
 replace (
 	// The following are required to build with the latest version of the cosmos-sdk main branch:

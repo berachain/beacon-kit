@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit/mod/state-transition
 
-go 1.23.0
+go 1.22.6
 
 require (
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240808194557-e72e74f58197
