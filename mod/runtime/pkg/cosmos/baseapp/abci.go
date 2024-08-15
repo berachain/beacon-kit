@@ -198,14 +198,7 @@ func (app *BaseApp) PrepareProposal(
 	}
 
 	app.prepareProposalState.SetContext(
-		app.getContextForProposal(app.prepareProposalState.Context(), req.Height).
-			WithVoteInfos(toVoteInfo(req.LocalLastCommit.Votes)).
-
-			// this is a set of votes that are not finalized yet, wait for
-			// commit
-			WithBlockHeight(req.Height).
-			WithProposer(req.ProposerAddress).
-			WithExecMode(sdk.ExecModePrepareProposal),
+		app.getContextForProposal(app.prepareProposalState.Context(), req.Height),
 	)
 
 	app.prepareProposalState.SetContext(app.prepareProposalState.Context())
@@ -274,15 +267,7 @@ func (app *BaseApp) ProcessProposal(
 	}
 
 	app.processProposalState.SetContext(
-		app.getContextForProposal(app.processProposalState.Context(), req.Height).
-			WithVoteInfos(req.ProposedLastCommit.Votes).
-
-			// this is a set of votes that are not finalized yet, wait for
-			// commit
-			WithBlockHeight(req.Height).
-			WithHeaderHash(req.Hash).
-			WithProposer(req.ProposerAddress).
-			WithExecMode(sdk.ExecModeProcessProposal),
+		app.getContextForProposal(app.processProposalState.Context(), req.Height),
 	)
 
 	resp, err = app.processProposal(app.processProposalState.Context(), req)
@@ -319,15 +304,6 @@ func (app *BaseApp) internalFinalizeBlock(
 		return nil, err
 	}
 
-	header := cmtproto.Header{
-		ChainID:            app.chainID,
-		Height:             req.Height,
-		Time:               req.Time,
-		ProposerAddress:    req.ProposerAddress,
-		NextValidatorsHash: req.NextValidatorsHash,
-		AppHash:            app.LastCommitID().Hash,
-	}
-
 	// finalizeBlockState should be set on InitChain or ProcessProposal. If it
 	// is nil, it means we are replaying this block and we need to set the state
 	// here given that during block replay ProcessProposal is not executed by
@@ -336,16 +312,7 @@ func (app *BaseApp) internalFinalizeBlock(
 		app.setState(execModeFinalize)
 	}
 
-	// Context is now updated with Header information.
-	app.finalizeBlockState.SetContext(app.finalizeBlockState.Context().
-		WithBlockHeader(header).
-		WithHeaderHash(req.Hash).
-		WithVoteInfos(req.DecidedLastCommit.Votes).
-		WithExecMode(sdk.ExecModeFinalize))
-
-	app.finalizeBlockState.SetContext(
-		app.finalizeBlockState.Context(),
-	)
+	app.finalizeBlockState.SetContext(app.finalizeBlockState.Context())
 
 	// First check for an abort signal after beginBlock, as it's the first place
 	// we spend any significant amount of time.

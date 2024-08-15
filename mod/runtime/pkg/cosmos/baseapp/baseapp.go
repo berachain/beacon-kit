@@ -205,13 +205,6 @@ func (app *BaseApp) LoadLatestVersion() error {
 	return app.cms.GetPruning().Validate()
 }
 
-// CommitMultiStore returns the root multi-store.
-// App constructor can use this to access the `cms`.
-// UNSAFE: must not be used during the abci life cycle.
-func (app *BaseApp) CommitMultiStore() storetypes.CommitMultiStore {
-	return app.cms
-}
-
 // LoadVersion loads the BaseApp application version. It will panic if called
 // more than once on a running baseapp.
 func (app *BaseApp) LoadVersion(version int64) error {
