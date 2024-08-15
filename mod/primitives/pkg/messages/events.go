@@ -41,7 +41,7 @@ const (
 	SidecarsVerified    = "sidecars-verified"
 	// finalize block events
 	FinalBeaconBlockReceived       = "final-beacon-block-received"
-	FinalBlobSidecarsReceived      = "final-blob-sidecars-received"
+	FinalSidecarsReceived          = "final-blob-sidecars-received"
 	FinalValidatorUpdatesProcessed = "final-validator-updates"
 	// FinalSidecarsProcessed         = "final-sidecars-processed"
 )

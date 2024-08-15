@@ -264,18 +264,21 @@ func (h *ABCIMiddleware[
 		return nil, nil
 	}
 
+	// notify that the final beacon block has been received.
 	if err = h.dispatcher.PublishEvent(
 		async.NewEvent(ctx, messages.FinalBeaconBlockReceived, blk),
 	); err != nil {
 		return nil, err
 	}
 
+	// notify that the final blob sidecars have been received.
 	if err = h.dispatcher.PublishEvent(
-		async.NewEvent(ctx, messages.FinalBlobSidecarsReceived, blobs),
+		async.NewEvent(ctx, messages.FinalSidecarsReceived, blobs),
 	); err != nil {
 		return nil, err
 	}
 
+	// wait for the final validator updates.
 	finalValUpdatesEvent, err = h.subFinalValidatorUpdates.Await(ctx)
 	if err != nil {
 		return nil, err
