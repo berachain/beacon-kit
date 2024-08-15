@@ -286,6 +286,7 @@ func (kv *KVStore[
 	)
 }
 
+// SetWithdrawalValidator sets the withdrawal validator for a validator.
 func (kv *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
