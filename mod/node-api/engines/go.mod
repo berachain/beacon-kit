@@ -30,7 +30,7 @@ require (
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pkg/errors v0.9.2-0.20201214064552-5dd12d0cfe7f // indirect
 	github.com/prysmaticlabs/gohashtree v0.0.4-beta.0.20240624100937-73632381301b // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect

@@ -187,7 +187,7 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/oasisprotocol/curve25519-voi v0.0.0-20230904125328-1f23a7beb09a // indirect
 	github.com/petermattis/goid v0.0.0-20240607163614-bb94eb51e7a7 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pkg/errors v0.9.2-0.20201214064552-5dd12d0cfe7f // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/sasha-s/go-deadlock v0.3.1 // indirect
