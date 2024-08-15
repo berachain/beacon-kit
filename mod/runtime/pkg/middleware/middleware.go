@@ -23,13 +23,12 @@ package middleware
 import (
 	"encoding/json"
 
-	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/p2p"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	rp2p "github.com/berachain/beacon-kit/mod/runtime/pkg/p2p"
 )
@@ -66,21 +65,23 @@ type ABCIMiddleware[
 		encoding.ABCIRequest,
 		BeaconBlockT,
 	]
-	dispatcher asynctypes.Dispatcher
+	dispatcher types.Dispatcher
 	// metrics is the metrics emitter.
 	metrics *ABCIMiddlewareMetrics
 	// logger is the logger for the middleware.
 	logger log.Logger[any]
-
-	subGenDataProcessed      asynctypes.Subscription[asynctypes.Event[transition.ValidatorUpdates]]
-	subBuiltBeaconBlock      asynctypes.Subscription[asynctypes.Event[BeaconBlockT]]
-	subBuiltSidecars         asynctypes.Subscription[asynctypes.Event[BlobSidecarsT]]
-	subBBVerified            asynctypes.Subscription[asynctypes.Event[BeaconBlockT]]
-	subSCVerified            asynctypes.Subscription[asynctypes.Event[BlobSidecarsT]]
-	subFinalValidatorUpdates asynctypes.Subscription[asynctypes.Event[transition.ValidatorUpdates]]
+	// subscription channels
+	subGenDataProcessed      types.Subscription[types.Event[validatorUpdates]]
+	subBuiltBeaconBlock      types.Subscription[types.Event[BeaconBlockT]]
+	subBuiltSidecars         types.Subscription[types.Event[BlobSidecarsT]]
+	subBBVerified            types.Subscription[types.Event[BeaconBlockT]]
+	subSCVerified            types.Subscription[types.Event[BlobSidecarsT]]
+	subFinalValidatorUpdates types.Subscription[types.Event[validatorUpdates]]
 }
 
 // NewABCIMiddleware creates a new instance of the Handler struct.
+//
+//nolint:lll // long types
 func NewABCIMiddleware[
 	AvailabilityStoreT any,
 	BeaconBlockT BeaconBlock[BeaconBlockT],
@@ -97,14 +98,14 @@ func NewABCIMiddleware[
 	chainSpec common.ChainSpec,
 	logger log.Logger[any],
 	telemetrySink TelemetrySink,
-	dispatcher asynctypes.Dispatcher,
+	dispatcher types.Dispatcher,
 ) *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconBlockBundleT, BlobSidecarsT, DepositT,
-	ExecutionPayloadT, GenesisT, SlotDataT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBundleT, BlobSidecarsT,
+	DepositT, ExecutionPayloadT, GenesisT, SlotDataT,
 ] {
 	return &ABCIMiddleware[
-		AvailabilityStoreT, BeaconBlockT, BeaconBlockBundleT, BlobSidecarsT, DepositT,
-		ExecutionPayloadT, GenesisT, SlotDataT,
+		AvailabilityStoreT, BeaconBlockT, BeaconBlockBundleT, BlobSidecarsT,
+		DepositT, ExecutionPayloadT, GenesisT, SlotDataT,
 	]{
 		chainSpec: chainSpec,
 		blobGossiper: rp2p.NewNoopBlobHandler[
@@ -119,19 +120,21 @@ func NewABCIMiddleware[
 		logger:                   logger,
 		metrics:                  newABCIMiddlewareMetrics(telemetrySink),
 		dispatcher:               dispatcher,
-		subGenDataProcessed:      asynctypes.NewSubscription[asynctypes.Event[transition.ValidatorUpdates]](),
-		subBuiltBeaconBlock:      asynctypes.NewSubscription[asynctypes.Event[BeaconBlockT]](),
-		subBuiltSidecars:         asynctypes.NewSubscription[asynctypes.Event[BlobSidecarsT]](),
-		subBBVerified:            asynctypes.NewSubscription[asynctypes.Event[BeaconBlockT]](),
-		subSCVerified:            asynctypes.NewSubscription[asynctypes.Event[BlobSidecarsT]](),
-		subFinalValidatorUpdates: asynctypes.NewSubscription[asynctypes.Event[transition.ValidatorUpdates]](),
+		subGenDataProcessed:      types.NewSubscription[types.Event[validatorUpdates]](),
+		subBuiltBeaconBlock:      types.NewSubscription[types.Event[BeaconBlockT]](),
+		subBuiltSidecars:         types.NewSubscription[types.Event[BlobSidecarsT]](),
+		subBBVerified:            types.NewSubscription[types.Event[BeaconBlockT]](),
+		subSCVerified:            types.NewSubscription[types.Event[BlobSidecarsT]](),
+		subFinalValidatorUpdates: types.NewSubscription[types.Event[validatorUpdates]](),
 	}
 }
 
+// Start subscribes the middleware to the events it needs to listen for.
 func (am *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconBlockBundleT, BlobSidecarsT, DepositT,
-	ExecutionPayloadT, GenesisT, SlotDataT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBundleT, BlobSidecarsT,
+	DepositT, ExecutionPayloadT, GenesisT, SlotDataT,
 ]) Start() error {
+	// subGenDat
 	if err := am.dispatcher.Subscribe(
 		messages.GenesisDataProcessed, am.subGenDataProcessed,
 	); err != nil {
@@ -167,8 +170,8 @@ func (am *ABCIMiddleware[
 
 // Name returns the name of the middleware.
 func (am *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconBlockBundleT, BlobSidecarsT, DepositT,
-	ExecutionPayloadT, GenesisT, SlotDataT,
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBundleT, BlobSidecarsT,
+	DepositT, ExecutionPayloadT, GenesisT, SlotDataT,
 ]) Name() string {
 	return "abci-middleware"
 }

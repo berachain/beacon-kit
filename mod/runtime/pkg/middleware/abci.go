@@ -24,7 +24,7 @@ import (
 	"context"
 	"time"
 
-	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	async "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -48,7 +48,7 @@ func (h *ABCIMiddleware[
 ) (transition.ValidatorUpdates, error) {
 	var (
 		err      error
-		gdpEvent asynctypes.Event[transition.ValidatorUpdates]
+		gdpEvent async.Event[transition.ValidatorUpdates]
 	)
 	// in theory this channel should already be empty, but we clear it anyways
 	h.subGenDataProcessed.Clear()
@@ -60,7 +60,7 @@ func (h *ABCIMiddleware[
 	}
 
 	if err = h.dispatcher.PublishEvent(
-		asynctypes.NewEvent(ctx, messages.GenesisDataReceived, *data),
+		async.NewEvent(ctx, messages.GenesisDataReceived, *data),
 	); err != nil {
 		return nil, err
 	}
@@ -85,8 +85,8 @@ func (h *ABCIMiddleware[
 ) ([]byte, []byte, error) {
 	var (
 		err          error
-		builtBBEvent asynctypes.Event[BeaconBlockT]
-		builtSCEvent asynctypes.Event[BlobSidecarsT]
+		builtBBEvent async.Event[BeaconBlockT]
+		builtSCEvent async.Event[BlobSidecarsT]
 		startTime    = time.Now()
 	)
 	defer h.metrics.measurePrepareProposalDuration(startTime)
@@ -95,7 +95,7 @@ func (h *ABCIMiddleware[
 	h.subBuiltSidecars.Clear()
 
 	if err = h.dispatcher.PublishEvent(
-		asynctypes.NewEvent(
+		async.NewEvent(
 			ctx, messages.NewSlot, slotData,
 		),
 	); err != nil {
@@ -186,7 +186,7 @@ func (h *ABCIMiddleware[
 	// TODO: implement service
 	// notify that the beacon block has been received.
 	if err = h.dispatcher.PublishEvent(
-		asynctypes.NewEvent(ctx, messages.BeaconBlockReceived, blk),
+		async.NewEvent(ctx, messages.BeaconBlockReceived, blk),
 	); err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
@@ -198,7 +198,7 @@ func (h *ABCIMiddleware[
 
 	// notify that the sidecars have been received.
 	if err = h.dispatcher.PublishEvent(
-		asynctypes.NewEvent(ctx, messages.SidecarsReceived, sidecars),
+		async.NewEvent(ctx, messages.SidecarsReceived, sidecars),
 	); err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
@@ -242,7 +242,7 @@ func (h *ABCIMiddleware[
 		err                  error
 		blk                  BeaconBlockT
 		blobs                BlobSidecarsT
-		finalValUpdatesEvent asynctypes.Event[transition.ValidatorUpdates]
+		finalValUpdatesEvent async.Event[transition.ValidatorUpdates]
 	)
 	// in theory this sub should already be empty, but we clear them anyways
 	h.subFinalValidatorUpdates.Clear()
@@ -265,13 +265,13 @@ func (h *ABCIMiddleware[
 	}
 
 	if err = h.dispatcher.PublishEvent(
-		asynctypes.NewEvent(ctx, messages.FinalBeaconBlockReceived, blk),
+		async.NewEvent(ctx, messages.FinalBeaconBlockReceived, blk),
 	); err != nil {
 		return nil, err
 	}
 
 	if err = h.dispatcher.PublishEvent(
-		asynctypes.NewEvent(ctx, messages.FinalBlobSidecarsReceived, blobs),
+		async.NewEvent(ctx, messages.FinalBlobSidecarsReceived, blobs),
 	); err != nil {
 		return nil, err
 	}

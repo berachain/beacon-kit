@@ -22,8 +22,6 @@ package types
 
 import "context"
 
-type EventHandler[T BaseMessage] func(T) error
-
 // Subscription is a channel that receives events.
 type Subscription[T BaseMessage] chan T
 
@@ -40,18 +38,21 @@ func (s Subscription[T]) Clear() {
 	}
 }
 
-// RegisterHandler will start a goroutine that will trigger the handler for each
-// event in the subscription.
-func RegisterHandler[T BaseMessage](
-	s Subscription[T], handler EventHandler[T],
+// Listen will start a goroutine that will trigger the handler for each event
+// in the subscription.
+func (s Subscription[T]) Listen(
+	ctx context.Context, handler func(T),
 ) {
 	go func() {
-		for event := range s {
-			go func(e T) {
-				if err := handler(e); err != nil {
-					panic(err)
-				}
-			}(event)
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case event := <-s:
+				go func(e T) {
+					handler(e)
+				}(event)
+			}
 		}
 	}()
 }

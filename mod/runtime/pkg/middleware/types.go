@@ -79,3 +79,5 @@ type BlockchainService[
 		blk BeaconBlockT,
 	) error
 }
+
+type validatorUpdates = transition.ValidatorUpdates
