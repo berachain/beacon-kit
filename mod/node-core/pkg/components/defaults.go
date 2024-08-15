@@ -20,47 +20,57 @@
 
 package components
 
-func DefaultComponentsWithStandardTypes() []any {
+import (
+	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
+)
+
+type LoggerT = *phuslu.Logger
+
+func DefaultComponents() []any {
 	components := []any{
-		ProvideABCIMiddleware,
-		ProvideAttributesFactory,
-		ProvideAvailabilityPruner,
-		ProvideAvailibilityStore,
+		ProvideABCIMiddleware[LoggerT],
+		ProvideAttributesFactory[LoggerT],
+		ProvideAvailabilityPruner[LoggerT],
+		ProvideAvailibilityStore[LoggerT],
 		ProvideBeaconDepositContract,
-		ProvideBlockPruner,
-		ProvideBlockStore,
-		ProvideBlockStoreService,
+		ProvideBlockPruner[LoggerT],
+		ProvideBlockStore[LoggerT],
+		ProvideBlockStoreService[LoggerT],
 		ProvideBlsSigner,
-		ProvideBlobProcessor,
+		ProvideBlobProcessor[LoggerT],
 		ProvideBlobProofVerifier,
 		ProvideBlobVerifier,
-		ProvideChainService,
+		ProvideChainService[LoggerT],
 		ProvideChainSpec,
 		ProvideConfig,
 		ProvideConsensusEngine,
-		ProvideDAService,
-		ProvideDBManager,
-		ProvideDepositPruner,
-		ProvideDepositService,
+		ProvideDAService[LoggerT],
+		ProvideDBManager[LoggerT],
+		ProvideDepositPruner[LoggerT],
+		ProvideDepositService[LoggerT],
 		ProvideDepositStore,
-		ProvideEngineClient,
-		ProvideExecutionEngine,
+		ProvideEngineClient[LoggerT],
+		ProvideExecutionEngine[LoggerT],
 		ProvideJWTSecret,
-		ProvideLocalBuilder,
-		ProvideReportingService,
-		ProvideServiceRegistry,
+		ProvideLocalBuilder[LoggerT],
+		ProvideReportingService[LoggerT],
+		ProvideServiceRegistry[LoggerT],
 		ProvideSidecarFactory,
 		ProvideStateProcessor,
 		ProvideKVStore,
 		ProvideStorageBackend,
 		ProvideTelemetrySink,
 		ProvideTrustedSetup,
-		ProvideValidatorService,
+		ProvideValidatorService[LoggerT],
 		// TODO Hacks
 		ProvideKVStoreService,
 		ProvideKVStoreKey,
 	}
-	components = append(components, DefaultNodeAPIComponents()...)
+	components = append(components,
+		ProvideNodeAPIServer[LoggerT],
+		ProvideNodeAPIEngine,
+		ProvideNodeAPIBackend,
+	)
 	components = append(components, DefaultNodeAPIHandlers()...)
 	components = append(components, DefaultBrokerProviders()...)
 	return components

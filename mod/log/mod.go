@@ -43,17 +43,18 @@ type Logger[KeyValT any] interface {
 
 // ConfigurableLogger extends the basic logger with the ability to configure
 // the logger with a config.
-type ConfigurableLogger[
-	ConfigurableLoggerT, KeyValT any, ConfigT any,
-] interface {
-	Logger[KeyValT]
-	WithConfig(config ConfigT) ConfigurableLoggerT
+type ConfigurableLogger[LoggerT, ConfigT any] interface {
+	Configurable[LoggerT, ConfigT]
+	Logger[any]
+}
+
+type Configurable[LoggerT, ConfigT any] interface {
+	WithConfig(config ConfigT) LoggerT
 }
 
 // ColorLogger extends the basic logger with the ability to configure the
 // logger with key and key value colors.
-type ColorLogger[KeyValT any] interface {
-	Logger[KeyValT]
+type Colorable interface {
 	// AddKeyColor sets the log color for a key.
 	AddKeyColor(key any, color Color)
 	// AddKeyValColor sets the log color for a key and its value.
@@ -63,7 +64,8 @@ type ColorLogger[KeyValT any] interface {
 // AdvancedLogger extends the color logger with the ability to wrap the logger
 // with additional context and to access the underlying logger implementation.
 type AdvancedLogger[KeyValT, LoggerT any] interface {
-	ColorLogger[KeyValT]
+	Logger[KeyValT]
+	Colorable
 	// With returns a new wrapped logger with additional context provided by a
 	// set.
 	With(keyVals ...KeyValT) LoggerT

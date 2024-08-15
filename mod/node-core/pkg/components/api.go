@@ -22,7 +22,6 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-api/backend"
@@ -77,16 +76,20 @@ func ProvideNodeAPIBackend(in NodeAPIBackendInput) *NodeAPIBackend {
 	)
 }
 
-type NodeAPIServerInput struct {
+type NodeAPIServerInput[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+] struct {
 	depinject.In
 
 	Engine   *NodeAPIEngine
 	Config   *config.Config
 	Handlers []handlers.Handlers[NodeAPIContext]
-	Logger   log.AdvancedLogger[any, sdklog.Logger]
+	Logger   LoggerT
 }
 
-func ProvideNodeAPIServer(in NodeAPIServerInput) *NodeAPIServer {
+func ProvideNodeAPIServer[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+](in NodeAPIServerInput[LoggerT]) *NodeAPIServer {
 	in.Logger.AddKeyValColor("service", "node-api-server",
 		log.Blue)
 	return server.New[
@@ -98,12 +101,4 @@ func ProvideNodeAPIServer(in NodeAPIServerInput) *NodeAPIServer {
 		in.Logger.With("service", "node-api-server"),
 		in.Handlers...,
 	)
-}
-
-func DefaultNodeAPIComponents() []any {
-	return []any{
-		ProvideNodeAPIServer,
-		ProvideNodeAPIEngine,
-		ProvideNodeAPIBackend,
-	}
 }
