@@ -14,7 +14,10 @@ require (
 	golang.org/x/sync v0.8.0
 )
 
-require github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1347e7e // indirect
+require (
+	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1347e7e // indirect
+	golang.org/x/net v0.28.0 // indirect
+)
 
 require (
 	github.com/DataDog/zstd v1.5.6 // indirect
