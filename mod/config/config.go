@@ -117,7 +117,6 @@ func ReadConfigFromAppOpts(opts AppOptions) (*Config, error) {
 			viperlib.StringToConnectionURLFunc(),
 		))); err != nil {
 		return nil, err
-
 	}
 
 	return &cfg.BeaconKit, nil

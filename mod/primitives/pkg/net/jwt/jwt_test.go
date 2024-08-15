@@ -251,11 +251,21 @@ func TestHexRegexp(t *testing.T) {
 	}
 
 	for _, validHex := range validHexStrings {
-		require.True(t, jwt.HexRegexp.MatchString(validHex), "Valid hex string not matched: %s", validHex)
+		require.True(
+			t,
+			jwt.HexRegexp.MatchString(validHex),
+			"Valid hex string not matched: %s",
+			validHex,
+		)
 	}
 
 	for _, invalidHex := range invalidHexStrings {
-		require.False(t, jwt.HexRegexp.MatchString(invalidHex), "Invalid hex string matched: %s", invalidHex)
+		require.False(
+			t,
+			jwt.HexRegexp.MatchString(invalidHex),
+			"Invalid hex string matched: %s",
+			invalidHex,
+		)
 	}
 }
 
@@ -266,8 +276,18 @@ func TestSecretComparison(t *testing.T) {
 	secret2, err := jwt.NewRandom()
 	require.NoError(t, err, "NewRandom() error for secret2")
 
-	require.NotEqual(t, secret1, secret2, "Two random secrets should not be equal")
+	require.NotEqual(
+		t,
+		secret1,
+		secret2,
+		"Two random secrets should not be equal",
+	)
 
 	secret3 := *secret1
-	require.Equal(t, secret1, &secret3, "Copied secret should be equal to original")
+	require.Equal(
+		t,
+		secret1,
+		&secret3,
+		"Copied secret should be equal to original",
+	)
 }

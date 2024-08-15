@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-//nolint:gochecknoglobals // this file contains functions for use as errors.
+
 package service
 
 import "github.com/berachain/beacon-kit/mod/errors"
@@ -34,7 +34,9 @@ var (
 	// errInputIsNotPointer defines an error for when the input must
 	// be of pointer type.
 	errInputIsNotPointer = errors.Wrapf(
-		errors.New("input must be of pointer type, received value type instead"),
+		errors.New(
+			"input must be of pointer type, received value type instead",
+		),
 		"%T",
 	)
 
