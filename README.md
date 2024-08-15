@@ -44,7 +44,11 @@ BeaconKit is able to support all 6 major Ethereum execution clients:
 **Prerequisites:**
 
 - [Docker](https://docs.docker.com/engine/install/)
+<<<<<<< HEAD
 - [Golang 1.22.6+](https://go.dev/doc/install)
+=======
+- [Golang 1.23.0+](https://go.dev/doc/install)
+>>>>>>> main
 - [Foundry](https://book.getfoundry.sh/getting-started/installation)
 
 Start by opening two terminals side-by-side:

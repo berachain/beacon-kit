@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit/mod/errors
 
-go 1.22.6
+go 1.23.0
 
 require github.com/cockroachdb/errors v1.11.3
 

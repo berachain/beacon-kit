@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit/mod/consensus-types
 
-go 1.22.6
+go 1.23.0
 
 require (
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240808194557-e72e74f58197
@@ -17,6 +17,7 @@ require (
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1347e7e // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/umbracle/fastrlp v0.1.0 // indirect
+	golang.org/x/net v0.28.0 // indirect
 )
 
 require (
