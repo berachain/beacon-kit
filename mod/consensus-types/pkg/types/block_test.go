@@ -187,13 +187,18 @@ func TestNewWithVersionInvalidForkVersion(t *testing.T) {
 	proposerIndex := math.ValidatorIndex(5)
 	parentBlockRoot := common.Root{1, 2, 3, 4, 5}
 
-	_, err := (&types.BeaconBlock{}).NewWithVersion(
-		slot,
-		proposerIndex,
-		parentBlockRoot,
-		100,
-	) // 100 is an invalid fork version
-	require.ErrorIs(t, err, types.ErrForkVersionNotSupported)
+	require.PanicsWithError(
+		t,
+		types.ErrForkVersionNotSupported.Error(),
+		func() {
+			(&types.BeaconBlock{}).NewWithVersion(
+				slot,
+				proposerIndex,
+				parentBlockRoot,
+				100, // 100 is an invalid fork version
+			)
+		},
+	)
 }
 
 func TestBeaconBlock_GetTree(t *testing.T) {
