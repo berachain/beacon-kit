@@ -34,8 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 )
 
-const StoreName = "blocks"
-
 // KVStore is a simple KV store based implementation that stores beacon blocks.
 type KVStore[BeaconBlockT BeaconBlock[BeaconBlockT]] struct {
 	blocks *sdkcollections.IndexedMap[
@@ -60,7 +58,7 @@ func NewStore[BeaconBlockT BeaconBlock[BeaconBlockT]](
 	return &KVStore[BeaconBlockT]{
 		blocks: sdkcollections.NewIndexedMap(
 			schemaBuilder,
-			sdkcollections.NewPrefix(StoreName),
+			sdkcollections.NewPrefix(storePrefix),
 			StoreName,
 			encoding.U64Key,
 			blockCodec,
@@ -118,13 +116,9 @@ func (kv *KVStore[BeaconBlockT]) prune(ctx context.Context, slot math.Slot) {
 	defer func() {
 		if r := recover(); r != nil {
 			// TODO: add metrics here.
-			// TODO: should also handle deleting the value manually from the db?
-
 			kv.logger.Warn(
 				"‼️ panic occurred while pruning block",
-				"slot", slot,
-				"panic", r,
-				"stack", debug.Stack(),
+				"slot", slot, "panic", r, "stack", debug.Stack(),
 			)
 		}
 	}()
@@ -138,6 +132,8 @@ func (kv *KVStore[BeaconBlockT]) prune(ctx context.Context, slot math.Slot) {
 			//    case, we choose not to retry removal and instead
 			//    continue. This means this slot may never be pruned, but
 			//    ensures that we always get to pruning subsequent slots.
+			//
+			// TODO: add metrics here.
 			kv.logger.Warn(
 				"‼️ failed to prune block", "slot", slot, "error", err,
 			)
