@@ -32,6 +32,7 @@ import (
 	consruntimetypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/da/pkg/da"
+	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
@@ -295,6 +296,9 @@ type (
 		Validators,
 	]
 
+	// KZGBlobProofVerifier is a type alias for the KZG blob proof verifier.
+	KZGBlobProofVerifier = kzg.BlobProofVerifier
+
 	// LegacyKey type alias to LegacyKey used for LegacySinger construction.
 	LegacyKey = signer.LegacyKey
 
@@ -444,7 +448,13 @@ type (
 	]
 
 	// ValidatorUpdate is a type alias for the validator update.
-	ValidatorUpdate = appmodule.ValidatorUpdate
+	ABCIValidatorUpdate = appmodule.ValidatorUpdate
+
+	// ValidatorUpdate is a type alias for the validator update.
+	ValidatorUpdate = transition.ValidatorUpdate
+
+	// ValidatorUpdates is a type alias for the validator updates.
+	ValidatorUpdates = transition.ValidatorUpdates
 
 	// Withdrawal is a type alias for the engineprimitives withdrawal.
 	Withdrawal = engineprimitives.Withdrawal

@@ -20,13 +20,11 @@
 
 package components
 
-import "github.com/berachain/beacon-kit/mod/log"
-
 // DefaultClientComponents returns the default components for
 // the client.
-func DefaultClientComponents[LoggerT log.AdvancedLogger[any, LoggerT]]() []any {
+func DefaultClientComponents() []any {
 	return []any{
 		ProvideClientContext,
-		ProvideLogger[LoggerT],
+		ProvideLogger,
 	}
 }

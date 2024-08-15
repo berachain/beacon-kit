@@ -29,14 +29,12 @@ import (
 	nodebuilder "github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
 	nodecomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
 	"github.com/cosmos/cosmos-sdk/server"
 	"go.uber.org/automaxprocs/maxprocs"
 )
 
-type (
-	node             = types.Node
-	executionPayload = nodecomponents.ExecutionPayload
-)
+type node = types.Node
 
 // run runs the beacon node.
 func run() error {
@@ -49,22 +47,104 @@ func run() error {
 	nb := nodebuilder.New(
 		// Set the Runtime Components to the Default.
 		nodebuilder.WithComponents[node](
-			nodecomponents.DefaultComponentsWithStandardTypes(),
+			nodecomponents.DefaultComponents[
+				*AttestationData,
+				*AttributesFactory,
+				*AvailabilityStore,
+				*BeaconBlock,
+				*BeaconBlockBody,
+				*BeaconBlockHeader,
+				*BeaconState,
+				*BeaconStateMarshallable,
+				*BlobProcessor,
+				*BlobSidecar,
+				*BlobSidecars,
+				*BlobFactory,
+				*BlockStore,
+				*Context,
+				*Deposit,
+				*DepositStore,
+				*Eth1Data,
+				*EthClient,
+				*EngineClient,
+				*ExecutionEngine,
+				*ExecutionPayload,
+				*ExecutionPayloadHeader,
+				*Fork,
+				*ForkData,
+				*Genesis,
+				*IndexDB,
+				*KVStore,
+				KZGBlobProofVerifier,
+				LegacyKey,
+				*LocalBuilder,
+				*Logger,
+				*ABCIMiddleware,
+				node,
+				*PayloadAttributes,
+				PayloadID,
+				*SlashingInfo,
+				*SlotData,
+				*StateProcessor,
+				*StorageBackend,
+				*Validator,
+				Validators,
+				*ValidatorUpdate,
+				ValidatorUpdates,
+				*Withdrawal,
+				Withdrawals,
+				WithdrawalCredentials,
+				*BlockBroker,
+				*BlockStoreService,
+				*ChainService,
+				*DAService,
+				*DBManager,
+				*DepositService,
+				*GenesisBroker,
+				*NodeAPIServer,
+				*ReportingService,
+				*SidecarsBroker,
+				*SlotBroker,
+				*ValidatorService,
+				*ValidatorUpdateBroker,
+				*BlockEvent,
+				*StatusEvent,
+				DAPruner,
+				BlockPruner,
+				DepositPruner,
+				*BeaconAPIHandler,
+				*BuilderAPIHandler,
+				*ConfigAPIHandler,
+				*DebugAPIHandler,
+				*EventsAPIHandler,
+				*NodeAPIHandler,
+				*ProofAPIHandler,
+				NodeAPIContext,
+				*NodeAPIEngine,
+				*NodeAPIBackend,
+				*NodeAPIBackend,
+			](),
 		),
 	)
 
 	// Build the root command using the builder
 	cb := clibuilder.New(
 		// Set the Name to the Default.
-		clibuilder.WithName[node, *executionPayload](
+		clibuilder.WithName[
+			node, *ExecutionPayload, LegacyKey, *Logger,
+		](
 			"BeaconKit",
 		),
 		// Set the Description to the Default.
-		clibuilder.WithDescription[node, *executionPayload](
+		clibuilder.WithDescription[
+			node, *ExecutionPayload, LegacyKey, *Logger,
+		](
 			"A basic beacon node, usable most standard networks.",
 		),
 		// Set the Runtime Components to the Default.
-		clibuilder.WithComponents[node, *executionPayload](
+		clibuilder.WithComponents[
+			node, *ExecutionPayload, LegacyKey, *Logger,
+		](
 			append(
 				clicomponents.DefaultClientComponents(),
 				// TODO: remove these, and eventually pull cfg and chainspec
@@ -73,15 +153,25 @@ func run() error {
 				nodecomponents.ProvideChainSpec,
 			),
 		),
-		clibuilder.SupplyModuleDeps[node, *executionPayload](
-			[]any{&nodecomponents.ABCIMiddleware{}},
+		clibuilder.SupplyModuleDeps[
+			node, *ExecutionPayload, LegacyKey, *Logger,
+		](
+			[]any{
+				&ABCIMiddleware{},
+				&runtime.App{},
+				&StorageBackend{},
+			},
 		),
 		// Set the Run Handler to the Default.
-		clibuilder.WithRunHandler[node, *executionPayload](
+		clibuilder.WithRunHandler[
+			node, *ExecutionPayload, LegacyKey, *Logger,
+		](
 			server.InterceptConfigsPreRunHandler,
 		),
 		// Set the NodeBuilderFunc to the NodeBuilder Build.
-		clibuilder.WithNodeBuilderFunc[node, *executionPayload](nb.Build),
+		clibuilder.WithNodeBuilderFunc[
+			node, *ExecutionPayload, LegacyKey, *Logger,
+		](nb.Build),
 	)
 
 	cmd, err := cb.Build()

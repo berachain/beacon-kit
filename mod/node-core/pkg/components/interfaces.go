@@ -1041,7 +1041,6 @@ type (
 
 type (
 	NodeAPIContext interface {
-		context.Context
 		Bind(any) error
 		Validate(any) error
 	}

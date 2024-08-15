@@ -56,7 +56,6 @@ func DefaultComponents[
 	BlobProcessorT BlobProcessor[
 		AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT,
 	],
-	BlobProofVerifierT kzg.BlobProofVerifier,
 	BlobSidecarT BlobSidecar[BeaconBlockHeaderT],
 	BlobSidecarsT BlobSidecars[BlobSidecarT, BlobSidecarsT],
 	BlobFactoryT BlobFactory[BeaconBlockT, BlobSidecarsT],
@@ -87,6 +86,7 @@ func DefaultComponents[
 		KVStoreT, BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 		ForkT, ValidatorT, ValidatorsT, WithdrawalT,
 	],
+	KZGBlobProofVerifierT kzg.BlobProofVerifier,
 	LegacyKeyT ~[32]byte,
 	LocalBuilderT LocalBuilder[BeaconStateT, ExecutionPayloadT],
 	LoggerT log.AdvancedLogger[any, LoggerT],
@@ -188,13 +188,13 @@ func DefaultComponents[
 		ProvideBlockStoreService[BeaconBlockT, BlockStoreT, LoggerT],
 		ProvideBlsSigner[LegacyKeyT],
 		ProvideBlobProcessor[
-			AvailabilityStoreT, BlobProofVerifierT, BeaconBlockBodyT,
-			BeaconBlockHeaderT, BlobSidecarT, BlobSidecarsT, LoggerT,
+			AvailabilityStoreT, BeaconBlockBodyT, BeaconBlockHeaderT,
+			BlobSidecarT, BlobSidecarsT, KZGBlobProofVerifierT, LoggerT,
 		],
 		ProvideBlobProofVerifier,
 		ProvideBlobVerifier[
-			BlobProofVerifierT, BeaconBlockHeaderT, BlobSidecarT,
-			BlobSidecarsT,
+			BeaconBlockHeaderT, BlobSidecarT,
+			BlobSidecarsT, KZGBlobProofVerifierT,
 		],
 		ProvideChainService[
 			AttestationDataT, AvailabilityStoreT, BeaconBlockT,

@@ -68,11 +68,11 @@ type BlobVerifierInput[
 // ProvideBlobVerifier is a function that provides the BlobVerifier to the
 // depinject framework.
 func ProvideBlobVerifier[
-	BlobProofVerifierT kzg.BlobProofVerifier,
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BlobSidecarT BlobSidecar[BeaconBlockHeaderT],
 	BlobSidecarsT BlobSidecars[BlobSidecarT, BlobSidecarsT],
-](in BlobVerifierInput[BlobProofVerifierT]) *dablob.Verifier[
+	KZGBlobProofVerifierT kzg.BlobProofVerifier,
+](in BlobVerifierInput[KZGBlobProofVerifierT]) *dablob.Verifier[
 	BeaconBlockHeaderT, BlobSidecarT, BlobSidecarsT,
 ] {
 	return dablob.NewVerifier[
@@ -82,10 +82,10 @@ func ProvideBlobVerifier[
 
 // BlobProcessorIn is the input for the BlobProcessor.
 type BlobProcessorIn[
-	BlobProofVerifierT kzg.BlobProofVerifier,
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BlobSidecarT BlobSidecar[BeaconBlockHeaderT],
 	BlobSidecarsT BlobSidecars[BlobSidecarT, BlobSidecarsT],
+	KZGBlobProofVerifierT kzg.BlobProofVerifier,
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ] struct {
 	depinject.In
@@ -104,15 +104,15 @@ func ProvideBlobProcessor[
 	AvailabilityStoreT AvailabilityStore[
 		BeaconBlockBodyT, BlobSidecarsT,
 	],
-	BlobProofVerifierT kzg.BlobProofVerifier,
 	BeaconBlockBodyT any,
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BlobSidecarT BlobSidecar[BeaconBlockHeaderT],
 	BlobSidecarsT BlobSidecars[BlobSidecarT, BlobSidecarsT],
+	KZGBlobProofVerifierT kzg.BlobProofVerifier,
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ](in BlobProcessorIn[
-	BlobProofVerifierT, BeaconBlockHeaderT, BlobSidecarT,
-	BlobSidecarsT, LoggerT,
+	BeaconBlockHeaderT, BlobSidecarT, BlobSidecarsT,
+	KZGBlobProofVerifierT, LoggerT,
 ]) *dablob.Processor[
 	AvailabilityStoreT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BlobSidecarT, BlobSidecarsT,

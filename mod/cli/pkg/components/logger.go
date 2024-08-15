@@ -39,7 +39,7 @@ type LoggerInput struct {
 
 // ProvideLogger creates a the default phuslu logger.
 // It reads the log level and format from the server context.
-func ProvideLogger[LoggerT log.AdvancedLogger[any, LoggerT]](
+func ProvideLogger(
 	in LoggerInput,
 ) *phuslu.Logger {
 	logger := phuslu.NewLogger(in.Out, in.Cfg.GetLogger())

@@ -97,11 +97,7 @@ func (cb *CLIBuilder[
 	//nolint:asasalint // todo fix.
 	if err := depinject.Inject(
 		depinject.Configs(
-			depinject.Supply(
-				cb.suppliers,
-				// append(
-				// 	, []any{&runtime.App{}, &components.StorageBackend{}})...,
-			),
+			depinject.Supply(cb.suppliers),
 			depinject.Provide(
 				cb.components...,
 			),
