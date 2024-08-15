@@ -58,7 +58,6 @@ func DefaultRootCommandSetup[
 	root.cmd.AddCommand(
 		// `comet`
 		cometbft.Commands(appCreator),
-
 		// `config`
 		confixcmd.ConfigCommand(),
 		// `init`
