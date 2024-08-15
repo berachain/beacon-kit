@@ -27,10 +27,20 @@ import (
 
 //nolint:gochecknoglobals // errors
 var (
+	ErrNotFound          = errors.New("not found")
+	ErrAlreadyExists     = errors.New("already exists")
 	errPublisherNotFound = func(eventID types.EventID) error {
-		return errors.Newf("publisher not found for eventID: %s", eventID)
+		return errors.Wrapf(
+			ErrNotFound,
+			"publisher not found for eventID: %s",
+			eventID,
+		)
 	}
 	errPublisherAlreadyExists = func(eventID types.EventID) error {
-		return errors.Newf("publisher already exists for eventID: %s", eventID)
+		return errors.Wrapf(
+			ErrAlreadyExists,
+			"publisher already exists for eventID: %s",
+			eventID,
+		)
 	}
 )

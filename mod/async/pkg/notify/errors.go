@@ -28,13 +28,15 @@ import (
 //
 //nolint:gochecknoglobals // errors
 var (
+	ErrIncompatible = errors.New("incompatible assignee")
 	// errIncompatibleAssignee is the error returned when the assignee is not
 	// compatible with the assigner.
 	errIncompatibleAssignee = func(
 		assigner interface{}, assignee interface{},
 	) error {
-		return errors.Newf(
-			"incompatible assignee, expected: %T, received: %T",
+		return errors.Wrapf(
+			ErrIncompatible,
+			"expected: %T, received: %T",
 			assigner,
 			assignee,
 		)
