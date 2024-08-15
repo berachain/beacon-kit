@@ -129,25 +129,23 @@ func (a *ExecutionAddress) UnmarshalJSON(input []byte) error {
 
 // checksumHex returns the checksummed hex representation of a.
 func (a *ExecutionAddress) checksumHex() []byte {
-    buf := hex.EncodeBytes(a[:])
+	buf := hex.EncodeBytes(a[:])
 
-	// Compute checksum
-    sha := sha3.NewLegacyKeccak256()
-    sha.Write(buf)
-    hash := sha.Sum(nil)
-
-    for i := 0; i < len(buf); i++ {
-        hashByte := hash[i/2]
-        if i%2 == 0 {
-            hashByte >>= 4
-        } else {
-            hashByte &= 0xf
-        }
-
-        // Correct the character cases for checksum
-        if buf[i] > '9' && hashByte > 7 {
-            buf[i] -= 32
-        }
-    }
-    return append([]byte("0x"), buf...)
+	// compute checksum
+	sha := sha3.NewLegacyKeccak256()
+	sha.Write(buf[2:])
+	hash := sha.Sum(nil)
+	for i := 2; i < len(buf); i++ {
+		//nolint:mnd // todo fix.
+		hashByte := hash[(i-2)/2]
+		if i%2 == 0 {
+			hashByte >>= 4
+		} else {
+			hashByte &= 0xf
+		}
+		if buf[i] > '9' && hashByte > 7 {
+			buf[i] -= 32
+		}
+	}
+	return buf
 }
