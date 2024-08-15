@@ -3,7 +3,7 @@ module github.com/berachain/beacon-kit/build/tools
 go 1.23.0
 
 // staticcheck fix
-replace honnef.co/go/tools v0.2.1 => github.com/honnef/go-tools v0.5.0-0.dev.0.20240621230735-3fe6ed0ecdfe
+replace honnef.co/go/tools v0.2.1 => github.com/dominikh/go-tools v0.5.1
 
 require (
 	github.com/bazelbuild/buildtools v0.0.0-20240606140350-80f1f6802857
