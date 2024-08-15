@@ -87,7 +87,7 @@ linters-settings:
   gocognit:
     # Minimal code complexity to report.
     # Default: 30 (but we recommend 10-20)
-    min-complexity: 20
+    min-complexity: 18
 
   gocritic:
     # Settings passed to gocritic.
@@ -120,6 +120,7 @@ linters-settings:
             recommendations:
               - github.com/gofrs/uuid/v5
             reason: "gofrs' package was not go module before v5"
+
 
   govet:
     # Enable all analyzers.
@@ -238,14 +239,12 @@ linters:
     - bidichk # checks for dangerous unicode character sequences
     - bodyclose # checks whether HTTP response body is closed successfully
     - canonicalheader # checks whether net/http.Header uses canonical header
-    - copyloopvar # detects places where loop variables are copied
     - cyclop # checks function and package cyclomatic complexity
     - dupl # tool for code clone detection
     - durationcheck # checks for two durations multiplied together
     - errname # checks that sentinel errors are prefixed with the Err and error types are suffixed with the Error
     - errorlint # finds code that will cause problems with the error wrapping scheme introduced in Go 1.13
     - exhaustive # checks exhaustiveness of enum switch statements
-    - exportloopref # checks for pointers to enclosing loop variables
     - fatcontext # detects nested contexts in loops
     - forbidigo # forbids identifiers
     - funlen # tool for detection of long functions
