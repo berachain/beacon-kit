@@ -27,15 +27,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// Client is an interface for the client.
-type Client[LogT any] interface {
-	GetLogsAtBlockNumber(
-		ctx context.Context,
-		number math.U64,
-		address common.ExecutionAddress,
-	) ([]LogT, error)
-}
-
 // WrappedBeaconDepositContract is a struct that holds a pointer to an ABI.
 type WrappedBeaconDepositContract[
 	DepositT Deposit[DepositT, LogT, WithdrawalCredentialsT],

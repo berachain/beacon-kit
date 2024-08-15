@@ -24,6 +24,7 @@ import (
 	"context"
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -60,6 +61,15 @@ type BlockEvent[
 // ExecutionPayload is an interface for execution payloads.
 type ExecutionPayload interface {
 	GetNumber() math.U64
+}
+
+// Client is an interface for the client.
+type Client[LogT any] interface {
+	GetLogsAtBlockNumber(
+		ctx context.Context,
+		number math.U64,
+		address common.ExecutionAddress,
+	) ([]LogT, error)
 }
 
 // Contract is the ABI for the deposit contract.
