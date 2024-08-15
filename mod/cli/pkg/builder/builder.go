@@ -35,6 +35,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -88,8 +89,9 @@ func (cb *CLIBuilder[T, ExecutionPayloadT]) Build() (*cmdlib.Root, error) {
 		chainSpec common.ChainSpec
 		logger    log.AdvancedLogger[any, sdklog.Logger]
 	)
-
 	// build dependencies for the root command
+	//
+	//nolint:asasalint // todo fix.
 	if err := depinject.Inject(
 		depinject.Configs(
 			depinject.Supply(
@@ -148,11 +150,17 @@ func (cb *CLIBuilder[T, ExecutionPayloadT]) InterceptConfigsPreRunHandler(
 	customAppConfig interface{},
 	cmtConfig *cmtcfg.Config,
 ) error {
-	return config.SetupCommand(
+	serverCtx, err := config.SetupConfigAndContext(
 		cmd,
 		customAppConfigTemplate,
 		customAppConfig,
 		cmtConfig,
 		logger,
 	)
+	if err != nil {
+		return err
+	}
+
+	// set server context
+	return server.SetCmdServerContext(cmd, serverCtx)
 }
