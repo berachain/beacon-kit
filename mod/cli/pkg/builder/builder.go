@@ -35,7 +35,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -149,17 +148,11 @@ func (cb *CLIBuilder[T, ExecutionPayloadT]) InterceptConfigsPreRunHandler(
 	customAppConfig interface{},
 	cmtConfig *cmtcfg.Config,
 ) error {
-	serverCtx, err := config.SetupConfigAndContext(
+	return config.SetupCommand(
 		cmd,
 		customAppConfigTemplate,
 		customAppConfig,
 		cmtConfig,
 		logger,
 	)
-	if err != nil {
-		return err
-	}
-
-	// set server context
-	return server.SetCmdServerContext(cmd, serverCtx)
 }
