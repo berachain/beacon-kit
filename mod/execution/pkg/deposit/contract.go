@@ -91,7 +91,7 @@ func (dc *WrappedBeaconDepositContract[
 	deposits := make([]DepositT, 0)
 	for _, log := range logs {
 		d = d.Empty()
-		if err := d.UnmarshalLog(log); err != nil {
+		if err = d.UnmarshalLog(log); err != nil {
 			return nil, err
 		}
 		deposits = append(deposits, d)
