@@ -23,42 +23,45 @@ package deposit
 import (
 	"context"
 
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // Client is an interface for the client.
-type Client interface {
+type Client[LogT any] interface {
 	GetLogsAtBlockNumber(
 		ctx context.Context,
 		number math.U64,
 		address common.ExecutionAddress,
-	) ([]engineprimitives.Log, error)
+	) ([]LogT, error)
 }
 
 // WrappedBeaconDepositContract is a struct that holds a pointer to an ABI.
 type WrappedBeaconDepositContract[
-	DepositT Deposit[DepositT, WithdrawalCredentialsT],
+	DepositT Deposit[DepositT, LogT, WithdrawalCredentialsT],
+	LogT any,
 	WithdrawalCredentialsT ~[32]byte,
 ] struct {
-	client  Client
+	client  Client[LogT]
 	address common.ExecutionAddress
 }
 
 // NewWrappedBeaconDepositContract creates a new BeaconDepositContract.
 func NewWrappedBeaconDepositContract[
-	DepositT Deposit[DepositT, WithdrawalCredentialsT],
+	DepositT Deposit[DepositT, LogT, WithdrawalCredentialsT],
+	LogT any,
 	WithdrawalCredentialsT ~[32]byte,
 ](
 	address common.ExecutionAddress,
-	client Client,
+	client Client[LogT],
 ) (*WrappedBeaconDepositContract[
 	DepositT,
+	LogT,
 	WithdrawalCredentialsT,
 ], error) {
 	return &WrappedBeaconDepositContract[
 		DepositT,
+		LogT,
 		WithdrawalCredentialsT,
 	]{
 		client:  client,
@@ -70,6 +73,7 @@ func NewWrappedBeaconDepositContract[
 func (dc *WrappedBeaconDepositContract[
 	DepositT,
 	WithdrawalCredentialsT,
+	LogT,
 ]) ReadDeposits(
 	ctx context.Context,
 	blkNum math.U64,

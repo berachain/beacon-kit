@@ -90,6 +90,7 @@ func ProvideDepositPruner(
 			*BlockEvent,
 			*Deposit,
 			*ExecutionPayload,
+			Log,
 			WithdrawalCredentials,
 		](in.ChainSpec),
 	), nil

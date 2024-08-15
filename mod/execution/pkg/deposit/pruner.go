@@ -31,8 +31,9 @@ func BuildPruneRangeFn[
 	BlockEventT BlockEvent[
 		DepositT, BeaconBlockBodyT, BeaconBlockT, ExecutionPayloadT,
 	],
-	DepositT Deposit[DepositT, WithdrawalCredentialsT],
+	DepositT Deposit[DepositT, LogT, WithdrawalCredentialsT],
 	ExecutionPayloadT ExecutionPayload,
+	LogT any,
 	WithdrawalCredentialsT any,
 ](cs common.ChainSpec) func(BlockEventT) (uint64, uint64) {
 	return func(event BlockEventT) (uint64, uint64) {

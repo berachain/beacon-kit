@@ -34,8 +34,9 @@ type Service[
 	BlockEventT BlockEvent[
 		DepositT, BeaconBlockBodyT, BeaconBlockT, ExecutionPayloadT,
 	],
-	DepositT Deposit[DepositT, WithdrawalCredentialsT],
+	DepositT Deposit[DepositT, LogT, WithdrawalCredentialsT],
 	ExecutionPayloadT ExecutionPayload,
+	LogT any,
 	WithdrawalCredentialsT any,
 ] struct {
 	// logger is used for logging information and errors.
@@ -57,16 +58,16 @@ type Service[
 
 // NewService creates a new instance of the Service struct.
 func NewService[
-	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
 	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
+	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
 	BlockEventT BlockEvent[
 		DepositT, BeaconBlockBodyT,
 		BeaconBlockT, ExecutionPayloadT,
 	],
-	DepositStoreT Store[DepositT],
+	DepositT Deposit[DepositT, LogT, WithdrawalCredentialsT],
 	ExecutionPayloadT ExecutionPayload,
+	LogT any,
 	WithdrawalCredentialsT any,
-	DepositT Deposit[DepositT, WithdrawalCredentialsT],
 ](
 	logger log.Logger[any],
 	eth1FollowDistance math.U64,
@@ -75,12 +76,15 @@ func NewService[
 	dc Contract[DepositT],
 	feed chan BlockEventT,
 ) *Service[
-	BeaconBlockT, BeaconBlockBodyT, BlockEventT, DepositT,
-	ExecutionPayloadT, WithdrawalCredentialsT,
+	BeaconBlockT, BeaconBlockBodyT,
+	BlockEventT, DepositT,
+	ExecutionPayloadT, LogT,
+	WithdrawalCredentialsT,
 ] {
 	return &Service[
-		BeaconBlockT, BeaconBlockBodyT, BlockEventT, DepositT,
-		ExecutionPayloadT,
+		BeaconBlockT, BeaconBlockBodyT,
+		BlockEventT, DepositT,
+		ExecutionPayloadT, LogT,
 		WithdrawalCredentialsT,
 	]{
 		feed:               feed,
@@ -95,7 +99,7 @@ func NewService[
 
 // Start starts the service and begins processing block events.
 func (s *Service[
-	_, _, _, _, _, _,
+	_, _, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
 	go s.depositFetcher(ctx)
 	go s.depositCatchupFetcher(ctx)
@@ -104,7 +108,7 @@ func (s *Service[
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _, _,
+	_, _, _, _, _, _, _,
 ]) Name() string {
 	return "deposit-handler"
 }

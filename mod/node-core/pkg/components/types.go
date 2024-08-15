@@ -207,6 +207,7 @@ type (
 	// DepositContract is a type alias for the deposit contract.
 	DepositContract = deposit.WrappedBeaconDepositContract[
 		*Deposit,
+		engineprimitives.Log,
 		WithdrawalCredentials,
 	]
 
@@ -217,6 +218,7 @@ type (
 		*BlockEvent,
 		*Deposit,
 		*ExecutionPayload,
+		Log,
 		WithdrawalCredentials,
 	]
 
@@ -287,6 +289,9 @@ type (
 		PayloadID,
 		*Withdrawal,
 	]
+
+	// Log is a type alias for the log.
+	Log = engineprimitives.Log
 
 	// NodeAPIBackend is a type alias for the node API backend.
 	NodeAPIBackend = backend.Backend[

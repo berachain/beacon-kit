@@ -42,6 +42,7 @@ func ProvideBeaconDepositContract(
 	// Build the deposit contract.
 	return deposit.NewWrappedBeaconDepositContract[
 		*Deposit,
+		Log,
 		WithdrawalCredentials,
 	](
 		in.ChainSpec.DepositContractAddress(),
