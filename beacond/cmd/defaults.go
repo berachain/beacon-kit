@@ -217,12 +217,12 @@ func DefaultComponents() []any {
 	)
 
 	components = append(components,
-		nodecomponents.ProvideBlobBroker[*BlobSidecar],
-		nodecomponents.ProvideBlockBroker[*BeaconBlock],
-		nodecomponents.ProvideGenesisBroker[*Genesis],
-		nodecomponents.ProvideSlotBroker[*SlotData],
+		nodecomponents.ProvideBlobBroker[*SidecarEvent],
+		nodecomponents.ProvideBlockBroker[*BlockEvent],
+		nodecomponents.ProvideGenesisBroker[*GenesisEvent],
+		nodecomponents.ProvideSlotBroker[*SlotEvent],
 		nodecomponents.ProvideStatusBroker[*StatusEvent],
-		nodecomponents.ProvideValidatorUpdateBroker[*ValidatorUpdates],
+		nodecomponents.ProvideValidatorUpdateBroker[*ValidatorUpdateEvent],
 	)
 	return components
 }
