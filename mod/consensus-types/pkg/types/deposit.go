@@ -193,7 +193,7 @@ func (d *Deposit) GetTree() (*fastssz.Node, error) {
 
 // UnmarshalLog unmarshals the Deposit object from an Ethereum log.
 //
-//nolint:mnd // todo fix later.
+
 func (d *Deposit) UnmarshalLog(log engineprimitives.Log) error {
 	idx := binary.BigEndian.Uint64(log.Data[152:160])
 	d.Index = idx
