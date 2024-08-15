@@ -22,6 +22,7 @@ package builder
 
 import (
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	cmtcfg "github.com/cometbft/cometbft/config"
@@ -33,14 +34,16 @@ import (
 type Opt[
 	T types.Node,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
-] func(*CLIBuilder[T, ExecutionPayloadT])
+	LoggerT log.AdvancedLogger[any, LoggerT],
+] func(*CLIBuilder[T, ExecutionPayloadT, LoggerT])
 
 // WithName sets the name for the CLIBuilder.
 func WithName[
 	T types.Node,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
-](name string) Opt[T, ExecutionPayloadT] {
-	return func(cb *CLIBuilder[T, ExecutionPayloadT]) {
+	LoggerT log.AdvancedLogger[any, LoggerT],
+](name string) Opt[T, ExecutionPayloadT, LoggerT] {
+	return func(cb *CLIBuilder[T, ExecutionPayloadT, LoggerT]) {
 		cb.name = name
 	}
 }
@@ -49,8 +52,9 @@ func WithName[
 func WithDescription[
 	T types.Node,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
-](description string) Opt[T, ExecutionPayloadT] {
-	return func(cb *CLIBuilder[T, ExecutionPayloadT]) {
+	LoggerT log.AdvancedLogger[any, LoggerT],
+](description string) Opt[T, ExecutionPayloadT, LoggerT] {
+	return func(cb *CLIBuilder[T, ExecutionPayloadT, LoggerT]) {
 		cb.description = description
 	}
 }
@@ -59,8 +63,9 @@ func WithDescription[
 func WithComponents[
 	T types.Node,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
-](components []any) Opt[T, ExecutionPayloadT] {
-	return func(cb *CLIBuilder[T, ExecutionPayloadT]) {
+	LoggerT log.AdvancedLogger[any, LoggerT],
+](components []any) Opt[T, ExecutionPayloadT, LoggerT] {
+	return func(cb *CLIBuilder[T, ExecutionPayloadT, LoggerT]) {
 		cb.components = components
 	}
 }
@@ -70,8 +75,9 @@ func WithComponents[
 func SupplyModuleDeps[
 	T types.Node,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
-](deps []any) Opt[T, ExecutionPayloadT] {
-	return func(cb *CLIBuilder[T, ExecutionPayloadT]) {
+	LoggerT log.AdvancedLogger[any, LoggerT],
+](deps []any) Opt[T, ExecutionPayloadT, LoggerT] {
+	return func(cb *CLIBuilder[T, ExecutionPayloadT, LoggerT]) {
 		cb.suppliers = append(cb.suppliers, deps...)
 	}
 }
@@ -80,14 +86,15 @@ func SupplyModuleDeps[
 func WithRunHandler[
 	T types.Node,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+	LoggerT log.AdvancedLogger[any, LoggerT],
 ](
 	runHandler func(cmd *cobra.Command,
 		customAppConfigTemplate string,
 		customAppConfig interface{},
 		cmtConfig *cmtcfg.Config,
 	) error,
-) Opt[T, ExecutionPayloadT] {
-	return func(cb *CLIBuilder[T, ExecutionPayloadT]) {
+) Opt[T, ExecutionPayloadT, LoggerT] {
+	return func(cb *CLIBuilder[T, ExecutionPayloadT, LoggerT]) {
 		cb.runHandler = runHandler
 	}
 }
@@ -96,8 +103,9 @@ func WithRunHandler[
 func WithDefaultRootCommandSetup[
 	T types.Node,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
-]() Opt[T, ExecutionPayloadT] {
-	return func(cb *CLIBuilder[T, ExecutionPayloadT]) {
+	LoggerT log.AdvancedLogger[any, LoggerT],
+]() Opt[T, ExecutionPayloadT, LoggerT] {
+	return func(cb *CLIBuilder[T, ExecutionPayloadT, LoggerT]) {
 		cb.rootCmdSetup = cmdlib.DefaultRootCommandSetup[T, ExecutionPayloadT]
 	}
 }
@@ -106,10 +114,11 @@ func WithDefaultRootCommandSetup[
 func WithNodeBuilderFunc[
 	T types.Node,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+	LoggerT log.AdvancedLogger[any, LoggerT],
 ](
 	nodeBuilderFunc servertypes.AppCreator[T],
-) Opt[T, ExecutionPayloadT] {
-	return func(cb *CLIBuilder[T, ExecutionPayloadT]) {
+) Opt[T, ExecutionPayloadT, LoggerT] {
+	return func(cb *CLIBuilder[T, ExecutionPayloadT, LoggerT]) {
 		cb.nodeBuilderFunc = nodeBuilderFunc
 	}
 }
