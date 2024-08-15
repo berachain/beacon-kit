@@ -58,3 +58,15 @@ contracts_path: ""
 script_path: "script/NFT.s.sol"
 contract_name: "MyScript"
 ```
+
+## Deploy PoL Smart Contract
+
+```bash
+repository: "github.com/berachain/contracts-monorepo"
+contracts_path: ""
+script_path: "script/pol/DeployPoL.s.sol"
+contract_name: "DeployPoL"
+dependency: 
+    status : true
+    path: "dependency.sh"
+```

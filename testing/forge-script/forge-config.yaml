@@ -24,14 +24,10 @@ deployment:
   contracts_path: "contracts"  # give the path till contracts, if the repository is the contract folder itself, then leave it empty
   script_path: "script/DeployAndCallERC20.s.sol"  # this must be relative to the repository path + contracts_path(if applicable)
   contract_name: "DeployAndCallERC20"
-  # repository: "github.com/berachain/contracts-monorepo"  # give repo name if there are submodules, else give the folder till contracts
-  # contracts_path: ""  # give the path till contracts, if the repository is the contract folder itself, then leave it empty
-  # script_path: "script/pol/DeployPoL.s.sol"  # this must be relative to the repository path + contracts_path(if applicable)
-  # contract_name: "DeployPoL"
-  rpc_url: "http://192.168.0.129:8547"  # If you spin up local devnet via kurtosis, then public port is 8547
+  rpc_url: "http://192.168.1.5:8547"  # If you spin up local devnet via kurtosis, then public port is 8547
   wallet:
     type: "private_key"  # currently only private_key wallet is supported. Do not change the type.
     value: "0xfffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306"
   dependency: 
     status : false
-    path: "./dependency.sh"
+    path: "dependency.sh"

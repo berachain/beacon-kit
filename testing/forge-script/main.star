@@ -25,15 +25,15 @@ def deploy_contracts(plan, deployment):
 
     folder = plan.upload_files(src = repository, name = "contracts")
 
+    dependency_file = ""
+    if dependency_status:
+        dependency_path = dependency["path"]
+        plan.upload_files(src = dependency_path, name = "dependency")
+        dependency_file = "dependency"
+
     foundry_service = plan.add_service(
         name = "foundry",
-        config = ServiceConfig(
-            image = IMAGE_FOUNDRY,
-            entrypoint = ENTRYPOINT,
-            files = {
-                SOURCE_DIR_PATH: "contracts",
-            },
-        ),
+        config = get_service_config(dependency_file),
     )
 
     if contracts_path:
@@ -43,22 +43,11 @@ def deploy_contracts(plan, deployment):
 
     # Check if dependency status is set to true
     if dependency_status:
-        plan.print("Dependency status is true", dependency_status)
-        dependency_path = dependency["path"]
-        plan.upload_files(src = dependency_path, name = "dependency")
-
-        artifact_name = plan.store_service_files(
-            service_name = foundry_service.name,
-            # The path on the service's container that will be copied into a files artifact.
-            src = "{}/{}".format(DEPENDENCY_DIR_PATH, dependency_path),
-            name = "dependency",
-        )
-
         # Run shell script
         plan.exec(
             service_name = foundry_service.name,
             recipe = ExecRecipe(
-                command = ["/bin/sh", "-c", "sh {}".format(DEPENDENCY_DIR_PATH + "/" + dependency_path)],
+                command = ["/bin/sh", "-c", "sh {}/{}".format(DEPENDENCY_DIR_PATH, dependency_path)],
             ),
         )
 
@@ -105,4 +94,18 @@ def exec_on_service(plan, service_name, command):
         recipe = ExecRecipe(
             command = ["/bin/sh", "-c", command],
         ),
+    )
+
+def get_service_config(dependency_file = None):
+    files = {
+        SOURCE_DIR_PATH: "contracts",
+    }
+
+    if dependency_file:
+        files[DEPENDENCY_DIR_PATH] = dependency_path
+
+    return ServiceConfig(
+        image = IMAGE_FOUNDRY,
+        entrypoint = ENTRYPOINT,
+        files = files,
     )
