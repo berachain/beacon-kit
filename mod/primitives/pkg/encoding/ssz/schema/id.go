@@ -114,7 +114,6 @@ type SSZObject[T any] interface {
 	MinimalSSZObject
 	// ChunkCount returns the number of chunks required to store the type.
 	ChunkCount() uint64
-	NewFromSSZ([]byte) (T, error)
 }
 
 // SSZEnumerable is the interface for all SSZ enumerable types must implement.

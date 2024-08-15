@@ -80,17 +80,11 @@ type ExecutionPayloadHeader struct {
 	ExcessBlobGas math.U64 `json:"excessBlobGas"`
 }
 
-// Empty returns an empty ExecutionPayload for the given fork version.
+// Empty returns an empty ExecutionPayload.
 func (h *ExecutionPayloadHeader) Empty() *ExecutionPayloadHeader {
-	return &ExecutionPayloadHeader{}
-}
-
-// NewFromSSZ returns a new ExecutionPayloadHeader from the given SSZ bytes.
-func (h *ExecutionPayloadHeader) NewFromSSZ(
-	bz []byte, _ uint32,
-) (*ExecutionPayloadHeader, error) {
-	h = h.Empty()
-	return h, h.UnmarshalSSZ(bz)
+	return &ExecutionPayloadHeader{
+		BaseFeePerGas: new(uint256.Int),
+	}
 }
 
 // NewFromJSON returns a new ExecutionPayloadHeader from the given JSON bytes.

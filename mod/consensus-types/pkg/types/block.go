@@ -44,55 +44,33 @@ type BeaconBlock struct {
 	Body *BeaconBlockBody `json:"body"`
 }
 
-// Empty creates an empty beacon block.
-func (*BeaconBlock) Empty() *BeaconBlock {
-	return &BeaconBlock{
-		Body: &BeaconBlockBody{
-			Eth1Data:         &Eth1Data{},
-			ExecutionPayload: &ExecutionPayload{},
-		},
+// Empty creates an empty beacon block for the given fork version.
+func (*BeaconBlock) Empty(forkVersion uint32) *BeaconBlock {
+	switch forkVersion {
+	case version.Deneb:
+		return &BeaconBlock{
+			Body: &BeaconBlockBody{
+				Eth1Data:         &Eth1Data{},
+				ExecutionPayload: &ExecutionPayload{},
+			},
+		}
+	default:
+		panic(ErrForkVersionNotSupported)
 	}
 }
 
-// NewWithVersion assembles a new beacon block from the given.
+// NewWithVersion assembles a new beacon block from the given data.
 func (b *BeaconBlock) NewWithVersion(
 	slot math.Slot,
 	proposerIndex math.ValidatorIndex,
 	parentBlockRoot common.Root,
 	forkVersion uint32,
 ) (*BeaconBlock, error) {
-	var block *BeaconBlock
-
-	switch forkVersion {
-	case version.Deneb:
-		block = new(BeaconBlock).Empty()
-		block.Slot = slot
-		block.ProposerIndex = proposerIndex
-		block.ParentRoot = parentBlockRoot
-	default:
-		return block, ErrForkVersionNotSupported
-	}
-
+	block := new(BeaconBlock).Empty(forkVersion)
+	block.Slot = slot
+	block.ProposerIndex = proposerIndex
+	block.ParentRoot = parentBlockRoot
 	return block, nil
-}
-
-// NewFromSSZ creates a new beacon block from the given SSZ bytes.
-func (b *BeaconBlock) NewFromSSZ(
-	bz []byte,
-	forkVersion uint32,
-) (*BeaconBlock, error) {
-	var block *BeaconBlock
-	
-	switch forkVersion {
-	case version.Deneb:
-		block = new(BeaconBlock).Empty()
-	case version.DenebPlus:
-		panic("unsupported fork version")
-	default:
-		return block, ErrForkVersionNotSupported
-	}
-
-	return block, block.UnmarshalSSZ(bz)
 }
 
 /* -------------------------------------------------------------------------- */

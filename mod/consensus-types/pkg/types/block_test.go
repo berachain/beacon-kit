@@ -84,17 +84,21 @@ func TestBeaconBlockFromSSZ(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, sszBlock)
 
-	wrappedBlock := &types.BeaconBlock{}
-	wrappedBlock, err = wrappedBlock.NewFromSSZ(sszBlock, version.Deneb)
+	wrappedBlock := new(types.BeaconBlock).Empty(version.Deneb)
+	err = wrappedBlock.UnmarshalSSZ(sszBlock)
 	require.NoError(t, err)
 	require.NotNil(t, wrappedBlock)
 	require.Equal(t, originalBlock, wrappedBlock)
 }
 
 func TestBeaconBlockFromSSZForkVersionNotSupported(t *testing.T) {
-	wrappedBlock := &types.BeaconBlock{}
-	_, err := wrappedBlock.NewFromSSZ([]byte{}, 1)
-	require.ErrorIs(t, err, types.ErrForkVersionNotSupported)
+	require.PanicsWithError(
+		t,
+		types.ErrForkVersionNotSupported.Error(),
+		func() {
+			new(types.BeaconBlock).Empty(version.DenebPlus)
+		},
+	)
 }
 
 func TestBeaconBlock(t *testing.T) {
@@ -149,7 +153,7 @@ func TestBeaconBlock_HashTreeRoot(t *testing.T) {
 
 func TestBeaconBlockEmpty(t *testing.T) {
 	block := &types.BeaconBlock{}
-	emptyBlock := block.Empty()
+	emptyBlock := block.Empty(version.Deneb)
 	require.NotNil(t, emptyBlock)
 	require.IsType(t, &types.BeaconBlock{}, emptyBlock)
 }

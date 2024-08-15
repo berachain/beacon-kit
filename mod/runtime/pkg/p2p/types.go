@@ -24,6 +24,5 @@ import "github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 
 type BeaconBlock[SelfT any] interface {
 	constraints.SSZMarshallable
-	constraints.Empty[SelfT]
-	NewFromSSZ([]byte, uint32) (SelfT, error)
+	constraints.EmptyWithVersion[SelfT]
 }
