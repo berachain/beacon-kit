@@ -30,7 +30,7 @@ import (
 
 // Publisher is responsible for broadcasting all events corresponding to the
 // <eventID> to all registered client channels.
-type Publisher[T any] struct {
+type Publisher[T types.BaseMessage] struct {
 	eventID types.EventID
 	// subscriptions is a map of subscribed subscriptions.
 	subscriptions map[types.Subscription[T]]struct{}
@@ -44,7 +44,7 @@ type Publisher[T any] struct {
 
 // NewPublisher creates a new publisher publishing events of type T for the
 // provided eventID.
-func NewPublisher[T any](eventID string) *Publisher[T] {
+func NewPublisher[T types.BaseMessage](eventID string) *Publisher[T] {
 	return &Publisher[T]{
 		eventID:       types.EventID(eventID),
 		subscriptions: make(map[types.Subscription[T]]struct{}),

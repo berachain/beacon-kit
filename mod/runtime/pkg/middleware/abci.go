@@ -50,14 +50,15 @@ func (h *ABCIMiddleware[
 		err      error
 		gdpEvent asynctypes.Event[transition.ValidatorUpdates]
 	)
+	// in theory this channel should already be empty, but we clear it anyways
+	h.subGenDataProcessed.Clear()
+
 	data := new(GenesisT)
 	if err = json.Unmarshal(bz, data); err != nil {
 		h.logger.Error("Failed to unmarshal genesis data", "error", err)
 		return nil, err
 	}
 
-	// TODO: implement service
-	// request for validator updates
 	if err = h.dispatcher.PublishEvent(
 		asynctypes.NewEvent(ctx, messages.GenesisDataReceived, *data),
 	); err != nil {
@@ -89,8 +90,10 @@ func (h *ABCIMiddleware[
 		startTime    = time.Now()
 	)
 	defer h.metrics.measurePrepareProposalDuration(startTime)
+	// in theory these subs should already be empty, but we clear them anyways
+	h.subBuiltBeaconBlock.Clear()
+	h.subBuiltSidecars.Clear()
 
-	// TODO: implement service
 	if err = h.dispatcher.PublishEvent(
 		asynctypes.NewEvent(
 			ctx, messages.NewSlot, slotData,
@@ -165,6 +168,9 @@ func (h *ABCIMiddleware[
 		blk       BeaconBlockT
 		sidecars  BlobSidecarsT
 	)
+	// in theory these subs should already be empty, but we clear them anyways
+	h.subBBVerified.Clear()
+	h.subSCVerified.Clear()
 	abciReq, ok := req.(*cmtabci.ProcessProposalRequest)
 	if !ok {
 		return nil, ErrInvalidProcessProposalRequestType
@@ -238,6 +244,8 @@ func (h *ABCIMiddleware[
 		blobs                BlobSidecarsT
 		finalValUpdatesEvent asynctypes.Event[transition.ValidatorUpdates]
 	)
+	// in theory this sub should already be empty, but we clear them anyways
+	h.subFinalValidatorUpdates.Clear()
 	abciReq, ok := req.(*cmtabci.FinalizeBlockRequest)
 	if !ok {
 		return nil, ErrInvalidFinalizeBlockRequestType

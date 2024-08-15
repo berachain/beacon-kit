@@ -473,7 +473,7 @@ type (
 /* -------------------------------------------------------------------------- */
 
 type (
-	BeaconBlockFinalizedPublisher = messaging.Publisher[*FinalizedBlockEvent]
+	BeaconBlockFinalizedPublisher = messaging.Publisher[FinalizedBlockEvent]
 )
 
 /* -------------------------------------------------------------------------- */

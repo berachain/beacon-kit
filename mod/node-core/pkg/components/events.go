@@ -36,7 +36,7 @@ func ProvideEventServer() *EventServer {
 // finalized events.
 func ProvidePublishers() []asynctypes.Publisher {
 	return []asynctypes.Publisher{
-		messaging.NewPublisher[*FinalizedBlockEvent](
+		messaging.NewPublisher[FinalizedBlockEvent](
 			messages.BeaconBlockFinalizedEvent,
 		),
 	}
