@@ -26,7 +26,6 @@ import (
 	"path/filepath"
 
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/context"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/parser"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -52,8 +51,7 @@ func AddGenesisDepositCmd(cs common.ChainSpec) *cobra.Command {
 		Use:   "add-premined-deposit",
 		Short: "adds a validator to the genesis file",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			serverCtx := context.GetServerContextFromCmd(cmd)
-			config := serverCtx.Config
+			config := client.GetConfigFromCmd(cmd)
 
 			_, valPubKey, err := genutil.InitializeNodeValidatorFiles(
 				config, crypto.CometBLSType,
