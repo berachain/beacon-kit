@@ -62,9 +62,9 @@ type BlobSidecar interface {
 	IsNil() bool
 }
 
-// EventPublisher represents the event publisher interface.
+// EventPublisherSubscriber represents the event publisher interface.
 type EventPublisherSubscriber[T any] interface {
-	// PublishEvent publishes an event.
+    // Publish publishes an event.
 	Publish(context.Context, T) error
 	// Subscribe subscribes to the event system.
 	Subscribe() (chan T, error)
