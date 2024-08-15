@@ -24,12 +24,13 @@ import (
 	"cosmossdk.io/depinject"
 	storev2 "cosmossdk.io/store/v2/db"
 	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
+	async "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	blockservice "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/block"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
@@ -86,12 +87,14 @@ func ProvideBlockPruner[
 ](
 	in BlockPrunerInput[LoggerT],
 ) (BlockPruner, error) {
-	var finalizedBlkCh = make(chan FinalizedBlockEvent)
+	// TODO: provider should not execute any business logic.
+	// create new subscription for finalized blocks.
+	subFinalizedBlocks := async.NewSubscription[FinalizedBlockEvent]()
 	if err := in.Dispatcher.Subscribe(
-		messages.BeaconBlockFinalizedEvent, finalizedBlkCh,
+		events.BeaconBlockFinalizedEvent, subFinalizedBlocks,
 	); err != nil {
 		in.Logger.Error("failed to subscribe to event", "event",
-			messages.BeaconBlockFinalizedEvent, "err", err)
+			events.BeaconBlockFinalizedEvent, "err", err)
 		return nil, err
 	}
 
@@ -103,7 +106,7 @@ func ProvideBlockPruner[
 		in.Logger.With("service", manager.BlockPrunerName),
 		in.BlockStore,
 		manager.BlockPrunerName,
-		finalizedBlkCh,
+		subFinalizedBlocks,
 		blockservice.BuildPruneRangeFn[
 			*BeaconBlock,
 			FinalizedBlockEvent,

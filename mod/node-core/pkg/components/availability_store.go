@@ -25,10 +25,11 @@ import (
 	"os"
 
 	"cosmossdk.io/depinject"
+	async "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
@@ -97,12 +98,15 @@ func ProvideAvailabilityPruner[
 		return nil, errors.New("availability store does not have a range db")
 	}
 
-	var finalizedBlkCh = make(chan FinalizedBlockEvent)
+	// TODO: add dispatcher field in the pruner or something, the provider
+	// should not execute any business logic.
+	// create new subscription for finalized blocks.
+	subFinalizedBlocks := async.NewSubscription[FinalizedBlockEvent]()
 	if err := in.Dispatcher.Subscribe(
-		messages.BeaconBlockFinalizedEvent, finalizedBlkCh,
+		events.BeaconBlockFinalizedEvent, subFinalizedBlocks,
 	); err != nil {
 		in.Logger.Error("failed to subscribe to event", "event",
-			messages.BeaconBlockFinalizedEvent, "err", err)
+			events.BeaconBlockFinalizedEvent, "err", err)
 		return nil, err
 	}
 
@@ -115,7 +119,7 @@ func ProvideAvailabilityPruner[
 		in.Logger.With("service", manager.AvailabilityPrunerName),
 		rangeDB,
 		manager.AvailabilityPrunerName,
-		finalizedBlkCh,
+		subFinalizedBlocks,
 		dastore.BuildPruneRangeFn[
 			*BeaconBlock,
 			FinalizedBlockEvent,

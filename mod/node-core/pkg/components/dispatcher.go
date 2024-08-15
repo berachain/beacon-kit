@@ -31,11 +31,9 @@ import (
 // DispatcherInput is the input for the Dispatcher.
 type DispatcherInput struct {
 	depinject.In
-	EventServer   *EventServer
-	MessageServer *MessageServer
-	Logger        log.AdvancedLogger[any, sdklog.Logger]
-	Publishers    []asynctypes.Publisher
-	Routes        []asynctypes.MessageRoute
+	EventServer *EventServer
+	Logger      log.AdvancedLogger[any, sdklog.Logger]
+	Publishers  []asynctypes.Publisher
 }
 
 // ProvideDispatcher provides a new Dispatcher.
@@ -44,13 +42,9 @@ func ProvideDispatcher(
 ) (*Dispatcher, error) {
 	d := dispatcher.NewDispatcher(
 		in.EventServer,
-		in.MessageServer,
 		in.Logger.With("service", "dispatcher"),
 	)
 	if err := d.RegisterPublishers(in.Publishers...); err != nil {
-		return nil, err
-	}
-	if err := d.RegisterRoutes(in.Routes...); err != nil {
 		return nil, err
 	}
 	return d, nil
@@ -59,9 +53,7 @@ func ProvideDispatcher(
 func DefaultDispatcherComponents() []any {
 	return []any{
 		ProvideDispatcher,
-		ProvideMessageRoutes,
 		ProvidePublishers,
-		ProvideMessageServer,
 		ProvideEventServer,
 	}
 }

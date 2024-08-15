@@ -18,14 +18,29 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package messages
+package events
 
-// messages.
+// events, topologically sorted.
 const (
-	BuildBeaconBlockAndSidecars = "build-beacon-block-and-sidecars"
-	VerifyBeaconBlock           = "verify-beacon-block"
-	FinalizeBeaconBlock         = "finalize-beacon-block"
-	ProcessGenesisData          = "process-genesis-data"
-	VerifySidecars              = "verify-sidecars"
-	ProcessSidecars             = "process-sidecars"
+
+	// genesis data events
+	GenesisDataReceived  = "genesis-data-received"
+	GenesisDataProcessed = "genesis-data-processed"
+
+	// pre proposal events
+	NewSlot          = "new-slot"
+	BuiltBeaconBlock = "built-beacon-block"
+	BuiltSidecars    = "built-sidecars"
+
+	// proposal processing events
+	BeaconBlockReceived = "beacon-block-received"
+	SidecarsReceived    = "sidecars-received"
+	BeaconBlockVerified = "beacon-block-verified"
+	SidecarsVerified    = "sidecars-verified"
+
+	// finalize block events
+	FinalBeaconBlockReceived       = "final-beacon-block-received"
+	FinalSidecarsReceived          = "final-blob-sidecars-received"
+	FinalValidatorUpdatesProcessed = "final-validator-updates"
+	BeaconBlockFinalizedEvent      = "beacon-block-finalized"
 )

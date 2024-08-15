@@ -56,6 +56,7 @@ type BlockEvent[
 	ID() asynctypes.EventID
 	Is(asynctypes.EventID) bool
 	Data() BeaconBlockT
+	Context() context.Context
 }
 
 // ExecutionPayload is an interface for execution payloads.

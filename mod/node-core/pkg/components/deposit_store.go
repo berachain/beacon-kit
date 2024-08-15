@@ -23,11 +23,12 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	storev2 "cosmossdk.io/store/v2/db"
+	async "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	depositstore "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
@@ -74,15 +75,17 @@ func ProvideDepositPruner[
 ](
 	in DepositPrunerInput[LoggerT],
 ) (DepositPruner, error) {
-	var finalizedBlkCh = make(chan FinalizedBlockEvent)
+	// initialize a subscription for finalized blocks.
+	subFinalizedBlocks := async.NewSubscription[FinalizedBlockEvent]()
 	if err := in.Dispatcher.Subscribe(
-		messages.BeaconBlockFinalizedEvent, finalizedBlkCh,
+		events.BeaconBlockFinalizedEvent, subFinalizedBlocks,
 	); err != nil {
 		in.Logger.Error("failed to subscribe to event", "event",
-			messages.BeaconBlockFinalizedEvent, "err", err)
+			events.BeaconBlockFinalizedEvent, "err", err)
 		return nil, err
 	}
 
+	// return a new pruner for the deposit store.
 	return pruner.NewPruner[
 		*BeaconBlock,
 		FinalizedBlockEvent,
@@ -91,7 +94,7 @@ func ProvideDepositPruner[
 		in.Logger.With("service", manager.DepositPrunerName),
 		in.DepositStore,
 		manager.DepositPrunerName,
-		finalizedBlkCh,
+		subFinalizedBlocks,
 		deposit.BuildPruneRangeFn[
 			*BeaconBlockBody,
 			*BeaconBlock,

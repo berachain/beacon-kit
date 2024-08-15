@@ -26,8 +26,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
 )
 
 // DepositServiceIn is the input for the deposit service.
@@ -64,7 +64,7 @@ func ProvideDepositService[
 		in.TelemetrySink,
 		in.DepositStore,
 		in.BeaconDepositContract,
-		messages.BeaconBlockFinalizedEvent,
+		events.BeaconBlockFinalizedEvent,
 		in.Dispatcher,
 	), nil
 }

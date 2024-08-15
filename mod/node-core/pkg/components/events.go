@@ -21,10 +21,10 @@
 package components
 
 import (
-	"github.com/berachain/beacon-kit/mod/async/pkg/messaging"
+	"github.com/berachain/beacon-kit/mod/async/pkg/notify"
 	"github.com/berachain/beacon-kit/mod/async/pkg/server"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 )
 
 // ProvideEventServer provides an event server.
@@ -36,8 +36,44 @@ func ProvideEventServer() *EventServer {
 // finalized events.
 func ProvidePublishers() []asynctypes.Publisher {
 	return []asynctypes.Publisher{
-		messaging.NewPublisher[FinalizedBlockEvent](
-			messages.BeaconBlockFinalizedEvent,
+		notify.NewPublisher[GenesisDataReceivedEvent](
+			events.GenesisDataReceived,
+		),
+		notify.NewPublisher[GenesisDataProcessedEvent](
+			events.GenesisDataProcessed,
+		),
+		notify.NewPublisher[NewSlotEvent](
+			events.NewSlot,
+		),
+		notify.NewPublisher[BuiltBeaconBlockEvent](
+			events.BuiltBeaconBlock,
+		),
+		notify.NewPublisher[BuiltSidecarsEvent](
+			events.BuiltSidecars,
+		),
+		notify.NewPublisher[BeaconBlockReceivedEvent](
+			events.BeaconBlockReceived,
+		),
+		notify.NewPublisher[SidecarsReceivedEvent](
+			events.SidecarsReceived,
+		),
+		notify.NewPublisher[BeaconBlockVerifiedEvent](
+			events.BeaconBlockVerified,
+		),
+		notify.NewPublisher[SidecarsVerifiedEvent](
+			events.SidecarsVerified,
+		),
+		notify.NewPublisher[FinalBeaconBlockReceivedEvent](
+			events.FinalBeaconBlockReceived,
+		),
+		notify.NewPublisher[FinalSidecarsReceivedEvent](
+			events.FinalSidecarsReceived,
+		),
+		notify.NewPublisher[FinalValidatorUpdatesProcessedEvent](
+			events.FinalValidatorUpdatesProcessed,
+		),
+		notify.NewPublisher[FinalizedBlockEvent](
+			events.BeaconBlockFinalizedEvent,
 		),
 	}
 }

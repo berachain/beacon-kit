@@ -18,23 +18,25 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package messaging
+package notify
 
-import "time"
+import (
+	"github.com/berachain/beacon-kit/mod/errors"
+)
 
-// TODO: make timeout configurable thorugh config/context
-const (
-	// defaultPublisherTimeout specifies the default timeout when the publisher
-	// tries to send a message to a client, a message is published to the
-	// publisher, or a client subscribes or unsubscribes.
-	defaultPublisherTimeout = time.Second
-
-	// defaultMaxTimeout specifies the default max timeout for a message to be
-	// sent to a client, a message to be published, or a client to subscribe or
-	// unsubscribe.
-	// TODO: fr implementation
-	defaultMaxTimeout = 2 * time.Second
-
-	// defaultBufferSize specifies the default size of the message buffer.
-	defaultBufferSize = 10
+// errTimeout is the error returned when a dispatch operation timed out.
+//
+//nolint:gochecknoglobals // errors
+var (
+	// errIncompatibleAssignee is the error returned when the assignee is not
+	// compatible with the assigner.
+	errIncompatibleAssignee = func(
+		assigner interface{}, assignee interface{},
+	) error {
+		return errors.Newf(
+			"incompatible assignee, expected: %T, received: %T",
+			assigner,
+			assignee,
+		)
+	}
 )

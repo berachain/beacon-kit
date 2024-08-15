@@ -44,11 +44,11 @@ type pruner[
 	BlockEventT BlockEvent[BeaconBlockT],
 	PrunableT Prunable,
 ] struct {
-	prunable         Prunable
-	logger           log.Logger[any]
-	name             string
-	finalizedBlockCh chan BlockEventT
-	pruneRangeFn     func(BlockEventT) (uint64, uint64)
+	prunable                Prunable
+	logger                  log.Logger[any]
+	name                    string
+	subBeaconBlockFinalized BeaconBlockSubscription[BeaconBlockT, BlockEventT]
+	pruneRangeFn            func(BlockEventT) (uint64, uint64)
 }
 
 // NewPruner creates a new Pruner.
@@ -60,37 +60,29 @@ func NewPruner[
 	logger log.Logger[any],
 	prunable Prunable,
 	name string,
-	finalizedBlockCh chan BlockEventT,
+	subBeaconBlockFinalized BeaconBlockSubscription[BeaconBlockT, BlockEventT],
 	pruneRangeFn func(BlockEventT) (uint64, uint64),
 ) Pruner[PrunableT] {
 	return &pruner[BeaconBlockT, BlockEventT, PrunableT]{
-		logger:           logger,
-		prunable:         prunable,
-		name:             name,
-		finalizedBlockCh: finalizedBlockCh,
-		pruneRangeFn:     pruneRangeFn,
+		logger:                  logger,
+		prunable:                prunable,
+		name:                    name,
+		subBeaconBlockFinalized: subBeaconBlockFinalized,
+		pruneRangeFn:            pruneRangeFn,
 	}
 }
 
 // Start starts the Pruner by listening for new indexes to prune.
-func (p *pruner[_, BlockEventT, _]) Start(ctx context.Context) {
-	go p.start(ctx)
+func (p *pruner[BeaconBlockT, BlockEventT, _]) Start(ctx context.Context) {
+	p.subBeaconBlockFinalized.Listen(ctx, p.onFinalizeBlock)
 }
 
-// start listens for new indexes to prune.
-func (p *pruner[_, BlockEventT, _]) start(
-	ctx context.Context,
-) {
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case event := <-p.finalizedBlockCh:
-			start, end := p.pruneRangeFn(event)
-			if err := p.prunable.Prune(start, end); err != nil {
-				p.logger.Error("‼️ error pruning index ‼️", "error", err)
-			}
-		}
+// onFinalizeBlock will prune the prunable store based on the received
+// finalized block event.
+func (p *pruner[BeaconBlockT, BlockEventT, _]) onFinalizeBlock(event BlockEventT) {
+	start, end := p.pruneRangeFn(event)
+	if err := p.prunable.Prune(start, end); err != nil {
+		p.logger.Error("‼️ error pruning index ‼️", "error", err)
 	}
 }
 

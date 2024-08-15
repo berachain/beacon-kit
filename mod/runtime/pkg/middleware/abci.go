@@ -27,8 +27,8 @@ import (
 	async "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
@@ -60,7 +60,7 @@ func (h *ABCIMiddleware[
 	}
 
 	if err = h.dispatcher.PublishEvent(
-		async.NewEvent(ctx, messages.GenesisDataReceived, *data),
+		async.NewEvent(ctx, events.GenesisDataReceived, *data),
 	); err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (h *ABCIMiddleware[
 
 	if err = h.dispatcher.PublishEvent(
 		async.NewEvent(
-			ctx, messages.NewSlot, slotData,
+			ctx, events.NewSlot, slotData,
 		),
 	); err != nil {
 		return nil, nil, err
@@ -186,7 +186,7 @@ func (h *ABCIMiddleware[
 	// TODO: implement service
 	// notify that the beacon block has been received.
 	if err = h.dispatcher.PublishEvent(
-		async.NewEvent(ctx, messages.BeaconBlockReceived, blk),
+		async.NewEvent(ctx, events.BeaconBlockReceived, blk),
 	); err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
@@ -198,7 +198,7 @@ func (h *ABCIMiddleware[
 
 	// notify that the sidecars have been received.
 	if err = h.dispatcher.PublishEvent(
-		async.NewEvent(ctx, messages.SidecarsReceived, sidecars),
+		async.NewEvent(ctx, events.SidecarsReceived, sidecars),
 	); err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
@@ -266,14 +266,14 @@ func (h *ABCIMiddleware[
 
 	// notify that the final beacon block has been received.
 	if err = h.dispatcher.PublishEvent(
-		async.NewEvent(ctx, messages.FinalBeaconBlockReceived, blk),
+		async.NewEvent(ctx, events.FinalBeaconBlockReceived, blk),
 	); err != nil {
 		return nil, err
 	}
 
 	// notify that the final blob sidecars have been received.
 	if err = h.dispatcher.PublishEvent(
-		async.NewEvent(ctx, messages.FinalSidecarsReceived, blobs),
+		async.NewEvent(ctx, events.FinalSidecarsReceived, blobs),
 	); err != nil {
 		return nil, err
 	}

@@ -23,11 +23,11 @@ package types
 import "context"
 
 // Subscription is a channel that receives events.
-type Subscription[T BaseMessage] chan T
+type Subscription[T BaseEvent] chan T
 
 // NewSubscription creates a new subscription with an unbuffered channel as the
 // underlying type.
-func NewSubscription[T BaseMessage]() Subscription[T] {
+func NewSubscription[T BaseEvent]() Subscription[T] {
 	return make(chan T)
 }
 
@@ -66,4 +66,9 @@ func (s Subscription[T]) Await(ctx context.Context) (T, error) {
 	case <-ctx.Done():
 		return *new(T), ctx.Err()
 	}
+}
+
+// Chan returns the underlying channel of the subscription.
+func (s Subscription[T]) Chan() chan T {
+	return s
 }

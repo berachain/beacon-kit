@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package messaging
+package notify
 
 import (
 	"context"
@@ -30,7 +30,7 @@ import (
 
 // Publisher is responsible for broadcasting all events corresponding to the
 // <eventID> to all registered client channels.
-type Publisher[T types.BaseMessage] struct {
+type Publisher[T types.BaseEvent] struct {
 	eventID types.EventID
 	// subscriptions is a map of subscribed subscriptions.
 	subscriptions map[types.Subscription[T]]struct{}
@@ -44,7 +44,7 @@ type Publisher[T types.BaseMessage] struct {
 
 // NewPublisher creates a new publisher publishing events of type T for the
 // provided eventID.
-func NewPublisher[T types.BaseMessage](eventID string) *Publisher[T] {
+func NewPublisher[T types.BaseEvent](eventID string) *Publisher[T] {
 	return &Publisher[T]{
 		eventID:       types.EventID(eventID),
 		subscriptions: make(map[types.Subscription[T]]struct{}),
@@ -81,7 +81,7 @@ func (p *Publisher[T]) start(ctx context.Context) {
 
 // Publish publishes a msg to all subscribers.
 // Returns ErrTimeout on timeout.
-func (p *Publisher[T]) Publish(msg types.BaseMessage) error {
+func (p *Publisher[T]) Publish(msg types.BaseEvent) error {
 	typedMsg, err := ensureType[T](msg)
 	if err != nil {
 		return err

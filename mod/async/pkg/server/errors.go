@@ -30,11 +30,6 @@ var (
 	errPublisherNotFound = func(eventID types.EventID) error {
 		return errors.Newf("publisher not found for eventID: %s", eventID)
 	}
-	errRouteNotFound          = errors.New("route not found")
-	errRouteAlreadyRegistered = func(messageID types.MessageID) error {
-		return errors.Newf("route already registered for messageID: %s",
-			messageID)
-	}
 	errPublisherAlreadyExists = func(eventID types.EventID) error {
 		return errors.Newf("publisher already exists for eventID: %s", eventID)
 	}

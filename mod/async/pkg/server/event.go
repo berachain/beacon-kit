@@ -29,19 +29,19 @@ import (
 
 // EventServer asyncronously dispatches events to subscribers.
 type EventServer struct {
-	publishers map[types.MessageID]types.Publisher
+	publishers map[types.EventID]types.Publisher
 	logger     log.Logger[any]
 }
 
 // NewEventServer creates a new event server.
 func NewEventServer() *EventServer {
 	return &EventServer{
-		publishers: make(map[types.MessageID]types.Publisher),
+		publishers: make(map[types.EventID]types.Publisher),
 	}
 }
 
 // Dispatch dispatches the given event to the publisher with the given eventID.
-func (es *EventServer) Publish(event types.BaseMessage) error {
+func (es *EventServer) Publish(event types.BaseEvent) error {
 	publisher, ok := es.publishers[event.ID()]
 	if !ok {
 		return errPublisherNotFound(event.ID())
@@ -54,7 +54,7 @@ func (es *EventServer) Publish(event types.BaseMessage) error {
 // corresponding to the publisher.
 // Contract: the channel must be a Subscription[T], where T is the expected
 // type of the event data.
-func (es *EventServer) Subscribe(eventID types.MessageID, ch any) error {
+func (es *EventServer) Subscribe(eventID types.EventID, ch any) error {
 	publisher, ok := es.publishers[eventID]
 	if !ok {
 		return errPublisherNotFound(eventID)
@@ -72,13 +72,16 @@ func (es *EventServer) Start(ctx context.Context) {
 // RegisterPublisher registers the given publisher with the given eventID.
 // Any subsequent events with <eventID> dispatched to this EventServer must be
 // consistent with the type expected by <publisher>.
-func (es *EventServer) RegisterPublisher(
-	eventID types.MessageID, publisher types.Publisher,
+func (es *EventServer) RegisterPublishers(
+	publishers ...types.Publisher,
 ) error {
-	if _, ok := es.publishers[eventID]; ok {
-		return errPublisherAlreadyExists(eventID)
+	var ok bool
+	for _, publisher := range publishers {
+		if _, ok = es.publishers[publisher.EventID()]; ok {
+			return errPublisherAlreadyExists(publisher.EventID())
+		}
+		es.publishers[publisher.EventID()] = publisher
 	}
-	es.publishers[eventID] = publisher
 	return nil
 }
 

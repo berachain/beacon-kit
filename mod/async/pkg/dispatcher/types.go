@@ -27,18 +27,15 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 )
 
-type MessageServer interface {
-	RegisterReceiver(mID types.MessageID, ch any) error
-	Request(req types.BaseMessage, future any) error
-	Respond(resp types.BaseMessage) error
-	RegisterRoute(mID types.MessageID, route types.MessageRoute) error
-	SetLogger(logger log.Logger[any])
-}
-
 type EventServer interface {
+	// Start starts the event server.
 	Start(ctx context.Context)
-	RegisterPublisher(mID types.EventID, publisher types.Publisher) error
+	// RegisterPublishers registers the given publishers with the event server.
+	RegisterPublishers(publishers ...types.Publisher) error
+	// Subscribe subscribes the given channel to the event with the given <eventID>.
 	Subscribe(mID types.EventID, ch any) error
-	Publish(event types.BaseMessage) error
+	// Publish dispatches the given event to the event server.
+	Publish(event types.BaseEvent) error
+	// SetLogger sets the logger for the event server.
 	SetLogger(logger log.Logger[any])
 }

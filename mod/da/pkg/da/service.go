@@ -25,11 +25,13 @@ import (
 
 	async "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 )
 
 // The Data Availability service is responsible for verifying and processing
 // incoming blob sidecars.
+//
+//nolint:lll // long types
 type Service[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	BeaconBlockBodyT any,
@@ -94,14 +96,14 @@ func (s *Service[_, _, BlobSidecarsT, _]) Start(ctx context.Context) error {
 
 	// subscribe to SidecarsReceived events
 	if err = s.dispatcher.Subscribe(
-		messages.SidecarsReceived, s.subSidecarsReceived,
+		events.SidecarsReceived, s.subSidecarsReceived,
 	); err != nil {
 		return err
 	}
 
 	// subscribe to FinalSidecarsReceived events
 	if err = s.dispatcher.Subscribe(
-		messages.FinalSidecarsReceived, s.subFinalBlobSidecars,
+		events.FinalSidecarsReceived, s.subFinalBlobSidecars,
 	); err != nil {
 		return err
 	}
@@ -149,7 +151,7 @@ func (s *Service[_, _, BlobSidecarsT, _]) handleSidecarsVerifyRequest(
 	// emit the sidecars verification event with error from verifySidecars
 	if err := s.dispatcher.PublishEvent(
 		async.NewEvent(
-			msg.Context(), messages.SidecarsVerified, msg.Data(), sidecarsErr,
+			msg.Context(), events.SidecarsVerified, msg.Data(), sidecarsErr,
 		),
 	); err != nil {
 		s.logger.Error("failed to publish event", "err", err)
@@ -195,6 +197,7 @@ func (s *Service[_, _, BlobSidecarsT, _]) verifySidecars(
 		return err
 	}
 
+	//nolint:lll // logging
 	s.logger.Info(
 		"Blob sidecars verification succeeded - accepting incoming blob sidecars",
 		"num_blobs",

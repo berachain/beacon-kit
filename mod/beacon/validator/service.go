@@ -27,7 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
@@ -175,7 +175,7 @@ func (s *Service[
 	ctx context.Context,
 ) error {
 	// subscribe to new slot events
-	err := s.dispatcher.Subscribe(messages.NewSlot, s.subNewSlot)
+	err := s.dispatcher.Subscribe(events.NewSlot, s.subNewSlot)
 	if err != nil {
 		return err
 	}
@@ -204,14 +204,14 @@ func (s *Service[
 
 	// emit a built block event with the built block and the error
 	if bbErr := s.dispatcher.PublishEvent(
-		async.NewEvent(req.Context(), messages.BuiltBeaconBlock, blk, err),
+		async.NewEvent(req.Context(), events.BuiltBeaconBlock, blk, err),
 	); bbErr != nil {
 		s.logger.Error("failed to dispatch built block", "err", err)
 	}
 
 	// emit a built sidecars event with the built sidecars and the error
 	if scErr := s.dispatcher.PublishEvent(
-		async.NewEvent(req.Context(), messages.BuiltSidecars, sidecars, err),
+		async.NewEvent(req.Context(), events.BuiltSidecars, sidecars, err),
 	); scErr != nil {
 		s.logger.Error("failed to dispatch built sidecars", "err", err)
 	}

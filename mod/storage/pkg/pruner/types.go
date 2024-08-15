@@ -32,6 +32,14 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
+// BeaconBlockSubscription is an interface for beacon block subscriptions.
+type BeaconBlockSubscription[
+	BeaconBlockT BeaconBlock,
+	BlockEventT BlockEvent[BeaconBlockT],
+] interface {
+	Listen(ctx context.Context, fn func(BlockEventT))
+}
+
 // BeaconBlock is an interface for beacon blocks.
 type BeaconBlock interface {
 	GetSlot() math.U64
@@ -41,6 +49,8 @@ type BeaconBlock interface {
 type BlockEvent[BeaconBlockT BeaconBlock] interface {
 	Is(asynctypes.EventID) bool
 	Data() BeaconBlockT
+	Context() context.Context
+	ID() asynctypes.EventID
 }
 
 // Prunable is an interface representing a store that can be pruned.

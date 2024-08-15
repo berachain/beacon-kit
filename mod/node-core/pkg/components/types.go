@@ -23,7 +23,7 @@ package components
 import (
 	"cosmossdk.io/core/appmodule/v2"
 	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
-	"github.com/berachain/beacon-kit/mod/async/pkg/messaging"
+	"github.com/berachain/beacon-kit/mod/async/pkg/notify"
 	asyncserver "github.com/berachain/beacon-kit/mod/async/pkg/server"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
@@ -430,7 +430,46 @@ type (
 /* -------------------------------------------------------------------------- */
 
 // Events.
+//
+//nolint:lll // long generic types
 type (
+
+	// GenesisDataReceivedEvent is a type alias for the genesis data received event.
+	GenesisDataReceivedEvent = asynctypes.Event[*Genesis]
+
+	// GenesisDataProcessedEvent is a type alias for the genesis data processed event.
+	GenesisDataProcessedEvent = asynctypes.Event[transition.ValidatorUpdates]
+
+	// NewSlotEvent is a type alias for the new slot event.
+	NewSlotEvent = asynctypes.Event[*SlotData]
+
+	// BuiltBeaconBlockEvent is a type alias for the built beacon block event.
+	BuiltBeaconBlockEvent = asynctypes.Event[*BeaconBlock]
+
+	// BuiltSidecarsEvent is a type alias for the built sidecars event.
+	BuiltSidecarsEvent = asynctypes.Event[*BlobSidecars]
+
+	// BeaconBlockReceivedEvent is a type alias for the beacon block received event.
+	BeaconBlockReceivedEvent = asynctypes.Event[*BeaconBlock]
+
+	// SidecarsReceivedEvent is a type alias for the sidecars received event.
+	SidecarsReceivedEvent = asynctypes.Event[*BlobSidecars]
+
+	// BeaconBlockVerifiedEvent is a type alias for the beacon block verified event.
+	BeaconBlockVerifiedEvent = asynctypes.Event[*BeaconBlock]
+
+	// SidecarsVerifiedEvent is a type alias for the sidecars verified event.
+	SidecarsVerifiedEvent = asynctypes.Event[*BlobSidecars]
+
+	// FinalBeaconBlockReceivedEvent is a type alias for the final beacon block received event.
+	FinalBeaconBlockReceivedEvent = asynctypes.Event[*BeaconBlock]
+
+	// FinalSidecarsReceivedEvent is a type alias for the final sidecars received event.
+	FinalSidecarsReceivedEvent = asynctypes.Event[*BlobSidecars]
+
+	// FinalValidatorUpdatesProcessedEvent is a type alias for the final validator updates processed event.
+	FinalValidatorUpdatesProcessedEvent = asynctypes.Event[transition.ValidatorUpdates]
+
 	// FinalizedBlockEvent is a type alias for the block event.
 	FinalizedBlockEvent = asynctypes.Event[*BeaconBlock]
 )
@@ -438,33 +477,19 @@ type (
 // Messages.
 type (
 	// BlockMessage is a type alias for the block message.
-	BlockMessage = asynctypes.Message[*BeaconBlock]
+	BlockMessage = asynctypes.Event[*BeaconBlock]
 
 	// GenesisMessage is a type alias for the genesis message.
-	GenesisMessage = asynctypes.Message[*Genesis]
+	GenesisMessage = asynctypes.Event[*Genesis]
 
 	// SidecarMessage is a type alias for the sidecar message.
-	SidecarMessage = asynctypes.Message[*BlobSidecars]
+	SidecarMessage = asynctypes.Event[*BlobSidecars]
 
 	// SlotMessage is a type alias for the slot message.
-	SlotMessage = asynctypes.Message[*SlotData]
+	SlotMessage = asynctypes.Event[*SlotData]
 
 	// StatusMessage is a type alias for the status message.
-	StatusMessage = asynctypes.Message[*service.StatusEvent]
-)
-
-// Futures.
-type (
-	// BlockFuture is a type alias for a future containing a BeaconBlock.
-	BlockFuture = asynctypes.Future[*BeaconBlock]
-	// BlockBundleFuture is a type alias for a future containing a
-	// BeaconBlockBundle.
-	BlockBundleFuture = asynctypes.Future[*BeaconBlockBundle]
-	// SidecarFuture is a type alias for a future containing the BlobSidecars.
-	SidecarFuture = asynctypes.Future[*BlobSidecars]
-	// ValidatorUpdateFuture is a type alias for a future containing the
-	// ValidatorUpdates.
-	ValidatorUpdateFuture = asynctypes.Future[transition.ValidatorUpdates]
+	StatusMessage = asynctypes.Event[*service.StatusEvent]
 )
 
 /* -------------------------------------------------------------------------- */
@@ -472,7 +497,7 @@ type (
 /* -------------------------------------------------------------------------- */
 
 type (
-	BeaconBlockFinalizedPublisher = messaging.Publisher[FinalizedBlockEvent]
+	BeaconBlockFinalizedPublisher = notify.Publisher[FinalizedBlockEvent]
 )
 
 /* -------------------------------------------------------------------------- */
@@ -485,9 +510,6 @@ type (
 
 	// EventServer is a type alias for the event server.
 	EventServer = asyncserver.EventServer
-
-	// MessageServer is a type alias for the messages server.
-	MessageServer = asyncserver.MessageServer
 )
 
 /* -------------------------------------------------------------------------- */

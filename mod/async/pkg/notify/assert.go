@@ -18,30 +18,14 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package messages
+package notify
 
-// events.
-const (
-	BeaconBlockFinalizedEvent = "beacon-block-finalized"
-)
-
-// events, topologically sorted.
-const (
-	// genesis data events
-	GenesisDataReceived  = "genesis-data-received"
-	GenesisDataProcessed = "genesis-data-processed"
-	// pre proposal events
-	NewSlot          = "new-slot"
-	BuiltBeaconBlock = "built-beacon-block"
-	BuiltSidecars    = "built-sidecars"
-	// proposal processing events
-	BeaconBlockReceived = "beacon-block-received"
-	SidecarsReceived    = "sidecars-received"
-	BeaconBlockVerified = "beacon-block-verified"
-	SidecarsVerified    = "sidecars-verified"
-	// finalize block events
-	FinalBeaconBlockReceived       = "final-beacon-block-received"
-	FinalSidecarsReceived          = "final-blob-sidecars-received"
-	FinalValidatorUpdatesProcessed = "final-validator-updates"
-	// FinalSidecarsProcessed         = "final-sidecars-processed"
-)
+// ensureType ensures that the provided entity is of type T.
+// It returns a typed entity or an error if the type is not correct.
+func ensureType[T any](e any) (T, error) {
+	typedE, ok := e.(T)
+	if !ok {
+		return *new(T), errIncompatibleAssignee(*new(T), e)
+	}
+	return typedE, nil
+}

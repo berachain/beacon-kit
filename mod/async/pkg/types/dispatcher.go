@@ -26,13 +26,10 @@ import "context"
 // of async events and the sending and receiving of async messages.
 type Dispatcher interface {
 	EventDispatcher
-	MessageDispatcher
 	// Start starts the dispatcher.
 	Start(ctx context.Context) error
 	// RegisterPublishers registers publishers to the dispatcher.
 	RegisterPublishers(publishers ...Publisher) error
-	// RegisterRoutes registers message routes to the dispatcher.
-	RegisterRoutes(routes ...MessageRoute) error
 	// Name returns the name of the dispatcher.
 	Name() string
 }
@@ -41,7 +38,7 @@ type Dispatcher interface {
 // of async events.
 type EventDispatcher interface {
 	// PublishEvent publishes an event to the dispatcher.
-	PublishEvent(event BaseMessage) error
+	PublishEvent(event BaseEvent) error
 	// Subscribe subscribes the given channel to all events with the given event
 	// ID.
 	// Contract: the channel must be a Subscription[T], where T is the expected
@@ -49,24 +46,12 @@ type EventDispatcher interface {
 	Subscribe(eventID EventID, ch any) error
 }
 
-// MessageDispatcher is the API for a dispatcher that facilitates the sending
-// and receiving of async messages.
-type MessageDispatcher interface {
-	// SendRequest sends a request to the dispatcher.
-	SendRequest(req BaseMessage, future any) error
-	// SendResponse sends a response to the dispatcher.
-	SendResponse(resp BaseMessage) error
-	// RegisterMsgReceiver registers the given channel as the message receiver
-	// for the given message ID.
-	RegisterMsgReceiver(messageID MessageID, ch any) error
-}
-
 // publisher is the interface that supports basic event publisher operations.
 type Publisher interface {
 	// Start starts the event publisher.
 	Start(ctx context.Context)
 	// Publish publishes the given event to the event publisher.
-	Publish(event BaseMessage) error
+	Publish(event BaseEvent) error
 	// Subscribe subscribes the given channel to the event publisher.
 	Subscribe(ch any) error
 	// Unsubscribe unsubscribes the given channel from the event publisher.
@@ -80,9 +65,9 @@ type MessageRoute interface {
 	// RegisterRecipient sets the recipient for the route.
 	RegisterReceiver(ch any) error
 	// SendRequest sends a request to the recipient.
-	SendRequest(msg BaseMessage, future any) error
+	SendRequest(msg BaseEvent, future any) error
 	// SendResponse sends a response to the recipient.
-	SendResponse(msg BaseMessage) error
+	SendResponse(msg BaseEvent) error
 	// MessageID returns the message ID that the route is responsible for.
-	MessageID() MessageID
+	MessageID() EventID
 }

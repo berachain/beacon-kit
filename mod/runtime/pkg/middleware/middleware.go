@@ -28,7 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/p2p"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	rp2p "github.com/berachain/beacon-kit/mod/runtime/pkg/p2p"
 )
@@ -136,32 +136,32 @@ func (am *ABCIMiddleware[
 ]) Start() error {
 	// subGenDat
 	if err := am.dispatcher.Subscribe(
-		messages.GenesisDataProcessed, am.subGenDataProcessed,
+		events.GenesisDataProcessed, am.subGenDataProcessed,
 	); err != nil {
 		return err
 	}
 	if err := am.dispatcher.Subscribe(
-		messages.BuiltBeaconBlock, am.subBuiltBeaconBlock,
+		events.BuiltBeaconBlock, am.subBuiltBeaconBlock,
 	); err != nil {
 		return err
 	}
 	if err := am.dispatcher.Subscribe(
-		messages.BuiltSidecars, am.subBuiltSidecars,
+		events.BuiltSidecars, am.subBuiltSidecars,
 	); err != nil {
 		return err
 	}
 	if err := am.dispatcher.Subscribe(
-		messages.BeaconBlockVerified, am.subBBVerified,
+		events.BeaconBlockVerified, am.subBBVerified,
 	); err != nil {
 		return err
 	}
 	if err := am.dispatcher.Subscribe(
-		messages.SidecarsVerified, am.subSCVerified,
+		events.SidecarsVerified, am.subSCVerified,
 	); err != nil {
 		return err
 	}
 	if err := am.dispatcher.Subscribe(
-		messages.FinalValidatorUpdatesProcessed, am.subFinalValidatorUpdates,
+		events.FinalValidatorUpdatesProcessed, am.subFinalValidatorUpdates,
 	); err != nil {
 		return err
 	}

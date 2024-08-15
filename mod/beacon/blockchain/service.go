@@ -27,7 +27,7 @@ import (
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
@@ -175,19 +175,19 @@ func (s *Service[
 	_, BeaconBlockT, _, _, _, _, _, _, GenesisT, _, _,
 ]) Start(ctx context.Context) error {
 	if err := s.dispatcher.Subscribe(
-		messages.GenesisDataReceived, s.subGenDataReceived,
+		events.GenesisDataReceived, s.subGenDataReceived,
 	); err != nil {
 		return err
 	}
 
 	if err := s.dispatcher.Subscribe(
-		messages.BeaconBlockReceived, s.subBlockReceived,
+		events.BeaconBlockReceived, s.subBlockReceived,
 	); err != nil {
 		return err
 	}
 
 	if err := s.dispatcher.Subscribe(
-		messages.FinalBeaconBlockReceived, s.subFinalBlkReceived,
+		events.FinalBeaconBlockReceived, s.subFinalBlkReceived,
 	); err != nil {
 		return err
 	}
@@ -231,7 +231,7 @@ func (s *Service[
 	if err = s.dispatcher.PublishEvent(
 		asynctypes.NewEvent(
 			msg.Context(),
-			messages.GenesisDataProcessed,
+			events.GenesisDataProcessed,
 			valUpdates,
 			err,
 		),
@@ -259,7 +259,7 @@ func (s *Service[
 	if err := s.dispatcher.PublishEvent(
 		asynctypes.NewEvent(
 			msg.Context(),
-			messages.BeaconBlockVerified,
+			events.BeaconBlockVerified,
 			msg.Data(),
 			s.VerifyIncomingBlock(msg.Context(), msg.Data()),
 		),
@@ -296,7 +296,7 @@ func (s *Service[
 	if err = s.dispatcher.PublishEvent(
 		asynctypes.NewEvent(
 			msg.Context(),
-			messages.FinalValidatorUpdatesProcessed,
+			events.FinalValidatorUpdatesProcessed,
 			valUpdates,
 			err,
 		),
