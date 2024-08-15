@@ -28,7 +28,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
-//nolint:gochecknogloba // temporary.
+//nolint:gochecknoglobals // temporary.
 var DepositEventSignature = common.ExecutionHash(
 	crypto.Keccak256([]byte("Deposit(bytes,bytes,uint64,bytes,uint64)")))
 
