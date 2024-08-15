@@ -187,7 +187,7 @@ func executableDataToExecutionPayloadHeader(
 			ExcessBlobGas: math.U64(excessBlobGas),
 		}
 	default:
-		return nil, errors.Newf("unsupported fork version %d", forkVersion)
+		panic("unsupported fork version")
 	}
 
 	return executionPayloadHeader, nil

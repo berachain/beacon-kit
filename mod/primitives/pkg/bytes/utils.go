@@ -34,10 +34,7 @@ func UnmarshalJSONHelper(target []byte, input []byte) error {
 		return err
 	}
 	if len(bz) != len(target) {
-		return errors.Newf(
-			"incorrect length, expected %d bytes but got %d",
-			len(target), len(bz),
-		)
+		return errors.New("incorrect length")
 	}
 	copy(target, bz)
 	return nil
@@ -50,10 +47,7 @@ func UnmarshalTextHelper(target []byte, text []byte) error {
 		return err
 	}
 	if len(bz) != len(target) {
-		return errors.Newf(
-			"incorrect length, expected %d bytes but got %d",
-			len(target), len(bz),
-		)
+		return errors.New("incorrect length")
 	}
 	copy(target, bz)
 	return nil

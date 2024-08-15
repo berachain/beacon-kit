@@ -18,29 +18,10 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-//nolint:gochecknoglobals // this file contains functions for use as errors.
-package service
+package config
 
-import "github.com/berachain/beacon-kit/mod/errors"
+import "errors"
 
-var (
-	// errServiceAlreadyExists defines an error for when a service already
-	// exists.
-	errServiceAlreadyExists = errors.Wrapf(
-		errors.New("service already exists"),
-		"%v",
-	)
-
-	// errInputIsNotPointer defines an error for when the input must
-	// be of pointer type.
-	errInputIsNotPointer = errors.Wrapf(
-		errors.New("input must be of pointer type, received value type instead"),
-		"%T",
-	)
-
-	// errUnknownService defines is returned when an unknown service is seen.
-	errUnknownService = errors.Wrapf(
-		errors.New("unknown service"),
-		"%T",
-	)
-)
+// ErrFlagBind is returned when there is an error binding a flag to the viper
+// instance.
+var ErrFlagBind = errors.New("failed to bind flag")
