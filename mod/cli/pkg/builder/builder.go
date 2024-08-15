@@ -79,7 +79,9 @@ func New[
 }
 
 // Build builds the CLI commands.
-func (cb *CLIBuilder[T, ExecutionPayloadT, LoggerT]) Build() (*cmdlib.Root, error) {
+func (cb *CLIBuilder[
+	T, ExecutionPayloadT, LoggerT,
+]) Build() (*cmdlib.Root, error) {
 	// allocate memory to hold the dependencies
 	var (
 		clientCtx client.Context
@@ -87,7 +89,6 @@ func (cb *CLIBuilder[T, ExecutionPayloadT, LoggerT]) Build() (*cmdlib.Root, erro
 		logger    LoggerT
 	)
 	// build dependencies for the root command
-	//nolint:asasalint // todo fix.
 	if err := depinject.Inject(
 		depinject.Configs(
 			depinject.Supply(cb.suppliers...),
