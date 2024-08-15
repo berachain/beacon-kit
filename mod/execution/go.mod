@@ -8,6 +8,7 @@ require (
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240618214413-d5ec0e66b3dd
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610210054-bfdc14c4013c
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240808194557-e72e74f58197
+	github.com/ethereum/go-ethereum v1.14.7
 	github.com/goccy/go-json v0.10.3
 )
 
@@ -34,7 +35,6 @@ require (
 	github.com/deckarep/golang-set/v2 v2.6.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
 	github.com/ethereum/c-kzg-4844 v1.0.3 // indirect
-	github.com/ethereum/go-ethereum v1.14.7 // indirect
 	github.com/ethereum/go-verkle v0.1.1-0.20240306133620-7d920df305f0 // indirect
 	github.com/ferranbt/fastssz v0.1.4-0.20240629094022-eac385e6ee79 // indirect
 	github.com/getsentry/sentry-go v0.28.1 // indirect

@@ -25,12 +25,19 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/ethereum/go-ethereum/crypto"
 )
+
+//nolint:gochecknogloba // temporary.
+var DepositEventSignature = common.ExecutionHash(
+	crypto.Keccak256([]byte("Deposit(bytes,bytes,uint64,bytes,uint64)")))
 
 // WrappedBeaconDepositContract is a struct that holds a pointer to an ABI.
 type WrappedBeaconDepositContract[
 	DepositT Deposit[DepositT, LogT, WithdrawalCredentialsT],
-	LogT any,
+	LogT interface {
+		GetTopics() []common.ExecutionHash
+	},
 	WithdrawalCredentialsT ~[32]byte,
 ] struct {
 	client  Client[LogT]
@@ -40,7 +47,9 @@ type WrappedBeaconDepositContract[
 // NewWrappedBeaconDepositContract creates a new BeaconDepositContract.
 func NewWrappedBeaconDepositContract[
 	DepositT Deposit[DepositT, LogT, WithdrawalCredentialsT],
-	LogT any,
+	LogT interface {
+		GetTopics() []common.ExecutionHash
+	},
 	WithdrawalCredentialsT ~[32]byte,
 ](
 	address common.ExecutionAddress,
@@ -80,6 +89,9 @@ func (dc *WrappedBeaconDepositContract[
 
 	deposits := make([]DepositT, 0)
 	for _, log := range logs {
+		if log.GetTopics()[0] != DepositEventSignature {
+			continue
+		}
 		var d DepositT
 		d = d.Empty()
 		if err = d.UnmarshalLog(log); err != nil {

@@ -60,6 +60,10 @@ type Log struct {
 	Removed bool `json:"removed"`
 }
 
+func (l Log) GetTopics() []common.ExecutionHash {
+	return l.Topics
+}
+
 // MarshalJSON marshals as JSON.
 func (l Log) MarshalJSON() ([]byte, error) {
 	type Log struct {
