@@ -21,29 +21,32 @@
 package config
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
 
-	"github.com/berachain/beacon-kit/mod/cli/pkg/utils/context"
+	corectx "cosmossdk.io/core/context"
+	sdklog "cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	cmtcfg "github.com/cometbft/cometbft/config"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/server"
+	server "github.com/cosmos/cosmos-sdk/server"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
-// SetupConfigAndContext returns a server.Context initialized with a viper
-// instance configured with the provided command. If the files expected to
-// contain the comet and app configs are empty, it will be populated with the
-// values from <appConfig> and <cmtConfig>.
-// In either case, the resulting values in these files will be merged with
-// viper.
-func SetupConfigAndContext[
+// SetupCommand returns a cobra.Command initialized with a viper
+// instance. If the files expected to contain the comet and app
+// configs are empty, it will be populated with the values from
+// <appConfig> and <cmtConfig>. In either case, the resulting
+// values in these files will be merged with viper.
+func SetupCommand[
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ](
 	cmd *cobra.Command,
@@ -51,50 +54,58 @@ func SetupConfigAndContext[
 	appConfig any,
 	cmtConfig *cmtcfg.Config,
 	logger LoggerT,
-) (*server.Context, error) {
+) error {
 	// initialize the server context
-	serverCtx, err := InitializeServerContext(cmd, logger)
-	if err != nil {
-		return nil, err
+	if err := InitializeCmd(cmd, logger); err != nil {
+		return err
 	}
 
-	// intercept the comet and app config files
-	cometConfig, err := handleConfigs(
-		serverCtx.Viper, appTemplate, appConfig, cmtConfig)
-	if err != nil {
-		return nil, err
+	if err := handleConfigs(
+		client.GetViperFromCmd(cmd),
+		appTemplate, appConfig, cmtConfig,
+	); err != nil {
+		return err
 	}
 
-	// set the cometbft config
-	serverCtx.Config = cometConfig
-	return serverCtx, nil
+	return server.SetCmdServerContext(
+		cmd,
+		server.NewContext(
+			client.GetViperFromCmd(cmd),
+			client.GetConfigFromCmd(cmd),
+			any(logger).(sdklog.Logger), // bad, but necessary to declutter cosmos
+		),
+	)
 }
 
-// InitializeServerContext returns a new server.Context object with the root
-// viper instance. The comet config and app config are merged into the viper
-// instance. If the app config is empty, the viper instance is populated with
+// InitializeCmd returns a command object with the root viper instance.
+// The comet config and app config are merged into the viper instance.
+// If the app config is empty, the viper instance is populated with
 // the app config values.
-func InitializeServerContext[
+func InitializeCmd[
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ](
 	cmd *cobra.Command,
 	logger LoggerT,
-) (*server.Context, error) {
+) error {
 	// Get the executable name and configure the viper instance so that
 	// environmental variables are checked based off that name.
 	baseName, err := baseName()
 	if err != nil {
-		return nil, err
+		return err
 	}
 	viper := newPrefixedViper(baseName)
 
 	// bind cobra flags to the viper instance
 	if err = bindFlags(baseName, cmd, viper); err != nil {
-		return nil, fmt.Errorf("error binding flags: %w", err)
+		return errors.Newf("error binding flags: %w", err)
 	}
 
-	// create a new server.Context with the logger and viper instance
-	return context.CreateServerContext(logger, viper), nil
+	ctx := cmd.Context()
+	ctx = context.WithValue(ctx, corectx.ViperContextKey, viper)
+	ctx = context.WithValue(ctx, corectx.LoggerContextKey, logger)
+	cmd.SetContext(ctx)
+
+	return nil
 }
 
 // newPrefixedViper creates a new viper instance with the given environment
@@ -159,20 +170,18 @@ func handleConfigs(
 	customAppTemplate string,
 	customConfig any,
 	cometConfig *cmtcfg.Config,
-) (*cmtcfg.Config, error) {
+) error {
 	rootDir := viper.GetString(flags.FlagHome)
 	configDirPath := filepath.Join(rootDir, "config")
 	cmtCfgFile := filepath.Join(configDirPath, "config.toml")
 
 	if err := handleCometConfig(
-		viper, cmtCfgFile, cometConfig, rootDir, configDirPath); err != nil {
-		return nil, err
+		viper, cmtCfgFile, cometConfig, rootDir, configDirPath,
+	); err != nil {
+		return err
 	}
 
-	if err := handleAppConfig(
-		viper, configDirPath, customAppTemplate, customConfig); err != nil {
-		return nil, err
-	}
-
-	return cometConfig, nil
+	return handleAppConfig(
+		viper, configDirPath, customAppTemplate, customConfig,
+	)
 }
