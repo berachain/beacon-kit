@@ -80,6 +80,9 @@ func SetupCommand[
 // InitializeCmd returns a command object with the root viper instance.
 // The comet config and app config are merged into the viper instance.
 // If the app config is empty, the viper instance is populated with
+// InitializeCmd returns a command object with the root viper instance.
+// The comet config and app config are merged into the viper instance.
+// If the app config is empty, the viper instance is populated with
 // the app config values.
 func InitializeCmd[
 	LoggerT log.AdvancedLogger[any, LoggerT],
