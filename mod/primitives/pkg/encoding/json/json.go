@@ -23,21 +23,19 @@ package json
 
 import (
 	"encoding/json"
-
-	gojson "github.com/goccy/go-json"
 )
 
 // Marshal is a wrapper for gojson.Marshal, which provides high-performance JSON
 // encoding.
-var Marshal = gojson.Marshal
+var Marshal = json.Marshal
 
 // MarshalIndent is a wrapper for gojson.MarshalIndent, which provides
 // high-performance JSON encoding with indentation.
-var MarshalIndent = gojson.MarshalIndent
+var MarshalIndent = json.MarshalIndent
 
 // Unmarshal is a wrapper for gojson.Unmarshal, which provides high-performance
 // JSON decoding.
-var Unmarshal = gojson.Unmarshal
+var Unmarshal = json.Unmarshal
 
 // RawMessage is an alias for json.RawMessage, represensting a raw encoded JSON
 // value. It implements Marshaler and Unmarshaler and can be used to delay JSON
