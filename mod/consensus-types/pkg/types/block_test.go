@@ -191,12 +191,13 @@ func TestNewWithVersionInvalidForkVersion(t *testing.T) {
 		t,
 		types.ErrForkVersionNotSupported.Error(),
 		func() {
-			(&types.BeaconBlock{}).NewWithVersion(
+			_, err := (&types.BeaconBlock{}).NewWithVersion(
 				slot,
 				proposerIndex,
 				parentBlockRoot,
 				100, // 100 is an invalid fork version
 			)
+			require.NoError(t, err)
 		},
 	)
 }

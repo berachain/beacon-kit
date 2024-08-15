@@ -120,7 +120,7 @@ func (kv *KVStore[BeaconBlockT]) prune(ctx context.Context, slot math.Slot) {
 			// TODO: add metrics here.
 			// TODO: should also handle deleting the value manually from the db?
 
-			kv.logger.Error(
+			kv.logger.Warn(
 				"‼️ panic occurred while pruning block",
 				"slot", slot,
 				"panic", r,
@@ -138,8 +138,8 @@ func (kv *KVStore[BeaconBlockT]) prune(ctx context.Context, slot math.Slot) {
 			//    case, we choose not to retry removal and instead
 			//    continue. This means this slot may never be pruned, but
 			//    ensures that we always get to pruning subsequent slots.
-			kv.logger.Error(
-				"‼️ failed to prune block", "slot", slot, "err", err,
+			kv.logger.Warn(
+				"‼️ failed to prune block", "slot", slot, "error", err,
 			)
 		}
 	}
