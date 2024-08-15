@@ -1,19 +1,22 @@
 module github.com/berachain/beacon-kit/examples/berad
 
-go 1.22.5
+go 1.23.0
 
 require (
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240801155659-1e73a37dd428
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240808171039-610759181f0a
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240808171039-610759181f0a
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1347e7e
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/ferranbt/fastssz v0.1.4-0.20240629094022-eac385e6ee79
 	github.com/go-faster/xor v1.0.0
 	github.com/karalabe/ssz v0.2.1-0.20240724074312-3d1ff7a6f7c4
-	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8
 	golang.org/x/sync v0.8.0
+)
+
+require (
+	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1347e7e // indirect
+	golang.org/x/net v0.28.0 // indirect
 )
 
 require (

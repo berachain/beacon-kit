@@ -23,7 +23,6 @@ package transition
 import (
 	"context"
 
-	gethprimitives "github.com/berachain/beacon-kit/mod/geth-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -42,7 +41,7 @@ type BeaconState[
 	WithdrawalT any,
 	WithdrawalCredentialsT interface {
 		~[32]byte
-		ToExecutionAddress() (gethprimitives.ExecutionAddress, error)
+		ToExecutionAddress() (common.ExecutionAddress, error)
 	},
 ] interface {
 	NewFromDB(

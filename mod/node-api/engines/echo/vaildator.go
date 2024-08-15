@@ -56,15 +56,12 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 
 func ConstructValidator() *validator.Validate {
 	validators := map[string](func(fl validator.FieldLevel) bool){
-		"state_id":         ValidateStateID,
-		"block_id":         ValidateBlockID,
-		"execution_id":     ValidateExecutionID,
-		"validator_id":     ValidateValidatorID,
-		"validator_status": ValidateValidatorStatus,
-		"epoch":            ValidateUint64,
-		"slot":             ValidateUint64,
-		"committee_index":  ValidateUint64,
-		"hex":              ValidateHex,
+		"state_id":     ValidateStateID,
+		"block_id":     ValidateBlockID,
+		"execution_id": ValidateExecutionID,
+		"validator_id": ValidateValidatorID,
+		"epoch":        ValidateUint64,
+		"slot":         ValidateUint64,
 	}
 	validate := validator.New()
 	for tag, fn := range validators {
@@ -83,7 +80,7 @@ func ValidateStateID(fl validator.FieldLevel) bool {
 		"finalized": true,
 		"justified": true,
 	}
-	return validateStateBlockIDs(fl, allowedValues)
+	return validateStateBlockIDs(fl.Field().String(), allowedValues)
 }
 
 func ValidateBlockID(fl validator.FieldLevel) bool {
@@ -92,7 +89,7 @@ func ValidateBlockID(fl validator.FieldLevel) bool {
 		"genesis":   true,
 		"finalized": true,
 	}
-	return validateStateBlockIDs(fl, allowedValues)
+	return validateStateBlockIDs(fl.Field().String(), allowedValues)
 }
 
 func ValidateExecutionID(fl validator.FieldLevel) bool {
@@ -103,15 +100,15 @@ func ValidateExecutionID(fl validator.FieldLevel) bool {
 		utils.StateIDJustified: true,
 	}
 
-	if utils.IsExecutionNumberPrefix(fl.Field().String()) {
-		return true
+	value := fl.Field().String()
+	if utils.IsExecutionNumberPrefix(value) {
+		return ValidateUint64Dec(value[1:])
 	}
 
-	return validateStateBlockIDs(fl, allowedValues)
+	return validateStateBlockIDs(value, allowedValues)
 }
 
-func ValidateUint64(fl validator.FieldLevel) bool {
-	value := fl.Field().String()
+func ValidateUint64Dec(value string) bool {
 	if value == "" {
 		return true
 	}
@@ -121,11 +118,15 @@ func ValidateUint64(fl validator.FieldLevel) bool {
 	return false
 }
 
+func ValidateUint64(fl validator.FieldLevel) bool {
+	return ValidateUint64Dec(fl.Field().String())
+}
+
 // ValidateValidatorID checks if the provided field is a valid
 // validator identifier. It validates against a hex-encoded public key
 // or a numeric validator index.
 func ValidateValidatorID(fl validator.FieldLevel) bool {
-	valid, err := validateRegex(fl, `^0x[0-9a-fA-F]{1,96}$`)
+	valid, err := validateRegex(fl.Field().String(), `^0x[0-9a-fA-F]{1,96}$`)
 	if err != nil {
 		return false
 	}
@@ -138,8 +139,10 @@ func ValidateValidatorID(fl validator.FieldLevel) bool {
 	return false
 }
 
-func ValidateHex(fl validator.FieldLevel) bool {
-	valid, err := validateRegex(fl, `^0x[0-9a-fA-F]+$`)
+// ValidateRoot checks if the provided field is a valid root.
+// It validates against a 32 byte hex-encoded root with "0x" prefix.
+func ValidateRoot(value string) bool {
+	valid, err := validateRegex(value, `^0x[0-9a-fA-F]{64}$`)
 	if err != nil {
 		return false
 	}
@@ -159,23 +162,20 @@ func ValidateValidatorStatus(fl validator.FieldLevel) bool {
 		"withdrawal_possible": true,
 		"withdrawal_done":     true,
 	}
-	return validateAllowedStrings(fl, allowedStatuses)
+	return validateAllowedStrings(fl.Field().String(), allowedStatuses)
 }
 
 func validateAllowedStrings(
-	fl validator.FieldLevel,
+	value string,
 	allowedValues map[string]bool,
 ) bool {
-	value := fl.Field().String()
 	if value == "" {
 		return true
 	}
 	return allowedValues[value]
 }
 
-func validateRegex(fl validator.FieldLevel, hexPattern string) (
-	bool, error) {
-	value := fl.Field().String()
+func validateRegex(value string, hexPattern string) (bool, error) {
 	if value == "" {
 		return true, nil
 	}
@@ -186,20 +186,17 @@ func validateRegex(fl validator.FieldLevel, hexPattern string) (
 	return matched, nil
 }
 
-func validateStateBlockIDs(
-	fl validator.FieldLevel,
-	allowedValues map[string]bool,
-) bool {
+func validateStateBlockIDs(value string, allowedValues map[string]bool) bool {
 	// Check if value is one of the allowed values
-	if validateAllowedStrings(fl, allowedValues) {
+	if validateAllowedStrings(value, allowedValues) {
 		return true
 	}
 	// Check if value is a slot (unsigned 64-bit integer)
-	if ValidateUint64(fl) {
+	if ValidateUint64Dec(value) {
 		return true
 	}
-	// Check if value is a hex-encoded state root with "0x" prefix
-	if ValidateHex(fl) {
+	// Check if value is a hex-encoded 32 byte root with "0x" prefix
+	if ValidateRoot(value) {
 		return true
 	}
 	return false

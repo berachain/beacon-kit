@@ -110,11 +110,11 @@ func encodeBlobs(data []byte) []kzg4844.Blob {
 			blobIndex++
 			fieldIndex = 0
 		}
-		max := i + 31
-		if max > len(data) {
-			max = len(data)
+		maxSize := i + 31
+		if maxSize > len(data) {
+			maxSize = len(data)
 		}
-		copy(blobs[blobIndex][fieldIndex*32+1:], data[i:max])
+		copy(blobs[blobIndex][fieldIndex*32+1:], data[i:maxSize])
 	}
 	return blobs
 }

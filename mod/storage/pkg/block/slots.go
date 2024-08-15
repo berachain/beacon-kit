@@ -18,40 +18,59 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package beacon
+package block
 
 import (
-	beacontypes "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
-	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
+	"context"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-func (h *Handler[_, ContextT, _, _]) GetRandao(c ContextT) (any, error) {
-	req, err := utils.BindAndValidate[beacontypes.GetRandaoRequest](
-		c,
-		h.Logger(),
+// GetSlotByRoot retrieves the slot by a given root from the store.
+func (kv *KVStore[BeaconBlockT]) GetSlotByBlockRoot(
+	root common.Root,
+) (math.Slot, error) {
+	kv.mu.RLock()
+	defer kv.mu.RUnlock()
+
+	slot, err := kv.blocks.Indexes.BlockRoots.MatchExact(
+		context.TODO(), root[:],
 	)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	slot, err := utils.SlotFromStateID(req.StateID, h.backend)
+	return slot, nil
+}
+
+func (kv *KVStore[BeaconBlockT]) GetSlotByStateRoot(
+	root common.Root,
+) (math.Slot, error) {
+	kv.mu.RLock()
+	defer kv.mu.RUnlock()
+
+	slot, err := kv.blocks.Indexes.StateRoots.MatchExact(
+		context.TODO(), root[:],
+	)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	epoch := math.Epoch(0)
-	if req.Epoch != "" {
-		epoch, err = utils.U64FromString(req.Epoch)
-		if err != nil {
-			return nil, err
-		}
-	}
-	randao, err := h.backend.RandaoAtEpoch(slot, epoch)
+	return slot, nil
+}
+
+// GetSlotByExecutionNumber retrieves the slot by a given execution number from
+// the store.
+func (kv *KVStore[BeaconBlockT]) GetSlotByExecutionNumber(
+	executionNumber math.U64,
+) (math.Slot, error) {
+	kv.mu.RLock()
+	defer kv.mu.RUnlock()
+
+	slot, err := kv.blocks.Indexes.ExecutionNumbers.MatchExact(
+		context.TODO(), executionNumber,
+	)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	return beacontypes.ValidatorResponse{
-		ExecutionOptimistic: false, // stubbed
-		Finalized:           false, // stubbed
-		Data:                randao,
-	}, nil
+	return slot, nil
 }

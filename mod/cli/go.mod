@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit/mod/cli
 
-go 1.22.5
+go 1.23.0
 
 replace (
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
@@ -11,6 +11,7 @@ replace (
 )
 
 require (
+	cosmossdk.io/core v0.12.1-0.20240806152830-8fb47b368cd4
 	cosmossdk.io/depinject v1.0.0
 	cosmossdk.io/log v1.4.0
 	cosmossdk.io/tools/confix v0.1.1
@@ -33,7 +34,6 @@ require (
 )
 
 require (
-	cosmossdk.io/core v0.12.1-0.20240806152830-8fb47b368cd4 // indirect
 	cosmossdk.io/schema v0.1.1 // indirect
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df // indirect
 	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240809163303-a4ebb22fd018 // indirect
@@ -91,7 +91,7 @@ require (
 	// indirect
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240718074353-1a991cfeed63 // indirect
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240705193247-d464364483df // indirect
-	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240705193247-d464364483df
+	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240705193247-d464364483df // indirect
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240618214413-d5ec0e66b3dd // indirect
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df // indirect
 	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240809183101-6c82a501d3be
@@ -237,7 +237,7 @@ require (
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/crypto v0.26.0 // indirect
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
-	golang.org/x/net v0.27.0 // indirect
+	golang.org/x/net v0.28.0 // indirect
 	golang.org/x/sys v0.23.0 // indirect
 	golang.org/x/term v0.23.0 // indirect
 	golang.org/x/text v0.17.0 // indirect
