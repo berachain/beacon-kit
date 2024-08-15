@@ -197,12 +197,12 @@ func (app *BaseApp) MountStore(
 // LoadLatestVersion loads the latest application version. It will panic if
 // called more than once on a running BaseApp.
 func (app *BaseApp) LoadLatestVersion() error {
-	err := app.cms.LoadLatestVersion()
-	if err != nil {
+	if err := app.cms.LoadLatestVersion(); err != nil {
 		return fmt.Errorf("failed to load latest version: %w", err)
 	}
 
-	return app.Init()
+	// Validator pruning settings.
+	return app.cms.GetPruning().Validate()
 }
 
 // CommitMultiStore returns the root multi-store.
@@ -223,7 +223,8 @@ func (app *BaseApp) LoadVersion(version int64) error {
 		return fmt.Errorf("failed to load version %d: %w", version, err)
 	}
 
-	return app.Init()
+	// Validate Pruning settings.
+	return app.cms.GetPruning().Validate()
 }
 
 // LastCommitID returns the last CommitID of the multistore.
@@ -234,18 +235,6 @@ func (app *BaseApp) LastCommitID() storetypes.CommitID {
 // LastBlockHeight returns the last committed block height.
 func (app *BaseApp) LastBlockHeight() int64 {
 	return app.cms.LastCommitID().Version
-}
-
-// Init initializes the app. It seals the app, preventing any
-// further modifications. In addition, it validates the app against
-// the earlier provided settings. Returns an error if validation fails.
-// nil otherwise. Panics if the app is already sealed.
-func (app *BaseApp) Init() error {
-	if app.cms == nil {
-		return errors.New("commit multi-store must not be nil")
-	}
-
-	return app.cms.GetPruning().Validate()
 }
 
 func (app *BaseApp) setMinRetainBlocks(minRetainBlocks uint64) {
