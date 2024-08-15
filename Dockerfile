@@ -18,7 +18,7 @@
 ###           Stage 0 - Build Arguments             ###
 #######################################################
 
-ARG GO_VERSION=1.22.5
+ARG GO_VERSION=1.23.0
 ARG RUNNER_IMAGE=alpine:3.20
 ARG BUILD_TAGS="netgo,muslc,blst,bls12381,pebbledb"
 ARG NAME=beacond
