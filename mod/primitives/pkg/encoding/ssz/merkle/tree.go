@@ -40,8 +40,12 @@ func CalculateRoot[RootT ~[32]byte](
 ) (RootT, error) {
 	if len(proof) != index.Length() {
 		return RootT{},
-			errors.Newf("expected proof length %d, received %d", index.Length(),
-				len(proof))
+			errors.Wrapf(
+				ErrUnexpectedProofLength,
+				"expected proof length %d, received %d",
+				index.Length(),
+				len(proof),
+			)
 	}
 	for i, h := range proof {
 		if index.IndexBit(i) {
@@ -73,7 +77,8 @@ func CalculateMultiRoot[RootT ~[32]byte](
 	proof []RootT,
 ) (RootT, error) {
 	if len(leaves) != len(indices) {
-		return RootT{}, errors.Newf(
+		return RootT{}, errors.Wrapf(
+			ErrMismatchLeavesIndicesLength,
 			"mismatched leaves and indices length: %d != %d",
 			len(leaves), len(indices),
 		)

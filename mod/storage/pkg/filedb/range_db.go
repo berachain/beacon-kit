@@ -132,7 +132,7 @@ func ExtractIndex(prefixedKey []byte) (uint64, error) {
 	indexStr := string(parts[0])
 	index, err := strconv.ParseUint(indexStr, 10, 64)
 	if err != nil {
-		return 0, errors.Newf("invalid index: %w", err)
+		return 0, err
 	}
 
 	//#nosec:g

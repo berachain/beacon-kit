@@ -90,7 +90,7 @@ func (s *Registry) StartAll(ctx context.Context) error {
 func (s *Registry) RegisterService(service Basic) error {
 	typeName := service.Name()
 	if _, exists := s.services[typeName]; exists {
-		return errServiceAlreadyExists(typeName)
+		return errServiceAlreadyExists
 	}
 	s.services[typeName] = service
 	s.serviceTypes = append(s.serviceTypes, typeName)
@@ -105,7 +105,7 @@ func (s *Registry) FetchService(service interface{}) error {
 	serviceType := reflect.TypeOf(service)
 	if serviceType.Kind() != reflect.Ptr ||
 		serviceType.Elem().Kind() != reflect.Ptr {
-		return errInputIsNotPointer(serviceType)
+		return errInputIsNotPointer
 	}
 
 	element := reflect.ValueOf(service).Elem()
@@ -120,12 +120,12 @@ func (s *Registry) FetchService(service interface{}) error {
 	}
 
 	if typeName == "" {
-		return errUnknownService(serviceType)
+		return errUnknownService
 	}
 
 	if running, ok := s.services[typeName]; ok {
 		element.Set(reflect.ValueOf(running))
 		return nil
 	}
-	return errUnknownService(serviceType)
+	return errUnknownService
 }

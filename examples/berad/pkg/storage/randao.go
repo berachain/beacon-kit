@@ -18,30 +18,31 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package service
+package beacondb
 
-import "github.com/berachain/beacon-kit/mod/errors"
+import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 
-var (
-	// errServiceAlreadyExists defines an error for when a service already
-	// exists.
-	errServiceAlreadyExists = errors.Wrapf(
-		errors.New("service already exists"),
-		"%v",
-	)
+// UpdateRandaoMixAtIndex sets the current RANDAO mix in the store.
+func (kv *KVStore[
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
+]) UpdateRandaoMixAtIndex(
+	index uint64,
+	mix common.Bytes32,
+) error {
+	return kv.randaoMix.Set(kv.ctx, index, mix[:])
+}
 
-	// errInputIsNotPointer defines an error for when the input must
-	// be of pointer type.
-	errInputIsNotPointer = errors.Wrapf(
-		errors.New(
-			"input must be of pointer type, received value type instead",
-		),
-		"%T",
-	)
-
-	// errUnknownService defines is returned when an unknown service is seen.
-	errUnknownService = errors.Wrapf(
-		errors.New("unknown service"),
-		"%T",
-	)
-)
+// GetRandaoMixAtIndex retrieves the current RANDAO mix from the store.
+func (kv *KVStore[
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
+]) GetRandaoMixAtIndex(
+	index uint64,
+) (common.Bytes32, error) {
+	bz, err := kv.randaoMix.Get(kv.ctx, index)
+	if err != nil {
+		return common.Bytes32{}, err
+	}
+	return common.Bytes32(bz), nil
+}
