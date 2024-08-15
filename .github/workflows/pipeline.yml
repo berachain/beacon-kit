@@ -90,7 +90,7 @@ jobs:
       - name: Setup Golang
         uses: actions/setup-go@v5
         with:
-          go-version: "stable"
+          go-version: "1.22.6"
           check-latest: true
           cache-dependency-path: "**/*.sum"    
         if: ${{ !(matrix.args == 'test-forge-cover' || matrix.args == 'test-forge-fuzz') }}
