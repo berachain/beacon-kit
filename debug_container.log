@@ -2,7 +2,7 @@ Initializing logger
 Registering providers
  Registering github.com/berachain/beacon-kit/mod/cli/pkg/components.ProvideClientContext (github.com/berachain/beacon-kit/mod/cli/pkg/components/client_context.go:45)
   Registering resolver for simple type client.Context
- Registering github.com/berachain/beacon-kit/mod/cli/pkg/components.ProvideLogger (github.com/berachain/beacon-kit/mod/cli/pkg/components/logger.go:42)
+ Registering github.com/berachain/beacon-kit/mod/cli/pkg/components.ProvideLogger (github.com/berachain/beacon-kit/mod/cli/pkg/components/logger.go:41)
   Registering resolver for simple type *phuslu.Logger
  Registering github.com/berachain/beacon-kit/mod/node-core/pkg/components.ProvideConfig (github.com/berachain/beacon-kit/mod/node-core/pkg/components/config.go:37)
   Registering resolver for simple type *config.Config
@@ -12,11 +12,14 @@ Registering outputs
  Registering github.com/berachain/beacon-kit/mod/cli/pkg/builder.(*CLIBuilder[...]).Build (github.com/berachain/beacon-kit/mod/cli/pkg/builder/builder.go:98)
 Building container
 Resolving dependencies for github.com/berachain/beacon-kit/mod/cli/pkg/builder.(*CLIBuilder[...]).Build (github.com/berachain/beacon-kit/mod/cli/pkg/builder/builder.go:98)
- Providing *phuslu.Logger from github.com/berachain/beacon-kit/mod/cli/pkg/components.ProvideLogger (github.com/berachain/beacon-kit/mod/cli/pkg/components/logger.go:42) to github.com/berachain/beacon-kit/mod/cli/pkg/builder.(*CLIBuilder[...]).Build
- Resolving dependencies for github.com/berachain/beacon-kit/mod/cli/pkg/components.ProvideLogger (github.com/berachain/beacon-kit/mod/cli/pkg/components/logger.go:42)
-  Error: can't resolve type github.com/cosmos/cosmos-sdk/server/types/types.AppOptions for github.com/berachain/beacon-kit/mod/cli/pkg/components.ProvideLogger (github.com/berachain/beacon-kit/mod/cli/pkg/components/logger.go:42):
+ Providing *phuslu.Logger from github.com/berachain/beacon-kit/mod/cli/pkg/components.ProvideLogger (github.com/berachain/beacon-kit/mod/cli/pkg/components/logger.go:41) to github.com/berachain/beacon-kit/mod/cli/pkg/builder.(*CLIBuilder[...]).Build
+ Resolving dependencies for github.com/berachain/beacon-kit/mod/cli/pkg/components.ProvideLogger (github.com/berachain/beacon-kit/mod/cli/pkg/components/logger.go:41)
+  Providing *config.Config from github.com/berachain/beacon-kit/mod/node-core/pkg/components.ProvideConfig (github.com/berachain/beacon-kit/mod/node-core/pkg/components/config.go:37) to github.com/berachain/beacon-kit/mod/cli/pkg/components.ProvideLogger
+  Resolving dependencies for github.com/berachain/beacon-kit/mod/node-core/pkg/components.ProvideConfig (github.com/berachain/beacon-kit/mod/node-core/pkg/components/config.go:37)
+   Error: can't resolve type github.com/cosmos/cosmos-sdk/server/types/types.AppOptions for github.com/berachain/beacon-kit/mod/node-core/pkg/components.ProvideConfig (github.com/berachain/beacon-kit/mod/node-core/pkg/components/config.go:37):
 	while resolving:
-		types.AppOptions for github.com/berachain/beacon-kit/mod/cli/pkg/components.ProvideLogger (github.com/berachain/beacon-kit/mod/cli/pkg/components/logger.go:42)
+		types.AppOptions for github.com/berachain/beacon-kit/mod/node-core/pkg/components.ProvideConfig (github.com/berachain/beacon-kit/mod/node-core/pkg/components/config.go:37)
+		*config.Config for github.com/berachain/beacon-kit/mod/cli/pkg/components.ProvideLogger (github.com/berachain/beacon-kit/mod/cli/pkg/components/logger.go:41)
 		*phuslu.Logger for github.com/berachain/beacon-kit/mod/cli/pkg/builder.(*CLIBuilder[...]).Build (github.com/berachain/beacon-kit/mod/cli/pkg/builder/builder.go:98)
 
-  Saved graph of container to /Users/colinchu/dev/berachain/beacon-kit/debug_container.dot
+   Saved graph of container to /Users/colinchu/dev/berachain/beacon-kit/debug_container.dot

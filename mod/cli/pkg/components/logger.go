@@ -27,14 +27,13 @@ import (
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
 
 type LoggerInput struct {
 	depinject.In
-	AppOpts servertypes.AppOptions
-	Cfg     *config.Config
-	Out     io.Writer
+
+	Cfg *config.Config
+	Out io.Writer
 }
 
 // ProvideLogger creates a the default phuslu logger.
