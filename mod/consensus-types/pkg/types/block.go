@@ -21,8 +21,6 @@
 package types
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
@@ -84,6 +82,7 @@ func (b *BeaconBlock) NewFromSSZ(
 	forkVersion uint32,
 ) (*BeaconBlock, error) {
 	var block *BeaconBlock
+	
 	switch forkVersion {
 	case version.Deneb:
 		block = new(BeaconBlock).Empty()
@@ -132,7 +131,6 @@ func (b *BeaconBlock) MarshalSSZ() ([]byte, error) {
 
 // UnmarshalSSZ unmarshals the BeaconBlock object from SSZ format.
 func (b *BeaconBlock) UnmarshalSSZ(buf []byte) error {
-	fmt.Println("buf", buf)
 	return ssz.DecodeFromBytes(buf, b)
 }
 

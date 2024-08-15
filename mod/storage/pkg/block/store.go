@@ -22,7 +22,7 @@ package block
 
 import (
 	"context"
-	"fmt"
+	"runtime/debug"
 	"sync"
 
 	sdkcollections "cosmossdk.io/collections"
@@ -104,32 +104,43 @@ func (kv *KVStore[BeaconBlockT]) Prune(start, end uint64) error {
 		kv.blockCodec.SetActiveForkVersion(
 			kv.cs.ActiveForkVersionForSlot(kv.nextToPrune),
 		)
-
-		blk, err := kv.blocks.Get(ctx, kv.nextToPrune)
-		if err != nil {
-			if !errors.Is(err, sdkcollections.ErrNotFound) {
-				panic(err)
-			}
-		} else {
-			fmt.Println("blk", blk)
-		}
-
-		if err := kv.blocks.Remove(ctx, kv.nextToPrune); err != nil {
-			// This can error for 2 reasons:
-			// 1. The slot was not found -- either the slot was missed or we
-			//    never stored the block to begin with, either way it's ok.
-			if !errors.Is(err, sdkcollections.ErrNotFound) {
-				// 2. The slot was found but (en/de)coding failed. In this
-				//    case, we choose not to retry removal and instead
-				//    continue. This means this slot may never be pruned, but
-				//    ensures that we always get to pruning subsequent slots.
-				kv.logger.Error(
-					"‼️ failed to prune block",
-					"slot", kv.nextToPrune, "err", err,
-				)
-			}
-		}
+		kv.prune(ctx, kv.nextToPrune)
 	}
 
 	return nil
+}
+
+// prune removes the block at the given slot from the store. It handles panics
+// and errors to avoid fatal crashes.
+//
+// NOTE: assumes the kvstore lock is held.
+func (kv *KVStore[BeaconBlockT]) prune(ctx context.Context, slot math.Slot) {
+	defer func() {
+		if r := recover(); r != nil {
+			// TODO: add metrics here.
+			// TODO: should also handle deleting the value manually from the db?
+
+			kv.logger.Error(
+				"‼️ panic occurred while pruning block",
+				"slot", slot,
+				"panic", r,
+				"stack", debug.Stack(),
+			)
+		}
+	}()
+
+	if err := kv.blocks.Remove(ctx, slot); err != nil {
+		// This can error for 2 reasons:
+		// 1. The slot was not found -- either the slot was missed or we
+		//    never stored the block to begin with, either way it's ok.
+		if !errors.Is(err, sdkcollections.ErrNotFound) {
+			// 2. The slot was found but (en/de)coding failed. In this
+			//    case, we choose not to retry removal and instead
+			//    continue. This means this slot may never be pruned, but
+			//    ensures that we always get to pruning subsequent slots.
+			kv.logger.Error(
+				"‼️ failed to prune block", "slot", slot, "err", err,
+			)
+		}
+	}
 }
