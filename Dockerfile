@@ -135,7 +135,6 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     -X github.com/cosmos/cosmos-sdk/version.Commit=${GIT_COMMIT} \
     -X github.com/cosmos/cosmos-sdk/version.BuildTags=${BUILD_TAGS} \
     -X github.com/cosmos/cosmos-sdk/types.DBBackend=$DB_BACKEND \
-	-checklinkname=0 \
     -w -s -linkmode=external -extldflags '-Wl,-z,muldefs -static'" \
     -trimpath \
     -o /workdir/build/bin/beacond \

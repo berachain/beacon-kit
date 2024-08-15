@@ -57,8 +57,7 @@ ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=beacon \
 		-X github.com/cosmos/cosmos-sdk/version.AppName=beacond \
 		-X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
 		-X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT) \
-		-X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep) \
-		-checklinkname=0"
+		-X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep)"
 
 ifeq (,$(findstring nostrip,$(COSMOS_BUILD_OPTIONS)))
   ldflags += -w -s
