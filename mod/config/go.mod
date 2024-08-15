@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit/mod/config
 
-go 1.22.5
+go 1.23.0
 
 require (
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240718074353-1a991cfeed63

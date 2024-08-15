@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit/mod/primitives
 
-go 1.22.5
+go 1.23.0
 
 require (
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240703145037-b5612ab256db

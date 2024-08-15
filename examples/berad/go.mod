@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit/examples/berad
 
-go 1.22.5
+go 1.23.0
 
 require (
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240801155659-1e73a37dd428

@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit/build/tools
 
-go 1.22.5
+go 1.23.0
 
 // staticcheck fix
 replace honnef.co/go/tools v0.2.1 => github.com/honnef/go-tools v0.5.0-0.dev.0.20240621230735-3fe6ed0ecdfe
