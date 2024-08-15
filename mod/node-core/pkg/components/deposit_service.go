@@ -22,7 +22,6 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
@@ -32,20 +31,26 @@ import (
 )
 
 // DepositServiceIn is the input for the deposit service.
-type DepositServiceIn struct {
+type DepositServiceIn[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+] struct {
 	depinject.In
 	BeaconDepositContract *DepositContract
 	ChainSpec             common.ChainSpec
 	DepositStore          *DepositStore
 	Dispatcher            *Dispatcher
 	EngineClient          *EngineClient
-	Logger                log.AdvancedLogger[any, sdklog.Logger]
+	Logger                LoggerT
 	TelemetrySink         *metrics.TelemetrySink
 }
 
 // ProvideDepositService provides the deposit service to the depinject
 // framework.
-func ProvideDepositService(in DepositServiceIn) (*DepositService, error) {
+func ProvideDepositService[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+](
+	in DepositServiceIn[LoggerT],
+) (*DepositService, error) {
 	// Build the deposit service.
 	return deposit.NewService[
 		*BeaconBlockBody,

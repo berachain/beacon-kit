@@ -99,9 +99,6 @@ func NewService[
 		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, DepositT,
 		Eth1DataT, ExecutionPayloadT, SlashingInfoT,
 	],
-	BeaconBlockBundleT BeaconBlockBundle[
-		BeaconBlockBundleT, BeaconBlockT, BlobSidecarsT,
-	],
 	BeaconBlockBodyT BeaconBlockBody[
 		AttestationDataT, DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
 	],

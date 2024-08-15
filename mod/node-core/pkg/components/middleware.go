@@ -29,18 +29,22 @@ import (
 )
 
 // ABCIMiddlewareInput is the input for the validator middleware provider.
-type ABCIMiddlewareInput struct {
+type ABCIMiddlewareInput[
+	LoggerT log.Logger[any],
+] struct {
 	depinject.In
 	ChainSpec     common.ChainSpec
-	Logger        log.Logger[any]
+	Logger        LoggerT
 	TelemetrySink *metrics.TelemetrySink
 	Dispatcher    *Dispatcher
 }
 
 // ProvideABCIMiddleware is a depinject provider for the validator
 // middleware.
-func ProvideABCIMiddleware(
-	in ABCIMiddlewareInput,
+func ProvideABCIMiddleware[
+	LoggerT log.Logger[any],
+](
+	in ABCIMiddlewareInput[LoggerT],
 ) (*ABCIMiddleware, error) {
 	return middleware.NewABCIMiddleware[
 		*AvailabilityStore, *BeaconBlock, *BeaconBlockBundle, *BlobSidecars,

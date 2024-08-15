@@ -24,7 +24,6 @@ import (
 	"math/big"
 
 	"cosmossdk.io/depinject"
-	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/config"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/client"
@@ -36,19 +35,23 @@ import (
 )
 
 // EngineClientInputs is the input for the EngineClient.
-type EngineClientInputs struct {
+type EngineClientInputs[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+] struct {
 	depinject.In
 	ChainSpec common.ChainSpec
 	Config    *config.Config
 	// TODO: this feels like a hood way to handle it.
 	JWTSecret     *jwt.Secret `optional:"true"`
-	Logger        log.AdvancedLogger[any, sdklog.Logger]
+	Logger        LoggerT
 	TelemetrySink *metrics.TelemetrySink
 }
 
 // ProvideEngineClient creates a new EngineClient.
-func ProvideEngineClient(
-	in EngineClientInputs,
+func ProvideEngineClient[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+](
+	in EngineClientInputs[LoggerT],
 ) *EngineClient {
 	return client.New[
 		*ExecutionPayload,
@@ -63,17 +66,21 @@ func ProvideEngineClient(
 }
 
 // EngineClientInputs is the input for the EngineClient.
-type ExecutionEngineInputs struct {
+type ExecutionEngineInputs[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+] struct {
 	depinject.In
 	EngineClient  *EngineClient
-	Logger        log.AdvancedLogger[any, sdklog.Logger]
+	Logger        LoggerT
 	TelemetrySink *metrics.TelemetrySink
 }
 
 // ProvideExecutionEngine provides the execution engine to the depinject
 // framework.
-func ProvideExecutionEngine(
-	in ExecutionEngineInputs,
+func ProvideExecutionEngine[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+](
+	in ExecutionEngineInputs[LoggerT],
 ) *ExecutionEngine {
 	return engine.New[
 		*ExecutionPayload,

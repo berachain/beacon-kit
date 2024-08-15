@@ -28,17 +28,23 @@ import (
 )
 
 // BlockServiceInput is the input for the block service.
-type BlockServiceInput struct {
+type BlockServiceInput[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+] struct {
 	depinject.In
 
 	BlockStore *BlockStore
 	Config     *config.Config
 	Dispatcher *Dispatcher
-	Logger     log.Logger[any]
+	Logger     LoggerT
 }
 
 // ProvideBlockStoreService provides the block service.
-func ProvideBlockStoreService(in BlockServiceInput) *BlockStoreService {
+func ProvideBlockStoreService[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+](
+	in BlockServiceInput[LoggerT],
+) *BlockStoreService {
 	return blockstore.NewService(
 		in.Config.BlockStoreService,
 		in.Logger,

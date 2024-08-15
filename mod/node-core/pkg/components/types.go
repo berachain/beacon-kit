@@ -402,7 +402,6 @@ type (
 	ValidatorService = validator.Service[
 		*AttestationData,
 		*BeaconBlock,
-		*BeaconBlockBundle,
 		*BeaconBlockBody,
 		*BeaconState,
 		*BlobSidecars,

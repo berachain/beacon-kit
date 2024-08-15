@@ -22,12 +22,12 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/da/pkg/da"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -72,18 +72,24 @@ func ProvideBlobVerifier(in BlobVerifierInput) *BlobVerifier {
 }
 
 // BlobProcessorIn is the input for the BlobProcessor.
-type BlobProcessorIn struct {
+type BlobProcessorIn[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+] struct {
 	depinject.In
 
 	BlobVerifier  *BlobVerifier
 	ChainSpec     common.ChainSpec
-	Logger        log.Logger
+	Logger        LoggerT
 	TelemetrySink *metrics.TelemetrySink
 }
 
 // ProvideBlobProcessor is a function that provides the BlobProcessor to the
 // depinject framework.
-func ProvideBlobProcessor(in BlobProcessorIn) *BlobProcessor {
+func ProvideBlobProcessor[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+](
+	in BlobProcessorIn[LoggerT],
+) *BlobProcessor {
 	return dablob.NewProcessor[
 		*AvailabilityStore,
 		*BeaconBlockBody,
@@ -97,18 +103,24 @@ func ProvideBlobProcessor(in BlobProcessorIn) *BlobProcessor {
 }
 
 // DAServiceIn is the input for the BlobService.
-type DAServiceIn struct {
+type DAServiceIn[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+] struct {
 	depinject.In
 
 	AvailabilityStore *AvailabilityStore
 	BlobProcessor     *BlobProcessor
 	Dispatcher        *Dispatcher
-	Logger            log.Logger
+	Logger            LoggerT
 }
 
 // ProvideDAService is a function that provides the BlobService to the
 // depinject framework.
-func ProvideDAService(in DAServiceIn) *DAService {
+func ProvideDAService[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+](
+	in DAServiceIn[LoggerT],
+) *DAService {
 	return da.NewService[
 		*AvailabilityStore,
 		*BeaconBlockBody,

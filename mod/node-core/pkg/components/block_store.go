@@ -22,7 +22,6 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	sdklog "cosmossdk.io/log"
 	storev2 "cosmossdk.io/store/v2/db"
 	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
 	blockservice "github.com/berachain/beacon-kit/mod/beacon/block_store"
@@ -40,18 +39,22 @@ import (
 )
 
 // BlockStoreInput is the input for the dep inject framework.
-type BlockStoreInput struct {
+type BlockStoreInput[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+] struct {
 	depinject.In
 
 	AppOpts   servertypes.AppOptions
 	ChainSpec common.ChainSpec
-	Logger    log.AdvancedLogger[any, sdklog.Logger]
+	Logger    LoggerT
 }
 
 // ProvideBlockStore is a function that provides the module to the
 // application.
-func ProvideBlockStore(
-	in BlockStoreInput,
+func ProvideBlockStore[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+](
+	in BlockStoreInput[LoggerT],
 ) (*BlockStore, error) {
 	dir := cast.ToString(in.AppOpts.Get(flags.FlagHome)) + "/data"
 	kvp, err := storev2.NewDB(storev2.DBTypePebbleDB, block.StoreName, dir, nil)
@@ -67,17 +70,21 @@ func ProvideBlockStore(
 }
 
 // BlockPrunerInput is the input for the block pruner.
-type BlockPrunerInput struct {
+type BlockPrunerInput[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+] struct {
 	depinject.In
 	BlockStore *BlockStore
 	Config     *config.Config
 	Dispatcher *dispatcher.Dispatcher
-	Logger     log.AdvancedLogger[any, sdklog.Logger]
+	Logger     LoggerT
 }
 
 // ProvideBlockPruner provides a block pruner for the depinject framework.
-func ProvideBlockPruner(
-	in BlockPrunerInput,
+func ProvideBlockPruner[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+](
+	in BlockPrunerInput[LoggerT],
 ) (BlockPruner, error) {
 	var finalizedBlkCh = make(chan FinalizedBlockEvent)
 	if err := in.Dispatcher.Subscribe(

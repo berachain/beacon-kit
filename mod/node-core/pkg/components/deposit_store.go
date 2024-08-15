@@ -22,9 +22,9 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
 	storev2 "cosmossdk.io/store/v2/db"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/messages"
@@ -58,17 +58,21 @@ func ProvideDepositStore(
 }
 
 // DepositPrunerInput is the input for the deposit pruner.
-type DepositPrunerInput struct {
+type DepositPrunerInput[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+] struct {
 	depinject.In
 	ChainSpec    common.ChainSpec
 	DepositStore *DepositStore
 	Dispatcher   *Dispatcher
-	Logger       log.Logger
+	Logger       LoggerT
 }
 
 // ProvideDepositPruner provides a deposit pruner for the depinject framework.
-func ProvideDepositPruner(
-	in DepositPrunerInput,
+func ProvideDepositPruner[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+](
+	in DepositPrunerInput[LoggerT],
 ) (DepositPruner, error) {
 	var finalizedBlkCh = make(chan FinalizedBlockEvent)
 	if err := in.Dispatcher.Subscribe(
