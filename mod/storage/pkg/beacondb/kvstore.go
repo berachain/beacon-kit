@@ -98,7 +98,8 @@ type KVStore[
 	// nextWithdrawalValidatorIndex stores the next withdrawal validator index
 	// for each validator.
 	nextWithdrawalValidatorIndex sdkcollections.Item[uint64]
-	// withdrawalValidators stores the list of validators that need to be withdrawn.
+	// withdrawalValidators stores the list of validators that need to be
+	// withdrawn.
 	withdrawalValidators *sdkcollections.IndexedMap[
 		uint64, ValidatorT, index.ValidatorsIndex[ValidatorT],
 	]

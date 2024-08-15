@@ -286,7 +286,6 @@ func (kv *KVStore[
 	)
 }
 
-// SetWithdrawalValidator sets the withdrawal validator for a validator.
 func (kv *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
@@ -299,7 +298,9 @@ func (kv *KVStore[
 	}
 
 	// Set the withdrawal validator.
-	kv.withdrawalValidators.Set(kv.ctx, idx.Unwrap(), val)
+	if err = kv.withdrawalValidators.Set(kv.ctx, idx.Unwrap(), val); err != nil {
+		return err
+	}
 
 	// Get the next withdrawal index.
 	withdrawalIdx, err := kv.nextWithdrawalIndex.Get(kv.ctx)
