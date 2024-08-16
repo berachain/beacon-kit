@@ -18,39 +18,18 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package p2p
+package block
 
-import (
-	"context"
-
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+const (
+	StoreName                 = "block_store"
+	blockRootsIndexName       = "block_roots"
+	executionNumbersIndexName = "execution_numbers"
+	stateRootsIndexName       = "state_roots"
 )
 
-// NoopGossipHandler is a gossip handler that simply returns the
-// ssz marshalled data as a "reference" to the object it receives.
-type NoopGossipHandler[
-	DataT interface {
-		constraints.Empty[DataT]
-		constraints.SSZMarshallable
-	}, BytesT ~[]byte,
-] struct{}
-
-// Publish creates a new NoopGossipHandler.
-func (n NoopGossipHandler[DataT, BytesT]) Publish(
-	_ context.Context,
-	data DataT,
-) (BytesT, error) {
-	return data.MarshalSSZ()
-}
-
-// Request simply returns the reference it receives.
-func (n NoopGossipHandler[DataT, BytesT]) Request(
-	_ context.Context,
-	ref BytesT,
-) (DataT, error) {
-	var out DataT
-
-	// Use Empty() method to create a new instance of DataT
-	out = out.Empty()
-	return out, out.UnmarshalSSZ(ref)
-}
+const (
+	storePrefix int = iota
+	blockRootsIndexPrefix
+	executionNumbersIndexPrefix
+	stateRootsIndexPrefix
+)

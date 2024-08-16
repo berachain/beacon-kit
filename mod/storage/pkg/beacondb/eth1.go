@@ -28,12 +28,6 @@ func (kv *KVStore[
 ]) GetLatestExecutionPayloadHeader() (
 	ExecutionPayloadHeaderT, error,
 ) {
-	forkVersion, err := kv.latestExecutionPayloadVersion.Get(kv.ctx)
-	if err != nil {
-		var t ExecutionPayloadHeaderT
-		return t, err
-	}
-	kv.latestExecutionPayloadCodec.SetActiveForkVersion(forkVersion)
 	return kv.latestExecutionPayloadHeader.Get(kv.ctx)
 }
 
@@ -45,12 +39,6 @@ func (kv *KVStore[
 ]) SetLatestExecutionPayloadHeader(
 	payloadHeader ExecutionPayloadHeaderT,
 ) error {
-	if err := kv.latestExecutionPayloadVersion.Set(
-		kv.ctx, payloadHeader.Version(),
-	); err != nil {
-		return err
-	}
-	kv.latestExecutionPayloadCodec.SetActiveForkVersion(payloadHeader.Version())
 	return kv.latestExecutionPayloadHeader.Set(kv.ctx, payloadHeader)
 }
 

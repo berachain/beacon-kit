@@ -198,7 +198,10 @@ func (app *BaseApp) PrepareProposal(
 	}
 
 	app.prepareProposalState.SetContext(
-		app.getContextForProposal(app.prepareProposalState.Context(), req.Height),
+		app.getContextForProposal(
+			app.prepareProposalState.Context(),
+			req.Height,
+		),
 	)
 
 	app.prepareProposalState.SetContext(app.prepareProposalState.Context())
@@ -267,7 +270,10 @@ func (app *BaseApp) ProcessProposal(
 	}
 
 	app.processProposalState.SetContext(
-		app.getContextForProposal(app.processProposalState.Context(), req.Height),
+		app.getContextForProposal(
+			app.processProposalState.Context(),
+			req.Height,
+		),
 	)
 
 	resp, err = app.processProposal(app.processProposalState.Context(), req)
