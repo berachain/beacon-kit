@@ -23,22 +23,22 @@ package events
 // events, topologically sorted.
 const (
 
-	// genesis data events
+	// genesis data events.
 	GenesisDataReceived  = "genesis-data-received"
 	GenesisDataProcessed = "genesis-data-processed"
 
-	// pre proposal events
+	// pre proposal events.
 	NewSlot          = "new-slot"
 	BuiltBeaconBlock = "built-beacon-block"
 	BuiltSidecars    = "built-sidecars"
 
-	// proposal processing events
+	// proposal processing events.
 	BeaconBlockReceived = "beacon-block-received"
 	SidecarsReceived    = "sidecars-received"
 	BeaconBlockVerified = "beacon-block-verified"
 	SidecarsVerified    = "sidecars-verified"
 
-	// finalize block events
+	// finalize block events.
 	FinalBeaconBlockReceived       = "final-beacon-block-received"
 	FinalSidecarsReceived          = "final-blob-sidecars-received"
 	FinalValidatorUpdatesProcessed = "final-validator-updates"

@@ -46,8 +46,6 @@ type Service[
 }
 
 // NewService creates a new block service.
-//
-//nolint:lll // long type
 func NewService[
 	BeaconBlockT BeaconBlock,
 	BlockStoreT BlockStore[BeaconBlockT],
@@ -93,7 +91,9 @@ func (s *Service[BeaconBlockT, _]) Start(ctx context.Context) error {
 
 // onFinalizeBlock is triggered when a finalized block event is received.
 // It stores the block in the KVStore.
-func (s *Service[BeaconBlockT, _]) onFinalizeBlock(event async.Event[BeaconBlockT]) {
+func (s *Service[BeaconBlockT, _]) onFinalizeBlock(
+	event async.Event[BeaconBlockT],
+) {
 	slot := event.Data().GetSlot()
 	if err := s.store.Set(event.Data()); err != nil {
 		s.logger.Error(

@@ -79,7 +79,7 @@ func (p *pruner[BeaconBlockT, BlockEventT, _]) Start(ctx context.Context) {
 
 // onFinalizeBlock will prune the prunable store based on the received
 // finalized block event.
-func (p *pruner[BeaconBlockT, BlockEventT, _]) onFinalizeBlock(event BlockEventT) {
+func (p *pruner[_, BlockEventT, _]) onFinalizeBlock(event BlockEventT) {
 	start, end := p.pruneRangeFn(event)
 	if err := p.prunable.Prune(start, end); err != nil {
 		p.logger.Error("‼️ error pruning index ‼️", "error", err)

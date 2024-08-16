@@ -268,7 +268,6 @@ func (h *ABCIMiddleware[
 		))
 	if err != nil {
 		// If we don't have a block, we can't do anything.
-		//nolint:nilerr // by design.
 		return nil, nil
 	}
 
