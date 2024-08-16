@@ -29,57 +29,53 @@ package pruner
 import (
 	"context"
 
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 )
 
 // Compile-time check to ensure pruner implements the Pruner interface.
-var _ Pruner[Prunable] = (*pruner[
-	BeaconBlock, BlockEvent[BeaconBlock], Prunable,
-])(nil)
+var _ Pruner[Prunable] = (*pruner[BeaconBlock, Prunable])(nil)
 
 // pruner is a struct that holds the prunable interface and a notifier
 // channel.
 type pruner[
 	BeaconBlockT BeaconBlock,
-	BlockEventT BlockEvent[BeaconBlockT],
 	PrunableT Prunable,
 ] struct {
 	prunable                Prunable
 	logger                  log.Logger[any]
 	name                    string
-	subBeaconBlockFinalized chan BlockEventT
-	pruneRangeFn            func(BlockEventT) (uint64, uint64)
+	subBeaconBlockFinalized chan asynctypes.Event[BeaconBlockT]
+	pruneRangeFn            func(asynctypes.Event[BeaconBlockT]) (uint64, uint64)
 }
 
 // NewPruner creates a new Pruner.
 func NewPruner[
 	BeaconBlockT BeaconBlock,
-	BlockEventT BlockEvent[BeaconBlockT],
 	PrunableT Prunable,
 ](
 	logger log.Logger[any],
 	prunable Prunable,
 	name string,
-	subBeaconBlockFinalized chan BlockEventT,
-	pruneRangeFn func(BlockEventT) (uint64, uint64),
+	subBeaconBlockFinalized chan asynctypes.Event[BeaconBlockT],
+	pruneRangeFn func(asynctypes.Event[BeaconBlockT]) (uint64, uint64),
 ) Pruner[PrunableT] {
-	return &pruner[BeaconBlockT, BlockEventT, PrunableT]{
-		logger:                  logger,
-		prunable:                prunable,
-		name:                    name,
-		subBeaconBlockFinalized: subBeaconBlockFinalized,
-		pruneRangeFn:            pruneRangeFn,
+	return &pruner[BeaconBlockT, PrunableT]{
+		logger:       logger,
+		prunable:     prunable,
+		name:         name,
+		pruneRangeFn: pruneRangeFn,
 	}
 }
 
 // Start starts the Pruner by listening for new indexes to prune.
-func (p *pruner[BeaconBlockT, BlockEventT, _]) Start(ctx context.Context) {
+func (p *pruner[BeaconBlockT, PrunableT]) Start(ctx context.Context) {
 	go p.listen(ctx)
 }
 
 // listen listens for new finalized blocks and prunes the prunable store based
 // on the received finalized block event.
-func (p *pruner[_, BlockEventT, _]) listen(ctx context.Context) {
+func (p *pruner[_, PrunableT]) listen(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -92,7 +88,9 @@ func (p *pruner[_, BlockEventT, _]) listen(ctx context.Context) {
 
 // onFinalizeBlock will prune the prunable store based on the received
 // finalized block event.
-func (p *pruner[_, BlockEventT, _]) onFinalizeBlock(event BlockEventT) {
+func (p *pruner[BeaconBlockT, PrunableT]) onFinalizeBlock(
+	event asynctypes.Event[BeaconBlockT],
+) {
 	start, end := p.pruneRangeFn(event)
 	if err := p.prunable.Prune(start, end); err != nil {
 		p.logger.Error("‼️ error pruning index ‼️", "error", err)
@@ -100,6 +98,6 @@ func (p *pruner[_, BlockEventT, _]) onFinalizeBlock(event BlockEventT) {
 }
 
 // Name returns the name of the Pruner.
-func (p *pruner[_, _, _]) Name() string {
+func (p *pruner[_, _]) Name() string {
 	return p.name
 }

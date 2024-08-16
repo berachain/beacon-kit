@@ -123,9 +123,7 @@ func ProvideDAService[
 ) *DAService {
 	return da.NewService[
 		*AvailabilityStore,
-		*BeaconBlockBody,
 		*BlobSidecars,
-		*ExecutionPayload,
 	](
 		in.AvailabilityStore,
 		in.BlobProcessor,

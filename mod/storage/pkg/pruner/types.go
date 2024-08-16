@@ -28,7 +28,7 @@ package pruner
 import (
 	"context"
 
-	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	async "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -39,10 +39,10 @@ type BeaconBlock interface {
 
 // BlockEvent is an interface for block events.
 type BlockEvent[BeaconBlockT BeaconBlock] interface {
-	Is(asynctypes.EventID) bool
+	Is(async.EventID) bool
 	Data() BeaconBlockT
 	Context() context.Context
-	ID() asynctypes.EventID
+	ID() async.EventID
 }
 
 // Prunable is an interface representing a store that can be pruned.

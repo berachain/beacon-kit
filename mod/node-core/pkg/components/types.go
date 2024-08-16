@@ -164,7 +164,6 @@ type (
 		*ExecutionPayloadHeader,
 		*Genesis,
 		*PayloadAttributes,
-		*Withdrawal,
 	]
 
 	// ConsensusEngine is a type alias for the consensus engine.
@@ -190,9 +189,7 @@ type (
 	// DAService is a type alias for the DA service.
 	DAService = da.Service[
 		*AvailabilityStore,
-		*BeaconBlockBody,
 		*BlobSidecars,
-		*ExecutionPayload,
 	]
 
 	// DBManager is a type alias for the database manager.

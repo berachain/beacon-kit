@@ -33,16 +33,13 @@ import (
 //
 
 type Service[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
-	BeaconBlockBodyT any,
+	AvailabilityStoreT any,
 	BlobSidecarsT BlobSidecar,
-
-	ExecutionPayloadT any,
 ] struct {
 	avs AvailabilityStoreT
 	bp  BlobProcessor[
-		AvailabilityStoreT, BeaconBlockBodyT,
-		BlobSidecarsT, ExecutionPayloadT,
+		AvailabilityStoreT,
+		BlobSidecarsT,
 	]
 	dispatcher           async.EventDispatcher
 	logger               log.Logger[any]
@@ -52,28 +49,20 @@ type Service[
 
 // NewService returns a new DA service.
 func NewService[
-	AvailabilityStoreT AvailabilityStore[
-		BeaconBlockBodyT, BlobSidecarsT,
-	],
-	BeaconBlockBodyT any,
+	AvailabilityStoreT any,
 	BlobSidecarsT BlobSidecar,
-
-	ExecutionPayloadT any,
 ](
 	avs AvailabilityStoreT,
 	bp BlobProcessor[
-		AvailabilityStoreT, BeaconBlockBodyT,
-		BlobSidecarsT, ExecutionPayloadT,
+		AvailabilityStoreT, BlobSidecarsT,
 	],
 	dispatcher async.EventDispatcher,
 	logger log.Logger[any],
 ) *Service[
-	AvailabilityStoreT, BeaconBlockBodyT,
-	BlobSidecarsT, ExecutionPayloadT,
+	AvailabilityStoreT, BlobSidecarsT,
 ] {
 	return &Service[
-		AvailabilityStoreT, BeaconBlockBodyT,
-		BlobSidecarsT, ExecutionPayloadT,
+		AvailabilityStoreT, BlobSidecarsT,
 	]{
 		avs:                  avs,
 		bp:                   bp,
@@ -85,13 +74,13 @@ func NewService[
 }
 
 // Name returns the name of the service.
-func (s *Service[_, _, _, _]) Name() string {
+func (s *Service[_, _]) Name() string {
 	return "da"
 }
 
 // Start registers this service as the recipient of ProcessSidecars and
 // VerifySidecars messages, and begins listening for these requests.
-func (s *Service[_, _, BlobSidecarsT, _]) Start(ctx context.Context) error {
+func (s *Service[_, BlobSidecarsT]) Start(ctx context.Context) error {
 	var err error
 
 	// subscribe to SidecarsReceived events
@@ -113,7 +102,7 @@ func (s *Service[_, _, BlobSidecarsT, _]) Start(ctx context.Context) error {
 	return nil
 }
 
-func (s *Service[_, _, BlobSidecarsT, _]) eventLoop(ctx context.Context) {
+func (s *Service[_, BlobSidecarsT]) eventLoop(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -133,7 +122,7 @@ func (s *Service[_, _, BlobSidecarsT, _]) eventLoop(ctx context.Context) {
 // handleBlobSidecarsProcessRequest handles the BlobSidecarsProcessRequest
 // event.
 // It processes the sidecars and publishes a BlobSidecarsProcessed event.
-func (s *Service[_, _, BlobSidecarsT, _]) handleBlobSidecarsProcessRequest(
+func (s *Service[_, BlobSidecarsT]) handleBlobSidecarsProcessRequest(
 	msg async.Event[BlobSidecarsT],
 ) {
 	if err := s.processSidecars(msg.Context(), msg.Data()); err != nil {
@@ -147,7 +136,7 @@ func (s *Service[_, _, BlobSidecarsT, _]) handleBlobSidecarsProcessRequest(
 
 // handleSidecarsVerifyRequest handles the SidecarsVerifyRequest event.
 // It verifies the sidecars and publishes a SidecarsVerified event.
-func (s *Service[_, _, BlobSidecarsT, _]) handleSidecarsVerifyRequest(
+func (s *Service[_, BlobSidecarsT]) handleSidecarsVerifyRequest(
 	msg async.Event[BlobSidecarsT],
 ) {
 	var sidecarsErr error
@@ -175,7 +164,7 @@ func (s *Service[_, _, BlobSidecarsT, _]) handleSidecarsVerifyRequest(
 /* -------------------------------------------------------------------------- */
 
 // ProcessSidecars processes the blob sidecars.
-func (s *Service[_, _, BlobSidecarsT, _]) processSidecars(
+func (s *Service[_, BlobSidecarsT]) processSidecars(
 	_ context.Context,
 	sidecars BlobSidecarsT,
 ) error {
@@ -188,7 +177,7 @@ func (s *Service[_, _, BlobSidecarsT, _]) processSidecars(
 }
 
 // VerifyIncomingBlobs receives blobs from the network and processes them.
-func (s *Service[_, _, BlobSidecarsT, _]) verifySidecars(
+func (s *Service[_, BlobSidecarsT]) verifySidecars(
 	sidecars BlobSidecarsT,
 ) error {
 	// If there are no blobs to verify, return early.

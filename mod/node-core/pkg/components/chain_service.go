@@ -67,7 +67,6 @@ func ProvideChainService[
 		*ExecutionPayloadHeader,
 		*Genesis,
 		*PayloadAttributes,
-		*Withdrawal,
 	](
 		in.StorageBackend,
 		in.Logger.With("service", "blockchain"),

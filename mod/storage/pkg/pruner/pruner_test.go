@@ -31,14 +31,16 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
+	async "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner/mocks"
 	"github.com/stretchr/testify/mock"
 )
 
-func pruneRangeFn[EventT pruner.BlockEvent[pruner.BeaconBlock]](
-	event EventT,
+func pruneRangeFn[BlockT pruner.BeaconBlock](
+	event async.Event[BlockT],
 ) (uint64, uint64) {
 	slot := event.Data().GetSlot().Unwrap()
 	return slot, slot
@@ -70,7 +72,7 @@ func TestPruner(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			logger := log.NewNopLogger()
-			ch := make(chan pruner.BlockEvent[pruner.BeaconBlock])
+			ch := make(chan async.Event[pruner.BeaconBlock])
 			mockPrunable := new(mocks.Prunable)
 			mockPrunable.On("Prune", mock.Anything, mock.Anything).
 				Return(nil)
@@ -78,7 +80,6 @@ func TestPruner(t *testing.T) {
 			// create Pruner with a Noop logger
 			testPruner := pruner.NewPruner[
 				pruner.BeaconBlock,
-				pruner.BlockEvent[pruner.BeaconBlock],
 				pruner.Prunable,
 			](logger, mockPrunable, "TestPruner", ch, pruneRangeFn)
 
@@ -92,10 +93,12 @@ func TestPruner(t *testing.T) {
 			for _, index := range tt.pruneIndexes {
 				block := mocks.BeaconBlock{}
 				block.On("GetSlot").Return(math.U64(index))
-				event := mocks.BlockEvent[pruner.BeaconBlock]{}
-				event.On("Data").Return(&block)
-				event.On("Is", mock.Anything).Return(true)
-				ch <- &event
+				event := async.NewEvent[pruner.BeaconBlock](
+					context.Background(),
+					events.BeaconBlockFinalizedEvent,
+					&block,
+				)
+				ch <- event
 			}
 
 			// some time for the goroutine to process the requests
