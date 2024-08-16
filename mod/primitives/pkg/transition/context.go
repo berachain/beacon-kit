@@ -40,7 +40,17 @@ type Context struct {
 	skipValidateResult bool
 }
 
+func Default() *Context {
+	return &Context{
+		optimisticEngine:        false,
+		skipPayloadVerification: false,
+		skipValidateRandao:      false,
+		skipValidateResult:      false,
+	}
+}
+
 func (c *Context) Wrap(ctx context.Context) *Context {
+	c = Default()
 	c.Context = ctx
 	return c
 }

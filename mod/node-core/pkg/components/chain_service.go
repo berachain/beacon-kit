@@ -149,7 +149,7 @@ func ProvideChainService[
 	BeaconBlockHeaderT, BeaconStateT, ContextT, DepositT,
 	ExecutionEngineT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 	GenesisT, LoggerT, PayloadAttributesT, LocalBuilderT,
-	PayloadIDT, StateProcessorT, StorageBackendT, WithdrawalsT,
+	PayloadIDT, StateProcessorT, StorageBackendT, WithdrawalT,
 ] {
 	return blockchain.NewService[
 		AvailabilityStoreT,
@@ -169,7 +169,7 @@ func ProvideChainService[
 		PayloadIDT,
 		StateProcessorT,
 		StorageBackendT,
-		WithdrawalsT,
+		WithdrawalT,
 	](
 		in.StorageBackend,
 		in.Logger.With("service", "blockchain"),

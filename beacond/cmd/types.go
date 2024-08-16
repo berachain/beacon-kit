@@ -37,7 +37,6 @@ import (
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
-	ethclient "github.com/berachain/beacon-kit/mod/execution/pkg/client/ethclient"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
@@ -243,8 +242,6 @@ type (
 
 	// Eth1Data is a type alias for the eth1 data.
 	Eth1Data = types.Eth1Data
-
-	EthClient = ethclient.Client[*ExecutionPayload]
 
 	// EngineClient is a type alias for the engine client.
 	EngineClient = engineclient.EngineClient[

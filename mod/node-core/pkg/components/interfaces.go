@@ -8,6 +8,7 @@ import (
 
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/geth-primitives/pkg/bind"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
@@ -289,12 +290,6 @@ type (
 	}
 
 	ConsensusEngine interface {
-		FinalizeBlock(
-			ctx context.Context, req proto.Message,
-		) (transition.ValidatorUpdates, error)
-		InitGenesis(
-			ctx context.Context, bz []byte,
-		) (transition.ValidatorUpdates, error)
 		PrepareProposal(
 			ctx sdk.Context, req *v1.PrepareProposalRequest,
 		) (*v1.PrepareProposalResponse, error)
@@ -391,9 +386,10 @@ type (
 	EngineClient[
 		ExecutionPayloadT any,
 		PayloadAttributesT any,
-		PayloadIDT ~[8]byte,
+		PayloadIDT any,
 	] interface {
 		service.Basic
+		bind.ContractFilterer
 		GetPayload(
 			ctx context.Context,
 			payloadID engineprimitives.PayloadID,

@@ -22,6 +22,7 @@ package main
 
 import (
 	nodecomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 )
 
 func DefaultComponents() []any {
@@ -49,8 +50,8 @@ func DefaultComponents() []any {
 			*ExecutionPayload, *Logger, *SlashingInfo,
 		],
 		nodecomponents.ProvideBeaconDepositContract[
-			*Deposit, *EthClient, *ExecutionPayload, *ForkData,
-			WithdrawalCredentials,
+			*Deposit, *EngineClient, *ExecutionPayload, *ForkData,
+			*PayloadAttributes, PayloadID, WithdrawalCredentials,
 		],
 		nodecomponents.ProvideBlockPruner[
 			*AttestationData, *BeaconBlock, *BeaconBlockBody,
@@ -148,7 +149,7 @@ func DefaultComponents() []any {
 			*Validator, Validators, *Withdrawal, Withdrawals,
 			WithdrawalCredentials,
 		],
-		nodecomponents.ProvideKVStore[
+		nodecomponents.ProvideStore[
 			*BeaconBlockHeader, *Eth1Data, *ExecutionPayloadHeader, *Fork,
 			*Validator, Validators, WithdrawalCredentials,
 		],
@@ -217,12 +218,12 @@ func DefaultComponents() []any {
 	)
 
 	components = append(components,
-		nodecomponents.ProvideBlobBroker[*SidecarEvent],
-		nodecomponents.ProvideBlockBroker[*BlockEvent],
-		nodecomponents.ProvideGenesisBroker[*GenesisEvent],
-		nodecomponents.ProvideSlotBroker[*SlotEvent],
-		nodecomponents.ProvideStatusBroker[*StatusEvent],
-		nodecomponents.ProvideValidatorUpdateBroker[*ValidatorUpdateEvent],
+		nodecomponents.ProvideBlobBroker[*BlobSidecars],
+		nodecomponents.ProvideBlockBroker[*BeaconBlock],
+		nodecomponents.ProvideGenesisBroker[*Genesis],
+		nodecomponents.ProvideSlotBroker[*SlotData],
+		nodecomponents.ProvideStatusBroker[*service.StatusEvent],
+		nodecomponents.ProvideValidatorUpdateBroker[ValidatorUpdates],
 	)
 	return components
 }

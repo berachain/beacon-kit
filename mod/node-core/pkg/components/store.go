@@ -27,14 +27,14 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 )
 
-// KVStoreInput is the input for the ProvideKVStore function.
-type KVStoreInput struct {
+// StoreInput is the input for the ProvideKVStore function.
+type StoreInput struct {
 	depinject.In
 	KVStoreService store.KVStoreService
 }
 
-// ProvideKVStore is the depinject provider that returns a beacon KV store.
-func ProvideKVStore[
+// ProvideStore is the depinject provider that returns a beacon KV store.
+func ProvideStore[
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	Eth1DataT Eth1Data[Eth1DataT],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
@@ -42,7 +42,7 @@ func ProvideKVStore[
 	ValidatorT Validator[ValidatorT, WithdrawalCredentialsT],
 	ValidatorsT ~[]ValidatorT,
 	WithdrawalCredentialsT WithdrawalCredentials,
-](in KVStoreInput) *beacondb.KVStore[
+](in StoreInput) *beacondb.KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ] {

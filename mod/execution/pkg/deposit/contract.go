@@ -49,14 +49,10 @@ func NewWrappedBeaconDepositContract[
 ](
 	address common.ExecutionAddress,
 	client EngineClientT,
-) (*WrappedBeaconDepositContract[
-	DepositT,
-	WithdrawalCredentialsT,
-], error) {
+) (*WrappedBeaconDepositContract[DepositT, WithdrawalCredentialsT], error) {
 	contract, err := deposit.NewBeaconDepositContractFilterer(
 		gethprimitives.ExecutionAddress(address), client,
 	)
-
 	if err != nil {
 		return nil, err
 	} else if contract == nil {
@@ -64,8 +60,7 @@ func NewWrappedBeaconDepositContract[
 	}
 
 	return &WrappedBeaconDepositContract[
-		DepositT,
-		WithdrawalCredentialsT,
+		DepositT, WithdrawalCredentialsT,
 	]{
 		BeaconDepositContractFilterer: *contract,
 	}, nil
