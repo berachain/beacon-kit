@@ -51,10 +51,24 @@ type DepositServiceIn[
 // ProvideDepositService provides the deposit service to the depinject
 // framework.
 func ProvideDepositService[
+	AttestationDataT any,
+	BeaconBlockT BeaconBlock[
+		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	],
+	BeaconBlockBodyT BeaconBlockBody[
+		BeaconBlockBodyT, AttestationDataT, *Deposit,
+		Eth1DataT, *ExecutionPayload, SlashingInfoT,
+	],
+	BeaconBlockHeaderT any,
+	Eth1DataT any,
 	LoggerT log.AdvancedLogger[any, LoggerT],
+	SlashingInfoT any,
 ](
-	in DepositServiceIn[LoggerT],
-) (*DepositService, error) {
+	in DepositServiceIn[BeaconBlockT, LoggerT],
+) (*deposit.Service[
+	BeaconBlockT, BeaconBlockBodyT, *Deposit,
+	*ExecutionPayload, WithdrawalCredentials,
+], error) {
 	blkSub, err := in.BlockBroker.Subscribe()
 	if err != nil {
 		in.Logger.Error("failed to subscribe to block feed", "err", err)
@@ -63,10 +77,11 @@ func ProvideDepositService[
 
 	// Build the deposit service.
 	return deposit.NewService[
-		*BeaconBlock,
-		*BeaconBlockBody,
+		BeaconBlockT,
+		BeaconBlockBodyT,
 		*Deposit,
 		*ExecutionPayload,
+		WithdrawalCredentials,
 	](
 		in.Logger.With("service", "deposit"),
 		math.U64(in.ChainSpec.Eth1FollowDistance()),

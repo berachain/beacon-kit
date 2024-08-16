@@ -24,14 +24,12 @@ import (
 	"cosmossdk.io/core/appmodule/v2"
 	broker "github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
-	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
 	consruntimetypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
-	"github.com/berachain/beacon-kit/mod/da/pkg/da"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
@@ -85,9 +83,6 @@ type (
 		*Withdrawal,
 	]
 
-	// BlockStoreService is a type alias for the block store service.
-	BlockStoreService = blockstore.Service[*BeaconBlock, *BlockStore]
-
 	// ChainService is a type alias for the chain service.
 	ChainService = blockchain.Service[
 		*AvailabilityStore,
@@ -120,26 +115,8 @@ type (
 		*SlotData,
 	]
 
-	// DAService is a type alias for the DA service.
-	DAService = da.Service[
-		*AvailabilityStore,
-		*BeaconBlockBody,
-		*BlobSidecars,
-		*SidecarsBroker,
-		*ExecutionPayload,
-	]
-
 	// DBManager is a type alias for the database manager.
 	DBManager = manager.DBManager
-
-	// DepositService is a type alias for the deposit service.
-	DepositService = deposit.Service[
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*Deposit,
-		*ExecutionPayload,
-		WithdrawalCredentials,
-	]
 
 	// EngineClient is a type alias for the engine client.
 	EngineClient = engineclient.EngineClient[
