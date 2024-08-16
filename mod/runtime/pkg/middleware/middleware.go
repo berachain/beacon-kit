@@ -36,14 +36,11 @@ import (
 
 // ABCIMiddleware is a middleware between ABCI and the validator logic.
 type ABCIMiddleware[
-	AvailabilityStoreT any,
 	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BlobSidecarsT interface {
 		constraints.SSZMarshallable
 		Empty() BlobSidecarsT
 	},
-	DepositT,
-	ExecutionPayloadT any,
 	GenesisT json.Unmarshaler,
 	SlotDataT any,
 ] struct {
@@ -83,14 +80,11 @@ type ABCIMiddleware[
 //
 
 func NewABCIMiddleware[
-	AvailabilityStoreT any,
 	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BlobSidecarsT interface {
 		constraints.SSZMarshallable
 		Empty() BlobSidecarsT
 	},
-	DepositT,
-	ExecutionPayloadT any,
 	GenesisT json.Unmarshaler,
 	SlotDataT any,
 ](
@@ -99,12 +93,10 @@ func NewABCIMiddleware[
 	telemetrySink TelemetrySink,
 	dispatcher types.Dispatcher,
 ) *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BlobSidecarsT,
-	DepositT, ExecutionPayloadT, GenesisT, SlotDataT,
+	BeaconBlockT, BlobSidecarsT, GenesisT, SlotDataT,
 ] {
 	return &ABCIMiddleware[
-		AvailabilityStoreT, BeaconBlockT, BlobSidecarsT,
-		DepositT, ExecutionPayloadT, GenesisT, SlotDataT,
+		BeaconBlockT, BlobSidecarsT, GenesisT, SlotDataT,
 	]{
 		chainSpec: chainSpec,
 		blobGossiper: rp2p.NewNoopBlobHandler[
@@ -129,9 +121,9 @@ func NewABCIMiddleware[
 }
 
 // Start subscribes the middleware to the events it needs to listen for.
-func (am *ABCIMiddleware[
-	_, _, _, _, _, _, _,
-]) Start(_ context.Context) error {
+func (am *ABCIMiddleware[_, _, _, _]) Start(
+	_ context.Context,
+) error {
 	var err error
 	if err = am.dispatcher.Subscribe(
 		events.GenesisDataProcessed, am.subGenDataProcessed,
@@ -168,7 +160,7 @@ func (am *ABCIMiddleware[
 
 // Name returns the name of the middleware.
 func (am *ABCIMiddleware[
-	_, _, _, _, _, _, _,
+	_, _, _, _,
 ]) Name() string {
 	return "abci-middleware"
 }

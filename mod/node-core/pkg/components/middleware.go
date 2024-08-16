@@ -47,8 +47,7 @@ func ProvideABCIMiddleware[
 	in ABCIMiddlewareInput[LoggerT],
 ) (*ABCIMiddleware, error) {
 	return middleware.NewABCIMiddleware[
-		*AvailabilityStore, *BeaconBlock, *BlobSidecars,
-		*Deposit, *ExecutionPayload, *Genesis, *SlotData,
+		*BeaconBlock, *BlobSidecars, *Genesis, *SlotData,
 	](
 		in.ChainSpec,
 		in.Logger,
