@@ -60,10 +60,9 @@ func ProvideDepositService[
 
 	// Build the deposit service.
 	return deposit.NewService[
-		*BeaconBlockBody,
 		*BeaconBlock,
-		*BlockEvent,
-		*DepositStore,
+		*BeaconBlockBody,
+		*Deposit,
 		*ExecutionPayload,
 	](
 		in.Logger.With("service", "deposit"),

@@ -214,7 +214,6 @@ type (
 	DepositService = deposit.Service[
 		*BeaconBlock,
 		*BeaconBlockBody,
-		*BlockEvent,
 		*Deposit,
 		*ExecutionPayload,
 		WithdrawalCredentials,
