@@ -37,13 +37,14 @@ type Dispatcher interface {
 // EventDispatcher is the API for a dispatcher that facilitates the publishing
 // of async events.
 type EventDispatcher interface {
-	// PublishEvent publishes an event to the dispatcher.
-	PublishEvent(event BaseEvent) error
+	// Publish publishes an event to the dispatcher.
+	Publish(event BaseEvent) error
 	// Subscribe subscribes the given channel to all events with the given event
 	// ID.
 	// Contract: the channel must be a Subscription[T], where T is the expected
 	// type of the event data.
 	Subscribe(eventID EventID, ch any) error
+	// TODO: add unsubscribe
 }
 
 // publisher is the interface that supports basic event publisher operations.

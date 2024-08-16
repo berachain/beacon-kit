@@ -161,7 +161,7 @@ func (s *Service[_, _, BlobSidecarsT, _]) handleSidecarsVerifyRequest(
 	}
 
 	// emit the sidecars verification event with error from verifySidecars
-	if err := s.dispatcher.PublishEvent(
+	if err := s.dispatcher.Publish(
 		async.NewEvent(
 			msg.Context(), events.SidecarsVerified, msg.Data(), sidecarsErr,
 		),

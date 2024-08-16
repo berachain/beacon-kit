@@ -237,7 +237,7 @@ func (s *Service[
 	}
 
 	// Emit the event containing the validator updates.
-	if err := s.dispatcher.PublishEvent(
+	if err := s.dispatcher.Publish(
 		async.NewEvent(
 			msg.Context(),
 			events.GenesisDataProcessed,
@@ -266,7 +266,7 @@ func (s *Service[
 
 	// emit a BeaconBlockVerified event with the error result from \
 	// VerifyIncomingBlock
-	if err := s.dispatcher.PublishEvent(
+	if err := s.dispatcher.Publish(
 		async.NewEvent(
 			msg.Context(),
 			events.BeaconBlockVerified,
@@ -305,7 +305,7 @@ func (s *Service[
 	}
 
 	// Emit the event containing the validator updates.
-	if err := s.dispatcher.PublishEvent(
+	if err := s.dispatcher.Publish(
 		async.NewEvent(
 			msg.Context(),
 			events.FinalValidatorUpdatesProcessed,

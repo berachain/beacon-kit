@@ -54,7 +54,7 @@ func (s *Service[
 // sendNextFCUWithAttributes sends a forkchoice update to the execution
 // client with attributes.
 //
-//nolint:lll // it's fine
+
 func (s *Service[
 	_, BeaconBlockT, _, _, BeaconStateT,
 	_, _, ExecutionPayloadHeaderT, _, _, _,

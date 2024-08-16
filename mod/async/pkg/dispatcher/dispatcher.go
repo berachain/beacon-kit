@@ -47,7 +47,7 @@ func New(
 }
 
 // Publish dispatches the given event to the broker with the given eventID.
-func (d *Dispatcher) PublishEvent(event types.BaseEvent) error {
+func (d *Dispatcher) Publish(event types.BaseEvent) error {
 	broker, ok := d.brokers[event.ID()]
 	if !ok {
 		return errBrokerNotFound(event.ID())

@@ -216,14 +216,14 @@ func (s *Service[
 	}
 
 	// emit a built block event with the built block and the error
-	if bbErr := s.dispatcher.PublishEvent(
+	if bbErr := s.dispatcher.Publish(
 		async.NewEvent(req.Context(), events.BuiltBeaconBlock, blk, err),
 	); bbErr != nil {
 		s.logger.Error("failed to dispatch built block", "err", err)
 	}
 
 	// emit a built sidecars event with the built sidecars and the error
-	if scErr := s.dispatcher.PublishEvent(
+	if scErr := s.dispatcher.Publish(
 		async.NewEvent(req.Context(), events.BuiltSidecars, sidecars, err),
 	); scErr != nil {
 		s.logger.Error("failed to dispatch built sidecars", "err", err)

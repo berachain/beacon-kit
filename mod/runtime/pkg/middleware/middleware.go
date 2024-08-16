@@ -81,7 +81,7 @@ type ABCIMiddleware[
 
 // NewABCIMiddleware creates a new instance of the Handler struct.
 //
-//nolint:lll // long types
+
 func NewABCIMiddleware[
 	AvailabilityStoreT any,
 	BeaconBlockT BeaconBlock[BeaconBlockT],

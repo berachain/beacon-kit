@@ -32,9 +32,7 @@ interface IBeaconVerifier {
     function executionFeeRecipientGIndex() external view returns (uint256);
 
     /// @notice Get the parent beacon block root from the given timestamp.
-    function getParentBeaconBlockRootAt(
-        uint64 timestamp
-    )
+    function getParentBeaconBlockRootAt(uint64 timestamp)
         external
         view
         returns (bytes32);
