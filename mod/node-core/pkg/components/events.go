@@ -21,58 +21,52 @@
 package components
 
 import (
-	"github.com/berachain/beacon-kit/mod/async/pkg/publisher"
-	"github.com/berachain/beacon-kit/mod/async/pkg/server"
+	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 )
 
-// ProvideEventServer provides an event server.
-func ProvideEventServer() *EventServer {
-	return server.NewEventServer()
-}
-
 // ProvidePublishers provides a publisher for beacon block
 // finalized events.
-func ProvidePublishers() []asynctypes.Publisher {
-	return []asynctypes.Publisher{
-		publisher.New[GenesisDataReceivedEvent](
+func ProvidePublishers() []asynctypes.Broker {
+	return []asynctypes.Broker{
+		broker.New[GenesisDataReceivedEvent](
 			events.GenesisDataReceived,
 		),
-		publisher.New[GenesisDataProcessedEvent](
+		broker.New[GenesisDataProcessedEvent](
 			events.GenesisDataProcessed,
 		),
-		publisher.New[NewSlotEvent](
+		broker.New[NewSlotEvent](
 			events.NewSlot,
 		),
-		publisher.New[BuiltBeaconBlockEvent](
+		broker.New[BuiltBeaconBlockEvent](
 			events.BuiltBeaconBlock,
 		),
-		publisher.New[BuiltSidecarsEvent](
+		broker.New[BuiltSidecarsEvent](
 			events.BuiltSidecars,
 		),
-		publisher.New[BeaconBlockReceivedEvent](
+		broker.New[BeaconBlockReceivedEvent](
 			events.BeaconBlockReceived,
 		),
-		publisher.New[SidecarsReceivedEvent](
+		broker.New[SidecarsReceivedEvent](
 			events.SidecarsReceived,
 		),
-		publisher.New[BeaconBlockVerifiedEvent](
+		broker.New[BeaconBlockVerifiedEvent](
 			events.BeaconBlockVerified,
 		),
-		publisher.New[SidecarsVerifiedEvent](
+		broker.New[SidecarsVerifiedEvent](
 			events.SidecarsVerified,
 		),
-		publisher.New[FinalBeaconBlockReceivedEvent](
+		broker.New[FinalBeaconBlockReceivedEvent](
 			events.FinalBeaconBlockReceived,
 		),
-		publisher.New[FinalSidecarsReceivedEvent](
+		broker.New[FinalSidecarsReceivedEvent](
 			events.FinalSidecarsReceived,
 		),
-		publisher.New[FinalValidatorUpdatesProcessedEvent](
+		broker.New[FinalValidatorUpdatesProcessedEvent](
 			events.FinalValidatorUpdatesProcessed,
 		),
-		publisher.New[FinalizedBlockEvent](
+		broker.New[FinalizedBlockEvent](
 			events.BeaconBlockFinalizedEvent,
 		),
 	}

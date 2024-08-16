@@ -46,7 +46,7 @@ func (s *Service[
 	// TODO: Verify if the slot number is correct here, I believe in current
 	// form
 	// it should be +1'd. Not a big deal until hardforks are in play though.
-	if err = s.localBuilder.SendForceHeadFCU(ctx, st, slot+1); err != nil {
+	if err = s.lb.SendForceHeadFCU(ctx, st, slot+1); err != nil {
 		s.logger.Error(
 			"failed to send force head FCU",
 			"error", err,
@@ -117,7 +117,7 @@ func (s *Service[
 	}
 
 	// Submit a request for a new payload.
-	if _, err = s.localBuilder.RequestPayloadAsync(
+	if _, err = s.lb.RequestPayloadAsync(
 		ctx,
 		st,
 		// We are rebuilding for the current slot.
@@ -180,7 +180,7 @@ func (s *Service[
 	)
 
 	// We process the slot to update any RANDAO values.
-	if _, err := s.stateProcessor.ProcessSlots(
+	if _, err := s.sp.ProcessSlots(
 		st, slot,
 	); err != nil {
 		return err
@@ -188,13 +188,13 @@ func (s *Service[
 
 	// We then trigger a request for the next payload.
 	payload := blk.GetBody().GetExecutionPayload()
-	if _, err := s.localBuilder.RequestPayloadAsync(
+	if _, err := s.lb.RequestPayloadAsync(
 		ctx, st,
 		slot,
 		// TODO: this is hood as fuck.
 		max(
 			//#nosec:G701
-			uint64(time.Now().Unix()+int64(s.chainSpec.TargetSecondsPerEth1Block())),
+			uint64(time.Now().Unix()+int64(s.cs.TargetSecondsPerEth1Block())),
 			uint64((payload.GetTimestamp()+1)),
 		),
 		// The previous block root is simply the root of the block we just

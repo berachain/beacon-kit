@@ -89,7 +89,7 @@ type Service[
 	// metrics is a metrics collector.
 	metrics *validatorMetrics
 	// subNewSlot is a channel for new slot events.
-	subNewSlot async.Subscription[async.Event[SlotDataT]]
+	subNewSlot chan async.Event[SlotDataT]
 }
 
 // NewService creates a new validator service.
@@ -156,7 +156,7 @@ func NewService[
 		remotePayloadBuilders: remotePayloadBuilders,
 		metrics:               newValidatorMetrics(ts),
 		dispatcher:            dispatcher,
-		subNewSlot:            async.NewSubscription[async.Event[SlotDataT]](),
+		subNewSlot:            make(chan async.Event[SlotDataT]),
 	}
 }
 
@@ -180,8 +180,21 @@ func (s *Service[
 		return err
 	}
 	// set the handler for new slot events
-	s.subNewSlot.Listen(ctx, s.handleNewSlot)
+	go s.listen(ctx)
 	return nil
+}
+
+func (s *Service[_, _, _, _, _, _, _, _, _, _, _, _, SlotDataT]) listen(
+	ctx context.Context,
+) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case event := <-s.subNewSlot:
+			s.handleNewSlot(event)
+		}
+	}
 }
 
 // handleNewSlot builds a block and sidecars for the requested

@@ -60,17 +60,17 @@ type Service[
 	]
 	// logger is used for logging messages in the service.
 	logger log.Logger[any]
-	// chainSpec holds the chain specifications.
-	chainSpec common.ChainSpec
+	// cs holds the chain specifications.
+	cs common.ChainSpec
 	// dispatcher is the dispatcher for the service.
 	dispatcher async.Dispatcher
-	// executionEngine is the execution engine responsible for processing
+	// ee is the execution engine responsible for processing
 	// execution payloads.
-	executionEngine ExecutionEngine[PayloadAttributesT]
-	// localBuilder is a local builder for constructing new beacon states.
-	localBuilder LocalBuilder[BeaconStateT]
-	// stateProcessor is the state processor for beacon blocks and states.
-	stateProcessor StateProcessor[
+	ee ExecutionEngine[PayloadAttributesT]
+	// lb is a local builder for constructing new beacon states.
+	lb LocalBuilder[BeaconStateT]
+	// sp is the state processor for beacon blocks and states.
+	sp StateProcessor[
 		BeaconBlockT,
 		BeaconStateT,
 		*transition.Context,
@@ -87,12 +87,12 @@ type Service[
 
 	// subFinalBlkReceived is a channel for receiving finalize beacon block
 	// requests.
-	subFinalBlkReceived async.Subscription[async.Event[BeaconBlockT]]
+	subFinalBlkReceived chan async.Event[BeaconBlockT]
 	// subBlockReceived is a channel for receiving verify beacon block requests.
-	subBlockReceived async.Subscription[async.Event[BeaconBlockT]]
+	subBlockReceived chan async.Event[BeaconBlockT]
 	// subGenDataReceived is a subscription for receiving genesis data
 	// received events.
-	subGenDataReceived async.Subscription[async.Event[GenesisT]]
+	subGenDataReceived chan async.Event[GenesisT]
 }
 
 // NewService creates a new validator service.
@@ -147,17 +147,17 @@ func NewService[
 	]{
 		sb:                      sb,
 		logger:                  logger,
-		chainSpec:               chainSpec,
+		cs:                      chainSpec,
 		dispatcher:              dispatcher,
-		executionEngine:         executionEngine,
-		localBuilder:            localBuilder,
-		stateProcessor:          stateProcessor,
+		ee:                      executionEngine,
+		lb:                      localBuilder,
+		sp:                      stateProcessor,
 		metrics:                 newChainMetrics(ts),
 		optimisticPayloadBuilds: optimisticPayloadBuilds,
 		forceStartupSyncOnce:    new(sync.Once),
-		subFinalBlkReceived:     async.NewSubscription[async.Event[BeaconBlockT]](),
-		subBlockReceived:        async.NewSubscription[async.Event[BeaconBlockT]](),
-		subGenDataReceived:      async.NewSubscription[async.Event[GenesisT]](),
+		subFinalBlkReceived:     make(chan async.Event[BeaconBlockT]),
+		subBlockReceived:        make(chan async.Event[BeaconBlockT]),
+		subGenDataReceived:      make(chan async.Event[GenesisT]),
 	}
 }
 
@@ -193,7 +193,7 @@ func (s *Service[
 	}
 
 	// start a goroutine to listen for requests and handle accordingly
-	s.listen(ctx)
+	go s.listen(ctx)
 	return nil
 }
 
@@ -201,9 +201,18 @@ func (s *Service[
 func (s *Service[
 	_, BeaconBlockT, _, _, _, _, _, _, GenesisT, _, _,
 ]) listen(ctx context.Context) {
-	s.subGenDataReceived.Listen(ctx, s.handleProcessGenesisDataEvent)
-	s.subBlockReceived.Listen(ctx, s.handleVerifyBeaconBlockEvent)
-	s.subFinalBlkReceived.Listen(ctx, s.handleFinalizeBeaconBlockEvent)
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case event := <-s.subGenDataReceived:
+			s.handleProcessGenesisDataEvent(event)
+		case event := <-s.subBlockReceived:
+			s.handleVerifyBeaconBlockEvent(event)
+		case event := <-s.subFinalBlkReceived:
+			s.handleFinalizeBeaconBlockEvent(event)
+		}
+	}
 }
 
 /* -------------------------------------------------------------------------- */

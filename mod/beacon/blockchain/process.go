@@ -37,7 +37,7 @@ func (s *Service[
 	ctx context.Context,
 	genesisData GenesisT,
 ) (transition.ValidatorUpdates, error) {
-	return s.stateProcessor.InitializePreminedBeaconStateFromEth1(
+	return s.sp.InitializePreminedBeaconStateFromEth1(
 		s.sb.StateFromContext(ctx),
 		genesisData.GetDeposits(),
 		genesisData.GetExecutionPayloadHeader(),
@@ -106,7 +106,7 @@ func (s *Service[
 ) (transition.ValidatorUpdates, error) {
 	startTime := time.Now()
 	defer s.metrics.measureStateTransitionDuration(startTime)
-	valUpdates, err := s.stateProcessor.Transition(
+	valUpdates, err := s.sp.Transition(
 		&transition.Context{
 			Context:          ctx,
 			OptimisticEngine: true,

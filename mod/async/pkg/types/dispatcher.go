@@ -28,8 +28,8 @@ type Dispatcher interface {
 	EventDispatcher
 	// Start starts the dispatcher.
 	Start(ctx context.Context) error
-	// RegisterPublishers registers publishers to the dispatcher.
-	RegisterPublishers(publishers ...Publisher) error
+	// RegisterBrokers registers brokers to the dispatcher.
+	RegisterBrokers(brokers ...Broker) error
 	// Name returns the name of the dispatcher.
 	Name() string
 }
@@ -47,7 +47,7 @@ type EventDispatcher interface {
 }
 
 // publisher is the interface that supports basic event publisher operations.
-type Publisher interface {
+type Broker interface {
 	// Start starts the event publisher.
 	Start(ctx context.Context)
 	// Publish publishes the given event to the event publisher.

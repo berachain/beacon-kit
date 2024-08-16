@@ -47,13 +47,12 @@ func (h *ABCIMiddleware[
 	bz []byte,
 ) (transition.ValidatorUpdates, error) {
 	var (
-		err              error
-		gdpEvent         async.Event[transition.ValidatorUpdates]
-		awaitCtx, cancel = context.WithTimeout(ctx, AwaitTimeout)
+		err             error
+		waitCtx, cancel = context.WithTimeout(ctx, AwaitTimeout)
 	)
 	defer cancel()
-	// in theory this channel should already be empty, but we clear it anyways
-	h.subGenDataProcessed.Clear()
+	// TODO: in theory the GenesisDataReceived channel should be empty, but we
+	// should clear it anyways here to ensure that data is valid.
 
 	data := new(GenesisT)
 	if err = json.Unmarshal(bz, data); err != nil {
@@ -66,13 +65,22 @@ func (h *ABCIMiddleware[
 	); err != nil {
 		return nil, err
 	}
+	return h.waitForGenesisProcessed(waitCtx)
+}
 
-	gdpEvent, err = h.subGenDataProcessed.Await(awaitCtx)
-	if err != nil {
-		return nil, err
+// waitForGenesisProcessed waits until the genesis data has been processed and
+// returns the validator updates, or err if the context is cancelled.
+func (h *ABCIMiddleware[
+	_, _, _, _, _, _, _, _,
+]) waitForGenesisProcessed(
+	ctx context.Context,
+) (transition.ValidatorUpdates, error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case gdpEvent := <-h.subGenDataProcessed:
+		return gdpEvent.Data(), gdpEvent.Error()
 	}
-
-	return gdpEvent.Data(), gdpEvent.Error()
 }
 
 /* -------------------------------------------------------------------------- */
@@ -88,16 +96,15 @@ func (h *ABCIMiddleware[
 ) ([]byte, []byte, error) {
 	var (
 		err              error
-		builtBBEvent     async.Event[BeaconBlockT]
-		builtSCEvent     async.Event[BlobSidecarsT]
+		builtBeaconBlock BeaconBlockT
+		builtSidecars    BlobSidecarsT
 		startTime        = time.Now()
 		awaitCtx, cancel = context.WithTimeout(ctx, AwaitTimeout)
 	)
+	// TODO: clear the built beacon block and sidecars channels, else we may
+	// end up handling old data from previous slots.
 	defer cancel()
 	defer h.metrics.measurePrepareProposalDuration(startTime)
-	// in theory these subs should already be empty, but we clear them anyways
-	h.subBuiltBeaconBlock.Clear()
-	h.subBuiltSidecars.Clear()
 
 	if err = h.dispatcher.PublishEvent(
 		async.NewEvent(
@@ -108,27 +115,49 @@ func (h *ABCIMiddleware[
 	}
 
 	// wait for built beacon block
-	builtBBEvent, err = h.subBuiltBeaconBlock.Await(awaitCtx)
+	builtBeaconBlock, err = h.waitForBuiltBeaconBlock(awaitCtx)
 	if err != nil {
-		return nil, nil, err
-	}
-	if err = builtBBEvent.Error(); err != nil {
 		return nil, nil, err
 	}
 
 	// wait for built sidecars
-	builtSCEvent, err = h.subBuiltSidecars.Await(awaitCtx)
+	builtSidecars, err = h.waitForBuiltSidecars(awaitCtx)
 	if err != nil {
-		return nil, nil, err
-	}
-	if err = builtSCEvent.Error(); err != nil {
 		return nil, nil, err
 	}
 
 	// gossip the built beacon block and blob sidecars
 	return h.handleBuiltBeaconBlockAndSidecars(
-		ctx, builtBBEvent.Data(), builtSCEvent.Data(),
+		ctx, builtBeaconBlock, builtSidecars,
 	)
+}
+
+// waitForBuiltBeaconBlock waits for the built beacon block to be received.
+func (h *ABCIMiddleware[
+	_, BeaconBlockT, BeaconBlockBundleT, BlobSidecarsT, _, _, _, SlotDataT,
+]) waitForBuiltBeaconBlock(
+	ctx context.Context,
+) (BeaconBlockT, error) {
+	select {
+	case <-ctx.Done():
+		return *new(BeaconBlockT), ctx.Err()
+	case bbEvent := <-h.subBuiltBeaconBlock:
+		return bbEvent.Data(), bbEvent.Error()
+	}
+}
+
+// waitForBuiltSidecars waits for the built sidecars to be received.
+func (h *ABCIMiddleware[
+	_, BeaconBlockT, BeaconBlockBundleT, BlobSidecarsT, _, _, _, SlotDataT,
+]) waitForBuiltSidecars(
+	ctx context.Context,
+) (BlobSidecarsT, error) {
+	select {
+	case <-ctx.Done():
+		return *new(BlobSidecarsT), ctx.Err()
+	case scEvent := <-h.subBuiltSidecars:
+		return scEvent.Data(), scEvent.Error()
+	}
 }
 
 // handleBeaconBlockBundleResponse gossips the built beacon block and blob
@@ -175,9 +204,6 @@ func (h *ABCIMiddleware[
 		awaitCtx, cancel = context.WithTimeout(ctx, AwaitTimeout)
 	)
 	defer cancel()
-	// in theory these subs should already be empty, probably redundant
-	h.subBBVerified.Clear()
-	h.subSCVerified.Clear()
 	abciReq, ok := req.(*cmtabci.ProcessProposalRequest)
 	if !ok {
 		return nil, ErrInvalidProcessProposalRequestType
@@ -210,15 +236,44 @@ func (h *ABCIMiddleware[
 	}
 
 	// err if the built beacon block or sidecars failed verification.
-	_, err = h.subBBVerified.Await(awaitCtx)
+	_, err = h.waitForBeaconBlockVerification(awaitCtx)
 	if err != nil {
 		return h.createProcessProposalResponse(err)
 	}
-	_, err = h.subSCVerified.Await(awaitCtx)
+	_, err = h.waitForSidecarVerification(awaitCtx)
 	if err != nil {
 		return h.createProcessProposalResponse(err)
 	}
 	return h.createProcessProposalResponse(nil)
+}
+
+// waitForBeaconBlockVerification waits for the built beacon block to be
+// verified.
+func (h *ABCIMiddleware[
+	_, BeaconBlockT, _, BlobSidecarsT, _, _, _, _,
+]) waitForBeaconBlockVerification(
+	ctx context.Context,
+) (BeaconBlockT, error) {
+	select {
+	case <-ctx.Done():
+		return *new(BeaconBlockT), ctx.Err()
+	case vEvent := <-h.subBBVerified:
+		return vEvent.Data(), vEvent.Error()
+	}
+}
+
+// waitForSidecarVerification waits for the built sidecars to be verified.
+func (h *ABCIMiddleware[
+	_, BeaconBlockT, _, BlobSidecarsT, _, _, _, _,
+]) waitForSidecarVerification(
+	ctx context.Context,
+) (BlobSidecarsT, error) {
+	select {
+	case <-ctx.Done():
+		return *new(BlobSidecarsT), ctx.Err()
+	case vEvent := <-h.subSCVerified:
+		return vEvent.Data(), vEvent.Error()
+	}
 }
 
 // createResponse generates the appropriate ProcessProposalResponse based on the
@@ -245,15 +300,13 @@ func (h *ABCIMiddleware[
 	ctx context.Context, req proto.Message,
 ) (transition.ValidatorUpdates, error) {
 	var (
-		err                  error
-		blk                  BeaconBlockT
-		blobs                BlobSidecarsT
-		finalValUpdatesEvent async.Event[transition.ValidatorUpdates]
-		awaitCtx, cancel     = context.WithTimeout(ctx, AwaitTimeout)
+		err              error
+		blk              BeaconBlockT
+		blobs            BlobSidecarsT
+		finalValUpdates  transition.ValidatorUpdates
+		awaitCtx, cancel = context.WithTimeout(ctx, AwaitTimeout)
 	)
 	defer cancel()
-	// in theory this sub should already be empty, but we clear them anyways
-	h.subFinalValidatorUpdates.Clear()
 	abciReq, ok := req.(*cmtabci.FinalizeBlockRequest)
 	if !ok {
 		return nil, ErrInvalidFinalizeBlockRequestType
@@ -286,10 +339,25 @@ func (h *ABCIMiddleware[
 	}
 
 	// wait for the final validator updates.
-	finalValUpdatesEvent, err = h.subFinalValidatorUpdates.Await(awaitCtx)
+	finalValUpdates, err = h.waitForFinalValidatorUpdates(awaitCtx)
 	if err != nil {
 		return nil, err
 	}
 
-	return finalValUpdatesEvent.Data(), finalValUpdatesEvent.Error()
+	return finalValUpdates, nil
+}
+
+// waitForFinalValidatorUpdates waits for the final validator updates to be
+// received.
+func (h *ABCIMiddleware[
+	_, BeaconBlockT, _, BlobSidecarsT, _, _, _, _,
+]) waitForFinalValidatorUpdates(
+	ctx context.Context,
+) (transition.ValidatorUpdates, error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case event := <-h.subFinalValidatorUpdates:
+		return event.Data(), event.Error()
+	}
 }

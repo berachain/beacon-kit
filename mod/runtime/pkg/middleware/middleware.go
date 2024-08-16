@@ -72,12 +72,12 @@ type ABCIMiddleware[
 	// logger is the logger for the middleware.
 	logger log.Logger[any]
 	// subscription channels
-	subGenDataProcessed      types.Subscription[types.Event[validatorUpdates]]
-	subBuiltBeaconBlock      types.Subscription[types.Event[BeaconBlockT]]
-	subBuiltSidecars         types.Subscription[types.Event[BlobSidecarsT]]
-	subBBVerified            types.Subscription[types.Event[BeaconBlockT]]
-	subSCVerified            types.Subscription[types.Event[BlobSidecarsT]]
-	subFinalValidatorUpdates types.Subscription[types.Event[validatorUpdates]]
+	subGenDataProcessed      chan types.Event[validatorUpdates]
+	subBuiltBeaconBlock      chan types.Event[BeaconBlockT]
+	subBuiltSidecars         chan types.Event[BlobSidecarsT]
+	subBBVerified            chan types.Event[BeaconBlockT]
+	subSCVerified            chan types.Event[BlobSidecarsT]
+	subFinalValidatorUpdates chan types.Event[validatorUpdates]
 }
 
 // NewABCIMiddleware creates a new instance of the Handler struct.
@@ -121,12 +121,12 @@ func NewABCIMiddleware[
 		logger:                   logger,
 		metrics:                  newABCIMiddlewareMetrics(telemetrySink),
 		dispatcher:               dispatcher,
-		subGenDataProcessed:      types.NewSubscription[types.Event[validatorUpdates]](),
-		subBuiltBeaconBlock:      types.NewSubscription[types.Event[BeaconBlockT]](),
-		subBuiltSidecars:         types.NewSubscription[types.Event[BlobSidecarsT]](),
-		subBBVerified:            types.NewSubscription[types.Event[BeaconBlockT]](),
-		subSCVerified:            types.NewSubscription[types.Event[BlobSidecarsT]](),
-		subFinalValidatorUpdates: types.NewSubscription[types.Event[validatorUpdates]](),
+		subGenDataProcessed:      make(chan types.Event[validatorUpdates]),
+		subBuiltBeaconBlock:      make(chan types.Event[BeaconBlockT]),
+		subBuiltSidecars:         make(chan types.Event[BlobSidecarsT]),
+		subBBVerified:            make(chan types.Event[BeaconBlockT]),
+		subSCVerified:            make(chan types.Event[BlobSidecarsT]),
+		subFinalValidatorUpdates: make(chan types.Event[validatorUpdates]),
 	}
 }
 

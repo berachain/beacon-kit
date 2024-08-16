@@ -32,9 +32,8 @@ type DispatcherInput[
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ] struct {
 	depinject.In
-	EventServer *EventServer
-	Logger      LoggerT
-	Publishers  []asynctypes.Publisher
+	Logger     LoggerT
+	Publishers []asynctypes.Broker
 }
 
 // ProvideDispatcher provides a new Dispatcher.
@@ -43,22 +42,11 @@ func ProvideDispatcher[
 ](
 	in DispatcherInput[LoggerT],
 ) (*Dispatcher, error) {
-	d := dispatcher.NewDispatcher(
-		in.EventServer,
+	d := dispatcher.New(
 		in.Logger.With("service", "dispatcher"),
 	)
-	if err := d.RegisterPublishers(in.Publishers...); err != nil {
+	if err := d.RegisterBrokers(in.Publishers...); err != nil {
 		return nil, err
 	}
 	return d, nil
-}
-
-func DefaultDispatcherComponents[
-	LoggerT log.AdvancedLogger[any, LoggerT],
-]() []any {
-	return []any{
-		ProvideDispatcher[LoggerT],
-		ProvidePublishers,
-		ProvideEventServer,
-	}
 }

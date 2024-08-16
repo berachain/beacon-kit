@@ -52,7 +52,7 @@ type Service[
 	// finalizedBlockEventID is the event ID for the finalized block event.
 	finalizedBlockEventID async.EventID
 	// subFinalizedBlockEvents is the channel that provides finalized block events.
-	subFinalizedBlockEvents async.Subscription[BlockEventT]
+	subFinalizedBlockEvents chan BlockEventT
 	// metrics is the metrics for the deposit service.
 	metrics *metrics
 	// failedBlocks is a map of blocks that failed to be processed to be
@@ -95,7 +95,7 @@ func NewService[
 		eth1FollowDistance:      eth1FollowDistance,
 		failedBlocks:            make(map[math.Slot]struct{}),
 		finalizedBlockEventID:   finalizedBlockEventID,
-		subFinalizedBlockEvents: async.NewSubscription[BlockEventT](),
+		subFinalizedBlockEvents: make(chan BlockEventT),
 		logger:                  logger,
 		metrics:                 newMetrics(telemetrySink),
 	}
@@ -114,11 +114,24 @@ func (s *Service[
 	}
 
 	// Listen for finalized block events and fetch deposits for the block.
-	s.subFinalizedBlockEvents.Listen(ctx, s.getDepositFetcher(ctx))
+	go s.listen(ctx)
 
 	// Catchup deposits for failed blocks.
 	go s.depositCatchupFetcher(ctx)
 	return nil
+}
+
+func (s *Service[
+	_, _, BlockEventT, _, _, _,
+]) listen(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case event := <-s.subFinalizedBlockEvents:
+			s.depositFetcher(ctx, event)
+		}
+	}
 }
 
 // Name returns the name of the service.

@@ -18,29 +18,17 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package server
+package broker
 
-import (
-	"github.com/berachain/beacon-kit/mod/async/pkg/types"
-	"github.com/berachain/beacon-kit/mod/errors"
-)
+import "time"
 
-//nolint:gochecknoglobals // errors
-var (
-	ErrNotFound          = errors.New("not found")
-	ErrAlreadyExists     = errors.New("already exists")
-	errPublisherNotFound = func(eventID types.EventID) error {
-		return errors.Wrapf(
-			ErrNotFound,
-			"publisher not found for eventID: %s",
-			eventID,
-		)
-	}
-	errPublisherAlreadyExists = func(eventID types.EventID) error {
-		return errors.Wrapf(
-			ErrAlreadyExists,
-			"publisher already exists for eventID: %s",
-			eventID,
-		)
-	}
+// TODO: make timeout configurable thorugh config/context
+const (
+	// defaultBrokerTimeout specifies the default timeout when the publisher
+	// tries to send a message to a client, a message is published to the
+	// publisher, or a client subscribes or unsubscribes.
+	defaultBrokerTimeout = time.Second
+
+	// defaultBufferSize specifies the default size of the message buffer.
+	defaultBufferSize = 10
 )

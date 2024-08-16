@@ -22,9 +22,8 @@ package components
 
 import (
 	"cosmossdk.io/core/appmodule/v2"
+	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
-	"github.com/berachain/beacon-kit/mod/async/pkg/publisher"
-	asyncserver "github.com/berachain/beacon-kit/mod/async/pkg/server"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
@@ -497,7 +496,7 @@ type (
 /* -------------------------------------------------------------------------- */
 
 type (
-	BeaconBlockFinalizedPublisher = publisher.Publisher[FinalizedBlockEvent]
+	BeaconBlockFinalizedPublisher = broker.Broker[FinalizedBlockEvent]
 )
 
 /* -------------------------------------------------------------------------- */
@@ -507,9 +506,6 @@ type (
 type (
 	// Dispatcher is a type alias for the dispatcher.
 	Dispatcher = dispatcher.Dispatcher
-
-	// EventServer is a type alias for the event server.
-	EventServer = asyncserver.EventServer
 )
 
 /* -------------------------------------------------------------------------- */

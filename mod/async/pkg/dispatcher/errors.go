@@ -21,22 +21,26 @@
 package dispatcher
 
 import (
-	"context"
-
 	"github.com/berachain/beacon-kit/mod/async/pkg/types"
-	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/errors"
 )
 
-type EventServer interface {
-	// Start starts the event server.
-	Start(ctx context.Context)
-	// RegisterPublishers registers the given publishers with the event server.
-	RegisterPublishers(publishers ...types.Publisher) error
-	// Subscribe subscribes the given channel to the event with the given
-	// <eventID>.
-	Subscribe(mID types.EventID, ch any) error
-	// Publish dispatches the given event to the event server.
-	Publish(event types.BaseEvent) error
-	// SetLogger sets the logger for the event server.
-	SetLogger(logger log.Logger[any])
-}
+//nolint:gochecknoglobals // errors
+var (
+	ErrNotFound       = errors.New("not found")
+	ErrAlreadyExists  = errors.New("already exists")
+	errBrokerNotFound = func(eventID types.EventID) error {
+		return errors.Wrapf(
+			ErrNotFound,
+			"publisher not found for eventID: %s",
+			eventID,
+		)
+	}
+	errBrokerAlreadyExists = func(eventID types.EventID) error {
+		return errors.Wrapf(
+			ErrAlreadyExists,
+			"publisher already exists for eventID: %s",
+			eventID,
+		)
+	}
+)

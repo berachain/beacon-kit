@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package publisher
+package broker
 
 import (
 	"context"
@@ -28,12 +28,12 @@ import (
 	"github.com/berachain/beacon-kit/mod/async/pkg/types"
 )
 
-// Publisher is responsible for broadcasting all events corresponding to the
+// Broker is responsible for broadcasting all events corresponding to the
 // <eventID> to all registered client channels.
-type Publisher[T types.BaseEvent] struct {
+type Broker[T types.BaseEvent] struct {
 	eventID types.EventID
 	// subscriptions is a map of subscribed subscriptions.
-	subscriptions map[types.Subscription[T]]struct{}
+	subscriptions map[chan T]struct{}
 	// msgs is the channel for publishing new messages.
 	msgs chan T
 	// timeout is the timeout for sending a msg to a client.
@@ -42,34 +42,34 @@ type Publisher[T types.BaseEvent] struct {
 	mu sync.Mutex
 }
 
-// New creates a new publisher publishing events of type T for the
+// New creates a new broker publishing events of type T for the
 // provided eventID.
-func New[T types.BaseEvent](eventID string) *Publisher[T] {
-	return &Publisher[T]{
+func New[T types.BaseEvent](eventID string) *Broker[T] {
+	return &Broker[T]{
 		eventID:       types.EventID(eventID),
-		subscriptions: make(map[types.Subscription[T]]struct{}),
+		subscriptions: make(map[chan T]struct{}),
 		msgs:          make(chan T, defaultBufferSize),
-		timeout:       defaultPublisherTimeout,
+		timeout:       defaultBrokerTimeout,
 		mu:            sync.Mutex{},
 	}
 }
 
-// EventID returns the event ID that the publisher is responsible for.
-func (p *Publisher[T]) EventID() types.EventID {
+// EventID returns the event ID that the broker is responsible for.
+func (p *Broker[T]) EventID() types.EventID {
 	return p.eventID
 }
 
-// Start starts the publisher loop.
-func (p *Publisher[T]) Start(ctx context.Context) {
+// Start starts the broker loop.
+func (p *Broker[T]) Start(ctx context.Context) {
 	go p.start(ctx)
 }
 
-// start starts the publisher loop.
-func (p *Publisher[T]) start(ctx context.Context) {
+// start starts the broker loop.
+func (p *Broker[T]) start(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			// close all leftover clients and break the publisher loop
+			// close all leftover clients and break the broker loop
 			p.shutdown()
 			return
 		case msg := <-p.msgs:
@@ -81,7 +81,7 @@ func (p *Publisher[T]) start(ctx context.Context) {
 
 // Publish publishes a msg to all subscribers.
 // Returns ErrTimeout on timeout.
-func (p *Publisher[T]) Publish(msg types.BaseEvent) error {
+func (p *Broker[T]) Publish(msg types.BaseEvent) error {
 	typedMsg, err := ensureType[T](msg)
 	if err != nil {
 		return err
@@ -95,12 +95,12 @@ func (p *Publisher[T]) Publish(msg types.BaseEvent) error {
 	}
 }
 
-// Subscribe registers the provided channel to the publisher,
+// Subscribe registers the provided channel to the broker,
 // Returns ErrTimeout on timeout.
 // Contract: the channel must be a Subscription[T], where T is the expected
 // type of the event data.
-func (p *Publisher[T]) Subscribe(ch any) error {
-	client, err := ensureType[types.Subscription[T]](ch)
+func (p *Broker[T]) Subscribe(ch any) error {
+	client, err := ensureType[chan T](ch)
 	if err != nil {
 		return err
 	}
@@ -110,10 +110,10 @@ func (p *Publisher[T]) Subscribe(ch any) error {
 	return nil
 }
 
-// Unsubscribe removes a client from the publisher.
+// Unsubscribe removes a client from the broker.
 // Returns an error if the provided channel is not of type chan T.
-func (p *Publisher[T]) Unsubscribe(ch any) error {
-	client, err := ensureType[types.Subscription[T]](ch)
+func (p *Broker[T]) Unsubscribe(ch any) error {
+	client, err := ensureType[chan T](ch)
 	if err != nil {
 		return err
 	}
@@ -125,7 +125,7 @@ func (p *Publisher[T]) Unsubscribe(ch any) error {
 }
 
 // broadcast broadcasts a msg to all clients.
-func (p *Publisher[T]) broadcast(msg T) {
+func (p *Broker[T]) broadcast(msg T) {
 	for client := range p.subscriptions {
 		// send msg to client (or discard msg after timeout)
 		select {
@@ -136,7 +136,7 @@ func (p *Publisher[T]) broadcast(msg T) {
 }
 
 // shutdown closes all leftover clients.
-func (p *Publisher[T]) shutdown() {
+func (p *Broker[T]) shutdown() {
 	for client := range p.subscriptions {
 		if err := p.Unsubscribe(client); err != nil {
 			panic(err)

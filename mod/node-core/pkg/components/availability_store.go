@@ -25,7 +25,6 @@ import (
 	"os"
 
 	"cosmossdk.io/depinject"
-	async "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -101,7 +100,7 @@ func ProvideAvailabilityPruner[
 	// TODO: add dispatcher field in the pruner or something, the provider
 	// should not execute any business logic.
 	// create new subscription for finalized blocks.
-	subFinalizedBlocks := async.NewSubscription[FinalizedBlockEvent]()
+	subFinalizedBlocks := make(chan FinalizedBlockEvent)
 	if err := in.Dispatcher.Subscribe(
 		events.BeaconBlockFinalizedEvent, subFinalizedBlocks,
 	); err != nil {

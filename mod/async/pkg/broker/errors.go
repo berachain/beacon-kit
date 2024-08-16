@@ -18,14 +18,27 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package publisher
+package broker
 
-// ensureType ensures that the provided entity is of type T.
-// It returns a typed entity or an error if the type is not correct.
-func ensureType[T any](e any) (T, error) {
-	typedE, ok := e.(T)
-	if !ok {
-		return *new(T), errIncompatibleAssignee(*new(T), e)
+import (
+	"github.com/berachain/beacon-kit/mod/errors"
+)
+
+// errTimeout is the error returned when a dispatch operation timed out.
+//
+//nolint:gochecknoglobals // errors
+var (
+	ErrIncompatible = errors.New("incompatible assignee")
+	// errIncompatibleAssignee is the error returned when the assignee is not
+	// compatible with the assigner.
+	errIncompatibleAssignee = func(
+		assigner interface{}, assignee interface{},
+	) error {
+		return errors.Wrapf(
+			ErrIncompatible,
+			"expected: %T, received: %T",
+			assigner,
+			assignee,
+		)
 	}
-	return typedE, nil
-}
+)

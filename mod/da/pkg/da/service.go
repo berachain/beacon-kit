@@ -46,8 +46,8 @@ type Service[
 	]
 	dispatcher           async.EventDispatcher
 	logger               log.Logger[any]
-	subSidecarsReceived  async.Subscription[async.Event[BlobSidecarsT]]
-	subFinalBlobSidecars async.Subscription[async.Event[BlobSidecarsT]]
+	subSidecarsReceived  chan async.Event[BlobSidecarsT]
+	subFinalBlobSidecars chan async.Event[BlobSidecarsT]
 }
 
 // NewService returns a new DA service.
@@ -79,8 +79,8 @@ func NewService[
 		bp:                   bp,
 		dispatcher:           dispatcher,
 		logger:               logger,
-		subSidecarsReceived:  async.NewSubscription[async.Event[BlobSidecarsT]](),
-		subFinalBlobSidecars: async.NewSubscription[async.Event[BlobSidecarsT]](),
+		subSidecarsReceived:  make(chan async.Event[BlobSidecarsT]),
+		subFinalBlobSidecars: make(chan async.Event[BlobSidecarsT]),
 	}
 }
 
@@ -109,9 +109,21 @@ func (s *Service[_, _, BlobSidecarsT, _]) Start(ctx context.Context) error {
 	}
 
 	// listen for events and handle accordingly
-	s.subSidecarsReceived.Listen(ctx, s.handleSidecarsVerifyRequest)
-	s.subFinalBlobSidecars.Listen(ctx, s.handleBlobSidecarsProcessRequest)
+	go s.listen(ctx)
 	return nil
+}
+
+func (s *Service[_, _, BlobSidecarsT, _]) listen(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case event := <-s.subSidecarsReceived:
+			s.handleSidecarsVerifyRequest(event)
+		case event := <-s.subFinalBlobSidecars:
+			s.handleBlobSidecarsProcessRequest(event)
+		}
+	}
 }
 
 /* -------------------------------------------------------------------------- */

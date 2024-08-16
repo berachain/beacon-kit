@@ -24,7 +24,6 @@ import (
 	"cosmossdk.io/depinject"
 	storev2 "cosmossdk.io/store/v2/db"
 	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
-	async "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	blockservice "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -89,7 +88,7 @@ func ProvideBlockPruner[
 ) (BlockPruner, error) {
 	// TODO: provider should not execute any business logic.
 	// create new subscription for finalized blocks.
-	subFinalizedBlocks := async.NewSubscription[FinalizedBlockEvent]()
+	subFinalizedBlocks := make(chan FinalizedBlockEvent)
 	if err := in.Dispatcher.Subscribe(
 		events.BeaconBlockFinalizedEvent, subFinalizedBlocks,
 	); err != nil {

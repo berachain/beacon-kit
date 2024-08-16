@@ -47,7 +47,7 @@ type pruner[
 	prunable                Prunable
 	logger                  log.Logger[any]
 	name                    string
-	subBeaconBlockFinalized BeaconBlockSubscription[BeaconBlockT, BlockEventT]
+	subBeaconBlockFinalized chan BlockEventT
 	pruneRangeFn            func(BlockEventT) (uint64, uint64)
 }
 
@@ -60,7 +60,7 @@ func NewPruner[
 	logger log.Logger[any],
 	prunable Prunable,
 	name string,
-	subBeaconBlockFinalized BeaconBlockSubscription[BeaconBlockT, BlockEventT],
+	subBeaconBlockFinalized chan BlockEventT,
 	pruneRangeFn func(BlockEventT) (uint64, uint64),
 ) Pruner[PrunableT] {
 	return &pruner[BeaconBlockT, BlockEventT, PrunableT]{
@@ -74,7 +74,20 @@ func NewPruner[
 
 // Start starts the Pruner by listening for new indexes to prune.
 func (p *pruner[BeaconBlockT, BlockEventT, _]) Start(ctx context.Context) {
-	p.subBeaconBlockFinalized.Listen(ctx, p.onFinalizeBlock)
+	go p.listen(ctx)
+}
+
+// listen listens for new finalized blocks and prunes the prunable store based
+// on the received finalized block event.
+func (p *pruner[_, BlockEventT, _]) listen(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case event := <-p.subBeaconBlockFinalized:
+			p.onFinalizeBlock(event)
+		}
+	}
 }
 
 // onFinalizeBlock will prune the prunable store based on the received

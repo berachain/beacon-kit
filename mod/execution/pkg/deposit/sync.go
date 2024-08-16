@@ -30,15 +30,13 @@ import (
 // defaultRetryInterval processes a deposit event.
 const defaultRetryInterval = 20 * time.Second
 
-// getDepositFetcher returns a function that retrieves the block number from the
+// depositFetcher returns a function that retrieves the block number from the
 // event and fetches and stores the deposits for that block.
 func (s *Service[
 	_, _, BlockEventT, _, _, _,
-]) getDepositFetcher(ctx context.Context) func(event BlockEventT) {
-	return func(event BlockEventT) {
-		blockNum := event.Data().GetBody().GetExecutionPayload().GetNumber()
-		s.fetchAndStoreDeposits(ctx, blockNum-s.eth1FollowDistance)
-	}
+]) depositFetcher(ctx context.Context, event BlockEventT) {
+	blockNum := event.Data().GetBody().GetExecutionPayload().GetNumber()
+	s.fetchAndStoreDeposits(ctx, blockNum-s.eth1FollowDistance)
 }
 
 // depositCatchupFetcher fetches deposits for blocks that failed to be

@@ -27,60 +27,71 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 )
 
-// Ensure Dispatcher implements DispatcherI.
 var _ types.Dispatcher = (*Dispatcher)(nil)
 
 // Dispatcher faciliates asynchronous communication between components,
-// typically services. It acts as an API facade to the underlying eventserver.
+// typically services.
 type Dispatcher struct {
-	eventServer EventServer
-	logger      log.Logger[any]
+	brokers map[types.EventID]types.Broker
+	logger  log.Logger[any]
 }
 
-// NewDispatcher creates a new dispatcher.
-func NewDispatcher(
-	eventServer EventServer,
+// NewDispatcher creates a new event server.
+func New(
 	logger log.Logger[any],
 ) *Dispatcher {
-	eventServer.SetLogger(logger)
 	return &Dispatcher{
-		eventServer: eventServer,
-		logger:      logger,
+		brokers: make(map[types.EventID]types.Broker),
+		logger:  logger,
 	}
 }
 
-// Start starts the underlying event server.
-func (d *Dispatcher) Start(ctx context.Context) error {
-	d.eventServer.Start(ctx)
-	return nil
+// Publish dispatches the given event to the broker with the given eventID.
+func (d *Dispatcher) PublishEvent(event types.BaseEvent) error {
+	broker, ok := d.brokers[event.ID()]
+	if !ok {
+		return errBrokerNotFound(event.ID())
+	}
+	return broker.Publish(event)
 }
 
-// Subscribe subscribes the given channel to the event with the given <eventID>.
-// It will error if the channel type does not match the event type corresponding
-// to the <eventID>.
+// Subscribe subscribes the given channel to the broker with the given
+// eventID. It will error if the channel type does not match the event type
+// corresponding to the broker.
 // Contract: the channel must be a Subscription[T], where T is the expected
 // type of the event data.
 func (d *Dispatcher) Subscribe(eventID types.EventID, ch any) error {
-	return d.eventServer.Subscribe(eventID, ch)
+	broker, ok := d.brokers[eventID]
+	if !ok {
+		return errBrokerNotFound(eventID)
+	}
+	return broker.Subscribe(ch)
 }
 
-// PublishEvent dispatches the given event to the event server.
-// It will error if the <event> type is inconsistent with the publisher
-// registered for the given eventID.
-func (d *Dispatcher) PublishEvent(event types.BaseEvent) error {
-	return d.eventServer.Publish(event)
+// Start will start all the brokers in the Dispatcher.
+func (d *Dispatcher) Start(ctx context.Context) error {
+	for _, broker := range d.brokers {
+		go broker.Start(ctx)
+	}
+	return nil
 }
 
-// RegisterPublishers registers the given publisher with the given eventID.
-// Any subsequent events with <eventID> dispatched to this Dispatcher must be
-// consistent with the type expected by <publisher>.
-func (d *Dispatcher) RegisterPublishers(
-	publishers ...types.Publisher,
-) error {
-	return d.eventServer.RegisterPublishers(publishers...)
-}
-
-// Name returns the name of this service.
 func (d *Dispatcher) Name() string {
 	return "dispatcher"
+}
+
+// RegisterBrokers registers the given brokers with the given eventIDs.
+// Any subsequent events with <eventID> dispatched to this Dispatcher must be
+// consistent with the type expected by <broker>.
+func (d *Dispatcher) RegisterBrokers(
+	brokers ...types.Broker,
+) error {
+	var ok bool
+	for _, broker := range brokers {
+		if _, ok = d.brokers[broker.EventID()]; ok {
+			return errBrokerAlreadyExists(broker.EventID())
+		}
+		d.brokers[broker.EventID()] = broker
+	}
+	return nil
 }
