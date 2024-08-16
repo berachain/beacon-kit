@@ -63,9 +63,11 @@ type BlobVerifierInput struct {
 
 // ProvideBlobVerifier is a function that provides the BlobVerifier to the
 // depinject framework.
-func ProvideBlobVerifier(in BlobVerifierInput) *BlobVerifier {
+func ProvideBlobVerifier[
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+](in BlobVerifierInput) *BlobVerifier {
 	return dablob.NewVerifier[
-		*BeaconBlockHeader,
+		BeaconBlockHeaderT,
 		*BlobSidecar,
 		*BlobSidecars,
 	](in.BlobProofVerifier, in.TelemetrySink)

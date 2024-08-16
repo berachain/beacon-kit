@@ -29,12 +29,14 @@ import (
 
 // BlockServiceInput is the input for the block service.
 type BlockServiceInput[
+	BeaconBlockT any,
+	BeaconBlockStoreT BlockStore[BeaconBlockT],
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ] struct {
 	depinject.In
 
 	BlockBroker *BlockBroker
-	BlockStore  *BlockStore
+	BlockStore  BeaconBlockStoreT
 	Config      *config.Config
 	Logger      LoggerT
 }

@@ -58,9 +58,11 @@ func ProvideNodeAPIHandlers(
 	}
 }
 
-func ProvideNodeAPIBeaconHandler(b *NodeAPIBackend) *BeaconAPIHandler {
+func ProvideNodeAPIBeaconHandler[
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+](b *NodeAPIBackend) *BeaconAPIHandler {
 	return beaconapi.NewHandler[
-		*BeaconBlockHeader,
+		BeaconBlockHeaderT,
 		NodeAPIContext,
 		*Fork,
 		*Validator,
@@ -91,10 +93,12 @@ func ProvideNodeAPIProofHandler(b *NodeAPIBackend) *ProofAPIHandler {
 	return proofapi.NewHandler[NodeAPIContext](b)
 }
 
-func DefaultNodeAPIHandlers() []any {
+func DefaultNodeAPIHandlers[
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+]() []any {
 	return []any{
 		ProvideNodeAPIHandlers,
-		ProvideNodeAPIBeaconHandler,
+		ProvideNodeAPIBeaconHandler[BeaconBlockHeaderT],
 		ProvideNodeAPIBuilderHandler,
 		ProvideNodeAPIConfigHandler,
 		ProvideNodeAPIDebugHandler,

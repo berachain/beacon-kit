@@ -24,13 +24,22 @@ import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 )
 
 // StorageBackendInput is the input for the ProvideStorageBackend function.
-type StorageBackendInput struct {
+type StorageBackendInput[
+	AvailabilityStoreT AvailabilityStore[
+		BeaconBlockBodyT, BlobSidecarsT,
+	],
+	BeaconBlockT any,
+	BeaconBlockBodyT any,
+	BeaconBlockStoreT BlockStore[BeaconBlockT],
+	BlobSidecarsT any,
+] struct {
 	depinject.In
-	AvailabilityStore *AvailabilityStore
-	BlockStore        *BlockStore
+	AvailabilityStore AvailabilityStoreT
+	BlockStore        BeaconBlockStoreT
 	ChainSpec         common.ChainSpec
 	DepositStore      *DepositStore
 	KVStore           *KVStore
@@ -38,18 +47,30 @@ type StorageBackendInput struct {
 
 // ProvideStorageBackend is the depinject provider that returns a beacon storage
 // backend.
-func ProvideStorageBackend(
-	in StorageBackendInput,
+func ProvideStorageBackend[
+	AvailabilityStoreT AvailabilityStore[
+		BeaconBlockBodyT, BlobSidecarsT,
+	],
+	BeaconBlockT any,
+	BeaconBlockBodyT constraints.SSZMarshallable,
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconBlockStoreT BlockStore[BeaconBlockT],
+	BlobSidecarsT any,
+](
+	in StorageBackendInput[
+		AvailabilityStoreT, BeaconBlockT,
+		BeaconBlockBodyT, BeaconBlockStoreT, BlobSidecarsT,
+	],
 ) *StorageBackend {
 	return storage.NewBackend[
-		*AvailabilityStore,
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*BeaconBlockHeader,
+		AvailabilityStoreT,
+		BeaconBlockT,
+		BeaconBlockBodyT,
+		BeaconBlockHeaderT,
 		*BeaconState,
 		*BeaconStateMarshallable,
-		*BlobSidecars,
-		*BlockStore,
+		BlobSidecarsT,
+		BeaconBlockStoreT,
 		*Deposit,
 		*DepositStore,
 		*Eth1Data,

@@ -34,6 +34,8 @@ import (
 	// "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	// nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	// "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
+	"context"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -76,26 +78,22 @@ type (
 	// 		) (PayloadAttributesT, error)
 	// 	}
 
-	// // AvailabilityStore is the interface for the availability store.
-	// AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
-	// 	// IsDataAvailable ensures that all blobs referenced in the block are
-	// 	// securely stored before it returns without an error.
-	// 	IsDataAvailable(context.Context, math.Slot, BeaconBlockBodyT) bool
-	// 	// Persist makes sure that the sidecar remains accessible for data
-	// 	// availability checks throughout the beacon node's operation.
-	// 	Persist(math.Slot, BlobSidecarsT) error
-	// }
+	// AvailabilityStore is the interface for the availability store.
+	AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
+		IndexDB
+		// IsDataAvailable ensures that all blobs referenced in the block are
+		// securely stored before it returns without an error.
+		IsDataAvailable(context.Context, math.Slot, BeaconBlockBodyT) bool
+		// Persist makes sure that the sidecar remains accessible for data
+		// availability checks throughout the beacon node's operation.
+		Persist(math.Slot, BlobSidecarsT) error
+	}
 
 	// BeaconBlock represents a generic interface for a beacon block.
 	BeaconBlock[
 		T any,
-		AttestationDataT any,
 		BeaconBlockBodyT any,
 		BeaconBlockHeaderT any,
-		DepositT any,
-		Eth1DataT any,
-		ExecutionPayloadT any,
-		SlashingInfoT any,
 	] interface {
 		constraints.Nillable
 		constraints.Empty[T]
@@ -189,376 +187,376 @@ type (
 		GetTree() (*fastssz.Node, error)
 	}
 
-// 	// BeaconStateMarshallable represents an interface for a beacon state
-// 	// with generic types.
-// 	BeaconStateMarshallable[
-// 		T any,
-// 		BeaconBlockHeaderT,
-// 		Eth1DataT,
-// 		ExecutionPayloadHeaderT,
-// 		ForkT,
-// 		ValidatorT any,
-// 	] interface {
-// 		constraints.SSZMarshallableRootable
-// 		GetTree() (*fastssz.Node, error)
-// 		// New returns a new instance of the BeaconStateMarshallable.
-// 		New(
-// 			forkVersion uint32,
-// 			genesisValidatorsRoot common.Root,
-// 			slot math.U64,
-// 			fork ForkT,
-// 			latestBlockHeader BeaconBlockHeaderT,
-// 			blockRoots []common.Root,
-// 			stateRoots []common.Root,
-// 			eth1Data Eth1DataT,
-// 			eth1DepositIndex uint64,
-// 			latestExecutionPayloadHeader ExecutionPayloadHeaderT,
-// 			validators []ValidatorT,
-// 			balances []uint64,
-// 			randaoMixes []common.Bytes32,
-// 			nextWithdrawalIndex uint64,
-// 			nextWithdrawalValidatorIndex math.U64,
-// 			slashings []uint64, totalSlashing math.U64,
-// 		) (T, error)
-// 	}
+	// 	// BeaconStateMarshallable represents an interface for a beacon state
+	// 	// with generic types.
+	// 	BeaconStateMarshallable[
+	// 		T any,
+	// 		BeaconBlockHeaderT,
+	// 		Eth1DataT,
+	// 		ExecutionPayloadHeaderT,
+	// 		ForkT,
+	// 		ValidatorT any,
+	// 	] interface {
+	// 		constraints.SSZMarshallableRootable
+	// 		GetTree() (*fastssz.Node, error)
+	// 		// New returns a new instance of the BeaconStateMarshallable.
+	// 		New(
+	// 			forkVersion uint32,
+	// 			genesisValidatorsRoot common.Root,
+	// 			slot math.U64,
+	// 			fork ForkT,
+	// 			latestBlockHeader BeaconBlockHeaderT,
+	// 			blockRoots []common.Root,
+	// 			stateRoots []common.Root,
+	// 			eth1Data Eth1DataT,
+	// 			eth1DepositIndex uint64,
+	// 			latestExecutionPayloadHeader ExecutionPayloadHeaderT,
+	// 			validators []ValidatorT,
+	// 			balances []uint64,
+	// 			randaoMixes []common.Bytes32,
+	// 			nextWithdrawalIndex uint64,
+	// 			nextWithdrawalValidatorIndex math.U64,
+	// 			slashings []uint64, totalSlashing math.U64,
+	// 		) (T, error)
+	// 	}
 
-// 	BlobFactory[BeaconBlockT any, BlobSidecarsT any] interface {
-// 		// BuildSidecars builds sidecars for a given block and blobs bundle.
-// 		BuildSidecars(
-// 			blk BeaconBlockT,
-// 			blobs engineprimitives.BlobsBundle,
-// 		) (BlobSidecarsT, error)
-// 	}
+	// 	BlobFactory[BeaconBlockT any, BlobSidecarsT any] interface {
+	// 		// BuildSidecars builds sidecars for a given block and blobs bundle.
+	// 		BuildSidecars(
+	// 			blk BeaconBlockT,
+	// 			blobs engineprimitives.BlobsBundle,
+	// 		) (BlobSidecarsT, error)
+	// 	}
 
-// 	// BlobProcessor is the interface for the blobs processor.
-// 	BlobProcessor[
-// 		AvailabilityStoreT any,
-// 		BeaconBlockBodyT any,
-// 		BlobSidecarsT any,
-// 	] interface {
-// 		// ProcessSidecars processes the blobs and ensures they match the local
-// 		// state.
-// 		ProcessSidecars(
-// 			avs AvailabilityStoreT,
-// 			sidecars BlobSidecarsT,
-// 		) error
-// 		// VerifySidecars verifies the blobs and ensures they match the local
-// 		// state.
-// 		VerifySidecars(
-// 			sidecars BlobSidecarsT,
-// 		) error
-// 	}
+	// 	// BlobProcessor is the interface for the blobs processor.
+	// 	BlobProcessor[
+	// 		AvailabilityStoreT any,
+	// 		BeaconBlockBodyT any,
+	// 		BlobSidecarsT any,
+	// 	] interface {
+	// 		// ProcessSidecars processes the blobs and ensures they match the local
+	// 		// state.
+	// 		ProcessSidecars(
+	// 			avs AvailabilityStoreT,
+	// 			sidecars BlobSidecarsT,
+	// 		) error
+	// 		// VerifySidecars verifies the blobs and ensures they match the local
+	// 		// state.
+	// 		VerifySidecars(
+	// 			sidecars BlobSidecarsT,
+	// 		) error
+	// 	}
 
-// 	BlobSidecar[BeaconBlockHeaderT any] interface {
-// 		GetBeaconBlockHeader() BeaconBlockHeaderT
-// 		GetBlob() eip4844.Blob
-// 		GetKzgProof() eip4844.KZGProof
-// 		GetKzgCommitment() eip4844.KZGCommitment
-// 	}
+	// 	BlobSidecar[BeaconBlockHeaderT any] interface {
+	// 		GetBeaconBlockHeader() BeaconBlockHeaderT
+	// 		GetBlob() eip4844.Blob
+	// 		GetKzgProof() eip4844.KZGProof
+	// 		GetKzgCommitment() eip4844.KZGCommitment
+	// 	}
 
-// 	// BlobSidecars is the interface for blobs sidecars.
-// 	BlobSidecars[BlobSidecarT, BlobSidecarsT any] interface {
-// 		constraints.Nillable
-// 		constraints.SSZMarshallable
-// 		constraints.Empty[BlobSidecarsT]
-// 		Len() int
-// 		Get(index int) BlobSidecarT
-// 		GetSidecars() []BlobSidecarT
-// 		ValidateBlockRoots() error
-// 		VerifyInclusionProofs(kzgOffset uint64) error
-// 	}
+	// 	// BlobSidecars is the interface for blobs sidecars.
+	// 	BlobSidecars[BlobSidecarT, BlobSidecarsT any] interface {
+	// 		constraints.Nillable
+	// 		constraints.SSZMarshallable
+	// 		constraints.Empty[BlobSidecarsT]
+	// 		Len() int
+	// 		Get(index int) BlobSidecarT
+	// 		GetSidecars() []BlobSidecarT
+	// 		ValidateBlockRoots() error
+	// 		VerifyInclusionProofs(kzgOffset uint64) error
+	// 	}
 
-// 	// BlockchainService defines the interface for interacting with the
-// 	// blockchain
-// 	// state and processing blocks.
-// 	BlockchainService[
-// 		BeaconBlockT any,
-// 		DepositT any,
-// 		GenesisT any,
-// 	] interface {
-// 		service.Basic
-// 		// ProcessGenesisData processes the genesis data and initializes the
-// 		// beacon
-// 		// state.
-// 		ProcessGenesisData(
-// 			context.Context,
-// 			GenesisT,
-// 		) (transition.ValidatorUpdates, error)
-// 		// ProcessBeaconBlock processes the given beacon block and associated
-// 		// blobs sidecars.
-// 		ProcessBeaconBlock(
-// 			context.Context,
-// 			BeaconBlockT,
-// 		) (transition.ValidatorUpdates, error)
-// 		// ReceiveBlock receives a beacon block and
-// 		// associated blobs sidecars for processing.
-// 		ReceiveBlock(
-// 			ctx context.Context,
-// 			blk BeaconBlockT,
-// 		) error
-// 		VerifyIncomingBlock(ctx context.Context, blk BeaconBlockT) error
-// 	}
+	// 	// BlockchainService defines the interface for interacting with the
+	// 	// blockchain
+	// 	// state and processing blocks.
+	// 	BlockchainService[
+	// 		BeaconBlockT any,
+	// 		DepositT any,
+	// 		GenesisT any,
+	// 	] interface {
+	// 		service.Basic
+	// 		// ProcessGenesisData processes the genesis data and initializes the
+	// 		// beacon
+	// 		// state.
+	// 		ProcessGenesisData(
+	// 			context.Context,
+	// 			GenesisT,
+	// 		) (transition.ValidatorUpdates, error)
+	// 		// ProcessBeaconBlock processes the given beacon block and associated
+	// 		// blobs sidecars.
+	// 		ProcessBeaconBlock(
+	// 			context.Context,
+	// 			BeaconBlockT,
+	// 		) (transition.ValidatorUpdates, error)
+	// 		// ReceiveBlock receives a beacon block and
+	// 		// associated blobs sidecars for processing.
+	// 		ReceiveBlock(
+	// 			ctx context.Context,
+	// 			blk BeaconBlockT,
+	// 		) error
+	// 		VerifyIncomingBlock(ctx context.Context, blk BeaconBlockT) error
+	// 	}
 
-// 	// BlockStore is the interface for block storage.
-// 	BlockStore[BeaconBlockT any] interface {
-// 		Set(blk BeaconBlockT) error
-// 		// Get retrieves the block at the given slot.
-// 		Get(slot math.Slot) (BeaconBlockT, error)
-// 		// GetSlotByBlockRoot retrieves the slot by a given root from the store.
-// 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
-// 		// GetSlotByStateRoot retrieves the slot by a given root from the store.
-// 		GetSlotByStateRoot(root common.Root) (math.Slot, error)
-// 		// GetSlotByExecutionNumber retrieves the slot by a given execution
-// 		// number
-// 		// from the store.
-// 		GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
-// 		Prune(start, end uint64) error
-// 	}
+	// BlockStore is the interface for block storage.
+	BlockStore[BeaconBlockT any] interface {
+		Set(blk BeaconBlockT) error
+		// Get retrieves the block at the given slot.
+		Get(slot math.Slot) (BeaconBlockT, error)
+		// GetSlotByBlockRoot retrieves the slot by a given root from the store.
+		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
+		// GetSlotByStateRoot retrieves the slot by a given root from the store.
+		GetSlotByStateRoot(root common.Root) (math.Slot, error)
+		// GetSlotByExecutionNumber retrieves the slot by a given execution
+		// number
+		// from the store.
+		GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
+		Prune(start, end uint64) error
+	}
 
-// 	ConsensusEngine interface {
-// 		PrepareProposal(
-// 			ctx sdk.Context, req *v1.PrepareProposalRequest,
-// 		) (*v1.PrepareProposalResponse, error)
-// 		ProcessProposal(
-// 			ctx sdk.Context, req *v1.ProcessProposalRequest,
-// 		) (*v1.ProcessProposalResponse, error)
-// 	}
+	// 	ConsensusEngine interface {
+	// 		PrepareProposal(
+	// 			ctx sdk.Context, req *v1.PrepareProposalRequest,
+	// 		) (*v1.PrepareProposalResponse, error)
+	// 		ProcessProposal(
+	// 			ctx sdk.Context, req *v1.ProcessProposalRequest,
+	// 		) (*v1.ProcessProposalResponse, error)
+	// 	}
 
-// 	// Context defines an interface for managing state transition context.
-// 	Context[T any] interface {
-// 		context.Context
-// 		// Wrap returns a new context with the given context.
-// 		Wrap(context.Context) T
-// 		// OptimisticEngine sets the optimistic engine flag to true.
-// 		OptimisticEngine() T
-// 		// SkipPayloadVerification sets the skip payload verification flag to
-// 		// true.
-// 		SkipPayloadVerification() T
-// 		// SkipValidateRandao sets the skip validate randao flag to true.
-// 		SkipValidateRandao() T
-// 		// SkipValidateResult sets the skip validate result flag to true.
-// 		SkipValidateResult() T
-// 		// GetOptimisticEngine returns whether to optimistically assume the
-// 		// execution client has the correct state when certain errors are
-// 		// returned
-// 		// by the execution engine.
-// 		GetOptimisticEngine() bool
-// 		// GetSkipPayloadVerification returns whether to skip verifying the
-// 		// payload
-// 		// if
-// 		// it already exists on the execution client.
-// 		GetSkipPayloadVerification() bool
-// 		// GetSkipValidateRandao returns whether to skip validating the RANDAO
-// 		// reveal.
-// 		GetSkipValidateRandao() bool
-// 		// GetSkipValidateResult returns whether to validate the result of the
-// 		// state
-// 		// transition.
-// 		GetSkipValidateResult() bool
-// 	}
+	// 	// Context defines an interface for managing state transition context.
+	// 	Context[T any] interface {
+	// 		context.Context
+	// 		// Wrap returns a new context with the given context.
+	// 		Wrap(context.Context) T
+	// 		// OptimisticEngine sets the optimistic engine flag to true.
+	// 		OptimisticEngine() T
+	// 		// SkipPayloadVerification sets the skip payload verification flag to
+	// 		// true.
+	// 		SkipPayloadVerification() T
+	// 		// SkipValidateRandao sets the skip validate randao flag to true.
+	// 		SkipValidateRandao() T
+	// 		// SkipValidateResult sets the skip validate result flag to true.
+	// 		SkipValidateResult() T
+	// 		// GetOptimisticEngine returns whether to optimistically assume the
+	// 		// execution client has the correct state when certain errors are
+	// 		// returned
+	// 		// by the execution engine.
+	// 		GetOptimisticEngine() bool
+	// 		// GetSkipPayloadVerification returns whether to skip verifying the
+	// 		// payload
+	// 		// if
+	// 		// it already exists on the execution client.
+	// 		GetSkipPayloadVerification() bool
+	// 		// GetSkipValidateRandao returns whether to skip validating the RANDAO
+	// 		// reveal.
+	// 		GetSkipValidateRandao() bool
+	// 		// GetSkipValidateResult returns whether to validate the result of the
+	// 		// state
+	// 		// transition.
+	// 		GetSkipValidateResult() bool
+	// 	}
 
-// 	// Deposit is the interface for a deposit.
-// 	Deposit[
-// 		T any,
-// 		ForkDataT any,
-// 		WithdrawalCredentialsT any,
-// 	] interface {
-// 		constraints.Empty[T]
-// 		constraints.SSZMarshallableRootable
-// 		// New creates a new deposit.
-// 		New(
-// 			crypto.BLSPubkey,
-// 			WithdrawalCredentialsT,
-// 			math.U64,
-// 			crypto.BLSSignature,
-// 			uint64,
-// 		) T
-// 		// GetIndex returns the index of the deposit.
-// 		GetIndex() math.U64
-// 		// GetAmount returns the amount of the deposit.
-// 		GetAmount() math.Gwei
-// 		// GetPubkey returns the public key of the validator.
-// 		GetPubkey() crypto.BLSPubkey
-// 		// GetWithdrawalCredentials returns the withdrawal credentials.
-// 		GetWithdrawalCredentials() WithdrawalCredentialsT
-// 		// VerifySignature verifies the deposit and creates a validator.
-// 		VerifySignature(
-// 			forkData ForkDataT,
-// 			domainType common.DomainType,
-// 			signatureVerificationFn func(
-// 				pubkey crypto.BLSPubkey,
-// 				message []byte, signature crypto.BLSSignature,
-// 			) error,
-// 		) error
-// 	}
+	// 	// Deposit is the interface for a deposit.
+	// 	Deposit[
+	// 		T any,
+	// 		ForkDataT any,
+	// 		WithdrawalCredentialsT any,
+	// 	] interface {
+	// 		constraints.Empty[T]
+	// 		constraints.SSZMarshallableRootable
+	// 		// New creates a new deposit.
+	// 		New(
+	// 			crypto.BLSPubkey,
+	// 			WithdrawalCredentialsT,
+	// 			math.U64,
+	// 			crypto.BLSSignature,
+	// 			uint64,
+	// 		) T
+	// 		// GetIndex returns the index of the deposit.
+	// 		GetIndex() math.U64
+	// 		// GetAmount returns the amount of the deposit.
+	// 		GetAmount() math.Gwei
+	// 		// GetPubkey returns the public key of the validator.
+	// 		GetPubkey() crypto.BLSPubkey
+	// 		// GetWithdrawalCredentials returns the withdrawal credentials.
+	// 		GetWithdrawalCredentials() WithdrawalCredentialsT
+	// 		// VerifySignature verifies the deposit and creates a validator.
+	// 		VerifySignature(
+	// 			forkData ForkDataT,
+	// 			domainType common.DomainType,
+	// 			signatureVerificationFn func(
+	// 				pubkey crypto.BLSPubkey,
+	// 				message []byte, signature crypto.BLSSignature,
+	// 			) error,
+	// 		) error
+	// 	}
 
-// 	DepositStore[DepositT any] interface {
-// 		// GetDepositsByIndex returns `numView` expected deposits.
-// 		GetDepositsByIndex(
-// 			startIndex uint64,
-// 			numView uint64,
-// 		) ([]DepositT, error)
-// 		// Prune prunes the deposit store of [start, end)
-// 		Prune(start, end uint64) error
-// 		// EnqueueDeposits adds a list of deposits to the deposit store.
-// 		EnqueueDeposits(deposits []DepositT) error
-// 	}
+	// 	DepositStore[DepositT any] interface {
+	// 		// GetDepositsByIndex returns `numView` expected deposits.
+	// 		GetDepositsByIndex(
+	// 			startIndex uint64,
+	// 			numView uint64,
+	// 		) ([]DepositT, error)
+	// 		// Prune prunes the deposit store of [start, end)
+	// 		Prune(start, end uint64) error
+	// 		// EnqueueDeposits adds a list of deposits to the deposit store.
+	// 		EnqueueDeposits(deposits []DepositT) error
+	// 	}
 
-// 	Eth1Data[T any] interface {
-// 		constraints.Empty[T]
-// 		constraints.SSZMarshallableRootable
-// 		// New creates a new eth1 data with the given parameters.
-// 		New(
-// 			depositRoot common.Root,
-// 			depositCount math.U64,
-// 			blockHash common.ExecutionHash,
-// 		) T
-// 		GetDepositCount() math.U64
-// 	}
+	// 	Eth1Data[T any] interface {
+	// 		constraints.Empty[T]
+	// 		constraints.SSZMarshallableRootable
+	// 		// New creates a new eth1 data with the given parameters.
+	// 		New(
+	// 			depositRoot common.Root,
+	// 			depositCount math.U64,
+	// 			blockHash common.ExecutionHash,
+	// 		) T
+	// 		GetDepositCount() math.U64
+	// 	}
 
-// 	EngineClient[
-// 		ExecutionPayloadT any,
-// 		PayloadAttributesT any,
-// 		PayloadIDT any,
-// 	] interface {
-// 		service.Basic
-// 		bind.ContractFilterer
-// 		GetPayload(
-// 			ctx context.Context,
-// 			payloadID engineprimitives.PayloadID,
-// 			forkVersion uint32,
-// 		) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
-// 		NewPayload(
-// 			ctx context.Context,
-// 			payload ExecutionPayloadT,
-// 			versionedHashes []common.ExecutionHash,
-// 			parentBeaconBlockRoot *common.Root,
-// 		) (*common.ExecutionHash, error)
-// 		ForkchoiceUpdated(
-// 			ctx context.Context,
-// 			state *engineprimitives.ForkchoiceStateV1,
-// 			attrs PayloadAttributesT,
-// 			forkVersion uint32,
-// 		) (*PayloadIDT, *common.ExecutionHash, error)
-// 	}
+	// 	EngineClient[
+	// 		ExecutionPayloadT any,
+	// 		PayloadAttributesT any,
+	// 		PayloadIDT any,
+	// 	] interface {
+	// 		service.Basic
+	// 		bind.ContractFilterer
+	// 		GetPayload(
+	// 			ctx context.Context,
+	// 			payloadID engineprimitives.PayloadID,
+	// 			forkVersion uint32,
+	// 		) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
+	// 		NewPayload(
+	// 			ctx context.Context,
+	// 			payload ExecutionPayloadT,
+	// 			versionedHashes []common.ExecutionHash,
+	// 			parentBeaconBlockRoot *common.Root,
+	// 		) (*common.ExecutionHash, error)
+	// 		ForkchoiceUpdated(
+	// 			ctx context.Context,
+	// 			state *engineprimitives.ForkchoiceStateV1,
+	// 			attrs PayloadAttributesT,
+	// 			forkVersion uint32,
+	// 		) (*PayloadIDT, *common.ExecutionHash, error)
+	// 	}
 
-// 	Event[DataT any] interface {
-// 		Type() asynctypes.EventID
-// 		Is(eventType asynctypes.EventID) bool
-// 		Context() context.Context
-// 		Data() DataT
-// 		Error() error
-// 	}
+	// 	Event[DataT any] interface {
+	// 		Type() asynctypes.EventID
+	// 		Is(eventType asynctypes.EventID) bool
+	// 		Context() context.Context
+	// 		Data() DataT
+	// 		Error() error
+	// 	}
 
-// 	// ExecutionEngine is the interface for the execution engine.
-// 	ExecutionEngine[
-// 		ExecutionPayloadT ExecutionPayload[
-// 			ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
-// 		],
-// 		ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-// 		PayloadAttributesT any,
-// 		PayloadIDT ~[8]byte,
-// 		WithdrawalT any,
-// 		WithdrawalsT Withdrawals[WithdrawalT],
-// 	] interface {
-// 		// GetPayload returns the payload and blobs bundle for the given slot.
-// 		GetPayload(
-// 			ctx context.Context,
-// 			req *engineprimitives.GetPayloadRequest[PayloadIDT],
-// 		) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
-// 		// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
-// 		// update.
-// 		NotifyForkchoiceUpdate(
-// 			ctx context.Context,
-// 			req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
-// 		) (*PayloadIDT, *common.ExecutionHash, error)
-// 		// VerifyAndNotifyNewPayload verifies the new payload and notifies the
-// 		// execution client.
-// 		VerifyAndNotifyNewPayload(
-// 			ctx context.Context,
-// 			req *engineprimitives.NewPayloadRequest[ExecutionPayloadT, WithdrawalsT],
-// 		) error
-// 	}
+	// 	// ExecutionEngine is the interface for the execution engine.
+	// 	ExecutionEngine[
+	// 		ExecutionPayloadT ExecutionPayload[
+	// 			ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+	// 		],
+	// 		ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	// 		PayloadAttributesT any,
+	// 		PayloadIDT ~[8]byte,
+	// 		WithdrawalT any,
+	// 		WithdrawalsT Withdrawals[WithdrawalT],
+	// 	] interface {
+	// 		// GetPayload returns the payload and blobs bundle for the given slot.
+	// 		GetPayload(
+	// 			ctx context.Context,
+	// 			req *engineprimitives.GetPayloadRequest[PayloadIDT],
+	// 		) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
+	// 		// NotifyForkchoiceUpdate notifies the execution client of a forkchoice
+	// 		// update.
+	// 		NotifyForkchoiceUpdate(
+	// 			ctx context.Context,
+	// 			req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
+	// 		) (*PayloadIDT, *common.ExecutionHash, error)
+	// 		// VerifyAndNotifyNewPayload verifies the new payload and notifies the
+	// 		// execution client.
+	// 		VerifyAndNotifyNewPayload(
+	// 			ctx context.Context,
+	// 			req *engineprimitives.NewPayloadRequest[ExecutionPayloadT, WithdrawalsT],
+	// 		) error
+	// 	}
 
-// 	ExecutionPayload[
-// 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT any,
-// 	] interface {
-// 		constraints.EngineType[ExecutionPayloadT]
-// 		GetTransactions() engineprimitives.Transactions
-// 		GetParentHash() common.ExecutionHash
-// 		GetBlockHash() common.ExecutionHash
-// 		GetPrevRandao() common.Bytes32
-// 		GetWithdrawals() WithdrawalsT
-// 		GetFeeRecipient() common.ExecutionAddress
-// 		GetStateRoot() common.Bytes32
-// 		GetReceiptsRoot() common.Bytes32
-// 		GetLogsBloom() bytes.B256
-// 		GetNumber() math.U64
-// 		GetGasLimit() math.U64
-// 		GetTimestamp() math.U64
-// 		GetGasUsed() math.U64
-// 		GetExtraData() []byte
-// 		GetBaseFeePerGas() *math.U256
-// 		GetBlobGasUsed() math.U64
-// 		GetExcessBlobGas() math.U64
-// 		ToHeader(
-// 			maxWithdrawalsPerPayload uint64,
-// 			eth1ChainID uint64,
-// 		) (ExecutionPayloadHeaderT, error)
-// 	}
+	// 	ExecutionPayload[
+	// 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT any,
+	// 	] interface {
+	// 		constraints.EngineType[ExecutionPayloadT]
+	// 		GetTransactions() engineprimitives.Transactions
+	// 		GetParentHash() common.ExecutionHash
+	// 		GetBlockHash() common.ExecutionHash
+	// 		GetPrevRandao() common.Bytes32
+	// 		GetWithdrawals() WithdrawalsT
+	// 		GetFeeRecipient() common.ExecutionAddress
+	// 		GetStateRoot() common.Bytes32
+	// 		GetReceiptsRoot() common.Bytes32
+	// 		GetLogsBloom() bytes.B256
+	// 		GetNumber() math.U64
+	// 		GetGasLimit() math.U64
+	// 		GetTimestamp() math.U64
+	// 		GetGasUsed() math.U64
+	// 		GetExtraData() []byte
+	// 		GetBaseFeePerGas() *math.U256
+	// 		GetBlobGasUsed() math.U64
+	// 		GetExcessBlobGas() math.U64
+	// 		ToHeader(
+	// 			maxWithdrawalsPerPayload uint64,
+	// 			eth1ChainID uint64,
+	// 		) (ExecutionPayloadHeaderT, error)
+	// 	}
 
-// 	// ExecutionPayloadHeader is the interface for the execution payload header.
-// 	ExecutionPayloadHeader[T any] interface {
-// 		constraints.SSZMarshallable
-// 		constraints.Versionable
-// 		NewFromSSZ([]byte, uint32) (T, error)
-// 		// GetNumber returns the block number of the ExecutionPayloadHeader.
-// 		GetNumber() math.U64
-// 		// GetFeeRecipient returns the fee recipient address of the
-// 		// ExecutionPayloadHeader.
-// 		GetFeeRecipient() common.ExecutionAddress
-// 		// GetTimestamp returns the timestamp.
-// 		GetTimestamp() math.U64
-// 		// GetBlockHash returns the block hash.
-// 		GetBlockHash() common.ExecutionHash
-// 		// GetParentHash returns the parent hash.
-// 		GetParentHash() common.ExecutionHash
-// 	}
+	// 	// ExecutionPayloadHeader is the interface for the execution payload header.
+	// 	ExecutionPayloadHeader[T any] interface {
+	// 		constraints.SSZMarshallable
+	// 		constraints.Versionable
+	// 		NewFromSSZ([]byte, uint32) (T, error)
+	// 		// GetNumber returns the block number of the ExecutionPayloadHeader.
+	// 		GetNumber() math.U64
+	// 		// GetFeeRecipient returns the fee recipient address of the
+	// 		// ExecutionPayloadHeader.
+	// 		GetFeeRecipient() common.ExecutionAddress
+	// 		// GetTimestamp returns the timestamp.
+	// 		GetTimestamp() math.U64
+	// 		// GetBlockHash returns the block hash.
+	// 		GetBlockHash() common.ExecutionHash
+	// 		// GetParentHash returns the parent hash.
+	// 		GetParentHash() common.ExecutionHash
+	// 	}
 
-// 	Fork[T any] interface {
-// 		constraints.Empty[T]
-// 		constraints.SSZMarshallable
-// 		New(common.Version, common.Version, math.Epoch) T
-// 	}
+	// 	Fork[T any] interface {
+	// 		constraints.Empty[T]
+	// 		constraints.SSZMarshallable
+	// 		New(common.Version, common.Version, math.Epoch) T
+	// 	}
 
-// 	// ForkData is the interface for the fork data.
-// 	ForkData[T any] interface {
-// 		// New creates a new fork data object.
-// 		New(common.Version, common.Root) T
-// 		// ComputeRandaoSigningRoot returns the signing root for the fork data.
-// 		ComputeRandaoSigningRoot(
-// 			domainType common.DomainType,
-// 			epoch math.Epoch,
-// 		) common.Root
-// 	}
+	// 	// ForkData is the interface for the fork data.
+	// 	ForkData[T any] interface {
+	// 		// New creates a new fork data object.
+	// 		New(common.Version, common.Root) T
+	// 		// ComputeRandaoSigningRoot returns the signing root for the fork data.
+	// 		ComputeRandaoSigningRoot(
+	// 			domainType common.DomainType,
+	// 			epoch math.Epoch,
+	// 		) common.Root
+	// 	}
 
-// 	// Genesis is the interface for the genesis.
-// 	Genesis[DepositT any, ExecutionPayloadHeaderT any] interface {
-// 		json.Unmarshaler
-// 		// GetForkVersion returns the fork version.
-// 		GetForkVersion() common.Version
-// 		// GetDeposits returns the deposits.
-// 		GetDeposits() []DepositT
-// 		// GetExecutionPayloadHeader returns the execution payload header.
-// 		GetExecutionPayloadHeader() ExecutionPayloadHeaderT
-// 	}
+	// 	// Genesis is the interface for the genesis.
+	// 	Genesis[DepositT any, ExecutionPayloadHeaderT any] interface {
+	// 		json.Unmarshaler
+	// 		// GetForkVersion returns the fork version.
+	// 		GetForkVersion() common.Version
+	// 		// GetDeposits returns the deposits.
+	// 		GetDeposits() []DepositT
+	// 		// GetExecutionPayloadHeader returns the execution payload header.
+	// 		GetExecutionPayloadHeader() ExecutionPayloadHeaderT
+	// 	}
 
-// 	// IndexDB is the interface for the range DB.
-// 	IndexDB interface {
-// 		Has(index uint64, key []byte) (bool, error)
-// 		Set(index uint64, key []byte, value []byte) error
-// 		Prune(start uint64, end uint64) error
-// 	}
+	// IndexDB is the interface for the range DB.
+	IndexDB interface {
+		Has(index uint64, key []byte) (bool, error)
+		Set(index uint64, key []byte, value []byte) error
+		Prune(start uint64, end uint64) error
+	}
 
 // 	// LocalBuilder is the interface for the builder service.
 // 	LocalBuilder[

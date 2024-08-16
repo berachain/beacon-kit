@@ -32,7 +32,6 @@ import (
 	consruntimetypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/da/pkg/da"
-	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
@@ -61,9 +60,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
 	statedb "github.com/berachain/beacon-kit/mod/state-transition/pkg/core/state"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/block"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -179,9 +176,6 @@ type (
 		engineprimitives.Withdrawals,
 	]
 
-	// IndexDB is a type alias for the range DB.
-	IndexDB = filedb.RangeDB
-
 	// KVStore is a type alias for the KV store.
 	KVStore = beacondb.KVStore[
 		*BeaconBlockHeader,
@@ -289,14 +283,6 @@ type (
 	// AttestationData is a type alias for the attestation data.
 	AttestationData = types.AttestationData
 
-	// AvailabilityStore is a type alias for the availability store.
-	AvailabilityStore = dastore.Store[*BeaconBlockBody]
-
-	// BeaconBlock type aliases.
-	// BeaconBlock       = types.BeaconBlock
-	// BeaconBlockBody   = types.BeaconBlockBody
-	// BeaconBlockHeader = types.BeaconBlockHeader
-
 	// BeaconState is a type alias for the BeaconState.
 	BeaconState = statedb.StateDB[
 		*BeaconBlockHeader,
@@ -331,8 +317,8 @@ type (
 	// BlobSidecars is a type alias for the blob sidecars.
 	BlobSidecars = datypes.BlobSidecars
 
-	// BlockStore is a type alias for the block store.
-	BlockStore = block.KVStore[*BeaconBlock]
+	// // BlockStore is a type alias for the block store.
+	// BlockStore = block.KVStore[*BeaconBlock]
 
 	// Context is a type alias for the transition context.
 	Context = transition.Context
@@ -450,9 +436,6 @@ type (
 /* -------------------------------------------------------------------------- */
 
 type (
-	// BlockEvent is a type alias for the block event.
-	BlockEvent = asynctypes.Event[*BeaconBlock]
-
 	// GenesisEvent is a type alias for the genesis event.
 	GenesisEvent = asynctypes.Event[*Genesis]
 
@@ -480,9 +463,6 @@ type (
 	// SidecarsBroker is a type alias for the blob feed.
 	SidecarsBroker = broker.Broker[*SidecarEvent]
 
-	// BlockBroker is a type alias for the block feed.
-	BlockBroker = broker.Broker[*BlockEvent]
-
 	// SlotBroker is a type alias for the slot feed.
 	SlotBroker = broker.Broker[*SlotEvent]
 
@@ -503,9 +483,6 @@ type (
 
 	// DepositPruner is a type alias for the deposit pruner.
 	DepositPruner = pruner.Pruner[*DepositStore]
-
-	// BlockPruner is a type alias for the block pruner.
-	BlockPruner = pruner.Pruner[*BlockStore]
 )
 
 /* -------------------------------------------------------------------------- */
