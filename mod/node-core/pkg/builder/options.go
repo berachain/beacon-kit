@@ -28,26 +28,34 @@ import (
 // Opt is a type that defines a function that modifies NodeBuilder.
 type Opt[
 	NodeT types.Node,
+	NodeAPIBackendT interface {
+		AttachNode(node NodeT)
+	},
 	LoggerT interface {
 		log.AdvancedLogger[any, LoggerT]
 		log.Configurable[LoggerT, LoggerConfigT]
 	},
 	LoggerConfigT any,
-] func(*NodeBuilder[NodeT, LoggerT, LoggerConfigT])
+] func(*NodeBuilder[NodeT, NodeAPIBackendT, LoggerT, LoggerConfigT])
 
 // WithComponents is a function that sets the components for the NodeBuilder.
 func WithComponents[
 	NodeT types.Node,
+	NodeAPIBackendT interface {
+		AttachNode(node NodeT)
+	},
 	LoggerT interface {
 		log.AdvancedLogger[any, LoggerT]
 		log.Configurable[LoggerT, LoggerConfigT]
 	},
 	LoggerConfigT any,
-](components []any) Opt[NodeT, LoggerT, LoggerConfigT] {
+](components []any) Opt[NodeT, NodeAPIBackendT, LoggerT, LoggerConfigT] {
 	// return func(nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) {
 	// 	nb.components = append(nb.components, components...)
 	// }
-	return func(nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) {
+	return func(nb *NodeBuilder[
+		NodeT, NodeAPIBackendT, LoggerT, LoggerConfigT,
+	]) {
 		nb.components = components
 	}
 }

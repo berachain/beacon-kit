@@ -47,6 +47,9 @@ import (
 // node.
 type NodeBuilder[
 	NodeT types.Node,
+	NodeAPIBackendT interface {
+		AttachNode(node NodeT)
+	},
 	LoggerT interface {
 		log.AdvancedLogger[any, LoggerT]
 		log.Configurable[LoggerT, LoggerConfigT]
@@ -61,15 +64,18 @@ type NodeBuilder[
 // New returns a new NodeBuilder.
 func New[
 	NodeT types.Node,
+	NodeAPIBackendT interface {
+		AttachNode(node NodeT)
+	},
 	LoggerT interface {
 		log.AdvancedLogger[any, LoggerT]
 		log.Configurable[LoggerT, LoggerConfigT]
 	},
 	LoggerConfigT any,
 ](
-	opts ...Opt[NodeT, LoggerT, LoggerConfigT],
-) *NodeBuilder[NodeT, LoggerT, LoggerConfigT] {
-	nb := &NodeBuilder[NodeT, LoggerT, LoggerConfigT]{
+	opts ...Opt[NodeT, NodeAPIBackendT, LoggerT, LoggerConfigT],
+) *NodeBuilder[NodeT, NodeAPIBackendT, LoggerT, LoggerConfigT] {
+	nb := &NodeBuilder[NodeT, NodeAPIBackendT, LoggerT, LoggerConfigT]{
 		node: node.New[NodeT](),
 	}
 	for _, opt := range opts {
@@ -81,7 +87,9 @@ func New[
 // Build uses the node builder options and runtime parameters to
 // build a new instance of the node.
 // It is necessary to adhere to the types.AppCreator[T] interface.
-func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
+func (nb *NodeBuilder[
+	NodeT, NodeAPIBackendT, LoggerT, LoggerConfigT,
+]) Build(
 	logger sdklog.Logger,
 	db dbm.DB,
 	traceStore io.Writer,
@@ -101,11 +109,9 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 		]]
 		serviceRegistry *service.Registry
 		consensusEngine components.ConsensusEngine
-		// apiBackend      *backend.Backend[
-		// 	dastore.
-		// ]
-		storeKey       = new(storetypes.KVStoreKey)
-		storeKeyDblPtr = &storeKey
+		apiBackend      NodeAPIBackendT
+		storeKey        = new(storetypes.KVStoreKey)
+		storeKeyDblPtr  = &storeKey
 	)
 
 	// build all node components using depinject
@@ -128,9 +134,14 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 		&abciMiddleware,
 		&serviceRegistry,
 		&consensusEngine,
-		// &apiBackend,
+		&apiBackend,
 	); err != nil {
 		panic(err)
+	}
+
+	// TODO: remove this, for nilaway.
+	if consensusEngine == nil {
+		panic("consensus engine is nil")
 	}
 
 	// set the application to a new BeaconApp with necessary ABCI handlers
@@ -146,7 +157,7 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 		),
 	)
 	// TODO: so hood
-	// apiBackend.AttachNode(nb.node)
+	apiBackend.AttachNode(nb.node)
 	nb.node.SetServiceRegistry(serviceRegistry)
 
 	// TODO: put this in some post node creation hook/listener.

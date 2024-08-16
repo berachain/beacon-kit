@@ -43,7 +43,9 @@ func run() error {
 	// Build the node using the node-core.
 	nb := nodebuilder.New(
 		// Set the Runtime Components to the Default.
-		nodebuilder.WithComponents[Node, *Logger, *LoggerConfig](
+		nodebuilder.WithComponents[
+			Node, *NodeAPIBackend, *Logger, *LoggerConfig,
+		](
 			DefaultComponents(),
 		),
 	)
