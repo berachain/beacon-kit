@@ -45,8 +45,8 @@ type KVStore[
 	},
 	ExecutionPayloadHeaderT interface {
 		constraints.SSZMarshallable
-		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
-		Version() uint32
+		constraints.Empty[ExecutionPayloadHeaderT]
+		constraints.Versionable
 	},
 	ForkT interface {
 		constraints.Empty[ForkT]
@@ -75,13 +75,6 @@ type KVStore[
 	eth1Data sdkcollections.Item[Eth1DataT]
 	// eth1DepositIndex is the index of the latest eth1 deposit.
 	eth1DepositIndex sdkcollections.Item[uint64]
-	// latestExecutionPayloadVersion stores the latest execution payload
-	// version.
-	latestExecutionPayloadVersion sdkcollections.Item[uint32]
-	// latestExecutionPayloadCodec is the codec for the latest execution
-	// payload, it allows us to update the codec with the latest version.
-	latestExecutionPayloadCodec *encoding.
-					SSZInterfaceCodec[ExecutionPayloadHeaderT]
 	// latestExecutionPayloadHeader stores the latest execution payload header.
 	latestExecutionPayloadHeader sdkcollections.Item[ExecutionPayloadHeaderT]
 	// Registry
@@ -122,8 +115,8 @@ func New[
 	},
 	ExecutionPayloadHeaderT interface {
 		constraints.SSZMarshallable
-		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
-		Version() uint32
+		constraints.Empty[ExecutionPayloadHeaderT]
+		constraints.Versionable
 	},
 	ForkT interface {
 		constraints.Empty[ForkT]
@@ -133,7 +126,7 @@ func New[
 	ValidatorsT ~[]ValidatorT,
 ](
 	kss store.KVStoreService,
-	payloadCodec *encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT],
+	payloadCodec *encoding.SSZValueCodec[ExecutionPayloadHeaderT],
 ) *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
@@ -188,15 +181,6 @@ func New[
 			keys.Eth1DepositIndexPrefixHumanReadable,
 			sdkcollections.Uint64Value,
 		),
-		latestExecutionPayloadVersion: sdkcollections.NewItem(
-			schemaBuilder,
-			sdkcollections.NewPrefix(
-				[]byte{keys.LatestExecutionPayloadVersionPrefix},
-			),
-			keys.LatestExecutionPayloadVersionPrefixHumanReadable,
-			sdkcollections.Uint32Value,
-		),
-		latestExecutionPayloadCodec: payloadCodec,
 		latestExecutionPayloadHeader: sdkcollections.NewItem(
 			schemaBuilder,
 			sdkcollections.NewPrefix(
