@@ -43,10 +43,7 @@ type AvailabilityStore[BeaconBlockBodyT any] interface {
 }
 
 // BeaconBlock represents a beacon block interface.
-type BeaconBlock[
-	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
-	ExecutionPayloadT any,
-] interface {
+type BeaconBlock[BeaconBlockBodyT any] interface {
 	constraints.SSZMarshallableRootable
 	constraints.Nillable
 	// GetSlot returns the slot of the beacon block.
@@ -93,14 +90,6 @@ type ExecutionEngine[PayloadAttributesT any] interface {
 		ctx context.Context,
 		req *engineprimitives.ForkchoiceUpdateRequest[PayloadAttributesT],
 	) (*engineprimitives.PayloadID, *common.ExecutionHash, error)
-}
-
-// EventFeed is a generic interface for sending events.
-type EventFeed[EventT any] interface {
-	// Publish sends an event and returns an error if any occurred.
-	Publish(ctx context.Context, event EventT) error
-	// Subscribe returns a channel that will receive events.
-	Subscribe() (chan EventT, error)
 }
 
 // ExecutionPayload is the interface for the execution payload.
@@ -154,7 +143,7 @@ type LocalBuilder[BeaconStateT any] interface {
 // the beacon state.
 type ReadOnlyBeaconState[
 	T any,
-	BeaconBlockHeaderT BeaconBlockHeader,
+	BeaconBlockHeaderT any,
 	ExecutionPayloadHeaderT any,
 ] interface {
 	// Copy creates a copy of the beacon state.
@@ -209,7 +198,7 @@ type StateProcessor[
 // StorageBackend defines an interface for accessing various storage components
 // required by the beacon node.
 type StorageBackend[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT],
+	AvailabilityStoreT any,
 	BeaconBlockBodyT,
 	BeaconStateT any,
 ] interface {

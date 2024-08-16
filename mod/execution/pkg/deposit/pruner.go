@@ -32,7 +32,6 @@ func BuildPruneRangeFn[
 		GetDeposits() []DepositT
 	},
 	DepositT Deposit[DepositT, WithdrawalCredentialsT],
-	ExecutionPayloadT ExecutionPayload,
 	WithdrawalCredentialsT any,
 ](cs common.ChainSpec) func(*asynctypes.Event[BeaconBlockT]) (uint64, uint64) {
 	return func(event *asynctypes.Event[BeaconBlockT]) (uint64, uint64) {

@@ -163,7 +163,6 @@ type (
 		*ExecutionPayloadHeader,
 		*Genesis,
 		*PayloadAttributes,
-		*Withdrawal,
 	]
 
 	// ConsensusEngine is a type alias for the consensus engine.
