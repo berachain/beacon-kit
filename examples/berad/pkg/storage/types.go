@@ -18,30 +18,23 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package service
+package beacondb
 
-import "github.com/berachain/beacon-kit/mod/errors"
-
-var (
-	// errServiceAlreadyExists defines an error for when a service already
-	// exists.
-	errServiceAlreadyExists = errors.Wrapf(
-		errors.New("service already exists"),
-		"%v",
-	)
-
-	// errInputIsNotPointer defines an error for when the input must
-	// be of pointer type.
-	errInputIsNotPointer = errors.Wrapf(
-		errors.New(
-			"input must be of pointer type, received value type instead",
-		),
-		"%T",
-	)
-
-	// errUnknownService defines is returned when an unknown service is seen.
-	errUnknownService = errors.Wrapf(
-		errors.New("unknown service"),
-		"%T",
-	)
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
+
+// Validator represents an interface for a validator in the beacon chain.
+type Validator[SelfT any] interface {
+	constraints.Empty[SelfT]
+	constraints.SSZMarshallable
+	// GetPubkey returns the BLS public key of the validator.
+	GetPubkey() crypto.BLSPubkey
+	// GetEffectiveBalance returns the effective balance of the validator in
+	// Gwei.
+	GetEffectiveBalance() math.Gwei
+	// IsActive checks if the validator is active at the given epoch.
+	IsActive(epoch math.Epoch) bool
+}

@@ -23,7 +23,7 @@ package rpc
 import (
 	"fmt"
 
-	json "github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 )
 
 // Request represents an Ethereum JSON-RPC request.

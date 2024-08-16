@@ -172,7 +172,8 @@ func (sp *StateProcessor[
 	if withdrawals := payload.GetWithdrawals(); uint64(
 		len(payload.GetWithdrawals()),
 	) > sp.cs.MaxWithdrawalsPerPayload() {
-		return errors.Newf(
+		return errors.Wrapf(
+			ErrExceedMaximumWithdrawals,
 			"too many withdrawals, expected: %d, got: %d",
 			sp.cs.MaxWithdrawalsPerPayload(), len(withdrawals),
 		)
