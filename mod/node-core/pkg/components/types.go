@@ -188,10 +188,7 @@ type (
 	// DAService is a type alias for the DA service.
 	DAService = da.Service[
 		*AvailabilityStore,
-		*BeaconBlockBody,
 		*BlobSidecars,
-		*SidecarsBroker,
-		*ExecutionPayload,
 	]
 
 	// DBManager is a type alias for the database manager.
