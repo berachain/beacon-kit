@@ -37,11 +37,7 @@ type BeaconBlockBody[
 }
 
 // BeaconBlock is an interface for beacon blocks.
-type BeaconBlock[
-	DepositT any,
-	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
-	ExecutionPayloadT ExecutionPayload,
-] interface {
+type BeaconBlock[BeaconBlockBodyT any] interface {
 	GetSlot() math.U64
 	GetBody() BeaconBlockBodyT
 }
@@ -50,7 +46,7 @@ type BeaconBlock[
 type BlockEvent[
 	DepositT any,
 	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
-	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
+	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
 	ExecutionPayloadT ExecutionPayload,
 ] interface {
 	ID() asynctypes.EventID

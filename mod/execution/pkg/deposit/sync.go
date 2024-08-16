@@ -24,6 +24,7 @@ import (
 	"context"
 	"time"
 
+	async "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -33,8 +34,8 @@ const defaultRetryInterval = 20 * time.Second
 // depositFetcher returns a function that retrieves the block number from the
 // event and fetches and stores the deposits for that block.
 func (s *Service[
-	_, _, BlockEventT, _, _, _,
-]) depositFetcher(ctx context.Context, event BlockEventT) {
+	BeaconBlockT, _, _, _, _,
+]) depositFetcher(ctx context.Context, event async.Event[BeaconBlockT]) {
 	blockNum := event.Data().GetBody().GetExecutionPayload().GetNumber()
 	s.fetchAndStoreDeposits(ctx, blockNum-s.eth1FollowDistance)
 }
@@ -42,7 +43,7 @@ func (s *Service[
 // depositCatchupFetcher fetches deposits for blocks that failed to be
 // processed.
 func (s *Service[
-	_, _, _, _, _, _,
+	_, _, _, _, _,
 ]) depositCatchupFetcher(ctx context.Context) {
 	ticker := time.NewTicker(defaultRetryInterval)
 	defer ticker.Stop()
@@ -69,7 +70,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, _, _, _, _, _,
+	_, _, _, _, _,
 ]) fetchAndStoreDeposits(ctx context.Context, blockNum math.U64) {
 	deposits, err := s.dc.ReadDeposits(ctx, blockNum)
 	if err != nil {

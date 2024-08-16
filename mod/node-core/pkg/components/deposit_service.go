@@ -26,7 +26,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -53,10 +52,9 @@ func ProvideDepositService[
 ) (*DepositService, error) {
 	// Build the deposit service.
 	return deposit.NewService[
-		*BeaconBlockBody,
 		*BeaconBlock,
-		FinalizedBlockEvent,
-		*DepositStore,
+		*BeaconBlockBody,
+		*Deposit,
 		*ExecutionPayload,
 	](
 		in.Logger.With("service", "deposit"),
@@ -64,7 +62,6 @@ func ProvideDepositService[
 		in.TelemetrySink,
 		in.DepositStore,
 		in.BeaconDepositContract,
-		events.BeaconBlockFinalizedEvent,
 		in.Dispatcher,
 	), nil
 }
