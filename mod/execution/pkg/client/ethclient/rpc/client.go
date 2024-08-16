@@ -28,8 +28,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
-	json "github.com/goccy/go-json"
 )
 
 // Client is an Ethereum RPC client that provides a
