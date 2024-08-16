@@ -31,7 +31,7 @@ import (
 var _ types.Dispatcher = (*Dispatcher)(nil)
 
 // Dispatcher faciliates asynchronous communication between components,
-// typically services. It acts as an API facade to the underlying eventserver
+// typically services. It acts as an API facade to the underlying eventserver.
 type Dispatcher struct {
 	eventServer EventServer
 	logger      log.Logger[any]

@@ -20,7 +20,10 @@
 
 package types
 
-import "context"
+import (
+	"context"
+	"fmt"
+)
 
 // Subscription is a channel that receives events.
 type Subscription[T BaseEvent] chan T
@@ -60,8 +63,10 @@ func (s Subscription[T]) Listen(
 // Await will block until an event is received from the subscription or the
 // context is canceled.
 func (s Subscription[T]) Await(ctx context.Context) (T, error) {
+	fmt.Println("AWAITING EVENT")
 	select {
 	case event := <-s:
+		fmt.Println("GOT EVENT")
 		return event, nil
 	case <-ctx.Done():
 		return *new(T), ctx.Err()

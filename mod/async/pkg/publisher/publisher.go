@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package notify
+package publisher
 
 import (
 	"context"
@@ -42,9 +42,9 @@ type Publisher[T types.BaseEvent] struct {
 	mu sync.Mutex
 }
 
-// NewPublisher creates a new publisher publishing events of type T for the
+// New creates a new publisher publishing events of type T for the
 // provided eventID.
-func NewPublisher[T types.BaseEvent](eventID string) *Publisher[T] {
+func New[T types.BaseEvent](eventID string) *Publisher[T] {
 	return &Publisher[T]{
 		eventID:       types.EventID(eventID),
 		subscriptions: make(map[types.Subscription[T]]struct{}),
@@ -84,7 +84,7 @@ func (p *Publisher[T]) start(ctx context.Context) {
 func (p *Publisher[T]) Publish(msg types.BaseEvent) error {
 	typedMsg, err := ensureType[T](msg)
 	if err != nil {
-		return err
+		return errIncompatibleAssignee(msg, *new(T))
 	}
 	ctx := msg.Context()
 	select {

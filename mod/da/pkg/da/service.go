@@ -31,7 +31,7 @@ import (
 // The Data Availability service is responsible for verifying and processing
 // incoming blob sidecars.
 //
-//nolint:lll // long types
+
 type Service[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	BeaconBlockBodyT any,
@@ -197,7 +197,7 @@ func (s *Service[_, _, BlobSidecarsT, _]) verifySidecars(
 		return err
 	}
 
-	//nolint:lll // logging
+	
 	s.logger.Info(
 		"Blob sidecars verification succeeded - accepting incoming blob sidecars",
 		"num_blobs",

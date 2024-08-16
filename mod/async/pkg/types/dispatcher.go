@@ -59,15 +59,3 @@ type Publisher interface {
 	// EventID returns the event ID that the publisher is responsible for.
 	EventID() EventID
 }
-
-// messageRoute is the interface that supports basic message route operations.
-type MessageRoute interface {
-	// RegisterRecipient sets the recipient for the route.
-	RegisterReceiver(ch any) error
-	// SendRequest sends a request to the recipient.
-	SendRequest(msg BaseEvent, future any) error
-	// SendResponse sends a response to the recipient.
-	SendResponse(msg BaseEvent) error
-	// MessageID returns the message ID that the route is responsible for.
-	MessageID() EventID
-}

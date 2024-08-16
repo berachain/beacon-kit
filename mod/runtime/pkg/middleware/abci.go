@@ -22,6 +22,7 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	async "github.com/berachain/beacon-kit/mod/async/pkg/types"
@@ -69,6 +70,7 @@ func (h *ABCIMiddleware[
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("GOT IT BACK")
 	return gdpEvent.Data(), gdpEvent.Error()
 }
 

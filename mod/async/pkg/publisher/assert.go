@@ -18,17 +18,14 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package notify
+package publisher
 
-import "time"
-
-// TODO: make timeout configurable thorugh config/context
-const (
-	// defaultPublisherTimeout specifies the default timeout when the publisher
-	// tries to send a message to a client, a message is published to the
-	// publisher, or a client subscribes or unsubscribes.
-	defaultPublisherTimeout = time.Second
-
-	// defaultBufferSize specifies the default size of the message buffer.
-	defaultBufferSize = 10
-)
+// ensureType ensures that the provided entity is of type T.
+// It returns a typed entity or an error if the type is not correct.
+func ensureType[T any](e any) (T, error) {
+	typedE, ok := e.(T)
+	if !ok {
+		return *new(T), errIncompatibleAssignee(*new(T), e)
+	}
+	return typedE, nil
+}

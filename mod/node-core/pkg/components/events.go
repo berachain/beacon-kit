@@ -21,7 +21,7 @@
 package components
 
 import (
-	"github.com/berachain/beacon-kit/mod/async/pkg/notify"
+	"github.com/berachain/beacon-kit/mod/async/pkg/publisher"
 	"github.com/berachain/beacon-kit/mod/async/pkg/server"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
@@ -36,43 +36,43 @@ func ProvideEventServer() *EventServer {
 // finalized events.
 func ProvidePublishers() []asynctypes.Publisher {
 	return []asynctypes.Publisher{
-		notify.NewPublisher[GenesisDataReceivedEvent](
+		publisher.New[GenesisDataReceivedEvent](
 			events.GenesisDataReceived,
 		),
-		notify.NewPublisher[GenesisDataProcessedEvent](
+		publisher.New[GenesisDataProcessedEvent](
 			events.GenesisDataProcessed,
 		),
-		notify.NewPublisher[NewSlotEvent](
+		publisher.New[NewSlotEvent](
 			events.NewSlot,
 		),
-		notify.NewPublisher[BuiltBeaconBlockEvent](
+		publisher.New[BuiltBeaconBlockEvent](
 			events.BuiltBeaconBlock,
 		),
-		notify.NewPublisher[BuiltSidecarsEvent](
+		publisher.New[BuiltSidecarsEvent](
 			events.BuiltSidecars,
 		),
-		notify.NewPublisher[BeaconBlockReceivedEvent](
+		publisher.New[BeaconBlockReceivedEvent](
 			events.BeaconBlockReceived,
 		),
-		notify.NewPublisher[SidecarsReceivedEvent](
+		publisher.New[SidecarsReceivedEvent](
 			events.SidecarsReceived,
 		),
-		notify.NewPublisher[BeaconBlockVerifiedEvent](
+		publisher.New[BeaconBlockVerifiedEvent](
 			events.BeaconBlockVerified,
 		),
-		notify.NewPublisher[SidecarsVerifiedEvent](
+		publisher.New[SidecarsVerifiedEvent](
 			events.SidecarsVerified,
 		),
-		notify.NewPublisher[FinalBeaconBlockReceivedEvent](
+		publisher.New[FinalBeaconBlockReceivedEvent](
 			events.FinalBeaconBlockReceived,
 		),
-		notify.NewPublisher[FinalSidecarsReceivedEvent](
+		publisher.New[FinalSidecarsReceivedEvent](
 			events.FinalSidecarsReceived,
 		),
-		notify.NewPublisher[FinalValidatorUpdatesProcessedEvent](
+		publisher.New[FinalValidatorUpdatesProcessedEvent](
 			events.FinalValidatorUpdatesProcessed,
 		),
-		notify.NewPublisher[FinalizedBlockEvent](
+		publisher.New[FinalizedBlockEvent](
 			events.BeaconBlockFinalizedEvent,
 		),
 	}

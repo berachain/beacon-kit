@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package notify
+package publisher
 
 import (
 	"github.com/berachain/beacon-kit/mod/errors"
