@@ -99,7 +99,8 @@ func UnmarshalBeaconBlockFromABCIRequest[
 		return blk, ErrNilBeaconBlockInRequest
 	}
 
-	return blk.NewFromSSZ(blkBz, forkVersion)
+	blk = blk.Empty(forkVersion)
+	return blk, blk.UnmarshalSSZ(blkBz)
 }
 
 // UnmarshalBlobSidecarsFromABCIRequest extracts blob sidecars from an ABCI
