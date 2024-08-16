@@ -18,30 +18,22 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package service
+package beacondb
 
-import "github.com/berachain/beacon-kit/mod/errors"
+// SetFork sets the fork version for the given epoch.
+func (kv *KVStore[
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
+]) SetFork(
+	fork ForkT,
+) error {
+	return kv.fork.Set(kv.ctx, fork)
+}
 
-var (
-	// errServiceAlreadyExists defines an error for when a service already
-	// exists.
-	errServiceAlreadyExists = errors.Wrapf(
-		errors.New("service already exists"),
-		"%v",
-	)
-
-	// errInputIsNotPointer defines an error for when the input must
-	// be of pointer type.
-	errInputIsNotPointer = errors.Wrapf(
-		errors.New(
-			"input must be of pointer type, received value type instead",
-		),
-		"%T",
-	)
-
-	// errUnknownService defines is returned when an unknown service is seen.
-	errUnknownService = errors.Wrapf(
-		errors.New("unknown service"),
-		"%T",
-	)
-)
+// GetFork gets the fork version for the given epoch.
+func (kv *KVStore[
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
+]) GetFork() (ForkT, error) {
+	return kv.fork.Get(kv.ctx)
+}

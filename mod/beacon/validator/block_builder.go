@@ -25,7 +25,6 @@ import (
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -145,10 +144,7 @@ func (s *Service[
 	)
 
 	if err != nil {
-		return blk, errors.Newf(
-			"failed to get block root at index: %w",
-			err,
-		)
+		return blk, err
 	}
 
 	// Get the proposer index for the slot.
@@ -156,10 +152,7 @@ func (s *Service[
 		s.signer.PublicKey(),
 	)
 	if err != nil {
-		return blk, errors.Newf(
-			"failed to get validator by pubkey: %w",
-			err,
-		)
+		return blk, err
 	}
 
 	return blk.NewWithVersion(

@@ -100,7 +100,7 @@ func InitializeCmd[
 
 	// bind cobra flags to the viper instance
 	if err = bindFlags(baseName, cmd, viper); err != nil {
-		return errors.Newf("error binding flags: %w", err)
+		return errors.Wrapf(ErrFlagBind, "error binding flags: %w", err)
 	}
 
 	ctx := cmd.Context()

@@ -96,18 +96,11 @@ func AddExecutionPayloadCmd[
 			}
 
 			// Inject the execution payload.
-			header, err := executableDataToExecutionPayloadHeader(
+			genesisInfo.ExecutionPayloadHeader = executableDataToExecutionPayloadHeader(
 				version.ToUint32(genesisInfo.ForkVersion),
 				payload,
 				chainSpec.MaxWithdrawalsPerPayload(),
 			)
-			if err != nil {
-				return errors.Wrap(
-					err,
-					"failed to convert executable data to execution payload header",
-				)
-			}
-			genesisInfo.ExecutionPayloadHeader = header
 
 			appGenesisState["beacon"], err = json.Marshal(genesisInfo)
 			if err != nil {
@@ -134,7 +127,7 @@ func executableDataToExecutionPayloadHeader(
 	data *gethprimitives.ExecutableData,
 	// todo: re-enable when codec supports.
 	_ uint64,
-) (*types.ExecutionPayloadHeader, error) {
+) *types.ExecutionPayloadHeader {
 	var executionPayloadHeader *types.ExecutionPayloadHeader
 	switch forkVersion {
 	case version.Deneb, version.DenebPlus:
@@ -190,8 +183,8 @@ func executableDataToExecutionPayloadHeader(
 			ExcessBlobGas: math.U64(excessBlobGas),
 		}
 	default:
-		return nil, errors.Newf("unsupported fork version %d", forkVersion)
+		panic("unsupported fork version")
 	}
 
-	return executionPayloadHeader, nil
+	return executionPayloadHeader
 }

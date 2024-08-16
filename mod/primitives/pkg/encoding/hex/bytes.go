@@ -63,7 +63,8 @@ func DecodeFixedText(input, out []byte) error {
 		return err
 	}
 	if len(raw)/encDecRatio != len(out) {
-		return errors.Newf(
+		return errors.Wrapf(
+			errors.New("invalid hex string length"),
 			"hex string has length %d, want %d",
 			len(raw), len(out)*encDecRatio,
 		)
