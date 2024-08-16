@@ -34,7 +34,9 @@ type NoopBlobHandler[
 		constraints.SSZMarshallable
 		Empty() BlobSidecarsT
 	}, _ encoding.ABCIRequest,
-] struct{}
+] struct {
+	NoopGossipHandler[BlobSidecarsT, []byte]
+}
 
 func NewNoopBlobHandler[
 	BlobSidecarsT interface {
@@ -43,7 +45,9 @@ func NewNoopBlobHandler[
 	},
 	ReqT encoding.ABCIRequest,
 ]() NoopBlobHandler[BlobSidecarsT, ReqT] {
-	return NoopBlobHandler[BlobSidecarsT, ReqT]{}
+	return NoopBlobHandler[BlobSidecarsT, ReqT]{
+		NoopGossipHandler: NoopGossipHandler[BlobSidecarsT, []byte]{},
+	}
 }
 
 // Publish takes a Blob and returns the ssz marshalled data.

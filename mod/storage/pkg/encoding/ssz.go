@@ -70,7 +70,8 @@ func (SSZValueCodec[T]) ValueType() string {
 // infer the type of an interface.
 type SSZInterfaceCodec[T interface {
 	constraints.SSZMarshallable
-	constraints.EmptyWithVersion[T]
+	constraints.Versionable
+	NewFromSSZ([]byte, uint32) (T, error)
 }] struct {
 	latestVersion uint32
 }
@@ -88,8 +89,7 @@ func (cdc *SSZInterfaceCodec[T]) Encode(value T) ([]byte, error) {
 // Decode unmarshals the provided bytes into a value of type T.
 func (cdc SSZInterfaceCodec[T]) Decode(b []byte) (T, error) {
 	var t T
-	t = (t).Empty(cdc.latestVersion)
-	return t, t.UnmarshalSSZ(b)
+	return t.NewFromSSZ(b, cdc.latestVersion)
 }
 
 // EncodeJSON is not implemented and will panic if called.

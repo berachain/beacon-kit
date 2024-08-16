@@ -34,6 +34,7 @@ type NoopBlockGossipHandler[
 	BeaconBlockT BeaconBlock[BeaconBlockT],
 	ReqT encoding.ABCIRequest,
 ] struct {
+	NoopGossipHandler[BeaconBlockT, []byte]
 	chainSpec common.ChainSpec
 }
 
@@ -44,7 +45,8 @@ func NewNoopBlockGossipHandler[
 	chainSpec common.ChainSpec,
 ) NoopBlockGossipHandler[BeaconBlockT, ReqT] {
 	return NoopBlockGossipHandler[BeaconBlockT, ReqT]{
-		chainSpec: chainSpec,
+		NoopGossipHandler: NoopGossipHandler[BeaconBlockT, []byte]{},
+		chainSpec:         chainSpec,
 	}
 }
 

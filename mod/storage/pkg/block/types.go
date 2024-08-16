@@ -28,8 +28,8 @@ import (
 
 type BeaconBlock[T any] interface {
 	constraints.SSZMarshallable
-	constraints.EmptyWithVersion[T]
-
+	NewFromSSZ(bz []byte, version uint32) (T, error)
+	Version() uint32
 	GetSlot() math.U64
 	HashTreeRoot() common.Root
 	GetExecutionNumber() math.U64
