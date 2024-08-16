@@ -28,10 +28,13 @@ import (
 	clicomponents "github.com/berachain/beacon-kit/mod/cli/pkg/components"
 	nodebuilder "github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
 	nodecomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
+	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
 	"github.com/cosmos/cosmos-sdk/server"
 	"go.uber.org/automaxprocs/maxprocs"
 )
+
+type Node = nodetypes.Node
 
 // run runs the beacon node.
 func run() error {
@@ -70,9 +73,9 @@ func run() error {
 		),
 		clibuilder.SupplyModuleDeps[Node, *ExecutionPayload, *Logger](
 			[]any{
-				&nodecomponents.ABCIMiddleware{},
+				&ABCIMiddleware{},
 				&runtime.App{},
-				&nodecomponents.StorageBackend{},
+				&StorageBackend{},
 			},
 		),
 		// Set the Run Handler to the Default.
