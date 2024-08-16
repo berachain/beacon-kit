@@ -34,8 +34,9 @@ import (
 type BeaconBlock[SelfT any] interface {
 	constraints.SSZMarshallable
 	constraints.Nillable
-	constraints.EmptyWithVersion[SelfT]
+	constraints.Empty[SelfT]
 	GetSlot() math.Slot
+	NewFromSSZ([]byte, uint32) (SelfT, error)
 }
 
 // TelemetrySink is an interface for sending metrics to a telemetry backend.

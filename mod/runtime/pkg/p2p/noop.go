@@ -48,7 +48,9 @@ func (n NoopGossipHandler[DataT, BytesT]) Request(
 	_ context.Context,
 	ref BytesT,
 ) (DataT, error) {
-	var out DataT
+	var (
+		out DataT
+	)
 
 	// Use Empty() method to create a new instance of DataT
 	out = out.Empty()
