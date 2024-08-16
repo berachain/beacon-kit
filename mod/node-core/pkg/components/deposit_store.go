@@ -23,6 +23,8 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	storev2 "cosmossdk.io/store/v2/db"
+	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
@@ -58,10 +60,11 @@ func ProvideDepositStore(
 
 // DepositPrunerInput is the input for the deposit pruner.
 type DepositPrunerInput[
+	BeaconBlockT any,
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ] struct {
 	depinject.In
-	BlockBroker  *BlockBroker
+	BlockBroker  *broker.Broker[*asynctypes.Event[BeaconBlockT]]
 	ChainSpec    common.ChainSpec
 	DepositStore *DepositStore
 	Logger       LoggerT
@@ -69,9 +72,10 @@ type DepositPrunerInput[
 
 // ProvideDepositPruner provides a deposit pruner for the depinject framework.
 func ProvideDepositPruner[
+	BeaconBlockT any,
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ](
-	in DepositPrunerInput[LoggerT],
+	in DepositPrunerInput[BeaconBlockT, LoggerT],
 ) (DepositPruner, error) {
 	subCh, err := in.BlockBroker.Subscribe()
 	if err != nil {
@@ -80,8 +84,8 @@ func ProvideDepositPruner[
 	}
 
 	return pruner.NewPruner[
-		*BeaconBlock,
-		*BlockEvent,
+		BeaconBlockT,
+		BlockEvent,
 		*DepositStore,
 	](
 		in.Logger.With("service", manager.DepositPrunerName),
