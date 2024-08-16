@@ -22,7 +22,6 @@ package middleware
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	async "github.com/berachain/beacon-kit/mod/async/pkg/types"
@@ -48,9 +47,11 @@ func (h *ABCIMiddleware[
 	bz []byte,
 ) (transition.ValidatorUpdates, error) {
 	var (
-		err      error
-		gdpEvent async.Event[transition.ValidatorUpdates]
+		err              error
+		gdpEvent         async.Event[transition.ValidatorUpdates]
+		awaitCtx, cancel = context.WithTimeout(ctx, AwaitTimeout)
 	)
+	defer cancel()
 	// in theory this channel should already be empty, but we clear it anyways
 	h.subGenDataProcessed.Clear()
 
@@ -66,11 +67,11 @@ func (h *ABCIMiddleware[
 		return nil, err
 	}
 
-	gdpEvent, err = h.subGenDataProcessed.Await(ctx)
+	gdpEvent, err = h.subGenDataProcessed.Await(awaitCtx)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("GOT IT BACK")
+
 	return gdpEvent.Data(), gdpEvent.Error()
 }
 
@@ -86,11 +87,13 @@ func (h *ABCIMiddleware[
 	slotData SlotDataT,
 ) ([]byte, []byte, error) {
 	var (
-		err          error
-		builtBBEvent async.Event[BeaconBlockT]
-		builtSCEvent async.Event[BlobSidecarsT]
-		startTime    = time.Now()
+		err              error
+		builtBBEvent     async.Event[BeaconBlockT]
+		builtSCEvent     async.Event[BlobSidecarsT]
+		startTime        = time.Now()
+		awaitCtx, cancel = context.WithTimeout(ctx, AwaitTimeout)
 	)
+	defer cancel()
 	defer h.metrics.measurePrepareProposalDuration(startTime)
 	// in theory these subs should already be empty, but we clear them anyways
 	h.subBuiltBeaconBlock.Clear()
@@ -105,7 +108,7 @@ func (h *ABCIMiddleware[
 	}
 
 	// wait for built beacon block
-	builtBBEvent, err = h.subBuiltBeaconBlock.Await(ctx)
+	builtBBEvent, err = h.subBuiltBeaconBlock.Await(awaitCtx)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -114,7 +117,7 @@ func (h *ABCIMiddleware[
 	}
 
 	// wait for built sidecars
-	builtSCEvent, err = h.subBuiltSidecars.Await(ctx)
+	builtSCEvent, err = h.subBuiltSidecars.Await(awaitCtx)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -165,12 +168,14 @@ func (h *ABCIMiddleware[
 	req proto.Message,
 ) (proto.Message, error) {
 	var (
-		err       error
-		startTime = time.Now()
-		blk       BeaconBlockT
-		sidecars  BlobSidecarsT
+		err              error
+		startTime        = time.Now()
+		blk              BeaconBlockT
+		sidecars         BlobSidecarsT
+		awaitCtx, cancel = context.WithTimeout(ctx, AwaitTimeout)
 	)
-	// in theory these subs should already be empty, but we clear them anyways
+	defer cancel()
+	// in theory these subs should already be empty, probably redundant
 	h.subBBVerified.Clear()
 	h.subSCVerified.Clear()
 	abciReq, ok := req.(*cmtabci.ProcessProposalRequest)
@@ -185,7 +190,6 @@ func (h *ABCIMiddleware[
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
 
-	// TODO: implement service
 	// notify that the beacon block has been received.
 	if err = h.dispatcher.PublishEvent(
 		async.NewEvent(ctx, events.BeaconBlockReceived, blk),
@@ -206,11 +210,11 @@ func (h *ABCIMiddleware[
 	}
 
 	// err if the built beacon block or sidecars failed verification.
-	_, err = h.subBBVerified.Await(ctx)
+	_, err = h.subBBVerified.Await(awaitCtx)
 	if err != nil {
 		return h.createProcessProposalResponse(err)
 	}
-	_, err = h.subSCVerified.Await(ctx)
+	_, err = h.subSCVerified.Await(awaitCtx)
 	if err != nil {
 		return h.createProcessProposalResponse(err)
 	}
@@ -245,7 +249,9 @@ func (h *ABCIMiddleware[
 		blk                  BeaconBlockT
 		blobs                BlobSidecarsT
 		finalValUpdatesEvent async.Event[transition.ValidatorUpdates]
+		awaitCtx, cancel     = context.WithTimeout(ctx, AwaitTimeout)
 	)
+	defer cancel()
 	// in theory this sub should already be empty, but we clear them anyways
 	h.subFinalValidatorUpdates.Clear()
 	abciReq, ok := req.(*cmtabci.FinalizeBlockRequest)
@@ -281,7 +287,7 @@ func (h *ABCIMiddleware[
 	}
 
 	// wait for the final validator updates.
-	finalValUpdatesEvent, err = h.subFinalValidatorUpdates.Await(ctx)
+	finalValUpdatesEvent, err = h.subFinalValidatorUpdates.Await(awaitCtx)
 	if err != nil {
 		return nil, err
 	}

@@ -22,7 +22,6 @@ package blockchain
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	async "github.com/berachain/beacon-kit/mod/async/pkg/types"
@@ -227,7 +226,6 @@ func (s *Service[
 	if genesisErr != nil {
 		s.logger.Error("Failed to process genesis data", "error", genesisErr)
 	}
-	fmt.Println("GEN DATA PROCESSED")
 
 	// Emit the event containing the validator updates.
 	if err := s.dispatcher.PublishEvent(
@@ -244,7 +242,6 @@ func (s *Service[
 		)
 		panic(err)
 	}
-	fmt.Println("EMITTED EVENT")
 }
 
 func (s *Service[

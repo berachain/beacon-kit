@@ -41,18 +41,18 @@ type Event[DataT any] interface {
 	BaseEvent
 	Data() DataT
 	Error() error
-	Is(messageType EventID) bool
+	Is(id EventID) bool
 }
 
 // NewEvent creates a new Event with the given context and beacon event.
 func NewEvent[
 	DataT any,
 ](
-	ctx context.Context, messageType EventID, data DataT, errs ...error,
+	ctx context.Context, id EventID, data DataT, errs ...error,
 ) Event[DataT] {
 	return &event[DataT]{
 		ctx:  ctx,
-		id:   messageType,
+		id:   id,
 		data: data,
 		err:  errors.Join(errs...),
 	}

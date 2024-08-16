@@ -21,6 +21,7 @@
 package middleware
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/berachain/beacon-kit/mod/async/pkg/types"
@@ -133,34 +134,34 @@ func NewABCIMiddleware[
 func (am *ABCIMiddleware[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBundleT, BlobSidecarsT,
 	DepositT, ExecutionPayloadT, GenesisT, SlotDataT,
-]) Start() error {
-	// subGenDat
-	if err := am.dispatcher.Subscribe(
+]) Start(_ context.Context) error {
+	var err error
+	if err = am.dispatcher.Subscribe(
 		events.GenesisDataProcessed, am.subGenDataProcessed,
 	); err != nil {
 		return err
 	}
-	if err := am.dispatcher.Subscribe(
+	if err = am.dispatcher.Subscribe(
 		events.BuiltBeaconBlock, am.subBuiltBeaconBlock,
 	); err != nil {
 		return err
 	}
-	if err := am.dispatcher.Subscribe(
+	if err = am.dispatcher.Subscribe(
 		events.BuiltSidecars, am.subBuiltSidecars,
 	); err != nil {
 		return err
 	}
-	if err := am.dispatcher.Subscribe(
+	if err = am.dispatcher.Subscribe(
 		events.BeaconBlockVerified, am.subBBVerified,
 	); err != nil {
 		return err
 	}
-	if err := am.dispatcher.Subscribe(
+	if err = am.dispatcher.Subscribe(
 		events.SidecarsVerified, am.subSCVerified,
 	); err != nil {
 		return err
 	}
-	if err := am.dispatcher.Subscribe(
+	if err = am.dispatcher.Subscribe(
 		events.FinalValidatorUpdatesProcessed, am.subFinalValidatorUpdates,
 	); err != nil {
 		return err

@@ -185,7 +185,7 @@ type BlockEvent_Is_Call[BeaconBlockT pruner.BeaconBlock] struct {
 }
 
 // Is is a helper method to define mock.On call
-//   - _a0 types.MessageID
+//   - _a0 types.EventID
 func (_e *BlockEvent_Expecter[BeaconBlockT]) Is(_a0 interface{}) *BlockEvent_Is_Call[BeaconBlockT] {
 	return &BlockEvent_Is_Call[BeaconBlockT]{Call: _e.mock.On("Is", _a0)}
 }

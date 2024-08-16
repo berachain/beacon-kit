@@ -84,7 +84,7 @@ func (p *Publisher[T]) start(ctx context.Context) {
 func (p *Publisher[T]) Publish(msg types.BaseEvent) error {
 	typedMsg, err := ensureType[T](msg)
 	if err != nil {
-		return errIncompatibleAssignee(msg, *new(T))
+		return err
 	}
 	ctx := msg.Context()
 	select {

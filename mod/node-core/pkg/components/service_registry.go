@@ -32,6 +32,7 @@ type ServiceRegistryInput[
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ] struct {
 	depinject.In
+	Middleware        *ABCIMiddleware
 	BlockStoreService *BlockStoreService
 	ChainService      *ChainService
 	DAService         *DAService
@@ -54,6 +55,7 @@ func ProvideServiceRegistry[
 ) *service.Registry {
 	return service.NewRegistry(
 		service.WithLogger(in.Logger),
+		service.WithService(in.Middleware),
 		service.WithService(in.Dispatcher),
 		service.WithService(in.ValidatorService),
 		service.WithService(in.BlockStoreService),
