@@ -71,11 +71,8 @@ import (
 type (
 	// ABCIMiddleware is a type alias for the ABCIMiddleware.
 	ABCIMiddleware = middleware.ABCIMiddleware[
-		*AvailabilityStore,
 		*BeaconBlock,
 		*BlobSidecars,
-		*Deposit,
-		*ExecutionPayload,
 		*Genesis,
 		*SlotData,
 	]
