@@ -32,7 +32,8 @@ type EventServer interface {
 	Start(ctx context.Context)
 	// RegisterPublishers registers the given publishers with the event server.
 	RegisterPublishers(publishers ...types.Publisher) error
-	// Subscribe subscribes the given channel to the event with the given <eventID>.
+	// Subscribe subscribes the given channel to the event with the given
+	// <eventID>.
 	Subscribe(mID types.EventID, ch any) error
 	// Publish dispatches the given event to the event server.
 	Publish(event types.BaseEvent) error

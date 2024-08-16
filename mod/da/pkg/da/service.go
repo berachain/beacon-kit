@@ -197,7 +197,6 @@ func (s *Service[_, _, BlobSidecarsT, _]) verifySidecars(
 		return err
 	}
 
-	
 	s.logger.Info(
 		"Blob sidecars verification succeeded - accepting incoming blob sidecars",
 		"num_blobs",
