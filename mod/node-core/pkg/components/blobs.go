@@ -22,6 +22,8 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
@@ -65,21 +67,26 @@ type BlobVerifierInput struct {
 // depinject framework.
 func ProvideBlobVerifier[
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-](in BlobVerifierInput) *BlobVerifier {
+	BlobSidecarT BlobSidecar[BeaconBlockHeaderT],
+	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
+](in BlobVerifierInput) *dablob.Verifier[
+	BeaconBlockHeaderT, BlobSidecarT, BlobSidecarsT,
+] {
 	return dablob.NewVerifier[
 		BeaconBlockHeaderT,
-		*BlobSidecar,
-		*BlobSidecars,
+		BlobSidecarT,
+		BlobSidecarsT,
 	](in.BlobProofVerifier, in.TelemetrySink)
 }
 
 // BlobProcessorIn is the input for the BlobProcessor.
 type BlobProcessorIn[
+	BlobSidecarsT any,
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ] struct {
 	depinject.In
 
-	BlobVerifier  *BlobVerifier
+	BlobVerifier  BlobVerifier[BlobSidecarsT]
 	ChainSpec     common.ChainSpec
 	Logger        LoggerT
 	TelemetrySink *metrics.TelemetrySink
@@ -88,13 +95,24 @@ type BlobProcessorIn[
 // ProvideBlobProcessor is a function that provides the BlobProcessor to the
 // depinject framework.
 func ProvideBlobProcessor[
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	BeaconBlockBodyT any,
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BlobSidecarT BlobSidecar[BeaconBlockHeaderT],
+	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ](
-	in BlobProcessorIn[LoggerT],
-) *BlobProcessor {
+	in BlobProcessorIn[BlobSidecarsT, LoggerT],
+) *dablob.Processor[
+	AvailabilityStoreT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BlobSidecarT, BlobSidecarsT,
+] {
 	return dablob.NewProcessor[
-		*AvailabilityStore,
-		*BeaconBlockBody,
+		AvailabilityStoreT,
+		BeaconBlockBodyT,
+		BeaconBlockHeaderT,
+		BlobSidecarT,
+		BlobSidecarsT,
 	](
 		in.Logger.With("service", "blob-processor"),
 		in.ChainSpec,
@@ -106,28 +124,37 @@ func ProvideBlobProcessor[
 
 // DAServiceIn is the input for the BlobService.
 type DAServiceIn[
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	BeaconBlockBodyT any,
+	BlobSidecarsT any,
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ] struct {
 	depinject.In
 
-	AvailabilityStore *AvailabilityStore
-	SidecarsBroker    *SidecarsBroker
-	BlobProcessor     *BlobProcessor
-	Logger            LoggerT
+	AvailabilityStore AvailabilityStoreT
+	SidecarsBroker    *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
+	BlobProcessor     BlobProcessor[
+		AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT,
+	]
+	Logger LoggerT
 }
 
 // ProvideDAService is a function that provides the BlobService to the
 // depinject framework.
 func ProvideDAService[
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	BeaconBlockBodyT any,
+	BlobSidecarT any,
+	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ](
-	in DAServiceIn[LoggerT],
+	in DAServiceIn[AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT, LoggerT],
 ) *DAService {
 	return da.NewService[
-		*AvailabilityStore,
-		*BeaconBlockBody,
-		*BlobSidecars,
-		*SidecarsBroker,
+		AvailabilityStoreT,
+		BeaconBlockBodyT,
+		BlobSidecarsT,
+		*broker.Broker[*asynctypes.Event[BlobSidecarsT]],
 		*ExecutionPayload,
 	](
 		in.AvailabilityStore,

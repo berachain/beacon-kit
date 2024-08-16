@@ -32,7 +32,6 @@ import (
 	consruntimetypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/da/pkg/da"
-	datypes "github.com/berachain/beacon-kit/mod/da/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
@@ -87,22 +86,6 @@ type (
 		*BeaconState,
 		*PayloadAttributes,
 		*Withdrawal,
-	]
-
-	// BlobProcessor is a type alias for the blob processor.
-	BlobProcessor = dablob.Processor[
-		*AvailabilityStore,
-		*BeaconBlockBody,
-		*BeaconBlockHeader,
-		*BlobSidecar,
-		*BlobSidecars,
-	]
-
-	// BlobVerifier is a type alias for the blob verifier.
-	BlobVerifier = dablob.Verifier[
-		*BeaconBlockHeader,
-		*BlobSidecar,
-		*BlobSidecars,
 	]
 
 	// BlockStoreService is a type alias for the block store service.
@@ -311,12 +294,6 @@ type (
 		Validator,
 	]
 
-	// BlobSidecar is a type alias for the blob sidecar.
-	BlobSidecar = datypes.BlobSidecar
-
-	// BlobSidecars is a type alias for the blob sidecars.
-	BlobSidecars = datypes.BlobSidecars
-
 	// // BlockStore is a type alias for the block store.
 	// BlockStore = block.KVStore[*BeaconBlock]
 
@@ -439,9 +416,6 @@ type (
 	// GenesisEvent is a type alias for the genesis event.
 	GenesisEvent = asynctypes.Event[*Genesis]
 
-	// SidecarEvent is a type alias for the sidecar event.
-	SidecarEvent = asynctypes.Event[*BlobSidecars]
-
 	// SlotEvent is a type alias for the slot event.
 	SlotEvent = asynctypes.Event[*SlotData]
 
@@ -460,9 +434,6 @@ type (
 	// GenesisBroker is a type alias for the genesis feed.
 	GenesisBroker = broker.Broker[*GenesisEvent]
 
-	// SidecarsBroker is a type alias for the blob feed.
-	SidecarsBroker = broker.Broker[*SidecarEvent]
-
 	// SlotBroker is a type alias for the slot feed.
 	SlotBroker = broker.Broker[*SlotEvent]
 
@@ -478,9 +449,6 @@ type (
 /* -------------------------------------------------------------------------- */
 
 type (
-	// DAPruner is a type alias for the DA pruner.
-	DAPruner = pruner.Pruner[*IndexDB]
-
 	// DepositPruner is a type alias for the deposit pruner.
 	DepositPruner = pruner.Pruner[*DepositStore]
 )

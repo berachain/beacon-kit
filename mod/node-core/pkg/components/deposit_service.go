@@ -24,6 +24,8 @@ import (
 	"errors"
 
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
@@ -33,11 +35,12 @@ import (
 
 // DepositServiceIn is the input for the deposit service.
 type DepositServiceIn[
+	BeaconBlockT any,
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ] struct {
 	depinject.In
 	BeaconDepositContract *DepositContract
-	BlockBroker           *BlockBroker
+	BlockBroker           *broker.Broker[*asynctypes.Event[BeaconBlockT]]
 	ChainSpec             common.ChainSpec
 	DepositStore          *DepositStore
 	EngineClient          *EngineClient
@@ -60,10 +63,9 @@ func ProvideDepositService[
 
 	// Build the deposit service.
 	return deposit.NewService[
-		*BeaconBlockBody,
 		*BeaconBlock,
-		*BlockEvent,
-		*DepositStore,
+		*BeaconBlockBody,
+		*Deposit,
 		*ExecutionPayload,
 	](
 		in.Logger.With("service", "deposit"),

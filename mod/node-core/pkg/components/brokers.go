@@ -26,8 +26,8 @@ import (
 )
 
 // ProvideBlobBroker provides a blob feed for the depinject framework.
-func ProvideBlobBroker() *SidecarsBroker {
-	return broker.New[*SidecarEvent](
+func ProvideBlobBroker[BlobSidecarsT any]() *broker.Broker[*asynctypes.Event[BlobSidecarsT]] {
+	return broker.New[*asynctypes.Event[BlobSidecarsT]](
 		"blob-broker",
 	)
 }
@@ -70,9 +70,10 @@ func ProvideValidatorUpdateBroker() *ValidatorUpdateBroker {
 // DefaultBrokerProviders returns a slice of the default broker providers.
 func DefaultBrokerProviders[
 	BeaconBlockT any,
+	BlobSidecarsT any,
 ]() []interface{} {
 	return []interface{}{
-		ProvideBlobBroker,
+		ProvideBlobBroker[BlobSidecarsT],
 		ProvideBlockBroker[BeaconBlockT],
 		ProvideGenesisBroker,
 		ProvideSlotBroker,

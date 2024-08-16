@@ -57,6 +57,12 @@ type BeaconBlockHeader interface {
 	GetSlot() math.Slot
 }
 
+type BlobVerifier[BlobSidecarsT any] interface {
+	VerifyInclusionProofs(scs BlobSidecarsT, kzgOffset uint64) error
+	VerifyKZGProofs(scs BlobSidecarsT) error
+	VerifySidecars(sidecars BlobSidecarsT, kzgOffset uint64) error
+}
+
 type Sidecar[BeaconBlockHeaderT BeaconBlockHeader] interface {
 	GetBeaconBlockHeader() BeaconBlockHeaderT
 	GetBlob() eip4844.Blob

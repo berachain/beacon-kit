@@ -129,7 +129,7 @@ func ProvideAvailabilityPruner[
 		AvailabilityStoreT, BeaconBlockT,
 		BeaconBlockBodyT, BlobSidecarsT, LoggerT,
 	],
-) (DAPruner, error) {
+) (pruner.Pruner[AvailabilityStoreT], error) {
 	subCh, err := in.BlockBroker.Subscribe()
 	if err != nil {
 		in.Logger.Error("failed to subscribe to block feed", "err", err)

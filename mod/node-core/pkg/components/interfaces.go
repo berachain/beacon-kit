@@ -228,43 +228,49 @@ type (
 	// 		) (BlobSidecarsT, error)
 	// 	}
 
-	// 	// BlobProcessor is the interface for the blobs processor.
-	// 	BlobProcessor[
-	// 		AvailabilityStoreT any,
-	// 		BeaconBlockBodyT any,
-	// 		BlobSidecarsT any,
-	// 	] interface {
-	// 		// ProcessSidecars processes the blobs and ensures they match the local
-	// 		// state.
-	// 		ProcessSidecars(
-	// 			avs AvailabilityStoreT,
-	// 			sidecars BlobSidecarsT,
-	// 		) error
-	// 		// VerifySidecars verifies the blobs and ensures they match the local
-	// 		// state.
-	// 		VerifySidecars(
-	// 			sidecars BlobSidecarsT,
-	// 		) error
-	// 	}
+	// BlobProcessor is the interface for the blobs processor.
+	BlobProcessor[
+		AvailabilityStoreT any,
+		BeaconBlockBodyT any,
+		BlobSidecarsT any,
+	] interface {
+		// ProcessSidecars processes the blobs and ensures they match the local
+		// state.
+		ProcessSidecars(
+			avs AvailabilityStoreT,
+			sidecars BlobSidecarsT,
+		) error
+		// VerifySidecars verifies the blobs and ensures they match the local
+		// state.
+		VerifySidecars(
+			sidecars BlobSidecarsT,
+		) error
+	}
 
-	// 	BlobSidecar[BeaconBlockHeaderT any] interface {
-	// 		GetBeaconBlockHeader() BeaconBlockHeaderT
-	// 		GetBlob() eip4844.Blob
-	// 		GetKzgProof() eip4844.KZGProof
-	// 		GetKzgCommitment() eip4844.KZGCommitment
-	// 	}
+	BlobSidecar[BeaconBlockHeaderT any] interface {
+		GetBeaconBlockHeader() BeaconBlockHeaderT
+		GetBlob() eip4844.Blob
+		GetKzgProof() eip4844.KZGProof
+		GetKzgCommitment() eip4844.KZGCommitment
+	}
 
-	// 	// BlobSidecars is the interface for blobs sidecars.
-	// 	BlobSidecars[BlobSidecarT, BlobSidecarsT any] interface {
-	// 		constraints.Nillable
-	// 		constraints.SSZMarshallable
-	// 		constraints.Empty[BlobSidecarsT]
-	// 		Len() int
-	// 		Get(index int) BlobSidecarT
-	// 		GetSidecars() []BlobSidecarT
-	// 		ValidateBlockRoots() error
-	// 		VerifyInclusionProofs(kzgOffset uint64) error
-	// 	}
+	// BlobSidecars is the interface for blobs sidecars.
+	BlobSidecars[T, BlobSidecarT any] interface {
+		constraints.Nillable
+		constraints.SSZMarshallable
+		constraints.Empty[T]
+		Len() int
+		Get(index int) BlobSidecarT
+		GetSidecars() []BlobSidecarT
+		ValidateBlockRoots() error
+		VerifyInclusionProofs(kzgOffset uint64) error
+	}
+
+	BlobVerifier[BlobSidecarsT any] interface {
+		VerifyInclusionProofs(scs BlobSidecarsT, kzgOffset uint64) error
+		VerifyKZGProofs(scs BlobSidecarsT) error
+		VerifySidecars(sidecars BlobSidecarsT, kzgOffset uint64) error
+	}
 
 	// 	// BlockchainService defines the interface for interacting with the
 	// 	// blockchain

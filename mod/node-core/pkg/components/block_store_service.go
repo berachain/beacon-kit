@@ -22,6 +22,8 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -35,7 +37,7 @@ type BlockServiceInput[
 ] struct {
 	depinject.In
 
-	BlockBroker *BlockBroker
+	BlockBroker *broker.Broker[*asynctypes.Event[BeaconBlockT]]
 	BlockStore  BeaconBlockStoreT
 	Config      *config.Config
 	Logger      LoggerT
@@ -43,10 +45,18 @@ type BlockServiceInput[
 
 // ProvideBlockStoreService provides the block service.
 func ProvideBlockStoreService[
+	BeaconBlockT BeaconBlock[
+		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	],
+	BeaconBlockBodyT any,
+	BeaconBlockHeaderT any,
+	BeaconBlockStoreT BlockStore[BeaconBlockT],
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ](
-	in BlockServiceInput[LoggerT],
-) *BlockStoreService {
+	in BlockServiceInput[BeaconBlockT, BeaconBlockStoreT, LoggerT],
+) *blockstore.Service[
+	BeaconBlockT, BeaconBlockStoreT,
+] {
 	return blockstore.NewService(
 		in.Config.BlockStoreService,
 		in.Logger,
