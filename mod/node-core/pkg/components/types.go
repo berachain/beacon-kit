@@ -74,7 +74,6 @@ type (
 	ABCIMiddleware = middleware.ABCIMiddleware[
 		*AvailabilityStore,
 		*BeaconBlock,
-		*BeaconBlockBundle,
 		*BlobSidecars,
 		*Deposit,
 		*ExecutionPayload,
@@ -97,10 +96,6 @@ type (
 
 	// BeaconBlock type aliases.
 	BeaconBlock       = types.BeaconBlock
-	BeaconBlockBundle = datypes.BlockBundle[
-		*BeaconBlock,
-		*BlobSidecars,
-	]
 	BeaconBlockBody   = types.BeaconBlockBody
 	BeaconBlockHeader = types.BeaconBlockHeader
 

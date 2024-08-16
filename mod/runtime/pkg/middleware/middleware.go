@@ -38,7 +38,6 @@ import (
 type ABCIMiddleware[
 	AvailabilityStoreT any,
 	BeaconBlockT BeaconBlock[BeaconBlockT],
-	BeaconBlockBundleT BeaconBlockBundle[BeaconBlockT, BlobSidecarsT],
 	BlobSidecarsT interface {
 		constraints.SSZMarshallable
 		Empty() BlobSidecarsT
@@ -86,7 +85,6 @@ type ABCIMiddleware[
 func NewABCIMiddleware[
 	AvailabilityStoreT any,
 	BeaconBlockT BeaconBlock[BeaconBlockT],
-	BeaconBlockBundleT BeaconBlockBundle[BeaconBlockT, BlobSidecarsT],
 	BlobSidecarsT interface {
 		constraints.SSZMarshallable
 		Empty() BlobSidecarsT
@@ -101,11 +99,11 @@ func NewABCIMiddleware[
 	telemetrySink TelemetrySink,
 	dispatcher types.Dispatcher,
 ) *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconBlockBundleT, BlobSidecarsT,
+	AvailabilityStoreT, BeaconBlockT, BlobSidecarsT,
 	DepositT, ExecutionPayloadT, GenesisT, SlotDataT,
 ] {
 	return &ABCIMiddleware[
-		AvailabilityStoreT, BeaconBlockT, BeaconBlockBundleT, BlobSidecarsT,
+		AvailabilityStoreT, BeaconBlockT, BlobSidecarsT,
 		DepositT, ExecutionPayloadT, GenesisT, SlotDataT,
 	]{
 		chainSpec: chainSpec,
@@ -132,8 +130,7 @@ func NewABCIMiddleware[
 
 // Start subscribes the middleware to the events it needs to listen for.
 func (am *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconBlockBundleT, BlobSidecarsT,
-	DepositT, ExecutionPayloadT, GenesisT, SlotDataT,
+	_, _, _, _, _, _, _,
 ]) Start(_ context.Context) error {
 	var err error
 	if err = am.dispatcher.Subscribe(
@@ -171,8 +168,7 @@ func (am *ABCIMiddleware[
 
 // Name returns the name of the middleware.
 func (am *ABCIMiddleware[
-	AvailabilityStoreT, BeaconBlockT, BeaconBlockBundleT, BlobSidecarsT,
-	DepositT, ExecutionPayloadT, GenesisT, SlotDataT,
+	_, _, _, _, _, _, _,
 ]) Name() string {
 	return "abci-middleware"
 }

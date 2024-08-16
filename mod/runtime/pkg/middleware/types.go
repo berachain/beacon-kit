@@ -39,13 +39,6 @@ type BeaconBlock[SelfT any] interface {
 	NewFromSSZ([]byte, uint32) (SelfT, error)
 }
 
-// BeaconBlockBundle is a bundle of a beacon block and its corresponding blob
-// sidecars.
-type BeaconBlockBundle[BeaconBlockT any, BlobSidecarsT any] interface {
-	GetBeaconBlock() BeaconBlockT
-	GetSidecars() BlobSidecarsT
-}
-
 // TelemetrySink is an interface for sending metrics to a telemetry backend.
 type TelemetrySink interface {
 	// MeasureSince measures the time since the given time.
