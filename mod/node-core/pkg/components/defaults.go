@@ -65,6 +65,10 @@ func DefaultComponents() []any {
 		// TODO Hacks
 		ProvideKVStoreService,
 		ProvideKVStoreKey,
+		// loggerT im gonna kms
+		ProvideDispatcher[LoggerT],
+		ProvidePublishers,
+		ProvideEventServer,
 	}
 	components = append(components,
 		ProvideNodeAPIServer[LoggerT],
@@ -72,6 +76,5 @@ func DefaultComponents() []any {
 		ProvideNodeAPIBackend,
 	)
 	components = append(components, DefaultNodeAPIHandlers()...)
-	components = append(components, DefaultDispatcherComponents()...)
 	return components
 }
