@@ -112,7 +112,8 @@ func NewABCIMiddleware[
 		blobGossiper: rp2p.NewNoopBlobHandler[
 			BlobSidecarsT, encoding.ABCIRequest,
 		](),
-		beaconBlockGossiper: rp2p.NewNoopBlockGossipHandler[
+		beaconBlockGossiper: rp2p.
+			NewNoopBlockGossipHandler[
 			BeaconBlockT, encoding.ABCIRequest,
 		](
 			chainSpec,

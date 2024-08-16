@@ -34,8 +34,9 @@ import (
 type BeaconBlock[SelfT any] interface {
 	constraints.SSZMarshallable
 	constraints.Nillable
-	constraints.EmptyWithVersion[SelfT]
+	constraints.Empty[SelfT]
 	GetSlot() math.Slot
+	NewFromSSZ([]byte, uint32) (SelfT, error)
 }
 
 // BeaconBlockBundle is a bundle of a beacon block and its corresponding blob

@@ -390,11 +390,12 @@ func TestExecutablePayloadHeaderDeneb_HashTreeRootWith(t *testing.T) {
 	}
 }
 
-func TestExecutionPayloadHeader_UnmarshalSSZ(t *testing.T) {
+func TestExecutionPayloadHeader_NewFromSSZ(t *testing.T) {
 	t.Helper()
 	testCases := []struct {
 		name           string
 		data           []byte
+		forkVersion    uint32
 		expErr         error
 		expectedHeader *types.ExecutionPayloadHeader
 	}{
@@ -404,18 +405,21 @@ func TestExecutionPayloadHeader_UnmarshalSSZ(t *testing.T) {
 				data, _ := generateExecutionPayloadHeader().MarshalSSZ()
 				return data
 			}(),
+			forkVersion:    version.Deneb,
 			expErr:         nil,
 			expectedHeader: generateExecutionPayloadHeader(),
 		},
 		{
 			name:           "Invalid SSZ data",
 			data:           []byte{0x01, 0x02},
+			forkVersion:    version.Deneb,
 			expErr:         io.ErrUnexpectedEOF,
 			expectedHeader: nil,
 		},
 		{
 			name:           "Empty SSZ data",
 			data:           []byte{},
+			forkVersion:    version.Deneb,
 			expErr:         io.ErrUnexpectedEOF,
 			expectedHeader: nil,
 		},
@@ -423,13 +427,20 @@ func TestExecutionPayloadHeader_UnmarshalSSZ(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			header := new(types.ExecutionPayloadHeader).Empty()
-			err := header.UnmarshalSSZ(tc.data)
-			if tc.expErr != nil {
-				require.ErrorIs(t, err, tc.expErr)
+			if tc.name == "Different fork version" {
+				require.Panics(t, func() {
+					_, _ = new(types.ExecutionPayloadHeader).
+						NewFromSSZ(tc.data, tc.forkVersion)
+				}, "Expected panic for different fork version")
 			} else {
-				require.NoError(t, err)
-				require.Equal(t, tc.expectedHeader, header)
+				header, err := new(types.ExecutionPayloadHeader).
+					NewFromSSZ(tc.data, tc.forkVersion)
+				if tc.expErr != nil {
+					require.ErrorIs(t, err, tc.expErr)
+				} else {
+					require.NoError(t, err)
+					require.Equal(t, tc.expectedHeader, header)
+				}
 			}
 		})
 	}
