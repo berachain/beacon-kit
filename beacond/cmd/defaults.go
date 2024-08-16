@@ -25,6 +25,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 )
 
+//nolint:funlen // defaults is gonna be long
 func DefaultComponents() []any {
 	components := []any{
 		nodecomponents.ProvideABCIMiddleware[
@@ -63,7 +64,9 @@ func DefaultComponents() []any {
 			*BeaconBlockHeader, *BlockStore, *Deposit, *Eth1Data,
 			*ExecutionPayload, *Logger, *SlashingInfo,
 		],
-		nodecomponents.ProvideBlockStoreService[*BeaconBlock, *BlockStore, *Logger],
+		nodecomponents.ProvideBlockStoreService[
+			*BeaconBlock, *BlockStore, *Logger,
+		],
 		nodecomponents.ProvideBlsSigner[LegacyKey],
 		nodecomponents.ProvideBlobProcessor[
 			*AvailabilityStore, *BeaconBlockBody, *BeaconBlockHeader,
@@ -110,7 +113,9 @@ func DefaultComponents() []any {
 			*Eth1Data, *ExecutionPayload, *ExecutionPayloadHeader, *ForkData,
 			*Logger, *SlashingInfo, Withdrawals, WithdrawalCredentials,
 		],
-		nodecomponents.ProvideDepositStore[*Deposit, *ForkData, WithdrawalCredentials],
+		nodecomponents.ProvideDepositStore[
+			*Deposit, *ForkData, WithdrawalCredentials,
+		],
 		nodecomponents.ProvideEngineClient[
 			*ExecutionPayload, *PayloadAttributes, *Logger, *Withdrawal,
 		],

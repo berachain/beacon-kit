@@ -43,13 +43,14 @@ type ABCIMiddlewareInput[
 ] struct {
 	depinject.In
 
-	BeaconBlockFeed       *broker.Broker[*asynctypes.Event[BeaconBlockT]]
-	ChainSpec             common.ChainSpec
-	GenesisBroker         *broker.Broker[*asynctypes.Event[GenesisT]]
-	Logger                LoggerT
-	SidecarsFeed          *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
-	SlotBroker            *broker.Broker[*asynctypes.Event[SlotDataT]]
-	TelemetrySink         *metrics.TelemetrySink
+	BeaconBlockFeed *broker.Broker[*asynctypes.Event[BeaconBlockT]]
+	ChainSpec       common.ChainSpec
+	GenesisBroker   *broker.Broker[*asynctypes.Event[GenesisT]]
+	Logger          LoggerT
+	SidecarsFeed    *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
+	SlotBroker      *broker.Broker[*asynctypes.Event[SlotDataT]]
+	TelemetrySink   *metrics.TelemetrySink
+	//nolint:lll // annoying formatter
 	ValidatorUpdateBroker *broker.Broker[*asynctypes.Event[transition.ValidatorUpdates]]
 }
 

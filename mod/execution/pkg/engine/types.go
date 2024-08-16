@@ -30,7 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-type EngineClient[
+type Client[
 	ExecutionPayloadT any,
 	PayloadAttributesT any,
 	PayloadIDT ~[8]byte,

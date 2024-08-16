@@ -32,7 +32,9 @@ import (
 type PayloadBuilder[
 	AttributesFactoryT AttributesFactory[BeaconStateT, PayloadAttributesT],
 	BeaconStateT BeaconState[ExecutionPayloadHeaderT, WithdrawalT],
-	ExecutionEngineT ExecutionEngine[ExecutionPayloadT, PayloadAttributesT, PayloadIDT],
+	ExecutionEngineT ExecutionEngine[
+		ExecutionPayloadT, PayloadAttributesT, PayloadIDT,
+	],
 	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	LoggerT log.Logger[any],
@@ -62,7 +64,9 @@ type PayloadBuilder[
 func New[
 	AttributesFactoryT AttributesFactory[BeaconStateT, PayloadAttributesT],
 	BeaconStateT BeaconState[ExecutionPayloadHeaderT, WithdrawalT],
-	ExecutionEngineT ExecutionEngine[ExecutionPayloadT, PayloadAttributesT, PayloadIDT],
+	ExecutionEngineT ExecutionEngine[
+		ExecutionPayloadT, PayloadAttributesT, PayloadIDT,
+	],
 	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	LoggerT log.Logger[any],

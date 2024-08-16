@@ -38,7 +38,7 @@ import (
 // Engine is Beacon-Kit's implementation of the `ExecutionEngine`
 // from the Ethereum 2.0 Specification.
 type Engine[
-	EngineClientT EngineClient[
+	EngineClientT Client[
 		ExecutionPayloadT, PayloadAttributesT, PayloadIDT,
 	],
 	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT, WithdrawalsT],
@@ -62,7 +62,7 @@ type Engine[
 
 // New creates a new Engine.
 func New[
-	EngineClientT EngineClient[
+	EngineClientT Client[
 		ExecutionPayloadT, PayloadAttributesT, PayloadIDT,
 	],
 	ExecutionPayloadT ExecutionPayload[ExecutionPayloadT, WithdrawalsT],
@@ -164,7 +164,10 @@ func (ee *Engine[
 	// JSON-RPC errors are predefined and should be handled as such.
 	case jsonrpc.IsPreDefinedError(err):
 		ee.metrics.markForkchoiceUpdateJSONRPCError(err)
-		return payloadID, nil, errors.Join(err, engineerrors.ErrPreDefinedJSONRPC)
+		return payloadID, nil, errors.Join(
+			err,
+			engineerrors.ErrPreDefinedJSONRPC,
+		)
 
 	// All other errors are handled as undefined errors.
 	case err != nil:

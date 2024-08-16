@@ -69,16 +69,17 @@ type ChainServiceInput[
 ] struct {
 	depinject.In
 
-	BlockBroker           *broker.Broker[*asynctypes.Event[BeaconBlockT]]
-	ChainSpec             common.ChainSpec
-	Cfg                   *config.Config
-	ExecutionEngine       ExecutionEngineT
-	GenesisBrocker        *broker.Broker[*asynctypes.Event[GenesisT]]
-	LocalBuilder          LocalBuilderT
-	Logger                LoggerT
-	StateProcessor        StateProcessorT
-	StorageBackend        StorageBackendT
-	TelemetrySink         *metrics.TelemetrySink
+	BlockBroker     *broker.Broker[*asynctypes.Event[BeaconBlockT]]
+	ChainSpec       common.ChainSpec
+	Cfg             *config.Config
+	ExecutionEngine ExecutionEngineT
+	GenesisBrocker  *broker.Broker[*asynctypes.Event[GenesisT]]
+	LocalBuilder    LocalBuilderT
+	Logger          LoggerT
+	StateProcessor  StateProcessorT
+	StorageBackend  StorageBackendT
+	TelemetrySink   *metrics.TelemetrySink
+	//nolint:lll // annoying formatter
 	ValidatorUpdateBroker *broker.Broker[*asynctypes.Event[transition.ValidatorUpdates]]
 }
 

@@ -22,7 +22,6 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-
 	storev2 "cosmossdk.io/store/v2/db"
 	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"

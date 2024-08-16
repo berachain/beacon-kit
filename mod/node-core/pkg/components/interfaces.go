@@ -1,3 +1,23 @@
+// SPDX-License-Identifier: BUSL-1.1
+//
+// Copyright (C) 2024, Berachain Foundation. All rights reserved.
+// Use of this software is governed by the Business Source License included
+// in the LICENSE file of this repository and at www.mariadb.com/bsl11.
+//
+// ANY USE OF THE LICENSED WORK IN VIOLATION OF THIS LICENSE WILL AUTOMATICALLY
+// TERMINATE YOUR RIGHTS UNDER THIS LICENSE FOR THE CURRENT AND ALL OTHER
+// VERSIONS OF THE LICENSED WORK.
+//
+// THIS LICENSE DOES NOT GRANT YOU ANY RIGHT IN ANY TRADEMARK OR LOGO OF
+// LICENSOR OR ITS AFFILIATES (PROVIDED THAT YOU MAY USE A TRADEMARK OR LOGO OF
+// LICENSOR AS EXPRESSLY REQUIRED BY THIS LICENSE).
+//
+// TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+// AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+// EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+// TITLE.
+
 package components
 
 import (
@@ -37,7 +57,8 @@ type (
 		GetSlot() math.U64
 		// GetIndex returns the index of the attestation data.
 		GetIndex() math.U64
-		// GetBeaconBlockRoot returns the beacon block root of the attestation data.
+		// GetBeaconBlockRoot returns the beacon block root of the attestation
+		// data.
 		GetBeaconBlockRoot() common.Root
 	}
 
@@ -142,7 +163,8 @@ type (
 		SetAttestations([]AttestationDataT)
 		// SetSlashingInfo sets the slashing info of the beacon block body.
 		SetSlashingInfo([]SlashingInfoT)
-		// SetBlobKzgCommitments sets the blob KZG commitments of the beacon block
+		// SetBlobKzgCommitments sets the blob KZG commitments of the beacon
+		// block
 		// body.
 		SetBlobKzgCommitments(eip4844.KZGCommitments[common.ExecutionHash])
 	}
@@ -220,7 +242,8 @@ type (
 			avs AvailabilityStoreT,
 			sidecars BlobSidecarsT,
 		) error
-		// VerifySidecars verifies the blobs and ensures they match the local state.
+		// VerifySidecars verifies the blobs and ensures they match the local
+		// state.
 		VerifySidecars(
 			sidecars BlobSidecarsT,
 		) error
@@ -245,7 +268,8 @@ type (
 		VerifyInclusionProofs(kzgOffset uint64) error
 	}
 
-	// BlockchainService defines the interface for interacting with the blockchain
+	// BlockchainService defines the interface for interacting with the
+	// blockchain
 	// state and processing blocks.
 	BlockchainService[
 		BeaconBlockT any,
@@ -253,7 +277,8 @@ type (
 		GenesisT any,
 	] interface {
 		service.Basic
-		// ProcessGenesisData processes the genesis data and initializes the beacon
+		// ProcessGenesisData processes the genesis data and initializes the
+		// beacon
 		// state.
 		ProcessGenesisData(
 			context.Context,
@@ -283,7 +308,8 @@ type (
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		// GetSlotByStateRoot retrieves the slot by a given root from the store.
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)
-		// GetSlotByExecutionNumber retrieves the slot by a given execution number
+		// GetSlotByExecutionNumber retrieves the slot by a given execution
+		// number
 		// from the store.
 		GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
 		Prune(start, end uint64) error
@@ -305,24 +331,28 @@ type (
 		Wrap(context.Context) T
 		// OptimisticEngine sets the optimistic engine flag to true.
 		OptimisticEngine() T
-		// SkipPayloadVerification sets the skip payload verification flag to true.
+		// SkipPayloadVerification sets the skip payload verification flag to
+		// true.
 		SkipPayloadVerification() T
 		// SkipValidateRandao sets the skip validate randao flag to true.
 		SkipValidateRandao() T
 		// SkipValidateResult sets the skip validate result flag to true.
 		SkipValidateResult() T
 		// GetOptimisticEngine returns whether to optimistically assume the
-		// execution client has the correct state when certain errors are returned
+		// execution client has the correct state when certain errors are
+		// returned
 		// by the execution engine.
 		GetOptimisticEngine() bool
-		// GetSkipPayloadVerification returns whether to skip verifying the payload
+		// GetSkipPayloadVerification returns whether to skip verifying the
+		// payload
 		// if
 		// it already exists on the execution client.
 		GetSkipPayloadVerification() bool
 		// GetSkipValidateRandao returns whether to skip validating the RANDAO
 		// reveal.
 		GetSkipValidateRandao() bool
-		// GetSkipValidateResult returns whether to validate the result of the state
+		// GetSkipValidateResult returns whether to validate the result of the
+		// state
 		// transition.
 		GetSkipValidateResult() bool
 	}
@@ -364,7 +394,10 @@ type (
 
 	DepositStore[DepositT any] interface {
 		// GetDepositsByIndex returns `numView` expected deposits.
-		GetDepositsByIndex(startIndex uint64, numView uint64) ([]DepositT, error)
+		GetDepositsByIndex(
+			startIndex uint64,
+			numView uint64,
+		) ([]DepositT, error)
 		// Prune prunes the deposit store of [start, end)
 		Prune(start, end uint64) error
 		// EnqueueDeposits adds a list of deposits to the deposit store.
@@ -693,17 +726,21 @@ type (
 		// GetEffectiveBalance returns the effective balance of the validator in
 		// Gwei.
 		GetEffectiveBalance() math.Gwei
-		// SetEffectiveBalance sets the effective balance of the validator in Gwei.
+		// SetEffectiveBalance sets the effective balance of the validator in
+		// Gwei.
 		SetEffectiveBalance(math.Gwei)
-		// GetWithdrawableEpoch returns the epoch when the validator can withdraw.
+		// GetWithdrawableEpoch returns the epoch when the validator can
+		// withdraw.
 		GetWithdrawableEpoch() math.Epoch
 		// GetWithdrawalCredentials returns the withdrawal credentials of the
 		// validator.
 		GetWithdrawalCredentials() WithdrawalCredentialsT
-		// IsFullyWithdrawable checks if the validator is fully withdrawable given a
+		// IsFullyWithdrawable checks if the validator is fully withdrawable
+		// given a
 		// certain Gwei amount and epoch.
 		IsFullyWithdrawable(amount math.Gwei, epoch math.Epoch) bool
-		// IsPartiallyWithdrawable checks if the validator is partially withdrawable
+		// IsPartiallyWithdrawable checks if the validator is partially
+		// withdrawable
 		// given two Gwei amounts.
 		IsPartiallyWithdrawable(amount1 math.Gwei, amount2 math.Gwei) bool
 	}
@@ -742,7 +779,8 @@ type (
 	// WithdrawalCredentials represents an interface for withdrawal credentials.
 	WithdrawalCredentials interface {
 		~[32]byte
-		// ToExecutionAddress converts the withdrawal credentials to an execution
+		// ToExecutionAddress converts the withdrawal credentials to an
+		// execution
 		// address.
 		ToExecutionAddress() (common.ExecutionAddress, error)
 	}
@@ -805,12 +843,14 @@ type (
 		) T
 		// Copy returns a copy of the key-value store.
 		Copy() T
-		// GetLatestExecutionPayloadHeader retrieves the latest execution payload
+		// GetLatestExecutionPayloadHeader retrieves the latest execution
+		// payload
 		// header.
 		GetLatestExecutionPayloadHeader() (
 			ExecutionPayloadHeaderT, error,
 		)
-		// SetLatestExecutionPayloadHeader sets the latest execution payload header.
+		// SetLatestExecutionPayloadHeader sets the latest execution payload
+		// header.
 		SetLatestExecutionPayloadHeader(
 			payloadHeader ExecutionPayloadHeaderT,
 		) error
@@ -856,10 +896,12 @@ type (
 		GetNextWithdrawalIndex() (uint64, error)
 		// SetNextWithdrawalIndex sets the next withdrawal index.
 		SetNextWithdrawalIndex(index uint64) error
-		// GetNextWithdrawalValidatorIndex retrieves the next withdrawal validator
+		// GetNextWithdrawalValidatorIndex retrieves the next withdrawal
+		// validator
 		// index.
 		GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error)
-		// SetNextWithdrawalValidatorIndex sets the next withdrawal validator index.
+		// SetNextWithdrawalValidatorIndex sets the next withdrawal validator
+		// index.
 		SetNextWithdrawalValidatorIndex(index math.ValidatorIndex) error
 		// GetTotalSlashing retrieves the total slashing.
 		GetTotalSlashing() (math.Gwei, error)
@@ -890,8 +932,11 @@ type (
 			index math.ValidatorIndex,
 			validator ValidatorT,
 		) error
-		// ValidatorIndexByPubkey retrieves the validator index by the given pubkey.
-		ValidatorIndexByPubkey(pubkey crypto.BLSPubkey) (math.ValidatorIndex, error)
+		// ValidatorIndexByPubkey retrieves the validator index by the given
+		// pubkey.
+		ValidatorIndexByPubkey(
+			pubkey crypto.BLSPubkey,
+		) (math.ValidatorIndex, error)
 		// AddValidator adds a validator.
 		AddValidator(val ValidatorT) error
 		// AddValidatorBartio adds a validator to the Bartio chain.
@@ -967,13 +1012,15 @@ type (
 		UpdateStateRootAtIndex(uint64, common.Root) error
 	}
 
-	// ReadOnlyStateRoots defines a struct which only has read access to state roots
+	// ReadOnlyStateRoots defines a struct which only has read access to state
+	// roots
 	// methods.
 	ReadOnlyStateRoots interface {
 		StateRootAtIndex(uint64) (common.Root, error)
 	}
 
-	// WriteOnlyRandaoMixes defines a struct which only has write access to randao
+	// WriteOnlyRandaoMixes defines a struct which only has write access to
+	// randao
 	// mixes methods.
 	WriteOnlyRandaoMixes interface {
 		UpdateRandaoMixAtIndex(uint64, common.Bytes32) error
