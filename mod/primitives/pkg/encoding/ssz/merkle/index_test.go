@@ -206,6 +206,32 @@ func TestGetHelperIndices(t *testing.T) {
 			indices: []merkle.GeneralizedIndex{3, 7},
 			expect:  []merkle.GeneralizedIndex{6, 2},
 		},
+		{
+			name: "block roots",
+			// approximate a beacon_state.block_roots[4]
+			indices: []merkle.GeneralizedIndex{327684},
+			// each sibling index up the tree
+			expect: []merkle.GeneralizedIndex{
+				327685,
+				163843,
+				81920,
+				40961,
+				20481,
+				10241,
+				5121,
+				2561,
+				1281,
+				641,
+				321,
+				161,
+				81,
+				41,
+				21,
+				11,
+				4,
+				3,
+			},
+		},
 	}
 
 	for _, tt := range tests {

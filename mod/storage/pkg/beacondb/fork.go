@@ -27,6 +27,9 @@ func (kv *KVStore[
 ]) SetFork(
 	fork ForkT,
 ) error {
+	if err := kv.sszDB.SetObject(kv.ctx, "fork", fork); err != nil {
+		return err
+	}
 	return kv.fork.Set(kv.ctx, fork)
 }
 
@@ -35,5 +38,7 @@ func (kv *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetFork() (ForkT, error) {
-	return kv.fork.Get(kv.ctx)
+	var fork ForkT
+	fork = fork.Empty()
+	return fork, kv.sszDB.GetObject(kv.ctx, "fork", fork)
 }

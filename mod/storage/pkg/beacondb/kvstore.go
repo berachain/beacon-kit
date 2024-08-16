@@ -43,6 +43,7 @@ type KVStore[
 	Eth1DataT interface {
 		constraints.Empty[Eth1DataT]
 		constraints.SSZMarshallable
+		sszdb.Treeable
 	},
 	ExecutionPayloadHeaderT interface {
 		constraints.SSZMarshallable
@@ -53,6 +54,7 @@ type KVStore[
 	ForkT interface {
 		constraints.Empty[ForkT]
 		constraints.SSZMarshallable
+		sszdb.Treeable
 	},
 	ValidatorT Validator[ValidatorT],
 	ValidatorsT ~[]ValidatorT,
@@ -123,6 +125,7 @@ func New[
 	Eth1DataT interface {
 		constraints.Empty[Eth1DataT]
 		constraints.SSZMarshallable
+		sszdb.Treeable
 	},
 	ExecutionPayloadHeaderT interface {
 		constraints.SSZMarshallable
@@ -133,6 +136,7 @@ func New[
 	ForkT interface {
 		constraints.Empty[ForkT]
 		constraints.SSZMarshallable
+		sszdb.Treeable
 	},
 	ValidatorT Validator[ValidatorT],
 	ValidatorsT ~[]ValidatorT,

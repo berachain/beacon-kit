@@ -205,12 +205,12 @@ func Test_SchemaDB(t *testing.T) {
 	err = db.Commit(ctx)
 	require.NoError(t, err)
 
-	f, err := os.Create("testdata/beacon_state.dot")
+	dot1, err := os.Create("testdata/beacon_state.dot")
 	require.NoError(t, err)
-	defer f.Close()
+	defer dot1.Close()
 	rootNode, err := sszdb.NewTreeFromFastSSZ(beacon)
 	require.NoError(t, err)
-	drawTree(rootNode, f)
+	drawTree(rootNode, dot1)
 
 	beaconDB, err := sszdb.NewSchemaDB(db, beacon)
 	require.NoError(t, err)
@@ -275,6 +275,26 @@ func Test_SchemaDB(t *testing.T) {
 		beacon.LatestExecutionPayloadHeader,
 		executionPayloadHeader,
 	)
+
+	// Test Hashes and single node in list retrieval
+	hash := beacon.HashTreeRoot()
+	hashSSZ, err := beaconDB.Get(1, 0)
+	require.NoError(t, err)
+	require.True(t, bytes.Equal(hash[:], hashSSZ))
+
+	beacon.BlockRoots = append(beacon.BlockRoots, common.Root{7, 7, 7, 7})
+	beacon.BlockRoots = append(beacon.BlockRoots, common.Root{0})
+	beacon.BlockRoots = append(beacon.BlockRoots, common.Root{0})
+	hash = beacon.HashTreeRoot()
+	require.False(t, bytes.Equal(hash[:], hashSSZ))
+	require.NoError(t, beaconDB.SetBlockRoots(ctx, beacon.BlockRoots))
+	require.NoError(t, db.Commit(ctx))
+	hashSSZ, err = beaconDB.Get(1, 0)
+	require.NoError(t, err)
+	dotSSZ, err := os.Create("testdata/beacon_state_ssz.dot")
+	require.NoError(t, err)
+	require.NoError(t, beaconDB.DrawTree(ctx, dotSSZ))
+	require.True(t, bytes.Equal(hash[:], hashSSZ))
 }
 
 func Test_EmptyDB(t *testing.T) {

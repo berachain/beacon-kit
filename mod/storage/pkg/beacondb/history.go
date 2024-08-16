@@ -20,7 +20,11 @@
 
 package beacondb
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+import (
+	"fmt"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+)
 
 // UpdateBlockRootAtIndex sets a block root in the BeaconStore.
 func (kv *KVStore[
@@ -44,6 +48,7 @@ func (kv *KVStore[
 	if err != nil {
 		return common.Root{}, err
 	}
+	fmt.Printf("********** GetBlockRootAtIndex: i=%d %x\n", index, bz)
 	return common.Root(bz), nil
 }
 

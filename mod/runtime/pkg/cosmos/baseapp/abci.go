@@ -132,8 +132,8 @@ func (app *BaseApp) InitChain(
 		}
 	}
 
-	// TODO: this is required to ensure that the initial version is set
-	// on the SSZ DB. it should be removed.
+	// TODO: this is required to ensure that the initial version is committed
+	// in SSZDB. it should be removed.
 	if app.commitHook != nil {
 		if err = app.commitHook(app.finalizeBlockState.Context()); err != nil {
 			return nil, err
@@ -436,7 +436,6 @@ func (app *BaseApp) internalFinalizeBlock(
 func (app *BaseApp) FinalizeBlock(
 	req *abci.FinalizeBlockRequest,
 ) (res *abci.FinalizeBlockResponse, err error) {
-
 	res, err = app.internalFinalizeBlock(context.Background(), req)
 	if res != nil {
 		res.AppHash = app.workingHash()

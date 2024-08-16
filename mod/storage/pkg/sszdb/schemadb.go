@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/merkle"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -43,7 +44,7 @@ func NewSchemaDB(
 }
 
 func (db *SchemaDB) bootstrap(monolith Treeable) error {
-	bootstrapped, err := db.Get([]byte(bootstrappedKey))
+	bootstrapped, err := db.get([]byte(bootstrappedKey))
 	if err != nil {
 		return err
 	}
@@ -204,6 +205,34 @@ func (db *SchemaDB) GetPath(
 	return bz, err
 }
 
+func (db *SchemaDB) GetObject(
+	ctx context.Context,
+	path objectPath,
+	obj constraints.SSZUnmarshaler,
+) error {
+	bz, err := db.GetPath(ctx, path)
+	if err != nil {
+		return err
+	}
+	return obj.UnmarshalSSZ(bz)
+}
+
+func (db *SchemaDB) SetObject(
+	ctx context.Context,
+	path objectPath,
+	obj Treeable,
+) error {
+	treeNode, err := NewTreeFromFastSSZ(obj)
+	if err != nil {
+		return err
+	}
+	_, gidx, _, err := path.GetGeneralizedIndex(db.schemaRoot)
+	if err != nil {
+		return err
+	}
+	return db.stage(ctx, treeNode, gidx)
+}
+
 func (db *SchemaDB) GetSlot(ctx context.Context) (math.U64, error) {
 	path := objectPath("slot")
 	_, _, bz, err := db.getSSZBytes(ctx, path)
@@ -211,6 +240,36 @@ func (db *SchemaDB) GetSlot(ctx context.Context) (math.U64, error) {
 		return 0, err
 	}
 	return math.U64(fastssz.UnmarshallUint64(bz)), nil
+}
+
+func (db *SchemaDB) getListLength(
+	ctx context.Context,
+	path string,
+) (uint64, error) {
+	op := objectPath(path + "/__len__")
+	bz, err := db.GetPath(ctx, op)
+	if err != nil {
+		return 0, err
+	}
+	return fastssz.UnmarshallUint64(bz), nil
+}
+
+func (db *SchemaDB) setListLength(
+	ctx context.Context,
+	path string,
+	length uint64,
+) error {
+	op := objectPath(path + "/__len__")
+	_, gindex, _, err := op.GetGeneralizedIndex(db.schemaRoot)
+	if err != nil {
+		return err
+	}
+	val := make([]byte, 32)
+	return db.stage(
+		ctx,
+		&Node{Value: fastssz.MarshalUint64(val, length)},
+		gindex,
+	)
 }
 
 func (db *SchemaDB) GetBlockRoots(ctx context.Context) ([]common.Root, error) {
@@ -223,7 +282,6 @@ func (db *SchemaDB) GetBlockRoots(ctx context.Context) ([]common.Root, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	length := fastssz.UnmarshallUint64(bz)
 	sszBytes, err := db.GetPath(ctx, "block_roots")
 	if err != nil {
@@ -237,4 +295,95 @@ func (db *SchemaDB) GetBlockRoots(ctx context.Context) ([]common.Root, error) {
 	}
 
 	return roots, nil
+}
+
+func (db *SchemaDB) SetBlockRoots(
+	ctx context.Context,
+	roots []common.Root,
+) error {
+	path := objectPath("block_roots")
+	typ, gindex, _, err := path.GetGeneralizedIndex(db.schemaRoot)
+	if err != nil {
+		return err
+	}
+	if typ.ID() != schema.List {
+		return fmt.Errorf("expected list type, got %d", typ.ID())
+	}
+	if uint64(len(roots)) > typ.Length() {
+		return fmt.Errorf(
+			"expected max %d roots, got %d",
+			typ.Length(),
+			len(roots),
+		)
+	}
+	// use fastssz to produce a tree
+	hh := &fastssz.Wrapper{}
+	for _, root := range roots {
+		hh.Append(root[:])
+	}
+	hh.MerkleizeWithMixin(0, uint64(len(roots)), typ.Length())
+	node := copyTree(hh.Node())
+	node.CachedHash()
+	return db.stage(ctx, node, gindex)
+}
+
+func (db *SchemaDB) GetBlockRootAtIndex(
+	ctx context.Context,
+	index uint64,
+) (common.Root, error) {
+	path := objectPath(fmt.Sprintf("block_roots/%d", index))
+	bz, err := db.GetPath(ctx, path)
+	if err != nil {
+		return common.Root{}, err
+	}
+	return common.Root(bz), nil
+}
+
+func (db *SchemaDB) SetBlockRootAtIndex(
+	ctx context.Context,
+	index uint64,
+	root common.Root,
+) error {
+	length, err := db.getListLength(ctx, "block_roots")
+	if err != nil {
+		return err
+	}
+	if index > length {
+		return fmt.Errorf("index %d out of bounds; len=%d", index, length)
+	}
+	path := objectPath(fmt.Sprintf("block_roots/%d", index))
+	_, gidx, _, err := path.GetGeneralizedIndex(db.schemaRoot)
+	if err != nil {
+		return err
+	}
+	err = db.stage(ctx, &Node{Value: root[:]}, gidx)
+	if err != nil {
+		return err
+	}
+
+	// when the index is at the end of the list, we need to update the length
+	// and potentially add some zero hashes
+	if index == length {
+		gindex := gidx
+		depth := 0
+		branchID := db.stageID(ctx)
+		for gindex > 1 {
+			if gindex%2 == 0 {
+				sibling, err := db.getNode(ctx, gindex+1)
+				if err != nil {
+					return err
+				}
+				if sibling != nil {
+					// exit condition: once pre-existing sibling is found
+					// upward traversal be stopped
+					break
+				}
+				db.stages[branchID][gindex+1] = db.zeroHashes[depth]
+			}
+			depth += 1
+			gindex /= 2
+		}
+		return db.setListLength(ctx, "block_roots", index+1)
+	}
+	return nil
 }

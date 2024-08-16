@@ -23,7 +23,10 @@ package beacondb
 import (
 	"bytes"
 	"crypto/sha256"
+	"errors"
 	"fmt"
+
+	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 )
 
 // GetLatestExecutionPayloadHeader retrieves the latest execution payload
@@ -113,7 +116,28 @@ func (kv *KVStore[
 	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetEth1Data() (Eth1DataT, error) {
-	return kv.eth1Data.Get(kv.ctx)
+	eth1Data, err := kv.eth1Data.Get(kv.ctx)
+	if err != nil {
+		return eth1Data, err
+	}
+	eth1DataSSZ, err := kv.sszDB.GetPath(kv.ctx, "eth1_data")
+	if err != nil {
+		return eth1Data, err
+	}
+	bz, err := eth1Data.MarshalSSZ()
+	if err != nil {
+		return eth1Data, err
+	}
+	if !bytes.Equal(bz, eth1DataSSZ) {
+		return eth1Data, errors.New("eth1 data SSZ does not match DB")
+	}
+	// TODO: Don't alloc codec, some codec exists already buried in sdk.Collections
+	codec := encoding.SSZValueCodec[Eth1DataT]{}
+	res, err := codec.Decode(eth1DataSSZ)
+	if err != nil {
+		return eth1Data, err
+	}
+	return res, nil
 }
 
 // SetEth1Data sets the eth1 data in the beacon state.
@@ -123,5 +147,8 @@ func (kv *KVStore[
 ]) SetEth1Data(
 	data Eth1DataT,
 ) error {
+	if err := kv.sszDB.SetObject(kv.ctx, "eth1_data", data); err != nil {
+		return err
+	}
 	return kv.eth1Data.Set(kv.ctx, data)
 }

@@ -1,7 +1,6 @@
 package sszdb
 
 import (
-	"crypto/sha256"
 	"reflect"
 	"unsafe"
 
@@ -33,17 +32,8 @@ func (n *Node) CachedHash() []byte {
 	if (n.Left == nil && n.Right == nil) || n.Value != nil {
 		return n.Value
 	}
-	h := sha256.Sum256(append(n.Left.CachedHash(), n.Right.CachedHash()...))
-	n.Value = h[:]
+	n.Value = hashFn(append(n.Left.CachedHash(), n.Right.CachedHash()...))
 	return n.Value
-}
-
-func (n *Node) Hash() []byte {
-	if n.Left == nil && n.Right == nil {
-		return n.Value
-	}
-	h := sha256.Sum256(append(n.Left.Hash(), n.Right.Hash()...))
-	return h[:]
 }
 
 // TODO this is a big hack to speed up development
