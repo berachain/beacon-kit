@@ -193,14 +193,14 @@ func (s *Service[
 	}
 
 	// start a goroutine to listen for requests and handle accordingly
-	go s.listen(ctx)
+	go s.eventLoop(ctx)
 	return nil
 }
 
-// listen listens for events and handles them accordingly.
+// eventLoop listens for events and handles them accordingly.
 func (s *Service[
 	_, BeaconBlockT, _, _, _, _, _, _, GenesisT, _, _,
-]) listen(ctx context.Context) {
+]) eventLoop(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():

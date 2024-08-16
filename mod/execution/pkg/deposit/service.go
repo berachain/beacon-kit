@@ -102,7 +102,7 @@ func (s *Service[
 	}
 
 	// Listen for finalized block events and fetch deposits for the block.
-	go s.listen(ctx)
+	go s.eventLoop(ctx)
 
 	// Catchup deposits for failed blocks.
 	go s.depositCatchupFetcher(ctx)
@@ -111,7 +111,7 @@ func (s *Service[
 
 func (s *Service[
 	_, _, _, _, _,
-]) listen(ctx context.Context) {
+]) eventLoop(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():

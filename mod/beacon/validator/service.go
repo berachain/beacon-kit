@@ -180,11 +180,11 @@ func (s *Service[
 		return err
 	}
 	// set the handler for new slot events
-	go s.listen(ctx)
+	go s.eventLoop(ctx)
 	return nil
 }
 
-func (s *Service[_, _, _, _, _, _, _, _, _, _, _, _, SlotDataT]) listen(
+func (s *Service[_, _, _, _, _, _, _, _, _, _, _, _, SlotDataT]) eventLoop(
 	ctx context.Context,
 ) {
 	for {

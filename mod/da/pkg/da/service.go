@@ -109,11 +109,11 @@ func (s *Service[_, _, BlobSidecarsT, _]) Start(ctx context.Context) error {
 	}
 
 	// listen for events and handle accordingly
-	go s.listen(ctx)
+	go s.eventLoop(ctx)
 	return nil
 }
 
-func (s *Service[_, _, BlobSidecarsT, _]) listen(ctx context.Context) {
+func (s *Service[_, _, BlobSidecarsT, _]) eventLoop(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():

@@ -84,11 +84,11 @@ func (s *Service[BeaconBlockT, _]) Start(ctx context.Context) error {
 		return err
 	}
 
-	go s.listen(ctx)
+	go s.eventLoop(ctx)
 	return nil
 }
 
-func (s *Service[BeaconBlockT, BlockStoreT]) listen(ctx context.Context) {
+func (s *Service[BeaconBlockT, BlockStoreT]) eventLoop(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
