@@ -29,7 +29,7 @@ import (
 
 // sendPostBlockFCU sends a forkchoice update to the execution client.
 func (s *Service[
-	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _, _,
+	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _,
 ]) sendPostBlockFCU(
 	ctx context.Context,
 	st BeaconStateT,
@@ -55,7 +55,7 @@ func (s *Service[
 // client with attributes.
 func (s *Service[
 	_, BeaconBlockT, _, _, BeaconStateT,
-	_, _, ExecutionPayloadHeaderT, _, _, _,
+	_, _, ExecutionPayloadHeaderT, _, _,
 ]) sendNextFCUWithAttributes(
 	ctx context.Context,
 	st BeaconStateT,
@@ -93,7 +93,7 @@ func (s *Service[
 // execution client without attributes.
 func (s *Service[
 	_, BeaconBlockT, _, _, _, _, _,
-	ExecutionPayloadHeaderT, _, PayloadAttributesT, _,
+	ExecutionPayloadHeaderT, _, PayloadAttributesT,
 ]) sendNextFCUWithoutAttributes(
 	ctx context.Context,
 	blk BeaconBlockT,
@@ -124,7 +124,7 @@ func (s *Service[
 //
 // TODO: This is hood and needs to be improved.
 func (s *Service[
-	_, BeaconBlockT, _, _, _, _, _, _, _, _, _,
+	_, BeaconBlockT, _, _, _, _, _, _, _, _,
 ]) calculateNextTimestamp(blk BeaconBlockT) uint64 {
 	//#nosec:G701 // not an issue in practice.
 	return max(

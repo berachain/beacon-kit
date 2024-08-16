@@ -91,18 +91,13 @@ func ProvideBlockPruner[
 		return nil, err
 	}
 
-	return pruner.NewPruner[
-		*BeaconBlock,
-		*BlockEvent,
-		*BlockStore,
-	](
+	return pruner.NewPruner[*BeaconBlock, *BlockStore](
 		in.Logger.With("service", manager.BlockPrunerName),
 		in.BlockStore,
 		manager.BlockPrunerName,
 		subCh,
-		blockservice.BuildPruneRangeFn[
-			*BeaconBlock,
-			*BlockEvent,
-		](in.Config.BlockStoreService),
+		blockservice.BuildPruneRangeFn[*BeaconBlock](
+			in.Config.BlockStoreService,
+		),
 	), nil
 }

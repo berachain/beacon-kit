@@ -23,6 +23,7 @@ package blockstore
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
@@ -35,7 +36,7 @@ func NewService[
 ](
 	config Config,
 	logger log.Logger[any],
-	blkBroker EventFeed[*asynctypes.Event[BeaconBlockT]],
+	blkBroker *broker.Broker[*asynctypes.Event[BeaconBlockT]],
 	store BlockStoreT,
 ) *Service[BeaconBlockT, BlockStoreT] {
 	return &Service[BeaconBlockT, BlockStoreT]{
@@ -55,7 +56,7 @@ type Service[
 	config Config
 	// logger is used for logging information and errors.
 	logger    log.Logger[any]
-	blkBroker EventFeed[*asynctypes.Event[BeaconBlockT]]
+	blkBroker *broker.Broker[*asynctypes.Event[BeaconBlockT]]
 
 	store BlockStoreT
 }
