@@ -72,11 +72,8 @@ import (
 type (
 	// ABCIMiddleware is a type alias for the ABCIMiddleware.
 	ABCIMiddleware = middleware.ABCIMiddleware[
-		*AvailabilityStore,
 		*BeaconBlock,
 		*BlobSidecars,
-		*Deposit,
-		*ExecutionPayload,
 		*Genesis,
 		*SlotData,
 	]
@@ -139,7 +136,6 @@ type (
 	DepositService = deposit.Service[
 		*BeaconBlock,
 		*BeaconBlockBody,
-		*BlockEvent,
 		*Deposit,
 		*ExecutionPayload,
 		WithdrawalCredentials,
