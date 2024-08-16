@@ -25,15 +25,15 @@ def deploy_contracts(plan, deployment):
 
     folder = plan.upload_files(src = repository, name = "contracts")
 
-    dependency_file = ""
+    dependency_artifact_name = ""
     if dependency_status:
         dependency_path = dependency["path"]
         plan.upload_files(src = dependency_path, name = "dependency")
-        dependency_file = "dependency"
+        dependency_artifact_name = "dependency"
 
     foundry_service = plan.add_service(
         name = "foundry",
-        config = get_service_config(dependency_file),
+        config = get_service_config(dependency_artifact_name),
     )
 
     if contracts_path:
@@ -96,13 +96,13 @@ def exec_on_service(plan, service_name, command):
         ),
     )
 
-def get_service_config(dependency_file = None):
+def get_service_config(dependency_artifact_name = None):
     files = {
         SOURCE_DIR_PATH: "contracts",
     }
 
-    if dependency_file:
-        files[DEPENDENCY_DIR_PATH] = dependency_path
+    if dependency_artifact_name:
+        files[DEPENDENCY_DIR_PATH] = dependency_artifact_name
 
     return ServiceConfig(
         image = IMAGE_FOUNDRY,
