@@ -1,0 +1,4 @@
+name: github.com/berachain/beacon-kit/testing/sync-network
+description: | 
+    This is a package that lets you spin up a full node that syncs with any live network.
+    It is intended to be used for development/local testing purposes.
