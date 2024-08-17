@@ -204,11 +204,11 @@ func (s *Service[
 		case <-ctx.Done():
 			return
 		case event := <-s.subGenDataReceived:
-			s.handleProcessGenesisDataEvent(event)
+			s.handleGenDataReceived(event)
 		case event := <-s.subBlockReceived:
-			s.handleVerifyBeaconBlockEvent(event)
+			s.handleBeaconBlockReceived(event)
 		case event := <-s.subFinalBlkReceived:
-			s.handleFinalizeBeaconBlockEvent(event)
+			s.handleFinalBeaconBlockReceived(event)
 		}
 	}
 }
@@ -219,7 +219,7 @@ func (s *Service[
 
 func (s *Service[
 	_, _, _, _, _, _, _, _, GenesisT, _,
-]) handleProcessGenesisDataEvent(msg async.Event[GenesisT]) {
+]) handleGenDataReceived(msg async.Event[GenesisT]) {
 	var (
 		valUpdates transition.ValidatorUpdates
 		genesisErr error
@@ -253,7 +253,7 @@ func (s *Service[
 
 func (s *Service[
 	_, BeaconBlockT, _, _, _, _, _, _, _, _,
-]) handleVerifyBeaconBlockEvent(
+]) handleBeaconBlockReceived(
 	msg async.Event[BeaconBlockT],
 ) {
 	// If the block is nil, exit early.
@@ -281,7 +281,7 @@ func (s *Service[
 
 func (s *Service[
 	_, BeaconBlockT, _, _, _, _, _, _, _, _,
-]) handleFinalizeBeaconBlockEvent(
+]) handleFinalBeaconBlockReceived(
 	msg async.Event[BeaconBlockT],
 ) {
 	var (

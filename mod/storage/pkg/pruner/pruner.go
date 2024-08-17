@@ -61,10 +61,11 @@ func NewPruner[
 	pruneRangeFn func(asynctypes.Event[BeaconBlockT]) (uint64, uint64),
 ) Pruner[PrunableT] {
 	return &pruner[BeaconBlockT, PrunableT]{
-		logger:       logger,
-		prunable:     prunable,
-		name:         name,
-		pruneRangeFn: pruneRangeFn,
+		logger:                  logger,
+		prunable:                prunable,
+		name:                    name,
+		pruneRangeFn:            pruneRangeFn,
+		subBeaconBlockFinalized: subBeaconBlockFinalized,
 	}
 }
 

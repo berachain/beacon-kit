@@ -108,9 +108,9 @@ func (s *Service[_, BlobSidecarsT]) eventLoop(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case event := <-s.subSidecarsReceived:
-			s.handleSidecarsVerifyRequest(event)
+			s.handleSidecarsReceived(event)
 		case event := <-s.subFinalBlobSidecars:
-			s.handleBlobSidecarsProcessRequest(event)
+			s.handleFinalSidecarsReceived(event)
 		}
 	}
 }
@@ -119,10 +119,10 @@ func (s *Service[_, BlobSidecarsT]) eventLoop(ctx context.Context) {
 /*                               Event Handlers                             */
 /* -------------------------------------------------------------------------- */
 
-// handleBlobSidecarsProcessRequest handles the BlobSidecarsProcessRequest
+// handleFinalSidecarsReceived handles the BlobSidecarsProcessRequest
 // event.
 // It processes the sidecars and publishes a BlobSidecarsProcessed event.
-func (s *Service[_, BlobSidecarsT]) handleBlobSidecarsProcessRequest(
+func (s *Service[_, BlobSidecarsT]) handleFinalSidecarsReceived(
 	msg async.Event[BlobSidecarsT],
 ) {
 	if err := s.processSidecars(msg.Context(), msg.Data()); err != nil {
@@ -134,9 +134,9 @@ func (s *Service[_, BlobSidecarsT]) handleBlobSidecarsProcessRequest(
 	}
 }
 
-// handleSidecarsVerifyRequest handles the SidecarsVerifyRequest event.
+// handleSidecarsReceived handles the SidecarsVerifyRequest event.
 // It verifies the sidecars and publishes a SidecarsVerified event.
-func (s *Service[_, BlobSidecarsT]) handleSidecarsVerifyRequest(
+func (s *Service[_, BlobSidecarsT]) handleSidecarsReceived(
 	msg async.Event[BlobSidecarsT],
 ) {
 	var sidecarsErr error
