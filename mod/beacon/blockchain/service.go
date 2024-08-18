@@ -208,7 +208,7 @@ func (s *Service[
 		case event := <-s.subBlockReceived:
 			s.handleBeaconBlockReceived(event)
 		case event := <-s.subFinalBlkReceived:
-			s.handleFinalBeaconBlockReceived(event)
+			s.handleBeaconBlockFinalization(event)
 		}
 	}
 }
@@ -281,7 +281,7 @@ func (s *Service[
 
 func (s *Service[
 	_, BeaconBlockT, _, _, _, _, _, _, _, _,
-]) handleFinalBeaconBlockReceived(
+]) handleBeaconBlockFinalization(
 	msg events.Event[BeaconBlockT],
 ) {
 	var (
