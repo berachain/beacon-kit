@@ -29,8 +29,8 @@ package pruner
 import (
 	"context"
 
-	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 )
 
 // Compile-time check to ensure pruner implements the Pruner interface.
@@ -45,8 +45,8 @@ type pruner[
 	prunable                Prunable
 	logger                  log.Logger[any]
 	name                    string
-	subBeaconBlockFinalized chan asynctypes.Event[BeaconBlockT]
-	pruneRangeFn            func(asynctypes.Event[BeaconBlockT]) (uint64, uint64)
+	subBeaconBlockFinalized chan events.Event[BeaconBlockT]
+	pruneRangeFn            func(events.Event[BeaconBlockT]) (uint64, uint64)
 }
 
 // NewPruner creates a new Pruner.
@@ -57,8 +57,8 @@ func NewPruner[
 	logger log.Logger[any],
 	prunable Prunable,
 	name string,
-	subBeaconBlockFinalized chan asynctypes.Event[BeaconBlockT],
-	pruneRangeFn func(asynctypes.Event[BeaconBlockT]) (uint64, uint64),
+	subBeaconBlockFinalized chan events.Event[BeaconBlockT],
+	pruneRangeFn func(events.Event[BeaconBlockT]) (uint64, uint64),
 ) Pruner[PrunableT] {
 	return &pruner[BeaconBlockT, PrunableT]{
 		logger:                  logger,
@@ -90,7 +90,7 @@ func (p *pruner[_, PrunableT]) listen(ctx context.Context) {
 // onFinalizeBlock will prune the prunable store based on the received
 // finalized block event.
 func (p *pruner[BeaconBlockT, PrunableT]) onFinalizeBlock(
-	event asynctypes.Event[BeaconBlockT],
+	event events.Event[BeaconBlockT],
 ) {
 	start, end := p.pruneRangeFn(event)
 	if err := p.prunable.Prune(start, end); err != nil {

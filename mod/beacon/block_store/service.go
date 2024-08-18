@@ -42,7 +42,7 @@ type Service[
 	// store is the block store for the service.
 	store BlockStoreT
 	// subFinalizedBlkEvents is a channel for receiving finalized block events.
-	subFinalizedBlkEvents chan async.Event[BeaconBlockT]
+	subFinalizedBlkEvents chan events.Event[BeaconBlockT]
 }
 
 // NewService creates a new block service.
@@ -60,7 +60,7 @@ func NewService[
 		logger:                logger,
 		dispatcher:            dispatcher,
 		store:                 store,
-		subFinalizedBlkEvents: make(chan async.Event[BeaconBlockT]),
+		subFinalizedBlkEvents: make(chan events.Event[BeaconBlockT]),
 	}
 }
 
@@ -102,7 +102,7 @@ func (s *Service[BeaconBlockT, BlockStoreT]) eventLoop(ctx context.Context) {
 // onFinalizeBlock is triggered when a finalized block event is received.
 // It stores the block in the KVStore.
 func (s *Service[BeaconBlockT, _]) onFinalizeBlock(
-	event async.Event[BeaconBlockT],
+	event events.Event[BeaconBlockT],
 ) {
 	slot := event.Data().GetSlot()
 	if err := s.store.Set(event.Data()); err != nil {

@@ -20,7 +20,10 @@
 
 package events
 
-// events, topologically sorted.
+// EventID represents the type of a message.
+type EventID string
+
+// event ids, topologically sorted.
 const (
 
 	// genesis data events.

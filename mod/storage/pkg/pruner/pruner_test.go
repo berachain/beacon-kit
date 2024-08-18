@@ -31,7 +31,6 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
-	async "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
@@ -40,7 +39,7 @@ import (
 )
 
 func pruneRangeFn[BlockT pruner.BeaconBlock](
-	event async.Event[BlockT],
+	event events.Event[BlockT],
 ) (uint64, uint64) {
 	slot := event.Data().GetSlot().Unwrap()
 	return slot, slot
@@ -72,7 +71,7 @@ func TestPruner(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			logger := log.NewNopLogger()
-			ch := make(chan async.Event[pruner.BeaconBlock])
+			ch := make(chan events.Event[pruner.BeaconBlock])
 			mockPrunable := new(mocks.Prunable)
 			mockPrunable.On("Prune", mock.Anything, mock.Anything).
 				Return(nil)
@@ -93,7 +92,7 @@ func TestPruner(t *testing.T) {
 			for _, index := range tt.pruneIndexes {
 				block := mocks.BeaconBlock{}
 				block.On("GetSlot").Return(math.U64(index))
-				event := async.NewEvent[pruner.BeaconBlock](
+				event := events.NewEvent[pruner.BeaconBlock](
 					context.Background(),
 					events.BeaconBlockFinalizedEvent,
 					&block,

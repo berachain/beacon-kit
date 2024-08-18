@@ -43,8 +43,8 @@ type Service[
 	]
 	dispatcher           async.EventDispatcher
 	logger               log.Logger[any]
-	subSidecarsReceived  chan async.Event[BlobSidecarsT]
-	subFinalBlobSidecars chan async.Event[BlobSidecarsT]
+	subSidecarsReceived  chan events.Event[BlobSidecarsT]
+	subFinalBlobSidecars chan events.Event[BlobSidecarsT]
 }
 
 // NewService returns a new DA service.
@@ -68,8 +68,8 @@ func NewService[
 		bp:                   bp,
 		dispatcher:           dispatcher,
 		logger:               logger,
-		subSidecarsReceived:  make(chan async.Event[BlobSidecarsT]),
-		subFinalBlobSidecars: make(chan async.Event[BlobSidecarsT]),
+		subSidecarsReceived:  make(chan events.Event[BlobSidecarsT]),
+		subFinalBlobSidecars: make(chan events.Event[BlobSidecarsT]),
 	}
 }
 
@@ -123,7 +123,7 @@ func (s *Service[_, BlobSidecarsT]) eventLoop(ctx context.Context) {
 // event.
 // It processes the sidecars and publishes a BlobSidecarsProcessed event.
 func (s *Service[_, BlobSidecarsT]) handleFinalSidecarsReceived(
-	msg async.Event[BlobSidecarsT],
+	msg events.Event[BlobSidecarsT],
 ) {
 	if err := s.processSidecars(msg.Context(), msg.Data()); err != nil {
 		s.logger.Error(
@@ -137,7 +137,7 @@ func (s *Service[_, BlobSidecarsT]) handleFinalSidecarsReceived(
 // handleSidecarsReceived handles the SidecarsVerifyRequest event.
 // It verifies the sidecars and publishes a SidecarsVerified event.
 func (s *Service[_, BlobSidecarsT]) handleSidecarsReceived(
-	msg async.Event[BlobSidecarsT],
+	msg events.Event[BlobSidecarsT],
 ) {
 	var sidecarsErr error
 	// verify the sidecars.
@@ -151,7 +151,7 @@ func (s *Service[_, BlobSidecarsT]) handleSidecarsReceived(
 
 	// emit the sidecars verification event with error from verifySidecars
 	if err := s.dispatcher.Publish(
-		async.NewEvent(
+		events.NewEvent(
 			msg.Context(), events.SidecarsVerified, msg.Data(), sidecarsErr,
 		),
 	); err != nil {

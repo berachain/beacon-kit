@@ -20,7 +20,11 @@
 
 package types
 
-import "context"
+import (
+	"context"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
+)
 
 // Dispatcher is the full API for a dispatcher that facilitates the publishing
 // of async events and the sending and receiving of async messages.
@@ -38,12 +42,12 @@ type Dispatcher interface {
 // of async events.
 type EventDispatcher interface {
 	// Publish publishes an event to the dispatcher.
-	Publish(event BaseEvent) error
+	Publish(event events.BaseEvent) error
 	// Subscribe subscribes the given channel to all events with the given event
 	// ID.
 	// Contract: the channel must be a Subscription[T], where T is the expected
 	// type of the event data.
-	Subscribe(eventID EventID, ch any) error
+	Subscribe(eventID events.EventID, ch any) error
 	// TODO: add unsubscribe
 }
 
@@ -52,11 +56,11 @@ type Broker interface {
 	// Start starts the event publisher.
 	Start(ctx context.Context)
 	// Publish publishes the given event to the event publisher.
-	Publish(event BaseEvent) error
+	Publish(event events.BaseEvent) error
 	// Subscribe subscribes the given channel to the event publisher.
 	Subscribe(ch any) error
 	// Unsubscribe unsubscribes the given channel from the event publisher.
 	Unsubscribe(ch any) error
 	// EventID returns the event ID that the publisher is responsible for.
-	EventID() EventID
+	EventID() events.EventID
 }

@@ -68,12 +68,12 @@ type ABCIMiddleware[
 	// logger is the logger for the middleware.
 	logger log.Logger[any]
 	// subscription channels
-	subGenDataProcessed      chan types.Event[validatorUpdates]
-	subBuiltBeaconBlock      chan types.Event[BeaconBlockT]
-	subBuiltSidecars         chan types.Event[BlobSidecarsT]
-	subBBVerified            chan types.Event[BeaconBlockT]
-	subSCVerified            chan types.Event[BlobSidecarsT]
-	subFinalValidatorUpdates chan types.Event[validatorUpdates]
+	subGenDataProcessed      chan events.Event[validatorUpdates]
+	subBuiltBeaconBlock      chan events.Event[BeaconBlockT]
+	subBuiltSidecars         chan events.Event[BlobSidecarsT]
+	subBBVerified            chan events.Event[BeaconBlockT]
+	subSCVerified            chan events.Event[BlobSidecarsT]
+	subFinalValidatorUpdates chan events.Event[validatorUpdates]
 }
 
 // NewABCIMiddleware creates a new instance of the Handler struct.
@@ -111,12 +111,12 @@ func NewABCIMiddleware[
 		logger:                   logger,
 		metrics:                  newABCIMiddlewareMetrics(telemetrySink),
 		dispatcher:               dispatcher,
-		subGenDataProcessed:      make(chan types.Event[validatorUpdates]),
-		subBuiltBeaconBlock:      make(chan types.Event[BeaconBlockT]),
-		subBuiltSidecars:         make(chan types.Event[BlobSidecarsT]),
-		subBBVerified:            make(chan types.Event[BeaconBlockT]),
-		subSCVerified:            make(chan types.Event[BlobSidecarsT]),
-		subFinalValidatorUpdates: make(chan types.Event[validatorUpdates]),
+		subGenDataProcessed:      make(chan events.Event[validatorUpdates]),
+		subBuiltBeaconBlock:      make(chan events.Event[BeaconBlockT]),
+		subBuiltSidecars:         make(chan events.Event[BlobSidecarsT]),
+		subBBVerified:            make(chan events.Event[BeaconBlockT]),
+		subSCVerified:            make(chan events.Event[BlobSidecarsT]),
+		subFinalValidatorUpdates: make(chan events.Event[validatorUpdates]),
 	}
 }
 

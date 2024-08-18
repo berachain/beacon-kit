@@ -24,7 +24,6 @@ import (
 	"context"
 	"time"
 
-	async "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
@@ -61,7 +60,7 @@ func (h *ABCIMiddleware[
 	}
 
 	if err = h.dispatcher.Publish(
-		async.NewEvent(ctx, events.GenesisDataReceived, *data),
+		events.NewEvent(ctx, events.GenesisDataReceived, *data),
 	); err != nil {
 		return nil, err
 	}
@@ -107,7 +106,7 @@ func (h *ABCIMiddleware[
 	defer h.metrics.measurePrepareProposalDuration(startTime)
 
 	if err = h.dispatcher.Publish(
-		async.NewEvent(
+		events.NewEvent(
 			ctx, events.NewSlot, slotData,
 		),
 	); err != nil {
@@ -218,7 +217,7 @@ func (h *ABCIMiddleware[
 
 	// notify that the beacon block has been received.
 	if err = h.dispatcher.Publish(
-		async.NewEvent(ctx, events.BeaconBlockReceived, blk),
+		events.NewEvent(ctx, events.BeaconBlockReceived, blk),
 	); err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
@@ -230,7 +229,7 @@ func (h *ABCIMiddleware[
 
 	// notify that the sidecars have been received.
 	if err = h.dispatcher.Publish(
-		async.NewEvent(ctx, events.SidecarsReceived, sidecars),
+		events.NewEvent(ctx, events.SidecarsReceived, sidecars),
 	); err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
@@ -328,14 +327,14 @@ func (h *ABCIMiddleware[
 
 	// notify that the final beacon block has been received.
 	if err = h.dispatcher.Publish(
-		async.NewEvent(ctx, events.FinalBeaconBlockReceived, blk),
+		events.NewEvent(ctx, events.FinalBeaconBlockReceived, blk),
 	); err != nil {
 		return nil, err
 	}
 
 	// notify that the final blob sidecars have been received.
 	if err = h.dispatcher.Publish(
-		async.NewEvent(ctx, events.FinalSidecarsReceived, blobs),
+		events.NewEvent(ctx, events.FinalSidecarsReceived, blobs),
 	); err != nil {
 		return nil, err
 	}

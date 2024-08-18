@@ -24,7 +24,6 @@ import (
 	"context"
 	"time"
 
-	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
@@ -84,7 +83,7 @@ func (s *Service[
 	// We won't send a fcu if the block is bad, should be addressed
 	// via ticker later.
 	if err = s.dispatcher.Publish(
-		asynctypes.NewEvent(
+		events.NewEvent(
 			ctx, events.BeaconBlockFinalizedEvent, blk,
 		),
 	); err != nil {

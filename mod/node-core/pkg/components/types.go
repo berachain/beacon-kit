@@ -24,7 +24,6 @@ import (
 	"cosmossdk.io/core/appmodule/v2"
 	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
-	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
@@ -55,6 +54,7 @@ import (
 	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
@@ -422,61 +422,61 @@ type (
 type (
 
 	// GenesisDataReceivedEvent is a type alias for the genesis data received event.
-	GenesisDataReceivedEvent = asynctypes.Event[*Genesis]
+	GenesisDataReceivedEvent = events.Event[*Genesis]
 
 	// GenesisDataProcessedEvent is a type alias for the genesis data processed event.
-	GenesisDataProcessedEvent = asynctypes.Event[transition.ValidatorUpdates]
+	GenesisDataProcessedEvent = events.Event[transition.ValidatorUpdates]
 
 	// NewSlotEvent is a type alias for the new slot event.
-	NewSlotEvent = asynctypes.Event[*SlotData]
+	NewSlotEvent = events.Event[*SlotData]
 
 	// BuiltBeaconBlockEvent is a type alias for the built beacon block event.
-	BuiltBeaconBlockEvent = asynctypes.Event[*BeaconBlock]
+	BuiltBeaconBlockEvent = events.Event[*BeaconBlock]
 
 	// BuiltSidecarsEvent is a type alias for the built sidecars event.
-	BuiltSidecarsEvent = asynctypes.Event[*BlobSidecars]
+	BuiltSidecarsEvent = events.Event[*BlobSidecars]
 
 	// BeaconBlockReceivedEvent is a type alias for the beacon block received event.
-	BeaconBlockReceivedEvent = asynctypes.Event[*BeaconBlock]
+	BeaconBlockReceivedEvent = events.Event[*BeaconBlock]
 
 	// SidecarsReceivedEvent is a type alias for the sidecars received event.
-	SidecarsReceivedEvent = asynctypes.Event[*BlobSidecars]
+	SidecarsReceivedEvent = events.Event[*BlobSidecars]
 
 	// BeaconBlockVerifiedEvent is a type alias for the beacon block verified event.
-	BeaconBlockVerifiedEvent = asynctypes.Event[*BeaconBlock]
+	BeaconBlockVerifiedEvent = events.Event[*BeaconBlock]
 
 	// SidecarsVerifiedEvent is a type alias for the sidecars verified event.
-	SidecarsVerifiedEvent = asynctypes.Event[*BlobSidecars]
+	SidecarsVerifiedEvent = events.Event[*BlobSidecars]
 
 	// FinalBeaconBlockReceivedEvent is a type alias for the final beacon block received event.
-	FinalBeaconBlockReceivedEvent = asynctypes.Event[*BeaconBlock]
+	FinalBeaconBlockReceivedEvent = events.Event[*BeaconBlock]
 
 	// FinalSidecarsReceivedEvent is a type alias for the final sidecars received event.
-	FinalSidecarsReceivedEvent = asynctypes.Event[*BlobSidecars]
+	FinalSidecarsReceivedEvent = events.Event[*BlobSidecars]
 
 	// FinalValidatorUpdatesProcessedEvent is a type alias for the final validator updates processed event.
-	FinalValidatorUpdatesProcessedEvent = asynctypes.Event[transition.ValidatorUpdates]
+	FinalValidatorUpdatesProcessedEvent = events.Event[transition.ValidatorUpdates]
 
 	// FinalizedBlockEvent is a type alias for the block event.
-	FinalizedBlockEvent = asynctypes.Event[*BeaconBlock]
+	FinalizedBlockEvent = events.Event[*BeaconBlock]
 )
 
 // Messages.
 type (
 	// BlockMessage is a type alias for the block message.
-	BlockMessage = asynctypes.Event[*BeaconBlock]
+	BlockMessage = events.Event[*BeaconBlock]
 
 	// GenesisMessage is a type alias for the genesis message.
-	GenesisMessage = asynctypes.Event[*Genesis]
+	GenesisMessage = events.Event[*Genesis]
 
 	// SidecarMessage is a type alias for the sidecar message.
-	SidecarMessage = asynctypes.Event[*BlobSidecars]
+	SidecarMessage = events.Event[*BlobSidecars]
 
 	// SlotMessage is a type alias for the slot message.
-	SlotMessage = asynctypes.Event[*SlotData]
+	SlotMessage = events.Event[*SlotData]
 
 	// StatusMessage is a type alias for the status message.
-	StatusMessage = asynctypes.Event[*service.StatusEvent]
+	StatusMessage = events.Event[*service.StatusEvent]
 )
 
 /* -------------------------------------------------------------------------- */

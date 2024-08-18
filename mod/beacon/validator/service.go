@@ -89,7 +89,7 @@ type Service[
 	// metrics is a metrics collector.
 	metrics *validatorMetrics
 	// subNewSlot is a channel for new slot events.
-	subNewSlot chan async.Event[SlotDataT]
+	subNewSlot chan events.Event[SlotDataT]
 }
 
 // NewService creates a new validator service.
@@ -156,7 +156,7 @@ func NewService[
 		remotePayloadBuilders: remotePayloadBuilders,
 		metrics:               newValidatorMetrics(ts),
 		dispatcher:            dispatcher,
-		subNewSlot:            make(chan async.Event[SlotDataT]),
+		subNewSlot:            make(chan events.Event[SlotDataT]),
 	}
 }
 
@@ -201,7 +201,7 @@ func (s *Service[_, _, _, _, _, _, _, _, _, _, _, _, SlotDataT]) eventLoop(
 // slot data and emits an event containing the built block and sidecars.
 func (s *Service[
 	_, BeaconBlockT, _, _, BlobSidecarsT, _, _, _, _, _, _, _, SlotDataT,
-]) handleNewSlot(req async.Event[SlotDataT]) {
+]) handleNewSlot(req events.Event[SlotDataT]) {
 	var (
 		blk      BeaconBlockT
 		sidecars BlobSidecarsT
@@ -217,14 +217,14 @@ func (s *Service[
 
 	// emit a built block event with the built block and the error
 	if bbErr := s.dispatcher.Publish(
-		async.NewEvent(req.Context(), events.BuiltBeaconBlock, blk, err),
+		events.NewEvent(req.Context(), events.BuiltBeaconBlock, blk, err),
 	); bbErr != nil {
 		s.logger.Error("failed to dispatch built block", "err", err)
 	}
 
 	// emit a built sidecars event with the built sidecars and the error
 	if scErr := s.dispatcher.Publish(
-		async.NewEvent(req.Context(), events.BuiltSidecars, sidecars, err),
+		events.NewEvent(req.Context(), events.BuiltSidecars, sidecars, err),
 	); scErr != nil {
 		s.logger.Error("failed to dispatch built sidecars", "err", err)
 	}

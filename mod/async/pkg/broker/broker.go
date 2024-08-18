@@ -25,13 +25,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 )
 
 // Broker is responsible for broadcasting all events corresponding to the
 // <eventID> to all registered client channels.
-type Broker[T types.BaseEvent] struct {
-	eventID types.EventID
+type Broker[T events.BaseEvent] struct {
+	eventID events.EventID
 	// subscriptions is a map of subscribed subscriptions.
 	subscriptions map[chan T]struct{}
 	// msgs is the channel for publishing new messages.
@@ -44,9 +44,9 @@ type Broker[T types.BaseEvent] struct {
 
 // New creates a new broker publishing events of type T for the
 // provided eventID.
-func New[T types.BaseEvent](eventID string) *Broker[T] {
+func New[T events.BaseEvent](eventID string) *Broker[T] {
 	return &Broker[T]{
-		eventID:       types.EventID(eventID),
+		eventID:       events.EventID(eventID),
 		subscriptions: make(map[chan T]struct{}),
 		msgs:          make(chan T, defaultBufferSize),
 		timeout:       defaultBrokerTimeout,
@@ -55,7 +55,7 @@ func New[T types.BaseEvent](eventID string) *Broker[T] {
 }
 
 // EventID returns the event ID that the broker is responsible for.
-func (p *Broker[T]) EventID() types.EventID {
+func (p *Broker[T]) EventID() events.EventID {
 	return p.eventID
 }
 
@@ -81,7 +81,7 @@ func (p *Broker[T]) start(ctx context.Context) {
 
 // Publish publishes a msg to all subscribers.
 // Returns ErrTimeout on timeout.
-func (p *Broker[T]) Publish(msg types.BaseEvent) error {
+func (p *Broker[T]) Publish(msg events.BaseEvent) error {
 	typedMsg, err := ensureType[T](msg)
 	if err != nil {
 		return err

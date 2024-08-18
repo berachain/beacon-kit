@@ -48,7 +48,7 @@ type Service[
 	// dispatcher is the dispatcher for the service.
 	dispatcher async.EventDispatcher
 	// subFinalizedBlockEvents is the channel that provides finalized block events.
-	subFinalizedBlockEvents chan async.Event[BeaconBlockT]
+	subFinalizedBlockEvents chan events.Event[BeaconBlockT]
 	// metrics is the metrics for the deposit service.
 	metrics *metrics
 	// failedBlocks is a map of blocks that failed to be processed to be
@@ -83,7 +83,7 @@ func NewService[
 		ds:                      ds,
 		eth1FollowDistance:      eth1FollowDistance,
 		failedBlocks:            make(map[math.Slot]struct{}),
-		subFinalizedBlockEvents: make(chan async.Event[BeaconBlockT]),
+		subFinalizedBlockEvents: make(chan events.Event[BeaconBlockT]),
 		logger:                  logger,
 		metrics:                 newMetrics(telemetrySink),
 	}
