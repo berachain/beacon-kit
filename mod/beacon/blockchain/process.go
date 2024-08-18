@@ -83,7 +83,7 @@ func (s *Service[
 	// We won't send a fcu if the block is bad, should be addressed
 	// via ticker later.
 	if err = s.dispatcher.Publish(
-		events.NewEvent(
+		events.New(
 			ctx, events.BeaconBlockFinalizedEvent, blk,
 		),
 	); err != nil {

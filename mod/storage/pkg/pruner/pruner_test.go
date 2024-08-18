@@ -92,7 +92,7 @@ func TestPruner(t *testing.T) {
 			for _, index := range tt.pruneIndexes {
 				block := mocks.BeaconBlock{}
 				block.On("GetSlot").Return(math.U64(index))
-				event := events.NewEvent[pruner.BeaconBlock](
+				event := events.New[pruner.BeaconBlock](
 					context.Background(),
 					events.BeaconBlockFinalizedEvent,
 					&block,

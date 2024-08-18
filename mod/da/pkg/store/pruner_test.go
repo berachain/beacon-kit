@@ -118,7 +118,7 @@ func TestBuildPruneRangeFn(t *testing.T) {
 			pruneFn := store.BuildPruneRangeFn[MockBeaconBlock](
 				cs,
 			)
-			event := events.NewEvent[MockBeaconBlock](
+			event := events.New[MockBeaconBlock](
 				context.Background(),
 				events.EventID("mock"),
 				MockBeaconBlock{

@@ -41,8 +41,8 @@ type Event[DataT any] interface {
 	Is(id EventID) bool
 }
 
-// NewEvent creates a new Event with the given context and beacon event.
-func NewEvent[
+// New creates a new Event with the given context and beacon event.
+func New[
 	DataT any,
 ](
 	ctx context.Context, id EventID, data DataT, errs ...error,

@@ -60,7 +60,7 @@ func (h *ABCIMiddleware[
 	}
 
 	if err = h.dispatcher.Publish(
-		events.NewEvent(ctx, events.GenesisDataReceived, *data),
+		events.New(ctx, events.GenesisDataReceived, *data),
 	); err != nil {
 		return nil, err
 	}
@@ -106,7 +106,7 @@ func (h *ABCIMiddleware[
 	defer h.metrics.measurePrepareProposalDuration(startTime)
 
 	if err = h.dispatcher.Publish(
-		events.NewEvent(
+		events.New(
 			ctx, events.NewSlot, slotData,
 		),
 	); err != nil {
@@ -217,7 +217,7 @@ func (h *ABCIMiddleware[
 
 	// notify that the beacon block has been received.
 	if err = h.dispatcher.Publish(
-		events.NewEvent(ctx, events.BeaconBlockReceived, blk),
+		events.New(ctx, events.BeaconBlockReceived, blk),
 	); err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
@@ -229,7 +229,7 @@ func (h *ABCIMiddleware[
 
 	// notify that the sidecars have been received.
 	if err = h.dispatcher.Publish(
-		events.NewEvent(ctx, events.SidecarsReceived, sidecars),
+		events.New(ctx, events.SidecarsReceived, sidecars),
 	); err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
@@ -327,14 +327,14 @@ func (h *ABCIMiddleware[
 
 	// notify that the final beacon block has been received.
 	if err = h.dispatcher.Publish(
-		events.NewEvent(ctx, events.FinalBeaconBlockReceived, blk),
+		events.New(ctx, events.FinalBeaconBlockReceived, blk),
 	); err != nil {
 		return nil, err
 	}
 
 	// notify that the final blob sidecars have been received.
 	if err = h.dispatcher.Publish(
-		events.NewEvent(ctx, events.FinalSidecarsReceived, blobs),
+		events.New(ctx, events.FinalSidecarsReceived, blobs),
 	); err != nil {
 		return nil, err
 	}
