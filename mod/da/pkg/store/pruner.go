@@ -21,14 +21,14 @@
 package store
 
 import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 )
 
 func BuildPruneRangeFn[BeaconBlockT BeaconBlock](
 	cs common.ChainSpec,
-) func(events.Event[BeaconBlockT]) (uint64, uint64) {
-	return func(event events.Event[BeaconBlockT]) (uint64, uint64) {
+) func(async.Event[BeaconBlockT]) (uint64, uint64) {
+	return func(event async.Event[BeaconBlockT]) (uint64, uint64) {
 		window := cs.MinEpochsForBlobsSidecarsRequest() * cs.SlotsPerEpoch()
 		if event.Data().GetSlot().Unwrap() < window {
 			return 0, 0

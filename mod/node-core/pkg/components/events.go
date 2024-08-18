@@ -23,7 +23,7 @@ package components
 import (
 	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 )
 
 // ProvidePublishers provides a publisher for beacon block
@@ -31,43 +31,43 @@ import (
 func ProvidePublishers() []asynctypes.Broker {
 	return []asynctypes.Broker{
 		broker.New[GenesisDataReceivedEvent](
-			events.GenesisDataReceived,
+			async.GenesisDataReceived,
 		),
 		broker.New[GenesisDataProcessedEvent](
-			events.GenesisDataProcessed,
+			async.GenesisDataProcessed,
 		),
 		broker.New[NewSlotEvent](
-			events.NewSlot,
+			async.NewSlot,
 		),
 		broker.New[BuiltBeaconBlockEvent](
-			events.BuiltBeaconBlock,
+			async.BuiltBeaconBlock,
 		),
 		broker.New[BuiltSidecarsEvent](
-			events.BuiltSidecars,
+			async.BuiltSidecars,
 		),
 		broker.New[BeaconBlockReceivedEvent](
-			events.BeaconBlockReceived,
+			async.BeaconBlockReceived,
 		),
 		broker.New[SidecarsReceivedEvent](
-			events.SidecarsReceived,
+			async.SidecarsReceived,
 		),
 		broker.New[BeaconBlockVerifiedEvent](
-			events.BeaconBlockVerified,
+			async.BeaconBlockVerified,
 		),
 		broker.New[SidecarsVerifiedEvent](
-			events.SidecarsVerified,
+			async.SidecarsVerified,
 		),
 		broker.New[FinalBeaconBlockReceivedEvent](
-			events.FinalBeaconBlockReceived,
+			async.FinalBeaconBlockReceived,
 		),
 		broker.New[FinalSidecarsReceivedEvent](
-			events.FinalSidecarsReceived,
+			async.FinalSidecarsReceived,
 		),
 		broker.New[FinalValidatorUpdatesProcessedEvent](
-			events.FinalValidatorUpdatesProcessed,
+			async.FinalValidatorUpdatesProcessed,
 		),
 		broker.New[FinalizedBlockEvent](
-			events.BeaconBlockFinalizedEvent,
+			async.BeaconBlockFinalizedEvent,
 		),
 	}
 }

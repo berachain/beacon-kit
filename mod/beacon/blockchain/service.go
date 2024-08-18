@@ -26,8 +26,8 @@ import (
 
 	async "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
+	async1 "github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
@@ -86,12 +86,12 @@ type Service[
 
 	// subFinalBlkReceived is a channel for receiving finalize beacon block
 	// requests.
-	subFinalBlkReceived chan events.Event[BeaconBlockT]
+	subFinalBlkReceived chan async1.Event[BeaconBlockT]
 	// subBlockReceived is a channel for receiving verify beacon block requests.
-	subBlockReceived chan events.Event[BeaconBlockT]
+	subBlockReceived chan async1.Event[BeaconBlockT]
 	// subGenDataReceived is a subscription for receiving genesis data
 	// received events.
-	subGenDataReceived chan events.Event[GenesisT]
+	subGenDataReceived chan async1.Event[GenesisT]
 }
 
 // NewService creates a new validator service.
@@ -153,9 +153,9 @@ func NewService[
 		metrics:                 newChainMetrics(ts),
 		optimisticPayloadBuilds: optimisticPayloadBuilds,
 		forceStartupSyncOnce:    new(sync.Once),
-		subFinalBlkReceived:     make(chan events.Event[BeaconBlockT]),
-		subBlockReceived:        make(chan events.Event[BeaconBlockT]),
-		subGenDataReceived:      make(chan events.Event[GenesisT]),
+		subFinalBlkReceived:     make(chan async1.Event[BeaconBlockT]),
+		subBlockReceived:        make(chan async1.Event[BeaconBlockT]),
+		subGenDataReceived:      make(chan async1.Event[GenesisT]),
 	}
 }
 
@@ -173,19 +173,19 @@ func (s *Service[
 	_, BeaconBlockT, _, _, _, _, _, _, GenesisT, _,
 ]) Start(ctx context.Context) error {
 	if err := s.dispatcher.Subscribe(
-		events.GenesisDataReceived, s.subGenDataReceived,
+		async1.GenesisDataReceived, s.subGenDataReceived,
 	); err != nil {
 		return err
 	}
 
 	if err := s.dispatcher.Subscribe(
-		events.BeaconBlockReceived, s.subBlockReceived,
+		async1.BeaconBlockReceived, s.subBlockReceived,
 	); err != nil {
 		return err
 	}
 
 	if err := s.dispatcher.Subscribe(
-		events.FinalBeaconBlockReceived, s.subFinalBlkReceived,
+		async1.FinalBeaconBlockReceived, s.subFinalBlkReceived,
 	); err != nil {
 		return err
 	}
@@ -219,7 +219,7 @@ func (s *Service[
 
 func (s *Service[
 	_, _, _, _, _, _, _, _, GenesisT, _,
-]) handleGenDataReceived(msg events.Event[GenesisT]) {
+]) handleGenDataReceived(msg async1.Event[GenesisT]) {
 	var (
 		valUpdates transition.ValidatorUpdates
 		genesisErr error
@@ -236,9 +236,9 @@ func (s *Service[
 
 	// Emit the event containing the validator updates.
 	if err := s.dispatcher.Publish(
-		events.New(
+		async1.NewEvent(
 			msg.Context(),
-			events.GenesisDataProcessed,
+			async1.GenesisDataProcessed,
 			valUpdates,
 			genesisErr,
 		),
@@ -254,7 +254,7 @@ func (s *Service[
 func (s *Service[
 	_, BeaconBlockT, _, _, _, _, _, _, _, _,
 ]) handleBeaconBlockReceived(
-	msg events.Event[BeaconBlockT],
+	msg async1.Event[BeaconBlockT],
 ) {
 	// If the block is nil, exit early.
 	if msg.Error() != nil {
@@ -265,9 +265,9 @@ func (s *Service[
 	// emit a BeaconBlockVerified event with the error result from \
 	// VerifyIncomingBlock
 	if err := s.dispatcher.Publish(
-		events.New(
+		async1.NewEvent(
 			msg.Context(),
-			events.BeaconBlockVerified,
+			async1.BeaconBlockVerified,
 			msg.Data(),
 			s.VerifyIncomingBlock(msg.Context(), msg.Data()),
 		),
@@ -282,7 +282,7 @@ func (s *Service[
 func (s *Service[
 	_, BeaconBlockT, _, _, _, _, _, _, _, _,
 ]) handleBeaconBlockFinalization(
-	msg events.Event[BeaconBlockT],
+	msg async1.Event[BeaconBlockT],
 ) {
 	var (
 		valUpdates  transition.ValidatorUpdates
@@ -304,9 +304,9 @@ func (s *Service[
 
 	// Emit the event containing the validator updates.
 	if err := s.dispatcher.Publish(
-		events.New(
+		async1.NewEvent(
 			msg.Context(),
-			events.FinalValidatorUpdatesProcessed,
+			async1.FinalValidatorUpdatesProcessed,
 			valUpdates,
 			finalizeErr,
 		),

@@ -28,8 +28,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/block"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
@@ -90,10 +90,10 @@ func ProvideBlockPruner[
 	// create new subscription for finalized blocks.
 	subFinalizedBlocks := make(chan FinalizedBlockEvent)
 	if err := in.Dispatcher.Subscribe(
-		events.BeaconBlockFinalizedEvent, subFinalizedBlocks,
+		async.BeaconBlockFinalizedEvent, subFinalizedBlocks,
 	); err != nil {
 		in.Logger.Error("failed to subscribe to event", "event",
-			events.BeaconBlockFinalizedEvent, "err", err)
+			async.BeaconBlockFinalizedEvent, "err", err)
 		return nil, err
 	}
 

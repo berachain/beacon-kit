@@ -25,9 +25,9 @@ import (
 
 	async "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
+	async1 "github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
@@ -89,7 +89,7 @@ type Service[
 	// metrics is a metrics collector.
 	metrics *validatorMetrics
 	// subNewSlot is a channel for new slot events.
-	subNewSlot chan events.Event[SlotDataT]
+	subNewSlot chan async1.Event[SlotDataT]
 }
 
 // NewService creates a new validator service.
@@ -156,7 +156,7 @@ func NewService[
 		remotePayloadBuilders: remotePayloadBuilders,
 		metrics:               newValidatorMetrics(ts),
 		dispatcher:            dispatcher,
-		subNewSlot:            make(chan events.Event[SlotDataT]),
+		subNewSlot:            make(chan async1.Event[SlotDataT]),
 	}
 }
 
@@ -175,7 +175,7 @@ func (s *Service[
 	ctx context.Context,
 ) error {
 	// subscribe to new slot events
-	err := s.dispatcher.Subscribe(events.NewSlot, s.subNewSlot)
+	err := s.dispatcher.Subscribe(async1.NewSlot, s.subNewSlot)
 	if err != nil {
 		return err
 	}
@@ -201,7 +201,7 @@ func (s *Service[_, _, _, _, _, _, _, _, _, _, _, _, SlotDataT]) eventLoop(
 // slot data and emits an event containing the built block and sidecars.
 func (s *Service[
 	_, BeaconBlockT, _, _, BlobSidecarsT, _, _, _, _, _, _, _, SlotDataT,
-]) handleNewSlot(req events.Event[SlotDataT]) {
+]) handleNewSlot(req async1.Event[SlotDataT]) {
 	var (
 		blk      BeaconBlockT
 		sidecars BlobSidecarsT
@@ -217,14 +217,14 @@ func (s *Service[
 
 	// emit a built block event with the built block and the error
 	if bbErr := s.dispatcher.Publish(
-		events.New(req.Context(), events.BuiltBeaconBlock, blk, err),
+		async1.NewEvent(req.Context(), async1.BuiltBeaconBlock, blk, err),
 	); bbErr != nil {
 		s.logger.Error("failed to dispatch built block", "err", err)
 	}
 
 	// emit a built sidecars event with the built sidecars and the error
 	if scErr := s.dispatcher.Publish(
-		events.New(req.Context(), events.BuiltSidecars, sidecars, err),
+		async1.NewEvent(req.Context(), async1.BuiltSidecars, sidecars, err),
 	); scErr != nil {
 		s.logger.Error("failed to dispatch built sidecars", "err", err)
 	}

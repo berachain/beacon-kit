@@ -31,7 +31,7 @@ import (
 	"time"
 
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner/mocks"
@@ -40,9 +40,9 @@ import (
 
 func TestDBManager_Start(t *testing.T) {
 	mockPrunable := new(mocks.Prunable)
-	ch := make(chan events.Event[manager.BeaconBlock])
+	ch := make(chan async.Event[manager.BeaconBlock])
 	pruneParamsFn := func(
-		_ events.Event[manager.BeaconBlock],
+		_ async.Event[manager.BeaconBlock],
 	) (uint64, uint64) {
 		return 0, 0
 	}

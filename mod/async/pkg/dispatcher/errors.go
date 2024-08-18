@@ -22,21 +22,21 @@ package dispatcher
 
 import (
 	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 )
 
 //nolint:gochecknoglobals // errors
 var (
 	ErrNotFound       = errors.New("not found")
 	ErrAlreadyExists  = errors.New("already exists")
-	errBrokerNotFound = func(eventID events.EventID) error {
+	errBrokerNotFound = func(eventID async.EventID) error {
 		return errors.Wrapf(
 			ErrNotFound,
 			"publisher not found for eventID: %s",
 			eventID,
 		)
 	}
-	errBrokerAlreadyExists = func(eventID events.EventID) error {
+	errBrokerAlreadyExists = func(eventID async.EventID) error {
 		return errors.Wrapf(
 			ErrAlreadyExists,
 			"publisher already exists for eventID: %s",

@@ -24,7 +24,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -35,7 +35,7 @@ const defaultRetryInterval = 20 * time.Second
 // event and fetches and stores the deposits for that block.
 func (s *Service[
 	BeaconBlockT, _, _, _, _,
-]) depositFetcher(ctx context.Context, event events.Event[BeaconBlockT]) {
+]) depositFetcher(ctx context.Context, event async.Event[BeaconBlockT]) {
 	blockNum := event.Data().GetBody().GetExecutionPayload().GetNumber()
 	s.fetchAndStoreDeposits(ctx, blockNum-s.eth1FollowDistance)
 }

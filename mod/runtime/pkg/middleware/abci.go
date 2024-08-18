@@ -25,8 +25,8 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
@@ -60,7 +60,7 @@ func (h *ABCIMiddleware[
 	}
 
 	if err = h.dispatcher.Publish(
-		events.New(ctx, events.GenesisDataReceived, *data),
+		async.NewEvent(ctx, async.GenesisDataReceived, *data),
 	); err != nil {
 		return nil, err
 	}
@@ -106,8 +106,8 @@ func (h *ABCIMiddleware[
 	defer h.metrics.measurePrepareProposalDuration(startTime)
 
 	if err = h.dispatcher.Publish(
-		events.New(
-			ctx, events.NewSlot, slotData,
+		async.NewEvent(
+			ctx, async.NewSlot, slotData,
 		),
 	); err != nil {
 		return nil, nil, err
@@ -217,7 +217,7 @@ func (h *ABCIMiddleware[
 
 	// notify that the beacon block has been received.
 	if err = h.dispatcher.Publish(
-		events.New(ctx, events.BeaconBlockReceived, blk),
+		async.NewEvent(ctx, async.BeaconBlockReceived, blk),
 	); err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
@@ -229,7 +229,7 @@ func (h *ABCIMiddleware[
 
 	// notify that the sidecars have been received.
 	if err = h.dispatcher.Publish(
-		events.New(ctx, events.SidecarsReceived, sidecars),
+		async.NewEvent(ctx, async.SidecarsReceived, sidecars),
 	); err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
@@ -327,14 +327,14 @@ func (h *ABCIMiddleware[
 
 	// notify that the final beacon block has been received.
 	if err = h.dispatcher.Publish(
-		events.New(ctx, events.FinalBeaconBlockReceived, blk),
+		async.NewEvent(ctx, async.FinalBeaconBlockReceived, blk),
 	); err != nil {
 		return nil, err
 	}
 
 	// notify that the final blob sidecars have been received.
 	if err = h.dispatcher.Publish(
-		events.New(ctx, events.FinalSidecarsReceived, blobs),
+		async.NewEvent(ctx, async.FinalSidecarsReceived, blobs),
 	); err != nil {
 		return nil, err
 	}

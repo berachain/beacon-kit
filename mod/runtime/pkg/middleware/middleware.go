@@ -27,9 +27,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/p2p"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	rp2p "github.com/berachain/beacon-kit/mod/runtime/pkg/p2p"
 )
@@ -68,12 +68,12 @@ type ABCIMiddleware[
 	// logger is the logger for the middleware.
 	logger log.Logger[any]
 	// subscription channels
-	subGenDataProcessed      chan events.Event[validatorUpdates]
-	subBuiltBeaconBlock      chan events.Event[BeaconBlockT]
-	subBuiltSidecars         chan events.Event[BlobSidecarsT]
-	subBBVerified            chan events.Event[BeaconBlockT]
-	subSCVerified            chan events.Event[BlobSidecarsT]
-	subFinalValidatorUpdates chan events.Event[validatorUpdates]
+	subGenDataProcessed      chan async.Event[validatorUpdates]
+	subBuiltBeaconBlock      chan async.Event[BeaconBlockT]
+	subBuiltSidecars         chan async.Event[BlobSidecarsT]
+	subBBVerified            chan async.Event[BeaconBlockT]
+	subSCVerified            chan async.Event[BlobSidecarsT]
+	subFinalValidatorUpdates chan async.Event[validatorUpdates]
 }
 
 // NewABCIMiddleware creates a new instance of the Handler struct.
@@ -111,12 +111,12 @@ func NewABCIMiddleware[
 		logger:                   logger,
 		metrics:                  newABCIMiddlewareMetrics(telemetrySink),
 		dispatcher:               dispatcher,
-		subGenDataProcessed:      make(chan events.Event[validatorUpdates]),
-		subBuiltBeaconBlock:      make(chan events.Event[BeaconBlockT]),
-		subBuiltSidecars:         make(chan events.Event[BlobSidecarsT]),
-		subBBVerified:            make(chan events.Event[BeaconBlockT]),
-		subSCVerified:            make(chan events.Event[BlobSidecarsT]),
-		subFinalValidatorUpdates: make(chan events.Event[validatorUpdates]),
+		subGenDataProcessed:      make(chan async.Event[validatorUpdates]),
+		subBuiltBeaconBlock:      make(chan async.Event[BeaconBlockT]),
+		subBuiltSidecars:         make(chan async.Event[BlobSidecarsT]),
+		subBBVerified:            make(chan async.Event[BeaconBlockT]),
+		subSCVerified:            make(chan async.Event[BlobSidecarsT]),
+		subFinalValidatorUpdates: make(chan async.Event[validatorUpdates]),
 	}
 }
 
@@ -126,32 +126,32 @@ func (am *ABCIMiddleware[_, _, _, _]) Start(
 ) error {
 	var err error
 	if err = am.dispatcher.Subscribe(
-		events.GenesisDataProcessed, am.subGenDataProcessed,
+		async.GenesisDataProcessed, am.subGenDataProcessed,
 	); err != nil {
 		return err
 	}
 	if err = am.dispatcher.Subscribe(
-		events.BuiltBeaconBlock, am.subBuiltBeaconBlock,
+		async.BuiltBeaconBlock, am.subBuiltBeaconBlock,
 	); err != nil {
 		return err
 	}
 	if err = am.dispatcher.Subscribe(
-		events.BuiltSidecars, am.subBuiltSidecars,
+		async.BuiltSidecars, am.subBuiltSidecars,
 	); err != nil {
 		return err
 	}
 	if err = am.dispatcher.Subscribe(
-		events.BeaconBlockVerified, am.subBBVerified,
+		async.BeaconBlockVerified, am.subBBVerified,
 	); err != nil {
 		return err
 	}
 	if err = am.dispatcher.Subscribe(
-		events.SidecarsVerified, am.subSCVerified,
+		async.SidecarsVerified, am.subSCVerified,
 	); err != nil {
 		return err
 	}
 	if err = am.dispatcher.Subscribe(
-		events.FinalValidatorUpdatesProcessed, am.subFinalValidatorUpdates,
+		async.FinalValidatorUpdatesProcessed, am.subFinalValidatorUpdates,
 	); err != nil {
 		return err
 	}

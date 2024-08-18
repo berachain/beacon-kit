@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package events
+package async
 
 import (
 	"context"
@@ -41,8 +41,8 @@ type Event[DataT any] interface {
 	Is(id EventID) bool
 }
 
-// New creates a new Event with the given context and beacon event.
-func New[
+// NewEvent creates a new Event with the given context and beacon event.
+func NewEvent[
 	DataT any,
 ](
 	ctx context.Context, id EventID, data DataT, errs ...error,

@@ -25,7 +25,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 )
 
 var _ types.Dispatcher = (*Dispatcher)(nil)
@@ -33,7 +33,7 @@ var _ types.Dispatcher = (*Dispatcher)(nil)
 // Dispatcher faciliates asynchronous communication between components,
 // typically services.
 type Dispatcher struct {
-	brokers map[events.EventID]types.Broker
+	brokers map[async.EventID]types.Broker
 	logger  log.Logger[any]
 }
 
@@ -42,13 +42,13 @@ func New(
 	logger log.Logger[any],
 ) *Dispatcher {
 	return &Dispatcher{
-		brokers: make(map[events.EventID]types.Broker),
+		brokers: make(map[async.EventID]types.Broker),
 		logger:  logger,
 	}
 }
 
 // Publish dispatches the given event to the broker with the given eventID.
-func (d *Dispatcher) Publish(event events.BaseEvent) error {
+func (d *Dispatcher) Publish(event async.BaseEvent) error {
 	broker, ok := d.brokers[event.ID()]
 	if !ok {
 		return errBrokerNotFound(event.ID())
@@ -61,7 +61,7 @@ func (d *Dispatcher) Publish(event events.BaseEvent) error {
 // corresponding to the broker.
 // Contract: the channel must be a Subscription[T], where T is the expected
 // type of the event data.
-func (d *Dispatcher) Subscribe(eventID events.EventID, ch any) error {
+func (d *Dispatcher) Subscribe(eventID async.EventID, ch any) error {
 	broker, ok := d.brokers[eventID]
 	if !ok {
 		return errBrokerNotFound(eventID)

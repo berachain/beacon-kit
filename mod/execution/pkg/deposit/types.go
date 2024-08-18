@@ -23,8 +23,8 @@ package deposit
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -49,8 +49,8 @@ type BlockEvent[
 	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
 	ExecutionPayloadT ExecutionPayload,
 ] interface {
-	ID() events.EventID
-	Is(events.EventID) bool
+	ID() async.EventID
+	Is(async.EventID) bool
 	Data() BeaconBlockT
 	Context() context.Context
 }

@@ -25,7 +25,7 @@ import (
 
 	async "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
+	async1 "github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -48,7 +48,7 @@ type Service[
 	// dispatcher is the dispatcher for the service.
 	dispatcher async.EventDispatcher
 	// subFinalizedBlockEvents is the channel that provides finalized block events.
-	subFinalizedBlockEvents chan events.Event[BeaconBlockT]
+	subFinalizedBlockEvents chan async1.Event[BeaconBlockT]
 	// metrics is the metrics for the deposit service.
 	metrics *metrics
 	// failedBlocks is a map of blocks that failed to be processed to be
@@ -83,7 +83,7 @@ func NewService[
 		ds:                      ds,
 		eth1FollowDistance:      eth1FollowDistance,
 		failedBlocks:            make(map[math.Slot]struct{}),
-		subFinalizedBlockEvents: make(chan events.Event[BeaconBlockT]),
+		subFinalizedBlockEvents: make(chan async1.Event[BeaconBlockT]),
 		logger:                  logger,
 		metrics:                 newMetrics(telemetrySink),
 	}
@@ -94,10 +94,10 @@ func (s *Service[
 	_, _, _, _, _,
 ]) Start(ctx context.Context) error {
 	if err := s.dispatcher.Subscribe(
-		events.BeaconBlockFinalizedEvent, s.subFinalizedBlockEvents,
+		async1.BeaconBlockFinalizedEvent, s.subFinalizedBlockEvents,
 	); err != nil {
 		s.logger.Error("failed to subscribe to event", "event",
-			events.BeaconBlockFinalizedEvent, "err", err)
+			async1.BeaconBlockFinalizedEvent, "err", err)
 		return err
 	}
 
