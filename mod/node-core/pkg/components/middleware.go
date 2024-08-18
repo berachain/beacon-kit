@@ -22,6 +22,8 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -30,14 +32,16 @@ import (
 
 // ABCIMiddlewareInput is the input for the validator middleware provider.
 type ABCIMiddlewareInput[
+	BeaconBlockT any,
+	BlobSidecarsT any,
 	LoggerT log.Logger[any],
 ] struct {
 	depinject.In
-	BeaconBlockFeed       *BlockBroker
+	BeaconBlockFeed       *broker.Broker[*asynctypes.Event[BeaconBlockT]]
 	ChainSpec             common.ChainSpec
 	GenesisBroker         *GenesisBroker
 	Logger                LoggerT
-	SidecarsFeed          *SidecarsBroker
+	SidecarsFeed          *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
 	SlotBroker            *SlotBroker
 	TelemetrySink         *metrics.TelemetrySink
 	ValidatorUpdateBroker *ValidatorUpdateBroker
@@ -46,16 +50,26 @@ type ABCIMiddlewareInput[
 // ProvideABCIMiddleware is a depinject provider for the validator
 // middleware.
 func ProvideABCIMiddleware[
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT],
+	BeaconBlockBodyT any,
+	BeaconBlockHeaderT any,
+	BlobSidecarT any,
+	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	LoggerT log.Logger[any],
 ](
-	in ABCIMiddlewareInput[LoggerT],
-) (*ABCIMiddleware, error) {
+	in ABCIMiddlewareInput[BeaconBlockT, BlobSidecarsT, LoggerT],
+) (*middleware.ABCIMiddleware[
+	BeaconBlockT, BlobSidecarsT, *Genesis, *SlotData,
+], error) {
 	validatorUpdatesSub, err := in.ValidatorUpdateBroker.Subscribe()
 	if err != nil {
 		return nil, err
 	}
 	return middleware.NewABCIMiddleware[
-		*BeaconBlock, *BlobSidecars, *Genesis, *SlotData,
+		BeaconBlockT,
+		BlobSidecarsT,
+		*Genesis,
+		*SlotData,
 	](
 		in.ChainSpec,
 		in.Logger,

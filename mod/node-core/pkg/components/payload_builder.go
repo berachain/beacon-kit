@@ -45,12 +45,20 @@ type LocalBuilderInput[
 // ProvideLocalBuilder provides a local payload builder for the
 // depinject framework.
 func ProvideLocalBuilder[
+	BeaconBlockHeaderT any,
+	BeaconStateT BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
+		*Eth1Data, *ExecutionPayloadHeader, *Fork, KVStoreT, *Validator,
+		Validators, *Withdrawal,
+	],
+	BeaconStateMarshallableT any,
+	KVStoreT any,
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ](
 	in LocalBuilderInput[LoggerT],
 ) *LocalBuilder {
 	return payloadbuilder.New[
-		*BeaconState, *ExecutionPayload, *ExecutionPayloadHeader,
+		BeaconStateT, *ExecutionPayload, *ExecutionPayloadHeader,
 	](
 		&in.Cfg.PayloadBuilder,
 		in.ChainSpec,

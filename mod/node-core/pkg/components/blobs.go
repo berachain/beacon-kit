@@ -148,9 +148,12 @@ func ProvideDAService[
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ](
-	in DAServiceIn[AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT, LoggerT],
-) *da.Service[AvailabilityStoreT, BlobSidecarsT] {
-	return da.NewService[AvailabilityStoreT, BlobSidecarsT](
+	in DAServiceIn[LoggerT],
+) *DAService {
+	return da.NewService[
+		*AvailabilityStore,
+		*BlobSidecars,
+	](
 		in.AvailabilityStore,
 		in.BlobProcessor,
 		in.SidecarsBroker,

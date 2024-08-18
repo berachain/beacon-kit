@@ -34,10 +34,19 @@ type KVStoreInput struct {
 }
 
 // ProvideKVStore is the depinject provider that returns a beacon KV store.
-func ProvideKVStore(in KVStoreInput) *KVStore {
+func ProvideKVStore[
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+](in KVStoreInput) *beacondb.KVStore[
+	BeaconBlockHeaderT,
+	*Eth1Data,
+	*ExecutionPayloadHeader,
+	*Fork,
+	*Validator,
+	Validators,
+] {
 	payloadCodec := &encoding.SSZInterfaceCodec[*ExecutionPayloadHeader]{}
 	return beacondb.New[
-		*BeaconBlockHeader,
+		BeaconBlockHeaderT,
 		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,

@@ -72,7 +72,13 @@ type DepositPrunerInput[
 
 // ProvideDepositPruner provides a deposit pruner for the depinject framework.
 func ProvideDepositPruner[
-	BeaconBlockT any,
+	BeaconBlockT BeaconBlock[
+		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	],
+	BeaconBlockBodyT interface {
+		GetDeposits() []*Deposit
+	},
+	BeaconBlockHeaderT any,
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ](
 	in DepositPrunerInput[BeaconBlockT, LoggerT],
@@ -83,20 +89,15 @@ func ProvideDepositPruner[
 		return nil, err
 	}
 
-	return pruner.NewPruner[
-		BeaconBlockT,
-		BlockEvent,
-		*DepositStore,
-	](
+	return pruner.NewPruner[BeaconBlockT, *DepositStore](
 		in.Logger.With("service", manager.DepositPrunerName),
 		in.DepositStore,
 		manager.DepositPrunerName,
 		subCh,
 		deposit.BuildPruneRangeFn[
-			*BeaconBlock,
-			*BeaconBlockBody,
+			BeaconBlockT,
+			BeaconBlockBodyT,
 			*Deposit,
-			*ExecutionPayload,
 			WithdrawalCredentials,
 		](in.ChainSpec),
 	), nil
