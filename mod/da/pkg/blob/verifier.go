@@ -34,7 +34,7 @@ import (
 type Verifier[
 	BeaconBlockHeaderT BeaconBlockHeader,
 	BlobSidecarT Sidecar[BeaconBlockHeaderT],
-	BlobSidecarsT Sidecars[BlobSidecarT, BeaconBlockHeaderT],
+	BlobSidecarsT Sidecars[BlobSidecarT],
 ] struct {
 	// proofVerifier is used to verify the KZG proofs of the blobs.
 	proofVerifier kzg.BlobProofVerifier
@@ -46,7 +46,7 @@ type Verifier[
 func NewVerifier[
 	BeaconBlockHeaderT BeaconBlockHeader,
 	BlobSidecarT Sidecar[BeaconBlockHeaderT],
-	BlobSidecarsT Sidecars[BlobSidecarT, BeaconBlockHeaderT],
+	BlobSidecarsT Sidecars[BlobSidecarT],
 ](
 	proofVerifier kzg.BlobProofVerifier,
 	telemetrySink TelemetrySink,
