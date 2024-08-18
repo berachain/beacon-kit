@@ -330,6 +330,7 @@ type (
 	SidecarFactory = dablob.SidecarFactory[
 		*BeaconBlock,
 		*BeaconBlockBody,
+		*BeaconBlockHeader,
 	]
 
 	// SlashingInfo is a type alias for the slashing info.

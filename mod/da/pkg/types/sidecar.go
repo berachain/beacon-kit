@@ -52,9 +52,11 @@ type BlobSidecar struct {
 
 // BuildBlobSidecar creates a blob sidecar from the given blobs and
 // beacon block.
-func BuildBlobSidecar(
+func BuildBlobSidecar[
+	BeaconBlockHeaderT any,
+](
 	index math.U64,
-	header *types.BeaconBlockHeader,
+	header BeaconBlockHeaderT,
 	blob *eip4844.Blob,
 	commitment eip4844.KZGCommitment,
 	proof eip4844.KZGProof,
@@ -65,7 +67,7 @@ func BuildBlobSidecar(
 		Blob:              *blob,
 		KzgCommitment:     commitment,
 		KzgProof:          proof,
-		BeaconBlockHeader: header,
+		BeaconBlockHeader: any(header).(*types.BeaconBlockHeader),
 		InclusionProof:    inclusionProof,
 	}
 }

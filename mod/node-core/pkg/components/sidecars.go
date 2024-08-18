@@ -38,6 +38,7 @@ func ProvideSidecarFactory(in SidecarFactoryInput) *SidecarFactory {
 	return dablob.NewSidecarFactory[
 		*BeaconBlock,
 		*BeaconBlockBody,
+		*BeaconBlockHeader,
 	](
 		in.ChainSpec,
 		types.KZGPositionDeneb,
