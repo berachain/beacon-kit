@@ -20,32 +20,29 @@
 
 package block
 
-import (
-	"time"
-
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-)
-
-type BeaconBlock[T any] interface {
-	constraints.SSZMarshallable
-	NewFromSSZ(bz []byte, version uint32) (T, error)
-	Version() uint32
-	GetSlot() math.U64
-	HashTreeRoot() common.Root
-	GetExecutionNumber() math.U64
-	SetStateRoot(root common.Root)
-	GetStateRoot() common.Root
+// storeMetrics is a struct that contains metrics for the block store.
+type storeMetrics struct {
+	// sink is the sink for the metrics.
+	sink TelemetrySink
 }
 
-// TelemetrySink is an interface for sending metrics to a telemetry backend.
-type TelemetrySink interface {
-	// IncrementCounter increments the counter identified by
-	// the provided key.
-	IncrementCounter(key string, args ...string)
+// newStoreMetrics creates a new storeMetrics.
+func newStoreMetrics(sink TelemetrySink) *storeMetrics {
+	return &storeMetrics{
+		sink: sink,
+	}
+}
 
-	// MeasureSince measures the time since the provided start time,
-	// identified by the provided keys.
-	MeasureSince(key string, start time.Time, args ...string)
+// markPruneBlockFailure marks a block prune failure.
+func (sm *storeMetrics) markPruneBlockFailure(err error) {
+	var labels []string
+	if err != nil {
+		labels = append(labels, "reason", "error")
+	} else {
+		labels = append(labels, "reason", "panic")
+	}
+
+	sm.sink.IncrementCounter(
+		"beacon_kit.block-store.prune_block_failure", labels...,
+	)
 }

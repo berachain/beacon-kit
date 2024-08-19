@@ -45,6 +45,7 @@ type KVStore[BeaconBlockT BeaconBlock[BeaconBlockT]] struct {
 	cs         common.ChainSpec
 	blockCodec *encoding.SSZInterfaceCodec[BeaconBlockT]
 	logger     log.Logger[any]
+	metrics    *storeMetrics
 }
 
 // NewStore creates a new block store.
@@ -52,6 +53,7 @@ func NewStore[BeaconBlockT BeaconBlock[BeaconBlockT]](
 	kvsp store.KVStoreService,
 	cs common.ChainSpec,
 	logger log.Logger[any],
+	ts TelemetrySink,
 ) *KVStore[BeaconBlockT] {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kvsp)
 	blockCodec := &encoding.SSZInterfaceCodec[BeaconBlockT]{}
@@ -67,6 +69,7 @@ func NewStore[BeaconBlockT BeaconBlock[BeaconBlockT]](
 		blockCodec: blockCodec,
 		cs:         cs,
 		logger:     logger,
+		metrics:    newStoreMetrics(ts),
 	}
 }
 
@@ -112,7 +115,7 @@ func (kv *KVStore[BeaconBlockT]) Prune(start, end uint64) error {
 func (kv *KVStore[BeaconBlockT]) prune(ctx context.Context, slot math.Slot) {
 	defer func() {
 		if r := recover(); r != nil {
-			// TODO: add metrics here.
+			kv.metrics.markPruneBlockFailure(nil)
 			kv.logger.Warn(
 				"‼️ panic occurred while pruning block",
 				"slot", slot, "panic", r, "stack", debug.Stack(),
@@ -130,8 +133,7 @@ func (kv *KVStore[BeaconBlockT]) prune(ctx context.Context, slot math.Slot) {
 			//    case, we choose not to retry removal and instead
 			//    continue. This means this slot may never be pruned, but
 			//    ensures that we always get to pruning subsequent slots.
-			//
-			// TODO: add metrics here.
+			kv.metrics.markPruneBlockFailure(err)
 			kv.logger.Warn(
 				"‼️ failed to prune block", "slot", slot, "error", err,
 			)

@@ -26,6 +26,7 @@ import (
 	blockservice "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/block"
@@ -42,9 +43,10 @@ type BlockStoreInput[
 ] struct {
 	depinject.In
 
-	AppOpts   servertypes.AppOptions
-	ChainSpec common.ChainSpec
-	Logger    LoggerT
+	AppOpts       servertypes.AppOptions
+	ChainSpec     common.ChainSpec
+	Logger        LoggerT
+	TelemetrySink *metrics.TelemetrySink
 }
 
 // ProvideBlockStore is a function that provides the module to the
@@ -64,6 +66,7 @@ func ProvideBlockStore[
 		storage.NewKVStoreProvider(kvp),
 		in.ChainSpec,
 		in.Logger.With("service", manager.BlockStoreName),
+		in.TelemetrySink,
 	), nil
 }
 
