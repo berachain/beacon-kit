@@ -91,3 +91,37 @@ func (kv *KVStore[
 	}
 	return common.Root(bz), nil
 }
+
+// GetLatestExecutionPayloadHeader retrieves the latest execution payload
+// header from the BeaconStore.
+func (kv *KVStore[
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
+]) GetLatestExecutionPayloadHeader() (
+	ExecutionPayloadHeaderT, error,
+) {
+	forkVersion, err := kv.latestExecutionPayloadVersion.Get(kv.ctx)
+	if err != nil {
+		var t ExecutionPayloadHeaderT
+		return t, err
+	}
+	kv.latestExecutionPayloadCodec.SetActiveForkVersion(forkVersion)
+	return kv.latestExecutionPayloadHeader.Get(kv.ctx)
+}
+
+// SetLatestExecutionPayloadHeader sets the latest execution payload header in
+// the BeaconStore.
+func (kv *KVStore[
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
+]) SetLatestExecutionPayloadHeader(
+	payloadHeader ExecutionPayloadHeaderT,
+) error {
+	if err := kv.latestExecutionPayloadVersion.Set(
+		kv.ctx, payloadHeader.Version(),
+	); err != nil {
+		return err
+	}
+	kv.latestExecutionPayloadCodec.SetActiveForkVersion(payloadHeader.Version())
+	return kv.latestExecutionPayloadHeader.Set(kv.ctx, payloadHeader)
+}
