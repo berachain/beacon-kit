@@ -55,8 +55,6 @@ type CLIBuilder[
 	// eventually called by the cosmos-sdk.
 	// TODO: CLI should not know about the AppCreator
 	nodeBuilderFunc servertypes.AppCreator[T]
-	// rootCmdSetup is a function that sets up the root command.
-	rootCmdSetup rootCmdSetup[T]
 }
 
 // New returns a new CLIBuilder with the given options.

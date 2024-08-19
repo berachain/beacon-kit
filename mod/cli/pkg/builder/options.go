@@ -21,7 +21,6 @@
 package builder
 
 import (
-	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
@@ -70,18 +69,6 @@ func WithComponents[
 	}
 }
 
-// SupplyModuleDeps populates the slice of direct module dependencies to be
-// supplied to depinject.
-func SupplyModuleDeps[
-	T types.Node,
-	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
-	LoggerT log.AdvancedLogger[any, LoggerT],
-](deps []any) Opt[T, ExecutionPayloadT, LoggerT] {
-	return func(cb *CLIBuilder[T, ExecutionPayloadT, LoggerT]) {
-		cb.suppliers = append(cb.suppliers, deps...)
-	}
-}
-
 // WithRunHandler sets the run handler for the CLIBuilder.
 func WithRunHandler[
 	T types.Node,
@@ -96,17 +83,6 @@ func WithRunHandler[
 ) Opt[T, ExecutionPayloadT, LoggerT] {
 	return func(cb *CLIBuilder[T, ExecutionPayloadT, LoggerT]) {
 		cb.runHandler = runHandler
-	}
-}
-
-// WithDefaultRootCommandSetup sets the root command setup func to the default.
-func WithDefaultRootCommandSetup[
-	T types.Node,
-	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
-	LoggerT log.AdvancedLogger[any, LoggerT],
-]() Opt[T, ExecutionPayloadT, LoggerT] {
-	return func(cb *CLIBuilder[T, ExecutionPayloadT, LoggerT]) {
-		cb.rootCmdSetup = cmdlib.DefaultRootCommandSetup[T, ExecutionPayloadT]
 	}
 }
 
