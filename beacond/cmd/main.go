@@ -28,7 +28,6 @@ import (
 	clicomponents "github.com/berachain/beacon-kit/mod/cli/pkg/components"
 	nodebuilder "github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
 	nodecomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
-	"github.com/cosmos/cosmos-sdk/server"
 	"go.uber.org/automaxprocs/maxprocs"
 )
 
@@ -66,10 +65,6 @@ func run() error {
 				nodecomponents.ProvideConfig,
 				nodecomponents.ProvideChainSpec,
 			),
-		),
-		// Set the Run Handler to the Default.
-		clibuilder.WithRunHandler[Node, *ExecutionPayload, *Logger](
-			server.InterceptConfigsPreRunHandler,
 		),
 		// Set the NodeBuilderFunc to the NodeBuilder Build.
 		clibuilder.WithNodeBuilderFunc[
