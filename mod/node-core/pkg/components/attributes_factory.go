@@ -40,12 +40,20 @@ type AttributesFactoryInput[
 
 // ProvideAttributesFactory provides an AttributesFactory for the client.
 func ProvideAttributesFactory[
+	BeaconBlockHeaderT any,
+	BeaconStateT BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
+		*Eth1Data, *ExecutionPayloadHeader, *Fork, KVStoreT,
+		*Validator, Validators, *Withdrawal,
+	],
+	BeaconStateMarshallableT any,
+	KVStoreT any,
 	LoggerT log.Logger[any],
 ](
 	in AttributesFactoryInput[LoggerT],
 ) (*AttributesFactory, error) {
 	return attributes.NewAttributesFactory[
-		*BeaconState,
+		BeaconStateT,
 		*PayloadAttributes,
 		*Withdrawal,
 	](

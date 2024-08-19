@@ -37,7 +37,7 @@ type Processor[
 	BeaconBlockBodyT any,
 	BeaconBlockHeaderT BeaconBlockHeader,
 	BlobSidecarT Sidecar[BeaconBlockHeaderT],
-	BlobSidecarsT Sidecars[BlobSidecarT, BeaconBlockHeaderT],
+	BlobSidecarsT Sidecars[BlobSidecarT],
 ] struct {
 	// logger is used to log information and errors.
 	logger log.Logger[any]
@@ -60,7 +60,7 @@ func NewProcessor[
 	BeaconBlockBodyT any,
 	BeaconBlockHeaderT BeaconBlockHeader,
 	BlobSidecarT Sidecar[BeaconBlockHeaderT],
-	BlobSidecarsT Sidecars[BlobSidecarT, BeaconBlockHeaderT],
+	BlobSidecarsT Sidecars[BlobSidecarT],
 ](
 	logger log.Logger[any],
 	chainSpec common.ChainSpec,

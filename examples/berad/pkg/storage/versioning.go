@@ -28,7 +28,7 @@ import (
 // SetGenesisValidatorsRoot sets the genesis validators root in the beacon
 // state.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) SetGenesisValidatorsRoot(
 	root common.Root,
@@ -39,7 +39,7 @@ func (kv *KVStore[
 // GetGenesisValidatorsRoot retrieves the genesis validators root from the
 // beacon state.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetGenesisValidatorsRoot() (common.Root, error) {
 	bz, err := kv.genesisValidatorsRoot.Get(kv.ctx)
@@ -51,7 +51,7 @@ func (kv *KVStore[
 
 // GetSlot returns the current slot.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetSlot() (math.Slot, error) {
 	slot, err := kv.slot.Get(kv.ctx)
@@ -60,7 +60,7 @@ func (kv *KVStore[
 
 // SetSlot sets the current slot.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) SetSlot(
 	slot math.Slot,

@@ -137,11 +137,11 @@ func ProvideAvailabilityPruner[
 	}
 
 	// build the availability pruner if IndexDB is available.
-	return pruner.NewPruner[*BeaconBlock, *IndexDB](
+	return pruner.NewPruner[BeaconBlockT, AvailabilityStoreT](
 		in.Logger.With("service", manager.AvailabilityPrunerName),
 		in.AvailabilityStore,
 		manager.AvailabilityPrunerName,
 		subCh,
-		dastore.BuildPruneRangeFn[*BeaconBlock](in.ChainSpec),
+		dastore.BuildPruneRangeFn[BeaconBlockT](in.ChainSpec),
 	), nil
 }

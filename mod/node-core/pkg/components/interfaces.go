@@ -683,20 +683,20 @@ type (
 // 		) (transition.ValidatorUpdates, error)
 // 	}
 
-// 	// StorageBackend defines an interface for accessing various storage
-// 	// components required by the beacon node.
-// 	StorageBackend[
-// 		AvailabilityStoreT any,
-// 		BeaconStateT any,
-// 		BlockStoreT any,
-// 		DepositStoreT any,
-// 	] interface {
-// 		AvailabilityStore() AvailabilityStoreT
-// 		BlockStore() BlockStoreT
-// 		DepositStore() DepositStoreT
-// 		// StateFromContext retrieves the beacon state from the given context.
-// 		StateFromContext(context.Context) BeaconStateT
-// 	}
+	// StorageBackend defines an interface for accessing various storage
+	// components required by the beacon node.
+	StorageBackend[
+		AvailabilityStoreT any,
+		BeaconStateT any,
+		BlockStoreT any,
+		DepositStoreT any,
+	] interface {
+		AvailabilityStore() AvailabilityStoreT
+		BlockStore() BlockStoreT
+		DepositStore() DepositStoreT
+		// StateFromContext retrieves the beacon state from the given context.
+		StateFromContext(context.Context) BeaconStateT
+	}
 
 // 	// TelemetrySink is an interface for sending metrics to a telemetry backend.
 // 	TelemetrySink interface {

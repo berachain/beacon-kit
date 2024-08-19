@@ -26,22 +26,57 @@ import (
 )
 
 // ConsensusEngineInput is the input for the consensus engine.
-type ConsensusEngineInput struct {
+type ConsensusEngineInput[
+	AvailabilityStoreT any,
+	BlockStoreT any,
+	BeaconStateT any,
+	StorageBackendT StorageBackend[
+		AvailabilityStoreT,
+		BeaconStateT,
+		BlockStoreT,
+		*DepositStore,
+	],
+] struct {
 	depinject.In
 	ConsensusMiddleware *ABCIMiddleware
-	StorageBackend      *StorageBackend
+	StorageBackend      StorageBackendT
 }
 
 // ProvideConsensusEngine is a depinject provider for the consensus engine.
-func ProvideConsensusEngine(
-	in ConsensusEngineInput,
-) (*ConsensusEngine, error) {
+func ProvideConsensusEngine[
+	AvailabilityStoreT any,
+	BeaconBlockHeaderT any,
+	BeaconStateT BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
+		*Eth1Data, *ExecutionPayloadHeader, *Fork, KVStoreT,
+		*Validator, Validators, *Withdrawal,
+	],
+	BeaconStateMarshallableT any,
+	BlockStoreT any,
+	KVStoreT any,
+	StorageBackendT StorageBackend[
+		AvailabilityStoreT,
+		BeaconStateT,
+		BlockStoreT,
+		*DepositStore,
+	],
+](
+	in ConsensusEngineInput[
+		AvailabilityStoreT,
+		BlockStoreT,
+		BeaconStateT,
+		StorageBackendT,
+	],
+) (*cometbft.ConsensusEngine[
+	*AttestationData, BeaconStateT, *SlashingInfo,
+	*SlotData, StorageBackendT, *ValidatorUpdate,
+], error) {
 	return cometbft.NewConsensusEngine[
 		*AttestationData,
-		*BeaconState,
+		BeaconStateT,
 		*SlashingInfo,
 		*SlotData,
-		*StorageBackend,
+		StorageBackendT,
 		*ValidatorUpdate,
 	](
 		in.ConsensusMiddleware,

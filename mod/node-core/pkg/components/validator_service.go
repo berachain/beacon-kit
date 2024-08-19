@@ -22,6 +22,8 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -32,11 +34,20 @@ import (
 
 // ValidatorServiceInput is the input for the validator service provider.
 type ValidatorServiceInput[
+	AvailabilityStoreT any,
+	BeaconBlockT any,
+	BeaconBlockBodyT any,
+	BlobSidecarsT any,
+	BlobProcessorT BlobProcessor[
+		AvailabilityStoreT,
+		BeaconBlockBodyT,
+		BlobSidecarsT,
+	],
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ] struct {
 	depinject.In
-	BeaconBlockFeed *BlockBroker
-	BlobProcessor   *BlobProcessor
+	BeaconBlockFeed *broker.Broker[*asynctypes.Event[BeaconBlockT]]
+	BlobProcessor   BlobProcessorT
 	Cfg             *config.Config
 	ChainSpec       common.ChainSpec
 	LocalBuilder    *LocalBuilder
@@ -44,7 +55,7 @@ type ValidatorServiceInput[
 	StateProcessor  *StateProcessor
 	StorageBackend  *StorageBackend
 	Signer          crypto.BLSSigner
-	SidecarsFeed    *SidecarsBroker
+	SidecarsFeed    *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
 	SidecarFactory  *SidecarFactory
 	SlotBroker      *SlotBroker
 	TelemetrySink   *metrics.TelemetrySink

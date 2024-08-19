@@ -71,17 +71,6 @@ func run() error {
 				nodecomponents.ProvideChainSpec,
 			),
 		),
-		clibuilder.SupplyModuleDeps[Node, *ExecutionPayload, *Logger](
-			[]any{
-				&ABCIMiddleware{},
-				&runtime.App{},
-				&StorageBackend{},
-			},
-		),
-		// Set the Run Handler to the Default.
-		clibuilder.WithRunHandler[Node, *ExecutionPayload, *Logger](
-			server.InterceptConfigsPreRunHandler,
-		),
 		// Set the NodeBuilderFunc to the NodeBuilder Build.
 		clibuilder.WithNodeBuilderFunc[
 			Node, *ExecutionPayload, *Logger,

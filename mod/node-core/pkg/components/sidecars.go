@@ -44,11 +44,12 @@ func ProvideSidecarFactory[
 	],
 	BeaconBlockHeaderT any,
 ](in SidecarFactoryInput) *dablob.SidecarFactory[
-	BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 ] {
 	return dablob.NewSidecarFactory[
 		BeaconBlockT,
 		BeaconBlockBodyT,
+		BeaconBlockHeaderT,
 	](
 		in.ChainSpec,
 		types.KZGPositionDeneb,

@@ -29,12 +29,15 @@ import (
 
 // StorageBackendInput is the input for the ProvideStorageBackend function.
 type StorageBackendInput[
-	AvailabilityStoreT AvailabilityStore[
-		BeaconBlockBodyT, BlobSidecarsT,
-	],
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	BeaconBlockT any,
 	BeaconBlockBodyT any,
+	BeaconBlockHeaderT any,
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
+	BeaconStoreT BeaconStore[
+		BeaconStoreT, BeaconBlockHeaderT, *Eth1Data, *ExecutionPayloadHeader,
+		*Fork, *Validator, Validators, *Withdrawal,
+	],
 	BlobSidecarsT any,
 ] struct {
 	depinject.In
@@ -42,24 +45,27 @@ type StorageBackendInput[
 	BlockStore        BeaconBlockStoreT
 	ChainSpec         common.ChainSpec
 	DepositStore      *DepositStore
-	KVStore           *KVStore
+	BeaconStore       BeaconStoreT
 }
 
 // ProvideStorageBackend is the depinject provider that returns a beacon storage
 // backend.
 func ProvideStorageBackend[
-	AvailabilityStoreT AvailabilityStore[
-		BeaconBlockBodyT, BlobSidecarsT,
-	],
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	BeaconBlockT any,
 	BeaconBlockBodyT constraints.SSZMarshallable,
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
+	
+	BeaconStoreT BeaconStore[
+		BeaconStoreT, BeaconBlockHeaderT, *Eth1Data, *ExecutionPayloadHeader,
+		*Fork, *Validator, Validators, *Withdrawal,
+	],
 	BlobSidecarsT any,
 ](
 	in StorageBackendInput[
-		AvailabilityStoreT, BeaconBlockT,
-		BeaconBlockBodyT, BeaconBlockStoreT, BlobSidecarsT,
+		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+		BeaconBlockStoreT, BeaconStoreT, BlobSidecarsT,
 	],
 ) *StorageBackend {
 	return storage.NewBackend[
@@ -84,7 +90,7 @@ func ProvideStorageBackend[
 	](
 		in.ChainSpec,
 		in.AvailabilityStore,
-		in.KVStore,
+		in.BeaconStore,
 		in.DepositStore,
 		in.BlockStore,
 	)
