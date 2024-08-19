@@ -84,9 +84,7 @@ type ReadOnlyBeaconState[
 	GetNextWithdrawalIndex() (uint64, error)
 	GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error)
 	GetSlot() (math.Slot, error)
-	GetSlashingAtIndex(uint64) (math.Gwei, error)
 	GetTotalActiveBalances(uint64) (math.Gwei, error)
-	GetTotalSlashing() (math.Gwei, error)
 	GetTotalValidators() (uint64, error)
 	GetValidators() (ValidatorsT, error)
 	GetValidatorsByEffectiveBalance() ([]ValidatorT, error)
@@ -116,9 +114,7 @@ type WriteOnlyBeaconState[
 	SetNextWithdrawalIndex(uint64) error
 	SetNextWithdrawalValidatorIndex(math.ValidatorIndex) error
 	SetSlot(math.Slot) error
-	SetTotalSlashing(math.Gwei) error
 	UpdateBlockRootAtIndex(uint64, common.Root) error
-	UpdateSlashingAtIndex(uint64, math.Gwei) error
 }
 
 // WriteOnlyStateRoots defines a struct which only has write access to state
