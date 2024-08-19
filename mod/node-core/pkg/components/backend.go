@@ -21,24 +21,20 @@
 package components
 
 import (
+	"context"
+
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 )
 
 // StorageBackendInput is the input for the ProvideStorageBackend function.
 type StorageBackendInput[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
-	BeaconBlockT any,
-	BeaconBlockBodyT any,
-	BeaconBlockHeaderT any,
-	BeaconBlockStoreT BlockStore[BeaconBlockT],
-	BeaconStoreT BeaconStore[
-		BeaconStoreT, BeaconBlockHeaderT, *Eth1Data, *ExecutionPayloadHeader,
-		*Fork, *Validator, Validators, *Withdrawal,
-	],
-	BlobSidecarsT any,
+	AvailabilityStoreT any,
+	BeaconBlockStoreT any,
+	BeaconStoreT interface {
+		WithContext(context.Context) BeaconStoreT
+	},
 ] struct {
 	depinject.In
 	AvailabilityStore AvailabilityStoreT
@@ -51,42 +47,28 @@ type StorageBackendInput[
 // ProvideStorageBackend is the depinject provider that returns a beacon storage
 // backend.
 func ProvideStorageBackend[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
-	BeaconBlockT any,
-	BeaconBlockBodyT constraints.SSZMarshallable,
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-	BeaconBlockStoreT BlockStore[BeaconBlockT],
-	
-	BeaconStoreT BeaconStore[
-		BeaconStoreT, BeaconBlockHeaderT, *Eth1Data, *ExecutionPayloadHeader,
-		*Fork, *Validator, Validators, *Withdrawal,
-	],
-	BlobSidecarsT any,
+	AvailabilityStoreT any,
+	BeaconBlockStoreT any,
+	BeaconStateT interface {
+		NewFromDB(BeaconStoreT, common.ChainSpec) BeaconStateT
+	},
+	BeaconStoreT interface {
+		WithContext(context.Context) BeaconStoreT
+	},
 ](
 	in StorageBackendInput[
-		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-		BeaconBlockStoreT, BeaconStoreT, BlobSidecarsT,
+		AvailabilityStoreT, BeaconBlockStoreT, BeaconStoreT,
 	],
-) *StorageBackend {
+) *storage.Backend[
+	AvailabilityStoreT, BeaconStateT, BeaconBlockStoreT,
+	*DepositStore, BeaconStoreT,
+] {
 	return storage.NewBackend[
 		AvailabilityStoreT,
-		BeaconBlockT,
-		BeaconBlockBodyT,
-		BeaconBlockHeaderT,
-		*BeaconState,
-		*BeaconStateMarshallable,
-		BlobSidecarsT,
+		BeaconStateT,
 		BeaconBlockStoreT,
-		*Deposit,
 		*DepositStore,
-		*Eth1Data,
-		*ExecutionPayloadHeader,
-		*Fork,
-		*KVStore,
-		*Validator,
-		Validators,
-		*Withdrawal,
-		WithdrawalCredentials,
+		BeaconStoreT,
 	](
 		in.ChainSpec,
 		in.AvailabilityStore,

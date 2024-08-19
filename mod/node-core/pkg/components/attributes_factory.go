@@ -28,9 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
-type AttributesFactoryInput[
-	LoggerT log.Logger[any],
-] struct {
+type AttributesFactoryInput[LoggerT any] struct {
 	depinject.In
 
 	ChainSpec common.ChainSpec

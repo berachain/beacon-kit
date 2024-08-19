@@ -29,7 +29,7 @@ import (
 
 // ServiceRegistryInput is the input for the service registry provider.
 type ServiceRegistryInput[
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT any,
 ] struct {
 	depinject.In
 	ABCIService           *ABCIMiddleware

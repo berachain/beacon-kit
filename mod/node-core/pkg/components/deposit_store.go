@@ -61,7 +61,7 @@ func ProvideDepositStore(
 // DepositPrunerInput is the input for the deposit pruner.
 type DepositPrunerInput[
 	BeaconBlockT any,
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT any,
 ] struct {
 	depinject.In
 	BlockBroker  *broker.Broker[*asynctypes.Event[BeaconBlockT]]

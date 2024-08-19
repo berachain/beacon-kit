@@ -36,7 +36,7 @@ import (
 // DepositServiceIn is the input for the deposit service.
 type DepositServiceIn[
 	BeaconBlockT any,
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT any,
 ] struct {
 	depinject.In
 	BeaconDepositContract *DepositContract

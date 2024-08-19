@@ -29,6 +29,7 @@ import (
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
@@ -39,18 +40,7 @@ import (
 
 // AvailabilityStoreInput is the input for the ProviderAvailabilityStore
 // function for the depinject framework.
-type AvailabilityStoreInput[
-	AttestationDataT any,
-	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT, AttestationDataT, DepositT,
-		Eth1DataT, ExecutionPayloadT, SlashingInfoT,
-	],
-	DepositT any,
-	Eth1DataT any,
-	ExecutionPayloadT any,
-	LoggerT log.AdvancedLogger[any, LoggerT],
-	SlashingInfoT any,
-] struct {
+type AvailabilityStoreInput[LoggerT any] struct {
 	depinject.In
 	AppOpts   servertypes.AppOptions
 	ChainSpec common.ChainSpec
@@ -59,21 +49,12 @@ type AvailabilityStoreInput[
 
 // ProvideAvailibilityStore provides the availability store.
 func ProvideAvailibilityStore[
-	AttestationDataT any,
-	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT, AttestationDataT, DepositT,
-		Eth1DataT, ExecutionPayloadT, SlashingInfoT,
-	],
-	DepositT any,
-	Eth1DataT any,
-	ExecutionPayloadT any,
+	BeaconBlockBodyT interface {
+		GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
+	},
 	LoggerT log.AdvancedLogger[any, LoggerT],
-	SlashingInfoT any,
 ](
-	in AvailabilityStoreInput[
-		AttestationDataT, BeaconBlockBodyT, DepositT, Eth1DataT,
-		ExecutionPayloadT, LoggerT, SlashingInfoT,
-	],
+	in AvailabilityStoreInput[LoggerT],
 ) (*dastore.Store[BeaconBlockBodyT], error) {
 	return dastore.New[BeaconBlockBodyT](
 		filedb.NewRangeDB(
@@ -96,13 +77,9 @@ func ProvideAvailibilityStore[
 // AvailabilityPrunerInput is the input for the ProviderAvailabilityPruner
 // function for the depinject framework.
 type AvailabilityPrunerInput[
-	AvailabilityStoreT AvailabilityStore[
-		BeaconBlockBodyT, BlobSidecarsT,
-	],
+	AvailabilityStoreT any,
 	BeaconBlockT any,
-	BeaconBlockBodyT any,
-	BlobSidecarsT any,
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT any,
 ] struct {
 	depinject.In
 	AvailabilityStore AvailabilityStoreT
@@ -125,10 +102,7 @@ func ProvideAvailabilityPruner[
 	BlobSidecarsT any,
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ](
-	in AvailabilityPrunerInput[
-		AvailabilityStoreT, BeaconBlockT,
-		BeaconBlockBodyT, BlobSidecarsT, LoggerT,
-	],
+	in AvailabilityPrunerInput[AvailabilityStoreT, BeaconBlockT, LoggerT],
 ) (pruner.Pruner[AvailabilityStoreT], error) {
 	subCh, err := in.BlockBroker.Subscribe()
 	if err != nil {

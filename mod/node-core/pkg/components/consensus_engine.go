@@ -30,15 +30,10 @@ type ConsensusEngineInput[
 	AvailabilityStoreT any,
 	BlockStoreT any,
 	BeaconStateT any,
-	StorageBackendT StorageBackend[
-		AvailabilityStoreT,
-		BeaconStateT,
-		BlockStoreT,
-		*DepositStore,
-	],
+	StorageBackendT any,
 ] struct {
 	depinject.In
-	ConsensusMiddleware *ABCIMiddleware
+	ConsensusMiddleware Middleware[*SlotData]
 	StorageBackend      StorageBackendT
 }
 

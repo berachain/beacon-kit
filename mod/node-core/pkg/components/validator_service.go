@@ -34,16 +34,11 @@ import (
 
 // ValidatorServiceInput is the input for the validator service provider.
 type ValidatorServiceInput[
-	AvailabilityStoreT any,
 	BeaconBlockT any,
-	BeaconBlockBodyT any,
 	BlobSidecarsT any,
-	BlobProcessorT BlobProcessor[
-		AvailabilityStoreT,
-		BeaconBlockBodyT,
-		BlobSidecarsT,
-	],
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	BlobProcessorT any,
+	LoggerT any,
+	StorageBackendT any,
 ] struct {
 	depinject.In
 	BeaconBlockFeed *broker.Broker[*asynctypes.Event[BeaconBlockT]]
@@ -53,7 +48,7 @@ type ValidatorServiceInput[
 	LocalBuilder    *LocalBuilder
 	Logger          LoggerT
 	StateProcessor  *StateProcessor
-	StorageBackend  *StorageBackend
+	StorageBackend  StorageBackendT
 	Signer          crypto.BLSSigner
 	SidecarsFeed    *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
 	SidecarFactory  *SidecarFactory

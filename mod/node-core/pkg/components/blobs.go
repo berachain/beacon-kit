@@ -82,7 +82,7 @@ func ProvideBlobVerifier[
 // BlobProcessorIn is the input for the BlobProcessor.
 type BlobProcessorIn[
 	BlobSidecarsT any,
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT any,
 ] struct {
 	depinject.In
 
@@ -124,10 +124,10 @@ func ProvideBlobProcessor[
 
 // DAServiceIn is the input for the BlobService.
 type DAServiceIn[
-	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	AvailabilityStoreT any,
 	BeaconBlockBodyT any,
 	BlobSidecarsT any,
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT any,
 ] struct {
 	depinject.In
 

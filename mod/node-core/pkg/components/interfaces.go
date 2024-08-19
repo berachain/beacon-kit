@@ -41,12 +41,14 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 
 	// "github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	// "github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	// v1 "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	// sdk "github.com/cosmos/cosmos-sdk/types"
-	// "github.com/cosmos/gogoproto/proto"
+	"github.com/cosmos/gogoproto/proto"
 	fastssz "github.com/ferranbt/fastssz"
 )
 
@@ -564,124 +566,124 @@ type (
 		Prune(start uint64, end uint64) error
 	}
 
-// 	// LocalBuilder is the interface for the builder service.
-// 	LocalBuilder[
-// 		BeaconStateT any,
-// 		ExecutionPayloadT any,
-// 	] interface {
-// 		// Enabled returns true if the local builder is enabled.
-// 		Enabled() bool
-// 		// RequestPayloadAsync requests a new payload for the given slot.
-// 		RequestPayloadAsync(
-// 			ctx context.Context,
-// 			st BeaconStateT,
-// 			slot math.Slot,
-// 			timestamp uint64,
-// 			parentBlockRoot common.Root,
-// 			headEth1BlockHash common.ExecutionHash,
-// 			finalEth1BlockHash common.ExecutionHash,
-// 		) (*engineprimitives.PayloadID, error)
-// 		// SendForceHeadFCU sends a force head FCU request.
-// 		SendForceHeadFCU(
-// 			ctx context.Context,
-// 			st BeaconStateT,
-// 			slot math.Slot,
-// 		) error
-// 		// RetrievePayload retrieves the payload for the given slot.
-// 		RetrievePayload(
-// 			ctx context.Context,
-// 			slot math.Slot,
-// 			parentBlockRoot common.Root,
-// 		) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
-// 		// RequestPayloadSync requests a payload for the given slot and
-// 		// blocks until the payload is delivered.
-// 		RequestPayloadSync(
-// 			ctx context.Context,
-// 			st BeaconStateT,
-// 			slot math.Slot,
-// 			timestamp uint64,
-// 			parentBlockRoot common.Root,
-// 			headEth1BlockHash common.ExecutionHash,
-// 			finalEth1BlockHash common.ExecutionHash,
-// 		) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
-// 	}
+	// 	// LocalBuilder is the interface for the builder service.
+	// 	LocalBuilder[
+	// 		BeaconStateT any,
+	// 		ExecutionPayloadT any,
+	// 	] interface {
+	// 		// Enabled returns true if the local builder is enabled.
+	// 		Enabled() bool
+	// 		// RequestPayloadAsync requests a new payload for the given slot.
+	// 		RequestPayloadAsync(
+	// 			ctx context.Context,
+	// 			st BeaconStateT,
+	// 			slot math.Slot,
+	// 			timestamp uint64,
+	// 			parentBlockRoot common.Root,
+	// 			headEth1BlockHash common.ExecutionHash,
+	// 			finalEth1BlockHash common.ExecutionHash,
+	// 		) (*engineprimitives.PayloadID, error)
+	// 		// SendForceHeadFCU sends a force head FCU request.
+	// 		SendForceHeadFCU(
+	// 			ctx context.Context,
+	// 			st BeaconStateT,
+	// 			slot math.Slot,
+	// 		) error
+	// 		// RetrievePayload retrieves the payload for the given slot.
+	// 		RetrievePayload(
+	// 			ctx context.Context,
+	// 			slot math.Slot,
+	// 			parentBlockRoot common.Root,
+	// 		) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
+	// 		// RequestPayloadSync requests a payload for the given slot and
+	// 		// blocks until the payload is delivered.
+	// 		RequestPayloadSync(
+	// 			ctx context.Context,
+	// 			st BeaconStateT,
+	// 			slot math.Slot,
+	// 			timestamp uint64,
+	// 			parentBlockRoot common.Root,
+	// 			headEth1BlockHash common.ExecutionHash,
+	// 			finalEth1BlockHash common.ExecutionHash,
+	// 		) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
+	// 	}
 
-// 	// Middleware is the interface for the CometBFT middleware.
-// 	Middleware[SlotDataT any] interface {
-// 		service.Basic
-// 		InitGenesis(
-// 			ctx context.Context, bz []byte,
-// 		) (transition.ValidatorUpdates, error)
-// 		PrepareProposal(context.Context, SlotDataT) ([]byte, []byte, error)
-// 		ProcessProposal(
-// 			ctx context.Context, req proto.Message,
-// 		) (proto.Message, error)
-// 		FinalizeBlock(
-// 			ctx context.Context,
-// 			req proto.Message,
-// 		) (transition.ValidatorUpdates, error)
-// 	}
+	// Middleware is the interface for the CometBFT middleware.
+	Middleware[SlotDataT any] interface {
+		service.Basic
+		InitGenesis(
+			ctx context.Context, bz []byte,
+		) (transition.ValidatorUpdates, error)
+		PrepareProposal(context.Context, SlotDataT) ([]byte, []byte, error)
+		ProcessProposal(
+			ctx context.Context, req proto.Message,
+		) (proto.Message, error)
+		FinalizeBlock(
+			ctx context.Context,
+			req proto.Message,
+		) (transition.ValidatorUpdates, error)
+	}
 
-// 	// PayloadAttributes is the interface for the payload attributes.
-// 	PayloadAttributes[T any, WithdrawalT any] interface {
-// 		engineprimitives.PayloadAttributer
-// 		// New creates a new payload attributes instance.
-// 		New(
-// 			uint32,
-// 			uint64,
-// 			common.Bytes32,
-// 			common.ExecutionAddress,
-// 			[]WithdrawalT,
-// 			common.Root,
-// 		) (T, error)
-// 	}
+	// 	// PayloadAttributes is the interface for the payload attributes.
+	// 	PayloadAttributes[T any, WithdrawalT any] interface {
+	// 		engineprimitives.PayloadAttributer
+	// 		// New creates a new payload attributes instance.
+	// 		New(
+	// 			uint32,
+	// 			uint64,
+	// 			common.Bytes32,
+	// 			common.ExecutionAddress,
+	// 			[]WithdrawalT,
+	// 			common.Root,
+	// 		) (T, error)
+	// 	}
 
-// 	// SlashingInfo is an interface for accessing the slashing info.
-// 	SlashingInfo[SlashingInfoT any] interface {
-// 		// New creates a new slashing info instance.
-// 		New(math.U64, math.U64) SlashingInfoT
-// 	}
+	// 	// SlashingInfo is an interface for accessing the slashing info.
+	// 	SlashingInfo[SlashingInfoT any] interface {
+	// 		// New creates a new slashing info instance.
+	// 		New(math.U64, math.U64) SlashingInfoT
+	// 	}
 
-// 	// SlotData is an interface for accessing the slot data.
-// 	SlotData[T, AttestationDataT, SlashingInfoT any] interface {
-// 		// New creates a new slot data instance.
-// 		New(math.Slot, []AttestationDataT, []SlashingInfoT) T
-// 		// GetSlot returns the slot of the incoming slot.
-// 		GetSlot() math.Slot
-// 		// GetAttestationData returns the attestation data of the incoming slot.
-// 		GetAttestationData() []AttestationDataT
-// 		// GetSlashingInfo returns the slashing info of the incoming slot.
-// 		GetSlashingInfo() []SlashingInfoT
-// 	}
+	// 	// SlotData is an interface for accessing the slot data.
+	// 	SlotData[T, AttestationDataT, SlashingInfoT any] interface {
+	// 		// New creates a new slot data instance.
+	// 		New(math.Slot, []AttestationDataT, []SlashingInfoT) T
+	// 		// GetSlot returns the slot of the incoming slot.
+	// 		GetSlot() math.Slot
+	// 		// GetAttestationData returns the attestation data of the incoming slot.
+	// 		GetAttestationData() []AttestationDataT
+	// 		// GetSlashingInfo returns the slashing info of the incoming slot.
+	// 		GetSlashingInfo() []SlashingInfoT
+	// 	}
 
-// 	// StateProcessor defines the interface for processing the state.
-// 	StateProcessor[
-// 		BeaconBlockT any,
-// 		BeaconStateT any,
-// 		ContextT any,
-// 		DepositT any,
-// 		ExecutionPayloadHeaderT any,
-// 	] interface {
-// 		// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
-// 		// state
-// 		// from the eth1 deposits.
-// 		InitializePreminedBeaconStateFromEth1(
-// 			BeaconStateT,
-// 			[]DepositT,
-// 			ExecutionPayloadHeaderT,
-// 			common.Version,
-// 		) (transition.ValidatorUpdates, error)
-// 		// ProcessSlot processes the slot.
-// 		ProcessSlots(
-// 			st BeaconStateT, slot math.Slot,
-// 		) (transition.ValidatorUpdates, error)
-// 		// Transition performs the core state transition.
-// 		Transition(
-// 			ctx ContextT,
-// 			st BeaconStateT,
-// 			blk BeaconBlockT,
-// 		) (transition.ValidatorUpdates, error)
-// 	}
+	// 	// StateProcessor defines the interface for processing the state.
+	// 	StateProcessor[
+	// 		BeaconBlockT any,
+	// 		BeaconStateT any,
+	// 		ContextT any,
+	// 		DepositT any,
+	// 		ExecutionPayloadHeaderT any,
+	// 	] interface {
+	// 		// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
+	// 		// state
+	// 		// from the eth1 deposits.
+	// 		InitializePreminedBeaconStateFromEth1(
+	// 			BeaconStateT,
+	// 			[]DepositT,
+	// 			ExecutionPayloadHeaderT,
+	// 			common.Version,
+	// 		) (transition.ValidatorUpdates, error)
+	// 		// ProcessSlot processes the slot.
+	// 		ProcessSlots(
+	// 			st BeaconStateT, slot math.Slot,
+	// 		) (transition.ValidatorUpdates, error)
+	// 		// Transition performs the core state transition.
+	// 		Transition(
+	// 			ctx ContextT,
+	// 			st BeaconStateT,
+	// 			blk BeaconBlockT,
+	// 		) (transition.ValidatorUpdates, error)
+	// 	}
 
 	// StorageBackend defines an interface for accessing various storage
 	// components required by the beacon node.

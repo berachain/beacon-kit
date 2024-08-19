@@ -32,7 +32,7 @@ import (
 
 // ChainServiceInput is the input for the chain service provider.
 type ChainServiceInput[
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT any,
 ] struct {
 	depinject.In
 
