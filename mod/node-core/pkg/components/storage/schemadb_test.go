@@ -319,7 +319,9 @@ func Test_SchemaDB(t *testing.T) {
 
 	// now try an append
 	beacon.BlockRoots = append(beacon.BlockRoots, common.Root{8, 8, 8, 8})
+	debugDrawTree(t, beacon, "testdata/beacon_state_test_1.dot")
 	hash = beacon.HashTreeRoot()
+
 	require.False(t, bytes.Equal(hash[:], hashSSZ))
 	err = beaconDB.SetBlockRootAtIndex(
 		ctx,
@@ -330,13 +332,12 @@ func Test_SchemaDB(t *testing.T) {
 	require.NoError(t, db.Commit(ctx))
 	hashSSZ, err = beaconDB.Get(1, 0)
 	require.NoError(t, err)
-	debugDrawDBTree(t, ctx, db, "testdata/beacon_state_test_1.dot")
-	debugDrawTree(t, beacon, "testdata/beacon_state_test_2.dot")
+	debugDrawDBTree(t, ctx, db, "testdata/beacon_state_test_2.dot")
 	require.Truef(
 		t,
 		bytes.Equal(hash[:], hashSSZ),
 		"expected %x, got %x",
-		hash,
+		hash[:],
 		hashSSZ,
 	)
 }

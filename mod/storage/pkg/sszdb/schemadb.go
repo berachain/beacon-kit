@@ -265,9 +265,10 @@ func (db *SchemaDB) setListLength(
 		return err
 	}
 	val := make([]byte, 32)
+	binary.LittleEndian.PutUint64(val, length)
 	return db.stage(
 		ctx,
-		&Node{Value: fastssz.MarshalUint64(val, length)},
+		&Node{Value: val},
 		gindex,
 	)
 }
@@ -375,7 +376,7 @@ func (db *SchemaDB) SetBlockRootAtIndex(
 				}
 				if sibling != nil {
 					// exit condition: once pre-existing sibling is found
-					// upward traversal be stopped
+					// upward traversal can be stopped
 					break
 				}
 				db.stages[branchID][gindex+1] = db.zeroHashes[depth]
