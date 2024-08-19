@@ -33,7 +33,7 @@ import (
 // BeaconState defines the interface for accessing various state-related data
 // required for block processing.
 type BeaconState[
-	ExecutionPayloadHeaderT ExecutionPayloadHeader,
+	ExecutionPayloadHeaderT any,
 	WithdrawalT any,
 ] interface {
 	// GetRandaoMixAtIndex retrieves the RANDAO mix at a specified index.
@@ -53,7 +53,7 @@ type BeaconState[
 }
 
 // ExecutionPayload is the interface for the execution payload.
-type ExecutionPayload[T constraints.ForkTyped[T]] interface {
+type ExecutionPayload[T any] interface {
 	constraints.ForkTyped[T]
 	// GetBlockHash returns the block hash.
 	GetBlockHash() common.ExecutionHash
@@ -69,6 +69,19 @@ type ExecutionPayloadHeader interface {
 	GetBlockHash() common.ExecutionHash
 	// GetParentHash returns the parent hash.
 	GetParentHash() common.ExecutionHash
+}
+
+// AttributesFactory is the interface for the attributes factory.
+type AttributesFactory[
+	BeaconStateT any,
+	PayloadAttributesT any,
+] interface {
+	BuildPayloadAttributes(
+		st BeaconStateT,
+		slot math.U64,
+		timestamp uint64,
+		prevHeadRoot [32]byte,
+	) (PayloadAttributesT, error)
 }
 
 // PayloadAttributes is the interface for the payload attributes.

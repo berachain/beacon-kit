@@ -53,9 +53,7 @@ type PayloadBuilder[
 		PayloadIDT, [32]byte, math.Slot,
 	]
 	// attributesFactory is used to create attributes for the
-	attributesFactory *attributes.Factory[
-		BeaconStateT, PayloadAttributesT, WithdrawalT,
-	]
+	attributesFactory AttributesFactory[BeaconStateT, PayloadAttributesT]
 }
 
 // New creates a new service.
