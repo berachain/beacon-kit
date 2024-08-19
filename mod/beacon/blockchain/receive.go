@@ -29,17 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
-// ReceiveBlock receives a block and blobs from the
-// network and processes them.
-func (s *Service[
-	_, BeaconBlockT, _, _, _, _, _, _, _, _,
-]) ReceiveBlock(
-	ctx context.Context,
-	blk BeaconBlockT,
-) error {
-	return s.VerifyIncomingBlock(ctx, blk)
-}
-
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
 func (s *Service[

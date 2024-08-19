@@ -24,7 +24,6 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // BeaconBlock is an interface for accessing the beacon block.
@@ -32,7 +31,6 @@ type BeaconBlock[SelfT any] interface {
 	constraints.SSZMarshallable
 	constraints.Nillable
 	constraints.Empty[SelfT]
-	GetSlot() math.Slot
 	NewFromSSZ([]byte, uint32) (SelfT, error)
 }
 
@@ -44,5 +42,5 @@ type TelemetrySink interface {
 
 type BlobSidecars[T any] interface {
 	constraints.SSZMarshallable
-	Empty() T
+	constraints.Empty[T]
 }
