@@ -332,45 +332,6 @@ type (
 	// 	WithdrawalCredentials,
 	// ]
 
-<<<<<<< HEAD
-	// // NodeAPIContext is a type alias for the node API context.
-	// NodeAPIContext = echo.Context
-=======
-	// NodeAPIBackend is a type alias for the node API backend.
-	NodeAPIBackend = backend.Backend[
-		*AvailabilityStore,
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*BeaconBlockHeader,
-		*BeaconState,
-		*BeaconStateMarshallable,
-		*BlobSidecars,
-		*BlockStore,
-		sdk.Context,
-		*Deposit,
-		*DepositStore,
-		*Eth1Data,
-		*ExecutionPayloadHeader,
-		*Fork,
-		nodetypes.Node,
-		*KVStore,
-		*StorageBackend,
-		*Validator,
-		Validators,
-		*Withdrawal,
-		WithdrawalCredentials,
-	]
-
-	// NodeAPIContext is a type alias for the node API context.
-	NodeAPIContext = echo.Context
-
-	// NodeAPIEngine is a type alias for the node API engine.
-	NodeAPIEngine = echo.Engine
-
-	// NodeAPIServer is a type alias for the node API server.
-	NodeAPIServer = server.Server[NodeAPIContext]
->>>>>>> main
-
 	// PayloadAttributes is a type alias for the payload attributes.
 	PayloadAttributes = engineprimitives.PayloadAttributes[*Withdrawal]
 
@@ -474,18 +435,4 @@ type (
 
 	// NodeAPIHandler is a type alias for the node handler.
 	NodeAPIHandler = nodeapi.Handler[NodeAPIContext]
-
-<<<<<<< HEAD
-	// // ProofAPIHandler is a type alias for the proof handler.
-	// ProofAPIHandler = proofapi.Handler[
-	// 	NodeAPIContext, *BeaconBlockHeader, *BeaconState,
-	// 	*BeaconStateMarshallable, *ExecutionPayloadHeader, *Validator,
-	// ]
-=======
-	// ProofAPIHandler is a type alias for the proof handler.
-	ProofAPIHandler = proofapi.Handler[
-		*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
-		NodeAPIContext, *ExecutionPayloadHeader, *Validator,
-	]
->>>>>>> main
 )
