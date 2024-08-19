@@ -22,7 +22,6 @@ package builder
 
 import (
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/cache"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -72,9 +71,7 @@ func New[
 	pc *cache.PayloadIDCache[
 		PayloadIDT, [32]byte, math.Slot,
 	],
-	af *attributes.Factory[
-		BeaconStateT, PayloadAttributesT, WithdrawalT,
-	],
+	af AttributesFactory[BeaconStateT, PayloadAttributesT],
 ) *PayloadBuilder[
 	BeaconStateT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 	PayloadAttributesT, PayloadIDT, WithdrawalT,
