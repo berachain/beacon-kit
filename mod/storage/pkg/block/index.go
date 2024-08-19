@@ -27,12 +27,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 )
 
-const (
-	blockRootsIndexName       = "block_roots"
-	executionNumbersIndexName = "execution_numbers"
-	stateRootsIndexName       = "state_roots"
-)
-
 type indexes[BeaconBlockT BeaconBlock[BeaconBlockT]] struct {
 	BlockRoots       *sdkindexes.Unique[[]byte, math.Slot, BeaconBlockT]
 	ExecutionNumbers *sdkindexes.Unique[math.U64, math.Slot, BeaconBlockT]
@@ -57,7 +51,7 @@ func newIndexes[BeaconBlockT BeaconBlock[BeaconBlockT]](
 	return indexes[BeaconBlockT]{
 		BlockRoots: sdkindexes.NewUnique(
 			sb,
-			sdkcollections.NewPrefix(blockRootsIndexName),
+			sdkcollections.NewPrefix(blockRootsIndexPrefix),
 			blockRootsIndexName,
 			sdkcollections.BytesKey,
 			encoding.U64Key,
@@ -68,7 +62,7 @@ func newIndexes[BeaconBlockT BeaconBlock[BeaconBlockT]](
 		),
 		ExecutionNumbers: sdkindexes.NewUnique(
 			sb,
-			sdkcollections.NewPrefix(executionNumbersIndexName),
+			sdkcollections.NewPrefix(executionNumbersIndexPrefix),
 			executionNumbersIndexName,
 			encoding.U64Key,
 			encoding.U64Key,
@@ -78,7 +72,7 @@ func newIndexes[BeaconBlockT BeaconBlock[BeaconBlockT]](
 		),
 		StateRoots: sdkindexes.NewUnique(
 			sb,
-			sdkcollections.NewPrefix(stateRootsIndexName),
+			sdkcollections.NewPrefix(stateRootsIndexPrefix),
 			stateRootsIndexName,
 			sdkcollections.BytesKey,
 			encoding.U64Key,

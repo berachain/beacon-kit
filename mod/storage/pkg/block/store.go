@@ -22,6 +22,7 @@ package block
 
 import (
 	"context"
+	"runtime/debug"
 	"sync"
 
 	sdkcollections "cosmossdk.io/collections"
@@ -32,8 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
 )
-
-const StoreName = "blocks"
 
 // KVStore is a simple KV store based implementation that stores beacon blocks.
 type KVStore[BeaconBlockT BeaconBlock[BeaconBlockT]] struct {
@@ -59,7 +58,7 @@ func NewStore[BeaconBlockT BeaconBlock[BeaconBlockT]](
 	return &KVStore[BeaconBlockT]{
 		blocks: sdkcollections.NewIndexedMap(
 			schemaBuilder,
-			sdkcollections.NewPrefix(StoreName),
+			sdkcollections.NewPrefix(storePrefix),
 			StoreName,
 			encoding.U64Key,
 			blockCodec,
@@ -100,25 +99,42 @@ func (kv *KVStore[BeaconBlockT]) Prune(start, end uint64) error {
 
 	s := max(math.Slot(start), kv.nextToPrune)
 	for kv.nextToPrune = s; kv.nextToPrune < math.Slot(end); kv.nextToPrune++ {
-		kv.blockCodec.SetActiveForkVersion(
-			kv.cs.ActiveForkVersionForSlot(kv.nextToPrune),
-		)
-		if err := kv.blocks.Remove(ctx, kv.nextToPrune); err != nil {
-			// This can error for 2 reasons:
-			// 1. The slot was not found -- either the slot was missed or we
-			//    never stored the block to begin with, either way it's ok.
-			if !errors.Is(err, sdkcollections.ErrNotFound) {
-				// 2. The slot was found but (en/de)coding failed. In this
-				//    case, we choose not to retry removal and instead
-				//    continue. This means this slot may never be pruned, but
-				//    ensures that we always get to pruning subsequent slots.
-				kv.logger.Error(
-					"‼️ failed to prune block",
-					"slot", kv.nextToPrune, "err", err,
-				)
-			}
-		}
+		kv.prune(ctx, kv.nextToPrune)
 	}
 
 	return nil
+}
+
+// prune removes the block at the given slot from the store. It handles panics
+// and errors to avoid fatal crashes.
+//
+// NOTE: assumes the kvstore lock is held.
+func (kv *KVStore[BeaconBlockT]) prune(ctx context.Context, slot math.Slot) {
+	defer func() {
+		if r := recover(); r != nil {
+			// TODO: add metrics here.
+			kv.logger.Warn(
+				"‼️ panic occurred while pruning block",
+				"slot", slot, "panic", r, "stack", debug.Stack(),
+			)
+		}
+	}()
+
+	kv.blockCodec.SetActiveForkVersion(kv.cs.ActiveForkVersionForSlot(slot))
+	if err := kv.blocks.Remove(ctx, slot); err != nil {
+		// This can error for 2 reasons:
+		// 1. The slot was not found -- either the slot was missed or we
+		//    never stored the block to begin with, either way it's ok.
+		if !errors.Is(err, sdkcollections.ErrNotFound) {
+			// 2. The slot was found but (en/de)coding failed. In this
+			//    case, we choose not to retry removal and instead
+			//    continue. This means this slot may never be pruned, but
+			//    ensures that we always get to pruning subsequent slots.
+			//
+			// TODO: add metrics here.
+			kv.logger.Warn(
+				"‼️ failed to prune block", "slot", slot, "error", err,
+			)
+		}
+	}
 }
