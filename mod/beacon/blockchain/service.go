@@ -47,8 +47,8 @@ type Service[
 	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
 	PayloadAttributesT PayloadAttributes,
 ] struct {
-	// storageBackend represents the backend storage for beacon states and associated
-	// sidecars.
+	// storageBackend represents the backend storage for beacon states and
+	// associated sidecars.
 	storageBackend StorageBackend[
 		AvailabilityStoreT,
 		BeaconBlockBodyT,
@@ -58,7 +58,8 @@ type Service[
 	logger log.Logger[any]
 	// chainSpec holds the chain specifications.
 	chainSpec common.ChainSpec
-	// executionEngine is the execution engine responsible for processing execution payloads.
+	// executionEngine is the execution engine responsible for processing
+	// execution payloads.
 	executionEngine ExecutionEngine[PayloadAttributesT]
 	// localBuilder is a local builder for constructing new beacon states.
 	localBuilder LocalBuilder[BeaconStateT]
@@ -77,7 +78,7 @@ type Service[
 	// blkBroker is the event feed for new blocks.
 	blkBroker *broker.Broker[*asynctypes.Event[BeaconBlockT]]
 	// validatorUpdateBroker is the event feed for validator updates.
-	//nolint:lll // annoying formatter.
+
 	validatorUpdateBroker *broker.Broker[*asynctypes.Event[ValidatorUpdates]]
 	// optimisticPayloadBuilds is a flag used when the optimistic payload
 	// builder is enabled.
@@ -122,7 +123,7 @@ func NewService[
 	genesisBroker *broker.Broker[*asynctypes.Event[GenesisT]],
 	blkBroker *broker.Broker[*asynctypes.Event[BeaconBlockT]],
 	//nolint:lll // annoying formatter.
-	validatorUpdateBroker *broker.Broker[*asynctypes.Event[transition.ValidatorUpdates]],
+	validatorUpdateBroker *broker.Broker[*asynctypes.Event[ValidatorUpdates]],
 	optimisticPayloadBuilds bool,
 ) *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,

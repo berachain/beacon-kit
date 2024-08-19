@@ -62,8 +62,11 @@ func (s *Service[
 	blk BeaconBlockT,
 	lph ExecutionPayloadHeaderT,
 ) {
+	var err error
 	stCopy := st.Copy()
-	if _, err := s.stateProcessor.ProcessSlots(stCopy, blk.GetSlot()+1); err != nil {
+	if _, err = s.stateProcessor.ProcessSlots(
+		stCopy, blk.GetSlot()+1,
+	); err != nil {
 		s.logger.Error(
 			"failed to process slots in non-optimistic payload",
 			"error", err,
@@ -72,7 +75,7 @@ func (s *Service[
 	}
 
 	prevBlockRoot := blk.HashTreeRoot()
-	if _, err := s.localBuilder.RequestPayloadAsync(
+	if _, err = s.localBuilder.RequestPayloadAsync(
 		ctx,
 		stCopy,
 		blk.GetSlot()+1,
