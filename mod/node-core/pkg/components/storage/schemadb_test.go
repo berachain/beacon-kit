@@ -18,11 +18,45 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func drawTree(n *sszdb.Node, w io.Writer) {
-	n.CachedHash()
+func debugDrawDBTree(
+	t *testing.T,
+	ctx context.Context,
+	db *sszdb.Backend,
+	filePath string,
+) {
+	t.Helper()
+	f, err := os.Create(filePath)
+	require.NoError(t, err)
+	require.NoError(t, db.DrawTree(ctx, f))
+}
+
+func debugDrawTree(
+	t *testing.T,
+	treeable interface {
+		sszdb.Treeable
+		HashTreeRoot() common.Root
+	},
+	filePath string,
+) {
+	t.Helper()
+	f, err := os.Create(filePath)
+	require.NoError(t, err)
+	rootNode, err := sszdb.NewTreeFromFastSSZ(treeable)
+	require.NoError(t, err)
+
+	rootNode.CachedHash()
+	// consider hashing implementation correct
+	h := treeable.HashTreeRoot()
+	require.Truef(t, bytes.Equal(h[:], rootNode.Value),
+		"debugDrawTree: expected %x, got %x", h, rootNode.Value)
 	g := dot.NewGraph(dot.Directed)
-	drawNode(n, 1, g)
-	g.Write(w)
+	drawNode(rootNode, 1, g)
+	g.Write(f)
+
+	require.NoError(t, f.Close())
+}
+
+func drawTree(n *sszdb.Node, w io.Writer) {
 }
 
 func drawNode(n *sszdb.Node, levelOrder int, g *dot.Graph) dot.Node {
@@ -84,12 +118,7 @@ func TestTree_Basics(t *testing.T) {
 	beaconState, err := testBeaconState(t)
 	require.NoError(t, err)
 
-	f, err := os.Create("testdata/beacon_state.dot")
-	require.NoError(t, err)
-	defer f.Close()
-	rootNode, err := sszdb.NewTreeFromFastSSZ(beaconState)
-	require.NoError(t, err)
-	drawTree(rootNode, f)
+	debugDrawTree(t, beaconState, "testdata/beacon_state_start.dot")
 
 	dir := t.TempDir() + "/sszdb.db"
 	db, err := sszdb.NewBackend(sszdb.BackendConfig{Path: dir})
@@ -205,12 +234,7 @@ func Test_SchemaDB(t *testing.T) {
 	err = db.Commit(ctx)
 	require.NoError(t, err)
 
-	dot1, err := os.Create("testdata/beacon_state.dot")
-	require.NoError(t, err)
-	defer dot1.Close()
-	rootNode, err := sszdb.NewTreeFromFastSSZ(beacon)
-	require.NoError(t, err)
-	drawTree(rootNode, dot1)
+	debugDrawTree(t, beacon, "testdata/beacon_state_test_start.dot")
 
 	beaconDB, err := sszdb.NewSchemaDB(db, beacon)
 	require.NoError(t, err)
@@ -283,18 +307,38 @@ func Test_SchemaDB(t *testing.T) {
 	require.True(t, bytes.Equal(hash[:], hashSSZ))
 
 	beacon.BlockRoots = append(beacon.BlockRoots, common.Root{7, 7, 7, 7})
-	beacon.BlockRoots = append(beacon.BlockRoots, common.Root{0})
-	beacon.BlockRoots = append(beacon.BlockRoots, common.Root{0})
 	hash = beacon.HashTreeRoot()
 	require.False(t, bytes.Equal(hash[:], hashSSZ))
 	require.NoError(t, beaconDB.SetBlockRoots(ctx, beacon.BlockRoots))
 	require.NoError(t, db.Commit(ctx))
 	hashSSZ, err = beaconDB.Get(1, 0)
 	require.NoError(t, err)
-	dotSSZ, err := os.Create("testdata/beacon_state_ssz.dot")
-	require.NoError(t, err)
-	require.NoError(t, beaconDB.DrawTree(ctx, dotSSZ))
 	require.True(t, bytes.Equal(hash[:], hashSSZ))
+
+	debugDrawDBTree(t, ctx, db, "testdata/beacon_state_test_0.dot")
+
+	// now try an append
+	beacon.BlockRoots = append(beacon.BlockRoots, common.Root{8, 8, 8, 8})
+	hash = beacon.HashTreeRoot()
+	require.False(t, bytes.Equal(hash[:], hashSSZ))
+	err = beaconDB.SetBlockRootAtIndex(
+		ctx,
+		uint64(len(beacon.BlockRoots)-1),
+		common.Root{8, 8, 8, 8},
+	)
+	require.NoError(t, err)
+	require.NoError(t, db.Commit(ctx))
+	hashSSZ, err = beaconDB.Get(1, 0)
+	require.NoError(t, err)
+	debugDrawDBTree(t, ctx, db, "testdata/beacon_state_test_1.dot")
+	debugDrawTree(t, beacon, "testdata/beacon_state_test_2.dot")
+	require.Truef(
+		t,
+		bytes.Equal(hash[:], hashSSZ),
+		"expected %x, got %x",
+		hash,
+		hashSSZ,
+	)
 }
 
 func Test_EmptyDB(t *testing.T) {
