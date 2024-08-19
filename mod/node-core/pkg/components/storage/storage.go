@@ -35,11 +35,11 @@ type Backend[
 	DepositStoreT any,
 	KVStoreT KVStore[KVStoreT],
 ] struct {
-	cs  common.ChainSpec
-	as  AvailabilityStoreT
-	kvs KVStoreT
-	ds  DepositStoreT
-	bs  BlockStoreT
+	chainSpec         common.ChainSpec
+	availabilityStore AvailabilityStoreT
+	kvStore           KVStoreT
+	depositStore      DepositStoreT
+	blockStore        BlockStoreT
 }
 
 func NewBackend[
@@ -49,22 +49,22 @@ func NewBackend[
 	DepositStoreT any,
 	KVStoreT KVStore[KVStoreT],
 ](
-	cs common.ChainSpec,
-	as AvailabilityStoreT,
-	kvs KVStoreT,
-	ds DepositStoreT,
-	bs BlockStoreT,
+	chainSpec common.ChainSpec,
+	availabilityStore AvailabilityStoreT,
+	kvStore KVStoreT,
+	depositStore DepositStoreT,
+	blockStore BlockStoreT,
 ) *Backend[
 	AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT, KVStoreT,
 ] {
 	return &Backend[
 		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT, KVStoreT,
 	]{
-		cs:  cs,
-		as:  as,
-		kvs: kvs,
-		ds:  ds,
-		bs:  bs,
+		chainSpec:         chainSpec,
+		availabilityStore: availabilityStore,
+		kvStore:           kvStore,
+		depositStore:      depositStore,
+		blockStore:        blockStore,
 	}
 }
 
@@ -73,7 +73,7 @@ func NewBackend[
 func (k Backend[
 	AvailabilityStoreT, _, _, _, _,
 ]) AvailabilityStore() AvailabilityStoreT {
-	return k.as
+	return k.availabilityStore
 }
 
 // BeaconState returns the beacon state struct initialized with a given
@@ -84,25 +84,25 @@ func (k Backend[
 	ctx context.Context,
 ) BeaconStateT {
 	var st BeaconStateT
-	return st.NewFromDB(k.kvs.WithContext(ctx), k.cs)
+	return st.NewFromDB(k.kvStore.WithContext(ctx), k.chainSpec)
 }
 
 // BeaconStore returns the beacon store struct.
 func (k Backend[
 	_, _, _, _, KVStoreT,
 ]) BeaconStore() KVStoreT {
-	return k.kvs
+	return k.kvStore
 }
 
 func (k Backend[
 	_, _, BlockStoreT, _, _,
 ]) BlockStore() BlockStoreT {
-	return k.bs
+	return k.blockStore
 }
 
 // DepositStore returns the deposit store struct initialized with a.
 func (k Backend[
 	_, _, _, DepositStoreT, _,
 ]) DepositStore() DepositStoreT {
-	return k.ds
+	return k.depositStore
 }
