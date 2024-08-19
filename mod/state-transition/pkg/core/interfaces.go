@@ -32,7 +32,7 @@ import (
 // is a combination of the read-only and write-only beacon state types.
 type BeaconState[
 	T any,
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconBlockHeaderT any,
 	Eth1DataT,
 	ExecutionPayloadHeaderT,
 	ForkT,
@@ -60,8 +60,7 @@ type BeaconState[
 
 // ReadOnlyBeaconState is the interface for a read-only beacon state.
 type ReadOnlyBeaconState[
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-	Eth1DataT, ExecutionPayloadHeaderT, ForkT,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT, ForkT,
 	ValidatorT, ValidatorsT, WithdrawalT any,
 ] interface {
 	ReadOnlyEth1Data[Eth1DataT, ExecutionPayloadHeaderT]
