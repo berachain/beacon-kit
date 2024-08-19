@@ -23,7 +23,6 @@ package cometbft
 import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
-	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cobra"
 )
@@ -40,13 +39,13 @@ func Commands[T types.Node](
 	}
 
 	cometCmd.AddCommand(
-		server.ShowNodeIDCmd(),
-		server.ShowValidatorCmd(),
-		server.ShowAddressCmd(),
-		server.VersionCmd(),
+		ShowNodeIDCmd(),
+		ShowValidatorCmd(),
+		ShowAddressCmd(),
+		VersionCmd(),
 		cmtcmd.ResetAllCmd,
 		cmtcmd.ResetStateCmd,
-		server.BootstrapStateCmd(appCreator),
+		// BootstrapStateCmd(appCreator),
 	)
 
 	return cometCmd
