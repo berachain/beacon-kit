@@ -94,11 +94,6 @@ type KVStore[
 	// Randomness
 	// randaoMix stores the randao mix for the current epoch.
 	randaoMix sdkcollections.Map[uint64, []byte]
-	// Slashings
-	// slashings stores the slashings for the current epoch.
-	slashings sdkcollections.Map[uint64, uint64]
-	// totalSlashing stores the total slashing in the vector range.
-	totalSlashing sdkcollections.Item[uint64]
 }
 
 // New creates a new instance of Store.
@@ -219,13 +214,6 @@ func New[
 			sdkcollections.Uint64Key,
 			sdkcollections.BytesValue,
 		),
-		slashings: sdkcollections.NewMap(
-			schemaBuilder,
-			sdkcollections.NewPrefix([]byte{keys.SlashingsPrefix}),
-			keys.SlashingsPrefixHumanReadable,
-			sdkcollections.Uint64Key,
-			sdkcollections.Uint64Value,
-		),
 		nextWithdrawalIndex: sdkcollections.NewItem(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.NextWithdrawalIndexPrefix}),
@@ -238,12 +226,6 @@ func New[
 				[]byte{keys.NextWithdrawalValidatorIndexPrefix},
 			),
 			keys.NextWithdrawalValidatorIndexPrefixHumanReadable,
-			sdkcollections.Uint64Value,
-		),
-		totalSlashing: sdkcollections.NewItem(
-			schemaBuilder,
-			sdkcollections.NewPrefix([]byte{keys.TotalSlashingPrefix}),
-			keys.TotalSlashingPrefixHumanReadable,
 			sdkcollections.Uint64Value,
 		),
 		latestBlockHeader: sdkcollections.NewItem(
