@@ -146,9 +146,6 @@ type ExecutionPayloadHeader interface {
 	GetParentHash() common.ExecutionHash
 }
 
-// EventSubscription represents the event subscription interface.
-type EventSubscription[T any] chan T
-
 // EventPublisher represents the event publisher interface.
 type EventPublisher[T any] interface {
 	// PublishEvent publishes an event.
