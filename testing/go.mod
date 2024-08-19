@@ -1,6 +1,6 @@
 module github.com/berachain/beacon-kit/testing
 
-go 1.22.5
+go 1.23.0
 
 replace (
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
@@ -225,7 +225,7 @@ require (
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/crypto v0.26.0 // indirect
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
-	golang.org/x/net v0.27.0 // indirect
+	golang.org/x/net v0.28.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/sys v0.23.0 // indirect
 	golang.org/x/term v0.23.0 // indirect

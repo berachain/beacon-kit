@@ -80,19 +80,21 @@ func buildSingleProofFromTree[RootT ~[32]byte](
 	//#nosec:G701 // len(tree) cannot be greater than max uint64.
 	treeLen := GeneralizedIndex(len(tree))
 	if pow.PrevPowerOfTwo(treeLen) != treeLen {
-		return nil, errors.Newf(
-			"invalid tree length (%d), must be power of 2", treeLen,
+		return nil, errors.Wrapf(
+			errors.New("invalid tree length"),
+			"tree length: %d, must be power of 2", treeLen,
 		)
 	}
 	if index >= treeLen {
-		return nil, errors.Newf(
-			"generalized index (%d) must be less than tree length (%d)",
-			index, treeLen,
+		return nil, errors.Wrapf(
+			errors.New("generalized index out of range"),
+			"index: %d, tree length: %d", index, treeLen,
 		)
 	}
 	if index < pow.PrevPowerOfTwo(treeLen-1) {
-		return nil, errors.Newf(
-			"generalized index (%d) must be of a leaf in the tree", index,
+		return nil, errors.Wrapf(
+			errors.New("generalized index not a leaf"),
+			"index: %d", index,
 		)
 	}
 

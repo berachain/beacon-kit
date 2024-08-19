@@ -175,7 +175,7 @@ func TestExtractIndex(t *testing.T) {
 			prefixedKey: []byte("abc/testKey"),
 			expectedIdx: 0,
 			expectedErr: errors.New(
-				"invalid index: strconv.ParseUint: parsing \"abc\": invalid syntax",
+				"strconv.ParseUint: parsing \"abc\": invalid syntax",
 			),
 		},
 	}

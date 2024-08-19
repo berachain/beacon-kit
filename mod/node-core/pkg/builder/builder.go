@@ -25,8 +25,9 @@ import (
 	"io"
 
 	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
+	sdklog "cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
@@ -43,15 +44,31 @@ import (
 // TODO: #Make nodebuilder build a node. Currently this is just a builder for
 // the AppCreator function, which is eventually called by cosmos to build a
 // node.
-type NodeBuilder[NodeT types.Node] struct {
+type NodeBuilder[
+	NodeT types.Node,
+	LoggerT interface {
+		log.AdvancedLogger[any, LoggerT]
+		log.Configurable[LoggerT, LoggerConfigT]
+	},
+	LoggerConfigT any,
+] struct {
 	node NodeT
 	// components is a list of components to provide.
 	components []any
 }
 
 // New returns a new NodeBuilder.
-func New[NodeT types.Node](opts ...Opt[NodeT]) *NodeBuilder[NodeT] {
-	nb := &NodeBuilder[NodeT]{
+func New[
+	NodeT types.Node,
+	LoggerT interface {
+		log.AdvancedLogger[any, LoggerT]
+		log.Configurable[LoggerT, LoggerConfigT]
+	},
+	LoggerConfigT any,
+](
+	opts ...Opt[NodeT, LoggerT, LoggerConfigT],
+) *NodeBuilder[NodeT, LoggerT, LoggerConfigT] {
+	nb := &NodeBuilder[NodeT, LoggerT, LoggerConfigT]{
 		node: node.New[NodeT](),
 	}
 	for _, opt := range opts {
@@ -63,8 +80,8 @@ func New[NodeT types.Node](opts ...Opt[NodeT]) *NodeBuilder[NodeT] {
 // Build uses the node builder options and runtime parameters to
 // build a new instance of the node.
 // It is necessary to adhere to the types.AppCreator[T] interface.
-func (nb *NodeBuilder[NodeT]) Build(
-	logger log.Logger,
+func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
+	logger sdklog.Logger,
 	db dbm.DB,
 	traceStore io.Writer,
 	appOpts servertypes.AppOptions,
@@ -94,11 +111,12 @@ func (nb *NodeBuilder[NodeT]) Build(
 			),
 			depinject.Supply(
 				appOpts,
-				logger,
+				logger.Impl().(LoggerT),
 			),
-			depinject.Invoke(
-				SetLoggerConfig,
-			),
+			// TODO: cosmos depinject bad project, fixed with dig.
+			// depinject.Invoke(
+			// 	SetLoggerConfig[LoggerT, LoggerConfigT],
+			// ),
 		),
 		&storeKeyDblPtr,
 		&chainSpec,

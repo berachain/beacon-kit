@@ -155,6 +155,11 @@ func (app *BaseApp) Name() string {
 	return app.name
 }
 
+// CommitMultiStore returns the CommitMultiStore of the BaseApp.
+func (app *BaseApp) CommitMultiStore() storetypes.CommitMultiStore {
+	return app.cms
+}
+
 // AppVersion returns the application's protocol version.
 func (app *BaseApp) AppVersion(ctx context.Context) (uint64, error) {
 	cp, err := app.paramStore.Get(ctx)
@@ -165,27 +170,6 @@ func (app *BaseApp) AppVersion(ctx context.Context) (uint64, error) {
 		return 0, nil
 	}
 	return cp.Version.App, nil
-}
-
-// MountStores mounts all IAVL or DB stores to the provided keys in the BaseApp
-// multistore.
-func (app *BaseApp) MountStores(keys ...storetypes.StoreKey) {
-	for _, key := range keys {
-		switch key.(type) {
-		case *storetypes.KVStoreKey:
-			app.MountStore(key, storetypes.StoreTypeIAVL)
-		default:
-			panic(fmt.Sprintf("Unrecognized store key type :%T", key))
-		}
-	}
-}
-
-// MountKVStores mounts all IAVL or DB stores to the provided keys in the
-// BaseApp multistore.
-func (app *BaseApp) MountKVStores(keys map[string]*storetypes.KVStoreKey) {
-	for _, key := range keys {
-		app.MountStore(key, storetypes.StoreTypeIAVL)
-	}
 }
 
 // MountStore mounts a store to the provided key in the BaseApp multistore,
@@ -200,19 +184,12 @@ func (app *BaseApp) MountStore(
 // LoadLatestVersion loads the latest application version. It will panic if
 // called more than once on a running BaseApp.
 func (app *BaseApp) LoadLatestVersion() error {
-	err := app.cms.LoadLatestVersion()
-	if err != nil {
+	if err := app.cms.LoadLatestVersion(); err != nil {
 		return fmt.Errorf("failed to load latest version: %w", err)
 	}
 
-	return app.Init()
-}
-
-// CommitMultiStore returns the root multi-store.
-// App constructor can use this to access the `cms`.
-// UNSAFE: must not be used during the abci life cycle.
-func (app *BaseApp) CommitMultiStore() storetypes.CommitMultiStore {
-	return app.cms
+	// Validator pruning settings.
+	return app.cms.GetPruning().Validate()
 }
 
 // LoadVersion loads the BaseApp application version. It will panic if called
@@ -226,7 +203,8 @@ func (app *BaseApp) LoadVersion(version int64) error {
 		return fmt.Errorf("failed to load version %d: %w", version, err)
 	}
 
-	return app.Init()
+	// Validate Pruning settings.
+	return app.cms.GetPruning().Validate()
 }
 
 // LastCommitID returns the last CommitID of the multistore.
@@ -237,18 +215,6 @@ func (app *BaseApp) LastCommitID() storetypes.CommitID {
 // LastBlockHeight returns the last committed block height.
 func (app *BaseApp) LastBlockHeight() int64 {
 	return app.cms.LastCommitID().Version
-}
-
-// Init initializes the app. It seals the app, preventing any
-// further modifications. In addition, it validates the app against
-// the earlier provided settings. Returns an error if validation fails.
-// nil otherwise. Panics if the app is already sealed.
-func (app *BaseApp) Init() error {
-	if app.cms == nil {
-		return errors.New("commit multi-store must not be nil")
-	}
-
-	return app.cms.GetPruning().Validate()
 }
 
 func (app *BaseApp) setMinRetainBlocks(minRetainBlocks uint64) {

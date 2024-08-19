@@ -171,3 +171,123 @@ func TestSecretRoundTripEncoding(t *testing.T) {
 		"Round trip encoding failed",
 	)
 }
+
+func TestBuildSignedToken(t *testing.T) {
+	secret, err := jwt.NewRandom()
+	require.NoError(t, err, "NewRandom() error")
+
+	token, err := secret.BuildSignedToken()
+	require.NoError(t, err, "BuildSignedToken() error")
+	require.NotEmpty(t, token, "BuildSignedToken() returned empty token")
+
+	// Verify the token structure (header.payload.signature)
+	parts := strings.Split(token, ".")
+	require.Len(t, parts, 3, "Token should have three parts")
+}
+
+func TestNewFromHexEdgeCases(t *testing.T) {
+	tests := []struct {
+		name    string
+		hexStr  string
+		wantErr bool
+	}{
+		{
+			name:    "lowercase hex string",
+			hexStr:  "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+			wantErr: false,
+		},
+		{
+			name:    "uppercase hex string",
+			hexStr:  "0xABCDEF1234567890ABCDEF1234567890ABCDEF1234567890ABCDEF1234567890",
+			wantErr: false,
+		},
+		{
+			name:    "mixed case hex string",
+			hexStr:  "0xaBcDeF1234567890aBcDeF1234567890aBcDeF1234567890aBcDeF1234567890",
+			wantErr: false,
+		},
+		{
+			name:    "invalid characters",
+			hexStr:  "0x123G567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+			wantErr: true,
+		},
+		{
+			name:    "too short",
+			hexStr:  "0x1234567890abcdef",
+			wantErr: true,
+		},
+		{
+			name:    "too long",
+			hexStr:  "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef00",
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := jwt.NewFromHex(tt.hexStr)
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestHexRegexp(t *testing.T) {
+	validHexStrings := []string{
+		"0x1234567890abcdef",
+		"1234567890ABCDEF",
+		"0xABCDEF1234567890",
+		"abcdef1234567890",
+	}
+
+	invalidHexStrings := []string{
+		"0x123G567890abcdef",
+		"GHIJKLMNOPQRSTUV",
+		"0xABCDEF12345678@0",
+		"abcdef123456789g",
+	}
+
+	for _, validHex := range validHexStrings {
+		require.True(
+			t,
+			jwt.HexRegexp.MatchString(validHex),
+			"Valid hex string not matched: %s",
+			validHex,
+		)
+	}
+
+	for _, invalidHex := range invalidHexStrings {
+		require.False(
+			t,
+			jwt.HexRegexp.MatchString(invalidHex),
+			"Invalid hex string matched: %s",
+			invalidHex,
+		)
+	}
+}
+
+func TestSecretComparison(t *testing.T) {
+	secret1, err := jwt.NewRandom()
+	require.NoError(t, err, "NewRandom() error for secret1")
+
+	secret2, err := jwt.NewRandom()
+	require.NoError(t, err, "NewRandom() error for secret2")
+
+	require.NotEqual(
+		t,
+		secret1,
+		secret2,
+		"Two random secrets should not be equal",
+	)
+
+	secret3 := *secret1
+	require.Equal(
+		t,
+		secret1,
+		&secret3,
+		"Copied secret should be equal to original",
+	)
+}

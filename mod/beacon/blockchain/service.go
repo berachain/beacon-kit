@@ -24,6 +24,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -34,7 +35,7 @@ import (
 // Service is the blockchain service.
 type Service[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT],
-	BeaconBlockT BeaconBlock[BeaconBlockBodyT, ExecutionPayloadT],
+	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
 	BeaconBlockHeaderT BeaconBlockHeader,
 	BeaconStateT ReadOnlyBeaconState[
@@ -49,7 +50,6 @@ type Service[
 		Version() uint32
 		GetSuggestedFeeRecipient() common.ExecutionAddress
 	},
-	WithdrawalT any,
 ] struct {
 	// sb represents the backend storage for beacon states and associated
 	// sidecars.
@@ -63,7 +63,6 @@ type Service[
 	// cs holds the chain specifications.
 	cs common.ChainSpec
 	// ee is the execution engine responsible for processing execution payloads.
-
 	ee ExecutionEngine[PayloadAttributesT]
 	// lb is a local builder for constructing new beacon states.
 	lb LocalBuilder[BeaconStateT]
@@ -78,11 +77,12 @@ type Service[
 	// metrics is the metrics for the service.
 	metrics *chainMetrics
 	// genesisBroker is the event feed for genesis data.
-	genesisBroker EventFeed[*asynctypes.Event[GenesisT]]
+	genesisBroker *broker.Broker[*asynctypes.Event[GenesisT]]
 	// blkBroker is the event feed for new blocks.
-	blkBroker EventFeed[*asynctypes.Event[BeaconBlockT]]
+	blkBroker *broker.Broker[*asynctypes.Event[BeaconBlockT]]
 	// validatorUpdateBroker is the event feed for validator updates.
-	validatorUpdateBroker EventFeed[*asynctypes.Event[transition.ValidatorUpdates]]
+	//nolint:lll // annoying formatter.
+	validatorUpdateBroker *broker.Broker[*asynctypes.Event[transition.ValidatorUpdates]]
 	// optimisticPayloadBuilds is a flag used when the optimistic payload
 	// builder is enabled.
 	optimisticPayloadBuilds bool
@@ -93,7 +93,7 @@ type Service[
 // NewService creates a new validator service.
 func NewService[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT],
-	BeaconBlockT BeaconBlock[BeaconBlockBodyT, ExecutionPayloadT],
+	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[ExecutionPayloadT],
 	BeaconBlockHeaderT BeaconBlockHeader,
 	BeaconStateT ReadOnlyBeaconState[
@@ -109,7 +109,6 @@ func NewService[
 		Version() uint32
 		GetSuggestedFeeRecipient() common.ExecutionAddress
 	},
-	WithdrawalT any,
 ](
 	sb StorageBackend[
 		AvailabilityStoreT,
@@ -128,20 +127,20 @@ func NewService[
 		ExecutionPayloadHeaderT,
 	],
 	ts TelemetrySink,
-	genesisBroker EventFeed[*asynctypes.Event[GenesisT]],
-	blkBroker EventFeed[*asynctypes.Event[BeaconBlockT]],
+	genesisBroker *broker.Broker[*asynctypes.Event[GenesisT]],
+	blkBroker *broker.Broker[*asynctypes.Event[BeaconBlockT]],
 	//nolint:lll // annoying formatter.
-	validatorUpdateBroker EventFeed[*asynctypes.Event[transition.ValidatorUpdates]],
+	validatorUpdateBroker *broker.Broker[*asynctypes.Event[transition.ValidatorUpdates]],
 	optimisticPayloadBuilds bool,
 ) *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-	GenesisT, PayloadAttributesT, WithdrawalT,
+	GenesisT, PayloadAttributesT,
 ] {
 	return &Service[
 		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 		BeaconStateT, DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
-		GenesisT, PayloadAttributesT, WithdrawalT,
+		GenesisT, PayloadAttributesT,
 	]{
 		sb:                      sb,
 		logger:                  logger,
@@ -160,13 +159,13 @@ func NewService[
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _,
 ]) Name() string {
 	return "blockchain"
 }
 
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
 	subBlkCh, err := s.blkBroker.Subscribe()
 	if err != nil {
@@ -181,7 +180,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, BeaconBlockT, _, _, _, _, _, _, GenesisT, _, _,
+	_, BeaconBlockT, _, _, _, _, _, _, GenesisT, _,
 ]) start(
 	ctx context.Context,
 	subBlkCh chan *asynctypes.Event[BeaconBlockT],
@@ -207,7 +206,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, _, _, _, _, _, _, _, GenesisT, _, _,
+	_, _, _, _, _, _, _, _, GenesisT, _,
 ]) handleProcessGenesisDataRequest(msg *asynctypes.Event[GenesisT]) {
 	if msg.Error() != nil {
 		s.logger.Error("Error processing genesis data", "error", msg.Error())
@@ -239,7 +238,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, BeaconBlockT, _, _, _, _, _, _, _, _, _,
+	_, BeaconBlockT, _, _, _, _, _, _, _, _,
 ]) handleBeaconBlockReceived(
 	msg *asynctypes.Event[BeaconBlockT],
 ) {
@@ -264,7 +263,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, BeaconBlockT, _, _, _, _, _, _, _, _, _,
+	_, BeaconBlockT, _, _, _, _, _, _, _, _,
 ]) handleBeaconBlockFinalization(
 	msg *asynctypes.Event[BeaconBlockT],
 ) {

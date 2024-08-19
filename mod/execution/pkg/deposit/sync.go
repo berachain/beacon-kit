@@ -33,7 +33,7 @@ const defaultRetryInterval = 20 * time.Second
 
 // depositFetcher processes a deposit event.
 func (s *Service[
-	_, _, _, _, _, _,
+	_, _, _, _, _,
 ]) depositFetcher(ctx context.Context) {
 	for {
 		select {
@@ -52,7 +52,7 @@ func (s *Service[
 // depositCatchupFetcher fetches deposits for blocks that failed to be
 // processed.
 func (s *Service[
-	_, _, _, _, _, _,
+	_, _, _, _, _,
 ]) depositCatchupFetcher(ctx context.Context) {
 	ticker := time.NewTicker(defaultRetryInterval)
 	defer ticker.Stop()
@@ -79,7 +79,7 @@ func (s *Service[
 }
 
 func (s *Service[
-	_, _, _, _, _, _,
+	_, _, _, _, _,
 ]) fetchAndStoreDeposits(ctx context.Context, blockNum math.U64) {
 	deposits, err := s.dc.ReadDeposits(ctx, blockNum)
 	if err != nil {

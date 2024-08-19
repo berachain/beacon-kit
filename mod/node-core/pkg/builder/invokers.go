@@ -21,21 +21,23 @@
 package builder
 
 import (
-	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
 )
 
 // SetLoggerConfig sets the logger configuration. It acts as an invoker
 // for the depinject framework.
-func SetLoggerConfig(
+func SetLoggerConfig[
+	LoggerT interface {
+		log.AdvancedLogger[any, LoggerT]
+		log.Configurable[LoggerT, LoggerConfigT]
+	},
+	LoggerConfigT any,
+](
 	config *config.Config,
-	logger log.ConfigurableLogger[
-		*phuslu.Logger[sdklog.Logger],
-		any,
-		phuslu.Config,
-	],
+	logger LoggerT,
 ) {
-	logger.WithConfig(*config.GetLogger())
+	logger.WithConfig(
+		any(config.GetLogger()).(LoggerConfigT),
+	)
 }
