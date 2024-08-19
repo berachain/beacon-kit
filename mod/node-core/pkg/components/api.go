@@ -92,10 +92,7 @@ func ProvideNodeAPIServer[
 ](in NodeAPIServerInput[LoggerT]) *NodeAPIServer {
 	in.Logger.AddKeyValColor("service", "node-api-server",
 		log.Blue)
-	return server.New[
-		NodeAPIContext,
-		*NodeAPIEngine,
-	](
+	return server.New[NodeAPIContext](
 		in.Config.NodeAPI,
 		in.Engine,
 		in.Logger.With("service", "node-api-server"),

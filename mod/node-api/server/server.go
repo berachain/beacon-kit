@@ -32,9 +32,8 @@ import (
 // Server is the API Server service.
 type Server[
 	ContextT apicontext.Context,
-	EngineT Engine[ContextT, EngineT],
 ] struct {
-	engine EngineT
+	engine Engine[ContextT]
 	config Config
 	logger log.Logger[any]
 }
@@ -44,13 +43,12 @@ type Server[
 // disabled.
 func New[
 	ContextT apicontext.Context,
-	EngineT Engine[ContextT, EngineT],
 ](
 	config Config,
-	engine EngineT,
+	engine Engine[ContextT],
 	logger log.Logger[any],
 	handlers ...handlers.Handlers[ContextT],
-) *Server[ContextT, EngineT] {
+) *Server[ContextT] {
 	apiLogger := logger
 	if !config.Logging {
 		apiLogger = noop.NewLogger[log.Logger[any]]()
@@ -59,7 +57,7 @@ func New[
 		handler.RegisterRoutes(apiLogger)
 		engine.RegisterRoutes(handler.RouteSet(), apiLogger)
 	}
-	return &Server[ContextT, EngineT]{
+	return &Server[ContextT]{
 		engine: engine,
 		config: config,
 		logger: logger,
@@ -67,7 +65,7 @@ func New[
 }
 
 // Start starts the API Server at the configured address.
-func (s *Server[_, _]) Start(ctx context.Context) error {
+func (s *Server[_]) Start(ctx context.Context) error {
 	if !s.config.Enabled {
 		return nil
 	}
@@ -75,7 +73,7 @@ func (s *Server[_, _]) Start(ctx context.Context) error {
 	return nil
 }
 
-func (s *Server[_, _]) start(ctx context.Context) {
+func (s *Server[_]) start(ctx context.Context) {
 	errCh := make(chan error)
 	go func() {
 		errCh <- s.engine.Run(s.config.Address)
@@ -91,6 +89,6 @@ func (s *Server[_, _]) start(ctx context.Context) {
 }
 
 // Name returns the name of the API server service.
-func (s *Server[_, _]) Name() string {
+func (s *Server[_]) Name() string {
 	return "node-api-server"
 }
