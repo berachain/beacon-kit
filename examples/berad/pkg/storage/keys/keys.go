@@ -23,8 +23,6 @@ package keys
 const (
 	WithdrawalQueuePrefix byte = iota
 	RandaoMixPrefix
-	SlashingsPrefix
-	TotalSlashingPrefix
 	ValidatorIndexPrefix
 	BlockRootsPrefix
 	StateRootsPrefix
@@ -49,8 +47,6 @@ const (
 const (
 	WithdrawalQueuePrefixHumanReadable                  = "WithdrawalQueuePrefix"
 	RandaoMixPrefixHumanReadable                        = "RandaoMixPrefix"
-	SlashingsPrefixHumanReadable                        = "SlashingsPrefix"
-	TotalSlashingPrefixHumanReadable                    = "TotalSlashingPrefix"
 	ValidatorIndexPrefixHumanReadable                   = "ValidatorIndexPrefix"
 	BlockRootsPrefixHumanReadable                       = "BlockRootsPrefix"
 	StateRootsPrefixHumanReadable                       = "StateRootsPrefix"
