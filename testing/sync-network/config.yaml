@@ -19,4 +19,39 @@
 # TITLE.
 
 network:
-  chain_id: 80084
+  genesis_path: "./network/eth-genesis.json"
+nodes:
+  - el_type: geth
+    kzg_impl: crate-crypto/go-kzg-4844  
+node_settings:
+  consensus_settings:
+    specs:
+      min_cpu: 0
+      max_cpu: 2000
+      min_memory: 0
+      max_memory: 2048
+    images:
+      beaconkit: beacond:kurtosis-local
+    config:
+      timeout_propose: 3s
+      timeout_prevote: 1s
+      timeout_precommit: 1s
+      timeout_commit: 2s
+      max_num_inbound_peers: 40
+      max_num_outbound_peers: 10
+    app:
+      payload_timeout: 2.5s
+      enable_optimistic_payload_builds: true
+  execution_settings:
+    specs:
+      min_cpu: 0
+      max_cpu: 2000
+      min_memory: 0
+      max_memory: 2048
+    images:
+      besu: hyperledger/besu:24.5.4
+      erigon: thorax/erigon:v2.60.1
+      ethereumjs: ethpandaops/ethereumjs:stable
+      geth: ethereum/client-go:latest
+      nethermind: nethermind/nethermind:latest
+      reth: ghcr.io/paradigmxyz/reth:latest
