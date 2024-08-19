@@ -26,7 +26,7 @@ import (
 
 // processSyncCommitteeUpdates processes the sync committee updates.
 func (sp *StateProcessor[
-	_, _, _, BeaconStateT, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) processSyncCommitteeUpdates(
 	st BeaconStateT,
 ) (transition.ValidatorUpdates, error) {
