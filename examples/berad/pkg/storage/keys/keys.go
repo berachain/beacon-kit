@@ -36,7 +36,6 @@ const (
 	SlotPrefix
 	BalancesPrefix
 	Eth1BlockHashPrefix
-	Eth1DataPrefix
 	Eth1DepositIndexPrefix
 	LatestExecutionPayloadHeaderPrefix
 	LatestExecutionPayloadVersionPrefix
@@ -63,7 +62,6 @@ const (
 	SlotPrefixHumanReadable                             = "SlotPrefix"
 	BalancesPrefixHumanReadable                         = "BalancesPrefix"
 	Eth1BlockHashPrefixHumanReadable                    = "Eth1BlockHashPrefix"
-	Eth1DataPrefixHumanReadable                         = "Eth1DataPrefix"
 	Eth1DepositIndexPrefixHumanReadable                 = "Eth1DepositIndexPrefix"
 	LatestExecutionPayloadHeaderPrefixHumanReadable     = "LatestExecutionPayloadHeaderPrefix"
 	LatestExecutionPayloadVersionPrefixHumanReadable    = "LatestExecutionPayloadVersionPrefix"
