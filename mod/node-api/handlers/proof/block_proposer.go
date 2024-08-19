@@ -29,7 +29,7 @@ import (
 // GetBlockProposer returns the block proposer pubkey for the given block id
 // along with a merkle proof that can be verified against the beacon block root.
 func (h *Handler[
-	ContextT, BeaconBlockHeaderT, _, _, _, _,
+	BeaconBlockHeaderT, _, _, ContextT, _, _,
 ]) GetBlockProposer(c ContextT) (any, error) {
 	params, err := utils.BindAndValidate[types.BlockProposerRequest](
 		c, h.Logger(),
