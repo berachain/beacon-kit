@@ -25,6 +25,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
 // BeaconBlock is an interface for accessing the beacon block.
