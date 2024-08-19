@@ -32,20 +32,51 @@ import (
 	proofapi "github.com/berachain/beacon-kit/mod/node-api/handlers/proof"
 )
 
-type NodeAPIHandlersInput struct {
+type NodeAPIHandlersInput[
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconStateT BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
+		*Eth1Data, *ExecutionPayloadHeader, *Fork, KVStoreT,
+		*Validator, Validators, *Withdrawal,
+	],
+	BeaconStateMarshallableT BeaconStateMarshallable[
+		BeaconStateMarshallableT, BeaconBlockHeaderT, *Eth1Data,
+		*ExecutionPayloadHeader, *Fork, *Validator,
+	],
+	KVStoreT any,
+] struct {
 	depinject.In
-
-	BeaconAPIHandler  *BeaconAPIHandler
+	BeaconAPIHandler *beaconapi.Handler[
+		BeaconBlockHeaderT, NodeAPIContext, *Fork, *Validator,
+	]
 	BuilderAPIHandler *BuilderAPIHandler
 	ConfigAPIHandler  *ConfigAPIHandler
 	DebugAPIHandler   *DebugAPIHandler
 	EventsAPIHandler  *EventsAPIHandler
 	NodeAPIHandler    *NodeAPIHandler
-	ProofAPIHandler   *ProofAPIHandler
+	ProofAPIHandler   *proofapi.Handler[
+		BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT,
+		NodeAPIContext, *ExecutionPayloadHeader, *Validator,
+	]
 }
 
-func ProvideNodeAPIHandlers(
-	in NodeAPIHandlersInput,
+func ProvideNodeAPIHandlers[
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconStateT BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
+		*Eth1Data, *ExecutionPayloadHeader, *Fork, KVStoreT,
+		*Validator, Validators, *Withdrawal,
+	],
+	BeaconStateMarshallableT BeaconStateMarshallable[
+		BeaconStateMarshallableT, BeaconBlockHeaderT, *Eth1Data,
+		*ExecutionPayloadHeader, *Fork, *Validator,
+	],
+	KVStoreT any,
+](
+	in NodeAPIHandlersInput[
+		BeaconBlockHeaderT, BeaconStateT,
+		BeaconStateMarshallableT, KVStoreT,
+	],
 ) []handlers.Handlers[NodeAPIContext] {
 	return []handlers.Handlers[NodeAPIContext]{
 		in.BeaconAPIHandler,
@@ -60,7 +91,17 @@ func ProvideNodeAPIHandlers(
 
 func ProvideNodeAPIBeaconHandler[
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-](b *NodeAPIBackend) *BeaconAPIHandler {
+	BeaconStateT any,
+	NodeT any,
+](b NodeAPIBackend[
+	BeaconBlockHeaderT,
+	BeaconStateT,
+	*Fork,
+	NodeT,
+	*Validator,
+]) *beaconapi.Handler[
+	BeaconBlockHeaderT, NodeAPIContext, *Fork, *Validator,
+] {
 	return beaconapi.NewHandler[
 		BeaconBlockHeaderT,
 		NodeAPIContext,
@@ -89,21 +130,50 @@ func ProvideNodeAPINodeHandler() *NodeAPIHandler {
 	return nodeapi.NewHandler[NodeAPIContext]()
 }
 
-func ProvideNodeAPIProofHandler(b *NodeAPIBackend) *ProofAPIHandler {
-	return proofapi.NewHandler[NodeAPIContext](b)
+func ProvideNodeAPIProofHandler[
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconStateT BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
+		*Eth1Data, *ExecutionPayloadHeader, *Fork, KVStoreT,
+		*Validator, Validators, *Withdrawal,
+	],
+	BeaconStateMarshallableT BeaconStateMarshallable[
+		BeaconStateMarshallableT, BeaconBlockHeaderT, *Eth1Data,
+		*ExecutionPayloadHeader, *Fork, *Validator,
+	],
+	KVStoreT any,
+	NodeT any,
+](b NodeAPIBackend[
+	BeaconBlockHeaderT,
+	BeaconStateT,
+	*Fork,
+	NodeT,
+	*Validator,
+]) *proofapi.Handler[
+	BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT,
+	NodeAPIContext, *ExecutionPayloadHeader, *Validator,
+] {
+	return proofapi.NewHandler[
+		BeaconBlockHeaderT,
+		BeaconStateT,
+		BeaconStateMarshallableT,
+		NodeAPIContext,
+		*ExecutionPayloadHeader,
+		*Validator,
+	](b)
 }
 
-func DefaultNodeAPIHandlers[
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-]() []any {
-	return []any{
-		ProvideNodeAPIHandlers,
-		ProvideNodeAPIBeaconHandler[BeaconBlockHeaderT],
-		ProvideNodeAPIBuilderHandler,
-		ProvideNodeAPIConfigHandler,
-		ProvideNodeAPIDebugHandler,
-		ProvideNodeAPIEventsHandler,
-		ProvideNodeAPINodeHandler,
-		ProvideNodeAPIProofHandler,
-	}
-}
+// func DefaultNodeAPIHandlers[
+// 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+// ]() []any {
+// 	return []any{
+// 		ProvideNodeAPIHandlers,
+// 		ProvideNodeAPIBeaconHandler[BeaconBlockHeaderT],
+// 		ProvideNodeAPIBuilderHandler,
+// 		ProvideNodeAPIConfigHandler,
+// 		ProvideNodeAPIDebugHandler,
+// 		ProvideNodeAPIEventsHandler,
+// 		ProvideNodeAPINodeHandler,
+// 		ProvideNodeAPIProofHandler,
+// 	}
+// }

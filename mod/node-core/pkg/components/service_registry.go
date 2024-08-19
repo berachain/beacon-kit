@@ -22,6 +22,8 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
@@ -29,11 +31,13 @@ import (
 
 // ServiceRegistryInput is the input for the service registry provider.
 type ServiceRegistryInput[
+	BeaconBlockT any,
+	BlobSidecarsT any,
 	LoggerT any,
 ] struct {
 	depinject.In
 	ABCIService           *ABCIMiddleware
-	BlockBroker           *BlockBroker
+	BlockBroker           *broker.Broker[*asynctypes.Event[BeaconBlockT]]
 	BlockStoreService     *BlockStoreService
 	ChainService          *ChainService
 	DAService             *DAService
@@ -42,9 +46,9 @@ type ServiceRegistryInput[
 	EngineClient          *EngineClient
 	GenesisBroker         *GenesisBroker
 	Logger                LoggerT
-	NodeAPIServer         *NodeAPIServer
+	NodeAPIServer         NodeAPIServer
 	ReportingService      *ReportingService
-	SidecarsBroker        *SidecarsBroker
+	SidecarsBroker        *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
 	SlotBroker            *SlotBroker
 	TelemetrySink         *metrics.TelemetrySink
 	ValidatorService      *ValidatorService

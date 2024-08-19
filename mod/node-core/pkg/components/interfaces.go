@@ -37,6 +37,9 @@ import (
 	"context"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -190,46 +193,38 @@ type (
 		GetTree() (*fastssz.Node, error)
 	}
 
-	// 	// BeaconStateMarshallable represents an interface for a beacon state
-	// 	// with generic types.
-	// 	BeaconStateMarshallable[
-	// 		T any,
-	// 		BeaconBlockHeaderT,
-	// 		Eth1DataT,
-	// 		ExecutionPayloadHeaderT,
-	// 		ForkT,
-	// 		ValidatorT any,
-	// 	] interface {
-	// 		constraints.SSZMarshallableRootable
-	// 		GetTree() (*fastssz.Node, error)
-	// 		// New returns a new instance of the BeaconStateMarshallable.
-	// 		New(
-	// 			forkVersion uint32,
-	// 			genesisValidatorsRoot common.Root,
-	// 			slot math.U64,
-	// 			fork ForkT,
-	// 			latestBlockHeader BeaconBlockHeaderT,
-	// 			blockRoots []common.Root,
-	// 			stateRoots []common.Root,
-	// 			eth1Data Eth1DataT,
-	// 			eth1DepositIndex uint64,
-	// 			latestExecutionPayloadHeader ExecutionPayloadHeaderT,
-	// 			validators []ValidatorT,
-	// 			balances []uint64,
-	// 			randaoMixes []common.Bytes32,
-	// 			nextWithdrawalIndex uint64,
-	// 			nextWithdrawalValidatorIndex math.U64,
-	// 			slashings []uint64, totalSlashing math.U64,
-	// 		) (T, error)
-	// 	}
-
-	// 	BlobFactory[BeaconBlockT any, BlobSidecarsT any] interface {
-	// 		// BuildSidecars builds sidecars for a given block and blobs bundle.
-	// 		BuildSidecars(
-	// 			blk BeaconBlockT,
-	// 			blobs engineprimitives.BlobsBundle,
-	// 		) (BlobSidecarsT, error)
-	// 	}
+	// BeaconStateMarshallable represents an interface for a beacon state
+	// with generic types.
+	BeaconStateMarshallable[
+		T any,
+		BeaconBlockHeaderT,
+		Eth1DataT,
+		ExecutionPayloadHeaderT,
+		ForkT,
+		ValidatorT any,
+	] interface {
+		constraints.SSZMarshallableRootable
+		GetTree() (*fastssz.Node, error)
+		// New returns a new instance of the BeaconStateMarshallable.
+		New(
+			forkVersion uint32,
+			genesisValidatorsRoot common.Root,
+			slot math.U64,
+			fork ForkT,
+			latestBlockHeader BeaconBlockHeaderT,
+			blockRoots []common.Root,
+			stateRoots []common.Root,
+			eth1Data Eth1DataT,
+			eth1DepositIndex uint64,
+			latestExecutionPayloadHeader ExecutionPayloadHeaderT,
+			validators []ValidatorT,
+			balances []uint64,
+			randaoMixes []common.Bytes32,
+			nextWithdrawalIndex uint64,
+			nextWithdrawalValidatorIndex math.U64,
+			slashings []uint64, totalSlashing math.U64,
+		) (T, error)
+	}
 
 	// BlobProcessor is the interface for the blobs processor.
 	BlobProcessor[
@@ -686,6 +681,14 @@ type (
 		) (transition.ValidatorUpdates, error)
 	}
 
+	SidecarFactory[BeaconBlockT any, BlobSidecarsT any] interface {
+		// BuildSidecars builds sidecars for a given block and blobs bundle.
+		BuildSidecars(
+			blk BeaconBlockT,
+			blobs engineprimitives.BlobsBundle,
+		) (BlobSidecarsT, error)
+	}
+
 	// StorageBackend defines an interface for accessing various storage
 	// components required by the beacon node.
 	StorageBackend[
@@ -1090,99 +1093,105 @@ type (
 // /*                                  NodeAPI                                   */
 // /* -------------------------------------------------------------------------- */
 
-// type (
-// 	NodeAPIContext interface {
-// 		Bind(any) error
-// 		Validate(any) error
-// 	}
-// 	// Engine is a generic interface for an API engine.
-// 	NodeAPIEngine[ContextT NodeAPIContext] interface {
-// 		Run(addr string) error
-// 		RegisterRoutes(*handlers.RouteSet[ContextT], log.Logger[any])
-// 	}
-// 	NodeAPIBackend[
-// 		BeaconStateT any,
-// 		BeaconBlockHeaderT any,
-// 		ForkT any,
-// 		NodeT nodetypes.Node,
-// 		ValidatorT any,
-// 	] interface {
-// 		AttachNode(node nodetypes.Node)
-// 		ChainSpec() common.ChainSpec
-// 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
-// 		GetSlotByStateRoot(root common.Root) (math.Slot, error)
-// 		GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
+type (
+	NodeAPIContext interface {
+		Bind(any) error
+		Validate(any) error
+	}
 
-// 		NodeAPIBeaconBackend[
-// 			BeaconStateT, BeaconBlockHeaderT, ForkT, ValidatorT,
-// 		]
-// 		NodeAPIProofBackend[
-// 			BeaconBlockHeaderT, BeaconStateT, ForkT, ValidatorT,
-// 		]
-// 	}
+	// Engine is a generic interface for an API engine.
+	NodeAPIEngine[ContextT NodeAPIContext] interface {
+		Run(addr string) error
+		RegisterRoutes(*handlers.RouteSet[ContextT], log.Logger[any])
+	}
 
-// 	// NodeAPIBackend is the interface for backend of the beacon API.
-// 	NodeAPIBeaconBackend[
-// 		BeaconStateT, BeaconBlockHeaderT, ForkT, ValidatorT any,
-// 	] interface {
-// 		GenesisBackend
-// 		BlockBackend[BeaconBlockHeaderT]
-// 		RandaoBackend
-// 		StateBackend[BeaconStateT, ForkT]
-// 		ValidatorBackend[ValidatorT]
-// 		HistoricalBackend[ForkT]
-// 		// GetSlotByBlockRoot retrieves the slot by a given root from the store.
-// 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
-// 		// GetSlotByStateRoot retrieves the slot by a given root from the store.
-// 		GetSlotByStateRoot(root common.Root) (math.Slot, error)
-// 	}
+	NodeAPIServer interface {
+		service.Basic
+	}
 
-// 	// NodeAPIProofBackend is the interface for backend of the proof API.
-// 	NodeAPIProofBackend[
-// 		BeaconBlockHeaderT, BeaconStateT, ForkT, ValidatorT any,
-// 	] interface {
-// 		BlockBackend[BeaconBlockHeaderT]
-// 		StateBackend[BeaconStateT, ForkT]
-// 		GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
-// 	}
+	NodeAPIBackend[
+		BeaconBlockHeaderT any,
+		BeaconStateT any,
+		ForkT any,
+		NodeT any,
+		ValidatorT any,
+	] interface {
+		AttachNode(node NodeT)
+		ChainSpec() common.ChainSpec
+		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
+		GetSlotByStateRoot(root common.Root) (math.Slot, error)
+		GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
 
-// 	GenesisBackend interface {
-// 		GenesisValidatorsRoot(slot math.Slot) (common.Root, error)
-// 	}
+		NodeAPIBeaconBackend[
+			BeaconStateT, BeaconBlockHeaderT, ForkT, ValidatorT,
+		]
+		NodeAPIProofBackend[
+			BeaconBlockHeaderT, BeaconStateT, ForkT, ValidatorT,
+		]
+	}
 
-// 	HistoricalBackend[ForkT any] interface {
-// 		StateRootAtSlot(slot math.Slot) (common.Root, error)
-// 		StateForkAtSlot(slot math.Slot) (ForkT, error)
-// 	}
+	// NodeAPIBackend is the interface for backend of the beacon API.
+	NodeAPIBeaconBackend[
+		BeaconStateT, BeaconBlockHeaderT, ForkT, ValidatorT any,
+	] interface {
+		GenesisBackend
+		BlockBackend[BeaconBlockHeaderT]
+		RandaoBackend
+		StateBackend[BeaconStateT, ForkT]
+		ValidatorBackend[ValidatorT]
+		HistoricalBackend[ForkT]
+		// GetSlotByBlockRoot retrieves the slot by a given root from the store.
+		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
+		// GetSlotByStateRoot retrieves the slot by a given root from the store.
+		GetSlotByStateRoot(root common.Root) (math.Slot, error)
+	}
 
-// 	RandaoBackend interface {
-// 		RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error)
-// 	}
+	// NodeAPIProofBackend is the interface for backend of the proof API.
+	NodeAPIProofBackend[
+		BeaconBlockHeaderT, BeaconStateT, ForkT, ValidatorT any,
+	] interface {
+		BlockBackend[BeaconBlockHeaderT]
+		StateBackend[BeaconStateT, ForkT]
+		GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
+	}
 
-// 	BlockBackend[BeaconBlockHeaderT any] interface {
-// 		BlockRootAtSlot(slot math.Slot) (common.Root, error)
-// 		BlockRewardsAtSlot(slot math.Slot) (*types.BlockRewardsData, error)
-// 		BlockHeaderAtSlot(slot math.Slot) (BeaconBlockHeaderT, error)
-// 	}
+	GenesisBackend interface {
+		GenesisValidatorsRoot(slot math.Slot) (common.Root, error)
+	}
 
-// 	StateBackend[BeaconStateT, ForkT any] interface {
-// 		StateRootAtSlot(slot math.Slot) (common.Root, error)
-// 		StateForkAtSlot(slot math.Slot) (ForkT, error)
-// 		StateFromSlotForProof(slot math.Slot) (BeaconStateT, math.Slot, error)
-// 	}
+	HistoricalBackend[ForkT any] interface {
+		StateRootAtSlot(slot math.Slot) (common.Root, error)
+		StateForkAtSlot(slot math.Slot) (ForkT, error)
+	}
 
-//	ValidatorBackend[ValidatorT any] interface {
-//		ValidatorByID(
-//			slot math.Slot, id string,
-//		) (*types.ValidatorData[ValidatorT], error)
-//		ValidatorsByIDs(
-//			slot math.Slot,
-//			ids []string,
-//			statuses []string,
-//		) ([]*types.ValidatorData[ValidatorT], error)
-//		ValidatorBalancesByIDs(
-//			slot math.Slot,
-//			ids []string,
-//		) ([]*types.ValidatorBalanceData, error)
-//	}
-// )
+	RandaoBackend interface {
+		RandaoAtEpoch(slot math.Slot, epoch math.Epoch) (common.Bytes32, error)
+	}
+
+	BlockBackend[BeaconBlockHeaderT any] interface {
+		BlockRootAtSlot(slot math.Slot) (common.Root, error)
+		BlockRewardsAtSlot(slot math.Slot) (*types.BlockRewardsData, error)
+		BlockHeaderAtSlot(slot math.Slot) (BeaconBlockHeaderT, error)
+	}
+
+	StateBackend[BeaconStateT, ForkT any] interface {
+		StateRootAtSlot(slot math.Slot) (common.Root, error)
+		StateForkAtSlot(slot math.Slot) (ForkT, error)
+		StateFromSlotForProof(slot math.Slot) (BeaconStateT, math.Slot, error)
+	}
+
+	ValidatorBackend[ValidatorT any] interface {
+		ValidatorByID(
+			slot math.Slot, id string,
+		) (*types.ValidatorData[ValidatorT], error)
+		ValidatorsByIDs(
+			slot math.Slot,
+			ids []string,
+			statuses []string,
+		) ([]*types.ValidatorData[ValidatorT], error)
+		ValidatorBalancesByIDs(
+			slot math.Slot,
+			ids []string,
+		) ([]*types.ValidatorBalanceData, error)
+	}
+)

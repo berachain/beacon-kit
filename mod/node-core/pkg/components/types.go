@@ -32,13 +32,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
-	"github.com/berachain/beacon-kit/mod/node-api/engines/echo"
 	builderapi "github.com/berachain/beacon-kit/mod/node-api/handlers/builder"
 	configapi "github.com/berachain/beacon-kit/mod/node-api/handlers/config"
 	debugapi "github.com/berachain/beacon-kit/mod/node-api/handlers/debug"
 	eventsapi "github.com/berachain/beacon-kit/mod/node-api/handlers/events"
 	nodeapi "github.com/berachain/beacon-kit/mod/node-api/handlers/node"
-	"github.com/berachain/beacon-kit/mod/node-api/server"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/services/version"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
@@ -142,14 +140,14 @@ type (
 	// 	*Withdrawal,
 	// ]
 
-	// NodeAPIEngine is a type alias for the node API engine.
-	NodeAPIEngine = echo.Engine
+	// // NodeAPIEngine is a type alias for the node API engine.
+	// NodeAPIEngine = echo.Engine
 
-	// NodeAPIServer is a type alias for the node API server.
-	NodeAPIServer = server.Server[
-		NodeAPIContext,
-		*NodeAPIEngine,
-	]
+	// // NodeAPIServer is a type alias for the node API server.
+	// NodeAPIServer = server.Server[
+	// 	NodeAPIContext,
+	// 	*NodeAPIEngine,
+	// ]
 
 	// ReportingService is a type alias for the reporting service.
 	ReportingService = version.ReportingService
@@ -334,8 +332,8 @@ type (
 	// 	WithdrawalCredentials,
 	// ]
 
-	// NodeAPIContext is a type alias for the node API context.
-	NodeAPIContext = echo.Context
+	// // NodeAPIContext is a type alias for the node API context.
+	// NodeAPIContext = echo.Context
 
 	// PayloadAttributes is a type alias for the payload attributes.
 	PayloadAttributes = engineprimitives.PayloadAttributes[*Withdrawal]
