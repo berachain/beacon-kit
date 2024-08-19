@@ -23,17 +23,15 @@ package deposit
 import (
 	"context"
 
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
 // Service represents the deposit service that processes deposit events.
 type Service[
-	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
+	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
-	BlockEventT BlockEvent[
-		DepositT, BeaconBlockBodyT, BeaconBlockT, ExecutionPayloadT,
-	],
 	DepositT Deposit[DepositT, WithdrawalCredentialsT],
 	ExecutionPayloadT ExecutionPayload,
 	WithdrawalCredentialsT any,
@@ -47,7 +45,7 @@ type Service[
 	// ds is the deposit store that stores deposits.
 	ds Store[DepositT]
 	// feed is the block feed that provides block events.
-	feed chan BlockEventT
+	feed chan *asynctypes.Event[BeaconBlockT]
 	// metrics is the metrics for the deposit service.
 	metrics *metrics
 	// failedBlocks is a map of blocks that failed to be processed to be
@@ -57,31 +55,25 @@ type Service[
 
 // NewService creates a new instance of the Service struct.
 func NewService[
+	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
-	BeaconBlockT BeaconBlock[DepositT, BeaconBlockBodyT, ExecutionPayloadT],
-	BlockEventT BlockEvent[
-		DepositT, BeaconBlockBodyT,
-		BeaconBlockT, ExecutionPayloadT,
-	],
-	DepositStoreT Store[DepositT],
+	DepositT Deposit[DepositT, WithdrawalCredentialsT],
 	ExecutionPayloadT ExecutionPayload,
 	WithdrawalCredentialsT any,
-	DepositT Deposit[DepositT, WithdrawalCredentialsT],
 ](
 	logger log.Logger[any],
 	eth1FollowDistance math.U64,
 	telemetrySink TelemetrySink,
 	ds Store[DepositT],
 	dc Contract[DepositT],
-	feed chan BlockEventT,
+	feed chan *asynctypes.Event[BeaconBlockT],
 ) *Service[
-	BeaconBlockT, BeaconBlockBodyT, BlockEventT, DepositT,
+	BeaconBlockT, BeaconBlockBodyT, DepositT,
 	ExecutionPayloadT, WithdrawalCredentialsT,
 ] {
 	return &Service[
-		BeaconBlockT, BeaconBlockBodyT, BlockEventT, DepositT,
-		ExecutionPayloadT,
-		WithdrawalCredentialsT,
+		BeaconBlockT, BeaconBlockBodyT, DepositT,
+		ExecutionPayloadT, WithdrawalCredentialsT,
 	]{
 		feed:               feed,
 		logger:             logger,
@@ -95,7 +87,7 @@ func NewService[
 
 // Start starts the service and begins processing block events.
 func (s *Service[
-	_, _, _, _, _, _,
+	_, _, _, _, _,
 ]) Start(ctx context.Context) error {
 	go s.depositFetcher(ctx)
 	go s.depositCatchupFetcher(ctx)
@@ -104,7 +96,7 @@ func (s *Service[
 
 // Name returns the name of the service.
 func (s *Service[
-	_, _, _, _, _, _,
+	_, _, _, _, _,
 ]) Name() string {
 	return "deposit-handler"
 }

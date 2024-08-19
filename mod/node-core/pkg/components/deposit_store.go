@@ -79,21 +79,15 @@ func ProvideDepositPruner[
 		return nil, err
 	}
 
-	return pruner.NewPruner[
-		*BeaconBlock,
-		*BlockEvent,
-		*DepositStore,
-	](
+	return pruner.NewPruner[*BeaconBlock, *DepositStore](
 		in.Logger.With("service", manager.DepositPrunerName),
 		in.DepositStore,
 		manager.DepositPrunerName,
 		subCh,
 		deposit.BuildPruneRangeFn[
-			*BeaconBlockBody,
 			*BeaconBlock,
-			*BlockEvent,
+			*BeaconBlockBody,
 			*Deposit,
-			*ExecutionPayload,
 			WithdrawalCredentials,
 		](in.ChainSpec),
 	), nil

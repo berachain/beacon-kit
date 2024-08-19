@@ -71,11 +71,8 @@ import (
 type (
 	// ABCIMiddleware is a type alias for the ABCIMiddleware.
 	ABCIMiddleware = middleware.ABCIMiddleware[
-		*AvailabilityStore,
 		*BeaconBlock,
 		*BlobSidecars,
-		*Deposit,
-		*ExecutionPayload,
 		*Genesis,
 		*SlotData,
 	]
@@ -166,7 +163,6 @@ type (
 		*ExecutionPayloadHeader,
 		*Genesis,
 		*PayloadAttributes,
-		*Withdrawal,
 	]
 
 	// ConsensusEngine is a type alias for the consensus engine.
@@ -192,10 +188,7 @@ type (
 	// DAService is a type alias for the DA service.
 	DAService = da.Service[
 		*AvailabilityStore,
-		*BeaconBlockBody,
 		*BlobSidecars,
-		*SidecarsBroker,
-		*ExecutionPayload,
 	]
 
 	// DBManager is a type alias for the database manager.
@@ -214,7 +207,6 @@ type (
 	DepositService = deposit.Service[
 		*BeaconBlock,
 		*BeaconBlockBody,
-		*BlockEvent,
 		*Deposit,
 		*ExecutionPayload,
 		WithdrawalCredentials,
@@ -338,6 +330,7 @@ type (
 	SidecarFactory = dablob.SidecarFactory[
 		*BeaconBlock,
 		*BeaconBlockBody,
+		*BeaconBlockHeader,
 	]
 
 	// SlashingInfo is a type alias for the slashing info.
