@@ -44,31 +44,28 @@ type Service[
 	ExecutionPayloadT ExecutionPayload,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
-	PayloadAttributesT interface {
-		IsNil() bool
-		Version() uint32
-		GetSuggestedFeeRecipient() common.ExecutionAddress
-	},
+	PayloadAttributesT PayloadAttributes,
 ] struct {
-	// sb represents the backend storage for beacon states and associated
-	// sidecars.
-	sb StorageBackend[
+	// storageBackend represents the backend storage for beacon states and
+	// associated sidecars.
+	storageBackend StorageBackend[
 		AvailabilityStoreT,
 		BeaconStateT,
 	]
 	// logger is used for logging messages in the service.
 	logger log.Logger[any]
-	// cs holds the chain specifications.
-	cs common.ChainSpec
+	// chainSpec holds the chain specifications.
+	chainSpec common.ChainSpec
 	// dispatcher is the dispatcher for the service.
 	dispatcher async.Dispatcher
-	// ee is the execution engine responsible for processing
+	// executionEngine is the execution engine responsible for processing
+	//
 	// execution payloads.
-	ee ExecutionEngine[PayloadAttributesT]
-	// lb is a local builder for constructing new beacon states.
-	lb LocalBuilder[BeaconStateT]
-	// sp is the state processor for beacon blocks and states.
-	sp StateProcessor[
+	executionEngine ExecutionEngine[PayloadAttributesT]
+	// localBuilder is a local builder for constructing new beacon states.
+	localBuilder LocalBuilder[BeaconStateT]
+	// stateProcessor is the state processor for beacon blocks and states.
+	stateProcessor StateProcessor[
 		BeaconBlockT,
 		BeaconStateT,
 		*transition.Context,
@@ -107,13 +104,9 @@ func NewService[
 	ExecutionPayloadT ExecutionPayload,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
-	PayloadAttributesT interface {
-		IsNil() bool
-		Version() uint32
-		GetSuggestedFeeRecipient() common.ExecutionAddress
-	},
+	PayloadAttributesT PayloadAttributes,
 ](
-	sb StorageBackend[
+	storageBackend StorageBackend[
 		AvailabilityStoreT,
 		BeaconStateT,
 	],
@@ -129,7 +122,7 @@ func NewService[
 		DepositT,
 		ExecutionPayloadHeaderT,
 	],
-	ts TelemetrySink,
+	telemetrySink TelemetrySink,
 	optimisticPayloadBuilds bool,
 ) *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
@@ -141,14 +134,14 @@ func NewService[
 		BeaconStateT, DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 		GenesisT, PayloadAttributesT,
 	]{
-		sb:                      sb,
+		storageBackend:          storageBackend,
 		logger:                  logger,
-		cs:                      chainSpec,
+		chainSpec:               chainSpec,
 		dispatcher:              dispatcher,
-		ee:                      executionEngine,
-		lb:                      localBuilder,
-		sp:                      stateProcessor,
-		metrics:                 newChainMetrics(ts),
+		executionEngine:         executionEngine,
+		localBuilder:            localBuilder,
+		stateProcessor:          stateProcessor,
+		metrics:                 newChainMetrics(telemetrySink),
 		optimisticPayloadBuilds: optimisticPayloadBuilds,
 		forceStartupSyncOnce:    new(sync.Once),
 		subFinalBlkReceived:     make(chan async1.Event[BeaconBlockT]),
