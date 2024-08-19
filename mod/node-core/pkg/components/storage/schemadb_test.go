@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
-	"io"
 	"os"
 	"testing"
 
@@ -54,9 +53,6 @@ func debugDrawTree(
 	g.Write(f)
 
 	require.NoError(t, f.Close())
-}
-
-func drawTree(n *sszdb.Node, w io.Writer) {
 }
 
 func drawNode(n *sszdb.Node, levelOrder int, g *dot.Graph) dot.Node {
