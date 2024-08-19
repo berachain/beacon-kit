@@ -34,15 +34,12 @@ import (
 // Service is responsible for building beacon blocks and sidecars.
 type Service[
 	AttestationDataT any,
-	BeaconBlockT BeaconBlock[
-		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, DepositT,
-		Eth1DataT, ExecutionPayloadT, SlashingInfoT,
-	],
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[
 		AttestationDataT, DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
 	],
 	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
-	BlobSidecarsT,
+	BlobSidecarsT any,
 	DepositT any,
 	DepositStoreT DepositStore[DepositT],
 	Eth1DataT Eth1Data[Eth1DataT],
@@ -61,14 +58,9 @@ type Service[
 	// signer is used to retrieve the public key of this node.
 	signer crypto.BLSSigner
 	// blobFactory is used to create blob sidecars for blocks.
-	blobFactory BlobFactory[
-		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
-		DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
-	]
-	// bsb is the beacon state backend.
-	bsb StorageBackend[
-		BeaconStateT, DepositT, DepositStoreT, ExecutionPayloadHeaderT,
-	]
+	blobFactory BlobFactory[BeaconBlockT, BlobSidecarsT]
+	// sb is the beacon state backend.
+	sb StorageBackend[BeaconStateT, DepositStoreT]
 	// dispatcher is the dispatcher.
 	dispatcher async.EventDispatcher
 	// stateProcessor is responsible for processing the state.
@@ -95,15 +87,12 @@ type Service[
 // NewService creates a new validator service.
 func NewService[
 	AttestationDataT any,
-	BeaconBlockT BeaconBlock[
-		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, DepositT,
-		Eth1DataT, ExecutionPayloadT, SlashingInfoT,
-	],
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT],
 	BeaconBlockBodyT BeaconBlockBody[
 		AttestationDataT, DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
 	],
 	BeaconStateT BeaconState[ExecutionPayloadHeaderT],
-	BlobSidecarsT,
+	BlobSidecarsT any,
 	DepositT any,
 	DepositStoreT DepositStore[DepositT],
 	Eth1DataT Eth1Data[Eth1DataT],
@@ -116,9 +105,7 @@ func NewService[
 	cfg *Config,
 	logger log.Logger[any],
 	chainSpec common.ChainSpec,
-	bsb StorageBackend[
-		BeaconStateT, DepositT, DepositStoreT, ExecutionPayloadHeaderT,
-	],
+	sb StorageBackend[BeaconStateT, DepositStoreT],
 	stateProcessor StateProcessor[
 		BeaconBlockT,
 		BeaconStateT,
@@ -126,10 +113,7 @@ func NewService[
 		ExecutionPayloadHeaderT,
 	],
 	signer crypto.BLSSigner,
-	blobFactory BlobFactory[
-		AttestationDataT, BeaconBlockT, BeaconBlockBodyT, BlobSidecarsT,
-		DepositT, Eth1DataT, ExecutionPayloadT, SlashingInfoT,
-	],
+	blobFactory BlobFactory[BeaconBlockT, BlobSidecarsT],
 	localPayloadBuilder PayloadBuilder[BeaconStateT, ExecutionPayloadT],
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT],
 	ts TelemetrySink,
@@ -147,7 +131,7 @@ func NewService[
 	]{
 		cfg:                   cfg,
 		logger:                logger,
-		bsb:                   bsb,
+		sb:                    sb,
 		chainSpec:             chainSpec,
 		signer:                signer,
 		stateProcessor:        stateProcessor,
