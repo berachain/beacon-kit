@@ -33,18 +33,14 @@ import (
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
 	"github.com/berachain/beacon-kit/mod/node-api/engines/echo"
-	beaconapi "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon"
 	builderapi "github.com/berachain/beacon-kit/mod/node-api/handlers/builder"
 	configapi "github.com/berachain/beacon-kit/mod/node-api/handlers/config"
 	debugapi "github.com/berachain/beacon-kit/mod/node-api/handlers/debug"
 	eventsapi "github.com/berachain/beacon-kit/mod/node-api/handlers/events"
 	nodeapi "github.com/berachain/beacon-kit/mod/node-api/handlers/node"
-	proofapi "github.com/berachain/beacon-kit/mod/node-api/handlers/proof"
 	"github.com/berachain/beacon-kit/mod/node-api/server"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/services/version"
-	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
-	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
@@ -65,12 +61,12 @@ type (
 	// 	*SlotData,
 	// ]
 
-	// AttributesFactory is a type alias for the attributes factory.
-	AttributesFactory = attributes.Factory[
-		*BeaconState,
-		*PayloadAttributes,
-		*Withdrawal,
-	]
+	// // AttributesFactory is a type alias for the attributes factory.
+	// AttributesFactory = attributes.Factory[
+	// 	*BeaconState,
+	// 	*PayloadAttributes,
+	// 	*Withdrawal,
+	// ]
 
 	// // ChainService is a type alias for the chain service.
 	// ChainService = blockchain.Service[
@@ -136,15 +132,15 @@ type (
 	// 	Validators,
 	// ]
 
-	// LocalBuilder is a type alias for the local builder.
-	LocalBuilder = payloadbuilder.PayloadBuilder[
-		*BeaconState,
-		*ExecutionPayload,
-		*ExecutionPayloadHeader,
-		*PayloadAttributes,
-		PayloadID,
-		*Withdrawal,
-	]
+	// // LocalBuilder is a type alias for the local builder.
+	// LocalBuilder = payloadbuilder.PayloadBuilder[
+	// 	*BeaconState,
+	// 	*ExecutionPayload,
+	// 	*ExecutionPayloadHeader,
+	// 	*PayloadAttributes,
+	// 	PayloadID,
+	// 	*Withdrawal,
+	// ]
 
 	// NodeAPIEngine is a type alias for the node API engine.
 	NodeAPIEngine = echo.Engine
@@ -425,10 +421,10 @@ type (
 /* -------------------------------------------------------------------------- */
 
 type (
-	// BeaconAPIHandler is a type alias for the beacon handler.
-	BeaconAPIHandler = beaconapi.Handler[
-		*BeaconBlockHeader, NodeAPIContext, *Fork, *Validator,
-	]
+	// // BeaconAPIHandler is a type alias for the beacon handler.
+	// BeaconAPIHandler = beaconapi.Handler[
+	// 	*BeaconBlockHeader, NodeAPIContext, *Fork, *Validator,
+	// ]
 
 	// BuilderAPIHandler is a type alias for the builder handler.
 	BuilderAPIHandler = builderapi.Handler[NodeAPIContext]
@@ -445,9 +441,9 @@ type (
 	// NodeAPIHandler is a type alias for the node handler.
 	NodeAPIHandler = nodeapi.Handler[NodeAPIContext]
 
-	// ProofAPIHandler is a type alias for the proof handler.
-	ProofAPIHandler = proofapi.Handler[
-		NodeAPIContext, *BeaconBlockHeader, *BeaconState,
-		*BeaconStateMarshallable, *ExecutionPayloadHeader, *Validator,
-	]
+	// // ProofAPIHandler is a type alias for the proof handler.
+	// ProofAPIHandler = proofapi.Handler[
+	// 	NodeAPIContext, *BeaconBlockHeader, *BeaconState,
+	// 	*BeaconStateMarshallable, *ExecutionPayloadHeader, *Validator,
+	// ]
 )

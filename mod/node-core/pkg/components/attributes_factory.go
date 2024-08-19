@@ -49,7 +49,9 @@ func ProvideAttributesFactory[
 	LoggerT log.Logger[any],
 ](
 	in AttributesFactoryInput[LoggerT],
-) (*AttributesFactory, error) {
+) (*attributes.Factory[
+	BeaconStateT, *PayloadAttributes, *Withdrawal,
+], error) {
 	return attributes.NewAttributesFactory[
 		BeaconStateT,
 		*PayloadAttributes,

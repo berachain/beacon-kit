@@ -36,6 +36,7 @@ import (
 	// "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"context"
 
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -67,18 +68,18 @@ type (
 	// 		GetBeaconBlockRoot() common.Root
 	// 	}
 
-	// 	// AttributesFactory is the interface for the attributes factory.
-	// 	AttributesFactory[
-	// 		BeaconStateT any,
-	// 		PayloadAttributesT any,
-	// 	] interface {
-	// 		BuildPayloadAttributes(
-	// 			st BeaconStateT,
-	// 			slot math.Slot,
-	// 			timestamp uint64,
-	// 			prevHeadRoot [32]byte,
-	// 		) (PayloadAttributesT, error)
-	// 	}
+	// AttributesFactory is the interface for the attributes factory.
+	AttributesFactory[
+		BeaconStateT any,
+		PayloadAttributesT any,
+	] interface {
+		BuildPayloadAttributes(
+			st BeaconStateT,
+			slot math.Slot,
+			timestamp uint64,
+			prevHeadRoot [32]byte,
+		) (PayloadAttributesT, error)
+	}
 
 	// AvailabilityStore is the interface for the availability store.
 	AvailabilityStore[BeaconBlockBodyT any, BlobSidecarsT any] interface {
@@ -566,47 +567,47 @@ type (
 		Prune(start uint64, end uint64) error
 	}
 
-	// 	// LocalBuilder is the interface for the builder service.
-	// 	LocalBuilder[
-	// 		BeaconStateT any,
-	// 		ExecutionPayloadT any,
-	// 	] interface {
-	// 		// Enabled returns true if the local builder is enabled.
-	// 		Enabled() bool
-	// 		// RequestPayloadAsync requests a new payload for the given slot.
-	// 		RequestPayloadAsync(
-	// 			ctx context.Context,
-	// 			st BeaconStateT,
-	// 			slot math.Slot,
-	// 			timestamp uint64,
-	// 			parentBlockRoot common.Root,
-	// 			headEth1BlockHash common.ExecutionHash,
-	// 			finalEth1BlockHash common.ExecutionHash,
-	// 		) (*engineprimitives.PayloadID, error)
-	// 		// SendForceHeadFCU sends a force head FCU request.
-	// 		SendForceHeadFCU(
-	// 			ctx context.Context,
-	// 			st BeaconStateT,
-	// 			slot math.Slot,
-	// 		) error
-	// 		// RetrievePayload retrieves the payload for the given slot.
-	// 		RetrievePayload(
-	// 			ctx context.Context,
-	// 			slot math.Slot,
-	// 			parentBlockRoot common.Root,
-	// 		) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
-	// 		// RequestPayloadSync requests a payload for the given slot and
-	// 		// blocks until the payload is delivered.
-	// 		RequestPayloadSync(
-	// 			ctx context.Context,
-	// 			st BeaconStateT,
-	// 			slot math.Slot,
-	// 			timestamp uint64,
-	// 			parentBlockRoot common.Root,
-	// 			headEth1BlockHash common.ExecutionHash,
-	// 			finalEth1BlockHash common.ExecutionHash,
-	// 		) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
-	// 	}
+	// LocalBuilder is the interface for the builder service.
+	LocalBuilder[
+		BeaconStateT any,
+		ExecutionPayloadT any,
+	] interface {
+		// Enabled returns true if the local builder is enabled.
+		Enabled() bool
+		// RequestPayloadAsync requests a new payload for the given slot.
+		RequestPayloadAsync(
+			ctx context.Context,
+			st BeaconStateT,
+			slot math.Slot,
+			timestamp uint64,
+			parentBlockRoot common.Root,
+			headEth1BlockHash common.ExecutionHash,
+			finalEth1BlockHash common.ExecutionHash,
+		) (*engineprimitives.PayloadID, error)
+		// SendForceHeadFCU sends a force head FCU request.
+		SendForceHeadFCU(
+			ctx context.Context,
+			st BeaconStateT,
+			slot math.Slot,
+		) error
+		// RetrievePayload retrieves the payload for the given slot.
+		RetrievePayload(
+			ctx context.Context,
+			slot math.Slot,
+			parentBlockRoot common.Root,
+		) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
+		// RequestPayloadSync requests a payload for the given slot and
+		// blocks until the payload is delivered.
+		RequestPayloadSync(
+			ctx context.Context,
+			st BeaconStateT,
+			slot math.Slot,
+			timestamp uint64,
+			parentBlockRoot common.Root,
+			headEth1BlockHash common.ExecutionHash,
+			finalEth1BlockHash common.ExecutionHash,
+		) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
+	}
 
 	// Middleware is the interface for the CometBFT middleware.
 	Middleware[SlotDataT any] interface {
@@ -656,34 +657,34 @@ type (
 	// 		GetSlashingInfo() []SlashingInfoT
 	// 	}
 
-	// 	// StateProcessor defines the interface for processing the state.
-	// 	StateProcessor[
-	// 		BeaconBlockT any,
-	// 		BeaconStateT any,
-	// 		ContextT any,
-	// 		DepositT any,
-	// 		ExecutionPayloadHeaderT any,
-	// 	] interface {
-	// 		// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
-	// 		// state
-	// 		// from the eth1 deposits.
-	// 		InitializePreminedBeaconStateFromEth1(
-	// 			BeaconStateT,
-	// 			[]DepositT,
-	// 			ExecutionPayloadHeaderT,
-	// 			common.Version,
-	// 		) (transition.ValidatorUpdates, error)
-	// 		// ProcessSlot processes the slot.
-	// 		ProcessSlots(
-	// 			st BeaconStateT, slot math.Slot,
-	// 		) (transition.ValidatorUpdates, error)
-	// 		// Transition performs the core state transition.
-	// 		Transition(
-	// 			ctx ContextT,
-	// 			st BeaconStateT,
-	// 			blk BeaconBlockT,
-	// 		) (transition.ValidatorUpdates, error)
-	// 	}
+	// StateProcessor defines the interface for processing the state.
+	StateProcessor[
+		BeaconBlockT any,
+		BeaconStateT any,
+		ContextT any,
+		DepositT any,
+		ExecutionPayloadHeaderT any,
+	] interface {
+		// InitializePreminedBeaconStateFromEth1 initializes the premined beacon
+		// state
+		// from the eth1 deposits.
+		InitializePreminedBeaconStateFromEth1(
+			BeaconStateT,
+			[]DepositT,
+			ExecutionPayloadHeaderT,
+			common.Version,
+		) (transition.ValidatorUpdates, error)
+		// ProcessSlot processes the slot.
+		ProcessSlots(
+			st BeaconStateT, slot math.Slot,
+		) (transition.ValidatorUpdates, error)
+		// Transition performs the core state transition.
+		Transition(
+			ctx ContextT,
+			st BeaconStateT,
+			blk BeaconBlockT,
+		) (transition.ValidatorUpdates, error)
+	}
 
 	// StorageBackend defines an interface for accessing various storage
 	// components required by the beacon node.
