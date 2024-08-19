@@ -312,10 +312,7 @@ type (
 	NodeAPIEngine = echo.Engine
 
 	// NodeAPIServer is a type alias for the node API server.
-	NodeAPIServer = server.Server[
-		NodeAPIContext,
-		*NodeAPIEngine,
-	]
+	NodeAPIServer = server.Server[NodeAPIContext]
 
 	// PayloadAttributes is a type alias for the payload attributes.
 	PayloadAttributes = engineprimitives.PayloadAttributes[*Withdrawal]
@@ -489,7 +486,7 @@ type (
 
 	// ProofAPIHandler is a type alias for the proof handler.
 	ProofAPIHandler = proofapi.Handler[
-		NodeAPIContext, *BeaconBlockHeader, *BeaconState,
-		*BeaconStateMarshallable, *ExecutionPayloadHeader, *Validator,
+		*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
+		NodeAPIContext, *ExecutionPayloadHeader, *Validator,
 	]
 )
