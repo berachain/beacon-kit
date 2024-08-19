@@ -45,28 +45,25 @@ type Service[
 	ExecutionPayloadT ExecutionPayload,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
-	PayloadAttributesT interface {
-		IsNil() bool
-		Version() uint32
-		GetSuggestedFeeRecipient() common.ExecutionAddress
-	},
+	PayloadAttributesT PayloadAttributes,
 ] struct {
-	// sb represents the backend storage for beacon states and associated
-	// sidecars.
-	sb StorageBackend[
+	// storageBackend represents the backend storage for beacon states and
+	// associated sidecars.
+	storageBackend StorageBackend[
 		AvailabilityStoreT,
 		BeaconStateT,
 	]
 	// logger is used for logging messages in the service.
 	logger log.Logger[any]
-	// cs holds the chain specifications.
-	cs common.ChainSpec
-	// ee is the execution engine responsible for processing execution payloads.
-	ee ExecutionEngine[PayloadAttributesT]
-	// lb is a local builder for constructing new beacon states.
-	lb LocalBuilder[BeaconStateT]
-	// sp is the state processor for beacon blocks and states.
-	sp StateProcessor[
+	// chainSpec holds the chain specifications.
+	chainSpec common.ChainSpec
+	// executionEngine is the execution engine responsible for processing
+	// execution payloads.
+	executionEngine ExecutionEngine[PayloadAttributesT]
+	// localBuilder is a local builder for constructing new beacon states.
+	localBuilder LocalBuilder[BeaconStateT]
+	// stateProcessor is the state processor for beacon blocks and states.
+	stateProcessor StateProcessor[
 		BeaconBlockT,
 		BeaconStateT,
 		*transition.Context,
@@ -80,8 +77,8 @@ type Service[
 	// blkBroker is the event feed for new blocks.
 	blkBroker *broker.Broker[*asynctypes.Event[BeaconBlockT]]
 	// validatorUpdateBroker is the event feed for validator updates.
-	//nolint:lll // annoying formatter.
-	validatorUpdateBroker *broker.Broker[*asynctypes.Event[transition.ValidatorUpdates]]
+
+	validatorUpdateBroker *broker.Broker[*asynctypes.Event[ValidatorUpdates]]
 	// optimisticPayloadBuilds is a flag used when the optimistic payload
 	// builder is enabled.
 	optimisticPayloadBuilds bool
@@ -103,32 +100,27 @@ func NewService[
 	ExecutionPayloadT ExecutionPayload,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader,
 	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
-	PayloadAttributesT interface {
-		IsNil() bool
-		Version() uint32
-		GetSuggestedFeeRecipient() common.ExecutionAddress
-	},
+	PayloadAttributesT PayloadAttributes,
 ](
-	sb StorageBackend[
+	storageBackend StorageBackend[
 		AvailabilityStoreT,
 		BeaconStateT,
 	],
 	logger log.Logger[any],
-	cs common.ChainSpec,
-	ee ExecutionEngine[PayloadAttributesT],
-	lb LocalBuilder[BeaconStateT],
-	sp StateProcessor[
+	chainSpec common.ChainSpec,
+	executionEngine ExecutionEngine[PayloadAttributesT],
+	localBuilder LocalBuilder[BeaconStateT],
+	stateProcessor StateProcessor[
 		BeaconBlockT,
 		BeaconStateT,
 		*transition.Context,
 		DepositT,
 		ExecutionPayloadHeaderT,
 	],
-	ts TelemetrySink,
+	telemetrySink TelemetrySink,
 	genesisBroker *broker.Broker[*asynctypes.Event[GenesisT]],
 	blkBroker *broker.Broker[*asynctypes.Event[BeaconBlockT]],
-	//nolint:lll // annoying formatter.
-	validatorUpdateBroker *broker.Broker[*asynctypes.Event[transition.ValidatorUpdates]],
+	validatorUpdateBroker *broker.Broker[*asynctypes.Event[ValidatorUpdates]],
 	optimisticPayloadBuilds bool,
 ) *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
@@ -140,13 +132,13 @@ func NewService[
 		BeaconStateT, DepositT, ExecutionPayloadT, ExecutionPayloadHeaderT,
 		GenesisT, PayloadAttributesT,
 	]{
-		sb:                      sb,
+		storageBackend:          storageBackend,
 		logger:                  logger,
-		cs:                      cs,
-		ee:                      ee,
-		lb:                      lb,
-		sp:                      sp,
-		metrics:                 newChainMetrics(ts),
+		chainSpec:               chainSpec,
+		executionEngine:         executionEngine,
+		localBuilder:            localBuilder,
+		stateProcessor:          stateProcessor,
+		metrics:                 newChainMetrics(telemetrySink),
 		genesisBroker:           genesisBroker,
 		blkBroker:               blkBroker,
 		validatorUpdateBroker:   validatorUpdateBroker,
