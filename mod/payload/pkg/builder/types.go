@@ -52,6 +52,13 @@ type BeaconState[
 	GetBlockRootAtIndex(uint64) (common.Root, error)
 }
 
+type PayloadCache[PayloadIDT, RootT, SlotT any] interface {
+	Get(slot SlotT, stateRoot RootT) (PayloadIDT, bool)
+	Has(slot SlotT, stateRoot RootT) bool
+	Set(slot SlotT, stateRoot RootT, pid PayloadIDT)
+	UnsafePrunePrior(slot SlotT)
+}
+
 // ExecutionPayload is the interface for the execution payload.
 type ExecutionPayload[T any] interface {
 	constraints.ForkTyped[T]
