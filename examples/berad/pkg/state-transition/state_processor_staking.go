@@ -283,7 +283,7 @@ func (sp *StateProcessor[
 // better way.
 func (sp *StateProcessor[
 	_, BeaconBlockBodyT, _, BeaconStateT, _, _, _,
-	_, _, _, _, ValidatorT, ValidatorsT, WithdrawalT, _, _,
+	_, _, _, _, ValidatorT, _, WithdrawalT, _, _,
 ]) ExpectedWithdrawals(st BeaconStateT) ([]WithdrawalT, error) {
 	return sp.expectedWithdrawals(st)
 }
@@ -293,7 +293,7 @@ func (sp *StateProcessor[
 //
 //nolint:lll
 func (sp *StateProcessor[
-	_, BeaconBlockBodyT, _, BeaconStateT, _, _, _, _, _, _, _, ValidatorT, ValidatorsT, WithdrawalT, _, _,
+	_, BeaconBlockBodyT, _, BeaconStateT, _, _, _, _, _, _, _, ValidatorT, _, WithdrawalT, _, _,
 ]) expectedWithdrawals(st BeaconStateT) ([]WithdrawalT, error) {
 	var (
 		balance           math.Gwei

@@ -64,10 +64,6 @@ type BeaconState[
 	// Withdrawals
 	NextWithdrawalIndex          uint64
 	NextWithdrawalValidatorIndex math.ValidatorIndex
-
-	// Slashing
-	Slashings     []uint64
-	TotalSlashing math.Gwei
 }
 
 /* -------------------------------------------------------------------------- */
@@ -78,7 +74,7 @@ type BeaconState[
 func (st *BeaconState[
 	_, _, _, _, _, _, _, _, _,
 ]) SizeSSZ(fixed bool) uint32 {
-	var size uint32 = 300
+	var size uint32 = 276
 
 	if fixed {
 		return size
@@ -91,7 +87,6 @@ func (st *BeaconState[
 	size += ssz.SizeSliceOfStaticObjects(st.Validators)
 	size += ssz.SizeSliceOfUint64s(st.Balances)
 	size += ssz.SizeSliceOfStaticBytes(st.RandaoMixes)
-	size += ssz.SizeSliceOfUint64s(st.Slashings)
 
 	return size
 }
@@ -123,10 +118,6 @@ func (st *BeaconState[
 	ssz.DefineUint64(codec, &st.NextWithdrawalIndex)
 	ssz.DefineUint64(codec, &st.NextWithdrawalValidatorIndex)
 
-	// // Slashing
-	ssz.DefineSliceOfUint64sOffset(codec, &st.Slashings, 1099511627776)
-	ssz.DefineUint64(codec, (*uint64)(&st.TotalSlashing))
-
 	// Dynamic content
 	ssz.DefineSliceOfStaticBytesContent(codec, &st.BlockRoots, 8192)
 	ssz.DefineSliceOfStaticBytesContent(codec, &st.StateRoots, 8192)
@@ -134,7 +125,6 @@ func (st *BeaconState[
 	ssz.DefineSliceOfStaticObjectsContent(codec, &st.Validators, 1099511627776)
 	ssz.DefineSliceOfUint64sContent(codec, &st.Balances, 1099511627776)
 	ssz.DefineSliceOfStaticBytesContent(codec, &st.RandaoMixes, 65536)
-	ssz.DefineSliceOfUint64sContent(codec, &st.Slashings, 1099511627776)
 }
 
 // MarshalSSZ marshals the BeaconState into SSZ format.
@@ -290,29 +280,6 @@ func (st *BeaconState[
 
 	// Field (12) 'NextWithdrawalValidatorIndex'
 	hh.PutUint64(uint64(st.NextWithdrawalValidatorIndex))
-
-	// Field (14) 'Slashings'
-	if size := len(st.Slashings); size > 1099511627776 {
-		return fastssz.ErrListTooBigFn(
-			"BeaconState.Slashings",
-			size,
-			1099511627776,
-		)
-	}
-	subIndx = hh.Index()
-	for _, i := range st.Slashings {
-		hh.AppendUint64(i)
-	}
-	hh.FillUpTo32()
-	numItems = uint64(len(st.Slashings))
-	hh.MerkleizeWithMixin(
-		subIndx,
-		numItems,
-		fastssz.CalculateLimit(1099511627776, numItems, 8),
-	)
-
-	// Field (15) 'TotalSlashing'
-	hh.PutUint64(uint64(st.TotalSlashing))
 
 	hh.Merkleize(indx)
 	return nil
