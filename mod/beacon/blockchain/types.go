@@ -199,7 +199,6 @@ type StateProcessor[
 // required by the beacon node.
 type StorageBackend[
 	AvailabilityStoreT any,
-	BeaconBlockBodyT,
 	BeaconStateT any,
 ] interface {
 	// AvailabilityStore returns the availability store for the given context.
