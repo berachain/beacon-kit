@@ -33,7 +33,7 @@ import (
 //nolint:gocognit // its ok
 func (sp *StateProcessor[
 	_, BeaconBlockBodyT, BeaconBlockHeaderT, BeaconStateT, _, DepositT,
-	_, ExecutionPayloadHeaderT, ForkT, _, _, ValidatorT, _, _, _, _,
+	_, ExecutionPayloadHeaderT, ForkT, _, _, _, _, _, _, _,
 ]) InitializePreminedBeaconStateFromEth1(
 	st BeaconStateT,
 	deposits []DepositT,
