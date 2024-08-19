@@ -24,7 +24,7 @@ import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 
 // UpdateBlockRootAtIndex sets a block root in the BeaconStore.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) UpdateBlockRootAtIndex(
 	index uint64,
@@ -35,7 +35,7 @@ func (kv *KVStore[
 
 // GetBlockRootAtIndex retrieves the block root from the BeaconStore.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetBlockRootAtIndex(
 	index uint64,
@@ -49,7 +49,7 @@ func (kv *KVStore[
 
 // SetLatestBlockHeader sets the latest block header in the BeaconStore.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) SetLatestBlockHeader(
 	header BeaconBlockHeaderT,
@@ -59,7 +59,7 @@ func (kv *KVStore[
 
 // GetLatestBlockHeader retrieves the latest block header from the BeaconStore.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetLatestBlockHeader() (
 	BeaconBlockHeaderT, error,
@@ -69,7 +69,7 @@ func (kv *KVStore[
 
 // UpdateStateRootAtIndex updates the state root at the given slot.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) UpdateStateRootAtIndex(
 	idx uint64,
@@ -80,7 +80,7 @@ func (kv *KVStore[
 
 // StateRootAtIndex returns the state root at the given slot.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) StateRootAtIndex(
 	idx uint64,

@@ -28,7 +28,7 @@ import (
 
 // AddValidator registers a new validator in the beacon state.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) AddValidator(val ValidatorT) error {
 	// Get the next validator index from the sequence.
@@ -47,7 +47,7 @@ func (kv *KVStore[
 
 // AddValidator registers a new validator in the beacon state.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) AddValidatorBartio(val ValidatorT) error {
 	// Get the ne
@@ -67,7 +67,7 @@ func (kv *KVStore[
 
 // UpdateValidatorAtIndex updates a validator at a specific index.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) UpdateValidatorAtIndex(
 	index math.ValidatorIndex,
@@ -78,7 +78,7 @@ func (kv *KVStore[
 
 // ValidatorIndexByPubkey returns the validator address by index.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) ValidatorIndexByPubkey(
 	pubkey crypto.BLSPubkey,
@@ -95,7 +95,7 @@ func (kv *KVStore[
 
 // ValidatorIndexByCometBFTAddress returns the validator address by index.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) ValidatorIndexByCometBFTAddress(
 	cometBFTAddress []byte,
@@ -112,7 +112,7 @@ func (kv *KVStore[
 
 // ValidatorByIndex returns the validator address by index.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) ValidatorByIndex(
 	index math.ValidatorIndex,
@@ -127,7 +127,7 @@ func (kv *KVStore[
 
 // GetValidators retrieves all validators from the beacon state.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetValidators() (
 	ValidatorsT, error,
@@ -163,7 +163,7 @@ func (kv *KVStore[
 
 // GetTotalValidators returns the total number of validators.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetTotalValidators() (uint64, error) {
 	validators, err := kv.GetValidators()
@@ -176,7 +176,7 @@ func (kv *KVStore[
 // GetValidatorsByEffectiveBalance retrieves all validators sorted by
 // effective balance from the beacon state.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetValidatorsByEffectiveBalance() (
 	[]ValidatorT, error,
@@ -211,7 +211,7 @@ func (kv *KVStore[
 
 // GetBalance returns the balance of a validator.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetBalance(
 	idx math.ValidatorIndex,
@@ -222,7 +222,7 @@ func (kv *KVStore[
 
 // SetBalance sets the balance of a validator.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) SetBalance(
 	idx math.ValidatorIndex,
@@ -233,7 +233,7 @@ func (kv *KVStore[
 
 // GetBalances returns the balancse of all validator.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetBalances() ([]uint64, error) {
 	var balances []uint64
@@ -258,7 +258,7 @@ func (kv *KVStore[
 // TODO: unhood this and probably store this as just a value changed on writekv.
 // TODO: this shouldn't live in KVStore
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) GetTotalActiveBalances(
 	slotsPerEpoch uint64,
