@@ -48,8 +48,6 @@ type BeaconBlock[BeaconBlockBodyT any] interface {
 	constraints.Nillable
 	// GetSlot returns the slot of the beacon block.
 	GetSlot() math.Slot
-	// GetParentBlockRoot returns the parent block root of the beacon block.
-	GetParentBlockRoot() common.Root
 	// GetStateRoot returns the state root of the beacon block.
 	GetStateRoot() common.Root
 	// GetBody returns the body of the beacon block.
@@ -139,6 +137,12 @@ type LocalBuilder[BeaconStateT any] interface {
 	) error
 }
 
+type PayloadAttributes interface {
+	IsNil() bool
+	Version() uint32
+	GetSuggestedFeeRecipient() common.ExecutionAddress
+}
+
 // ReadOnlyBeaconState defines the interface for accessing various components of
 // the beacon state.
 type ReadOnlyBeaconState[
@@ -217,3 +221,5 @@ type TelemetrySink interface {
 	// identified by the provided keys.
 	MeasureSince(key string, start time.Time, args ...string)
 }
+
+type ValidatorUpdates = transition.ValidatorUpdates
