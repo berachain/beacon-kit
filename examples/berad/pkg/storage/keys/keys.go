@@ -21,19 +21,14 @@
 package keys
 
 const (
-	WithdrawalQueuePrefix byte = iota
-	RandaoMixPrefix
+	RandaoMixPrefix byte = iota
 	ValidatorIndexPrefix
 	BlockRootsPrefix
 	StateRootsPrefix
 	ValidatorByIndexPrefix
-	ValidatorPubkeyToIndexPrefix
-	ValidatorConsAddrToIndexPrefix
-	ValidatorEffectiveBalanceToIndexPrefix
 	LatestBeaconBlockHeaderPrefix
 	SlotPrefix
 	BalancesPrefix
-	Eth1BlockHashPrefix
 	Eth1DepositIndexPrefix
 	LatestExecutionPayloadHeaderPrefix
 	LatestExecutionPayloadVersionPrefix
@@ -45,24 +40,19 @@ const (
 
 //nolint:lll
 const (
-	WithdrawalQueuePrefixHumanReadable                  = "WithdrawalQueuePrefix"
-	RandaoMixPrefixHumanReadable                        = "RandaoMixPrefix"
-	ValidatorIndexPrefixHumanReadable                   = "ValidatorIndexPrefix"
-	BlockRootsPrefixHumanReadable                       = "BlockRootsPrefix"
-	StateRootsPrefixHumanReadable                       = "StateRootsPrefix"
-	ValidatorByIndexPrefixHumanReadable                 = "ValidatorByIndexPrefix"
-	ValidatorPubkeyToIndexPrefixHumanReadable           = "ValidatorPubkeyToIndexPrefix"
-	ValidatorConsAddrToIndexPrefixHumanReadable         = "ValidatorConsAddrToIndexPrefix"
-	ValidatorEffectiveBalanceToIndexPrefixHumanReadable = "ValidatorEffectiveBalanceToIndexPrefix"
-	LatestBeaconBlockHeaderPrefixHumanReadable          = "LatestBeaconBlockHeaderPrefix"
-	SlotPrefixHumanReadable                             = "SlotPrefix"
-	BalancesPrefixHumanReadable                         = "BalancesPrefix"
-	Eth1BlockHashPrefixHumanReadable                    = "Eth1BlockHashPrefix"
-	Eth1DepositIndexPrefixHumanReadable                 = "Eth1DepositIndexPrefix"
-	LatestExecutionPayloadHeaderPrefixHumanReadable     = "LatestExecutionPayloadHeaderPrefix"
-	LatestExecutionPayloadVersionPrefixHumanReadable    = "LatestExecutionPayloadVersionPrefix"
-	GenesisValidatorsRootPrefixHumanReadable            = "GenesisValidatorsRootPrefix"
-	NextWithdrawalIndexPrefixHumanReadable              = "NextWithdrawalIndexPrefix"
-	NextWithdrawalValidatorIndexPrefixHumanReadable     = "NextWithdrawalValidatorIndexPrefix"
-	ForkPrefixHumanReadable                             = "ForkPrefix"
+	RandaoMixPrefixHumanReadable                     = "RandaoMixPrefix"
+	ValidatorIndexPrefixHumanReadable                = "ValidatorIndexPrefix"
+	BlockRootsPrefixHumanReadable                    = "BlockRootsPrefix"
+	StateRootsPrefixHumanReadable                    = "StateRootsPrefix"
+	ValidatorByIndexPrefixHumanReadable              = "ValidatorByIndexPrefix"
+	LatestBeaconBlockHeaderPrefixHumanReadable       = "LatestBeaconBlockHeaderPrefix"
+	SlotPrefixHumanReadable                          = "SlotPrefix"
+	BalancesPrefixHumanReadable                      = "BalancesPrefix"
+	Eth1DepositIndexPrefixHumanReadable              = "Eth1DepositIndexPrefix"
+	LatestExecutionPayloadHeaderPrefixHumanReadable  = "LatestExecutionPayloadHeaderPrefix"
+	LatestExecutionPayloadVersionPrefixHumanReadable = "LatestExecutionPayloadVersionPrefix"
+	GenesisValidatorsRootPrefixHumanReadable         = "GenesisValidatorsRootPrefix"
+	NextWithdrawalIndexPrefixHumanReadable           = "NextWithdrawalIndexPrefix"
+	NextWithdrawalValidatorIndexPrefixHumanReadable  = "NextWithdrawalValidatorIndexPrefix"
+	ForkPrefixHumanReadable                          = "ForkPrefix"
 )
