@@ -122,7 +122,6 @@ func NewService[
 	telemetrySink TelemetrySink,
 	genesisBroker *broker.Broker[*asynctypes.Event[GenesisT]],
 	blkBroker *broker.Broker[*asynctypes.Event[BeaconBlockT]],
-	//nolint:lll // annoying formatter.
 	validatorUpdateBroker *broker.Broker[*asynctypes.Event[ValidatorUpdates]],
 	optimisticPayloadBuilds bool,
 ) *Service[
