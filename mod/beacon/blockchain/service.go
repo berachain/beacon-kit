@@ -55,7 +55,6 @@ type Service[
 	// sidecars.
 	sb StorageBackend[
 		AvailabilityStoreT,
-		BeaconBlockBodyT,
 		BeaconStateT,
 	]
 	// logger is used for logging messages in the service.
@@ -112,7 +111,6 @@ func NewService[
 ](
 	sb StorageBackend[
 		AvailabilityStoreT,
-		BeaconBlockBodyT,
 		BeaconStateT,
 	],
 	logger log.Logger[any],
