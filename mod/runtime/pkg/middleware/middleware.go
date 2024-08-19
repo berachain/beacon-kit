@@ -29,7 +29,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/p2p"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	rp2p "github.com/berachain/beacon-kit/mod/runtime/pkg/p2p"
 )
@@ -37,10 +36,7 @@ import (
 // ABCIMiddleware is a middleware between ABCI and the validator logic.
 type ABCIMiddleware[
 	BeaconBlockT BeaconBlock[BeaconBlockT],
-	BlobSidecarsT interface {
-		constraints.SSZMarshallable
-		Empty() BlobSidecarsT
-	},
+	BlobSidecarsT BlobSidecars[BlobSidecarsT],
 	GenesisT json.Unmarshaler,
 	SlotDataT any,
 ] struct {
@@ -81,10 +77,7 @@ type ABCIMiddleware[
 
 func NewABCIMiddleware[
 	BeaconBlockT BeaconBlock[BeaconBlockT],
-	BlobSidecarsT interface {
-		constraints.SSZMarshallable
-		Empty() BlobSidecarsT
-	},
+	BlobSidecarsT BlobSidecars[BlobSidecarsT],
 	GenesisT json.Unmarshaler,
 	SlotDataT any,
 ](
