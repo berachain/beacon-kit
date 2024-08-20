@@ -6,8 +6,6 @@ import (
 	"encoding/json"
 	"io"
 	"net"
-	"os"
-	"runtime/pprof"
 	"time"
 
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
@@ -19,7 +17,6 @@ import (
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/hashicorp/go-metrics"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 
@@ -37,7 +34,6 @@ import (
 
 const (
 	// CometBFT full-node start flags
-	flagWithComet          = "with-comet"
 	flagAddress            = "address"
 	flagTransport          = "transport"
 	flagTraceStore         = "trace-store"
@@ -94,7 +90,7 @@ type StartCmdOptions[T types.Application] struct {
 	// AddFlags add custom flags to start cmd
 	AddFlags func(cmd *cobra.Command)
 	// StartCommandHandler can be used to customize the start command handler
-	StartCommandHandler func(svrCtx *Context, clientCtx client.Context, appCreator types.AppCreator[T], inProcessConsensus bool, opts StartCmdOptions[T]) error
+	StartCommandHandler func(svrCtx *Context, appCreator types.AppCreator[T]) error
 }
 
 // StartCmd runs the service passed in, either stand-alone or in-process with
@@ -151,19 +147,7 @@ is performed. Note, when enabled, gRPC will also be automatically enabled.
 				return err
 			}
 
-			clientCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			withCMT, _ := cmd.Flags().GetBool(flagWithComet)
-			if !withCMT {
-				serverCtx.Logger.Info("starting ABCI without CometBFT")
-			}
-
-			err = wrapCPUProfile(serverCtx, func() error {
-				return opts.StartCommandHandler(serverCtx, clientCtx, appCreator, withCMT, opts)
-			})
+			err = opts.StartCommandHandler(serverCtx, appCreator)
 
 			serverCtx.Logger.Debug("received quit signal")
 			graceDuration, _ := cmd.Flags().GetDuration(FlagShutdownGrace)
@@ -181,13 +165,13 @@ is performed. Note, when enabled, gRPC will also be automatically enabled.
 	return cmd
 }
 
-func start[T types.Application](svrCtx *Context, clientCtx client.Context, appCreator types.AppCreator[T], withCmt bool, opts StartCmdOptions[T]) error {
+func start[T types.Application](svrCtx *Context, appCreator types.AppCreator[T], appOpts StartCmdOptions[T]) error {
 	svrCfg, err := getAndValidateConfig(svrCtx)
 	if err != nil {
 		return err
 	}
 
-	app, appCleanupFn, err := startApp[T](svrCtx, appCreator, opts)
+	app, appCleanupFn, err := startApp[T](svrCtx, appCreator, appOpts)
 	if err != nil {
 		return err
 	}
@@ -369,37 +353,6 @@ func startTelemetry(cfg serverconfig.Config) (*telemetry.Metrics, error) {
 	return telemetry.New(cfg.Telemetry)
 }
 
-// wrapCPUProfile starts CPU profiling, if enabled, and executes the provided
-// callbackFn in a separate goroutine, then will wait for that callback to
-// return.
-//
-// NOTE: We expect the caller to handle graceful shutdown and signal handling.
-func wrapCPUProfile(svrCtx *Context, callbackFn func() error) error {
-	if cpuProfile := svrCtx.Viper.GetString(flagCPUProfile); cpuProfile != "" {
-		f, err := os.Create(cpuProfile)
-		if err != nil {
-			return err
-		}
-
-		svrCtx.Logger.Info("starting CPU profiler", "profile", cpuProfile)
-
-		if err := pprof.StartCPUProfile(f); err != nil {
-			return err
-		}
-
-		defer func() {
-			svrCtx.Logger.Info("stopping CPU profiler", "profile", cpuProfile)
-			pprof.StopCPUProfile()
-
-			if err := f.Close(); err != nil {
-				svrCtx.Logger.Info("failed to close cpu-profile file", "profile", cpuProfile, "err", err.Error())
-			}
-		}()
-	}
-
-	return callbackFn()
-}
-
 // emitServerInfoMetrics emits server info related metrics using application telemetry.
 func emitServerInfoMetrics() {
 	var ls []metrics.Label
@@ -452,7 +405,6 @@ func startApp[T types.Application](svrCtx *Context, appCreator types.AppCreator[
 
 // addStartNodeFlags should be added to any CLI commands that start the network.
 func addStartNodeFlags[T types.Application](cmd *cobra.Command, opts StartCmdOptions[T]) {
-	cmd.Flags().Bool(flagWithComet, true, "Run abci app embedded in-process with CometBFT")
 	cmd.Flags().String(flagAddress, "tcp://127.0.0.1:26658", "Listen address")
 	cmd.Flags().String(flagTransport, "socket", "Transport protocol: socket, grpc")
 	cmd.Flags().String(flagTraceStore, "", "Enable KVStore tracing to an output file")
@@ -481,15 +433,6 @@ func addStartNodeFlags[T types.Application](cmd *cobra.Command, opts StartCmdOpt
 	cmd.Flags().Uint32(FlagStateSyncSnapshotKeepRecent, 2, "State sync snapshot to keep")
 	cmd.Flags().Bool(FlagDisableIAVLFastNode, false, "Disable fast node for IAVL tree")
 	cmd.Flags().Duration(FlagShutdownGrace, 0*time.Second, "On Shutdown, duration to wait for resource clean up")
-
-	// support old flags name for backwards compatibility
-	cmd.Flags().SetNormalizeFunc(func(f *pflag.FlagSet, name string) pflag.NormalizedName {
-		if name == "with-tendermint" {
-			name = flagWithComet
-		}
-
-		return pflag.NormalizedName(name)
-	})
 
 	// add support for all CometBFT-specific command line options
 	cmtcmd.AddNodeFlags(cmd)
