@@ -6,8 +6,14 @@ replace (
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240806152830-8fb47b368cd4
 	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240806152830-8fb47b368cd4
+	github.com/berachain/beacon-kit/mod/beacon => ../beacon
+	github.com/berachain/beacon-kit/mod/config => ../config
+	github.com/berachain/beacon-kit/mod/da => ../da
+	github.com/berachain/beacon-kit/mod/execution => ../execution
 	github.com/berachain/beacon-kit/mod/node-api/engines => ../node-api/engines
+	github.com/berachain/beacon-kit/mod/primitives => ../primitives
 	github.com/berachain/beacon-kit/mod/runtime => ../runtime
+	github.com/berachain/beacon-kit/mod/storage => ../storage
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240808182639-7bdbf06a94f2
 )
 
@@ -15,15 +21,14 @@ require (
 	cosmossdk.io/core v0.12.1-0.20240806152830-8fb47b368cd4
 	cosmossdk.io/depinject v1.0.0
 	cosmossdk.io/log v1.4.1
-	cosmossdk.io/tools/confix v0.1.1
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240809163303-a4ebb22fd018
-	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240808194557-e72e74f58197
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df
+	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240809202957-3e3f169ad720
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240806211103-d1105603bfc0
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1347e7e
-	github.com/berachain/beacon-kit/mod/log v0.0.0-20240705193247-d464364483df
+	github.com/berachain/beacon-kit/mod/log v0.0.0-20240809202957-3e3f169ad720
 	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240806160829-cde2d1347e7e
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240808194557-e72e74f58197
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240820191615-398849c34954
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240806094948-2c4293ef36c4
 	github.com/cosmos/cosmos-sdk v0.53.0
 	github.com/ferranbt/fastssz v0.1.4-0.20240629094022-eac385e6ee79
@@ -87,7 +92,7 @@ require (
 	github.com/VictoriaMetrics/fastcache v1.12.2 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/berachain/beacon-kit/mod/async v0.0.0-20240705193247-d464364483df // indirect
+	github.com/berachain/beacon-kit/mod/async v0.0.0-20240816230528-f52c938c20cc // indirect
 	// indirect
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240718074353-1a991cfeed63 // indirect
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240705193247-d464364483df // indirect
@@ -122,8 +127,6 @@ require (
 	github.com/cosmos/ledger-cosmos-go v0.13.3 // indirect
 	github.com/crate-crypto/go-ipa v0.0.0-20240724233137-53bbb0ceb27a // indirect
 	github.com/crate-crypto/go-kzg-4844 v1.1.0 // indirect
-	github.com/creachadair/atomicfile v0.3.1 // indirect
-	github.com/creachadair/tomledit v0.0.24 // indirect
 	github.com/danieljoos/wincred v1.2.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/deckarep/golang-set/v2 v2.6.0 // indirect

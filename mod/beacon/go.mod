@@ -2,6 +2,11 @@ module github.com/berachain/beacon-kit/mod/beacon
 
 go 1.23.0
 
+replace (
+	github.com/berachain/beacon-kit/mod/config => ../config
+	github.com/berachain/beacon-kit/mod/primitives => ../primitives
+)
+
 require (
 	github.com/berachain/beacon-kit/mod/async v0.0.0-20240816230528-f52c938c20cc
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240809202957-3e3f169ad720

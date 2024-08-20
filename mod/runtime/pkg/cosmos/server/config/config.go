@@ -141,27 +141,6 @@ type GRPCConfig struct {
 	MaxSendMsgSize int `mapstructure:"max-send-msg-size"`
 }
 
-// StateSyncConfig defines the state sync snapshot configuration.
-type StateSyncConfig struct {
-	// SnapshotInterval sets the interval at which state sync snapshots are taken.
-	// 0 disables snapshots.
-	SnapshotInterval uint64 `mapstructure:"snapshot-interval"`
-
-	// SnapshotKeepRecent sets the number of recent state sync snapshots to keep.
-	// 0 keeps all snapshots.
-	SnapshotKeepRecent uint32 `mapstructure:"snapshot-keep-recent"`
-}
-
-// MempoolConfig defines the configurations for the SDK built-in app-side mempool
-// implementations.
-type MempoolConfig struct {
-	// MaxTxs defines the behavior of the mempool. A negative value indicates
-	// the mempool is disabled entirely, zero indicates that the mempool is
-	// unbounded in how many txs it may contain, and a positive value indicates
-	// the maximum amount of txs it may contain.
-	MaxTxs int `mapstructure:"max-txs"`
-}
-
 // State Streaming configuration
 type (
 	// StreamingConfig defines application configuration for external streaming services
@@ -182,11 +161,6 @@ type Config struct {
 
 	// Telemetry defines the application telemetry configuration
 	Telemetry telemetry.Config `mapstructure:"telemetry"`
-	API       APIConfig        `mapstructure:"api"`
-	GRPC      GRPCConfig       `mapstructure:"grpc"`
-	StateSync StateSyncConfig  `mapstructure:"state-sync"`
-	Streaming StreamingConfig  `mapstructure:"streaming"`
-	Mempool   MempoolConfig    `mapstructure:"mempool"`
 }
 
 // SetMinGasPrices sets the validator's minimum gas prices.
@@ -228,33 +202,6 @@ func DefaultConfig() *Config {
 			Enabled:      false,
 			GlobalLabels: [][]string{},
 		},
-		API: APIConfig{
-			Enable:             false,
-			Swagger:            false,
-			Address:            DefaultAPIAddress,
-			MaxOpenConnections: 1000,
-			RPCReadTimeout:     10,
-			RPCMaxBodyBytes:    1000000,
-		},
-		GRPC: GRPCConfig{
-			Enable:         true,
-			Address:        DefaultGRPCAddress,
-			MaxRecvMsgSize: DefaultGRPCMaxRecvMsgSize,
-			MaxSendMsgSize: DefaultGRPCMaxSendMsgSize,
-		},
-		StateSync: StateSyncConfig{
-			SnapshotInterval:   0,
-			SnapshotKeepRecent: 2,
-		},
-		Streaming: StreamingConfig{
-			ABCI: ABCIListenerConfig{
-				Keys:          []string{},
-				StopNodeOnErr: true,
-			},
-		},
-		Mempool: MempoolConfig{
-			MaxTxs: -1,
-		},
 	}
 }
 
@@ -272,11 +219,11 @@ func (c Config) ValidateBasic() error {
 	if c.BaseConfig.MinGasPrices == "" {
 		return sdkerrors.ErrAppConfig.Wrap("set min gas price in app.toml or flag or env variable")
 	}
-	if c.Pruning == pruningtypes.PruningOptionEverything && c.StateSync.SnapshotInterval > 0 {
-		return sdkerrors.ErrAppConfig.Wrapf(
-			"cannot enable state sync snapshots with '%s' pruning setting", pruningtypes.PruningOptionEverything,
-		)
-	}
+	// if c.Pruning == pruningtypes.PruningOptionEverything && c.StateSync.SnapshotInterval > 0 {
+	// 	return sdkerrors.ErrAppConfig.Wrapf(
+	// 		"cannot enable state sync snapshots with '%s' pruning setting", pruningtypes.PruningOptionEverything,
+	// 	)
+	// }
 
 	return nil
 }

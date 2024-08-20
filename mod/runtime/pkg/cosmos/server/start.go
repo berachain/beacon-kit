@@ -4,22 +4,18 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net"
 	"os"
 	"runtime/pprof"
 	"time"
 
-	"github.com/cometbft/cometbft/abci/server"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cometbft/cometbft/node"
 	"github.com/cometbft/cometbft/p2p"
 	pvm "github.com/cometbft/cometbft/privval"
 	"github.com/cometbft/cometbft/proxy"
-	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
-	"github.com/cometbft/cometbft/rpc/client/local"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/hashicorp/go-metrics"
 	"github.com/spf13/cobra"
@@ -37,7 +33,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/telemetry"
-	"github.com/cosmos/cosmos-sdk/types/mempool"
 	"github.com/cosmos/cosmos-sdk/version"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
@@ -83,16 +78,6 @@ const (
 	FlagRPCMaxBodyBytes       = "api.rpc-max-body-bytes"
 	FlagAPIEnableUnsafeCORS   = "api.enabled-unsafe-cors"
 
-	// gRPC-related flags
-
-	flagGRPCOnly    = "grpc-only"
-	flagGRPCEnable  = "grpc.enable"
-	flagGRPCAddress = "grpc.address"
-
-	// mempool flags
-
-	FlagMempoolMaxTxs = "mempool.max-txs"
-
 	// testnet keys
 
 	KeyIsTestnet             = "is-testnet"
@@ -108,11 +93,6 @@ type StartCmdOptions[T types.Application] struct {
 	// DBOpener can be used to customize db opening, for example customize db options or support different db backends,
 	// default to the builtin db opener.
 	DBOpener func(rootDir string, backendType dbm.BackendType) (dbm.DB, error)
-	// PostSetup can be used to setup extra services under the same cancellable context,
-	// it's not called in stand-alone mode, only for in-process mode.
-	PostSetup func(app T, svrCtx *Context, clientCtx client.Context, ctx context.Context, g *errgroup.Group) error
-	// PostSetupStandalone can be used to setup extra services under the same cancellable context,
-	PostSetupStandalone func(app T, svrCtx *Context, clientCtx client.Context, ctx context.Context, g *errgroup.Group) error
 	// AddFlags add custom flags to start cmd
 	AddFlags func(cmd *cobra.Command)
 	// StartCommandHandler can be used to customize the start command handler
@@ -215,115 +195,27 @@ func start[T types.Application](svrCtx *Context, clientCtx client.Context, appCr
 	}
 	defer appCleanupFn()
 
-	metrics, err := startTelemetry(svrCfg)
+	_, err = startTelemetry(svrCfg)
 	if err != nil {
 		return err
 	}
 
 	emitServerInfoMetrics()
 
-	if !withCmt {
-		return startStandAlone[T](svrCtx, svrCfg, clientCtx, app, metrics, opts)
-	}
-	return startInProcess[T](svrCtx, svrCfg, clientCtx, app, metrics, opts)
+	return startInProcess[T](svrCtx, app)
 }
 
-func startStandAlone[T types.Application](svrCtx *Context, svrCfg serverconfig.Config, clientCtx client.Context, app T, metrics *telemetry.Metrics, opts StartCmdOptions[T]) error {
-	addr := svrCtx.Viper.GetString(flagAddress)
-	transport := svrCtx.Viper.GetString(flagTransport)
-
-	cmtApp := NewCometABCIWrapper(app)
-	svr, err := server.NewServer(addr, transport, cmtApp)
-	if err != nil {
-		return fmt.Errorf("error creating listener: %w", err)
-	}
-
-	svr.SetLogger(servercmtlog.CometLoggerWrapper{Logger: svrCtx.Logger.With("module", "abci-server")})
-
-	g, ctx := getCtx(svrCtx, false)
-
-	// Add the tx service to the gRPC router. We only need to register this
-	// service if API or gRPC is enabled, and avoid doing so in the general
-	// case, because it spawns a new local CometBFT RPC client.
-	if svrCfg.API.Enable || svrCfg.GRPC.Enable {
-		// create tendermint client
-		// assumes the rpc listen address is where tendermint has its rpc server
-		rpcclient, err := rpchttp.New(svrCtx.Config.RPC.ListenAddress)
-		if err != nil {
-			return err
-		}
-		// re-assign for making the client available below
-		// do not use := to avoid shadowing clientCtx
-		clientCtx = clientCtx.WithClient(rpcclient)
-	}
-
-	if opts.PostSetupStandalone != nil {
-		if err := opts.PostSetupStandalone(app, svrCtx, clientCtx, ctx, g); err != nil {
-			return err
-		}
-	}
-
-	g.Go(func() error {
-		if err := svr.Start(); err != nil {
-			svrCtx.Logger.Error("failed to start out-of-process ABCI server", "err", err)
-			return err
-		}
-
-		// Wait for the calling process to be canceled or close the provided context,
-		// so we can gracefully stop the ABCI server.
-		<-ctx.Done()
-		svrCtx.Logger.Info("stopping the ABCI server...")
-		return svr.Stop()
-	})
-
-	return g.Wait()
-}
-
-func startInProcess[T types.Application](svrCtx *Context, svrCfg serverconfig.Config, clientCtx client.Context, app T,
-	metrics *telemetry.Metrics, opts StartCmdOptions[T],
-) error {
+func startInProcess[T types.Application](svrCtx *Context, app T) error {
 	cmtCfg := svrCtx.Config
-	gRPCOnly := svrCtx.Viper.GetBool(flagGRPCOnly)
 
 	g, ctx := getCtx(svrCtx, true)
 
-	if gRPCOnly {
-		// TODO: Generalize logic so that gRPC only is really in startStandAlone
-		svrCtx.Logger.Info("starting node in gRPC only mode; CometBFT is disabled")
-		svrCfg.GRPC.Enable = true
-	} else {
-		svrCtx.Logger.Info("starting node with ABCI CometBFT in-process")
-		tmNode, cleanupFn, err := startCmtNode(ctx, cmtCfg, app, svrCtx)
-		if err != nil {
-			return err
-		}
-		defer cleanupFn()
-
-		// Add the tx service to the gRPC router. We only need to register this
-		// service if API or gRPC is enabled, and avoid doing so in the general
-		// case, because it spawns a new local CometBFT RPC client.
-		if svrCfg.API.Enable || svrCfg.GRPC.Enable {
-			// Re-assign for making the client available below do not use := to avoid
-			// shadowing the clientCtx variable.
-			clientCtx = clientCtx.WithClient(local.New(tmNode))
-		}
+	svrCtx.Logger.Info("starting node with ABCI CometBFT in-process")
+	_, cleanupFn, err := startCmtNode(ctx, cmtCfg, app, svrCtx)
+	if err != nil {
+		return err
 	}
-
-	// grpcSrv, clientCtx, err := startGrpcServer(ctx, g, svrCfg.GRPC, clientCtx, svrCtx, app)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// err = startAPIServer(ctx, g, svrCfg, clientCtx, svrCtx, app, cmtCfg.RootDir, grpcSrv, metrics)
-	// if err != nil {
-	// 	return err
-	// }
-
-	if opts.PostSetup != nil {
-		if err := opts.PostSetup(app, svrCtx, clientCtx, ctx, g); err != nil {
-			return err
-		}
-	}
+	defer cleanupFn()
 
 	// wait for signal capture and gracefully return
 	// we are guaranteed to be waiting for the "ListenForQuitSignals" goroutine.
@@ -602,13 +494,9 @@ func addStartNodeFlags[T types.Application](cmd *cobra.Command, opts StartCmdOpt
 	cmd.Flags().Uint(FlagRPCWriteTimeout, 0, "Define the CometBFT RPC write timeout (in seconds)")
 	cmd.Flags().Uint(FlagRPCMaxBodyBytes, 1000000, "Define the CometBFT maximum request body (in bytes)")
 	cmd.Flags().Bool(FlagAPIEnableUnsafeCORS, false, "Define if CORS should be enabled (unsafe - use it at your own risk)")
-	cmd.Flags().Bool(flagGRPCOnly, false, "Start the node in gRPC query only mode (no CometBFT process is started)")
-	cmd.Flags().Bool(flagGRPCEnable, true, "Define if the gRPC server should be enabled")
-	cmd.Flags().String(flagGRPCAddress, serverconfig.DefaultGRPCAddress, "the gRPC server address to listen on")
 	cmd.Flags().Uint64(FlagStateSyncSnapshotInterval, 0, "State sync snapshot interval")
 	cmd.Flags().Uint32(FlagStateSyncSnapshotKeepRecent, 2, "State sync snapshot to keep")
 	cmd.Flags().Bool(FlagDisableIAVLFastNode, false, "Disable fast node for IAVL tree")
-	cmd.Flags().Int(FlagMempoolMaxTxs, mempool.DefaultMaxTx, "Sets MaxTx value for the app-side mempool")
 	cmd.Flags().Duration(FlagShutdownGrace, 0*time.Second, "On Shutdown, duration to wait for resource clean up")
 
 	// support old flags name for backwards compatibility
