@@ -31,6 +31,8 @@ import (
 // Broker is responsible for broadcasting all events corresponding to the
 // <eventID> to all registered client channels.
 type Broker[T async.BaseEvent] struct {
+	// eventID is a unique identifier for the event that this broker is
+	// responsible for.
 	eventID async.EventID
 	// subscriptions is a map of subscribed subscriptions.
 	subscriptions map[chan T]struct{}
@@ -55,40 +57,40 @@ func New[T async.BaseEvent](eventID string) *Broker[T] {
 }
 
 // EventID returns the event ID that the broker is responsible for.
-func (p *Broker[T]) EventID() async.EventID {
-	return p.eventID
+func (b *Broker[T]) EventID() async.EventID {
+	return b.eventID
 }
 
 // Start starts the broker loop.
-func (p *Broker[T]) Start(ctx context.Context) {
-	go p.start(ctx)
+func (b *Broker[T]) Start(ctx context.Context) {
+	go b.start(ctx)
 }
 
 // start starts the broker loop.
-func (p *Broker[T]) start(ctx context.Context) {
+func (b *Broker[T]) start(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
 			// close all leftover clients and break the broker loop
-			p.shutdown()
+			b.shutdown()
 			return
-		case msg := <-p.msgs:
+		case msg := <-b.msgs:
 			// broadcast published msg to all clients
-			p.broadcast(msg)
+			b.broadcast(msg)
 		}
 	}
 }
 
 // Publish publishes a msg to all subscribers.
 // Returns ErrTimeout on timeout.
-func (p *Broker[T]) Publish(msg async.BaseEvent) error {
+func (b *Broker[T]) Publish(msg async.BaseEvent) error {
 	typedMsg, err := ensureType[T](msg)
 	if err != nil {
 		return err
 	}
 	ctx := msg.Context()
 	select {
-	case p.msgs <- typedMsg:
+	case b.msgs <- typedMsg:
 		return nil
 	case <-ctx.Done():
 		return ctx.Err()
@@ -99,46 +101,59 @@ func (p *Broker[T]) Publish(msg async.BaseEvent) error {
 // Returns ErrTimeout on timeout.
 // Contract: the channel must be a Subscription[T], where T is the expected
 // type of the event data.
-func (p *Broker[T]) Subscribe(ch any) error {
+func (b *Broker[T]) Subscribe(ch any) error {
 	client, err := ensureType[chan T](ch)
 	if err != nil {
 		return err
 	}
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	p.subscriptions[client] = struct{}{}
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	b.subscriptions[client] = struct{}{}
 	return nil
 }
 
 // Unsubscribe removes a client from the broker.
 // Returns an error if the provided channel is not of type chan T.
-func (p *Broker[T]) Unsubscribe(ch any) error {
+func (b *Broker[T]) Unsubscribe(ch any) error {
 	client, err := ensureType[chan T](ch)
 	if err != nil {
 		return err
 	}
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	delete(p.subscriptions, client)
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	delete(b.subscriptions, client)
 	close(client)
 	return nil
 }
 
 // broadcast broadcasts a msg to all clients.
-func (p *Broker[T]) broadcast(msg T) {
-	for client := range p.subscriptions {
-		// send msg to client (or discard msg after timeout)
-		select {
-		case client <- msg:
-		case <-time.After(p.timeout):
-		}
+func (b *Broker[T]) broadcast(msg T) {
+	// create separate slice to avoid holding the lock during the entire
+	// broadcast
+	b.mu.Lock()
+	clients := make([]chan T, 0, len(b.subscriptions))
+	for client := range b.subscriptions {
+		clients = append(clients, client)
+	}
+	b.mu.Unlock()
+
+	// launch a goroutine for each client to allow for concurrent notification
+	// attempts, while respecting the timeout for each client individually
+	for _, client := range clients {
+		go func(c chan T) {
+			select {
+			case c <- msg:
+			case <-time.After(b.timeout):
+				// discard msg after timeout
+			}
+		}(client)
 	}
 }
 
 // shutdown closes all leftover clients.
-func (p *Broker[T]) shutdown() {
-	for client := range p.subscriptions {
-		if err := p.Unsubscribe(client); err != nil {
+func (b *Broker[T]) shutdown() {
+	for client := range b.subscriptions {
+		if err := b.Unsubscribe(client); err != nil {
 			panic(err)
 		}
 	}
