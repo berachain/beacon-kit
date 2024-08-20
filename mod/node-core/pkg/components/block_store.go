@@ -23,10 +23,12 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	storev2 "cosmossdk.io/store/v2/db"
+	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
 	blockservice "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/block"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
@@ -72,11 +74,10 @@ type BlockPrunerInput[
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ] struct {
 	depinject.In
-
-	BlockBroker *BlockBroker
-	BlockStore  *BlockStore
-	Config      *config.Config
-	Logger      LoggerT
+	BlockStore *BlockStore
+	Config     *config.Config
+	Dispatcher *dispatcher.Dispatcher
+	Logger     LoggerT
 }
 
 // ProvideBlockPruner provides a block pruner for the depinject framework.
@@ -85,17 +86,25 @@ func ProvideBlockPruner[
 ](
 	in BlockPrunerInput[LoggerT],
 ) (BlockPruner, error) {
-	subCh, err := in.BlockBroker.Subscribe()
-	if err != nil {
-		in.Logger.Error("failed to subscribe to block feed", "err", err)
+	// TODO: provider should not execute any business logic.
+	// create new subscription for finalized blocks.
+	subFinalizedBlocks := make(chan FinalizedBlockEvent)
+	if err := in.Dispatcher.Subscribe(
+		async.BeaconBlockFinalizedEvent, subFinalizedBlocks,
+	); err != nil {
+		in.Logger.Error("failed to subscribe to event", "event",
+			async.BeaconBlockFinalizedEvent, "err", err)
 		return nil, err
 	}
 
-	return pruner.NewPruner[*BeaconBlock, *BlockStore](
+	return pruner.NewPruner[
+		*BeaconBlock,
+		*BlockStore,
+	](
 		in.Logger.With("service", manager.BlockPrunerName),
 		in.BlockStore,
 		manager.BlockPrunerName,
-		subCh,
+		subFinalizedBlocks,
 		blockservice.BuildPruneRangeFn[*BeaconBlock](
 			in.Config.BlockStoreService,
 		),

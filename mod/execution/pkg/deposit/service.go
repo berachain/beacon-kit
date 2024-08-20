@@ -23,8 +23,9 @@ package deposit
 import (
 	"context"
 
-	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	async "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
+	async1 "github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -44,8 +45,10 @@ type Service[
 	dc Contract[DepositT]
 	// ds is the deposit store that stores deposits.
 	ds Store[DepositT]
-	// feed is the block feed that provides block events.
-	feed chan *asynctypes.Event[BeaconBlockT]
+	// dispatcher is the dispatcher for the service.
+	dispatcher async.EventDispatcher
+	// subFinalizedBlockEvents is the channel that provides finalized block events.
+	subFinalizedBlockEvents chan async1.Event[BeaconBlockT]
 	// metrics is the metrics for the deposit service.
 	metrics *metrics
 	// failedBlocks is a map of blocks that failed to be processed to be
@@ -66,7 +69,7 @@ func NewService[
 	telemetrySink TelemetrySink,
 	ds Store[DepositT],
 	dc Contract[DepositT],
-	feed chan *asynctypes.Event[BeaconBlockT],
+	dispatcher async.EventDispatcher,
 ) *Service[
 	BeaconBlockT, BeaconBlockBodyT, DepositT,
 	ExecutionPayloadT, WithdrawalCredentialsT,
@@ -75,13 +78,14 @@ func NewService[
 		BeaconBlockT, BeaconBlockBodyT, DepositT,
 		ExecutionPayloadT, WithdrawalCredentialsT,
 	]{
-		feed:               feed,
-		logger:             logger,
-		eth1FollowDistance: eth1FollowDistance,
-		metrics:            newMetrics(telemetrySink),
-		dc:                 dc,
-		ds:                 ds,
-		failedBlocks:       make(map[math.Slot]struct{}),
+		dc:                      dc,
+		dispatcher:              dispatcher,
+		ds:                      ds,
+		eth1FollowDistance:      eth1FollowDistance,
+		failedBlocks:            make(map[math.Slot]struct{}),
+		subFinalizedBlockEvents: make(chan async1.Event[BeaconBlockT]),
+		logger:                  logger,
+		metrics:                 newMetrics(telemetrySink),
 	}
 }
 
@@ -89,9 +93,33 @@ func NewService[
 func (s *Service[
 	_, _, _, _, _,
 ]) Start(ctx context.Context) error {
-	go s.depositFetcher(ctx)
+	if err := s.dispatcher.Subscribe(
+		async1.BeaconBlockFinalizedEvent, s.subFinalizedBlockEvents,
+	); err != nil {
+		s.logger.Error("failed to subscribe to event", "event",
+			async1.BeaconBlockFinalizedEvent, "err", err)
+		return err
+	}
+
+	// Listen for finalized block events and fetch deposits for the block.
+	go s.eventLoop(ctx)
+
+	// Catchup deposits for failed blocks.
 	go s.depositCatchupFetcher(ctx)
 	return nil
+}
+
+func (s *Service[
+	_, _, _, _, _,
+]) eventLoop(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case event := <-s.subFinalizedBlockEvents:
+			s.depositFetcher(ctx, event)
+		}
+	}
 }
 
 // Name returns the name of the service.

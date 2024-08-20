@@ -22,46 +22,31 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
+	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// DepositServiceIn is the input for the deposit service.
-type DepositServiceIn[
+// DispatcherInput is the input for the Dispatcher.
+type DispatcherInput[
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ] struct {
 	depinject.In
-	BeaconDepositContract *DepositContract
-	ChainSpec             common.ChainSpec
-	DepositStore          *DepositStore
-	Dispatcher            *Dispatcher
-	EngineClient          *EngineClient
-	Logger                LoggerT
-	TelemetrySink         *metrics.TelemetrySink
+	Logger     LoggerT
+	Publishers []asynctypes.Broker
 }
 
-// ProvideDepositService provides the deposit service to the depinject
-// framework.
-func ProvideDepositService[
+// ProvideDispatcher provides a new Dispatcher.
+func ProvideDispatcher[
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ](
-	in DepositServiceIn[LoggerT],
-) (*DepositService, error) {
-	// Build the deposit service.
-	return deposit.NewService[
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*Deposit,
-		*ExecutionPayload,
-	](
-		in.Logger.With("service", "deposit"),
-		math.U64(in.ChainSpec.Eth1FollowDistance()),
-		in.TelemetrySink,
-		in.DepositStore,
-		in.BeaconDepositContract,
-		in.Dispatcher,
-	), nil
+	in DispatcherInput[LoggerT],
+) (*Dispatcher, error) {
+	d := dispatcher.New(
+		in.Logger.With("service", "dispatcher"),
+	)
+	if err := d.RegisterBrokers(in.Publishers...); err != nil {
+		return nil, err
+	}
+	return d, nil
 }
