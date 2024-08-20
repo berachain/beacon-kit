@@ -1,5 +1,6 @@
 JWT_FILEPATH = "/testing/sync-network/network/jwt-secret.hex"
 GENESIS_FILEPATH = "/testing/sync-network/network/80084/genesis.json"
+ENGINE_RPC_PORT_NUM = 8551
 
 def upload_global_files(plan, node_modules):
     genesis_file = plan.upload_files(

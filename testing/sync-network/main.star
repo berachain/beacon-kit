@@ -1,37 +1,14 @@
 shared_utils = import_module("github.com/ethpandaops/ethereum-package/src/shared_utils/shared_utils.star")
 builtins = import_module("./builtins.star")
 execution = import_module("./nodes/execution/execution.star")
+beacond = import_module("./nodes/consensus/beacond/launcher.star")
 
-COMETBFT_RPC_PORT_NUM = 26657
-COMETBFT_P2P_PORT_NUM = 26656
-COMETBFT_REST_PORT_NUM = 1317
-COMETBFT_PPROF_PORT_NUM = 6060
-METRICS_PORT_NUM = 26660
-
-# Port IDs
-COMETBFT_RPC_PORT_ID = "cometbft-rpc"
-COMETBFT_P2P_PORT_ID = "cometbft-p2p"
-COMETBFT_GRPC_PORT_ID = "cometbft-grpc"
-COMETBFT_REST_PORT_ID = "cometbft-rest"
-COMETBFT_PPROF_PORT_ID = "cometbft-pprof"
-ENGINE_RPC_PORT_ID = "engine-rpc"
-METRICS_PORT_ID = "metrics"
-METRICS_PATH = "/metrics"
 RPC_PORT_NUM = 8545
 ENGINE_RPC_PORT_NUM = 8551
 PUBLIC_RPC_PORT_NUM = 8547
 DEFAULT_PRIVATE_IP_ADDRESS_PLACEHOLDER = "KURTOSIS_IP_ADDR_PLACEHOLDER"
 DEFAULT_MAX_CPU = 2000  # 2 cores
 DEFAULT_MAX_MEMORY = 2048  # 2 GB
-
-USED_PORTS = {
-    COMETBFT_RPC_PORT_ID: shared_utils.new_port_spec(COMETBFT_RPC_PORT_NUM, shared_utils.TCP_PROTOCOL),
-    COMETBFT_P2P_PORT_ID: shared_utils.new_port_spec(COMETBFT_P2P_PORT_NUM, shared_utils.TCP_PROTOCOL),
-    COMETBFT_REST_PORT_ID: shared_utils.new_port_spec(COMETBFT_REST_PORT_NUM, shared_utils.TCP_PROTOCOL),
-    COMETBFT_PPROF_PORT_ID: shared_utils.new_port_spec(COMETBFT_PPROF_PORT_NUM, shared_utils.TCP_PROTOCOL),
-    # ENGINE_RPC_PORT_ID: shared_utils.new_port_spec(ENGINE_RPC_PORT_NUM, shared_utils.TCP_PROTOCOL),
-    METRICS_PORT_ID: shared_utils.new_port_spec(METRICS_PORT_NUM, shared_utils.TCP_PROTOCOL, wait = None),
-}
 
 JWT_FILEPATH = "/testing/sync-network/network/jwt-secret.hex"
 GENESIS_FILEPATH = "/testing/sync-network/network/80084/genesis.json"
@@ -46,132 +23,12 @@ def run(plan, network = {}, nodes = [], node_settings = {}):
     #     name = "genesis",
     # )
 
-    # start_cl_nodes(plan, node_settings, jwt_file, genesis_file)
-
     start_el_nodes(plan, nodes, node_settings)
-
-def start_cl_nodes(plan, node_settings, jwt_file):
-    plan.print("starting nodes")
-    beacond_config = create_node_config(plan, node_settings, jwt_file)
-    plan.print("beacond_config", str(beacond_config))
-    plan.add_service(name = "beacond", config = beacond_config)
-
-def create_node_config(plan, node_settings, jwt_file = None, genesis_file = None):
-    # engine_dial_url = "http://{}:{}".format(paired_el_client_name, execution.ENGINE_RPC_PORT_NUM)
-    cmd = start(plan)
-    plan.print("cmd", cmd)
-
-    beacond_config = get_config(
-        plan,
-        node_settings,
-        entrypoint = ["bash", "-c"],
-        cmd = [cmd],
-        jwt_file = jwt_file,
-        genesis_file = genesis_file,
-    )
-    plan.print(beacond_config)
-
-    return beacond_config
-
-def start(plan):
-    mv_genesis = "mv root/.tmp_genesis/eth-genesis.json /root/.beacond/config/genesis.json"
-
-    start_node = "CHAIN_SPEC=testnet /usr/bin/beacond start \
-    --beacon-kit.engine.jwt-secret-path=/root/jwt/jwt-secret.hex \
-    --beacon-kit.kzg.implementation={} \
-    --api.enable --api.enabled-unsafe-cors --minimum-gas-prices {}".format(
-        "crate-crypto/go-kzg-4844",
-        "$BEACOND_MINIMUM_GAS_PRICE",
-    )
-
-    # --beacon-kit.engine.rpc-dial-url {}  BEACOND_ENGINE_DIAL_URL\
-    #    --rpc.laddr tcp://0.0.0.0:26657 --api.address tcp://0.0.0.0:1317
-    # return "{} && {}".format(mv_genesis, start_node)
-    return "{}".format(start_node)
-
-def get_config(plan, node_settings, entrypoint = [], cmd = [], jwt_file = None, genesis_file = None):
-    app_file = plan.upload_files(
-        src = "/testing/sync-network/network/80084/app.toml",
-        name = "app_file",
-    )
-
-    client_file = plan.upload_files(
-        src = "/testing/sync-network/network/80084/client.toml",
-        name = "client_file",
-    )
-
-    config_file = plan.upload_files(
-        src = "/testing/sync-network/network/80084/config.toml",
-        name = "config_file",
-    )
-
-    genesis_file = plan.upload_files(
-        src = "/testing/sync-network/network/80084/genesis.json",
-        name = "genesis_file",
-    )
-
-    # network_files = plan.upload_files(
-    #     src = "/testing/sync-network/network/80084/",
-    #     name = "files",
-    # )
-
-    files = {}
-    if jwt_file:
-        plan.print("jwt file present")
-        files["/root/jwt"] = jwt_file
-    if genesis_file:
-        plan.print("genesis file present")
-        files["/root/.beacond/config"] = genesis_file
-
-    files["/root/.beacond/config"] = app_file
-    files["/root/.beacond/config"] = config_file
-    files["/root/.beacond/config"] = client_file
-
-    settings = node_settings["consensus_settings"]
-
-    config = ServiceConfig(
-        image = settings["images"]["beaconkit"],
-        files = files,
-        entrypoint = entrypoint,
-        cmd = cmd,
-        min_cpu = settings["specs"]["min_cpu"],
-        max_cpu = settings["specs"]["max_cpu"],
-        min_memory = settings["specs"]["min_memory"],
-        max_memory = settings["specs"]["max_memory"],
-        env_vars = {
-            "BEACOND_MONIKER": "test",
-            "BEACOND_NET": "VALUE_2",
-            "BEACOND_HOME": "/root/.beacond",
-            "BEACOND_CHAIN_ID": "bartio-beacon-80084",
-            "BEACOND_DEBUG": "false",
-            "BEACOND_KEYRING_BACKEND": "test",
-            "BEACOND_MINIMUM_GAS_PRICE": "0abgt",
-            "BEACOND_ETH_CHAIN_ID": "80084",
-            "BEACOND_ENABLE_PROMETHEUS": "true",
-            "BEACOND_CONSENSUS_KEY_ALGO": "bls12_381",
-        },
-        ports = USED_PORTS,
-        #     labels = node_labels,
-        #     node_selectors = settings.node_selectors,
-    )
-
-    return config
-
-# def get_peer_info(plan, cl_service_name):
-#     peer_result = exec_on_service(plan, cl_service_name, "/usr/bin/beacond comet show-node-id --home $BEACOND_HOME | tr -d '\n'")
-#     return peer_result["output"]
-
-# def exec_on_service(plan, service_name, command):
-#     return plan.exec(
-#         service_name = service_name,
-#         recipe = ExecRecipe(
-#             command = ["bash", "-c", command],
-#         ),
-#     )
 
 def start_el_nodes(plan, nodes, node_settings):
     node_modules = {}
     full_node_el_client_configs = []
+    full_node_configs = {}
     for node in nodes:
         eth_type = node["el_type"]
         plan.print("node", str(eth_type))
@@ -189,6 +46,21 @@ def start_el_nodes(plan, nodes, node_settings):
     if full_node_el_client_configs != []:
         full_node_el_clients = deploy_nodes(plan, full_node_el_client_configs)
 
+    for n, full in enumerate(nodes):
+        # 5b. Launch CL
+        el_service_name = "el-{}-{}".format(full["el_type"], n)
+        cl_service_name = "cl-{}-{}".format("consensus", n)
+
+        plan.print("el_service_name", el_service_name)
+        full_node_config = beacond.create_node_config(plan, full, node_settings, el_service_name, jwt_file)
+        full_node_configs[cl_service_name] = full_node_config
+
+    plan.print("full_node_configs", str(full_node_configs))
+    if full_node_configs != {}:
+        services = plan.add_services(
+            configs = full_node_configs,
+        )
+
 #### execution method helpers
 def generate_node_config(plan, node_modules, node_struct, node_settings):
     node_module = node_modules[node_struct["el_type"]]
@@ -203,9 +75,6 @@ def generate_node_config(plan, node_modules, node_struct, node_settings):
 # Because structs are immutable, we pass around a map to allow full modification up until we create the final ServiceConfig
 def get_default_service_config(plan, node_struct, node_settings, node_module):
     settings = node_settings["execution_settings"]
-
-    plan.print("settings", str(settings))
-    plan.print("settings", str(settings["images"][node_struct["el_type"]]))
 
     # Define common parameters
     common_params = {
