@@ -88,7 +88,10 @@ func ProvideNodeAPINodeHandler() *NodeAPIHandler {
 }
 
 func ProvideNodeAPIProofHandler(b *NodeAPIBackend) *ProofAPIHandler {
-	return proofapi.NewHandler[NodeAPIContext](b)
+	return proofapi.NewHandler[
+		*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
+		NodeAPIContext, *ExecutionPayloadHeader, *Validator,
+	](b)
 }
 
 func DefaultNodeAPIHandlers() []any {

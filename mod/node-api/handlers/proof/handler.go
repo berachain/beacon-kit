@@ -30,12 +30,12 @@ import (
 
 // Handler is the handler for the proof API.
 type Handler[
-	ContextT context.Context,
 	BeaconBlockHeaderT types.BeaconBlockHeader,
 	BeaconStateT types.BeaconState[
 		BeaconStateMarshallableT, ExecutionPayloadHeaderT, ValidatorT,
 	],
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
+	ContextT context.Context,
 	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
 	ValidatorT types.Validator,
 ] struct {
@@ -45,23 +45,23 @@ type Handler[
 
 // NewHandler creates a new handler for the proof API.
 func NewHandler[
-	ContextT context.Context,
 	BeaconBlockHeaderT types.BeaconBlockHeader,
 	BeaconStateT types.BeaconState[
 		BeaconStateMarshallableT, ExecutionPayloadHeaderT, ValidatorT,
 	],
 	BeaconStateMarshallableT types.BeaconStateMarshallable,
+	ContextT context.Context,
 	ExecutionPayloadHeaderT types.ExecutionPayloadHeader,
 	ValidatorT types.Validator,
 ](
 	backend Backend[BeaconBlockHeaderT, BeaconStateT, ValidatorT],
 ) *Handler[
-	ContextT, BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT,
-	ExecutionPayloadHeaderT, ValidatorT,
+	BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT,
+	ContextT, ExecutionPayloadHeaderT, ValidatorT,
 ] {
 	h := &Handler[
-		ContextT, BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT,
-		ExecutionPayloadHeaderT, ValidatorT,
+		BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT,
+		ContextT, ExecutionPayloadHeaderT, ValidatorT,
 	]{
 		BaseHandler: handlers.NewBaseHandler(
 			handlers.NewRouteSet[ContextT](""),
@@ -74,7 +74,7 @@ func NewHandler[
 // Get the slot from the given input of execution id, beacon state, and beacon
 // block header for the resolved slot.
 func (h *Handler[
-	ContextT, BeaconBlockHeaderT, BeaconStateT, _, _, _,
+	BeaconBlockHeaderT, BeaconStateT, _, _, _, _,
 ]) resolveExecutionID(executionID string) (
 	math.Slot, BeaconStateT, BeaconBlockHeaderT, error,
 ) {

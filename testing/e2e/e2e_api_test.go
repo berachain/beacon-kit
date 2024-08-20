@@ -18,31 +18,33 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package builder
+package e2e_test
 
 import (
-	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
-	cmtcfg "github.com/cometbft/cometbft/config"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/spf13/cobra"
+	beaconapi "github.com/attestantio/go-eth2-client/api"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/testing/e2e/config"
 )
 
-// rootCmdSetup is a function that sets up the root command.
-type rootCmdSetup[T types.Node] func(
-	cmd *cmdlib.Root,
-	mm *runtime.App,
-	appCreator servertypes.AppCreator[T],
-	chainSpec common.ChainSpec,
-)
+// TestBeaconAPISuite tests that the api test suite is setup correctly with a
+// working beacon node-api client.
+func (s *BeaconKitE2ESuite) TestBeaconAPIStartup() {
+	// Wait for execution block 5.
+	err := s.WaitForFinalizedBlockNumber(5)
+	s.Require().NoError(err)
 
-// runHandler is a function that sets up run handlers for the root command.
-// It takes in custom configs for our app and cometbft.
-type runHandler func(
-	cmd *cobra.Command,
-	customAppConfigTemplate string,
-	customAppConfig interface{},
-	cmtConfig *cmtcfg.Config,
-) error
+	// Get the consensus client.
+	client := s.ConsensusClients()[config.DefaultClient]
+	s.Require().NotNil(client)
+
+	// Ensure the state root is not nil.
+	stateRootResp, err := client.BeaconStateRoot(
+		s.Ctx(),
+		&beaconapi.BeaconStateRootOpts{
+			State: utils.StateIDHead,
+		},
+	)
+	s.Require().NoError(err)
+	s.Require().NotEmpty(stateRootResp)
+	s.Require().False(stateRootResp.Data.IsZero())
+}
