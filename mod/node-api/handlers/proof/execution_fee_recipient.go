@@ -30,7 +30,7 @@ import (
 // payload header for the given block id, along with the proof that can be
 // verified against the beacon block root.
 func (h *Handler[
-	ContextT, BeaconBlockHeaderT, _, _, _, _,
+	BeaconBlockHeaderT, _, _, ContextT, _, _,
 ]) GetExecutionFeeRecipient(c ContextT) (any, error) {
 	params, err := utils.BindAndValidate[types.ExecutionFeeRecipientRequest](
 		c, h.Logger(),

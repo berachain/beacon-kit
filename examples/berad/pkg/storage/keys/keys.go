@@ -23,8 +23,6 @@ package keys
 const (
 	WithdrawalQueuePrefix byte = iota
 	RandaoMixPrefix
-	SlashingsPrefix
-	TotalSlashingPrefix
 	ValidatorIndexPrefix
 	BlockRootsPrefix
 	StateRootsPrefix
@@ -36,7 +34,6 @@ const (
 	SlotPrefix
 	BalancesPrefix
 	Eth1BlockHashPrefix
-	Eth1DataPrefix
 	Eth1DepositIndexPrefix
 	LatestExecutionPayloadHeaderPrefix
 	LatestExecutionPayloadVersionPrefix
@@ -50,8 +47,6 @@ const (
 const (
 	WithdrawalQueuePrefixHumanReadable                  = "WithdrawalQueuePrefix"
 	RandaoMixPrefixHumanReadable                        = "RandaoMixPrefix"
-	SlashingsPrefixHumanReadable                        = "SlashingsPrefix"
-	TotalSlashingPrefixHumanReadable                    = "TotalSlashingPrefix"
 	ValidatorIndexPrefixHumanReadable                   = "ValidatorIndexPrefix"
 	BlockRootsPrefixHumanReadable                       = "BlockRootsPrefix"
 	StateRootsPrefixHumanReadable                       = "StateRootsPrefix"
@@ -63,7 +58,6 @@ const (
 	SlotPrefixHumanReadable                             = "SlotPrefix"
 	BalancesPrefixHumanReadable                         = "BalancesPrefix"
 	Eth1BlockHashPrefixHumanReadable                    = "Eth1BlockHashPrefix"
-	Eth1DataPrefixHumanReadable                         = "Eth1DataPrefix"
 	Eth1DepositIndexPrefixHumanReadable                 = "Eth1DepositIndexPrefix"
 	LatestExecutionPayloadHeaderPrefixHumanReadable     = "LatestExecutionPayloadHeaderPrefix"
 	LatestExecutionPayloadVersionPrefixHumanReadable    = "LatestExecutionPayloadVersionPrefix"
