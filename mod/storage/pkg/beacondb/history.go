@@ -21,8 +21,6 @@
 package beacondb
 
 import (
-	"fmt"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )
 
@@ -48,7 +46,6 @@ func (kv *KVStore[
 	if err != nil {
 		return common.Root{}, err
 	}
-	fmt.Printf("********** GetBlockRootAtIndex: i=%d %x\n", index, bz)
 	return common.Root(bz), nil
 }
 

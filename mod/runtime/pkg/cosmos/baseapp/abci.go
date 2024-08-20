@@ -428,7 +428,7 @@ func (app *BaseApp) Commit() (*abci.CommitResponse, error) {
 	header := app.finalizeBlockState.Context().BlockHeader()
 	retainHeight := app.GetBlockRetentionHeight(header.Height)
 
-	rms, ok := app.cms.(*rootmulti.Store)
+	rms, ok := app.cms.CommitMultiStore.(*rootmulti.Store)
 	if ok {
 		rms.SetCommitHeader(header)
 	}

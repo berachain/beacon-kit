@@ -31,6 +31,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
+	storev3 "github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/store"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 	dbm "github.com/cosmos/cosmos-db"
@@ -57,9 +58,9 @@ var _ servertypes.ABCI = (*BaseApp)(nil)
 type BaseApp struct {
 	// initialized on creation
 	logger log.Logger
-	name   string                      // application name from abci.BlockInfo
-	db     dbm.DB                      // common DB backend
-	cms    storetypes.CommitMultiStore // Main (uncached) state
+	name   string                   // application name from abci.BlockInfo
+	db     dbm.DB                   // common DB backend
+	cms    storev3.CommitMultiStore // Main (uncached) state
 
 	initChainer     sdk.InitChainer                                                           // ABCI InitChain handler
 	finalizeBlocker func(context.Context, proto.Message) (transition.ValidatorUpdates, error) // (legacy ABCI) EndBlock handler
@@ -128,15 +129,16 @@ func NewBaseApp(
 	db dbm.DB,
 	options ...func(*BaseApp),
 ) *BaseApp {
+	cmsv1 := store.NewCommitMultiStore(
+		db,
+		logger,
+		storemetrics.NewNoOpMetrics(),
+	)
 	app := &BaseApp{
 		logger: logger.With(log.ModuleKey, "baseapp"),
 		name:   name,
 		db:     db,
-		cms: store.NewCommitMultiStore(
-			db,
-			logger,
-			storemetrics.NewNoOpMetrics(),
-		), // by default we use a no-op metric gather in store
+		cms:    *storev3.NewCommitMultiStore(cmsv1), // by default we use a no-op metric gather in store
 	}
 
 	for _, option := range options {
@@ -157,7 +159,7 @@ func (app *BaseApp) Name() string {
 
 // CommitMultiStore returns the CommitMultiStore of the BaseApp.
 func (app *BaseApp) CommitMultiStore() storetypes.CommitMultiStore {
-	return app.cms
+	return app.cms.CommitMultiStore
 }
 
 // AppVersion returns the application's protocol version.
