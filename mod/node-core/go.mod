@@ -48,7 +48,6 @@ require (
 	github.com/cosmos/cosmos-sdk v0.53.0
 	github.com/crate-crypto/go-kzg-4844 v1.1.0
 	github.com/hashicorp/go-metrics v0.5.3
-	github.com/itsdevbear/comet-bls12-381 v0.0.0-20240413212931-2ae2f204cde7
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cast v1.6.0
 )
