@@ -18,35 +18,23 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package spec
 
 import (
-	"os"
-
-	"github.com/berachain/beacon-kit/mod/config/pkg/spec"
+	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-const (
-	ChainSpecTypeEnvVar = "CHAIN_SPEC"
-	DevnetChainSpecType = "devnet"
-	BetnetChainSpecType = "betnet"
-)
-
-// ProvideChainSpec provides the chain spec based on the environment variable.
-func ProvideChainSpec() common.ChainSpec {
-	// TODO: This is hood as fuck needs to be improved
-	// but for now we ball to get CI unblocked.
-	specType := os.Getenv(ChainSpecTypeEnvVar)
-	var chainSpec common.ChainSpec
-	switch specType {
-	case DevnetChainSpecType:
-		chainSpec = spec.DevnetChainSpec()
-	case BetnetChainSpecType:
-		chainSpec = spec.BetnetChainSpec()
-	default:
-		chainSpec = spec.TestnetChainSpec()
-	}
-
-	return chainSpec
+// BetnetChainSpec is the ChainSpec for the localnet.
+func BetnetChainSpec() chain.Spec[
+	common.DomainType,
+	math.Epoch,
+	common.ExecutionAddress,
+	math.Slot,
+	any,
+] {
+	testnetSpec := BaseSpec()
+	testnetSpec.DepositEth1ChainID = BetnetEth1ChainID
+	return chain.NewChainSpec(testnetSpec)
 }
