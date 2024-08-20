@@ -47,11 +47,13 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
+	v1 "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 
 	// "github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	// "github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	// v1 "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	// sdk "github.com/cosmos/cosmos-sdk/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
 	fastssz "github.com/ferranbt/fastssz"
 )
@@ -317,14 +319,14 @@ type (
 		Prune(start, end uint64) error
 	}
 
-	// 	ConsensusEngine interface {
-	// 		PrepareProposal(
-	// 			ctx sdk.Context, req *v1.PrepareProposalRequest,
-	// 		) (*v1.PrepareProposalResponse, error)
-	// 		ProcessProposal(
-	// 			ctx sdk.Context, req *v1.ProcessProposalRequest,
-	// 		) (*v1.ProcessProposalResponse, error)
-	// 	}
+	ConsensusEngine interface {
+		PrepareProposal(
+			ctx sdk.Context, req *v1.PrepareProposalRequest,
+		) (*v1.PrepareProposalResponse, error)
+		ProcessProposal(
+			ctx sdk.Context, req *v1.ProcessProposalRequest,
+		) (*v1.ProcessProposalResponse, error)
+	}
 
 	// 	// Context defines an interface for managing state transition context.
 	// 	Context[T any] interface {
