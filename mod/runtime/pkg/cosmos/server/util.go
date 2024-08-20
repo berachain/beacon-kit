@@ -295,12 +295,6 @@ func AddCommands[T types.Application](rootCmd *cobra.Command, appCreator types.A
 	)
 }
 
-// AddCommandsWithStartCmdOptions adds server commands with the provided StartCmdOptions.
-// Deprecated: Use AddCommands directly instead.
-func AddCommandsWithStartCmdOptions[T types.Application](rootCmd *cobra.Command, appCreator types.AppCreator[T], opts StartCmdOptions[T]) {
-	AddCommands(rootCmd, appCreator, opts)
-}
-
 // ExternalIP https://stackoverflow.com/questions/23558425/how-do-i-get-the-local-ip-address-in-go
 // TODO there must be a better way to get external IP
 func ExternalIP() (string, error) {
