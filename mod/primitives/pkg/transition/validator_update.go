@@ -32,16 +32,26 @@ type ValidatorUpdates []*ValidatorUpdate
 
 // ValidatorUpdate is a struct that holds the validator update.
 type ValidatorUpdate struct {
-	// Pubkey is the public key of the validator.
+	// Pubkey is the public key of the validator. PubKey identifies
+	// updates, meaning that two validator updates are considered equal
+	// if they refer to the same PubKey
 	Pubkey crypto.BLSPubkey
 	// EffectiveBalance is the effective balance of the validator.
 	EffectiveBalance math.Gwei
 }
 
-// RemoveDuplicates removes duplicate validator updates. We
+// CanonicalSort sorts validator updates in the canonical order.
+// Canonical order requires validators updates being sorted
+// by their PubKey, with no duplicates. In case of duplicates
+// the latest is preferred.
+func (vu ValidatorUpdates) CanonicalSort() ValidatorUpdates {
+	return vu.removeDuplicates().sort()
+}
+
+// removeDuplicates removes duplicate validator updates. We
 // iterate through the list backwards since we want the last
 // update to be the one that is kept.
-func (vu ValidatorUpdates) RemoveDuplicates() ValidatorUpdates {
+func (vu ValidatorUpdates) removeDuplicates() ValidatorUpdates {
 	duplicateCheck := make(map[crypto.BLSPubkey]struct{})
 	j := len(vu) - 1
 	for i := j; i >= 0; i-- {
@@ -56,8 +66,8 @@ func (vu ValidatorUpdates) RemoveDuplicates() ValidatorUpdates {
 	return vu
 }
 
-// Sort sorts the validator updates.
-func (vu ValidatorUpdates) Sort() ValidatorUpdates {
+// sort sorts the validator updates.
+func (vu ValidatorUpdates) sort() ValidatorUpdates {
 	sort.SliceStable(vu, func(i, j int) bool {
 		return string((vu)[i].Pubkey[:]) < string((vu)[j].Pubkey[:])
 	})
