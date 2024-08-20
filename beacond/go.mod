@@ -57,7 +57,7 @@ require (
 	github.com/VictoriaMetrics/fastcache v1.12.2 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/berachain/beacon-kit/mod/async v0.0.0-20240705193247-d464364483df
+	github.com/berachain/beacon-kit/mod/async v0.0.0-20240705193247-d464364483df // indirect
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240718074353-1a991cfeed63
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df // indirect
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240705193247-d464364483df // indirect
