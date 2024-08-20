@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package compare_test
+package quick_test
 
 import (
 	"bytes"
@@ -36,7 +36,7 @@ import (
 	zview "github.com/protolambda/ztyp/view"
 )
 
-var c = quick.Config{MaxCount: 10000}
+var Conf = quick.Config{MaxCount: 10000}
 var hFn = ztree.GetHashFn()
 var spec = zspec.Mainnet
 
@@ -87,7 +87,7 @@ func TestExecutionPayloadHashTreeRootZrnt(t *testing.T) {
 		return bytes.Equal(typeRoot[:], containerRoot[:]) &&
 			bytes.Equal(typeRoot[:], zRoot[:])
 	}
-	if err := quick.Check(f, &c); err != nil {
+	if err := quick.Check(f, &Conf); err != nil {
 		t.Error(err)
 	}
 }
