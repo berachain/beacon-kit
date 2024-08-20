@@ -28,6 +28,10 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
+// TODO: define unique types for each of the query-able IDs (state & block from
+// spec, execution unique to beacon-kit). For each type define validation
+// functions and resolvers to slot number.
+
 // SlotFromStateID returns a slot from the state ID.
 //
 // NOTE: Right now, `stateID` only supports querying by "head" (all of "head",

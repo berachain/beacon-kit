@@ -18,22 +18,33 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package node
+package e2e_test
 
 import (
-	"github.com/berachain/beacon-kit/mod/node-api/handlers"
-	"github.com/berachain/beacon-kit/mod/node-api/server/context"
+	beaconapi "github.com/attestantio/go-eth2-client/api"
+	"github.com/berachain/beacon-kit/mod/node-api/handlers/utils"
+	"github.com/berachain/beacon-kit/testing/e2e/config"
 )
 
-type Handler[ContextT context.Context] struct {
-	*handlers.BaseHandler[ContextT]
-}
+// TestBeaconAPISuite tests that the api test suite is setup correctly with a
+// working beacon node-api client.
+func (s *BeaconKitE2ESuite) TestBeaconAPIStartup() {
+	// Wait for execution block 5.
+	err := s.WaitForFinalizedBlockNumber(5)
+	s.Require().NoError(err)
 
-func NewHandler[ContextT context.Context]() *Handler[ContextT] {
-	h := &Handler[ContextT]{
-		BaseHandler: handlers.NewBaseHandler(
-			handlers.NewRouteSet[ContextT](""),
-		),
-	}
-	return h
+	// Get the consensus client.
+	client := s.ConsensusClients()[config.DefaultClient]
+	s.Require().NotNil(client)
+
+	// Ensure the state root is not nil.
+	stateRootResp, err := client.BeaconStateRoot(
+		s.Ctx(),
+		&beaconapi.BeaconStateRootOpts{
+			State: utils.StateIDHead,
+		},
+	)
+	s.Require().NoError(err)
+	s.Require().NotEmpty(stateRootResp)
+	s.Require().False(stateRootResp.Data.IsZero())
 }

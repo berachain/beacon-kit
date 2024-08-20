@@ -55,7 +55,7 @@ func (b Backend[
 			Index:   index.Unwrap(),
 			Balance: balance.Unwrap(),
 		},
-		Status:    "active", // TODO: fix
+		Status:    "active_ongoing", // TODO: fix
 		Validator: validator,
 	}, nil
 }

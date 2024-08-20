@@ -18,22 +18,16 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package beacondb
+package config
 
-// SetFork sets the fork version for the given epoch.
-func (kv *KVStore[
-	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
-]) SetFork(
-	fork ForkT,
-) error {
-	return kv.fork.Set(kv.ctx, fork)
-}
+// Consensus clients.
+const (
+	DefaultClient   = "cl-validator-beaconkit-0"
+	AlternateClient = "cl-validator-beaconkit-1"
+)
 
-// GetFork gets the fork version for the given epoch.
-func (kv *KVStore[
-	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
-]) GetFork() (ForkT, error) {
-	return kv.fork.Get(kv.ctx)
-}
+// Deposits.
+const (
+	DepositContractAddress = "0x4242424242424242424242424242424242424242"
+	NumDepositsLoad        = 500
+)
