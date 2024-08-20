@@ -56,7 +56,6 @@ var (
 		)
 	}
 
-	//nolint:lll // error messages
 	ErrVerifyBeaconBlockTimeout = func(errTimeout error) error {
 		return errors.Wrapf(errTimeout,
 			"A timeout occurred while waiting for a beacon block to be verified",
