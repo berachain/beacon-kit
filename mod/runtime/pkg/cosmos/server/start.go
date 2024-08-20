@@ -1,7 +1,6 @@
 package server
 
 import (
-	"bufio"
 	"context"
 	"crypto/sha256"
 	"encoding/json"
@@ -10,24 +9,17 @@ import (
 	"net"
 	"os"
 	"runtime/pprof"
-	"strings"
 	"time"
 
 	"github.com/cometbft/cometbft/abci/server"
-	cmtstate "github.com/cometbft/cometbft/api/cometbft/state/v1"
-	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	cmtcfg "github.com/cometbft/cometbft/config"
-	cmtjson "github.com/cometbft/cometbft/libs/json"
 	"github.com/cometbft/cometbft/node"
 	"github.com/cometbft/cometbft/p2p"
 	pvm "github.com/cometbft/cometbft/privval"
 	"github.com/cometbft/cometbft/proxy"
 	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
 	"github.com/cometbft/cometbft/rpc/client/local"
-	sm "github.com/cometbft/cometbft/state"
-	"github.com/cometbft/cometbft/store"
-	cmttypes "github.com/cometbft/cometbft/types"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/hashicorp/go-metrics"
 	"github.com/spf13/cobra"
@@ -572,16 +564,7 @@ func startApp[T types.Application](svrCtx *Context, appCreator types.AppCreator[
 		return app, traceCleanupFn, err
 	}
 
-	if isTestnet, ok := svrCtx.Viper.Get(KeyIsTestnet).(bool); ok && isTestnet {
-		var appPtr *T
-		appPtr, err = testnetify[T](svrCtx, appCreator, db, traceWriter)
-		if err != nil {
-			return app, traceCleanupFn, err
-		}
-		app = *appPtr
-	} else {
-		app = appCreator(svrCtx.Logger, db, traceWriter, svrCtx.Viper)
-	}
+	app = appCreator(svrCtx.Logger, db, traceWriter, svrCtx.Viper)
 
 	cleanupFn = func() {
 		traceCleanupFn()
@@ -590,328 +573,6 @@ func startApp[T types.Application](svrCtx *Context, appCreator types.AppCreator[
 		}
 	}
 	return app, cleanupFn, nil
-}
-
-// InPlaceTestnetCreator utilizes the provided chainID and operatorAddress as well as the local private validator key to
-// control the network represented in the data folder. This is useful to create testnets nearly identical to your
-// mainnet environment.
-func InPlaceTestnetCreator[T types.Application](testnetAppCreator types.AppCreator[T]) *cobra.Command {
-	opts := StartCmdOptions[T]{}
-	if opts.DBOpener == nil {
-		opts.DBOpener = OpenDB
-	}
-
-	if opts.StartCommandHandler == nil {
-		opts.StartCommandHandler = start
-	}
-
-	cmd := &cobra.Command{
-		Use:   "in-place-testnet [newChainID] [newOperatorAddress]",
-		Short: "Create and start a testnet from current local state",
-		Long: `Create and start a testnet from current local state.
-After utilizing this command the network will start. If the network is stopped,
-the normal "start" command should be used. Re-using this command on state that
-has already been modified by this command could result in unexpected behavior.
-
-Additionally, the first block may take up to one minute to be committed, depending
-on how old the block is. For instance, if a snapshot was taken weeks ago and we want
-to turn this into a testnet, it is possible lots of pending state needs to be committed
-(expiring locks, etc.). It is recommended that you should wait for this block to be committed
-before stopping the daemon.
-
-If the --trigger-testnet-upgrade flag is set, the upgrade handler specified by the flag will be run
-on the first block of the testnet.
-
-Regardless of whether the flag is set or not, if any new stores are introduced in the daemon being run,
-those stores will be registered in order to prevent panics. Therefore, you only need to set the flag if
-you want to test the upgrade handler itself.
-`,
-		Example: "in-place-testnet localosmosis osmo12smx2wdlyttvyzvzg54y2vnqwq2qjateuf7thj",
-		Args:    cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			serverCtx := GetServerContextFromCmd(cmd)
-			_, err := GetPruningOptionsFromFlags(serverCtx.Viper)
-			if err != nil {
-				return err
-			}
-
-			clientCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			withCMT, _ := cmd.Flags().GetBool(flagWithComet)
-			if !withCMT {
-				serverCtx.Logger.Info("starting ABCI without CometBFT")
-			}
-
-			newChainID := args[0]
-			newOperatorAddress := args[1]
-
-			skipConfirmation, _ := cmd.Flags().GetBool("skip-confirmation")
-
-			if !skipConfirmation {
-				// Confirmation prompt to prevent accidental modification of state.
-				reader := bufio.NewReader(os.Stdin)
-				fmt.Println("This operation will modify state in your data folder and cannot be undone. Do you want to continue? (y/n)")
-				text, _ := reader.ReadString('\n')
-				response := strings.TrimSpace(strings.ToLower(text))
-				if response != "y" && response != "yes" {
-					fmt.Println("Operation canceled.")
-					return nil
-				}
-			}
-
-			// Set testnet keys to be used by the application.
-			// This is done to prevent changes to existing start API.
-			serverCtx.Viper.Set(KeyIsTestnet, true)
-			serverCtx.Viper.Set(KeyNewChainID, newChainID)
-			serverCtx.Viper.Set(KeyNewOpAddr, newOperatorAddress)
-
-			err = wrapCPUProfile(serverCtx, func() error {
-				return opts.StartCommandHandler(serverCtx, clientCtx, testnetAppCreator, withCMT, opts)
-			})
-
-			serverCtx.Logger.Debug("received quit signal")
-			graceDuration, _ := cmd.Flags().GetDuration(FlagShutdownGrace)
-			if graceDuration > 0 {
-				serverCtx.Logger.Info("graceful shutdown start", FlagShutdownGrace, graceDuration)
-				<-time.After(graceDuration)
-				serverCtx.Logger.Info("graceful shutdown complete")
-			}
-
-			return err
-		},
-	}
-
-	addStartNodeFlags(cmd, opts)
-	cmd.Flags().String(KeyTriggerTestnetUpgrade, "", "If set (example: \"v21\"), triggers the v21 upgrade handler to run on the first block of the testnet")
-	cmd.Flags().Bool("skip-confirmation", false, "Skip the confirmation prompt")
-	return cmd
-}
-
-// testnetify modifies both state and blockStore, allowing the provided operator address and local validator key to control the network
-// that the state in the data folder represents. The chainID of the local genesis file is modified to match the provided chainID.
-func testnetify[T types.Application](ctx *Context, testnetAppCreator types.AppCreator[T], db dbm.DB, traceWriter io.WriteCloser) (*T, error) {
-	config := ctx.Config
-
-	newChainID, ok := ctx.Viper.Get(KeyNewChainID).(string)
-	if !ok {
-		return nil, fmt.Errorf("expected string for key %s", KeyNewChainID)
-	}
-
-	// Modify app genesis chain ID and save to genesis file.
-	genFilePath := config.GenesisFile()
-	appGen, err := genutiltypes.AppGenesisFromFile(genFilePath)
-	if err != nil {
-		return nil, err
-	}
-	appGen.ChainID = newChainID
-	if err := appGen.ValidateAndComplete(); err != nil {
-		return nil, err
-	}
-	if err := appGen.SaveAs(genFilePath); err != nil {
-		return nil, err
-	}
-
-	// Load the comet genesis doc provider.
-	genDocProvider := node.DefaultGenesisDocProviderFunc(config)
-
-	// Initialize blockStore and stateDB.
-	blockStoreDB, err := cmtcfg.DefaultDBProvider(&cmtcfg.DBContext{ID: "blockstore", Config: config})
-	if err != nil {
-		return nil, err
-	}
-	blockStore := store.NewBlockStore(blockStoreDB)
-
-	stateDB, err := cmtcfg.DefaultDBProvider(&cmtcfg.DBContext{ID: "state", Config: config})
-	if err != nil {
-		return nil, err
-	}
-
-	defer blockStore.Close()
-	defer stateDB.Close()
-
-	privValidator := pvm.LoadOrGenFilePV(config.PrivValidatorKeyFile(), config.PrivValidatorStateFile())
-	userPubKey, err := privValidator.GetPubKey()
-	if err != nil {
-		return nil, err
-	}
-	validatorAddress := userPubKey.Address()
-
-	stateStore := sm.NewStore(stateDB, sm.StoreOptions{
-		DiscardABCIResponses: config.Storage.DiscardABCIResponses,
-	})
-
-	state, genDoc, err := node.LoadStateFromDBOrGenesisDocProvider(stateDB, genDocProvider, "")
-	if err != nil {
-		return nil, err
-	}
-
-	ctx.Viper.Set(KeyNewValAddr, validatorAddress)
-	ctx.Viper.Set(KeyUserPubKey, userPubKey)
-	testnetApp := testnetAppCreator(ctx.Logger, db, traceWriter, ctx.Viper)
-
-	// We need to create a temporary proxyApp to get the initial state of the application.
-	// Depending on how the node was stopped, the application height can differ from the blockStore height.
-	// This height difference changes how we go about modifying the state.
-	cmtApp := NewCometABCIWrapper(testnetApp)
-	_, context := getCtx(ctx, true)
-	clientCreator := proxy.NewLocalClientCreator(cmtApp)
-	metrics := node.DefaultMetricsProvider(cmtcfg.DefaultConfig().Instrumentation)
-	_, _, _, _, _, proxyMetrics, _, _ := metrics(genDoc.ChainID) // nolint: dogsled // function from comet
-	proxyApp := proxy.NewAppConns(clientCreator, proxyMetrics)
-	if err := proxyApp.Start(); err != nil {
-		return nil, fmt.Errorf("error starting proxy app connections: %w", err)
-	}
-	res, err := proxyApp.Query().Info(context, proxy.InfoRequest)
-	if err != nil {
-		return nil, fmt.Errorf("error calling Info: %w", err)
-	}
-	err = proxyApp.Stop()
-	if err != nil {
-		return nil, err
-	}
-	appHash := res.LastBlockAppHash
-	appHeight := res.LastBlockHeight
-
-	var block *cmttypes.Block
-	switch {
-	case appHeight == blockStore.Height():
-		block, _ = blockStore.LoadBlock(blockStore.Height())
-		// If the state's last blockstore height does not match the app and blockstore height, we likely stopped with the halt height flag.
-		if state.LastBlockHeight != appHeight {
-			state.LastBlockHeight = appHeight
-			block.AppHash = appHash
-			state.AppHash = appHash
-		} else {
-			// Node was likely stopped via SIGTERM, delete the next block's seen commit
-			err := blockStoreDB.Delete([]byte(fmt.Sprintf("SC:%v", blockStore.Height()+1)))
-			if err != nil {
-				return nil, err
-			}
-		}
-	case blockStore.Height() > state.LastBlockHeight:
-		// This state usually occurs when we gracefully stop the node.
-		err = blockStore.DeleteLatestBlock()
-		if err != nil {
-			return nil, err
-		}
-		block, _ = blockStore.LoadBlock(blockStore.Height())
-	default:
-		// If there is any other state, we just load the block
-		block, _ = blockStore.LoadBlock(blockStore.Height())
-	}
-
-	block.ChainID = newChainID
-	state.ChainID = newChainID
-
-	block.LastBlockID = state.LastBlockID
-	block.LastCommit.BlockID = state.LastBlockID
-
-	// Create a vote from our validator
-	vote := cmttypes.Vote{
-		Type:             cmtproto.PrecommitType,
-		Height:           state.LastBlockHeight,
-		Round:            0,
-		BlockID:          state.LastBlockID,
-		Timestamp:        time.Now(),
-		ValidatorAddress: validatorAddress,
-		ValidatorIndex:   0,
-		Signature:        []byte{},
-	}
-
-	// Sign the vote, and copy the proto changes from the act of signing to the vote itself
-	voteProto := vote.ToProto()
-	err = privValidator.SignVote(newChainID, voteProto, false)
-	if err != nil {
-		return nil, err
-	}
-	vote.Signature = voteProto.Signature
-	vote.Timestamp = voteProto.Timestamp
-
-	// Modify the block's lastCommit to be signed only by our validator
-	block.LastCommit.Signatures[0].ValidatorAddress = validatorAddress
-	block.LastCommit.Signatures[0].Signature = vote.Signature
-	block.LastCommit.Signatures = []cmttypes.CommitSig{block.LastCommit.Signatures[0]}
-
-	// Load the seenCommit of the lastBlockHeight and modify it to be signed from our validator
-	seenCommit := blockStore.LoadSeenCommit(state.LastBlockHeight)
-	seenCommit.BlockID = state.LastBlockID
-	seenCommit.Round = vote.Round
-	seenCommit.Signatures[0].Signature = vote.Signature
-	seenCommit.Signatures[0].ValidatorAddress = validatorAddress
-	seenCommit.Signatures[0].Timestamp = vote.Timestamp
-	seenCommit.Signatures = []cmttypes.CommitSig{seenCommit.Signatures[0]}
-	err = blockStore.SaveSeenCommit(state.LastBlockHeight, seenCommit)
-	if err != nil {
-		return nil, err
-	}
-
-	// Create ValidatorSet struct containing just our valdiator.
-	newVal := &cmttypes.Validator{
-		Address:     validatorAddress,
-		PubKey:      userPubKey,
-		VotingPower: 900000000000000,
-	}
-	newValSet := &cmttypes.ValidatorSet{
-		Validators: []*cmttypes.Validator{newVal},
-		Proposer:   newVal,
-	}
-
-	// Replace all valSets in state to be the valSet with just our validator.
-	state.Validators = newValSet
-	state.LastValidators = newValSet
-	state.NextValidators = newValSet
-	state.LastHeightValidatorsChanged = blockStore.Height()
-
-	err = stateStore.Save(state)
-	if err != nil {
-		return nil, err
-	}
-
-	// Create a ValidatorsInfo struct to store in stateDB.
-	valSet, err := state.Validators.ToProto()
-	if err != nil {
-		return nil, err
-	}
-	valInfo := &cmtstate.ValidatorsInfo{
-		ValidatorSet:      valSet,
-		LastHeightChanged: state.LastBlockHeight,
-	}
-	buf, err := valInfo.Marshal()
-	if err != nil {
-		return nil, err
-	}
-
-	// Modify Validators stateDB entry.
-	err = stateDB.Set([]byte(fmt.Sprintf("validatorsKey:%v", blockStore.Height())), buf)
-	if err != nil {
-		return nil, err
-	}
-
-	// Modify LastValidators stateDB entry.
-	err = stateDB.Set([]byte(fmt.Sprintf("validatorsKey:%v", blockStore.Height()-1)), buf)
-	if err != nil {
-		return nil, err
-	}
-
-	// Modify NextValidators stateDB entry.
-	err = stateDB.Set([]byte(fmt.Sprintf("validatorsKey:%v", blockStore.Height()+1)), buf)
-	if err != nil {
-		return nil, err
-	}
-
-	// Since we modified the chainID, we set the new genesisDoc in the stateDB.
-	b, err := cmtjson.Marshal(genDoc)
-	if err != nil {
-		return nil, err
-	}
-	if err := stateDB.SetSync([]byte("genesisDoc"), b); err != nil {
-		return nil, err
-	}
-
-	return &testnetApp, err
 }
 
 // addStartNodeFlags should be added to any CLI commands that start the network.
