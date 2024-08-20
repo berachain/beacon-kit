@@ -25,19 +25,13 @@ import (
 
 	corectx "cosmossdk.io/core/context"
 	"cosmossdk.io/log"
-	"cosmossdk.io/store"
 	"cosmossdk.io/store/snapshots"
-	snapshottypes "cosmossdk.io/store/snapshots/types"
-	storetypes "cosmossdk.io/store/types"
 
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/config"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/types"
-	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/mempool"
 	"github.com/cosmos/cosmos-sdk/version"
-	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
 
 // ServerContextKey defines the context key used to retrieve a server.Context from
@@ -424,63 +418,6 @@ func openTraceWriter(traceWriterFile string) (w io.WriteCloser, err error) {
 		os.O_WRONLY|os.O_APPEND|os.O_CREATE,
 		0o666,
 	)
-}
-
-// DefaultBaseappOptions returns the default baseapp options provided by the Cosmos SDK
-func DefaultBaseappOptions(appOpts types.AppOptions) []func(*baseapp.BaseApp) {
-	var cache storetypes.MultiStorePersistentCache
-
-	if cast.ToBool(appOpts.Get(FlagInterBlockCache)) {
-		cache = store.NewCommitKVStoreCacheManager()
-	}
-
-	pruningOpts, err := GetPruningOptionsFromFlags(appOpts)
-	if err != nil {
-		panic(err)
-	}
-
-	homeDir := cast.ToString(appOpts.Get(flags.FlagHome))
-	chainID := cast.ToString(appOpts.Get(flags.FlagChainID))
-	if chainID == "" {
-		// fallback to genesis chain-id
-		reader, err := os.Open(filepath.Join(homeDir, "config", "genesis.json"))
-		if err != nil {
-			panic(err)
-		}
-		defer reader.Close()
-
-		chainID, err = genutiltypes.ParseChainIDFromGenesis(reader)
-		if err != nil {
-			panic(fmt.Errorf("failed to parse chain-id from genesis file: %w", err))
-		}
-	}
-
-	snapshotStore, err := GetSnapshotStore(appOpts)
-	if err != nil {
-		panic(err)
-	}
-
-	snapshotOptions := snapshottypes.NewSnapshotOptions(
-		cast.ToUint64(appOpts.Get(FlagStateSyncSnapshotInterval)),
-		cast.ToUint32(appOpts.Get(FlagStateSyncSnapshotKeepRecent)),
-	)
-
-	return []func(*baseapp.BaseApp){
-		baseapp.SetPruning(pruningOpts),
-		baseapp.SetMinGasPrices(cast.ToString(appOpts.Get(FlagMinGasPrices))),
-		baseapp.SetHaltHeight(cast.ToUint64(appOpts.Get(FlagHaltHeight))),
-		baseapp.SetHaltTime(cast.ToUint64(appOpts.Get(FlagHaltTime))),
-		baseapp.SetMinRetainBlocks(cast.ToUint64(appOpts.Get(FlagMinRetainBlocks))),
-		baseapp.SetInterBlockCache(cache),
-		baseapp.SetTrace(cast.ToBool(appOpts.Get(FlagTrace))),
-		baseapp.SetIndexEvents(cast.ToStringSlice(appOpts.Get(FlagIndexEvents))),
-		baseapp.SetSnapshot(snapshotStore, snapshotOptions),
-		baseapp.SetIAVLCacheSize(cast.ToInt(appOpts.Get(FlagIAVLCacheSize))),
-		baseapp.SetIAVLDisableFastNode(cast.ToBool(appOpts.Get(FlagDisableIAVLFastNode))),
-		baseapp.SetMempool(mempool.NoOpMempool{}),
-		baseapp.SetChainID(chainID),
-		baseapp.SetQueryGasLimit(cast.ToUint64(appOpts.Get(FlagQueryGasLimit))),
-	}
 }
 
 func GetSnapshotStore(appOpts types.AppOptions) (*snapshots.Store, error) {
