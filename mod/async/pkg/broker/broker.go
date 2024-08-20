@@ -126,27 +126,16 @@ func (b *Broker[T]) Unsubscribe(ch any) error {
 	return nil
 }
 
-// broadcast broadcasts a msg to all clients.
 func (b *Broker[T]) broadcast(msg T) {
-	// create separate slice to avoid holding the lock during the entire
-	// broadcast
-	b.mu.Lock()
-	clients := make([]chan T, 0, len(b.subscriptions))
 	for client := range b.subscriptions {
-		clients = append(clients, client)
-	}
-	b.mu.Unlock()
-
-	// launch a goroutine for each client to allow for concurrent notification
-	// attempts, while respecting the timeout for each client individually
-	for _, client := range clients {
-		go func(c chan T) {
-			select {
-			case c <- msg:
-			case <-time.After(b.timeout):
-				// discard msg after timeout
-			}
-		}(client)
+		// send msg to client (or discard msg after timeout)
+		// we could consider using a go routine for each client to allow
+		// for concurrent notification attempts, while respecting the timeout
+		// for each client individually
+		select {
+		case client <- msg:
+		case <-time.After(b.timeout):
+		}
 	}
 }
 
