@@ -11,14 +11,10 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/cockroachdb/pebble"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/emicklei/dot"
 )
 
 const devDBPath = "./.tmp/sszdb.db"
-
-// nodeCache is a cache of nodes bytes by gindex.
-type nodeCache map[uint64][]byte
 
 var hashFn = func(b []byte) []byte {
 	h := sha256.Sum256(b)
@@ -27,7 +23,7 @@ var hashFn = func(b []byte) []byte {
 
 type Backend struct {
 	db             *pebble.DB
-	stages         map[uint8]nodeCache
+	stages         map[uint64][]byte
 	zeroHashes     [65][]byte
 	zeroHashLevels map[string]int
 }
@@ -47,7 +43,7 @@ func NewBackend(cfg BackendConfig) (*Backend, error) {
 
 	b := &Backend{
 		db:     db,
-		stages: make(map[uint8]nodeCache),
+		stages: make(map[uint64][]byte),
 	}
 
 	// init zero hashes
@@ -147,61 +143,33 @@ func (d *Backend) save(node *Node, gindex uint64) error {
 	return nil
 }
 
-// TODO: big hacks. properly this db is a replacement for IAVL in store/v1 or a
-// store/v2 state commitment store in order to integrate with SDK lifecycle
-// hooks.  in lieu of this, need to reach into sdk context to find the exec mode
-// (life cycle).
-func (d *Backend) stageID(ctx context.Context) uint8 {
-	const contextlessContext = 77
-	sdkCtx, ok := sdk.TryUnwrapSDKContext(ctx)
-	if !ok {
-		return contextlessContext
-	}
-	return uint8(sdkCtx.ExecMode())
-}
-
-func (d *Backend) getFromStage(ctx context.Context, gindex uint64) []byte {
-	stageID := d.stageID(ctx)
-	branch, ok := d.stages[stageID]
-	if !ok {
-		return nil
-	}
-	return branch[gindex]
-}
-
 // stage queues and caches a node, its descendants, and its ancestors for later
 // commitment to the database.
 func (d *Backend) stage(
-	ctx context.Context, node *Node, gindex uint64,
+	_ context.Context, node *Node, gindex uint64,
 ) error {
-	stageID := d.stageID(ctx)
-	if _, ok := d.stages[stageID]; !ok {
-		d.stages[stageID] = make(nodeCache)
-	}
-	err := d.deepStage(d.stageID(ctx), node, gindex)
+	err := d.deepStage(node, gindex)
 	if err != nil {
 		return err
 	}
-	d.stageToRoot(ctx, gindex)
+	d.stageToRoot(gindex)
 	return nil
 }
 
-//
 //nolint:mnd // there is nothing magic about the number 2
 func (d *Backend) deepStage(
-	stageID uint8,
 	node *Node,
 	gindex uint64,
 ) error {
-	d.stages[stageID][gindex] = node.Value
+	d.stages[gindex] = node.Value
 	switch {
 	case node.Left == nil && node.Right == nil:
 		return nil
 	case node.Left != nil && node.Right != nil:
-		if err := d.deepStage(stageID, node.Left, 2*gindex); err != nil {
+		if err := d.deepStage(node.Left, 2*gindex); err != nil {
 			return err
 		}
-		if err := d.deepStage(stageID, node.Right, 2*gindex+1); err != nil {
+		if err := d.deepStage(node.Right, 2*gindex+1); err != nil {
 			return err
 		}
 	default:
@@ -215,28 +183,22 @@ func (d *Backend) Commit(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	stageID := d.stageID(ctx)
-	stage, ok := d.stages[stageID]
-	if !ok {
-		return nil
-	}
-	for gindex, value := range stage {
+	for gindex, value := range d.stages {
 		key := keyBytes(gindex)
 		if err := d.Set(key, value); err != nil {
 			return err
 		}
 	}
-	d.stages = make(map[uint8]nodeCache)
+	d.stages = make(map[uint64][]byte)
 	return nil
 }
 
-func (d *Backend) Hash(ctx context.Context) ([]byte, error) {
-	stageID := d.stageID(ctx)
-	return d.hash(stageID, 1)
+func (d *Backend) Hash(_ context.Context) ([]byte, error) {
+	return d.hash(1)
 }
 
-func (d *Backend) hash(stageID uint8, gindex uint64) ([]byte, error) {
-	n, found := d.stages[stageID][gindex]
+func (d *Backend) hash(gindex uint64) ([]byte, error) {
+	n, found := d.stages[gindex]
 	if n != nil {
 		return n, nil
 	}
@@ -250,14 +212,14 @@ func (d *Backend) hash(stageID uint8, gindex uint64) ([]byte, error) {
 		}
 	}
 
-	left, err := d.hash(stageID, 2*gindex)
+	left, err := d.hash(2 * gindex)
 	if err != nil {
 		return nil, err
 	}
 	if left == nil {
 		return nil, fmt.Errorf("left node not found at gindex %d", 2*gindex)
 	}
-	right, err := d.hash(stageID, 2*gindex+1)
+	right, err := d.hash(2*gindex + 1)
 	if err != nil {
 		return nil, err
 	}
@@ -265,15 +227,15 @@ func (d *Backend) hash(stageID uint8, gindex uint64) ([]byte, error) {
 		return nil, fmt.Errorf("right node not found at gindex %d", 2*gindex+1)
 	}
 	n = hashFn(append(left, right...))
-	d.stages[stageID][gindex] = n
+	d.stages[gindex] = n
 	return n, nil
 }
 
 // getNode first checks the stage for the node, then the database.
 // return nil if the node does not exist.
 func (d *Backend) getNode(ctx context.Context, gindex uint64) ([]byte, error) {
-	nodeBz := d.getFromStage(ctx, gindex)
-	if nodeBz != nil {
+	nodeBz, ok := d.stages[gindex]
+	if ok {
 		return nodeBz, nil
 	}
 	key := keyBytes(gindex)
@@ -286,8 +248,8 @@ func (d *Backend) mustGetNode(
 	ctx context.Context,
 	gindex uint64,
 ) (*Node, error) {
-	nodeBz := d.getFromStage(ctx, gindex)
-	if nodeBz != nil {
+	nodeBz, ok := d.stages[gindex]
+	if ok {
 		return &Node{Value: nodeBz}, nil
 	}
 
@@ -335,17 +297,13 @@ func (d *Backend) getNodeBytes(
 	return buf.Bytes(), nil
 }
 
-func (d *Backend) stageToRoot(ctx context.Context, gindex uint64) {
-	branchID := d.stageID(ctx)
-	if d.stages[branchID] == nil {
-		d.stages[branchID] = make(nodeCache)
-	}
+func (d *Backend) stageToRoot(gindex uint64) {
 	for gindex > 1 {
 		gindex /= 2
-		if _, ok := d.stages[branchID][gindex]; ok {
+		if _, ok := d.stages[gindex]; ok {
 			break
 		}
-		d.stages[branchID][gindex] = nil
+		d.stages[gindex] = nil
 	}
 }
 

@@ -367,7 +367,6 @@ func (db *SchemaDB) SetBlockRootAtIndex(
 	if index == length {
 		gindex := gidx
 		depth := 0
-		branchID := db.stageID(ctx)
 		for gindex > 1 {
 			if gindex%2 == 0 {
 				sibling, err := db.getNode(ctx, gindex+1)
@@ -379,7 +378,7 @@ func (db *SchemaDB) SetBlockRootAtIndex(
 					// upward traversal can be stopped
 					break
 				}
-				db.stages[branchID][gindex+1] = db.zeroHashes[depth]
+				db.stages[gindex+1] = db.zeroHashes[depth]
 			}
 			depth += 1
 			gindex /= 2
