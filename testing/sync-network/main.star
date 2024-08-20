@@ -1,5 +1,6 @@
 shared_utils = import_module("github.com/ethpandaops/ethereum-package/src/shared_utils/shared_utils.star")
 builtins = import_module("./builtins.star")
+execution = import_module("./nodes/execution/execution.star")
 
 COMETBFT_RPC_PORT_NUM = 26657
 COMETBFT_P2P_PORT_NUM = 26656
@@ -23,7 +24,6 @@ DEFAULT_PRIVATE_IP_ADDRESS_PLACEHOLDER = "KURTOSIS_IP_ADDR_PLACEHOLDER"
 DEFAULT_MAX_CPU = 2000  # 2 cores
 DEFAULT_MAX_MEMORY = 2048  # 2 GB
 
-
 USED_PORTS = {
     COMETBFT_RPC_PORT_ID: shared_utils.new_port_spec(COMETBFT_RPC_PORT_NUM, shared_utils.TCP_PROTOCOL),
     COMETBFT_P2P_PORT_ID: shared_utils.new_port_spec(COMETBFT_P2P_PORT_NUM, shared_utils.TCP_PROTOCOL),
@@ -36,24 +36,23 @@ USED_PORTS = {
 JWT_FILEPATH = "/testing/sync-network/network/jwt-secret.hex"
 GENESIS_FILEPATH = "/testing/sync-network/network/80084/genesis.json"
 
-def run(plan, network = {}, nodes =[], node_settings = {}):
-    jwt_file = plan.upload_files(
-        src = JWT_FILEPATH,
-        name = "jwt_file",
-    )
-    genesis_file = plan.upload_files(
-        src = GENESIS_FILEPATH,
-        name = "genesis",
-    )
+def run(plan, network = {}, nodes = [], node_settings = {}):
+    # jwt_file = plan.upload_files(
+    #     src = JWT_FILEPATH,
+    #     name = "jwt_file",
+    # )
+    # genesis_file = plan.upload_files(
+    #     src = GENESIS_FILEPATH,
+    #     name = "genesis",
+    # )
 
     # start_cl_nodes(plan, node_settings, jwt_file, genesis_file)
-    
-    start_el_nodes(plan, nodes, node_settings, jwt_file, genesis_file)
 
+    start_el_nodes(plan, nodes, node_settings)
 
-def start_cl_nodes(plan, node_settings, jwt_file, genesis_file):
+def start_cl_nodes(plan, node_settings, jwt_file):
     plan.print("starting nodes")
-    beacond_config = create_node_config(plan, node_settings, jwt_file, genesis_file)
+    beacond_config = create_node_config(plan, node_settings, jwt_file)
     plan.print("beacond_config", str(beacond_config))
     plan.add_service(name = "beacond", config = beacond_config)
 
@@ -81,11 +80,12 @@ def start(plan):
     --beacon-kit.engine.jwt-secret-path=/root/jwt/jwt-secret.hex \
     --beacon-kit.kzg.implementation={} \
     --api.enable --api.enabled-unsafe-cors --minimum-gas-prices {}".format(
-        "crate-crypto/go-kzg-4844","$BEACOND_MINIMUM_GAS_PRICE"
-        )
+        "crate-crypto/go-kzg-4844",
+        "$BEACOND_MINIMUM_GAS_PRICE",
+    )
 
     # --beacon-kit.engine.rpc-dial-url {}  BEACOND_ENGINE_DIAL_URL\
-    #    --rpc.laddr tcp://0.0.0.0:26657 --api.address tcp://0.0.0.0:1317 
+    #    --rpc.laddr tcp://0.0.0.0:26657 --api.address tcp://0.0.0.0:1317
     # return "{} && {}".format(mv_genesis, start_node)
     return "{}".format(start_node)
 
@@ -169,27 +169,28 @@ def get_config(plan, node_settings, entrypoint = [], cmd = [], jwt_file = None, 
 #         ),
 #     )
 
-
-def start_el_nodes(plan, nodes, node_settings, jwt_file, genesis_file):
+def start_el_nodes(plan, nodes, node_settings):
     node_modules = {}
     full_node_el_client_configs = []
     for node in nodes:
-            eth_type = node["el_type"]
-            plan.print("node", str(eth_type))
-            node_path = "./nodes/execution/{}/config.star".format(eth_type)
-            plan.print("node_path", node_path)
-            node_module = import_module(node_path)
-            node_modules[eth_type] = node_module
+        eth_type = node["el_type"]
+        plan.print("node", str(eth_type))
+        node_path = "./nodes/execution/{}/config.star".format(eth_type)
+        plan.print("node_path", node_path)
+        node_module = import_module(node_path)
+        node_modules[eth_type] = node_module
+
+    jwt_file = execution.upload_global_files(plan, node_modules)
 
     for n, full in enumerate(nodes):
-        el_client_config = generate_node_config(plan, node_modules, full,node_settings)
+        el_client_config = generate_node_config(plan, node_modules, full, node_settings)
         full_node_el_client_configs.append(el_client_config)
 
     if full_node_el_client_configs != []:
-        full_node_el_clients = deploy_nodes(plan, full_node_el_client_configs, True)
+        full_node_el_clients = deploy_nodes(plan, full_node_el_client_configs)
 
 #### execution method helpers
-def generate_node_config(plan, node_modules, node_struct,node_settings):
+def generate_node_config(plan, node_modules, node_struct, node_settings):
     node_module = node_modules[node_struct["el_type"]]
 
     # 4a. Launch EL
@@ -199,13 +200,13 @@ def generate_node_config(plan, node_modules, node_struct,node_settings):
 
     return el_service_config_dict
 
-
 # Because structs are immutable, we pass around a map to allow full modification up until we create the final ServiceConfig
 def get_default_service_config(plan, node_struct, node_settings, node_module):
     settings = node_settings["execution_settings"]
 
     plan.print("settings", str(settings))
     plan.print("settings", str(settings["images"][node_struct["el_type"]]))
+
     # Define common parameters
     common_params = {
         "name": node_struct["el_type"],
@@ -225,11 +226,13 @@ def get_default_service_config(plan, node_struct, node_settings, node_module):
 
     return sc
 
-def deploy_nodes(plan, configs, is_full_node = True):
+def deploy_nodes(plan, configs):
     service_configs = {}
     for config in configs:
-        service_configs[config["name"]] = create_from_config(config, is_full_node)
+        plan.print("config", str(config))
+        service_configs[config["name"]] = create_from_config(config)
 
+    plan.print("service_configs", str(service_configs))
     return plan.add_services(
         configs = service_configs,
     )
@@ -268,13 +271,13 @@ def create_port_spec(port_spec_dict):
         wait = port_spec_dict["wait"],
     )
 
-def create_from_config(config, is_full_node = False):
+def create_from_config(config):
     validate_service_config_types(config)
 
     return ServiceConfig(
         image = config["image"],
         ports = create_port_specs_from_config(config),
-        public_ports =  {},
+        public_ports = {},
         files = config["files"] if config["files"] else {},
         entrypoint = config["entrypoint"] if config["entrypoint"] else [],
         cmd = [" ".join(config["cmd"])] if config["cmd"] else [],
@@ -405,4 +408,4 @@ def get_service_config_template(
     }
 
     # validate_service_config_types(service_config)
-    return service_config    
+    return service_config
