@@ -93,7 +93,7 @@ func (s *Service[
 
 	go s.sendPostBlockFCU(ctx, st, blk)
 
-	return valUpdates.RemoveDuplicates().Sort(), nil
+	return valUpdates.CanonicalSort(), nil
 }
 
 // executeStateTransition runs the stf.
