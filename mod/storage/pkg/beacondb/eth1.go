@@ -22,13 +22,11 @@ package beacondb
 
 import (
 	"bytes"
-	"context"
 	"crypto/sha256"
 	"errors"
 	"fmt"
 
 	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // GetLatestExecutionPayloadHeader retrieves the latest execution payload
@@ -40,8 +38,9 @@ func (kv *KVStore[
 	ExecutionPayloadHeaderT, error,
 ) {
 	fmt.Printf(
-		"****** GetLatestExecutionPayloadHeader stage=%d\n",
-		debugStageID(kv.ctx),
+		"****** GetLatestExecutionPayloadHeader stage=%d cache_len=%d\n",
+		kv.ctx.Value("exec-mode").(uint8),
+		len(kv.ctx.Value("ssz-cache").(map[uint64][]byte)),
 	)
 	forkVersion, err := kv.latestExecutionPayloadVersion.Get(kv.ctx)
 	if err != nil {
@@ -78,15 +77,6 @@ func (kv *KVStore[
 	return header, nil
 }
 
-func debugStageID(ctx context.Context) uint8 {
-	const contextlessContext = 77
-	sdkCtx, ok := sdk.TryUnwrapSDKContext(ctx)
-	if !ok {
-		return contextlessContext
-	}
-	return uint8(sdkCtx.ExecMode())
-}
-
 // SetLatestExecutionPayloadHeader sets the latest execution payload header in
 // the BeaconStore.
 func (kv *KVStore[
@@ -101,7 +91,7 @@ func (kv *KVStore[
 	}
 	fmt.Printf(
 		"****** SetLatestExecutionPayloadHeader: stage=%d hash=%x\n",
-		debugStageID(kv.ctx),
+		kv.ctx.Value("exec-mode").(uint8),
 		sha256.Sum256(bz),
 	)
 	if err := kv.latestExecutionPayloadVersion.Set(

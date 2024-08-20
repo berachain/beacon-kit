@@ -86,7 +86,8 @@ type BaseApp struct {
 	finalizeBlockState   *state
 
 	// commitHook is called upon Commit. It is used to update the application's consensus state.
-	commitHook func(context.Context) error
+	commitHook   func(context.Context) error
+	cacheFactory func(context.Context) context.Context
 
 	// An inter-block write-through cache provided to the context during the
 	// ABCI
@@ -234,9 +235,12 @@ func (app *BaseApp) setInterBlockCache(
 // multi-store branch, and provided header.
 func (app *BaseApp) setState(mode execMode) {
 	ms := app.cms.CacheMultiStore()
+	sdkCtx := sdk.NewContext(ms, false, app.logger)
+	sdkCtx = sdkCtx.WithValue("ssz-cache", make(map[uint64][]byte))
+	sdkCtx = sdkCtx.WithValue("exec-mode", uint8(mode))
 	baseState := &state{
 		ms:  ms,
-		ctx: sdk.NewContext(ms, false, app.logger),
+		ctx: sdkCtx,
 	}
 
 	switch mode {

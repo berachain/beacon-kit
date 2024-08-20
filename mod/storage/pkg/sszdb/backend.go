@@ -16,6 +16,9 @@ import (
 
 const devDBPath = "./.tmp/sszdb.db"
 
+// nodeCache is a cache of nodes bytes by gindex.
+type nodeCache map[uint64][]byte
+
 var hashFn = func(b []byte) []byte {
 	h := sha256.Sum256(b)
 	return h[:]
@@ -23,7 +26,7 @@ var hashFn = func(b []byte) []byte {
 
 type Backend struct {
 	db             *pebble.DB
-	stages         map[uint64][]byte
+	stages         map[uint8]nodeCache
 	zeroHashes     [65][]byte
 	zeroHashLevels map[string]int
 }
@@ -43,7 +46,7 @@ func NewBackend(cfg BackendConfig) (*Backend, error) {
 
 	b := &Backend{
 		db:     db,
-		stages: make(map[uint64][]byte),
+		stages: make(map[uint8]nodeCache),
 	}
 
 	// init zero hashes
@@ -143,33 +146,61 @@ func (d *Backend) save(node *Node, gindex uint64) error {
 	return nil
 }
 
+// TODO: big hacks. properly this db is a replacement for IAVL in store/v1 or a
+// store/v2 state commitment store in order to integrate with SDK lifecycle
+// hooks.  in lieu of this, need to reach into sdk context to find the exec mode
+// (life cycle).
+func (d *Backend) stageID(ctx context.Context) uint8 {
+	const contextlessContext = 77
+	id := ctx.Value("exec-mode")
+	if id == nil {
+		return contextlessContext
+	}
+	return id.(uint8)
+}
+
+func (d *Backend) getFromStage(ctx context.Context, gindex uint64) []byte {
+	stageID := d.stageID(ctx)
+	branch, ok := d.stages[stageID]
+	if !ok {
+		return nil
+	}
+	return branch[gindex]
+}
+
 // stage queues and caches a node, its descendants, and its ancestors for later
 // commitment to the database.
 func (d *Backend) stage(
-	_ context.Context, node *Node, gindex uint64,
+	ctx context.Context, node *Node, gindex uint64,
 ) error {
-	err := d.deepStage(node, gindex)
+	stageID := d.stageID(ctx)
+	if _, ok := d.stages[stageID]; !ok {
+		d.stages[stageID] = make(nodeCache)
+	}
+	err := d.deepStage(d.stageID(ctx), node, gindex)
 	if err != nil {
 		return err
 	}
-	d.stageToRoot(gindex)
+	d.stageToRoot(ctx, gindex)
 	return nil
 }
 
+//
 //nolint:mnd // there is nothing magic about the number 2
 func (d *Backend) deepStage(
+	stageID uint8,
 	node *Node,
 	gindex uint64,
 ) error {
-	d.stages[gindex] = node.Value
+	d.stages[stageID][gindex] = node.Value
 	switch {
 	case node.Left == nil && node.Right == nil:
 		return nil
 	case node.Left != nil && node.Right != nil:
-		if err := d.deepStage(node.Left, 2*gindex); err != nil {
+		if err := d.deepStage(stageID, node.Left, 2*gindex); err != nil {
 			return err
 		}
-		if err := d.deepStage(node.Right, 2*gindex+1); err != nil {
+		if err := d.deepStage(stageID, node.Right, 2*gindex+1); err != nil {
 			return err
 		}
 	default:
@@ -183,22 +214,28 @@ func (d *Backend) Commit(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	for gindex, value := range d.stages {
+	stageID := d.stageID(ctx)
+	stage, ok := d.stages[stageID]
+	if !ok {
+		return nil
+	}
+	for gindex, value := range stage {
 		key := keyBytes(gindex)
 		if err := d.Set(key, value); err != nil {
 			return err
 		}
 	}
-	d.stages = make(map[uint64][]byte)
+	d.stages = make(map[uint8]nodeCache)
 	return nil
 }
 
-func (d *Backend) Hash(_ context.Context) ([]byte, error) {
-	return d.hash(1)
+func (d *Backend) Hash(ctx context.Context) ([]byte, error) {
+	stageID := d.stageID(ctx)
+	return d.hash(stageID, 1)
 }
 
-func (d *Backend) hash(gindex uint64) ([]byte, error) {
-	n, found := d.stages[gindex]
+func (d *Backend) hash(stageID uint8, gindex uint64) ([]byte, error) {
+	n, found := d.stages[stageID][gindex]
 	if n != nil {
 		return n, nil
 	}
@@ -212,14 +249,14 @@ func (d *Backend) hash(gindex uint64) ([]byte, error) {
 		}
 	}
 
-	left, err := d.hash(2 * gindex)
+	left, err := d.hash(stageID, 2*gindex)
 	if err != nil {
 		return nil, err
 	}
 	if left == nil {
 		return nil, fmt.Errorf("left node not found at gindex %d", 2*gindex)
 	}
-	right, err := d.hash(2*gindex + 1)
+	right, err := d.hash(stageID, 2*gindex+1)
 	if err != nil {
 		return nil, err
 	}
@@ -227,15 +264,15 @@ func (d *Backend) hash(gindex uint64) ([]byte, error) {
 		return nil, fmt.Errorf("right node not found at gindex %d", 2*gindex+1)
 	}
 	n = hashFn(append(left, right...))
-	d.stages[gindex] = n
+	d.stages[stageID][gindex] = n
 	return n, nil
 }
 
 // getNode first checks the stage for the node, then the database.
 // return nil if the node does not exist.
 func (d *Backend) getNode(ctx context.Context, gindex uint64) ([]byte, error) {
-	nodeBz, ok := d.stages[gindex]
-	if ok {
+	nodeBz := d.getFromStage(ctx, gindex)
+	if nodeBz != nil {
 		return nodeBz, nil
 	}
 	key := keyBytes(gindex)
@@ -248,8 +285,8 @@ func (d *Backend) mustGetNode(
 	ctx context.Context,
 	gindex uint64,
 ) (*Node, error) {
-	nodeBz, ok := d.stages[gindex]
-	if ok {
+	nodeBz := d.getFromStage(ctx, gindex)
+	if nodeBz != nil {
 		return &Node{Value: nodeBz}, nil
 	}
 
@@ -297,13 +334,17 @@ func (d *Backend) getNodeBytes(
 	return buf.Bytes(), nil
 }
 
-func (d *Backend) stageToRoot(gindex uint64) {
+func (d *Backend) stageToRoot(ctx context.Context, gindex uint64) {
+	branchID := d.stageID(ctx)
+	if d.stages[branchID] == nil {
+		d.stages[branchID] = make(nodeCache)
+	}
 	for gindex > 1 {
 		gindex /= 2
-		if _, ok := d.stages[gindex]; ok {
+		if _, ok := d.stages[branchID][gindex]; ok {
 			break
 		}
-		d.stages[gindex] = nil
+		d.stages[branchID][gindex] = nil
 	}
 }
 

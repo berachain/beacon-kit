@@ -212,7 +212,10 @@ func (app *BaseApp) PrepareProposal(
 		),
 	)
 
-	app.prepareProposalState.SetContext(app.prepareProposalState.Context())
+	app.prepareProposalState.SetContext(
+		app.prepareProposalState.Context().
+			WithValue("exec-mode", uint8(execModePrepareProposal)),
+	)
 
 	resp, err = app.prepareProposal(app.prepareProposalState.Context(), req)
 	if err != nil {
@@ -281,7 +284,7 @@ func (app *BaseApp) ProcessProposal(
 		app.getContextForProposal(
 			app.processProposalState.Context(),
 			req.Height,
-		),
+		).WithValue("exec-mode", uint8(execModeProcessProposal)),
 	)
 
 	resp, err = app.processProposal(app.processProposalState.Context(), req)
