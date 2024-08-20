@@ -22,8 +22,8 @@ package components
 
 import (
 	"cosmossdk.io/core/appmodule/v2"
-	broker "github.com/berachain/beacon-kit/mod/async/pkg/broker"
-	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
+	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
 	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
@@ -54,6 +54,7 @@ import (
 	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
@@ -312,10 +313,7 @@ type (
 	NodeAPIEngine = echo.Engine
 
 	// NodeAPIServer is a type alias for the node API server.
-	NodeAPIServer = server.Server[
-		NodeAPIContext,
-		*NodeAPIEngine,
-	]
+	NodeAPIServer = server.Server[NodeAPIContext]
 
 	// PayloadAttributes is a type alias for the payload attributes.
 	PayloadAttributes = engineprimitives.PayloadAttributes[*Withdrawal]
@@ -400,51 +398,87 @@ type (
 )
 
 /* -------------------------------------------------------------------------- */
-/*                                   Events                                   */
+/*                                   Messages                                 */
 /* -------------------------------------------------------------------------- */
 
+// Events.
+//
+//nolint:lll // long generic types
 type (
-	// BlockEvent is a type alias for the block event.
-	BlockEvent = asynctypes.Event[*BeaconBlock]
 
-	// GenesisEvent is a type alias for the genesis event.
-	GenesisEvent = asynctypes.Event[*Genesis]
+	// GenesisDataReceivedEvent is a type alias for the genesis data received event.
+	GenesisDataReceivedEvent = async.Event[*Genesis]
 
-	// SidecarEvent is a type alias for the sidecar event.
-	SidecarEvent = asynctypes.Event[*BlobSidecars]
+	// GenesisDataProcessedEvent is a type alias for the genesis data processed event.
+	GenesisDataProcessedEvent = async.Event[transition.ValidatorUpdates]
 
-	// SlotEvent is a type alias for the slot event.
-	SlotEvent = asynctypes.Event[*SlotData]
+	// NewSlotEvent is a type alias for the new slot event.
+	NewSlotEvent = async.Event[*SlotData]
 
-	// StatusEvent is a type alias for the status event.
-	StatusEvent = asynctypes.Event[*service.StatusEvent]
+	// BuiltBeaconBlockEvent is a type alias for the built beacon block event.
+	BuiltBeaconBlockEvent = async.Event[*BeaconBlock]
 
-	// ValidatorUpdateEvent is a type alias for the validator update event.
-	ValidatorUpdateEvent = asynctypes.Event[transition.ValidatorUpdates]
+	// BuiltSidecarsEvent is a type alias for the built sidecars event.
+	BuiltSidecarsEvent = async.Event[*BlobSidecars]
+
+	// BeaconBlockReceivedEvent is a type alias for the beacon block received event.
+	BeaconBlockReceivedEvent = async.Event[*BeaconBlock]
+
+	// SidecarsReceivedEvent is a type alias for the sidecars received event.
+	SidecarsReceivedEvent = async.Event[*BlobSidecars]
+
+	// BeaconBlockVerifiedEvent is a type alias for the beacon block verified event.
+	BeaconBlockVerifiedEvent = async.Event[*BeaconBlock]
+
+	// SidecarsVerifiedEvent is a type alias for the sidecars verified event.
+	SidecarsVerifiedEvent = async.Event[*BlobSidecars]
+
+	// FinalBeaconBlockReceivedEvent is a type alias for the final beacon block received event.
+	FinalBeaconBlockReceivedEvent = async.Event[*BeaconBlock]
+
+	// FinalSidecarsReceivedEvent is a type alias for the final sidecars received event.
+	FinalSidecarsReceivedEvent = async.Event[*BlobSidecars]
+
+	// FinalValidatorUpdatesProcessedEvent is a type alias for the final validator updates processed event.
+	FinalValidatorUpdatesProcessedEvent = async.Event[transition.ValidatorUpdates]
+
+	// FinalizedBlockEvent is a type alias for the block event.
+	FinalizedBlockEvent = async.Event[*BeaconBlock]
+)
+
+// Messages.
+type (
+	// BlockMessage is a type alias for the block message.
+	BlockMessage = async.Event[*BeaconBlock]
+
+	// GenesisMessage is a type alias for the genesis message.
+	GenesisMessage = async.Event[*Genesis]
+
+	// SidecarMessage is a type alias for the sidecar message.
+	SidecarMessage = async.Event[*BlobSidecars]
+
+	// SlotMessage is a type alias for the slot message.
+	SlotMessage = async.Event[*SlotData]
+
+	// StatusMessage is a type alias for the status message.
+	StatusMessage = async.Event[*service.StatusEvent]
 )
 
 /* -------------------------------------------------------------------------- */
-/*                                   Brokers                                  */
+/*                                   Publishers                               */
 /* -------------------------------------------------------------------------- */
 
 type (
-	// GenesisBroker is a type alias for the genesis feed.
-	GenesisBroker = broker.Broker[*GenesisEvent]
+	BeaconBlockFinalizedPublisher = broker.Broker[FinalizedBlockEvent]
+)
 
-	// SidecarsBroker is a type alias for the blob feed.
-	SidecarsBroker = broker.Broker[*SidecarEvent]
+/* -------------------------------------------------------------------------- */
+/*                                   Dispatcher                               */
+/* -------------------------------------------------------------------------- */
 
-	// BlockBroker is a type alias for the block feed.
-	BlockBroker = broker.Broker[*BlockEvent]
-
-	// SlotBroker is a type alias for the slot feed.
-	SlotBroker = broker.Broker[*SlotEvent]
-
-	// StatusBroker is a type alias for the status feed.
-	StatusBroker = broker.Broker[*StatusEvent]
-
-	// ValidatorUpdateBroker is a type alias for the validator update feed.
-	ValidatorUpdateBroker = broker.Broker[*ValidatorUpdateEvent]
+type (
+	// Dispatcher is a type alias for the dispatcher.
+	Dispatcher = dispatcher.Dispatcher
 )
 
 /* -------------------------------------------------------------------------- */
@@ -489,7 +523,7 @@ type (
 
 	// ProofAPIHandler is a type alias for the proof handler.
 	ProofAPIHandler = proofapi.Handler[
-		NodeAPIContext, *BeaconBlockHeader, *BeaconState,
-		*BeaconStateMarshallable, *ExecutionPayloadHeader, *Validator,
+		*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
+		NodeAPIContext, *ExecutionPayloadHeader, *Validator,
 	]
 )

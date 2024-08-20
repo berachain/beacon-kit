@@ -24,8 +24,7 @@ import (
 	"context"
 	"time"
 
-	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
@@ -37,8 +36,8 @@ func (s *Service[
 	ctx context.Context,
 	genesisData GenesisT,
 ) (transition.ValidatorUpdates, error) {
-	return s.sp.InitializePreminedBeaconStateFromEth1(
-		s.sb.StateFromContext(ctx),
+	return s.stateProcessor.InitializePreminedBeaconStateFromEth1(
+		s.storageBackend.StateFromContext(ctx),
 		genesisData.GetDeposits(),
 		genesisData.GetExecutionPayloadHeader(),
 		genesisData.GetForkVersion(),
@@ -63,7 +62,7 @@ func (s *Service[
 	// ends up not being valid later, the node will simply AppHash,
 	// which is completely fine. This means we were syncing from a
 	// bad peer, and we would likely AppHash anyways.
-	st := s.sb.StateFromContext(ctx)
+	st := s.storageBackend.StateFromContext(ctx)
 	valUpdates, err := s.executeStateTransition(ctx, st, blk)
 	if err != nil {
 		return nil, err
@@ -72,7 +71,7 @@ func (s *Service[
 	// If the blobs needed to process the block are not available, we
 	// return an error. It is safe to use the slot off of the beacon block
 	// since it has been verified as correct already.
-	if !s.sb.AvailabilityStore().IsDataAvailable(
+	if !s.storageBackend.AvailabilityStore().IsDataAvailable(
 		ctx, blk.GetSlot(), blk.GetBody(),
 	) {
 		return nil, ErrDataNotAvailable
@@ -83,9 +82,9 @@ func (s *Service[
 	// TODO: this is hood as fuck.
 	// We won't send a fcu if the block is bad, should be addressed
 	// via ticker later.
-	if err = s.blkBroker.Publish(ctx,
-		asynctypes.NewEvent(
-			ctx, events.BeaconBlockFinalized, blk,
+	if err = s.dispatcher.Publish(
+		async.NewEvent(
+			ctx, async.BeaconBlockFinalizedEvent, blk,
 		),
 	); err != nil {
 		return nil, err
@@ -93,7 +92,7 @@ func (s *Service[
 
 	go s.sendPostBlockFCU(ctx, st, blk)
 
-	return valUpdates.RemoveDuplicates().Sort(), nil
+	return valUpdates.CanonicalSort(), nil
 }
 
 // executeStateTransition runs the stf.
@@ -106,7 +105,7 @@ func (s *Service[
 ) (transition.ValidatorUpdates, error) {
 	startTime := time.Now()
 	defer s.metrics.measureStateTransitionDuration(startTime)
-	valUpdates, err := s.sp.Transition(
+	valUpdates, err := s.stateProcessor.Transition(
 		&transition.Context{
 			Context:          ctx,
 			OptimisticEngine: true,

@@ -18,19 +18,14 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package events
+package broker
 
-const (
-	NewSlot                     = "new-slot"
-	BeaconBlockBuilt            = "beacon-block-built"
-	BeaconBlockReceived         = "beacon-block-received"
-	BeaconBlockVerified         = "beacon-block-verified"
-	BeaconBlockFinalizedRequest = "beacon-block-finalized-request"
-	BeaconBlockFinalized        = "beacon-block-finalized"
-	ValidatorSetUpdated         = "validator-set-updated"
-	BlobSidecarsBuilt           = "blob-sidecars-built"
-	BlobSidecarsReceived        = "blob-sidecars-received"
-	BlobSidecarsProcessRequest  = "blob-sidecars-process-request"
-	BlobSidecarsProcessed       = "blob-sidecars-processed"
-	GenesisDataProcessRequest   = "genesis-data-process-request"
-)
+// ensureType ensures that the provided entity is of type T.
+// It returns a typed entity or an error if the type is not correct.
+func ensureType[T any](e any) (T, error) {
+	typedE, ok := e.(T)
+	if !ok {
+		return *new(T), errIncompatibleAssignee(*new(T), e)
+	}
+	return typedE, nil
+}

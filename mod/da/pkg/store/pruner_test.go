@@ -24,9 +24,9 @@ import (
 	"context"
 	"testing"
 
-	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
 	"github.com/berachain/beacon-kit/mod/da/pkg/store"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -118,9 +118,9 @@ func TestBuildPruneRangeFn(t *testing.T) {
 			pruneFn := store.BuildPruneRangeFn[MockBeaconBlock](
 				cs,
 			)
-			event := asynctypes.NewEvent[MockBeaconBlock](
+			event := async.NewEvent[MockBeaconBlock](
 				context.Background(),
-				asynctypes.EventID("mock"),
+				async.EventID("mock"),
 				MockBeaconBlock{
 					slot: tt.eventSlot,
 				},

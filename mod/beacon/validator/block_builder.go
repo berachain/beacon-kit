@@ -36,8 +36,8 @@ import (
 
 // buildBlockAndSidecars builds a new beacon block.
 func (s *Service[
-	AttestationDataT, BeaconBlockT, _, _,
-	BlobSidecarsT, _, _, _, _, _, _, SlashingInfoT, SlotDataT,
+	AttestationDataT, BeaconBlockT, _, _, BlobSidecarsT, _, _, _, _, _, _,
+	SlashingInfoT, SlotDataT,
 ]) buildBlockAndSidecars(
 	ctx context.Context,
 	slotData SlotDataT,
@@ -56,7 +56,7 @@ func (s *Service[
 	// the next finalized block in the chain. A byproduct of this design
 	// is that we get the nice property of lazily propagating the finalized
 	// and safe block hashes to the execution client.
-	st := s.bsb.StateFromContext(ctx)
+	st := s.sb.StateFromContext(ctx)
 
 	// Prepare the state such that it is ready to build a block for
 	// the requested slot
@@ -284,7 +284,7 @@ func (s *Service[
 	}
 
 	// Dequeue deposits from the state.
-	deposits, err := s.bsb.DepositStore().GetDepositsByIndex(
+	deposits, err := s.sb.DepositStore().GetDepositsByIndex(
 		depositIndex,
 		s.chainSpec.MaxDepositsPerBlock(),
 	)

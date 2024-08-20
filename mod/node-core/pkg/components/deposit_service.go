@@ -21,8 +21,6 @@
 package components
 
 import (
-	"errors"
-
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -37,9 +35,9 @@ type DepositServiceIn[
 ] struct {
 	depinject.In
 	BeaconDepositContract *DepositContract
-	BlockBroker           *BlockBroker
 	ChainSpec             common.ChainSpec
 	DepositStore          *DepositStore
+	Dispatcher            *Dispatcher
 	EngineClient          *EngineClient
 	Logger                LoggerT
 	TelemetrySink         *metrics.TelemetrySink
@@ -52,12 +50,6 @@ func ProvideDepositService[
 ](
 	in DepositServiceIn[LoggerT],
 ) (*DepositService, error) {
-	blkSub, err := in.BlockBroker.Subscribe()
-	if err != nil {
-		in.Logger.Error("failed to subscribe to block feed", "err", err)
-		return nil, errors.New("failed to subscribe to block feed")
-	}
-
 	// Build the deposit service.
 	return deposit.NewService[
 		*BeaconBlock,
@@ -70,6 +62,6 @@ func ProvideDepositService[
 		in.TelemetrySink,
 		in.DepositStore,
 		in.BeaconDepositContract,
-		blkSub,
+		in.Dispatcher,
 	), nil
 }

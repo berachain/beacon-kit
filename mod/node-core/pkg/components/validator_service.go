@@ -35,19 +35,17 @@ type ValidatorServiceInput[
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ] struct {
 	depinject.In
-	BeaconBlockFeed *BlockBroker
-	BlobProcessor   *BlobProcessor
-	Cfg             *config.Config
-	ChainSpec       common.ChainSpec
-	LocalBuilder    *LocalBuilder
-	Logger          LoggerT
-	StateProcessor  *StateProcessor
-	StorageBackend  *StorageBackend
-	Signer          crypto.BLSSigner
-	SidecarsFeed    *SidecarsBroker
-	SidecarFactory  *SidecarFactory
-	SlotBroker      *SlotBroker
-	TelemetrySink   *metrics.TelemetrySink
+	BlobProcessor  *BlobProcessor
+	Cfg            *config.Config
+	ChainSpec      common.ChainSpec
+	Dispatcher     *Dispatcher
+	LocalBuilder   *LocalBuilder
+	Logger         LoggerT
+	StateProcessor *StateProcessor
+	StorageBackend *StorageBackend
+	Signer         crypto.BLSSigner
+	SidecarFactory *SidecarFactory
+	TelemetrySink  *metrics.TelemetrySink
 }
 
 // ProvideValidatorService is a depinject provider for the validator service.
@@ -56,11 +54,6 @@ func ProvideValidatorService[
 ](
 	in ValidatorServiceInput[LoggerT],
 ) (*ValidatorService, error) {
-	slotSubscription, err := in.SlotBroker.Subscribe()
-	if err != nil {
-		in.Logger.Error("failed to subscribe to slot feed", "err", err)
-		return nil, err
-	}
 	// Build the builder service.
 	return validator.NewService[
 		*AttestationData,
@@ -89,8 +82,6 @@ func ProvideValidatorService[
 			in.LocalBuilder,
 		},
 		in.TelemetrySink,
-		in.BeaconBlockFeed,
-		in.SidecarsFeed,
-		slotSubscription,
+		in.Dispatcher,
 	), nil
 }
