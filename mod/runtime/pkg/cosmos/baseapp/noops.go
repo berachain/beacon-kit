@@ -24,9 +24,7 @@ import (
 	"context"
 
 	"cosmossdk.io/store/snapshots"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/config"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
-	"github.com/cosmos/cosmos-sdk/client"
 )
 
 // Query implements the ABCI interface. It delegates to CommitMultiStore if it
@@ -98,16 +96,6 @@ func (BaseApp) VerifyVoteExtension(
 ) (*abci.VerifyVoteExtensionResponse, error) {
 	return &abci.VerifyVoteExtensionResponse{}, nil
 }
-
-// RegisterTxService implements the Application.RegisterTxService method.
-func (BaseApp) RegisterTxService(client.Context) {}
-
-// RegisterTendermintService implements the
-// Application.RegisterTendermintService method.
-func (BaseApp) RegisterTendermintService(client.Context) {}
-
-// RegisterNodeService registers the node gRPC service on the app gRPC router.
-func (BaseApp) RegisterNodeService(_ client.Context, _ config.Config) {}
 
 // CheckTx implements the ABCI interface and executes a tx in CheckTx mode. In
 // CheckTx mode, messages are not executed. This means messages are only
