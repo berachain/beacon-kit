@@ -18,17 +18,29 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package middleware
+package dispatcher
 
-import "time"
+import (
+	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
+)
 
-const (
-	// BeaconBlockTxIndex represents the index of the beacon block transaction.
-	// It is the first transaction in the tx list.
-	BeaconBlockTxIndex uint = iota
-	// BlobSidecarsTxIndex represents the index of the blob sidecar transaction.
-	// It follows the beacon block transaction in the tx list.
-	BlobSidecarsTxIndex
-	// AwaitTimeout is the timeout for awaiting events.
-	AwaitTimeout = 2 * time.Second
+//nolint:gochecknoglobals // errors
+var (
+	ErrNotFound       = errors.New("not found")
+	ErrAlreadyExists  = errors.New("already exists")
+	errBrokerNotFound = func(eventID async.EventID) error {
+		return errors.Wrapf(
+			ErrNotFound,
+			"publisher not found for eventID: %s",
+			eventID,
+		)
+	}
+	errBrokerAlreadyExists = func(eventID async.EventID) error {
+		return errors.Wrapf(
+			ErrAlreadyExists,
+			"publisher already exists for eventID: %s",
+			eventID,
+		)
+	}
 )

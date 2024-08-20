@@ -24,9 +24,7 @@ import (
 	"bytes"
 	"testing"
 
-	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
-	"github.com/cosmos/cosmos-sdk/server"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -45,15 +43,6 @@ func BenchmarkPhusluLoggerPrettyInfo(b *testing.B) {
 // Benchmark function for phuslu logger with JSON style.
 func BenchmarkPhusluLoggerJSONInfo(b *testing.B) {
 	logger := newPhusluLogger().WithConfig(configWithJSON("info"))
-	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
-		logger.Info("This is an info message", "key1", "value1", "key2", 2)
-	}
-}
-
-// Benchmark function for SDK logger Info.
-func BenchmarkSDKLoggerInfo(b *testing.B) {
-	logger := newSDKLoggerWithLevel(b, "Info")
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		logger.Info("This is an info message", "key1", "value1", "key2", 2)
@@ -82,15 +71,6 @@ func BenchmarkPhusluLoggerJSONWarn(b *testing.B) {
 	}
 }
 
-// Benchmark function for cosmos logger Warn.
-func BenchmarkSDKLoggerWarn(b *testing.B) {
-	logger := newSDKLoggerWithLevel(b, "Warn")
-	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
-		logger.Warn("This is a warning message", "key1", "value1", "key2", 2)
-	}
-}
-
 /* -------------------------------------------------------------------------- */
 /*                                   Error                                    */
 /* -------------------------------------------------------------------------- */
@@ -107,15 +87,6 @@ func BenchmarkPhusluLoggerPrettyError(b *testing.B) {
 // Benchmark function for phuslu logger with JSON style.
 func BenchmarkPhusluLoggerJSONError(b *testing.B) {
 	logger := newPhusluLogger().WithConfig(configWithJSON("error"))
-	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
-		logger.Error("This is an error message", "key1", "value1", "key2", 2)
-	}
-}
-
-// Benchmark function for cosmos logger Error.
-func BenchmarkSDKLoggerError(b *testing.B) {
-	logger := newSDKLoggerWithLevel(b, "Error")
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		logger.Error("This is an error message", "key1", "value1", "key2", 2)
@@ -160,23 +131,6 @@ func BenchmarkPhusluLoggerJSONDebugSilent(b *testing.B) {
 	}
 }
 
-// Benchmark function for cosmos logger Debug.
-func BenchmarkSDKLoggerDebug(b *testing.B) {
-	logger := newSDKLoggerWithLevel(b, "Debug")
-	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
-		logger.Debug("This is a debug message", "key1", "value1", "key2", 2)
-	}
-}
-
-func BenchmarkSDKLoggerDebugSilent(b *testing.B) {
-	logger := newSDKLoggerWithLevel(b, "Info")
-	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
-		logger.Debug("This is a debug message", "key1", "value1", "key2", 2)
-	}
-}
-
 /* -------------------------------------------------------------------------- */
 /*                                   With                                     */
 /* -------------------------------------------------------------------------- */
@@ -203,32 +157,9 @@ func BenchmarkPhusluLoggerJSONWith(b *testing.B) {
 	}
 }
 
-// Benchmark function for cosmos logger With.
-func BenchmarkSDKLoggerWith(b *testing.B) {
-	logger := newSDKLoggerWithLevel(b, "Debug")
-	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
-		newLogger := logger.With("contextKey", "contextValue")
-		newLogger.Info("This is a contextual info message", "key1", "value1",
-			"key2", 2)
-	}
-}
-
 /* -------------------------------------------------------------------------- */
 /*                                   Helpers                                  */
 /* -------------------------------------------------------------------------- */
-
-// setup func to create a new cosmos logger with the given log level.
-func newSDKLoggerWithLevel(b *testing.B, level string) log.Logger {
-	b.Helper()
-	serverCtx := server.NewDefaultContext()
-	serverCtx.Viper.Set("log_level", level)
-	logger, err := server.CreateSDKLogger(serverCtx, &bytes.Buffer{})
-	if err != nil {
-		b.Fatalf("failed to create cosmos logger: %v", err)
-	}
-	return logger
-}
 
 // setup func to create a new phuslu logger with the given log level.
 func newPhusluLogger() *phuslu.Logger {

@@ -33,14 +33,10 @@ type ABCIMiddlewareInput[
 	LoggerT log.Logger[any],
 ] struct {
 	depinject.In
-	BeaconBlockFeed       *BlockBroker
-	ChainSpec             common.ChainSpec
-	GenesisBroker         *GenesisBroker
-	Logger                LoggerT
-	SidecarsFeed          *SidecarsBroker
-	SlotBroker            *SlotBroker
-	TelemetrySink         *metrics.TelemetrySink
-	ValidatorUpdateBroker *ValidatorUpdateBroker
+	ChainSpec     common.ChainSpec
+	Logger        LoggerT
+	TelemetrySink *metrics.TelemetrySink
+	Dispatcher    *Dispatcher
 }
 
 // ProvideABCIMiddleware is a depinject provider for the validator
@@ -50,20 +46,12 @@ func ProvideABCIMiddleware[
 ](
 	in ABCIMiddlewareInput[LoggerT],
 ) (*ABCIMiddleware, error) {
-	validatorUpdatesSub, err := in.ValidatorUpdateBroker.Subscribe()
-	if err != nil {
-		return nil, err
-	}
 	return middleware.NewABCIMiddleware[
 		*BeaconBlock, *BlobSidecars, *Genesis, *SlotData,
 	](
 		in.ChainSpec,
 		in.Logger,
 		in.TelemetrySink,
-		in.GenesisBroker,
-		in.BeaconBlockFeed,
-		in.SidecarsFeed,
-		in.SlotBroker,
-		validatorUpdatesSub,
+		in.Dispatcher,
 	), nil
 }

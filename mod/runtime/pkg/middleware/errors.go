@@ -20,8 +20,9 @@
 
 package middleware
 
-import "errors"
+import "github.com/berachain/beacon-kit/mod/errors"
 
+//nolint:gochecknoglobals // errors
 var (
 	// ErrUnexpectedEvent is returned when an unexpected event is encountered.
 	ErrUnexpectedEvent = errors.New("unexpected event")
@@ -30,9 +31,46 @@ var (
 	ErrInvalidProcessProposalRequestType = errors.New(
 		"invalid process proposal request type",
 	)
+
 	// ErrInvalidFinalizeBlockRequestType is returned when an invalid
 	// finalize block request type is encountered.
 	ErrInvalidFinalizeBlockRequestType = errors.New(
-		"invalid pre block request type",
+		"invalid finalize block request type",
 	)
+
+	ErrInitGenesisTimeout = func(errTimeout error) error {
+		return errors.Wrapf(errTimeout,
+			"A timeout occurred while waiting for genesis data processing",
+		)
+	}
+
+	ErrBuildBeaconBlockTimeout = func(errTimeout error) error {
+		return errors.Wrapf(errTimeout,
+			"A timeout occurred while waiting for a beacon block to be built",
+		)
+	}
+
+	ErrBuildSidecarsTimeout = func(errTimeout error) error {
+		return errors.Wrapf(errTimeout,
+			"A timeout occurred while waiting for blob sidecars to be built",
+		)
+	}
+
+	ErrVerifyBeaconBlockTimeout = func(errTimeout error) error {
+		return errors.Wrapf(errTimeout,
+			"A timeout occurred while waiting for a beacon block to be verified",
+		)
+	}
+
+	ErrVerifySidecarsTimeout = func(errTimeout error) error {
+		return errors.Wrapf(errTimeout,
+			"A timeout occurred while waiting for blob sidecars to be verified",
+		)
+	}
+
+	ErrFinalValidatorUpdatesTimeout = func(errTimeout error) error {
+		return errors.Wrapf(errTimeout,
+			"A timeout occurred while waiting for final validator updates",
+		)
+	}
 )

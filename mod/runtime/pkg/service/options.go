@@ -20,7 +20,9 @@
 
 package service
 
-import "github.com/berachain/beacon-kit/mod/log"
+import (
+	"github.com/berachain/beacon-kit/mod/log"
+)
 
 // RegistryOption is a functional option for the Registry.
 type RegistryOption func(*Registry) error
