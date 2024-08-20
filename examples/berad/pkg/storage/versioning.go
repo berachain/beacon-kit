@@ -67,3 +67,21 @@ func (kv *KVStore[
 ) error {
 	return kv.slot.Set(kv.ctx, slot.Unwrap())
 }
+
+// SetFork sets the fork version for the given epoch.
+func (kv *KVStore[
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
+]) SetFork(
+	fork ForkT,
+) error {
+	return kv.fork.Set(kv.ctx, fork)
+}
+
+// GetFork gets the fork version for the given epoch.
+func (kv *KVStore[
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT,
+]) GetFork() (ForkT, error) {
+	return kv.fork.Get(kv.ctx)
+}
