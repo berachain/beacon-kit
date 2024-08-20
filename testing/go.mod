@@ -14,7 +14,7 @@ require (
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240806094948-2c4293ef36c4
 	github.com/ethereum/go-ethereum v1.14.7
 	github.com/holiman/uint256 v1.3.1
-	github.com/kurtosis-tech/kurtosis/api/golang v1.0.0
+	github.com/kurtosis-tech/kurtosis/api/golang v1.1.0
 	github.com/protolambda/zrnt v0.32.2
 	github.com/protolambda/ztyp v0.2.2
 	github.com/rs/zerolog v1.33.0
