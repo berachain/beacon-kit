@@ -117,8 +117,9 @@ func verifyExecutionNumberInBlock(
 	); err != nil {
 		return common.Root{}, err
 	} else if !beaconRootVerified {
-		return common.Root{}, errors.Newf(
-			"proof failed to verify against beacon root: 0x%x", beaconRoot[:],
+		return common.Root{}, errors.Wrapf(
+			errors.New("proof failed to verify against beacon root"),
+			"beacon root: 0x%x", beaconRoot[:],
 		)
 	}
 

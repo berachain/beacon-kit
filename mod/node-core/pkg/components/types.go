@@ -71,11 +71,8 @@ import (
 type (
 	// ABCIMiddleware is a type alias for the ABCIMiddleware.
 	ABCIMiddleware = middleware.ABCIMiddleware[
-		*AvailabilityStore,
 		*BeaconBlock,
 		*BlobSidecars,
-		*Deposit,
-		*ExecutionPayload,
 		*Genesis,
 		*SlotData,
 	]
@@ -166,7 +163,6 @@ type (
 		*ExecutionPayloadHeader,
 		*Genesis,
 		*PayloadAttributes,
-		*Withdrawal,
 	]
 
 	// ConsensusEngine is a type alias for the consensus engine.
@@ -192,10 +188,7 @@ type (
 	// DAService is a type alias for the DA service.
 	DAService = da.Service[
 		*AvailabilityStore,
-		*BeaconBlockBody,
 		*BlobSidecars,
-		*SidecarsBroker,
-		*ExecutionPayload,
 	]
 
 	// DBManager is a type alias for the database manager.
@@ -214,7 +207,6 @@ type (
 	DepositService = deposit.Service[
 		*BeaconBlock,
 		*BeaconBlockBody,
-		*BlockEvent,
 		*Deposit,
 		*ExecutionPayload,
 		WithdrawalCredentials,
@@ -320,10 +312,7 @@ type (
 	NodeAPIEngine = echo.Engine
 
 	// NodeAPIServer is a type alias for the node API server.
-	NodeAPIServer = server.Server[
-		NodeAPIContext,
-		*NodeAPIEngine,
-	]
+	NodeAPIServer = server.Server[NodeAPIContext]
 
 	// PayloadAttributes is a type alias for the payload attributes.
 	PayloadAttributes = engineprimitives.PayloadAttributes[*Withdrawal]
@@ -338,6 +327,7 @@ type (
 	SidecarFactory = dablob.SidecarFactory[
 		*BeaconBlock,
 		*BeaconBlockBody,
+		*BeaconBlockHeader,
 	]
 
 	// SlashingInfo is a type alias for the slashing info.
@@ -367,23 +357,10 @@ type (
 	// StorageBackend is the type alias for the storage backend interface.
 	StorageBackend = storage.Backend[
 		*AvailabilityStore,
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*BeaconBlockHeader,
 		*BeaconState,
-		*BeaconStateMarshallable,
-		*BlobSidecars,
 		*BlockStore,
-		*Deposit,
 		*DepositStore,
-		*Eth1Data,
-		*ExecutionPayloadHeader,
-		*Fork,
 		*KVStore,
-		*Validator,
-		Validators,
-		*Withdrawal,
-		WithdrawalCredentials,
 	]
 
 	// Validator is a type alias for the validator.
@@ -509,7 +486,7 @@ type (
 
 	// ProofAPIHandler is a type alias for the proof handler.
 	ProofAPIHandler = proofapi.Handler[
-		NodeAPIContext, *BeaconBlockHeader, *BeaconState,
-		*BeaconStateMarshallable, *ExecutionPayloadHeader, *Validator,
+		*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
+		NodeAPIContext, *ExecutionPayloadHeader, *Validator,
 	]
 )

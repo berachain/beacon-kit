@@ -23,7 +23,6 @@ package genesis
 import (
 	"unsafe"
 
-	serverContext "github.com/berachain/beacon-kit/mod/cli/pkg/utils/context"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/errors"
@@ -33,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/afero"
@@ -65,8 +65,7 @@ func AddExecutionPayloadCmd(chainSpec common.ChainSpec) *cobra.Command {
 				nil,
 			).ExecutionPayload
 
-			serverCtx := serverContext.GetServerContextFromCmd(cmd)
-			config := serverCtx.Config
+			config := client.GetConfigFromCmd(cmd)
 
 			appGenesis, err := genutiltypes.AppGenesisFromFile(
 				config.GenesisFile(),
@@ -94,18 +93,11 @@ func AddExecutionPayloadCmd(chainSpec common.ChainSpec) *cobra.Command {
 			}
 
 			// Inject the execution payload.
-			header, err := executableDataToExecutionPayloadHeader(
+			genesisInfo.ExecutionPayloadHeader = executableDataToExecutionPayloadHeader(
 				version.ToUint32(genesisInfo.ForkVersion),
 				payload,
 				chainSpec.MaxWithdrawalsPerPayload(),
 			)
-			if err != nil {
-				return errors.Wrap(
-					err,
-					"failed to convert executable data to execution payload header",
-				)
-			}
-			genesisInfo.ExecutionPayloadHeader = header
 
 			appGenesisState["beacon"], err = json.Marshal(genesisInfo)
 			if err != nil {
@@ -132,7 +124,7 @@ func executableDataToExecutionPayloadHeader(
 	data *gethprimitives.ExecutableData,
 	// todo: re-enable when codec supports.
 	_ uint64,
-) (*types.ExecutionPayloadHeader, error) {
+) *types.ExecutionPayloadHeader {
 	var executionPayloadHeader *types.ExecutionPayloadHeader
 	switch forkVersion {
 	case version.Deneb, version.DenebPlus:
@@ -188,8 +180,8 @@ func executableDataToExecutionPayloadHeader(
 			ExcessBlobGas: math.U64(excessBlobGas),
 		}
 	default:
-		return nil, errors.Newf("unsupported fork version %d", forkVersion)
+		panic("unsupported fork version")
 	}
 
-	return executionPayloadHeader, nil
+	return executionPayloadHeader
 }

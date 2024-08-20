@@ -22,13 +22,15 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 )
 
 // ServiceRegistryInput is the input for the service registry provider.
-type ServiceRegistryInput struct {
+type ServiceRegistryInput[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+] struct {
 	depinject.In
 	ABCIService           *ABCIMiddleware
 	BlockBroker           *BlockBroker
@@ -39,7 +41,7 @@ type ServiceRegistryInput struct {
 	DepositService        *DepositService
 	EngineClient          *EngineClient
 	GenesisBroker         *GenesisBroker
-	Logger                log.Logger
+	Logger                LoggerT
 	NodeAPIServer         *NodeAPIServer
 	ReportingService      *ReportingService
 	SidecarsBroker        *SidecarsBroker
@@ -50,8 +52,10 @@ type ServiceRegistryInput struct {
 }
 
 // ProvideServiceRegistry is the depinject provider for the service registry.
-func ProvideServiceRegistry(
-	in ServiceRegistryInput,
+func ProvideServiceRegistry[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+](
+	in ServiceRegistryInput[LoggerT],
 ) *service.Registry {
 	return service.NewRegistry(
 		service.WithLogger(in.Logger),

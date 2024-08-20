@@ -21,7 +21,9 @@
 package errors
 
 import (
-	"github.com/cockroachdb/errors"
+	stderrors "errors"
+
+	"github.com/pkg/errors"
 )
 
 // TODO: eventually swap out via build flags if we believe there is value
@@ -30,14 +32,22 @@ import (
 //nolint:gochecknoglobals // used an alias.
 var (
 	New   = errors.New
-	Newf  = errors.Newf
 	Wrap  = errors.Wrap
 	Wrapf = errors.Wrapf
 	Is    = errors.Is
-	IsAny = errors.IsAny
 	As    = errors.As
-	Join  = errors.Join
+	Join  = stderrors.Join
 )
+
+// IsAny checks if the provided error is any of the provided errors.
+func IsAny(err error, errs ...error) bool {
+	for _, e := range errs {
+		if errors.Is(err, e) {
+			return true
+		}
+	}
+	return false
+}
 
 // DetailedError is a custom error type that includes a message and a flag
 // indicating if the error is fatal.
@@ -104,7 +114,7 @@ func JoinFatal(errs ...error) error {
 			break
 		}
 	}
-	retErr := errors.Join(errs...)
+	retErr := stderrors.Join(errs...)
 	if fatal {
 		return WrapFatal(retErr)
 	}

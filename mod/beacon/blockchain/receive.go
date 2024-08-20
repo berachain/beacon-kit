@@ -29,27 +29,16 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
-// ReceiveBlock receives a block and blobs from the
-// network and processes them.
-func (s *Service[
-	_, BeaconBlockT, _, _, _, _, _, _, _, _, _,
-]) ReceiveBlock(
-	ctx context.Context,
-	blk BeaconBlockT,
-) error {
-	return s.VerifyIncomingBlock(ctx, blk)
-}
-
 // VerifyIncomingBlock verifies the state root of an incoming block
 // and logs the process.
 func (s *Service[
-	_, BeaconBlockT, _, _, _, _, _, _, _, _, _,
+	_, BeaconBlockT, _, _, _, _, _, _, _, _,
 ]) VerifyIncomingBlock(
 	ctx context.Context,
 	blk BeaconBlockT,
 ) error {
 	// Grab a copy of the state to verify the incoming block.
-	preState := s.sb.StateFromContext(ctx)
+	preState := s.storageBackend.StateFromContext(ctx)
 
 	// Force a sync of the startup head if we haven't done so already.
 	//
@@ -110,7 +99,7 @@ func (s *Service[
 
 // verifyStateRoot verifies the state root of an incoming block.
 func (s *Service[
-	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _, _,
+	_, BeaconBlockT, _, _, BeaconStateT, _, _, _, _, _,
 ]) verifyStateRoot(
 	ctx context.Context,
 	st BeaconStateT,
@@ -118,7 +107,7 @@ func (s *Service[
 ) error {
 	startTime := time.Now()
 	defer s.metrics.measureStateRootVerificationTime(startTime)
-	if _, err := s.sp.Transition(
+	if _, err := s.stateProcessor.Transition(
 		// We run with a non-optimistic engine here to ensure
 		// that the proposer does not try to push through a bad block.
 		&transition.Context{
@@ -146,7 +135,7 @@ func (s *Service[
 // shouldBuildOptimisticPayloads returns true if optimistic
 // payload builds are enabled.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _,
+	_, _, _, _, _, _, _, _, _, _,
 ]) shouldBuildOptimisticPayloads() bool {
-	return s.optimisticPayloadBuilds && s.lb.Enabled()
+	return s.optimisticPayloadBuilds && s.localBuilder.Enabled()
 }

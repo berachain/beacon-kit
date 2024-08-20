@@ -22,22 +22,26 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 )
 
 // DBManagerInput is the input for the dep inject framework.
-type DBManagerInput struct {
+type DBManagerInput[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+] struct {
 	depinject.In
 	AvailabilityPruner DAPruner
 	BlockPruner        BlockPruner
 	DepositPruner      DepositPruner
-	Logger             log.Logger
+	Logger             LoggerT
 }
 
 // ProvideDBManager provides a DBManager for the depinject framework.
-func ProvideDBManager(
-	in DBManagerInput,
+func ProvideDBManager[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+](
+	in DBManagerInput[LoggerT],
 ) (*DBManager, error) {
 	return manager.NewDBManager(
 		in.Logger.With("service", "db-manager"),

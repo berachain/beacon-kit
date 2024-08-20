@@ -25,7 +25,6 @@ import (
 	"time"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -57,7 +56,7 @@ func (s *Service[
 	// the next finalized block in the chain. A byproduct of this design
 	// is that we get the nice property of lazily propagating the finalized
 	// and safe block hashes to the execution client.
-	st := s.bsb.StateFromContext(ctx)
+	st := s.sb.StateFromContext(ctx)
 
 	// Prepare the state such that it is ready to build a block for
 	// the requested slot
@@ -145,10 +144,7 @@ func (s *Service[
 	)
 
 	if err != nil {
-		return blk, errors.Newf(
-			"failed to get block root at index: %w",
-			err,
-		)
+		return blk, err
 	}
 
 	// Get the proposer index for the slot.
@@ -156,10 +152,7 @@ func (s *Service[
 		s.signer.PublicKey(),
 	)
 	if err != nil {
-		return blk, errors.Newf(
-			"failed to get validator by pubkey: %w",
-			err,
-		)
+		return blk, err
 	}
 
 	return blk.NewWithVersion(
@@ -291,7 +284,7 @@ func (s *Service[
 	}
 
 	// Dequeue deposits from the state.
-	deposits, err := s.bsb.DepositStore().GetDepositsByIndex(
+	deposits, err := s.sb.DepositStore().GetDepositsByIndex(
 		depositIndex,
 		s.chainSpec.MaxDepositsPerBlock(),
 	)

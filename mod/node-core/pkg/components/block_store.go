@@ -22,7 +22,6 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	sdklog "cosmossdk.io/log"
 	storev2 "cosmossdk.io/store/v2/db"
 	blockservice "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/config"
@@ -38,18 +37,22 @@ import (
 )
 
 // BlockStoreInput is the input for the dep inject framework.
-type BlockStoreInput struct {
+type BlockStoreInput[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+] struct {
 	depinject.In
 
 	AppOpts   servertypes.AppOptions
 	ChainSpec common.ChainSpec
-	Logger    log.AdvancedLogger[any, sdklog.Logger]
+	Logger    LoggerT
 }
 
 // ProvideBlockStore is a function that provides the module to the
 // application.
-func ProvideBlockStore(
-	in BlockStoreInput,
+func ProvideBlockStore[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+](
+	in BlockStoreInput[LoggerT],
 ) (*BlockStore, error) {
 	dir := cast.ToString(in.AppOpts.Get(flags.FlagHome)) + "/data"
 	kvp, err := storev2.NewDB(storev2.DBTypePebbleDB, block.StoreName, dir, nil)
@@ -65,18 +68,22 @@ func ProvideBlockStore(
 }
 
 // BlockPrunerInput is the input for the block pruner.
-type BlockPrunerInput struct {
+type BlockPrunerInput[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+] struct {
 	depinject.In
 
 	BlockBroker *BlockBroker
 	BlockStore  *BlockStore
 	Config      *config.Config
-	Logger      log.AdvancedLogger[any, sdklog.Logger]
+	Logger      LoggerT
 }
 
 // ProvideBlockPruner provides a block pruner for the depinject framework.
-func ProvideBlockPruner(
-	in BlockPrunerInput,
+func ProvideBlockPruner[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+](
+	in BlockPrunerInput[LoggerT],
 ) (BlockPruner, error) {
 	subCh, err := in.BlockBroker.Subscribe()
 	if err != nil {
@@ -84,18 +91,13 @@ func ProvideBlockPruner(
 		return nil, err
 	}
 
-	return pruner.NewPruner[
-		*BeaconBlock,
-		*BlockEvent,
-		*BlockStore,
-	](
+	return pruner.NewPruner[*BeaconBlock, *BlockStore](
 		in.Logger.With("service", manager.BlockPrunerName),
 		in.BlockStore,
 		manager.BlockPrunerName,
 		subCh,
-		blockservice.BuildPruneRangeFn[
-			*BeaconBlock,
-			*BlockEvent,
-		](in.Config.BlockStoreService),
+		blockservice.BuildPruneRangeFn[*BeaconBlock](
+			in.Config.BlockStoreService,
+		),
 	), nil
 }

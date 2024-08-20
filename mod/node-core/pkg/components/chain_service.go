@@ -22,7 +22,6 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	sdklog "cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -32,7 +31,9 @@ import (
 )
 
 // ChainServiceInput is the input for the chain service provider.
-type ChainServiceInput struct {
+type ChainServiceInput[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+] struct {
 	depinject.In
 
 	BlockBroker           *BlockBroker
@@ -43,7 +44,7 @@ type ChainServiceInput struct {
 	ExecutionEngine       *ExecutionEngine
 	GenesisBrocker        *GenesisBroker
 	LocalBuilder          *LocalBuilder
-	Logger                log.AdvancedLogger[any, sdklog.Logger]
+	Logger                LoggerT
 	Signer                crypto.BLSSigner
 	StateProcessor        *StateProcessor
 	StorageBackend        *StorageBackend
@@ -52,8 +53,10 @@ type ChainServiceInput struct {
 }
 
 // ProvideChainService is a depinject provider for the blockchain service.
-func ProvideChainService(
-	in ChainServiceInput,
+func ProvideChainService[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+](
+	in ChainServiceInput[LoggerT],
 ) *ChainService {
 	return blockchain.NewService[
 		*AvailabilityStore,
@@ -66,7 +69,6 @@ func ProvideChainService(
 		*ExecutionPayloadHeader,
 		*Genesis,
 		*PayloadAttributes,
-		*Withdrawal,
 	](
 		in.StorageBackend,
 		in.Logger.With("service", "blockchain"),

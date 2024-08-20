@@ -18,31 +18,15 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package builder
+package merkle
 
-import (
-	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
-	cmtcfg "github.com/cometbft/cometbft/config"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/spf13/cobra"
+import "errors"
+
+// ErrUnexpectedProofLength is returned when the proof length is unexpected.
+var ErrUnexpectedProofLength = errors.New("unexpected proof length")
+
+// ErrMismatchLeavesIndicesLength is returned when the leaves and indices
+// length mismatch.
+var ErrMismatchLeavesIndicesLength = errors.New(
+	"mismatched leaves and indices length",
 )
-
-// rootCmdSetup is a function that sets up the root command.
-type rootCmdSetup[T types.Node] func(
-	cmd *cmdlib.Root,
-	mm *runtime.App,
-	appCreator servertypes.AppCreator[T],
-	chainSpec common.ChainSpec,
-)
-
-// runHandler is a function that sets up run handlers for the root command.
-// It takes in custom configs for our app and cometbft.
-type runHandler func(
-	cmd *cobra.Command,
-	customAppConfigTemplate string,
-	customAppConfig interface{},
-	cmtConfig *cmtcfg.Config,
-) error
