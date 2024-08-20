@@ -24,7 +24,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	servertypes "github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/types"
 )
 
 // Opt is a type that defines a function that modifies CLIBuilder.

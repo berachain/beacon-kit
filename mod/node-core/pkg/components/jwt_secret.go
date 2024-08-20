@@ -26,7 +26,7 @@ import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/net/jwt"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	servertypes "github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/types"
 	"github.com/spf13/afero"
 	"github.com/spf13/cast"
 )

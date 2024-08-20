@@ -608,9 +608,6 @@ func (app *BaseApp) GetBlockRetentionHeight(commitHeight int64) int64 {
 }
 
 // NewContextLegacy returns a new sdk.Context with the provided header.
-func (app *BaseApp) NewContextLegacy(
-	_ bool,
-	_ cmtproto.Header,
-) sdk.Context {
+func (app *BaseApp) NewContextLegacy() sdk.Context {
 	return sdk.NewContext(app.finalizeBlockState.ms, false, app.logger)
 }

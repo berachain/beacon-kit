@@ -25,8 +25,8 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/config/pkg/template"
+	serverconfig "github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/config"
 	cmtcfg "github.com/cometbft/cometbft/config"
-	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 )
 
 // DefaultAppConfigTemplate returns the default configuration template for the

@@ -7,6 +7,7 @@ replace (
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240806152830-8fb47b368cd4
 	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240806152830-8fb47b368cd4
 	github.com/berachain/beacon-kit/mod/node-api/engines => ../node-api/engines
+	github.com/berachain/beacon-kit/mod/runtime => ../runtime
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240808182639-7bdbf06a94f2
 )
 
@@ -39,7 +40,6 @@ require (
 	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240809163303-a4ebb22fd018 // indirect
 	github.com/berachain/beacon-kit/mod/node-api v0.0.0-20240806160829-cde2d1347e7e // indirect
 	github.com/berachain/beacon-kit/mod/node-api/engines v0.0.0-00010101000000-000000000000 // indirect
-	github.com/bufbuild/protocompile v0.14.0 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a // indirect
 	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4 // indirect
 	github.com/ethereum/go-ethereum v1.14.7 // indirect

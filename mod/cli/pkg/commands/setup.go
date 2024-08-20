@@ -21,7 +21,6 @@
 package commands
 
 import (
-	confixcmd "cosmossdk.io/tools/confix/cmd"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/cometbft"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/deposit"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/genesis"
@@ -31,10 +30,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server"
+	servertypes "github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/types"
 	"github.com/cosmos/cosmos-sdk/client/keys"
-	"github.com/cosmos/cosmos-sdk/client/pruning"
-	"github.com/cosmos/cosmos-sdk/server"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 )
@@ -58,8 +56,6 @@ func DefaultRootCommandSetup[
 	root.cmd.AddCommand(
 		// `comet`
 		cometbft.Commands(appCreator),
-		// `config`
-		confixcmd.ConfigCommand(),
 		// `init`
 		genutilcli.InitCmd(mm),
 		// `genesis`
@@ -70,8 +66,6 @@ func DefaultRootCommandSetup[
 		jwt.Commands(),
 		// `keys`
 		keys.Commands(),
-		// `prune`
-		pruning.Cmd(appCreator),
 		// `rollback`
 		server.NewRollbackCmd(appCreator),
 		// `start`

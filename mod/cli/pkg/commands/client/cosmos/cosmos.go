@@ -21,9 +21,9 @@
 package cosmos
 
 import (
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
-	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/spf13/cobra"
 )
 

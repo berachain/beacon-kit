@@ -21,9 +21,8 @@
 package runtime
 
 import (
-	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
+	servertypes "github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/types"
 	cmttypes "github.com/cometbft/cometbft/types"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
 
 // ExportAppStateAndValidators exports the state of the application for a
@@ -33,12 +32,6 @@ func (app *App) ExportAppStateAndValidators(
 	forZeroHeight bool,
 	_, modulesToExport []string,
 ) (servertypes.ExportedApp, error) {
-	// as if they could withdraw from the start of the next block
-	ctx := app.NewContextLegacy(
-		true,
-		cmtproto.Header{Height: app.LastBlockHeight()},
-	)
-
 	// We export at last height + 1, because that's the height at which
 	// CometBFT will start InitChain.
 	height := app.LastBlockHeight() + 1
@@ -67,6 +60,6 @@ func (app *App) ExportAppStateAndValidators(
 		AppState:        nil,
 		Validators:      validators,
 		Height:          height,
-		ConsensusParams: app.BaseApp.GetConsensusParams(ctx),
+		ConsensusParams: app.BaseApp.GetConsensusParams(app.NewContextLegacy()),
 	}, nil
 }

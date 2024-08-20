@@ -24,15 +24,10 @@ import (
 	"context"
 
 	"cosmossdk.io/store/snapshots"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/config"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/server/api"
-	"github.com/cosmos/cosmos-sdk/server/config"
-	gogogrpc "github.com/cosmos/gogoproto/grpc"
 )
-
-// RegisterGRPCServer registers gRPC services directly with the gRPC server.
-func (BaseApp) RegisterGRPCServer(_ gogogrpc.Server) {}
 
 // Query implements the ABCI interface. It delegates to CommitMultiStore if it
 // implements Queryable.
@@ -103,10 +98,6 @@ func (BaseApp) VerifyVoteExtension(
 ) (*abci.VerifyVoteExtensionResponse, error) {
 	return &abci.VerifyVoteExtensionResponse{}, nil
 }
-
-// RegisterAPIRoutes registers all application module routes with the provided
-// API server.
-func (BaseApp) RegisterAPIRoutes(apiSvr *api.Server, _ config.APIConfig) {}
 
 // RegisterTxService implements the Application.RegisterTxService method.
 func (BaseApp) RegisterTxService(client.Context) {}

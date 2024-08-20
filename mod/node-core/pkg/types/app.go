@@ -21,7 +21,7 @@
 package types
 
 import (
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	servertypes "github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

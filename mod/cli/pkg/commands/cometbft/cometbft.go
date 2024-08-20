@@ -22,9 +22,9 @@ package cometbft
 
 import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server"
+	servertypes "github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/types"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
-	"github.com/cosmos/cosmos-sdk/server"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cobra"
 )
 

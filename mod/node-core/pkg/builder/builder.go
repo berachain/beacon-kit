@@ -33,9 +33,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
+	servertypes "github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/types"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	dbm "github.com/cosmos/cosmos-db"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
 
 // NodeBuilder is a construction helper for creating nodes that implement
