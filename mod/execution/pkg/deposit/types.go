@@ -23,6 +23,7 @@ package deposit
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
@@ -39,6 +40,19 @@ type BeaconBlockBody[
 type BeaconBlock[BeaconBlockBodyT any] interface {
 	GetSlot() math.U64
 	GetBody() BeaconBlockBodyT
+}
+
+// BlockEvent is an interface for block events.
+type BlockEvent[
+	DepositT any,
+	BeaconBlockBodyT BeaconBlockBody[DepositT, ExecutionPayloadT],
+	BeaconBlockT BeaconBlock[BeaconBlockBodyT],
+	ExecutionPayloadT ExecutionPayload,
+] interface {
+	ID() async.EventID
+	Is(async.EventID) bool
+	Data() BeaconBlockT
+	Context() context.Context
 }
 
 // ExecutionPayload is an interface for execution payloads.

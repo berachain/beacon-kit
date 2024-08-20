@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	servertypes "github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/types"
 	depositstore "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
@@ -61,9 +62,9 @@ type DepositPrunerInput[
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ] struct {
 	depinject.In
-	BlockBroker  *BlockBroker
 	ChainSpec    common.ChainSpec
 	DepositStore *DepositStore
+	Dispatcher   *Dispatcher
 	Logger       LoggerT
 }
 
@@ -73,17 +74,25 @@ func ProvideDepositPruner[
 ](
 	in DepositPrunerInput[LoggerT],
 ) (DepositPruner, error) {
-	subCh, err := in.BlockBroker.Subscribe()
-	if err != nil {
-		in.Logger.Error("failed to subscribe to block feed", "err", err)
+	// initialize a subscription for finalized blocks.
+	subFinalizedBlocks := make(chan FinalizedBlockEvent)
+	if err := in.Dispatcher.Subscribe(
+		async.BeaconBlockFinalizedEvent, subFinalizedBlocks,
+	); err != nil {
+		in.Logger.Error("failed to subscribe to event", "event",
+			async.BeaconBlockFinalizedEvent, "err", err)
 		return nil, err
 	}
 
-	return pruner.NewPruner[*BeaconBlock, *DepositStore](
+	// return a new pruner for the deposit store.
+	return pruner.NewPruner[
+		*BeaconBlock,
+		*DepositStore,
+	](
 		in.Logger.With("service", manager.DepositPrunerName),
 		in.DepositStore,
 		manager.DepositPrunerName,
-		subCh,
+		subFinalizedBlocks,
 		deposit.BuildPruneRangeFn[
 			*BeaconBlock,
 			*BeaconBlockBody,

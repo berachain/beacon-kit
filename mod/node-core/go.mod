@@ -15,23 +15,23 @@ require (
 	cosmossdk.io/depinject v1.0.0
 	cosmossdk.io/log v1.4.1
 	cosmossdk.io/store/v2 v2.0.0-20240515130459-16437119e0d8
-	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240718074353-1a991cfeed63
+	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240820191615-398849c34954
 	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240806160829-cde2d1347e7e
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240809163303-a4ebb22fd018
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240809163303-a4ebb22fd018
-	github.com/berachain/beacon-kit/mod/da v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240808194557-e72e74f58197
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/log v0.0.0-20240705193247-d464364483df
+	github.com/berachain/beacon-kit/mod/da v0.0.0-20240820191615-398849c34954
+	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240809202957-3e3f169ad720
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240806211103-d1105603bfc0
+	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240820191615-398849c34954
+	github.com/berachain/beacon-kit/mod/log v0.0.0-20240809202957-3e3f169ad720
 	github.com/berachain/beacon-kit/mod/node-api v0.0.0-20240806160829-cde2d1347e7e
 	github.com/berachain/beacon-kit/mod/node-api/engines v0.0.0-20240806160829-cde2d1347e7e
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240808194557-e72e74f58197
-	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240809202957-3e3f169ad720
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240820191615-398849c34954
+	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240820191615-398849c34954
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6650da31
-	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240806160829-cde2d1347e7e
+	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240820191615-398849c34954
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240806094948-2c4293ef36c4
 	github.com/cosmos/cosmos-db v1.0.2
 	github.com/cosmos/cosmos-sdk v0.53.0
@@ -91,7 +91,7 @@ require (
 	github.com/DataDog/zstd v1.5.6 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/berachain/beacon-kit/mod/async v0.0.0-20240705193247-d464364483df
+	github.com/berachain/beacon-kit/mod/async v0.0.0-20240820191615-398849c34954
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240618214413-d5ec0e66b3dd // indirect
 	github.com/bgentry/speakeasy v0.2.0 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect

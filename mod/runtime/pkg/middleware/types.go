@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
 // BeaconBlock is an interface for accessing the beacon block.
@@ -44,3 +45,5 @@ type BlobSidecars[T any] interface {
 	constraints.SSZMarshallable
 	constraints.Empty[T]
 }
+
+type validatorUpdates = transition.ValidatorUpdates

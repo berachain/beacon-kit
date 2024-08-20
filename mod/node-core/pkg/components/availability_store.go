@@ -27,6 +27,7 @@ import (
 	"cosmossdk.io/depinject"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	servertypes "github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/types"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
@@ -78,8 +79,8 @@ type AvailabilityPrunerInput[
 ] struct {
 	depinject.In
 	AvailabilityStore *AvailabilityStore
-	BlockBroker       *BlockBroker
 	ChainSpec         common.ChainSpec
+	Dispatcher        *Dispatcher
 	Logger            LoggerT
 }
 
@@ -96,18 +97,27 @@ func ProvideAvailabilityPruner[
 		return nil, errors.New("availability store does not have a range db")
 	}
 
-	subCh, err := in.BlockBroker.Subscribe()
-	if err != nil {
-		in.Logger.Error("failed to subscribe to block feed", "err", err)
+	// TODO: add dispatcher field in the pruner or something, the provider
+	// should not execute any business logic.
+	// create new subscription for finalized blocks.
+	subFinalizedBlocks := make(chan FinalizedBlockEvent)
+	if err := in.Dispatcher.Subscribe(
+		async.BeaconBlockFinalizedEvent, subFinalizedBlocks,
+	); err != nil {
+		in.Logger.Error("failed to subscribe to event", "event",
+			async.BeaconBlockFinalizedEvent, "err", err)
 		return nil, err
 	}
 
 	// build the availability pruner if IndexDB is available.
-	return pruner.NewPruner[*BeaconBlock, *IndexDB](
+	return pruner.NewPruner[
+		*BeaconBlock,
+		*IndexDB,
+	](
 		in.Logger.With("service", manager.AvailabilityPrunerName),
 		rangeDB,
 		manager.AvailabilityPrunerName,
-		subCh,
+		subFinalizedBlocks,
 		dastore.BuildPruneRangeFn[*BeaconBlock](in.ChainSpec),
 	), nil
 }

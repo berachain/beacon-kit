@@ -5,9 +5,9 @@ go 1.23.0
 require (
 	github.com/berachain/beacon-kit/mod/async v0.0.0-20240816230528-f52c938c20cc
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240809202957-3e3f169ad720
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240618214413-d5ec0e66b3dd
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240806211103-d1105603bfc0
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240809202957-3e3f169ad720
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240808194557-e72e74f58197
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240820191615-398849c34954
 	golang.org/x/sync v0.8.0
 )
 
