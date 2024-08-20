@@ -23,9 +23,9 @@ package deposit
 import (
 	"context"
 
-	async "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
-	async1 "github.com/berachain/beacon-kit/mod/primitives/pkg/async"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
@@ -46,9 +46,9 @@ type Service[
 	// ds is the deposit store that stores deposits.
 	ds Store[DepositT]
 	// dispatcher is the dispatcher for the service.
-	dispatcher async.EventDispatcher
+	dispatcher asynctypes.EventDispatcher
 	// subFinalizedBlockEvents is the channel that provides finalized block events.
-	subFinalizedBlockEvents chan async1.Event[BeaconBlockT]
+	subFinalizedBlockEvents chan async.Event[BeaconBlockT]
 	// metrics is the metrics for the deposit service.
 	metrics *metrics
 	// failedBlocks is a map of blocks that failed to be processed to be
@@ -69,7 +69,7 @@ func NewService[
 	telemetrySink TelemetrySink,
 	ds Store[DepositT],
 	dc Contract[DepositT],
-	dispatcher async.EventDispatcher,
+	dispatcher asynctypes.EventDispatcher,
 ) *Service[
 	BeaconBlockT, BeaconBlockBodyT, DepositT,
 	ExecutionPayloadT, WithdrawalCredentialsT,
@@ -83,7 +83,7 @@ func NewService[
 		ds:                      ds,
 		eth1FollowDistance:      eth1FollowDistance,
 		failedBlocks:            make(map[math.Slot]struct{}),
-		subFinalizedBlockEvents: make(chan async1.Event[BeaconBlockT]),
+		subFinalizedBlockEvents: make(chan async.Event[BeaconBlockT]),
 		logger:                  logger,
 		metrics:                 newMetrics(telemetrySink),
 	}
@@ -94,10 +94,10 @@ func (s *Service[
 	_, _, _, _, _,
 ]) Start(ctx context.Context) error {
 	if err := s.dispatcher.Subscribe(
-		async1.BeaconBlockFinalizedEvent, s.subFinalizedBlockEvents,
+		async.BeaconBlockFinalizedEvent, s.subFinalizedBlockEvents,
 	); err != nil {
 		s.logger.Error("failed to subscribe to event", "event",
-			async1.BeaconBlockFinalizedEvent, "err", err)
+			async.BeaconBlockFinalizedEvent, "err", err)
 		return err
 	}
 
