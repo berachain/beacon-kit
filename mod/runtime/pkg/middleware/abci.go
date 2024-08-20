@@ -76,7 +76,7 @@ func (h *ABCIMiddleware[
 ) (transition.ValidatorUpdates, error) {
 	select {
 	case <-ctx.Done():
-		return nil, ctx.Err()
+		return nil, ErrInitGenesisTimeout(ctx.Err())
 	case gdpEvent := <-h.subGenDataProcessed:
 		return gdpEvent.Data(), gdpEvent.Error()
 	}
@@ -139,7 +139,7 @@ func (h *ABCIMiddleware[
 ) (BeaconBlockT, error) {
 	select {
 	case <-ctx.Done():
-		return *new(BeaconBlockT), ctx.Err()
+		return *new(BeaconBlockT), ErrBuildBeaconBlockTimeout(ctx.Err())
 	case bbEvent := <-h.subBuiltBeaconBlock:
 		return bbEvent.Data(), bbEvent.Error()
 	}
@@ -153,7 +153,7 @@ func (h *ABCIMiddleware[
 ) (BlobSidecarsT, error) {
 	select {
 	case <-ctx.Done():
-		return *new(BlobSidecarsT), ctx.Err()
+		return *new(BlobSidecarsT), ErrBuildSidecarsTimeout(ctx.Err())
 	case scEvent := <-h.subBuiltSidecars:
 		return scEvent.Data(), scEvent.Error()
 	}
@@ -255,7 +255,7 @@ func (h *ABCIMiddleware[
 ) (BeaconBlockT, error) {
 	select {
 	case <-ctx.Done():
-		return *new(BeaconBlockT), ctx.Err()
+		return *new(BeaconBlockT), ErrVerifyBeaconBlockTimeout(ctx.Err())
 	case vEvent := <-h.subBBVerified:
 		return vEvent.Data(), vEvent.Error()
 	}
@@ -269,7 +269,7 @@ func (h *ABCIMiddleware[
 ) (BlobSidecarsT, error) {
 	select {
 	case <-ctx.Done():
-		return *new(BlobSidecarsT), ctx.Err()
+		return *new(BlobSidecarsT), ErrVerifySidecarsTimeout(ctx.Err())
 	case vEvent := <-h.subSCVerified:
 		return vEvent.Data(), vEvent.Error()
 	}
@@ -357,7 +357,7 @@ func (h *ABCIMiddleware[
 ) (transition.ValidatorUpdates, error) {
 	select {
 	case <-ctx.Done():
-		return nil, ctx.Err()
+		return nil, ErrFinalValidatorUpdatesTimeout(ctx.Err())
 	case event := <-h.subFinalValidatorUpdates:
 		return event.Data(), event.Error()
 	}
