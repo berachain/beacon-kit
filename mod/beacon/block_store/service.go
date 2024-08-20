@@ -23,9 +23,9 @@ package blockstore
 import (
 	"context"
 
-	async "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
-	async1 "github.com/berachain/beacon-kit/mod/primitives/pkg/async"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 )
 
 // Service is a Service that listens for blocks and stores them in a KVStore.
@@ -38,11 +38,11 @@ type Service[
 	// logger is used for logging information and errors.
 	logger log.Logger[any]
 	// dispatcher is the dispatcher for the service.
-	dispatcher async.EventDispatcher
+	dispatcher asynctypes.EventDispatcher
 	// store is the block store for the service.
 	store BlockStoreT
 	// subFinalizedBlkEvents is a channel for receiving finalized block events.
-	subFinalizedBlkEvents chan async1.Event[BeaconBlockT]
+	subFinalizedBlkEvents chan async.Event[BeaconBlockT]
 }
 
 // NewService creates a new block service.
@@ -52,7 +52,7 @@ func NewService[
 ](
 	config Config,
 	logger log.Logger[any],
-	dispatcher async.EventDispatcher,
+	dispatcher asynctypes.EventDispatcher,
 	store BlockStoreT,
 ) *Service[BeaconBlockT, BlockStoreT] {
 	return &Service[BeaconBlockT, BlockStoreT]{
@@ -60,7 +60,7 @@ func NewService[
 		logger:                logger,
 		dispatcher:            dispatcher,
 		store:                 store,
-		subFinalizedBlkEvents: make(chan async1.Event[BeaconBlockT]),
+		subFinalizedBlkEvents: make(chan async.Event[BeaconBlockT]),
 	}
 }
 
@@ -78,7 +78,7 @@ func (s *Service[BeaconBlockT, _]) Start(ctx context.Context) error {
 
 	// subscribe a channel to the finalized block events.
 	if err := s.dispatcher.Subscribe(
-		async1.BeaconBlockFinalizedEvent, s.subFinalizedBlkEvents,
+		async.BeaconBlockFinalizedEvent, s.subFinalizedBlkEvents,
 	); err != nil {
 		s.logger.Error("failed to subscribe to block events", "error", err)
 		return err
@@ -102,7 +102,7 @@ func (s *Service[BeaconBlockT, BlockStoreT]) eventLoop(ctx context.Context) {
 // onFinalizeBlock is triggered when a finalized block event is received.
 // It stores the block in the KVStore.
 func (s *Service[BeaconBlockT, _]) onFinalizeBlock(
-	event async1.Event[BeaconBlockT],
+	event async.Event[BeaconBlockT],
 ) {
 	slot := event.Data().GetSlot()
 	if err := s.store.Set(event.Data()); err != nil {
