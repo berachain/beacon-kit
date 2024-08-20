@@ -22,8 +22,6 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
-	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -41,12 +39,11 @@ type ChainServiceInput[
 ] struct {
 	depinject.In
 
-	BlockBroker     *broker.Broker[*asynctypes.Event[BeaconBlockT]]
 	ChainSpec       common.ChainSpec
 	Cfg             *config.Config
 	EngineClient    *EngineClient
 	ExecutionEngine *ExecutionEngine
-	GenesisBrocker  *GenesisBroker
+	Dispatcher      *Dispatcher
 	LocalBuilder    LocalBuilder[BeaconStateT, *ExecutionPayload]
 	Logger          LoggerT
 	Signer          crypto.BLSSigner
@@ -54,9 +51,8 @@ type ChainServiceInput[
 		BeaconBlockT, BeaconStateT, *Context,
 		*Deposit, *ExecutionPayloadHeader,
 	]
-	StorageBackend        StorageBackendT
-	TelemetrySink         *metrics.TelemetrySink
-	ValidatorUpdateBroker *ValidatorUpdateBroker
+	StorageBackend StorageBackendT
+	TelemetrySink  *metrics.TelemetrySink
 }
 
 // ProvideChainService is a depinject provider for the blockchain service.
@@ -103,13 +99,11 @@ func ProvideChainService[
 		in.StorageBackend,
 		in.Logger.With("service", "blockchain"),
 		in.ChainSpec,
+		in.Dispatcher,
 		in.ExecutionEngine,
 		in.LocalBuilder,
 		in.StateProcessor,
 		in.TelemetrySink,
-		in.GenesisBrocker,
-		in.BlockBroker,
-		in.ValidatorUpdateBroker,
 		// If optimistic is enabled, we want to skip post finalization FCUs.
 		in.Cfg.Validator.EnableOptimisticPayloadBuilds,
 	)

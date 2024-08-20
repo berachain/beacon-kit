@@ -18,17 +18,35 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package middleware
+package components
 
-import "time"
-
-const (
-	// BeaconBlockTxIndex represents the index of the beacon block transaction.
-	// It is the first transaction in the tx list.
-	BeaconBlockTxIndex uint = iota
-	// BlobSidecarsTxIndex represents the index of the blob sidecar transaction.
-	// It follows the beacon block transaction in the tx list.
-	BlobSidecarsTxIndex
-	// AwaitTimeout is the timeout for awaiting events.
-	AwaitTimeout = 2 * time.Second
+import (
+	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/log"
 )
+
+// DispatcherInput is the input for the Dispatcher.
+type DispatcherInput[
+	LoggerT any,
+] struct {
+	depinject.In
+	Logger     LoggerT
+	Publishers []asynctypes.Broker
+}
+
+// ProvideDispatcher provides a new Dispatcher.
+func ProvideDispatcher[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+](
+	in DispatcherInput[LoggerT],
+) (*Dispatcher, error) {
+	d := dispatcher.New(
+		in.Logger.With("service", "dispatcher"),
+	)
+	if err := d.RegisterBrokers(in.Publishers...); err != nil {
+		return nil, err
+	}
+	return d, nil
+}

@@ -23,11 +23,10 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	storev2 "cosmossdk.io/store/v2/db"
-	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
-	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	depositstore "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
@@ -64,9 +63,9 @@ type DepositPrunerInput[
 	LoggerT any,
 ] struct {
 	depinject.In
-	BlockBroker  *broker.Broker[*asynctypes.Event[BeaconBlockT]]
 	ChainSpec    common.ChainSpec
 	DepositStore *DepositStore
+	Dispatcher   *Dispatcher
 	Logger       LoggerT
 }
 
@@ -83,9 +82,13 @@ func ProvideDepositPruner[
 ](
 	in DepositPrunerInput[BeaconBlockT, LoggerT],
 ) (DepositPruner, error) {
-	subCh, err := in.BlockBroker.Subscribe()
-	if err != nil {
-		in.Logger.Error("failed to subscribe to block feed", "err", err)
+	// initialize a subscription for finalized blocks.
+	subFinalizedBlocks := make(chan async.Event[BeaconBlockT])
+	if err := in.Dispatcher.Subscribe(
+		async.BeaconBlockFinalizedEvent, subFinalizedBlocks,
+	); err != nil {
+		in.Logger.Error("failed to subscribe to event", "event",
+			async.BeaconBlockFinalizedEvent, "err", err)
 		return nil, err
 	}
 
@@ -93,7 +96,7 @@ func ProvideDepositPruner[
 		in.Logger.With("service", manager.DepositPrunerName),
 		in.DepositStore,
 		manager.DepositPrunerName,
-		subCh,
+		subFinalizedBlocks,
 		deposit.BuildPruneRangeFn[
 			BeaconBlockT,
 			BeaconBlockBodyT,

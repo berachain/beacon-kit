@@ -22,8 +22,6 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
-	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
@@ -62,7 +60,6 @@ type ServiceRegistryInput[
 	ABCIService *middleware.ABCIMiddleware[
 		BeaconBlockT, BlobSidecarsT, *Genesis, *SlotData,
 	]
-	BlockBroker       *broker.Broker[*asynctypes.Event[BeaconBlockT]]
 	BlockStoreService *blockstore.Service[
 		BeaconBlockT, BeaconBlockStoreT,
 	]
@@ -77,13 +74,11 @@ type ServiceRegistryInput[
 		BeaconBlockT, BeaconBlockBodyT, *Deposit,
 		*ExecutionPayload, WithdrawalCredentials,
 	]
+	Dispatcher       *Dispatcher
 	EngineClient     *EngineClient
-	GenesisBroker    *GenesisBroker
 	Logger           LoggerT
 	NodeAPIServer    *server.Server[NodeAPIContextT]
 	ReportingService *ReportingService
-	SidecarsBroker   *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
-	SlotBroker       *SlotBroker
 	TelemetrySink    *metrics.TelemetrySink
 	ValidatorService *validator.Service[
 		*AttestationData, BeaconBlockT, BeaconBlockBodyT,
@@ -91,7 +86,6 @@ type ServiceRegistryInput[
 		*Eth1Data, *ExecutionPayload, *ExecutionPayloadHeader,
 		*ForkData, *SlashingInfo, *SlotData,
 	]
-	ValidatorUpdateBroker *ValidatorUpdateBroker
 }
 
 // ProvideServiceRegistry is the depinject provider for the service registry.
@@ -125,20 +119,16 @@ func ProvideServiceRegistry[
 ) *service.Registry {
 	return service.NewRegistry(
 		service.WithLogger(in.Logger),
+		service.WithService(in.ABCIService),
+		service.WithService(in.Dispatcher),
 		service.WithService(in.ValidatorService),
 		service.WithService(in.BlockStoreService),
 		service.WithService(in.ChainService),
 		service.WithService(in.DAService),
 		service.WithService(in.DepositService),
-		service.WithService(in.ABCIService),
 		service.WithService(in.NodeAPIServer),
 		service.WithService(in.ReportingService),
 		service.WithService(in.DBManager),
-		service.WithService(in.GenesisBroker),
-		service.WithService(in.BlockBroker),
-		service.WithService(in.SlotBroker),
-		service.WithService(in.SidecarsBroker),
-		service.WithService(in.ValidatorUpdateBroker),
 		service.WithService(in.EngineClient),
 	)
 }

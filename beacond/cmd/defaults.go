@@ -84,6 +84,7 @@ func DefaultComponents() []any {
 			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader, *Logger,
 		],
 		components.ProvideDepositStore,
+		components.ProvideDispatcher[*Logger],
 		components.ProvideEngineClient[*Logger],
 		components.ProvideExecutionEngine[*Logger],
 		components.ProvideJWTSecret,
@@ -91,6 +92,7 @@ func DefaultComponents() []any {
 			*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
 			*KVStore, *Logger,
 		],
+		components.ProvidePublishers[*BeaconBlock, *BlobSidecars],
 		components.ProvideReportingService[*Logger],
 		components.ProvideServiceRegistry[
 			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
@@ -149,13 +151,6 @@ func DefaultComponents() []any {
 			*KVStore, Node, NodeAPIContext,
 		],
 	)
-	c = append(c,
-		components.ProvideBlobBroker[*BlobSidecars],
-		components.ProvideBlockBroker[*BeaconBlock],
-		components.ProvideGenesisBroker,
-		components.ProvideSlotBroker,
-		components.ProvideStatusBroker,
-		components.ProvideValidatorUpdateBroker,
-	)
+
 	return c
 }

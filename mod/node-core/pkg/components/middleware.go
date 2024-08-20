@@ -22,8 +22,6 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
-	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -37,14 +35,10 @@ type ABCIMiddlewareInput[
 	LoggerT log.Logger[any],
 ] struct {
 	depinject.In
-	BeaconBlockFeed       *broker.Broker[*asynctypes.Event[BeaconBlockT]]
-	ChainSpec             common.ChainSpec
-	GenesisBroker         *GenesisBroker
-	Logger                LoggerT
-	SidecarsFeed          *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
-	SlotBroker            *SlotBroker
-	TelemetrySink         *metrics.TelemetrySink
-	ValidatorUpdateBroker *ValidatorUpdateBroker
+	ChainSpec     common.ChainSpec
+	Logger        LoggerT
+	TelemetrySink *metrics.TelemetrySink
+	Dispatcher    *Dispatcher
 }
 
 // ProvideABCIMiddleware is a depinject provider for the validator
@@ -61,10 +55,6 @@ func ProvideABCIMiddleware[
 ) (*middleware.ABCIMiddleware[
 	BeaconBlockT, BlobSidecarsT, *Genesis, *SlotData,
 ], error) {
-	validatorUpdatesSub, err := in.ValidatorUpdateBroker.Subscribe()
-	if err != nil {
-		return nil, err
-	}
 	return middleware.NewABCIMiddleware[
 		BeaconBlockT,
 		BlobSidecarsT,
@@ -74,10 +64,6 @@ func ProvideABCIMiddleware[
 		in.ChainSpec,
 		in.Logger,
 		in.TelemetrySink,
-		in.GenesisBroker,
-		in.BeaconBlockFeed,
-		in.SidecarsFeed,
-		in.SlotBroker,
-		validatorUpdatesSub,
+		in.Dispatcher,
 	), nil
 }

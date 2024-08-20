@@ -24,10 +24,9 @@ import (
 	"os"
 
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
-	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
@@ -83,8 +82,8 @@ type AvailabilityPrunerInput[
 ] struct {
 	depinject.In
 	AvailabilityStore AvailabilityStoreT
-	BlockBroker       *broker.Broker[*asynctypes.Event[BeaconBlockT]]
 	ChainSpec         common.ChainSpec
+	Dispatcher        *Dispatcher
 	Logger            LoggerT
 }
 
@@ -104,9 +103,15 @@ func ProvideAvailabilityPruner[
 ](
 	in AvailabilityPrunerInput[AvailabilityStoreT, BeaconBlockT, LoggerT],
 ) (pruner.Pruner[AvailabilityStoreT], error) {
-	subCh, err := in.BlockBroker.Subscribe()
-	if err != nil {
-		in.Logger.Error("failed to subscribe to block feed", "err", err)
+	// TODO: add dispatcher field in the pruner or something, the provider
+	// should not execute any business logic.
+	// create new subscription for finalized blocks.
+	subFinalizedBlocks := make(chan async.Event[BeaconBlockT])
+	if err := in.Dispatcher.Subscribe(
+		async.BeaconBlockFinalizedEvent, subFinalizedBlocks,
+	); err != nil {
+		in.Logger.Error("failed to subscribe to event", "event",
+			async.BeaconBlockFinalizedEvent, "err", err)
 		return nil, err
 	}
 
@@ -115,7 +120,7 @@ func ProvideAvailabilityPruner[
 		in.Logger.With("service", manager.AvailabilityPrunerName),
 		in.AvailabilityStore,
 		manager.AvailabilityPrunerName,
-		subCh,
+		subFinalizedBlocks,
 		dastore.BuildPruneRangeFn[BeaconBlockT](in.ChainSpec),
 	), nil
 }

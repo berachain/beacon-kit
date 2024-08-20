@@ -18,63 +18,76 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package async
 
 import (
 	"context"
 	"errors"
 )
 
-// EventID represents the type of an event.
-type EventID string
+// BaseEvent defines the minimal interface that the dispatcher expects from a
+// message.
+type BaseEvent interface {
+	ID() EventID
+	Context() context.Context
+}
 
-// Event represents a generic event in the beacon chain.
-type Event[DataT any] struct {
-	// ctx is the context associated with the event.
-	ctx context.Context
-	// eventType is the name of the event.
-	eventType EventID
-	// event is the actual beacon event.
-	data DataT
-	// error is the error associated with the event.
-	err error
+// Event defines the interface that the underlying route expects from a
+// message with data.
+type Event[DataT any] interface {
+	BaseEvent
+	Data() DataT
+	Error() error
+	Is(id EventID) bool
 }
 
 // NewEvent creates a new Event with the given context and beacon event.
 func NewEvent[
 	DataT any,
 ](
-	ctx context.Context, eventType EventID, data DataT, errs ...error,
-) *Event[DataT] {
-	return &Event[DataT]{
-		ctx:       ctx,
-		eventType: eventType,
-		data:      data,
-		err:       errors.Join(errs...),
+	ctx context.Context, id EventID, data DataT, errs ...error,
+) Event[DataT] {
+	return &event[DataT]{
+		ctx:  ctx,
+		id:   id,
+		data: data,
+		err:  errors.Join(errs...),
 	}
 }
 
-// Type returns the type of the event.
-func (e Event[DataT]) Type() EventID {
-	return e.eventType
+// An event is a hard type implementation of the Event interface.
+type event[DataT any] struct {
+	// ctx is the context associated with the event.
+	ctx context.Context
+	// id is the name of the event.
+	id EventID
+	// event is the actual beacon event.
+	data DataT
+	// err is the error associated with the event.
+	err error
+}
+
+// ID returns the ID of the event.
+func (m *event[DataT]) ID() EventID {
+	return m.id
 }
 
 // Context returns the context associated with the event.
-func (e Event[DataT]) Context() context.Context {
-	return e.ctx
+func (m *event[DataT]) Context() context.Context {
+	return m.ctx
 }
 
 // Data returns the data associated with the event.
-func (e Event[DataT]) Data() DataT {
-	return e.data
+func (m *event[DataT]) Data() DataT {
+	return m.data
 }
 
 // Error returns the error associated with the event.
-func (e Event[DataT]) Error() error {
-	return e.err
+func (m *event[DataT]) Error() error {
+	return m.err
 }
 
 // Is returns true if the event has the given type.
-func (e Event[DataT]) Is(eventType EventID) bool {
-	return e.eventType == eventType
+func (m *event[DataT]) Is(messageType EventID) bool {
+	return m.id == messageType
 }

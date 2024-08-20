@@ -22,8 +22,6 @@ package main
 
 import (
 	"cosmossdk.io/core/appmodule/v2"
-	broker "github.com/berachain/beacon-kit/mod/async/pkg/broker"
-	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
@@ -48,7 +46,6 @@ import (
 	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
@@ -413,54 +410,6 @@ type (
 )
 
 /* -------------------------------------------------------------------------- */
-/*                                   Events                                   */
-/* -------------------------------------------------------------------------- */
-
-type (
-	// BlockEvent is a type alias for the block event.
-	BlockEvent = asynctypes.Event[*BeaconBlock]
-
-	// GenesisEvent is a type alias for the genesis event.
-	GenesisEvent = asynctypes.Event[*Genesis]
-
-	// SidecarEvent is a type alias for the sidecar event.
-	SidecarEvent = asynctypes.Event[*BlobSidecars]
-
-	// SlotEvent is a type alias for the slot event.
-	SlotEvent = asynctypes.Event[*SlotData]
-
-	// StatusEvent is a type alias for the status event.
-	StatusEvent = asynctypes.Event[*service.StatusEvent]
-
-	// ValidatorUpdateEvent is a type alias for the validator update event.
-	ValidatorUpdateEvent = asynctypes.Event[transition.ValidatorUpdates]
-)
-
-/* -------------------------------------------------------------------------- */
-/*                                   Brokers                                  */
-/* -------------------------------------------------------------------------- */
-
-type (
-	// GenesisBroker is a type alias for the genesis feed.
-	GenesisBroker = broker.Broker[*GenesisEvent]
-
-	// SidecarsBroker is a type alias for the blob feed.
-	SidecarsBroker = broker.Broker[*SidecarEvent]
-
-	// BlockBroker is a type alias for the block feed.
-	BlockBroker = broker.Broker[*BlockEvent]
-
-	// SlotBroker is a type alias for the slot feed.
-	SlotBroker = broker.Broker[*SlotEvent]
-
-	// StatusBroker is a type alias for the status feed.
-	StatusBroker = broker.Broker[*StatusEvent]
-
-	// ValidatorUpdateBroker is a type alias for the validator update feed.
-	ValidatorUpdateBroker = broker.Broker[*ValidatorUpdateEvent]
-)
-
-/* -------------------------------------------------------------------------- */
 /*                                  Pruners                                   */
 /* -------------------------------------------------------------------------- */
 
@@ -474,36 +423,3 @@ type (
 	// BlockPruner is a type alias for the block pruner.
 	BlockPruner = pruner.Pruner[*BlockStore]
 )
-
-// /* --------------------------------------------------------------------------
-// */ /*                                API Handlers
-//    */ /*
-// -------------------------------------------------------------------------- */
-
-// type (
-// 	// BeaconAPIHandler is a type alias for the beacon handler.
-// 	BeaconAPIHandler = beaconapi.Handler[
-// 		*BeaconBlockHeader, NodeAPIContext, *Fork, *Validator,
-// 	]
-
-// 	// BuilderAPIHandler is a type alias for the builder handler.
-// 	BuilderAPIHandler = builderapi.Handler[NodeAPIContext]
-
-// 	// ConfigAPIHandler is a type alias for the config handler.
-// 	ConfigAPIHandler = configapi.Handler[NodeAPIContext]
-
-// 	// DebugAPIHandler is a type alias for the debug handler.
-// 	DebugAPIHandler = debugapi.Handler[NodeAPIContext]
-
-// 	// EventsAPIHandler is a type alias for the events handler.
-// 	EventsAPIHandler = eventsapi.Handler[NodeAPIContext]
-
-// 	// NodeAPIHandler is a type alias for the node handler.
-// 	NodeAPIHandler = nodeapi.Handler[NodeAPIContext]
-
-// 	// ProofAPIHandler is a type alias for the proof handler.
-// 	ProofAPIHandler = proofapi.Handler[
-// 		NodeAPIContext, *BeaconBlockHeader, *BeaconState,
-// 		*BeaconStateMarshallable, *ExecutionPayloadHeader, *Validator,
-// 	]
-// )

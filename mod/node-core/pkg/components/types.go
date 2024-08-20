@@ -22,8 +22,7 @@ package components
 
 import (
 	"cosmossdk.io/core/appmodule/v2"
-	broker "github.com/berachain/beacon-kit/mod/async/pkg/broker"
-	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
 	consruntimetypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
@@ -34,6 +33,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/services/version"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
@@ -166,39 +166,46 @@ type (
 )
 
 /* -------------------------------------------------------------------------- */
-/*                                   Events                                   */
+/*                                   Messages                                 */
 /* -------------------------------------------------------------------------- */
 
+// Events.
+//
+//nolint:lll // long generic types
 type (
-	// GenesisEvent is a type alias for the genesis event.
-	GenesisEvent = asynctypes.Event[*Genesis]
 
-	// SlotEvent is a type alias for the slot event.
-	SlotEvent = asynctypes.Event[*SlotData]
+	// GenesisDataReceivedEvent is a type alias for the genesis data received event.
+	GenesisDataReceivedEvent = async.Event[*Genesis]
 
-	// StatusEvent is a type alias for the status event.
-	StatusEvent = asynctypes.Event[*service.StatusEvent]
+	// GenesisDataProcessedEvent is a type alias for the genesis data processed event.
+	GenesisDataProcessedEvent = async.Event[transition.ValidatorUpdates]
 
-	// ValidatorUpdateEvent is a type alias for the validator update event.
-	ValidatorUpdateEvent = asynctypes.Event[transition.ValidatorUpdates]
+	// NewSlotEvent is a type alias for the new slot event.
+	NewSlotEvent = async.Event[*SlotData]
+
+	// FinalValidatorUpdatesProcessedEvent is a type alias for the final validator updates processed event.
+	FinalValidatorUpdatesProcessedEvent = async.Event[transition.ValidatorUpdates]
+)
+
+// Messages.
+type (
+	// GenesisMessage is a type alias for the genesis message.
+	GenesisMessage = async.Event[*Genesis]
+
+	// SlotMessage is a type alias for the slot message.
+	SlotMessage = async.Event[*SlotData]
+
+	// StatusMessage is a type alias for the status message.
+	StatusMessage = async.Event[*service.StatusEvent]
 )
 
 /* -------------------------------------------------------------------------- */
-/*                                   Brokers                                  */
+/*                                   Dispatcher                               */
 /* -------------------------------------------------------------------------- */
 
 type (
-	// GenesisBroker is a type alias for the genesis feed.
-	GenesisBroker = broker.Broker[*GenesisEvent]
-
-	// SlotBroker is a type alias for the slot feed.
-	SlotBroker = broker.Broker[*SlotEvent]
-
-	// StatusBroker is a type alias for the status feed.
-	StatusBroker = broker.Broker[*StatusEvent]
-
-	// ValidatorUpdateBroker is a type alias for the validator update feed.
-	ValidatorUpdateBroker = broker.Broker[*ValidatorUpdateEvent]
+	// Dispatcher is a type alias for the dispatcher.
+	Dispatcher = dispatcher.Dispatcher
 )
 
 /* -------------------------------------------------------------------------- */

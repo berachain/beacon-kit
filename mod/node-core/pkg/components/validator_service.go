@@ -22,8 +22,6 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
-	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -42,20 +40,17 @@ type ValidatorServiceInput[
 	StorageBackendT any,
 ] struct {
 	depinject.In
-	BeaconBlockFeed *broker.Broker[*asynctypes.Event[BeaconBlockT]]
-	BlobProcessor   BlobProcessor[AvailabilityStoreT, BeaconBlockT, BlobSidecarsT]
-	Cfg             *config.Config
-	ChainSpec       common.ChainSpec
-	LocalBuilder    LocalBuilder[BeaconStateT, *ExecutionPayload]
-	Logger          LoggerT
-	StateProcessor  StateProcessor[
+	Cfg            *config.Config
+	ChainSpec      common.ChainSpec
+	Dispatcher     *Dispatcher
+	LocalBuilder   LocalBuilder[BeaconStateT, *ExecutionPayload]
+	Logger         LoggerT
+	StateProcessor StateProcessor[
 		BeaconBlockT, BeaconStateT, *Context, *Deposit, *ExecutionPayloadHeader,
 	]
 	StorageBackend StorageBackendT
 	Signer         crypto.BLSSigner
-	SidecarsFeed   *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
 	SidecarFactory SidecarFactory[BeaconBlockT, BlobSidecarsT]
-	SlotBroker     *SlotBroker
 	TelemetrySink  *metrics.TelemetrySink
 }
 
@@ -94,11 +89,6 @@ func ProvideValidatorService[
 	*Eth1Data, *ExecutionPayload, *ExecutionPayloadHeader,
 	*ForkData, *SlashingInfo, *SlotData,
 ], error) {
-	slotSubscription, err := in.SlotBroker.Subscribe()
-	if err != nil {
-		in.Logger.Error("failed to subscribe to slot feed", "err", err)
-		return nil, err
-	}
 	// Build the builder service.
 	return validator.NewService[
 		*AttestationData,
@@ -127,8 +117,6 @@ func ProvideValidatorService[
 			in.LocalBuilder,
 		},
 		in.TelemetrySink,
-		in.BeaconBlockFeed,
-		in.SidecarsFeed,
-		slotSubscription,
+		in.Dispatcher,
 	), nil
 }

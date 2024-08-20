@@ -24,13 +24,11 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
-	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/p2p"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	rp2p "github.com/berachain/beacon-kit/mod/runtime/pkg/p2p"
 )
@@ -60,33 +58,23 @@ type ABCIMiddleware[
 		encoding.ABCIRequest,
 		BeaconBlockT,
 	]
+	dispatcher types.Dispatcher
 	// metrics is the metrics emitter.
 	metrics *ABCIMiddlewareMetrics
 	// logger is the logger for the middleware.
 	logger log.Logger[any]
-
-	// Feeds
-	//
-	// genesisBroker is a feed for genesis data.
-	genesisBroker *broker.Broker[*asynctypes.Event[GenesisT]]
-	// blkBroker is a feed for blocks.
-	blkBroker *broker.Broker[*asynctypes.Event[BeaconBlockT]]
-	// sidecarsBroker is a feed for sidecars.
-	sidecarsBroker *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
-	// slotBroker is a feed for slots.
-	slotBroker *broker.Broker[*asynctypes.Event[SlotDataT]]
-
-	// Channels
-	// blkCh is used to communicate the beacon block to the EndBlock method.
-	blkCh chan *asynctypes.Event[BeaconBlockT]
-	// sidecarsCh is used to communicate the sidecars to the EndBlock method.
-	sidecarsCh chan *asynctypes.Event[BlobSidecarsT]
-	// valUpdateSub is the channel for listening for incoming validator set
-	// updates.
-	valUpdateSub chan *asynctypes.Event[transition.ValidatorUpdates]
+	// subscription channels
+	subGenDataProcessed      chan async.Event[validatorUpdates]
+	subBuiltBeaconBlock      chan async.Event[BeaconBlockT]
+	subBuiltSidecars         chan async.Event[BlobSidecarsT]
+	subBBVerified            chan async.Event[BeaconBlockT]
+	subSCVerified            chan async.Event[BlobSidecarsT]
+	subFinalValidatorUpdates chan async.Event[validatorUpdates]
 }
 
 // NewABCIMiddleware creates a new instance of the Handler struct.
+//
+
 func NewABCIMiddleware[
 	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BlobSidecarsT BlobSidecars[BlobSidecarsT],
@@ -96,11 +84,7 @@ func NewABCIMiddleware[
 	chainSpec common.ChainSpec,
 	logger log.Logger[any],
 	telemetrySink TelemetrySink,
-	genesisBroker *broker.Broker[*asynctypes.Event[GenesisT]],
-	blkBroker *broker.Broker[*asynctypes.Event[BeaconBlockT]],
-	sidecarsBroker *broker.Broker[*asynctypes.Event[BlobSidecarsT]],
-	slotBroker *broker.Broker[*asynctypes.Event[SlotDataT]],
-	valUpdateSub chan *asynctypes.Event[transition.ValidatorUpdates],
+	dispatcher types.Dispatcher,
 ) *ABCIMiddleware[
 	BeaconBlockT, BlobSidecarsT, GenesisT, SlotDataT,
 ] {
@@ -117,73 +101,59 @@ func NewABCIMiddleware[
 		](
 			chainSpec,
 		),
-		logger:         logger,
-		metrics:        newABCIMiddlewareMetrics(telemetrySink),
-		genesisBroker:  genesisBroker,
-		blkBroker:      blkBroker,
-		sidecarsBroker: sidecarsBroker,
-		slotBroker:     slotBroker,
-		blkCh: make(
-			chan *asynctypes.Event[BeaconBlockT],
-			1,
-		),
-		sidecarsCh: make(
-			chan *asynctypes.Event[BlobSidecarsT],
-			1,
-		),
-		valUpdateSub: valUpdateSub,
+		logger:                   logger,
+		metrics:                  newABCIMiddlewareMetrics(telemetrySink),
+		dispatcher:               dispatcher,
+		subGenDataProcessed:      make(chan async.Event[validatorUpdates]),
+		subBuiltBeaconBlock:      make(chan async.Event[BeaconBlockT]),
+		subBuiltSidecars:         make(chan async.Event[BlobSidecarsT]),
+		subBBVerified:            make(chan async.Event[BeaconBlockT]),
+		subSCVerified:            make(chan async.Event[BlobSidecarsT]),
+		subFinalValidatorUpdates: make(chan async.Event[validatorUpdates]),
 	}
 }
 
-// Name returns the name of the middleware.
-func (am *ABCIMiddleware[_, _, _, _]) Name() string {
-	return "abci-middleware"
-}
-
-// Start the middleware.
+// Start subscribes the middleware to the events it needs to listen for.
 func (am *ABCIMiddleware[_, _, _, _]) Start(
-	ctx context.Context,
+	_ context.Context,
 ) error {
-	subBlkCh, err := am.blkBroker.Subscribe()
-	if err != nil {
+	var err error
+	if err = am.dispatcher.Subscribe(
+		async.GenesisDataProcessed, am.subGenDataProcessed,
+	); err != nil {
 		return err
 	}
-
-	subSidecarsCh, err := am.sidecarsBroker.Subscribe()
-	if err != nil {
+	if err = am.dispatcher.Subscribe(
+		async.BuiltBeaconBlock, am.subBuiltBeaconBlock,
+	); err != nil {
 		return err
 	}
-
-	go am.start(ctx, subBlkCh, subSidecarsCh)
+	if err = am.dispatcher.Subscribe(
+		async.BuiltSidecars, am.subBuiltSidecars,
+	); err != nil {
+		return err
+	}
+	if err = am.dispatcher.Subscribe(
+		async.BeaconBlockVerified, am.subBBVerified,
+	); err != nil {
+		return err
+	}
+	if err = am.dispatcher.Subscribe(
+		async.SidecarsVerified, am.subSCVerified,
+	); err != nil {
+		return err
+	}
+	if err = am.dispatcher.Subscribe(
+		async.FinalValidatorUpdatesProcessed, am.subFinalValidatorUpdates,
+	); err != nil {
+		return err
+	}
 	return nil
 }
 
-// start starts the middleware.
+// Name returns the name of the middleware.
 func (am *ABCIMiddleware[
-	BeaconBlockT, BlobSidecarsT, _, _,
-]) start(
-	ctx context.Context,
-	blkCh chan *asynctypes.Event[BeaconBlockT],
-	sidecarsCh chan *asynctypes.Event[BlobSidecarsT],
-) {
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case msg := <-blkCh:
-			switch msg.Type() {
-			case events.BeaconBlockBuilt:
-				fallthrough
-			case events.BeaconBlockVerified:
-				am.blkCh <- msg
-			}
-		case msg := <-sidecarsCh:
-			switch msg.Type() {
-			case events.BlobSidecarsBuilt:
-				fallthrough
-			case events.BlobSidecarsProcessed:
-				am.sidecarsCh <- msg
-			}
-		}
-	}
+	_, _, _, _,
+]) Name() string {
+	return "abci-middleware"
 }
