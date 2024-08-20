@@ -46,7 +46,7 @@ start-bartio:
 # TODO: For restoring snapshot, pre-requsites:
 # Place the snapshot in the `./.tmp/beacond/data` directory.
 
-IP_ADDRESS := $(shell hostname -I | awk '{print $$1}')
+IP_ADDRESS := $(sh hostname -I | awk '{print $$1}')
 RPC_URL = "http://${IP_ADDRESS}:8551"
 IMAGE_NAME = beacond
 VERSION = kurtosis-local
