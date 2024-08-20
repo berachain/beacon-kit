@@ -112,6 +112,7 @@ func (s *KurtosisE2ESuite) SetupSuiteWithOptions(opts ...Option) {
 		"num_full_nodes",
 		len(s.cfg.NetworkConfiguration.FullNodes.Nodes),
 	)
+
 	result, err := s.enclave.RunStarlarkPackageBlocking(
 		s.ctx,
 		"../../kurtosis",
