@@ -9,6 +9,9 @@ replace (
 	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240806152830-8fb47b368cd4
 
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240806152830-8fb47b368cd4
+	// required until merged onto main
+	github.com/berachain/beacon-kit/mod/async => ../async
+	github.com/berachain/beacon-kit/mod/primitives => ../primitives
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240808182639-7bdbf06a94f2
 )
 
@@ -17,10 +20,10 @@ require (
 	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc
 	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240809163303-a4ebb22fd018
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240809163303-a4ebb22fd018
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240806211103-d1105603bfc0
+	github.com/berachain/beacon-kit/mod/log v0.0.0-20240807213340-5779c7a563cd
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240618214413-d5ec0e66b3dd
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240808194557-e72e74f58197
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240816231924-221a061d3573
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240806094948-2c4293ef36c4
 	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4
 	github.com/cosmos/cosmos-db v1.0.2
@@ -195,7 +198,7 @@ require (
 	golang.org/x/crypto v0.26.0 // indirect
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
 	golang.org/x/net v0.28.0 // indirect
-	golang.org/x/sync v0.8.0
+	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/sys v0.24.0 // indirect
 	golang.org/x/text v0.17.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240711142825-46eb208f015d // indirect

@@ -18,17 +18,32 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package middleware
+package async
 
-import "time"
+// EventID represents the type of a message.
+type EventID string
 
+// event ids, topologically sorted.
 const (
-	// BeaconBlockTxIndex represents the index of the beacon block transaction.
-	// It is the first transaction in the tx list.
-	BeaconBlockTxIndex uint = iota
-	// BlobSidecarsTxIndex represents the index of the blob sidecar transaction.
-	// It follows the beacon block transaction in the tx list.
-	BlobSidecarsTxIndex
-	// AwaitTimeout is the timeout for awaiting events.
-	AwaitTimeout = 2 * time.Second
+
+	// genesis data events.
+	GenesisDataReceived  = "genesis-data-received"
+	GenesisDataProcessed = "genesis-data-processed"
+
+	// pre proposal events.
+	NewSlot          = "new-slot"
+	BuiltBeaconBlock = "built-beacon-block"
+	BuiltSidecars    = "built-sidecars"
+
+	// proposal processing events.
+	BeaconBlockReceived = "beacon-block-received"
+	SidecarsReceived    = "sidecars-received"
+	BeaconBlockVerified = "beacon-block-verified"
+	SidecarsVerified    = "sidecars-verified"
+
+	// finalize block events.
+	FinalBeaconBlockReceived       = "final-beacon-block-received"
+	FinalSidecarsReceived          = "final-blob-sidecars-received"
+	FinalValidatorUpdatesProcessed = "final-validator-updates"
+	BeaconBlockFinalizedEvent      = "beacon-block-finalized"
 )

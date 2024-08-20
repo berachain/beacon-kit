@@ -109,8 +109,8 @@ type DAServiceIn[
 	depinject.In
 
 	AvailabilityStore *AvailabilityStore
-	SidecarsBroker    *SidecarsBroker
 	BlobProcessor     *BlobProcessor
+	Dispatcher        *Dispatcher
 	Logger            LoggerT
 }
 
@@ -127,7 +127,7 @@ func ProvideDAService[
 	](
 		in.AvailabilityStore,
 		in.BlobProcessor,
-		in.SidecarsBroker,
+		in.Dispatcher,
 		in.Logger.With("service", "da"),
 	)
 }
