@@ -24,42 +24,104 @@ import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
+	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
+	"github.com/berachain/beacon-kit/mod/beacon/validator"
+	"github.com/berachain/beacon-kit/mod/da/pkg/da"
+	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/node-api/server"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/middleware"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 )
 
 // ServiceRegistryInput is the input for the service registry provider.
 type ServiceRegistryInput[
-	BeaconBlockT any,
-	BlobSidecarsT any,
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT],
+	BeaconBlockBodyT BeaconBlockBody[
+		BeaconBlockBodyT, *AttestationData, *Deposit,
+		*Eth1Data, *ExecutionPayload, *SlashingInfo,
+	],
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconBlockStoreT BlockStore[BeaconBlockT],
+	BeaconStateT BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
+		*Eth1Data, *ExecutionPayloadHeader, *Fork, KVStoreT,
+		*Validator, Validators, *Withdrawal,
+	],
+	BeaconStateMarshallableT any,
+	BlobSidecarT any,
+	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
+	KVStoreT any,
 	LoggerT any,
+	NodeAPIContextT NodeAPIContext,
 ] struct {
 	depinject.In
-	ABCIService           *ABCIMiddleware
-	BlockBroker           *broker.Broker[*asynctypes.Event[BeaconBlockT]]
-	BlockStoreService     *BlockStoreService
-	ChainService          *ChainService
-	DAService             *DAService
-	DBManager             *DBManager
-	DepositService        *DepositService
-	EngineClient          *EngineClient
-	GenesisBroker         *GenesisBroker
-	Logger                LoggerT
-	NodeAPIServer         NodeAPIServer
-	ReportingService      *ReportingService
-	SidecarsBroker        *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
-	SlotBroker            *SlotBroker
-	TelemetrySink         *metrics.TelemetrySink
-	ValidatorService      *ValidatorService
+	ABCIService *middleware.ABCIMiddleware[
+		BeaconBlockT, BlobSidecarsT, *Genesis, *SlotData,
+	]
+	BlockBroker       *broker.Broker[*asynctypes.Event[BeaconBlockT]]
+	BlockStoreService *blockstore.Service[
+		BeaconBlockT, BeaconBlockStoreT,
+	]
+	ChainService *blockchain.Service[
+		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+		BeaconBlockHeaderT, BeaconStateT, *Deposit, *ExecutionPayload,
+		*ExecutionPayloadHeader, *Genesis, *PayloadAttributes,
+	]
+	DAService      *da.Service[AvailabilityStoreT, BlobSidecarsT]
+	DBManager      *DBManager
+	DepositService *deposit.Service[
+		BeaconBlockT, BeaconBlockBodyT, *Deposit,
+		*ExecutionPayload, WithdrawalCredentials,
+	]
+	EngineClient     *EngineClient
+	GenesisBroker    *GenesisBroker
+	Logger           LoggerT
+	NodeAPIServer    *server.Server[NodeAPIContextT]
+	ReportingService *ReportingService
+	SidecarsBroker   *broker.Broker[*asynctypes.Event[BlobSidecarsT]]
+	SlotBroker       *SlotBroker
+	TelemetrySink    *metrics.TelemetrySink
+	ValidatorService *validator.Service[
+		*AttestationData, BeaconBlockT, BeaconBlockBodyT,
+		BeaconStateT, BlobSidecarsT, *Deposit, *DepositStore,
+		*Eth1Data, *ExecutionPayload, *ExecutionPayloadHeader,
+		*ForkData, *SlashingInfo, *SlotData,
+	]
 	ValidatorUpdateBroker *ValidatorUpdateBroker
 }
 
 // ProvideServiceRegistry is the depinject provider for the service registry.
 func ProvideServiceRegistry[
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT],
+	BeaconBlockBodyT BeaconBlockBody[
+		BeaconBlockBodyT, *AttestationData, *Deposit,
+		*Eth1Data, *ExecutionPayload, *SlashingInfo,
+	],
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconBlockStoreT BlockStore[BeaconBlockT],
+	BeaconStateT BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
+		*Eth1Data, *ExecutionPayloadHeader, *Fork, KVStoreT,
+		*Validator, Validators, *Withdrawal,
+	],
+	BeaconStateMarshallableT any,
+	BlobSidecarT any,
+	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
+	KVStoreT any,
 	LoggerT log.AdvancedLogger[any, LoggerT],
+	NodeAPIContextT NodeAPIContext,
 ](
-	in ServiceRegistryInput[LoggerT],
+	in ServiceRegistryInput[
+		AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+		BeaconBlockHeaderT, BeaconBlockStoreT, BeaconStateT,
+		BeaconStateMarshallableT, BlobSidecarT, BlobSidecarsT,
+		KVStoreT, LoggerT, NodeAPIContextT,
+	],
 ) *service.Registry {
 	return service.NewRegistry(
 		service.WithLogger(in.Logger),

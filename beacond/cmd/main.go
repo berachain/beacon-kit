@@ -29,8 +29,6 @@ import (
 	nodebuilder "github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
 	nodecomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
-	"github.com/cosmos/cosmos-sdk/server"
 	"go.uber.org/automaxprocs/maxprocs"
 )
 
@@ -47,7 +45,7 @@ func run() error {
 	nb := nodebuilder.New(
 		// Set the Runtime Components to the Default.
 		nodebuilder.WithComponents[Node, *Logger, *LoggerConfig](
-			nodecomponents.DefaultComponents(),
+			DefaultComponents(),
 		),
 	)
 

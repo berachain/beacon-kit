@@ -26,14 +26,18 @@ import (
 )
 
 // ProvideBlobBroker provides a blob feed for the depinject framework.
-func ProvideBlobBroker[BlobSidecarsT any]() *broker.Broker[*asynctypes.Event[BlobSidecarsT]] {
+func ProvideBlobBroker[
+	BlobSidecarsT any,
+]() *broker.Broker[*asynctypes.Event[BlobSidecarsT]] {
 	return broker.New[*asynctypes.Event[BlobSidecarsT]](
 		"blob-broker",
 	)
 }
 
 // ProvideBlockBroker provides a block feed for the depinject framework.
-func ProvideBlockBroker[BeaconBlockT any]() *broker.Broker[*asynctypes.Event[BeaconBlockT]] {
+func ProvideBlockBroker[
+	BeaconBlockT any,
+]() *broker.Broker[*asynctypes.Event[BeaconBlockT]] {
 	return broker.New[*asynctypes.Event[BeaconBlockT]](
 		"blk-broker",
 	)
@@ -67,17 +71,17 @@ func ProvideValidatorUpdateBroker() *ValidatorUpdateBroker {
 	)
 }
 
-// DefaultBrokerProviders returns a slice of the default broker providers.
-func DefaultBrokerProviders[
-	BeaconBlockT any,
-	BlobSidecarsT any,
-]() []interface{} {
-	return []interface{}{
-		ProvideBlobBroker[BlobSidecarsT],
-		ProvideBlockBroker[BeaconBlockT],
-		ProvideGenesisBroker,
-		ProvideSlotBroker,
-		ProvideStatusBroker,
-		ProvideValidatorUpdateBroker,
-	}
-}
+// // DefaultBrokerProviders returns a slice of the default broker providers.
+// func DefaultBrokerProviders[
+// 	BeaconBlockT any,
+// 	BlobSidecarsT any,
+// ]() []interface{} {
+// 	return []interface{}{
+// ProvideBlobBroker[BlobSidecarsT],
+// ProvideBlockBroker[BeaconBlockT],
+// ProvideGenesisBroker,
+// ProvideSlotBroker,
+// ProvideStatusBroker,
+// ProvideValidatorUpdateBroker,
+// 	}
+// }

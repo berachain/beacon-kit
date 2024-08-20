@@ -21,19 +21,6 @@
 package components
 
 import (
-	// stdbytes "bytes"
-	// "context"
-	// "encoding/json"
-	// "time"
-
-	// asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
-	// engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	// "github.com/berachain/beacon-kit/mod/geth-primitives/pkg/bind"
-	// "github.com/berachain/beacon-kit/mod/log"
-	// "github.com/berachain/beacon-kit/mod/node-api/handlers"
-	// "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
-	// nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
-	// "github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"context"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
@@ -48,11 +35,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	v1 "github.com/cometbft/cometbft/api/cometbft/abci/v1"
-
-	// "github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	// "github.com/berachain/beacon-kit/mod/runtime/pkg/service"
-	// v1 "github.com/cometbft/cometbft/api/cometbft/abci/v1"
-	// sdk "github.com/cosmos/cosmos-sdk/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
 	fastssz "github.com/ferranbt/fastssz"
@@ -459,7 +441,8 @@ type (
 	// 		ExecutionPayloadT ExecutionPayload[
 	// 			ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	// 		],
-	// 		ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	// 		ExecutionPayloadHeaderT
+	// ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	// 		PayloadAttributesT any,
 	// 		PayloadIDT ~[8]byte,
 	// 		WithdrawalT any,
@@ -480,7 +463,8 @@ type (
 	// 		// execution client.
 	// 		VerifyAndNotifyNewPayload(
 	// 			ctx context.Context,
-	// 			req *engineprimitives.NewPayloadRequest[ExecutionPayloadT, WithdrawalsT],
+	// 			req *engineprimitives.NewPayloadRequest[ExecutionPayloadT,
+	// WithdrawalsT],
 	// 		) error
 	// 	}
 
@@ -511,7 +495,8 @@ type (
 	// 		) (ExecutionPayloadHeaderT, error)
 	// 	}
 
-	// 	// ExecutionPayloadHeader is the interface for the execution payload header.
+	// 	// ExecutionPayloadHeader is the interface for the execution payload
+	// header.
 	// 	ExecutionPayloadHeader[T any] interface {
 	// 		constraints.SSZMarshallable
 	// 		constraints.Versionable
@@ -648,7 +633,8 @@ type (
 	// 		New(math.Slot, []AttestationDataT, []SlashingInfoT) T
 	// 		// GetSlot returns the slot of the incoming slot.
 	// 		GetSlot() math.Slot
-	// 		// GetAttestationData returns the attestation data of the incoming slot.
+	// 		// GetAttestationData returns the attestation data of the incoming
+	// slot.
 	// 		GetAttestationData() []AttestationDataT
 	// 		// GetSlashingInfo returns the slashing info of the incoming slot.
 	// 		GetSlashingInfo() []SlashingInfoT
@@ -706,97 +692,100 @@ type (
 		StateFromContext(context.Context) BeaconStateT
 	}
 
-// 	// TelemetrySink is an interface for sending metrics to a telemetry backend.
-// 	TelemetrySink interface {
-// 		// MeasureSince measures the time since the given time.
-// 		MeasureSince(key string, start time.Time, args ...string)
-// 	}
+	// 	// TelemetrySink is an interface for sending metrics to a telemetry
+	// backend.
+	// 	TelemetrySink interface {
+	// 		// MeasureSince measures the time since the given time.
+	// 		MeasureSince(key string, start time.Time, args ...string)
+	// 	}
 
-// 	// Validator represents an interface for a validator with generic type
-// 	// ValidatorT.
-// 	Validator[
-// 		ValidatorT any,
-// 		WithdrawalCredentialsT any,
-// 	] interface {
-// 		constraints.Empty[ValidatorT]
-// 		constraints.SSZMarshallableRootable
-// 		SizeSSZ() uint32
-// 		// New creates a new validator with the given parameters.
-// 		New(
-// 			pubkey crypto.BLSPubkey,
-// 			withdrawalCredentials WithdrawalCredentialsT,
-// 			amount math.Gwei,
-// 			effectiveBalanceIncrement math.Gwei,
-// 			maxEffectiveBalance math.Gwei,
-// 		) ValidatorT
-// 		// IsSlashed returns true if the validator is slashed.
-// 		IsSlashed() bool
-// 		// IsActive checks if the validator is active at the given epoch.
-// 		IsActive(epoch math.Epoch) bool
-// 		// GetPubkey returns the public key of the validator.
-// 		GetPubkey() crypto.BLSPubkey
-// 		// GetEffectiveBalance returns the effective balance of the validator in
-// 		// Gwei.
-// 		GetEffectiveBalance() math.Gwei
-// 		// SetEffectiveBalance sets the effective balance of the validator in
-// 		// Gwei.
-// 		SetEffectiveBalance(math.Gwei)
-// 		// GetWithdrawableEpoch returns the epoch when the validator can
-// 		// withdraw.
-// 		GetWithdrawableEpoch() math.Epoch
-// 		// GetWithdrawalCredentials returns the withdrawal credentials of the
-// 		// validator.
-// 		GetWithdrawalCredentials() WithdrawalCredentialsT
-// 		// IsFullyWithdrawable checks if the validator is fully withdrawable
-// 		// given a
-// 		// certain Gwei amount and epoch.
-// 		IsFullyWithdrawable(amount math.Gwei, epoch math.Epoch) bool
-// 		// IsPartiallyWithdrawable checks if the validator is partially
-// 		// withdrawable
-// 		// given two Gwei amounts.
-// 		IsPartiallyWithdrawable(amount1 math.Gwei, amount2 math.Gwei) bool
-// 	}
+	// 	// Validator represents an interface for a validator with generic type
+	// 	// ValidatorT.
+	// 	Validator[
+	// 		ValidatorT any,
+	// 		WithdrawalCredentialsT any,
+	// 	] interface {
+	// 		constraints.Empty[ValidatorT]
+	// 		constraints.SSZMarshallableRootable
+	// 		SizeSSZ() uint32
+	// 		// New creates a new validator with the given parameters.
+	// 		New(
+	// 			pubkey crypto.BLSPubkey,
+	// 			withdrawalCredentials WithdrawalCredentialsT,
+	// 			amount math.Gwei,
+	// 			effectiveBalanceIncrement math.Gwei,
+	// 			maxEffectiveBalance math.Gwei,
+	// 		) ValidatorT
+	// 		// IsSlashed returns true if the validator is slashed.
+	// 		IsSlashed() bool
+	// 		// IsActive checks if the validator is active at the given epoch.
+	// 		IsActive(epoch math.Epoch) bool
+	// 		// GetPubkey returns the public key of the validator.
+	// 		GetPubkey() crypto.BLSPubkey
+	// 		// GetEffectiveBalance returns the effective balance of the validator
+	// in
+	// 		// Gwei.
+	// 		GetEffectiveBalance() math.Gwei
+	// 		// SetEffectiveBalance sets the effective balance of the validator in
+	// 		// Gwei.
+	// 		SetEffectiveBalance(math.Gwei)
+	// 		// GetWithdrawableEpoch returns the epoch when the validator can
+	// 		// withdraw.
+	// 		GetWithdrawableEpoch() math.Epoch
+	// 		// GetWithdrawalCredentials returns the withdrawal credentials of the
+	// 		// validator.
+	// 		GetWithdrawalCredentials() WithdrawalCredentialsT
+	// 		// IsFullyWithdrawable checks if the validator is fully withdrawable
+	// 		// given a
+	// 		// certain Gwei amount and epoch.
+	// 		IsFullyWithdrawable(amount math.Gwei, epoch math.Epoch) bool
+	// 		// IsPartiallyWithdrawable checks if the validator is partially
+	// 		// withdrawable
+	// 		// given two Gwei amounts.
+	// 		IsPartiallyWithdrawable(amount1 math.Gwei, amount2 math.Gwei) bool
+	// 	}
 
-// 	Validators[ValidatorT any] interface {
-// 		~[]ValidatorT
-// 		HashTreeRoot() common.Root
-// 	}
+	// 	Validators[ValidatorT any] interface {
+	// 		~[]ValidatorT
+	// 		HashTreeRoot() common.Root
+	// 	}
 
-// 	// Withdrawal is the interface for a withdrawal.
-// 	Withdrawal[T any] interface {
-// 		New(
-// 			index math.U64,
-// 			validatorIndex math.ValidatorIndex,
-// 			address common.ExecutionAddress,
-// 			amount math.Gwei,
-// 		) T
-// 		// Equals returns true if the withdrawal is equal to the other.
-// 		Equals(T) bool
-// 		// GetAmount returns the amount of the withdrawal.
-// 		GetAmount() math.Gwei
-// 		// GetIndex returns the public key of the validator.
-// 		GetIndex() math.U64
-// 		// GetValidatorIndex returns the index of the validator.
-// 		GetValidatorIndex() math.ValidatorIndex
-// 		// GetAddress returns the address of the withdrawal.
-// 		GetAddress() common.ExecutionAddress
-// 	}
+	// 	// Withdrawal is the interface for a withdrawal.
+	// 	Withdrawal[T any] interface {
+	// 		New(
+	// 			index math.U64,
+	// 			validatorIndex math.ValidatorIndex,
+	// 			address common.ExecutionAddress,
+	// 			amount math.Gwei,
+	// 		) T
+	// 		// Equals returns true if the withdrawal is equal to the other.
+	// 		Equals(T) bool
+	// 		// GetAmount returns the amount of the withdrawal.
+	// 		GetAmount() math.Gwei
+	// 		// GetIndex returns the public key of the validator.
+	// 		GetIndex() math.U64
+	// 		// GetValidatorIndex returns the index of the validator.
+	// 		GetValidatorIndex() math.ValidatorIndex
+	// 		// GetAddress returns the address of the withdrawal.
+	// 		GetAddress() common.ExecutionAddress
+	// 	}
 
-// 	Withdrawals[WithdrawalT any] interface {
-// 		~[]WithdrawalT
-// 		Len() int
-// 		EncodeIndex(int, *stdbytes.Buffer)
-// 	}
+	// 	Withdrawals[WithdrawalT any] interface {
+	// 		~[]WithdrawalT
+	// 		Len() int
+	// 		EncodeIndex(int, *stdbytes.Buffer)
+	// 	}
 
-// // WithdrawalCredentials represents an interface for withdrawal credentials.
-//
-//	WithdrawalCredentials interface {
-//		~[32]byte
-//		// ToExecutionAddress converts the withdrawal credentials to an
-//		// execution
-//		// address.
-//		ToExecutionAddress() (common.ExecutionAddress, error)
-//	}
+	// // WithdrawalCredentials represents an interface for withdrawal
+	// credentials.
+	//
+	//	WithdrawalCredentials interface {
+	//		~[32]byte
+	//		// ToExecutionAddress converts the withdrawal credentials to an
+	//		// execution
+	//		// address.
+	//		ToExecutionAddress() (common.ExecutionAddress, error)
+	//	}
 )
 
 /* -------------------------------------------------------------------------- */
@@ -1091,9 +1080,10 @@ type (
 	}
 )
 
-// /* -------------------------------------------------------------------------- */
-// /*                                  NodeAPI                                   */
-// /* -------------------------------------------------------------------------- */
+// /* --------------------------------------------------------------------------
+// */ /*                                  NodeAPI
+//    */ /*
+// -------------------------------------------------------------------------- */
 
 type (
 	NodeAPIContext interface {
@@ -1105,10 +1095,6 @@ type (
 	NodeAPIEngine[ContextT NodeAPIContext] interface {
 		Run(addr string) error
 		RegisterRoutes(*handlers.RouteSet[ContextT], log.Logger[any])
-	}
-
-	NodeAPIServer interface {
-		service.Basic
 	}
 
 	NodeAPIBackend[

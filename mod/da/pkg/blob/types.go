@@ -59,6 +59,7 @@ type BeaconBlockHeader interface {
 	GetSlot() math.Slot
 }
 
+//nolint:revive // name conflict
 type BlobVerifier[BlobSidecarsT any] interface {
 	VerifyInclusionProofs(scs BlobSidecarsT, kzgOffset uint64) error
 	VerifyKZGProofs(scs BlobSidecarsT) error

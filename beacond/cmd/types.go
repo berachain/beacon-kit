@@ -41,13 +41,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
 	"github.com/berachain/beacon-kit/mod/node-api/backend"
 	"github.com/berachain/beacon-kit/mod/node-api/engines/echo"
-	beaconapi "github.com/berachain/beacon-kit/mod/node-api/handlers/beacon"
-	builderapi "github.com/berachain/beacon-kit/mod/node-api/handlers/builder"
-	configapi "github.com/berachain/beacon-kit/mod/node-api/handlers/config"
-	debugapi "github.com/berachain/beacon-kit/mod/node-api/handlers/debug"
-	eventsapi "github.com/berachain/beacon-kit/mod/node-api/handlers/events"
-	nodeapi "github.com/berachain/beacon-kit/mod/node-api/handlers/node"
-	proofapi "github.com/berachain/beacon-kit/mod/node-api/handlers/proof"
 	"github.com/berachain/beacon-kit/mod/node-api/server"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
@@ -76,11 +69,8 @@ import (
 type (
 	// ABCIMiddleware is a type alias for the ABCIMiddleware.
 	ABCIMiddleware = middleware.ABCIMiddleware[
-		*AvailabilityStore,
 		*BeaconBlock,
 		*BlobSidecars,
-		*Deposit,
-		*ExecutionPayload,
 		*Genesis,
 		*SlotData,
 	]
@@ -123,7 +113,6 @@ type (
 		*ExecutionPayloadHeader,
 		*Genesis,
 		*PayloadAttributes,
-		*Withdrawal,
 	]
 
 	// ConsensusEngine is a type alias for the consensus engine.
@@ -144,13 +133,7 @@ type (
 	]
 
 	// DAService is a type alias for the DA service.
-	DAService = da.Service[
-		*AvailabilityStore,
-		*BeaconBlockBody,
-		*BlobSidecars,
-		*SidecarsBroker,
-		*ExecutionPayload,
-	]
+	DAService = da.Service[*AvailabilityStore, *BlobSidecars]
 
 	// DBManager is a type alias for the database manager.
 	DBManager = manager.DBManager
@@ -159,7 +142,6 @@ type (
 	DepositService = deposit.Service[
 		*BeaconBlock,
 		*BeaconBlockBody,
-		*BlockEvent,
 		*Deposit,
 		*ExecutionPayload,
 		WithdrawalCredentials,
@@ -206,10 +188,7 @@ type (
 	NodeAPIEngine = echo.Engine
 
 	// NodeAPIServer is a type alias for the node API server.
-	NodeAPIServer = server.Server[
-		NodeAPIContext,
-		*NodeAPIEngine,
-	]
+	NodeAPIServer = server.Server[NodeAPIContext]
 
 	// ReportingService is a type alias for the reporting service.
 	ReportingService = version.ReportingService
@@ -218,6 +197,7 @@ type (
 	SidecarFactory = dablob.SidecarFactory[
 		*BeaconBlock,
 		*BeaconBlockBody,
+		*BeaconBlockHeader,
 	]
 
 	// StateProcessor is the type alias for the state processor interface.
@@ -244,23 +224,10 @@ type (
 	// StorageBackend is the type alias for the storage backend interface.
 	StorageBackend = storage.Backend[
 		*AvailabilityStore,
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*BeaconBlockHeader,
 		*BeaconState,
-		*BeaconStateMarshallable,
-		*BlobSidecars,
 		*BlockStore,
-		*Deposit,
 		*DepositStore,
-		*Eth1Data,
-		*ExecutionPayloadHeader,
-		*Fork,
 		*KVStore,
-		*Validator,
-		Validators,
-		*Withdrawal,
-		WithdrawalCredentials,
 	]
 
 	// ValidatorService is a type alias for the validator service.
@@ -508,34 +475,35 @@ type (
 	BlockPruner = pruner.Pruner[*BlockStore]
 )
 
-/* -------------------------------------------------------------------------- */
-/*                                API Handlers                                */
-/* -------------------------------------------------------------------------- */
+// /* --------------------------------------------------------------------------
+// */ /*                                API Handlers
+//    */ /*
+// -------------------------------------------------------------------------- */
 
-type (
-	// BeaconAPIHandler is a type alias for the beacon handler.
-	BeaconAPIHandler = beaconapi.Handler[
-		*BeaconBlockHeader, NodeAPIContext, *Fork, *Validator,
-	]
+// type (
+// 	// BeaconAPIHandler is a type alias for the beacon handler.
+// 	BeaconAPIHandler = beaconapi.Handler[
+// 		*BeaconBlockHeader, NodeAPIContext, *Fork, *Validator,
+// 	]
 
-	// BuilderAPIHandler is a type alias for the builder handler.
-	BuilderAPIHandler = builderapi.Handler[NodeAPIContext]
+// 	// BuilderAPIHandler is a type alias for the builder handler.
+// 	BuilderAPIHandler = builderapi.Handler[NodeAPIContext]
 
-	// ConfigAPIHandler is a type alias for the config handler.
-	ConfigAPIHandler = configapi.Handler[NodeAPIContext]
+// 	// ConfigAPIHandler is a type alias for the config handler.
+// 	ConfigAPIHandler = configapi.Handler[NodeAPIContext]
 
-	// DebugAPIHandler is a type alias for the debug handler.
-	DebugAPIHandler = debugapi.Handler[NodeAPIContext]
+// 	// DebugAPIHandler is a type alias for the debug handler.
+// 	DebugAPIHandler = debugapi.Handler[NodeAPIContext]
 
-	// EventsAPIHandler is a type alias for the events handler.
-	EventsAPIHandler = eventsapi.Handler[NodeAPIContext]
+// 	// EventsAPIHandler is a type alias for the events handler.
+// 	EventsAPIHandler = eventsapi.Handler[NodeAPIContext]
 
-	// NodeAPIHandler is a type alias for the node handler.
-	NodeAPIHandler = nodeapi.Handler[NodeAPIContext]
+// 	// NodeAPIHandler is a type alias for the node handler.
+// 	NodeAPIHandler = nodeapi.Handler[NodeAPIContext]
 
-	// ProofAPIHandler is a type alias for the proof handler.
-	ProofAPIHandler = proofapi.Handler[
-		NodeAPIContext, *BeaconBlockHeader, *BeaconState,
-		*BeaconStateMarshallable, *ExecutionPayloadHeader, *Validator,
-	]
-)
+// 	// ProofAPIHandler is a type alias for the proof handler.
+// 	ProofAPIHandler = proofapi.Handler[
+// 		NodeAPIContext, *BeaconBlockHeader, *BeaconState,
+// 		*BeaconStateMarshallable, *ExecutionPayloadHeader, *Validator,
+// 	]
+// )

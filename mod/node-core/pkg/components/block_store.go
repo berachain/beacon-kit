@@ -99,8 +99,8 @@ type BlockPrunerInput[
 	Logger      LoggerT
 }
 
-// ProvideBlockPruner provides a block pruner for the depinject framework.
-func ProvideBlockPruner[
+// ProvideBlockStorePruner provides a block pruner for the depinject framework.
+func ProvideBlockStorePruner[
 	BeaconBlockT BeaconBlock[
 		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	],

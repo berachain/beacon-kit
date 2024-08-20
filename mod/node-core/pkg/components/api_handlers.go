@@ -44,19 +44,20 @@ type NodeAPIHandlersInput[
 		*ExecutionPayloadHeader, *Fork, *Validator,
 	],
 	KVStoreT any,
+	NodeAPIContextT NodeAPIContext,
 ] struct {
 	depinject.In
 	BeaconAPIHandler *beaconapi.Handler[
-		BeaconBlockHeaderT, NodeAPIContext, *Fork, *Validator,
+		BeaconBlockHeaderT, NodeAPIContextT, *Fork, *Validator,
 	]
-	BuilderAPIHandler *BuilderAPIHandler
-	ConfigAPIHandler  *ConfigAPIHandler
-	DebugAPIHandler   *DebugAPIHandler
-	EventsAPIHandler  *EventsAPIHandler
-	NodeAPIHandler    *NodeAPIHandler
+	BuilderAPIHandler *builderapi.Handler[NodeAPIContextT]
+	ConfigAPIHandler  *configapi.Handler[NodeAPIContextT]
+	DebugAPIHandler   *debugapi.Handler[NodeAPIContextT]
+	EventsAPIHandler  *eventsapi.Handler[NodeAPIContextT]
+	NodeAPIHandler    *nodeapi.Handler[NodeAPIContextT]
 	ProofAPIHandler   *proofapi.Handler[
 		BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT,
-		NodeAPIContext, *ExecutionPayloadHeader, *Validator,
+		NodeAPIContextT, *ExecutionPayloadHeader, *Validator,
 	]
 }
 
@@ -72,13 +73,14 @@ func ProvideNodeAPIHandlers[
 		*ExecutionPayloadHeader, *Fork, *Validator,
 	],
 	KVStoreT any,
+	NodeAPIContextT NodeAPIContext,
 ](
 	in NodeAPIHandlersInput[
 		BeaconBlockHeaderT, BeaconStateT,
-		BeaconStateMarshallableT, KVStoreT,
+		BeaconStateMarshallableT, KVStoreT, NodeAPIContextT,
 	],
-) []handlers.Handlers[NodeAPIContext] {
-	return []handlers.Handlers[NodeAPIContext]{
+) []handlers.Handlers[NodeAPIContextT] {
+	return []handlers.Handlers[NodeAPIContextT]{
 		in.BeaconAPIHandler,
 		in.BuilderAPIHandler,
 		in.ConfigAPIHandler,
@@ -93,6 +95,7 @@ func ProvideNodeAPIBeaconHandler[
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT any,
 	NodeT any,
+	NodeAPIContextT NodeAPIContext,
 ](b NodeAPIBackend[
 	BeaconBlockHeaderT,
 	BeaconStateT,
@@ -100,34 +103,44 @@ func ProvideNodeAPIBeaconHandler[
 	NodeT,
 	*Validator,
 ]) *beaconapi.Handler[
-	BeaconBlockHeaderT, NodeAPIContext, *Fork, *Validator,
+	BeaconBlockHeaderT, NodeAPIContextT, *Fork, *Validator,
 ] {
 	return beaconapi.NewHandler[
 		BeaconBlockHeaderT,
-		NodeAPIContext,
+		NodeAPIContextT,
 		*Fork,
 		*Validator,
 	](b)
 }
 
-func ProvideNodeAPIBuilderHandler() *BuilderAPIHandler {
-	return builderapi.NewHandler[NodeAPIContext]()
+func ProvideNodeAPIBuilderHandler[
+	NodeAPIContextT NodeAPIContext,
+]() *builderapi.Handler[NodeAPIContextT] {
+	return builderapi.NewHandler[NodeAPIContextT]()
 }
 
-func ProvideNodeAPIConfigHandler() *ConfigAPIHandler {
-	return configapi.NewHandler[NodeAPIContext]()
+func ProvideNodeAPIConfigHandler[
+	NodeAPIContextT NodeAPIContext,
+]() *configapi.Handler[NodeAPIContextT] {
+	return configapi.NewHandler[NodeAPIContextT]()
 }
 
-func ProvideNodeAPIDebugHandler() *DebugAPIHandler {
-	return debugapi.NewHandler[NodeAPIContext]()
+func ProvideNodeAPIDebugHandler[
+	NodeAPIContextT NodeAPIContext,
+]() *debugapi.Handler[NodeAPIContextT] {
+	return debugapi.NewHandler[NodeAPIContextT]()
 }
 
-func ProvideNodeAPIEventsHandler() *EventsAPIHandler {
-	return eventsapi.NewHandler[NodeAPIContext]()
+func ProvideNodeAPIEventsHandler[
+	NodeAPIContextT NodeAPIContext,
+]() *eventsapi.Handler[NodeAPIContextT] {
+	return eventsapi.NewHandler[NodeAPIContextT]()
 }
 
-func ProvideNodeAPINodeHandler() *NodeAPIHandler {
-	return nodeapi.NewHandler[NodeAPIContext]()
+func ProvideNodeAPINodeHandler[
+	NodeAPIContextT NodeAPIContext,
+]() *nodeapi.Handler[NodeAPIContextT] {
+	return nodeapi.NewHandler[NodeAPIContextT]()
 }
 
 func ProvideNodeAPIProofHandler[
@@ -143,6 +156,7 @@ func ProvideNodeAPIProofHandler[
 	],
 	KVStoreT any,
 	NodeT any,
+	NodeAPIContextT NodeAPIContext,
 ](b NodeAPIBackend[
 	BeaconBlockHeaderT,
 	BeaconStateT,
@@ -151,13 +165,13 @@ func ProvideNodeAPIProofHandler[
 	*Validator,
 ]) *proofapi.Handler[
 	BeaconBlockHeaderT, BeaconStateT, BeaconStateMarshallableT,
-	NodeAPIContext, *ExecutionPayloadHeader, *Validator,
+	NodeAPIContextT, *ExecutionPayloadHeader, *Validator,
 ] {
 	return proofapi.NewHandler[
 		BeaconBlockHeaderT,
 		BeaconStateT,
 		BeaconStateMarshallableT,
-		NodeAPIContext,
+		NodeAPIContextT,
 		*ExecutionPayloadHeader,
 		*Validator,
 	](b)

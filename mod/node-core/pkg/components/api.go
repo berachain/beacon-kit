@@ -65,7 +65,6 @@ func ProvideNodeAPIBackend[
 	],
 	BeaconStateMarshallableT any,
 	BlobSidecarsT any,
-	BlockStoreT any,
 	KVStoreT any,
 	NodeT interface {
 		CreateQueryContext(height int64, prove bool) (sdk.Context, error)
@@ -113,21 +112,25 @@ func ProvideNodeAPIBackend[
 
 type NodeAPIServerInput[
 	LoggerT log.AdvancedLogger[any, LoggerT],
+	NodeAPIContextT NodeAPIContext,
 ] struct {
 	depinject.In
 
-	Engine   NodeAPIEngine[NodeAPIContext]
+	Engine   NodeAPIEngine[NodeAPIContextT]
 	Config   *config.Config
-	Handlers []handlers.Handlers[NodeAPIContext]
+	Handlers []handlers.Handlers[NodeAPIContextT]
 	Logger   LoggerT
 }
 
 func ProvideNodeAPIServer[
 	LoggerT log.AdvancedLogger[any, LoggerT],
-](in NodeAPIServerInput[LoggerT]) *server.Server[NodeAPIContext] {
+	NodeAPIContextT NodeAPIContext,
+](
+	in NodeAPIServerInput[LoggerT, NodeAPIContextT],
+) *server.Server[NodeAPIContextT] {
 	in.Logger.AddKeyValColor("service", "node-api-server",
 		log.Blue)
-	return server.New[NodeAPIContext](
+	return server.New[NodeAPIContextT](
 		in.Config.NodeAPI,
 		in.Engine,
 		in.Logger.With("service", "node-api-server"),
