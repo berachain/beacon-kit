@@ -24,9 +24,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/cometbft/cometbft/crypto/bls12381"
 	"github.com/cometbft/cometbft/privval"
 	"github.com/cometbft/cometbft/types"
-	"github.com/itsdevbear/comet-bls12-381/bls/blst"
 )
 
 // BLSSigner utilize an underlying PrivValidator signer using data persisted to
@@ -71,21 +71,12 @@ func (f BLSSigner) Sign(msg []byte) (crypto.BLSSignature, error) {
 
 // VerifySignature verifies a signature against a message and a public key.
 func (f BLSSigner) VerifySignature(
-	blsPk crypto.BLSPubkey,
+	pubKey crypto.BLSPubkey,
 	msg []byte,
 	signature crypto.BLSSignature,
 ) error {
-	pk, err := blst.PublicKeyFromBytes(blsPk[:])
-	if err != nil {
-		return err
-	}
-
-	sig, err := blst.SignatureFromBytes(signature[:])
-	if err != nil {
-		return err
-	}
-
-	if !sig.Verify(pk, msg) {
+	if ok := bls12381.PubKey(pubKey[:]).
+		VerifySignature(msg, signature[:]); !ok {
 		return ErrInvalidSignature
 	}
 	return nil
