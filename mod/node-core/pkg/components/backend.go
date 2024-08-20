@@ -43,23 +43,10 @@ func ProvideStorageBackend(
 ) *StorageBackend {
 	return storage.NewBackend[
 		*AvailabilityStore,
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*BeaconBlockHeader,
 		*BeaconState,
-		*BeaconStateMarshallable,
-		*BlobSidecars,
 		*BlockStore,
-		*Deposit,
 		*DepositStore,
-		*Eth1Data,
-		*ExecutionPayloadHeader,
-		*Fork,
 		*KVStore,
-		*Validator,
-		Validators,
-		*Withdrawal,
-		WithdrawalCredentials,
 	](
 		in.ChainSpec,
 		in.AvailabilityStore,

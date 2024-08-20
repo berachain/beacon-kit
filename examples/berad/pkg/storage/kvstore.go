@@ -39,10 +39,6 @@ type KVStore[
 		constraints.Empty[BeaconBlockHeaderT]
 		constraints.SSZMarshallable
 	},
-	Eth1DataT interface {
-		constraints.Empty[Eth1DataT]
-		constraints.SSZMarshallable
-	},
 	ExecutionPayloadHeaderT interface {
 		constraints.SSZMarshallable
 		NewFromSSZ([]byte, uint32) (ExecutionPayloadHeaderT, error)
@@ -70,9 +66,6 @@ type KVStore[
 	blockRoots sdkcollections.Map[uint64, []byte]
 	// stateRoots stores the state roots for the current epoch.
 	stateRoots sdkcollections.Map[uint64, []byte]
-	// Eth1
-	// eth1Data stores the latest eth1 data.
-	eth1Data sdkcollections.Item[Eth1DataT]
 	// eth1DepositIndex is the index of the latest eth1 deposit.
 	eth1DepositIndex sdkcollections.Item[uint64]
 	// latestExecutionPayloadVersion stores the latest execution payload
@@ -101,11 +94,6 @@ type KVStore[
 	// Randomness
 	// randaoMix stores the randao mix for the current epoch.
 	randaoMix sdkcollections.Map[uint64, []byte]
-	// Slashings
-	// slashings stores the slashings for the current epoch.
-	slashings sdkcollections.Map[uint64, uint64]
-	// totalSlashing stores the total slashing in the vector range.
-	totalSlashing sdkcollections.Item[uint64]
 }
 
 // New creates a new instance of Store.
@@ -135,12 +123,12 @@ func New[
 	kss store.KVStoreService,
 	payloadCodec *encoding.SSZInterfaceCodec[ExecutionPayloadHeaderT],
 ) *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ] {
 	schemaBuilder := sdkcollections.NewSchemaBuilder(kss)
 	return &KVStore[
-		BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+		BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 		ForkT, ValidatorT, ValidatorsT,
 	]{
 		ctx: nil,
@@ -175,12 +163,6 @@ func New[
 			keys.StateRootsPrefixHumanReadable,
 			sdkcollections.Uint64Key,
 			sdkcollections.BytesValue,
-		),
-		eth1Data: sdkcollections.NewItem(
-			schemaBuilder,
-			sdkcollections.NewPrefix([]byte{keys.Eth1DataPrefix}),
-			keys.Eth1DataPrefixHumanReadable,
-			encoding.SSZValueCodec[Eth1DataT]{},
 		),
 		eth1DepositIndex: sdkcollections.NewItem(
 			schemaBuilder,
@@ -232,13 +214,6 @@ func New[
 			sdkcollections.Uint64Key,
 			sdkcollections.BytesValue,
 		),
-		slashings: sdkcollections.NewMap(
-			schemaBuilder,
-			sdkcollections.NewPrefix([]byte{keys.SlashingsPrefix}),
-			keys.SlashingsPrefixHumanReadable,
-			sdkcollections.Uint64Key,
-			sdkcollections.Uint64Value,
-		),
 		nextWithdrawalIndex: sdkcollections.NewItem(
 			schemaBuilder,
 			sdkcollections.NewPrefix([]byte{keys.NextWithdrawalIndexPrefix}),
@@ -251,12 +226,6 @@ func New[
 				[]byte{keys.NextWithdrawalValidatorIndexPrefix},
 			),
 			keys.NextWithdrawalValidatorIndexPrefixHumanReadable,
-			sdkcollections.Uint64Value,
-		),
-		totalSlashing: sdkcollections.NewItem(
-			schemaBuilder,
-			sdkcollections.NewPrefix([]byte{keys.TotalSlashingPrefix}),
-			keys.TotalSlashingPrefixHumanReadable,
 			sdkcollections.Uint64Value,
 		),
 		latestBlockHeader: sdkcollections.NewItem(
@@ -272,10 +241,10 @@ func New[
 
 // Copy returns a copy of the Store.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) Copy() *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ] {
 	// TODO: Decouple the KVStore type from the Cosmos-SDK.
@@ -286,7 +255,7 @@ func (kv *KVStore[
 
 // Context returns the context of the Store.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) Context() context.Context {
 	return kv.ctx
@@ -294,12 +263,12 @@ func (kv *KVStore[
 
 // WithContext returns a copy of the Store with the given context.
 func (kv *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ]) WithContext(
 	ctx context.Context,
 ) *KVStore[
-	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
 	ForkT, ValidatorT, ValidatorsT,
 ] {
 	cpy := *kv

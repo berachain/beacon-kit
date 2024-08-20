@@ -64,9 +64,8 @@ type BeaconBlockHeader[BeaconBlockHeaderT any] interface {
 
 // BeaconState is the interface for the beacon state.
 type BeaconState[
-	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-	Eth1DataT, ExecutionPayloadHeaderT, ForkT,
-	ValidatorT, ValidatorsT, WithdrawalT any,
+	BeaconBlockHeaderT, Eth1DataT, ExecutionPayloadHeaderT,
+	ForkT, ValidatorT, ValidatorsT, WithdrawalT any,
 ] interface {
 	// SetSlot sets the slot on the beacon state.
 	SetSlot(math.Slot) error
