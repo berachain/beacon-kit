@@ -126,6 +126,10 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 		panic(err)
 	}
 
+	if consensusEngine == nil || apiBackend == nil {
+		panic("consensus engine or api backend is nil")
+	}
+
 	// set the application to a new BeaconApp with necessary ABCI handlers
 	nb.node.RegisterApp(
 		runtime.NewBeaconKitApp(
