@@ -34,9 +34,10 @@ def create_node_config(plan, node_struct, node_settings, paired_el_client_name, 
     app_settings = node_settings["consensus_settings"]["app"]
     kzg_impl = node_struct["kzg_impl"]
 
-    cmd = "{}".format(start(0, config_settings, app_settings, kzg_impl))
+    cmd = "{}".format(start(plan, 0, config_settings, app_settings, kzg_impl))
 
     beacond_config = get_config(
+        plan,
         node_struct,
         node_settings,
         engine_dial_url,
@@ -50,8 +51,12 @@ def create_node_config(plan, node_struct, node_settings, paired_el_client_name, 
 
     return beacond_config
 
-def start(validator_index, config_settings, app_settings, kzg_impl):
-    mv_genesis = "mv root/.tmp_genesis/genesis.json /root/.beacond/config/genesis.json"
+def start(plan, validator_index, config_settings, app_settings, kzg_impl):
+    plan.print("BEACOND_HOME", "$BEACOND_HOME")
+    BEACOND_HOME = "/root/.beacond"
+    plan.print("BEACOND_HOME", BEACOND_HOME)
+
+    # mv_genesis = "mv root/.tmp_genesis/genesis.json /root/.beacond/config/genesis.json"
     set_config = 'sed -i "s/^prometheus = false$/prometheus = {}/" {}/config/config.toml'.format("$BEACOND_ENABLE_PROMETHEUS", "$BEACOND_HOME")
     set_config += '\nsed -i "s/^pprof_laddr = \\".*\\"/pprof_laddr = \\"0.0.0.0:6060\\"/" {}/config/config.toml'.format("$BEACOND_HOME")
     set_config += '\nsed -i "s/:26660/0.0.0.0:26660/" {}/config/config.toml'.format("$BEACOND_HOME")
@@ -70,21 +75,22 @@ def start(validator_index, config_settings, app_settings, kzg_impl):
     set_config += '\nsed -i "s/^payload-timeout = \\".*\\"$/payload-timeout = \\"{}\\"/" {}/config/app.toml'.format(app_settings["payload_timeout"], "$BEACOND_HOME")
     set_config += '\nsed -i "s/^enable-optimistic-payload-builds = \\".*\\"$/enable-optimistic-payload-builds = \\"{}\\"/" {}/config/app.toml'.format(app_settings["enable_optimistic_payload_builds"], "$BEACOND_HOME")
     set_config += '\nsed -i "s/^suggested-fee-recipient = \\"0x0000000000000000000000000000000000000000\\"/suggested-fee-recipient = \\"0x$(printf \"%040d\" {})\\"/" {}/config/app.toml'.format(validator_index, "$BEACOND_HOME")
-
     set_config += '\nsed -i "s/^max_num_inbound_peers = 40$/max_num_inbound_peers = {}/" {}/config/config.toml'.format(config_settings["max_num_inbound_peers"], "$BEACOND_HOME")
     set_config += '\nsed -i "s/^max_num_outbound_peers = 10$/max_num_outbound_peers = {}/" {}/config/config.toml'.format(config_settings["max_num_outbound_peers"], "$BEACOND_HOME")
 
-    start_node = "CHAIN_SPEC=testnet /usr/bin/beacond start \
-    --beacon-kit.engine.jwt-secret-path=/root/jwt/jwt-secret.hex \
-    --beacon-kit.kzg.trusted-setup-path=/root/kzg/kzg-trusted-setup.json \
-    --beacon-kit.kzg.implementation={} \
-    --beacon-kit.engine.rpc-dial-url {} \
-    --rpc.laddr tcp://0.0.0.0:26657 --api.address tcp://0.0.0.0:1317 \
-    --api.enable".format(kzg_impl, "$BEACOND_ENGINE_DIAL_URL")
+    start_node = "CHAIN_SPEC=testnet /usr/bin/beacond start --help && sleep infinity"
+    # --home {} \
+    # --beacon-kit.engine.jwt-secret-path=/root/jwt/jwt-secret.hex \
+    # --beacon-kit.kzg.trusted-setup-path=/root/.beacond/config/kzg-trusted-setup.json \
+    # --beacon-kit.kzg.implementation={} \
+    # --beacon-kit.engine.rpc-dial-url {} \
+    # --rpc.laddr tcp://0.0.0.0:26657 --api.address tcp://0.0.0.0:1317 \
+    # --api.enable".format("$BEACOND_HOME",kzg_impl, "$BEACOND_ENGINE_DIAL_URL")
+    return "{} && {}".format(set_config, start_node)
 
-    return "{} && {} && {}".format(mv_genesis, set_config, start_node)
+    # return "{} && {} && {}".format(mv_genesis, set_config, start_node)
 
-def get_config(node_struct, node_settings, engine_dial_url, entrypoint = [], cmd = [], persistent_peers = "", expose_ports = True, jwt_file = None, kzg_trusted_setup_file = None):
+def get_config(plan, node_struct, node_settings, engine_dial_url, entrypoint = [], cmd = [], persistent_peers = "", expose_ports = True, jwt_file = None, kzg_trusted_setup_file = None):
     exposed_ports = {}
     if expose_ports:
         exposed_ports = USED_PORTS
@@ -94,6 +100,33 @@ def get_config(node_struct, node_settings, engine_dial_url, entrypoint = [], cmd
         files["/root/jwt"] = jwt_file
     if kzg_trusted_setup_file:
         files["/root/kzg"] = kzg_trusted_setup_file
+
+    genesis_file_execution = plan.upload_files(
+        src = "../../../network/kurtosis-devnet/network-configs/genesis.json",
+        name = "genesis_file_execution",
+    )
+
+    config_directory = plan.upload_files(
+        src = "../../../network/80084/",
+        name = "config_directory",
+    )
+
+    # Now map the entire directory to the container
+    files["/root/.beacond/config"] = config_directory
+
+    # app_toml = plan.upload_files(
+    #     src = "../../../network/80084/app.toml",
+    #     name = "app_toml",
+    # )
+
+    # config_toml = plan.upload_files(
+    #     src = "../../../network/80084/config.toml",
+    #     name = "config_toml",
+    # )
+
+    # files["/root/.beacond/config"] = genesis_file_execution
+    # files["/root/.beacond/config"] = app_toml
+    # files["/root/.beacond/config"] = config_toml
 
     settings = node_settings["consensus_settings"]
 
@@ -112,15 +145,16 @@ def get_config(node_struct, node_settings, engine_dial_url, entrypoint = [], cmd
             "BEACOND_MONIKER": cl_service_name,
             "BEACOND_NET": "VALUE_2",
             "BEACOND_HOME": "/root/.beacond",
-            "BEACOND_CHAIN_ID": "beacon-kurtosis-80087",
-            "BEACOND_DEBUG": "false",
+            "BEACOND_CHAIN_ID": "bartio-beacon-80084",
+            "BEACOND_DEBUG": "true",
             "BEACOND_KEYRING_BACKEND": "test",
             "BEACOND_MINIMUM_GAS_PRICE": "0abgt",
             "BEACOND_ENGINE_DIAL_URL": engine_dial_url,
-            "BEACOND_ETH_CHAIN_ID": "80087",
+            "BEACOND_ETH_CHAIN_ID": "80084",
             "BEACOND_PERSISTENT_PEERS": persistent_peers,
             "BEACOND_ENABLE_PROMETHEUS": "true",
             "BEACOND_CONSENSUS_KEY_ALGO": "bls12_381",
+            "CHAIN_SPEC": "testnet",
         },
         ports = exposed_ports,
     )

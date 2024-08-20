@@ -42,6 +42,7 @@ def start_el_nodes(plan, nodes, node_settings):
     for n, full in enumerate(nodes):
         el_client_config = generate_node_config(plan, node_modules, full, node_settings)
         full_node_el_client_configs.append(el_client_config)
+    plan.print("full_node_el_client_configs", str(full_node_el_client_configs))
 
     if full_node_el_client_configs != []:
         full_node_el_clients = deploy_nodes(plan, full_node_el_client_configs)
@@ -99,7 +100,8 @@ def deploy_nodes(plan, configs):
     service_configs = {}
     for config in configs:
         plan.print("config", str(config))
-        service_configs[config["name"]] = create_from_config(config)
+        name = "el-{}-0".format(config["name"])
+        service_configs[name] = create_from_config(config)
 
     plan.print("service_configs", str(service_configs))
     return plan.add_services(
