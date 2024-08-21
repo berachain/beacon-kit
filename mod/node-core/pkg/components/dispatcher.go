@@ -22,9 +22,9 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
-	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	dp "github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 )
 
 // DispatcherInput is the input for the Dispatcher.
@@ -32,21 +32,32 @@ type DispatcherInput[
 	LoggerT any,
 ] struct {
 	depinject.In
-	Logger     LoggerT
-	Publishers []asynctypes.Broker
+	Logger LoggerT
 }
 
 // ProvideDispatcher provides a new Dispatcher.
 func ProvideDispatcher[
+	BeaconBlockT any,
+	BlobSidecarsT any,
+	GenesisT any,
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ](
 	in DispatcherInput[LoggerT],
 ) (Dispatcher, error) {
-	d := dispatcher.New(
+	return dp.New(
 		in.Logger.With("service", "dispatcher"),
+		dp.WithEvent[async.Event[GenesisT]](async.GenesisDataReceived),
+		dp.WithEvent[ValidatorUpdateEvent](async.GenesisDataProcessed),
+		dp.WithEvent[SlotEvent](async.NewSlot),
+		dp.WithEvent[async.Event[BeaconBlockT]](async.BuiltBeaconBlock),
+		dp.WithEvent[async.Event[BlobSidecarsT]](async.BuiltSidecars),
+		dp.WithEvent[async.Event[BeaconBlockT]](async.BeaconBlockReceived),
+		dp.WithEvent[async.Event[BlobSidecarsT]](async.SidecarsReceived),
+		dp.WithEvent[async.Event[BeaconBlockT]](async.BeaconBlockVerified),
+		dp.WithEvent[async.Event[BlobSidecarsT]](async.SidecarsVerified),
+		dp.WithEvent[async.Event[BeaconBlockT]](async.FinalBeaconBlockReceived),
+		dp.WithEvent[async.Event[BlobSidecarsT]](async.FinalSidecarsReceived),
+		dp.WithEvent[ValidatorUpdateEvent](async.FinalValidatorUpdatesProcessed),
+		dp.WithEvent[async.Event[BeaconBlockT]](async.BeaconBlockFinalized),
 	)
-	if err := d.RegisterBrokers(in.Publishers...); err != nil {
-		return nil, err
-	}
-	return d, nil
 }
