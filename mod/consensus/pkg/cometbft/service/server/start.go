@@ -17,17 +17,16 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
-
+//
+//nolint:mnd // its okay.
 package server
 
 import (
 	"context"
 	"crypto/sha256"
 	"encoding/json"
-	"io"
 	"time"
 
-	"cosmossdk.io/log"
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	serverconfig "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/config"
 	servercmtlog "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/log"
@@ -327,31 +326,6 @@ func GetGenDocProvider(
 	}
 }
 
-// SetupTraceWriter sets up the trace writer and returns a cleanup function.
-func SetupTraceWriter(
-	logger log.Logger,
-	traceWriterFile string,
-) (traceWriter io.WriteCloser, cleanup func(), err error) {
-	// clean up the traceWriter when the server is shutting down
-	cleanup = func() {}
-
-	traceWriter, err = openTraceWriter(traceWriterFile)
-	if err != nil {
-		return traceWriter, cleanup, err
-	}
-
-	// if flagTraceStore is not used then traceWriter is nil
-	if traceWriter != nil {
-		cleanup = func() {
-			if err = traceWriter.Close(); err != nil {
-				logger.Error("failed to close trace writer", "err", err)
-			}
-		}
-	}
-
-	return traceWriter, cleanup, nil
-}
-
 func startTelemetry(cfg serverconfig.Config) (*telemetry.Metrics, error) {
 	return telemetry.New(cfg.Telemetry)
 }
@@ -369,24 +343,16 @@ func startApp[T types.Application](
 	appCreator types.AppCreator[T],
 	opts StartCmdOptions[T],
 ) (app T, cleanupFn func(), err error) {
-	traceWriter, traceCleanupFn, err := SetupTraceWriter(
-		svrCtx.Logger,
-		svrCtx.Viper.GetString(flagTraceStore),
-	)
-	if err != nil {
-		return app, traceCleanupFn, err
-	}
 
 	home := svrCtx.Config.RootDir
 	db, err := opts.DBOpener(home, dbm.PebbleDBBackend)
 	if err != nil {
-		return app, traceCleanupFn, err
+		return app, func() {}, err
 	}
 
-	app = appCreator(svrCtx.Logger, db, traceWriter, svrCtx.Viper)
+	app = appCreator(svrCtx.Logger, db, nil, svrCtx.Viper)
 
 	cleanupFn = func() {
-		traceCleanupFn()
 		if localErr := app.Close(); localErr != nil {
 			svrCtx.Logger.Error(localErr.Error())
 		}

@@ -63,7 +63,7 @@ require (
 	github.com/labstack/gommon v0.4.2 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/phuslu/log v1.0.108-0.20240705160716-a8f8c12ae6c6 // indirect
+	github.com/phuslu/log v1.0.110 // indirect
 	github.com/prysmaticlabs/go-bitfield v0.0.0-20240618144021-706c95b2dd15 // indirect
 	github.com/rs/zerolog v1.33.0 // indirect
 	github.com/umbracle/fastrlp v0.1.0 // indirect
