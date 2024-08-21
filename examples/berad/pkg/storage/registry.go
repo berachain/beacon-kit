@@ -38,31 +38,7 @@ func (kv *KVStore[
 	}
 
 	// Push onto the validators list.
-	if err = kv.validators.Set(kv.ctx, idx, val); err != nil {
-		return err
-	}
-
-	return kv.balances.Set(kv.ctx, idx, 0)
-}
-
-// AddValidator registers a new validator in the beacon state.
-func (kv *KVStore[
-	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
-]) AddValidatorBartio(val ValidatorT) error {
-	// Get the ne
-	idx, err := kv.validatorIndex.Next(kv.ctx)
-	if err != nil {
-		return err
-	}
-
-	// Push onto the validators list.
-	if err = kv.validators.Set(kv.ctx, idx, val); err != nil {
-		return err
-	}
-
-	// Push onto the balances list.
-	return kv.balances.Set(kv.ctx, idx, val.GetEffectiveBalance().Unwrap())
+	return kv.validators.Set(kv.ctx, idx, val)
 }
 
 // UpdateValidatorAtIndex updates a validator at a specific index.
@@ -207,51 +183,6 @@ func (kv *KVStore[
 		vals = append(vals, v)
 	}
 	return vals, nil
-}
-
-// GetBalance returns the balance of a validator.
-func (kv *KVStore[
-	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
-]) GetBalance(
-	idx math.ValidatorIndex,
-) (math.Gwei, error) {
-	balance, err := kv.balances.Get(kv.ctx, idx.Unwrap())
-	return math.Gwei(balance), err
-}
-
-// SetBalance sets the balance of a validator.
-func (kv *KVStore[
-	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
-]) SetBalance(
-	idx math.ValidatorIndex,
-	balance math.Gwei,
-) error {
-	return kv.balances.Set(kv.ctx, idx.Unwrap(), balance.Unwrap())
-}
-
-// GetBalances returns the balancse of all validator.
-func (kv *KVStore[
-	BeaconBlockHeaderT, ExecutionPayloadHeaderT,
-	ForkT, ValidatorT, ValidatorsT,
-]) GetBalances() ([]uint64, error) {
-	var balances []uint64
-	iter, err := kv.balances.Iterate(kv.ctx, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	var balance uint64
-	for iter.Valid() {
-		balance, err = iter.Value()
-		if err != nil {
-			return nil, err
-		}
-		balances = append(balances, balance)
-		iter.Next()
-	}
-	return balances, nil
 }
 
 // GetTotalActiveBalances returns the total active balances of all validatorkv.
