@@ -28,7 +28,6 @@ import (
 	sdklog "cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
 	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
@@ -95,7 +94,6 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 		chainSpec       common.ChainSpec
 		abciMiddleware  baseapp.Middleware
 		serviceRegistry *service.Registry
-		consensusEngine components.ConsensusEngine
 		apiBackend      interface{ AttachNode(NodeT) }
 		storeKey        = new(storetypes.KVStoreKey)
 		storeKeyDblPtr  = &storeKey
@@ -120,13 +118,12 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 		&chainSpec,
 		&abciMiddleware,
 		&serviceRegistry,
-		&consensusEngine,
 		&apiBackend,
 	); err != nil {
 		panic(err)
 	}
 
-	if consensusEngine == nil || apiBackend == nil {
+	if apiBackend == nil {
 		panic("consensus engine or api backend is nil")
 	}
 
@@ -141,8 +138,6 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 			append(
 				DefaultBaseappOptions(appOpts),
 				WithCometParamStore(chainSpec),
-				WithPrepareProposal(consensusEngine.PrepareProposal),
-				WithProcessProposal(consensusEngine.ProcessProposal),
 			)...,
 		),
 	)

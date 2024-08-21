@@ -33,7 +33,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/cast"
 )
@@ -48,24 +47,6 @@ func WithCometParamStore(
 ) func(bApp *baseapp.BaseApp) {
 	return func(bApp *baseapp.BaseApp) {
 		bApp.SetParamStore(comet.NewConsensusParamsStore(chainSpec))
-	}
-}
-
-// WithPrepareProposal sets the prepare proposal handler to the baseapp.
-func WithPrepareProposal(
-	handler sdk.PrepareProposalHandler,
-) func(bApp *baseapp.BaseApp) {
-	return func(bApp *baseapp.BaseApp) {
-		bApp.SetPrepareProposal(handler)
-	}
-}
-
-// WithProcessProposal sets the process proposal handler to the baseapp.
-func WithProcessProposal(
-	handler sdk.ProcessProposalHandler,
-) func(bApp *baseapp.BaseApp) {
-	return func(bApp *baseapp.BaseApp) {
-		bApp.SetProcessProposal(handler)
 	}
 }
 
