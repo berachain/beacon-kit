@@ -22,6 +22,7 @@ package baseapp
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
@@ -90,10 +91,6 @@ func (app *BaseApp) InitChain(
 		)
 	}()
 
-	if app.initChainer == nil {
-		return &abci.InitChainResponse{}, nil
-	}
-
 	// add block gas meter for any genesis transactions (allow infinite gas)
 	app.finalizeBlockState.SetContext(
 		app.finalizeBlockState.Context(),
@@ -140,6 +137,37 @@ func (app *BaseApp) InitChain(
 		Validators:      res.Validators,
 		AppHash:         app.LastCommitID().Hash,
 	}, nil
+}
+
+// InitChainer initializes the chain.
+func (a *BaseApp) initChainer(
+	ctx sdk.Context,
+	req *abci.InitChainRequest,
+) (*abci.InitChainResponse, error) {
+	var genesisState map[string]json.RawMessage
+	if err := json.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
+		return nil, err
+	}
+	valUpdates, err := a.Middleware.InitGenesis(
+		ctx,
+		[]byte(genesisState["beacon"]),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	convertedValUpdates, err := iter.MapErr(
+		valUpdates,
+		convertValidatorUpdate[abci.ValidatorUpdate],
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &abci.InitChainResponse{
+		Validators: convertedValUpdates,
+	}, nil
+
 }
 
 func (app *BaseApp) Info(_ *abci.InfoRequest) (*abci.InfoResponse, error) {
@@ -357,7 +385,7 @@ func (app *BaseApp) internalFinalizeBlock(
 		})
 	}
 
-	finalizeBlock, err := app.finalizeBlocker(
+	finalizeBlock, err := app.Middleware.FinalizeBlock(
 		app.finalizeBlockState.Context(),
 		req,
 	)

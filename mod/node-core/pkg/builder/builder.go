@@ -32,7 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/baseapp"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	dbm "github.com/cosmos/cosmos-db"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -93,7 +93,7 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 	// variables to hold the components needed to set up BeaconApp
 	var (
 		chainSpec       common.ChainSpec
-		abciMiddleware  runtime.Middleware
+		abciMiddleware  baseapp.Middleware
 		serviceRegistry *service.Registry
 		consensusEngine components.ConsensusEngine
 		apiBackend      interface{ AttachNode(NodeT) }
@@ -132,8 +132,13 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 
 	// set the application to a new BeaconApp with necessary ABCI handlers
 	nb.node.RegisterApp(
-		runtime.NewBeaconKitApp(
-			*storeKeyDblPtr, logger, db, traceStore, true, abciMiddleware,
+		baseapp.NewBaseApp(
+			"BeaconKit",
+			*storeKeyDblPtr,
+			logger,
+			db,
+			abciMiddleware,
+			true,
 			append(
 				DefaultBaseappOptions(appOpts),
 				WithCometParamStore(chainSpec),
