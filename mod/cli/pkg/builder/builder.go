@@ -26,11 +26,11 @@ import (
 	"cosmossdk.io/depinject"
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/config"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -110,7 +110,7 @@ func (cb *CLIBuilder[
 	// apply default root command setup
 	cmdlib.DefaultRootCommandSetup[T, ExecutionPayloadT](
 		rootCmd,
-		&runtime.App{},
+		&cometbft.Service{},
 		cb.nodeBuilderFunc,
 		chainSpec,
 	)

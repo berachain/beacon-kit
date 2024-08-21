@@ -35,9 +35,7 @@ import (
 )
 
 // EngineClientInputs is the input for the EngineClient.
-type EngineClientInputs[
-	LoggerT log.AdvancedLogger[any, LoggerT],
-] struct {
+type EngineClientInputs[LoggerT any] struct {
 	depinject.In
 	ChainSpec common.ChainSpec
 	Config    *config.Config
@@ -66,13 +64,10 @@ func ProvideEngineClient[
 }
 
 // EngineClientInputs is the input for the EngineClient.
-type ExecutionEngineInputs[
-	LoggerT log.AdvancedLogger[any, LoggerT],
-] struct {
+type ExecutionEngineInputs[LoggerT any] struct {
 	depinject.In
 	EngineClient  *EngineClient
 	Logger        LoggerT
-	StatusBroker  *StatusBroker
 	TelemetrySink *metrics.TelemetrySink
 }
 
@@ -91,7 +86,6 @@ func ProvideExecutionEngine[
 	](
 		in.EngineClient,
 		in.Logger.With("service", "execution-engine"),
-		in.StatusBroker,
 		in.TelemetrySink,
 	)
 }

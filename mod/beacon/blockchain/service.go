@@ -24,11 +24,10 @@ import (
 	"context"
 	"sync"
 
-	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
 	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/events"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
@@ -57,7 +56,10 @@ type Service[
 	logger log.Logger[any]
 	// chainSpec holds the chain specifications.
 	chainSpec common.ChainSpec
+	// dispatcher is the dispatcher for the service.
+	dispatcher asynctypes.Dispatcher
 	// executionEngine is the execution engine responsible for processing
+	//
 	// execution payloads.
 	executionEngine ExecutionEngine[PayloadAttributesT]
 	// localBuilder is a local builder for constructing new beacon states.
@@ -72,18 +74,20 @@ type Service[
 	]
 	// metrics is the metrics for the service.
 	metrics *chainMetrics
-	// genesisBroker is the event feed for genesis data.
-	genesisBroker *broker.Broker[*asynctypes.Event[GenesisT]]
-	// blkBroker is the event feed for new blocks.
-	blkBroker *broker.Broker[*asynctypes.Event[BeaconBlockT]]
-	// validatorUpdateBroker is the event feed for validator updates.
-
-	validatorUpdateBroker *broker.Broker[*asynctypes.Event[ValidatorUpdates]]
 	// optimisticPayloadBuilds is a flag used when the optimistic payload
 	// builder is enabled.
 	optimisticPayloadBuilds bool
 	// forceStartupSyncOnce is used to force a sync of the startup head.
 	forceStartupSyncOnce *sync.Once
+
+	// subFinalBlkReceived is a channel for receiving finalize beacon block
+	// requests.
+	subFinalBlkReceived chan async.Event[BeaconBlockT]
+	// subBlockReceived is a channel for receiving verify beacon block requests.
+	subBlockReceived chan async.Event[BeaconBlockT]
+	// subGenDataReceived is a subscription for receiving genesis data
+	// received events.
+	subGenDataReceived chan async.Event[GenesisT]
 }
 
 // NewService creates a new validator service.
@@ -108,6 +112,7 @@ func NewService[
 	],
 	logger log.Logger[any],
 	chainSpec common.ChainSpec,
+	dispatcher asynctypes.Dispatcher,
 	executionEngine ExecutionEngine[PayloadAttributesT],
 	localBuilder LocalBuilder[BeaconStateT],
 	stateProcessor StateProcessor[
@@ -118,9 +123,6 @@ func NewService[
 		ExecutionPayloadHeaderT,
 	],
 	telemetrySink TelemetrySink,
-	genesisBroker *broker.Broker[*asynctypes.Event[GenesisT]],
-	blkBroker *broker.Broker[*asynctypes.Event[BeaconBlockT]],
-	validatorUpdateBroker *broker.Broker[*asynctypes.Event[ValidatorUpdates]],
 	optimisticPayloadBuilds bool,
 ) *Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
@@ -135,15 +137,16 @@ func NewService[
 		storageBackend:          storageBackend,
 		logger:                  logger,
 		chainSpec:               chainSpec,
+		dispatcher:              dispatcher,
 		executionEngine:         executionEngine,
 		localBuilder:            localBuilder,
 		stateProcessor:          stateProcessor,
 		metrics:                 newChainMetrics(telemetrySink),
-		genesisBroker:           genesisBroker,
-		blkBroker:               blkBroker,
-		validatorUpdateBroker:   validatorUpdateBroker,
 		optimisticPayloadBuilds: optimisticPayloadBuilds,
 		forceStartupSyncOnce:    new(sync.Once),
+		subFinalBlkReceived:     make(chan async.Event[BeaconBlockT]),
+		subBlockReceived:        make(chan async.Event[BeaconBlockT]),
+		subGenDataReceived:      make(chan async.Event[GenesisT]),
 	}
 }
 
@@ -154,83 +157,95 @@ func (s *Service[
 	return "blockchain"
 }
 
+// Start sets up the service to listen for FinalizeBeaconBlock,
+// VerifyBeaconBlock, and ProcessGenesisData requests, and handles them
+// accordingly.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _,
+	_, BeaconBlockT, _, _, _, _, _, _, GenesisT, _,
 ]) Start(ctx context.Context) error {
-	subBlkCh, err := s.blkBroker.Subscribe()
-	if err != nil {
+	if err := s.dispatcher.Subscribe(
+		async.GenesisDataReceived, s.subGenDataReceived,
+	); err != nil {
 		return err
 	}
-	subGenCh, err := s.genesisBroker.Subscribe()
-	if err != nil {
+
+	if err := s.dispatcher.Subscribe(
+		async.BeaconBlockReceived, s.subBlockReceived,
+	); err != nil {
 		return err
 	}
-	go s.start(ctx, subBlkCh, subGenCh)
+
+	if err := s.dispatcher.Subscribe(
+		async.FinalBeaconBlockReceived, s.subFinalBlkReceived,
+	); err != nil {
+		return err
+	}
+
+	// start a goroutine to listen for requests and handle accordingly
+	go s.eventLoop(ctx)
 	return nil
 }
 
+// eventLoop listens for events and handles them accordingly.
 func (s *Service[
 	_, BeaconBlockT, _, _, _, _, _, _, GenesisT, _,
-]) start(
-	ctx context.Context,
-	subBlkCh chan *asynctypes.Event[BeaconBlockT],
-	subGenCh chan *asynctypes.Event[GenesisT],
-) {
+]) eventLoop(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case msg := <-subBlkCh:
-			switch msg.Type() {
-			case events.BeaconBlockReceived:
-				s.handleBeaconBlockReceived(msg)
-			case events.BeaconBlockFinalizedRequest:
-				s.handleBeaconBlockFinalization(msg)
-			}
-		case msg := <-subGenCh:
-			if msg.Type() == events.GenesisDataProcessRequest {
-				s.handleProcessGenesisDataRequest(msg)
-			}
+		case event := <-s.subGenDataReceived:
+			s.handleGenDataReceived(event)
+		case event := <-s.subBlockReceived:
+			s.handleBeaconBlockReceived(event)
+		case event := <-s.subFinalBlkReceived:
+			s.handleBeaconBlockFinalization(event)
 		}
 	}
 }
 
+/* -------------------------------------------------------------------------- */
+/*                              Message Handlers                              */
+/* -------------------------------------------------------------------------- */
+
 func (s *Service[
 	_, _, _, _, _, _, _, _, GenesisT, _,
-]) handleProcessGenesisDataRequest(msg *asynctypes.Event[GenesisT]) {
+]) handleGenDataReceived(msg async.Event[GenesisT]) {
+	var (
+		valUpdates transition.ValidatorUpdates
+		genesisErr error
+	)
 	if msg.Error() != nil {
 		s.logger.Error("Error processing genesis data", "error", msg.Error())
-		return
 	}
 
 	// Process the genesis data.
-	valUpdates, err := s.ProcessGenesisData(msg.Context(), msg.Data())
-	if err != nil {
-		s.logger.Error("Failed to process genesis data", "error", err)
+	valUpdates, genesisErr = s.ProcessGenesisData(msg.Context(), msg.Data())
+	if genesisErr != nil {
+		s.logger.Error("Failed to process genesis data", "error", genesisErr)
 	}
 
-	// Publish the validator set updated event.
-	if err = s.validatorUpdateBroker.Publish(
-		msg.Context(),
-		asynctypes.NewEvent(
+	// Emit the event containing the validator updates.
+	if err := s.dispatcher.Publish(
+		async.NewEvent(
 			msg.Context(),
-			events.ValidatorSetUpdated,
+			async.GenesisDataProcessed,
 			valUpdates,
-			err,
+			genesisErr,
 		),
 	); err != nil {
 		s.logger.Error(
-			"Failed to publish validator set updated event",
-			"error",
-			err,
+			"Failed to emit event in process genesis data",
+			"error", err,
 		)
+		panic(err)
 	}
 }
 
 func (s *Service[
 	_, BeaconBlockT, _, _, _, _, _, _, _, _,
 ]) handleBeaconBlockReceived(
-	msg *asynctypes.Event[BeaconBlockT],
+	msg async.Event[BeaconBlockT],
 ) {
 	// If the block is nil, exit early.
 	if msg.Error() != nil {
@@ -238,50 +253,58 @@ func (s *Service[
 		return
 	}
 
-	// Publish the verified block event.
-	if err := s.blkBroker.Publish(
-		msg.Context(),
-		asynctypes.NewEvent(
+	// emit a BeaconBlockVerified event with the error result from \
+	// VerifyIncomingBlock
+	if err := s.dispatcher.Publish(
+		async.NewEvent(
 			msg.Context(),
-			events.BeaconBlockVerified,
+			async.BeaconBlockVerified,
 			msg.Data(),
 			s.VerifyIncomingBlock(msg.Context(), msg.Data()),
 		),
 	); err != nil {
-		s.logger.Error("Failed to publish verified block", "error", err)
+		s.logger.Error(
+			"Failed to emit event in verify beacon block",
+			"error", err,
+		)
 	}
 }
 
 func (s *Service[
 	_, BeaconBlockT, _, _, _, _, _, _, _, _,
 ]) handleBeaconBlockFinalization(
-	msg *asynctypes.Event[BeaconBlockT],
+	msg async.Event[BeaconBlockT],
 ) {
+	var (
+		valUpdates  transition.ValidatorUpdates
+		finalizeErr error
+	)
 	// If there's an error in the event, log it and return
 	if msg.Error() != nil {
 		s.logger.Error("Error verifying beacon block", "error", msg.Error())
 		return
 	}
 
-	// Process the verified block
-	valUpdates, err := s.ProcessBeaconBlock(msg.Context(), msg.Data())
-	if err != nil {
-		s.logger.Error("Failed to process verified beacon block", "error", err)
+	// process the verified block and get the validator updates
+	valUpdates, finalizeErr = s.ProcessBeaconBlock(msg.Context(), msg.Data())
+	if finalizeErr != nil {
+		s.logger.Error("Failed to process verified beacon block",
+			"error", finalizeErr,
+		)
 	}
 
-	// Publish the validator set updated event
-	if err = s.validatorUpdateBroker.Publish(
-		msg.Context(),
-		asynctypes.NewEvent(
+	// Emit the event containing the validator updates.
+	if err := s.dispatcher.Publish(
+		async.NewEvent(
 			msg.Context(),
-			events.ValidatorSetUpdated,
+			async.FinalValidatorUpdatesProcessed,
 			valUpdates,
-			err,
-		)); err != nil {
+			finalizeErr,
+		),
+	); err != nil {
 		s.logger.Error(
-			"Failed to publish validator set updated event",
-			"error",
-			err,
+			"Failed to emit event in finalize beacon block",
+			"error", err,
 		)
 	}
 }

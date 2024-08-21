@@ -32,54 +32,84 @@ import (
 
 // ChainServiceInput is the input for the chain service provider.
 type ChainServiceInput[
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	BeaconBlockT any,
+	BeaconStateT any,
+	DepositT any,
+	StorageBackendT any,
+	LoggerT any,
 ] struct {
 	depinject.In
 
-	BlockBroker           *BlockBroker
-	ChainSpec             common.ChainSpec
-	Cfg                   *config.Config
-	DepositService        *DepositService
-	EngineClient          *EngineClient
-	ExecutionEngine       *ExecutionEngine
-	GenesisBrocker        *GenesisBroker
-	LocalBuilder          *LocalBuilder
-	Logger                LoggerT
-	Signer                crypto.BLSSigner
-	StateProcessor        *StateProcessor
-	StorageBackend        *StorageBackend
-	TelemetrySink         *metrics.TelemetrySink
-	ValidatorUpdateBroker *ValidatorUpdateBroker
+	ChainSpec       common.ChainSpec
+	Cfg             *config.Config
+	EngineClient    *EngineClient
+	ExecutionEngine *ExecutionEngine
+	Dispatcher      *Dispatcher
+	LocalBuilder    LocalBuilder[BeaconStateT, *ExecutionPayload]
+	Logger          LoggerT
+	Signer          crypto.BLSSigner
+	StateProcessor  StateProcessor[
+		BeaconBlockT, BeaconStateT, *Context,
+		DepositT, *ExecutionPayloadHeader,
+	]
+	StorageBackend StorageBackendT
+	TelemetrySink  *metrics.TelemetrySink
 }
 
 // ProvideChainService is a depinject provider for the blockchain service.
 func ProvideChainService[
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT],
+	BeaconBlockBodyT BeaconBlockBody[
+		BeaconBlockBodyT, *AttestationData, DepositT,
+		*Eth1Data, *ExecutionPayload, *SlashingInfo,
+	],
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconStateT BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
+		*Eth1Data, *ExecutionPayloadHeader, *Fork, KVStoreT,
+		*Validator, Validators, *Withdrawal,
+	],
+	BeaconStateMarshallableT any,
+	BlobSidecarsT any,
+	BlockStoreT any,
+	DepositT any,
+	DepositStoreT any,
+	GenesisT Genesis[DepositT, *ExecutionPayloadHeader],
+	KVStoreT any,
 	LoggerT log.AdvancedLogger[any, LoggerT],
+	StorageBackendT StorageBackend[
+		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
+	],
 ](
-	in ChainServiceInput[LoggerT],
-) *ChainService {
+	in ChainServiceInput[
+		BeaconBlockT, BeaconStateT, DepositT, StorageBackendT, LoggerT,
+	],
+) *blockchain.Service[
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockHeaderT, BeaconStateT, DepositT, *ExecutionPayload,
+	*ExecutionPayloadHeader, GenesisT, *PayloadAttributes,
+] {
 	return blockchain.NewService[
-		*AvailabilityStore,
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*BeaconBlockHeader,
-		*BeaconState,
-		*Deposit,
+		AvailabilityStoreT,
+		BeaconBlockT,
+		BeaconBlockBodyT,
+		BeaconBlockHeaderT,
+		BeaconStateT,
+		DepositT,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
-		*Genesis,
+		GenesisT,
 		*PayloadAttributes,
 	](
 		in.StorageBackend,
 		in.Logger.With("service", "blockchain"),
 		in.ChainSpec,
+		in.Dispatcher,
 		in.ExecutionEngine,
 		in.LocalBuilder,
 		in.StateProcessor,
 		in.TelemetrySink,
-		in.GenesisBrocker,
-		in.BlockBroker,
-		in.ValidatorUpdateBroker,
 		// If optimistic is enabled, we want to skip post finalization FCUs.
 		in.Cfg.Validator.EnableOptimisticPayloadBuilds,
 	)

@@ -26,78 +26,85 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestValidatorUpdates_RemoveDuplicates(t *testing.T) {
-	pubkey1 := crypto.BLSPubkey{1}
-	pubkey2 := crypto.BLSPubkey{2}
-
-	updates := transition.ValidatorUpdates{
-		&transition.ValidatorUpdate{
-			Pubkey:           pubkey1,
-			EffectiveBalance: math.Gwei(1000),
-		},
-		&transition.ValidatorUpdate{
-			Pubkey:           pubkey1,
-			EffectiveBalance: math.Gwei(1000),
-		},
-		&transition.ValidatorUpdate{
-			Pubkey:           pubkey2,
-			EffectiveBalance: math.Gwei(2000),
-		},
-	}
-
-	expected := transition.ValidatorUpdates{
-		&transition.ValidatorUpdate{
-			Pubkey:           pubkey1,
-			EffectiveBalance: math.Gwei(1000),
-		},
-		&transition.ValidatorUpdate{
-			Pubkey:           pubkey2,
-			EffectiveBalance: math.Gwei(2000),
-		},
-	}
-
-	result := updates.RemoveDuplicates()
-	assert.Equal(t, expected, result)
-}
-
-func TestValidatorUpdates_Sort(t *testing.T) {
+func TestValidatorUpdate_CanonicalSort(t *testing.T) {
 	pubkey1 := crypto.BLSPubkey{1}
 	pubkey2 := crypto.BLSPubkey{2}
 	pubkey3 := crypto.BLSPubkey{3}
 
-	updates := transition.ValidatorUpdates{
-		&transition.ValidatorUpdate{
-			Pubkey:           pubkey3,
-			EffectiveBalance: math.Gwei(3000),
+	type test struct {
+		name  string
+		input transition.ValidatorUpdates
+		want  transition.ValidatorUpdates
+	}
+
+	tests := []test{
+		{
+			name: "RemoveDuplicates-PickLatest",
+			input: transition.ValidatorUpdates{
+				&transition.ValidatorUpdate{
+					Pubkey:           pubkey1,
+					EffectiveBalance: math.Gwei(1000),
+				},
+				&transition.ValidatorUpdate{
+					Pubkey:           pubkey1,
+					EffectiveBalance: math.Gwei(500),
+				},
+				&transition.ValidatorUpdate{
+					Pubkey:           pubkey2,
+					EffectiveBalance: math.Gwei(2000),
+				},
+			},
+			want: transition.ValidatorUpdates{
+				&transition.ValidatorUpdate{
+					Pubkey:           pubkey1,
+					EffectiveBalance: math.Gwei(500),
+				},
+				&transition.ValidatorUpdate{
+					Pubkey:           pubkey2,
+					EffectiveBalance: math.Gwei(2000),
+				},
+			},
 		},
-		&transition.ValidatorUpdate{
-			Pubkey:           pubkey1,
-			EffectiveBalance: math.Gwei(1000),
-		},
-		&transition.ValidatorUpdate{
-			Pubkey:           pubkey2,
-			EffectiveBalance: math.Gwei(2000),
+		{
+			name: "SortByPubKey",
+			input: transition.ValidatorUpdates{
+				&transition.ValidatorUpdate{
+					Pubkey:           pubkey3,
+					EffectiveBalance: math.Gwei(2000),
+				},
+				&transition.ValidatorUpdate{
+					Pubkey:           pubkey1,
+					EffectiveBalance: math.Gwei(5000),
+				},
+				&transition.ValidatorUpdate{
+					Pubkey:           pubkey2,
+					EffectiveBalance: math.Gwei(1000),
+				},
+			},
+			want: transition.ValidatorUpdates{
+				&transition.ValidatorUpdate{
+					Pubkey:           pubkey1,
+					EffectiveBalance: math.Gwei(5000),
+				},
+				&transition.ValidatorUpdate{
+					Pubkey:           pubkey2,
+					EffectiveBalance: math.Gwei(1000),
+				},
+				&transition.ValidatorUpdate{
+					Pubkey:           pubkey3,
+					EffectiveBalance: math.Gwei(2000),
+				},
+			},
 		},
 	}
 
-	expected := transition.ValidatorUpdates{
-		&transition.ValidatorUpdate{
-			Pubkey:           pubkey1,
-			EffectiveBalance: math.Gwei(1000),
-		},
-		&transition.ValidatorUpdate{
-			Pubkey:           pubkey2,
-			EffectiveBalance: math.Gwei(2000),
-		},
-		&transition.ValidatorUpdate{
-			Pubkey:           pubkey3,
-			EffectiveBalance: math.Gwei(3000),
-		},
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := tc.input.CanonicalSort()
+			require.Equal(t, tc.want, got)
+		})
 	}
-
-	result := updates.Sort()
-	assert.Equal(t, expected, result)
 }

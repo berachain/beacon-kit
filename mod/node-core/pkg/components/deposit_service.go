@@ -21,8 +21,6 @@
 package components
 
 import (
-	"errors"
-
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -33,13 +31,16 @@ import (
 
 // DepositServiceIn is the input for the deposit service.
 type DepositServiceIn[
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	BeaconBlockT any,
+	DepositContractT any,
+	DepositStoreT any,
+	LoggerT any,
 ] struct {
 	depinject.In
-	BeaconDepositContract *DepositContract
-	BlockBroker           *BlockBroker
+	BeaconDepositContract DepositContractT
 	ChainSpec             common.ChainSpec
-	DepositStore          *DepositStore
+	DepositStore          DepositStoreT
+	Dispatcher            *Dispatcher
 	EngineClient          *EngineClient
 	Logger                LoggerT
 	TelemetrySink         *metrics.TelemetrySink
@@ -48,21 +49,33 @@ type DepositServiceIn[
 // ProvideDepositService provides the deposit service to the depinject
 // framework.
 func ProvideDepositService[
+	BeaconBlockT BeaconBlock[
+		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	],
+	BeaconBlockBodyT BeaconBlockBody[
+		BeaconBlockBodyT, *AttestationData, DepositT,
+		*Eth1Data, *ExecutionPayload, *SlashingInfo,
+	],
+	BeaconBlockHeaderT any,
+	DepositT Deposit[
+		DepositT, *ForkData, WithdrawalCredentials,
+	],
+	DepositContractT deposit.Contract[DepositT],
+	DepositStoreT DepositStore[DepositT],
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ](
-	in DepositServiceIn[LoggerT],
-) (*DepositService, error) {
-	blkSub, err := in.BlockBroker.Subscribe()
-	if err != nil {
-		in.Logger.Error("failed to subscribe to block feed", "err", err)
-		return nil, errors.New("failed to subscribe to block feed")
-	}
-
+	in DepositServiceIn[
+		BeaconBlockT, DepositContractT, DepositStoreT, LoggerT,
+	],
+) (*deposit.Service[
+	BeaconBlockT, BeaconBlockBodyT, DepositT,
+	*ExecutionPayload, WithdrawalCredentials,
+], error) {
 	// Build the deposit service.
 	return deposit.NewService[
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*Deposit,
+		BeaconBlockT,
+		BeaconBlockBodyT,
+		DepositT,
 		*ExecutionPayload,
 	](
 		in.Logger.With("service", "deposit"),
@@ -70,6 +83,6 @@ func ProvideDepositService[
 		in.TelemetrySink,
 		in.DepositStore,
 		in.BeaconDepositContract,
-		blkSub,
+		in.Dispatcher,
 	), nil
 }

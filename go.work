@@ -20,10 +20,8 @@ use (
 	./mod/node-api
 	./mod/node-api/engines
 	./mod/node-core
-	./mod/p2p
 	./mod/payload
 	./mod/primitives
-	./mod/runtime
 	./mod/state-transition
 	./mod/storage
 	./testing

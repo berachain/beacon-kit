@@ -186,7 +186,7 @@ func (sp *StateProcessor[
 func (sp *StateProcessor[
 	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) ProcessSlots(
-	st BeaconStateT, slot math.U64,
+	st BeaconStateT, slot math.Slot,
 ) (transition.ValidatorUpdates, error) {
 	var (
 		validatorUpdates      transition.ValidatorUpdates

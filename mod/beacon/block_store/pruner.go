@@ -17,17 +17,18 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
-
 package blockstore
 
-import asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+import (
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
+)
 
 // BuildPruneRangeFn builds a function that returns the range of blocks to
 // prune.
 func BuildPruneRangeFn[BeaconBlockT BeaconBlock](
 	cfg Config,
-) func(*asynctypes.Event[BeaconBlockT]) (uint64, uint64) {
-	return func(event *asynctypes.Event[BeaconBlockT]) (uint64, uint64) {
+) func(async.Event[BeaconBlockT]) (uint64, uint64) {
+	return func(event async.Event[BeaconBlockT]) (uint64, uint64) {
 		blk := event.Data()
 		if blk.GetSlot().Unwrap() < cfg.AvailabilityWindow {
 			return 1, 1

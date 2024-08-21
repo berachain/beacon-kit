@@ -27,13 +27,12 @@ import (
 	"cosmossdk.io/depinject"
 	sdklog "cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
+	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	dbm "github.com/cosmos/cosmos-db"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
@@ -82,7 +81,7 @@ func New[
 func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 	logger sdklog.Logger,
 	db dbm.DB,
-	traceStore io.Writer,
+	_ io.Writer,
 	appOpts servertypes.AppOptions,
 ) NodeT {
 	// Check for goleveldb cause bad project.
@@ -93,10 +92,9 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 	// variables to hold the components needed to set up BeaconApp
 	var (
 		chainSpec       common.ChainSpec
-		abciMiddleware  *components.ABCIMiddleware
+		abciMiddleware  cometbft.MiddlewareI
 		serviceRegistry *service.Registry
-		consensusEngine *components.ConsensusEngine
-		apiBackend      *components.NodeAPIBackend
+		apiBackend      interface{ AttachNode(NodeT) }
 		storeKey        = new(storetypes.KVStoreKey)
 		storeKeyDblPtr  = &storeKey
 	)
@@ -120,21 +118,26 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 		&chainSpec,
 		&abciMiddleware,
 		&serviceRegistry,
-		&consensusEngine,
 		&apiBackend,
 	); err != nil {
 		panic(err)
 	}
 
+	if apiBackend == nil {
+		panic("consensus engine or api backend is nil")
+	}
+
 	// set the application to a new BeaconApp with necessary ABCI handlers
 	nb.node.RegisterApp(
-		runtime.NewBeaconKitApp(
-			*storeKeyDblPtr, logger, db, traceStore, true, abciMiddleware,
+		cometbft.NewService(
+			*storeKeyDblPtr,
+			logger,
+			db,
+			abciMiddleware,
+			true,
 			append(
-				DefaultBaseappOptions(appOpts),
+				DefaultServiceOptions(appOpts),
 				WithCometParamStore(chainSpec),
-				WithPrepareProposal(consensusEngine.PrepareProposal),
-				WithProcessProposal(consensusEngine.ProcessProposal),
 			)...,
 		),
 	)
