@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package baseapp
+package cometbft
 
 import (
 	"context"
@@ -59,7 +59,7 @@ func (st *state) Context() sdk.Context {
 	return st.ctx
 }
 
-type Middleware interface {
+type MiddlewareI interface {
 	InitGenesis(
 		ctx context.Context,
 		bz []byte,
