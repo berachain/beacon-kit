@@ -30,7 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/baseapp"
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/pruning"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -45,7 +45,7 @@ func DefaultRootCommandSetup[
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 ](
 	root *Root,
-	mm *runtime.App,
+	mm *baseapp.BaseApp,
 	appCreator servertypes.AppCreator[T],
 	chainSpec common.ChainSpec,
 ) {
