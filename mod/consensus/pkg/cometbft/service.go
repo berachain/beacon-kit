@@ -119,7 +119,7 @@ func (app *Service) Name() string {
 
 // Start sets up the cometbft to listen for FinalizeBlock, VerifyBlock, and
 // ProcessGenesisData requests, and handles them accordingly.
-func (app *Service) Start(ctx context.Context) error {
+func (app *Service) Start(context.Context) error {
 	return nil
 }
 
