@@ -56,13 +56,10 @@ var _ servertypes.ABCI = (*BaseApp)(nil)
 // BaseApp reflects the ABCI application implementation.
 type BaseApp struct {
 	// initialized on creation
-	logger          log.Logger
-	name            string                      // application name from abci.BlockInfo
-	db              dbm.DB                      // common DB backend
-	cms             storetypes.CommitMultiStore // Main (uncached) state
-	processProposal sdk.ProcessProposalHandler  // ABCI ProcessProposal handler
-	prepareProposal sdk.PrepareProposalHandler  // ABCI PrepareProposal handler
-
+	logger     log.Logger
+	name       string                      // application name from abci.BlockInfo
+	db         dbm.DB                      // common DB backend
+	cms        storetypes.CommitMultiStore // Main
 	Middleware Middleware
 
 	// volatile states:
