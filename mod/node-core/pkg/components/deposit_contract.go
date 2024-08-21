@@ -42,7 +42,9 @@ func ProvideBeaconDepositContract[
 	],
 ](
 	in BeaconDepositContractInput,
-) (deposit.Contract[DepositT], error) {
+) (*deposit.WrappedBeaconDepositContract[
+	DepositT, WithdrawalCredentials,
+], error) {
 	// Build the deposit contract.
 	return deposit.NewWrappedBeaconDepositContract[
 		DepositT,
