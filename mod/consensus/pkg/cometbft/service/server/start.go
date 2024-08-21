@@ -48,9 +48,6 @@ const (
 	// CometBFT full-node start flags.
 	flagAddress            = "address"
 	flagTransport          = "transport"
-	flagTraceStore         = "trace-store"
-	flagCPUProfile         = "cpu-profile"
-	FlagMinGasPrices       = "minimum-gas-prices"
 	FlagHaltHeight         = "halt-height"
 	FlagHaltTime           = "halt-time"
 	FlagInterBlockCache    = "inter-block-cache"
@@ -66,20 +63,6 @@ const (
 	FlagIAVLCacheSize       = "iavl-cache-size"
 	FlagDisableIAVLFastNode = "iavl-disable-fastnode"
 	FlagShutdownGrace       = "shutdown-grace"
-
-	// state sync-related flags.
-
-	FlagStateSyncSnapshotInterval   = "state-sync.snapshot-interval"
-	FlagStateSyncSnapshotKeepRecent = "state-sync.snapshot-keep-recent"
-
-	// testnet keys.
-
-	KeyIsTestnet             = "is-testnet"
-	KeyNewChainID            = "new-chain-ID"
-	KeyNewOpAddr             = "new-operator-addr"
-	KeyNewValAddr            = "new-validator-addr"
-	KeyUserPubKey            = "user-pub-key"
-	KeyTriggerTestnetUpgrade = "trigger-testnet-upgrade"
 )
 
 // StartCmdOptions defines options that can be customized in
@@ -374,10 +357,6 @@ func addStartNodeFlags[T types.Application](
 		Uint(FlagInvCheckPeriod, 0, "Assert registered invariants every N blocks")
 	cmd.Flags().
 		Uint64(FlagMinRetainBlocks, 0, "Minimum block height offset during ABCI commit to prune CometBFT blocks")
-	cmd.Flags().
-		Uint64(FlagStateSyncSnapshotInterval, 0, "State sync snapshot interval")
-	cmd.Flags().
-		Uint32(FlagStateSyncSnapshotKeepRecent, 2, "State sync snapshot to keep")
 	cmd.Flags().
 		Bool(FlagDisableIAVLFastNode, false, "Disable fast node for IAVL tree")
 	cmd.Flags().
