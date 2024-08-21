@@ -63,21 +63,28 @@ type BlobVerifierInput struct {
 
 // ProvideBlobVerifier is a function that provides the BlobVerifier to the
 // depinject framework.
-func ProvideBlobVerifier(in BlobVerifierInput) *BlobVerifier {
+func ProvideBlobVerifier[
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BlobSidecarT BlobSidecar[BeaconBlockHeaderT],
+	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
+](in BlobVerifierInput) *dablob.Verifier[
+	BeaconBlockHeaderT, BlobSidecarT, BlobSidecarsT,
+] {
 	return dablob.NewVerifier[
-		*BeaconBlockHeader,
-		*BlobSidecar,
-		*BlobSidecars,
+		BeaconBlockHeaderT,
+		BlobSidecarT,
+		BlobSidecarsT,
 	](in.BlobProofVerifier, in.TelemetrySink)
 }
 
 // BlobProcessorIn is the input for the BlobProcessor.
 type BlobProcessorIn[
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	BlobSidecarsT any,
+	LoggerT any,
 ] struct {
 	depinject.In
 
-	BlobVerifier  *BlobVerifier
+	BlobVerifier  BlobVerifier[BlobSidecarsT]
 	ChainSpec     common.ChainSpec
 	Logger        LoggerT
 	TelemetrySink *metrics.TelemetrySink
@@ -86,13 +93,24 @@ type BlobProcessorIn[
 // ProvideBlobProcessor is a function that provides the BlobProcessor to the
 // depinject framework.
 func ProvideBlobProcessor[
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	BeaconBlockBodyT any,
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BlobSidecarT BlobSidecar[BeaconBlockHeaderT],
+	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ](
-	in BlobProcessorIn[LoggerT],
-) *BlobProcessor {
+	in BlobProcessorIn[BlobSidecarsT, LoggerT],
+) *dablob.Processor[
+	AvailabilityStoreT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BlobSidecarT, BlobSidecarsT,
+] {
 	return dablob.NewProcessor[
-		*AvailabilityStore,
-		*BeaconBlockBody,
+		AvailabilityStoreT,
+		BeaconBlockBodyT,
+		BeaconBlockHeaderT,
+		BlobSidecarT,
+		BlobSidecarsT,
 	](
 		in.Logger.With("service", "blob-processor"),
 		in.ChainSpec,
@@ -104,26 +122,37 @@ func ProvideBlobProcessor[
 
 // DAServiceIn is the input for the BlobService.
 type DAServiceIn[
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	AvailabilityStoreT any,
+	BeaconBlockBodyT any,
+	BlobSidecarsT any,
+	LoggerT any,
 ] struct {
 	depinject.In
 
-	AvailabilityStore *AvailabilityStore
-	BlobProcessor     *BlobProcessor
-	Dispatcher        *Dispatcher
-	Logger            LoggerT
+	AvailabilityStore AvailabilityStoreT
+	BlobProcessor     BlobProcessor[
+		AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT,
+	]
+	Dispatcher *Dispatcher
+	Logger     LoggerT
 }
 
 // ProvideDAService is a function that provides the BlobService to the
 // depinject framework.
 func ProvideDAService[
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	BeaconBlockBodyT any,
+	BlobSidecarT any,
+	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ](
-	in DAServiceIn[LoggerT],
-) *DAService {
+	in DAServiceIn[
+		AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT, LoggerT,
+	],
+) *da.Service[AvailabilityStoreT, BlobSidecarsT] {
 	return da.NewService[
-		*AvailabilityStore,
-		*BlobSidecars,
+		AvailabilityStoreT,
+		BlobSidecarsT,
 	](
 		in.AvailabilityStore,
 		in.BlobProcessor,

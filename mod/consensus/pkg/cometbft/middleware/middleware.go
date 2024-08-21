@@ -26,11 +26,8 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/p2p"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
-	rp2p "github.com/berachain/beacon-kit/mod/runtime/pkg/p2p"
 )
 
 // ABCIMiddleware is a middleware between ABCI and the validator logic.
@@ -41,23 +38,7 @@ type ABCIMiddleware[
 	SlotDataT any,
 ] struct {
 	// chainSpec is the chain specification.
-	chainSpec common.ChainSpec
-	// TODO: we will eventually gossip the blobs separately from
-	// CometBFT, but for now, these are no-op gossipers.
-	blobGossiper p2p.PublisherReceiver[
-		BlobSidecarsT,
-		[]byte,
-		encoding.ABCIRequest,
-		BlobSidecarsT,
-	]
-	// TODO: we will eventually gossip the blocks separately from
-	// CometBFT, but for now, these are no-op gossipers.
-	beaconBlockGossiper p2p.PublisherReceiver[
-		BeaconBlockT,
-		[]byte,
-		encoding.ABCIRequest,
-		BeaconBlockT,
-	]
+	chainSpec  common.ChainSpec
 	dispatcher types.Dispatcher
 	// metrics is the metrics emitter.
 	metrics *ABCIMiddlewareMetrics
@@ -91,16 +72,7 @@ func NewABCIMiddleware[
 	return &ABCIMiddleware[
 		BeaconBlockT, BlobSidecarsT, GenesisT, SlotDataT,
 	]{
-		chainSpec: chainSpec,
-		blobGossiper: rp2p.NewNoopBlobHandler[
-			BlobSidecarsT, encoding.ABCIRequest,
-		](),
-		beaconBlockGossiper: rp2p.
-			NewNoopBlockGossipHandler[
-			BeaconBlockT, encoding.ABCIRequest,
-		](
-			chainSpec,
-		),
+		chainSpec:                chainSpec,
 		logger:                   logger,
 		metrics:                  newABCIMiddlewareMetrics(telemetrySink),
 		dispatcher:               dispatcher,

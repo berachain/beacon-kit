@@ -31,7 +31,8 @@ import (
 
 // DepositServiceIn is the input for the deposit service.
 type DepositServiceIn[
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	BeaconBlockT any,
+	LoggerT any,
 ] struct {
 	depinject.In
 	BeaconDepositContract *DepositContract
@@ -46,14 +47,25 @@ type DepositServiceIn[
 // ProvideDepositService provides the deposit service to the depinject
 // framework.
 func ProvideDepositService[
+	BeaconBlockT BeaconBlock[
+		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	],
+	BeaconBlockBodyT BeaconBlockBody[
+		BeaconBlockBodyT, *AttestationData, *Deposit,
+		*Eth1Data, *ExecutionPayload, *SlashingInfo,
+	],
+	BeaconBlockHeaderT any,
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ](
-	in DepositServiceIn[LoggerT],
-) (*DepositService, error) {
+	in DepositServiceIn[BeaconBlockT, LoggerT],
+) (*deposit.Service[
+	BeaconBlockT, BeaconBlockBodyT, *Deposit,
+	*ExecutionPayload, WithdrawalCredentials,
+], error) {
 	// Build the deposit service.
 	return deposit.NewService[
-		*BeaconBlock,
-		*BeaconBlockBody,
+		BeaconBlockT,
+		BeaconBlockBodyT,
 		*Deposit,
 		*ExecutionPayload,
 	](

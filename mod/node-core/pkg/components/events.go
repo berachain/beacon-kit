@@ -28,7 +28,10 @@ import (
 
 // ProvidePublishers provides a publisher for beacon block
 // finalized events.
-func ProvidePublishers() []asynctypes.Broker {
+func ProvidePublishers[
+	BeaconBlockT any,
+	BlobSidecarsT any,
+]() []asynctypes.Broker {
 	return []asynctypes.Broker{
 		broker.New[GenesisDataReceivedEvent](
 			async.GenesisDataReceived,
@@ -39,34 +42,34 @@ func ProvidePublishers() []asynctypes.Broker {
 		broker.New[NewSlotEvent](
 			async.NewSlot,
 		),
-		broker.New[BuiltBeaconBlockEvent](
+		broker.New[async.Event[BeaconBlockT]](
 			async.BuiltBeaconBlock,
 		),
-		broker.New[BuiltSidecarsEvent](
+		broker.New[async.Event[BlobSidecarsT]](
 			async.BuiltSidecars,
 		),
-		broker.New[BeaconBlockReceivedEvent](
+		broker.New[async.Event[BeaconBlockT]](
 			async.BeaconBlockReceived,
 		),
-		broker.New[SidecarsReceivedEvent](
+		broker.New[async.Event[BlobSidecarsT]](
 			async.SidecarsReceived,
 		),
-		broker.New[BeaconBlockVerifiedEvent](
+		broker.New[async.Event[BeaconBlockT]](
 			async.BeaconBlockVerified,
 		),
-		broker.New[SidecarsVerifiedEvent](
+		broker.New[async.Event[BlobSidecarsT]](
 			async.SidecarsVerified,
 		),
-		broker.New[FinalBeaconBlockReceivedEvent](
+		broker.New[async.Event[BeaconBlockT]](
 			async.FinalBeaconBlockReceived,
 		),
-		broker.New[FinalSidecarsReceivedEvent](
+		broker.New[async.Event[BlobSidecarsT]](
 			async.FinalSidecarsReceived,
 		),
 		broker.New[FinalValidatorUpdatesProcessedEvent](
 			async.FinalValidatorUpdatesProcessed,
 		),
-		broker.New[FinalizedBlockEvent](
+		broker.New[async.Event[BeaconBlockT]](
 			async.BeaconBlockFinalizedEvent,
 		),
 	}

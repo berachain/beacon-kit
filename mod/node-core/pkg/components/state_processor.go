@@ -22,7 +22,6 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
@@ -39,14 +38,36 @@ type StateProcessorInput struct {
 
 // ProvideStateProcessor provides the state processor to the depinject
 // framework.
-func ProvideStateProcessor(
+func ProvideStateProcessor[
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT],
+	BeaconBlockBodyT BeaconBlockBody[
+		BeaconBlockBodyT, *AttestationData, *Deposit,
+		*Eth1Data, *ExecutionPayload, *SlashingInfo,
+	],
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconStateT BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
+		*Eth1Data, *ExecutionPayloadHeader, *Fork, KVStoreT, *Validator,
+		Validators, *Withdrawal,
+	],
+	BeaconStateMarshallableT any,
+	KVStoreT BeaconStore[
+		KVStoreT, BeaconBlockHeaderT, *Eth1Data, *ExecutionPayloadHeader,
+		*Fork, *Validator, Validators, *Withdrawal,
+	],
+](
 	in StateProcessorInput,
-) *StateProcessor {
+) *core.StateProcessor[
+	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BeaconStateT, *Context, *Deposit, *Eth1Data, *ExecutionPayload,
+	*ExecutionPayloadHeader, *Fork, *ForkData, KVStoreT, *Validator,
+	Validators, *Withdrawal, Withdrawals, WithdrawalCredentials,
+] {
 	return core.NewStateProcessor[
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*BeaconBlockHeader,
-		*BeaconState,
+		BeaconBlockT,
+		BeaconBlockBodyT,
+		BeaconBlockHeaderT,
+		BeaconStateT,
 		*Context,
 		*Deposit,
 		*Eth1Data,
@@ -54,11 +75,11 @@ func ProvideStateProcessor(
 		*ExecutionPayloadHeader,
 		*Fork,
 		*ForkData,
-		*KVStore,
+		KVStoreT,
 		*Validator,
 		Validators,
 		*Withdrawal,
-		engineprimitives.Withdrawals,
+		Withdrawals,
 		WithdrawalCredentials,
 	](
 		in.ChainSpec,

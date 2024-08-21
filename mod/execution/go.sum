@@ -8,6 +8,8 @@ github.com/allegro/bigcache v1.2.1-0.20190218064605-e24eb225f156 h1:eMwmnE/GDgah
 github.com/allegro/bigcache v1.2.1-0.20190218064605-e24eb225f156/go.mod h1:Cb/ax3seSYIx7SuZdm2G2xzfwmv3TPSk2ucNfQESPXM=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
+github.com/berachain/beacon-kit/mod/async v0.0.0-20240624204855-d8809d5c8588 h1:i2IzAwiYKcYsA/tjQtiLH1tx80RoQ1CvfP9pBZ2JtTg=
+github.com/berachain/beacon-kit/mod/async v0.0.0-20240624204855-d8809d5c8588/go.mod h1:tzZ5Oyg7BgCViZBkqDwHmfKPNI66xONwE5kWd1P2v7o=
 github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240703145037-b5612ab256db h1:vGczI1vJ6s86tSDS4tsllzlWZUVZ42xZ710GoHMd4to=
 github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240703145037-b5612ab256db/go.mod h1:rbvfJqTKUIckels2AlWy+XuG+UGnegoFQuHC+TUg+zA=
 github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240808194557-e72e74f58197 h1:wVWkiiERY/7kaXvE/VNPPUtYp/l8ky6QSuKM3ThVMXU=
@@ -18,6 +20,8 @@ github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1
 github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1347e7e/go.mod h1:7/SXz8S5VpFl2thcKuBdu1OId+SgI1o4N+S1FB92Zw8=
 github.com/berachain/beacon-kit/mod/log v0.0.0-20240807213340-5779c7a563cd h1:DYSjsq80Omqqlt+z2VcYsSxjZpLqCDRz7CvUDBrLDJE=
 github.com/berachain/beacon-kit/mod/log v0.0.0-20240807213340-5779c7a563cd/go.mod h1:BilVBmqKhC4GXYCaIs8QnKaR14kpn3YmF5uYBdayF9I=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240821052951-c15422305b4e h1:1gzXFaLpNI/Hm1uxYu/mi9iH3ycAG2Lq8cea+tK6DCw=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240821052951-c15422305b4e/go.mod h1:Mrq1qol8vbkgZp2IMPFwngg75qE3k9IvT2MouBEhuus=
 github.com/bits-and-blooms/bitset v1.13.0 h1:bAQ9OPNFYbGHV6Nez0tmNI0RiEu7/hxlYJRUA0wFAVE=
 github.com/bits-and-blooms/bitset v1.13.0/go.mod h1:7hO7Gc7Pp1vODcmWvKMRA9BNmbv6a/7QIWpPxHddWR8=
 github.com/btcsuite/btcd/btcec/v2 v2.3.3 h1:6+iXlDKE8RMtKsvK0gshlXIuPbyWM/h84Ensb7o3sC0=

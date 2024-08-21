@@ -27,7 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	clientFlags "github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cast"
 )
@@ -43,7 +43,7 @@ type BlsSignerInput struct {
 func ProvideBlsSigner(in BlsSignerInput) (crypto.BLSSigner, error) {
 	if in.PrivKey == [constants.BLSSecretKeyLength]byte{} {
 		// if no private key is provided, use privval signer
-		homeDir := cast.ToString(in.AppOpts.Get(clientFlags.FlagHome))
+		homeDir := cast.ToString(in.AppOpts.Get(flags.FlagHome))
 		privValKeyFile := cast.ToString(
 			in.AppOpts.Get("priv_validator_key_file"),
 		)

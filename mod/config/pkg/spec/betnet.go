@@ -18,12 +18,23 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package p2p
+package spec
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+import (
+	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+)
 
-type BeaconBlock[SelfT any] interface {
-	constraints.SSZMarshallable
-	constraints.Empty[SelfT]
-	NewFromSSZ([]byte, uint32) (SelfT, error)
+// BetnetChainSpec is the ChainSpec for the localnet.
+func BetnetChainSpec() chain.Spec[
+	common.DomainType,
+	math.Epoch,
+	common.ExecutionAddress,
+	math.Slot,
+	any,
+] {
+	testnetSpec := BaseSpec()
+	testnetSpec.DepositEth1ChainID = BetnetEth1ChainID
+	return chain.NewChainSpec(testnetSpec)
 }

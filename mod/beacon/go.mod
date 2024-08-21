@@ -2,18 +2,12 @@ module github.com/berachain/beacon-kit/mod/beacon
 
 go 1.23.0
 
-replace (
-	github.com/berachain/beacon-kit/mod/async => ../async
-	github.com/berachain/beacon-kit/mod/engine-primitives => ../engine-primitives
-	github.com/berachain/beacon-kit/mod/primitives => ../primitives
-)
-
 require (
 	github.com/berachain/beacon-kit/mod/async v0.0.0-20240816230528-f52c938c20cc
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240809202957-3e3f169ad720
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240806211103-d1105603bfc0
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240809202957-3e3f169ad720
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240816231924-221a061d3573
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240820191615-398849c34954
 	golang.org/x/sync v0.8.0
 )
 
@@ -81,6 +75,7 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	golang.org/x/crypto v0.26.0 // indirect
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
+	golang.org/x/net v0.28.0 // indirect
 	golang.org/x/sys v0.24.0 // indirect
 	golang.org/x/text v0.17.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
