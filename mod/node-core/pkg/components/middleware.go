@@ -49,16 +49,18 @@ func ProvideABCIMiddleware[
 	BeaconBlockHeaderT any,
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
+	DepositT any,
+	GenesisT Genesis[DepositT, *ExecutionPayloadHeader],
 	LoggerT log.Logger[any],
 ](
 	in ABCIMiddlewareInput[BeaconBlockT, BlobSidecarsT, LoggerT],
 ) (*middleware.ABCIMiddleware[
-	BeaconBlockT, BlobSidecarsT, *Genesis, *SlotData,
+	BeaconBlockT, BlobSidecarsT, GenesisT, *SlotData,
 ], error) {
 	return middleware.NewABCIMiddleware[
 		BeaconBlockT,
 		BlobSidecarsT,
-		*Genesis,
+		GenesisT,
 		*SlotData,
 	](
 		in.ChainSpec,

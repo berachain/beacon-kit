@@ -41,7 +41,7 @@ type StateProcessorInput struct {
 func ProvideStateProcessor[
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT],
 	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT, *AttestationData, *Deposit,
+		BeaconBlockBodyT, *AttestationData, DepositT,
 		*Eth1Data, *ExecutionPayload, *SlashingInfo,
 	],
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
@@ -51,6 +51,7 @@ func ProvideStateProcessor[
 		Validators, *Withdrawal,
 	],
 	BeaconStateMarshallableT any,
+	DepositT Deposit[DepositT, *ForkData, WithdrawalCredentials],
 	KVStoreT BeaconStore[
 		KVStoreT, BeaconBlockHeaderT, *Eth1Data, *ExecutionPayloadHeader,
 		*Fork, *Validator, Validators, *Withdrawal,
@@ -59,7 +60,7 @@ func ProvideStateProcessor[
 	in StateProcessorInput,
 ) *core.StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	BeaconStateT, *Context, *Deposit, *Eth1Data, *ExecutionPayload,
+	BeaconStateT, *Context, DepositT, *Eth1Data, *ExecutionPayload,
 	*ExecutionPayloadHeader, *Fork, *ForkData, KVStoreT, *Validator,
 	Validators, *Withdrawal, Withdrawals, WithdrawalCredentials,
 ] {
@@ -69,7 +70,7 @@ func ProvideStateProcessor[
 		BeaconBlockHeaderT,
 		BeaconStateT,
 		*Context,
-		*Deposit,
+		DepositT,
 		*Eth1Data,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,

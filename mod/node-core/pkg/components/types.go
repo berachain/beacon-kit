@@ -28,17 +28,13 @@ import (
 	consruntimetypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
-	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
-	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/services/version"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/service"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	depositdb "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -46,13 +42,6 @@ import (
 /* -------------------------------------------------------------------------- */
 
 type (
-	// ConsensusMiddleware is a type alias for the consensus middleware.
-	ConsensusMiddleware = cometbft.Middleware[
-		*AttestationData,
-		*SlashingInfo,
-		*SlotData,
-	]
-
 	// DBManager is a type alias for the database manager.
 	DBManager = manager.DBManager
 
@@ -67,7 +56,7 @@ type (
 		*ExecutionPayload,
 		*PayloadAttributes,
 		PayloadID,
-		engineprimitives.Withdrawals,
+		Withdrawals,
 	]
 
 	// ReportingService is a type alias for the reporting service.
@@ -85,18 +74,6 @@ type (
 	// Context is a type alias for the transition context.
 	Context = transition.Context
 
-	// Deposit is a type alias for the deposit.
-	Deposit = types.Deposit
-
-	// DepositContract is a type alias for the deposit contract.
-	DepositContract = deposit.WrappedBeaconDepositContract[
-		*Deposit,
-		WithdrawalCredentials,
-	]
-
-	// DepositStore is a type alias for the deposit store.
-	DepositStore = depositdb.KVStore[*Deposit]
-
 	// Eth1Data is a type alias for the eth1 data.
 	Eth1Data = types.Eth1Data
 
@@ -109,18 +86,6 @@ type (
 
 	// ForkData is a type alias for the fork data.
 	ForkData = types.ForkData
-
-	// Genesis is a type alias for the Genesis type.
-	Genesis = types.Genesis[
-		*Deposit,
-		*ExecutionPayloadHeader,
-	]
-
-	// Logger is a type alias for the logger.
-	Logger = phuslu.Logger
-
-	// LoggerConfig is a type alias for the logger config.
-	LoggerConfig = phuslu.Config
 
 	// SlotData is a type alias for the incoming slot.
 	SlotData = consruntimetypes.SlotData[
@@ -173,11 +138,6 @@ type (
 //
 
 type (
-
-	// GenesisDataReceivedEvent is a type alias for the genesis data received
-	// event.
-	GenesisDataReceivedEvent = async.Event[*Genesis]
-
 	// GenesisDataProcessedEvent is a type alias for the genesis data processed
 	// event.
 	GenesisDataProcessedEvent = async.Event[transition.ValidatorUpdates]
@@ -192,9 +152,6 @@ type (
 
 // Messages.
 type (
-	// GenesisMessage is a type alias for the genesis message.
-	GenesisMessage = async.Event[*Genesis]
-
 	// SlotMessage is a type alias for the slot message.
 	SlotMessage = async.Event[*SlotData]
 
@@ -209,13 +166,4 @@ type (
 type (
 	// Dispatcher is a type alias for the dispatcher.
 	Dispatcher = dispatcher.Dispatcher
-)
-
-/* -------------------------------------------------------------------------- */
-/*                                  Pruners                                   */
-/* -------------------------------------------------------------------------- */
-
-type (
-	// DepositPruner is a type alias for the deposit pruner.
-	DepositPruner = pruner.Pruner[*DepositStore]
 )
