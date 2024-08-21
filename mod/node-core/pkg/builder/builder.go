@@ -82,7 +82,7 @@ func New[
 func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 	logger sdklog.Logger,
 	db dbm.DB,
-	traceStore io.Writer,
+	_ io.Writer,
 	appOpts servertypes.AppOptions,
 ) NodeT {
 	// Check for goleveldb cause bad project.
