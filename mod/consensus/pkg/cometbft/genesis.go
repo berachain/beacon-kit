@@ -50,7 +50,7 @@ func (app *BaseApp) DefaultGenesis() map[string]json.RawMessage {
 
 // ValidateGenesis validates the provided genesis state.
 func (app *BaseApp) ValidateGenesis(
-	genesisData map[string]json.RawMessage,
+	_ map[string]json.RawMessage,
 ) error {
 	// Implement the validation logic for the provided genesis state.
 	// This should validate the genesis state for each module in the
@@ -63,7 +63,7 @@ func (app *BaseApp) ValidateGenesis(
 // file.
 func (app *BaseApp) ExportAppStateAndValidators(
 	forZeroHeight bool,
-	_, modulesToExport []string,
+	_, _ []string,
 ) (servertypes.ExportedApp, error) {
 	// as if they could withdraw from the start of the next block
 	ctx := app.NewContextLegacy(
