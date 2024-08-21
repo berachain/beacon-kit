@@ -14,7 +14,6 @@ import (
 	pvm "github.com/cometbft/cometbft/privval"
 	"github.com/cometbft/cometbft/proxy"
 	dbm "github.com/cosmos/cosmos-db"
-	"github.com/hashicorp/go-metrics"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 
@@ -25,7 +24,6 @@ import (
 	servercmtlog "github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/log"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
-	"github.com/cosmos/cosmos-sdk/version"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
 
@@ -179,8 +177,6 @@ func start[T types.Application](svrCtx *Context, appCreator types.AppCreator[T],
 		return err
 	}
 
-	emitServerInfoMetrics()
-
 	return startInProcess[T](svrCtx, app)
 }
 
@@ -316,25 +312,6 @@ func SetupTraceWriter(logger log.Logger, traceWriterFile string) (traceWriter io
 
 func startTelemetry(cfg serverconfig.Config) (*telemetry.Metrics, error) {
 	return telemetry.New(cfg.Telemetry)
-}
-
-// emitServerInfoMetrics emits server info related metrics using application telemetry.
-func emitServerInfoMetrics() {
-	var ls []metrics.Label
-
-	versionInfo := version.NewInfo()
-	if len(versionInfo.GoVersion) > 0 {
-		ls = append(ls, telemetry.NewLabel("go", versionInfo.GoVersion))
-	}
-	if len(versionInfo.CosmosSdkVersion) > 0 {
-		ls = append(ls, telemetry.NewLabel("version", versionInfo.CosmosSdkVersion))
-	}
-
-	if len(ls) == 0 {
-		return
-	}
-
-	telemetry.SetGaugeWithLabels([]string{"server", "info"}, 1, ls)
 }
 
 func getCtx(svrCtx *Context, block bool) (*errgroup.Group, context.Context) {
