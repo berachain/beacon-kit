@@ -50,8 +50,6 @@ func (h *ABCIMiddleware[
 		waitCtx, cancel = context.WithTimeout(ctx, AwaitTimeout)
 	)
 	defer cancel()
-	// TODO: in theory the GenesisDataReceived channel should be empty, but we
-	// should clear it anyways here to ensure that data is valid.
 
 	data := new(GenesisT)
 	if err = json.Unmarshal(bz, data); err != nil {
@@ -100,10 +98,11 @@ func (h *ABCIMiddleware[
 		startTime        = time.Now()
 		awaitCtx, cancel = context.WithTimeout(ctx, AwaitTimeout)
 	)
-	// TODO: clear the built beacon block and sidecars channels, else we may
-	// end up handling old data from previous slots.
 	defer cancel()
 	defer h.metrics.measurePrepareProposalDuration(startTime)
+	// flush the channels to ensure that we are not handling old data.
+	async.ClearChan(h.subBuiltBeaconBlock)
+	async.ClearChan(h.subBuiltSidecars)
 
 	if err = h.dispatcher.Publish(
 		async.NewEvent(
@@ -195,6 +194,9 @@ func (h *ABCIMiddleware[
 		awaitCtx, cancel = context.WithTimeout(ctx, AwaitTimeout)
 	)
 	defer cancel()
+	// flush the channels to ensure that we are not handling old data.
+	async.ClearChan(h.subBBVerified)
+	async.ClearChan(h.subSCVerified)
 	abciReq, ok := req.(*cmtabci.ProcessProposalRequest)
 	if !ok {
 		return nil, ErrInvalidProcessProposalRequestType
@@ -305,6 +307,8 @@ func (h *ABCIMiddleware[
 		awaitCtx, cancel = context.WithTimeout(ctx, AwaitTimeout)
 	)
 	defer cancel()
+	// flush the channel to ensure that we are not handling old data.
+	async.ClearChan(h.subFinalValidatorUpdates)
 	abciReq, ok := req.(*cmtabci.FinalizeBlockRequest)
 	if !ok {
 		return nil, ErrInvalidFinalizeBlockRequestType
