@@ -92,6 +92,6 @@ func (app *Service) ExportAppStateAndValidators(
 		AppState:        nil,
 		Validators:      validators,
 		Height:          height,
-		ConsensusParams: app.GetConsensusParams(ctx),
+		ConsensusParams: app.GetConsensusParams(nil),
 	}, nil
 }
