@@ -80,7 +80,7 @@ func NewService(
 	options ...func(*Service),
 ) *Service {
 	app := &Service{
-		logger: logger.With(log.ModuleKey, "Service"),
+		logger: logger.With(log.ModuleKey, "cometbft"),
 		name:   "BeaconKit",
 		db:     db,
 		cms: store.NewCommitMultiStore(
