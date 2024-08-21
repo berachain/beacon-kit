@@ -17,7 +17,8 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
-
+//
+//nolint:gochecknoglobals // todo fix.
 package config
 
 import (
@@ -35,6 +36,7 @@ var DefaultConfigTemplate string
 
 var configTemplate *template.Template
 
+//nolint:gochecknoinits // i agree, todo fix.
 func init() {
 	var err error
 

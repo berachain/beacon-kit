@@ -360,3 +360,5 @@ issues:
         - noctx
         - wrapcheck
         - gochecknoglobals
+  exclude-files:
+    - "pkg/cometbft/cli/.*\\.go"

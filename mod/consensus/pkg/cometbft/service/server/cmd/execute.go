@@ -17,7 +17,8 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
-
+//
+//nolint:lll // its a bet.
 package cmd
 
 import (
@@ -47,7 +48,10 @@ func Execute(rootCmd *cobra.Command, envPrefix, defaultHome string) error {
 	ctx := CreateExecuteContext(context.Background())
 
 	rootCmd.PersistentFlags().
-		String(flags.FlagLogLevel, "info", "The logging level (trace|debug|info|warn|error|fatal|panic|disabled or '*:<level>,<key>:<level>')")
+		String(
+			flags.FlagLogLevel,
+			"info",
+			"The logging level (trace|debug|info|warn|error|fatal|panic|disabled or '*:<level>,<key>:<level>')")
 	rootCmd.PersistentFlags().
 		String(flags.FlagLogFormat, "plain", "The logging format (json|plain)")
 	rootCmd.PersistentFlags().

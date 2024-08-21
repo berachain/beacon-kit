@@ -39,7 +39,7 @@ import (
 	"github.com/cometbft/cometbft/p2p"
 	pvm "github.com/cometbft/cometbft/privval"
 	cmtversion "github.com/cometbft/cometbft/version"
-	db "github.com/cosmos/cosmos-db"
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
@@ -454,7 +454,8 @@ func BootstrapStateCmd[T types.Application](
 			}
 			if height == 0 {
 				home := serverCtx.Viper.GetString(flags.FlagHome)
-				db, err := server.OpenDB(home, db.PebbleDBBackend)
+				var db dbm.DB
+				db, err = server.OpenDB(home, dbm.PebbleDBBackend)
 				if err != nil {
 					return err
 				}

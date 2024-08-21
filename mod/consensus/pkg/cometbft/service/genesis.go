@@ -21,6 +21,8 @@
 package cometbft
 
 import (
+	"context"
+
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
@@ -92,6 +94,6 @@ func (app *Service) ExportAppStateAndValidators(
 		AppState:        nil,
 		Validators:      validators,
 		Height:          height,
-		ConsensusParams: app.GetConsensusParams(nil),
+		ConsensusParams: app.GetConsensusParams(context.TODO()),
 	}, nil
 }

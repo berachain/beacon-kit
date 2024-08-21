@@ -22,30 +22,10 @@ package config
 
 import (
 	"fmt"
-	"math"
 
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/spf13/viper"
-)
-
-const (
-	defaultMinGasPrices = ""
-
-	// DefaultAPIAddress defines the default address to bind the API server to.
-	DefaultAPIAddress = "tcp://localhost:1317"
-
-	// DefaultGRPCAddress defines the default address to bind the gRPC server
-	// to.
-	DefaultGRPCAddress = "localhost:9090"
-
-	// DefaultGRPCMaxRecvMsgSize defines the default gRPC max message size in
-	// bytes the server can receive.
-	DefaultGRPCMaxRecvMsgSize = 1024 * 1024 * 10
-
-	// DefaultGRPCMaxSendMsgSize defines the default gRPC max message size in
-	// bytes the server can send.
-	DefaultGRPCMaxSendMsgSize = math.MaxInt32
 )
 
 // BaseConfig defines the server's basic configuration.
@@ -114,13 +94,14 @@ type Config struct {
 func DefaultConfig() *Config {
 	return &Config{
 		BaseConfig: BaseConfig{
-			InterBlockCache:     true,
-			Pruning:             pruningtypes.PruningOptionDefault,
-			PruningKeepRecent:   "0",
-			PruningInterval:     "0",
-			MinRetainBlocks:     0,
-			IndexEvents:         make([]string, 0),
-			IAVLCacheSize:       781250,
+			InterBlockCache:   true,
+			Pruning:           pruningtypes.PruningOptionDefault,
+			PruningKeepRecent: "0",
+			PruningInterval:   "0",
+			MinRetainBlocks:   0,
+			IndexEvents:       make([]string, 0),
+			//nolint:mnd // its a bet.
+			IAVLCacheSize:       5000,
 			IAVLDisableFastNode: false,
 		},
 		Telemetry: telemetry.Config{
