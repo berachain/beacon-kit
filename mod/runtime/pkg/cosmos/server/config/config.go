@@ -9,8 +9,6 @@ import (
 	pruningtypes "cosmossdk.io/store/pruning/types"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 const (
@@ -33,15 +31,6 @@ const (
 
 // BaseConfig defines the server's basic configuration
 type BaseConfig struct {
-	// The minimum gas prices a validator is willing to accept for processing a
-	// transaction. A transaction's fees must meet the minimum of any denomination
-	// specified in this config (e.g. 0.25token1;0.0001token2).
-	MinGasPrices string `mapstructure:"minimum-gas-prices"`
-
-	// The maximum amount of gas a grpc/Rest query may consume.
-	// If set to 0, it is unbounded.
-	QueryGasLimit uint64 `mapstructure:"query-gas-limit"`
-
 	Pruning           string `mapstructure:"pruning"`
 	PruningKeepRecent string `mapstructure:"pruning-keep-recent"`
 	PruningInterval   string `mapstructure:"pruning-interval"`
@@ -89,68 +78,6 @@ type BaseConfig struct {
 	IAVLDisableFastNode bool `mapstructure:"iavl-disable-fastnode"`
 }
 
-// APIConfig defines the API listener configuration.
-type APIConfig struct {
-	// Enable defines if the API server should be enabled.
-	Enable bool `mapstructure:"enable"`
-
-	// Swagger defines if swagger documentation should automatically be registered.
-	Swagger bool `mapstructure:"swagger"`
-
-	// EnableUnsafeCORS defines if CORS should be enabled (unsafe - use it at your own risk)
-	EnableUnsafeCORS bool `mapstructure:"enabled-unsafe-cors"`
-
-	// Address defines the API server to listen on
-	Address string `mapstructure:"address"`
-
-	// MaxOpenConnections defines the number of maximum open connections
-	MaxOpenConnections uint `mapstructure:"max-open-connections"`
-
-	// RPCReadTimeout defines the CometBFT RPC read timeout (in seconds)
-	RPCReadTimeout uint `mapstructure:"rpc-read-timeout"`
-
-	// RPCWriteTimeout defines the CometBFT RPC write timeout (in seconds)
-	RPCWriteTimeout uint `mapstructure:"rpc-write-timeout"`
-
-	// RPCMaxBodyBytes defines the CometBFT maximum request body (in bytes)
-	RPCMaxBodyBytes uint `mapstructure:"rpc-max-body-bytes"`
-
-	// TODO: TLS/Proxy configuration.
-	//
-	// Ref: https://github.com/cosmos/cosmos-sdk/issues/6420
-}
-
-// GRPCConfig defines configuration for the gRPC server.
-type GRPCConfig struct {
-	// Enable defines if the gRPC server should be enabled.
-	Enable bool `mapstructure:"enable"`
-
-	// Address defines the API server to listen on
-	Address string `mapstructure:"address"`
-
-	// MaxRecvMsgSize defines the max message size in bytes the server can receive.
-	// The default value is 10MB.
-	MaxRecvMsgSize int `mapstructure:"max-recv-msg-size"`
-
-	// MaxSendMsgSize defines the max message size in bytes the server can send.
-	// The default value is math.MaxInt32.
-	MaxSendMsgSize int `mapstructure:"max-send-msg-size"`
-}
-
-// State Streaming configuration
-type (
-	// StreamingConfig defines application configuration for external streaming services
-	StreamingConfig struct {
-		ABCI ABCIListenerConfig `mapstructure:"abci"`
-	}
-	// ABCIListenerConfig defines application configuration for ABCIListener streaming service
-	ABCIListenerConfig struct {
-		Keys          []string `mapstructure:"keys"`
-		Plugin        string   `mapstructure:"plugin"`
-		StopNodeOnErr bool     `mapstructure:"stop-node-on-err"`
-	}
-)
-
 // Config defines the server's top level configuration
 type Config struct {
 	BaseConfig `mapstructure:",squash"`
@@ -159,31 +86,10 @@ type Config struct {
 	Telemetry telemetry.Config `mapstructure:"telemetry"`
 }
 
-// SetMinGasPrices sets the validator's minimum gas prices.
-func (c *Config) SetMinGasPrices(gasPrices sdk.DecCoins) {
-	c.MinGasPrices = gasPrices.String()
-}
-
-// GetMinGasPrices returns the validator's minimum gas prices based on the set configuration.
-func (c *Config) GetMinGasPrices() sdk.DecCoins {
-	if c.MinGasPrices == "" {
-		return sdk.DecCoins{}
-	}
-
-	gasPrices, err := sdk.ParseDecCoins(c.MinGasPrices)
-	if err != nil {
-		panic(fmt.Sprintf("invalid minimum gas prices: %v", err))
-	}
-
-	return gasPrices
-}
-
 // DefaultConfig returns server's default configuration.
 func DefaultConfig() *Config {
 	return &Config{
 		BaseConfig: BaseConfig{
-			MinGasPrices:        defaultMinGasPrices,
-			QueryGasLimit:       0,
 			InterBlockCache:     true,
 			Pruning:             pruningtypes.PruningOptionDefault,
 			PruningKeepRecent:   "0",
@@ -211,9 +117,6 @@ func GetConfig(v *viper.Viper) (Config, error) {
 
 // ValidateBasic returns an error if min-gas-prices field is empty in BaseConfig. Otherwise, it returns nil.
 func (c Config) ValidateBasic() error {
-	if c.BaseConfig.MinGasPrices == "" {
-		return sdkerrors.ErrAppConfig.Wrap("set min gas price in app.toml or flag or env variable")
-	}
 	// if c.Pruning == pruningtypes.PruningOptionEverything && c.StateSync.SnapshotInterval > 0 {
 	// 	return sdkerrors.ErrAppConfig.Wrapf(
 	// 		"cannot enable state sync snapshots with '%s' pruning setting", pruningtypes.PruningOptionEverything,
