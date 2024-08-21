@@ -24,7 +24,6 @@ import (
 	"cosmossdk.io/core/appmodule/v2"
 	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
 	consruntimetypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
