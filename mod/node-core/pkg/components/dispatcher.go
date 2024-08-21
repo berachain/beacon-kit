@@ -39,13 +39,14 @@ type DispatcherInput[
 func ProvideDispatcher[
 	BeaconBlockT any,
 	BlobSidecarsT any,
+	GenesisT any,
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ](
 	in DispatcherInput[LoggerT],
 ) (*Dispatcher, error) {
 	return dp.New(
 		in.Logger.With("service", "dispatcher"),
-		dp.WithEvent[GenesisEvent](async.GenesisDataReceived),
+		dp.WithEvent[async.Event[GenesisT]](async.GenesisDataReceived),
 		dp.WithEvent[ValidatorUpdateEvent](async.GenesisDataProcessed),
 		dp.WithEvent[SlotEvent](async.NewSlot),
 		dp.WithEvent[async.Event[BeaconBlockT]](async.BuiltBeaconBlock),

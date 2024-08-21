@@ -88,7 +88,7 @@ func DefaultComponents() []any {
 		],
 		components.ProvideDepositStore[*Deposit],
 		components.ProvideDispatcher[
-			*BeaconBlock, *BlobSidecars, *Logger,
+			*BeaconBlock, *BlobSidecars, *Genesis, *Logger,
 		],
 		components.ProvideEngineClient[*Logger],
 		components.ProvideExecutionEngine[*Logger],

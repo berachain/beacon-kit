@@ -137,11 +137,6 @@ type (
 //
 
 type (
-
-	// GenesisDataReceivedEvent is a type alias for the genesis data received
-	// event.
-	GenesisEvent = async.Event[*Genesis]
-
 	// NewSlotEvent is a type alias for the new slot event.
 	SlotEvent = async.Event[*SlotData]
 
