@@ -95,10 +95,10 @@ func (s *Service[
 	_, _, _, _, _,
 ]) Start(ctx context.Context) error {
 	if err := s.dispatcher.Subscribe(
-		async.BeaconBlockFinalizedEvent, s.subFinalizedBlockEvents,
+		async.BeaconBlockFinalized, s.subFinalizedBlockEvents,
 	); err != nil {
 		s.logger.Error("failed to subscribe to event", "event",
-			async.BeaconBlockFinalizedEvent, "err", err)
+			async.BeaconBlockFinalized, "err", err)
 		return err
 	}
 
