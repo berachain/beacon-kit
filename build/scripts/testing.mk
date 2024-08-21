@@ -269,7 +269,6 @@ start-nimbus:
     --tcp-port=30303 \
     --custom-network=/${ETH_GENESIS_PATH} \
     --jwt-secret=/${JWT_PATH} \
-    --sync-mode=full \
     --listen-address=0.0.0.0
 
 SHORT_FUZZ_TIME=10s
