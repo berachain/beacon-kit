@@ -27,7 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/genesis"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/jwt"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
+	ccometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
@@ -45,7 +45,7 @@ func DefaultRootCommandSetup[
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 ](
 	root *Root,
-	mm *cometbft.BaseApp,
+	mm *ccometbft.BaseApp,
 	appCreator servertypes.AppCreator[T],
 	chainSpec common.ChainSpec,
 ) {
