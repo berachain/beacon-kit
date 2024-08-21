@@ -23,9 +23,9 @@ package node
 import (
 	"context"
 
+	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/baseapp"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 )
 
 // Compile-time assertion that node implements the NodeI interface.
