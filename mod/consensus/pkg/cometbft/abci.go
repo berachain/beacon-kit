@@ -17,7 +17,8 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
-
+//
+//nolint:lll,contextcheck
 package cometbft
 
 import (
@@ -196,20 +197,7 @@ func (app *BaseApp) Info(_ *abci.InfoRequest) (*abci.InfoResponse, error) {
 }
 
 // PrepareProposal implements the PrepareProposal ABCI method and returns a
-// ResponsePrepareProposal object to the client. The PrepareProposal method is
-// responsible for allowing the block proposer to perform application-dependent
-// work in a block before proposing it.
-//
-// Transactions can be modified, removed, or added by the application. Since the
-// application maintains its own local mempool, it will ignore the transactions
-// provided to it in RequestPrepareProposal. Instead, it will determine which
-// transactions to return based on the mempool's semantics and the MaxTxBytes
-// provided by the client's request.
-//
-// Ref:
-// https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-060-abci-1.0.md
-// Ref:
-// https://github.com/cometbft/cometbft/blob/main/spec/abci/abci%2B%2B_basic_concepts.md
+// ResponsePrepareProposal object to the client.
 func (app *BaseApp) PrepareProposal(
 	req *abci.PrepareProposalRequest,
 ) (*abci.PrepareProposalResponse, error) {
@@ -259,30 +247,11 @@ func (app *BaseApp) PrepareProposal(
 }
 
 // ProcessProposal implements the ProcessProposal ABCI method and returns a
-// ResponseProcessProposal object to the client. The ProcessProposal method is
-// responsible for allowing execution of application-dependent work in a
-// proposed
-// block. Note, the application defines the exact implementation details of
-// ProcessProposal. In general, the application must at the very least ensure
-// that all transactions are valid. If all transactions are valid, then we
-// inform
-// CometBFT that the Status is ACCEPT. However, the application is also able
-// to implement optimizations such as executing the entire proposed block
-// immediately.
-//
-// If a panic is detected during execution of an application's ProcessProposal
-// handler, it will be recovered and we will reject the proposal.
-//
-// Ref:
-// https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-060-abci-1.0.md
-// Ref:
-// https://github.com/cometbft/cometbft/blob/main/spec/abci/abci%2B%2B_basic_concepts.md
+// ResponseProcessProposal object to the client.
 func (app *BaseApp) ProcessProposal(
 	req *abci.ProcessProposalRequest,
 ) (*abci.ProcessProposalResponse, error) {
 	// CometBFT must never call ProcessProposal with a height of 0.
-	// Ref:
-	// https://github.com/cometbft/cometbft/blob/059798a4f5b0c9f52aa8655fa619054a0154088c/spec/core/state.md?plain=1#L37-L38
 	if req.Height < 1 {
 		return nil, errors.New("ProcessProposal called with invalid height")
 	}
@@ -331,11 +300,6 @@ func (app *BaseApp) ProcessProposal(
 	return resp.(*cmtabci.ProcessProposalResponse), nil
 }
 
-// internalFinalizeBlock executes the block, called by the Optimistic
-// Execution flow or by the FinalizeBlock ABCI method. The context received is
-// only used to handle early cancellation, for anything related to state
-// app.finalizeBlockState.Context()
-// must be used.
 func (app *BaseApp) internalFinalizeBlock(
 	ctx context.Context,
 	req *abci.FinalizeBlockRequest,
@@ -344,10 +308,6 @@ func (app *BaseApp) internalFinalizeBlock(
 		return nil, err
 	}
 
-	// finalizeBlockState should be set on InitChain or ProcessProposal. If it
-	// is nil, it means we are replaying this block and we need to set the state
-	// here given that during block replay ProcessProposal is not executed by
-	// CometBFT.
 	if app.finalizeBlockState == nil {
 		app.setState(execModeFinalize)
 	}
@@ -382,6 +342,7 @@ func (app *BaseApp) internalFinalizeBlock(
 			// continue
 		}
 
+		//nolint:mnd // its okay for now.
 		txResults = append(txResults, &abci.ExecTxResult{
 			Codespace: "sdk",
 			Code:      2,
@@ -424,18 +385,10 @@ func (app *BaseApp) internalFinalizeBlock(
 	}, nil
 }
 
-// FinalizeBlock will execute the block proposal provided by
-// RequestFinalizeBlock.
-// For each raw transaction, i.e. a byte slice, BaseApp will only execute it if
-// it adheres to the sdk.Tx interface. Otherwise, the raw transaction will be
-// skipped. This is to support compatibility with proposers injecting vote
-// extensions into the proposal, which should not themselves be executed in
-// cases
-// where they adhere to the sdk.Tx interface.
 func (app *BaseApp) FinalizeBlock(
 	req *abci.FinalizeBlockRequest,
-) (res *abci.FinalizeBlockResponse, err error) {
-	res, err = app.internalFinalizeBlock(context.Background(), req)
+) (*abci.FinalizeBlockResponse, error) {
+	res, err := app.internalFinalizeBlock(context.Background(), req)
 	if res != nil {
 		res.AppHash = app.workingHash()
 	}
