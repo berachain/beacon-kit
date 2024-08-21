@@ -26,11 +26,14 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
-
 	"cosmossdk.io/store/rootmulti"
+	ctypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	errorsmod "github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
+	math "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	abcitypes "github.com/cometbft/cometbft/abci/types"
+	cmtabci "github.com/cometbft/cometbft/abci/types"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -211,11 +214,7 @@ func (app *BaseApp) Info(_ *abci.InfoRequest) (*abci.InfoResponse, error) {
 // https://github.com/cometbft/cometbft/blob/main/spec/abci/abci%2B%2B_basic_concepts.md
 func (app *BaseApp) PrepareProposal(
 	req *abci.PrepareProposalRequest,
-) (resp *abci.PrepareProposalResponse, err error) {
-	if app.prepareProposal == nil {
-		return nil, errors.New("PrepareProposal handler not set")
-	}
-
+) (*abci.PrepareProposalResponse, error) {
 	app.setState(execModePrepareProposal)
 
 	// CometBFT must never call PrepareProposal with a height of 0.
@@ -235,7 +234,14 @@ func (app *BaseApp) PrepareProposal(
 
 	app.prepareProposalState.SetContext(app.prepareProposalState.Context())
 
-	resp, err = app.prepareProposal(app.prepareProposalState.Context(), req)
+	blkBz, sidecarsBz, err := app.Middleware.PrepareProposal(
+		app.prepareProposalState.Context(), &types.SlotData[
+			*ctypes.AttestationData,
+			*ctypes.SlashingInfo,
+		]{
+			Slot: math.Slot(req.Height),
+		},
+	)
 	if err != nil {
 		app.logger.Error(
 			"failed to prepare proposal",
@@ -249,7 +255,9 @@ func (app *BaseApp) PrepareProposal(
 		return &abci.PrepareProposalResponse{Txs: req.Txs}, nil
 	}
 
-	return resp, nil
+	return &abci.PrepareProposalResponse{
+		Txs: [][]byte{blkBz, sidecarsBz},
+	}, nil
 }
 
 // ProcessProposal implements the ProcessProposal ABCI method and returns a
@@ -273,7 +281,7 @@ func (app *BaseApp) PrepareProposal(
 // https://github.com/cometbft/cometbft/blob/main/spec/abci/abci%2B%2B_basic_concepts.md
 func (app *BaseApp) ProcessProposal(
 	req *abci.ProcessProposalRequest,
-) (resp *abci.ProcessProposalResponse, err error) {
+) (*abci.ProcessProposalResponse, error) {
 	if app.processProposal == nil {
 		return nil, errors.New("ProcessProposal handler not set")
 	}
@@ -305,7 +313,7 @@ func (app *BaseApp) ProcessProposal(
 		),
 	)
 
-	resp, err = app.processProposal(app.processProposalState.Context(), req)
+	resp, err := app.Middleware.ProcessProposal(app.processProposalState.Context(), req)
 	if err != nil {
 		app.logger.Error(
 			"failed to process proposal",
@@ -323,7 +331,7 @@ func (app *BaseApp) ProcessProposal(
 		}, nil
 	}
 
-	return resp, nil
+	return resp.(*cmtabci.ProcessProposalResponse), nil
 }
 
 // internalFinalizeBlock executes the block, called by the Optimistic

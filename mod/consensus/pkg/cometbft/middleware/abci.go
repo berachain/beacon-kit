@@ -100,6 +100,7 @@ func (h *ABCIMiddleware[
 		startTime        = time.Now()
 		awaitCtx, cancel = context.WithTimeout(ctx, AwaitTimeout)
 	)
+
 	// TODO: clear the built beacon block and sidecars channels, else we may
 	// end up handling old data from previous slots.
 	defer cancel()

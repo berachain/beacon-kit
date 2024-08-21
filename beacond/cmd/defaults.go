@@ -66,10 +66,10 @@ func DefaultComponents() []any {
 		],
 		components.ProvideChainSpec,
 		components.ProvideConfig,
-		components.ProvideConsensusEngine[
-			*AvailabilityStore, *BeaconBlockHeader, *BeaconState,
-			*BeaconStateMarshallable, *BlockStore, *KVStore, *StorageBackend,
-		],
+		// components.ProvideConsensusEngine[
+		// 	*AvailabilityStore, *BeaconBlockHeader, *BeaconState,
+		// 	*BeaconStateMarshallable, *BlockStore, *KVStore, *StorageBackend,
+		// ],
 		components.ProvideDAService[
 			*AvailabilityStore, *BeaconBlockBody, *BlobSidecar,
 			*BlobSidecars, *Logger,
