@@ -27,8 +27,8 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/log/pkg/noop"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/service/mocks"
+	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )

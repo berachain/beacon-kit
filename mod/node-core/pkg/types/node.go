@@ -23,7 +23,7 @@ package types
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
+	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"
 )
 
 // Node defines the API for the node application.
