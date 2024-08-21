@@ -308,7 +308,9 @@ func (app *Service) internalFinalizeBlock(
 	if app.finalizeBlockState == nil {
 		app.setState(execModeFinalize)
 	}
-
+	if app.finalizeBlockState == nil {
+		return nil, errors.New("finalizeBlockState is nil")
+	}
 	app.finalizeBlockState.SetContext(app.finalizeBlockState.Context())
 
 	// First check for an abort signal after beginBlock, as it's the first place
@@ -595,5 +597,8 @@ func (app *Service) NewContextLegacy(
 	_ bool,
 	_ cmtproto.Header,
 ) sdk.Context {
+	if app.finalizeBlockState != nil {
+		return sdk.Context{}
+	}
 	return sdk.NewContext(app.finalizeBlockState.ms, false, app.logger)
 }
