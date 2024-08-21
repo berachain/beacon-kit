@@ -16,7 +16,6 @@ import (
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	dbm "github.com/cosmos/cosmos-db"
-	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -318,25 +317,6 @@ func ListenForQuitSignals(g *errgroup.Group, block bool, cancelFn context.Cancel
 	} else {
 		go f()
 	}
-}
-
-// GetAppDBBackend gets the backend type to use for the application DBs.
-func GetAppDBBackend(opts types.AppOptions) dbm.BackendType {
-	rv := cast.ToString(opts.Get("app-db-backend"))
-	if len(rv) == 0 {
-		rv = cast.ToString(opts.Get("db_backend"))
-	}
-
-	// Cosmos SDK has migrated to cosmos-db which does not support all the backends which tm-db supported
-	if rv == "cleveldb" || rv == "badgerdb" || rv == "boltdb" {
-		panic(fmt.Sprintf("invalid app-db-backend %q, use %q, %q, %q instead", rv, dbm.GoLevelDBBackend, dbm.PebbleDBBackend, dbm.RocksDBBackend))
-	}
-
-	if len(rv) != 0 {
-		return dbm.BackendType(rv)
-	}
-
-	return dbm.GoLevelDBBackend
 }
 
 // OpenDB opens the application database using the appropriate driver.

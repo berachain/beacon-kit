@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/spf13/cobra"
 
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/types"
@@ -27,7 +28,7 @@ application.
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := GetServerContextFromCmd(cmd)
 
-			db, err := OpenDB(ctx.Config.RootDir, GetAppDBBackend(ctx.Viper))
+			db, err := OpenDB(ctx.Config.RootDir, dbm.PebbleDBBackend)
 			if err != nil {
 				return err
 			}

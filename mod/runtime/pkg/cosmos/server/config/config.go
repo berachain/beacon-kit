@@ -87,10 +87,6 @@ type BaseConfig struct {
 
 	// IAVLDisableFastNode enables or disables the fast sync node.
 	IAVLDisableFastNode bool `mapstructure:"iavl-disable-fastnode"`
-
-	// AppDBBackend defines the type of Database to use for the application and snapshots databases.
-	// An empty string indicates that the CometBFT config's DBBackend value should be used.
-	AppDBBackend string `mapstructure:"app-db-backend"`
 }
 
 // APIConfig defines the API listener configuration.
@@ -196,7 +192,6 @@ func DefaultConfig() *Config {
 			IndexEvents:         make([]string, 0),
 			IAVLCacheSize:       781250,
 			IAVLDisableFastNode: false,
-			AppDBBackend:        "",
 		},
 		Telemetry: telemetry.Config{
 			Enabled:      false,

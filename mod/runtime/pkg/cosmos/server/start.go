@@ -329,7 +329,7 @@ func startApp[T types.Application](svrCtx *Context, appCreator types.AppCreator[
 	}
 
 	home := svrCtx.Config.RootDir
-	db, err := opts.DBOpener(home, GetAppDBBackend(svrCtx.Viper))
+	db, err := opts.DBOpener(home, dbm.PebbleDBBackend)
 	if err != nil {
 		return app, traceCleanupFn, err
 	}

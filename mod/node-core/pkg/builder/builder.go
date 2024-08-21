@@ -85,11 +85,6 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 	traceStore io.Writer,
 	appOpts servertypes.AppOptions,
 ) NodeT {
-	// Check for goleveldb cause bad project.
-	if appOpts.Get("app-db-backend") == "goleveldb" {
-		panic("goleveldb is not supported")
-	}
-
 	// variables to hold the components needed to set up BeaconApp
 	var (
 		chainSpec       common.ChainSpec

@@ -80,7 +80,6 @@ func DefaultAppConfig() any {
 	cfg.Telemetry.Enabled = true
 
 	// BeaconKit forces PebbleDB as the database backend.
-	cfg.AppDBBackend = "pebbledb"
 	cfg.Pruning = "everything"
 
 	// IAVL FastNode should ALWAYS be disabled on IAVL v1.x.

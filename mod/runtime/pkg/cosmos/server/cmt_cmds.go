@@ -21,6 +21,7 @@ import (
 	auth "cosmossdk.io/x/auth/client/cli"
 
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/types"
+	db "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
@@ -377,7 +378,7 @@ func BootstrapStateCmd[T types.Application](appCreator types.AppCreator[T]) *cob
 			}
 			if height == 0 {
 				home := serverCtx.Viper.GetString(flags.FlagHome)
-				db, err := OpenDB(home, GetAppDBBackend(serverCtx.Viper))
+				db, err := OpenDB(home, db.PebbleDBBackend)
 				if err != nil {
 					return err
 				}
