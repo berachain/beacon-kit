@@ -28,8 +28,9 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 )
 
-// Broker is responsible for broadcasting all events corresponding to the
-// <eventID> to all registered client channels.
+// Broker is the unique publisher for broadcasting all events corresponding
+// to the <eventID> to all registered client channels.
+// There should be exactly one broker responsible for every eventID.
 type Broker[T async.BaseEvent] struct {
 	// eventID is a unique identifier for the event that this broker is
 	// responsible for.
@@ -61,12 +62,13 @@ func (b *Broker[T]) EventID() async.EventID {
 	return b.eventID
 }
 
-// Start starts the broker loop.
+// Start starts the broker loop in a goroutine to listen and broadcast events
+// to all subscribers.
 func (b *Broker[T]) Start(ctx context.Context) {
 	go b.start(ctx)
 }
 
-// start starts the broker loop.
+// start is a helper function to listen and broadcast events.
 func (b *Broker[T]) start(ctx context.Context) {
 	for {
 		select {
@@ -82,8 +84,9 @@ func (b *Broker[T]) start(ctx context.Context) {
 }
 
 // Publish publishes a msg to all subscribers.
-// Returns ErrTimeout on timeout.
+// Errors if the message is not of type T, or if the context is canceled.
 func (b *Broker[T]) Publish(msg async.BaseEvent) error {
+	// assert that the message is of type T
 	typedMsg, err := ensureType[T](msg)
 	if err != nil {
 		return err
@@ -97,11 +100,12 @@ func (b *Broker[T]) Publish(msg async.BaseEvent) error {
 	}
 }
 
-// Subscribe registers the provided channel to the broker,
-// Returns ErrTimeout on timeout.
-// Contract: the channel must be a Subscription[T], where T is the expected
+// Subscribe registers the provided channel to the broker.
+// Errors if the channel is not of type chan T.
+// Contract: the channel must be a Chan[T], where T is the expected
 // type of the event data.
 func (b *Broker[T]) Subscribe(ch any) error {
+	// assert that the channel is of type chan T
 	client, err := ensureType[chan T](ch)
 	if err != nil {
 		return err
@@ -115,6 +119,7 @@ func (b *Broker[T]) Subscribe(ch any) error {
 // Unsubscribe removes a client from the broker.
 // Returns an error if the provided channel is not of type chan T.
 func (b *Broker[T]) Unsubscribe(ch any) error {
+	// assert that the channel is of type chan T
 	client, err := ensureType[chan T](ch)
 	if err != nil {
 		return err
