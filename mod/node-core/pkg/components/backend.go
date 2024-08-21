@@ -32,15 +32,14 @@ import (
 type StorageBackendInput[
 	AvailabilityStoreT any,
 	BeaconBlockStoreT any,
-	BeaconStoreT interface {
-		WithContext(context.Context) BeaconStoreT
-	},
+	BeaconStoreT any,
+	DepositStoreT any,
 ] struct {
 	depinject.In
 	AvailabilityStore AvailabilityStoreT
 	BlockStore        BeaconBlockStoreT
 	ChainSpec         common.ChainSpec
-	DepositStore      *DepositStore
+	DepositStore      DepositStoreT
 	BeaconStore       BeaconStoreT
 }
 
@@ -55,19 +54,21 @@ func ProvideStorageBackend[
 	BeaconStoreT interface {
 		WithContext(context.Context) BeaconStoreT
 	},
+	DepositStoreT any,
 ](
 	in StorageBackendInput[
 		AvailabilityStoreT, BeaconBlockStoreT, BeaconStoreT,
+		DepositStoreT,
 	],
 ) *storage.Backend[
 	AvailabilityStoreT, BeaconStateT, BeaconBlockStoreT,
-	*DepositStore, BeaconStoreT,
+	DepositStoreT, BeaconStoreT,
 ] {
 	return storage.NewBackend[
 		AvailabilityStoreT,
 		BeaconStateT,
 		BeaconBlockStoreT,
-		*DepositStore,
+		DepositStoreT,
 		BeaconStoreT,
 	](
 		in.ChainSpec,
