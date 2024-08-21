@@ -465,6 +465,9 @@ func (app *Service) getContextForProposal(
 	height int64,
 ) sdk.Context {
 	if height == app.initialHeight {
+		if app.finalizeBlockState == nil {
+			return ctx
+		}
 		ctx, _ = app.finalizeBlockState.Context().CacheContext()
 		return ctx
 	}
