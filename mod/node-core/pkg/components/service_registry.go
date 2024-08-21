@@ -22,7 +22,7 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
+	blockstore "github.com/berachain/beacon-kit/mod/node-api/block_store"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/middleware"

@@ -42,10 +42,6 @@ func DefaultComponents() []any {
 		components.ProvideBlockStore[
 			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader, *Logger,
 		],
-		components.ProvideBlockStorePruner[
-			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader,
-			*BlockStore, *Logger,
-		],
 		components.ProvideBlockStoreService[
 			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader,
 			*BlockStore, *Logger,
