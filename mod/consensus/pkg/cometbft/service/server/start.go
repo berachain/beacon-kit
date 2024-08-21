@@ -428,12 +428,6 @@ func addStartNodeFlags[T types.Application](
 	cmd.Flags().
 		Uint64(FlagMinRetainBlocks, 0, "Minimum block height offset during ABCI commit to prune CometBFT blocks")
 	cmd.Flags().
-		Bool(FlagAPIEnable, false, "Define if the API server should be enabled")
-	cmd.Flags().
-		Bool(FlagAPISwagger, false, "Define if swagger documentation should automatically be registered (Note: the API must also be enabled)")
-	cmd.Flags().
-		String(FlagAPIAddress, serverconfig.DefaultAPIAddress, "the API server address to listen on")
-	cmd.Flags().
 		Uint(FlagAPIMaxOpenConnections, 1000, "Define the number of maximum open connections")
 	cmd.Flags().
 		Uint(FlagRPCReadTimeout, 10, "Define the CometBFT RPC read timeout (in seconds)")
