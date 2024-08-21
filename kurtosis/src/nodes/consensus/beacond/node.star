@@ -41,7 +41,7 @@ def start(persistent_peers, is_seed, validator_index, config_settings, app_setti
     --beacon-kit.block-store-service.enabled \
     --beacon-kit.node-api.enabled --beacon-kit.node-api.logging \
     --pruning=nothing \
-    --api.enable {} {}".format(kzg_impl, "$BEACOND_ENGINE_DIAL_URL", seed_option, persistent_peers_option)
+    {} {}".format(kzg_impl, "$BEACOND_ENGINE_DIAL_URL", seed_option, persistent_peers_option)
 
     return "{} && {} && {}".format(mv_genesis, set_config, start_node)
 
