@@ -63,7 +63,10 @@ func StatusCommand() *cobra.Command {
 				return err
 			}
 
-			status, err := cmtservice.GetNodeStatus(context.Background(), clientCtx)
+			status, err := cmtservice.GetNodeStatus(
+				context.Background(),
+				clientCtx,
+			)
 			if err != nil {
 				return err
 			}
@@ -73,7 +76,8 @@ func StatusCommand() *cobra.Command {
 				return err
 			}
 
-			// In order to maintain backwards compatibility, the default json format output
+			// In order to maintain backwards compatibility, the default json
+			// format output
 			outputFormat, _ := cmd.Flags().GetString(flags.FlagOutput)
 			if outputFormat == flags.OutputFormatJSON {
 				clientCtx = clientCtx.WithOutputFormat(flags.OutputFormatJSON)
@@ -83,8 +87,10 @@ func StatusCommand() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringP(flags.FlagNode, "n", "tcp://localhost:26657", "Node to connect to")
-	cmd.Flags().StringP(flags.FlagOutput, "o", "json", "Output format (text|json)")
+	cmd.Flags().
+		StringP(flags.FlagNode, "n", "tcp://localhost:26657", "Node to connect to")
+	cmd.Flags().
+		StringP(flags.FlagOutput, "o", "json", "Output format (text|json)")
 
 	return cmd
 }
@@ -118,7 +124,10 @@ func ShowValidatorCmd() *cobra.Command {
 			serverCtx := GetServerContextFromCmd(cmd)
 			cfg := serverCtx.Config
 
-			privValidator := pvm.LoadFilePV(cfg.PrivValidatorKeyFile(), cfg.PrivValidatorStateFile())
+			privValidator := pvm.LoadFilePV(
+				cfg.PrivValidatorKeyFile(),
+				cfg.PrivValidatorStateFile(),
+			)
 			pk, err := privValidator.GetPubKey()
 			if err != nil {
 				return err
@@ -152,7 +161,10 @@ func ShowAddressCmd() *cobra.Command {
 			serverCtx := GetServerContextFromCmd(cmd)
 			cfg := serverCtx.Config
 
-			privValidator := pvm.LoadFilePV(cfg.PrivValidatorKeyFile(), cfg.PrivValidatorStateFile())
+			privValidator := pvm.LoadFilePV(
+				cfg.PrivValidatorKeyFile(),
+				cfg.PrivValidatorStateFile(),
+			)
 
 			valConsAddr := (sdk.ConsAddress)(privValidator.GetAddress())
 
@@ -217,7 +229,13 @@ for. Each module documents its respective events under 'xx_events.md'.
 			limit, _ := cmd.Flags().GetInt(flags.FlagLimit)
 			orderBy, _ := cmd.Flags().GetString(auth.FlagOrderBy)
 
-			blocks, err := rpc.QueryBlocks(clientCtx, page, limit, query, orderBy)
+			blocks, err := rpc.QueryBlocks(
+				clientCtx,
+				page,
+				limit,
+				query,
+				orderBy,
+			)
 			if err != nil {
 				return err
 			}
@@ -227,9 +245,12 @@ for. Each module documents its respective events under 'xx_events.md'.
 	}
 
 	flags.AddQueryFlagsToCmd(cmd)
-	cmd.Flags().Int(flags.FlagPage, query.DefaultPage, "Query a specific page of paginated results")
-	cmd.Flags().Int(flags.FlagLimit, query.DefaultLimit, "Query number of transactions results per page returned")
-	cmd.Flags().String(auth.FlagQuery, "", "The blocks events query per CometBFT's query semantics")
+	cmd.Flags().
+		Int(flags.FlagPage, query.DefaultPage, "Query a specific page of paginated results")
+	cmd.Flags().
+		Int(flags.FlagLimit, query.DefaultLimit, "Query number of transactions results per page returned")
+	cmd.Flags().
+		String(auth.FlagQuery, "", "The blocks events query per CometBFT's query semantics")
 	cmd.Flags().String(auth.FlagOrderBy, "", "The ordering semantics (asc|dsc)")
 	_ = cmd.MarkFlagRequired(auth.FlagQuery)
 
@@ -322,7 +343,8 @@ $ %s query block --%s=%s <hash>
 	}
 
 	flags.AddQueryFlagsToCmd(cmd)
-	cmd.Flags().String(auth.FlagType, auth.TypeHash, fmt.Sprintf("The type to be used when querying tx, can be one of \"%s\", \"%s\"", auth.TypeHeight, auth.TypeHash))
+	cmd.Flags().
+		String(auth.FlagType, auth.TypeHash, fmt.Sprintf("The type to be used when querying tx, can be one of \"%s\", \"%s\"", auth.TypeHeight, auth.TypeHash))
 
 	return cmd
 }
@@ -365,7 +387,8 @@ func QueryBlockResultsCmd() *cobra.Command {
 				return err
 			}
 
-			// coretypes.ResultBlockResults doesn't implement proto.Message interface
+			// coretypes.ResultBlockResults doesn't implement proto.Message
+			// interface
 			// so we can't print it using clientCtx.PrintProto
 			// we choose to serialize it to json and print the json instead
 			blockResStr, err := json.Marshal(blockRes)
@@ -382,7 +405,9 @@ func QueryBlockResultsCmd() *cobra.Command {
 	return cmd
 }
 
-func BootstrapStateCmd[T types.Application](appCreator types.AppCreator[T]) *cobra.Command {
+func BootstrapStateCmd[T types.Application](
+	appCreator types.AppCreator[T],
+) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "bootstrap-state",
 		Short: "Bootstrap CometBFT state at an arbitrary block height using a light client",
@@ -407,11 +432,19 @@ func BootstrapStateCmd[T types.Application](appCreator types.AppCreator[T]) *cob
 				height = app.CommitMultiStore().LastCommitID().Version
 			}
 
-			return node.BootstrapState(cmd.Context(), cfg, cmtcfg.DefaultDBProvider, getGenDocProvider(cfg), uint64(height), nil)
+			return node.BootstrapState(
+				cmd.Context(),
+				cfg,
+				cmtcfg.DefaultDBProvider,
+				getGenDocProvider(cfg),
+				uint64(height),
+				nil,
+			)
 		},
 	}
 
-	cmd.Flags().Int64("height", 0, "Block height to bootstrap state at, if not provided it uses the latest block height in app state")
+	cmd.Flags().
+		Int64("height", 0, "Block height to bootstrap state at, if not provided it uses the latest block height in app state")
 
 	return cmd
 }

@@ -44,7 +44,8 @@ func init() {
 	}
 }
 
-// ParseConfig retrieves the default environment configuration for the application.
+// ParseConfig retrieves the default environment configuration for the
+// application.
 func ParseConfig(v *viper.Viper) (*Config, error) {
 	conf := DefaultConfig()
 	err := v.Unmarshal(conf)
@@ -65,7 +66,8 @@ func SetConfigTemplate(customTemplate string) error {
 	return nil
 }
 
-// WriteConfigFile renders config using the template and writes it to configFilePath.
+// WriteConfigFile renders config using the template and writes it to
+// configFilePath.
 func WriteConfigFile(configFilePath string, config interface{}) error {
 	var buffer bytes.Buffer
 

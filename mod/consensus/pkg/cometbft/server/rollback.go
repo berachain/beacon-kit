@@ -30,8 +30,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server/types"
 )
 
-// NewRollbackCmd creates a command to rollback CometBFT and multistore state by one height.
-func NewRollbackCmd[T types.Application](appCreator types.AppCreator[T]) *cobra.Command {
+// NewRollbackCmd creates a command to rollback CometBFT and multistore state by
+// one height.
+func NewRollbackCmd[T types.Application](
+	appCreator types.AppCreator[T],
+) *cobra.Command {
 	var removeBlock bool
 
 	cmd := &cobra.Command{
@@ -64,11 +67,16 @@ application.
 				return fmt.Errorf("failed to rollback to version: %w", err)
 			}
 
-			fmt.Printf("Rolled back state to height %d and hash %X\n", height, hash)
+			fmt.Printf(
+				"Rolled back state to height %d and hash %X\n",
+				height,
+				hash,
+			)
 			return nil
 		},
 	}
 
-	cmd.Flags().BoolVar(&removeBlock, "hard", false, "remove last block as well as state")
+	cmd.Flags().
+		BoolVar(&removeBlock, "hard", false, "remove last block as well as state")
 	return cmd
 }

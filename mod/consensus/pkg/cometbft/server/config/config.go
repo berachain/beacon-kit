@@ -37,7 +37,8 @@ const (
 	// DefaultAPIAddress defines the default address to bind the API server to.
 	DefaultAPIAddress = "tcp://localhost:1317"
 
-	// DefaultGRPCAddress defines the default address to bind the gRPC server to.
+	// DefaultGRPCAddress defines the default address to bind the gRPC server
+	// to.
 	DefaultGRPCAddress = "localhost:9090"
 
 	// DefaultGRPCMaxRecvMsgSize defines the default gRPC max message size in
@@ -55,13 +56,15 @@ type BaseConfig struct {
 	PruningKeepRecent string `mapstructure:"pruning-keep-recent"`
 	PruningInterval   string `mapstructure:"pruning-interval"`
 
-	// HaltHeight contains a non-zero block height at which a node will gracefully
+	// HaltHeight contains a non-zero block height at which a node will
+	// gracefully
 	// halt and shutdown that can be used to assist upgrades and testing.
 	//
 	// Note: Commitment of state will be attempted on the corresponding block.
 	HaltHeight uint64 `mapstructure:"halt-height"`
 
-	// HaltTime contains a non-zero minimum block time (in Unix seconds) at which
+	// HaltTime contains a non-zero minimum block time (in Unix seconds) at
+	// which
 	// a node will gracefully halt and shutdown that can be used to assist
 	// upgrades and testing.
 	//
@@ -71,15 +74,17 @@ type BaseConfig struct {
 	// MinRetainBlocks defines the minimum block height offset from the current
 	// block being committed, such that blocks past this offset may be pruned
 	// from CometBFT. It is used as part of the process of determining the
-	// ResponseCommit.RetainHeight value during ABCI Commit. A value of 0 indicates
+	// ResponseCommit.RetainHeight value during ABCI Commit. A value of 0
+	// indicates
 	// that no blocks should be pruned.
 	//
 	// This configuration value is only responsible for pruning CometBFT blocks.
 	// It has no bearing on application state pruning which is determined by the
 	// "pruning-*" configurations.
 	//
-	// Note: CometBFT block pruning is dependent on this parameter in conjunction
-	// with the unbonding (safety threshold) period, state pruning and state sync
+	// Note: CometBFT block pruning is dependent on this parameter in
+	// conjunction with the unbonding (safety threshold) period, state pruning
+	// and state sync
 	// snapshot parameters to determine the correct minimum value of
 	// ResponseCommit.RetainHeight.
 	MinRetainBlocks uint64 `mapstructure:"min-retain-blocks"`
@@ -87,8 +92,9 @@ type BaseConfig struct {
 	// InterBlockCache enables inter-block caching.
 	InterBlockCache bool `mapstructure:"inter-block-cache"`
 
-	// IndexEvents defines the set of events in the form {eventType}.{attributeKey},
-	// which informs CometBFT what to index. If empty, all events will be indexed.
+	// IndexEvents defines the set of events in the form
+	// {eventType}.{attributeKey}, which informs CometBFT what to index. If
+	// empty, all events will be indexed.
 	IndexEvents []string `mapstructure:"index-events"`
 
 	// IavlCacheSize set the size of the iavl tree cache.
@@ -135,11 +141,14 @@ func GetConfig(v *viper.Viper) (Config, error) {
 	return *conf, nil
 }
 
-// ValidateBasic returns an error if min-gas-prices field is empty in BaseConfig. Otherwise, it returns nil.
+// ValidateBasic returns an error if min-gas-prices field is empty in
+// BaseConfig. Otherwise, it returns nil.
 func (c Config) ValidateBasic() error {
-	// if c.Pruning == pruningtypes.PruningOptionEverything && c.StateSync.SnapshotInterval > 0 {
+	// if c.Pruning == pruningtypes.PruningOptionEverything &&
+	// c.StateSync.SnapshotInterval > 0 {
 	// 	return sdkerrors.ErrAppConfig.Wrapf(
-	// 		"cannot enable state sync snapshots with '%s' pruning setting", pruningtypes.PruningOptionEverything,
+	// 		"cannot enable state sync snapshots with '%s' pruning setting",
+	// pruningtypes.PruningOptionEverything,
 	// 	)
 	// }
 

@@ -96,9 +96,11 @@ const (
 	KeyTriggerTestnetUpgrade = "trigger-testnet-upgrade"
 )
 
-// StartCmdOptions defines options that can be customized in `StartCmdWithOptions`,
+// StartCmdOptions defines options that can be customized in
+// `StartCmdWithOptions`,
 type StartCmdOptions[T types.Application] struct {
-	// DBOpener can be used to customize db opening, for example customize db options or support different db backends.
+	// DBOpener can be used to customize db opening, for example customize db
+	// options or support different db backends.
 	// It defaults to the builtin db opener.
 	DBOpener func(rootDir string, backendType dbm.BackendType) (dbm.DB, error)
 
@@ -111,13 +113,19 @@ type StartCmdOptions[T types.Application] struct {
 
 // StartCmd runs the service passed in, either stand-alone or in-process with
 // CometBFT.
-func StartCmd[T types.Application](appCreator types.AppCreator[T]) *cobra.Command {
+func StartCmd[T types.Application](
+	appCreator types.AppCreator[T],
+) *cobra.Command {
 	return StartCmdWithOptions(appCreator, StartCmdOptions[T]{})
 }
 
-// StartCmdWithOptions runs the service passed in, either stand-alone or in-process with
+// StartCmdWithOptions runs the service passed in, either stand-alone or
+// in-process with
 // CometBFT.
-func StartCmdWithOptions[T types.Application](appCreator types.AppCreator[T], opts StartCmdOptions[T]) *cobra.Command {
+func StartCmdWithOptions[T types.Application](
+	appCreator types.AppCreator[T],
+	opts StartCmdOptions[T],
+) *cobra.Command {
 	if opts.DBOpener == nil {
 		opts.DBOpener = OpenDB
 	}
@@ -166,7 +174,11 @@ is performed. Note, when enabled, gRPC will also be automatically enabled.
 			serverCtx.Logger.Debug("received quit signal")
 			graceDuration, _ := cmd.Flags().GetDuration(FlagShutdownGrace)
 			if graceDuration > 0 {
-				serverCtx.Logger.Info("graceful shutdown start", FlagShutdownGrace, graceDuration)
+				serverCtx.Logger.Info(
+					"graceful shutdown start",
+					FlagShutdownGrace,
+					graceDuration,
+				)
 				<-time.After(graceDuration)
 				serverCtx.Logger.Info("graceful shutdown complete")
 			}
@@ -179,7 +191,11 @@ is performed. Note, when enabled, gRPC will also be automatically enabled.
 	return cmd
 }
 
-func start[T types.Application](svrCtx *Context, appCreator types.AppCreator[T], appOpts StartCmdOptions[T]) error {
+func start[T types.Application](
+	svrCtx *Context,
+	appCreator types.AppCreator[T],
+	appOpts StartCmdOptions[T],
+) error {
 	svrCfg, err := getAndValidateConfig(svrCtx)
 	if err != nil {
 		return err
@@ -232,7 +248,10 @@ func startCmtNode(
 	tmNode, err = node.NewNode(
 		ctx,
 		cfg,
-		pvm.LoadOrGenFilePV(cfg.PrivValidatorKeyFile(), cfg.PrivValidatorStateFile()),
+		pvm.LoadOrGenFilePV(
+			cfg.PrivValidatorKeyFile(),
+			cfg.PrivValidatorStateFile(),
+		),
 		nodeKey,
 		proxy.NewLocalClientCreator(cmtApp),
 		getGenDocProvider(cfg),
@@ -269,8 +288,11 @@ func getAndValidateConfig(svrCtx *Context) (serverconfig.Config, error) {
 	return config, nil
 }
 
-// getGenDocProvider returns a function which returns the genesis doc from the genesis file.
-func getGenDocProvider(cfg *cmtcfg.Config) func() (node.ChecksummedGenesisDoc, error) {
+// getGenDocProvider returns a function which returns the genesis doc from the
+// genesis file.
+func getGenDocProvider(
+	cfg *cmtcfg.Config,
+) func() (node.ChecksummedGenesisDoc, error) {
 	return func() (node.ChecksummedGenesisDoc, error) {
 		appGenesis, err := genutiltypes.AppGenesisFromFile(cfg.GenesisFile())
 		if err != nil {
@@ -308,7 +330,10 @@ func getGenDocProvider(cfg *cmtcfg.Config) func() (node.ChecksummedGenesisDoc, e
 }
 
 // SetupTraceWriter sets up the trace writer and returns a cleanup function.
-func SetupTraceWriter(logger log.Logger, traceWriterFile string) (traceWriter io.WriteCloser, cleanup func(), err error) {
+func SetupTraceWriter(
+	logger log.Logger,
+	traceWriterFile string,
+) (traceWriter io.WriteCloser, cleanup func(), err error) {
 	// clean up the traceWriter when the server is shutting down
 	cleanup = func() {}
 
@@ -341,8 +366,15 @@ func getCtx(svrCtx *Context, block bool) (*errgroup.Group, context.Context) {
 	return g, ctx
 }
 
-func startApp[T types.Application](svrCtx *Context, appCreator types.AppCreator[T], opts StartCmdOptions[T]) (app T, cleanupFn func(), err error) {
-	traceWriter, traceCleanupFn, err := SetupTraceWriter(svrCtx.Logger, svrCtx.Viper.GetString(flagTraceStore))
+func startApp[T types.Application](
+	svrCtx *Context,
+	appCreator types.AppCreator[T],
+	opts StartCmdOptions[T],
+) (app T, cleanupFn func(), err error) {
+	traceWriter, traceCleanupFn, err := SetupTraceWriter(
+		svrCtx.Logger,
+		svrCtx.Viper.GetString(flagTraceStore),
+	)
 	if err != nil {
 		return app, traceCleanupFn, err
 	}
@@ -365,34 +397,62 @@ func startApp[T types.Application](svrCtx *Context, appCreator types.AppCreator[
 }
 
 // addStartNodeFlags should be added to any CLI commands that start the network.
-func addStartNodeFlags[T types.Application](cmd *cobra.Command, opts StartCmdOptions[T]) {
+func addStartNodeFlags[T types.Application](
+	cmd *cobra.Command,
+	opts StartCmdOptions[T],
+) {
 	cmd.Flags().String(flagAddress, "tcp://127.0.0.1:26658", "Listen address")
-	cmd.Flags().String(flagTransport, "socket", "Transport protocol: socket, grpc")
-	cmd.Flags().String(flagTraceStore, "", "Enable KVStore tracing to an output file")
-	cmd.Flags().String(FlagMinGasPrices, "", "Minimum gas prices to accept for transactions; Any fee in a tx must meet this minimum (e.g. 0.01photino;0.0001stake)")
-	cmd.Flags().IntSlice(FlagUnsafeSkipUpgrades, []int{}, "Skip a set of upgrade heights to continue the old binary")
-	cmd.Flags().Uint64(FlagHaltHeight, 0, "Block height at which to gracefully halt the chain and shutdown the node")
-	cmd.Flags().Uint64(FlagHaltTime, 0, "Minimum block time (in Unix seconds) at which to gracefully halt the chain and shutdown the node")
+	cmd.Flags().
+		String(flagTransport, "socket", "Transport protocol: socket, grpc")
+	cmd.Flags().
+		String(flagTraceStore, "", "Enable KVStore tracing to an output file")
+	cmd.Flags().
+		String(FlagMinGasPrices, "", "Minimum gas prices to accept for transactions; Any fee in a tx must meet this minimum (e.g. 0.01photino;0.0001stake)")
+	cmd.Flags().
+		IntSlice(FlagUnsafeSkipUpgrades, []int{}, "Skip a set of upgrade heights to continue the old binary")
+	cmd.Flags().
+		Uint64(FlagHaltHeight, 0, "Block height at which to gracefully halt the chain and shutdown the node")
+	cmd.Flags().
+		Uint64(FlagHaltTime, 0, "Minimum block time (in Unix seconds) at which to gracefully halt the chain and shutdown the node")
 	cmd.Flags().Bool(FlagInterBlockCache, true, "Enable inter-block caching")
-	cmd.Flags().String(flagCPUProfile, "", "Enable CPU profiling and write to the provided file")
-	cmd.Flags().Bool(FlagTrace, false, "Provide full stack traces for errors in ABCI Log")
-	cmd.Flags().String(FlagPruning, pruningtypes.PruningOptionDefault, "Pruning strategy (default|nothing|everything|custom)")
-	cmd.Flags().Uint64(FlagPruningKeepRecent, 0, "Number of recent heights to keep on disk (ignored if pruning is not 'custom')")
-	cmd.Flags().Uint64(FlagPruningInterval, 0, "Height interval at which pruned heights are removed from disk (ignored if pruning is not 'custom')")
-	cmd.Flags().Uint(FlagInvCheckPeriod, 0, "Assert registered invariants every N blocks")
-	cmd.Flags().Uint64(FlagMinRetainBlocks, 0, "Minimum block height offset during ABCI commit to prune CometBFT blocks")
-	cmd.Flags().Bool(FlagAPIEnable, false, "Define if the API server should be enabled")
-	cmd.Flags().Bool(FlagAPISwagger, false, "Define if swagger documentation should automatically be registered (Note: the API must also be enabled)")
-	cmd.Flags().String(FlagAPIAddress, serverconfig.DefaultAPIAddress, "the API server address to listen on")
-	cmd.Flags().Uint(FlagAPIMaxOpenConnections, 1000, "Define the number of maximum open connections")
-	cmd.Flags().Uint(FlagRPCReadTimeout, 10, "Define the CometBFT RPC read timeout (in seconds)")
-	cmd.Flags().Uint(FlagRPCWriteTimeout, 0, "Define the CometBFT RPC write timeout (in seconds)")
-	cmd.Flags().Uint(FlagRPCMaxBodyBytes, 1000000, "Define the CometBFT maximum request body (in bytes)")
-	cmd.Flags().Bool(FlagAPIEnableUnsafeCORS, false, "Define if CORS should be enabled (unsafe - use it at your own risk)")
-	cmd.Flags().Uint64(FlagStateSyncSnapshotInterval, 0, "State sync snapshot interval")
-	cmd.Flags().Uint32(FlagStateSyncSnapshotKeepRecent, 2, "State sync snapshot to keep")
-	cmd.Flags().Bool(FlagDisableIAVLFastNode, false, "Disable fast node for IAVL tree")
-	cmd.Flags().Duration(FlagShutdownGrace, 0*time.Second, "On Shutdown, duration to wait for resource clean up")
+	cmd.Flags().
+		String(flagCPUProfile, "", "Enable CPU profiling and write to the provided file")
+	cmd.Flags().
+		Bool(FlagTrace, false, "Provide full stack traces for errors in ABCI Log")
+	cmd.Flags().
+		String(FlagPruning, pruningtypes.PruningOptionDefault, "Pruning strategy (default|nothing|everything|custom)")
+	cmd.Flags().
+		Uint64(FlagPruningKeepRecent, 0, "Number of recent heights to keep on disk (ignored if pruning is not 'custom')")
+	cmd.Flags().
+		Uint64(FlagPruningInterval, 0, "Height interval at which pruned heights are removed from disk (ignored if pruning is not 'custom')")
+	cmd.Flags().
+		Uint(FlagInvCheckPeriod, 0, "Assert registered invariants every N blocks")
+	cmd.Flags().
+		Uint64(FlagMinRetainBlocks, 0, "Minimum block height offset during ABCI commit to prune CometBFT blocks")
+	cmd.Flags().
+		Bool(FlagAPIEnable, false, "Define if the API server should be enabled")
+	cmd.Flags().
+		Bool(FlagAPISwagger, false, "Define if swagger documentation should automatically be registered (Note: the API must also be enabled)")
+	cmd.Flags().
+		String(FlagAPIAddress, serverconfig.DefaultAPIAddress, "the API server address to listen on")
+	cmd.Flags().
+		Uint(FlagAPIMaxOpenConnections, 1000, "Define the number of maximum open connections")
+	cmd.Flags().
+		Uint(FlagRPCReadTimeout, 10, "Define the CometBFT RPC read timeout (in seconds)")
+	cmd.Flags().
+		Uint(FlagRPCWriteTimeout, 0, "Define the CometBFT RPC write timeout (in seconds)")
+	cmd.Flags().
+		Uint(FlagRPCMaxBodyBytes, 1000000, "Define the CometBFT maximum request body (in bytes)")
+	cmd.Flags().
+		Bool(FlagAPIEnableUnsafeCORS, false, "Define if CORS should be enabled (unsafe - use it at your own risk)")
+	cmd.Flags().
+		Uint64(FlagStateSyncSnapshotInterval, 0, "State sync snapshot interval")
+	cmd.Flags().
+		Uint32(FlagStateSyncSnapshotKeepRecent, 2, "State sync snapshot to keep")
+	cmd.Flags().
+		Bool(FlagDisableIAVLFastNode, false, "Disable fast node for IAVL tree")
+	cmd.Flags().
+		Duration(FlagShutdownGrace, 0*time.Second, "On Shutdown, duration to wait for resource clean up")
 
 	// add support for all CometBFT-specific command line options
 	cmtcmd.AddNodeFlags(cmd)

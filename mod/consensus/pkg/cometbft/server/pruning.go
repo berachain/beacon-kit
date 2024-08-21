@@ -34,11 +34,15 @@ import (
 // GetPruningOptionsFromFlags parses command flags and returns the correct
 // PruningOptions. If a pruning strategy is provided, that will be parsed and
 // returned, otherwise, it is assumed custom pruning options are provided.
-func GetPruningOptionsFromFlags(appOpts types.AppOptions) (pruningtypes.PruningOptions, error) {
+func GetPruningOptionsFromFlags(
+	appOpts types.AppOptions,
+) (pruningtypes.PruningOptions, error) {
 	strategy := strings.ToLower(cast.ToString(appOpts.Get(FlagPruning)))
 
 	switch strategy {
-	case pruningtypes.PruningOptionDefault, pruningtypes.PruningOptionNothing, pruningtypes.PruningOptionEverything:
+	case pruningtypes.PruningOptionDefault,
+		pruningtypes.PruningOptionNothing,
+		pruningtypes.PruningOptionEverything:
 		return pruningtypes.NewPruningOptionsFromString(strategy), nil
 
 	case pruningtypes.PruningOptionCustom:
@@ -54,6 +58,9 @@ func GetPruningOptionsFromFlags(appOpts types.AppOptions) (pruningtypes.PruningO
 		return opts, nil
 
 	default:
-		return pruningtypes.PruningOptions{}, fmt.Errorf("unknown pruning strategy %s", strategy)
+		return pruningtypes.PruningOptions{}, fmt.Errorf(
+			"unknown pruning strategy %s",
+			strategy,
+		)
 	}
 }

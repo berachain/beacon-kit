@@ -45,25 +45,44 @@ type ABCI interface {
 
 	// InitChain Initialize blockchain w validators/other info from CometBFT
 	InitChain(*abci.InitChainRequest) (*abci.InitChainResponse, error)
-	PrepareProposal(*abci.PrepareProposalRequest) (*abci.PrepareProposalResponse, error)
-	ProcessProposal(*abci.ProcessProposalRequest) (*abci.ProcessProposalResponse, error)
+	PrepareProposal(
+		*abci.PrepareProposalRequest,
+	) (*abci.PrepareProposalResponse, error)
+	ProcessProposal(
+		*abci.ProcessProposalRequest,
+	) (*abci.ProcessProposalResponse, error)
 	// FinalizeBlock deliver the decided block with its txs to the Application
-	FinalizeBlock(*abci.FinalizeBlockRequest) (*abci.FinalizeBlockResponse, error)
+	FinalizeBlock(
+		*abci.FinalizeBlockRequest,
+	) (*abci.FinalizeBlockResponse, error)
 	// ExtendVote create application specific vote extension
-	ExtendVote(context.Context, *abci.ExtendVoteRequest) (*abci.ExtendVoteResponse, error)
+	ExtendVote(
+		context.Context,
+		*abci.ExtendVoteRequest,
+	) (*abci.ExtendVoteResponse, error)
 	// VerifyVoteExtension verify application's vote extension data
-	VerifyVoteExtension(*abci.VerifyVoteExtensionRequest) (*abci.VerifyVoteExtensionResponse, error)
+	VerifyVoteExtension(
+		*abci.VerifyVoteExtensionRequest,
+	) (*abci.VerifyVoteExtensionResponse, error)
 	// Commit the state and return the application Merkle root hash
 	Commit() (*abci.CommitResponse, error)
 
 	// State Sync Connection
 
 	// ListSnapshots list available snapshots
-	ListSnapshots(*abci.ListSnapshotsRequest) (*abci.ListSnapshotsResponse, error)
+	ListSnapshots(
+		*abci.ListSnapshotsRequest,
+	) (*abci.ListSnapshotsResponse, error)
 	// OfferSnapshot offer a snapshot to the application
-	OfferSnapshot(*abci.OfferSnapshotRequest) (*abci.OfferSnapshotResponse, error)
+	OfferSnapshot(
+		*abci.OfferSnapshotRequest,
+	) (*abci.OfferSnapshotResponse, error)
 	// LoadSnapshotChunk load a snapshot chunk
-	LoadSnapshotChunk(*abci.LoadSnapshotChunkRequest) (*abci.LoadSnapshotChunkResponse, error)
+	LoadSnapshotChunk(
+		*abci.LoadSnapshotChunkRequest,
+	) (*abci.LoadSnapshotChunkResponse, error)
 	// ApplySnapshotChunk apply a snapshot chunk
-	ApplySnapshotChunk(*abci.ApplySnapshotChunkRequest) (*abci.ApplySnapshotChunkResponse, error)
+	ApplySnapshotChunk(
+		*abci.ApplySnapshotChunkRequest,
+	) (*abci.ApplySnapshotChunkResponse, error)
 }

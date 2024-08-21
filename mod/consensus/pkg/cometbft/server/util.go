@@ -51,7 +51,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 )
 
-// ServerContextKey defines the context key used to retrieve a server.Context from
+// ServerContextKey defines the context key used to retrieve a server.Context
+// from
 // a command's Context.
 const ServerContextKey = sdk.ContextKey("server.context")
 
@@ -71,11 +72,19 @@ func NewDefaultContext() *Context {
 	)
 }
 
-func NewContext(v *viper.Viper, config *cmtcfg.Config, logger log.Logger) *Context {
+func NewContext(
+	v *viper.Viper,
+	config *cmtcfg.Config,
+	logger log.Logger,
+) *Context {
 	return &Context{v, config, logger}
 }
 
-func bindFlags(basename string, cmd *cobra.Command, v *viper.Viper) (err error) {
+func bindFlags(
+	basename string,
+	cmd *cobra.Command,
+	v *viper.Viper,
+) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("bindFlags failed: %v", r)
@@ -83,9 +92,17 @@ func bindFlags(basename string, cmd *cobra.Command, v *viper.Viper) (err error) 
 	}()
 
 	cmd.Flags().VisitAll(func(f *pflag.Flag) {
-		// Environment variables can't have dashes in them, so bind them to their equivalent
+		// Environment variables can't have dashes in them, so bind them to
+		// their equivalent
 		// keys with underscores, e.g. --favorite-color to STING_FAVORITE_COLOR
-		err = v.BindEnv(f.Name, fmt.Sprintf("%s_%s", basename, strings.ToUpper(strings.ReplaceAll(f.Name, "-", "_"))))
+		err = v.BindEnv(
+			f.Name,
+			fmt.Sprintf(
+				"%s_%s",
+				basename,
+				strings.ToUpper(strings.ReplaceAll(f.Name, "-", "_")),
+			),
+		)
 		if err != nil {
 			panic(err)
 		}
@@ -109,7 +126,8 @@ func bindFlags(basename string, cmd *cobra.Command, v *viper.Viper) (err error) 
 	return err
 }
 
-// InterceptConfigsAndCreateContext performs a pre-run function for the root daemon
+// InterceptConfigsAndCreateContext performs a pre-run function for the root
+// daemon
 // application command. It will create a Viper literal and a default server
 // Context. The server CometBFT configuration will either be read and parsed
 // or created and saved to disk, where the server Context is updated to reflect
@@ -119,11 +137,17 @@ func bindFlags(basename string, cmd *cobra.Command, v *viper.Viper) (err error) 
 // is used to read and parse the application configuration. Command handlers can
 // fetch the server Context to get the CometBFT configuration or to get access
 // to Viper.
-func InterceptConfigsAndCreateContext(cmd *cobra.Command, customAppConfigTemplate string, customAppConfig interface{}, cmtConfig *cmtcfg.Config) (*Context, error) {
+func InterceptConfigsAndCreateContext(
+	cmd *cobra.Command,
+	customAppConfigTemplate string,
+	customAppConfig interface{},
+	cmtConfig *cmtcfg.Config,
+) (*Context, error) {
 	serverCtx := NewDefaultContext()
 
-	// Get the executable name and configure the viper instance so that environmental
-	// variables are checked based off that name. The underscore character is used
+	// Get the executable name and configure the viper instance so that
+	// environmental variables are checked based off that name. The underscore
+	// character is used
 	// as a separator.
 	executableName, err := os.Executable()
 	if err != nil {
@@ -145,7 +169,12 @@ func InterceptConfigsAndCreateContext(cmd *cobra.Command, customAppConfigTemplat
 	serverCtx.Viper.AutomaticEnv()
 
 	// intercept configuration files, using both Viper instances separately
-	config, err := interceptConfigs(serverCtx.Viper, customAppConfigTemplate, customAppConfig, cmtConfig)
+	config, err := interceptConfigs(
+		serverCtx.Viper,
+		customAppConfigTemplate,
+		customAppConfig,
+		cmtConfig,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -183,7 +212,11 @@ func SetCmdServerContext(cmd *cobra.Command, serverCtx *Context) error {
 
 	cmdCtx = context.WithValue(cmdCtx, ServerContextKey, serverCtx)
 	cmdCtx = context.WithValue(cmdCtx, corectx.ViperContextKey, serverCtx.Viper)
-	cmdCtx = context.WithValue(cmdCtx, corectx.LoggerContextKey, serverCtx.Logger)
+	cmdCtx = context.WithValue(
+		cmdCtx,
+		corectx.LoggerContextKey,
+		serverCtx.Logger,
+	)
 
 	cmd.SetContext(cmdCtx)
 
@@ -193,9 +226,15 @@ func SetCmdServerContext(cmd *cobra.Command, serverCtx *Context) error {
 // interceptConfigs parses and updates a CometBFT configuration file or
 // creates a new one and saves it. It also parses and saves the application
 // configuration file. The CometBFT configuration file is parsed given a root
-// Viper object, whereas the application is parsed with the private package-aware
+// Viper object, whereas the application is parsed with the private
+// package-aware
 // viperCfg object.
-func interceptConfigs(rootViper *viper.Viper, customAppTemplate string, customConfig interface{}, cmtConfig *cmtcfg.Config) (*cmtcfg.Config, error) {
+func interceptConfigs(
+	rootViper *viper.Viper,
+	customAppTemplate string,
+	customConfig interface{},
+	cmtConfig *cmtcfg.Config,
+) (*cmtcfg.Config, error) {
 	rootDir := rootViper.GetString(flags.FlagHome)
 	configPath := filepath.Join(rootDir, "config")
 	cmtCfgFile := filepath.Join(configPath, "config.toml")
@@ -212,7 +251,8 @@ func interceptConfigs(rootViper *viper.Viper, customAppTemplate string, customCo
 
 		defaultCometCfg := cmtcfg.DefaultConfig()
 		// The SDK is opinionated about those comet values, so we set them here.
-		// We verify first that the user has not changed them for not overriding them.
+		// We verify first that the user has not changed them for not overriding
+		// them.
 		if conf.Consensus.TimeoutCommit == defaultCometCfg.Consensus.TimeoutCommit {
 			conf.Consensus.TimeoutCommit = 5 * time.Second
 		}
@@ -246,8 +286,11 @@ func interceptConfigs(rootViper *viper.Viper, customAppTemplate string, customCo
 
 	appCfgFilePath := filepath.Join(configPath, "app.toml")
 	if _, err := os.Stat(appCfgFilePath); os.IsNotExist(err) {
-		if (customAppTemplate != "" && customConfig == nil) || (customAppTemplate == "" && customConfig != nil) {
-			return nil, errors.New("customAppTemplate and customConfig should be both nil or not nil")
+		if (customAppTemplate != "" && customConfig == nil) ||
+			(customAppTemplate == "" && customConfig != nil) {
+			return nil, errors.New(
+				"customAppTemplate and customConfig should be both nil or not nil",
+			)
 		}
 
 		if customAppTemplate != "" {
@@ -256,11 +299,19 @@ func interceptConfigs(rootViper *viper.Viper, customAppTemplate string, customCo
 			}
 
 			if err = rootViper.Unmarshal(&customConfig); err != nil {
-				return nil, fmt.Errorf("failed to parse %s: %w", appCfgFilePath, err)
+				return nil, fmt.Errorf(
+					"failed to parse %s: %w",
+					appCfgFilePath,
+					err,
+				)
 			}
 
 			if err := config.WriteConfigFile(appCfgFilePath, customConfig); err != nil {
-				return nil, fmt.Errorf("failed to write %s: %w", appCfgFilePath, err)
+				return nil, fmt.Errorf(
+					"failed to write %s: %w",
+					appCfgFilePath,
+					err,
+				)
 			}
 		} else {
 			appConf, err := config.ParseConfig(rootViper)
@@ -286,7 +337,11 @@ func interceptConfigs(rootViper *viper.Viper, customAppTemplate string, customCo
 }
 
 // AddCommands add server commands
-func AddCommands[T types.Application](rootCmd *cobra.Command, appCreator types.AppCreator[T], opts StartCmdOptions[T]) {
+func AddCommands[T types.Application](
+	rootCmd *cobra.Command,
+	appCreator types.AppCreator[T],
+	opts StartCmdOptions[T],
+) {
 	cometCmd := &cobra.Command{
 		Use:     "comet",
 		Aliases: []string{"cometbft", "tendermint"},
@@ -312,13 +367,20 @@ func AddCommands[T types.Application](rootCmd *cobra.Command, appCreator types.A
 	)
 }
 
-// ListenForQuitSignals listens for SIGINT and SIGTERM. When a signal is received,
+// ListenForQuitSignals listens for SIGINT and SIGTERM. When a signal is
+// received,
 // the cleanup function is called, indicating the caller can gracefully exit or
 // return.
 //
 // Note, the blocking behavior of this depends on the block argument.
-// The caller must ensure the corresponding context derived from the cancelFn is used correctly.
-func ListenForQuitSignals(g *errgroup.Group, block bool, cancelFn context.CancelFunc, logger log.Logger) {
+// The caller must ensure the corresponding context derived from the cancelFn is
+// used correctly.
+func ListenForQuitSignals(
+	g *errgroup.Group,
+	block bool,
+	cancelFn context.CancelFunc,
+	logger log.Logger,
+) {
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 

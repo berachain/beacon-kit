@@ -91,7 +91,10 @@ func TestGlobalLabelsEventsMarshalling(t *testing.T) {
   ["labelname2", "labelvalue2"],
 ]`
 	cfg := DefaultConfig()
-	cfg.Telemetry.GlobalLabels = [][]string{{"labelname1", "labelvalue1"}, {"labelname2", "labelvalue2"}}
+	cfg.Telemetry.GlobalLabels = [][]string{
+		{"labelname1", "labelvalue1"},
+		{"labelname2", "labelvalue2"},
+	}
 	var buffer bytes.Buffer
 
 	err := configTemplate.Execute(&buffer, cfg)
@@ -101,7 +104,10 @@ func TestGlobalLabelsEventsMarshalling(t *testing.T) {
 }
 
 func TestGlobalLabelsWriteRead(t *testing.T) {
-	expected := [][]string{{"labelname3", "labelvalue3"}, {"labelname4", "labelvalue4"}}
+	expected := [][]string{
+		{"labelname3", "labelvalue3"},
+		{"labelname4", "labelvalue4"},
+	}
 	expectedRaw := make([]interface{}, len(expected))
 	for i, exp := range expected {
 		pair := make([]interface{}, len(exp))
