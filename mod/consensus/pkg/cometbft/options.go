@@ -99,9 +99,5 @@ func (app *BaseApp) SetAppVersion(ctx context.Context, v uint64) error {
 			New("version is not set in param store")
 	}
 	cp.Version.App = v
-	if err := app.
-		paramStore.Set(ctx, cp); err != nil {
-		return err
-	}
-	return nil
+	return app.paramStore.Set(ctx, cp)
 }

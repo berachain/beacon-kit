@@ -204,9 +204,6 @@ func (app *BaseApp) PrepareProposal(
 	app.setState(execModePrepareProposal)
 
 	// CometBFT must never call PrepareProposal with a height of 0.
-	//
-	// Ref:
-	// https://github.com/cometbft/cometbft/blob/059798a4f5b0c9f52aa8655fa619054a0154088c/spec/core/state.md?plain=1#L37-L38
 	if req.Height < 1 {
 		return nil, errors.New("PrepareProposal called with invalid height")
 	}
