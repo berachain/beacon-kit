@@ -133,7 +133,7 @@ type DAServiceIn[
 	BlobProcessor     BlobProcessor[
 		AvailabilityStoreT, BeaconBlockBodyT, BlobSidecarsT,
 	]
-	Dispatcher *Dispatcher
+	Dispatcher Dispatcher
 	Logger     LoggerT
 }
 

@@ -43,7 +43,7 @@ type ChainServiceInput[
 	Cfg             *config.Config
 	EngineClient    *EngineClient
 	ExecutionEngine *ExecutionEngine
-	Dispatcher      *Dispatcher
+	Dispatcher      Dispatcher
 	LocalBuilder    LocalBuilder[BeaconStateT, *ExecutionPayload]
 	Logger          LoggerT
 	Signer          crypto.BLSSigner

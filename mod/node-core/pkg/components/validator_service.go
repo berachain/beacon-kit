@@ -42,7 +42,7 @@ type ValidatorServiceInput[
 	depinject.In
 	Cfg            *config.Config
 	ChainSpec      common.ChainSpec
-	Dispatcher     *Dispatcher
+	Dispatcher     Dispatcher
 	LocalBuilder   LocalBuilder[BeaconStateT, *ExecutionPayload]
 	Logger         LoggerT
 	StateProcessor StateProcessor[

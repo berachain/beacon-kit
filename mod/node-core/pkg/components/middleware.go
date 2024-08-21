@@ -36,9 +36,9 @@ type ABCIMiddlewareInput[
 ] struct {
 	depinject.In
 	ChainSpec     common.ChainSpec
+	Dispatcher    Dispatcher
 	Logger        LoggerT
 	TelemetrySink *metrics.TelemetrySink
-	Dispatcher    *Dispatcher
 }
 
 // ProvideABCIMiddleware is a depinject provider for the validator
@@ -62,8 +62,8 @@ func ProvideABCIMiddleware[
 		*SlotData,
 	](
 		in.ChainSpec,
+		in.Dispatcher,
 		in.Logger,
 		in.TelemetrySink,
-		in.Dispatcher,
 	), nil
 }

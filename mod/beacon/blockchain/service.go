@@ -80,13 +80,11 @@ type Service[
 	// forceStartupSyncOnce is used to force a sync of the startup head.
 	forceStartupSyncOnce *sync.Once
 
-	// subFinalBlkReceived is a channel for receiving finalize beacon block
-	// requests.
+	// subFinalBlkReceived is a channel holding FinalBeaconBlockReceived events.
 	subFinalBlkReceived chan async.Event[BeaconBlockT]
-	// subBlockReceived is a channel for receiving verify beacon block requests.
+	// subBlockReceived is a channel holding BeaconBlockReceived events.
 	subBlockReceived chan async.Event[BeaconBlockT]
-	// subGenDataReceived is a subscription for receiving genesis data
-	// received events.
+	// subGenDataReceived is a channel holding GenesisDataReceived events.
 	subGenDataReceived chan async.Event[GenesisT]
 }
 
@@ -157,11 +155,11 @@ func (s *Service[
 	return "blockchain"
 }
 
-// Start sets up the service to listen for FinalizeBeaconBlock,
-// VerifyBeaconBlock, and ProcessGenesisData requests, and handles them
-// accordingly.
+// Start subscribes the Blockchain service to GenesisDataReceived,
+// BeaconBlockReceived, and FinalBeaconBlockReceived events, and begins
+// the main event loop to handle them accordingly.
 func (s *Service[
-	_, BeaconBlockT, _, _, _, _, _, _, GenesisT, _,
+	_, _, _, _, _, _, _, _, _, _,
 ]) Start(ctx context.Context) error {
 	if err := s.dispatcher.Subscribe(
 		async.GenesisDataReceived, s.subGenDataReceived,
@@ -181,7 +179,7 @@ func (s *Service[
 		return err
 	}
 
-	// start a goroutine to listen for requests and handle accordingly
+	// start the main event loop to listen and handle events.
 	go s.eventLoop(ctx)
 	return nil
 }
@@ -205,9 +203,11 @@ func (s *Service[
 }
 
 /* -------------------------------------------------------------------------- */
-/*                              Message Handlers                              */
+/*                                Event Handlers                              */
 /* -------------------------------------------------------------------------- */
 
+// handleGenDataReceived processes the genesis data received and emits a
+// GenesisDataProcessed event containing the resulting validator updates.
 func (s *Service[
 	_, _, _, _, _, _, _, _, GenesisT, _,
 ]) handleGenDataReceived(msg async.Event[GenesisT]) {
@@ -242,6 +242,8 @@ func (s *Service[
 	}
 }
 
+// handleBeaconBlockReceived emits a BeaconBlockVerified event with the error
+// result from VerifyIncomingBlock.
 func (s *Service[
 	_, BeaconBlockT, _, _, _, _, _, _, _, _,
 ]) handleBeaconBlockReceived(
@@ -270,6 +272,9 @@ func (s *Service[
 	}
 }
 
+// handleBeaconBlockFinalization processes the finalized beacon block and emits
+// a FinalValidatorUpdatesProcessed event containing the resulting validator
+// updates.
 func (s *Service[
 	_, BeaconBlockT, _, _, _, _, _, _, _, _,
 ]) handleBeaconBlockFinalization(

@@ -70,7 +70,7 @@ func ProvidePublishers[
 			async.FinalValidatorUpdatesProcessed,
 		),
 		broker.New[async.Event[BeaconBlockT]](
-			async.BeaconBlockFinalizedEvent,
+			async.BeaconBlockFinalized,
 		),
 	}
 }
