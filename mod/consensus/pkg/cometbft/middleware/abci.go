@@ -95,14 +95,21 @@ func (h *ABCIMiddleware[
 		err              error
 		builtBeaconBlock BeaconBlockT
 		builtSidecars    BlobSidecarsT
+		numMsgs          int
 		startTime        = time.Now()
 		awaitCtx, cancel = context.WithTimeout(ctx, AwaitTimeout)
 	)
 	defer cancel()
 	defer h.metrics.measurePrepareProposalDuration(startTime)
 	// flush the channels to ensure that we are not handling old data.
-	async.ClearChan(h.subBuiltBeaconBlock)
-	async.ClearChan(h.subBuiltSidecars)
+	if numMsgs = async.ClearChan(h.subBuiltBeaconBlock); numMsgs > 0 {
+		h.logger.Error("WARNING: messages remaining in built beacon block channel",
+			"num_msgs", numMsgs)
+	}
+	if numMsgs = async.ClearChan(h.subBuiltSidecars); numMsgs > 0 {
+		h.logger.Error("WARNING: messages remaining in built sidecars channel",
+			"num_msgs", numMsgs)
+	}
 
 	if err = h.dispatcher.Publish(
 		async.NewEvent(
@@ -190,13 +197,20 @@ func (h *ABCIMiddleware[
 		err              error
 		startTime        = time.Now()
 		blk              BeaconBlockT
+		numMsgs          int
 		sidecars         BlobSidecarsT
 		awaitCtx, cancel = context.WithTimeout(ctx, AwaitTimeout)
 	)
 	defer cancel()
 	// flush the channels to ensure that we are not handling old data.
-	async.ClearChan(h.subBBVerified)
-	async.ClearChan(h.subSCVerified)
+	if numMsgs = async.ClearChan(h.subBBVerified); numMsgs > 0 {
+		h.logger.Error("WARNING: messages remaining in beacon block verification channel",
+			"num_msgs", numMsgs)
+	}
+	if numMsgs = async.ClearChan(h.subSCVerified); numMsgs > 0 {
+		h.logger.Error("WARNING: messages remaining in sidecar verification channel",
+			"num_msgs", numMsgs)
+	}
 	abciReq, ok := req.(*cmtabci.ProcessProposalRequest)
 	if !ok {
 		return nil, ErrInvalidProcessProposalRequestType
@@ -308,7 +322,10 @@ func (h *ABCIMiddleware[
 	)
 	defer cancel()
 	// flush the channel to ensure that we are not handling old data.
-	async.ClearChan(h.subFinalValidatorUpdates)
+	if numMsgs := async.ClearChan(h.subFinalValidatorUpdates); numMsgs > 0 {
+		h.logger.Error("WARNING: messages remaining in final validator updates channel",
+			"num_msgs", numMsgs)
+	}
 	abciReq, ok := req.(*cmtabci.FinalizeBlockRequest)
 	if !ok {
 		return nil, ErrInvalidFinalizeBlockRequestType

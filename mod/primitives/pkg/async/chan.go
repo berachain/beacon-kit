@@ -21,12 +21,14 @@
 package async
 
 // ClearChan clears a channel of all values.
-func ClearChan[T any](ch chan T) {
+func ClearChan[T any](ch chan T) int {
+	cleared := 0
 	for {
 		select {
 		case <-ch:
+			cleared++
 		default:
-			return
+			return cleared
 		}
 	}
 }
