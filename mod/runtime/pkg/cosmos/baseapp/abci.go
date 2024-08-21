@@ -22,10 +22,11 @@ package baseapp
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 
 	"cosmossdk.io/store/rootmulti"
 	errorsmod "github.com/berachain/beacon-kit/mod/errors"

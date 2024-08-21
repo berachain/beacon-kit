@@ -21,7 +21,7 @@
 package constraints
 
 import (
-	"encoding/json"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 )

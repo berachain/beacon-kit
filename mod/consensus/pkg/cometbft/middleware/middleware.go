@@ -22,7 +22,8 @@ package middleware
 
 import (
 	"context"
-	"encoding/json"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 
 	"github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/log"

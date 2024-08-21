@@ -21,7 +21,7 @@
 package baseapp
 
 import (
-	"encoding/json"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
