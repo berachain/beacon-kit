@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"io"
-	"net"
 	"time"
 
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
@@ -18,7 +17,6 @@ import (
 	"github.com/hashicorp/go-metrics"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
-	"google.golang.org/grpc"
 
 	"cosmossdk.io/log"
 	pruningtypes "cosmossdk.io/store/pruning/types"
@@ -26,7 +24,6 @@ import (
 	serverconfig "github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/config"
 	servercmtlog "github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/log"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/types"
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/cosmos/cosmos-sdk/version"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
@@ -315,38 +312,6 @@ func SetupTraceWriter(logger log.Logger, traceWriterFile string) (traceWriter io
 	}
 
 	return traceWriter, cleanup, nil
-}
-
-func startGrpcServer(
-	ctx context.Context,
-	g *errgroup.Group,
-	config serverconfig.GRPCConfig,
-	clientCtx client.Context,
-	svrCtx *Context,
-	app types.Application,
-) (*grpc.Server, client.Context, error) {
-	if !config.Enable {
-		// return grpcServer as nil if gRPC is disabled
-		return nil, clientCtx, nil
-	}
-	_, _, err := net.SplitHostPort(config.Address)
-	if err != nil {
-		return nil, clientCtx, err
-	}
-
-	maxSendMsgSize := config.MaxSendMsgSize
-	if maxSendMsgSize == 0 {
-		maxSendMsgSize = serverconfig.DefaultGRPCMaxSendMsgSize
-	}
-
-	maxRecvMsgSize := config.MaxRecvMsgSize
-	if maxRecvMsgSize == 0 {
-		maxRecvMsgSize = serverconfig.DefaultGRPCMaxRecvMsgSize
-	}
-
-	svrCtx.Logger.Debug("gRPC client assigned to client context", "target", config.Address)
-
-	return nil, clientCtx, nil
 }
 
 func startTelemetry(cfg serverconfig.Config) (*telemetry.Metrics, error) {

@@ -25,7 +25,6 @@ import (
 
 	corectx "cosmossdk.io/core/context"
 	"cosmossdk.io/log"
-	"cosmossdk.io/store/snapshots"
 
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/config"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/types"
@@ -412,23 +411,4 @@ func openTraceWriter(traceWriterFile string) (w io.WriteCloser, err error) {
 		os.O_WRONLY|os.O_APPEND|os.O_CREATE,
 		0o666,
 	)
-}
-
-func GetSnapshotStore(appOpts types.AppOptions) (*snapshots.Store, error) {
-	homeDir := cast.ToString(appOpts.Get(flags.FlagHome))
-	snapshotDir := filepath.Join(homeDir, "data", "snapshots")
-	if err := os.MkdirAll(snapshotDir, 0o744); err != nil {
-		return nil, fmt.Errorf("failed to create snapshots directory: %w", err)
-	}
-
-	snapshotDB, err := dbm.NewDB("metadata", GetAppDBBackend(appOpts), snapshotDir)
-	if err != nil {
-		return nil, err
-	}
-	snapshotStore, err := snapshots.NewStore(snapshotDB, snapshotDir)
-	if err != nil {
-		return nil, err
-	}
-
-	return snapshotStore, nil
 }
