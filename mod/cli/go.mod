@@ -42,7 +42,7 @@ require (
 	cosmossdk.io/schema v0.1.1 // indirect
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240820191615-398849c34954 // indirect
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df // indirect
-	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240821052951-c15422305b4e // indirect
+	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240821053614-036c5d2945f0 // indirect
 	github.com/berachain/beacon-kit/mod/node-api v0.0.0-20240806160829-cde2d1347e7e // indirect
 	github.com/berachain/beacon-kit/mod/node-api/engines v0.0.0-20240806160829-cde2d1347e7e // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a // indirect

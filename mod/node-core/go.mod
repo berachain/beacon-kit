@@ -17,7 +17,7 @@ require (
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240820191615-398849c34954
 	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240806160829-cde2d1347e7e
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240821052951-c15422305b4e
+	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240821053614-036c5d2945f0
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240809163303-a4ebb22fd018
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240820191615-398849c34954
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240809202957-3e3f169ad720
