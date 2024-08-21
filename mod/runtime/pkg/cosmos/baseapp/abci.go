@@ -313,7 +313,10 @@ func (app *BaseApp) ProcessProposal(
 		),
 	)
 
-	resp, err := app.Middleware.ProcessProposal(app.processProposalState.Context(), req)
+	resp, err := app.Middleware.ProcessProposal(
+		app.processProposalState.Context(),
+		req,
+	)
 	if err != nil {
 		app.logger.Error(
 			"failed to process proposal",
