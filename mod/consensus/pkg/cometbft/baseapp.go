@@ -112,7 +112,7 @@ type BaseApp struct {
 	chainID string
 }
 
-// NewBaseApp returns a reference to an initialized BaseApp. It accepts a
+// NewBaseApp returns a reference to an initialized cometbft. It accepts a
 // variadic number of option functions, which act on the BaseApp to set
 // configuration choices.
 func NewBaseApp(
@@ -156,12 +156,12 @@ func NewBaseApp(
 	return app
 }
 
-// Name returns the name of the BaseApp.
+// Name returns the name of the cometbft.
 func (app *BaseApp) Name() string {
 	return app.name
 }
 
-// CommitMultiStore returns the CommitMultiStore of the BaseApp.
+// CommitMultiStore returns the CommitMultiStore of the cometbft.
 func (app *BaseApp) CommitMultiStore() storetypes.CommitMultiStore {
 	return app.cms
 }
@@ -188,7 +188,7 @@ func (app *BaseApp) MountStore(
 }
 
 // LoadLatestVersion loads the latest application version. It will panic if
-// called more than once on a running BaseApp.
+// called more than once on a running cometbft.
 func (app *BaseApp) LoadLatestVersion() error {
 	if err := app.cms.LoadLatestVersion(); err != nil {
 		return fmt.Errorf("failed to load latest version: %w", err)
@@ -199,7 +199,7 @@ func (app *BaseApp) LoadLatestVersion() error {
 }
 
 // LoadVersion loads the BaseApp application version. It will panic if called
-// more than once on a running baseapp.
+// more than once on a running cometbft.
 func (app *BaseApp) LoadVersion(version int64) error {
 	app.logger.Info(
 		"NOTICE: this could take a long time to migrate IAVL store to fastnode if you enable Fast Node.\n",

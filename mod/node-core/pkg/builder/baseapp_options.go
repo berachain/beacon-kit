@@ -27,7 +27,7 @@ import (
 
 	"cosmossdk.io/store"
 	storetypes "cosmossdk.io/store/types"
-	baseapp "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
 	comet "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/params"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -44,8 +44,8 @@ import (
 // WithCometParamStore sets the param store to the comet consensus engine.
 func WithCometParamStore(
 	chainSpec common.ChainSpec,
-) func(bApp *baseapp.BaseApp) {
-	return func(bApp *baseapp.BaseApp) {
+) func(bApp *cometbft.BaseApp) {
+	return func(bApp *cometbft.BaseApp) {
 		bApp.SetParamStore(comet.NewConsensusParamsStore(chainSpec))
 	}
 }
@@ -54,7 +54,7 @@ func WithCometParamStore(
 // Cosmos SDK.
 func DefaultBaseappOptions(
 	appOpts servertypes.AppOptions,
-) []func(*baseapp.BaseApp) {
+) []func(*cometbft.BaseApp) {
 	var cache storetypes.MultiStorePersistentCache
 
 	if cast.ToBool(appOpts.Get(server.FlagInterBlockCache)) {
@@ -90,19 +90,19 @@ func DefaultBaseappOptions(
 		}
 	}
 
-	return []func(*baseapp.BaseApp){
-		baseapp.SetPruning(pruningOpts),
-		baseapp.SetMinRetainBlocks(
+	return []func(*cometbft.BaseApp){
+		cometbft.SetPruning(pruningOpts),
+		cometbft.SetMinRetainBlocks(
 			cast.ToUint64(appOpts.Get(server.FlagMinRetainBlocks)),
 		),
-		baseapp.SetInterBlockCache(cache),
-		baseapp.SetIAVLCacheSize(
+		cometbft.SetInterBlockCache(cache),
+		cometbft.SetIAVLCacheSize(
 			cast.ToInt(appOpts.Get(server.FlagIAVLCacheSize)),
 		),
-		baseapp.SetIAVLDisableFastNode(
+		cometbft.SetIAVLDisableFastNode(
 			// default to true
 			true,
 		),
-		baseapp.SetChainID(chainID),
+		cometbft.SetChainID(chainID),
 	}
 }

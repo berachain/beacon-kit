@@ -64,7 +64,7 @@ func SetInterBlockCache(
 	return func(app *BaseApp) { app.setInterBlockCache(cache) }
 }
 
-// SetChainID sets the chain ID in BaseApp.
+// SetChainID sets the chain ID in cometbft.
 func SetChainID(chainID string) func(*BaseApp) {
 	return func(app *BaseApp) { app.chainID = chainID }
 }
@@ -73,7 +73,7 @@ func (app *BaseApp) SetName(name string) {
 	app.name = name
 }
 
-// SetParamStore sets a parameter store on the BaseApp.
+// SetParamStore sets a parameter store on the cometbft.
 func (app *BaseApp) SetParamStore(ps ParamStore) {
 	app.paramStore = ps
 }

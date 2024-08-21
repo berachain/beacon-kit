@@ -23,7 +23,7 @@ package node
 import (
 	"context"
 
-	baseapp "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
 	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 )
@@ -33,7 +33,7 @@ var _ types.Node = (*node)(nil)
 
 // node is the hard-type representation of the beacon-kit node.
 type node struct {
-	*baseapp.BaseApp
+	*cometbft.BaseApp
 
 	// registry is the node's service registry.
 	registry *service.Registry
@@ -52,7 +52,7 @@ func (n *node) Start(ctx context.Context) error {
 // SetApplication sets the application.
 func (n *node) RegisterApp(a types.Application) {
 	//nolint:errcheck // BeaconApp is our servertypes.Application
-	n.BaseApp = a.(*baseapp.BaseApp)
+	n.BaseApp = a.(*cometbft.BaseApp)
 }
 
 // SetServiceRegistry sets the service registry.
