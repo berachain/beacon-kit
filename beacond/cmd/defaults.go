@@ -84,7 +84,9 @@ func DefaultComponents() []any {
 			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader, *Logger,
 		],
 		components.ProvideDepositStore,
-		components.ProvideDispatcher[*Logger],
+		components.ProvideDispatcher[
+			*BeaconBlock, *BlobSidecars, *Logger,
+		],
 		components.ProvideEngineClient[*Logger],
 		components.ProvideExecutionEngine[*Logger],
 		components.ProvideJWTSecret,
@@ -92,7 +94,6 @@ func DefaultComponents() []any {
 			*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
 			*KVStore, *Logger,
 		],
-		components.ProvidePublishers[*BeaconBlock, *BlobSidecars],
 		components.ProvideReportingService[*Logger],
 		components.ProvideServiceRegistry[
 			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,

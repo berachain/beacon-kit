@@ -23,8 +23,9 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
-	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	asynchelpers "github.com/berachain/beacon-kit/mod/async/pkg/helpers"
 	"github.com/berachain/beacon-kit/mod/log"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 )
 
 // DispatcherInput is the input for the Dispatcher.
@@ -32,20 +33,97 @@ type DispatcherInput[
 	LoggerT any,
 ] struct {
 	depinject.In
-	Logger     LoggerT
-	Publishers []asynctypes.Broker
+	Logger LoggerT
 }
 
 // ProvideDispatcher provides a new Dispatcher.
 func ProvideDispatcher[
+	BeaconBlockT any,
+	BlobSidecarsT any,
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ](
 	in DispatcherInput[LoggerT],
 ) (*Dispatcher, error) {
+	var err error
 	d := dispatcher.New(
 		in.Logger.With("service", "dispatcher"),
 	)
-	if err := d.RegisterBrokers(in.Publishers...); err != nil {
+	// Register the GenesisDataReceived event.
+	if err = asynchelpers.RegisterEvent[GenesisEvent](
+		d, async.GenesisDataReceived,
+	); err != nil {
+		return nil, err
+	}
+	// Register the GenesisDataProcessed event.
+	if err = asynchelpers.RegisterEvent[ValidatorUpdateEvent](
+		d, async.GenesisDataProcessed,
+	); err != nil {
+		return nil, err
+	}
+	// Register the NewSlot event.
+	if err = asynchelpers.RegisterEvent[SlotEvent](
+		d, async.NewSlot,
+	); err != nil {
+		return nil, err
+	}
+	// Register the BuiltBeaconBlock event.
+	if err = asynchelpers.RegisterEvent[async.Event[BeaconBlockT]](
+		d, async.BuiltBeaconBlock,
+	); err != nil {
+		return nil, err
+	}
+	// Register the BuiltSidecars event.
+	if err = asynchelpers.RegisterEvent[async.Event[BlobSidecarsT]](
+		d, async.BuiltSidecars,
+	); err != nil {
+		return nil, err
+	}
+	// Register the BeaconBlockReceived event.
+	if err = asynchelpers.RegisterEvent[async.Event[BeaconBlockT]](
+		d, async.BeaconBlockReceived,
+	); err != nil {
+		return nil, err
+	}
+	// Register the SidecarsReceived event.
+	if err = asynchelpers.RegisterEvent[async.Event[BlobSidecarsT]](
+		d, async.SidecarsReceived,
+	); err != nil {
+		return nil, err
+	}
+	// Register the BeaconBlockVerified event.
+	if err = asynchelpers.RegisterEvent[async.Event[BeaconBlockT]](
+		d, async.BeaconBlockVerified,
+	); err != nil {
+		return nil, err
+	}
+	// Register the SidecarsVerified event.
+	if err = asynchelpers.RegisterEvent[async.Event[BlobSidecarsT]](
+		d, async.SidecarsVerified,
+	); err != nil {
+		return nil, err
+	}
+	// Register the FinalBeaconBlockReceived event.
+	if err = asynchelpers.RegisterEvent[async.Event[BeaconBlockT]](
+		d, async.FinalBeaconBlockReceived,
+	); err != nil {
+		return nil, err
+	}
+	// Register the FinalSidecarsReceived event.
+	if err = asynchelpers.RegisterEvent[async.Event[BlobSidecarsT]](
+		d, async.FinalSidecarsReceived,
+	); err != nil {
+		return nil, err
+	}
+	// Register the FinalValidatorUpdatesProcessed event.
+	if err = asynchelpers.RegisterEvent[ValidatorUpdateEvent](
+		d, async.FinalValidatorUpdatesProcessed,
+	); err != nil {
+		return nil, err
+	}
+	// Register the BeaconBlockFinalized event.
+	if err = asynchelpers.RegisterEvent[async.Event[BeaconBlockT]](
+		d, async.BeaconBlockFinalizedEvent,
+	); err != nil {
 		return nil, err
 	}
 	return d, nil
