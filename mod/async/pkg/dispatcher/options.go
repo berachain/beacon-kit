@@ -18,32 +18,21 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package async
+package dispatcher
 
-// EventID represents the type of a message.
-type EventID string
-
-// event ids, topologically sorted.
-const (
-
-	// genesis data events.
-	GenesisDataReceived  = "genesis-data-received"
-	GenesisDataProcessed = "genesis-data-processed"
-
-	// pre proposal events.
-	NewSlot          = "new-slot"
-	BuiltBeaconBlock = "built-beacon-block"
-	BuiltSidecars    = "built-sidecars"
-
-	// proposal processing events.
-	BeaconBlockReceived = "beacon-block-received"
-	SidecarsReceived    = "sidecars-received"
-	BeaconBlockVerified = "beacon-block-verified"
-	SidecarsVerified    = "sidecars-verified"
-
-	// finalize block events.
-	FinalBeaconBlockReceived       = "final-beacon-block-received"
-	FinalSidecarsReceived          = "final-blob-sidecars-received"
-	FinalValidatorUpdatesProcessed = "final-validator-updates"
-	BeaconBlockFinalized           = "beacon-block-finalized"
+import (
+	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
+	"github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 )
+
+// Opt is a type that defines a function that modifies NodeBuilder.
+type Option func(dispatcher types.Dispatcher) error
+
+func WithEvent[
+	EventT async.BaseEvent,
+](eventID string) Option {
+	return func(dispatcher types.Dispatcher) error {
+		return dispatcher.RegisterBrokers(broker.New[EventT](eventID))
+	}
+}

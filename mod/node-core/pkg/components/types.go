@@ -137,16 +137,12 @@ type (
 //
 
 type (
-	// GenesisDataProcessedEvent is a type alias for the genesis data processed
-	// event.
-	GenesisDataProcessedEvent = async.Event[transition.ValidatorUpdates]
-
 	// NewSlotEvent is a type alias for the new slot event.
-	NewSlotEvent = async.Event[*SlotData]
+	SlotEvent = async.Event[*SlotData]
 
 	// FinalValidatorUpdatesProcessedEvent is a type alias for the final
 	// validator updates processed event.
-	FinalValidatorUpdatesProcessedEvent = async.Event[transition.ValidatorUpdates]
+	ValidatorUpdateEvent = async.Event[transition.ValidatorUpdates]
 )
 
 // Messages.

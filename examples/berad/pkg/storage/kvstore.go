@@ -84,8 +84,6 @@ type KVStore[
 	validators *sdkcollections.IndexedMap[
 		uint64, ValidatorT, index.ValidatorsIndex[ValidatorT],
 	]
-	// balances stores the list of balances.
-	balances sdkcollections.Map[uint64, uint64]
 	// nextWithdrawalIndex stores the next global withdrawal index.
 	nextWithdrawalIndex sdkcollections.Item[uint64]
 	// nextWithdrawalValidatorIndex stores the next withdrawal validator index
@@ -199,13 +197,6 @@ func New[
 			sdkcollections.Uint64Key,
 			encoding.SSZValueCodec[ValidatorT]{},
 			index.NewValidatorsIndex[ValidatorT](schemaBuilder),
-		),
-		balances: sdkcollections.NewMap(
-			schemaBuilder,
-			sdkcollections.NewPrefix([]byte{keys.BalancesPrefix}),
-			keys.BalancesPrefixHumanReadable,
-			sdkcollections.Uint64Key,
-			sdkcollections.Uint64Value,
 		),
 		randaoMix: sdkcollections.NewMap(
 			schemaBuilder,
