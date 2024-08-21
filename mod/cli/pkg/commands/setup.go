@@ -45,7 +45,7 @@ func DefaultRootCommandSetup[
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 ](
 	root *Root,
-	mm *ccometbft.BaseApp,
+	mm *ccometbft.Service,
 	appCreator servertypes.AppCreator[T],
 	chainSpec common.ChainSpec,
 ) {

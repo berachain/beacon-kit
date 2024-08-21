@@ -29,12 +29,12 @@ import (
 )
 
 // LoadHeight loads a particular height.
-func (app *BaseApp) LoadHeight(height int64) error {
+func (app *Service) LoadHeight(height int64) error {
 	return app.LoadVersion(height)
 }
 
 // DefaultGenesis returns the default genesis state for the application.
-func (app *BaseApp) DefaultGenesis() map[string]json.RawMessage {
+func (app *Service) DefaultGenesis() map[string]json.RawMessage {
 	// Implement the default genesis state for the application.
 	// This should return a map of module names to their respective default
 	// genesis states.
@@ -49,7 +49,7 @@ func (app *BaseApp) DefaultGenesis() map[string]json.RawMessage {
 }
 
 // ValidateGenesis validates the provided genesis state.
-func (app *BaseApp) ValidateGenesis(
+func (app *Service) ValidateGenesis(
 	_ map[string]json.RawMessage,
 ) error {
 	// Implement the validation logic for the provided genesis state.
@@ -61,7 +61,7 @@ func (app *BaseApp) ValidateGenesis(
 // ExportAppStateAndValidators exports the state of the application for a
 // genesis
 // file.
-func (app *BaseApp) ExportAppStateAndValidators(
+func (app *Service) ExportAppStateAndValidators(
 	forZeroHeight bool,
 	_, _ []string,
 ) (servertypes.ExportedApp, error) {

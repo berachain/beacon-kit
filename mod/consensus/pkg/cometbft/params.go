@@ -28,7 +28,7 @@ import (
 
 const InitialAppVersion uint64 = 0
 
-// ParamStore defines the interface the parameter store used by the BaseApp must
+// ParamStore defines the interface the parameter store used by the Service must
 // fulfill.
 type ParamStore interface {
 	Get(ctx context.Context) (cmtproto.ConsensusParams, error)

@@ -37,24 +37,24 @@ import (
 	"github.com/spf13/cast"
 )
 
-// This file contains Options that extend our default baseapp options to be
+// This file contains Options that extend our default Service options to be
 // called by cosmos when building the app.
 // TODO: refactor into consensus_options for serverv2 migration.
 
 // WithCometParamStore sets the param store to the comet consensus engine.
 func WithCometParamStore(
 	chainSpec common.ChainSpec,
-) func(bApp *cometbft.BaseApp) {
-	return func(bApp *cometbft.BaseApp) {
+) func(bApp *cometbft.Service) {
+	return func(bApp *cometbft.Service) {
 		bApp.SetParamStore(comet.NewConsensusParamsStore(chainSpec))
 	}
 }
 
-// DefaultBaseappOptions returns the default baseapp options provided by the
+// DefaultServiceOptions returns the default Service options provided by the
 // Cosmos SDK.
-func DefaultBaseappOptions(
+func DefaultServiceOptions(
 	appOpts servertypes.AppOptions,
-) []func(*cometbft.BaseApp) {
+) []func(*cometbft.Service) {
 	var cache storetypes.MultiStorePersistentCache
 
 	if cast.ToBool(appOpts.Get(server.FlagInterBlockCache)) {
@@ -90,7 +90,7 @@ func DefaultBaseappOptions(
 		}
 	}
 
-	return []func(*cometbft.BaseApp){
+	return []func(*cometbft.Service){
 		cometbft.SetPruning(pruningOpts),
 		cometbft.SetMinRetainBlocks(
 			cast.ToUint64(appOpts.Get(server.FlagMinRetainBlocks)),

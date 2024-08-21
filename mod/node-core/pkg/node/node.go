@@ -33,7 +33,7 @@ var _ types.Node = (*node)(nil)
 
 // node is the hard-type representation of the beacon-kit node.
 type node struct {
-	*cometbft.BaseApp
+	*cometbft.Service
 
 	// registry is the node's service registry.
 	registry *service.Registry
@@ -52,7 +52,7 @@ func (n *node) Start(ctx context.Context) error {
 // SetApplication sets the application.
 func (n *node) RegisterApp(a types.Application) {
 	//nolint:errcheck // BeaconApp is our servertypes.Application
-	n.BaseApp = a.(*cometbft.BaseApp)
+	n.Service = a.(*cometbft.Service)
 }
 
 // SetServiceRegistry sets the service registry.

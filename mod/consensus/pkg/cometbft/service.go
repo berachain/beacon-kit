@@ -49,9 +49,9 @@ const (
 	execModeFinalize
 )
 
-var _ servertypes.ABCI = (*BaseApp)(nil)
+var _ servertypes.ABCI = (*Service)(nil)
 
-type BaseApp struct {
+type Service struct {
 	// initialized on creation
 	logger     log.Logger
 	name       string
@@ -71,16 +71,16 @@ type BaseApp struct {
 	chainID string
 }
 
-func NewBaseApp(
+func NewService(
 	storeKey *storetypes.KVStoreKey,
 	logger log.Logger,
 	db dbm.DB,
 	middleware MiddlewareI,
 	loadLatest bool,
-	options ...func(*BaseApp),
-) *BaseApp {
-	app := &BaseApp{
-		logger: logger.With(log.ModuleKey, "baseapp"),
+	options ...func(*Service),
+) *Service {
+	app := &Service{
+		logger: logger.With(log.ModuleKey, "Service"),
 		name:   "BeaconKit",
 		db:     db,
 		cms: store.NewCommitMultiStore(
@@ -113,17 +113,23 @@ func NewBaseApp(
 }
 
 // Name returns the name of the cometbft.
-func (app *BaseApp) Name() string {
+func (app *Service) Name() string {
 	return app.name
 }
 
+// Start sets up the cometbft to listen for FinalizeBlock, VerifyBlock, and
+// ProcessGenesisData requests, and handles them accordingly.
+func (app *Service) Start(ctx context.Context) error {
+	return nil
+}
+
 // CommitMultiStore returns the CommitMultiStore of the cometbft.
-func (app *BaseApp) CommitMultiStore() storetypes.CommitMultiStore {
+func (app *Service) CommitMultiStore() storetypes.CommitMultiStore {
 	return app.cms
 }
 
 // AppVersion returns the application's protocol version.
-func (app *BaseApp) AppVersion(ctx context.Context) (uint64, error) {
+func (app *Service) AppVersion(ctx context.Context) (uint64, error) {
 	cp, err := app.paramStore.Get(ctx)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get consensus params: %w", err)
@@ -134,16 +140,16 @@ func (app *BaseApp) AppVersion(ctx context.Context) (uint64, error) {
 	return cp.Version.App, nil
 }
 
-// MountStore mounts a store to the provided key in the BaseApp multistore,
+// MountStore mounts a store to the provided key in the Service multistore,
 // using the default DB.
-func (app *BaseApp) MountStore(
+func (app *Service) MountStore(
 	key storetypes.StoreKey,
 	typ storetypes.StoreType,
 ) {
 	app.cms.MountStoreWithDB(key, typ, nil)
 }
 
-func (app *BaseApp) LoadLatestVersion() error {
+func (app *Service) LoadLatestVersion() error {
 	if err := app.cms.LoadLatestVersion(); err != nil {
 		return fmt.Errorf("failed to load latest version: %w", err)
 	}
@@ -152,7 +158,7 @@ func (app *BaseApp) LoadLatestVersion() error {
 	return app.cms.GetPruning().Validate()
 }
 
-func (app *BaseApp) LoadVersion(version int64) error {
+func (app *Service) LoadVersion(version int64) error {
 	err := app.cms.LoadVersion(version)
 	if err != nil {
 		return fmt.Errorf("failed to load version %d: %w", version, err)
@@ -163,26 +169,26 @@ func (app *BaseApp) LoadVersion(version int64) error {
 }
 
 // LastCommitID returns the last CommitID of the multistore.
-func (app *BaseApp) LastCommitID() storetypes.CommitID {
+func (app *Service) LastCommitID() storetypes.CommitID {
 	return app.cms.LastCommitID()
 }
 
 // LastBlockHeight returns the last committed block height.
-func (app *BaseApp) LastBlockHeight() int64 {
+func (app *Service) LastBlockHeight() int64 {
 	return app.cms.LastCommitID().Version
 }
 
-func (app *BaseApp) setMinRetainBlocks(minRetainBlocks uint64) {
+func (app *Service) setMinRetainBlocks(minRetainBlocks uint64) {
 	app.minRetainBlocks = minRetainBlocks
 }
 
-func (app *BaseApp) setInterBlockCache(
+func (app *Service) setInterBlockCache(
 	cache storetypes.MultiStorePersistentCache,
 ) {
 	app.interBlockCache = cache
 }
 
-func (app *BaseApp) setState(mode execMode) {
+func (app *Service) setState(mode execMode) {
 	ms := app.cms.CacheMultiStore()
 	baseState := &state{
 		ms:  ms,
@@ -205,9 +211,9 @@ func (app *BaseApp) setState(mode execMode) {
 }
 
 // GetConsensusParams returns the current consensus parameters from the
-// BaseApp's
-// ParamStore. If the BaseApp has no ParamStore defined, nil is returned.
-func (app *BaseApp) GetConsensusParams(
+// Service's
+// ParamStore. If the Service has no ParamStore defined, nil is returned.
+func (app *Service) GetConsensusParams(
 	ctx context.Context,
 ) cmtproto.ConsensusParams {
 	//#nosec:G703 // bet.
@@ -215,7 +221,7 @@ func (app *BaseApp) GetConsensusParams(
 	return cp
 }
 
-func (app *BaseApp) validateFinalizeBlockHeight(
+func (app *Service) validateFinalizeBlockHeight(
 	req *abci.FinalizeBlockRequest,
 ) error {
 	if req.Height < 1 {
@@ -252,7 +258,7 @@ func (app *BaseApp) validateFinalizeBlockHeight(
 }
 
 // Close is called in start cmd to gracefully cleanup resources.
-func (app *BaseApp) Close() error {
+func (app *Service) Close() error {
 	var errs []error
 
 	// Close app.db (opened by cosmos-sdk/server/start.go call to openDB)

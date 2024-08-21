@@ -129,14 +129,14 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 
 	// set the application to a new BeaconApp with necessary ABCI handlers
 	nb.node.RegisterApp(
-		cometbft.NewBaseApp(
+		cometbft.NewService(
 			*storeKeyDblPtr,
 			logger,
 			db,
 			abciMiddleware,
 			true,
 			append(
-				DefaultBaseappOptions(appOpts),
+				DefaultServiceOptions(appOpts),
 				WithCometParamStore(chainSpec),
 			)...,
 		),

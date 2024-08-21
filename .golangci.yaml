@@ -361,4 +361,4 @@ issues:
         - wrapcheck
         - gochecknoglobals
   exclude-files:
-    - "pkg/cosmos/baseapp/.*\\.go"
+    - "pkg/cosmos/Service/.*\\.go"

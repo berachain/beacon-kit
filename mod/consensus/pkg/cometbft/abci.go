@@ -42,7 +42,7 @@ import (
 	"github.com/sourcegraph/conc/iter"
 )
 
-func (app *BaseApp) InitChain(
+func (app *Service) InitChain(
 	req *abci.InitChainRequest,
 ) (*abci.InitChainResponse, error) {
 	if req.ChainId != app.chainID {
@@ -144,7 +144,7 @@ func (app *BaseApp) InitChain(
 }
 
 // InitChainer initializes the chain.
-func (app *BaseApp) initChainer(
+func (app *Service) initChainer(
 	ctx sdk.Context,
 	req *abci.InitChainRequest,
 ) (*abci.InitChainResponse, error) {
@@ -173,7 +173,7 @@ func (app *BaseApp) initChainer(
 	}, nil
 }
 
-func (app *BaseApp) Info(_ *abci.InfoRequest) (*abci.InfoResponse, error) {
+func (app *Service) Info(_ *abci.InfoRequest) (*abci.InfoResponse, error) {
 	lastCommitID := app.cms.LastCommitID()
 	appVersion := InitialAppVersion
 	if lastCommitID.Version > 0 {
@@ -198,7 +198,7 @@ func (app *BaseApp) Info(_ *abci.InfoRequest) (*abci.InfoResponse, error) {
 
 // PrepareProposal implements the PrepareProposal ABCI method and returns a
 // ResponsePrepareProposal object to the client.
-func (app *BaseApp) PrepareProposal(
+func (app *Service) PrepareProposal(
 	req *abci.PrepareProposalRequest,
 ) (*abci.PrepareProposalResponse, error) {
 	app.setState(execModePrepareProposal)
@@ -245,7 +245,7 @@ func (app *BaseApp) PrepareProposal(
 
 // ProcessProposal implements the ProcessProposal ABCI method and returns a
 // ResponseProcessProposal object to the client.
-func (app *BaseApp) ProcessProposal(
+func (app *Service) ProcessProposal(
 	req *abci.ProcessProposalRequest,
 ) (*abci.ProcessProposalResponse, error) {
 	// CometBFT must never call ProcessProposal with a height of 0.
@@ -297,7 +297,7 @@ func (app *BaseApp) ProcessProposal(
 	return resp.(*cmtabci.ProcessProposalResponse), nil
 }
 
-func (app *BaseApp) internalFinalizeBlock(
+func (app *Service) internalFinalizeBlock(
 	ctx context.Context,
 	req *abci.FinalizeBlockRequest,
 ) (*abci.FinalizeBlockResponse, error) {
@@ -382,7 +382,7 @@ func (app *BaseApp) internalFinalizeBlock(
 	}, nil
 }
 
-func (app *BaseApp) FinalizeBlock(
+func (app *Service) FinalizeBlock(
 	req *abci.FinalizeBlockRequest,
 ) (*abci.FinalizeBlockResponse, error) {
 	res, err := app.internalFinalizeBlock(context.Background(), req)
@@ -400,7 +400,7 @@ func (app *BaseApp) FinalizeBlock(
 // defined in config, Commit will execute a deferred function call to check
 // against that height and gracefully halt if it matches the latest committed
 // height.
-func (app *BaseApp) Commit() (*abci.CommitResponse, error) {
+func (app *Service) Commit() (*abci.CommitResponse, error) {
 	header := app.finalizeBlockState.Context().BlockHeader()
 	retainHeight := app.GetBlockRetentionHeight(header.Height)
 
@@ -426,7 +426,7 @@ func (app *BaseApp) Commit() (*abci.CommitResponse, error) {
 // Commit(), the application state transitions will be flushed to disk and as a
 // result, but we already have
 // an application Merkle root.
-func (app *BaseApp) workingHash() []byte {
+func (app *Service) workingHash() []byte {
 	// Write the FinalizeBlock state into branched storage and commit the
 	// MultiStore. The write to the FinalizeBlock state writes all state
 	// transitions to the root
@@ -451,7 +451,7 @@ func (app *BaseApp) workingHash() []byte {
 // getContextForProposal returns the correct Context for PrepareProposal and
 // ProcessProposal. We use finalizeBlockState on the first block to be able to
 // access any state changes made in InitChain.
-func (app *BaseApp) getContextForProposal(
+func (app *Service) getContextForProposal(
 	ctx sdk.Context,
 	height int64,
 ) sdk.Context {
@@ -465,7 +465,7 @@ func (app *BaseApp) getContextForProposal(
 
 // CreateQueryContext creates a new sdk.Context for a query, taking as args
 // the block height and whether the query needs a proof or not.
-func (app *BaseApp) CreateQueryContext(
+func (app *Service) CreateQueryContext(
 	height int64,
 	prove bool,
 ) (sdk.Context, error) {
@@ -539,7 +539,7 @@ func (app *BaseApp) CreateQueryContext(
 // all blocks, e.g. via a local config option min-retain-blocks. There may also
 // be a need to vary retention for other nodes, e.g. sentry nodes which do not
 // need historical blocks.
-func (app *BaseApp) GetBlockRetentionHeight(commitHeight int64) int64 {
+func (app *Service) GetBlockRetentionHeight(commitHeight int64) int64 {
 	// pruning is disabled if minRetainBlocks is zero
 	if app.minRetainBlocks == 0 {
 		return 0
@@ -591,7 +591,7 @@ func (app *BaseApp) GetBlockRetentionHeight(commitHeight int64) int64 {
 }
 
 // NewContextLegacy returns a new sdk.Context with the provided header.
-func (app *BaseApp) NewContextLegacy(
+func (app *Service) NewContextLegacy(
 	_ bool,
 	_ cmtproto.Header,
 ) sdk.Context {

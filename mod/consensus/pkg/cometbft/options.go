@@ -30,60 +30,60 @@ import (
 )
 
 // File for storing in-package cometbft optional functions,
-// for options that need access to non-exported fields of the BaseApp
+// for options that need access to non-exported fields of the Service
 
 // SetPruning sets a pruning option on the multistore associated with the app.
-func SetPruning(opts pruningtypes.PruningOptions) func(*BaseApp) {
-	return func(bapp *BaseApp) { bapp.cms.SetPruning(opts) }
+func SetPruning(opts pruningtypes.PruningOptions) func(*Service) {
+	return func(bapp *Service) { bapp.cms.SetPruning(opts) }
 }
 
-// SetMinRetainBlocks returns a BaseApp option function that sets the minimum
+// SetMinRetainBlocks returns a Service option function that sets the minimum
 // block retention height value when determining which heights to prune during
 // ABCI Commit.
-func SetMinRetainBlocks(minRetainBlocks uint64) func(*BaseApp) {
-	return func(bapp *BaseApp) { bapp.setMinRetainBlocks(minRetainBlocks) }
+func SetMinRetainBlocks(minRetainBlocks uint64) func(*Service) {
+	return func(bapp *Service) { bapp.setMinRetainBlocks(minRetainBlocks) }
 }
 
-// SetIAVLCacheSize provides a BaseApp option function that sets the size of
+// SetIAVLCacheSize provides a Service option function that sets the size of
 // IAVL cache.
-func SetIAVLCacheSize(size int) func(*BaseApp) {
-	return func(bapp *BaseApp) { bapp.cms.SetIAVLCacheSize(size) }
+func SetIAVLCacheSize(size int) func(*Service) {
+	return func(bapp *Service) { bapp.cms.SetIAVLCacheSize(size) }
 }
 
 // SetIAVLDisableFastNode enables(false)/disables(true) fast node usage from the
 // IAVL store.
-func SetIAVLDisableFastNode(disable bool) func(*BaseApp) {
-	return func(bapp *BaseApp) { bapp.cms.SetIAVLDisableFastNode(disable) }
+func SetIAVLDisableFastNode(disable bool) func(*Service) {
+	return func(bapp *Service) { bapp.cms.SetIAVLDisableFastNode(disable) }
 }
 
-// SetInterBlockCache provides a BaseApp option function that sets the
+// SetInterBlockCache provides a Service option function that sets the
 // inter-block cache.
 func SetInterBlockCache(
 	cache storetypes.MultiStorePersistentCache,
-) func(*BaseApp) {
-	return func(app *BaseApp) { app.setInterBlockCache(cache) }
+) func(*Service) {
+	return func(app *Service) { app.setInterBlockCache(cache) }
 }
 
 // SetChainID sets the chain ID in cometbft.
-func SetChainID(chainID string) func(*BaseApp) {
-	return func(app *BaseApp) { app.chainID = chainID }
+func SetChainID(chainID string) func(*Service) {
+	return func(app *Service) { app.chainID = chainID }
 }
 
-func (app *BaseApp) SetName(name string) {
+func (app *Service) SetName(name string) {
 	app.name = name
 }
 
 // SetParamStore sets a parameter store on the cometbft.
-func (app *BaseApp) SetParamStore(ps ParamStore) {
+func (app *Service) SetParamStore(ps ParamStore) {
 	app.paramStore = ps
 }
 
 // SetVersion sets the application's version string.
-func (app *BaseApp) SetVersion(v string) {
+func (app *Service) SetVersion(v string) {
 	app.version = v
 }
 
-func (app *BaseApp) SetAppVersion(ctx context.Context, v uint64) error {
+func (app *Service) SetAppVersion(ctx context.Context, v uint64) error {
 	if app.paramStore == nil {
 		return errors.
 			New("param store must be set to set app version")

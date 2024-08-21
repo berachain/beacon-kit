@@ -110,7 +110,7 @@ func (cb *CLIBuilder[
 	// apply default root command setup
 	cmdlib.DefaultRootCommandSetup[T, ExecutionPayloadT](
 		rootCmd,
-		&cometbft.BaseApp{},
+		&cometbft.Service{},
 		cb.nodeBuilderFunc,
 		chainSpec,
 	)

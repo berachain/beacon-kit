@@ -31,74 +31,74 @@ import (
 	gogogrpc "github.com/cosmos/gogoproto/grpc"
 )
 
-func (BaseApp) RegisterGRPCServer(_ gogogrpc.Server) {}
+func (Service) RegisterGRPCServer(_ gogogrpc.Server) {}
 
-func (BaseApp) Query(
+func (Service) Query(
 	_ context.Context,
 	_ *abci.QueryRequest,
 ) (*abci.QueryResponse, error) {
 	return &abci.QueryResponse{}, nil
 }
 
-func (BaseApp) ListSnapshots(
+func (Service) ListSnapshots(
 	_ *abci.ListSnapshotsRequest,
 ) (*abci.ListSnapshotsResponse, error) {
 	return &abci.ListSnapshotsResponse{}, nil
 }
 
-func (BaseApp) LoadSnapshotChunk(
+func (Service) LoadSnapshotChunk(
 	_ *abci.LoadSnapshotChunkRequest,
 ) (*abci.LoadSnapshotChunkResponse, error) {
 	return &abci.LoadSnapshotChunkResponse{}, nil
 }
 
-func (BaseApp) OfferSnapshot(
+func (Service) OfferSnapshot(
 	_ *abci.OfferSnapshotRequest,
 ) (*abci.OfferSnapshotResponse, error) {
 	return &abci.OfferSnapshotResponse{}, nil
 }
 
-func (BaseApp) ApplySnapshotChunk(
+func (Service) ApplySnapshotChunk(
 	_ *abci.ApplySnapshotChunkRequest,
 ) (*abci.ApplySnapshotChunkResponse, error) {
 	return &abci.ApplySnapshotChunkResponse{}, nil
 }
 
 // SnapshotManager returns the snapshot manager.
-func (BaseApp) SnapshotManager() *snapshots.Manager {
+func (Service) SnapshotManager() *snapshots.Manager {
 	return &snapshots.Manager{}
 }
 
-func (BaseApp) ExtendVote(
+func (Service) ExtendVote(
 	_ context.Context,
 	_ *abci.ExtendVoteRequest,
 ) (*abci.ExtendVoteResponse, error) {
 	return &abci.ExtendVoteResponse{}, nil
 }
 
-func (BaseApp) VerifyVoteExtension(
+func (Service) VerifyVoteExtension(
 	*abci.VerifyVoteExtensionRequest,
 ) (*abci.VerifyVoteExtensionResponse, error) {
 	return &abci.VerifyVoteExtensionResponse{}, nil
 }
 
-func (BaseApp) RegisterAPIRoutes(
+func (Service) RegisterAPIRoutes(
 	_ *api.Server, _ config.APIConfig) {
 }
 
-func (BaseApp) RegisterTxService(
+func (Service) RegisterTxService(
 	client.Context) {
 }
 
-func (BaseApp) RegisterTendermintService(
+func (Service) RegisterTendermintService(
 	client.Context) {
 }
 
-func (BaseApp) RegisterNodeService(
+func (Service) RegisterNodeService(
 	_ client.Context, _ config.Config) {
 }
 
-func (*BaseApp) CheckTx(
+func (*Service) CheckTx(
 	*abci.CheckTxRequest,
 ) (*abci.CheckTxResponse, error) {
 	return &abci.CheckTxResponse{}, nil
