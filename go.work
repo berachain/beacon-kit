@@ -22,7 +22,6 @@ use (
 	./mod/node-core
 	./mod/payload
 	./mod/primitives
-	./mod/runtime
 	./mod/state-transition
 	./mod/storage
 	./testing

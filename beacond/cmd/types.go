@@ -112,16 +112,6 @@ type (
 		*PayloadAttributes,
 	]
 
-	// ConsensusEngine is a type alias for the consensus engine.
-	ConsensusEngine = cometbft.ConsensusEngine[
-		*AttestationData,
-		*BeaconState,
-		*SlashingInfo,
-		*SlotData,
-		*StorageBackend,
-		*ValidatorUpdate,
-	]
-
 	// ConsensusMiddleware is a type alias for the consensus middleware.
 	ConsensusMiddleware = cometbft.Middleware[
 		*AttestationData,

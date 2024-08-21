@@ -99,6 +99,7 @@ func (h *ABCIMiddleware[
 		startTime        = time.Now()
 		awaitCtx, cancel = context.WithTimeout(ctx, AwaitTimeout)
 	)
+
 	defer cancel()
 	defer h.metrics.measurePrepareProposalDuration(startTime)
 	// flush the channels to ensure that we are not handling old data.
