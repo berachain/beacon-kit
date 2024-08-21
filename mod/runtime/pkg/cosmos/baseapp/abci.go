@@ -282,10 +282,6 @@ func (app *BaseApp) PrepareProposal(
 func (app *BaseApp) ProcessProposal(
 	req *abci.ProcessProposalRequest,
 ) (*abci.ProcessProposalResponse, error) {
-	if app.processProposal == nil {
-		return nil, errors.New("ProcessProposal handler not set")
-	}
-
 	// CometBFT must never call ProcessProposal with a height of 0.
 	// Ref:
 	// https://github.com/cometbft/cometbft/blob/059798a4f5b0c9f52aa8655fa619054a0154088c/spec/core/state.md?plain=1#L37-L38

@@ -27,7 +27,6 @@ import (
 
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	storetypes "cosmossdk.io/store/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // File for storing in-package BaseApp optional functions,
@@ -103,14 +102,4 @@ func (app *BaseApp) SetAppVersion(ctx context.Context, v uint64) error {
 		return err
 	}
 	return nil
-}
-
-// SetProcessProposal sets the process proposal function for the BaseApp.
-func (app *BaseApp) SetProcessProposal(handler sdk.ProcessProposalHandler) {
-	app.processProposal = handler
-}
-
-// SetPrepareProposal sets the prepare proposal function for the BaseApp.
-func (app *BaseApp) SetPrepareProposal(handler sdk.PrepareProposalHandler) {
-	app.prepareProposal = handler
 }
