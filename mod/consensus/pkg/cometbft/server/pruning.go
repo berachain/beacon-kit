@@ -8,7 +8,7 @@ import (
 
 	pruningtypes "cosmossdk.io/store/pruning/types"
 
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/types"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server/types"
 )
 
 // GetPruningOptionsFromFlags parses command flags and returns the correct

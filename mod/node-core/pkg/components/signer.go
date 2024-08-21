@@ -24,10 +24,10 @@ import (
 	"path/filepath"
 
 	"cosmossdk.io/depinject"
+	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	servertypes "github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/types"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cast"
 )

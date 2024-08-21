@@ -27,53 +27,34 @@ import (
 
 	"cosmossdk.io/store"
 	storetypes "cosmossdk.io/store/types"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
 	comet "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/params"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server"
+	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/baseapp"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server"
-	servertypes "github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/types"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/cast"
 )
 
-// This file contains Options that extend our default baseapp options to be
+// This file contains Options that extend our default Service options to be
 // called by cosmos when building the app.
 // TODO: refactor into consensus_options for serverv2 migration.
 
 // WithCometParamStore sets the param store to the comet consensus engine.
 func WithCometParamStore(
 	chainSpec common.ChainSpec,
-) func(bApp *baseapp.BaseApp) {
-	return func(bApp *baseapp.BaseApp) {
+) func(bApp *cometbft.Service) {
+	return func(bApp *cometbft.Service) {
 		bApp.SetParamStore(comet.NewConsensusParamsStore(chainSpec))
 	}
 }
 
-// WithPrepareProposal sets the prepare proposal handler to the baseapp.
-func WithPrepareProposal(
-	handler sdk.PrepareProposalHandler,
-) func(bApp *baseapp.BaseApp) {
-	return func(bApp *baseapp.BaseApp) {
-		bApp.SetPrepareProposal(handler)
-	}
-}
-
-// WithProcessProposal sets the process proposal handler to the baseapp.
-func WithProcessProposal(
-	handler sdk.ProcessProposalHandler,
-) func(bApp *baseapp.BaseApp) {
-	return func(bApp *baseapp.BaseApp) {
-		bApp.SetProcessProposal(handler)
-	}
-}
-
-// DefaultBaseappOptions returns the default baseapp options provided by the
+// DefaultServiceOptions returns the default Service options provided by the
 // Cosmos SDK.
-func DefaultBaseappOptions(
+func DefaultServiceOptions(
 	appOpts servertypes.AppOptions,
-) []func(*baseapp.BaseApp) {
+) []func(*cometbft.Service) {
 	var cache storetypes.MultiStorePersistentCache
 
 	if cast.ToBool(appOpts.Get(server.FlagInterBlockCache)) {
@@ -109,19 +90,19 @@ func DefaultBaseappOptions(
 		}
 	}
 
-	return []func(*baseapp.BaseApp){
-		baseapp.SetPruning(pruningOpts),
-		baseapp.SetMinRetainBlocks(
+	return []func(*cometbft.Service){
+		cometbft.SetPruning(pruningOpts),
+		cometbft.SetMinRetainBlocks(
 			cast.ToUint64(appOpts.Get(server.FlagMinRetainBlocks)),
 		),
-		baseapp.SetInterBlockCache(cache),
-		baseapp.SetIAVLCacheSize(
+		cometbft.SetInterBlockCache(cache),
+		cometbft.SetIAVLCacheSize(
 			cast.ToInt(appOpts.Get(server.FlagIAVLCacheSize)),
 		),
-		baseapp.SetIAVLDisableFastNode(
+		cometbft.SetIAVLDisableFastNode(
 			// default to true
 			true,
 		),
-		baseapp.SetChainID(chainID),
+		cometbft.SetChainID(chainID),
 	}
 }

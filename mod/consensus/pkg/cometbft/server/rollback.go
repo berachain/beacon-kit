@@ -7,7 +7,7 @@ import (
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/spf13/cobra"
 
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/types"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server/types"
 )
 
 // NewRollbackCmd creates a command to rollback CometBFT and multistore state by one height.

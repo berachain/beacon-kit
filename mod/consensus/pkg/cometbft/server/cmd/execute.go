@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 )

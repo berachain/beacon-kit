@@ -25,7 +25,7 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/config/pkg/template"
-	serverconfig "github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/config"
+	serverconfig "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server/config"
 	cmtcfg "github.com/cometbft/cometbft/config"
 )
 

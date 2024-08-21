@@ -27,14 +27,13 @@ import (
 	"cosmossdk.io/depinject"
 	sdklog "cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
+	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server/types"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
+	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/baseapp"
-	servertypes "github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/types"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	dbm "github.com/cosmos/cosmos-db"
 )
 
@@ -88,9 +87,8 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 	// variables to hold the components needed to set up BeaconApp
 	var (
 		chainSpec       common.ChainSpec
-		abciMiddleware  baseapp.Middleware
+		abciMiddleware  cometbft.MiddlewareI
 		serviceRegistry *service.Registry
-		consensusEngine components.ConsensusEngine
 		apiBackend      interface{ AttachNode(NodeT) }
 		storeKey        = new(storetypes.KVStoreKey)
 		storeKeyDblPtr  = &storeKey
@@ -115,29 +113,26 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 		&chainSpec,
 		&abciMiddleware,
 		&serviceRegistry,
-		&consensusEngine,
 		&apiBackend,
 	); err != nil {
 		panic(err)
 	}
 
-	if consensusEngine == nil || apiBackend == nil {
+	if apiBackend == nil {
 		panic("consensus engine or api backend is nil")
 	}
 
 	// set the application to a new BeaconApp with necessary ABCI handlers
 	nb.node.RegisterApp(
-		baseapp.NewBaseApp(
+		cometbft.NewService(
 			*storeKeyDblPtr,
 			logger,
 			db,
 			abciMiddleware,
 			true,
 			append(
-				DefaultBaseappOptions(appOpts),
+				DefaultServiceOptions(appOpts),
 				WithCometParamStore(chainSpec),
-				WithPrepareProposal(consensusEngine.PrepareProposal),
-				WithProcessProposal(consensusEngine.ProcessProposal),
 			)...,
 		),
 	)

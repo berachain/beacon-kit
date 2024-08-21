@@ -6,7 +6,7 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	abciproto "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 
-	servertypes "github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/types"
+	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server/types"
 )
 
 type cometABCIWrapper struct {

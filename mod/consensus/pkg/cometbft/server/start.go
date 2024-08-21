@@ -20,9 +20,9 @@ import (
 	"cosmossdk.io/log"
 	pruningtypes "cosmossdk.io/store/pruning/types"
 
-	serverconfig "github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/config"
-	servercmtlog "github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/log"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/types"
+	serverconfig "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server/config"
+	servercmtlog "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server/log"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 )

@@ -24,8 +24,8 @@ import (
 	corectx "cosmossdk.io/core/context"
 	"cosmossdk.io/log"
 
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/config"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/types"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server/config"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server/types"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"

@@ -54,8 +54,6 @@ type ABCIMiddleware[
 }
 
 // NewABCIMiddleware creates a new instance of the Handler struct.
-//
-
 func NewABCIMiddleware[
 	BeaconBlockT BeaconBlock[BeaconBlockT],
 	BlobSidecarsT BlobSidecars[BlobSidecarsT],

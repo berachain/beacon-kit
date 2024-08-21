@@ -20,7 +20,7 @@ import (
 	"cosmossdk.io/log"
 	auth "cosmossdk.io/x/auth/client/cli"
 
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/types"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server/types"
 	db "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"

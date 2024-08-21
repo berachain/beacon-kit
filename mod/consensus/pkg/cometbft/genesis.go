@@ -18,20 +18,22 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package baseapp
+package cometbft
 
 import (
-	servertypes "github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/types"
+	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	cmttypes "github.com/cometbft/cometbft/types"
 )
 
 // LoadHeight loads a particular height.
-func (a *BaseApp) LoadHeight(height int64) error {
-	return a.LoadVersion(height)
+func (app *Service) LoadHeight(height int64) error {
+	return app.LoadVersion(height)
 }
 
 // DefaultGenesis returns the default genesis state for the application.
-func (app *BaseApp) DefaultGenesis() map[string]json.RawMessage {
+func (app *Service) DefaultGenesis() map[string]json.RawMessage {
 	// Implement the default genesis state for the application.
 	// This should return a map of module names to their respective default
 	// genesis states.
@@ -46,8 +48,8 @@ func (app *BaseApp) DefaultGenesis() map[string]json.RawMessage {
 }
 
 // ValidateGenesis validates the provided genesis state.
-func (app *BaseApp) ValidateGenesis(
-	genesisData map[string]json.RawMessage,
+func (app *Service) ValidateGenesis(
+	_ map[string]json.RawMessage,
 ) error {
 	// Implement the validation logic for the provided genesis state.
 	// This should validate the genesis state for each module in the
@@ -58,9 +60,9 @@ func (app *BaseApp) ValidateGenesis(
 // ExportAppStateAndValidators exports the state of the application for a
 // genesis
 // file.
-func (app *BaseApp) ExportAppStateAndValidators(
+func (app *Service) ExportAppStateAndValidators(
 	forZeroHeight bool,
-	_, modulesToExport []string,
+	_, _ []string,
 ) (servertypes.ExportedApp, error) {
 	// We export at last height + 1, because that's the height at which
 	// CometBFT will start InitChain.
