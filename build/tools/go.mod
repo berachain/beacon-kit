@@ -9,7 +9,7 @@ require (
 	github.com/bazelbuild/buildtools v0.0.0-20240606140350-80f1f6802857
 	github.com/bufbuild/buf v1.34.0
 	github.com/cosmos/gosec/v2 v2.0.0-20230124142343-bf28a33fadf2
-	github.com/ethereum/go-ethereum v1.14.8
+	github.com/ethereum/go-ethereum v1.14.7
 	github.com/ferranbt/fastssz v0.1.4
 	github.com/fjl/gencodec v0.0.0-20230517082657-f9840df7b83e
 	github.com/golangci/golangci-lint v1.60.1
@@ -111,6 +111,7 @@ require (
 	github.com/felixge/fgprof v0.9.4 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/firefart/nonamedreturns v1.0.5 // indirect
+	github.com/fjl/memsize v0.0.2 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/fzipp/gocyclo v0.6.0 // indirect
 	github.com/garslo/gogen v0.0.0-20230926014519-f497ca02dd4c // indirect

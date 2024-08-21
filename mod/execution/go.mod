@@ -9,7 +9,7 @@ require (
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240821160425-d2483c869437
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240807213340-5779c7a563cd
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240821052951-c15422305b4e
-	github.com/ethereum/go-ethereum v1.14.8
+	github.com/ethereum/go-ethereum v1.14.7
 )
 
 require (

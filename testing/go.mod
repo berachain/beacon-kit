@@ -12,7 +12,7 @@ require (
 	github.com/berachain/beacon-kit/mod/node-api v0.0.0-20240801184637-7dce5a0acd5b
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240821052951-c15422305b4e
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240806094948-2c4293ef36c4
-	github.com/ethereum/go-ethereum v1.14.8
+	github.com/ethereum/go-ethereum v1.14.7
 	github.com/holiman/uint256 v1.3.1
 	github.com/kurtosis-tech/kurtosis/api/golang v1.1.0
 	github.com/protolambda/zrnt v0.32.2
