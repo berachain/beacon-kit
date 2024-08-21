@@ -507,23 +507,24 @@ func (sp *StateProcessor[
 		)
 	}
 
-	for i := range validators {
-		// Increase the balance of the validator.
-		if err = st.IncreaseBalance(
-			math.ValidatorIndex(i),
-			rewards[i],
-		); err != nil {
-			return err
-		}
+	// TODO: deviating from spec here.
+	// for i := range validators {
+	// 	// Increase the balance of the validator.
+	// 	if err = st.IncreaseBalance(
+	// 		math.ValidatorIndex(i),
+	// 		rewards[i],
+	// 	); err != nil {
+	// 		return err
+	// 	}
 
-		// Decrease the balance of the validator.
-		if err = st.DecreaseBalance(
-			math.ValidatorIndex(i),
-			penalties[i],
-		); err != nil {
-			return err
-		}
-	}
+	// 	// Decrease the balance of the validator.
+	// 	if err = st.DecreaseBalance(
+	// 		math.ValidatorIndex(i),
+	// 		penalties[i],
+	// 	); err != nil {
+	// 		return err
+	// 	}
+	// }
 
 	return nil
 }

@@ -28,7 +28,6 @@ const (
 	ValidatorByIndexPrefix
 	LatestBeaconBlockHeaderPrefix
 	SlotPrefix
-	BalancesPrefix
 	Eth1DepositIndexPrefix
 	LatestExecutionPayloadHeaderPrefix
 	LatestExecutionPayloadVersionPrefix
@@ -47,7 +46,6 @@ const (
 	ValidatorByIndexPrefixHumanReadable              = "ValidatorByIndexPrefix"
 	LatestBeaconBlockHeaderPrefixHumanReadable       = "LatestBeaconBlockHeaderPrefix"
 	SlotPrefixHumanReadable                          = "SlotPrefix"
-	BalancesPrefixHumanReadable                      = "BalancesPrefix"
 	Eth1DepositIndexPrefixHumanReadable              = "Eth1DepositIndexPrefix"
 	LatestExecutionPayloadHeaderPrefixHumanReadable  = "LatestExecutionPayloadHeaderPrefix"
 	LatestExecutionPayloadVersionPrefixHumanReadable = "LatestExecutionPayloadVersionPrefix"
