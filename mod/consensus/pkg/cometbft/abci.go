@@ -601,7 +601,7 @@ func (app *Service) NewContextLegacy(
 	_ bool,
 	_ cmtproto.Header,
 ) sdk.Context {
-	if app.finalizeBlockState != nil {
+	if app.finalizeBlockState == nil {
 		return sdk.Context{}
 	}
 	return sdk.NewContext(app.finalizeBlockState.ms, false, app.logger)
