@@ -27,7 +27,7 @@ func DefaultComponents() []any {
 	c := []any{
 		components.ProvideABCIMiddleware[
 			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader,
-			*BlobSidecar, *BlobSidecars, *Logger,
+			*BlobSidecar, *BlobSidecars, *Deposit, *Genesis, *Logger,
 		],
 		components.ProvideAttributesFactory[
 			*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
@@ -38,7 +38,7 @@ func DefaultComponents() []any {
 			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
 			*BeaconBlockHeader, *BlobSidecars, *Logger,
 		],
-		components.ProvideBeaconDepositContract,
+		components.ProvideBeaconDepositContract[*Deposit],
 		components.ProvideBlockStore[
 			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader, *Logger,
 		],
@@ -62,7 +62,8 @@ func DefaultComponents() []any {
 		components.ProvideChainService[
 			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
 			*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
-			*BlobSidecars, *BlockStore, *KVStore, *Logger, *StorageBackend,
+			*BlobSidecars, *BlockStore, *Deposit, *DepositStore, *Genesis,
+			*KVStore, *Logger, *StorageBackend,
 		],
 		components.ProvideChainSpec,
 		components.ProvideConfig,
@@ -75,15 +76,17 @@ func DefaultComponents() []any {
 			*BlobSidecars, *Logger,
 		],
 		components.ProvideDBManager[
-			*AvailabilityStore, *BlockStore, *Logger,
+			*AvailabilityStore, *BlockStore, *DepositStore, *Logger,
 		],
 		components.ProvideDepositPruner[
-			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader, *Logger,
+			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader,
+			*Deposit, *DepositStore, *Logger,
 		],
 		components.ProvideDepositService[
-			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader, *Logger,
+			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader, *Deposit,
+			*DepositContract, *DepositStore, *Logger,
 		],
-		components.ProvideDepositStore,
+		components.ProvideDepositStore[*Deposit],
 		components.ProvideDispatcher[
 			*BeaconBlock, *BlobSidecars, *Logger,
 		],
@@ -99,25 +102,28 @@ func DefaultComponents() []any {
 			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
 			*BeaconBlockHeader, *BlockStore, *BeaconState,
 			*BeaconStateMarshallable, *BlobSidecar, *BlobSidecars,
-			*KVStore, *Logger, NodeAPIContext,
+			*Deposit, *DepositStore, *Genesis, *KVStore, *Logger,
+			NodeAPIContext,
 		],
 		components.ProvideSidecarFactory[
 			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader,
 		],
 		components.ProvideStateProcessor[
 			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader,
-			*BeaconState, *BeaconStateMarshallable, *KVStore,
+			*BeaconState, *BeaconStateMarshallable, *Deposit, *KVStore,
 		],
 		components.ProvideKVStore[*BeaconBlockHeader],
 		components.ProvideStorageBackend[
-			*AvailabilityStore, *BlockStore, *BeaconState, *KVStore,
+			*AvailabilityStore, *BlockStore, *BeaconState,
+			*KVStore, *DepositStore,
 		],
 		components.ProvideTelemetrySink,
 		components.ProvideTrustedSetup,
 		components.ProvideValidatorService[
 			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
 			*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
-			*BlockStore, *BlobSidecars, *KVStore, *Logger, *StorageBackend,
+			*BlockStore, *BlobSidecars, *Deposit, *DepositStore,
+			*KVStore, *Logger, *StorageBackend,
 		],
 		// TODO Hacks
 		components.ProvideKVStoreService,
@@ -129,8 +135,8 @@ func DefaultComponents() []any {
 		components.ProvideNodeAPIBackend[
 			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
 			*BeaconBlockHeader, *BlockStore, *BeaconState,
-			*BeaconStateMarshallable, *BlobSidecars, *KVStore,
-			Node, *StorageBackend,
+			*BeaconStateMarshallable, *BlobSidecars, *Deposit, *DepositStore,
+			*KVStore, Node, *StorageBackend,
 		],
 	)
 
