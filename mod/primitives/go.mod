@@ -5,7 +5,7 @@ go 1.23.0
 require (
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240703145037-b5612ab256db
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240610210054-bfdc14c4013c
-	github.com/ferranbt/fastssz v0.1.4
+	github.com/ferranbt/fastssz v0.1.4-0.20240629094022-eac385e6ee79
 	github.com/goccy/go-json v0.10.3
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/holiman/uint256 v1.3.1
@@ -22,7 +22,6 @@ require (
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/emicklei/dot v1.6.2 // indirect
 	github.com/getsentry/sentry-go v0.28.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.8 // indirect

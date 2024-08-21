@@ -33,8 +33,7 @@ require (
 	github.com/cosmos/iavl v1.3.0 // indirect
 	github.com/danieljoos/wincred v1.2.2 // indirect
 	github.com/dvsekhvalnov/jose2go v1.7.0 // indirect
-	github.com/emicklei/dot v1.6.2 // indirect
-	github.com/ferranbt/fastssz v0.1.4 // indirect
+	github.com/ferranbt/fastssz v0.1.4-0.20240629094022-eac385e6ee79 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/karalabe/ssz v0.2.1-0.20240724074312-3d1ff7a6f7c4 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.8 // indirect

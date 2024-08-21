@@ -34,7 +34,7 @@ require (
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240821160425-d2483c869437
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240806094948-2c4293ef36c4
 	github.com/cosmos/cosmos-sdk v0.53.0
-	github.com/ferranbt/fastssz v0.1.4
+	github.com/ferranbt/fastssz v0.1.4-0.20240629094022-eac385e6ee79
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0
