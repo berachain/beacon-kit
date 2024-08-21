@@ -32,7 +32,6 @@ import (
 	errorsmod "github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	math "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	abcitypes "github.com/cometbft/cometbft/abci/types"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
@@ -120,7 +119,7 @@ func (app *BaseApp) InitChain(
 			)
 		}
 
-		sort.Sort(abcitypes.ValidatorUpdates(req.Validators))
+		sort.Sort(cmtabci.ValidatorUpdates(req.Validators))
 
 		for i := range res.Validators {
 			if !proto.Equal(&res.Validators[i], &req.Validators[i]) {
