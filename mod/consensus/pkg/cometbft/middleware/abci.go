@@ -204,8 +204,8 @@ func (h *ABCIMiddleware[
 
 	// Request the beacon block.
 	if blk, err = encoding.UnmarshalBeaconBlockFromABCIRequest[BeaconBlockT](
-		abciReq, 0, h.chainSpec.ActiveForkVersionForSlot(math.U64(abciReq.Height))
-		); err != nil {
+		abciReq, 0, h.chainSpec.ActiveForkVersionForSlot(math.U64(abciReq.Height)),
+	); err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
 
