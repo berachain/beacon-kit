@@ -203,7 +203,8 @@ func (h *ABCIMiddleware[
 	defer h.metrics.measureProcessProposalDuration(startTime)
 
 	// Request the beacon block.
-	if blk, err = encoding.UnmarshalBeaconBlockFromABCIRequest[BeaconBlockT](
+	if blk, err = encoding.
+		UnmarshalBeaconBlockFromABCIRequest[BeaconBlockT](
 		abciReq, 0, h.chainSpec.ActiveForkVersionForSlot(math.U64(abciReq.Height)),
 	); err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
@@ -217,7 +218,8 @@ func (h *ABCIMiddleware[
 	}
 
 	// Request the blob sidecars.
-	if sidecars, err = encoding.UnmarshalBlobSidecarsFromABCIRequest[BlobSidecarsT](
+	if sidecars, err = encoding.
+		UnmarshalBlobSidecarsFromABCIRequest[BlobSidecarsT](
 		abciReq, 1,
 	); err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
