@@ -31,12 +31,13 @@ import (
 type DBManagerInput[
 	AvailabilityStoreT pruner.Prunable,
 	BlockStoreT pruner.Prunable,
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	DepositStoreT pruner.Prunable,
+	LoggerT any,
 ] struct {
 	depinject.In
 	AvailabilityPruner pruner.Pruner[AvailabilityStoreT]
 	BlockPruner        pruner.Pruner[BlockStoreT]
-	DepositPruner      DepositPruner
+	DepositPruner      pruner.Pruner[DepositStoreT]
 	Logger             LoggerT
 }
 
@@ -44,9 +45,12 @@ type DBManagerInput[
 func ProvideDBManager[
 	AvailabilityStoreT pruner.Prunable,
 	BlockStoreT pruner.Prunable,
+	DepositStoreT pruner.Prunable,
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ](
-	in DBManagerInput[AvailabilityStoreT, BlockStoreT, LoggerT],
+	in DBManagerInput[
+		AvailabilityStoreT, BlockStoreT, DepositStoreT, LoggerT,
+	],
 ) (*manager.DBManager, error) {
 	return manager.NewDBManager(
 		in.Logger.With("service", "db-manager"),

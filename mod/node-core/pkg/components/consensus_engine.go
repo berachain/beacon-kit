@@ -48,12 +48,13 @@ func ProvideConsensusEngine[
 	],
 	BeaconStateMarshallableT any,
 	BlockStoreT any,
+	DepositStoreT any,
 	KVStoreT any,
 	StorageBackendT StorageBackend[
 		AvailabilityStoreT,
 		BeaconStateT,
 		BlockStoreT,
-		*DepositStore,
+		DepositStoreT,
 	],
 ](
 	in ConsensusEngineInput[
