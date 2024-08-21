@@ -70,7 +70,7 @@ type DepositPrunerInput[
 	depinject.In
 	ChainSpec    common.ChainSpec
 	DepositStore DepositStoreT
-	Dispatcher   *Dispatcher
+	Dispatcher   Dispatcher
 	Logger       LoggerT
 }
 

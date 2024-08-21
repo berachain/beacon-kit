@@ -83,7 +83,7 @@ type AvailabilityPrunerInput[
 	depinject.In
 	AvailabilityStore AvailabilityStoreT
 	ChainSpec         common.ChainSpec
-	Dispatcher        *Dispatcher
+	Dispatcher        Dispatcher
 	Logger            LoggerT
 }
 
