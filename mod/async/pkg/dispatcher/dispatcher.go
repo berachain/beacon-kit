@@ -40,11 +40,18 @@ type Dispatcher struct {
 // NewDispatcher creates a new event server.
 func New(
 	logger log.Logger[any],
-) *Dispatcher {
-	return &Dispatcher{
+	options ...Option,
+) (*Dispatcher, error) {
+	d := &Dispatcher{
 		brokers: make(map[async.EventID]types.Broker),
 		logger:  logger,
 	}
+	for _, option := range options {
+		if err := option(d); err != nil {
+			return nil, err
+		}
+	}
+	return d, nil
 }
 
 // Publish dispatches the given event to the broker with the given eventID.

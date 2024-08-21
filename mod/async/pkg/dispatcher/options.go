@@ -26,9 +26,13 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 )
 
-// RegisterEvent registers an event with the given eventID with the dispatcher.
-func RegisterEvent[eventT async.BaseEvent](
-	dispatcher types.Dispatcher, eventID string,
-) error {
-	return dispatcher.RegisterBrokers(broker.New[eventT](eventID))
+// Opt is a type that defines a function that modifies NodeBuilder.
+type Option func(dispatcher types.Dispatcher) error
+
+func WithEvent[
+	EventT async.BaseEvent,
+](eventID string) Option {
+	return func(dispatcher types.Dispatcher) error {
+		return dispatcher.RegisterBrokers(broker.New[EventT](eventID))
+	}
 }
