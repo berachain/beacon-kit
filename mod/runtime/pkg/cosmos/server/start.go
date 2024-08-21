@@ -84,13 +84,15 @@ const (
 
 // StartCmdOptions defines options that can be customized in `StartCmdWithOptions`,
 type StartCmdOptions[T types.Application] struct {
-	// DBOpener can be used to customize db opening, for example customize db options or support different db backends,
-	// default to the builtin db opener.
+	// DBOpener can be used to customize db opening, for example customize db options or support different db backends.
+	// It defaults to the builtin db opener.
 	DBOpener func(rootDir string, backendType dbm.BackendType) (dbm.DB, error)
-	// AddFlags add custom flags to start cmd
+
+	// AddFlags allows adding custom flags to the start command.
 	AddFlags func(cmd *cobra.Command)
-	// StartCommandHandler can be used to customize the start command handler
-	StartCommandHandler func(svrCtx *Context, appCreator types.AppCreator[T]) error
+
+	// StartCommandHandler can be used to customize the start command handler.
+	StartCommandHandler func(svrCtx *Context, appCreator types.AppCreator[T], appOpts StartCmdOptions[T]) error
 }
 
 // StartCmd runs the service passed in, either stand-alone or in-process with
@@ -106,9 +108,7 @@ func StartCmdWithOptions[T types.Application](appCreator types.AppCreator[T], op
 		opts.DBOpener = OpenDB
 	}
 
-	if opts.StartCommandHandler == nil {
-		opts.StartCommandHandler = start
-	}
+	opts.StartCommandHandler = start[T]
 
 	cmd := &cobra.Command{
 		Use:   "start",
@@ -147,7 +147,7 @@ is performed. Note, when enabled, gRPC will also be automatically enabled.
 				return err
 			}
 
-			err = opts.StartCommandHandler(serverCtx, appCreator)
+			err = opts.StartCommandHandler(serverCtx, appCreator, opts)
 
 			serverCtx.Logger.Debug("received quit signal")
 			graceDuration, _ := cmd.Flags().GetDuration(FlagShutdownGrace)
