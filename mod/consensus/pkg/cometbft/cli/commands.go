@@ -22,14 +22,8 @@ package server
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
-	"fmt"
-	"strconv"
-	"strings"
 
 	"cosmossdk.io/log"
-	auth "cosmossdk.io/x/auth/client/cli"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server"
 	types "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
@@ -43,10 +37,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
-	"github.com/cosmos/cosmos-sdk/client/rpc"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
@@ -233,207 +225,6 @@ func VersionCmd() *cobra.Command {
 			return nil
 		},
 	}
-}
-
-// QueryBlocksCmd returns a command to search through blocks by events.
-func QueryBlocksCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "blocks",
-		Short: "Query for paginated blocks that match a set of events",
-		Long: `Search for blocks that match the exact given events where results are paginated.
-The events query is directly passed to CometBFT's RPC BlockSearch method and must
-conform to CometBFT's query syntax.
-Please refer to each module's documentation for the full set of events to query
-for. Each module documents its respective events under 'xx_events.md'.
-`,
-		Example: fmt.Sprintf(
-			"$ %s query blocks --query \"message.sender='cosmos1...' AND block.height > 7\" --page 1 --limit 30 --order_by asc",
-			version.AppName,
-		),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-			query, _ := cmd.Flags().GetString(auth.FlagQuery)
-			page, _ := cmd.Flags().GetInt(flags.FlagPage)
-			limit, _ := cmd.Flags().GetInt(flags.FlagLimit)
-			orderBy, _ := cmd.Flags().GetString(auth.FlagOrderBy)
-
-			blocks, err := rpc.QueryBlocks(
-				clientCtx,
-				page,
-				limit,
-				query,
-				orderBy,
-			)
-			if err != nil {
-				return err
-			}
-
-			return clientCtx.PrintProto(blocks)
-		},
-	}
-
-	flags.AddQueryFlagsToCmd(cmd)
-	cmd.Flags().
-		Int(flags.FlagPage, query.DefaultPage, "Query a specific page of paginated results")
-	cmd.Flags().
-		Int(flags.FlagLimit, query.DefaultLimit, "Query number of transactions results per page returned")
-	cmd.Flags().
-		String(auth.FlagQuery, "", "The blocks events query per CometBFT's query semantics")
-	cmd.Flags().String(auth.FlagOrderBy, "", "The ordering semantics (asc|dsc)")
-	_ = cmd.MarkFlagRequired(auth.FlagQuery)
-
-	return cmd
-}
-
-// QueryBlockCmd implements the default command for a Block query.
-func QueryBlockCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "block --type=[height|hash] [height|hash]",
-		Short: "Query for a committed block by height, hash, or event(s)",
-		Long:  "Query for a specific committed block using the CometBFT RPC `block` and `block_by_hash` method",
-		Example: strings.TrimSpace(fmt.Sprintf(`
-$ %s query block --%s=%s <height>
-$ %s query block --%s=%s <hash>
-`,
-			version.AppName, auth.FlagType, auth.TypeHeight,
-			version.AppName, auth.FlagType, auth.TypeHash)),
-		Args: cobra.MaximumNArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			typ, _ := cmd.Flags().GetString(auth.FlagType)
-			if len(args) == 0 {
-				// do not break default v0.50 behavior of block hash
-				// if no args are provided, set the type to height
-				typ = auth.TypeHeight
-			}
-
-			switch typ {
-			case auth.TypeHeight:
-				var (
-					err    error
-					height int64
-				)
-				heightStr := ""
-				if len(args) > 0 {
-					heightStr = args[0]
-				}
-
-				if heightStr == "" {
-					cmd.Println("Falling back to latest block height:")
-					height, err = rpc.GetChainHeight(clientCtx)
-					if err != nil {
-						return fmt.Errorf("failed to get chain height: %w", err)
-					}
-				} else {
-					height, err = strconv.ParseInt(heightStr, 10, 64)
-					if err != nil {
-						return fmt.Errorf("failed to parse block height: %w", err)
-					}
-				}
-
-				output, err := rpc.GetBlockByHeight(clientCtx, &height)
-				if err != nil {
-					return err
-				}
-
-				if output.Header.Height == 0 {
-					return fmt.Errorf("no block found with height %s", args[0])
-				}
-
-				return clientCtx.PrintProto(output)
-
-			case auth.TypeHash:
-
-				if args[0] == "" {
-					return errors.New("argument should be a tx hash")
-				}
-
-				// If hash is given, then query the tx by hash.
-				output, err := rpc.GetBlockByHash(clientCtx, args[0])
-				if err != nil {
-					return err
-				}
-
-				if output.Header.AppHash == nil {
-					return fmt.Errorf("no block found with hash %s", args[0])
-				}
-
-				return clientCtx.PrintProto(output)
-
-			default:
-				return fmt.Errorf("unknown --%s value %s", auth.FlagType, typ)
-			}
-		},
-	}
-
-	flags.AddQueryFlagsToCmd(cmd)
-	cmd.Flags().
-		String(auth.FlagType, auth.TypeHash, fmt.Sprintf("The type to be used when querying tx, can be one of \"%s\", \"%s\"", auth.TypeHeight, auth.TypeHash))
-
-	return cmd
-}
-
-// QueryBlockResultsCmd implements the default command for a BlockResults query.
-func QueryBlockResultsCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "block-results [height]",
-		Short: "Query for a committed block's results by height",
-		Long:  "Query for a specific committed block's results using the CometBFT RPC `block_results` method",
-		Args:  cobra.RangeArgs(0, 1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			node, err := clientCtx.GetNode()
-			if err != nil {
-				return err
-			}
-
-			// optional height
-			var height int64
-			if len(args) > 0 {
-				height, err = strconv.ParseInt(args[0], 10, 64)
-				if err != nil {
-					return err
-				}
-			} else {
-				cmd.Println("Falling back to latest block height:")
-				height, err = rpc.GetChainHeight(clientCtx)
-				if err != nil {
-					return fmt.Errorf("failed to get chain height: %w", err)
-				}
-			}
-
-			blockRes, err := node.BlockResults(context.Background(), &height)
-			if err != nil {
-				return err
-			}
-
-			// coretypes.ResultBlockResults doesn't implement proto.Message
-			// interface
-			// so we can't print it using clientCtx.PrintProto
-			// we choose to serialize it to json and print the json instead
-			blockResStr, err := json.Marshal(blockRes)
-			if err != nil {
-				return err
-			}
-
-			return clientCtx.PrintRaw(blockResStr)
-		},
-	}
-
-	flags.AddQueryFlagsToCmd(cmd)
-
-	return cmd
 }
 
 func BootstrapStateCmd[T types.Application](
