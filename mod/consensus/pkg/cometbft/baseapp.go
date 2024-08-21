@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package baseapp
+package cometbft
 
 import (
 	"context"
@@ -60,7 +60,7 @@ type BaseApp struct {
 	name       string                      // application name from abci.BlockInfo
 	db         dbm.DB                      // common DB backend
 	cms        storetypes.CommitMultiStore // Main
-	Middleware Middleware
+	Middleware MiddlewareI
 
 	// volatile states:
 	//
@@ -119,7 +119,7 @@ func NewBaseApp(
 	storeKey *storetypes.KVStoreKey,
 	logger log.Logger,
 	db dbm.DB,
-	middleware Middleware,
+	middleware MiddlewareI,
 	loadLatest bool,
 	options ...func(*BaseApp),
 ) *BaseApp {

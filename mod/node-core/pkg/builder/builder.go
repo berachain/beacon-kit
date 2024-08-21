@@ -27,12 +27,12 @@ import (
 	"cosmossdk.io/depinject"
 	sdklog "cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
+	baseapp "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
 	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/baseapp"
 	dbm "github.com/cosmos/cosmos-db"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )

@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package baseapp
+package cometbft
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"

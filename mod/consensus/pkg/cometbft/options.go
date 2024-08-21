@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package baseapp
+package cometbft
 
 import (
 	"context"
@@ -29,7 +29,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 )
 
-// File for storing in-package BaseApp optional functions,
+// File for storing in-package cometbft optional functions,
 // for options that need access to non-exported fields of the BaseApp
 
 // SetPruning sets a pruning option on the multistore associated with the app.
