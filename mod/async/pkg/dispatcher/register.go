@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package helpers
+package dispatcher
 
 import (
 	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
