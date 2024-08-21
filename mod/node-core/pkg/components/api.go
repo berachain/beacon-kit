@@ -28,43 +28,77 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/engines/echo"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 	"github.com/berachain/beacon-kit/mod/node-api/server"
-	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // TODO: we could make engine type configurable
-func ProvideNodeAPIEngine() *NodeAPIEngine {
+func ProvideNodeAPIEngine() *echo.Engine {
 	return echo.NewDefaultEngine()
 }
 
-type NodeAPIBackendInput struct {
+type NodeAPIBackendInput[
+	BeaconBlockT any,
+	BeaconStateT any,
+	StorageBackendT any,
+] struct {
 	depinject.In
 
 	ChainSpec      common.ChainSpec
-	StateProcessor *StateProcessor
-	StorageBackend *StorageBackend
+	StateProcessor StateProcessor[
+		BeaconBlockT, BeaconStateT, *Context,
+		*Deposit, *ExecutionPayloadHeader,
+	]
+	StorageBackend StorageBackendT
 }
 
-func ProvideNodeAPIBackend(in NodeAPIBackendInput) *NodeAPIBackend {
+func ProvideNodeAPIBackend[
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	BeaconBlockT any,
+	BeaconBlockBodyT any,
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconBlockStoreT BlockStore[BeaconBlockT],
+	BeaconStateT BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
+		*Eth1Data, *ExecutionPayloadHeader, *Fork, KVStoreT,
+		*Validator, Validators, *Withdrawal,
+	],
+	BeaconStateMarshallableT any,
+	BlobSidecarsT any,
+	KVStoreT any,
+	NodeT interface {
+		CreateQueryContext(height int64, prove bool) (sdk.Context, error)
+	},
+	StorageBackendT StorageBackend[
+		AvailabilityStoreT, BeaconStateT, BeaconBlockStoreT, *DepositStore,
+	],
+](
+	in NodeAPIBackendInput[BeaconBlockT, BeaconStateT, StorageBackendT],
+) *backend.Backend[
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BeaconBlockStoreT,
+	sdk.Context, *Deposit, *DepositStore, *Eth1Data, *ExecutionPayloadHeader,
+	*Fork, NodeT, KVStoreT, StorageBackendT, *Validator, Validators,
+	*Withdrawal, WithdrawalCredentials,
+] {
 	return backend.New[
-		*AvailabilityStore,
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*BeaconBlockHeader,
-		*BeaconState,
-		*BeaconStateMarshallable,
-		*BlobSidecars,
-		*BlockStore,
+		AvailabilityStoreT,
+		BeaconBlockT,
+		BeaconBlockBodyT,
+		BeaconBlockHeaderT,
+		BeaconStateT,
+		BeaconStateMarshallableT,
+		BlobSidecarsT,
+		BeaconBlockStoreT,
 		sdk.Context,
 		*Deposit,
 		*DepositStore,
 		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
-		nodetypes.Node,
-		*KVStore,
-		*StorageBackend,
+		NodeT,
+		KVStoreT,
+		StorageBackendT,
 		*Validator,
 		Validators,
 		*Withdrawal,
@@ -78,21 +112,25 @@ func ProvideNodeAPIBackend(in NodeAPIBackendInput) *NodeAPIBackend {
 
 type NodeAPIServerInput[
 	LoggerT log.AdvancedLogger[any, LoggerT],
+	NodeAPIContextT NodeAPIContext,
 ] struct {
 	depinject.In
 
-	Engine   *NodeAPIEngine
+	Engine   NodeAPIEngine[NodeAPIContextT]
 	Config   *config.Config
-	Handlers []handlers.Handlers[NodeAPIContext]
+	Handlers []handlers.Handlers[NodeAPIContextT]
 	Logger   LoggerT
 }
 
 func ProvideNodeAPIServer[
 	LoggerT log.AdvancedLogger[any, LoggerT],
-](in NodeAPIServerInput[LoggerT]) *NodeAPIServer {
+	NodeAPIContextT NodeAPIContext,
+](
+	in NodeAPIServerInput[LoggerT, NodeAPIContextT],
+) *server.Server[NodeAPIContextT] {
 	in.Logger.AddKeyValColor("service", "node-api-server",
 		log.Blue)
-	return server.New[NodeAPIContext](
+	return server.New[NodeAPIContextT](
 		in.Config.NodeAPI,
 		in.Engine,
 		in.Logger.With("service", "node-api-server"),

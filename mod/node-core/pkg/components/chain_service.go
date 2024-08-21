@@ -32,36 +32,64 @@ import (
 
 // ChainServiceInput is the input for the chain service provider.
 type ChainServiceInput[
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	BeaconBlockT any,
+	BeaconStateT any,
+	StorageBackendT any,
+	LoggerT any,
 ] struct {
 	depinject.In
 
 	ChainSpec       common.ChainSpec
 	Cfg             *config.Config
-	DepositService  *DepositService
-	Dispatcher      *Dispatcher
 	EngineClient    *EngineClient
 	ExecutionEngine *ExecutionEngine
-	LocalBuilder    *LocalBuilder
+	Dispatcher      *Dispatcher
+	LocalBuilder    LocalBuilder[BeaconStateT, *ExecutionPayload]
 	Logger          LoggerT
 	Signer          crypto.BLSSigner
-	StateProcessor  *StateProcessor
-	StorageBackend  *StorageBackend
-	TelemetrySink   *metrics.TelemetrySink
+	StateProcessor  StateProcessor[
+		BeaconBlockT, BeaconStateT, *Context,
+		*Deposit, *ExecutionPayloadHeader,
+	]
+	StorageBackend StorageBackendT
+	TelemetrySink  *metrics.TelemetrySink
 }
 
 // ProvideChainService is a depinject provider for the blockchain service.
 func ProvideChainService[
+	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
+	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT],
+	BeaconBlockBodyT BeaconBlockBody[
+		BeaconBlockBodyT, *AttestationData, *Deposit,
+		*Eth1Data, *ExecutionPayload, *SlashingInfo,
+	],
+	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
+	BeaconStateT BeaconState[
+		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
+		*Eth1Data, *ExecutionPayloadHeader, *Fork, KVStoreT,
+		*Validator, Validators, *Withdrawal,
+	],
+	BeaconStateMarshallableT any,
+	BlobSidecarsT any,
+	BlockStoreT any,
+	KVStoreT any,
 	LoggerT log.AdvancedLogger[any, LoggerT],
+	StorageBackendT StorageBackend[
+		AvailabilityStoreT, BeaconStateT, BlockStoreT, *DepositStore,
+	],
 ](
-	in ChainServiceInput[LoggerT],
-) *ChainService {
+	in ChainServiceInput[BeaconBlockT, BeaconStateT, StorageBackendT, LoggerT],
+) *blockchain.Service[
+	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
+	BeaconBlockHeaderT, BeaconStateT, *Deposit, *ExecutionPayload,
+	*ExecutionPayloadHeader, *Genesis, *PayloadAttributes,
+] {
 	return blockchain.NewService[
-		*AvailabilityStore,
-		*BeaconBlock,
-		*BeaconBlockBody,
-		*BeaconBlockHeader,
-		*BeaconState,
+		AvailabilityStoreT,
+		BeaconBlockT,
+		BeaconBlockBodyT,
+		BeaconBlockHeaderT,
+		BeaconStateT,
 		*Deposit,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,

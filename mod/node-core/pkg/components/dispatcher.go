@@ -29,7 +29,7 @@ import (
 
 // DispatcherInput is the input for the Dispatcher.
 type DispatcherInput[
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT any,
 ] struct {
 	depinject.In
 	Logger     LoggerT

@@ -59,7 +59,8 @@ func ProvideDepositStore(
 
 // DepositPrunerInput is the input for the deposit pruner.
 type DepositPrunerInput[
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	BeaconBlockT any,
+	LoggerT any,
 ] struct {
 	depinject.In
 	ChainSpec    common.ChainSpec
@@ -70,12 +71,19 @@ type DepositPrunerInput[
 
 // ProvideDepositPruner provides a deposit pruner for the depinject framework.
 func ProvideDepositPruner[
+	BeaconBlockT BeaconBlock[
+		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	],
+	BeaconBlockBodyT interface {
+		GetDeposits() []*Deposit
+	},
+	BeaconBlockHeaderT any,
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ](
-	in DepositPrunerInput[LoggerT],
+	in DepositPrunerInput[BeaconBlockT, LoggerT],
 ) (DepositPruner, error) {
 	// initialize a subscription for finalized blocks.
-	subFinalizedBlocks := make(chan FinalizedBlockEvent)
+	subFinalizedBlocks := make(chan async.Event[BeaconBlockT])
 	if err := in.Dispatcher.Subscribe(
 		async.BeaconBlockFinalizedEvent, subFinalizedBlocks,
 	); err != nil {
@@ -84,18 +92,14 @@ func ProvideDepositPruner[
 		return nil, err
 	}
 
-	// return a new pruner for the deposit store.
-	return pruner.NewPruner[
-		*BeaconBlock,
-		*DepositStore,
-	](
+	return pruner.NewPruner[BeaconBlockT, *DepositStore](
 		in.Logger.With("service", manager.DepositPrunerName),
 		in.DepositStore,
 		manager.DepositPrunerName,
 		subFinalizedBlocks,
 		deposit.BuildPruneRangeFn[
-			*BeaconBlock,
-			*BeaconBlockBody,
+			BeaconBlockT,
+			BeaconBlockBodyT,
 			*Deposit,
 			WithdrawalCredentials,
 		](in.ChainSpec),
