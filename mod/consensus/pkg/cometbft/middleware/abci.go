@@ -24,12 +24,12 @@ import (
 	"context"
 	"time"
 
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/encoding"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/encoding"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/gogoproto/proto"
 )

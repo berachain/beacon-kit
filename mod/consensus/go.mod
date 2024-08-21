@@ -13,7 +13,6 @@ require (
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240806211103-d1105603bfc0
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240821000339-4d4242ba4a50
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240821052951-c15422305b4e
-	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240821000339-4d4242ba4a50
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240806094948-2c4293ef36c4
 	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4
 	github.com/cosmos/cosmos-sdk v0.53.0
@@ -31,9 +30,11 @@ require (
 	cosmossdk.io/log v1.4.1 // indirect
 	cosmossdk.io/math v1.3.0 // indirect
 	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc // indirect
+	cosmossdk.io/x/auth v0.0.0-20240806152830-8fb47b368cd4 // indirect
 	cosmossdk.io/x/consensus v0.0.0-20240806152830-8fb47b368cd4 // indirect
 	cosmossdk.io/x/tx v0.13.4 // indirect
 	github.com/DataDog/zstd v1.5.6 // indirect
+	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.4 // indirect
@@ -57,6 +58,7 @@ require (
 	github.com/dgraph-io/badger/v4 v4.2.0 // indirect
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/dvsekhvalnov/jose2go v1.7.0 // indirect
 	github.com/emicklei/dot v1.6.2 // indirect
 	github.com/ferranbt/fastssz v0.1.4 // indirect
 	github.com/getsentry/sentry-go v0.28.1 // indirect
@@ -104,7 +106,9 @@ require (
 	github.com/prysmaticlabs/gohashtree v0.0.4-beta.0.20240624100937-73632381301b // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/rs/zerolog v1.33.0 // indirect
+	github.com/sagikazarmark/locafero v0.6.0 // indirect
 	github.com/sasha-s/go-deadlock v0.3.5 // indirect
+	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8 // indirect
 	github.com/spf13/cast v1.7.0 // indirect
 	github.com/spf13/cobra v1.8.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
