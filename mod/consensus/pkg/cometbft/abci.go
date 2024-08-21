@@ -17,8 +17,9 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
-
-package baseapp
+//
+//nolint:contextcheck // its fine.
+package cometbft
 
 import (
 	"context"
@@ -26,11 +27,13 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
-
 	"cosmossdk.io/store/rootmulti"
+	ctypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	errorsmod "github.com/berachain/beacon-kit/mod/errors"
-	abcitypes "github.com/cometbft/cometbft/abci/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
+	math "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	cmtabci "github.com/cometbft/cometbft/abci/types"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -39,7 +42,7 @@ import (
 	"github.com/sourcegraph/conc/iter"
 )
 
-func (app *BaseApp) InitChain(
+func (app *Service) InitChain(
 	req *abci.InitChainRequest,
 ) (*abci.InitChainResponse, error) {
 	if req.ChainId != app.chainID {
@@ -92,6 +95,10 @@ func (app *BaseApp) InitChain(
 		)
 	}()
 
+	if app.finalizeBlockState == nil {
+		return nil, errors.New("finalizeBlockState is nil")
+	}
+
 	// add block gas meter for any genesis transactions (allow infinite gas)
 	app.finalizeBlockState.SetContext(
 		app.finalizeBlockState.Context(),
@@ -117,7 +124,7 @@ func (app *BaseApp) InitChain(
 			)
 		}
 
-		sort.Sort(abcitypes.ValidatorUpdates(req.Validators))
+		sort.Sort(cmtabci.ValidatorUpdates(req.Validators))
 
 		for i := range res.Validators {
 			if !proto.Equal(&res.Validators[i], &req.Validators[i]) {
@@ -141,7 +148,7 @@ func (app *BaseApp) InitChain(
 }
 
 // InitChainer initializes the chain.
-func (a *BaseApp) initChainer(
+func (app *Service) initChainer(
 	ctx sdk.Context,
 	req *abci.InitChainRequest,
 ) (*abci.InitChainResponse, error) {
@@ -149,7 +156,7 @@ func (a *BaseApp) initChainer(
 	if err := json.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		return nil, err
 	}
-	valUpdates, err := a.Middleware.InitGenesis(
+	valUpdates, err := app.Middleware.InitGenesis(
 		ctx,
 		[]byte(genesisState["beacon"]),
 	)
@@ -168,10 +175,9 @@ func (a *BaseApp) initChainer(
 	return &abci.InitChainResponse{
 		Validators: convertedValUpdates,
 	}, nil
-
 }
 
-func (app *BaseApp) Info(_ *abci.InfoRequest) (*abci.InfoResponse, error) {
+func (app *Service) Info(_ *abci.InfoRequest) (*abci.InfoResponse, error) {
 	lastCommitID := app.cms.LastCommitID()
 	appVersion := InitialAppVersion
 	if lastCommitID.Version > 0 {
@@ -195,33 +201,13 @@ func (app *BaseApp) Info(_ *abci.InfoRequest) (*abci.InfoResponse, error) {
 }
 
 // PrepareProposal implements the PrepareProposal ABCI method and returns a
-// ResponsePrepareProposal object to the client. The PrepareProposal method is
-// responsible for allowing the block proposer to perform application-dependent
-// work in a block before proposing it.
-//
-// Transactions can be modified, removed, or added by the application. Since the
-// application maintains its own local mempool, it will ignore the transactions
-// provided to it in RequestPrepareProposal. Instead, it will determine which
-// transactions to return based on the mempool's semantics and the MaxTxBytes
-// provided by the client's request.
-//
-// Ref:
-// https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-060-abci-1.0.md
-// Ref:
-// https://github.com/cometbft/cometbft/blob/main/spec/abci/abci%2B%2B_basic_concepts.md
-func (app *BaseApp) PrepareProposal(
+// ResponsePrepareProposal object to the client.
+func (app *Service) PrepareProposal(
 	req *abci.PrepareProposalRequest,
-) (resp *abci.PrepareProposalResponse, err error) {
-	if app.prepareProposal == nil {
-		return nil, errors.New("PrepareProposal handler not set")
-	}
-
+) (*abci.PrepareProposalResponse, error) {
 	app.setState(execModePrepareProposal)
 
 	// CometBFT must never call PrepareProposal with a height of 0.
-	//
-	// Ref:
-	// https://github.com/cometbft/cometbft/blob/059798a4f5b0c9f52aa8655fa619054a0154088c/spec/core/state.md?plain=1#L37-L38
 	if req.Height < 1 {
 		return nil, errors.New("PrepareProposal called with invalid height")
 	}
@@ -235,7 +221,14 @@ func (app *BaseApp) PrepareProposal(
 
 	app.prepareProposalState.SetContext(app.prepareProposalState.Context())
 
-	resp, err = app.prepareProposal(app.prepareProposalState.Context(), req)
+	blkBz, sidecarsBz, err := app.Middleware.PrepareProposal(
+		app.prepareProposalState.Context(), &types.SlotData[
+			*ctypes.AttestationData,
+			*ctypes.SlashingInfo,
+		]{
+			Slot: math.Slot(req.Height),
+		},
+	)
 	if err != nil {
 		app.logger.Error(
 			"failed to prepare proposal",
@@ -249,38 +242,17 @@ func (app *BaseApp) PrepareProposal(
 		return &abci.PrepareProposalResponse{Txs: req.Txs}, nil
 	}
 
-	return resp, nil
+	return &abci.PrepareProposalResponse{
+		Txs: [][]byte{blkBz, sidecarsBz},
+	}, nil
 }
 
 // ProcessProposal implements the ProcessProposal ABCI method and returns a
-// ResponseProcessProposal object to the client. The ProcessProposal method is
-// responsible for allowing execution of application-dependent work in a
-// proposed
-// block. Note, the application defines the exact implementation details of
-// ProcessProposal. In general, the application must at the very least ensure
-// that all transactions are valid. If all transactions are valid, then we
-// inform
-// CometBFT that the Status is ACCEPT. However, the application is also able
-// to implement optimizations such as executing the entire proposed block
-// immediately.
-//
-// If a panic is detected during execution of an application's ProcessProposal
-// handler, it will be recovered and we will reject the proposal.
-//
-// Ref:
-// https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-060-abci-1.0.md
-// Ref:
-// https://github.com/cometbft/cometbft/blob/main/spec/abci/abci%2B%2B_basic_concepts.md
-func (app *BaseApp) ProcessProposal(
+// ResponseProcessProposal object to the client.
+func (app *Service) ProcessProposal(
 	req *abci.ProcessProposalRequest,
-) (resp *abci.ProcessProposalResponse, err error) {
-	if app.processProposal == nil {
-		return nil, errors.New("ProcessProposal handler not set")
-	}
-
+) (*abci.ProcessProposalResponse, error) {
 	// CometBFT must never call ProcessProposal with a height of 0.
-	// Ref:
-	// https://github.com/cometbft/cometbft/blob/059798a4f5b0c9f52aa8655fa619054a0154088c/spec/core/state.md?plain=1#L37-L38
 	if req.Height < 1 {
 		return nil, errors.New("ProcessProposal called with invalid height")
 	}
@@ -305,7 +277,10 @@ func (app *BaseApp) ProcessProposal(
 		),
 	)
 
-	resp, err = app.processProposal(app.processProposalState.Context(), req)
+	resp, err := app.Middleware.ProcessProposal(
+		app.processProposalState.Context(),
+		req,
+	)
 	if err != nil {
 		app.logger.Error(
 			"failed to process proposal",
@@ -323,15 +298,10 @@ func (app *BaseApp) ProcessProposal(
 		}, nil
 	}
 
-	return resp, nil
+	return resp.(*cmtabci.ProcessProposalResponse), nil
 }
 
-// internalFinalizeBlock executes the block, called by the Optimistic
-// Execution flow or by the FinalizeBlock ABCI method. The context received is
-// only used to handle early cancellation, for anything related to state
-// app.finalizeBlockState.Context()
-// must be used.
-func (app *BaseApp) internalFinalizeBlock(
+func (app *Service) internalFinalizeBlock(
 	ctx context.Context,
 	req *abci.FinalizeBlockRequest,
 ) (*abci.FinalizeBlockResponse, error) {
@@ -339,14 +309,12 @@ func (app *BaseApp) internalFinalizeBlock(
 		return nil, err
 	}
 
-	// finalizeBlockState should be set on InitChain or ProcessProposal. If it
-	// is nil, it means we are replaying this block and we need to set the state
-	// here given that during block replay ProcessProposal is not executed by
-	// CometBFT.
 	if app.finalizeBlockState == nil {
 		app.setState(execModeFinalize)
 	}
-
+	if app.finalizeBlockState == nil {
+		return nil, errors.New("finalizeBlockState is nil")
+	}
 	app.finalizeBlockState.SetContext(app.finalizeBlockState.Context())
 
 	// First check for an abort signal after beginBlock, as it's the first place
@@ -377,6 +345,7 @@ func (app *BaseApp) internalFinalizeBlock(
 			// continue
 		}
 
+		//nolint:mnd // its okay for now.
 		txResults = append(txResults, &abci.ExecTxResult{
 			Codespace: "sdk",
 			Code:      2,
@@ -419,19 +388,10 @@ func (app *BaseApp) internalFinalizeBlock(
 	}, nil
 }
 
-// FinalizeBlock will execute the block proposal provided by
-// RequestFinalizeBlock.
-// For each raw transaction, i.e. a byte slice, BaseApp will only execute it if
-// it adheres to the sdk.Tx interface. Otherwise, the raw transaction will be
-// skipped. This is to support compatibility with proposers injecting vote
-// extensions into the proposal, which should not themselves be executed in
-// cases
-// where they adhere to the sdk.Tx interface.
-func (app *BaseApp) FinalizeBlock(
+func (app *Service) FinalizeBlock(
 	req *abci.FinalizeBlockRequest,
-) (res *abci.FinalizeBlockResponse, err error) {
-
-	res, err = app.internalFinalizeBlock(context.Background(), req)
+) (*abci.FinalizeBlockResponse, error) {
+	res, err := app.internalFinalizeBlock(context.Background(), req)
 	if res != nil {
 		res.AppHash = app.workingHash()
 	}
@@ -446,7 +406,10 @@ func (app *BaseApp) FinalizeBlock(
 // defined in config, Commit will execute a deferred function call to check
 // against that height and gracefully halt if it matches the latest committed
 // height.
-func (app *BaseApp) Commit() (*abci.CommitResponse, error) {
+func (app *Service) Commit() (*abci.CommitResponse, error) {
+	if app.finalizeBlockState == nil {
+		return nil, errors.New("finalizeBlockState is nil")
+	}
 	header := app.finalizeBlockState.Context().BlockHeader()
 	retainHeight := app.GetBlockRetentionHeight(header.Height)
 
@@ -472,7 +435,7 @@ func (app *BaseApp) Commit() (*abci.CommitResponse, error) {
 // Commit(), the application state transitions will be flushed to disk and as a
 // result, but we already have
 // an application Merkle root.
-func (app *BaseApp) workingHash() []byte {
+func (app *Service) workingHash() []byte {
 	// Write the FinalizeBlock state into branched storage and commit the
 	// MultiStore. The write to the FinalizeBlock state writes all state
 	// transitions to the root
@@ -497,11 +460,14 @@ func (app *BaseApp) workingHash() []byte {
 // getContextForProposal returns the correct Context for PrepareProposal and
 // ProcessProposal. We use finalizeBlockState on the first block to be able to
 // access any state changes made in InitChain.
-func (app *BaseApp) getContextForProposal(
+func (app *Service) getContextForProposal(
 	ctx sdk.Context,
 	height int64,
 ) sdk.Context {
 	if height == app.initialHeight {
+		if app.finalizeBlockState == nil {
+			return ctx
+		}
 		ctx, _ = app.finalizeBlockState.Context().CacheContext()
 		return ctx
 	}
@@ -511,7 +477,7 @@ func (app *BaseApp) getContextForProposal(
 
 // CreateQueryContext creates a new sdk.Context for a query, taking as args
 // the block height and whether the query needs a proof or not.
-func (app *BaseApp) CreateQueryContext(
+func (app *Service) CreateQueryContext(
 	height int64,
 	prove bool,
 ) (sdk.Context, error) {
@@ -585,7 +551,7 @@ func (app *BaseApp) CreateQueryContext(
 // all blocks, e.g. via a local config option min-retain-blocks. There may also
 // be a need to vary retention for other nodes, e.g. sentry nodes which do not
 // need historical blocks.
-func (app *BaseApp) GetBlockRetentionHeight(commitHeight int64) int64 {
+func (app *Service) GetBlockRetentionHeight(commitHeight int64) int64 {
 	// pruning is disabled if minRetainBlocks is zero
 	if app.minRetainBlocks == 0 {
 		return 0
@@ -619,6 +585,9 @@ func (app *BaseApp) GetBlockRetentionHeight(commitHeight int64) int64 {
 	// based
 	// on the unbonding period and block commitment time as the two should be
 	// equivalent.
+	if app.finalizeBlockState == nil {
+		return 0
+	}
 	cp := app.GetConsensusParams(app.finalizeBlockState.Context())
 	if cp.Evidence != nil && cp.Evidence.MaxAgeNumBlocks > 0 {
 		retentionHeight = commitHeight - cp.Evidence.MaxAgeNumBlocks
@@ -637,9 +606,12 @@ func (app *BaseApp) GetBlockRetentionHeight(commitHeight int64) int64 {
 }
 
 // NewContextLegacy returns a new sdk.Context with the provided header.
-func (app *BaseApp) NewContextLegacy(
+func (app *Service) NewContextLegacy(
 	_ bool,
 	_ cmtproto.Header,
 ) sdk.Context {
+	if app.finalizeBlockState == nil {
+		return sdk.Context{}
+	}
 	return sdk.NewContext(app.finalizeBlockState.ms, false, app.logger)
 }
