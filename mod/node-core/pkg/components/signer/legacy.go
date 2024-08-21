@@ -25,38 +25,39 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
-	"github.com/itsdevbear/comet-bls12-381/bls"
-	"github.com/itsdevbear/comet-bls12-381/bls/blst"
+	"github.com/cometbft/cometbft/crypto/bls12381"
 )
 
-// LegacySigner is a BLS12-381 signer that uses a bls.SecretKey for signing.
+// LegacySigner is a BLS12-381 signer that uses a bls.PrivKey for signing.
 type LegacySigner struct {
-	bls.SecretKey
+	*bls12381.PrivKey
 }
 
 // NewLegacySigner creates a new Signer instance given a secret key.
 func NewLegacySigner(
 	keyBz LegacyKey,
 ) (*LegacySigner, error) {
-	secretKey, err := blst.SecretKeyFromBytes(keyBz[:])
+	pk, err := bls12381.NewPrivateKeyFromBytes(keyBz[:])
 	if err != nil {
 		return nil, err
 	}
-	return &LegacySigner{
-		SecretKey: secretKey,
-	}, nil
+	return &LegacySigner{PrivKey: &pk}, nil
 }
 
 // PublicKey returns the public key of the signer.
 func (b *LegacySigner) PublicKey() crypto.BLSPubkey {
-	return crypto.BLSPubkey(b.SecretKey.PublicKey().Marshal())
+	return crypto.BLSPubkey(b.PubKey().Bytes())
 }
 
 // Sign generates a signature for a given message using the signer's secret key.
 // It returns the signature and any error encountered during the signing
 // process.
 func (b *LegacySigner) Sign(msg []byte) (crypto.BLSSignature, error) {
-	return crypto.BLSSignature(b.SecretKey.Sign(msg).Marshal()), nil
+	sig, err := b.PrivKey.Sign(msg)
+	if err != nil {
+		return crypto.BLSSignature{}, err
+	}
+	return crypto.BLSSignature(sig), nil
 }
 
 // VerifySignature verifies a signature against a message and public key.
@@ -65,17 +66,8 @@ func (LegacySigner) VerifySignature(
 	msg []byte,
 	signature crypto.BLSSignature,
 ) error {
-	pubkey, err := blst.PublicKeyFromBytes(pubKey[:])
-	if err != nil {
-		return err
-	}
-
-	sig, err := blst.SignatureFromBytes(signature[:])
-	if err != nil {
-		return err
-	}
-
-	if !sig.Verify(pubkey, msg) {
+	if ok := bls12381.PubKey(pubKey[:]).
+		VerifySignature(msg, signature[:]); !ok {
 		return ErrInvalidSignature
 	}
 	return nil

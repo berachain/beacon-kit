@@ -7,8 +7,10 @@ replace (
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240806152830-8fb47b368cd4
 	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240806152830-8fb47b368cd4
 	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240806152830-8fb47b368cd4
-	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240806152830-8fb47b368cd4
-	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240806152830-8fb47b368cd4
+	github.com/berachain/beacon-kit/mod/beacon => ../mod/beacon
+	github.com/berachain/beacon-kit/mod/da => ../mod/da
+	github.com/berachain/beacon-kit/mod/execution => ../mod/execution
+	github.com/berachain/beacon-kit/mod/storage => ../mod/storage
 	github.com/cometbft/cometbft => github.com/cometbft/cometbft v1.0.0-rc1.0.20240805134408-314422469051
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240808182639-7bdbf06a94f2
 	github.com/ferranbt/fastssz => github.com/itsdevbear/fastssz v0.0.0-20240731164358-a354a31813e6
@@ -18,12 +20,12 @@ replace (
 require (
 	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240806160829-cde2d1347e7e
 	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240806160829-cde2d1347e7e
+	github.com/cosmos/cosmos-sdk v0.53.0
 	go.uber.org/automaxprocs v1.5.3
 )
 
 require (
 	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4 // indirect
-	github.com/cosmos/cosmos-sdk v0.53.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/umbracle/fastrlp v0.1.0 // indirect
 )
@@ -34,10 +36,10 @@ require (
 	cosmossdk.io/api v0.7.5 // indirect
 	cosmossdk.io/client/v2 v2.0.0-20240412212305-037cf98f7eea // indirect
 	cosmossdk.io/collections v0.4.0 // indirect
-	cosmossdk.io/core v0.12.1-0.20240806152830-8fb47b368cd4 // indirect
+	cosmossdk.io/core v0.12.1-0.20240806152830-8fb47b368cd4
 	cosmossdk.io/depinject v1.0.0 // indirect
 	cosmossdk.io/errors v1.0.1 // indirect
-	cosmossdk.io/log v1.4.0 // indirect
+	cosmossdk.io/log v1.4.1 // indirect
 	cosmossdk.io/math v1.3.0 // indirect
 	cosmossdk.io/schema v0.1.1 // indirect
 	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc // indirect
@@ -58,26 +60,26 @@ require (
 	github.com/VictoriaMetrics/fastcache v1.12.2 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/berachain/beacon-kit/mod/async v0.0.0-20240705193247-d464364483df // indirect
-	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240718074353-1a991cfeed63 // indirect
+	github.com/berachain/beacon-kit/mod/async v0.0.0-20240821000339-4d4242ba4a50 // indirect
+	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240718074353-1a991cfeed63
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df // indirect
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240705193247-d464364483df // indirect
-	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240809163303-a4ebb22fd018 // indirect
+	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240821052951-c15422305b4e
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240809163303-a4ebb22fd018
-	github.com/berachain/beacon-kit/mod/da v0.0.0-20240705193247-d464364483df // indirect
-	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240808194557-e72e74f58197 // indirect
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df // indirect
-	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240705193247-d464364483df // indirect
+	github.com/berachain/beacon-kit/mod/da v0.0.0-20240705193247-d464364483df
+	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240809202957-3e3f169ad720
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240806211103-d1105603bfc0 // indirect
+	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1347e7e // indirect
-	github.com/berachain/beacon-kit/mod/log v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/node-api v0.0.0-20240806160829-cde2d1347e7e // indirect
-	github.com/berachain/beacon-kit/mod/node-api/engines v0.0.0-20240806160829-cde2d1347e7e // indirect
-	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240618214413-d5ec0e66b3dd // indirect
-	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df // indirect
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240808194557-e72e74f58197 // indirect
-	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240815202409-3ecaa1f3f4c5 // indirect
-	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6650da31 // indirect
-	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240806160829-cde2d1347e7e // indirect
+	github.com/berachain/beacon-kit/mod/log v0.0.0-20240821000339-4d4242ba4a50
+	github.com/berachain/beacon-kit/mod/node-api v0.0.0-20240806160829-cde2d1347e7e
+	github.com/berachain/beacon-kit/mod/node-api/engines v0.0.0-20240806160829-cde2d1347e7e
+	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240821000339-4d4242ba4a50 // indirect
+	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240821052951-c15422305b4e
+	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240821000339-4d4242ba4a50 // indirect
+	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6650da31
+	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240806160829-cde2d1347e7e
 	github.com/bgentry/speakeasy v0.2.0 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
@@ -101,7 +103,7 @@ require (
 	github.com/cosmos/crypto v0.1.2 // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
-	github.com/cosmos/gogoproto v1.5.0 // indirect
+	github.com/cosmos/gogoproto v1.7.0 // indirect
 	github.com/cosmos/iavl v1.2.1-0.20240725141113-7adc688cf179 // indirect
 	github.com/cosmos/ics23/go v0.10.0 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.13.3 // indirect
@@ -247,7 +249,7 @@ require (
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
 	golang.org/x/net v0.28.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
-	golang.org/x/sys v0.23.0 // indirect
+	golang.org/x/sys v0.24.0 // indirect
 	golang.org/x/term v0.23.0 // indirect
 	golang.org/x/text v0.17.0 // indirect
 	golang.org/x/time v0.5.0 // indirect

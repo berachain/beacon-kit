@@ -18,21 +18,32 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package middleware
+package async
 
-import "errors"
+// EventID represents the type of a message.
+type EventID string
 
-var (
-	// ErrUnexpectedEvent is returned when an unexpected event is encountered.
-	ErrUnexpectedEvent = errors.New("unexpected event")
-	// ErrInvalidProcessProposalRequestType is returned when an invalid
-	// process proposal request type is encountered.
-	ErrInvalidProcessProposalRequestType = errors.New(
-		"invalid process proposal request type",
-	)
-	// ErrInvalidFinalizeBlockRequestType is returned when an invalid
-	// finalize block request type is encountered.
-	ErrInvalidFinalizeBlockRequestType = errors.New(
-		"invalid pre block request type",
-	)
+// event ids, topologically sorted.
+const (
+
+	// genesis data events.
+	GenesisDataReceived  = "genesis-data-received"
+	GenesisDataProcessed = "genesis-data-processed"
+
+	// pre proposal events.
+	NewSlot          = "new-slot"
+	BuiltBeaconBlock = "built-beacon-block"
+	BuiltSidecars    = "built-sidecars"
+
+	// proposal processing events.
+	BeaconBlockReceived = "beacon-block-received"
+	SidecarsReceived    = "sidecars-received"
+	BeaconBlockVerified = "beacon-block-verified"
+	SidecarsVerified    = "sidecars-verified"
+
+	// finalize block events.
+	FinalBeaconBlockReceived       = "final-beacon-block-received"
+	FinalSidecarsReceived          = "final-blob-sidecars-received"
+	FinalValidatorUpdatesProcessed = "final-validator-updates"
+	BeaconBlockFinalizedEvent      = "beacon-block-finalized"
 )

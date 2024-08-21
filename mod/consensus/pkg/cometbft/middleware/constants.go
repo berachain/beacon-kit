@@ -20,6 +20,8 @@
 
 package middleware
 
+import "time"
+
 const (
 	// BeaconBlockTxIndex represents the index of the beacon block transaction.
 	// It is the first transaction in the tx list.
@@ -27,4 +29,6 @@ const (
 	// BlobSidecarsTxIndex represents the index of the blob sidecar transaction.
 	// It follows the beacon block transaction in the tx list.
 	BlobSidecarsTxIndex
+	// AwaitTimeout is the timeout for awaiting events.
+	AwaitTimeout = 2 * time.Second
 )

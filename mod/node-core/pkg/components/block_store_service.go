@@ -29,26 +29,36 @@ import (
 
 // BlockServiceInput is the input for the block service.
 type BlockServiceInput[
+	BeaconBlockT any,
+	BeaconBlockStoreT BlockStore[BeaconBlockT],
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ] struct {
 	depinject.In
 
-	BlockBroker *BlockBroker
-	BlockStore  *BlockStore
-	Config      *config.Config
-	Logger      LoggerT
+	BlockStore BeaconBlockStoreT
+	Config     *config.Config
+	Dispatcher *Dispatcher
+	Logger     LoggerT
 }
 
 // ProvideBlockStoreService provides the block service.
 func ProvideBlockStoreService[
+	BeaconBlockT BeaconBlock[
+		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	],
+	BeaconBlockBodyT any,
+	BeaconBlockHeaderT any,
+	BeaconBlockStoreT BlockStore[BeaconBlockT],
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ](
-	in BlockServiceInput[LoggerT],
-) *BlockStoreService {
+	in BlockServiceInput[BeaconBlockT, BeaconBlockStoreT, LoggerT],
+) *blockstore.Service[
+	BeaconBlockT, BeaconBlockStoreT,
+] {
 	return blockstore.NewService(
 		in.Config.BlockStoreService,
 		in.Logger,
-		in.BlockBroker,
+		in.Dispatcher,
 		in.BlockStore,
 	)
 }

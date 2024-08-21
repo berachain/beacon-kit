@@ -18,12 +18,14 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package p2p
+package broker
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
-
-type BeaconBlock[SelfT any] interface {
-	constraints.SSZMarshallable
-	constraints.Empty[SelfT]
-	NewFromSSZ([]byte, uint32) (SelfT, error)
+// ensureType ensures that the provided entity is of type T.
+// It returns a typed entity or an error if the type is not correct.
+func ensureType[T any](e any) (T, error) {
+	typedE, ok := e.(T)
+	if !ok {
+		return *new(T), errIncompatibleAssignee(*new(T), e)
+	}
+	return typedE, nil
 }

@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	depositstore "github.com/berachain/beacon-kit/mod/storage/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
@@ -58,35 +59,47 @@ func ProvideDepositStore(
 
 // DepositPrunerInput is the input for the deposit pruner.
 type DepositPrunerInput[
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	BeaconBlockT any,
+	LoggerT any,
 ] struct {
 	depinject.In
-	BlockBroker  *BlockBroker
 	ChainSpec    common.ChainSpec
 	DepositStore *DepositStore
+	Dispatcher   *Dispatcher
 	Logger       LoggerT
 }
 
 // ProvideDepositPruner provides a deposit pruner for the depinject framework.
 func ProvideDepositPruner[
+	BeaconBlockT BeaconBlock[
+		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	],
+	BeaconBlockBodyT interface {
+		GetDeposits() []*Deposit
+	},
+	BeaconBlockHeaderT any,
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ](
-	in DepositPrunerInput[LoggerT],
+	in DepositPrunerInput[BeaconBlockT, LoggerT],
 ) (DepositPruner, error) {
-	subCh, err := in.BlockBroker.Subscribe()
-	if err != nil {
-		in.Logger.Error("failed to subscribe to block feed", "err", err)
+	// initialize a subscription for finalized blocks.
+	subFinalizedBlocks := make(chan async.Event[BeaconBlockT])
+	if err := in.Dispatcher.Subscribe(
+		async.BeaconBlockFinalizedEvent, subFinalizedBlocks,
+	); err != nil {
+		in.Logger.Error("failed to subscribe to event", "event",
+			async.BeaconBlockFinalizedEvent, "err", err)
 		return nil, err
 	}
 
-	return pruner.NewPruner[*BeaconBlock, *DepositStore](
+	return pruner.NewPruner[BeaconBlockT, *DepositStore](
 		in.Logger.With("service", manager.DepositPrunerName),
 		in.DepositStore,
 		manager.DepositPrunerName,
-		subCh,
+		subFinalizedBlocks,
 		deposit.BuildPruneRangeFn[
-			*BeaconBlock,
-			*BeaconBlockBody,
+			BeaconBlockT,
+			BeaconBlockBodyT,
 			*Deposit,
 			WithdrawalCredentials,
 		](in.ChainSpec),

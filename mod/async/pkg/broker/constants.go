@@ -22,11 +22,13 @@ package broker
 
 import "time"
 
+// TODO: make timeout configurable thorugh config/context
 const (
-	// defaultTimeout specifies the default timeout when the broker
+	// defaultBrokerTimeout specifies the default timeout when the publisher
 	// tries to send a message to a client, a message is published to the
-	// broker, or a client subscribes or unsubscribes.
-	defaultTimeout = time.Second
+	// publisher, or a client subscribes or unsubscribes.
+	defaultBrokerTimeout = time.Second
+
 	// defaultBufferSize specifies the default size of the message buffer.
 	defaultBufferSize = 10
 )

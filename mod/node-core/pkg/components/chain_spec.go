@@ -30,6 +30,7 @@ import (
 const (
 	ChainSpecTypeEnvVar = "CHAIN_SPEC"
 	DevnetChainSpecType = "devnet"
+	BetnetChainSpecType = "betnet"
 )
 
 // ProvideChainSpec provides the chain spec based on the environment variable.
@@ -37,9 +38,14 @@ func ProvideChainSpec() common.ChainSpec {
 	// TODO: This is hood as fuck needs to be improved
 	// but for now we ball to get CI unblocked.
 	specType := os.Getenv(ChainSpecTypeEnvVar)
-	chainSpec := spec.TestnetChainSpec()
-	if specType == DevnetChainSpecType {
+	var chainSpec common.ChainSpec
+	switch specType {
+	case DevnetChainSpecType:
 		chainSpec = spec.DevnetChainSpec()
+	case BetnetChainSpecType:
+		chainSpec = spec.BetnetChainSpec()
+	default:
+		chainSpec = spec.TestnetChainSpec()
 	}
 
 	return chainSpec

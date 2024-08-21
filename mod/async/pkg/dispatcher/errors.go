@@ -18,19 +18,29 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package events
+package dispatcher
 
-const (
-	NewSlot                     = "new-slot"
-	BeaconBlockBuilt            = "beacon-block-built"
-	BeaconBlockReceived         = "beacon-block-received"
-	BeaconBlockVerified         = "beacon-block-verified"
-	BeaconBlockFinalizedRequest = "beacon-block-finalized-request"
-	BeaconBlockFinalized        = "beacon-block-finalized"
-	ValidatorSetUpdated         = "validator-set-updated"
-	BlobSidecarsBuilt           = "blob-sidecars-built"
-	BlobSidecarsReceived        = "blob-sidecars-received"
-	BlobSidecarsProcessRequest  = "blob-sidecars-process-request"
-	BlobSidecarsProcessed       = "blob-sidecars-processed"
-	GenesisDataProcessRequest   = "genesis-data-process-request"
+import (
+	"github.com/berachain/beacon-kit/mod/errors"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
+)
+
+//nolint:gochecknoglobals // errors
+var (
+	ErrNotFound       = errors.New("not found")
+	ErrAlreadyExists  = errors.New("already exists")
+	errBrokerNotFound = func(eventID async.EventID) error {
+		return errors.Wrapf(
+			ErrNotFound,
+			"publisher not found for eventID: %s",
+			eventID,
+		)
+	}
+	errBrokerAlreadyExists = func(eventID async.EventID) error {
+		return errors.Wrapf(
+			ErrAlreadyExists,
+			"publisher already exists for eventID: %s",
+			eventID,
+		)
+	}
 )

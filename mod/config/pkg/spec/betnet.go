@@ -18,29 +18,23 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package middleware
+package spec
 
 import (
-	"time"
-
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+	"github.com/berachain/beacon-kit/mod/chain-spec/pkg/chain"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-// BeaconBlock is an interface for accessing the beacon block.
-type BeaconBlock[SelfT any] interface {
-	constraints.SSZMarshallable
-	constraints.Nillable
-	constraints.Empty[SelfT]
-	NewFromSSZ([]byte, uint32) (SelfT, error)
-}
-
-// TelemetrySink is an interface for sending metrics to a telemetry backend.
-type TelemetrySink interface {
-	// MeasureSince measures the time since the given time.
-	MeasureSince(key string, start time.Time, args ...string)
-}
-
-type BlobSidecars[T any] interface {
-	constraints.SSZMarshallable
-	constraints.Empty[T]
+// BetnetChainSpec is the ChainSpec for the localnet.
+func BetnetChainSpec() chain.Spec[
+	common.DomainType,
+	math.Epoch,
+	common.ExecutionAddress,
+	math.Slot,
+	any,
+] {
+	testnetSpec := BaseSpec()
+	testnetSpec.DepositEth1ChainID = BetnetEth1ChainID
+	return chain.NewChainSpec(testnetSpec)
 }

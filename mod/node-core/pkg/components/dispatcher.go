@@ -18,21 +18,35 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package p2p
+package components
 
-import "context"
+import (
+	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/log"
+)
 
-type PublisherReceiver[
-	InPubT, OutPubT, InReceiverT, OutReceiverT any,
-] interface {
-	Publisher[InPubT, OutPubT]
-	Receiver[InReceiverT, OutReceiverT]
+// DispatcherInput is the input for the Dispatcher.
+type DispatcherInput[
+	LoggerT any,
+] struct {
+	depinject.In
+	Logger     LoggerT
+	Publishers []asynctypes.Broker
 }
 
-type Publisher[InT, OutT any] interface {
-	Publish(ctx context.Context, data InT) (OutT, error)
-}
-
-type Receiver[InT, OutT any] interface {
-	Request(ctx context.Context, ref InT) (OutT, error)
+// ProvideDispatcher provides a new Dispatcher.
+func ProvideDispatcher[
+	LoggerT log.AdvancedLogger[any, LoggerT],
+](
+	in DispatcherInput[LoggerT],
+) (*Dispatcher, error) {
+	d := dispatcher.New(
+		in.Logger.With("service", "dispatcher"),
+	)
+	if err := d.RegisterBrokers(in.Publishers...); err != nil {
+		return nil, err
+	}
+	return d, nil
 }

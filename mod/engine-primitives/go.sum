@@ -14,8 +14,8 @@ github.com/berachain/beacon-kit/mod/errors v0.0.0-20240618214413-d5ec0e66b3dd h1
 github.com/berachain/beacon-kit/mod/errors v0.0.0-20240618214413-d5ec0e66b3dd/go.mod h1:iXa+Q+i0q+GCpLzkusulO57K5vlkDgM77jtfMr3QdFA=
 github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1347e7e h1:0/FDBXtagMkpta/f4J2uAah2NM1G+0dqxngzMzrmbw4=
 github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1347e7e/go.mod h1:7/SXz8S5VpFl2thcKuBdu1OId+SgI1o4N+S1FB92Zw8=
-github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240808194557-e72e74f58197 h1:hk8N7Q1CCKMW/05pRu5rbfRnbTUou5TjULaeeRtbU+E=
-github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240808194557-e72e74f58197/go.mod h1:7kNnd9rhYjyZJHuXs/ku5drL9EMM64ekJVR181fGmbM=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240821052951-c15422305b4e h1:1gzXFaLpNI/Hm1uxYu/mi9iH3ycAG2Lq8cea+tK6DCw=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240821052951-c15422305b4e/go.mod h1:Mrq1qol8vbkgZp2IMPFwngg75qE3k9IvT2MouBEhuus=
 github.com/bits-and-blooms/bitset v1.13.0 h1:bAQ9OPNFYbGHV6Nez0tmNI0RiEu7/hxlYJRUA0wFAVE=
 github.com/bits-and-blooms/bitset v1.13.0/go.mod h1:7hO7Gc7Pp1vODcmWvKMRA9BNmbv6a/7QIWpPxHddWR8=
 github.com/btcsuite/btcd/btcec/v2 v2.3.3 h1:6+iXlDKE8RMtKsvK0gshlXIuPbyWM/h84Ensb7o3sC0=
@@ -260,8 +260,8 @@ golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a/go.mod h1:oPkhp1MJrh7nUepCBc
 golang.org/x/sys v0.1.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.5.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.14.0/go.mod h1:/VUhepiaJMQUp4+oa/7Zr1D23ma6VTLIYjOOTFZPUcA=
-golang.org/x/sys v0.23.0 h1:YfKFowiIMvtgl1UERQoTPPToxltDeZfbj4H7dVUCwmM=
-golang.org/x/sys v0.23.0/go.mod h1:/VUhepiaJMQUp4+oa/7Zr1D23ma6VTLIYjOOTFZPUcA=
+golang.org/x/sys v0.24.0 h1:Twjiwq9dn6R1fQcyiK+wQyHWfaz/BJB+YIpzU/Cv3Xg=
+golang.org/x/sys v0.24.0/go.mod h1:/VUhepiaJMQUp4+oa/7Zr1D23ma6VTLIYjOOTFZPUcA=
 golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1/go.mod h1:bj7SfCRtBDWHUb9snDiAeCFNEtKQo2Wmx5Cou7ajbmo=
 golang.org/x/term v0.0.0-20210927222741-03fcf44c2211/go.mod h1:jbD1KX2456YbFQfuXm/mYQcufACuNUgVhRMnK/tPxf8=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=

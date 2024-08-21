@@ -18,41 +18,32 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package p2p
+package middleware
 
 import (
-	"context"
+	"time"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 )
 
-// NoopGossipHandler is a gossip handler that simply returns the
-// ssz marshalled data as a "reference" to the object it receives.
-type NoopGossipHandler[
-	DataT interface {
-		constraints.Empty[DataT]
-		constraints.SSZMarshallable
-	}, BytesT ~[]byte,
-] struct{}
-
-// Publish creates a new NoopGossipHandler.
-func (n NoopGossipHandler[DataT, BytesT]) Publish(
-	_ context.Context,
-	data DataT,
-) (BytesT, error) {
-	return data.MarshalSSZ()
+// BeaconBlock is an interface for accessing the beacon block.
+type BeaconBlock[SelfT any] interface {
+	constraints.SSZMarshallable
+	constraints.Nillable
+	constraints.Empty[SelfT]
+	NewFromSSZ([]byte, uint32) (SelfT, error)
 }
 
-// Request simply returns the reference it receives.
-func (n NoopGossipHandler[DataT, BytesT]) Request(
-	_ context.Context,
-	ref BytesT,
-) (DataT, error) {
-	var (
-		out DataT
-	)
-
-	// Use Empty() method to create a new instance of DataT
-	out = out.Empty()
-	return out, out.UnmarshalSSZ(ref)
+// TelemetrySink is an interface for sending metrics to a telemetry backend.
+type TelemetrySink interface {
+	// MeasureSince measures the time since the given time.
+	MeasureSince(key string, start time.Time, args ...string)
 }
+
+type BlobSidecars[T any] interface {
+	constraints.SSZMarshallable
+	constraints.Empty[T]
+}
+
+type validatorUpdates = transition.ValidatorUpdates

@@ -28,8 +28,11 @@ import (
 	clicomponents "github.com/berachain/beacon-kit/mod/cli/pkg/components"
 	nodebuilder "github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
 	nodecomponents "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
+	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"go.uber.org/automaxprocs/maxprocs"
 )
+
+type Node = nodetypes.Node
 
 // run runs the beacon node.
 func run() error {
@@ -42,7 +45,7 @@ func run() error {
 	nb := nodebuilder.New(
 		// Set the Runtime Components to the Default.
 		nodebuilder.WithComponents[Node, *Logger, *LoggerConfig](
-			nodecomponents.DefaultComponents(),
+			DefaultComponents(),
 		),
 	)
 
