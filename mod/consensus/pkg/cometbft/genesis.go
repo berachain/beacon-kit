@@ -21,17 +21,16 @@
 package cometbft
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
-
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 	cmttypes "github.com/cometbft/cometbft/types"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
 
 // LoadHeight loads a particular height.
-func (a *BaseApp) LoadHeight(height int64) error {
-	return a.LoadVersion(height)
+func (app *BaseApp) LoadHeight(height int64) error {
+	return app.LoadVersion(height)
 }
 
 // DefaultGenesis returns the default genesis state for the application.

@@ -143,7 +143,7 @@ func (app *BaseApp) InitChain(
 }
 
 // InitChainer initializes the chain.
-func (a *BaseApp) initChainer(
+func (app *BaseApp) initChainer(
 	ctx sdk.Context,
 	req *abci.InitChainRequest,
 ) (*abci.InitChainResponse, error) {
@@ -151,7 +151,7 @@ func (a *BaseApp) initChainer(
 	if err := json.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		return nil, err
 	}
-	valUpdates, err := a.Middleware.InitGenesis(
+	valUpdates, err := app.Middleware.InitGenesis(
 		ctx,
 		[]byte(genesisState["beacon"]),
 	)
@@ -170,7 +170,6 @@ func (a *BaseApp) initChainer(
 	return &abci.InitChainResponse{
 		Validators: convertedValUpdates,
 	}, nil
-
 }
 
 func (app *BaseApp) Info(_ *abci.InfoRequest) (*abci.InfoResponse, error) {
@@ -436,7 +435,6 @@ func (app *BaseApp) internalFinalizeBlock(
 func (app *BaseApp) FinalizeBlock(
 	req *abci.FinalizeBlockRequest,
 ) (res *abci.FinalizeBlockResponse, err error) {
-
 	res, err = app.internalFinalizeBlock(context.Background(), req)
 	if res != nil {
 		res.AppHash = app.workingHash()
