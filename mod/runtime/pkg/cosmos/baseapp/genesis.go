@@ -50,7 +50,9 @@ func (app *BaseApp) DefaultGenesis() map[string]json.RawMessage {
 }
 
 // ValidateGenesis validates the provided genesis state.
-func (app *BaseApp) ValidateGenesis(genesisData map[string]json.RawMessage) error {
+func (app *BaseApp) ValidateGenesis(
+	genesisData map[string]json.RawMessage,
+) error {
 	// Implement the validation logic for the provided genesis state.
 	// This should validate the genesis state for each module in the
 	// application.

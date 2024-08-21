@@ -119,7 +119,6 @@ type BaseApp struct {
 // variadic number of option functions, which act on the BaseApp to set
 // configuration choices.
 func NewBaseApp(
-	name string,
 	storeKey *storetypes.KVStoreKey,
 	logger log.Logger,
 	db dbm.DB,
@@ -129,7 +128,7 @@ func NewBaseApp(
 ) *BaseApp {
 	app := &BaseApp{
 		logger: logger.With(log.ModuleKey, "baseapp"),
-		name:   name,
+		name:   "BeaconKit",
 		db:     db,
 		cms: store.NewCommitMultiStore(
 			db,
