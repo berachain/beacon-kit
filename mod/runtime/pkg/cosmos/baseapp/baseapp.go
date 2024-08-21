@@ -136,6 +136,7 @@ func NewBaseApp(
 			logger,
 			storemetrics.NewNoOpMetrics(),
 		), // by default we use a no-op metric gather in store
+		Middleware: middleware,
 	}
 
 	app.SetVersion(version.Version)
