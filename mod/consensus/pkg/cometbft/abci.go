@@ -407,6 +407,9 @@ func (app *Service) FinalizeBlock(
 // against that height and gracefully halt if it matches the latest committed
 // height.
 func (app *Service) Commit() (*abci.CommitResponse, error) {
+	if app.finalizeBlockState == nil {
+		return nil, errors.New("finalizeBlockState is nil")
+	}
 	header := app.finalizeBlockState.Context().BlockHeader()
 	retainHeight := app.GetBlockRetentionHeight(header.Height)
 
