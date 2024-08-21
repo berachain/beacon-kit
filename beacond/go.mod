@@ -22,7 +22,7 @@ replace (
 require (
 	cosmossdk.io/core v0.12.1-0.20240806152830-8fb47b368cd4
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240820191615-398849c34954
-	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240821160425-d2483c869437
+	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240821200357-fe517000c0e5
 	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240821160425-d2483c869437
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240821160425-d2483c869437
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240820191615-398849c34954
@@ -31,7 +31,7 @@ require (
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240821160425-d2483c869437
 	github.com/berachain/beacon-kit/mod/node-api v0.0.0-20240821160425-d2483c869437
 	github.com/berachain/beacon-kit/mod/node-api/engines v0.0.0-20240821160425-d2483c869437
-	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240821160425-d2483c869437
+	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240821200357-fe517000c0e5
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240821160425-d2483c869437
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240821160425-d2483c869437
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240821160425-d2483c869437
@@ -80,7 +80,7 @@ require (
 	github.com/cockroachdb/errors v1.11.3 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240816210425-c5d0cb0b6fc0 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
-	github.com/cockroachdb/pebble v1.1.2 // indirect
+	github.com/cockroachdb/pebble v1.1.1 // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240806094948-2c4293ef36c4 // indirect
