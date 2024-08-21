@@ -252,7 +252,7 @@ func startCmtNode(
 		),
 		nodeKey,
 		proxy.NewLocalClientCreator(cmtApp),
-		getGenDocProvider(cfg),
+		GetGenDocProvider(cfg),
 		cmtcfg.DefaultDBProvider,
 		node.DefaultMetricsProvider(cfg.Instrumentation),
 		servercmtlog.CometLoggerWrapper{Logger: svrCtx.Logger},
@@ -286,9 +286,9 @@ func getAndValidateConfig(svrCtx *Context) (serverconfig.Config, error) {
 	return config, nil
 }
 
-// getGenDocProvider returns a function which returns the genesis doc from the
+// GetGenDocProvider returns a function which returns the genesis doc from the
 // genesis file.
-func getGenDocProvider(
+func GetGenDocProvider(
 	cfg *cmtcfg.Config,
 ) func() (node.ChecksummedGenesisDoc, error) {
 	return func() (node.ChecksummedGenesisDoc, error) {

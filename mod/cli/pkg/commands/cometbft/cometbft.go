@@ -21,7 +21,7 @@
 package cometbft
 
 import (
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server"
+	cometcli "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/cli"
 	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
@@ -40,13 +40,13 @@ func Commands[T types.Node](
 	}
 
 	cometCmd.AddCommand(
-		server.ShowNodeIDCmd(),
-		server.ShowValidatorCmd(),
-		server.ShowAddressCmd(),
-		server.VersionCmd(),
+		cometcli.ShowNodeIDCmd(),
+		cometcli.ShowValidatorCmd(),
+		cometcli.ShowAddressCmd(),
+		cometcli.VersionCmd(),
 		cmtcmd.ResetAllCmd,
 		cmtcmd.ResetStateCmd,
-		server.BootstrapStateCmd(appCreator),
+		cometcli.BootstrapStateCmd(appCreator),
 	)
 
 	return cometCmd

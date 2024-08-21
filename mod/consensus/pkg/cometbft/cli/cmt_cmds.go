@@ -30,7 +30,9 @@ import (
 
 	"cosmossdk.io/log"
 	auth "cosmossdk.io/x/auth/client/cli"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server"
 	types "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
+	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	cmtjson "github.com/cometbft/cometbft/libs/json"
 	"github.com/cometbft/cometbft/node"
@@ -49,6 +51,37 @@ import (
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
 )
+
+// AddCommands add server commands.
+func AddCommands[T types.Application](
+	rootCmd *cobra.Command,
+	appCreator types.AppCreator[T],
+	opts server.StartCmdOptions[T],
+) {
+	cometCmd := &cobra.Command{
+		Use:     "comet",
+		Aliases: []string{"cometbft", "tendermint"},
+		Short:   "CometBFT subcommands",
+	}
+
+	cometCmd.AddCommand(
+		ShowNodeIDCmd(),
+		ShowValidatorCmd(),
+		ShowAddressCmd(),
+		VersionCmd(),
+		cmtcmd.ResetAllCmd,
+		cmtcmd.ResetStateCmd,
+		BootstrapStateCmd[T](appCreator),
+	)
+
+	startCmd := server.StartCmdWithOptions(appCreator, opts)
+	rootCmd.AddCommand(
+		startCmd,
+		cometCmd,
+		version.NewVersionCommand(),
+		server.NewRollbackCmd[T](appCreator),
+	)
+}
 
 // StatusCommand returns the command to return the status of the network.
 func StatusCommand() *cobra.Command {
@@ -99,7 +132,7 @@ func ShowNodeIDCmd() *cobra.Command {
 		Use:   "show-node-id",
 		Short: "Show this node's ID",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			serverCtx := GetServerContextFromCmd(cmd)
+			serverCtx := server.GetServerContextFromCmd(cmd)
 			cfg := serverCtx.Config
 
 			nodeKey, err := p2p.LoadNodeKey(cfg.NodeKeyFile())
@@ -119,7 +152,7 @@ func ShowValidatorCmd() *cobra.Command {
 		Use:   "show-validator",
 		Short: "Show this node's CometBFT validator info",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			serverCtx := GetServerContextFromCmd(cmd)
+			serverCtx := server.GetServerContextFromCmd(cmd)
 			cfg := serverCtx.Config
 
 			privValidator := pvm.LoadFilePV(
@@ -156,7 +189,7 @@ func ShowAddressCmd() *cobra.Command {
 		Use:   "show-address",
 		Short: "Shows this node's CometBFT validator consensus address",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			serverCtx := GetServerContextFromCmd(cmd)
+			serverCtx := server.GetServerContextFromCmd(cmd)
 			cfg := serverCtx.Config
 
 			privValidator := pvm.LoadFilePV(
@@ -411,7 +444,7 @@ func BootstrapStateCmd[T types.Application](
 		Short: "Bootstrap CometBFT state at an arbitrary block height using a light client",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			serverCtx := GetServerContextFromCmd(cmd)
+			serverCtx := server.GetServerContextFromCmd(cmd)
 			logger := log.NewLogger(cmd.OutOrStdout())
 			cfg := serverCtx.Config
 
@@ -421,7 +454,7 @@ func BootstrapStateCmd[T types.Application](
 			}
 			if height == 0 {
 				home := serverCtx.Viper.GetString(flags.FlagHome)
-				db, err := OpenDB(home, db.PebbleDBBackend)
+				db, err := server.OpenDB(home, db.PebbleDBBackend)
 				if err != nil {
 					return err
 				}
@@ -434,7 +467,7 @@ func BootstrapStateCmd[T types.Application](
 				cmd.Context(),
 				cfg,
 				cmtcfg.DefaultDBProvider,
-				getGenDocProvider(cfg),
+				server.GetGenDocProvider(cfg),
 				uint64(height),
 				nil,
 			)

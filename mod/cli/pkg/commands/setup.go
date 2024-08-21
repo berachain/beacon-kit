@@ -26,6 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/genesis"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/jwt"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
+	cmtcli "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/cli"
 	ccometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server"
 	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
@@ -71,7 +72,7 @@ func DefaultRootCommandSetup[
 		// `start`
 		server.StartCmdWithOptions(appCreator, startCmdOptions),
 		// `status`
-		server.StatusCommand(),
+		cmtcli.StatusCommand(),
 		// `version`
 		version.NewVersionCommand(),
 	)

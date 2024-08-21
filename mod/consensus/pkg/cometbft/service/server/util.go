@@ -36,13 +36,10 @@ import (
 	corectx "cosmossdk.io/core/context"
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/config"
-	types "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
-	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -332,37 +329,6 @@ func interceptConfigs(
 	}
 
 	return conf, nil
-}
-
-// AddCommands add server commands.
-func AddCommands[T types.Application](
-	rootCmd *cobra.Command,
-	appCreator types.AppCreator[T],
-	opts StartCmdOptions[T],
-) {
-	cometCmd := &cobra.Command{
-		Use:     "comet",
-		Aliases: []string{"cometbft", "tendermint"},
-		Short:   "CometBFT subcommands",
-	}
-
-	cometCmd.AddCommand(
-		ShowNodeIDCmd(),
-		ShowValidatorCmd(),
-		ShowAddressCmd(),
-		VersionCmd(),
-		cmtcmd.ResetAllCmd,
-		cmtcmd.ResetStateCmd,
-		BootstrapStateCmd[T](appCreator),
-	)
-
-	startCmd := StartCmdWithOptions(appCreator, opts)
-	rootCmd.AddCommand(
-		startCmd,
-		cometCmd,
-		version.NewVersionCommand(),
-		NewRollbackCmd[T](appCreator),
-	)
 }
 
 // ListenForQuitSignals listens for SIGINT and SIGTERM. When a signal is
