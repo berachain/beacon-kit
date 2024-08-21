@@ -25,9 +25,6 @@ import (
 
 	"cosmossdk.io/store/snapshots"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/server/api"
-	"github.com/cosmos/cosmos-sdk/server/config"
 	gogogrpc "github.com/cosmos/gogoproto/grpc"
 )
 
@@ -80,22 +77,6 @@ func (Service) VerifyVoteExtension(
 	*abci.VerifyVoteExtensionRequest,
 ) (*abci.VerifyVoteExtensionResponse, error) {
 	return &abci.VerifyVoteExtensionResponse{}, nil
-}
-
-func (Service) RegisterAPIRoutes(
-	_ *api.Server, _ config.APIConfig) {
-}
-
-func (Service) RegisterTxService(
-	client.Context) {
-}
-
-func (Service) RegisterTendermintService(
-	client.Context) {
-}
-
-func (Service) RegisterNodeService(
-	_ client.Context, _ config.Config) {
 }
 
 func (*Service) CheckTx(
