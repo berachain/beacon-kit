@@ -47,6 +47,7 @@ func ProvideDispatcher[
 		in.Logger.With("service", "dispatcher"),
 		dp.WithEvent[GenesisEvent](async.GenesisDataReceived),
 		dp.WithEvent[ValidatorUpdateEvent](async.GenesisDataProcessed),
+		dp.WithEvent[SlotEvent](async.NewSlot),
 		dp.WithEvent[async.Event[BeaconBlockT]](async.BuiltBeaconBlock),
 		dp.WithEvent[async.Event[BlobSidecarsT]](async.BuiltSidecars),
 		dp.WithEvent[async.Event[BeaconBlockT]](async.BeaconBlockReceived),
