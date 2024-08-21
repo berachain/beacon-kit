@@ -18,36 +18,17 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package dispatcher
+package async
 
-import (
-	"github.com/berachain/beacon-kit/mod/errors"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
-)
-
-//nolint:gochecknoglobals // errors
-var (
-	// ErrNotFound is returned when a broker is not found for an eventID.
-	ErrNotFound = errors.New("not found")
-	// ErrAlreadyExists is returned when a broker is already registered for an
-	// eventID.
-	ErrAlreadyExists = errors.New("already exists")
-	// errBrokerNotFound is a helper function to wrap the ErrNotFound error
-	// with the eventID.
-	errBrokerNotFound = func(eventID async.EventID) error {
-		return errors.Wrapf(
-			ErrNotFound,
-			"publisher not found for eventID: %s",
-			eventID,
-		)
+// ClearChan clears a channel of all values.
+func ClearChan[T any](ch chan T) int {
+	cleared := 0
+	for {
+		select {
+		case <-ch:
+			cleared++
+		default:
+			return cleared
+		}
 	}
-	// errBrokerAlreadyExists is a helper function to wrap the ErrAlreadyExists
-	// error with the eventID.
-	errBrokerAlreadyExists = func(eventID async.EventID) error {
-		return errors.Wrapf(
-			ErrAlreadyExists,
-			"publisher already exists for eventID: %s",
-			eventID,
-		)
-	}
-)
+}

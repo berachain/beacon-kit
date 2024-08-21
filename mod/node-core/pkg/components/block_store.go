@@ -23,7 +23,6 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	storev2 "cosmossdk.io/store/v2/db"
-	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
 	blockservice "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -95,7 +94,7 @@ type BlockPrunerInput[
 
 	BlockStore BeaconBlockStoreT
 	Config     *config.Config
-	Dispatcher *dispatcher.Dispatcher
+	Dispatcher Dispatcher
 	Logger     LoggerT
 }
 

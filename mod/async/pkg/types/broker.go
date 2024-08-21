@@ -18,36 +18,32 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package dispatcher
+package types
 
 import (
-	"github.com/berachain/beacon-kit/mod/errors"
+	"context"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 )
 
-//nolint:gochecknoglobals // errors
-var (
-	// ErrNotFound is returned when a broker is not found for an eventID.
-	ErrNotFound = errors.New("not found")
-	// ErrAlreadyExists is returned when a broker is already registered for an
-	// eventID.
-	ErrAlreadyExists = errors.New("already exists")
-	// errBrokerNotFound is a helper function to wrap the ErrNotFound error
-	// with the eventID.
-	errBrokerNotFound = func(eventID async.EventID) error {
-		return errors.Wrapf(
-			ErrNotFound,
-			"publisher not found for eventID: %s",
-			eventID,
-		)
-	}
-	// errBrokerAlreadyExists is a helper function to wrap the ErrAlreadyExists
-	// error with the eventID.
-	errBrokerAlreadyExists = func(eventID async.EventID) error {
-		return errors.Wrapf(
-			ErrAlreadyExists,
-			"publisher already exists for eventID: %s",
-			eventID,
-		)
-	}
-)
+// Broker is the unique publisher for broadcasting all events corresponding
+// to the <eventID> to all registered client channels.
+// There should be exactly one broker responsible for every eventID.
+type Broker interface {
+	// EventID returns the event ID that the publisher is responsible for.
+	EventID() async.EventID
+	// Start starts the broker loop in a goroutine to listen and broadcast
+	// events to all subscribers.
+	Start(ctx context.Context)
+	// Publish publishes a msg to all subscribers.
+	// Errors if the message is not of type T, or if the context is canceled.
+	Publish(event async.BaseEvent) error
+	// Subscribe registers the provided channel to the broker.
+	// Errors if the channel is not of type chan T.
+	// Contract: the channel must be a Chan[T], where T is the expected
+	// type of the event data.
+	Subscribe(ch any) error
+	// Unsubscribe removes a client from the broker.
+	// Returns an error if the provided channel is not of type chan T.
+	Unsubscribe(ch any) error
+}

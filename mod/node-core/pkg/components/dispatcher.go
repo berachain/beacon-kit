@@ -43,7 +43,7 @@ func ProvideDispatcher[
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ](
 	in DispatcherInput[LoggerT],
-) (*Dispatcher, error) {
+) (Dispatcher, error) {
 	return dp.New(
 		in.Logger.With("service", "dispatcher"),
 		dp.WithEvent[async.Event[GenesisT]](async.GenesisDataReceived),

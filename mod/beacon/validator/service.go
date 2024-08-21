@@ -80,7 +80,7 @@ type Service[
 	remotePayloadBuilders []PayloadBuilder[BeaconStateT, ExecutionPayloadT]
 	// metrics is a metrics collector.
 	metrics *validatorMetrics
-	// subNewSlot is a channel for new slot events.
+	// subNewSlot is a channel to hold NewSlot events.
 	subNewSlot chan async.Event[SlotDataT]
 }
 
@@ -154,21 +154,22 @@ func (s *Service[
 // Start listens for NewSlot events and builds a block and sidecars for the
 // requested slot data.
 func (s *Service[
-	_, _, _, _, _, _, _, _, _, _, _, _, SlotDataT,
+	_, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) Start(
 	ctx context.Context,
 ) error {
-	// subscribe to new slot events
+	// subscribe to NewSlot events
 	err := s.dispatcher.Subscribe(async.NewSlot, s.subNewSlot)
 	if err != nil {
 		return err
 	}
-	// set the handler for new slot events
+	// start the event loop to listen and handle events.
 	go s.eventLoop(ctx)
 	return nil
 }
 
-func (s *Service[_, _, _, _, _, _, _, _, _, _, _, _, SlotDataT]) eventLoop(
+// eventLoop is the main event loop for the validator service.
+func (s *Service[_, _, _, _, _, _, _, _, _, _, _, _, _]) eventLoop(
 	ctx context.Context,
 ) {
 	for {
@@ -181,8 +182,9 @@ func (s *Service[_, _, _, _, _, _, _, _, _, _, _, _, SlotDataT]) eventLoop(
 	}
 }
 
-// handleNewSlot builds a block and sidecars for the requested
-// slot data and emits an event containing the built block and sidecars.
+// handleNewSlot builds a block and sidecars for the requested slot data and
+// emits BuiltBeaconBlock and BuiltSidecars events containing the built block
+// and sidecars.
 func (s *Service[
 	_, BeaconBlockT, _, _, BlobSidecarsT, _, _, _, _, _, _, _, SlotDataT,
 ]) handleNewSlot(req async.Event[SlotDataT]) {
