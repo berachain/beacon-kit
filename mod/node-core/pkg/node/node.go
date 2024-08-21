@@ -52,7 +52,7 @@ func (n *node) Start(ctx context.Context) error {
 // SetApplication sets the application.
 func (n *node) RegisterApp(a types.Application) {
 	//nolint:errcheck // BeaconApp is our servertypes.Application
-	n.App = a.(*baseapp.BaseApp)
+	n.BaseApp = a.(*baseapp.BaseApp)
 }
 
 // SetServiceRegistry sets the service registry.
