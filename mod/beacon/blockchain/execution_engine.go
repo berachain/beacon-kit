@@ -86,7 +86,8 @@ func (s *Service[
 	); err != nil {
 		s.logger.Error(
 			"failed to send forkchoice update with attributes in non-optimistic payload",
-			"error", err,
+			"error",
+			err,
 		)
 	}
 }

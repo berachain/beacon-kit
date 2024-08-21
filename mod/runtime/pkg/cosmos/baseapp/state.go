@@ -21,10 +21,15 @@
 package baseapp
 
 import (
+	"context"
 	"sync"
 
 	storetypes "cosmossdk.io/store/types"
+	ctypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/gogoproto/proto"
 )
 
 type state struct {
@@ -52,4 +57,27 @@ func (st *state) Context() sdk.Context {
 	st.mtx.RLock()
 	defer st.mtx.RUnlock()
 	return st.ctx
+}
+
+type Middleware interface {
+	InitGenesis(
+		ctx context.Context,
+		bz []byte,
+	) (transition.ValidatorUpdates, error)
+
+	PrepareProposal(
+		ctx context.Context,
+		slotData *types.SlotData[
+			*ctypes.AttestationData,
+			*ctypes.SlashingInfo],
+	) ([]byte, []byte, error)
+
+	ProcessProposal(
+		ctx context.Context,
+		req proto.Message,
+	) (proto.Message, error)
+
+	FinalizeBlock(
+		ctx context.Context, req proto.Message,
+	) (transition.ValidatorUpdates, error)
 }

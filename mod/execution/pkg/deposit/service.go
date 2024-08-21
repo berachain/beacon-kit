@@ -47,7 +47,8 @@ type Service[
 	ds Store[DepositT]
 	// dispatcher is the dispatcher for the service.
 	dispatcher asynctypes.EventDispatcher
-	// subFinalizedBlockEvents is the channel that provides finalized block events.
+	// subFinalizedBlockEvents is the channel that provides finalized block
+	// events.
 	subFinalizedBlockEvents chan async.Event[BeaconBlockT]
 	// metrics is the metrics for the deposit service.
 	metrics *metrics

@@ -18,17 +18,47 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package runtime
+package baseapp
 
 import (
 	servertypes "github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/types"
 	cmttypes "github.com/cometbft/cometbft/types"
 )
 
+// LoadHeight loads a particular height.
+func (a *BaseApp) LoadHeight(height int64) error {
+	return a.LoadVersion(height)
+}
+
+// DefaultGenesis returns the default genesis state for the application.
+func (app *BaseApp) DefaultGenesis() map[string]json.RawMessage {
+	// Implement the default genesis state for the application.
+	// This should return a map of module names to their respective default
+	// genesis states.
+	gen := make(map[string]json.RawMessage)
+	s := types.DefaultGenesisDeneb()
+	var err error
+	gen["beacon"], err = json.Marshal(s)
+	if err != nil {
+		panic(err)
+	}
+	return gen
+}
+
+// ValidateGenesis validates the provided genesis state.
+func (app *BaseApp) ValidateGenesis(
+	genesisData map[string]json.RawMessage,
+) error {
+	// Implement the validation logic for the provided genesis state.
+	// This should validate the genesis state for each module in the
+	// application.
+	return nil
+}
+
 // ExportAppStateAndValidators exports the state of the application for a
 // genesis
 // file.
-func (app *App) ExportAppStateAndValidators(
+func (app *BaseApp) ExportAppStateAndValidators(
 	forZeroHeight bool,
 	_, modulesToExport []string,
 ) (servertypes.ExportedApp, error) {
@@ -60,6 +90,6 @@ func (app *App) ExportAppStateAndValidators(
 		AppState:        nil,
 		Validators:      validators,
 		Height:          height,
-		ConsensusParams: app.BaseApp.GetConsensusParams(app.NewContextLegacy()),
+		ConsensusParams: app.GetConsensusParams(ctx),
 	}, nil
 }

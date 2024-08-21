@@ -27,9 +27,7 @@ import (
 
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	storetypes "cosmossdk.io/store/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/gogoproto/proto"
 )
 
 // File for storing in-package BaseApp optional functions,
@@ -105,16 +103,6 @@ func (app *BaseApp) SetAppVersion(ctx context.Context, v uint64) error {
 		return err
 	}
 	return nil
-}
-
-func (app *BaseApp) SetInitChainer(initChainer sdk.InitChainer) {
-	app.initChainer = initChainer
-}
-
-func (app *BaseApp) SetFinalizeBlocker(
-	finalizeBlocker func(context.Context, proto.Message) (transition.ValidatorUpdates, error),
-) {
-	app.finalizeBlocker = finalizeBlocker
 }
 
 // SetProcessProposal sets the process proposal function for the BaseApp.

@@ -36,7 +36,7 @@ import (
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/gogoproto/proto"
+	"github.com/cosmos/cosmos-sdk/version"
 )
 
 type (
@@ -56,15 +56,14 @@ var _ servertypes.ABCI = (*BaseApp)(nil)
 // BaseApp reflects the ABCI application implementation.
 type BaseApp struct {
 	// initialized on creation
-	logger log.Logger
-	name   string                      // application name from abci.BlockInfo
-	db     dbm.DB                      // common DB backend
-	cms    storetypes.CommitMultiStore // Main (uncached) state
+	logger          log.Logger
+	name            string                      // application name from abci.BlockInfo
+	db              dbm.DB                      // common DB backend
+	cms             storetypes.CommitMultiStore // Main (uncached) state
+	processProposal sdk.ProcessProposalHandler  // ABCI ProcessProposal handler
+	prepareProposal sdk.PrepareProposalHandler  // ABCI PrepareProposal handler
 
-	initChainer     sdk.InitChainer                                                           // ABCI InitChain handler
-	finalizeBlocker func(context.Context, proto.Message) (transition.ValidatorUpdates, error) // (legacy ABCI) EndBlock handler
-	processProposal sdk.ProcessProposalHandler                                                // ABCI ProcessProposal handler
-	prepareProposal sdk.PrepareProposalHandler                                                // ABCI PrepareProposal handler
+	Middleware Middleware
 
 	// volatile states:
 	//
@@ -120,21 +119,27 @@ type BaseApp struct {
 // variadic number of option functions, which act on the BaseApp to set
 // configuration choices.
 func NewBaseApp(
-	name string,
+	storeKey *storetypes.KVStoreKey,
 	logger log.Logger,
 	db dbm.DB,
+	middleware Middleware,
+	loadLatest bool,
 	options ...func(*BaseApp),
 ) *BaseApp {
 	app := &BaseApp{
 		logger: logger.With(log.ModuleKey, "baseapp"),
-		name:   name,
+		name:   "BeaconKit",
 		db:     db,
 		cms: store.NewCommitMultiStore(
 			db,
 			logger,
 			storemetrics.NewNoOpMetrics(),
 		), // by default we use a no-op metric gather in store
+		Middleware: middleware,
 	}
+
+	app.SetVersion(version.Version)
+	app.MountStore(storeKey, storetypes.StoreTypeIAVL)
 
 	for _, option := range options {
 		option(app)
@@ -142,6 +147,13 @@ func NewBaseApp(
 
 	if app.interBlockCache != nil {
 		app.cms.SetInterBlockCache(app.interBlockCache)
+	}
+
+	// Load the app.
+	if loadLatest {
+		if err := app.LoadLatestVersion(); err != nil {
+			panic(err)
+		}
 	}
 
 	return app

@@ -2,8 +2,8 @@ github.com/berachain/beacon-kit/mod/errors v0.0.0-20240806211103-d1105603bfc0 h1
 github.com/berachain/beacon-kit/mod/errors v0.0.0-20240806211103-d1105603bfc0/go.mod h1:og0jtHZosPDTyhge9tMBlRItoZ4Iv3aZFM9n4QDpcdo=
 github.com/berachain/beacon-kit/mod/log v0.0.0-20240807213340-5779c7a563cd h1:DYSjsq80Omqqlt+z2VcYsSxjZpLqCDRz7CvUDBrLDJE=
 github.com/berachain/beacon-kit/mod/log v0.0.0-20240807213340-5779c7a563cd/go.mod h1:BilVBmqKhC4GXYCaIs8QnKaR14kpn3YmF5uYBdayF9I=
-github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240820191615-398849c34954 h1:uNBQB9BcCdLrUA337DJHucrx97KobLsdWNkMA6QFcCg=
-github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240820191615-398849c34954/go.mod h1:Mrq1qol8vbkgZp2IMPFwngg75qE3k9IvT2MouBEhuus=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240821052951-c15422305b4e h1:1gzXFaLpNI/Hm1uxYu/mi9iH3ycAG2Lq8cea+tK6DCw=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240821052951-c15422305b4e/go.mod h1:Mrq1qol8vbkgZp2IMPFwngg75qE3k9IvT2MouBEhuus=
 github.com/cockroachdb/errors v1.11.3 h1:5bA+k2Y6r+oz/6Z/RFlNeVCesGARKuC6YymtcDrbC/I=
 github.com/cockroachdb/errors v1.11.3/go.mod h1:m4UIW4CDjx+R5cybPsNrRbreomiFqt8o1h1wUVazSd8=
 github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b h1:r6VH0faHjZeQy818SGhaone5OnYfxFR/+AzdY3sf5aE=

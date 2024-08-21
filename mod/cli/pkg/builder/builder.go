@@ -30,7 +30,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
+	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/baseapp"
 	servertypes "github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/server/types"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -110,7 +110,7 @@ func (cb *CLIBuilder[
 	// apply default root command setup
 	cmdlib.DefaultRootCommandSetup[T, ExecutionPayloadT](
 		rootCmd,
-		&runtime.App{},
+		&baseapp.BaseApp{},
 		cb.nodeBuilderFunc,
 		chainSpec,
 	)

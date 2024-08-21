@@ -5,7 +5,7 @@ go 1.23.0
 require (
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240618214413-d5ec0e66b3dd
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1347e7e
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240808194557-e72e74f58197
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240821052951-c15422305b4e
 	github.com/ferranbt/fastssz v0.1.4-0.20240629094022-eac385e6ee79
 	github.com/holiman/uint256 v1.3.1
 	github.com/karalabe/ssz v0.2.1-0.20240724074312-3d1ff7a6f7c4
