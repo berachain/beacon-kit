@@ -21,9 +21,8 @@
 package constraints
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
-
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 )
 
 // SSZMarshaler is an interface for objects that can be
