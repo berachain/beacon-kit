@@ -73,7 +73,6 @@ func NewConsensusEngine[
 	}
 }
 
-// TODO: Decouple Comet Types
 func (c *ConsensusEngine[_, _, _, _, _, _]) PrepareProposal(
 	ctx sdk.Context,
 	req *cmtabci.PrepareProposalRequest,
@@ -97,7 +96,6 @@ func (c *ConsensusEngine[_, _, _, _, _, _]) PrepareProposal(
 	}, nil
 }
 
-// TODO: Decouple Comet Types
 func (c *ConsensusEngine[_, _, _, _, _, ValidatorUpdateT]) ProcessProposal(
 	ctx sdk.Context,
 	req *cmtabci.ProcessProposalRequest,
