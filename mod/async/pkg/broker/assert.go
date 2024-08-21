@@ -25,7 +25,7 @@ package broker
 func ensureType[T any](e any) (T, error) {
 	typedE, ok := e.(T)
 	if !ok {
-		return *new(T), errIncompatibleAssignee(*new(T), e)
+		return *new(T), errWrongType(*new(T), e)
 	}
 	return typedE, nil
 }

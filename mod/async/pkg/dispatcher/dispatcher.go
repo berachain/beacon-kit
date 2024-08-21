@@ -69,6 +69,16 @@ func (d *Dispatcher) Subscribe(eventID async.EventID, ch any) error {
 	return broker.Subscribe(ch)
 }
 
+// Unsubscribe unsubscribes the given channel from the broker with the given
+// eventID.
+func (d *Dispatcher) Unsubscribe(eventID async.EventID, ch any) error {
+	broker, ok := d.brokers[eventID]
+	if !ok {
+		return errBrokerNotFound(eventID)
+	}
+	return broker.Unsubscribe(ch)
+}
+
 // Start will start all the brokers in the Dispatcher.
 func (d *Dispatcher) Start(ctx context.Context) error {
 	for _, broker := range d.brokers {
@@ -77,6 +87,7 @@ func (d *Dispatcher) Start(ctx context.Context) error {
 	return nil
 }
 
+// Name returns the name of the dispatcher.
 func (d *Dispatcher) Name() string {
 	return "dispatcher"
 }
