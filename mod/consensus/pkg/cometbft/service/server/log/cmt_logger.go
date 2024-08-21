@@ -18,34 +18,25 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package cosmos
+package server
 
 import (
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/rpc"
-	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/spf13/cobra"
+	"cosmossdk.io/log"
+	cmtlog "github.com/cometbft/cometbft/libs/log"
 )
 
-// QueryCommands constructs a new cobra.Command to interact with querying
-// subcommands.
-func QueryCommands() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:                        "query",
-		Aliases:                    []string{"q"},
-		Short:                      "Querying subcommands",
-		DisableFlagParsing:         false,
-		SuggestionsMinimumDistance: 2, //nolint:mnd // from sdk.
-		RunE:                       client.ValidateCmd,
-	}
+var _ cmtlog.Logger = (*CometLoggerWrapper)(nil)
 
-	// Adding subcommands for querying blockchain data.
-	cmd.AddCommand(
-		rpc.QueryEventForTxCmd(),
-		server.QueryBlockCmd(),
-		server.QueryBlocksCmd(),
-		server.QueryBlockResultsCmd(),
-	)
+// CometLoggerWrapper provides a wrapper around a cosmossdk.io/log instance.
+// It implements CometBFT's Logger interface.
+type CometLoggerWrapper struct {
+	log.Logger
+}
 
-	return cmd
+// With returns a new wrapped logger with additional context provided by a set
+// of key/value tuples. The number of tuples must be even and the key of the
+// tuple must be a string.
+func (cmt CometLoggerWrapper) With(keyVals ...interface{}) cmtlog.Logger {
+	logger := cmt.Logger.With(keyVals...)
+	return CometLoggerWrapper{logger}
 }

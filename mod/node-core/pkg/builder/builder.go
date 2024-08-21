@@ -27,14 +27,14 @@ import (
 	"cosmossdk.io/depinject"
 	sdklog "cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
+	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
+	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
 	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	dbm "github.com/cosmos/cosmos-db"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
 
 // NodeBuilder is a construction helper for creating nodes that implement
@@ -84,11 +84,6 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 	_ io.Writer,
 	appOpts servertypes.AppOptions,
 ) NodeT {
-	// Check for goleveldb cause bad project.
-	if appOpts.Get("app-db-backend") == "goleveldb" {
-		panic("goleveldb is not supported")
-	}
-
 	// variables to hold the components needed to set up BeaconApp
 	var (
 		chainSpec       common.ChainSpec

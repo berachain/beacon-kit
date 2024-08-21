@@ -21,11 +21,12 @@
 package cometbft
 
 import (
+	"context"
+
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
-	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 	cmttypes "github.com/cometbft/cometbft/types"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
 
 // LoadHeight loads a particular height.
@@ -65,12 +66,6 @@ func (app *Service) ExportAppStateAndValidators(
 	forZeroHeight bool,
 	_, _ []string,
 ) (servertypes.ExportedApp, error) {
-	// as if they could withdraw from the start of the next block
-	ctx := app.NewContextLegacy(
-		true,
-		cmtproto.Header{Height: app.LastBlockHeight()},
-	)
-
 	// We export at last height + 1, because that's the height at which
 	// CometBFT will start InitChain.
 	height := app.LastBlockHeight() + 1
@@ -99,6 +94,6 @@ func (app *Service) ExportAppStateAndValidators(
 		AppState:        nil,
 		Validators:      validators,
 		Height:          height,
-		ConsensusParams: app.GetConsensusParams(ctx),
+		ConsensusParams: app.GetConsensusParams(context.TODO()),
 	}, nil
 }

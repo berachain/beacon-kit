@@ -18,27 +18,4 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package client
-
-import (
-	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/client/cosmos"
-	"github.com/spf13/cobra"
-)
-
-// Commands creates a new command for managing CometBFT
-// related commands.
-func Commands() *cobra.Command {
-	clientCmd := &cobra.Command{
-		Use:   "client",
-		Short: "client subcommands",
-		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
-			return nil
-		},
-	}
-
-	clientCmd.AddCommand(
-		cosmos.QueryCommands(),
-	)
-
-	return clientCmd
-}
+package cometbft

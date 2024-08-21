@@ -23,7 +23,7 @@ package node
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
+	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
 	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 )

@@ -155,6 +155,5 @@ RUN mkdir -p /root/jwt /root/kzg && \
 
 EXPOSE 26656
 EXPOSE 26657
-EXPOSE 1317
 
 ENTRYPOINT [ "beacond" ]
