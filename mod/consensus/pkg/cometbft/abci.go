@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 //
-//nolint:lll,contextcheck
+//nolint:contextcheck // its fine.
 package cometbft
 
 import (

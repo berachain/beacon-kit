@@ -83,7 +83,7 @@ func (BaseApp) VerifyVoteExtension(
 }
 
 func (BaseApp) RegisterAPIRoutes(
-	apiSvr *api.Server, _ config.APIConfig) {
+	_ *api.Server, _ config.APIConfig) {
 }
 
 func (BaseApp) RegisterTxService(

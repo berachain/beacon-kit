@@ -46,73 +46,31 @@ type (
 const (
 	execModePrepareProposal execMode = iota
 	execModeProcessProposal
-	execModeFinalize // Finalize a block proposal
+	execModeFinalize
 )
 
 var _ servertypes.ABCI = (*BaseApp)(nil)
 
-// BaseApp reflects the ABCI application implementation.
 type BaseApp struct {
 	// initialized on creation
 	logger     log.Logger
-	name       string                      // application name from abci.BlockInfo
-	db         dbm.DB                      // common DB backend
-	cms        storetypes.CommitMultiStore // Main
+	name       string
+	db         dbm.DB
+	cms        storetypes.CommitMultiStore
 	Middleware MiddlewareI
 
-	// volatile states:
-	//
-	// - prepareProposalState: Used for PrepareProposal, which is set based on
-	// the previous block's state. This state is never committed. In case of
-	// multiple consensus rounds, the state is always reset to the previous
-	// block's state.
-	//
-	// - processProposalState: Used for ProcessProposal, which is set based on
-	// the previous block's state. This state is never committed. In case of
-	// multiple consensus rounds, the state is always reset to the previous
-	// block's state.
-	//
-	// - finalizeBlockState: Used for FinalizeBlock, which is set based on the
-	// previous block's state. This state is committed.
 	prepareProposalState *state
 	processProposalState *state
 	finalizeBlockState   *state
-
-	// An inter-block write-through cache provided to the context during the
-	// ABCI
-	// FinalizeBlock call.
-	interBlockCache storetypes.MultiStorePersistentCache
-
-	// paramStore is used to query for ABCI consensus parameters from an
-	// application parameter store.
-	paramStore ParamStore
-
-	// initialHeight is the initial height at which we start the BaseApp
-	initialHeight int64
-
-	// minRetainBlocks defines the minimum block height offset from the current
-	// block being committed, such that all blocks past this offset are pruned
-	// from CometBFT. It is used as part of the process of determining the
-	// ResponseCommit.RetainHeight value during ABCI Commit. A value of 0
-	// indicates
-	// that no blocks should be pruned.
-	//
-	// Note: CometBFT block pruning is dependent on this parameter in
-	// conjunction with the unbonding (safety threshold) period, state pruning
-	// and state sync
-	// snapshot parameters to determine the correct minimum value of
-	// ResponseCommit.RetainHeight.
-	minRetainBlocks uint64
-
+	interBlockCache      storetypes.MultiStorePersistentCache
+	paramStore           ParamStore
+	initialHeight        int64
+	minRetainBlocks      uint64
 	// application's version string
 	version string
-
 	chainID string
 }
 
-// NewBaseApp returns a reference to an initialized cometbft. It accepts a
-// variadic number of option functions, which act on the BaseApp to set
-// configuration choices.
 func NewBaseApp(
 	storeKey *storetypes.KVStoreKey,
 	logger log.Logger,
@@ -129,7 +87,7 @@ func NewBaseApp(
 			db,
 			logger,
 			storemetrics.NewNoOpMetrics(),
-		), // by default we use a no-op metric gather in store
+		),
 		Middleware: middleware,
 	}
 
@@ -185,8 +143,6 @@ func (app *BaseApp) MountStore(
 	app.cms.MountStoreWithDB(key, typ, nil)
 }
 
-// LoadLatestVersion loads the latest application version. It will panic if
-// called more than once on a running cometbft.
 func (app *BaseApp) LoadLatestVersion() error {
 	if err := app.cms.LoadLatestVersion(); err != nil {
 		return fmt.Errorf("failed to load latest version: %w", err)
@@ -196,12 +152,7 @@ func (app *BaseApp) LoadLatestVersion() error {
 	return app.cms.GetPruning().Validate()
 }
 
-// LoadVersion loads the BaseApp application version. It will panic if called
-// more than once on a running cometbft.
 func (app *BaseApp) LoadVersion(version int64) error {
-	app.logger.Info(
-		"NOTICE: this could take a long time to migrate IAVL store to fastnode if you enable Fast Node.\n",
-	)
 	err := app.cms.LoadVersion(version)
 	if err != nil {
 		return fmt.Errorf("failed to load version %d: %w", version, err)
@@ -231,9 +182,6 @@ func (app *BaseApp) setInterBlockCache(
 	app.interBlockCache = cache
 }
 
-// setState sets the BaseApp's state for the corresponding mode with a branched
-// multi-store (i.e. a CacheMultiStore) and a new Context with the same
-// multi-store branch, and provided header.
 func (app *BaseApp) setState(mode execMode) {
 	ms := app.cms.CacheMultiStore()
 	baseState := &state{
