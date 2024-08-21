@@ -362,3 +362,4 @@ issues:
         - gochecknoglobals
   exclude-files:
     - "pkg/cometbft/cli/.*\\.go"
+    - "pkg/cometbft/service/server/.*\\.go"
