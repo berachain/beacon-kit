@@ -103,11 +103,13 @@ func (h *ABCIMiddleware[
 	defer h.metrics.measurePrepareProposalDuration(startTime)
 	// flush the channels to ensure that we are not handling old data.
 	if numMsgs = async.ClearChan(h.subBuiltBeaconBlock); numMsgs > 0 {
-		h.logger.Error("WARNING: messages remaining in built beacon block channel",
+		h.logger.Error(
+			"WARNING: messages remaining in built beacon block channel",
 			"num_msgs", numMsgs)
 	}
 	if numMsgs = async.ClearChan(h.subBuiltSidecars); numMsgs > 0 {
-		h.logger.Error("WARNING: messages remaining in built sidecars channel",
+		h.logger.Error(
+			"WARNING: messages remaining in built sidecars channel",
 			"num_msgs", numMsgs)
 	}
 
@@ -204,11 +206,13 @@ func (h *ABCIMiddleware[
 	defer cancel()
 	// flush the channels to ensure that we are not handling old data.
 	if numMsgs = async.ClearChan(h.subBBVerified); numMsgs > 0 {
-		h.logger.Error("WARNING: messages remaining in beacon block verification channel",
+		h.logger.Error(
+			"WARNING: messages remaining in beacon block verification channel",
 			"num_msgs", numMsgs)
 	}
 	if numMsgs = async.ClearChan(h.subSCVerified); numMsgs > 0 {
-		h.logger.Error("WARNING: messages remaining in sidecar verification channel",
+		h.logger.Error(
+			"WARNING: messages remaining in sidecar verification channel",
 			"num_msgs", numMsgs)
 	}
 	abciReq, ok := req.(*cmtabci.ProcessProposalRequest)
@@ -323,7 +327,8 @@ func (h *ABCIMiddleware[
 	defer cancel()
 	// flush the channel to ensure that we are not handling old data.
 	if numMsgs := async.ClearChan(h.subFinalValidatorUpdates); numMsgs > 0 {
-		h.logger.Error("WARNING: messages remaining in final validator updates channel",
+		h.logger.Error(
+			"WARNING: messages remaining in final validator updates channel",
 			"num_msgs", numMsgs)
 	}
 	abciReq, ok := req.(*cmtabci.FinalizeBlockRequest)
