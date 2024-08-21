@@ -72,17 +72,6 @@ const (
 	FlagStateSyncSnapshotInterval   = "state-sync.snapshot-interval"
 	FlagStateSyncSnapshotKeepRecent = "state-sync.snapshot-keep-recent"
 
-	// api-related flags.
-
-	FlagAPIEnable             = "api.enable"
-	FlagAPISwagger            = "api.swagger"
-	FlagAPIAddress            = "api.address"
-	FlagAPIMaxOpenConnections = "api.max-open-connections"
-	FlagRPCReadTimeout        = "api.rpc-read-timeout"
-	FlagRPCWriteTimeout       = "api.rpc-write-timeout"
-	FlagRPCMaxBodyBytes       = "api.rpc-max-body-bytes"
-	FlagAPIEnableUnsafeCORS   = "api.enabled-unsafe-cors"
-
 	// testnet keys.
 
 	KeyIsTestnet             = "is-testnet"
@@ -369,20 +358,12 @@ func addStartNodeFlags[T types.Application](
 	cmd.Flags().
 		String(flagTransport, "socket", "Transport protocol: socket, grpc")
 	cmd.Flags().
-		String(flagTraceStore, "", "Enable KVStore tracing to an output file")
-	cmd.Flags().
-		String(FlagMinGasPrices, "", "Minimum gas prices to accept for transactions; Any fee in a tx must meet this minimum (e.g. 0.01photino;0.0001stake)")
-	cmd.Flags().
 		IntSlice(FlagUnsafeSkipUpgrades, []int{}, "Skip a set of upgrade heights to continue the old binary")
 	cmd.Flags().
 		Uint64(FlagHaltHeight, 0, "Block height at which to gracefully halt the chain and shutdown the node")
 	cmd.Flags().
 		Uint64(FlagHaltTime, 0, "Minimum block time (in Unix seconds) at which to gracefully halt the chain and shutdown the node")
 	cmd.Flags().Bool(FlagInterBlockCache, true, "Enable inter-block caching")
-	cmd.Flags().
-		String(flagCPUProfile, "", "Enable CPU profiling and write to the provided file")
-	cmd.Flags().
-		Bool(FlagTrace, false, "Provide full stack traces for errors in ABCI Log")
 	cmd.Flags().
 		String(FlagPruning, pruningtypes.PruningOptionDefault, "Pruning strategy (default|nothing|everything|custom)")
 	cmd.Flags().
@@ -393,16 +374,6 @@ func addStartNodeFlags[T types.Application](
 		Uint(FlagInvCheckPeriod, 0, "Assert registered invariants every N blocks")
 	cmd.Flags().
 		Uint64(FlagMinRetainBlocks, 0, "Minimum block height offset during ABCI commit to prune CometBFT blocks")
-	cmd.Flags().
-		Uint(FlagAPIMaxOpenConnections, 1000, "Define the number of maximum open connections")
-	cmd.Flags().
-		Uint(FlagRPCReadTimeout, 10, "Define the CometBFT RPC read timeout (in seconds)")
-	cmd.Flags().
-		Uint(FlagRPCWriteTimeout, 0, "Define the CometBFT RPC write timeout (in seconds)")
-	cmd.Flags().
-		Uint(FlagRPCMaxBodyBytes, 1000000, "Define the CometBFT maximum request body (in bytes)")
-	cmd.Flags().
-		Bool(FlagAPIEnableUnsafeCORS, false, "Define if CORS should be enabled (unsafe - use it at your own risk)")
 	cmd.Flags().
 		Uint64(FlagStateSyncSnapshotInterval, 0, "State sync snapshot interval")
 	cmd.Flags().
