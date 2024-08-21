@@ -26,7 +26,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	"github.com/cosmos/gogoproto/proto"
+	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
 // AttestationData is an interface for accessing the attestation data.
@@ -58,12 +58,12 @@ type Middleware[
 	) (transition.ValidatorUpdates, error)
 	PrepareProposal(context.Context, SlotDataT) ([]byte, []byte, error)
 	ProcessProposal(
-		ctx context.Context, req proto.Message,
-	) (proto.Message, error)
+		ctx context.Context, req *cmtabci.ProcessProposalRequest,
+	) (*cmtabci.ProcessProposalResponse, error)
 	FinalizeBlock(
 		ctx context.Context,
-		req proto.Message,
-	) (transition.ValidatorUpdates, error)
+		req *cmtabci.FinalizeBlockRequest,
+	) (*cmtabci.FinalizeBlockRequest, error)
 }
 
 // SlashingInfo is an interface for accessing the slashing info.
