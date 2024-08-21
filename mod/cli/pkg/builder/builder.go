@@ -32,7 +32,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/baseapp"
 	cmtcfg "github.com/cometbft/cometbft/config"
-	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cobra"
