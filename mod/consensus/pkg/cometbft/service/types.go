@@ -25,8 +25,6 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	cmtabci "github.com/cometbft/cometbft/abci/types"
 )
 
 // AttestationData is an interface for accessing the attestation data.
@@ -45,25 +43,6 @@ type BeaconState interface {
 	) (math.ValidatorIndex, error)
 	// HashTreeRoot returns the hash tree root of the beacon state.
 	HashTreeRoot() common.Root
-}
-
-// Middleware is the interface for the CometBFT middleware.
-type Middleware[
-	AttestationDataT,
-	SlashingInfoT any,
-	SlotDataT SlotData[AttestationDataT, SlashingInfoT, SlotDataT],
-] interface {
-	InitGenesis(
-		ctx context.Context, bz []byte,
-	) (transition.ValidatorUpdates, error)
-	PrepareProposal(context.Context, SlotDataT) ([]byte, []byte, error)
-	ProcessProposal(
-		ctx context.Context, req *cmtabci.ProcessProposalRequest,
-	) (*cmtabci.ProcessProposalResponse, error)
-	FinalizeBlock(
-		ctx context.Context,
-		req *cmtabci.FinalizeBlockRequest,
-	) (*cmtabci.FinalizeBlockRequest, error)
 }
 
 // SlashingInfo is an interface for accessing the slashing info.

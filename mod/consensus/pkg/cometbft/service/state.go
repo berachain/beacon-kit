@@ -28,8 +28,8 @@ import (
 	ctypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
+	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/gogoproto/proto"
 )
 
 type state struct {
@@ -61,23 +61,16 @@ func (st *state) Context() sdk.Context {
 
 type MiddlewareI interface {
 	InitGenesis(
-		ctx context.Context,
-		bz []byte,
+		ctx context.Context, bz []byte,
 	) (transition.ValidatorUpdates, error)
-
-	PrepareProposal(
-		ctx context.Context,
-		slotData *types.SlotData[
-			*ctypes.AttestationData,
-			*ctypes.SlashingInfo],
-	) ([]byte, []byte, error)
-
+	PrepareProposal(context.Context, *types.SlotData[
+		*ctypes.AttestationData,
+		*ctypes.SlashingInfo]) ([]byte, []byte, error)
 	ProcessProposal(
-		ctx context.Context,
-		req proto.Message,
-	) (proto.Message, error)
-
+		ctx context.Context, req *cmtabci.ProcessProposalRequest,
+	) (*cmtabci.ProcessProposalResponse, error)
 	FinalizeBlock(
-		ctx context.Context, req proto.Message,
+		ctx context.Context,
+		req *cmtabci.FinalizeBlockRequest,
 	) (transition.ValidatorUpdates, error)
 }

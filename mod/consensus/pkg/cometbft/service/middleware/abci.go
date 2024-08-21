@@ -31,7 +31,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cosmos/gogoproto/proto"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -194,8 +193,8 @@ func (h *ABCIMiddleware[
 	BeaconBlockT, BlobSidecarsT, _, _,
 ]) ProcessProposal(
 	ctx context.Context,
-	req proto.Message,
-) (proto.Message, error) {
+	req *cmtabci.ProcessProposalRequest,
+) (*cmtabci.ProcessProposalResponse, error) {
 	var (
 		err              error
 		startTime        = time.Now()
@@ -216,17 +215,13 @@ func (h *ABCIMiddleware[
 			"WARNING: messages remaining in sidecar verification channel",
 			"num_msgs", numMsgs)
 	}
-	abciReq, ok := req.(*cmtabci.ProcessProposalRequest)
-	if !ok {
-		return nil, ErrInvalidProcessProposalRequestType
-	}
 
 	defer h.metrics.measureProcessProposalDuration(startTime)
 
 	// Request the beacon block.
 	if blk, err = encoding.
 		UnmarshalBeaconBlockFromABCIRequest[BeaconBlockT](
-		abciReq, 0, h.chainSpec.ActiveForkVersionForSlot(math.U64(abciReq.Height)),
+		req, 0, h.chainSpec.ActiveForkVersionForSlot(math.U64(req.Height)),
 	); err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
@@ -241,7 +236,7 @@ func (h *ABCIMiddleware[
 	// Request the blob sidecars.
 	if sidecars, err = encoding.
 		UnmarshalBlobSidecarsFromABCIRequest[BlobSidecarsT](
-		abciReq, 1,
+		req, 1,
 	); err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
@@ -300,7 +295,7 @@ func (*ABCIMiddleware[
 	BeaconBlockT, _, BlobSidecarsT, _,
 ]) createProcessProposalResponse(
 	err error,
-) (proto.Message, error) {
+) (*cmtabci.ProcessProposalResponse, error) {
 	status := cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
 	if !errors.IsFatal(err) {
 		status = cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
@@ -317,7 +312,7 @@ func (*ABCIMiddleware[
 func (h *ABCIMiddleware[
 	BeaconBlockT, BlobSidecarsT, _, _,
 ]) FinalizeBlock(
-	ctx context.Context, req proto.Message,
+	ctx context.Context, req *cmtabci.FinalizeBlockRequest,
 ) (transition.ValidatorUpdates, error) {
 	var (
 		err              error
@@ -332,17 +327,14 @@ func (h *ABCIMiddleware[
 			"WARNING: messages remaining in final validator updates channel",
 			"num_msgs", numMsgs)
 	}
-	abciReq, ok := req.(*cmtabci.FinalizeBlockRequest)
-	if !ok {
-		return nil, ErrInvalidFinalizeBlockRequestType
-	}
+
 	blk, blobs, err = encoding.
 		ExtractBlobsAndBlockFromRequest[BeaconBlockT, BlobSidecarsT](
-		abciReq,
+		req,
 		BeaconBlockTxIndex,
 		BlobSidecarsTxIndex,
 		h.chainSpec.ActiveForkVersionForSlot(
-			math.Slot(abciReq.Height),
+			math.Slot(req.Height),
 		))
 	if err != nil {
 		// If we don't have a block, we can't do anything.

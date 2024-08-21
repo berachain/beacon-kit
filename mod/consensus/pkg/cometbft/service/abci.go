@@ -298,7 +298,7 @@ func (app *Service) ProcessProposal(
 		}, nil
 	}
 
-	return resp.(*cmtabci.ProcessProposalResponse), nil
+	return resp, nil
 }
 
 func (app *Service) internalFinalizeBlock(

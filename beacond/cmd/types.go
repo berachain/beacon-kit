@@ -113,11 +113,7 @@ type (
 	]
 
 	// ConsensusMiddleware is a type alias for the consensus middleware.
-	ConsensusMiddleware = cometbft.Middleware[
-		*AttestationData,
-		*SlashingInfo,
-		*SlotData,
-	]
+	ConsensusMiddleware = cometbft.MiddlewareI
 
 	// DAService is a type alias for the DA service.
 	DAService = da.Service[*AvailabilityStore, *BlobSidecars]
