@@ -302,7 +302,6 @@ func (h *ABCIMiddleware[
 		err              error
 		blk              BeaconBlockT
 		blobs            BlobSidecarsT
-		finalValUpdates  transition.ValidatorUpdates
 		awaitCtx, cancel = context.WithTimeout(ctx, AwaitTimeout)
 	)
 	defer cancel()
@@ -338,12 +337,7 @@ func (h *ABCIMiddleware[
 	}
 
 	// wait for the final validator updates.
-	finalValUpdates, err = h.waitForFinalValidatorUpdates(awaitCtx)
-	if err != nil {
-		return nil, err
-	}
-
-	return finalValUpdates, nil
+	return h.waitForFinalValidatorUpdates(awaitCtx)
 }
 
 // waitForFinalValidatorUpdates waits for the final validator updates to be
