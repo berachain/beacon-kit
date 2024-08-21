@@ -24,7 +24,7 @@ import (
 	"os"
 
 	"cosmossdk.io/depinject"
-	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server/types"
+	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"

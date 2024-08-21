@@ -24,11 +24,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/spf13/cast"
-
 	pruningtypes "cosmossdk.io/store/pruning/types"
-
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server/types"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
+	"github.com/spf13/cast"
 )
 
 // GetPruningOptionsFromFlags parses command flags and returns the correct

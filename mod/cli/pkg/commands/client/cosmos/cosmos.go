@@ -21,7 +21,7 @@
 package cosmos
 
 import (
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/spf13/cobra"

@@ -28,19 +28,15 @@ import (
 	"strconv"
 	"strings"
 
+	"cosmossdk.io/log"
+	auth "cosmossdk.io/x/auth/client/cli"
+	types "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	cmtjson "github.com/cometbft/cometbft/libs/json"
 	"github.com/cometbft/cometbft/node"
 	"github.com/cometbft/cometbft/p2p"
 	pvm "github.com/cometbft/cometbft/privval"
 	cmtversion "github.com/cometbft/cometbft/version"
-	"github.com/spf13/cobra"
-	"sigs.k8s.io/yaml"
-
-	"cosmossdk.io/log"
-	auth "cosmossdk.io/x/auth/client/cli"
-
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server/types"
 	db "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -50,6 +46,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/cosmos/cosmos-sdk/version"
+	"github.com/spf13/cobra"
+	"sigs.k8s.io/yaml"
 )
 
 // StatusCommand returns the command to return the status of the network.
@@ -95,7 +93,7 @@ func StatusCommand() *cobra.Command {
 	return cmd
 }
 
-// ShowNodeIDCmd - ported from CometBFT, dump node ID to stdout
+// ShowNodeIDCmd - ported from CometBFT, dump node ID to stdout.
 func ShowNodeIDCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "show-node-id",
@@ -115,7 +113,7 @@ func ShowNodeIDCmd() *cobra.Command {
 	}
 }
 
-// ShowValidatorCmd - ported from CometBFT, show this node's validator info
+// ShowValidatorCmd - ported from CometBFT, show this node's validator info.
 func ShowValidatorCmd() *cobra.Command {
 	cmd := cobra.Command{
 		Use:   "show-validator",
@@ -152,7 +150,7 @@ func ShowValidatorCmd() *cobra.Command {
 	return &cmd
 }
 
-// ShowAddressCmd - show this node's validator address
+// ShowAddressCmd - show this node's validator address.
 func ShowAddressCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "show-address",

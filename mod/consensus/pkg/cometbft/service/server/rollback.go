@@ -23,11 +23,10 @@ package server
 import (
 	"fmt"
 
+	types "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/spf13/cobra"
-
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server/types"
 )
 
 // NewRollbackCmd creates a command to rollback CometBFT and multistore state by

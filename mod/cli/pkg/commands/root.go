@@ -22,7 +22,7 @@ package commands
 
 import (
 	"github.com/berachain/beacon-kit/mod/cli/pkg/config"
-	svrcmd "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server/cmd"
+	svrcmd "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/cmd"
 	sdkclient "github.com/cosmos/cosmos-sdk/client"
 	sdkconfig "github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/spf13/cobra"

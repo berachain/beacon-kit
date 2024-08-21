@@ -33,22 +33,20 @@ import (
 	"syscall"
 	"time"
 
+	corectx "cosmossdk.io/core/context"
+	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/config"
+	types "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	dbm "github.com/cosmos/cosmos-db"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
-
-	corectx "cosmossdk.io/core/context"
-	"cosmossdk.io/log"
-
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server/config"
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server/types"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/version"
 )
 
 // ServerContextKey defines the context key used to retrieve a server.Context
@@ -57,7 +55,7 @@ import (
 const ServerContextKey = sdk.ContextKey("server.context")
 
 // Context server context
-// Deprecated: Do not use since we use viper to track all config
+// Deprecated: Do not use since we use viper to track all config.
 type Context struct {
 	Viper  *viper.Viper
 	Config *cmtcfg.Config
@@ -129,7 +127,7 @@ func bindFlags(
 // InterceptConfigsAndCreateContext performs a pre-run function for the root
 // daemon
 // application command. It will create a Viper literal and a default server
-// Context. The server CometBFT configuration will either be read and parsed
+// Context. The server configuration will either be read and parsed
 // or created and saved to disk, where the server Context is updated to reflect
 // the CometBFT configuration. It takes custom app config template and config
 // settings to create a custom CometBFT configuration. If the custom template
@@ -336,7 +334,7 @@ func interceptConfigs(
 	return conf, nil
 }
 
-// AddCommands add server commands
+// AddCommands add server commands.
 func AddCommands[T types.Application](
 	rootCmd *cobra.Command,
 	appCreator types.AppCreator[T],
@@ -355,7 +353,7 @@ func AddCommands[T types.Application](
 		VersionCmd(),
 		cmtcmd.ResetAllCmd,
 		cmtcmd.ResetStateCmd,
-		BootstrapStateCmd(appCreator),
+		BootstrapStateCmd[T](appCreator),
 	)
 
 	startCmd := StartCmdWithOptions(appCreator, opts)
@@ -363,7 +361,7 @@ func AddCommands[T types.Application](
 		startCmd,
 		cometCmd,
 		version.NewVersionCommand(),
-		NewRollbackCmd(appCreator),
+		NewRollbackCmd[T](appCreator),
 	)
 }
 

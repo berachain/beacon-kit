@@ -21,7 +21,7 @@
 package builder
 
 import (
-	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server/types"
+	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"

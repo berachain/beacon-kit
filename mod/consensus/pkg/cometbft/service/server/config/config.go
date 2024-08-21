@@ -24,11 +24,9 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/spf13/viper"
-
 	pruningtypes "cosmossdk.io/store/pruning/types"
-
 	"github.com/cosmos/cosmos-sdk/telemetry"
+	"github.com/spf13/viper"
 )
 
 const (
@@ -50,7 +48,7 @@ const (
 	DefaultGRPCMaxSendMsgSize = math.MaxInt32
 )
 
-// BaseConfig defines the server's basic configuration
+// BaseConfig defines the server's basic configuration.
 type BaseConfig struct {
 	Pruning           string `mapstructure:"pruning"`
 	PruningKeepRecent string `mapstructure:"pruning-keep-recent"`
@@ -104,7 +102,7 @@ type BaseConfig struct {
 	IAVLDisableFastNode bool `mapstructure:"iavl-disable-fastnode"`
 }
 
-// Config defines the server's top level configuration
+// Config defines the server's top level configuration.
 type Config struct {
 	BaseConfig `mapstructure:",squash"`
 

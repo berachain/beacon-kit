@@ -23,10 +23,9 @@ package server
 import (
 	"context"
 
+	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	abci "github.com/cometbft/cometbft/abci/types"
 	abciproto "github.com/cometbft/cometbft/api/cometbft/abci/v1"
-
-	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server/types"
 )
 
 type cometABCIWrapper struct {

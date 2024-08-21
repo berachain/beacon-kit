@@ -24,7 +24,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/encoding"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"

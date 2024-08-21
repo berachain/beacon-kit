@@ -24,12 +24,11 @@ import (
 	"encoding/json"
 	"io"
 
+	"cosmossdk.io/log"
+	storetypes "cosmossdk.io/store/types"
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 	cmttypes "github.com/cometbft/cometbft/types"
 	dbm "github.com/cosmos/cosmos-db"
-
-	"cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
 )
 
 type (

@@ -27,6 +27,11 @@ import (
 	"io"
 	"time"
 
+	"cosmossdk.io/log"
+	pruningtypes "cosmossdk.io/store/pruning/types"
+	serverconfig "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/config"
+	servercmtlog "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/log"
+	types "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cometbft/cometbft/node"
@@ -34,21 +39,14 @@ import (
 	pvm "github.com/cometbft/cometbft/privval"
 	"github.com/cometbft/cometbft/proxy"
 	dbm "github.com/cosmos/cosmos-db"
-	"github.com/spf13/cobra"
-	"golang.org/x/sync/errgroup"
-
-	"cosmossdk.io/log"
-	pruningtypes "cosmossdk.io/store/pruning/types"
-
-	serverconfig "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server/config"
-	servercmtlog "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server/log"
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+	"github.com/spf13/cobra"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
-	// CometBFT full-node start flags
+	// CometBFT full-node start flags.
 	flagAddress            = "address"
 	flagTransport          = "transport"
 	flagTraceStore         = "trace-store"
@@ -70,12 +68,12 @@ const (
 	FlagDisableIAVLFastNode = "iavl-disable-fastnode"
 	FlagShutdownGrace       = "shutdown-grace"
 
-	// state sync-related flags
+	// state sync-related flags.
 
 	FlagStateSyncSnapshotInterval   = "state-sync.snapshot-interval"
 	FlagStateSyncSnapshotKeepRecent = "state-sync.snapshot-keep-recent"
 
-	// api-related flags
+	// api-related flags.
 
 	FlagAPIEnable             = "api.enable"
 	FlagAPISwagger            = "api.swagger"
@@ -86,7 +84,7 @@ const (
 	FlagRPCMaxBodyBytes       = "api.rpc-max-body-bytes"
 	FlagAPIEnableUnsafeCORS   = "api.enabled-unsafe-cors"
 
-	// testnet keys
+	// testnet keys.
 
 	KeyIsTestnet             = "is-testnet"
 	KeyNewChainID            = "new-chain-ID"
@@ -97,7 +95,7 @@ const (
 )
 
 // StartCmdOptions defines options that can be customized in
-// `StartCmdWithOptions`,
+// `StartCmdWithOptions`,.
 type StartCmdOptions[T types.Application] struct {
 	// DBOpener can be used to customize db opening, for example customize db
 	// options or support different db backends.

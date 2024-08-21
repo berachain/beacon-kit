@@ -24,12 +24,11 @@ import (
 	"context"
 	"strings"
 
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // Execute executes the root command of an application. It handles creating a

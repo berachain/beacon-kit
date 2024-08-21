@@ -23,7 +23,7 @@ package commands
 import (
 	"context"
 
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"

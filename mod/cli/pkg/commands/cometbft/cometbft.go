@@ -21,8 +21,8 @@
 package cometbft
 
 import (
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server"
-	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/server/types"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server"
+	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	"github.com/spf13/cobra"
