@@ -40,5 +40,9 @@ func (kv *KVStore[
 ]) GetFork() (ForkT, error) {
 	var fork ForkT
 	fork = fork.Empty()
-	return fork, kv.sszDB.GetObject(kv.ctx, "fork", fork)
+	err := kv.sszDB.GetObject(kv.ctx, "fork", fork)
+	if err != nil {
+		return fork, err
+	}
+	return kv.fork.Get(kv.ctx)
 }

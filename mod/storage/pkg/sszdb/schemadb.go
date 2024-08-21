@@ -17,7 +17,7 @@ import (
 // bootstrapped.  it will be made obsolete by versioning.
 const bootstrappedKey = "bootstrapped"
 
-type objectPath = merkle.ObjectPath[uint64, [32]byte]
+type ObjectPath = merkle.ObjectPath[uint64, [32]byte]
 
 func isByteVector(typ schema.SSZType) bool {
 	return typ.ID() == schema.Vector && typ.ElementType("") == schema.U8()
@@ -65,7 +65,7 @@ type offsetBytes struct {
 
 func (db *SchemaDB) getLeafBytes(
 	ctx context.Context,
-	path objectPath,
+	path ObjectPath,
 ) ([]byte, error) {
 	typ, gindex, offset, err := path.GetGeneralizedIndex(db.schemaRoot)
 	if err != nil {
@@ -89,7 +89,7 @@ func (db *SchemaDB) getLeafBytes(
 
 func (db *SchemaDB) getSSZBytes(
 	ctx context.Context,
-	root objectPath,
+	root ObjectPath,
 ) (uint32, *offsetBytes, []byte, error) {
 	var (
 		offsets  []*offsetBytes
@@ -144,7 +144,7 @@ func (db *SchemaDB) getSSZBytes(
 		}
 	case schema.Container:
 		// TODO assumes fixed size container
-		paths := make([]objectPath, typ.Length())
+		paths := make([]ObjectPath, typ.Length())
 		for i, p := range schema.ContainerFields(typ) {
 			paths[i] = root.Append(p)
 		}
@@ -181,7 +181,7 @@ func (db *SchemaDB) SetLatestExecutionPayloadHeader(
 	ctx context.Context,
 	header Treeable,
 ) error {
-	path := objectPath("latest_execution_payload_header")
+	path := ObjectPath("latest_execution_payload_header")
 	_, gindex, _, err := path.GetGeneralizedIndex(db.schemaRoot)
 	if err != nil {
 		return err
@@ -196,7 +196,7 @@ func (db *SchemaDB) SetLatestExecutionPayloadHeader(
 
 func (db *SchemaDB) GetPath(
 	ctx context.Context,
-	path objectPath,
+	path ObjectPath,
 ) ([]byte, error) {
 	_, offsetBz, bz, err := db.getSSZBytes(ctx, path)
 	if offsetBz != nil {
@@ -207,7 +207,7 @@ func (db *SchemaDB) GetPath(
 
 func (db *SchemaDB) GetObject(
 	ctx context.Context,
-	path objectPath,
+	path ObjectPath,
 	obj constraints.SSZUnmarshaler,
 ) error {
 	bz, err := db.GetPath(ctx, path)
@@ -219,7 +219,7 @@ func (db *SchemaDB) GetObject(
 
 func (db *SchemaDB) SetObject(
 	ctx context.Context,
-	path objectPath,
+	path ObjectPath,
 	obj Treeable,
 ) error {
 	treeNode, err := NewTreeFromFastSSZ(obj)
@@ -234,7 +234,7 @@ func (db *SchemaDB) SetObject(
 }
 
 func (db *SchemaDB) GetSlot(ctx context.Context) (math.U64, error) {
-	path := objectPath("slot")
+	path := ObjectPath("slot")
 	_, _, bz, err := db.getSSZBytes(ctx, path)
 	if err != nil {
 		return 0, err
@@ -246,7 +246,7 @@ func (db *SchemaDB) getListLength(
 	ctx context.Context,
 	path string,
 ) (uint64, error) {
-	op := objectPath(path + "/__len__")
+	op := ObjectPath(path + "/__len__")
 	bz, err := db.GetPath(ctx, op)
 	if err != nil {
 		return 0, err
@@ -259,7 +259,7 @@ func (db *SchemaDB) setListLength(
 	path string,
 	length uint64,
 ) error {
-	op := objectPath(path + "/__len__")
+	op := ObjectPath(path + "/__len__")
 	_, gindex, _, err := op.GetGeneralizedIndex(db.schemaRoot)
 	if err != nil {
 		return err
@@ -274,7 +274,7 @@ func (db *SchemaDB) setListLength(
 }
 
 func (db *SchemaDB) GetBlockRoots(ctx context.Context) ([]common.Root, error) {
-	path := objectPath("block_roots/__len__")
+	path := ObjectPath("block_roots/__len__")
 	typ, gindex, offset, err := path.GetGeneralizedIndex(db.schemaRoot)
 	if err != nil {
 		return nil, err
@@ -302,7 +302,7 @@ func (db *SchemaDB) SetBlockRoots(
 	ctx context.Context,
 	roots []common.Root,
 ) error {
-	path := objectPath("block_roots")
+	path := ObjectPath("block_roots")
 	typ, gindex, _, err := path.GetGeneralizedIndex(db.schemaRoot)
 	if err != nil {
 		return err
@@ -332,7 +332,7 @@ func (db *SchemaDB) GetBlockRootAtIndex(
 	ctx context.Context,
 	index uint64,
 ) (common.Root, error) {
-	path := objectPath(fmt.Sprintf("block_roots/%d", index))
+	path := ObjectPath(fmt.Sprintf("block_roots/%d", index))
 	bz, err := db.GetPath(ctx, path)
 	if err != nil {
 		return common.Root{}, err
@@ -345,19 +345,36 @@ func (db *SchemaDB) SetBlockRootAtIndex(
 	index uint64,
 	root common.Root,
 ) error {
-	length, err := db.getListLength(ctx, "block_roots")
+	return db.SetListElement(ctx, "block_roots", index, &Node{Value: root[:]})
+}
+
+func (db *SchemaDB) SetStateRootAtIndex(
+	ctx context.Context,
+	index uint64,
+	root common.Root,
+) error {
+	return db.SetListElement(ctx, "state_roots", index, &Node{Value: root[:]})
+}
+
+func (db *SchemaDB) SetListElement(
+	ctx context.Context,
+	path string,
+	index uint64,
+	node *Node,
+) error {
+	length, err := db.getListLength(ctx, path)
 	if err != nil {
 		return err
 	}
 	if index > length {
 		return fmt.Errorf("index %d out of bounds; len=%d", index, length)
 	}
-	path := objectPath(fmt.Sprintf("block_roots/%d", index))
-	_, gidx, _, err := path.GetGeneralizedIndex(db.schemaRoot)
+	objPath := ObjectPath(fmt.Sprintf("%s/%d", path, index))
+	_, gidx, _, err := objPath.GetGeneralizedIndex(db.schemaRoot)
 	if err != nil {
 		return err
 	}
-	err = db.stage(ctx, &Node{Value: root[:]}, gidx)
+	err = db.stage(ctx, node, gidx)
 	if err != nil {
 		return err
 	}
@@ -384,7 +401,7 @@ func (db *SchemaDB) SetBlockRootAtIndex(
 			depth += 1
 			gindex /= 2
 		}
-		return db.setListLength(ctx, "block_roots", index+1)
+		return db.setListLength(ctx, path, index+1)
 	}
 	return nil
 }

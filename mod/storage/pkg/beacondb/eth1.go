@@ -145,7 +145,7 @@ func (kv *KVStore[
 	if !bytes.Equal(bz, eth1DataSSZ) {
 		return eth1Data, errors.New("eth1 data SSZ does not match DB")
 	}
-	// TODO: Don't alloc codec, some codec exists already buried in sdk.Collections
+	// TODO: Don't alloc codec, same codec exists already buried in sdk.Collections
 	codec := encoding.SSZValueCodec[Eth1DataT]{}
 	res, err := codec.Decode(eth1DataSSZ)
 	if err != nil {

@@ -21,7 +21,12 @@
 package beacondb
 
 import (
+	"bytes"
+	"errors"
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/sszdb"
 )
 
 // UpdateBlockRootAtIndex sets a block root in the BeaconStore.
@@ -32,6 +37,10 @@ func (kv *KVStore[
 	index uint64,
 	root common.Root,
 ) error {
+	err := kv.sszDB.SetBlockRootAtIndex(kv.ctx, index, root)
+	if err != nil {
+		return err
+	}
 	return kv.blockRoots.Set(kv.ctx, index, root[:])
 }
 
@@ -46,6 +55,13 @@ func (kv *KVStore[
 	if err != nil {
 		return common.Root{}, err
 	}
+	sszBz, err := kv.sszDB.GetBlockRootAtIndex(kv.ctx, index)
+	if err != nil {
+		return common.Root{}, err
+	}
+	if !bytes.Equal(bz, sszBz[:]) {
+		return common.Root{}, errors.New("block root mismatch")
+	}
 	return common.Root(bz), nil
 }
 
@@ -56,6 +72,10 @@ func (kv *KVStore[
 ]) SetLatestBlockHeader(
 	header BeaconBlockHeaderT,
 ) error {
+	err := kv.sszDB.SetObject(kv.ctx, "latest_block_header", header)
+	if err != nil {
+		return err
+	}
 	return kv.latestBlockHeader.Set(kv.ctx, header)
 }
 
@@ -66,6 +86,12 @@ func (kv *KVStore[
 ]) GetLatestBlockHeader() (
 	BeaconBlockHeaderT, error,
 ) {
+	var header BeaconBlockHeaderT
+	header = header.Empty()
+	err := kv.sszDB.GetObject(kv.ctx, "latest_block_header", header)
+	if err != nil {
+		return header, err
+	}
 	return kv.latestBlockHeader.Get(kv.ctx)
 }
 
@@ -77,6 +103,10 @@ func (kv *KVStore[
 	idx uint64,
 	stateRoot common.Root,
 ) error {
+	err := kv.sszDB.SetStateRootAtIndex(kv.ctx, idx, stateRoot)
+	if err != nil {
+		return err
+	}
 	return kv.stateRoots.Set(kv.ctx, idx, stateRoot[:])
 }
 
@@ -91,5 +121,14 @@ func (kv *KVStore[
 	if err != nil {
 		return common.Root{}, err
 	}
+	path := fmt.Sprintf("state_roots/%d", idx)
+	sszBz, err := kv.sszDB.GetPath(kv.ctx, sszdb.ObjectPath(path))
+	if err != nil {
+		return common.Root{}, err
+	}
+	if !bytes.Equal(bz, sszBz[:]) {
+		return common.Root{}, errors.New("state root mismatch")
+	}
+
 	return common.Root(bz), nil
 }

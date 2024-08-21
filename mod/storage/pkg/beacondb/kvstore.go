@@ -39,6 +39,7 @@ type KVStore[
 	BeaconBlockHeaderT interface {
 		constraints.Empty[BeaconBlockHeaderT]
 		constraints.SSZMarshallable
+		sszdb.Treeable
 	},
 	Eth1DataT interface {
 		constraints.Empty[Eth1DataT]
@@ -121,6 +122,7 @@ func New[
 	BeaconBlockHeaderT interface {
 		constraints.Empty[BeaconBlockHeaderT]
 		constraints.SSZMarshallable
+		sszdb.Treeable
 	},
 	Eth1DataT interface {
 		constraints.Empty[Eth1DataT]

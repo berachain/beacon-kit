@@ -9,10 +9,9 @@ import (
 )
 
 type Node struct {
-	GIndex uint64
-	Left   *Node
-	Right  *Node
-	Value  []byte
+	Left  *Node
+	Right *Node
+	Value []byte
 }
 
 type Treeable interface {
