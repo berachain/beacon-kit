@@ -31,9 +31,10 @@ import (
 func ProvidePublishers[
 	BeaconBlockT any,
 	BlobSidecarsT any,
+	GenesisDataT any,
 ]() []asynctypes.Broker {
 	return []asynctypes.Broker{
-		broker.New[GenesisDataReceivedEvent](
+		broker.New[async.Event[GenesisDataT]](
 			async.GenesisDataReceived,
 		),
 		broker.New[GenesisDataProcessedEvent](
