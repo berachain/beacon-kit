@@ -17,12 +17,12 @@ replace (
 require (
 	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240806160829-cde2d1347e7e
 	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240806160829-cde2d1347e7e
+	github.com/cosmos/cosmos-sdk v0.53.0
 	go.uber.org/automaxprocs v1.5.3
 )
 
 require (
 	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4 // indirect
-	github.com/cosmos/cosmos-sdk v0.53.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/umbracle/fastrlp v0.1.0 // indirect
 )
@@ -33,7 +33,7 @@ require (
 	cosmossdk.io/api v0.7.5 // indirect
 	cosmossdk.io/client/v2 v2.0.0-20240412212305-037cf98f7eea // indirect
 	cosmossdk.io/collections v0.4.0 // indirect
-	cosmossdk.io/core v0.12.1-0.20240806152830-8fb47b368cd4 // indirect
+	cosmossdk.io/core v0.12.1-0.20240806152830-8fb47b368cd4
 	cosmossdk.io/depinject v1.0.0 // indirect
 	cosmossdk.io/errors v1.0.1 // indirect
 	cosmossdk.io/log v1.4.1 // indirect
@@ -58,25 +58,25 @@ require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/berachain/beacon-kit/mod/async v0.0.0-20240705193247-d464364483df // indirect
-	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240718074353-1a991cfeed63 // indirect
+	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240718074353-1a991cfeed63
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df // indirect
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240705193247-d464364483df // indirect
-	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240809163303-a4ebb22fd018 // indirect
+	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240809163303-a4ebb22fd018
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240809163303-a4ebb22fd018
-	github.com/berachain/beacon-kit/mod/da v0.0.0-20240705193247-d464364483df // indirect
-	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240808194557-e72e74f58197 // indirect
+	github.com/berachain/beacon-kit/mod/da v0.0.0-20240705193247-d464364483df
+	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240808194557-e72e74f58197
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df // indirect
-	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240705193247-d464364483df // indirect
+	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1347e7e // indirect
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240705193247-d464364483df
-	github.com/berachain/beacon-kit/mod/node-api v0.0.0-20240806160829-cde2d1347e7e // indirect
-	github.com/berachain/beacon-kit/mod/node-api/engines v0.0.0-20240806160829-cde2d1347e7e // indirect
+	github.com/berachain/beacon-kit/mod/node-api v0.0.0-20240806160829-cde2d1347e7e
+	github.com/berachain/beacon-kit/mod/node-api/engines v0.0.0-20240806160829-cde2d1347e7e
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240618214413-d5ec0e66b3dd // indirect
-	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df // indirect
-	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240808194557-e72e74f58197 // indirect
-	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240815202409-3ecaa1f3f4c5 // indirect
-	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6650da31 // indirect
-	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240806160829-cde2d1347e7e // indirect
+	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df
+	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240808194557-e72e74f58197
+	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240815202409-3ecaa1f3f4c5
+	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6650da31
+	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240806160829-cde2d1347e7e
 	github.com/bgentry/speakeasy v0.2.0 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect

@@ -93,10 +93,10 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 	// variables to hold the components needed to set up BeaconApp
 	var (
 		chainSpec       common.ChainSpec
-		abciMiddleware  *components.ABCIMiddleware
+		abciMiddleware  runtime.Middleware
 		serviceRegistry *service.Registry
-		consensusEngine *components.ConsensusEngine
-		apiBackend      *components.NodeAPIBackend
+		consensusEngine components.ConsensusEngine
+		apiBackend      interface{ AttachNode(NodeT) }
 		storeKey        = new(storetypes.KVStoreKey)
 		storeKeyDblPtr  = &storeKey
 	)
@@ -124,6 +124,10 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 		&apiBackend,
 	); err != nil {
 		panic(err)
+	}
+
+	if consensusEngine == nil || apiBackend == nil {
+		panic("consensus engine or api backend is nil")
 	}
 
 	// set the application to a new BeaconApp with necessary ABCI handlers

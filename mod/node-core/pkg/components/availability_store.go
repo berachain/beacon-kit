@@ -21,7 +21,6 @@
 package components
 
 import (
-	"errors"
 	"os"
 
 	"cosmossdk.io/depinject"
@@ -29,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/filedb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
@@ -39,9 +39,7 @@ import (
 
 // AvailabilityStoreInput is the input for the ProviderAvailabilityStore
 // function for the depinject framework.
-type AvailabilityStoreInput[
-	LoggerT log.AdvancedLogger[any, LoggerT],
-] struct {
+type AvailabilityStoreInput[LoggerT any] struct {
 	depinject.In
 	AppOpts   servertypes.AppOptions
 	ChainSpec common.ChainSpec
@@ -50,11 +48,14 @@ type AvailabilityStoreInput[
 
 // ProvideAvailibilityStore provides the availability store.
 func ProvideAvailibilityStore[
+	BeaconBlockBodyT interface {
+		GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
+	},
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ](
 	in AvailabilityStoreInput[LoggerT],
-) (*AvailabilityStore, error) {
-	return dastore.New[*BeaconBlockBody](
+) (*dastore.Store[BeaconBlockBodyT], error) {
+	return dastore.New[BeaconBlockBodyT](
 		filedb.NewRangeDB(
 			filedb.NewDB(
 				filedb.WithRootDirectory(
@@ -75,10 +76,12 @@ func ProvideAvailibilityStore[
 // AvailabilityPrunerInput is the input for the ProviderAvailabilityPruner
 // function for the depinject framework.
 type AvailabilityPrunerInput[
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	AvailabilityStoreT any,
+	BeaconBlockT any,
+	LoggerT any,
 ] struct {
 	depinject.In
-	AvailabilityStore *AvailabilityStore
+	AvailabilityStore AvailabilityStoreT
 	ChainSpec         common.ChainSpec
 	Dispatcher        *Dispatcher
 	Logger            LoggerT
@@ -87,20 +90,23 @@ type AvailabilityPrunerInput[
 // ProvideAvailabilityPruner provides a availability pruner for the depinject
 // framework.
 func ProvideAvailabilityPruner[
+	AvailabilityStoreT AvailabilityStore[
+		BeaconBlockBodyT, BlobSidecarsT,
+	],
+	BeaconBlockT BeaconBlock[
+		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
+	],
+	BeaconBlockBodyT any,
+	BeaconBlockHeaderT any,
+	BlobSidecarsT any,
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ](
-	in AvailabilityPrunerInput[LoggerT],
-) (DAPruner, error) {
-	rangeDB, ok := in.AvailabilityStore.IndexDB.(*IndexDB)
-	if !ok {
-		in.Logger.Error("availability store does not have a range db")
-		return nil, errors.New("availability store does not have a range db")
-	}
-
+	in AvailabilityPrunerInput[AvailabilityStoreT, BeaconBlockT, LoggerT],
+) (pruner.Pruner[AvailabilityStoreT], error) {
 	// TODO: add dispatcher field in the pruner or something, the provider
 	// should not execute any business logic.
 	// create new subscription for finalized blocks.
-	subFinalizedBlocks := make(chan FinalizedBlockEvent)
+	subFinalizedBlocks := make(chan async.Event[BeaconBlockT])
 	if err := in.Dispatcher.Subscribe(
 		async.BeaconBlockFinalizedEvent, subFinalizedBlocks,
 	); err != nil {
@@ -110,14 +116,11 @@ func ProvideAvailabilityPruner[
 	}
 
 	// build the availability pruner if IndexDB is available.
-	return pruner.NewPruner[
-		*BeaconBlock,
-		*IndexDB,
-	](
+	return pruner.NewPruner[BeaconBlockT, AvailabilityStoreT](
 		in.Logger.With("service", manager.AvailabilityPrunerName),
-		rangeDB,
+		in.AvailabilityStore,
 		manager.AvailabilityPrunerName,
 		subFinalizedBlocks,
-		dastore.BuildPruneRangeFn[*BeaconBlock](in.ChainSpec),
+		dastore.BuildPruneRangeFn[BeaconBlockT](in.ChainSpec),
 	), nil
 }
