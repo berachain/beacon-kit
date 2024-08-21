@@ -71,9 +71,7 @@ func DefaultComponents() []any {
 			*AvailabilityStore, *BeaconBlockBody, *BlobSidecar,
 			*BlobSidecars, *Logger,
 		],
-		components.ProvideDBManager[
-			*AvailabilityStore, *BlockStore, *DepositStore, *Logger,
-		],
+		components.ProvideDBManager[*AvailabilityStore, *DepositStore, *Logger],
 		components.ProvideDepositPruner[
 			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader,
 			*Deposit, *DepositStore, *Logger,

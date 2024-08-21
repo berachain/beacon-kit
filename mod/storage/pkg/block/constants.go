@@ -18,38 +18,17 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package block
 
-import (
-	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
+const (
+	StoreName            = "blocks"
+	blockRootsName       = "block_roots"
+	executionNumbersName = "execution_numbers"
+	stateRootsName       = "state_roots"
 )
 
-// DBManagerInput is the input for the dep inject framework.
-type DBManagerInput[
-	AvailabilityStoreT pruner.Prunable,
-	DepositStoreT pruner.Prunable,
-	LoggerT any,
-] struct {
-	depinject.In
-	AvailabilityPruner pruner.Pruner[AvailabilityStoreT]
-	DepositPruner      pruner.Pruner[DepositStoreT]
-	Logger             LoggerT
-}
-
-// ProvideDBManager provides a DBManager for the depinject framework.
-func ProvideDBManager[
-	AvailabilityStoreT pruner.Prunable,
-	DepositStoreT pruner.Prunable,
-	LoggerT log.AdvancedLogger[any, LoggerT],
-](
-	in DBManagerInput[AvailabilityStoreT, DepositStoreT, LoggerT],
-) (*manager.DBManager, error) {
-	return manager.NewDBManager(
-		in.Logger.With("service", "db-manager"),
-		in.DepositPruner,
-		in.AvailabilityPruner,
-	)
-}
+const (
+	blockRootsPrefix int = iota
+	executionNumbersPrefix
+	stateRootsPrefix
+)
