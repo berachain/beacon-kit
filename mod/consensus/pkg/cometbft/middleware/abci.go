@@ -125,10 +125,7 @@ func (h *ABCIMiddleware[
 		return nil, nil, err
 	}
 
-	// gossip the built beacon block and blob sidecars
-	return h.handleBuiltBeaconBlockAndSidecars(
-		ctx, builtBeaconBlock, builtSidecars,
-	)
+	return h.handleBuiltBeaconBlockAndSidecars(builtBeaconBlock, builtSidecars)
 }
 
 // waitForBuiltBeaconBlock waits for the built beacon block to be received.
@@ -164,19 +161,14 @@ func (h *ABCIMiddleware[
 func (h *ABCIMiddleware[
 	BeaconBlockT, BlobSidecarsT, _, _,
 ]) handleBuiltBeaconBlockAndSidecars(
-	ctx context.Context,
 	bb BeaconBlockT,
 	sc BlobSidecarsT,
 ) ([]byte, []byte, error) {
-	// gossip beacon block
-	bbBz, bbErr := h.beaconBlockGossiper.Publish(
-		ctx, bb,
-	)
+	bbBz, bbErr := bb.MarshalSSZ()
 	if bbErr != nil {
 		return nil, nil, bbErr
 	}
-	// gossip blob sidecars
-	scBz, scErr := h.blobGossiper.Publish(ctx, sc)
+	scBz, scErr := sc.MarshalSSZ()
 	if scErr != nil {
 		return nil, nil, scErr
 	}
@@ -211,7 +203,9 @@ func (h *ABCIMiddleware[
 	defer h.metrics.measureProcessProposalDuration(startTime)
 
 	// Request the beacon block.
-	if blk, err = h.beaconBlockGossiper.Request(ctx, abciReq); err != nil {
+	if blk, err = encoding.UnmarshalBeaconBlockFromABCIRequest[BeaconBlockT](
+		abciReq, 0, h.chainSpec.ActiveForkVersionForSlot(math.U64(abciReq.Height))
+		); err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
 
@@ -223,7 +217,9 @@ func (h *ABCIMiddleware[
 	}
 
 	// Request the blob sidecars.
-	if sidecars, err = h.blobGossiper.Request(ctx, abciReq); err != nil {
+	if sidecars, err = encoding.UnmarshalBlobSidecarsFromABCIRequest[BlobSidecarsT](
+		abciReq, 1,
+	); err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
 
