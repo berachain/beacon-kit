@@ -42,6 +42,7 @@ import (
 	"github.com/sourcegraph/conc/iter"
 )
 
+//nolint:gocognit // todo fix.
 func (app *Service) InitChain(
 	req *abci.InitChainRequest,
 ) (*abci.InitChainResponse, error) {
@@ -141,7 +142,6 @@ func (app *Service) InitChain(
 				Validators[i].PubKeyType {
 				return nil, errors.New("mismatched pubkey types")
 			}
-
 		}
 	}
 
