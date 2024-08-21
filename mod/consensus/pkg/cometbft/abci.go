@@ -95,6 +95,10 @@ func (app *Service) InitChain(
 		)
 	}()
 
+	if app.finalizeBlockState == nil {
+		return nil, errors.New("finalizeBlockState is nil")
+	}
+
 	// add block gas meter for any genesis transactions (allow infinite gas)
 	app.finalizeBlockState.SetContext(
 		app.finalizeBlockState.Context(),

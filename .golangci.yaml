@@ -360,5 +360,3 @@ issues:
         - noctx
         - wrapcheck
         - gochecknoglobals
-  exclude-files:
-    - "pkg/cosmos/Service/.*\\.go"
