@@ -33,7 +33,7 @@ def start(persistent_peers, is_seed, validator_index, config_settings, app_setti
         set_config += '\nsed -i "s/^max_num_inbound_peers = 40$/max_num_inbound_peers = {}/" {}/config/config.toml'.format(config_settings.max_num_inbound_peers, "$BEACOND_HOME")
         set_config += '\nsed -i "s/^max_num_outbound_peers = 10$/max_num_outbound_peers = {}/" {}/config/config.toml'.format(config_settings.max_num_outbound_peers, "$BEACOND_HOME")
 
-    start_node = "CHAIN_SPEC=devnet /usr/bin/beacond start \
+    start_node = "CHAIN_SPEC=devnet /usr/bin/beacond start --rpc.laddr tcp://0.0.0.0:26657 \
     --beacon-kit.engine.jwt-secret-path=/root/jwt/jwt-secret.hex \
     --beacon-kit.kzg.trusted-setup-path=/root/kzg/kzg-trusted-setup.json \
     --beacon-kit.kzg.implementation={} \
