@@ -83,7 +83,7 @@ type AvailabilityPrunerInput[
 	depinject.In
 	AvailabilityStore AvailabilityStoreT
 	ChainSpec         common.ChainSpec
-	Dispatcher        *Dispatcher
+	Dispatcher        Dispatcher
 	Logger            LoggerT
 }
 
@@ -108,10 +108,10 @@ func ProvideAvailabilityPruner[
 	// create new subscription for finalized blocks.
 	subFinalizedBlocks := make(chan async.Event[BeaconBlockT])
 	if err := in.Dispatcher.Subscribe(
-		async.BeaconBlockFinalizedEvent, subFinalizedBlocks,
+		async.BeaconBlockFinalized, subFinalizedBlocks,
 	); err != nil {
 		in.Logger.Error("failed to subscribe to event", "event",
-			async.BeaconBlockFinalizedEvent, "err", err)
+			async.BeaconBlockFinalized, "err", err)
 		return nil, err
 	}
 

@@ -74,7 +74,7 @@ type ServiceRegistryInput[
 		BeaconBlockT, BeaconBlockBodyT, *Deposit,
 		*ExecutionPayload, WithdrawalCredentials,
 	]
-	Dispatcher       *Dispatcher
+	Dispatcher       Dispatcher
 	EngineClient     *EngineClient
 	Logger           LoggerT
 	NodeAPIServer    *server.Server[NodeAPIContextT]

@@ -41,7 +41,7 @@ func ProvideDispatcher[
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ](
 	in DispatcherInput[LoggerT],
-) (*Dispatcher, error) {
+) (Dispatcher, error) {
 	d := dispatcher.New(
 		in.Logger.With("service", "dispatcher"),
 	)
