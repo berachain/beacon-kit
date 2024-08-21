@@ -6,6 +6,9 @@ replace (
 	// The following are required to build with the latest version of the cosmos-sdk main branch:
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240806152830-8fb47b368cd4
 	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240806152830-8fb47b368cd4
+	cosmossdk.io/x/auth => cosmossdk.io/x/auth v0.0.0-20240806152830-8fb47b368cd4
+	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240806152830-8fb47b368cd4
+	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240806152830-8fb47b368cd4
 	github.com/berachain/beacon-kit/mod/beacon => ../beacon
 	github.com/berachain/beacon-kit/mod/da => ../da
 	github.com/berachain/beacon-kit/mod/execution => ../execution
@@ -21,6 +24,7 @@ require (
 	cosmossdk.io/log v1.4.1
 	cosmossdk.io/tools/confix v0.1.1
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240705193247-d464364483df
+	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240821053614-036c5d2945f0
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240809163303-a4ebb22fd018
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240809202957-3e3f169ad720
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240806211103-d1105603bfc0
@@ -42,7 +46,6 @@ require (
 	cosmossdk.io/schema v0.1.1 // indirect
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240820191615-398849c34954 // indirect
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df // indirect
-	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240821053614-036c5d2945f0 // indirect
 	github.com/berachain/beacon-kit/mod/node-api v0.0.0-20240806160829-cde2d1347e7e // indirect
 	github.com/berachain/beacon-kit/mod/node-api/engines v0.0.0-20240806160829-cde2d1347e7e // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a // indirect
@@ -98,7 +101,7 @@ require (
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240820191615-398849c34954 // indirect
 	github.com/berachain/beacon-kit/mod/p2p v0.0.0-20240821000339-4d4242ba4a50 // indirect
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df // indirect
-	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240821000339-4d4242ba4a50
+	github.com/berachain/beacon-kit/mod/runtime v0.0.0-20240821000339-4d4242ba4a50 // indirect
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6650da31 // indirect
 	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240820191615-398849c34954 // indirect
 	github.com/bgentry/speakeasy v0.2.0 // indirect
