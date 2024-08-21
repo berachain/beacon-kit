@@ -141,6 +141,7 @@ is performed. Note, when enabled, gRPC will also be automatically enabled.
 			err = opts.StartCommandHandler(serverCtx, appCreator, opts)
 
 			serverCtx.Logger.Debug("received quit signal")
+			//#nosec:G703 // its a bet.
 			graceDuration, _ := cmd.Flags().GetDuration(FlagShutdownGrace)
 			if graceDuration > 0 {
 				serverCtx.Logger.Info(
@@ -238,6 +239,7 @@ func startCmtNode(
 
 	cleanupFn = func() {
 		if tmNode != nil && tmNode.IsRunning() {
+			//#nosec:G703 // its a bet.
 			_ = tmNode.Stop()
 		}
 	}

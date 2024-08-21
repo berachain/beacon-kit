@@ -101,6 +101,7 @@ func StatusCommand() *cobra.Command {
 
 			// In order to maintain backwards compatibility, the default json
 			// format output
+			//#nosec:G703 // its a bet.
 			outputFormat, _ := cmd.Flags().GetString(flags.FlagOutput)
 			if outputFormat == flags.OutputFormatJSON {
 				clientCtx = clientCtx.WithOutputFormat(flags.OutputFormatJSON)
@@ -260,6 +261,7 @@ func BootstrapStateCmd[T types.Application](
 				cfg,
 				cmtcfg.DefaultDBProvider,
 				server.GetGenDocProvider(cfg),
+				//#nosec:G701 // bet.
 				uint64(height),
 				nil,
 			)
