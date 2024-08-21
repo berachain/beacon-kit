@@ -76,7 +76,6 @@ func DefaultAppConfig() any {
 
 	// Start with the default server configuration.
 	cfg := serverconfig.DefaultConfig()
-	cfg.MinGasPrices = "0stake"
 	cfg.Telemetry.Enabled = true
 
 	// BeaconKit forces PebbleDB as the database backend.

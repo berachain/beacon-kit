@@ -8,28 +8,7 @@ import (
 
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
-
-func TestDefaultConfig(t *testing.T) {
-	cfg := DefaultConfig()
-	require.True(t, cfg.GetMinGasPrices().IsZero())
-}
-
-func TestGetAndSetMinimumGas(t *testing.T) {
-	cfg := DefaultConfig()
-
-	input := sdk.DecCoins{sdk.NewInt64DecCoin("foo", 5)}
-	cfg.SetMinGasPrices(input)
-	require.Equal(t, "5.000000000000000000foo", cfg.MinGasPrices)
-	require.EqualValues(t, cfg.GetMinGasPrices(), input)
-
-	input = sdk.DecCoins{sdk.NewInt64DecCoin("bar", 1), sdk.NewInt64DecCoin("foo", 5)}
-	cfg.SetMinGasPrices(input)
-	require.Equal(t, "1.000000000000000000bar,5.000000000000000000foo", cfg.MinGasPrices)
-	require.EqualValues(t, cfg.GetMinGasPrices(), input)
-}
 
 func TestIndexEventsMarshalling(t *testing.T) {
 	expectedIn := `index-events = ["key1", "key2", ]` + "\n"
