@@ -21,20 +21,18 @@
 package commands
 
 import (
-	confixcmd "cosmossdk.io/tools/confix/cmd"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/cometbft"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/deposit"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/genesis"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/jwt"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
+	cmtcli "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/cli"
+	ccometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server"
+	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/cosmos/runtime"
-	"github.com/cosmos/cosmos-sdk/client/keys"
-	"github.com/cosmos/cosmos-sdk/client/pruning"
-	"github.com/cosmos/cosmos-sdk/server"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 )
@@ -45,7 +43,7 @@ func DefaultRootCommandSetup[
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 ](
 	root *Root,
-	mm *runtime.App,
+	mm *ccometbft.Service,
 	appCreator servertypes.AppCreator[T],
 	chainSpec common.ChainSpec,
 ) {
@@ -58,8 +56,6 @@ func DefaultRootCommandSetup[
 	root.cmd.AddCommand(
 		// `comet`
 		cometbft.Commands(appCreator),
-		// `config`
-		confixcmd.ConfigCommand(),
 		// `init`
 		genutilcli.InitCmd(mm),
 		// `genesis`
@@ -68,16 +64,12 @@ func DefaultRootCommandSetup[
 		deposit.Commands[ExecutionPayloadT](chainSpec),
 		// `jwt`
 		jwt.Commands(),
-		// `keys`
-		keys.Commands(),
-		// `prune`
-		pruning.Cmd(appCreator),
 		// `rollback`
 		server.NewRollbackCmd(appCreator),
 		// `start`
 		server.StartCmdWithOptions(appCreator, startCmdOptions),
 		// `status`
-		server.StatusCommand(),
+		cmtcli.StatusCommand(),
 		// `version`
 		version.NewVersionCommand(),
 	)

@@ -38,7 +38,7 @@ packages:
       recursive: True
       with-expecter: true
       all: True
-  github.com/berachain/beacon-kit/mod/runtime/pkg/service:
+  github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry:
     config:
       recursive: True
       with-expecter: true

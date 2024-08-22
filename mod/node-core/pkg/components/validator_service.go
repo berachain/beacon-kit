@@ -36,17 +36,18 @@ type ValidatorServiceInput[
 	BeaconBlockT any,
 	BeaconStateT any,
 	BlobSidecarsT any,
+	DepositT any,
 	LoggerT any,
 	StorageBackendT any,
 ] struct {
 	depinject.In
 	Cfg            *config.Config
 	ChainSpec      common.ChainSpec
-	Dispatcher     *Dispatcher
+	Dispatcher     Dispatcher
 	LocalBuilder   LocalBuilder[BeaconStateT, *ExecutionPayload]
 	Logger         LoggerT
 	StateProcessor StateProcessor[
-		BeaconBlockT, BeaconStateT, *Context, *Deposit, *ExecutionPayloadHeader,
+		BeaconBlockT, BeaconStateT, *Context, DepositT, *ExecutionPayloadHeader,
 	]
 	StorageBackend StorageBackendT
 	Signer         crypto.BLSSigner
@@ -61,7 +62,7 @@ func ProvideValidatorService[
 		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	],
 	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT, *AttestationData, *Deposit,
+		BeaconBlockBodyT, *AttestationData, DepositT,
 		*Eth1Data, *ExecutionPayload, *SlashingInfo,
 	],
 	BeaconBlockHeaderT any,
@@ -73,19 +74,21 @@ func ProvideValidatorService[
 	BeaconStateMarshallableT any,
 	BeaconBlockStoreT any,
 	BlobSidecarsT any,
+	DepositT any,
+	DepositStoreT DepositStore[DepositT],
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[any, LoggerT],
 	StorageBackendT StorageBackend[
-		AvailabilityStoreT, BeaconStateT, BeaconBlockStoreT, *DepositStore,
+		AvailabilityStoreT, BeaconStateT, BeaconBlockStoreT, DepositStoreT,
 	],
 ](
 	in ValidatorServiceInput[
 		AvailabilityStoreT, BeaconBlockT, BeaconStateT,
-		BlobSidecarsT, LoggerT, StorageBackendT,
+		BlobSidecarsT, DepositT, LoggerT, StorageBackendT,
 	],
 ) (*validator.Service[
 	*AttestationData, BeaconBlockT, BeaconBlockBodyT,
-	BeaconStateT, BlobSidecarsT, *Deposit, *DepositStore,
+	BeaconStateT, BlobSidecarsT, DepositT, DepositStoreT,
 	*Eth1Data, *ExecutionPayload, *ExecutionPayloadHeader,
 	*ForkData, *SlashingInfo, *SlotData,
 ], error) {
@@ -96,8 +99,8 @@ func ProvideValidatorService[
 		BeaconBlockBodyT,
 		BeaconStateT,
 		BlobSidecarsT,
-		*Deposit,
-		*DepositStore,
+		DepositT,
+		DepositStoreT,
 		*Eth1Data,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,

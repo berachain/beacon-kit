@@ -30,12 +30,12 @@ import (
 
 	corectx "cosmossdk.io/core/context"
 	sdklog "github.com/berachain/beacon-kit/mod/cli/pkg/components/log"
+	server "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	server "github.com/cosmos/cosmos-sdk/server"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"

@@ -361,5 +361,5 @@ issues:
         - wrapcheck
         - gochecknoglobals
   exclude-files:
-    - "pkg/cosmos/runtime/.*\\.go"
-    - "pkg/cosmos/baseapp/.*\\.go"
+    - "pkg/cometbft/cli/.*\\.go"
+    - "pkg/cometbft/service/server/.*\\.go"

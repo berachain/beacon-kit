@@ -22,7 +22,7 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/middleware"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/middleware"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -36,9 +36,9 @@ type ABCIMiddlewareInput[
 ] struct {
 	depinject.In
 	ChainSpec     common.ChainSpec
+	Dispatcher    Dispatcher
 	Logger        LoggerT
 	TelemetrySink *metrics.TelemetrySink
-	Dispatcher    *Dispatcher
 }
 
 // ProvideABCIMiddleware is a depinject provider for the validator
@@ -49,21 +49,23 @@ func ProvideABCIMiddleware[
 	BeaconBlockHeaderT any,
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
+	DepositT any,
+	GenesisT Genesis[DepositT, *ExecutionPayloadHeader],
 	LoggerT log.Logger[any],
 ](
 	in ABCIMiddlewareInput[BeaconBlockT, BlobSidecarsT, LoggerT],
 ) (*middleware.ABCIMiddleware[
-	BeaconBlockT, BlobSidecarsT, *Genesis, *SlotData,
+	BeaconBlockT, BlobSidecarsT, GenesisT, *SlotData,
 ], error) {
 	return middleware.NewABCIMiddleware[
 		BeaconBlockT,
 		BlobSidecarsT,
-		*Genesis,
+		GenesisT,
 		*SlotData,
 	](
 		in.ChainSpec,
+		in.Dispatcher,
 		in.Logger,
 		in.TelemetrySink,
-		in.Dispatcher,
 	), nil
 }

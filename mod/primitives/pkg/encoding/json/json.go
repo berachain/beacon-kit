@@ -27,6 +27,14 @@ import (
 	gojson "github.com/goccy/go-json"
 )
 
+// Marshaler is the interface implemented by types that
+// can marshal themselves into valid JSON.
+type Marshaler = gojson.Marshaler
+
+// Unmarshaler is the interface implemented by types
+// that can unmarshal a JSON description of themselves.
+type Unmarshaler = gojson.Unmarshaler
+
 // Marshal is a wrapper for gojson.Marshal, which provides high-performance JSON
 // encoding.
 var Marshal = gojson.Marshal

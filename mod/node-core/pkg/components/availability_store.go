@@ -24,6 +24,7 @@ import (
 	"os"
 
 	"cosmossdk.io/depinject"
+	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
@@ -33,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cast"
 )
 
@@ -83,7 +83,7 @@ type AvailabilityPrunerInput[
 	depinject.In
 	AvailabilityStore AvailabilityStoreT
 	ChainSpec         common.ChainSpec
-	Dispatcher        *Dispatcher
+	Dispatcher        Dispatcher
 	Logger            LoggerT
 }
 
@@ -108,10 +108,10 @@ func ProvideAvailabilityPruner[
 	// create new subscription for finalized blocks.
 	subFinalizedBlocks := make(chan async.Event[BeaconBlockT])
 	if err := in.Dispatcher.Subscribe(
-		async.BeaconBlockFinalizedEvent, subFinalizedBlocks,
+		async.BeaconBlockFinalized, subFinalizedBlocks,
 	); err != nil {
 		in.Logger.Error("failed to subscribe to event", "event",
-			async.BeaconBlockFinalizedEvent, "err", err)
+			async.BeaconBlockFinalized, "err", err)
 		return nil, err
 	}
 

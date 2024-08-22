@@ -94,7 +94,7 @@ func TestPruner(t *testing.T) {
 				block.On("GetSlot").Return(math.U64(index))
 				event := async.NewEvent[pruner.BeaconBlock](
 					context.Background(),
-					async.BeaconBlockFinalizedEvent,
+					async.BeaconBlockFinalized,
 					&block,
 				)
 				ch <- event

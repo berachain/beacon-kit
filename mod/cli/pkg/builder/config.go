@@ -25,8 +25,8 @@ import (
 
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/config/pkg/template"
+	serverconfig "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/config"
 	cmtcfg "github.com/cometbft/cometbft/config"
-	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 )
 
 // DefaultAppConfigTemplate returns the default configuration template for the
@@ -76,11 +76,9 @@ func DefaultAppConfig() any {
 
 	// Start with the default server configuration.
 	cfg := serverconfig.DefaultConfig()
-	cfg.MinGasPrices = "0stake"
 	cfg.Telemetry.Enabled = true
 
 	// BeaconKit forces PebbleDB as the database backend.
-	cfg.AppDBBackend = "pebbledb"
 	cfg.Pruning = "everything"
 
 	// IAVL FastNode should ALWAYS be disabled on IAVL v1.x.

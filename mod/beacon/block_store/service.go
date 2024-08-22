@@ -41,7 +41,7 @@ type Service[
 	dispatcher asynctypes.EventDispatcher
 	// store is the block store for the service.
 	store BlockStoreT
-	// subFinalizedBlkEvents is a channel for receiving finalized block events.
+	// subFinalizedBlkEvents is a channel holding BeaconBlockFinalized
 	subFinalizedBlkEvents chan async.Event[BeaconBlockT]
 }
 
@@ -69,8 +69,9 @@ func (s *Service[_, _]) Name() string {
 	return "block-service"
 }
 
-// Start starts the block service.
-func (s *Service[BeaconBlockT, _]) Start(ctx context.Context) error {
+// Start subscribes the BlockStore service to BeaconBlockFinalized events
+// and starts the main event loop to handle them accordingly.
+func (s *Service[_, _]) Start(ctx context.Context) error {
 	if !s.config.Enabled {
 		s.logger.Warn("block service is disabled, skipping storing blocks")
 		return nil
@@ -78,17 +79,19 @@ func (s *Service[BeaconBlockT, _]) Start(ctx context.Context) error {
 
 	// subscribe a channel to the finalized block events.
 	if err := s.dispatcher.Subscribe(
-		async.BeaconBlockFinalizedEvent, s.subFinalizedBlkEvents,
+		async.BeaconBlockFinalized, s.subFinalizedBlkEvents,
 	); err != nil {
 		s.logger.Error("failed to subscribe to block events", "error", err)
 		return err
 	}
 
+	// start the event loop to listen and handle events.
 	go s.eventLoop(ctx)
 	return nil
 }
 
-func (s *Service[BeaconBlockT, BlockStoreT]) eventLoop(ctx context.Context) {
+// eventLoop is the main event loop for the block service.
+func (s *Service[_, _]) eventLoop(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():

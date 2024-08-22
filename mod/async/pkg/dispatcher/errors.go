@@ -27,8 +27,13 @@ import (
 
 //nolint:gochecknoglobals // errors
 var (
-	ErrNotFound       = errors.New("not found")
-	ErrAlreadyExists  = errors.New("already exists")
+	// ErrNotFound is returned when a broker is not found for an eventID.
+	ErrNotFound = errors.New("not found")
+	// ErrAlreadyExists is returned when a broker is already registered for an
+	// eventID.
+	ErrAlreadyExists = errors.New("already exists")
+	// errBrokerNotFound is a helper function to wrap the ErrNotFound error
+	// with the eventID.
 	errBrokerNotFound = func(eventID async.EventID) error {
 		return errors.Wrapf(
 			ErrNotFound,
@@ -36,6 +41,8 @@ var (
 			eventID,
 		)
 	}
+	// errBrokerAlreadyExists is a helper function to wrap the ErrAlreadyExists
+	// error with the eventID.
 	errBrokerAlreadyExists = func(eventID async.EventID) error {
 		return errors.Wrapf(
 			ErrAlreadyExists,
