@@ -79,7 +79,7 @@ func StartCmdWithOptions[T types.Application](
 	cmd := &cobra.Command{
 		Use:   "start",
 		Short: "Run the full node",
-		Long: `Run the full node application with CometBFT in or out of process. By
+		Long: `Run the full node application with CometBFT in process. By
 default, the application will run with CometBFT in process.
 
 Pruning options can be provided via the '--pruning' flag or alternatively with '--pruning-keep-recent', and
@@ -92,19 +92,6 @@ nothing: all historic states will be saved, nothing will be deleted (i.e. archiv
 everything: 2 latest states will be kept; pruning at 10 block intervals.
 custom: allow pruning options to be manually specified through 'pruning-keep-recent', and 'pruning-interval'
 
-Node halting configurations exist in the form of two flags: '--halt-height' and '--halt-time'. During
-the ABCI Commit phase, the node will check if the current block height is greater than or equal to
-the halt-height or if the current block time is greater than or equal to the halt-time. If so, the
-node will attempt to gracefully shutdown and the block will not be committed. In addition, the node
-will not be able to commit subsequent blocks.
-
-For profiling and benchmarking purposes, CPU profiling can be enabled via the '--cpu-profile' flag
-which accepts a path for the resulting pprof file.
-
-The node may be started in a 'query only' mode where only the gRPC and JSON HTTP
-API services are enabled via the 'grpc-only' flag. In this mode, CometBFT is
-bypassed and can be used when legacy queries are needed after an on-chain upgrade
-is performed. Note, when enabled, gRPC will also be automatically enabled.
 `,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			serverCtx := GetServerContextFromCmd(cmd)
