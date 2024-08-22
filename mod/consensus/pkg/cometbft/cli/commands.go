@@ -24,8 +24,10 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
+	service "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server"
 	types "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/db"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	cmtjson "github.com/cometbft/cometbft/libs/json"
@@ -39,17 +41,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
 )
 
-// AddCommands add server commands.
-func AddCommands[T types.Application](
-	rootCmd *cobra.Command,
+// Commands add server commands.
+func Commands[T types.Application](
 	appCreator types.AppCreator[T],
-	opts server.StartCmdOptions[T],
-) {
+) *cobra.Command {
 	cometCmd := &cobra.Command{
 		Use:     "comet",
 		Aliases: []string{"cometbft", "tendermint"},
@@ -66,13 +65,7 @@ func AddCommands[T types.Application](
 		BootstrapStateCmd[T](appCreator),
 	)
 
-	startCmd := server.StartCmdWithOptions(appCreator, opts)
-	rootCmd.AddCommand(
-		startCmd,
-		cometCmd,
-		version.NewVersionCommand(),
-		server.NewRollbackCmd[T](appCreator),
-	)
+	return cometCmd
 }
 
 // StatusCommand returns the command to return the status of the network.
@@ -246,15 +239,15 @@ func BootstrapStateCmd[T types.Application](
 			}
 			if height == 0 {
 				home := serverCtx.Viper.GetString(flags.FlagHome)
-				var db dbm.DB
-				db, err = server.OpenDB(home, dbm.PebbleDBBackend)
+				var dbi dbm.DB
+				dbi, err = db.OpenDB(home, dbm.PebbleDBBackend)
 				if err != nil {
 					return err
 				}
 
 				app := appCreator(
 					logger,
-					db,
+					dbi,
 					nil,
 					serverCtx.Config,
 					serverCtx.Viper,
@@ -266,7 +259,7 @@ func BootstrapStateCmd[T types.Application](
 				cmd.Context(),
 				cfg,
 				cmtcfg.DefaultDBProvider,
-				server.GetGenDocProvider(cfg),
+				service.GetGenDocProvider(cfg),
 				//#nosec:G701 // bet.
 				uint64(height),
 				nil,

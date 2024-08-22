@@ -18,36 +18,16 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package cometbft
+package db
 
 import (
-	cometcli "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/cli"
-	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
-	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
-	"github.com/spf13/cobra"
+	"path/filepath"
+
+	dbm "github.com/cosmos/cosmos-db"
 )
 
-// Commands creates a new command for managing CometBFT
-// related commands.
-func Commands[T types.Node](
-	appCreator servertypes.AppCreator[T],
-) *cobra.Command {
-	cometCmd := &cobra.Command{
-		Use:     "comet",
-		Aliases: []string{"cometbft", "tendermint"},
-		Short:   "CometBFT subcommands",
-	}
-
-	cometCmd.AddCommand(
-		cometcli.ShowNodeIDCmd(),
-		cometcli.ShowValidatorCmd(),
-		cometcli.ShowAddressCmd(),
-		cometcli.VersionCmd(),
-		cmtcmd.ResetAllCmd,
-		cmtcmd.ResetStateCmd,
-		cometcli.BootstrapStateCmd(appCreator),
-	)
-
-	return cometCmd
+// OpenDB opens the application database using the appropriate driver.
+func OpenDB(rootDir string, backendType dbm.BackendType) (dbm.DB, error) {
+	dataDir := filepath.Join(rootDir, "data")
+	return dbm.NewDB("application", backendType, dataDir)
 }

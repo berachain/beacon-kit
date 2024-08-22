@@ -24,6 +24,7 @@ import (
 	"fmt"
 
 	types "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/db"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/spf13/cobra"
@@ -50,7 +51,7 @@ application.
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := GetServerContextFromCmd(cmd)
 
-			db, err := OpenDB(ctx.Config.RootDir, dbm.PebbleDBBackend)
+			db, err := db.OpenDB(ctx.Config.RootDir, dbm.PebbleDBBackend)
 			if err != nil {
 				return err
 			}

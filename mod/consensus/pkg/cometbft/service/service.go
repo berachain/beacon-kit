@@ -143,7 +143,7 @@ func (app *Service) Start(
 		),
 		nodeKey,
 		proxy.NewLocalClientCreator(cmtApp),
-		server.GetGenDocProvider(cfg),
+		GetGenDocProvider(cfg),
 		cmtcfg.DefaultDBProvider,
 		node.DefaultMetricsProvider(cfg.Instrumentation),
 		servercmtlog.CometLoggerWrapper{Logger: app.logger},
