@@ -22,13 +22,15 @@ package types
 
 import (
 	"context"
+
+	"cosmossdk.io/store"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Node defines the API for the node application.
 // It extends the Application interface from the Cosmos SDK.
 type Node interface {
-	Application
-
-	// Start starts the node.
 	Start(context.Context) error
+	CommitMultiStore() store.CommitMultiStore
+	CreateQueryContext(height int64, prove bool) (sdk.Context, error)
 }
