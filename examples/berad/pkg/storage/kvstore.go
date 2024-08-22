@@ -84,11 +84,6 @@ type KVStore[
 	validators *sdkcollections.IndexedMap[
 		uint64, ValidatorT, index.ValidatorsIndex[ValidatorT],
 	]
-	// nextWithdrawalIndex stores the next global withdrawal index.
-	nextWithdrawalIndex sdkcollections.Item[uint64]
-	// nextWithdrawalValidatorIndex stores the next withdrawal validator index
-	// for each validator.
-	nextWithdrawalValidatorIndex sdkcollections.Item[uint64]
 	// Randomness
 	// randaoMix stores the randao mix for the current epoch.
 	randaoMix sdkcollections.Map[uint64, []byte]
@@ -204,20 +199,6 @@ func New[
 			keys.RandaoMixPrefixHumanReadable,
 			sdkcollections.Uint64Key,
 			sdkcollections.BytesValue,
-		),
-		nextWithdrawalIndex: sdkcollections.NewItem(
-			schemaBuilder,
-			sdkcollections.NewPrefix([]byte{keys.NextWithdrawalIndexPrefix}),
-			keys.NextWithdrawalIndexPrefixHumanReadable,
-			sdkcollections.Uint64Value,
-		),
-		nextWithdrawalValidatorIndex: sdkcollections.NewItem(
-			schemaBuilder,
-			sdkcollections.NewPrefix(
-				[]byte{keys.NextWithdrawalValidatorIndexPrefix},
-			),
-			keys.NextWithdrawalValidatorIndexPrefixHumanReadable,
-			sdkcollections.Uint64Value,
 		),
 		latestBlockHeader: sdkcollections.NewItem(
 			schemaBuilder,

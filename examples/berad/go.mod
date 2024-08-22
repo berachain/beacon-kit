@@ -13,7 +13,7 @@ require (
 	github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240808171039-610759181f0a
 	github.com/berachain/beacon-kit/mod/engine-primitives v0.0.0-20240808171039-610759181f0a
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240705193247-d464364483df
-	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/ferranbt/fastssz v0.1.4-0.20240629094022-eac385e6ee79
 	github.com/go-faster/xor v1.0.0
 	github.com/karalabe/ssz v0.2.1-0.20240724074312-3d1ff7a6f7c4
