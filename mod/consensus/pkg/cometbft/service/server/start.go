@@ -22,7 +22,6 @@
 package server
 
 import (
-	"context"
 	"crypto/sha256"
 	"encoding/json"
 	"time"
@@ -35,7 +34,6 @@ import (
 	dbm "github.com/cosmos/cosmos-db"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/cobra"
-	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -157,25 +155,14 @@ func start[T types.Application](
 	appCreator types.AppCreator[T],
 	appOpts StartCmdOptions[T],
 ) error {
-	app, appCleanupFn, err := startApp[T](svrCtx, appCreator, appOpts)
+	home := svrCtx.Config.RootDir
+	db, err := appOpts.DBOpener(home, dbm.PebbleDBBackend)
 	if err != nil {
 		return err
 	}
-	defer appCleanupFn()
 
-	cmtCfg := svrCtx.Config
-
-	g, ctx := getCtx(svrCtx, true)
-
-	svrCtx.Logger.Info("starting node with ABCI CometBFT in-process")
-	if err = app.StartCmtNode(ctx, cmtCfg); err != nil {
-		return err
-	}
-
-	// wait for signal capture and gracefully return
-	// we are guaranteed to be waiting
-	//for the "ListenForQuitSignals" goroutine.
-	return g.Wait()
+	_ = appCreator(svrCtx.Logger, db, nil, svrCtx.Config, svrCtx.Viper)
+	return nil
 }
 
 // GetGenDocProvider returns a function which returns the genesis doc from the
@@ -217,36 +204,6 @@ func GetGenDocProvider(
 			Sha256Checksum: sum[:],
 		}, nil
 	}
-}
-
-func getCtx(svrCtx *Context, block bool) (*errgroup.Group, context.Context) {
-	ctx, cancelFn := context.WithCancel(context.Background())
-	g, ctx := errgroup.WithContext(ctx)
-	// listen for quit signals so the calling parent process can gracefully exit
-	ListenForQuitSignals(g, block, cancelFn, svrCtx.Logger)
-	return g, ctx
-}
-
-func startApp[T types.Application](
-	svrCtx *Context,
-	appCreator types.AppCreator[T],
-	opts StartCmdOptions[T],
-) (app T, cleanupFn func(), err error) {
-
-	home := svrCtx.Config.RootDir
-	db, err := opts.DBOpener(home, dbm.PebbleDBBackend)
-	if err != nil {
-		return app, func() {}, err
-	}
-
-	app = appCreator(svrCtx.Logger, db, nil, svrCtx.Viper)
-
-	cleanupFn = func() {
-		if localErr := app.Close(); localErr != nil {
-			svrCtx.Logger.Error(localErr.Error())
-		}
-	}
-	return app, cleanupFn, nil
 }
 
 // addStartNodeFlags should be added to any CLI commands that start the network.

@@ -21,7 +21,6 @@
 package types
 
 import (
-	"context"
 	"encoding/json"
 	"io"
 
@@ -55,10 +54,6 @@ type (
 
 		// CommitMultiStore return the multistore instance
 		CommitMultiStore() storetypes.CommitMultiStore
-		StartCmtNode(
-			context.Context,
-			*cmtcfg.Config,
-		) error
 		// Close is called in start cmd to gracefully cleanup resources.
 		// Must be safe to be called multiple times.
 		Close() error
@@ -66,7 +61,9 @@ type (
 
 	// AppCreator is a function that allows us to lazily initialize an
 	// application using various configurations.
-	AppCreator[T Application] func(log.Logger, dbm.DB, io.Writer, AppOptions) T
+	AppCreator[T any] func(
+		log.Logger, dbm.DB, io.Writer, *cmtcfg.Config, AppOptions,
+	) T
 
 	// ExportedApp represents an exported app state, along with
 	// validators, consensus params and latest app height.

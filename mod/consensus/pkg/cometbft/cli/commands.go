@@ -252,7 +252,13 @@ func BootstrapStateCmd[T types.Application](
 					return err
 				}
 
-				app := appCreator(logger, db, nil, serverCtx.Viper)
+				app := appCreator(
+					logger,
+					db,
+					nil,
+					serverCtx.Config,
+					serverCtx.Viper,
+				)
 				height = app.CommitMultiStore().LastCommitID().Version
 			}
 

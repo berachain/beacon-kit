@@ -24,6 +24,7 @@ import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
+	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/middleware"
 	"github.com/berachain/beacon-kit/mod/da/pkg/da"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
@@ -91,6 +92,7 @@ type ServiceRegistryInput[
 		*Eth1Data, *ExecutionPayload, *ExecutionPayloadHeader,
 		*ForkData, *SlashingInfo, *SlotData,
 	]
+	CometBFTService *cometbft.Service
 }
 
 // ProvideServiceRegistry is the depinject provider for the service registry.
@@ -140,5 +142,6 @@ func ProvideServiceRegistry[
 		service.WithService(in.DBManager),
 		service.WithService(in.EngineClient),
 		service.WithService(in.TelemetryService),
+		service.WithService(in.CometBFTService),
 	)
 }
