@@ -87,11 +87,15 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 		chainSpec       common.ChainSpec
 		abciMiddleware  cometbft.MiddlewareI
 		serviceRegistry *service.Registry
-		apiBackend      interface{ AttachQueryBackend(*cometbft.Service) }
-		storeKey        = new(storetypes.KVStoreKey)
-		storeKeyDblPtr  = &storeKey
-		beaconNode      NodeT
-		cmtService      *cometbft.Service
+		apiBackend      interface {
+			AttachQueryBackend(
+				*cometbft.Service,
+			)
+		}
+		storeKey       = new(storetypes.KVStoreKey)
+		storeKeyDblPtr = &storeKey
+		beaconNode     NodeT
+		cmtService     *cometbft.Service
 	)
 
 	// build all node components using depinject
