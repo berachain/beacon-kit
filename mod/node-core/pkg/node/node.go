@@ -35,6 +35,7 @@ var _ types.Node = (*node)(nil)
 
 // node is the hard-type representation of the beacon-kit node.
 type node struct {
+	// TODO: FIX, HACK TO MAKE CLI HAPPY FOR NOW.
 	types.Application
 	// registry is the node's service registry.
 	registry *service.Registry
