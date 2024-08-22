@@ -185,7 +185,10 @@ func (app *Service) initChainer(
 	}, nil
 }
 
-func (app *Service) Info(context.Context, *cmtabci.InfoRequest) (*cmtabci.InfoResponse, error) {
+func (app *Service) Info(
+	context.Context,
+	*cmtabci.InfoRequest,
+) (*cmtabci.InfoResponse, error) {
 	lastCommitID := app.cms.LastCommitID()
 	appVersion := InitialAppVersion
 	if lastCommitID.Version > 0 {

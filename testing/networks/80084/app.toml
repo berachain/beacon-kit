@@ -56,13 +56,6 @@ min-retain-blocks = 0
 # InterBlockCache enables inter-block caching.
 inter-block-cache = true
 
-# IndexEvents defines the set of events in the form {eventType}.{attributeKey},
-# which informs CometBFT what to index. If empty, all events will be indexed.
-#
-# Example:
-# ["message.sender", "message.recipient"]
-index-events = []
-
 # IavlCacheSize set the size of the iavl tree cache (in number of nodes).
 iavl-cache-size = 25000
 
