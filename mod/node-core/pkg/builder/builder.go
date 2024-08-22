@@ -87,7 +87,7 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 		chainSpec       common.ChainSpec
 		abciMiddleware  cometbft.MiddlewareI
 		serviceRegistry *service.Registry
-		apiBackend      interface{ AttachNode(types.Node) }
+		apiBackend      interface{ AttachQueryBackend(types.Node) }
 		storeKey        = new(storetypes.KVStoreKey)
 		storeKeyDblPtr  = &storeKey
 		beaconNode      types.Node
@@ -127,7 +127,7 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 	}
 
 	// TODO: so hood
-	apiBackend.AttachNode(cmtService)
+	apiBackend.AttachQueryBackend(cmtService)
 
 	// TODO: put this in some post node creation hook/listener.
 	if err := beaconNode.Start(context.Background()); err != nil {
