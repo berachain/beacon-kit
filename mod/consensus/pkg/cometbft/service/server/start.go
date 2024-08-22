@@ -24,7 +24,6 @@ package server
 import (
 	"crypto/sha256"
 	"encoding/json"
-	"time"
 
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	types "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
@@ -52,7 +51,6 @@ const (
 	FlagMinRetainBlocks     = "min-retain-blocks"
 	FlagIAVLCacheSize       = "iavl-cache-size"
 	FlagDisableIAVLFastNode = "iavl-disable-fastnode"
-	FlagShutdownGrace       = "shutdown-grace"
 )
 
 // StartCmdOptions defines options that can be customized in
@@ -124,18 +122,6 @@ is performed. Note, when enabled, gRPC will also be automatically enabled.
 
 			// Create the application.
 			_ = appCreator(serverCtx.Logger, db, nil, serverCtx.Config, serverCtx.Viper)
-
-			//#nosec:G703 // its a bet.
-			graceDuration, _ := cmd.Flags().GetDuration(FlagShutdownGrace)
-			if graceDuration > 0 {
-				serverCtx.Logger.Info(
-					"graceful shutdown start",
-					FlagShutdownGrace,
-					graceDuration,
-				)
-				<-time.After(graceDuration)
-				serverCtx.Logger.Info("graceful shutdown complete")
-			}
 
 			return err
 		},
@@ -209,8 +195,6 @@ func addStartNodeFlags[T types.Application](
 		Uint64(FlagMinRetainBlocks, 0, "Minimum block height offset during ABCI commit to prune CometBFT blocks")
 	cmd.Flags().
 		Bool(FlagDisableIAVLFastNode, false, "Disable fast node for IAVL tree")
-	cmd.Flags().
-		Duration(FlagShutdownGrace, 0*time.Second, "On Shutdown, duration to wait for resource clean up")
 
 	// add support for all CometBFT-specific command line options
 	cmtcmd.AddNodeFlags(cmd)
