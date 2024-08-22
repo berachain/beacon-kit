@@ -103,7 +103,8 @@ func ProvideExecutionEngine[
 	WithdrawalsT Withdrawals[WithdrawalT],
 ](
 	in ExecutionEngineInputs[
-		ExecutionPayloadT, ExecutionPayloadHeaderT, LoggerT, WithdrawalT, WithdrawalsT,
+		ExecutionPayloadT, ExecutionPayloadHeaderT, LoggerT, WithdrawalT,
+		WithdrawalsT,
 	],
 ) *engine.Engine[
 	ExecutionPayloadT,

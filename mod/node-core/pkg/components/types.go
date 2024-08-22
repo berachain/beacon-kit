@@ -76,7 +76,7 @@ type (
 	LegacyKey = signer.LegacyKey
 
 	// PayloadAttributes is a type alias for the payload attributes.
-	// PayloadAttributes = engineprimitives.PayloadAttributes[*Withdrawal]
+	// PayloadAttributes = engineprimitives.PayloadAttributes[*Withdrawal].
 
 	// PayloadID is a type alias for the payload ID.
 	PayloadID = engineprimitives.PayloadID
@@ -100,10 +100,10 @@ type (
 	ValidatorUpdates = transition.ValidatorUpdates
 
 	// Withdrawal is a type alias for the engineprimitives withdrawal.
-	// Withdrawal = engineprimitives.Withdrawal
+	// Withdrawal = engineprimitives.Withdrawal.
 
 	// Withdrawals is a type alias for the engineprimitives withdrawals.
-	// Withdrawals = engineprimitives.Withdrawals
+	// Withdrawals = engineprimitives.Withdrawals.
 
 	// WithdrawalCredentials is a type alias for the withdrawal credentials.
 	WithdrawalCredentials = types.WithdrawalCredentials

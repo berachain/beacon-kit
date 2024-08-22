@@ -21,6 +21,7 @@
 package components
 
 import (
+	stdbytes "bytes"
 	"context"
 	"encoding/json"
 
@@ -38,8 +39,6 @@ import (
 	v1 "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	fastssz "github.com/ferranbt/fastssz"
-
-	stdbytes "bytes"
 )
 
 type (
@@ -602,7 +601,7 @@ type (
 	// 		[]WithdrawalT,
 	// 		common.Root,
 	// 	) (T, error)
-	// }
+	// }.
 
 	// 	// SlashingInfo is an interface for accessing the slashing info.
 	// 	SlashingInfo[SlashingInfoT any] interface {

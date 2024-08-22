@@ -80,7 +80,8 @@ func ProvideNodeAPIBackend[
 	WithdrawalT Withdrawal[WithdrawalT],
 ](
 	in NodeAPIBackendInput[
-		BeaconBlockT, BeaconStateT, DepositT, ExecutionPayloadHeaderT, StorageBackendT,
+		BeaconBlockT, BeaconStateT, DepositT, ExecutionPayloadHeaderT,
+		StorageBackendT,
 	],
 ) *backend.Backend[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
