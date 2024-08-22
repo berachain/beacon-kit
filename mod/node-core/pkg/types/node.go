@@ -22,8 +22,6 @@ package types
 
 import (
 	"context"
-
-	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"
 )
 
 // Node defines the API for the node application.
@@ -33,9 +31,4 @@ type Node interface {
 
 	// Start starts the node.
 	Start(context.Context) error
-
-	// RegisterApp sets the node's application.
-	RegisterApp(Application)
-	// SetServiceRegistry sets the node's service registry.
-	SetServiceRegistry(*service.Registry)
 }

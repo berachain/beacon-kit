@@ -81,16 +81,16 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 	_ io.Writer,
 	cmtCfg *cmtcfg.Config,
 	appOpts servertypes.AppOptions,
-) NodeT {
+) types.Node {
 	// variables to hold the components needed to set up BeaconApp
 	var (
 		chainSpec       common.ChainSpec
 		abciMiddleware  cometbft.MiddlewareI
 		serviceRegistry *service.Registry
-		apiBackend      interface{ AttachNode(NodeT) }
+		apiBackend      interface{ AttachNode(types.Node) }
 		storeKey        = new(storetypes.KVStoreKey)
 		storeKeyDblPtr  = &storeKey
-		beaconNode      NodeT
+		beaconNode      types.Node
 	)
 
 	// build all node components using depinject
@@ -102,6 +102,8 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 			depinject.Supply(
 				appOpts,
 				logger.Impl().(LoggerT),
+				db,
+				cmtCfg,
 			),
 			// TODO: cosmos depinject bad project, fixed with dig.
 			// depinject.Invoke(
@@ -122,21 +124,6 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 		panic("consensus engine or api backend is nil")
 	}
 
-	// set the application to a new BeaconApp with necessary ABCI handlers
-	beaconNode.RegisterApp(
-		cometbft.NewService(
-			*storeKeyDblPtr,
-			logger,
-			db,
-			abciMiddleware,
-			true,
-			cmtCfg,
-			append(
-				DefaultServiceOptions(appOpts),
-				WithCometParamStore(chainSpec),
-			)...,
-		),
-	)
 	// TODO: so hood
 	apiBackend.AttachNode(beaconNode)
 

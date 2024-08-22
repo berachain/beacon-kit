@@ -20,7 +20,9 @@
 
 package main
 
-import "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
+import (
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
+)
 
 //nolint:funlen // happens
 func DefaultComponents() []any {
@@ -94,6 +96,7 @@ func DefaultComponents() []any {
 			*KVStore, *Logger,
 		],
 		components.ProvideReportingService[*Logger],
+		components.ProvideCometBFTService,
 		components.ProvideServiceRegistry[
 			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
 			*BeaconBlockHeader, *BlockStore, *BeaconState,

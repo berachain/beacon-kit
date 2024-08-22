@@ -25,7 +25,6 @@ import (
 	"os"
 
 	"cosmossdk.io/log"
-	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server"
 	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
@@ -36,38 +35,23 @@ var _ types.Node = (*node)(nil)
 
 // node is the hard-type representation of the beacon-kit node.
 type node struct {
-	*cometbft.Service
-
+	types.Application
 	// registry is the node's service registry.
 	registry *service.Registry
 }
 
 // New returns a new node.
-func New[NodeT types.Node]() NodeT {
-	return types.Node(&node{}).(NodeT)
+func New[NodeT types.Node](registry *service.Registry) NodeT {
+	return types.Node(&node{registry: registry}).(NodeT)
 }
 
 // Start starts the node.
 func (n *node) Start(
 	ctx context.Context,
 ) error {
+	g, ctx := server.GetCtx(ctx, log.NewLogger(os.Stdout), true)
 	if err := n.registry.StartAll(ctx); err != nil {
 		return err
 	}
-	g, ctx := server.GetCtx(ctx, log.NewLogger(os.Stdout), true)
-	if err := n.Service.StartCmtNode(ctx); err != nil {
-		return err
-	}
 	return g.Wait()
-}
-
-// SetApplication sets the application.
-func (n *node) RegisterApp(a types.Application) {
-	//nolint:errcheck // BeaconApp is our servertypes.Application
-	n.Service = a.(*cometbft.Service)
-}
-
-// SetServiceRegistry sets the service registry.
-func (n *node) SetServiceRegistry(registry *service.Registry) {
-	n.registry = registry
 }

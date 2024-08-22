@@ -124,7 +124,7 @@ func NewService(
 }
 
 // TODO: Move nodeKey into being created within the function.
-func (app *Service) StartCmtNode(
+func (app *Service) Start(
 	ctx context.Context,
 ) error {
 	cfg := app.cmtCfg
@@ -179,12 +179,6 @@ func (app *Service) Close() error {
 // Name returns the name of the cometbft.
 func (app *Service) Name() string {
 	return app.name
-}
-
-// Start sets up the cometbft to listen for FinalizeBlock, VerifyBlock, and
-// ProcessGenesisData requests, and handles them accordingly.
-func (app *Service) Start(context.Context) error {
-	return nil
 }
 
 // CommitMultiStore returns the CommitMultiStore of the cometbft.

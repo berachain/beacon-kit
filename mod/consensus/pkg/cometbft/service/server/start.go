@@ -166,10 +166,6 @@ func start[T types.Application](
 
 	_ = appCreator(svrCtx.Logger, db, nil, svrCtx.Config, svrCtx.Viper)
 	svrCtx.Logger.Info("starting node with ABCI CometBFT in-process")
-
-	// wait for sign al capture and gracefully return
-	// we are guaranteed to be waiting
-	//for the "ListenForQuitSignals" goroutine.
 	return nil
 }
 
