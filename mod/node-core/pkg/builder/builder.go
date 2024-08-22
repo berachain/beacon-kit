@@ -122,8 +122,8 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 		panic(err)
 	}
 
-	if apiBackend == nil {
-		panic("consensus engine or api backend is nil")
+	if beaconNode == nil || apiBackend == nil {
+		panic("node or api backend is nil")
 	}
 
 	// TODO: so hood
