@@ -81,7 +81,7 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 	_ io.Writer,
 	cmtCfg *cmtcfg.Config,
 	appOpts servertypes.AppOptions,
-) types.Node {
+) NodeT {
 	// variables to hold the components needed to set up BeaconApp
 	var (
 		chainSpec       common.ChainSpec
@@ -90,7 +90,7 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 		apiBackend      interface{ AttachQueryBackend(types.Node) }
 		storeKey        = new(storetypes.KVStoreKey)
 		storeKeyDblPtr  = &storeKey
-		beaconNode      types.Node
+		beaconNode      NodeT
 		cmtService      *cometbft.Service
 	)
 
@@ -122,7 +122,7 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 		panic(err)
 	}
 
-	if beaconNode == nil || apiBackend == nil {
+	if apiBackend == nil {
 		panic("node or api backend is nil")
 	}
 

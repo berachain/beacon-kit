@@ -24,6 +24,7 @@ import (
 	"fmt"
 
 	types "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/db"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -53,7 +54,7 @@ application.
 			logger := client.GetLoggerFromCmd(cmd)
 			cfg := client.GetConfigFromCmd(cmd)
 
-			db, err := OpenDB(cfg.RootDir, dbm.PebbleDBBackend)
+			db, err := db.OpenDB(cfg.RootDir, dbm.PebbleDBBackend)
 			if err != nil {
 				return err
 			}

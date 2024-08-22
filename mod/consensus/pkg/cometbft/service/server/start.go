@@ -22,21 +22,13 @@
 package server
 
 import (
-	"crypto/sha256"
-	"encoding/json"
-	"time"
-
-	"cosmossdk.io/log"
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	types "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/db"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
-	cmtcfg "github.com/cometbft/cometbft/config"
-	"github.com/cometbft/cometbft/node"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
-	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 const (
@@ -54,22 +46,13 @@ const (
 	FlagMinRetainBlocks     = "min-retain-blocks"
 	FlagIAVLCacheSize       = "iavl-cache-size"
 	FlagDisableIAVLFastNode = "iavl-disable-fastnode"
-	FlagShutdownGrace       = "shutdown-grace"
 )
 
 // StartCmdOptions defines options that can be customized in
 // `StartCmdWithOptions`,.
 type StartCmdOptions[T types.Application] struct {
-	// DBOpener can be used to customize db opening, for example customize db
-	// options or support different db backends.
-	// It defaults to the builtin db opener.
-	DBOpener func(rootDir string, backendType dbm.BackendType) (dbm.DB, error)
-
 	// AddFlags allows adding custom flags to the start command.
 	AddFlags func(cmd *cobra.Command)
-
-	// // StartCommandHandler can be used to customize the start command handler.
-	// StartCommandHandler func(svrCtx *Context, appCreator types.AppCreator[T], appOpts StartCmdOptions[T]) error
 }
 
 // StartCmd runs the service passed in, either stand-alone or in-process with
@@ -87,16 +70,11 @@ func StartCmdWithOptions[T types.Application](
 	appCreator types.AppCreator[T],
 	opts StartCmdOptions[T],
 ) *cobra.Command {
-	if opts.DBOpener == nil {
-		opts.DBOpener = OpenDB
-	}
-
-	// opts.StartCommandHandler = start[T]
 
 	cmd := &cobra.Command{
 		Use:   "start",
 		Short: "Run the full node",
-		Long: `Run the full node application with CometBFT in or out of process. By
+		Long: `Run the full node application with CometBFT in process. By
 default, the application will run with CometBFT in process.
 
 Pruning options can be provided via the '--pruning' flag or alternatively with '--pruning-keep-recent', and
@@ -109,19 +87,6 @@ nothing: all historic states will be saved, nothing will be deleted (i.e. archiv
 everything: 2 latest states will be kept; pruning at 10 block intervals.
 custom: allow pruning options to be manually specified through 'pruning-keep-recent', and 'pruning-interval'
 
-Node halting configurations exist in the form of two flags: '--halt-height' and '--halt-time'. During
-the ABCI Commit phase, the node will check if the current block height is greater than or equal to
-the halt-height or if the current block time is greater than or equal to the halt-time. If so, the
-node will attempt to gracefully shutdown and the block will not be committed. In addition, the node
-will not be able to commit subsequent blocks.
-
-For profiling and benchmarking purposes, CPU profiling can be enabled via the '--cpu-profile' flag
-which accepts a path for the resulting pprof file.
-
-The node may be started in a 'query only' mode where only the gRPC and JSON HTTP
-API services are enabled via the 'grpc-only' flag. In this mode, CometBFT is
-bypassed and can be used when legacy queries are needed after an on-chain upgrade
-is performed. Note, when enabled, gRPC will also be automatically enabled.
 `,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			logger := client.GetLoggerFromCmd(cmd)
@@ -132,85 +97,21 @@ is performed. Note, when enabled, gRPC will also be automatically enabled.
 				return err
 			}
 
-			err = start[T](logger, cfg, v, appCreator, opts)
-
-			logger.Debug("received quit signal")
-			//#nosec:G703 // its a bet.
-			graceDuration, _ := cmd.Flags().GetDuration(FlagShutdownGrace)
-			if graceDuration > 0 {
-				logger.Info(
-					"graceful shutdown start",
-					FlagShutdownGrace,
-					graceDuration,
-				)
-				<-time.After(graceDuration)
-				logger.Info("graceful shutdown complete")
+			// Open the Database
+			home := cfg.RootDir
+			db, err := db.OpenDB(home, dbm.PebbleDBBackend)
+			if err != nil {
+				return err
 			}
 
+			// Create the application.
+			_ = appCreator(logger, db, nil, cfg, v)
 			return err
 		},
 	}
 
 	addStartNodeFlags(cmd, opts)
 	return cmd
-}
-
-func start[T types.Application](
-	logger log.Logger,
-	cfg *cmtcfg.Config,
-	v *viper.Viper,
-	appCreator types.AppCreator[T],
-	appOpts StartCmdOptions[T],
-) error {
-	home := cfg.RootDir
-	db, err := appOpts.DBOpener(home, dbm.PebbleDBBackend)
-	if err != nil {
-		return err
-	}
-
-	_ = appCreator(logger, db, nil, cfg, v)
-	return nil
-}
-
-// GetGenDocProvider returns a function which returns the genesis doc from the
-// genesis file.
-func GetGenDocProvider(
-	cfg *cmtcfg.Config,
-) func() (node.ChecksummedGenesisDoc, error) {
-	return func() (node.ChecksummedGenesisDoc, error) {
-		appGenesis, err := genutiltypes.AppGenesisFromFile(cfg.GenesisFile())
-		if err != nil {
-			return node.ChecksummedGenesisDoc{
-				Sha256Checksum: []byte{},
-			}, err
-		}
-
-		gen, err := appGenesis.ToGenesisDoc()
-		if err != nil {
-			return node.ChecksummedGenesisDoc{
-				Sha256Checksum: []byte{},
-			}, err
-		}
-		genbz, err := gen.AppState.MarshalJSON()
-		if err != nil {
-			return node.ChecksummedGenesisDoc{
-				Sha256Checksum: []byte{},
-			}, err
-		}
-
-		bz, err := json.Marshal(genbz)
-		if err != nil {
-			return node.ChecksummedGenesisDoc{
-				Sha256Checksum: []byte{},
-			}, err
-		}
-		sum := sha256.Sum256(bz)
-
-		return node.ChecksummedGenesisDoc{
-			GenesisDoc:     gen,
-			Sha256Checksum: sum[:],
-		}, nil
-	}
 }
 
 // addStartNodeFlags should be added to any CLI commands that start the network.
@@ -236,8 +137,6 @@ func addStartNodeFlags[T types.Application](
 		Uint64(FlagMinRetainBlocks, 0, "Minimum block height offset during ABCI commit to prune CometBFT blocks")
 	cmd.Flags().
 		Bool(FlagDisableIAVLFastNode, false, "Disable fast node for IAVL tree")
-	cmd.Flags().
-		Duration(FlagShutdownGrace, 0*time.Second, "On Shutdown, duration to wait for resource clean up")
 
 	// add support for all CometBFT-specific command line options
 	cmtcmd.AddNodeFlags(cmd)
