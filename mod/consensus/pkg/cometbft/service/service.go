@@ -59,6 +59,7 @@ const (
 var _ servertypes.ABCI = (*Service)(nil)
 
 type Service struct {
+	node *node.Node
 	// initialized on creation
 	logger     log.Logger
 	name       string
@@ -126,7 +127,6 @@ func (app *Service) StartCmtNode(
 ) (*node.Node, func(), error) {
 	var (
 		cleanupFn func()
-		tmNode    *node.Node
 	)
 	nodeKey, err := p2p.LoadOrGenNodeKey(cfg.NodeKeyFile())
 	if err != nil {
@@ -134,7 +134,7 @@ func (app *Service) StartCmtNode(
 	}
 
 	cmtApp := server.NewCometABCIWrapper(app)
-	tmNode, err = node.NewNode(
+	app.node, err = node.NewNode(
 		ctx,
 		cfg,
 		pvm.LoadOrGenFilePV(
@@ -149,21 +149,36 @@ func (app *Service) StartCmtNode(
 		servercmtlog.CometLoggerWrapper{Logger: app.logger},
 	)
 	if err != nil {
-		return tmNode, cleanupFn, err
+		return app.node, cleanupFn, err
 	}
 
-	if err := tmNode.Start(); err != nil {
-		return tmNode, cleanupFn, err
+	if err = app.node.Start(); err != nil {
+		return app.node, cleanupFn, err
 	}
 
 	cleanupFn = func() {
-		if tmNode != nil && tmNode.IsRunning() {
+		if app.node != nil && app.node.IsRunning() {
 			//#nosec:G703 // its a bet.
-			_ = tmNode.Stop()
+			_ = app.node.Stop()
 		}
 	}
 
-	return tmNode, cleanupFn, nil
+	return app.node, cleanupFn, nil
+}
+
+// Close is called in start cmd to gracefully cleanup resources.
+func (app *Service) Close() error {
+	var errs []error
+
+	// Close app.db (opened by cosmos-sdk/server/start.go call to openDB)
+	if app.db != nil {
+		app.logger.Info("Closing application.db")
+		if err := app.db.Close(); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	return errors.Join(errs...)
 }
 
 // Name returns the name of the cometbft.
@@ -309,21 +324,6 @@ func (app *Service) validateFinalizeBlockHeight(
 	}
 
 	return nil
-}
-
-// Close is called in start cmd to gracefully cleanup resources.
-func (app *Service) Close() error {
-	var errs []error
-
-	// Close app.db (opened by cosmos-sdk/server/start.go call to openDB)
-	if app.db != nil {
-		app.logger.Info("Closing application.db")
-		if err := app.db.Close(); err != nil {
-			errs = append(errs, err)
-		}
-	}
-
-	return errors.Join(errs...)
 }
 
 // convertValidatorUpdate abstracts the conversion of a
