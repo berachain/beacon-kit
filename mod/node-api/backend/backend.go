@@ -121,7 +121,8 @@ func New[
 	}
 }
 
-// AttachQueryBackend sets the node on the backend for querying historical heights.
+// AttachQueryBackend sets the node on the backend for
+// querying historical heights.
 func (b *Backend[
 	_, _, _, _, _, _, _, _, _, _, _, _, _, _, NodeT, _, _, _, _, _, _,
 ]) AttachQueryBackend(node NodeT) {
