@@ -94,7 +94,9 @@ func InitializeCmd[
 
 	ctx := cmd.Context()
 	ctx = context.WithValue(ctx, corectx.ViperContextKey, viper)
-	ctx = context.WithValue(ctx, corectx.LoggerContextKey, sdklog.WrapSDKLogger(logger))
+	ctx = context.WithValue(
+		ctx, corectx.LoggerContextKey, sdklog.WrapSDKLogger(logger),
+	)
 	cmd.SetContext(ctx)
 
 	return nil
