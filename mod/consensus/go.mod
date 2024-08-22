@@ -14,7 +14,6 @@ replace (
 )
 
 require (
-	cosmossdk.io/core v1.0.0
 	cosmossdk.io/log v1.4.1
 	cosmossdk.io/store v1.1.1-0.20240418092142-896cdf1971bc
 	github.com/berachain/beacon-kit/mod/async v0.0.0-20240821000339-4d4242ba4a50
@@ -30,7 +29,6 @@ require (
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8
 	github.com/spf13/cast v1.7.0
 	github.com/spf13/cobra v1.8.1
-	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.19.0
 	sigs.k8s.io/yaml v1.4.0
 )
@@ -40,6 +38,7 @@ require (
 	buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.34.2-20240130113600-88ef6483f90f.2 // indirect
 	cosmossdk.io/api v0.7.5 // indirect
 	cosmossdk.io/collections v0.4.0 // indirect
+	cosmossdk.io/core v1.0.0 // indirect
 	cosmossdk.io/depinject v1.0.0 // indirect
 	cosmossdk.io/errors v1.0.1 // indirect
 	cosmossdk.io/math v1.3.0 // indirect
@@ -185,6 +184,7 @@ require (
 	github.com/sasha-s/go-deadlock v0.3.1 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/spf13/afero v1.11.0 // indirect
+	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/testify v1.9.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/supranational/blst v0.3.13 // indirect

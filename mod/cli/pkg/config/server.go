@@ -30,7 +30,6 @@ import (
 
 	corectx "cosmossdk.io/core/context"
 	sdklog "github.com/berachain/beacon-kit/mod/cli/pkg/components/log"
-	server "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	cmtcfg "github.com/cometbft/cometbft/config"
@@ -67,14 +66,7 @@ func SetupCommand[
 		return err
 	}
 
-	return server.SetCmdServerContext(
-		cmd,
-		server.NewContext(
-			client.GetViperFromCmd(cmd),
-			client.GetConfigFromCmd(cmd),
-			sdklog.WrapSDKLogger(logger),
-		),
-	)
+	return nil
 }
 
 // InitializeCmd returns a command object with the root viper instance.
@@ -102,7 +94,9 @@ func InitializeCmd[
 
 	ctx := cmd.Context()
 	ctx = context.WithValue(ctx, corectx.ViperContextKey, viper)
-	ctx = context.WithValue(ctx, corectx.LoggerContextKey, logger)
+	ctx = context.WithValue(
+		ctx, corectx.LoggerContextKey, sdklog.WrapSDKLogger(logger),
+	)
 	cmd.SetContext(ctx)
 
 	return nil

@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/db"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	dbm "github.com/cosmos/cosmos-db"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 )
 
@@ -88,28 +89,23 @@ custom: allow pruning options to be manually specified through 'pruning-keep-rec
 
 `,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			serverCtx := GetServerContextFromCmd(cmd)
-			_, err := GetPruningOptionsFromFlags(serverCtx.Viper)
+			logger := client.GetLoggerFromCmd(cmd)
+			cfg := client.GetConfigFromCmd(cmd)
+			v := client.GetViperFromCmd(cmd)
+			_, err := GetPruningOptionsFromFlags(v)
 			if err != nil {
 				return err
 			}
 
 			// Open the Database
-			home := serverCtx.Config.RootDir
+			home := cfg.RootDir
 			db, err := db.OpenDB(home, dbm.PebbleDBBackend)
 			if err != nil {
 				return err
 			}
 
 			// Create the application.
-			_ = appCreator(
-				serverCtx.Logger,
-				db,
-				nil,
-				serverCtx.Config,
-				serverCtx.Viper,
-			)
-
+			_ = appCreator(logger, db, nil, cfg, v)
 			return err
 		},
 	}

@@ -27,6 +27,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/db"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	dbm "github.com/cosmos/cosmos-db"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 )
 
@@ -49,15 +50,17 @@ restarting CometBFT the transactions in block n will be re-executed against the
 application.
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx := GetServerContextFromCmd(cmd)
+			v := client.GetViperFromCmd(cmd)
+			logger := client.GetLoggerFromCmd(cmd)
+			cfg := client.GetConfigFromCmd(cmd)
 
-			db, err := db.OpenDB(ctx.Config.RootDir, dbm.PebbleDBBackend)
+			db, err := db.OpenDB(cfg.RootDir, dbm.PebbleDBBackend)
 			if err != nil {
 				return err
 			}
-			app := appCreator(ctx.Logger, db, nil, ctx.Config, ctx.Viper)
+			app := appCreator(logger, db, nil, cfg, v)
 			// rollback CometBFT state
-			height, hash, err := cmtcmd.RollbackState(ctx.Config, removeBlock)
+			height, hash, err := cmtcmd.RollbackState(cfg, removeBlock)
 			if err != nil {
 				return fmt.Errorf("failed to rollback CometBFT state: %w", err)
 			}
