@@ -104,8 +104,8 @@ custom: allow pruning options to be manually specified through 'pruning-keep-rec
 			}
 
 			// Create the application.
-			_ = appCreator(logger, db, nil, cfg, v)
-			return err
+			return appCreator(logger, db, nil, cfg, v).
+				Start(cmd.Context())
 		},
 	}
 
