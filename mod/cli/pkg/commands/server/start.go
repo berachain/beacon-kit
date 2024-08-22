@@ -77,6 +77,7 @@ func StartCmdWithOptions[T interface {
 	appCreator types.AppCreator[T],
 	opts StartCmdOptions[T],
 ) *cobra.Command {
+	//nolint:lll // its okay.
 	cmd := &cobra.Command{
 		Use:   "start",
 		Short: "Run the full node",

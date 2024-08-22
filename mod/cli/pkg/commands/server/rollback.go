@@ -43,6 +43,7 @@ func NewRollbackCmd[T interface {
 ) *cobra.Command {
 	var removeBlock bool
 
+	//nolint:lll // its okay.
 	cmd := &cobra.Command{
 		Use:   "rollback",
 		Short: "rollback Cosmos SDK and CometBFT state by one height",
@@ -75,7 +76,7 @@ application.
 				return fmt.Errorf("failed to rollback to version: %w", err)
 			}
 
-			fmt.Printf(
+			logger.Info(
 				"Rolled back state to height %d and hash %X\n",
 				height,
 				hash,
