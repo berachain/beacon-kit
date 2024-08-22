@@ -30,7 +30,7 @@ import (
 
 // InitializePreminedBeaconStateFromEth1 initializes the beacon state.
 //
-//nolint:gocognit // its ok
+
 func (sp *StateProcessor[
 	_, BeaconBlockBodyT, BeaconBlockHeaderT, BeaconStateT, _, DepositT,
 	_, ExecutionPayloadHeaderT, ForkT, _, _, _, _, _, _, _,
@@ -113,16 +113,6 @@ func (sp *StateProcessor[
 		if err = st.UpdateStateRootAtIndex(i, common.Root{}); err != nil {
 			return nil, err
 		}
-	}
-
-	if err = st.SetNextWithdrawalIndex(0); err != nil {
-		return nil, err
-	}
-
-	if err = st.SetNextWithdrawalValidatorIndex(
-		0,
-	); err != nil {
-		return nil, err
 	}
 
 	var updates transition.ValidatorUpdates
