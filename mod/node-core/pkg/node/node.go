@@ -22,12 +22,11 @@ package node
 
 import (
 	"context"
-	"os"
 
 	"cosmossdk.io/log"
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server"
 	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
+	"golang.org/x/sync/errgroup"
 )
 
 // Compile-time assertion that node implements the NodeI interface.
@@ -37,22 +36,36 @@ var _ types.Node = (*node)(nil)
 type node struct {
 	// TODO: FIX, HACK TO MAKE CLI HAPPY FOR NOW.
 	types.Application
+	// logger is the node's logger.
+	logger log.Logger
 	// registry is the node's service registry.
 	registry *service.Registry
 }
 
 // New returns a new node.
-func New[NodeT types.Node](registry *service.Registry) NodeT {
-	return types.Node(&node{registry: registry}).(NodeT)
+func New[NodeT types.Node](
+	registry *service.Registry, logger log.Logger) NodeT {
+	return types.Node(&node{registry: registry, logger: logger}).(NodeT)
 }
 
 // Start starts the node.
 func (n *node) Start(
 	ctx context.Context,
 ) error {
-	g, ctx := server.GetCtx(ctx, log.NewLogger(os.Stdout), true)
-	if err := n.registry.StartAll(ctx); err != nil {
+	// Make the context cancellable.
+	cctx, cancelFn := context.WithCancel(ctx)
+
+	// Create an errgroup to manage the lifecycle of all the services.
+	g, gctx := errgroup.WithContext(cctx)
+
+	// listen for quit signals so the calling parent process can gracefully exit
+	listenForQuitSignals(g, true, cancelFn, log.NewNopLogger())
+
+	// Start all the registered services.
+	if err := n.registry.StartAll(gctx); err != nil {
 		return err
 	}
+
+	// Wait for those aforementioned exit signals.
 	return g.Wait()
 }
