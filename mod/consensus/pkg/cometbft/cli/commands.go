@@ -26,6 +26,7 @@ import (
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server"
 	types "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/db"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	cmtjson "github.com/cometbft/cometbft/libs/json"
@@ -246,15 +247,15 @@ func BootstrapStateCmd[T types.Application](
 			}
 			if height == 0 {
 				home := serverCtx.Viper.GetString(flags.FlagHome)
-				var db dbm.DB
-				db, err = server.OpenDB(home, dbm.PebbleDBBackend)
+				var dbi dbm.DB
+				dbi, err = db.OpenDB(home, dbm.PebbleDBBackend)
 				if err != nil {
 					return err
 				}
 
 				app := appCreator(
 					logger,
-					db,
+					dbi,
 					nil,
 					serverCtx.Config,
 					serverCtx.Viper,

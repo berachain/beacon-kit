@@ -25,24 +25,20 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/signal"
 	"path"
 	"path/filepath"
 	"strings"
-	"syscall"
 	"time"
 
 	corectx "cosmossdk.io/core/context"
 	"cosmossdk.io/log"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/config"
 	cmtcfg "github.com/cometbft/cometbft/config"
-	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	"golang.org/x/sync/errgroup"
 )
 
 // ServerContextKey defines the context key used to retrieve a server.Context
@@ -328,44 +324,4 @@ func interceptConfigs(
 	}
 
 	return conf, nil
-}
-
-// ListenForQuitSignals listens for SIGINT and SIGTERM. When a signal is
-// received,
-// the cleanup function is called, indicating the caller can gracefully exit or
-// return.
-//
-// Note, the blocking behavior of this depends on the block argument.
-// The caller must ensure the corresponding context derived from the cancelFn is
-// used correctly.
-func ListenForQuitSignals(
-	g *errgroup.Group,
-	block bool,
-	cancelFn context.CancelFunc,
-	logger log.Logger,
-) {
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
-
-	f := func() {
-		sig := <-sigCh
-		cancelFn()
-
-		logger.Info("caught signal", "signal", sig.String())
-	}
-
-	if block {
-		g.Go(func() error {
-			f()
-			return nil
-		})
-	} else {
-		go f()
-	}
-}
-
-// OpenDB opens the application database using the appropriate driver.
-func OpenDB(rootDir string, backendType dbm.BackendType) (dbm.DB, error) {
-	dataDir := filepath.Join(rootDir, "data")
-	return dbm.NewDB("application", backendType, dataDir)
 }

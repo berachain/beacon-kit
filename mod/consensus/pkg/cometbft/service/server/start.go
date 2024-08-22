@@ -28,6 +28,7 @@ import (
 
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	types "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/db"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cometbft/cometbft/node"
@@ -142,7 +143,7 @@ func start[T types.Application](
 	appCreator types.AppCreator[T],
 ) error {
 	home := svrCtx.Config.RootDir
-	db, err := OpenDB(home, dbm.PebbleDBBackend)
+	db, err := db.OpenDB(home, dbm.PebbleDBBackend)
 	if err != nil {
 		return err
 	}
