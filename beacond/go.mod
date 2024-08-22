@@ -26,7 +26,7 @@ replace (
 
 require (
 	cosmossdk.io/core v1.0.0
-	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240806160829-cde2d1347e7e
+	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240822173558-4e2a8018ae21
 	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240821225446-81f31b0aac98
 	github.com/cosmos/cosmos-sdk v0.53.0
 	go.uber.org/automaxprocs v1.5.3
