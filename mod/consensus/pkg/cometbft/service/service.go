@@ -29,11 +29,18 @@ import (
 	"cosmossdk.io/store"
 	storemetrics "cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server"
+	servercmtlog "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/log"
 	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
+	cmtcfg "github.com/cometbft/cometbft/config"
+	"github.com/cometbft/cometbft/node"
+	"github.com/cometbft/cometbft/p2p"
+	pvm "github.com/cometbft/cometbft/privval"
+	"github.com/cometbft/cometbft/proxy"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -110,6 +117,49 @@ func NewService(
 	}
 
 	return app
+}
+
+// TODO: Move nodeKey into being created within the function.
+func (app *Service) StartCmtNode(
+	ctx context.Context,
+	cfg *cmtcfg.Config,
+) (tmNode *node.Node, cleanupFn func(), err error) {
+	nodeKey, err := p2p.LoadOrGenNodeKey(cfg.NodeKeyFile())
+	if err != nil {
+		return nil, cleanupFn, err
+	}
+
+	cmtApp := server.NewCometABCIWrapper(app)
+	tmNode, err = node.NewNode(
+		ctx,
+		cfg,
+		pvm.LoadOrGenFilePV(
+			cfg.PrivValidatorKeyFile(),
+			cfg.PrivValidatorStateFile(),
+		),
+		nodeKey,
+		proxy.NewLocalClientCreator(cmtApp),
+		server.GetGenDocProvider(cfg),
+		cmtcfg.DefaultDBProvider,
+		node.DefaultMetricsProvider(cfg.Instrumentation),
+		servercmtlog.CometLoggerWrapper{Logger: app.logger},
+	)
+	if err != nil {
+		return tmNode, cleanupFn, err
+	}
+
+	if err := tmNode.Start(); err != nil {
+		return tmNode, cleanupFn, err
+	}
+
+	cleanupFn = func() {
+		if tmNode != nil && tmNode.IsRunning() {
+			//#nosec:G703 // its a bet.
+			_ = tmNode.Stop()
+		}
+	}
+
+	return tmNode, cleanupFn, nil
 }
 
 // Name returns the name of the cometbft.
