@@ -61,6 +61,7 @@ func DefaultComponents() []any {
 			*BlobSidecars, *BlockStore, *Deposit, *DepositStore, *Genesis,
 			*KVStore, *Logger, *StorageBackend,
 		],
+		components.ProvideNode,
 		components.ProvideChainSpec,
 		components.ProvideConfig,
 		components.ProvideServerConfig,

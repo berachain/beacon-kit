@@ -164,10 +164,9 @@ func start[T types.Application](
 	}
 
 	app := appCreator(svrCtx.Logger, db, nil, svrCtx.Viper)
-	cmtCfg := svrCtx.Config
 	g, ctx := getCtx(svrCtx, true)
 	svrCtx.Logger.Info("starting node with ABCI CometBFT in-process")
-	if err = app.StartCmtNode(ctx, cmtCfg); err != nil {
+	if err = app.StartCmtNode(ctx, svrCtx.Config); err != nil {
 		return err
 	}
 

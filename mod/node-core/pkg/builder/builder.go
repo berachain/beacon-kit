@@ -30,7 +30,6 @@ import (
 	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
 	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
 	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -66,9 +65,7 @@ func New[
 ](
 	opts ...Opt[NodeT, LoggerT, LoggerConfigT],
 ) *NodeBuilder[NodeT, LoggerT, LoggerConfigT] {
-	nb := &NodeBuilder[NodeT, LoggerT, LoggerConfigT]{
-		node: node.New[NodeT](),
-	}
+	nb := &NodeBuilder[NodeT, LoggerT, LoggerConfigT]{}
 	for _, opt := range opts {
 		opt(nb)
 	}
@@ -109,6 +106,7 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 			// 	SetLoggerConfig[LoggerT, LoggerConfigT],
 			// ),
 		),
+		&nb.node,
 		&storeKeyDblPtr,
 		&chainSpec,
 		&abciMiddleware,
