@@ -165,13 +165,12 @@ func start[T types.Application](
 	}
 
 	_ = appCreator(svrCtx.Logger, db, nil, svrCtx.Config, svrCtx.Viper)
-	g, _ := getCtx(svrCtx, true)
 	svrCtx.Logger.Info("starting node with ABCI CometBFT in-process")
 
 	// wait for sign al capture and gracefully return
 	// we are guaranteed to be waiting
 	//for the "ListenForQuitSignals" goroutine.
-	return g.Wait()
+	return nil
 }
 
 // GetGenDocProvider returns a function which returns the genesis doc from the
