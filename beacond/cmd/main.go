@@ -53,7 +53,7 @@ func run() error {
 	cb := clibuilder.New(
 		// Set the Name to the Default.
 		clibuilder.WithName[Node, *ExecutionPayload, *Logger](
-			"BeaconKit",
+			"beacond",
 		),
 		// Set the Description to the Default.
 		clibuilder.WithDescription[Node, *ExecutionPayload, *Logger](
