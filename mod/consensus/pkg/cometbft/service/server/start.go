@@ -40,14 +40,11 @@ import (
 
 const (
 	// CometBFT full-node start flags.
-	flagAddress            = "address"
-	flagTransport          = "transport"
-	FlagHaltHeight         = "halt-height"
-	FlagHaltTime           = "halt-time"
-	FlagInterBlockCache    = "inter-block-cache"
-	FlagUnsafeSkipUpgrades = "unsafe-skip-upgrades"
-	FlagTrace              = "trace"
-	FlagInvCheckPeriod     = "inv-check-period"
+	flagAddress         = "address"
+	flagTransport       = "transport"
+	FlagHaltHeight      = "halt-height"
+	FlagHaltTime        = "halt-time"
+	FlagInterBlockCache = "inter-block-cache"
 
 	FlagPruning             = "pruning"
 	FlagPruningKeepRecent   = "pruning-keep-recent"
@@ -261,8 +258,6 @@ func addStartNodeFlags[T types.Application](
 	cmd.Flags().
 		String(flagTransport, "socket", "Transport protocol: socket, grpc")
 	cmd.Flags().
-		IntSlice(FlagUnsafeSkipUpgrades, []int{}, "Skip a set of upgrade heights to continue the old binary")
-	cmd.Flags().
 		Uint64(FlagHaltHeight, 0, "Block height at which to gracefully halt the chain and shutdown the node")
 	cmd.Flags().
 		Uint64(FlagHaltTime, 0, "Minimum block time (in Unix seconds) at which to gracefully halt the chain and shutdown the node")
@@ -273,8 +268,6 @@ func addStartNodeFlags[T types.Application](
 		Uint64(FlagPruningKeepRecent, 0, "Number of recent heights to keep on disk (ignored if pruning is not 'custom')")
 	cmd.Flags().
 		Uint64(FlagPruningInterval, 0, "Height interval at which pruned heights are removed from disk (ignored if pruning is not 'custom')")
-	cmd.Flags().
-		Uint(FlagInvCheckPeriod, 0, "Assert registered invariants every N blocks")
 	cmd.Flags().
 		Uint64(FlagMinRetainBlocks, 0, "Minimum block height offset during ABCI commit to prune CometBFT blocks")
 	cmd.Flags().
