@@ -49,7 +49,6 @@ type NodeBuilder[
 	},
 	LoggerConfigT any,
 ] struct {
-	node NodeT
 	// components is a list of components to provide.
 	components []any
 }
@@ -89,6 +88,7 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 		apiBackend      interface{ AttachNode(NodeT) }
 		storeKey        = new(storetypes.KVStoreKey)
 		storeKeyDblPtr  = &storeKey
+		beaconNode      NodeT
 	)
 
 	// build all node components using depinject
@@ -106,7 +106,7 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 			// 	SetLoggerConfig[LoggerT, LoggerConfigT],
 			// ),
 		),
-		&nb.node,
+		&beaconNode,
 		&storeKeyDblPtr,
 		&chainSpec,
 		&abciMiddleware,
@@ -121,7 +121,7 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 	}
 
 	// set the application to a new BeaconApp with necessary ABCI handlers
-	nb.node.RegisterApp(
+	beaconNode.RegisterApp(
 		cometbft.NewService(
 			*storeKeyDblPtr,
 			logger,
@@ -135,12 +135,12 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 		),
 	)
 	// TODO: so hood
-	apiBackend.AttachNode(nb.node)
+	apiBackend.AttachNode(beaconNode)
 
 	// TODO: put this in some post node creation hook/listener.
-	if err := nb.node.Start(context.Background()); err != nil {
+	if err := beaconNode.Start(context.Background()); err != nil {
 		logger.Error("failed to start node", "err", err)
 		panic(err)
 	}
-	return nb.node
+	return beaconNode
 }
