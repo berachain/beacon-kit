@@ -21,14 +21,11 @@
 package types
 
 import (
-	"encoding/json"
 	"io"
 
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
-	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 	cmtcfg "github.com/cometbft/cometbft/config"
-	cmttypes "github.com/cometbft/cometbft/types"
 	dbm "github.com/cosmos/cosmos-db"
 )
 
@@ -64,30 +61,4 @@ type (
 	AppCreator[T any] func(
 		log.Logger, dbm.DB, io.Writer, *cmtcfg.Config, AppOptions,
 	) T
-
-	// ExportedApp represents an exported app state, along with
-	// validators, consensus params and latest app height.
-	ExportedApp struct {
-		// AppState is the application state as JSON.
-		AppState json.RawMessage
-		// Validators is the exported validator set.
-		Validators []cmttypes.GenesisValidator
-		// Height is the app's latest block height.
-		Height int64
-		// ConsensusParams are the exported consensus params for ABCI.
-		ConsensusParams cmtproto.ConsensusParams
-	}
-
-	// AppExporter is a function that dumps all app state to
-	// JSON-serializable structure and returns the current validator set.
-	AppExporter func(
-		logger log.Logger,
-		db dbm.DB,
-		traceWriter io.Writer,
-		height int64,
-		forZeroHeight bool,
-		jailAllowedAddrs []string,
-		opts AppOptions,
-		modulesToExport []string,
-	) (ExportedApp, error)
 )
