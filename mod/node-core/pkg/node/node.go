@@ -44,7 +44,7 @@ type node struct {
 
 	// TODO: FIX, HACK TO MAKE CLI HAPPY FOR NOW.
 	// THIS SHOULD BE REMOVED EVENTUALLY.
-	types.Application
+	types.Node
 }
 
 // New returns a new node.
