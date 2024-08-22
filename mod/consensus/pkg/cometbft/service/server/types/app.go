@@ -25,7 +25,6 @@ import (
 	"io"
 
 	"cosmossdk.io/log"
-	"github.com/cometbft/cometbft/abci/types"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	dbm "github.com/cosmos/cosmos-db"
 )
@@ -42,17 +41,6 @@ type (
 	// to either use the cast package or perform manual conversion for safety.
 	AppOptions interface {
 		Get(string) interface{}
-	}
-
-	// Application defines an application interface that wraps abci.Application.
-	// The interface defines the necessary contracts to be implemented in order
-	// to fully bootstrap and start an application.
-	Application interface {
-		types.Application
-		Start(context.Context) error
-		// Close is called in start cmd to gracefully cleanup resources.
-		// Must be safe to be called multiple times.
-		Close() error
 	}
 
 	// AppCreator is a function that allows us to lazily initialize an

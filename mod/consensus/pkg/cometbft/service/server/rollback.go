@@ -21,8 +21,10 @@
 package server
 
 import (
+	"context"
 	"fmt"
 
+	"cosmossdk.io/store"
 	types "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/db"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
@@ -33,7 +35,10 @@ import (
 
 // NewRollbackCmd creates a command to rollback CometBFT and multistore state by
 // one height.
-func NewRollbackCmd[T types.Application](
+func NewRollbackCmd[T interface {
+	Start(context.Context) error
+	CommitMultiStore() store.CommitMultiStore
+}](
 	appCreator types.AppCreator[T],
 ) *cobra.Command {
 	var removeBlock bool

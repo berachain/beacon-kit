@@ -21,7 +21,9 @@
 package types
 
 import (
-	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
+	"context"
+
+	"cosmossdk.io/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -29,7 +31,7 @@ import (
 // Application.
 // It also adds a few methods for creating query contexts.
 type Application interface {
-	servertypes.Application
-
+	Start(context.Context) error
+	CommitMultiStore() store.CommitMultiStore
 	CreateQueryContext(height int64, prove bool) (sdk.Context, error)
 }

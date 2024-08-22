@@ -24,6 +24,7 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
+	"cosmossdk.io/store"
 	service "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
 	types "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/db"
@@ -45,7 +46,10 @@ import (
 )
 
 // Commands add server commands.
-func Commands[T types.Application](
+func Commands[T interface {
+	Start(context.Context) error
+	CommitMultiStore() store.CommitMultiStore
+}](
 	appCreator types.AppCreator[T],
 ) *cobra.Command {
 	cometCmd := &cobra.Command{
@@ -214,7 +218,10 @@ func VersionCmd() *cobra.Command {
 	}
 }
 
-func BootstrapStateCmd[T types.Application](
+func BootstrapStateCmd[T interface {
+	Start(context.Context) error
+	CommitMultiStore() store.CommitMultiStore
+}](
 	appCreator types.AppCreator[T],
 ) *cobra.Command {
 	cmd := &cobra.Command{
