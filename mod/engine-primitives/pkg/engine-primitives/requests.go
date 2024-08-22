@@ -121,6 +121,8 @@ func BuildNewPayloadRequest[
 	}
 }
 
+var depAddress = common.NewExecutionHashFromHex("0x4242424242424242424242424242424242424242")
+
 // HasValidVersionedAndBlockHashes checks if the version and block hashes are
 // valid.
 // As per the Ethereum 2.0 specification:
@@ -147,6 +149,11 @@ func (n *NewPayloadRequest[ExecutionPayloadT, WithdrawalsT]) HasValidVersionedAn
 		}
 		blobHashes = append(blobHashes, tx.BlobHashes()...)
 		txs[i] = &tx
+		if to := tx.To(); to != nil && stdbytes.Equal(to[:], depAddress[:]) {
+			return errors.New(
+				"reject block with transaction to 0x4242424242424242424242424242424242424242",
+			)
+		}
 	}
 
 	// Check if the number of blob hashes matches the number of versioned
