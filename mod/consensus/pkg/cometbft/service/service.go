@@ -30,6 +30,8 @@ import (
 	storemetrics "cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
 	servercmtlog "github.com/berachain/beacon-kit/mod/cli/pkg/components/log"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/params"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
@@ -54,6 +56,8 @@ const (
 	execModeFinalize
 )
 
+const InitialAppVersion uint64 = 0
+
 type Service struct {
 	node   *node.Node
 	cmtCfg *cmtcfg.Config
@@ -68,7 +72,7 @@ type Service struct {
 	processProposalState *state
 	finalizeBlockState   *state
 	interBlockCache      storetypes.MultiStorePersistentCache
-	paramStore           ParamStore
+	paramStore           *params.ConsensusParamsStore
 	initialHeight        int64
 	minRetainBlocks      uint64
 	// application's version string
@@ -83,6 +87,7 @@ func NewService(
 	middleware MiddlewareI,
 	loadLatest bool,
 	cmtCfg *cmtcfg.Config,
+	cs common.ChainSpec,
 	options ...func(*Service),
 ) *Service {
 	app := &Service{
@@ -96,6 +101,7 @@ func NewService(
 		),
 		Middleware: middleware,
 		cmtCfg:     cmtCfg,
+		paramStore: params.NewConsensusParamsStore(cs),
 	}
 
 	app.SetVersion(version.Version)
