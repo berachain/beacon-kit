@@ -23,9 +23,7 @@ package block_test
 import (
 	"testing"
 
-	storev2 "cosmossdk.io/store/v2/db"
 	"github.com/berachain/beacon-kit/mod/log/pkg/noop"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/block"
@@ -53,36 +51,13 @@ func (m MockBeaconBlock) GetStateRoot() common.Root {
 }
 
 func TestBlockStore(t *testing.T) {
-	blockStore := block.NewStore[*MockBeaconBlock](
-		storage.NewKVStoreProvider(storev2.NewMemDB()),
-		noop.NewLogger[any](),
-		uint64(5),
-	)
+	blockStore := block.NewStore[*MockBeaconBlock](noop.NewLogger[any](), 5)
 
 	// Set 7 blocks.
 	// The latest block is 7 and should hold the last 5 blocks in the window.
 	for i := 1; i <= 7; i++ {
 		blockStore.Set(&MockBeaconBlock{slot: math.Slot(i)})
 	}
-
-	// The window of slots in the store should look like this:
-	// idx  [0, 1, 2, 3, 4] (actual values in maps)
-	// slot [5, 6, 7, 3, 4] (corresponding true slots)
-	slot, err := blockStore.GetSlotFromWindow(0)
-	require.NoError(t, err)
-	require.Equal(t, math.Slot(5), slot)
-	slot, err = blockStore.GetSlotFromWindow(1)
-	require.NoError(t, err)
-	require.Equal(t, math.Slot(6), slot)
-	slot, err = blockStore.GetSlotFromWindow(2)
-	require.NoError(t, err)
-	require.Equal(t, math.Slot(7), slot)
-	slot, err = blockStore.GetSlotFromWindow(3)
-	require.NoError(t, err)
-	require.Equal(t, math.Slot(3), slot)
-	slot, err = blockStore.GetSlotFromWindow(4)
-	require.NoError(t, err)
-	require.Equal(t, math.Slot(4), slot)
 
 	// Get the slots by roots & execution numbers.
 	for i := math.Slot(3); i <= 7; i++ {

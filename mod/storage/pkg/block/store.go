@@ -21,165 +21,68 @@
 package block
 
 import (
-	"context"
-	"sync"
+	"fmt"
 
-	sdkcollections "cosmossdk.io/collections"
-	"cosmossdk.io/core/store"
-	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
+	lru "github.com/hashicorp/golang-lru/v2"
 )
 
-// KVStore is a simple KV store based implementation that stores beacon blocks.
+// KVStore is a simple memory store based implementation that stores metadata of
+// beacon blocks.
 type KVStore[BeaconBlockT BeaconBlock] struct {
-	blockRoots             sdkcollections.Map[[]byte, math.Slot]
-	blockRootsLookup       sdkcollections.Map[math.Slot, []byte]
-	executionNumbers       sdkcollections.Map[math.U64, math.Slot]
-	executionNumbersLookup sdkcollections.Map[math.Slot, math.U64]
-	stateRoots             sdkcollections.Map[[]byte, math.Slot]
-	stateRootsLookup       sdkcollections.Map[math.Slot, []byte]
+	blockRoots       *lru.Cache[common.Root, math.Slot]
+	executionNumbers *lru.Cache[math.U64, math.Slot]
+	stateRoots       *lru.Cache[common.Root, math.Slot]
 
-	// w is the availabilityWindow, the number of slots to keep in the store.
-	w math.U64
-	// l is the latest slot in the store.
-	latest math.Slot
-
-	mu     sync.RWMutex
 	logger log.Logger[any]
 }
 
 // NewStore creates a new block store.
 func NewStore[BeaconBlockT BeaconBlock](
-	kvsp store.KVStoreService,
 	logger log.Logger[any],
-	availabilityWindow uint64,
+	availabilityWindow int,
 ) *KVStore[BeaconBlockT] {
-	schemaBuilder := sdkcollections.NewSchemaBuilder(kvsp)
+	blockRoots, err := lru.New[common.Root, math.Slot](availabilityWindow)
+	if err != nil {
+		panic(err)
+	}
+	executionNumbers, err := lru.New[math.U64, math.Slot](availabilityWindow)
+	if err != nil {
+		panic(err)
+	}
+	stateRoots, err := lru.New[common.Root, math.Slot](availabilityWindow)
+	if err != nil {
+		panic(err)
+	}
 	return &KVStore[BeaconBlockT]{
-		blockRoots: sdkcollections.NewMap(
-			schemaBuilder,
-			sdkcollections.NewPrefix(blockRootsPrefix),
-			blockRootsName,
-			sdkcollections.BytesKey,
-			encoding.U64Value,
-		),
-		blockRootsLookup: sdkcollections.NewMap(
-			schemaBuilder,
-			sdkcollections.NewPrefix(blockRootsLookupPrefix),
-			blockRootsLookupName,
-			encoding.U64Key,
-			sdkcollections.BytesValue,
-		),
-		executionNumbers: sdkcollections.NewMap(
-			schemaBuilder,
-			sdkcollections.NewPrefix(executionNumbersPrefix),
-			executionNumbersName,
-			encoding.U64Key,
-			encoding.U64Value,
-		),
-		executionNumbersLookup: sdkcollections.NewMap(
-			schemaBuilder,
-			sdkcollections.NewPrefix(executionNumbersLookupPrefix),
-			executionNumbersLookupName,
-			encoding.U64Key,
-			encoding.U64Value,
-		),
-		stateRoots: sdkcollections.NewMap(
-			schemaBuilder,
-			sdkcollections.NewPrefix(stateRootsPrefix),
-			stateRootsName,
-			sdkcollections.BytesKey,
-			encoding.U64Value,
-		),
-		stateRootsLookup: sdkcollections.NewMap(
-			schemaBuilder,
-			sdkcollections.NewPrefix(stateRootsLookupPrefix),
-			stateRootsLookupName,
-			encoding.U64Key,
-			sdkcollections.BytesValue,
-		),
-		w:      math.U64(availabilityWindow),
-		logger: logger,
+		blockRoots:       blockRoots,
+		executionNumbers: executionNumbers,
+		stateRoots:       stateRoots,
+		logger:           logger,
 	}
 }
 
 // Set sets the block by a given index in the store, storing the block root,
 // execution number, and state root.
 func (kv *KVStore[BeaconBlockT]) Set(blk BeaconBlockT) error {
-	ctx := context.TODO()
-
-	kv.mu.Lock()
-	defer kv.mu.Unlock()
-
-	// Set the latest slot.
-	kv.latest = blk.GetSlot()
-
-	// Get the index of the block in the availability window.
-	idx := kv.latest % kv.w
-
-	// Set the block root in the store.
-	blockRoot := blk.HashTreeRoot()
-	if err := kv.blockRoots.Set(ctx, blockRoot[:], idx); err != nil {
-		return err
-	}
-	if err := kv.blockRootsLookup.Set(ctx, idx, blockRoot[:]); err != nil {
-		return err
-	}
-
-	// Set the execution number in the store.
-	executionNumber := blk.GetExecutionNumber()
-	if err := kv.executionNumbers.Set(ctx, executionNumber, idx); err != nil {
-		return err
-	}
-	if err := kv.executionNumbersLookup.Set(ctx, idx, executionNumber); err != nil {
-		return err
-	}
-
-	// Set the state root in the store.
-	stateRoot := blk.GetStateRoot()
-	if err := kv.stateRoots.Set(ctx, stateRoot[:], idx); err != nil {
-		return err
-	}
-	if err := kv.stateRootsLookup.Set(ctx, idx, stateRoot[:]); err != nil {
-		return err
-	}
-
+	slot := blk.GetSlot()
+	kv.blockRoots.Add(blk.HashTreeRoot(), slot)
+	kv.executionNumbers.Add(blk.GetExecutionNumber(), slot)
+	kv.stateRoots.Add(blk.GetStateRoot(), slot)
 	return nil
 }
 
 // GetSlotByRoot retrieves the slot by a given block root from the store.
 func (kv *KVStore[BeaconBlockT]) GetSlotByBlockRoot(
-	root common.Root,
+	blockRoot common.Root,
 ) (math.Slot, error) {
-	kv.mu.RLock()
-	defer kv.mu.RUnlock()
-
-	// Get the index of the slot in the availability window.
-	idx, err := kv.blockRoots.Get(context.TODO(), root[:])
-	if err != nil {
-		return 0, err
+	slot, ok := kv.blockRoots.Get(blockRoot)
+	if !ok {
+		return 0, fmt.Errorf("slot not found at block root: %s", blockRoot)
 	}
-
-	return kv.GetSlotFromWindow(idx)
-}
-
-// GetSlotByStateRoot retrieves the slot by a given state root from the store.
-func (kv *KVStore[BeaconBlockT]) GetSlotByStateRoot(
-	root common.Root,
-) (math.Slot, error) {
-	kv.mu.RLock()
-	defer kv.mu.RUnlock()
-
-	// Get the index of the slot in the availability window.
-	idx, err := kv.stateRoots.Get(context.TODO(), root[:])
-	if err != nil {
-		return 0, err
-	}
-
-	return kv.GetSlotFromWindow(idx)
+	return slot, nil
 }
 
 // GetSlotByExecutionNumber retrieves the slot by a given execution number from
@@ -187,36 +90,20 @@ func (kv *KVStore[BeaconBlockT]) GetSlotByStateRoot(
 func (kv *KVStore[BeaconBlockT]) GetSlotByExecutionNumber(
 	executionNumber math.U64,
 ) (math.Slot, error) {
-	kv.mu.RLock()
-	defer kv.mu.RUnlock()
-
-	idx, err := kv.executionNumbers.Get(context.TODO(), executionNumber)
-	if err != nil {
-		return 0, err
+	slot, ok := kv.executionNumbers.Get(executionNumber)
+	if !ok {
+		return 0, fmt.Errorf("slot not found at execution number: %d", executionNumber)
 	}
-
-	return kv.GetSlotFromWindow(idx)
+	return slot, nil
 }
 
-// GetSlotFromWindow calculates the correct slot based on the index in the
-// availability window and the latest slot seen.
-//
-// NOTE: This function is not thread safe and should be called with the mutex
-// locked.
-func (kv *KVStore[BeaconBlockT]) GetSlotFromWindow(
-	idx math.U64,
+// GetSlotByStateRoot retrieves the slot by a given state root from the store.
+func (kv *KVStore[BeaconBlockT]) GetSlotByStateRoot(
+	stateRoot common.Root,
 ) (math.Slot, error) {
-	if idx >= kv.w {
-		return 0, errors.New("index out of bounds")
+	slot, ok := kv.stateRoots.Get(stateRoot)
+	if !ok {
+		return 0, fmt.Errorf("slot not found at state root: %s", stateRoot)
 	}
-
-	slot := idx + ((kv.latest / kv.w) * kv.w)
-
-	// If the index is past the index of the latest slot, we must
-	// subtract the window size to get the correct slot.
-	if idx > kv.latest%kv.w {
-		slot -= kv.w
-	}
-
 	return slot, nil
 }
