@@ -26,8 +26,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	consruntimetypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
-	engineclient "github.com/berachain/beacon-kit/mod/execution/pkg/client"
-	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/services/version"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
@@ -45,18 +43,18 @@ type (
 	DBManager = manager.DBManager
 
 	// EngineClient is a type alias for the engine client.
-	EngineClient = engineclient.EngineClient[
-		*ExecutionPayload,
-		*PayloadAttributes,
-	]
+	// EngineClient = engineclient.EngineClient[
+	// 	ExecutionPayload[ExecutionPayload, ExecutionPayloadHeader, Withdrawals],
+	// 	*PayloadAttributes,
+	// ]
 
-	// EngineClient is a type alias for the engine client.
-	ExecutionEngine = execution.Engine[
-		*ExecutionPayload,
-		*PayloadAttributes,
-		PayloadID,
-		Withdrawals,
-	]
+	// ExecutionEngine is a type alias for the execution engine.
+	// ExecutionEngine = execution.Engine[
+	// 	*ExecutionPayload,
+	// 	*PayloadAttributes,
+	// 	PayloadID,
+	// 	Withdrawals,
+	// ]
 
 	// ReportingService is a type alias for the reporting service.
 	ReportingService = version.ReportingService
@@ -77,8 +75,8 @@ type (
 	Eth1Data = types.Eth1Data
 
 	// ExecutionPayload type aliases.
-	ExecutionPayload       = types.ExecutionPayload
-	ExecutionPayloadHeader = types.ExecutionPayloadHeader
+	// ExecutionPayload       = types.ExecutionPayload
+	// ExecutionPayloadHeader = types.ExecutionPayloadHeader
 
 	// Fork is a type alias for the fork.
 	Fork = types.Fork
@@ -96,7 +94,7 @@ type (
 	LegacyKey = signer.LegacyKey
 
 	// PayloadAttributes is a type alias for the payload attributes.
-	PayloadAttributes = engineprimitives.PayloadAttributes[*Withdrawal]
+	// PayloadAttributes = engineprimitives.PayloadAttributes[*Withdrawal]
 
 	// PayloadID is a type alias for the payload ID.
 	PayloadID = engineprimitives.PayloadID
@@ -120,10 +118,10 @@ type (
 	ValidatorUpdates = transition.ValidatorUpdates
 
 	// Withdrawal is a type alias for the engineprimitives withdrawal.
-	Withdrawal = engineprimitives.Withdrawal
+	// Withdrawal = engineprimitives.Withdrawal
 
 	// Withdrawals is a type alias for the engineprimitives withdrawals.
-	Withdrawals = engineprimitives.Withdrawals
+	// Withdrawals = engineprimitives.Withdrawals
 
 	// WithdrawalCredentials is a type alias for the withdrawal credentials.
 	WithdrawalCredentials = types.WithdrawalCredentials
