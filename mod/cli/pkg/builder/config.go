@@ -83,7 +83,7 @@ func DefaultAppConfig() any {
 
 	// IAVL FastNode should ALWAYS be disabled on IAVL v1.x.
 	cfg.IAVLDisableFastNode = true
-	cfg.IAVLCacheSize = 25000
+	cfg.IAVLCacheSize = 2500
 
 	// Create the custom app configuration.
 	customAppConfig := CustomAppConfig{
