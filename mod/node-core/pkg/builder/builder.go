@@ -91,6 +91,7 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 		storeKey        = new(storetypes.KVStoreKey)
 		storeKeyDblPtr  = &storeKey
 		beaconNode      types.Node
+		cmtService      *cometbft.Service
 	)
 
 	// build all node components using depinject
@@ -116,6 +117,7 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 		&abciMiddleware,
 		&serviceRegistry,
 		&apiBackend,
+		&cmtService,
 	); err != nil {
 		panic(err)
 	}
@@ -125,7 +127,7 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 	}
 
 	// TODO: so hood
-	apiBackend.AttachNode(beaconNode)
+	apiBackend.AttachNode(cmtService)
 
 	// TODO: put this in some post node creation hook/listener.
 	if err := beaconNode.Start(context.Background()); err != nil {
