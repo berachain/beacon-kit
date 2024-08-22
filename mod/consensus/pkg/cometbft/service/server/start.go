@@ -57,16 +57,8 @@ const (
 // StartCmdOptions defines options that can be customized in
 // `StartCmdWithOptions`,.
 type StartCmdOptions[T types.Application] struct {
-	// DBOpener can be used to customize db opening, for example customize db
-	// options or support different db backends.
-	// It defaults to the builtin db opener.
-	DBOpener func(rootDir string, backendType dbm.BackendType) (dbm.DB, error)
-
 	// AddFlags allows adding custom flags to the start command.
 	AddFlags func(cmd *cobra.Command)
-
-	// StartCommandHandler can be used to customize the start command handler.
-	StartCommandHandler func(svrCtx *Context, appCreator types.AppCreator[T], appOpts StartCmdOptions[T]) error
 }
 
 // StartCmd runs the service passed in, either stand-alone or in-process with
@@ -84,11 +76,6 @@ func StartCmdWithOptions[T types.Application](
 	appCreator types.AppCreator[T],
 	opts StartCmdOptions[T],
 ) *cobra.Command {
-	if opts.DBOpener == nil {
-		opts.DBOpener = OpenDB
-	}
-
-	opts.StartCommandHandler = start[T]
 
 	cmd := &cobra.Command{
 		Use:   "start",
@@ -127,7 +114,7 @@ is performed. Note, when enabled, gRPC will also be automatically enabled.
 				return err
 			}
 
-			err = opts.StartCommandHandler(serverCtx, appCreator, opts)
+			err = start(serverCtx, appCreator)
 
 			serverCtx.Logger.Debug("received quit signal")
 			//#nosec:G703 // its a bet.
@@ -153,10 +140,9 @@ is performed. Note, when enabled, gRPC will also be automatically enabled.
 func start[T types.Application](
 	svrCtx *Context,
 	appCreator types.AppCreator[T],
-	appOpts StartCmdOptions[T],
 ) error {
 	home := svrCtx.Config.RootDir
-	db, err := appOpts.DBOpener(home, dbm.PebbleDBBackend)
+	db, err := OpenDB(home, dbm.PebbleDBBackend)
 	if err != nil {
 		return err
 	}
