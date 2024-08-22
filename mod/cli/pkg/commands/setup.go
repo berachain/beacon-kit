@@ -46,11 +46,6 @@ func DefaultRootCommandSetup[
 	appCreator servertypes.AppCreator[T],
 	chainSpec common.ChainSpec,
 ) {
-	// Setup the custom start command options.
-	startCmdOptions := server.StartCmdOptions[T]{
-		AddFlags: flags.AddBeaconKitFlags,
-	}
-
 	// Add all the commands to the root command.
 	root.cmd.AddCommand(
 		// `comet`
@@ -66,7 +61,9 @@ func DefaultRootCommandSetup[
 		// `rollback`
 		server.NewRollbackCmd(appCreator),
 		// `start`
-		server.StartCmdWithOptions(appCreator, startCmdOptions),
+		server.StartCmdWithOptions(appCreator, server.StartCmdOptions[T]{
+			AddFlags: flags.AddBeaconKitFlags,
+		}),
 		// `status`
 		cmtcli.StatusCommand(),
 		// `version`
