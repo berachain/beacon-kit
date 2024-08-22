@@ -102,7 +102,13 @@ custom: allow pruning options to be manually specified through 'pruning-keep-rec
 			}
 
 			// Create the application.
-			_ = appCreator(serverCtx.Logger, db, nil, serverCtx.Config, serverCtx.Viper)
+			_ = appCreator(
+				serverCtx.Logger,
+				db,
+				nil,
+				serverCtx.Config,
+				serverCtx.Viper,
+			)
 
 			return err
 		},
