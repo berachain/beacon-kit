@@ -121,7 +121,7 @@ func BuildNewPayloadRequest[
 	}
 }
 
-var depAddress = common.NewExecutionHashFromHex("0x4242424242424242424242424242424242424242")
+var depAddress = common.NewExecutionAddressFromHex("0x4242424242424242424242424242424242424242")
 
 // HasValidVersionedAndBlockHashes checks if the version and block hashes are
 // valid.
