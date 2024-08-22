@@ -65,7 +65,8 @@ func NewStore[BeaconBlockT BeaconBlock](
 }
 
 // Set sets the block by a given index in the store, storing the block root,
-// execution number, and state root.
+// execution number, and state root. Only this function may potentially evict
+// entries from the store if the availability window is reached.
 func (kv *KVStore[BeaconBlockT]) Set(blk BeaconBlockT) error {
 	slot := blk.GetSlot()
 	kv.blockRoots.Add(blk.HashTreeRoot(), slot)
@@ -78,7 +79,7 @@ func (kv *KVStore[BeaconBlockT]) Set(blk BeaconBlockT) error {
 func (kv *KVStore[BeaconBlockT]) GetSlotByBlockRoot(
 	blockRoot common.Root,
 ) (math.Slot, error) {
-	slot, ok := kv.blockRoots.Get(blockRoot)
+	slot, ok := kv.blockRoots.Peek(blockRoot)
 	if !ok {
 		return 0, fmt.Errorf("slot not found at block root: %s", blockRoot)
 	}
@@ -90,7 +91,7 @@ func (kv *KVStore[BeaconBlockT]) GetSlotByBlockRoot(
 func (kv *KVStore[BeaconBlockT]) GetSlotByExecutionNumber(
 	executionNumber math.U64,
 ) (math.Slot, error) {
-	slot, ok := kv.executionNumbers.Get(executionNumber)
+	slot, ok := kv.executionNumbers.Peek(executionNumber)
 	if !ok {
 		return 0, fmt.Errorf(
 			"slot not found at execution number: %d",
@@ -104,7 +105,7 @@ func (kv *KVStore[BeaconBlockT]) GetSlotByExecutionNumber(
 func (kv *KVStore[BeaconBlockT]) GetSlotByStateRoot(
 	stateRoot common.Root,
 ) (math.Slot, error) {
-	slot, ok := kv.stateRoots.Get(stateRoot)
+	slot, ok := kv.stateRoots.Peek(stateRoot)
 	if !ok {
 		return 0, fmt.Errorf("slot not found at state root: %s", stateRoot)
 	}
