@@ -221,14 +221,6 @@ func GetCtx(
 	return g, ctx
 }
 
-func getCtx(svrCtx *Context, block bool) (*errgroup.Group, context.Context) {
-	ctx, cancelFn := context.WithCancel(context.Background())
-	g, ctx := errgroup.WithContext(ctx)
-	// listen for quit signals so the calling parent process can gracefully exit
-	ListenForQuitSignals(g, block, cancelFn, svrCtx.Logger)
-	return g, ctx
-}
-
 // addStartNodeFlags should be added to any CLI commands that start the network.
 func addStartNodeFlags[T types.Application](
 	cmd *cobra.Command,
