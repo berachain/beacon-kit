@@ -23,14 +23,12 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	storev2 "cosmossdk.io/store/v2/db"
+	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/block"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/spf13/cast"
 )
 
 // BlockStoreInput is the input for the dep inject framework.
@@ -44,9 +42,9 @@ type BlockStoreInput[
 ] struct {
 	depinject.In
 
-	AppOpts   servertypes.AppOptions
-	ChainSpec common.ChainSpec
-	Logger    LoggerT
+	AppOpts servertypes.AppOptions
+	Config  *config.Config
+	Logger  LoggerT
 }
 
 // ProvideBlockStore is a function that provides the module to the
@@ -63,15 +61,9 @@ func ProvideBlockStore[
 		BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT, LoggerT,
 	],
 ) (*block.KVStore[BeaconBlockT], error) {
-	dir := cast.ToString(in.AppOpts.Get(flags.FlagHome)) + "/data"
-	kvp, err := storev2.NewDB(storev2.DBTypePebbleDB, block.StoreName, dir, nil)
-	if err != nil {
-		return nil, err
-	}
-
 	return block.NewStore[BeaconBlockT](
-		storage.NewKVStoreProvider(kvp),
-		in.ChainSpec,
+		storage.NewKVStoreProvider(storev2.NewMemDB()),
 		in.Logger.With("service", manager.BlockStoreName),
+		in.Config.BlockStoreService.AvailabilityWindow,
 	), nil
 }

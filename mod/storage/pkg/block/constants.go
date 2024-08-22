@@ -21,14 +21,20 @@
 package block
 
 const (
-	StoreName            = "blocks"
-	blockRootsName       = "block_roots"
-	executionNumbersName = "execution_numbers"
-	stateRootsName       = "state_roots"
+	StoreName                  = "blocks"
+	blockRootsName             = "block_roots"
+	blockRootsLookupName       = "block_roots_lookup"
+	executionNumbersName       = "execution_numbers"
+	executionNumbersLookupName = "execution_numbers_lookup"
+	stateRootsName             = "state_roots"
+	stateRootsLookupName       = "state_roots_lookup"
 )
 
 const (
 	blockRootsPrefix int = iota
+	blockRootsLookupPrefix
 	executionNumbersPrefix
+	executionNumbersLookupPrefix
 	stateRootsPrefix
+	stateRootsLookupPrefix
 )

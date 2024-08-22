@@ -28,8 +28,6 @@ const (
 type Config struct {
 	// Enabled enables the block service.
 	Enabled bool `mapstructure:"enabled"`
-	// PrunerEnabled enables the block pruner.
-	PrunerEnabled bool `mapstructure:"pruner-enabled"`
 	// AvailabilityWindow is the number of slots to keep in the store.
 	AvailabilityWindow uint64 `mapstructure:"availability-window"`
 }
@@ -38,7 +36,6 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		Enabled:            false,
-		PrunerEnabled:      false,
 		AvailabilityWindow: DefaultAvailabilityWindow,
 	}
 }
