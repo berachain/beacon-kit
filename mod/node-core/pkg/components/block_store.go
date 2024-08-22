@@ -23,11 +23,9 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/config"
-	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/block"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
 
 // BlockStoreInput is the input for the dep inject framework.
@@ -41,9 +39,8 @@ type BlockStoreInput[
 ] struct {
 	depinject.In
 
-	AppOpts servertypes.AppOptions
-	Config  *config.Config
-	Logger  LoggerT
+	Config *config.Config
+	Logger LoggerT
 }
 
 // ProvideBlockStore is a function that provides the module to the
@@ -62,6 +59,6 @@ func ProvideBlockStore[
 ) (*block.KVStore[BeaconBlockT], error) {
 	return block.NewStore[BeaconBlockT](
 		in.Logger.With("service", manager.BlockStoreName),
-		in.Config.BlockStoreService.AvailabilityWindow,
+		int(in.Config.BlockStoreService.AvailabilityWindow),
 	), nil
 }
