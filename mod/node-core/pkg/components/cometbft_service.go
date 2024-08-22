@@ -49,9 +49,7 @@ func ProvideCometBFTService(
 		abciMiddleware,
 		true,
 		cmtCfg,
-		append(
-			builder.DefaultServiceOptions(appOpts),
-			builder.WithCometParamStore(chainSpec),
-		)...,
+		chainSpec,
+		builder.DefaultServiceOptions(appOpts)...,
 	)
 }
