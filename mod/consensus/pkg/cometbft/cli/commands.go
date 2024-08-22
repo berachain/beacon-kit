@@ -24,6 +24,7 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
+	service "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server"
 	types "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/db"
@@ -267,7 +268,7 @@ func BootstrapStateCmd[T types.Application](
 				cmd.Context(),
 				cfg,
 				cmtcfg.DefaultDBProvider,
-				server.GetGenDocProvider(cfg),
+				service.GetGenDocProvider(cfg),
 				//#nosec:G701 // bet.
 				uint64(height),
 				nil,

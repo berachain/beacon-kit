@@ -22,17 +22,11 @@
 package server
 
 import (
-	"crypto/sha256"
-	"encoding/json"
-
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	types "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/db"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
-	cmtcfg "github.com/cometbft/cometbft/config"
-	"github.com/cometbft/cometbft/node"
 	dbm "github.com/cosmos/cosmos-db"
-	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/cobra"
 )
 
@@ -116,47 +110,6 @@ custom: allow pruning options to be manually specified through 'pruning-keep-rec
 
 	addStartNodeFlags(cmd, opts)
 	return cmd
-}
-
-// GetGenDocProvider returns a function which returns the genesis doc from the
-// genesis file.
-func GetGenDocProvider(
-	cfg *cmtcfg.Config,
-) func() (node.ChecksummedGenesisDoc, error) {
-	return func() (node.ChecksummedGenesisDoc, error) {
-		appGenesis, err := genutiltypes.AppGenesisFromFile(cfg.GenesisFile())
-		if err != nil {
-			return node.ChecksummedGenesisDoc{
-				Sha256Checksum: []byte{},
-			}, err
-		}
-
-		gen, err := appGenesis.ToGenesisDoc()
-		if err != nil {
-			return node.ChecksummedGenesisDoc{
-				Sha256Checksum: []byte{},
-			}, err
-		}
-		genbz, err := gen.AppState.MarshalJSON()
-		if err != nil {
-			return node.ChecksummedGenesisDoc{
-				Sha256Checksum: []byte{},
-			}, err
-		}
-
-		bz, err := json.Marshal(genbz)
-		if err != nil {
-			return node.ChecksummedGenesisDoc{
-				Sha256Checksum: []byte{},
-			}, err
-		}
-		sum := sha256.Sum256(bz)
-
-		return node.ChecksummedGenesisDoc{
-			GenesisDoc:     gen,
-			Sha256Checksum: sum[:],
-		}, nil
-	}
 }
 
 // addStartNodeFlags should be added to any CLI commands that start the network.
