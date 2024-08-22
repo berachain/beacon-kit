@@ -27,6 +27,7 @@ import (
 	"cosmossdk.io/depinject"
 	sdklog "cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
+	servertypes "github.com/berachain/beacon-kit/mod/cli/pkg/commands/server/types"
 	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
 	"github.com/berachain/beacon-kit/mod/log"
 	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"
@@ -34,7 +35,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	dbm "github.com/cosmos/cosmos-db"
-	servertypes "github.com/berachain/beacon-kit/mod/cli/pkg/commands/server/types"
 )
 
 // NodeBuilder is a construction helper for creating nodes that implement
@@ -87,11 +87,15 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 		chainSpec       common.ChainSpec
 		abciMiddleware  cometbft.MiddlewareI
 		serviceRegistry *service.Registry
-		apiBackend      interface{ AttachQueryBackend(types.Node) }
-		storeKey        = new(storetypes.KVStoreKey)
-		storeKeyDblPtr  = &storeKey
-		beaconNode      NodeT
-		cmtService      *cometbft.Service
+		apiBackend      interface {
+			AttachQueryBackend(
+				*cometbft.Service,
+			)
+		}
+		storeKey       = new(storetypes.KVStoreKey)
+		storeKeyDblPtr = &storeKey
+		beaconNode     NodeT
+		cmtService     *cometbft.Service
 	)
 
 	// build all node components using depinject

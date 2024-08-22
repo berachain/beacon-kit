@@ -21,11 +21,10 @@
 package types
 
 import (
+	"context"
 	"io"
 
 	"cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
-	"github.com/cometbft/cometbft/abci/types"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	dbm "github.com/cosmos/cosmos-db"
 )
@@ -44,21 +43,11 @@ type (
 		Get(string) interface{}
 	}
 
-	// Application defines an application interface that wraps abci.Application.
-	// The interface defines the necessary contracts to be implemented in order
-	// to fully bootstrap and start an application.
-	Application interface {
-		types.Application
-		// CommitMultiStore return the multistore instance
-		CommitMultiStore() storetypes.CommitMultiStore
-		// Close is called in start cmd to gracefully cleanup resources.
-		// Must be safe to be called multiple times.
-		Close() error
-	}
-
 	// AppCreator is a function that allows us to lazily initialize an
 	// application using various configurations.
-	AppCreator[T any] func(
+	AppCreator[T interface {
+		Start(ctx context.Context) error
+	}] func(
 		log.Logger, dbm.DB, io.Writer, *cmtcfg.Config, AppOptions,
 	) T
 )

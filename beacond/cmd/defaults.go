@@ -21,6 +21,7 @@
 package main
 
 import (
+	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
 )
 
@@ -148,7 +149,7 @@ func DefaultComponents() []any {
 			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
 			*BeaconBlockHeader, *BlockStore, *BeaconState,
 			*BeaconStateMarshallable, *BlobSidecars, *Deposit, *DepositStore,
-			*ExecutionPayloadHeader, *KVStore, Node, *StorageBackend,
+			*ExecutionPayloadHeader, *KVStore, *cometbft.Service, *StorageBackend,
 		],
 	)
 
@@ -158,7 +159,7 @@ func DefaultComponents() []any {
 			*ExecutionPayloadHeader, *KVStore, NodeAPIContext,
 		],
 		components.ProvideNodeAPIBeaconHandler[
-			*BeaconBlockHeader, *BeaconState, Node, NodeAPIContext,
+			*BeaconBlockHeader, *BeaconState, *cometbft.Service, NodeAPIContext,
 		],
 		components.ProvideNodeAPIBuilderHandler[NodeAPIContext],
 		components.ProvideNodeAPIConfigHandler[NodeAPIContext],
@@ -167,7 +168,7 @@ func DefaultComponents() []any {
 		components.ProvideNodeAPINodeHandler[NodeAPIContext],
 		components.ProvideNodeAPIProofHandler[
 			*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
-			*ExecutionPayloadHeader, *KVStore, Node, NodeAPIContext,
+			*ExecutionPayloadHeader, *KVStore, *cometbft.Service, NodeAPIContext,
 		],
 	)
 

@@ -18,10 +18,12 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 //
-//nolint:mnd // its okay.
+
 package server
 
 import (
+	"context"
+
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	types "github.com/berachain/beacon-kit/mod/cli/pkg/commands/server/types"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/db"
@@ -49,14 +51,18 @@ const (
 
 // StartCmdOptions defines options that can be customized in
 // `StartCmdWithOptions`,.
-type StartCmdOptions[T types.Application] struct {
+type StartCmdOptions[T interface {
+	Start(context.Context) error
+}] struct {
 	// AddFlags allows adding custom flags to the start command.
 	AddFlags func(cmd *cobra.Command)
 }
 
 // StartCmd runs the service passed in, either stand-alone or in-process with
 // CometBFT.
-func StartCmd[T types.Application](
+func StartCmd[T interface {
+	Start(context.Context) error
+}](
 	appCreator types.AppCreator[T],
 ) *cobra.Command {
 	return StartCmdWithOptions(appCreator, StartCmdOptions[T]{})
@@ -65,11 +71,13 @@ func StartCmd[T types.Application](
 // StartCmdWithOptions runs the service passed in, either stand-alone or
 // in-process with
 // CometBFT.
-func StartCmdWithOptions[T types.Application](
+func StartCmdWithOptions[T interface {
+	Start(context.Context) error
+}](
 	appCreator types.AppCreator[T],
 	opts StartCmdOptions[T],
 ) *cobra.Command {
-
+	//nolint:lll // its okay.
 	cmd := &cobra.Command{
 		Use:   "start",
 		Short: "Run the full node",
@@ -104,8 +112,8 @@ custom: allow pruning options to be manually specified through 'pruning-keep-rec
 			}
 
 			// Create the application.
-			_ = appCreator(logger, db, nil, cfg, v)
-			return err
+			return appCreator(logger, db, nil, cfg, v).
+				Start(cmd.Context())
 		},
 	}
 
@@ -114,26 +122,53 @@ custom: allow pruning options to be manually specified through 'pruning-keep-rec
 }
 
 // addStartNodeFlags should be added to any CLI commands that start the network.
-func addStartNodeFlags[T types.Application](
+//
+//nolint:lll // todo fix.
+func addStartNodeFlags[T interface {
+	Start(context.Context) error
+}](
 	cmd *cobra.Command,
 	opts StartCmdOptions[T],
 ) {
-	cmd.Flags().String(flagAddress, "tcp://127.0.0.1:26658", "Listen address")
+	cmd.Flags().String(
+		flagAddress, "tcp://127.0.0.1:26658", "Listen address")
 	cmd.Flags().
-		String(flagTransport, "socket", "Transport protocol: socket, grpc")
+		String(
+			flagTransport,
+			"socket",
+			"Transport protocol: socket, grpc")
 	cmd.Flags().
-		Uint64(FlagHaltHeight, 0, "Block height at which to gracefully halt the chain and shutdown the node")
+		Uint64(
+			FlagHaltHeight,
+			0, "Block height at which to gracefully halt the chain and shutdown the node")
 	cmd.Flags().
-		Uint64(FlagHaltTime, 0, "Minimum block time (in Unix seconds) at which to gracefully halt the chain and shutdown the node")
-	cmd.Flags().Bool(FlagInterBlockCache, true, "Enable inter-block caching")
+		Uint64(
+			FlagHaltTime,
+			0,
+			"Minimum block time (in Unix seconds) at which to gracefully halt the chain and shutdown the node")
+	cmd.Flags().Bool(
+		FlagInterBlockCache,
+		true,
+		"Enable inter-block caching")
 	cmd.Flags().
-		String(FlagPruning, pruningtypes.PruningOptionDefault, "Pruning strategy (default|nothing|everything|custom)")
+		String(
+			FlagPruning,
+			pruningtypes.PruningOptionDefault,
+			"Pruning strategy (default|nothing|everything|custom)")
 	cmd.Flags().
-		Uint64(FlagPruningKeepRecent, 0, "Number of recent heights to keep on disk (ignored if pruning is not 'custom')")
+		Uint64(
+			FlagPruningKeepRecent,
+			0,
+			"Number of recent heights to keep on disk (ignored if pruning is not 'custom')")
 	cmd.Flags().
-		Uint64(FlagPruningInterval, 0, "Height interval at which pruned heights are removed from disk (ignored if pruning is not 'custom')")
+		Uint64(FlagPruningInterval,
+			0,
+			"Height interval at which pruned heights are removed from disk (ignored if pruning is not 'custom')")
 	cmd.Flags().
-		Uint64(FlagMinRetainBlocks, 0, "Minimum block height offset during ABCI commit to prune CometBFT blocks")
+		Uint64(
+			FlagMinRetainBlocks,
+			0,
+			"Minimum block height offset during ABCI commit to prune CometBFT blocks")
 	cmd.Flags().
 		Bool(FlagDisableIAVLFastNode, false, "Disable fast node for IAVL tree")
 
