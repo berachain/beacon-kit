@@ -21,15 +21,12 @@
 package cometbft
 
 import (
-	"context"
 	"crypto/sha256"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cometbft/cometbft/node"
-	cmttypes "github.com/cometbft/cometbft/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
 
@@ -61,45 +58,6 @@ func (app *Service) ValidateGenesis(
 	// This should validate the genesis state for each module in the
 	// application.
 	return nil
-}
-
-// ExportAppStateAndValidators exports the state of the application for a
-// genesis
-// file.
-func (app *Service) ExportAppStateAndValidators(
-	forZeroHeight bool,
-	_, _ []string,
-) (servertypes.ExportedApp, error) {
-	// We export at last height + 1, because that's the height at which
-	// CometBFT will start InitChain.
-	height := app.LastBlockHeight() + 1
-	if forZeroHeight {
-		// height = 0
-		panic("not supported, just look at the genesis file u goofy")
-	}
-
-	// genState, err := app.ModuleManager.ExportGenesisForModules(
-	// 	ctx,
-	// 	modulesToExport,
-	// )
-	// if err != nil {
-	// 	return servertypes.ExportedApp{}, err
-	// }
-
-	// appState, err := json.MarshalIndent(genState, "", "  ")
-	// if err != nil {
-	// 	return servertypes.ExportedApp{}, err
-	// }
-
-	// TODO: Pull these in from the BeaconKeeper, should be easy.
-	validators := []cmttypes.GenesisValidator(nil)
-
-	return servertypes.ExportedApp{
-		AppState:        nil,
-		Validators:      validators,
-		Height:          height,
-		ConsensusParams: app.GetConsensusParams(context.TODO()),
-	}, nil
 }
 
 // GetGenDocProvider returns a function which returns the genesis doc from the

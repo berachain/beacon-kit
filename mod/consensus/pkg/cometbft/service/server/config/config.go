@@ -70,11 +70,6 @@ type BaseConfig struct {
 	// InterBlockCache enables inter-block caching.
 	InterBlockCache bool `mapstructure:"inter-block-cache"`
 
-	// IndexEvents defines the set of events in the form
-	// {eventType}.{attributeKey}, which informs CometBFT what to index. If
-	// empty, all events will be indexed.
-	IndexEvents []string `mapstructure:"index-events"`
-
 	// IavlCacheSize set the size of the iavl tree cache.
 	IAVLCacheSize uint64 `mapstructure:"iavl-cache-size"`
 
@@ -99,7 +94,6 @@ func DefaultConfig() *Config {
 			PruningKeepRecent: "0",
 			PruningInterval:   "0",
 			MinRetainBlocks:   0,
-			IndexEvents:       make([]string, 0),
 			//nolint:mnd // its a bet.
 			IAVLCacheSize:       5000,
 			IAVLDisableFastNode: false,

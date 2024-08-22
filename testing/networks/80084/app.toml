@@ -5,15 +5,6 @@
 ###                           Base Configuration                            ###
 ###############################################################################
 
-# The minimum gas prices a validator is willing to accept for processing a
-# transaction. A transaction's fees must meet the minimum of any denomination
-# specified in this config (e.g. 0.25token1,0.0001token2).
-minimum-gas-prices = "0stake"
-
-# The maximum gas a query coming over rest/grpc may consume.
-# If this is set to zero, the query can consume an unbounded amount of gas.
-query-gas-limit = "0"
-
 # default: the last 362880 states are kept, pruning at 10 block intervals
 # nothing: all historic states will be saved, nothing will be deleted (i.e. archiving node)
 # everything: 2 latest states will be kept; pruning at 10 block intervals.
@@ -55,13 +46,6 @@ min-retain-blocks = 0
 
 # InterBlockCache enables inter-block caching.
 inter-block-cache = true
-
-# IndexEvents defines the set of events in the form {eventType}.{attributeKey},
-# which informs CometBFT what to index. If empty, all events will be indexed.
-#
-# Example:
-# ["message.sender", "message.recipient"]
-index-events = []
 
 # IavlCacheSize set the size of the iavl tree cache (in number of nodes).
 iavl-cache-size = 25000
