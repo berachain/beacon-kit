@@ -30,13 +30,11 @@ import (
 // DBManagerInput is the input for the dep inject framework.
 type DBManagerInput[
 	AvailabilityStoreT pruner.Prunable,
-	BlockStoreT pruner.Prunable,
 	DepositStoreT pruner.Prunable,
 	LoggerT any,
 ] struct {
 	depinject.In
 	AvailabilityPruner pruner.Pruner[AvailabilityStoreT]
-	BlockPruner        pruner.Pruner[BlockStoreT]
 	DepositPruner      pruner.Pruner[DepositStoreT]
 	Logger             LoggerT
 }
@@ -44,18 +42,14 @@ type DBManagerInput[
 // ProvideDBManager provides a DBManager for the depinject framework.
 func ProvideDBManager[
 	AvailabilityStoreT pruner.Prunable,
-	BlockStoreT pruner.Prunable,
 	DepositStoreT pruner.Prunable,
 	LoggerT log.AdvancedLogger[any, LoggerT],
 ](
-	in DBManagerInput[
-		AvailabilityStoreT, BlockStoreT, DepositStoreT, LoggerT,
-	],
+	in DBManagerInput[AvailabilityStoreT, DepositStoreT, LoggerT],
 ) (*manager.DBManager, error) {
 	return manager.NewDBManager(
 		in.Logger.With("service", "db-manager"),
 		in.DepositPruner,
 		in.AvailabilityPruner,
-		in.BlockPruner,
 	)
 }
