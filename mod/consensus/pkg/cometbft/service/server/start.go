@@ -165,7 +165,6 @@ func start[T types.Application](
 	}
 
 	_ = appCreator(svrCtx.Logger, db, nil, svrCtx.Config, svrCtx.Viper)
-	svrCtx.Logger.Info("starting node with ABCI CometBFT in-process")
 	return nil
 }
 
