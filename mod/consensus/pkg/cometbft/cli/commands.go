@@ -246,7 +246,7 @@ func BootstrapStateCmd[T types.Application](
 					return err
 				}
 
-				app := appCreator(logger, db, nil, v)
+				app := appCreator(logger, db, nil, cfg, v)
 				height = app.CommitMultiStore().LastCommitID().Version
 			}
 

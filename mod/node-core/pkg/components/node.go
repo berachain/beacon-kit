@@ -20,7 +20,18 @@
 
 package components
 
-// ProvideChainSpec provides the chain spec based on the environment variable.
-func ProvideCometBFTService() any {
-	return nil
+import (
+	"github.com/berachain/beacon-kit/mod/cli/pkg/components/log"
+	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
+	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
+)
+
+// ProvideNode is a function that provides the module to the.
+func ProvideNode(
+	registry *service.Registry,
+	logger *phuslu.Logger,
+) types.Node {
+	return node.New[types.Node](registry, log.WrapSDKLogger(logger))
 }

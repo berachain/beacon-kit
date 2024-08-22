@@ -1084,7 +1084,7 @@ type (
 		NodeT any,
 		ValidatorT any,
 	] interface {
-		AttachNode(node NodeT)
+		AttachQueryBackend(node NodeT)
 		ChainSpec() common.ChainSpec
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		GetSlotByStateRoot(root common.Root) (math.Slot, error)

@@ -57,7 +57,7 @@ application.
 			if err != nil {
 				return err
 			}
-			app := appCreator(logger, db, nil, v)
+			app := appCreator(logger, db, nil, cfg, v)
 			// rollback CometBFT state
 			height, hash, err := cmtcmd.RollbackState(cfg, removeBlock)
 			if err != nil {
