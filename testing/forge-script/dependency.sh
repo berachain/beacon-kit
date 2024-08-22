@@ -1,3 +1,4 @@
+#!/bin/sh
 # SPDX-License-Identifier: BUSL-1.1
 #
 # Copyright (C) 2024, Berachain Foundation. All rights reserved.
@@ -18,16 +19,13 @@
 # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 # TITLE.
 
-# Please refer to the README.md file for more information on how to fill this file.
-deployment:
-  repository: "github.com/nidhi-singh02/beacon-kit"  # give repo name if there are submodules, else give the folder till contracts
-  contracts_path: "contracts"  # give the path till contracts, if the repository is the contract folder itself, then leave it empty
-  script_path: "script/DeployAndCallERC20.s.sol"  # this must be relative to the repository path + contracts_path(if applicable)
-  contract_name: "DeployAndCallERC20"
-  rpc_url: "http://HOST_IP_ADDRESS:8547"  # If you spin up local devnet via kurtosis, then public port is 8547
-  wallet:
-    type: "private_key"  # currently only private_key wallet is supported. Do not change the type.
-    value: "0xfffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306"
-  dependency:
-    status: false
-    path: "dependency.sh"
+apk update && apk add --no-cache nodejs npm
+
+npm --version
+npm install -g bun
+
+bun --version
+
+cd /app/contracts && bun install
+
+echo "Bun installation complete!"
