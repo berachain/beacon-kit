@@ -115,9 +115,16 @@ is performed. Note, when enabled, gRPC will also be automatically enabled.
 				return err
 			}
 
-			err = start(serverCtx, appCreator)
+			// Open the Database
+			home := serverCtx.Config.RootDir
+			db, err := db.OpenDB(home, dbm.PebbleDBBackend)
+			if err != nil {
+				return err
+			}
 
-			serverCtx.Logger.Debug("received quit signal")
+			// Create the application.
+			_ = appCreator(serverCtx.Logger, db, nil, serverCtx.Config, serverCtx.Viper)
+
 			//#nosec:G703 // its a bet.
 			graceDuration, _ := cmd.Flags().GetDuration(FlagShutdownGrace)
 			if graceDuration > 0 {
@@ -136,20 +143,6 @@ is performed. Note, when enabled, gRPC will also be automatically enabled.
 
 	addStartNodeFlags(cmd, opts)
 	return cmd
-}
-
-func start[T types.Application](
-	svrCtx *Context,
-	appCreator types.AppCreator[T],
-) error {
-	home := svrCtx.Config.RootDir
-	db, err := db.OpenDB(home, dbm.PebbleDBBackend)
-	if err != nil {
-		return err
-	}
-
-	_ = appCreator(svrCtx.Logger, db, nil, svrCtx.Config, svrCtx.Viper)
-	return nil
 }
 
 // GetGenDocProvider returns a function which returns the genesis doc from the
