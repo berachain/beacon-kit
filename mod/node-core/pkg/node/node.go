@@ -95,7 +95,7 @@ func (n *node) listenForQuitSignals(
 		sig := <-sigCh
 		cancelFn()
 
-		n.logger.Info("caught signal", "signal", sig.String())
+		n.logger.Info("caught exit signal", "signal", sig.String())
 	}
 
 	if block {
