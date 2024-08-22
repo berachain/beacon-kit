@@ -23,8 +23,8 @@ package components
 import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/components/log"
+	"github.com/berachain/beacon-kit/mod/config"
 	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
-	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
@@ -39,7 +39,7 @@ func ProvideCometBFTService(
 	abciMiddleware cometbft.MiddlewareI,
 	db dbm.DB,
 	cmtCfg *cmtcfg.Config,
-	appOpts servertypes.AppOptions,
+	appOpts config.AppOptions,
 	chainSpec common.ChainSpec,
 ) *cometbft.Service {
 	return cometbft.NewService(

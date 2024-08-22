@@ -24,8 +24,8 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
+	types "github.com/berachain/beacon-kit/mod/cli/pkg/commands/server/types"
 	service "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
-	types "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/db"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	cmtcfg "github.com/cometbft/cometbft/config"

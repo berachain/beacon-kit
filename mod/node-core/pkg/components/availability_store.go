@@ -24,7 +24,7 @@ import (
 	"os"
 
 	"cosmossdk.io/depinject"
-	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
+	"github.com/berachain/beacon-kit/mod/config"
 	dastore "github.com/berachain/beacon-kit/mod/da/pkg/store"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
@@ -41,7 +41,7 @@ import (
 // function for the depinject framework.
 type AvailabilityStoreInput[LoggerT any] struct {
 	depinject.In
-	AppOpts   servertypes.AppOptions
+	AppOpts   config.AppOptions
 	ChainSpec common.ChainSpec
 	Logger    LoggerT
 }

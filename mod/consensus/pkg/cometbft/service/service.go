@@ -29,7 +29,7 @@ import (
 	"cosmossdk.io/store"
 	storemetrics "cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
-	servercmtlog "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/log"
+	servercmtlog "github.com/berachain/beacon-kit/mod/cli/pkg/components/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"

@@ -21,7 +21,7 @@
 package types
 
 import (
-	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
+	servertypes "github.com/berachain/beacon-kit/mod/cli/pkg/commands/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

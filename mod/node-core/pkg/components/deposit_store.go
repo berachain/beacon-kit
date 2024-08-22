@@ -23,7 +23,7 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	storev2 "cosmossdk.io/store/v2/db"
-	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
+	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
@@ -39,7 +39,7 @@ import (
 // DepositStoreInput is the input for the dep inject framework.
 type DepositStoreInput struct {
 	depinject.In
-	AppOpts servertypes.AppOptions
+	AppOpts config.AppOptions
 }
 
 // ProvideDepositStore is a function that provides the module to the

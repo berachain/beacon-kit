@@ -25,9 +25,9 @@ import (
 
 	"cosmossdk.io/depinject"
 	cmdlib "github.com/berachain/beacon-kit/mod/cli/pkg/commands"
+	servertypes "github.com/berachain/beacon-kit/mod/cli/pkg/commands/server/types"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/config"
 	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
-	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
