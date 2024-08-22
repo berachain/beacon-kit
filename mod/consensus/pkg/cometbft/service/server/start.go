@@ -178,10 +178,6 @@ func start[T types.Application](
 		return err
 	}
 
-	return startInProcess[T](svrCtx, app)
-}
-
-func startInProcess[T types.Application](svrCtx *Context, app T) error {
 	cmtCfg := svrCtx.Config
 
 	g, ctx := getCtx(svrCtx, true)
@@ -194,7 +190,8 @@ func startInProcess[T types.Application](svrCtx *Context, app T) error {
 	defer cleanupFn()
 
 	// wait for signal capture and gracefully return
-	// we are guaranteed to be waiting for the "ListenForQuitSignals" goroutine.
+	// we are guaranteed to be waiting
+	//for the "ListenForQuitSignals" goroutine.
 	return g.Wait()
 }
 
