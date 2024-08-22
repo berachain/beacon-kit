@@ -5,6 +5,7 @@ go 1.23.0
 replace github.com/berachain/beacon-kit/mod/node-api => ../node-api
 
 require (
+	cosmossdk.io/store v1.1.0
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240821052951-c15422305b4e
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/da v0.0.0-20240610210054-bfdc14c4013c
@@ -15,14 +16,19 @@ require (
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240624003607-df94860f8eeb
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240821052951-c15422305b4e
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240806094948-2c4293ef36c4
+	github.com/cosmos/cosmos-sdk v0.50.9
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/spf13/viper v1.19.0
 )
 
 require (
+	github.com/DataDog/datadog-go v3.2.0+incompatible // indirect
 	github.com/berachain/beacon-kit/mod/geth-primitives v0.0.0-20240806160829-cde2d1347e7e // indirect
 	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
+	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
+	github.com/hashicorp/go-metrics v0.5.3 // indirect
+	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/umbracle/fastrlp v0.1.0 // indirect
 )
 
