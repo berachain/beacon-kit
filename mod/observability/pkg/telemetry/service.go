@@ -26,7 +26,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 )
 
-type Config = telemetry.Metrics
+type Config = telemetry.Config
 
 // Service is a telemetry service.
 type Service struct {

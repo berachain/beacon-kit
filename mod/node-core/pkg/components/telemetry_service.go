@@ -21,13 +21,34 @@
 package components
 
 import (
+	"errors"
+
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	"github.com/berachain/beacon-kit/mod/observability/pkg/telemetry"
+	"github.com/mitchellh/mapstructure"
+	"github.com/spf13/viper"
 )
 
 // ProvideTelemetryService is a function that provides a TelemetrySink.
 func ProvideTelemetryService(
-	appOpts types.AppOptions,
+	opts types.AppOptions,
 ) (*telemetry.Service, error) {
-	return telemetry.NewService(nil)
+	v, ok := opts.(*viper.Viper)
+	if !ok {
+		return nil, errors.New("invalid application options type")
+	}
+
+	type cfgUnmarshaller struct {
+		Telemetry telemetry.Config `mapstructure:"telemetry"`
+	}
+	cfg := cfgUnmarshaller{}
+	if err := v.Unmarshal(&cfg,
+		viper.DecodeHook(mapstructure.ComposeDecodeHookFunc(
+			mapstructure.StringToTimeDurationHookFunc(),
+			mapstructure.StringToSliceHookFunc(","),
+		))); err != nil {
+		return nil, err
+	}
+
+	return telemetry.NewService(&cfg.Telemetry)
 }

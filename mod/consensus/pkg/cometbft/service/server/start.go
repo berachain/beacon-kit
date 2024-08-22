@@ -28,13 +28,11 @@ import (
 	"time"
 
 	pruningtypes "cosmossdk.io/store/pruning/types"
-	serverconfig "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/config"
 	types "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cometbft/cometbft/node"
 	dbm "github.com/cosmos/cosmos-db"
-	"github.com/cosmos/cosmos-sdk/telemetry"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
@@ -162,21 +160,11 @@ func start[T types.Application](
 	appCreator types.AppCreator[T],
 	appOpts StartCmdOptions[T],
 ) error {
-	svrCfg, err := getAndValidateConfig(svrCtx)
-	if err != nil {
-		return err
-	}
-
 	app, appCleanupFn, err := startApp[T](svrCtx, appCreator, appOpts)
 	if err != nil {
 		return err
 	}
 	defer appCleanupFn()
-
-	_, err = startTelemetry(svrCfg)
-	if err != nil {
-		return err
-	}
 
 	cmtCfg := svrCtx.Config
 
@@ -191,18 +179,6 @@ func start[T types.Application](
 	// we are guaranteed to be waiting
 	//for the "ListenForQuitSignals" goroutine.
 	return g.Wait()
-}
-
-func getAndValidateConfig(svrCtx *Context) (serverconfig.Config, error) {
-	config, err := serverconfig.GetConfig(svrCtx.Viper)
-	if err != nil {
-		return config, err
-	}
-
-	if err := config.ValidateBasic(); err != nil {
-		return config, err
-	}
-	return config, nil
 }
 
 // GetGenDocProvider returns a function which returns the genesis doc from the
@@ -244,10 +220,6 @@ func GetGenDocProvider(
 			Sha256Checksum: sum[:],
 		}, nil
 	}
-}
-
-func startTelemetry(cfg serverconfig.Config) (*telemetry.Metrics, error) {
-	return telemetry.New(cfg.Telemetry)
 }
 
 func getCtx(svrCtx *Context, block bool) (*errgroup.Group, context.Context) {
