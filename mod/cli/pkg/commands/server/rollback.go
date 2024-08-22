@@ -25,7 +25,7 @@ import (
 	"fmt"
 
 	"cosmossdk.io/store"
-	types "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
+	types "github.com/berachain/beacon-kit/mod/cli/pkg/commands/server/types"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/db"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	dbm "github.com/cosmos/cosmos-db"

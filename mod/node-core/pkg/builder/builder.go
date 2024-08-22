@@ -28,13 +28,13 @@ import (
 	sdklog "cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
-	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	"github.com/berachain/beacon-kit/mod/log"
 	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	dbm "github.com/cosmos/cosmos-db"
+	servertypes "github.com/berachain/beacon-kit/mod/cli/pkg/commands/server/types"
 )
 
 // NodeBuilder is a construction helper for creating nodes that implement

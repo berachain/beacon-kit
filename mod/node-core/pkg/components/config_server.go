@@ -24,8 +24,8 @@ import (
 	"errors"
 
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/config"
-	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
+	"github.com/berachain/beacon-kit/mod/config"
+	sdkconfig "github.com/berachain/beacon-kit/mod/config/pkg/config"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 )
@@ -33,18 +33,18 @@ import (
 // ServerConfigInput is the input for the dependency injection framework.
 type ServerConfigInput struct {
 	depinject.In
-	AppOpts servertypes.AppOptions
+	AppOpts config.AppOptions
 }
 
 // ProvideConfig is a function that provides the BeaconConfig to the
 // application.
-func ProvideServerConfig(in ConfigInput) (*config.Config, error) {
+func ProvideServerConfig(in ConfigInput) (*sdkconfig.Config, error) {
 	v, ok := in.AppOpts.(*viper.Viper)
 	if !ok {
 		return nil, errors.New("invalid application options type")
 	}
 
-	cfg := config.Config{}
+	cfg := sdkconfig.Config{}
 	if err := v.Unmarshal(&cfg,
 		viper.DecodeHook(mapstructure.ComposeDecodeHookFunc(
 			mapstructure.StringToTimeDurationHookFunc(),

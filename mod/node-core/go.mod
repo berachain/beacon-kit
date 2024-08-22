@@ -7,8 +7,9 @@ replace (
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240806152830-8fb47b368cd4
 	cosmossdk.io/core => cosmossdk.io/core v0.0.0-20240806152830-8fb47b368cd4
 	cosmossdk.io/core/testing => cosmossdk.io/core/testing v0.0.0-20240806152830-8fb47b368cd4
+	github.com/berachain/beacon-kit/mod/cli => ../cli
+	github.com/berachain/beacon-kit/mod/config => ../config
 	github.com/berachain/beacon-kit/mod/consensus => ../consensus
-	github.com/berachain/beacon-kit/mod/da => ../da
 	github.com/berachain/beacon-kit/mod/node-api => ../node-api
 	github.com/berachain/beacon-kit/mod/observability => ../observability
 	github.com/berachain/beacon-kit/mod/storage => ../storage
@@ -21,7 +22,7 @@ require (
 	cosmossdk.io/depinject v1.0.0
 	cosmossdk.io/log v1.4.1
 	cosmossdk.io/store/v2 v2.0.0-20240821144902-e88c138760a3
-	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240820191615-398849c34954
+	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240821052951-c15422305b4e
 	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240822173558-4e2a8018ae21
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240821053614-036c5d2945f0
@@ -37,7 +38,7 @@ require (
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240821052951-c15422305b4e
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6650da31
-	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240820191615-398849c34954
+	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240822205119-6d7f90fac7d7
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240806094948-2c4293ef36c4
 	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4
 	github.com/cosmos/cosmos-db v1.0.2

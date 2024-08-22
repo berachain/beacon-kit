@@ -27,10 +27,10 @@ import (
 
 	"cosmossdk.io/store"
 	storetypes "cosmossdk.io/store/types"
+	server "github.com/berachain/beacon-kit/mod/cli/pkg/commands/server"
+	"github.com/berachain/beacon-kit/mod/config"
 	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
 	cometbftparams "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/params"
-	server "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server"
-	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
@@ -53,7 +53,7 @@ func WithCometParamStore(
 // DefaultServiceOptions returns the default Service options provided by the
 // Cosmos SDK.
 func DefaultServiceOptions(
-	appOpts servertypes.AppOptions,
+	appOpts config.AppOptions,
 ) []func(*cometbft.Service) {
 	var cache storetypes.MultiStorePersistentCache
 

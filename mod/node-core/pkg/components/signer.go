@@ -24,7 +24,7 @@ import (
 	"path/filepath"
 
 	"cosmossdk.io/depinject"
-	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
+	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -35,7 +35,7 @@ import (
 // BlsSignerInput is the input for the dep inject framework.
 type BlsSignerInput struct {
 	depinject.In
-	AppOpts servertypes.AppOptions
+	AppOpts config.AppOptions
 	PrivKey LegacyKey `optional:"true"`
 }
 

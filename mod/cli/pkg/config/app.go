@@ -26,7 +26,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/config"
+	"github.com/berachain/beacon-kit/mod/config/pkg/config"
 	"github.com/spf13/viper"
 )
 
