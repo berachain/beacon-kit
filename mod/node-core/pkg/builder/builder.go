@@ -27,7 +27,6 @@ import (
 	"cosmossdk.io/depinject"
 	sdklog "cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
-	"github.com/berachain/beacon-kit/mod/config"
 	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
 	"github.com/berachain/beacon-kit/mod/log"
 	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"
@@ -35,6 +34,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	dbm "github.com/cosmos/cosmos-db"
+	servertypes "github.com/berachain/beacon-kit/mod/cli/pkg/commands/server/types"
 )
 
 // NodeBuilder is a construction helper for creating nodes that implement
@@ -80,7 +80,7 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 	db dbm.DB,
 	_ io.Writer,
 	cmtCfg *cmtcfg.Config,
-	appOpts config.AppOptions,
+	appOpts servertypes.AppOptions,
 ) NodeT {
 	// variables to hold the components needed to set up BeaconApp
 	var (

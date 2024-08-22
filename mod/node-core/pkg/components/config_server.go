@@ -25,6 +25,7 @@ import (
 
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/config"
+	sdkconfig "github.com/berachain/beacon-kit/mod/config/pkg/config"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 )
@@ -37,13 +38,13 @@ type ServerConfigInput struct {
 
 // ProvideConfig is a function that provides the BeaconConfig to the
 // application.
-func ProvideServerConfig(in ConfigInput) (*config.Config, error) {
+func ProvideServerConfig(in ConfigInput) (*sdkconfig.Config, error) {
 	v, ok := in.AppOpts.(*viper.Viper)
 	if !ok {
 		return nil, errors.New("invalid application options type")
 	}
 
-	cfg := config.Config{}
+	cfg := sdkconfig.Config{}
 	if err := v.Unmarshal(&cfg,
 		viper.DecodeHook(mapstructure.ComposeDecodeHookFunc(
 			mapstructure.StringToTimeDurationHookFunc(),
