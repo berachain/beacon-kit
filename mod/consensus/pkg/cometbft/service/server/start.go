@@ -157,15 +157,15 @@ func start[T types.Application](
 	appCreator types.AppCreator[T],
 	appOpts StartCmdOptions[T],
 ) error {
-	app, err := startApp[T](svrCtx, appCreator, appOpts)
+	home := svrCtx.Config.RootDir
+	db, err := appOpts.DBOpener(home, dbm.PebbleDBBackend)
 	if err != nil {
 		return err
 	}
 
+	app := appCreator(svrCtx.Logger, db, nil, svrCtx.Viper)
 	cmtCfg := svrCtx.Config
-
 	g, ctx := getCtx(svrCtx, true)
-
 	svrCtx.Logger.Info("starting node with ABCI CometBFT in-process")
 	if err = app.StartCmtNode(ctx, cmtCfg); err != nil {
 		return err
@@ -173,7 +173,7 @@ func start[T types.Application](
 
 	// wait for signal capture and gracefully return
 	// we are guaranteed to be waiting
-	//for the "ListenForQuitSignals" goroutine.
+	//for the "z" goroutine.
 	return g.Wait()
 }
 
@@ -224,21 +224,6 @@ func getCtx(svrCtx *Context, block bool) (*errgroup.Group, context.Context) {
 	// listen for quit signals so the calling parent process can gracefully exit
 	ListenForQuitSignals(g, block, cancelFn, svrCtx.Logger)
 	return g, ctx
-}
-
-func startApp[T types.Application](
-	svrCtx *Context,
-	appCreator types.AppCreator[T],
-	opts StartCmdOptions[T],
-) (app T, err error) {
-
-	home := svrCtx.Config.RootDir
-	db, err := opts.DBOpener(home, dbm.PebbleDBBackend)
-	if err != nil {
-		return app, err
-	}
-
-	return appCreator(svrCtx.Logger, db, nil, svrCtx.Viper), nil
 }
 
 // addStartNodeFlags should be added to any CLI commands that start the network.
