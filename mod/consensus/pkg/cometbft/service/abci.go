@@ -620,14 +620,3 @@ func (app *Service) GetBlockRetentionHeight(commitHeight int64) int64 {
 
 	return retentionHeight
 }
-
-// NewContextLegacy returns a new sdk.Context with the provided header.
-func (app *Service) NewContextLegacy(
-	_ bool,
-	_ cmtproto.Header,
-) sdk.Context {
-	if app.finalizeBlockState == nil {
-		return sdk.Context{}
-	}
-	return sdk.NewContext(app.finalizeBlockState.ms, false, app.logger)
-}
