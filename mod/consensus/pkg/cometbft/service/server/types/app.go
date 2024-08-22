@@ -58,7 +58,7 @@ type (
 		StartCmtNode(
 			context.Context,
 			*cmtcfg.Config,
-		) (err error)
+		) error
 		// Close is called in start cmd to gracefully cleanup resources.
 		// Must be safe to be called multiple times.
 		Close() error

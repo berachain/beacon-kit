@@ -118,6 +118,7 @@ func DefaultComponents() []any {
 			*KVStore, *DepositStore,
 		],
 		components.ProvideTelemetrySink,
+		components.ProvideTelemetryService,
 		components.ProvideTrustedSetup,
 		components.ProvideValidatorService[
 			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,

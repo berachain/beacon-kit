@@ -32,6 +32,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-api/server"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"
+	"github.com/berachain/beacon-kit/mod/observability/pkg/telemetry"
 )
 
 // ServiceRegistryInput is the input for the service registry provider.
@@ -83,6 +84,7 @@ type ServiceRegistryInput[
 	NodeAPIServer    *server.Server[NodeAPIContextT]
 	ReportingService *ReportingService
 	TelemetrySink    *metrics.TelemetrySink
+	TelemetryService *telemetry.Service
 	ValidatorService *validator.Service[
 		*AttestationData, BeaconBlockT, BeaconBlockBodyT,
 		BeaconStateT, BlobSidecarsT, DepositT, DepositStoreT,
@@ -137,5 +139,6 @@ func ProvideServiceRegistry[
 		service.WithService(in.ReportingService),
 		service.WithService(in.DBManager),
 		service.WithService(in.EngineClient),
+		service.WithService(in.TelemetryService),
 	)
 }

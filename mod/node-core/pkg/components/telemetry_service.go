@@ -18,38 +18,16 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package telemetry
+package components
 
 import (
-	"context"
-
-	"github.com/cosmos/cosmos-sdk/telemetry"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
+	"github.com/berachain/beacon-kit/mod/observability/pkg/telemetry"
 )
 
-type Config = telemetry.Metrics
-
-// Service is a telemetry service.
-type Service struct {
-	m *telemetry.Metrics
-}
-
-// NewService creates a new telemetry service.
-func NewService(cfg *telemetry.Config) (*Service, error) {
-	m, err := telemetry.New(*cfg)
-	if err != nil {
-		return nil, err
-	}
-	return &Service{
-		m: m,
-	}, nil
-}
-
-// Name returns the service name.
-func (s *Service) Name() string {
-	return "telemetry"
-}
-
-// Start starts the telemetry service.
-func (s *Service) Start(context.Context) error {
-	return nil
+// ProvideTelemetryService is a function that provides a TelemetrySink.
+func ProvideTelemetryService(
+	appOpts types.AppOptions,
+) (*telemetry.Service, error) {
+	return telemetry.NewService(nil)
 }
