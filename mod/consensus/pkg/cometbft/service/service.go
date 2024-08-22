@@ -29,11 +29,18 @@ import (
 	"cosmossdk.io/store"
 	storemetrics "cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server"
+	servercmtlog "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/log"
 	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
+	cmtcfg "github.com/cometbft/cometbft/config"
+	"github.com/cometbft/cometbft/node"
+	"github.com/cometbft/cometbft/p2p"
+	pvm "github.com/cometbft/cometbft/privval"
+	"github.com/cometbft/cometbft/proxy"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -52,6 +59,7 @@ const (
 var _ servertypes.ABCI = (*Service)(nil)
 
 type Service struct {
+	node *node.Node
 	// initialized on creation
 	logger     log.Logger
 	name       string
@@ -110,6 +118,59 @@ func NewService(
 	}
 
 	return app
+}
+
+// TODO: Move nodeKey into being created within the function.
+func (app *Service) StartCmtNode(
+	ctx context.Context,
+	cfg *cmtcfg.Config,
+) error {
+	nodeKey, err := p2p.LoadOrGenNodeKey(cfg.NodeKeyFile())
+	if err != nil {
+		return err
+	}
+
+	cmtApp := server.NewCometABCIWrapper(app)
+	app.node, err = node.NewNode(
+		ctx,
+		cfg,
+		pvm.LoadOrGenFilePV(
+			cfg.PrivValidatorKeyFile(),
+			cfg.PrivValidatorStateFile(),
+		),
+		nodeKey,
+		proxy.NewLocalClientCreator(cmtApp),
+		server.GetGenDocProvider(cfg),
+		cmtcfg.DefaultDBProvider,
+		node.DefaultMetricsProvider(cfg.Instrumentation),
+		servercmtlog.CometLoggerWrapper{Logger: app.logger},
+	)
+	if err != nil {
+		return err
+	}
+
+	return app.node.Start()
+}
+
+// Close is called in start cmd to gracefully cleanup resources.
+func (app *Service) Close() error {
+	var errs []error
+
+	if app.node != nil && app.node.IsRunning() {
+		app.logger.Info("Stopping CometBFT Node")
+		//#nosec:G703 // its a bet.
+		_ = app.node.Stop()
+	}
+
+	// Close app.db (opened by cosmos-sdk/server/start.go call to openDB)
+	if app.db != nil {
+		app.logger.Info("Closing application.db")
+		if err := app.db.Close(); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	return errors.Join(errs...)
 }
 
 // Name returns the name of the cometbft.
@@ -255,21 +316,6 @@ func (app *Service) validateFinalizeBlockHeight(
 	}
 
 	return nil
-}
-
-// Close is called in start cmd to gracefully cleanup resources.
-func (app *Service) Close() error {
-	var errs []error
-
-	// Close app.db (opened by cosmos-sdk/server/start.go call to openDB)
-	if app.db != nil {
-		app.logger.Info("Closing application.db")
-		if err := app.db.Close(); err != nil {
-			errs = append(errs, err)
-		}
-	}
-
-	return errors.Join(errs...)
 }
 
 // convertValidatorUpdate abstracts the conversion of a

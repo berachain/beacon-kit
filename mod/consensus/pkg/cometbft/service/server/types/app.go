@@ -21,12 +21,14 @@
 package types
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
+	cmtcfg "github.com/cometbft/cometbft/config"
 	cmttypes "github.com/cometbft/cometbft/types"
 	dbm "github.com/cosmos/cosmos-db"
 )
@@ -53,7 +55,10 @@ type (
 
 		// CommitMultiStore return the multistore instance
 		CommitMultiStore() storetypes.CommitMultiStore
-
+		StartCmtNode(
+			context.Context,
+			*cmtcfg.Config,
+		) error
 		// Close is called in start cmd to gracefully cleanup resources.
 		// Must be safe to be called multiple times.
 		Close() error

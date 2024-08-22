@@ -28,17 +28,11 @@ import (
 	"time"
 
 	pruningtypes "cosmossdk.io/store/pruning/types"
-	serverconfig "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/config"
-	servercmtlog "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/log"
 	types "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cometbft/cometbft/node"
-	"github.com/cometbft/cometbft/p2p"
-	pvm "github.com/cometbft/cometbft/privval"
-	"github.com/cometbft/cometbft/proxy"
 	dbm "github.com/cosmos/cosmos-db"
-	"github.com/cosmos/cosmos-sdk/telemetry"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
@@ -46,14 +40,11 @@ import (
 
 const (
 	// CometBFT full-node start flags.
-	flagAddress            = "address"
-	flagTransport          = "transport"
-	FlagHaltHeight         = "halt-height"
-	FlagHaltTime           = "halt-time"
-	FlagInterBlockCache    = "inter-block-cache"
-	FlagUnsafeSkipUpgrades = "unsafe-skip-upgrades"
-	FlagTrace              = "trace"
-	FlagInvCheckPeriod     = "inv-check-period"
+	flagAddress         = "address"
+	flagTransport       = "transport"
+	FlagHaltHeight      = "halt-height"
+	FlagHaltTime        = "halt-time"
+	FlagInterBlockCache = "inter-block-cache"
 
 	FlagPruning             = "pruning"
 	FlagPruningKeepRecent   = "pruning-keep-recent"
@@ -166,97 +157,25 @@ func start[T types.Application](
 	appCreator types.AppCreator[T],
 	appOpts StartCmdOptions[T],
 ) error {
-	svrCfg, err := getAndValidateConfig(svrCtx)
-	if err != nil {
-		return err
-	}
-
 	app, appCleanupFn, err := startApp[T](svrCtx, appCreator, appOpts)
 	if err != nil {
 		return err
 	}
 	defer appCleanupFn()
 
-	_, err = startTelemetry(svrCfg)
-	if err != nil {
-		return err
-	}
-
-	return startInProcess[T](svrCtx, app)
-}
-
-func startInProcess[T types.Application](svrCtx *Context, app T) error {
 	cmtCfg := svrCtx.Config
 
 	g, ctx := getCtx(svrCtx, true)
 
 	svrCtx.Logger.Info("starting node with ABCI CometBFT in-process")
-	_, cleanupFn, err := startCmtNode(ctx, cmtCfg, app, svrCtx)
-	if err != nil {
+	if err = app.StartCmtNode(ctx, cmtCfg); err != nil {
 		return err
 	}
-	defer cleanupFn()
 
 	// wait for signal capture and gracefully return
-	// we are guaranteed to be waiting for the "ListenForQuitSignals" goroutine.
+	// we are guaranteed to be waiting
+	//for the "ListenForQuitSignals" goroutine.
 	return g.Wait()
-}
-
-// TODO: Move nodeKey into being created within the function.
-func startCmtNode(
-	ctx context.Context,
-	cfg *cmtcfg.Config,
-	app types.Application,
-	svrCtx *Context,
-) (tmNode *node.Node, cleanupFn func(), err error) {
-	nodeKey, err := p2p.LoadOrGenNodeKey(cfg.NodeKeyFile())
-	if err != nil {
-		return nil, cleanupFn, err
-	}
-
-	cmtApp := NewCometABCIWrapper(app)
-	tmNode, err = node.NewNode(
-		ctx,
-		cfg,
-		pvm.LoadOrGenFilePV(
-			cfg.PrivValidatorKeyFile(),
-			cfg.PrivValidatorStateFile(),
-		),
-		nodeKey,
-		proxy.NewLocalClientCreator(cmtApp),
-		GetGenDocProvider(cfg),
-		cmtcfg.DefaultDBProvider,
-		node.DefaultMetricsProvider(cfg.Instrumentation),
-		servercmtlog.CometLoggerWrapper{Logger: svrCtx.Logger},
-	)
-	if err != nil {
-		return tmNode, cleanupFn, err
-	}
-
-	if err := tmNode.Start(); err != nil {
-		return tmNode, cleanupFn, err
-	}
-
-	cleanupFn = func() {
-		if tmNode != nil && tmNode.IsRunning() {
-			//#nosec:G703 // its a bet.
-			_ = tmNode.Stop()
-		}
-	}
-
-	return tmNode, cleanupFn, nil
-}
-
-func getAndValidateConfig(svrCtx *Context) (serverconfig.Config, error) {
-	config, err := serverconfig.GetConfig(svrCtx.Viper)
-	if err != nil {
-		return config, err
-	}
-
-	if err := config.ValidateBasic(); err != nil {
-		return config, err
-	}
-	return config, nil
 }
 
 // GetGenDocProvider returns a function which returns the genesis doc from the
@@ -300,10 +219,6 @@ func GetGenDocProvider(
 	}
 }
 
-func startTelemetry(cfg serverconfig.Config) (*telemetry.Metrics, error) {
-	return telemetry.New(cfg.Telemetry)
-}
-
 func getCtx(svrCtx *Context, block bool) (*errgroup.Group, context.Context) {
 	ctx, cancelFn := context.WithCancel(context.Background())
 	g, ctx := errgroup.WithContext(ctx)
@@ -343,8 +258,6 @@ func addStartNodeFlags[T types.Application](
 	cmd.Flags().
 		String(flagTransport, "socket", "Transport protocol: socket, grpc")
 	cmd.Flags().
-		IntSlice(FlagUnsafeSkipUpgrades, []int{}, "Skip a set of upgrade heights to continue the old binary")
-	cmd.Flags().
 		Uint64(FlagHaltHeight, 0, "Block height at which to gracefully halt the chain and shutdown the node")
 	cmd.Flags().
 		Uint64(FlagHaltTime, 0, "Minimum block time (in Unix seconds) at which to gracefully halt the chain and shutdown the node")
@@ -355,8 +268,6 @@ func addStartNodeFlags[T types.Application](
 		Uint64(FlagPruningKeepRecent, 0, "Number of recent heights to keep on disk (ignored if pruning is not 'custom')")
 	cmd.Flags().
 		Uint64(FlagPruningInterval, 0, "Height interval at which pruned heights are removed from disk (ignored if pruning is not 'custom')")
-	cmd.Flags().
-		Uint(FlagInvCheckPeriod, 0, "Assert registered invariants every N blocks")
 	cmd.Flags().
 		Uint64(FlagMinRetainBlocks, 0, "Minimum block height offset during ABCI commit to prune CometBFT blocks")
 	cmd.Flags().

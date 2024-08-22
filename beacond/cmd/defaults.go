@@ -63,6 +63,7 @@ func DefaultComponents() []any {
 		],
 		components.ProvideChainSpec,
 		components.ProvideConfig,
+		components.ProvideServerConfig,
 		// components.ProvideConsensusEngine[
 		// 	*AvailabilityStore, *BeaconBlockHeader, *BeaconState,
 		// 	*BeaconStateMarshallable, *BlockStore, *KVStore, *StorageBackend,
@@ -112,6 +113,7 @@ func DefaultComponents() []any {
 			*KVStore, *DepositStore,
 		],
 		components.ProvideTelemetrySink,
+		components.ProvideTelemetryService,
 		components.ProvideTrustedSetup,
 		components.ProvideValidatorService[
 			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,

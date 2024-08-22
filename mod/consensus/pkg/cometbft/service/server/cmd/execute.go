@@ -46,20 +46,8 @@ func Execute(rootCmd *cobra.Command, envPrefix, defaultHome string) error {
 	// getting and setting the client.Context. Ideally, we utilize
 	// https://github.com/spf13/cobra/pull/1118.
 	ctx := CreateExecuteContext(context.Background())
-
-	rootCmd.PersistentFlags().
-		String(
-			flags.FlagLogLevel,
-			"info",
-			"The logging level (trace|debug|info|warn|error|fatal|panic|disabled or '*:<level>,<key>:<level>')")
-	rootCmd.PersistentFlags().
-		String(flags.FlagLogFormat, "plain", "The logging format (json|plain)")
-	rootCmd.PersistentFlags().
-		Bool(flags.FlagLogNoColor, false, "Disable colored logs")
 	rootCmd.PersistentFlags().
 		StringP(flags.FlagHome, "", defaultHome, "directory for config and data")
-	rootCmd.PersistentFlags().
-		Bool(server.FlagTrace, false, "print out full stack trace on errors")
 
 	// update the global viper with the root command's configuration
 	viper.SetEnvPrefix(envPrefix)
