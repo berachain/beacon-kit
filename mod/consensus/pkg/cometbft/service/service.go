@@ -29,9 +29,7 @@ import (
 	"cosmossdk.io/store"
 	storemetrics "cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server"
 	servercmtlog "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/log"
-	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
@@ -55,8 +53,6 @@ const (
 	execModeProcessProposal
 	execModeFinalize
 )
-
-var _ servertypes.ABCI = (*Service)(nil)
 
 type Service struct {
 	node   *node.Node
@@ -133,7 +129,6 @@ func (app *Service) Start(
 		return err
 	}
 
-	cmtApp := server.NewCometABCIWrapper(app)
 	app.node, err = node.NewNode(
 		ctx,
 		cfg,
@@ -142,7 +137,7 @@ func (app *Service) Start(
 			cfg.PrivValidatorStateFile(),
 		),
 		nodeKey,
-		proxy.NewLocalClientCreator(cmtApp),
+		proxy.NewLocalClientCreator(app),
 		GetGenDocProvider(cfg),
 		cmtcfg.DefaultDBProvider,
 		node.DefaultMetricsProvider(cfg.Instrumentation),
