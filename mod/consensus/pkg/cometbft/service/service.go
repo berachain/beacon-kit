@@ -123,7 +123,11 @@ func NewService(
 func (app *Service) StartCmtNode(
 	ctx context.Context,
 	cfg *cmtcfg.Config,
-) (tmNode *node.Node, cleanupFn func(), err error) {
+) (*node.Node, func(), error) {
+	var (
+		cleanupFn func()
+		tmNode    *node.Node
+	)
 	nodeKey, err := p2p.LoadOrGenNodeKey(cfg.NodeKeyFile())
 	if err != nil {
 		return nil, cleanupFn, err
