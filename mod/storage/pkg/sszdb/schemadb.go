@@ -173,10 +173,6 @@ func (db *SchemaDB) getSSZBytes(
 	return n, nil, sszBytes, nil
 }
 
-// TODO clean up abstraction lines
-// SchemaDB should handle object paths and bytes
-// BeaconDB should handle types
-
 func (db *SchemaDB) SetLatestExecutionPayloadHeader(
 	ctx context.Context,
 	header Treeable,
@@ -421,8 +417,7 @@ func (db *SchemaDB) setListElement(
 		return fmt.Errorf("index %d out of bounds; len=%d", index, length)
 	}
 	objPath := ObjectPath(fmt.Sprintf("%s/%d", path, index))
-	_, gidx, offset, err := objPath.GetGeneralizedIndex(db.schemaRoot)
-	fmt.Printf("gidx: %d offset: %d\n", gidx, offset)
+	_, gidx, _, err := objPath.GetGeneralizedIndex(db.schemaRoot)
 	if err != nil {
 		return err
 	}
