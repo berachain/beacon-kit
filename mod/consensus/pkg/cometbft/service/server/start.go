@@ -29,14 +29,10 @@ import (
 
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	serverconfig "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/config"
-	servercmtlog "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/log"
 	types "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cometbft/cometbft/node"
-	"github.com/cometbft/cometbft/p2p"
-	pvm "github.com/cometbft/cometbft/privval"
-	"github.com/cometbft/cometbft/proxy"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
@@ -200,51 +196,6 @@ func startInProcess[T types.Application](svrCtx *Context, app T) error {
 	// wait for signal capture and gracefully return
 	// we are guaranteed to be waiting for the "ListenForQuitSignals" goroutine.
 	return g.Wait()
-}
-
-// TODO: Move nodeKey into being created within the function.
-func startCmtNode(
-	ctx context.Context,
-	cfg *cmtcfg.Config,
-	app types.Application,
-	svrCtx *Context,
-) (tmNode *node.Node, cleanupFn func(), err error) {
-	nodeKey, err := p2p.LoadOrGenNodeKey(cfg.NodeKeyFile())
-	if err != nil {
-		return nil, cleanupFn, err
-	}
-
-	cmtApp := NewCometABCIWrapper(app)
-	tmNode, err = node.NewNode(
-		ctx,
-		cfg,
-		pvm.LoadOrGenFilePV(
-			cfg.PrivValidatorKeyFile(),
-			cfg.PrivValidatorStateFile(),
-		),
-		nodeKey,
-		proxy.NewLocalClientCreator(cmtApp),
-		GetGenDocProvider(cfg),
-		cmtcfg.DefaultDBProvider,
-		node.DefaultMetricsProvider(cfg.Instrumentation),
-		servercmtlog.CometLoggerWrapper{Logger: svrCtx.Logger},
-	)
-	if err != nil {
-		return tmNode, cleanupFn, err
-	}
-
-	if err := tmNode.Start(); err != nil {
-		return tmNode, cleanupFn, err
-	}
-
-	cleanupFn = func() {
-		if tmNode != nil && tmNode.IsRunning() {
-			//#nosec:G703 // its a bet.
-			_ = tmNode.Stop()
-		}
-	}
-
-	return tmNode, cleanupFn, nil
 }
 
 func getAndValidateConfig(svrCtx *Context) (serverconfig.Config, error) {

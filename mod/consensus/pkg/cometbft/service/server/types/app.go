@@ -56,7 +56,10 @@ type (
 
 		// CommitMultiStore return the multistore instance
 		CommitMultiStore() storetypes.CommitMultiStore
-		StartCmtNode(context.Context, *cmtcfg.Config) (tmNode *node.Node, cleanupFn func(), err error)
+		StartCmtNode(
+			context.Context,
+			*cmtcfg.Config,
+		) (tmNode *node.Node, cleanupFn func(), err error)
 		// Close is called in start cmd to gracefully cleanup resources.
 		// Must be safe to be called multiple times.
 		Close() error
