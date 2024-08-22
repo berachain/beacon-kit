@@ -43,6 +43,7 @@ func NewRollbackCmd[T interface {
 ) *cobra.Command {
 	var removeBlock bool
 
+	//nolint:lll // its okay.
 	cmd := &cobra.Command{
 		Use:   "rollback",
 		Short: "rollback Cosmos SDK and CometBFT state by one height",
@@ -54,7 +55,7 @@ The application also rolls back to height n - 1. No blocks are removed, so upon
 restarting CometBFT the transactions in block n will be re-executed against the
 application.
 `,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			v := client.GetViperFromCmd(cmd)
 			logger := client.GetLoggerFromCmd(cmd)
 			cfg := client.GetConfigFromCmd(cmd)
@@ -71,11 +72,11 @@ application.
 			}
 			// rollback the multistore
 
-			if err := app.CommitMultiStore().RollbackToVersion(height); err != nil {
+			if err = app.CommitMultiStore().RollbackToVersion(height); err != nil {
 				return fmt.Errorf("failed to rollback to version: %w", err)
 			}
 
-			fmt.Printf(
+			logger.Info(
 				"Rolled back state to height %d and hash %X\n",
 				height,
 				hash,

@@ -147,7 +147,7 @@ func DefaultComponents() []any {
 			*KVStore, NodeAPIContext,
 		],
 		components.ProvideNodeAPIBeaconHandler[
-			*BeaconBlockHeader, *BeaconState, Node, NodeAPIContext,
+			*BeaconBlockHeader, *BeaconState, *cometbft.Service, NodeAPIContext,
 		],
 		components.ProvideNodeAPIBuilderHandler[NodeAPIContext],
 		components.ProvideNodeAPIConfigHandler[NodeAPIContext],
@@ -156,7 +156,7 @@ func DefaultComponents() []any {
 		components.ProvideNodeAPINodeHandler[NodeAPIContext],
 		components.ProvideNodeAPIProofHandler[
 			*BeaconBlockHeader, *BeaconState, *BeaconStateMarshallable,
-			*KVStore, Node, NodeAPIContext,
+			*KVStore, *cometbft.Service, NodeAPIContext,
 		],
 	)
 
