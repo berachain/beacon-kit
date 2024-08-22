@@ -41,9 +41,11 @@ type Service[
 		AvailabilityStoreT,
 		BlobSidecarsT,
 	]
-	dispatcher           asynctypes.EventDispatcher
-	logger               log.Logger[any]
-	subSidecarsReceived  chan async.Event[BlobSidecarsT]
+	dispatcher asynctypes.EventDispatcher
+	logger     log.Logger[any]
+	// subSidecarsReceived is a channel holding SidecarsReceived events.
+	subSidecarsReceived chan async.Event[BlobSidecarsT]
+	// subFinalBlobSidecars is a channel holding FinalSidecarsReceived events.
 	subFinalBlobSidecars chan async.Event[BlobSidecarsT]
 }
 
@@ -78,9 +80,9 @@ func (s *Service[_, _]) Name() string {
 	return "da"
 }
 
-// Start registers this service as the recipient of ProcessSidecars and
-// VerifySidecars messages, and begins listening for these requests.
-func (s *Service[_, BlobSidecarsT]) Start(ctx context.Context) error {
+// Start subscribes the DA service to SidecarsReceived and FinalSidecarsReceived
+// events and begins the main event loop to handle them accordingly.
+func (s *Service[_, _]) Start(ctx context.Context) error {
 	var err error
 
 	// subscribe to SidecarsReceived events
@@ -97,12 +99,14 @@ func (s *Service[_, BlobSidecarsT]) Start(ctx context.Context) error {
 		return err
 	}
 
-	// listen for events and handle accordingly
+	// start the main event loop to listen and handle events.
 	go s.eventLoop(ctx)
 	return nil
 }
 
-func (s *Service[_, BlobSidecarsT]) eventLoop(ctx context.Context) {
+// eventLoop listens and handles SidecarsReceived and FinalSidecarsReceived
+// events.
+func (s *Service[_, _]) eventLoop(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():

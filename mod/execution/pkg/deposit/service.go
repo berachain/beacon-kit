@@ -47,7 +47,7 @@ type Service[
 	ds Store[DepositT]
 	// dispatcher is the dispatcher for the service.
 	dispatcher asynctypes.EventDispatcher
-	// subFinalizedBlockEvents is the channel that provides finalized block
+	// subFinalizedBlockEvents is the channel holding BeaconBlockFinalized
 	// events.
 	subFinalizedBlockEvents chan async.Event[BeaconBlockT]
 	// metrics is the metrics for the deposit service.
@@ -90,15 +90,16 @@ func NewService[
 	}
 }
 
-// Start starts the service and begins processing block events.
+// Start subscribes the Deposit service to BeaconBlockFinalized events and
+// begins the main event loop to handle them accordingly.
 func (s *Service[
 	_, _, _, _, _,
 ]) Start(ctx context.Context) error {
 	if err := s.dispatcher.Subscribe(
-		async.BeaconBlockFinalizedEvent, s.subFinalizedBlockEvents,
+		async.BeaconBlockFinalized, s.subFinalizedBlockEvents,
 	); err != nil {
 		s.logger.Error("failed to subscribe to event", "event",
-			async.BeaconBlockFinalizedEvent, "err", err)
+			async.BeaconBlockFinalized, "err", err)
 		return err
 	}
 
@@ -110,6 +111,8 @@ func (s *Service[
 	return nil
 }
 
+// eventLoop starts the main event loop to listen and handle
+// BeaconBlockFinalized events.
 func (s *Service[
 	_, _, _, _, _,
 ]) eventLoop(ctx context.Context) {

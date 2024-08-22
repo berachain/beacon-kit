@@ -23,7 +23,7 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/config"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 )
 
 // ConfigInput is the input for the dependency injection framework.

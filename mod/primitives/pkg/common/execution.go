@@ -22,9 +22,9 @@ package common
 
 import (
 	"encoding"
-	"encoding/json"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/hex"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"golang.org/x/crypto/sha3"
 )
 

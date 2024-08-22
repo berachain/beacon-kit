@@ -34,6 +34,7 @@ import (
 type ChainServiceInput[
 	BeaconBlockT any,
 	BeaconStateT any,
+	DepositT any,
 	StorageBackendT any,
 	LoggerT any,
 ] struct {
@@ -43,13 +44,13 @@ type ChainServiceInput[
 	Cfg             *config.Config
 	EngineClient    *EngineClient
 	ExecutionEngine *ExecutionEngine
-	Dispatcher      *Dispatcher
+	Dispatcher      Dispatcher
 	LocalBuilder    LocalBuilder[BeaconStateT, *ExecutionPayload]
 	Logger          LoggerT
 	Signer          crypto.BLSSigner
 	StateProcessor  StateProcessor[
 		BeaconBlockT, BeaconStateT, *Context,
-		*Deposit, *ExecutionPayloadHeader,
+		DepositT, *ExecutionPayloadHeader,
 	]
 	StorageBackend StorageBackendT
 	TelemetrySink  *metrics.TelemetrySink
@@ -60,7 +61,7 @@ func ProvideChainService[
 	AvailabilityStoreT AvailabilityStore[BeaconBlockBodyT, BlobSidecarsT],
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT],
 	BeaconBlockBodyT BeaconBlockBody[
-		BeaconBlockBodyT, *AttestationData, *Deposit,
+		BeaconBlockBodyT, *AttestationData, DepositT,
 		*Eth1Data, *ExecutionPayload, *SlashingInfo,
 	],
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
@@ -72,17 +73,22 @@ func ProvideChainService[
 	BeaconStateMarshallableT any,
 	BlobSidecarsT any,
 	BlockStoreT any,
+	DepositT any,
+	DepositStoreT any,
+	GenesisT Genesis[DepositT, *ExecutionPayloadHeader],
 	KVStoreT any,
 	LoggerT log.AdvancedLogger[any, LoggerT],
 	StorageBackendT StorageBackend[
-		AvailabilityStoreT, BeaconStateT, BlockStoreT, *DepositStore,
+		AvailabilityStoreT, BeaconStateT, BlockStoreT, DepositStoreT,
 	],
 ](
-	in ChainServiceInput[BeaconBlockT, BeaconStateT, StorageBackendT, LoggerT],
+	in ChainServiceInput[
+		BeaconBlockT, BeaconStateT, DepositT, StorageBackendT, LoggerT,
+	],
 ) *blockchain.Service[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT,
-	BeaconBlockHeaderT, BeaconStateT, *Deposit, *ExecutionPayload,
-	*ExecutionPayloadHeader, *Genesis, *PayloadAttributes,
+	BeaconBlockHeaderT, BeaconStateT, DepositT, *ExecutionPayload,
+	*ExecutionPayloadHeader, GenesisT, *PayloadAttributes,
 ] {
 	return blockchain.NewService[
 		AvailabilityStoreT,
@@ -90,10 +96,10 @@ func ProvideChainService[
 		BeaconBlockBodyT,
 		BeaconBlockHeaderT,
 		BeaconStateT,
-		*Deposit,
+		DepositT,
 		*ExecutionPayload,
 		*ExecutionPayloadHeader,
-		*Genesis,
+		GenesisT,
 		*PayloadAttributes,
 	](
 		in.StorageBackend,

@@ -22,6 +22,7 @@ package components
 
 import (
 	"context"
+	"encoding/json"
 
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -33,10 +34,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
-	"github.com/berachain/beacon-kit/mod/runtime/pkg/service"
 	v1 "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/gogoproto/proto"
 	fastssz "github.com/ferranbt/fastssz"
 )
 
@@ -343,52 +342,52 @@ type (
 	// 		GetSkipValidateResult() bool
 	// 	}
 
-	// 	// Deposit is the interface for a deposit.
-	// 	Deposit[
-	// 		T any,
-	// 		ForkDataT any,
-	// 		WithdrawalCredentialsT any,
-	// 	] interface {
-	// 		constraints.Empty[T]
-	// 		constraints.SSZMarshallableRootable
-	// 		// New creates a new deposit.
-	// 		New(
-	// 			crypto.BLSPubkey,
-	// 			WithdrawalCredentialsT,
-	// 			math.U64,
-	// 			crypto.BLSSignature,
-	// 			uint64,
-	// 		) T
-	// 		// GetIndex returns the index of the deposit.
-	// 		GetIndex() math.U64
-	// 		// GetAmount returns the amount of the deposit.
-	// 		GetAmount() math.Gwei
-	// 		// GetPubkey returns the public key of the validator.
-	// 		GetPubkey() crypto.BLSPubkey
-	// 		// GetWithdrawalCredentials returns the withdrawal credentials.
-	// 		GetWithdrawalCredentials() WithdrawalCredentialsT
-	// 		// VerifySignature verifies the deposit and creates a validator.
-	// 		VerifySignature(
-	// 			forkData ForkDataT,
-	// 			domainType common.DomainType,
-	// 			signatureVerificationFn func(
-	// 				pubkey crypto.BLSPubkey,
-	// 				message []byte, signature crypto.BLSSignature,
-	// 			) error,
-	// 		) error
-	// 	}
+	// Deposit is the interface for a deposit.
+	Deposit[
+		T any,
+		ForkDataT any,
+		WithdrawalCredentialsT any,
+	] interface {
+		constraints.Empty[T]
+		constraints.SSZMarshallableRootable
+		// New creates a new deposit.
+		New(
+			crypto.BLSPubkey,
+			WithdrawalCredentialsT,
+			math.U64,
+			crypto.BLSSignature,
+			uint64,
+		) T
+		// GetIndex returns the index of the deposit.
+		GetIndex() math.U64
+		// GetAmount returns the amount of the deposit.
+		GetAmount() math.Gwei
+		// GetPubkey returns the public key of the validator.
+		GetPubkey() crypto.BLSPubkey
+		// GetWithdrawalCredentials returns the withdrawal credentials.
+		GetWithdrawalCredentials() WithdrawalCredentialsT
+		// VerifySignature verifies the deposit and creates a validator.
+		VerifySignature(
+			forkData ForkDataT,
+			domainType common.DomainType,
+			signatureVerificationFn func(
+				pubkey crypto.BLSPubkey,
+				message []byte, signature crypto.BLSSignature,
+			) error,
+		) error
+	}
 
-	// 	DepositStore[DepositT any] interface {
-	// 		// GetDepositsByIndex returns `numView` expected deposits.
-	// 		GetDepositsByIndex(
-	// 			startIndex uint64,
-	// 			numView uint64,
-	// 		) ([]DepositT, error)
-	// 		// Prune prunes the deposit store of [start, end)
-	// 		Prune(start, end uint64) error
-	// 		// EnqueueDeposits adds a list of deposits to the deposit store.
-	// 		EnqueueDeposits(deposits []DepositT) error
-	// 	}
+	DepositStore[DepositT any] interface {
+		// GetDepositsByIndex returns `numView` expected deposits.
+		GetDepositsByIndex(
+			startIndex uint64,
+			numView uint64,
+		) ([]DepositT, error)
+		// Prune prunes the deposit store of [start, end)
+		Prune(start, end uint64) error
+		// EnqueueDeposits adds a list of deposits to the deposit store.
+		EnqueueDeposits(deposits []DepositT) error
+	}
 
 	// 	Eth1Data[T any] interface {
 	// 		constraints.Empty[T]
@@ -531,16 +530,16 @@ type (
 	// 		) common.Root
 	// 	}
 
-	// 	// Genesis is the interface for the genesis.
-	// 	Genesis[DepositT any, ExecutionPayloadHeaderT any] interface {
-	// 		json.Unmarshaler
-	// 		// GetForkVersion returns the fork version.
-	// 		GetForkVersion() common.Version
-	// 		// GetDeposits returns the deposits.
-	// 		GetDeposits() []DepositT
-	// 		// GetExecutionPayloadHeader returns the execution payload header.
-	// 		GetExecutionPayloadHeader() ExecutionPayloadHeaderT
-	// 	}
+	// Genesis is the interface for the genesis.
+	Genesis[DepositT any, ExecutionPayloadHeaderT any] interface {
+		json.Unmarshaler
+		// GetForkVersion returns the fork version.
+		GetForkVersion() common.Version
+		// GetDeposits returns the deposits.
+		GetDeposits() []DepositT
+		// GetExecutionPayloadHeader returns the execution payload header.
+		GetExecutionPayloadHeader() ExecutionPayloadHeaderT
+	}
 
 	// IndexDB is the interface for the range DB.
 	IndexDB interface {
@@ -589,22 +588,6 @@ type (
 			headEth1BlockHash common.ExecutionHash,
 			finalEth1BlockHash common.ExecutionHash,
 		) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
-	}
-
-	// Middleware is the interface for the CometBFT middleware.
-	Middleware[SlotDataT any] interface {
-		service.Basic
-		InitGenesis(
-			ctx context.Context, bz []byte,
-		) (transition.ValidatorUpdates, error)
-		PrepareProposal(context.Context, SlotDataT) ([]byte, []byte, error)
-		ProcessProposal(
-			ctx context.Context, req proto.Message,
-		) (proto.Message, error)
-		FinalizeBlock(
-			ctx context.Context,
-			req proto.Message,
-		) (transition.ValidatorUpdates, error)
 	}
 
 	// 	// PayloadAttributes is the interface for the payload attributes.

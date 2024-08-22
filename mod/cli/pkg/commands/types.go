@@ -23,9 +23,9 @@ package commands
 import (
 	"context"
 
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 )

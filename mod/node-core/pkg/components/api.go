@@ -40,6 +40,7 @@ func ProvideNodeAPIEngine() *echo.Engine {
 type NodeAPIBackendInput[
 	BeaconBlockT any,
 	BeaconStateT any,
+	DepositT any,
 	StorageBackendT any,
 ] struct {
 	depinject.In
@@ -47,7 +48,7 @@ type NodeAPIBackendInput[
 	ChainSpec      common.ChainSpec
 	StateProcessor StateProcessor[
 		BeaconBlockT, BeaconStateT, *Context,
-		*Deposit, *ExecutionPayloadHeader,
+		DepositT, *ExecutionPayloadHeader,
 	]
 	StorageBackend StorageBackendT
 }
@@ -65,19 +66,21 @@ func ProvideNodeAPIBackend[
 	],
 	BeaconStateMarshallableT any,
 	BlobSidecarsT any,
+	DepositT any,
+	DepositStoreT DepositStore[DepositT],
 	KVStoreT any,
 	NodeT interface {
 		CreateQueryContext(height int64, prove bool) (sdk.Context, error)
 	},
 	StorageBackendT StorageBackend[
-		AvailabilityStoreT, BeaconStateT, BeaconBlockStoreT, *DepositStore,
+		AvailabilityStoreT, BeaconStateT, BeaconBlockStoreT, DepositStoreT,
 	],
 ](
-	in NodeAPIBackendInput[BeaconBlockT, BeaconStateT, StorageBackendT],
+	in NodeAPIBackendInput[BeaconBlockT, BeaconStateT, DepositT, StorageBackendT],
 ) *backend.Backend[
 	AvailabilityStoreT, BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
 	BeaconStateT, BeaconStateMarshallableT, BlobSidecarsT, BeaconBlockStoreT,
-	sdk.Context, *Deposit, *DepositStore, *Eth1Data, *ExecutionPayloadHeader,
+	sdk.Context, DepositT, DepositStoreT, *Eth1Data, *ExecutionPayloadHeader,
 	*Fork, NodeT, KVStoreT, StorageBackendT, *Validator, Validators,
 	*Withdrawal, WithdrawalCredentials,
 ] {
@@ -91,8 +94,8 @@ func ProvideNodeAPIBackend[
 		BlobSidecarsT,
 		BeaconBlockStoreT,
 		sdk.Context,
-		*Deposit,
-		*DepositStore,
+		DepositT,
+		DepositStoreT,
 		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,

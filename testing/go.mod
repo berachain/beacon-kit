@@ -111,7 +111,7 @@ require (
 	github.com/oasisprotocol/curve25519-voi v0.0.0-20230904125328-1f23a7beb09a // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/petermattis/goid v0.0.0-20240607163614-bb94eb51e7a7 // indirect
-	github.com/phuslu/log v1.0.108-0.20240705160716-a8f8c12ae6c6 // indirect
+	github.com/phuslu/log v1.0.110 // indirect
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/pk910/dynamic-ssz v0.0.3 // indirect
 	github.com/pkg/errors v0.9.1 // indirect

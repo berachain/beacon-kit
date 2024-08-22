@@ -72,7 +72,6 @@ type ReadOnlyBeaconState[
 	ReadOnlyStateRoots
 	ReadOnlyValidators[ValidatorT]
 
-	GetBalance(math.ValidatorIndex) (math.Gwei, error)
 	GetBlockRootAtIndex(uint64) (common.Root, error)
 	GetEth1DepositIndex() (uint64, error)
 	GetFork() (ForkT, error)
@@ -102,8 +101,6 @@ type WriteOnlyBeaconState[
 	WriteOnlyStateRoots
 	WriteOnlyValidators[ValidatorT]
 
-	DecreaseBalance(math.ValidatorIndex, math.Gwei) error
-	IncreaseBalance(math.ValidatorIndex, math.Gwei) error
 	SetEth1DepositIndex(uint64) error
 	SetFork(ForkT) error
 	SetGenesisValidatorsRoot(root common.Root) error
@@ -149,7 +146,6 @@ type WriteOnlyValidators[ValidatorT any] interface {
 	) error
 
 	AddValidator(ValidatorT) error
-	AddValidatorBartio(ValidatorT) error
 }
 
 // ReadOnlyValidators has read access to validator methods.

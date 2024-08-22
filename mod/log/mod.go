@@ -39,6 +39,11 @@ type Logger[KeyValT any] interface {
 	// DEBUG.
 	// The key of the tuple must be a string.
 	Debug(msg string, keyVals ...KeyValT)
+
+	// Impl returns the underlying logger implementation.
+	// It is used to access the full functionalities of the underlying logger.
+	// Advanced users can type cast the returned value to the actual logger.
+	Impl() any
 }
 
 // ConfigurableLogger extends the basic logger with the ability to configure
@@ -69,10 +74,6 @@ type AdvancedLogger[KeyValT, LoggerT any] interface {
 	// With returns a new wrapped logger with additional context provided by a
 	// set.
 	With(keyVals ...KeyValT) LoggerT
-	// Impl returns the underlying logger implementation.
-	// It is used to access the full functionalities of the underlying logger.
-	// Advanced users can type cast the returned value to the actual logger.
-	Impl() any
 }
 
 // Color is a string that holds the hex color code for the color.
