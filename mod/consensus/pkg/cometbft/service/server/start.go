@@ -27,14 +27,17 @@ import (
 	"encoding/json"
 	"time"
 
+	"cosmossdk.io/log"
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	types "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cometbft/cometbft/node"
 	dbm "github.com/cosmos/cosmos-db"
+	"github.com/cosmos/cosmos-sdk/client"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -67,8 +70,8 @@ type StartCmdOptions[T types.Application] struct {
 	// AddFlags allows adding custom flags to the start command.
 	AddFlags func(cmd *cobra.Command)
 
-	// StartCommandHandler can be used to customize the start command handler.
-	StartCommandHandler func(svrCtx *Context, appCreator types.AppCreator[T], appOpts StartCmdOptions[T]) error
+	// // StartCommandHandler can be used to customize the start command handler.
+	// StartCommandHandler func(svrCtx *Context, appCreator types.AppCreator[T], appOpts StartCmdOptions[T]) error
 }
 
 // StartCmd runs the service passed in, either stand-alone or in-process with
@@ -90,7 +93,7 @@ func StartCmdWithOptions[T types.Application](
 		opts.DBOpener = OpenDB
 	}
 
-	opts.StartCommandHandler = start[T]
+	// opts.StartCommandHandler = start[T]
 
 	cmd := &cobra.Command{
 		Use:   "start",
@@ -123,25 +126,27 @@ bypassed and can be used when legacy queries are needed after an on-chain upgrad
 is performed. Note, when enabled, gRPC will also be automatically enabled.
 `,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			serverCtx := GetServerContextFromCmd(cmd)
-			_, err := GetPruningOptionsFromFlags(serverCtx.Viper)
+			logger := client.GetLoggerFromCmd(cmd)
+			cfg := client.GetConfigFromCmd(cmd)
+			v := client.GetViperFromCmd(cmd)
+			_, err := GetPruningOptionsFromFlags(v)
 			if err != nil {
 				return err
 			}
 
-			err = opts.StartCommandHandler(serverCtx, appCreator, opts)
+			err = start[T](logger, cfg, v, appCreator, opts)
 
-			serverCtx.Logger.Debug("received quit signal")
+			logger.Debug("received quit signal")
 			//#nosec:G703 // its a bet.
 			graceDuration, _ := cmd.Flags().GetDuration(FlagShutdownGrace)
 			if graceDuration > 0 {
-				serverCtx.Logger.Info(
+				logger.Info(
 					"graceful shutdown start",
 					FlagShutdownGrace,
 					graceDuration,
 				)
 				<-time.After(graceDuration)
-				serverCtx.Logger.Info("graceful shutdown complete")
+				logger.Info("graceful shutdown complete")
 			}
 
 			return err
@@ -153,22 +158,22 @@ is performed. Note, when enabled, gRPC will also be automatically enabled.
 }
 
 func start[T types.Application](
-	svrCtx *Context,
+	logger log.Logger,
+	cfg *cmtcfg.Config,
+	v *viper.Viper,
 	appCreator types.AppCreator[T],
 	appOpts StartCmdOptions[T],
 ) error {
-	app, appCleanupFn, err := startApp[T](svrCtx, appCreator, appOpts)
+	app, appCleanupFn, err := startApp[T](logger, cfg, v, appCreator, appOpts)
 	if err != nil {
 		return err
 	}
 	defer appCleanupFn()
 
-	cmtCfg := svrCtx.Config
+	g, ctx := getCtx(logger, true)
 
-	g, ctx := getCtx(svrCtx, true)
-
-	svrCtx.Logger.Info("starting node with ABCI CometBFT in-process")
-	if err = app.StartCmtNode(ctx, cmtCfg); err != nil {
+	logger.Info("starting node with ABCI CometBFT in-process")
+	if err = app.StartCmtNode(ctx, cfg); err != nil {
 		return err
 	}
 
@@ -219,31 +224,32 @@ func GetGenDocProvider(
 	}
 }
 
-func getCtx(svrCtx *Context, block bool) (*errgroup.Group, context.Context) {
+func getCtx(logger log.Logger, block bool) (*errgroup.Group, context.Context) {
 	ctx, cancelFn := context.WithCancel(context.Background())
 	g, ctx := errgroup.WithContext(ctx)
 	// listen for quit signals so the calling parent process can gracefully exit
-	ListenForQuitSignals(g, block, cancelFn, svrCtx.Logger)
+	ListenForQuitSignals(g, block, cancelFn, logger)
 	return g, ctx
 }
 
 func startApp[T types.Application](
-	svrCtx *Context,
+	logger log.Logger,
+	cfg *cmtcfg.Config,
+	v *viper.Viper,
 	appCreator types.AppCreator[T],
 	opts StartCmdOptions[T],
 ) (app T, cleanupFn func(), err error) {
-
-	home := svrCtx.Config.RootDir
+	home := cfg.RootDir
 	db, err := opts.DBOpener(home, dbm.PebbleDBBackend)
 	if err != nil {
 		return app, func() {}, err
 	}
 
-	app = appCreator(svrCtx.Logger, db, nil, svrCtx.Viper)
+	app = appCreator(logger, db, nil, v)
 
 	cleanupFn = func() {
 		if localErr := app.Close(); localErr != nil {
-			svrCtx.Logger.Error(localErr.Error())
+			logger.Error(localErr.Error())
 		}
 	}
 	return app, cleanupFn, nil

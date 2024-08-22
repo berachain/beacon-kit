@@ -125,9 +125,7 @@ func ShowNodeIDCmd() *cobra.Command {
 		Use:   "show-node-id",
 		Short: "Show this node's ID",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			serverCtx := server.GetServerContextFromCmd(cmd)
-			cfg := serverCtx.Config
-
+			cfg := client.GetConfigFromCmd(cmd)
 			nodeKey, err := p2p.LoadNodeKey(cfg.NodeKeyFile())
 			if err != nil {
 				return err
@@ -145,9 +143,7 @@ func ShowValidatorCmd() *cobra.Command {
 		Use:   "show-validator",
 		Short: "Show this node's CometBFT validator info",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			serverCtx := server.GetServerContextFromCmd(cmd)
-			cfg := serverCtx.Config
-
+			cfg := client.GetConfigFromCmd(cmd)
 			privValidator := pvm.LoadFilePV(
 				cfg.PrivValidatorKeyFile(),
 				cfg.PrivValidatorStateFile(),
@@ -182,9 +178,7 @@ func ShowAddressCmd() *cobra.Command {
 		Use:   "show-address",
 		Short: "Shows this node's CometBFT validator consensus address",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			serverCtx := server.GetServerContextFromCmd(cmd)
-			cfg := serverCtx.Config
-
+			cfg := client.GetConfigFromCmd(cmd)
 			privValidator := pvm.LoadFilePV(
 				cfg.PrivValidatorKeyFile(),
 				cfg.PrivValidatorStateFile(),
@@ -236,23 +230,23 @@ func BootstrapStateCmd[T types.Application](
 		Short: "Bootstrap CometBFT state at an arbitrary block height using a light client",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			serverCtx := server.GetServerContextFromCmd(cmd)
 			logger := log.NewLogger(cmd.OutOrStdout())
-			cfg := serverCtx.Config
+			cfg := client.GetConfigFromCmd(cmd)
+			v := client.GetViperFromCmd(cmd)
 
 			height, err := cmd.Flags().GetInt64("height")
 			if err != nil {
 				return err
 			}
 			if height == 0 {
-				home := serverCtx.Viper.GetString(flags.FlagHome)
+				home := v.GetString(flags.FlagHome)
 				var db dbm.DB
 				db, err = server.OpenDB(home, dbm.PebbleDBBackend)
 				if err != nil {
 					return err
 				}
 
-				app := appCreator(logger, db, nil, serverCtx.Viper)
+				app := appCreator(logger, db, nil, v)
 				height = app.CommitMultiStore().LastCommitID().Version
 			}
 

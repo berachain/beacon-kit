@@ -25,7 +25,6 @@ import (
 	"context"
 	"strings"
 
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
@@ -60,9 +59,9 @@ func Execute(rootCmd *cobra.Command, envPrefix, defaultHome string) error {
 // CreateExecuteContext returns a base Context with server and client context
 // values initialized.
 func CreateExecuteContext(ctx context.Context) context.Context {
-	srvCtx := server.NewDefaultContext()
+	// srvCtx := server.NewDefaultContext()
 	ctx = context.WithValue(ctx, client.ClientContextKey, &client.Context{})
-	ctx = context.WithValue(ctx, server.ServerContextKey, srvCtx)
+	// ctx = context.WithValue(ctx, server.ServerContextKey, srvCtx)
 
 	return ctx
 }
