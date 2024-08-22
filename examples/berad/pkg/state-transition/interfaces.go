@@ -80,8 +80,6 @@ type ReadOnlyBeaconState[
 	GetLatestExecutionPayloadHeader() (
 		ExecutionPayloadHeaderT, error,
 	)
-	GetNextWithdrawalIndex() (uint64, error)
-	GetNextWithdrawalValidatorIndex() (math.ValidatorIndex, error)
 	GetSlot() (math.Slot, error)
 	GetTotalActiveBalances(uint64) (math.Gwei, error)
 	GetTotalValidators() (uint64, error)
@@ -108,8 +106,6 @@ type WriteOnlyBeaconState[
 	SetLatestExecutionPayloadHeader(
 		ExecutionPayloadHeaderT,
 	) error
-	SetNextWithdrawalIndex(uint64) error
-	SetNextWithdrawalValidatorIndex(math.ValidatorIndex) error
 	SetSlot(math.Slot) error
 	UpdateBlockRootAtIndex(uint64, common.Root) error
 }

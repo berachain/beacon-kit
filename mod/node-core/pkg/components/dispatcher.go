@@ -57,7 +57,9 @@ func ProvideDispatcher[
 		dp.WithEvent[async.Event[BlobSidecarsT]](async.SidecarsVerified),
 		dp.WithEvent[async.Event[BeaconBlockT]](async.FinalBeaconBlockReceived),
 		dp.WithEvent[async.Event[BlobSidecarsT]](async.FinalSidecarsReceived),
-		dp.WithEvent[ValidatorUpdateEvent](async.FinalValidatorUpdatesProcessed),
+		dp.WithEvent[ValidatorUpdateEvent](
+			async.FinalValidatorUpdatesProcessed,
+		),
 		dp.WithEvent[async.Event[BeaconBlockT]](async.BeaconBlockFinalized),
 	)
 }

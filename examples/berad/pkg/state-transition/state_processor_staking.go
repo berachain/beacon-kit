@@ -21,12 +21,10 @@
 package transition
 
 import (
-	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/version"
-	"github.com/davecgh/go-spew/spew"
 )
 
 // processDeposits processes the deposits and ensures  they match the
@@ -169,92 +167,13 @@ func (sp *StateProcessor[
 //
 //nolint:lll
 func (sp *StateProcessor[
-	_, BeaconBlockBodyT, _, BeaconStateT, _, _, _, _, _, _, _, ValidatorT, _, _, _, _,
+	_, BeaconBlockBodyT, _, BeaconStateT, _, _, _, _, _, _, _, _, _, _, _, _,
 ]) processWithdrawals(
-	st BeaconStateT,
-	body BeaconBlockBodyT,
+	_ BeaconStateT,
+	_ BeaconBlockBodyT,
 ) error {
-	// Dequeue and verify the logs.
-	var (
-		nextValidatorIndex math.ValidatorIndex
-		payload            = body.GetExecutionPayload()
-		payloadWithdrawals = payload.GetWithdrawals()
-	)
-
-	// Get the expected withdrawals.
-	expectedWithdrawals, err := sp.expectedWithdrawals(st)
-	if err != nil {
-		return err
-	}
-	numWithdrawals := len(expectedWithdrawals)
-
-	// Ensure the withdrawals have the same length
-	if numWithdrawals != len(payloadWithdrawals) {
-		return errors.Wrapf(
-			ErrNumWithdrawalsMismatch,
-			"withdrawals do not match expected length %d, got %d",
-			len(expectedWithdrawals), len(payloadWithdrawals),
-		)
-	}
-
-	// Compare and process each withdrawal.
-	for i, wd := range expectedWithdrawals {
-		// Ensure the withdrawals match the local state.
-		if !wd.Equals(payloadWithdrawals[i]) {
-			return errors.Wrapf(
-				ErrNumWithdrawalsMismatch,
-				"withdrawals do not match expected %s, got %s",
-				spew.Sdump(wd), spew.Sdump(payloadWithdrawals[i]),
-			)
-		}
-		var val ValidatorT
-		val, err = st.ValidatorByIndex(wd.GetValidatorIndex())
-		if err != nil {
-			return err
-		}
-
-		// This should always fully withdraw.
-		val.SetEffectiveBalance(wd.GetAmount())
-		if err = st.UpdateValidatorAtIndex(wd.GetValidatorIndex(), val); err != nil {
-			return err
-		}
-	}
-
-	// Update the next withdrawal index if this block contained withdrawals
-	if numWithdrawals != 0 {
-		// Next sweep starts after the latest withdrawal's validator index
-		if err = st.SetNextWithdrawalIndex(
-			(expectedWithdrawals[numWithdrawals-1].GetIndex() + 1).Unwrap(),
-		); err != nil {
-			return err
-		}
-	}
-
-	totalValidators, err := st.GetTotalValidators()
-	if err != nil {
-		return err
-	}
-
-	// Update the next validator index to start the next withdrawal sweep
-	//#nosec:G701 // won't overflow in practice.
-	if numWithdrawals == int(sp.cs.MaxWithdrawalsPerPayload()) {
-		// Next sweep starts after the latest withdrawal's validator index
-		nextValidatorIndex =
-			(expectedWithdrawals[len(expectedWithdrawals)-1].GetIndex() + 1) %
-				math.U64(totalValidators)
-	} else {
-		// Advance sweep by the max length of the sweep if there was not
-		// a full set of withdrawals
-		nextValidatorIndex, err = st.GetNextWithdrawalValidatorIndex()
-		if err != nil {
-			return err
-		}
-		nextValidatorIndex += math.ValidatorIndex(
-			sp.cs.MaxValidatorsPerWithdrawalsSweep())
-		nextValidatorIndex %= math.ValidatorIndex(totalValidators)
-	}
-
-	return st.SetNextWithdrawalValidatorIndex(nextValidatorIndex)
+	// TODO: implement
+	return nil
 }
 
 // processForcedWithdrawals is a helper function to process forced withdrawals.
@@ -282,7 +201,7 @@ func (sp *StateProcessor[
 //
 //nolint:lll
 func (sp *StateProcessor[
-	_, BeaconBlockBodyT, _, BeaconStateT, _, _, _, _, _, _, _, ValidatorT, _, WithdrawalT, _, _,
+	_, _, _, BeaconStateT, _, _, _, _, _, _, _, _, _, WithdrawalT, _, _,
 ]) expectedWithdrawals(_ BeaconStateT) ([]WithdrawalT, error) {
 	// TODO: rethink the sweep
 	return []WithdrawalT{}, nil
