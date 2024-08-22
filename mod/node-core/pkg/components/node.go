@@ -28,7 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 )
 
-// ProvideNode is a function that provides the module to the
+// ProvideNode is a function that provides the module to the.
 func ProvideNode(
 	registry *service.Registry,
 	logger *phuslu.Logger,
