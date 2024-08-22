@@ -4,7 +4,7 @@ go 1.23.0
 
 replace (
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240806152830-8fb47b368cd4
-	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240806152830-8fb47b368cd4
+	cosmossdk.io/core => cosmossdk.io/core v0.0.0-20240806152830-8fb47b368cd4
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240808182639-7bdbf06a94f2
 )
 

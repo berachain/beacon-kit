@@ -4,7 +4,7 @@ go 1.23.0
 
 replace (
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240806152830-8fb47b368cd4
-	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240806152830-8fb47b368cd4
+	cosmossdk.io/core => cosmossdk.io/core v0.0.0-20240806152830-8fb47b368cd4
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240808182639-7bdbf06a94f2
 )
 
@@ -12,25 +12,27 @@ require (
 	cosmossdk.io/collections v0.4.0
 	cosmossdk.io/core v1.0.0
 	cosmossdk.io/log v1.4.1
-	cosmossdk.io/store/v2 v2.0.0-20240821144902-e88c138760a3
 	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240806211103-d1105603bfc0
 	github.com/berachain/beacon-kit/mod/log v0.0.0-20240821000339-4d4242ba4a50
-	github.com/berachain/beacon-kit/mod/node-core v0.0.0-20240821225446-81f31b0aac98
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240821052951-c15422305b4e
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240806094948-2c4293ef36c4
 	github.com/cosmos/cosmos-sdk v0.53.0
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
+	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/spf13/afero v1.11.0
 	github.com/stretchr/testify v1.9.0
 )
 
 require (
-	cosmossdk.io/errors/v2 v2.0.0-20240731132947-df72853b3ca5 // indirect
+	cosmossdk.io/x/auth v0.0.0-20240806152830-8fb47b368cd4 // indirect
+	cosmossdk.io/x/consensus v0.0.0-20240806152830-8fb47b368cd4 // indirect
+	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df // indirect
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a // indirect
 	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4 // indirect
 	github.com/cosmos/iavl v1.2.1-0.20240731145221-594b181f427e // indirect
+	github.com/dvsekhvalnov/jose2go v1.7.0 // indirect
 	github.com/ferranbt/fastssz v0.1.4-0.20240629094022-eac385e6ee79 // indirect
 	github.com/karalabe/ssz v0.2.1-0.20240724074312-3d1ff7a6f7c4 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
@@ -40,7 +42,10 @@ require (
 	github.com/onsi/gomega v1.33.1 // indirect
 	github.com/prysmaticlabs/go-bitfield v0.0.0-20240618144021-706c95b2dd15 // indirect
 	github.com/prysmaticlabs/gohashtree v0.0.4-beta.0.20240624100937-73632381301b // indirect
+	github.com/sagikazarmark/locafero v0.6.0 // indirect
+	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8 // indirect
 	golang.org/x/sync v0.8.0 // indirect
+	google.golang.org/genproto v0.0.0-20240617180043-68d350f18fd4 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 

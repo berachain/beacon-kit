@@ -27,12 +27,12 @@ import (
 
 	"cosmossdk.io/store"
 	storetypes "cosmossdk.io/store/types"
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
-	comet "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/params"
+	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
+	cometbftparams "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/params"
+	server "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server"
+	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/server"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/cast"
 )
@@ -46,7 +46,7 @@ func WithCometParamStore(
 	chainSpec common.ChainSpec,
 ) func(bApp *cometbft.Service) {
 	return func(bApp *cometbft.Service) {
-		bApp.SetParamStore(comet.NewConsensusParamsStore(chainSpec))
+		bApp.SetParamStore(cometbftparams.NewConsensusParamsStore(chainSpec))
 	}
 }
 

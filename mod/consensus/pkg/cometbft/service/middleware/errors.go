@@ -26,17 +26,6 @@ import "github.com/berachain/beacon-kit/mod/errors"
 var (
 	// ErrUnexpectedEvent is returned when an unexpected event is encountered.
 	ErrUnexpectedEvent = errors.New("unexpected event")
-	// ErrInvalidProcessProposalRequestType is returned when an invalid
-	// process proposal request type is encountered.
-	ErrInvalidProcessProposalRequestType = errors.New(
-		"invalid process proposal request type",
-	)
-
-	// ErrInvalidFinalizeBlockRequestType is returned when an invalid
-	// finalize block request type is encountered.
-	ErrInvalidFinalizeBlockRequestType = errors.New(
-		"invalid finalize block request type",
-	)
 
 	ErrInitGenesisTimeout = func(errTimeout error) error {
 		return errors.Wrapf(errTimeout,

@@ -18,34 +18,21 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package cosmos
+package dispatcher
 
 import (
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/rpc"
-	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/spf13/cobra"
+	"github.com/berachain/beacon-kit/mod/async/pkg/broker"
+	"github.com/berachain/beacon-kit/mod/async/pkg/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 )
 
-// QueryCommands constructs a new cobra.Command to interact with querying
-// subcommands.
-func QueryCommands() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:                        "query",
-		Aliases:                    []string{"q"},
-		Short:                      "Querying subcommands",
-		DisableFlagParsing:         false,
-		SuggestionsMinimumDistance: 2, //nolint:mnd // from sdk.
-		RunE:                       client.ValidateCmd,
+// Opt is a type that defines a function that modifies NodeBuilder.
+type Option func(dispatcher types.Dispatcher) error
+
+func WithEvent[
+	EventT async.BaseEvent,
+](eventID string) Option {
+	return func(dispatcher types.Dispatcher) error {
+		return dispatcher.RegisterBrokers(broker.New[EventT](eventID))
 	}
-
-	// Adding subcommands for querying blockchain data.
-	cmd.AddCommand(
-		rpc.QueryEventForTxCmd(),
-		server.QueryBlockCmd(),
-		server.QueryBlocksCmd(),
-		server.QueryBlockResultsCmd(),
-	)
-
-	return cmd
 }

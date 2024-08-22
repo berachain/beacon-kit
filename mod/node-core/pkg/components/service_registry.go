@@ -25,7 +25,7 @@ import (
 	blockstore "github.com/berachain/beacon-kit/mod/node-api/block_store"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/middleware"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/middleware"
 	"github.com/berachain/beacon-kit/mod/da/pkg/da"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -77,7 +77,7 @@ type ServiceRegistryInput[
 		BeaconBlockT, BeaconBlockBodyT, DepositT,
 		*ExecutionPayload, WithdrawalCredentials,
 	]
-	Dispatcher       *Dispatcher
+	Dispatcher       Dispatcher
 	EngineClient     *EngineClient
 	Logger           LoggerT
 	NodeAPIServer    *server.Server[NodeAPIContextT]

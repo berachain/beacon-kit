@@ -22,6 +22,7 @@
 package cometbft
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -38,10 +39,10 @@ import (
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/gogoproto/proto"
 	"github.com/sourcegraph/conc/iter"
 )
 
+//nolint:gocognit // todo fix.
 func (app *Service) InitChain(
 	req *abci.InitChainRequest,
 ) (*abci.InitChainResponse, error) {
@@ -127,12 +128,19 @@ func (app *Service) InitChain(
 		sort.Sort(cmtabci.ValidatorUpdates(req.Validators))
 
 		for i := range res.Validators {
-			if !proto.Equal(&res.Validators[i], &req.Validators[i]) {
-				return nil, fmt.Errorf(
-					"genesisValidators[%d] != req.Validators[%d] ",
-					i,
-					i,
-				)
+			if req.Validators[i].Power != res.Validators[i].Power {
+				return nil, errors.New("mismatched power")
+			}
+			if !bytes.Equal(
+				req.Validators[i].PubKeyBytes, res.Validators[i].
+					PubKeyBytes) {
+				return nil, errors.New("mismatched pubkey bytes")
+			}
+
+			if req.
+				Validators[i].PubKeyType != res.
+				Validators[i].PubKeyType {
+				return nil, errors.New("mismatched pubkey types")
 			}
 		}
 	}
@@ -298,7 +306,7 @@ func (app *Service) ProcessProposal(
 		}, nil
 	}
 
-	return resp.(*cmtabci.ProcessProposalResponse), nil
+	return resp, nil
 }
 
 func (app *Service) internalFinalizeBlock(

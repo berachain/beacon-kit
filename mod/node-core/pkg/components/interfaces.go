@@ -28,7 +28,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
-	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -37,7 +36,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	v1 "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/gogoproto/proto"
 	fastssz "github.com/ferranbt/fastssz"
 )
 
@@ -587,22 +585,6 @@ type (
 			headEth1BlockHash common.ExecutionHash,
 			finalEth1BlockHash common.ExecutionHash,
 		) (engineprimitives.BuiltExecutionPayloadEnv[ExecutionPayloadT], error)
-	}
-
-	// Middleware is the interface for the CometBFT middleware.
-	Middleware[SlotDataT any] interface {
-		service.Basic
-		InitGenesis(
-			ctx context.Context, bz []byte,
-		) (transition.ValidatorUpdates, error)
-		PrepareProposal(context.Context, SlotDataT) ([]byte, []byte, error)
-		ProcessProposal(
-			ctx context.Context, req proto.Message,
-		) (proto.Message, error)
-		FinalizeBlock(
-			ctx context.Context,
-			req proto.Message,
-		) (transition.ValidatorUpdates, error)
 	}
 
 	// 	// PayloadAttributes is the interface for the payload attributes.

@@ -38,18 +38,25 @@ type ABCIMiddleware[
 	SlotDataT any,
 ] struct {
 	// chainSpec is the chain specification.
-	chainSpec  common.ChainSpec
-	dispatcher types.Dispatcher
+	chainSpec common.ChainSpec
+	// dispatcher is the central dispatcher to
+	dispatcher types.EventDispatcher
 	// metrics is the metrics emitter.
 	metrics *ABCIMiddlewareMetrics
 	// logger is the logger for the middleware.
 	logger log.Logger[any]
-	// subscription channels
-	subGenDataProcessed      chan async.Event[validatorUpdates]
-	subBuiltBeaconBlock      chan async.Event[BeaconBlockT]
-	subBuiltSidecars         chan async.Event[BlobSidecarsT]
-	subBBVerified            chan async.Event[BeaconBlockT]
-	subSCVerified            chan async.Event[BlobSidecarsT]
+	// subGenDataProcessed is the channel to hold GenesisDataProcessed events.
+	subGenDataProcessed chan async.Event[validatorUpdates]
+	// subBuiltBeaconBlock is the channel to hold BuiltBeaconBlock events.
+	subBuiltBeaconBlock chan async.Event[BeaconBlockT]
+	// subBuiltSidecars is the channel to hold BuiltSidecars events.
+	subBuiltSidecars chan async.Event[BlobSidecarsT]
+	// subBBVerified is the channel to hold BeaconBlockVerified events.
+	subBBVerified chan async.Event[BeaconBlockT]
+	// subSCVerified is the channel to hold SidecarsVerified events.
+	subSCVerified chan async.Event[BlobSidecarsT]
+	// subFinalValidatorUpdates is the channel to hold
+	// FinalValidatorUpdatesProcessed events.
 	subFinalValidatorUpdates chan async.Event[validatorUpdates]
 }
 
@@ -61,9 +68,9 @@ func NewABCIMiddleware[
 	SlotDataT any,
 ](
 	chainSpec common.ChainSpec,
+	dispatcher types.EventDispatcher,
 	logger log.Logger[any],
 	telemetrySink TelemetrySink,
-	dispatcher types.Dispatcher,
 ) *ABCIMiddleware[
 	BeaconBlockT, BlobSidecarsT, GenesisT, SlotDataT,
 ] {
@@ -71,9 +78,9 @@ func NewABCIMiddleware[
 		BeaconBlockT, BlobSidecarsT, GenesisT, SlotDataT,
 	]{
 		chainSpec:                chainSpec,
+		dispatcher:               dispatcher,
 		logger:                   logger,
 		metrics:                  newABCIMiddlewareMetrics(telemetrySink),
-		dispatcher:               dispatcher,
 		subGenDataProcessed:      make(chan async.Event[validatorUpdates]),
 		subBuiltBeaconBlock:      make(chan async.Event[BeaconBlockT]),
 		subBuiltSidecars:         make(chan async.Event[BlobSidecarsT]),

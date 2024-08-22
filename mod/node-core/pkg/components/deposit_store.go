@@ -23,6 +23,7 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	storev2 "cosmossdk.io/store/v2/db"
+	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
@@ -32,7 +33,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/pruner"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cast"
 )
 
@@ -70,7 +70,7 @@ type DepositPrunerInput[
 	depinject.In
 	ChainSpec    common.ChainSpec
 	DepositStore DepositStoreT
-	Dispatcher   *Dispatcher
+	Dispatcher   Dispatcher
 	Logger       LoggerT
 }
 
@@ -94,10 +94,10 @@ func ProvideDepositPruner[
 	// initialize a subscription for finalized blocks.
 	subFinalizedBlocks := make(chan async.Event[BeaconBlockT])
 	if err := in.Dispatcher.Subscribe(
-		async.BeaconBlockFinalizedEvent, subFinalizedBlocks,
+		async.BeaconBlockFinalized, subFinalizedBlocks,
 	); err != nil {
 		in.Logger.Error("failed to subscribe to event", "event",
-			async.BeaconBlockFinalizedEvent, "err", err)
+			async.BeaconBlockFinalized, "err", err)
 		return nil, err
 	}
 

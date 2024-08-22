@@ -18,27 +18,25 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package client
+package server
 
 import (
-	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/client/cosmos"
-	"github.com/spf13/cobra"
+	"cosmossdk.io/log"
+	cmtlog "github.com/cometbft/cometbft/libs/log"
 )
 
-// Commands creates a new command for managing CometBFT
-// related commands.
-func Commands() *cobra.Command {
-	clientCmd := &cobra.Command{
-		Use:   "client",
-		Short: "client subcommands",
-		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
-			return nil
-		},
-	}
+var _ cmtlog.Logger = (*CometLoggerWrapper)(nil)
 
-	clientCmd.AddCommand(
-		cosmos.QueryCommands(),
-	)
+// CometLoggerWrapper provides a wrapper around a cosmossdk.io/log instance.
+// It implements CometBFT's Logger interface.
+type CometLoggerWrapper struct {
+	log.Logger
+}
 
-	return clientCmd
+// With returns a new wrapped logger with additional context provided by a set
+// of key/value tuples. The number of tuples must be even and the key of the
+// tuple must be a string.
+func (cmt CometLoggerWrapper) With(keyVals ...interface{}) cmtlog.Logger {
+	logger := cmt.Logger.With(keyVals...)
+	return CometLoggerWrapper{logger}
 }

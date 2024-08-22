@@ -22,7 +22,7 @@ package components
 
 import (
 	"cosmossdk.io/core/appmodule/v2"
-	"github.com/berachain/beacon-kit/mod/async/pkg/dispatcher"
+	asynctypes "github.com/berachain/beacon-kit/mod/async/pkg/types"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
 	consruntimetypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
@@ -137,16 +137,12 @@ type (
 //
 
 type (
-	// GenesisDataProcessedEvent is a type alias for the genesis data processed
-	// event.
-	GenesisDataProcessedEvent = async.Event[transition.ValidatorUpdates]
-
 	// NewSlotEvent is a type alias for the new slot event.
-	NewSlotEvent = async.Event[*SlotData]
+	SlotEvent = async.Event[*SlotData]
 
 	// FinalValidatorUpdatesProcessedEvent is a type alias for the final
 	// validator updates processed event.
-	FinalValidatorUpdatesProcessedEvent = async.Event[transition.ValidatorUpdates]
+	ValidatorUpdateEvent = async.Event[transition.ValidatorUpdates]
 )
 
 // Messages.
@@ -164,5 +160,5 @@ type (
 
 type (
 	// Dispatcher is a type alias for the dispatcher.
-	Dispatcher = dispatcher.Dispatcher
+	Dispatcher = asynctypes.Dispatcher
 )

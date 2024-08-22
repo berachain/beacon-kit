@@ -22,10 +22,9 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	storev2 "cosmossdk.io/store/v2/db"
 	"github.com/berachain/beacon-kit/mod/config"
+	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/block"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/manager"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -62,7 +61,6 @@ func ProvideBlockStore[
 	],
 ) (*block.KVStore[BeaconBlockT], error) {
 	return block.NewStore[BeaconBlockT](
-		storage.NewKVStoreProvider(storev2.NewMemDB()),
 		in.Logger.With("service", manager.BlockStoreName),
 		in.Config.BlockStoreService.AvailabilityWindow,
 	), nil

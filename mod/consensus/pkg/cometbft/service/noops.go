@@ -23,15 +23,8 @@ package cometbft
 import (
 	"context"
 
-	"cosmossdk.io/store/snapshots"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/server/api"
-	"github.com/cosmos/cosmos-sdk/server/config"
-	gogogrpc "github.com/cosmos/gogoproto/grpc"
 )
-
-func (Service) RegisterGRPCServer(_ gogogrpc.Server) {}
 
 func (Service) Query(
 	_ context.Context,
@@ -64,11 +57,6 @@ func (Service) ApplySnapshotChunk(
 	return &abci.ApplySnapshotChunkResponse{}, nil
 }
 
-// SnapshotManager returns the snapshot manager.
-func (Service) SnapshotManager() *snapshots.Manager {
-	return &snapshots.Manager{}
-}
-
 func (Service) ExtendVote(
 	_ context.Context,
 	_ *abci.ExtendVoteRequest,
@@ -80,22 +68,6 @@ func (Service) VerifyVoteExtension(
 	*abci.VerifyVoteExtensionRequest,
 ) (*abci.VerifyVoteExtensionResponse, error) {
 	return &abci.VerifyVoteExtensionResponse{}, nil
-}
-
-func (Service) RegisterAPIRoutes(
-	_ *api.Server, _ config.APIConfig) {
-}
-
-func (Service) RegisterTxService(
-	client.Context) {
-}
-
-func (Service) RegisterTendermintService(
-	client.Context) {
-}
-
-func (Service) RegisterNodeService(
-	_ client.Context, _ config.Config) {
 }
 
 func (*Service) CheckTx(

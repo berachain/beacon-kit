@@ -37,7 +37,7 @@ type BlockServiceInput[
 
 	BlockStore BeaconBlockStoreT
 	Config     *config.Config
-	Dispatcher *Dispatcher
+	Dispatcher Dispatcher
 	Logger     LoggerT
 }
 

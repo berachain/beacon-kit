@@ -25,8 +25,8 @@ import (
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/middleware"
+	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/middleware"
 	consruntimetypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/da/pkg/da"
@@ -113,11 +113,7 @@ type (
 	]
 
 	// ConsensusMiddleware is a type alias for the consensus middleware.
-	ConsensusMiddleware = cometbft.Middleware[
-		*AttestationData,
-		*SlashingInfo,
-		*SlotData,
-	]
+	ConsensusMiddleware = cometbft.MiddlewareI
 
 	// DAService is a type alias for the DA service.
 	DAService = da.Service[*AvailabilityStore, *BlobSidecars]

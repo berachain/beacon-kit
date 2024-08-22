@@ -24,14 +24,13 @@ import (
 	"context"
 	"time"
 
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/encoding"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/encoding"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cosmos/gogoproto/proto"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -50,8 +49,6 @@ func (h *ABCIMiddleware[
 		waitCtx, cancel = context.WithTimeout(ctx, AwaitTimeout)
 	)
 	defer cancel()
-	// TODO: in theory the GenesisDataReceived channel should be empty, but we
-	// should clear it anyways here to ensure that data is valid.
 
 	data := new(GenesisT)
 	if err = json.Unmarshal(bz, data); err != nil {
@@ -97,14 +94,24 @@ func (h *ABCIMiddleware[
 		err              error
 		builtBeaconBlock BeaconBlockT
 		builtSidecars    BlobSidecarsT
+		numMsgs          int
 		startTime        = time.Now()
 		awaitCtx, cancel = context.WithTimeout(ctx, AwaitTimeout)
 	)
 
-	// TODO: clear the built beacon block and sidecars channels, else we may
-	// end up handling old data from previous slots.
 	defer cancel()
 	defer h.metrics.measurePrepareProposalDuration(startTime)
+	// flush the channels to ensure that we are not handling old data.
+	if numMsgs = async.ClearChan(h.subBuiltBeaconBlock); numMsgs > 0 {
+		h.logger.Error(
+			"WARNING: messages remaining in built beacon block channel",
+			"num_msgs", numMsgs)
+	}
+	if numMsgs = async.ClearChan(h.subBuiltSidecars); numMsgs > 0 {
+		h.logger.Error(
+			"WARNING: messages remaining in built sidecars channel",
+			"num_msgs", numMsgs)
+	}
 
 	if err = h.dispatcher.Publish(
 		async.NewEvent(
@@ -186,19 +193,27 @@ func (h *ABCIMiddleware[
 	BeaconBlockT, BlobSidecarsT, _, _,
 ]) ProcessProposal(
 	ctx context.Context,
-	req proto.Message,
-) (proto.Message, error) {
+	req *cmtabci.ProcessProposalRequest,
+) (*cmtabci.ProcessProposalResponse, error) {
 	var (
 		err              error
 		startTime        = time.Now()
 		blk              BeaconBlockT
+		numMsgs          int
 		sidecars         BlobSidecarsT
 		awaitCtx, cancel = context.WithTimeout(ctx, AwaitTimeout)
 	)
 	defer cancel()
-	abciReq, ok := req.(*cmtabci.ProcessProposalRequest)
-	if !ok {
-		return nil, ErrInvalidProcessProposalRequestType
+	// flush the channels to ensure that we are not handling old data.
+	if numMsgs = async.ClearChan(h.subBBVerified); numMsgs > 0 {
+		h.logger.Error(
+			"WARNING: messages remaining in beacon block verification channel",
+			"num_msgs", numMsgs)
+	}
+	if numMsgs = async.ClearChan(h.subSCVerified); numMsgs > 0 {
+		h.logger.Error(
+			"WARNING: messages remaining in sidecar verification channel",
+			"num_msgs", numMsgs)
 	}
 
 	defer h.metrics.measureProcessProposalDuration(startTime)
@@ -206,7 +221,7 @@ func (h *ABCIMiddleware[
 	// Request the beacon block.
 	if blk, err = encoding.
 		UnmarshalBeaconBlockFromABCIRequest[BeaconBlockT](
-		abciReq, 0, h.chainSpec.ActiveForkVersionForSlot(math.U64(abciReq.Height)),
+		req, 0, h.chainSpec.ActiveForkVersionForSlot(math.U64(req.Height)),
 	); err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
@@ -221,7 +236,7 @@ func (h *ABCIMiddleware[
 	// Request the blob sidecars.
 	if sidecars, err = encoding.
 		UnmarshalBlobSidecarsFromABCIRequest[BlobSidecarsT](
-		abciReq, 1,
+		req, 1,
 	); err != nil {
 		return h.createProcessProposalResponse(errors.WrapNonFatal(err))
 	}
@@ -280,7 +295,7 @@ func (*ABCIMiddleware[
 	BeaconBlockT, _, BlobSidecarsT, _,
 ]) createProcessProposalResponse(
 	err error,
-) (proto.Message, error) {
+) (*cmtabci.ProcessProposalResponse, error) {
 	status := cmtabci.PROCESS_PROPOSAL_STATUS_REJECT
 	if !errors.IsFatal(err) {
 		status = cmtabci.PROCESS_PROPOSAL_STATUS_ACCEPT
@@ -297,7 +312,7 @@ func (*ABCIMiddleware[
 func (h *ABCIMiddleware[
 	BeaconBlockT, BlobSidecarsT, _, _,
 ]) FinalizeBlock(
-	ctx context.Context, req proto.Message,
+	ctx context.Context, req *cmtabci.FinalizeBlockRequest,
 ) (transition.ValidatorUpdates, error) {
 	var (
 		err              error
@@ -306,17 +321,20 @@ func (h *ABCIMiddleware[
 		awaitCtx, cancel = context.WithTimeout(ctx, AwaitTimeout)
 	)
 	defer cancel()
-	abciReq, ok := req.(*cmtabci.FinalizeBlockRequest)
-	if !ok {
-		return nil, ErrInvalidFinalizeBlockRequestType
+	// flush the channel to ensure that we are not handling old data.
+	if numMsgs := async.ClearChan(h.subFinalValidatorUpdates); numMsgs > 0 {
+		h.logger.Error(
+			"WARNING: messages remaining in final validator updates channel",
+			"num_msgs", numMsgs)
 	}
+
 	blk, blobs, err = encoding.
 		ExtractBlobsAndBlockFromRequest[BeaconBlockT, BlobSidecarsT](
-		abciReq,
+		req,
 		BeaconBlockTxIndex,
 		BlobSidecarsTxIndex,
 		h.chainSpec.ActiveForkVersionForSlot(
-			math.Slot(abciReq.Height),
+			math.Slot(req.Height),
 		))
 	if err != nil {
 		// If we don't have a block, we can't do anything.
