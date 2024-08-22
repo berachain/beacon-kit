@@ -16,6 +16,7 @@ replace (
 	github.com/berachain/beacon-kit/mod/execution => ../mod/execution
 	github.com/berachain/beacon-kit/mod/node-api => ../mod/node-api
 	github.com/berachain/beacon-kit/mod/node-core => ../mod/node-core
+	github.com/berachain/beacon-kit/mod/observability => ../mod/observability
 	github.com/berachain/beacon-kit/mod/storage => ../mod/storage
 	github.com/cometbft/cometbft => github.com/cometbft/cometbft v1.0.0-rc1.0.20240805134408-314422469051
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240808182639-7bdbf06a94f2
@@ -33,6 +34,7 @@ require (
 
 require (
 	cosmossdk.io/errors/v2 v2.0.0-20240731132947-df72853b3ca5 // indirect
+	github.com/berachain/beacon-kit/mod/observability v0.0.0-00010101000000-000000000000 // indirect
 	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/umbracle/fastrlp v0.1.0 // indirect
