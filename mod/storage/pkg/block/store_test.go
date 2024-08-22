@@ -53,6 +53,11 @@ func (m MockBeaconBlock) GetStateRoot() common.Root {
 func TestBlockStore(t *testing.T) {
 	blockStore := block.NewStore[*MockBeaconBlock](noop.NewLogger[any](), 5)
 
+	var (
+		slot math.Slot
+		err  error
+	)
+
 	// Set 7 blocks.
 	// The latest block is 7 and should hold the last 5 blocks in the window.
 	for i := 1; i <= 7; i++ {
@@ -79,8 +84,4 @@ func TestBlockStore(t *testing.T) {
 	require.ErrorContains(t, err, "not found")
 	_, err = blockStore.GetSlotByExecutionNumber(2)
 	require.ErrorContains(t, err, "not found")
-
-	// Try calling GetSlotFromWindow with an out of bounds index.
-	_, err = blockStore.GetSlotFromWindow(5)
-	require.ErrorContains(t, err, "index out of bounds")
 }
