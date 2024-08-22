@@ -157,8 +157,8 @@ func (app *Service) Close() error {
 	var errs []error
 
 	if app.node != nil && app.node.IsRunning() {
-		//#nosec:G703 // its a bet.
 		app.logger.Info("Stopping CometBFT Node")
+		//#nosec:G703 // its a bet.
 		_ = app.node.Stop()
 	}
 
