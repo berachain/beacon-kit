@@ -173,7 +173,7 @@ func start[T types.Application](
 
 	// wait for signal capture and gracefully return
 	// we are guaranteed to be waiting
-	//for the "z" goroutine.
+	//for the "ListenForQuitSignals" goroutine.
 	return g.Wait()
 }
 
