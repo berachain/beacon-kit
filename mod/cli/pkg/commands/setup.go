@@ -21,7 +21,6 @@
 package commands
 
 import (
-	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/cometbft"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/deposit"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/genesis"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/jwt"
@@ -47,15 +46,10 @@ func DefaultRootCommandSetup[
 	appCreator servertypes.AppCreator[T],
 	chainSpec common.ChainSpec,
 ) {
-	// Setup the custom start command options.
-	startCmdOptions := server.StartCmdOptions[T]{
-		AddFlags: flags.AddBeaconKitFlags,
-	}
-
 	// Add all the commands to the root command.
 	root.cmd.AddCommand(
 		// `comet`
-		cometbft.Commands(appCreator),
+		cmtcli.Commands(appCreator),
 		// `init`
 		genutilcli.InitCmd(mm),
 		// `genesis`
@@ -67,7 +61,9 @@ func DefaultRootCommandSetup[
 		// `rollback`
 		server.NewRollbackCmd(appCreator),
 		// `start`
-		server.StartCmdWithOptions(appCreator, startCmdOptions),
+		server.StartCmdWithOptions(appCreator, server.StartCmdOptions[T]{
+			AddFlags: flags.AddBeaconKitFlags,
+		}),
 		// `status`
 		cmtcli.StatusCommand(),
 		// `version`

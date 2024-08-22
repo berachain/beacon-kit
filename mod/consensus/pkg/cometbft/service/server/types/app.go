@@ -21,15 +21,12 @@
 package types
 
 import (
-	"context"
-	"encoding/json"
 	"io"
 
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
-	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
+	"github.com/cometbft/cometbft/abci/types"
 	cmtcfg "github.com/cometbft/cometbft/config"
-	cmttypes "github.com/cometbft/cometbft/types"
 	dbm "github.com/cosmos/cosmos-db"
 )
 
@@ -51,14 +48,9 @@ type (
 	// The interface defines the necessary contracts to be implemented in order
 	// to fully bootstrap and start an application.
 	Application interface {
-		ABCI
-
+		types.Application
 		// CommitMultiStore return the multistore instance
 		CommitMultiStore() storetypes.CommitMultiStore
-		StartCmtNode(
-			context.Context,
-			*cmtcfg.Config,
-		) error
 		// Close is called in start cmd to gracefully cleanup resources.
 		// Must be safe to be called multiple times.
 		Close() error
@@ -66,31 +58,7 @@ type (
 
 	// AppCreator is a function that allows us to lazily initialize an
 	// application using various configurations.
-	AppCreator[T Application] func(log.Logger, dbm.DB, io.Writer, AppOptions) T
-
-	// ExportedApp represents an exported app state, along with
-	// validators, consensus params and latest app height.
-	ExportedApp struct {
-		// AppState is the application state as JSON.
-		AppState json.RawMessage
-		// Validators is the exported validator set.
-		Validators []cmttypes.GenesisValidator
-		// Height is the app's latest block height.
-		Height int64
-		// ConsensusParams are the exported consensus params for ABCI.
-		ConsensusParams cmtproto.ConsensusParams
-	}
-
-	// AppExporter is a function that dumps all app state to
-	// JSON-serializable structure and returns the current validator set.
-	AppExporter func(
-		logger log.Logger,
-		db dbm.DB,
-		traceWriter io.Writer,
-		height int64,
-		forZeroHeight bool,
-		jailAllowedAddrs []string,
-		opts AppOptions,
-		modulesToExport []string,
-	) (ExportedApp, error)
+	AppCreator[T any] func(
+		log.Logger, dbm.DB, io.Writer, *cmtcfg.Config, AppOptions,
+	) T
 )

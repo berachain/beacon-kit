@@ -11,13 +11,12 @@ replace (
 	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240806152830-8fb47b368cd4
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240806152830-8fb47b368cd4
 	github.com/berachain/beacon-kit/mod/beacon => ../beacon
+	github.com/berachain/beacon-kit/mod/config => ../config
 	github.com/berachain/beacon-kit/mod/consensus => ../consensus
 	github.com/berachain/beacon-kit/mod/da => ../da
-	github.com/berachain/beacon-kit/mod/execution => ../execution
 	github.com/berachain/beacon-kit/mod/node-api => ../node-api
 	github.com/berachain/beacon-kit/mod/node-core => ../node-core
 	github.com/berachain/beacon-kit/mod/observability => ../observability
-	github.com/berachain/beacon-kit/mod/storage => ../storage
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240808182639-7bdbf06a94f2
 )
 
@@ -41,13 +40,12 @@ require (
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.9.0
-	golang.org/x/sync v0.8.0
 )
 
 require (
 	cosmossdk.io/errors/v2 v2.0.0-20240731132947-df72853b3ca5 // indirect
 	cosmossdk.io/schema v0.1.1 // indirect
-	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240820191615-398849c34954 // indirect
+	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240821052951-c15422305b4e // indirect
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df // indirect
 	github.com/berachain/beacon-kit/mod/node-api v0.0.0-20240806160829-cde2d1347e7e // indirect
 	github.com/berachain/beacon-kit/mod/node-api/engines v0.0.0-20240806160829-cde2d1347e7e // indirect
@@ -73,6 +71,7 @@ require (
 	github.com/umbracle/fastrlp v0.1.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
+	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 )
 
@@ -104,7 +103,7 @@ require (
 	github.com/berachain/beacon-kit/mod/execution v0.0.0-20240820191615-398849c34954 // indirect
 	github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df // indirect
 	github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6650da31 // indirect
-	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240820191615-398849c34954 // indirect
+	github.com/berachain/beacon-kit/mod/storage v0.0.0-20240822205119-6d7f90fac7d7 // indirect
 	github.com/bgentry/speakeasy v0.2.0 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect

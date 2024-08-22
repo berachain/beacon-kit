@@ -24,8 +24,8 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/config"
+	serverconfig "github.com/berachain/beacon-kit/mod/config/pkg/config"
 	"github.com/berachain/beacon-kit/mod/config/pkg/template"
-	serverconfig "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/config"
 	cmtcfg "github.com/cometbft/cometbft/config"
 )
 
@@ -83,7 +83,7 @@ func DefaultAppConfig() any {
 
 	// IAVL FastNode should ALWAYS be disabled on IAVL v1.x.
 	cfg.IAVLDisableFastNode = true
-	cfg.IAVLCacheSize = 25000
+	cfg.IAVLCacheSize = 2500
 
 	// Create the custom app configuration.
 	customAppConfig := CustomAppConfig{

@@ -29,9 +29,7 @@ import (
 	"cosmossdk.io/store"
 	storemetrics "cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server"
 	servercmtlog "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/log"
-	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
@@ -56,10 +54,9 @@ const (
 	execModeFinalize
 )
 
-var _ servertypes.ABCI = (*Service)(nil)
-
 type Service struct {
-	node *node.Node
+	node   *node.Node
+	cmtCfg *cmtcfg.Config
 	// initialized on creation
 	logger     log.Logger
 	name       string
@@ -85,6 +82,7 @@ func NewService(
 	db dbm.DB,
 	middleware MiddlewareI,
 	loadLatest bool,
+	cmtCfg *cmtcfg.Config,
 	options ...func(*Service),
 ) *Service {
 	app := &Service{
@@ -97,6 +95,7 @@ func NewService(
 			storemetrics.NewNoOpMetrics(),
 		),
 		Middleware: middleware,
+		cmtCfg:     cmtCfg,
 	}
 
 	app.SetVersion(version.Version)
@@ -121,16 +120,15 @@ func NewService(
 }
 
 // TODO: Move nodeKey into being created within the function.
-func (app *Service) StartCmtNode(
+func (app *Service) Start(
 	ctx context.Context,
-	cfg *cmtcfg.Config,
 ) error {
+	cfg := app.cmtCfg
 	nodeKey, err := p2p.LoadOrGenNodeKey(cfg.NodeKeyFile())
 	if err != nil {
 		return err
 	}
 
-	cmtApp := server.NewCometABCIWrapper(app)
 	app.node, err = node.NewNode(
 		ctx,
 		cfg,
@@ -139,8 +137,8 @@ func (app *Service) StartCmtNode(
 			cfg.PrivValidatorStateFile(),
 		),
 		nodeKey,
-		proxy.NewLocalClientCreator(cmtApp),
-		server.GetGenDocProvider(cfg),
+		proxy.NewLocalClientCreator(app),
+		GetGenDocProvider(cfg),
 		cmtcfg.DefaultDBProvider,
 		node.DefaultMetricsProvider(cfg.Instrumentation),
 		servercmtlog.CometLoggerWrapper{Logger: app.logger},
@@ -176,12 +174,6 @@ func (app *Service) Close() error {
 // Name returns the name of the cometbft.
 func (app *Service) Name() string {
 	return app.name
-}
-
-// Start sets up the cometbft to listen for FinalizeBlock, VerifyBlock, and
-// ProcessGenesisData requests, and handles them accordingly.
-func (app *Service) Start(context.Context) error {
-	return nil
 }
 
 // CommitMultiStore returns the CommitMultiStore of the cometbft.

@@ -21,37 +21,17 @@
 package components
 
 import (
-	"errors"
-
-	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/config/pkg/config"
-	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
-	"github.com/mitchellh/mapstructure"
-	"github.com/spf13/viper"
+	"github.com/berachain/beacon-kit/mod/cli/pkg/components/log"
+	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
+	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 )
 
-// ServerConfigInput is the input for the dependency injection framework.
-type ServerConfigInput struct {
-	depinject.In
-	AppOpts servertypes.AppOptions
-}
-
-// ProvideConfig is a function that provides the BeaconConfig to the
-// application.
-func ProvideServerConfig(in ConfigInput) (*config.Config, error) {
-	v, ok := in.AppOpts.(*viper.Viper)
-	if !ok {
-		return nil, errors.New("invalid application options type")
-	}
-
-	cfg := config.Config{}
-	if err := v.Unmarshal(&cfg,
-		viper.DecodeHook(mapstructure.ComposeDecodeHookFunc(
-			mapstructure.StringToTimeDurationHookFunc(),
-			mapstructure.StringToSliceHookFunc(","),
-		))); err != nil {
-		return nil, err
-	}
-
-	return &cfg, nil
+// ProvideNode is a function that provides the module to the.
+func ProvideNode(
+	registry *service.Registry,
+	logger *phuslu.Logger,
+) types.Node {
+	return node.New[types.Node](registry, log.WrapSDKLogger(logger))
 }

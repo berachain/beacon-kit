@@ -27,50 +27,56 @@ import (
 )
 
 func (Service) Query(
-	_ context.Context,
-	_ *abci.QueryRequest,
+	context.Context,
+	*abci.QueryRequest,
 ) (*abci.QueryResponse, error) {
 	return &abci.QueryResponse{}, nil
 }
 
 func (Service) ListSnapshots(
-	_ *abci.ListSnapshotsRequest,
+	context.Context,
+	*abci.ListSnapshotsRequest,
 ) (*abci.ListSnapshotsResponse, error) {
 	return &abci.ListSnapshotsResponse{}, nil
 }
 
 func (Service) LoadSnapshotChunk(
-	_ *abci.LoadSnapshotChunkRequest,
+	context.Context,
+	*abci.LoadSnapshotChunkRequest,
 ) (*abci.LoadSnapshotChunkResponse, error) {
 	return &abci.LoadSnapshotChunkResponse{}, nil
 }
 
 func (Service) OfferSnapshot(
-	_ *abci.OfferSnapshotRequest,
+	context.Context,
+	*abci.OfferSnapshotRequest,
 ) (*abci.OfferSnapshotResponse, error) {
 	return &abci.OfferSnapshotResponse{}, nil
 }
 
 func (Service) ApplySnapshotChunk(
-	_ *abci.ApplySnapshotChunkRequest,
+	context.Context,
+	*abci.ApplySnapshotChunkRequest,
 ) (*abci.ApplySnapshotChunkResponse, error) {
 	return &abci.ApplySnapshotChunkResponse{}, nil
 }
 
 func (Service) ExtendVote(
-	_ context.Context,
-	_ *abci.ExtendVoteRequest,
+	context.Context,
+	*abci.ExtendVoteRequest,
 ) (*abci.ExtendVoteResponse, error) {
 	return &abci.ExtendVoteResponse{}, nil
 }
 
 func (Service) VerifyVoteExtension(
+	context.Context,
 	*abci.VerifyVoteExtensionRequest,
 ) (*abci.VerifyVoteExtensionResponse, error) {
 	return &abci.VerifyVoteExtensionResponse{}, nil
 }
 
 func (*Service) CheckTx(
+	context.Context,
 	*abci.CheckTxRequest,
 ) (*abci.CheckTxResponse, error) {
 	return &abci.CheckTxResponse{}, nil

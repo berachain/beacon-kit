@@ -35,7 +35,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
 	math "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
-	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -44,8 +43,9 @@ import (
 
 //nolint:gocognit // todo fix.
 func (app *Service) InitChain(
-	req *abci.InitChainRequest,
-) (*abci.InitChainResponse, error) {
+	_ context.Context,
+	req *cmtabci.InitChainRequest,
+) (*cmtabci.InitChainResponse, error) {
 	if req.ChainId != app.chainID {
 		return nil, fmt.Errorf(
 			"invalid chain-id on InitChain; expected: %s, got: %s",
@@ -148,7 +148,7 @@ func (app *Service) InitChain(
 	// NOTE: We don't commit, but FinalizeBlock for block InitialHeight starts
 	// from
 	// this FinalizeBlockState.
-	return &abci.InitChainResponse{
+	return &cmtabci.InitChainResponse{
 		ConsensusParams: res.ConsensusParams,
 		Validators:      res.Validators,
 		AppHash:         app.LastCommitID().Hash,
@@ -158,8 +158,8 @@ func (app *Service) InitChain(
 // InitChainer initializes the chain.
 func (app *Service) initChainer(
 	ctx sdk.Context,
-	req *abci.InitChainRequest,
-) (*abci.InitChainResponse, error) {
+	req *cmtabci.InitChainRequest,
+) (*cmtabci.InitChainResponse, error) {
 	var genesisState map[string]json.RawMessage
 	if err := json.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		return nil, err
@@ -174,18 +174,21 @@ func (app *Service) initChainer(
 
 	convertedValUpdates, err := iter.MapErr(
 		valUpdates,
-		convertValidatorUpdate[abci.ValidatorUpdate],
+		convertValidatorUpdate[cmtabci.ValidatorUpdate],
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	return &abci.InitChainResponse{
+	return &cmtabci.InitChainResponse{
 		Validators: convertedValUpdates,
 	}, nil
 }
 
-func (app *Service) Info(_ *abci.InfoRequest) (*abci.InfoResponse, error) {
+func (app *Service) Info(
+	context.Context,
+	*cmtabci.InfoRequest,
+) (*cmtabci.InfoResponse, error) {
 	lastCommitID := app.cms.LastCommitID()
 	appVersion := InitialAppVersion
 	if lastCommitID.Version > 0 {
@@ -199,7 +202,7 @@ func (app *Service) Info(_ *abci.InfoRequest) (*abci.InfoResponse, error) {
 		}
 	}
 
-	return &abci.InfoResponse{
+	return &cmtabci.InfoResponse{
 		Data:             app.name,
 		Version:          app.version,
 		AppVersion:       appVersion,
@@ -211,8 +214,9 @@ func (app *Service) Info(_ *abci.InfoRequest) (*abci.InfoResponse, error) {
 // PrepareProposal implements the PrepareProposal ABCI method and returns a
 // ResponsePrepareProposal object to the client.
 func (app *Service) PrepareProposal(
-	req *abci.PrepareProposalRequest,
-) (*abci.PrepareProposalResponse, error) {
+	_ context.Context,
+	req *cmtabci.PrepareProposalRequest,
+) (*cmtabci.PrepareProposalResponse, error) {
 	app.setState(execModePrepareProposal)
 
 	// CometBFT must never call PrepareProposal with a height of 0.
@@ -247,10 +251,10 @@ func (app *Service) PrepareProposal(
 			"err",
 			err,
 		)
-		return &abci.PrepareProposalResponse{Txs: req.Txs}, nil
+		return &cmtabci.PrepareProposalResponse{Txs: req.Txs}, nil
 	}
 
-	return &abci.PrepareProposalResponse{
+	return &cmtabci.PrepareProposalResponse{
 		Txs: [][]byte{blkBz, sidecarsBz},
 	}, nil
 }
@@ -258,8 +262,9 @@ func (app *Service) PrepareProposal(
 // ProcessProposal implements the ProcessProposal ABCI method and returns a
 // ResponseProcessProposal object to the client.
 func (app *Service) ProcessProposal(
-	req *abci.ProcessProposalRequest,
-) (*abci.ProcessProposalResponse, error) {
+	_ context.Context,
+	req *cmtabci.ProcessProposalRequest,
+) (*cmtabci.ProcessProposalResponse, error) {
 	// CometBFT must never call ProcessProposal with a height of 0.
 	if req.Height < 1 {
 		return nil, errors.New("ProcessProposal called with invalid height")
@@ -301,8 +306,8 @@ func (app *Service) ProcessProposal(
 			"err",
 			err,
 		)
-		return &abci.ProcessProposalResponse{
-			Status: abci.PROCESS_PROPOSAL_STATUS_REJECT,
+		return &cmtabci.ProcessProposalResponse{
+			Status: cmtabci.PROCESS_PROPOSAL_STATUS_REJECT,
 		}, nil
 	}
 
@@ -311,8 +316,8 @@ func (app *Service) ProcessProposal(
 
 func (app *Service) internalFinalizeBlock(
 	ctx context.Context,
-	req *abci.FinalizeBlockRequest,
-) (*abci.FinalizeBlockResponse, error) {
+	req *cmtabci.FinalizeBlockRequest,
+) (*cmtabci.FinalizeBlockResponse, error) {
 	if err := app.validateFinalizeBlockHeight(req); err != nil {
 		return nil, err
 	}
@@ -343,7 +348,7 @@ func (app *Service) internalFinalizeBlock(
 	//
 	// NOTE: Not all raw transactions may adhere to the sdk.Tx interface, e.g.
 	// vote extensions, so skip those.
-	txResults := make([]*abci.ExecTxResult, 0, len(req.Txs))
+	txResults := make([]*cmtabci.ExecTxResult, 0, len(req.Txs))
 	for range req.Txs {
 		// check after every tx if we should abort
 		select {
@@ -354,7 +359,7 @@ func (app *Service) internalFinalizeBlock(
 		}
 
 		//nolint:mnd // its okay for now.
-		txResults = append(txResults, &abci.ExecTxResult{
+		txResults = append(txResults, &cmtabci.ExecTxResult{
 			Codespace: "sdk",
 			Code:      2,
 			Log:       "skip decoding",
@@ -373,7 +378,7 @@ func (app *Service) internalFinalizeBlock(
 
 	valUpdates, err := iter.MapErr(
 		finalizeBlock,
-		convertValidatorUpdate[abci.ValidatorUpdate],
+		convertValidatorUpdate[cmtabci.ValidatorUpdate],
 	)
 	if err != nil {
 		return nil, err
@@ -389,7 +394,7 @@ func (app *Service) internalFinalizeBlock(
 	}
 
 	cp := app.GetConsensusParams(app.finalizeBlockState.Context())
-	return &abci.FinalizeBlockResponse{
+	return &cmtabci.FinalizeBlockResponse{
 		TxResults:             txResults,
 		ValidatorUpdates:      valUpdates,
 		ConsensusParamUpdates: &cp,
@@ -397,8 +402,9 @@ func (app *Service) internalFinalizeBlock(
 }
 
 func (app *Service) FinalizeBlock(
-	req *abci.FinalizeBlockRequest,
-) (*abci.FinalizeBlockResponse, error) {
+	_ context.Context,
+	req *cmtabci.FinalizeBlockRequest,
+) (*cmtabci.FinalizeBlockResponse, error) {
 	res, err := app.internalFinalizeBlock(context.Background(), req)
 	if res != nil {
 		res.AppHash = app.workingHash()
@@ -409,12 +415,14 @@ func (app *Service) FinalizeBlock(
 
 // Commit implements the ABCI interface. It will commit all state that exists in
 // the deliver state's multi-store and includes the resulting commit ID in the
-// returned abci.ResponseCommit. Commit will set the check state based on the
+// returned cmtabci.ResponseCommit. Commit will set the check state based on the
 // latest header and reset the deliver state. Also, if a non-zero halt height is
 // defined in config, Commit will execute a deferred function call to check
 // against that height and gracefully halt if it matches the latest committed
 // height.
-func (app *Service) Commit() (*abci.CommitResponse, error) {
+func (app *Service) Commit(
+	context.Context, *cmtabci.CommitRequest,
+) (*cmtabci.CommitResponse, error) {
 	if app.finalizeBlockState == nil {
 		return nil, errors.New("finalizeBlockState is nil")
 	}
@@ -428,7 +436,7 @@ func (app *Service) Commit() (*abci.CommitResponse, error) {
 
 	app.cms.Commit()
 
-	resp := &abci.CommitResponse{
+	resp := &cmtabci.CommitResponse{
 		RetainHeight: retainHeight,
 	}
 
