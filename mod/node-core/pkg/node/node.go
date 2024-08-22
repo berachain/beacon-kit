@@ -22,8 +22,11 @@ package node
 
 import (
 	"context"
+	"os"
 
+	"cosmossdk.io/log"
 	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server"
 	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 )
@@ -45,8 +48,17 @@ func New[NodeT types.Node]() NodeT {
 }
 
 // Start starts the node.
-func (n *node) Start(ctx context.Context) error {
-	return n.registry.StartAll(ctx)
+func (n *node) Start(
+	ctx context.Context,
+) error {
+	if err := n.registry.StartAll(ctx); err != nil {
+		return err
+	}
+	g, ctx := server.GetCtx(ctx, log.NewLogger(os.Stdout), true)
+	if err := n.Service.StartCmtNode(ctx); err != nil {
+		return err
+	}
+	return g.Wait()
 }
 
 // SetApplication sets the application.

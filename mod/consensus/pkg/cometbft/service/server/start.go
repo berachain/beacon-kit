@@ -27,6 +27,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"cosmossdk.io/log"
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	types "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
@@ -163,14 +164,11 @@ func start[T types.Application](
 		return err
 	}
 
-	app := appCreator(svrCtx.Logger, db, nil, svrCtx.Viper)
-	g, ctx := getCtx(svrCtx, true)
+	_ = appCreator(svrCtx.Logger, db, nil, svrCtx.Config, svrCtx.Viper)
+	g, _ := getCtx(svrCtx, true)
 	svrCtx.Logger.Info("starting node with ABCI CometBFT in-process")
-	if err = app.StartCmtNode(ctx, svrCtx.Config); err != nil {
-		return err
-	}
 
-	// wait for signal capture and gracefully return
+	// wait for sign al capture and gracefully return
 	// we are guaranteed to be waiting
 	//for the "ListenForQuitSignals" goroutine.
 	return g.Wait()
@@ -215,6 +213,18 @@ func GetGenDocProvider(
 			Sha256Checksum: sum[:],
 		}, nil
 	}
+}
+
+func GetCtx(
+	ctx context.Context,
+	logger log.Logger,
+	block bool,
+) (*errgroup.Group, context.Context) {
+	ctx, cancelFn := context.WithCancel(ctx)
+	g, ctx := errgroup.WithContext(ctx)
+	// listen for quit signals so the calling parent process can gracefully exit
+	ListenForQuitSignals(g, block, cancelFn, logger)
+	return g, ctx
 }
 
 func getCtx(svrCtx *Context, block bool) (*errgroup.Group, context.Context) {

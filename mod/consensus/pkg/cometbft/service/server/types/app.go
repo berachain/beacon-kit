@@ -57,7 +57,6 @@ type (
 		CommitMultiStore() storetypes.CommitMultiStore
 		StartCmtNode(
 			context.Context,
-			*cmtcfg.Config,
 		) error
 		// Close is called in start cmd to gracefully cleanup resources.
 		// Must be safe to be called multiple times.
@@ -66,7 +65,7 @@ type (
 
 	// AppCreator is a function that allows us to lazily initialize an
 	// application using various configurations.
-	AppCreator[T Application] func(log.Logger, dbm.DB, io.Writer, AppOptions) T
+	AppCreator[T Application] func(log.Logger, dbm.DB, io.Writer, *cmtcfg.Config, AppOptions) T
 
 	// ExportedApp represents an exported app state, along with
 	// validators, consensus params and latest app height.

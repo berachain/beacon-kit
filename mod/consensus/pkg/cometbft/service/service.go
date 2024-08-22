@@ -59,7 +59,8 @@ const (
 var _ servertypes.ABCI = (*Service)(nil)
 
 type Service struct {
-	node *node.Node
+	node   *node.Node
+	cmtCfg *cmtcfg.Config
 	// initialized on creation
 	logger     log.Logger
 	name       string
@@ -85,6 +86,7 @@ func NewService(
 	db dbm.DB,
 	middleware MiddlewareI,
 	loadLatest bool,
+	cmtCfg *cmtcfg.Config,
 	options ...func(*Service),
 ) *Service {
 	app := &Service{
@@ -97,6 +99,7 @@ func NewService(
 			storemetrics.NewNoOpMetrics(),
 		),
 		Middleware: middleware,
+		cmtCfg:     cmtCfg,
 	}
 
 	app.SetVersion(version.Version)
@@ -123,8 +126,8 @@ func NewService(
 // TODO: Move nodeKey into being created within the function.
 func (app *Service) StartCmtNode(
 	ctx context.Context,
-	cfg *cmtcfg.Config,
 ) error {
+	cfg := app.cmtCfg
 	nodeKey, err := p2p.LoadOrGenNodeKey(cfg.NodeKeyFile())
 	if err != nil {
 		return err

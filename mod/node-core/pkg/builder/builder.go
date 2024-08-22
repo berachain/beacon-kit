@@ -33,6 +33,7 @@ import (
 	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	cmtcfg "github.com/cometbft/cometbft/config"
 	dbm "github.com/cosmos/cosmos-db"
 )
 
@@ -78,6 +79,7 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 	logger sdklog.Logger,
 	db dbm.DB,
 	_ io.Writer,
+	cmtCfg *cmtcfg.Config,
 	appOpts servertypes.AppOptions,
 ) NodeT {
 	// variables to hold the components needed to set up BeaconApp
@@ -128,6 +130,7 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 			db,
 			abciMiddleware,
 			true,
+			cmtCfg,
 			append(
 				DefaultServiceOptions(appOpts),
 				WithCometParamStore(chainSpec),

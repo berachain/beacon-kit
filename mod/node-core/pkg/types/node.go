@@ -32,10 +32,10 @@ type Node interface {
 	Application
 
 	// Start starts the node.
-	Start(ctx context.Context) error
+	Start(context.Context) error
 
 	// RegisterApp sets the node's application.
-	RegisterApp(app Application)
+	RegisterApp(Application)
 	// SetServiceRegistry sets the node's service registry.
-	SetServiceRegistry(registry *service.Registry)
+	SetServiceRegistry(*service.Registry)
 }
