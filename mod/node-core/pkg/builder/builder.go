@@ -136,7 +136,6 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 	)
 	// TODO: so hood
 	apiBackend.AttachNode(nb.node)
-	nb.node.SetServiceRegistry(serviceRegistry)
 
 	// TODO: put this in some post node creation hook/listener.
 	if err := nb.node.Start(context.Background()); err != nil {
