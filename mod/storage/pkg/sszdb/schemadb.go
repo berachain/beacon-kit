@@ -242,7 +242,7 @@ func (db *SchemaDB) GetSlot(ctx context.Context) (math.U64, error) {
 	return math.U64(fastssz.UnmarshallUint64(bz)), nil
 }
 
-func (db *SchemaDB) getListLength(
+func (db *SchemaDB) GetListLength(
 	ctx context.Context,
 	path string,
 ) (uint64, error) {
@@ -345,7 +345,7 @@ func (db *SchemaDB) SetBlockRootAtIndex(
 	index uint64,
 	root common.Root,
 ) error {
-	return db.SetListElement(ctx, "block_roots", index, &Node{Value: root[:]})
+	return db.setListElement(ctx, "block_roots", index, &Node{Value: root[:]})
 }
 
 func (db *SchemaDB) SetStateRootAtIndex(
@@ -353,16 +353,67 @@ func (db *SchemaDB) SetStateRootAtIndex(
 	index uint64,
 	root common.Root,
 ) error {
-	return db.SetListElement(ctx, "state_roots", index, &Node{Value: root[:]})
+	return db.setListElement(ctx, "state_roots", index, &Node{Value: root[:]})
 }
 
-func (db *SchemaDB) SetListElement(
+func (db *SchemaDB) SetListElementRaw(
+	ctx context.Context,
+	path string,
+	index uint64,
+	bz []byte,
+) error {
+	length := len(bz)
+	if length > 32 {
+		return fmt.Errorf("expected max 32 bytes, got %d", len(bz))
+	}
+	if length == 32 {
+		return db.setListElement(ctx, path, index, &Node{Value: bz})
+	}
+
+	objPath := ObjectPath(fmt.Sprintf("%s/%d", path, index))
+	_, gindex, offset, err := objPath.GetGeneralizedIndex(db.schemaRoot)
+	if err != nil {
+		return err
+	}
+	nodeBz, ok, err := db.getNode(ctx, gindex)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		if index > 0 {
+			return fmt.Errorf(
+				"attempted to set list element %s/%d but node not found gindex=%d",
+				objPath,
+				index,
+				gindex,
+			)
+		}
+		nodeBz = make([]byte, 32)
+	}
+	copy(nodeBz[offset:], bz)
+	return db.setListElement(ctx, path, index, &Node{Value: nodeBz})
+}
+
+func (db *SchemaDB) SetListElementObject(
+	ctx context.Context,
+	path string,
+	index uint64,
+	obj Treeable,
+) error {
+	treeNode, err := NewTreeFromFastSSZ(obj)
+	if err != nil {
+		return err
+	}
+	return db.setListElement(ctx, path, index, treeNode)
+}
+
+func (db *SchemaDB) setListElement(
 	ctx context.Context,
 	path string,
 	index uint64,
 	node *Node,
 ) error {
-	length, err := db.getListLength(ctx, path)
+	length, err := db.GetListLength(ctx, path)
 	if err != nil {
 		return err
 	}
@@ -370,7 +421,8 @@ func (db *SchemaDB) SetListElement(
 		return fmt.Errorf("index %d out of bounds; len=%d", index, length)
 	}
 	objPath := ObjectPath(fmt.Sprintf("%s/%d", path, index))
-	_, gidx, _, err := objPath.GetGeneralizedIndex(db.schemaRoot)
+	_, gidx, offset, err := objPath.GetGeneralizedIndex(db.schemaRoot)
+	fmt.Printf("gidx: %d offset: %d\n", gidx, offset)
 	if err != nil {
 		return err
 	}
@@ -379,29 +431,31 @@ func (db *SchemaDB) SetListElement(
 		return err
 	}
 
+	if index != length {
+		return nil
+	}
+
 	// when the index is at the end of the list, we need to update the length
 	// and potentially add some zero hashes
-	if index == length {
-		gindex := gidx
-		depth := 0
-		branchID := db.stageID(ctx)
-		for gindex > 1 {
-			if gindex%2 == 0 {
-				sibling, err := db.getNode(ctx, gindex+1)
-				if err != nil {
-					return err
-				}
-				if sibling != nil {
-					// exit condition: once pre-existing sibling is found
-					// upward traversal can be stopped
-					break
-				}
-				db.stages[branchID][gindex+1] = db.zeroHashes[depth]
+	gindex := gidx
+	depth := 0
+	branchID := db.stageID(ctx)
+	for gindex > 1 {
+		if gindex%2 == 0 {
+			var ok bool
+			_, ok, err = db.getNode(ctx, gindex+1)
+			if err != nil {
+				return err
 			}
-			depth += 1
-			gindex /= 2
+			if ok {
+				// exit condition: once pre-existing sibling is found
+				// upward traversal can be stopped
+				break
+			}
+			db.stages[branchID][gindex+1] = db.zeroHashes[depth]
 		}
-		return db.setListLength(ctx, path, index+1)
+		depth++
+		gindex /= 2
 	}
-	return nil
+	return db.setListLength(ctx, path, index+1)
 }

@@ -234,6 +234,12 @@ func Test_SchemaDB(t *testing.T) {
 
 	beaconDB, err := sszdb.NewSchemaDB(db, beacon)
 	require.NoError(t, err)
+	assertRootHash := func() {
+		hash := beacon.HashTreeRoot()
+		hashSSZ, err := beaconDB.Get(1, 0)
+		require.NoError(t, err)
+		require.True(t, bytes.Equal(hash[:], hashSSZ))
+	}
 
 	genesisValidatorsRoot, err := beaconDB.GetPath(
 		ctx,
@@ -264,10 +270,12 @@ func Test_SchemaDB(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, beacon.LatestBlockHeader, blockHeader)
 
+	// block roots
 	blockRoots, err := beaconDB.GetBlockRoots(ctx)
 	require.NoError(t, err)
 	require.Equal(t, beacon.BlockRoots, blockRoots)
 
+	// validators
 	validator0Bz, err := beaconDB.GetPath(ctx, "validators/0")
 	require.NoError(t, err)
 	validator0 := &types.Validator{}
@@ -282,6 +290,43 @@ func Test_SchemaDB(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, beacon.Validators[1], validator1)
 
+	debugDrawDBTree(t, ctx, beaconDB.Backend, "testdata/empty.dot")
+
+	err = beaconDB.SetListElementRaw(ctx, "balances", 0, []byte{1})
+	require.NoError(t, err)
+	beacon.Balances = append(beacon.Balances, 1)
+	debugDrawDBTree(t, ctx, beaconDB.Backend, "testdata/one.dot")
+	require.NoError(t, beaconDB.Commit(ctx))
+	assertRootHash()
+
+	err = beaconDB.SetListElementRaw(ctx, "balances", 1, []byte{2})
+	beacon.Balances = append(beacon.Balances, 2)
+	require.NoError(t, err)
+	debugDrawDBTree(t, ctx, beaconDB.Backend, "testdata/two.dot")
+	require.NoError(t, beaconDB.Commit(ctx))
+	assertRootHash()
+
+	validator2 := &types.Validator{
+		Pubkey:                     [48]byte{10, 11, 12, 13},
+		WithdrawalCredentials:      [32]byte{13, 14, 15, 16},
+		EffectiveBalance:           789,
+		Slashed:                    false,
+		ActivationEligibilityEpoch: 789,
+		ActivationEpoch:            789,
+		ExitEpoch:                  789,
+		WithdrawableEpoch:          789,
+	}
+	err = beaconDB.SetListElementObject(ctx, "validators", 2, validator2)
+	require.NoError(t, err)
+	beacon.Validators = append(beacon.Validators, validator2)
+
+	beaconDB.SetListElementRaw(ctx, "balances", 2, []byte{3})
+	beacon.Balances = append(beacon.Balances, 3)
+
+	require.NoError(t, beaconDB.Commit(ctx))
+	assertRootHash()
+
+	// execution payload header
 	executionPayloadHeader := &types.ExecutionPayloadHeader{}
 	executionPayloadHeaderBz, err := beaconDB.GetPath(
 		ctx,
@@ -311,11 +356,8 @@ func Test_SchemaDB(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, bytes.Equal(hash[:], hashSSZ))
 
-	debugDrawDBTree(t, ctx, db, "testdata/beacon_state_test_0.dot")
-
 	// now try an append
 	beacon.BlockRoots = append(beacon.BlockRoots, common.Root{8, 8, 8, 8})
-	debugDrawTree(t, beacon, "testdata/beacon_state_test_1.dot")
 	hash = beacon.HashTreeRoot()
 
 	require.False(t, bytes.Equal(hash[:], hashSSZ))
@@ -328,7 +370,6 @@ func Test_SchemaDB(t *testing.T) {
 	require.NoError(t, db.Commit(ctx))
 	hashSSZ, err = beaconDB.Get(1, 0)
 	require.NoError(t, err)
-	debugDrawDBTree(t, ctx, db, "testdata/beacon_state_test_2.dot")
 	require.Truef(
 		t,
 		bytes.Equal(hash[:], hashSSZ),

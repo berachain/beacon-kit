@@ -20,7 +20,13 @@
 
 package beacondb
 
-import "github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+import (
+	"bytes"
+	"fmt"
+
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/sszdb"
+)
 
 // UpdateRandaoMixAtIndex sets the current RANDAO mix in the store.
 func (kv *KVStore[
@@ -30,6 +36,15 @@ func (kv *KVStore[
 	index uint64,
 	mix common.Bytes32,
 ) error {
+	err := kv.sszDB.SetListElementRaw(
+		kv.ctx,
+		"randao_mixes",
+		index,
+		mix[:],
+	)
+	if err != nil {
+		return err
+	}
 	return kv.randaoMix.Set(kv.ctx, index, mix[:])
 }
 
@@ -43,6 +58,16 @@ func (kv *KVStore[
 	bz, err := kv.randaoMix.Get(kv.ctx, index)
 	if err != nil {
 		return common.Bytes32{}, err
+	}
+	sszBz, err := kv.sszDB.GetPath(
+		kv.ctx,
+		sszdb.ObjectPath(fmt.Sprintf("randao_mixes/%d", index)),
+	)
+	if err != nil {
+		return common.Bytes32{}, err
+	}
+	if !bytes.Equal(bz, sszBz) {
+		return common.Bytes32{}, fmt.Errorf("randao mix mismatch")
 	}
 	return common.Bytes32(bz), nil
 }

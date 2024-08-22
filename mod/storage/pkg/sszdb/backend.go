@@ -53,10 +53,11 @@ func NewBackend(cfg BackendConfig) (*Backend, error) {
 	zero := make([]byte, 32)
 	b.zeroHashLevels = make(map[string]int)
 	b.zeroHashLevels[string(zero)] = 0
+	b.zeroHashes[0] = zero
 	buf := make([]byte, 64)
-	for i := 0; i < 64; i++ {
-		copy(buf[:32], b.zeroHashes[i][:])
-		copy(buf[32:], b.zeroHashes[i][:])
+	for i := range 64 {
+		copy(buf[:32], b.zeroHashes[i])
+		copy(buf[32:], b.zeroHashes[i])
 		b.zeroHashes[i+1] = hashFn(buf)
 		b.zeroHashLevels[string(b.zeroHashes[i+1])] = i + 1
 	}
@@ -159,13 +160,17 @@ func (d *Backend) stageID(ctx context.Context) uint8 {
 	return id.(uint8)
 }
 
-func (d *Backend) getFromStage(ctx context.Context, gindex uint64) []byte {
+func (d *Backend) getFromStage(
+	ctx context.Context,
+	gindex uint64,
+) ([]byte, bool) {
 	stageID := d.stageID(ctx)
 	branch, ok := d.stages[stageID]
 	if !ok {
-		return nil
+		return nil, false
 	}
-	return branch[gindex]
+	n, ok := branch[gindex]
+	return n, ok
 }
 
 // stage queues and caches a node, its descendants, and its ancestors for later
@@ -269,14 +274,20 @@ func (d *Backend) hash(stageID uint8, gindex uint64) ([]byte, error) {
 }
 
 // getNode first checks the stage for the node, then the database.
-// return nil if the node does not exist.
-func (d *Backend) getNode(ctx context.Context, gindex uint64) ([]byte, error) {
-	nodeBz := d.getFromStage(ctx, gindex)
-	if nodeBz != nil {
-		return nodeBz, nil
+func (d *Backend) getNode(
+	ctx context.Context,
+	gindex uint64,
+) ([]byte, bool, error) {
+	nodeBz, ok := d.getFromStage(ctx, gindex)
+	if ok {
+		return nodeBz, true, nil
 	}
 	key := keyBytes(gindex)
-	return d.get(key)
+	bz, err := d.get(key)
+	if err != nil {
+		return nil, false, err
+	}
+	return bz, bz != nil, nil
 }
 
 // mustGetNode first checks the stage for the node, then the database.
@@ -285,8 +296,8 @@ func (d *Backend) mustGetNode(
 	ctx context.Context,
 	gindex uint64,
 ) (*Node, error) {
-	nodeBz := d.getFromStage(ctx, gindex)
-	if nodeBz != nil {
+	nodeBz, ok := d.getFromStage(ctx, gindex)
+	if ok {
 		return &Node{Value: nodeBz}, nil
 	}
 
@@ -349,32 +360,39 @@ func (d *Backend) stageToRoot(ctx context.Context, gindex uint64) {
 }
 
 func (d *Backend) drawNode(
+	ctx context.Context,
 	val []byte,
 	levelOrder int,
 	g *dot.Graph,
 ) (dot.Node, error) {
 	h := hex.EncodeToString(val)
+	if len(h) == 0 {
+		h = "nil"
+	}
 	dn := g.Node(fmt.Sprintf("n%d", levelOrder)).
 		Label(fmt.Sprintf("%d\n%s..%s", levelOrder, h[:3], h[len(h)-3:]))
 
-	left, err := d.Get(uint64(levelOrder)*2, 0)
+	if levelOrder == 52 {
+		fmt.Printf("node %d: %s\n", levelOrder, h)
+	}
+	left, found, err := d.getNode(ctx, uint64(levelOrder)*2)
 	if err != nil {
 		return dot.Node{}, err
 	}
-	if left != nil {
-		ln, err := d.drawNode(left, 2*levelOrder, g)
+	if found {
+		ln, err := d.drawNode(ctx, left, 2*levelOrder, g)
 		if err != nil {
 			return dot.Node{}, err
 		}
 		g.Edge(dn, ln).Label("0")
 	}
 
-	right, err := d.Get(uint64(levelOrder)*2+1, 0)
+	right, found, err := d.getNode(ctx, uint64(levelOrder)*2+1)
 	if err != nil {
 		return dot.Node{}, err
 	}
-	if right != nil {
-		rn, err := d.drawNode(right, 2*levelOrder+1, g)
+	if found {
+		rn, err := d.drawNode(ctx, right, 2*levelOrder+1, g)
 		if err != nil {
 			return dot.Node{}, err
 		}
@@ -389,7 +407,7 @@ func (d *Backend) DrawTree(ctx context.Context, f io.Writer) error {
 		return err
 	}
 	g := dot.NewGraph(dot.Directed)
-	_, err = d.drawNode(root.Value, 1, g)
+	_, err = d.drawNode(ctx, root.Value, 1, g)
 	if err != nil {
 		return err
 	}
