@@ -56,12 +56,8 @@ func Execute(rootCmd *cobra.Command, envPrefix, defaultHome string) error {
 	return rootCmd.ExecuteContext(ctx)
 }
 
-// CreateExecuteContext returns a base Context with server and client context
+// CreateExecuteContext returns a base Context with client context
 // values initialized.
 func CreateExecuteContext(ctx context.Context) context.Context {
-	// srvCtx := server.NewDefaultContext()
-	ctx = context.WithValue(ctx, client.ClientContextKey, &client.Context{})
-	// ctx = context.WithValue(ctx, server.ServerContextKey, srvCtx)
-
-	return ctx
+	return context.WithValue(ctx, client.ClientContextKey, &client.Context{})
 }
