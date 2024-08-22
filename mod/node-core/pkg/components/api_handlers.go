@@ -183,18 +183,3 @@ func ProvideNodeAPIProofHandler[
 		*Validator,
 	](b)
 }
-
-// func DefaultNodeAPIHandlers[
-// 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
-// ]() []any {
-// 	return []any{
-// 		ProvideNodeAPIHandlers,
-// 		ProvideNodeAPIBeaconHandler[BeaconBlockHeaderT],
-// 		ProvideNodeAPIBuilderHandler,
-// 		ProvideNodeAPIConfigHandler,
-// 		ProvideNodeAPIDebugHandler,
-// 		ProvideNodeAPIEventsHandler,
-// 		ProvideNodeAPINodeHandler,
-// 		ProvideNodeAPIProofHandler,
-// 	}
-// }

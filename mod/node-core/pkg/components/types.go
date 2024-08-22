@@ -42,20 +42,6 @@ type (
 	// DBManager is a type alias for the database manager.
 	DBManager = manager.DBManager
 
-	// EngineClient is a type alias for the engine client.
-	// EngineClient = engineclient.EngineClient[
-	// 	ExecutionPayload[ExecutionPayload, ExecutionPayloadHeader, Withdrawals],
-	// 	*PayloadAttributes,
-	// ]
-
-	// ExecutionEngine is a type alias for the execution engine.
-	// ExecutionEngine = execution.Engine[
-	// 	*ExecutionPayload,
-	// 	*PayloadAttributes,
-	// 	PayloadID,
-	// 	Withdrawals,
-	// ]
-
 	// ReportingService is a type alias for the reporting service.
 	ReportingService = version.ReportingService
 )
@@ -73,10 +59,6 @@ type (
 
 	// Eth1Data is a type alias for the eth1 data.
 	Eth1Data = types.Eth1Data
-
-	// ExecutionPayload type aliases.
-	// ExecutionPayload       = types.ExecutionPayload
-	// ExecutionPayloadHeader = types.ExecutionPayloadHeader
 
 	// Fork is a type alias for the fork.
 	Fork = types.Fork

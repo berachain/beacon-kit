@@ -51,7 +51,7 @@ type ChainServiceInput[
 
 	ChainSpec    common.ChainSpec
 	Cfg          *config.Config
-	EngineClient client.EngineClient[
+	EngineClient *client.EngineClient[
 		ExecutionPayloadT,
 		*engineprimitives.PayloadAttributes[WithdrawalT],
 	]
