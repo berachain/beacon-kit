@@ -287,8 +287,6 @@ type (
 	// BlockStore is the interface for block storage.
 	BlockStore[BeaconBlockT any] interface {
 		Set(blk BeaconBlockT) error
-		// Get retrieves the block at the given slot.
-		Get(slot math.Slot) (BeaconBlockT, error)
 		// GetSlotByBlockRoot retrieves the slot by a given root from the store.
 		GetSlotByBlockRoot(root common.Root) (math.Slot, error)
 		// GetSlotByStateRoot retrieves the slot by a given root from the store.
@@ -297,7 +295,6 @@ type (
 		// number
 		// from the store.
 		GetSlotByExecutionNumber(executionNumber math.U64) (math.Slot, error)
-		Prune(start, end uint64) error
 	}
 
 	ConsensusEngine interface {

@@ -4,20 +4,21 @@ go 1.23.0
 
 replace (
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240806152830-8fb47b368cd4
-	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240806152830-8fb47b368cd4
+	cosmossdk.io/core => cosmossdk.io/core v0.0.0-20240806152830-8fb47b368cd4
 	github.com/cosmos/cosmos-sdk => github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240808182639-7bdbf06a94f2
 )
 
 require (
 	cosmossdk.io/collections v0.4.0
-	cosmossdk.io/core v0.12.1-0.20240806152830-8fb47b368cd4
+	cosmossdk.io/core v1.0.0
 	cosmossdk.io/log v1.4.1
-	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240617161612-ab1257fcf5a1
-	github.com/berachain/beacon-kit/mod/log v0.0.0-20240610210054-bfdc14c4013c
+	github.com/berachain/beacon-kit/mod/errors v0.0.0-20240806211103-d1105603bfc0
+	github.com/berachain/beacon-kit/mod/log v0.0.0-20240821000339-4d4242ba4a50
 	github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240821052951-c15422305b4e
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240806094948-2c4293ef36c4
 	github.com/cosmos/cosmos-sdk v0.53.0
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
+	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/spf13/afero v1.11.0
 	github.com/stretchr/testify v1.9.0
 )
@@ -26,10 +27,11 @@ require (
 	cosmossdk.io/x/auth v0.0.0-20240806152830-8fb47b368cd4 // indirect
 	cosmossdk.io/x/consensus v0.0.0-20240806152830-8fb47b368cd4 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
-	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240703145037-b5612ab256db // indirect
+	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df // indirect
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240616162244-4768e80dfb9a // indirect
 	github.com/cometbft/cometbft/api v1.0.0-rc.1.0.20240806094948-2c4293ef36c4 // indirect
+	github.com/cosmos/iavl v1.2.1-0.20240731145221-594b181f427e // indirect
 	github.com/dvsekhvalnov/jose2go v1.7.0 // indirect
 	github.com/ferranbt/fastssz v0.1.4-0.20240629094022-eac385e6ee79 // indirect
 	github.com/karalabe/ssz v0.2.1-0.20240724074312-3d1ff7a6f7c4 // indirect
@@ -40,7 +42,10 @@ require (
 	github.com/onsi/gomega v1.33.1 // indirect
 	github.com/prysmaticlabs/go-bitfield v0.0.0-20240618144021-706c95b2dd15 // indirect
 	github.com/prysmaticlabs/gohashtree v0.0.4-beta.0.20240624100937-73632381301b // indirect
+	github.com/sagikazarmark/locafero v0.6.0 // indirect
+	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8 // indirect
 	golang.org/x/sync v0.8.0 // indirect
+	google.golang.org/genproto v0.0.0-20240617180043-68d350f18fd4 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
@@ -102,16 +107,14 @@ require (
 	github.com/petermattis/goid v0.0.0-20240607163614-bb94eb51e7a7 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
-	github.com/prometheus/client_golang v1.19.1 // indirect
+	github.com/prometheus/client_golang v1.20.1 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.55.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/rs/zerolog v1.33.0 // indirect
-	github.com/sagikazarmark/locafero v0.6.0 // indirect
 	github.com/sasha-s/go-deadlock v0.3.1 // indirect
-	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8 // indirect
-	github.com/spf13/cast v1.6.0 // indirect
+	github.com/spf13/cast v1.7.0 // indirect
 	github.com/spf13/cobra v1.8.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
@@ -124,7 +127,6 @@ require (
 	golang.org/x/net v0.28.0 // indirect
 	golang.org/x/sys v0.24.0 // indirect
 	golang.org/x/text v0.17.0 // indirect
-	google.golang.org/genproto v0.0.0-20240617180043-68d350f18fd4 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240617180043-68d350f18fd4 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240711142825-46eb208f015d // indirect
 	google.golang.org/grpc v1.65.0 // indirect
