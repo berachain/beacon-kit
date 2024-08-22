@@ -22,6 +22,9 @@ package node
 
 import (
 	"context"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"cosmossdk.io/log"
 	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"
@@ -34,12 +37,14 @@ var _ types.Node = (*node)(nil)
 
 // node is the hard-type representation of the beacon-kit node.
 type node struct {
-	// TODO: FIX, HACK TO MAKE CLI HAPPY FOR NOW.
-	types.Application
 	// logger is the node's logger.
 	logger log.Logger
 	// registry is the node's service registry.
 	registry *service.Registry
+
+	// TODO: FIX, HACK TO MAKE CLI HAPPY FOR NOW.
+	// THIS SHOULD BE REMOVED EVENTUALLY.
+	types.Application
 }
 
 // New returns a new node.
@@ -59,7 +64,7 @@ func (n *node) Start(
 	g, gctx := errgroup.WithContext(cctx)
 
 	// listen for quit signals so the calling parent process can gracefully exit
-	listenForQuitSignals(g, true, cancelFn, log.NewNopLogger())
+	n.listenForQuitSignals(g, true, cancelFn)
 
 	// Start all the registered services.
 	if err := n.registry.StartAll(gctx); err != nil {
@@ -68,4 +73,37 @@ func (n *node) Start(
 
 	// Wait for those aforementioned exit signals.
 	return g.Wait()
+}
+
+// listenForQuitSignals listens for SIGINT and SIGTERM. When a signal is
+// received,
+// the cleanup function is called, indicating the caller can gracefully exit or
+// return.
+//
+// Note, the blocking behavior of this depends on the block argument.
+// The caller must ensure the corresponding context derived from the cancelFn is
+// used correctly.
+func (n *node) listenForQuitSignals(
+	g *errgroup.Group,
+	block bool,
+	cancelFn context.CancelFunc,
+) {
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+
+	f := func() {
+		sig := <-sigCh
+		cancelFn()
+
+		n.logger.Info("caught signal", "signal", sig.String())
+	}
+
+	if block {
+		g.Go(func() error {
+			f()
+			return nil
+		})
+	} else {
+		go f()
+	}
 }
