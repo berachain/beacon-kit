@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 //
-//nolint:mnd // its okay.
+
 package server
 
 import (
@@ -77,7 +77,6 @@ func StartCmdWithOptions[T interface {
 	appCreator types.AppCreator[T],
 	opts StartCmdOptions[T],
 ) *cobra.Command {
-
 	cmd := &cobra.Command{
 		Use:   "start",
 		Short: "Run the full node",
@@ -128,22 +127,45 @@ func addStartNodeFlags[T interface {
 	cmd *cobra.Command,
 	opts StartCmdOptions[T],
 ) {
-	cmd.Flags().String(flagAddress, "tcp://127.0.0.1:26658", "Listen address")
+	cmd.Flags().String(
+		flagAddress, "tcp://127.0.0.1:26658", "Listen address")
 	cmd.Flags().
-		String(flagTransport, "socket", "Transport protocol: socket, grpc")
+		String(
+			flagTransport,
+			"socket",
+			"Transport protocol: socket, grpc")
 	cmd.Flags().
-		Uint64(FlagHaltHeight, 0, "Block height at which to gracefully halt the chain and shutdown the node")
+		Uint64(
+			FlagHaltHeight,
+			0, "Block height at which to gracefully halt the chain and shutdown the node")
 	cmd.Flags().
-		Uint64(FlagHaltTime, 0, "Minimum block time (in Unix seconds) at which to gracefully halt the chain and shutdown the node")
-	cmd.Flags().Bool(FlagInterBlockCache, true, "Enable inter-block caching")
+		Uint64(
+			FlagHaltTime,
+			0,
+			"Minimum block time (in Unix seconds) at which to gracefully halt the chain and shutdown the node")
+	cmd.Flags().Bool(
+		FlagInterBlockCache,
+		true,
+		"Enable inter-block caching")
 	cmd.Flags().
-		String(FlagPruning, pruningtypes.PruningOptionDefault, "Pruning strategy (default|nothing|everything|custom)")
+		String(
+			FlagPruning,
+			pruningtypes.PruningOptionDefault,
+			"Pruning strategy (default|nothing|everything|custom)")
 	cmd.Flags().
-		Uint64(FlagPruningKeepRecent, 0, "Number of recent heights to keep on disk (ignored if pruning is not 'custom')")
+		Uint64(
+			FlagPruningKeepRecent,
+			0,
+			"Number of recent heights to keep on disk (ignored if pruning is not 'custom')")
 	cmd.Flags().
-		Uint64(FlagPruningInterval, 0, "Height interval at which pruned heights are removed from disk (ignored if pruning is not 'custom')")
+		Uint64(FlagPruningInterval,
+			0,
+			"Height interval at which pruned heights are removed from disk (ignored if pruning is not 'custom')")
 	cmd.Flags().
-		Uint64(FlagMinRetainBlocks, 0, "Minimum block height offset during ABCI commit to prune CometBFT blocks")
+		Uint64(
+			FlagMinRetainBlocks,
+			0,
+			"Minimum block height offset during ABCI commit to prune CometBFT blocks")
 	cmd.Flags().
 		Bool(FlagDisableIAVLFastNode, false, "Disable fast node for IAVL tree")
 
