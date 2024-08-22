@@ -157,11 +157,10 @@ func start[T types.Application](
 	appCreator types.AppCreator[T],
 	appOpts StartCmdOptions[T],
 ) error {
-	app, appCleanupFn, err := startApp[T](svrCtx, appCreator, appOpts)
+	app, err := startApp[T](svrCtx, appCreator, appOpts)
 	if err != nil {
 		return err
 	}
-	defer appCleanupFn()
 
 	cmtCfg := svrCtx.Config
 
@@ -231,22 +230,15 @@ func startApp[T types.Application](
 	svrCtx *Context,
 	appCreator types.AppCreator[T],
 	opts StartCmdOptions[T],
-) (app T, cleanupFn func(), err error) {
+) (app T, err error) {
 
 	home := svrCtx.Config.RootDir
 	db, err := opts.DBOpener(home, dbm.PebbleDBBackend)
 	if err != nil {
-		return app, func() {}, err
+		return app, err
 	}
 
-	app = appCreator(svrCtx.Logger, db, nil, svrCtx.Viper)
-
-	cleanupFn = func() {
-		if localErr := app.Close(); localErr != nil {
-			svrCtx.Logger.Error(localErr.Error())
-		}
-	}
-	return app, cleanupFn, nil
+	return appCreator(svrCtx.Logger, db, nil, svrCtx.Viper), nil
 }
 
 // addStartNodeFlags should be added to any CLI commands that start the network.
