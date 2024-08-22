@@ -124,13 +124,13 @@ func NewService(
 func (app *Service) StartCmtNode(
 	ctx context.Context,
 	cfg *cmtcfg.Config,
-) (*node.Node, func(), error) {
+) (func(), error) {
 	var (
 		cleanupFn func()
 	)
 	nodeKey, err := p2p.LoadOrGenNodeKey(cfg.NodeKeyFile())
 	if err != nil {
-		return nil, cleanupFn, err
+		return cleanupFn, err
 	}
 
 	cmtApp := server.NewCometABCIWrapper(app)
@@ -149,11 +149,11 @@ func (app *Service) StartCmtNode(
 		servercmtlog.CometLoggerWrapper{Logger: app.logger},
 	)
 	if err != nil {
-		return app.node, cleanupFn, err
+		return cleanupFn, err
 	}
 
 	if err = app.node.Start(); err != nil {
-		return app.node, cleanupFn, err
+		return cleanupFn, err
 	}
 
 	cleanupFn = func() {
@@ -163,7 +163,7 @@ func (app *Service) StartCmtNode(
 		}
 	}
 
-	return app.node, cleanupFn, nil
+	return cleanupFn, nil
 }
 
 // Close is called in start cmd to gracefully cleanup resources.

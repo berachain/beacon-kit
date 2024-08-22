@@ -29,7 +29,6 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 	cmtcfg "github.com/cometbft/cometbft/config"
-	"github.com/cometbft/cometbft/node"
 	cmttypes "github.com/cometbft/cometbft/types"
 	dbm "github.com/cosmos/cosmos-db"
 )
@@ -59,7 +58,7 @@ type (
 		StartCmtNode(
 			context.Context,
 			*cmtcfg.Config,
-		) (tmNode *node.Node, cleanupFn func(), err error)
+		) (cleanupFn func(), err error)
 		// Close is called in start cmd to gracefully cleanup resources.
 		// Must be safe to be called multiple times.
 		Close() error

@@ -187,7 +187,7 @@ func startInProcess[T types.Application](svrCtx *Context, app T) error {
 	g, ctx := getCtx(svrCtx, true)
 
 	svrCtx.Logger.Info("starting node with ABCI CometBFT in-process")
-	_, cleanupFn, err := app.StartCmtNode(ctx, cmtCfg)
+	cleanupFn, err := app.StartCmtNode(ctx, cmtCfg)
 	if err != nil {
 		return err
 	}
