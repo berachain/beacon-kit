@@ -50,6 +50,7 @@ COPY ./mod/log/go.mod ./mod/log/go.sum ./mod/log/
 COPY ./mod/node-api/go.mod ./mod/node-api/go.sum ./mod/node-api/
 COPY ./mod/node-api/engines/go.mod ./mod/node-api/engines/go.sum ./mod/node-api/engines/
 COPY ./mod/node-core/go.mod ./mod/node-core/go.sum ./mod/node-core/
+COPY ./mod/observability/go.mod ./mod/observability/
 COPY ./mod/payload/go.mod ./mod/payload/go.sum ./mod/payload/
 COPY ./mod/primitives/go.mod ./mod/primitives/go.sum ./mod/primitives/
 COPY ./mod/state-transition/go.mod ./mod/state-transition/go.sum ./mod/state-transition/
@@ -74,6 +75,7 @@ RUN go work init && \
     go work use ./mod/node-api && \
     go work use ./mod/node-api/engines && \
     go work use ./mod/node-core && \
+    go work use ./mod/observability && \
     go work use ./mod/payload && \
     go work use ./mod/primitives && \
     go work use ./mod/state-transition && \

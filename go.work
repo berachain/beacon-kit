@@ -20,6 +20,7 @@ use (
 	./mod/node-api
 	./mod/node-api/engines
 	./mod/node-core
+	./mod/observability
 	./mod/payload
 	./mod/primitives
 	./mod/state-transition
