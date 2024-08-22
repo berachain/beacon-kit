@@ -24,8 +24,8 @@ import (
 	"time"
 
 	"github.com/berachain/beacon-kit/mod/config"
+	serverconfig "github.com/berachain/beacon-kit/mod/config/pkg/config"
 	"github.com/berachain/beacon-kit/mod/config/pkg/template"
-	serverconfig "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/config"
 	cmtcfg "github.com/cometbft/cometbft/config"
 )
 
