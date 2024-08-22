@@ -21,13 +21,37 @@
 package components
 
 import (
+	"errors"
+
+	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/config"
-	"github.com/berachain/beacon-kit/mod/observability/pkg/telemetry"
+	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
+	"github.com/mitchellh/mapstructure"
+	"github.com/spf13/viper"
 )
 
-// ProvideTelemetryService is a function that provides a TelemetrySink.
-func ProvideTelemetryService(
-	cfg *config.Config,
-) (*telemetry.Service, error) {
-	return telemetry.NewService(&cfg.Telemetry)
+// ServerConfigInput is the input for the dependency injection framework.
+type ServerConfigInput struct {
+	depinject.In
+	AppOpts servertypes.AppOptions
+}
+
+// ProvideConfig is a function that provides the BeaconConfig to the
+// application.
+func ProvideServerConfig(in ConfigInput) (*config.Config, error) {
+	v, ok := in.AppOpts.(*viper.Viper)
+	if !ok {
+		return nil, errors.New("invalid application options type")
+	}
+
+	cfg := config.Config{}
+	if err := v.Unmarshal(&cfg,
+		viper.DecodeHook(mapstructure.ComposeDecodeHookFunc(
+			mapstructure.StringToTimeDurationHookFunc(),
+			mapstructure.StringToSliceHookFunc(","),
+		))); err != nil {
+		return nil, err
+	}
+
+	return &cfg, nil
 }
