@@ -22,9 +22,9 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/log"
+	blockstore "github.com/berachain/beacon-kit/mod/node-api/block_store"
 )
 
 // BlockServiceInput is the input for the block service.

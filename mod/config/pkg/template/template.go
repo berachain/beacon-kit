@@ -89,9 +89,6 @@ enable-optimistic-payload-builds = "{{.BeaconKit.Validator.EnableOptimisticPaylo
 # Enabled determines if the block store service is enabled.
 enabled = "{{ .BeaconKit.BlockStoreService.Enabled }}"
 
-# PrunerEnabled determines if the block pruner is enabled.
-pruner-enabled = "{{ .BeaconKit.BlockStoreService.PrunerEnabled }}"
-
 # AvailabilityWindow is the number of slots to keep in the store.
 availability-window = "{{ .BeaconKit.BlockStoreService.AvailabilityWindow }}"
 
