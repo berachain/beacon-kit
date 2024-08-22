@@ -21,11 +21,15 @@
 package beacondb
 
 import (
+	"bytes"
 	"errors"
+	"fmt"
 
 	"cosmossdk.io/collections/indexes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/sszdb"
+	fastssz "github.com/ferranbt/fastssz"
 )
 
 // AddValidator registers a new validator in the beacon state.
@@ -80,7 +84,27 @@ func (kv *KVStore[
 	}
 
 	// Push onto the balances list.
-	return kv.balances.Set(kv.ctx, idx, val.GetEffectiveBalance().Unwrap())
+	balance := val.GetEffectiveBalance().Unwrap()
+	// Push onto the balances list.
+	err = kv.balances.Set(kv.ctx, idx, balance)
+	if err != nil {
+		return err
+	}
+
+	idx2, err := kv.sszDB.GetListLength(kv.ctx, "validators")
+	if err != nil {
+		return err
+	}
+	if idx2 != idx {
+		return errors.New("validator index mismatch")
+	}
+	err = kv.sszDB.SetListElementObject(kv.ctx, "validators", idx, val)
+	if err != nil {
+		return err
+	}
+	var balancBz []byte
+	fastssz.MarshalUint64(balancBz, balance)
+	return kv.sszDB.SetListElementRaw(kv.ctx, "balances", idx, []byte{})
 }
 
 // UpdateValidatorAtIndex updates a validator at a specific index.
@@ -91,6 +115,11 @@ func (kv *KVStore[
 	index math.ValidatorIndex,
 	val ValidatorT,
 ) error {
+	idx := index.Unwrap()
+	err := kv.sszDB.SetListElementObject(kv.ctx, "validators", idx, val)
+	if err != nil {
+		return err
+	}
 	return kv.validators.Set(kv.ctx, index.Unwrap(), val)
 }
 
@@ -140,6 +169,28 @@ func (kv *KVStore[
 		var t ValidatorT
 		return t, err
 	}
+	var val2 ValidatorT
+	val2 = val2.Empty()
+	err = kv.sszDB.GetObject(
+		kv.ctx,
+		sszdb.ObjectPath(fmt.Sprintf("validators/%d", index)),
+		val2,
+	)
+	if err != nil {
+		return val2, err
+	}
+	valBz, err := val.MarshalSSZ()
+	if err != nil {
+		return val2, err
+	}
+	val2Bz, err := val2.MarshalSSZ()
+	if err != nil {
+		return val2, err
+	}
+	if !bytes.Equal(valBz, val2Bz) {
+		return val2, errors.New("validator mismatch")
+	}
+
 	return val, err
 }
 
@@ -188,7 +239,15 @@ func (kv *KVStore[
 	if err != nil {
 		return 0, err
 	}
-	return uint64(len(validators)), nil
+	length := uint64(len(validators))
+	length2, err := kv.sszDB.GetListLength(kv.ctx, "validators")
+	if err != nil {
+		return 0, err
+	}
+	if length != length2 {
+		return 0, errors.New("validator length mismatch")
+	}
+	return length2, nil
 }
 
 // GetValidatorsByEffectiveBalance retrieves all validators sorted by
@@ -235,7 +294,20 @@ func (kv *KVStore[
 	idx math.ValidatorIndex,
 ) (math.Gwei, error) {
 	balance, err := kv.balances.Get(kv.ctx, idx.Unwrap())
-	return math.Gwei(balance), err
+	if err != nil {
+		return 0, err
+	}
+	path := fmt.Sprintf("balances/%d", idx)
+	balanceBz, err := kv.sszDB.GetPath(kv.ctx, sszdb.ObjectPath(path))
+	balance2 := fastssz.UnmarshallUint64(balanceBz)
+	if balance != balance2 {
+		return 0, fmt.Errorf(
+			"balance mismatch expected %d, got %d",
+			balance,
+			balance2,
+		)
+	}
+	return math.Gwei(balance2), err
 }
 
 // SetBalance sets the balance of a validator.
@@ -246,6 +318,17 @@ func (kv *KVStore[
 	idx math.ValidatorIndex,
 	balance math.Gwei,
 ) error {
+	var balanceBz []byte
+	balanceBz = fastssz.MarshalUint64(balanceBz, balance.Unwrap())
+	err := kv.sszDB.SetListElementRaw(
+		kv.ctx,
+		"balances",
+		idx.Unwrap(),
+		balanceBz,
+	)
+	if err != nil {
+		return err
+	}
 	return kv.balances.Set(kv.ctx, idx.Unwrap(), balance.Unwrap())
 }
 

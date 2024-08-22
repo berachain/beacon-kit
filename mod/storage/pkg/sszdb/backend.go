@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"os"
 
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/cockroachdb/pebble"
@@ -25,10 +26,13 @@ var hashFn = func(b []byte) []byte {
 }
 
 type Backend struct {
+	version        uint64
 	db             *pebble.DB
 	stages         map[uint8]nodeCache
 	zeroHashes     [65][]byte
 	zeroHashLevels map[string]int
+
+	path string
 }
 
 type BackendConfig struct {
@@ -47,6 +51,7 @@ func NewBackend(cfg BackendConfig) (*Backend, error) {
 	b := &Backend{
 		db:     db,
 		stages: make(map[uint8]nodeCache),
+		path:   cfg.Path,
 	}
 
 	// init zero hashes
@@ -231,6 +236,8 @@ func (d *Backend) Commit(ctx context.Context) error {
 		}
 	}
 	d.stages = make(map[uint8]nodeCache)
+	// TODO versioning
+	d.version++
 	return nil
 }
 
@@ -413,4 +420,20 @@ func (d *Backend) DrawTree(ctx context.Context, f io.Writer) error {
 	}
 	g.Write(f)
 	return nil
+}
+
+func (d *Backend) DebugDrawDBTree(
+	ctx context.Context,
+	name string,
+) {
+	filePath := fmt.Sprintf("%s/../%s", d.path, name)
+	f, err := os.Create(filePath)
+	defer f.Close()
+	if err != nil {
+		panic(err)
+	}
+	err = d.DrawTree(ctx, f)
+	if err != nil {
+		panic(err)
+	}
 }
