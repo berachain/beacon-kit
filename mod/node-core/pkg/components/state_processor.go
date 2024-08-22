@@ -22,6 +22,8 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/state-transition/pkg/core"
@@ -29,11 +31,23 @@ import (
 
 // StateProcessorInput is the input for the state processor for the depinject
 // framework.
-type StateProcessorInput struct {
+type StateProcessorInput[
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+	],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalsT Withdrawals[WithdrawalT],
+] struct {
 	depinject.In
 	ChainSpec       common.ChainSpec
-	ExecutionEngine *ExecutionEngine
-	Signer          crypto.BLSSigner
+	ExecutionEngine *engine.Engine[
+		ExecutionPayloadT,
+		*engineprimitives.PayloadAttributes[WithdrawalT],
+		PayloadID,
+		WithdrawalsT,
+	]
+	Signer crypto.BLSSigner
 }
 
 // ProvideStateProcessor provides the state processor to the depinject
@@ -42,27 +56,35 @@ func ProvideStateProcessor[
 	BeaconBlockT BeaconBlock[BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT],
 	BeaconBlockBodyT BeaconBlockBody[
 		BeaconBlockBodyT, *AttestationData, DepositT,
-		*Eth1Data, *ExecutionPayload, *SlashingInfo,
+		*Eth1Data, ExecutionPayloadT, *SlashingInfo,
 	],
 	BeaconBlockHeaderT BeaconBlockHeader[BeaconBlockHeaderT],
 	BeaconStateT BeaconState[
 		BeaconStateT, BeaconBlockHeaderT, BeaconStateMarshallableT,
-		*Eth1Data, *ExecutionPayloadHeader, *Fork, KVStoreT, *Validator,
-		Validators, *Withdrawal,
+		*Eth1Data, ExecutionPayloadHeaderT, *Fork, KVStoreT, *Validator,
+		Validators, WithdrawalT,
 	],
 	BeaconStateMarshallableT any,
 	DepositT Deposit[DepositT, *ForkData, WithdrawalCredentials],
-	KVStoreT BeaconStore[
-		KVStoreT, BeaconBlockHeaderT, *Eth1Data, *ExecutionPayloadHeader,
-		*Fork, *Validator, Validators, *Withdrawal,
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	KVStoreT BeaconStore[
+		KVStoreT, BeaconBlockHeaderT, *Eth1Data, ExecutionPayloadHeaderT,
+		*Fork, *Validator, Validators, WithdrawalT,
+	],
+	WithdrawalsT Withdrawals[WithdrawalT],
+	WithdrawalT Withdrawal[WithdrawalT],
 ](
-	in StateProcessorInput,
+	in StateProcessorInput[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalT, WithdrawalsT,
+	],
 ) *core.StateProcessor[
 	BeaconBlockT, BeaconBlockBodyT, BeaconBlockHeaderT,
-	BeaconStateT, *Context, DepositT, *Eth1Data, *ExecutionPayload,
-	*ExecutionPayloadHeader, *Fork, *ForkData, KVStoreT, *Validator,
-	Validators, *Withdrawal, Withdrawals, WithdrawalCredentials,
+	BeaconStateT, *Context, DepositT, *Eth1Data, ExecutionPayloadT,
+	ExecutionPayloadHeaderT, *Fork, *ForkData, KVStoreT, *Validator,
+	Validators, WithdrawalT, WithdrawalsT, WithdrawalCredentials,
 ] {
 	return core.NewStateProcessor[
 		BeaconBlockT,
@@ -72,15 +94,15 @@ func ProvideStateProcessor[
 		*Context,
 		DepositT,
 		*Eth1Data,
-		*ExecutionPayload,
-		*ExecutionPayloadHeader,
+		ExecutionPayloadT,
+		ExecutionPayloadHeaderT,
 		*Fork,
 		*ForkData,
 		KVStoreT,
 		*Validator,
 		Validators,
-		*Withdrawal,
-		Withdrawals,
+		WithdrawalT,
+		WithdrawalsT,
 		WithdrawalCredentials,
 	](
 		in.ChainSpec,
