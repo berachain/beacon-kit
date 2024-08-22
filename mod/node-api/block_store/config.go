@@ -29,7 +29,7 @@ type Config struct {
 	// Enabled enables the block service.
 	Enabled bool `mapstructure:"enabled"`
 	// AvailabilityWindow is the number of slots to keep in the store.
-	AvailabilityWindow uint64 `mapstructure:"availability-window"`
+	AvailabilityWindow int `mapstructure:"availability-window"`
 }
 
 // DefaultConfig returns the default configuration for the block service.

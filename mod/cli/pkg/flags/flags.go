@@ -136,7 +136,7 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 		defaultCfg.BlockStoreService.Enabled,
 		"block service enabled",
 	)
-	startCmd.Flags().Uint64(
+	startCmd.Flags().Int(
 		BlockStoreServiceAvailabilityWindow,
 		defaultCfg.BlockStoreService.AvailabilityWindow,
 		"block service availability window",

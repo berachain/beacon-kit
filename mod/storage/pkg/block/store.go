@@ -92,7 +92,10 @@ func (kv *KVStore[BeaconBlockT]) GetSlotByExecutionNumber(
 ) (math.Slot, error) {
 	slot, ok := kv.executionNumbers.Get(executionNumber)
 	if !ok {
-		return 0, fmt.Errorf("slot not found at execution number: %d", executionNumber)
+		return 0, fmt.Errorf(
+			"slot not found at execution number: %d",
+			executionNumber,
+		)
 	}
 	return slot, nil
 }

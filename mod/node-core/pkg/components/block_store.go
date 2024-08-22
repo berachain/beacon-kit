@@ -59,6 +59,6 @@ func ProvideBlockStore[
 ) (*block.KVStore[BeaconBlockT], error) {
 	return block.NewStore[BeaconBlockT](
 		in.Logger.With("service", manager.BlockStoreName),
-		int(in.Config.BlockStoreService.AvailabilityWindow),
+		in.Config.BlockStoreService.AvailabilityWindow,
 	), nil
 }

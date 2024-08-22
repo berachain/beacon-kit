@@ -61,7 +61,8 @@ func TestBlockStore(t *testing.T) {
 	// Set 7 blocks.
 	// The latest block is 7 and should hold the last 5 blocks in the window.
 	for i := 1; i <= 7; i++ {
-		blockStore.Set(&MockBeaconBlock{slot: math.Slot(i)})
+		err = blockStore.Set(&MockBeaconBlock{slot: math.Slot(i)})
+		require.NoError(t, err)
 	}
 
 	// Get the slots by roots & execution numbers.
