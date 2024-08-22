@@ -30,8 +30,6 @@ import (
 	server "github.com/berachain/beacon-kit/mod/cli/pkg/commands/server"
 	"github.com/berachain/beacon-kit/mod/config"
 	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
-	cometbftparams "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/params"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/cast"
@@ -40,15 +38,6 @@ import (
 // This file contains Options that extend our default Service options to be
 // called by cosmos when building the app.
 // TODO: refactor into consensus_options for serverv2 migration.
-
-// WithCometParamStore sets the param store to the comet consensus engine.
-func WithCometParamStore(
-	chainSpec common.ChainSpec,
-) func(bApp *cometbft.Service) {
-	return func(bApp *cometbft.Service) {
-		bApp.SetParamStore(cometbftparams.NewConsensusParamsStore(chainSpec))
-	}
-}
 
 // DefaultServiceOptions returns the default Service options provided by the
 // Cosmos SDK.
