@@ -58,7 +58,7 @@ type (
 		StartCmtNode(
 			context.Context,
 			*cmtcfg.Config,
-		) (cleanupFn func(), err error)
+		) (err error)
 		// Close is called in start cmd to gracefully cleanup resources.
 		// Must be safe to be called multiple times.
 		Close() error

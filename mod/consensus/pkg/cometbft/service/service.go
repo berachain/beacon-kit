@@ -124,13 +124,10 @@ func NewService(
 func (app *Service) StartCmtNode(
 	ctx context.Context,
 	cfg *cmtcfg.Config,
-) (func(), error) {
-	var (
-		cleanupFn func()
-	)
+) error {
 	nodeKey, err := p2p.LoadOrGenNodeKey(cfg.NodeKeyFile())
 	if err != nil {
-		return cleanupFn, err
+		return err
 	}
 
 	cmtApp := server.NewCometABCIWrapper(app)
@@ -149,26 +146,21 @@ func (app *Service) StartCmtNode(
 		servercmtlog.CometLoggerWrapper{Logger: app.logger},
 	)
 	if err != nil {
-		return cleanupFn, err
+		return err
 	}
 
-	if err = app.node.Start(); err != nil {
-		return cleanupFn, err
-	}
-
-	cleanupFn = func() {
-		if app.node != nil && app.node.IsRunning() {
-			//#nosec:G703 // its a bet.
-			_ = app.node.Stop()
-		}
-	}
-
-	return cleanupFn, nil
+	return app.node.Start()
 }
 
 // Close is called in start cmd to gracefully cleanup resources.
 func (app *Service) Close() error {
 	var errs []error
+
+	if app.node != nil && app.node.IsRunning() {
+		//#nosec:G703 // its a bet.
+		app.logger.Info("Stopping CometBFT Node")
+		_ = app.node.Stop()
+	}
 
 	// Close app.db (opened by cosmos-sdk/server/start.go call to openDB)
 	if app.db != nil {

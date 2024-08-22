@@ -183,11 +183,9 @@ func start[T types.Application](
 	g, ctx := getCtx(svrCtx, true)
 
 	svrCtx.Logger.Info("starting node with ABCI CometBFT in-process")
-	cleanupFn, err := app.StartCmtNode(ctx, cmtCfg)
-	if err != nil {
+	if err = app.StartCmtNode(ctx, cmtCfg); err != nil {
 		return err
 	}
-	defer cleanupFn()
 
 	// wait for signal capture and gracefully return
 	// we are guaranteed to be waiting
