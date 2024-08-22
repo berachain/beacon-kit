@@ -22,17 +22,14 @@ package block
 
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 )
 
-type BeaconBlock[T any] interface {
-	constraints.SSZMarshallable
-	NewFromSSZ(bz []byte, version uint32) (T, error)
-	Version() uint32
+// BeaconBlock is a block in the beacon chain that has a slot, block root (hash
+// tree root), execution number, and state root.
+type BeaconBlock interface {
 	GetSlot() math.U64
 	HashTreeRoot() common.Root
 	GetExecutionNumber() math.U64
-	SetStateRoot(root common.Root)
 	GetStateRoot() common.Root
 }

@@ -28,3 +28,6 @@ deployment:
   wallet:
     type: "private_key"  # currently only private_key wallet is supported. Do not change the type.
     value: "0xfffdbb37105441e14b0ee6330d855d8504ff39e705c3afa8f859ac9865f99306"
+  dependency:
+    status: false
+    path: "dependency.sh"

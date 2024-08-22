@@ -35,7 +35,6 @@ import (
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	server "github.com/cosmos/cosmos-sdk/server"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -67,14 +66,7 @@ func SetupCommand[
 		return err
 	}
 
-	return server.SetCmdServerContext(
-		cmd,
-		server.NewContext(
-			client.GetViperFromCmd(cmd),
-			client.GetConfigFromCmd(cmd),
-			sdklog.WrapSDKLogger(logger),
-		),
-	)
+	return nil
 }
 
 // InitializeCmd returns a command object with the root viper instance.
@@ -102,7 +94,9 @@ func InitializeCmd[
 
 	ctx := cmd.Context()
 	ctx = context.WithValue(ctx, corectx.ViperContextKey, viper)
-	ctx = context.WithValue(ctx, corectx.LoggerContextKey, logger)
+	ctx = context.WithValue(
+		ctx, corectx.LoggerContextKey, sdklog.WrapSDKLogger(logger),
+	)
 	cmd.SetContext(ctx)
 
 	return nil

@@ -22,12 +22,11 @@ package main
 
 import (
 	"cosmossdk.io/core/appmodule/v2"
-	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft"
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/middleware"
+	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/middleware"
 	consruntimetypes "github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/da/pkg/da"
@@ -39,6 +38,7 @@ import (
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
 	"github.com/berachain/beacon-kit/mod/node-api/backend"
+	blockstore "github.com/berachain/beacon-kit/mod/node-api/block_store"
 	"github.com/berachain/beacon-kit/mod/node-api/engines/echo"
 	"github.com/berachain/beacon-kit/mod/node-api/server"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
@@ -113,11 +113,7 @@ type (
 	]
 
 	// ConsensusMiddleware is a type alias for the consensus middleware.
-	ConsensusMiddleware = cometbft.Middleware[
-		*AttestationData,
-		*SlashingInfo,
-		*SlotData,
-	]
+	ConsensusMiddleware = cometbft.MiddlewareI
 
 	// DAService is a type alias for the DA service.
 	DAService = da.Service[*AvailabilityStore, *BlobSidecars]
@@ -409,7 +405,4 @@ type (
 
 	// DepositPruner is a type alias for the deposit pruner.
 	DepositPruner = pruner.Pruner[*DepositStore]
-
-	// BlockPruner is a type alias for the block pruner.
-	BlockPruner = pruner.Pruner[*BlockStore]
 )

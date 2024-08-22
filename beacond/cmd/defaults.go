@@ -20,7 +20,9 @@
 
 package main
 
-import "github.com/berachain/beacon-kit/mod/node-core/pkg/components"
+import (
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/components"
+)
 
 //nolint:funlen // happens
 func DefaultComponents() []any {
@@ -42,10 +44,6 @@ func DefaultComponents() []any {
 		components.ProvideBlockStore[
 			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader, *Logger,
 		],
-		components.ProvideBlockStorePruner[
-			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader,
-			*BlockStore, *Logger,
-		],
 		components.ProvideBlockStoreService[
 			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader,
 			*BlockStore, *Logger,
@@ -65,8 +63,10 @@ func DefaultComponents() []any {
 			*BlobSidecars, *BlockStore, *Deposit, *DepositStore, *Genesis,
 			*KVStore, *Logger, *StorageBackend,
 		],
+		components.ProvideNode,
 		components.ProvideChainSpec,
 		components.ProvideConfig,
+		components.ProvideServerConfig,
 		// components.ProvideConsensusEngine[
 		// 	*AvailabilityStore, *BeaconBlockHeader, *BeaconState,
 		// 	*BeaconStateMarshallable, *BlockStore, *KVStore, *StorageBackend,
@@ -75,9 +75,7 @@ func DefaultComponents() []any {
 			*AvailabilityStore, *BeaconBlockBody, *BlobSidecar,
 			*BlobSidecars, *Logger,
 		],
-		components.ProvideDBManager[
-			*AvailabilityStore, *BlockStore, *DepositStore, *Logger,
-		],
+		components.ProvideDBManager[*AvailabilityStore, *DepositStore, *Logger],
 		components.ProvideDepositPruner[
 			*BeaconBlock, *BeaconBlockBody, *BeaconBlockHeader,
 			*Deposit, *DepositStore, *Logger,
@@ -98,6 +96,7 @@ func DefaultComponents() []any {
 			*KVStore, *Logger,
 		],
 		components.ProvideReportingService[*Logger],
+		components.ProvideCometBFTService,
 		components.ProvideServiceRegistry[
 			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,
 			*BeaconBlockHeader, *BlockStore, *BeaconState,
@@ -118,6 +117,7 @@ func DefaultComponents() []any {
 			*KVStore, *DepositStore,
 		],
 		components.ProvideTelemetrySink,
+		components.ProvideTelemetryService,
 		components.ProvideTrustedSetup,
 		components.ProvideValidatorService[
 			*AvailabilityStore, *BeaconBlock, *BeaconBlockBody,

@@ -22,16 +22,18 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
-	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/middleware"
+	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/middleware"
 	"github.com/berachain/beacon-kit/mod/da/pkg/da"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/log"
+	blockstore "github.com/berachain/beacon-kit/mod/node-api/block_store"
 	"github.com/berachain/beacon-kit/mod/node-api/server"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
 	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"
+	"github.com/berachain/beacon-kit/mod/observability/pkg/telemetry"
 )
 
 // ServiceRegistryInput is the input for the service registry provider.
@@ -77,18 +79,20 @@ type ServiceRegistryInput[
 		BeaconBlockT, BeaconBlockBodyT, DepositT,
 		*ExecutionPayload, WithdrawalCredentials,
 	]
-	Dispatcher       *Dispatcher
+	Dispatcher       Dispatcher
 	EngineClient     *EngineClient
 	Logger           LoggerT
 	NodeAPIServer    *server.Server[NodeAPIContextT]
 	ReportingService *ReportingService
 	TelemetrySink    *metrics.TelemetrySink
+	TelemetryService *telemetry.Service
 	ValidatorService *validator.Service[
 		*AttestationData, BeaconBlockT, BeaconBlockBodyT,
 		BeaconStateT, BlobSidecarsT, DepositT, DepositStoreT,
 		*Eth1Data, *ExecutionPayload, *ExecutionPayloadHeader,
 		*ForkData, *SlashingInfo, *SlotData,
 	]
+	CometBFTService *cometbft.Service
 }
 
 // ProvideServiceRegistry is the depinject provider for the service registry.
@@ -137,5 +141,7 @@ func ProvideServiceRegistry[
 		service.WithService(in.ReportingService),
 		service.WithService(in.DBManager),
 		service.WithService(in.EngineClient),
+		service.WithService(in.TelemetryService),
+		service.WithService(in.CometBFTService),
 	)
 }

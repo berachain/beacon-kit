@@ -146,12 +146,6 @@ type ExecutionPayloadHeader interface {
 	GetParentHash() common.ExecutionHash
 }
 
-// EventPublisher represents the event publisher interface.
-type EventPublisher[T any] interface {
-	// PublishEvent publishes an event.
-	Publish(context.Context, T) error
-}
-
 // ForkData represents the fork data interface.
 type ForkData[T any] interface {
 	// New creates a new fork data with the given parameters.

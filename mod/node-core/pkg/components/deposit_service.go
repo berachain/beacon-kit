@@ -40,7 +40,7 @@ type DepositServiceIn[
 	BeaconDepositContract DepositContractT
 	ChainSpec             common.ChainSpec
 	DepositStore          DepositStoreT
-	Dispatcher            *Dispatcher
+	Dispatcher            Dispatcher
 	EngineClient          *EngineClient
 	Logger                LoggerT
 	TelemetrySink         *metrics.TelemetrySink

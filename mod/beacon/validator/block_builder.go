@@ -36,8 +36,7 @@ import (
 
 // buildBlockAndSidecars builds a new beacon block.
 func (s *Service[
-	AttestationDataT, BeaconBlockT, _, _, BlobSidecarsT, _, _, _, _, _, _,
-	SlashingInfoT, SlotDataT,
+	_, BeaconBlockT, _, _, BlobSidecarsT, _, _, _, _, _, _, _, SlotDataT,
 ]) buildBlockAndSidecars(
 	ctx context.Context,
 	slotData SlotDataT,
@@ -250,8 +249,8 @@ func (s *Service[
 
 // BuildBlockBody assembles the block body with necessary components.
 func (s *Service[
-	AttestationDataT, BeaconBlockT, _, BeaconStateT, _,
-	_, _, Eth1DataT, ExecutionPayloadT, _, _, SlashingInfoT, SlotDataT,
+	_, BeaconBlockT, _, BeaconStateT, _, _, _, Eth1DataT, ExecutionPayloadT, _,
+	_, _, SlotDataT,
 ]) buildBlockBody(
 	_ context.Context,
 	st BeaconStateT,
