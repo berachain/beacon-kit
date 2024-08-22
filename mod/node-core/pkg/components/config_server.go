@@ -24,8 +24,7 @@ import (
 	"errors"
 
 	"cosmossdk.io/depinject"
-	"github.com/berachain/beacon-kit/mod/config/pkg/config"
-	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
+	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 )
@@ -33,7 +32,7 @@ import (
 // ServerConfigInput is the input for the dependency injection framework.
 type ServerConfigInput struct {
 	depinject.In
-	AppOpts servertypes.AppOptions
+	AppOpts config.AppOptions
 }
 
 // ProvideConfig is a function that provides the BeaconConfig to the

@@ -79,8 +79,6 @@ github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240821052951-c15422305b4e h1
 github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240821052951-c15422305b4e/go.mod h1:hyB6jdTwCalJ6IMwCtYOXjXrqIg3T1QruIzs4NPrNkw=
 github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df h1:mnD1LKqDQ0n+OFdDqOuvKaEiUKRJzsO4V0wyyn/gJYg=
 github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df/go.mod h1:bTFB4Rdvm7D/WdwPYkqQ+8T0XOMBv0pzXfp1E46BFX8=
-github.com/berachain/beacon-kit/mod/cli v0.0.0-20240822173558-4e2a8018ae21 h1:Cm8j3D87ibmCkDE3KmL2kNtDeJp1v1PEfX7EhvHeYe0=
-github.com/berachain/beacon-kit/mod/cli v0.0.0-20240822173558-4e2a8018ae21/go.mod h1:wwT8PM3m1KZCGNNGioGaXafIVe13lD1g9eWEPptf4X8=
 github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240821182712-08bbb9c7d685 h1:pTvESOpJ0a6oCV81+pec+zoTBmojZ8C1+7fd4HtKpbI=
 github.com/berachain/beacon-kit/mod/consensus-types v0.0.0-20240821182712-08bbb9c7d685/go.mod h1:jduqdSJEtO5eL43l/MpfnIK81o81m10wzt6Gb++Qi9M=
 github.com/berachain/beacon-kit/mod/da v0.0.0-20240820191615-398849c34954 h1:uFAdG6vtoOFxvz0pjkl5D0XGc4PcR0Ukf3M7gU3B92o=
