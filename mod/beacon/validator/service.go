@@ -52,7 +52,7 @@ type Service[
 	// cfg is the validator config.
 	cfg *Config
 	// logger is a logger.
-	logger log.Logger[any]
+	logger log.Logger
 	// chainSpec is the chain spec.
 	chainSpec common.ChainSpec
 	// signer is used to retrieve the public key of this node.
@@ -103,7 +103,7 @@ func NewService[
 	SlotDataT SlotData[AttestationDataT, SlashingInfoT],
 ](
 	cfg *Config,
-	logger log.Logger[any],
+	logger log.Logger,
 	chainSpec common.ChainSpec,
 	sb StorageBackend[BeaconStateT, DepositStoreT],
 	stateProcessor StateProcessor[

@@ -32,7 +32,7 @@ import (
 type ABCIMiddlewareInput[
 	BeaconBlockT any,
 	BlobSidecarsT any,
-	LoggerT log.Logger[any],
+	LoggerT log.Logger,
 ] struct {
 	depinject.In
 	ChainSpec     common.ChainSpec
@@ -52,7 +52,7 @@ func ProvideABCIMiddleware[
 	DepositT any,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
-	LoggerT log.Logger[any],
+	LoggerT log.Logger,
 ](
 	in ABCIMiddlewareInput[BeaconBlockT, BlobSidecarsT, LoggerT],
 ) (*middleware.ABCIMiddleware[

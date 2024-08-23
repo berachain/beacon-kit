@@ -87,7 +87,7 @@ func ProvideDepositPruner[
 		DepositT, *ForkData, WithdrawalCredentials,
 	],
 	DepositStoreT DepositStore[DepositT],
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	in DepositPrunerInput[BeaconBlockT, DepositStoreT, LoggerT],
 ) (pruner.Pruner[DepositStoreT], error) {

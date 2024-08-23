@@ -31,19 +31,18 @@ import (
 )
 
 // LoadHeight loads a particular height.
-func (app *Service) LoadHeight(height int64) error {
-	return app.LoadVersion(height)
+func (s *Service) LoadHeight(height int64) error {
+	return s.LoadVersion(height)
 }
 
 // DefaultGenesis returns the default genesis state for the application.
-func (app *Service) DefaultGenesis() map[string]json.RawMessage {
+func (s *Service) DefaultGenesis() map[string]json.RawMessage {
 	// Implement the default genesis state for the application.
 	// This should return a map of module names to their respective default
 	// genesis states.
 	gen := make(map[string]json.RawMessage)
-	s := types.DefaultGenesisDeneb()
 	var err error
-	gen["beacon"], err = json.Marshal(s)
+	gen["beacon"], err = json.Marshal(types.DefaultGenesisDeneb())
 	if err != nil {
 		panic(err)
 	}
@@ -51,7 +50,7 @@ func (app *Service) DefaultGenesis() map[string]json.RawMessage {
 }
 
 // ValidateGenesis validates the provided genesis state.
-func (app *Service) ValidateGenesis(
+func (s *Service) ValidateGenesis(
 	_ map[string]json.RawMessage,
 ) error {
 	// Implement the validation logic for the provided genesis state.

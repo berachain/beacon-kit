@@ -48,7 +48,7 @@ func ProvideAttributesFactory[
 	BeaconStateMarshallableT any,
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	KVStoreT any,
-	LoggerT log.Logger[any],
+	LoggerT log.Logger,
 	WithdrawalT Withdrawal[WithdrawalT],
 ](
 	in AttributesFactoryInput[LoggerT],

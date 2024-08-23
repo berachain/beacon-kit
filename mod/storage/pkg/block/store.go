@@ -36,12 +36,12 @@ type KVStore[BeaconBlockT BeaconBlock] struct {
 	executionNumbers *lru.Cache[math.U64, math.Slot]
 	stateRoots       *lru.Cache[common.Root, math.Slot]
 
-	logger log.Logger[any]
+	logger log.Logger
 }
 
 // NewStore creates a new block store.
 func NewStore[BeaconBlockT BeaconBlock](
-	logger log.Logger[any],
+	logger log.Logger,
 	availabilityWindow int,
 ) *KVStore[BeaconBlockT] {
 	blockRoots, err := lru.New[common.Root, math.Slot](availabilityWindow)

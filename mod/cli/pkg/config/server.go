@@ -46,7 +46,7 @@ import (
 // <appConfig> and <cmtConfig>. In either case, the resulting
 // values in these files will be merged with viper.
 func SetupCommand[
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	cmd *cobra.Command,
 	appTemplate string,
@@ -74,7 +74,7 @@ func SetupCommand[
 // If the app config is empty, the viper instance is populated with
 // the app config values.
 func InitializeCmd[
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	cmd *cobra.Command,
 	logger LoggerT,

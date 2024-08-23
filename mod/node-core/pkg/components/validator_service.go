@@ -87,7 +87,7 @@ func ProvideValidatorService[
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	KVStoreT any,
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT log.AdvancedLogger[LoggerT],
 	StorageBackendT StorageBackend[
 		AvailabilityStoreT, BeaconStateT, BeaconBlockStoreT, DepositStoreT,
 	],

@@ -51,7 +51,7 @@ func ProvideEngineClient[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT log.AdvancedLogger[LoggerT],
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalsT Withdrawals[WithdrawalT],
 ](
@@ -98,7 +98,7 @@ func ProvideExecutionEngine[
 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
 	],
 	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT log.AdvancedLogger[LoggerT],
 	WithdrawalT Withdrawal[WithdrawalT],
 	WithdrawalsT Withdrawals[WithdrawalT],
 ](

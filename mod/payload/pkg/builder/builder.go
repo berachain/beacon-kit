@@ -41,7 +41,7 @@ type PayloadBuilder[
 	// chainSpec holds the chain specifications for the PayloadBuilder.
 	chainSpec common.ChainSpec
 	// logger is used for logging within the PayloadBuilder.
-	logger log.Logger[any]
+	logger log.Logger
 	// ee is the execution engine.
 	ee ExecutionEngine[ExecutionPayloadT, PayloadAttributesT, PayloadIDT]
 	// pc is the payload ID cache, it is used to store
@@ -63,7 +63,7 @@ func New[
 ](
 	cfg *Config,
 	chainSpec common.ChainSpec,
-	logger log.Logger[any],
+	logger log.Logger,
 	ee ExecutionEngine[ExecutionPayloadT, PayloadAttributesT, PayloadIDT],
 	pc PayloadCache[PayloadIDT, [32]byte, math.Slot],
 	af AttributesFactory[BeaconStateT, PayloadAttributesT],

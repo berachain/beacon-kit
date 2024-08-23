@@ -29,7 +29,7 @@ import (
 )
 
 type ReportingServiceInput[
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT log.AdvancedLogger[LoggerT],
 ] struct {
 	depinject.In
 	Logger        LoggerT
@@ -37,7 +37,7 @@ type ReportingServiceInput[
 }
 
 func ProvideReportingService[
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	in ReportingServiceInput[LoggerT],
 ) *ReportingService {

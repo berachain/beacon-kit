@@ -29,7 +29,7 @@ import (
 
 //nolint:funlen // routes are long
 func (h *Handler[_, ContextT, _, _]) RegisterRoutes(
-	logger log.Logger[any],
+	logger log.Logger,
 ) {
 	h.SetLogger(logger)
 	h.BaseHandler.AddRoutes([]*handlers.Route[ContextT]{

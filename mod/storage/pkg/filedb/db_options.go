@@ -55,7 +55,7 @@ func WithFileExtension(extension string) Option {
 }
 
 // WithLogger sets the logger for the database.
-func WithLogger(logger log.Logger[any]) Option {
+func WithLogger(logger log.Logger) Option {
 	return func(db *DB) error {
 		db.logger = logger
 		return nil

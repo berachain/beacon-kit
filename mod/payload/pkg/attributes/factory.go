@@ -35,7 +35,7 @@ type Factory[
 	// chainSpec is the chain spec for the attributes factory.
 	chainSpec common.ChainSpec
 	// logger is the logger for the attributes factory.
-	logger log.Logger[any]
+	logger log.Logger
 	// suggestedFeeRecipient is the suggested fee recipient sent to
 	// the execution client for the payload build.
 	suggestedFeeRecipient common.ExecutionAddress
@@ -48,7 +48,7 @@ func NewAttributesFactory[
 	WithdrawalT any,
 ](
 	chainSpec common.ChainSpec,
-	logger log.Logger[any],
+	logger log.Logger,
 	suggestedFeeRecipient common.ExecutionAddress,
 ) *Factory[BeaconStateT, PayloadAttributesT, WithdrawalT] {
 	return &Factory[BeaconStateT, PayloadAttributesT, WithdrawalT]{

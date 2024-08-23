@@ -31,14 +31,14 @@ import (
 type Opt[
 	T types.Node,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT log.AdvancedLogger[LoggerT],
 ] func(*CLIBuilder[T, ExecutionPayloadT, LoggerT])
 
 // WithName sets the name for the CLIBuilder.
 func WithName[
 	T types.Node,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT log.AdvancedLogger[LoggerT],
 ](name string) Opt[T, ExecutionPayloadT, LoggerT] {
 	return func(cb *CLIBuilder[T, ExecutionPayloadT, LoggerT]) {
 		cb.name = name
@@ -49,7 +49,7 @@ func WithName[
 func WithDescription[
 	T types.Node,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT log.AdvancedLogger[LoggerT],
 ](description string) Opt[T, ExecutionPayloadT, LoggerT] {
 	return func(cb *CLIBuilder[T, ExecutionPayloadT, LoggerT]) {
 		cb.description = description
@@ -60,7 +60,7 @@ func WithDescription[
 func WithComponents[
 	T types.Node,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT log.AdvancedLogger[LoggerT],
 ](components []any) Opt[T, ExecutionPayloadT, LoggerT] {
 	return func(cb *CLIBuilder[T, ExecutionPayloadT, LoggerT]) {
 		cb.components = components
@@ -71,7 +71,7 @@ func WithComponents[
 func WithNodeBuilderFunc[
 	T types.Node,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	nodeBuilderFunc servertypes.AppCreator[T],
 ) Opt[T, ExecutionPayloadT, LoggerT] {

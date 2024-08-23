@@ -31,7 +31,7 @@ import (
 type BlockServiceInput[
 	BeaconBlockT any,
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT log.AdvancedLogger[LoggerT],
 ] struct {
 	depinject.In
 
@@ -49,7 +49,7 @@ func ProvideBlockStoreService[
 	BeaconBlockBodyT any,
 	BeaconBlockHeaderT any,
 	BeaconBlockStoreT BlockStore[BeaconBlockT],
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	in BlockServiceInput[BeaconBlockT, BeaconBlockStoreT, LoggerT],
 ) *blockstore.Service[
