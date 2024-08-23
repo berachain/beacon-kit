@@ -21,7 +21,6 @@
 package builder
 
 import (
-	"context"
 	"io"
 
 	"cosmossdk.io/depinject"
@@ -88,9 +87,7 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 		abciMiddleware  cometbft.MiddlewareI
 		serviceRegistry *service.Registry
 		apiBackend      interface {
-			AttachQueryBackend(
-				*cometbft.Service,
-			)
+			AttachQueryBackend(*cometbft.Service)
 		}
 		storeKey       = new(storetypes.KVStoreKey)
 		storeKeyDblPtr = &storeKey
@@ -132,11 +129,5 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 
 	// TODO: so hood
 	apiBackend.AttachQueryBackend(cmtService)
-
-	// TODO: put this in some post node creation hook/listener.
-	if err := beaconNode.Start(context.Background()); err != nil {
-		logger.Error("failed to start node", "err", err)
-		panic(err)
-	}
 	return beaconNode
 }
