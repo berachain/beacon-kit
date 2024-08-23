@@ -1,3 +1,4 @@
+#!/bin/sh
 # SPDX-License-Identifier: BUSL-1.1
 #
 # Copyright (C) 2024, Berachain Foundation. All rights reserved.
@@ -17,18 +18,28 @@
 # EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 # TITLE.
+apk update && apk add --no-cache nodejs npm
 
-# Please refer to the README.md file for more information on how to fill this file.
-deployment:
-  repository: "github.com/berachain/contracts-monorepo"
-  contracts_path: ""
-  script_path: ""
-  contract_name: ""
-  dependency: 
-      status : true
-      directory: "dependency"
-      path: "dependency-berps.sh"
-  rpc_url: "https://bartio.rpc.berachain.com/"  # If you spin up local devnet via kurtosis, then public port is 8547
-  wallet:
-    type: "private_key"  # currently only private_key wallet is supported. Do not change the type.
-    value: "0x"
+npm --version
+npm install -g bun
+
+bun --version
+
+cd /app/contracts && bun install
+
+echo "Bun installation complete!"
+
+echo "Installing dependencies for Berps"
+
+cd /app/dependency && sh populate-envrc.sh
+
+cp .envrc /app/contracts/script/berps/.envrc
+
+cd /app/contracts/script/berps
+
+forge build
+
+sh deploy-berps-deployer.sh >> output.json
+sh deploy-contracts.sh >> output.json
+
+cp output.json /app/contracts/output.json
