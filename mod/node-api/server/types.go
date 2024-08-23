@@ -29,5 +29,5 @@ import (
 // Engine is a generic interface for an API engine.
 type Engine[ContextT context.Context] interface {
 	Run(addr string) error
-	RegisterRoutes(*handlers.RouteSet[ContextT], log.Logger[any])
+	RegisterRoutes(*handlers.RouteSet[ContextT], log.Logger)
 }

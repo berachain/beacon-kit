@@ -29,7 +29,7 @@ import (
 // BindAndValidate binds the request to the context and validates it.
 func BindAndValidate[RequestT any, ContextT context.Context](
 	c ContextT,
-	logger log.Logger[any],
+	logger log.Logger,
 ) (RequestT, error) {
 	var req RequestT
 	if err := c.Bind(&req); err != nil {

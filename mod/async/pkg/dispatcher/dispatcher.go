@@ -34,12 +34,12 @@ var _ types.Dispatcher = (*Dispatcher)(nil)
 // typically services.
 type Dispatcher struct {
 	brokers map[async.EventID]types.Broker
-	logger  log.Logger[any]
+	logger  log.Logger
 }
 
 // NewDispatcher creates a new event server.
 func New(
-	logger log.Logger[any],
+	logger log.Logger,
 	options ...Option,
 ) (*Dispatcher, error) {
 	d := &Dispatcher{

@@ -41,7 +41,7 @@ import (
 type CLIBuilder[
 	T types.Node,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT log.AdvancedLogger[LoggerT],
 ] struct {
 	name        string
 	description string
@@ -59,7 +59,7 @@ type CLIBuilder[
 func New[
 	T types.Node,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	opts ...Opt[T, ExecutionPayloadT, LoggerT],
 ) *CLIBuilder[T, ExecutionPayloadT, LoggerT] {

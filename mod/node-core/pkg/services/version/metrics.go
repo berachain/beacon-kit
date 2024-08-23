@@ -32,14 +32,14 @@ type versionMetrics struct {
 	// system is the current system the node is running on.
 	system string
 	// logger is the logger used to log information about the version.
-	logger log.Logger[any]
+	logger log.Logger
 	// sink is the telemetry sink used to report metrics.
 	sink TelemetrySink
 }
 
 // newVersionMetrics creates a new instance of versionMetrics.
 func newVersionMetrics(
-	logger log.Logger[any],
+	logger log.Logger,
 	sink TelemetrySink,
 ) *versionMetrics {
 	return &versionMetrics{

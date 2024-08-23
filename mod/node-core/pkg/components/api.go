@@ -120,7 +120,7 @@ func ProvideNodeAPIBackend[
 }
 
 type NodeAPIServerInput[
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT log.AdvancedLogger[LoggerT],
 	NodeAPIContextT NodeAPIContext,
 ] struct {
 	depinject.In
@@ -132,7 +132,7 @@ type NodeAPIServerInput[
 }
 
 func ProvideNodeAPIServer[
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT log.AdvancedLogger[LoggerT],
 	NodeAPIContextT NodeAPIContext,
 ](
 	in NodeAPIServerInput[LoggerT, NodeAPIContextT],

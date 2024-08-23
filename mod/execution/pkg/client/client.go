@@ -44,7 +44,7 @@ type EngineClient[
 	// cfg is the supplied configuration for the engine client.
 	cfg *Config
 	// logger is the logger for the engine client.
-	logger log.Logger[any]
+	logger log.Logger
 	// eth1ChainID is the chain ID of the execution client.
 	eth1ChainID *big.Int
 	// clientMetrics is the metrics for the engine client.
@@ -61,7 +61,7 @@ func New[
 	PayloadAttributesT PayloadAttributes,
 ](
 	cfg *Config,
-	logger log.Logger[any],
+	logger log.Logger,
 	jwtSecret *jwt.Secret,
 	telemetrySink TelemetrySink,
 	eth1ChainID *big.Int,

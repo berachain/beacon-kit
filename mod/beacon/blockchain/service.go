@@ -53,7 +53,7 @@ type Service[
 		BeaconStateT,
 	]
 	// logger is used for logging messages in the service.
-	logger log.Logger[any]
+	logger log.Logger
 	// chainSpec holds the chain specifications.
 	chainSpec common.ChainSpec
 	// dispatcher is the dispatcher for the service.
@@ -108,7 +108,7 @@ func NewService[
 		AvailabilityStoreT,
 		BeaconStateT,
 	],
-	logger log.Logger[any],
+	logger log.Logger,
 	chainSpec common.ChainSpec,
 	dispatcher asynctypes.Dispatcher,
 	executionEngine ExecutionEngine[PayloadAttributesT],

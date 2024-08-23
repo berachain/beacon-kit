@@ -36,7 +36,7 @@ type Service[
 	// config is the configuration for the block service.
 	config Config
 	// logger is used for logging information and errors.
-	logger log.Logger[any]
+	logger log.Logger
 	// dispatcher is the dispatcher for the service.
 	dispatcher asynctypes.EventDispatcher
 	// store is the block store for the service.
@@ -51,7 +51,7 @@ func NewService[
 	BlockStoreT BlockStore[BeaconBlockT],
 ](
 	config Config,
-	logger log.Logger[any],
+	logger log.Logger,
 	dispatcher asynctypes.EventDispatcher,
 	store BlockStoreT,
 ) *Service[BeaconBlockT, BlockStoreT] {

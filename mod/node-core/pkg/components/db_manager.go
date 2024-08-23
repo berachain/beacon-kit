@@ -43,7 +43,7 @@ type DBManagerInput[
 func ProvideDBManager[
 	AvailabilityStoreT pruner.Prunable,
 	DepositStoreT pruner.Prunable,
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	in DBManagerInput[AvailabilityStoreT, DepositStoreT, LoggerT],
 ) (*manager.DBManager, error) {

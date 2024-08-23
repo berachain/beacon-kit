@@ -51,7 +51,7 @@ func ProvideAvailibilityStore[
 	BeaconBlockBodyT interface {
 		GetBlobKzgCommitments() eip4844.KZGCommitments[common.ExecutionHash]
 	},
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	in AvailabilityStoreInput[LoggerT],
 ) (*dastore.Store[BeaconBlockBodyT], error) {
@@ -99,7 +99,7 @@ func ProvideAvailabilityPruner[
 	BeaconBlockBodyT any,
 	BeaconBlockHeaderT any,
 	BlobSidecarsT any,
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	in AvailabilityPrunerInput[AvailabilityStoreT, BeaconBlockT, LoggerT],
 ) (pruner.Pruner[AvailabilityStoreT], error) {

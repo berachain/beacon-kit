@@ -42,7 +42,7 @@ type Service[
 		BlobSidecarsT,
 	]
 	dispatcher asynctypes.EventDispatcher
-	logger     log.Logger[any]
+	logger     log.Logger
 	// subSidecarsReceived is a channel holding SidecarsReceived events.
 	subSidecarsReceived chan async.Event[BlobSidecarsT]
 	// subFinalBlobSidecars is a channel holding FinalSidecarsReceived events.
@@ -59,7 +59,7 @@ func NewService[
 		AvailabilityStoreT, BlobSidecarsT,
 	],
 	dispatcher asynctypes.EventDispatcher,
-	logger log.Logger[any],
+	logger log.Logger,
 ) *Service[
 	AvailabilityStoreT, BlobSidecarsT,
 ] {

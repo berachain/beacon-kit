@@ -22,35 +22,30 @@ package log
 
 // Logger represents a basic logger that is extremely similar to the Cosmos-SDK
 // Logger interface.
-type Logger[KeyValT any] interface {
+type Logger interface {
 	// Info takes a message and a set of key/value pairs and logs with level
 	// INFO.
 	// The key of the tuple must be a string.
-	Info(msg string, keyVals ...KeyValT)
+	Info(msg string, keyVals ...any)
 	// Warn takes a message and a set of key/value pairs and logs with level
 	// WARN.
 	// The key of the tuple must be a string.
-	Warn(msg string, keyVals ...KeyValT)
+	Warn(msg string, keyVals ...any)
 	// Error takes a message and a set of key/value pairs and logs with level
 	// ERR.
 	// The key of the tuple must be a string.
-	Error(msg string, keyVals ...KeyValT)
+	Error(msg string, keyVals ...any)
 	// Debug takes a message and a set of key/value pairs and logs with level
 	// DEBUG.
 	// The key of the tuple must be a string.
-	Debug(msg string, keyVals ...KeyValT)
-
-	// Impl returns the underlying logger implementation.
-	// It is used to access the full functionalities of the underlying logger.
-	// Advanced users can type cast the returned value to the actual logger.
-	Impl() any
+	Debug(msg string, keyVals ...any)
 }
 
 // ConfigurableLogger extends the basic logger with the ability to configure
 // the logger with a config.
 type ConfigurableLogger[LoggerT, ConfigT any] interface {
 	Configurable[LoggerT, ConfigT]
-	Logger[any]
+	Logger
 }
 
 type Configurable[LoggerT, ConfigT any] interface {
@@ -68,12 +63,12 @@ type Colorable interface {
 
 // AdvancedLogger extends the color logger with the ability to wrap the logger
 // with additional context and to access the underlying logger implementation.
-type AdvancedLogger[KeyValT, LoggerT any] interface {
-	Logger[KeyValT]
+type AdvancedLogger[LoggerT any] interface {
+	Logger
 	Colorable
 	// With returns a new wrapped logger with additional context provided by a
 	// set.
-	With(keyVals ...KeyValT) LoggerT
+	With(keyVals ...any) LoggerT
 }
 
 // Color is a string that holds the hex color code for the color.

@@ -36,7 +36,7 @@ type Store[BeaconBlockBodyT BeaconBlockBody] struct {
 	// IndexDB is a basic database interface.
 	IndexDB
 	// logger is used for logging.
-	logger log.Logger[any]
+	logger log.Logger
 	// chainSpec contains the chain specification.
 	chainSpec common.ChainSpec
 }
@@ -44,7 +44,7 @@ type Store[BeaconBlockBodyT BeaconBlockBody] struct {
 // New creates a new instance of the AvailabilityStore.
 func New[BeaconBlockT BeaconBlockBody](
 	db IndexDB,
-	logger log.Logger[any],
+	logger log.Logger,
 	chainSpec common.ChainSpec,
 ) *Store[BeaconBlockT] {
 	return &Store[BeaconBlockT]{
