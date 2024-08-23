@@ -22,9 +22,9 @@ package components
 
 import (
 	storetypes "cosmossdk.io/store/types"
-	"github.com/berachain/beacon-kit/mod/cli/pkg/components/log"
 	"github.com/berachain/beacon-kit/mod/config"
 	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/log"
 	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"

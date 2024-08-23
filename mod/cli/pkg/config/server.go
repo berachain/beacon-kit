@@ -29,7 +29,7 @@ import (
 	"strings"
 
 	corectx "cosmossdk.io/core/context"
-	sdklog "github.com/berachain/beacon-kit/mod/cli/pkg/components/log"
+	sdklog "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/log"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	cmtcfg "github.com/cometbft/cometbft/config"
