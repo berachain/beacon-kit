@@ -17,22 +17,17 @@
 // EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
-package blockstore
+
+package db
 
 import (
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/async"
+	"path/filepath"
+
+	dbm "github.com/cosmos/cosmos-db"
 )
 
-// BuildPruneRangeFn builds a function that returns the range of blocks to
-// prune.
-func BuildPruneRangeFn[BeaconBlockT BeaconBlock](
-	cfg Config,
-) func(async.Event[BeaconBlockT]) (uint64, uint64) {
-	return func(event async.Event[BeaconBlockT]) (uint64, uint64) {
-		blk := event.Data()
-		if blk.GetSlot().Unwrap() < cfg.AvailabilityWindow {
-			return 1, 1
-		}
-		return 1, blk.GetSlot().Unwrap() - cfg.AvailabilityWindow
-	}
+// OpenDB opens the application database using the appropriate driver.
+func OpenDB(rootDir string, backendType dbm.BackendType) (dbm.DB, error) {
+	dataDir := filepath.Join(rootDir, "data")
+	return dbm.NewDB("application", backendType, dataDir)
 }

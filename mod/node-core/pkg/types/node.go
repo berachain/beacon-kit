@@ -23,19 +23,14 @@ package types
 import (
 	"context"
 
-	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"
+	"cosmossdk.io/store"
 )
 
 // Node defines the API for the node application.
 // It extends the Application interface from the Cosmos SDK.
 type Node interface {
-	Application
+	Start(context.Context) error
 
-	// Start starts the node.
-	Start(ctx context.Context) error
-
-	// RegisterApp sets the node's application.
-	RegisterApp(app Application)
-	// SetServiceRegistry sets the node's service registry.
-	SetServiceRegistry(registry *service.Registry)
+	// TODO: FIX, HACK TO MAKE CLI HAPPY FOR NOW.
+	CommitMultiStore() store.CommitMultiStore
 }

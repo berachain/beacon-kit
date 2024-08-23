@@ -22,7 +22,6 @@ package main
 
 import (
 	"cosmossdk.io/core/appmodule/v2"
-	blockstore "github.com/berachain/beacon-kit/mod/beacon/block_store"
 	"github.com/berachain/beacon-kit/mod/beacon/blockchain"
 	"github.com/berachain/beacon-kit/mod/beacon/validator"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
@@ -39,12 +38,12 @@ import (
 	execution "github.com/berachain/beacon-kit/mod/execution/pkg/engine"
 	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
 	"github.com/berachain/beacon-kit/mod/node-api/backend"
+	blockstore "github.com/berachain/beacon-kit/mod/node-api/block_store"
 	"github.com/berachain/beacon-kit/mod/node-api/engines/echo"
 	"github.com/berachain/beacon-kit/mod/node-api/server"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/signer"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/storage"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/services/version"
-	nodetypes "github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/payload/pkg/attributes"
 	payloadbuilder "github.com/berachain/beacon-kit/mod/payload/pkg/builder"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
@@ -349,7 +348,7 @@ type (
 		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
-		nodetypes.Node,
+		*cometbft.Service,
 		*KVStore,
 		*StorageBackend,
 		*Validator,
@@ -405,7 +404,4 @@ type (
 
 	// DepositPruner is a type alias for the deposit pruner.
 	DepositPruner = pruner.Pruner[*DepositStore]
-
-	// BlockPruner is a type alias for the block pruner.
-	BlockPruner = pruner.Pruner[*BlockStore]
 )

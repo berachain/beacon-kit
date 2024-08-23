@@ -73,11 +73,6 @@ func (app *Service) SetName(name string) {
 	app.name = name
 }
 
-// SetParamStore sets a parameter store on the cometbft.
-func (app *Service) SetParamStore(ps ParamStore) {
-	app.paramStore = ps
-}
-
 // SetVersion sets the application's version string.
 func (app *Service) SetVersion(v string) {
 	app.version = v

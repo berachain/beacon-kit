@@ -1,6 +1,7 @@
 SOURCE_DIR_PATH = "/app/contracts"
 IMAGE_FOUNDRY = "ghcr.io/foundry-rs/foundry:latest"
 ENTRYPOINT = ["/bin/sh"]
+DEPENDENCY_DIR_PATH = "/app/dependency"
 
 def run(plan, deployment = {}):
     deploy_contracts(plan, deployment)
@@ -13,6 +14,8 @@ def deploy_contracts(plan, deployment):
     contract_name = deployment["contract_name"]
     rpc_url = deployment["rpc_url"]
     wallet = deployment["wallet"]
+    dependency = deployment["dependency"]
+    dependency_status = dependency["status"]
 
     # TODO: Support other wallet options such as mnemonics, keystore, hardware wallets.
     if wallet["type"] == "private_key":
@@ -22,21 +25,31 @@ def deploy_contracts(plan, deployment):
 
     folder = plan.upload_files(src = repository, name = "contracts")
 
+    dependency_artifact_name = ""
+    if dependency_status:
+        dependency_path = dependency["path"]
+        plan.upload_files(src = dependency_path, name = "dependency")
+        dependency_artifact_name = "dependency"
+
     foundry_service = plan.add_service(
         name = "foundry",
-        config = ServiceConfig(
-            image = IMAGE_FOUNDRY,
-            entrypoint = ENTRYPOINT,
-            files = {
-                SOURCE_DIR_PATH: "contracts",
-            },
-        ),
+        config = get_service_config(dependency_artifact_name),
     )
 
     if contracts_path:
         contract_path = "{}/{}".format(SOURCE_DIR_PATH, contracts_path)
     else:
         contract_path = SOURCE_DIR_PATH
+
+    # Check if dependency status is set to true
+    if dependency_status:
+        # Run shell script
+        plan.exec(
+            service_name = foundry_service.name,
+            recipe = ExecRecipe(
+                command = ["/bin/sh", "-c", "sh {}/{}".format(DEPENDENCY_DIR_PATH, dependency_path)],
+            ),
+        )
 
     result = plan.exec(
         service_name = foundry_service.name,
@@ -58,6 +71,12 @@ def deploy_contracts(plan, deployment):
         ),
     )
 
+    exec_on_service(
+        plan,
+        foundry_service.name,
+        "cat {}/output.json ".format(contract_path),
+    )
+
     # Get the forge script output in a output.json file and grep from it
     transaction_file = "grep 'Transactions saved to' output.json | awk -F': ' '{print $2}'"
     plan.print("transaction_file", transaction_file)
@@ -75,4 +94,18 @@ def exec_on_service(plan, service_name, command):
         recipe = ExecRecipe(
             command = ["/bin/sh", "-c", command],
         ),
+    )
+
+def get_service_config(dependency_artifact_name = None):
+    files = {
+        SOURCE_DIR_PATH: "contracts",
+    }
+
+    if dependency_artifact_name:
+        files[DEPENDENCY_DIR_PATH] = dependency_artifact_name
+
+    return ServiceConfig(
+        image = IMAGE_FOUNDRY,
+        entrypoint = ENTRYPOINT,
+        files = files,
     )

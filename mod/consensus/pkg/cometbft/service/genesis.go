@@ -21,12 +21,13 @@
 package cometbft
 
 import (
-	"context"
+	"crypto/sha256"
 
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
-	cmttypes "github.com/cometbft/cometbft/types"
+	cmtcfg "github.com/cometbft/cometbft/config"
+	"github.com/cometbft/cometbft/node"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
 
 // LoadHeight loads a particular height.
@@ -59,41 +60,43 @@ func (app *Service) ValidateGenesis(
 	return nil
 }
 
-// ExportAppStateAndValidators exports the state of the application for a
-// genesis
-// file.
-func (app *Service) ExportAppStateAndValidators(
-	forZeroHeight bool,
-	_, _ []string,
-) (servertypes.ExportedApp, error) {
-	// We export at last height + 1, because that's the height at which
-	// CometBFT will start InitChain.
-	height := app.LastBlockHeight() + 1
-	if forZeroHeight {
-		// height = 0
-		panic("not supported, just look at the genesis file u goofy")
+// GetGenDocProvider returns a function which returns the genesis doc from the
+// genesis file.
+func GetGenDocProvider(
+	cfg *cmtcfg.Config,
+) func() (node.ChecksummedGenesisDoc, error) {
+	return func() (node.ChecksummedGenesisDoc, error) {
+		appGenesis, err := genutiltypes.AppGenesisFromFile(cfg.GenesisFile())
+		if err != nil {
+			return node.ChecksummedGenesisDoc{
+				Sha256Checksum: []byte{},
+			}, err
+		}
+
+		gen, err := appGenesis.ToGenesisDoc()
+		if err != nil {
+			return node.ChecksummedGenesisDoc{
+				Sha256Checksum: []byte{},
+			}, err
+		}
+		genbz, err := gen.AppState.MarshalJSON()
+		if err != nil {
+			return node.ChecksummedGenesisDoc{
+				Sha256Checksum: []byte{},
+			}, err
+		}
+
+		bz, err := json.Marshal(genbz)
+		if err != nil {
+			return node.ChecksummedGenesisDoc{
+				Sha256Checksum: []byte{},
+			}, err
+		}
+		sum := sha256.Sum256(bz)
+
+		return node.ChecksummedGenesisDoc{
+			GenesisDoc:     gen,
+			Sha256Checksum: sum[:],
+		}, nil
 	}
-
-	// genState, err := app.ModuleManager.ExportGenesisForModules(
-	// 	ctx,
-	// 	modulesToExport,
-	// )
-	// if err != nil {
-	// 	return servertypes.ExportedApp{}, err
-	// }
-
-	// appState, err := json.MarshalIndent(genState, "", "  ")
-	// if err != nil {
-	// 	return servertypes.ExportedApp{}, err
-	// }
-
-	// TODO: Pull these in from the BeaconKeeper, should be easy.
-	validators := []cmttypes.GenesisValidator(nil)
-
-	return servertypes.ExportedApp{
-		AppState:        nil,
-		Validators:      validators,
-		Height:          height,
-		ConsensusParams: app.GetConsensusParams(context.TODO()),
-	}, nil
 }

@@ -18,14 +18,13 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 //
-//nolint:lll // its a bet.
+
 package cmd
 
 import (
 	"context"
 	"strings"
 
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
@@ -46,20 +45,8 @@ func Execute(rootCmd *cobra.Command, envPrefix, defaultHome string) error {
 	// getting and setting the client.Context. Ideally, we utilize
 	// https://github.com/spf13/cobra/pull/1118.
 	ctx := CreateExecuteContext(context.Background())
-
-	rootCmd.PersistentFlags().
-		String(
-			flags.FlagLogLevel,
-			"info",
-			"The logging level (trace|debug|info|warn|error|fatal|panic|disabled or '*:<level>,<key>:<level>')")
-	rootCmd.PersistentFlags().
-		String(flags.FlagLogFormat, "plain", "The logging format (json|plain)")
-	rootCmd.PersistentFlags().
-		Bool(flags.FlagLogNoColor, false, "Disable colored logs")
 	rootCmd.PersistentFlags().
 		StringP(flags.FlagHome, "", defaultHome, "directory for config and data")
-	rootCmd.PersistentFlags().
-		Bool(server.FlagTrace, false, "print out full stack trace on errors")
 
 	// update the global viper with the root command's configuration
 	viper.SetEnvPrefix(envPrefix)
@@ -69,12 +56,8 @@ func Execute(rootCmd *cobra.Command, envPrefix, defaultHome string) error {
 	return rootCmd.ExecuteContext(ctx)
 }
 
-// CreateExecuteContext returns a base Context with server and client context
+// CreateExecuteContext returns a base Context with client context
 // values initialized.
 func CreateExecuteContext(ctx context.Context) context.Context {
-	srvCtx := server.NewDefaultContext()
-	ctx = context.WithValue(ctx, client.ClientContextKey, &client.Context{})
-	ctx = context.WithValue(ctx, server.ServerContextKey, srvCtx)
-
-	return ctx
+	return context.WithValue(ctx, client.ClientContextKey, &client.Context{})
 }

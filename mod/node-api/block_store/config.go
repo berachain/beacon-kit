@@ -18,20 +18,24 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package cometbft
+package blockstore
 
-import (
-	"context"
-
-	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
+const (
+	DefaultAvailabilityWindow = 8192
 )
 
-const InitialAppVersion uint64 = 0
+// Config is the configuration for the block service.
+type Config struct {
+	// Enabled enables the block service.
+	Enabled bool `mapstructure:"enabled"`
+	// AvailabilityWindow is the number of slots to keep in the store.
+	AvailabilityWindow int `mapstructure:"availability-window"`
+}
 
-// ParamStore defines the interface the parameter store used by the Service must
-// fulfill.
-type ParamStore interface {
-	Get(ctx context.Context) (cmtproto.ConsensusParams, error)
-	Has(ctx context.Context) (bool, error)
-	Set(ctx context.Context, cp cmtproto.ConsensusParams) error
+// DefaultConfig returns the default configuration for the block service.
+func DefaultConfig() Config {
+	return Config{
+		Enabled:            false,
+		AvailabilityWindow: DefaultAvailabilityWindow,
+	}
 }

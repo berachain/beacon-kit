@@ -18,25 +18,16 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package server
+package components
 
 import (
-	"cosmossdk.io/log"
-	cmtlog "github.com/cometbft/cometbft/libs/log"
+	"github.com/berachain/beacon-kit/mod/config/pkg/config"
+	"github.com/berachain/beacon-kit/mod/observability/pkg/telemetry"
 )
 
-var _ cmtlog.Logger = (*CometLoggerWrapper)(nil)
-
-// CometLoggerWrapper provides a wrapper around a cosmossdk.io/log instance.
-// It implements CometBFT's Logger interface.
-type CometLoggerWrapper struct {
-	log.Logger
-}
-
-// With returns a new wrapped logger with additional context provided by a set
-// of key/value tuples. The number of tuples must be even and the key of the
-// tuple must be a string.
-func (cmt CometLoggerWrapper) With(keyVals ...interface{}) cmtlog.Logger {
-	logger := cmt.Logger.With(keyVals...)
-	return CometLoggerWrapper{logger}
+// ProvideTelemetryService is a function that provides a TelemetrySink.
+func ProvideTelemetryService(
+	cfg *config.Config,
+) (*telemetry.Service, error) {
+	return telemetry.NewService(&cfg.Telemetry)
 }

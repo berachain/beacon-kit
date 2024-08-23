@@ -18,27 +18,20 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package blockstore
+package components
 
-const (
-	DefaultAvailabilityWindow = 8192
+import (
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/log"
+	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
+	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"
+	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 )
 
-// Config is the configuration for the block service.
-type Config struct {
-	// Enabled enables the block service.
-	Enabled bool `mapstructure:"enabled"`
-	// PrunerEnabled enables the block pruner.
-	PrunerEnabled bool `mapstructure:"pruner-enabled"`
-	// AvailabilityWindow is the number of slots to keep in the store.
-	AvailabilityWindow uint64 `mapstructure:"availability-window"`
-}
-
-// DefaultConfig returns the default configuration for the block service.
-func DefaultConfig() Config {
-	return Config{
-		Enabled:            false,
-		PrunerEnabled:      false,
-		AvailabilityWindow: DefaultAvailabilityWindow,
-	}
+// ProvideNode is a function that provides the module to the.
+func ProvideNode(
+	registry *service.Registry,
+	logger *phuslu.Logger,
+) types.Node {
+	return node.New[types.Node](registry, log.WrapSDKLogger(logger))
 }

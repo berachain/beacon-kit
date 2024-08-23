@@ -18,36 +18,38 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package cometbft
+package telemetry
 
 import (
-	cometcli "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/cli"
-	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
-	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
-	"github.com/spf13/cobra"
+	"context"
+
+	"github.com/cosmos/cosmos-sdk/telemetry"
 )
 
-// Commands creates a new command for managing CometBFT
-// related commands.
-func Commands[T types.Node](
-	appCreator servertypes.AppCreator[T],
-) *cobra.Command {
-	cometCmd := &cobra.Command{
-		Use:     "comet",
-		Aliases: []string{"cometbft", "tendermint"},
-		Short:   "CometBFT subcommands",
+type Config = telemetry.Config
+
+// Service is a telemetry service.
+type Service struct {
+	m *telemetry.Metrics
+}
+
+// NewService creates a new telemetry service.
+func NewService(cfg *telemetry.Config) (*Service, error) {
+	m, err := telemetry.New(*cfg)
+	if err != nil {
+		return nil, err
 	}
+	return &Service{
+		m: m,
+	}, nil
+}
 
-	cometCmd.AddCommand(
-		cometcli.ShowNodeIDCmd(),
-		cometcli.ShowValidatorCmd(),
-		cometcli.ShowAddressCmd(),
-		cometcli.VersionCmd(),
-		cmtcmd.ResetAllCmd,
-		cmtcmd.ResetStateCmd,
-		cometcli.BootstrapStateCmd(appCreator),
-	)
+// Name returns the service name.
+func (s *Service) Name() string {
+	return "telemetry"
+}
 
-	return cometCmd
+// Start starts the telemetry service.
+func (s *Service) Start(context.Context) error {
+	return nil
 }

@@ -29,11 +29,18 @@ import (
 	"cosmossdk.io/store"
 	storemetrics "cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
-	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
+	servercmtlog "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/log"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/params"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
+	cmtcfg "github.com/cometbft/cometbft/config"
+	"github.com/cometbft/cometbft/node"
+	"github.com/cometbft/cometbft/p2p"
+	pvm "github.com/cometbft/cometbft/privval"
+	"github.com/cometbft/cometbft/proxy"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -49,9 +56,11 @@ const (
 	execModeFinalize
 )
 
-var _ servertypes.ABCI = (*Service)(nil)
+const InitialAppVersion uint64 = 0
 
 type Service struct {
+	node   *node.Node
+	cmtCfg *cmtcfg.Config
 	// initialized on creation
 	logger     log.Logger
 	name       string
@@ -63,7 +72,7 @@ type Service struct {
 	processProposalState *state
 	finalizeBlockState   *state
 	interBlockCache      storetypes.MultiStorePersistentCache
-	paramStore           ParamStore
+	paramStore           *params.ConsensusParamsStore
 	initialHeight        int64
 	minRetainBlocks      uint64
 	// application's version string
@@ -77,11 +86,13 @@ func NewService(
 	db dbm.DB,
 	middleware MiddlewareI,
 	loadLatest bool,
+	cmtCfg *cmtcfg.Config,
+	cs common.ChainSpec,
 	options ...func(*Service),
 ) *Service {
 	app := &Service{
 		logger: logger.With(log.ModuleKey, "cometbft"),
-		name:   "BeaconKit",
+		name:   "beacond",
 		db:     db,
 		cms: store.NewCommitMultiStore(
 			db,
@@ -89,6 +100,8 @@ func NewService(
 			storemetrics.NewNoOpMetrics(),
 		),
 		Middleware: middleware,
+		cmtCfg:     cmtCfg,
+		paramStore: params.NewConsensusParamsStore(cs),
 	}
 
 	app.SetVersion(version.Version)
@@ -112,15 +125,61 @@ func NewService(
 	return app
 }
 
+// TODO: Move nodeKey into being created within the function.
+func (app *Service) Start(
+	ctx context.Context,
+) error {
+	cfg := app.cmtCfg
+	nodeKey, err := p2p.LoadOrGenNodeKey(cfg.NodeKeyFile())
+	if err != nil {
+		return err
+	}
+
+	app.node, err = node.NewNode(
+		ctx,
+		cfg,
+		pvm.LoadOrGenFilePV(
+			cfg.PrivValidatorKeyFile(),
+			cfg.PrivValidatorStateFile(),
+		),
+		nodeKey,
+		proxy.NewLocalClientCreator(app),
+		GetGenDocProvider(cfg),
+		cmtcfg.DefaultDBProvider,
+		node.DefaultMetricsProvider(cfg.Instrumentation),
+		servercmtlog.CometLoggerWrapper{Logger: app.logger},
+	)
+	if err != nil {
+		return err
+	}
+
+	return app.node.Start()
+}
+
+// Close is called in start cmd to gracefully cleanup resources.
+func (app *Service) Close() error {
+	var errs []error
+
+	if app.node != nil && app.node.IsRunning() {
+		app.logger.Info("Stopping CometBFT Node")
+		//#nosec:G703 // its a bet.
+		_ = app.node.Stop()
+	}
+
+	// Close app.db (opened by cosmos-sdk/server/start.go call to openDB)
+	if app.db != nil {
+		app.logger.Info("Closing application.db")
+		if err := app.db.Close(); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	return errors.Join(errs...)
+}
+
 // Name returns the name of the cometbft.
 func (app *Service) Name() string {
 	return app.name
-}
-
-// Start sets up the cometbft to listen for FinalizeBlock, VerifyBlock, and
-// ProcessGenesisData requests, and handles them accordingly.
-func (app *Service) Start(context.Context) error {
-	return nil
 }
 
 // CommitMultiStore returns the CommitMultiStore of the cometbft.
@@ -255,21 +314,6 @@ func (app *Service) validateFinalizeBlockHeight(
 	}
 
 	return nil
-}
-
-// Close is called in start cmd to gracefully cleanup resources.
-func (app *Service) Close() error {
-	var errs []error
-
-	// Close app.db (opened by cosmos-sdk/server/start.go call to openDB)
-	if app.db != nil {
-		app.logger.Info("Closing application.db")
-		if err := app.db.Close(); err != nil {
-			errs = append(errs, err)
-		}
-	}
-
-	return errors.Join(errs...)
 }
 
 // convertValidatorUpdate abstracts the conversion of a

@@ -25,7 +25,7 @@ import (
 	"strings"
 
 	pruningtypes "cosmossdk.io/store/pruning/types"
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
+	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/server/types"
 	"github.com/spf13/cast"
 )
 

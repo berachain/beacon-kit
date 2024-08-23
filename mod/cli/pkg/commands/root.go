@@ -21,8 +21,8 @@
 package commands
 
 import (
+	svrcmd "github.com/berachain/beacon-kit/mod/cli/pkg/commands/server/cmd"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/config"
-	svrcmd "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/cmd"
 	sdkclient "github.com/cosmos/cosmos-sdk/client"
 	sdkconfig "github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/spf13/cobra"
@@ -34,7 +34,8 @@ type Root struct {
 }
 
 // New returns a new root command with the provided configuration.
-func New(name string,
+func New(
+	name string,
 	description string,
 	runHandler runHandler,
 	clientCtx sdkclient.Context,
@@ -78,6 +79,9 @@ func New(name string,
 			return runHandler(cmd)
 		},
 	}
+
+	cmd.CompletionOptions.DisableDefaultCmd = true
+
 	return &Root{
 		cmd: cmd,
 	}

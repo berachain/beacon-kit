@@ -27,13 +27,13 @@ import (
 	"cosmossdk.io/depinject"
 	sdklog "cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
+	servertypes "github.com/berachain/beacon-kit/mod/cli/pkg/commands/server/types"
 	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
-	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	"github.com/berachain/beacon-kit/mod/log"
-	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
 	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
+	cmtcfg "github.com/cometbft/cometbft/config"
 	dbm "github.com/cosmos/cosmos-db"
 )
 
@@ -50,7 +50,6 @@ type NodeBuilder[
 	},
 	LoggerConfigT any,
 ] struct {
-	node NodeT
 	// components is a list of components to provide.
 	components []any
 }
@@ -66,9 +65,7 @@ func New[
 ](
 	opts ...Opt[NodeT, LoggerT, LoggerConfigT],
 ) *NodeBuilder[NodeT, LoggerT, LoggerConfigT] {
-	nb := &NodeBuilder[NodeT, LoggerT, LoggerConfigT]{
-		node: node.New[NodeT](),
-	}
+	nb := &NodeBuilder[NodeT, LoggerT, LoggerConfigT]{}
 	for _, opt := range opts {
 		opt(nb)
 	}
@@ -82,6 +79,7 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 	logger sdklog.Logger,
 	db dbm.DB,
 	_ io.Writer,
+	cmtCfg *cmtcfg.Config,
 	appOpts servertypes.AppOptions,
 ) NodeT {
 	// variables to hold the components needed to set up BeaconApp
@@ -89,9 +87,15 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 		chainSpec       common.ChainSpec
 		abciMiddleware  cometbft.MiddlewareI
 		serviceRegistry *service.Registry
-		apiBackend      interface{ AttachNode(NodeT) }
-		storeKey        = new(storetypes.KVStoreKey)
-		storeKeyDblPtr  = &storeKey
+		apiBackend      interface {
+			AttachQueryBackend(
+				*cometbft.Service,
+			)
+		}
+		storeKey       = new(storetypes.KVStoreKey)
+		storeKeyDblPtr = &storeKey
+		beaconNode     NodeT
+		cmtService     *cometbft.Service
 	)
 
 	// build all node components using depinject
@@ -103,47 +107,36 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 			depinject.Supply(
 				appOpts,
 				logger.Impl().(LoggerT),
+				db,
+				cmtCfg,
 			),
 			// TODO: cosmos depinject bad project, fixed with dig.
 			// depinject.Invoke(
 			// 	SetLoggerConfig[LoggerT, LoggerConfigT],
 			// ),
 		),
+		&beaconNode,
 		&storeKeyDblPtr,
 		&chainSpec,
 		&abciMiddleware,
 		&serviceRegistry,
 		&apiBackend,
+		&cmtService,
 	); err != nil {
 		panic(err)
 	}
 
 	if apiBackend == nil {
-		panic("consensus engine or api backend is nil")
+		panic("node or api backend is nil")
 	}
 
-	// set the application to a new BeaconApp with necessary ABCI handlers
-	nb.node.RegisterApp(
-		cometbft.NewService(
-			*storeKeyDblPtr,
-			logger,
-			db,
-			abciMiddleware,
-			true,
-			append(
-				DefaultServiceOptions(appOpts),
-				WithCometParamStore(chainSpec),
-			)...,
-		),
-	)
 	// TODO: so hood
-	apiBackend.AttachNode(nb.node)
-	nb.node.SetServiceRegistry(serviceRegistry)
+	apiBackend.AttachQueryBackend(cmtService)
 
 	// TODO: put this in some post node creation hook/listener.
-	if err := nb.node.Start(context.Background()); err != nil {
+	if err := beaconNode.Start(context.Background()); err != nil {
 		logger.Error("failed to start node", "err", err)
 		panic(err)
 	}
-	return nb.node
+	return beaconNode
 }

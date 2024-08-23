@@ -21,15 +21,14 @@
 package commands
 
 import (
-	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/cometbft"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/deposit"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/genesis"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/jwt"
+	"github.com/berachain/beacon-kit/mod/cli/pkg/commands/server"
+	servertypes "github.com/berachain/beacon-kit/mod/cli/pkg/commands/server/types"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
 	cmtcli "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/cli"
-	ccometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
-	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server"
-	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
+	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
@@ -43,19 +42,14 @@ func DefaultRootCommandSetup[
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
 ](
 	root *Root,
-	mm *ccometbft.Service,
+	mm *cometbft.Service,
 	appCreator servertypes.AppCreator[T],
 	chainSpec common.ChainSpec,
 ) {
-	// Setup the custom start command options.
-	startCmdOptions := server.StartCmdOptions[T]{
-		AddFlags: flags.AddBeaconKitFlags,
-	}
-
 	// Add all the commands to the root command.
 	root.cmd.AddCommand(
 		// `comet`
-		cometbft.Commands(appCreator),
+		cmtcli.Commands(appCreator),
 		// `init`
 		genutilcli.InitCmd(mm),
 		// `genesis`
@@ -67,7 +61,9 @@ func DefaultRootCommandSetup[
 		// `rollback`
 		server.NewRollbackCmd(appCreator),
 		// `start`
-		server.StartCmdWithOptions(appCreator, startCmdOptions),
+		server.StartCmdWithOptions(appCreator, server.StartCmdOptions[T]{
+			AddFlags: flags.AddBeaconKitFlags,
+		}),
 		// `status`
 		cmtcli.StatusCommand(),
 		// `version`

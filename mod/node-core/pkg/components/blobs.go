@@ -23,8 +23,8 @@ package components
 import (
 	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
+	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
-	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
 	dablob "github.com/berachain/beacon-kit/mod/da/pkg/blob"
 	"github.com/berachain/beacon-kit/mod/da/pkg/da"
 	"github.com/berachain/beacon-kit/mod/da/pkg/kzg"
@@ -39,7 +39,7 @@ import (
 // dep inject framework.
 type BlobProofVerifierInput struct {
 	depinject.In
-	AppOpts          servertypes.AppOptions
+	AppOpts          config.AppOptions
 	JSONTrustedSetup *gokzg4844.JSONTrustedSetup
 }
 

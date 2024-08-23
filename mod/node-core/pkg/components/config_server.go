@@ -18,18 +18,40 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package types
+package components
 
 import (
-	servertypes "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/server/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"errors"
+
+	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/config"
+	sdkconfig "github.com/berachain/beacon-kit/mod/config/pkg/config"
+	"github.com/mitchellh/mapstructure"
+	"github.com/spf13/viper"
 )
 
-// Application is the interface that wraps the methods of the cosmos-sdk
-// Application.
-// It also adds a few methods for creating query contexts.
-type Application interface {
-	servertypes.Application
+// ServerConfigInput is the input for the dependency injection framework.
+type ServerConfigInput struct {
+	depinject.In
+	AppOpts config.AppOptions
+}
 
-	CreateQueryContext(height int64, prove bool) (sdk.Context, error)
+// ProvideConfig is a function that provides the BeaconConfig to the
+// application.
+func ProvideServerConfig(in ConfigInput) (*sdkconfig.Config, error) {
+	v, ok := in.AppOpts.(*viper.Viper)
+	if !ok {
+		return nil, errors.New("invalid application options type")
+	}
+
+	cfg := sdkconfig.Config{}
+	if err := v.Unmarshal(&cfg,
+		viper.DecodeHook(mapstructure.ComposeDecodeHookFunc(
+			mapstructure.StringToTimeDurationHookFunc(),
+			mapstructure.StringToSliceHookFunc(","),
+		))); err != nil {
+		return nil, err
+	}
+
+	return &cfg, nil
 }
