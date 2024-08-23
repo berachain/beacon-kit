@@ -28,7 +28,9 @@ def deploy_contracts(plan, deployment):
     dependency_artifact_name = ""
     if dependency_status:
         dependency_path = dependency["path"]
-        plan.upload_files(src = dependency_path, name = "dependency")
+
+        # plan.upload_files(src = dependency_path, name = "dependency")
+        plan.upload_files(src = "dependency", name = "dependency")
         dependency_artifact_name = "dependency"
 
     foundry_service = plan.add_service(
@@ -59,17 +61,18 @@ def deploy_contracts(plan, deployment):
     )
     plan.verify(result["code"], "==", 0)
 
-    script_output = exec_on_service(
-        plan,
-        foundry_service.name,
-        "cd {} && forge script {}:{} --broadcast --rpc-url {} {} --json  --skip test > output.json ".format(
-            contract_path,
-            script_path,
-            contract_name,
-            rpc_url,
-            wallet_command,
-        ),
-    )
+    if script_path:
+        script_output = exec_on_service(
+            plan,
+            foundry_service.name,
+            "cd {} && forge script {}:{} --broadcast --rpc-url {} {} --json  --skip test > output.json ".format(
+                contract_path,
+                script_path,
+                contract_name,
+                rpc_url,
+                wallet_command,
+            ),
+        )
 
     exec_on_service(
         plan,
@@ -77,16 +80,17 @@ def deploy_contracts(plan, deployment):
         "cat {}/output.json ".format(contract_path),
     )
 
-    # Get the forge script output in a output.json file and grep from it
-    transaction_file = "grep 'Transactions saved to' output.json | awk -F': ' '{print $2}'"
-    plan.print("transaction_file", transaction_file)
+    if script_path:
+        # Get the forge script output in a output.json file and grep from it
+        transaction_file = "grep 'Transactions saved to' output.json | awk -F': ' '{print $2}'"
+        plan.print("transaction_file", transaction_file)
 
-    transaction_file_details = exec_on_service(plan, foundry_service.name, "cd {} && {}".format(contract_path, transaction_file))
+        transaction_file_details = exec_on_service(plan, foundry_service.name, "cd {} && {}".format(contract_path, transaction_file))
 
-    if not transaction_file_details["output"]:
-        fail("Transaction file not found.")
-    exec_output = exec_on_service(plan, foundry_service.name, "cat {}".format(transaction_file_details["output"]))
-    plan.verify(exec_output["code"], "==", 0)
+        if not transaction_file_details["output"]:
+            fail("Transaction file not found.")
+        exec_output = exec_on_service(plan, foundry_service.name, "chmod -R 777 /app/contracts && cat {}".format(transaction_file_details["output"]))
+        plan.verify(exec_output["code"], "==", 0)
 
 def exec_on_service(plan, service_name, command):
     return plan.exec(
