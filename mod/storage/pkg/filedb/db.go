@@ -34,7 +34,7 @@ import (
 // performant to store in a traditional key-value database.
 type DB struct {
 	fs        afero.Fs
-	logger    log.Logger[any]
+	logger    log.Logger
 	rootDir   string
 	extension string
 	dirPerms  os.FileMode

@@ -40,7 +40,7 @@ func ProvideDispatcher[
 	BeaconBlockT any,
 	BlobSidecarsT any,
 	GenesisT any,
-	LoggerT log.AdvancedLogger[any, LoggerT],
+	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	in DispatcherInput[LoggerT],
 ) (Dispatcher, error) {

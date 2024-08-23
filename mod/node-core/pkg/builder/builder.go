@@ -45,7 +45,7 @@ import (
 type NodeBuilder[
 	NodeT types.Node,
 	LoggerT interface {
-		log.AdvancedLogger[any, LoggerT]
+		log.AdvancedLogger[LoggerT]
 		log.Configurable[LoggerT, LoggerConfigT]
 	},
 	LoggerConfigT any,
@@ -58,7 +58,7 @@ type NodeBuilder[
 func New[
 	NodeT types.Node,
 	LoggerT interface {
-		log.AdvancedLogger[any, LoggerT]
+		log.AdvancedLogger[LoggerT]
 		log.Configurable[LoggerT, LoggerConfigT]
 	},
 	LoggerConfigT any,

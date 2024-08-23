@@ -40,7 +40,7 @@ type Processor[
 	BlobSidecarsT Sidecars[BlobSidecarT],
 ] struct {
 	// logger is used to log information and errors.
-	logger log.Logger[any]
+	logger log.Logger
 	// chainSpec defines the specifications of the blockchain.
 	chainSpec common.ChainSpec
 	// verifier is responsible for verifying the blobs.
@@ -62,7 +62,7 @@ func NewProcessor[
 	BlobSidecarT Sidecar[BeaconBlockHeaderT],
 	BlobSidecarsT Sidecars[BlobSidecarT],
 ](
-	logger log.Logger[any],
+	logger log.Logger,
 	chainSpec common.ChainSpec,
 	verifier BlobVerifier[BlobSidecarsT],
 	blockBodyOffsetFn func(math.Slot, common.ChainSpec) uint64,

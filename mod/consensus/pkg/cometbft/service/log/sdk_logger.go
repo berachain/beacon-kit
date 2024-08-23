@@ -25,11 +25,11 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 )
 
-type SDKLogger[LoggerT log.AdvancedLogger[any, LoggerT]] struct {
+type SDKLogger[LoggerT log.AdvancedLogger[LoggerT]] struct {
 	Logger LoggerT
 }
 
-func WrapSDKLogger[LoggerT log.AdvancedLogger[any, LoggerT]](
+func WrapSDKLogger[LoggerT log.AdvancedLogger[LoggerT]](
 	logger LoggerT,
 ) *SDKLogger[LoggerT] {
 	return &SDKLogger[LoggerT]{

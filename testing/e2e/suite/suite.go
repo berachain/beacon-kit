@@ -41,7 +41,7 @@ var Run = suite.Run
 type KurtosisE2ESuite struct {
 	suite.Suite
 	cfg     *config.E2ETestConfig
-	logger  log.Logger[any]
+	logger  log.Logger
 	ctx     context.Context
 	kCtx    *kurtosis_context.KurtosisContext
 	enclave *enclaves.EnclaveContext
@@ -107,7 +107,7 @@ func (s *KurtosisE2ESuite) JSONRPCBalancerType() string {
 }
 
 // Logger returns the logger for the test suite.
-func (s *KurtosisE2ESuite) Logger() log.Logger[any] {
+func (s *KurtosisE2ESuite) Logger() log.Logger {
 	return s.logger
 }
 

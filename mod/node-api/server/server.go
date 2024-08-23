@@ -35,7 +35,7 @@ type Server[
 ] struct {
 	engine Engine[ContextT]
 	config Config
-	logger log.Logger[any]
+	logger log.Logger
 }
 
 // New initializes a new API Server with the given config, engine, and logger.
@@ -46,12 +46,12 @@ func New[
 ](
 	config Config,
 	engine Engine[ContextT],
-	logger log.Logger[any],
+	logger log.Logger,
 	handlers ...handlers.Handlers[ContextT],
 ) *Server[ContextT] {
 	apiLogger := logger
 	if !config.Logging {
-		apiLogger = noop.NewLogger[log.Logger[any]]()
+		apiLogger = noop.NewLogger[log.Logger]()
 	}
 	for _, handler := range handlers {
 		handler.RegisterRoutes(apiLogger)

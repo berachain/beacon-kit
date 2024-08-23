@@ -35,7 +35,7 @@ const defaultReportingInterval = 5 * time.Minute
 // version.
 type ReportingService struct {
 	// logger is used to log information about the running chain version.
-	logger log.Logger[any]
+	logger log.Logger
 	// version represents the current version of the running chain.
 	version string
 	// reportingInterval is the interval at which the version is reported.
@@ -46,7 +46,7 @@ type ReportingService struct {
 
 // NewReportingService creates a new VersionReporterService.
 func NewReportingService(
-	logger log.Logger[any],
+	logger log.Logger,
 	telemetrySink TelemetrySink,
 	version string,
 ) *ReportingService {

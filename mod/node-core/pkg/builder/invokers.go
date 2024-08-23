@@ -29,7 +29,7 @@ import (
 // for the depinject framework.
 func SetLoggerConfig[
 	LoggerT interface {
-		log.AdvancedLogger[any, LoggerT]
+		log.AdvancedLogger[LoggerT]
 		log.Configurable[LoggerT, LoggerConfigT]
 	},
 	LoggerConfigT any,

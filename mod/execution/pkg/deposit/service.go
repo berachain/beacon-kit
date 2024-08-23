@@ -38,7 +38,7 @@ type Service[
 	WithdrawalCredentialsT any,
 ] struct {
 	// logger is used for logging information and errors.
-	logger log.Logger[any]
+	logger log.Logger
 	// eth1FollowDistance is the follow distance for Ethereum 1.0 blocks.
 	eth1FollowDistance math.U64
 	// dc is the contract interface for interacting with the deposit contract.
@@ -65,7 +65,7 @@ func NewService[
 	ExecutionPayloadT ExecutionPayload,
 	WithdrawalCredentialsT any,
 ](
-	logger log.Logger[any],
+	logger log.Logger,
 	eth1FollowDistance math.U64,
 	telemetrySink TelemetrySink,
 	ds Store[DepositT],
