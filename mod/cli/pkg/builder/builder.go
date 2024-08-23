@@ -84,6 +84,7 @@ func (cb *CLIBuilder[
 		chainSpec common.ChainSpec
 		logger    LoggerT
 	)
+
 	// build dependencies for the root command
 	if err := depinject.Inject(
 		depinject.Configs(

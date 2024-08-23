@@ -21,6 +21,7 @@
 package components
 
 import (
+	stdbytes "bytes"
 	"context"
 	"encoding/json"
 
@@ -28,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers"
 	"github.com/berachain/beacon-kit/mod/node-api/handlers/beacon/types"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/bytes"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -464,51 +466,51 @@ type (
 	// 		) error
 	// 	}
 
-	// 	ExecutionPayload[
-	// 		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT any,
-	// 	] interface {
-	// 		constraints.EngineType[ExecutionPayloadT]
-	// 		GetTransactions() engineprimitives.Transactions
-	// 		GetParentHash() common.ExecutionHash
-	// 		GetBlockHash() common.ExecutionHash
-	// 		GetPrevRandao() common.Bytes32
-	// 		GetWithdrawals() WithdrawalsT
-	// 		GetFeeRecipient() common.ExecutionAddress
-	// 		GetStateRoot() common.Bytes32
-	// 		GetReceiptsRoot() common.Bytes32
-	// 		GetLogsBloom() bytes.B256
-	// 		GetNumber() math.U64
-	// 		GetGasLimit() math.U64
-	// 		GetTimestamp() math.U64
-	// 		GetGasUsed() math.U64
-	// 		GetExtraData() []byte
-	// 		GetBaseFeePerGas() *math.U256
-	// 		GetBlobGasUsed() math.U64
-	// 		GetExcessBlobGas() math.U64
-	// 		ToHeader(
-	// 			maxWithdrawalsPerPayload uint64,
-	// 			eth1ChainID uint64,
-	// 		) (ExecutionPayloadHeaderT, error)
-	// 	}
+	ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT any,
+	] interface {
+		constraints.EngineType[ExecutionPayloadT]
+		GetTransactions() engineprimitives.Transactions
+		GetParentHash() common.ExecutionHash
+		GetBlockHash() common.ExecutionHash
+		GetPrevRandao() common.Bytes32
+		GetWithdrawals() WithdrawalsT
+		GetFeeRecipient() common.ExecutionAddress
+		GetStateRoot() common.Bytes32
+		GetReceiptsRoot() common.Bytes32
+		GetLogsBloom() bytes.B256
+		GetNumber() math.U64
+		GetGasLimit() math.U64
+		GetTimestamp() math.U64
+		GetGasUsed() math.U64
+		GetExtraData() []byte
+		GetBaseFeePerGas() *math.U256
+		GetBlobGasUsed() math.U64
+		GetExcessBlobGas() math.U64
+		ToHeader(
+			maxWithdrawalsPerPayload uint64,
+			eth1ChainID uint64,
+		) (ExecutionPayloadHeaderT, error)
+	}
 
-	// 	// ExecutionPayloadHeader is the interface for the execution payload
+	// ExecutionPayloadHeader is the interface for the execution payload
 	// header.
-	// 	ExecutionPayloadHeader[T any] interface {
-	// 		constraints.SSZMarshallable
-	// 		constraints.Versionable
-	// 		NewFromSSZ([]byte, uint32) (T, error)
-	// 		// GetNumber returns the block number of the ExecutionPayloadHeader.
-	// 		GetNumber() math.U64
-	// 		// GetFeeRecipient returns the fee recipient address of the
-	// 		// ExecutionPayloadHeader.
-	// 		GetFeeRecipient() common.ExecutionAddress
-	// 		// GetTimestamp returns the timestamp.
-	// 		GetTimestamp() math.U64
-	// 		// GetBlockHash returns the block hash.
-	// 		GetBlockHash() common.ExecutionHash
-	// 		// GetParentHash returns the parent hash.
-	// 		GetParentHash() common.ExecutionHash
-	// 	}
+	ExecutionPayloadHeader[T any] interface {
+		constraints.SSZMarshallable
+		constraints.Versionable
+		NewFromSSZ([]byte, uint32) (T, error)
+		// GetNumber returns the block number of the ExecutionPayloadHeader.
+		GetNumber() math.U64
+		// GetFeeRecipient returns the fee recipient address of the
+		// ExecutionPayloadHeader.
+		GetFeeRecipient() common.ExecutionAddress
+		// GetTimestamp returns the timestamp.
+		GetTimestamp() math.U64
+		// GetBlockHash returns the block hash.
+		GetBlockHash() common.ExecutionHash
+		// GetParentHash returns the parent hash.
+		GetParentHash() common.ExecutionHash
+	}
 
 	// 	Fork[T any] interface {
 	// 		constraints.Empty[T]
@@ -588,18 +590,18 @@ type (
 	}
 
 	// 	// PayloadAttributes is the interface for the payload attributes.
-	// 	PayloadAttributes[T any, WithdrawalT any] interface {
-	// 		engineprimitives.PayloadAttributer
-	// 		// New creates a new payload attributes instance.
-	// 		New(
-	// 			uint32,
-	// 			uint64,
-	// 			common.Bytes32,
-	// 			common.ExecutionAddress,
-	// 			[]WithdrawalT,
-	// 			common.Root,
-	// 		) (T, error)
-	// 	}
+	// PayloadAttributes[T any, WithdrawalT any] interface {
+	// 	engineprimitives.PayloadAttributer
+	// 	// New creates a new payload attributes instance.
+	// 	New(
+	// 		uint32,
+	// 		uint64,
+	// 		common.Bytes32,
+	// 		common.ExecutionAddress,
+	// 		[]WithdrawalT,
+	// 		common.Root,
+	// 	) (T, error)
+	// }.
 
 	// 	// SlashingInfo is an interface for accessing the slashing info.
 	// 	SlashingInfo[SlashingInfoT any] interface {
@@ -730,31 +732,31 @@ type (
 	// 		HashTreeRoot() common.Root
 	// 	}
 
-	// 	// Withdrawal is the interface for a withdrawal.
-	// 	Withdrawal[T any] interface {
-	// 		New(
-	// 			index math.U64,
-	// 			validatorIndex math.ValidatorIndex,
-	// 			address common.ExecutionAddress,
-	// 			amount math.Gwei,
-	// 		) T
-	// 		// Equals returns true if the withdrawal is equal to the other.
-	// 		Equals(T) bool
-	// 		// GetAmount returns the amount of the withdrawal.
-	// 		GetAmount() math.Gwei
-	// 		// GetIndex returns the public key of the validator.
-	// 		GetIndex() math.U64
-	// 		// GetValidatorIndex returns the index of the validator.
-	// 		GetValidatorIndex() math.ValidatorIndex
-	// 		// GetAddress returns the address of the withdrawal.
-	// 		GetAddress() common.ExecutionAddress
-	// 	}
+	// Withdrawal is the interface for a withdrawal.
+	Withdrawal[T any] interface {
+		New(
+			index math.U64,
+			validatorIndex math.ValidatorIndex,
+			address common.ExecutionAddress,
+			amount math.Gwei,
+		) T
+		// Equals returns true if the withdrawal is equal to the other.
+		Equals(T) bool
+		// GetAmount returns the amount of the withdrawal.
+		GetAmount() math.Gwei
+		// GetIndex returns the public key of the validator.
+		GetIndex() math.U64
+		// GetValidatorIndex returns the index of the validator.
+		GetValidatorIndex() math.ValidatorIndex
+		// GetAddress returns the address of the withdrawal.
+		GetAddress() common.ExecutionAddress
+	}
 
-	// 	Withdrawals[WithdrawalT any] interface {
-	// 		~[]WithdrawalT
-	// 		Len() int
-	// 		EncodeIndex(int, *stdbytes.Buffer)
-	// 	}
+	Withdrawals[WithdrawalT any] interface {
+		~[]WithdrawalT
+		Len() int
+		EncodeIndex(int, *stdbytes.Buffer)
+	}
 
 	// // WithdrawalCredentials represents an interface for withdrawal
 	// credentials.

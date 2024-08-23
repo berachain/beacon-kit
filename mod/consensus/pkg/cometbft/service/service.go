@@ -29,7 +29,7 @@ import (
 	"cosmossdk.io/store"
 	storemetrics "cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
-	servercmtlog "github.com/berachain/beacon-kit/mod/cli/pkg/components/log"
+	servercmtlog "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/log"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/params"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -92,7 +92,7 @@ func NewService(
 ) *Service {
 	app := &Service{
 		logger: logger.With(log.ModuleKey, "cometbft"),
-		name:   "BeaconKit",
+		name:   "beacond",
 		db:     db,
 		cms: store.NewCommitMultiStore(
 			db,

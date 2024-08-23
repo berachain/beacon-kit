@@ -21,7 +21,7 @@
 package components
 
 import (
-	"github.com/berachain/beacon-kit/mod/cli/pkg/components/log"
+	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/log"
 	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/node"
 	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"

@@ -79,6 +79,9 @@ func New(
 			return runHandler(cmd)
 		},
 	}
+
+	cmd.CompletionOptions.DisableDefaultCmd = true
+
 	return &Root{
 		cmd: cmd,
 	}

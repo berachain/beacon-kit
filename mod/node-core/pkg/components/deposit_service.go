@@ -22,6 +22,8 @@ package components
 
 import (
 	"cosmossdk.io/depinject"
+	engineprimitives "github.com/berachain/beacon-kit/mod/engine-primitives/pkg/engine-primitives"
+	"github.com/berachain/beacon-kit/mod/execution/pkg/client"
 	"github.com/berachain/beacon-kit/mod/execution/pkg/deposit"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/components/metrics"
@@ -34,16 +36,25 @@ type DepositServiceIn[
 	BeaconBlockT any,
 	DepositContractT any,
 	DepositStoreT any,
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+	],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	LoggerT any,
+	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalsT Withdrawals[WithdrawalT],
 ] struct {
 	depinject.In
 	BeaconDepositContract DepositContractT
 	ChainSpec             common.ChainSpec
 	DepositStore          DepositStoreT
 	Dispatcher            Dispatcher
-	EngineClient          *EngineClient
-	Logger                LoggerT
-	TelemetrySink         *metrics.TelemetrySink
+	EngineClient          *client.EngineClient[
+		ExecutionPayloadT,
+		*engineprimitives.PayloadAttributes[WithdrawalT],
+	]
+	Logger        LoggerT
+	TelemetrySink *metrics.TelemetrySink
 }
 
 // ProvideDepositService provides the deposit service to the depinject
@@ -54,7 +65,7 @@ func ProvideDepositService[
 	],
 	BeaconBlockBodyT BeaconBlockBody[
 		BeaconBlockBodyT, *AttestationData, DepositT,
-		*Eth1Data, *ExecutionPayload, *SlashingInfo,
+		*Eth1Data, ExecutionPayloadT, *SlashingInfo,
 	],
 	BeaconBlockHeaderT any,
 	DepositT Deposit[
@@ -62,21 +73,28 @@ func ProvideDepositService[
 	],
 	DepositContractT deposit.Contract[DepositT],
 	DepositStoreT DepositStore[DepositT],
+	ExecutionPayloadT ExecutionPayload[
+		ExecutionPayloadT, ExecutionPayloadHeaderT, WithdrawalsT,
+	],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
 	LoggerT log.AdvancedLogger[any, LoggerT],
+	WithdrawalT Withdrawal[WithdrawalT],
+	WithdrawalsT Withdrawals[WithdrawalT],
 ](
 	in DepositServiceIn[
-		BeaconBlockT, DepositContractT, DepositStoreT, LoggerT,
+		BeaconBlockT, DepositContractT, DepositStoreT, ExecutionPayloadT,
+		ExecutionPayloadHeaderT, LoggerT, WithdrawalT, WithdrawalsT,
 	],
 ) (*deposit.Service[
 	BeaconBlockT, BeaconBlockBodyT, DepositT,
-	*ExecutionPayload, WithdrawalCredentials,
+	ExecutionPayloadT, WithdrawalCredentials,
 ], error) {
 	// Build the deposit service.
 	return deposit.NewService[
 		BeaconBlockT,
 		BeaconBlockBodyT,
 		DepositT,
-		*ExecutionPayload,
+		ExecutionPayloadT,
 	](
 		in.Logger.With("service", "deposit"),
 		math.U64(in.ChainSpec.Eth1FollowDistance()),

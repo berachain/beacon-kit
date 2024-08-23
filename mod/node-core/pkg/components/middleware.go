@@ -50,7 +50,8 @@ func ProvideABCIMiddleware[
 	BlobSidecarT any,
 	BlobSidecarsT BlobSidecars[BlobSidecarsT, BlobSidecarT],
 	DepositT any,
-	GenesisT Genesis[DepositT, *ExecutionPayloadHeader],
+	ExecutionPayloadHeaderT ExecutionPayloadHeader[ExecutionPayloadHeaderT],
+	GenesisT Genesis[DepositT, ExecutionPayloadHeaderT],
 	LoggerT log.Logger[any],
 ](
 	in ABCIMiddlewareInput[BeaconBlockT, BlobSidecarsT, LoggerT],
