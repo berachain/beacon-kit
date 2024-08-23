@@ -105,8 +105,7 @@ custom: allow pruning options to be manually specified through 'pruning-keep-rec
 			}
 
 			// Open the Database
-			home := cfg.RootDir
-			db, err := db.OpenDB(home, dbm.PebbleDBBackend)
+			db, err := db.OpenDB(cfg.RootDir, dbm.PebbleDBBackend)
 			if err != nil {
 				return err
 			}

@@ -21,18 +21,14 @@
 package builder
 
 import (
-	"context"
 	"io"
 
 	"cosmossdk.io/depinject"
 	sdklog "cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
 	servertypes "github.com/berachain/beacon-kit/mod/cli/pkg/commands/server/types"
 	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
 	"github.com/berachain/beacon-kit/mod/log"
-	service "github.com/berachain/beacon-kit/mod/node-core/pkg/services/registry"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
-	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	dbm "github.com/cosmos/cosmos-db"
 )
@@ -84,18 +80,11 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 ) NodeT {
 	// variables to hold the components needed to set up BeaconApp
 	var (
-		chainSpec       common.ChainSpec
-		abciMiddleware  cometbft.MiddlewareI
-		serviceRegistry *service.Registry
-		apiBackend      interface {
-			AttachQueryBackend(
-				*cometbft.Service,
-			)
+		apiBackend interface {
+			AttachQueryBackend(*cometbft.Service)
 		}
-		storeKey       = new(storetypes.KVStoreKey)
-		storeKeyDblPtr = &storeKey
-		beaconNode     NodeT
-		cmtService     *cometbft.Service
+		beaconNode NodeT
+		cmtService *cometbft.Service
 	)
 
 	// build all node components using depinject
@@ -116,10 +105,6 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 			// ),
 		),
 		&beaconNode,
-		&storeKeyDblPtr,
-		&chainSpec,
-		&abciMiddleware,
-		&serviceRegistry,
 		&apiBackend,
 		&cmtService,
 	); err != nil {
@@ -132,11 +117,5 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 
 	// TODO: so hood
 	apiBackend.AttachQueryBackend(cmtService)
-
-	// TODO: put this in some post node creation hook/listener.
-	if err := beaconNode.Start(context.Background()); err != nil {
-		logger.Error("failed to start node", "err", err)
-		panic(err)
-	}
 	return beaconNode
 }
