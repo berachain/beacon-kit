@@ -29,10 +29,6 @@ envrc_file=".envrc"
 # Clear the existing .envrc file or create a new one
 > $envrc_file
 
-# SPDX-License-Identifier Comment
-echo "# SPDX-License-Identifier: MIT" >> $envrc_file
-echo "" >> $envrc_file
-
 # Parse the YAML file and append to .envrc
 eval $(parse_yaml $config_file)
 

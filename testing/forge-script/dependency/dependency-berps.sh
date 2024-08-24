@@ -35,9 +35,7 @@ cd /app/dependency && sh populate-envrc.sh
 
 cp .envrc /app/contracts/script/berps/.envrc
 
-cd /app/contracts/script/berps
-
-forge build
+cd /app/contracts/script/berps && forge build
 
 sh deploy-berps-deployer.sh >> output.json
 sh deploy-contracts.sh >> output.json
