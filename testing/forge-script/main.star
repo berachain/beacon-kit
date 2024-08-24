@@ -52,16 +52,15 @@ def deploy_contracts(plan, deployment):
                 command = ["/bin/sh", "-c", "sh {}/{}".format(DEPENDENCY_DIR_PATH, dependency_path)],
             ),
         )
-
-    result = plan.exec(
-        service_name = foundry_service.name,
-        recipe = ExecRecipe(
-            command = ["/bin/sh", "-c", "cd {} && forge build".format(contract_path)],
-        ),
-    )
-    plan.verify(result["code"], "==", 0)
-
     if script_path:
+        result = plan.exec(
+            service_name = foundry_service.name,
+            recipe = ExecRecipe(
+                command = ["/bin/sh", "-c", "cd {} && forge build".format(contract_path)],
+            ),
+        )
+        plan.verify(result["code"], "==", 0)
+
         script_output = exec_on_service(
             plan,
             foundry_service.name,
