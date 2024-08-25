@@ -20,7 +20,6 @@ replace (
 require (
 	cosmossdk.io/core v1.0.0
 	cosmossdk.io/depinject v1.0.0
-	cosmossdk.io/log v1.4.1
 	cosmossdk.io/store/v2 v2.0.0-20240821144902-e88c138760a3
 	github.com/berachain/beacon-kit/mod/beacon v0.0.0-20240821052951-c15422305b4e
 	github.com/berachain/beacon-kit/mod/cli v0.0.0-20240822173558-4e2a8018ae21
@@ -52,6 +51,7 @@ require (
 require (
 	cosmossdk.io/api v0.7.5 // indirect
 	cosmossdk.io/errors/v2 v2.0.0-20240731132947-df72853b3ca5 // indirect
+	cosmossdk.io/log v1.4.1 // indirect
 	cosmossdk.io/x/tx v0.13.4-0.20240623110059-dec2d5583e39 // indirect
 	github.com/VictoriaMetrics/fastcache v1.12.2 // indirect
 	github.com/berachain/beacon-kit/mod/chain-spec v0.0.0-20240705193247-d464364483df // indirect
