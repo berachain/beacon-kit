@@ -24,7 +24,7 @@ import (
 	"context"
 	"io"
 
-	"cosmossdk.io/log"
+	"github.com/berachain/beacon-kit/mod/log"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	dbm "github.com/cosmos/cosmos-db"
 )
@@ -45,9 +45,14 @@ type (
 
 	// AppCreator is a function that allows us to lazily initialize an
 	// application using various configurations.
-	AppCreator[T interface {
-		Start(ctx context.Context) error
-	}] func(
-		log.Logger, dbm.DB, io.Writer, *cmtcfg.Config, AppOptions,
-	) T
+	AppCreator[
+		AppT interface {
+			Start(ctx context.Context) error
+		},
+		LoggerT interface {
+			log.AdvancedLogger[LoggerT]
+		},
+	] func(
+		LoggerT, dbm.DB, io.Writer, *cmtcfg.Config, AppOptions,
+	) AppT
 )

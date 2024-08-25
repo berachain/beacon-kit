@@ -29,6 +29,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/cli/pkg/flags"
 	cmtcli "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/cli"
 	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/node-core/pkg/types"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
@@ -40,10 +41,11 @@ import (
 func DefaultRootCommandSetup[
 	T types.Node,
 	ExecutionPayloadT constraints.EngineType[ExecutionPayloadT],
+	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	root *Root,
 	mm *cometbft.Service,
-	appCreator servertypes.AppCreator[T],
+	appCreator servertypes.AppCreator[T, LoggerT],
 	chainSpec common.ChainSpec,
 ) {
 	// Add all the commands to the root command.

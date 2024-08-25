@@ -23,9 +23,9 @@ package server
 import (
 	"context"
 
-	"cosmossdk.io/log"
 	"cosmossdk.io/store"
 	types "github.com/berachain/beacon-kit/mod/cli/pkg/commands/server/types"
+	"github.com/berachain/beacon-kit/mod/log"
 
 	service "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/db"
@@ -47,11 +47,13 @@ import (
 )
 
 // Commands add server commands.
-func Commands[T interface {
-	Start(context.Context) error
-	CommitMultiStore() store.CommitMultiStore
-}](
-	appCreator types.AppCreator[T],
+func Commands[
+	T interface {
+		Start(context.Context) error
+		CommitMultiStore() store.CommitMultiStore
+	}, LoggerT log.AdvancedLogger[LoggerT],
+](
+	appCreator types.AppCreator[T, LoggerT],
 ) *cobra.Command {
 	cometCmd := &cobra.Command{
 		Use:     "comet",
@@ -222,15 +224,15 @@ func VersionCmd() *cobra.Command {
 func BootstrapStateCmd[T interface {
 	Start(context.Context) error
 	CommitMultiStore() store.CommitMultiStore
-}](
-	appCreator types.AppCreator[T],
+}, LoggerT log.AdvancedLogger[LoggerT]](
+	appCreator types.AppCreator[T, LoggerT],
 ) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "bootstrap-state",
 		Short: "Bootstrap CometBFT state at an arbitrary block height using a light client",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			logger := log.NewLogger(cmd.OutOrStdout())
+			logger := client.GetLoggerFromCmd(cmd).Impl().(LoggerT)
 			cfg := client.GetConfigFromCmd(cmd)
 			v := client.GetViperFromCmd(cmd)
 

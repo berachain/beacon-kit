@@ -24,7 +24,6 @@ import (
 	"io"
 
 	"cosmossdk.io/depinject"
-	sdklog "cosmossdk.io/log"
 	servertypes "github.com/berachain/beacon-kit/mod/cli/pkg/commands/server/types"
 	"github.com/berachain/beacon-kit/mod/config"
 	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
@@ -73,7 +72,7 @@ func New[
 // build a new instance of the node.
 // It is necessary to adhere to the types.AppCreator[T] interface.
 func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
-	sdklogger sdklog.Logger,
+	logger LoggerT,
 	db dbm.DB,
 	_ io.Writer,
 	cmtCfg *cmtcfg.Config,
@@ -87,7 +86,6 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 		beaconNode NodeT
 		cmtService *cometbft.Service
 		config     *config.Config
-		logger     = sdklogger.Impl().(LoggerT)
 	)
 
 	// build all node components using depinject
