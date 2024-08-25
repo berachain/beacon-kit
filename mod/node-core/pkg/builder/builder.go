@@ -108,14 +108,15 @@ func (nb *NodeBuilder[NodeT, LoggerT, LoggerConfigT]) Build(
 	); err != nil {
 		panic(err)
 	}
-	// attach the logger config
-	logger.WithConfig(any(config.GetLogger()).(LoggerConfigT))
-
+	if config == nil {
+		panic("config is nil")
+	}
 	if apiBackend == nil {
 		panic("node or api backend is nil")
 	}
 
 	// TODO: so hood
+	logger.WithConfig(any(config.GetLogger()).(LoggerConfigT))
 	apiBackend.AttachQueryBackend(cmtService)
 	return beaconNode
 }
