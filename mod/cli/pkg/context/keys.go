@@ -18,26 +18,15 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package builder
+package context
 
-import (
-	"github.com/berachain/beacon-kit/mod/config"
-	"github.com/berachain/beacon-kit/mod/log"
+type (
+	loggerContextKey struct{}
+	viperContextKey  struct{}
 )
 
-// SetLoggerConfig sets the logger configuration. It acts as an invoker
-// for the depinject framework.
-func SetLoggerConfig[
-	LoggerT interface {
-		log.AdvancedLogger[LoggerT]
-		log.Configurable[LoggerT, LoggerConfigT]
-	},
-	LoggerConfigT any,
-](
-	config *config.Config,
-	logger LoggerT,
-) {
-	logger.WithConfig(
-		any(config.GetLogger()).(LoggerConfigT),
-	)
-}
+//nolint:gochecknoglobals // context keys
+var (
+	LoggerContextKey loggerContextKey
+	ViperContextKey  viperContextKey
+)

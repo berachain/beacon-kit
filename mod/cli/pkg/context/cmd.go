@@ -18,30 +18,52 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package components
+package context
 
 import (
-	"io"
-
-	"cosmossdk.io/depinject"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/log/pkg/phuslu"
+	cmtcfg "github.com/cometbft/cometbft/config"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
-type LoggerInput struct {
-	depinject.In
-	Out io.Writer
+func GetViperFromCmd(cmd *cobra.Command) *viper.Viper {
+	value := cmd.Context().Value(ViperContextKey)
+	v, ok := value.(*viper.Viper)
+	if !ok {
+		return viper.New()
+	}
+	return v
 }
 
-// ProvideLogger creates a the default phuslu logger.
-// It reads the log level and format from the server context.
-func ProvideLogger(
-	in LoggerInput,
-) *phuslu.Logger {
-	// the logger config should be passed in here, but it is not yet populated
-	// so we pass in nil for now to get the default logger.
-	logger := phuslu.NewLogger(in.Out, nil)
-	logger.AddKeyColor("error", log.Red)
-	logger.AddKeyColor("err", log.Red)
+func GetLoggerFromCmd[
+	LoggerT log.AdvancedLogger[LoggerT],
+](cmd *cobra.Command) LoggerT {
+	v := cmd.Context().Value(LoggerContextKey)
+	logger, ok := v.(LoggerT)
+	if !ok {
+		return any(phuslu.NewLogger(cmd.OutOrStdout(), nil)).(LoggerT)
+	}
 	return logger
+}
+
+func GetConfigFromCmd(cmd *cobra.Command) *cmtcfg.Config {
+	v := cmd.Context().Value(ViperContextKey)
+	viper, ok := v.(*viper.Viper)
+	if !ok {
+		return cmtcfg.DefaultConfig()
+	}
+	return GetConfigFromViper(viper)
+}
+
+func GetConfigFromViper(v *viper.Viper) *cmtcfg.Config {
+	conf := cmtcfg.DefaultConfig()
+	err := v.Unmarshal(conf)
+	rootDir := v.GetString(flags.FlagHome)
+	if err != nil {
+		return cmtcfg.DefaultConfig().SetRoot(rootDir)
+	}
+	return conf.SetRoot(rootDir)
 }

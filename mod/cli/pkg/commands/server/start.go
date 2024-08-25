@@ -26,10 +26,11 @@ import (
 
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	types "github.com/berachain/beacon-kit/mod/cli/pkg/commands/server/types"
+	clicontext "github.com/berachain/beacon-kit/mod/cli/pkg/context"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/db"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	dbm "github.com/cosmos/cosmos-db"
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 )
 
@@ -51,30 +52,38 @@ const (
 
 // StartCmdOptions defines options that can be customized in
 // `StartCmdWithOptions`,.
-type StartCmdOptions[T interface {
-	Start(context.Context) error
-}] struct {
+type StartCmdOptions[
+	T interface {
+		Start(context.Context) error
+	},
+] struct {
 	// AddFlags allows adding custom flags to the start command.
 	AddFlags func(cmd *cobra.Command)
 }
 
 // StartCmd runs the service passed in, either stand-alone or in-process with
 // CometBFT.
-func StartCmd[T interface {
-	Start(context.Context) error
-}](
-	appCreator types.AppCreator[T],
+func StartCmd[
+	T interface {
+		Start(context.Context) error
+	},
+	LoggerT log.AdvancedLogger[LoggerT],
+](
+	appCreator types.AppCreator[T, LoggerT],
 ) *cobra.Command {
-	return StartCmdWithOptions(appCreator, StartCmdOptions[T]{})
+	return StartCmdWithOptions[T, LoggerT](appCreator, StartCmdOptions[T]{})
 }
 
 // StartCmdWithOptions runs the service passed in, either stand-alone or
 // in-process with
 // CometBFT.
-func StartCmdWithOptions[T interface {
-	Start(context.Context) error
-}](
-	appCreator types.AppCreator[T],
+func StartCmdWithOptions[
+	T interface {
+		Start(context.Context) error
+	},
+	LoggerT log.AdvancedLogger[LoggerT],
+](
+	appCreator types.AppCreator[T, LoggerT],
 	opts StartCmdOptions[T],
 ) *cobra.Command {
 	//nolint:lll // its okay.
@@ -96,9 +105,9 @@ custom: allow pruning options to be manually specified through 'pruning-keep-rec
 
 `,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			logger := client.GetLoggerFromCmd(cmd)
-			cfg := client.GetConfigFromCmd(cmd)
-			v := client.GetViperFromCmd(cmd)
+			logger := clicontext.GetLoggerFromCmd[LoggerT](cmd)
+			cfg := clicontext.GetConfigFromCmd(cmd)
+			v := clicontext.GetViperFromCmd(cmd)
 			_, err := GetPruningOptionsFromFlags(v)
 			if err != nil {
 				return err
@@ -123,9 +132,11 @@ custom: allow pruning options to be manually specified through 'pruning-keep-rec
 // addStartNodeFlags should be added to any CLI commands that start the network.
 //
 //nolint:lll // todo fix.
-func addStartNodeFlags[T interface {
-	Start(context.Context) error
-}](
+func addStartNodeFlags[
+	T interface {
+		Start(context.Context) error
+	},
+](
 	cmd *cobra.Command,
 	opts StartCmdOptions[T],
 ) {

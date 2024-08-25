@@ -52,7 +52,7 @@ type CLIBuilder[
 	// nodeBuilderFunc is a function that builds the Node,
 	// eventually called by the cosmos-sdk.
 	// TODO: CLI should not know about the AppCreator
-	nodeBuilderFunc servertypes.AppCreator[T]
+	nodeBuilderFunc servertypes.AppCreator[T, LoggerT]
 }
 
 // New returns a new CLIBuilder with the given options.
@@ -111,7 +111,7 @@ func (cb *CLIBuilder[
 	// apply default root command setup
 	cmdlib.DefaultRootCommandSetup[T, ExecutionPayloadT](
 		rootCmd,
-		&cometbft.Service{},
+		&cometbft.Service[LoggerT]{},
 		cb.nodeBuilderFunc,
 		chainSpec,
 	)

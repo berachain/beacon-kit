@@ -23,11 +23,11 @@ package server
 import (
 	"context"
 
-	"cosmossdk.io/log"
 	"cosmossdk.io/store"
 	types "github.com/berachain/beacon-kit/mod/cli/pkg/commands/server/types"
-
+	clicontext "github.com/berachain/beacon-kit/mod/cli/pkg/context"
 	service "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/db"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	cmtcfg "github.com/cometbft/cometbft/config"
@@ -47,11 +47,13 @@ import (
 )
 
 // Commands add server commands.
-func Commands[T interface {
-	Start(context.Context) error
-	CommitMultiStore() store.CommitMultiStore
-}](
-	appCreator types.AppCreator[T],
+func Commands[
+	T interface {
+		Start(context.Context) error
+		CommitMultiStore() store.CommitMultiStore
+	}, LoggerT log.AdvancedLogger[LoggerT],
+](
+	appCreator types.AppCreator[T, LoggerT],
 ) *cobra.Command {
 	cometCmd := &cobra.Command{
 		Use:     "comet",
@@ -122,7 +124,7 @@ func ShowNodeIDCmd() *cobra.Command {
 		Use:   "show-node-id",
 		Short: "Show this node's ID",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg := client.GetConfigFromCmd(cmd)
+			cfg := clicontext.GetConfigFromCmd(cmd)
 			nodeKey, err := p2p.LoadNodeKey(cfg.NodeKeyFile())
 			if err != nil {
 				return err
@@ -140,7 +142,7 @@ func ShowValidatorCmd() *cobra.Command {
 		Use:   "show-validator",
 		Short: "Show this node's CometBFT validator info",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg := client.GetConfigFromCmd(cmd)
+			cfg := clicontext.GetConfigFromCmd(cmd)
 			privValidator := pvm.LoadFilePV(
 				cfg.PrivValidatorKeyFile(),
 				cfg.PrivValidatorStateFile(),
@@ -175,7 +177,7 @@ func ShowAddressCmd() *cobra.Command {
 		Use:   "show-address",
 		Short: "Shows this node's CometBFT validator consensus address",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg := client.GetConfigFromCmd(cmd)
+			cfg := clicontext.GetConfigFromCmd(cmd)
 			privValidator := pvm.LoadFilePV(
 				cfg.PrivValidatorKeyFile(),
 				cfg.PrivValidatorStateFile(),
@@ -222,17 +224,17 @@ func VersionCmd() *cobra.Command {
 func BootstrapStateCmd[T interface {
 	Start(context.Context) error
 	CommitMultiStore() store.CommitMultiStore
-}](
-	appCreator types.AppCreator[T],
+}, LoggerT log.AdvancedLogger[LoggerT]](
+	appCreator types.AppCreator[T, LoggerT],
 ) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "bootstrap-state",
 		Short: "Bootstrap CometBFT state at an arbitrary block height using a light client",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			logger := log.NewLogger(cmd.OutOrStdout())
-			cfg := client.GetConfigFromCmd(cmd)
-			v := client.GetViperFromCmd(cmd)
+			logger := clicontext.GetLoggerFromCmd[LoggerT](cmd)
+			cfg := clicontext.GetConfigFromCmd(cmd)
+			v := clicontext.GetViperFromCmd(cmd)
 
 			height, err := cmd.Flags().GetInt64("height")
 			if err != nil {

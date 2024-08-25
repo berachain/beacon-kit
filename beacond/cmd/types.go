@@ -111,6 +111,9 @@ type (
 		*PayloadAttributes,
 	]
 
+	// CometBFTService is a type alias for the CometBFT service.
+	CometBFTService = cometbft.Service[*Logger]
+
 	// ConsensusMiddleware is a type alias for the consensus middleware.
 	ConsensusMiddleware = cometbft.MiddlewareI
 
@@ -348,7 +351,7 @@ type (
 		*Eth1Data,
 		*ExecutionPayloadHeader,
 		*Fork,
-		*cometbft.Service,
+		*CometBFTService,
 		*KVStore,
 		*StorageBackend,
 		*Validator,

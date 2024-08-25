@@ -26,20 +26,24 @@ import (
 
 	"cosmossdk.io/store"
 	types "github.com/berachain/beacon-kit/mod/cli/pkg/commands/server/types"
+	clicontext "github.com/berachain/beacon-kit/mod/cli/pkg/context"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/db"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	dbm "github.com/cosmos/cosmos-db"
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 )
 
 // NewRollbackCmd creates a command to rollback CometBFT and multistore state by
 // one height.
-func NewRollbackCmd[T interface {
-	Start(context.Context) error
-	CommitMultiStore() store.CommitMultiStore
-}](
-	appCreator types.AppCreator[T],
+func NewRollbackCmd[
+	T interface {
+		Start(context.Context) error
+		CommitMultiStore() store.CommitMultiStore
+	},
+	LoggerT log.AdvancedLogger[LoggerT],
+](
+	appCreator types.AppCreator[T, LoggerT],
 ) *cobra.Command {
 	var removeBlock bool
 
@@ -56,9 +60,9 @@ restarting CometBFT the transactions in block n will be re-executed against the
 application.
 `,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			v := client.GetViperFromCmd(cmd)
-			logger := client.GetLoggerFromCmd(cmd)
-			cfg := client.GetConfigFromCmd(cmd)
+			v := clicontext.GetViperFromCmd(cmd)
+			logger := clicontext.GetLoggerFromCmd[LoggerT](cmd)
+			cfg := clicontext.GetConfigFromCmd(cmd)
 
 			db, err := db.OpenDB(cfg.RootDir, dbm.PebbleDBBackend)
 			if err != nil {
