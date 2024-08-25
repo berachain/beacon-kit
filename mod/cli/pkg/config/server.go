@@ -29,7 +29,6 @@ import (
 	"strings"
 
 	clicontext "github.com/berachain/beacon-kit/mod/cli/pkg/context"
-	sdklog "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/log"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	cmtcfg "github.com/cometbft/cometbft/config"
@@ -94,7 +93,7 @@ func InitializeCmd[
 	ctx := cmd.Context()
 	ctx = context.WithValue(ctx, clicontext.ViperContextKey, viper)
 	ctx = context.WithValue(
-		ctx, clicontext.LoggerContextKey, sdklog.WrapSDKLogger(logger),
+		ctx, clicontext.LoggerContextKey, logger,
 	)
 	cmd.SetContext(ctx)
 

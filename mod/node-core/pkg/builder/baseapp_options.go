@@ -30,6 +30,7 @@ import (
 	server "github.com/berachain/beacon-kit/mod/cli/pkg/commands/server"
 	"github.com/berachain/beacon-kit/mod/config"
 	cometbft "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/cast"
@@ -41,9 +42,11 @@ import (
 
 // DefaultServiceOptions returns the default Service options provided by the
 // Cosmos SDK.
-func DefaultServiceOptions(
+func DefaultServiceOptions[
+	LoggerT log.AdvancedLogger[LoggerT],
+](
 	appOpts config.AppOptions,
-) []func(*cometbft.Service) {
+) []func(*cometbft.Service[LoggerT]) {
 	var cache storetypes.MultiStorePersistentCache
 
 	if cast.ToBool(appOpts.Get(server.FlagInterBlockCache)) {
@@ -79,19 +82,19 @@ func DefaultServiceOptions(
 		}
 	}
 
-	return []func(*cometbft.Service){
-		cometbft.SetPruning(pruningOpts),
-		cometbft.SetMinRetainBlocks(
+	return []func(*cometbft.Service[LoggerT]){
+		cometbft.SetPruning[LoggerT](pruningOpts),
+		cometbft.SetMinRetainBlocks[LoggerT](
 			cast.ToUint64(appOpts.Get(server.FlagMinRetainBlocks)),
 		),
-		cometbft.SetInterBlockCache(cache),
-		cometbft.SetIAVLCacheSize(
+		cometbft.SetInterBlockCache[LoggerT](cache),
+		cometbft.SetIAVLCacheSize[LoggerT](
 			cast.ToInt(appOpts.Get(server.FlagIAVLCacheSize)),
 		),
-		cometbft.SetIAVLDisableFastNode(
+		cometbft.SetIAVLDisableFastNode[LoggerT](
 			// default to true
 			true,
 		),
-		cometbft.SetChainID(chainID),
+		cometbft.SetChainID[LoggerT](chainID),
 	}
 }

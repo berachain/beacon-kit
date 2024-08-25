@@ -44,7 +44,7 @@ func DefaultRootCommandSetup[
 	LoggerT log.AdvancedLogger[LoggerT],
 ](
 	root *Root,
-	mm *cometbft.Service,
+	mm *cometbft.Service[LoggerT],
 	appCreator servertypes.AppCreator[T, LoggerT],
 	chainSpec common.ChainSpec,
 ) {

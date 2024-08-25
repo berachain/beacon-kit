@@ -30,6 +30,7 @@ import (
 
 	"cosmossdk.io/store/rootmulti"
 	ctypes "github.com/berachain/beacon-kit/mod/consensus-types/pkg/types"
+	servercmtlog "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/log"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/types"
 	errorsmod "github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/json"
@@ -42,7 +43,7 @@ import (
 )
 
 //nolint:gocognit // todo fix.
-func (s *Service) InitChain(
+func (s *Service[LoggerT]) InitChain(
 	_ context.Context,
 	req *cmtabci.InitChainRequest,
 ) (*cmtabci.InitChainResponse, error) {
@@ -156,7 +157,7 @@ func (s *Service) InitChain(
 }
 
 // InitChainer initializes the chain.
-func (s *Service) initChainer(
+func (s *Service[LoggerT]) initChainer(
 	ctx sdk.Context,
 	req *cmtabci.InitChainRequest,
 ) (*cmtabci.InitChainResponse, error) {
@@ -185,7 +186,7 @@ func (s *Service) initChainer(
 	}, nil
 }
 
-func (s *Service) Info(
+func (s *Service[LoggerT]) Info(
 	context.Context,
 	*cmtabci.InfoRequest,
 ) (*cmtabci.InfoResponse, error) {
@@ -213,7 +214,7 @@ func (s *Service) Info(
 
 // PrepareProposal implements the PrepareProposal ABCI method and returns a
 // ResponsePrepareProposal object to the client.
-func (s *Service) PrepareProposal(
+func (s *Service[LoggerT]) PrepareProposal(
 	_ context.Context,
 	req *cmtabci.PrepareProposalRequest,
 ) (*cmtabci.PrepareProposalResponse, error) {
@@ -261,7 +262,7 @@ func (s *Service) PrepareProposal(
 
 // ProcessProposal implements the ProcessProposal ABCI method and returns a
 // ResponseProcessProposal object to the client.
-func (s *Service) ProcessProposal(
+func (s *Service[LoggerT]) ProcessProposal(
 	_ context.Context,
 	req *cmtabci.ProcessProposalRequest,
 ) (*cmtabci.ProcessProposalResponse, error) {
@@ -314,7 +315,7 @@ func (s *Service) ProcessProposal(
 	return resp, nil
 }
 
-func (s *Service) internalFinalizeBlock(
+func (s *Service[LoggerT]) internalFinalizeBlock(
 	ctx context.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (*cmtabci.FinalizeBlockResponse, error) {
@@ -401,7 +402,7 @@ func (s *Service) internalFinalizeBlock(
 	}, nil
 }
 
-func (s *Service) FinalizeBlock(
+func (s *Service[_]) FinalizeBlock(
 	_ context.Context,
 	req *cmtabci.FinalizeBlockRequest,
 ) (*cmtabci.FinalizeBlockResponse, error) {
@@ -420,7 +421,7 @@ func (s *Service) FinalizeBlock(
 // defined in config, Commit will execute a deferred function call to check
 // against that height and gracefully halt if it matches the latest committed
 // height.
-func (s *Service) Commit(
+func (s *Service[LoggerT]) Commit(
 	context.Context, *cmtabci.CommitRequest,
 ) (*cmtabci.CommitResponse, error) {
 	if s.finalizeBlockState == nil {
@@ -451,7 +452,7 @@ func (s *Service) Commit(
 // Commit(), the application state transitions will be flushed to disk and as a
 // result, but we already have
 // an application Merkle root.
-func (s *Service) workingHash() []byte {
+func (s *Service[LoggerT]) workingHash() []byte {
 	// Write the FinalizeBlock state into branched storage and commit the
 	// MultiStore. The write to the FinalizeBlock state writes all state
 	// transitions to the root
@@ -476,7 +477,7 @@ func (s *Service) workingHash() []byte {
 // getContextForProposal returns the correct Context for PrepareProposal and
 // ProcessProposal. We use finalizeBlockState on the first block to be able to
 // access any state changes made in InitChain.
-func (s *Service) getContextForProposal(
+func (s *Service[LoggerT]) getContextForProposal(
 	ctx sdk.Context,
 	height int64,
 ) sdk.Context {
@@ -493,7 +494,7 @@ func (s *Service) getContextForProposal(
 
 // CreateQueryContext creates a new sdk.Context for a query, taking as args
 // the block height and whether the query needs a proof or not.
-func (s *Service) CreateQueryContext(
+func (s *Service[LoggerT]) CreateQueryContext(
 	height int64,
 	prove bool,
 ) (sdk.Context, error) {
@@ -540,7 +541,7 @@ func (s *Service) CreateQueryContext(
 			)
 	}
 
-	return sdk.NewContext(cacheMS, true, s.logger), nil
+	return sdk.NewContext(cacheMS, true, servercmtlog.WrapSDKLogger(s.logger)), nil
 }
 
 // GetBlockRetentionHeight returns the height for which all blocks below this
@@ -567,7 +568,7 @@ func (s *Service) CreateQueryContext(
 // all blocks, e.g. via a local config option min-retain-blocks. There may also
 // be a need to vary retention for other nodes, e.g. sentry nodes which do not
 // need historical blocks.
-func (s *Service) GetBlockRetentionHeight(commitHeight int64) int64 {
+func (s *Service[_]) GetBlockRetentionHeight(commitHeight int64) int64 {
 	// pruning is disabled if minRetainBlocks is zero
 	if s.minRetainBlocks == 0 {
 		return 0

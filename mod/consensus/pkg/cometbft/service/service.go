@@ -25,12 +25,12 @@ import (
 	"errors"
 	"fmt"
 
-	"cosmossdk.io/log"
 	"cosmossdk.io/store"
 	storemetrics "cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
 	servercmtlog "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/log"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/params"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
@@ -58,11 +58,13 @@ const (
 
 const InitialAppVersion uint64 = 0
 
-type Service struct {
+type Service[
+	LoggerT log.AdvancedLogger[LoggerT],
+] struct {
 	node   *node.Node
 	cmtCfg *cmtcfg.Config
 	// initialized on creation
-	logger     log.Logger
+	logger     LoggerT
 	name       string
 	db         dbm.DB
 	cms        storetypes.CommitMultiStore
@@ -80,23 +82,25 @@ type Service struct {
 	chainID string
 }
 
-func NewService(
+func NewService[
+	LoggerT log.AdvancedLogger[LoggerT],
+](
 	storeKey *storetypes.KVStoreKey,
-	logger log.Logger,
+	logger LoggerT,
 	db dbm.DB,
 	middleware MiddlewareI,
 	loadLatest bool,
 	cmtCfg *cmtcfg.Config,
 	cs common.ChainSpec,
-	options ...func(*Service),
-) *Service {
-	s := &Service{
-		logger: logger.With(log.ModuleKey, "cometbft"),
+	options ...func(*Service[LoggerT]),
+) *Service[LoggerT] {
+	s := &Service[LoggerT]{
+		logger: logger,
 		name:   "beacond",
 		db:     db,
 		cms: store.NewCommitMultiStore(
 			db,
-			logger,
+			servercmtlog.WrapSDKLogger(logger),
 			storemetrics.NewNoOpMetrics(),
 		),
 		Middleware: middleware,
@@ -126,7 +130,7 @@ func NewService(
 }
 
 // TODO: Move nodeKey into being created within the function.
-func (s *Service) Start(
+func (s *Service[_]) Start(
 	ctx context.Context,
 ) error {
 	cfg := s.cmtCfg
@@ -147,7 +151,7 @@ func (s *Service) Start(
 		GetGenDocProvider(cfg),
 		cmtcfg.DefaultDBProvider,
 		node.DefaultMetricsProvider(cfg.Instrumentation),
-		servercmtlog.CometLoggerWrapper{Logger: s.logger},
+		servercmtlog.WrapCometLogger(s.logger),
 	)
 	if err != nil {
 		return err
@@ -157,7 +161,7 @@ func (s *Service) Start(
 }
 
 // Close is called in start cmd to gracefully cleanup resources.
-func (s *Service) Close() error {
+func (s *Service[_]) Close() error {
 	var errs []error
 
 	if s.node != nil && s.node.IsRunning() {
@@ -178,17 +182,17 @@ func (s *Service) Close() error {
 }
 
 // Name returns the name of the cometbft.
-func (s *Service) Name() string {
+func (s *Service[_]) Name() string {
 	return s.name
 }
 
 // CommitMultiStore returns the CommitMultiStore of the cometbft.
-func (s *Service) CommitMultiStore() storetypes.CommitMultiStore {
+func (s *Service[_]) CommitMultiStore() storetypes.CommitMultiStore {
 	return s.cms
 }
 
 // AppVersion returns the application's protocol version.
-func (s *Service) AppVersion(ctx context.Context) (uint64, error) {
+func (s *Service[_]) AppVersion(ctx context.Context) (uint64, error) {
 	cp, err := s.paramStore.Get(ctx)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get consensus params: %w", err)
@@ -201,14 +205,14 @@ func (s *Service) AppVersion(ctx context.Context) (uint64, error) {
 
 // MountStore mounts a store to the provided key in the Service multistore,
 // using the default DB.
-func (s *Service) MountStore(
+func (s *Service[_]) MountStore(
 	key storetypes.StoreKey,
 	typ storetypes.StoreType,
 ) {
 	s.cms.MountStoreWithDB(key, typ, nil)
 }
 
-func (s *Service) LoadLatestVersion() error {
+func (s *Service[_]) LoadLatestVersion() error {
 	if err := s.cms.LoadLatestVersion(); err != nil {
 		return fmt.Errorf("failed to load latest version: %w", err)
 	}
@@ -217,7 +221,7 @@ func (s *Service) LoadLatestVersion() error {
 	return s.cms.GetPruning().Validate()
 }
 
-func (s *Service) LoadVersion(version int64) error {
+func (s *Service[_]) LoadVersion(version int64) error {
 	err := s.cms.LoadVersion(version)
 	if err != nil {
 		return fmt.Errorf("failed to load version %d: %w", version, err)
@@ -228,30 +232,30 @@ func (s *Service) LoadVersion(version int64) error {
 }
 
 // LastCommitID returns the last CommitID of the multistore.
-func (s *Service) LastCommitID() storetypes.CommitID {
+func (s *Service[_]) LastCommitID() storetypes.CommitID {
 	return s.cms.LastCommitID()
 }
 
 // LastBlockHeight returns the last committed block height.
-func (s *Service) LastBlockHeight() int64 {
+func (s *Service[_]) LastBlockHeight() int64 {
 	return s.cms.LastCommitID().Version
 }
 
-func (s *Service) setMinRetainBlocks(minRetainBlocks uint64) {
+func (s *Service[_]) setMinRetainBlocks(minRetainBlocks uint64) {
 	s.minRetainBlocks = minRetainBlocks
 }
 
-func (s *Service) setInterBlockCache(
+func (s *Service[_]) setInterBlockCache(
 	cache storetypes.MultiStorePersistentCache,
 ) {
 	s.interBlockCache = cache
 }
 
-func (s *Service) setState(mode execMode) {
+func (s *Service[LoggerT]) setState(mode execMode) {
 	ms := s.cms.CacheMultiStore()
 	baseState := &state{
 		ms:  ms,
-		ctx: sdk.NewContext(ms, false, s.logger),
+		ctx: sdk.NewContext(ms, false, servercmtlog.WrapSDKLogger(s.logger)),
 	}
 
 	switch mode {
@@ -272,7 +276,7 @@ func (s *Service) setState(mode execMode) {
 // GetConsensusParams returns the current consensus parameters from the
 // Service's
 // ParamStore. If the Service has no ParamStore defined, nil is returned.
-func (s *Service) GetConsensusParams(
+func (s *Service[_]) GetConsensusParams(
 	ctx context.Context,
 ) cmtproto.ConsensusParams {
 	//#nosec:G703 // bet.
@@ -280,7 +284,7 @@ func (s *Service) GetConsensusParams(
 	return cp
 }
 
-func (s *Service) validateFinalizeBlockHeight(
+func (s *Service[_]) validateFinalizeBlockHeight(
 	req *abci.FinalizeBlockRequest,
 ) error {
 	if req.Height < 1 {

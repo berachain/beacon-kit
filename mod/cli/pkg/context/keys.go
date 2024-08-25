@@ -25,6 +25,7 @@ type (
 	viperContextKey  struct{}
 )
 
+//nolint:gochecknoglobals // context keys
 var (
 	LoggerContextKey loggerContextKey
 	ViperContextKey  viperContextKey
