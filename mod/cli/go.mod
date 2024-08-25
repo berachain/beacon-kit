@@ -21,7 +21,6 @@ replace (
 )
 
 require (
-	cosmossdk.io/core v1.0.0
 	cosmossdk.io/depinject v1.0.0
 	github.com/berachain/beacon-kit/mod/config v0.0.0-20240705193247-d464364483df
 	github.com/berachain/beacon-kit/mod/consensus v0.0.0-20240821053614-036c5d2945f0
@@ -42,6 +41,7 @@ require (
 )
 
 require (
+	cosmossdk.io/core v1.0.0 // indirect
 	cosmossdk.io/errors/v2 v2.0.0-20240731132947-df72853b3ca5 // indirect
 	cosmossdk.io/log v1.4.1 // indirect
 	cosmossdk.io/schema v0.1.1 // indirect

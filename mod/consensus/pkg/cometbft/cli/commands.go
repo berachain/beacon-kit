@@ -25,9 +25,9 @@ import (
 
 	"cosmossdk.io/store"
 	types "github.com/berachain/beacon-kit/mod/cli/pkg/commands/server/types"
-	"github.com/berachain/beacon-kit/mod/log"
-
+	clicontext "github.com/berachain/beacon-kit/mod/cli/pkg/context"
 	service "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service"
+	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/db"
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	cmtcfg "github.com/cometbft/cometbft/config"
@@ -124,7 +124,7 @@ func ShowNodeIDCmd() *cobra.Command {
 		Use:   "show-node-id",
 		Short: "Show this node's ID",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg := client.GetConfigFromCmd(cmd)
+			cfg := clicontext.GetConfigFromCmd(cmd)
 			nodeKey, err := p2p.LoadNodeKey(cfg.NodeKeyFile())
 			if err != nil {
 				return err
@@ -142,7 +142,7 @@ func ShowValidatorCmd() *cobra.Command {
 		Use:   "show-validator",
 		Short: "Show this node's CometBFT validator info",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg := client.GetConfigFromCmd(cmd)
+			cfg := clicontext.GetConfigFromCmd(cmd)
 			privValidator := pvm.LoadFilePV(
 				cfg.PrivValidatorKeyFile(),
 				cfg.PrivValidatorStateFile(),
@@ -177,7 +177,7 @@ func ShowAddressCmd() *cobra.Command {
 		Use:   "show-address",
 		Short: "Shows this node's CometBFT validator consensus address",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg := client.GetConfigFromCmd(cmd)
+			cfg := clicontext.GetConfigFromCmd(cmd)
 			privValidator := pvm.LoadFilePV(
 				cfg.PrivValidatorKeyFile(),
 				cfg.PrivValidatorStateFile(),
@@ -232,9 +232,9 @@ func BootstrapStateCmd[T interface {
 		Short: "Bootstrap CometBFT state at an arbitrary block height using a light client",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			logger := client.GetLoggerFromCmd(cmd).Impl().(LoggerT)
-			cfg := client.GetConfigFromCmd(cmd)
-			v := client.GetViperFromCmd(cmd)
+			logger := clicontext.GetLoggerFromCmd[LoggerT](cmd)
+			cfg := clicontext.GetConfigFromCmd(cmd)
+			v := clicontext.GetViperFromCmd(cmd)
 
 			height, err := cmd.Flags().GetInt64("height")
 			if err != nil {

@@ -28,12 +28,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	corectx "cosmossdk.io/core/context"
+	clicontext "github.com/berachain/beacon-kit/mod/cli/pkg/context"
 	sdklog "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/log"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/log"
 	cmtcfg "github.com/cometbft/cometbft/config"
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -60,7 +59,7 @@ func SetupCommand[
 	}
 
 	if err := handleConfigs(
-		client.GetViperFromCmd(cmd),
+		clicontext.GetViperFromCmd(cmd),
 		appTemplate, appConfig, cmtConfig,
 	); err != nil {
 		return err
@@ -93,9 +92,9 @@ func InitializeCmd[
 	}
 
 	ctx := cmd.Context()
-	ctx = context.WithValue(ctx, corectx.ViperContextKey, viper)
+	ctx = context.WithValue(ctx, clicontext.ViperContextKey, viper)
 	ctx = context.WithValue(
-		ctx, corectx.LoggerContextKey, sdklog.WrapSDKLogger(logger),
+		ctx, clicontext.LoggerContextKey, sdklog.WrapSDKLogger(logger),
 	)
 	cmd.SetContext(ctx)
 
