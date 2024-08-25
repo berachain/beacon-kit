@@ -30,7 +30,6 @@ import (
 
 type LoggerInput struct {
 	depinject.In
-
 	Out io.Writer
 }
 
@@ -39,6 +38,8 @@ type LoggerInput struct {
 func ProvideLogger(
 	in LoggerInput,
 ) *phuslu.Logger {
+	// the logger config should be passed in here, but it is not yet populated
+	// so we pass in nil for now to get the default logger.
 	logger := phuslu.NewLogger(in.Out, nil)
 	logger.AddKeyColor("error", log.Red)
 	logger.AddKeyColor("err", log.Red)
