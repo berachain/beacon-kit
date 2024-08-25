@@ -26,37 +26,23 @@ import (
 )
 
 type CometLogger[LoggerT log.AdvancedLogger[LoggerT]] struct {
-	Logger LoggerT
+	log.AdvancedLogger[LoggerT]
 }
 
 func WrapCometLogger[LoggerT log.AdvancedLogger[LoggerT]](
 	logger LoggerT,
 ) *CometLogger[LoggerT] {
 	return &CometLogger[LoggerT]{
-		Logger: logger,
+		AdvancedLogger: logger,
 	}
 }
 
-func (l *CometLogger[LoggerT]) Info(msg string, keyVals ...any) {
-	l.Logger.Info(msg, keyVals...)
-}
-
-func (l *CometLogger[LoggerT]) Warn(msg string, keyVals ...any) {
-	l.Logger.Warn(msg, keyVals...)
-}
-
-func (l *CometLogger[LoggerT]) Error(msg string, keyVals ...any) {
-	l.Logger.Error(msg, keyVals...)
-}
-
-func (l *CometLogger[LoggerT]) Debug(msg string, keyVals ...any) {
-	l.Logger.Debug(msg, keyVals...)
-}
-
 func (l *CometLogger[LoggerT]) With(keyVals ...any) cmtlog.Logger {
-	return &CometLogger[LoggerT]{Logger: l.Logger.With(keyVals...)}
+	return &CometLogger[LoggerT]{
+		AdvancedLogger: l.AdvancedLogger.With(keyVals...),
+	}
 }
 
 func (l *CometLogger[LoggerT]) Impl() any {
-	return l.Logger
+	return l.AdvancedLogger
 }
