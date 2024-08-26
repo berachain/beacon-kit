@@ -34,7 +34,6 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
-	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cometbft/cometbft/node"
 	"github.com/cometbft/cometbft/p2p"
@@ -62,7 +61,7 @@ type Service[
 ] struct {
 	node   *node.Node
 	cmtCfg *cmtcfg.Config
-	// initialized on creation
+
 	logger     LoggerT
 	name       string
 	sm         *statem.Manager
@@ -75,6 +74,7 @@ type Service[
 	paramStore           *params.ConsensusParamsStore
 	initialHeight        int64
 	minRetainBlocks      uint64
+
 	// application's version string
 	version string
 	chainID string
@@ -186,14 +186,8 @@ func (s *Service[_]) CommitMultiStore() storetypes.CommitMultiStore {
 }
 
 // AppVersion returns the application's protocol version.
-func (s *Service[_]) AppVersion(ctx context.Context) (uint64, error) {
-	cp, err := s.paramStore.Get(ctx)
-	if err != nil {
-		return 0, fmt.Errorf("failed to get consensus params: %w", err)
-	}
-	if cp.Version == nil {
-		return 0, nil
-	}
+func (s *Service[_]) AppVersion(_ context.Context) (uint64, error) {
+	cp := s.paramStore.Get()
 	return cp.Version.App, nil
 }
 
@@ -260,15 +254,6 @@ func (s *Service[LoggerT]) setState(mode execMode) {
 	default:
 		panic(fmt.Sprintf("invalid runTxMode for setState: %d", mode))
 	}
-}
-
-// GetConsensusParams returns the current consensus parameters from the
-// Service's
-// ParamStore. If the Service has no ParamStore defined, nil is returned.
-func (s *Service[_]) GetConsensusParams() *cmtproto.ConsensusParams {
-	//#nosec:G703 // bet.
-	cp, _ := s.paramStore.Get(context.TODO())
-	return &cp
 }
 
 // convertValidatorUpdate abstracts the conversion of a

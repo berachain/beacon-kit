@@ -397,7 +397,7 @@ func (s *Service[LoggerT]) internalFinalizeBlock(
 	return &cmtabci.FinalizeBlockResponse{
 		TxResults:             txResults,
 		ValidatorUpdates:      valUpdates,
-		ConsensusParamUpdates: s.GetConsensusParams(),
+		ConsensusParamUpdates: s.paramStore.Get(),
 	}, nil
 }
 
@@ -646,7 +646,7 @@ func (s *Service[_]) GetBlockRetentionHeight(commitHeight int64) int64 {
 	if s.finalizeBlockState == nil {
 		return 0
 	}
-	cp := s.GetConsensusParams()
+	cp := s.paramStore.Get()
 	if cp.Evidence != nil && cp.Evidence.MaxAgeNumBlocks > 0 {
 		retentionHeight = commitHeight - cp.Evidence.MaxAgeNumBlocks
 	}

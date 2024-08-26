@@ -21,10 +21,6 @@
 package cometbft
 
 import (
-	"context"
-	"errors"
-	"fmt"
-
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/berachain/beacon-kit/mod/log"
@@ -87,23 +83,4 @@ func (s *Service[_]) SetName(name string) {
 // SetVersion sets the application's version string.
 func (s *Service[_]) SetVersion(v string) {
 	s.version = v
-}
-
-func (s *Service[_]) SetAppVersion(ctx context.Context, v uint64) error {
-	if s.paramStore == nil {
-		return errors.
-			New("param store must be set to set app version")
-	}
-
-	cp, err := s.paramStore.Get(ctx)
-	if err != nil {
-		return fmt.
-			Errorf("failed to get consensus params: %w", err)
-	}
-	if cp.Version == nil {
-		return errors.
-			New("version is not set in param store")
-	}
-	cp.Version.App = v
-	return s.paramStore.Set(ctx, cp)
 }
