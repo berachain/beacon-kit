@@ -78,7 +78,8 @@ func (s *Service[LoggerT]) InitChain(
 	// stores
 	if req.InitialHeight > 1 {
 		initHeader.Height = req.InitialHeight
-		if err := s.sm.CommitMultiStore().SetInitialVersion(req.InitialHeight); err != nil {
+		if err := s.sm.CommitMultiStore().
+			SetInitialVersion(req.InitialHeight); err != nil {
 			return nil, err
 		}
 	}
