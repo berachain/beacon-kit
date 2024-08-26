@@ -30,11 +30,6 @@ import (
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
 
-// LoadHeight loads a particular height.
-func (s *Service[_]) LoadHeight(height int64) error {
-	return s.sm.LoadVersion(height)
-}
-
 // DefaultGenesis returns the default genesis state for the application.
 func (s *Service[_]) DefaultGenesis() map[string]json.RawMessage {
 	// Implement the default genesis state for the application.
