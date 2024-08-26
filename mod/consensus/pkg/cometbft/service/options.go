@@ -50,7 +50,9 @@ func SetMinRetainBlocks[
 func SetIAVLCacheSize[
 	LoggerT log.AdvancedLogger[LoggerT],
 ](size int) func(*Service[LoggerT]) {
-	return func(bs *Service[LoggerT]) { bs.sm.CommitMultiStore().SetIAVLCacheSize(size) }
+	return func(bs *Service[LoggerT]) {
+		bs.sm.CommitMultiStore().SetIAVLCacheSize(size)
+	}
 }
 
 // SetIAVLDisableFastNode enables(false)/disables(true) fast node usage from the
@@ -58,7 +60,9 @@ func SetIAVLCacheSize[
 func SetIAVLDisableFastNode[
 	LoggerT log.AdvancedLogger[LoggerT],
 ](disable bool) func(*Service[LoggerT]) {
-	return func(bs *Service[LoggerT]) { bs.sm.CommitMultiStore().SetIAVLDisableFastNode(disable) }
+	return func(bs *Service[LoggerT]) {
+		bs.sm.CommitMultiStore().SetIAVLDisableFastNode(disable)
+	}
 }
 
 // SetInterBlockCache provides a Service option function that sets the
@@ -66,7 +70,9 @@ func SetIAVLDisableFastNode[
 func SetInterBlockCache[
 	LoggerT log.AdvancedLogger[LoggerT],
 ](cache storetypes.MultiStorePersistentCache) func(*Service[LoggerT]) {
-	return func(s *Service[LoggerT]) { s.setInterBlockCache(cache) }
+	return func(s *Service[LoggerT]) {
+		s.setInterBlockCache(cache)
+	}
 }
 
 // SetChainID sets the chain ID in cometbft.
