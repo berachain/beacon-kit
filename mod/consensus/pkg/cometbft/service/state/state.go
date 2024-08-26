@@ -18,37 +18,46 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package params
+package state
 
 import (
-	math "github.com/berachain/beacon-kit/mod/primitives/pkg/math"
-	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
-	cmttypes "github.com/cometbft/cometbft/types"
+	"cosmossdk.io/log"
+	"cosmossdk.io/store"
+	storemetrics "cosmossdk.io/store/metrics"
+	storetypes "cosmossdk.io/store/types"
+	dbm "github.com/cosmos/cosmos-db"
 )
 
-type ChainSpec interface {
-	// GetCometBFTConfigForSlot returns the CometBFT configuration for the given
-	// slot.
-	GetCometBFTConfigForSlot(math.Slot) any
+type Manager struct {
+	db  dbm.DB
+	cms storetypes.CommitMultiStore
 }
 
-// ConsensusParamsStore is a store for consensus parameters.
-type ConsensusParamsStore struct {
-	cs ChainSpec
-}
-
-// NewConsensusParamsStore creates a new ConsensusParamsStore.
-func NewConsensusParamsStore(cs ChainSpec) *ConsensusParamsStore {
-	return &ConsensusParamsStore{
-		cs: cs,
+// NewManager creates a new Manager.
+func NewManager(
+	db dbm.DB,
+	logger log.Logger,
+	opts ...func(*Manager),
+) *Manager {
+	sm := &Manager{
+		db: db,
+		cms: store.NewCommitMultiStore(
+			db,
+			logger,
+			storemetrics.NewNoOpMetrics(),
+		)}
+	for _, opt := range opts {
+		opt(sm)
 	}
+	return sm
 }
 
-// Get retrieves the consensus parameters from the store.
-// It returns the consensus parameters and an error, if any.
-func (s *ConsensusParamsStore) Get() *cmtproto.ConsensusParams {
-	p := s.cs.
-		GetCometBFTConfigForSlot(0).(*cmttypes.ConsensusParams).
-		ToProto()
-	return &p
+func (sm *Manager) Close() error {
+	return sm.db.Close()
+}
+
+// CommitMultiStore returns the CommitMultiStore of the Manager.
+// TODO:REMOVE
+func (sm *Manager) CommitMultiStore() storetypes.CommitMultiStore {
+	return sm.cms
 }
