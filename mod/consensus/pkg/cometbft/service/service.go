@@ -117,7 +117,7 @@ func NewService[
 
 	// Load the s.
 	if loadLatest {
-		if err := s.LoadLatestVersion(); err != nil {
+		if err := s.sm.LoadLatestVersion(); err != nil {
 			panic(err)
 		}
 	}
@@ -198,25 +198,6 @@ func (s *Service[_]) MountStore(
 	typ storetypes.StoreType,
 ) {
 	s.sm.CommitMultiStore().MountStoreWithDB(key, typ, nil)
-}
-
-func (s *Service[_]) LoadLatestVersion() error {
-	if err := s.sm.CommitMultiStore().LoadLatestVersion(); err != nil {
-		return fmt.Errorf("failed to load latest version: %w", err)
-	}
-
-	// Validator pruning settings.
-	return s.sm.CommitMultiStore().GetPruning().Validate()
-}
-
-func (s *Service[_]) LoadVersion(version int64) error {
-	err := s.sm.CommitMultiStore().LoadVersion(version)
-	if err != nil {
-		return fmt.Errorf("failed to load version %d: %w", version, err)
-	}
-
-	// Validate Pruning settings.
-	return s.sm.CommitMultiStore().GetPruning().Validate()
 }
 
 // LastBlockHeight returns the last committed block height.

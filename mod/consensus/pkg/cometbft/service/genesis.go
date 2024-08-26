@@ -32,7 +32,7 @@ import (
 
 // LoadHeight loads a particular height.
 func (s *Service[_]) LoadHeight(height int64) error {
-	return s.LoadVersion(height)
+	return s.sm.LoadVersion(height)
 }
 
 // DefaultGenesis returns the default genesis state for the application.
