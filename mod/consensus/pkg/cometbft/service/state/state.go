@@ -29,6 +29,7 @@ import (
 )
 
 type Manager struct {
+	db  dbm.DB
 	cms storetypes.CommitMultiStore
 }
 
@@ -38,15 +39,21 @@ func NewManager(
 	logger log.Logger,
 	opts ...func(*Manager),
 ) *Manager {
-	sm := &Manager{cms: store.NewCommitMultiStore(
-		db,
-		logger,
-		storemetrics.NewNoOpMetrics(),
-	)}
+	sm := &Manager{
+		db: db,
+		cms: store.NewCommitMultiStore(
+			db,
+			logger,
+			storemetrics.NewNoOpMetrics(),
+		)}
 	for _, opt := range opts {
 		opt(sm)
 	}
 	return sm
+}
+
+func (sm *Manager) Close() error {
+	return sm.db.Close()
 }
 
 // CommitMultiStore returns the CommitMultiStore of the Manager.

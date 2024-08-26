@@ -65,7 +65,6 @@ type Service[
 	// initialized on creation
 	logger     LoggerT
 	name       string
-	db         dbm.DB
 	sm         *statem.Manager
 	Middleware MiddlewareI
 
@@ -96,7 +95,6 @@ func NewService[
 	s := &Service[LoggerT]{
 		logger: logger,
 		name:   "beacond",
-		db:     db,
 		sm: statem.NewManager(
 			db,
 			servercmtlog.WrapSDKLogger(logger),
@@ -169,13 +167,11 @@ func (s *Service[_]) Close() error {
 	}
 
 	// Close s.db (opened by cosmos-sdk/server/start.go call to openDB)
-	if s.db != nil {
-		s.logger.Info("Closing application.db")
-		if err := s.db.Close(); err != nil {
-			errs = append(errs, err)
-		}
-	}
 
+	s.logger.Info("Closing application.db")
+	if err := s.sm.Close(); err != nil {
+		errs = append(errs, err)
+	}
 	return errors.Join(errs...)
 }
 
