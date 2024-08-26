@@ -97,8 +97,8 @@ github.com/berachain/beacon-kit/mod/node-api/engines v0.0.0-20240806160829-cde2d
 github.com/berachain/beacon-kit/mod/node-api/engines v0.0.0-20240806160829-cde2d1347e7e/go.mod h1:lj5dEWEjUn4Mj9/qVrCKrfGqE7FCObk39VfqXs3Eo/E=
 github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df h1:fLL+7ZZcbVOmE3XE0o+ZGS8zyPLjki7LrZAsXpcG4Sc=
 github.com/berachain/beacon-kit/mod/payload v0.0.0-20240705193247-d464364483df/go.mod h1:wbSa9W1CDDzR9AptQfYf/16bWqktaIQIZdJsuKWeqC8=
-github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240821052951-c15422305b4e h1:1gzXFaLpNI/Hm1uxYu/mi9iH3ycAG2Lq8cea+tK6DCw=
-github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240821052951-c15422305b4e/go.mod h1:Mrq1qol8vbkgZp2IMPFwngg75qE3k9IvT2MouBEhuus=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240825202904-98dbc4268be1 h1:cYa9o1Lbyz6QkC/X5bECJ1S2p22PeFIlX8svZmIb8+c=
+github.com/berachain/beacon-kit/mod/primitives v0.0.0-20240825202904-98dbc4268be1/go.mod h1:Mrq1qol8vbkgZp2IMPFwngg75qE3k9IvT2MouBEhuus=
 github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6650da31 h1:1bJbJcoksyXfYMiga8YxPnkVKqT1lKwym/8kZnEPz58=
 github.com/berachain/beacon-kit/mod/state-transition v0.0.0-20240717225334-64ec6650da31/go.mod h1:sIzib45R7B9Q99yvsYUcj2xJZPBpe3J9JbcBDMZNp7E=
 github.com/berachain/cosmos-sdk v0.46.0-beta2.0.20240808182639-7bdbf06a94f2 h1:4qwOPga+dKeDelSJ6pseasQq6fcjd7iXhah0y7enuco=
