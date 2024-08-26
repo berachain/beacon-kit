@@ -37,7 +37,7 @@ import (
 func SetPruning[
 	LoggerT log.AdvancedLogger[LoggerT],
 ](opts pruningtypes.PruningOptions) func(*Service[LoggerT]) {
-	return func(bs *Service[LoggerT]) { bs.cms.SetPruning(opts) }
+	return func(bs *Service[LoggerT]) { bs.sm.CommitMultiStore().SetPruning(opts) }
 }
 
 // SetMinRetainBlocks returns a Service option function that sets the minimum
@@ -54,7 +54,7 @@ func SetMinRetainBlocks[
 func SetIAVLCacheSize[
 	LoggerT log.AdvancedLogger[LoggerT],
 ](size int) func(*Service[LoggerT]) {
-	return func(bs *Service[LoggerT]) { bs.cms.SetIAVLCacheSize(size) }
+	return func(bs *Service[LoggerT]) { bs.sm.CommitMultiStore().SetIAVLCacheSize(size) }
 }
 
 // SetIAVLDisableFastNode enables(false)/disables(true) fast node usage from the
@@ -62,7 +62,7 @@ func SetIAVLCacheSize[
 func SetIAVLDisableFastNode[
 	LoggerT log.AdvancedLogger[LoggerT],
 ](disable bool) func(*Service[LoggerT]) {
-	return func(bs *Service[LoggerT]) { bs.cms.SetIAVLDisableFastNode(disable) }
+	return func(bs *Service[LoggerT]) { bs.sm.CommitMultiStore().SetIAVLDisableFastNode(disable) }
 }
 
 // SetInterBlockCache provides a Service option function that sets the

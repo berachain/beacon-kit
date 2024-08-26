@@ -78,7 +78,7 @@ func (s *Service[LoggerT]) InitChain(
 	// stores
 	if req.InitialHeight > 1 {
 		initHeader.Height = req.InitialHeight
-		if err := s.cms.SetInitialVersion(req.InitialHeight); err != nil {
+		if err := s.sm.CommitMultiStore().SetInitialVersion(req.InitialHeight); err != nil {
 			return nil, err
 		}
 	}
@@ -190,7 +190,7 @@ func (s *Service[LoggerT]) Info(
 	context.Context,
 	*cmtabci.InfoRequest,
 ) (*cmtabci.InfoResponse, error) {
-	lastCommitID := s.cms.LastCommitID()
+	lastCommitID := s.sm.CommitMultiStore().LastCommitID()
 	appVersion := InitialAppVersion
 	if lastCommitID.Version > 0 {
 		ctx, err := s.CreateQueryContext(lastCommitID.Version, false)
@@ -430,12 +430,12 @@ func (s *Service[LoggerT]) Commit(
 	header := s.finalizeBlockState.Context().BlockHeader()
 	retainHeight := s.GetBlockRetentionHeight(header.Height)
 
-	rms, ok := s.cms.(*rootmulti.Store)
+	rms, ok := s.sm.CommitMultiStore().(*rootmulti.Store)
 	if ok {
 		rms.SetCommitHeader(header)
 	}
 
-	s.cms.Commit()
+	s.sm.CommitMultiStore().Commit()
 
 	resp := &cmtabci.CommitResponse{
 		RetainHeight: retainHeight,
@@ -447,7 +447,8 @@ func (s *Service[LoggerT]) Commit(
 }
 
 // workingHash gets the apphash that will be finalized in commit.
-// These writes will be persisted to the root multi-store (s.cms) and flushed
+// These writes will be persisted to the root multi-store
+// (s.sm.CommitMultiStore()) and flushed
 // to disk in the Commit phase. This means when the ABCI client requests
 // Commit(), the application state transitions will be flushed to disk and as a
 // result, but we already have
@@ -456,7 +457,8 @@ func (s *Service[LoggerT]) workingHash() []byte {
 	// Write the FinalizeBlock state into branched storage and commit the
 	// MultiStore. The write to the FinalizeBlock state writes all state
 	// transitions to the root
-	// MultiStore (s.cms) so when Commit() is called it persists those values.
+	// MultiStore (s.sm.CommitMultiStore()) so when Commit() is called it
+	// persists those values.
 	if s.finalizeBlockState == nil {
 		panic("workingHash() called before FinalizeBlock()")
 	}
@@ -464,7 +466,7 @@ func (s *Service[LoggerT]) workingHash() []byte {
 
 	// Get the hash of all writes in order to return the apphash to the comet in
 	// finalizeBlock.
-	commitHash := s.cms.WorkingHash()
+	commitHash := s.sm.CommitMultiStore().WorkingHash()
 	s.logger.Debug(
 		"hash of all writes",
 		"workingHash",
@@ -499,7 +501,7 @@ func (s *Service[LoggerT]) CreateQueryContext(
 	prove bool,
 ) (sdk.Context, error) {
 	// use custom query multi-store if provided
-	lastBlockHeight := s.cms.LatestVersion()
+	lastBlockHeight := s.sm.CommitMultiStore().LatestVersion()
 	if lastBlockHeight == 0 {
 		return sdk.Context{}, errorsmod.Wrapf(
 			sdkerrors.ErrInvalidHeight,
@@ -529,7 +531,7 @@ func (s *Service[LoggerT]) CreateQueryContext(
 			)
 	}
 
-	cacheMS, err := s.cms.CacheMultiStoreWithVersion(height)
+	cacheMS, err := s.sm.CommitMultiStore().CacheMultiStoreWithVersion(height)
 	if err != nil {
 		return sdk.Context{},
 			errorsmod.Wrapf(
@@ -541,7 +543,11 @@ func (s *Service[LoggerT]) CreateQueryContext(
 			)
 	}
 
-	return sdk.NewContext(cacheMS, true, servercmtlog.WrapSDKLogger(s.logger)), nil
+	return sdk.NewContext(
+		cacheMS,
+		true,
+		servercmtlog.WrapSDKLogger(s.logger),
+	), nil
 }
 
 // GetBlockRetentionHeight returns the height for which all blocks below this

@@ -30,6 +30,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	servercmtlog "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/log"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/params"
+	statem "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/state"
 	"github.com/berachain/beacon-kit/mod/log"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
@@ -67,7 +68,7 @@ type Service[
 	logger     LoggerT
 	name       string
 	db         dbm.DB
-	cms        storetypes.CommitMultiStore
+	sm         *statem.Manager
 	Middleware MiddlewareI
 
 	prepareProposalState *state
@@ -98,11 +99,11 @@ func NewService[
 		logger: logger,
 		name:   "beacond",
 		db:     db,
-		cms: store.NewCommitMultiStore(
+		sm: statem.NewManager(store.NewCommitMultiStore(
 			db,
 			servercmtlog.WrapSDKLogger(logger),
 			storemetrics.NewNoOpMetrics(),
-		),
+		)),
 		Middleware: middleware,
 		cmtCfg:     cmtCfg,
 		paramStore: params.NewConsensusParamsStore(cs),
@@ -116,7 +117,7 @@ func NewService[
 	}
 
 	if s.interBlockCache != nil {
-		s.cms.SetInterBlockCache(s.interBlockCache)
+		s.sm.CommitMultiStore().SetInterBlockCache(s.interBlockCache)
 	}
 
 	// Load the s.
@@ -188,7 +189,7 @@ func (s *Service[_]) Name() string {
 
 // CommitMultiStore returns the CommitMultiStore of the cometbft.
 func (s *Service[_]) CommitMultiStore() storetypes.CommitMultiStore {
-	return s.cms
+	return s.sm.CommitMultiStore()
 }
 
 // AppVersion returns the application's protocol version.
@@ -209,36 +210,36 @@ func (s *Service[_]) MountStore(
 	key storetypes.StoreKey,
 	typ storetypes.StoreType,
 ) {
-	s.cms.MountStoreWithDB(key, typ, nil)
+	s.sm.CommitMultiStore().MountStoreWithDB(key, typ, nil)
 }
 
 func (s *Service[_]) LoadLatestVersion() error {
-	if err := s.cms.LoadLatestVersion(); err != nil {
+	if err := s.sm.CommitMultiStore().LoadLatestVersion(); err != nil {
 		return fmt.Errorf("failed to load latest version: %w", err)
 	}
 
 	// Validator pruning settings.
-	return s.cms.GetPruning().Validate()
+	return s.sm.CommitMultiStore().GetPruning().Validate()
 }
 
 func (s *Service[_]) LoadVersion(version int64) error {
-	err := s.cms.LoadVersion(version)
+	err := s.sm.CommitMultiStore().LoadVersion(version)
 	if err != nil {
 		return fmt.Errorf("failed to load version %d: %w", version, err)
 	}
 
 	// Validate Pruning settings.
-	return s.cms.GetPruning().Validate()
+	return s.sm.CommitMultiStore().GetPruning().Validate()
 }
 
 // LastCommitID returns the last CommitID of the multistore.
 func (s *Service[_]) LastCommitID() storetypes.CommitID {
-	return s.cms.LastCommitID()
+	return s.sm.CommitMultiStore().LastCommitID()
 }
 
 // LastBlockHeight returns the last committed block height.
 func (s *Service[_]) LastBlockHeight() int64 {
-	return s.cms.LastCommitID().Version
+	return s.sm.CommitMultiStore().LastCommitID().Version
 }
 
 func (s *Service[_]) setMinRetainBlocks(minRetainBlocks uint64) {
@@ -252,7 +253,7 @@ func (s *Service[_]) setInterBlockCache(
 }
 
 func (s *Service[LoggerT]) setState(mode execMode) {
-	ms := s.cms.CacheMultiStore()
+	ms := s.sm.CommitMultiStore().CacheMultiStore()
 	baseState := &state{
 		ms:  ms,
 		ctx: sdk.NewContext(ms, false, servercmtlog.WrapSDKLogger(s.logger)),
