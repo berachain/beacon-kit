@@ -272,48 +272,10 @@ func (s *Service[LoggerT]) setState(mode execMode) {
 // GetConsensusParams returns the current consensus parameters from the
 // Service's
 // ParamStore. If the Service has no ParamStore defined, nil is returned.
-func (s *Service[_]) GetConsensusParams(
-	ctx context.Context,
-) cmtproto.ConsensusParams {
+func (s *Service[_]) GetConsensusParams() cmtproto.ConsensusParams {
 	//#nosec:G703 // bet.
-	cp, _ := s.paramStore.Get(ctx)
+	cp, _ := s.paramStore.Get(context.TODO())
 	return cp
-}
-
-func (s *Service[_]) validateFinalizeBlockHeight(
-	req *abci.FinalizeBlockRequest,
-) error {
-	if req.Height < 1 {
-		return fmt.Errorf("invalid height: %d", req.Height)
-	}
-
-	lastBlockHeight := s.LastBlockHeight()
-
-	// expectedHeight holds the expected height to validate
-	var expectedHeight int64
-	if lastBlockHeight == 0 && s.initialHeight > 1 {
-		// In this case, we're validating the first block of the chain, i.e no
-		// previous commit. The height we're expecting is the initial height.
-		expectedHeight = s.initialHeight
-	} else {
-		// This case can mean two things:
-		//
-		// - Either there was already a previous commit in the store, in which
-		// case we increment the version from there.
-		// - Or there was no previous commit, in which case we start at version
-		// 1.
-		expectedHeight = lastBlockHeight + 1
-	}
-
-	if req.Height != expectedHeight {
-		return fmt.Errorf(
-			"invalid height: %d; expected: %d",
-			req.Height,
-			expectedHeight,
-		)
-	}
-
-	return nil
 }
 
 // convertValidatorUpdate abstracts the conversion of a

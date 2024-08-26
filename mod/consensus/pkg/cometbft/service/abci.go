@@ -394,12 +394,48 @@ func (s *Service[LoggerT]) internalFinalizeBlock(
 		// continue
 	}
 
-	cp := s.GetConsensusParams(s.finalizeBlockState.Context())
+	cp := s.GetConsensusParams()
 	return &cmtabci.FinalizeBlockResponse{
 		TxResults:             txResults,
 		ValidatorUpdates:      valUpdates,
 		ConsensusParamUpdates: &cp,
 	}, nil
+}
+
+func (s *Service[_]) validateFinalizeBlockHeight(
+	req *cmtabci.FinalizeBlockRequest,
+) error {
+	if req.Height < 1 {
+		return fmt.Errorf("invalid height: %d", req.Height)
+	}
+
+	lastBlockHeight := s.LastBlockHeight()
+
+	// expectedHeight holds the expected height to validate
+	var expectedHeight int64
+	if lastBlockHeight == 0 && s.initialHeight > 1 {
+		// In this case, we're validating the first block of the chain, i.e no
+		// previous commit. The height we're expecting is the initial height.
+		expectedHeight = s.initialHeight
+	} else {
+		// This case can mean two things:
+		//
+		// - Either there was already a previous commit in the store, in which
+		// case we increment the version from there.
+		// - Or there was no previous commit, in which case we start at version
+		// 1.
+		expectedHeight = lastBlockHeight + 1
+	}
+
+	if req.Height != expectedHeight {
+		return fmt.Errorf(
+			"invalid height: %d; expected: %d",
+			req.Height,
+			expectedHeight,
+		)
+	}
+
+	return nil
 }
 
 func (s *Service[_]) FinalizeBlock(
@@ -611,7 +647,7 @@ func (s *Service[_]) GetBlockRetentionHeight(commitHeight int64) int64 {
 	if s.finalizeBlockState == nil {
 		return 0
 	}
-	cp := s.GetConsensusParams(s.finalizeBlockState.Context())
+	cp := s.GetConsensusParams()
 	if cp.Evidence != nil && cp.Evidence.MaxAgeNumBlocks > 0 {
 		retentionHeight = commitHeight - cp.Evidence.MaxAgeNumBlocks
 	}
