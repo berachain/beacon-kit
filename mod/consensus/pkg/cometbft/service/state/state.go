@@ -21,7 +21,11 @@
 package state
 
 import (
+	"cosmossdk.io/log"
+	"cosmossdk.io/store"
+	storemetrics "cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
+	dbm "github.com/cosmos/cosmos-db"
 )
 
 type Manager struct {
@@ -30,10 +34,15 @@ type Manager struct {
 
 // NewManager creates a new Manager.
 func NewManager(
-	cms storetypes.CommitMultiStore,
+	db dbm.DB,
+	logger log.Logger,
 	opts ...func(*Manager),
 ) *Manager {
-	sm := &Manager{cms: cms}
+	sm := &Manager{cms: store.NewCommitMultiStore(
+		db,
+		logger,
+		storemetrics.NewNoOpMetrics(),
+	)}
 	for _, opt := range opts {
 		opt(sm)
 	}

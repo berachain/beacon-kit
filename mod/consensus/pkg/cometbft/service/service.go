@@ -25,8 +25,6 @@ import (
 	"errors"
 	"fmt"
 
-	"cosmossdk.io/store"
-	storemetrics "cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
 	servercmtlog "github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/log"
 	"github.com/berachain/beacon-kit/mod/consensus/pkg/cometbft/service/params"
@@ -99,11 +97,10 @@ func NewService[
 		logger: logger,
 		name:   "beacond",
 		db:     db,
-		sm: statem.NewManager(store.NewCommitMultiStore(
+		sm: statem.NewManager(
 			db,
 			servercmtlog.WrapSDKLogger(logger),
-			storemetrics.NewNoOpMetrics(),
-		)),
+		),
 		Middleware: middleware,
 		cmtCfg:     cmtCfg,
 		paramStore: params.NewConsensusParamsStore(cs),
