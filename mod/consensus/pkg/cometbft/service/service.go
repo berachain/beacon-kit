@@ -232,11 +232,6 @@ func (s *Service[_]) LoadVersion(version int64) error {
 	return s.sm.CommitMultiStore().GetPruning().Validate()
 }
 
-// LastCommitID returns the last CommitID of the multistore.
-func (s *Service[_]) LastCommitID() storetypes.CommitID {
-	return s.sm.CommitMultiStore().LastCommitID()
-}
-
 // LastBlockHeight returns the last committed block height.
 func (s *Service[_]) LastBlockHeight() int64 {
 	return s.sm.CommitMultiStore().LastCommitID().Version

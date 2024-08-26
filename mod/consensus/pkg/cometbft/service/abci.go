@@ -152,7 +152,7 @@ func (s *Service[LoggerT]) InitChain(
 	return &cmtabci.InitChainResponse{
 		ConsensusParams: res.ConsensusParams,
 		Validators:      res.Validators,
-		AppHash:         s.LastCommitID().Hash,
+		AppHash:         s.sm.CommitMultiStore().LastCommitID().Hash,
 	}, nil
 }
 
