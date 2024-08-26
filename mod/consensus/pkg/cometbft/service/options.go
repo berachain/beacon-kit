@@ -107,3 +107,7 @@ func (s *Service[_]) SetAppVersion(ctx context.Context, v uint64) error {
 	cp.Version.App = v
 	return s.paramStore.Set(ctx, cp)
 }
+
+func (s *Service[_]) SetCommitHook(hook func(context.Context) error) {
+	s.commitHook = hook
+}

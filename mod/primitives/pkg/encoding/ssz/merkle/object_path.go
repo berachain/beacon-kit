@@ -22,6 +22,7 @@ package merkle
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
@@ -112,4 +113,12 @@ func getBaseIndex(typ schema.SSZType) uint64 {
 		return 2
 	}
 	return 1
+}
+
+// Append appends a part to the path.
+func (p ObjectPath[GeneralizedIndexT, RootT]) Append(
+	part string,
+) ObjectPath[GeneralizedIndexT, RootT] {
+	s := fmt.Sprintf("%s/%s", p, part)
+	return ObjectPath[GeneralizedIndexT, RootT](s)
 }

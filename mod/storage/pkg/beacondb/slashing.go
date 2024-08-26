@@ -24,6 +24,7 @@ import (
 	"cosmossdk.io/collections"
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	fastssz "github.com/ferranbt/fastssz"
 )
 
 func (kv *KVStore[
@@ -71,6 +72,12 @@ func (kv *KVStore[
 	index uint64,
 	amount math.Gwei,
 ) error {
+	var bz []byte
+	bz = fastssz.MarshalUint64(bz, amount.Unwrap())
+	if err := kv.sszDB.SetListElementRaw(
+		kv.ctx, "slashings", index, bz); err != nil {
+		return err
+	}
 	return kv.slashings.Set(kv.ctx, index, amount.Unwrap())
 }
 
@@ -95,5 +102,10 @@ func (kv *KVStore[
 ]) SetTotalSlashing(
 	amount math.Gwei,
 ) error {
+	var bz []byte
+	bz = fastssz.MarshalUint64(bz, amount.Unwrap())
+	if err := kv.sszDB.SetRaw(kv.ctx, "total_slashing", bz); err != nil {
+		return err
+	}
 	return kv.totalSlashing.Set(kv.ctx, amount.Unwrap())
 }

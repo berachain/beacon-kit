@@ -27,6 +27,9 @@ func (kv *KVStore[
 ]) SetFork(
 	fork ForkT,
 ) error {
+	if err := kv.sszDB.SetObject(kv.ctx, "fork", fork); err != nil {
+		return err
+	}
 	return kv.fork.Set(kv.ctx, fork)
 }
 

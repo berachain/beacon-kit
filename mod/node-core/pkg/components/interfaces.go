@@ -36,6 +36,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/eip4844"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/transition"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/sszdb"
 	v1 "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	fastssz "github.com/ferranbt/fastssz"
@@ -162,6 +163,7 @@ type (
 	BeaconBlockHeader[T any] interface {
 		constraints.Empty[T]
 		constraints.SSZMarshallableRootable
+		sszdb.Treeable
 		New(
 			slot math.Slot,
 			proposerIndex math.ValidatorIndex,
@@ -498,6 +500,8 @@ type (
 	ExecutionPayloadHeader[T any] interface {
 		constraints.SSZMarshallable
 		constraints.Versionable
+		constraints.Empty[T]
+		sszdb.Treeable
 		NewFromSSZ([]byte, uint32) (T, error)
 		// GetNumber returns the block number of the ExecutionPayloadHeader.
 		GetNumber() math.U64

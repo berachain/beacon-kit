@@ -25,6 +25,7 @@ import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constants"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/constraints"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/crypto"
+	"github.com/berachain/beacon-kit/mod/primitives/pkg/encoding/ssz/schema"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
 	fastssz "github.com/ferranbt/fastssz"
 	"github.com/karalabe/ssz"
@@ -138,6 +139,25 @@ func (v *Validator) DefineSSZ(codec *ssz.Codec) {
 	ssz.DefineUint64(codec, &v.ActivationEpoch)
 	ssz.DefineUint64(codec, &v.ExitEpoch)
 	ssz.DefineUint64(codec, &v.WithdrawableEpoch)
+}
+
+func (v *Validator) DefineSchema(codec *schema.Codec) {
+	schema.DefineStaticBytes(codec, "pubkey", &v.Pubkey)
+	schema.DefineStaticBytes(
+		codec,
+		"withdrawal_credentials",
+		&v.WithdrawalCredentials,
+	)
+	schema.DefineUint64(codec, "effective_balance", &v.EffectiveBalance)
+	schema.DefineBool(codec, "slashed", &v.Slashed)
+	schema.DefineUint64(
+		codec,
+		"activation_eligibility_epoch",
+		&v.ActivationEligibilityEpoch,
+	)
+	schema.DefineUint64(codec, "activation_epoch", &v.ActivationEpoch)
+	schema.DefineUint64(codec, "exit_epoch", &v.ExitEpoch)
+	schema.DefineUint64(codec, "withdrawal_epoch", &v.WithdrawableEpoch)
 }
 
 // HashTreeRoot computes the SSZ hash tree root of the Validator object.

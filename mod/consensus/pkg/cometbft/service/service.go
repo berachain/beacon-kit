@@ -70,6 +70,7 @@ type Service[
 	cms        storetypes.CommitMultiStore
 	Middleware MiddlewareI
 
+	commitHook           func(context.Context) error
 	prepareProposalState *state
 	processProposalState *state
 	finalizeBlockState   *state

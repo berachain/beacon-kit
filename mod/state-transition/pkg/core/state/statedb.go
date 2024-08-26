@@ -21,6 +21,9 @@
 package state
 
 import (
+	"bytes"
+	"fmt"
+
 	"github.com/berachain/beacon-kit/mod/errors"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
@@ -379,7 +382,7 @@ func (s *StateDB[
 	}
 
 	// TODO: Properly move BeaconState into full generics.
-	return (*new(BeaconStateMarshallableT)).New(
+	state, err := (*new(BeaconStateMarshallableT)).New(
 		s.cs.ActiveForkVersionForSlot(slot),
 		genesisValidatorsRoot,
 		slot,
@@ -398,6 +401,22 @@ func (s *StateDB[
 		slashings,
 		totalSlashings,
 	)
+	if err != nil {
+		return empty, err
+	}
+	iavlHash := state.HashTreeRoot()
+	sszDBHash, err := s.RootHash()
+	if err != nil {
+		return empty, err
+	}
+	if !bytes.Equal(iavlHash[:], sszDBHash) {
+		return empty, fmt.Errorf(
+			"hash mismatch: iavl=%x, sszdb=%x",
+			iavlHash[:],
+			sszDBHash,
+		)
+	}
+	return state, nil
 }
 
 // HashTreeRoot is the interface for the beacon store.

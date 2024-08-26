@@ -21,16 +21,23 @@
 package components
 
 import (
+	"reflect"
+
 	"cosmossdk.io/core/store"
 	"cosmossdk.io/depinject"
+	"github.com/berachain/beacon-kit/mod/config"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/beacondb"
 	"github.com/berachain/beacon-kit/mod/storage/pkg/encoding"
+	"github.com/berachain/beacon-kit/mod/storage/pkg/sszdb"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/spf13/cast"
 )
 
 // KVStoreInput is the input for the ProvideKVStore function.
 type KVStoreInput struct {
 	depinject.In
 	KVStoreService store.KVStoreService
+	SchemaDB       *sszdb.SchemaDB
 }
 
 // ProvideKVStore is the depinject provider that returns a beacon KV store.
@@ -53,5 +60,34 @@ func ProvideKVStore[
 		*Fork,
 		*Validator,
 		Validators,
-	](in.KVStoreService, payloadCodec)
+	](in.KVStoreService, payloadCodec, in.SchemaDB)
+}
+
+// TODO
+// delete once the need for bootstrapping is removed from sszdb.
+// type constraint will just be sszdb.Treeable.
+type sszDBRoot[RootT any] interface {
+	sszdb.Treeable
+	Empty() RootT
+}
+
+func ProvideSSZDB[RootT sszDBRoot[RootT]](
+	appOpts config.AppOptions,
+) (*sszdb.Backend, *sszdb.SchemaDB, error) {
+	cfg := sszdb.BackendConfig{
+		Path: cast.ToString(appOpts.Get(flags.FlagHome)) + "/data/ssz.db",
+	}
+	backend, err := sszdb.NewBackend(cfg)
+	if err != nil {
+		return nil, nil, err
+	}
+	var t RootT
+	typ := reflect.TypeOf(t)
+	if typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
+	}
+	obj := reflect.New(typ).Interface()
+	empty := obj.(sszDBRoot[RootT]).Empty()
+	schemaDB, err := sszdb.NewSchemaDB(backend, empty)
+	return backend, schemaDB, err
 }

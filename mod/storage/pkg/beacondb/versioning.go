@@ -23,6 +23,7 @@ package beacondb
 import (
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/common"
 	"github.com/berachain/beacon-kit/mod/primitives/pkg/math"
+	fastssz "github.com/ferranbt/fastssz"
 )
 
 // SetGenesisValidatorsRoot sets the genesis validators root in the beacon
@@ -33,6 +34,13 @@ func (kv *KVStore[
 ]) SetGenesisValidatorsRoot(
 	root common.Root,
 ) error {
+	if err := kv.sszDB.SetRaw(
+		kv.ctx,
+		"genesis_validators_root",
+		root[:],
+	); err != nil {
+		return err
+	}
 	return kv.genesisValidatorsRoot.Set(kv.ctx, root[:])
 }
 
@@ -65,5 +73,10 @@ func (kv *KVStore[
 ]) SetSlot(
 	slot math.Slot,
 ) error {
+	var bz []byte
+	bz = fastssz.MarshalUint64(bz, uint64(slot))
+	if err := kv.sszDB.SetRaw(kv.ctx, "slot", bz); err != nil {
+		return err
+	}
 	return kv.slot.Set(kv.ctx, slot.Unwrap())
 }
