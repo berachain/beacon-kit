@@ -47,10 +47,20 @@ func NewManager(
 			db,
 			logger,
 			storemetrics.NewNoOpMetrics(),
-		)}
+		),
+	}
+
 	for _, opt := range opts {
 		opt(sm)
 	}
+
+	// TODO: Kill KVStoreService and register here.
+	// sm.cms.MountStoreWithDB(
+	// 	storetypes.NewKVStoreKey("beacon"),
+	// 	storetypes.StoreTypeIAVL,
+	// 	db,
+	// )
+
 	return sm
 }
 
