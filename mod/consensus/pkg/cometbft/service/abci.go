@@ -394,11 +394,10 @@ func (s *Service[LoggerT]) internalFinalizeBlock(
 		// continue
 	}
 
-	cp := s.GetConsensusParams()
 	return &cmtabci.FinalizeBlockResponse{
 		TxResults:             txResults,
 		ValidatorUpdates:      valUpdates,
-		ConsensusParamUpdates: &cp,
+		ConsensusParamUpdates: s.GetConsensusParams(),
 	}, nil
 }
 

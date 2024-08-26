@@ -272,10 +272,10 @@ func (s *Service[LoggerT]) setState(mode execMode) {
 // GetConsensusParams returns the current consensus parameters from the
 // Service's
 // ParamStore. If the Service has no ParamStore defined, nil is returned.
-func (s *Service[_]) GetConsensusParams() cmtproto.ConsensusParams {
+func (s *Service[_]) GetConsensusParams() *cmtproto.ConsensusParams {
 	//#nosec:G703 // bet.
 	cp, _ := s.paramStore.Get(context.TODO())
-	return cp
+	return &cp
 }
 
 // convertValidatorUpdate abstracts the conversion of a
