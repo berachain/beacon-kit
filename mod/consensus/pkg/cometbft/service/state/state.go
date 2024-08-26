@@ -61,5 +61,3 @@ func (sm *Manager) Close() error {
 func (sm *Manager) CommitMultiStore() storetypes.CommitMultiStore {
 	return sm.cms
 }
-
-// Henlo
