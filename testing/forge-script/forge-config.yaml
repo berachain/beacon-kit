@@ -24,8 +24,8 @@ deployment:
   contracts_path: "contracts"  # give the path till contracts, if the repository is the contract folder itself, then leave it empty
   script_path: "script/DeployAndCallERC20.s.sol"  # this must be relative to the repository path + contracts_path(if applicable)
   contract_name: "DeployAndCallERC20"
-  dependency: 
-    type : "none"  # type can be `git` or `local` or `none`
+  dependency:
+    type: "none"  # type can be `git` or `local` or `none`
     path: "script/berps/dependency/dependency.sh"
   rpc_url: "http://HOST_IP_ADDRESS:8547"  # If you spin up local devnet via kurtosis, then public port is 8547
   wallet:
