@@ -54,9 +54,9 @@ def deploy_contracts(plan, deployment):
         plan.exec(
             service_name = foundry_service.name,
             recipe = ExecRecipe(
-                command = ["/bin/sh", "-c", "cd {} && sh {}".format(contract_path,dependency_path)],
+                command = ["/bin/sh", "-c", "cd {} && sh {}".format(contract_path, dependency_path)],
             ),
-        )    
+        )
     if script_path:
         result = plan.exec(
             service_name = foundry_service.name,
